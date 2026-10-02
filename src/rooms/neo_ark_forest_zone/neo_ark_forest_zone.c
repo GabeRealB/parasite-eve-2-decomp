@@ -275,10 +275,10 @@ void func_neo_ark_forest_zone_8017E3C0(Task* arg0)
 {
     gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
     if (arg0->state == 0) {
-        D_80115758  = 0x601D9;
-        D_8011572C  = 0x601F5;
-        D_80115750  = 0x60211;
-        arg0->state = 1;
+        gRoomEffectFlashId      = EFFECT_NEO_ARK_FOREST_ZONE_FLASH;
+        gRoomEffectTwinTrailId  = EFFECT_NEO_ARK_FOREST_ZONE_TWIN_TRAIL;
+        gRoomEffectSparkBurstId = EFFECT_NEO_ARK_FOREST_ZONE_SPARK_BURST;
+        arg0->state             = 1;
     }
 }
 

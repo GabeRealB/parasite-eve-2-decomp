@@ -1192,15 +1192,15 @@ void func_neo_ark_pavilion_8017EBF4(Task* task)
 void func_neo_ark_pavilion_8017FC10(Task* arg0)
 {
     if (arg0->state == 0) {
-        D_80115758  = 0x601DA;
-        D_8011572C  = 0x601F6;
-        D_80115750  = 0x60212;
-        D_80115734  = 0x60227;
-        D_80115730  = 0x60232;
-        D_80115754  = 0x6023D;
-        D_8011574C  = 0x60176;
-        D_80115738  = 0x60177;
-        arg0->state = 1;
+        gRoomEffectFlashId        = EFFECT_NEO_ARK_PAVILION_FLASH;
+        gRoomEffectTwinTrailId    = EFFECT_NEO_ARK_PAVILION_TWIN_TRAIL;
+        gRoomEffectSparkBurstId   = EFFECT_NEO_ARK_PAVILION_SPARK_BURST;
+        gRoomEffectGlowDiscId     = EFFECT_NEO_ARK_PAVILION_GLOW_DISC;
+        gRoomEffectFlyingSparkId  = EFFECT_NEO_ARK_PAVILION_FLYING_SPARK;
+        gRoomEffectOrangeBurst2Id = EFFECT_NEO_ARK_PAVILION_ORANGE_BURST_2;
+        gRoomEffectWaterRippleId  = EFFECT_NEO_ARK_PAVILION_WATER_RIPPLE;
+        gRoomEffectWaterSprayId   = EFFECT_NEO_ARK_PAVILION_WATER_SPRAY;
+        arg0->state               = 1;
     }
 }
 

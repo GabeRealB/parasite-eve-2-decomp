@@ -120,8 +120,8 @@ void func_inferno_8012EF88(Task* arg0)
             arg0->state = ((u16)(Gp_StateC08.field_0 % 10) - 1) * 4 + 1;
             return;
         case 1:
-            Gp_SpawnEff(0x800600DA, coord, 3, NULL);
-            Gp_SpawnEff(0x800600DA, coord, 5, NULL);
+            Gp_SpawnEff((EFFECT_INFERNO_FLAME | EFFECT_SPAWN_UNLIMITED), coord, 3, NULL);
+            Gp_SpawnEff((EFFECT_INFERNO_FLAME | EFFECT_SPAWN_UNLIMITED), coord, 5, NULL);
             Gp_StateC08.field_6 |= 8;
             Gp_SpawnPadLerp(0x10, 0xFF, 8);
             arg0->state = 0xC;
@@ -129,20 +129,20 @@ void func_inferno_8012EF88(Task* arg0)
         case 5:
             i = 0x200;
             func_inferno_8012F3EC(mem->angle);
-            Gp_SpawnEff(0x800600DA, coord, 3, NULL);
+            Gp_SpawnEff((EFFECT_INFERNO_FLAME | EFFECT_SPAWN_UNLIMITED), coord, 3, NULL);
             mem->scale = 0x600;
             do {
                 mem->move.vx = (rsin(i) * mem->scale) >> 12;
                 mem->move.vz = (rcos(i) * mem->scale) >> 12;
                 i           += 0x400;
-                Gp_SpawnEff(0x800600DA, coord, 4, &mem->move);
+                Gp_SpawnEff((EFFECT_INFERNO_FLAME | EFFECT_SPAWN_UNLIMITED), coord, 4, &mem->move);
             } while (i < 0x1200);
             Gp_StateC08.field_6 |= 8;
             Gp_SpawnPadLerp(0x14, 0xFF, 8);
             arg0->state = 0xC;
             return;
         case 9:
-            Gp_SpawnEff(0x800600DA, coord, 0, NULL);
+            Gp_SpawnEff((EFFECT_INFERNO_FLAME | EFFECT_SPAWN_UNLIMITED), coord, 0, NULL);
             Gp_SpawnPadLerp(0xC, 0xFF, 8);
             arg0->state = 0xA;
             return;
@@ -158,7 +158,7 @@ void func_inferno_8012EF88(Task* arg0)
                 mem->move.vx = (rsin(i) * mem->scale) >> 12;
                 mem->move.vz = (rcos(i) * mem->scale) >> 12;
                 i           += 0x2AA;
-                Gp_SpawnEff(0x800600DA, coord, 1, &mem->move);
+                Gp_SpawnEff((EFFECT_INFERNO_FLAME | EFFECT_SPAWN_UNLIMITED), coord, 1, &mem->move);
             } while (i < 0x1151);
             Gp_SpawnPadLerp(0xC, 0xFF, 8);
             arg0->state = 0xB;
@@ -177,7 +177,7 @@ void func_inferno_8012EF88(Task* arg0)
                 mem->move.vx = (rsin(i) * mem->scale) >> 12;
                 mem->move.vz = (rcos(i) * mem->scale) >> 12;
                 i           += 0x2AA;
-                Gp_SpawnEff(0x800600DA, coord, 2, &mem->move);
+                Gp_SpawnEff((EFFECT_INFERNO_FLAME | EFFECT_SPAWN_UNLIMITED), coord, 2, &mem->move);
             } while (i < 0xFFC);
             Gp_StateC08.field_6 |= 8;
             Gp_SpawnPadLerp(0x18, 0xFF, 8);

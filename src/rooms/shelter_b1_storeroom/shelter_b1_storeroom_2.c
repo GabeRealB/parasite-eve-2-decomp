@@ -627,17 +627,17 @@ WorldCollisionSurfaceProperties* D_shelter_b1_storeroom_80186DEC[8] = {
 void func_shelter_b1_storeroom_8017D7EC(Task* arg0)
 {
     if (arg0->state == 0) {
-        D_80115728  = 0x60246;
-        D_80115744  = 0x60252;
-        D_8011573C  = 0x6025D;
-        D_80115720  = 0x60269;
-        D_80115758  = 0x601CA;
-        D_8011572C  = 0x601E6;
-        D_80115750  = 0x60202;
-        D_80115734  = 0x6021E;
-        D_80115730  = 0x60229;
-        D_80115754  = 0x60234;
-        arg0->state = 1;
+        gRoomEffectMoteId         = EFFECT_SHELTER_B1_STOREROOM_MOTE;
+        gRoomEffectHaloId         = EFFECT_SHELTER_B1_STOREROOM_HALO;
+        gRoomEffectOrangeBurstId  = EFFECT_SHELTER_B1_STOREROOM_ORANGE_BURST;
+        gRoomEffectSparkEmitterId = EFFECT_SHELTER_B1_STOREROOM_SPARK_EMITTER;
+        gRoomEffectFlashId        = EFFECT_SHELTER_B1_STOREROOM_FLASH;
+        gRoomEffectTwinTrailId    = EFFECT_SHELTER_B1_STOREROOM_TWIN_TRAIL;
+        gRoomEffectSparkBurstId   = EFFECT_SHELTER_B1_STOREROOM_SPARK_BURST;
+        gRoomEffectGlowDiscId     = EFFECT_SHELTER_B1_STOREROOM_GLOW_DISC;
+        gRoomEffectFlyingSparkId  = EFFECT_SHELTER_B1_STOREROOM_FLYING_SPARK;
+        gRoomEffectOrangeBurst2Id = EFFECT_SHELTER_B1_STOREROOM_ORANGE_BURST_2;
+        arg0->state               = 1;
     }
 
     switch (Gp_GetViewIndex() & 0xFF) {

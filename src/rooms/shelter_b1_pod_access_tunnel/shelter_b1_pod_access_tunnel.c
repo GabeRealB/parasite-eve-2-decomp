@@ -1473,10 +1473,10 @@ void func_shelter_b1_pod_access_tunnel_8017E7D4(Task* arg0)
     u8 view;
 
     if (arg0->state == 0) {
-        D_80115758  = 0x601CD;
-        D_8011572C  = 0x601E9;
-        D_80115750  = 0x60205;
-        arg0->state = 1;
+        gRoomEffectFlashId      = EFFECT_SHELTER_B1_POD_ACCESS_TUNNEL_FLASH;
+        gRoomEffectTwinTrailId  = EFFECT_SHELTER_B1_POD_ACCESS_TUNNEL_TWIN_TRAIL;
+        gRoomEffectSparkBurstId = EFFECT_SHELTER_B1_POD_ACCESS_TUNNEL_SPARK_BURST;
+        arg0->state             = 1;
     }
     view = Gp_GetViewIndex();
     switch (view) {

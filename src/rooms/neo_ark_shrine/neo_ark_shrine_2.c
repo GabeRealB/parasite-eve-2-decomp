@@ -1570,16 +1570,16 @@ static void func_neo_ark_shrine_8017F86C(Task* task)
 }
 
 /// On the task's first tick stores three ids (0x601DF, 0x601FB, 0x60217) into
-/// the `D_80115758` / `D_8011572C` / `D_80115750` slots; then, every tick, runs
+/// the `gRoomEffectFlashId` / `gRoomEffectTwinTrailId` / `gRoomEffectSparkBurstId` slots; then, every tick, runs
 /// `func_neo_ark_shrine_8017FC14` over the positions the current camera view
 /// shows, drawn from one of the room's `SVECTOR` arrays.
 void func_neo_ark_shrine_8017F8DC(Task* task)
 {
     if (task->state == 0) {
-        D_80115758  = 0x601DF;
-        D_8011572C  = 0x601FB;
-        D_80115750  = 0x60217;
-        task->state = 1;
+        gRoomEffectFlashId      = EFFECT_NEO_ARK_SHRINE_FLASH;
+        gRoomEffectTwinTrailId  = EFFECT_NEO_ARK_SHRINE_TWIN_TRAIL;
+        gRoomEffectSparkBurstId = EFFECT_NEO_ARK_SHRINE_SPARK_BURST;
+        task->state             = 1;
     }
 
     switch (Gp_GetViewIndex() & 0xFF) {

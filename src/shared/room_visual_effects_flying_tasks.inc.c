@@ -4,7 +4,7 @@
 
 /// A glowing disc attached to its parent at the work block's position. In
 /// state 1 the disc grows, and every fourth tick the task spawns the effect
-/// `D_80115730` names at a random joint of the player's model and adopts it
+/// `gRoomEffectFlyingSparkId` names at a random joint of the player's model and adopts it
 /// as a child task; state 2 adds a flickering half-bright second disc; state 3
 /// drifts the disc away while it fades inside an expanding ring, then releases
 /// the work block. The spawn argument picks the disc's colour shifts. It
@@ -49,7 +49,7 @@ static inline void RoomFx_GlowDiscTask(Task* arg0)
             if (!(mem->age & 3)) {
                 Task* player    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                spawned         = Gp_SpawnEff(D_80115730, &player->extra.tmd->coords[((gRandomLcgState >> 16) & 0xF) + 3], coord, NULL);
+                spawned         = Gp_SpawnEff(gRoomEffectFlyingSparkId, &player->extra.tmd->coords[((gRandomLcgState >> 16) & 0xF) + 3], coord, NULL);
                 if (spawned != NULL) {
                     taskReparent(arg0, spawned->task);
                 }

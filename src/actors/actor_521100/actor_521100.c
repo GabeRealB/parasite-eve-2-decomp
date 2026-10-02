@@ -1908,7 +1908,7 @@ static void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
                 damage           >>= 1;
                 if ((Gp_GetIdParam0(work->rec534[i].key.value) & 0xFFFF) == 5) {
                     damage *= 2;
-                    Gp_SpawnEff(0x6009C, &arg0->extra.tmd->coords[3], 2, NULL);
+                    Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 2, NULL);
                 }
                 if ((work->field_69E == 0) && (work->field_6AC <= 0)) {
                     work->field_69E = 5;
@@ -2297,7 +2297,7 @@ static void func_actor_521100_80133104(Task* arg0)
         vec->vx = -0x320;
         vec->vy = 0x64;
         vec->vz = 0;
-        Gp_SpawnEff(0x6009C, work->field_654->extra.tmd->coords, 0, vec);
+        Gp_SpawnEff(EFFECT_CRITICAL_HIT, work->field_654->extra.tmd->coords, 0, vec);
     }
     frame2 = (s16)work->field_68A;
     if (frame2 == ((s16)clipId + 0x1C)) {
@@ -2395,13 +2395,13 @@ static void func_actor_521100_8013334C(Task* arg0)
 
     frame = (s16)work->field_68A;
     if (frame == clip + 0x23) {
-        Gp_SpawnEff(0x60188, arg0->extra.tmd->coords + 8, 0xC, NULL);
+        Gp_SpawnEff(EFFECT_NO9_GOLEM_SWING_TRAIL, arg0->extra.tmd->coords + 8, 0xC, NULL);
         Gp_SpawnPadLerp(0xA, 0x40, 0xFF);
     } else if (frame == clip + 0x27) {
         vec->vx = -0x320;
         vec->vy = 0x64;
         vec->vz = 0;
-        Gp_SpawnEff(0x6009C, work->field_654->extra.tmd->coords, 0, vec);
+        Gp_SpawnEff(EFFECT_CRITICAL_HIT, work->field_654->extra.tmd->coords, 0, vec);
     }
 
     frame2 = (s16)work->field_68A;
@@ -2521,7 +2521,7 @@ static void func_actor_521100_801335B4(Task* arg0)
                 snd                 = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401C0009;
                 SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord),
                                     (s8)worldCoordGetOriginAudioDepth(coord));
-                Gp_SpawnEff(0x60188, arg0->extra.tmd->coords + 8, 8, NULL);
+                Gp_SpawnEff(EFFECT_NO9_GOLEM_SWING_TRAIL, arg0->extra.tmd->coords + 8, 8, NULL);
                 Gp_SpawnPadLerp(0xA, 0x40, 0xFF);
             }
             if ((u32)(work->field_68A - 0x22) < 5) {
@@ -2760,9 +2760,9 @@ static void func_actor_521100_801339B0(Task* arg0)
                 TASK_MESSAGE_DISPATCH_POINTER(player, 0x3E9, &sc->aim, 0);
             }
             if ((s16)work->field_68A == 0x23) {
-                Gp_SpawnEff(0x60054, player->extra.tmd->coords + 3, 0x80003400, NULL);
-                Gp_SpawnEff(0x60054, player->extra.tmd->coords + 3, 0x80003400, NULL);
-                Gp_SpawnEff(0x60054, player->extra.tmd->coords + 3, 0x80003400, NULL);
+                Gp_SpawnEff(EFFECT_DUST_PUFF, player->extra.tmd->coords + 3, 0x80003400, NULL);
+                Gp_SpawnEff(EFFECT_DUST_PUFF, player->extra.tmd->coords + 3, 0x80003400, NULL);
+                Gp_SpawnEff(EFFECT_DUST_PUFF, player->extra.tmd->coords + 3, 0x80003400, NULL);
             }
             if ((s16)work->field_68A == 0x45) {
                 sc->msg.source.sets          = D_actor_521100_8015F7CC;
@@ -2802,7 +2802,7 @@ static void func_actor_521100_801339B0(Task* arg0)
             break;
         case 3:
             if ((s16)work->field_68A == 0x20) {
-                Gp_SpawnEff(0x60273, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords + 0xC, 0, NULL);
+                Gp_SpawnEff(EFFECT_DILAPIDATED_HOUSE_FIRE_BLAST, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords + 0xC, 0, NULL);
                 snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401C000E;
                 SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord),
                                     (s8)worldCoordGetOriginAudioDepth(coord));

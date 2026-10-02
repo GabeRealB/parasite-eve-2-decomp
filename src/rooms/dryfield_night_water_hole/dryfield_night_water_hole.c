@@ -1263,8 +1263,8 @@ void func_dryfield_night_water_hole_8017E6D0(Task* arg0)
     switch (arg0->state) {
         case 0:
             if (GameFlag_GetNibble(GAME_FLAG_WATER_HOLE_SHELTER_ROUTE_OPEN) == 0) {
-                D_8011574C = 0x600FF;
-                D_80115738 = 0x6011F;
+                gRoomEffectWaterRippleId = EFFECT_DRYFIELD_NIGHT_WATER_HOLE_WATER_RIPPLE;
+                gRoomEffectWaterSprayId  = EFFECT_DRYFIELD_NIGHT_WATER_HOLE_WATER_SPRAY;
             }
             arg0->state = 1;
             for (i = 0; i < 2; i++) {
@@ -1291,12 +1291,12 @@ void func_dryfield_night_water_hole_8017E6D0(Task* arg0)
                     Gp_UpdateCoord(&surface);
                     rnd = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT);
                     if ((s32)((rnd >> 16) & 0x1FF) < splash->strength) {
-                        Gp_SpawnEff(D_8011574C, &surface, 0x40, 0);
+                        Gp_SpawnEff(gRoomEffectWaterRippleId, &surface, 0x40, 0);
                     }
                     splash->strength -= 0x20;
                     rnd               = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT);
                     if ((s32)((rnd >> 16) & 0x1FF) < splash->strength) {
-                        Gp_SpawnEff(D_80115738, &surface, 0x1202180, 0);
+                        Gp_SpawnEff(gRoomEffectWaterSprayId, &surface, 0x1202180, 0);
                     }
                     D_dryfield_night_water_hole_801809F4[i].vx = part->workm.t[0];
                     D_dryfield_night_water_hole_801809F4[i].vy = part->workm.t[1];

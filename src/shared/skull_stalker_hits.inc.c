@@ -55,9 +55,9 @@ void skullStalkerHits(Task* arg0)
                     snd = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | sndHit2;
                     SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                 }
-                Gp_SpawnEff(0x60030, arg0->extra.tmd->coords, 0x200, &gSkullStalkerSparkOffset);
-                Gp_SpawnEff(0x60030, arg0->extra.tmd->coords, 0x200, &gSkullStalkerSparkOffset);
-                Gp_SpawnEff(0x6009E, arg0->extra.tmd->coords, 0, &gSkullStalkerHitFxOffset);
+                Gp_SpawnEff(EFFECT_030, arg0->extra.tmd->coords, 0x200, &gSkullStalkerSparkOffset);
+                Gp_SpawnEff(EFFECT_030, arg0->extra.tmd->coords, 0x200, &gSkullStalkerSparkOffset);
+                Gp_SpawnEff(EFFECT_RED_GROUND_GLOW, arg0->extra.tmd->coords, 0, &gSkullStalkerHitFxOffset);
                 Gp_SpawnPadLerp(0xA, 0x60, 0x60);
                 obj->flags          = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 work->field_2A0     = 0x500;
@@ -89,9 +89,9 @@ void skullStalkerHits(Task* arg0)
                         snd = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | sndHit2;
                         SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                     }
-                    Gp_SpawnEff(0x60030, arg0->extra.tmd->coords, 0x200, &gSkullStalkerSparkOffset);
-                    Gp_SpawnEff(0x60030, arg0->extra.tmd->coords, 0x200, &gSkullStalkerSparkOffset);
-                    Gp_SpawnEff(0x6009E, arg0->extra.tmd->coords, 0, &gSkullStalkerHitFxOffset);
+                    Gp_SpawnEff(EFFECT_030, arg0->extra.tmd->coords, 0x200, &gSkullStalkerSparkOffset);
+                    Gp_SpawnEff(EFFECT_030, arg0->extra.tmd->coords, 0x200, &gSkullStalkerSparkOffset);
+                    Gp_SpawnEff(EFFECT_RED_GROUND_GLOW, arg0->extra.tmd->coords, 0, &gSkullStalkerHitFxOffset);
                     obj->flags          = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     work->field_2A0     = 0x1000;
                     work->field_2A6     = 1;

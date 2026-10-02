@@ -1078,11 +1078,11 @@ static void Actor03800_Fn00A98(Task* arg0)
                     if (work->field_36E == 0) {
                         if (Gp_RollEnemyChance(ctx, work->field_1C4[i].key.value, 0) != 0) {
                             damage *= 4;
-                            Gp_SpawnEff(0x6009C, coord, 0, NULL);
+                            Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, NULL);
                         }
                     } else if (!(work->field_1C4[i].key.value & 0x8000) && (damage != 0)) {
                         damage *= 3;
-                        Gp_SpawnEff(0x6009C, coord, 4, NULL);
+                        Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 4, NULL);
                     }
                     func_800DA6E8(&ctx->node, damage, 0);
                     func_800E2C78(ctx, work->field_1C4[i].key.value, damage, 0);
@@ -2107,7 +2107,7 @@ dying:
         obj->flags = TMD_OBJECT_SEMI_TRANS;
     }
     if (work->field_356 == 15) {
-        Gp_SpawnEff(0x600A5, coord, 2, NULL);
+        Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 2, NULL);
     }
     if (work->field_356 >= 0x3C) {
         work->field_354 = 2;
@@ -2212,7 +2212,7 @@ static void Actor03800_Fn03008(Task* actor, u32 variant)
             D_80067704[0] = &_gActor03800BlackBeetleEffect5;
             break;
     }
-    eff = Gp_SpawnEff(0x40007, actor->extra.tmd->coords + 3, 0x100, NULL);
+    eff = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK4, actor->extra.tmd->coords + 3, 0x100, NULL);
     if (eff == NULL) {
         return;
     }

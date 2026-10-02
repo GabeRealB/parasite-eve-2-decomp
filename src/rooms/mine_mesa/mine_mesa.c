@@ -3172,7 +3172,7 @@ void func_mine_mesa_8017EAC0(void)
 
     slot = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
     if (slot != NULL) {
-        Gp_SpawnEff(0x6002B, &slot->extra.tmd->coords[8], 0x21, NULL);
+        Gp_SpawnEff(EFFECT_HANDGUN_MUZZLE_FLASH, &slot->extra.tmd->coords[8], 0x21, NULL);
         SndEvt_EnqueueType6(SOUND_ACTOR_800100_ATTACK, 0, 0);
     }
 }
@@ -3233,9 +3233,9 @@ void func_mine_mesa_8017EB54(s32 arg0)
 void func_mine_mesa_8017ED08(Task* arg0)
 {
     if (arg0->state == 0) {
-        D_80115758                       = 0x600E9;
-        D_8011572C                       = 0x600EB;
-        D_80115750                       = 0x600EC;
+        gRoomEffectFlashId               = EFFECT_MINE_MESA_FLASH;
+        gRoomEffectTwinTrailId           = EFFECT_MINE_MESA_TWIN_TRAIL;
+        gRoomEffectSparkBurstId          = EFFECT_MINE_MESA_SPARK_BURST;
         gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
         arg0->state                      = 1;
     }

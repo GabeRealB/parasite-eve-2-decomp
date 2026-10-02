@@ -533,10 +533,10 @@ void func_shelter_1f_parking_garage_8017DF6C(Task* arg0)
     u8 view;
 
     if (arg0->state == 0) {
-        D_80115758  = 0x601D6;
-        D_8011572C  = 0x601F2;
-        D_80115750  = 0x6020E;
-        arg0->state = 1;
+        gRoomEffectFlashId      = EFFECT_SHELTER_1F_PARKING_GARAGE_FLASH;
+        gRoomEffectTwinTrailId  = EFFECT_SHELTER_1F_PARKING_GARAGE_TWIN_TRAIL;
+        gRoomEffectSparkBurstId = EFFECT_SHELTER_1F_PARKING_GARAGE_SPARK_BURST;
+        arg0->state             = 1;
     }
 
     view = Gp_GetViewIndex();

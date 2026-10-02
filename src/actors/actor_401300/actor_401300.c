@@ -2073,45 +2073,45 @@ static void func_actor_401300_80133A3C(Task* arg0)
     if (inRange == 1) {
         if (work->field_8A2 == 2) {
             if (gDisplayState.animFrame % 6 == 0) {
-                Actor401300_SpawnEffVar(&D_8011574C, &arg0->extra.tmd->coords[18], 0x40, 0, 0x1C2, -100);
+                Actor401300_SpawnEffVar(&gRoomEffectWaterRippleId, &arg0->extra.tmd->coords[18], 0x40, 0, 0x1C2, -100);
             }
             if (gDisplayState.animFrame % 6 == 3) {
-                Actor401300_SpawnEffVar(&D_8011574C, &arg0->extra.tmd->coords[15], 0x40, 0, 0x1C2, -100);
+                Actor401300_SpawnEffVar(&gRoomEffectWaterRippleId, &arg0->extra.tmd->coords[15], 0x40, 0, 0x1C2, -100);
             }
         } else if (work->field_8A2 == 3) {
             if ((gDisplayState.animFrame & 1) == inRange) {
-                Actor401300_SpawnEffVar(&D_80115738, &arg0->extra.tmd->coords[18], 0x1202180, 0, 0x1C2, -100);
-                Actor401300_SpawnEffVar(&D_8011574C, &arg0->extra.tmd->coords[18], 0x40, 0, 0x1C2, -100);
+                Actor401300_SpawnEffVar(&gRoomEffectWaterSprayId, &arg0->extra.tmd->coords[18], 0x1202180, 0, 0x1C2, -100);
+                Actor401300_SpawnEffVar(&gRoomEffectWaterRippleId, &arg0->extra.tmd->coords[18], 0x40, 0, 0x1C2, -100);
             }
             if (!(gDisplayState.animFrame & 1)) {
-                Actor401300_SpawnEffVar(&D_80115738, &arg0->extra.tmd->coords[15], 0x1202180, 0, 0x1C2, -100);
-                Actor401300_SpawnEffVar(&D_8011574C, &arg0->extra.tmd->coords[15], 0x40, 0, 0x1C2, -100);
+                Actor401300_SpawnEffVar(&gRoomEffectWaterSprayId, &arg0->extra.tmd->coords[15], 0x1202180, 0, 0x1C2, -100);
+                Actor401300_SpawnEffVar(&gRoomEffectWaterRippleId, &arg0->extra.tmd->coords[15], 0x40, 0, 0x1C2, -100);
             }
         } else if (work->field_8A2 == 9 || work->field_8A2 == 25 || work->field_8A2 == 26) {
             if (gDisplayState.animFrame % 5 == 0) {
-                Actor401300_SpawnEffVar(&D_8011574C, &arg0->extra.tmd->coords[18], 0x40, 0, 0x1C2, -100);
+                Actor401300_SpawnEffVar(&gRoomEffectWaterRippleId, &arg0->extra.tmd->coords[18], 0x40, 0, 0x1C2, -100);
             }
             if (gDisplayState.animFrame % 6 == 3) {
-                Actor401300_SpawnEffVar(&D_8011574C, &arg0->extra.tmd->coords[15], 0x40, 0, 0x1C2, -100);
+                Actor401300_SpawnEffVar(&gRoomEffectWaterRippleId, &arg0->extra.tmd->coords[15], 0x40, 0, 0x1C2, -100);
             }
         }
         if (snd != 0 && (GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 29, 0, 0)) {
             switch (snd) {
                 case 0x400D0001:
                 case 0x400D0003:
-                    Actor401300_SpawnEffVar(&D_80115738, &arg0->extra.tmd->coords[18], 0x1202180, 0, 0x1C2, -100);
+                    Actor401300_SpawnEffVar(&gRoomEffectWaterSprayId, &arg0->extra.tmd->coords[18], 0x1202180, 0, 0x1C2, -100);
                     snd = 0x551D0006;
                     break;
                 case 0x400D0002:
                 case 0x400D0004:
-                    Actor401300_SpawnEffVar(&D_80115738, &arg0->extra.tmd->coords[15], 0x1202180, 0, 0x1C2, -100);
+                    Actor401300_SpawnEffVar(&gRoomEffectWaterSprayId, &arg0->extra.tmd->coords[15], 0x1202180, 0, 0x1C2, -100);
                     snd = 0x551D0007;
                     break;
                 case 0x400D0005:
                 case 0x400D000B:
-                    Actor401300_SpawnEffZeroVar(&D_80115738, &arg0->extra.tmd->coords[1], 0x1202180);
-                    Actor401300_SpawnEffZeroVar(&D_80115738, &arg0->extra.tmd->coords[1], 0x1202180);
-                    Actor401300_SpawnEffZeroVar(&D_80115738, &arg0->extra.tmd->coords[1], 0x1202180);
+                    Actor401300_SpawnEffZeroVar(&gRoomEffectWaterSprayId, &arg0->extra.tmd->coords[1], 0x1202180);
+                    Actor401300_SpawnEffZeroVar(&gRoomEffectWaterSprayId, &arg0->extra.tmd->coords[1], 0x1202180);
+                    Actor401300_SpawnEffZeroVar(&gRoomEffectWaterSprayId, &arg0->extra.tmd->coords[1], 0x1202180);
                     snd = 0x551D0005;
                     break;
             }
@@ -2548,7 +2548,7 @@ static void func_actor_401300_80134F90(Task* arg0)
             func_800E2C78(enemy, s->id, s->damage, 0);
             effect = s->effect;
             if (effect != -1) {
-                Gp_SpawnEff(0x6009C, &arg0->extra.tmd->coords[2], (s32)(effect), NULL);
+                Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[2], (s32)(effect), NULL);
             }
             enemy->hp -= s->damage;
             func_800DA6E8(&enemy->node, s->damage, 0);
@@ -3710,7 +3710,7 @@ static void func_actor_401300_80139134(Task* arg0)
                 work->field_8C0.composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(&work->field_8C0);
                 Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
-                Gp_SpawnEff(0x600A5, &work->field_8C0, 3, NULL);
+                Gp_SpawnEff(EFFECT_CORPSE_BURN, &work->field_8C0, 3, NULL);
                 break;
             case 48:
                 arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
@@ -4224,7 +4224,7 @@ static void func_actor_401300_8013B6E8(Task* arg0)
         vec.vx                        = 0x64;
         vec.vz                        = 0;
         vec.vy                        = 0;
-        Gp_SpawnEff(0x60030, arg0->extra.tmd->coords + 1, 0x10300, &vec);
+        Gp_SpawnEff(EFFECT_030, arg0->extra.tmd->coords + 1, 0x10300, &vec);
     }
     next          = work->field_6 + 1;
     work->field_6 = next;
@@ -4233,21 +4233,21 @@ static void func_actor_401300_8013B6E8(Task* arg0)
         vec.vz                   = 0x64;
         vec.vy                   = 0;
         vec.vx                   = 0;
-        actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 9, 0x200, &vec), enemy);
+        actorTintEffect(Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 9, 0x200, &vec), enemy);
     }
     if (work->field_6 == 5) {
         D_80114B34[5].data.model = &_gActor401300HornedStrangerEffect1;
         vec.vy                   = 0;
         vec.vx                   = 0;
-        actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 12, 0x200, &vec), enemy);
+        actorTintEffect(Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 12, 0x200, &vec), enemy);
     }
     if (work->field_6 == 7) {
         D_80114B34[5].data.model = &_gActor401300HornedStrangerEffect2;
-        actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 1, 0x200, NULL), enemy);
+        actorTintEffect(Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 1, 0x200, NULL), enemy);
     }
     if (work->field_6 == 8) {
         D_80114B34[5].data.model = &_gActor401300HornedStrangerBurstHead;
-        actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 3, 0x200, NULL), enemy);
+        actorTintEffect(Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 3, 0x200, NULL), enemy);
     }
     if (work->field_6 >= 0x3D && work->field_D20 == 0) {
         work->field_0 = 0x24;
@@ -4277,7 +4277,7 @@ static void func_actor_401300_8013BB30(Task* arg0)
         work->field_8A2               = 2;
         work->field_89C               = 1;
         work->field_8A6               = 0x10;
-        Gp_SpawnEff(0x60030, arg0->extra.tmd->coords + 1, 0x10300, &vec);
+        Gp_SpawnEff(EFFECT_030, arg0->extra.tmd->coords + 1, 0x10300, &vec);
         work->field_6 = 0;
     }
     next          = work->field_6 + 1;
@@ -4299,11 +4299,11 @@ static void func_actor_401300_8013BB30(Task* arg0)
                 vec.vz                   = 0x64;
                 vec.vy                   = 0;
                 vec.vx                   = 0;
-                actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 9, 0x200, &vec), enemy);
+                actorTintEffect(Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 9, 0x200, &vec), enemy);
             }
             if (work->field_6 == 5) {
                 D_80114B34[5].data.model = &_gActor401300HornedStrangerEffect2;
-                actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 1, 0x200, NULL), enemy);
+                actorTintEffect(Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 1, 0x200, NULL), enemy);
             }
             break;
         case 0x23:
@@ -4325,7 +4325,7 @@ static void func_actor_401300_8013BB30(Task* arg0)
                     work->field_8C0.coord.t[2]   = vec.vz;
                     work->field_8C0.composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(&work->field_8C0);
-                    Gp_SpawnEff(0x600A5, &work->field_8C0, 2, NULL);
+                    Gp_SpawnEff(EFFECT_CORPSE_BURN, &work->field_8C0, 2, NULL);
                     break;
                 case 48:
                     arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
@@ -5163,52 +5163,52 @@ static void func_actor_401300_8013F628(Task* arg0)
         Actor401300_ScaleMatrix(&work->field_C48, (work->field_6 << 12) / 30);
         if (gGameSession->location.loc.area == 0xB) {
             if ((work->field_6 & 7) == 0) {
-                Gp_SpawnEff(0x600FB, arg0->extra.tmd->coords + 3, 0, NULL);
-                Gp_SpawnEff(0x600FB, arg0->extra.tmd->coords + 16, 0, NULL);
-                Gp_SpawnEff(0x600FB, arg0->extra.tmd->coords + 1, 0, NULL);
-                Gp_SpawnEff(0x600FB, arg0->extra.tmd->coords + 18, 0, NULL);
+                Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, arg0->extra.tmd->coords + 3, 0, NULL);
+                Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, arg0->extra.tmd->coords + 16, 0, NULL);
+                Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, arg0->extra.tmd->coords + 1, 0, NULL);
+                Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, arg0->extra.tmd->coords + 18, 0, NULL);
             } else {
                 mod = work->field_6 % 8;
                 if (mod == 2) {
-                    Gp_SpawnEff(0x600FB, arg0->extra.tmd->coords + 2, 0, NULL);
-                    Gp_SpawnEff(0x600FB, arg0->extra.tmd->coords + 17, 0, NULL);
-                    Gp_SpawnEff(0x600FB, arg0->extra.tmd->coords + 3, 0, NULL);
-                    Gp_SpawnEff(0x600FB, arg0->extra.tmd->coords + 4, 0, NULL);
+                    Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, arg0->extra.tmd->coords + 2, 0, NULL);
+                    Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, arg0->extra.tmd->coords + 17, 0, NULL);
+                    Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, arg0->extra.tmd->coords + 3, 0, NULL);
+                    Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, arg0->extra.tmd->coords + 4, 0, NULL);
                 } else if (mod == 4) {
-                    Gp_SpawnEff(0x600FB, arg0->extra.tmd->coords + 5, 0, NULL);
-                    Gp_SpawnEff(0x600FB, arg0->extra.tmd->coords + 16, 0, NULL);
-                    Gp_SpawnEff(0x600FB, arg0->extra.tmd->coords + 1, 0, NULL);
-                    Gp_SpawnEff(0x600FB, arg0->extra.tmd->coords + 19, 0, NULL);
+                    Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, arg0->extra.tmd->coords + 5, 0, NULL);
+                    Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, arg0->extra.tmd->coords + 16, 0, NULL);
+                    Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, arg0->extra.tmd->coords + 1, 0, NULL);
+                    Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, arg0->extra.tmd->coords + 19, 0, NULL);
                 } else if (mod == 6) {
-                    Gp_SpawnEff(0x600FB, arg0->extra.tmd->coords + 17, 0, NULL);
-                    Gp_SpawnEff(0x600FB, arg0->extra.tmd->coords + 16, 0, NULL);
-                    Gp_SpawnEff(0x600FB, arg0->extra.tmd->coords + 5, 0, NULL);
-                    Gp_SpawnEff(0x600FB, arg0->extra.tmd->coords + 18, 0, NULL);
+                    Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, arg0->extra.tmd->coords + 17, 0, NULL);
+                    Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, arg0->extra.tmd->coords + 16, 0, NULL);
+                    Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, arg0->extra.tmd->coords + 5, 0, NULL);
+                    Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, arg0->extra.tmd->coords + 18, 0, NULL);
                 }
             }
         } else if (gGameSession->location.loc.area == 0x1D) {
             if ((work->field_6 & 7) == 0) {
-                Gp_SpawnEff(0x601C1, arg0->extra.tmd->coords + 3, 0, NULL);
-                Gp_SpawnEff(0x601C1, arg0->extra.tmd->coords + 16, 0, NULL);
-                Gp_SpawnEff(0x601C1, arg0->extra.tmd->coords + 1, 0, NULL);
-                Gp_SpawnEff(0x601C1, arg0->extra.tmd->coords + 18, 0, NULL);
+                Gp_SpawnEff(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, arg0->extra.tmd->coords + 3, 0, NULL);
+                Gp_SpawnEff(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, arg0->extra.tmd->coords + 16, 0, NULL);
+                Gp_SpawnEff(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, arg0->extra.tmd->coords + 1, 0, NULL);
+                Gp_SpawnEff(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, arg0->extra.tmd->coords + 18, 0, NULL);
             } else {
                 mod = work->field_6 % 8;
                 if (mod == 2) {
-                    Gp_SpawnEff(0x601C1, arg0->extra.tmd->coords + 2, 0, NULL);
-                    Gp_SpawnEff(0x601C1, arg0->extra.tmd->coords + 17, 0, NULL);
-                    Gp_SpawnEff(0x601C1, arg0->extra.tmd->coords + 3, 0, NULL);
-                    Gp_SpawnEff(0x601C1, arg0->extra.tmd->coords + 4, 0, NULL);
+                    Gp_SpawnEff(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, arg0->extra.tmd->coords + 2, 0, NULL);
+                    Gp_SpawnEff(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, arg0->extra.tmd->coords + 17, 0, NULL);
+                    Gp_SpawnEff(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, arg0->extra.tmd->coords + 3, 0, NULL);
+                    Gp_SpawnEff(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, arg0->extra.tmd->coords + 4, 0, NULL);
                 } else if (mod == 4) {
-                    Gp_SpawnEff(0x601C1, arg0->extra.tmd->coords + 5, 0, NULL);
-                    Gp_SpawnEff(0x601C1, arg0->extra.tmd->coords + 16, 0, NULL);
-                    Gp_SpawnEff(0x601C1, arg0->extra.tmd->coords + 1, 0, NULL);
-                    Gp_SpawnEff(0x601C1, arg0->extra.tmd->coords + 19, 0, NULL);
+                    Gp_SpawnEff(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, arg0->extra.tmd->coords + 5, 0, NULL);
+                    Gp_SpawnEff(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, arg0->extra.tmd->coords + 16, 0, NULL);
+                    Gp_SpawnEff(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, arg0->extra.tmd->coords + 1, 0, NULL);
+                    Gp_SpawnEff(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, arg0->extra.tmd->coords + 19, 0, NULL);
                 } else if (mod == 6) {
-                    Gp_SpawnEff(0x601C1, arg0->extra.tmd->coords + 17, 0, NULL);
-                    Gp_SpawnEff(0x601C1, arg0->extra.tmd->coords + 16, 0, NULL);
-                    Gp_SpawnEff(0x601C1, arg0->extra.tmd->coords + 5, 0, NULL);
-                    Gp_SpawnEff(0x601C1, arg0->extra.tmd->coords + 18, 0, NULL);
+                    Gp_SpawnEff(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, arg0->extra.tmd->coords + 17, 0, NULL);
+                    Gp_SpawnEff(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, arg0->extra.tmd->coords + 16, 0, NULL);
+                    Gp_SpawnEff(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, arg0->extra.tmd->coords + 5, 0, NULL);
+                    Gp_SpawnEff(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, arg0->extra.tmd->coords + 18, 0, NULL);
                 }
             }
         }
@@ -5607,7 +5607,7 @@ static void func_actor_401300_801405DC(Enemy* enemy, Task* actor)
                                             (s8)worldCoordGetOriginAudioDepth(player->extra.tmd->coords));
                     }
                     if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        Gp_SpawnEff(0x60054, &player->extra.tmd->coords[1], 0x80003A00, NULL);
+                        Gp_SpawnEff(EFFECT_DUST_PUFF, &player->extra.tmd->coords[1], 0x80003A00, NULL);
                     }
                 }
                 if (TASK_MESSAGE_DISPATCH_POINTER(player, 0x3FE, work->field_CC0, 0) == 1) {
@@ -5631,7 +5631,7 @@ static void func_actor_401300_801405DC(Enemy* enemy, Task* actor)
                                             (s8)worldCoordGetOriginAudioDepth(player->extra.tmd->coords));
                     }
                     if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        Gp_SpawnEff(0x60054, &player->extra.tmd->coords[1], 0x80003A00, NULL);
+                        Gp_SpawnEff(EFFECT_DUST_PUFF, &player->extra.tmd->coords[1], 0x80003A00, NULL);
                     }
                 }
                 if (TASK_MESSAGE_DISPATCH_POINTER(player, 0x3FE, work->field_CC0, 0) == 1) {

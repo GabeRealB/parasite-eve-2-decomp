@@ -40,7 +40,7 @@ void grenadeShellFly(Task* arg0)
         blk->field_30 = arg0->spawnArg1.value & 0xFF00;
         blk->sfx      = (u8)arg0->spawnArg1.value;
         arg0->state   = 2;
-        Gp_SpawnEff(0x60071, coord, blk->sfx, NULL);
+        Gp_SpawnEff(EFFECT_GRENADE_EXPLOSION, coord, blk->sfx, NULL);
         /* Two calls, not one call on a selected argument: the identical tails
            are what cross-jumping merges into a single `jal` with an unfilled
            delay slot. */
@@ -116,7 +116,7 @@ move:
         work->field_8C = work->field_8C + 1;
     }
     if (work->field_90 % work->field_8C == 0) {
-        Gp_SpawnEff(0x60070, coord, 0, NULL);
+        Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0, NULL);
     }
     Gp_ClearRec18Occupied(work->rec0);
     Gp_ClearRec18Occupied(work->rec1);

@@ -109,7 +109,7 @@ found:
             sc->rot.vy = GLUTTON_GROUP0_HIT_FX_Y;
             sc->rot.vx = 0;
             sc->rot.vz = GLUTTON_GROUP0_HIT_FX_Z;
-            Gp_SpawnEff(0x6009C, &enemy->task->extra.tmd->coords[3], 3, &sc->rot);
+            Gp_SpawnEff(EFFECT_CRITICAL_HIT, &enemy->task->extra.tmd->coords[3], 3, &sc->rot);
         }
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(arg0->extra.tmd->coords);

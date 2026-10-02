@@ -213,7 +213,7 @@ void func_apobiosis_8012EF4C(Task* arg0)
                     mem->angle      = (gRandomLcgState >> 16) & 0xFFF;
                     mem->move.vx    = mem->scale * rsin(mem->angle) >> 12;
                     mem->move.vz    = mem->scale * rcos(mem->angle) >> 12;
-                    Gp_SpawnEff(0x600F7, coord, 0, &mem->move);
+                    Gp_SpawnEff(EFFECT_APOBIOSIS_SHARD, coord, 0, &mem->move);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     mem->step       = ((gRandomLcgState >> 16) & 0x7F) + 0x60;
                 }
@@ -233,7 +233,7 @@ void func_apobiosis_8012EF4C(Task* arg0)
                 mem->angle      = (gRandomLcgState >> 16) & 0xFFF;
                 mem->move.vx    = mem->scale * rsin(mem->angle) >> 12;
                 mem->move.vz    = mem->scale * rcos(mem->angle) >> 12;
-                Gp_SpawnEff(0x600F7, coord, 0, &mem->move);
+                Gp_SpawnEff(EFFECT_APOBIOSIS_SHARD, coord, 0, &mem->move);
                 if (mem->age == 0x1E) {
                     if (mem->index <= 0) {
                         arg0->state = 5;
@@ -257,7 +257,7 @@ void func_apobiosis_8012EF4C(Task* arg0)
                     mem->angle      = (gRandomLcgState >> 16) & 0xFFF;
                     mem->move.vx    = mem->scale * rsin(mem->angle) >> 12;
                     mem->move.vz    = mem->scale * rcos(mem->angle) >> 12;
-                    Gp_SpawnEff(0x600F7, coord, 0, &mem->move);
+                    Gp_SpawnEff(EFFECT_APOBIOSIS_SHARD, coord, 0, &mem->move);
                 }
                 if (mem->age == 0x28) {
                     arg0->state = 5;

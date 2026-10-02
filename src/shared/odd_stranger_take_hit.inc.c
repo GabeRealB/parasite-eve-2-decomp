@@ -136,7 +136,7 @@ void oddStrangerTakeHit(Task* arg0)
             work->field_BEA += s->damage;
             effect           = s->effect;
             if (effect != -1) {
-                Gp_SpawnEff(0x6009C, &arg0->extra.tmd->coords[2], (s32)(effect), NULL);
+                Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[2], (s32)(effect), NULL);
             }
             if (work->field_0 == 0x17) {
                 SndEvt_EnqueueType7(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, 1);

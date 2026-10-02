@@ -519,7 +519,7 @@ static void func_actor_310600_80161FA0(Task* task)
                             case 1:
                             case 2:
                                 if ((s16)work->field_47A++ < 5) {
-                                    Gp_SpawnEff(0x6006A, coord, 9, NULL);
+                                    Gp_SpawnEff(EFFECT_ACTOR_MUZZLE_FLASH, coord, 9, NULL);
                                     TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_actor_310600_8017969C, 0);
                                 } else {
                                     TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_actor_310600_801796A0, 0);
@@ -527,7 +527,7 @@ static void func_actor_310600_80161FA0(Task* task)
                                 }
                                 break;
                             case 3:
-                                Gp_SpawnEff(0x6006D, coord, 6, &D_actor_310600_80179694);
+                                Gp_SpawnEff(EFFECT_RELOAD_CASINGS_DROP, coord, 6, &D_actor_310600_80179694);
                                 break;
                         }
                         break;

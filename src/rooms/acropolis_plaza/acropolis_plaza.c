@@ -5202,13 +5202,13 @@ void func_acropolis_plaza_8018251C(Task* task)
     coord = task->extra.coordBody->coord;
     if (task->state == 0) {
         for (i = 0xC; i < 0x13; i++) {
-            Gp_SpawnEff(0x60096, coord, i, &D_acropolis_plaza_80198820[i]);
+            Gp_SpawnEff(EFFECT_ACROPOLIS_PLAZA_LIGHT_GLOW, coord, i, &D_acropolis_plaza_80198820[i]);
         }
         for (i = 7; i < 0xB; i++) {
-            Gp_SpawnEff(0x60099, coord, i, &D_acropolis_plaza_80198820[i]);
+            Gp_SpawnEff(EFFECT_ACROPOLIS_PLAZA_LIGHT_FLARE, coord, i, &D_acropolis_plaza_80198820[i]);
         }
         for (i = 1; i < 7; i++) {
-            Gp_SpawnEff(0x60098, coord, i, &D_acropolis_plaza_80198820[i]);
+            Gp_SpawnEff(EFFECT_ACROPOLIS_PLAZA_SIREN_LIGHT, coord, i, &D_acropolis_plaza_80198820[i]);
         }
         task->state = task->state + 1;
     }

@@ -94,10 +94,10 @@ void func_shelter_b1_control_room_8017F150(Task* task)
     u8 view;
 
     if (task->state == 0) {
-        D_80115734  = 0x60276;
-        D_80115730  = 0x60277;
-        D_80115754  = 0x60278;
-        task->state = 1;
+        gRoomEffectGlowDiscId     = EFFECT_SHELTER_B1_CONTROL_ROOM_GLOW_DISC;
+        gRoomEffectFlyingSparkId  = EFFECT_SHELTER_B1_CONTROL_ROOM_FLYING_SPARK;
+        gRoomEffectOrangeBurst2Id = EFFECT_SHELTER_B1_CONTROL_ROOM_ORANGE_BURST_2;
+        task->state               = 1;
     }
 
     view = Gp_GetViewIndex();

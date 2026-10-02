@@ -539,13 +539,13 @@ void func_shelter_b1_south_maintenance_walkway_8017DA34(Task* task)
 void func_shelter_b1_south_maintenance_walkway_8017DA8C(Task* task)
 {
     if (task->state == 0) {
-        D_80115758  = 0x601C9;
-        D_8011572C  = 0x601E5;
-        D_80115750  = 0x60201;
-        D_80115734  = 0x6021C;
-        D_80115730  = 0x6021B;
-        D_80115754  = 0x6021D;
-        task->state = 1;
+        gRoomEffectFlashId        = EFFECT_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_FLASH;
+        gRoomEffectTwinTrailId    = EFFECT_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_TWIN_TRAIL;
+        gRoomEffectSparkBurstId   = EFFECT_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_SPARK_BURST;
+        gRoomEffectGlowDiscId     = EFFECT_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_GLOW_DISC;
+        gRoomEffectFlyingSparkId  = EFFECT_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_FLYING_SPARK;
+        gRoomEffectOrangeBurst2Id = EFFECT_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_ORANGE_BURST_2;
+        task->state               = 1;
     }
 
     switch (gGameSession->location.loc.view) {

@@ -561,10 +561,10 @@ void func_shelter_1f_bulwark_8017E2A4(Task* arg0)
     u8 view;
 
     if (arg0->state == 0) {
-        D_80115758  = 0x601C2;
-        D_8011572C  = 0x601C3;
-        D_80115750  = 0x601C4;
-        arg0->state = 1;
+        gRoomEffectFlashId      = EFFECT_SHELTER_1F_BULWARK_FLASH;
+        gRoomEffectTwinTrailId  = EFFECT_SHELTER_1F_BULWARK_TWIN_TRAIL;
+        gRoomEffectSparkBurstId = EFFECT_SHELTER_1F_BULWARK_SPARK_BURST;
+        arg0->state             = 1;
     }
 
     view = Gp_GetViewIndex();

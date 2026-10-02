@@ -891,10 +891,10 @@ void func_neo_ark_power_plant_2_8017D8AC(Task* arg0)
     WorldCoordTransientPointLight* lightSlot;
 
     if (arg0->state == 0) {
-        D_80115758  = 0x601DC;
-        D_8011572C  = 0x601F8;
-        D_80115750  = 0x60214;
-        arg0->state = 1;
+        gRoomEffectFlashId      = EFFECT_NEO_ARK_POWER_PLANT_2_FLASH;
+        gRoomEffectTwinTrailId  = EFFECT_NEO_ARK_POWER_PLANT_2_TWIN_TRAIL;
+        gRoomEffectSparkBurstId = EFFECT_NEO_ARK_POWER_PLANT_2_SPARK_BURST;
+        arg0->state             = 1;
     }
     switch ((u8)Gp_GetViewIndex()) {
         case 6:
@@ -903,7 +903,7 @@ void func_neo_ark_power_plant_2_8017D8AC(Task* arg0)
                     rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     gRandomLcgState = rnd;
                     if (((rnd >> 16) & 7) == 0) {
-                        Gp_SpawnEff(0x600E0, NULL, 0x400, &D_neo_ark_power_plant_2_80180678);
+                        Gp_SpawnEff(EFFECT_FLASH_BURST, NULL, 0x400, &D_neo_ark_power_plant_2_80180678);
                     }
                 }
             } else {

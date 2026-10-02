@@ -285,8 +285,8 @@ WorldCollisionSurfaceProperties* D_dryfield_night_r08_8018195C[8] = {
     D_dryfield_night_r08_8018193C,
 };
 
-/// On the task's first tick, stores three fixed ids into `D_80115758`,
-/// `D_8011572C` and `D_80115750`, then draws the placements the current camera
+/// On the task's first tick, stores three fixed ids into `gRoomEffectFlashId`,
+/// `gRoomEffectTwinTrailId` and `gRoomEffectSparkBurstId`, then draws the placements the current camera
 /// view shows with the beam and sprite drawers below. The placement names are
 /// windows onto one run of 8-byte `SVECTOR`s, so `80180664` is `805BC[21]`,
 /// `805AC[23]` and `805CC[19]` as well; views 3 and 9 name it directly and the
@@ -294,10 +294,10 @@ WorldCollisionSurfaceProperties* D_dryfield_night_r08_8018195C[8] = {
 void func_dryfield_night_r08_8017D718(Task* arg0)
 {
     if (arg0->state == 0) {
-        D_80115758  = 0x601C7;
-        D_8011572C  = 0x601E3;
-        D_80115750  = 0x601FF;
-        arg0->state = 1;
+        gRoomEffectFlashId      = EFFECT_DRYFIELD_NIGHT_R08_FLASH;
+        gRoomEffectTwinTrailId  = EFFECT_DRYFIELD_NIGHT_R08_TWIN_TRAIL;
+        gRoomEffectSparkBurstId = EFFECT_DRYFIELD_NIGHT_R08_SPARK_BURST;
+        arg0->state             = 1;
     }
 
     switch (gGameSession->location.loc.view) {

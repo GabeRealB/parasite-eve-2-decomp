@@ -1446,9 +1446,9 @@ void func_dryfield_water_hole_8017E040(Task* arg0)
     ctlCoords = ctl->extra.tmd->coords;
     switch (arg0->state) {
         case 0:
-            D_8011574C  = 0x600FD;
-            D_80115738  = 0x600FE;
-            arg0->state = 1;
+            gRoomEffectWaterRippleId = EFFECT_DRYFIELD_WATER_HOLE_WATER_RIPPLE;
+            gRoomEffectWaterSprayId  = EFFECT_DRYFIELD_WATER_HOLE_WATER_SPRAY;
+            arg0->state              = 1;
             for (i = 0; i < 2; i++) {
                 part                                 = &ctl->extra.tmd->coords[14 + i * 3];
                 D_dryfield_water_hole_8017FD1C[i].vx = part->workm.t[0];
@@ -1472,12 +1472,12 @@ void func_dryfield_water_hole_8017E040(Task* arg0)
                     Gp_UpdateCoord(&surface);
                     rnd = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT);
                     if ((s32)((rnd >> 16) & 0x1FF) < splash->strength) {
-                        Gp_SpawnEff(D_8011574C, &surface, 0x40, 0);
+                        Gp_SpawnEff(gRoomEffectWaterRippleId, &surface, 0x40, 0);
                     }
                     splash->strength -= 0x20;
                     rnd               = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT);
                     if ((s32)((rnd >> 16) & 0x1FF) < splash->strength) {
-                        Gp_SpawnEff(D_80115738, &surface, 0x1202180, 0);
+                        Gp_SpawnEff(gRoomEffectWaterSprayId, &surface, 0x1202180, 0);
                     }
                     D_dryfield_water_hole_8017FD1C[i].vx = part->workm.t[0];
                     D_dryfield_water_hole_8017FD1C[i].vy = part->workm.t[1];

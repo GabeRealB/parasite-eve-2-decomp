@@ -91,7 +91,7 @@ static s16 D_energyball_801311A0[16];
 /// Fires the energy ball: on the first frame it picks the charge level from the
 /// combo counter, plays the matching loop sound, refills the surface-jitter
 /// table and spawns one ball per charge level, fanning them out by 0x555 of
-/// yaw each while `D_80115724` (the number of balls already in flight) allows
+/// yaw each while `gEnergyBallInFlightCount` (the number of balls already in flight) allows
 /// it. Every later frame just releases the work block.
 
 void func_energyball_8012EF48(Task* arg0)
@@ -110,10 +110,10 @@ void func_energyball_8012EF48(Task* arg0)
             mem->index = Gp_StateC08.field_0 % 10 - 1;
             level      = mem->index;
             mem->angle = (level << 8) + 0x300;
-            if (D_80115724 < 0) {
-                D_80115724 = 0;
+            if (gEnergyBallInFlightCount < 0) {
+                gEnergyBallInFlightCount = 0;
             }
-            if (D_80115724 == 0) {
+            if (gEnergyBallInFlightCount == 0) {
                 SndEvt_EnqueueType6(D_energyball_8013117C[mem->index], 0, 0);
             }
             for (i = 0; i < 0x10; i++) {
@@ -122,13 +122,13 @@ void func_energyball_8012EF48(Task* arg0)
                 gRandomLcgState          = rng;
             }
             for (i = 0; i < mem->index + 1; i++) {
-                if (D_80115724 + i >= 3) {
+                if (gEnergyBallInFlightCount + i >= 3) {
                     break;
                 }
                 mem->scale   = i * 0x555 - mem->index * 0x2AA;
                 mem->move.vx = (mem->angle * rsin(mem->scale)) >> 12;
                 mem->move.vz = (mem->angle * rcos(mem->scale)) >> 12;
-                Gp_SpawnEff(0x800600F8, coord, i, &mem->move);
+                Gp_SpawnEff((EFFECT_ENERGY_BALL | EFFECT_SPAWN_UNLIMITED), coord, i, &mem->move);
             }
             arg0->state = 1;
             return;
@@ -153,7 +153,7 @@ void func_energyball_8012EF48(Task* arg0)
 /// `field_16` drops; 3 and 4 fade the burst out, growing to twice the row's
 /// size or shrinking below one step. Cancel (`Gp_StateC08.field_3 == -2` or
 /// PE effect control at 4 or more) anywhere but combo 0x2B lets the ball go: the last
-/// ball in flight (`D_80115724`) queues the row's stop sound.
+/// ball in flight (`gEnergyBallInFlightCount`) queues the row's stop sound.
 void func_energyball_8012F180(Task* arg0)
 {
     EffectWork*                    mem;
@@ -181,9 +181,9 @@ void func_energyball_8012F180(Task* arg0)
     mem             = arg0->spawnArg2.pointer;
     if (peEffectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            if (D_80115724 > 0) {
-                D_80115724 -= 1;
-                if (D_80115724 == 0) {
+            if (gEnergyBallInFlightCount > 0) {
+                gEnergyBallInFlightCount -= 1;
+                if (gEnergyBallInFlightCount == 0) {
                     SndEvt_EnqueueType7(D_energyball_8013117C[mem->index], 1);
                 }
             }
@@ -210,18 +210,18 @@ void func_energyball_8012F180(Task* arg0)
                 mem->age = 0;
                 return;
             }
-            arg0->work      = work;
-            mem->index      = (Gp_StateC08.field_0 % 10) - 1;
-            mem->move.vx    = 0;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->move.vy    = -(u16)D_energyball_80131194[mem->index].field_2;
-            mem->move.vz    = 0;
-            mem->angle      = 0;
-            mem->period     = (gRandomLcgState >> 16) & 0xFFF;
-            D_80115724     += 1;
-            mem->scale      = 0xC0;
-            mem->step       = 0x20;
-            arg0->state     = 1;
+            arg0->work                = work;
+            mem->index                = (Gp_StateC08.field_0 % 10) - 1;
+            mem->move.vx              = 0;
+            gRandomLcgState           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->move.vy              = -(u16)D_energyball_80131194[mem->index].field_2;
+            mem->move.vz              = 0;
+            mem->angle                = 0;
+            mem->period               = (gRandomLcgState >> 16) & 0xFFF;
+            gEnergyBallInFlightCount += 1;
+            mem->scale                = 0xC0;
+            mem->step                 = 0x20;
+            arg0->state               = 1;
             /* fallthrough */
         case 1:
             if (mem->angle < D_energyball_80131194[mem->index].field_0) {
@@ -284,9 +284,9 @@ void func_energyball_8012F180(Task* arg0)
             coord->workm.t[1] -= D_energyball_80131194[mem->index].field_2 * mem->age;
             if ((u16)(Gp_StateC08.field_0 / 10) != 0x2B) {
                 if ((Gp_StateC08.field_3 == -2) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
-                    if (D_80115724 > 0) {
-                        D_80115724 -= 1;
-                        if (D_80115724 == 0) {
+                    if (gEnergyBallInFlightCount > 0) {
+                        gEnergyBallInFlightCount -= 1;
+                        if (gEnergyBallInFlightCount == 0) {
                             SndEvt_EnqueueType7(D_energyball_8013117C[mem->index], 1);
                         }
                     }
@@ -349,9 +349,9 @@ void func_energyball_8012F180(Task* arg0)
             }
             if ((u16)(Gp_StateC08.field_0 / 10) != 0x2B) {
                 if ((Gp_StateC08.field_3 == -2) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
-                    if (D_80115724 > 0) {
-                        D_80115724 -= 1;
-                        if (D_80115724 == 0) {
+                    if (gEnergyBallInFlightCount > 0) {
+                        gEnergyBallInFlightCount -= 1;
+                        if (gEnergyBallInFlightCount == 0) {
                             SndEvt_EnqueueType7(D_energyball_8013117C[mem->index], 1);
                         }
                     }
@@ -361,15 +361,15 @@ void func_energyball_8012F180(Task* arg0)
                 }
             }
             if (Gp_CountRec18Hi(work->obj.context.contacts, 0x30000) != 0) {
-                spawned = Gp_SpawnEff(0x600F9, coord, 0, NULL);
+                spawned = Gp_SpawnEff(EFFECT_ENERGYBALL_IMPACT_RING, coord, 0, NULL);
                 if (spawned != NULL) {
                     taskReparent(arg0, spawned->task);
                 }
-                spawned = Gp_SpawnEff(0x600F9, coord, 0x2AA, NULL);
+                spawned = Gp_SpawnEff(EFFECT_ENERGYBALL_IMPACT_RING, coord, 0x2AA, NULL);
                 if (spawned != NULL) {
                     taskReparent(arg0, spawned->task);
                 }
-                spawned = Gp_SpawnEff(0x600F9, coord, 0x555, NULL);
+                spawned = Gp_SpawnEff(EFFECT_ENERGYBALL_IMPACT_RING, coord, 0x555, NULL);
                 if (spawned != NULL) {
                     taskReparent(arg0, spawned->task);
                 }
@@ -395,9 +395,9 @@ void func_energyball_8012F180(Task* arg0)
             mem->angle = mem->angle + (u16)D_energyball_80131194[mem->index].field_2;
             if (((u16)(Gp_StateC08.field_0 / 10) != 0x2B) &&
                 ((Gp_StateC08.field_3 == -2) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN))) {
-                if (D_80115724 > 0) {
-                    D_80115724 -= 1;
-                    if (D_80115724 == 0) {
+                if (gEnergyBallInFlightCount > 0) {
+                    gEnergyBallInFlightCount -= 1;
+                    if (gEnergyBallInFlightCount == 0) {
                         SndEvt_EnqueueType7(D_energyball_8013117C[mem->index], 1);
                     }
                 }
@@ -405,9 +405,9 @@ void func_energyball_8012F180(Task* arg0)
                 return;
             }
             if (D_energyball_80131194[mem->index].field_0 * 2 < mem->angle) {
-                if (D_80115724 > 0) {
-                    D_80115724 -= 1;
-                    if (D_80115724 == 0) {
+                if (gEnergyBallInFlightCount > 0) {
+                    gEnergyBallInFlightCount -= 1;
+                    if (gEnergyBallInFlightCount == 0) {
                         SndEvt_EnqueueType7(D_energyball_8013117C[mem->index], 1);
                     }
                 }
@@ -423,9 +423,9 @@ void func_energyball_8012F180(Task* arg0)
             mem->angle = mem->angle - (u16)D_energyball_80131194[mem->index].field_2;
             if (((u16)(Gp_StateC08.field_0 / 10) != 0x2B) &&
                 ((Gp_StateC08.field_3 == -2) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN))) {
-                if (D_80115724 > 0) {
-                    D_80115724 -= 1;
-                    if (D_80115724 == 0) {
+                if (gEnergyBallInFlightCount > 0) {
+                    gEnergyBallInFlightCount -= 1;
+                    if (gEnergyBallInFlightCount == 0) {
                         SndEvt_EnqueueType7(D_energyball_8013117C[mem->index], 1);
                     }
                 }
@@ -433,9 +433,9 @@ void func_energyball_8012F180(Task* arg0)
                 return;
             }
             if (mem->angle < D_energyball_80131194[mem->index].field_2) {
-                if (D_80115724 > 0) {
-                    D_80115724 -= 1;
-                    if (D_80115724 == 0) {
+                if (gEnergyBallInFlightCount > 0) {
+                    gEnergyBallInFlightCount -= 1;
+                    if (gEnergyBallInFlightCount == 0) {
                         SndEvt_EnqueueType7(D_energyball_8013117C[mem->index], 1);
                     }
                 }

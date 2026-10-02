@@ -451,7 +451,7 @@ done:
         damage          = Gp_ComputeDamage(work->field_4CC, 0, 0, 0x1000);
         if (Gp_RollEnemyChance(enemy, work->field_4CC, 0) != 0) {
             damage *= 5;
-            Gp_SpawnEff(0x6009C, arg0->extra.tmd->coords, 0, 0);
+            Gp_SpawnEff(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords, 0, 0);
         }
         enemy->hp -= damage;
         Gp_ClearRec18Occupied(work->rec18);
@@ -553,7 +553,7 @@ static s32 func_actor_311500_801630A4(Task* arg0)
                     break;
 
                 case 0xA:
-                    Gp_SpawnEff(0x600A5, &arg0->extra.tmd->coords[2], 3, NULL);
+                    Gp_SpawnEff(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[2], 3, NULL);
                     Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
                     break;
 

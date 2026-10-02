@@ -134,13 +134,13 @@ void golemPawnRookTakeHits(Task* arg0)
                     work->field_6CE = 0;
                     if ((kind & 0xFFFF) == 5) {
                         damage *= 2;
-                        Gp_SpawnEff(0x6009C, &arg0->extra.tmd->coords[3], 2, NULL);
+                        Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 2, NULL);
                     }
                 }
                 if (Gp_RollEnemyChance(enemy, work->field_4EC[i].key.value, 0) != 0) {
                     damage *= 4;
                     if ((kind & 0xFFFF) != 5) {
-                        Gp_SpawnEff(0x6009C, &arg0->extra.tmd->coords[3], 0, NULL);
+                        Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
                     }
                     if (work->field_6E0 == 0) {
                         result = 1;

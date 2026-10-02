@@ -1734,7 +1734,7 @@ static void Actor04000_Fn01E1C(Enemy* arg0, Task* arg1)
             work->obj3C0.radius = 0xFA;
             work->obj388.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             work->obj3C0.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            Gp_SpawnEff(0x6009C, &arg1->extra.tmd->coords[2], 1, NULL);
+            Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg1->extra.tmd->coords[2], 1, NULL);
             break;
         case 2:
             work->obj3C0.radius = 0x1F4;
@@ -1749,7 +1749,7 @@ static void Actor04000_Fn01E1C(Enemy* arg0, Task* arg1)
             break;
         case 7:
             if ((s8)work->field_479 == 0) {
-                Gp_SpawnEff(0x6009E, arg1->extra.tmd->coords, 0, NULL);
+                Gp_SpawnEff(EFFECT_RED_GROUND_GLOW, arg1->extra.tmd->coords, 0, NULL);
             }
             obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             id         = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40280004;
@@ -1983,7 +1983,7 @@ static void Actor04000_Fn02F48(Enemy* arg0, Task* arg1)
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, 0, 0x7DE);
             work->obj388.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             work->obj3C0.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            Gp_SpawnEff(0x6009C, &arg1->extra.tmd->coords[2], 1, NULL);
+            Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg1->extra.tmd->coords[2], 1, NULL);
             break;
         case 3:
             work->obj3C0.radius = 0x1F4;
@@ -1997,7 +1997,7 @@ static void Actor04000_Fn02F48(Enemy* arg0, Task* arg1)
             break;
         case 8:
             if ((s8)work->field_479 == 0) {
-                Gp_SpawnEff(0x6009E, arg1->extra.tmd->coords, 0, NULL);
+                Gp_SpawnEff(EFFECT_RED_GROUND_GLOW, arg1->extra.tmd->coords, 0, NULL);
             }
             id  = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40280004;
             pan = (s8)worldCoordGetOriginAudioPan(arg1->extra.tmd->coords);
@@ -2103,7 +2103,7 @@ static void Actor04000_Fn03798(Enemy* arg0, Task* arg1)
         case 1:
             work->obj388.radius = 0x3E8;
             work->obj388.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            Gp_SpawnEff(0x6009C, &arg1->extra.tmd->coords[2], 1, NULL);
+            Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg1->extra.tmd->coords[2], 1, NULL);
             Gp_SpawnScript18(Actor04000_D07094, Actor04000_D070A0);
             break;
         case 2:
@@ -2121,7 +2121,7 @@ static void Actor04000_Fn03798(Enemy* arg0, Task* arg1)
         case 6:
             work->obj3C0.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             if ((s8)work->field_479 == 0) {
-                Gp_SpawnEff(0x6009E, arg1->extra.tmd->coords, 0, NULL);
+                Gp_SpawnEff(EFFECT_RED_GROUND_GLOW, arg1->extra.tmd->coords, 0, NULL);
             }
             break;
         case 8:

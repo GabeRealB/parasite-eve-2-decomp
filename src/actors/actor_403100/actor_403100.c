@@ -3970,10 +3970,10 @@ static void func_actor_403100_8013335C(Task* arg0)
                     goto effect2;
                 goto effect_end;
             effect1:
-                Gp_SpawnEff(0x6009C, &arg0->extra.tmd->coords[4], 0, 0);
+                Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[4], 0, 0);
                 goto effect_end;
             effect2:
-                Gp_SpawnEff(0x6009C, &arg0->extra.tmd->coords[4], 3, 0);
+                Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[4], 3, 0);
             effect_end:
                 func_800E2C78(D_actor_403100_8015580C, D_actor_403100_80155808->pad_49C[i].key.value, scaledDamage, 0);
                 func_800DA6E8(&D_actor_403100_8015580C->node, scaledDamage, 0);
@@ -4323,7 +4323,7 @@ static void func_actor_403100_80133E88(Task* arg0)
             pos.vz              = -0xAF0;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
-            Gp_SpawnEff(0x600A5, coord, 3, &pos);
+            Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 3, &pos);
         }
     }
     if ((s16)D_actor_403100_80155808->field_5EC == 0x1E) {
@@ -4336,7 +4336,7 @@ static void func_actor_403100_80133E88(Task* arg0)
             pos.vz              = -0x1130;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
-            Gp_SpawnEff(0x600A5, coord, 4, &pos);
+            Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 4, &pos);
         }
     }
     if ((s16)D_actor_403100_80155808->field_5EC == 0x3C) {
@@ -4349,7 +4349,7 @@ static void func_actor_403100_80133E88(Task* arg0)
             pos.vz              = -0xFA0;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
-            Gp_SpawnEff(0x600A5, coord, 5, &pos);
+            Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 5, &pos);
         }
     }
     if ((D_actor_403100_80155808->field_5EC & 0x7F) == 0x40) {
@@ -4393,22 +4393,22 @@ static void func_actor_403100_801342B4(Task* arg0)
     for (; i < 9; i++) {
         if (Actor403100_FindRegion(pos1.vx, pos1.vz) == i) {
             if (D_actor_403100_80155808->regions.regionFlags[i] == 0) {
-                Gp_SpawnEff(0x60050, coord1, 0, &offset1);
+                Gp_SpawnEff(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_BREAK, coord1, 0, &offset1);
                 func_dryfield_night_motel_balcony_8017E250((s16)i, 1);
                 D_actor_403100_80155808->regions.regionFlags[i] = 1;
             } else {
-                Gp_SpawnEff(0x60050, coord1, 1, &offset1);
+                Gp_SpawnEff(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_BREAK, coord1, 1, &offset1);
             }
         }
     }
     for (i = 3; i < 9; i++) {
         if (Actor403100_FindRegion(pos2.vx, pos2.vz) == i) {
             if (D_actor_403100_80155808->regions.regionFlags[i] == 0) {
-                Gp_SpawnEff(0x60050, coord2, 0, &offset2);
+                Gp_SpawnEff(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_BREAK, coord2, 0, &offset2);
                 func_dryfield_night_motel_balcony_8017E250((s16)i, 1);
                 D_actor_403100_80155808->regions.regionFlags[i] = 1;
             } else {
-                Gp_SpawnEff(0x60050, coord2, 1, &offset2);
+                Gp_SpawnEff(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_BREAK, coord2, 1, &offset2);
             }
         }
     }
@@ -5967,7 +5967,7 @@ static void func_actor_403100_80138048(Task* arg0)
         offset.vy   = -0x140;
         offset.vx   = 0;
         offset.vz   = 0x400;
-        Gp_SpawnEff(0x60070, effectCoord, -0x3FFCB400, &offset);
+        Gp_SpawnEff(EFFECT_SMOKE_PUFF, effectCoord, -0x3FFCB400, &offset);
     }
     if (Actor403100_TestFlags104()) {
         D_actor_403100_80155808->field_61C  = 1;
@@ -6003,7 +6003,7 @@ static void func_actor_403100_8013842C(Task* arg0)
         offset.vy   = -0x140;
         offset.vx   = 0;
         offset.vz   = 0x400;
-        Gp_SpawnEff(0x60070, effectCoord, -0x3FFCB400, &offset);
+        Gp_SpawnEff(EFFECT_SMOKE_PUFF, effectCoord, -0x3FFCB400, &offset);
     }
     if (Actor403100_TestFlags104()) {
         D_actor_403100_80155808->field_5F8 = 1;
@@ -6564,7 +6564,7 @@ static void func_actor_403100_80139818(Task* arg0)
         position.vy  = -0x140;
         position.vx  = 0;
         position.vz  = 0x400;
-        Gp_SpawnEff(0x60070, effectCoords + 3, -0x3FFCB400, &position);
+        Gp_SpawnEff(EFFECT_SMOKE_PUFF, effectCoords + 3, -0x3FFCB400, &position);
     }
     if ((s16)D_actor_403100_80155808->field_5EC == 0x64) {
         func_8010B2A0(0, 3);
@@ -6876,7 +6876,7 @@ static void func_actor_403100_8013A5AC(Task* arg0)
         offset.vy   = -0x140;
         offset.vx   = 0;
         offset.vz   = 0x400;
-        Gp_SpawnEff(0x60070, effectCoord, -0x3FFCB400, &offset);
+        Gp_SpawnEff(EFFECT_SMOKE_PUFF, effectCoord, -0x3FFCB400, &offset);
     }
     if (Actor403100_TestFlags104()) {
         D_actor_403100_80155808->field_5EC  = 0;
@@ -6911,7 +6911,7 @@ static void func_actor_403100_8013A81C(Task* arg0)
         offset.vy   = -0x140;
         offset.vx   = 0;
         offset.vz   = 0x400;
-        Gp_SpawnEff(0x60070, effectCoord, -0x3FFCB400, &offset);
+        Gp_SpawnEff(EFFECT_SMOKE_PUFF, effectCoord, -0x3FFCB400, &offset);
     }
     if (Actor403100_TestFlags104()) {
         D_actor_403100_80155808->field_5F8 = 1;
@@ -8463,7 +8463,7 @@ static void func_actor_403100_8013E6F0(Task* arg0)
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         if (!(arg0->killCountdown & 7)) {
-            Gp_SpawnEff(0x60095, coord, 0x80020400, NULL);
+            Gp_SpawnEff(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, 0x80020400, NULL);
         }
         countdown           = arg0->killCountdown - 1;
         arg0->killCountdown = countdown;
@@ -8501,7 +8501,7 @@ static void func_actor_403100_8013E7C8(Task* arg0)
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         if (!(arg0->killCountdown & 7)) {
-            Gp_SpawnEff(0x60095, coord, 0x80020400, NULL);
+            Gp_SpawnEff(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, 0x80020400, NULL);
         }
         countdown           = arg0->killCountdown - 1;
         arg0->killCountdown = countdown;
@@ -8522,7 +8522,7 @@ static void func_actor_403100_8013E88C(Task* arg0)
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         if (!(arg0->killCountdown & 7)) {
-            Gp_SpawnEff(0x60095, coord, 0x20400, NULL);
+            Gp_SpawnEff(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, 0x20400, NULL);
         }
         countdown           = arg0->killCountdown - 1;
         arg0->killCountdown = countdown;

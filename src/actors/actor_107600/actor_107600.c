@@ -1519,7 +1519,7 @@ static void func_actor_107600_801332D4(Task* arg0)
                 actor           = player->work;
                 work->field_166 = 0;
                 Gp_SetLightMode(enemy, ENEMY_COLOR_DEFAULT);
-                Gp_SpawnEff(0x601BD, c, 0, NULL);
+                Gp_SpawnEff(EFFECT_MIST_GALLERY_TRACER, c, 0, NULL);
                 p = (s8)worldCoordGetOriginAudioPan(c);
                 SndEvt_EnqueueType6(SOUND_MIST_SHOOTING_GALLERY_TARGET_ATTACK, p, (s8)worldCoordGetOriginAudioDepth(c));
                 if (actor->mode != GAME_ACTOR_MODE_DAMAGE) {

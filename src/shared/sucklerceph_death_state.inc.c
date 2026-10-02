@@ -54,7 +54,7 @@ void sucklercephDeathState(Enemy* enemy, Task* task)
                         task->killCountdown = 0;
                         Gp_ReleaseStateF0Add(task, 0x2E);
                         if (work->field_2DA != 0) {
-                            Gp_SpawnEff(0x6009E, task->extra.tmd->coords, 0, NULL);
+                            Gp_SpawnEff(EFFECT_RED_GROUND_GLOW, task->extra.tmd->coords, 0, NULL);
                         }
                         work->field_2B4 = 1;
                         work->field_2B6 = 0;

@@ -942,9 +942,9 @@ void func_neo_ark_submarine_gallery_8017EFEC(Task* arg0)
 
     coord = arg0->extra.coordBody->coord;
     if (arg0->state == 0) {
-        D_8011574C  = 0x60193;
-        D_80115738  = 0x60194;
-        arg0->state = 1;
+        gRoomEffectWaterRippleId = EFFECT_NEO_ARK_SUBMARINE_GALLERY_WATER_RIPPLE;
+        gRoomEffectWaterSprayId  = EFFECT_NEO_ARK_SUBMARINE_GALLERY_WATER_SPRAY;
+        arg0->state              = 1;
     }
     view = Gp_GetViewIndex() & 0xFF;
     switch (view) {

@@ -2538,7 +2538,7 @@ void func_dryfield_toilet_8017DCF0(Task* arg0)
             VectorNormalSS(&mem->pos, &mem->move);
         }
         Gp_UpdateCoord(coord);
-        spawned = Gp_SpawnEff(0x6009F, coord, 0x11180, 0);
+        spawned = Gp_SpawnEff(EFFECT_DRYFIELD_TOILET_JET_PUFF, coord, 0x11180, 0);
         if (spawned != NULL) {
             gte_lddp(mem->scale - mem->age);
             gte_ldsv(&mem->move);
@@ -2669,10 +2669,10 @@ void func_dryfield_toilet_8017DEF4(Task* arg0)
 void func_dryfield_toilet_8017E64C(Task* arg0)
 {
     if (arg0->state == 0) {
-        D_80115734  = 0x6028A;
-        D_80115730  = 0x6028B;
-        D_80115754  = 0x6028C;
-        arg0->state = 1;
+        gRoomEffectGlowDiscId     = EFFECT_DRYFIELD_TOILET_GLOW_DISC;
+        gRoomEffectFlyingSparkId  = EFFECT_DRYFIELD_TOILET_FLYING_SPARK;
+        gRoomEffectOrangeBurst2Id = EFFECT_DRYFIELD_TOILET_ORANGE_BURST_2;
+        arg0->state               = 1;
     }
 }
 

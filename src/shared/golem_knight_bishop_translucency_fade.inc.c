@@ -211,7 +211,7 @@ void golemKnightBishopTranslucencyFade(Task* arg0)
                 sc->vx = 0;
                 sc->vy = -(((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xFF);
                 sc->vz = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xFF;
-                Gp_SpawnEff(0x600E0, &arg0->extra.tmd->coords[3], 0x100, sc);
+                Gp_SpawnEff(EFFECT_FLASH_BURST, &arg0->extra.tmd->coords[3], 0x100, sc);
             }
             break;
         case 9:
@@ -242,7 +242,7 @@ void golemKnightBishopTranslucencyFade(Task* arg0)
                 sc->vx = 0;
                 sc->vy = -(((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xFF);
                 sc->vz = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xFF;
-                Gp_SpawnEff(0x600E0, &arg0->extra.tmd->coords[3], 0x100, sc);
+                Gp_SpawnEff(EFFECT_FLASH_BURST, &arg0->extra.tmd->coords[3], 0x100, sc);
             }
             break;
     }

@@ -190,7 +190,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             work->obj2.flags            = WORLD_COLLISION_BODY_SPHERE;
             Gp_LinkObj(7, &work->obj2);
             work->obj2.flags = (work->obj2.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED)) | (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
-            Gp_SpawnEff(0x60011, coord, 0, NULL);
+            Gp_SpawnEff(EFFECT_PYROKINESIS_LAUNCH_CONE, coord, 0, NULL);
             rgb[0] = 0xFF;
             rgb[1] = 0x7F;
             rgb[2] = 0x3F;
@@ -203,7 +203,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 radius     = (mem->index << 9) + 0x380;
                 mem->angle = radius;
                 for (i = 0; i < 0x556; i += 0x2AA) {
-                    spawned = Gp_SpawnEff(0x600F6, coord, i, NULL);
+                    spawned = Gp_SpawnEff(EFFECT_PYROKINESIS_FLAME_RING, coord, i, NULL);
                     if (spawned != NULL) {
                         taskReparent(arg0, spawned->task);
                     }
@@ -248,7 +248,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 jetConeDraw(coord, mem->age, mem->angle, 1);
             }
             if (mem->age < 0x1E) {
-                spawned = Gp_SpawnEff(0x60069, coord, 0, NULL);
+                spawned = Gp_SpawnEff(EFFECT_PYROKINESIS_FLAME_PUFF, coord, 0, NULL);
                 if (spawned != NULL) {
                     taskReparent(arg0, spawned->task);
                 }
@@ -273,7 +273,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             if (Gp_CountRec18Hi(work->obj.context.contacts, 0x30000) != 0) {
                 Gp_UnlinkObj(&work->obj);
                 for (i = 0; i < 0x556; i += 0x2AA) {
-                    spawned = Gp_SpawnEff(0x600F6, coord, i, NULL);
+                    spawned = Gp_SpawnEff(EFFECT_PYROKINESIS_FLAME_RING, coord, i, NULL);
                     if (spawned != NULL) {
                         taskReparent(arg0, spawned->task);
                     }
@@ -322,7 +322,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             spriteQuadDraw(coord, mem->age, mem->angle, mem->period);
             glowDrawFlameStar(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
             if (mem->angle >= 0x81) {
-                spawned = Gp_SpawnEff(0x60069, coord, 0, NULL);
+                spawned = Gp_SpawnEff(EFFECT_PYROKINESIS_FLAME_PUFF, coord, 0, NULL);
                 if (spawned != NULL) {
                     taskReparent(arg0, spawned->task);
                 }
@@ -330,7 +330,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             if (Gp_CountRec18Hi(work->obj.context.contacts, 0x30000) != 0) {
                 Gp_UnlinkObj(&work->obj);
                 for (i = 0; i < 0x556; i += 0x2AA) {
-                    spawned = Gp_SpawnEff(0x600F6, coord, i, NULL);
+                    spawned = Gp_SpawnEff(EFFECT_PYROKINESIS_FLAME_RING, coord, i, NULL);
                     if (spawned != NULL) {
                         taskReparent(arg0, spawned->task);
                     }
@@ -437,12 +437,12 @@ void func_pyrokinesis_8012FAC8(Task* arg0)
                 }
                 return;
             L_case0:
-                Gp_SpawnEff(0x80060010, coord, 0, 0);
+                Gp_SpawnEff((EFFECT_PYROKINESIS_CAST | EFFECT_SPAWN_UNLIMITED), coord, 0, 0);
                 arg0->state = scene;
                 return;
             L_case1:
                 if (mem->age == 8) {
-                    Gp_SpawnEff(0x80060010, coord, 1, 0);
+                    Gp_SpawnEff((EFFECT_PYROKINESIS_CAST | EFFECT_SPAWN_UNLIMITED), coord, 1, 0);
                     arg0->state = 2;
                 }
                 return;

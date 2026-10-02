@@ -974,9 +974,9 @@ WorldCollisionSurfaceProperties* D_dryfield_night_junk_yard_801844C4[8] = {
 void func_dryfield_night_junk_yard_8017DA14(Task* task)
 {
     if (task->state == 0) {
-        D_80115758 = 0x600E5;
-        D_8011572C = 0x600E6;
-        D_80115750 = 0x600E7;
+        gRoomEffectFlashId      = EFFECT_DRYFIELD_NIGHT_JUNK_YARD_FLASH;
+        gRoomEffectTwinTrailId  = EFFECT_DRYFIELD_NIGHT_JUNK_YARD_TWIN_TRAIL;
+        gRoomEffectSparkBurstId = EFFECT_DRYFIELD_NIGHT_JUNK_YARD_SPARK_BURST;
     }
     gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
     switch (gGameSession->location.loc.view) {

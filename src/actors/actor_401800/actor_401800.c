@@ -2046,7 +2046,7 @@ static void func_actor_401800_8013BB10(Task* arg0)
         vec.vx                        = 0x64;
         vec.vz                        = 0;
         vec.vy                        = 0;
-        Gp_SpawnEff(0x60030, arg0->extra.tmd->coords + 1, 0x10300, &vec);
+        Gp_SpawnEff(EFFECT_030, arg0->extra.tmd->coords + 1, 0x10300, &vec);
         Gp_ReleaseStateF0Add(arg0, 0xA);
     }
     next          = work->field_6 + 1;
@@ -2056,21 +2056,21 @@ static void func_actor_401800_8013BB10(Task* arg0)
         vec.vz                   = 0x64;
         vec.vy                   = 0;
         vec.vx                   = 0;
-        actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 9, 0x200, &vec), enemy);
+        actorTintEffect(Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 9, 0x200, &vec), enemy);
     }
     if (work->field_6 == 5) {
         D_80114B34[5].data.model = &_gActor401800Model12280;
         vec.vy                   = 0;
         vec.vx                   = 0;
-        actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 12, 0x200, &vec), enemy);
+        actorTintEffect(Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 12, 0x200, &vec), enemy);
     }
     if (work->field_6 == 7) {
         D_80114B34[5].data.model = &gOddStrangerBurstModelA;
-        actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 1, 0x200, NULL), enemy);
+        actorTintEffect(Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 1, 0x200, NULL), enemy);
     }
     if (work->field_6 == 9) {
         D_80114B34[5].data.model = &gOddStrangerBurstModelC;
-        actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 3, 0x200, NULL), enemy);
+        actorTintEffect(Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 3, 0x200, NULL), enemy);
     }
     if (work->field_6 >= 0x3D) {
         work->field_0 = 0;

@@ -71,7 +71,7 @@ void ratContacts(Task* actor)
                     damage               = Gp_ComputeDamage(work->field_22C.contacts.recs[i].key.value, SquareRoot0((frame->delta.vx.word * frame->delta.vx.word) + (frame->delta.vy.word * frame->delta.vy.word) + (frame->delta.vz.word * frame->delta.vz.word)), 0, 0);
                     if (Gp_RollEnemyChance(actor->spawnArg2.pointer, work->field_22C.contacts.recs[i].key.value, 0) != 0) {
                         damage *= 4;
-                        Gp_SpawnEff(0x6009C, actor->extra.tmd->coords, 0, NULL);
+                        Gp_SpawnEff(EFFECT_CRITICAL_HIT, actor->extra.tmd->coords, 0, NULL);
                     }
                     func_800DA6E8(&((Enemy*)actor->spawnArg2.pointer)->node, damage, 0);
                     func_800E2C78(actor->spawnArg2.pointer, work->field_22C.contacts.recs[i].key.value, damage, 0);

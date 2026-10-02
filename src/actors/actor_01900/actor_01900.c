@@ -1553,7 +1553,7 @@ static void Actor01900_Fn02A50(Task* arg0)
             work->field_C12 += s->damage;
             effect           = s->effect;
             if (effect != -1) {
-                Gp_SpawnEff(0x6009C, &arg0->extra.tmd->coords[2], (s32)(effect), NULL);
+                Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[2], (s32)(effect), NULL);
             }
             if (work->field_0 == 0x17) {
                 SndEvt_EnqueueType7(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, 1);
@@ -2578,7 +2578,7 @@ static void Actor01900_Fn06904(Task* arg0)
                 break;
             case 5:
                 Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
-                Gp_SpawnEff(0x600A5, arg0->extra.tmd->coords + 2, 3, NULL);
+                Gp_SpawnEff(EFFECT_CORPSE_BURN, arg0->extra.tmd->coords + 2, 3, NULL);
                 break;
             case 23:
                 arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
@@ -3015,7 +3015,7 @@ static void Actor01900_Fn08724(Task* arg0)
         vec.vx                        = 0x64;
         vec.vz                        = 0;
         vec.vy                        = 0;
-        Gp_SpawnEff(0x60030, arg0->extra.tmd->coords + 1, 0x10300, &vec);
+        Gp_SpawnEff(EFFECT_030, arg0->extra.tmd->coords + 1, 0x10300, &vec);
         Gp_ReleaseStateF0Add(arg0, 0x13);
     }
     work->field_6++;
@@ -3025,13 +3025,13 @@ static void Actor01900_Fn08724(Task* arg0)
             vec.vz                   = 0x64;
             vec.vy                   = 0;
             vec.vx                   = 0;
-            eff                      = Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 9, 0x200, &vec);
+            eff                      = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 9, 0x200, &vec);
             goto body;
         case 4:
             D_80114B34[5].data.model = &_gActor01900StrangerBurstHand;
             vec.vy                   = 0;
             vec.vx                   = 0;
-            eff                      = Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 12, 0x200, &vec);
+            eff                      = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 12, 0x200, &vec);
         body:
             if (eff != NULL) {
                 actorTintTask(eff->task, enemy);
@@ -3065,7 +3065,7 @@ static void Actor01900_Fn0892C(Task* arg0)
         work->field_89E               = 2;
         work->field_898               = 1;
         work->field_8A2               = 0x10;
-        Gp_SpawnEff(0x60030, arg0->extra.tmd->coords + 1, 0x10300, &vec);
+        Gp_SpawnEff(EFFECT_030, arg0->extra.tmd->coords + 1, 0x10300, &vec);
         work->field_6 = 0;
     }
     work->field_6++;
@@ -3084,12 +3084,12 @@ static void Actor01900_Fn0892C(Task* arg0)
                 vec.vz                   = 0x64;
                 vec.vy                   = 0;
                 vec.vx                   = 0;
-                eff                      = Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 9, 0x200, &vec);
+                eff                      = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 9, 0x200, &vec);
                 actorTintEffect(eff, enemy);
             }
             if (work->field_6 == 5) {
                 D_80114B34[5].data.model = &_gActor01900StrangerBurstHand;
-                eff                      = Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 1, 0x200, NULL);
+                eff                      = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 1, 0x200, NULL);
                 actorTintEffect(eff, enemy);
             }
             break;
@@ -3103,7 +3103,7 @@ static void Actor01900_Fn0892C(Task* arg0)
                     break;
                 case 5:
                     Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
-                    Gp_SpawnEff(0x600A5, arg0->extra.tmd->coords + 2, 2, NULL);
+                    Gp_SpawnEff(EFFECT_CORPSE_BURN, arg0->extra.tmd->coords + 2, 2, NULL);
                     break;
                 case 23:
                     arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;

@@ -690,7 +690,7 @@ s32 func_actor_323300_80162360(Task* arg0, s32 arg1, ActorCommand* msg, ActorTra
             vec.vy = 0x3C;
             vec.vx = 0;
             vec.vz = 0xC8;
-            Gp_SpawnEff(0x600A2, &arg0->extra.tmd->coords[6], 0xA, &vec);
+            Gp_SpawnEff(EFFECT_DRYFIELD_TOILET_SPRAY_EMITTER, &arg0->extra.tmd->coords[6], 0xA, &vec);
             break;
     }
     return 0;

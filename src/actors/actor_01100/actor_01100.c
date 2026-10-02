@@ -1472,7 +1472,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, ActorsShared80138efcWork
     if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
         dotDamage = Gp_TickObjFlag4(enemy);
         if (dotDamage > 0) {
-            Gp_SpawnEff(0x60055, &task->extra.tmd->coords[4], 0x11112400, 0);
+            Gp_SpawnEff(EFFECT_HIT_PUFF, &task->extra.tmd->coords[4], 0x11112400, 0);
             damage += dotDamage;
         }
     }
@@ -1532,7 +1532,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, ActorsShared80138efcWork
                 }
                 break;
             case 3:
-                Gp_SpawnEff(0x60055, &task->extra.tmd->coords[4], 0x11112400, 0);
+                Gp_SpawnEff(EFFECT_HIT_PUFF, &task->extra.tmd->coords[4], 0x11112400, 0);
                 Gp_SetObjFlag4(enemy, sourceKey, 0);
                 break;
             case 5:
@@ -1559,16 +1559,16 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, ActorsShared80138efcWork
                 } else {
                     damage += (s32)damage / 2;
                 }
-                Gp_SpawnEff(0x60070, &task->extra.tmd->coords[4], 0x80023300, 0);
+                Gp_SpawnEff(EFFECT_SMOKE_PUFF, &task->extra.tmd->coords[4], 0x80023300, 0);
                 kind7 = 1;
-                Gp_SpawnEff(0x60070, &task->extra.tmd->coords[4], 0x80023300, 0);
+                Gp_SpawnEff(EFFECT_SMOKE_PUFF, &task->extra.tmd->coords[4], 0x80023300, 0);
                 break;
             case 8:
             case 9:
                 break;
         }
         if (sparkLevel >= 0) {
-            Gp_SpawnEff(0x6009C, &task->extra.tmd->coords[4], sparkLevel, 0);
+            Gp_SpawnEff(EFFECT_CRITICAL_HIT, &task->extra.tmd->coords[4], sparkLevel, 0);
         }
         if ((reaction == 1) && (work->field_BA6 == 0)) {
             reaction = 2;
@@ -2184,7 +2184,7 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, ActorsShared80138efcWor
                 arg->vec.vx = 0;
                 arg->vec.vy = -0x1E0;
                 arg->vec.vz = 0;
-                Gp_SpawnEff(D_8011574C, c, 0xC0, &arg->vec);
+                Gp_SpawnEff(gRoomEffectWaterRippleId, c, 0xC0, &arg->vec);
             }
             if ((u8)arg->field_64 != 0) {
                 if (work->field_BBA == 0 || ((u8)arg->field_64 == 3 && work->field_BBA != (u8)arg->field_64)) {
@@ -2227,7 +2227,7 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, ActorsShared80138efcWor
                     if (work->field_BB9 == 0) {
                         work->field_BBA = 0;
                     }
-                    Gp_SpawnEff(D_80115738, &gGfxViewCoord, eff, &arg->vec);
+                    Gp_SpawnEff(gRoomEffectWaterSprayId, &gGfxViewCoord, eff, &arg->vec);
                     SndEvt_EnqueueType6(((u8)work->actorId << 8) | 0x404B000D, arg->pan, arg->depth);
                 }
             }
@@ -3239,7 +3239,7 @@ static __inline__ void _actor01100SpawnModelEff(Task* task, TmdSource* model)
     TmdObject*  tmd;
 
     D_80067330.tmd = model;
-    eff            = Gp_SpawnEff(0x10032, &task->extra.tmd->coords[6], 0x200, 0);
+    eff            = Gp_SpawnEff(EFFECT_FLYING_BODY_PART, &task->extra.tmd->coords[6], 0x200, 0);
     if (eff != NULL) {
         owner                  = task->extra.tmd;
         tmd                    = eff->task->extra.tmd;
@@ -3313,7 +3313,7 @@ static void Actor01100_Fn05678(
         time            = work->field_B8C - 1;
         work->field_B8C = time;
         if (time == 0xC) {
-            Gp_SpawnEff(0x600A5, task->extra.tmd->coords, 5, 0);
+            Gp_SpawnEff(EFFECT_CORPSE_BURN, task->extra.tmd->coords, 5, 0);
         } else if (time <= 0) {
             extra->flags |= TMD_OBJECT_SEMI_TRANS;
             Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
@@ -3462,7 +3462,7 @@ static void Actor01100_Fn05E68(Task* task)
         return;
     }
     task->work = work;
-    eff        = Gp_SpawnEff(0x60081, coord, 0, 0);
+    eff        = Gp_SpawnEff(EFFECT_PROJECTILE_GLOW_SPRITE, coord, 0, 0);
     if (eff == NULL) {
         Task_CallExit(task);
         return;
@@ -3613,7 +3613,7 @@ static void Actor01100_Fn0638C(Task* task)
     sound      = soundBase | (Actor01100_D15670 << 8);
     pan        = (s8)worldCoordGetOriginAudioPan(coord);
     SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
-    effect = Gp_SpawnEff(0x60070, coord, 0xC0031FFF, NULL);
+    effect = Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0xC0031FFF, NULL);
     if (effect != NULL) {
         taskReparent(task, effect->task);
     }
@@ -4284,7 +4284,7 @@ static void Actor01100_Fn073DC(Task* task)
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         if (task->killCountdown >= 0x15) {
             if (((u16)task->killCountdown & 1) == 0) {
-                eff = Gp_SpawnEff(0x60070, coord, 0xC0031FFF, NULL);
+                eff = Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0xC0031FFF, NULL);
                 if (eff != NULL) {
                     taskReparent(task, eff->task);
                 }

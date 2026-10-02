@@ -584,9 +584,9 @@ static void func_actor_205200_8014C0C0(Task* arg0)
                 scratch->dir.vy = -1000;
                 scratch->dir.vz = 0;
                 if (work->field_596 == 0) {
-                    Gp_SpawnEff(0x60299, player->extra.tmd->coords, 0, &scratch->dir);
+                    Gp_SpawnEff(EFFECT_SHELTER_B6_CORRIDOR_PLAYER_HIT_RING, player->extra.tmd->coords, 0, &scratch->dir);
                 } else {
-                    Gp_SpawnEff(0x601AC, player->extra.tmd->coords, 0, &scratch->dir);
+                    Gp_SpawnEff(EFFECT_SHELTER_B6_TRAINING_ROOM_HIT_FLASH, player->extra.tmd->coords, 0, &scratch->dir);
                 }
             } else {
                 work->field_588 = 0;

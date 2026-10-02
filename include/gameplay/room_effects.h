@@ -7,6 +7,7 @@
 
 #include "types.h"
 
+#include "gameplay/effect_ids.h"
 #include "gameplay/effects.h"
 #include "gameplay/scene.h"
 
@@ -14,22 +15,34 @@
 #include "main/display_types.h"
 #include "main/task_types.h"
 
-/// Shared State1C work.
-extern s32 D_80115720;
+/// Effect ids each room installs for the shared effects enemies spawn.
+///
+/// A room's init task stores the `EFFECT_*` id of its own copy of each shared
+/// room-visual-effects or water task, so an enemy's effect works whichever room
+/// overlay is loaded; `Gp_InitState1C` clears them. Zero means the room has none.
+extern s32 gRoomEffectSparkEmitterId;
 
-extern s32 D_80115724;
+/// Energy Ball balls currently in flight; `Gp_CheckAttachThreshold` refuses a new
+/// Energy Ball cast while three are.
+extern s32 gEnergyBallInFlightCount;
 
-extern s32 D_80115728;
+/// Rising mote; fireball embers (actor_00300, actor_02400, actor_105100) and the spark emitter's particles.
+extern s32 gRoomEffectMoteId;
 
-extern s32 D_8011572C;
+/// Twin-trail beam; the beam-sword golems' sword trail (actor_02000, actor_02300).
+extern s32 gRoomEffectTwinTrailId;
 
-extern s32 D_80115730;
+/// Spark flying from a player joint into the glow disc.
+extern s32 gRoomEffectFlyingSparkId;
 
-extern s32 D_80115734;
+/// Glow disc of the Amoeba (actor_02400).
+extern s32 gRoomEffectGlowDiscId;
 
-extern s32 D_80115738;
+/// Water spray, spawned where an actor breaks the surface at `GameSession.waterY`.
+extern s32 gRoomEffectWaterSprayId;
 
-extern s32 D_8011573C;
+/// Burst where the Brain Stinger's fireball ends.
+extern s32 gRoomEffectOrangeBurstId;
 
 /// The room-effect controller's live `RoomEffectState`.
 ///
@@ -39,15 +52,20 @@ extern s32 D_8011573C;
 /// for `NULL`, and destroying the task does not clear it.
 extern RoomEffectState* gRoomEffectState;
 
-extern s32 D_80115744;
+/// Halo the Brain Stinger casts with.
+extern s32 gRoomEffectHaloId;
 
-extern s32 D_8011574C;
+/// Water ripple spawned with `gRoomEffectWaterSprayId` at the surface.
+extern s32 gRoomEffectWaterRippleId;
 
-extern s32 D_80115750;
+/// Sparks where a grenade-launcher golem's shot ends (actor_05600, actor_05700).
+extern s32 gRoomEffectSparkBurstId;
 
-extern s32 D_80115754;
+/// Burst where the Amoeba's projectile ends.
+extern s32 gRoomEffectOrangeBurst2Id;
 
-extern s32 D_80115758;
+/// Flash of a golem's silence scream (actor_02300, actor_05700).
+extern s32 gRoomEffectFlashId;
 
 extern TaskDesc D_8010FC2C[];
 

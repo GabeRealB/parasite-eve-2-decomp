@@ -3513,7 +3513,7 @@ static void func_actor_444000_80135448(Task* task)
                        work->field_ECC[2]->task->extra.tmd->coords->coord.t[1]) {
                 work->field_ECC[2]->task->extra.tmd->coords->coord.t[1] =
                     task->extra.tmd->coords->coord.t[1];
-                Gp_SpawnEff(0x60196, work->field_ECC[2]->task->extra.tmd->coords, 0x13401800,
+                Gp_SpawnEff(EFFECT_196, work->field_ECC[2]->task->extra.tmd->coords, 0x13401800,
                             NULL);
             }
 
@@ -3529,28 +3529,28 @@ static void func_actor_444000_80135448(Task* task)
                             pos.vz = 0;
                             pos.vy = 0;
                             pos.vx = 0;
-                            Gp_SpawnEff(0x60196, work->field_ECC[2]->task->extra.tmd->coords,
+                            Gp_SpawnEff(EFFECT_196, work->field_ECC[2]->task->extra.tmd->coords,
                                         0x13401800, &pos);
                             break;
                         case 1:
                             pos.vx = 0x320;
                             pos.vy = 0;
                             pos.vz = -0x320;
-                            Gp_SpawnEff(0x60196, work->field_ECC[2]->task->extra.tmd->coords,
+                            Gp_SpawnEff(EFFECT_196, work->field_ECC[2]->task->extra.tmd->coords,
                                         0x13401800, &pos);
                             break;
                         case 2:
                             pos.vx = -0x320;
                             pos.vy = 0;
                             pos.vz = 0x320;
-                            Gp_SpawnEff(0x60196, work->field_ECC[2]->task->extra.tmd->coords,
+                            Gp_SpawnEff(EFFECT_196, work->field_ECC[2]->task->extra.tmd->coords,
                                         0x13401800, &pos);
                             break;
                     }
                 }
             } else if (step == 0x28) {
                 work->field_ECC[2]->task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-                Gp_SpawnEff(0x60196, work->field_ECC[2]->task->extra.tmd->coords, 0x13401800,
+                Gp_SpawnEff(EFFECT_196, work->field_ECC[2]->task->extra.tmd->coords, 0x13401800,
                             NULL);
             }
         }
@@ -3564,7 +3564,7 @@ static void func_actor_444000_80135448(Task* task)
                        work->field_ECC[4]->task->extra.tmd->coords->coord.t[1]) {
                 work->field_ECC[4]->task->extra.tmd->coords->coord.t[1] =
                     task->extra.tmd->coords->coord.t[1];
-                Gp_SpawnEff(0x60196, work->field_ECC[4]->task->extra.tmd->coords, 0x13401800,
+                Gp_SpawnEff(EFFECT_196, work->field_ECC[4]->task->extra.tmd->coords, 0x13401800,
                             NULL);
             }
 
@@ -3580,28 +3580,28 @@ static void func_actor_444000_80135448(Task* task)
                             pos.vz = 0;
                             pos.vy = 0;
                             pos.vx = 0;
-                            Gp_SpawnEff(0x60196, work->field_ECC[4]->task->extra.tmd->coords,
+                            Gp_SpawnEff(EFFECT_196, work->field_ECC[4]->task->extra.tmd->coords,
                                         0x13401800, &pos);
                             break;
                         case 1:
                             pos.vx = 0x320;
                             pos.vy = 0;
                             pos.vz = -0x320;
-                            Gp_SpawnEff(0x60196, work->field_ECC[4]->task->extra.tmd->coords,
+                            Gp_SpawnEff(EFFECT_196, work->field_ECC[4]->task->extra.tmd->coords,
                                         0x13401800, &pos);
                             break;
                         case 2:
                             pos.vx = -0x320;
                             pos.vy = 0;
                             pos.vz = 0x320;
-                            Gp_SpawnEff(0x60196, work->field_ECC[4]->task->extra.tmd->coords,
+                            Gp_SpawnEff(EFFECT_196, work->field_ECC[4]->task->extra.tmd->coords,
                                         0x13401800, &pos);
                             break;
                     }
                 }
             } else if (step == 0x28) {
                 work->field_ECC[4]->task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-                Gp_SpawnEff(0x60196, work->field_ECC[4]->task->extra.tmd->coords, 0x13401800,
+                Gp_SpawnEff(EFFECT_196, work->field_ECC[4]->task->extra.tmd->coords, 0x13401800,
                             NULL);
             }
         }
@@ -3629,21 +3629,21 @@ static void func_actor_444000_80135448(Task* task)
                             pos.vz = 0;
                             pos.vy = 0;
                             pos.vx = 0;
-                            Gp_SpawnEff(0x60196, work->field_ECC[3]->task->extra.tmd->coords,
+                            Gp_SpawnEff(EFFECT_196, work->field_ECC[3]->task->extra.tmd->coords,
                                         0x13401800, &pos);
                             break;
                         case 1:
                             pos.vx = 0x320;
                             pos.vy = 0;
                             pos.vz = -0x320;
-                            Gp_SpawnEff(0x60196, work->field_ECC[3]->task->extra.tmd->coords,
+                            Gp_SpawnEff(EFFECT_196, work->field_ECC[3]->task->extra.tmd->coords,
                                         0x13401800, &pos);
                             break;
                         case 2:
                             pos.vx = -0x320;
                             pos.vy = 0;
                             pos.vz = 0x320;
-                            Gp_SpawnEff(0x60196, work->field_ECC[3]->task->extra.tmd->coords,
+                            Gp_SpawnEff(EFFECT_196, work->field_ECC[3]->task->extra.tmd->coords,
                                         0x13401800, &pos);
                             break;
                     }
@@ -3699,31 +3699,31 @@ static void func_actor_444000_80135448(Task* task)
                     pos.vz = 0;
                     pos.vy = 0;
                     pos.vx = 0;
-                    Gp_SpawnEff(0x60196, task->extra.tmd->coords, 0x14101900, &pos);
+                    Gp_SpawnEff(EFFECT_196, task->extra.tmd->coords, 0x14101900, &pos);
                     break;
                 case 1:
                     pos.vx = 0x960;
                     pos.vy = 0;
                     pos.vz = -0x960;
-                    Gp_SpawnEff(0x60196, task->extra.tmd->coords, 0x13201800, &pos);
+                    Gp_SpawnEff(EFFECT_196, task->extra.tmd->coords, 0x13201800, &pos);
                     break;
                 case 2:
                     pos.vx = -0x9C4;
                     pos.vy = 0;
                     pos.vz = 0x9C4;
-                    Gp_SpawnEff(0x60196, task->extra.tmd->coords, 0x131C1800, &pos);
+                    Gp_SpawnEff(EFFECT_196, task->extra.tmd->coords, 0x131C1800, &pos);
                     break;
                 case 3:
                     pos.vx = -0x6A4;
                     pos.vy = 0;
                     pos.vz = 0x640;
-                    Gp_SpawnEff(0x60196, task->extra.tmd->coords, 0x14101800, &pos);
+                    Gp_SpawnEff(EFFECT_196, task->extra.tmd->coords, 0x14101800, &pos);
                     break;
                 case 4:
                     pos.vx = 0x6A4;
                     pos.vy = 0;
                     pos.vz = -0x640;
-                    Gp_SpawnEff(0x60196, task->extra.tmd->coords, 0x14301800, &pos);
+                    Gp_SpawnEff(EFFECT_196, task->extra.tmd->coords, 0x14301800, &pos);
                     break;
             }
         }
@@ -4632,7 +4632,7 @@ body:
         sc->rot.vy = 0;
         sc->rot.vx = 0;
         sc->rot.vz = 0x258;
-        Gp_SpawnEff(0x6009C, &work->field_ECC[0]->task->extra.tmd->coords[1], 0, &sc->rot);
+        Gp_SpawnEff(EFFECT_CRITICAL_HIT, &work->field_ECC[0]->task->extra.tmd->coords[1], 0, &sc->rot);
         sc->damage   *= 4;
         work->field_0 = 0xE;
     }
@@ -4655,7 +4655,7 @@ stored:
         sc->rot.vy = 0;
         sc->rot.vx = 0;
         sc->rot.vz = 0x258;
-        Gp_SpawnEff(0x6009C, &work->field_ECC[0]->task->extra.tmd->coords[1], 0, &sc->rot);
+        Gp_SpawnEff(EFFECT_CRITICAL_HIT, &work->field_ECC[0]->task->extra.tmd->coords[1], 0, &sc->rot);
         work->field_0   = 0xE;
         work->field_F0A = (s16)D_actor_444000_80144A38.hpMax;
     }
@@ -5807,7 +5807,7 @@ static void func_actor_444000_801404C0(Task* arg0)
             coord->coord.t[2]  += pos.vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
-            Gp_SpawnEff(0x60196, &D_actor_444000_80161948.value[D_actor_444000_80161850], 0x27A0D600, NULL);
+            Gp_SpawnEff(EFFECT_196, &D_actor_444000_80161948.value[D_actor_444000_80161850], 0x27A0D600, NULL);
         }
         if ((s16)((s16)(u16)work->field_6 % 10) == 4) {
             spawned           = Gp_SpawnEnemyFromTable(gGluttonEscortTasks, 2, 0, arg0->spawnArg2.pointer);

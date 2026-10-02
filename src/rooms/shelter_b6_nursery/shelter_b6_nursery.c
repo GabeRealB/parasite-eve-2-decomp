@@ -1086,9 +1086,9 @@ void func_shelter_b6_nursery_801800A0(Task* task)
     s32      i;
 
     if (task->state == 0) {
-        D_80115758                            = 0x601E0;
-        D_8011572C                            = 0x601FC;
-        D_80115750                            = 0x60218;
+        gRoomEffectFlashId                    = EFFECT_SHELTER_B6_NURSERY_FLASH;
+        gRoomEffectTwinTrailId                = EFFECT_SHELTER_B6_NURSERY_TWIN_TRAIL;
+        gRoomEffectSparkBurstId               = EFFECT_SHELTER_B6_NURSERY_SPARK_BURST;
         D_shelter_b6_nursery_801879F0.field_0 = 0;
         D_shelter_b6_nursery_801879F0.field_2 = 0;
         task->state                           = 1;
@@ -1112,9 +1112,9 @@ void func_shelter_b6_nursery_801800A0(Task* task)
             break;
         case 12:
             if (task->state == 1) {
-                Gp_SpawnEff(0x601A3, NULL, task->spawnArg1.value, &D_shelter_b6_nursery_8018504C[1]);
-                Gp_SpawnEff(0x601A3, NULL, task->spawnArg1.value, &D_shelter_b6_nursery_8018504C[1]);
-                Gp_SpawnEff(0x601A3, NULL, task->spawnArg1.value, &D_shelter_b6_nursery_8018504C[1]);
+                Gp_SpawnEff(EFFECT_SHELTER_B6_NURSERY_DEBRIS_CHUNK, NULL, task->spawnArg1.value, &D_shelter_b6_nursery_8018504C[1]);
+                Gp_SpawnEff(EFFECT_SHELTER_B6_NURSERY_DEBRIS_CHUNK, NULL, task->spawnArg1.value, &D_shelter_b6_nursery_8018504C[1]);
+                Gp_SpawnEff(EFFECT_SHELTER_B6_NURSERY_DEBRIS_CHUNK, NULL, task->spawnArg1.value, &D_shelter_b6_nursery_8018504C[1]);
                 task->state = 2;
             }
             break;
@@ -1131,7 +1131,7 @@ void func_shelter_b6_nursery_801800A0(Task* task)
                     D_shelter_b6_nursery_8018504C[6].vy = ((r * rsin(angle)) >> 12) - 0x6D6;
                     D_shelter_b6_nursery_8018504C[6].vz = ((r * rsin(angle)) >> 12) + 0x7D0;
                     gRandomLcgState                     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    Gp_SpawnEff(0x601A5, NULL,
+                    Gp_SpawnEff(EFFECT_SHELTER_B6_NURSERY_SPARK_SHOWER, NULL,
                                 (((gRandomLcgState >> 16) & 0x1F) + 8) * D_shelter_b6_nursery_801879F0.field_2,
                                 &D_shelter_b6_nursery_8018504C[6]);
                 }
@@ -1142,7 +1142,7 @@ void func_shelter_b6_nursery_801800A0(Task* task)
         case 15:
             if (!(gDisplayState.animFrame & 1)) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                Gp_SpawnEff(0x601A4, NULL, ((gRandomLcgState >> 16) & 0x11FF) + 0x2303300, &D_shelter_b6_nursery_8018504C[5]);
+                Gp_SpawnEff(EFFECT_1A4, NULL, ((gRandomLcgState >> 16) & 0x11FF) + 0x2303300, &D_shelter_b6_nursery_8018504C[5]);
             }
             break;
         case 17:
@@ -1150,21 +1150,21 @@ void func_shelter_b6_nursery_801800A0(Task* task)
             glowDrawDiamond(pos, 0x60, 0x80);
             if (!(gDisplayState.animFrame & 1)) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                Gp_SpawnEff(0x601A4, NULL, ((gRandomLcgState >> 16) & 0x11FF) + 0x2303300, &D_shelter_b6_nursery_8018504C[4]);
+                Gp_SpawnEff(EFFECT_1A4, NULL, ((gRandomLcgState >> 16) & 0x11FF) + 0x2303300, &D_shelter_b6_nursery_8018504C[4]);
             }
             break;
         case 18:
             if (!(gDisplayState.animFrame & 1)) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                Gp_SpawnEff(0x601A4, NULL, ((gRandomLcgState >> 16) & 0x11FF) + 0x2303300, &D_shelter_b6_nursery_8018504C[4]);
+                Gp_SpawnEff(EFFECT_1A4, NULL, ((gRandomLcgState >> 16) & 0x11FF) + 0x2303300, &D_shelter_b6_nursery_8018504C[4]);
             }
             break;
     }
     if (task->state == 3 && !(gDisplayState.animFrame & 1)) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        Gp_SpawnEff(0x601A4, NULL, ((gRandomLcgState >> 16) & 0x11FF) + 0x2303300, &(D_shelter_b6_nursery_8018504C + 2)[0]);
+        Gp_SpawnEff(EFFECT_1A4, NULL, ((gRandomLcgState >> 16) & 0x11FF) + 0x2303300, &(D_shelter_b6_nursery_8018504C + 2)[0]);
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        Gp_SpawnEff(0x601A4, NULL, ((gRandomLcgState >> 16) & 0x11FF) + 0x2303300, &(D_shelter_b6_nursery_8018504C + 2)[1]);
+        Gp_SpawnEff(EFFECT_1A4, NULL, ((gRandomLcgState >> 16) & 0x11FF) + 0x2303300, &(D_shelter_b6_nursery_8018504C + 2)[1]);
     }
 }
 
@@ -1258,10 +1258,10 @@ void func_shelter_b6_nursery_80181314(Task* task)
             if (work->age & 1) {
                 if (work->age > 0x40) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    Gp_SpawnEff(0x601A4, coord, ((gRandomLcgState >> 16) & 0x10FF) + 0x02183300, NULL);
+                    Gp_SpawnEff(EFFECT_1A4, coord, ((gRandomLcgState >> 16) & 0x10FF) + 0x02183300, NULL);
                 } else {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    Gp_SpawnEff(0x601A4, coord, ((gRandomLcgState >> 16) & 0x1000) + 0x82101300, NULL);
+                    Gp_SpawnEff(EFFECT_1A4, coord, ((gRandomLcgState >> 16) & 0x1000) + 0x82101300, NULL);
                 }
             }
             work->age++;

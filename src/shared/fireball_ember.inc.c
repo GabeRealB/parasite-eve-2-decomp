@@ -3,7 +3,7 @@
 /* Part of the fireball library; see fireball.h. */
 
 /// Unless an event is running, draws from the gameplay LCG and on one call in
-/// four spawns effect `D_80115728` on `arg0` with a random horizontal vector;
+/// four spawns effect `gRoomEffectMoteId` on `arg0` with a random horizontal vector;
 /// `arg1` is or-ed into the spawn flags.
 void fireballSpawnEmber(GfxCoord* arg0, s32 arg1)
 {
@@ -20,7 +20,7 @@ void fireballSpawnEmber(GfxCoord* arg0, s32 arg1)
             sp18.vx = (u32)(rcos(ang) * 5) >> 5;
             sp18.vz = (u32)(rsin(ang) * 5) >> 5;
             sp10    = sp18;
-            Gp_SpawnEff(D_80115728, arg0, arg1 | 0x20100200, &sp10);
+            Gp_SpawnEff(gRoomEffectMoteId, arg0, arg1 | 0x20100200, &sp10);
         }
     }
 }

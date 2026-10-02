@@ -99,12 +99,12 @@ void maggotCaterpillarResolveContacts(Task* arg0)
                 if (result == 0) {
                     if (work->field_3CA != 0) {
                         amount = (damage << 16) >> 15;
-                        Gp_SpawnEff(0x6009C, arg0->extra.tmd->coords + 1, 3, NULL);
+                        Gp_SpawnEff(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords + 1, 3, NULL);
                     }
                     if (Gp_RollEnemyChance(enemy, (u32)work->field_2B4[i].key.value, 0) != 0) {
                         amount = (amount << 16) >> 14;
                         if (work->field_3CA == 0) {
-                            Gp_SpawnEff(0x6009C, arg0->extra.tmd->coords + 1, 0, NULL);
+                            Gp_SpawnEff(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords + 1, 0, NULL);
                         }
                     }
                     func_800E2C78(enemy, (u32)work->field_2B4[i].key.value, amount, 0);

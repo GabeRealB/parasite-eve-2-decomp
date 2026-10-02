@@ -43,7 +43,7 @@ void oddStrangerWalkingDeath(Task* arg0)
         work->field_89E               = 2;
         work->field_898               = 1;
         work->field_8A2               = 0x10;
-        Gp_SpawnEff(0x60030, arg0->extra.tmd->coords + 1, 0x10300, &ODD_STRANGER_FX_OFFSET);
+        Gp_SpawnEff(EFFECT_030, arg0->extra.tmd->coords + 1, 0x10300, &ODD_STRANGER_FX_OFFSET);
         work->field_6 = 0;
     }
     next          = work->field_6 + 1;
@@ -65,7 +65,7 @@ void oddStrangerWalkingDeath(Task* arg0)
                 ODD_STRANGER_FX_OFFSET.vz = 0x64;
                 ODD_STRANGER_FX_OFFSET.vy = 0;
                 ODD_STRANGER_FX_OFFSET.vx = 0;
-                actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 9, 0x200, &ODD_STRANGER_FX_OFFSET), enemy);
+                actorTintEffect(Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 9, 0x200, &ODD_STRANGER_FX_OFFSET), enemy);
             }
             if ((s16)work->field_6 == 5) {
                 D_80114B34[5].data.model = ODD_STRANGER_BURST_MODEL_5;
@@ -73,7 +73,7 @@ void oddStrangerWalkingDeath(Task* arg0)
             }
             if ((s16)work->field_6 == 6) {
                 D_80114B34[5].data.model = &gOddStrangerBurstModelC;
-                actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 3, 0x200, NULL), enemy);
+                actorTintEffect(Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 3, 0x200, NULL), enemy);
             }
             break;
         case 0x1A:
@@ -86,7 +86,7 @@ void oddStrangerWalkingDeath(Task* arg0)
                     break;
                 case 5:
                     Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
-                    Gp_SpawnEff(0x600A5, arg0->extra.tmd->coords + 2, 2, NULL);
+                    Gp_SpawnEff(EFFECT_CORPSE_BURN, arg0->extra.tmd->coords + 2, 2, NULL);
                     break;
                 case 23:
                     arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;

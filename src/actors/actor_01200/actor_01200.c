@@ -991,10 +991,10 @@ static void Actor01200_Fn017DC(Enemy* arg0, Task* arg1)
             ofs.vx                  = 0x1E;
             ofs.vz                  = 0x1E;
             ofs.vy                  = -0xA;
-            Gp_SpawnEff(0x60030, arg1->extra.tmd->coords, 0x10100, &ofs);
+            Gp_SpawnEff(EFFECT_030, arg1->extra.tmd->coords, 0x10100, &ofs);
             ofs.vy = -0x14;
             ofs.vz = -0x50;
-            Gp_SpawnEff(0x60030, arg1->extra.tmd->coords, 0x10100, &ofs);
+            Gp_SpawnEff(EFFECT_030, arg1->extra.tmd->coords, 0x10100, &ofs);
             break;
         case 1:
             work->eff1A8.coord      = &arg1->extra.tmd->coords[4];
@@ -1006,7 +1006,7 @@ static void Actor01200_Fn017DC(Enemy* arg0, Task* arg1)
             work->obj338.radius = 0xC8;
             work->obj300.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             work->obj338.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            Gp_SpawnEff(0x6009C, &arg1->extra.tmd->coords[2], 1, NULL);
+            Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg1->extra.tmd->coords[2], 1, NULL);
             break;
         case 2:
             work->obj338.radius = 0x190;
@@ -1027,7 +1027,7 @@ static void Actor01200_Fn017DC(Enemy* arg0, Task* arg1)
             work->eff1A8.spawnArgLo = 0x200;
             work->eff1A8.spawnArgHi = 2;
             func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &arg1->extra.tmd->coords[1], NULL, &work->eff1A8);
-            Gp_SpawnEff(0x6009E, arg1->extra.tmd->coords, 0, &ofs);
+            Gp_SpawnEff(EFFECT_RED_GROUND_GLOW, arg1->extra.tmd->coords, 0, &ofs);
             id  = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x400C0004;
             pan = (s8)worldCoordGetOriginAudioPan(arg1->extra.tmd->coords);
             SndEvt_EnqueueType6(id, pan, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
@@ -1121,10 +1121,10 @@ static void Actor01200_Fn01FDC(Enemy* arg0, Task* arg1)
             ofs.vx = 0x1E;
             ofs.vz = 0x1E;
             ofs.vy = -0x3C;
-            Gp_SpawnEff(0x60030, arg1->extra.tmd->coords, 0x10080, &ofs);
+            Gp_SpawnEff(EFFECT_030, arg1->extra.tmd->coords, 0x10080, &ofs);
             ofs.vy = -0xA;
             ofs.vz = -0x50;
-            Gp_SpawnEff(0x60030, arg1->extra.tmd->coords, 0x10030, &ofs);
+            Gp_SpawnEff(EFFECT_030, arg1->extra.tmd->coords, 0x10030, &ofs);
             id  = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x400C0004;
             pan = (s8)worldCoordGetOriginAudioPan(arg1->extra.tmd->coords);
             SndEvt_EnqueueType6(id, pan, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
@@ -1133,7 +1133,7 @@ static void Actor01200_Fn01FDC(Enemy* arg0, Task* arg1)
         case 1:
             work->obj300.radius = 0x320;
             work->obj300.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            Gp_SpawnEff(0x6009C, &arg1->extra.tmd->coords[2], 1, NULL);
+            Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg1->extra.tmd->coords[2], 1, NULL);
             Gp_SpawnScript18(Actor01200_D04044, Actor01200_D04050);
             work->eff1A8.coord      = &arg1->extra.tmd->coords[4];
             work->eff1A8.spawnArgLo = 0x120;
@@ -1160,7 +1160,7 @@ static void Actor01200_Fn01FDC(Enemy* arg0, Task* arg1)
             ofs.vx              = arg1->extra.tmd->coords->coord.t[0];
             ofs.vy              = arg1->extra.tmd->coords->coord.t[1];
             ofs.vz              = arg1->extra.tmd->coords->coord.t[2];
-            Gp_SpawnEff(0x6009E, &gGfxViewCoord, 0, &ofs);
+            Gp_SpawnEff(EFFECT_RED_GROUND_GLOW, &gGfxViewCoord, 0, &ofs);
             work->eff1A8.coord      = &arg1->extra.tmd->coords[1];
             work->eff1A8.spawnArgLo = 0x200;
             work->eff1A8.spawnArgHi = 2;

@@ -120,7 +120,7 @@ void generatorDeathState(Enemy* arg0, Task* arg1)
                     z = -z;
                 }
                 ofs.vz = z;
-                Gp_SpawnEff(0x600E0, coord, 0x400, &ofs);
+                Gp_SpawnEff(EFFECT_FLASH_BURST, coord, 0x400, &ofs);
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 x2              = (gRandomLcgState >> 16) & 0x3FF;
                 if (!((gRandomLcgState >> 16) & 0x400)) {
@@ -134,14 +134,14 @@ void generatorDeathState(Enemy* arg0, Task* arg1)
                     z2 = -z2;
                 }
                 ofs.vz = z2;
-                Gp_SpawnEff(0x60070, coord, 0x30011600, &ofs);
+                Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0x30011600, &ofs);
             }
             work->field_328++;
             if ((s16)work->field_328 == 0x14) {
                 obj->flags |= TMD_OBJECT_SEMI_TRANS;
             }
             if ((s16)work->field_328 == 0x1E) {
-                Gp_SpawnEff(0x600A5, coord, 5, NULL);
+                Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 5, NULL);
             }
             if ((s16)work->field_328 == 0x6E) {
                 Gp_SetLightMode(arg0, 2);
@@ -174,7 +174,7 @@ void generatorDeathState(Enemy* arg0, Task* arg1)
                     z = -z;
                 }
                 ofs.vz = z;
-                Gp_SpawnEff(0x600E0, coord, 0x400, &ofs);
+                Gp_SpawnEff(EFFECT_FLASH_BURST, coord, 0x400, &ofs);
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 x2              = (gRandomLcgState >> 16) & 0x3FF;
                 if (!((gRandomLcgState >> 16) & 0x400)) {
@@ -188,7 +188,7 @@ void generatorDeathState(Enemy* arg0, Task* arg1)
                     z2 = -z2;
                 }
                 ofs.vz = z2;
-                Gp_SpawnEff(0x60070, coord, 0x30011600, &ofs);
+                Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0x30011600, &ofs);
             }
             break;
     }

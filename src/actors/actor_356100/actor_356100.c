@@ -2268,7 +2268,7 @@ static void func_actor_356100_80167358(Task* arg0)
                 break;
             case 5:
                 Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
-                Gp_SpawnEff(0x600A5, arg0->extra.tmd->coords + 2, 3, NULL);
+                Gp_SpawnEff(EFFECT_CORPSE_BURN, arg0->extra.tmd->coords + 2, 3, NULL);
                 break;
             case 23:
                 arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
@@ -2891,38 +2891,38 @@ static void func_actor_356100_80169180(Task* arg0)
         SndEvt_EnqueueType6(SOUND_NEO_ARK_FOREST_STRANGER_DEATH_END, pan, (s8)worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]));
     }
     if ((u32)((u16)work->field_6 - 0x29) < 5U) {
-        Gp_SpawnEff(0x600FB, &arg0->extra.tmd->coords[3], 0, 0);
-        Gp_SpawnEff(0x600FB, &arg0->extra.tmd->coords[0x10], 0, 0);
-        Gp_SpawnEff(0x600FB, &arg0->extra.tmd->coords[1], 0, 0);
-        Gp_SpawnEff(0x600FB, &arg0->extra.tmd->coords[0x12], 0, 0);
-        Gp_SpawnEff(0x600FB, &arg0->extra.tmd->coords[2], 0, 0);
-        Gp_SpawnEff(0x600FB, &arg0->extra.tmd->coords[0x11], 0, 0);
-        Gp_SpawnEff(0x600FB, &arg0->extra.tmd->coords[3], 0, 0);
-        Gp_SpawnEff(0x600FB, &arg0->extra.tmd->coords[4], 0, 0);
-        Gp_SpawnEff(0x600FB, &arg0->extra.tmd->coords[5], 0, 0);
-        Gp_SpawnEff(0x600FB, &arg0->extra.tmd->coords[0x10], 0, 0);
-        Gp_SpawnEff(0x600FB, &arg0->extra.tmd->coords[1], 0, 0);
-        Gp_SpawnEff(0x600FB, &arg0->extra.tmd->coords[0x13], 0, 0);
-        Gp_SpawnEff(0x600FB, &arg0->extra.tmd->coords[0x11], 0, 0);
-        Gp_SpawnEff(0x600FB, &arg0->extra.tmd->coords[0x10], 0, 0);
-        Gp_SpawnEff(0x600FB, &arg0->extra.tmd->coords[5], 0, 0);
-        Gp_SpawnEff(0x600FB, &arg0->extra.tmd->coords[0x12], 0, 0);
+        Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[3], 0, 0);
+        Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[0x10], 0, 0);
+        Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[1], 0, 0);
+        Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[0x12], 0, 0);
+        Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[2], 0, 0);
+        Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[0x11], 0, 0);
+        Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[3], 0, 0);
+        Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[4], 0, 0);
+        Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[5], 0, 0);
+        Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[0x10], 0, 0);
+        Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[1], 0, 0);
+        Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[0x13], 0, 0);
+        Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[0x11], 0, 0);
+        Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[0x10], 0, 0);
+        Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[5], 0, 0);
+        Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[0x12], 0, 0);
     }
     if ((u32)((u16)work->field_6 - 0x2E) < 4U) {
         if (!(*(volatile u16*)&work->field_6 & 1)) {
-            Gp_SpawnEff(0x600FB, &arg0->extra.tmd->coords[2], 0, 0);
-            Gp_SpawnEff(0x600FB, &arg0->extra.tmd->coords[0x11], 0, 0);
-            Gp_SpawnEff(0x600FB, &arg0->extra.tmd->coords[3], 0, 0);
-            Gp_SpawnEff(0x600FB, &arg0->extra.tmd->coords[4], 0, 0);
-            Gp_SpawnEff(0x600FB, &arg0->extra.tmd->coords[5], 0, 0);
-            Gp_SpawnEff(0x600FB, &arg0->extra.tmd->coords[0x10], 0, 0);
+            Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[2], 0, 0);
+            Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[0x11], 0, 0);
+            Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[3], 0, 0);
+            Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[4], 0, 0);
+            Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[5], 0, 0);
+            Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[0x10], 0, 0);
         } else {
-            Gp_SpawnEff(0x600FB, &arg0->extra.tmd->coords[1], 0, 0);
-            Gp_SpawnEff(0x600FB, &arg0->extra.tmd->coords[0x13], 0, 0);
-            Gp_SpawnEff(0x600FB, &arg0->extra.tmd->coords[0x11], 0, 0);
-            Gp_SpawnEff(0x600FB, &arg0->extra.tmd->coords[0x10], 0, 0);
-            Gp_SpawnEff(0x600FB, &arg0->extra.tmd->coords[5], 0, 0);
-            Gp_SpawnEff(0x600FB, &arg0->extra.tmd->coords[0x12], 0, 0);
+            Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[1], 0, 0);
+            Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[0x13], 0, 0);
+            Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[0x11], 0, 0);
+            Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[0x10], 0, 0);
+            Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[5], 0, 0);
+            Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[0x12], 0, 0);
         }
     }
 }

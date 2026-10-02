@@ -51,7 +51,7 @@ void generatorBodyHit(Task* arg0)
             scr->ofs.vx = gGeneratorHitEffectOffsets[work->kind].vx;
             scr->ofs.vy = gGeneratorHitEffectOffsets[work->kind].vy;
             scr->ofs.vz = gGeneratorHitEffectOffsets[work->kind].vz;
-            Gp_SpawnEff(0x6009C, coord, 0, &scr->ofs);
+            Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, &scr->ofs);
         }
         func_800DA6E8(&enemy->node, damage, 0);
         func_800E2C78(enemy, work->rec18[i].key.value, damage, 0);
@@ -78,7 +78,7 @@ void generatorBodyHit(Task* arg0)
             scr->ofs.vy = gGeneratorHitEffectOffsets[work->kind].vy;
             scr->ofs.vz = gGeneratorHitEffectOffsets[work->kind].vz;
             if (val == 3) {
-                Gp_SpawnEff(0x6007F, coord, work->field_2F4.spawnArgLo | (work->field_2F4.spawnArgHi << 16), &scr->ofs);
+                Gp_SpawnEff(EFFECT_HIT_BLAST, coord, work->field_2F4.spawnArgLo | (work->field_2F4.spawnArgHi << 16), &scr->ofs);
             } else {
                 func_800FDB18((u16)val, coord, &scr->ofs, &work->field_2F4);
             }

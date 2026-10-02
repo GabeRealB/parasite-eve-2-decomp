@@ -511,14 +511,14 @@ RoomFadeStorage D_shelter_b1_elevator_hall_801849F0;
 void func_shelter_b1_elevator_hall_8017DC80(Task* arg0)
 {
     if (arg0->state == 0) {
-        D_80115728  = 0x60245;
-        D_80115744  = 0x60251;
-        D_8011573C  = 0x6025C;
-        D_80115720  = 0x60268;
-        D_80115758  = 0x601C8;
-        D_8011572C  = 0x601E4;
-        D_80115750  = 0x60200;
-        arg0->state = 1;
+        gRoomEffectMoteId         = EFFECT_SHELTER_B1_ELEVATOR_HALL_MOTE;
+        gRoomEffectHaloId         = EFFECT_SHELTER_B1_ELEVATOR_HALL_HALO;
+        gRoomEffectOrangeBurstId  = EFFECT_SHELTER_B1_ELEVATOR_HALL_ORANGE_BURST;
+        gRoomEffectSparkEmitterId = EFFECT_SHELTER_B1_ELEVATOR_HALL_SPARK_EMITTER;
+        gRoomEffectFlashId        = EFFECT_SHELTER_B1_ELEVATOR_HALL_FLASH;
+        gRoomEffectTwinTrailId    = EFFECT_SHELTER_B1_ELEVATOR_HALL_TWIN_TRAIL;
+        gRoomEffectSparkBurstId   = EFFECT_SHELTER_B1_ELEVATOR_HALL_SPARK_BURST;
+        arg0->state               = 1;
     }
 
     switch (Gp_GetViewIndex() & 0xFF) {

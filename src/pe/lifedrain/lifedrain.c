@@ -155,7 +155,7 @@ void func_lifedrain_8012EF48(Task* arg0)
             }
             i = 0;
             do {
-                spawned = Gp_SpawnEff(0x600EA, coord, i, NULL);
+                spawned = Gp_SpawnEff(EFFECT_LIFEDRAIN_RING, coord, i, NULL);
                 if (spawned != NULL) {
                     taskReparent(arg0, spawned->task);
                 }
@@ -265,7 +265,7 @@ void func_lifedrain_8012EF48(Task* arg0)
             mem->move.vx = (rcos(mem->step) * mem->angle) >> 12;
             mem->move.vy = (rsin(mem->step) * mem->angle) >> 12;
             mem->move.vz = 0;
-            spawned      = Gp_SpawnEff(0x600AD, coord, (s32)(D_lifedrain_80130AB4[mem->index].unk6),
+            spawned      = Gp_SpawnEff(EFFECT_LIFEDRAIN_SPARK, coord, (s32)(D_lifedrain_80130AB4[mem->index].unk6),
                                        &mem->move);
             if (spawned != NULL) {
                 taskReparent(arg0, spawned->task);
@@ -398,7 +398,7 @@ void func_lifedrain_8012FAF8(Task* arg0)
                     func_lifedrain_801301AC(coord, mem->index, mem->period);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     if (((gRandomLcgState >> 16) & 3) == 0) {
-                        spawned = Gp_SpawnEff(0x600AD, coord, (s32)(mem->angle), NULL);
+                        spawned = Gp_SpawnEff(EFFECT_LIFEDRAIN_SPARK, coord, (s32)(mem->angle), NULL);
                         if (spawned != NULL) {
                             taskReparent(arg0, spawned->task);
                         }
@@ -445,7 +445,7 @@ void func_lifedrain_8012FAF8(Task* arg0)
                     func_lifedrain_801301AC(coord, mem->index, mem->period);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     if (((gRandomLcgState >> 16) & 3) == 0) {
-                        spawned = Gp_SpawnEff(0x600AD, coord, (s32)(mem->angle), NULL);
+                        spawned = Gp_SpawnEff(EFFECT_LIFEDRAIN_SPARK, coord, (s32)(mem->angle), NULL);
                         if (spawned != NULL) {
                             taskReparent(arg0, spawned->task);
                         }

@@ -410,35 +410,35 @@ typedef struct _GpRayScratch {
 STATIC_ASSERT_SIZEOF(GpRayScratch, 0x10);
 
 /* Define BSS before API headers to preserve first-declaration order. */
-s32 D_80115720;
+s32 gRoomEffectSparkEmitterId;
 
-s32 D_80115724;
+s32 gEnergyBallInFlightCount;
 
-s32 D_80115728;
+s32 gRoomEffectMoteId;
 
-s32 D_8011572C;
+s32 gRoomEffectTwinTrailId;
 
-s32 D_80115730;
+s32 gRoomEffectFlyingSparkId;
 
-s32 D_80115734;
+s32 gRoomEffectGlowDiscId;
 
-s32 D_80115738;
+s32 gRoomEffectWaterSprayId;
 
-s32 D_8011573C;
+s32 gRoomEffectOrangeBurstId;
 
 RoomEffectState* gRoomEffectState;
 
-s32 D_80115744;
+s32 gRoomEffectHaloId;
 
 Task* Gp_State1CTask;
 
-s32 D_8011574C;
+s32 gRoomEffectWaterRippleId;
 
-s32 D_80115750;
+s32 gRoomEffectSparkBurstId;
 
-s32 D_80115754;
+s32 gRoomEffectOrangeBurst2Id;
 
-s32 D_80115758;
+s32 gRoomEffectFlashId;
 
 #include "gameplay/effect_tasks.h"
 #include "gameplay/room_effects.h"
@@ -1371,19 +1371,19 @@ static void Gp_InitState1C(Task* arg0)
     effectState->effectControl      = ROOM_EFFECT_CONTROL_RUNNING;
     effectState->groundTraceEnabled = true;
     effectState->groundShadowShade  = ROOM_EFFECT_GROUND_SHADOW_UNMODULATED;
-    Gp_SpawnEff(0x60053, 0, 0, 0);
+    Gp_SpawnEff(EFFECT_PLAYER_GROUND_SHADOW, 0, 0, 0);
 
-    D_80115758                         = 0;
-    D_8011572C                         = 0;
-    D_80115750                         = 0;
-    D_80115730                         = 0;
-    D_80115734                         = 0;
-    D_80115754                         = 0;
-    D_80115728                         = 0;
-    D_80115744                         = 0;
-    D_8011573C                         = 0;
-    D_80115720                         = 0;
-    D_8011574C                         = 0;
+    gRoomEffectFlashId                 = 0;
+    gRoomEffectTwinTrailId             = 0;
+    gRoomEffectSparkBurstId            = 0;
+    gRoomEffectFlyingSparkId           = 0;
+    gRoomEffectGlowDiscId              = 0;
+    gRoomEffectOrangeBurst2Id          = 0;
+    gRoomEffectMoteId                  = 0;
+    gRoomEffectHaloId                  = 0;
+    gRoomEffectOrangeBurstId           = 0;
+    gRoomEffectSparkEmitterId          = 0;
+    gRoomEffectWaterRippleId           = 0;
     effectState->roomEffectMode        = ROOM_EFFECT_VIEW_DISABLED;
     effectState->lastAnimationSoundCue = 0;
     effectState->peEffectControl       = ROOM_EFFECT_CONTROL_RUNNING;
@@ -1393,8 +1393,8 @@ static void Gp_InitState1C(Task* arg0)
     effectState->battleState           = 0;
     effectState->peFadeMask            = 0;
     effectState->pendingCancelFlags    = 0;
-    D_80115738                         = 0;
-    D_80115724                         = 0;
+    gRoomEffectWaterSprayId            = 0;
+    gEnergyBallInFlightCount           = 0;
     arg0->state++;
     Gp_InitRoomCoords();
 
@@ -2311,14 +2311,14 @@ void gpuSetPrimitiveBlendMode(void* primitive, s32 blendMode, s32 depth)
 void func_800EC9C8(void)
 {
     if (!(gRoomEffectState->screenFxFlags & ROOM_EFFECT_SCREEN_FADE_QUAD)) {
-        Gp_SpawnEff(0x800600E8, 0, 0, 0);
+        Gp_SpawnEff((EFFECT_DARKNESS_SCREEN_DIM | EFFECT_SPAWN_UNLIMITED), 0, 0, 0);
     }
 }
 
 void Gp_SetState1CPe(s32 arg0)
 {
     gRoomEffectState->peFadeMask = (u8)arg0;
-    Gp_SpawnEff(0x8006000F, 0, (s32)((u8)arg0), 0);
+    Gp_SpawnEff((EFFECT_STATUS_AILMENT_SCREEN_TINT | EFFECT_SPAWN_UNLIMITED), 0, (s32)((u8)arg0), 0);
 }
 
 void func_800ECA54(void)
@@ -2328,6 +2328,6 @@ void func_800ECA54(void)
     effectState = gRoomEffectState;
     if (!(effectState->screenFxFlags & ROOM_EFFECT_SCREEN_BURST_GUARD)) {
         effectState->peFxFlags &= (u16)~ROOM_EFFECT_PE_STATUS_BURST;
-        Gp_SpawnEff(0x8006000E, 0, 0, 0);
+        Gp_SpawnEff((EFFECT_BERSERKER_SHOT_GLOW | EFFECT_SPAWN_UNLIMITED), 0, 0, 0);
     }
 }

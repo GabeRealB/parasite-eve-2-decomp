@@ -531,9 +531,9 @@ void func_neo_ark_savanna_zone_8017D954(Task* task)
 void func_neo_ark_savanna_zone_8017D9AC(Task* arg0)
 {
     if (arg0->state == 0) {
-        D_80115758                       = 0x601DD;
-        D_8011572C                       = 0x601F9;
-        D_80115750                       = 0x60215;
+        gRoomEffectFlashId               = EFFECT_NEO_ARK_SAVANNA_ZONE_FLASH;
+        gRoomEffectTwinTrailId           = EFFECT_NEO_ARK_SAVANNA_ZONE_TWIN_TRAIL;
+        gRoomEffectSparkBurstId          = EFFECT_NEO_ARK_SAVANNA_ZONE_SPARK_BURST;
         gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
         arg0->state                      = 1;
     }

@@ -32,8 +32,8 @@ void sucklercephKill(Task* arg0, u8 arg1)
         }
         work->obj1B4.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         work->obj1EC.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        Gp_SpawnEff(0x6009C, arg0->extra.tmd->coords, 1, NULL);
-        Gp_SpawnEff(0x60030, arg0->extra.tmd->coords, 0x300, &gSucklercephBurstFxOffset);
+        Gp_SpawnEff(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords, 1, NULL);
+        Gp_SpawnEff(EFFECT_030, arg0->extra.tmd->coords, 0x300, &gSucklercephBurstFxOffset);
         Gp_SpawnScript18(&gSucklercephBurstScriptA, gSucklercephBurstScriptB);
         work->field_2DA = 1;
     } else {

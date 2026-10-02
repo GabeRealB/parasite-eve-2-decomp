@@ -653,10 +653,10 @@ void func_dryfield_back_street_8017D918(Task* task)
 void func_dryfield_back_street_8017D970(Task* task)
 {
     if (task->state == 0) {
-        D_80115758  = 0x60296;
-        D_8011572C  = 0x60297;
-        D_80115750  = 0x60298;
-        task->state = 1;
+        gRoomEffectFlashId      = EFFECT_DRYFIELD_BACK_STREET_FLASH;
+        gRoomEffectTwinTrailId  = EFFECT_DRYFIELD_BACK_STREET_TWIN_TRAIL;
+        gRoomEffectSparkBurstId = EFFECT_DRYFIELD_BACK_STREET_SPARK_BURST;
+        task->state             = 1;
     }
     gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
 }

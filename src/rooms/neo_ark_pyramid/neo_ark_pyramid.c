@@ -694,9 +694,9 @@ void func_neo_ark_pyramid_8017DB98(Task* task)
 void func_neo_ark_pyramid_8017DBF0(Task* arg0)
 {
     if (arg0->state == 0) {
-        D_80115758                       = 0x601E2;
-        D_8011572C                       = 0x601FE;
-        D_80115750                       = 0x6021A;
+        gRoomEffectFlashId               = EFFECT_NEO_ARK_PYRAMID_FLASH;
+        gRoomEffectTwinTrailId           = EFFECT_NEO_ARK_PYRAMID_TWIN_TRAIL;
+        gRoomEffectSparkBurstId          = EFFECT_NEO_ARK_PYRAMID_SPARK_BURST;
         gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
         arg0->state                      = 1;
     }

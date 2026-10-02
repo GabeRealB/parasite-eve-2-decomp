@@ -147,13 +147,13 @@ void func_shelter_b1_control_room_access_tunnel_8017E1BC(Task* arg0)
     u8 view;
 
     if (arg0->state == 0) {
-        D_80115758  = 0x601CF;
-        D_8011572C  = 0x601EB;
-        D_80115750  = 0x60207;
-        D_80115734  = 0x60279;
-        D_80115730  = 0x6027A;
-        D_80115754  = 0x6027B;
-        arg0->state = 1;
+        gRoomEffectFlashId        = EFFECT_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_FLASH;
+        gRoomEffectTwinTrailId    = EFFECT_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_TWIN_TRAIL;
+        gRoomEffectSparkBurstId   = EFFECT_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_SPARK_BURST;
+        gRoomEffectGlowDiscId     = EFFECT_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_GLOW_DISC;
+        gRoomEffectFlyingSparkId  = EFFECT_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_FLYING_SPARK;
+        gRoomEffectOrangeBurst2Id = EFFECT_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_ORANGE_BURST_2;
+        arg0->state               = 1;
     }
     view = Gp_GetViewIndex();
     switch (view) {

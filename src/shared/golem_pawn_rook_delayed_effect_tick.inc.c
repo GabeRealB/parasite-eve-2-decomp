@@ -20,7 +20,7 @@ void golemPawnRookDelayedEffectTick(Enemy* arg0, Task* task)
         count           = (u16)work->field_6D8 - 1;
         work->field_6D8 = count;
         if (count == 0) {
-            effect = Gp_SpawnEff(D_8011572C | 0x80000000,
+            effect = Gp_SpawnEff(gRoomEffectTwinTrailId | 0x80000000,
                                  &task->parent->extra.tmd->coords[7], 0, NULL);
             if (effect != NULL) {
                 taskReparent(task, effect->task);

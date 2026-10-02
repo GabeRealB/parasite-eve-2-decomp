@@ -107,7 +107,7 @@ dying:
         obj->flags = TMD_OBJECT_SEMI_TRANS;
     }
     if ((s16)work->field_38C == 15) {
-        Gp_SpawnEff(0x600A5, coord, 1, NULL);
+        Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 1, NULL);
     }
     if ((s16)work->field_38C >= 0x3C) {
         work->field_37C = 2;

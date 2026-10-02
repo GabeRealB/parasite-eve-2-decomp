@@ -509,7 +509,7 @@ void func_shelter_b1_golem_freezer_1_8017DA7C(Task* unused)
             pos.vx = D_shelter_b1_golem_freezer_1_8017E738[i + 2].vx + ((r * rcos(ang)) >> 12);
             pos.vy = -(GOLEM_RAND() & 0xFF);
             pos.vz = D_shelter_b1_golem_freezer_1_8017E738[i + 2].vz + ((r * rsin(ang)) >> 12);
-            Gp_SpawnEff(0x601A6, NULL, (GOLEM_RAND() & 0x10FF) + 0x85400, &pos);
+            Gp_SpawnEff(EFFECT_GOLEM_FREEZER_FLOOR_MIST, NULL, (GOLEM_RAND() & 0x10FF) + 0x85400, &pos);
         }
     }
     switch (Gp_GetViewIndex() & 0xFF) {

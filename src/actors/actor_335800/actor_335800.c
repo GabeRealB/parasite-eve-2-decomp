@@ -1323,7 +1323,7 @@ static void func_actor_335800_80162844(Task* task)
             rec = Gp_AnimGetRec(&work->rig.anim, &work->rig.slots[1]);
             if (rec != NULL) {
                 if (!(rec->flags & ANIMATION_RECORD_CUE_2) && (work->field_508 & ANIMATION_RECORD_CUE_2)) {
-                    Gp_SpawnEff(0x600A1, &task->extra.tmd->coords[8], 0xD, NULL);
+                    Gp_SpawnEff(EFFECT_SHOTGUN_MUZZLE_FLASH, &task->extra.tmd->coords[8], 0xD, NULL);
                 }
                 work->field_508 = rec->flags & ANIMATION_RECORD_CUE_MASK;
             }

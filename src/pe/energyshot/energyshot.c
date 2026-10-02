@@ -208,11 +208,11 @@ void func_energyshot_8012EF34(Task* arg0)
                 mem->angle      = ang;
                 mem->move.vx    = (u32)(rsin(ang) * mem->scale * 3) >> 11;
                 mem->move.vz    = (u32)(rcos(mem->angle) * mem->scale * 3) >> 11;
-                Gp_SpawnEff(0x600F4, coord,
+                Gp_SpawnEff(EFFECT_RISING_ENERGY_SPARK, coord,
                             D_energyshot_801300E4[mem->index].field_6 | 0x8000,
                             &mem->move);
                 if (D_energyshot_801300E4[mem->index].field_2 < mem->scale) {
-                    Gp_SpawnEff(0x800600F3, coord, 0, 0);
+                    Gp_SpawnEff((EFFECT_ENERGY_SHOT_AURA | EFFECT_SPAWN_UNLIMITED), coord, 0, 0);
                     mem->period = mem->scale;
                     arg0->state = 2;
                 }

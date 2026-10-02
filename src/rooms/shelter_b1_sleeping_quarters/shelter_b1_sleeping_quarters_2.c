@@ -103,10 +103,10 @@ SVECTOR D_shelter_b1_sleeping_quarters_8018060C[8] = {
 void func_shelter_b1_sleeping_quarters_8017D8E0(Task* arg0)
 {
     if (arg0->state == 0) {
-        D_80115734  = 0x60220;
-        D_80115730  = 0x6022B;
-        D_80115754  = 0x60236;
-        arg0->state = 1;
+        gRoomEffectGlowDiscId     = EFFECT_SHELTER_B1_SLEEPING_QUARTERS_GLOW_DISC;
+        gRoomEffectFlyingSparkId  = EFFECT_SHELTER_B1_SLEEPING_QUARTERS_FLYING_SPARK;
+        gRoomEffectOrangeBurst2Id = EFFECT_SHELTER_B1_SLEEPING_QUARTERS_ORANGE_BURST_2;
+        arg0->state               = 1;
     }
 
     switch (Gp_GetViewIndex() & 0xFF) {

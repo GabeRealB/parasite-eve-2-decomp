@@ -1972,7 +1972,7 @@ static void func_actor_400600_80132F3C(Task* arg0)
             func_actor_400600_8013896C(arg0, 0);
         }
         if ((s16)work->field_718 == 0x23 || (s16)work->field_718 == 0x25) {
-            Gp_SpawnEff(D_8011574C, coords, 0x38, NULL);
+            Gp_SpawnEff(gRoomEffectWaterRippleId, coords, 0x38, NULL);
         }
         if (coords->coord.t[1] >= 0) {
             sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x404A0003;
@@ -2008,7 +2008,7 @@ static void func_actor_400600_80133118(Task* arg0)
             func_actor_400600_8013896C(arg0, 0);
         }
         if ((s16)work->field_718 == 0x23 || (s16)work->field_718 == 0x25) {
-            Gp_SpawnEff(D_8011574C, coords, 0x38, NULL);
+            Gp_SpawnEff(gRoomEffectWaterRippleId, coords, 0x38, NULL);
         }
         if (coords->coord.t[1] >= 0) {
             sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x404A0003;
@@ -2545,7 +2545,7 @@ static void func_actor_400600_80134218(Task* arg0)
         vec.vx = 0;
         vec.vy = -200;
         vec.vz = 0;
-        Gp_SpawnEff(0x6009B, root, 0x10100, &vec);
+        Gp_SpawnEff(EFFECT_HIT_SPLATTER_SPRAY, root, 0x10100, &vec);
     }
     if ((stalkerZebraIvoryClipDone(arg0) << 0x10) != 0) {
         work->field_718 = 0;
@@ -2586,12 +2586,12 @@ static void func_actor_400600_80134570(Task* arg0)
             if (work->field_76C != 0) {
                 vy   = -0x1A4;
                 root = arg0->extra.tmd->coords;
-                Gp_SpawnEff(D_8011574C, root, 0x40, NULL);
+                Gp_SpawnEff(gRoomEffectWaterRippleId, root, 0x40, NULL);
                 for (i = 0; i < 16; i++) {
                     vec.vx = (u32)rsin(i << 8) >> 3;
                     vec.vy = vy;
                     vec.vz = (u32)rcos(i << 8) >> 3;
-                    Gp_SpawnEff(D_80115738, root, 0x01202148, &vec);
+                    Gp_SpawnEff(gRoomEffectWaterSprayId, root, 0x01202148, &vec);
                 }
             }
             id = 0x40060003;
@@ -2683,12 +2683,12 @@ static void func_actor_400600_80134970(Task* arg0)
         vy                = -0x1A4;
         if (work->field_76C != 0) {
             root = arg0->extra.tmd->coords;
-            Gp_SpawnEff(D_8011574C, root, 0x40, NULL);
+            Gp_SpawnEff(gRoomEffectWaterRippleId, root, 0x40, NULL);
             for (i = 0; i < 16; i++) {
                 vec.vx = (u32)rsin(i << 8) >> 3;
                 vec.vy = vy;
                 vec.vz = (u32)rcos(i << 8) >> 3;
-                Gp_SpawnEff(D_80115738, root, 0x01202148, &vec);
+                Gp_SpawnEff(gRoomEffectWaterSprayId, root, 0x01202148, &vec);
             }
         }
         id = 0x40060003;
@@ -3057,7 +3057,7 @@ static void func_actor_400600_80135998(Task* arg0, s16 arg1)
             vec.vx = 0;
             vec.vy = -0x1A4;
             vec.vz = 0;
-            Gp_SpawnEff(D_8011574C, coord, 0x40, &vec);
+            Gp_SpawnEff(gRoomEffectWaterRippleId, coord, 0x40, &vec);
         }
     }
     if (work->animFrame == start1) {
@@ -3078,7 +3078,7 @@ static void func_actor_400600_80135998(Task* arg0, s16 arg1)
             vec.vx = 0;
             vec.vy = -0x1A4;
             vec.vz = 0;
-            Gp_SpawnEff(D_8011574C, coord, 0x40, &vec);
+            Gp_SpawnEff(gRoomEffectWaterRippleId, coord, 0x40, &vec);
         }
     }
     if (work->animFrame >= 0 && work->animFrame <= end0) {
@@ -3384,7 +3384,7 @@ static void func_actor_400600_80136968(Task* arg0)
                     work->field_74A    = Gp_GetIdParam2(work->rec_4D4[i].key.value);
                     if (Gp_RollEnemyChance(enemy, work->rec_4D4[i].key.value, 0) != 0) {
                         amount = ((u32)dmg << 16) >> 14;
-                        Gp_SpawnEff(0x6009C, &arg0->extra.tmd->coords[3], 0, NULL);
+                        Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
                     }
                     func_800E2C78(enemy, work->rec_4D4[i].key.value, amount, 0);
                     func_800DA6E8(&enemy->node, amount, 0);
@@ -3514,7 +3514,7 @@ static void func_actor_400600_80136968(Task* arg0)
     if (work->field_75A != 0) {
         work->field_75A--;
         if ((work->field_75A & 7) == 1) {
-            Gp_SpawnEff(0x60080, eff, 0x10200, NULL);
+            Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, eff, 0x10200, NULL);
         }
     }
 }
@@ -3613,7 +3613,7 @@ static void func_actor_400600_80137240(Task* arg0)
     TmdObject*  src4;
 
     D_800678F0[0] = &_gActor400600ZebraStalkerBurstHead;
-    eff           = Gp_SpawnEff(0x20010, &arg0->extra.tmd->coords[4], 0x200, NULL);
+    eff           = Gp_SpawnEff(EFFECT_BODY_CHUNK, &arg0->extra.tmd->coords[4], 0x200, NULL);
     if (eff != NULL) {
         src                    = arg0->extra.tmd;
         dst                    = eff->task->extra.tmd;
@@ -3625,7 +3625,7 @@ static void func_actor_400600_80137240(Task* arg0)
         }
     }
     D_800678F0[0] = &_gActor400600StalkerEffect;
-    eff2          = Gp_SpawnEff(0x20010, &arg0->extra.tmd->coords[2], 0x200, NULL);
+    eff2          = Gp_SpawnEff(EFFECT_BODY_CHUNK, &arg0->extra.tmd->coords[2], 0x200, NULL);
     if (eff2 != NULL) {
         src2                    = arg0->extra.tmd;
         dst2                    = eff2->task->extra.tmd;
@@ -3637,7 +3637,7 @@ static void func_actor_400600_80137240(Task* arg0)
         }
     }
     D_800678F0[0] = &_gActor400600StalkerBurstHandLeft;
-    eff3          = Gp_SpawnEff(0x20010, &arg0->extra.tmd->coords[16], 0x200, NULL);
+    eff3          = Gp_SpawnEff(EFFECT_BODY_CHUNK, &arg0->extra.tmd->coords[16], 0x200, NULL);
     if (eff3 != NULL) {
         src3                    = arg0->extra.tmd;
         dst3                    = eff3->task->extra.tmd;
@@ -3649,7 +3649,7 @@ static void func_actor_400600_80137240(Task* arg0)
         }
     }
     D_800678F0[0] = &_gActor400600StalkerBurstFootRight;
-    eff4          = Gp_SpawnEff(0x20010, &arg0->extra.tmd->coords[10], 0x200, NULL);
+    eff4          = Gp_SpawnEff(EFFECT_BODY_CHUNK, &arg0->extra.tmd->coords[10], 0x200, NULL);
     if (eff4 != NULL) {
         src4                    = arg0->extra.tmd;
         dst4                    = eff4->task->extra.tmd;
@@ -3660,9 +3660,9 @@ static void func_actor_400600_80137240(Task* arg0)
             tmdProcessStream(dst4);
         }
     }
-    Gp_SpawnEff(0x60030, &arg0->extra.tmd->coords[1], 0x200, NULL);
-    Gp_SpawnEff(0x60030, &arg0->extra.tmd->coords[2], 0x200, NULL);
-    Gp_SpawnEff(0x60030, &arg0->extra.tmd->coords[3], 0x200, NULL);
+    Gp_SpawnEff(EFFECT_030, &arg0->extra.tmd->coords[1], 0x200, NULL);
+    Gp_SpawnEff(EFFECT_030, &arg0->extra.tmd->coords[2], 0x200, NULL);
+    Gp_SpawnEff(EFFECT_030, &arg0->extra.tmd->coords[3], 0x200, NULL);
 }
 
 /* `n` is one variable carrying first `out.vz` and then the speed: the reuse is
@@ -4136,12 +4136,12 @@ static void func_actor_400600_8013896C(Task* arg0, s16 arg1)
     s32       i;
 
     coord = arg0->extra.tmd->coords;
-    Gp_SpawnEff(D_8011574C, coord, 0x40, NULL);
+    Gp_SpawnEff(gRoomEffectWaterRippleId, coord, 0x40, NULL);
     for (i = 0; i < 16; i++) {
         vec.vx = (u32)rsin(i << 8) >> 3;
         vec.vy = arg1;
         vec.vz = (u32)rcos(i << 8) >> 3;
-        Gp_SpawnEff(D_80115738, coord, 0x01202148, &vec);
+        Gp_SpawnEff(gRoomEffectWaterSprayId, coord, 0x01202148, &vec);
     }
 }
 
@@ -4701,7 +4701,7 @@ static void func_actor_400600_8013A6C4(Task* arg0)
         rot.vx = 0;
         rot.vy = 0;
         rot.vz = 0;
-        Gp_SpawnEff(0x600A5, coord, 4, &rot);
+        Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 4, &rot);
     }
     if ((s16)work->field_718 >= 0x11) {
         model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;

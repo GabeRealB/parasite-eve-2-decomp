@@ -533,7 +533,7 @@ static void func_actor_205200_8014B048(Task* arg0, s32 arg1)
             damage  = Gp_ComputeDamage(part->recs[i].key.value, SquareRoot0(vec->vx * vec->vx + vec->vy * vec->vy + vec->vz * vec->vz), 0, 0);
             if (Gp_RollEnemyChance(enemy, part->recs[i].key.value, 0) != 0) {
                 damage *= 4;
-                Gp_SpawnEff(0x6009C, coord, 0, NULL);
+                Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, NULL);
             }
             func_800DA6E8(&enemy->node, damage, 0);
             enemy->hp -= damage;
@@ -542,11 +542,11 @@ static void func_actor_205200_8014B048(Task* arg0, s32 arg1)
                 part->field_72                                                       = 0;
                 ((Actor205200CtrlWork*)arg0->parent->work)->field_18[part->field_78] = 0;
                 ((Actor205200CtrlWork*)arg0->parent->work)->field_0[part->field_78]  = NULL;
-                Gp_SpawnEff(0x6005C, coord, 0x01002600, NULL);
-                Gp_SpawnEff(0x6005C, coord, 0x01002600, NULL);
-                Gp_SpawnEff(0x6005C, coord, 0x01002600, NULL);
-                Gp_SpawnEff(0x6005C, coord, 0x02002600, NULL);
-                Gp_SpawnEff(0x6005C, coord, 0x02002600, NULL);
+                Gp_SpawnEff(EFFECT_EXPLOSION, coord, 0x01002600, NULL);
+                Gp_SpawnEff(EFFECT_EXPLOSION, coord, 0x01002600, NULL);
+                Gp_SpawnEff(EFFECT_EXPLOSION, coord, 0x01002600, NULL);
+                Gp_SpawnEff(EFFECT_EXPLOSION, coord, 0x02002600, NULL);
+                Gp_SpawnEff(EFFECT_EXPLOSION, coord, 0x02002600, NULL);
                 snd = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40340004;
                 SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                 Gp_SpawnPadLerp(10, 0xFF, 0x80);
@@ -597,10 +597,10 @@ static void func_actor_205200_8014B484(Enemy* arg0, Task* arg1)
     }
     switch (part->field_72) {
         case 0:
-            Gp_SpawnEff(0x60070, coord, 0x32001400, NULL);
-            Gp_SpawnEff(0x60070, coord, 0x32001400, NULL);
-            Gp_SpawnEff(0x60070, coord, 0xF2001400, NULL);
-            Gp_SpawnEff(0x60070, coord, 0xF2001400, NULL);
+            Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0x32001400, NULL);
+            Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0x32001400, NULL);
+            Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0xF2001400, NULL);
+            Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0xF2001400, NULL);
             Gp_UnlinkNode(&arg0->node);
             Gp_UnlinkObj(&part->obj);
             Gp_ReleaseStateF0Add(arg1, 0x34);
@@ -633,7 +633,7 @@ static void func_actor_205200_8014B484(Enemy* arg0, Task* arg1)
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 part->field_74  = ((gRandomLcgState >> 16) & 0x3F) + 0x1E;
                 func_800FDB18(7, coord, NULL, &part->field_68);
-                Gp_SpawnEff(0x60070, coord, 0xF2001400, NULL);
+                Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0xF2001400, NULL);
                 view = Gp_GetStageView(&gGameSession->location.loc);
                 d.vx = view->mtx.t[0] + coord->coord.t[0];
                 d.vy = view->mtx.t[1] + coord->coord.t[1];
@@ -653,8 +653,8 @@ static void func_actor_205200_8014B484(Enemy* arg0, Task* arg1)
             if ((s16)--part->field_76 <= 0) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 part->field_76  = ((gRandomLcgState >> 16) & 0x1F) + 0x1E;
-                Gp_SpawnEff(0x60070, coord, 0xF2001400, NULL);
-                Gp_SpawnEff(0x60070, coord, 0xF2001400, NULL);
+                Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0xF2001400, NULL);
+                Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0xF2001400, NULL);
             }
             break;
         case 2:

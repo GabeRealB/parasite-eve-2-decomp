@@ -809,7 +809,7 @@ static void func_m4a1_javelin_8011F5D4(Task* arg0)
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0xF7FF;
                 func_80106238(arg0, 0, 0);
                 Gp_ConsumeSlotQty(0x9C, 0x101);
-                eff = Gp_SpawnEff(0x6002F,
+                eff = Gp_SpawnEff(EFFECT_JAVELIN_GUIDE_BEAM,
                                   actor->equipmentTasks[1]->extra.tmd->coords,
                                   0x1D, NULL);
                 if (eff != NULL) {
@@ -834,7 +834,7 @@ static void func_m4a1_javelin_8011F5D4(Task* arg0)
                         actor->actionValue = 0;
                     }
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x201D0004, 1);
-                    Gp_SpawnEff(0x6006B,
+                    Gp_SpawnEff(EFFECT_RIFLE_MUZZLE_FLASH,
                                 actor->equipmentTasks[1]->extra.tmd->coords,
                                 0x1D, NULL);
                     Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 2);
@@ -844,7 +844,7 @@ static void func_m4a1_javelin_8011F5D4(Task* arg0)
                     if (delay == 2) {
                         actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
                         if (Gp_PickNearestRec18(actor->weaponContacts, coord, spot) != 0) {
-                            Gp_SpawnEff(0x6003B, spot, 0, NULL);
+                            Gp_SpawnEff(EFFECT_IMPACT_SPARK, spot, 0, NULL);
                             Gp_PlayObjSfx(spot, 0x17, 1);
                         }
                     }
@@ -856,7 +856,7 @@ static void func_m4a1_javelin_8011F5D4(Task* arg0)
             actor->statePhase                                     = 7;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             if (Gp_PickNearestRec18(actor->weaponContacts, coord, spot) != 0) {
-                Gp_SpawnEff(0x6003B, spot, 0, NULL);
+                Gp_SpawnEff(EFFECT_IMPACT_SPARK, spot, 0, NULL);
                 Gp_PlayObjSfx(spot, 0x17, 1);
             }
             break;
@@ -876,7 +876,7 @@ static void func_m4a1_javelin_8011F5D4(Task* arg0)
             }
             if (Gp_PickNearestRec18(actor->weaponContacts, coord, spot) != 0) {
                 func_m4a1_javelin_8011F4A4((M4a1JavelinVecLo*)spot->workm.t);
-                eff = Gp_SpawnEff(0x60183, spot, 0, NULL);
+                eff = Gp_SpawnEff(EFFECT_M4A1_JAVELIN_CONTACT_FLASH, spot, 0, NULL);
                 if (eff != NULL) {
                     taskReparent(actor->equipmentTasks[1], eff->task);
                 }

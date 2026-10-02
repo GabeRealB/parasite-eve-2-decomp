@@ -5001,19 +5001,19 @@ static inline void Actor560800_SpawnSparksA(Task* task)
     vec.vx = 0x12C;
     vec.vy = 0;
     vec.vz = -0x1F4;
-    Gp_SpawnEff(0x60046, work->field_0->extra.tmd->coords, 0x20000040, &vec);
+    Gp_SpawnEff(EFFECT_GROUND_DECAL, work->field_0->extra.tmd->coords, 0x20000040, &vec);
     vec.vx = 0x190;
     vec.vy = 0;
     vec.vz = -0x258;
-    Gp_SpawnEff(0x60046, work->field_0->extra.tmd->coords, 0x20000030, &vec);
+    Gp_SpawnEff(EFFECT_GROUND_DECAL, work->field_0->extra.tmd->coords, 0x20000030, &vec);
     vec.vx = 0x12C;
     vec.vy = 0;
     vec.vz = -0x2BC;
-    Gp_SpawnEff(0x60046, work->field_0->extra.tmd->coords, 0x20000020, &vec);
+    Gp_SpawnEff(EFFECT_GROUND_DECAL, work->field_0->extra.tmd->coords, 0x20000020, &vec);
     vec.vx = 0x1C2;
     vec.vy = 0;
     vec.vz = -0x320;
-    Gp_SpawnEff(0x60046, work->field_0->extra.tmd->coords, 0x20000020, &vec);
+    Gp_SpawnEff(EFFECT_GROUND_DECAL, work->field_0->extra.tmd->coords, 0x20000020, &vec);
 }
 
 static inline void Actor560800_SpawnSparksB(Task* task)
@@ -5025,15 +5025,15 @@ static inline void Actor560800_SpawnSparksB(Task* task)
     vec.vx = 0x12C;
     vec.vy = 0;
     vec.vz = -0xC8;
-    Gp_SpawnEff(0x60046, work->field_0->extra.tmd->coords, 0x20000040, &vec);
+    Gp_SpawnEff(EFFECT_GROUND_DECAL, work->field_0->extra.tmd->coords, 0x20000040, &vec);
     vec.vx = 0x1F4;
     vec.vy = 0;
     vec.vz = -0x64;
-    Gp_SpawnEff(0x60046, work->field_0->extra.tmd->coords, 0x20000020, &vec);
+    Gp_SpawnEff(EFFECT_GROUND_DECAL, work->field_0->extra.tmd->coords, 0x20000020, &vec);
     vec.vx = 0x1C2;
     vec.vy = 0;
     vec.vz = 0;
-    Gp_SpawnEff(0x60046, work->field_0->extra.tmd->coords, 0x20000020, &vec);
+    Gp_SpawnEff(EFFECT_GROUND_DECAL, work->field_0->extra.tmd->coords, 0x20000020, &vec);
 }
 
 /// Requests driven by `field_28`, cleared once handled: the inline helpers play
@@ -5333,7 +5333,7 @@ void func_actor_560800_80134B14(s32 arg0)
             i++;
         } while (i < anim->field_4BA);
     }
-    Gp_SpawnEff(0x6002B, &work->field_8->extra.tmd->coords[8], 0x21, NULL);
+    Gp_SpawnEff(EFFECT_HANDGUN_MUZZLE_FLASH, &work->field_8->extra.tmd->coords[8], 0x21, NULL);
     Pad_PostEvent(0, 1, 0xFF, 2);
 }
 
@@ -5486,7 +5486,7 @@ static void func_actor_560800_80134BFC(Task* arg0)
                     if (++work->field_44 < 3) {
                         return;
                     }
-                    Gp_SpawnEff(0x60055, &work->field_0->extra.tmd->coords[6], 0, NULL);
+                    Gp_SpawnEff(EFFECT_HIT_PUFF, &work->field_0->extra.tmd->coords[6], 0, NULL);
                     Pad_PostEvent(0, 1, 0xFF, 2);
                     break;
                 default:
@@ -5589,7 +5589,7 @@ static void func_actor_560800_80134BFC(Task* arg0)
                         return;
                     }
                     Pad_PostEvent(0, 1, 0xFF, 2);
-                    Gp_SpawnEff(0x6002B, &work->field_8->extra.tmd->coords[8], 0x21, NULL);
+                    Gp_SpawnEff(EFFECT_HANDGUN_MUZZLE_FLASH, &work->field_8->extra.tmd->coords[8], 0x21, NULL);
                     blend            = (Actor560800AnimWork*)work->field_C->work;
                     blend->field_4B8 = 0x20;
                     blend->field_4C8 = 8;
@@ -5612,7 +5612,7 @@ static void func_actor_560800_80134BFC(Task* arg0)
                     if (++work->field_44 < 3) {
                         return;
                     }
-                    Gp_SpawnEff(0x60055, &work->field_C->extra.tmd->coords[4], 0, NULL);
+                    Gp_SpawnEff(EFFECT_HIT_PUFF, &work->field_C->extra.tmd->coords[4], 0, NULL);
                     break;
                 default:
                     return;
@@ -6530,7 +6530,7 @@ done:
         if (Gp_FindViewIndex(gGameSession->location.loc.view) != 0x16) {
             tick = D_actor_560800_801752E8 + 1;
             if (!(tick & 0x7F) && ((tick >> 7) & 7) == work->field_280) {
-                Gp_SpawnEff(0x601C6, &arg0->extra.tmd->coords[2], 0x800, NULL);
+                Gp_SpawnEff(EFFECT_SHELTER_B1_GANTRY_RISING_SPRITE, &arg0->extra.tmd->coords[2], 0x800, NULL);
             }
         }
     }
@@ -6911,13 +6911,13 @@ void func_actor_560800_801386D4(Task* task)
             for (k = 0; k < 8; k++) {
                 if (work->parts[k] != NULL) {
                     effCoord = &work->parts[k]->extra.tmd->coords[3];
-                    Gp_SpawnEff(D_80115738, effCoord, 0x10002380, 0);
-                    Gp_SpawnEff(D_80115738, effCoord, 0x04003480, 0);
+                    Gp_SpawnEff(gRoomEffectWaterSprayId, effCoord, 0x10002380, 0);
+                    Gp_SpawnEff(gRoomEffectWaterSprayId, effCoord, 0x04003480, 0);
                     i = 0;
                     do {
-                        Gp_SpawnEff(D_80115738, effCoord, 0x02002400, 0);
+                        Gp_SpawnEff(gRoomEffectWaterSprayId, effCoord, 0x02002400, 0);
                         i++;
-                        Gp_SpawnEff(0x601B4, effCoord, 0x02202300, 0);
+                        Gp_SpawnEff(EFFECT_1B4, effCoord, 0x02202300, 0);
                     } while ((u32)(i & 0xFFFF) < 4U);
                     work->parts[k]->state = 4;
                     work->parts[k]        = NULL;

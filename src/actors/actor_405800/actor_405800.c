@@ -1587,7 +1587,7 @@ static void func_actor_405800_80132FE0(Task* arg0)
         rot.vx = 0;
         rot.vy = 0;
         rot.vz = 0;
-        Gp_SpawnEff(0x600A5, coord, 3, &rot);
+        Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 3, &rot);
     }
     if ((s16)work->field_842 >= 0x41) {
         model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -2250,7 +2250,7 @@ static void func_actor_405800_80134314(Task* arg0)
         vec.vz         = 0;
         work->field_98 = ((rsin((s16)work->yaw + 0x800) * 3000) >> 12) / 20;
         work->field_9C = ((rcos((s16)work->yaw + 0x800) * 3000) >> 12) / 20;
-        Gp_SpawnEff(0x6009B, root, 0x10100, &vec);
+        Gp_SpawnEff(EFFECT_HIT_SPLATTER_SPRAY, root, 0x10100, &vec);
         if (cfg->hp <= 0) {
             work->holdTaken = 1;
         }
@@ -2840,7 +2840,7 @@ static void func_actor_405800_80136388(Task* arg0)
                 work->field_876    = Gp_GetIdParam2(work->rec_4D4[i].key.value);
                 if (Gp_RollEnemyChance(enemy, work->rec_4D4[i].key.value, 0) != 0) {
                     amount = ((u32)dmg << 16) >> 14;
-                    Gp_SpawnEff(0x6009C, &arg0->extra.tmd->coords[3], 0, NULL);
+                    Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
                 }
                 func_800E2C78(enemy, work->rec_4D4[i].key.value, amount, 0);
                 func_800DA6E8(&enemy->node, amount, 0);
@@ -3138,7 +3138,7 @@ static void func_actor_405800_80136E14(Task* task)
     TmdObject*  src4;
 
     D_800678F0[0] = &_gActor405800IvoryStalkerBurstHead;
-    eff           = Gp_SpawnEff(0x20010, &task->extra.tmd->coords[5], 0x200, NULL);
+    eff           = Gp_SpawnEff(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[5], 0x200, NULL);
     if (eff != NULL) {
         src                    = task->extra.tmd;
         dst                    = eff->task->extra.tmd;
@@ -3150,7 +3150,7 @@ static void func_actor_405800_80136E14(Task* task)
         }
     }
     D_800678F0[0] = &_gActor405800StalkerBurstTorso;
-    eff2          = Gp_SpawnEff(0x20010, &task->extra.tmd->coords[13], 0x200, NULL);
+    eff2          = Gp_SpawnEff(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[13], 0x200, NULL);
     if (eff2 != NULL) {
         src2                    = task->extra.tmd;
         dst2                    = eff2->task->extra.tmd;
@@ -3162,7 +3162,7 @@ static void func_actor_405800_80136E14(Task* task)
         }
     }
     D_800678F0[0] = &_gActor405800StalkerEffect;
-    eff3          = Gp_SpawnEff(0x20010, &task->extra.tmd->coords[16], 0x200, NULL);
+    eff3          = Gp_SpawnEff(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[16], 0x200, NULL);
     if (eff3 != NULL) {
         src3                    = task->extra.tmd;
         dst3                    = eff3->task->extra.tmd;
@@ -3174,7 +3174,7 @@ static void func_actor_405800_80136E14(Task* task)
         }
     }
     D_800678F0[0] = &_gActor405800StalkerBurstHandLeft;
-    eff4          = Gp_SpawnEff(0x20010, &task->extra.tmd->coords[10], 0x200, NULL);
+    eff4          = Gp_SpawnEff(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[10], 0x200, NULL);
     if (eff4 != NULL) {
         src4                    = task->extra.tmd;
         dst4                    = eff4->task->extra.tmd;
@@ -3185,9 +3185,9 @@ static void func_actor_405800_80136E14(Task* task)
             tmdProcessStream(dst4);
         }
     }
-    Gp_SpawnEff(0x60030, &task->extra.tmd->coords[1], 0x200, NULL);
-    Gp_SpawnEff(0x60030, &task->extra.tmd->coords[2], 0x200, NULL);
-    Gp_SpawnEff(0x60030, &task->extra.tmd->coords[3], 0x200, NULL);
+    Gp_SpawnEff(EFFECT_030, &task->extra.tmd->coords[1], 0x200, NULL);
+    Gp_SpawnEff(EFFECT_030, &task->extra.tmd->coords[2], 0x200, NULL);
+    Gp_SpawnEff(EFFECT_030, &task->extra.tmd->coords[3], 0x200, NULL);
 }
 
 static void func_actor_405800_8013706C(Task* arg0, s16 arg1)

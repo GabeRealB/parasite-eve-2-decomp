@@ -2110,10 +2110,10 @@ void func_acropolis_sanctuary_8017E00C(Task* task)
     coord = task->extra.coordBody->coord;
     if (task->state == 0) {
         for (i = 0; i < 6; i++) {
-            Gp_SpawnEff(0x6008B, coord, i + 0x200, &D_acropolis_sanctuary_80182774[i]);
+            Gp_SpawnEff(EFFECT_ACROPOLIS_SANCTUARY_FLAME, coord, i + 0x200, &D_acropolis_sanctuary_80182774[i]);
         }
         for (i = 6; i < 12; i++) {
-            Gp_SpawnEff(0x6008B, coord, i + 0xA00000, &D_acropolis_sanctuary_80182774[i]);
+            Gp_SpawnEff(EFFECT_ACROPOLIS_SANCTUARY_FLAME, coord, i + 0xA00000, &D_acropolis_sanctuary_80182774[i]);
         }
         task->msgTable = D_acropolis_sanctuary_80182310;
         Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM_EFFECT);
@@ -2157,7 +2157,7 @@ void func_acropolis_sanctuary_8017E134(Task* arg0)
         mem->move.vx = 0;
         mem->move.vy = ((tile->col * 1145) >> 7) - D_acropolis_sanctuary_80182710[quad].corner[0].vy;
         mem->move.vz = -((tile->row * 2147) >> 8) - D_acropolis_sanctuary_80182710[quad].corner[0].vz;
-        Gp_SpawnEff(0x60079, coord, i, &mem->move);
+        Gp_SpawnEff(EFFECT_ACROPOLIS_SANCTUARY_MOSAIC_TILE, coord, i, &mem->move);
     }
     for (i = 0; i < 0x10; i++) {
         idx          = D_acropolis_sanctuary_80182750[i];
@@ -2166,7 +2166,7 @@ void func_acropolis_sanctuary_8017E134(Task* arg0)
         mem->move.vx = 0;
         mem->move.vy = ((tile->col * 1145) >> 7) - D_acropolis_sanctuary_80182710[quad].corner[0].vy;
         mem->move.vz = -((tile->row * 2147) >> 8) - D_acropolis_sanctuary_80182710[quad].corner[0].vz;
-        Gp_SpawnEff(0x60079, coord, idx, &mem->move);
+        Gp_SpawnEff(EFFECT_ACROPOLIS_SANCTUARY_MOSAIC_TILE, coord, idx, &mem->move);
     }
     arg0->state = arg0->state + 1;
 }
@@ -2318,7 +2318,7 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 n               = ((gRandomLcgState >> 16) & 3) + 1;
                 for (i = 0; i < n; i++) {
-                    Gp_SpawnEff(0x6007A, coord, arg0->spawnArg1.value | 0x1000, NULL);
+                    Gp_SpawnEff(EFFECT_ACROPOLIS_SANCTUARY_MOSAIC_SHARD, coord, arg0->spawnArg1.value | 0x1000, NULL);
                 }
                 mem->age = mem->age + 0x64;
             }
@@ -2333,7 +2333,7 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
             if (quad != 0) {
                 quad = quad + 1;
                 for (i = 0; i < quad; i++) {
-                    Gp_SpawnEff(0x6007A, coord, arg0->spawnArg1.value, NULL);
+                    Gp_SpawnEff(EFFECT_ACROPOLIS_SANCTUARY_MOSAIC_SHARD, coord, arg0->spawnArg1.value, NULL);
                 }
                 mem->age = mem->age + 0x64;
             } else {
@@ -2495,7 +2495,7 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
         if (mem->angle >= 0x401 && n != 0) {
             n = n + 1;
             for (i = 0; i < n; i++) {
-                Gp_SpawnEff(0x6007A, coord, arg0->spawnArg1.value | (mem->angle << 15), NULL);
+                Gp_SpawnEff(EFFECT_ACROPOLIS_SANCTUARY_MOSAIC_SHARD, coord, arg0->spawnArg1.value | (mem->angle << 15), NULL);
             }
             mem->age = mem->age + 0x3C;
         } else {
@@ -2508,7 +2508,7 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
         if ((u16)((gRandomLcgState >> 16) % 60U) == 0 || coord->coord.t[1] >= -0xBFF) {
             for (i = 0; i < 2; i++) {
                 flags = (mem->angle << 15) | 0x1000;
-                Gp_SpawnEff(0x6007A, coord, arg0->spawnArg1.value | flags, NULL);
+                Gp_SpawnEff(EFFECT_ACROPOLIS_SANCTUARY_MOSAIC_SHARD, coord, arg0->spawnArg1.value | flags, NULL);
             }
             mem->age = mem->age + 0x3C;
         }
@@ -2622,7 +2622,7 @@ s32 func_acropolis_sanctuary_8017F918(Task* task, s32 msgId, TaskMessageArg arg2
     GfxCoord* coord = task->extra.tmd->coords;
     SVECTOR   vec   = D_acropolis_sanctuary_8017D5D0;
 
-    Gp_SpawnEff(0x60078, coord, 0, &vec);
+    Gp_SpawnEff(EFFECT_ACROPOLIS_SANCTUARY_MOSAIC, coord, 0, &vec);
     return 0;
 }
 

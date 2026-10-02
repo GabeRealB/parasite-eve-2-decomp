@@ -140,7 +140,7 @@ void Gp_EffAttachTask37(Task* arg0)
                 if (!(mem->age & 3)) {
                     func_800D7A9C(extra, (VECTOR*)coord->workm.t, 0, 3);
                 }
-                Gp_SpawnEff(0x60055, coord, mem->angle + 0x12200, 0);
+                Gp_SpawnEff(EFFECT_HIT_PUFF, coord, mem->angle + 0x12200, 0);
                 gte_lddp(0x800);
                 gte_ldsv(rot);
                 gte_gpf12();
@@ -170,11 +170,11 @@ void Gp_EffAttachTask37(Task* arg0)
             mem->move.vy   += 0x10000 / mem->scale;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if (!((gRandomLcgState >> 16) & 3)) {
-                Gp_SpawnEff(0x60042, coord, mem->angle + 0x11000, 0);
+                Gp_SpawnEff(EFFECT_TRAIL_PUFF, coord, mem->angle + 0x11000, 0);
             }
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if (!((gRandomLcgState >> 16) & 7)) {
-                Gp_SpawnEff(0x60055, coord, mem->angle + 0x11000, 0);
+                Gp_SpawnEff(EFFECT_HIT_PUFF, coord, mem->angle + 0x11000, 0);
             }
             if (mem->age >= 0x33) {
                 extra->flags |= TMD_OBJECT_SEMI_TRANS;
@@ -207,7 +207,7 @@ void Gp_EffAttachTask37(Task* arg0)
                 Gp_SetObjTrans(extra, trans, trans, trans);
             }
             if (mem->age == 8) {
-                Gp_SpawnEff(0x600A5, coord, mem->angle >= 0x100, 0);
+                Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, mem->angle >= 0x100, 0);
             }
             return;
     }

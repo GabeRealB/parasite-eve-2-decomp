@@ -461,10 +461,10 @@ void func_shelter_1f_vehicular_airlock_8017DAA0(Task* task)
     u8 view;
 
     if (task->state == 0) {
-        D_80115758  = 0x601D7;
-        D_8011572C  = 0x601F3;
-        D_80115750  = 0x6020F;
-        task->state = 1;
+        gRoomEffectFlashId      = EFFECT_SHELTER_1F_VEHICULAR_AIRLOCK_FLASH;
+        gRoomEffectTwinTrailId  = EFFECT_SHELTER_1F_VEHICULAR_AIRLOCK_TWIN_TRAIL;
+        gRoomEffectSparkBurstId = EFFECT_SHELTER_1F_VEHICULAR_AIRLOCK_SPARK_BURST;
+        task->state             = 1;
     }
 
     view = Gp_GetViewIndex();

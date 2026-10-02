@@ -604,14 +604,14 @@ void func_shelter_b2_elevator_hall_8017DD08(Task* task)
 void func_shelter_b2_elevator_hall_8017DD60(Task* arg0)
 {
     if (arg0->state == 0) {
-        D_80115728  = 0x6024A;
-        D_80115744  = 0x60256;
-        D_8011573C  = 0x60261;
-        D_80115720  = 0x6026D;
-        D_80115758  = 0x601D0;
-        D_8011572C  = 0x601EC;
-        D_80115750  = 0x60208;
-        arg0->state = 1;
+        gRoomEffectMoteId         = EFFECT_SHELTER_B2_ELEVATOR_HALL_MOTE;
+        gRoomEffectHaloId         = EFFECT_SHELTER_B2_ELEVATOR_HALL_HALO;
+        gRoomEffectOrangeBurstId  = EFFECT_SHELTER_B2_ELEVATOR_HALL_ORANGE_BURST;
+        gRoomEffectSparkEmitterId = EFFECT_SHELTER_B2_ELEVATOR_HALL_SPARK_EMITTER;
+        gRoomEffectFlashId        = EFFECT_SHELTER_B2_ELEVATOR_HALL_FLASH;
+        gRoomEffectTwinTrailId    = EFFECT_SHELTER_B2_ELEVATOR_HALL_TWIN_TRAIL;
+        gRoomEffectSparkBurstId   = EFFECT_SHELTER_B2_ELEVATOR_HALL_SPARK_BURST;
+        arg0->state               = 1;
     }
 
     switch (Gp_GetViewIndex() & 0xFF) {

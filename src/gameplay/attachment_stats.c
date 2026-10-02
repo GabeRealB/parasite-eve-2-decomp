@@ -561,7 +561,7 @@ static s32 Gp_CheckAttachThreshold(s32 arg0)
             result = 1;
         }
     } else if (arg0 < 0xC) {
-        if ((cfg->statusFlags & PLAYER_STATUS_SILENCE) || (!(cfg->statusFlags & PLAYER_STATUS_BERSERKER) && cfg->mp < _gpAttachParam(arg0, n, 2) && gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cheatMode == 0) || (arg0 == 6 && Gp_StateC08.field_16 != 0 && Gp_StateC08.field_17 != 0) || (arg0 == 7 && cfg->hpMax == cfg->hp && gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cheatMode == 0) || (arg0 == 0xB && D_80115724 >= 3) || ((cfg->statusFlags & PLAYER_STATUS_BERSERKER) && (arg0 >= 6 || _gpAttachParam(arg0, n, 2) * 2 >= cfg->hp))) {
+        if ((cfg->statusFlags & PLAYER_STATUS_SILENCE) || (!(cfg->statusFlags & PLAYER_STATUS_BERSERKER) && cfg->mp < _gpAttachParam(arg0, n, 2) && gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cheatMode == 0) || (arg0 == 6 && Gp_StateC08.field_16 != 0 && Gp_StateC08.field_17 != 0) || (arg0 == 7 && cfg->hpMax == cfg->hp && gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cheatMode == 0) || (arg0 == 0xB && gEnergyBallInFlightCount >= 3) || ((cfg->statusFlags & PLAYER_STATUS_BERSERKER) && (arg0 >= 6 || _gpAttachParam(arg0, n, 2) * 2 >= cfg->hp))) {
             result = 1;
         }
     }

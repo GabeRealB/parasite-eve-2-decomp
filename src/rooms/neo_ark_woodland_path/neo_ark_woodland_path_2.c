@@ -306,8 +306,8 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task);
 /// is at a y of 0x12C or more (y grows downward) and no event is running.
 /// Once per frame, the spawn chance is set from how far model parts 15 and 18
 /// moved since the previous frame. Two effects are rolled at the model's x and
-/// z with y fixed at 0xC8: effect `D_8011574C` against that chance, then effect
-/// `D_80115738` against the chance less 0x20. The same function also sets the
+/// z with y fixed at 0xC8: effect `gRoomEffectWaterRippleId` against that chance, then effect
+/// `gRoomEffectWaterSprayId` against the chance less 0x20. The same function also sets the
 /// room effect mode to 2 while the root y is below 0x11. On its first run it
 /// stores the two effect ids and the starting part positions.
 void func_neo_ark_woodland_path_8017EA08(Task* task)
@@ -323,9 +323,9 @@ void func_neo_ark_woodland_path_8017EA08(Task* task)
     owner = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     root  = owner->extra.tmd->coords;
     if (task->state == 0) {
-        D_8011574C  = 0x60058;
-        D_80115738  = 0x60187;
-        task->state = 1;
+        gRoomEffectWaterRippleId = EFFECT_NEO_ARK_WOODLAND_PATH_WATER_RIPPLE;
+        gRoomEffectWaterSprayId  = EFFECT_NEO_ARK_WOODLAND_PATH_WATER_SPRAY;
+        task->state              = 1;
         for (i = 0; i < 2; i++) {
             part                                   = &owner->extra.tmd->coords[i * 3 + 15];
             D_neo_ark_woodland_path_80181684[i].vx = part->workm.t[0];
@@ -347,12 +347,12 @@ void func_neo_ark_woodland_path_8017EA08(Task* task)
             Gp_UpdateCoord(&coord);
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if ((s32)((gRandomLcgState >> 16) & 0x1FF) < obj->chance) {
-                Gp_SpawnEff(D_8011574C, &coord, 0x40, 0);
+                Gp_SpawnEff(gRoomEffectWaterRippleId, &coord, 0x40, 0);
             }
             obj->chance    -= 0x20;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if ((s32)((gRandomLcgState >> 16) & 0x1FF) < obj->chance) {
-                Gp_SpawnEff(D_80115738, &coord, 0x1202180, 0);
+                Gp_SpawnEff(gRoomEffectWaterSprayId, &coord, 0x1202180, 0);
             }
             D_neo_ark_woodland_path_80181684[i].vx = part->workm.t[0];
             D_neo_ark_woodland_path_80181684[i].vy = part->workm.t[1];

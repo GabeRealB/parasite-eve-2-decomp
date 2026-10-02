@@ -581,7 +581,7 @@ static void func_actor_521100_801360C4(Enemy* spawnArg2, Task* task)
             if ((s16)work->field_486 == 0xF) {
                 sp10.coord.t[0] -= 0x1F4;
                 sp10.coord.t[2] -= 0x64;
-                Gp_SpawnEff(0x600A5, &sp10, 5, NULL);
+                Gp_SpawnEff(EFFECT_CORPSE_BURN, &sp10, 5, NULL);
             }
             break;
 

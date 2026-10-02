@@ -126,7 +126,7 @@ static void RoomFx_DrawFlashStar(GfxCoord* arg0, s16 arg1, u8* arg2)
 }
 
 /// A spark emitter. For 0x14 ticks it turns its heading by a random
-/// 0x200..0x3FF and spawns the effect `D_80115728` names at its frame, moving
+/// 0x200..0x3FF and spawns the effect `gRoomEffectMoteId` names at its frame, moving
 /// outwards along that heading at 3/16 speed with a vertical velocity of -0x80
 /// per tick of age, then releases its work block. It pauses while the room's
 /// event state is set and releases the block when that state reaches 4.
@@ -159,6 +159,6 @@ static inline void RoomFx_SparkEmitterTask(Task* arg0)
         mem->move.vx    = (u32)(rcos(ang) * 3) >> 4;
         mem->move.vy    = -mem->age * 128;
         mem->move.vz    = (u32)(rsin(mem->scale) * 3) >> 4;
-        Gp_SpawnEff(D_80115728, coord, 0x30080201, &mem->move);
+        Gp_SpawnEff(gRoomEffectMoteId, coord, 0x30080201, &mem->move);
     }
 }

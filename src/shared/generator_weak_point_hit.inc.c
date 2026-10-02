@@ -44,7 +44,7 @@ void generatorLifeSupportHit(Enemy* arg0, Task* arg1)
             damage  = Gp_ComputeDamage(part->rec18[0].key.value, SquareRoot0(vec->vx * vec->vx + vec->vy * vec->vy + vec->vz * vec->vz), 0, 0);
             if (Gp_RollEnemyChance(arg0, part->rec18[0].key.value, 0) != 0) {
                 damage *= 4;
-                Gp_SpawnEff(0x6009C, coord, 0, NULL);
+                Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, NULL);
             }
             func_800DA6E8(&arg0->node, damage, 0);
             arg0->hp -= damage;
@@ -52,8 +52,8 @@ void generatorLifeSupportHit(Enemy* arg0, Task* arg1)
                 arg1->state                                     = 2;
                 part->field_42                                  = 0;
                 ((GeneratorWork*)arg1->parent->work)->field_336 = 1;
-                Gp_SpawnEff(0x6005C, coord, 0x10002400, NULL);
-                Gp_SpawnEff(0x60070, coord, 0x32FF1400, NULL);
+                Gp_SpawnEff(EFFECT_EXPLOSION, coord, 0x10002400, NULL);
+                Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0x32FF1400, NULL);
                 snd  = gGeneratorSoundIds[1];
                 snd |= (arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8;
                 SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));

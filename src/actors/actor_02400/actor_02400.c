@@ -538,7 +538,7 @@ move_done:
                         work->field_138        = 0;
                         work->field_13A        = 0;
                         work->field_134        = 0;
-                        Gp_SpawnEff(0x6009C, coord, 2, NULL);
+                        Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 2, NULL);
                         break;
                     case 3:
                         work->field_13C    = 4;
@@ -551,7 +551,7 @@ move_done:
                         }
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         damage         += (s16)(((gRandomLcgState >> 16) & 0x7F) + 200);
-                        Gp_SpawnEff(0x6009C, coord, 2, NULL);
+                        Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 2, NULL);
                         break;
                 }
                 dmg = damage;
@@ -673,7 +673,7 @@ static void Actor02400_Fn01420(Task* task)
 /// bobs around a ceiling, and the forward speed `field_138` eases toward
 /// `field_148`. Once `field_14C` reports a hit on the second body, the body
 /// resets into mode 2, rolls its second part at random, plays the sound and
-/// takes hold of the `D_80115734` effect it spawns.
+/// takes hold of the `gRoomEffectGlowDiscId` effect it spawns.
 static void Actor02400_Fn01590(Task* task)
 {
     Actor02400Work*   work;
@@ -790,7 +790,7 @@ static void Actor02400_Fn01590(Task* task)
         sound = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40180002;
         pan   = (s8)worldCoordGetOriginAudioPan(coord);
         SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
-        eff             = (Task**)Gp_SpawnEff(D_80115734, coord, (s32)(work->variant), NULL);
+        eff             = (Task**)Gp_SpawnEff(gRoomEffectGlowDiscId, coord, (s32)(work->variant), NULL);
         work->field_130 = eff;
         if (eff != NULL) {
             taskReparent(task, *eff);
@@ -1207,7 +1207,7 @@ static void Actor02400_Fn024F8(Enemy* arg0, Task* arg1)
                         obj->flags = TMD_OBJECT_SEMI_TRANS;
                     }
                     if ((s16)work->field_140 == 15) {
-                        Gp_SpawnEff(0x600A5, coord, 3, NULL);
+                        Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 3, NULL);
                     }
                     if ((s16)work->field_140 >= 60) {
                         work->field_13E = 2;
@@ -1375,7 +1375,7 @@ static void Actor02400_Fn02AF0(Enemy* arg0, Task* arg1)
             timer          = work->field_B0 - 1;
             work->field_B0 = timer;
             if (((timer << 0x10) <= 0) || (work->rec_40.flags & 1) || (spawn != 0)) {
-                Gp_SpawnEff(D_80115754, coord, 0, NULL);
+                Gp_SpawnEff(gRoomEffectOrangeBurst2Id, coord, 0, NULL);
                 arg1->state    = 2;
                 work->field_B2 = 0;
             }

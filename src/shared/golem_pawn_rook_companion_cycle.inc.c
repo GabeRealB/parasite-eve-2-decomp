@@ -144,7 +144,7 @@ void golemPawnRookCompanionCycle(Task* arg0)
             break;
         case 4:
             if (work->field_698 == 0x1A) {
-                Gp_SpawnEff(0x6006E, &arg0->extra.tmd->coords[7], 0x6000C, NULL);
+                Gp_SpawnEff(EFFECT_RELOAD_EMITTER, &arg0->extra.tmd->coords[7], 0x6000C, NULL);
             }
             work->field_6CE = 0;
             if (work->field_698 >= 0x87) {

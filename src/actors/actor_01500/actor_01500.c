@@ -976,7 +976,7 @@ static void Actor01500_Fn004EC(Task* actor)
                     damage               = Gp_ComputeDamage(work->field_1FC[i].key.value, SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
                     if (Gp_RollEnemyChance(actor->spawnArg2.pointer, work->field_1FC[i].key.value, 0) != 0) {
                         damage *= 4;
-                        Gp_SpawnEff(0x6009C, actor->extra.tmd->coords, 0, NULL);
+                        Gp_SpawnEff(EFFECT_CRITICAL_HIT, actor->extra.tmd->coords, 0, NULL);
                     }
                     func_800DA6E8(&((Enemy*)actor->spawnArg2.pointer)->node, damage, 0);
                     func_800E2C78(actor->spawnArg2.pointer, work->field_1FC[i].key.value, damage, 0);
@@ -1563,7 +1563,7 @@ static void Actor01500_Fn01AB0(Task* arg0)
     GameLocationKey* sessionKey4;
 
     D_80067704[0] = &_gActor01500MindSucklerBurstHead;
-    effect1       = Gp_SpawnEff(0x40007, &arg0->extra.tmd->coords[1], 0x100, NULL);
+    effect1       = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK4, &arg0->extra.tmd->coords[1], 0x100, NULL);
     if (effect1 != NULL) {
         sessionKey1 = &gGameSession->location.loc;
         raw1        = ((Enemy*)arg0->spawnArg2.pointer)->placeKey;
@@ -1585,7 +1585,7 @@ static void Actor01500_Fn01AB0(Task* arg0)
     }
 
     D_80067704[0] = &_gActor01500MindSucklerBurstWing;
-    effect2       = Gp_SpawnEff(0x40007, &arg0->extra.tmd->coords[1], 0x100, NULL);
+    effect2       = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK4, &arg0->extra.tmd->coords[1], 0x100, NULL);
     if (effect2 != NULL) {
         sessionKey2 = &gGameSession->location.loc;
         raw2        = ((Enemy*)arg0->spawnArg2.pointer)->placeKey;
@@ -1607,7 +1607,7 @@ static void Actor01500_Fn01AB0(Task* arg0)
     }
 
     D_80067704[0] = &_gActor01500MindSucklerBurstStinger;
-    effect3       = Gp_SpawnEff(0x40007, &arg0->extra.tmd->coords[1], 0x100, NULL);
+    effect3       = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK4, &arg0->extra.tmd->coords[1], 0x100, NULL);
     if (effect3 != NULL) {
         sessionKey3 = &gGameSession->location.loc;
         raw3        = ((Enemy*)arg0->spawnArg2.pointer)->placeKey;
@@ -1629,7 +1629,7 @@ static void Actor01500_Fn01AB0(Task* arg0)
     }
 
     D_80067704[0] = &_gActor01500MindSucklerBurstTail;
-    effect4       = Gp_SpawnEff(0x40007, &arg0->extra.tmd->coords[1], 0x100, NULL);
+    effect4       = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK4, &arg0->extra.tmd->coords[1], 0x100, NULL);
     if (effect4 != NULL) {
         sessionKey4 = &gGameSession->location.loc;
         raw4        = ((Enemy*)arg0->spawnArg2.pointer)->placeKey;
@@ -1704,7 +1704,7 @@ static void Actor01500_Fn01DF0(Enemy* arg0, Task* arg1)
                 model->flags = TMD_OBJECT_SEMI_TRANS;
             }
             if (work->field_362 == 15) {
-                Gp_SpawnEff(0x600A5, coord, 2, NULL);
+                Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 2, NULL);
             }
             if (work->field_362 >= 60) {
                 work->field_35C = 2;

@@ -1645,12 +1645,12 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     root   = player->extra.tmd->coords;
     if (task->state == 0) {
-        D_8011574C  = 0x60172;
-        D_80115738  = 0x60173;
-        D_80115734  = 0x60225;
-        D_80115730  = 0x60230;
-        D_80115754  = 0x6023B;
-        task->state = 1;
+        gRoomEffectWaterRippleId  = EFFECT_SHELTER_B4_RESERVOIR_WATER_RIPPLE;
+        gRoomEffectWaterSprayId   = EFFECT_SHELTER_B4_RESERVOIR_WATER_SPRAY;
+        gRoomEffectGlowDiscId     = EFFECT_SHELTER_B4_RESERVOIR_GLOW_DISC;
+        gRoomEffectFlyingSparkId  = EFFECT_SHELTER_B4_RESERVOIR_FLYING_SPARK;
+        gRoomEffectOrangeBurst2Id = EFFECT_SHELTER_B4_RESERVOIR_ORANGE_BURST_2;
+        task->state               = 1;
         for (i = 0; i < 10; i++) {
             work->field_24                        = RAND() & 0x1C0;
             work->field_26                        = (RAND() & 0x1FF) + (i << 9);
@@ -1685,11 +1685,11 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
                     coord.composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(&coord);
                     if ((s32)(RAND() & 0x1FF) < work->field_26) {
-                        Gp_SpawnEff(D_8011574C, &coord, 0x40, NULL);
+                        Gp_SpawnEff(gRoomEffectWaterRippleId, &coord, 0x40, NULL);
                     }
                     work->field_26 -= 0x20;
                     if ((s32)(RAND() & 0x1FF) < work->field_26) {
-                        Gp_SpawnEff(D_80115738, &coord, 0x1202180, NULL);
+                        Gp_SpawnEff(gRoomEffectWaterSprayId, &coord, 0x1202180, NULL);
                     }
                     D_shelter_b4_reservoir_801850AC[i].vx = c->workm.t[0];
                     D_shelter_b4_reservoir_801850AC[i].vy = c->workm.t[1];
@@ -1712,7 +1712,7 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
                 if ((u16)(RAND() % 100) < D_shelter_b4_reservoir_80187684.field_2) {
                     offset = D_shelter_b4_reservoir_80187684.field_4;
                     roll   = (RAND() & 0x10FF) + 0x502000;
-                    Gp_SpawnEff(0x600AA, NULL, offset + roll, &D_shelter_b4_reservoir_80187634[i]);
+                    Gp_SpawnEff(EFFECT_SHELTER_B4_RESERVOIR_BURST_SPRITE, NULL, offset + roll, &D_shelter_b4_reservoir_80187634[i]);
                 }
             }
         }
@@ -1720,13 +1720,13 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
     if ((u8)Gp_GetViewIndex() == 10) {
         D_shelter_b4_reservoir_8018509C[1].vy = D_shelter_b4_reservoir_80184F82;
         if ((RAND() & 1) == 0) {
-            Gp_SpawnEff(D_80115738, NULL, (RAND() & 0x1000) + 0x4A03600, &D_shelter_b4_reservoir_8018509C[0]);
+            Gp_SpawnEff(gRoomEffectWaterSprayId, NULL, (RAND() & 0x1000) + 0x4A03600, &D_shelter_b4_reservoir_8018509C[0]);
         }
         if ((RAND() & 1) == 0) {
-            Gp_SpawnEff(D_80115738, NULL, (RAND() & 0x10FF) | 0x11602300, &D_shelter_b4_reservoir_8018509C[1]);
+            Gp_SpawnEff(gRoomEffectWaterSprayId, NULL, (RAND() & 0x10FF) | 0x11602300, &D_shelter_b4_reservoir_8018509C[1]);
         }
         if ((RAND() & 3) == 0) {
-            Gp_SpawnEff(D_8011574C, NULL, (RAND() & 0x7F) | 0x80, &D_shelter_b4_reservoir_8018509C[1]);
+            Gp_SpawnEff(gRoomEffectWaterRippleId, NULL, (RAND() & 0x7F) | 0x80, &D_shelter_b4_reservoir_8018509C[1]);
         }
     }
     switch ((u8)Gp_GetViewIndex()) {

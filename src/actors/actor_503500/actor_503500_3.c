@@ -1022,10 +1022,10 @@ static void func_actor_503500_801345F4(Task* arg0)
             break;
         case 1:
             if (work->field_7BC < 0x78) {
-                Gp_SpawnEff(0x60055, &arg0->extra.tmd->coords[3], 0x01001800,
+                Gp_SpawnEff(EFFECT_HIT_PUFF, &arg0->extra.tmd->coords[3], 0x01001800,
                             &D_actor_503500_8016EF58[(s16)(work->field_7BC % 7)]);
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                Gp_SpawnEff(0x60055, &arg0->extra.tmd->coords[3], 0x01001800,
+                Gp_SpawnEff(EFFECT_HIT_PUFF, &arg0->extra.tmd->coords[3], 0x01001800,
                             &D_actor_503500_8016EF58[(u16)((gRandomLcgState >> 16) % 7)]);
             }
             if (work->field_7BC == 0x78) {
@@ -1161,7 +1161,7 @@ static void func_actor_503500_80134A24(Task* arg0)
                     Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
                     break;
                 case 0x46:
-                    Gp_SpawnEff(0x600A5, coord, 1, NULL);
+                    Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 1, NULL);
                     break;
                 case 0x64:
                     Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
@@ -1286,7 +1286,7 @@ static void func_actor_503500_80134EAC(Task* arg0, WorldCollisionBody* arg1, Wor
         dmg  = Gp_ComputeDamage(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), 0, 0);
         if (Gp_RollEnemyChance(enemy, id, 0) != 0) {
             dmg *= 4;
-            Gp_SpawnEff(0x6009C, coord, 0, NULL);
+            Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, NULL);
         }
         func_800E2C78(enemy, id, dmg, 0);
         enemy->hp -= dmg;
@@ -2845,7 +2845,7 @@ static void func_actor_503500_80137678(Task* arg0)
             case 0:
             case 2:
             case 4:
-                Gp_SpawnEff(0x60070, coord, 0xB0008600,
+                Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0xB0008600,
                             &D_actor_503500_8016F078[(s8)(work->field_15F++ % 3)]);
                 break;
         }
@@ -2952,7 +2952,7 @@ static void func_actor_503500_80137C90(Task* arg0, WorldCollisionBody* arg1, Wor
         pos.vz += D_actor_503500_8016F068.vz;
         func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &pos, &work->field_120);
         if (crit != 0) {
-            Gp_SpawnEff(0x6009C, coord, 0, &pos);
+            Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, &pos);
         }
         stun = Gp_GetIdParam2(id);
         if (work->field_158 < stun) {
@@ -3525,7 +3525,7 @@ static void func_actor_503500_80139014(Task* arg0)
                                         (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
                     break;
                 case 15:
-                    Gp_SpawnEff(0x600A5, coord, 1, NULL);
+                    Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 1, NULL);
                     break;
                 case 30:
                     Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
@@ -3541,7 +3541,7 @@ static void func_actor_503500_80139014(Task* arg0)
     if (func_actor_503500_801360BC(arg0->spawnArg1.value, 4) != 0 && work->field_2E4 < 3 &&
         gDisplayState.animFrame % 12 == 0) {
         for (i = 8, j = 0; i > 0; i--) {
-            Gp_SpawnEff(0x60070, &arg0->extra.tmd->coords[i], 0xB0008600, &D_actor_503500_8016F0D0[j]);
+            Gp_SpawnEff(EFFECT_SMOKE_PUFF, &arg0->extra.tmd->coords[i], 0xB0008600, &D_actor_503500_8016F0D0[j]);
             j++;
             j = (j < 3) ? j : 0;
         }
@@ -3592,9 +3592,9 @@ static void func_actor_503500_801395BC(Task* arg0)
                 vec.vx = 0;
                 vec.vy = -700;
                 vec.vx = (s16)(work->field_2DE % 3) * 33;
-                Gp_SpawnEff(0x60055, coord, 0x11101800, &vec);
+                Gp_SpawnEff(EFFECT_HIT_PUFF, coord, 0x11101800, &vec);
                 vec.vy = 700;
-                Gp_SpawnEff(0x60055, coord, 0x11101800, &vec);
+                Gp_SpawnEff(EFFECT_HIT_PUFF, coord, 0x11101800, &vec);
             }
             work->field_2DE++;
             if (work->field_2DE >= 0x1A) {
@@ -3772,7 +3772,7 @@ static void func_actor_503500_80139A20(Task* arg0, WorldCollisionBody* arg1, Wor
         pos.vz += D_actor_503500_8016F0B0.vz;
         func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &pos, &work->field_240);
         if (crit != 0) {
-            Gp_SpawnEff(0x6009C, coord, 0, &pos);
+            Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, &pos);
         }
         stun = Gp_GetIdParam2(id);
         if (work->field_2D8 < stun) {

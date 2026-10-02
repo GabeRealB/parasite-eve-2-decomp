@@ -1534,7 +1534,7 @@ static void func_actor_160900_8013358C(Task* arg0)
             ofs.vx = -100;
             ofs.vy = 100;
             ofs.vz = -1200;
-            Gp_SpawnEff(0x60046, work->field_38->extra.tmd->coords, 0x20000100, &ofs);
+            Gp_SpawnEff(EFFECT_GROUND_DECAL, work->field_38->extra.tmd->coords, 0x20000100, &ofs);
             break;
         case 3:
             child            = (Actor160900Child3Work*)work->field_38->work;
@@ -1550,7 +1550,7 @@ static void func_actor_160900_8013358C(Task* arg0)
             ofs2.vx = -200;
             ofs2.vy = 100;
             ofs2.vz = -400;
-            Gp_SpawnEff(0x60046, work->field_38->extra.tmd->coords, 0x20000100, &ofs2);
+            Gp_SpawnEff(EFFECT_GROUND_DECAL, work->field_38->extra.tmd->coords, 0x20000100, &ofs2);
             break;
     }
     work->field_54 = 0;
@@ -1576,7 +1576,7 @@ static void func_actor_160900_80133758(SVECTOR* pts)
             pos.vx = x;
             pos.vy = pts->vy;
             pos.vz = pts->vz;
-            Gp_SpawnEff(0x601B4, NULL, flags, &pos);
+            Gp_SpawnEff(EFFECT_1B4, NULL, flags, &pos);
             pts++;
         } while (pts->pad != -1);
     }

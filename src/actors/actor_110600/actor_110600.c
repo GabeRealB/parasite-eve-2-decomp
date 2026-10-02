@@ -2391,7 +2391,7 @@ static void func_actor_110600_80136210(Task* arg0)
         sc->damage   = Gp_ComputeDamage((u32)sc->key, (u32)distance, 0, 0);
         if (Gp_RollEnemyChance(enemy, (u32)sc->key, 0) != 0) {
             sc->damage = (u32)(sc->damage * 5);
-            Gp_SpawnEff(0x6009C, arg0->extra.tmd->coords + 2, 0, NULL);
+            Gp_SpawnEff(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords + 2, 0, NULL);
         }
         magnitude = sc->angle;
         if (magnitude < 0) {
@@ -2678,7 +2678,7 @@ static void func_actor_110600_80136B20(Task* arg0)
             pos.vx = 0x12C;
             pos.vy = 0;
             pos.vz = 0;
-            Gp_SpawnEff(0x600A5, &arg0->extra.tmd->coords[3], 3, &pos);
+            Gp_SpawnEff(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[3], 3, &pos);
             break;
         case 0xFA:
         case 0x1A4:
@@ -2766,7 +2766,7 @@ static void func_actor_110600_80136ECC(Task* arg0)
         work->field_8A2               = 0;
         obj->flags                    = TMD_OBJECT_SKIP_ACTIVE_DRAW;
 
-        effect1 = Gp_SpawnEff(0xA0005, &arg0->extra.tmd->coords[6], 0x200, NULL);
+        effect1 = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, &arg0->extra.tmd->coords[6], 0x200, NULL);
         if (effect1 != NULL) {
             sessionKey1 = &gGameSession->location.loc;
             raw1        = enemy->placeKey;
@@ -2787,7 +2787,7 @@ static void func_actor_110600_80136ECC(Task* arg0)
             }
         }
 
-        effect2 = Gp_SpawnEff(0xA0005, &arg0->extra.tmd->coords[8], 0x200, NULL);
+        effect2 = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, &arg0->extra.tmd->coords[8], 0x200, NULL);
         if (effect2 != NULL) {
             sessionKey2 = &gGameSession->location.loc;
             raw2        = enemy->placeKey;
@@ -2808,7 +2808,7 @@ static void func_actor_110600_80136ECC(Task* arg0)
             }
         }
 
-        effect3 = Gp_SpawnEff(0xA0005, &arg0->extra.tmd->coords[10], 0x200, NULL);
+        effect3 = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, &arg0->extra.tmd->coords[10], 0x200, NULL);
         if (effect3 != NULL) {
             sessionKey3 = &gGameSession->location.loc;
             raw3        = enemy->placeKey;
@@ -2829,7 +2829,7 @@ static void func_actor_110600_80136ECC(Task* arg0)
             }
         }
 
-        effect4 = Gp_SpawnEff(0xA0005, &arg0->extra.tmd->coords[11], 0x300, NULL);
+        effect4 = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, &arg0->extra.tmd->coords[11], 0x300, NULL);
         if (effect4 != NULL) {
             sessionKey4 = &gGameSession->location.loc;
             raw4        = enemy->placeKey;
@@ -2850,7 +2850,7 @@ static void func_actor_110600_80136ECC(Task* arg0)
             }
         }
 
-        effect5 = Gp_SpawnEff(0xA0005, &arg0->extra.tmd->coords[15], 0x300, NULL);
+        effect5 = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, &arg0->extra.tmd->coords[15], 0x300, NULL);
         if (effect5 != NULL) {
             sessionKey5 = &gGameSession->location.loc;
             raw5        = enemy->placeKey;

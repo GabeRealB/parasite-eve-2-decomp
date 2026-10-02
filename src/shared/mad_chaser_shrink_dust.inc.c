@@ -34,7 +34,7 @@ void madChaserShrinkWithDust(Task* arg0)
         ofs.vx = 0;
         ofs.vy = 0;
         ofs.vz = 0;
-        Gp_SpawnEff(0x600A5, coord, 3, &ofs);
+        Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 3, &ofs);
     }
     if ((s16)work->field_412 == 0x10) {
         Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);

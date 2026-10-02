@@ -498,9 +498,9 @@ void func_dryfield_night_back_street_8017D788(Task* task)
 void func_dryfield_night_back_street_8017D7E0(Task* arg0)
 {
     if (arg0->state == 0) {
-        D_80115758 = 0x6000A;
-        D_8011572C = 0x60097;
-        D_80115750 = 0x600E4;
+        gRoomEffectFlashId      = EFFECT_DRYFIELD_NIGHT_BACK_STREET_FLASH;
+        gRoomEffectTwinTrailId  = EFFECT_DRYFIELD_NIGHT_BACK_STREET_TWIN_TRAIL;
+        gRoomEffectSparkBurstId = EFFECT_DRYFIELD_NIGHT_BACK_STREET_SPARK_BURST;
     }
     gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
     switch (gGameSession->location.loc.view) {

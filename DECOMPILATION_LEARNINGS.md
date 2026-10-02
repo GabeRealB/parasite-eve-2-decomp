@@ -102015,11 +102015,11 @@ inRange = Actor401300_InRange(arg0);
 ### Pass a global to an inline by address to move its load after the other arguments (func_actor_401300_80133A3C, 2026-09-16)
 
 **Symptom.** An inline effect helper `Spawn(s32 id, coord, flags, x, y, z)` fed
-`D_8011574C`. The target's order was `li a2; lui v0,%hi(D); addiu a3,sp,0x18; lw 0x2C(s4); lw a0,%lo(D)(v0)`.
+`gRoomEffectWaterRippleId`. The target's order was `li a2; lui v0,%hi(D); addiu a3,sp,0x18; lw 0x2C(s4); lw a0,%lo(D)(v0)`.
 We got `addiu a3` before the `lui`. With a constant id (`0x60054`), the same helper already matched.
 
 **Fix.** `SpawnVar(s32* id, ...)` with `Gp_SpawnEff(*id, ...)` in the body, called as
-`SpawnVar(&D_8011574C, ...)`. The address's `lui` moves up with the argument
+`SpawnVar(&gRoomEffectWaterRippleId, ...)`. The address's `lui` moves up with the argument
 setup and the `lw` stays with the call. 99.32% -> 99.97%. The same trick fixed the
 last swap in a hand-written `actorTransformToView`: create
 `outp = &out` right after `svp = &sv` instead of passing `&out` through a

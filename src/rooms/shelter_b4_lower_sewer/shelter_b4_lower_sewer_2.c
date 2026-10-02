@@ -515,12 +515,12 @@ u8* D_shelter_b4_lower_sewer_80183E14 = NULL;
 void func_shelter_b4_lower_sewer_8017E400(Task* arg0)
 {
     if (arg0->state == 0) {
-        D_80115758 = 0x600ED;
-        D_8011572C = 0x600EE;
-        D_80115750 = 0x600EF;
+        gRoomEffectFlashId      = EFFECT_SHELTER_B4_LOWER_SEWER_FLASH;
+        gRoomEffectTwinTrailId  = EFFECT_SHELTER_B4_LOWER_SEWER_TWIN_TRAIL;
+        gRoomEffectSparkBurstId = EFFECT_SHELTER_B4_LOWER_SEWER_SPARK_BURST;
         if (GameFlag_GetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) == 1) {
-            D_8011574C = 0x6016E;
-            D_80115738 = 0x6016F;
+            gRoomEffectWaterRippleId = EFFECT_SHELTER_B4_LOWER_SEWER_WATER_RIPPLE;
+            gRoomEffectWaterSprayId  = EFFECT_SHELTER_B4_LOWER_SEWER_WATER_SPRAY;
         }
         arg0->state = 1;
     }

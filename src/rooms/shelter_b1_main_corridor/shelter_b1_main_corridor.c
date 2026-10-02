@@ -861,14 +861,14 @@ void func_shelter_b1_main_corridor_8017DD98(Task* task)
 void func_shelter_b1_main_corridor_8017DDF0(Task* arg0)
 {
     if (arg0->state == 0) {
-        D_80115728  = 0x60248;
-        D_80115744  = 0x60254;
-        D_8011573C  = 0x6025F;
-        D_80115720  = 0x6026B;
-        D_80115758  = 0x601CC;
-        D_8011572C  = 0x601E8;
-        D_80115750  = 0x60204;
-        arg0->state = 1;
+        gRoomEffectMoteId         = EFFECT_SHELTER_B1_MAIN_CORRIDOR_MOTE;
+        gRoomEffectHaloId         = EFFECT_SHELTER_B1_MAIN_CORRIDOR_HALO;
+        gRoomEffectOrangeBurstId  = EFFECT_SHELTER_B1_MAIN_CORRIDOR_ORANGE_BURST;
+        gRoomEffectSparkEmitterId = EFFECT_SHELTER_B1_MAIN_CORRIDOR_SPARK_EMITTER;
+        gRoomEffectFlashId        = EFFECT_SHELTER_B1_MAIN_CORRIDOR_FLASH;
+        gRoomEffectTwinTrailId    = EFFECT_SHELTER_B1_MAIN_CORRIDOR_TWIN_TRAIL;
+        gRoomEffectSparkBurstId   = EFFECT_SHELTER_B1_MAIN_CORRIDOR_SPARK_BURST;
+        arg0->state               = 1;
     }
 
     switch (Gp_GetViewIndex() & 0xFF) {

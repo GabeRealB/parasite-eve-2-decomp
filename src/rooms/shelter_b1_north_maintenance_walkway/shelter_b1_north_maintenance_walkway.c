@@ -272,17 +272,17 @@ static void func_shelter_b1_north_maintenance_walkway_8017DB54(u8 arg0)
 void func_shelter_b1_north_maintenance_walkway_8017DBC8(Task* arg0)
 {
     if (arg0->state == 0) {
-        D_80115728  = 0x60247;
-        D_80115744  = 0x60253;
-        D_8011573C  = 0x6025E;
-        D_80115720  = 0x6026A;
-        D_80115758  = 0x601CB;
-        D_8011572C  = 0x601E7;
-        D_80115750  = 0x60203;
-        D_80115734  = 0x6021F;
-        D_80115730  = 0x6022A;
-        D_80115754  = 0x60235;
-        arg0->state = 1;
+        gRoomEffectMoteId         = EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_MOTE;
+        gRoomEffectHaloId         = EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_HALO;
+        gRoomEffectOrangeBurstId  = EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ORANGE_BURST;
+        gRoomEffectSparkEmitterId = EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPARK_EMITTER;
+        gRoomEffectFlashId        = EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_FLASH;
+        gRoomEffectTwinTrailId    = EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_TWIN_TRAIL;
+        gRoomEffectSparkBurstId   = EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPARK_BURST;
+        gRoomEffectGlowDiscId     = EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_GLOW_DISC;
+        gRoomEffectFlyingSparkId  = EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_FLYING_SPARK;
+        gRoomEffectOrangeBurst2Id = EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ORANGE_BURST_2;
+        arg0->state               = 1;
     }
 
     switch (gGameSession->location.loc.view) {

@@ -49,7 +49,7 @@ void golemPawnRookBulletFly(Enemy* arg0, Task* arg1)
         scratch->vx = 0;
         scratch->vy = 0x64;
         scratch->vz = 0;
-        Gp_SpawnEff(0x60070, coord, 0x01001600, scratch);
+        Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0x01001600, scratch);
         work->field_E8 = 0;
     }
     pos.vx = coord->workm.t[0];
@@ -65,7 +65,7 @@ void golemPawnRookBulletFly(Enemy* arg0, Task* arg1)
         Gp_ClearRec18Occupied(work->recD0);
     }
     if (work->rec60[0].key.value != 0 || found || ++work->field_EA >= 0x5A) {
-        Gp_SpawnEff(D_80115750, coord, (s32)(work->field_EE), NULL);
+        Gp_SpawnEff(gRoomEffectSparkBurstId, coord, (s32)(work->field_EE), NULL);
         arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         ctx                    = arg1->spawnArg2.pointer;
         sound                  = GOLEM_PAWN_ROOK_IMPACT_SOUND | (((u16)ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);

@@ -1192,7 +1192,7 @@ void func_actor_510900_80131F24(Task* arg0)
                 mem->move.vy    = 0x40;
                 mem->move.vz    = 0;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                eff             = Gp_SpawnEff(0x60045, coord, ((gRandomLcgState >> 16) & 0xF0) + mem->scale, &mem->move);
+                eff             = Gp_SpawnEff(EFFECT_NO9_GOLEM_FLAME, coord, ((gRandomLcgState >> 16) & 0xF0) + mem->scale, &mem->move);
                 if (eff != NULL) {
                     taskReparent(arg0, eff->task);
                 }
@@ -1211,7 +1211,7 @@ void func_actor_510900_80131F24(Task* arg0)
                 mem->move.vy    = 0x40;
                 mem->move.vz    = 0;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                eff             = Gp_SpawnEff(0x60045, coord, ((gRandomLcgState >> 16) & 0xF0) + ({ mem->scale + 0x10000; }),
+                eff             = Gp_SpawnEff(EFFECT_NO9_GOLEM_FLAME, coord, ((gRandomLcgState >> 16) & 0xF0) + ({ mem->scale + 0x10000; }),
                                               &mem->move);
                 if (eff != NULL) {
                     taskReparent(arg0, eff->task);
@@ -1224,7 +1224,7 @@ void func_actor_510900_80131F24(Task* arg0)
                 mem->move.vy    = 0;
                 mem->move.vz    = 0;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                eff             = Gp_SpawnEff(0x6004C, coord, ((gRandomLcgState >> 16) & 0xF0) + ({ mem->scale + 0x10000; }),
+                eff             = Gp_SpawnEff(EFFECT_04C, coord, ((gRandomLcgState >> 16) & 0xF0) + ({ mem->scale + 0x10000; }),
                                               &mem->move);
                 if (eff != NULL) {
                     taskReparent(arg0, eff->task);
@@ -1237,7 +1237,7 @@ void func_actor_510900_80131F24(Task* arg0)
                 mem->move.vy    = 0;
                 mem->move.vz    = 0;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                eff             = Gp_SpawnEff(0x60052, coord, ((gRandomLcgState >> 16) & 0xF0) + mem->scale, &mem->move);
+                eff             = Gp_SpawnEff(EFFECT_NO9_FLAME_SPRITE, coord, ((gRandomLcgState >> 16) & 0xF0) + mem->scale, &mem->move);
                 if (eff != NULL) {
                     taskReparent(arg0, eff->task);
                 }
@@ -1249,7 +1249,7 @@ void func_actor_510900_80131F24(Task* arg0)
                 mem->move.vy    = 0x80;
                 mem->move.vz    = 0;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                eff             = Gp_SpawnEff(0x60052, coord, ((gRandomLcgState >> 16) & 0xF0) + 0x10080, &mem->move);
+                eff             = Gp_SpawnEff(EFFECT_NO9_FLAME_SPRITE, coord, ((gRandomLcgState >> 16) & 0xF0) + 0x10080, &mem->move);
                 if (eff != NULL) {
                     taskReparent(arg0, eff->task);
                 }
@@ -1261,7 +1261,7 @@ void func_actor_510900_80131F24(Task* arg0)
                 mem->move.vy    = -0x80;
                 mem->move.vz    = 0;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                eff             = Gp_SpawnEff(0x60059, coord, ((gRandomLcgState >> 16) & 0xF0) + 0x180, &mem->move);
+                eff             = Gp_SpawnEff(EFFECT_NO9_GUNFIRE_PARTICLE, coord, ((gRandomLcgState >> 16) & 0xF0) + 0x180, &mem->move);
                 if (eff != NULL) {
                     taskReparent(arg0, eff->task);
                 }
@@ -1277,7 +1277,7 @@ void func_actor_510900_80131F24(Task* arg0)
                 mem->move.vy    = 0x40;
                 mem->move.vz    = 0;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                eff             = Gp_SpawnEff(0x60045, coord, ((gRandomLcgState >> 16) & 0xF0) | 0x10100, &mem->move);
+                eff             = Gp_SpawnEff(EFFECT_NO9_GOLEM_FLAME, coord, ((gRandomLcgState >> 16) & 0xF0) | 0x10100, &mem->move);
                 if (eff != NULL) {
                     taskReparent(arg0, eff->task);
                 }
@@ -1290,7 +1290,7 @@ void func_actor_510900_80131F24(Task* arg0)
                 mem->move.vy    = 0;
                 mem->move.vz    = 0;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                eff             = Gp_SpawnEff(0x60052, coord, ((gRandomLcgState >> 16) & 0xF0) | 0x100, &mem->move);
+                eff             = Gp_SpawnEff(EFFECT_NO9_FLAME_SPRITE, coord, ((gRandomLcgState >> 16) & 0xF0) | 0x100, &mem->move);
                 if (eff != NULL) {
                     taskReparent(arg0, eff->task);
                 }
@@ -1302,7 +1302,7 @@ void func_actor_510900_80131F24(Task* arg0)
                 mem->move.vy    = 0x80;
                 mem->move.vz    = 0;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                eff             = Gp_SpawnEff(0x60052, coord, ((gRandomLcgState >> 16) & 0xF0) + 0x10080, &mem->move);
+                eff             = Gp_SpawnEff(EFFECT_NO9_FLAME_SPRITE, coord, ((gRandomLcgState >> 16) & 0xF0) + 0x10080, &mem->move);
                 if (eff != NULL) {
                     taskReparent(arg0, eff->task);
                 }
@@ -1314,7 +1314,7 @@ void func_actor_510900_80131F24(Task* arg0)
                 mem->move.vy    = -0x80;
                 mem->move.vz    = 0;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                eff             = Gp_SpawnEff(0x60059, coord, ((gRandomLcgState >> 16) & 0xF0) + 0x180, &mem->move);
+                eff             = Gp_SpawnEff(EFFECT_NO9_GUNFIRE_PARTICLE, coord, ((gRandomLcgState >> 16) & 0xF0) + 0x180, &mem->move);
                 if (eff != NULL) {
                     taskReparent(arg0, eff->task);
                 }
@@ -1331,7 +1331,7 @@ void func_actor_510900_80131F24(Task* arg0)
                     mem->move.vy    = 0x40;
                     mem->move.vz    = 0;
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    eff             = Gp_SpawnEff(0x60045, coord, ((gRandomLcgState >> 16) & 0xF0) + 0x80, &mem->move);
+                    eff             = Gp_SpawnEff(EFFECT_NO9_GOLEM_FLAME, coord, ((gRandomLcgState >> 16) & 0xF0) + 0x80, &mem->move);
                     if (eff != NULL) {
                         taskReparent(arg0, eff->task);
                     }
@@ -1343,7 +1343,7 @@ void func_actor_510900_80131F24(Task* arg0)
                     mem->move.vy    = 0x40;
                     mem->move.vz    = 0;
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    eff             = Gp_SpawnEff(0x60045, coord, ((gRandomLcgState >> 16) & 0xF0) + 0x10080, &mem->move);
+                    eff             = Gp_SpawnEff(EFFECT_NO9_GOLEM_FLAME, coord, ((gRandomLcgState >> 16) & 0xF0) + 0x10080, &mem->move);
                     if (eff != NULL) {
                         taskReparent(arg0, eff->task);
                     }
@@ -1354,7 +1354,7 @@ void func_actor_510900_80131F24(Task* arg0)
                     mem->move.vy    = 0;
                     mem->move.vz    = 0;
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    eff             = Gp_SpawnEff(0x6004C, coord, ((gRandomLcgState >> 16) & 0xF0) | 0x10100, &mem->move);
+                    eff             = Gp_SpawnEff(EFFECT_04C, coord, ((gRandomLcgState >> 16) & 0xF0) | 0x10100, &mem->move);
                     if (eff != NULL) {
                         taskReparent(arg0, eff->task);
                     }
@@ -1366,7 +1366,7 @@ void func_actor_510900_80131F24(Task* arg0)
                     mem->move.vy    = 0;
                     mem->move.vz    = 0;
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    eff             = Gp_SpawnEff(0x60052, coord, ((gRandomLcgState >> 16) & 0xF0) | 0x100, &mem->move);
+                    eff             = Gp_SpawnEff(EFFECT_NO9_FLAME_SPRITE, coord, ((gRandomLcgState >> 16) & 0xF0) | 0x100, &mem->move);
                     if (eff != NULL) {
                         taskReparent(arg0, eff->task);
                     }
@@ -1378,7 +1378,7 @@ void func_actor_510900_80131F24(Task* arg0)
                     mem->move.vy    = 0x80;
                     mem->move.vz    = 0;
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    eff             = Gp_SpawnEff(0x60052, coord, ((gRandomLcgState >> 16) & 0xF0) + 0x10080, &mem->move);
+                    eff             = Gp_SpawnEff(EFFECT_NO9_FLAME_SPRITE, coord, ((gRandomLcgState >> 16) & 0xF0) + 0x10080, &mem->move);
                     if (eff != NULL) {
                         taskReparent(arg0, eff->task);
                     }
@@ -1389,7 +1389,7 @@ void func_actor_510900_80131F24(Task* arg0)
                     mem->move.vy    = -0x80;
                     mem->move.vz    = 0;
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    eff             = Gp_SpawnEff(0x60059, coord, ((gRandomLcgState >> 16) & 0xF0) + 0x180, &mem->move);
+                    eff             = Gp_SpawnEff(EFFECT_NO9_GUNFIRE_PARTICLE, coord, ((gRandomLcgState >> 16) & 0xF0) + 0x180, &mem->move);
                     if (eff != NULL) {
                         taskReparent(arg0, eff->task);
                     }
@@ -1406,7 +1406,7 @@ void func_actor_510900_80131F24(Task* arg0)
                 mem->move.vy          = 0x80;
                 mem->move.vz          = 0;
                 gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                eff                   = Gp_SpawnEff(0x60059, coord, ((gRandomLcgState >> 16) & 0xF0) | 0x100, &mem->move);
+                eff                   = Gp_SpawnEff(EFFECT_NO9_GUNFIRE_PARTICLE, coord, ((gRandomLcgState >> 16) & 0xF0) | 0x100, &mem->move);
                 if (eff != NULL) {
                     taskReparent(arg0, eff->task);
                 }
@@ -1859,10 +1859,10 @@ void func_actor_510900_801340E8(Task* arg0)
     eff->move.vx = -0x200;
     eff->move.vy = 0x40;
     eff->move.vz = 0;
-    Gp_SpawnEff(0x6003B, coord, 0x180, &eff->move);
+    Gp_SpawnEff(EFFECT_IMPACT_SPARK, coord, 0x180, &eff->move);
     for (i = 0; i < 6; i++) {
-        Gp_SpawnEff(0x60065, coord, 0, &eff->move);
-        Gp_SpawnEff(0x600A4, coord, 1, NULL);
+        Gp_SpawnEff(EFFECT_NO9_GOLEM_DEBRIS_STREAK, coord, 0, &eff->move);
+        Gp_SpawnEff(EFFECT_PIXEL_SPARK, coord, 1, NULL);
     }
     lightSlot->framesLeft    = 4;
     pointLight->inner        = 0xFA0;
@@ -1989,7 +1989,7 @@ void func_actor_510900_801346D4(Task* arg0)
     eff->age++;
     switch (arg0->state) {
         case 0:
-            eff = Gp_SpawnEff(0x60184, coord, 0x480, NULL);
+            eff = Gp_SpawnEff(EFFECT_NO9_EXPLOSION_FIREBALL, coord, 0x480, NULL);
             if (eff != NULL) {
                 taskReparent(arg0, eff->task);
             }
@@ -2001,13 +2001,13 @@ void func_actor_510900_801346D4(Task* arg0)
             }
             break;
         case 2:
-            Gp_SpawnEff(0x60070, coord, 0x82004400, NULL);
+            Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0x82004400, NULL);
             if (eff->age >= 0x33) {
                 arg0->state++;
             }
             break;
         case 3:
-            Gp_SpawnEff(0x60070, coord, 0xD2004400, NULL);
+            Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0xD2004400, NULL);
             if (eff->age >= 0x3D) {
                 arg0->state++;
             }
@@ -2081,7 +2081,7 @@ void func_actor_510900_8013482C(Task* arg0)
             i = 0;
             if (n != 0) {
                 do {
-                    spawned = Gp_SpawnEff(0x60184, coord, ((s32)((u16)eff->scale << 16) >> 17) | 0x02001000, NULL);
+                    spawned = Gp_SpawnEff(EFFECT_NO9_EXPLOSION_FIREBALL, coord, ((s32)((u16)eff->scale << 16) >> 17) | 0x02001000, NULL);
                     if (spawned != NULL) {
                         taskReparent(arg0, spawned->task);
                     }
@@ -2092,7 +2092,7 @@ void func_actor_510900_8013482C(Task* arg0)
             i = 0;
             if (i < n) {
                 do {
-                    spawned = Gp_SpawnEff(0x60184, coord, ((s32)((u16)eff->scale << 16) >> 17) | 0x01002000, NULL);
+                    spawned = Gp_SpawnEff(EFFECT_NO9_EXPLOSION_FIREBALL, coord, ((s32)((u16)eff->scale << 16) >> 17) | 0x01002000, NULL);
                     if (spawned != NULL) {
                         taskReparent(arg0, spawned->task);
                     }
@@ -2238,7 +2238,7 @@ void func_actor_510900_801350F8(Enemy* arg0, Task* arg1)
         tmdProcessStream(model1);
     }
     work->field_568 = spawned->task;
-    eff             = Gp_SpawnEff(0x80060043, spawned->task->extra.tmd->coords, 0, NULL);
+    eff             = Gp_SpawnEff((EFFECT_ACTOR_510900_FLAME_JET | EFFECT_SPAWN_UNLIMITED), spawned->task->extra.tmd->coords, 0, NULL);
     if (eff != NULL) {
         work->field_564 = (s32*)eff->task;
         taskReparent(arg1, eff->task);

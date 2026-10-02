@@ -1214,11 +1214,11 @@ void func_shelter_b2_pod_bottom_80181940(Task* arg0)
         rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         gRandomLcgState = rnd;
         coord           = &arg0->extra.tmd->coords[(u16)((rnd >> 16) % 18) + 2];
-        Gp_SpawnEff(0x600E0, coord, 0x10300, 0);
+        Gp_SpawnEff(EFFECT_FLASH_BURST, coord, 0x10300, 0);
         rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         gRandomLcgState = rnd;
         if ((rnd >> 16) & 1) {
-            Gp_SpawnEff(0x600E1, coord, 0x10300, 0);
+            Gp_SpawnEff(EFFECT_SPARK_FADE, coord, 0x10300, 0);
         }
     }
 }
@@ -1232,11 +1232,11 @@ void func_shelter_b2_pod_bottom_80181A48(Task* arg0)
         rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         gRandomLcgState = rnd;
         coord           = &arg0->extra.tmd->coords[(u16)((rnd >> 16) % 18) + 2];
-        Gp_SpawnEff(0x600F4, coord, 0x8600, 0);
+        Gp_SpawnEff(EFFECT_RISING_ENERGY_SPARK, coord, 0x8600, 0);
         rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         gRandomLcgState = rnd;
         if (!((rnd >> 16) & 1)) {
-            Gp_SpawnEff(0x600F4, coord, 0x8600, 0);
+            Gp_SpawnEff(EFFECT_RISING_ENERGY_SPARK, coord, 0x8600, 0);
         }
     }
 }

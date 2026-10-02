@@ -131,13 +131,13 @@ static inline void RoomFx_SparkBurstTask(Task* task)
 
     switch (task->state) {
         case 0:
-            Gp_SpawnEff(0x60076, objCoord, 0x400, NULL);
+            Gp_SpawnEff(EFFECT_IMPACT_FLASH, objCoord, 0x400, NULL);
             if (task->spawnArg1.value != 0) {
-                Gp_SpawnEff(0x60070, objCoord, 0x80004600, NULL);
+                Gp_SpawnEff(EFFECT_SMOKE_PUFF, objCoord, 0x80004600, NULL);
                 task->state = 1;
             } else {
-                Gp_SpawnEff(0x6007C, objCoord, 0x100, NULL);
-                Gp_SpawnEff(0x6007C, objCoord, 0x100, NULL);
+                Gp_SpawnEff(EFFECT_BOUNCING_SPARK, objCoord, 0x100, NULL);
+                Gp_SpawnEff(EFFECT_BOUNCING_SPARK, objCoord, 0x100, NULL);
                 work->scale = 0x100;
                 work->angle = 0xC0;
                 task->state = 2;
@@ -152,7 +152,7 @@ static inline void RoomFx_SparkBurstTask(Task* task)
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             work->move.vz   = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            Gp_SpawnEff(0x60070, objCoord, ((gRandomLcgState >> 16) & 0x1FF) | 0x82003400,
+            Gp_SpawnEff(EFFECT_SMOKE_PUFF, objCoord, ((gRandomLcgState >> 16) & 0x1FF) | 0x82003400,
                         &work->move);
             if (work->age >= 7) {
                 task->state = 3;

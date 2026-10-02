@@ -633,7 +633,7 @@ static void func_actor_503500_8013AF60(Task* arg0, Actor503500Work* arg1, WorldC
         pos.vz += D_actor_503500_8016F0F0[work->field_EC].vz;
         func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &pos, &work->field_E0);
         if (crit != 0) {
-            Gp_SpawnEff(0x6009C, coord, 0, &pos);
+            Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, &pos);
         }
         stun = Gp_GetIdParam2(id);
         if (work->field_E8 < stun) {
@@ -798,12 +798,12 @@ static void func_actor_503500_8013B8D0(Task* arg0)
                     t      = vec.vx;
                     vec.vx = -t;
                 }
-                Gp_SpawnEff(0x60055, coord, 0x1800, &vec);
-                Gp_SpawnEff(0x60070, coord, 0x80008600, &vec);
+                Gp_SpawnEff(EFFECT_HIT_PUFF, coord, 0x1800, &vec);
+                Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0x80008600, &vec);
                 t      = vec.vz;
                 vec.vz = -t;
-                Gp_SpawnEff(0x60055, coord, 0x1800, &vec);
-                Gp_SpawnEff(0x60070, coord, 0x80008600, &vec);
+                Gp_SpawnEff(EFFECT_HIT_PUFF, coord, 0x1800, &vec);
+                Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0x80008600, &vec);
             }
             work->field_EA++;
             if (work->field_EA >= 0x1F) {
@@ -1108,7 +1108,7 @@ static void func_actor_503500_8013C088(Task* arg0, Actor503500Work* arg1, WorldC
         pos.vz += D_actor_503500_8016F1B0.vz;
         func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &pos, &work->field_E0);
         if (crit != 0) {
-            Gp_SpawnEff(0x6009C, coord, 0, &pos);
+            Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, &pos);
         }
         stun = Gp_GetIdParam2(id);
         if (work->field_E8 < stun) {
@@ -1153,13 +1153,13 @@ static void func_actor_503500_8013C558(Task* arg0)
             if (++work->field_EA <= 2000) {
                 if (func_actor_503500_801360BC(arg0->spawnArg1.value, 5) != 0) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    Gp_SpawnEff(0x60055, coord, 0x01001900,
+                    Gp_SpawnEff(EFFECT_HIT_PUFF, coord, 0x01001900,
                                 &D_actor_503500_8016F1B8[(u16)((gRandomLcgState >> 16) % 18)]);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    Gp_SpawnEff(0x60055, coord, 0x01001700,
+                    Gp_SpawnEff(EFFECT_HIT_PUFF, coord, 0x01001700,
                                 &D_actor_503500_8016F1B8[(u16)((gRandomLcgState >> 16) % 18)]);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    Gp_SpawnEff(0x6018C, coord, 0x01404600,
+                    Gp_SpawnEff(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, 0x01404600,
                                 &D_actor_503500_8016F1B8[(u16)((gRandomLcgState >> 16) % 18)]);
                 }
             }
@@ -1459,7 +1459,7 @@ static void func_actor_503500_8013CCBC(Task* arg0, Actor503500Work* arg1, WorldC
         }
         func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &pos, &work->field_E0);
         if (crit != 0) {
-            Gp_SpawnEff(0x6009C, coord, 0, &pos);
+            Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, &pos);
         }
         stun = Gp_GetIdParam2(id);
         if (work->field_E8 < stun) {
@@ -1593,13 +1593,13 @@ static void func_actor_503500_8013D558(Task* arg0)
                 vec = D_actor_503500_8016F290;
             }
             if (func_actor_503500_801360BC(arg0->spawnArg1.value, 2) != 0) {
-                Gp_SpawnEff(0x60055, coord, 0x01001C00, &vec[(s16)((s16)work->field_EC % 3)]);
+                Gp_SpawnEff(EFFECT_HIT_PUFF, coord, 0x01001C00, &vec[(s16)((s16)work->field_EC % 3)]);
             }
             if ((s16)work->field_EC++ >= 5) {
                 if (func_actor_503500_801360BC(arg0->spawnArg1.value, 6) != 0) {
-                    Gp_SpawnEff(0x6018C, coord, 0x04404600, &vec[0]);
-                    Gp_SpawnEff(0x6018C, coord, 0x05404600, &vec[1]);
-                    Gp_SpawnEff(0x6018C, coord, 0x06404600, &vec[2]);
+                    Gp_SpawnEff(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, 0x04404600, &vec[0]);
+                    Gp_SpawnEff(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, 0x05404600, &vec[1]);
+                    Gp_SpawnEff(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, 0x06404600, &vec[2]);
                 }
                 SndEvt_EnqueueType7(SOUND_BRAHMAN_DEATH_LOOP, 0x2D);
                 work->field_F1++;
@@ -1979,7 +1979,7 @@ static void func_actor_503500_8013DEB4(Task* arg0, Actor503500Work* arg1, WorldC
         pos.vz += D_actor_503500_8016F2D8.vz;
         func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &pos, &work->field_E0);
         if (crit != 0) {
-            Gp_SpawnEff(0x6009C, coord, 0, &pos);
+            Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, &pos);
         }
         stun = Gp_GetIdParam2(id);
         if (work->field_E8 < stun) {
@@ -2103,11 +2103,11 @@ static void func_actor_503500_8013E740(Task* arg0)
             break;
         case 1:
             if (func_actor_503500_801360BC(arg0->spawnArg1.value, 3) != 0) {
-                Gp_SpawnEff(0x60055, coord, 0x01001C00,
+                Gp_SpawnEff(EFFECT_HIT_PUFF, coord, 0x01001C00,
                             &D_actor_503500_8016F31C[(s16)(work->field_EA % 9)]);
                 if (work->field_EA & 1) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    Gp_SpawnEff(0x6018C, coord, 0x04404600,
+                    Gp_SpawnEff(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, 0x04404600,
                                 &D_actor_503500_8016F31C[(u16)((gRandomLcgState >> 16) % 9)]);
                 }
             }
@@ -2412,7 +2412,7 @@ static void func_actor_503500_8013EE5C(Task* arg0, Actor503500Work* arg1, WorldC
         pos.vz += D_actor_503500_8016F36C.vz;
         func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &pos, &work->field_E0);
         if (crit != 0) {
-            Gp_SpawnEff(0x6009C, coord, 0, &pos);
+            Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, &pos);
         }
         stun = Gp_GetIdParam2(id);
         if (work->field_E8 < stun) {
@@ -2504,10 +2504,10 @@ static void func_actor_503500_8013F4A4(Task* arg0)
             break;
         case 1:
             if (func_actor_503500_801360BC(arg0->spawnArg1.value, 3) != 0) {
-                Gp_SpawnEff(0x60055, coord, 0x01001A00,
+                Gp_SpawnEff(EFFECT_HIT_PUFF, coord, 0x01001A00,
                             &D_actor_503500_8016F374[(s16)((s16)work->field_EA % 6)]);
                 if (work->field_EA & 1) {
-                    Gp_SpawnEff(0x6018C, coord, 0x04404600,
+                    Gp_SpawnEff(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, 0x04404600,
                                 &D_actor_503500_8016F374[(s16)((s16)work->field_EA % 3) + 3]);
                 }
             }
@@ -3094,7 +3094,7 @@ static void func_actor_503500_80140654(Task* arg0)
                                         (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
                     break;
                 case 15:
-                    Gp_SpawnEff(0x600A5, coord, 1, NULL);
+                    Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 1, NULL);
                     break;
                 case 30:
                     Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
@@ -3110,7 +3110,7 @@ static void func_actor_503500_80140654(Task* arg0)
     if (func_actor_503500_801360BC(arg0->spawnArg1.value, 4) != 0 && work->field_3D0 < 3 &&
         gDisplayState.animFrame % 12 == 0) {
         for (i = 8, j = 0; i > 0; i--) {
-            Gp_SpawnEff(0x60070, &arg0->extra.tmd->coords[i], 0xB0008600, &D_actor_503500_8016F448[j]);
+            Gp_SpawnEff(EFFECT_SMOKE_PUFF, &arg0->extra.tmd->coords[i], 0xB0008600, &D_actor_503500_8016F448[j]);
             j++;
             j = (j < 3) ? j : 0;
         }
@@ -3264,7 +3264,7 @@ static void func_actor_503500_80140D38(Task* arg0, WorldCollisionBody* arg1, Wor
         pos.vz += D_actor_503500_8016F3EC.vz;
         func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &pos, &work->field_2C0);
         if (crit != 0) {
-            Gp_SpawnEff(0x6009C, coord, 0, &pos);
+            Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, &pos);
         }
         stun = Gp_GetIdParam2(id);
         if (work->field_3A8 < stun) {
@@ -3995,7 +3995,7 @@ static void func_actor_503500_80142980(Task* arg0)
                 rot.vx = side != 0 ? -300 : 300;
                 rot.vy = (u32)(rcos((s16)work->field_21A << 7) * 375) >> 10;
                 rot.vz = (u32)(rsin((s16)work->field_21A << 7) * 375) >> 10;
-                Gp_SpawnEff(0x60055, coord->parent->parent, 0x01101600, &rot);
+                Gp_SpawnEff(EFFECT_HIT_PUFF, coord->parent->parent, 0x01101600, &rot);
             }
             if ((s16)++work->field_21A >= 0x1F) {
                 param1[3] = 4;
@@ -4070,10 +4070,10 @@ static void func_actor_503500_80142980(Task* arg0)
         case 3:
             if (func_actor_503500_801360BC(arg0->spawnArg1.value, 2) != 0) {
                 if (work->field_220 != 0) {
-                    Gp_SpawnEff(0x60055, coord, 0x01101C00, &D_actor_503500_80171594);
+                    Gp_SpawnEff(EFFECT_HIT_PUFF, coord, 0x01101C00, &D_actor_503500_80171594);
                     work->rot.vz.word -= 0x2000;
                 } else {
-                    Gp_SpawnEff(0x60055, coord, 0x01101C00, &D_actor_503500_8017158C);
+                    Gp_SpawnEff(EFFECT_HIT_PUFF, coord, 0x01101C00, &D_actor_503500_8017158C);
                     work->rot.vz.word += 0x2000;
                 }
             }
@@ -4139,7 +4139,7 @@ static void func_actor_503500_80142980(Task* arg0)
     if (func_actor_503500_801360BC(arg0->spawnArg1.value, 3) != 0) {
         if (!(gDisplayState.animFrame & 3)) {
             for (i = 0, j = 0; i < 2; i++) {
-                Gp_SpawnEff(0x60070, &arg0->extra.tmd->coords[i], 0x81018A00, &D_actor_503500_80171564[j]);
+                Gp_SpawnEff(EFFECT_SMOKE_PUFF, &arg0->extra.tmd->coords[i], 0x81018A00, &D_actor_503500_80171564[j]);
                 j++;
                 j = j < 5 ? j : 0;
             }
@@ -4266,7 +4266,7 @@ static void func_actor_503500_801431EC(Task* arg0, WorldCollisionBody* arg1, Wor
         pos.vz += D_actor_503500_80171480[work->field_220].vz;
         func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &pos, &work->field_1E0);
         if (crit != 0) {
-            Gp_SpawnEff(0x6009C, coord, (crit == 2) * 2, &pos);
+            Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, (crit == 2) * 2, &pos);
         }
         stun = Gp_GetIdParam2(id);
         if (work->field_218 < stun) {
@@ -4683,7 +4683,7 @@ static void func_actor_503500_80144300(Task* arg0)
     Gp_InitRec18Table(rec, 4, 0);
     work->obj.flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
 
-    eff = Gp_SpawnEff(0x60189, coord, 0, NULL);
+    eff = Gp_SpawnEff(EFFECT_BRAHMAN_SMALL_ORB, coord, 0, NULL);
     if (eff == NULL) {
         func_actor_503500_8014473C(arg0);
         return;
@@ -4879,11 +4879,11 @@ static void func_actor_503500_801448E8(Task* arg0)
     work->obj.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
 
     if (arg0->spawnArg1.value == 0) {
-        eff = Gp_SpawnEff(0x6018E, coord, 0, NULL);
+        eff = Gp_SpawnEff(EFFECT_BRAHMAN_LARGE_ORB, coord, 0, NULL);
         pan = (s8)worldCoordGetOriginAudioPan(coord);
         SndEvt_EnqueueType6(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 8), pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
     } else {
-        eff  = Gp_SpawnEff(0x6018D, coord, 0, NULL);
+        eff  = Gp_SpawnEff(EFFECT_BRAHMAN_PROJECTILE, coord, 0, NULL);
         pan2 = (s8)worldCoordGetOriginAudioPan(coord);
         SndEvt_EnqueueType6(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 7), pan2, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
     }

@@ -58,7 +58,7 @@ void madChaserApplyContacts(Task* arg0, s16 arg1)
                     work->field_40E = Gp_GetIdParam2(work->rec_2EC[i].key.value);
                     if (Gp_RollEnemyChance(enemy, work->rec_2EC[i].key.value, 0) != 0) {
                         amount = ((u32)dmg << 16) >> 14;
-                        Gp_SpawnEff(0x6009C, &arg0->extra.tmd->coords[3], 0, NULL);
+                        Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
                     }
                     func_800E2C78(enemy, work->rec_2EC[i].key.value, amount, 0);
                     func_800DA6E8(&enemy->node, amount, 0);

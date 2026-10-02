@@ -2123,13 +2123,13 @@ void func_acropolis_patio_8017E100(Task* task)
 
     if (task->state == 0) {
         for (i = 0; i < 3; i++) {
-            Gp_SpawnEff(0x60087, objCoord, i + 0x03000200, &D_acropolis_patio_80182DDC[i]);
+            Gp_SpawnEff(EFFECT_ACROPOLIS_PATIO_FOUNTAIN_JET, objCoord, i + 0x03000200, &D_acropolis_patio_80182DDC[i]);
         }
         for (i = 3; i < 7; i++) {
-            Gp_SpawnEff(0x60087, objCoord, i + 0x02000000, &D_acropolis_patio_80182DDC[i]);
+            Gp_SpawnEff(EFFECT_ACROPOLIS_PATIO_FOUNTAIN_JET, objCoord, i + 0x02000000, &D_acropolis_patio_80182DDC[i]);
         }
         for (i = 7; i < 0xE; i++) {
-            Gp_SpawnEff(0x60087, objCoord, i + 0x100, &D_acropolis_patio_80182DDC[i]);
+            Gp_SpawnEff(EFFECT_ACROPOLIS_PATIO_FOUNTAIN_JET, objCoord, i + 0x100, &D_acropolis_patio_80182DDC[i]);
         }
         task->state++;
         for (i = 0; i < 3; i++) {
@@ -2143,7 +2143,7 @@ void func_acropolis_patio_8017E100(Task* task)
                 work->move.vx  += D_acropolis_patio_80182DDC[i].vx;
                 work->move.vy  += D_acropolis_patio_80182DDC[i].vy;
                 work->move.vz  += D_acropolis_patio_80182DDC[i].vz;
-                Gp_SpawnEff(0x6008F, objCoord, i, &work->move);
+                Gp_SpawnEff(EFFECT_ACROPOLIS_PATIO_FOUNTAIN_MIST, objCoord, i, &work->move);
             }
         }
     }

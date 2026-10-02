@@ -167,7 +167,7 @@ body:
         sc->rot.vx = 0;
         sc->rot.vz = 0x258;
 #endif
-        Gp_SpawnEff(0x6009C, &work->field_ECC[1]->task->extra.tmd->coords[1], 0, &sc->rot);
+        Gp_SpawnEff(EFFECT_CRITICAL_HIT, &work->field_ECC[1]->task->extra.tmd->coords[1], 0, &sc->rot);
         sc->damage   *= 4;
         work->field_0 = 0xE;
 #if GLUTTON_ROOM == GLUTTON_INCINERATOR
@@ -207,7 +207,7 @@ stored:
         sc->rot.vx = 0;
         sc->rot.vz = 0x258;
 #endif
-        Gp_SpawnEff(0x6009C, &work->field_ECC[1]->task->extra.tmd->coords[1], 0, &sc->rot);
+        Gp_SpawnEff(EFFECT_CRITICAL_HIT, &work->field_ECC[1]->task->extra.tmd->coords[1], 0, &sc->rot);
         work->field_0 = 0xE;
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
         work->field_F0C = 0x3C;

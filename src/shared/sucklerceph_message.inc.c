@@ -32,7 +32,7 @@ s32 sucklercephMessage(Task* arg0, s32 arg1, ActorCommand* request)
     if (state == 1) {
         mode = request->command;
         if (mode == 4) {
-            Gp_SpawnEff(0x60080, coord, 0x400, &gSucklercephCollapseFxOffset);
+            Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, coord, 0x400, &gSucklercephCollapseFxOffset);
             work->field_2B8 = 1;
             sucklercephTickAnim(arg0);
             work->field_2BC = 0;
@@ -40,7 +40,7 @@ s32 sucklercephMessage(Task* arg0, s32 arg1, ActorCommand* request)
             return 0;
         }
         if (mode == 5) {
-            Gp_SpawnEff(0x60080, coord, 0x400, &gSucklercephCollapseFxOffset);
+            Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, coord, 0x400, &gSucklercephCollapseFxOffset);
             work->field_2B8 = 1;
             sucklercephTickAnim(arg0);
             work->field_2BC = 0;

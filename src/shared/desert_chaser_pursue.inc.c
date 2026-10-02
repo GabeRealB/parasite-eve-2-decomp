@@ -312,7 +312,7 @@ void desertChaserPursue(Task* arg0)
                 break;
         }
         if ((gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) && (spawnEffect == 1)) {
-            Gp_SpawnEff(0x60054, &arg0->extra.tmd->coords[effectJoint], effectFlags | 0x80000000, &DESERT_CHASER_FX_OFFSET);
+            Gp_SpawnEff(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[effectJoint], effectFlags | 0x80000000, &DESERT_CHASER_FX_OFFSET);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorFacingScratch);

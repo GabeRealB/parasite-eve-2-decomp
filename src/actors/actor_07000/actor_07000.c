@@ -1150,7 +1150,7 @@ void sucklercephReactionDispatch(Task* arg0)
             frames          = work->field_2BC + 1;
             work->field_2BC = frames;
             if ((s16)frames >= 0x10) {
-                Gp_SpawnEff(0x60080, arg0->extra.tmd->coords, 0x400, &gSucklercephCollapseFxOffset);
+                Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, arg0->extra.tmd->coords, 0x400, &gSucklercephCollapseFxOffset);
                 work->field_2BC = 0;
             }
             goto suppress_rebind;
@@ -1162,7 +1162,7 @@ void sucklercephReactionDispatch(Task* arg0)
             frames          = work->field_2BC + 1;
             work->field_2BC = frames;
             if ((s16)frames >= 0x10) {
-                Gp_SpawnEff(0x60080, arg0->extra.tmd->coords, 0x400, &gSucklercephCollapseFxOffset);
+                Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, arg0->extra.tmd->coords, 0x400, &gSucklercephCollapseFxOffset);
                 work->field_2BC = 0;
                 frames          = work->field_2D4 + 1;
                 work->field_2D4 = frames;
@@ -1226,8 +1226,8 @@ void sucklercephKill(Task* arg0, u8 arg1)
         }
         work->field_1D2 |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         work->field_20A |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        Gp_SpawnEff(0x6009C, arg0->extra.tmd->coords, 1, NULL);
-        Gp_SpawnEff(0x60030, arg0->extra.tmd->coords, 0x300, &Actor07000_D08068);
+        Gp_SpawnEff(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords, 1, NULL);
+        Gp_SpawnEff(EFFECT_030, arg0->extra.tmd->coords, 0x300, &Actor07000_D08068);
         Gp_SpawnScript18(&Actor07000_D06938, Actor07000_D06944);
         work->field_2DA = 1;
     } else {
@@ -1492,7 +1492,7 @@ default_body:
         block_21:
             work->field_390 += 1;
             if ((u32)work->field_390 >= 0x10U) {
-                Gp_SpawnEff(0x60080, arg1->extra.tmd->coords, 0x400, &Actor07000_D0D7B8);
+                Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, arg1->extra.tmd->coords, 0x400, &Actor07000_D0D7B8);
                 work->field_390 = 0;
             }
             break;
@@ -1806,7 +1806,7 @@ static void Actor07000_Fn03E08(Task* arg0)
                     scratch->delta.vz.word = dz;
                     damage                 = Gp_ComputeDamage(work->field_24C[i].key.value, SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
                     if (Gp_RollEnemyChance(arg0->spawnArg2.pointer, work->field_24C[i].key.value, 0) != 0) {
-                        Gp_SpawnEff(0x6009C, arg0->extra.tmd->coords, 0, 0);
+                        Gp_SpawnEff(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords, 0, 0);
                         damage *= 4;
                     }
                     func_800E2C78(enemy, (s32)work->field_24C[i].key.value, (s32)damage, 0);
@@ -2118,28 +2118,28 @@ static void Actor07000_Fn049C0(Task* arg0)
         case 0:
         case 1:
             D_800626EC[5].data.model = &_gActor07000SlouchPoison;
-            effect                   = Gp_SpawnEff(0x80005, arg0->extra.tmd->coords + 1, 0, NULL);
+            effect                   = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK8, arg0->extra.tmd->coords + 1, 0, NULL);
             if (effect != NULL) {
                 Actor07000_Fn066FC(effect->task, arg0);
             }
             break;
         case 2:
             D_800626EC[5].data.model = &_gActor07000SlouchBurstArm;
-            effect                   = Gp_SpawnEff(0x80005, arg0->extra.tmd->coords + 5, 0, NULL);
+            effect                   = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK8, arg0->extra.tmd->coords + 5, 0, NULL);
             if (effect != NULL) {
                 Actor07000_Fn066FC(effect->task, arg0);
             }
             break;
         case 3:
             D_800626EC[5].data.model = &_gActor07000SlouchBurstLeg;
-            effect                   = Gp_SpawnEff(0x80005, arg0->extra.tmd->coords + 4, 0, NULL);
+            effect                   = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK8, arg0->extra.tmd->coords + 4, 0, NULL);
             if (effect != NULL) {
                 Actor07000_Fn066FC(effect->task, arg0);
             }
             break;
     }
-    Gp_SpawnEff(0x60030, arg0->extra.tmd->coords + 1, 0x300, NULL);
-    Gp_SpawnEff(0x60030, arg0->extra.tmd->coords + 4, 0x300, NULL);
+    Gp_SpawnEff(EFFECT_030, arg0->extra.tmd->coords + 1, 0x300, NULL);
+    Gp_SpawnEff(EFFECT_030, arg0->extra.tmd->coords + 4, 0x300, NULL);
 }
 
 /// Spawn handler of a specimen projectile, entry 0 of `Actor07000_D000E0`.
@@ -2172,7 +2172,7 @@ static void Actor07000_Fn04B18(Task* arg0)
     rec                     = &work->rec;
     vec                     = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
     arg0->work              = work;
-    eff                     = Gp_SpawnEff(0x60081, coord, 0, NULL);
+    eff                     = Gp_SpawnEff(EFFECT_PROJECTILE_GLOW_SPRITE, coord, 0, NULL);
     arg0->spawnArg2.pointer = eff->task;
     taskReparent(arg0, eff->task);
     angle           = arg0->spawnArg1.value;
@@ -2637,13 +2637,13 @@ s32 Actor07000_Fn05AB8(Task* arg0, s32 arg1, ActorCommand* request)
     mode  = word & 0xFFFF;
     coord = obj->coords;
     if (mode == 4) {
-        Gp_SpawnEff(0x60080, coord, 0x400, &Actor07000_D0D7B8);
+        Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, coord, 0x400, &Actor07000_D0D7B8);
         work->field_390 = 0;
         work->field_36A = 4;
         return 0;
     }
     if (mode == 5) {
-        Gp_SpawnEff(0x60080, coord, 0x400, &Actor07000_D0D7B8);
+        Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, coord, 0x400, &Actor07000_D0D7B8);
         work->field_390 = 0;
         work->field_392 = 0;
         work->field_36A = 4;
@@ -2792,7 +2792,7 @@ static void Actor07000_Fn05FF8(Task* arg0)
     work->scale.vz        = 0x1000;
     work->field_36E       = 0;
     if (work->field_36A != 5) {
-        Gp_SpawnEff(0x600A5, arg0->extra.tmd->coords, 2, NULL);
+        Gp_SpawnEff(EFFECT_CORPSE_BURN, arg0->extra.tmd->coords, 2, NULL);
     }
 }
 

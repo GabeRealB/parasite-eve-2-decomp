@@ -1725,7 +1725,7 @@ static inline void _actor03700SpawnRemains(Task* task)
     } else {
         D_80067704[0] = &_gActor03700BatBurstWingLeft;
     }
-    eff = Gp_SpawnEff(0x40007, &task->extra.tmd->coords[4], 0x80, NULL);
+    eff = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK4, &task->extra.tmd->coords[4], 0x80, NULL);
     if (eff == NULL) {
         return;
     }
@@ -1814,11 +1814,11 @@ static void Actor03700_Fn020D4(Enemy* enemy, Task* task)
                             _actor03700SpawnRemains(task);
                             break;
                         case 1:
-                            Gp_SpawnEff(0x60080, obj, 0x10280, NULL);
+                            Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, obj, 0x10280, NULL);
                             break;
                         case 2:
-                            Gp_SpawnEff(0x60055, obj, 0x10013380, NULL);
-                            Gp_SpawnEff(0x60055, obj, 0x10111300, NULL);
+                            Gp_SpawnEff(EFFECT_HIT_PUFF, obj, 0x10013380, NULL);
+                            Gp_SpawnEff(EFFECT_HIT_PUFF, obj, 0x10111300, NULL);
                             break;
                     }
                     work->field_250 = 2;

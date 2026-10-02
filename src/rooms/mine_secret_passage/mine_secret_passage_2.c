@@ -647,7 +647,7 @@ WorldCollisionSurfaceProperties* D_mine_secret_passage_80183420[8] = {
 RoomFadeStorage D_mine_secret_passage_80183440;
 
 /// Publishes this passage's four emitter ids on the task's first tick - the
-/// `D_8011573C` / `D_80115744` / `D_80115728` / `D_80115720` slots take
+/// `gRoomEffectOrangeBurstId` / `gRoomEffectHaloId` / `gRoomEffectMoteId` / `gRoomEffectSparkEmitterId` slots take
 /// 0x60240-0x60243 in that order, the same slot order every other room uses -
 /// then draws the emitters the current camera view shows: a run of placements
 /// out of one of the passage's arrays, each drawn as a
@@ -657,11 +657,11 @@ RoomFadeStorage D_mine_secret_passage_80183440;
 void func_mine_secret_passage_8017D9D4(Task* arg0)
 {
     if (arg0->state == 0) {
-        D_80115728  = 0x60242;
-        D_80115744  = 0x60241;
-        D_8011573C  = 0x60240;
-        D_80115720  = 0x60243;
-        arg0->state = 1;
+        gRoomEffectMoteId         = EFFECT_MINE_SECRET_PASSAGE_MOTE;
+        gRoomEffectHaloId         = EFFECT_MINE_SECRET_PASSAGE_HALO;
+        gRoomEffectOrangeBurstId  = EFFECT_MINE_SECRET_PASSAGE_ORANGE_BURST;
+        gRoomEffectSparkEmitterId = EFFECT_MINE_SECRET_PASSAGE_SPARK_EMITTER;
+        arg0->state               = 1;
     }
 
     switch (Gp_GetViewIndex() & 0xFF) {

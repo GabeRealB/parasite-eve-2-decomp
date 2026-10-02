@@ -24,7 +24,7 @@ void golemPawnRookSilenceScreamState(Task* arg0)
                 scratch->vx     = 0;
                 scratch->vy     = 0;
                 scratch->vz     = 0;
-                work->field_690 = Gp_SpawnEff(D_80115758, &arg0->extra.tmd->coords[4], 0x96, scratch);
+                work->field_690 = Gp_SpawnEff(gRoomEffectFlashId, &arg0->extra.tmd->coords[4], 0x96, scratch);
                 sound           = gGolemPawnRookScreamCue | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 SndEvt_EnqueueType6(sound, (s8)worldCoordGetOriginAudioPan(self), (s8)worldCoordGetOriginAudioDepth(self));
             }
@@ -79,7 +79,7 @@ void golemPawnRookSilenceScreamState(Task* arg0)
                 random          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 scratch->vy     = -((random >> 16) & 0x1FF);
                 gRandomLcgState = random;
-                Gp_SpawnEff(0x600E0, &arg0->extra.tmd->coords[3], 0x100, scratch);
+                Gp_SpawnEff(EFFECT_FLASH_BURST, &arg0->extra.tmd->coords[3], 0x100, scratch);
             }
             if (--work->field_6AE <= 0) {
                 work->field_6A6 = 2;

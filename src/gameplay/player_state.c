@@ -681,7 +681,7 @@ s32 Gp_ApplyHpDamage(s16 arg0)
             slot   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             coords = slot->extra.tmd->coords;
             p->hp  = 1;
-            Gp_SpawnEff(0x6009C, coords + 1, 5, 0);
+            Gp_SpawnEff(EFFECT_CRITICAL_HIT, coords + 1, 5, 0);
             return 0;
         }
     }
@@ -807,7 +807,7 @@ void func_8010AC54(Task* arg0)
             inner->stateTimer = 5;
         }
         Gp_SpawnEff(
-            0x600E0, &arg0->extra.tmd->coords[4 - inner->actionValue], 0x320, 0);
+            EFFECT_FLASH_BURST, &arg0->extra.tmd->coords[4 - inner->actionValue], 0x320, 0);
     } else {
         inner->stateTimer--;
     }
@@ -1270,7 +1270,7 @@ Task* Gp_SetupAllyWeapon(void)
             companion->activity.combat.attacksRemaining         = D_80167230[save->state.companionVariant];
             if ((u8)save->state.companionVariant == 4 && actor->weaponEffectTask == NULL) {
                 eff = Gp_SpawnEff(
-                    0x80060180, actor->equipmentTasks[1]->extra.tmd->coords, (s32)(val1), 0);
+                    (EFFECT_COMPANION_WEAPON_FLARE | EFFECT_SPAWN_UNLIMITED), actor->equipmentTasks[1]->extra.tmd->coords, (s32)(val1), 0);
                 if (eff != NULL) {
                     actor->weaponEffectTask = eff->task;
                     func_80106350(work, val1, 0);

@@ -179,7 +179,7 @@ hit:
             sc->rot.vy = 0;
             sc->rot.vx = 0;
             sc->rot.vz = 0x3E8;
-            Gp_SpawnEff(0x6009C, work->field_ECC[3]->task->extra.tmd->coords, 0, &sc->rot);
+            Gp_SpawnEff(EFFECT_CRITICAL_HIT, work->field_ECC[3]->task->extra.tmd->coords, 0, &sc->rot);
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
             if (work->field_0 != 9 && work->field_F1C == 0) {
 #else

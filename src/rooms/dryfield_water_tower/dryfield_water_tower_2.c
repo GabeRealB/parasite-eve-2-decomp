@@ -1892,7 +1892,7 @@ static s32 func_dryfield_water_tower_8017DFAC(Task* arg0)
                 pos.vx   = -0xC8;
                 i        = 0;
                 do {
-                    Gp_SpawnEff(0x60054, effCoord, 0x80002700, &pos);
+                    Gp_SpawnEff(EFFECT_DUST_PUFF, effCoord, 0x80002700, &pos);
                     i++;
                     pos.vx += 0x190;
                 } while ((u32)(i & 0xFFFF) < 2U);
@@ -2088,7 +2088,7 @@ static s32 func_dryfield_water_tower_8017E428(Task* arg0)
             pos.vy = 0;
             pos.vz = 0;
             pos.vx = D_dryfield_water_tower_80181C60[arg0->killCountdown];
-            Gp_SpawnEff(0x60054, effCoord, 0x80002300, &pos);
+            Gp_SpawnEff(EFFECT_DUST_PUFF, effCoord, 0x80002300, &pos);
             break;
 
         case 1:
@@ -2160,7 +2160,7 @@ static s32 func_dryfield_water_tower_8017E5B0(Task* arg0)
             pos.vy = 0;
             pos.vz = 0;
             pos.vx = D_dryfield_water_tower_80181C60[arg0->killCountdown];
-            Gp_SpawnEff(0x60054, effCoord, 0x80002300, &pos);
+            Gp_SpawnEff(EFFECT_DUST_PUFF, effCoord, 0x80002300, &pos);
             break;
 
         case 1:

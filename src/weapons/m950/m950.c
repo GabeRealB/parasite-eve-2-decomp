@@ -62,7 +62,7 @@ static void func_m950_8011D1DC(Task* arg0)
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
                 Gp_ConsumeSlotQty(0x82, 1);
                 Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20030004, 1);
-                Gp_SpawnEff(0x6002B, coord, 3, NULL);
+                Gp_SpawnEff(EFFECT_HANDGUN_MUZZLE_FLASH, coord, 3, NULL);
                 Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 2);
             }
             break;

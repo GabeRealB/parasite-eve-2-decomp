@@ -131,14 +131,14 @@ static inline RoomHaloShade* RoomFx_GetHaloShades(void)
 void func_shelter_b2_north_maintenance_walkway_8017DDE8(Task* arg0)
 {
     if (arg0->state == 0) {
-        D_80115728  = 0x6024B;
-        D_80115744  = 0x60257;
-        D_8011573C  = 0x60262;
-        D_80115720  = 0x6026E;
-        D_80115758  = 0x601D2;
-        D_8011572C  = 0x601EE;
-        D_80115750  = 0x6020A;
-        arg0->state = 1;
+        gRoomEffectMoteId         = EFFECT_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_MOTE;
+        gRoomEffectHaloId         = EFFECT_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_HALO;
+        gRoomEffectOrangeBurstId  = EFFECT_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_ORANGE_BURST;
+        gRoomEffectSparkEmitterId = EFFECT_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_SPARK_EMITTER;
+        gRoomEffectFlashId        = EFFECT_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_FLASH;
+        gRoomEffectTwinTrailId    = EFFECT_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_TWIN_TRAIL;
+        gRoomEffectSparkBurstId   = EFFECT_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_SPARK_BURST;
+        arg0->state               = 1;
     }
 
     switch (Gp_GetViewIndex() & 0xFF) {

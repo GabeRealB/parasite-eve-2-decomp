@@ -722,12 +722,12 @@ void func_neo_ark_bridge_8017E954(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            D_80115758  = 0x601E1;
-            D_8011572C  = 0x601FD;
-            D_80115750  = 0x60219;
-            D_8011574C  = 0x6017A;
-            D_80115738  = 0x6017B;
-            arg0->state = 1;
+            gRoomEffectFlashId       = EFFECT_NEO_ARK_BRIDGE_FLASH;
+            gRoomEffectTwinTrailId   = EFFECT_NEO_ARK_BRIDGE_TWIN_TRAIL;
+            gRoomEffectSparkBurstId  = EFFECT_NEO_ARK_BRIDGE_SPARK_BURST;
+            gRoomEffectWaterRippleId = EFFECT_NEO_ARK_BRIDGE_WATER_RIPPLE;
+            gRoomEffectWaterSprayId  = EFFECT_NEO_ARK_BRIDGE_WATER_SPRAY;
+            arg0->state              = 1;
             /* fallthrough */
         case 1:
             view = Gp_GetViewIndex() & 0xFF;
@@ -739,7 +739,7 @@ void func_neo_ark_bridge_8017E954(Task* arg0)
                         if (((rnd >> 16) & 3) == 0) {
                             rndSpawn        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                             gRandomLcgState = rndSpawn;
-                            Gp_SpawnEff(0x60070, 0, ((rndSpawn >> 16) & 0x11FF) | 0x22200,
+                            Gp_SpawnEff(EFFECT_SMOKE_PUFF, 0, ((rndSpawn >> 16) & 0x11FF) | 0x22200,
                                         &D_neo_ark_bridge_80181F60);
                         }
                         rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -747,7 +747,7 @@ void func_neo_ark_bridge_8017E954(Task* arg0)
                         if (((rnd >> 16) & 3) == 0) {
                             rndSpawn2       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                             gRandomLcgState = rndSpawn2;
-                            Gp_SpawnEff(0x60070, 0, ((rndSpawn2 >> 16) & 0x11FF) | 0x22200,
+                            Gp_SpawnEff(EFFECT_SMOKE_PUFF, 0, ((rndSpawn2 >> 16) & 0x11FF) | 0x22200,
                                         &D_neo_ark_bridge_80181F68);
                         }
                     }

@@ -1196,7 +1196,7 @@ void func_actor_450200_80131E24(Task* task)
             countdown           = (u16)task->killCountdown - 1;
             task->killCountdown = countdown;
             if ((countdown & 1) == 0) {
-                Gp_SpawnEff(0x60080, coord, 0x80000300, NULL);
+                Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, coord, 0x80000300, NULL);
             }
             return;
         case 2:
@@ -1208,11 +1208,11 @@ void func_actor_450200_80131E24(Task* task)
             task->killCountdown = countdown;
             if (countdown & 1) {
                 if (countdown > 0) {
-                    Gp_SpawnEff(0x60080, coord, countdown * 2 + 0x80000080,
+                    Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, coord, countdown * 2 + 0x80000080,
                                 &D_actor_450200_80138868);
                 }
             } else if (countdown >= -0x1F && (countdown & 7) == 0) {
-                Gp_SpawnEff(0x60070, coord, 0xF0010100, &D_actor_450200_80138868);
+                Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0xF0010100, &D_actor_450200_80138868);
             }
             return;
     }

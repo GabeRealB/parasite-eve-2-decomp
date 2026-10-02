@@ -619,14 +619,14 @@ static void Actor02100_Fn004C4(Task* arg0)
                 if (Gp_RollEnemyChance(arg0->spawnArg2.pointer,
                                        work->field_60.key.value, 0) != 0) {
                     damage *= 4;
-                    Gp_SpawnEff(0x6009C, coord, 0, 0);
+                    Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, 0);
                 }
                 enemy->hp -= damage;
                 func_800DA6E8(&enemy->node, damage, 0);
                 work->field_17E = 1;
                 if (enemy->hp <= 0) {
-                    Gp_SpawnEff(0x6005C, coord, 0x10002400, 0);
-                    Gp_SpawnEff(0x60070, coord, 0x32FF1400, 0);
+                    Gp_SpawnEff(EFFECT_EXPLOSION, coord, 0x10002400, 0);
+                    Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0x32FF1400, 0);
                     work->field_172       = 4;
                     work->field_174       = 0;
                     work->field_78.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -643,7 +643,7 @@ static void Actor02100_Fn004C4(Task* arg0)
                         scratch->shortVec.vy = 0;
                         scratch->shortVec.vz = 0xC8;
                         if ((Gp_GetIdParam0(work->field_60.key.value) & 0xFFFF) == 7) {
-                            Gp_SpawnEff(0x6007F, coord,
+                            Gp_SpawnEff(EFFECT_HIT_BLAST, coord,
                                         work->field_100.spawnArgLo | (work->field_100.spawnArgHi << 16),
                                         &scratch->shortVec);
                         }
@@ -701,7 +701,7 @@ static void Actor02100_Fn004C4(Task* arg0)
             gte_rtv0();
             gte_stsv(&scratch->shortVec);
             scratch->shortVec.vz += 0x12C;
-            Gp_SpawnEff(0x6003B, coord, 0, &scratch->shortVec);
+            Gp_SpawnEff(EFFECT_IMPACT_SPARK, coord, 0, &scratch->shortVec);
         }
     }
 
@@ -1557,8 +1557,8 @@ static void Actor02100_Fn01FF0(Task* arg0)
             random            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             packed2           = ((random >> 16) & 0x1FF) | 0x200;
             gRandomLcgState   = random;
-            Gp_SpawnEff(0x60034, coord, packed2, &root->shortVec);
-            Gp_SpawnEff(0x60072, coord, packed2, &root->shortVec);
+            Gp_SpawnEff(EFFECT_MUZZLE_FLARE, coord, packed2, &root->shortVec);
+            Gp_SpawnEff(EFFECT_MUZZLE_FLARE_ADDITIVE, coord, packed2, &root->shortVec);
             sound2 = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4015000B;
             pan2   = (s8)worldCoordGetOriginAudioPan(coord);
             SndEvt_EnqueueType6(sound2, pan2, (s8)worldCoordGetOriginAudioDepth(coord));

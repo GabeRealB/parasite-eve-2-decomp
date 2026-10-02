@@ -82,16 +82,16 @@ SVECTOR D_shelter_b2_breeding_room_80180450[32] = {
     { 2650, -2350, 620, 0 },
 };
 
-/// Room light task. Its first frame sets the effect ids in `D_80115734`,
-/// `D_80115730` and `D_80115754`; every frame it draws the glows of the lights
+/// Room light task. Its first frame sets the effect ids in `gRoomEffectGlowDiscId`,
+/// `gRoomEffectFlyingSparkId` and `gRoomEffectOrangeBurst2Id`; every frame it draws the glows of the lights
 /// the current camera view shows, from the room's light position tables.
 void func_shelter_b2_breeding_room_8017D898(Task* arg0)
 {
     if (arg0->state == 0) {
-        D_80115734  = 0x6027C;
-        D_80115730  = 0x6027D;
-        D_80115754  = 0x6027E;
-        arg0->state = 1;
+        gRoomEffectGlowDiscId     = EFFECT_SHELTER_B2_BREEDING_ROOM_GLOW_DISC;
+        gRoomEffectFlyingSparkId  = EFFECT_SHELTER_B2_BREEDING_ROOM_FLYING_SPARK;
+        gRoomEffectOrangeBurst2Id = EFFECT_SHELTER_B2_BREEDING_ROOM_ORANGE_BURST_2;
+        arg0->state               = 1;
     }
 
     switch (Gp_GetViewIndex() & 0xFF) {

@@ -3244,12 +3244,12 @@ void func_acropolis_security_room_801805A4(Task* task)
                 Gp_LoadImages(D_acropolis_security_room_80183918);
 
                 for (i = 0; i < 4; i++) {
-                    Gp_SpawnEff(0x60049, coord, i, NULL);
+                    Gp_SpawnEff(EFFECT_ACROPOLIS_SECURITY_MONITOR_FEED, coord, i, NULL);
                 }
             } else if (((Gp_GetViewIndex() & 0xFF) != 8) && ((Gp_GetViewIndex() & 0xFF) != 0x10)) {
                 for (i = 0; i < 4; i++) {
                     if ((work->index >> i) & 1) {
-                        Gp_SpawnEff(0x600A0, coord, (s32)(D_acropolis_security_room_801839B8[i]),
+                        Gp_SpawnEff(EFFECT_ACROPOLIS_SECURITY_MONITOR_GLOW, coord, (s32)(D_acropolis_security_room_801839B8[i]),
                                     &D_acropolis_security_room_80183998[i]);
                     }
                 }

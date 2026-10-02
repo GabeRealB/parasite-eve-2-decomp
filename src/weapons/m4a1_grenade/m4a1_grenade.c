@@ -125,7 +125,7 @@ static void func_m4a1_grenade_8011D1EC(Task* arg0)
                 Gp_ConsumeSlotQty(0x9A, 0x101);
                 Gp_PlayObjSfx(arg0->extra.tmd->coords,
                               ((sfx - 0xA) << 24) | 0x201B0006, 1);
-                Gp_SpawnEff(0x6006C,
+                Gp_SpawnEff(EFFECT_GRENADE_MUZZLE_FLASH,
                             actor->equipmentTasks[1]->extra.tmd->coords, 0x1B,
                             NULL);
                 func_80104490(arg0, 0, 0, sfx | 0x1B00);
@@ -147,7 +147,7 @@ static void func_m4a1_grenade_8011D1EC(Task* arg0)
                     }
                     Gp_PlayObjSfx(arg0->extra.tmd->coords,
                                   ((sfx - 0xA) << 24) | 0x201B0004, 1);
-                    Gp_SpawnEff(0x6006B,
+                    Gp_SpawnEff(EFFECT_RIFLE_MUZZLE_FLASH,
                                 actor->equipmentTasks[1]->extra.tmd->coords,
                                 0x1B, NULL);
                     Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 2);
@@ -315,7 +315,7 @@ static void func_m4a1_grenade_8011D994(Task* arg0)
             blk->sfx = 0xA;
         }
         arg0->state = 2;
-        Gp_SpawnEff(0x60071, coord, blk->sfx, NULL);
+        Gp_SpawnEff(EFFECT_GRENADE_EXPLOSION, coord, blk->sfx, NULL);
         sfxbase = gPlayerStatus.weapon << 16;
         sfxarg  = ((blk->sfx - 0xA) << 24) | 0x20000007;
         Gp_PlayObjSfx(coord, sfxbase | sfxarg, 1);
@@ -373,7 +373,7 @@ move:
         work->field_8C = work->field_8C + 1;
     }
     if (work->field_90 % work->field_8C == 0) {
-        Gp_SpawnEff(0x60070, coord, 0, NULL);
+        Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0, NULL);
     }
     Gp_ClearRec18Occupied(work->rec0);
     Gp_ClearRec18Occupied(work->rec1);

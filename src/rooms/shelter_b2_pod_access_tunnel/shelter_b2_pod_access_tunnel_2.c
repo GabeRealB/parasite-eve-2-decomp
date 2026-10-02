@@ -585,14 +585,14 @@ WorldCollisionOccluder D_shelter_b2_pod_access_tunnel_80185664[1] = {
 void func_shelter_b2_pod_access_tunnel_8017DC6C(Task* arg0)
 {
     if (arg0->state == 0) {
-        D_80115728  = 0x6024C;
-        D_80115744  = 0x60258;
-        D_8011573C  = 0x60263;
-        D_80115720  = 0x6026F;
-        D_80115758  = 0x601D5;
-        D_8011572C  = 0x601F1;
-        D_80115750  = 0x6020D;
-        arg0->state = 1;
+        gRoomEffectMoteId         = EFFECT_SHELTER_B2_POD_ACCESS_TUNNEL_MOTE;
+        gRoomEffectHaloId         = EFFECT_SHELTER_B2_POD_ACCESS_TUNNEL_HALO;
+        gRoomEffectOrangeBurstId  = EFFECT_SHELTER_B2_POD_ACCESS_TUNNEL_ORANGE_BURST;
+        gRoomEffectSparkEmitterId = EFFECT_SHELTER_B2_POD_ACCESS_TUNNEL_SPARK_EMITTER;
+        gRoomEffectFlashId        = EFFECT_SHELTER_B2_POD_ACCESS_TUNNEL_FLASH;
+        gRoomEffectTwinTrailId    = EFFECT_SHELTER_B2_POD_ACCESS_TUNNEL_TWIN_TRAIL;
+        gRoomEffectSparkBurstId   = EFFECT_SHELTER_B2_POD_ACCESS_TUNNEL_SPARK_BURST;
+        arg0->state               = 1;
     }
 
     switch (Gp_GetViewIndex() & 0xFF) {

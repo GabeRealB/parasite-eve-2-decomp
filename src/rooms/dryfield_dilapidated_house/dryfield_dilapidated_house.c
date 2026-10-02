@@ -4196,7 +4196,7 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
             work->field_20  = 0;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             work->field_28  = (gRandomLcgState >> 16) & 0xFFF;
-            Gp_SpawnEff(0x60274, coord, 0, NULL);
+            Gp_SpawnEff(EFFECT_DRYFIELD_DILAPIDATED_HOUSE_FLAME_CONE, coord, 0, NULL);
             rgb[0] = 0xFF;
             rgb[1] = 0x7F;
             rgb[2] = 0x3F;
@@ -4218,7 +4218,7 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
             glowDrawFlameStar(coord, work->field_26, (s16)(u16)work->field_24 >> 1);
             work->field_26 = 0x380;
             do {
-                eff = Gp_SpawnEff(0x60275, coord, i, NULL);
+                eff = Gp_SpawnEff(EFFECT_DILAPIDATED_HOUSE_FLAME_RING, coord, i, NULL);
                 if (eff != NULL) {
                     taskReparent(task, eff->task);
                 }

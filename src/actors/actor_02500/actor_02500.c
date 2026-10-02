@@ -787,12 +787,12 @@ static void Actor02500_Fn00494(Task* actor)
                     param0               = Gp_GetIdParam0(work->field_1C4[i].key.value);
                     if ((param0 & 0xFFFF) == 5) {
                         damage *= 2;
-                        Gp_SpawnEff(0x6009C, coord, 2, NULL);
+                        Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 2, NULL);
                     }
                     if (Gp_RollEnemyChance(ctx, work->field_1C4[i].key.value, 0) != 0) {
                         damage *= 4;
                         if ((param0 & 0xFFFF) != 5) {
-                            Gp_SpawnEff(0x6009C, coord, 0, NULL);
+                            Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, NULL);
                         }
                     }
                     func_800E2C78(ctx, work->field_1C4[i].key.value, damage, 0);
@@ -1224,7 +1224,7 @@ static void Actor02500_Fn012F0(Task* actor)
                 scratch->rot.vx = (pair->x * dist) >> 0xC;
                 scratch->rot.vy = 0;
                 scratch->rot.vz = (pair->z * dist) >> 0xC;
-                Gp_SpawnEff(0x60054, actor->extra.tmd->coords, 0x80002400, &scratch->rot);
+                Gp_SpawnEff(EFFECT_DUST_PUFF, actor->extra.tmd->coords, 0x80002400, &scratch->rot);
             }
         }
     }
@@ -1322,7 +1322,7 @@ static void Actor02500_Fn0184C(Task* arg0)
     GameLocationKey* sessionKey3;
 
     D_80067704[0] = &_gActor02500ScorpionBurstHead;
-    effect1       = Gp_SpawnEff(0x40007, &arg0->extra.tmd->coords[1], 0x100, NULL);
+    effect1       = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK4, &arg0->extra.tmd->coords[1], 0x100, NULL);
     if (effect1 != NULL) {
         sessionKey1 = &gGameSession->location.loc;
         raw1        = ((Enemy*)arg0->spawnArg2.pointer)->placeKey;
@@ -1343,7 +1343,7 @@ static void Actor02500_Fn0184C(Task* arg0)
         }
     }
     D_80067704[0] = &_gActor02500ScorpionBurstPincer2;
-    effect2       = Gp_SpawnEff(0x40007, &arg0->extra.tmd->coords[1], 0x100, NULL);
+    effect2       = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK4, &arg0->extra.tmd->coords[1], 0x100, NULL);
     if (effect2 != NULL) {
         sessionKey2 = &gGameSession->location.loc;
         raw2        = ((Enemy*)arg0->spawnArg2.pointer)->placeKey;
@@ -1364,7 +1364,7 @@ static void Actor02500_Fn0184C(Task* arg0)
         }
     }
     D_80067704[0] = &_gActor02500ScorpionBurstPincer1;
-    effect3       = Gp_SpawnEff(0x40007, &arg0->extra.tmd->coords[1], 0x100, NULL);
+    effect3       = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK4, &arg0->extra.tmd->coords[1], 0x100, NULL);
     if (effect3 != NULL) {
         sessionKey3 = &gGameSession->location.loc;
         raw3        = ((Enemy*)arg0->spawnArg2.pointer)->placeKey;
@@ -1475,7 +1475,7 @@ dying:
         obj->flags = TMD_OBJECT_SEMI_TRANS;
     }
     if (work->field_32E == 15) {
-        Gp_SpawnEff(0x600A5, coord, 2, NULL);
+        Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 2, NULL);
         Gp_SpawnEnemyFromTable(Actor02500_D05B88, 1, 0, arg0);
     }
     if (work->field_32E >= 0x3C) {
@@ -1871,7 +1871,7 @@ static void Actor02500_Fn025D0(Enemy* ctx, Task* task)
     coord->coord.t[1]          = parentCoord->coord.t[1];
     coord->coord.t[2]          = parentCoord->coord.t[2];
     coord->composeStamp        = GRAPHICS_COORD_DIRTY;
-    effect                     = Gp_SpawnEff(0x80060046, coord, 0x10280, NULL);
+    effect                     = Gp_SpawnEff((EFFECT_GROUND_DECAL | EFFECT_SPAWN_UNLIMITED), coord, 0x10280, NULL);
     work->obj.coord            = coord;
     rec                        = work->rec18;
     work->field_38             = effect;

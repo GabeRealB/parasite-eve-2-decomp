@@ -4416,7 +4416,7 @@ body:
         sc->rot.vy = 0;
         sc->rot.vx = 0;
         sc->rot.vz = 0x320;
-        Gp_SpawnEff(0x6009C, &work->field_ECC[0]->task->extra.tmd->coords[1], 0, &sc->rot);
+        Gp_SpawnEff(EFFECT_CRITICAL_HIT, &work->field_ECC[0]->task->extra.tmd->coords[1], 0, &sc->rot);
         sc->damage   *= 4;
         work->field_0 = 0xE;
     }
@@ -4446,7 +4446,7 @@ stored:
         sc->rot.vy = 0;
         sc->rot.vx = 0;
         sc->rot.vz = 0x320;
-        Gp_SpawnEff(0x6009C, &work->field_ECC[0]->task->extra.tmd->coords[1], 0, &sc->rot);
+        Gp_SpawnEff(EFFECT_CRITICAL_HIT, &work->field_ECC[0]->task->extra.tmd->coords[1], 0, &sc->rot);
         work->field_0   = 0xE;
         work->field_F0A = 0x32;
     }
@@ -5683,7 +5683,7 @@ static void func_actor_403200_8013DC3C(Task* arg0)
             D_actor_403200_8015F920.coord.t[2]  += pos.vz;
             D_actor_403200_8015F920.composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(&D_actor_403200_8015F920);
-            Gp_SpawnEff(0x60199, &D_actor_403200_8015F920, 0x97A0D680, NULL);
+            Gp_SpawnEff(EFFECT_SHELTER_B3_DUMPING_HOLE_DRIFT_SPRITE, &D_actor_403200_8015F920, 0x97A0D680, NULL);
         }
         if ((s16)((s16)(u16)work->field_6 % 10) == 4) {
             spawned           = Gp_SpawnEnemyFromTable(gGluttonEscortTasks, 2, 0, arg0->spawnArg2.pointer);

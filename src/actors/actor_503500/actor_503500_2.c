@@ -1701,7 +1701,7 @@ void func_actor_503500_80132778(Task* task)
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         if (work->field_8.halves.integer < ++task->killCountdown) {
             task->killCountdown = 0;
-            Gp_SpawnEff(0x6018C, coord,
+            Gp_SpawnEff(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord,
                         (work->field_4 & 0xF000) | 0x03800000 | (work->field_0 & 0xFFF), NULL);
         }
     }

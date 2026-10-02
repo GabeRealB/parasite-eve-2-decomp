@@ -1032,18 +1032,18 @@ void func_shelter_b2_operating_room_8017DD60(Task* task)
 }
 
 /// Per-frame view task. On its first frame it stores three ids in the gameplay
-/// words `D_80115734`, `D_80115730` (the effect the halo task spawns) and
-/// `D_80115754`; every frame it
+/// words `gRoomEffectGlowDiscId`, `gRoomEffectFlyingSparkId` (the effect the halo task spawns) and
+/// `gRoomEffectOrangeBurst2Id`; every frame it
 /// draws the glows of the current view (views 2 to 7) at that view's points,
 /// as capsules through `glowDrawCapsule` and discs
 /// through `glowDrawDisc`.
 void func_shelter_b2_operating_room_8017DDB8(Task* arg0)
 {
     if (arg0->state == 0) {
-        D_80115734  = 0x60222;
-        D_80115730  = 0x6022D;
-        D_80115754  = 0x60238;
-        arg0->state = 1;
+        gRoomEffectGlowDiscId     = EFFECT_SHELTER_B2_OPERATING_ROOM_GLOW_DISC;
+        gRoomEffectFlyingSparkId  = EFFECT_SHELTER_B2_OPERATING_ROOM_FLYING_SPARK;
+        gRoomEffectOrangeBurst2Id = EFFECT_SHELTER_B2_OPERATING_ROOM_ORANGE_BURST_2;
+        arg0->state               = 1;
     }
 
     switch (Gp_GetViewIndex() & 0xFF) {

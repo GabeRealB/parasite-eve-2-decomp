@@ -63,7 +63,7 @@ void golemKnightBishopDeadState(Enemy* arg0, Task* arg1)
                 random          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 sc->vy          = -((random >> 16) & 0x1FF);
                 gRandomLcgState = random;
-                Gp_SpawnEff(0x600E0, &arg1->extra.tmd->coords[3], 0x400, sc);
+                Gp_SpawnEff(EFFECT_FLASH_BURST, &arg1->extra.tmd->coords[3], 0x400, sc);
             }
             break;
         case 2:

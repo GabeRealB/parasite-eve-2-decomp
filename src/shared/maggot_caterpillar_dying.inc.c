@@ -82,7 +82,7 @@ void maggotCaterpillarDyingState(Enemy* arg0, Task* arg1)
                         obj->flags = TMD_OBJECT_SEMI_TRANS;
                     }
                     if (work->field_39E == 0xF) {
-                        Gp_SpawnEff(0x600A5, coord, 2, NULL);
+                        Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 2, NULL);
                     }
                     if (work->field_39E >= 0x3C) {
                         work->field_39C = 2;

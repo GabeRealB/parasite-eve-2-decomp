@@ -121,7 +121,7 @@ static void func_m4a1_hammer_8011E710(Task* arg0)
                         actor->actionValue = 0;
                     }
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20190004, 1);
-                    Gp_SpawnEff(0x6006B,
+                    Gp_SpawnEff(EFFECT_RIFLE_MUZZLE_FLASH,
                                 actor->equipmentTasks[1]->extra.tmd->coords,
                                 0x19, NULL);
                     Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 2);

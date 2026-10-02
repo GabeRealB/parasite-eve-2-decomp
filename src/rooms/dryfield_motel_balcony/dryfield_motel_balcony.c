@@ -1186,18 +1186,18 @@ void func_dryfield_motel_balcony_8017DBD0(Task* task)
 }
 
 /// On its first tick, stores the room's seven effect ids into the gameplay
-/// slots `D_80115720`..`D_80115758`, then idles.
+/// slots `gRoomEffectSparkEmitterId`..`gRoomEffectFlashId`, then idles.
 void func_dryfield_motel_balcony_8017DC28(Task* arg0)
 {
     if (arg0->state == 0) {
-        D_80115728  = 0x60282;
-        D_80115744  = 0x60283;
-        D_8011573C  = 0x60284;
-        D_80115720  = 0x60285;
-        D_80115758  = 0x60005;
-        D_8011572C  = 0x60073;
-        D_80115750  = 0x60074;
-        arg0->state = 1;
+        gRoomEffectMoteId         = EFFECT_DRYFIELD_MOTEL_BALCONY_MOTE;
+        gRoomEffectHaloId         = EFFECT_DRYFIELD_MOTEL_BALCONY_HALO;
+        gRoomEffectOrangeBurstId  = EFFECT_DRYFIELD_MOTEL_BALCONY_ORANGE_BURST;
+        gRoomEffectSparkEmitterId = EFFECT_DRYFIELD_MOTEL_BALCONY_SPARK_EMITTER;
+        gRoomEffectFlashId        = EFFECT_DRYFIELD_MOTEL_BALCONY_FLASH;
+        gRoomEffectTwinTrailId    = EFFECT_DRYFIELD_MOTEL_BALCONY_TWIN_TRAIL;
+        gRoomEffectSparkBurstId   = EFFECT_DRYFIELD_MOTEL_BALCONY_SPARK_BURST;
+        arg0->state               = 1;
     }
 }
 

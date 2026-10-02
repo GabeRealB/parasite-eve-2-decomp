@@ -417,10 +417,10 @@ void func_neo_ark_garden_8017EA9C(Task* task)
 
     work = task->spawnArg2.pointer;
     if (task->state == 0) {
-        task->state = 1;
-        D_80115734  = 0x60228;
-        D_80115730  = 0x60233;
-        D_80115754  = 0x6023E;
+        task->state               = 1;
+        gRoomEffectGlowDiscId     = EFFECT_NEO_ARK_GARDEN_GLOW_DISC;
+        gRoomEffectFlyingSparkId  = EFFECT_NEO_ARK_GARDEN_FLYING_SPARK;
+        gRoomEffectOrangeBurst2Id = EFFECT_NEO_ARK_GARDEN_ORANGE_BURST_2;
     }
     if (task->spawnArg1.value != (Gp_GetViewIndex() & 0xFF)) {
         work->soundDelay = 4;
@@ -443,14 +443,14 @@ void func_neo_ark_garden_8017EA9C(Task* task)
                 gRandomLcgState = rnd;
                 if (((rnd >> 16) & 3) == 0) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    Gp_SpawnEff(0x60070, 0, ((gRandomLcgState >> 16) & 0x11FF) | 0x22200,
+                    Gp_SpawnEff(EFFECT_SMOKE_PUFF, 0, ((gRandomLcgState >> 16) & 0x11FF) | 0x22200,
                                 &D_neo_ark_garden_801813E0[0]);
                 }
                 rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 gRandomLcgState = rnd;
                 if (((rnd >> 16) & 3) == 0) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    Gp_SpawnEff(0x60070, 0, ((gRandomLcgState >> 16) & 0x11FF) | 0x22200,
+                    Gp_SpawnEff(EFFECT_SMOKE_PUFF, 0, ((gRandomLcgState >> 16) & 0x11FF) | 0x22200,
                                 &D_neo_ark_garden_801813E0[1]);
                 }
             }
@@ -483,14 +483,14 @@ void func_neo_ark_garden_8017EA9C(Task* task)
                 gRandomLcgState = rnd;
                 if (((rnd >> 16) & 3) == 0) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    Gp_SpawnEff(0x60070, 0, ((gRandomLcgState >> 16) & 0x11FF) | 0x22200,
+                    Gp_SpawnEff(EFFECT_SMOKE_PUFF, 0, ((gRandomLcgState >> 16) & 0x11FF) | 0x22200,
                                 &D_neo_ark_garden_801813E0[0]);
                 }
                 rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 gRandomLcgState = rnd;
                 if (((rnd >> 16) & 3) == 0) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    Gp_SpawnEff(0x60070, 0, ((gRandomLcgState >> 16) & 0x11FF) | 0x22200,
+                    Gp_SpawnEff(EFFECT_SMOKE_PUFF, 0, ((gRandomLcgState >> 16) & 0x11FF) | 0x22200,
                                 &D_neo_ark_garden_801813E0[1]);
                 }
             }

@@ -1563,7 +1563,7 @@ static void Actor00300_Fn00E54(Task* arg0)
                     work->field_690 >>= 1;
                 } else if (Gp_RollEnemyChance(enemy, work->rec4F0[i].key.value, 0) != 0) {
                     work->field_690 *= 4;
-                    Gp_SpawnEff(0x6009C, &arg0->extra.tmd->coords[3], 0, NULL);
+                    Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
                 }
                 func_800E2C78(enemy, work->rec4F0[i].key.value, work->field_690, 0);
                 func_800DA6E8(&enemy->node, work->field_690, 0);
@@ -1650,7 +1650,7 @@ static void Actor00300_Fn00E54(Task* arg0)
         scratch->from.vx = -0x1F4;
         scratch->from.vy = 0x1F4;
         scratch->from.vz = 0;
-        Gp_SpawnEff(D_80115744, work->field_43C->extra.tmd->coords, 0x20001, &scratch->from);
+        Gp_SpawnEff(gRoomEffectHaloId, work->field_43C->extra.tmd->coords, 0x20001, &scratch->from);
     }
     work->field_6A2 = 0;
     if ((work->rec4A0[1].key.value & 0xFFFF0000) == 0x10000) {
@@ -1995,7 +1995,7 @@ static void Actor00300_Fn01F9C(Task* arg0)
                     sp18.vx = (s16)((u32)(rcos(effectAngle1) * 5) >> 5);
                     sp18.vz = (s16)((u32)(rsin(effectAngle1) * 5) >> 5);
                     sp10    = sp18;
-                    Gp_SpawnEff(D_80115728, coord, 0x20101200, &sp10);
+                    Gp_SpawnEff(gRoomEffectMoteId, coord, 0x20101200, &sp10);
                 }
             }
             if ((s16)work->field_672 == 0x33) {
@@ -2007,7 +2007,7 @@ static void Actor00300_Fn01F9C(Task* arg0)
                 scratch->rot.vx = 0;
                 scratch->rot.vz = 0x320;
                 effect =
-                    Gp_SpawnEff(D_80115744, coord,
+                    Gp_SpawnEff(gRoomEffectHaloId, coord,
                                 Actor00300_D15FF8[work->field_66A] - 0x32, &scratch->rot);
                 work->field_654 = effect;
                 if (effect != NULL) {
@@ -2052,7 +2052,7 @@ static void Actor00300_Fn01F9C(Task* arg0)
                     sp18.vx = (s16)((u32)(rcos(effectAngle2) * 5) >> 5);
                     sp18.vz = (s16)((u32)(rsin(effectAngle2) * 5) >> 5);
                     sp10    = sp18;
-                    Gp_SpawnEff(D_80115728, coord, 0x20101200, &sp10);
+                    Gp_SpawnEff(gRoomEffectMoteId, coord, 0x20101200, &sp10);
                 }
             }
             if ((s16)work->field_672 == 0xE) {
@@ -2198,7 +2198,7 @@ static void Actor00300_Fn028D0(Task* arg0)
                     sp20.vx = (s16)((u32)(rcos(angle0) * 5) >> 5);
                     sp20.vz = (s16)((u32)(rsin(angle0) * 5) >> 5);
                     sp18    = sp20;
-                    Gp_SpawnEff(D_80115728, coord, 0x20100200, &sp18);
+                    Gp_SpawnEff(gRoomEffectMoteId, coord, 0x20100200, &sp18);
                 }
             }
             work->field_67C = 0;
@@ -2209,7 +2209,7 @@ static void Actor00300_Fn028D0(Task* arg0)
                 sp10.vy         = -0x5DC;
                 sp10.vx         = 0;
                 sp10.vz         = 0x320;
-                effect          = Gp_SpawnEff(D_80115744, coord, 0x10014, &sp10);
+                effect          = Gp_SpawnEff(gRoomEffectHaloId, coord, 0x10014, &sp10);
                 work->field_654 = effect;
                 if (effect != NULL) {
                     taskReparent(arg0, effect->task);
@@ -2240,7 +2240,7 @@ static void Actor00300_Fn028D0(Task* arg0)
                     sp20.vx = (s16)((u32)(rcos(angle1) * 5) >> 5);
                     sp20.vz = (s16)((u32)(rsin(angle1) * 5) >> 5);
                     sp18    = sp20;
-                    Gp_SpawnEff(D_80115728, coord, 0x20100200, &sp18);
+                    Gp_SpawnEff(gRoomEffectMoteId, coord, 0x20100200, &sp18);
                 }
             }
             if ((s16)work->field_672 >= 0x13) {
@@ -2250,7 +2250,7 @@ static void Actor00300_Fn028D0(Task* arg0)
                 currentEnemy     = arg0->spawnArg2.pointer;
                 currentEnemy->hp = (u16)currentEnemy->hp + 0x64;
                 func_800DA6E8(&enemy->node, -0x64, 0);
-                burst = Gp_SpawnEff(D_80115720, coord, 0, NULL);
+                burst = Gp_SpawnEff(gRoomEffectSparkEmitterId, coord, 0, NULL);
                 if (burst != NULL) {
                     taskReparent(arg0, burst->task);
                 }
@@ -2464,7 +2464,7 @@ static void Actor00300_Fn030B8(Task* arg0)
                     sp18.vx = (u32)(rcos(angle) * 5) >> 5;
                     sp18.vz = (u32)(rsin(angle) * 5) >> 5;
                     sp10    = sp18;
-                    Gp_SpawnEff(D_80115728, coord, 0x20103200, &sp10);
+                    Gp_SpawnEff(gRoomEffectMoteId, coord, 0x20103200, &sp10);
                 }
             }
             timer           = (u16)work->field_688 + 1;
@@ -2641,7 +2641,7 @@ static void Actor00300_Fn03618(Task* arg0)
     GameLocationKey* sessionKey5;
 
     D_80067704[0] = &_gActor00300BrainStingerBurstHead;
-    effect1       = Gp_SpawnEff(0x40007, &arg0->extra.tmd->coords[1], 0x200, NULL);
+    effect1       = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK4, &arg0->extra.tmd->coords[1], 0x200, NULL);
     if (effect1 != NULL) {
         sessionKey1 = &gGameSession->location.loc;
         raw1        = ((Enemy*)arg0->spawnArg2.pointer)->placeKey;
@@ -2663,7 +2663,7 @@ static void Actor00300_Fn03618(Task* arg0)
     }
 
     D_80067704[0] = &_gActor00300Actor100300Model0ABC4;
-    effect2       = Gp_SpawnEff(0x40007, &arg0->extra.tmd->coords[1], 0x200, NULL);
+    effect2       = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK4, &arg0->extra.tmd->coords[1], 0x200, NULL);
     if (effect2 != NULL) {
         sessionKey2 = &gGameSession->location.loc;
         raw2        = ((Enemy*)arg0->spawnArg2.pointer)->placeKey;
@@ -2685,7 +2685,7 @@ static void Actor00300_Fn03618(Task* arg0)
     }
 
     D_80067704[0] = &_gActor00300Actor100300Model0B128;
-    effect3       = Gp_SpawnEff(0x40007, &arg0->extra.tmd->coords[1], 0x200, NULL);
+    effect3       = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK4, &arg0->extra.tmd->coords[1], 0x200, NULL);
     if (effect3 != NULL) {
         sessionKey3 = &gGameSession->location.loc;
         raw3        = ((Enemy*)arg0->spawnArg2.pointer)->placeKey;
@@ -2707,7 +2707,7 @@ static void Actor00300_Fn03618(Task* arg0)
     }
 
     D_80067704[0] = &_gActor00300Actor100300Model0B8AC;
-    effect4       = Gp_SpawnEff(0x40007, &arg0->extra.tmd->coords[1], 0x200, NULL);
+    effect4       = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK4, &arg0->extra.tmd->coords[1], 0x200, NULL);
     if (effect4 != NULL) {
         sessionKey4 = &gGameSession->location.loc;
         raw4        = ((Enemy*)arg0->spawnArg2.pointer)->placeKey;
@@ -2729,7 +2729,7 @@ static void Actor00300_Fn03618(Task* arg0)
     }
 
     D_80067704[0] = &_gActor00300Actor100300Model0BFC0;
-    effect5       = Gp_SpawnEff(0x40007, &arg0->extra.tmd->coords[1], 0x200, NULL);
+    effect5       = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK4, &arg0->extra.tmd->coords[1], 0x200, NULL);
     if (effect5 != NULL) {
         sessionKey5 = &gGameSession->location.loc;
         raw5        = ((Enemy*)arg0->spawnArg2.pointer)->placeKey;
@@ -2854,7 +2854,7 @@ common:
             if (phase == 10)
                 obj->flags |= TMD_OBJECT_SEMI_TRANS;
             if (work->field_688 == 15)
-                Gp_SpawnEff(0x600A5, &arg1->extra.tmd->coords[3], 3, NULL);
+                Gp_SpawnEff(EFFECT_CORPSE_BURN, &arg1->extra.tmd->coords[3], 3, NULL);
             if (work->field_688 >= 0x3C)
                 work->field_686 = 2;
             c      = arg1->extra.tmd->coords;
@@ -3051,7 +3051,7 @@ static void Actor00300_Fn04370(Enemy* arg0, Task* arg1)
             timer       = work->timer - 1;
             work->timer = timer;
             if (timer <= 0 || (work->rec20.flags & WORLD_COLLISION_CONTACT_OCCUPIED) || expired != 0) {
-                Gp_SpawnEff(D_8011573C, coord, 0, NULL);
+                Gp_SpawnEff(gRoomEffectOrangeBurstId, coord, 0, NULL);
                 arg1->state = 2;
                 work->pad8A = 0;
             }

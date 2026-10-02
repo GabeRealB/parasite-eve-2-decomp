@@ -1191,20 +1191,20 @@ void func_shelter_b4_upper_sewer_8017E5F8(Task* arg0)
 {
     if (arg0->state == 0) {
         if (GameFlag_GetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) == 1) {
-            D_8011574C = 0x60170;
-            D_80115738 = 0x60171;
+            gRoomEffectWaterRippleId = EFFECT_SHELTER_B4_UPPER_SEWER_WATER_RIPPLE;
+            gRoomEffectWaterSprayId  = EFFECT_SHELTER_B4_UPPER_SEWER_WATER_SPRAY;
         }
-        D_80115728  = 0x6024E;
-        D_80115744  = 0x6025A;
-        D_8011573C  = 0x60265;
-        D_80115720  = 0x60271;
-        D_80115758  = 0x600F0;
-        D_8011572C  = 0x600F1;
-        D_80115750  = 0x600F2;
-        D_80115734  = 0x60224;
-        D_80115730  = 0x6022F;
-        D_80115754  = 0x6023A;
-        arg0->state = 1;
+        gRoomEffectMoteId         = EFFECT_SHELTER_B4_UPPER_SEWER_MOTE;
+        gRoomEffectHaloId         = EFFECT_SHELTER_B4_UPPER_SEWER_HALO;
+        gRoomEffectOrangeBurstId  = EFFECT_SHELTER_B4_UPPER_SEWER_ORANGE_BURST;
+        gRoomEffectSparkEmitterId = EFFECT_SHELTER_B4_UPPER_SEWER_SPARK_EMITTER;
+        gRoomEffectFlashId        = EFFECT_SHELTER_B4_UPPER_SEWER_FLASH;
+        gRoomEffectTwinTrailId    = EFFECT_SHELTER_B4_UPPER_SEWER_TWIN_TRAIL;
+        gRoomEffectSparkBurstId   = EFFECT_SHELTER_B4_UPPER_SEWER_SPARK_BURST;
+        gRoomEffectGlowDiscId     = EFFECT_SHELTER_B4_UPPER_SEWER_GLOW_DISC;
+        gRoomEffectFlyingSparkId  = EFFECT_SHELTER_B4_UPPER_SEWER_FLYING_SPARK;
+        gRoomEffectOrangeBurst2Id = EFFECT_SHELTER_B4_UPPER_SEWER_ORANGE_BURST_2;
+        arg0->state               = 1;
     }
 
     switch (Gp_GetViewIndex() & 0xFF) {

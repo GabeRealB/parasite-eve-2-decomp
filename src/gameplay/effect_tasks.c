@@ -234,10 +234,10 @@ void Gp_EffCtlTask2B(Task* arg0)
                     default:
                         rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         gRandomLcgState = rng;
-                        Gp_SpawnEff(0x60034, coord, (((u32)rng >> 16) & 0x1FF) | 0x200, 0);
+                        Gp_SpawnEff(EFFECT_MUZZLE_FLARE, coord, (((u32)rng >> 16) & 0x1FF) | 0x200, 0);
                         idx         = arg0->spawnArg1.value;
                         arg0->state = 1;
-                        Gp_SpawnEff(0x60036, coord, idx, &D_801125EC[idx]);
+                        Gp_SpawnEff(EFFECT_BULLET_CASING, coord, idx, &D_801125EC[idx]);
                         mem->scale            = 4;
                         lightSlot->framesLeft = 4;
                         break;
@@ -245,10 +245,10 @@ void Gp_EffCtlTask2B(Task* arg0)
                     case 3:
                         rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         gRandomLcgState = rng;
-                        Gp_SpawnEff(0x60034, coord, (((u32)rng >> 16) & 0x1FF) + 0x300, 0);
+                        Gp_SpawnEff(EFFECT_MUZZLE_FLARE, coord, (((u32)rng >> 16) & 0x1FF) + 0x300, 0);
                         idx         = arg0->spawnArg1.value;
                         arg0->state = 1;
-                        Gp_SpawnEff(0x60036, coord, idx, &D_801125EC[idx]);
+                        Gp_SpawnEff(EFFECT_BULLET_CASING, coord, idx, &D_801125EC[idx]);
                         mem->scale            = 4;
                         lightSlot->framesLeft = 4;
                         break;
@@ -258,16 +258,16 @@ void Gp_EffCtlTask2B(Task* arg0)
                         arg0->state     = 2;
                         rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         gRandomLcgState = rng;
-                        Gp_SpawnEff(0x60034, coord, (((u32)rng >> 16) & 0x1FF) + 0x300, 0);
+                        Gp_SpawnEff(EFFECT_MUZZLE_FLARE, coord, (((u32)rng >> 16) & 0x1FF) + 0x300, 0);
                         idx = arg0->spawnArg1.value;
-                        Gp_SpawnEff(0x60036, coord, idx, &D_801125EC[idx]);
+                        Gp_SpawnEff(EFFECT_BULLET_CASING, coord, idx, &D_801125EC[idx]);
                         mem->scale            = 2;
                         lightSlot->framesLeft = 2;
                         break;
                     case 5:
                         idx         = arg0->spawnArg1.value;
                         arg0->state = 1;
-                        Gp_SpawnEff(0x60066, coord, idx, &D_801125EC[idx]);
+                        Gp_SpawnEff(EFFECT_P229_SHELL_CASING, coord, idx, &D_801125EC[idx]);
                         mem->scale            = 4;
                         lightSlot->framesLeft = WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE;
                         break;
@@ -276,9 +276,9 @@ void Gp_EffCtlTask2B(Task* arg0)
                         arg0->state     = 1;
                         rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         gRandomLcgState = rng;
-                        Gp_SpawnEff(0x60034, coord, (((u32)rng >> 16) & 0x1FF) + 0x300, 0);
+                        Gp_SpawnEff(EFFECT_MUZZLE_FLARE, coord, (((u32)rng >> 16) & 0x1FF) + 0x300, 0);
                         idx = arg0->spawnArg1.value;
-                        Gp_SpawnEff(0x60066, coord, idx, &D_801125EC[idx]);
+                        Gp_SpawnEff(EFFECT_P229_SHELL_CASING, coord, idx, &D_801125EC[idx]);
                         mem->scale            = 4;
                         lightSlot->framesLeft = WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE;
                         break;
@@ -290,7 +290,7 @@ void Gp_EffCtlTask2B(Task* arg0)
             case 1:
                 rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 gRandomLcgState = rng;
-                Gp_SpawnEff(0x60035, coord, (((u32)rng >> 16) & 0x1FF) | 0x200, 0);
+                Gp_SpawnEff(EFFECT_MUZZLE_SPARK, coord, (((u32)rng >> 16) & 0x1FF) | 0x200, 0);
                 arg0->state++;
                 break;
         }
@@ -342,19 +342,19 @@ void Gp_EffCtlTask6A(Task* arg0)
                 mem->move.vx    = 0;
                 mem->move.vy    = 0;
                 mem->move.vz    = -(mem->scale >> 1);
-                Gp_SpawnEff(0x60034, coord, mem->scale + 0x600, &mem->move);
+                Gp_SpawnEff(EFFECT_MUZZLE_FLARE, coord, mem->scale + 0x600, &mem->move);
                 arg0->state                    = 1;
                 gRoomEffectState->burstRequest = true;
                 break;
             case 1:
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                Gp_SpawnEff(0x60035, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x11280,
+                Gp_SpawnEff(EFFECT_MUZZLE_SPARK, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x11280,
                             &mem->move);
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                Gp_SpawnEff(0x60035, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x21280,
+                Gp_SpawnEff(EFFECT_MUZZLE_SPARK, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x21280,
                             &mem->move);
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                Gp_SpawnEff(0x60035, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x31280,
+                Gp_SpawnEff(EFFECT_MUZZLE_SPARK, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x31280,
                             &mem->move);
                 arg0->state++;
                 break;
@@ -412,12 +412,12 @@ void Gp_EffCtlTask6B(Task* arg0)
             mem->move.vx    = 0;
             mem->move.vy    = 0;
             mem->move.vz    = -(mem->scale >> 1);
-            Gp_SpawnEff(0x60034, coord, mem->scale + 0x380, &mem->move);
+            Gp_SpawnEff(EFFECT_MUZZLE_FLARE, coord, mem->scale + 0x380, &mem->move);
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            Gp_SpawnEff(0x60072, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x380, 0);
+            Gp_SpawnEff(EFFECT_MUZZLE_FLARE_ADDITIVE, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x380, 0);
             idx         = arg0->spawnArg1.value;
             arg0->state = 1;
-            Gp_SpawnEff(0x60067, coord, idx, &D_801125EC[idx]);
+            Gp_SpawnEff(EFFECT_RIFLE_MUZZLE_FLASH_MODEL, coord, idx, &D_801125EC[idx]);
             if (arg0->spawnArg1.value == 0x11) {
                 mem->scale                                  = 1;
                 gWorldCoordTransientPointLights->framesLeft = 1;
@@ -487,21 +487,21 @@ void func_800ED42C(Task* arg0)
                             mem->move.vx = 0;
                             mem->move.vy = 0;
                             mem->move.vz = -((s32)((u16)mem->scale << 16) >> 18);
-                            Gp_SpawnEff(0x60034, coord, mem->scale + 0x200, &mem->move);
+                            Gp_SpawnEff(EFFECT_MUZZLE_FLARE, coord, mem->scale + 0x200, &mem->move);
                             for (i = 0; i < 0xC; i++) {
-                                Gp_SpawnEff(0x600A4, coord, 0, 0);
+                                Gp_SpawnEff(EFFECT_PIXEL_SPARK, coord, 0, 0);
                             }
                             for (i = 0; i < 0xC; i++) {
-                                Gp_SpawnEff(0x600A3, coord, 0, 0);
+                                Gp_SpawnEff(EFFECT_SHOTGUN_SPARK_LINE, coord, 0, 0);
                             }
                             mem->scale = 0x18;
                         } else {
                             mem->move.vx = 0;
                             mem->move.vy = 0;
                             mem->move.vz = -((s32)((u16)mem->scale << 16) >> 17);
-                            Gp_SpawnEff(0x60034, coord, mem->scale + 0x380, &mem->move);
+                            Gp_SpawnEff(EFFECT_MUZZLE_FLARE, coord, mem->scale + 0x380, &mem->move);
                             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                            Gp_SpawnEff(0x60072, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x380, 0);
+                            Gp_SpawnEff(EFFECT_MUZZLE_FLARE_ADDITIVE, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x380, 0);
                             if (mem->index == 0xF) {
                                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                                 Gp_DrawEffSprite6C(coord, (s16)(mem->scale + 0x280),
@@ -510,10 +510,10 @@ void func_800ED42C(Task* arg0)
                             mem->scale = 4;
                         }
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        Gp_SpawnEff(0x60035, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x20300, 0);
+                        Gp_SpawnEff(EFFECT_MUZZLE_SPARK, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x20300, 0);
                         for (i = 0; i < 4; i++) {
                             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                            Gp_SpawnEff(0x6006F, coord, ((gRandomLcgState >> 16) & 0x1FF) | 0x200, 0);
+                            Gp_SpawnEff(EFFECT_MUZZLE_SPARK_THROWN, coord, ((gRandomLcgState >> 16) & 0x1FF) | 0x200, 0);
                         }
                         arg0->state = 1;
                         break;
@@ -524,20 +524,20 @@ void func_800ED42C(Task* arg0)
                             mem->move.vx = 0;
                             mem->move.vy = 0;
                             mem->move.vz = -((s32)((u16)mem->scale << 16) >> 18);
-                            Gp_SpawnEff(0x60034, coord, mem->scale + 0x200, &mem->move);
+                            Gp_SpawnEff(EFFECT_MUZZLE_FLARE, coord, mem->scale + 0x200, &mem->move);
                             for (i = 0; i < 0xC; i++) {
-                                Gp_SpawnEff(0x600A4, coord, 0, 0);
+                                Gp_SpawnEff(EFFECT_PIXEL_SPARK, coord, 0, 0);
                             }
                             for (i = 0; i < 0xC; i++) {
-                                Gp_SpawnEff(0x600A3, coord, 0, 0);
+                                Gp_SpawnEff(EFFECT_SHOTGUN_SPARK_LINE, coord, 0, 0);
                             }
                         } else {
                             mem->move.vx = 0;
                             mem->move.vy = 0;
                             mem->move.vz = -((s32)((u16)mem->scale << 16) >> 17);
-                            Gp_SpawnEff(0x60034, coord, mem->scale + 0x380, &mem->move);
+                            Gp_SpawnEff(EFFECT_MUZZLE_FLARE, coord, mem->scale + 0x380, &mem->move);
                             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                            Gp_SpawnEff(0x60072, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x380, 0);
+                            Gp_SpawnEff(EFFECT_MUZZLE_FLARE_ADDITIVE, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x380, 0);
                             if (mem->index == 0xF) {
                                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                                 Gp_DrawEffSprite6C(coord, (s16)(mem->scale + 0x280),
@@ -545,12 +545,12 @@ void func_800ED42C(Task* arg0)
                             }
                         }
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        Gp_SpawnEff(0x60035, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x20300, 0);
+                        Gp_SpawnEff(EFFECT_MUZZLE_SPARK, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x20300, 0);
                         for (i = 0; i < 4; i++) {
                             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                            Gp_SpawnEff(0x6006F, coord, ((gRandomLcgState >> 16) & 0x1FF) | 0x200, 0);
+                            Gp_SpawnEff(EFFECT_MUZZLE_SPARK_THROWN, coord, ((gRandomLcgState >> 16) & 0x1FF) | 0x200, 0);
                         }
-                        Gp_SpawnEff(0x60068, coord, arg0->spawnArg1.value, &D_801125EC[arg0->spawnArg1.value]);
+                        Gp_SpawnEff(EFFECT_SHOTGUN_SHELL_CASING, coord, arg0->spawnArg1.value, &D_801125EC[arg0->spawnArg1.value]);
                         arg0->state = 2;
                         mem->scale  = 4;
                         break;
@@ -567,15 +567,15 @@ void func_800ED42C(Task* arg0)
                             gte_ldv0(vec);
                             gte_rtv0();
                             gte_stsv(vec);
-                            Gp_SpawnEff(0x60034, coord, mem->scale + 0x200, vec);
+                            Gp_SpawnEff(EFFECT_MUZZLE_FLARE, coord, mem->scale + 0x200, vec);
                             i = 0;
                             Gfx_RotMatrixX(&coord->coord, 0x400, i);
                             coord->composeStamp = GRAPHICS_COORD_DIRTY;
                             for (; i < 0xC; i++) {
-                                Gp_SpawnEff(0x600A4, coord, 0, 0);
+                                Gp_SpawnEff(EFFECT_PIXEL_SPARK, coord, 0, 0);
                             }
                             for (i = 0; i < 0xC; i++) {
-                                Gp_SpawnEff(0x600A3, coord, 0, 0);
+                                Gp_SpawnEff(EFFECT_SHOTGUN_SPARK_LINE, coord, 0, 0);
                             }
                         } else {
                             mem->move.vx = 0;
@@ -587,9 +587,9 @@ void func_800ED42C(Task* arg0)
                             gte_ldv0(vec);
                             gte_rtv0();
                             gte_stsv(vec);
-                            Gp_SpawnEff(0x60034, coord, mem->scale + 0x380, vec);
+                            Gp_SpawnEff(EFFECT_MUZZLE_FLARE, coord, mem->scale + 0x380, vec);
                             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                            Gp_SpawnEff(0x60072, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x380, 0);
+                            Gp_SpawnEff(EFFECT_MUZZLE_FLARE_ADDITIVE, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x380, 0);
                             if (mem->index == 0xF) {
                                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                                 Gp_DrawEffSprite6C(coord, (s16)(mem->scale + 0x280),
@@ -599,12 +599,12 @@ void func_800ED42C(Task* arg0)
                             coord->composeStamp = GRAPHICS_COORD_DIRTY;
                         }
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        Gp_SpawnEff(0x60035, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x20300, 0);
+                        Gp_SpawnEff(EFFECT_MUZZLE_SPARK, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x20300, 0);
                         for (i = 0; i < 4; i++) {
                             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                            Gp_SpawnEff(0x6006F, coord, ((gRandomLcgState >> 16) & 0x1FF) | 0x200, 0);
+                            Gp_SpawnEff(EFFECT_MUZZLE_SPARK_THROWN, coord, ((gRandomLcgState >> 16) & 0x1FF) | 0x200, 0);
                         }
-                        Gp_SpawnEff(0x60068, mem->parent, arg0->spawnArg1.value, &D_801125EC[arg0->spawnArg1.value]);
+                        Gp_SpawnEff(EFFECT_SHOTGUN_SHELL_CASING, mem->parent, arg0->spawnArg1.value, &D_801125EC[arg0->spawnArg1.value]);
                         arg0->state = 2;
                         mem->scale  = 4;
                 }
@@ -613,7 +613,7 @@ void func_800ED42C(Task* arg0)
                 break;
             case 1:
                 if (mem->age == mem->scale) {
-                    Gp_SpawnEff(0x60068, coord, arg0->spawnArg1.value, &D_801125EC[arg0->spawnArg1.value]);
+                    Gp_SpawnEff(EFFECT_SHOTGUN_SHELL_CASING, coord, arg0->spawnArg1.value, &D_801125EC[arg0->spawnArg1.value]);
                     arg0->state = 2;
                 }
                 break;
@@ -678,9 +678,9 @@ void Gp_EffCtlTask6C(Task* arg0)
                 Gp_DrawEffSprite6C(coord, idx | 0x400, ((u32)rng2 >> 16) & 0xFFF, idx);
                 for (i = 0; i < 4; i++) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    Gp_SpawnEff(0x6006F, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x380, 0);
+                    Gp_SpawnEff(EFFECT_MUZZLE_SPARK_THROWN, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x380, 0);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    Gp_SpawnEff(0x60035, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x21380, 0);
+                    Gp_SpawnEff(EFFECT_MUZZLE_SPARK, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x21380, 0);
                 }
                 switch (arg0->spawnArg1.value) {
                     case 1:
@@ -706,15 +706,15 @@ void Gp_EffCtlTask6C(Task* arg0)
             case 1:
                 if (mem->age == mem->scale) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    Gp_SpawnEff(0x60035, coord, ((gRandomLcgState >> 16) & 0xFF) + 0x12180,
+                    Gp_SpawnEff(EFFECT_MUZZLE_SPARK, coord, ((gRandomLcgState >> 16) & 0xFF) + 0x12180,
                                 &D_8011280C[arg0->spawnArg1.value]);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    Gp_SpawnEff(0x60035, coord, ((gRandomLcgState >> 16) & 0xFF) + 0x22180,
+                    Gp_SpawnEff(EFFECT_MUZZLE_SPARK, coord, ((gRandomLcgState >> 16) & 0xFF) + 0x22180,
                                 &D_8011280C[arg0->spawnArg1.value]);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    Gp_SpawnEff(0x60035, coord, ((gRandomLcgState >> 16) & 0xFF) + 0x32180,
+                    Gp_SpawnEff(EFFECT_MUZZLE_SPARK, coord, ((gRandomLcgState >> 16) & 0xFF) + 0x32180,
                                 &D_8011280C[arg0->spawnArg1.value]);
-                    Gp_SpawnEff(0x60091, coord, arg0->spawnArg1.value + mem->angle,
+                    Gp_SpawnEff(EFFECT_091, coord, arg0->spawnArg1.value + mem->angle,
                                 &D_8011280C[arg0->spawnArg1.value]);
                     arg0->state = 2;
                 }
@@ -1584,15 +1584,15 @@ void Gp_EffCtlTask6E(Task* arg0)
         arg0->state     = 1;
         rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         gRandomLcgState = rng;
-        Gp_SpawnEff(0x60035, coord, (((u32)rng >> 16) & 0x1FF) | 0x11200, 0);
+        Gp_SpawnEff(EFFECT_MUZZLE_SPARK, coord, (((u32)rng >> 16) & 0x1FF) | 0x11200, 0);
         rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         gRandomLcgState = rng;
-        Gp_SpawnEff(0x60035, coord, (((u32)rng >> 16) & 0x1FF) | 0x21200, 0);
+        Gp_SpawnEff(EFFECT_MUZZLE_SPARK, coord, (((u32)rng >> 16) & 0x1FF) | 0x21200, 0);
         rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         gRandomLcgState = rng;
-        Gp_SpawnEff(0x60035, coord, (((u32)rng >> 16) & 0x1FF) | 0x31200, 0);
+        Gp_SpawnEff(EFFECT_MUZZLE_SPARK, coord, (((u32)rng >> 16) & 0x1FF) | 0x31200, 0);
     }
-    Gp_SpawnEff(0x60091, coord, arg0->spawnArg1.value, 0);
+    Gp_SpawnEff(EFFECT_091, coord, arg0->spawnArg1.value, 0);
     mem->age++;
     if (mem->age > mem->scale - 1) {
         effectKillTask(mem, arg0);
@@ -1621,7 +1621,7 @@ void Gp_EffCtlTask6D(Task* arg0)
     Gp_UpdateCoord(coord);
 
     for (; i < 6; i++) {
-        Gp_SpawnEff(0x60036, coord, 9, 0);
+        Gp_SpawnEff(EFFECT_BULLET_CASING, coord, 9, 0);
     }
 
     effectKillTask(mem, arg0);
@@ -1730,7 +1730,7 @@ void Gp_EffCtlTask3B(Task* arg0)
                 mem->angle = 0x200;
             }
             for (i = 0; i < 6; i++) {
-                Gp_SpawnEff(0x600A4, coord, 1, 0);
+                Gp_SpawnEff(EFFECT_PIXEL_SPARK, coord, 1, 0);
             }
             arg0->state = 1;
         }
@@ -1879,7 +1879,7 @@ void Gp_EffSprTask5C(Task* arg0)
                 i = 0;
                 if (n != 0) {
                     do {
-                        Gp_SpawnEff(0x6005C, coord, ((s32)((u16)mem->scale << 16) >> 17) | 0x02001000, 0);
+                        Gp_SpawnEff(EFFECT_EXPLOSION, coord, ((s32)((u16)mem->scale << 16) >> 17) | 0x02001000, 0);
                         i += 1;
                     } while (i < n);
                 }
@@ -1887,7 +1887,7 @@ void Gp_EffSprTask5C(Task* arg0)
                 i = 0;
                 if (n > 0) {
                     do {
-                        Gp_SpawnEff(0x6005C, coord, ((s32)((u16)mem->scale << 16) >> 17) | 0x01002000, 0);
+                        Gp_SpawnEff(EFFECT_EXPLOSION, coord, ((s32)((u16)mem->scale << 16) >> 17) | 0x01002000, 0);
                         i += 1;
                     } while (i < n);
                 }
@@ -2071,13 +2071,13 @@ void func_800F289C(Task* arg0)
                 for (i = 0; i < n; i++) {
                     step = mem->scale - (mem->scale >> 2);
                     mask = (arg0->spawnArg1.value & 0xC0000000) | 0x6002000;
-                    Gp_SpawnEff(0x60070, coord, step | mask, 0);
+                    Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, step | mask, 0);
                 }
                 n = gDisplayState.animFrame % 3;
                 for (i = 0; i < n; i++) {
                     step2 = mem->scale - (mem->scale >> 2);
                     mask2 = (arg0->spawnArg1.value & 0xC0000000) | 0x4003000;
-                    Gp_SpawnEff(0x60070, coord, step2 | mask2, 0);
+                    Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, step2 | mask2, 0);
                 }
             }
             arg0->state = 1;
@@ -2406,11 +2406,11 @@ void func_800F4308(Task* arg0)
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     mem->move.vz    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
                     vec             = &mem->move;
-                    Gp_SpawnEff(0x6005C, coord, 0x600, vec);
+                    Gp_SpawnEff(EFFECT_EXPLOSION, coord, 0x600, vec);
                     rng = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    Gp_SpawnEff(0x6007C, coord, (((u32)rng >> 16) & 0x3F) | 0x100, vec);
+                    Gp_SpawnEff(EFFECT_BOUNCING_SPARK, coord, (((u32)rng >> 16) & 0x3F) | 0x100, vec);
                     rng = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    Gp_SpawnEff(0x6007C, coord, (((u32)rng >> 16) & 0x3F) | 0x100, vec);
+                    Gp_SpawnEff(EFFECT_BOUNCING_SPARK, coord, (((u32)rng >> 16) & 0x3F) | 0x100, vec);
                     arg0->state++;
                     break;
                 case 1:
@@ -2421,7 +2421,7 @@ void func_800F4308(Task* arg0)
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     mem->move.vz    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
                     rng = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    Gp_SpawnEff(0x60070, coord, (((u32)rng >> 16) & 0x1FF) | 0xD0000400,
+                    Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, (((u32)rng >> 16) & 0x1FF) | 0xD0000400,
                                 &mem->move);
                     if (mem->age >= 7) {
                         arg0->state++;
@@ -2435,7 +2435,7 @@ void func_800F4308(Task* arg0)
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     mem->move.vz    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
                     rng = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    Gp_SpawnEff(0x60070, coord, (((u32)rng >> 16) & 0xFF) | 0x82003400,
+                    Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, (((u32)rng >> 16) & 0xFF) | 0x82003400,
                                 &mem->move);
                     if (mem->age >= 0xB) {
                         arg0->state++;
@@ -2465,7 +2465,7 @@ void func_800F4308(Task* arg0)
                     mem->move.vy    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     mem->move.vz    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
-                    Gp_SpawnEff(0x60076, coord, 0x500, &mem->move);
+                    Gp_SpawnEff(EFFECT_IMPACT_FLASH, coord, 0x500, &mem->move);
                     condInc = mem->age < 2;
                     goto maybe11;
                 case 1:
@@ -2478,7 +2478,7 @@ void func_800F4308(Task* arg0)
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         mem->move.vz    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
                         rng = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        Gp_SpawnEff(0x60070, coord, (((u32)rng >> 16) & 0x1FF) | 0x82004400,
+                        Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, (((u32)rng >> 16) & 0x1FF) | 0x82004400,
                                     &mem->move);
                         i += 1;
                     } while (i < 2);
@@ -2494,7 +2494,7 @@ void func_800F4308(Task* arg0)
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         mem->move.vz    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
                         rng = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        Gp_SpawnEff(0x60070, coord, (((u32)rng >> 16) & 0xFF) | 0xD0000400,
+                        Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, (((u32)rng >> 16) & 0xFF) | 0xD0000400,
                                     &mem->move);
                         i += 1;
                     } while (i < 2);
@@ -2517,7 +2517,7 @@ void func_800F4308(Task* arg0)
             if (mem->age < 4) {
                 i = 0;
                 do {
-                    Gp_SpawnEff(0x60092, coord, 0, 0);
+                    Gp_SpawnEff(EFFECT_SPARK_STREAK, coord, 0, 0);
                     i += 1;
                 } while (i < 3);
             }
@@ -2548,7 +2548,7 @@ void func_800F4308(Task* arg0)
             mem->move.vy    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             mem->move.vz    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
-            Gp_SpawnEff(0x60076, coord, 0x500, &mem->move);
+            Gp_SpawnEff(EFFECT_IMPACT_FLASH, coord, 0x500, &mem->move);
             condInc = mem->age < 2;
             goto maybe12;
         case12_1:
@@ -2561,7 +2561,7 @@ void func_800F4308(Task* arg0)
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 mem->move.vz    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
                 rng = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                Gp_SpawnEff(0x60070, coord, (((u32)rng >> 16) & 0x1FF) | 0x82004400,
+                Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, (((u32)rng >> 16) & 0x1FF) | 0x82004400,
                             &mem->move);
                 i += 1;
             } while (i < 2);
@@ -2977,10 +2977,10 @@ void Gp_EffSprTask54(Task* arg0)
         mem->move.vz    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
         if (arg0->spawnArg1.value < 0) {
             if (mem->angle & 1) {
-                Gp_SpawnEff(0x60054, coord, ((mem->scale * 3) >> 2) + 0x3000, NULL);
+                Gp_SpawnEff(EFFECT_DUST_PUFF, coord, ((mem->scale * 3) >> 2) + 0x3000, NULL);
             }
             if (!(mem->angle & 3)) {
-                Gp_SpawnEff(0x60054, coord, ((mem->scale * 3) >> 2) + 0x3000, NULL);
+                Gp_SpawnEff(EFFECT_DUST_PUFF, coord, ((mem->scale * 3) >> 2) + 0x3000, NULL);
             }
         }
         arg0->state = 1;

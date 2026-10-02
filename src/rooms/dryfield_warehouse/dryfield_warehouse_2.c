@@ -588,23 +588,23 @@ static void func_dryfield_warehouse_8017DBB0(Task* arg0)
                     msg.pos.vy = 0;
                     if (!(shared->field_8 & 7)) {
                         msg.pos.vz = -500;
-                        Gp_SpawnEff(0x60054, NULL, 0x80002300, &msg.pos);
+                        Gp_SpawnEff(EFFECT_DUST_PUFF, NULL, 0x80002300, &msg.pos);
                     }
                     if (!((shared->field_8 + 1) & 7)) {
                         msg.pos.vz = -700;
-                        Gp_SpawnEff(0x60054, NULL, 0x80002300, &msg.pos);
+                        Gp_SpawnEff(EFFECT_DUST_PUFF, NULL, 0x80002300, &msg.pos);
                     }
                     if (!((shared->field_8 + 2) & 7)) {
                         msg.pos.vz = -900;
-                        Gp_SpawnEff(0x60054, NULL, 0x80002300, &msg.pos);
+                        Gp_SpawnEff(EFFECT_DUST_PUFF, NULL, 0x80002300, &msg.pos);
                     }
                     if (!((shared->field_8 + 3) & 7)) {
                         msg.pos.vz = -1100;
-                        Gp_SpawnEff(0x60054, NULL, 0x80002300, &msg.pos);
+                        Gp_SpawnEff(EFFECT_DUST_PUFF, NULL, 0x80002300, &msg.pos);
                     }
                     if (!((shared->field_8 + 4) & 7)) {
                         msg.pos.vz = -1300;
-                        Gp_SpawnEff(0x60054, NULL, 0x80002300, &msg.pos);
+                        Gp_SpawnEff(EFFECT_DUST_PUFF, NULL, 0x80002300, &msg.pos);
                     }
                     if (work->field_8 >= 36) {
                         work->field_4 = 0;

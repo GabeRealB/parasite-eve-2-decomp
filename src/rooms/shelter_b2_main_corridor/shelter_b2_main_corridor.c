@@ -1912,12 +1912,12 @@ void func_shelter_b2_main_corridor_8017EC34(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            D_80115758  = 0x601D3;
-            D_8011572C  = 0x601EF;
-            D_80115750  = 0x6020B;
-            D_8011574C  = 0x6016A;
-            D_80115738  = 0x6016B;
-            arg0->state = 1;
+            gRoomEffectFlashId       = EFFECT_SHELTER_B2_MAIN_CORRIDOR_FLASH;
+            gRoomEffectTwinTrailId   = EFFECT_SHELTER_B2_MAIN_CORRIDOR_TWIN_TRAIL;
+            gRoomEffectSparkBurstId  = EFFECT_SHELTER_B2_MAIN_CORRIDOR_SPARK_BURST;
+            gRoomEffectWaterRippleId = EFFECT_SHELTER_B2_MAIN_CORRIDOR_WATER_RIPPLE;
+            gRoomEffectWaterSprayId  = EFFECT_SHELTER_B2_MAIN_CORRIDOR_WATER_SPRAY;
+            arg0->state              = 1;
         case 1:
             switch (Gp_GetViewIndex() & 0xFF) {
                 case 2: {

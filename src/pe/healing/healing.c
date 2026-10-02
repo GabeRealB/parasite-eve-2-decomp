@@ -136,7 +136,7 @@ void func_healing_8012EF34(Task* arg0)
             gRandomLcgState = rng;
             mem->move.vy    = temp_lo >> 12;
             mem->move.vz    = (rsin(((u32)rng >> 16) & 0xFFF) * mem->move.vx) >> 12;
-            spawned         = Gp_SpawnEff(0x60017, coord, (s32)(D_healing_8012FC1C[mem->index].field_6),
+            spawned         = Gp_SpawnEff(EFFECT_HEALING_SPARKLE, coord, (s32)(D_healing_8012FC1C[mem->index].field_6),
                                           &mem->move);
             if (spawned != NULL) {
                 taskReparent(arg0, spawned->task);
@@ -244,7 +244,7 @@ void func_healing_8012F5E4(Task* arg0)
                 func_healing_8012F7FC(coord, mem->index, mem->angle, mem->scale);
             }
             if ((mem->age & 7) == 1) {
-                spawned = Gp_SpawnEff(0x60016, coord, (s32)(mem->angle), 0);
+                spawned = Gp_SpawnEff(EFFECT_HEALING_SPARK, coord, (s32)(mem->angle), 0);
                 if (spawned != NULL) {
                     taskReparent(arg0, spawned->task);
                 }

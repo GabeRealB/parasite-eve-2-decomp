@@ -403,10 +403,10 @@ void func_neo_ark_south_promenade_8017D678(Task* task)
 void func_neo_ark_south_promenade_8017D6D0(Task* arg0)
 {
     if (arg0->state == 0) {
-        D_80115758  = 0x601DE;
-        D_8011572C  = 0x601FA;
-        D_80115750  = 0x60216;
-        arg0->state = 1;
+        gRoomEffectFlashId      = EFFECT_NEO_ARK_SOUTH_PROMENADE_FLASH;
+        gRoomEffectTwinTrailId  = EFFECT_NEO_ARK_SOUTH_PROMENADE_TWIN_TRAIL;
+        gRoomEffectSparkBurstId = EFFECT_NEO_ARK_SOUTH_PROMENADE_SPARK_BURST;
+        arg0->state             = 1;
     }
 }
 

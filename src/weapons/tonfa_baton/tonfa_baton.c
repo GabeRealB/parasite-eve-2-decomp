@@ -293,7 +293,7 @@ static void func_tonfa_baton_8011DBFC(Task* arg0)
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                     func_80106238(arg0, 0, 0);
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20130001, 0);
-                    eff = Gp_SpawnEff(0x6003A,
+                    eff = Gp_SpawnEff(EFFECT_TONFA_BATON_SWING_TRAIL,
                                       actor->equipmentTasks[1]->extra.tmd->coords,
                                       0, NULL);
                     if (eff != NULL) {
@@ -313,7 +313,7 @@ static void func_tonfa_baton_8011DBFC(Task* arg0)
                     func_80106518(0x13);
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key = 0x21315;
                     eff                                                = Gp_SpawnEff(
-                        0x6003A, actor->equipmentTasks[1]->extra.tmd->coords, 1,
+                        EFFECT_TONFA_BATON_SWING_TRAIL, actor->equipmentTasks[1]->extra.tmd->coords, 1,
                         NULL);
                     if (eff != NULL) {
                         taskReparent(actor->equipmentTasks[1], eff->task);

@@ -92,7 +92,7 @@ static void func_pa3_8011D1DC(Task* arg0)
             Gp_ConsumeSlotQty(WEAPON_ITEM(WEAPON_ID), 1);
             Gp_PlayObjSfx(arg0->extra.tmd->coords,
                           ((gPlayerStatus.weaponSlotItem - 0xD) << 0x18) | 0x20000005 | (WEAPON_ID << 16), 1);
-            Gp_SpawnEff(0x600A1,
+            Gp_SpawnEff(EFFECT_SHOTGUN_MUZZLE_FLASH,
                         actor->equipmentTasks[1]->extra.tmd->coords,
                         (gPlayerStatus.weaponSlotItem << 0x10) | WEAPON_ID, NULL);
             Gp_AnimPlayChildSlotsEx(arg0, 0xA, 1, 3);

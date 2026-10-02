@@ -90,7 +90,7 @@ static void func_m93r_8011D1C4(Task* arg0)
                         actor->actionValue = 0;
                     }
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20020004, 1);
-                    Gp_SpawnEff(0x6002B,
+                    Gp_SpawnEff(EFFECT_HANDGUN_MUZZLE_FLASH,
                                 actor->equipmentTasks[1]->extra.tmd->coords, 2,
                                 NULL);
                     Gp_AnimPlayChildSlotsEx(arg0, 0xA, 1, 2);

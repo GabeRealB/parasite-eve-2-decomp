@@ -488,7 +488,7 @@ void func_shelter_b1_pod_service_gantry_8017FA7C(Task* arg0)
         for (i = 0; i < 8; i++) {
             D_shelter_b1_pod_service_gantry_8018256C[i] = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
         }
-        D_80115738  = 0x601BE;
-        arg0->state = 1;
+        gRoomEffectWaterSprayId = EFFECT_SHELTER_B1_POD_SERVICE_GANTRY_WATER_SPRAY;
+        arg0->state             = 1;
     }
 }

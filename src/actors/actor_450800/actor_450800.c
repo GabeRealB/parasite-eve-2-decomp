@@ -2733,7 +2733,7 @@ void func_actor_450800_80132108(void)
     SVECTOR pos;
 
     pos = D_actor_450800_80131E24;
-    Gp_SpawnEff(0x6003B, NULL, 0x200, &pos);
+    Gp_SpawnEff(EFFECT_IMPACT_SPARK, NULL, 0x200, &pos);
 }
 
 /// Gives a freshly spawned helper model the texture page and palette of the
@@ -3047,7 +3047,7 @@ s32 func_actor_450800_80132CE0(Task* task, s32 arg1, ActorCommand* msg, s32 arg3
 
     switch (mode) {
         case 0:
-            Gp_SpawnEff(0x6002B, coord, 0x21, 0);
+            Gp_SpawnEff(EFFECT_HANDGUN_MUZZLE_FLASH, coord, 0x21, 0);
             break;
         case 1:
             work->field_500 = mode;

@@ -40,7 +40,7 @@ void sucklercephReactionDispatch(Task* arg0)
             frames          = work->field_2BC + 1;
             work->field_2BC = frames;
             if ((s16)frames >= 0x10) {
-                Gp_SpawnEff(0x60080, arg0->extra.tmd->coords, 0x400, &gSucklercephCollapseFxOffset);
+                Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, arg0->extra.tmd->coords, 0x400, &gSucklercephCollapseFxOffset);
                 work->field_2BC = 0;
             }
             goto suppress_rebind;
@@ -52,7 +52,7 @@ void sucklercephReactionDispatch(Task* arg0)
             frames          = work->field_2BC + 1;
             work->field_2BC = frames;
             if ((s16)frames >= 0x10) {
-                Gp_SpawnEff(0x60080, arg0->extra.tmd->coords, 0x400, &gSucklercephCollapseFxOffset);
+                Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, arg0->extra.tmd->coords, 0x400, &gSucklercephCollapseFxOffset);
                 work->field_2BC = 0;
                 frames          = work->field_2D4 + 1;
                 work->field_2D4 = frames;

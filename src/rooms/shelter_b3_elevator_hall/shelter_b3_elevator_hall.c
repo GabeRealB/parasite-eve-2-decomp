@@ -295,14 +295,14 @@ void func_shelter_b3_elevator_hall_8017DE18(Task* task)
 void func_shelter_b3_elevator_hall_8017DE70(Task* arg0)
 {
     if (arg0->state == 0) {
-        D_80115728  = 0x6024D;
-        D_80115744  = 0x60259;
-        D_8011573C  = 0x60264;
-        D_80115720  = 0x60270;
-        D_80115734  = 0x60223;
-        D_80115730  = 0x6022E;
-        D_80115754  = 0x60239;
-        arg0->state = 1;
+        gRoomEffectMoteId         = EFFECT_SHELTER_B3_ELEVATOR_HALL_MOTE;
+        gRoomEffectHaloId         = EFFECT_SHELTER_B3_ELEVATOR_HALL_HALO;
+        gRoomEffectOrangeBurstId  = EFFECT_SHELTER_B3_ELEVATOR_HALL_ORANGE_BURST;
+        gRoomEffectSparkEmitterId = EFFECT_SHELTER_B3_ELEVATOR_HALL_SPARK_EMITTER;
+        gRoomEffectGlowDiscId     = EFFECT_SHELTER_B3_ELEVATOR_HALL_GLOW_DISC;
+        gRoomEffectFlyingSparkId  = EFFECT_SHELTER_B3_ELEVATOR_HALL_FLYING_SPARK;
+        gRoomEffectOrangeBurst2Id = EFFECT_SHELTER_B3_ELEVATOR_HALL_ORANGE_BURST_2;
+        arg0->state               = 1;
     }
     switch ((u8)Gp_GetViewIndex()) {
         case 3: {

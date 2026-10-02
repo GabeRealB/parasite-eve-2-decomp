@@ -37,7 +37,7 @@ void oddStrangerDie(Task* arg0)
                 break;
             case 5:
                 Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
-                Gp_SpawnEff(0x600A5, arg0->extra.tmd->coords + 2, 3, NULL);
+                Gp_SpawnEff(EFFECT_CORPSE_BURN, arg0->extra.tmd->coords + 2, 3, NULL);
                 break;
             case 23:
                 arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;

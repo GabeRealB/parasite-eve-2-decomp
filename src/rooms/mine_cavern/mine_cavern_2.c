@@ -2228,10 +2228,10 @@ void func_mine_cavern_8017E474(Task* arg0)
     u32 rnd;
 
     if (arg0->state == 0) {
-        D_80115728                       = 0x60244;
-        D_80115744                       = 0x60250;
-        D_8011573C                       = 0x6023F;
-        D_80115720                       = 0x60267;
+        gRoomEffectMoteId                = EFFECT_MINE_CAVERN_MOTE;
+        gRoomEffectHaloId                = EFFECT_MINE_CAVERN_HALO;
+        gRoomEffectOrangeBurstId         = EFFECT_MINE_CAVERN_ORANGE_BURST;
+        gRoomEffectSparkEmitterId        = EFFECT_MINE_CAVERN_SPARK_EMITTER;
         gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
         arg0->state                      = 1;
     }
@@ -2245,7 +2245,7 @@ void func_mine_cavern_8017E474(Task* arg0)
             D_mine_cavern_80188FBC.vy = ((gRandomLcgState >> 16) & 0x3F) - 0x5B4;
             gRandomLcgState           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             D_mine_cavern_80188FBC.vz = ((gRandomLcgState >> 16) & 0x3F) - 0x14A;
-            Gp_SpawnEff(0x600E0, NULL, 0x300, &D_mine_cavern_80188FBC);
+            Gp_SpawnEff(EFFECT_FLASH_BURST, NULL, 0x300, &D_mine_cavern_80188FBC);
         }
     }
 
@@ -2630,7 +2630,7 @@ static void func_mine_cavern_80182184(void)
             coord.coord.t[1]                = pos->vy + ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 0x7F) - 0x40;
             coord.coord.t[2]                = pos->vz + ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 0x7F) - 0x40;
             coord.composeStamp              = GRAPHICS_COORD_DIRTY;
-            Gp_SpawnEff(0x60080, &coord, 0x800004FF, NULL);
+            Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, &coord, 0x800004FF, NULL);
         }
     }
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
@@ -3264,12 +3264,12 @@ static void func_mine_cavern_801838F4(Enemy* arg0, Task* arg1)
             arg1->extra.tmd->coords->coord.t[1]   = -0x258;
             arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(arg1->extra.tmd->coords);
-            Gp_SpawnEff(0x6005C, arg1->extra.tmd->coords, 0x01001200, NULL);
+            Gp_SpawnEff(EFFECT_EXPLOSION, arg1->extra.tmd->coords, 0x01001200, NULL);
             return;
 
         case 1:
             printf(D_mine_cavern_8017D7F0);
-            eff = Gp_SpawnEff(0x6005C, arg1->extra.tmd->coords, 0x01000580, NULL);
+            eff = Gp_SpawnEff(EFFECT_EXPLOSION, arg1->extra.tmd->coords, 0x01000580, NULL);
             if (eff != NULL) {
                 eff->move.vx = 0;
                 eff->move.vy = -0xA;
@@ -3279,7 +3279,7 @@ static void func_mine_cavern_801838F4(Enemy* arg0, Task* arg1)
 
         case 2:
         case 4:
-            Gp_SpawnEff(0x6005C, arg1->extra.tmd->coords, 0x01002500, NULL);
+            Gp_SpawnEff(EFFECT_EXPLOSION, arg1->extra.tmd->coords, 0x01002500, NULL);
             return;
 
         case 3:

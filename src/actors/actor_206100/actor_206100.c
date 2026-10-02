@@ -1765,10 +1765,10 @@ static void func_actor_206100_8014BAA8(Task* task)
                 tmp = kind;
                 switch (tmp) {
                     case 1:
-                        Gp_SpawnEff(0x6009C, &task->extra.tmd->coords[work->field_557], 0, 0);
+                        Gp_SpawnEff(EFFECT_CRITICAL_HIT, &task->extra.tmd->coords[work->field_557], 0, 0);
                         break;
                     case 2:
-                        Gp_SpawnEff(0x6009C, &task->extra.tmd->coords[work->field_557], 2, 0);
+                        Gp_SpawnEff(EFFECT_CRITICAL_HIT, &task->extra.tmd->coords[work->field_557], 2, 0);
                         break;
                 }
                 func_800E2C78(enemy, work->rec_384[i].key.value, amount, 0);
@@ -2344,7 +2344,7 @@ static void func_actor_206100_8014CE60(Task* task)
             vec.vx = (u32)rsin(i << 7) >> 3;
             vec.vy = y;
             vec.vz = (u32)rcos(i << 7) >> 3;
-            Gp_SpawnEff(D_80115738, ring, 0x01202148, &vec);
+            Gp_SpawnEff(gRoomEffectWaterSprayId, ring, 0x01202148, &vec);
             i++;
         } while (i < 0x20);
     }
@@ -2667,7 +2667,7 @@ static void func_actor_206100_8014D574(Task* task)
             vec.vx = (u32)rsin(i << 7) >> 3;
             vec.vy = y;
             vec.vz = (u32)rcos(i << 7) >> 3;
-            Gp_SpawnEff(D_80115738, coord, 0x01202148, &vec);
+            Gp_SpawnEff(gRoomEffectWaterSprayId, coord, 0x01202148, &vec);
             i++;
         } while (i < 0x20);
         sound = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x551E0006;
@@ -2761,7 +2761,7 @@ static void func_actor_206100_8014D8E8(Task* task)
             vec.vx = (u32)rsin(i << 7) >> 3;
             vec.vy = y;
             vec.vz = (u32)rcos(i << 7) >> 3;
-            Gp_SpawnEff(D_80115738, coord, 0x01202148, &vec);
+            Gp_SpawnEff(gRoomEffectWaterSprayId, coord, 0x01202148, &vec);
             i++;
         } while (i < 0x20);
     }

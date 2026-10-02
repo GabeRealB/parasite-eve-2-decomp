@@ -1229,12 +1229,12 @@ void func_shelter_b4_water_supply_8017EE54(Task* arg0)
     ctl       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     ctlCoords = ctl->extra.tmd->coords;
     if (arg0->state == 0) {
-        D_8011574C  = 0x60174;
-        D_80115738  = 0x60175;
-        D_80115734  = 0x60226;
-        D_80115730  = 0x60231;
-        D_80115754  = 0x6023C;
-        arg0->state = 1;
+        gRoomEffectWaterRippleId  = EFFECT_SHELTER_B4_WATER_SUPPLY_WATER_RIPPLE;
+        gRoomEffectWaterSprayId   = EFFECT_SHELTER_B4_WATER_SUPPLY_WATER_SPRAY;
+        gRoomEffectGlowDiscId     = EFFECT_SHELTER_B4_WATER_SUPPLY_GLOW_DISC;
+        gRoomEffectFlyingSparkId  = EFFECT_SHELTER_B4_WATER_SUPPLY_FLYING_SPARK;
+        gRoomEffectOrangeBurst2Id = EFFECT_SHELTER_B4_WATER_SUPPLY_ORANGE_BURST_2;
+        arg0->state               = 1;
         for (i = 0; i < 2; i++) {
             part                                     = &ctl->extra.tmd->coords[14 + i * 3];
             D_shelter_b4_water_supply_801826E0[i].vx = part->workm.t[0];
@@ -1256,12 +1256,12 @@ void func_shelter_b4_water_supply_8017EE54(Task* arg0)
             Gp_UpdateCoord(&surface);
             rnd = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT);
             if ((s32)((rnd >> 16) & 0x1FF) < splash->strength) {
-                Gp_SpawnEff(D_8011574C, &surface, 0x40, 0);
+                Gp_SpawnEff(gRoomEffectWaterRippleId, &surface, 0x40, 0);
             }
             splash->strength -= 0x20;
             rnd               = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT);
             if ((s32)((rnd >> 16) & 0x1FF) < splash->strength) {
-                Gp_SpawnEff(D_80115738, &surface, 0x1202180, 0);
+                Gp_SpawnEff(gRoomEffectWaterSprayId, &surface, 0x1202180, 0);
             }
             D_shelter_b4_water_supply_801826E0[i].vx = part->workm.t[0];
             D_shelter_b4_water_supply_801826E0[i].vy = part->workm.t[1];

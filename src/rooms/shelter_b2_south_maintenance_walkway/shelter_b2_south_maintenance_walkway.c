@@ -580,13 +580,13 @@ void func_shelter_b2_south_maintenance_walkway_8017DCC4(Task* task)
     u8 view;
 
     if (task->state == 0) {
-        D_80115758  = 0x601D1;
-        D_8011572C  = 0x601ED;
-        D_80115750  = 0x60209;
-        D_80115734  = 0x60221;
-        D_80115730  = 0x6022C;
-        D_80115754  = 0x60237;
-        task->state = 1;
+        gRoomEffectFlashId        = EFFECT_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_FLASH;
+        gRoomEffectTwinTrailId    = EFFECT_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_TWIN_TRAIL;
+        gRoomEffectSparkBurstId   = EFFECT_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPARK_BURST;
+        gRoomEffectGlowDiscId     = EFFECT_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_GLOW_DISC;
+        gRoomEffectFlyingSparkId  = EFFECT_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_FLYING_SPARK;
+        gRoomEffectOrangeBurst2Id = EFFECT_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ORANGE_BURST_2;
+        task->state               = 1;
     }
 
     view = Gp_GetViewIndex();

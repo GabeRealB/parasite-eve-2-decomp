@@ -53,13 +53,13 @@ void gluttonChunkSettle(Enemy* enemy, Task* task)
     switch (step) {
         case 3:
         case 7:
-            Gp_SpawnEff(0x600A5, task->extra.tmd->coords, 1, NULL);
+            Gp_SpawnEff(EFFECT_CORPSE_BURN, task->extra.tmd->coords, 1, NULL);
             Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
             break;
         case 0:
         case 1:
         case 19:
-            Gp_SpawnEff(0x600A5, task->extra.tmd->coords, 1, NULL);
+            Gp_SpawnEff(EFFECT_CORPSE_BURN, task->extra.tmd->coords, 1, NULL);
             break;
     }
 

@@ -3247,12 +3247,12 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
                         buf.vec[2].vy = 0x190;
                         buf.vec[2].vz = -0xC8;
                         ApplyMatrixSV(&task->extra.tmd->coords->coord, &buf.vec[2], &buf.vec[3]);
-                        Gp_SpawnEff(0x60070, task->extra.tmd->coords, 0x608, &buf.vec[3]);
+                        Gp_SpawnEff(EFFECT_SMOKE_PUFF, task->extra.tmd->coords, 0x608, &buf.vec[3]);
                         buf.vec[2].vx = 0xC8;
                         buf.vec[2].vy = 0x190;
                         buf.vec[2].vz = -0x320;
                         ApplyMatrixSV(&task->extra.tmd->coords->coord, &buf.vec[2], &buf.vec[3]);
-                        Gp_SpawnEff(0x60070, task->extra.tmd->coords, 0x608, &buf.vec[3]);
+                        Gp_SpawnEff(EFFECT_SMOKE_PUFF, task->extra.tmd->coords, 0x608, &buf.vec[3]);
                         work->timer    = 0;
                         work->field_98 = 0;
                         work->field_9A = 0x80;
@@ -3288,12 +3288,12 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
                             buf.vec[1].vy = 0x190;
                             buf.vec[1].vz = -0xC8;
                             ApplyMatrixSV(&task->extra.tmd->coords->coord, &buf.vec[1], &buf2.vec);
-                            Gp_SpawnEff(0x600E0, task->extra.tmd->coords, 0x200, &buf2.vec);
+                            Gp_SpawnEff(EFFECT_FLASH_BURST, task->extra.tmd->coords, 0x200, &buf2.vec);
                             buf.vec[1].vx = 0xC8;
                             buf.vec[1].vy = 0x190;
                             buf.vec[1].vz = -0x320;
                             ApplyMatrixSV(&task->extra.tmd->coords->coord, &buf.vec[1], &buf2.vec);
-                            Gp_SpawnEff(0x600E0, task->extra.tmd->coords, 0x200, &buf2.vec);
+                            Gp_SpawnEff(EFFECT_FLASH_BURST, task->extra.tmd->coords, 0x200, &buf2.vec);
                         }
                     }
                     if (gDisplayState.animFrame & 1) {
@@ -3308,7 +3308,7 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
                         buf2.vec.vx = -0x190;
                         buf2.vec.vy = 0x190;
                         buf2.vec.vz = 0x190;
-                        Gp_SpawnEff(0x600E0, &task->extra.tmd->coords[1], 0x200, &buf2.vec);
+                        Gp_SpawnEff(EFFECT_FLASH_BURST, &task->extra.tmd->coords[1], 0x200, &buf2.vec);
                     }
                     if (++work->timer >= 6) {
                         if (work->field_98 < -0x154) {
@@ -4369,21 +4369,21 @@ void func_shelter_b3_dumping_hole_80186D4C(Task* arg0)
     mem->age += 1;
     switch (arg0->spawnArg1.value) {
         case 0:
-            Gp_SpawnEff(0x6019A, coord, 0x14002400, NULL);
+            Gp_SpawnEff(EFFECT_GLUTTON_RAIN_PARTICLE, coord, 0x14002400, NULL);
             arg0->spawnArg1.value = 1;
             return;
         case 1:
             effectSpriteDrawBillboard(coord, (mem->age / 2) & 0xFFFF, 0x380);
             if (!(mem->age & 1)) {
-                Gp_SpawnEff(0x6019A, coord, 0x1001400, NULL);
+                Gp_SpawnEff(EFFECT_GLUTTON_RAIN_PARTICLE, coord, 0x1001400, NULL);
             }
             mem->age += 1;
             return;
         case 2:
-            Gp_SpawnEff(0x6019A, coord, 0x10002380, NULL);
+            Gp_SpawnEff(EFFECT_GLUTTON_RAIN_PARTICLE, coord, 0x10002380, NULL);
             for (i = 0; i < 4; i++) {
-                Gp_SpawnEff(0x6019A, coord, 0x2002400, NULL);
-                Gp_SpawnEff(0x60199, coord, 0x2202300, NULL);
+                Gp_SpawnEff(EFFECT_GLUTTON_RAIN_PARTICLE, coord, 0x2002400, NULL);
+                Gp_SpawnEff(EFFECT_SHELTER_B3_DUMPING_HOLE_DRIFT_SPRITE, coord, 0x2202300, NULL);
             }
             arg0->spawnArg1.value = 3;
             return;

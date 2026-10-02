@@ -42,6 +42,6 @@ void desertChaserPartEffect(Task* arg0, s16 part, s16 flags)
     }
 
     if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED && spawn == 1) {
-        Gp_SpawnEff(0x60054, &arg0->extra.tmd->coords[part], flags | 0x80000000, &sp10);
+        Gp_SpawnEff(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[part], flags | 0x80000000, &sp10);
     }
 }

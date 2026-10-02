@@ -459,14 +459,14 @@ void func_neo_ark_north_promenade_8017D6C8(Task* task)
 void func_neo_ark_north_promenade_8017D720(Task* arg0)
 {
     if (arg0->state == 0) {
-        D_80115728  = 0x6024F;
-        D_80115744  = 0x6025B;
-        D_8011573C  = 0x60266;
-        D_80115720  = 0x60272;
-        D_80115758  = 0x601D8;
-        D_8011572C  = 0x601F4;
-        D_80115750  = 0x60210;
-        arg0->state = 1;
+        gRoomEffectMoteId         = EFFECT_NEO_ARK_NORTH_PROMENADE_MOTE;
+        gRoomEffectHaloId         = EFFECT_NEO_ARK_NORTH_PROMENADE_HALO;
+        gRoomEffectOrangeBurstId  = EFFECT_NEO_ARK_NORTH_PROMENADE_ORANGE_BURST;
+        gRoomEffectSparkEmitterId = EFFECT_NEO_ARK_NORTH_PROMENADE_SPARK_EMITTER;
+        gRoomEffectFlashId        = EFFECT_NEO_ARK_NORTH_PROMENADE_FLASH;
+        gRoomEffectTwinTrailId    = EFFECT_NEO_ARK_NORTH_PROMENADE_TWIN_TRAIL;
+        gRoomEffectSparkBurstId   = EFFECT_NEO_ARK_NORTH_PROMENADE_SPARK_BURST;
+        arg0->state               = 1;
     }
 }
 
