@@ -359,8 +359,8 @@ void Title_RestoreDemoCard(void)
     memcpy((u8*)&gPlayerStatus + bank * PLAYER_STATUS_SAVE_RECORD_BYTES, src, PLAYER_STATUS_SAVE_RECORD_BYTES);
     src += PLAYER_STATUS_SAVE_RECORD_BYTES;
 
-    memcpy(&GameFlag_AcropolisBanks[bank], src, 0x6C);
-    src += 0x6C;
+    memcpy(&GameFlag_AcropolisBanks[bank], src, GAME_FLAG_ACROPOLIS_BANK_BYTES);
+    src += GAME_FLAG_ACROPOLIS_BANK_BYTES;
 
     memcpy(GameFlag_DryfieldBanks, src, GAME_FLAG_DRYFIELD_BANK_BYTES);
     src += GAME_FLAG_DRYFIELD_BANK_BYTES;
