@@ -343,7 +343,13 @@ static inline void _tmdInitGt3OffsetLayerTexture(POLY_GT3* triangle, const u32* 
         /// stride or complete extent.
         MODEL_LIGHTING_GT3_OFFSET_LAYER_UV2_WORD_INDEX = 5,
         TMD_LAYER_TPAGE_ABR_LOW_BIT                    = 1 << 5, // Set ABR bit 5 without clearing bit 6
-        TMD_LAYER_CLUT_ROW_SHIFT                       = 6       // One signed palette row adds 64 encoded CLUT units
+        /// Shift from signed offset-layer palette rows to encoded CLUT displacement.
+        ///
+        /// The GPU CLUT address stores Y above six X/16 column bits.
+        /// Sign-extending the object's s8 row offset before this shift converts
+        /// -128..127 rows to -8192..8128 encoded units (64 per row). The sum
+        /// wraps in the packet's u16 CLUT field, preserving the six column bits.
+        MODEL_LIGHTING_OFFSET_LAYER_CLUT_ROW_SHIFT = 6
     };
     s32 layerTexturePage;
     s32 layerClutRowByte;
@@ -353,12 +359,12 @@ static inline void _tmdInitGt3OffsetLayerTexture(POLY_GT3* triangle, const u32* 
     // Copy the U/V byte pair without overwriting the adjacent packet pad2.
     *(u16*)&triangle->u2 = (u16)elementWords[MODEL_LIGHTING_GT3_OFFSET_LAYER_UV2_WORD_INDEX];
     triangle->tpage     += workspace->obj->layerTexturePageOffset;
-    // Load the encoded row byte before reloading the truncated page sum.
+    // Load the palette-row byte before reloading the truncated page sum.
     layerClutRowByte  = (u8)workspace->obj->layerClutRowOffset;
     layerTexturePage  = triangle->tpage;
     layerTexturePage |= TMD_LAYER_TPAGE_ABR_LOW_BIT;
     triangle->tpage   = layerTexturePage;
-    triangle->clut   += (s8)layerClutRowByte << TMD_LAYER_CLUT_ROW_SHIFT;
+    triangle->clut   += (s8)layerClutRowByte << MODEL_LIGHTING_OFFSET_LAYER_CLUT_ROW_SHIFT;
 }
 
 /// Initializes one Gouraud textured triangle's texture from a per-corner-colour element.
