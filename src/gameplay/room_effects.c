@@ -399,15 +399,21 @@
 
 #include "weapons/tonfa_baton.h"
 
-/// 0x10-byte scratch from the scratch stack used by `Gp_TraceGroundCoord` and
-/// `func_800EA1A8`. `pos` is the low halves of the source XYZ. `dir`
-/// starts as `(0, 0x1000, 0)`, is rotated by `gGfxViewCoord.workm`, then added
-/// onto `pos` and passed to `func_800DE7CC`.
-typedef struct _GpRayScratch {
-    /* 0x0 */ SVECTOR pos;
-    /* 0x8 */ SVECTOR dir;
-} GpRayScratch;
-STATIC_ASSERT_SIZEOF(GpRayScratch, 0x10);
+/// World +Y distance of a ground probe, in game-coordinate units.
+enum { WORLD_COLLISION_GROUND_PROBE_LENGTH = 0x1000 };
+
+/// Temporary view-space segment for projecting a position onto room geometry.
+///
+/// XYZ coordinates use signed 16-bit game units; narrowing the source and adding
+/// the rotated offset retain only the low 16 bits. The endpoint also receives
+/// the accepted hit. Both SDK fourth halfwords are unused and uninitialized.
+/// This word-aligned scratch-stack block stays live through nested collision
+/// queries and is released before its caller returns.
+typedef struct {
+    SVECTOR origin;   // Fixed view-space source position, narrowed from 32-bit XYZ
+    SVECTOR endpoint; // World +Y offset, then view-space segment end, then accepted hit
+} _WorldCollisionGroundProbeScratch;
+STATIC_ASSERT_SIZEOF(_WorldCollisionGroundProbeScratch, 0x10);
 
 /* Define BSS before API headers to preserve first-declaration order. */
 s32 gRoomEffectSparkEmitterId;
@@ -1466,83 +1472,87 @@ static void Gp_TickState1C(Task* unused)
 
 s32 Gp_TraceGroundCoord(GfxCoord* arg0, GfxCoord* arg1)
 {
-    u8*           head;
-    GpRayScratch* block;
-    SVECTOR*      dir;
-    MATRIX*       world;
-    s32           ret;
-    u16           vz;
+    _WorldCollisionGroundProbeScratch* scratchEnd;
+    _WorldCollisionGroundProbeScratch* scratch;
+    SVECTOR*                           endpoint;
+    MATRIX*                            world;
+    s32                                ret;
+    u16                                originZBits;
 
-    head                                   = SCRATCH_STACK_CURSOR(u8);
-    block                                  = (GpRayScratch*)(head - 0x10);
-    ((GpRayScratch*)(head - 0x10))->pos.vx = (u16)arg0->workm.t[0];
-    block->pos.vy                          = (u16)arg0->workm.t[1];
-    vz                                     = (u16)arg0->workm.t[2];
-    SCRATCH_STACK_CURSOR(GpRayScratch)     = block;
-    block->dir.vx                          = 0;
-    block->dir.vy                          = 0x1000;
-    block->dir.vz                          = 0;
-    block->pos.vz                          = vz;
+    scratchEnd                                              = SCRATCH_STACK_CURSOR(_WorldCollisionGroundProbeScratch);
+    scratch                                                 = scratchEnd - 1;
+    scratchEnd[-1].origin.vx                                = (u16)arg0->workm.t[0];
+    scratch->origin.vy                                      = (u16)arg0->workm.t[1];
+    originZBits                                             = (u16)arg0->workm.t[2];
+    SCRATCH_STACK_CURSOR(_WorldCollisionGroundProbeScratch) = scratch;
+    // Build the world +Y probe offset in view space before adding the origin.
+    scratch->endpoint.vx = 0;
+    scratch->endpoint.vy = WORLD_COLLISION_GROUND_PROBE_LENGTH;
+    scratch->endpoint.vz = 0;
+    scratch->origin.vz   = originZBits;
     gte_SetRotMatrix(&gGfxViewCoord.workm);
-    dir = (SVECTOR*)(head - 8);
-    gte_ldv0(dir);
+    endpoint = &scratchEnd[-1].endpoint;
+    gte_ldv0(endpoint);
     gte_rtv0();
-    gte_stsv(dir);
-    block->dir.vx += ((GpRayScratch*)(head - 0x10))->pos.vx;
-    block->dir.vy += block->pos.vy;
-    block->dir.vz += block->pos.vz;
-    ret            = func_800DE7CC(dir, &block->pos, dir, NULL);
+    gte_stsv(endpoint);
+    scratch->endpoint.vx += scratchEnd[-1].origin.vx;
+    scratch->endpoint.vy += scratch->origin.vy;
+    scratch->endpoint.vz += scratch->origin.vz;
+    // The collision query replaces the endpoint with its accepted intersection.
+    ret = func_800DE7CC(endpoint, &scratch->origin, endpoint, NULL);
     if (ret == 1) {
         world            = &gGfxViewCoord.workm;
-        arg1->workm.t[0] = block->dir.vx;
-        arg1->workm.t[1] = block->dir.vy;
-        arg1->workm.t[2] = block->dir.vz;
+        arg1->workm.t[0] = scratch->endpoint.vx;
+        arg1->workm.t[1] = scratch->endpoint.vy;
+        arg1->workm.t[2] = scratch->endpoint.vz;
         gfxMakeRelativeTransform(world, &arg1->workm, &arg1->coord);
         arg1->parent       = PARENT_OF(world, GfxCoord, workm);
         arg1->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(arg1);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionGroundProbeScratch);
     return ret;
 }
 
 s32 func_800EA1A8(VECTOR3* arg0, VECTOR3* arg1)
 {
-    u8*           head;
-    GpRayScratch* block;
-    SVECTOR*      dir;
-    s32           ret;
-    u16           vz;
+    _WorldCollisionGroundProbeScratch* scratchEnd;
+    _WorldCollisionGroundProbeScratch* scratch;
+    SVECTOR*                           endpoint;
+    s32                                ret;
+    u16                                originZBits;
 
-    head                                   = SCRATCH_STACK_CURSOR(u8);
-    block                                  = (GpRayScratch*)(head - 0x10);
-    ((GpRayScratch*)(head - 0x10))->pos.vx = (u16)arg0->vx;
-    block->pos.vy                          = (u16)arg0->vy;
-    vz                                     = (u16)arg0->vz;
-    SCRATCH_STACK_CURSOR(GpRayScratch)     = block;
-    block->dir.vx                          = 0;
-    block->dir.vy                          = 0x1000;
-    block->dir.vz                          = 0;
-    block->pos.vz                          = vz;
+    scratchEnd                                              = SCRATCH_STACK_CURSOR(_WorldCollisionGroundProbeScratch);
+    scratch                                                 = scratchEnd - 1;
+    scratchEnd[-1].origin.vx                                = (u16)arg0->vx;
+    scratch->origin.vy                                      = (u16)arg0->vy;
+    originZBits                                             = (u16)arg0->vz;
+    SCRATCH_STACK_CURSOR(_WorldCollisionGroundProbeScratch) = scratch;
+    // Build the world +Y probe offset in view space before adding the origin.
+    scratch->endpoint.vx = 0;
+    scratch->endpoint.vy = WORLD_COLLISION_GROUND_PROBE_LENGTH;
+    scratch->endpoint.vz = 0;
+    scratch->origin.vz   = originZBits;
     gte_SetRotMatrix(&gGfxViewCoord.workm);
-    dir = (SVECTOR*)(head - 8);
-    gte_ldv0(dir);
+    endpoint = &scratchEnd[-1].endpoint;
+    gte_ldv0(endpoint);
     gte_rtv0();
-    gte_stsv(dir);
-    block->dir.vx += ((GpRayScratch*)(head - 0x10))->pos.vx;
-    block->dir.vy += block->pos.vy;
-    block->dir.vz += block->pos.vz;
-    ret            = func_800DE7CC(dir, &block->pos, dir, NULL);
+    gte_stsv(endpoint);
+    scratch->endpoint.vx += scratchEnd[-1].origin.vx;
+    scratch->endpoint.vy += scratch->origin.vy;
+    scratch->endpoint.vz += scratch->origin.vz;
+    // The collision query replaces the endpoint with its accepted intersection.
+    ret = func_800DE7CC(endpoint, &scratch->origin, endpoint, NULL);
     if (ret == 1) {
-        arg1->vx = block->dir.vx;
-        arg1->vy = block->dir.vy;
-        arg1->vz = block->dir.vz;
-        ret      = block->dir.vy - block->pos.vy;
+        arg1->vx = scratch->endpoint.vx;
+        arg1->vy = scratch->endpoint.vy;
+        arg1->vz = scratch->endpoint.vz;
+        ret      = scratch->endpoint.vy - scratch->origin.vy;
         if (ret == 0) {
             ret = 1;
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionGroundProbeScratch);
     return ret;
 }
 

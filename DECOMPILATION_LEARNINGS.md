@@ -32266,26 +32266,28 @@ Gp_UpdateCoord(coord);
 
 ## Add a rotated scratch `SVECTOR` through the block, not the GTE pointer
 
-After `gte_ldv0` / `gte_rtv0()` / `gte_stsv` on `dir = head - 8`, adding
-the source position through that same `dir` pointer emits `lhu -8(head)` /
-`lhu 2(a0)` and delays `move a1, pos` until the last component. Adding
+After `gte_ldv0` / `gte_rtv0()` / `gte_stsv` on
+`endpoint = &scratchEnd[-1].endpoint`, adding the source position through that
+same `endpoint` pointer emits `lhu -8(scratchEnd)` / `lhu 2(a0)` and delays
+`move a1, origin` until the last component. Adding
 through the 0x10-byte scratch block keeps `8(s1)` / `0xa(s1)` / `0xc(s1)`
-and lets GCC schedule the `func_800DE7CC` args and preload `pos.vy` /
-`pos.vz` during the `vx` add:
+and lets GCC schedule the `func_800DE7CC` args and preload `origin.vy` /
+`origin.vz` during the `vx` add:
 
 ```c
-dir = (SVECTOR*)(head - 8);
-gte_ldv0(dir);
+endpoint = &scratchEnd[-1].endpoint;
+gte_ldv0(endpoint);
 gte_rtv0();
-gte_stsv(dir);
-block->dir.vx += ((GpRayScratch*)(head - 0x10))->pos.vx;
-block->dir.vy += block->pos.vy;
-block->dir.vz += block->pos.vz;
-ret = func_800DE7CC(dir, &block->pos, dir, NULL);
+gte_stsv(endpoint);
+scratch->endpoint.vx += scratchEnd[-1].origin.vx;
+scratch->endpoint.vy += scratch->origin.vy;
+scratch->endpoint.vz += scratch->origin.vz;
+ret = func_800DE7CC(endpoint, &scratch->origin, endpoint, NULL);
 ```
 
-`pos.vx` must be reloaded via `head - 0x10` so the add is `-0x10(v1)`
-(the original scratch head, still live after GTE). `block->pos.vx` is
+`origin.vx` must be reloaded via `scratchEnd[-1]` (one
+`_WorldCollisionGroundProbeScratch` below the saved cursor) so the add is
+`-0x10(v1)` (the original scratch head, still live after GTE). `scratch->origin.vx` is
 `0(s1)` and reshapes the whole add. `Gp_TraceGroundCoord` is the example.
 
 ## Invert `if (field == 0)` so the else reloads into `$a1`
