@@ -12,7 +12,12 @@
 
 /// Texture layout shared by the twelve-frame effect sprite atlas.
 enum {
-    EFFECT_SPRITE_ATLAS_CELL_SIZE    = 40,                                // Width and height in texels.
+    /// Width, height and spacing of the shared atlas's square cells, in texels.
+    ///
+    /// Use this count for horizontal and vertical frame-origin strides.
+    /// The last texel is `EFFECT_SPRITE_ATLAS_UV_SPAN` past the origin;
+    /// adjacent cells begin immediately after that texel.
+    EFFECT_SPRITE_ATLAS_CELL_SIZE    = 40,
     EFFECT_SPRITE_ATLAS_UV_SPAN      = EFFECT_SPRITE_ATLAS_CELL_SIZE - 1, // Inclusive texel distance between edges.
     EFFECT_SPRITE_ATLAS_TEXTURE_PAGE = 0x29,                              // 4-bit VRAM (576, 0); additive blending.
 };
