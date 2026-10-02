@@ -265,7 +265,7 @@ static void Tmd_InitSourceStream(TmdSource* src)
                 case 0x4079:
                     handler = tmdDrawStreamPrimGt4PreXformEnvLayer;
                     if (flag != 0) {
-                        handler = gpDrawStreamPrimGt4PreXformOffsetLayer;
+                        handler = tmdDrawStreamPrimGt4PreXformOffsetLayer;
                     }
                     break;
                 case 0:

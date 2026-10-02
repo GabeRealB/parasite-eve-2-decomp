@@ -35724,31 +35724,33 @@ mtc2   t8, $15
 ```
 
 `tmdDrawStreamPrimGt3PreXformOffsetLayer` is the example. The GT4 pair
-(`gpDrawStreamPrimGt4PreXformOffsetLayer`) uses the same `$t8` temp; `xy = poly + 1`
+(`tmdDrawStreamPrimGt4PreXformOffsetLayer`) uses the same `$t8` temp; the
+compiler addresses the first packet through the second (`addu` by 52)
 so first-packet `x0`/`x1`/`x2` are `-44`/`-32`/`-20`, and the F4-style fourth SXY
 is `-8` (`x3`).
 
 ## Dual-packet GT4 = F4 nclip-goto + paired GT3 OT link
 
-`gpDrawStreamPrimGt4PreXformOffsetLayer` stacks `tmdDrawStreamPrimF4PreXform`'s four-vertex
+`tmdDrawStreamPrimGt4PreXformOffsetLayer` stacks `tmdDrawStreamPrimF4PreXform`'s four-vertex
 nclip with `tmdDrawStreamPrimGt3PreXformOffsetLayer`'s dual-packet OT insert:
 
 ```c
-if (ws->gteResult > 0) {
+if (workspace->gteResult > 0) {
     goto draw;
 }
-gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(&xy[-1], 3));
+gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(&(*packetPair)[0], 3));
 gte_nclip();
-gte_stopz(opz);
-if (ws->gteResult < 0) {
+gte_stopz(gteResultDestination);
+if (workspace->gteResult < 0) {
 draw:
     /* gte_ldsz0..3s, avsz4, setlen/setcode 0x3E then 0x3C, link both */
 }
 ```
 
 Packet length is `12` (not GT3's `9`). First GPU code is `0x3E`, second
-`0x3C`. Pin `opz` `$t2`, `ds` `$t4`, `maskHi` `$t3` — GT3 used
-`$t4`/`$t3`/`$t2` because it had no extra nclip temps.
+`0x3C`. The result pointer stays in `$t2`, the display state in `$t4` and
+the high address mask in `$t3` — GT3 used `$t4`/`$t3`/`$t2` because it had
+no extra nclip temps.
 
 ## Non-volatile `+r` so `move s5, a0` precedes `lui` without saving `$ra` early
 
@@ -134171,7 +134173,7 @@ they are what trims the quad: the polygon then has two corners in the same place
 so what it covers is the surviving triangle. `tmdDrawStreamPrimGt4PreXformEnvLayer`
 (`0x4079`) is the pre-transformed example and `func_8009C414` (`0x4078`) the
 transform-region one. The quad twin that takes the layer's page from the object
-instead (`gpDrawStreamPrimGt4PreXformOffsetLayer`) keeps or drops the element on the same two tests but
+instead (`tmdDrawStreamPrimGt4PreXformOffsetLayer`) keeps or drops the element on the same two tests but
 takes no copies, and the triangles of either family test one half only, having no
 fourth corner to fold.
 

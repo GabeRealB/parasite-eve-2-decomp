@@ -1213,80 +1213,136 @@ u32* tmdDrawStreamPrimGt3PreXformOffsetLayer(TmdStreamWorkspace* workspace, s32 
     return elements;
 }
 
-u32* gpDrawStreamPrimGt4PreXformOffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+u32* tmdDrawStreamPrimGt4PreXformOffsetLayer(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    POLY_GT4*     poly;
-    POLY_GT4*     xy;
-    s32*          opz;
-    u32           clipMask;
-    s32           len;
-    s32           code;
-    DisplayState* ds;
-    u16*          rec;
-    s32           sz;
-    s32           idx;
-    s32*          szTable;
+    enum {
+        /// Extracts an aligned depth-cache byte offset from an offset-layer quad's corner reference.
+        ///
+        /// Applied to each of the element's first four u16 values: retain
+        /// bits 15..2 and discard bits 1..0, whose role is unproven. Results
+        /// span 0..65532 bytes and are divided by `sizeof(*vertexDepths)` to
+        /// index four-byte `szTable` entries. The draw walk supplies 1024
+        /// entries: valid byte offsets are 0..4092, and each selected depth
+        /// must be initialized by an earlier projection in that walk.
+        /// This mask checks neither bounds nor validity; `TMD_VERTEX_DEPTH_INVALID`
+        /// is tested in the selected cache entry, independently of the reference's
+        /// low bits.
+        TMD_GT4_OFFSET_LAYER_DEPTH_BYTE_OFFSET_MASK = 0xFFFC,
+        /// GPU command byte for the opaque, colour-modulated Gouraud-textured base quad.
+        ///
+        /// Bits 1 and 0 are clear: semitransparency is disabled and the existing
+        /// per-corner colours modulate the texture. Written to the second
+        /// `POLY_GT4` in each pair, using the model's base page/CLUT offsets.
+        /// Ordering-table head insertion draws it before the blended layer.
+        /// The command is fixed, independent of `objectFlags`.
+        TMD_GT4_OFFSET_LAYER_BASE_COMMAND = 0x3C,
+        /// GPU command byte for the colour-modulated, semitransparent offset-layer quad.
+        ///
+        /// Bit 1 enables semitransparency; bit 0 stays clear so the existing lit
+        /// vertex colours modulate the texture. The prebuilt packet's `tpage`
+        /// supplies the blend mode. Written to the first `POLY_GT4` in each
+        /// offset-layer/base pair; ordering-table head insertion draws it after
+        /// the opaque base. The command is fixed, independent of `objectFlags`.
+        TMD_GT4_OFFSET_LAYER_SEMI_TRANS_COMMAND = 0x3E,
+        /// Number of `POLY_GT4` packet slots consumed by one offset-layer quad element.
+        ///
+        /// Slot 0 holds the semitransparent offset-textured layer; slot 1 holds
+        /// the opaque model-textured base. Defines the pair's storage stride,
+        /// including both DMA tags; culled elements still consume both slots.
+        TMD_GT4_OFFSET_LAYER_PACKETS_PER_ELEMENT = 2,
+        /// Right shift converting an offset-layer quad's scaled GTE OTZ to an OT tag index.
+        ///
+        /// Applied after the u32 left shift by `gDisplayState.otDepthShift`
+        /// (0..3): sixteen scaled depth units select one four-byte tag.
+        /// Combines the depth-to-byte-offset right shift by two with the
+        /// bytes-to-tags conversion. The following mask is
+        /// `GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot)`;
+        /// it keeps scaled-depth bits 4..13, wrapping to indices 0..1023.
+        /// The unsigned cast preserves unsigned shift arithmetic; the result
+        /// counts tags, not bytes, and does not clamp depth. Both packets use
+        /// this index relative to `workspace->ot`, already displaced by the
+        /// model's signed tag offset. The selected table must contain that
+        /// entry; neither the shift nor the mask checks its storage bounds.
+        TMD_GT4_OFFSET_LAYER_OT_INDEX_SHIFT = 4
+    };
+    /// One element's offset-textured layer followed by its opaque base.
+    typedef POLY_GT4 _TmdOffsetLayerQuadPair[TMD_GT4_OFFSET_LAYER_PACKETS_PER_ELEMENT];
 
-    poly = (POLY_GT4*)ws->preXformWrite;
-    if (ws->elemCount-- > 0) {
-        opz      = &ws->gteResult;
-        clipMask = TMD_VERTEX_DEPTH_INVALID;
-        len      = 12;
-        code     = 0x3C;
-        ds       = &gDisplayState;
+    _TmdOffsetLayerQuadPair* packetPair;
+    s32*                     gteResultDestination;
+    u32                      invalidDepthMask;
+    s32                      packetWordCount;
+    s32                      baseCommand;
+    const DisplayState*      displayState;
+    const u16*               depthRefs;
+    s32                      cachedDepth;
+    u32                      depthByteOffset;
+    const s32*               vertexDepths;
+
+    packetPair = (_TmdOffsetLayerQuadPair*)workspace->preXformWrite;
+    if (workspace->elemCount-- > 0) {
+        gteResultDestination = &workspace->gteResult;
+        invalidDepthMask     = TMD_VERTEX_DEPTH_INVALID;
+        packetWordCount      = (sizeof((*packetPair)[0]) - sizeof((*packetPair)[0].tag)) / sizeof(u32);
+        baseCommand          = TMD_GT4_OFFSET_LAYER_BASE_COMMAND;
+        displayState         = &gDisplayState;
         do {
-            xy  = poly + 1;
-            rec = (u16*)stream;
-            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(&xy[-1], 0));
-            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(&xy[-1], 1));
-            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(&xy[-1], 2));
-            gte_nclip();
-            gte_stopz(opz);
-            if (ws->gteResult > 0) {
+            depthRefs = (const u16*)elements;
+            // Accept a positive first half immediately; otherwise require a negative second half.
+            _tmdStoreTexturedQuadFirstTriangleFacing(&(*packetPair)[0], gteResultDestination);
+            if (workspace->gteResult > 0) {
                 goto draw;
             }
-            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(&xy[-1], 3));
+            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(&(*packetPair)[0], 3));
             gte_nclip();
-            gte_stopz(opz);
-            if (ws->gteResult < 0) {
+            gte_stopz(gteResultDestination);
+            if (workspace->gteResult < 0) {
             draw:
-                szTable = ws->szTable;
-                idx     = rec[0] & 0xFFFC;
-                sz      = szTable[(u32)idx / sizeof(*szTable)];
-                if ((sz & clipMask) == 0) {
-                    gte_ldSZ0(sz);
-                    idx = rec[1] & 0xFFFC;
-                    sz  = szTable[(u32)idx / sizeof(*szTable)];
-                    if ((sz & clipMask) == 0) {
-                        gte_ldSZ1(sz);
-                        idx = rec[2] & 0xFFFC;
-                        sz  = szTable[(u32)idx / sizeof(*szTable)];
-                        if ((sz & clipMask) == 0) {
-                            gte_ldSZ2(sz);
-                            idx = rec[3] & 0xFFFC;
-                            sz  = szTable[(u32)idx / sizeof(*szTable)];
-                            if ((sz & clipMask) == 0) {
-                                gte_ldSZ3(sz);
+                // Only initialized, valid cached depths may contribute to AVSZ4.
+                vertexDepths    = workspace->szTable;
+                depthByteOffset = depthRefs[0] & TMD_GT4_OFFSET_LAYER_DEPTH_BYTE_OFFSET_MASK;
+                cachedDepth     = vertexDepths[depthByteOffset / sizeof(*vertexDepths)];
+                if ((cachedDepth & invalidDepthMask) == 0) {
+                    gte_ldSZ0(cachedDepth);
+                    depthByteOffset = depthRefs[1] & TMD_GT4_OFFSET_LAYER_DEPTH_BYTE_OFFSET_MASK;
+                    cachedDepth     = vertexDepths[depthByteOffset / sizeof(*vertexDepths)];
+                    if ((cachedDepth & invalidDepthMask) == 0) {
+                        gte_ldSZ1(cachedDepth);
+                        depthByteOffset = depthRefs[2] & TMD_GT4_OFFSET_LAYER_DEPTH_BYTE_OFFSET_MASK;
+                        cachedDepth     = vertexDepths[depthByteOffset / sizeof(*vertexDepths)];
+                        if ((cachedDepth & invalidDepthMask) == 0) {
+                            gte_ldSZ2(cachedDepth);
+                            depthByteOffset = depthRefs[3] & TMD_GT4_OFFSET_LAYER_DEPTH_BYTE_OFFSET_MASK;
+                            cachedDepth     = vertexDepths[depthByteOffset / sizeof(*vertexDepths)];
+                            if ((cachedDepth & invalidDepthMask) == 0) {
+                                gte_ldSZ3(cachedDepth);
                                 gte_avsz4();
-                                setlen(&xy[-1], len);
-                                setcode(&xy[-1], 0x3E);
-                                gte_stotz(opz);
-                                setlen(xy, len);
-                                setcode(xy, code);
-                                gte_stotz(opz);
-                                addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
-                                addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], xy);
+                                setlen(&(*packetPair)[0], packetWordCount);
+                                setcode(&(*packetPair)[0], TMD_GT4_OFFSET_LAYER_SEMI_TRANS_COMMAND);
+                                gte_stotz(gteResultDestination);
+                                setlen(&(*packetPair)[1], packetWordCount);
+                                setcode(&(*packetPair)[1], baseCommand);
+                                gte_stotz(gteResultDestination);
+                                // Head insertion makes the opaque base draw before the blended layer.
+                                addPrim(&workspace->ot[((u32)workspace->gteResult << displayState->otDepthShift) >>
+                                                           TMD_GT4_OFFSET_LAYER_OT_INDEX_SHIFT &
+                                                       (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))],
+                                        &(*packetPair)[0]);
+                                addPrim(&workspace->ot[((u32)workspace->gteResult << displayState->otDepthShift) >>
+                                                           TMD_GT4_OFFSET_LAYER_OT_INDEX_SHIFT &
+                                                       (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))],
+                                        &(*packetPair)[1]);
                             }
                         }
                     }
                 }
             }
-            poly   += 2;
-            stream += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+            packetPair++;
+            elements += workspace->elemStride;
+        } while (workspace->elemCount-- > 0);
     }
-    ws->preXformWrite = (u8*)poly;
-    return stream;
+    workspace->preXformWrite = (u8*)packetPair;
+    return elements;
 }
 
 const CVECTOR gGpColorGrey   = { 0x80, 0x80, 0x80, 0 };

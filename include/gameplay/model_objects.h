@@ -205,7 +205,7 @@ u32* tmdDrawStreamPrimGt3PreXformEnvLayer(TmdStreamWorkspace* workspace, s32 obj
 /// Culls and links pre-transformed textured quads with an additive environment layer.
 ///
 /// Draw callback for opcode `0x4079` outside stage 2, area 16; that location
-/// selects `gpDrawStreamPrimGt4PreXformOffsetLayer`. `objectFlags` is ignored,
+/// selects `tmdDrawStreamPrimGt4PreXformOffsetLayer`. `objectFlags` is ignored,
 /// including transparency and reverse-culling bits. `elements` starts after
 /// the three-word record header. `workspace->elemCount` initially counts
 /// 0..65535 elements; `elemStride` counts u32 words. Drawing reads each element's
@@ -279,32 +279,48 @@ u32* tmdDrawStreamPrimGt4PreXformEnvLayer(TmdStreamWorkspace* workspace, s32 obj
 /// is retained here. Linked packets and OT must live until GPU consumption ends.
 u32* tmdDrawStreamPrimGt3PreXformOffsetLayer(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
-/// The draw pass's handler for a stream's layered pre-transformed textured-quad
-/// records (`0x4079`) whose semi-transparent layer is textured from the object:
-/// each element's two quads sit in the buffer half's first region — the quad the
-/// model is drawn from and the layer drawn over it — and this handler links both
-/// into the ordering table at the depth their corners measured.
+/// Culls and links pre-transformed textured quads with an object-offset layer.
 ///
-/// Nothing is projected or lit here. The record is pre-transformed, so a
-/// transform command has already written the corners and lit colours into the
-/// packets and their depths into the per-vertex screen-Z table, where an element
-/// names the four corners of its quad. What a frame adds is the filing: those
-/// four cached depths are averaged for the ordering-table link, the facing comes
-/// from the coordinates the packets already carry, and each packet is given the
-/// length and primitive code it is drawn under — `0x3E` for the layer and `0x3C`
-/// for the base, the two linked back to back so that the base is drawn under the
-/// layer. A quad is drawn where either of its halves faces the viewer, and left
-/// out of the ordering table where neither does; the room its packets take is
-/// passed over either way, which keeps the packets in step with the elements that
-/// named them.
+/// Resolution selects this draw callback for opcode `0x4079` in stage 2, area
+/// 16; other locations select `tmdDrawStreamPrimGt4PreXformEnvLayer`.
+/// `objectFlags` is ignored, including transparency and reverse-culling bits.
+/// `elements` starts after the three-word record header. The caller supplies
+/// `workspace->elemCount` (0..65535) and `elemStride` in u32 words. The first
+/// four u16 values of each element are depth-cache byte references: clear
+/// bits 0..1 and divide by four to select `szTable` entries. Those low bits'
+/// role is unproven. Each index must be below 1024 and initialized by an earlier
+/// projection in this draw walk. Drawing reads eight payload bytes; construction
+/// reads through word 4, requiring at least five words, not a proven full extent.
 ///
-/// The layer's texture is not this entry's to settle: the command that builds the
-/// record writes the page and CLUT the layer draws from — the object's own page
-/// and CLUT offsets — and the coordinates it samples, so nothing here touches
-/// either packet's texture words. That is what distinguishes this entry from the
-/// record's other handler, which is taken where the layer is the drawing pass's
-/// to texture. The record has no variant for `flags` to select, so it goes
-/// unread.
-u32* gpDrawStreamPrimGt4PreXformOffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// `preXformWrite` supplies two writable, word-aligned `POLY_GT4` slots per
+/// element in the selected buffer half's first region: blended layer first,
+/// opaque base second. Earlier commands supply signed screen XY in pixels
+/// and lit colours. Construction writes both packets' U/V from the element,
+/// adds the object's layer page and CLUT offsets to the first packet and the
+/// model's page and CLUT offsets to the second, and sets ABR bit 5 on the
+/// layer page. This handler preserves those colours, coordinates, U/V, pages
+/// and CLUTs, and it does not fold any corner onto another.
+///
+/// Positive NCLIP area of corners 0/1/2 accepts the element immediately.
+/// Otherwise corners 1/2/3 are tested, and only a negative area accepts.
+/// Zero area rejects the half just tested. Any `TMD_VERTEX_DEPTH_INVALID`
+/// corner rejects both packets.
+///
+/// Loads screen Z into SZ0..SZ3 and runs AVSZ4 with the current ZSF4 scale.
+/// Accepted packets receive twelve-word DMA lengths and command bytes `0x3E`
+/// (blended layer) and `0x3C` (opaque base). OTZ is stored after the layer
+/// command and stored again after the base command; both writes are the same
+/// average. Unsigned OTZ is shifted by `gDisplayState.otDepthShift`, divided
+/// by 16 and wrapped to 0..1023 relative to `workspace->ot`, already displaced
+/// by the object's signed tag offset. The selected OT must contain that entry.
+/// Links the layer then the base, so head insertion draws the opaque base
+/// before the blended layer.
+///
+/// Advances `preXformWrite` by one 104-byte pair per element even when culled,
+/// returns `elements + initial elemCount * elemStride`, and leaves `elemCount`
+/// at -1 even for an empty record. Reuses `gteResult` for facing and OTZ.
+/// Workspace, stream and depth cache are borrowed for the draw walk; no pointer
+/// is retained here. Linked packets and OT must live until GPU consumption ends.
+u32* tmdDrawStreamPrimGt4PreXformOffsetLayer(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 #endif // GAMEPLAY_MODEL_OBJECTS_H
