@@ -69,7 +69,7 @@
 ///
 /// `func_dryfield_breezeway_8017E010` (and its twin
 /// `func_dryfield_breezeway_8017E114`) allocates the block
-/// (`Mem_Malloc(0x14, 0)`), fills the three leading pointers and publishes the
+/// (`memMalloc(0x14, 0)`), fills the three leading pointers and publishes the
 /// owning task in `D_dryfield_breezeway_801843C0`: the slot-3 game pointer
 /// (`gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`), then `field_0` of the work `Gp_FindWorkById` finds
 /// for the id formed from `gGameSession` bytes 6/7 and for that id OR'd with
@@ -532,7 +532,7 @@ void func_dryfield_breezeway_8017E010(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            work       = (DbwWork*)Mem_Malloc(0x14, 0);
+            work       = memMalloc(sizeof(*work), false);
             arg0->work = work;
             if (work == NULL) {
                 taskKill(arg0);
@@ -583,7 +583,7 @@ void func_dryfield_breezeway_8017E114(Task* arg0)
             if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 return;
             }
-            work       = (DbwWork*)Mem_Malloc(0x14, 0);
+            work       = memMalloc(sizeof(*work), false);
             arg0->work = work;
             if (work == NULL) {
                 taskKill(arg0);

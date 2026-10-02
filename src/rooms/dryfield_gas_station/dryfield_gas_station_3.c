@@ -743,7 +743,7 @@ static void func_dryfield_gas_station_801803C0(Task* task)
 /// up), otherwise it parks the freshly zeroed 0x10-byte `DgsWork` block in
 /// `Task::work`, fills `owner` from pointer slot 3 and republishes this task as
 /// `D_dryfield_gas_station_80184BD4` so the room's script helpers can reach that block.
-/// Two kills: a failed `Mem_Malloc` kills the task outright, and state 1 kills
+/// Two kills: a failed `memMalloc` kills the task outright, and state 1 kills
 /// it once the session has torn down (`gGameSession->eventState`). Between the two
 /// it hands slot 3 the `D_dryfield_gas_station_80182E30` script record as msg
 /// 0x3F4 -- only when a previous state 0 already found an owner, since the
@@ -757,7 +757,7 @@ void func_dryfield_gas_station_801807E0(Task* task)
     switch (task->state) {
         case 0:
             if ((Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
-                work       = Mem_Malloc(0x10, false);
+                work       = memMalloc(sizeof(*work), false);
                 task->work = work;
                 if (work == NULL) {
                     taskKill(task);

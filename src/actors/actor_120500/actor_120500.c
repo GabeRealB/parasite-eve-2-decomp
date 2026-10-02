@@ -46,7 +46,7 @@
 #include "../../shared/actor_messages.h"
 
 /// The actor's work block, hung off `Task::work`. `func_actor_120500_801322A0`
-/// allocates it with `Mem_Malloc(0x4CC, 0)` and zeroes it with `memFillBytes`.
+/// allocates it with `memMalloc(0x4CC, 0)` and zeroes it with `memFillBytes`.
 ///
 /// It opens with the animation state `animationInitContext` is handed: the
 /// `AnimationContext`, the twenty `AnimationSlot`s the tick walks and the pose buffer.
@@ -526,7 +526,7 @@ static void func_actor_120500_801322A0(Task* task)
 
     tmd           = task->extra.tmd;
     coord         = tmd->coords;
-    allocatedWork = Mem_Malloc(sizeof(Actor120500Work), 0);
+    allocatedWork = memMalloc(sizeof(Actor120500Work), false);
     task->work    = allocatedWork;
     if (allocatedWork == NULL) {
         taskKill(task);

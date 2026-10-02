@@ -15,7 +15,7 @@
 #include "main/task.h"
 #include "main/task_types.h"
 
-/// 8-byte work block `func_aya_20900_80115CFC` allocates with `Mem_Malloc(8)`
+/// 8-byte work block `func_aya_20900_80115CFC` allocates with `memMalloc(8, false)`
 /// and parks in `Task::work`. That slot is not a `TaskIdMap` here, so reach
 /// it with `(Aya20900Work*)task->work`. `index` is the fade state machine,
 /// `timer` counts the hold at full white, and `fade` is the TILE colour.
@@ -218,7 +218,7 @@ void func_aya_20900_80115CFC(Task* arg0)
     temp_v1 = arg0->state;
     switch (temp_v1) { /* irregular */
         case 0:
-            work       = Mem_Malloc(sizeof(*work), false);
+            work       = memMalloc(sizeof(*work), false);
             arg0->work = work;
             if (work == NULL) {
                 taskKill(arg0);

@@ -53,7 +53,7 @@
 /// Work block of the overlay's event/controller task -- the one
 /// `D_actor_342100_80164BB8` points at.
 ///
-/// `func_actor_342100_801630A4` allocates it with `Mem_Malloc(0x44, 0)`,
+/// `func_actor_342100_801630A4` allocates it with `memMalloc(0x44, 0)`,
 /// `memFillBytes`s the same 0x44 bytes over it and stores it in that task's
 /// `Task::work` slot (0x1C), which is not a `TaskIdMap` here, then publishes
 /// the task in `D_actor_342100_80164BB8`. Every leaf helper reaches the block
@@ -466,7 +466,7 @@ void func_actor_342100_80162AB0(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     switch (arg0->state) {
         case 0:
-            arg0->work = Mem_Malloc(sizeof(EffectSpawnArg), 0);
+            arg0->work = memMalloc(sizeof(EffectSpawnArg), false);
             if (arg0->work == NULL) {
                 taskKill(arg0);
                 return;
@@ -649,7 +649,7 @@ void func_actor_342100_801630A4(Task* arg0)
             if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 break;
             }
-            newWork    = Mem_Malloc(0x44, 0);
+            newWork    = memMalloc(sizeof(*newWork), false);
             arg0->work = newWork;
             if (newWork == NULL) {
                 taskKill(arg0);

@@ -42,16 +42,26 @@ void Mem_Init(void);
 /// Initializes the auxiliary heap.
 void Mem_InitAux(void);
 
-/// Allocates a block of memory.
+/// Allocates one block from the selected heap without clearing its payload.
 ///
-/// Prior to allocating the data, it selects the primary or configured auxiliary
-/// heap for the allocator.
+/// `sizeBytes` is a byte count, not an element count. Heap3 rounds the payload
+/// up to eight-byte units and reserves another eight bytes for its block header.
+/// Payload alignment follows the heap base. A zero-byte request or allocation
+/// failure prints a diagnostic and returns `NULL`; the caller handles failure.
+/// Requests must not exceed 0xFFFFFFF8 bytes, so eight-byte rounding cannot wrap.
 ///
-/// @param size Number of bytes to allocate.
-/// @param auxHeap If `true`, the block is allocated from the auxiliary heap,
-///                otherwise from the primary one.
-/// @return Allocated block or `NULL`.
-void* Mem_Malloc(size_t size, bool auxHeap);
+/// `auxHeap == true` selects the currently configured auxiliary heap; every
+/// other value selects the primary heap. For a nonzero request, that heap must
+/// be initialized and its base must remain in its free-block ring. Selection
+/// resets the allocator's search cursor before allocation and is not restored,
+/// even on failure. Allocations must preserve the base's ring membership for
+/// subsequent heap operations.
+///
+/// The caller owns the block until release to the same heap: use `memFree`
+/// for primary allocations or `memFreeFromHeap` for auxiliary allocations.
+/// Keep the auxiliary region configured and its contents intact while its
+/// allocations are live. Reinitializing or repurposing a heap invalidates them.
+void* memMalloc(size_t sizeBytes, bool auxHeap);
 
 /// Allocates one block from the selected heap and clears its requested bytes.
 ///
@@ -76,7 +86,7 @@ void* memCalloc(size_t sizeBytes, bool auxHeap);
 /// Releases an allocation from the primary heap.
 ///
 /// `allocation` must be `NULL` or the original pointer to a live primary-heap
-/// block, such as one returned by `Mem_Malloc` or `memCalloc` with
+/// block, such as one returned by `memMalloc` or `memCalloc` with
 /// `auxHeap == false`. The caller owns cleanup of separately allocated data
 /// and list links; releasing a non-null block ends its lifetime.
 ///

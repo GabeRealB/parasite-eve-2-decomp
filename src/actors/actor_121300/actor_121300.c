@@ -55,7 +55,7 @@ extern TaskDesc D_actor_121300_8013D390[];
 
 /// Work block for the `actor_121300` overlay's cutscene actor.
 ///
-/// `func_actor_121300_80133BFC` allocates it with `Mem_Malloc(0x4B0, 0)`,
+/// `func_actor_121300_80133BFC` allocates it with `memMalloc(0x4B0, 0)`,
 /// zeroes it with `memFillBytes` and parks the pointer in the task's `Task::work`
 /// slot (0x1C) -- that slot is not a `TaskIdMap` here, so reach the block with
 /// `(Actor121300Work*)task->work`.  The same function publishes the task
@@ -1745,7 +1745,7 @@ void func_actor_121300_801326EC(Task* arg0)
     fade = (OverlayFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
+            alloc      = memMalloc(sizeof(*alloc), false);
             arg0->work = alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
@@ -1840,7 +1840,7 @@ void func_actor_121300_8013293C(Task* arg0)
     }
     switch (arg0->state) {
         case 0:
-            alloc      = (Actor121300DebrisWork*)Mem_Malloc(0x5C, 0);
+            alloc      = memMalloc(sizeof(*alloc), false);
             arg0->work = alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
@@ -2005,7 +2005,7 @@ void func_actor_121300_80133064(Task* task)
     }
     switch (task->state) {
         case 0:
-            alloc      = Mem_Malloc(8, 0);
+            alloc      = memMalloc(8, false);
             task->work = alloc;
             if (alloc != NULL) {
                 memFillBytes(alloc, 0, 8);
@@ -2402,7 +2402,7 @@ static void func_actor_121300_80133BFC(Task* task)
 
     tmd           = task->extra.tmd;
     coord         = tmd->coords;
-    allocatedWork = Mem_Malloc(sizeof(Actor121300Work), 0);
+    allocatedWork = memMalloc(sizeof(Actor121300Work), false);
     task->work    = allocatedWork;
     if (allocatedWork == NULL) {
         taskKill(task);
@@ -2527,7 +2527,7 @@ void func_actor_121300_8013400C(Task* arg0)
     fade = (OverlayFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
+            alloc      = memMalloc(sizeof(*alloc), false);
             arg0->work = alloc;
             if (alloc == NULL) {
                 taskKill(arg0);

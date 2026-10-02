@@ -82,7 +82,7 @@ extern AnimationSet* D_dryfield_dilapidated_house_80183F00[16];
 
 /// Work block of the task family whose state-0 init is
 /// `func_dryfield_dilapidated_house_80180B84`, which allocates it with
-/// `Mem_Malloc(0x6C, 0)` and parks it in the `Task::work` slot (0x1C) -- that
+/// `memMalloc(0x6C, 0)` and parks it in the `Task::work` slot (0x1C) -- that
 /// slot is *not* a `TaskIdMap` here. Reach it with
 /// `(DdhCoordWork*)task->work`.
 ///
@@ -103,7 +103,7 @@ STATIC_ASSERT_SIZEOF(DdhCoordWork, 0x6C);
 
 /// Work block of the handler table at `D_dryfield_dilapidated_house_8017D61C`,
 /// whose state 0 is `func_dryfield_dilapidated_house_8018118C`: allocated with
-/// `Mem_Malloc(0x24, 0)` and parked in the `Task::work` slot. It holds a
+/// `memMalloc(0x24, 0)` and parked in the `Task::work` slot. It holds a
 /// snapshot of the placed model coordinate's matrix (`mtx`, copied from
 /// `GfxCoord::coord`) plus one 0x1000 word.
 typedef struct DdhModelWork {
@@ -114,7 +114,7 @@ STATIC_ASSERT_SIZEOF(DdhModelWork, 0x24);
 
 /// Work block of the state family at `D_dryfield_dilapidated_house_8017D634`,
 /// whose state 0 is `func_dryfield_dilapidated_house_801814B4`: allocated with
-/// `Mem_Malloc(0x40, 0)` and parked in the `Task::work` slot. One angle step per
+/// `memMalloc(0x40, 0)` and parked in the `Task::work` slot. One angle step per
 /// model part, each the matching entry of `D_dryfield_dilapidated_house_80186804`
 /// scaled by the task's spawn arg 1 and wrapped into the 0x4000 angle period.
 /// `func_dryfield_dilapidated_house_80180738` advances the same table against a
@@ -3554,7 +3554,7 @@ static void func_dryfield_dilapidated_house_80180B84(Task* task)
     parentObj   = parent->extra.tmd;
     coord       = obj->coords;
     parentCoord = parentObj->coords;
-    work        = (DdhCoordWork*)Mem_Malloc(0x6C, false);
+    work        = memMalloc(0x6C, false);
     if (work == NULL) {
         taskKill(task);
         return;
@@ -3739,7 +3739,7 @@ static void func_dryfield_dilapidated_house_8018118C(Task* arg0)
 
     obj   = arg0->extra.tmd;
     coord = obj->coords;
-    work  = (DdhModelWork*)Mem_Malloc(0x24, false);
+    work  = memMalloc(sizeof(*work), false);
     if (work == NULL) {
         taskKill(arg0);
         return;
@@ -3776,7 +3776,7 @@ static void func_dryfield_dilapidated_house_80181340(Task* arg0)
     void*     work;
 
     coord = arg0->extra.tmd->coords;
-    work  = Mem_Malloc(4, false);
+    work  = memMalloc(4, false);
     if (work == NULL) {
         taskKill(arg0);
         return;
@@ -3831,7 +3831,7 @@ static void func_dryfield_dilapidated_house_801814B4(Task* arg0)
     s32           i;
 
     coord = arg0->extra.tmd->coords;
-    work  = (DdhAngleStep*)Mem_Malloc(0x40, false);
+    work  = memMalloc(sizeof(*work), false);
     if (work == NULL) {
         taskKill(arg0);
         return;

@@ -1072,7 +1072,7 @@ void func_shelter_b3_garbage_incinerator_8017F6D8(Task* arg0)
             if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 return;
             }
-            work       = Mem_Malloc(0x40, false);
+            work       = memMalloc(sizeof(*work), false);
             arg0->work = work;
             if (work == NULL) {
                 taskKill(arg0);

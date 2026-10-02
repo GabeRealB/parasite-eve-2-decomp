@@ -112,7 +112,7 @@ STATIC_ASSERT_SIZEOF(Actor341900SpawnPos, 0x8);
 
 extern Actor341900SpawnPos D_actor_341900_80163A98[6];
 
-/// Work block `func_actor_341900_80162330` allocates with `Mem_Malloc(0x258, 0)`
+/// Work block `func_actor_341900_80162330` allocates with `memMalloc(0x258, 0)`
 /// and parks in its own task's opaque `Task::work` slot. `field_248` is the
 /// task that spawned this actor, copied there from
 /// `Task::spawnArg2`; `func_actor_341900_801625B4` walks it to the spawner's
@@ -543,7 +543,7 @@ void func_actor_341900_80162200(Task* arg0)
 
     if (arg0->state == 0) {
         extra      = arg0->extra.tmd;
-        mtx        = (ActorLitWork*)Mem_Malloc(0x44, 0);
+        mtx        = memMalloc(sizeof(*mtx), false);
         arg0->work = mtx;
         if (mtx == NULL) {
             taskKill(arg0);
@@ -583,7 +583,7 @@ static void func_actor_341900_80162330(Task* arg0)
     u16                  i;
 
     extra      = arg0->extra.tmd;
-    work       = (Actor341900AnimWork*)Mem_Malloc(0x258, 0);
+    work       = memMalloc(sizeof(*work), false);
     arg0->work = work;
     if (work == NULL) {
         taskKill(arg0);

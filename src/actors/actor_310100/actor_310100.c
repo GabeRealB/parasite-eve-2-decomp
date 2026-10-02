@@ -36,7 +36,7 @@
 
 /// Work block this overlay hangs off the task's `Task::work` slot (0x1C),
 /// which is not a `TaskIdMap` here. `func_actor_310100_801625E4` allocates it
-/// with `Mem_Malloc(0x50C)` and hands `&slots` to the model helpers as the slot
+/// with `memMalloc(0x50C, false)` and hands `&slots` to the model helpers as the slot
 /// array, so the prefix is the shared actor anim layout: an `AnimationContext` and the
 /// nineteen slots the frame handler ticks.
 typedef struct Actor310100Work {
@@ -896,7 +896,7 @@ static void func_actor_310100_80162414(Task* task, s32 arg1)
 
     coord      = task->extra.tmd->coords;
     obj        = task->extra.tmd;
-    work       = (Actor310100Work*)Mem_Malloc(0x50C, false);
+    work       = memMalloc(sizeof(*work), false);
     mode       = arg1;
     task->work = work;
     if (work == NULL) {
@@ -956,7 +956,7 @@ static void func_actor_310100_801625E4(Task* task, s32 arg1)
 
     coord      = task->extra.tmd->coords;
     obj        = task->extra.tmd;
-    work       = (Actor310100Work*)Mem_Malloc(0x50C, false);
+    work       = memMalloc(sizeof(*work), false);
     mode       = arg1;
     task->work = work;
     if (work == NULL) {
@@ -1020,7 +1020,7 @@ void func_actor_310100_801627BC(Task* task)
     }
     switch (task->state) {
         case 0:
-            task->work = Mem_Malloc(0x50C, false);
+            task->work = memMalloc(sizeof(Actor310100Work), false);
             if (task->work == NULL) {
                 Gp_DestroyEnemy(task->spawnArg2.pointer, task);
                 return;
@@ -1092,7 +1092,7 @@ void func_actor_310100_801629FC(Task* task)
     }
     switch (task->state) {
         case 0:
-            task->work = (work = Mem_Malloc(0x50C, false));
+            task->work = (work = memMalloc(sizeof(Actor310100Work), false));
             if (work == NULL) {
                 Gp_DestroyEnemy(task->spawnArg2.pointer, task);
                 return;

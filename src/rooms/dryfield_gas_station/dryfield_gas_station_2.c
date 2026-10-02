@@ -153,7 +153,7 @@ void func_dryfield_gas_station_801802C0(Task* task)
     return;
 
 L_case0:
-    child      = Mem_Malloc(4, false);
+    child      = memMalloc(4, false);
     task->work = child;
     if (child == NULL) {
         taskKill(task);

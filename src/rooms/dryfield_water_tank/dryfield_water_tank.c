@@ -75,7 +75,7 @@ extern DryfieldWaterTankAnimStorage4960 D_dryfield_water_tank_80184960;
 extern WorldCoordRoomAmbientEntry D_dryfield_water_tank_80188C58[11];
 
 /// Work block of the water-tank room's script-driver task, a
-/// `Mem_Malloc(0x58, 0)` the driver `func_dryfield_water_tank_8017DEA4` hangs
+/// `memMalloc(0x58, 0)` the driver `func_dryfield_water_tank_8017DEA4` hangs
 /// off `Task::work` (0x1C). That task is also parked in
 /// `D_dryfield_water_tank_80188D4C`, which is how the sibling entry points
 /// `func_dryfield_water_tank_8017E194` and `..._8017E1B4` reach this block.
@@ -1228,7 +1228,7 @@ void func_dryfield_water_tank_8017DD20(Task* arg0)
         case 0:
             extra      = arg0->extra.tmd;
             coord      = extra->coords;
-            mtx        = (DwtColorMtx*)Mem_Malloc(0x58, 0);
+            mtx        = memMalloc(sizeof(*mtx), false);
             arg0->work = mtx;
             if (mtx == NULL) {
                 taskKill(arg0);
@@ -1281,7 +1281,7 @@ void func_dryfield_water_tank_8017DEA4(Task* arg0)
     work = (DwtScriptWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            work       = (DwtScriptWork*)Mem_Malloc(0x58, 0);
+            work       = memMalloc(sizeof(*work), false);
             arg0->work = work;
             if (work == NULL) {
                 taskKill(arg0);

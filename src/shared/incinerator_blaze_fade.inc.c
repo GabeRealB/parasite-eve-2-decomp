@@ -25,7 +25,7 @@ void blazeFadeTask(Task* arg0)
     work = (OverlayFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
+            alloc      = memMalloc(sizeof(*alloc), false);
             arg0->work = alloc;
             if (alloc == NULL) {
                 taskKill(arg0);

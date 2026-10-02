@@ -150,7 +150,7 @@ typedef struct AcropolisPlazaSceneWork {
 STATIC_ASSERT_SIZEOF(AcropolisPlazaSceneWork, 0x34);
 
 /// Work block the plaza's sequence task (`func_acropolis_plaza_80180054`)
-/// allocates with `Mem_Malloc(0x28, 0)` and parks in `Task::work` -- that slot
+/// allocates with `memMalloc(0x28, 0)` and parks in `Task::work` -- that slot
 /// is not a `TaskIdMap` here. State 0 caches the slot-3 task in `slot3` and the
 /// task it spawns from entry 5 of the room's table in `field_C`; state 3 spawns
 /// entry 1 into `field_8`, handing it `&field_10` as its spawn argument. The
@@ -186,7 +186,7 @@ typedef struct AcropolisPlazaWork {
 STATIC_ASSERT_SIZEOF(AcropolisPlazaWork, 0x28);
 
 /// Work block the plaza's opening sequence (`func_acropolis_plaza_8017ECF8`)
-/// allocates with `Mem_Malloc(8, 0)` and parks in `Task::work` -- that slot is
+/// allocates with `memMalloc(8, 0)` and parks in `Task::work` -- that slot is
 /// not a `TaskIdMap` here. `slot3` caches the slot-3 task every message in the
 /// sequence is addressed to; `timer` is the frame counter the waiting states
 /// step (0x3D frames in state 7, 0xB in state 11, 2 in state 12).
@@ -208,7 +208,7 @@ typedef union AcropolisPlazaOpeningBuf {
 } AcropolisPlazaOpeningBuf;
 
 /// Work block the plaza's warp task (`func_acropolis_plaza_8017E7E4`) allocates
-/// with `Mem_Malloc(8, 0)` and parks in `Task::work` -- that slot is not a
+/// with `memMalloc(8, 0)` and parks in `Task::work` -- that slot is not a
 /// `TaskIdMap` here. It only caches the slot-3 task every message in the
 /// sequence (0x3F2 place, 0x3EE warp, 0x3F0 poll) is addressed to; the
 /// trailing four bytes are zeroed by `memFillBytes` and never read.
@@ -3312,7 +3312,7 @@ void func_acropolis_plaza_8017D8AC(Task* arg0)
     fade = (OverlayFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
+            alloc      = memMalloc(sizeof(*alloc), false);
             arg0->work = alloc;
             if (alloc == NULL) {
                 goto kill;
@@ -3625,7 +3625,7 @@ void func_acropolis_plaza_8017DFE0(Task* task)
     goto L_tail;
 
 L_case0:
-    block      = Mem_Malloc(sizeof(*block), 0);
+    block      = memMalloc(sizeof(*block), false);
     task->work = block;
     if (block == NULL) {
         taskKill(task);
@@ -3822,7 +3822,7 @@ void func_acropolis_plaza_8017E7E4(Task* task)
 
     switch (task->state) {
         case 0:
-            newWork    = Mem_Malloc(8, 0);
+            newWork    = memMalloc(sizeof(*newWork), false);
             task->work = newWork;
             if (newWork == NULL) {
                 taskKill(task);
@@ -3897,7 +3897,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
 
     switch (task->state) {
         case 0:
-            newWork    = Mem_Malloc(8, 0);
+            newWork    = memMalloc(sizeof(*newWork), false);
             task->work = newWork;
             if (newWork == NULL) {
                 taskKill(task);
@@ -4033,7 +4033,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
 
     switch (task->state) {
         case 0:
-            newWork    = Mem_Malloc(8, 0);
+            newWork    = memMalloc(sizeof(*newWork), false);
             task->work = newWork;
             if (newWork == NULL) {
                 taskKill(task);
@@ -4652,7 +4652,7 @@ void func_acropolis_plaza_80180054(Task* task)
         case 0:
             func_800E9BDC(3, 0x9DF);
             Gp_ApplyView(D_acropolis_plaza_801838B8[0]);
-            newWork    = (AcropolisPlazaWork*)Mem_Malloc(0x28, 0);
+            newWork    = memMalloc(sizeof(*newWork), false);
             task->work = newWork;
             if (newWork == NULL) {
                 taskKill(task);

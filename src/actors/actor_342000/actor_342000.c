@@ -51,7 +51,7 @@
 
 /// Per-instance work block for the overlay's model actor.
 ///
-/// `func_actor_342000_80162158` allocates it with `Mem_Malloc(0x2AC, 0)`,
+/// `func_actor_342000_80162158` allocates it with `memMalloc(0x2AC, 0)`,
 /// `memFillBytes`s it to zero over the same 0x2AC bytes and stores it in the
 /// `Task::work` slot (0x1C), so the size below is the allocation, not a
 /// guess: the actor reuses that pointer field for its own work block and it is
@@ -502,7 +502,7 @@ void func_actor_342000_8016201C(Task* arg0)
 
     if (arg0->state == 0) {
         extra      = arg0->extra.tmd;
-        mtx        = (ActorLitWork*)Mem_Malloc(0x44, 0);
+        mtx        = memMalloc(sizeof(*mtx), false);
         arg0->work = mtx;
         if (mtx == NULL) {
             taskKill(arg0);
@@ -577,7 +577,7 @@ static void func_actor_342000_80162158(Task* arg0)
     u16              i;
 
     extra      = arg0->extra.tmd;
-    work       = (Actor342000Work*)Mem_Malloc(0x2AC, 0);
+    work       = memMalloc(sizeof(*work), false);
     arg0->work = work;
     if (work == NULL) {
         taskKill(arg0);

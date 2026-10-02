@@ -211,21 +211,20 @@ static void _memSetActiveHeap(bool auxHeap)
     _freep   = heapBase;
 }
 
-void* Mem_Malloc(size_t size, bool auxHeap)
+void* memMalloc(size_t sizeBytes, bool auxHeap)
 {
-    void* ptr;
+    void* allocation;
+    void* heapBase;
 
-    if (auxHeap == true) {
-        _freep = gMemActiveAuxHeap;
-    } else {
-        _freep = gMemPrimaryHeapBase;
-    }
+    // Selection resets the search cursor; the selected base must stay in its ring.
+    heapBase = auxHeap == true ? gMemActiveAuxHeap : gMemPrimaryHeapBase;
+    _freep   = heapBase;
 
-    ptr = malloc3(size);
-    if (ptr == NULL) {
+    allocation = malloc3(sizeBytes);
+    if (allocation == NULL) {
         printf("gmalloc-->NULL\n");
     }
-    return ptr;
+    return allocation;
 }
 
 void memFree(void* allocation)

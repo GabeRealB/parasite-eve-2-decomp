@@ -59,7 +59,7 @@
 /// which is not a `TaskIdMap` here. Reach it with
 /// `(Actor560800Work*)task->work`.
 ///
-/// `func_actor_560800_80135BD8` allocates it with `Mem_Malloc(0x68, 0)`, so the
+/// `func_actor_560800_80135BD8` allocates it with `memMalloc(0x68, 0)`, so the
 /// size below is the allocation and not a guess, and fills the first slots with
 /// the sub-tasks from `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` and `D_actor_560800_801718F0`
 /// (`field_4` is filled later by `func_actor_560800_801366B0`). Slots 0x0-0x24
@@ -113,7 +113,7 @@ STATIC_ASSERT_SIZEOF(Actor560800Work, 0x68);
 
 /// Work block of the sub-task `Actor560800Work::field_8` points at, spawned
 /// from `D_actor_560800_801718F0` index 5 (`func_actor_560800_80132C60`).
-/// That function allocates it with `Mem_Malloc(0x4CC, 0)`, `memFillBytes`s the same
+/// That function allocates it with `memMalloc(0x4CC, 0)`, `memFillBytes`s the same
 /// 0x4CC bytes and stores it in its own `Task::work` (0x1C), so the size below
 /// is the allocation, not a guess. It is a third work block in this overlay,
 /// distinct from `Actor560800Work` and `OverlayFadeWork`.
@@ -144,7 +144,7 @@ typedef struct Actor560800AnimWork {
 } Actor560800AnimWork;
 STATIC_ASSERT_SIZEOF(Actor560800AnimWork, 0x4CC);
 
-/// Work block `func_actor_560800_801376E0` allocates with `Mem_Malloc(0x28C, 0)`
+/// Work block `func_actor_560800_801376E0` allocates with `memMalloc(0x28C, 0)`
 /// and stores in its own `Task::work` (0x1C), so the size below is the
 /// allocation, not a guess. A fourth work block in this overlay, distinct from
 /// `Actor560800Work`, `Actor560800AnimWork` and `OverlayFadeWork`, and the
@@ -200,7 +200,7 @@ STATIC_ASSERT_SIZEOF(Actor560800ModelWork, 0x28C);
 
 /// Work block of the message-handler task whose `Task::msgTable` table is
 /// `D_actor_560800_801756D4`: `func_actor_560800_801386D4` allocates it with
-/// `Mem_Malloc(0x4C, 0)`, `memFillBytes`s the same 0x4C bytes and stores it in that
+/// `memMalloc(0x4C, 0)`, `memFillBytes`s the same 0x4C bytes and stores it in that
 /// task's `Task::work` (0x1C), so the size below is the allocation, not a
 /// guess. A fifth work block in this overlay, distinct from `Actor560800Work`,
 /// `Actor560800AnimWork`, `Actor560800ModelWork` and `OverlayFadeWork`.
@@ -4390,7 +4390,7 @@ void func_actor_560800_801326C4(Task* arg0)
             {
                 TmdObject*           tmd   = arg0->extra.tmd;
                 GfxCoord*            coord = tmd->coords;
-                Actor560800AnimWork* block = Mem_Malloc(0x4CC, 0);
+                Actor560800AnimWork* block = memMalloc(sizeof(*block), false);
                 AreaPlacement*       place;
                 u8                   id;
 
@@ -4496,7 +4496,7 @@ void func_actor_560800_80132A14(Task* arg0)
         AreaPlacement*       place;
         u8                   id;
 
-        block      = Mem_Malloc(0x4CC, 0);
+        block      = memMalloc(sizeof(*block), false);
         arg0->work = block;
         if (block == NULL) {
             taskKill(arg0);
@@ -4567,7 +4567,7 @@ void func_actor_560800_80132C60(Task* arg0)
         {
             TmdObject*           tmd   = arg0->extra.tmd;
             GfxCoord*            coord = tmd->coords;
-            Actor560800AnimWork* block = Mem_Malloc(0x4CC, 0);
+            Actor560800AnimWork* block = memMalloc(sizeof(*block), false);
             AreaPlacement*       place;
             u8                   id;
 
@@ -4657,7 +4657,7 @@ void func_actor_560800_80132F64(Task* arg0)
         {
             TmdObject*           tmd   = arg0->extra.tmd;
             GfxCoord*            coord = tmd->coords;
-            Actor560800AnimWork* block = Mem_Malloc(0x4CC, 0);
+            Actor560800AnimWork* block = memMalloc(sizeof(*block), false);
             AreaPlacement*       place;
             u8                   id;
 
@@ -5688,7 +5688,7 @@ static void func_actor_560800_80135BD8(Task* arg0)
     Task*            sub6;
     SVECTOR          vec;
 
-    work       = (Actor560800Work*)Mem_Malloc(0x68, 0);
+    work       = memMalloc(sizeof(*work), false);
     arg0->work = work;
     if (work == NULL) {
         taskKill(arg0);
@@ -5785,7 +5785,7 @@ void func_actor_560800_80135FA0(Task* arg0)
     work = (OverlayFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
+            alloc      = memMalloc(sizeof(*alloc), false);
             arg0->work = alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
@@ -5819,7 +5819,7 @@ void func_actor_560800_80136094(Task* arg0)
     work = (OverlayFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
+            alloc      = memMalloc(sizeof(*alloc), false);
             arg0->work = alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
@@ -6387,7 +6387,7 @@ static void func_actor_560800_801376E0(Task* arg0)
 
     obj        = arg0->extra.tmd;
     coord      = obj->coords;
-    mem        = (Actor560800ModelWork*)Mem_Malloc(0x28C, 0);
+    mem        = memMalloc(sizeof(*mem), false);
     arg0->work = mem;
     if (mem == NULL) {
         taskKill(arg0);
@@ -6866,7 +6866,7 @@ void func_actor_560800_801386D4(Task* task)
     switch (task->state) {
         case 0:
             root       = task->extra.coordBody->coord;
-            w          = (Actor560800PartsWork*)Mem_Malloc(0x4C, 0);
+            w          = memMalloc(sizeof(*w), false);
             task->work = w;
             if (w == NULL) {
                 taskKill(task);
@@ -7161,7 +7161,7 @@ void func_actor_560800_80138FC8(Task* task)
         case 0:
             obj        = task->extra.tmd;
             root       = obj->coords;
-            task->work = Mem_Malloc(0x28C, 0);
+            task->work = memMalloc(sizeof(Actor560800ModelWork), false);
             if (task->work == NULL) {
                 taskKill(task);
             } else {

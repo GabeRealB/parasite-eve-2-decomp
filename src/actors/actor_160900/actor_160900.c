@@ -72,7 +72,7 @@ STATIC_ASSERT_SIZEOF(Actor160900ChildWork, 0x20);
 /// which is not a `TaskIdMap` here. Reach it with
 /// `(Actor160900Work*)task->work`.
 ///
-/// `func_actor_160900_8013418C` allocates it with `Mem_Malloc(0x68, 0)` and
+/// `func_actor_160900_8013418C` allocates it with `memMalloc(0x68, 0)` and
 /// zeroes all 0x68 bytes, so the size below is the allocation. That function
 /// fills `field_34` with `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` -- the task every `taskMessageDispatch`
 /// in this overlay targets -- and 0x38/0x3C/0x40 with the tasks it spawns from
@@ -1106,7 +1106,7 @@ void func_actor_160900_80132A14(Task* arg0)
         AreaPlacement*         place;
         u8                     id;
 
-        block      = Mem_Malloc(0x4BC, 0);
+        block      = memMalloc(sizeof(*block), false);
         arg0->work = block;
         if (block == NULL) {
             taskKill(arg0);
@@ -1187,7 +1187,7 @@ void func_actor_160900_80132C08(Task* task)
     if (task->state == 0) {
         obj        = task->extra.tmd;
         coord      = obj->coords;
-        work       = (Actor160900Child3Work*)Mem_Malloc(0x4BC, false);
+        work       = memMalloc(sizeof(*work), false);
         task->work = work;
         if (work == NULL) {
             failed = 1;
@@ -1909,7 +1909,7 @@ void func_actor_160900_8013418C(Task* arg0)
             if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 return;
             }
-            work       = (Actor160900Work*)Mem_Malloc(0x68, 0);
+            work       = memMalloc(sizeof(*work), false);
             arg0->work = work;
             if (work == NULL) {
                 taskKill(arg0);
@@ -1971,7 +1971,7 @@ void func_actor_160900_801343E4(Task* arg0)
     work = (OverlayFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
+            alloc      = memMalloc(sizeof(*alloc), false);
             arg0->work = alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
@@ -2004,7 +2004,7 @@ void func_actor_160900_801344D8(Task* arg0)
     work = (OverlayFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
+            alloc      = memMalloc(sizeof(*alloc), false);
             arg0->work = alloc;
             if (alloc == NULL) {
                 taskKill(arg0);

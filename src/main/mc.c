@@ -2239,7 +2239,7 @@ static void Mc_StateVerifyFinish(Task* task, McWork* work)
         size               += 1;
         size              <<= 7;
         work->transferBytes = size;
-        mem                 = Mem_Malloc(size, 0);
+        mem                 = memMalloc(size, false);
         work->buffer        = mem;
         if (mem != 0) {
             work->field_4  = 0;

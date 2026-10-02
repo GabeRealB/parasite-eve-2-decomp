@@ -37,7 +37,7 @@
 
 /// Work block for the `actor_303600` overlay's cutscene controller.
 ///
-/// `func_actor_303600_8016216C` allocates it with `Mem_Malloc(0x10, 0)`, zeroes
+/// `func_actor_303600_8016216C` allocates it with `memMalloc(0x10, 0)`, zeroes
 /// it with `memFillBytes` and parks the pointer in the task's `Task::work` slot
 /// (0x1C) -- that slot is not a `TaskIdMap` here, so reach the block with
 /// `(Actor303600Work*)task->work`.  The same function publishes the task
@@ -16989,7 +16989,7 @@ void func_actor_303600_8016216C(Task* arg0)
             if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 return;
             }
-            work       = (Actor303600Work*)Mem_Malloc(0x10, 0);
+            work       = memMalloc(sizeof(*work), false);
             arg0->work = work;
             if (work == NULL) {
                 taskKill(arg0);
@@ -17035,7 +17035,7 @@ void func_actor_303600_801622E8(Task* arg0)
     work = (OverlayFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
+            alloc      = memMalloc(sizeof(*alloc), false);
             arg0->work = alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
@@ -17075,7 +17075,7 @@ void func_actor_303600_801623CC(Task* arg0)
     work = (OverlayFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
+            alloc      = memMalloc(sizeof(*alloc), false);
             arg0->work = alloc;
             if (alloc == NULL) {
                 taskKill(arg0);

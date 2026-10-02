@@ -94,16 +94,19 @@ static void _effectSpriteDrawRotated(const GfxCoord* coord, u16 frameAndPalette,
 
 #define DUMPING_HOLE_RAND() ((s32)((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16))
 
+/// Full sprite-work allocation and clear extent; the seed and work types are partial views.
+enum { SHELTER_B3_DUMPING_HOLE_SPRITE_WORK_BYTES = 0x24 };
+
 /// Spawns one debris task and gives it a work block seeded with `seed`.
 #define DUMPING_HOLE_SPAWN_DEBRIS(seed)                                                              \
     {                                                                                                \
         Task*                  t = Task_SpawnFromTable(D_shelter_b3_dumping_hole_80188C04, 0, 0, 0); \
-        DumpingHoleDebrisSeed* w = Mem_Malloc(0x24, 0);                                              \
+        DumpingHoleDebrisSeed* w = memMalloc(SHELTER_B3_DUMPING_HOLE_SPRITE_WORK_BYTES, false);      \
         t->work                  = w;                                                                \
         if (w == NULL) {                                                                             \
             taskKill(t);                                                                             \
         } else {                                                                                     \
-            memFillBytes(w, 0, 0x24);                                                                \
+            memFillBytes(w, 0, SHELTER_B3_DUMPING_HOLE_SPRITE_WORK_BYTES);                           \
             *w = seed;                                                                               \
         }                                                                                            \
     }
@@ -2294,13 +2297,13 @@ void func_shelter_b3_dumping_hole_8017E440(Task* arg0)
             coord->coord.t[0] = vec.vx;
             coord->coord.t[1] = vec.vy;
             coord->coord.t[2] = vec.vz;
-            arg0->work        = Mem_Malloc(0x24, 0);
+            arg0->work        = memMalloc(SHELTER_B3_DUMPING_HOLE_SPRITE_WORK_BYTES, false);
             if (arg0->work == NULL) {
                 taskKill(arg0);
                 return;
             }
             work = (DumpingHoleAnimWork*)arg0->work;
-            memFillBytes(work, 0, 0x24);
+            memFillBytes(work, 0, SHELTER_B3_DUMPING_HOLE_SPRITE_WORK_BYTES);
             work->field_16  = -0xA;
             work->field_14  = 0;
             work->field_18  = 0;
@@ -2384,7 +2387,7 @@ static void func_shelter_b3_dumping_hole_8017E7DC(Task* arg0)
     extra      = arg0->extra.tmd;
     placement  = arg0->spawnArg2.pointer;
     coord      = extra->coords;
-    work       = (DumpingHoleCoordWork*)Mem_Malloc(0x5C, 0);
+    work       = memMalloc(sizeof(*work), false);
     arg0->work = work;
     if (work == NULL) {
         taskKill(arg0);
@@ -2774,7 +2777,7 @@ void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            work       = (DumpingHoleEntity*)Mem_Malloc(0x50, 0);
+            work       = memMalloc(sizeof(*work), false);
             arg0->work = work;
             if (work == NULL) {
                 taskKill(arg0);
@@ -2869,7 +2872,7 @@ void func_shelter_b3_dumping_hole_8017FBA0(Task* arg0)
     }
     switch (arg0->state) {
         case 0:
-            alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
+            alloc      = memMalloc(sizeof(*alloc), false);
             arg0->work = alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
@@ -2912,13 +2915,13 @@ void func_shelter_b3_dumping_hole_8017FCF4(GfxCoord* arg0, SVECTOR* arg1)
     DumpingHoleSpawnWork* work;
 
     task       = Task_SpawnFromTable(D_shelter_b3_dumping_hole_80188C04, 1, 0, arg0);
-    work       = (DumpingHoleSpawnWork*)Mem_Malloc(0x24, 0);
+    work       = memMalloc(SHELTER_B3_DUMPING_HOLE_SPRITE_WORK_BYTES, false);
     task->work = work;
     if (work == NULL) {
         taskKill(task);
         return;
     }
-    memFillBytes(work, 0, 0x24);
+    memFillBytes(work, 0, SHELTER_B3_DUMPING_HOLE_SPRITE_WORK_BYTES);
     work->field_C  = (u16)arg1->vx;
     work->field_E  = (u16)arg1->vy;
     work->field_10 = (u16)arg1->vz;

@@ -1955,8 +1955,8 @@ static s32 func_dryfield_water_tower_8017DFAC(Task* arg0)
 /// Two shapes in the body are what the original compiled from rather than
 /// stylistic choices, and folding either away re-schedules the blocks around
 /// them: `new_var` is a dead zero the shadow latch is tested against instead of
-/// `if (state->field_70)`, and `field_20` is stored twice -- `mem`, then the
-/// field plus one -- instead of being assigned `mem + 1` outright.
+/// `if (state->field_70)`, and `colorMtx` is stored twice -- `&mem->lightMtx`,
+/// then the field plus one -- instead of being assigned `&mem->colorMtx` outright.
 void func_dryfield_water_tower_8017E1DC(Task* arg0)
 {
     int                      new_var;
@@ -1965,7 +1965,7 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
     TmdObject*               model;
     GfxCoord*                coord;
     OverlayVecSlot           pos;
-    MATRIX*                  mem;
+    DryfieldWaterTowerState* mem;
 
     obj   = arg0->extra.tmd;
     state = (DryfieldWaterTowerState*)arg0->work;
@@ -1984,19 +1984,19 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
 
                 model      = arg0->extra.tmd;
                 modelCoord = model->coords;
-                mem        = (MATRIX*)Mem_Malloc(0x7C, false);
+                mem        = memMalloc(sizeof(*mem), false);
                 arg0->work = mem;
                 if (mem == 0) {
                     taskKill(arg0);
                 } else {
-                    memFillBytes(mem, 0, sizeof(DryfieldWaterTowerState));
-                    ((DryfieldWaterTowerState*)mem)->field_40 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                    modelCoord->parent                        = &gGfxViewCoord;
-                    model->flags                              = 0;
+                    memFillBytes(mem, 0, sizeof(*mem));
+                    mem->field_40      = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                    modelCoord->parent = &gGfxViewCoord;
+                    model->flags       = 0;
                     Tmd_AllocBuffers(model);
-                    model->colorMtx = mem;
+                    model->colorMtx = &mem->lightMtx;
                     model->colorMtx = model->colorMtx + 1;
-                    model->lightMtx = mem;
+                    model->lightMtx = &mem->lightMtx;
                     arg0->msgTable  = D_dryfield_water_tower_80181B00;
                 }
                 arg0->state++;
@@ -2221,7 +2221,7 @@ void func_dryfield_water_tower_8017E764(Task* arg0)
         case 0:
             tmp        = arg0->extra.tmd;
             coord      = tmp->coords;
-            state      = (DryfieldWaterTowerState*)Mem_Malloc(0x7C, false);
+            state      = memMalloc(sizeof(*state), false);
             arg0->work = state;
             if (state == NULL) {
                 taskKill(arg0);
@@ -2628,7 +2628,7 @@ void func_dryfield_water_tower_8017F128(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            work       = Mem_Malloc(0x7C, 0);
+            work       = memMalloc(sizeof(*work), false);
             arg0->work = work;
             if (work == NULL) {
                 taskKill(arg0);
@@ -3035,7 +3035,7 @@ void func_dryfield_water_tower_8017FD64(Task* task)
             msg.blendFrames          = 0xA;
             msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &msg, 0);
-            work       = (DwtwWork*)Mem_Malloc(0x18, 0);
+            work       = memMalloc(sizeof(*work), false);
             task->work = work;
             if (work == NULL) {
                 taskKill(task);

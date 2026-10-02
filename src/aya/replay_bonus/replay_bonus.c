@@ -23,6 +23,7 @@
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/sound.h"
+#include "main/stream_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/text.h"
@@ -112,8 +113,8 @@ void func_replay_bonus_801159A0(Task* arg0)
             y                       = stream->y;
             D_replay_bonus_8011926A = y;
             DecDCTReset(0);
-            D_replay_bonus_8011925C = Mem_Malloc((s16)D_replay_bonus_80119266 << 6, 1);
-            vlcBuf                  = Mem_Malloc(D_replay_bonus_80119264 * (s16)D_replay_bonus_80119266 * 2, 1);
+            D_replay_bonus_8011925C = memMalloc((s16)D_replay_bonus_80119266 << 6, true);
+            vlcBuf                  = memMalloc(D_replay_bonus_80119264 * (s16)D_replay_bonus_80119266 * 2, true);
             bs                      = D_8006C338[stream->fileId].field_4;
             D_replay_bonus_80119260 = vlcBuf;
             bufSize                 = DecDCTBufSize(bs);
@@ -164,7 +165,7 @@ void func_replay_bonus_801159A0(Task* arg0)
 
 u16* func_replay_bonus_80115C68(void)
 {
-    u16* table = Mem_Malloc(0x11000, 1);
+    u16* table = memMalloc(STREAM_VLC_TABLE_BYTES, true);
 
     DecDCTvlcBuild(table);
     return table;
@@ -353,7 +354,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
     Ui_DrawText(&(obj)->panel, D_replay_bonus_80115774);
     if (arg0->state == 0) {
         cfg        = &gPlayerStatus;
-        mem        = Mem_Malloc(0x258, 0);
+        mem        = memMalloc(0x258, false);
         arg0->work = mem;
         if (mem == NULL) {
             obj->result = USER_INTERFACE_RESULT_CONFIRM;

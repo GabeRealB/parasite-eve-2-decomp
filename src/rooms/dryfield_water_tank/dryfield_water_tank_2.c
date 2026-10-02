@@ -887,7 +887,7 @@ void func_dryfield_water_tank_8017E3C4(Task* arg0)
     fade = (OverlayFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
+            alloc      = memMalloc(sizeof(*alloc), false);
             arg0->work = alloc;
             if (alloc == NULL) {
                 goto kill;
@@ -1106,13 +1106,15 @@ static void func_dryfield_water_tank_8017E78C(Task* task)
 /// `D_dryfield_water_tank_80188D50` so the room's script commands can reach
 /// that block, and hands slot 3 the 0x3E8 message carrying the animation set of the
 /// equipped weapon: `gPlayerStatus.weapon + 1` for the alternate block and
-/// `gPlayerStatus.weapon + 0x22` for the base one. A failed `Mem_Malloc` kills the task
+/// `gPlayerStatus.weapon + 0x22` for the base one. A failed `memMalloc` kills the task
 /// outright instead of returning, so the message and the state step still run
 /// on that path. States 2, 3 and 4 only step; state 1 runs the per-frame
 /// driver once the session is up, or steps when it has already torn down;
 /// state 5 asks to be killed.
 void func_dryfield_water_tank_8017E9F8(Task* task)
 {
+    // The request and clear cover twelve bytes; heap3 rounds the payload to sixteen.
+    enum { DRYFIELD_WATER_TANK_EVENT_WORK_INITIAL_BYTES = 0xC };
     DwtWork*             work;
     AnimationPlayRequest script;
     s32                  weaponId;
@@ -1136,12 +1138,12 @@ void func_dryfield_water_tank_8017E9F8(Task* task)
 
 L_case0:
     if ((Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
-        work       = Mem_Malloc(0xC, false);
+        work       = memMalloc(DRYFIELD_WATER_TANK_EVENT_WORK_INITIAL_BYTES, false);
         task->work = work;
         if (work == NULL) {
             taskKill(task);
         } else {
-            memFillBytes(work, 0, 0xC);
+            memFillBytes(work, 0, DRYFIELD_WATER_TANK_EVENT_WORK_INITIAL_BYTES);
             work->owner                    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             D_dryfield_water_tank_80188D50 = task;
         }

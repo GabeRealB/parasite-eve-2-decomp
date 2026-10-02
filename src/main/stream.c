@@ -991,9 +991,9 @@ void Mem_AllocAuxWithImages(s16 arg0)
     Mem_SetActiveAuxHeap(0);
     Mem_InitAux();
     if (gDisplayState.videoMode == DISPLAY_VIDEO_NORMAL) {
-        D_8006AC40 = Mem_Malloc(0x4A800, 1);
+        D_8006AC40 = memMalloc(0x4A800, true);
     } else {
-        D_8006AC40 = Mem_Malloc(0x45400, 1);
+        D_8006AC40 = memMalloc(0x45400, true);
     }
     if ((arg0 & 0xFFFF) != 0) {
         rect.x = 0x140;

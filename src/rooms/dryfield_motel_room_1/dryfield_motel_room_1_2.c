@@ -46,7 +46,7 @@
 /// `D_dryfield_motel_room_1_8018159C`, which every entry point in this overlay
 /// reaches the room state through.
 ///
-/// `func_dryfield_motel_room_1_8017DC2C` allocates it (`Mem_Malloc(0x38)`) and
+/// `func_dryfield_motel_room_1_8017DC2C` allocates it (`memMalloc(0x38, false)`) and
 /// fills `field_0` from `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` and `field_4` .. `field_10` from
 /// `Gp_FindWorkById(session id | index)`, which makes `field_C` / `field_10`
 /// the two placed objects `func_dryfield_motel_room_1_8017DF08` addresses its
@@ -1197,7 +1197,7 @@ static void func_dryfield_motel_room_1_8017DC2C(Task* arg0)
     Dmr1Work* work;
     s32       id;
 
-    work       = (Dmr1Work*)Mem_Malloc(0x38, 0);
+    work       = memMalloc(sizeof(*work), false);
     arg0->work = work;
     if (work == NULL) {
         taskKill(arg0);

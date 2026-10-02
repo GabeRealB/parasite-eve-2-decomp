@@ -96,7 +96,7 @@ void* CdCmd_SetupMdecBuffers(void)
             vlcBufferKind = p->sceneStream->data.scene.vlcBufferKind;
             switch (vlcBufferKind) {
                 case STREAM_VLC_BUFFER_ALLOCATE:
-                    p->vlcTable = Mem_Malloc(STREAM_VLC_TABLE_BYTES, 1);
+                    p->vlcTable = memMalloc(STREAM_VLC_TABLE_BYTES, true);
                     break;
                 case STREAM_VLC_BUFFER_ACTOR_0:
                     gGameSession->field_7C = 0;
@@ -123,7 +123,7 @@ void* CdCmd_SetupMdecBuffers(void)
         timingBufferKind = p->sceneStream->control.scene.timingBufferKind;
         switch (timingBufferKind) {
             case STREAM_TIMING_BUFFER_ALLOCATE:
-                p->timingBuffer = Mem_Malloc(p->sceneStream->data.scene.timingBufferBytes, 1);
+                p->timingBuffer = memMalloc(p->sceneStream->data.scene.timingBufferBytes, true);
                 break;
             case STREAM_TIMING_BUFFER_ACTOR_0:
                 gGameSession->field_7C = 0;
@@ -150,13 +150,13 @@ void* CdCmd_SetupMdecBuffers(void)
 
         p->timingCursor = p->timingBuffer;
         if (p->decodeBufferBytes != 0) {
-            p->decodeBuffer = Mem_Malloc(p->decodeBufferBytes, 1);
+            p->decodeBuffer = memMalloc(p->decodeBufferBytes, true);
         }
     }
 
     D_8006AC00 = NULL;
     if (gGameSession->location.loc.stage == GAME_STAGE_NONE) {
-        D_8006AC00 = Mem_Malloc(0x4B000, 1);
+        D_8006AC00 = memMalloc(0x4B000, true);
     } else if (Stream_FindSlot((u8*)&gGameSession->location.loc, 0, 0) < 0) {
         return NULL;
     } else {
@@ -164,7 +164,7 @@ void* CdCmd_SetupMdecBuffers(void)
         if (sizeRow != NULL) {
             size = sizeRow[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area];
             if (size != 0) {
-                D_8006AC00 = Mem_Malloc(size, 1);
+                D_8006AC00 = memMalloc(size, true);
             }
         }
     }

@@ -57,7 +57,7 @@
 /// to 0x4BC in turn.
 ///
 /// The block opens with a 0x14-byte animation context and its twenty 0x28-byte
-/// animation slots. `Mem_Malloc` is
+/// animation slots. `memMalloc` is
 /// asked for 0x4E4 bytes -- the whole block -- by
 /// `func_actor_120300_80132004` and `func_actor_120300_801321C8`, while
 /// `func_actor_120300_80133330` walks slots 1..19 through `animationResetSlot`
@@ -1380,7 +1380,7 @@ static inline s16 _actor120300InitChild(Task* arg0, s32 part)
     GfxCoord*        coord = tmd->coords;
     Actor120300Work* work;
 
-    work       = Mem_Malloc(0x4E4, 0);
+    work       = memMalloc(sizeof(*work), false);
     arg0->work = work;
     if (work == NULL) {
         return 1;
@@ -1974,7 +1974,7 @@ static void func_actor_120300_801335D8(Task* task)
 
     tmd           = task->extra.tmd;
     coord         = tmd->coords;
-    allocatedWork = Mem_Malloc(sizeof(Actor120300Work), 0);
+    allocatedWork = memMalloc(sizeof(Actor120300Work), false);
     task->work    = allocatedWork;
     if (allocatedWork == NULL) {
         taskKill(task);

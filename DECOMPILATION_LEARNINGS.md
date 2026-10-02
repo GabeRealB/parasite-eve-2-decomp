@@ -14016,7 +14016,7 @@ if (flag == 0) {
 } else {
     size = 0x45400;
 }
-ptr = Mem_Malloc(size, 1);
+ptr = memMalloc(size, 1);
 ```
 
 lets GCC hoist the shared `lui` before the branch and emit `bnez`/`beqz` with a
@@ -14030,7 +14030,7 @@ j     L_join
 L_if:
   ori   a0, a0, LO_if
 L_join:
-  jal   Mem_Malloc
+  jal   memMalloc
 ```
 
 Force that layout by writing the call in **both** arms (same destination). GCC
@@ -14039,9 +14039,9 @@ form:
 
 ```c
 if (flag == 0) {
-    ptr = Mem_Malloc(0x4A800, 1);
+    ptr = memMalloc(0x4A800, 1);
 } else {
-    ptr = Mem_Malloc(0x45400, 1);
+    ptr = memMalloc(0x45400, 1);
 }
 ```
 
@@ -20705,7 +20705,7 @@ GCC CSEs the two `entry->cmd` loads into one `lbu` either way; only the
 register assignment differs. `CdCmd_HandleStreamDecode` is the pure example (cmds 0x61 /
 0x62 on `CdCmdEntry`).
 
-## Dual `global = Mem_Malloc(...)` arms share one `jal` and pin `%hi` in `$s0`
+## Dual `global = memMalloc(...)` arms share one `jal` and pin `%hi` in `$s0`
 
 When the target zeros a global, then either allocates a fixed size or looks up a
 size and allocates, and reuses `$s0` for `%hi(global)` from the zero through
@@ -20715,26 +20715,26 @@ the post-malloc store:
 lui   s0, %hi(D_xxx)
 sw    zero, %lo(D_xxx)(s0)
 ...
-jal   Mem_Malloc          /* shared site */
+jal   memMalloc          /* shared site */
 sw    v0, %lo(D_xxx)(s0)  /* reuses s0 — no second lui */
 lui   v0, %hi(D_xxx)
 lw    v0, %lo(D_xxx)(v0)  /* return reloads with a fresh lui */
 ```
 
-Write **two** `global = Mem_Malloc(...)` statements in separate `if` / `else if`
+Write **two** `global = memMalloc(...)` statements in separate `if` / `else if`
 arms rather than a `goto` shared tail or a `doAlloc` flag:
 
 ```c
 /* Matches: two arms, one jal, lui s0 at zeroing */
 D_xxx = NULL;
 if (cond) {
-    D_xxx = Mem_Malloc(0x4B000, 1);
+    D_xxx = memMalloc(0x4B000, 1);
 } else if (setup() < 0) {
     return NULL;
 } else {
     size = lookup();
     if (size != 0) {
-        D_xxx = Mem_Malloc(size, 1);
+        D_xxx = memMalloc(size, 1);
     }
 }
 return D_xxx;
@@ -46746,7 +46746,7 @@ What is different:
   out of one `.text`. `rooms/dryfield_dilapidated_house` has four allocators --
   `0x6C`, `0x40`, `0x24`, `0x4` -- and each is the state-0 entry of its own
   `TaskFuncTable3` in the overlay's `.rodata`. 33 of the 88 allocating rooms
-  have more than one site, and rooms reach for `Mem_Malloc` as well as
+  have more than one site, and rooms reach for `memMalloc` as well as
   `memCalloc` (11 rooms vs 81), so grep for both.
 * Sizes are tiny (0x4, 0x8, 0xC, 0x14, 0x24, 0xC4) beside an actor's 0x454 /
   0x678, so a room work struct is two or three fields and padding.
@@ -79323,7 +79323,7 @@ renumbered around the new span.
 
 An actors overlay publishes its controller task in a `D_actor_<name>_<addr>`
 global -- the `sw $s2, %lo(...)` sits in that task's own callback, right after
-it stores a `Mem_Malloc`/`memCalloc` result into `0x1C($s2)`, i.e. its
+it stores a `memMalloc`/`memCalloc` result into `0x1C($s2)`, i.e. its
 `Task::work` slot. Leaf functions then read
 `lw $v0,%lo(D_actor_...)(v0); lw $v0,0x1C($v0)` and touch offsets in that
 block, so the whole overlay's work state is one struct reached through
@@ -79332,8 +79332,8 @@ header, and each callback selects its work type with this cast
 (`actor_342000.h`, `actor_560800.h`).
 
 **The `0x1C($a0)` in the overlay's base unit is not necessarily that block.**
-`actor_341900` allocates three: `Mem_Malloc(0x44, 0)`, `memCalloc(0x70, 0)` and
-`Mem_Malloc(0x258, 0)`, each stored into a *different* task's `0x1C`. Only the
+`actor_341900` allocates three: `memMalloc(0x44, 0)`, `memCalloc(0x70, 0)` and
+`memMalloc(0x258, 0)`, each stored into a *different* task's `0x1C`. Only the
 0x70 one is published in `D_actor_341900_80164208`. The base unit's dispatchers
 `func_actor_341900_801628B8` / `func_actor_80162AD4` look like ordinary
 `task->work` users, but both are called from the publishing function with `$s2`
@@ -79345,7 +79345,7 @@ So identify the block by the **single writer of the published global**, not by
 any `0x1C(...)` load in the overlay, and take the struct size from the
 allocation at that writer -- not from a sibling overlay's header, and not from
 the largest offset a leaf touches. `grep -rln 'sw.*%lo(D_actor_<name>_)'`
-returns the one site; the size is the constant in the `Mem_Malloc`/`memCalloc`
+returns the one site; the size is the constant in the `memMalloc`/`memCalloc`
 immediately above the `sw` that stores it.
 
 Inside the block, a recurring shape worth naming on sight: a *one-shot request
@@ -80770,7 +80770,7 @@ swapped, and the prologue copy of the malloc result sat one block earlier.
 The tell is in the target, at the call:
 
 ```
-    jal        Mem_Malloc
+    jal        memMalloc
      move      a1, zero
     bnez       $v0, .Lactor_136100_80133AD4
      sw        $v0, 0x1C($s3)      /* store uses $v0, in the delay slot */
@@ -80786,7 +80786,7 @@ copy into the callee-saved home happens only on the surviving path. That is what
 same block are rewritten to use `v0` directly, and the value is not live across
 the branch for `p` at all. The copy into the long-lived variable is then a
 separate `(set work (reg v0))` in the next block. Writing the whole thing with
-one variable instead (`work = Mem_Malloc(...)` used for the store, the test and
+one variable instead (`work = memMalloc(...)` used for the store, the test and
 everything after) keeps the copy in the first block, emits `sw $s0` / `bnez $s0`,
 and leaves the long-lived pseudo referencing the value in two more places.
 
@@ -80809,7 +80809,7 @@ matched sibling `func_actor_136100_80134588` in the same TU has exactly this
 shape (`alloc` short-lived, `fade` long-lived) and is the source pattern to copy:
 
 ```c
-map = Mem_Malloc(0x4F0, 0);
+map = memMalloc(0x4F0, 0);
 arg0->work = map;
 if (map == NULL) {
     taskKill(arg0);
@@ -81867,13 +81867,13 @@ registers plus the register of one `u8`:
 ```asm
 -sw    s1,0x1c(sp)        +sw    s0,0x18(sp)      ; arg1
 -move  s1,a1              +move  s0,a1
--move  s0,v0              +move  s1,v0            ; Mem_Malloc result
+-move  s0,v0              +move  s1,v0            ; memMalloc result
 -sh    s1,0x508(s0)       +sh    s0,0x508(s1)
 ```
 
 **Read the `.lreg` for the number of `set`s, not just the register.** Pseudo 82
 had two destinations — `(insn 27 … (set (reg/v:SI 82) (reg:SI 2 v0))`, the
-`Mem_Malloc` return, and `(insn 152 … (set (reg/v:SI 82) …)`, the loop
+`memMalloc` return, and `(insn 152 … (set (reg/v:SI 82) …)`, the loop
 preheader's `lw $s1,0x1C($s4)` — so it was one allocno with one register, and
 every use of "the work pointer" before and after the loop had to share it. The
 target writes `$s0` at the malloc and `$s1` at the reload, and those live ranges
@@ -83208,7 +83208,7 @@ The casts then follow from the width, and each has a distinct load:
 | `(u16)index->spawnArg1`, `spawnArg1` an `s32` | `lhu` - a `subreg` of a word load narrows to the halfword at the same address |
 
 The sibling is the shortcut. `func_actor_560800_80135FA0` is the same fade task in
-another overlay, already matched, with the same `Mem_Malloc(8, 0)` into
+another overlay, already matched, with the same `memMalloc(8, 0)` into
 `Task::work`, the same `switch (index->state)`, and the same three casts; its
 `OverlayFadeWork` is the struct to copy. Checking the family's other overlays
 for the shape costs one `grep`, and the `.diagnosis.json` opcode delta confirms the
@@ -94572,7 +94572,7 @@ jr    $v0
 ```
 
 CSE alone will not do this here -- state 0 *stores* to `task->work`
-(`task->work = Mem_Malloc(4, false)` is the store in the `bnez` delay slot), and
+(`task->work = memMalloc(4, false)` is the store in the `bnez` delay slot), and
 the paths that read the field are behind a call. The load survives because the
 source read the field once into a local declared before the switch:
 
@@ -98189,7 +98189,7 @@ Two further points about this function, both already covered elsewhere: the
 0x40 frame against the target's 0x48 is the unused-`SVECTOR` slot (`An unused
 local still costs frame space`), and the `AnimationPlayRequest` it fills is the same record
 `func_actor_136100_8013379C` fills. The work block is 0x4E4 bytes, which
-`Mem_Malloc` in `func_actor_120300_80132004` states outright — read that before
+`memMalloc` in `func_actor_120300_80132004` states outright — read that before
 inferring a block size from its last accessed field.
 ## `cse` forwards a merge-block store into the loads after it; arms that write the field themselves keep their reloads (func_actor_511000_80132390, 2026-09-16)
 
@@ -105145,7 +105145,7 @@ through `j`) lets sched1 hoist it just behind `a2 = 1`, and it matched.
 
 ### A `sN = sM` copy in a call's delay slot is a second local aliasing the first; place it after the call args (func_actor_560800_801386D4, 2026-09-16)
 
-**Symptom.** A state-0 spawner does `w = Mem_Malloc(...); task->work = w; ...
+**Symptom.** A state-0 spawner does `w = memMalloc(...); task->work = w; ...
 memFillBytes(task->work, 0, size);` and the target's `memFillBytes` delay slot holds
 `move s2,s0`, after which the loop writes through `s2`. `w` itself (`$s0`) is
 also the variable reloaded from `task->work` after the switch.
@@ -108851,15 +108851,15 @@ the checksum fails naming a whole executable or overlay rather than the function
 that moved.
 
 `src/main/mem.c` is the worked example. `_memSetActiveHeap` stands between
-`memCalloc`, which `jal`s it, and `Mem_Malloc`, whose body carries the setter's
+`memCalloc`, which `jal`s it, and `memMalloc`, whose body carries the setter's
 code integrated; marking the setter's definition `inline` to integrate that call
 too reorders the object:
 
 ```
 000001fc 0000002c _memSetActiveHeap    as the source has it: the setter stands
-00000228 00000064 Mem_Malloc              between the two groups of callers
+00000228 00000064 memMalloc              between the two groups of callers
 
-000001fc 00000064 Mem_Malloc             with `inline` on the setter's definition:
+000001fc 00000064 memMalloc             with `inline` on the setter's definition:
 00000260 0000002c memFree                 the later callers slide up by its size
 0000028c 00000044 memFreeFromHeap          and the copy is emitted last
 000003a4 0000002c _memSetActiveHeap
@@ -123480,13 +123480,13 @@ compiles to the same 95 instructions and 17 blocks. Compiler SHA256
 ## A pointer tested for NULL and then kept across calls needs two C variables (func_actor_120300_801335D8, 2026-09-17)
 
 `func_actor_120300_801335D8` sat at 99.423% with `branch=1 regs=2 reorder=1` and a
-single diff hunk: the candidate copied the `Mem_Malloc` result into its
+single diff hunk: the candidate copied the `memMalloc` result into its
 callee-saved home *before* the NULL test and branched on that register, where the
 target branches on the returned `$v0` and only then moves it.
 
 ```
 target                              candidate
-jal     Mem_Malloc                  jal     Mem_Malloc
+jal     memMalloc                  jal     memMalloc
 move    a1,zero                     move    a1,zero
 bnez    v0,50                      move    s2,v0
 sw      v0,0x1c(s3)                 bnez    s2,54
@@ -123503,7 +123503,7 @@ every later use reads `$s2`. Splitting it the way the matched sibling
 `func_actor_136100_80133A88` is written gives the target shape exactly:
 
 ```c
-Actor120300Work* map = Mem_Malloc(0x4E4, 0);
+Actor120300Work* map = memMalloc(0x4E4, 0);
 arg0->work    = map;
 if (map == NULL) { taskKill(arg0); return; }
 work = map;      /* long-lived copy, only this one needs $s2 */
@@ -123575,7 +123575,7 @@ tails.
 ## A function that is a sibling plus one block is matched by splicing, not by decompiling (func_actor_120300_80132004, 2026-09-17)
 
 `func_actor_120300_80132004` is `func_actor_120300_801321C8` - the next function
-in the same TU, same `0x38` frame, same `Mem_Malloc`/`memFillBytes`/
+in the same TU, same `0x38` frame, same `memMalloc`/`memFillBytes`/
 `Tmd_AllocBuffers` prologue, same `func_800D7A9C` + `ScaleMatrix` tail - with one
 constant changed and one block inserted before the state step. m2c's rendering
 of it scored 73.549% (`branch=4 regs=41 reorder=3 insert=6 delete=20`, 113 insns
@@ -124109,14 +124109,14 @@ Also seen in the same function (`func_actor_143000_801325F0`): the load order
 with `dx = p->x` written afterwards (CSE reuses the load). And a `u8 v = dy + 0x70`
 variable gave `v + 16` as `addiu 0x80` (SImode) where the direct macro argument
 gave `-0x80`.
-## The fade-task family: `Mem_Malloc(8, 0)` + `switch (Task::state)` + `Fade_DrawOverlay` repeats across actors and rooms, and its matched twins hand over the source shape (func_actor_121300_801326EC, 2026-09-17)
+## The fade-task family: `memMalloc(8, 0)` + `switch (Task::state)` + `Fade_DrawOverlay` repeats across actors and rooms, and its matched twins hand over the source shape (func_actor_121300_801326EC, 2026-09-17)
 
 `func_actor_121300_801326EC` is `func_actor_160900_801344D8`,
 `func_actor_560800_80136094` and its own TU sibling `func_actor_121300_8013400C`
 with the state numbers moved: an 8-byte RGB block allocated into `Task::work`
 (0x1C), three `s16` channels at 0x2/0x4/0x6, and a `switch (index->state)` in
 which one `case` seeds the channels and another holds `SetDispMask(1)` and
-falls through into the delay cases. `grep -rn 'Mem_Malloc(8, 0)' src/` lists the
+falls through into the delay cases. `grep -rn 'memMalloc(8, 0)' src/` lists the
 family. Adopting the nearest matched twin's source verbatim scored 100.00% on
 the first build here, where m2c's `switch`-free goto soup had reached 60.72%.
 
@@ -124162,7 +124162,7 @@ pseudo for the entire function (`DECL_RTL`), so the second assignment is a
 *redefinition of the same pseudo*, not a new one:
 
 ```
-(insn 43  ... (set (reg/v:SI 81) (reg:SI 2 v0)))     ; work = Mem_Malloc(...)
+(insn 43  ... (set (reg/v:SI 81) (reg:SI 2 v0)))     ; work = memMalloc(...)
 (insn 186 ... (set (reg/v:SI 81)                     ; work = arg0->work
         (mem/s:SI (plus:SI (reg/v:SI 80) (const_int 28)))))
 ```
@@ -132024,7 +132024,7 @@ substitution and are found only by grepping the notes for the retired names.
 
 ## The heap wrappers are libapi `heap3`, and writing `_freep` is what selects a heap
 
-`Mem_Malloc`, `memCalloc`, `memFree` and `memFreeFromHeap` own no allocator:
+`memMalloc`, `memCalloc`, `memFree` and `memFreeFromHeap` own no allocator:
 each points libapi's `_freep` at a heap and calls `malloc3` / `free3`. In libapi,
 `_freep` is the block that those two routines begin their search from inside
 one heap's free-block ring. `InitHeap3` sets it to the heap it initializes, and
@@ -132042,10 +132042,10 @@ the reason a wrapper takes the heap as a flag at all.
 
 The assignment appears in the wrappers in both shapes, and each wrapper's target
 decides which. `memCalloc` calls `_memSetActiveHeap` and its target has the
-`jal`; `Mem_Malloc`, `memFree` and `memFreeFromHeap` write the assignment out,
+`jal`; `memMalloc`, `memFree` and `memFreeFromHeap` write the assignment out,
 so theirs have the repeated `lui` / `lw` / `sw`, with `memFree` taking the
 primary branch alone. The three could not have called the setter and been
-integrated: its address stands between `memCalloc` and `Mem_Malloc`, and an
+integrated: its address stands between `memCalloc` and `memMalloc`, and an
 `inline` function's out-of-line copy is emitted at the end of the unit, so
 marking it `inline` to integrate those calls moves it and shifts every function
 below it. The repetition is what matches; do not factor it out.
@@ -144991,7 +144991,7 @@ recurs in several actors' pose ticks.
 
 ## A `kill = …; killCopy = kill; TOUCH_REG(killCopy); if (killCopy)` alloc-or-die block is an inline with a narrow return type (func_actor_120300_80132004, 2026-09-27)
 
-A spawn tick's state 0 sets a flag to 1 on a failed `Mem_Malloc` and 0 after
+A spawn tick's state 0 sets a flag to 1 on a failed `memMalloc` and 0 after
 wiring the block up, then tests it through `move v0,v1; beqz v0` - a copy the
 seed kept only by pinning a second local. Moving the block into a `static
 inline` helper that `return 1;`s early and `return 0;`s at the end is not

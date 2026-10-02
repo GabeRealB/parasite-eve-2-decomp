@@ -52,7 +52,7 @@ extern ActorTransform D_actor_136100_8013F304[2];
 
 /// Work block for the `actor_136100` overlay's cutscene actor.
 ///
-/// `func_actor_136100_80133A88` allocates it with `Mem_Malloc(0x4F0, 0)`,
+/// `func_actor_136100_80133A88` allocates it with `memMalloc(0x4F0, 0)`,
 /// zeroes it with `memFillBytes` and parks the pointer in the task's `Task::work`
 /// slot (0x1C) -- that slot is not a `TaskIdMap` here, so reach the block with
 /// `(Actor136100Work*)task->work`.  The same function publishes the task
@@ -1309,7 +1309,7 @@ check:
 /// work block's light/colour matrices into `TmdObject::lightMtx` / `colorMtx`
 /// and the animation-context task reparented under `D_actor_136100_8014078C`.
 /// The texture page / CLUT row come from the placement record at the nested
-/// area table's `field_0` list with resource-entry ID 0x6A (or the end record if that ID is absent), and this all runs even on the `Mem_Malloc` failure path,
+/// area table's `field_0` list with resource-entry ID 0x6A (or the end record if that ID is absent), and this all runs even on the `memMalloc` failure path,
 /// which still advances the state after killing the task.
 ///
 /// The dead `VECTOR` is read back through `task->extra` rather than the local
@@ -1326,7 +1326,7 @@ void func_actor_136100_801320E0(Task* task)
         TmdObject* tmd   = task->extra.tmd;
         GfxCoord*  coord = tmd->coords;
 
-        work       = Mem_Malloc(sizeof(Actor136100Work), 0);
+        work       = memMalloc(sizeof(Actor136100Work), false);
         task->work = work;
         if (work == NULL) {
             taskKill(task);
@@ -1372,7 +1372,7 @@ void func_actor_136100_80132284(Task* arg0)
         TmdObject* tmd   = arg0->extra.tmd;
         GfxCoord*  coord = tmd->coords;
 
-        work       = Mem_Malloc(0x4F0, 0);
+        work       = memMalloc(sizeof(*work), false);
         arg0->work = work;
         if (work == NULL) {
             taskKill(arg0);
@@ -2078,7 +2078,7 @@ static void func_actor_136100_80133A88(Task* task)
 
     tmd           = task->extra.tmd;
     coord         = tmd->coords;
-    allocatedWork = Mem_Malloc(sizeof(Actor136100Work), 0);
+    allocatedWork = memMalloc(sizeof(Actor136100Work), false);
     task->work    = allocatedWork;
     if (allocatedWork == NULL) {
         taskKill(task);
@@ -2339,7 +2339,7 @@ void func_actor_136100_80134588(Task* arg0)
     fade = (OverlayFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
+            alloc      = memMalloc(sizeof(*alloc), false);
             arg0->work = alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
