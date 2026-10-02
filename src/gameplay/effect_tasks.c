@@ -148,7 +148,7 @@ GpQuadCorner D_80111E38[4] = {
     { 0xFFFF, 0xFFFF },
     { 1, 0xFFFF },
 };
-GpEffUv8 D_80111E48[12] = {
+EffectSpriteTextureFrame D_80111E48[12] = {
     { 0, 0, 0, 0, 112, 265 },
     { 40, 0, 0, 0, 128, 265 },
     { 80, 0, 0, 0, 144, 265 },
@@ -1810,22 +1810,22 @@ static void Gp_DrawEffSprite3B(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 
 void Gp_EffSprTask5C(Task* arg0)
 {
-    EffectShapeScratch* head;
-    EffectShapeScratch* block;
-    EffectShapeScratch* projectionScratch;
-    GfxCoord*           coord;
-    EffectWork*         mem;
-    POLY_FT4*           prim;
-    GpEffUv8*           rec;
-    s16                 flag;
-    s16                 scale;
-    s16                 step;
-    s32                 rng;
-    s32                 i;
-    s32                 n;
-    s32                 t2;
-    s32                 tmp;
-    u16                 vz;
+    EffectShapeScratch*             head;
+    EffectShapeScratch*             block;
+    EffectShapeScratch*             projectionScratch;
+    GfxCoord*                       coord;
+    EffectWork*                     mem;
+    POLY_FT4*                       prim;
+    const EffectSpriteTextureFrame* textureFrame;
+    s16                             flag;
+    s16                             scale;
+    s16                             step;
+    s32                             rng;
+    s32                             i;
+    s32                             n;
+    s32                             t2;
+    s32                             tmp;
+    u16                             vz;
 
     mem   = arg0->spawnArg2.pointer;
     flag  = gRoomEffectState->effectControl;
@@ -1914,18 +1914,18 @@ void Gp_EffSprTask5C(Task* arg0)
             gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
             setcode(prim, 0x2C);
-            rec                    = &D_80111E48[mem->age / mem->period];
+            textureFrame           = &D_80111E48[mem->age / mem->period];
             prim->code            |= 3;
             prim->tpage            = 0x29;
-            prim->clut             = (rec->clutY << 6) | ((rec->clutX >> 4) & 0x3F);
-            prim->u0               = rec->u;
-            prim->v0               = rec->v;
-            prim->u1               = rec->u + 0x27;
-            prim->v1               = rec->v;
-            prim->u2               = rec->u;
-            prim->v2               = rec->v + 0x27;
-            prim->u3               = rec->u + 0x27;
-            prim->v3               = rec->v + 0x27;
+            prim->clut             = getClut(textureFrame->clutX, textureFrame->clutY);
+            prim->u0               = textureFrame->u;
+            prim->v0               = textureFrame->v;
+            prim->u1               = textureFrame->u + 0x27;
+            prim->v1               = textureFrame->v;
+            prim->u2               = textureFrame->u;
+            prim->v2               = textureFrame->v + 0x27;
+            prim->u3               = textureFrame->u + 0x27;
+            prim->v3               = textureFrame->v + 0x27;
             block->extent.corner.x = (((mem->scale * 0x27) / block->depth) * rsin(mem->angle)) >> 12;
             block->extent.corner.y = (((mem->scale * 0x27) / block->depth) * rcos(mem->angle)) >> 12;
             prim->x0               = block->screenX + (u16)block->extent.corner.x;

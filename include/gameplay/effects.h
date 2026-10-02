@@ -150,19 +150,21 @@ typedef struct {
 } EffectWork;
 STATIC_ASSERT_SIZEOF(EffectWork, 0x2C);
 
-/// 8-byte sprite frame of `D_80111E48`, indexed by
-/// `EffectWork.age / EffectWork.period` in `Gp_EffSprTask5C`.
-/// `u` / `v` are the UV origin of a 0x28-wide quad; `clutX` / `clutY` feed
-/// `getClut`. TPage is hardcoded to 0x29.
-typedef struct _GpEffUv8 {
-    /* 0x0 */ u8  u;
-    /* 0x1 */ u8  pad1;
-    /* 0x2 */ u8  v;
-    /* 0x3 */ u8  pad3;
-    /* 0x4 */ u16 clutX;
-    /* 0x6 */ u16 clutY;
-} GpEffUv8;
-STATIC_ASSERT_SIZEOF(GpEffUv8, 8);
+/// Texture origin and palette location for one frame of an effect sprite.
+///
+/// UV coordinates are texels within the texture page selected by the drawer.
+/// Palette coordinates are unencoded VRAM coordinates for `getClut`.
+/// The drawer supplies cell dimensions and the texture page; UV-only users
+/// select their palette separately. The intervening bytes have no proven role.
+typedef struct {
+    u8  u;       // Left texture column in texels (0..255).
+    u8  field_1; // Unread byte; role unproven.
+    u8  v;       // Top texture row in texels (0..255).
+    u8  field_3; // Unread byte; role unproven.
+    u16 clutX;   // Palette X in VRAM words, aligned to 16 words.
+    u16 clutY;   // Palette Y in VRAM scanlines.
+} EffectSpriteTextureFrame;
+STATIC_ASSERT_SIZEOF(EffectSpriteTextureFrame, 8);
 
 /// One corner of the unit quad in `D_80111E38`: a signed XZ pair scaled by
 /// the caller's half-size before being rotated into world space.

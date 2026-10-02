@@ -3026,12 +3026,12 @@ void func_dryfield_night_motel_balcony_8017E554(Task* task)
 /// rounded weight `3 * d` are the one reused local the ROM keeps for them.
 void func_dryfield_night_motel_balcony_8017F6C8(s32 arg0, s16 arg1, s16 arg2, s16 arg3)
 {
-    POLY_FT4* prim;
-    GpEffUv8* rec;
-    s16       idx;
-    GpEffUv8* tbl;
-    s32       d;
-    s32       y;
+    POLY_FT4*                       prim;
+    const EffectSpriteTextureFrame* textureFrame;
+    s16                             idx;
+    const EffectSpriteTextureFrame* textureFrames;
+    s32                             d;
+    s32                             y;
 
     prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
@@ -3039,18 +3039,18 @@ void func_dryfield_night_motel_balcony_8017F6C8(s32 arg0, s16 arg1, s16 arg2, s1
     setcode(prim, 0x2F);
     prim->tpage = 0x29;
 
-    idx        = arg3 % 10 + 2;
-    tbl        = D_80111E48;
-    rec        = &tbl[idx];
-    prim->clut = (rec->clutY << 6) | ((rec->clutX >> 4) & 0x3F);
-    prim->u0   = rec->u;
-    prim->v0   = rec->v;
-    prim->u1   = rec->u + 0x27;
-    prim->v1   = rec->v;
-    prim->u2   = rec->u;
-    prim->v2   = rec->v + 0x27;
-    prim->u3   = rec->u + 0x27;
-    prim->v3   = rec->v + 0x27;
+    idx           = arg3 % 10 + 2;
+    textureFrames = D_80111E48;
+    textureFrame  = &textureFrames[idx];
+    prim->clut    = getClut(textureFrame->clutX, textureFrame->clutY);
+    prim->u0      = textureFrame->u;
+    prim->v0      = textureFrame->v;
+    prim->u1      = textureFrame->u + 0x27;
+    prim->v1      = textureFrame->v;
+    prim->u2      = textureFrame->u;
+    prim->v2      = textureFrame->v + 0x27;
+    prim->u3      = textureFrame->u + 0x27;
+    prim->v3      = textureFrame->v + 0x27;
 
     d        = (arg2 * 0x1F) >> 12;
     prim->x2 = arg0 - d;

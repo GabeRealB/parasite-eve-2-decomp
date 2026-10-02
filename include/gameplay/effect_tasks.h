@@ -10,7 +10,7 @@
 
 // Effect task entry points and shared drawing data.
 
-extern GpEffUv8 D_80111E48[];
+extern EffectSpriteTextureFrame D_80111E48[];
 
 /// Unit quad corners `(-1, 1)`, `(1, 1)`, `(-1, -1)`, `(1, -1)`.
 extern GpQuadCorner D_80111E38[4];

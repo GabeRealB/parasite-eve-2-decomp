@@ -20,7 +20,7 @@ static void SPRITE_QUAD_FUNC(SPRITE_QUAD_POSITION_SOURCE_TYPE* pos, SPRITE_QUAD_
     s32                 u0;
     s32                 u1;
 #ifdef SPRITE_QUAD_UV_TABLE
-    GpEffUv8* rec;
+    const EffectSpriteTextureFrame* textureFrame;
 #endif
 #ifdef SPRITE_QUAD_CELL_H
     s32 v0;
@@ -62,9 +62,10 @@ static void SPRITE_QUAD_FUNC(SPRITE_QUAD_POSITION_SOURCE_TYPE* pos, SPRITE_QUAD_
             prim->clut  = SPRITE_QUAD_CLUT;
 #if defined(SPRITE_QUAD_UV_TABLE)
             /* each frame names its own square cell */
-            rec = &SPRITE_QUAD_UV_TABLE[frame];
-            setUV4(prim, rec->u, rec->v, rec->u + (SPRITE_QUAD_CELL_W - 1), rec->v, rec->u, rec->v + (SPRITE_QUAD_CELL_W - 1),
-                   rec->u + (SPRITE_QUAD_CELL_W - 1), rec->v + (SPRITE_QUAD_CELL_W - 1));
+            textureFrame = &SPRITE_QUAD_UV_TABLE[frame];
+            setUV4(prim, textureFrame->u, textureFrame->v, textureFrame->u + (SPRITE_QUAD_CELL_W - 1), textureFrame->v,
+                   textureFrame->u, textureFrame->v + (SPRITE_QUAD_CELL_W - 1),
+                   textureFrame->u + (SPRITE_QUAD_CELL_W - 1), textureFrame->v + (SPRITE_QUAD_CELL_W - 1));
 #else
 #if defined(SPRITE_QUAD_CELLS_PER_ROW)
 #ifdef SPRITE_QUAD_CELL_H

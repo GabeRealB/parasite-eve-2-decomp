@@ -825,11 +825,11 @@ own
 
 ```c
     s16       idx;
-    GpEffUv8* tbl;
+    const EffectSpriteTextureFrame* textureFrames;
     ...
     idx        = arg3 % 10 + 2;
-    tbl        = D_80111E48;      /* the base is materialized here ... */
-    rec        = &tbl[idx];       /* ... and the scale follows it */
+    textureFrames = D_80111E48;         /* the base is materialized here ... */
+    textureFrame  = &textureFrames[idx]; /* ... and the scale follows it */
 ```
 
 reorders the RTL to `[lui][addiu][sll 16][sra 13][addu]`, which is the target's

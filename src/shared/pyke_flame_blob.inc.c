@@ -9,14 +9,14 @@
 /// by zero.
 void pykeFlameDrawBlob(VECTOR3* pos, u16 frame, u16 width, s16 ang)
 {
-    EffectShapeScratch* head;
-    EffectShapeScratch* block;
-    EffectShapeScratch* projectionScratch;
-    POLY_FT4*           prim;
-    GpEffUv8*           rec;
-    u16                 idx;
-    s32                 a;
-    u16                 vz;
+    EffectShapeScratch*             head;
+    EffectShapeScratch*             block;
+    EffectShapeScratch*             projectionScratch;
+    POLY_FT4*                       prim;
+    const EffectSpriteTextureFrame* textureFrame;
+    u16                             idx;
+    s32                             a;
+    u16                             vz;
 
     head                                     = SCRATCH_STACK_CURSOR(EffectShapeScratch);
     (head - 1)->worldPoint.vx                = (u16)pos->vx;
@@ -41,16 +41,16 @@ void pykeFlameDrawBlob(VECTOR3* pos, u16 frame, u16 width, s16 ang)
         setlen(prim, 9);
         setcode(prim, 0x2F);
         prim->tpage            = 0x29;
-        rec                    = &D_80111E48[idx];
-        prim->clut             = (rec->clutY << 6) | ((rec->clutX >> 4) & 0x3F);
-        prim->u0               = rec->u;
-        prim->v0               = rec->v;
-        prim->u1               = rec->u + 0x27;
-        prim->v1               = rec->v;
-        prim->u2               = rec->u;
-        prim->v2               = rec->v + 0x27;
-        prim->u3               = rec->u + 0x27;
-        prim->v3               = rec->v + 0x27;
+        textureFrame           = &D_80111E48[idx];
+        prim->clut             = getClut(textureFrame->clutX, textureFrame->clutY);
+        prim->u0               = textureFrame->u;
+        prim->v0               = textureFrame->v;
+        prim->u1               = textureFrame->u + 0x27;
+        prim->v1               = textureFrame->v;
+        prim->u2               = textureFrame->u;
+        prim->v2               = textureFrame->v + 0x27;
+        prim->u3               = textureFrame->u + 0x27;
+        prim->v3               = textureFrame->v + 0x27;
         a                      = ang;
         block->extent.corner.x = (((width * 0x27) / block->depth) * rsin(a)) >> 12;
         block->extent.corner.y = (((width * 0x27) / block->depth) * rcos(a)) >> 12;
