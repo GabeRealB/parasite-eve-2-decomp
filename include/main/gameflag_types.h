@@ -54,25 +54,39 @@ typedef struct _GpFlagBank {
 STATIC_ASSERT_SIZEOF(GpFlagBank, 0x20);
 STATIC_ASSERT(OFFSET_OF(GpFlagBank, entryStates) == 0xC, game_flag_entry_states_offset);
 
-/// Default placement layout and controls for saved enemy poses.
+/// Default placement layout and bits of `AreaSavedState.spawnFlags`.
 enum {
     AREA_DEFAULT_VARIANT           = 1,
     AREA_SPAWN_RESET_SAVED_POSES   = 0x01,
-    AREA_SPAWN_RESTORE_SAVED_POSES = 0x02
+    AREA_SPAWN_RESTORE_SAVED_POSES = 0x02,
+    /// Map mark in `AreaSavedState.spawnFlags`.
+    ///
+    /// When `AREA_SPAWN_RESTORE_SAVED_POSES` is clear, the world map draws a
+    /// visited area's room in red and the shelter map draws a marker. The bit is
+    /// set when an area-exit sequence starts, for the new-game area lists, and
+    /// when an area-apply record's low nibble is nonzero. It is cleared when
+    /// that nibble is zero, when a generator's death release runs, and at the
+    /// end of the driveway cutscene.
+    AREA_SAVED_MAP_MARK = 0x04
 };
 
-/// Saved placement variant and spawn flags for one area.
+/// Saved placement variant and flags for one area.
+///
+/// The live prefix of a `GameFlagAreaSlot`. Stage area tables point at these
+/// bytes in the stage save bank, so spawn and map code update the save directly.
+/// A zero `variant` is uninitialized; the next spawn preparation or location
+/// sync stores `AREA_DEFAULT_VARIANT` and requests a saved-pose reset.
 typedef struct {
-    s8 variant;    // Placement/resource layout (0 uninitialized, 1 default); copied into `GameLocationKey.variant`
-    u8 spawnFlags; // Bit 0 discard saved enemy poses, bit 1 restore them, bit 2 used by the area status lists
-} GpAreaObj;
-STATIC_ASSERT_SIZEOF(GpAreaObj, 2);
+    s8 variant;    // Placement layout (0 uninitialized, then AREA_DEFAULT_VARIANT). Copied into `GameLocationKey.variant`
+    u8 spawnFlags; // AREA_SPAWN_RESET_SAVED_POSES, AREA_SPAWN_RESTORE_SAVED_POSES, AREA_SAVED_MAP_MARK
+} AreaSavedState;
+STATIC_ASSERT_SIZEOF(AreaSavedState, 2);
 
 /// Area records are saved at four-byte intervals. The remaining two bytes
 /// are part of the saved bank; their role has not been established.
 typedef struct {
-    GpAreaObj state;
-    u8        unknown_2[2];
+    AreaSavedState state;
+    u8             unknown_2[2];
 } GameFlagAreaSlot;
 STATIC_ASSERT_SIZEOF(GameFlagAreaSlot, 4);
 

@@ -8,9 +8,10 @@
 
 // Area transitions and persistent area-flag updates.
 
-/// Mirror of `Gp_SetCurAreaFlag4` for an explicit key: clears bit 2 of
-/// `GpAreaObj.spawnFlags` on the record selected by `Gp_AreaTables[key->stage]`
-/// + `key->area`. Null records are skipped, as in the setter.
+/// Mirror of `Gp_SetCurAreaFlag4` for an explicit key: clears
+/// `AREA_SAVED_MAP_MARK` in `AreaSavedState.spawnFlags` on the record selected
+/// by `Gp_AreaTables[key->stage]` + `key->area`. Null records are skipped, as
+/// in the setter.
 void Gp_ClearAreaFlag4(GameLocationKey* key);
 
 void func_800AEE8C(Task* arg0);

@@ -68,8 +68,8 @@ STATIC_ASSERT_SIZEOF(AreaVariant, 8);
 
 /// Outer stage/area record, distinct from the selected placement layout.
 typedef struct _GpAreaRec {
-    AreaVariant* field_0;
-    GpAreaObj*   field_4;
+    AreaVariant*    field_0;
+    AreaSavedState* field_4;
 } GpAreaRec;
 STATIC_ASSERT_SIZEOF(GpAreaRec, 8);
 

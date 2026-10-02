@@ -1045,19 +1045,19 @@ static void func_shelter_r47_801833DC(Task* task, s16 arg1)
     }
 }
 
-/// Bit 2 of the area object's flags byte, as 0 or 1; 0 when the stage has no
-/// table or the area no object. The counterpart of `Gp_GetAreaFlag2`.
+/// `AREA_SAVED_MAP_MARK` of the area's saved state, as 0 or 1; 0 when the stage
+/// has no table or the area no saved state. The counterpart of `Gp_GetAreaFlag2`.
 static inline s32 _shelterR47GetAreaFlag4(GameLocationKey* key)
 {
-    GpAreaRec* rec;
-    GpAreaObj* obj;
-    s16        val;
+    GpAreaRec*      rec;
+    AreaSavedState* areaState;
+    s16             val;
 
     rec = Gp_AreaTables[key->stage];
     if (rec != NULL) {
-        obj = rec[key->area].field_4;
-        if (obj != NULL) {
-            val = obj->spawnFlags & 4;
+        areaState = rec[key->area].field_4;
+        if (areaState != NULL) {
+            val = areaState->spawnFlags & AREA_SAVED_MAP_MARK;
             return val != 0;
         } else {
             return 0;
@@ -1067,9 +1067,10 @@ static inline s32 _shelterR47GetAreaFlag4(GameLocationKey* key)
     }
 }
 
-/// Whether area `area` of stage `stage` (view 2, room 1) has flag bit 2 set
-/// and flag bit 1 clear - the same condition under which
-/// `Gp_RebuildAreaIdBits` sets the area's bit in `Gp_AreaIdBits`.
+/// Whether area `area` of stage `stage` (view 2, room 1) has
+/// `AREA_SAVED_MAP_MARK` set and `AREA_SPAWN_RESTORE_SAVED_POSES` clear. This is
+/// the condition under which `Gp_RebuildAreaIdBits` sets the area's bit in
+/// `Gp_AreaIdBits`.
 static inline s16 _shelterR47IsAreaMarked(s32 stage, s32 area)
 {
     GameLocationKey key;
@@ -1086,8 +1087,9 @@ static inline s16 _shelterR47IsAreaMarked(s32 stage, s32 area)
 
 /// Draws the map overlay of the room's second cap script, brightening each
 /// quad by 0x30 over the last. While `field_1C` is not 3 it draws one marker
-/// per entry of the `field_1C` marker table whose area object has 0x4 set and
-/// 0x2 clear in `GpAreaObj::spawnFlags`, after a fixed marker when `field_1C` is
+/// per entry of the `field_1C` marker table whose saved area state has
+/// `AREA_SAVED_MAP_MARK` set and `AREA_SPAWN_RESTORE_SAVED_POSES` clear, after a
+/// fixed marker when `field_1C` is
 /// 0, `field_2A` is not 1 and collected bit 0x12D is set. When `field_1C` is 3
 /// it first moves `field_2A` from 2 to 3 and starts cap slot 0x13, then draws
 /// the same markers if game-flag nibble 0xDF is 1, and otherwise the

@@ -40,8 +40,8 @@
 
 /// 2-byte record in 0xFF-terminated lists walked by `Gp_ApplyAreaFlag4List` and
 /// `Gp_ApplyNewGameAreaFlags`. `field_0` indexes a `GpAreaRec` table (same role as
-/// `GameLocationKey.area`); `field_1` is the apply flag (nonzero →
-/// `GpAreaObj.spawnFlags |= 4`).
+/// `GameLocationKey.area`); `field_1` is the apply flag (nonzero sets
+/// `AREA_SAVED_MAP_MARK`).
 typedef struct _GpAreaFlagRec {
     /* 0x0 */ u8 field_0;
     /* 0x1 */ u8 field_1;
@@ -124,15 +124,15 @@ static void Gp_ApplyAreaFlag4List(s16 arg0, GpAreaFlagRec* arg1);
 
 static inline s32 _gpGetAreaFlag4(GameLocationKey* key)
 {
-    GpAreaRec* rec;
-    GpAreaObj* obj;
-    s32        val;
+    GpAreaRec*      rec;
+    AreaSavedState* areaState;
+    s32             val;
 
     rec = Gp_AreaTables[key->stage];
     if (rec != NULL) {
-        obj = rec[key->area].field_4;
-        if (obj != NULL) {
-            val = obj->spawnFlags & 4;
+        areaState = rec[key->area].field_4;
+        if (areaState != NULL) {
+            val = areaState->spawnFlags & AREA_SAVED_MAP_MARK;
             return val != 0;
         }
     }
@@ -279,72 +279,72 @@ struct _GpAreaFlagRec Gp_NewGameFlagsStg5[34] = {
 void Gp_ApplyNewGameAreaFlags(void)
 {
     {
-        GpAreaRec*     tbl;
-        GpAreaObj*     obj;
-        GpAreaFlagRec* rec;
+        GpAreaRec*      tbl;
+        AreaSavedState* areaState;
+        GpAreaFlagRec*  rec;
 
         rec = Gp_NewGameFlagsStg1;
         tbl = Gp_AreaTableStg1;
         if (tbl != NULL) {
             for (; rec->field_0 != 0xFF; rec++) {
                 if (rec->field_1 != 0) {
-                    obj = tbl[rec->field_0].field_4;
-                    if (obj != NULL) {
-                        obj->spawnFlags |= 0x4;
+                    areaState = tbl[rec->field_0].field_4;
+                    if (areaState != NULL) {
+                        areaState->spawnFlags |= AREA_SAVED_MAP_MARK;
                     }
                 }
             }
         }
     }
     {
-        GpAreaRec*     tbl;
-        GpAreaObj*     obj;
-        GpAreaFlagRec* rec;
+        GpAreaRec*      tbl;
+        AreaSavedState* areaState;
+        GpAreaFlagRec*  rec;
 
         rec = Gp_NewGameFlagsStg2;
         tbl = Gp_AreaTableStg2;
         if (tbl != NULL) {
             for (; rec->field_0 != 0xFF; rec++) {
                 if (rec->field_1 != 0) {
-                    obj = tbl[rec->field_0].field_4;
-                    if (obj != NULL) {
-                        obj->spawnFlags |= 0x4;
+                    areaState = tbl[rec->field_0].field_4;
+                    if (areaState != NULL) {
+                        areaState->spawnFlags |= AREA_SAVED_MAP_MARK;
                     }
                 }
             }
         }
     }
     {
-        GpAreaRec*     tbl;
-        GpAreaObj*     obj;
-        GpAreaFlagRec* rec;
+        GpAreaRec*      tbl;
+        AreaSavedState* areaState;
+        GpAreaFlagRec*  rec;
 
         rec = Gp_NewGameFlagsStg4;
         tbl = Gp_AreaTableStg4;
         if (tbl != NULL) {
             for (; rec->field_0 != 0xFF; rec++) {
                 if (rec->field_1 != 0) {
-                    obj = tbl[rec->field_0].field_4;
-                    if (obj != NULL) {
-                        obj->spawnFlags |= 0x4;
+                    areaState = tbl[rec->field_0].field_4;
+                    if (areaState != NULL) {
+                        areaState->spawnFlags |= AREA_SAVED_MAP_MARK;
                     }
                 }
             }
         }
     }
     {
-        GpAreaRec*     tbl;
-        GpAreaObj*     obj;
-        GpAreaFlagRec* rec;
+        GpAreaRec*      tbl;
+        AreaSavedState* areaState;
+        GpAreaFlagRec*  rec;
 
         rec = Gp_NewGameFlagsStg5;
         tbl = Gp_AreaTableStg5;
         if (tbl != NULL) {
             for (; rec->field_0 != 0xFF; rec++) {
                 if (rec->field_1 != 0) {
-                    obj = tbl[rec->field_0].field_4;
-                    if (obj != NULL) {
-                        obj->spawnFlags |= 0x4;
+                    areaState = tbl[rec->field_0].field_4;
+                    if (areaState != NULL) {
+                        areaState->spawnFlags |= AREA_SAVED_MAP_MARK;
                     }
                 }
             }
@@ -477,14 +477,14 @@ s16 Gp_LookupStageFlag(s16 idx)
 
 void Gp_ClearAreaFlag4(GameLocationKey* key)
 {
-    GpAreaRec* rec;
-    GpAreaObj* obj;
+    GpAreaRec*      rec;
+    AreaSavedState* areaState;
 
     rec = Gp_AreaTables[key->stage];
     if (rec != NULL) {
-        obj = rec[key->area].field_4;
-        if (obj != NULL) {
-            obj->spawnFlags &= 0xFB;
+        areaState = rec[key->area].field_4;
+        if (areaState != NULL) {
+            areaState->spawnFlags &= 0xFF ^ AREA_SAVED_MAP_MARK;
         }
     }
 }
@@ -708,30 +708,30 @@ void Gp_SetCurAreaFlag4(void)
 {
     GameLocationKey* key;
     GpAreaRec*       rec;
-    GpAreaObj*       obj;
+    AreaSavedState*  areaState;
 
     key = &gGameSession->location.loc;
     rec = Gp_AreaTables[key->stage];
     if (rec != NULL) {
-        obj = rec[key->area].field_4;
-        if (obj != NULL) {
-            obj->spawnFlags |= 0x4;
+        areaState = rec[key->area].field_4;
+        if (areaState != NULL) {
+            areaState->spawnFlags |= AREA_SAVED_MAP_MARK;
         }
     }
 }
 
 static void Gp_ApplyAreaFlag4List(s16 arg0, GpAreaFlagRec* arg1)
 {
-    GpAreaRec* rec;
-    GpAreaObj* obj;
+    GpAreaRec*      rec;
+    AreaSavedState* areaState;
 
     rec = Gp_AreaTables[arg0];
     if (rec != NULL) {
         for (; arg1->field_0 != 0xFF; arg1++) {
             if (arg1->field_1 != 0) {
-                obj = rec[arg1->field_0].field_4;
-                if (obj != NULL) {
-                    obj->spawnFlags |= 0x4;
+                areaState = rec[arg1->field_0].field_4;
+                if (areaState != NULL) {
+                    areaState->spawnFlags |= AREA_SAVED_MAP_MARK;
                 }
             }
         }

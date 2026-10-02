@@ -201,7 +201,7 @@ void Gp_ApplyAreaRecs(GpAreaApplyRec* recs)
 {
     GameLocationKey  key;
     GpAreaRec*       tbl;
-    GpAreaObj*       obj;
+    AreaSavedState*  areaState;
     GameLocationKey* sess;
     s32              i;
     s32              stage;
@@ -238,12 +238,12 @@ void Gp_ApplyAreaRecs(GpAreaApplyRec* recs)
         if (apply) {
             areaSetPlacementVariant(&key, recs[i].field_2, AREA_VARIANT_RESET_ALWAYS);
             if (tbl != NULL) {
-                obj = tbl[recs[i].field_1].field_4;
-                if (obj != NULL) {
+                areaState = tbl[recs[i].field_1].field_4;
+                if (areaState != NULL) {
                     if (recs[i].field_3 & 0xF) {
-                        obj->spawnFlags |= 4;
+                        areaState->spawnFlags |= AREA_SAVED_MAP_MARK;
                     } else {
-                        obj->spawnFlags &= 0xFB;
+                        areaState->spawnFlags &= 0xFF ^ AREA_SAVED_MAP_MARK;
                     }
                 }
             }

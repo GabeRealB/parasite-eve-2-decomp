@@ -76,7 +76,7 @@ STATIC_ASSERT_SIZEOF(GpBit2List, 0x8);
 /// `field_1` indexes that table (same role as `GameLocationKey.area`);
 /// `field_2` is the id written by `areaSetPlacementVariant`. High nibble of `field_3`
 /// is a `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode` filter (0 = always, 0x10 if 0 or 2, 0x20 if
-/// 1 or 3); low nibble nonzero sets `GpAreaObj.spawnFlags` bit 2, else clears.
+/// 1 or 3); low nibble nonzero sets `AREA_SAVED_MAP_MARK`, else clears it.
 typedef struct _GpAreaApplyRec {
     /* 0x0 */ u8 field_0;
     /* 0x1 */ u8 field_1;
