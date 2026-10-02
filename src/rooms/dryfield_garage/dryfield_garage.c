@@ -712,7 +712,7 @@ void func_dryfield_garage_8017DAA0(Task* arg0)
 static void func_dryfield_garage_8017DB18(Task* arg0)
 {
     arg0->msgTable = D_dryfield_garage_8017DC7C;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if ((gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) && (gGameSession->location.loc.warp == 2)) {
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3E9, &D_dryfield_garage_8017DCC4, 0);
     }

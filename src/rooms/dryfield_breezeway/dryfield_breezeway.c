@@ -672,7 +672,7 @@ static void func_dryfield_breezeway_8017DDB0(Task* task)
     ActorCommand msg;
 
     task->msgTable = D_dryfield_breezeway_80181DE0;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (GameFlag_GetNibble(GAME_FLAG_BREEZEWAY_FIRST_EVENT_SEEN) == 0) {
         msg.context.loc.stage = gGameSession->location.loc.stage;
         msg.context.loc.area  = gGameSession->location.loc.area;

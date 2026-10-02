@@ -236,7 +236,7 @@ void func_dryfield_gas_station_8017FE20(Task* arg0)
 static void func_dryfield_gas_station_8017FEDC(Task* arg0)
 {
     arg0->msgTable = D_dryfield_gas_station_80181E54;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == 1) {
         Task_SpawnFromTable(D_dryfield_gas_station_80181E3C, 0, 0, 0);
         GameFlag_SetNibble(GAME_FLAG_STORY_CHAPTER, 2);

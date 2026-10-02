@@ -215,7 +215,7 @@ s32 func_shelter_b3_incinerator_control_room_8017FBE8(Task* arg0, s32 arg1, s32 
 static void func_shelter_b3_incinerator_control_room_8017FC1C(Task* task)
 {
     task->msgTable = D_shelter_b3_incinerator_control_room_80181838;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state++;
     if (gGameSession->location.loc.warp == 4) {
         func_800E3FAC(0xA2, 0x23);

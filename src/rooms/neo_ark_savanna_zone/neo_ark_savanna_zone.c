@@ -497,7 +497,7 @@ s32 func_neo_ark_savanna_zone_8017D900(Task* task, s32 msgId, TaskMessageArg arg
 static void func_neo_ark_savanna_zone_8017D908(Task* task)
 {
     task->msgTable = D_neo_ark_savanna_zone_8017F9AC;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

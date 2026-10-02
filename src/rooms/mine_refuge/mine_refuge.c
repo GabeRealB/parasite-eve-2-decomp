@@ -730,7 +730,7 @@ static void func_mine_refuge_8017FE78(s32 arg0)
 static void func_mine_refuge_8017FF4C(Task* arg0)
 {
     arg0->msgTable = D_mine_refuge_80181884;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     D_mine_refuge_80182AD8 = NULL;
     gStageSceneMusicEntry  = 1;
     arg0->state            = arg0->state + 1;

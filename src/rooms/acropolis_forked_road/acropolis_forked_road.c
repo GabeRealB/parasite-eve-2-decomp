@@ -181,7 +181,7 @@ s32 func_acropolis_forked_road_8017D8A8(Task* task, s32 msgId, TaskMessageArg fi
 static void func_acropolis_forked_road_8017D92C(Task* task)
 {
     task->msgTable = D_acropolis_forked_road_80180F14;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

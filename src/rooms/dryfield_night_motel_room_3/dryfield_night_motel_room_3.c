@@ -54,7 +54,7 @@ s32 func_dryfield_night_motel_room_3_8017D68C(Task* task, s32 msgId, TaskMessage
 static void func_dryfield_night_motel_room_3_8017D694(Task* task)
 {
     task->msgTable = D_dryfield_night_motel_room_3_8017DA5C;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

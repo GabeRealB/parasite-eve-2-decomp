@@ -1006,7 +1006,7 @@ void func_acropolis_cafeteria_8017E708(Task* task)
         return;
     }
     task->msgTable = D_acropolis_cafeteria_80184CEC;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM_EFFECT);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM_EFFECT);
     vec                            = &work->move;
     D_acropolis_cafeteria_80184CFC = 0;
     work->move.vx                  = 0x220;

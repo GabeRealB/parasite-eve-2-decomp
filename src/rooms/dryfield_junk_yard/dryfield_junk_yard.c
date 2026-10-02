@@ -1693,7 +1693,7 @@ static void func_dryfield_junk_yard_8017D658(Task* task)
 static void func_dryfield_junk_yard_8017D708(Task* arg0)
 {
     arg0->msgTable = D_dryfield_junk_yard_8017DD20;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) {
         if (GameFlag_GetNibble(GAME_FLAG_JUNK_YARD_PROGRESS) == 0) {
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3E9, &D_dryfield_junk_yard_8017DE00, 0);

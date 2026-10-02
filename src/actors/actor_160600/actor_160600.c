@@ -1181,7 +1181,7 @@ void func_actor_160600_80131E24(void)
 {
     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
         Task_CallExit(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION));
-        Game_SetPtrSlot(NULL, GAME_TASK_SLOT_COMPANION);
+        gameSetTaskSlot(NULL, GAME_TASK_SLOT_COMPANION);
     }
 }
 

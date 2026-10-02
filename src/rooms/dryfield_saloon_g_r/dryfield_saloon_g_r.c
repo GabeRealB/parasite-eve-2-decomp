@@ -755,7 +755,7 @@ s32 func_dryfield_saloon_g_r_8017D9C4(Task* task, s32 msgId, TaskMessageArg arg2
 static void func_dryfield_saloon_g_r_8017D9CC(Task* task)
 {
     task->msgTable = D_dryfield_saloon_g_r_8017ECBC;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

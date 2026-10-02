@@ -478,7 +478,7 @@ s32 func_dryfield_parking_lot_8017DB00(Task* task, s32 msgId, TaskMessageArg arg
 static void func_dryfield_parking_lot_8017DB08(Task* task)
 {
     task->msgTable = D_dryfield_parking_lot_8017DC04;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

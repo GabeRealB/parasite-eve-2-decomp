@@ -504,7 +504,7 @@ s32 func_dryfield_night_toilet_8017D688(Task* task, s32 msgId, TaskMessageArg ar
 static void func_dryfield_night_toilet_8017D690(Task* task)
 {
     task->msgTable = D_dryfield_night_toilet_8017DA70;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (GameFlag_GetNibble(GAME_FLAG_NIGHT_TOILET_EVENT_SEEN) == 0 && gGameSession->location.loc.variant == 1) {
         GameFlag_SetNibble(GAME_FLAG_NIGHT_TOILET_EVENT_SEEN, 1);
         Task_SpawnFromTable(D_8013E51C, 0, 0, 0);

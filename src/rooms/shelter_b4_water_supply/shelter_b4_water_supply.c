@@ -973,7 +973,7 @@ void func_shelter_b4_water_supply_8017DC28(Task* arg0)
 static void func_shelter_b4_water_supply_8017DD40(Task* arg0)
 {
     arg0->msgTable = D_shelter_b4_water_supply_801825F0;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     Task_SpawnFromTable(D_shelter_b4_water_supply_8018263C, 0, 0, 0);
     arg0->state = (s32)(arg0->state + 1);
 }

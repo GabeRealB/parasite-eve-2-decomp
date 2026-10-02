@@ -190,7 +190,7 @@ s32 func_shelter_1f_heliport_s4_8017D624(Task* task, s32 msgId, TaskMessageArg a
 static void func_shelter_1f_heliport_s4_8017D62C(Task* task)
 {
     task->msgTable = D_shelter_1f_heliport_s4_8017D6D0;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

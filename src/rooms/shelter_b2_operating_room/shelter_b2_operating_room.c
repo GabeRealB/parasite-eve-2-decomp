@@ -1003,7 +1003,7 @@ s32 func_shelter_b2_operating_room_8017DD0C(Task* task, s32 msgId, TaskMessageAr
 static void func_shelter_b2_operating_room_8017DD14(Task* task)
 {
     task->msgTable = D_shelter_b2_operating_room_8018091C;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

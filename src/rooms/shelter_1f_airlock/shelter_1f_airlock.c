@@ -418,7 +418,7 @@ s32 func_shelter_1f_airlock_8017D624(Task* task, s32 msgId, TaskMessageArg arg2,
 static void func_shelter_1f_airlock_8017D62C(Task* task)
 {
     task->msgTable = D_shelter_1f_airlock_8017E494;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

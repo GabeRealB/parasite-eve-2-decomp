@@ -229,7 +229,7 @@ s32 func_shelter_b2_pod_access_tunnel_8017DB78(Task* arg0, s32 arg1, s32 arg2, T
 static void func_shelter_b2_pod_access_tunnel_8017DBA8(Task* arg0)
 {
     arg0->msgTable = D_shelter_b2_pod_access_tunnel_80183BCC;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 0x16) {
         gGameSession->flowFlags = (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_SKIP_AREA_MUSIC);
     }

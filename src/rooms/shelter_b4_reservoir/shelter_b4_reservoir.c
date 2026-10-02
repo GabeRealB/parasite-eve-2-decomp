@@ -1252,7 +1252,7 @@ void func_shelter_b4_reservoir_8017E7A8(void)
 static void func_shelter_b4_reservoir_8017E7C8(Task* arg0)
 {
     arg0->msgTable = D_shelter_b4_reservoir_801848BC;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     Task_SpawnFromTable(D_shelter_b4_reservoir_80184F84, 0, 0, 0);
     if (GameFlag_GetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) != 0) {
         D_shelter_b4_reservoir_80184F80 = -0x1F4;

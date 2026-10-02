@@ -342,7 +342,7 @@ void func_neo_ark_shrine_8017D84C(Task* task)
 static void func_neo_ark_shrine_8017D8F4(Task* task)
 {
     task->msgTable = D_neo_ark_shrine_80181E34;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     func_neo_ark_shrine_8017F448();
     task->state++;
 }

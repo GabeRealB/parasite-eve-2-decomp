@@ -1879,7 +1879,7 @@ static void func_acropolis_sanctuary_8017D930(Task* arg0)
     Task* slot;
 
     arg0->msgTable = D_acropolis_sanctuary_8018081C;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     arg0->state = arg0->state + 1;
     if (GameFlag_GetNibble(GAME_FLAG_SANCTUARY_BLOCKER_CLEARED) != 1) {
         slot = Gp_LookupSlot4(1);
@@ -2114,7 +2114,7 @@ void func_acropolis_sanctuary_8017E00C(Task* task)
             Gp_SpawnEff(EFFECT_ACROPOLIS_SANCTUARY_FLAME, coord, i + 0xA00000, &D_acropolis_sanctuary_80182774[i]);
         }
         task->msgTable = D_acropolis_sanctuary_80182310;
-        Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM_EFFECT);
+        gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM_EFFECT);
         D_acropolis_sanctuary_80182770 = 0;
         task->state                    = task->state + 1;
     }

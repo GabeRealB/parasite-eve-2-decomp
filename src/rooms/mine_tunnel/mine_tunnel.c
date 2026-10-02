@@ -149,7 +149,7 @@ void func_mine_tunnel_8017D6E0(s32 arg0)
 static void func_mine_tunnel_8017D6EC(Task* arg0)
 {
     arg0->msgTable = D_mine_tunnel_8017DFC4;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if ((gGameSession->location.loc.variant == 1) && (GameFlag_GetNibble(GAME_FLAG_MINE_TUNNEL_EVENT_SEEN) == 1)) {
         func_mine_tunnel_8017D6E0(2);
     }

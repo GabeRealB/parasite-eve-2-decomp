@@ -481,9 +481,9 @@ void taskReparent(Task* newParent, Task* task)
     lastChild->nextSibling = task;
 }
 
-void Game_SetPtrSlot(void* ptr, s32 index)
+void gameSetTaskSlot(struct Task* task, s32 slot)
 {
-    gGameSession->ptrSlots[index] = ptr;
+    gGameSession->ptrSlots[slot] = task;
 }
 
 struct Task* gameGetTaskSlot(s32 slot)

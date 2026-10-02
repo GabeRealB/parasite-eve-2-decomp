@@ -2553,7 +2553,7 @@ void func_dryfield_night_gas_station_8017E9F8(Task* task)
 static void func_dryfield_night_gas_station_8017F41C(Task* arg0)
 {
     arg0->msgTable = D_dryfield_night_gas_station_80184034;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if ((GameFlag_GetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS) >= 2) && (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0)) {
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3E9, &D_dryfield_night_gas_station_80188B0C, 0);
         Gp_AllyAnimId(&D_dryfield_night_gas_station_80184098.source.index);

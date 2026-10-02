@@ -736,7 +736,7 @@ s32 func_shelter_r36_8017D91C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMe
 static void func_shelter_r36_8017D924(Task* task)
 {
     task->msgTable = D_shelter_r36_8017E97C;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.warp == 1) {
         Task_SpawnFromTable(D_shelter_r36_8017DF14, 0, 0, 0);
     }

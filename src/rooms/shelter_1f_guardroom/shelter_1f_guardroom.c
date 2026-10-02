@@ -306,7 +306,7 @@ s32 func_shelter_1f_guardroom_8017D7F0(Task* arg0, s32 arg1, s32 arg2, TaskMessa
 static void func_shelter_1f_guardroom_8017D824(Task* arg0)
 {
     arg0->msgTable = D_shelter_1f_guardroom_8017DA30;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     func_shelter_1f_guardroom_8017D9CC(GameFlag_GetNibble(GAME_FLAG_SHELTER_1F_BULWARK_UNLOCKED) & 0xFF);
     arg0->state = (s32)(arg0->state + 1);
 }

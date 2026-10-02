@@ -1591,7 +1591,7 @@ static void func_shelter_b1_pod_service_gantry_8017D81C(Task* arg0)
     _GantryWork* work;
 
     arg0->msgTable = D_shelter_b1_pod_service_gantry_8017FAF4;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     work       = memMalloc(sizeof(*work), false);
     arg0->work = work;
     if (work == NULL) {

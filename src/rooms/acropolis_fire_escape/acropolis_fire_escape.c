@@ -773,7 +773,7 @@ s32 func_acropolis_fire_escape_8017FE48(Task* task, s32 msgId, s32 arg2, s32 arg
 static void func_acropolis_fire_escape_8017FE50(Task* task)
 {
     task->msgTable = D_acropolis_fire_escape_80181D3C;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     Task_SpawnFromTable(D_acropolis_fire_escape_80181D64, 0, 0, 0);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent == 5) {
         gGameSession->flowFlags = GAME_SESSION_FLOW_LOAD_AREA_MUSIC_ONLY;

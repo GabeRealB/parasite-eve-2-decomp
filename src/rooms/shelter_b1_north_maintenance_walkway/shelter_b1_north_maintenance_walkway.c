@@ -219,7 +219,7 @@ s32 func_shelter_b1_north_maintenance_walkway_8017DA44(Task* task, s32 msgId, Ta
 static void func_shelter_b1_north_maintenance_walkway_8017DA4C(Task* arg0)
 {
     arg0->msgTable = D_shelter_b1_north_maintenance_walkway_80184A84;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 2) {
         Task_SpawnFromTable(D_shelter_b1_north_maintenance_walkway_80184AAC, 0, 0, 0);
         if (GameFlag_GetNibble(GAME_FLAG_NORTH_MAINTENANCE_WALKWAY_SCENE) == 0) {

@@ -824,7 +824,7 @@ s32 func_dryfield_underpass_8017D908(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
 static void func_dryfield_underpass_8017D970(Task* arg0)
 {
     arg0->msgTable = D_dryfield_underpass_8017E830;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if ((gGameSession->location.loc.variant == 1) && (GameFlag_GetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN) == 0)) {
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_dryfield_underpass_8017E89C, ACTOR_COMMAND_MESSAGE_APPLY);
     }

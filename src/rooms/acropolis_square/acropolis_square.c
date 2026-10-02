@@ -1760,7 +1760,7 @@ void func_acropolis_square_80182200(s32 arg0)
 static void func_acropolis_square_80182260(Task* task)
 {
     task->msgTable = D_acropolis_square_801837C4;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 
@@ -1811,7 +1811,7 @@ void func_acropolis_square_801823DC(Task* task)
     switch (task->state) { /* irregular */
         case 0:
             task->msgTable = D_acropolis_square_80183B58;
-            Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM_EFFECT);
+            gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM_EFFECT);
             D_acropolis_square_80183B98 = 0;
             Task_Spawn(1, 0x25, 0, 0);
             Task_Spawn(1, 0x25, 1, 0);

@@ -1368,7 +1368,7 @@ s32 func_dryfield_water_hole_8017D78C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 static void func_dryfield_water_hole_8017D7DC(Task* arg0)
 {
     arg0->msgTable = D_dryfield_water_hole_8017FC5C;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     Task_SpawnFromTable(D_dryfield_water_hole_8017FC8C, 0, 0, 0);
     arg0->state = (s32)(arg0->state + 1);
 }

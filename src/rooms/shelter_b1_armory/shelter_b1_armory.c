@@ -388,7 +388,7 @@ s32 func_shelter_b1_armory_801806F8(Task* task, s32 msgId, TaskMessageArg firstA
 static void func_shelter_b1_armory_80180740(Task* task)
 {
     task->msgTable = D_shelter_b1_armory_80182500;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

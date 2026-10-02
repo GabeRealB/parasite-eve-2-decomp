@@ -673,7 +673,7 @@ s32 func_dryfield_night_breezeway_8017D62C(Task* task, s32 msgId, TaskMessageArg
 static void func_dryfield_night_breezeway_8017D634(Task* task)
 {
     task->msgTable = D_dryfield_night_breezeway_8017E67C;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

@@ -215,7 +215,7 @@ s32 func_neo_ark_eve_elevator_8017D670(Task* task, s32 msgId, TaskMessageArg arg
 static void func_neo_ark_eve_elevator_8017D678(Task* task)
 {
     task->msgTable = D_neo_ark_eve_elevator_8017D724;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

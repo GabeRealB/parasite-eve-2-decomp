@@ -1007,7 +1007,7 @@ s32 func_dryfield_main_street_8017E05C(Task* task, s32 msgId, TaskMessageArg fir
 static void func_dryfield_main_street_8017E0D8(Task* task)
 {
     task->msgTable = D_dryfield_main_street_80180EA0;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     D_80115598 = 1;
     if (GameFlag_GetNibble(GAME_FLAG_MAIN_STREET_CUTSCENE_SEEN) == 0) {
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_dryfield_main_street_80180ED0, ACTOR_COMMAND_MESSAGE_APPLY);

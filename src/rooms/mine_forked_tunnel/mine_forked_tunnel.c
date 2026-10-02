@@ -1859,7 +1859,7 @@ s32 func_mine_forked_tunnel_8017E19C(Task* task, s32 msgId, TaskMessageArg first
 static void func_mine_forked_tunnel_8017E1E8(Task* arg0)
 {
     arg0->msgTable = D_mine_forked_tunnel_80181C80;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     gStageSceneMusicEntry = 1;
     func_mine_forked_tunnel_8017E48C(Gp_GetCurBit2Flag(1) == 2);
     arg0->state = (s32)(arg0->state + 1);

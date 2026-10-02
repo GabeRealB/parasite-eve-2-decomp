@@ -1799,7 +1799,7 @@ void func_dryfield_trailer_coach_80182850(void)
 static void func_dryfield_trailer_coach_80182888(Task* arg0)
 {
     arg0->msgTable = D_dryfield_trailer_coach_80184FA0;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == 2) {
         func_800E8634(D_dryfield_trailer_coach_801853F4, 0, D_dryfield_trailer_coach_80185964);
         GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);

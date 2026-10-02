@@ -74,7 +74,7 @@ s32 func_shelter_r49_8017D640(Task* task, s32 msgId, TaskMessageArg arg2, TaskMe
 static void func_shelter_r49_8017D648(Task* arg0)
 {
     arg0->msgTable = D_shelter_r49_8017D9D8;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
         func_800E8634(&D_80133560, 0, &D_80133860);
     }

@@ -173,7 +173,7 @@ s32 func_shelter_b1_elevator_hall_8017DB6C(Task* arg0, s32 arg1, s32 arg2, TaskM
 static void func_shelter_b1_elevator_hall_8017DBB8(Task* arg0)
 {
     arg0->msgTable = D_shelter_b1_elevator_hall_80182CB8;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (GameFlag_GetNibble(GAME_FLAG_SHELTER_B1_ELEVATOR_HALL_VISITED) == 0) {
         GameFlag_SetNibble(GAME_FLAG_SHELTER_B1_ELEVATOR_HALL_VISITED, 1);
         func_800E3FAC(0xA2, 0x1D);

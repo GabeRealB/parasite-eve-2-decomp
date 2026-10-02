@@ -767,7 +767,7 @@ s32 func_shelter_1f_heliport_801804BC(Task* arg0, s32 arg1, RoomEventMsg* in, Ta
 static void func_shelter_1f_heliport_80180658(Task* arg0)
 {
     arg0->msgTable = D_shelter_1f_heliport_801811A0;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 1) {
         func_80149E80();
     }

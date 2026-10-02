@@ -1285,7 +1285,7 @@ void func_acropolis_roof_garden_8017DAD4(s32 arg0)
 static void func_acropolis_roof_garden_8017DB74(Task* arg0)
 {
     arg0->msgTable = D_acropolis_roof_garden_80183BDC;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent == 6) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 5;
     }

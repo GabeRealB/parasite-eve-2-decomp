@@ -10,7 +10,7 @@ void factoryRoomInit(Task* arg0)
     Task** slot;
 
     arg0->msgTable = gFactoryMsgTable;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     slot       = (gFactoryPanelSlot = memCalloc(4, 0));
     arg0->work = slot;
     if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {

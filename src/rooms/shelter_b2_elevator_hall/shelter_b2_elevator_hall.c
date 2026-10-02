@@ -581,7 +581,7 @@ static const TaskFuncTable3 D_shelter_b2_elevator_hall_8017D5F0 = {
 static void func_shelter_b2_elevator_hall_8017DCBC(Task* task)
 {
     task->msgTable = D_shelter_b2_elevator_hall_801837A8;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

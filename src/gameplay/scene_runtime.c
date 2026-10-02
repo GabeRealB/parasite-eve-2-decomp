@@ -4143,7 +4143,7 @@ GpBit2Bank Gp_Bit2Banks[6] = { { NULL, NULL }, { D_map_akropolis_8017A7FC, GameF
 
 void Gp_BindSlot4(Task* task)
 {
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_SCENE);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_SCENE);
     task->msgTable = Gp_Slot4MsgTable;
     task->state++;
 }

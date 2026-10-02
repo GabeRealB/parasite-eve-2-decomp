@@ -104,7 +104,7 @@ loop:
         goto loop;
     }
     arg0->msgTable = D_8010FAD4;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     arg0->state++;
 }
 

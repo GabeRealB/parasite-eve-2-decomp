@@ -432,7 +432,7 @@ s32 func_acropolis_hallway_8017D734(Task* arg0, s32 arg1, s32 arg2, TaskMessageA
 static void func_acropolis_hallway_8017D784(Task* task)
 {
     task->msgTable = D_acropolis_hallway_8017E238;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

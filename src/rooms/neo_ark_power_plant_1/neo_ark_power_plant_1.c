@@ -229,7 +229,7 @@ void func_neo_ark_power_plant_1_8017D908(void)
 static void func_neo_ark_power_plant_1_8017D928(Task* task)
 {
     task->msgTable = D_neo_ark_power_plant_1_8017EB18;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 1) {
         gGameSession->flowFlags = GAME_SESSION_FLOW_SKIP_ENDING_MUSIC;
     }

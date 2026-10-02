@@ -1850,7 +1850,7 @@ static void func_shelter_b2_main_corridor_8017E264(RoomEventMsg* msg)
 static void func_shelter_b2_main_corridor_8017E2D4(Task* arg0)
 {
     arg0->msgTable = D_shelter_b2_main_corridor_80182C14;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     Task_SpawnFromTable(D_shelter_b2_main_corridor_80182DE0, 0, 0, 0);
     arg0->state = (s32)(arg0->state + 1);
 }

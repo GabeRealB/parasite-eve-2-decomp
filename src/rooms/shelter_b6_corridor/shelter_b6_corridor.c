@@ -605,7 +605,7 @@ static void func_shelter_b6_corridor_8017E064(Task* arg0)
     s32  i;
 
     arg0->msgTable = D_shelter_b6_corridor_8017EF24;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     ptr = (u16*)Fs_ImgBuffers;
     i   = 0;
     do {

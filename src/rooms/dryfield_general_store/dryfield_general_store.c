@@ -1609,7 +1609,7 @@ s32 func_dryfield_general_store_8017DDFC(Task* task, s32 msgId, RoomEventMsg* ar
 static void func_dryfield_general_store_8017DEAC(Task* arg0)
 {
     arg0->msgTable = D_dryfield_general_store_8017E188;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (GameFlag_GetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE) == 0) {
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_dryfield_general_store_8017E1B8, ACTOR_COMMAND_MESSAGE_APPLY);
     } else if (GameFlag_GetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE) == 1) {

@@ -829,7 +829,7 @@ s32 func_shelter_b1_main_corridor_8017DD04(Task* task, s32 msgId, s32 arg2, s32 
 static void func_shelter_b1_main_corridor_8017DD4C(Task* task)
 {
     task->msgTable = D_shelter_b1_main_corridor_801830A4;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

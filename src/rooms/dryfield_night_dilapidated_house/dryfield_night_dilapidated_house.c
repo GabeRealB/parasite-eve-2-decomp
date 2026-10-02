@@ -218,7 +218,7 @@ s32 func_dryfield_night_dilapidated_house_8017D968(Task* task, s32 msgId, TaskMe
 static void func_dryfield_night_dilapidated_house_8017D970(Task* arg0)
 {
     arg0->msgTable = D_dryfield_night_dilapidated_house_8017E700;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     arg0->state = (s32)(arg0->state + 1);
     if (GameFlag_GetNibble(GAME_FLAG_NIGHT_DILAPIDATED_HOUSE_EVENT_SEEN) == 0) {
         if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) {

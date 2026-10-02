@@ -109,7 +109,7 @@ s32 func_shelter_b1_control_room_access_tunnel_8017D638(Task* task, s32 msgId, T
 static void func_shelter_b1_control_room_access_tunnel_8017D640(Task* task)
 {
     task->msgTable = D_shelter_b1_control_room_access_tunnel_80181E74;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

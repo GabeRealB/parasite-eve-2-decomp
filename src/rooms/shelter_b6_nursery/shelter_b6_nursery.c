@@ -1017,7 +1017,7 @@ s32 func_shelter_b6_nursery_8017FE3C(Task* task, s32 msgId, DirectionActionReque
 static void func_shelter_b6_nursery_8017FEC4(Task* arg0)
 {
     arg0->msgTable = D_shelter_b6_nursery_8018500C;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     Gp_FillAllyHp();
     if (GameFlag_GetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) == 0) {
         GameFlag_SetNibble(GAME_FLAG_B6_NURSERY_PROGRESS, 1);

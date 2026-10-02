@@ -369,7 +369,7 @@ static void func_dryfield_night_garage_8017FF2C(Task* task)
     Task*                  player;
 
     task->msgTable = D_dryfield_night_garage_80181C38;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     (D_dryfield_night_garage_80186D7C + 3)->flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
     player                                         = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
     if (gGameSession->location.loc.variant == 3 && player != NULL) {

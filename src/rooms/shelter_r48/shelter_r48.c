@@ -2189,7 +2189,7 @@ s32 func_shelter_r48_8017E0EC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMe
 static void func_shelter_r48_8017E1A4(Task* arg0)
 {
     arg0->msgTable = D_shelter_r48_80182FB8;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     func_80132F58(0);
     func_800E8634(&D_8014BD48, 0, &D_8014C288);
     GameFlag_SetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE, 1);

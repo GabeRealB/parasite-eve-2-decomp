@@ -200,7 +200,7 @@ s32 func_shelter_b3_garbage_incinerator_8017DB2C(Task* arg0, s32 arg1, s32 arg2,
 static void func_shelter_b3_garbage_incinerator_8017DB7C(Task* task)
 {
     task->msgTable = D_shelter_b3_garbage_incinerator_80185594;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     func_shelter_b3_garbage_incinerator_8018108C(0x180, 0, 0);
     D_shelter_b3_garbage_incinerator_801855D8 = Task_SpawnFromTable(&D_shelter_b3_garbage_incinerator_80185BA0, 0, 0, 0);
     if (gGameSession->location.loc.room >= 4) {

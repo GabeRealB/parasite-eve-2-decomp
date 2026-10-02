@@ -1968,7 +1968,7 @@ void func_acropolis_promenade_8017D988(Task* task)
 static void func_acropolis_promenade_8017D9E0(Task* arg0)
 {
     arg0->msgTable = D_acropolis_promenade_80180E74;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     D_acropolis_promenade_801862D8 = Task_SpawnFromTable(D_acropolis_promenade_80180EA4, 0, 0, 0);
     arg0->state                    = (s32)(arg0->state + 1);
     D_80115598                     = 1;

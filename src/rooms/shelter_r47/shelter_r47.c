@@ -527,7 +527,7 @@ static void func_shelter_r47_8017FB94(Task* task)
     Task* player;
 
     task->msgTable = D_shelter_r47_80186F2C;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     player = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
     if (player != NULL && GameFlag_GetNibble(GAME_FLAG_SHELTER_R47_080) == 0 && GameFlag_GetNibble(GAME_FLAG_0D1) == 1) {
         taskMessageDispatch(player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);

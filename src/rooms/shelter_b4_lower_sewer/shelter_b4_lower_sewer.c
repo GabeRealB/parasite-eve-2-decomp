@@ -122,7 +122,7 @@ s32 func_shelter_b4_lower_sewer_8017D65C(Task* task, s32 msgId, TaskMessageArg a
 static void func_shelter_b4_lower_sewer_8017D664(Task* task)
 {
     task->msgTable = D_shelter_b4_lower_sewer_80181E44;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (GameFlag_GetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) != 0) {
         Task_SpawnFromTable(D_shelter_b4_lower_sewer_80181E70, 0, 0, 0);
     }

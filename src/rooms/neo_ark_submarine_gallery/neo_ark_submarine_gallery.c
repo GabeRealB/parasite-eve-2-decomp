@@ -198,7 +198,7 @@ s32 func_neo_ark_submarine_gallery_8017EB48(Task* task, s32 msgId, TaskMessageAr
 static void func_neo_ark_submarine_gallery_8017EB50(Task* arg0)
 {
     arg0->msgTable = D_neo_ark_submarine_gallery_80181884;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 4) {
         Task_SpawnFromTable(D_neo_ark_submarine_gallery_801818BC, 0, 0, 0);
     }

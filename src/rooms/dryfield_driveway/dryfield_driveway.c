@@ -695,7 +695,7 @@ s32 func_dryfield_driveway_8017DDB8(Task* task, s32 msgId, s32 arg2, s32 arg3)
 static void func_dryfield_driveway_8017DDC0(Task* task)
 {
     task->msgTable = D_dryfield_driveway_8017E754;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

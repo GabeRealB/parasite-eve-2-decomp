@@ -73,7 +73,7 @@ s32 func_dryfield_night_r08_8017D628(Task* task, s32 msgId, TaskMessageArg arg2,
 static void func_dryfield_night_r08_8017D630(Task* arg0)
 {
     arg0->msgTable = D_dryfield_night_r08_80180544;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     Gp_SetStreamBuf((u8*)Fs_ActorLoadBase1 + 0x20000);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
         func_800E8634(&D_80133898, 0, &D_801341E0);

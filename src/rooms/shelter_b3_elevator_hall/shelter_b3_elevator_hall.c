@@ -273,7 +273,7 @@ s32 func_shelter_b3_elevator_hall_8017DD98(Task* task, s32 msgId, s32 arg2, Task
 static void func_shelter_b3_elevator_hall_8017DDCC(Task* task)
 {
     task->msgTable = D_shelter_b3_elevator_hall_80182A38;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

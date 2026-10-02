@@ -435,7 +435,7 @@ s32 func_shelter_1f_bulwark_8017DBCC(Task* task, s32 msgId, TaskMessageArg arg2,
 static void func_shelter_1f_bulwark_8017DBD4(Task* task)
 {
     task->msgTable = D_shelter_1f_bulwark_8018032C;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

@@ -1762,7 +1762,7 @@ s32 func_neo_ark_observatory_8017FCA0(Task* arg0, s32 arg1, s32 arg2, TaskMessag
 static void func_neo_ark_observatory_8017FCE0(Task* arg0)
 {
     arg0->msgTable = D_neo_ark_observatory_801811B8;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if ((gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) && (gGameSession->location.loc.variant == 1)) {
         func_801322F8();
     } else {

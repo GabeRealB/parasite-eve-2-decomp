@@ -802,7 +802,7 @@ s32 func_shelter_b2_north_maintenance_walkway_8017DCE4(Task* arg0, s32 arg1, s32
 static void func_shelter_b2_north_maintenance_walkway_8017DD18(Task* task)
 {
     task->msgTable = D_shelter_b2_north_maintenance_walkway_80183B60;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 1) {
         func_8016268C();
     }

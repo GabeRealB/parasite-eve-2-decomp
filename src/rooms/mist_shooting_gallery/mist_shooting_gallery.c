@@ -1862,7 +1862,7 @@ static void func_mist_shooting_gallery_8017FC2C(Task* arg0)
     s32 var_a0;
 
     arg0->msgTable = D_mist_shooting_gallery_801850E8;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     func_8014C5E0(0x340, 0, 2);
     if (GameFlag_GetNibble(GAME_FLAG_0ED) != 0) {
         Gp_MsgSlot4Chain(1, 0);

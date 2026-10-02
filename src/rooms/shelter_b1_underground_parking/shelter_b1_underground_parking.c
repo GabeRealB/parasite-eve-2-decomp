@@ -2195,7 +2195,7 @@ void func_shelter_b1_underground_parking_80183804(u8 arg0)
 static void func_shelter_b1_underground_parking_80183810(Task* arg0)
 {
     arg0->msgTable = D_shelter_b1_underground_parking_80187230;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     func_shelter_b1_underground_parking_801848A4();
     if (gGameSession->location.loc.variant == 0x15) {
         Gp_MsgSlot4Chain(0, 1);

@@ -123,12 +123,12 @@ void func_800AA548(s32 arg0)
     displaySetShakeY(0);
     Task_Spawn(0, 0x1D, 0, 0);
     Task_Spawn(0, 0x1A, 0, 0);
-    Game_SetPtrSlot(Task_Spawn(4, 5, 0, 0), 9);
+    gameSetTaskSlot(Task_Spawn(4, 5, 0, 0), 9);
     Task_Spawn(0, 0x14, 0, 0);
     if ((arg0 & 0xFFFF) != 1) {
-        Game_SetPtrSlot(Task_Spawn(0, 0x16, 0, 0), GAME_TASK_SLOT_VIEW_GATE);
+        gameSetTaskSlot(Task_Spawn(0, 0x16, 0, 0), GAME_TASK_SLOT_VIEW_GATE);
     }
-    Game_SetPtrSlot(Task_Spawn(0, 0x10, 0, 0), 2);
+    gameSetTaskSlot(Task_Spawn(0, 0x10, 0, 0), 2);
     // The destination endpoint supplies actor placements and the default view.
     stage     = sess->stage;
     warp      = sess->warp;
@@ -168,8 +168,8 @@ void func_800AA548(s32 arg0)
     tmdProcessStream(model);
     tmdProcessStream(model);
     Gp_LoadStageView();
-    Game_SetPtrSlot(Task_Spawn(1, 0x23, 0, 0), GAME_TASK_SLOT_SCENE);
-    Game_SetPtrSlot(Task_Spawn(6, 4, 0, 0), GAME_TASK_SLOT_ROOM_EFFECT);
+    gameSetTaskSlot(Task_Spawn(1, 0x23, 0, 0), GAME_TASK_SLOT_SCENE);
+    gameSetTaskSlot(Task_Spawn(6, 4, 0, 0), GAME_TASK_SLOT_ROOM_EFFECT);
     Task_Spawn(9, 6, 0, 0);
     Task_Spawn(9, 0x11, 0, 0);
     if ((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0) && (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0xB)) {

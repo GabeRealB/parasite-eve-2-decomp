@@ -326,7 +326,7 @@ s32 func_shelter_b1_transfer_tunnel_8017D624(Task* task, s32 msgId, TaskMessageA
 static void func_shelter_b1_transfer_tunnel_8017D62C(Task* task)
 {
     task->msgTable = D_shelter_b1_transfer_tunnel_801828C0;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

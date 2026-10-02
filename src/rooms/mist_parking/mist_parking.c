@@ -1088,7 +1088,7 @@ void func_mist_parking_801827A0(s32 arg0)
 static void func_mist_parking_801827C0(Task* arg0)
 {
     arg0->msgTable = D_mist_parking_80186BB8;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if ((gGameSession->location.loc.variant == 2) && (GameFlag_GetNibble(GAME_FLAG_0F1) == 0)) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == 3) {
             func_800E3FAC(0xA2, 0x3C);

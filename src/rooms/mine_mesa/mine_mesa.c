@@ -2706,7 +2706,7 @@ s32 func_mine_mesa_8017DBC4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 static void func_mine_mesa_8017DC80(Task* arg0)
 {
     arg0->msgTable = D_mine_mesa_80181904;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (GameFlag_GetNibble(GAME_FLAG_MINE_MESA_ARRIVAL_SEEN) == 0) {
         if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp = 5;
@@ -3148,7 +3148,7 @@ void func_mine_mesa_8017EA24(void)
         GameFlag_SetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 0);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType = 0;
         Task_CallExit(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION));
-        Game_SetPtrSlot(NULL, GAME_TASK_SLOT_COMPANION);
+        gameSetTaskSlot(NULL, GAME_TASK_SLOT_COMPANION);
     }
 }
 

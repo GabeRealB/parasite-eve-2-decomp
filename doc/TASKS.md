@@ -415,7 +415,7 @@ an id supported by the receiver or a table with the dispatcher's
 such terminating entry. The reserved end ID must never be dispatched.
 The task borrows the table and never releases it.
 
-`Game_SetPtrSlot` / `gameGetTaskSlot` (`GameSession::ptrSlots`) provides 16
+`gameSetTaskSlot` / `gameGetTaskSlot` (`GameSession::ptrSlots`) provides 16
 borrowed task registrations independent of the execution lists. Getter indices
 are elements in 0..15 and are unchecked. Empty registrations return `NULL`;
 registration does not keep a task alive or clear itself on task exit. Player

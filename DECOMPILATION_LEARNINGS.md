@@ -10294,7 +10294,7 @@ Take the 19-instruction message-task opener, which parks the room's own
 void RoomsShared8017d8c8(Task* arg0)
 {
     arg0->field_24 = &RoomsShared8017d8c8Msgs;   /* not D_<room>_80180E8C */
-    Game_SetPtrSlot(arg0, 7);
+    gameSetTaskSlot(arg0, 7);
     arg0->state = (s32)(arg0->state + 1);
     D_80062735  = 1;
 }
@@ -30923,7 +30923,7 @@ ori   v0, zero, 0xFFFF
 
 GCC 2.8.1 hoists the terminator into the freed `$a1` instead
 (`li a1, 0xffff`) and leaves the key in `$v1`. The `lhu` dest and the
-`Game_SetPtrSlot(task, 7)` `a1=7` setup then shift with it.
+`gameSetTaskSlot(task, 7)` `a1=7` setup then shift with it.
 
 `register s32 key asm("a1")` reserves `$a1` for the earlier `stage << 2`
 multiply and wrecks the prefix. An early `term = 0xFFFF` takes `$s2`.
@@ -46765,7 +46765,7 @@ The structure that *is* universal, and the better anchor:
   `src/gameplay/D4.c` is the caller. 167 of 168 rooms store one; the ids seen
   are 0x13EE..0x13F2. Do not invent a room-local struct for it, as this pass
   first did.
-* `Game_SetPtrSlot(task, 7)` immediately after, publishing the room task
+* `gameSetTaskSlot(task, 7)` immediately after, publishing the room task
   (162/168).
 * `Task::extra` is a `GameActorExt` and `GameActorExt::field_8` is a
   `GfxCoord` (0x50 bytes). Parenting a child to the room is
@@ -49163,12 +49163,12 @@ longer one.
 The mirror of the entry above, and the harder one to spot. m2c is handed only
 this function's `.s`, so a callee it has no prototype for is typed with the
 arity that call site implies. `func_dryfield_warehouse_8017D99C` really calls
-`Game_SetPtrSlot(index, 7)`, but m2c emitted a one-argument version:
+`gameSetTaskSlot(index, 7)`, but m2c emitted a one-argument version:
 
 ```c
-M2C_UNK Game_SetPtrSlot(M2C_UNK);   /* extern */
+M2C_UNK gameSetTaskSlot(M2C_UNK);   /* extern */
 ...
-Game_SetPtrSlot(7);
+gameSetTaskSlot(7);
 ```
 
 which puts the constant in `$a0` and still scores 99.78% on a single `regs`
@@ -49184,7 +49184,7 @@ prototype from the shared header (`main/session.h` here) and pass the pointer:
 void func_dryfield_warehouse_8017D99C(Task* arg0)
 {
     arg0->field_24 = D_dryfield_warehouse_8017F554;
-    Game_SetPtrSlot(arg0, 7);
+    gameSetTaskSlot(arg0, 7);
     ...
 }
 ```
@@ -49196,7 +49196,7 @@ untouched `$a0` is a missing leading argument, not a scheduling or allocation
 quirk, and the penalty label (`regs`) says nothing about it.
 
 That label is not even stable. `func_dryfield_night_parking_lot_8017DBB0` is the
-same seed — `Game_SetPtrSlot(7)` against a real `Game_SetPtrSlot(index, 7)` — and
+same seed — `gameSetTaskSlot(7)` against a real `gameSetTaskSlot(index, 7)` — and
 scores 93.33% on `insert=1 delete=1` at 0 penalty otherwise, because the constant
 also *moves*: `li $a0,7` sits ahead of the `lui`/`addiu` pair in the seed and
 `li $a1,7` behind it in the target, so a scorer aligning on opcode and operands
@@ -49206,7 +49206,7 @@ check `$a0` at the `jal` before reading the scheduler dumps. These room
 `INCLUDE_ASM` seeds are the same body copied across a family, so a matched
 sibling in another overlay usually already shows the right call — here
 `func_dryfield_back_street_8017D8B4` / `func_dryfield_water_hole_8017D7DC` /
-`func_mist_r21_8017D61C` all carry `Game_SetPtrSlot(index, 7)` verbatim. Compare
+`func_mist_r21_8017D61C` all carry `gameSetTaskSlot(index, 7)` verbatim. Compare
 against one of those before reading the dumps.
 
 The `regs` count under-states the damage, so do not read it as a measure of how
@@ -49389,7 +49389,7 @@ in one edit. Do not chase the shift with pins or the permuter.
 
 The shift need not stay inside the one call. `func_dryfield_night_driveway_8017DCFC`
 came back at 97.97% with `regs=1 reorder=1`: the `regs` was m2c's
-`Game_SetPtrSlot(7)` against the target's `Game_SetPtrSlot(index, 7)`, and the
+`gameSetTaskSlot(7)` against the target's `gameSetTaskSlot(index, 7)`, and the
 `reorder` was an unrelated second call (`func_800E8634(&D_a, 0, &D_b)`) whose
 `li a1,0` and `lui a2` had swapped — the constant sitting in `$a1` had changed
 the sched1 region's pressure, not its own statement order. Both penalties went
@@ -49400,9 +49400,9 @@ The penalty signature is not a reliable tell, so count the arguments before
 reading a dump at all. `func_dryfield_night_dilapidated_house_8017D970`, the same
 room opener, came back at 99.868% with `regs=1` and nothing else — no `reorder`,
 and both later calls byte-identical. That opener (`field_24 = <msg table>`,
-`Game_SetPtrSlot(index, 7)`, `state++`) is the standard room state-entry prologue:
+`gameSetTaskSlot(index, 7)`, `state++`) is the standard room state-entry prologue:
 63 files under `src/rooms/` use it. So for an unmatched room callback of that
-shape, check the m2c seed's `Game_SetPtrSlot` arity first — the fix is one
+shape, check the m2c seed's `gameSetTaskSlot` arity first — the fix is one
 argument and it is free.
 ## The same rule at an indirect call, where there is no callee `.s` to check
 
@@ -65120,7 +65120,7 @@ across seven insns; `area` had two across thirteen. This restored the target's
 Copy placement matters even when CSE can prove both scalar values equal.
 
 The remaining three scheduling differences were a pointer store immediately
-before `Game_SetPtrSlot`. `.sched` and `.sched2` put both call-argument moves
+before `gameSetTaskSlot`. `.sched` and `.sched2` put both call-argument moves
 after the store. Separate argument locals with `slotTask = arg0;
 TOUCH_REG(slotTask); slot = 7; TOUCH_REG(slot);` before the store let allocation
 coalesce them into a0/a1 early and put the store in the jal delay slot. Assigning
@@ -85972,7 +85972,7 @@ with a code pointer at `+0x4`, and the last record's `messageId` is `TASK_MESSAG
 ids are message ids some gameplay dispatcher calls by name, which is the
 strongest confirmation: `taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13EF, ...)`
 (`src/gameplay/1A8.c`) selects the entry this task installed with
-`Game_SetPtrSlot(task, 7)`.
+`gameSetTaskSlot(task, 7)`.
 ## A lone `.word` code pointer in a room's data is a `TaskMessageHandler`; `a1` is the msgId, `a2` the payload (func_dryfield_breezeway_8017FBC8, 2026-09-15)
 
 A room function no `jal` reaches - nothing in `src/` calls it, its only
@@ -86939,8 +86939,8 @@ first when the dup index rates it 1.00.
 
 `func_neo_ark_woodland_path_8017E944` opens the way every room's state 0 does -
 park the room's message table in `Task::msgTable`, publish the task in pointer
-slot 7 - and m2c seeded it as `Game_SetPtrSlot(7)`, one argument. The real call
-takes two, `Game_SetPtrSlot(index, 7)` (`include/main/session.h`), and the seed
+slot 7 - and m2c seeded it as `gameSetTaskSlot(7)`, one argument. The real call
+takes two, `gameSetTaskSlot(index, 7)` (`include/main/session.h`), and the seed
 is not a wild miss: it scores 99.4% with `regs=3`, because the instruction
 count, the block graph, the calls and the delay-slot words all already match and
 only three registers differ.
@@ -86953,7 +86953,7 @@ incoming `$a0` untouched:
 ```asm
 addiu $a1, $zero, 0x7      # target: 7 is the second argument
   ...
-jal   Game_SetPtrSlot
+jal   gameSetTaskSlot
 sw    $v0, 0x24($s0)
 ```
 
@@ -86968,7 +86968,7 @@ build.
 Check the callee's prototype before accepting any m2c seed whose call's first
 argument is an incoming parameter of the enclosing function - and prefer the
 already-matched siblings named in the brief, which show the call written
-correctly. `Game_SetPtrSlot(index, 7)` is the standard room state-0 opener and
+correctly. `gameSetTaskSlot(index, 7)` is the standard room state-0 opener and
 appears in dozens of them, so a raw m2c seed of one starts 99% and stalled
 here for that reason alone.
 
@@ -89465,7 +89465,7 @@ Inputs: `base.c` (m2c)
 
 ## A `regs`-only residue can be a sched1 decision, and the MEM flag on the stores is what flipped it (func_dryfield_water_tower_8017DD6C, 2026-09-15)
 
-`field_24 = &msgTable; Game_SetPtrSlot(arg0, 7); temp = Task_SpawnFromTable(&desc,
+`field_24 = &msgTable; gameSetTaskSlot(arg0, 7); temp = Task_SpawnFromTable(&desc,
 0, 0, 0); arg0->state++; D_...876A0 = temp;` — 25 instructions in one basic block.
 m2c's body (`void* index`, every access a `*(T*)((u8*)index + off)` cast) scores
 99.600% with `regs=2` and every other penalty zero: the final store's `lui` is
@@ -91265,7 +91265,7 @@ Inputs: `base.i` (41.1%, m2c's `M2C_ERROR` placeholders standing in for the
 (100%). Compiler SHA256
 ## A `regs` leftover that changes which argument register a call uses is a signature difference, not allocation (func_dryfield_general_store_8017DEAC, 2026-09-16)
 
-The seed called `Game_SetPtrSlot(7)` and scored 98.875% with `regs=9`,
+The seed called `gameSetTaskSlot(7)` and scored 98.875% with `regs=9`,
 `topology: match`, every predicate, call target and delay slot identical. Both
 object dumps were 40 instructions with the same opcode counts, and the two
 differences looked like textbook local-alloc tie-breaks:
@@ -91278,7 +91278,7 @@ differences looked like textbook local-alloc tie-breaks:
 The `a0`/`a1` pair is the tell. The project declares
 
 ```c
-void  Game_SetPtrSlot(void* ptr, s32 index);   /* include/main/session.h */
+void gameSetTaskSlot(struct Task* task, s32 slot);   /* include/main/session.h */
 void* gameGetTaskSlot(s32 index);
 ```
 
@@ -91288,7 +91288,7 @@ every matched sibling does -
 
 ```c
     arg0->field_24 = D_dryfield_general_store_8017E188;
-    Game_SetPtrSlot(arg0, 7);
+    gameSetTaskSlot(arg0, 7);
 ```
 
 - took the function to 100.000% with every penalty zero on the next build, and
@@ -91514,17 +91514,17 @@ any unit file, so no matched body in the sibling is at risk. Verified with
 ## A wrong arity in one call shows up as a `reorder` in a later one
 
 `func_dryfield_night_junk_yard_8017D8B0` is a four-statement room task tick.
-m2c gave `Game_SetPtrSlot` a one-parameter prototype — the target writes `$a1`
+m2c gave `gameSetTaskSlot` a one-parameter prototype — the target writes `$a1`
 and never touches `$a0`, which already holds the task, so m2c read that as a
 call whose only argument is the 7 — and the seed scored 98.45%:
 
 ```c
-void Game_SetPtrSlot(M2C_UNK);   /* one parameter */
+void gameSetTaskSlot(M2C_UNK);   /* one parameter */
 ...
-Game_SetPtrSlot(7);              /* 98.45%, regs=1 reorder=1 */
+gameSetTaskSlot(7);              /* 98.45%, regs=1 reorder=1 */
 ```
 
-Writing `Game_SetPtrSlot(task, 7)` took it straight to 100% with **both**
+Writing `gameSetTaskSlot(task, 7)` took it straight to 100% with **both**
 penalties gone. The `regs` is the obvious half (7 lands in `$a0` instead of
 `$a1`); the half worth remembering is the other one. The `reorder` belongs to
 the `taskMessageDispatch` call three blocks later — the familiar
@@ -91617,7 +91617,7 @@ Input: `base_1.i`, 100.000%, zero penalties, first build. Compiler SHA256
 ## Write the real prototypes into an m2c seed before chasing a `regs` penalty (func_mine_gorge_8017D8D4, 2026-09-16)
 
 The m2c seed here scored 99.082% with `regs=9` and one call argument wrong
-(`Game_SetPtrSlot(7)` on a `(void*, s32)` prototype), so fixing that gave
+(`gameSetTaskSlot(7)` on a `(void*, s32)` prototype), so fixing that gave
 99.184% / `regs=8`. The whole leftover was six instructions in the last block,
 a pure `$v0`/`$v1`/`$a0` permutation:
 
@@ -91629,7 +91629,7 @@ sw    v1,0x30(s0)      ...                          (target)
 against a build that put the counter in `$v0`, the symbol's `high` in `$v1` and
 the constant back in `$v0`. Nothing about statement order moved it - and it did
 not need to. Rewriting the seed against the real headers (`Task*`, the real
-`Gp_SpawnIfCapIdle`/`GameFlag_SetNibble`/`Game_SetPtrSlot` prototypes, the real
+`Gp_SpawnIfCapIdle`/`GameFlag_SetNibble`/`gameSetTaskSlot` prototypes, the real
 `gGameSession->location.loc.variant`) was 100.000% on the first build, with the source order
 unchanged.
 
@@ -91664,7 +91664,7 @@ Inputs: `base.c` 99.082% (`regs=9`), `base_1.c` 99.184% (`regs=8`),
 
 The same wrong callee arity does not have to surface as `regs`.
 `func_neo_ark_power_plant_1_8017D928` (2026-09-16) hit the identical mistake -
-the seed's `Game_SetPtrSlot(7)` against the real `(void*, s32)` - and scored
+the seed's `gameSetTaskSlot(7)` against the real `(void*, s32)` - and scored
 94.737% with **every penalty zero except `insert=1 delete=1`**. The scorer
 aligned `li a0,7` with nothing, because in the target that constant sits after
 the `lui`/`addiu` symbol pair and ours sat before it, so the shifted constant
@@ -91680,7 +91680,7 @@ difference:
 
 A constant load feeding a `jal` that appears in the insert/delete set - with no
 `regs` penalty at all - is the same signature as a `regs` complaint about a
-call argument. `Game_SetPtrSlot(task, 7)` was 100.000% on the next build, with
+call argument. `gameSetTaskSlot(task, 7)` was 100.000% on the next build, with
 no other source change. Inputs: `base.c` 94.737% (`insert=1 delete=1`),
 `base_1.c` 100.000%.
 
@@ -92046,7 +92046,7 @@ Compiler SHA256
 **Problem.** m2c's seed `M2C_FIELD(&gCdCmdQueue, s16*, 0x22A) = 2;` scored 77.9%
 with `regs=16 delete=4 insert=1` and a candidate *smaller* than the target (26
 insns vs 29, frame 0x18 vs 0x20, two saved registers vs three). The target holds
-`&gCdCmdQueue` in `$s0` across the `Game_SetPtrSlot` call and stores with a
+`&gCdCmdQueue` in `$s0` across the `gameSetTaskSlot` call and stores with a
 displacement (`sh $v0, 0x22A($s0)`), while the candidate folds the whole address
 into one `lui $v1,%hi(gCdCmdQueue+554)` after the call.
 
@@ -92064,7 +92064,7 @@ CdCmdQueue* queue;
 
 queue            = &gCdCmdQueue;      /* before the call: the range spans it */
 arg0->field_24   = D_neo_ark_r31_8017D9F4;
-Game_SetPtrSlot(arg0, 7);
+gameSetTaskSlot(arg0, 7);
 queue->imageMdecMode = 2;
 func_800E8634((s32)&D_80133F90, 0, (s32)&D_80134470);
 arg0->state      = (s32)(arg0->state + 1);
@@ -92086,12 +92086,12 @@ Inputs: `base.c` 77.931% (`regs=16 delete=4 insert=1 reorder=1`), `base_1.c`
 m2c declares each callee from the call site it can see, so a call that passes a
 single visible argument comes out as a one-parameter `extern`. The seed for
 `func_dryfield_night_toilet_8017D690` had
-`M2C_UNK Game_SetPtrSlot(M2C_UNK)` and `Game_SetPtrSlot(7)`, and the object
+`M2C_UNK gameSetTaskSlot(M2C_UNK)` and `gameSetTaskSlot(7)`, and the object
 matched the target everywhere except one line: `li a0,7` where the target has
-`li a1,7`. The real declaration is `void Game_SetPtrSlot(void* ptr, s32 index)`
-(`main/session.h`), so the correct call is `Game_SetPtrSlot(task, 7)` — the
+`li a1,7`. The real declaration is `void gameSetTaskSlot(struct Task* task, s32 slot)`
+(`main/session.h`), so the correct call is `gameSetTaskSlot(task, 7)` — the
 task in `$a0` (which the target never reloads, it is still entry's `index`) and
-the index in `$a1`.
+the slot in `$a1`.
 
 Nothing in the RTL is wrong; the argument is simply bound to the first
 parameter. Writing `1 arg → 2 args` off the header was the whole fix, one build
@@ -92119,11 +92119,11 @@ addiu  $a1,$zero,0x7
 lui    $v0,%hi(D_dryfield_night_r08_80180544)
 addiu  $v0,$v0,%lo(D_dryfield_night_r08_80180544)
 sw     $ra,0x14($sp)
-jal    Game_SetPtrSlot
+jal    gameSetTaskSlot
  sw    $v0,0x24($s0)          /* delay slot */
 ```
 
-m2c saw no write to `$a0` and so emitted the one-argument form, `Game_SetPtrSlot(7)`,
+m2c saw no write to `$a0` and so emitted the one-argument form, `gameSetTaskSlot(7)`,
 which compiles `addiu $a0,$zero,0x7` — a `regs` penalty. The target's `$a0` is
 the function's *incoming argument*: GCC emits no move for an argument already in
 its register, so `$a0` staying untouched from entry is exactly what a first
@@ -92132,7 +92132,7 @@ back:
 
 ```c
 arg0->field_24 = &D_dryfield_night_r08_80180544;
-Game_SetPtrSlot(arg0, 7);                        /* addiu $a1,$zero,0x7 */
+gameSetTaskSlot(arg0, 7);                        /* addiu $a1,$zero,0x7 */
 Gp_SetStreamBuf((u8*)D_8005C370 + 0x20000);
 ```
 
@@ -92140,7 +92140,7 @@ Scoring 97.97% (`regs=1 reorder=1`) → 100.000%. Two things are worth keeping:
 
 - **The `reorder` penalty was in a different block.** The swap was `move a1,zero`
   vs `lui a2,%hi(D_801341E0)` inside the *following* `if` body, which has no
-  dependence on `Game_SetPtrSlot`'s arguments at all. Fixing the argument count
+  dependence on `gameSetTaskSlot`'s arguments at all. Fixing the argument count
   cleared it anyway: sched1 ranks by `INSN_PRIORITY`, which is a whole-function
   quantity, so a register-allocation change anywhere can re-rank two independent
   instructions several blocks away. A `reorder` penalty in a block whose
@@ -92148,7 +92148,7 @@ Scoring 97.97% (`regs=1 reorder=1`) → 100.000%. Two things are worth keeping:
   calls first. (Contrast the store-order entry above, where the swapped
   instructions are the source order and nothing else can explain the swap.)
 - **The family already had the answer.** Every room-entry task in the `rooms`
-  overlays calls `Game_SetPtrSlot(task, 7)`; `func_shelter_r49_8017D648`
+  overlays calls `gameSetTaskSlot(task, 7)`; `func_shelter_r49_8017D648`
   (`src/rooms/shelter_r49/shelter_r49.c`) is the same body minus the
   `Gp_SetStreamBuf` call, is already matched, and reproduces `addiu $a1,$zero,0x7`
   byte for byte. When a similar matched sibling exists, copy its argument list
@@ -92596,27 +92596,27 @@ passes two:
 
 ```
         addiu  $a1,$zero,0x7      /* target */
-        jal    Game_SetPtrSlot
+        jal    gameSetTaskSlot
         sw     $v0,0x24($s1)      /* delay slot */
 
         li     $a0,7              /* seed */
-        jal    Game_SetPtrSlot
+        jal    gameSetTaskSlot
         sw     $v0,0x24($s1)
 ```
 
-`Game_SetPtrSlot`'s first argument is the task, which is already in `$a0` at the
+`gameSetTaskSlot`'s first argument is the task, which is already in `$a0` at the
 call, so nothing in the target's operand stream names it; m2c saw one use site
-and inferred `M2C_UNK Game_SetPtrSlot(M2C_UNK)`. The seed scored 92.941% with
+and inferred `M2C_UNK gameSetTaskSlot(M2C_UNK)`. The seed scored 92.941% with
 `regs=8 insert=1 delete=1` and *every* structural diagnostic reporting match -
 topology, predicates, call targets, condition registers and delay-slot words -
 so the object diff reads as a pure allocation problem, and the only tell is the
 argument register itself: `li $a0,7` where the target has `li $a1,7`.
 
-The real prototype is `void Game_SetPtrSlot(void* ptr, s32 index)`
+The real prototype is `void gameSetTaskSlot(struct Task* task, s32 slot)`
 (`include/main/session.h`). Passing the task as the first argument was 100.000%
 with all penalties zero on the first build, at the same 34 instructions.
 
-Room state-0 bodies open `task->field_24 = <msg table>; Game_SetPtrSlot(task, 7);`,
+Room state-0 bodies open `task->field_24 = <msg table>; gameSetTaskSlot(task, 7);`,
 so a room seed whose diff carries `li $a0,7` in front of its first call is this
 shape, not an allocation one. An m2c prototype is a guess from the body, never
 evidence about the callee: check `include/` before editing registers.

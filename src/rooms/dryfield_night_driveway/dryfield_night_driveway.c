@@ -990,7 +990,7 @@ s32 func_dryfield_night_driveway_8017DCF4(Task* task, s32 msgId, TaskMessageArg 
 static void func_dryfield_night_driveway_8017DCFC(Task* arg0)
 {
     arg0->msgTable = D_dryfield_night_driveway_8017F7A4;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if ((gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) && (gGameSession->location.loc.warp == 4)) {
         func_800E8634(D_dryfield_night_driveway_8017FB00, 0, D_dryfield_night_driveway_8017F998);
     }

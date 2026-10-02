@@ -2101,7 +2101,7 @@ void func_dryfield_motel_room_6_80181A08(Task* arg0)
 static void func_dryfield_motel_room_6_80181AC4(Task* arg0)
 {
     arg0->msgTable = D_dryfield_motel_room_6_80182D48;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     arg0->state = (s32)(arg0->state + 1);
     D_80115598  = 1;
 }

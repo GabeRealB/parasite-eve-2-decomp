@@ -1368,7 +1368,7 @@ void func_acropolis_cafeteria_8017E310(void)
 static void func_acropolis_cafeteria_8017E348(Task* task)
 {
     task->msgTable = D_acropolis_cafeteria_80182AA8;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (GameFlag_GetNibble(0) == 1) {
         Gp_MsgSlot4Chain(0, 0);
         Gp_MsgSlot4Chain(1, 1);

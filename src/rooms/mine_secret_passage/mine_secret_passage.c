@@ -169,7 +169,7 @@ s32 func_mine_secret_passage_8017D898(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 static void func_mine_secret_passage_8017D8C8(Task* arg0)
 {
     arg0->msgTable = &D_mine_secret_passage_80180E8C;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     arg0->state           = (s32)(arg0->state + 1);
     gStageSceneMusicEntry = 1;
 }

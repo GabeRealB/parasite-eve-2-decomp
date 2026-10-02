@@ -2780,7 +2780,7 @@ void func_acropolis_bridge_8017D954(void)
 static void func_acropolis_bridge_8017D98C(Task* arg0)
 {
     arg0->msgTable = D_acropolis_bridge_80188E4C;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     D_acropolis_bridge_80191794 = Task_SpawnFromTable(D_acropolis_bridge_80188E7C, 0, 0, 0);
     arg0->state                 = (s32)(arg0->state + 1);
     func_acropolis_bridge_8017F2D0(GameFlag_GetNibble(GAME_FLAG_BRIDGE_ARRIVAL_SCENE_SEEN) & 0xFF);
@@ -3584,7 +3584,7 @@ void func_acropolis_bridge_8017F868(Task* task)
     if (task->state == 0) {
         gGameSession->field_80 = 0;
         task->msgTable         = D_acropolis_bridge_801898FC;
-        Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM_EFFECT);
+        gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM_EFFECT);
         gRoomEffectWaterRippleId = EFFECT_ACROPOLIS_BRIDGE_WATER_RIPPLE;
         gRoomEffectWaterSprayId  = EFFECT_ACROPOLIS_BRIDGE_WATER_SPRAY;
         task->state              = task->state + 1;

@@ -1071,7 +1071,7 @@ static void func_dryfield_night_water_hole_8017D958(Task* arg0);
 static void func_dryfield_night_water_hole_8017D958(Task* arg0)
 {
     arg0->msgTable = D_dryfield_night_water_hole_801805F8;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (GameFlag_GetNibble(GAME_FLAG_WATER_HOLE_SHELTER_ROUTE_OPEN) == 0) {
         Task_SpawnFromTable(D_dryfield_night_water_hole_80180964, 0, 0, 0);
     } else {

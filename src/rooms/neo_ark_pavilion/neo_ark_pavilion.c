@@ -1150,7 +1150,7 @@ s32 func_neo_ark_pavilion_8017EB78(Task* task, s32 msgId, TaskMessageArg arg2, T
 static void func_neo_ark_pavilion_8017EB80(Task* arg0)
 {
     arg0->msgTable = D_neo_ark_pavilion_80183870;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     SndEvt_EnqueueType6(SOUND_NEO_ARK_PAVILION_AMBIENCE_1, 0, 0);
     SndEvt_EnqueueType6(SOUND_NEO_ARK_PAVILION_AMBIENCE_2, 0, 0);
     arg0->state = (s32)(arg0->state + 1);

@@ -426,7 +426,7 @@ s32 func_dryfield_night_souvenir_shop_8017D608(Task* task, s32 msgId, TaskMessag
 static void func_dryfield_night_souvenir_shop_8017D610(Task* task)
 {
     task->msgTable = D_dryfield_night_souvenir_shop_8017E03C;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

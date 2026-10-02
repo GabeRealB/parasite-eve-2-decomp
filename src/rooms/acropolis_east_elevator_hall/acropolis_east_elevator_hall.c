@@ -777,7 +777,7 @@ void func_acropolis_east_elevator_hall_8017F450(void)
 static void func_acropolis_east_elevator_hall_8017F478(Task* task)
 {
     task->msgTable = D_acropolis_east_elevator_hall_801862F4;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     Gp_MsgSlot4Chain(0, 1);
     TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D3, &D_acropolis_east_elevator_hall_80185C8C, 0);
     task->state++;

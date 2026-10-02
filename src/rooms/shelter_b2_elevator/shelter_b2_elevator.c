@@ -361,7 +361,7 @@ static __inline__ Task* ShelterElevator_SpawnTask(s32 index, s32 direction)
 static void func_shelter_b2_elevator_8017D5E8(Task* task)
 {
     task->msgTable = D_shelter_b2_elevator_8017DFA0;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     D_shelter_b2_elevator_8017EA00[0] = ShelterElevator_SpawnTask(0, -1);
     D_shelter_b2_elevator_8017EA00[1] = ShelterElevator_SpawnTask(1, 1);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {

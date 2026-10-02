@@ -649,7 +649,7 @@ s32 func_shelter_b1_control_room_8017EE24(Task* task, s32 msgId, TaskMessageArg 
 static void func_shelter_b1_control_room_8017EE2C(Task* arg0)
 {
     arg0->msgTable = D_shelter_b1_control_room_80181B94;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 0xB) {
         func_80131FB8();
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {

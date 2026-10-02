@@ -123,7 +123,7 @@ s32 func_acropolis_observatory_8017D7C4(Task* arg0, s32 arg1, RoomEventMsg* in, 
 static void func_acropolis_observatory_8017D834(Task* task)
 {
     task->msgTable = D_acropolis_observatory_8017E7B8;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if ((gGameSession->location.loc.room == 2) && (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_OBSERVATORY_EVENT_SEEN) == 0)) {
         gSceneCombatState.actor03700Wave = 1;
     }

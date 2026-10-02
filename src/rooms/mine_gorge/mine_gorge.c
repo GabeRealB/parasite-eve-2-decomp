@@ -298,7 +298,7 @@ void func_mine_gorge_8017D8C8(s32 arg0)
 static void func_mine_gorge_8017D8D4(Task* arg0)
 {
     arg0->msgTable = D_mine_gorge_8017E280;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if ((gGameSession->location.loc.variant == 1) && (GameFlag_GetNibble(GAME_FLAG_MINE_GORGE_CUTSCENE_SEEN) != 0)) {
         gSceneCombatState.actor03700Wave = 0x15;
     }

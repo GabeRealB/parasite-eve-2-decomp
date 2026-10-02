@@ -420,7 +420,7 @@ static void func_shelter_b6_training_room_8017D7D4(Task* arg0)
     s32  i;
 
     arg0->msgTable = D_shelter_b6_training_room_80182AF4;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     ptr = (u16*)Fs_ImgBuffers;
     i   = 0;
     do {

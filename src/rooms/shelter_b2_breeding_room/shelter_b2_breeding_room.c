@@ -157,7 +157,7 @@ void func_shelter_b2_breeding_room_8017D7A8(Task* arg0)
 static void func_shelter_b2_breeding_room_8017D7EC(Task* arg0)
 {
     arg0->msgTable = D_shelter_b2_breeding_room_80180414;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     arg0->state = (s32)(arg0->state + 1);
     D_80115598  = 1;
 }

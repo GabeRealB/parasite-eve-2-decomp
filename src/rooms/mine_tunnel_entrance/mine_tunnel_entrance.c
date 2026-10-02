@@ -510,7 +510,7 @@ s32 func_mine_tunnel_entrance_8017D63C(Task* task, s32 msgId, TaskMessageArg arg
 static void func_mine_tunnel_entrance_8017D644(Task* arg0)
 {
     arg0->msgTable = D_mine_tunnel_entrance_8017DAF0;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     arg0->state           = (s32)(arg0->state + 1);
     gStageSceneMusicEntry = 1;
 }

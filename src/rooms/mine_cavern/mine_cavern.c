@@ -379,7 +379,7 @@ void func_mine_cavern_8017DD6C(Task* task)
 static void func_mine_cavern_8017DDFC(Task* arg0)
 {
     arg0->msgTable = D_mine_cavern_80183C6C;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if ((gGameSession->location.loc.variant == 1) && (GameFlag_GetNibble(GAME_FLAG_MINE_CAVERN_INTRO_SEEN) == 0)) {
         func_800E8634(D_mine_cavern_80187C74, 0, D_mine_cavern_8018804C);
         func_mine_cavern_8017E394();

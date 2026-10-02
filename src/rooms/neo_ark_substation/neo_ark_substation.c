@@ -588,7 +588,7 @@ s32 func_neo_ark_substation_8017D7A4(Task* task, s32 msgId, TaskMessageArg arg2,
 static void func_neo_ark_substation_8017D7AC(Task* task)
 {
     task->msgTable = D_neo_ark_substation_8017E294;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0) {
         Task_SpawnFromTable(D_neo_ark_substation_8017E2BC, 0, 0, 0);
     }

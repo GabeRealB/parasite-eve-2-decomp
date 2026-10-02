@@ -510,7 +510,7 @@ s32 func_shelter_b1_south_maintenance_walkway_8017D9E0(Task* task, s32 msgId, Ta
 static void func_shelter_b1_south_maintenance_walkway_8017D9E8(Task* task)
 {
     task->msgTable = D_shelter_b1_south_maintenance_walkway_80182308;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

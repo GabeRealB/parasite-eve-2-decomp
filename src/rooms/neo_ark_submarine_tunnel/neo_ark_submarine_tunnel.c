@@ -303,7 +303,7 @@ void func_neo_ark_submarine_tunnel_8017F398(s32 arg0)
 static void func_neo_ark_submarine_tunnel_8017F3BC(Task* arg0)
 {
     arg0->msgTable = D_neo_ark_submarine_tunnel_80181A50;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     SndEvt_EnqueueType6(SOUND_NEO_ARK_SUBMARINE_TUNNEL_AMBIENCE, 0, 0);
     arg0->state = arg0->state + 1;
 }

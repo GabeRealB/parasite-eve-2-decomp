@@ -1282,7 +1282,7 @@ void func_shelter_b2_laboratory_80180350(Task* task)
 static void func_shelter_b2_laboratory_80180450(Task* task)
 {
     task->msgTable = D_shelter_b2_laboratory_80182A38;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

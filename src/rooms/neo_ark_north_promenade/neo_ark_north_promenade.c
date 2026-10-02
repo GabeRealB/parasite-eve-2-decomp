@@ -436,7 +436,7 @@ s32 func_neo_ark_north_promenade_8017D674(Task* task, s32 msgId, TaskMessageArg 
 static void func_neo_ark_north_promenade_8017D67C(Task* task)
 {
     task->msgTable = D_neo_ark_north_promenade_80181D68;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

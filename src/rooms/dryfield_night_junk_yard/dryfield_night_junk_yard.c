@@ -180,7 +180,7 @@ static void func_dryfield_night_junk_yard_8017D8B0(Task* task)
     u8 subId;
 
     task->msgTable = D_dryfield_night_junk_yard_8018055C;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     subId = gGameSession->location.loc.variant;
     if (subId == 1 && GameFlag_GetNibble(GAME_FLAG_NIGHT_JUNK_YARD_EVENT_SEEN) == subId) {
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_dryfield_night_junk_yard_801805A0, ACTOR_COMMAND_MESSAGE_APPLY);

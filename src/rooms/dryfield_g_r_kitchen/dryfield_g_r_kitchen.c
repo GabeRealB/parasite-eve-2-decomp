@@ -317,7 +317,7 @@ s32 func_dryfield_g_r_kitchen_8017D950(Task* task, s32 msgId, TaskMessageArg arg
 static void func_dryfield_g_r_kitchen_8017D958(Task* task)
 {
     task->msgTable = D_dryfield_g_r_kitchen_8017EBC0;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

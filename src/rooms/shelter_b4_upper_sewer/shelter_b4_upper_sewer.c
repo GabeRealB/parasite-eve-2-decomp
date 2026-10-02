@@ -968,7 +968,7 @@ void func_shelter_b4_upper_sewer_8017DB94(void)
 static void func_shelter_b4_upper_sewer_8017DBA8(Task* task)
 {
     task->msgTable = D_shelter_b4_upper_sewer_801862D0;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (GameFlag_GetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) != 0) {
         D_shelter_b4_upper_sewer_80186438 = -0x708;
         Task_SpawnFromTable(D_shelter_b4_upper_sewer_8018643C, 0, 0, 0);

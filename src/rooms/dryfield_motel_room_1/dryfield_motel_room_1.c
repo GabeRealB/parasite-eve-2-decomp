@@ -78,7 +78,7 @@ static void func_dryfield_motel_room_1_8017D69C(Task* arg0)
     ActorCommand msg;
 
     arg0->msgTable = D_dryfield_motel_room_1_8017E0A8;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 3 && GameFlag_GetNibble(GAME_FLAG_MOTEL_ROOM_1_EVENT_SEEN) == 0) {
         msg.context.loc.stage = gGameSession->location.loc.stage;
         msg.context.loc.area  = gGameSession->location.loc.area;

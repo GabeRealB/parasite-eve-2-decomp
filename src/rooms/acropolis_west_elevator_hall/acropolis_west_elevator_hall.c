@@ -1268,7 +1268,7 @@ s32 func_acropolis_west_elevator_hall_8017F560(Task* task, s32 msgId, TaskMessag
 static void func_acropolis_west_elevator_hall_8017F568(Task* arg0)
 {
     arg0->msgTable = D_acropolis_west_elevator_hall_801849CC;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     D_acropolis_west_elevator_hall_80186AE4[0] =
         Task_SpawnFromTable(D_acropolis_west_elevator_hall_80184568, 0, 0, -1);
     D_acropolis_west_elevator_hall_80186AE4[1] =
@@ -1361,7 +1361,7 @@ void func_acropolis_west_elevator_hall_8017F7D4(Task* task)
     switch (task->state) {
         case 0:
             task->msgTable = D_acropolis_west_elevator_hall_801849F4;
-            Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM_EFFECT);
+            gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM_EFFECT);
             Task_Spawn(1, 0x25, 0, 0);
             Task_Spawn(1, 0x25, 1, 0);
             task->state = task->state + 1;

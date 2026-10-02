@@ -1268,7 +1268,7 @@ void func_shelter_b2_septic_tank_8017D9A0(void)
 static void func_shelter_b2_septic_tank_8017DA18(Task* arg0)
 {
     arg0->msgTable = D_shelter_b2_septic_tank_80182F4C;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     Task_SpawnFromTable(D_shelter_b2_septic_tank_801832C0, 0, 0, 0);
     arg0->state = (s32)(arg0->state + 1);
 }

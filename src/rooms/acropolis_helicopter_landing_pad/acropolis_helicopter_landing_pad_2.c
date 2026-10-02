@@ -1691,7 +1691,7 @@ void func_acropolis_helicopter_landing_pad_8017E974(Task* task)
 static void func_acropolis_helicopter_landing_pad_8017EA6C(Task* task)
 {
     task->msgTable = D_acropolis_helicopter_landing_pad_80183710;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     D_acropolis_helicopter_landing_pad_80187F84 = 0;
     D_acropolis_helicopter_landing_pad_80184E0C = 0;
     task->state++;

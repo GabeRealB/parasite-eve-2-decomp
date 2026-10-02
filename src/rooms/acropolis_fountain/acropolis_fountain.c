@@ -160,7 +160,7 @@ void func_acropolis_fountain_8017D868(Task* task)
 static void func_acropolis_fountain_8017D960(Task* arg0)
 {
     arg0->msgTable = D_acropolis_fountain_8017E764;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_FOUNTAIN_012) != 0) {
         func_acropolis_fountain_8017DA1C();
     }

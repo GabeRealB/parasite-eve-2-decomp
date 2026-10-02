@@ -2016,7 +2016,7 @@ static void func_dryfield_night_saloon_g_r_8017DF90(Task* task)
     ActorCommand msg;
 
     task->msgTable = D_dryfield_night_saloon_g_r_8017F918;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 2 && GameFlag_GetNibble(GAME_FLAG_NIGHT_SALOON_ENCOUNTER_DONE) == 0) {
         msg.context.loc.stage = gGameSession->location.loc.stage;
         msg.context.loc.area  = gGameSession->location.loc.area;

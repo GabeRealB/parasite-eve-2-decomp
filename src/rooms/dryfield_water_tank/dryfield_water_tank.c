@@ -1087,7 +1087,7 @@ void func_dryfield_water_tank_8017D948(Task* task)
 static void func_dryfield_water_tank_8017D9D4(Task* task)
 {
     task->msgTable = D_dryfield_water_tank_8017F324;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     Task_SpawnFromTable(D_dryfield_water_tank_801868A4, 0, 0, 0);
     SndEvt_EnqueueType6(SOUND_WATER_TANK_AMBIENCE, 0, 0);
     func_dryfield_water_tank_8017DB48();

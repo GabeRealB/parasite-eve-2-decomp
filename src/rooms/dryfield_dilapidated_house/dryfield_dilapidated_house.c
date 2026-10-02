@@ -3019,7 +3019,7 @@ void func_dryfield_dilapidated_house_8017EA7C(void)
 static void func_dryfield_dilapidated_house_8017EAB4(Task* arg0)
 {
     arg0->msgTable = D_dryfield_dilapidated_house_80183E8C;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (Gp_LookupSlot4(1) != 0) {
         D_dryfield_dilapidated_house_80189B78 =
             Task_SpawnFromTable(D_dryfield_dilapidated_house_80183EB4, 0, 0, 0);

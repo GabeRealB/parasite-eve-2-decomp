@@ -55,8 +55,18 @@ extern GameSession* gGameSession;
 
 extern s32 D_8005ED68;
 
-/// Stores a task in the session's pointer-slot table.
-void Game_SetPtrSlot(void* ptr, s32 index);
+/// Registers a borrowed task in one resident session slot, or clears that slot.
+///
+/// `slot` is an element index in 0..15 and is not checked. NULL `task` empties
+/// the slot. The store replaces any previous registration. It does not retain
+/// the task, and task exit does not clear the slot, so a non-NULL registration
+/// may be used only while that task is alive. `Game_ClearPtrSlots` empties
+/// every slot when the task system resets.
+///
+/// The player and companion slots are the spawn-time handles of those tasks,
+/// separate from `gPlayerActorTasks`, which those actors publish on their
+/// first tick.
+void gameSetTaskSlot(struct Task* task, s32 slot);
 
 /// Established task registrations in the resident session's 16-slot table.
 ///
@@ -94,7 +104,7 @@ enum {
 ///
 /// `slot` is an element index in 0..15; it is not checked. Registration does
 /// not retain a task or clear itself when the task exits, so a non-NULL result
-/// may be used only while the registered task is alive. `Game_SetPtrSlot`
+/// may be used only while the registered task is alive. `gameSetTaskSlot`
 /// replaces a registration and `Game_ClearPtrSlots` clears them on task-system
 /// reset. The getter neither transfers ownership nor changes the table.
 ///

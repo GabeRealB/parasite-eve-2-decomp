@@ -160,7 +160,7 @@ static void func_shelter_1f_tent_8017F9F0(Task* task)
     s32 val;
 
     task->msgTable = D_shelter_1f_tent_80181CDC;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 1) {
         func_80132210();
     }

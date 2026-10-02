@@ -663,7 +663,7 @@ static void func_neo_ark_pyramid_8017DAC0(s32 arg0)
 static void func_neo_ark_pyramid_8017DB18(Task* task)
 {
     task->msgTable = D_neo_ark_pyramid_8017FBE4;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

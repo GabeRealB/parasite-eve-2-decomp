@@ -519,7 +519,7 @@ static void func_shelter_b1_sterilization_room_8017FABC(Task* task)
     Task* target;
 
     task->msgTable = D_shelter_b1_sterilization_room_80184E40;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 5 && GameFlag_GetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE) == 0) {
         GameFlag_SetNibble(GAME_FLAG_UNDERGROUND_PARKING_STATE, 3);
         Gp_ApplyAreaRecs(D_shelter_b1_sterilization_room_8018C334);

@@ -911,7 +911,7 @@ s32 func_dryfield_cellar_8017D6FC(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg
 static void func_dryfield_cellar_8017D730(Task* task)
 {
     task->msgTable = D_dryfield_cellar_8017DB8C;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
     D_80115598  = 1;
 }

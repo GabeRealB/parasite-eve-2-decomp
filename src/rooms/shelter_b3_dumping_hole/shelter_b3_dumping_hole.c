@@ -273,7 +273,7 @@ s32 func_shelter_b3_dumping_hole_8017D870(void)
 static void func_shelter_b3_dumping_hole_8017D8A0(Task* arg0)
 {
     arg0->msgTable = D_shelter_b3_dumping_hole_80187574;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     func_shelter_b3_dumping_hole_80183198(0x180, 0, 0);
     if (GameFlag_GetNibble(GAME_FLAG_DUMPING_HOLE_ARRIVAL_SEEN) == 0) {
         if (gGameSession->location.loc.variant == 1) {

@@ -1735,7 +1735,7 @@ static void func_mist_r18_8017ECF4(Task* arg0)
     D_mist_r18_80186E90 = 0;
     D_mist_r18_80186E94 = 0;
     D_mist_r18_80186E98 = 0;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     func_800E8634(D_mist_r18_8018522C, 0, D_mist_r18_8018639C);
     arg0->state         = (s32)(arg0->state + 1);
     D_mist_r18_80186E9C = 1;

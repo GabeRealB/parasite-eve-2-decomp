@@ -717,7 +717,7 @@ s32 func_dryfield_night_underpass_8017D908(Task* task, s32 msgId, TaskMessageArg
 static void func_dryfield_night_underpass_8017D910(Task* task)
 {
     task->msgTable = D_dryfield_night_underpass_8017DCF0;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

@@ -189,7 +189,7 @@ s32 func_neo_ark_altar_8017D910(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEven
 static void func_neo_ark_altar_8017D974(Task* task)
 {
     task->msgTable = D_neo_ark_altar_8017EF98;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     func_neo_ark_altar_8017DC40(GameFlag_GetNibble(GAME_FLAG_NEO_ARK_ALTAR_SWITCH_STATE) & 0xFF);
     Task_SpawnFromTable(D_neo_ark_altar_8017F088, 0, 0, 0);
     task->state = (s32)(task->state + 1);

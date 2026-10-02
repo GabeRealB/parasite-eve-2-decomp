@@ -454,7 +454,7 @@ s32 func_dryfield_night_back_street_8017D734(Task* task, s32 msgId, TaskMessageA
 static void func_dryfield_night_back_street_8017D73C(Task* task)
 {
     task->msgTable = D_dryfield_night_back_street_80180324;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

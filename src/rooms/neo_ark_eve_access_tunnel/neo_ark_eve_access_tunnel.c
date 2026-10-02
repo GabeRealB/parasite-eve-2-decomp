@@ -656,7 +656,7 @@ void func_neo_ark_eve_access_tunnel_8017DED0(Task* arg0)
 static void func_neo_ark_eve_access_tunnel_8017DF24(Task* arg0)
 {
     arg0->msgTable = D_neo_ark_eve_access_tunnel_8017EA94;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 0xB) {
         u16* ptr = (u16*)Fs_ImgBuffers;
         s32  i   = 0;

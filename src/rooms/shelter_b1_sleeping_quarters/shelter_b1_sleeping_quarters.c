@@ -159,7 +159,7 @@ void func_shelter_b1_sleeping_quarters_8017D778(Task* task)
 static void func_shelter_b1_sleeping_quarters_8017D83C(Task* task)
 {
     task->msgTable = D_shelter_b1_sleeping_quarters_80180518;
-    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

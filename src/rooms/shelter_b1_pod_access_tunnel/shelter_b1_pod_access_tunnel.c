@@ -1187,7 +1187,7 @@ s32 func_shelter_b1_pod_access_tunnel_8017DDE0(s32 arg0, s32 arg1, s32 arg2)
 static void func_shelter_b1_pod_access_tunnel_8017DE10(Task* arg0)
 {
     arg0->msgTable = D_shelter_b1_pod_access_tunnel_801810D8;
-    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
+    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (GameFlag_GetNibble(GAME_FLAG_118) == 1) {
         Task_SpawnFromTable(&D_shelter_b1_pod_access_tunnel_801811C8, 0, 0, 0);
         GameFlag_SetNibble(GAME_FLAG_118, 2);
