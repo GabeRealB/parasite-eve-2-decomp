@@ -21,16 +21,37 @@ typedef struct _FsCdfFolderList {
 } FsCdfFolderList;
 STATIC_ASSERT_SIZEOF(FsCdfFolderList, FS_SECTOR_BYTE_SIZE);
 
-typedef struct _FsCdfChunkHeader {
-    u8 type;                // Type of data stored in the chunk.
-    u8 endFlag;             // Flag indicating whether the chunk is the last in the file.
-    union {
-        u16 dataOffset;     // Payload byte offset in an outer chunk header.
-        u16 redirectSector; // Sector count in a folder's redirect entry.
-    } offset;
-    u32   size;             // Chunk size (sector count for CD reads).
-    void* loadAddr;         // Address to where the chunk must be loaded. Non-NULL for pkgs.
-    u8*   redirectAddr;     // Optional replacement destination; zero in USA headers.
+/// Opcodes stored in `FsCdfChunkHeader.type`.
+enum {
+    FILE_SYSTEM_CHUNK_PACKAGE    = 0, // LZSS room package
+    FILE_SYSTEM_CHUNK_IMAGE      = 1, // Image strips
+    FILE_SYSTEM_CHUNK_CLUT       = 2, // Color lookup table
+    FILE_SYSTEM_CHUNK_RAW        = 3, // Raw copy of the first sector's payload
+    FILE_SYSTEM_CHUNK_BUNDLE     = 4, // Resource directory, then a streamed payload
+    FILE_SYSTEM_CHUNK_BACKGROUND = 5, // MDEC room background
+    FILE_SYSTEM_CHUNK_MUSIC      = 6, // Music bank
+    FILE_SYSTEM_CHUNK_TEXT       = 7, // Text; the loader copies no payload
+};
+
+/// Values stored in `FsCdfChunkHeader.endFlag`.
+enum {
+    FILE_SYSTEM_CHUNK_CONTINUES = 0x01, // Another chunk follows in the file
+    FILE_SYSTEM_CHUNK_LAST      = 0xFF, // Last chunk in the file
+};
+
+/// Header of one chunk in a CDF file, at the start of that chunk's first sector.
+///
+/// `sectorCount` counts CD sectors, including the header sector. `sectorLen` is
+/// the exclusive end of the valid bytes in each sector. A resource bundle's
+/// directory is a separate record in the payload, not a second reading of this
+/// header.
+typedef struct {
+    u8  type;        // Opcode (0 package, 1 image, 2 CLUT, 3 raw, 4 bundle, 5 background, 6 music, 7 text)
+    u8  endFlag;     // 0x01 another chunk follows, 0xFF last chunk in the file
+    u16 sectorLen;   // Exclusive end of valid bytes in the sector buffer, in (0x10, 0x800]
+    u32 sectorCount; // Length of the chunk in CD sectors, including the header sector
+    u8* loadAddr;    // Fixed RAM destination for a room package or resource bundle; NULL otherwise
+    u32 unused;      // Unread by the loader. Extracted retail headers store zero
 } FsCdfChunkHeader;
 STATIC_ASSERT_SIZEOF(FsCdfChunkHeader, 0x10);
 

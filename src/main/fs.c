@@ -39,6 +39,22 @@ typedef struct _FsCdfFileSmall {
     u16 offset; // Offset from the beginning of the folder.
 } FsCdfFileSmall;
 
+/// One entry in the directory of a CDF resource bundle (chunk opcode 4).
+///
+/// Fifty entries follow the chunk header in the bundle's first sector. The
+/// loader publishes `kind` and `destination` before streaming later sectors.
+/// `byteSize` is the resource length in bytes and is not read here; retail
+/// destinations are 16-byte aligned.
+typedef struct {
+    u8    kind;                // Resource kind (0 none, 2 image, 3 untyped data)
+    u8    field_1;             // Unread. Zero in every retail bundle; role unproven
+    u16   redirectSector;      // Continuation sectors written before using `redirectDestination`
+    u32   byteSize;            // Resource length in bytes; unread by the loader
+    void* destination;         // Absolute RAM address of the resource
+    u8*   redirectDestination; // Later write pointer; zero while the stream stays contiguous
+} _FsCdfResourceEntry;
+STATIC_ASSERT_SIZEOF(_FsCdfResourceEntry, 0x10);
+
 /// Small FS control block cleared at the start of `Fs_PrepareFolderLoad`.
 typedef struct _FsLoadRedirect {
     u16 enabled;
@@ -532,16 +548,17 @@ static u8 Fs_ProcessChunkHeader(void)
     FsCdfChunkHeader* hdr;
     s32               status;
 
+    // Bound the read by the chunk's sector count and the valid bytes in this sector.
     CdGetSector(&Fs_CdSector, 0x200);
     D_8006C4D4        = Fs_CdSector.bytes;
     hdr               = &Fs_CdSector.chunk.header;
     Fs_ChunkWritePtr  = hdr->loadAddr;
-    Fs_ChunkEndSector = Fs_ReqSector - 1 + hdr->size;
+    Fs_ChunkEndSector = Fs_ReqSector - 1 + hdr->sectorCount;
     Fs_ChunkEndFlag   = hdr->endFlag;
-    D_8006C4D4       += hdr->offset.dataOffset;
+    D_8006C4D4       += hdr->sectorLen;
 
     switch (Fs_CdSector.chunk.header.type) {
-        case 0:
+        case FILE_SYSTEM_CHUNK_PACKAGE:
             if (Fs_ChunkWritePtr == NULL) {
                 break;
             }
@@ -561,7 +578,7 @@ static u8 Fs_ProcessChunkHeader(void)
                 break;
             }
             if (D5B498_8006D748 != 0) {
-                if (Fs_ChunkEndFlag == 0xFF) {
+                if (Fs_ChunkEndFlag == FILE_SYSTEM_CHUNK_LAST) {
                     Fs_LoadPhase = 0xFF;
                     return 1;
                 }
@@ -571,7 +588,7 @@ static u8 Fs_ProcessChunkHeader(void)
             Fs_Streaming = 1;
             break;
 
-        case 1:
+        case FILE_SYSTEM_CHUNK_IMAGE:
             Fs_CopyWorkEntries((FsWorkEntry*)Fs_CdSector.chunk.data.bytes);
             status = Fs_LoadImageStrip(0);
             if (status == 0xFF || status == 0x7F) {
@@ -579,7 +596,7 @@ static u8 Fs_ProcessChunkHeader(void)
                 break;
             }
             if (status == 1) {
-                if (Fs_ChunkEndFlag == 0xFF) {
+                if (Fs_ChunkEndFlag == FILE_SYSTEM_CHUNK_LAST) {
                     Fs_LoadPhase = 0xFF;
                     return 1;
                 }
@@ -589,14 +606,14 @@ static u8 Fs_ProcessChunkHeader(void)
             }
             break;
 
-        case 2:
+        case FILE_SYSTEM_CHUNK_CLUT:
             if (Fs_ChunkEndSector == Fs_ReqSector) {
                 status = Fs_LoadImageChunk((FsImageChunk*)Fs_CdSector.chunk.data.bytes, 0);
                 if (status == 0xFF || status == 0x7F) {
                     Fs_OnCdError(0);
                     break;
                 }
-                if (Fs_ChunkEndFlag == 0xFF) {
+                if (Fs_ChunkEndFlag == FILE_SYSTEM_CHUNK_LAST) {
                     Fs_LoadPhase = 0xFF;
                     return 1;
                 }
@@ -606,7 +623,7 @@ static u8 Fs_ProcessChunkHeader(void)
             }
             break;
 
-        case 3: {
+        case FILE_SYSTEM_CHUNK_RAW: {
             u32* src;
             u32* dst;
             if (Fs_ChunkMode == 1 || Fs_ChunkMode == 4) {
@@ -620,7 +637,7 @@ static u8 Fs_ProcessChunkHeader(void)
             }
             Fs_ChunkWritePtr += 0x7F0;
             if ((u32)Fs_ReqSector >= (u32)Fs_ChunkEndSector) {
-                if (Fs_ChunkEndFlag == 0xFF) {
+                if (Fs_ChunkEndFlag == FILE_SYSTEM_CHUNK_LAST) {
                     Fs_LoadPhase = 0xFF;
                     return 1;
                 }
@@ -631,21 +648,21 @@ static u8 Fs_ProcessChunkHeader(void)
             break;
         }
 
-        case 4: {
-            FsCdfChunkHeader* entry;
+        case FILE_SYSTEM_CHUNK_BUNDLE: {
+            _FsCdfResourceEntry* entry;
             if (Fs_ChunkMode == 1 || Fs_ChunkMode == 4) {
                 Fs_LoadPhase = 0xFF;
                 return 1;
             }
-            entry = (FsCdfChunkHeader*)Fs_CdSector.chunk.data.bytes;
+            entry = (_FsCdfResourceEntry*)Fs_CdSector.chunk.data.bytes;
             // Publish resource destinations before streaming the bundle's payload.
             for (i = 0; i < ARRAY_SIZE(D_8006C338); i++) {
-                D_8006C338[i].kind = entry->type;
-                D_8006C338[i].data = entry->loadAddr;
-                if (entry->redirectAddr != 0) {
+                D_8006C338[i].kind = entry->kind;
+                D_8006C338[i].data = entry->destination;
+                if (entry->redirectDestination != 0) {
                     Fs_LoadRedirect.enabled        = 1;
-                    Fs_LoadRedirect.redirectSector = entry->offset.redirectSector;
-                    Fs_LoadRedirect.destination    = entry->redirectAddr;
+                    Fs_LoadRedirect.redirectSector = entry->redirectSector;
+                    Fs_LoadRedirect.destination    = entry->redirectDestination;
                 }
                 entry++;
             }
@@ -655,7 +672,7 @@ static u8 Fs_ProcessChunkHeader(void)
             break;
         }
 
-        case 5: {
+        case FILE_SYSTEM_CHUNK_BACKGROUND: {
             u8* buf;
             if (Fs_ChunkMode != 3) {
                 CdCmd_RequestVlcRebuild();
@@ -669,7 +686,7 @@ static u8 Fs_ProcessChunkHeader(void)
             break;
         }
 
-        case 6:
+        case FILE_SYSTEM_CHUNK_MUSIC:
             if (Fs_ChunkMode == 4 || Fs_ChunkMode == 5) {
                 Fs_LoadPhase = 0xFF;
                 Fs_Streaming = 1;
@@ -678,7 +695,7 @@ static u8 Fs_ProcessChunkHeader(void)
             SndLoad_BeginFromBuffer(0, Fs_CdSector.bytes);
             status = SndLoad_FeedSector(Fs_CdSector.bytes);
             if (status == 5) {
-                if (Fs_ChunkEndFlag == 0xFF) {
+                if (Fs_ChunkEndFlag == FILE_SYSTEM_CHUNK_LAST) {
                     Fs_LoadPhase = 0xFF;
                     return 1;
                 }
@@ -691,8 +708,8 @@ static u8 Fs_ProcessChunkHeader(void)
             }
             break;
 
-        case 7:
-            if (Fs_ChunkEndFlag == 0xFF) {
+        case FILE_SYSTEM_CHUNK_TEXT:
+            if (Fs_ChunkEndFlag == FILE_SYSTEM_CHUNK_LAST) {
                 Fs_LoadPhase = 0xFF;
                 return 1;
             }
@@ -700,7 +717,7 @@ static u8 Fs_ProcessChunkHeader(void)
 
         default:
             if (Fs_ChunkEndSector == Fs_ReqSector) {
-                if (Fs_ChunkEndFlag == 0xFF) {
+                if (Fs_ChunkEndFlag == FILE_SYSTEM_CHUNK_LAST) {
                     Fs_LoadPhase = 0xFF;
                     return 1;
                 }
@@ -726,7 +743,7 @@ static u8 Fs_ProcessChunkData(void)
             Fs_ChunkWritePtr += 0x800;
             if ((u32)Fs_ReqSector >= (u32)Fs_ChunkEndSector) {
                 endFlag = Fs_ChunkEndFlag;
-                if (endFlag == 0xFF) {
+                if (endFlag == FILE_SYSTEM_CHUNK_LAST) {
                     Fs_LoadPhase = endFlag;
                     return 1;
                 }
@@ -766,7 +783,7 @@ static u8 Fs_ProcessChunkData(void)
                     }
                 }
                 endFlag = Fs_ChunkEndFlag;
-                if (endFlag == 0xFF) {
+                if (endFlag == FILE_SYSTEM_CHUNK_LAST) {
                     Fs_LoadPhase = endFlag;
                     return 1;
                 }
@@ -814,7 +831,7 @@ static u8 Fs_ProcessChunkData(void)
             Fs_ChunkWritePtr += 0x800;
             if ((u32)Fs_ReqSector >= (u32)Fs_ChunkEndSector) {
                 endFlag = Fs_ChunkEndFlag;
-                if (endFlag == 0xFF) {
+                if (endFlag == FILE_SYSTEM_CHUNK_LAST) {
                     Fs_LoadPhase = endFlag;
                     return 1;
                 }
@@ -837,7 +854,7 @@ static u8 Fs_ProcessChunkData(void)
                     Mdec_BeginDecode(Fs_ImgBuffers);
                 }
                 endFlag = Fs_ChunkEndFlag;
-                if (endFlag == 0xFF) {
+                if (endFlag == FILE_SYSTEM_CHUNK_LAST) {
                     Fs_LoadPhase = endFlag;
                     return 1;
                 }
@@ -849,7 +866,7 @@ static u8 Fs_ProcessChunkData(void)
             status = SndLoad_FeedSector(Fs_CdSector.bytes);
             if (status == 5) {
                 endFlag = Fs_ChunkEndFlag;
-                if (endFlag == 0xFF) {
+                if (endFlag == FILE_SYSTEM_CHUNK_LAST) {
                     Fs_LoadPhase = endFlag;
                     return 1;
                 }
@@ -860,7 +877,7 @@ static u8 Fs_ProcessChunkData(void)
             break;
         default:
             if (Fs_ChunkEndSector == Fs_ReqSector) {
-                if (Fs_ChunkEndFlag == 0xFF) {
+                if (Fs_ChunkEndFlag == FILE_SYSTEM_CHUNK_LAST) {
                     return 1;
                 }
                 Fs_Streaming = 0;

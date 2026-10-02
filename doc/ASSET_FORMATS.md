@@ -117,14 +117,16 @@ that chunk (not repeated on continuation sectors):
 | `0x0` | `u8` | `type` | Chunk type (see §3.5) |
 | `0x1` | `u8` | `end_flag` | `0x01` = another chunk follows this one in the file; `0xFF` = last chunk |
 | `0x2` | `u16` | `sector_len` | Exclusive end of **valid** data in each sector buffer |
-| `0x4` | `u32` | `chunk_size` | Total on-disc size in **bytes** (multiple of `0x800`) |
+| `0x4` | `u32` | `sector_count` | Chunk length in CD sectors, including the header sector |
 | `0x8` | `u32` | `load_addr` | RAM load address for room packages / cap2; else `0` |
-| `0xC` | `u32` | pad | Always `0` |
+| `0xC` | `u32` | unused | Unread by the loader; zero in extracted retail headers |
 
-On disc, `chunk_size` is a **byte** length (e.g. `0x3800` = 7 sectors);
-sector count is `chunk_size / 0x800`. Pack computes it from the clean asset
-size and `sector_len` via `format.pack_chunk_payload` — it is **not** a
-`stages.json` field.
+The on-disc word at `0x4` is a sector count. The tool's
+`FileChunkHeader.chunk_size` stores the same length in bytes (`sector_count
+× 0x800`; 7 sectors is `0x3800`). Pack derives it from the clean payload and
+`sector_len` via `format.pack_chunk_payload` — it is **not** a `stages.json`
+field. The loader adds the sector count to the header sector
+(`Fs_ChunkEndSector = Fs_ReqSector - 1 + sectorCount`).
 
 ### 3.3 Multi-sector payload layout and `sector_len`
 

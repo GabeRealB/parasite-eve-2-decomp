@@ -222,12 +222,15 @@ only three, so any `CAP*` passes. Do not write a 4-byte comparison.
 
 **One raw chunk is a resource bundle containing images and data blobs.** This
 file has CAP2 headers at `0x1AA0` and `0x29F0`. Its first `0x320` bytes contain
-fifty 16-byte resource descriptors; the rest of the first `0x7F0` payload bytes
-is zero. The descriptors hold a resource kind (0 empty, 2 image, 3 untyped data),
-byte size and absolute RAM destination. `Fs_ProcessChunkHeader` publishes only
-the kind and destination as `FsResourceSlot` entries in `D_8006C338`, before
-streaming the subsequent sectors into RAM. These resource kinds are distinct
-from the outer CDF chunk opcodes.
+fifty 16-byte `_FsCdfResourceEntry` descriptors; the rest of the first `0x7F0`
+payload bytes is zero. Each descriptor holds a resource kind (0 empty, 2 image,
+3 untyped data), an unread flag byte that is zero in every retail bundle, a
+redirect sector count, the resource's byte length, an absolute RAM destination,
+and an optional later write pointer. Retail bundles leave the redirect pair
+zero, and destinations are 16-byte aligned. `Fs_ProcessChunkHeader` publishes
+only the kind and destination as `FsResourceSlot` entries in `D_8006C338`,
+before streaming the subsequent sectors into RAM. These resource kinds are
+distinct from the outer CDF chunk opcodes.
 
 Here slots 2..7 describe six image resources starting at raw offset `0x7F0`,
 with RAM destinations beginning at `0x80188920`. Slots 14 and 15 describe the
