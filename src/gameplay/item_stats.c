@@ -165,7 +165,7 @@ void func_800C5F70(Task* arg0)
     s32             x;
     SPRT*           sprt;
     s32             saved;
-    GpItemAttr*     attr;
+    ArmorStats*     attr;
     u8**            names;
     u8*             text;
     GpRec10*        rec;
@@ -402,7 +402,7 @@ void func_800C5F70(Task* arg0)
                 x         = 2;
                 text      = Gp_StrAddHp;
                 SOFT_TOUCH_REG_USE(text, attr);
-                flags            = (u32)attr->flags;
+                flags            = (u32)attr->features;
                 y                = obj->panel.contentTop.signedValue + 0x1E;
                 req30.x          = obj->panel.contentOriginX.unsignedValue + x;
                 req30.y          = obj->panel.contentOriginY.unsignedValue + (y - 2);
@@ -412,7 +412,7 @@ void func_800C5F70(Task* arg0)
                 req30.alignment  = TEXT_ALIGNMENT_LEFT;
                 req30.drawMode   = TEXT_DRAW_OUTLINED;
                 Text_DrawString(&req30, text);
-                if (attr->field_4 == 0) {
+                if (attr->hpBonus == 0) {
                     req60.x          = obj->panel.contentOriginX.unsignedValue + 0x78;
                     req60.y          = obj->panel.contentOriginY.unsignedValue + y;
                     req60.otIndex    = obj->panel.otIndex.signedValue + 1;
@@ -429,7 +429,7 @@ void func_800C5F70(Task* arg0)
                     req60.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
                     req60.alignment  = TEXT_ALIGNMENT_RIGHT;
                     req60.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-                    Text_DrawString(&req60, Text_ItoaSignedPlus(buf40, attr->field_4));
+                    Text_DrawString(&req60, Text_ItoaSignedPlus(buf40, attr->hpBonus));
                 }
                 y += 0xF;
 
@@ -441,7 +441,7 @@ void func_800C5F70(Task* arg0)
                 req60.alignment  = TEXT_ALIGNMENT_LEFT;
                 req60.drawMode   = TEXT_DRAW_OUTLINED;
                 Text_DrawString(&req60, Gp_StrAddMp);
-                if (attr->field_6 == 0) {
+                if (attr->mpBonus == 0) {
                     req70.x          = obj->panel.contentOriginX.unsignedValue + 0x76 + x;
                     req70.y          = obj->panel.contentOriginY.unsignedValue + y;
                     req70.otIndex    = obj->panel.otIndex.signedValue + 1;
@@ -458,7 +458,7 @@ void func_800C5F70(Task* arg0)
                     req70.colorRgb   = altColor;
                     req70.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
                     req70.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-                    Text_DrawString(&req70, Text_ItoaSignedPlus(buf40, attr->field_6));
+                    Text_DrawString(&req70, Text_ItoaSignedPlus(buf40, attr->mpBonus));
                 }
                 y += 0xF;
 

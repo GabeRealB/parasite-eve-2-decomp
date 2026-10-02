@@ -458,7 +458,7 @@ void Gp_RecalcMaxMp(void)
         levels++;
     }
     if (cfg->armor != PLAYER_STATUS_EQUIPMENT_NONE) {
-        acc += Gp_ModStatAttrs[cfg->armor - 1].field_6;
+        acc += Gp_ModStatAttrs[cfg->armor - 1].mpBonus;
     }
     rows       = Gp_StatRows;
     save       = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
@@ -511,7 +511,7 @@ void Gp_EquipMod(s32 arg0)
                     val     += save->state.hpBonus;
                     p->hpMax = val;
                     if (p->armor != PLAYER_STATUS_EQUIPMENT_NONE) {
-                        val     += Gp_ModStatAttrs[p->armor - 1].field_4;
+                        val     += Gp_ModStatAttrs[p->armor - 1].hpBonus;
                         p->hpMax = val;
                     }
                     if (p->hpMax >= PLAYER_STATUS_STAT_MAX + 1) {
@@ -571,7 +571,7 @@ void Gp_EquipMod(s32 arg0)
         val       += save->state.hpBonus;
         cfg->hpMax = val;
         if (cfg->armor != PLAYER_STATUS_EQUIPMENT_NONE) {
-            val       += Gp_ModStatAttrs[cfg->armor - 1].field_4;
+            val       += Gp_ModStatAttrs[cfg->armor - 1].hpBonus;
             cfg->hpMax = val;
         }
         if (cfg->hpMax >= PLAYER_STATUS_STAT_MAX + 1) {

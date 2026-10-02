@@ -738,7 +738,7 @@ void Gp_ArmorStatsPanelTask(Task* arg0)
     s32           y;
     s32           base;
     s32           i;
-    GpItemAttr*   attr;
+    ArmorStats*   attr;
 
     obj         = arg0->spawnArg2.pointer;
     cfg         = &gPlayerStatus;
@@ -767,7 +767,7 @@ void Gp_ArmorStatsPanelTask(Task* arg0)
         req1.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         req1.alignment  = TEXT_ALIGNMENT_LEFT;
         req1.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-        Text_DrawString(&req1, Text_ItoaSignedPlus(buf, attr->field_4));
+        Text_DrawString(&req1, Text_ItoaSignedPlus(buf, attr->hpBonus));
 
         req2.x          = obj->panel.contentOriginX.unsignedValue + (x + (mid + 0x1E));
         req2.y          = obj->panel.contentOriginY.unsignedValue + y;
@@ -776,7 +776,7 @@ void Gp_ArmorStatsPanelTask(Task* arg0)
         req2.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         req2.alignment  = TEXT_ALIGNMENT_LEFT;
         req2.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-        Text_DrawString(&req2, Text_ItoaSignedPlus(buf, attr->field_6));
+        Text_DrawString(&req2, Text_ItoaSignedPlus(buf, attr->mpBonus));
 
         req3.x          = obj->panel.contentOriginX.unsignedValue + 2 + x;
         req3.y          = obj->panel.contentOriginY.unsignedValue + (y - 2);

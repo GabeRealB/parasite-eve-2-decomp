@@ -100,7 +100,7 @@ void func_800B8014(void);
 /// occupied rows between them toward the hole left at `arg1`.
 void Gp_MoveItemSlot(InventoryItemRange* arg0, s32 arg1, s32 arg2);
 
-extern GpItemAttr Gp_ModStatAttrs[];
+extern ArmorStats Gp_ModStatAttrs[];
 
 // Shared item-publication work.
 extern u16 Gp_PubItemReady;

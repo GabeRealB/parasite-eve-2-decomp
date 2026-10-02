@@ -89445,10 +89445,10 @@ table, so `overlay_dup_index.py promote` refuses it - the "body references its
 own overlay's data" case the promote docstring measures at 39 of 42 clusters.
 
 The same split holds when the offset is written as the index: taking the
-element's *address* folds it. `Gp_ItemAttrs[armor + 0x5F].flags` keeps
-`addiu 0x5f` before the `sll 3`, whereas `attr = &Gp_ItemAttrs[armor + 0x5F];
-attr->flags` (`&` of an ARRAY_REF is rebuilt as `pointer + int`) emits
-`sll 3; addu` against `%lo(Gp_ItemAttrs+0x2f8)` (func_800B9D80). Where splat
+element's *address* folds it. `Gp_ModStatAttrs[armor + 0x5F].features` keeps
+`addiu 0x5f` before the `sll 3`, whereas `attr = &Gp_ModStatAttrs[armor + 0x5F];
+attr->features` (`&` of an ARRAY_REF is rebuilt as `pointer + int`) emits
+`sll 3; addu` against `%lo(Gp_ModStatAttrs+0x2f8)` (func_800B9D80). Where splat
 names that folded address after an unrelated symbol (`Gp_RelatedQty0+0x78`),
 a matched function had been hand-building `armor * 8 + &sym` with pins; the
 address-of form removed them.

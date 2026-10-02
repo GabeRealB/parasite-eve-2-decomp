@@ -183,16 +183,16 @@ static inline s32 _gpGetModLevel(s32 item)
 {
     s32         ret;
     s32         idx;
-    GpItemAttr* p;
+    ArmorStats* stats;
 
     idx = item - 0x60;
     ret = 0;
     if ((u32)idx < 0x20) {
-        p    = &Gp_ModStatAttrs[(item)-0x60];
-        ret  = p->field_5;
-        ret += gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemLevelBonus[idx];
-        if (ret >= 0xB) {
-            ret = 0xA;
+        stats = &Gp_ModStatAttrs[(item)-0x60];
+        ret   = stats->baseAttachmentSlots;
+        ret  += gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemLevelBonus[idx];
+        if (ret >= ARMOR_ATTACHMENT_SLOT_MAX + 1) {
+            ret = ARMOR_ATTACHMENT_SLOT_MAX;
         }
     }
     return ret;
@@ -278,7 +278,7 @@ static inline void _gpRecalcMaxHp(void)
     val       += save->state.hpBonus;
     cfg->hpMax = val;
     if (cfg->armor != PLAYER_STATUS_EQUIPMENT_NONE) {
-        val       += Gp_ModStatAttrs[cfg->armor - 1].field_4;
+        val       += Gp_ModStatAttrs[cfg->armor - 1].hpBonus;
         cfg->hpMax = val;
     }
     if (cfg->hpMax >= PLAYER_STATUS_STAT_MAX + 1) {
@@ -339,7 +339,7 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
     item = gPlayerStatus.armor + 0x5F;
     if (arg1->state == 0) {
         arg1->status = 0xFF;
-        if (_gpGetModLevel(item) < 0xA) {
+        if (_gpGetModLevel(item) < ARMOR_ATTACHMENT_SLOT_MAX) {
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemLevelBonus[item - 0x60]++;
         } else {
             arg1->status = 0x1A;
@@ -434,7 +434,7 @@ void Gp_UiBoostHp(UiObject* arg0, Task* arg1)
         val       += save->state.hpBonus;
         cfg->hpMax = val;
         if (cfg->armor != PLAYER_STATUS_EQUIPMENT_NONE) {
-            val       += Gp_ModStatAttrs[cfg->armor - 1].field_4;
+            val       += Gp_ModStatAttrs[cfg->armor - 1].hpBonus;
             cfg->hpMax = val;
         }
         if (cfg->hpMax >= PLAYER_STATUS_STAT_MAX + 1) {
@@ -456,20 +456,20 @@ void Gp_UiBoostHp(UiObject* arg0, Task* arg1)
 s32 func_800B9D80(s32 arg0)
 {
     PlayerStatus* cfg;
-    GpItemAttr*   attr;
-    s32           flags;
+    ArmorStats*   attr;
+    s32           features;
     s32           ret;
     s32           stateA;
     s32           stateB;
 
-    ret    = 0;
-    flags  = 0;
-    stateA = 0;
-    stateB = 0;
-    cfg    = &gPlayerStatus;
+    ret      = 0;
+    features = 0;
+    stateA   = 0;
+    stateB   = 0;
+    cfg      = &gPlayerStatus;
     if (cfg->armor != PLAYER_STATUS_EQUIPMENT_NONE) {
-        attr  = &Gp_ModStatAttrs[(cfg->armor + 0x5F) - 0x60];
-        flags = attr->flags;
+        attr     = &Gp_ModStatAttrs[(cfg->armor + 0x5F) - 0x60];
+        features = attr->features;
     }
     if ((Gp_StateC08.metabolismTicks > 0) || (Gp_StateC08.bodyWard != 0)) {
         stateA = 1;
@@ -485,18 +485,18 @@ s32 func_800B9D80(s32 arg0)
             }
             break;
         case 0x102:
-            if (stateA || (flags & 0x1000)) {
+            if (stateA || (features & ARMOR_FEATURE_RESIST_PARALYSIS)) {
                 ret = 1;
             }
             break;
         case 0x104:
-            if (stateA || (flags & 2)) {
+            if (stateA || (features & ARMOR_FEATURE_RESIST_POISON)) {
                 ret = 1;
             }
             break;
         case 0x108:
             ret = Gp_HasStockedItemInline(0xB);
-            if (stateB || (flags & 0x20)) {
+            if (stateB || (features & ARMOR_FEATURE_RESIST_SILENCE)) {
                 ret = 1;
             }
             break;
@@ -504,7 +504,7 @@ s32 func_800B9D80(s32 arg0)
             break;
         case 0x120:
             ret = Gp_HasStockedItemInline(0xE);
-            if (stateB || (flags & 0x200)) {
+            if (stateB || (features & ARMOR_FEATURE_RESIST_CONFUSION)) {
                 ret = 1;
             }
             break;
@@ -514,37 +514,37 @@ s32 func_800B9D80(s32 arg0)
             }
             break;
         case 0x200:
-            if (flags & 0x10) {
+            if (features & ARMOR_FEATURE_RESIST_IMPACT) {
                 ret = 1;
             }
             break;
         case 0x400:
-            if (flags & 1) {
+            if (features & ARMOR_FEATURE_MOTION_DETECTOR) {
                 ret = 1;
             }
             break;
         case 0x800:
-            if (flags & 4) {
+            if (features & ARMOR_FEATURE_MP_GENERATION) {
                 ret = 1;
             }
             break;
         case 0x1000:
-            if (flags & 0x100) {
+            if (features & ARMOR_FEATURE_HP_RECOVERY) {
                 ret = 1;
             }
             break;
         case 0x2000:
-            if (flags & 8) {
+            if (features & ARMOR_FEATURE_QUICK_FIRE) {
                 ret = 1;
             }
             break;
         case 0x4000:
-            if (flags & 0x40) {
+            if (features & ARMOR_FEATURE_MEDICAL_INSPECTION) {
                 ret = 1;
             }
             break;
         case 0x8000:
-            if (flags & 0x80) {
+            if (features & ARMOR_FEATURE_MP_RECOVERY) {
                 ret = 1;
             }
             break;
@@ -561,7 +561,7 @@ s32 func_800B9D80(s32 arg0)
             ret = Gp_HasStockedItemInline(0x37);
             break;
         case 0x100000:
-            if (Gp_HasStockedItemInline(0x40) || (flags & 1)) {
+            if (Gp_HasStockedItemInline(0x40) || (features & ARMOR_FEATURE_MOTION_DETECTOR)) {
                 ret = 1;
             }
             break;

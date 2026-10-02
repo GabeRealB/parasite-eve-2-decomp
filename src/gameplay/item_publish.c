@@ -37,21 +37,22 @@ s32 D_80114DE8;
 u16 Gp_PubItemId;
 
 EquipmentWeaponLoadOptionsTable Gp_RelatedQty0      = { { { 32, { 160, 161, 162 } }, { 20, { 160, 161, 162 } }, { 100, { 160, 161, 162 } }, { 7, { 160, 161, 162 } }, { 12, { 160, 161, 162 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 6, { 166, 167, 168 } }, { 0, { 0, 0, 0 } }, { 1, { 169, 170, 171 } }, { 12, { 169, 170, 171 } }, { 3, { 172, 173, 174 } }, { 7, { 172, 173, 174 } }, { 20, { 172, 173, 174 } }, { 30, { 175, 176, 177 } }, { 200, { 175, 176, 177 } }, { 0, { 0, 0, 0 } }, { 1, { 0, 0, 0 } }, { 60, { 175, 176, 177 } }, { 90, { 175, 176, 177 } }, { 100, { 181, 185, 187 } }, { 12, { 172, 173, 174 } }, { 0, { 0, 0, 0 } }, { 30, { 175, 176, 177 } }, { 30, { 175, 176, 177 } }, { 30, { 175, 176, 177 } }, { 30, { 175, 176, 177 } }, { 30, { 175, 176, 177 } }, { 30, { 160, 161, 162 } }, { 60, { 160, 161, 162 } }, { 90, { 160, 161, 162 } } } };
-GpItemAttr                      Gp_ModStatAttrs[32] = {
-    { 4096, 10, 3, 0, 0 },
-    { 65, 60, 8, 30, 0 },
-    { 33, 40, 5, 10, 0 },
-    { 2, 0, 5, 10, 0 },
-    { 258, 20, 6, 0, 0 },
-    { 264, 50, 7, 10, 0 },
-    { 4112, 100, 5, 0, 0 },
-    { 4224, 5, 3, 20, 0 },
-    { 272, 60, 5, 0, 0 },
-    { 4098, 20, 6, 20, 0 },
-    { 576, 0, 4, 50, 0 },
-    { 136, 30, 7, 50, 0 },
-    { 8, 0, 4, 20, 0 },
-    { 132, 0, 10, 100, 0 },
+ArmorStats                      Gp_ModStatAttrs[32] = {
+    { ARMOR_FEATURE_RESIST_PARALYSIS, 10, 3, 0, 0 },
+    { ARMOR_FEATURE_MOTION_DETECTOR | ARMOR_FEATURE_MEDICAL_INSPECTION, 60, 8, 30, 0 },
+    { ARMOR_FEATURE_MOTION_DETECTOR | ARMOR_FEATURE_RESIST_SILENCE, 40, 5, 10, 0 },
+    { ARMOR_FEATURE_RESIST_POISON, 0, 5, 10, 0 },
+    { ARMOR_FEATURE_RESIST_POISON | ARMOR_FEATURE_HP_RECOVERY, 20, 6, 0, 0 },
+    { ARMOR_FEATURE_QUICK_FIRE | ARMOR_FEATURE_HP_RECOVERY, 50, 7, 10, 0 },
+    { ARMOR_FEATURE_RESIST_IMPACT | ARMOR_FEATURE_RESIST_PARALYSIS, 100, 5, 0, 0 },
+    { ARMOR_FEATURE_MP_RECOVERY | ARMOR_FEATURE_RESIST_PARALYSIS, 5, 3, 20, 0 },
+    { ARMOR_FEATURE_RESIST_IMPACT | ARMOR_FEATURE_HP_RECOVERY, 60, 5, 0, 0 },
+    { ARMOR_FEATURE_RESIST_POISON | ARMOR_FEATURE_RESIST_PARALYSIS, 20, 6, 20, 0 },
+    { ARMOR_FEATURE_MEDICAL_INSPECTION | ARMOR_FEATURE_RESIST_CONFUSION, 0, 4, 50, 0 },
+    { ARMOR_FEATURE_QUICK_FIRE | ARMOR_FEATURE_MP_RECOVERY, 30, 7, 50, 0 },
+    { ARMOR_FEATURE_QUICK_FIRE, 0, 4, 20, 0 },
+    { ARMOR_FEATURE_MP_GENERATION | ARMOR_FEATURE_MP_RECOVERY, 0, 10, 100, 0 },
+    // Ids 0x6E–0x7F grant no features. Their base slot count is still 4.
     { 0, 0, 4, 0, 0 },
     { 0, 0, 4, 0, 0 },
     { 0, 0, 4, 0, 0 },

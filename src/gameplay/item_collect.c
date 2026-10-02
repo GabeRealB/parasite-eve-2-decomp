@@ -64,16 +64,16 @@ static inline s32 _gpGetModLevel(s32 item)
 {
     s32         ret;
     s32         idx;
-    GpItemAttr* p;
+    ArmorStats* stats;
 
     idx = item - 0x60;
     ret = 0;
     if ((u32)idx < 0x20) {
-        p    = &Gp_ModStatAttrs[(item)-0x60];
-        ret  = p->field_5;
-        ret += gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemLevelBonus[idx];
-        if (ret >= 0xB) {
-            ret = 0xA;
+        stats = &Gp_ModStatAttrs[(item)-0x60];
+        ret   = stats->baseAttachmentSlots;
+        ret  += gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemLevelBonus[idx];
+        if (ret >= ARMOR_ATTACHMENT_SLOT_MAX + 1) {
+            ret = ARMOR_ATTACHMENT_SLOT_MAX;
         }
     }
     return ret;
@@ -648,7 +648,7 @@ void Gp_RecalcMaxHp(void)
     val       += save->state.hpBonus;
     cfg->hpMax = val;
     if (cfg->armor != PLAYER_STATUS_EQUIPMENT_NONE) {
-        val       += Gp_ModStatAttrs[cfg->armor - 1].field_4;
+        val       += Gp_ModStatAttrs[cfg->armor - 1].hpBonus;
         cfg->hpMax = val;
     }
     if (cfg->hpMax >= PLAYER_STATUS_STAT_MAX + 1) {
