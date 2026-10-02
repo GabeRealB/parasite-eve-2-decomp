@@ -46,21 +46,22 @@ void memFillBytes(void* destination, u32 value, size_t sizeBytes)
     fillHalfword = fillByte | (fillByte << 8);
     fillWord     = ((u32)fillByte << 24) + (fillByte << 16) + (fillByte << 8) + fillByte;
 
-    /// Fills bytes through the next word boundary using aligned stores.
+    /// Fills a byte run ending at the next word boundary using aligned stores.
     ///
     /// Consumes four, three, two or one bytes for address residues zero, one,
-    /// two or three modulo four. Advances `cursor` and decreases `remaining`
-    /// by that byte count. Requires `remaining >= sizeof(u32)` and at least
-    /// that many writable bytes at `cursor`; alignment is tested from address
-    /// bits, not the pointed-to value.
+    /// two or three modulo four. Advances `cursor` to word alignment and
+    /// decreases `remaining` by the same byte count. Requires
+    /// `remaining >= sizeof(u32)` and `remaining` writable bytes at `cursor`.
     ///
     /// `cursor` and `remaining` must be distinct, stable modifiable `u8*` and
-    /// `size_t` lvalues outside the filled storage, without evaluation side
-    /// effects. Both are evaluated repeatedly. `byteValue`, `halfwordValue`
-    /// and `wordValue` must have types `u8`, `u16` and `u32`, with the wider
-    /// values repeating the same byte. Each selected value is evaluated once;
-    /// case one selects both byte and halfword. No surrounding identifiers or
-    /// configuration macros are required. The macro is confined to this function.
+    /// `size_t` lvalues. Argument expressions must have no evaluation side
+    /// effects, and the objects holding them must be outside the filled storage.
+    /// `cursor` is evaluated repeatedly; `remaining` is evaluated and updated
+    /// once. `byteValue`, `halfwordValue` and `wordValue` must have types `u8`,
+    /// `u16` and `u32`, with the wider values repeating the same byte. Each
+    /// selected value is evaluated once; residue one selects both byte and
+    /// halfword. Captures no locals and requires no configuration bindings.
+    /// Defined only around the fill loop and undefined immediately afterward.
 #define MEMORY_FILL_ALIGNED_CHUNK(cursor, remaining, byteValue, halfwordValue, wordValue) \
     do {                                                                                  \
         switch ((uintptr)(cursor) & (sizeof(u32) - 1)) {                                  \
@@ -81,8 +82,7 @@ void memFillBytes(void* destination, u32 value, size_t sizeBytes)
                 (remaining)    -= sizeof(u16);                                            \
                 break;                                                                    \
             case 3:                                                                       \
-                *(cursor)    = (byteValue);                                               \
-                (cursor)    += 1;                                                         \
+                *(cursor)++  = (byteValue);                                               \
                 (remaining) -= 1;                                                         \
                 break;                                                                    \
         }                                                                                 \
