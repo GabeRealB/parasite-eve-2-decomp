@@ -555,7 +555,7 @@ WorldCollisionGrid D_dryfield_night_driveway_80180C0C[1] = {
     { NULL, _gDryfieldNightDrivewayCollision0364CNormals, _gDryfieldNightDrivewayCollision0364CVerts, _gDryfieldNightDrivewayCollision0364CFaces, _gDryfieldNightDrivewayCollision0364CTable, 0x2B16, 5210, 7, 3, 4000, 23 },
 };
 
-GpViewRec D_dryfield_night_driveway_80180C30[10] = {
+ViewCamera D_dryfield_night_driveway_80180C30[10] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 1950, 0x7530, -2670 } }, 380 },
     { { { { -651, 0, 4043 }, { -292, 4085, -47 }, { -4033, -296, -649 } }, { 4393, 820, 1267 } }, 230 },
     { { { { -852, 0, 4006 }, { 449, 4070, 95 }, { -3980, 459, -846 } }, { 425, 1344, 1172 } }, 230 },

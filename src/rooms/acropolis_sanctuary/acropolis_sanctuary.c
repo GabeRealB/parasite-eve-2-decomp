@@ -1601,7 +1601,7 @@ SpriteView D_acropolis_sanctuary_801860C8[16] = {
     { { .elements = D_acropolis_sanctuary_80185DA8 }, D_acropolis_sanctuary_801860A0, NULL },
 };
 
-GpViewRec D_acropolis_sanctuary_80186188[16] = {
+ViewCamera D_acropolis_sanctuary_80186188[16] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 6200, 0x7530, 8000 } }, 589 },
     { { { { 345, 0, 4081 }, { 546, 4059, -46 }, { -4044, 548, 342 } }, { 4961, 1400, 8451 } }, 230 },
     { { { { 559, 0, -4057 }, { -549, 4058, -75 }, { 4020, 554, 554 } }, { 9472, 1403, 8386 } }, 230 },

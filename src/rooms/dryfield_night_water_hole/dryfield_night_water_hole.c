@@ -416,7 +416,7 @@ WorldCollisionGrid D_dryfield_night_water_hole_80180F50[1] = {
     { NULL, _gDryfieldNightWaterHoleCollision03990Normals, _gDryfieldNightWaterHoleCollision03990Verts, _gDryfieldNightWaterHoleCollision03990Faces, _gDryfieldNightWaterHoleCollision03990Table, -4000, 5000, 6, 2, 4000, 23 },
 };
 
-GpViewRec D_dryfield_night_water_hole_80180F74[26] = {
+ViewCamera D_dryfield_night_water_hole_80180F74[26] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -0x34B7, 0x78AD, 3935 } }, 329 },
     { { { { -1708, 0, 3722 }, { 704, 4022, 323 }, { -3655, 774, -1677 } }, { -7853, 1372, 107 } }, 230 },
     { { { { -1222, 0, -3909 }, { -357, 4078, 111 }, { 3892, 374, -1217 } }, { -4081, 1167, 312 } }, 230 },

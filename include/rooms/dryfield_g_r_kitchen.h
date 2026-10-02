@@ -24,7 +24,7 @@ extern WorldCoordRoomLighting D_dryfield_g_r_kitchen_8017EC40[];
 
 extern GpWarpRec D_dryfield_g_r_kitchen_8017EC48[];
 
-extern GpViewRec D_dryfield_g_r_kitchen_8017EEE4[];
+extern ViewCamera D_dryfield_g_r_kitchen_8017EEE4[];
 
 extern SpriteView D_dryfield_g_r_kitchen_8017F014[];
 

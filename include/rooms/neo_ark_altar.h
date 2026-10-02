@@ -21,7 +21,7 @@ extern GpViewCountRec D_neo_ark_altar_8017F0F8[];
 
 extern GpWarpRec D_neo_ark_altar_8017F0FC[];
 
-extern GpViewRec D_neo_ark_altar_8017F5A0[];
+extern ViewCamera D_neo_ark_altar_8017F5A0[];
 
 extern SpriteView D_neo_ark_altar_8017FE38[];
 

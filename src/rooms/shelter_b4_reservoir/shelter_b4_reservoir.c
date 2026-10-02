@@ -524,7 +524,7 @@ WorldCollisionGrid D_shelter_b4_reservoir_80185AB8[1] = {
     { NULL, _gShelterB4ReservoirCollision084F8Normals, _gShelterB4ReservoirCollision084F8Verts, _gShelterB4ReservoirCollision084F8Faces, _gShelterB4ReservoirCollision084F8Table, 0x2AC6, 6000, 5, 5, 4000, 45 },
 };
 
-GpViewRec D_shelter_b4_reservoir_80185ADC[10] = {
+ViewCamera D_shelter_b4_reservoir_80185ADC[10] = {
     { { { { 4095, 0, -20 }, { -20, 35, -4095 }, { 0, 4095, 35 } }, { 151, 0x7530, -115 } }, 447 },
     { { { { -1356, 0, -3864 }, { 134, 4093, -47 }, { 3862, -142, -1355 } }, { -836, 880, 2121 } }, 230 },
     { { { { -4037, 0, 688 }, { 118, 4034, 695 }, { -678, 705, -3977 } }, { -1560, 2040, -2150 } }, 257 },

@@ -24,7 +24,7 @@ extern GpViewCountRec D_neo_ark_r31_8017DA20[];
 
 extern GpWarpRec D_neo_ark_r31_8017DA24[];
 
-extern GpViewRec D_neo_ark_r31_8017DA5C[];
+extern ViewCamera D_neo_ark_r31_8017DA5C[];
 
 extern SpriteView D_neo_ark_r31_8017DAF8[];
 

@@ -24,7 +24,7 @@ extern GpViewCountRec D_dryfield_night_cellar_8017DB30[];
 
 extern GpWarpRec D_dryfield_night_cellar_8017DB34[];
 
-extern GpViewRec D_dryfield_night_cellar_8017DE84[];
+extern ViewCamera D_dryfield_night_cellar_8017DE84[];
 
 extern SpriteView D_dryfield_night_cellar_8017FAB8[];
 

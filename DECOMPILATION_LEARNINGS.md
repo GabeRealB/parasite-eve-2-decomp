@@ -26139,20 +26139,20 @@ jal    Task_Spawn
 addiu  a3, a3, -0x24
 ```
 
-`&recs[idx - 1]` subtracts first (`addiu a3, a3, -0x24` then
-`addu a3, s0, a3`). `recs + idx - 1` / `&recs[idx] - 1` mutates the base
+`&cameras[idx - 1]` subtracts first (`addiu a3, a3, -0x24` then
+`addu a3, s0, a3`). `cameras + idx - 1` / `&cameras[idx] - 1` mutates the base
 (`addu s0, s0, v1` / `addiu a3, s0, -0x24`).
 
 Build the address offset-first, then decrement the typed pointer:
 
 ```c
-rec = (GpViewRec*)(idx * sizeof(GpViewRec) + (s32)recs);
-Task_Spawn(0, 0xF, 0, (s32)(rec - 1));
+camera = (ViewCamera*)(idx * sizeof(ViewCamera) + (s32)cameras);
+Task_Spawn(0, 0xF, 0, (s32)(camera - 1));
 ```
 
-Same integer form (`idx * sizeof + (s32)recs - sizeof`) also matches.
+Same integer form (`idx * sizeof + (s32)cameras - sizeof`) also matches.
 Pairs with “Index-first cast for `addu rd, index, base`”. `Gp_SpawnViewTasks`
-is the example; the sibling `Gp_GetStageView` can keep `&recs[idx - 1]`
+is the example; the sibling `Gp_GetStageView` can keep `&cameras[idx - 1]`
 because that address is a return value, not a call argument.
 
 ## Two-phase switch table, then pin, so `lui v0` survives a later `$v1` walk
@@ -111165,7 +111165,7 @@ The seed also carried both classic m2c type errors, each worth ~2 instructions
 of the 76: `TmdObject::coords` is a `GfxCoord*`, so
 `func_800D7A9C(obj, (VECTOR*)coord->workm.t, 0, 3)` gives `addiu a1,s2,0x38`
 (the seed's `s32*` plus `0x38` gave `+0xE0`), and the view table
-`D_actor_511000_80147EE4` is a `GpViewRec[]`, so
+`D_actor_511000_80147EE4` is a `ViewCamera[]`, so
 `&D_actor_511000_80147EE4[task->killCountdown]` scales by 0x24 (`sll 3`/`addu`/
 `sll 2`) where the seed's `s32` extern scaled by 0x24*4 (`sll 4`). Both fall out
 of reading the record the data actually holds - `MATRIX` + `u32`, 0x24 bytes,

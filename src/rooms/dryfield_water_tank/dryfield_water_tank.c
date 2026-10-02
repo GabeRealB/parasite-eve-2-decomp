@@ -517,7 +517,7 @@ WorldCollisionGrid D_dryfield_water_tank_80186EBC[1] = {
     { NULL, _gDryfieldWaterTankCollision098FCNormals, _gDryfieldWaterTankCollision098FCVerts, _gDryfieldWaterTankCollision098FCFaces, _gDryfieldWaterTankCollision098FCTable, 3500, 3300, 2, 2, 4000, 36 },
 };
 
-GpViewRec D_dryfield_water_tank_80186EE0[10] = {
+ViewCamera D_dryfield_water_tank_80186EE0[10] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x5DC0, 0 } }, 322 },
     { { { { 1429, 0, -3838 }, { -2523, 3086, -939 }, { 2892, 2692, 1077 } }, { 5050, 0x3E4E, 1880 } }, 257 },
     { { { { -853, 0, 4006 }, { 1212, 3903, 258 }, { -3818, 1239, -813 } }, { -5920, 0x37FA, -1350 } }, 257 },

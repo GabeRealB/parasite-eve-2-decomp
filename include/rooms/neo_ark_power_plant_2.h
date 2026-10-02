@@ -24,7 +24,7 @@ extern GpViewCountRec D_neo_ark_power_plant_2_801806AC[];
 
 extern GpWarpRec D_neo_ark_power_plant_2_801806B0[];
 
-extern GpViewRec D_neo_ark_power_plant_2_80180DE8[];
+extern ViewCamera D_neo_ark_power_plant_2_80180DE8[];
 
 extern SpriteView D_neo_ark_power_plant_2_8018205C[];
 

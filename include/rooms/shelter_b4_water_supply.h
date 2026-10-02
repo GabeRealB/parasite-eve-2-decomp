@@ -25,7 +25,7 @@ extern GpWarpRec D_shelter_b4_water_supply_80182744[];
 
 extern WorldCollisionGrid D_shelter_b4_water_supply_80182E3C;
 
-extern GpViewRec D_shelter_b4_water_supply_80182E60[];
+extern ViewCamera D_shelter_b4_water_supply_80182E60[];
 
 extern SpriteView D_shelter_b4_water_supply_80183F90[];
 

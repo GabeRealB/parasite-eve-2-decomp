@@ -24,7 +24,7 @@ extern GpViewCountRec D_shelter_1f_bulwark_801803CC[];
 
 extern GpWarpRec D_shelter_1f_bulwark_801803D0[];
 
-extern GpViewRec D_shelter_1f_bulwark_8018066C[];
+extern ViewCamera D_shelter_1f_bulwark_8018066C[];
 
 extern SpriteView D_shelter_1f_bulwark_801807B0[];
 

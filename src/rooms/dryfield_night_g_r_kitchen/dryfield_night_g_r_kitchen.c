@@ -152,7 +152,7 @@ WorldCollisionGrid D_dryfield_night_g_r_kitchen_8017E554[1] = {
     { NULL, _gDryfieldNightGRKitchenCollision00F94Normals, _gDryfieldNightGRKitchenCollision00F94Verts, _gDryfieldNightGRKitchenCollision00F94Faces, _gDryfieldNightGRKitchenCollision00F94Table, 1800, 3000, 1, 2, 4000, 16 },
 };
 
-GpViewRec D_dryfield_night_g_r_kitchen_8017E578[3] = {
+ViewCamera D_dryfield_night_g_r_kitchen_8017E578[3] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x7530, 0 } }, 1053 },
     { { { { 3955, 0, 1064 }, { 591, 3405, -2198 }, { -885, 2276, 3288 } }, { -400, 2700, 1000 } }, 230 },
     { { { { -3988, 0, 933 }, { -276, 3911, -1183 }, { -891, -1215, -3808 } }, { -500, 400, -2700 } }, 230 },

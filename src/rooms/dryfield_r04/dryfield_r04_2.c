@@ -10,7 +10,7 @@
  * empty sprite lists and the location's parameters.
  */
 
-GpViewRec D_dryfield_r04_8017E218[2] = {
+ViewCamera D_dryfield_r04_8017E218[2] = {
     { { { { 0x1000, 0, 0 }, { 0, 0, -0x1000 }, { 0, 0x1000, 0 } }, { 0, 0x7530, 0 } }, 0xCF },
     { { { { 0x1000, 0, 0 }, { 0, 0, -0x1000 }, { 0, 0x1000, 0 } }, { -0x3A98, 0x7530, -0x3E80 } }, 0xCF },
 };

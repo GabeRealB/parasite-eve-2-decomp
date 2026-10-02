@@ -1152,7 +1152,7 @@ WorldCoordRoomLights D_acropolis_west_elevator_hall_801869E4[1] = {
     { 0, NULL, ARRAY_SIZE(_gAcropolisWestElevatorHallPointLights), _gAcropolisWestElevatorHallPointLights, 0, NULL },
 };
 
-GpViewRec D_acropolis_west_elevator_hall_801869FC[5] = {
+ViewCamera D_acropolis_west_elevator_hall_801869FC[5] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -100, 0x7530, -500 } }, 617 },
     { { { { -27, 0, 4095 }, { -657, 4042, -4 }, { -4042, -657, -27 } }, { -1918, 620, -769 } }, 257 },
     { { { { 792, 0, -4018 }, { -689, 4035, -135 }, { 3959, 702, 780 } }, { 3941, 2050, 660 } }, 230 },

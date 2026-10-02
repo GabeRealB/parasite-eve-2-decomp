@@ -92,7 +92,7 @@ static s16* _gShelterB6TrainingRoomCollision07174Table[6] = {
 
 WorldCollisionGrid D_shelter_b6_training_room_80184734 = { NULL, _gShelterB6TrainingRoomCollision07174Normals, _gShelterB6TrainingRoomCollision07174Verts, _gShelterB6TrainingRoomCollision07174Faces, _gShelterB6TrainingRoomCollision07174Table, 0, -750, 2, 3, 4000, 21 };
 
-GpViewRec D_shelter_b6_training_room_80184758[8] = {
+ViewCamera D_shelter_b6_training_room_80184758[8] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -2500, 0x61A8, -5250 } }, 380 },
     { { { { -4058, 0, 553 }, { 56, 4074, 413 }, { -550, 417, -4037 } }, { -3120, 1960, -5900 } }, 257 },
     { { { { 4069, 0, 468 }, { -98, 4004, 855 }, { -457, -861, 3978 } }, { -3190, 870, 2460 } }, 257 },

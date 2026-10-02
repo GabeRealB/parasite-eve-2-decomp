@@ -24,7 +24,7 @@ extern WorldCoordRoomLighting D_dryfield_cellar_8017DC10[];
 
 extern GpWarpRec D_dryfield_cellar_8017DC20[];
 
-extern GpViewRec D_dryfield_cellar_8017DF78[];
+extern ViewCamera D_dryfield_cellar_8017DF78[];
 
 extern SpriteView D_dryfield_cellar_8017FE40[];
 

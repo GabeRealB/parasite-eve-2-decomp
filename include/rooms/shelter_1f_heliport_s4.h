@@ -20,7 +20,7 @@ extern GpWarpRec D_shelter_1f_heliport_s4_8017D700[];
 
 extern WorldCollisionGrid D_shelter_1f_heliport_s4_8017D9C8;
 
-extern GpViewRec D_shelter_1f_heliport_s4_8017D9EC[];
+extern ViewCamera D_shelter_1f_heliport_s4_8017D9EC[];
 
 extern SpriteView D_shelter_1f_heliport_s4_8017DAF0[];
 

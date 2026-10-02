@@ -1253,7 +1253,7 @@ WorldCollisionGrid D_dryfield_night_dilapidated_house_80187D44[1] = {
     { NULL, _gDryfieldNightDilapidatedHouseCollision0A784Normals, _gDryfieldNightDilapidatedHouseCollision0A784Verts, _gDryfieldNightDilapidatedHouseCollision0A784Faces, _gDryfieldNightDilapidatedHouseCollision0A784Table, 6000, 3200, 3, 2, 4000, 70 },
 };
 
-GpViewRec D_dryfield_night_dilapidated_house_80187D68[11] = {
+ViewCamera D_dryfield_night_dilapidated_house_80187D68[11] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 900, 0x4E20, 0 } }, 490 },
     { { { { 3872, 0, -1335 }, { -1200, 1793, -3481 }, { 584, 3682, 1695 } }, { 5380, 4300, 2840 } }, 207 },
     { { { { -2538, 0, 3214 }, { 1329, 3729, 1049 }, { -2926, 1694, -2310 } }, { 200, 2400, -200 } }, 257 },

@@ -70,7 +70,7 @@ extern WorldCoordRoomLighting gMistShootingGalleryRoomLightingTable[1];
 
 extern GpWarpRec D_mist_shooting_gallery_801853C8[];
 
-extern GpViewRec D_mist_shooting_gallery_8018998C[];
+extern ViewCamera D_mist_shooting_gallery_8018998C[];
 
 extern SpriteView D_mist_shooting_gallery_8018BD10[];
 

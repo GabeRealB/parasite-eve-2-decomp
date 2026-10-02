@@ -157,7 +157,7 @@ static s16* _gShelterB1GolemFreezer1Collision01400Table[2] = {
 
 WorldCollisionGrid D_shelter_b1_golem_freezer_1_8017E9C0 = { NULL, _gShelterB1GolemFreezer1Collision01400Normals, _gShelterB1GolemFreezer1Collision01400Verts, _gShelterB1GolemFreezer1Collision01400Faces, _gShelterB1GolemFreezer1Collision01400Table, -470, -280, 2, 1, 4000, 12 };
 
-GpViewRec D_shelter_b1_golem_freezer_1_8017E9E4[7] = {
+ViewCamera D_shelter_b1_golem_freezer_1_8017E9E4[7] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -3740, 0x61A8, -960 } }, 853 },
     { { { { 586, 0, -4053 }, { -114, 4094, -16 }, { 4052, 115, 586 } }, { -420, 1500, -330 } }, 257 },
     { { { { 531, 0, 4061 }, { 103, 4094, -13 }, { -4060, 104, 531 } }, { -6710, 1500, -330 } }, 257 },

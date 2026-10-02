@@ -1153,7 +1153,7 @@ static s16* _gMineMesaCollision09A4CTable[16] = {
 
 WorldCollisionGrid D_mine_mesa_8018700C = { NULL, _gMineMesaCollision09A4CNormals, _gMineMesaCollision09A4CVerts, _gMineMesaCollision09A4CFaces, _gMineMesaCollision09A4CTable, 800, 4070, 4, 4, 4000, 53 };
 
-GpViewRec D_mine_mesa_80187030[11] = {
+ViewCamera D_mine_mesa_80187030[11] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -6000, 0x34BC, -4000 } }, 257 },
     { { { { 1615, 0, -3764 }, { -1626, 3693, -698 }, { 3394, 1769, 1456 } }, { -1831, 3462, 352 } }, 230 },
     { { { { 4051, 0, -602 }, { -488, 2401, -3281 }, { 353, 3317, 2375 } }, { -0x286F, 4490, -1950 } }, 230 },

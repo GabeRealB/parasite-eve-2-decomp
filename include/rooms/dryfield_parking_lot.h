@@ -24,7 +24,7 @@ extern WorldCoordRoomLighting D_dryfield_parking_lot_8017DC5C[];
 
 extern GpWarpRec D_dryfield_parking_lot_8017DC64[];
 
-extern GpViewRec D_dryfield_parking_lot_8017E900[];
+extern ViewCamera D_dryfield_parking_lot_8017E900[];
 
 extern SpriteView D_dryfield_parking_lot_8017F054[];
 

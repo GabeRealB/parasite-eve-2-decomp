@@ -157,7 +157,7 @@ WorldCollisionGrid D_dryfield_g_r_kitchen_8017EEC0[1] = {
     { NULL, _gDryfieldGRKitchenCollision01900Normals, _gDryfieldGRKitchenCollision01900Verts, _gDryfieldGRKitchenCollision01900Faces, _gDryfieldGRKitchenCollision01900Table, 1800, 3000, 1, 2, 4000, 16 },
 };
 
-GpViewRec D_dryfield_g_r_kitchen_8017EEE4[3] = {
+ViewCamera D_dryfield_g_r_kitchen_8017EEE4[3] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x7530, 0 } }, 1053 },
     { { { { 3955, 0, 1064 }, { 591, 3405, -2198 }, { -885, 2276, 3288 } }, { -400, 2700, 1000 } }, 230 },
     { { { { -3988, 0, 933 }, { -276, 3911, -1183 }, { -891, -1215, -3808 } }, { -500, 400, -2700 } }, 230 },

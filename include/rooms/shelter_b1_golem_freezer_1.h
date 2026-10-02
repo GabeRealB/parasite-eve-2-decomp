@@ -23,7 +23,7 @@ extern GpWarpRec D_shelter_b1_golem_freezer_1_8017E798[];
 
 extern WorldCollisionGrid D_shelter_b1_golem_freezer_1_8017E9C0;
 
-extern GpViewRec D_shelter_b1_golem_freezer_1_8017E9E4[];
+extern ViewCamera D_shelter_b1_golem_freezer_1_8017E9E4[];
 
 extern SpriteView D_shelter_b1_golem_freezer_1_8017EDB0[];
 

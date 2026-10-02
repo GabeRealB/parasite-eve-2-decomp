@@ -38,7 +38,7 @@ extern GpViewCountRec D_neo_ark_pavilion_801838F4[];
 
 extern GpWarpRec D_neo_ark_pavilion_801838F8[];
 
-extern GpViewRec D_neo_ark_pavilion_80184208[];
+extern ViewCamera D_neo_ark_pavilion_80184208[];
 
 extern SpriteView D_neo_ark_pavilion_801873B8[];
 

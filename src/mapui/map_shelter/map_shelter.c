@@ -1059,7 +1059,7 @@ static GpRoomObjRec* D_map_shelter_8017B2F4[49] = {
 
 GpRoomObjTbl D_map_shelter_8017B3B8 = { D_map_shelter_8017B2F4 };
 
-static GpViewRec* D_map_shelter_8017B3BC[49] = {
+static ViewCamera* D_map_shelter_8017B3BC[49] = {
     D_mine_mesa_80187030,
     D_mine_cavern_80189840,
     D_mine_tunnel_entrance_8017E0E4,

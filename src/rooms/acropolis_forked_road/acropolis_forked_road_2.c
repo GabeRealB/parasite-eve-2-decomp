@@ -1131,7 +1131,7 @@ WorldCoordRoomLights D_acropolis_forked_road_80184E70[1] = {
     { 0, NULL, ARRAY_SIZE(_gAcropolisForkedRoadPointLights), _gAcropolisForkedRoadPointLights, 0, NULL },
 };
 
-GpViewRec D_acropolis_forked_road_80184E88[12] = {
+ViewCamera D_acropolis_forked_road_80184E88[12] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 2130, 0x61A8, 630 } }, 541 },
     { { { { 1721, 0, 3716 }, { 310, 4081, -143 }, { -3703, 342, 1715 } }, { -849, 1600, 2900 } }, 235 },
     { { { { 1174, 0, -3924 }, { -167, 4092, -50 }, { 3920, 174, 1173 } }, { 5150, 1500, 1530 } }, 235 },

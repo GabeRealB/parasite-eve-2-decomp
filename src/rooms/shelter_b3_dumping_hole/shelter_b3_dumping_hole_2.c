@@ -1145,7 +1145,7 @@ WorldCollisionGrid D_shelter_b3_dumping_hole_8018C3EC[1] = {
     { NULL, _gShelterB3DumpingHoleCollision0EE2CNormals, _gShelterB3DumpingHoleCollision0EE2CVerts, _gShelterB3DumpingHoleCollision0EE2CFaces, _gShelterB3DumpingHoleCollision0EE2CTable, 100, 0x2F44, 6, 4, 4000, 56 },
 };
 
-GpViewRec D_shelter_b3_dumping_hole_8018C410[37] = {
+ViewCamera D_shelter_b3_dumping_hole_8018C410[37] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -0x2710, 0x61A8, 6000 } }, 257 },
     { { { { 3054, 0, 2728 }, { 510, 4023, -571 }, { -2680, 766, 3000 } }, { -0x452F, 2991, 0x2DB7 } }, 257 },
     { { { { 3126, 0, 2645 }, { 600, 3989, -709 }, { -2576, 929, 3045 } }, { -0x3779, 3121, 0x2A83 } }, 257 },

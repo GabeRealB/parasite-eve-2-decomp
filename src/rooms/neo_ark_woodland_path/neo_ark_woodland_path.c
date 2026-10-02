@@ -116,7 +116,7 @@ static s16* _gNeoArkWoodlandPathCollision0479CTable[20] = {
 
 WorldCollisionGrid D_neo_ark_woodland_path_80181D5C = { NULL, _gNeoArkWoodlandPathCollision0479CNormals, _gNeoArkWoodlandPathCollision0479CVerts, _gNeoArkWoodlandPathCollision0479CFaces, _gNeoArkWoodlandPathCollision0479CTable, 7600, 7000, 4, 5, 4000, 35 };
 
-GpViewRec D_neo_ark_woodland_path_80181D80[10] = {
+ViewCamera D_neo_ark_woodland_path_80181D80[10] = {
     { { { { 4095, 0, 0 }, { 0, 0, -4096 }, { 0, 4095, 0 } }, { 1610, 0x7530, -1510 } }, 329 },
     { { { { 4020, 0, 782 }, { -251, 3878, 1292 }, { -740, -1316, 3807 } }, { 3562, 291, -6263 } }, 230 },
     { { { { 3934, 0, 1140 }, { -229, 4012, 790 }, { -1116, -823, 3853 } }, { 3377, 524, -3609 } }, 230 },

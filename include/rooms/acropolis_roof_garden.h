@@ -29,7 +29,7 @@ extern GpWarpRec D_acropolis_roof_garden_80184CAC[];
 
 extern SpriteView D_acropolis_roof_garden_80186648[];
 
-extern GpViewRec D_acropolis_roof_garden_80186BF4[];
+extern ViewCamera D_acropolis_roof_garden_80186BF4[];
 
 extern WorldCollisionSurfaceProperties* D_acropolis_roof_garden_80186DB0[];
 

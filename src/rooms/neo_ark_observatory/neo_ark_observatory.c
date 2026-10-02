@@ -400,7 +400,7 @@ static s16* _gNeoArkObservatoryCollision049E4Table[20] = {
 
 WorldCollisionGrid gFollowCollisionGrid = { NULL, _gNeoArkObservatoryCollision049E4Normals, _gNeoArkObservatoryCollision049E4Verts, _gNeoArkObservatoryCollision049E4Faces, _gNeoArkObservatoryCollision049E4Table, 0, 0, 4, 5, 4000, 48 };
 
-GpViewRec D_neo_ark_observatory_80181FC8[21] = {
+ViewCamera D_neo_ark_observatory_80181FC8[21] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -7000, 0x61A8, -8000 } }, 329 },
     { { { { -972, 0, -3978 }, { 543, 4057, -133 }, { 3941, -559, -963 } }, { -6480, 550, -0x305C } }, 289 },
     { { { { 3999, 0, -882 }, { -171, 4018, -775 }, { 865, 794, 3923 } }, { -7450, 2250, -5570 } }, 289 },

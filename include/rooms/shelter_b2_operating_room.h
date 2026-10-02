@@ -23,7 +23,7 @@ extern GpWarpRec D_shelter_b2_operating_room_80180BD0[];
 
 extern WorldCollisionGrid D_shelter_b2_operating_room_80181364;
 
-extern GpViewRec D_shelter_b2_operating_room_80181388[];
+extern ViewCamera D_shelter_b2_operating_room_80181388[];
 
 extern SpriteView D_shelter_b2_operating_room_80183184[];
 

@@ -100,7 +100,7 @@ WorldCollisionGrid D_neo_ark_eve_elevator_8017DA2C[1] = {
     { NULL, _gNeoArkEveElevatorCollision0046CNormals, _gNeoArkEveElevatorCollision0046CVerts, _gNeoArkEveElevatorCollision0046CFaces, _gNeoArkEveElevatorCollision0046CTable, 2050, 1050, 1, 1, 4000, 24 },
 };
 
-GpViewRec D_neo_ark_eve_elevator_8017DA50[4] = {
+ViewCamera D_neo_ark_eve_elevator_8017DA50[4] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 1000, 0x4E20, 0 } }, 1371 },
     { { { { 943, 0, -3985 }, { -3917, 755, -927 }, { 735, 4025, 174 } }, { 1340, 3520, 90 } }, 207 },
     { { { { 943, 0, -3985 }, { -3917, 755, -927 }, { 735, 4025, 174 } }, { 1340, 3520, 90 } }, 207 },

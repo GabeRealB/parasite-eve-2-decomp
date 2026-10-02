@@ -291,7 +291,7 @@ WorldCollisionGrid D_neo_ark_power_plant_2_80180DC4[1] = {
     { NULL, _gNeoArkPowerPlant2Collision03804Normals, _gNeoArkPowerPlant2Collision03804Verts, _gNeoArkPowerPlant2Collision03804Faces, _gNeoArkPowerPlant2Collision03804Table, 100, 0x2F44, 3, 4, 4000, 41 },
 };
 
-GpViewRec D_neo_ark_power_plant_2_80180DE8[9] = {
+ViewCamera D_neo_ark_power_plant_2_80180DE8[9] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -4500, 0x55F0, 6000 } }, 289 },
     { { { { -1159, 0, -3928 }, { -2285, 3331, 674 }, { 3195, 2382, -943 } }, { -791, 8408, 1169 } }, 230 },
     { { { { -875, 0, 4001 }, { 1486, 3802, 325 }, { -3714, 1522, -812 } }, { -6791, 7658, 1319 } }, 257 },

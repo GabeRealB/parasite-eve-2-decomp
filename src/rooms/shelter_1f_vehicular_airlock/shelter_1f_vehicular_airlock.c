@@ -214,7 +214,7 @@ WorldCollisionGrid D_shelter_1f_vehicular_airlock_80182438[1] = {
     { NULL, _gShelter1fVehicularAirlockCollision04E78Normals, _gShelter1fVehicularAirlockCollision04E78Verts, _gShelter1fVehicularAirlockCollision04E78Faces, _gShelter1fVehicularAirlockCollision04E78Table, 0x2CEC, 3000, 3, 3, 4000, 12 },
 };
 
-GpViewRec D_shelter_1f_vehicular_airlock_8018245C[3] = {
+ViewCamera D_shelter_1f_vehicular_airlock_8018245C[3] = {
     { { { { 4095, 0, 0 }, { 0, 0, -4096 }, { 0, 4095, 0 } }, { 0, 0x5334, 0 } }, 207 },
     { { { { 723, 0, -4031 }, { -887, 3995, -159 }, { 3932, 901, 706 } }, { 9160, 2690, 790 } }, 257 },
     { { { { 596, 0, 4052 }, { -95, 4094, 14 }, { -4051, -97, 596 } }, { 1760, 1260, 790 } }, 257 },

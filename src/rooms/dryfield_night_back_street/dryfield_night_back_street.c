@@ -143,7 +143,7 @@ WorldCollisionGrid D_dryfield_night_back_street_80180B34[1] = {
     { NULL, _gDryfieldNightBackStreetCollision03574Normals, _gDryfieldNightBackStreetCollision03574Verts, _gDryfieldNightBackStreetCollision03574Faces, _gDryfieldNightBackStreetCollision03574Table, 0x2AFE, 100, 7, 4, 4000, 32 },
 };
 
-GpViewRec D_dryfield_night_back_street_80180B58[5] = {
+ViewCamera D_dryfield_night_back_street_80180B58[5] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -850, 0x7148, -4850 } }, 329 },
     { { { { 696, 0, 4036 }, { -1070, 3949, 184 }, { -3892, -1085, 671 } }, { 4016, 385, -4128 } }, 230 },
     { { { { 681, 0, 4038 }, { 402, 4075, -67 }, { -4018, 408, 677 } }, { -2416, 1408, -4201 } }, 257 },

@@ -26,7 +26,7 @@ extern GpWarpRec D_acropolis_forked_road_80182288[];
 
 extern SpriteView D_acropolis_forked_road_801844E0[];
 
-extern GpViewRec D_acropolis_forked_road_80184E88[];
+extern ViewCamera D_acropolis_forked_road_80184E88[];
 
 extern WorldCollisionSurfaceProperties* D_acropolis_forked_road_801850A4[];
 

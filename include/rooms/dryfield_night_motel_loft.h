@@ -27,7 +27,7 @@ extern GpViewCountRec D_dryfield_night_motel_loft_8017EDF8[];
 
 extern GpWarpRec D_dryfield_night_motel_loft_8017EDFC[];
 
-extern GpViewRec D_dryfield_night_motel_loft_8017F144[];
+extern ViewCamera D_dryfield_night_motel_loft_8017F144[];
 
 extern SpriteView D_dryfield_night_motel_loft_8017FBE4[];
 

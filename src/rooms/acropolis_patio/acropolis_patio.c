@@ -1684,7 +1684,7 @@ WorldCoordRoomLights D_acropolis_patio_80186D44[1] = {
     { 0, NULL, ARRAY_SIZE(_gAcropolisPatioPointLights), _gAcropolisPatioPointLights, 0, NULL },
 };
 
-GpViewRec D_acropolis_patio_80186D5C[19] = {
+ViewCamera D_acropolis_patio_80186D5C[19] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 1800, 0x61A8, 0 } }, 418 },
     { { { { 592, 0, -4052 }, { -336, 4081, -49 }, { 4038, 340, 590 } }, { 1580, 1410, 820 } }, 257 },
     { { { { 808, 0, -4015 }, { -361, 4079, -72 }, { 3999, 368, 805 } }, { 6730, 1610, 770 } }, 230 },

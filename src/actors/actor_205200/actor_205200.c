@@ -401,7 +401,7 @@ static void func_actor_205200_8014AB98(Task* arg0)
 static void func_actor_205200_8014ACD4(Task* arg0)
 {
     Actor205200CtrlWork* work = arg0->work;
-    GpViewRec*           view;
+    ViewCamera*          view;
     VECTOR               d;
     u32                  dist;
     s32                  i;
@@ -413,9 +413,9 @@ static void func_actor_205200_8014ACD4(Task* arg0)
         if (work->field_18[i] == 1) {
             work->field_0[i]->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(work->field_0[i]);
-            d.vx = view->mtx.t[0] + work->field_0[i]->coord.t[0];
-            d.vy = view->mtx.t[1] + work->field_0[i]->coord.t[1];
-            d.vz = view->mtx.t[2] + work->field_0[i]->coord.t[2];
+            d.vx = view->transform.t[0] + work->field_0[i]->coord.t[0];
+            d.vy = view->transform.t[1] + work->field_0[i]->coord.t[1];
+            d.vz = view->transform.t[2] + work->field_0[i]->coord.t[2];
             dist = SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz);
             if (dist < work->field_10) {
                 work->field_C  = work->field_0[i];
@@ -582,7 +582,7 @@ static void func_actor_205200_8014B484(Enemy* arg0, Task* arg1)
     Actor205200Part*     part;
     GfxCoord*            coord;
     Actor205200CtrlWork* work;
-    GpViewRec*           view;
+    ViewCamera*          view;
     VECTOR               d;
     s32                  dist;
     s32                  snd;
@@ -635,9 +635,9 @@ static void func_actor_205200_8014B484(Enemy* arg0, Task* arg1)
                 func_800FDB18(7, coord, NULL, &part->field_68);
                 Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0xF2001400, NULL);
                 view = Gp_GetStageView(&gGameSession->location.loc);
-                d.vx = view->mtx.t[0] + coord->coord.t[0];
-                d.vy = view->mtx.t[1] + coord->coord.t[1];
-                d.vz = view->mtx.t[2] + coord->coord.t[2];
+                d.vx = view->transform.t[0] + coord->coord.t[0];
+                d.vy = view->transform.t[1] + coord->coord.t[1];
+                d.vz = view->transform.t[2] + coord->coord.t[2];
                 dist = SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz);
                 snd  = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40340005;
                 pan  = (s8)worldCoordGetOriginAudioPan(coord);

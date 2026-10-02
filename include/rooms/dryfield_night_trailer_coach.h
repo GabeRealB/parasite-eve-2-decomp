@@ -29,7 +29,7 @@ extern GpViewCountRec D_dryfield_night_trailer_coach_8018951C[];
 
 extern GpWarpRec D_dryfield_night_trailer_coach_80189520[];
 
-extern GpViewRec D_dryfield_night_trailer_coach_80189A44[];
+extern ViewCamera D_dryfield_night_trailer_coach_80189A44[];
 
 extern SpriteView D_dryfield_night_trailer_coach_8018B64C[];
 

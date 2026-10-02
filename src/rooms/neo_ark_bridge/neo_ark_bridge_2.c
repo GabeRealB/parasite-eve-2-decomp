@@ -160,7 +160,7 @@ static s16* _gNeoArkBridgeCollision05254Table[21] = {
 
 WorldCollisionGrid D_neo_ark_bridge_80182814 = { NULL, _gNeoArkBridgeCollision05254Normals, _gNeoArkBridgeCollision05254Verts, _gNeoArkBridgeCollision05254Faces, _gNeoArkBridgeCollision05254Table, 5100, 0x2FA8, 3, 7, 4000, 43 };
 
-GpViewRec D_neo_ark_bridge_80182838[6] = {
+ViewCamera D_neo_ark_bridge_80182838[6] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 2070, 0x7530, 2510 } }, 329 },
     { { { { 4016, 0, -803 }, { -47, 4088, -239 }, { 801, 244, 4009 } }, { 3540, 984, -1480 } }, 257 },
     { { { { 4067, 0, -478 }, { -134, 3931, -1142 }, { 459, 1150, 3904 } }, { 3409, 1865, 2359 } }, 257 },

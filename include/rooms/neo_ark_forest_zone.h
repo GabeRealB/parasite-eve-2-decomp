@@ -24,7 +24,7 @@ extern GpViewCountRec D_neo_ark_forest_zone_801820C0[];
 
 extern GpWarpRec D_neo_ark_forest_zone_801820C4[];
 
-extern GpViewRec D_neo_ark_forest_zone_80182298[];
+extern ViewCamera D_neo_ark_forest_zone_80182298[];
 
 extern SpriteView D_neo_ark_forest_zone_80182594[];
 

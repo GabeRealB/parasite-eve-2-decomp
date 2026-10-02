@@ -1218,7 +1218,7 @@ static s16* _gMistShootingGalleryCollision0C3A8Table[28] = {
 
 WorldCollisionGrid D_mist_shooting_gallery_80189968 = { NULL, _gMistShootingGalleryCollision0C3A8Normals, _gMistShootingGalleryCollision0C3A8Verts, _gMistShootingGalleryCollision0C3A8Faces, _gMistShootingGalleryCollision0C3A8Table, 0x2EE0, 7000, 7, 4, 4000, 57 };
 
-GpViewRec D_mist_shooting_gallery_8018998C[18] = {
+ViewCamera D_mist_shooting_gallery_8018998C[18] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -500, 0x7530, 0 } }, 289 },
     { { { { 4063, 0, 515 }, { 11, 4094, -90 }, { -515, 91, 4062 } }, { 0x29EB, 949, -759 } }, 257 },
     { { { { -4053, 0, 589 }, { 15, 4094, 103 }, { -589, 104, -4051 } }, { 0x299F, 949, -5070 } }, 257 },

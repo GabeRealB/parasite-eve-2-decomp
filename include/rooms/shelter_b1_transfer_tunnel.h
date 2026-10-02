@@ -23,7 +23,7 @@ extern GpWarpRec D_shelter_b1_transfer_tunnel_8018295C[];
 
 extern WorldCollisionGrid D_shelter_b1_transfer_tunnel_80182AEC;
 
-extern GpViewRec D_shelter_b1_transfer_tunnel_80182B10[];
+extern ViewCamera D_shelter_b1_transfer_tunnel_80182B10[];
 
 extern SpriteView D_shelter_b1_transfer_tunnel_80182BE0[];
 

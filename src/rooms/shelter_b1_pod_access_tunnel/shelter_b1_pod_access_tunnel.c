@@ -597,7 +597,7 @@ static s16* _gShelterB1PodAccessTunnelCollision06664Table[4] = {
 
 WorldCollisionGrid D_shelter_b1_pod_access_tunnel_80183C24 = { NULL, _gShelterB1PodAccessTunnelCollision06664Normals, _gShelterB1PodAccessTunnelCollision06664Verts, _gShelterB1PodAccessTunnelCollision06664Faces, _gShelterB1PodAccessTunnelCollision06664Table, -750, 6500, 2, 2, 4000, 10 };
 
-GpViewRec D_shelter_b1_pod_access_tunnel_80183C48[14] = {
+ViewCamera D_shelter_b1_pod_access_tunnel_80183C48[14] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -4000, 0x37D3, 2550 } }, 296 },
     { { { { -3999, 0, -882 }, { -236, 3946, 1070 }, { 850, 1096, -3853 } }, { -839, 2300, 805 } }, 230 },
     { { { { 3745, 0, -1658 }, { -128, 4083, -289 }, { 1653, 316, 3734 } }, { -769, 1450, 6475 } }, 230 },
@@ -1367,18 +1367,18 @@ void func_shelter_b1_pod_access_tunnel_8017E41C(s32 arg0)
 
 void func_shelter_b1_pod_access_tunnel_8017E44C(Task* task)
 {
-    GpViewRec* view;
-    VECTOR     vec;
+    ViewCamera* view;
+    VECTOR      vec;
 
     if (task->killCountdown < task->spawnArg1.value && gGameSession->location.loc.view == 0xB) {
         view   = Gp_GetStageView(&gGameSession->location.loc);
         vec.vx = 0;
         vec.vy = 0x10;
         vec.vz = 0;
-        ApplyTransposeMatrixLV(&view->mtx, &vec, &vec);
-        view->mtx.t[0] += vec.vx;
-        view->mtx.t[1] += vec.vy;
-        view->mtx.t[2] += vec.vz;
+        ApplyTransposeMatrixLV(&view->transform, &vec, &vec);
+        view->transform.t[0] += vec.vx;
+        view->transform.t[1] += vec.vy;
+        view->transform.t[2] += vec.vz;
         Gp_TrySpawnViewTask(view);
         task->killCountdown++;
         return;

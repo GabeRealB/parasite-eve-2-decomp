@@ -211,7 +211,7 @@ static s16* _gMistParkingCollision14C44Table[28] = {
 
 WorldCollisionGrid D_mist_parking_80192204 = { NULL, _gMistParkingCollision14C44Normals, _gMistParkingCollision14C44Verts, _gMistParkingCollision14C44Faces, _gMistParkingCollision14C44Table, 0x2AF8, 7000, 7, 4, 4000, 66 };
 
-GpViewRec D_mist_parking_80192228[20] = {
+ViewCamera D_mist_parking_80192228[20] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x6978, 0 } }, 257 },
     { { { { 1185, 0, -3920 }, { -1131, 3921, -341 }, { 3754, 1181, 1134 } }, { -4650, 1900, 5340 } }, 257 },
     { { { { -3872, 0, -1335 }, { -882, 3074, 2558 }, { 1002, 2706, -2906 } }, { -7880, 2620, 660 } }, 207 },

@@ -24,7 +24,7 @@ extern WorldCoordRoomLighting D_dryfield_water_hole_8017FD9C[];
 
 extern GpWarpRec D_dryfield_water_hole_8017FDBC[];
 
-extern GpViewRec D_dryfield_water_hole_80180284[];
+extern ViewCamera D_dryfield_water_hole_80180284[];
 
 extern SpriteView D_dryfield_water_hole_80181634[];
 

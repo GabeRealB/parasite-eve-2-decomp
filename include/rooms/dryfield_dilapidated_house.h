@@ -24,7 +24,7 @@ extern WorldCoordRoomLighting D_dryfield_dilapidated_house_8018696C[];
 
 extern GpWarpRec D_dryfield_dilapidated_house_80186974[];
 
-extern GpViewRec D_dryfield_dilapidated_house_80187308[];
+extern ViewCamera D_dryfield_dilapidated_house_80187308[];
 
 extern SpriteView D_dryfield_dilapidated_house_80188C0C[];
 

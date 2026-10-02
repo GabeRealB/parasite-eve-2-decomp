@@ -274,7 +274,7 @@ SpriteView D_acropolis_hallway_8017EC2C[5] = {
     { { .empty = D_acropolis_hallway_8017EC1C }, D_acropolis_hallway_8017EC1C, NULL },
 };
 
-GpViewRec D_acropolis_hallway_8017EC68[5] = {
+ViewCamera D_acropolis_hallway_8017EC68[5] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x6590, 0 } }, 911 },
     { { { { -908, 0, 3994 }, { -529, 4059, -120 }, { -3958, -542, -900 } }, { 240, 1610, -240 } }, 207 },
     { { { { -481, 0, 4067 }, { 891, 3996, 105 }, { -3968, 897, -469 } }, { -2520, 2700, -240 } }, 207 },

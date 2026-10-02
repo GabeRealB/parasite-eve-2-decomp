@@ -1366,7 +1366,7 @@ WorldCollisionGrid D_dryfield_night_gas_station_8018B75C[1] = {
     { NULL, _gDryfieldNightGasStationCollision0E19CNormals, _gDryfieldNightGasStationCollision0E19CVerts, _gDryfieldNightGasStationCollision0E19CFaces, _gDryfieldNightGasStationCollision0E19CTable, 5043, 6369, 6, 4, 4000, 64 },
 };
 
-GpViewRec D_dryfield_night_gas_station_8018B780[21] = {
+ViewCamera D_dryfield_night_gas_station_8018B780[21] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -0x2710, 0x7530, 1000 } }, 380 },
     { { { { 1609, 0, -3766 }, { -1268, 3856, -541 }, { 3546, 1379, 1515 } }, { -7536, 2780, 4972 } }, 230 },
     { { { { 1495, 0, -3813 }, { -23, 4095, -9 }, { 3813, 25, 1495 } }, { -1316, 1337, 5204 } }, 230 },

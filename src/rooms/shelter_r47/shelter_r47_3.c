@@ -204,7 +204,7 @@ static s16* _gShelterR47Collision0ACCCTable[15] = {
 
 WorldCollisionGrid D_shelter_r47_8018828C = { NULL, _gShelterR47Collision0ACCCNormals, _gShelterR47Collision0ACCCVerts, _gShelterR47Collision0ACCCFaces, _gShelterR47Collision0ACCCTable, 1003, -1010, 5, 3, 4000, 30 };
 
-GpViewRec D_shelter_r47_801882B0[46] = {
+ViewCamera D_shelter_r47_801882B0[46] = {
     { { { { 1403, 0, 3848 }, { 2757, 2857, -1005 }, { -2684, 2934, 978 } }, { -0x2DC3, 4293, -2180 } }, 207 },
     { { { { 693, 0, 4036 }, { 392, 4076, -67 }, { -4017, 398, 690 } }, { -7410, 1510, -2610 } }, 289 },
     { { { { 1395, 0, -3850 }, { -456, 4067, -165 }, { 3823, 485, 1386 } }, { -2490, 1520, -2540 } }, 207 },

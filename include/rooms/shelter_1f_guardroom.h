@@ -21,7 +21,7 @@ extern GpViewCountRec D_shelter_1f_guardroom_8017DA94[];
 
 extern GpWarpRec D_shelter_1f_guardroom_8017DA98[];
 
-extern GpViewRec D_shelter_1f_guardroom_8017DC14[];
+extern ViewCamera D_shelter_1f_guardroom_8017DC14[];
 
 extern SpriteView D_shelter_1f_guardroom_8017DCE0[];
 

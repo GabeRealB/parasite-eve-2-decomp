@@ -24,7 +24,7 @@ extern GpViewCountRec D_mine_tunnel_8017E170[];
 
 extern GpWarpRec D_mine_tunnel_8017E174[];
 
-extern GpViewRec D_mine_tunnel_8017E890[];
+extern ViewCamera D_mine_tunnel_8017E890[];
 
 extern SpriteView D_mine_tunnel_8017F9A4[];
 

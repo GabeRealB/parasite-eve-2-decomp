@@ -302,7 +302,7 @@ WorldCollisionGrid D_dryfield_night_trailer_coach_80189A20[1] = {
     { NULL, _gDryfieldNightTrailerCoachCollision0C460Normals, _gDryfieldNightTrailerCoachCollision0C460Verts, _gDryfieldNightTrailerCoachCollision0C460Faces, _gDryfieldNightTrailerCoachCollision0C460Table, 200, 3450, 3, 1, 4000, 32 },
 };
 
-GpViewRec D_dryfield_night_trailer_coach_80189A44[8] = {
+ViewCamera D_dryfield_night_trailer_coach_80189A44[8] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -5000, 0x2710, 1625 } }, 230 },
     { { { { 373, 0, 4078 }, { 877, 4000, -80 }, { -3983, 881, 364 } }, { -5900, 1690, 2010 } }, 230 },
     { { { { 879, 0, -4000 }, { -892, 3992, -196 }, { 3899, 913, 857 } }, { -1154, 1800, 2260 } }, 230 },

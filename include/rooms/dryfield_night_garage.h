@@ -28,7 +28,7 @@ extern GpViewCountRec D_dryfield_night_garage_8018343C[];
 
 extern GpWarpRec D_dryfield_night_garage_80183440[];
 
-extern GpViewRec D_dryfield_night_garage_801843F8[];
+extern ViewCamera D_dryfield_night_garage_801843F8[];
 
 extern SpriteView D_dryfield_night_garage_80186258[];
 

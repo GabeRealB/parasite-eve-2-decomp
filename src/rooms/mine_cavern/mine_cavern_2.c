@@ -1101,7 +1101,7 @@ WorldCollisionGrid D_mine_cavern_8018981C[1] = {
     { NULL, _gMineCavernCollision0C25CNormals, _gMineCavernCollision0C25CVerts, _gMineCavernCollision0C25CFaces, _gMineCavernCollision0C25CTable, 1000, 1200, 6, 3, 4000, 38 },
 };
 
-GpViewRec D_mine_cavern_80189840[25] = {
+ViewCamera D_mine_cavern_80189840[25] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -9000, 0x541A, -4500 } }, 269 },
     { { { { -4078, 0, -376 }, { -147, 3767, 1601 }, { 346, 1607, -3751 } }, { -0x3C2B, 3769, -9847 } }, 282 },
     { { { { 760, 0, -4024 }, { -1190, 3912, -224 }, { 3844, 1211, 726 } }, { -7741, 2840, -961 } }, 257 },

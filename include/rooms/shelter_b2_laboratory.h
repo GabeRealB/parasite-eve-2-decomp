@@ -31,7 +31,7 @@ extern GpWarpRec D_shelter_b2_laboratory_80182C10[];
 
 extern WorldCollisionGrid D_shelter_b2_laboratory_8018355C;
 
-extern GpViewRec D_shelter_b2_laboratory_80183580[];
+extern ViewCamera D_shelter_b2_laboratory_80183580[];
 
 extern SpriteView D_shelter_b2_laboratory_801854D0[];
 

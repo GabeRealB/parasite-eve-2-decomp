@@ -24,7 +24,7 @@ extern WorldCoordRoomLighting D_dryfield_r08_8017F708[];
 
 extern GpWarpRec D_dryfield_r08_8017F718[];
 
-extern GpViewRec D_dryfield_r08_8017FBBC[];
+extern ViewCamera D_dryfield_r08_8017FBBC[];
 
 extern SpriteView D_dryfield_r08_80180918[];
 

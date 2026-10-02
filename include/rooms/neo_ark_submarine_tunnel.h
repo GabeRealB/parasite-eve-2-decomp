@@ -36,7 +36,7 @@ extern GpViewCountRec D_neo_ark_submarine_tunnel_80181E1C[];
 
 extern GpWarpRec D_neo_ark_submarine_tunnel_80181E20[];
 
-extern GpViewRec D_neo_ark_submarine_tunnel_80182500[];
+extern ViewCamera D_neo_ark_submarine_tunnel_80182500[];
 
 extern SpriteView D_neo_ark_submarine_tunnel_80186B78[];
 

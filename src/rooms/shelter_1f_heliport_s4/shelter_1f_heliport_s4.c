@@ -72,7 +72,7 @@ static s16* _gShelter1fHeliportS4Collision00408Table[9] = {
 
 WorldCollisionGrid D_shelter_1f_heliport_s4_8017D9C8 = { NULL, _gShelter1fHeliportS4Collision00408Normals, _gShelter1fHeliportS4Collision00408Verts, _gShelter1fHeliportS4Collision00408Faces, _gShelter1fHeliportS4Collision00408Table, 0, 2000, 3, 3, 4000, 15 };
 
-GpViewRec D_shelter_1f_heliport_s4_8017D9EC[5] = {
+ViewCamera D_shelter_1f_heliport_s4_8017D9EC[5] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -4500, 0x3CE8, -3400 } }, 235 },
     { { { { 600, 0, -4051 }, { -345, 4081, -51 }, { 4037, 348, 598 } }, { -1395, 1503, -3025 } }, 225 },
     { { { { 577, 0, 4055 }, { 345, 4081, -49 }, { -4040, 349, 575 } }, { -8585, 1503, -2595 } }, 225 },

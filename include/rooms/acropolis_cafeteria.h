@@ -45,7 +45,7 @@ extern GpWarpRec D_acropolis_cafeteria_801875E4[];
 
 extern SpriteView D_acropolis_cafeteria_8018C48C[];
 
-extern GpViewRec D_acropolis_cafeteria_8018C5AC[];
+extern ViewCamera D_acropolis_cafeteria_8018C5AC[];
 
 extern WorldCollisionSurfaceProperties* D_acropolis_cafeteria_8018CA2C[];
 

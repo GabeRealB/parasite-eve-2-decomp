@@ -304,13 +304,13 @@ extern EvsCommand D_acropolis_plaza_80183764[];
 /// z order, flipping its winding.
 
 /// The plaza's view tables, one per camera set. Each entry is a *pair* of
-/// `GpViewRec`s -- the two shots the stream alternates between -- indexed by
+/// `ViewCamera`s -- the two shots the stream alternates between -- indexed by
 /// `gCdCmdQueue.sceneFrame - 1`, so a table row is 0x48 bytes.
-extern GpViewRec D_acropolis_plaza_801838B8[][2];
-extern GpViewRec D_acropolis_plaza_8018A938[][2];
-extern GpViewRec D_acropolis_plaza_8018CAFC[][2];
-extern GpViewRec D_acropolis_plaza_8018F530[][2];
-extern GpViewRec D_acropolis_plaza_8018F9B4[][2];
+extern ViewCamera D_acropolis_plaza_801838B8[][2];
+extern ViewCamera D_acropolis_plaza_8018A938[][2];
+extern ViewCamera D_acropolis_plaza_8018CAFC[][2];
+extern ViewCamera D_acropolis_plaza_8018F530[][2];
+extern ViewCamera D_acropolis_plaza_8018F9B4[][2];
 
 /// The plaza's camera table: one world position per stream view, indexed by
 /// `gCdCmdQueue.sceneFrame - 1`.
@@ -630,7 +630,7 @@ TaskDesc D_acropolis_plaza_80183824[12] = {
 
 s32 D_acropolis_plaza_801838B4 = 800;
 
-GpViewRec D_acropolis_plaza_801838B8[400][2] = {
+ViewCamera D_acropolis_plaza_801838B8[400][2] = {
     { { { { { 3860, 0, 1369 }, { 1229, 1799, -3467 }, { -601, 3679, 1695 } }, { -0x5DD4, 6009, 1112 } }, 289 }, { { { { 3860, 0, 1368 }, { 1229, 1800, -3467 }, { -601, 3678, 1697 } }, { -0x5DD1, 6009, 1115 } }, 289 } },
     { { { { { 3860, 0, 1367 }, { 1228, 1802, -3466 }, { -602, 3677, 1699 } }, { -0x5DCB, 6009, 1119 } }, 289 }, { { { { 3861, 0, 1366 }, { 1226, 1806, -3465 }, { -602, 3676, 1702 } }, { -0x5DC3, 6009, 1125 } }, 289 } },
     { { { { { 3861, 0, 1365 }, { 1224, 1809, -3464 }, { -603, 3674, 1706 } }, { -0x5DB9, 6009, 1133 } }, 289 }, { { { { 3862, 0, 1363 }, { 1222, 1814, -3462 }, { -604, 3672, 1711 } }, { -0x5DAD, 6009, 1141 } }, 289 } },
@@ -1033,7 +1033,7 @@ GpViewRec D_acropolis_plaza_801838B8[400][2] = {
     { { { { { 4006, 0, 852 }, { -73, 4080, 343 }, { -849, -350, 3991 } }, { -2199, 666, -9999 } }, 289 }, { { { { 4006, 0, 852 }, { -72, 4080, 342 }, { -849, -350, 3991 } }, { -2198, 666, -0x2710 } }, 289 } },
 };
 
-GpViewRec D_acropolis_plaza_8018A938[120][2] = {
+ViewCamera D_acropolis_plaza_8018A938[120][2] = {
     { { { { { 3256, 0, 2484 }, { -204, 4082, 267 }, { -2476, -336, 3245 } }, { -6007, 744, -6769 } }, 289 }, { { { { 3256, 0, 2484 }, { -204, 4082, 267 }, { -2476, -336, 3245 } }, { -6007, 744, -6769 } }, 289 } },
     { { { { { 3206, 0, 2548 }, { -216, 4081, 272 }, { -2539, -348, 3194 } }, { -6007, 745, -6772 } }, 289 }, { { { { 3206, 0, 2548 }, { -216, 4081, 272 }, { -2539, -348, 3194 } }, { -6006, 747, -6781 } }, 289 } },
     { { { { { 3049, 0, 2734 }, { -256, 4077, 285 }, { -2722, -383, 3036 } }, { -6006, 751, -6797 } }, 289 }, { { { { 3049, 0, 2734 }, { -256, 4077, 285 }, { -2722, -383, 3036 } }, { -6005, 757, -6818 } }, 289 } },
@@ -1158,7 +1158,7 @@ GpViewRec D_acropolis_plaza_8018A938[120][2] = {
 
 s32 D_acropolis_plaza_8018CAF8 = 300;
 
-GpViewRec D_acropolis_plaza_8018CAFC[150][2] = {
+ViewCamera D_acropolis_plaza_8018CAFC[150][2] = {
     { { { { { 3808, 0, 1507 }, { -25, 4095, 63 }, { -1506, -68, 3808 } }, { -0x4F38, 1740, -1350 } }, 289 }, { { { { 3808, 0, 1507 }, { -25, 4095, 63 }, { -1506, -68, 3808 } }, { -0x4F38, 1740, -1350 } }, 289 } },
     { { { { { 3808, 0, 1507 }, { -25, 4095, 63 }, { -1506, -68, 3808 } }, { -0x4F38, 1740, -1350 } }, 289 }, { { { { 3808, 0, 1507 }, { -24, 4095, 62 }, { -1506, -67, 3808 } }, { -0x4F38, 1740, -1350 } }, 289 } },
     { { { { { 3808, 0, 1507 }, { -24, 4095, 62 }, { -1506, -66, 3808 } }, { -0x4F38, 1740, -1350 } }, 289 }, { { { { 3808, 0, 1507 }, { -25, 4095, 63 }, { -1506, -68, 3808 } }, { -0x4F38, 1740, -1350 } }, 289 } },
@@ -1313,7 +1313,7 @@ GpViewRec D_acropolis_plaza_8018CAFC[150][2] = {
 
 s32 D_acropolis_plaza_8018F52C = 32;
 
-GpViewRec D_acropolis_plaza_8018F530[16][2] = {
+ViewCamera D_acropolis_plaza_8018F530[16][2] = {
     { { { { { 4006, 0, 852 }, { -72, 4080, 342 }, { -849, -350, 3991 } }, { -2198, 666, -0x2710 } }, 289 }, { { { { 4006, 0, 852 }, { -72, 4080, 342 }, { -849, -350, 3991 } }, { -2198, 666, -0x2710 } }, 289 } },
     { { { { { 4006, 0, 852 }, { -72, 4080, 342 }, { -849, -350, 3991 } }, { -2198, 666, -0x2710 } }, 289 }, { { { { 4006, 0, 852 }, { -72, 4080, 342 }, { -849, -350, 3991 } }, { -2198, 666, -0x2710 } }, 289 } },
     { { { { { 4008, 0, 842 }, { -72, 4081, 342 }, { -839, -350, 3993 } }, { -2185, 670, -0x271B } }, 289 }, { { { { 4014, 0, 813 }, { -69, 4081, 341 }, { -810, -348, 3999 } }, { -2148, 680, -0x273D } }, 289 } },
@@ -1335,7 +1335,7 @@ GpViewRec D_acropolis_plaza_8018F530[16][2] = {
 // Retained data: Retained word 100 between the camera table and script data; no reference found.
 s32 D_acropolis_plaza_8018F9B0 = 100;
 
-GpViewRec D_acropolis_plaza_8018F9B4[50][2] = {
+ViewCamera D_acropolis_plaza_8018F9B4[50][2] = {
     { { { { { 2763, 0, -3023 }, { -256, 4081, -234 }, { 3012, 346, 2753 } }, { 468, 1598, -0x3116 } }, 289 }, { { { { 2763, 0, -3023 }, { -256, 4081, -234 }, { 3012, 346, 2753 } }, { 468, 1598, -0x3116 } }, 289 } },
     { { { { { 2769, 0, -3017 }, { -255, 4081, -234 }, { 3006, 347, 2759 } }, { 466, 1598, -0x3115 } }, 289 }, { { { { 2787, 0, -3000 }, { -255, 4081, -237 }, { 2989, 348, 2777 } }, { 458, 1598, -0x3112 } }, 289 } },
     { { { { { 2816, 0, -2973 }, { -253, 4081, -240 }, { 2962, 349, 2806 } }, { 445, 1597, -0x310E } }, 289 }, { { { { 2855, 0, -2936 }, { -252, 4080, -245 }, { 2925, 352, 2844 } }, { 427, 1597, -0x3108 } }, 289 } },
@@ -2634,7 +2634,7 @@ WorldCoordRoomLighting D_acropolis_plaza_801988D0[1] = {
     { D_acropolis_plaza_80199EE8, NULL },
 };
 
-GpViewRec D_acropolis_plaza_801988D8[8] = {
+ViewCamera D_acropolis_plaza_801988D8[8] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x61A8, 0 } }, 380 },
     { { { { 3907, 0, 1229 }, { 691, 3385, -2199 }, { -1015, 2305, 3229 } }, { -3330, 0x2EE0, 0x332C } }, 207 },
     { { { { 1614, 0, 3764 }, { 917, 3972, -393 }, { -3650, 998, 1565 } }, { -2710, 3765, 6480 } }, 230 },
@@ -3474,9 +3474,9 @@ static void func_acropolis_plaza_8017DD90(Task* arg0)
 static void func_acropolis_plaza_8017DE24(s32 arg0)
 {
     CdCmdQueue* q = &gCdCmdQueue;
-    GpViewRec(*tbl)[2];
-    GpViewRec* view;
-    s16        idx;
+    ViewCamera(*tbl)[2];
+    ViewCamera* view;
+    s16         idx;
 
     switch ((u16)arg0) {
         case 0:

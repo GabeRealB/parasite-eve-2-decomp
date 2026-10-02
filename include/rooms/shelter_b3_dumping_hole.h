@@ -37,7 +37,7 @@ extern GpViewCountRec D_shelter_b3_dumping_hole_8018B6A0[];
 
 extern GpWarpRec D_shelter_b3_dumping_hole_8018B6A4[];
 
-extern GpViewRec D_shelter_b3_dumping_hole_8018C410[];
+extern ViewCamera D_shelter_b3_dumping_hole_8018C410[];
 
 extern SpriteView D_shelter_b3_dumping_hole_8018E050[];
 

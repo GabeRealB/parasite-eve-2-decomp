@@ -190,7 +190,7 @@ static s16* _gShelterB4LowerSewerCollision05324Table[16] = {
 
 WorldCollisionGrid D_shelter_b4_lower_sewer_801828E4 = { NULL, _gShelterB4LowerSewerCollision05324Normals, _gShelterB4LowerSewerCollision05324Verts, _gShelterB4LowerSewerCollision05324Faces, _gShelterB4LowerSewerCollision05324Table, 0x39A8, 3210, 8, 2, 4000, 33 };
 
-GpViewRec D_shelter_b4_lower_sewer_80182908[9] = {
+ViewCamera D_shelter_b4_lower_sewer_80182908[9] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x7530, 0 } }, 207 },
     { { { { -855, 0, -4005 }, { -579, 4052, 123 }, { 3963, 592, -846 } }, { -4200, 2980, -1880 } }, 257 },
     { { { { -601, 0, -4051 }, { -787, 4017, 116 }, { 3974, 795, -589 } }, { 3545, 3080, -2150 } }, 257 },

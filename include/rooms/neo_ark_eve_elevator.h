@@ -21,7 +21,7 @@ extern GpViewCountRec D_neo_ark_eve_elevator_8017D768[];
 
 extern GpWarpRec D_neo_ark_eve_elevator_8017D76C[];
 
-extern GpViewRec D_neo_ark_eve_elevator_8017DA50[];
+extern ViewCamera D_neo_ark_eve_elevator_8017DA50[];
 
 extern SpriteView D_neo_ark_eve_elevator_8017DB20[];
 

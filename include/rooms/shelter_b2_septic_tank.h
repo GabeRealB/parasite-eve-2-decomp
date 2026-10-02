@@ -33,7 +33,7 @@ extern GpWarpRec D_shelter_b2_septic_tank_80183574[];
 
 extern WorldCollisionGrid D_shelter_b2_septic_tank_80183E0C;
 
-extern GpViewRec D_shelter_b2_septic_tank_80183E30[];
+extern ViewCamera D_shelter_b2_septic_tank_80183E30[];
 
 extern SpriteView D_shelter_b2_septic_tank_801866F4[];
 

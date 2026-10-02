@@ -331,7 +331,7 @@ static s16* _gShelter1fHeliportCollision043B4Table[9] = {
 
 WorldCollisionGrid gFollowCollisionGrid = { NULL, _gShelter1fHeliportCollision043B4Normals, _gShelter1fHeliportCollision043B4Verts, _gShelter1fHeliportCollision043B4Faces, _gShelter1fHeliportCollision043B4Table, 0, 2800, 3, 3, 4000, 40 };
 
-GpViewRec D_shelter_1f_heliport_80181998[12] = {
+ViewCamera D_shelter_1f_heliport_80181998[12] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -4500, 0x3CE8, -3400 } }, 235 },
     { { { { 338, 0, -4082 }, { -81, 4095, -6 }, { 4081, 81, 337 } }, { -550, 1690, -2890 } }, 230 },
     { { { { 604, 0, 4051 }, { 79, 4095, -11 }, { -4050, 80, 604 } }, { -7570, 1700, -2750 } }, 230 },

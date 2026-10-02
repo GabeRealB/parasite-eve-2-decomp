@@ -921,7 +921,7 @@ SpriteView D_acropolis_observatory_80183300[8] = {
     { { .elements = D_acropolis_observatory_80182C5C }, D_acropolis_observatory_801832B0, NULL },
 };
 
-GpViewRec D_acropolis_observatory_80183360[8] = {
+ViewCamera D_acropolis_observatory_80183360[8] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 4000, 0x7530, 6417 } }, 447 },
     { { { { 3720, 0, 1712 }, { 16, 4095, -35 }, { -1712, 39, 3720 } }, { 805, 3995, 6905 } }, 230 },
     { { { { 3737, 0, 1674 }, { 228, 4057, -510 }, { -1659, 559, 3702 } }, { 988, 4680, 0x2AC5 } }, 230 },

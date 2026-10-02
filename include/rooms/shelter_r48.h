@@ -29,7 +29,7 @@ extern GpViewCountRec D_shelter_r48_80183030[];
 
 extern GpWarpRec D_shelter_r48_80183034[];
 
-extern GpViewRec D_shelter_r48_80183F10[];
+extern ViewCamera D_shelter_r48_80183F10[];
 
 extern SpriteView D_shelter_r48_80189FB4[];
 

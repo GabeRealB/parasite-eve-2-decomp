@@ -31,7 +31,7 @@ extern GpWarpRec D_acropolis_sanctuary_8018280C[];
 
 extern SpriteView D_acropolis_sanctuary_801860C8[];
 
-extern GpViewRec D_acropolis_sanctuary_80186188[];
+extern ViewCamera D_acropolis_sanctuary_80186188[];
 
 extern WorldCollisionSurfaceProperties* D_acropolis_sanctuary_801863F8[];
 

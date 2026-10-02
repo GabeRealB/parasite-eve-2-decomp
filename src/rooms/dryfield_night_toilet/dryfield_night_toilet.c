@@ -122,7 +122,7 @@ WorldCollisionGrid D_dryfield_night_toilet_8017DD88[1] = {
     { NULL, _gDryfieldNightToiletCollision007C8Normals, _gDryfieldNightToiletCollision007C8Verts, _gDryfieldNightToiletCollision007C8Faces, _gDryfieldNightToiletCollision007C8Table, 2970, 2300, 1, 2, 4000, 18 },
 };
 
-GpViewRec D_dryfield_night_toilet_8017DDAC[9] = {
+ViewCamera D_dryfield_night_toilet_8017DDAC[9] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x7530, 0 } }, 1524 },
     { { { { 4000, 0, -880 }, { -628, 2868, -2855 }, { 616, 2924, 2801 } }, { 2049, 2467, 57 } }, 230 },
     { { { { -3969, 0, -1008 }, { -446, 3672, 1757 }, { 904, 1813, -3559 } }, { 2094, 1926, -1868 } }, 230 },

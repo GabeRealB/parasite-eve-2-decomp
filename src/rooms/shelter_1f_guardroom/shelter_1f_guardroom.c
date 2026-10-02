@@ -120,7 +120,7 @@ WorldCollisionGrid D_shelter_1f_guardroom_8017DBF0[1] = {
     { NULL, _gShelter1fGuardroomCollision00630Normals, _gShelter1fGuardroomCollision00630Verts, _gShelter1fGuardroomCollision00630Faces, _gShelter1fGuardroomCollision00630Table, 0x2904, 4500, 1, 1, 4000, 8 },
 };
 
-GpViewRec D_shelter_1f_guardroom_8017DC14[3] = {
+ViewCamera D_shelter_1f_guardroom_8017DC14[3] = {
     { { { { 4095, 0, 0 }, { 0, 0, -4096 }, { 0, 4095, 0 } }, { 0, 0x5334, 0 } }, 207 },
     { { { { 597, 0, 4052 }, { 2175, 3455, -320 }, { -3418, 2198, 504 } }, { 6020, 2440, 4040 } }, 207 },
     { { { { 756, 0, -4025 }, { -1977, 3567, -371 }, { 3506, 2012, 658 } }, { 9590, 2480, 4320 } }, 257 },

@@ -26,7 +26,7 @@ extern GpWarpRec D_acropolis_patio_80182EEC[];
 
 extern SpriteView D_acropolis_patio_80186360[];
 
-extern GpViewRec D_acropolis_patio_80186D5C[];
+extern ViewCamera D_acropolis_patio_80186D5C[];
 
 extern WorldCollisionSurfaceProperties* D_acropolis_patio_8018703C[];
 

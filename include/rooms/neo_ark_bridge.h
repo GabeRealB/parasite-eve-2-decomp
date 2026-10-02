@@ -37,7 +37,7 @@ extern GpWarpRec D_neo_ark_bridge_80181F88[];
 
 extern WorldCollisionGrid D_neo_ark_bridge_80182814;
 
-extern GpViewRec D_neo_ark_bridge_80182838[];
+extern ViewCamera D_neo_ark_bridge_80182838[];
 
 extern SpriteView D_neo_ark_bridge_80184564[];
 

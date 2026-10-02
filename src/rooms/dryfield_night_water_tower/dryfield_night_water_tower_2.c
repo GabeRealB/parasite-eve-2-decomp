@@ -127,7 +127,7 @@ WorldCollisionGrid D_dryfield_night_water_tower_8017F3F4[1] = {
     { NULL, _gDryfieldNightWaterTowerCollision01E34Normals, _gDryfieldNightWaterTowerCollision01E34Verts, _gDryfieldNightWaterTowerCollision01E34Faces, _gDryfieldNightWaterTowerCollision01E34Table, 7000, 7000, 4, 4, 4000, 69 },
 };
 
-GpViewRec D_dryfield_night_water_tower_8017F418[10] = {
+ViewCamera D_dryfield_night_water_tower_8017F418[10] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x5DC0, 0 } }, 322 },
     { { { { 0, 0, -4096 }, { 23, 4095, 0 }, { 4095, -23, 0 } }, { 2600, 1169, 4500 } }, 257 },
     { { { { -119, 0, 4094 }, { -19, 4095, 0 }, { -4094, -19, -119 } }, { -2900, 1170, 4250 } }, 257 },

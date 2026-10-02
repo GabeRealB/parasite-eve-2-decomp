@@ -24,7 +24,7 @@ extern WorldCoordRoomLighting D_dryfield_saloon_g_r_8017EDDC[];
 
 extern GpWarpRec D_dryfield_saloon_g_r_8017EDEC[];
 
-extern GpViewRec D_dryfield_saloon_g_r_8017F7A4[];
+extern ViewCamera D_dryfield_saloon_g_r_8017F7A4[];
 
 extern SpriteView D_dryfield_saloon_g_r_80180E2C[];
 

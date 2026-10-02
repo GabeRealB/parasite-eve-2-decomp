@@ -24,7 +24,7 @@ extern GpViewCountRec D_dryfield_night_r08_80180698[];
 
 extern GpWarpRec D_dryfield_night_r08_8018069C[];
 
-extern GpViewRec D_dryfield_night_r08_80181498[];
+extern ViewCamera D_dryfield_night_r08_80181498[];
 
 extern SpriteView D_dryfield_night_r08_80181728[];
 

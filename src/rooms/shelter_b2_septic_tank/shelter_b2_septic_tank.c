@@ -426,7 +426,7 @@ static s16* _gShelterB2SepticTankCollision0684CTable[18] = {
 
 WorldCollisionGrid D_shelter_b2_septic_tank_80183E0C = { NULL, _gShelterB2SepticTankCollision0684CNormals, _gShelterB2SepticTankCollision0684CVerts, _gShelterB2SepticTankCollision0684CFaces, _gShelterB2SepticTankCollision0684CTable, 5374, 0x47A9, 3, 6, 4000, 31 };
 
-GpViewRec D_shelter_b2_septic_tank_80183E30[6] = {
+ViewCamera D_shelter_b2_septic_tank_80183E30[6] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 34, 0x510F, 6334 } }, 230 },
     { { { { -4042, 0, -661 }, { -25, 4093, 153 }, { 661, 155, -4039 } }, { 821, 1121, 8316 } }, 275 },
     { { { { -4032, 0, -719 }, { 3, 4095, -19 }, { 719, -19, -4032 } }, { 792, 1135, 3708 } }, 269 },

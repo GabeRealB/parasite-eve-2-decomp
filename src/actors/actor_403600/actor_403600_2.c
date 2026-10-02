@@ -89,7 +89,7 @@ typedef struct Actor403600Pattern {
 STATIC_ASSERT_SIZEOF(Actor403600Pattern, 9);
 
 /// One step of a camera path: the view rotation and translation as halfwords,
-/// widened into a `GpViewRec` when the step is applied.
+/// widened into a `ViewCamera` when the step is applied.
 typedef struct Actor403600ViewKey {
     s16 rot[9];
     s16 pos[3];
@@ -202,7 +202,7 @@ extern Actor403600ViewKey    D_8016E450;
 extern SVECTOR               D_actor_403600_8016065C;
 extern SVECTOR               D_actor_403600_80160664;
 
-extern GpViewRec D_actor_403600_80160700;
+extern ViewCamera D_actor_403600_80160700;
 
 static void func_actor_403600_80138EF8(struct Enemy* enemy, Task* task);
 static void func_actor_403600_8013938C(Enemy* arg0, Task* arg1);
@@ -410,7 +410,7 @@ Actor4036002Storage06BC D_actor_403600_801606BC = { 0, { 0, 0, 0, 0, 0, 0, 0, 0,
 
 Actor4036002Storage06E0 D_actor_403600_801606E0;
 
-GpViewRec D_actor_403600_80160700;
+ViewCamera D_actor_403600_80160700;
 
 static s32             func_actor_403600_80138D9C(s16* arg0);
 static __inline__ u8*  _actor403600ProjectDepth(GfxCoord* coord);
@@ -4494,11 +4494,12 @@ static void func_actor_403600_80140B4C(Enemy* enemy, Task* actor)
     } else {
         key = &D_8016AEF8[work->field_77C];
     }
-    for (i = 0; i < 9; i++) {
-        D_actor_403600_80160700.mtx.m[0][i] = key->rot[i];
+    // The compact key stores all nine rotation coefficients in row-major order.
+    for (i = 0; i < (s32)ARRAY_SIZE(key->rot); i++) {
+        ((s16(*)[9])D_actor_403600_80160700.transform.m)[0][i] = key->rot[i];
     }
     for (i = 0; i < 3; i++) {
-        D_actor_403600_80160700.mtx.t[i] = key->pos[i];
+        D_actor_403600_80160700.transform.t[i] = key->pos[i];
     }
     D_actor_403600_80160700.screenDistance = 0x149;
     Gp_TrySpawnViewTask(&D_actor_403600_80160700);

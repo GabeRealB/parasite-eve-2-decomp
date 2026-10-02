@@ -139,7 +139,7 @@ WorldCollisionGrid D_neo_ark_savanna_zone_8017FBD0[1] = {
     { NULL, _gNeoArkSavannaZoneCollision02610Normals, _gNeoArkSavannaZoneCollision02610Verts, _gNeoArkSavannaZoneCollision02610Faces, _gNeoArkSavannaZoneCollision02610Table, 50, 50, 4, 1, 4000, 11 },
 };
 
-GpViewRec D_neo_ark_savanna_zone_8017FBF4[4] = {
+ViewCamera D_neo_ark_savanna_zone_8017FBF4[4] = {
     { { { { 4095, 0, 0 }, { 0, 0, -4096 }, { 0, 4095, 0 } }, { -7500, 0x77D8, -1950 } }, 329 },
     { { { { -676, 0, -4039 }, { -670, 4039, 112 }, { 3983, 679, -667 } }, { -6330, 1950, -2240 } }, 329 },
     { { { { -365, 0, -4079 }, { -37, 4095, 3 }, { 4079, 38, -365 } }, { -1580, 1430, -2240 } }, 329 },

@@ -136,7 +136,7 @@ WorldCollisionGrid D_dryfield_night_junk_yard_801811B8[1] = {
     { NULL, _gDryfieldNightJunkYardCollision03BF8Normals, _gDryfieldNightJunkYardCollision03BF8Verts, _gDryfieldNightJunkYardCollision03BF8Faces, _gDryfieldNightJunkYardCollision03BF8Table, 2400, 610, 7, 2, 4000, 54 },
 };
 
-GpViewRec D_dryfield_night_junk_yard_801811DC[11] = {
+ViewCamera D_dryfield_night_junk_yard_801811DC[11] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -0x2DE6, 0x61A8, -5750 } }, 257 },
     { { { { 965, 0, -3980 }, { -535, 4058, -129 }, { 3944, 550, 956 } }, { 1022, 2299, -989 } }, 282 },
     { { { { 783, 0, -4020 }, { -3412, 2165, -665 }, { 2125, 3476, 414 } }, { 1120, 4985, -2136 } }, 239 },

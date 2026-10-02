@@ -732,7 +732,7 @@ static GpRoomObjRec* D_map_neo_ark_8017AC1C[33] = {
 
 GpRoomObjTbl D_map_neo_ark_8017ACA0 = { D_map_neo_ark_8017AC1C };
 
-static GpViewRec* D_map_neo_ark_8017ACA4[33] = {
+static ViewCamera* D_map_neo_ark_8017ACA4[33] = {
     D_shelter_1f_parking_garage_8018100C,
     D_shelter_1f_vehicular_airlock_8018245C,
     D_shelter_1f_bulwark_8018066C,

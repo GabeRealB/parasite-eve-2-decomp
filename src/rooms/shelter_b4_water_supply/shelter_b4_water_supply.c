@@ -315,7 +315,7 @@ static s16* _gShelterB4WaterSupplyCollision0587CTable[16] = {
 
 WorldCollisionGrid D_shelter_b4_water_supply_80182E3C = { NULL, _gShelterB4WaterSupplyCollision0587CNormals, _gShelterB4WaterSupplyCollision0587CVerts, _gShelterB4WaterSupplyCollision0587CFaces, _gShelterB4WaterSupplyCollision0587CTable, -400, 0x364C, 4, 4, 4000, 45 };
 
-GpViewRec D_shelter_b4_water_supply_80182E60[11] = {
+ViewCamera D_shelter_b4_water_supply_80182E60[11] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -6828, 0x7D00, 6785 } }, 447 },
     { { { { -1049, 0, -3959 }, { 841, 4002, -223 }, { 3868, -870, -1025 } }, { -0x2E41, 3890, 333 } }, 230 },
     { { { { -770, 0, -4022 }, { 44, 4095, -8 }, { 4022, -45, -770 } }, { -9469, 2988, 580 } }, 230 },

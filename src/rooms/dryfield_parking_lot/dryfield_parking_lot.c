@@ -147,7 +147,7 @@ WorldCollisionGrid D_dryfield_parking_lot_8017E8DC[1] = {
     { NULL, _gDryfieldParkingLotCollision0131CNormals, _gDryfieldParkingLotCollision0131CVerts, _gDryfieldParkingLotCollision0131CFaces, _gDryfieldParkingLotCollision0131CTable, 0x4588, 8900, 9, 5, 4000, 55 },
 };
 
-GpViewRec D_dryfield_parking_lot_8017E900[7] = {
+ViewCamera D_dryfield_parking_lot_8017E900[7] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x7530, 0 } }, 380 },
     { { { { 2636, 0, -3134 }, { -93, 4094, -78 }, { 3133, 122, 2635 } }, { 0x27F9, 2236, 6567 } }, 230 },
     { { { { 2646, 0, -3126 }, { -3085, 656, -2612 }, { 501, 4043, 424 } }, { 3012, 5975, 537 } }, 230 },

@@ -1017,7 +1017,7 @@ WorldCoordRoomLights D_acropolis_roof_garden_80186BDC[1] = {
     { 0, NULL, ARRAY_SIZE(_gAcropolisRoofGardenPointLights), _gAcropolisRoofGardenPointLights, 0, NULL },
 };
 
-GpViewRec D_acropolis_roof_garden_80186BF4[8] = {
+ViewCamera D_acropolis_roof_garden_80186BF4[8] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 5600, 0x7530, 5960 } }, 589 },
     { { { { -3911, 0, -1216 }, { 204, 4037, -656 }, { 1199, -687, -3855 } }, { 7887, 505, 6331 } }, 230 },
     { { { { 3788, 0, -1557 }, { 186, 4066, 454 }, { 1545, -491, 3761 } }, { 7879, 656, 0x29A1 } }, 230 },

@@ -94,7 +94,7 @@ extern GpViewCountRec D_acropolis_plaza_801988CC[];
 
 extern WorldCoordRoomLighting D_acropolis_plaza_801988D0[];
 
-extern GpViewRec D_acropolis_plaza_801988D8[];
+extern ViewCamera D_acropolis_plaza_801988D8[];
 
 extern SpriteView D_acropolis_plaza_80198A08[];
 

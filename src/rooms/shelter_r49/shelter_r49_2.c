@@ -89,7 +89,7 @@ WorldCollisionGrid D_shelter_r49_8017DAAC[1] = {
     { NULL, _gShelterR49Collision004ECNormals, _gShelterR49Collision004ECVerts, _gShelterR49Collision004ECFaces, _gShelterR49Collision004ECTable, 4000, 4000, 1, 1, 0x7530, 1 },
 };
 
-GpViewRec D_shelter_r49_8017DAD0[3] = {
+ViewCamera D_shelter_r49_8017DAD0[3] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x32C8, 0 } }, 257 },
     { { { { 3982, 0, -955 }, { 108, 4069, 451 }, { 949, -463, 3957 } }, { 1470, 1070, 2380 } }, 257 },
     { { { { 4057, 0, -561 }, { 28, 4090, 208 }, { 560, -210, 4051 } }, { 770, 1400, -190 } }, 541 },

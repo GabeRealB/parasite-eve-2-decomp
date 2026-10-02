@@ -133,7 +133,7 @@ WorldCollisionGrid D_neo_ark_garden_801816C4[1] = {
     { NULL, _gNeoArkGardenCollision04104Normals, _gNeoArkGardenCollision04104Verts, _gNeoArkGardenCollision04104Faces, _gNeoArkGardenCollision04104Table, 0x2710, 0x4E20, 4, 3, 4000, 9 },
 };
 
-GpViewRec D_neo_ark_garden_801816E8[7] = {
+ViewCamera D_neo_ark_garden_801816E8[7] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x61A8, 0x4A38 } }, 329 },
     { { { { -3663, 0, -1832 }, { -716, 3770, 1431 }, { 1687, 1601, -3371 } }, { 4920, 2785, 9295 } }, 257 },
     { { { { -3518, 0, 2096 }, { 457, 3997, 768 }, { -2045, 894, -3433 } }, { 5020, 1660, 0x2DB9 } }, 243 },

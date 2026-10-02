@@ -178,7 +178,7 @@ WorldCollisionGrid D_mine_gorge_8017F9F0[1] = {
     { NULL, _gMineGorgeCollision02430Normals, _gMineGorgeCollision02430Verts, _gMineGorgeCollision02430Faces, _gMineGorgeCollision02430Table, 1244, 2085, 6, 2, 4000, 46 },
 };
 
-GpViewRec D_mine_gorge_8017FA14[11] = {
+ViewCamera D_mine_gorge_8017FA14[11] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -9000, 0x4B64, -2000 } }, 289 },
     { { { { 718, 0, -4032 }, { -1123, 3933, -200 }, { 3872, 1141, 689 } }, { -0x2DF4, 2237, -1133 } }, 257 },
     { { { { 844, 0, 4007 }, { 1410, 3834, -297 }, { -3751, 1441, 790 } }, { -0x4405, 2242, -988 } }, 246 },

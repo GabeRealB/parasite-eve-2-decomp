@@ -33,13 +33,13 @@ void Gp_TriggerPeIfArmed(void);
 /// Changes GTE rotation and arithmetic state; does not update coordinate stamps.
 void gfxMakeRelativeTransform(const MATRIX* reference, const MATRIX* target, MATRIX* out);
 
-s32 Gp_TrySpawnViewTask(GpViewRec* arg0);
+s32 Gp_TrySpawnViewTask(ViewCamera* camera);
 
-void Gp_ApplyView(GpViewRec* arg0);
+void Gp_ApplyView(ViewCamera* camera);
 
 void Gp_SpawnViewTasks(void);
 
-GpViewRec* Gp_GetStageView(GameLocationKey* arg0);
+ViewCamera* Gp_GetStageView(GameLocationKey* arg0);
 
 void Gp_SpawnCurView(s32 arg0);
 

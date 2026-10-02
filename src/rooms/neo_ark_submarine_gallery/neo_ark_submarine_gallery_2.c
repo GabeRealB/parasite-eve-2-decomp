@@ -222,7 +222,7 @@ static s16* _gNeoArkSubmarineGalleryCollision04DDCTable[9] = {
 
 WorldCollisionGrid D_neo_ark_submarine_gallery_8018239C = { NULL, _gNeoArkSubmarineGalleryCollision04DDCNormals, _gNeoArkSubmarineGalleryCollision04DDCVerts, _gNeoArkSubmarineGalleryCollision04DDCFaces, _gNeoArkSubmarineGalleryCollision04DDCTable, 5000, 5000, 3, 3, 4000, 50 };
 
-GpViewRec D_neo_ark_submarine_gallery_801823C0[7] = {
+ViewCamera D_neo_ark_submarine_gallery_801823C0[7] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x4E20, 0 } }, 603 },
     { { { { 2429, 0, -3297 }, { 0, 4096, 0 }, { 3297, 0, 2429 } }, { 3800, -4000, -200 } }, 257 },
     { { { { 0, 0, -4095 }, { -3996, 899, 0 }, { 899, 3996, 0 } }, { 3340, 27, 0 } }, 257 },

@@ -26,7 +26,7 @@ extern GpViewCountRec D_neo_ark_observatory_801815E4[];
 
 extern GpWarpRec D_neo_ark_observatory_801815E8[];
 
-extern GpViewRec D_neo_ark_observatory_80181FC8[];
+extern ViewCamera D_neo_ark_observatory_80181FC8[];
 
 extern SpriteView D_neo_ark_observatory_801860E8[];
 

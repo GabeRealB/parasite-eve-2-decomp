@@ -382,7 +382,7 @@ WorldCollisionGrid D_neo_ark_shrine_80183698[1] = {
     { NULL, _gNeoArkShrineCollision060D8Normals, _gNeoArkShrineCollision060D8Verts, _gNeoArkShrineCollision060D8Faces, _gNeoArkShrineCollision060D8Table, 0, 5000, 4, 3, 4000, 31 },
 };
 
-GpViewRec D_neo_ark_shrine_801836BC[18] = {
+ViewCamera D_neo_ark_shrine_801836BC[18] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -7000, 0x5A28, -1050 } }, 329 },
     { { { { 642, 0, -4045 }, { -628, 4046, -99 }, { 3996, 636, 634 } }, { -7100, 1660, -950 } }, 329 },
     { { { { 617, 0, 4049 }, { 342, 4081, -52 }, { -4034, 346, 615 } }, { -0x32C8, 1390, -860 } }, 275 },

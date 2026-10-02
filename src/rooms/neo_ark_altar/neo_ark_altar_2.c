@@ -234,7 +234,7 @@ WorldCollisionGrid D_neo_ark_altar_8017F57C[1] = {
     { NULL, _gNeoArkAltarCollision01FBCNormals, _gNeoArkAltarCollision01FBCVerts, _gNeoArkAltarCollision01FBCFaces, _gNeoArkAltarCollision01FBCTable, -2640, 0x2710, 3, 2, 4000, 29 },
 };
 
-GpViewRec D_neo_ark_altar_8017F5A0[8] = {
+ViewCamera D_neo_ark_altar_8017F5A0[8] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -5270, 0x7530, 7060 } }, 380 },
     { { { { -37, 0, -4095 }, { -3560, 2024, 32 }, { 2024, 3560, -18 } }, { -7700, 0x27DF, 7433 } }, 230 },
     { { { { -1439, 0, -3834 }, { 422, 4071, -158 }, { 3811, -450, -1431 } }, { -0x2807, 5092, 6594 } }, 230 },

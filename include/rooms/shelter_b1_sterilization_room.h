@@ -27,7 +27,7 @@ extern GpViewCountRec D_shelter_b1_sterilization_room_801893D8[];
 
 extern GpWarpRec D_shelter_b1_sterilization_room_801893E0[];
 
-extern GpViewRec D_shelter_b1_sterilization_room_80189E68[];
+extern ViewCamera D_shelter_b1_sterilization_room_80189E68[];
 
 extern SpriteView D_shelter_b1_sterilization_room_8018B00C[];
 

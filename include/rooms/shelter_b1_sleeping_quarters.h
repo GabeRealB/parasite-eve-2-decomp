@@ -26,7 +26,7 @@ extern GpWarpRec D_shelter_b1_sleeping_quarters_80180660[];
 
 extern WorldCollisionGrid D_shelter_b1_sleeping_quarters_801810D4;
 
-extern GpViewRec D_shelter_b1_sleeping_quarters_801810F8[];
+extern ViewCamera D_shelter_b1_sleeping_quarters_801810F8[];
 
 extern SpriteView D_shelter_b1_sleeping_quarters_80182E70[];
 

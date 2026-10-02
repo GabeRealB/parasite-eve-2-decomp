@@ -1023,7 +1023,7 @@ SpriteView D_acropolis_helicopter_landing_pad_80187824[27] = {
     { { .elements = D_acropolis_helicopter_landing_pad_80187604 }, D_acropolis_helicopter_landing_pad_80187618, D_acropolis_helicopter_landing_pad_80187630 },
 };
 
-GpViewRec D_acropolis_helicopter_landing_pad_80187968[27] = {
+ViewCamera D_acropolis_helicopter_landing_pad_80187968[27] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 1500, 0x7530, 2500 } }, 432 },
     { { { { 2020, 0, 3563 }, { 2282, 3145, -1294 }, { -2735, 2624, 1551 } }, { 4724, 2583, 7606 } }, 257 },
     { { { { 1448, 0, 3831 }, { 929, 3973, -351 }, { -3716, 994, 1405 } }, { 111, 1700, 7565 } }, 257 },

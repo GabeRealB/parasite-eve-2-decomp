@@ -28,7 +28,7 @@ extern WorldCoordRoomLighting D_dryfield_water_tower_801827E4[];
 
 extern GpWarpRec D_dryfield_water_tower_801827EC[];
 
-extern GpViewRec D_dryfield_water_tower_801835E8[];
+extern ViewCamera D_dryfield_water_tower_801835E8[];
 
 extern SpriteView D_dryfield_water_tower_80186560[];
 

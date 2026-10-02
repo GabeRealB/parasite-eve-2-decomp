@@ -26,7 +26,7 @@ extern GpViewCountRec D_neo_ark_garden_80181428[];
 
 extern GpWarpRec D_neo_ark_garden_8018142C[];
 
-extern GpViewRec D_neo_ark_garden_801816E8[];
+extern ViewCamera D_neo_ark_garden_801816E8[];
 
 extern SpriteView D_neo_ark_garden_80182540[];
 

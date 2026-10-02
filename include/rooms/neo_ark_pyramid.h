@@ -24,7 +24,7 @@ extern GpViewCountRec D_neo_ark_pyramid_8017FC68[];
 
 extern GpWarpRec D_neo_ark_pyramid_8017FC6C[];
 
-extern GpViewRec D_neo_ark_pyramid_801802E8[];
+extern ViewCamera D_neo_ark_pyramid_801802E8[];
 
 extern SpriteView D_neo_ark_pyramid_80180E18[];
 

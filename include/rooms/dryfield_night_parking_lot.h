@@ -26,7 +26,7 @@ extern GpViewCountRec D_dryfield_night_parking_lot_8017EE54[];
 
 extern GpWarpRec D_dryfield_night_parking_lot_8017EE58[];
 
-extern GpViewRec D_dryfield_night_parking_lot_8017FAF4[];
+extern ViewCamera D_dryfield_night_parking_lot_8017FAF4[];
 
 extern SpriteView D_dryfield_night_parking_lot_801805AC[];
 

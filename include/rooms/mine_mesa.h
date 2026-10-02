@@ -24,7 +24,7 @@ extern GpViewCountRec D_mine_mesa_80186554[];
 
 extern GpWarpRec D_mine_mesa_80186558[];
 
-extern GpViewRec D_mine_mesa_80187030[];
+extern ViewCamera D_mine_mesa_80187030[];
 
 extern SpriteView D_mine_mesa_80188744[];
 

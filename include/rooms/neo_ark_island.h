@@ -38,7 +38,7 @@ extern GpViewCountRec D_neo_ark_island_80181BB0[];
 
 extern GpWarpRec D_neo_ark_island_80181BB4[];
 
-extern GpViewRec D_neo_ark_island_801826EC[];
+extern ViewCamera D_neo_ark_island_801826EC[];
 
 extern SpriteView D_neo_ark_island_80183B14[];
 

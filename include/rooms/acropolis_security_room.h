@@ -29,7 +29,7 @@ extern GpWarpRec D_acropolis_security_room_801839F0[];
 
 extern SpriteView D_acropolis_security_room_80184C50[];
 
-extern GpViewRec D_acropolis_security_room_80184D10[];
+extern ViewCamera D_acropolis_security_room_80184D10[];
 
 extern WorldCollisionSurfaceProperties* D_acropolis_security_room_80184FA0[];
 

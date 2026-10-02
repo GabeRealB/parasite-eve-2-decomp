@@ -396,7 +396,7 @@ static s16* _gShelterB1SterilizationRoomCollision0C884Table[8] = {
 
 WorldCollisionGrid D_shelter_b1_sterilization_room_80189E44 = { NULL, _gShelterB1SterilizationRoomCollision0C884Normals, _gShelterB1SterilizationRoomCollision0C884Verts, _gShelterB1SterilizationRoomCollision0C884Faces, _gShelterB1SterilizationRoomCollision0C884Table, 0, -500, 2, 4, 4000, 68 };
 
-GpViewRec D_shelter_b1_sterilization_room_80189E68[24] = {
+ViewCamera D_shelter_b1_sterilization_room_80189E68[24] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -3500, 0x61A8, -7000 } }, 329 },
     { { { { -4014, 0, 815 }, { 651, 2458, 3210 }, { -489, 3276, -2409 } }, { -4078, 4407, -4494 } }, 230 },
     { { { { 4009, 0, 835 }, { 674, 2419, -3235 }, { -493, 3305, 2368 } }, { -4078, 4407, -1394 } }, 230 },

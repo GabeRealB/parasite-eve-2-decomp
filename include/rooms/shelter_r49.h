@@ -26,7 +26,7 @@ extern WorldCoordRoomLighting D_shelter_r49_8017DA30[];
 
 extern GpWarpRec D_shelter_r49_8017DA38[];
 
-extern GpViewRec D_shelter_r49_8017DAD0[];
+extern ViewCamera D_shelter_r49_8017DAD0[];
 
 extern SpriteView D_shelter_r49_8017DCA0[];
 

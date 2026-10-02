@@ -210,7 +210,7 @@ WorldCollisionGrid D_dryfield_saloon_g_r_8017F780[1] = {
     { NULL, _gDryfieldSaloonGRCollision021C0Normals, _gDryfieldSaloonGRCollision021C0Verts, _gDryfieldSaloonGRCollision021C0Faces, _gDryfieldSaloonGRCollision021C0Table, 4500, 5400, 3, 4, 4000, 61 },
 };
 
-GpViewRec D_dryfield_saloon_g_r_8017F7A4[13] = {
+ViewCamera D_dryfield_saloon_g_r_8017F7A4[13] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x7530, -680 } }, 519 },
     { { { { -3183, 0, -2576 }, { -1148, 3666, 1418 }, { 2306, 1824, -2850 } }, { 315, 2637, 16 } }, 257 },
     { { { { -4045, 0, -638 }, { -348, 3430, 2210 }, { 534, 2237, -3388 } }, { 724, 3602, -2788 } }, 230 },

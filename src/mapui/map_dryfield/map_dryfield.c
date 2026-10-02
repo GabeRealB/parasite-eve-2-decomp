@@ -662,7 +662,7 @@ static GpRoomObjRec* D_map_dryfield_8017AA2C[38] = {
 
 GpRoomObjTbl D_map_dryfield_8017AAC4 = { D_map_dryfield_8017AA2C };
 
-static GpViewRec* D_map_dryfield_8017AAC8[38] = {
+static ViewCamera* D_map_dryfield_8017AAC8[38] = {
     D_dryfield_gas_station_80183EC8,
     D_dryfield_main_street_80182CC0,
     D_dryfield_general_store_8017F25C,

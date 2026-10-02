@@ -685,7 +685,7 @@ SpriteView D_acropolis_cafeteria_8018C48C[24] = {
     { { .elements = D_acropolis_cafeteria_8018C460 }, D_acropolis_cafeteria_8018C474, NULL },
 };
 
-GpViewRec D_acropolis_cafeteria_8018C5AC[24] = {
+ViewCamera D_acropolis_cafeteria_8018C5AC[24] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 1000, 0x59D8, 1500 } }, 380 },
     { { { { 3792, 0, -1548 }, { -816, 3480, -1998 }, { 1315, 2158, 3222 } }, { 4570, 3240, 520 } }, 207 },
     { { { { 3878, 0, -1317 }, { -530, 3748, -1562 }, { 1205, 1650, 3549 } }, { 4720, 2950, 4230 } }, 207 },

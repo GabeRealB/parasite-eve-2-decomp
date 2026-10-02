@@ -177,7 +177,7 @@ static s16* _gShelterB2ElevatorCollision00B24Table[1] = {
 
 WorldCollisionGrid D_shelter_b2_elevator_8017E0E4 = { NULL, _gShelterB2ElevatorCollision00B24Normals, _gShelterB2ElevatorCollision00B24Verts, _gShelterB2ElevatorCollision00B24Faces, _gShelterB2ElevatorCollision00B24Table, -0x2AF8, 1450, 1, 1, 4000, 6 };
 
-GpViewRec D_shelter_b2_elevator_8017E108[15] = {
+ViewCamera D_shelter_b2_elevator_8017E108[15] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -0x2EE0, 0x7530, 450 } }, 2748 },
     { { { { -496, 0, 4065 }, { 3586, 1929, 438 }, { -1914, 3613, -233 } }, { -0x32B8, 2954, 417 } }, 207 },
     { { { { -758, 0, 4025 }, { 230, 4089, 43 }, { -4018, 234, -757 } }, { -0x32AC, 1398, 78 } }, 289 },

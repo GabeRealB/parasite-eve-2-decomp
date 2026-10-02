@@ -24,7 +24,7 @@ extern GpViewCountRec D_dryfield_night_g_r_kitchen_8017E2D8[];
 
 extern GpWarpRec D_dryfield_night_g_r_kitchen_8017E2DC[];
 
-extern GpViewRec D_dryfield_night_g_r_kitchen_8017E578[];
+extern ViewCamera D_dryfield_night_g_r_kitchen_8017E578[];
 
 extern SpriteView D_dryfield_night_g_r_kitchen_8017E6A8[];
 

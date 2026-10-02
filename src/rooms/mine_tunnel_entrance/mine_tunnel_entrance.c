@@ -153,7 +153,7 @@ WorldCollisionGrid D_mine_tunnel_entrance_8017E0C0[1] = {
     { NULL, _gMineTunnelEntranceCollision00B00Normals, _gMineTunnelEntranceCollision00B00Verts, _gMineTunnelEntranceCollision00B00Faces, _gMineTunnelEntranceCollision00B00Table, 630, 1791, 5, 2, 4000, 30 },
 };
 
-GpViewRec D_mine_tunnel_entrance_8017E0E4[6] = {
+ViewCamera D_mine_tunnel_entrance_8017E0E4[6] = {
     { { { { 4095, 0, 0 }, { 0, 0, -4096 }, { 0, 4095, 0 } }, { -9000, 0x4A38, -2000 } }, 269 },
     { { { { 1067, 0, -3954 }, { -511, 4061, -138 }, { 3921, 529, 1058 } }, { -0x27B4, 1646, -704 } }, 289 },
     { { { { 829, 0, 4011 }, { 668, 4038, -138 }, { -3954, 683, 817 } }, { -0x419D, 1790, -1202 } }, 269 },

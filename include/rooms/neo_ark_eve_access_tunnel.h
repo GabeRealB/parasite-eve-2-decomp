@@ -24,7 +24,7 @@ extern GpViewCountRec D_neo_ark_eve_access_tunnel_8017EB94[];
 
 extern GpWarpRec D_neo_ark_eve_access_tunnel_8017EB98[];
 
-extern GpViewRec D_neo_ark_eve_access_tunnel_8017F080[];
+extern ViewCamera D_neo_ark_eve_access_tunnel_8017F080[];
 
 extern SpriteView D_neo_ark_eve_access_tunnel_801800A0[];
 

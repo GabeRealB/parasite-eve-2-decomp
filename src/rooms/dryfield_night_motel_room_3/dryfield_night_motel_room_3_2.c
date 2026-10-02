@@ -112,7 +112,7 @@ WorldCollisionGrid D_dryfield_night_motel_room_3_8017E180[1] = {
     { NULL, _gDryfieldNightMotelRoom3Collision00BC0Normals, _gDryfieldNightMotelRoom3Collision00BC0Verts, _gDryfieldNightMotelRoom3Collision00BC0Faces, _gDryfieldNightMotelRoom3Collision00BC0Table, -200, -200, 2, 2, 4000, 41 },
 };
 
-GpViewRec D_dryfield_night_motel_room_3_8017E1A4[11] = {
+ViewCamera D_dryfield_night_motel_room_3_8017E1A4[11] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -2500, 0x34BC, -3500 } }, 316 },
     { { { { 654, 0, -4043 }, { 0, 4096, 0 }, { 4043, 0, 654 } }, { -1650, 1050, -700 } }, 275 },
     { { { { 1425, 0, -3840 }, { -296, 4083, -109 }, { 3828, 315, 1420 } }, { -200, 1250, -900 } }, 235 },

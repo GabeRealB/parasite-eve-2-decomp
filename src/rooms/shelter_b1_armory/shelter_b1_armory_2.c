@@ -98,7 +98,7 @@ static s16* _gShelterB1ArmoryCollision05910Table[12] = {
 
 WorldCollisionGrid D_shelter_b1_armory_80182ED0 = { NULL, _gShelterB1ArmoryCollision05910Normals, _gShelterB1ArmoryCollision05910Verts, _gShelterB1ArmoryCollision05910Faces, _gShelterB1ArmoryCollision05910Table, 1400, 4400, 4, 3, 4000, 55 };
 
-GpViewRec D_shelter_b1_armory_80182EF4[13] = {
+ViewCamera D_shelter_b1_armory_80182EF4[13] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -6200, 0x7530, -1480 } }, 564 },
     { { { { 3930, 0, 1152 }, { 113, 4076, -386 }, { -1146, 402, 3911 } }, { -3704, 1723, 2668 } }, 230 },
     { { { { -4080, 0, -354 }, { -35, 4075, 410 }, { 353, 411, -4059 } }, { -2437, 1468, -4046 } }, 230 },

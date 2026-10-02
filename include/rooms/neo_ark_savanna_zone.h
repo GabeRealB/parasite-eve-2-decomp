@@ -24,7 +24,7 @@ extern GpViewCountRec D_neo_ark_savanna_zone_8017FA00[];
 
 extern GpWarpRec D_neo_ark_savanna_zone_8017FA04[];
 
-extern GpViewRec D_neo_ark_savanna_zone_8017FBF4[];
+extern ViewCamera D_neo_ark_savanna_zone_8017FBF4[];
 
 extern SpriteView D_neo_ark_savanna_zone_801803F4[];
 

@@ -257,7 +257,7 @@ WorldCollisionGrid D_dryfield_breezeway_80183628[1] = {
     { NULL, _gDryfieldBreezewayCollision06068Normals, _gDryfieldBreezewayCollision06068Verts, _gDryfieldBreezewayCollision06068Faces, _gDryfieldBreezewayCollision06068Table, -5000, 1000, 4, 2, 4000, 24 },
 };
 
-GpViewRec D_dryfield_breezeway_8018364C[6] = {
+ViewCamera D_dryfield_breezeway_8018364C[6] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -0x2EE0, 0x5DC0, 0 } }, 322 },
     { { { { 0, 0, 4096 }, { -1081, 3950, 0 }, { -3950, -1081, 0 } }, { -0x38A4, 200, -1600 } }, 257 },
     { { { { 0, 0, -4095 }, { 831, 4010, 0 }, { 4010, -831, 0 } }, { -9800, 300, -1600 } }, 257 },

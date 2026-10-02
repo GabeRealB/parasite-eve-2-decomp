@@ -24,7 +24,7 @@ extern WorldCoordRoomLighting D_mist_r18_80186624[];
 
 extern GpWarpRec D_mist_r18_8018662C[];
 
-extern GpViewRec D_mist_r18_8018671C[];
+extern ViewCamera D_mist_r18_8018671C[];
 
 extern SpriteView D_mist_r18_80186B60[];
 

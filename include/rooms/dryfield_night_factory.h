@@ -29,7 +29,7 @@ extern GpViewCountRec D_dryfield_night_factory_80186F54[];
 
 extern GpWarpRec D_dryfield_night_factory_80186F58[];
 
-extern GpViewRec D_dryfield_night_factory_80187C14[];
+extern ViewCamera D_dryfield_night_factory_80187C14[];
 
 extern SpriteView D_dryfield_night_factory_80189A24[];
 

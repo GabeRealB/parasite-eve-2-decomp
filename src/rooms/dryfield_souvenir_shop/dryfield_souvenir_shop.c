@@ -127,7 +127,7 @@ WorldCollisionGrid D_dryfield_souvenir_shop_8017E5DC[1] = {
     { NULL, _gDryfieldSouvenirShopCollision0101CNormals, _gDryfieldSouvenirShopCollision0101CVerts, _gDryfieldSouvenirShopCollision0101CFaces, _gDryfieldSouvenirShopCollision0101CTable, 100, 4100, 2, 2, 4000, 34 },
 };
 
-GpViewRec D_dryfield_souvenir_shop_8017E600[4] = {
+ViewCamera D_dryfield_souvenir_shop_8017E600[4] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -3000, 7500, 2000 } }, 230 },
     { { { { 1125, 0, 3938 }, { 1711, 3688, -489 }, { -3546, 1780, 1013 } }, { -4960, 2182, 3227 } }, 230 },
     { { { { 1194, 0, -3918 }, { -1520, 3775, -463 }, { 3611, 1589, 1100 } }, { -928, 2117, 3153 } }, 230 },

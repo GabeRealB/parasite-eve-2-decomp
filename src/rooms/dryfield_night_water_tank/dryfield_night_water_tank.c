@@ -271,7 +271,7 @@ static s16* _gDryfieldNightWaterTankCollision01EF0Table[4] = {
 
 WorldCollisionGrid D_dryfield_night_water_tank_8017F4B0 = { NULL, _gDryfieldNightWaterTankCollision01EF0Normals, _gDryfieldNightWaterTankCollision01EF0Verts, _gDryfieldNightWaterTankCollision01EF0Faces, _gDryfieldNightWaterTankCollision01EF0Table, 3500, 3300, 2, 2, 4000, 38 };
 
-GpViewRec D_dryfield_night_water_tank_8017F4D4[6] = {
+ViewCamera D_dryfield_night_water_tank_8017F4D4[6] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x5DC0, 0 } }, 322 },
     { { { { 1429, 0, -3838 }, { -2523, 3086, -939 }, { 2892, 2692, 1077 } }, { 5050, 0x3E4E, 1880 } }, 257 },
     { { { { -853, 0, 4006 }, { 1212, 3903, 258 }, { -3818, 1239, -813 } }, { -5920, 0x37FA, -1350 } }, 257 },

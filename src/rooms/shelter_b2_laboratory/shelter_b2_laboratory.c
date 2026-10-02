@@ -380,7 +380,7 @@ static s16* _gShelterB2LaboratoryCollision05F9CTable[12] = {
 
 WorldCollisionGrid D_shelter_b2_laboratory_8018355C = { NULL, _gShelterB2LaboratoryCollision05F9CNormals, _gShelterB2LaboratoryCollision05F9CVerts, _gShelterB2LaboratoryCollision05F9CFaces, _gShelterB2LaboratoryCollision05F9CTable, 1411, 4736, 4, 3, 4000, 51 };
 
-GpViewRec D_shelter_b2_laboratory_80183580[15] = {
+ViewCamera D_shelter_b2_laboratory_80183580[15] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -6200, 0x7530, -1480 } }, 564 },
     { { { { 1318, 0, 3878 }, { 1296, 3860, -440 }, { -3655, 1369, 1242 } }, { -7992, 1967, -470 } }, 230 },
     { { { { 3662, 0, 1834 }, { 408, 3992, -816 }, { -1788, 912, 3570 } }, { -4133, 1597, -776 } }, 230 },

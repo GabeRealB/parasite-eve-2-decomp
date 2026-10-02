@@ -247,7 +247,7 @@ WorldCollisionGrid D_mine_refuge_80181BA4[1] = {
     { NULL, _gMineRefugeCollision045E4Normals, _gMineRefugeCollision045E4Verts, _gMineRefugeCollision045E4Faces, _gMineRefugeCollision045E4Table, 200, 200, 1, 2, 4000, 15 },
 };
 
-GpViewRec D_mine_refuge_80181BC8[7] = {
+ViewCamera D_mine_refuge_80181BC8[7] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -1500, 8300, -2500 } }, 289 },
     { { { { -3873, 0, -1331 }, { -400, 3906, 1165 }, { 1269, 1232, -3693 } }, { -550, 1610, -4900 } }, 269 },
     { { { { 3915, 0, -1201 }, { -777, 3121, -2535 }, { 915, 2651, 2984 } }, { -1005, 2661, -1831 } }, 246 },

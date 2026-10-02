@@ -2193,7 +2193,7 @@ WorldCoordRoomLights D_acropolis_bridge_80190A0C[1] = {
     { 0, NULL, ARRAY_SIZE(_gAcropolisBridgePointLights), _gAcropolisBridgePointLights, 0, NULL },
 };
 
-GpViewRec D_acropolis_bridge_80190A24[10] = {
+ViewCamera D_acropolis_bridge_80190A24[10] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 9107, 0x7530, 3098 } }, 499 },
     { { { { -990, 0, 3974 }, { 1381, 3840, 344 }, { -3726, 1423, -928 } }, { 9483, 1851, 1361 } }, 230 },
     { { { { -716, 0, -4032 }, { -1803, 3663, 320 }, { 3607, 1831, -640 } }, { 8500, 2876, 1406 } }, 230 },

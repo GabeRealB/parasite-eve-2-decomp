@@ -91,7 +91,7 @@ static s16* _gShelterB3ElevatorHallCollision05F08Table[15] = {
 
 WorldCollisionGrid D_shelter_b3_elevator_hall_801834C8 = { NULL, _gShelterB3ElevatorHallCollision05F08Normals, _gShelterB3ElevatorHallCollision05F08Verts, _gShelterB3ElevatorHallCollision05F08Faces, _gShelterB3ElevatorHallCollision05F08Table, 6978, 3041, 5, 3, 4000, 68 };
 
-GpViewRec D_shelter_b3_elevator_hall_801834EC[7] = {
+ViewCamera D_shelter_b3_elevator_hall_801834EC[7] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -1000, 0x7530, 0 } }, 447 },
     { { { { 3799, 0, -1531 }, { -696, 3648, -1726 }, { 1363, 1861, 3383 } }, { 6733, 2229, 2999 } }, 207 },
     { { { { 713, 0, 4033 }, { 233, 4089, -41 }, { -4026, 237, 712 } }, { -1171, 1416, 2568 } }, 230 },

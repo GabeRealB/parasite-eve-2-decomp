@@ -230,7 +230,7 @@ WorldCollisionGrid D_shelter_b3_garbage_incinerator_80188388[1] = {
     { NULL, _gShelterB3GarbageIncineratorCollision0ADC8Normals, _gShelterB3GarbageIncineratorCollision0ADC8Verts, _gShelterB3GarbageIncineratorCollision0ADC8Faces, _gShelterB3GarbageIncineratorCollision0ADC8Table, 0, 0x6590, 5, 7, 4000, 64 },
 };
 
-GpViewRec D_shelter_b3_garbage_incinerator_801883AC[40] = {
+ViewCamera D_shelter_b3_garbage_incinerator_801883AC[40] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -0x2710, 0x6D60, 0x32C8 } }, 207 },
     { { { { 453, 0, 4070 }, { -980, 3975, 109 }, { -3951, -986, 439 } }, { -8876, 504, 2982 } }, 257 },
     { { { { 558, 0, 4057 }, { -776, 4020, 106 }, { -3982, -783, 547 } }, { -0x3544, 864, 3002 } }, 230 },

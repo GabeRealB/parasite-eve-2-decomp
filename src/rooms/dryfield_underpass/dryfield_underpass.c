@@ -344,7 +344,7 @@ WorldCollisionGrid D_dryfield_underpass_8017F484[1] = {
     { NULL, _gDryfieldUnderpassCollision01EC4Normals, _gDryfieldUnderpassCollision01EC4Verts, _gDryfieldUnderpassCollision01EC4Faces, _gDryfieldUnderpassCollision01EC4Table, 3000, 0x32C8, 6, 4, 4000, 46 },
 };
 
-GpViewRec D_dryfield_underpass_8017F4A8[26] = {
+ViewCamera D_dryfield_underpass_8017F4A8[26] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -7864, 0x6671, 5100 } }, 329 },
     { { { { 3875, 0, 1325 }, { -149, 4069, 437 }, { -1316, -461, 3851 } }, { -0x4463, 1654, 7373 } }, 230 },
     { { { { -4007, 0, 848 }, { -132, 4045, -626 }, { -837, -639, -3958 } }, { -0x42CB, 1690, 3166 } }, 230 },

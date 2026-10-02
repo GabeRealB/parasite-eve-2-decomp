@@ -30,7 +30,7 @@ extern GpWarpRec D_acropolis_square_80183BBC[];
 
 extern SpriteView D_acropolis_square_8018857C[];
 
-extern GpViewRec D_acropolis_square_80188630[];
+extern ViewCamera D_acropolis_square_80188630[];
 
 extern WorldCollisionSurfaceProperties* D_acropolis_square_80188868[];
 

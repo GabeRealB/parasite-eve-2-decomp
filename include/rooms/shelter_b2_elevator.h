@@ -26,7 +26,7 @@ extern GpWarpRec D_shelter_b2_elevator_8017DFE0[];
 
 extern WorldCollisionGrid D_shelter_b2_elevator_8017E0E4;
 
-extern GpViewRec D_shelter_b2_elevator_8017E108[];
+extern ViewCamera D_shelter_b2_elevator_8017E108[];
 
 extern SpriteView D_shelter_b2_elevator_8017E7BC[];
 

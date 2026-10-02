@@ -785,7 +785,7 @@ static GpViewCountRec* D_map_akropolis_8017AB70[20] = {
 
 GpViewCountTbl D_map_akropolis_8017ABC0 = { D_map_akropolis_8017AB70 };
 
-static GpViewRec* D_map_akropolis_8017ABC4[20] = {
+static ViewCamera* D_map_akropolis_8017ABC4[20] = {
     D_acropolis_square_80188630,
     D_acropolis_east_elevator_hall_80187A5C,
     D_acropolis_patio_80186D5C,

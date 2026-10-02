@@ -121,7 +121,7 @@ static s16* _gShelterB2NorthMaintenanceWalkwayCollision06A5CTable[6] = {
 
 WorldCollisionGrid D_shelter_b2_north_maintenance_walkway_8018401C = { NULL, _gShelterB2NorthMaintenanceWalkwayCollision06A5CNormals, _gShelterB2NorthMaintenanceWalkwayCollision06A5CVerts, _gShelterB2NorthMaintenanceWalkwayCollision06A5CFaces, _gShelterB2NorthMaintenanceWalkwayCollision06A5CTable, 2872, 4937, 2, 3, 4000, 18 };
 
-GpViewRec D_shelter_b2_north_maintenance_walkway_80184040[8] = {
+ViewCamera D_shelter_b2_north_maintenance_walkway_80184040[8] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x35D2, 0 } }, 235 },
     { { { { -4021, 0, 780 }, { 19, 4094, 99 }, { -779, 101, -4019 } }, { -2540, 1218, -448 } }, 246 },
     { { { { 4006, 0, 852 }, { 94, 4070, -444 }, { -846, 454, 3981 } }, { -2571, 1335, 4347 } }, 246 },

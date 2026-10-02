@@ -36,7 +36,7 @@ extern GpWarpRec D_acropolis_fire_escape_80181DCC[];
 
 extern SpriteView D_acropolis_fire_escape_80182E18[];
 
-extern GpViewRec D_acropolis_fire_escape_80182E90[];
+extern ViewCamera D_acropolis_fire_escape_80182E90[];
 
 extern WorldCollisionSurfaceProperties* D_acropolis_fire_escape_80183020[];
 

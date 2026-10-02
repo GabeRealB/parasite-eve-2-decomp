@@ -314,7 +314,7 @@ static s16* _gDryfieldNightFactoryCollision0A630Table[8] = {
 
 WorldCollisionGrid gFactoryNightGrid = { NULL, _gDryfieldNightFactoryCollision0A630Normals, _gDryfieldNightFactoryCollision0A630Verts, _gDryfieldNightFactoryCollision0A630Faces, _gDryfieldNightFactoryCollision0A630Table, 444, 222, 2, 4, 4000, 72 };
 
-GpViewRec D_dryfield_night_factory_80187C14[19] = {
+ViewCamera D_dryfield_night_factory_80187C14[19] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -3057, 0x44F4, -6028 } }, 240 },
     { { { { 1147, 0, -3931 }, { -130, 4093, -37 }, { 3929, 135, 1147 } }, { -214, 1283, -1020 } }, 246 },
     { { { { 981, 0, 3976 }, { 62, 4095, -15 }, { -3976, 64, 981 } }, { -5724, 1309, -1020 } }, 246 },

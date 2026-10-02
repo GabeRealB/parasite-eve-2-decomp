@@ -35,7 +35,7 @@ extern GpViewCountRec D_shelter_b1_underground_parking_8018793C[];
 
 extern GpWarpRec D_shelter_b1_underground_parking_8018794C[];
 
-extern GpViewRec D_shelter_b1_underground_parking_80189778[];
+extern ViewCamera D_shelter_b1_underground_parking_80189778[];
 
 extern SpriteView D_shelter_b1_underground_parking_8018AB9C[];
 

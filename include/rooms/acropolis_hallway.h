@@ -29,7 +29,7 @@ extern GpWarpRec D_acropolis_hallway_8017E278[];
 
 extern SpriteView D_acropolis_hallway_8017EC2C[];
 
-extern GpViewRec D_acropolis_hallway_8017EC68[];
+extern ViewCamera D_acropolis_hallway_8017EC68[];
 
 extern WorldCollisionSurfaceProperties* D_acropolis_hallway_8017ED40[];
 

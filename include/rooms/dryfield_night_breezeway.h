@@ -24,7 +24,7 @@ extern GpViewCountRec D_dryfield_night_breezeway_8017E700[];
 
 extern GpWarpRec D_dryfield_night_breezeway_8017E704[];
 
-extern GpViewRec D_dryfield_night_breezeway_8017EBE8[];
+extern ViewCamera D_dryfield_night_breezeway_8017EBE8[];
 
 extern SpriteView D_dryfield_night_breezeway_8017FD10[];
 

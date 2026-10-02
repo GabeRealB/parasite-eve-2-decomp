@@ -116,7 +116,7 @@ static s16* _gShelterB3IncineratorControlRoomCollision04700Table[8] = {
 
 WorldCollisionGrid D_shelter_b3_incinerator_control_room_80181CC0 = { NULL, _gShelterB3IncineratorControlRoomCollision04700Normals, _gShelterB3IncineratorControlRoomCollision04700Verts, _gShelterB3IncineratorControlRoomCollision04700Faces, _gShelterB3IncineratorControlRoomCollision04700Table, 6742, 3500, 4, 2, 4000, 19 };
 
-GpViewRec D_shelter_b3_incinerator_control_room_80181CE4[8] = {
+ViewCamera D_shelter_b3_incinerator_control_room_80181CE4[8] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 1000, 0x7530, 0 } }, 541 },
     { { { { 607, 0, 4050 }, { 1065, 3951, -159 }, { -3907, 1077, 586 } }, { -3319, 1397, 3178 } }, 212 },
     { { { { 607, 0, 4050 }, { 1065, 3951, -159 }, { -3907, 1077, 586 } }, { -3319, 1397, 3178 } }, 212 },

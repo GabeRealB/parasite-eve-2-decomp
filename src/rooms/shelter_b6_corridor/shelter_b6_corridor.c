@@ -311,7 +311,7 @@ static s16* _gShelterB6CorridorCollision024D0Table[3] = {
 
 WorldCollisionGrid D_shelter_b6_corridor_8017FA90 = { NULL, _gShelterB6CorridorCollision024D0Normals, _gShelterB6CorridorCollision024D0Verts, _gShelterB6CorridorCollision024D0Faces, _gShelterB6CorridorCollision024D0Table, 0, 1350, 3, 1, 4000, 12 };
 
-GpViewRec D_shelter_b6_corridor_8017FAB4[5] = {
+ViewCamera D_shelter_b6_corridor_8017FAB4[5] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -4500, 0x61A8, 0 } }, 680 },
     { { { { 715, 0, 4033 }, { 264, 4087, -46 }, { -4024, 268, 713 } }, { -7040, 1470, 560 } }, 230 },
     { { { { 682, 0, -4038 }, { -252, 4087, -42 }, { 4030, 256, 681 } }, { -1740, 1470, 560 } }, 230 },

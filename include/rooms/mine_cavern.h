@@ -24,7 +24,7 @@ extern GpViewCountRec D_mine_cavern_8018906C[];
 
 extern GpWarpRec D_mine_cavern_80189074[];
 
-extern GpViewRec D_mine_cavern_80189840[];
+extern ViewCamera D_mine_cavern_80189840[];
 
 extern SpriteView D_mine_cavern_8018CD10[];
 

@@ -28,7 +28,7 @@ extern GpWarpRec D_acropolis_bridge_80189AB4[];
 
 extern SpriteView D_acropolis_bridge_8018FFA4[];
 
-extern GpViewRec D_acropolis_bridge_80190A24[];
+extern ViewCamera D_acropolis_bridge_80190A24[];
 
 extern WorldCollisionSurfaceProperties* D_acropolis_bridge_80190C34[];
 

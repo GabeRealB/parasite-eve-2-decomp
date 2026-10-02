@@ -136,7 +136,7 @@ WorldCollisionGrid D_shelter_b2_pod_bottom_80182B5C[1] = {
     { NULL, _gShelterB2PodBottomCollision0559CNormals, _gShelterB2PodBottomCollision0559CVerts, _gShelterB2PodBottomCollision0559CFaces, _gShelterB2PodBottomCollision0559CTable, 0, 6000, 5, 7, 4000, 88 },
 };
 
-GpViewRec D_shelter_b2_pod_bottom_80182B80[16] = {
+ViewCamera D_shelter_b2_pod_bottom_80182B80[16] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -7510, 0x61A8, -6980 } }, 329 },
     { { { { 3491, 0, -2141 }, { 362, 4036, 590 }, { 2110, -693, 3441 } }, { -490, 2270, -1670 } }, 289 },
     { { { { -3308, 0, -2415 }, { -149, 4088, 204 }, { 2410, 253, -3301 } }, { -610, 5200, -0x3B74 } }, 257 },

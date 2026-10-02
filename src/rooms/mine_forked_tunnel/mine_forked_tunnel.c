@@ -1059,7 +1059,7 @@ static s16* _gMineForkedTunnelCollision067B0Table[8] = {
 
 WorldCollisionGrid D_mine_forked_tunnel_80183D70 = { NULL, _gMineForkedTunnelCollision067B0Normals, _gMineForkedTunnelCollision067B0Verts, _gMineForkedTunnelCollision067B0Faces, _gMineForkedTunnelCollision067B0Table, 650, 520, 2, 4, 4000, 37 };
 
-GpViewRec D_mine_forked_tunnel_80183D94[7] = {
+ViewCamera D_mine_forked_tunnel_80183D94[7] = {
     { { { { 4095, 0, 0 }, { 0, 0, -4096 }, { 0, 4095, 0 } }, { -1500, 0x40CA, -5500 } }, 289 },
     { { { { 4001, 0, 872 }, { -228, 3952, 1049 }, { -842, -1074, 3861 } }, { -2676, -186, -4405 } }, 289 },
     { { { { 2839, 0, 2952 }, { 2773, 1402, -2667 }, { -1010, 3848, 972 } }, { -2889, 3366, -9548 } }, 269 },

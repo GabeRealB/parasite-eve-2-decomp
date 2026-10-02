@@ -24,7 +24,7 @@ extern GpViewCountRec D_mine_gorge_8017E7EC[];
 
 extern GpWarpRec D_mine_gorge_8017E7F0[];
 
-extern GpViewRec D_mine_gorge_8017FA14[];
+extern ViewCamera D_mine_gorge_8017FA14[];
 
 extern SpriteView D_mine_gorge_801827F8[];
 

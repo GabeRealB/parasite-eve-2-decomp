@@ -177,7 +177,7 @@ WorldCollisionGrid D_mine_secret_passage_801815E0[1] = {
     { NULL, _gMineSecretPassageCollision04020Normals, _gMineSecretPassageCollision04020Verts, _gMineSecretPassageCollision04020Faces, _gMineSecretPassageCollision04020Table, 1210, -30, 6, 4, 4000, 27 },
 };
 
-GpViewRec D_mine_secret_passage_80181604[9] = {
+ViewCamera D_mine_secret_passage_80181604[9] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -0x2710, 0x5910, -7500 } }, 269 },
     { { { { 4008, 0, -844 }, { -11, 4095, -55 }, { 844, 57, 4007 } }, { -599, 1432, -5060 } }, 282 },
     { { { { -3964, 0, -1029 }, { -49, 4091, 188 }, { 1028, 195, -3960 } }, { -800, 1568, -0x31FF } }, 282 },

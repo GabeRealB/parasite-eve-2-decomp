@@ -24,7 +24,7 @@ extern GpViewCountRec D_mine_secret_passage_80180FB8[];
 
 extern GpWarpRec D_mine_secret_passage_80180FBC[];
 
-extern GpViewRec D_mine_secret_passage_80181604[];
+extern ViewCamera D_mine_secret_passage_80181604[];
 
 extern SpriteView D_mine_secret_passage_80182994[];
 

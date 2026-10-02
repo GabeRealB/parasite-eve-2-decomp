@@ -172,7 +172,7 @@ WorldCollisionGrid D_shelter_1f_bulwark_80180648[1] = {
     { NULL, _gShelter1fBulwarkCollision03088Normals, _gShelter1fBulwarkCollision03088Verts, _gShelter1fBulwarkCollision03088Faces, _gShelter1fBulwarkCollision03088Table, 4250, 3500, 3, 2, 4000, 12 },
 };
 
-GpViewRec D_shelter_1f_bulwark_8018066C[3] = {
+ViewCamera D_shelter_1f_bulwark_8018066C[3] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x38D6, 0 } }, 257 },
     { { { { 888, 0, -3998 }, { 1332, 3861, 296 }, { 3769, -1364, 837 } }, { 2810, 260, 870 } }, 257 },
     { { { { 902, 0, 3995 }, { 3827, 1174, -864 }, { -1145, 3924, 258 } }, { 1110, 5890, 370 } }, 207 },

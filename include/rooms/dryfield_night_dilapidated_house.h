@@ -24,7 +24,7 @@ extern GpViewCountRec D_dryfield_night_dilapidated_house_801873A8[];
 
 extern GpWarpRec D_dryfield_night_dilapidated_house_801873AC[];
 
-extern GpViewRec D_dryfield_night_dilapidated_house_80187D68[];
+extern ViewCamera D_dryfield_night_dilapidated_house_80187D68[];
 
 extern SpriteView D_dryfield_night_dilapidated_house_8018921C[];
 

@@ -76,7 +76,7 @@ static s16* _gShelterB1SleepingQuartersCollision03B14Table[12] = {
 
 WorldCollisionGrid D_shelter_b1_sleeping_quarters_801810D4 = { NULL, _gShelterB1SleepingQuartersCollision03B14Normals, _gShelterB1SleepingQuartersCollision03B14Verts, _gShelterB1SleepingQuartersCollision03B14Faces, _gShelterB1SleepingQuartersCollision03B14Table, 1400, 4400, 4, 3, 4000, 64 };
 
-GpViewRec D_shelter_b1_sleeping_quarters_801810F8[10] = {
+ViewCamera D_shelter_b1_sleeping_quarters_801810F8[10] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -6200, 0x7530, -1480 } }, 564 },
     { { { { -1996, 0, 3576 }, { -1019, 3925, -569 }, { -3427, -1167, -1913 } }, { -2791, 356, -744 } }, 230 },
     { { { { -4054, 0, 582 }, { 17, 4094, 123 }, { -582, 124, -4052 } }, { -2265, 1531, -3824 } }, 230 },

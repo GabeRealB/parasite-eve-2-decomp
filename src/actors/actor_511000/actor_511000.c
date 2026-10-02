@@ -194,12 +194,12 @@ static const GpEnemyTaskFuncTable3 D_actor_511000_80131E6C = {
 };
 
 /// Camera path `func_actor_511000_801330F0` walks once the session reaches
-/// mode 0x18, one 0x24-byte `GpViewRec` per step of the kill countdown: the
+/// mode 0x18, one 0x24-byte `ViewCamera` per step of the kill countdown: the
 /// rotation and projection plane repeat down the table while the translation
 /// descends, so the spawn of a view task per index pans the camera as the
 /// actor goes down. Handed straight to `Gp_TrySpawnViewTask`, exactly as
 /// `Gp_SpawnViewTasks` hands its own stage record.
-extern GpViewRec D_actor_511000_80147EE4[];
+extern ViewCamera D_actor_511000_80147EE4[];
 
 /// The three texture records the tick state's upload steps and the
 /// message-0x7E0 handler post. Each is a lone `GpImgRec` whose 0x18x0x10
@@ -1718,7 +1718,7 @@ u8 D_actor_511000_80147EC4[32] = {
     128,
 };
 
-GpViewRec D_actor_511000_80147EE4[120] = {
+ViewCamera D_actor_511000_80147EE4[120] = {
     { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5598, 5926, 124 } }, 447 },
     { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5599, 5926, 122 } }, 447 },
     { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5599, 5926, 118 } }, 447 },

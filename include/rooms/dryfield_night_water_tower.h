@@ -24,7 +24,7 @@ extern GpViewCountRec D_dryfield_night_water_tower_8017E768[];
 
 extern GpWarpRec D_dryfield_night_water_tower_8017E76C[];
 
-extern GpViewRec D_dryfield_night_water_tower_8017F418[];
+extern ViewCamera D_dryfield_night_water_tower_8017F418[];
 
 extern SpriteView D_dryfield_night_water_tower_80182040[];
 

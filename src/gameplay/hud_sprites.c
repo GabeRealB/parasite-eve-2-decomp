@@ -156,18 +156,18 @@ ScreenFade D_80114BD8;
 
 /// Resolve a camera-record cursor within its loaded room resource.
 /// The address word uses the PS1 representation; the returned record is typed.
-static __inline__ GpViewRec* gpViewAt(GpViewRec* records, s32 index)
+static __inline__ ViewCamera* gpViewAt(ViewCamera* records, s32 index)
 {
     union {
-        GpViewRec* records;
-        u32        word;
+        ViewCamera* records;
+        u32         word;
     } base;
     union {
-        GpViewRec* record;
-        u32        word;
+        ViewCamera* record;
+        u32         word;
     } result;
     base.records = records;
-    result.word  = index * sizeof(GpViewRec);
+    result.word  = index * sizeof(ViewCamera);
     result.word += base.word;
     return result.record;
 }
@@ -1280,35 +1280,35 @@ void Gp_LoadStageView(void)
 {
     GameLocationKey* sess;
     GpViewTbl*       tbl;
-    GpViewRec*       recs;
-    GpViewRec*       rec;
+    ViewCamera*      cameras;
+    ViewCamera*      camera;
     GfxCoord*        c1;
     MATRIX*          rot;
     VECTOR3*         trans;
     u8               idx;
 
-    sess = &gGameSession->location.loc;
-    tbl  = Gp_ViewTables[sess->stage - 1];
-    recs = tbl->field_0[sess->area - 1];
-    idx  = Gp_GetViewIndex();
+    sess    = &gGameSession->location.loc;
+    tbl     = Gp_ViewTables[sess->stage - 1];
+    cameras = tbl->field_0[sess->area - 1];
+    idx     = Gp_GetViewIndex();
 
-    rot   = &gGfxViewRotCoord.coord;
-    trans = MATRIX_TRANS(&gGfxViewCoord.coord);
-    c1    = &Gfx_ViewOffsetCoord;
-    rec   = gpViewAt(recs, idx);
+    rot    = &gGfxViewRotCoord.coord;
+    trans  = MATRIX_TRANS(&gGfxViewCoord.coord);
+    c1     = &Gfx_ViewOffsetCoord;
+    camera = gpViewAt(cameras, idx);
 
     // Keep rotation and translation in their separate camera coordinate nodes.
-    *(GBytes18*)rot = *(GBytes18*)(rec - 1);
-    *trans          = *(VECTOR3*)&(rec - 1)->mtx.t;
+    *(GBytes18*)rot = *(GBytes18*)&(camera - 1)->transform;
+    *trans          = *MATRIX_TRANS(&(camera - 1)->transform);
 
-    rec--;
+    camera--;
 
     c1->coord.t[0] = 0;
     c1->coord.t[1] = 0;
     c1->coord.t[2] = 0;
 
-    gDisplayState.screenDistance = rec->screenDistance;
-    gte_SetGeomScreen(rec->screenDistance);
+    gDisplayState.screenDistance = camera->screenDistance;
+    gte_SetGeomScreen(camera->screenDistance);
     gte_SetGeomOffset(0, 0);
 
     Gfx_ViewOffsetCoord.composeStamp                  = GRAPHICS_COORD_DIRTY;
@@ -1355,12 +1355,12 @@ void gfxMakeRelativeTransform(const MATRIX* reference, const MATRIX* target, MAT
     SCRATCH_STACK_RELEASE_BLOCK(_GfxRelativeTransformScratch);
 }
 
-s32 Gp_TrySpawnViewTask(GpViewRec* arg0)
+s32 Gp_TrySpawnViewTask(ViewCamera* camera)
 {
-    return Task_Spawn(0, 0xF, 0, arg0) != NULL;
+    return Task_Spawn(0, 0xF, 0, camera) != NULL;
 }
 
-void Gp_ApplyView(GpViewRec* arg0)
+void Gp_ApplyView(ViewCamera* camera)
 {
     GfxCoord* c1;
     MATRIX*   rot;
@@ -1371,15 +1371,15 @@ void Gp_ApplyView(GpViewRec* arg0)
     c1    = &Gfx_ViewOffsetCoord;
 
     // Keep rotation and translation in their separate camera coordinate nodes.
-    *(GBytes18*)rot = *(GBytes18*)arg0;
-    *trans          = *MATRIX_TRANS(&arg0->mtx);
+    *(GBytes18*)rot = *(GBytes18*)&camera->transform;
+    *trans          = *MATRIX_TRANS(&camera->transform);
 
     c1->coord.t[0] = 0;
     c1->coord.t[1] = 0;
     c1->coord.t[2] = 0;
 
-    gDisplayState.screenDistance = arg0->screenDistance;
-    gte_SetGeomScreen(arg0->screenDistance);
+    gDisplayState.screenDistance = camera->screenDistance;
+    gte_SetGeomScreen(camera->screenDistance);
     gte_SetGeomOffset(0, 0);
 
     Gfx_ViewOffsetCoord.composeStamp                  = GRAPHICS_COORD_DIRTY;
@@ -1422,53 +1422,53 @@ void Gp_SpawnViewTasks(void)
 {
     GameLocationKey* sess;
     GpViewTbl*       tbl;
-    GpViewRec*       recs;
-    GpViewRec*       rec;
+    ViewCamera*      cameras;
+    ViewCamera*      camera;
     u8               idx;
 
-    sess = &gGameSession->location.loc;
-    tbl  = Gp_ViewTables[sess->stage - 1];
-    recs = tbl->field_0[sess->area - 1];
-    idx  = Gp_GetViewIndex();
-    rec  = gpViewAt(recs, idx);
-    Task_SpawnPtr(0, 0xF, 0, (rec - 1));
+    sess    = &gGameSession->location.loc;
+    tbl     = Gp_ViewTables[sess->stage - 1];
+    cameras = tbl->field_0[sess->area - 1];
+    idx     = Gp_GetViewIndex();
+    camera  = gpViewAt(cameras, idx);
+    Task_SpawnPtr(0, 0xF, 0, (camera - 1));
     Task_Spawn(0, 0x17, 0, 0);
 }
 
-GpViewRec* Gp_GetStageView(GameLocationKey* arg0)
+ViewCamera* Gp_GetStageView(GameLocationKey* arg0)
 {
-    GpViewTbl* tbl;
-    GpViewRec* recs;
-    u8         idx;
+    GpViewTbl*  tbl;
+    ViewCamera* cameras;
+    u8          idx;
 
-    tbl  = Gp_ViewTables[arg0->stage - 1];
-    recs = tbl->field_0[arg0->area - 1];
-    idx  = Gp_GetViewIndex();
-    return &recs[idx - 1];
+    tbl     = Gp_ViewTables[arg0->stage - 1];
+    cameras = tbl->field_0[arg0->area - 1];
+    idx     = Gp_GetViewIndex();
+    return &cameras[idx - 1];
 }
 
 void Gp_ApplyViewTask(Task* task)
 {
-    GfxCoord*  c1;
-    MATRIX*    rot;
-    VECTOR3*   trans;
-    GpViewRec* rec;
+    GfxCoord*   c1;
+    MATRIX*     rot;
+    VECTOR3*    trans;
+    ViewCamera* camera;
 
-    rot   = &gGfxViewRotCoord.coord;
-    trans = MATRIX_TRANS(&gGfxViewCoord.coord);
-    c1    = &Gfx_ViewOffsetCoord;
-    rec   = task->spawnArg2.pointer;
+    rot    = &gGfxViewRotCoord.coord;
+    trans  = MATRIX_TRANS(&gGfxViewCoord.coord);
+    c1     = &Gfx_ViewOffsetCoord;
+    camera = task->spawnArg2.pointer;
 
     // Keep rotation and translation in their separate camera coordinate nodes.
-    *(GBytes18*)rot = *(GBytes18*)rec;
-    *trans          = *MATRIX_TRANS(&rec->mtx);
+    *(GBytes18*)rot = *(GBytes18*)&camera->transform;
+    *trans          = *MATRIX_TRANS(&camera->transform);
 
     c1->coord.t[0] = 0;
     c1->coord.t[1] = 0;
     c1->coord.t[2] = 0;
 
-    gDisplayState.screenDistance = rec->screenDistance;
-    gte_SetGeomScreen(rec->screenDistance);
+    gDisplayState.screenDistance = camera->screenDistance;
+    gte_SetGeomScreen(camera->screenDistance);
     gte_SetGeomOffset(0, 0);
 
     Gfx_ViewOffsetCoord.composeStamp                  = GRAPHICS_COORD_DIRTY;
@@ -1505,16 +1505,16 @@ void Gp_SpawnCurView(s32 arg0)
 {
     GameLocationKey* sess;
     GpViewTbl*       tbl;
-    GpViewRec*       recs;
-    GpViewRec*       rec;
+    ViewCamera*      cameras;
+    ViewCamera*      camera;
     u8               idx;
 
-    sess = &gGameSession->location.loc;
-    tbl  = Gp_ViewTables[sess->stage - 1];
-    recs = tbl->field_0[sess->area - 1];
-    idx  = Gp_GetViewIndex();
-    rec  = gpViewAt(recs, idx);
-    Task_SpawnPtr(0, 0xF, 0, (rec - 1));
+    sess    = &gGameSession->location.loc;
+    tbl     = Gp_ViewTables[sess->stage - 1];
+    cameras = tbl->field_0[sess->area - 1];
+    idx     = Gp_GetViewIndex();
+    camera  = gpViewAt(cameras, idx);
+    Task_SpawnPtr(0, 0xF, 0, (camera - 1));
     if (arg0 == 0) {
         Task_Spawn(0, 0x17, 0, 0);
     }

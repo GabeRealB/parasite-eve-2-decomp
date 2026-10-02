@@ -158,7 +158,7 @@ WorldCollisionGrid D_neo_ark_pyramid_801802C4[1] = {
     { NULL, _gNeoArkPyramidCollision02D04Normals, _gNeoArkPyramidCollision02D04Verts, _gNeoArkPyramidCollision02D04Faces, _gNeoArkPyramidCollision02D04Table, 4000, 0x2CEC, 5, 3, 4000, 36 },
 };
 
-GpViewRec D_neo_ark_pyramid_801802E8[8] = {
+ViewCamera D_neo_ark_pyramid_801802E8[8] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -5270, 0x7530, 7060 } }, 380 },
     { { { { 3888, 0, 1288 }, { -275, 4001, 830 }, { -1258, -875, 3798 } }, { 2039, 468, 5719 } }, 230 },
     { { { { 2546, 0, 3208 }, { 47, 4095, -37 }, { -3208, 60, 2545 } }, { -1654, 855, 7910 } }, 230 },

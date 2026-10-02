@@ -38,7 +38,7 @@ extern GpViewCountRec D_shelter_b4_reservoir_80185120[];
 
 extern GpWarpRec D_shelter_b4_reservoir_80185124[];
 
-extern GpViewRec D_shelter_b4_reservoir_80185ADC[];
+extern ViewCamera D_shelter_b4_reservoir_80185ADC[];
 
 extern SpriteView D_shelter_b4_reservoir_80186730[];
 

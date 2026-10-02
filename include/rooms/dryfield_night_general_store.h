@@ -24,7 +24,7 @@ extern GpViewCountRec D_dryfield_night_general_store_8017E848[];
 
 extern GpWarpRec D_dryfield_night_general_store_8017E84C[];
 
-extern GpViewRec D_dryfield_night_general_store_8017F4A8[];
+extern ViewCamera D_dryfield_night_general_store_8017F4A8[];
 
 extern SpriteView D_dryfield_night_general_store_80184278[];
 

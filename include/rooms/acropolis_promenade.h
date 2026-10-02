@@ -26,7 +26,7 @@ extern GpWarpRec D_acropolis_promenade_80181BDC[];
 
 extern SpriteView D_acropolis_promenade_80185FB4[];
 
-extern GpViewRec D_acropolis_promenade_80186050[];
+extern ViewCamera D_acropolis_promenade_80186050[];
 
 extern WorldCollisionSurfaceProperties* D_acropolis_promenade_801862B0[];
 

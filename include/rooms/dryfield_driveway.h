@@ -24,7 +24,7 @@ extern GpViewCountRec D_dryfield_driveway_8017E7C4[];
 
 extern GpWarpRec D_dryfield_driveway_8017E7C8[];
 
-extern GpViewRec D_dryfield_driveway_8017EE2C[];
+extern ViewCamera D_dryfield_driveway_8017EE2C[];
 
 extern SpriteView D_dryfield_driveway_8017FC44[];
 

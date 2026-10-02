@@ -24,7 +24,7 @@ extern GpViewCountRec D_dryfield_night_back_street_801803C8[];
 
 extern GpWarpRec D_dryfield_night_back_street_801803CC[];
 
-extern GpViewRec D_dryfield_night_back_street_80180B58[];
+extern ViewCamera D_dryfield_night_back_street_80180B58[];
 
 extern SpriteView D_dryfield_night_back_street_80180D34[];
 

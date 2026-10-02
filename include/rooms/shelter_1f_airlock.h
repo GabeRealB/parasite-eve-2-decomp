@@ -24,7 +24,7 @@ extern GpViewCountRec D_shelter_1f_airlock_8017E5B8[];
 
 extern GpWarpRec D_shelter_1f_airlock_8017E5BC[];
 
-extern GpViewRec D_shelter_1f_airlock_8017E85C[];
+extern ViewCamera D_shelter_1f_airlock_8017E85C[];
 
 extern SpriteView D_shelter_1f_airlock_8017F07C[];
 

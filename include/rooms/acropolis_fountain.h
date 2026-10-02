@@ -26,7 +26,7 @@ extern GpWarpRec D_acropolis_fountain_8017E868[];
 
 extern SpriteView D_acropolis_fountain_8018375C[];
 
-extern GpViewRec D_acropolis_fountain_80183864[];
+extern ViewCamera D_acropolis_fountain_80183864[];
 
 extern WorldCollisionSurfaceProperties* D_acropolis_fountain_80183B90[];
 

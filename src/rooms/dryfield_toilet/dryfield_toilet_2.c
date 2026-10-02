@@ -215,7 +215,7 @@ static s16* _gDryfieldToiletCollision03E44Table[2] = {
 
 WorldCollisionGrid D_dryfield_toilet_80181404 = { NULL, _gDryfieldToiletCollision03E44Normals, _gDryfieldToiletCollision03E44Verts, _gDryfieldToiletCollision03E44Faces, _gDryfieldToiletCollision03E44Table, 2970, 2300, 1, 2, 4000, 17 };
 
-GpViewRec D_dryfield_toilet_80181428[11] = {
+ViewCamera D_dryfield_toilet_80181428[11] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x7530, 0 } }, 1524 },
     { { { { 4000, 0, -880 }, { -628, 2868, -2855 }, { 616, 2924, 2801 } }, { 2049, 2467, 57 } }, 230 },
     { { { { -3969, 0, -1008 }, { -446, 3672, 1757 }, { 904, 1813, -3559 } }, { 2094, 1926, -1868 } }, 230 },

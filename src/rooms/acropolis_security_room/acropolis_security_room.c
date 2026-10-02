@@ -1838,7 +1838,7 @@ SpriteView D_acropolis_security_room_80184C50[16] = {
     { { .elements = D_acropolis_security_room_80184548 }, D_acropolis_security_room_80184BD8, NULL },
 };
 
-GpViewRec D_acropolis_security_room_80184D10[16] = {
+ViewCamera D_acropolis_security_room_80184D10[16] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x7530, 0 } }, 911 },
     { { { { -3929, 0, -1154 }, { -300, 3954, 1023 }, { 1114, 1067, -3794 } }, { 670, 2800, -1160 } }, 207 },
     { { { { 3895, 0, -1265 }, { -445, 3833, -1371 }, { 1184, 1441, 3646 } }, { 780, 3090, 2600 } }, 207 },

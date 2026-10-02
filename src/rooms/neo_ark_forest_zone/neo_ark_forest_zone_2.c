@@ -282,7 +282,7 @@ WorldCollisionGrid D_neo_ark_forest_zone_80182274[1] = {
     { NULL, _gNeoArkForestZoneCollision04CB4Normals, _gNeoArkForestZoneCollision04CB4Verts, _gNeoArkForestZoneCollision04CB4Faces, _gNeoArkForestZoneCollision04CB4Table, 8000, 1300, 5, 1, 4000, 6 },
 };
 
-GpViewRec D_neo_ark_forest_zone_80182298[6] = {
+ViewCamera D_neo_ark_forest_zone_80182298[6] = {
     { { { { 4096, 0, 0 }, { 0, 78, -4095 }, { 0, 4095, 78 } }, { -1000, 0x7530, 575 } }, 380 },
     { { { { -1370, 0, -3859 }, { -488, 4063, 173 }, { 3828, 518, -1359 } }, { -3940, 1460, -810 } }, 230 },
     { { { { -1441, 0, -3833 }, { 76, 4095, -28 }, { 3833, -81, -1441 } }, { 1990, 870, -910 } }, 230 },

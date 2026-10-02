@@ -26,7 +26,7 @@ extern GpWarpRec D_shelter_b6_nursery_8018530C[];
 
 extern WorldCollisionGrid D_shelter_b6_nursery_801858A0;
 
-extern GpViewRec D_shelter_b6_nursery_801858C4[];
+extern ViewCamera D_shelter_b6_nursery_801858C4[];
 
 extern SpriteView D_shelter_b6_nursery_80186FD0[];
 

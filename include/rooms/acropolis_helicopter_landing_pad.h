@@ -37,7 +37,7 @@ extern GpWarpRec D_acropolis_helicopter_landing_pad_80184F4C[];
 
 extern SpriteView D_acropolis_helicopter_landing_pad_80187824[];
 
-extern GpViewRec D_acropolis_helicopter_landing_pad_80187968[];
+extern ViewCamera D_acropolis_helicopter_landing_pad_80187968[];
 
 extern WorldCollisionSurfaceProperties* D_acropolis_helicopter_landing_pad_80187DC8[];
 

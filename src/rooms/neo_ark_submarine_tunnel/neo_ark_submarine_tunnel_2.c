@@ -159,7 +159,7 @@ WorldCollisionGrid D_neo_ark_submarine_tunnel_801824DC[1] = {
     { NULL, _gNeoArkSubmarineTunnelCollision04F1CNormals, _gNeoArkSubmarineTunnelCollision04F1CVerts, _gNeoArkSubmarineTunnelCollision04F1CFaces, _gNeoArkSubmarineTunnelCollision04F1CTable, 0x2710, 1000, 6, 1, 4000, 31 },
 };
 
-GpViewRec D_neo_ark_submarine_tunnel_80182500[10] = {
+ViewCamera D_neo_ark_submarine_tunnel_80182500[10] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0xC350, 0 } }, 911 },
     { { { { 378, 0, -4078 }, { 741, 4027, 68 }, { 4010, -744, 372 } }, { -750, -2400, 200 } }, 257 },
     { { { { 652, 0, -4043 }, { 348, 4080, 56 }, { 4028, -352, 650 } }, { 2380, -2390, 300 } }, 257 },

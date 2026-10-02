@@ -76,20 +76,32 @@ typedef union _GpSpawnTransform {
 } GpSpawnTransform;
 STATIC_ASSERT_SIZEOF(GpSpawnTransform, 0x10);
 
-/// Camera transform and projection distance for a view.
+/// Camera orientation, origin and perspective distance for a gameplay view.
 ///
-/// View indices are 1-based. The projection distance is supplied as a word to
-/// GTE H; `DisplayState::screenDistance` retains its low 16 bits.
+/// `transform.m` rotates world axes into camera axes, with `ONE` (4096) for
+/// 1.0. `transform.t` is the negated camera origin in signed world-coordinate
+/// units. The view applies translation before rotation: a world point `p`
+/// becomes `transform.m * (p + transform.t)`. Only the nine rotation
+/// coefficients and three translation words are used; the matrix's alignment
+/// bytes are not copied into the active view.
+///
+/// Area camera arrays use a mapped 1-based camera index, stored at index minus
+/// one; animated camera paths use their own zero-based frame indices. The
+/// record stores no array count or terminator. Room overlays own their camera
+/// arrays and may edit them; actors also supply persistent camera records.
+/// A queued view task borrows the record until it applies it, so its storage
+/// must stay loaded and readable until then. Application copies the camera
+/// components into the active view and retains no pointer to the record.
 typedef struct {
-    MATRIX mtx;            // Camera transform copied into the view coordinate nodes
-    u32    screenDistance; // Projection distance; GTE H uses the low 16 bits
-} GpViewRec;
-STATIC_ASSERT_SIZEOF(GpViewRec, 0x24);
+    MATRIX transform;      // World-to-camera rotation and negated world-space camera origin
+    u32    screenDistance; // Projection-plane distance in pixels; GTE H and DisplayState retain the low 16 bits
+} ViewCamera;
+STATIC_ASSERT_SIZEOF(ViewCamera, 0x24);
 
-/// Per-stage wrapper. `field_0` is an array of `GpViewRec*`, indexed by
+/// Per-stage wrapper. `field_0` is an array of `ViewCamera*`, indexed by
 /// `GameSession.location.loc.area - 1` / `GameLocationKey.area - 1`.
 typedef struct _GpViewTbl {
-    /* 0x0 */ GpViewRec** field_0;
+    /* 0x0 */ ViewCamera** field_0;
 } GpViewTbl;
 
 #endif // GAMEPLAY_VIEW_H

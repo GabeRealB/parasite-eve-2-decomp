@@ -136,7 +136,7 @@ WorldCollisionGrid D_neo_ark_eve_access_tunnel_8017F05C[1] = {
     { NULL, _gNeoArkEveAccessTunnelCollision01A9CNormals, _gNeoArkEveAccessTunnelCollision01A9CVerts, _gNeoArkEveAccessTunnelCollision01A9CFaces, _gNeoArkEveAccessTunnelCollision01A9CTable, 4452, 146, 2, 2, 4000, 28 },
 };
 
-GpViewRec D_neo_ark_eve_access_tunnel_8017F080[7] = {
+ViewCamera D_neo_ark_eve_access_tunnel_8017F080[7] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 2144, 0x363E, -3758 } }, 333 },
     { { { { 1138, 0, -3934 }, { 45, 4095, 13 }, { 3934, -47, 1138 } }, { 4412, 1126, -236 } }, 235 },
     { { { { 1280, 0, 3890 }, { 317, 4082, -104 }, { -3877, 334, 1275 } }, { 98, 1391, -212 } }, 235 },

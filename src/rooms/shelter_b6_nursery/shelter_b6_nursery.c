@@ -348,7 +348,7 @@ static s16* _gShelterB6NurseryCollision082E0Table[4] = {
 
 WorldCollisionGrid D_shelter_b6_nursery_801858A0 = { NULL, _gShelterB6NurseryCollision082E0Normals, _gShelterB6NurseryCollision082E0Verts, _gShelterB6NurseryCollision082E0Faces, _gShelterB6NurseryCollision082E0Table, -50, 1450, 2, 2, 4000, 43 };
 
-GpViewRec D_shelter_b6_nursery_801858C4[19] = {
+ViewCamera D_shelter_b6_nursery_801858C4[19] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -3500, 0x61A8, -2500 } }, 447 },
     { { { { 540, 0, 4060 }, { -792, 4017, 105 }, { -3982, -799, 530 } }, { -6040, 500, 440 } }, 230 },
     { { { { 668, 0, -4041 }, { -249, 4088, -41 }, { 4033, 252, 667 } }, { -940, 1450, 570 } }, 257 },

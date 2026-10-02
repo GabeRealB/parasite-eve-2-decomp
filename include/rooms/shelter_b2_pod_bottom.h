@@ -33,7 +33,7 @@ extern GpViewCountRec D_shelter_b2_pod_bottom_80181D30[];
 
 extern GpWarpRec D_shelter_b2_pod_bottom_80181D34[];
 
-extern GpViewRec D_shelter_b2_pod_bottom_80182B80[];
+extern ViewCamera D_shelter_b2_pod_bottom_80182B80[];
 
 extern SpriteView D_shelter_b2_pod_bottom_80185904[];
 

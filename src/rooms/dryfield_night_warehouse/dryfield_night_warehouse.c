@@ -155,7 +155,7 @@ WorldCollisionGrid D_dryfield_night_warehouse_8017EF08[1] = {
     { NULL, _gDryfieldNightWarehouseCollision01948Normals, _gDryfieldNightWarehouseCollision01948Verts, _gDryfieldNightWarehouseCollision01948Faces, _gDryfieldNightWarehouseCollision01948Table, 0, 4100, 2, 2, 4000, 39 },
 };
 
-GpViewRec D_dryfield_night_warehouse_8017EF2C[8] = {
+ViewCamera D_dryfield_night_warehouse_8017EF2C[8] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -3000, 7700, 2000 } }, 230 },
     { { { { -981, 0, 3976 }, { -168, 4092, -41 }, { -3972, -173, -981 } }, { -5338, 1066, 1266 } }, 207 },
     { { { { -832, 0, -4010 }, { -256, 4087, 53 }, { 4002, 262, -831 } }, { -288, 1366, 916 } }, 207 },

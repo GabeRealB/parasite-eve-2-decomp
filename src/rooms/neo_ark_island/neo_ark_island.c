@@ -151,7 +151,7 @@ WorldCollisionGrid D_neo_ark_island_801826C8[1] = {
     { NULL, _gNeoArkIslandCollision05108Normals, _gNeoArkIslandCollision05108Verts, _gNeoArkIslandCollision05108Faces, _gNeoArkIslandCollision05108Table, 5100, 7000, 4, 5, 4000, 61 },
 };
 
-GpViewRec D_neo_ark_island_801826EC[5] = {
+ViewCamera D_neo_ark_island_801826EC[5] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -4555, 0x7530, 800 } }, 447 },
     { { { { 4047, 0, 627 }, { 37, 4088, -243 }, { -626, 246, 4040 } }, { -3460, 985, -1480 } }, 257 },
     { { { { 4045, 0, 640 }, { 178, 3932, -1130 }, { -614, 1144, 3884 } }, { -3600, 1865, 2360 } }, 257 },

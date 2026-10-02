@@ -24,7 +24,7 @@ extern GpViewCountRec D_shelter_1f_parking_garage_80180C80[];
 
 extern GpWarpRec D_shelter_1f_parking_garage_80180C84[];
 
-extern GpViewRec D_shelter_1f_parking_garage_8018100C[];
+extern ViewCamera D_shelter_1f_parking_garage_8018100C[];
 
 extern SpriteView D_shelter_1f_parking_garage_80181430[];
 

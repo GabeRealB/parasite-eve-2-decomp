@@ -23,7 +23,7 @@ extern GpWarpRec D_shelter_r36_8017E9C4[];
 
 extern WorldCollisionGrid D_shelter_r36_8017EAB0;
 
-extern GpViewRec D_shelter_r36_8017EAD4[];
+extern ViewCamera D_shelter_r36_8017EAD4[];
 
 extern SpriteView D_shelter_r36_8017F318[];
 

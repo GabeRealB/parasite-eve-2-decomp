@@ -24,7 +24,7 @@ extern GpViewCountRec D_neo_ark_south_promenade_8017F708[];
 
 extern GpWarpRec D_neo_ark_south_promenade_8017F70C[];
 
-extern GpViewRec D_neo_ark_south_promenade_8017FDB0[];
+extern ViewCamera D_neo_ark_south_promenade_8017FDB0[];
 
 extern SpriteView D_neo_ark_south_promenade_801803E4[];
 

@@ -154,7 +154,7 @@ WorldCollisionGrid D_dryfield_garage_8017E64C[1] = {
     { NULL, gDryfieldGarageCollision0108CNormals, gDryfieldGarageCollision0108CVerts, gDryfieldGarageCollision0108CFaces, _gDryfieldGarageCollision0108CTable, 150, 0, 3, 3, 4000, 54 },
 };
 
-GpViewRec D_dryfield_garage_8017E670[15] = {
+ViewCamera D_dryfield_garage_8017E670[15] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -5508, 0x33C2, -3974 } }, 257 },
     { { { { 3382, 0, 2309 }, { 756, 3870, -1107 }, { -2182, 1340, 3196 } }, { -3863, 2161, -312 } }, 257 },
     { { { { 1352, 0, 3866 }, { 657, 4036, -230 }, { -3809, 696, 1332 } }, { -0x294D, 1921, -1936 } }, 257 },

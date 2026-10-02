@@ -24,7 +24,7 @@ extern GpViewCountRec D_dryfield_night_water_tank_8017EE78[];
 
 extern GpWarpRec D_dryfield_night_water_tank_8017EE7C[];
 
-extern GpViewRec D_dryfield_night_water_tank_8017F4D4[];
+extern ViewCamera D_dryfield_night_water_tank_8017F4D4[];
 
 extern SpriteView D_dryfield_night_water_tank_801801CC[];
 

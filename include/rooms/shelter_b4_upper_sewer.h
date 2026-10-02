@@ -33,7 +33,7 @@ extern GpWarpRec D_shelter_b4_upper_sewer_80186598[];
 
 extern WorldCollisionGrid D_shelter_b4_upper_sewer_80186EF8;
 
-extern GpViewRec D_shelter_b4_upper_sewer_80186F1C[];
+extern ViewCamera D_shelter_b4_upper_sewer_80186F1C[];
 
 extern SpriteView D_shelter_b4_upper_sewer_801879BC[];
 

@@ -964,7 +964,7 @@ WorldCollisionGrid D_shelter_b1_underground_parking_80189754[1] = {
     { NULL, _gShelterB1UndergroundParkingCollision0C194Normals, _gShelterB1UndergroundParkingCollision0C194Verts, _gShelterB1UndergroundParkingCollision0C194Faces, _gShelterB1UndergroundParkingCollision0C194Table, 5390, 8000, 5, 4, 4000, 30 },
 };
 
-GpViewRec D_shelter_b1_underground_parking_80189778[24] = {
+ViewCamera D_shelter_b1_underground_parking_80189778[24] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 6700, 0x7530, 0 } }, 207 },
     { { { { -3932, 0, 1145 }, { 423, 3805, 1453 }, { -1064, 1513, -3654 } }, { -2240, 3770, -1530 } }, 257 },
     { { { { -4068, 0, 470 }, { 169, 3820, 1468 }, { -439, 1477, -3794 } }, { -2330, 3770, -5560 } }, 230 },

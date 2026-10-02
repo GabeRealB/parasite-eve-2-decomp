@@ -1285,7 +1285,7 @@ SpriteView D_acropolis_fountain_8018375C[22] = {
     { { .empty = D_acropolis_fountain_8018374C }, D_acropolis_fountain_8018374C, NULL },
 };
 
-GpViewRec D_acropolis_fountain_80183864[21] = {
+ViewCamera D_acropolis_fountain_80183864[21] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x6B6C, 1550 } }, 464 },
     { { { { 4075, 0, -413 }, { -8, 4095, -82 }, { 413, 83, 4074 } }, { 4500, 978, 2629 } }, 257 },
     { { { { 2002, 0, 3572 }, { 389, 4071, -218 }, { -3551, 446, 1990 } }, { -110, 1231, 5550 } }, 230 },

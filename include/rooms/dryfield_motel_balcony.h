@@ -24,7 +24,7 @@ extern WorldCoordRoomLighting D_dryfield_motel_balcony_801822E8[];
 
 extern GpWarpRec D_dryfield_motel_balcony_801822F0[];
 
-extern GpViewRec D_dryfield_motel_balcony_80182B80[];
+extern ViewCamera D_dryfield_motel_balcony_80182B80[];
 
 extern SpriteView D_dryfield_motel_balcony_80185C98[];
 

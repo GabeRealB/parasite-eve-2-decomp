@@ -141,7 +141,7 @@ static s16* _gShelterB1PodServiceGantryCollision02C04Table[15] = {
 
 WorldCollisionGrid D_shelter_b1_pod_service_gantry_801801C4 = { NULL, _gShelterB1PodServiceGantryCollision02C04Normals, _gShelterB1PodServiceGantryCollision02C04Verts, _gShelterB1PodServiceGantryCollision02C04Faces, _gShelterB1PodServiceGantryCollision02C04Table, 1003, -1010, 5, 3, 4000, 30 };
 
-GpViewRec D_shelter_b1_pod_service_gantry_801801E8[46] = {
+ViewCamera D_shelter_b1_pod_service_gantry_801801E8[46] = {
     { { { { 1403, 0, 3848 }, { 2757, 2857, -1005 }, { -2684, 2934, 978 } }, { -0x2DC3, 4293, -2180 } }, 207 },
     { { { { 693, 0, 4036 }, { 392, 4076, -67 }, { -4017, 398, 690 } }, { -7410, 1510, -2610 } }, 289 },
     { { { { 1395, 0, -3850 }, { -456, 4067, -165 }, { 3823, 485, 1386 } }, { -2490, 1520, -2540 } }, 207 },

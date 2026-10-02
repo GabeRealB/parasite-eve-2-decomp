@@ -24,7 +24,7 @@ extern GpViewCountRec D_dryfield_night_underpass_8017DE54[];
 
 extern GpWarpRec D_dryfield_night_underpass_8017DE60[];
 
-extern GpViewRec D_dryfield_night_underpass_8017E6F8[];
+extern ViewCamera D_dryfield_night_underpass_8017E6F8[];
 
 extern SpriteView D_dryfield_night_underpass_8017F420[];
 

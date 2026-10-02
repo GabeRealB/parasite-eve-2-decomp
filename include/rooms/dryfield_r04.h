@@ -17,7 +17,7 @@ extern GpViewCountRec D_dryfield_r04_8017D5D8[];
 
 extern GpWarpRec D_dryfield_r04_8017D5E4[];
 
-extern GpViewRec D_dryfield_r04_8017E218[];
+extern ViewCamera D_dryfield_r04_8017E218[];
 
 extern SpriteView D_dryfield_r04_8017E280[];
 

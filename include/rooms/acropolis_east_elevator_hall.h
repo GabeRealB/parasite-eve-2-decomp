@@ -26,7 +26,7 @@ extern GpWarpRec D_acropolis_east_elevator_hall_80186340[];
 
 extern SpriteView D_acropolis_east_elevator_hall_80187870[];
 
-extern GpViewRec D_acropolis_east_elevator_hall_80187A5C[];
+extern ViewCamera D_acropolis_east_elevator_hall_80187A5C[];
 
 extern WorldCollisionSurfaceProperties* D_acropolis_east_elevator_hall_80187B74[];
 

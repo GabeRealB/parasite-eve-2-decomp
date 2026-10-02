@@ -233,7 +233,7 @@ WorldCollisionGrid D_shelter_b2_pod_access_tunnel_801841B4[1] = {
     { NULL, _gShelterB2PodAccessTunnelCollision06BF4Normals, _gShelterB2PodAccessTunnelCollision06BF4Verts, _gShelterB2PodAccessTunnelCollision06BF4Faces, _gShelterB2PodAccessTunnelCollision06BF4Table, -500, 0x2B8E, 2, 3, 4000, 17 },
 };
 
-GpViewRec D_shelter_b2_pod_access_tunnel_801841D8[7] = {
+ViewCamera D_shelter_b2_pod_access_tunnel_801841D8[7] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -4000, 0x36B0, 5500 } }, 230 },
     { { { { -3971, 0, -1003 }, { -45, 4091, 179 }, { 1002, 185, -3967 } }, { -949, 1422, 2295 } }, 230 },
     { { { { 3920, 0, -1185 }, { -147, 4064, -488 }, { 1176, 510, 3890 } }, { -899, 1609, 7345 } }, 230 },

@@ -180,7 +180,7 @@ WorldCollisionGrid D_shelter_b1_elevator_hall_80183414[1] = {
     { NULL, _gShelterB1ElevatorHallCollision05E54Normals, _gShelterB1ElevatorHallCollision05E54Verts, _gShelterB1ElevatorHallCollision05E54Faces, _gShelterB1ElevatorHallCollision05E54Table, 0x33A6, 1641, 7, 2, 4000, 32 },
 };
 
-GpViewRec D_shelter_b1_elevator_hall_80183438[9] = {
+ViewCamera D_shelter_b1_elevator_hall_80183438[9] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 20, 0x7530, -1740 } }, 329 },
     { { { { 1125, 0, 3938 }, { 1740, 3674, -497 }, { -3532, 1810, 1009 } }, { 5854, 2660, 842 } }, 230 },
     { { { { 1121, 0, 3939 }, { 444, 4069, -126 }, { -3914, 462, 1114 } }, { 561, 1452, 741 } }, 230 },

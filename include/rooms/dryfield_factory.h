@@ -23,7 +23,7 @@ extern GpViewCountRec D_dryfield_factory_80186F5C[];
 
 extern GpWarpRec D_dryfield_factory_80186F60[];
 
-extern GpViewRec D_dryfield_factory_80187C1C[];
+extern ViewCamera D_dryfield_factory_80187C1C[];
 
 extern SpriteView D_dryfield_factory_801895B0[];
 

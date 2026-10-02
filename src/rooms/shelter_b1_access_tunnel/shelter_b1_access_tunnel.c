@@ -182,7 +182,7 @@ static s16* _gShelterB1AccessTunnelCollision01564Table[9] = {
 
 WorldCollisionGrid D_shelter_b1_access_tunnel_8017EB24 = { NULL, _gShelterB1AccessTunnelCollision01564Normals, _gShelterB1AccessTunnelCollision01564Verts, _gShelterB1AccessTunnelCollision01564Faces, _gShelterB1AccessTunnelCollision01564Table, -10, -670, 3, 3, 4000, 15 };
 
-GpViewRec D_shelter_b1_access_tunnel_8017EB48[5] = {
+ViewCamera D_shelter_b1_access_tunnel_8017EB48[5] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -5000, 0x61A8, -5000 } }, 541 },
     { { { { -1316, 0, -3878 }, { -647, 4038, 219 }, { 3824, 683, -1298 } }, { -5060, 1800, -8530 } }, 289 },
     { { { { -751, 0, -4026 }, { -312, 4083, 58 }, { 4014, 318, -749 } }, { -110, 1580, -8360 } }, 289 },

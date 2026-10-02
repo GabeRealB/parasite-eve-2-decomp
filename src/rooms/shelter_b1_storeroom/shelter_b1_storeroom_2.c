@@ -186,7 +186,7 @@ WorldCollisionGrid D_shelter_b1_storeroom_801850D8[1] = {
     { NULL, _gShelterB1StoreroomCollision07B18Normals, _gShelterB1StoreroomCollision07B18Verts, _gShelterB1StoreroomCollision07B18Faces, _gShelterB1StoreroomCollision07B18Table, 5082, 3225, 4, 2, 4000, 26 },
 };
 
-GpViewRec D_shelter_b1_storeroom_801850FC[8] = {
+ViewCamera D_shelter_b1_storeroom_801850FC[8] = {
     { { { { 4096, 0, 0 }, { 0, 79, -4095 }, { 0, 4095, 79 } }, { -1330, 0x4498, 600 } }, 380 },
     { { { { -4076, 0, 397 }, { 181, 3645, 1858 }, { -353, 1867, -3628 } }, { -5703, 2542, -2371 } }, 230 },
     { { { { 467, 0, -4069 }, { -480, 4067, -55 }, { 4040, 483, 464 } }, { 3954, 1236, 1851 } }, 230 },

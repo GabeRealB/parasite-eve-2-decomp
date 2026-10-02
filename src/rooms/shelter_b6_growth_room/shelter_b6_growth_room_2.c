@@ -152,7 +152,7 @@ static s16* _gShelterB6GrowthRoomCollision02530Table[8] = {
 
 WorldCollisionGrid D_shelter_b6_growth_room_8017FAF0 = { NULL, _gShelterB6GrowthRoomCollision02530Normals, _gShelterB6GrowthRoomCollision02530Verts, _gShelterB6GrowthRoomCollision02530Faces, _gShelterB6GrowthRoomCollision02530Table, 500, 4000, 2, 4, 4000, 54 };
 
-GpViewRec D_shelter_b6_growth_room_8017FB14[8] = {
+ViewCamera D_shelter_b6_growth_room_8017FB14[8] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -2500, 0x61A8, -3500 } }, 289 },
     { { { { -4032, 0, 718 }, { 2, 4095, 13 }, { -718, 13, -4032 } }, { -3570, 1470, -8390 } }, 230 },
     { { { { 4076, 0, 402 }, { 2, 4095, -23 }, { -402, 23, 4076 } }, { -3490, 1430, -2020 } }, 230 },

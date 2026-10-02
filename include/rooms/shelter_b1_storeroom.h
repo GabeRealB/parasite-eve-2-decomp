@@ -24,7 +24,7 @@ extern GpViewCountRec D_shelter_b1_storeroom_80184B6C[];
 
 extern GpWarpRec D_shelter_b1_storeroom_80184B70[];
 
-extern GpViewRec D_shelter_b1_storeroom_801850FC[];
+extern ViewCamera D_shelter_b1_storeroom_801850FC[];
 
 extern SpriteView D_shelter_b1_storeroom_80186090[];
 

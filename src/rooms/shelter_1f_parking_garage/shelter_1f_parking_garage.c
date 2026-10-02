@@ -178,7 +178,7 @@ WorldCollisionGrid D_shelter_1f_parking_garage_80180FE8[1] = {
     { NULL, _gShelter1fParkingGarageCollision03A28Normals, _gShelter1fParkingGarageCollision03A28Verts, _gShelter1fParkingGarageCollision03A28Faces, _gShelter1fParkingGarageCollision03A28Table, 500, 6250, 4, 4, 4000, 13 },
 };
 
-GpViewRec D_shelter_1f_parking_garage_8018100C[4] = {
+ViewCamera D_shelter_1f_parking_garage_8018100C[4] = {
     { { { { 4095, 0, 0 }, { 0, 0, -4096 }, { 0, 4095, 0 } }, { 0, 0x5334, 0 } }, 207 },
     { { { { 1016, 0, -3967 }, { 94, 4094, 24 }, { 3966, -97, 1016 } }, { -140, 1010, 1370 } }, 257 },
     { { { { 270, 0, -4087 }, { -2037, 3551, -134 }, { 3543, 2041, 234 } }, { -4450, 3000, -1030 } }, 257 },

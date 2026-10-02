@@ -79,7 +79,7 @@ static s16* _gShelterB2BreedingRoomCollision03B34Table[12] = {
 
 WorldCollisionGrid D_shelter_b2_breeding_room_801810F4 = { NULL, _gShelterB2BreedingRoomCollision03B34Normals, _gShelterB2BreedingRoomCollision03B34Verts, _gShelterB2BreedingRoomCollision03B34Faces, _gShelterB2BreedingRoomCollision03B34Table, 890, 2602, 4, 3, 4000, 75 };
 
-GpViewRec D_shelter_b2_breeding_room_80181118[10] = {
+ViewCamera D_shelter_b2_breeding_room_80181118[10] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -6200, 0x7530, -1480 } }, 564 },
     { { { { -3857, 0, 1377 }, { 1258, 1663, 3524 }, { -559, 3742, -1566 } }, { -1443, 4445, -344 } }, 230 },
     { { { { -4069, 0, -460 }, { 13, 4094, -119 }, { 460, -120, -4068 } }, { -1354, 1031, -4688 } }, 230 },

@@ -243,7 +243,7 @@ static s16* _gShelterB2OperatingRoomCollision03DA4Table[8] = {
 
 WorldCollisionGrid D_shelter_b2_operating_room_80181364 = { NULL, _gShelterB2OperatingRoomCollision03DA4Normals, _gShelterB2OperatingRoomCollision03DA4Verts, _gShelterB2OperatingRoomCollision03DA4Faces, _gShelterB2OperatingRoomCollision03DA4Table, 1000, 0, 4, 2, 4000, 42 };
 
-GpViewRec D_shelter_b2_operating_room_80181388[12] = {
+ViewCamera D_shelter_b2_operating_room_80181388[12] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -5500, 0x5208, -3500 } }, 380 },
     { { { { -4023, 0, -767 }, { 132, 4034, -694 }, { 755, -707, -3963 } }, { -9754, 492, -5270 } }, 230 },
     { { { { 3968, 0, -1013 }, { 80, 4083, 313 }, { 1010, -324, 3956 } }, { -9594, 639, -681 } }, 230 },

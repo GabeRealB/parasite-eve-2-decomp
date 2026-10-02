@@ -531,7 +531,7 @@ SpriteView D_acropolis_fire_escape_80182E18[10] = {
     { { .empty = D_acropolis_fire_escape_80182DE4 }, D_acropolis_fire_escape_80182DE4, NULL },
 };
 
-GpViewRec D_acropolis_fire_escape_80182E90[9] = {
+ViewCamera D_acropolis_fire_escape_80182E90[9] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 1200, 0x7530, -1600 } }, 680 },
     { { { { -4039, 0, 676 }, { 308, 3645, 1842 }, { -602, 1868, -3595 } }, { -2490, 2330, -2698 } }, 230 },
     { { { { 4020, 0, 784 }, { 142, 4028, -728 }, { -771, 742, 3953 } }, { -2414, 1819, 1108 } }, 230 },

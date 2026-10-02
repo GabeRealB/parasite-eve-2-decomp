@@ -191,7 +191,7 @@ WorldCollisionGrid D_neo_ark_substation_8017E8A4[1] = {
     { NULL, _gNeoArkSubstationCollision012E4Normals, _gNeoArkSubstationCollision012E4Verts, _gNeoArkSubstationCollision012E4Faces, _gNeoArkSubstationCollision012E4Table, 100, 0x2EE0, 3, 4, 4000, 25 },
 };
 
-GpViewRec D_neo_ark_substation_8017E8C8[8] = {
+ViewCamera D_neo_ark_substation_8017E8C8[8] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -4500, 0x55F0, 6000 } }, 289 },
     { { { { -1290, 0, 3887 }, { 3321, 2127, 1102 }, { -2019, 3500, -670 } }, { -2841, 4068, 609 } }, 257 },
     { { { { -806, 0, -4015 }, { -3023, 2695, 606 }, { 2643, 3083, -530 } }, { -341, 3748, 1039 } }, 257 },

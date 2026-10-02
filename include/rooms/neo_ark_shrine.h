@@ -24,7 +24,7 @@ extern GpViewCountRec D_neo_ark_shrine_80182808[];
 
 extern GpWarpRec D_neo_ark_shrine_80182814[];
 
-extern GpViewRec D_neo_ark_shrine_801836BC[];
+extern ViewCamera D_neo_ark_shrine_801836BC[];
 
 extern SpriteView D_neo_ark_shrine_80185280[];
 

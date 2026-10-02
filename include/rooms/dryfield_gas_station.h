@@ -24,7 +24,7 @@ extern GpViewCountRec D_dryfield_gas_station_80183168[];
 
 extern GpWarpRec D_dryfield_gas_station_8018316C[];
 
-extern GpViewRec D_dryfield_gas_station_80183EC8[];
+extern ViewCamera D_dryfield_gas_station_80183EC8[];
 
 extern SpriteView D_dryfield_gas_station_801842A8[];
 

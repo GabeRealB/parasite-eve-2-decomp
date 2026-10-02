@@ -148,7 +148,7 @@ WorldCollisionGrid D_neo_ark_north_promenade_801823EC[1] = {
     { NULL, _gNeoArkNorthPromenadeCollision04E2CNormals, _gNeoArkNorthPromenadeCollision04E2CVerts, _gNeoArkNorthPromenadeCollision04E2CFaces, _gNeoArkNorthPromenadeCollision04E2CTable, -700, -700, 4, 4, 4000, 31 },
 };
 
-GpViewRec D_neo_ark_north_promenade_80182410[6] = {
+ViewCamera D_neo_ark_north_promenade_80182410[6] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -7000, 0x58D6, -7000 } }, 289 },
     { { { { -462, 0, 4069 }, { -44, 4095, -5 }, { -4069, -45, -462 } }, { -8700, 1302, -0x2EE0 } }, 289 },
     { { { { -413, 0, 4075 }, { -220, 4089, -22 }, { -4069, -221, -413 } }, { -0x319C, 1202, -0x2E18 } }, 289 },
