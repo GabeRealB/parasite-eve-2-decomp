@@ -361,18 +361,18 @@ TaskDesc D_shelter_b4_reservoir_80184F84[1] = {
 
 RoomWaterSurface D_shelter_b4_reservoir_80184F90[2] = {
     { -980, -5900, 2023, 9900, 0 },
-    { 0, 0, 0, 0, -1 },
+    { 0, 0, 0, 0, WATER_SURFACE_LIST_END },
 };
 
 RoomWaterSurface D_shelter_b4_reservoir_80184FA8[3] = {
     { 1037, -5900, 950, 0x2E18, 64 },
     { 1987, -5900, 950, 0x2E18, 64 },
-    { 0, 0, 0, 0, -1 },
+    { 0, 0, 0, 0, WATER_SURFACE_LIST_END },
 };
 
 RoomWaterSurface D_shelter_b4_reservoir_80184FCC[2] = {
     { 2940, -3900, 2900, 1800, 16 },
-    { 0, 0, 0, 0, -1 },
+    { 0, 0, 0, 0, WATER_SURFACE_LIST_END },
 };
 
 RoomWaterSurface D_shelter_b4_reservoir_80184FE4[5] = {
@@ -380,7 +380,7 @@ RoomWaterSurface D_shelter_b4_reservoir_80184FE4[5] = {
     { -1028, 3100, 2428, 4800, 64 },
     { -1028, -5900, 2428, 9000, 1 },
     { 788, -5900, 1500, 3800, 1 },
-    { 0, 0, 0, 0, -1 },
+    { 0, 0, 0, 0, WATER_SURFACE_LIST_END },
 };
 
 s16 D_shelter_b4_reservoir_80185020[2] = {
@@ -1298,7 +1298,7 @@ static void func_shelter_b4_reservoir_8017E8E4(void)
 
 static void func_shelter_b4_reservoir_8017E8EC(Task* task)
 {
-    RoomWaterSurface* p = D_shelter_b4_reservoir_80184F90;
+    RoomWaterSurface* surface = D_shelter_b4_reservoir_80184F90;
 
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
         D_shelter_b4_reservoir_80187630 = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * 0xC000;
@@ -1306,7 +1306,7 @@ static void func_shelter_b4_reservoir_8017E8EC(Task* task)
         D_shelter_b4_reservoir_80187630 = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * 0xC000;
     }
     if (gGameSession->location.loc.view != 0xA) {
-        p->depth = 0x2328 - (((D_shelter_b4_reservoir_80184F80 + 0x7D0) * 0x31) >> 5);
+        surface->depth = 0x2328 - (((D_shelter_b4_reservoir_80184F80 + 0x7D0) * 0x31) >> 5);
         func_shelter_b4_reservoir_8017EA00(task);
         func_shelter_b4_reservoir_8017EE04(task);
         func_shelter_b4_reservoir_8017F23C(task);
@@ -1331,13 +1331,13 @@ static void func_shelter_b4_reservoir_8017EA00(Task* task)
     long              p, flag;
     u8*               head;
     _SurfaceScratch*  s;
-    RoomWaterSurface* e;
+    RoomWaterSurface* surface;
     POLY_F4*          poly;
     DR_MODE*          dr;
     s32               otz;
     s32               i;
 
-    e                          = D_shelter_b4_reservoir_80184F90;
+    surface                    = D_shelter_b4_reservoir_80184F90;
     head                       = SCRATCH_STACK_CURSOR(u8);
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_STACK_CURSOR(u8)   = head - 0xC;
@@ -1346,11 +1346,11 @@ static void func_shelter_b4_reservoir_8017EA00(Task* task)
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     ((_SurfaceScratch*)(head - 0xC))->y = D_shelter_b4_reservoir_80184F80;
-    for (; e->count != -1; e++) {
-        s->dx   = e->width;
-        s->step = e->depth / 32;
-        s->x    = e->x + D_shelter_b4_reservoir_80185020[0];
-        s->z    = e->z;
+    for (; surface->segmentCount != WATER_SURFACE_LIST_END; surface++) {
+        s->dx   = surface->width;
+        s->step = surface->depth / 32;
+        s->x    = surface->x + D_shelter_b4_reservoir_80185020[0];
+        s->z    = surface->z;
         for (i = 0; i < 32; i++) {
             v0.vx = s->x;
             v0.vy = s->y;
@@ -1394,7 +1394,7 @@ static void func_shelter_b4_reservoir_8017EA00(Task* task)
 }
 
 /// Same strip renderer as `func_shelter_b4_reservoir_8017EA00`, driven by
-/// `D_shelter_b4_reservoir_80184FA8`: each surface's `field_8` gives its quad
+/// `D_shelter_b4_reservoir_80184FA8`: each surface's `segmentCount` gives its quad
 /// count, and its X is used as stored rather than offset. `task` is unused.
 static void func_shelter_b4_reservoir_8017EE04(Task* task)
 {
@@ -1403,13 +1403,13 @@ static void func_shelter_b4_reservoir_8017EE04(Task* task)
     long              p, flag;
     u8*               head;
     _SurfaceScratch*  s;
-    RoomWaterSurface* e;
+    RoomWaterSurface* surface;
     POLY_F4*          poly;
     DR_MODE*          dr;
     s32               otz;
     s32               i;
 
-    e                          = D_shelter_b4_reservoir_80184FA8;
+    surface                    = D_shelter_b4_reservoir_80184FA8;
     head                       = SCRATCH_STACK_CURSOR(u8);
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_STACK_CURSOR(u8)   = head - 0xC;
@@ -1418,12 +1418,12 @@ static void func_shelter_b4_reservoir_8017EE04(Task* task)
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     ((_SurfaceScratch*)(head - 0xC))->y = D_shelter_b4_reservoir_80184F80;
-    for (; e->count != -1; e++) {
-        s->dx   = e->width;
-        s->step = e->depth / e->count;
-        s->x    = e->x;
-        s->z    = e->z;
-        for (i = 0; i < e->count; i++) {
+    for (; surface->segmentCount != WATER_SURFACE_LIST_END; surface++) {
+        s->dx   = surface->width;
+        s->step = surface->depth / surface->segmentCount;
+        s->x    = surface->x;
+        s->z    = surface->z;
+        for (i = 0; i < surface->segmentCount; i++) {
             v0.vx = s->x;
             v0.vy = s->y;
             v0.vz = s->z + s->step * i;
@@ -1467,7 +1467,7 @@ static void func_shelter_b4_reservoir_8017EE04(Task* task)
 
 /// Strip renderer like `func_shelter_b4_reservoir_8017EE04`, driven by
 /// `D_shelter_b4_reservoir_80184FCC`, but laid along X instead of Z: each
-/// surface's `field_4` is divided into `field_8` quads, and `field_6` is the
+/// surface's `width` is divided into `segmentCount` quads, and `depth` is the
 /// extent along Z. The scratch fields `dx` and `step` therefore hold the X step
 /// and the Z extent here. `task` is unused.
 static void func_shelter_b4_reservoir_8017F23C(Task* task)
@@ -1477,13 +1477,13 @@ static void func_shelter_b4_reservoir_8017F23C(Task* task)
     long              p, flag;
     u8*               head;
     _SurfaceScratch*  s;
-    RoomWaterSurface* e;
+    RoomWaterSurface* surface;
     POLY_F4*          poly;
     DR_MODE*          dr;
     s32               otz;
     s32               i;
 
-    e                          = D_shelter_b4_reservoir_80184FCC;
+    surface                    = D_shelter_b4_reservoir_80184FCC;
     head                       = SCRATCH_STACK_CURSOR(u8);
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_STACK_CURSOR(u8)   = head - 0xC;
@@ -1492,12 +1492,12 @@ static void func_shelter_b4_reservoir_8017F23C(Task* task)
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     ((_SurfaceScratch*)(head - 0xC))->y = D_shelter_b4_reservoir_80184F80;
-    for (; e->count != -1; e++) {
-        s->dx   = e->width / e->count;
-        s->step = e->depth;
-        s->x    = e->x;
-        s->z    = e->z;
-        for (i = 0; i < e->count; i++) {
+    for (; surface->segmentCount != WATER_SURFACE_LIST_END; surface++) {
+        s->dx   = surface->width / surface->segmentCount;
+        s->step = surface->depth;
+        s->x    = surface->x;
+        s->z    = surface->z;
+        for (i = 0; i < surface->segmentCount; i++) {
             v0.vx = s->x + s->dx * i;
             v0.vy = s->y;
             v0.vz = s->z;
@@ -1551,14 +1551,14 @@ static void func_shelter_b4_reservoir_8017F674(Task* task)
     long              p, flag;
     u8*               head;
     _SurfaceScratch*  s;
-    RoomWaterSurface* e;
+    RoomWaterSurface* surface;
     POLY_F4*          poly;
     DR_MODE*          dr;
     s32               otz;
     s32               i;
     u8                c;
 
-    e                          = D_shelter_b4_reservoir_80184FE4;
+    surface                    = D_shelter_b4_reservoir_80184FE4;
     head                       = SCRATCH_STACK_CURSOR(u8);
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_STACK_CURSOR(u8)   = head - 0xC;
@@ -1568,12 +1568,12 @@ static void func_shelter_b4_reservoir_8017F674(Task* task)
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     ((_SurfaceScratch*)(head - 0xC))->y = D_shelter_b4_reservoir_80184F82;
     c                                   = -(D_shelter_b4_reservoir_80184F82 * 16) / 225;
-    for (; e->count != -1; e++) {
-        s->dx   = e->width;
-        s->step = e->depth / e->count;
-        s->x    = e->x;
-        s->z    = e->z;
-        for (i = 0; i < e->count; i++) {
+    for (; surface->segmentCount != WATER_SURFACE_LIST_END; surface++) {
+        s->dx   = surface->width;
+        s->step = surface->depth / surface->segmentCount;
+        s->x    = surface->x;
+        s->z    = surface->z;
+        for (i = 0; i < surface->segmentCount; i++) {
             v0.vx = s->x;
             v0.vy = s->y;
             v0.vz = s->z + s->step * i;

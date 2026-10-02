@@ -165,16 +165,22 @@ typedef struct RoomWaterScratch {
 } RoomWaterScratch;
 STATIC_ASSERT_SIZEOF(RoomWaterScratch, 0xC);
 
-/// One water surface in the list a room's water drawer walks: a rectangle at
-/// (`x`, `z`) spanning `width` along X and `depth` along Z. A drawer that cuts
-/// surfaces into a varying number of quads takes that number from `count`;
-/// every list ends at an entry whose `count` is -1.
-typedef struct RoomWaterSurface {
-    s16 x;
-    s16 z;
-    s16 width;
-    s16 depth;
-    s32 count;
+/// Marker in `RoomWaterSurface::segmentCount` that terminates a surface list.
+enum { WATER_SURFACE_LIST_END = -1 };
+
+/// A rectangular water patch in world coordinates, with height supplied by its drawer.
+///
+/// Tables include a final entry with `segmentCount == WATER_SURFACE_LIST_END`;
+/// the other fields of that entry are not read. Variable strip drawers require
+/// a positive `segmentCount` and divide either `width` or `depth` by it using
+/// integer division. The drawer selects the subdivision axis. Fixed strip
+/// drawers ignore the count except for the terminator; their entries store 0.
+typedef struct {
+    s16 x;            // Starting X in world units, before any drawer-specific offset
+    s16 z;            // Starting Z in world units
+    s16 width;        // Extent along +X in world units
+    s16 depth;        // Extent along +Z in world units
+    s32 segmentCount; // Subdivisions (>0 variable, 0 unused in fixed drawers, -1 list end)
 } RoomWaterSurface;
 STATIC_ASSERT_SIZEOF(RoomWaterSurface, 0xC);
 

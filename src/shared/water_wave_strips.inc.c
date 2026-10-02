@@ -6,6 +6,14 @@
 #ifndef WATER_WAVE_STRIPS_SURFACE_T
 #define WATER_WAVE_STRIPS_SURFACE_T RoomWaterSurface
 #endif
+#ifndef WATER_WAVE_STRIPS_SEGMENT_COUNT
+/// Reads the signed subdivision/list marker from `WATER_WAVE_STRIPS_SURFACE_T`.
+///
+/// Fixed strips use it only to detect `WATER_SURFACE_LIST_END`. An alternate
+/// surface format supplies this accessor along with its type binding; the
+/// accessor must evaluate its pointer argument once and preserve signedness.
+#define WATER_WAVE_STRIPS_SEGMENT_COUNT(surface) ((surface)->segmentCount)
+#endif
 #ifndef WATER_WAVE_STRIPS_OWN_CURSOR
 #define WATER_WAVE_STRIPS_OWN_CURSOR 0
 #endif
@@ -57,7 +65,7 @@ static void WATER_WAVE_STRIPS_FUNC(Task* task)
     long                         sxy0, sxy1, sxy2, sxy3;
     long                         p, flag;
     s32                          phase;
-    WATER_WAVE_STRIPS_SURFACE_T* e;
+    WATER_WAVE_STRIPS_SURFACE_T* surface;
     RoomWaterScratch*            w;
     u8*                          head;
     POLY_G4*                     poly;
@@ -69,9 +77,9 @@ static void WATER_WAVE_STRIPS_FUNC(Task* task)
 #endif
 
 #if WATER_WAVE_STRIPS_OWN_CURSOR
-    e     = WATER_WAVE_STRIPS_SURFACES;
-    phase = -(gDisplayState.animFrame * 16);
-    k     = &gGameSession->location.loc;
+    surface = WATER_WAVE_STRIPS_SURFACES;
+    phase   = -(gDisplayState.animFrame * 16);
+    k       = &gGameSession->location.loc;
     /* not drawn in views 10 and 11 of stage 4, area 0x21 */
     if (k->stage == 4) {
         if (k->area == 0x21) {
@@ -89,7 +97,7 @@ static void WATER_WAVE_STRIPS_FUNC(Task* task)
     head                       = SCRATCH_STACK_CURSOR(u8);
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
 #else
-    e                          = WATER_WAVE_STRIPS_SURFACES;
+    surface                    = WATER_WAVE_STRIPS_SURFACES;
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     head                       = SCRATCH_STACK_CURSOR(u8);
     phase                      = -(gDisplayState.animFrame * 16);
@@ -100,11 +108,11 @@ static void WATER_WAVE_STRIPS_FUNC(Task* task)
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     w->y = WATER_WAVE_STRIPS_HEIGHT;
-    for (; e->count != -1; e++) {
-        w->dx = e->width / 2;
-        w->dz = e->depth / 16;
-        w->x  = e->x;
-        w->z  = e->z;
+    for (; WATER_WAVE_STRIPS_SEGMENT_COUNT(surface) != WATER_SURFACE_LIST_END; surface++) {
+        w->dx = surface->width / 2;
+        w->dz = surface->depth / 16;
+        w->x  = surface->x;
+        w->z  = surface->z;
         for (i = 0; i < 16; i++) {
             v0.vx   = w->x;
             v0.vy   = w->y;
@@ -187,6 +195,7 @@ static void WATER_WAVE_STRIPS_FUNC(Task* task)
 #undef WATER_WAVE_STRIPS_NEAR_COLOURS
 #undef WATER_WAVE_STRIPS_FAR_COLOURS
 #undef WATER_WAVE_STRIPS_SURFACE_T
+#undef WATER_WAVE_STRIPS_SEGMENT_COUNT
 #undef WATER_WAVE_STRIPS_OWN_CURSOR
 #undef WATER_WAVE_STRIPS_WAVE_SHIFT
 #undef WATER_WAVE_STRIPS_PRIM_CURSOR

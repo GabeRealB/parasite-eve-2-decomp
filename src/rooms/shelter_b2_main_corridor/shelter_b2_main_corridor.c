@@ -250,7 +250,7 @@ RoomWaterSurface D_shelter_b2_main_corridor_80182DEC[5] = {
     { 900, -0x3C8C, 1500, 4500, 0 },
     { -2400, -8800, 1600, 5600, 0 },
     { 900, -8800, 1500, 5600, 0 },
-    { 0, 0, 0, 0, -1 },
+    { 0, 0, 0, 0, WATER_SURFACE_LIST_END },
 };
 
 s16 D_shelter_b2_main_corridor_80182E28 = 150;

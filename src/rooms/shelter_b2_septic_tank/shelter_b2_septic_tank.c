@@ -227,13 +227,13 @@ TaskDesc D_shelter_b2_septic_tank_801832C0[1] = {
 RoomWaterSurface D_shelter_b2_septic_tank_801832CC[3] = {
     { -3500, -0x34BC, 2500, 7000, 0 },
     { 1100, -0x34BC, 2400, 7000, 0 },
-    { 0, 0, 0, 0, -1 },
+    { 0, 0, 0, 0, WATER_SURFACE_LIST_END },
 };
 
 RoomWaterSurface D_shelter_b2_septic_tank_801832F0[3] = {
     { -3500, -6500, 2500, 7000, 0 },
     { 1100, -6500, 2400, 7000, 0 },
-    { 0, 0, 0, 0, -1 },
+    { 0, 0, 0, 0, WATER_SURFACE_LIST_END },
 };
 
 SVECTOR D_shelter_b2_septic_tank_80183314[6] = {

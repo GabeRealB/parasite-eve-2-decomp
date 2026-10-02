@@ -1014,11 +1014,13 @@ static s32 func_shelter_b4_water_supply_8017DDFC(RoomEventMsg* in, RoomEventMsg*
     return 1;
 }
 
-#define WATER_WAVE_STRIPS_SURFACE_T   ShelterB4WaterSupplySurface
-#define WATER_WAVE_STRIPS_SURFACES    D_shelter_b4_water_supply_80182648
-#define WATER_WAVE_STRIPS_HEIGHT      D_shelter_b4_water_supply_80182638
-#define WATER_WAVE_STRIPS_PRIM_CURSOR D_shelter_b4_water_supply_80184E50
-#define WATER_WAVE_STRIPS_WAVE_SHIFT  6
+#define WATER_WAVE_STRIPS_SURFACE_T ShelterB4WaterSupplySurface
+// This room's 10-byte surface format keeps the list marker in a signed halfword.
+#define WATER_WAVE_STRIPS_SEGMENT_COUNT(surface) ((surface)->count)
+#define WATER_WAVE_STRIPS_SURFACES               D_shelter_b4_water_supply_80182648
+#define WATER_WAVE_STRIPS_HEIGHT                 D_shelter_b4_water_supply_80182638
+#define WATER_WAVE_STRIPS_PRIM_CURSOR            D_shelter_b4_water_supply_80184E50
+#define WATER_WAVE_STRIPS_WAVE_SHIFT             6
 #include "../../shared/water_wave_strips.inc.c"
 
 /// Draws each surface in `D_shelter_b4_water_supply_8018265C` at height
