@@ -1,9 +1,14 @@
 #ifndef GAMEPLAY_EFFECT_TASKS_H
 #define GAMEPLAY_EFFECT_TASKS_H
 
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+
 #include "types.h"
 
 #include "gameplay/effects.h"
+#include "gameplay/room_effects.h"
 
 #include "main/coord.h"
 #include "main/task_types.h"
@@ -17,9 +22,19 @@ enum {
     /// Use this count for horizontal and vertical frame-origin strides.
     /// The last texel is `EFFECT_SPRITE_ATLAS_UV_SPAN` past the origin;
     /// adjacent cells begin immediately after that texel.
-    EFFECT_SPRITE_ATLAS_CELL_SIZE    = 40,
-    EFFECT_SPRITE_ATLAS_UV_SPAN      = EFFECT_SPRITE_ATLAS_CELL_SIZE - 1, // Inclusive texel distance between edges.
-    EFFECT_SPRITE_ATLAS_TEXTURE_PAGE = 0x29,                              // 4-bit VRAM (576, 0); additive blending.
+    EFFECT_SPRITE_ATLAS_CELL_SIZE = 40,
+    EFFECT_SPRITE_ATLAS_UV_SPAN   = EFFECT_SPRITE_ATLAS_CELL_SIZE - 1, // Inclusive texel distance between edges.
+};
+
+/// GPU texture-page word for drawing the shared effect sprite atlas additively.
+///
+/// Selects 4-bit indexed texels at VRAM X=576 words, Y=0 scanlines and
+/// `GPU_BLEND_ADD`. Write this packed value directly to a textured primitive's
+/// `tpage`; UV coordinates are relative texels and the CLUT is selected separately.
+/// Blending also requires the primitive's semitransparency bit to be enabled;
+/// only texture colours with bit 15 set blend with the framebuffer.
+enum {
+    EFFECT_SPRITE_ATLAS_TEXTURE_PAGE = getTPage(0, GPU_BLEND_ADD, 576, 0),
 };
 
 /// UV origins and palettes for the shared twelve-frame effect sprite atlas.

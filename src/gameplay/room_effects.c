@@ -13,7 +13,6 @@
 #include "gameplay/actor_render.h"
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
-#include "gameplay/effect_tasks.h"
 #include "effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/hud_sprites.h"
@@ -441,6 +440,7 @@ s32 D_80115754;
 
 s32 D_80115758;
 
+#include "gameplay/effect_tasks.h"
 #include "gameplay/room_effects.h"
 
 extern s32 D_80111B70[20];
