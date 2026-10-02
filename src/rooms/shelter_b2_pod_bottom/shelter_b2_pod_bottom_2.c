@@ -33,6 +33,7 @@
 #include "../../shared/effect_sprite.h"
 
 static void _effectSpriteDrawBanked(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
+static void _effectSpriteDrawRotated(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
 
 /// 0x120-byte scratch block `func_shelter_b2_pod_bottom_80180A4C` takes from
 /// the scratch stack: the 32 rotated ring points and the disc centre, the
@@ -283,73 +284,8 @@ void func_shelter_b2_pod_bottom_8017D760(Task* task)
 #define EFFECT_SPRITE_BANKED_DEPTH_BIAS      1
 #include "../../shared/effect_sprite_draw_banked.inc.c"
 
-/// Draws a camera-facing sprite at `arg0`'s world position: the point is
-/// projected through `GsWSMATRIX` into a scratch block popped from
-/// the scratch stack and, when the GTE flag is non-negative, one `POLY_FT4` is
-/// queued one depth step behind it. Its corners sit on two perpendicular screen
-/// radii at angles `arg3` and `arg3 + 0x400`, of length `arg2 * 47` divided by
-/// the depth. The low 12 bits of `arg1` pick a 48x48 cell of a five-column
-/// texture grid, and the bits above them select the alternate CLUT.
-void effectSpriteDrawRotated(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
-{
-    EffectShapeScratch* head;
-    EffectShapeScratch* block;
-    POLY_FT4*           prim;
-    u16                 col;
-    u16                 row;
-    s32                 u0;
-    s32                 v0;
-    s32                 ang;
-    s32                 ang2;
-    u16                 bank;
-
-    bank                       = arg1 >> 12;
-    arg1                      &= 0xFFF;
-    head                       = SCRATCH_STACK_CURSOR(EffectShapeScratch);
-    (head - 1)->worldPoint.vx  = arg0->workm.t[0];
-    SCRATCH_STACK_CURSOR(void) = head - 1;
-    block                      = SCRATCH_STACK_CURSOR(EffectShapeScratch);
-    block->worldPoint.vy       = arg0->workm.t[1];
-    block->worldPoint.vz       = arg0->workm.t[2];
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->worldPoint);
-    gte_rtps();
-    gte_stsxy(&(head - 1)->screenX);
-    gte_stflg(&(head - 1)->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&(head - 1)->depth);
-        block->depth++;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2F);
-        prim->tpage = 0x2C;
-        prim->clut  = bank ? 0x428F : 0x43D0;
-        col         = arg1 % 5;
-        row         = arg1 / 5;
-        ang         = arg3;
-        u0          = col * 0x30;
-        v0          = row * 0x30;
-        setUV4(prim, u0, v0 - 0x80, u0 + 0x2F, v0 - 0x80, u0, v0 - 0x51, u0 + 0x2F, v0 - 0x51);
-        block->extent.corner.x = (((arg2 * 47) / block->depth) * rsin(ang)) >> 12;
-        block->extent.corner.y = (((arg2 * 47) / block->depth) * rcos(ang)) >> 12;
-        prim->x0               = block->screenX + (u16)block->extent.corner.x;
-        prim->x3               = block->screenX - (u16)block->extent.corner.x;
-        prim->y0               = block->screenY - (u16)block->extent.corner.y;
-        prim->y3               = block->screenY + (u16)block->extent.corner.y;
-        ang2                   = ang + 0x400;
-        block->extent.corner.x = (((arg2 * 47) / block->depth) * rsin(ang2)) >> 12;
-        block->extent.corner.y = (((arg2 * 47) / block->depth) * rcos(ang2)) >> 12;
-        prim->x1               = block->screenX + (u16)block->extent.corner.x;
-        prim->x2               = block->screenX - (u16)block->extent.corner.x;
-        prim->y1               = block->screenY - (u16)block->extent.corner.y;
-        prim->y2               = block->screenY + (u16)block->extent.corner.y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
-}
+#define EFFECT_SPRITE_ROTATED_DEPTH_BIAS 1
+#include "../../shared/effect_sprite_draw_rotated.inc.c"
 
 /// Draws a glowing band: two 16-vertex rings in the XZ plane, the inner of
 /// radius `arg1` at a height of -0x180 and the outer of radius `arg1 + 0x200`

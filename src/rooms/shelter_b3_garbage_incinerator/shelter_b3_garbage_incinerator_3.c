@@ -68,6 +68,7 @@
 #include "../../shared/glow_draw.h"
 
 static void _effectSpriteDrawBanked(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
+static void _effectSpriteDrawRotated(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
 
 #define D_shelter_b3_garbage_incinerator_8018754C (D_shelter_b3_garbage_incinerator_80187544 + 1)
 #define D_shelter_b3_garbage_incinerator_80187554 (D_shelter_b3_garbage_incinerator_80187544 + 2)

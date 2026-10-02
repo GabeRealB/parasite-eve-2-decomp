@@ -54,6 +54,7 @@
 #include "../../shared/effect_sprite.h"
 
 static void _effectSpriteDrawBanked(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
+static void _effectSpriteDrawRotated(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
 
 /// The beam placements the view-dependent beam task draws for camera views 2,
 /// 3/6 and 4/7: pairs of end points, of which each view draws a subset.

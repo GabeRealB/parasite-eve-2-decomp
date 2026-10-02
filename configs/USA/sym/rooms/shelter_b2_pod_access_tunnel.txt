@@ -103,5 +103,5 @@ RoomFx_DrawTwinTrail = 0x80182B80; // type:func
 RoomFx_DrawBurstStar = 0x80183200; // type:func
 glowDrawCone = 0x8017DF64; // type:func
 roomEventStagedTask = 0x8017D62C; // type:func
-effectSpriteDrawRotated = 0x8017F1BC; // type:func
+_effectSpriteDrawRotated = 0x8017F1BC; // type:func
 _effectSpriteDrawBanked = 0x8017ED5C; // type:func

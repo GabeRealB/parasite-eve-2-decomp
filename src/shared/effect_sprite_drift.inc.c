@@ -4,7 +4,7 @@
  *
  * A room whose gameplay table names its own task defines
  * EFFECT_SPRITE_DRIFT_TASK to that name; EFFECT_SPRITE_DRIFT_DRAW_A / _B name the room's own
- * drawers when it does not use _effectSpriteDrawBanked / effectSpriteDrawRotated.
+ * drawers when it does not use _effectSpriteDrawBanked / _effectSpriteDrawRotated.
  * Shelter R48 enables EFFECT_SPRITE_DRIFT_SIGN_BANK; see its definition for
  * the spawn-argument and suspended-draw contract.
  * Shelter R48 enables EFFECT_SPRITE_DRIFT_FIXED_NEGATIVE_Y_ACCELERATION;
@@ -17,12 +17,12 @@
 #define EFFECT_SPRITE_DRIFT_DRAW_A _effectSpriteDrawBanked
 #endif
 #ifndef EFFECT_SPRITE_DRIFT_DRAW_B
-#define EFFECT_SPRITE_DRIFT_DRAW_B effectSpriteDrawRotated
+#define EFFECT_SPRITE_DRIFT_DRAW_B _effectSpriteDrawRotated
 #endif
 
 /// Per-frame handler for one animated sprite effect, drawn by
 /// `_effectSpriteDrawBanked` (state 1) or
-/// `effectSpriteDrawRotated` (state 2). By default its first frame unpacks
+/// `_effectSpriteDrawRotated` (state 2). By default its first frame unpacks
 /// `spawnArg1`: the low 12 bits are the sprite size, bits 12..14 the frames per
 /// animation cell (1 when zero), bits 28..30 are kept as the drawer's clut
 /// selector, and the sign bit picks the second drawer. When the work block

@@ -14,8 +14,6 @@
 
 #include "main/coord.h"
 
-void effectSpriteDrawRotated(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-
 void effectSpriteDrawChip(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 
 // Select the carrier's billboard signature before the first inclusion: either
