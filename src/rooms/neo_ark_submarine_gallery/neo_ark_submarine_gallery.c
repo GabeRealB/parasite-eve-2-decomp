@@ -56,7 +56,7 @@ extern RoomFadeStorage D_neo_ark_submarine_gallery_8018591C;
 /// same three bytes into `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area` / `field_8` / `field_5`.
 extern RoomEventMsg D_neo_ark_submarine_gallery_80185924;
 
-GpAreaApplyRec D_neo_ark_submarine_gallery_8018590C[4] = {
+AreaApplyRec D_neo_ark_submarine_gallery_8018590C[4] = {
     { 5, 12, 4, 0 },
     { 5, 14, 4, 0 },
     { 5, 30, 4, 0 },

@@ -197,7 +197,7 @@ void Gp_RunDirAction(void)
     }
 }
 
-void Gp_ApplyAreaRecs(GpAreaApplyRec* recs)
+void Gp_ApplyAreaRecs(AreaApplyRec* recs)
 {
     GameLocationKey  key;
     GpAreaRec*       tbl;
@@ -211,24 +211,24 @@ void Gp_ApplyAreaRecs(GpAreaApplyRec* recs)
 
     apply = 0;
     sess  = &gGameSession->location.loc;
-    for (i = 0; recs[i].field_0 != 0xFF; i++) {
-        stage     = recs[i].field_0;
+    for (i = 0; recs[i].stage != AREA_APPLY_END; i++) {
+        stage     = recs[i].stage;
         tbl       = Gp_AreaTables[stage];
         key.stage = stage;
-        key.area  = recs[i].field_1;
+        key.area  = recs[i].area;
         key.room  = 1;
         key.view  = sess->view;
-        mask      = recs[i].field_3 & 0xF0;
-        if (mask == 0) {
+        mask      = recs[i].policy & AREA_APPLY_MODE_MASK;
+        if (mask == AREA_APPLY_MODE_ALWAYS) {
             apply = 1;
         } else {
             mode = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode;
             if (mode == 0 || mode == 2) {
-                if (mask == 0x10) {
+                if (mask == AREA_APPLY_MODE_REPLAY_SCAVENGER) {
                     apply = 1;
                 }
             } else if (mode == 1 || mode == 3) {
-                if (mask == 0x20) {
+                if (mask == AREA_APPLY_MODE_BOUNTY_NIGHTMARE) {
                     apply = 1;
                 }
             } else {
@@ -236,11 +236,11 @@ void Gp_ApplyAreaRecs(GpAreaApplyRec* recs)
             }
         }
         if (apply) {
-            areaSetPlacementVariant(&key, recs[i].field_2, AREA_VARIANT_RESET_ALWAYS);
+            areaSetPlacementVariant(&key, recs[i].variant, AREA_VARIANT_RESET_ALWAYS);
             if (tbl != NULL) {
-                areaState = tbl[recs[i].field_1].field_4;
+                areaState = tbl[recs[i].area].field_4;
                 if (areaState != NULL) {
-                    if (recs[i].field_3 & 0xF) {
+                    if (recs[i].policy & AREA_APPLY_MAP_MARK_MASK) {
                         areaState->spawnFlags |= AREA_SAVED_MAP_MARK;
                     } else {
                         areaState->spawnFlags &= 0xFF ^ AREA_SAVED_MAP_MARK;

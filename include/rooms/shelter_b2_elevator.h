@@ -13,7 +13,7 @@
 
 #include "main/task_types.h"
 
-extern GpAreaApplyRec D_shelter_b2_elevator_8017E9F8[2];
+extern AreaApplyRec D_shelter_b2_elevator_8017E9F8[2];
 
 extern AreaVariant D_shelter_b2_elevator_8017E964[11];
 

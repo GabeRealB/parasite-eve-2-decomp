@@ -3,6 +3,6 @@
 
 #include "gameplay/area_flags.h"
 
-extern GpAreaApplyRec D_shelter_b1_pod_service_gantry_80182540[11];
+extern AreaApplyRec D_shelter_b1_pod_service_gantry_80182540[11];
 
 #endif // SRC_ROOMS_SHELTER_B1_POD_SERVICE_GANTRY_SHELTER_B1_POD_SERVICE_GANTRY_PRIVATE_H

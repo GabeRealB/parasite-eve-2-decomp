@@ -16,6 +16,6 @@ void Gp_ClearAreaFlag4(GameLocationKey* key);
 
 void func_800AEE8C(Task* arg0);
 
-void Gp_ApplyAreaRecs(GpAreaApplyRec* arg0);
+void Gp_ApplyAreaRecs(AreaApplyRec* arg0);
 
 #endif // GAMEPLAY_AREA_TRANSITIONS_H

@@ -740,7 +740,7 @@ WorldCoordRoomAmbientEntry D_acropolis_cafeteria_8018C90C[25] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-GpAreaApplyRec D_acropolis_cafeteria_8018C9D4[3] = {
+AreaApplyRec D_acropolis_cafeteria_8018C9D4[3] = {
     { 1, 3, 2, 0 },
     { 1, 9, 2, 1 },
     { 255, 0, 0, 0 },

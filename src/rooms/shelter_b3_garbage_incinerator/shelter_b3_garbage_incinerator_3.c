@@ -1802,7 +1802,7 @@ WorldCollisionSurfaceProperties* D_shelter_b3_garbage_incinerator_8018FB4C[8] = 
     D_shelter_b3_garbage_incinerator_8018FB2C,
 };
 
-GpAreaApplyRec D_shelter_b3_garbage_incinerator_8018FB6C[23] = {
+AreaApplyRec D_shelter_b3_garbage_incinerator_8018FB6C[23] = {
     { 4, 1, 3, 17 },
     { 4, 1, 7, 33 },
     { 4, 2, 2, 1 },

@@ -581,7 +581,7 @@ WorldCollisionSurfaceProperties* D_dryfield_garage_801801E4[8] = {
     D_dryfield_garage_801801D4,
 };
 
-GpAreaApplyRec D_dryfield_garage_80180204[6] = {
+AreaApplyRec D_dryfield_garage_80180204[6] = {
     { 2, 2, 2, 1 },
     { 2, 11, 3, 1 },
     { 2, 15, 2, 1 },

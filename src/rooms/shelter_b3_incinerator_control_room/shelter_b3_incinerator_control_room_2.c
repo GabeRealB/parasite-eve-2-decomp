@@ -326,7 +326,7 @@ WorldCollisionSurfaceProperties* D_shelter_b3_incinerator_control_room_80182A20[
     D_shelter_b3_incinerator_control_room_80182A00,
 };
 
-GpAreaApplyRec D_shelter_b3_incinerator_control_room_80182A40[5] = {
+AreaApplyRec D_shelter_b3_incinerator_control_room_80182A40[5] = {
     { 4, 39, 2, 0 },
     { 4, 40, 2, 0 },
     { 4, 43, 7, 33 },

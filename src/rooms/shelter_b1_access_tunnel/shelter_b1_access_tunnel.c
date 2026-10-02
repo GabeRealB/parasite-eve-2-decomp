@@ -75,7 +75,7 @@ extern SVECTOR D_shelter_b1_access_tunnel_8017E744[];
 extern SVECTOR D_shelter_b1_access_tunnel_8017E7B4[];
 extern SVECTOR D_shelter_b1_access_tunnel_8017E7D4[];
 
-extern GpAreaApplyRec  D_shelter_b1_access_tunnel_8017FF44[];
+extern AreaApplyRec    D_shelter_b1_access_tunnel_8017FF44[];
 extern RoomFadeStorage gRoomEventFade;
 
 /// Copy of the message that fired a gated event, kept for the task
@@ -495,7 +495,7 @@ WorldCollisionSurfaceProperties* D_shelter_b1_access_tunnel_8017FF24[8] = {
     D_shelter_b1_access_tunnel_8017FF0C,
 };
 
-GpAreaApplyRec D_shelter_b1_access_tunnel_8017FF44[2] = {
+AreaApplyRec D_shelter_b1_access_tunnel_8017FF44[2] = {
     { 4, 21, 22, 0 },
     { 255, 0, 0, 0 },
 };

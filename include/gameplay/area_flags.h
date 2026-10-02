@@ -71,18 +71,42 @@ typedef struct _GpBit2List {
 } GpBit2List;
 STATIC_ASSERT_SIZEOF(GpBit2List, 0x8);
 
-/// 4-byte record in 0xFF-terminated lists walked by `Gp_ApplyAreaRecs`.
-/// `field_0` indexes `Gp_AreaTables` (same role as `GameLocationKey.stage`);
-/// `field_1` indexes that table (same role as `GameLocationKey.area`);
-/// `field_2` is the id written by `areaSetPlacementVariant`. High nibble of `field_3`
-/// is a `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode` filter (0 = always, 0x10 if 0 or 2, 0x20 if
-/// 1 or 3); low nibble nonzero sets `AREA_SAVED_MAP_MARK`, else clears it.
-typedef struct _GpAreaApplyRec {
-    /* 0x0 */ u8 field_0;
-    /* 0x1 */ u8 field_1;
-    /* 0x2 */ u8 field_2;
-    /* 0x3 */ u8 field_3;
-} GpAreaApplyRec;
-STATIC_ASSERT_SIZEOF(GpAreaApplyRec, 4);
+/// `stage` value that ends an `AreaApplyRec` list.
+///
+/// The entry's other bytes are zero and are not read.
+enum { AREA_APPLY_END = 0xFF };
+
+/// High nibble of `AreaApplyRec.policy`: which save modes receive the update.
+///
+/// Compared with `McSaveState.gameMode` (0 normal/replay, 1 Bounty, 2 Scavenger,
+/// 3 Nightmare). Any other value skips the entry. Stored lists use only these three.
+enum {
+    AREA_APPLY_MODE_MASK             = 0xF0,
+    AREA_APPLY_MODE_ALWAYS           = 0x00, // Every mode
+    AREA_APPLY_MODE_REPLAY_SCAVENGER = 0x10, // Modes 0 and 2
+    AREA_APPLY_MODE_BOUNTY_NIGHTMARE = 0x20  // Modes 1 and 3
+};
+
+/// Low nibble of `AreaApplyRec.policy`.
+///
+/// Nonzero sets `AREA_SAVED_MAP_MARK`; zero clears it. The mark changes only
+/// when the mode nibble accepts the entry. Stored lists use 0 and 1.
+enum { AREA_APPLY_MAP_MARK_MASK = 0x0F };
+
+/// One saved-area update in a list ended by `AREA_APPLY_END`.
+///
+/// When the area has saved state, an accepted entry stores `variant` as
+/// its placement layout, removes that area's saved enemy poses, and then
+/// sets or clears its map mark. `stage` and `area` select the saved area
+/// the same way as `GameLocationKey`. An area with no saved state is left
+/// unchanged. A list may name one area twice, with a different layout for
+/// each save-mode group.
+typedef struct {
+    u8 stage;   // Stage id (1..5, as GameLocationKey.stage). AREA_APPLY_END ends the list
+    u8 area;    // 1-based area within that stage, as GameLocationKey.area
+    u8 variant; // Placement layout stored for the area
+    u8 policy;  // High nibble AREA_APPLY_MODE_*; low nibble AREA_APPLY_MAP_MARK_MASK
+} AreaApplyRec;
+STATIC_ASSERT_SIZEOF(AreaApplyRec, 4);
 
 #endif // GAMEPLAY_AREA_FLAGS_H

@@ -51,7 +51,7 @@ extern WorldCollisionGrid D_shelter_b1_sterilization_room_80189E44;
 
 extern WorldCollisionTrigger D_shelter_b1_sterilization_room_8018B8A8[28];
 
-extern GpAreaApplyRec D_shelter_b1_sterilization_room_8018C334[2];
+extern AreaApplyRec D_shelter_b1_sterilization_room_8018C334[2];
 
 extern Task* gRoomCutsceneSoundTask;
 

@@ -41,9 +41,9 @@
 extern WorldCollisionGrid D_dryfield_night_water_tank_8017E08C;
 extern WorldCollisionGrid D_dryfield_night_water_tank_8017F4B0;
 
-/// 0xFF-terminated `GpAreaApplyRec` list the room applies when the scripted end
+/// `AREA_APPLY_END`-terminated `AreaApplyRec` list the room applies when the scripted end
 /// of the visit fires.
-extern GpAreaApplyRec D_dryfield_night_water_tank_801808B0[];
+extern AreaApplyRec D_dryfield_night_water_tank_801808B0[];
 
 /// Main-executable halfword the second state waits on before it may advance.
 
@@ -597,7 +597,7 @@ WorldCollisionSurfaceProperties* D_dryfield_night_water_tank_80180890[8] = {
     D_dryfield_night_water_tank_80180868,
 };
 
-GpAreaApplyRec D_dryfield_night_water_tank_801808B0[2] = {
+AreaApplyRec D_dryfield_night_water_tank_801808B0[2] = {
     { 3, 21, 11, 0 },
     { 255, 0, 0, 0 },
 };

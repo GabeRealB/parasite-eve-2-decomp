@@ -12,7 +12,7 @@
 
 #include "main/task_types.h"
 
-extern GpAreaApplyRec D_dryfield_night_water_hole_80183618[4];
+extern AreaApplyRec D_dryfield_night_water_hole_80183618[4];
 
 extern AreaVariant D_dryfield_night_water_hole_80183418[22];
 

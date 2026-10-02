@@ -62,7 +62,7 @@ extern EvsCommand D_dryfield_night_trailer_coach_80189080[24];
 
 extern EvsCommand D_dryfield_night_trailer_coach_801892C0[13];
 
-extern GpAreaApplyRec D_dryfield_night_trailer_coach_8018C208[2];
+extern AreaApplyRec D_dryfield_night_trailer_coach_8018C208[2];
 
 extern s32 Shop_Data_80187628;
 

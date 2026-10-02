@@ -205,7 +205,7 @@ extern s32 D_dryfield_night_gas_station_80189D54[];
 /// The beam's two end points relative to the effect's parent coordinate;
 /// the second is also read by its own name.
 
-extern GpAreaApplyRec D_dryfield_night_gas_station_801907A0[];
+extern AreaApplyRec D_dryfield_night_gas_station_801907A0[];
 
 /// Handle of the task spawned from entry 2 of
 /// `D_dryfield_night_gas_station_801888A0`, or NULL while none runs.
@@ -2524,7 +2524,7 @@ WorldCollisionSurfaceProperties* D_dryfield_night_gas_station_80190780[8] = {
     D_dryfield_night_gas_station_80190758,
 };
 
-GpAreaApplyRec D_dryfield_night_gas_station_801907A0[1] = {
+AreaApplyRec D_dryfield_night_gas_station_801907A0[1] = {
     { 255, 0, 0, 0 },
 };
 

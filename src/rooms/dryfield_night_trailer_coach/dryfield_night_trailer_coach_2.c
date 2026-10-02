@@ -830,7 +830,7 @@ WorldCollisionSurfaceProperties* D_dryfield_night_trailer_coach_8018C1E8[8] = {
     D_dryfield_night_trailer_coach_8018C1D0,
 };
 
-GpAreaApplyRec D_dryfield_night_trailer_coach_8018C208[2] = {
+AreaApplyRec D_dryfield_night_trailer_coach_8018C208[2] = {
     { 3, 24, 4, 1 },
     { 255, 0, 0, 0 },
 };

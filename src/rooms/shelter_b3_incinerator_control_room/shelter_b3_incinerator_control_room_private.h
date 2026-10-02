@@ -7,7 +7,7 @@
 
 #include "rooms/room.h"
 
-extern GpAreaApplyRec D_shelter_b3_incinerator_control_room_80182A40[5];
+extern AreaApplyRec D_shelter_b3_incinerator_control_room_80182A40[5];
 
 extern Task* gRoomCutsceneSoundTask;
 

@@ -48,7 +48,7 @@ extern RoomEventReq gRoomEventReq;
 /// Set by the event gate when its last call latched a request and spawned the
 /// event task; every call clears it first.
 
-GpAreaApplyRec D_dryfield_night_motel_balcony_8018F2CC[2] = {
+AreaApplyRec D_dryfield_night_motel_balcony_8018F2CC[2] = {
     { 3, 29, 4, 0 },
     { 255, 0, 0, 0 },
 };

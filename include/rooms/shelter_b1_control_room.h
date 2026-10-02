@@ -15,7 +15,7 @@
 
 extern TaskDesc D_shelter_b1_control_room_80181BBC[2];
 
-extern GpAreaApplyRec D_shelter_b1_control_room_80183BE0[2];
+extern AreaApplyRec D_shelter_b1_control_room_80183BE0[2];
 
 extern TaskDesc D_shelter_b1_control_room_80181B88;
 

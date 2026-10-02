@@ -44,7 +44,7 @@ s32     rcos(s32);
 s32     rsin(s32);
 MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 
-extern GpAreaApplyRec D_neo_ark_garden_80182BF8[];
+extern AreaApplyRec D_neo_ark_garden_80182BF8[];
 
 extern s32 D_801334EC;
 extern s32 D_80133954;
@@ -116,7 +116,7 @@ WorldCollisionSurfaceProperties* D_neo_ark_garden_80182BD8[8] = {
     D_neo_ark_garden_80182BC8,
 };
 
-GpAreaApplyRec D_neo_ark_garden_80182BF8[3] = {
+AreaApplyRec D_neo_ark_garden_80182BF8[3] = {
     { 5, 11, 2, 1 },
     { 5, 27, 2, 1 },
     { 255, 0, 0, 0 },

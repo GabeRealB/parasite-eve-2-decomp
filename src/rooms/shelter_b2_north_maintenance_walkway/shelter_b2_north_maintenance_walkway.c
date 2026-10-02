@@ -55,7 +55,7 @@ extern s32 D_80165834;
 extern void func_8016268C(void);
 
 /// Area records applied once the walkway's scene has started.
-extern GpAreaApplyRec D_shelter_b2_north_maintenance_walkway_80186380[];
+extern AreaApplyRec D_shelter_b2_north_maintenance_walkway_80186380[];
 
 /// Spawn payload of the task 0x31 the event task may start.
 extern RoomFadeStorage gRoomEventFade;
@@ -668,7 +668,7 @@ WorldCollisionSurfaceProperties* D_shelter_b2_north_maintenance_walkway_80186360
     D_shelter_b2_north_maintenance_walkway_80186350,
 };
 
-GpAreaApplyRec D_shelter_b2_north_maintenance_walkway_80186380[8] = {
+AreaApplyRec D_shelter_b2_north_maintenance_walkway_80186380[8] = {
     { 4, 30, 2, 0 },
     { 4, 32, 2, 17 },
     { 4, 32, 7, 33 },

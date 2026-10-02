@@ -90,7 +90,7 @@ extern EvsCommand D_mine_cavern_80188A3C[31];
 
 extern EvsCommand D_mine_cavern_80188D24[24];
 
-extern GpAreaApplyRec D_mine_cavern_8018E32C[9];
+extern AreaApplyRec D_mine_cavern_8018E32C[9];
 
 extern MineCavernMessageEntry D_mine_cavern_80183C6C[7];
 

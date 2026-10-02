@@ -7,13 +7,13 @@
 
 #include "rooms/room.h"
 
-extern GpAreaApplyRec D_shelter_1f_tent_801842D4[53];
+extern AreaApplyRec D_shelter_1f_tent_801842D4[53];
 
-extern GpAreaApplyRec D_shelter_1f_tent_801843A8[2];
+extern AreaApplyRec D_shelter_1f_tent_801843A8[2];
 
-extern GpAreaApplyRec D_shelter_1f_tent_801843B0[2];
+extern AreaApplyRec D_shelter_1f_tent_801843B0[2];
 
-extern GpAreaApplyRec D_shelter_1f_tent_801843B8[2];
+extern AreaApplyRec D_shelter_1f_tent_801843B8[2];
 
 extern Task* gRoomCutsceneSoundTask;
 

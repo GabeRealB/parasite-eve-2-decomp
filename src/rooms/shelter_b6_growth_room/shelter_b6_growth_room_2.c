@@ -349,7 +349,7 @@ WorldCollisionSurfaceProperties* D_shelter_b6_growth_room_801807A8[8] = {
     D_shelter_b6_growth_room_80180790,
 };
 
-GpAreaApplyRec D_shelter_b6_growth_room_801807C8[58] = {
+AreaApplyRec D_shelter_b6_growth_room_801807C8[58] = {
     { 5, 5, 7, 33 },
     { 5, 8, 11, 0 },
     { 5, 10, 3, 1 },

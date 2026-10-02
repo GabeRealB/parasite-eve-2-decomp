@@ -536,7 +536,7 @@ WorldCollisionSurfaceProperties* D_shelter_b1_control_room_80183BC0[8] = {
     D_shelter_b1_control_room_80183BA8,
 };
 
-GpAreaApplyRec D_shelter_b1_control_room_80183BE0[2] = {
+AreaApplyRec D_shelter_b1_control_room_80183BE0[2] = {
     { 4, 18, 12, 0 },
     { 255, 0, 0, 0 },
 };

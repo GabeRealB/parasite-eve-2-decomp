@@ -337,7 +337,7 @@ WorldCollisionSurfaceProperties* D_shelter_b2_elevator_8017E9D8[8] = {
     D_shelter_b2_elevator_8017E9C8,
 };
 
-GpAreaApplyRec D_shelter_b2_elevator_8017E9F8[2] = {
+AreaApplyRec D_shelter_b2_elevator_8017E9F8[2] = {
     { 4, 44, 4, 1 },
     { 255, 0, 0, 0 },
 };

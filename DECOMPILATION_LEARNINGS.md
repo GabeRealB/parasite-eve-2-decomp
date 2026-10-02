@@ -31875,9 +31875,9 @@ if (projection->projectionFlags >= 0) {
 
 `worldCoordGetOriginAudioPan` is the example.
 
-## Pin the record pointer; peel `field_0` with `volatile` so the loop skips the first load
+## Pin the record pointer; peel `stage` with `volatile` so the loop skips the first load
 
-A 4-byte record walked with `rec++` that also reads `field_3` both before
+A 4-byte record walked with `rec++` that also reads `policy` both before
 and after a `jal` makes GCC clone `rec + 3` into a second `$s` register
 (`lbu -2(s0)` / extra increment / 0x38 frame). Pin the walker:
 
@@ -31885,20 +31885,20 @@ and after a `jal` makes GCC clone `rec + 3` into a second `$s` register
 register Rec* rec asm("s0");
 ```
 
-The first `field_0` check uses `$a0`. After `rec = index` the body still
+The first `stage` check uses `$a0`. After `rec = index` the body still
 wants a reload from `$s0`, and the `do` / `while` must branch to the
 `nop` / `sll` *after* that load (the end-of-loop `lbu` already left the
-next index in `$v1`). CSE of `idx = rec->field_0` with the `$a0` check
+next index in `$v1`). CSE of `idx = rec->stage` with the `$a0` check
 drops the reload and aims the `bne` at the load itself. Force the peel:
 
 ```c
 rec = arg0;
-idx = *(volatile u8*)&rec->field_0;
+idx = *(volatile u8*)&rec->stage;
 do {
     tbl = tables[idx];
     ...
     rec++;
-    idx = rec->field_0;
+    idx = rec->stage;
 } while (idx != 0xFF);
 ```
 
@@ -31925,15 +31925,15 @@ beqz  v0, skip
 Put the default *after* the shared store, not next to the compare:
 
 ```c
-if (mask == 0) {
+if (mask == AREA_APPLY_MODE_ALWAYS) {
     goto set_apply;
 }
 if (mode == 0 || mode == 2) {
-    expected = 0x10;
+    expected = AREA_APPLY_MODE_REPLAY_SCAVENGER;
     goto cmp;
 }
 if (mode == 1 || mode == 3) {
-    expected = 0x20;
+    expected = AREA_APPLY_MODE_BOUNTY_NIGHTMARE;
 } else {
     goto set_zero;
 }
@@ -145599,7 +145599,7 @@ body's first load to be the *same RTL* as the exit test's: with the field held
 in a `u8` local the body loads QImode and nothing is skipped; an `s32` local
 gives the same `zero_extend:SI` as the test.
 
-**Fix.** `for (i = 0; recs[i].field_0 != 0xFF; i++) { s32 stage = recs[i].field_0; ... }`.
+**Fix.** `for (i = 0; recs[i].stage != AREA_APPLY_END; i++) { s32 stage = recs[i].stage; ... }`.
 ## `p = &s->field; TOUCH_REG(p);` ahead of a two-component read: the pointer is stepped, `p++` (func_8009AF90, 2026-09-27)
 
 **Symptom.** A loop-invariant address copy (`move t1,t8`) must open its block,

@@ -151,7 +151,7 @@ extern SVECTOR D_shelter_b2_main_corridor_8018306C[];
 /// effect's two edges follow. The second is also read by its own name.
 
 /// Areas the room re-applies when it clears its pending game-flag state.
-extern GpAreaApplyRec D_shelter_b2_main_corridor_80189644[];
+extern AreaApplyRec D_shelter_b2_main_corridor_80189644[];
 
 /// Cursor into the primitive area the water surface is written to.
 extern u8* D_shelter_b2_main_corridor_80189660;
@@ -1566,7 +1566,7 @@ WorldCollisionSurfaceProperties* D_shelter_b2_main_corridor_80189624[8] = {
     D_shelter_b2_main_corridor_8018960C,
 };
 
-GpAreaApplyRec D_shelter_b2_main_corridor_80189644[2] = {
+AreaApplyRec D_shelter_b2_main_corridor_80189644[2] = {
     { 5, 7, 1, 0 },
     { 255, 0, 0, 0 },
 };

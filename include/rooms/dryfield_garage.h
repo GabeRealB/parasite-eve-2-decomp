@@ -16,7 +16,7 @@
 
 #include "main/task_types.h"
 
-extern GpAreaApplyRec D_dryfield_garage_80180204[6];
+extern AreaApplyRec D_dryfield_garage_80180204[6];
 
 extern SVECTOR gDryfieldGarageCollision0108CNormals[39];
 

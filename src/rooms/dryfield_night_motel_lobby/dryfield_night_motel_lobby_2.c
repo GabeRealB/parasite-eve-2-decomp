@@ -74,7 +74,7 @@ u8 D_dryfield_night_motel_lobby_801844D8[7];
 /// spawns.
 extern TaskDesc D_dryfield_night_motel_lobby_80182814[];
 
-extern GpAreaApplyRec D_dryfield_night_motel_lobby_801844AC[];
+extern AreaApplyRec D_dryfield_night_motel_lobby_801844AC[];
 
 /// World-space points of the markers `func_dryfield_night_motel_lobby_801812F8`
 /// draws; the second name is the same run from its second entry.
@@ -629,7 +629,7 @@ WorldCollisionSurfaceProperties* D_dryfield_night_motel_lobby_8018448C[8] = {
     D_dryfield_night_motel_lobby_80184474,
 };
 
-GpAreaApplyRec D_dryfield_night_motel_lobby_801844AC[8] = {
+AreaApplyRec D_dryfield_night_motel_lobby_801844AC[8] = {
     { 3, 1, 2, 0 },
     { 3, 3, 2, 1 },
     { 3, 5, 4, 1 },

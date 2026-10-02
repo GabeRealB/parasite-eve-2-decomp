@@ -166,16 +166,16 @@ extern OverlayWaveCtx* gScreenWaveCtx;
 extern OverlayWaveRec6 gScreenWaveColumns[13];
 extern OverlayWaveRec6 gScreenWaveRows[32];
 
-extern s32            D_dryfield_dilapidated_house_80189B70;
-extern s32            D_dryfield_dilapidated_house_80189B6C;
-extern s32            D_dryfield_dilapidated_house_80183EFC;
-extern EvsCommand     D_dryfield_dilapidated_house_80184408[];
-extern EvsCommand     D_dryfield_dilapidated_house_80184C60[];
-extern TaskDesc       D_dryfield_dilapidated_house_80183EB4[];
-extern EvsCommand     D_dryfield_dilapidated_house_80184EA0[];
-extern EvsCommand     D_dryfield_dilapidated_house_801855F0[];
-extern GpAreaApplyRec D_dryfield_dilapidated_house_80189AA0[];
-extern GpAreaApplyRec D_dryfield_dilapidated_house_80189B24[];
+extern s32          D_dryfield_dilapidated_house_80189B70;
+extern s32          D_dryfield_dilapidated_house_80189B6C;
+extern s32          D_dryfield_dilapidated_house_80183EFC;
+extern EvsCommand   D_dryfield_dilapidated_house_80184408[];
+extern EvsCommand   D_dryfield_dilapidated_house_80184C60[];
+extern TaskDesc     D_dryfield_dilapidated_house_80183EB4[];
+extern EvsCommand   D_dryfield_dilapidated_house_80184EA0[];
+extern EvsCommand   D_dryfield_dilapidated_house_801855F0[];
+extern AreaApplyRec D_dryfield_dilapidated_house_80189AA0[];
+extern AreaApplyRec D_dryfield_dilapidated_house_80189B24[];
 
 /// The room's cutscene task, spawned from entry 0 of
 /// `D_dryfield_dilapidated_house_80183EB4` when `Gp_LookupSlot4(1)` is non-zero
@@ -2484,7 +2484,7 @@ WorldCollisionSurfaceProperties* D_dryfield_dilapidated_house_80189A80[8] = {
     D_dryfield_dilapidated_house_80189A68,
 };
 
-GpAreaApplyRec D_dryfield_dilapidated_house_80189AA0[33] = {
+AreaApplyRec D_dryfield_dilapidated_house_80189AA0[33] = {
     { 3, 1, 1, 0 },
     { 3, 2, 1, 17 },
     { 3, 2, 7, 33 },
@@ -2520,7 +2520,7 @@ GpAreaApplyRec D_dryfield_dilapidated_house_80189AA0[33] = {
     { 255, 0, 0, 0 },
 };
 
-GpAreaApplyRec D_dryfield_dilapidated_house_80189B24[3] = {
+AreaApplyRec D_dryfield_dilapidated_house_80189B24[3] = {
     { 3, 38, 2, 17 },
     { 3, 38, 7, 33 },
     { 255, 0, 0, 0 },

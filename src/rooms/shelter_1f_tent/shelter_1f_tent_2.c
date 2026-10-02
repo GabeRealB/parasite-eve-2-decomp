@@ -543,7 +543,7 @@ WorldCollisionSurfaceProperties* D_shelter_1f_tent_801842B4[8] = {
     D_shelter_1f_tent_801842A4,
 };
 
-GpAreaApplyRec D_shelter_1f_tent_801842D4[53] = {
+AreaApplyRec D_shelter_1f_tent_801842D4[53] = {
     { 5, 1, 11, 0 },
     { 5, 2, 11, 0 },
     { 5, 3, 11, 0 },
@@ -599,17 +599,17 @@ GpAreaApplyRec D_shelter_1f_tent_801842D4[53] = {
     { 255, 0, 0, 0 },
 };
 
-GpAreaApplyRec D_shelter_1f_tent_801843A8[2] = {
+AreaApplyRec D_shelter_1f_tent_801843A8[2] = {
     { 5, 4, 2, 0 },
     { 255, 0, 0, 0 },
 };
 
-GpAreaApplyRec D_shelter_1f_tent_801843B0[2] = {
+AreaApplyRec D_shelter_1f_tent_801843B0[2] = {
     { 5, 4, 1, 0 },
     { 255, 0, 0, 0 },
 };
 
-GpAreaApplyRec D_shelter_1f_tent_801843B8[2] = {
+AreaApplyRec D_shelter_1f_tent_801843B8[2] = {
     { 4, 21, 21, 0 },
     { 255, 0, 0, 0 },
 };

@@ -16,9 +16,9 @@
 
 extern TmdSource gShelterB2LaboratoryAcropolisSanctuaryModel090F0;
 
-extern GpAreaApplyRec D_shelter_b2_laboratory_80186488[5];
+extern AreaApplyRec D_shelter_b2_laboratory_80186488[5];
 
-extern GpAreaApplyRec D_shelter_b2_laboratory_8018649C[2];
+extern AreaApplyRec D_shelter_b2_laboratory_8018649C[2];
 
 extern AreaVariant D_shelter_b2_laboratory_80186360[11];
 

@@ -35,7 +35,7 @@
 /// `func_neo_ark_power_plant_1_8017D5EC` tests and sets.
 
 /// Area-record list applied when the power-on script starts.
-extern GpAreaApplyRec D_neo_ark_power_plant_1_80181C00[];
+extern AreaApplyRec D_neo_ark_power_plant_1_80181C00[];
 
 static void func_neo_ark_power_plant_1_8017D5EC(Task* task);
 static void func_neo_ark_power_plant_1_8017D928(Task* task);
@@ -80,7 +80,7 @@ WorldCollisionSurfaceProperties* D_neo_ark_power_plant_1_80181BE0[8] = {
     D_neo_ark_power_plant_1_80181BC0,
 };
 
-GpAreaApplyRec D_neo_ark_power_plant_1_80181C00[2] = {
+AreaApplyRec D_neo_ark_power_plant_1_80181C00[2] = {
     { 5, 18, 2, 1 },
     { 255, 0, 0, 0 },
 };

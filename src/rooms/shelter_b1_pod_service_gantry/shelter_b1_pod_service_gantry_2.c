@@ -84,7 +84,7 @@ WorldCollisionSurfaceProperties* D_shelter_b1_pod_service_gantry_80182520[8] = {
     D_shelter_b1_pod_service_gantry_80182518,
 };
 
-GpAreaApplyRec D_shelter_b1_pod_service_gantry_80182540[11] = {
+AreaApplyRec D_shelter_b1_pod_service_gantry_80182540[11] = {
     { 4, 17, 22, 0 },
     { 4, 25, 1, 0 },
     { 4, 27, 1, 0 },

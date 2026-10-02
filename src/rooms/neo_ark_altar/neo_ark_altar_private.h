@@ -14,7 +14,7 @@ extern TaskDesc D_neo_ark_altar_8017EFC0[];
 
 extern TaskDesc D_neo_ark_altar_8017F088[1];
 
-extern GpAreaApplyRec D_neo_ark_altar_801800A0[3];
+extern AreaApplyRec D_neo_ark_altar_801800A0[3];
 
 void func_neo_ark_altar_8017DC40(s32 arg0);
 

@@ -138,9 +138,9 @@ extern SVECTOR            D_neo_ark_observatory_80181564[];
 extern SVECTOR            D_neo_ark_observatory_80181574[];
 extern SVECTOR            D_neo_ark_observatory_8018157C[];
 
-extern GpAreaApplyRec D_neo_ark_observatory_80187A28[];
-extern RoomDeparture  gRoomDeparture;
-extern s16            D_neo_ark_observatory_80187A3C;
+extern AreaApplyRec  D_neo_ark_observatory_80187A28[];
+extern RoomDeparture gRoomDeparture;
+extern s16           D_neo_ark_observatory_80187A3C;
 
 /// Defines the reflection scale at the shared implementation's include position.
 ///
@@ -1564,7 +1564,7 @@ WorldCollisionSurfaceProperties* D_neo_ark_observatory_80187A08[8] = {
     D_neo_ark_observatory_801879E8,
 };
 
-GpAreaApplyRec D_neo_ark_observatory_80187A28[2] = {
+AreaApplyRec D_neo_ark_observatory_80187A28[2] = {
     { 5, 7, 2, 0 },
     { 255, 0, 0, 0 },
 };

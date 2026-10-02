@@ -43,7 +43,7 @@ extern WorldCoordRoomLights D_acropolis_cafeteria_8018AA18[1];
 
 extern WorldCoordRoomAmbientEntry D_acropolis_cafeteria_8018C90C[25];
 
-extern GpAreaApplyRec D_acropolis_cafeteria_8018C9D4[3];
+extern AreaApplyRec D_acropolis_cafeteria_8018C9D4[3];
 
 extern s32 D_acropolis_cafeteria_8018D6A0;
 

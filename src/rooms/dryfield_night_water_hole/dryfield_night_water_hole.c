@@ -1034,7 +1034,7 @@ WorldCollisionSurfaceProperties* D_dryfield_night_water_hole_801835F8[8] = {
     D_dryfield_night_water_hole_801835A0,
 };
 
-GpAreaApplyRec D_dryfield_night_water_hole_80183618[4] = {
+AreaApplyRec D_dryfield_night_water_hole_80183618[4] = {
     { 4, 42, 1, 1 },
     { 4, 44, 4, 1 },
     { 3, 21, 10, 1 },

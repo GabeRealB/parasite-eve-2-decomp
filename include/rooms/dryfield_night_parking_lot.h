@@ -11,7 +11,7 @@
 #include "gameplay/view.h"
 
 #include "main/task_types.h"
-extern GpAreaApplyRec gParkingLotAreaRecs[2];
+extern AreaApplyRec gParkingLotAreaRecs[2];
 
 extern AreaVariant D_dryfield_night_parking_lot_80181438[22];
 

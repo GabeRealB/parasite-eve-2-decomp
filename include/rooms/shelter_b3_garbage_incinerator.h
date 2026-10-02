@@ -22,7 +22,7 @@ extern TaskDesc D_shelter_b3_garbage_incinerator_80187150[4];
 
 extern u8 D_shelter_b3_garbage_incinerator_80187328[40];
 
-extern GpAreaApplyRec D_shelter_b3_garbage_incinerator_8018FB6C[23];
+extern AreaApplyRec D_shelter_b3_garbage_incinerator_8018FB6C[23];
 
 extern u16 D_shelter_b3_garbage_incinerator_8018FBC8[2];
 

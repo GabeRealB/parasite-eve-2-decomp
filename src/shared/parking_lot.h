@@ -14,7 +14,7 @@
 /// The area records the 0x11 event applies when it fires. The night room
 /// defines them; in the day build the address lies past the package's end, so
 /// the linker resolves it as an absolute symbol.
-extern GpAreaApplyRec gParkingLotAreaRecs[];
+extern AreaApplyRec gParkingLotAreaRecs[];
 
 s32 parkingLotEventMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* out);
 s32 parkingLotSoundMsg(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3);

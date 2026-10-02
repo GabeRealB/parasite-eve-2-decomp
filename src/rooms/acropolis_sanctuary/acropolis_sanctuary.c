@@ -212,7 +212,7 @@ extern s32                  D_acropolis_sanctuary_80182770;
 extern SVECTOR              D_acropolis_sanctuary_80182774[];
 extern u16                  D_acropolis_sanctuary_801827D4[];
 extern WorldCollisionGrid   D_acropolis_sanctuary_80183568;
-extern GpAreaApplyRec       D_acropolis_sanctuary_80186418[];
+extern AreaApplyRec         D_acropolis_sanctuary_80186418[];
 extern Task*                D_acropolis_sanctuary_80186C90;
 
 /// Whole-unit X/Y/Z displacement left by the last call of
@@ -1652,7 +1652,7 @@ WorldCollisionSurfaceProperties* D_acropolis_sanctuary_801863F8[8] = {
     D_acropolis_sanctuary_801863E0,
 };
 
-GpAreaApplyRec D_acropolis_sanctuary_80186418[11] = {
+AreaApplyRec D_acropolis_sanctuary_80186418[11] = {
     { 1, 3, 4, 1 },
     { 1, 4, 4, 1 },
     { 1, 7, 4, 1 },

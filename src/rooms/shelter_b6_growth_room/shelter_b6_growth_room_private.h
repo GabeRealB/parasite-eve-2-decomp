@@ -3,6 +3,6 @@
 
 #include "gameplay/area_flags.h"
 
-extern GpAreaApplyRec D_shelter_b6_growth_room_801807C8[58];
+extern AreaApplyRec D_shelter_b6_growth_room_801807C8[58];
 
 #endif // SRC_ROOMS_SHELTER_B6_GROWTH_ROOM_SHELTER_B6_GROWTH_ROOM_PRIVATE_H

@@ -256,10 +256,10 @@ extern s16     D_acropolis_security_room_801839B8[];
 extern EffectUnitQuadCorner D_acropolis_security_room_801839C0[];
 
 /// 0xFF-terminated area-record lists applied as the script ends.
-extern GpAreaApplyRec D_acropolis_security_room_80184F50[];
-extern GpAreaApplyRec D_acropolis_security_room_80184F78[];
-extern GpAreaApplyRec D_acropolis_security_room_80184F7C[];
-extern GpAreaApplyRec D_acropolis_security_room_80184F80[];
+extern AreaApplyRec D_acropolis_security_room_80184F50[];
+extern AreaApplyRec D_acropolis_security_room_80184F78[];
+extern AreaApplyRec D_acropolis_security_room_80184F7C[];
+extern AreaApplyRec D_acropolis_security_room_80184F80[];
 
 static void func_acropolis_security_room_8017D930(Task* task);
 static void func_acropolis_security_room_8017D97C(Task* task);
@@ -1855,7 +1855,7 @@ ViewCamera D_acropolis_security_room_80184D10[16] = {
     { { { { 3982, 0, 958 }, { -16, 4095, 69 }, { -958, -71, 3981 } }, { -1500, 1380, 7850 } }, 225 },
 };
 
-GpAreaApplyRec D_acropolis_security_room_80184F50[10] = {
+AreaApplyRec D_acropolis_security_room_80184F50[10] = {
     { 1, 8, 2, 17 },
     { 1, 8, 7, 33 },
     { 1, 9, 4, 16 },
@@ -1868,15 +1868,15 @@ GpAreaApplyRec D_acropolis_security_room_80184F50[10] = {
     { 255, 0, 0, 0 },
 };
 
-GpAreaApplyRec D_acropolis_security_room_80184F78[1] = {
+AreaApplyRec D_acropolis_security_room_80184F78[1] = {
     { 255, 0, 0, 0 },
 };
 
-GpAreaApplyRec D_acropolis_security_room_80184F7C[1] = {
+AreaApplyRec D_acropolis_security_room_80184F7C[1] = {
     { 255, 0, 0, 0 },
 };
 
-GpAreaApplyRec D_acropolis_security_room_80184F80[1] = {
+AreaApplyRec D_acropolis_security_room_80184F80[1] = {
     { 255, 0, 0, 0 },
 };
 

@@ -1613,7 +1613,7 @@ WorldCollisionSurfaceProperties* D_shelter_r47_8018A618[8] = {
     D_shelter_r47_8018A5F8,
 };
 
-GpAreaApplyRec D_shelter_r47_8018A638[21] = {
+AreaApplyRec D_shelter_r47_8018A638[21] = {
     { 4, 9, 3, 1 },
     { 4, 10, 3, 1 },
     { 4, 11, 3, 1 },

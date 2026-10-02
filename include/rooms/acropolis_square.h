@@ -13,7 +13,7 @@
 #include "main/task_types.h"
 
 // The copied room-event handler uses this table only in stage 1, area 1.
-extern GpAreaApplyRec D_acropolis_square_80188888[4];
+extern AreaApplyRec D_acropolis_square_80188888[4];
 
 extern AreaVariant D_acropolis_square_80185E50[3];
 

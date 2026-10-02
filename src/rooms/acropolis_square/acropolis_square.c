@@ -1349,7 +1349,7 @@ WorldCollisionSurfaceProperties* D_acropolis_square_80188868[8] = {
     D_acropolis_square_80188858,
 };
 
-GpAreaApplyRec D_acropolis_square_80188888[4] = {
+AreaApplyRec D_acropolis_square_80188888[4] = {
     { 1, 3, 3, 1 },
     { 1, 4, 3, 1 },
     { 1, 19, 2, 1 },

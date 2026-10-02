@@ -55,8 +55,8 @@
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
 
-extern GpAreaApplyRec D_dryfield_night_garage_801875D8[];
-extern GpAreaApplyRec D_dryfield_night_garage_80187620[];
+extern AreaApplyRec D_dryfield_night_garage_801875D8[];
+extern AreaApplyRec D_dryfield_night_garage_80187620[];
 
 /// The garage's two point-pair runs, 8-byte `SVECTOR`s laid back to back from
 /// `801833A4`: four pairs the visit-3/15 case sweeps (`A4[0]`, `A4[2]`, `A4[4]`,
@@ -1077,7 +1077,7 @@ WorldCollisionSurfaceProperties* D_dryfield_night_garage_801875B8[8] = {
     D_dryfield_night_garage_801875A8,
 };
 
-GpAreaApplyRec D_dryfield_night_garage_801875D8[18] = {
+AreaApplyRec D_dryfield_night_garage_801875D8[18] = {
     { 3, 1, 3, 17 },
     { 3, 1, 7, 33 },
     { 3, 2, 3, 0 },
@@ -1098,7 +1098,7 @@ GpAreaApplyRec D_dryfield_night_garage_801875D8[18] = {
     { 255, 0, 0, 0 },
 };
 
-GpAreaApplyRec D_dryfield_night_garage_80187620[2] = {
+AreaApplyRec D_dryfield_night_garage_80187620[2] = {
     { 3, 38, 3, 1 },
     { 255, 0, 0, 0 },
 };

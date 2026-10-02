@@ -72,8 +72,8 @@ extern EvsCommand       D_neo_ark_power_plant_2_801802A8[];
 extern EvsCommand       D_neo_ark_power_plant_2_80180560[];
 extern SVECTOR          D_neo_ark_power_plant_2_80180668;
 extern SVECTOR          D_neo_ark_power_plant_2_80180678;
-extern GpAreaApplyRec   D_neo_ark_power_plant_2_80182F70[];
-extern GpAreaApplyRec   D_neo_ark_power_plant_2_80182F94[];
+extern AreaApplyRec     D_neo_ark_power_plant_2_80182F70[];
+extern AreaApplyRec     D_neo_ark_power_plant_2_80182F94[];
 
 /// The smoke trail's two spawn offsets: `[0]` places the object's own frame
 /// and `[1]` the second trail's frame. `RoomFx_TrailOffsets[1]` is
@@ -756,7 +756,7 @@ WorldCollisionSurfaceProperties* D_neo_ark_power_plant_2_80182F50[8] = {
     D_neo_ark_power_plant_2_80182F28,
 };
 
-GpAreaApplyRec D_neo_ark_power_plant_2_80182F70[9] = {
+AreaApplyRec D_neo_ark_power_plant_2_80182F70[9] = {
     { 5, 8, 11, 1 },
     { 5, 11, 4, 1 },
     { 5, 13, 4, 1 },
@@ -768,7 +768,7 @@ GpAreaApplyRec D_neo_ark_power_plant_2_80182F70[9] = {
     { 255, 0, 0, 0 },
 };
 
-GpAreaApplyRec D_neo_ark_power_plant_2_80182F94[4] = {
+AreaApplyRec D_neo_ark_power_plant_2_80182F94[4] = {
     { 5, 12, 2, 1 },
     { 5, 14, 2, 1 },
     { 5, 30, 2, 1 },

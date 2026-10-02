@@ -149,8 +149,8 @@ extern TaskDesc D_dryfield_night_motel_room_6_80182EE0;
 /// World position the room's marker is drawn at.
 
 /// Area-record patch lists the story task applies as it ends.
-extern GpAreaApplyRec D_dryfield_night_motel_room_6_80186270[];
-extern GpAreaApplyRec D_dryfield_night_motel_room_6_801862B0[];
+extern AreaApplyRec D_dryfield_night_motel_room_6_80186270[];
+extern AreaApplyRec D_dryfield_night_motel_room_6_801862B0[];
 
 /// The sound task the cutscene task spawned, killed when the player skips the
 /// scene.
@@ -826,7 +826,7 @@ WorldCollisionSurfaceProperties* D_dryfield_night_motel_room_6_80186250[8] = {
     D_dryfield_night_motel_room_6_80186230,
 };
 
-GpAreaApplyRec D_dryfield_night_motel_room_6_80186270[16] = {
+AreaApplyRec D_dryfield_night_motel_room_6_80186270[16] = {
     { 3, 2, 2, 0 },
     { 3, 3, 3, 1 },
     { 3, 5, 3, 1 },
@@ -845,7 +845,7 @@ GpAreaApplyRec D_dryfield_night_motel_room_6_80186270[16] = {
     { 255, 0, 0, 0 },
 };
 
-GpAreaApplyRec D_dryfield_night_motel_room_6_801862B0[1] = {
+AreaApplyRec D_dryfield_night_motel_room_6_801862B0[1] = {
     { 255, 0, 0, 0 },
 };
 

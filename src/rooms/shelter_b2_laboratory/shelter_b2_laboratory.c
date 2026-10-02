@@ -1021,7 +1021,7 @@ WorldCollisionSurfaceProperties* D_shelter_b2_laboratory_80186468[8] = {
     D_shelter_b2_laboratory_80186450,
 };
 
-GpAreaApplyRec D_shelter_b2_laboratory_80186488[5] = {
+AreaApplyRec D_shelter_b2_laboratory_80186488[5] = {
     { 4, 8, 3, 1 },
     { 4, 12, 3, 1 },
     { 4, 27, 3, 1 },
@@ -1029,7 +1029,7 @@ GpAreaApplyRec D_shelter_b2_laboratory_80186488[5] = {
     { 255, 0, 0, 0 },
 };
 
-GpAreaApplyRec D_shelter_b2_laboratory_8018649C[2] = {
+AreaApplyRec D_shelter_b2_laboratory_8018649C[2] = {
     { 4, 47, 2, 0 },
     { 255, 0, 0, 0 },
 };

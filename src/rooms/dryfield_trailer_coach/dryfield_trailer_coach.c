@@ -1358,7 +1358,7 @@ WorldCollisionSurfaceProperties* D_dryfield_trailer_coach_80189C30[8] = {
     D_dryfield_trailer_coach_80189C18,
 };
 
-GpAreaApplyRec D_dryfield_trailer_coach_80189C50[15] = {
+AreaApplyRec D_dryfield_trailer_coach_80189C50[15] = {
     { 2, 5, 7, 33 },
     { 2, 11, 2, 17 },
     { 2, 11, 7, 33 },
@@ -1535,7 +1535,7 @@ extern EvsCommand D_dryfield_trailer_coach_80186D2C[];
 
 extern EvsCommand D_dryfield_trailer_coach_80187074[];
 
-extern GpAreaApplyRec D_dryfield_trailer_coach_80189C50[];
+extern AreaApplyRec D_dryfield_trailer_coach_80189C50[];
 
 /// Second descriptor of the trailer's spawn table (spawned by request 3).
 extern TaskDesc D_dryfield_trailer_coach_80184FC0[];

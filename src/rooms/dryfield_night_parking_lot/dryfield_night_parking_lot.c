@@ -37,7 +37,7 @@ extern RoomEventActiveBytes gRoomEventActive;
 extern RoomEventMsg gRoomEventMsg;
 extern RoomEventReq gRoomEventReq;
 
-GpAreaApplyRec gParkingLotAreaRecs[2] = {
+AreaApplyRec gParkingLotAreaRecs[2] = {
     { 3, 24, 2, 0 },
     { 255, 0, 0, 0 },
 };

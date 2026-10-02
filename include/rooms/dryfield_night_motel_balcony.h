@@ -14,7 +14,7 @@
 
 extern TaskDesc D_dryfield_night_motel_balcony_80182834[2];
 
-extern GpAreaApplyRec D_dryfield_night_motel_balcony_8018F2CC[2];
+extern AreaApplyRec D_dryfield_night_motel_balcony_8018F2CC[2];
 
 extern AreaVariant D_dryfield_night_motel_balcony_8018EA94[13];
 

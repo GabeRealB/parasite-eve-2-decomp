@@ -906,7 +906,7 @@ WorldCollisionSurfaceProperties* D_shelter_b1_sterilization_room_8018C314[8] = {
     D_shelter_b1_sterilization_room_8018C2FC,
 };
 
-GpAreaApplyRec D_shelter_b1_sterilization_room_8018C334[2] = {
+AreaApplyRec D_shelter_b1_sterilization_room_8018C334[2] = {
     { 4, 20, 21, 0 },
     { 255, 0, 0, 0 },
 };

@@ -145,7 +145,7 @@ extern RoomWaterSurface         D_shelter_b4_reservoir_80184FE4[];
 extern SVECTOR                  D_shelter_b4_reservoir_80185094;
 extern SVECTOR                  D_shelter_b4_reservoir_8018509C[];
 extern SVECTOR                  D_shelter_b4_reservoir_801850AC[];
-extern GpAreaApplyRec           D_shelter_b4_reservoir_801874A0[];
+extern AreaApplyRec             D_shelter_b4_reservoir_801874A0[];
 extern ScreenFade               D_shelter_b4_reservoir_80187500;
 extern RoomEventMsg             D_shelter_b4_reservoir_80187508;
 extern s32                      D_shelter_b4_reservoir_80187510;
@@ -924,7 +924,7 @@ WorldCollisionSurfaceProperties* D_shelter_b4_reservoir_80187480[8] = {
     D_shelter_b4_reservoir_80187458,
 };
 
-GpAreaApplyRec D_shelter_b4_reservoir_801874A0[24] = {
+AreaApplyRec D_shelter_b4_reservoir_801874A0[24] = {
     { 4, 42, 3, 0 },
     { 4, 43, 2, 17 },
     { 4, 43, 8, 33 },

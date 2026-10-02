@@ -2142,7 +2142,7 @@ WorldCollisionSurfaceProperties* D_mine_cavern_8018E30C[8] = {
     D_mine_cavern_8018E2F4,
 };
 
-GpAreaApplyRec D_mine_cavern_8018E32C[9] = {
+AreaApplyRec D_mine_cavern_8018E32C[9] = {
     { 4, 1, 2, 1 },
     { 4, 2, 4, 0 },
     { 4, 3, 4, 1 },

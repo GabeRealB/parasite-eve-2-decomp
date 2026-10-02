@@ -29,7 +29,7 @@ extern s16 D_neo_ark_submarine_gallery_801818B8;
 
 extern TaskDesc D_neo_ark_submarine_gallery_801818BC[1];
 
-extern GpAreaApplyRec D_neo_ark_submarine_gallery_8018590C[4];
+extern AreaApplyRec D_neo_ark_submarine_gallery_8018590C[4];
 
 extern TaskDesc D_neo_ark_submarine_gallery_8018186C;
 

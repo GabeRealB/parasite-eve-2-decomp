@@ -85,7 +85,7 @@ extern s16 D_neo_ark_altar_8017F050[];
 extern s16 D_neo_ark_altar_8017F068[];
 
 extern NeoArkAltarTile D_neo_ark_altar_8017EFD8[];
-extern GpAreaApplyRec  D_neo_ark_altar_8018007C[];
+extern AreaApplyRec    D_neo_ark_altar_8018007C[];
 
 static void func_neo_ark_altar_8017E658(SVECTOR* p0, SVECTOR* p1, SVECTOR* p2, SVECTOR* p3);
 static s16  func_neo_ark_altar_8017EC34(NeoArkAltarTile* table, s16 x, s16 z);
@@ -446,7 +446,7 @@ WorldCollisionSurfaceProperties* D_neo_ark_altar_8018005C[8] = {
     D_neo_ark_altar_80180044,
 };
 
-GpAreaApplyRec D_neo_ark_altar_8018007C[9] = {
+AreaApplyRec D_neo_ark_altar_8018007C[9] = {
     { 5, 11, 3, 1 },
     { 5, 13, 3, 1 },
     { 5, 15, 3, 1 },
@@ -458,7 +458,7 @@ GpAreaApplyRec D_neo_ark_altar_8018007C[9] = {
     { 255, 0, 0, 0 },
 };
 
-GpAreaApplyRec D_neo_ark_altar_801800A0[3] = {
+AreaApplyRec D_neo_ark_altar_801800A0[3] = {
     { 5, 17, 2, 1 },
     { 5, 18, 3, 1 },
     { 255, 0, 0, 0 },

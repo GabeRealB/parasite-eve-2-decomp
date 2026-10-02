@@ -133,11 +133,11 @@ STATIC_ASSERT_SIZEOF(DwtColorMtx, 0x58);
 
 // Message-table callbacks use the argument views required by this TU.
 
-extern EvsCommand     D_dryfield_water_tank_80184E0C[];
-extern EvsCommand     D_dryfield_water_tank_801859DC[];
-extern TaskDesc       D_dryfield_water_tank_801868A4[];
-extern GpAreaApplyRec D_dryfield_water_tank_80188D1C[];
-extern Task*          D_dryfield_water_tank_80188D44;
+extern EvsCommand   D_dryfield_water_tank_80184E0C[];
+extern EvsCommand   D_dryfield_water_tank_801859DC[];
+extern TaskDesc     D_dryfield_water_tank_801868A4[];
+extern AreaApplyRec D_dryfield_water_tank_80188D1C[];
+extern Task*        D_dryfield_water_tank_80188D44;
 
 static void func_dryfield_water_tank_8017DB48(void);
 
@@ -937,7 +937,7 @@ WorldCollisionSurfaceProperties* D_dryfield_water_tank_80188CFC[8] = {
     D_dryfield_water_tank_80188CD4,
 };
 
-GpAreaApplyRec D_dryfield_water_tank_80188D1C[10] = {
+AreaApplyRec D_dryfield_water_tank_80188D1C[10] = {
     { 2, 2, 3, 17 },
     { 2, 2, 7, 33 },
     { 2, 15, 3, 17 },

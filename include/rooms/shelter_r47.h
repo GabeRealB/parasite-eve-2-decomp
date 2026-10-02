@@ -17,7 +17,7 @@ extern TaskDesc D_shelter_r47_80187618;
 
 extern WorldCollisionGrid D_shelter_r47_8018828C;
 
-extern GpAreaApplyRec D_shelter_r47_8018A638[21];
+extern AreaApplyRec D_shelter_r47_8018A638[21];
 
 extern AreaVariant D_shelter_r47_80187CB8[12];
 

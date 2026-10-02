@@ -68,7 +68,7 @@ enum {
     /// When `AREA_SPAWN_RESTORE_SAVED_POSES` is clear, the world map draws a
     /// visited area's room in red and the shelter map draws a marker. The bit is
     /// set when an area-exit sequence starts, for the new-game area lists, and
-    /// when an area-apply record's low nibble is nonzero. It is cleared when
+    /// when an `AreaApplyRec` policy's low nibble is nonzero. It is cleared when
     /// that nibble is zero, when a generator's death release runs, and at the
     /// end of the driveway cutscene.
     AREA_SAVED_MAP_MARK = 0x04
