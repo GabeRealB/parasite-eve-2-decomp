@@ -2,8 +2,8 @@
  * texture fixed per overlay. A world position is projected through
  * `GsWSMATRIX` and, unless it lands behind the camera, a camera-facing
  * textured POLY_FT4 is drawn there: `frame` picks a cell along the texture
- * row, `angle` spins the quad and `size` sets its half-diagonal, divided by
- * depth so the sprite shrinks into the distance.
+ * row, `angle` spins the quad and `size` combines with the carrier's scale
+ * and projected depth to set its screen-space half-diagonal.
  *
  * The including unit sets the texture before including the fragment:
  *   SPRITE_QUAD_CLUT        CLUT word
@@ -56,6 +56,25 @@
 #define SPRITE_QUAD_POS(p, i)            ((p)->workm.t[i])
 #endif
 #ifndef SPRITE_QUAD_SIZE_T
+/// Integer type of the perspective-size argument for an included sprite-quad drawer.
+///
+/// Bind to `s16` (the default) or `u16` before this header for the first
+/// instance's declaration. The call narrows `size` to 16 bits, interpreted as
+/// -32768..32767 with `s16` or 0..65535 with `u16`.
+/// Both types promote to signed 32-bit arithmetic in the sizing calculation.
+///
+/// `size` is an integer sizing numerator: `size * SPRITE_QUAD_SCALE / depth`
+/// gives the signed screen-space half-diagonal in pixels before rotation and
+/// rounding. `depth` is the projected SZ3 divided by four, with the instance's
+/// optional ordering-depth bias already applied. The argument is neither a
+/// pixel count nor a fixed-point fraction; its pixel extent depends on the
+/// carrier's scale and the projected depth.
+///
+/// The binding persists across `sprite_quad_draw.inc.c` inclusions. Undefine
+/// and redefine it when changing an instance's signature, and keep that
+/// instance's forward declaration consistent. Hammer uses `u16` for its charge
+/// flare and restores `s16` for its six-cell strip; all other current instances
+/// use the signed default. The flicker drawer has a fixed `s16` size argument.
 #define SPRITE_QUAD_SIZE_T s16
 #endif
 

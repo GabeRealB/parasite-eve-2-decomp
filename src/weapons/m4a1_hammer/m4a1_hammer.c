@@ -208,7 +208,6 @@ void func_m4a1_hammer_8011D1E0(Task* task)
     }
 }
 
-/* the charging flare takes a bare translation and an unsigned size */
 #undef SPRITE_QUAD_POSITION_SOURCE_TYPE
 #undef SPRITE_QUAD_POS
 #undef SPRITE_QUAD_FRAME_T
@@ -217,7 +216,8 @@ void func_m4a1_hammer_8011D1E0(Task* task)
 #define SPRITE_QUAD_POSITION_SOURCE_TYPE const long
 #define SPRITE_QUAD_POS(p, i)            ((p)[i])
 /// Unsigned texture-frame counter, masked to the charge sprite's eight cells.
-#define SPRITE_QUAD_FRAME_T   u16
+#define SPRITE_QUAD_FRAME_T u16
+/// Unsigned 16-bit perspective size for the charge flare, matching its forward declaration.
 #define SPRITE_QUAD_SIZE_T    u16
 #define SPRITE_QUAD_FUNC      spriteQuadDrawCharge
 #define SPRITE_QUAD_TPAGE     0x28
@@ -237,7 +237,8 @@ void func_m4a1_hammer_8011D1E0(Task* task)
 #define SPRITE_QUAD_POS(p, i)            ((p)->workm.t[i])
 /// Restore the signed counter for the repeating six-cell sprite strip.
 #define SPRITE_QUAD_FRAME_T s16
-#define SPRITE_QUAD_SIZE_T  s16
+/// Restore signed 16-bit perspective sizing for the six-cell sprite strip.
+#define SPRITE_QUAD_SIZE_T s16
 
 void func_m4a1_hammer_8011DD08(Task* arg0)
 {
