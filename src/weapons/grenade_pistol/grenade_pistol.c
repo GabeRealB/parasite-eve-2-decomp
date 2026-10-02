@@ -79,7 +79,7 @@ static void func_grenade_pistol_8011D1D4(Task* arg0)
             if (((u16)actor->movementMode | actor->turnSign) != 0) {
                 anim = 8;
             }
-            Gp_AnimPlayChildSlotsEx(arg0, 9, 0, anim);
+            playerActorPlayChildSlotsWithBlend(arg0, 9, 0, anim);
             actor->movementMode = 0;
             break;
         case 1:
@@ -102,7 +102,7 @@ static void func_grenade_pistol_8011D1D4(Task* arg0)
                (bits 16-19 of its spawn argument) both follow the variant. */
             func_80104490(arg0, 0, 1 + GRENADE_VARIANT,
                           gPlayerStatus.weaponSlotItem | (GRENADE_VARIANT << 16) | (GRENADE_WEAPON << 8));
-            Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 3);
+            playerActorPlayChildSlotsWithBlend(arg0, 0xA, 0, 3);
             break;
         case 3:
             if (func_80105894(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0) {

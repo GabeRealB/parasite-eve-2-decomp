@@ -50,7 +50,7 @@ static void func_m249_8011D1DC(Task* arg0)
             if (((u16)actor->movementMode | actor->turnSign) != 0) {
                 anim = 8;
             }
-            Gp_AnimPlayChildSlotsEx(arg0, 9, 0, anim);
+            playerActorPlayChildSlotsWithBlend(arg0, 9, 0, anim);
             actor->movementMode = 0;
             break;
         case 1:
@@ -76,7 +76,7 @@ static void func_m249_8011D1DC(Task* arg0)
                 Gp_SpawnEff(EFFECT_RIFLE_MUZZLE_FLASH,
                             actor->equipmentTasks[1]->extra.tmd->coords, 0x11,
                             NULL);
-                Gp_AnimPlayChildSlotsEx(arg0, 0xA, 1, 2);
+                playerActorPlayChildSlotsWithBlend(arg0, 0xA, 1, 2);
             }
             break;
         case 4:

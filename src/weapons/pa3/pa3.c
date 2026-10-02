@@ -77,7 +77,7 @@ static void func_pa3_8011D1DC(Task* arg0)
             if (((u16)actor->movementMode | actor->turnSign) != 0) {
                 anim = 8;
             }
-            Gp_AnimPlayChildSlotsEx(arg0, 9, 0, anim);
+            playerActorPlayChildSlotsWithBlend(arg0, 9, 0, anim);
             actor->movementMode = 0;
             /* fallthrough */
         case 1:
@@ -95,7 +95,7 @@ static void func_pa3_8011D1DC(Task* arg0)
             Gp_SpawnEff(EFFECT_SHOTGUN_MUZZLE_FLASH,
                         actor->equipmentTasks[1]->extra.tmd->coords,
                         (gPlayerStatus.weaponSlotItem << 0x10) | WEAPON_ID, NULL);
-            Gp_AnimPlayChildSlotsEx(arg0, 0xA, 1, 3);
+            playerActorPlayChildSlotsWithBlend(arg0, 0xA, 1, 3);
             break;
         case 3:
             actor->statePhase++;

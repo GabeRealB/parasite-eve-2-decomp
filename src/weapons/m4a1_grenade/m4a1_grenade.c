@@ -101,7 +101,7 @@ static void func_m4a1_grenade_8011D1EC(Task* arg0)
             if (((u16)actor->movementMode | actor->turnSign) != 0) {
                 anim = 8;
             }
-            Gp_AnimPlayChildSlotsEx(arg0, 9, 0, anim);
+            playerActorPlayChildSlotsWithBlend(arg0, 9, 0, anim);
             actor->movementMode = 0;
             break;
         case 1:
@@ -129,7 +129,7 @@ static void func_m4a1_grenade_8011D1EC(Task* arg0)
                             actor->equipmentTasks[1]->extra.tmd->coords, 0x1B,
                             NULL);
                 func_80104490(arg0, 0, 0, sfx | 0x1B00);
-                Gp_AnimPlayChildSlotsEx(arg0, 0xB, 0, 3);
+                playerActorPlayChildSlotsWithBlend(arg0, 0xB, 0, 3);
                 break;
             }
             /* fallthrough */
@@ -150,7 +150,7 @@ static void func_m4a1_grenade_8011D1EC(Task* arg0)
                     Gp_SpawnEff(EFFECT_RIFLE_MUZZLE_FLASH,
                                 actor->equipmentTasks[1]->extra.tmd->coords,
                                 0x1B, NULL);
-                    Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 2);
+                    playerActorPlayChildSlotsWithBlend(arg0, 0xA, 0, 2);
                 } else {
                     actor->stateTimer = delay - 1;
                     if (delay - 1 == 2) {

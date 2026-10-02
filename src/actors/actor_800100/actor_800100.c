@@ -1563,7 +1563,7 @@ static void func_actor_800100_80163D54(Task* arg0)
             if (count >= ((rand() & 3) + 3)) {
                 if (actor->statePhase == 0) {
                     actor->statePhase = 1;
-                    Gp_AnimPlayChildSlotsEx(arg0, 0x17, 0, 5);
+                    playerActorPlayChildSlotsWithBlend(arg0, 0x17, 0, 5);
                 } else if ((rand() & 0xFF) >= 0xD0) {
                     func_actor_800100_80165720(arg0);
                 }
@@ -1709,7 +1709,7 @@ static void func_actor_800100_80164184(Task* arg0)
         actor2->stateAux         = timer;
         companion->scanClearance = COMPANION_SCAN_UNTESTED;
         companion->scanAngle     = 0;
-        Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 6);
+        playerActorPlayChildSlotsWithBlend(arg0, 1, 0, 6);
         return;
     }
     switch (actor->statePhase) {
@@ -1732,7 +1732,7 @@ static void func_actor_800100_80164184(Task* arg0)
                 actor->movementMode = 1;
                 arg                 = 2;
             }
-            Gp_AnimPlayChildSlotsEx(arg0, arg, 0, 5);
+            playerActorPlayChildSlotsWithBlend(arg0, arg, 0, 5);
             actor->movementSign = 1;
         drive:
             dist = func_8010BC70(coord);
@@ -1810,7 +1810,7 @@ static void func_actor_800100_801643F4(Task* arg0)
                 actor->actionValue = 1;
                 arg                = 6;
             }
-            Gp_AnimPlayChildSlotsEx(arg0, arg, 0, 5);
+            playerActorPlayChildSlotsWithBlend(arg0, arg, 0, 5);
             /* fallthrough */
         case 1:
             actor->turnSign = (u8)actor->actionValue;
@@ -1879,7 +1879,7 @@ static void func_actor_800100_80164580(Task* arg0)
             arg                   = 7;
             actor->animationState = arg;
             actor->statePhase    += 1;
-            Gp_AnimPlayChildSlotsEx(arg0, arg, 0, 3);
+            playerActorPlayChildSlotsWithBlend(arg0, arg, 0, 3);
             /* fallthrough */
         case 2:
         case 3:
@@ -1892,7 +1892,7 @@ static void func_actor_800100_80164580(Task* arg0)
                 actor2->statePhase     = 0;
                 actor2->movementSign   = 0;
                 actor2->turnSign       = 0;
-                Gp_AnimPlayChildSlotsEx(arg0, 9, 0, 6);
+                playerActorPlayChildSlotsWithBlend(arg0, 9, 0, 6);
             }
             break;
     }
@@ -1937,7 +1937,7 @@ static void func_actor_800100_80164710(Task* arg0)
             actor2->statePhase     = 0;
             actor2->movementSign   = 0;
             actor2->turnSign       = 0;
-            Gp_AnimPlayChildSlotsEx(arg0, 9, 0, 6);
+            playerActorPlayChildSlotsWithBlend(arg0, 9, 0, 6);
         } else {
             dist = func_8010BCF4(arg0, &scratch->lock);
             if (dist < 0) {
@@ -1961,7 +1961,7 @@ static void func_actor_800100_80164710(Task* arg0)
                     actor3->statePhase     = 0;
                     actor3->movementSign   = 0;
                     actor3->turnSign       = 0;
-                    Gp_AnimPlayChildSlotsEx(arg0, 9, 0, 6);
+                    playerActorPlayChildSlotsWithBlend(arg0, 9, 0, 6);
                 } else if (actor->attackControl.cooldownTicks == 0) {
                     func_actor_800100_80166EE8(arg0);
                 }
@@ -2019,7 +2019,7 @@ static void func_actor_800100_80164940(Task* arg0)
                 arg                = 5;
             }
             actor->stateTimer = (rand() & 0x1FF) + 0x400;
-            Gp_AnimPlayChildSlotsEx(arg0, arg, 0, 5);
+            playerActorPlayChildSlotsWithBlend(arg0, arg, 0, 5);
             /* fallthrough */
         case 1:
             actor->turnSign = (u8)actor->actionValue;
@@ -2033,7 +2033,7 @@ static void func_actor_800100_80164940(Task* arg0)
                 actor->movementMode = 3;
                 actor->statePhase  += 1;
                 actor->stateTimer   = (rand() & 0x1F) + 0x14;
-                Gp_AnimPlayChildSlotsEx(arg0, 4, 0, 5);
+                playerActorPlayChildSlotsWithBlend(arg0, 4, 0, 5);
             }
             break;
         case 2:
@@ -2048,7 +2048,7 @@ static void func_actor_800100_80164940(Task* arg0)
                 actor2->statePhase     = 0;
                 actor2->movementSign   = 0;
                 actor2->turnSign       = 0;
-                Gp_AnimPlayChildSlotsEx(arg0, 9, 0, 6);
+                playerActorPlayChildSlotsWithBlend(arg0, 9, 0, 6);
             } else {
                 distance = _actor800100GetContactDistance(coord, actor->companionWork->probe.contacts, NULL);
                 if (distance != 0) {
@@ -2066,7 +2066,7 @@ static void func_actor_800100_80164940(Task* arg0)
                         actor3->stateAux         = old;
                         companion->scanClearance = COMPANION_SCAN_UNTESTED;
                         companion->scanAngle     = 0;
-                        Gp_AnimPlayChildSlotsEx(arg0, anim, 0, 6);
+                        playerActorPlayChildSlotsWithBlend(arg0, anim, 0, 6);
                     }
                 } else {
                     actor->turnSign = 0;
@@ -2131,7 +2131,7 @@ static void func_actor_800100_80164B9C(Task* arg0)
             actor2->stateAux         = old;
             companion->scanClearance = COMPANION_SCAN_UNTESTED;
             companion->scanAngle     = 0;
-            Gp_AnimPlayChildSlotsEx(arg0, anim, 0, 6);
+            playerActorPlayChildSlotsWithBlend(arg0, anim, 0, 6);
             return;
         }
     }
@@ -2156,7 +2156,7 @@ static void func_actor_800100_80164B9C(Task* arg0)
             actor->statePhase   = 1;
             actor->stateTimer   = 0;
             actor->movementMode = 3;
-            Gp_AnimPlayChildSlotsEx(arg0, 0xC, 0, 5);
+            playerActorPlayChildSlotsWithBlend(arg0, 0xC, 0, 5);
         case 1:
         case 2:
             break;
@@ -2179,7 +2179,7 @@ static void func_actor_800100_80164B9C(Task* arg0)
         actor3->statePhase     = 0;
         actor3->movementSign   = 0;
         actor3->turnSign       = 0;
-        Gp_AnimPlayChildSlotsEx(arg0, 9, 0, 6);
+        playerActorPlayChildSlotsWithBlend(arg0, 9, 0, 6);
     }
 tail:
     func_8010BD88(arg0, &block->lock);
@@ -2248,7 +2248,7 @@ static void func_actor_800100_80164E60(Task* arg0)
         target->statePhase     = 0;
         target->movementSign   = 0;
         target->turnSign       = 0;
-        Gp_AnimPlayChildSlotsEx(arg0, 9, 0, 6);
+        playerActorPlayChildSlotsWithBlend(arg0, 9, 0, 6);
     }
 }
 
@@ -2298,7 +2298,7 @@ static void func_actor_800100_80165010(Task* arg0)
                 } else {
                     companion->turnDir = -1;
                 }
-                Gp_AnimPlayChildSlotsEx(arg0, arg, 0, 3);
+                playerActorPlayChildSlotsWithBlend(arg0, arg, 0, 3);
             }
             break;
         case 1:
@@ -2321,14 +2321,14 @@ static void func_actor_800100_80165010(Task* arg0)
                     rng                 = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     gRandomLcgState     = rng;
                     actor->stateTimer   = ((rng >> 16) & 0x3F) + 0x14;
-                    Gp_AnimPlayChildSlotsEx(arg0, slot, 0, 3);
+                    playerActorPlayChildSlotsWithBlend(arg0, slot, 0, 3);
                 } else {
                     slot                = 2;
                     actor->movementMode = 1;
                     rng                 = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     gRandomLcgState     = rng;
                     actor->stateTimer   = ((rng >> 16) & 0x7F) + 0x28;
-                    Gp_AnimPlayChildSlotsEx(arg0, slot, 0, 3);
+                    playerActorPlayChildSlotsWithBlend(arg0, slot, 0, 3);
                 }
             }
             break;
@@ -2382,7 +2382,7 @@ static void func_actor_800100_801652B0(Task* arg0)
             } else {
                 companion->turnDir = -1;
             }
-            Gp_AnimPlayChildSlotsEx(arg0, arg, 0, 3);
+            playerActorPlayChildSlotsWithBlend(arg0, arg, 0, 3);
         case 1:
             val             = (u8)companion->turnDir;
             actor->turnSign = val;
@@ -2401,7 +2401,7 @@ static void func_actor_800100_801652B0(Task* arg0)
                 gRandomLcgState     = val;
                 val                 = (((u32)val >> 16) & 0x7F) + 0x1E;
                 actor->stateTimer   = val;
-                Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 3);
+                playerActorPlayChildSlotsWithBlend(arg0, 1, 0, 3);
                 break;
             }
             break;
@@ -2425,12 +2425,12 @@ static void func_actor_800100_801652B0(Task* arg0)
                 target->stateAux               = old;
                 targetCompanion->scanClearance = COMPANION_SCAN_UNTESTED;
                 targetCompanion->scanAngle     = 0;
-                Gp_AnimPlayChildSlotsEx(arg0, anim, 0, 6);
+                playerActorPlayChildSlotsWithBlend(arg0, anim, 0, 6);
                 break;
             }
             actor->statePhase += 1;
             actor->stateTimer  = (rand() & 0x3F) + 0x3C;
-            Gp_AnimPlayChildSlotsEx(arg0, 2, 0, 3);
+            playerActorPlayChildSlotsWithBlend(arg0, 2, 0, 3);
             break;
         case 3:
             if (targetDist < 0x301 && targetDist != 0) {
@@ -2479,7 +2479,7 @@ static void func_actor_800100_801655C0(Task* arg0)
     actor->companionWork->activity.combat.repeatsRemaining = 0;
     actor->aimTrackingState                                = GAME_ACTOR_AIM_TRACKING_TARGET;
     actor->targetNode                                      = Gp_FindLockNode(arg0);
-    Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 6);
+    playerActorPlayChildSlotsWithBlend(arg0, 1, 0, 6);
 }
 
 static void func_actor_800100_80165630(Task* arg0)
@@ -2516,7 +2516,7 @@ static void func_actor_800100_80165664(Task* arg0)
     actor->stateAux          = temp;
     companion->scanClearance = COMPANION_SCAN_UNTESTED;
     companion->scanAngle     = 0;
-    Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 6);
+    playerActorPlayChildSlotsWithBlend(arg0, 1, 0, 6);
 }
 
 static void func_actor_800100_801656C8(Task* arg0)
@@ -2573,7 +2573,7 @@ static void func_actor_800100_80165748(Task* arg0)
         actor->companionWork->activity.combat.repeatsRemaining = 0;
         actor->aimTrackingState                                = GAME_ACTOR_AIM_TRACKING_TARGET;
         actor->targetNode                                      = Gp_FindLockNode(arg0);
-        Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 6);
+        playerActorPlayChildSlotsWithBlend(arg0, 1, 0, 6);
         return;
     }
     func_actor_800100_80163D54(arg0);
@@ -2778,7 +2778,7 @@ static void func_actor_800100_80165C38(Task* arg0)
             actor->animationState                        = 0;
             actor->stateAux                              = 1;
             companion->activity.combat.attacksRemaining -= 1;
-            Gp_AnimPlayChildSlotsEx(arg0, 0xA, 1, 3);
+            playerActorPlayChildSlotsWithBlend(arg0, 0xA, 1, 3);
             func_80106238(arg0, 0, 0);
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_SINGLE_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
             Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x40650001, 1);
@@ -2826,7 +2826,7 @@ static void func_actor_800100_80165DE8(Task* arg0)
         case 1:
             actor->stateAux                              = 2;
             companion->activity.combat.attacksRemaining -= 1;
-            Gp_AnimPlayChildSlotsEx(arg0, 0xA, 1, 3);
+            playerActorPlayChildSlotsWithBlend(arg0, 0xA, 1, 3);
             Gp_PlayObjSfx(coord, 0x40660001, 1);
             if (coord != NULL) {
                 actor->attackControl.cooldownTicks = 0x28;
@@ -2900,7 +2900,7 @@ static void func_actor_800100_80165F50(Task* arg0)
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
                 Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x40670001, 1);
                 Gp_SpawnEff(EFFECT_HANDGUN_MUZZLE_FLASH, coord, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant] | 0x10000, NULL);
-                Gp_AnimPlayChildSlotsEx(arg0, 0xA, 1, 2);
+                playerActorPlayChildSlotsWithBlend(arg0, 0xA, 1, 2);
             }
             break;
 
@@ -2953,7 +2953,7 @@ static void func_actor_800100_80166190(Task* arg0)
             actor->movementMode   = 0;
             actor->animationState = 0;
             actor->stateAux      += 1;
-            Gp_AnimPlayChildSlotsEx(arg0, 9, 0, 1);
+            playerActorPlayChildSlotsWithBlend(arg0, 9, 0, 1);
             break;
 
         case 1:
@@ -2998,7 +2998,7 @@ static void func_actor_800100_80166190(Task* arg0)
                     }
                     Gp_PlayObjSfx(coord, 0x40680001, 1);
                     Gp_SpawnEff(EFFECT_RIFLE_MUZZLE_FLASH, coord, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant] | 0x10000, NULL);
-                    Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 2);
+                    playerActorPlayChildSlotsWithBlend(arg0, 0xA, 0, 2);
                     break;
                 } else {
                     actor->stateTimer -= 1;
@@ -3029,7 +3029,7 @@ static void func_actor_800100_80166190(Task* arg0)
                     actor->weaponEffectTask->spawnArg1.value = 3;
                 }
                 SndEvt_EnqueueType7(SOUND_COMPANION_PYKE_FIRE_TAIL, 1);
-                Gp_AnimPlayChildSlotsEx(arg0, 0xB, 0, 2);
+                playerActorPlayChildSlotsWithBlend(arg0, 0xB, 0, 2);
             } else {
                 actor->actionValue = (u16)actor->actionValue - 1;
             }
@@ -3329,7 +3329,7 @@ static void func_actor_800100_80166E14(Task* arg0)
     actor->targetNode       = NULL;
     actor->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
     func_80106350(arg0, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
-    Gp_AnimPlayChildSlotsEx(arg0, 8, 1, 6);
+    playerActorPlayChildSlotsWithBlend(arg0, 8, 1, 6);
 }
 
 static void func_actor_800100_80166E94(Task* arg0, s32 arg1)
@@ -3345,7 +3345,7 @@ static void func_actor_800100_80166E94(Task* arg0, s32 arg1)
     actor->animationState   = 0;
     actor->statePhase       = 0;
     actor->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
-    Gp_AnimPlayChildSlotsEx(arg0, arg1 + 0xE, 0, 1);
+    playerActorPlayChildSlotsWithBlend(arg0, arg1 + 0xE, 0, 1);
 }
 
 static void func_actor_800100_80166EE8(Task* arg0)

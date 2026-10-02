@@ -65,7 +65,7 @@ static void func_m4a1_bayonet_8011DA34(Task* arg0)
             if (((u16)actor->movementMode | actor->turnSign) != 0) {
                 anim = 8;
             }
-            Gp_AnimPlayChildSlotsEx(arg0, 9, 0, anim);
+            playerActorPlayChildSlotsWithBlend(arg0, 9, 0, anim);
             actor->movementMode = 0;
             break;
         case 1:
@@ -94,7 +94,7 @@ static void func_m4a1_bayonet_8011DA34(Task* arg0)
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key    = 0x21A1D;
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0xF7FF;
                 func_80106238(arg0, 0, 0);
-                Gp_AnimPlayChildSlotsEx(arg0, 0xB, 1, 3);
+                playerActorPlayChildSlotsWithBlend(arg0, 0xB, 1, 3);
                 break;
             }
             /* fallthrough */
@@ -115,7 +115,7 @@ static void func_m4a1_bayonet_8011DA34(Task* arg0)
                     Gp_SpawnEff(EFFECT_RIFLE_MUZZLE_FLASH,
                                 actor->equipmentTasks[1]->extra.tmd->coords,
                                 0x1A, NULL);
-                    Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 2);
+                    playerActorPlayChildSlotsWithBlend(arg0, 0xA, 0, 2);
                     break;
                 }
                 actor->stateTimer = delay - 1;

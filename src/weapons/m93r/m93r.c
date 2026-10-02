@@ -68,7 +68,7 @@ static void func_m93r_8011D1C4(Task* arg0)
             if (((u16)actor->movementMode | actor->turnSign) != 0) {
                 anim = 6;
             }
-            Gp_AnimPlayChildSlotsEx(arg0, 9, 0, anim);
+            playerActorPlayChildSlotsWithBlend(arg0, 9, 0, anim);
             actor->movementMode = 0;
             break;
         case 1:
@@ -93,7 +93,7 @@ static void func_m93r_8011D1C4(Task* arg0)
                     Gp_SpawnEff(EFFECT_HANDGUN_MUZZLE_FLASH,
                                 actor->equipmentTasks[1]->extra.tmd->coords, 2,
                                 NULL);
-                    Gp_AnimPlayChildSlotsEx(arg0, 0xA, 1, 2);
+                    playerActorPlayChildSlotsWithBlend(arg0, 0xA, 1, 2);
                     break;
                 }
                 /* Decrement through the local rather than storing `delay - 1`

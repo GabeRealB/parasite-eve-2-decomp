@@ -710,7 +710,7 @@ void func_8010A9D0(Task* arg0)
     } else {
         mode = 0x11;
     }
-    Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 3);
+    playerActorPlayChildSlotsWithBlend(arg0, mode, 0, 3);
 }
 
 void Gp_StopPlayerAnim(Task* arg0, s32 arg1)
@@ -727,7 +727,7 @@ void Gp_StopPlayerAnim(Task* arg0, s32 arg1)
     if (arg1 == 0) {
         Gp_AnimResetChildSlots(arg0, 0x12);
     } else {
-        Gp_AnimPlayChildSlotsEx(arg0, 0x12, 0, arg1);
+        playerActorPlayChildSlotsWithBlend(arg0, 0x12, 0, arg1);
     }
     Gp_DetachLinkNode(arg0);
     inner->pendingCollisionUpdates |= (GAME_ACTOR_COLLISION_FIRST_TWO_REQUESTS << GAME_ACTOR_COLLISION_DISABLE_REQUEST_SHIFT);
@@ -983,7 +983,7 @@ void Gp_PlayerStepSfx(Task* arg0)
     if ((u16)inner2->hitRegion == 1) {
         mode = 0x10;
     }
-    Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 3);
+    playerActorPlayChildSlotsWithBlend(arg0, mode, 0, 3);
     temp  = (s8)worldCoordGetOriginAudioPan(obj);
     temp2 = (s8)worldCoordGetOriginAudioDepth(obj);
     snd   = 7;
@@ -1227,7 +1227,7 @@ void Gp_EndPlayerActorTask(Task* arg0)
         next->actionValue    = 0;
         next->movementSign   = 0;
         next->turnSign       = 0;
-        Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 4);
+        playerActorPlayChildSlotsWithBlend(arg0, 1, 0, 4);
     }
     task = actor->weaponEffectTask;
     if (task != NULL) {
@@ -1336,7 +1336,7 @@ void func_8010B9A4(Task* arg0)
     if ((u16)actor->hitRegion == 1) {
         anim = 0x10;
     }
-    Gp_AnimPlayChildSlotsEx(arg0, anim, 0, 3);
+    playerActorPlayChildSlotsWithBlend(arg0, anim, 0, 3);
 }
 
 Task* Gp_SpawnAlly(const ActorSpawnTransform* spawnTransform, u16 arg1, s32 arg2, u16* arg3)
@@ -1405,7 +1405,7 @@ void Gp_ResetActorMove(Task* arg0, s16 arg1)
     if (arg1 != 0) {
         Gp_AnimResetChildSlots(arg0, 1);
     } else {
-        Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 4);
+        playerActorPlayChildSlotsWithBlend(arg0, 1, 0, 4);
     }
 }
 
@@ -1589,7 +1589,7 @@ void func_8010C180(Task* arg0)
     actor->actionValue    = 0;
     actor->movementSign   = 0;
     actor->turnSign       = 0;
-    Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 4);
+    playerActorPlayChildSlotsWithBlend(arg0, 1, 0, 4);
 }
 
 void Gp_BindActorD4(Task* arg0, SVECTOR3* arg1, s32 arg2)
@@ -1722,7 +1722,7 @@ s32 func_8010C4F0(Task* task, s32 msgId, AnimationPlayRequest* request)
     if (request->blend == ANIMATION_BLEND_RESET) {
         Gp_AnimResetChildSlots(task, request->animationId);
     } else {
-        Gp_AnimPlayChildSlotsEx(task, request->animationId, 1, request->blendFrames);
+        playerActorPlayChildSlotsWithBlend(task, request->animationId, 1, request->blendFrames);
     }
     if (request->enableWorldCollision == ANIMATION_WORLD_COLLISION_DISABLE) {
         actor->pendingCollisionUpdates = PLAYER_ACTOR_WORLD_COLLISION_DISABLE;

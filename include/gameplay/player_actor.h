@@ -51,7 +51,30 @@ s32 func_801011D0(struct GfxCoord* arg0, WorldCollisionContact* arg1, s32 arg2, 
 
 void Gp_AttachActorObj(Task* arg0, s32 arg1, s32 arg2);
 
-void Gp_AnimPlayChildSlotsEx(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
+/// Starts a selected animation set on the player or companion actor's child slots with a pose blend.
+///
+/// `task->work` must be a live `GameActor` with initialized playback bound to
+/// its slots and word-aligned pose buffer. Visits slots 1 through
+/// `animationSlotCount - 1`; a count at most 1 performs no playback. The active
+/// prefix must fit the actor's storage, and each slot's existing track and
+/// coordinate indices must fit the selected clip and model.
+///
+/// Each slot first ticks at its existing rate to apply its pose to the model
+/// and capture an encoded transition pose; skipped writes retain the buffer.
+/// It then selects the track start from the actor's current `animationSets`
+/// table, following control records, and takes the actor's `animationRate`
+/// for subsequent ticks. Pose encoding
+/// and the capture tick's flags and boundary latch are retained.
+///
+/// The low 16 bits of `setIndex` must select a loaded set, excluding
+/// `ANIMATION_SET_BUFFERED_POSE`. `blendFrames` counts whole normal-rate frames
+/// (0..2047); zero gives no transition time but still captures the prior pose.
+/// `unusedArgument` is ignored and retained for the calling convention.
+/// No bounds are checked. Keep the borrowed set table, clip data, model and
+/// actor storage live during playback; record bounds, terminating control
+/// walks, supported encodings, scratch capacity and GTE requirements are those
+/// of `animationTickSlotPose`.
+void playerActorPlayChildSlotsWithBlend(Task* task, s32 setIndex, s32 unusedArgument, s32 blendFrames);
 
 Task* func_80104258(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 

@@ -780,7 +780,7 @@ static void func_m4a1_javelin_8011F5D4(Task* arg0)
             if (((u16)actor->movementMode | actor->turnSign) != 0) {
                 anim = 8;
             }
-            Gp_AnimPlayChildSlotsEx(arg0, 9, 0, anim);
+            playerActorPlayChildSlotsWithBlend(arg0, 9, 0, anim);
             actor->movementMode = 0;
             break;
         case 1:
@@ -816,7 +816,7 @@ static void func_m4a1_javelin_8011F5D4(Task* arg0)
                     taskReparent(actor->equipmentTasks[1], eff->task);
                 }
                 Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x201D0005, 1);
-                Gp_AnimPlayChildSlotsEx(arg0, 0xB, 0, 3);
+                playerActorPlayChildSlotsWithBlend(arg0, 0xB, 0, 3);
                 break;
             }
             /* fallthrough */
@@ -837,7 +837,7 @@ static void func_m4a1_javelin_8011F5D4(Task* arg0)
                     Gp_SpawnEff(EFFECT_RIFLE_MUZZLE_FLASH,
                                 actor->equipmentTasks[1]->extra.tmd->coords,
                                 0x1D, NULL);
-                    Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 2);
+                    playerActorPlayChildSlotsWithBlend(arg0, 0xA, 0, 2);
                 } else {
                     delay--;
                     actor->stateTimer = delay;

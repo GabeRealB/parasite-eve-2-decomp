@@ -40,7 +40,7 @@ static void func_m950_8011D1DC(Task* arg0)
             if (((u16)actor->movementMode | actor->turnSign) != 0) {
                 anim = 5;
             }
-            Gp_AnimPlayChildSlotsEx(arg0, 9, 0, anim);
+            playerActorPlayChildSlotsWithBlend(arg0, 9, 0, anim);
             actor->movementMode = 0;
             break;
         case 1:
@@ -63,7 +63,7 @@ static void func_m950_8011D1DC(Task* arg0)
                 Gp_ConsumeSlotQty(0x82, 1);
                 Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20030004, 1);
                 Gp_SpawnEff(EFFECT_HANDGUN_MUZZLE_FLASH, coord, 3, NULL);
-                Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 2);
+                playerActorPlayChildSlotsWithBlend(arg0, 0xA, 0, 2);
             }
             break;
         case 4:

@@ -7688,7 +7688,7 @@ call. Overwriting the original saved `actor` puts the second reload in
 
 The target wants the first reload in `$a3` (it becomes
 `inner->poseBuffer`, the 4th arg) and the second in `$v0` (store-only
-scratch before `Gp_AnimPlayChildSlotsEx`):
+scratch before `playerActorPlayChildSlotsWithBlend`):
 
 ```
 lw    a3,0x1c(s1)
@@ -7715,7 +7715,7 @@ Gp_AnimResetChildSlots(arg0, 1);
 next            = arg0->actor;
 next->mode = 0;
 /* ... */
-Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 4);
+playerActorPlayChildSlotsWithBlend(arg0, 1, 0, 4);
 /* taskKill(actor->weaponEffectTask); */
 ```
 
@@ -49333,27 +49333,27 @@ compiles to
 addiu  $a1, $zero, 0x1
 addu   $a2, $zero, $zero
 addiu  $a3, $zero, 0x3
-jal    Gp_AnimPlayChildSlotsEx
+jal    playerActorPlayChildSlotsWithBlend
 ```
 
 with `$a0` untouched, and m2c emitted
 
 ```c
-Gp_AnimPlayChildSlotsEx(1, 0, 3);   /* three arguments */
+playerActorPlayChildSlotsWithBlend(1, 0, 3);   /* three arguments */
 ```
 
-for the real four-argument `void Gp_AnimPlayChildSlotsEx(Task*, s32, s32, s32)`.
+for the real four-argument `void playerActorPlayChildSlotsWithBlend(Task*, s32, s32, s32)`.
 The tell is a call whose emitted argument count is one short of the prototype's
 while `$a0` has no definition between the prologue and the `jal`. Restore the
 leading argument and it matches on the first build; the matched sibling in the
-same TU (`func_actor_800200_801653C0`, `Gp_AnimPlayChildSlotsEx(index, 7, 0, 3)`)
+same TU (`func_actor_800200_801653C0`, `playerActorPlayChildSlotsWithBlend(index, 7, 0, 3)`)
 shows the true arity.
 
 It is not a one-off in that TU: `func_actor_800200_80165534`, the very next
 `INCLUDE_ASM` after `func_actor_800200_801654EC`, carries the identical
 three-argument call for its own `0xE` mode and matched the same way. An actor
 state-entry function whose whole body is a field block plus one
-`Gp_AnimPlayChildSlotsEx` should be checked for the missing `index` before
+`playerActorPlayChildSlotsWithBlend` should be checked for the missing `index` before
 anything else — the m2c seed's argument count is the first thing to count, not
 the register allocation it distorts.
 ## A uniform `$a0→$a1, $a1→$a2, $a2→$a3` shift at a `jal` is a dropped leading callee argument
@@ -49364,7 +49364,7 @@ does not know the callee's prototype — it is still `INCLUDE_ASM`, or lives in
 another overlay — so it types the call from the registers the body happens to
 set, and drops the leading argument when that register is already occupied.
 
-In `func_actor_800100_80165664` the target's `jal Gp_AnimPlayChildSlotsEx` never
+In `func_actor_800100_80165664` the target's `jal playerActorPlayChildSlotsWithBlend` never
 writes `$a0`, because `$a0` still holds the caller's own `index`; m2c emitted the
 call with three arguments and got a uniform shift on all of them:
 
@@ -49379,7 +49379,7 @@ Score 99.00% with `regs=5` and no structural penalty — a purely positional
 off-by-one, never a lifetime or allocation problem. The missing argument is
 almost always the enclosing function's own first parameter, so read the callee's
 `.s`: if it never writes `$a0` before the `jal`, `index` is being forwarded.
-Restoring it (`Gp_AnimPlayChildSlotsEx(index, 1, 0, 6)`) took 99.00% to 100.00%
+Restoring it (`playerActorPlayChildSlotsWithBlend(index, 1, 0, 6)`) took 99.00% to 100.00%
 in one edit. Do not chase the shift with pins or the permuter.
 
 The shift need not stay inside the one call. `func_dryfield_night_driveway_8017DCFC`
@@ -55396,7 +55396,7 @@ different mode class, and the SImode uses go back to the switch's register:
 
 ```c
 s16 anim;   /* stored to actor->actionValue, an s16 */
-s32 fade;   /* separate local for the later Gp_AnimPlayChildSlotsEx argument */
+s32 fade;   /* separate local for the later playerActorPlayChildSlotsWithBlend argument */
 ```
 
 Narrowing is only right when the local really is a halfword field's value —
@@ -106083,7 +106083,7 @@ trailing-statement form scored 94.4% (`regs=19 branch=4 insert=4 delete=2`,
 structure already matching) and the flag form 100%, with no other source change.
 
 Same function, second leftover, same cause as the entry above it: reusing the
-later distance local for the `Gp_AnimPlayChildSlotsEx` argument emitted
+later distance local for the `playerActorPlayChildSlotsWithBlend` argument emitted
 `li v0,5` / `li v0,6` plus a `move a1,v0` at the join; a local that only the two
 arms assign gives the target's `li a1,5` / `li a1,6` directly.
 
@@ -109562,7 +109562,7 @@ register holding the function-wide `actor` pseudo.
 **Cause:** `actor = index->actor;` assigns to the existing variable, so the
 reloaded value *is* that pseudo and keeps its home. A fresh block-scope handle is
 a new pseudo whose live range ends inside that block (its last use is the store
-in the `Gp_AnimPlayChildSlotsEx` delay slot), so local-alloc gives it a
+in the `playerActorPlayChildSlotsWithBlend` delay slot), so local-alloc gives it a
 caller-saved register: `GameActor* actor2 = index->actor;`.
 
 The same reload keeps `lw` after the four argument setups, so the scheduler -
@@ -109761,7 +109761,7 @@ local was declared `s16`.
     s16 anim = 1;
     actor3->aimTrackingState = anim;
     ...
-    Gp_AnimPlayChildSlotsEx(arg0, anim, 0, 6);
+    playerActorPlayChildSlotsWithBlend(arg0, anim, 0, 6);
 ```
 
 The HImode pseudo keeps its own register; feeding a call argument allocates it
@@ -109940,11 +109940,11 @@ li    v0, 1 / sh v0, 0x958(s0) / li a1, 2
 .L42E0:
 addu  a0, s4, zero        # <- a0/a2/a3 are set here, after the merge point
 addu  a2, zero, zero
-jal   Gp_AnimPlayChildSlotsEx
+jal   playerActorPlayChildSlotsWithBlend
 li    a3, 5               # <- and the last argument is the jal's delay slot
 ```
 
-Two full calls with literals — `Gp_AnimPlayChildSlotsEx(index, 4, 0, 5);` and
+Two full calls with literals — `playerActorPlayChildSlotsWithBlend(index, 4, 0, 5);` and
 `(index, 2, 0, 5);` — *are* cross-jumped to one `jal`, so the shape looks right,
 but sched1 has already interleaved `a0`/`a2`/`a3` into the first arm by then, so
 jump2's backward walk stops short of them: arm 1 carries three dead setup
@@ -109962,7 +109962,7 @@ Setting only the differing argument in each arm and calling once is exact:
                 if (actor->statePhase != 3) { actor->statePhase = 1; }
                 actor->movementMode = 1; arg = 2;
             }
-            Gp_AnimPlayChildSlotsEx(arg0, arg, 0, 5);
+            playerActorPlayChildSlotsWithBlend(arg0, arg, 0, 5);
 ```
 
 This is m2c's `var_a1` shape, and it is the same question as "sched1 sets the
@@ -123176,7 +123176,7 @@ before the fallthrough; the target wants it as the **first** statement of the
 the `sb` in its delay slot:
 
 ```
-    jal   Gp_AnimPlayChildSlotsEx     j     DRIVE
+    jal   playerActorPlayChildSlotsWithBlend     j     DRIVE
     li    v0,1                        sb    v0,0x973(s0)   ; case 1/2/3
     sb    v0,0x973(s0)          →     DRIVE:
 DRIVE:                                jal   func_8010BC70

@@ -469,7 +469,7 @@ static void Gp_PlayerNormalState5(Task* arg0);
 
 /// Switches the player to `Gp_TickPlayerMode2` state 2 and starts the entry
 /// animation `movementSign` selects: a `fade` of 0 resets the child slots to it,
-/// anything else is passed to `Gp_AnimPlayChildSlotsEx`.
+/// anything else is passed to `playerActorPlayChildSlotsWithBlend`.
 static inline void _gpEnterPlayerMode2(Task* task, s32 fade);
 
 static void Gp_PlayerNormalState6(Task* arg0);
@@ -5645,19 +5645,18 @@ void Gp_AnimPlayChildSlots(Task* arg0, s32 arg1, s32 arg2)
     }
 }
 
-void Gp_AnimPlayChildSlotsEx(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+void playerActorPlayChildSlotsWithBlend(Task* task, s32 setIndex, s32 unusedArgument, s32 blendFrames)
 {
+    enum { PLAYER_ACTOR_FIRST_CHILD_ANIMATION_SLOT = 1 };
     GameActor* actor;
-    s32        i;
+    s32        slotIndex;
 
-    actor = arg0->work;
-    i     = 1;
-    if (i < actor->animationSlotCount) {
-        do {
-            animationPlaySlotWithBlend(&actor->animationContext, i, 0, arg1, 0, 0, arg3, actor->animationSets);
-            actor->animationSlots[i].rate = actor->animationRate;
-            i++;
-        } while (i < actor->animationSlotCount);
+    actor = task->work;
+    for (slotIndex = PLAYER_ACTOR_FIRST_CHILD_ANIMATION_SLOT; slotIndex < actor->animationSlotCount; slotIndex++) {
+        // Capture at the slot's previous rate before applying the actor's rate to the new blend.
+        animationPlaySlotWithBlend(&actor->animationContext, slotIndex, NULL, setIndex, 0, 0, blendFrames,
+                                   actor->animationSets);
+        actor->animationSlots[slotIndex].rate = actor->animationRate;
     }
 }
 
@@ -6064,7 +6063,7 @@ s32 func_80104508(Task* task, s32 msgId, AnimationPlayRequest* request, s32 unus
     if (request->blend == ANIMATION_BLEND_RESET) {
         Gp_AnimResetChildSlots(task, request->animationId);
     } else {
-        Gp_AnimPlayChildSlotsEx(task, request->animationId, 0, request->blendFrames);
+        playerActorPlayChildSlotsWithBlend(task, request->animationId, 0, request->blendFrames);
     }
     if (request->enableWorldCollision == ANIMATION_WORLD_COLLISION_DISABLE) {
         actor->pendingCollisionUpdates = PLAYER_ACTOR_WORLD_COLLISION_DISABLE;
@@ -6288,7 +6287,7 @@ s32 func_80104B54(Task* task, s32 msgId, AnimationPlayRequest* request)
                              actor->animationSlots);
         Gp_AnimResetChildSlots(task, request->animationId);
     } else {
-        Gp_AnimPlayChildSlotsEx(task, request->animationId, 0, request->blendFrames);
+        playerActorPlayChildSlotsWithBlend(task, request->animationId, 0, request->blendFrames);
     }
     if (request->enableWorldCollision == ANIMATION_WORLD_COLLISION_DISABLE) {
         actor->pendingCollisionUpdates = PLAYER_ACTOR_WORLD_COLLISION_DISABLE;
@@ -6315,7 +6314,7 @@ s32 func_80104CAC(Task* task, s32 msgId, AnimationPlayRequest* request)
                              actor->animationSlots);
         Gp_AnimResetChildSlots(task, request->animationId);
     } else {
-        Gp_AnimPlayChildSlotsEx(task, request->animationId, 0, request->blendFrames);
+        playerActorPlayChildSlotsWithBlend(task, request->animationId, 0, request->blendFrames);
     }
     collisionUpdateMask = request->enableWorldCollision;
     if (collisionUpdateMask == ANIMATION_WORLD_COLLISION_DISABLE) {
@@ -7260,7 +7259,7 @@ static void func_801065A8(Task* arg0)
         if (inner->idleTicks < 0x7FFF) {
             inner->idleTicks++;
             if (inner->idleTicks == 0x12C) {
-                Gp_AnimPlayChildSlotsEx(arg0, Gp_HpBand() + 0x17, 0, 5);
+                playerActorPlayChildSlotsWithBlend(arg0, Gp_HpBand() + 0x17, 0, 5);
             }
         }
     }
@@ -7325,7 +7324,7 @@ void func_801066DC(Task* arg0, s16 arg1)
     if (arg1 != 0) {
         Gp_AnimResetChildSlots(arg0, mode);
     } else {
-        Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 4);
+        playerActorPlayChildSlotsWithBlend(arg0, mode, 0, 4);
     }
 }
 
@@ -7389,7 +7388,7 @@ static void Gp_TickPlayerNormal(Task* arg0)
                 inner->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
                 Gp_StateC08.field_6                                  |= 1;
                 func_80106350(arg0, p->weapon, 0);
-                Gp_AnimPlayChildSlotsEx(arg0, 0x19, 3, 6);
+                playerActorPlayChildSlotsWithBlend(arg0, 0x19, 3, 6);
             }
         }
     }
@@ -7518,7 +7517,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
             inner->movementMode = 2;
             mode                = 0xD;
         }
-        Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 6);
+        playerActorPlayChildSlotsWithBlend(arg0, mode, 0, 6);
         return;
     }
 
@@ -7742,7 +7741,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
 
 /// Switches the player to `Gp_TickPlayerMode2` state 2 and starts the entry
 /// animation `movementSign` selects: a `fade` of 0 resets the child slots to it,
-/// anything else is passed to `Gp_AnimPlayChildSlotsEx`.
+/// anything else is passed to `playerActorPlayChildSlotsWithBlend`.
 static inline void _gpEnterPlayerMode2(Task* task, s32 fade)
 {
     GameActor* inner;
@@ -7785,7 +7784,7 @@ static inline void _gpEnterPlayerMode2(Task* task, s32 fade)
     if (fade == 0) {
         Gp_AnimResetChildSlots(task, mode);
     } else {
-        Gp_AnimPlayChildSlotsEx(task, mode, 0, fade);
+        playerActorPlayChildSlotsWithBlend(task, mode, 0, fade);
     }
 }
 
@@ -7812,7 +7811,7 @@ static void Gp_PlayerNormalState6(Task* arg0)
             } else {
                 mode = 0x2A;
             }
-            Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 6);
+            playerActorPlayChildSlotsWithBlend(arg0, mode, 0, 6);
             Gp_SetStateF0Bit(2);
             break;
         case 2:
@@ -7923,7 +7922,7 @@ static void func_8010771C(Task* arg0)
                 inner->movementMode = 2;
                 mode                = 0xD;
             }
-            Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 6);
+            playerActorPlayChildSlotsWithBlend(arg0, mode, 0, 6);
             break;
     }
 }
@@ -7992,7 +7991,7 @@ static void Gp_PlayerMode2State3(Task* arg0)
                         if (actor->actionValue != 0) {
                             mode = 0x27;
                         }
-                        Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 3);
+                        playerActorPlayChildSlotsWithBlend(arg0, mode, 0, 3);
                     }
                 }
                 coord->coord.t[0] += actor->velocity.vx;
@@ -8012,7 +8011,7 @@ static void Gp_PlayerMode2State3(Task* arg0)
             block_land:
                 actor->scriptedMotionPending = 0;
                 actor->state                 = 1;
-                Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 5);
+                playerActorPlayChildSlotsWithBlend(arg0, 1, 0, 5);
             }
             break;
         case 3:
@@ -8088,7 +8087,7 @@ void Gp_PlayerMode2State4(Task* arg0)
                 } else {
                     mode = actor->actionArgument;
                 }
-                Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 5);
+                playerActorPlayChildSlotsWithBlend(arg0, mode, 0, 5);
             }
             break;
         case 2:
@@ -8100,7 +8099,7 @@ void Gp_PlayerMode2State4(Task* arg0)
                     if (actor->actionValue != 0) {
                         mode = actor->actionValue;
                     }
-                    Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 5);
+                    playerActorPlayChildSlotsWithBlend(arg0, mode, 0, 5);
                     break;
                 }
             }
@@ -8132,7 +8131,7 @@ static void Gp_PlayerMode2StateA(Task* arg0)
             actor->movementMode   = 0;
             actor->animationState = 4;
             actor->statePhase     = 0;
-            Gp_AnimPlayChildSlotsEx(arg0, 8, 0, 6);
+            playerActorPlayChildSlotsWithBlend(arg0, 8, 0, 6);
             Gp_DetachLinkNode(arg0);
         } else if ((s8)func_801060E0(arg0) != 0 &&
                    Gp_AnimGetRec(&actor->animationContext,
@@ -8171,7 +8170,7 @@ static void Gp_PlayerMode2StateB(Task* arg0)
         case 0:
             flag              = 1;
             actor->statePhase = flag;
-            Gp_AnimPlayChildSlotsEx(arg0, 0x28, 0, 6);
+            playerActorPlayChildSlotsWithBlend(arg0, 0x28, 0, 6);
             break;
         case 1:
             if (Gp_AnimGetRec(&actor->animationContext, actor->animationSlots + 1) !=
@@ -8210,7 +8209,7 @@ static void Gp_PlayerMode2StateB(Task* arg0)
                         inner->movementMode = 2;
                         mode                = 0xD;
                     }
-                    Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 4);
+                    playerActorPlayChildSlotsWithBlend(arg0, mode, 0, 4);
                 }
             }
             break;
@@ -8316,7 +8315,7 @@ static void func_80108620(Task* arg0)
     } else {
         mode = 5;
     }
-    Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 5);
+    playerActorPlayChildSlotsWithBlend(arg0, mode, 0, 5);
 }
 
 static void func_80108684(Task* arg0)
@@ -8349,7 +8348,7 @@ static void func_80108684(Task* arg0)
             mode = 9;
         }
     }
-    Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 5);
+    playerActorPlayChildSlotsWithBlend(arg0, mode, 0, 5);
 }
 
 void func_8010870C(Task* arg0, s32 arg1)
@@ -8367,7 +8366,7 @@ void func_8010870C(Task* arg0, s32 arg1)
     if (arg1 == 0) {
         Gp_AnimResetChildSlots(arg0, 7);
     } else {
-        Gp_AnimPlayChildSlotsEx(arg0, 7, 0, arg1);
+        playerActorPlayChildSlotsWithBlend(arg0, 7, 0, arg1);
     }
 }
 
@@ -8413,7 +8412,7 @@ static void Gp_ResetActorAnimState(Task* arg0, s32 arg1)
     if (arg1 == 0) {
         Gp_AnimResetChildSlots(arg0, mode);
     } else {
-        Gp_AnimPlayChildSlotsEx(arg0, mode, 0, arg1);
+        playerActorPlayChildSlotsWithBlend(arg0, mode, 0, arg1);
     }
 }
 
@@ -8428,7 +8427,7 @@ void func_80108874(Task* arg0)
     inner->turnRateIndex  = 2;
     inner->animationState = 4;
     inner->statePhase     = 0;
-    Gp_AnimPlayChildSlotsEx(arg0, 8, 0, 6);
+    playerActorPlayChildSlotsWithBlend(arg0, 8, 0, 6);
     Gp_DetachLinkNode(arg0);
 }
 
@@ -8467,7 +8466,7 @@ void func_801088D4(Task* arg0, s32 arg1, s32 arg2)
     inner->stateAux      = arg1;
     inner->actionValue   = arg2;
     func_80106350(arg0, gPlayerStatus.weapon, 0);
-    Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 3);
+    playerActorPlayChildSlotsWithBlend(arg0, mode, 0, 3);
 }
 
 static void func_80108A0C(Task* arg0)
@@ -8524,7 +8523,7 @@ static void func_80108AD4(Task* arg0)
     inner->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
     Gp_StateC08.field_6                                  |= 1;
     func_80106350(arg0, gPlayerStatus.weapon, 0);
-    Gp_AnimPlayChildSlotsEx(arg0, 0x19, 3, 6);
+    playerActorPlayChildSlotsWithBlend(arg0, 0x19, 3, 6);
 }
 
 void Gp_PlayerMode2State0(Task* arg0)
@@ -8563,7 +8562,7 @@ void Gp_PlayerMode2State2(Task* arg0)
         inner->rotation.vy           = raw;
         inner->scriptedMotionPending = 0;
         inner->state                 = flag;
-        Gp_AnimPlayChildSlotsEx(arg0, flag, 0, 5);
+        playerActorPlayChildSlotsWithBlend(arg0, flag, 0, 5);
     } else {
         delta = func_80103E7C(cur, tgt);
         if (delta > 0x40) {
@@ -8592,7 +8591,7 @@ static void Gp_PlayerMode2State8(Task* arg0)
                 if (inner->actionArgument != 0) {
                     mode = inner->actionArgument;
                 }
-                Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 5);
+                playerActorPlayChildSlotsWithBlend(arg0, mode, 0, 5);
             }
             break;
         case 2:
@@ -8922,7 +8921,7 @@ static void Gp_PlayerMode2State5(Task* arg0)
                 if (inner->actionValue <= 0) {
                     inner->scriptedMotionPending = 0;
                     inner->state                 = 1;
-                    Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 5);
+                    playerActorPlayChildSlotsWithBlend(arg0, 1, 0, 5);
                 }
             } else {
                 inner->movementSign = 1;

@@ -887,7 +887,7 @@ static void func_hypervelocity_8011F724(Task* arg0)
             eff->spawnArg1.value                    |= 0x10;
             Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20160003, 0);
             Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20160005, 0);
-            Gp_AnimPlayChildSlotsEx(arg0, 0xE, 0, 3);
+            playerActorPlayChildSlotsWithBlend(arg0, 0xE, 0, 3);
             /* fallthrough */
         case 1:
             if (actor->padHeld & 0xA) {
@@ -915,7 +915,7 @@ static void func_hypervelocity_8011F724(Task* arg0)
                 SndEvt_EnqueueType7(SOUND_HYPERVELOCITY_CHARGE_START, 1);
                 SndEvt_EnqueueType7(SOUND_HYPERVELOCITY_CHARGE_LOOP, 1);
                 Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20160004, 0);
-                Gp_AnimPlayChildSlotsEx(arg0, 0xF, 0, 3);
+                playerActorPlayChildSlotsWithBlend(arg0, 0xF, 0, 3);
             }
             break;
         case 2:

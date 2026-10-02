@@ -1935,7 +1935,7 @@ static void func_actor_800300_80162658(Task* arg0)
                 if ((s8)companion->activity.distress.flinchCount >= COMPANION_DISTRESS_SEVERE_FLINCH_COUNT) {
                     anim = 0x11;
                 }
-                Gp_AnimPlayChildSlotsEx(arg0, anim, 0, 3);
+                playerActorPlayChildSlotsWithBlend(arg0, anim, 0, 3);
             }
         }
     }
@@ -1990,7 +1990,7 @@ static void func_actor_800300_801628D0(Task* arg0)
                 actor->movementMode = 7;
                 arg                 = 2;
             }
-            Gp_AnimPlayChildSlotsEx(arg0, arg, 0, 5);
+            playerActorPlayChildSlotsWithBlend(arg0, arg, 0, 5);
             /* fallthrough */
         case 1:
         case 2:
@@ -2079,7 +2079,7 @@ static void func_actor_800300_80162A98(Task* arg0)
                 actor->actionValue = 1;
                 arg                = 6;
             }
-            Gp_AnimPlayChildSlotsEx(arg0, arg, 0, 5);
+            playerActorPlayChildSlotsWithBlend(arg0, arg, 0, 5);
             /* fallthrough */
         case 1:
             actor->turnSign = (u8)actor->actionValue;
@@ -2172,7 +2172,7 @@ static void func_actor_800300_80162D74(Task* arg0)
             actor->statePhase   = 1;
             actor->stateTimer   = 0;
             actor->movementMode = 3;
-            Gp_AnimPlayChildSlotsEx(arg0, 0xC, 0, 5);
+            playerActorPlayChildSlotsWithBlend(arg0, 0xC, 0, 5);
             /* fallthrough */
         case 1:
             actor->movementSign = 1;

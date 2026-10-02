@@ -106,7 +106,7 @@ static void func_gunblade_8011E040(Task* arg0)
             if (((u16)actor->movementMode | actor->turnSign) != 0) {
                 anim = 6;
             }
-            Gp_AnimPlayChildSlotsEx(arg0, 9, 0, anim);
+            playerActorPlayChildSlotsWithBlend(arg0, 9, 0, anim);
             actor->movementMode = 0;
             break;
         case 1:
@@ -130,7 +130,7 @@ static void func_gunblade_8011E040(Task* arg0)
                     rec->ends[0].vz = reach;
                 }
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0xF7FF;
-                Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 3);
+                playerActorPlayChildSlotsWithBlend(arg0, 0xA, 0, 3);
                 break;
             }
             actor->statePhase = 6;
@@ -154,7 +154,7 @@ static void func_gunblade_8011E040(Task* arg0)
             Gp_PlayObjSfx(arg0->extra.tmd->coords, sfx | 0x20170005, 1);
             Gp_SpawnEff(EFFECT_SHOTGUN_MUZZLE_FLASH, actor->equipmentTasks[1]->extra.tmd->coords,
                         (gPlayerStatus.weaponSlotItem << 16) | 0x17, NULL);
-            Gp_AnimPlayChildSlotsEx(arg0, 0xB, 0, 3);
+            playerActorPlayChildSlotsWithBlend(arg0, 0xB, 0, 3);
             break;
         case 3:
         case 4:

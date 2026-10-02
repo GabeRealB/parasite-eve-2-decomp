@@ -61,7 +61,7 @@ static void func_as12_8011D1DC(Task* arg0)
             if (((u16)actor->movementMode | actor->turnSign) != 0) {
                 anim = 5;
             }
-            Gp_AnimPlayChildSlotsEx(arg0, 9, 0, anim);
+            playerActorPlayChildSlotsWithBlend(arg0, 9, 0, anim);
             actor->movementMode = 0;
             break;
         case 1:

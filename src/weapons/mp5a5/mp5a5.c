@@ -117,7 +117,7 @@ static void func_mp5a5_8011DDA4(Task* arg0)
             if (((u16)actor->movementMode | actor->turnSign) != 0) {
                 anim = 5;
             }
-            Gp_AnimPlayChildSlotsEx(arg0, 9, 0, anim);
+            playerActorPlayChildSlotsWithBlend(arg0, 9, 0, anim);
             actor->movementMode = 0;
             break;
         case 1:
@@ -147,7 +147,7 @@ static void func_mp5a5_8011DDA4(Task* arg0)
                                 actor->equipmentTasks[1]->extra.tmd->coords,
                                 WEAPON_ID, NULL);
                     Gp_ConsumeSlotQty(WEAPON_ITEM(WEAPON_ID), 1);
-                    Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 2);
+                    playerActorPlayChildSlotsWithBlend(arg0, 0xA, 0, 2);
                 } else {
                     actor->statePhase                                     = 5;
                     actor->attackControl.cooldownTicks                    = 0x12;

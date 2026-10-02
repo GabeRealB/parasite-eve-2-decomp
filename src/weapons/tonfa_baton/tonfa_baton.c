@@ -274,7 +274,7 @@ static void func_tonfa_baton_8011DBFC(Task* arg0)
             func_80106518(0x13);
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key   = 0x21317;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags = (actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags & 0xF7FF) | 0x400;
-            Gp_AnimPlayChildSlotsEx(arg0, 0xA, 1, 3);
+            playerActorPlayChildSlotsWithBlend(arg0, 0xA, 1, 3);
             break;
         case 1:
         case 2:
