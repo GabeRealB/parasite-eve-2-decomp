@@ -113,7 +113,7 @@ enum {
 
 /// Selects the variant key for one CAP sequence, and occupies its first slot.
 ///
-/// The command pointer table addresses this record. Playback keeps that address
+/// A `CapCommandTable` entry addresses this record. Playback keeps that address
 /// and starts at the next slot, so command selection and text playback share a
 /// base without sharing a meaning. The game-flag nibble index is
 /// `flagIndexLo | (flagIndexHi << 8)`. A counter plays that value and then
@@ -143,11 +143,11 @@ STATIC_ASSERT(sizeof(CapCommand) == sizeof(CapSequenceRecord), cap_command_seque
 /// of `CAP_TEXT_REF_END` also skips the next slot, the following sequence's
 /// command, without relocating it. On every retail payload with a nonzero
 /// count the last visited record is a terminator, so that skip covers the
-/// command table's first 12 bytes. `slotSize` is the shared command and
+/// `CapCommandTable`'s first 12 bytes. `slotSize` is the shared command and
 /// sequence-record size: 12 in every retail payload, and no loader reads it.
 /// `firstCommand` is slot zero of the first sequence. A payload whose `count`
-/// is 0 has no sequence slots; its command table begins there instead, and
-/// relocation does not read it.
+/// is 0 has no sequence slots; its `CapCommandTable` begins there instead, and
+/// the sequence walk stops before it.
 typedef struct {
     s16               count;        // Sequence records the relocation walk visits, including terminators.
     s16               slotSize;     // Bytes per command or sequence slot. 12 in every retail payload; unread.
@@ -171,11 +171,29 @@ typedef union {
 } CapCommandRef;
 STATIC_ASSERT_SIZEOF(CapCommandRef, 4);
 
-typedef struct _GpCapPtrTable {
-    /* 0x0 */ s32           count;
-    /* 0x4 */ CapCommandRef entries[0];
-} GpCapPtrTable;
-STATIC_ASSERT_SIZEOF(GpCapPtrTable, 4);
+/// Counted command index inside a `CapFile`.
+///
+/// `count` is the number of `CapCommandRef` words in `entries`. Relocation
+/// visits each one. A zero word stays null and names no sequence. A nonzero
+/// word is a file-relative byte offset of a sequence command until relocation
+/// adds the file base. Playback indexes the published `entries` by the caller's
+/// command index; `count` is the relocation bound. The loaded file owns the
+/// words.
+///
+/// On every retail payload with a nonzero sequence count, the index is packed
+/// at the first byte after the sequence slots. That walk's last record is a
+/// terminator, so its extra skip advances across this index's first 12 bytes
+/// (this count and the first two entries) and only advances the record pointer. Entry 0
+/// is zero in every retail payload. Other zero words are command indices that
+/// name no sequence. A sequence count of 0 places the index at the sequence
+/// table's first-command slot, with one zero entry, and the sequence walk
+/// stops before it.
+typedef struct {
+    s32           count;      // Command references the relocation walk visits.
+    CapCommandRef entries[0]; // Flexible command index. A zero word names no sequence.
+} CapCommandTable;
+STATIC_ASSERT_SIZEOF(CapCommandTable, 4);
+STATIC_ASSERT(OFFSET_OF(CapCommandTable, entries) == 4, cap_command_table_entries);
 
 /// Loaded CAP dialogue file.
 ///
@@ -199,8 +217,8 @@ typedef struct {
         CapSequenceTable* table;  // Relocated sequence slots. count precedes the first command and the records.
     } sequences;
     union {
-        s32            offset; // File-relative byte offset of the command-reference index.
-        GpCapPtrTable* table;  // Relocated command references. A zero entry names no sequence.
+        s32              offset; // File-relative byte offset of the command index.
+        CapCommandTable* table;  // Relocated command index. A zero entry names no sequence.
     } commands;
 } CapFile;
 STATIC_ASSERT_SIZEOF(CapFile, 0x14);

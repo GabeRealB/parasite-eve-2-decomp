@@ -102,7 +102,7 @@ static s32 CapCaption_Relocate(CapFileAddress base)
     CapSequenceRecord* rec;
     CapCommandRef*     ptr;
     CapSequenceTable*  sequenceTable;
-    GpCapPtrTable*     ptrs;
+    CapCommandTable*   commandTable;
 
     if (strncmp(base.file->magic, "CAP", 3) != 0) {
         return 0;
@@ -128,10 +128,10 @@ static s32 CapCaption_Relocate(CapFileAddress base)
                 rec++;
             } while (i < count);
         }
-        ptrs  = base.file->commands.table;
-        i     = 0;
-        count = ptrs->count;
-        ptr   = ptrs->entries;
+        commandTable = base.file->commands.table;
+        i            = 0;
+        count        = commandTable->count;
+        ptr          = commandTable->entries;
         if (count > 0) {
             do {
                 if (ptr->offset != 0) {

@@ -74,7 +74,7 @@ s32 Gp_RelocCapFile(CapFileAddress base)
     CapSequenceRecord* rec;
     CapCommandRef*     ptr;
     CapSequenceTable*  sequenceTable;
-    GpCapPtrTable*     ptrs;
+    CapCommandTable*   commandTable;
 
     if (strncmp(base.file->magic, Gp_StrCapMagic, 3) != 0) {
         return 0;
@@ -100,10 +100,10 @@ s32 Gp_RelocCapFile(CapFileAddress base)
                 rec++;
             } while (i < count);
         }
-        ptrs  = base.file->commands.table;
-        i     = 0;
-        count = ptrs->count;
-        ptr   = ptrs->entries;
+        commandTable = base.file->commands.table;
+        i            = 0;
+        count        = commandTable->count;
+        ptr          = commandTable->entries;
         if (count > 0) {
             do {
                 if (ptr->offset != 0) {

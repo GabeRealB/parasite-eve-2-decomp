@@ -25,7 +25,7 @@ Everything below is read off the matched interpreter in
 0x04  s32  field_4       constant 8 in every retail payload; unread; role unproven
 0x08  glyphs.offset      file-relative glyph-cell offset; TextGlyphCell* cells after relocation
 0x0C  sequences.offset   file-relative sequence-table offset; CapSequenceTable* table after relocation
-0x10  commands.offset    file-relative command-index offset; GpCapPtrTable* table after relocation
+0x10  commands.offset    file-relative command-index offset; CapCommandTable* table after relocation
 ```
 
 The three offsets are **file-relative on disc** and rebased in place by
@@ -51,15 +51,33 @@ and `commands.offset`, then walks both tables:
   The checked payload in §6 begins `41 00 0C 00`: count `0x41`, then slot size
   `0x0C`. Each visited record's `textRef.offset` is rebased **unless it is
   `CAP_TEXT_REF_END` (`-1`)**, in which case the walk skips the next slot.
-  That slot is the next sequence's command, so a terminator consumes a record
-  without owning text and leaves the following command unrelocated. On every
-  retail payload with a nonzero count the last visited record is a terminator,
-  and that skip covers the command table's first 12 bytes. Four payloads have
-  `count == 0` and no sequence slots; their command table starts at
-  `firstCommand` instead, and the walk does not read it.
-- **Pointer table** — `GpCapPtrTable { s32 count; }` followed by `count`
-  `CapCommandRef` words. Every nonzero word is a file-relative offset and is
-  rebased; zero stays null.
+  An earlier terminator's skipped slot is the next sequence's command, so the
+  walk leaves that command unrelocated. The last visited record is a terminator
+  on every retail payload with a nonzero count, and that final skip covers the
+  `CapCommandTable`'s first 12 bytes. Four payloads have
+  `count == 0` and no sequence slots; their `CapCommandTable` starts at
+  `firstCommand` instead, and the sequence walk stops before it.
+- **Command index** — `CapCommandTable`:
+
+  ```
+  0x00  s32 count                command references the relocation walk visits
+  0x04  CapCommandRef entries[]  one word per command index; zero names no sequence
+  ```
+
+  Every nonzero word is a file-relative offset of a sequence command, slot zero
+  of that sequence, and is rebased. Zero stays null and names no sequence.
+  `Gp_CapCmds` is the published `entries` pointer. Playback indexes those words
+  by the caller's command index. `count` is the relocation bound.
+
+  On every retail payload with a nonzero sequence count the index is packed at
+  the first byte after the sequence slots. The sequence walk's last record is a
+  terminator, so its extra skip advances across this index's first 12 bytes —
+  the count and the first two entries — and only advances the record pointer. The command
+  walk then rebases the nonzero entries, including an entry that can sit inside
+  those 12 bytes. Entry 0 is zero in every retail payload. Other zero words are
+  command indices that name no sequence. Four payloads have a sequence count of
+  0. The index then starts at `sequences.offset + 4`, the sequence table's
+  first-command slot, and holds one zero entry.
 
 Then:
 
@@ -68,9 +86,9 @@ Gp_CapGlyphs = base.file->glyphs.cells;
 Gp_CapCmds   = base.file->commands.table->entries;
 ```
 
-So **the pointer table is the command index**. `Gp_CapCmds[i].command` is the
-`CapCommand*` in slot zero, and `Gp_CapCmds[i].sequence` is that same address
-indexed as `CapSequenceRecord` values. Playback starts at slot one.
+`Gp_CapCmds[i].command` is the `CapCommand*` in slot zero, and
+`Gp_CapCmds[i].sequence` is that same address indexed as `CapSequenceRecord`
+values. Playback starts at slot one.
 
 ## 3. Event records — `CapSequenceRecord` (0xC)
 
@@ -241,12 +259,13 @@ MDEC bitstreams in other bundles, so it does not by itself identify a CAP file.
 Header at `0x1AA0`, matching §1 exactly:
 
 ```
-"CAP2"  field_4=0x8  glyph=+0x14  sequences=+0xB30  ptr=+0xF00
+"CAP2"  field_4=0x8  glyph=+0x14  sequences=+0xB30  commands=+0xF00
 ```
 
-**The pointer table indexes into the sequence table.** Count 18; entries are
-file-relative offsets `0xB34`, `0xB64`, `0xB88`, `0xBA0`, … and `0xB34` is
-exactly `sequences + 4`, `firstCommand`. Entry gaps are whole multiples of 12
+**The command index addresses sequence commands.** Count 18. Entry 0 is zero,
+index 6 is zero, and the other entries are file-relative offsets `0xB34`,
+`0xB64`, `0xB88`, `0xBA0`, …. `0xB34` is exactly `sequences + 4`,
+`firstCommand`. Gaps between nonzero entries are whole multiples of 12
 (`0xB64-0xB34 = 4 records`, `0xB88-0xB64 = 3`, `0xBA0-0xB88 = 2`).
 
 Each sequence starts with a **command header in slot zero**, followed by
