@@ -358,7 +358,7 @@ whose entry points retain package identities.
 Shared implementation interfaces live beside their source in `src/shared/`,
 including `actor_contacts.h`, `cap_captions.h`, `planar_reflection.h`,
 `room_visual_effects.h`, `screen_wave.h`, `shop.h`, `telephone.h`,
-`water_effects.h` and `glow_draw.h`. Use their subsystem prefixes with static
+`water_effects.h`, `glow_draw.h` and `jukebox.h`. Use their subsystem prefixes with static
 per-instance linkage as described above. `water_effects.h` uses the prefix
 `water`; its configuration macros use `WATER_`. It is the included splash,
 drift, distortion and refraction code. Gameplay `roomEffect` remains the
@@ -420,6 +420,13 @@ values are separate from runtime stage numbers.
 `BossStrangerRoute` beside it. State values use `BOSS_STRANGER_WALKER_`.
 The scratch frames the step opens stay with the walker family under their
 `OverlayWalker` names until their own review.
+
+`jukebox` owns the included SELECT menu that lists music tracks and plays the
+chosen sequence. Its interface is `src/shared/jukebox.h` (`jukeboxDrawRow`,
+`jukeboxHostTask`). Each row is a `JukeboxTrack`: a MIDI sequence id and the
+label drawn for that row. The saloon and shooting-gallery overlays each define
+their own tables, so the record stays in `include/rooms/rooms_shared_8018055c.h`
+beside the menu union that points at those tables.
 
 ## Documentation
 

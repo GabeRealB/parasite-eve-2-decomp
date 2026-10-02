@@ -1,8 +1,10 @@
 /* The jukebox menu: a UI panel titled SELECT that lists music tracks and plays
- * the chosen one. It offers one of ten track lists, chosen by the save's game
- * mode (list 4 before the first clear) plus 5 outside the debug attach room.
+ * the chosen one. Each row is a `JukeboxTrack` (sequence id and drawn label)
+ * in include/rooms/rooms_shared_8018055c.h. It offers one of ten track lists,
+ * chosen by the save's game mode (list 4 before the first clear) plus 5 outside
+ * the debug attach room.
  * Confirming a new row plays the select sound, fades out the current music and
- * hands the track id to the panel's menu task, which loads it from CD. A host
+ * hands the sequence id to the panel's menu task, which loads it from CD. A host
  * task opens the panel, holds the prim buffer and frame timing while it is up,
  * and ends the stage ten ticks after it closes.
  *

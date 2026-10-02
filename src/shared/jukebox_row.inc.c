@@ -3,14 +3,14 @@
 /// Row callback of the jukebox list: draws the row's track name, and on
 /// confirm, when the row is not the one already chosen, plays the select
 /// sound and, when the track differs from the one playing, fades the music
-/// out and hands the track id to the menu task to load.
+/// out and hands the sequence id to the menu task to load.
 void jukeboxDrawRow(UiList* prompt, UiObject* obj)
 {
-    RoomsShared8018055cMenu    menu;
-    RoomsShared8018055cCourse* course;
-    s32                        row;
-    s32                        list;
-    s32                        mode;
+    RoomsShared8018055cMenu menu;
+    JukeboxTrack*           track;
+    s32                     row;
+    s32                     list;
+    s32                     mode;
 
     row  = prompt->currentItemIndex;
     menu = _gJukeboxTrackLists;
@@ -23,7 +23,7 @@ void jukeboxDrawRow(UiList* prompt, UiObject* obj)
         list += 5;
     }
 
-    course              = &menu.lists[list][row];
+    track               = &menu.lists[list][row];
     menu.req.x          = obj->panel.contentOriginX.unsignedValue + prompt->rowTextX.unsignedValue;
     menu.req.y          = (prompt->rowTextY.signedValue - 3) + obj->panel.contentOriginY.unsignedValue;
     menu.req.otIndex    = obj->panel.otIndex.signedValue + 1;
@@ -31,17 +31,17 @@ void jukeboxDrawRow(UiList* prompt, UiObject* obj)
     menu.req.glyphTable = TEXT_GLYPH_TABLE_LARGE;
     menu.req.drawMode   = TEXT_DRAW_OUTLINED;
     menu.req.alignment  = TEXT_ALIGNMENT_LEFT;
-    Text_DrawString(&menu.req, course->name);
+    Text_DrawString(&menu.req, track->name);
 
     mode = prompt->rowInputEnabled;
     if (mode == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             if (obj->owner->spawnArg1.value != prompt->currentItemIndex) {
                 SndEvt_EnqueueType6(SOUND_SYSTEM_CONFIRM, 0, 0);
-                if (obj->owner->status != course->id) {
+                if (obj->owner->status != track->sequenceId) {
                     SndEvt_EnqueueType2(0, 0x3C);
                     obj->owner->state  = mode;
-                    obj->owner->status = course->id;
+                    obj->owner->status = track->sequenceId;
                     CdCmd_DropPending();
                 }
                 obj->owner->spawnArg1.value = prompt->currentItemIndex;

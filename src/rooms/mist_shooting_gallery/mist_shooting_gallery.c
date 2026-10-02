@@ -201,16 +201,16 @@ extern WorldCollisionGrid D_mist_shooting_gallery_801851F8;
 
 /// The jukebox's track lists, one per game mode, each a run of track id and
 /// name pairs.
-extern RoomsShared8018055cCourse gJukeboxTracksAttach0[];
-extern RoomsShared8018055cCourse gJukeboxTracksAttach1[];
-extern RoomsShared8018055cCourse gJukeboxTracksAttach2[];
-extern RoomsShared8018055cCourse gJukeboxTracksAttach3[];
-extern RoomsShared8018055cCourse gJukeboxTracksAttach4[];
-extern RoomsShared8018055cCourse gJukeboxTracks0[];
-extern RoomsShared8018055cCourse gJukeboxTracks1[];
-extern RoomsShared8018055cCourse gJukeboxTracks2[];
-extern RoomsShared8018055cCourse gJukeboxTracks3[];
-extern RoomsShared8018055cCourse gJukeboxTracks4[];
+extern JukeboxTrack gJukeboxTracksAttach0[];
+extern JukeboxTrack gJukeboxTracksAttach1[];
+extern JukeboxTrack gJukeboxTracksAttach2[];
+extern JukeboxTrack gJukeboxTracksAttach3[];
+extern JukeboxTrack gJukeboxTracksAttach4[];
+extern JukeboxTrack gJukeboxTracks0[];
+extern JukeboxTrack gJukeboxTracks1[];
+extern JukeboxTrack gJukeboxTracks2[];
+extern JukeboxTrack gJukeboxTracks3[];
+extern JukeboxTrack gJukeboxTracks4[];
 
 /// The jukebox menu's title, "SELECT". A stray 0xE1 byte follows its
 /// terminator, so the block stays in assembly.
@@ -793,65 +793,65 @@ static s16* _gMistShootingGalleryCollision07C38Table[1] = {
 
 WorldCollisionGrid D_mist_shooting_gallery_801851F8 = { NULL, _gMistShootingGalleryCollision07C38Normals, _gMistShootingGalleryCollision07C38Verts, _gMistShootingGalleryCollision07C38Faces, _gMistShootingGalleryCollision07C38Table, 6500, -3680, 1, 1, 4000, 1 };
 
-RoomsShared8018055cCourse gJukeboxTracksAttach0[3] = {
+JukeboxTrack gJukeboxTracksAttach0[3] = {
     { 20, D_mist_shooting_gallery_8017D898 },
     { 23, D_mist_shooting_gallery_8017D884 },
     { 49, D_mist_shooting_gallery_8017D86C },
 };
 
-RoomsShared8018055cCourse gJukeboxTracksAttach1[3] = {
+JukeboxTrack gJukeboxTracksAttach1[3] = {
     { 20, D_mist_shooting_gallery_8017D898 },
     { 60, D_mist_shooting_gallery_8017D8C4 },
     { 66, D_mist_shooting_gallery_8017D8A8 },
 };
 
-RoomsShared8018055cCourse gJukeboxTracksAttach2[3] = {
+JukeboxTrack gJukeboxTracksAttach2[3] = {
     { 20, D_mist_shooting_gallery_8017D898 },
     { 22, D_mist_shooting_gallery_8017D8F0 },
     { 74, D_mist_shooting_gallery_8017D8DC },
 };
 
-RoomsShared8018055cCourse gJukeboxTracksAttach3[3] = {
+JukeboxTrack gJukeboxTracksAttach3[3] = {
     { 67, D_mist_shooting_gallery_8017D92C },
     { 82, D_mist_shooting_gallery_8017D91C },
     { 93, D_mist_shooting_gallery_8017D908 },
 };
 
-RoomsShared8018055cCourse gJukeboxTracksAttach4[3] = {
+JukeboxTrack gJukeboxTracksAttach4[3] = {
     { 20, D_mist_shooting_gallery_8017D898 },
     { 21, D_mist_shooting_gallery_8017D954 },
     { 60, D_mist_shooting_gallery_8017D93C },
 };
 
-RoomsShared8018055cCourse gJukeboxTracks0[4] = {
+JukeboxTrack gJukeboxTracks0[4] = {
     { 41, D_mist_shooting_gallery_8017D99C },
     { 45, D_mist_shooting_gallery_8017D988 },
     { 58, D_mist_shooting_gallery_8017D97C },
     { 61, D_mist_shooting_gallery_8017D960 },
 };
 
-RoomsShared8018055cCourse gJukeboxTracks1[4] = {
+JukeboxTrack gJukeboxTracks1[4] = {
     { 35, D_mist_shooting_gallery_8017D9E0 },
     { 36, D_mist_shooting_gallery_8017D9C8 },
     { 42, D_mist_shooting_gallery_8017D9B8 },
     { 44, D_mist_shooting_gallery_8017D9AC },
 };
 
-RoomsShared8018055cCourse gJukeboxTracks2[4] = {
+JukeboxTrack gJukeboxTracks2[4] = {
     { 31, D_mist_shooting_gallery_8017DA20 },
     { 59, D_mist_shooting_gallery_8017DA14 },
     { 89, D_mist_shooting_gallery_8017DA04 },
     { 93, D_mist_shooting_gallery_8017D9F0 },
 };
 
-RoomsShared8018055cCourse gJukeboxTracks3[4] = {
+JukeboxTrack gJukeboxTracks3[4] = {
     { 76, D_mist_shooting_gallery_8017DA74 },
     { 77, D_mist_shooting_gallery_8017DA5C },
     { 78, D_mist_shooting_gallery_8017DA48 },
     { 83, D_mist_shooting_gallery_8017DA34 },
 };
 
-RoomsShared8018055cCourse gJukeboxTracks4[4] = {
+JukeboxTrack gJukeboxTracks4[4] = {
     { 9, D_mist_shooting_gallery_8017DAC8 },
     { 43, D_mist_shooting_gallery_8017DAB8 },
     { 17, D_mist_shooting_gallery_8017DAA4 },

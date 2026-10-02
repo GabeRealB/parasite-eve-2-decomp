@@ -105,16 +105,16 @@ extern EvsCommand D_dryfield_night_saloon_g_r_801847A4[];
 
 /// The jukebox's track lists, one per game mode, each a run of track id and
 /// name pairs.
-extern RoomsShared8018055cCourse D_dryfield_night_saloon_g_r_80184F0C[];
-extern RoomsShared8018055cCourse D_dryfield_night_saloon_g_r_80184F24[];
-extern RoomsShared8018055cCourse D_dryfield_night_saloon_g_r_80184F3C[];
-extern RoomsShared8018055cCourse D_dryfield_night_saloon_g_r_80184F54[];
-extern RoomsShared8018055cCourse D_dryfield_night_saloon_g_r_80184F6C[];
-extern RoomsShared8018055cCourse D_dryfield_night_saloon_g_r_80184F84[];
-extern RoomsShared8018055cCourse D_dryfield_night_saloon_g_r_80184FA4[];
-extern RoomsShared8018055cCourse D_dryfield_night_saloon_g_r_80184FC4[];
-extern RoomsShared8018055cCourse D_dryfield_night_saloon_g_r_80184FE4[];
-extern RoomsShared8018055cCourse D_dryfield_night_saloon_g_r_80185004[];
+extern JukeboxTrack D_dryfield_night_saloon_g_r_80184F0C[];
+extern JukeboxTrack D_dryfield_night_saloon_g_r_80184F24[];
+extern JukeboxTrack D_dryfield_night_saloon_g_r_80184F3C[];
+extern JukeboxTrack D_dryfield_night_saloon_g_r_80184F54[];
+extern JukeboxTrack D_dryfield_night_saloon_g_r_80184F6C[];
+extern JukeboxTrack D_dryfield_night_saloon_g_r_80184F84[];
+extern JukeboxTrack D_dryfield_night_saloon_g_r_80184FA4[];
+extern JukeboxTrack D_dryfield_night_saloon_g_r_80184FC4[];
+extern JukeboxTrack D_dryfield_night_saloon_g_r_80184FE4[];
+extern JukeboxTrack D_dryfield_night_saloon_g_r_80185004[];
 
 /// The jukebox menu's title, "SELECT". A stray 0x0D byte follows its
 /// terminator, so the block stays in assembly.
@@ -936,65 +936,65 @@ EvsCommand D_dryfield_night_saloon_g_r_80184D2C[20] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-RoomsShared8018055cCourse D_dryfield_night_saloon_g_r_80184F0C[3] = {
+JukeboxTrack D_dryfield_night_saloon_g_r_80184F0C[3] = {
     { 20, D_dryfield_night_saloon_g_r_8017D62C },
     { 23, D_dryfield_night_saloon_g_r_8017D618 },
     { 49, D_dryfield_night_saloon_g_r_8017D600 },
 };
 
-RoomsShared8018055cCourse D_dryfield_night_saloon_g_r_80184F24[3] = {
+JukeboxTrack D_dryfield_night_saloon_g_r_80184F24[3] = {
     { 20, D_dryfield_night_saloon_g_r_8017D62C },
     { 60, D_dryfield_night_saloon_g_r_8017D658 },
     { 66, D_dryfield_night_saloon_g_r_8017D63C },
 };
 
-RoomsShared8018055cCourse D_dryfield_night_saloon_g_r_80184F3C[3] = {
+JukeboxTrack D_dryfield_night_saloon_g_r_80184F3C[3] = {
     { 20, D_dryfield_night_saloon_g_r_8017D62C },
     { 22, D_dryfield_night_saloon_g_r_8017D684 },
     { 74, D_dryfield_night_saloon_g_r_8017D670 },
 };
 
-RoomsShared8018055cCourse D_dryfield_night_saloon_g_r_80184F54[3] = {
+JukeboxTrack D_dryfield_night_saloon_g_r_80184F54[3] = {
     { 67, D_dryfield_night_saloon_g_r_8017D6C0 },
     { 82, D_dryfield_night_saloon_g_r_8017D6B0 },
     { 93, D_dryfield_night_saloon_g_r_8017D69C },
 };
 
-RoomsShared8018055cCourse D_dryfield_night_saloon_g_r_80184F6C[3] = {
+JukeboxTrack D_dryfield_night_saloon_g_r_80184F6C[3] = {
     { 20, D_dryfield_night_saloon_g_r_8017D62C },
     { 21, D_dryfield_night_saloon_g_r_8017D6E8 },
     { 60, D_dryfield_night_saloon_g_r_8017D6D0 },
 };
 
-RoomsShared8018055cCourse D_dryfield_night_saloon_g_r_80184F84[4] = {
+JukeboxTrack D_dryfield_night_saloon_g_r_80184F84[4] = {
     { 41, D_dryfield_night_saloon_g_r_8017D730 },
     { 45, D_dryfield_night_saloon_g_r_8017D71C },
     { 58, D_dryfield_night_saloon_g_r_8017D710 },
     { 61, D_dryfield_night_saloon_g_r_8017D6F4 },
 };
 
-RoomsShared8018055cCourse D_dryfield_night_saloon_g_r_80184FA4[4] = {
+JukeboxTrack D_dryfield_night_saloon_g_r_80184FA4[4] = {
     { 35, D_dryfield_night_saloon_g_r_8017D774 },
     { 36, D_dryfield_night_saloon_g_r_8017D75C },
     { 42, D_dryfield_night_saloon_g_r_8017D74C },
     { 44, D_dryfield_night_saloon_g_r_8017D740 },
 };
 
-RoomsShared8018055cCourse D_dryfield_night_saloon_g_r_80184FC4[4] = {
+JukeboxTrack D_dryfield_night_saloon_g_r_80184FC4[4] = {
     { 31, D_dryfield_night_saloon_g_r_8017D7B4 },
     { 59, D_dryfield_night_saloon_g_r_8017D7A8 },
     { 89, D_dryfield_night_saloon_g_r_8017D798 },
     { 93, D_dryfield_night_saloon_g_r_8017D784 },
 };
 
-RoomsShared8018055cCourse D_dryfield_night_saloon_g_r_80184FE4[4] = {
+JukeboxTrack D_dryfield_night_saloon_g_r_80184FE4[4] = {
     { 76, D_dryfield_night_saloon_g_r_8017D808 },
     { 77, D_dryfield_night_saloon_g_r_8017D7F0 },
     { 78, D_dryfield_night_saloon_g_r_8017D7DC },
     { 83, D_dryfield_night_saloon_g_r_8017D7C8 },
 };
 
-RoomsShared8018055cCourse D_dryfield_night_saloon_g_r_80185004[4] = {
+JukeboxTrack D_dryfield_night_saloon_g_r_80185004[4] = {
     { 9, D_dryfield_night_saloon_g_r_8017D85C },
     { 43, D_dryfield_night_saloon_g_r_8017D84C },
     { 17, D_dryfield_night_saloon_g_r_8017D838 },
