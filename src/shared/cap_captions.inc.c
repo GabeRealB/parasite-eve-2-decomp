@@ -101,7 +101,7 @@ static s32 CapCaption_Relocate(GpCapFileAddress base)
     s32                flag;
     CapSequenceRecord* rec;
     CapCommandRef*     ptr;
-    GpCapEvtTable*     evts;
+    CapSequenceTable*  sequenceTable;
     GpCapPtrTable*     ptrs;
 
     if (strncmp(base.file->magic, "CAP", 3) != 0) {
@@ -113,9 +113,9 @@ static s32 CapCaption_Relocate(GpCapFileAddress base)
         base.file->glyphs.offset    += base.address;
         base.file->sequences.offset += base.address;
         base.file->commands.offset  += base.address;
-        evts                         = base.file->sequences.table;
-        rec                          = evts->records;
-        count                        = evts->count;
+        sequenceTable                = base.file->sequences.table;
+        rec                          = sequenceTable->records;
+        count                        = sequenceTable->count;
         if (count > 0) {
             flag = CAP_TEXT_REF_END;
             do {

@@ -24,7 +24,7 @@ Everything below is read off the matched interpreter in
 0x00  char magic[4]      "CAP2" on disc; loaders compare 3 bytes
 0x04  s32  field_4       constant 8 in every retail payload; unread; role unproven
 0x08  glyphs.offset      file-relative glyph-cell offset; TextGlyphCell* cells after relocation
-0x0C  sequences.offset   file-relative sequence-table offset; GpCapEvtTable* table after relocation
+0x0C  sequences.offset   file-relative sequence-table offset; CapSequenceTable* table after relocation
 0x10  commands.offset    file-relative command-index offset; GpCapPtrTable* table after relocation
 ```
 
@@ -39,11 +39,24 @@ Retail payloads store glyph offset `0x14`, the first byte after this header.
 `Gp_RelocCapFile` adds the file base to `glyphs.offset`, `sequences.offset`
 and `commands.offset`, then walks both tables:
 
-- **Event table** — `GpCapEvtTable`, whose `s16 count` is the walk limit,
-  followed by `CapSequenceRecord` records. Each record's `textRef.offset` is
-  rebased **unless it is `CAP_TEXT_REF_END` (`-1`)**, in which case the walk
-  skips an extra record. `-1` is the terminator sentinel, so a terminator
-  consumes a slot without owning text.
+- **Sequence table** — `CapSequenceTable`:
+
+  ```
+  0x00  s16 count              sequence records the walk visits, including terminators
+  0x02  s16 slotSize           shared command and sequence-record size; 12 in every retail payload; unread
+  0x04  CapCommand firstCommand  slot zero of the first sequence; absent when count is 0
+  0x10  CapSequenceRecord records[]  walk start
+  ```
+
+  The checked payload in §6 begins `41 00 0C 00`: count `0x41`, then slot size
+  `0x0C`. Each visited record's `textRef.offset` is rebased **unless it is
+  `CAP_TEXT_REF_END` (`-1`)**, in which case the walk skips the next slot.
+  That slot is the next sequence's command, so a terminator consumes a record
+  without owning text and leaves the following command unrelocated. On every
+  retail payload with a nonzero count the last visited record is a terminator,
+  and that skip covers the command table's first 12 bytes. Four payloads have
+  `count == 0` and no sequence slots; their command table starts at
+  `firstCommand` instead, and the walk does not read it.
 - **Pointer table** — `GpCapPtrTable { s32 count; }` followed by `count`
   `CapCommandRef` words. Every nonzero word is a file-relative offset and is
   rebased; zero stays null.
@@ -225,21 +238,21 @@ MDEC bitstreams in other bundles, so it does not by itself identify a CAP file.
 Header at `0x1AA0`, matching §1 exactly:
 
 ```
-"CAP2"  field_4=0x8  glyph=+0x14  evt=+0xB30  ptr=+0xF00
+"CAP2"  field_4=0x8  glyph=+0x14  sequences=+0xB30  ptr=+0xF00
 ```
 
-**The pointer table indexes into the event table.** Count 18; entries are
+**The pointer table indexes into the sequence table.** Count 18; entries are
 file-relative offsets `0xB34`, `0xB64`, `0xB88`, `0xBA0`, … and `0xB34` is
-exactly `evt + 4`, the first command header. Entry gaps are whole multiples of 12
+exactly `sequences + 4`, `firstCommand`. Entry gaps are whole multiples of 12
 (`0xB64-0xB34 = 4 records`, `0xB88-0xB64 = 3`, `0xBA0-0xB88 = 2`).
 
 Each sequence starts with a **command header in slot zero**, followed by
 `CapSequenceRecord` playback records from slot one. `Gp_RunCapCmd` reads the
 header as `CapCommand`; `Gp_StartCap` stores the same base pointer as
 `Gp_CapTable` but initializes its record index to one. The command and playback
-records have different meanings. Relocation starts at `evt + 0x10`, after the
-first command header, and its extra step after a terminator skips the next
-sequence's command header.
+records have different meanings. Relocation starts at `sequences + 0x10`
+(`records`), after the first command, and its extra step after a terminator
+skips the next sequence's command.
 
 Run termination confirmed: within the first run the fourth record has
 `textRef.offset == CAP_TEXT_REF_END`.
@@ -264,12 +277,6 @@ uses a text code's low ten bits as its glyph-cell index after handling controls.
   mapping is not alphabetical by inspection (`0x21` as `A` does not produce
   words).
 - **Control codes.** The 108 values `>= 0x8000` are undecoded.
-- **`GpCapEvtTable` still hides bytes the loader does not read.** The matched
-  loader uses the `s16 count` as its walk limit. In the checked payload those
-  bytes are `41 00 0C 00`: count `0x41`, then `0x0C`. Every retail payload's
-  second halfword is 12, the sequence-record stride. The struct calls the
-  following bytes padding; several payloads store the first command there.
-  That layout belongs to `GpCapEvtTable`.
 - **`CapFile.field_4`** is `8` in all 213 retail CAP payloads. No loader reads
   it, and the role is unproven.
 - **Message `0x13F0`** (opcode 3) - the payload contract with slot 7's task.

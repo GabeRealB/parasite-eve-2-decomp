@@ -92,17 +92,6 @@ typedef struct {
 } CapSequenceRecord;
 STATIC_ASSERT_SIZEOF(CapSequenceRecord, 0xC);
 
-/// 0x10-byte header in front of a `CapSequenceRecord` array inside a `CapFile`
-/// (`sequences`). `count` is the first halfword; the records start at
-/// `records`. `Gp_RelocCapFile` relocates each record's `textRef.offset` unless
-/// it is `-1`, in which case it also skips the next record.
-typedef struct _GpCapEvtTable {
-    /* 0x00 */ s16               count;
-    /* 0x02 */ byte              pad_2[0xE];
-    /* 0x10 */ CapSequenceRecord records[0];
-} GpCapEvtTable;
-STATIC_ASSERT_SIZEOF(GpCapEvtTable, 0x10);
-
 /// How a command chooses the variant key played from its sequence.
 enum {
     CAP_COMMAND_PLAIN   = 0, // Play variant 0.
@@ -148,6 +137,26 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(CapCommand, 0xC);
 STATIC_ASSERT(sizeof(CapCommand) == sizeof(CapSequenceRecord), cap_command_sequence_slot);
 
+/// Counted table of CAP sequence slots inside a `CapFile`.
+///
+/// Relocation visits `count` sequence records from `records`. A text reference
+/// of `CAP_TEXT_REF_END` also skips the next slot, the following sequence's
+/// command, without relocating it. On every retail payload with a nonzero
+/// count the last visited record is a terminator, so that skip covers the
+/// command table's first 12 bytes. `slotSize` is the shared command and
+/// sequence-record size: 12 in every retail payload, and no loader reads it.
+/// `firstCommand` is slot zero of the first sequence. A payload whose `count`
+/// is 0 has no sequence slots; its command table begins there instead, and
+/// relocation does not read it.
+typedef struct {
+    s16               count;        // Sequence records the relocation walk visits, including terminators.
+    s16               slotSize;     // Bytes per command or sequence slot. 12 in every retail payload; unread.
+    CapCommand        firstCommand; // First sequence's command. Not a command when count is 0; unread.
+    CapSequenceRecord records[0];   // Walk start, one slot after firstCommand.
+} CapSequenceTable;
+STATIC_ASSERT_SIZEOF(CapSequenceTable, 0x10);
+STATIC_ASSERT(OFFSET_OF(CapSequenceTable, records) == 0x10, cap_sequence_table_records);
+
 /// One command-table word: a file offset until relocation, then the sequence base.
 ///
 /// Nonzero words are byte offsets from the CAP file base until in-place relocation
@@ -186,8 +195,8 @@ typedef struct {
         TextGlyphCell* cells;  // Relocated cells borrowed for drawing and measurement.
     } glyphs;
     union {
-        s32            offset; // File-relative byte offset of the sequence-record table.
-        GpCapEvtTable* table;  // Relocated sequence records. The count precedes the array.
+        s32               offset; // File-relative byte offset of the sequence-slot table.
+        CapSequenceTable* table;  // Relocated sequence slots. count precedes the first command and the records.
     } sequences;
     union {
         s32            offset; // File-relative byte offset of the command-reference index.
