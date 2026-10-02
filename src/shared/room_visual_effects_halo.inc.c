@@ -4,36 +4,36 @@
 /// `GsWSMATRIX` and, unless the GTE flags the projection, queues one
 /// semi-transparent textured square centred on it. `arg1`'s low two bits and
 /// `arg2`'s top nibble pick the 24-texel texture cell, `arg2`'s low twelve
-/// bits are the half-extent (scaled by 23 / (otz + 1)), `arg3`'s low byte is
+/// bits are the half-extent (scaled by 23 / (depth + 1)), `arg3`'s low byte is
 /// the grey level and its top nibble picks the palette.
 static void RoomFx_DrawMote(GfxCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
 {
-    GpRingScratch* block;
-    POLY_FT4*      prim;
-    DisplayState*  ds;
-    u16            row;
-    u16            pal;
-    s32            u0;
-    s32            u1;
-    s16            xy;
+    EffectCentreScratch* block;
+    POLY_FT4*            prim;
+    DisplayState*        ds;
+    u16                  row;
+    u16                  pal;
+    s32                  u0;
+    s32                  u1;
+    s16                  xy;
 
-    row           = arg2 >> 12;
-    arg2         &= 0xFFF;
-    pal           = arg3 >> 12;
-    arg3         &= 0xFF;
-    block         = SCRATCH_STACK_RESERVE_BLOCK(GpRingScratch);
-    block->vec.vx = arg0->workm.t[0];
-    block->vec.vy = arg0->workm.t[1];
-    block->vec.vz = arg0->workm.t[2];
+    row                  = arg2 >> 12;
+    arg2                &= 0xFFF;
+    pal                  = arg3 >> 12;
+    arg3                &= 0xFF;
+    block                = SCRATCH_STACK_RESERVE_BLOCK(EffectCentreScratch);
+    block->worldPoint.vx = arg0->workm.t[0];
+    block->worldPoint.vy = arg0->workm.t[1];
+    block->worldPoint.vz = arg0->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec);
+    gte_ldv0(&block->worldPoint);
     gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        block->otz++;
+    gte_stsxy(&block->screenX);
+    gte_stflg(&block->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&block->depth);
+        block->depth++;
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -48,24 +48,24 @@ static void RoomFx_DrawMote(GfxCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
         u0 = row * 0x60 + (arg1 & 3) * 24;
         u1 = u0 + 0x17;
         setUV4(prim, u0, 0, u1, 0, u0, 0x17, u1, 0x17);
-        block->step = arg2 * 23 / block->otz;
-        xy          = block->sx - block->step;
-        prim->x2    = xy;
-        prim->x0    = xy;
-        xy          = block->sx + block->step;
-        prim->x3    = xy;
-        prim->x1    = xy;
-        xy          = block->sy - block->step;
-        prim->y1    = xy;
-        prim->y0    = xy;
-        xy          = block->sy + block->step;
-        prim->y3    = xy;
-        prim->y2    = xy;
-        ds          = &gDisplayState;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        block->screenExtent = arg2 * 23 / block->depth;
+        xy                  = block->screenX - block->screenExtent;
+        prim->x2            = xy;
+        prim->x0            = xy;
+        xy                  = block->screenX + block->screenExtent;
+        prim->x3            = xy;
+        prim->x1            = xy;
+        xy                  = block->screenY - block->screenExtent;
+        prim->y1            = xy;
+        prim->y0            = xy;
+        xy                  = block->screenY + block->screenExtent;
+        prim->y3            = xy;
+        prim->y2            = xy;
+        ds                  = &gDisplayState;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }
 
 /// Queues a gouraud ring of sixteen quads around the projected world position

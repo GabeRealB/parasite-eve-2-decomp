@@ -1855,70 +1855,70 @@ void func_shelter_b4_reservoir_801813F0(Task* task)
 /// the GTE flag is non-negative, queues one semi-transparent shade-tex
 /// `POLY_FT4` (tpage 0x2B, clut 0x4393). `frame` selects one of six 32-texel
 /// UV columns at u = `(frame % 6) * 32 + 0x40`, v = 0x40..0x5F. `size` is a
-/// half-extent; the on-screen radius is `size * 31 / otz`, and the quad is
+/// half-extent; the on-screen radius is `size * 31 / depth`, and the quad is
 /// axis-aligned about the projected point.
 static void func_shelter_b4_reservoir_80181668(GfxCoord* coord, u16 frame, s16 size)
 {
-    void**         scratch;
-    u8*            head;
-    GpRingScratch* block;
-    POLY_FT4*      prim;
-    SVECTOR*       vec;
-    DisplayState*  ds;
-    s32            col;
-    s16            xy;
-    u16            vz;
+    void**               scratch;
+    u8*                  head;
+    EffectCentreScratch* block;
+    POLY_FT4*            prim;
+    SVECTOR*             vec;
+    DisplayState*        ds;
+    s32                  col;
+    s16                  xy;
+    u16                  vz;
 
-    scratch                                 = SCRATCH_STACK_CURSOR_SLOT;
-    head                                    = *scratch;
-    ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)coord->workm.t[0];
-    block                                   = (GpRingScratch*)(head - 0x18);
-    block->vec.vy                           = (u16)coord->workm.t[1];
-    vz                                      = (u16)coord->workm.t[2];
-    *scratch                                = block;
-    block->vec.vz                           = vz;
-    vec                                     = &block->vec;
+    scratch                                                                     = SCRATCH_STACK_CURSOR_SLOT;
+    head                                                                        = *scratch;
+    ((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->worldPoint.vx = (u16)coord->workm.t[0];
+    block                                                                       = (EffectCentreScratch*)(head - sizeof(EffectCentreScratch));
+    block->worldPoint.vy                                                        = (u16)coord->workm.t[1];
+    vz                                                                          = (u16)coord->workm.t[2];
+    *scratch                                                                    = block;
+    block->worldPoint.vz                                                        = vz;
+    vec                                                                         = &block->worldPoint;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
     gte_rtps();
-    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
-    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
+    gte_stsxy(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->screenX);
+    gte_stflg(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->depth);
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
-        prim->tpage = 0x2B;
-        prim->clut  = 0x4393;
-        prim->v0    = 0x40;
-        prim->v1    = 0x40;
-        prim->v2    = 0x5F;
-        prim->v3    = 0x5F;
-        col         = (u16)(frame % 6) << 5;
-        prim->u0    = col + 0x40;
-        prim->u2    = col + 0x40;
-        prim->u1    = col + 0x5F;
-        prim->u3    = col + 0x5F;
-        block->step = (size * 31) / block->otz;
-        xy          = (u16)block->sx - (u16)block->step;
-        prim->x2    = xy;
-        prim->x0    = xy;
-        xy          = (u16)block->sx + (u16)block->step;
-        prim->x3    = xy;
-        prim->x1    = xy;
-        xy          = (u16)block->sy - (u16)block->step;
-        prim->y1    = xy;
-        prim->y0    = xy;
-        xy          = (u16)block->sy + (u16)block->step;
-        prim->y3    = xy;
-        prim->y2    = xy;
-        ds          = &gDisplayState;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        prim->tpage         = 0x2B;
+        prim->clut          = 0x4393;
+        prim->v0            = 0x40;
+        prim->v1            = 0x40;
+        prim->v2            = 0x5F;
+        prim->v3            = 0x5F;
+        col                 = (u16)(frame % 6) << 5;
+        prim->u0            = col + 0x40;
+        prim->u2            = col + 0x40;
+        prim->u1            = col + 0x5F;
+        prim->u3            = col + 0x5F;
+        block->screenExtent = (size * 31) / block->depth;
+        xy                  = block->screenX - (u16)block->screenExtent;
+        prim->x2            = xy;
+        prim->x0            = xy;
+        xy                  = block->screenX + (u16)block->screenExtent;
+        prim->x3            = xy;
+        prim->x1            = xy;
+        xy                  = block->screenY - (u16)block->screenExtent;
+        prim->y1            = xy;
+        prim->y0            = xy;
+        xy                  = block->screenY + (u16)block->screenExtent;
+        prim->y3            = xy;
+        prim->y2            = xy;
+        ds                  = &gDisplayState;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES_AT(scratch, 0x18);
+    SCRATCH_POP_BYTES_AT(scratch, sizeof(EffectCentreScratch));
 }
 
 #include "../../shared/glow_draw_capsule.inc.c"

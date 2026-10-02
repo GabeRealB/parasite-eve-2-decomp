@@ -24,7 +24,7 @@ void fireballDrawGlow(GfxCoord* coord, s16 size)
     u32                            random;
     WorldCoordTransientPointLight* slot;
     WorldCoordPointLight*          light;
-    GpRingScratch*                 sc;
+    EffectCentreScratch*           sc;
 
     slot                                          = &gWorldCoordTransientPointLights[2];
     slot->framesLeft                              = 2;
@@ -41,21 +41,21 @@ void fireballDrawGlow(GfxCoord* coord, s16 size)
     light->head.transform.lighting.local.t[1]     = (s32)coord->coord.t[1];
     light->head.transform.lighting.local.t[2]     = coord->coord.t[2];
     slot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_STACK_RESERVE_BLOCK(GpRingScratch);
-    sc         = SCRATCH_STACK_CURSOR(GpRingScratch);
-    sc->vec.vx = coord->workm.t[0];
-    sc->vec.vy = coord->workm.t[1];
-    sc->vec.vz = coord->workm.t[2];
+    SCRATCH_STACK_RESERVE_BLOCK(EffectCentreScratch);
+    sc                = SCRATCH_STACK_CURSOR(EffectCentreScratch);
+    sc->worldPoint.vx = coord->workm.t[0];
+    sc->worldPoint.vy = coord->workm.t[1];
+    sc->worldPoint.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&sc->vec);
+    gte_ldv0(&sc->worldPoint);
     gte_rtps();
-    gte_stsxy(&sc->sx);
-    gte_stflg(&sc->flag);
-    if (sc->flag >= 0) {
-        gte_stszotz(&sc->otz);
+    gte_stsxy(&sc->screenX);
+    gte_stflg(&sc->projectionFlags);
+    if (sc->projectionFlags >= 0) {
+        gte_stszotz(&sc->depth);
         prim           = gGpuPrimCursor;
-        sc->otz        = (s32)(sc->otz + 1);
+        sc->depth      = (s32)(sc->depth + 1);
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         prim->code  = 0x2EU;
@@ -71,21 +71,21 @@ void fireballDrawGlow(GfxCoord* coord, s16 size)
             setUV4(prim, 0xA8, 0xC8, 0xDF, 0xC8, 0xA8, 0xFF, 0xDF, 0xFF);
             prim->code = (u8)(prim->code | 1);
         }
-        sc->step = (s32)((s32)((s16)size * 0x37) / (s32)sc->otz);
-        left     = sc->sx - sc->step;
-        prim->x2 = left;
-        prim->x0 = left;
-        right    = sc->sx + sc->step;
-        prim->x3 = right;
-        prim->x1 = right;
-        top      = sc->sy - sc->step;
-        prim->y1 = top;
-        prim->y0 = top;
-        bottom   = sc->sy + sc->step;
-        prim->y3 = bottom;
-        prim->y2 = bottom;
+        sc->screenExtent = ((s16)size * 0x37) / sc->depth;
+        left             = sc->screenX - sc->screenExtent;
+        prim->x2         = left;
+        prim->x0         = left;
+        right            = sc->screenX + sc->screenExtent;
+        prim->x3         = right;
+        prim->x1         = right;
+        top              = sc->screenY - sc->screenExtent;
+        prim->y1         = top;
+        prim->y0         = top;
+        bottom           = sc->screenY + sc->screenExtent;
+        prim->y3         = bottom;
+        prim->y2         = bottom;
         addPrim(
-            GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)sc->otz << gDisplayState.otDepthShift) >> 2 & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)sc->depth << gDisplayState.otDepthShift) >> 2 & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
             prim);
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
@@ -96,22 +96,22 @@ void fireballDrawGlow(GfxCoord* coord, s16 size)
             (s16)(((u32)(((gDisplayState.animFrame & 1) * 0x10) + 0x120) >> 4) |
                   0x4300);
         setUV4(prim, 0x38, 0xC8, 0x6F, 0xC8, 0x38, 0xFF, 0x6F, 0xFF);
-        outerSize   = (s16)((s16)size * 3 / 2);
-        sc->step    = (s32)((s32)(outerSize * 0x37) / (s32)sc->otz);
-        outerLeft   = sc->sx - sc->step;
-        prim->x2    = outerLeft;
-        prim->x0    = outerLeft;
-        outerRight  = sc->sx + sc->step;
-        prim->x3    = outerRight;
-        prim->x1    = outerRight;
-        outerTop    = sc->sy - sc->step;
-        prim->y1    = outerTop;
-        prim->y0    = outerTop;
-        outerBottom = sc->sy + sc->step;
-        prim->y3    = outerBottom;
-        prim->y2    = outerBottom;
+        outerSize        = (s16)((s16)size * 3 / 2);
+        sc->screenExtent = (outerSize * 0x37) / sc->depth;
+        outerLeft        = sc->screenX - sc->screenExtent;
+        prim->x2         = outerLeft;
+        prim->x0         = outerLeft;
+        outerRight       = sc->screenX + sc->screenExtent;
+        prim->x3         = outerRight;
+        prim->x1         = outerRight;
+        outerTop         = sc->screenY - sc->screenExtent;
+        prim->y1         = outerTop;
+        prim->y0         = outerTop;
+        outerBottom      = sc->screenY + sc->screenExtent;
+        prim->y3         = outerBottom;
+        prim->y2         = outerBottom;
         addPrim(
-            GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)sc->otz << gDisplayState.otDepthShift) >> 2 & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)sc->depth << gDisplayState.otDepthShift) >> 2 & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
             prim);
         if (gRoomEffectState->groundTraceEnabled != 0) {
             if (Gp_TraceGroundCoord(coord, &ground) == 1) {
@@ -119,5 +119,5 @@ void fireballDrawGlow(GfxCoord* coord, s16 size)
             }
         }
     }
-    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }

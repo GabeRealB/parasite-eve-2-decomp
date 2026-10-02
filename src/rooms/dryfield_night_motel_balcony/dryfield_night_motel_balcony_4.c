@@ -3763,35 +3763,35 @@ void func_dryfield_night_motel_balcony_801809CC(Task* task)
 /// Projects the task model's world position through `GsWSMATRIX` and, when the
 /// GTE flag is non-negative, queues one `POLY_FT4` billboard (tpage 0x2C, clut
 /// 0x43C3) centred on it. `index % 6` picks one of six 40-texel columns at
-/// v 0x40..0x67, and the half-extent is `pos.vx * 39 / otz` on both axes.
+/// v 0x40..0x67, and the half-extent is `pos.vx * 39 / depth` on both axes.
 /// `color` modulates the texture and makes the quad semi-transparent; NULL
 /// draws the texture raw and opaque. The third argument is never read; every
 /// caller passes 0.
 static void func_dryfield_night_motel_balcony_80180C60(Task* task, u8* color, s32 unused)
 {
-    EffectWork*    work;
-    GfxCoord*      coord;
-    GpRingScratch* block;
-    POLY_FT4*      prim;
-    DisplayState*  ds;
-    s16            xy;
+    EffectWork*          work;
+    GfxCoord*            coord;
+    EffectCentreScratch* block;
+    POLY_FT4*            prim;
+    DisplayState*        ds;
+    s16                  xy;
 
     coord = task->extra.coordBody->coord;
     work  = task->spawnArg2.pointer;
 
-    SCRATCH_STACK_RESERVE_BLOCK(GpRingScratch);
-    block         = SCRATCH_STACK_CURSOR(GpRingScratch);
-    block->vec.vx = coord->workm.t[0];
-    block->vec.vy = coord->workm.t[1];
-    block->vec.vz = coord->workm.t[2];
+    SCRATCH_STACK_RESERVE_BLOCK(EffectCentreScratch);
+    block                = SCRATCH_STACK_CURSOR(EffectCentreScratch);
+    block->worldPoint.vx = coord->workm.t[0];
+    block->worldPoint.vy = coord->workm.t[1];
+    block->worldPoint.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec);
+    gte_ldv0(&block->worldPoint);
     gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
+    gte_stsxy(&block->screenX);
+    gte_stflg(&block->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&block->depth);
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -3804,34 +3804,34 @@ static void func_dryfield_night_motel_balcony_80180C60(Task* task, u8* color, s3
         } else {
             setcode(prim, 0x2D);
         }
-        prim->tpage = 0x2C;
-        prim->clut  = 0x43C3;
-        prim->u0    = work->index % 6 * 40;
-        prim->v0    = 0x40;
-        prim->u1    = work->index % 6 * 40 + 0x27;
-        prim->v1    = 0x40;
-        prim->u2    = work->index % 6 * 40;
-        prim->v2    = 0x67;
-        prim->u3    = work->index % 6 * 40 + 0x27;
-        prim->v3    = 0x67;
-        block->step = work->pos.vx * 39 / block->otz;
-        xy          = block->sx - block->step;
-        prim->x2    = xy;
-        prim->x0    = xy;
-        xy          = block->sx + block->step;
-        prim->x3    = xy;
-        prim->x1    = xy;
-        xy          = block->sy - block->step;
-        prim->y1    = xy;
-        prim->y0    = xy;
-        xy          = block->sy + block->step;
-        prim->y3    = xy;
-        prim->y2    = xy;
-        ds          = &gDisplayState;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        prim->tpage         = 0x2C;
+        prim->clut          = 0x43C3;
+        prim->u0            = work->index % 6 * 40;
+        prim->v0            = 0x40;
+        prim->u1            = work->index % 6 * 40 + 0x27;
+        prim->v1            = 0x40;
+        prim->u2            = work->index % 6 * 40;
+        prim->v2            = 0x67;
+        prim->u3            = work->index % 6 * 40 + 0x27;
+        prim->v3            = 0x67;
+        block->screenExtent = work->pos.vx * 39 / block->depth;
+        xy                  = block->screenX - block->screenExtent;
+        prim->x2            = xy;
+        prim->x0            = xy;
+        xy                  = block->screenX + block->screenExtent;
+        prim->x3            = xy;
+        prim->x1            = xy;
+        xy                  = block->screenY - block->screenExtent;
+        prim->y1            = xy;
+        prim->y0            = xy;
+        xy                  = block->screenY + block->screenExtent;
+        prim->y3            = xy;
+        prim->y2            = xy;
+        ds                  = &gDisplayState;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }
 
 /// Per-frame handler of an effect-spawning room task. Any non-zero event state
@@ -4051,73 +4051,73 @@ void func_dryfield_night_motel_balcony_8018158C(Task* task)
 /// 48-texel cell of a five-column sheet starting at v 0x68, and steps the CLUT
 /// x by 16 per frame from the origin `arg` selects in
 /// `D_dryfield_night_motel_balcony_80182DF4`. The half-extent is
-/// `pos.vx * 47 / (otz + 1)` on both axes.
+/// `pos.vx * 47 / (depth + 1)` on both axes.
 static void func_dryfield_night_motel_balcony_801819E0(Task* task, s32 arg)
 {
-    EffectWork*    work;
-    GfxCoord*      coord;
-    u8*            head;
-    GpRingScratch* block;
-    POLY_FT4*      prim;
-    DisplayState*  ds;
-    _ClutOrigin*   clut;
-    SVECTOR*       vec;
-    s16            xy;
-    u16            vz;
+    EffectWork*          work;
+    GfxCoord*            coord;
+    u8*                  head;
+    EffectCentreScratch* block;
+    POLY_FT4*            prim;
+    DisplayState*        ds;
+    _ClutOrigin*         clut;
+    SVECTOR*             vec;
+    s16                  xy;
+    u16                  vz;
 
     coord = task->extra.coordBody->coord;
     work  = task->spawnArg2.pointer;
 
-    head                                    = SCRATCH_STACK_CURSOR(void);
-    ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)coord->workm.t[0];
-    block                                   = (GpRingScratch*)(head - 0x18);
-    block->vec.vy                           = (u16)coord->workm.t[1];
-    vz                                      = (u16)coord->workm.t[2];
-    SCRATCH_STACK_CURSOR(void)              = block;
-    block->vec.vz                           = vz;
-    vec                                     = &block->vec;
+    head                                                                        = SCRATCH_STACK_CURSOR(void);
+    ((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->worldPoint.vx = (u16)coord->workm.t[0];
+    block                                                                       = (EffectCentreScratch*)(head - sizeof(EffectCentreScratch));
+    block->worldPoint.vy                                                        = (u16)coord->workm.t[1];
+    vz                                                                          = (u16)coord->workm.t[2];
+    SCRATCH_STACK_CURSOR(void)                                                  = block;
+    block->worldPoint.vz                                                        = vz;
+    vec                                                                         = &block->worldPoint;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
     gte_rtps();
-    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
-    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
-        block->otz++;
+    gte_stsxy(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->screenX);
+    gte_stflg(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->depth);
+        block->depth++;
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
-        prim->tpage = 0x2C;
-        clut        = &D_dryfield_night_motel_balcony_80182DF4[arg];
-        prim->clut  = (clut->y << 6) | (((clut->x + work->index * 16) >> 4) & 0x3F);
-        prim->u0    = work->index % 5 * 48;
-        prim->v0    = work->index / 5 * 48 + 0x68;
-        prim->u1    = work->index % 5 * 48 + 0x2F;
-        prim->v1    = work->index / 5 * 48 + 0x68;
-        prim->u2    = work->index % 5 * 48;
-        prim->v2    = work->index / 5 * 48 + 0x97;
-        prim->u3    = work->index % 5 * 48 + 0x2F;
-        prim->v3    = work->index / 5 * 48 + 0x97;
-        block->step = work->pos.vx * 0x2F / block->otz;
-        xy          = (u16)block->sx - (u16)block->step;
-        prim->x2    = xy;
-        prim->x0    = xy;
-        xy          = (u16)block->sx + (u16)block->step;
-        prim->x3    = xy;
-        prim->x1    = xy;
-        xy          = (u16)block->sy - (u16)block->step;
-        prim->y1    = xy;
-        prim->y0    = xy;
-        xy          = (u16)block->sy + (u16)block->step;
-        prim->y3    = xy;
-        prim->y2    = xy;
-        ds          = &gDisplayState;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        prim->tpage         = 0x2C;
+        clut                = &D_dryfield_night_motel_balcony_80182DF4[arg];
+        prim->clut          = (clut->y << 6) | (((clut->x + work->index * 16) >> 4) & 0x3F);
+        prim->u0            = work->index % 5 * 48;
+        prim->v0            = work->index / 5 * 48 + 0x68;
+        prim->u1            = work->index % 5 * 48 + 0x2F;
+        prim->v1            = work->index / 5 * 48 + 0x68;
+        prim->u2            = work->index % 5 * 48;
+        prim->v2            = work->index / 5 * 48 + 0x97;
+        prim->u3            = work->index % 5 * 48 + 0x2F;
+        prim->v3            = work->index / 5 * 48 + 0x97;
+        block->screenExtent = work->pos.vx * 0x2F / block->depth;
+        xy                  = block->screenX - (u16)block->screenExtent;
+        prim->x2            = xy;
+        prim->x0            = xy;
+        xy                  = block->screenX + (u16)block->screenExtent;
+        prim->x3            = xy;
+        prim->x1            = xy;
+        xy                  = block->screenY - (u16)block->screenExtent;
+        prim->y1            = xy;
+        prim->y0            = xy;
+        xy                  = block->screenY + (u16)block->screenExtent;
+        prim->y3            = xy;
+        prim->y2            = xy;
+        ds                  = &gDisplayState;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }
 
 /// Per-frame handler of a drifting room effect task. The first frame resets the
@@ -4222,40 +4222,40 @@ void func_dryfield_night_motel_balcony_80181E7C(Task* task)
 /// semi-transparent `POLY_FT4` (tpage 0x2B). The animation frame is
 /// `index % 10`; it picks the CLUT column and one 48-texel cell of a 5x2
 /// grid starting at v=0x28. The quad is centred on the projected point with a
-/// half-width of `pos.vx * 47 / otz` and extends three quarters above and one
+/// half-width of `pos.vx * 47 / depth` and extends three quarters above and one
 /// quarter below. `color` is the RGB the texture is modulated by; NULL draws
 /// the texture raw.
 /// `tick` is unused.
 static void func_dryfield_night_motel_balcony_8018221C(Task* task, u8* color, s16 tick)
 {
-    EffectWork*    work = task->spawnArg2.pointer;
-    GfxCoord*      coord;
-    GpRingScratch* block;
-    POLY_FT4*      prim;
-    DisplayState*  ds;
-    s16            frame;
-    s32            u0;
-    s32            u1;
-    s32            vTop;
-    s32            vBottom;
-    s16            xy;
+    EffectWork*          work = task->spawnArg2.pointer;
+    GfxCoord*            coord;
+    EffectCentreScratch* block;
+    POLY_FT4*            prim;
+    DisplayState*        ds;
+    s16                  frame;
+    s32                  u0;
+    s32                  u1;
+    s32                  vTop;
+    s32                  vBottom;
+    s16                  xy;
 
     frame = work->index % 10;
     coord = task->extra.coordBody->coord;
 
-    SCRATCH_STACK_RESERVE_BLOCK(GpRingScratch);
-    block         = SCRATCH_STACK_CURSOR(GpRingScratch);
-    block->vec.vx = coord->workm.t[0];
-    block->vec.vy = coord->workm.t[1];
-    block->vec.vz = coord->workm.t[2];
+    SCRATCH_STACK_RESERVE_BLOCK(EffectCentreScratch);
+    block                = SCRATCH_STACK_CURSOR(EffectCentreScratch);
+    block->worldPoint.vx = coord->workm.t[0];
+    block->worldPoint.vy = coord->workm.t[1];
+    block->worldPoint.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec);
+    gte_ldv0(&block->worldPoint);
     gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
+    gte_stsxy(&block->screenX);
+    gte_stflg(&block->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&block->depth);
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -4270,38 +4270,38 @@ static void func_dryfield_night_motel_balcony_8018221C(Task* task, u8* color, s1
         prim->tpage = 0x2B;
         prim->clut  = getClut(frame * 16 + 0x40, 0x10E);
         setSemiTrans(prim, 1);
-        u0            = frame % 5 * 48;
-        vTop          = frame / 5 * 48;
-        u1            = u0 + 0x2F;
-        vBottom       = vTop + 0x57;
-        vTop          = vTop + 0x28;
-        prim->u0      = u0;
-        prim->v0      = vTop;
-        prim->u1      = u1;
-        prim->v1      = vTop;
-        prim->u2      = u0;
-        prim->v2      = vBottom;
-        prim->u3      = u1;
-        prim->v3      = vBottom;
-        block->step   = work->pos.vx * 47 / block->otz;
-        xy            = block->sx - block->step;
-        prim->x2      = xy;
-        prim->x0      = xy;
-        xy            = block->sx + block->step;
-        prim->x3      = xy;
-        prim->x1      = xy;
-        block->step >>= 1;
-        xy            = block->sy - block->step * 3;
-        prim->y1      = xy;
-        prim->y0      = xy;
-        xy            = block->sy + block->step;
-        prim->y3      = xy;
-        prim->y2      = xy;
-        ds            = &gDisplayState;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        u0                    = frame % 5 * 48;
+        vTop                  = frame / 5 * 48;
+        u1                    = u0 + 0x2F;
+        vBottom               = vTop + 0x57;
+        vTop                  = vTop + 0x28;
+        prim->u0              = u0;
+        prim->v0              = vTop;
+        prim->u1              = u1;
+        prim->v1              = vTop;
+        prim->u2              = u0;
+        prim->v2              = vBottom;
+        prim->u3              = u1;
+        prim->v3              = vBottom;
+        block->screenExtent   = work->pos.vx * 47 / block->depth;
+        xy                    = block->screenX - block->screenExtent;
+        prim->x2              = xy;
+        prim->x0              = xy;
+        xy                    = block->screenX + block->screenExtent;
+        prim->x3              = xy;
+        prim->x1              = xy;
+        block->screenExtent >>= 1;
+        xy                    = block->screenY - block->screenExtent * 3;
+        prim->y1              = xy;
+        prim->y0              = xy;
+        xy                    = block->screenY + block->screenExtent;
+        prim->y3              = xy;
+        prim->y2              = xy;
+        ds                    = &gDisplayState;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }
 
 /// Spawns an 8-step burst of effect 0x6007E and then a 6-step burst of 0x60070

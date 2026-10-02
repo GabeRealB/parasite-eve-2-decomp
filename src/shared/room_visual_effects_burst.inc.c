@@ -6,37 +6,37 @@
 /// grey level. Nothing is drawn when the projection overflows.
 static void RoomFx_DrawFlyingSpark(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    void**         scratch;
-    u8*            head;
-    GpRingScratch* block;
-    POLY_FT4*      prim;
-    SVECTOR*       vec;
-    DisplayState*  ds;
-    s32            tex;
-    s32            sarg;
-    s32            t;
-    s16            xy;
-    u16            vz;
+    void**               scratch;
+    u8*                  head;
+    EffectCentreScratch* block;
+    POLY_FT4*            prim;
+    SVECTOR*             vec;
+    DisplayState*        ds;
+    s32                  tex;
+    s32                  sarg;
+    s32                  t;
+    s16                  xy;
+    u16                  vz;
 
-    tex                                     = arg1;
-    scratch                                 = SCRATCH_STACK_CURSOR_SLOT;
-    head                                    = *scratch;
-    ((GpRingScratch*)(head - 0x18))->vec.vx = arg0->workm.t[0];
-    block                                   = (GpRingScratch*)(head - 0x18);
-    block->vec.vy                           = arg0->workm.t[1];
-    vz                                      = arg0->workm.t[2];
-    *scratch                                = block;
-    block->vec.vz                           = vz;
-    vec                                     = &block->vec;
+    tex                                                                         = arg1;
+    scratch                                                                     = SCRATCH_STACK_CURSOR_SLOT;
+    head                                                                        = *scratch;
+    ((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->worldPoint.vx = arg0->workm.t[0];
+    block                                                                       = (EffectCentreScratch*)(head - sizeof(EffectCentreScratch));
+    block->worldPoint.vy                                                        = arg0->workm.t[1];
+    vz                                                                          = arg0->workm.t[2];
+    *scratch                                                                    = block;
+    block->worldPoint.vz                                                        = vz;
+    vec                                                                         = &block->worldPoint;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
     gte_rtps();
-    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
-    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
-        block->otz++;
+    gte_stsxy(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->screenX);
+    gte_stflg(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->depth);
+        block->depth++;
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -46,26 +46,26 @@ static void RoomFx_DrawFlyingSpark(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
         t           = (tex & 3) * 24;
         setRGB0(prim, arg3, arg3, arg3);
         setUVWH(prim, t + 0x60, 0, 0x17, 0x17);
-        sarg        = (s16)arg2;
-        t           = sarg * 24;
-        block->step = (t - sarg) / block->otz;
-        xy          = block->sx - block->step;
-        prim->x2    = xy;
-        prim->x0    = xy;
-        xy          = block->sx + block->step;
-        prim->x3    = xy;
-        prim->x1    = xy;
-        xy          = block->sy - block->step;
-        prim->y1    = xy;
-        prim->y0    = xy;
-        xy          = block->sy + block->step;
-        prim->y3    = xy;
-        prim->y2    = xy;
-        ds          = &gDisplayState;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        sarg                = (s16)arg2;
+        t                   = sarg * 24;
+        block->screenExtent = (t - sarg) / block->depth;
+        xy                  = block->screenX - block->screenExtent;
+        prim->x2            = xy;
+        prim->x0            = xy;
+        xy                  = block->screenX + block->screenExtent;
+        prim->x3            = xy;
+        prim->x1            = xy;
+        xy                  = block->screenY - block->screenExtent;
+        prim->y1            = xy;
+        prim->y0            = xy;
+        xy                  = block->screenY + block->screenExtent;
+        prim->y3            = xy;
+        prim->y2            = xy;
+        ds                  = &gDisplayState;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES_AT(scratch, 0x18);
+    SCRATCH_POP_BYTES_AT(scratch, sizeof(EffectCentreScratch));
 }
 
 /// Queues a gouraud ring of sixteen quads around the projected world position
@@ -128,24 +128,24 @@ static void RoomFx_DrawFlyingRing(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 /// `arg1` scaled by depth. Nothing is drawn when the projection overflows.
 static void RoomFx_DrawFlyingDisc(GfxCoord* arg0, s32 arg1, u8* rgb)
 {
-    GpRingScratch* block;
-    POLY_G4*       prim;
-    s32            ang;
+    EffectCentreScratch* block;
+    POLY_G4*             prim;
+    s32                  ang;
 
-    block         = SCRATCH_STACK_RESERVE_BLOCK(GpRingScratch);
-    block->vec.vx = arg0->workm.t[0];
-    block->vec.vy = arg0->workm.t[1];
-    block->vec.vz = arg0->workm.t[2];
+    block                = SCRATCH_STACK_RESERVE_BLOCK(EffectCentreScratch);
+    block->worldPoint.vx = arg0->workm.t[0];
+    block->worldPoint.vy = arg0->workm.t[1];
+    block->worldPoint.vz = arg0->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec);
+    gte_ldv0(&block->worldPoint);
     gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        block->otz++;
-        block->step = ((s16)arg1 * 64) / block->otz;
+    gte_stsxy(&block->screenX);
+    gte_stflg(&block->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&block->depth);
+        block->depth++;
+        block->screenExtent = ((s16)arg1 * 64) / block->depth;
         for (ang = 0; ang < 0x1000; ang += 0x200) {
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
@@ -154,20 +154,20 @@ static void RoomFx_DrawFlyingDisc(GfxCoord* arg0, s32 arg1, u8* rgb)
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, rgb[0], rgb[1], rgb[2]);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->step * rsin(ang)) >> 12);
-            prim->y0 = block->sy + ((block->step * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->step * rsin(ang + 0x100)) >> 12);
-            prim->y1 = block->sy + ((block->step * rcos(ang + 0x100)) >> 12);
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->step * rsin(ang + 0x200)) >> 12);
-            prim->y3 = block->sy + ((block->step * rcos(ang + 0x200)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            prim->x0 = block->screenX + ((block->screenExtent * rsin(ang)) >> 12);
+            prim->y0 = block->screenY + ((block->screenExtent * rcos(ang)) >> 12);
+            prim->x1 = block->screenX + ((block->screenExtent * rsin(ang + 0x100)) >> 12);
+            prim->y1 = block->screenY + ((block->screenExtent * rcos(ang + 0x100)) >> 12);
+            prim->x2 = block->screenX;
+            prim->y2 = block->screenY;
+            prim->x3 = block->screenX + ((block->screenExtent * rsin(ang + 0x200)) >> 12);
+            prim->y3 = block->screenY + ((block->screenExtent * rcos(ang + 0x200)) >> 12);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->depth);
         }
     }
-    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }
 
 /// A burst in orange, the same effect as

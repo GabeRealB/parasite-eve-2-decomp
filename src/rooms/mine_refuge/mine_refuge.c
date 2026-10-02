@@ -758,24 +758,24 @@ void func_mine_refuge_8017FFBC(Task* task)
 /// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
 /// the GTE flag is non-negative, queues two gouraud `POLY_G4` diamonds and two
 /// gouraud `LINE_G3` diagonals around the projected centre, with an on-screen
-/// radius of `(s16)arg2 * 32 / otz`. The lit vertex pulses on green and blue at
+/// radius of `(s16)arg2 * 32 / depth`. The lit vertex pulses on green and blue at
 /// `rsin(animFrame * (s16)arg1) / 34 + 0x78`. A 0x18-byte scratch block in the
-/// `GpRingScratch` layout is taken from the scratch stack and returned.
+/// `EffectCentreScratch` layout is taken from the scratch stack and returned.
 static void func_mine_refuge_8018029C(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
-    u8*            head;
-    GpRingScratch* block;
-    POLY_G4*       prim;
-    LINE_G3*       line;
-    s32            sine;
-    s32            pulse;
-    s32            radius;
-    s32            i;
-    s32            t1;
-    s32            t2;
-    s32            twice;
-    u16            sx;
-    u16            sy;
+    u8*                  head;
+    EffectCentreScratch* block;
+    POLY_G4*             prim;
+    LINE_G3*             line;
+    s32                  sine;
+    s32                  pulse;
+    s32                  radius;
+    s32                  i;
+    s32                  t1;
+    s32                  t2;
+    s32                  twice;
+    u16                  sx;
+    u16                  sy;
 
     {
         void** scratch;
@@ -783,23 +783,23 @@ static void func_mine_refuge_8018029C(SVECTOR* arg0, s32 arg1, s32 arg2)
 
         scratch = SCRATCH_STACK_CURSOR_SLOT;
         head    = *scratch;
-        tmp     = (*scratch = head - 0x18);
-        block   = (GpRingScratch*)tmp;
+        tmp     = (*scratch = head - sizeof(EffectCentreScratch));
+        block   = (EffectCentreScratch*)tmp;
     }
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
-    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
-    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
-        sine        = rsin(gDisplayState.animFrame * (s16)arg1);
-        radius      = ((s16)arg2 * 32) / block->otz;
-        i           = 0;
-        pulse       = sine / 34 + 0x78;
-        block->step = radius;
+    gte_stsxy(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->screenX);
+    gte_stflg(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->depth);
+        sine                = rsin(gDisplayState.animFrame * (s16)arg1);
+        radius              = ((s16)arg2 * 32) / block->depth;
+        i                   = 0;
+        pulse               = sine / 34 + 0x78;
+        block->screenExtent = radius;
         do {
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
@@ -808,20 +808,20 @@ static void func_mine_refuge_8018029C(SVECTOR* arg0, s32 arg1, s32 arg2)
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, 0, pulse, pulse);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx - (u16)block->step;
-            sx       = block->sx;
+            prim->x0 = block->screenX - (u16)block->screenExtent;
+            sx       = block->screenX;
             prim->x2 = sx;
             prim->x1 = sx;
-            prim->x3 = block->sx + (u16)block->step;
-            sy       = block->sy;
+            prim->x3 = block->screenX + (u16)block->screenExtent;
+            sy       = block->screenY;
             prim->y3 = sy;
             prim->y2 = sy;
             prim->y0 = sy;
             twice    = i * 2;
-            prim->y1 = (block->sy - (u16)block->step) + (block->step * twice);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            prim->y1 = (block->screenY - (u16)block->screenExtent) + (block->screenExtent * twice);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->depth);
             i++;
         } while (i < 2);
 
@@ -835,19 +835,19 @@ static void func_mine_refuge_8018029C(SVECTOR* arg0, s32 arg1, s32 arg2)
             setRGB2(line, 0, 0, 0);
             t1       = i * 3 - 1;
             t2       = i + 1;
-            line->x0 = block->sx + (block->step * t1);
-            line->y0 = block->sy - (block->step * t2);
-            line->x1 = block->sx;
-            line->y1 = block->sy;
-            line->x2 = block->sx - (block->step * t1);
-            line->y2 = block->sy + (block->step * t2);
-            addPrim(((u_long*)((((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + (uintptr)gGpuCurrentOt)),
+            line->x0 = block->screenX + (block->screenExtent * t1);
+            line->y0 = block->screenY - (block->screenExtent * t2);
+            line->x1 = block->screenX;
+            line->y1 = block->screenY;
+            line->x2 = block->screenX - (block->screenExtent * t1);
+            line->y2 = block->screenY + (block->screenExtent * t2);
+            addPrim(((u_long*)((((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + (uintptr)gGpuCurrentOt)),
                     line);
-            gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, block->otz);
+            gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, block->depth);
             i = t2;
         } while (i < 2);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }
 
 /// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when

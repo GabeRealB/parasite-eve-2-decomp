@@ -332,7 +332,7 @@ prefixes, choose the responsibility the symbol actually implements.
 | `enemy` | Enemy work objects and the shared parameters of one enemy kind | `scene_runtime.c` (`Gp_AllocEnemy`) | `include/gameplay/enemy.h`, `include/gameplay/enemy_params.h` |
 | `cap` | CAP relocation, dialogue, commands, rendering and playback | `cap_commands.c`, `cap_control.c`, `cap_reloc.c`, `cap_script.c`, `cap_start.c`, `captions.c` | `include/gameplay/cap.h`, `include/gameplay/captions.h`, `src/gameplay/cap.h`, `src/gameplay/captions.h` |
 | `evs` | Event-script dispatch | `evs_scripts.c` | `include/gameplay/evs.h`, `include/gameplay/evs_scripts.h`, `src/gameplay/evs_scripts.h` |
-| `effect` | Gameplay effect tasks | `effect_tasks.c`, `effect_attach.c`, `player_actor.c` | `include/gameplay/effect_tasks.h`, `src/gameplay/effect_tasks.h` |
+| `effect` | Gameplay effect tasks and scratch workspace records shared by effect drawers across overlays | `effect_tasks.c`, `effect_attach.c`, `player_actor.c` | `include/gameplay/effect_tasks.h`, `include/gameplay/effects.h` (workspace types), `src/gameplay/effect_tasks.h` |
 | `gpu` | Raw texture and palette uploads to VRAM, and GPU packet blend-mode commands linked into the current depth-sorted ordering table | `world_targets.c` (image uploads), `room_effects.c` | `include/gameplay/gpu_image_upload.h`, `include/gameplay/world_targets.h` (upload functions), `include/gameplay/room_effects.h` |
 | `roomEffect` | Room effect state and tasks | `room_effects.c` | `include/gameplay/room_effects.h`, `src/gameplay/room_effects.h` |
 | `hud` | HUD sprites, numbers and tracking | `hud_sprites.c` | `include/gameplay/hud_sprites.h`, `src/gameplay/hud_sprites.h` |

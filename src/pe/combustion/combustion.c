@@ -258,70 +258,70 @@ void func_combustion_8012F2BC(Task* arg0)
 /// The position is projected through `GsWSMATRIX` by a single `RTPS` and the
 /// quad is dropped when that sets a negative `gte_stflg`. `arg1 % 6` picks one
 /// of the six 0x20-wide texture frames on tpage 0x29 (CLUT 0x4282), and `arg2`
-/// sizes it: the corners sit `arg2 * 31 / otz` from the projected centre.
+/// sizes it: the corners sit `arg2 * 31 / depth` from the projected centre.
 /// Same 0x18-byte scratch and axis-aligned quad as `func_combustion_8012FF0C`.
 static void func_combustion_8012F5EC(GfxCoord* arg0, s16 arg1, s16 arg2)
 {
-    u8*            head;
-    GpRingScratch* block;
-    POLY_FT4*      prim;
-    SVECTOR*       vec;
-    s32            u0;
-    s32            u1;
-    s16            x;
-    s16            y;
-    u16            vz;
+    u8*                  head;
+    EffectCentreScratch* block;
+    POLY_FT4*            prim;
+    SVECTOR*             vec;
+    s32                  u0;
+    s32                  u1;
+    s16                  x;
+    s16                  y;
+    u16                  vz;
 
-    head                                    = SCRATCH_STACK_CURSOR(u8);
-    ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)arg0->workm.t[0];
-    block                                   = (GpRingScratch*)(head - 0x18);
-    block->vec.vy                           = (u16)arg0->workm.t[1];
-    vz                                      = (u16)arg0->workm.t[2];
-    SCRATCH_STACK_CURSOR(GpRingScratch)     = block;
-    block->vec.vz                           = vz;
-    vec                                     = &block->vec;
+    head                                                                        = SCRATCH_STACK_CURSOR(u8);
+    ((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->worldPoint.vx = (u16)arg0->workm.t[0];
+    block                                                                       = (EffectCentreScratch*)(head - sizeof(EffectCentreScratch));
+    block->worldPoint.vy                                                        = (u16)arg0->workm.t[1];
+    vz                                                                          = (u16)arg0->workm.t[2];
+    SCRATCH_STACK_CURSOR(EffectCentreScratch)                                   = block;
+    block->worldPoint.vz                                                        = vz;
+    vec                                                                         = &block->worldPoint;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
     gte_rtps();
-    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
-    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
-        block->otz++;
+    gte_stsxy(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->screenX);
+    gte_stflg(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->depth);
+        block->depth++;
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
-        prim->tpage = 0x29;
-        prim->clut  = 0x4282;
-        prim->v0    = 0x98;
-        prim->v1    = 0x98;
-        prim->v2    = 0xB7;
-        prim->v3    = 0xB7;
-        u0          = (s16)(arg1 % 6) * 0x20;
-        u1          = u0 + 0x1F;
-        prim->u1    = u1;
-        prim->u3    = u1;
-        prim->u0    = u0;
-        prim->u2    = u0;
-        block->step = (arg2 * 0x1F) / block->otz;
-        x           = (u16)block->sx - (u16)block->step;
-        prim->x2    = x;
-        prim->x0    = x;
-        x           = (u16)block->sx + (u16)block->step;
-        prim->x3    = x;
-        prim->x1    = x;
-        y           = (u16)block->sy - (u16)block->step;
-        prim->y1    = y;
-        prim->y0    = y;
-        y           = (u16)block->sy + (u16)block->step;
-        prim->y3    = y;
-        prim->y2    = y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        prim->tpage         = 0x29;
+        prim->clut          = 0x4282;
+        prim->v0            = 0x98;
+        prim->v1            = 0x98;
+        prim->v2            = 0xB7;
+        prim->v3            = 0xB7;
+        u0                  = (s16)(arg1 % 6) * 0x20;
+        u1                  = u0 + 0x1F;
+        prim->u1            = u1;
+        prim->u3            = u1;
+        prim->u0            = u0;
+        prim->u2            = u0;
+        block->screenExtent = (arg2 * 0x1F) / block->depth;
+        x                   = block->screenX - (u16)block->screenExtent;
+        prim->x2            = x;
+        prim->x0            = x;
+        x                   = block->screenX + (u16)block->screenExtent;
+        prim->x3            = x;
+        prim->x1            = x;
+        y                   = block->screenY - (u16)block->screenExtent;
+        prim->y1            = y;
+        prim->y0            = y;
+        y                   = block->screenY + (u16)block->screenExtent;
+        prim->y3            = y;
+        prim->y2            = y;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }
 
 /// One trailing ember shed by a `func_combustion_8012F2BC` flame. State 0 rolls
@@ -433,37 +433,37 @@ void func_combustion_8012F888(Task* arg0)
 /// position is projected through `GsWSMATRIX` by a single `RTPS` and the quad
 /// is dropped when that sets a negative `gte_stflg`. `arg1` picks one of the
 /// eight 0x18-wide texture frames on tpage 0x28 (CLUT 0x430D), and `arg2`
-/// sizes it: the corners sit `arg2 * 23 / otz` from the projected centre, so
+/// sizes it: the corners sit `arg2 * 23 / depth` from the projected centre, so
 /// the sprite shrinks with depth. Same 0x18-byte scratch and axis-aligned
 /// quad as gameplay `Gp_EffSprTask8D`.
 static void func_combustion_8012FF0C(GfxCoord* arg0, s32 arg1, s16 arg2)
 {
-    u8*            head;
-    GpRingScratch* block;
-    POLY_FT4*      prim;
-    SVECTOR*       vec;
-    s32            u0;
-    s16            x;
-    s16            y;
-    u16            vz;
+    u8*                  head;
+    EffectCentreScratch* block;
+    POLY_FT4*            prim;
+    SVECTOR*             vec;
+    s32                  u0;
+    s16                  x;
+    s16                  y;
+    u16                  vz;
 
-    head                                    = SCRATCH_STACK_CURSOR(u8);
-    ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)arg0->workm.t[0];
-    block                                   = (GpRingScratch*)(head - 0x18);
-    block->vec.vy                           = (u16)arg0->workm.t[1];
-    vz                                      = (u16)arg0->workm.t[2];
-    SCRATCH_STACK_CURSOR(GpRingScratch)     = block;
-    block->vec.vz                           = vz;
-    vec                                     = &block->vec;
+    head                                                                        = SCRATCH_STACK_CURSOR(u8);
+    ((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->worldPoint.vx = (u16)arg0->workm.t[0];
+    block                                                                       = (EffectCentreScratch*)(head - sizeof(EffectCentreScratch));
+    block->worldPoint.vy                                                        = (u16)arg0->workm.t[1];
+    vz                                                                          = (u16)arg0->workm.t[2];
+    SCRATCH_STACK_CURSOR(EffectCentreScratch)                                   = block;
+    block->worldPoint.vz                                                        = vz;
+    vec                                                                         = &block->worldPoint;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
     gte_rtps();
-    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
-    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
-        block->otz++;
+    gte_stsxy(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->screenX);
+    gte_stflg(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->depth);
+        block->depth++;
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -472,23 +472,23 @@ static void func_combustion_8012FF0C(GfxCoord* arg0, s32 arg1, s16 arg2)
         prim->clut  = 0x430D;
         u0          = (arg1 & 7) * 0x18;
         setUV4(prim, u0, 0xA0, u0 + 0x17, 0xA0, u0, 0xB7, u0 + 0x17, 0xB7);
-        block->step = (arg2 * 0x17) / block->otz;
-        x           = (u16)block->sx - (u16)block->step;
-        prim->x2    = x;
-        prim->x0    = x;
-        x           = (u16)block->sx + (u16)block->step;
-        prim->x3    = x;
-        prim->x1    = x;
-        y           = (u16)block->sy - (u16)block->step;
-        prim->y1    = y;
-        prim->y0    = y;
-        y           = (u16)block->sy + (u16)block->step;
-        prim->y3    = y;
-        prim->y2    = y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        block->screenExtent = (arg2 * 0x17) / block->depth;
+        x                   = block->screenX - (u16)block->screenExtent;
+        prim->x2            = x;
+        prim->x0            = x;
+        x                   = block->screenX + (u16)block->screenExtent;
+        prim->x3            = x;
+        prim->x1            = x;
+        y                   = block->screenY - (u16)block->screenExtent;
+        prim->y1            = y;
+        prim->y0            = y;
+        y                   = block->screenY + (u16)block->screenExtent;
+        prim->y3            = y;
+        prim->y2            = y;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }
 
 #define SPRITE_QUAD_SCALE 55
@@ -507,45 +507,45 @@ static void func_combustion_8012FF0C(GfxCoord* arg0, s32 arg1, s16 arg2)
 /// when that sets a negative `gte_stflg`. `arg1 % 12` picks a cell of the
 /// 6x2 sheet of 0x28-pixel frames on tpage 0x2A, each with its own CLUT
 /// (`0x4300` plus the cell index), and `arg2` sizes it: the corners sit
-/// `arg2 * 39 / otz` from the projected centre, so the sprite shrinks with
+/// `arg2 * 39 / depth` from the projected centre, so the sprite shrinks with
 /// depth.
 static void func_combustion_801305F8(GfxCoord* arg0, s16 arg1, s16 arg2)
 {
-    u8*            head;
-    GpRingScratch* block;
-    POLY_FT4*      prim;
-    SVECTOR*       vec;
-    s32            frame;
-    u32            cell;
-    u16            col;
-    u16            row;
-    s32            u0;
-    s32            u1;
-    s32            v0;
-    s32            v2;
-    s16            x;
-    s16            y;
-    u16            vz;
+    u8*                  head;
+    EffectCentreScratch* block;
+    POLY_FT4*            prim;
+    SVECTOR*             vec;
+    s32                  frame;
+    u32                  cell;
+    u16                  col;
+    u16                  row;
+    s32                  u0;
+    s32                  u1;
+    s32                  v0;
+    s32                  v2;
+    s16                  x;
+    s16                  y;
+    u16                  vz;
 
-    head                                    = SCRATCH_STACK_CURSOR(u8);
-    ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)arg0->workm.t[0];
-    block                                   = (GpRingScratch*)(head - 0x18);
-    block->vec.vy                           = (u16)arg0->workm.t[1];
-    vz                                      = (u16)arg0->workm.t[2];
-    SCRATCH_STACK_CURSOR(GpRingScratch)     = block;
-    block->vec.vz                           = vz;
-    vec                                     = &block->vec;
+    head                                                                        = SCRATCH_STACK_CURSOR(u8);
+    ((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->worldPoint.vx = (u16)arg0->workm.t[0];
+    block                                                                       = (EffectCentreScratch*)(head - sizeof(EffectCentreScratch));
+    block->worldPoint.vy                                                        = (u16)arg0->workm.t[1];
+    vz                                                                          = (u16)arg0->workm.t[2];
+    SCRATCH_STACK_CURSOR(EffectCentreScratch)                                   = block;
+    block->worldPoint.vz                                                        = vz;
+    vec                                                                         = &block->worldPoint;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
     gte_rtps();
     frame = arg1;
     frame = frame % 12;
-    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
-    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
-        block->otz++;
+    gte_stsxy(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->screenX);
+    gte_stflg(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->depth);
+        block->depth++;
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -560,23 +560,23 @@ static void func_combustion_801305F8(GfxCoord* arg0, s16 arg1, s16 arg2)
         v0          = row * 0x28 - 0x78;
         v2          = row * 0x28 - 0x51;
         setUV4(prim, u0, v0, u1, v0, u0, v2, u1, v2);
-        block->step = (arg2 * 0x27) / block->otz;
-        x           = (u16)block->sx - (u16)block->step;
-        prim->x2    = x;
-        prim->x0    = x;
-        x           = (u16)block->sx + (u16)block->step;
-        prim->x3    = x;
-        prim->x1    = x;
-        y           = (u16)block->sy - (u16)block->step;
-        prim->y1    = y;
-        prim->y0    = y;
-        y           = (u16)block->sy + (u16)block->step;
-        prim->y3    = y;
-        prim->y2    = y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        block->screenExtent = (arg2 * 0x27) / block->depth;
+        x                   = block->screenX - (u16)block->screenExtent;
+        prim->x2            = x;
+        prim->x0            = x;
+        x                   = block->screenX + (u16)block->screenExtent;
+        prim->x3            = x;
+        prim->x1            = x;
+        y                   = block->screenY - (u16)block->screenExtent;
+        prim->y1            = y;
+        prim->y0            = y;
+        y                   = block->screenY + (u16)block->screenExtent;
+        prim->y3            = y;
+        prim->y2            = y;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }
 
 void func_combustion_801308E0(Task* arg0)

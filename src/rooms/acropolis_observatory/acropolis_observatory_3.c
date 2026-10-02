@@ -22,6 +22,7 @@
 #include "gameplay/attachments.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
+#include "gameplay/effects.h"
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
@@ -64,23 +65,6 @@ typedef struct AobSceneWork {
     /* 0x6 */ u16   step;
 } AobSceneWork;
 STATIC_ASSERT_SIZEOF(AobSceneWork, 8);
-
-/// 0x18 block the observatory's lens-flare task takes off the scratch stack for
-/// one frame. `pos` is the model's world position (`GfxCoord::workm`
-/// translation) loaded into the GTE as V0; `sx`/`sy`, `otz` and `flag` are the
-/// `rtps` results read back with `gte_stsxy`, `gte_stszotz` and `gte_stflg`.
-/// `otz` doubles as the sprite's depth after being pulled 0x40 towards the
-/// camera and clamped to 0x10, and `half` is the flare's half-extent in pixels,
-/// `0x5D00 / otz`, so the quad shrinks with distance.
-typedef struct AobFlareScratch {
-    /* 0x00 */ SVECTOR pos;
-    /* 0x08 */ s32     otz;
-    /* 0x0C */ s32     flag;
-    /* 0x10 */ s32     half;
-    /* 0x14 */ u16     sx;
-    /* 0x16 */ u16     sy;
-} AobFlareScratch;
-STATIC_ASSERT_SIZEOF(AobFlareScratch, 0x18);
 
 /// `gPlayerStatus.weapon` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on,
@@ -1088,84 +1072,84 @@ void func_acropolis_observatory_8017E19C(Task* task)
 }
 
 /// Draws the observatory's lens flare: the model's world position is projected
-/// through `GsWSMATRIX` into an `AobFlareScratch` block off the scratch stack,
+/// through `GsWSMATRIX` into an `EffectCentreScratch` block off the scratch stack,
 /// and, when the `rtps` reports no error, the projected point becomes the
 /// centre of a semi-transparent `POLY_FT4` on tpage 0x2B. The depth used for
-/// both the size and the ordering-table slot is the raw `otz` pulled 0x40
+/// both the size and the ordering-table slot is the raw `depth` pulled 0x40
 /// towards the camera and clamped to 0x10, so the flare stops growing once it
 /// is very close. The CLUT alternates between two palettes on odd and even
 /// frames, which is what makes the flare flicker.
 void func_acropolis_observatory_8017E424(Task* arg0)
 {
-    void**           scratch;
-    u8*              head;
-    AobFlareScratch* blk;
-    POLY_FT4*        prim;
-    GfxCoord*        coord;
-    void*            mem;
-    u16              vz;
-    s16              x;
-    s16              y;
+    void**               scratch;
+    u8*                  head;
+    EffectCentreScratch* blk;
+    POLY_FT4*            prim;
+    GfxCoord*            coord;
+    void*                mem;
+    u16                  vz;
+    s16                  x;
+    s16                  y;
 
     coord = arg0->extra.coordBody->coord;
     mem   = arg0->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
 
-    scratch     = SCRATCH_STACK_CURSOR_SLOT;
-    head        = *scratch;
-    blk         = (AobFlareScratch*)(head - sizeof(AobFlareScratch));
-    blk->pos.vx = (u16)coord->workm.t[0];
-    blk->pos.vy = (u16)coord->workm.t[1];
-    vz          = (u16)coord->workm.t[2];
-    *scratch    = blk;
-    blk->pos.vz = vz;
+    scratch            = SCRATCH_STACK_CURSOR_SLOT;
+    head               = *scratch;
+    blk                = (EffectCentreScratch*)(head - sizeof(EffectCentreScratch));
+    blk->worldPoint.vx = (u16)coord->workm.t[0];
+    blk->worldPoint.vy = (u16)coord->workm.t[1];
+    vz                 = (u16)coord->workm.t[2];
+    *scratch           = blk;
+    blk->worldPoint.vz = vz;
 
     {
-        SVECTOR* v = &blk->pos;
+        SVECTOR* v = &blk->worldPoint;
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(v);
     }
     gte_rtps();
-    gte_stsxy(&blk->sx);
-    gte_stflg(&blk->flag);
-    if (blk->flag >= 0) {
-        gte_stszotz(&blk->otz);
-        blk->otz -= 0x40;
-        if (blk->otz < 0x10) {
-            blk->otz = 0x10;
+    gte_stsxy(&blk->screenX);
+    gte_stflg(&blk->projectionFlags);
+    if (blk->projectionFlags >= 0) {
+        gte_stszotz(&blk->depth);
+        blk->depth -= 0x40;
+        if (blk->depth < 0x10) {
+            blk->depth = 0x10;
         }
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
-        prim->tpage = 0x2B;
-        prim->clut  = getClut(0xE0 + (u32)(gDisplayState.animFrame & 1) * 0x10, 0x10F);
-        prim->u0    = 0;
-        prim->v0    = 0xA0;
-        prim->u1    = 0x1F;
-        prim->v1    = 0xA0;
-        prim->u2    = 0;
-        prim->v2    = 0xBF;
-        prim->u3    = 0x1F;
-        prim->v3    = 0xBF;
-        blk->half   = 0x5D00 / blk->otz;
-        x           = blk->sx - (u16)blk->half;
-        prim->x2    = x;
-        prim->x0    = x;
-        x           = blk->sx + (u16)blk->half;
-        prim->x3    = x;
-        prim->x1    = x;
-        y           = blk->sy - (u16)blk->half;
-        prim->y1    = y;
-        prim->y0    = y;
-        y           = blk->sy + (u16)blk->half;
-        prim->y3    = y;
-        prim->y2    = y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        prim->tpage       = 0x2B;
+        prim->clut        = getClut(0xE0 + (u32)(gDisplayState.animFrame & 1) * 0x10, 0x10F);
+        prim->u0          = 0;
+        prim->v0          = 0xA0;
+        prim->u1          = 0x1F;
+        prim->v1          = 0xA0;
+        prim->u2          = 0;
+        prim->v2          = 0xBF;
+        prim->u3          = 0x1F;
+        prim->v3          = 0xBF;
+        blk->screenExtent = 0x5D00 / blk->depth;
+        x                 = blk->screenX - (u16)blk->screenExtent;
+        prim->x2          = x;
+        prim->x0          = x;
+        x                 = blk->screenX + (u16)blk->screenExtent;
+        prim->x3          = x;
+        prim->x1          = x;
+        y                 = blk->screenY - (u16)blk->screenExtent;
+        prim->y1          = y;
+        prim->y0          = y;
+        y                 = blk->screenY + (u16)blk->screenExtent;
+        prim->y3          = y;
+        prim->y2          = y;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_STACK_RELEASE_BLOCK(AobFlareScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
     effectKillTask(mem, arg0);
 }
 

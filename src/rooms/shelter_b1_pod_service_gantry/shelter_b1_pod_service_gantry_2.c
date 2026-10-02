@@ -417,38 +417,38 @@ void waterDrawSpinU16(GfxCoord* coord, u16 textureColumn, s16 radiusScale, s16 s
 /// 0x18-byte scratch block zeroed with `memFillBytes` and, when the GTE flag is
 /// non-negative, queues one shade-tex `POLY_FT4` (tpage 0x2B, clut 0x4393)
 /// with a 56-texel UV tile picked by `arg1` and an on-screen radius of
-/// `arg2 * 55 / otz`.
+/// `arg2 * 55 / depth`.
 void waterDrawTileU16(GfxCoord* arg0, u16 arg1, s16 arg2)
 {
-    void**         scratch;
-    u8*            head;
-    GpRingScratch* block;
-    POLY_FT4*      prim;
-    SVECTOR*       vec;
-    u32            cell;
-    s32            tex;
-    s32            v0;
-    s32            u1;
-    s32            v1;
-    s16            xy;
+    void**               scratch;
+    u8*                  head;
+    EffectCentreScratch* block;
+    POLY_FT4*            prim;
+    SVECTOR*             vec;
+    u32                  cell;
+    s32                  tex;
+    s32                  v0;
+    s32                  u1;
+    s32                  v1;
+    s16                  xy;
 
     scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
-    block    = (GpRingScratch*)(head - 0x18);
+    block    = (EffectCentreScratch*)(head - sizeof(EffectCentreScratch));
     *scratch = block;
     memFillBytes(block, 0, sizeof(*block));
-    block->vec.vx = arg0->workm.t[0];
-    block->vec.vy = arg0->workm.t[1];
-    block->vec.vz = arg0->workm.t[2];
-    vec           = &block->vec;
+    block->worldPoint.vx = arg0->workm.t[0];
+    block->worldPoint.vy = arg0->workm.t[1];
+    block->worldPoint.vz = arg0->workm.t[2];
+    vec                  = &block->worldPoint;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
     gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
+    gte_stsxy(&block->screenX);
+    gte_stflg(&block->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&block->depth);
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -461,26 +461,26 @@ void waterDrawTileU16(GfxCoord* arg0, u16 arg1, s16 arg2)
         u1          = tex + 0x37;
         v1          = v0 + 0x37;
         setUV4(prim, tex, v0, u1, v0, tex, v1, u1, v1);
-        block->step = (arg2 * 55) / block->otz;
-        xy          = block->sx - block->step;
+        block->screenExtent = (arg2 * 55) / block->depth;
+        xy                  = block->screenX - block->screenExtent;
         prim->x0 = prim->x2 = xy;
-        xy                  = block->sx + block->step;
+        xy                  = block->screenX + block->screenExtent;
         prim->x1 = prim->x3 = xy;
-        xy                  = block->sy - block->step - (block->step >> 1);
+        xy                  = block->screenY - block->screenExtent - (block->screenExtent >> 1);
         prim->y0 = prim->y1 = xy;
-        xy                  = block->sy + (block->step >> 1);
+        xy                  = block->screenY + (block->screenExtent >> 1);
         prim->y2 = prim->y3 = xy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES_AT(scratch, 0x18);
+    SCRATCH_POP_BYTES_AT(scratch, sizeof(EffectCentreScratch));
 }
 
 /// Draws a glowing disc at the point (0, -0xC4, 0) in `arg0`'s local frame:
 /// the point is rotated by `workm`, offset by its translation and projected
 /// through `GsWSMATRIX` into a zeroed scratch block popped from
 /// the scratch stack. When the GTE flag is non-negative, four Gouraud
-/// `POLY_G4` quarter-wedges of radius `arg2 * 64 / otz` are queued, each lit
+/// `POLY_G4` quarter-wedges of radius `arg2 * 64 / depth` are queued, each lit
 /// at the centre vertex and black on the rim. `arg3` packs the centre colour
 /// as three 4-bit channels (red in bits 8-11, green 4-7, blue 0-3); a one-bit
 /// flicker, taken from the global at 0x801752EC plus the per-slot byte
@@ -488,53 +488,53 @@ void waterDrawTileU16(GfxCoord* arg0, u16 arg1, s16 arg2)
 /// nibble and added to every channel.
 void func_shelter_b1_pod_service_gantry_8017F450(GfxCoord* arg0, s32 arg1, s32 arg2, s16 arg3)
 {
-    u8*            head;
-    GpRingScratch* block;
-    POLY_G4*       prim;
-    s32            ang;
-    s32            t;
-    s32            t2;
-    s32            blend;
-    s32            color;
-    u16            color16;
-    u32            c;
-    s32            green;
-    u8             red;
+    u8*                  head;
+    EffectCentreScratch* block;
+    POLY_G4*             prim;
+    s32                  ang;
+    s32                  t;
+    s32                  t2;
+    s32                  blend;
+    s32                  color;
+    u16                  color16;
+    u32                  c;
+    s32                  green;
+    u8                   red;
 
     head                       = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(void) = head - 0x18;
-    block                      = SCRATCH_STACK_CURSOR(GpRingScratch);
+    SCRATCH_STACK_CURSOR(void) = head - sizeof(EffectCentreScratch);
+    block                      = SCRATCH_STACK_CURSOR(EffectCentreScratch);
     color                      = arg3;
     color16                    = color;
     memFillBytes(block, 0, sizeof(*block));
-    ((GpRingScratch*)(head - 0x18))->vec.vx = 0;
-    block->vec.vy                           = -0xC4;
-    block->vec.vz                           = 0;
+    ((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->worldPoint.vx = 0;
+    block->worldPoint.vy                                                        = -0xC4;
+    block->worldPoint.vz                                                        = 0;
     gte_SetRotMatrix(&arg0->workm);
-    gte_ldv0(block);
+    gte_ldv0(&block->worldPoint);
     gte_rtv0();
-    gte_stsv(block);
-    ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)((GpRingScratch*)(head - 0x18))->vec.vx + (u16)arg0->workm.t[0];
-    block->vec.vy                           = (u16)block->vec.vy + (u16)arg0->workm.t[1];
-    block->vec.vz                           = (u16)block->vec.vz + (u16)arg0->workm.t[2];
+    gte_stsv(&block->worldPoint);
+    ((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->worldPoint.vx = (u16)((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->worldPoint.vx + (u16)arg0->workm.t[0];
+    block->worldPoint.vy                                                        = (u16)block->worldPoint.vy + (u16)arg0->workm.t[1];
+    block->worldPoint.vz                                                        = (u16)block->worldPoint.vz + (u16)arg0->workm.t[2];
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(block);
+    gte_ldv0(&block->worldPoint);
     gte_rtps();
-    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
-    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
-        arg2        = ((s16)arg2 * 64) / block->otz;
-        ang         = 0;
-        blend       = (D_801752EC + (u8)D_shelter_b1_pod_service_gantry_8018256C[arg1 & 7]) & 1;
-        c           = color16;
-        blend     <<= c >> 12;
-        red         = blend + ((c >> 4) & 0xF0);
-        green       = blend + (c & 0xF0);
-        arg3        = blend + ((arg3 & 0xF) << 4);
-        block->step = arg2;
+    gte_stsxy(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->screenX);
+    gte_stflg(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->depth);
+        arg2                = ((s16)arg2 * 64) / block->depth;
+        ang                 = 0;
+        blend               = (D_801752EC + (u8)D_shelter_b1_pod_service_gantry_8018256C[arg1 & 7]) & 1;
+        c                   = color16;
+        blend             <<= c >> 12;
+        red                 = blend + ((c >> 4) & 0xF0);
+        green               = blend + (c & 0xF0);
+        arg3                = blend + ((arg3 & 0xF) << 4);
+        block->screenExtent = arg2;
         do {
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
@@ -543,23 +543,23 @@ void func_shelter_b1_pod_service_gantry_8017F450(GfxCoord* arg0, s32 arg1, s32 a
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, red, green, arg3);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = (u16)block->sx + ((block->step * rsin(ang)) >> 12);
+            prim->x0 = block->screenX + ((block->screenExtent * rsin(ang)) >> 12);
             t        = ang + 0x200;
-            prim->y0 = (u16)block->sy + ((block->step * rcos(ang)) >> 12);
-            prim->x1 = (u16)block->sx + ((block->step * rsin(t)) >> 12);
-            prim->y1 = (u16)block->sy + ((block->step * rcos(t)) >> 12);
+            prim->y0 = block->screenY + ((block->screenExtent * rcos(ang)) >> 12);
+            prim->x1 = block->screenX + ((block->screenExtent * rsin(t)) >> 12);
+            prim->y1 = block->screenY + ((block->screenExtent * rcos(t)) >> 12);
             t2       = ang + 0x400;
-            prim->x2 = (u16)block->sx;
-            prim->y2 = (u16)block->sy;
-            prim->x3 = (u16)block->sx + ((block->step * rsin(t2)) >> 12);
-            prim->y3 = (u16)block->sy + ((block->step * rcos(t2)) >> 12);
+            prim->x2 = block->screenX;
+            prim->y2 = block->screenY;
+            prim->x3 = block->screenX + ((block->screenExtent * rsin(t2)) >> 12);
+            prim->y3 = block->screenY + ((block->screenExtent * rcos(t2)) >> 12);
             ang      = t2;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->depth);
         } while (ang < 0x1000);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }
 
 #include "../../shared/effect_sprite_rise.inc.c"

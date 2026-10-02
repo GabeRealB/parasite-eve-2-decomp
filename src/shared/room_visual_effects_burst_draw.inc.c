@@ -4,7 +4,7 @@
 
 /// Draws a glow at the coordinate: two camera-facing textured squares, an
 /// inner one of half-extent `size` and an outer one of `size * 3 / 2`
-/// (each scaled by 0x37 / otz), plus a flat quad on the ground beneath it.
+/// (each scaled by 0x37 / depth), plus a flat quad on the ground beneath it.
 /// It also points the `gWorldCoordTransientPointLights[2]` light at the
 /// coordinate with a randomly flickering intensity. Nothing is drawn when the
 /// GTE flags the projection.
@@ -26,7 +26,7 @@ static void RoomFx_DrawBurst2Glow(GfxCoord* coord, s16 size)
     u32                            random;
     WorldCoordTransientPointLight* slot;
     WorldCoordPointLight*          light;
-    GpRingScratch*                 block;
+    EffectCentreScratch*           block;
 
     slot                                          = &gWorldCoordTransientPointLights[2];
     slot->framesLeft                              = 2;
@@ -44,18 +44,18 @@ static void RoomFx_DrawBurst2Glow(GfxCoord* coord, s16 size)
     light->head.transform.lighting.local.t[2]     = coord->coord.t[2];
     slot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
     gRandomLcgState                               = random;
-    block                                         = SCRATCH_STACK_RESERVE_BLOCK(GpRingScratch);
-    block->vec.vx                                 = coord->workm.t[0];
-    block->vec.vy                                 = coord->workm.t[1];
-    block->vec.vz                                 = coord->workm.t[2];
+    block                                         = SCRATCH_STACK_RESERVE_BLOCK(EffectCentreScratch);
+    block->worldPoint.vx                          = coord->workm.t[0];
+    block->worldPoint.vy                          = coord->workm.t[1];
+    block->worldPoint.vz                          = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec);
+    gte_ldv0(&block->worldPoint);
     gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
+    gte_stsxy(&block->screenX);
+    gte_stflg(&block->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&block->depth);
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -72,21 +72,21 @@ static void RoomFx_DrawBurst2Glow(GfxCoord* coord, s16 size)
             setUV4(prim, 0xA8, 0xC8, 0xDF, 0xC8, 0xA8, 0xFF, 0xDF, 0xFF);
             prim->code |= 1;
         }
-        block->step = size * 0x37 / block->otz;
-        left        = block->sx - block->step;
-        prim->x2    = left;
-        prim->x0    = left;
-        right       = block->sx + block->step;
-        prim->x3    = right;
-        prim->x1    = right;
-        top         = block->sy - block->step;
-        prim->y1    = top;
-        prim->y0    = top;
-        bottom      = block->sy + block->step;
-        prim->y3    = bottom;
-        prim->y2    = bottom;
+        block->screenExtent = size * 0x37 / block->depth;
+        left                = block->screenX - block->screenExtent;
+        prim->x2            = left;
+        prim->x0            = left;
+        right               = block->screenX + block->screenExtent;
+        prim->x3            = right;
+        prim->x1            = right;
+        top                 = block->screenY - block->screenExtent;
+        prim->y1            = top;
+        prim->y0            = top;
+        bottom              = block->screenY + block->screenExtent;
+        prim->y3            = bottom;
+        prim->y2            = bottom;
         addPrim(
-            GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)block->otz << gDisplayState.otDepthShift) >> 2 & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)block->depth << gDisplayState.otDepthShift) >> 2 & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
             prim);
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
@@ -96,28 +96,28 @@ static void RoomFx_DrawBurst2Glow(GfxCoord* coord, s16 size)
         prim->clut =
             (((gDisplayState.animFrame & 1) * 0x10 + 0x120) >> 4) | 0x4300;
         setUV4(prim, 0x38, 0xC8, 0x6F, 0xC8, 0x38, 0xFF, 0x6F, 0xFF);
-        outerSize   = (s16)(size * 3 / 2);
-        block->step = outerSize * 0x37 / block->otz;
-        outerLeft   = block->sx - block->step;
-        prim->x2    = outerLeft;
-        prim->x0    = outerLeft;
-        outerRight  = block->sx + block->step;
-        prim->x3    = outerRight;
-        prim->x1    = outerRight;
-        outerTop    = block->sy - block->step;
-        prim->y1    = outerTop;
-        prim->y0    = outerTop;
-        outerBottom = block->sy + block->step;
-        prim->y3    = outerBottom;
-        prim->y2    = outerBottom;
+        outerSize           = (s16)(size * 3 / 2);
+        block->screenExtent = outerSize * 0x37 / block->depth;
+        outerLeft           = block->screenX - block->screenExtent;
+        prim->x2            = outerLeft;
+        prim->x0            = outerLeft;
+        outerRight          = block->screenX + block->screenExtent;
+        prim->x3            = outerRight;
+        prim->x1            = outerRight;
+        outerTop            = block->screenY - block->screenExtent;
+        prim->y1            = outerTop;
+        prim->y0            = outerTop;
+        outerBottom         = block->screenY + block->screenExtent;
+        prim->y3            = outerBottom;
+        prim->y2            = outerBottom;
         addPrim(
-            GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)block->otz << gDisplayState.otDepthShift) >> 2 & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)block->depth << gDisplayState.otDepthShift) >> 2 & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
             prim);
         if (Gp_TraceGroundCoord(coord, &ground) == 1) {
             RoomFx_DrawGround2Quad(&ground, outerSize);
         }
     }
-    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }
 
 /// Queues one semi-transparent textured quad lying flat at the coordinate's

@@ -6905,12 +6905,12 @@ asm volatile("" ::"r"(head)); /* lw head stays ahead of the field load */
 {
     register u16 vx asm("v0");
     vx                                      = *(u16*)&arg0->workm.t[0];
-    ((GpRingScratch*)(head - 0x18))->vec.vx = vx;
+    ((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->worldPoint.vx = vx;
 }
 {
     register u8* tmp asm("v0");
     tmp   = head - 0x18;
-    block = (GpRingScratch*)tmp;
+    block = (EffectCentreScratch*)tmp;
 }
 ```
 
@@ -31806,9 +31806,9 @@ after the `ctc2` block instead of up with the scratch store:
 
 ```c
 *scratch = blk;
-blk->pos.vz = vz;
+blk->worldPoint.vz = vz;
 {
-    SVECTOR* v = &blk->pos;     /* not down by the gte_ldv0 */
+    SVECTOR* v = &blk->worldPoint;     /* not down by the gte_ldv0 */
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(v);
@@ -31820,7 +31820,7 @@ blk->pos.vz = vz;
 
 The scratch store itself then floats: once the alias is in place, the only
 leftover can be the position of `sw <blk>, 0(<scratchptr>)` among the three
-`vec` field stores, because the scheduler uses it to fill a load-delay slot.
+`worldPoint` field stores, because the scheduler uses it to fill a load-delay slot.
 Writing `*scratch = block` before the last field store puts it in the *first*
 free slot,
 
@@ -36768,12 +36768,12 @@ RotMatrix(rot, (MATRIX*)coord);
 
 ## Billboard RTPS: trans then rot, then reuse UV/`u` registers
 
-A 0x18 scratch billboard (`SVECTOR` + otz/flag/half/sxy) that `gte_SetTransMatrix`
+A 0x18 scratch billboard (`EffectCentreScratch`: `SVECTOR` + depth/projectionFlags/screenExtent/screenX/screenY) that `gte_SetTransMatrix`
 then `gte_SetRotMatrix` on `&GsWSMATRIX` reloads the matrix address for the
-second call. Copy `&block->vec` after `*scratch = block` so `gte_ldv0` uses
+second call. Copy `&block->worldPoint` after `*scratch = block` so `gte_ldv0` uses
 `$v0`. After `*clutp`, assign `clutIdx = u + 0x17` to reuse the table pointer
 as `u1`. After storing `u0`/`u2`, assign `u = (u16)size` so `andi v1, t0,
-0xffff` clobbers `u` and the `* 23 / otz` half-size uses `$v1` with the
+0xffff` clobbers `u` and the `* 23 / depth` half-size uses `$v1` with the
 dividend in `$v0` and divisor in `$a0`.
 
 `func_800EB6E8` is the example (98.4%; remaining diffs are `lui`/`li` delay
@@ -36957,13 +36957,13 @@ Assigning `block = head - 0x18` directly emits `addiu t1` and reuses
 to `$v0` in a short inner scope and copy to a `$t1` block:
 
 ```c
-((Scratch*)(head - 0x18))->vec.vx = *(u16*)&coord->workm.t[0];
+((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->worldPoint.vx = *(u16*)&coord->workm.t[0];
 {
     register u8* tmp asm("v0");
     tmp   = head - 0x18;
-    block = (Scratch*)tmp;
+    block = (EffectCentreScratch*)tmp;
 }
-block->vec.vy = *(u16*)&coord->workm.t[1];
+block->worldPoint.vy = *(u16*)&coord->workm.t[1];
 ```
 
 Do not keep the `$v0` pin alive until `gte_ldv0` — that coalesces and
@@ -56618,7 +56618,7 @@ grep `include/` as well as `src/`. Porting the twin took one attempt against a
 
 Corollary: the scratch-struct docs in `include/gameplay/3CD8.h` and
 `include/gameplay/3FB8.h` are a catalogue of `SCRATCH_STACK_CURSOR_SLOT` layouts
-(`GpRingScratch`, `EffectShapeScratch`, `EffectBillboardScratch`,
+(`EffectCentreScratch`, `EffectShapeScratch`, `EffectBillboardScratch`,
 `GpEffTileScratch`, …). Any overlay function whose prologue is `lw` from
 `0x1F8003FC` / `addiu -N` / `sw` back is very likely one of them; match the size
 and field offsets against that list first. Use the canonical shared record when its layout and meaning agree, as with
@@ -87803,7 +87803,7 @@ copy is not always out of its reach. The `OverlayBisectorScratch` push
 had been matched with a `$v0` pin plus a `vz` local holding the store late.
 `SCRATCH_STACK_RESERVE_BLOCK(T); st = SCRATCH_STACK_CURSOR(T);` followed by the three field stores in
 source order matches it outright - sched1 sinks the head store past the fields.
-The same holds for the `GpRingScratch` ring-and-flare body shared by
+The same holds for the `EffectCentreScratch` ring-and-flare body shared by
 `Actor00300_Fn00078` and its actor/room copies (`sh v0,-0x18(a0)` /
 `addiu v0,a0,-0x18` / `move t7,v0`, head store `sw t7` after `vy`). It had been
 matched with a `move` asm, and the compound push matches it with every field
@@ -142452,7 +142452,7 @@ narrows to QImode and prints as `-0x59` (see "`addiu reg, 0xA7` vs `addiu reg,
 the old `s16 cell` locals imitated; and `u0` is stored before the `% 8` is
 computed because the macro stores it first. With the UVs right, the scratch
 head's `move v1,t1` copy and the rest of the prologue came out of a plain
-`block = SCRATCH_STACK_RESERVE_BLOCK(GpRingScratch)` with no further help: the prologue hacks
+`block = SCRATCH_STACK_RESERVE_BLOCK(EffectCentreScratch)` with no further help: the prologue hacks
 were compensating for allocation pressure the wrong UV code created. Try the
 macro before steering a quad's setup piecemeal.
 

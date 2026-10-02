@@ -11,19 +11,30 @@
 struct GfxCoord;
 struct Task;
 
-/// The scratch-pad block of a shape drawn about one projected point: `vec` is
-/// the point, and one RTPS fills `sx`, `sy`, `flag` and `otz`. `step` is a
-/// length scaled by the depth, the radius a ring is swept at or the half size
-/// of a billboard sprite.
-typedef struct _GpRingScratch {
-    /* 0x00 */ SVECTOR vec;
-    /* 0x08 */ s32     otz;
-    /* 0x0C */ s32     flag;
-    /* 0x10 */ s32     step;
-    /* 0x14 */ s16     sx;
-    /* 0x16 */ s16     sy;
-} GpRingScratch;
-STATIC_ASSERT_SIZEOF(GpRingScratch, 0x18);
+/// Scratch-stack workspace for drawing an effect around one projected centre.
+///
+/// `worldPoint` optionally stages a world position narrowed to signed 16-bit
+/// coordinate units; a drawer may first transform a local offset in place or
+/// project the caller's vector directly. One RTPS supplies the screen centre,
+/// GTE status and SZ3 / 4 depth. Drawers may bias or clamp `depth` before using
+/// it for sizing and ordering-table placement. `screenExtent` is a signed
+/// integer pixel distance, used as a radius or half-extent and reused when
+/// drawing another primitive or changing axes.
+///
+/// `screenX` and `screenY` retain the raw 16-bit encodings of signed GTE pixel
+/// coordinates. One GTE word store fills both, starting at `screenX`.
+/// Reserve a complete, word-aligned block, initialize fields as needed, and
+/// release it in scratch-stack order after drawing. Pointers into the block
+/// must not survive release.
+typedef struct {
+    SVECTOR worldPoint;      // Optional position workspace; world coordinates at projection
+    s32     depth;           // SZ3 / 4, then the drawer's bias or clamp for sizing and sorting
+    s32     projectionFlags; // GTE FLAG word; bit 31 makes it negative and rejects the projection
+    s32     screenExtent;    // Signed pixel radius or half-extent, reused between primitives or axes
+    u16     screenX;         // Raw projected centre X; first half of the GTE screen-position word
+    u16     screenY;         // Raw projected centre Y; adjacent to screenX for the GTE word store
+} EffectCentreScratch;
+STATIC_ASSERT_SIZEOF(EffectCentreScratch, 0x18);
 
 /// Scratch-stack workspace for a screen-space effect centred on one world point.
 ///
