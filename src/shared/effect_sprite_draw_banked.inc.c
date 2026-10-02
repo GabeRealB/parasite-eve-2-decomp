@@ -20,11 +20,16 @@
 static __inline__ void _effectSpriteBankedRotateCorner(EffectShapeScratch* scratch, s16 size, s32 angle)
 {
     enum {
-        EFFECT_SPRITE_BANKED_UV_SPAN    = 47,
-        EFFECT_SPRITE_BANKED_TRIG_SHIFT = 12
+        EFFECT_SPRITE_BANKED_UV_SPAN = 47,
+        /// Fractional bits in the signed `rsin` and `rcos` results; 4096 represents 1.0.
+        ///
+        /// Arithmetic right-shifting the rotated products by this count yields
+        /// integer pixel offsets, rounding negative products down. Perspective
+        /// division precedes multiplication by the trigonometric sample.
+        EFFECT_SPRITE_BANKED_TRIG_FRACTION_BITS = 12
     };
-    scratch->extent.corner.x = (((size * EFFECT_SPRITE_BANKED_UV_SPAN) / scratch->depth) * rsin(angle)) >> EFFECT_SPRITE_BANKED_TRIG_SHIFT;
-    scratch->extent.corner.y = (((size * EFFECT_SPRITE_BANKED_UV_SPAN) / scratch->depth) * rcos(angle)) >> EFFECT_SPRITE_BANKED_TRIG_SHIFT;
+    scratch->extent.corner.x = (((size * EFFECT_SPRITE_BANKED_UV_SPAN) / scratch->depth) * rsin(angle)) >> EFFECT_SPRITE_BANKED_TRIG_FRACTION_BITS;
+    scratch->extent.corner.y = (((size * EFFECT_SPRITE_BANKED_UV_SPAN) / scratch->depth) * rcos(angle)) >> EFFECT_SPRITE_BANKED_TRIG_FRACTION_BITS;
 }
 
 /// Draws a palette-selected animation frame as a rotating camera-facing quad.
