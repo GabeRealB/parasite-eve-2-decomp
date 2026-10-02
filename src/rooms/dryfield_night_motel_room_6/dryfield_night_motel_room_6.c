@@ -62,6 +62,9 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_cutscene.h"
 #include "../../shared/room_variants.h"
+/// Selects the nighttime motel room 6 glow export and action-handler signature.
+///
+/// Keep this binding through all motel room 6 implementation fragments.
 #define DRYFIELD_TIME DRYFIELD_NIGHT
 #include "../../shared/motel_room_6.h"
 

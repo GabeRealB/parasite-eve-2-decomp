@@ -50,6 +50,9 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_cutscene.h"
+/// Selects the nighttime trailer coach view that uses the finer depth shift.
+///
+/// Keep this binding through the depth-shift implementation fragment.
 #define DRYFIELD_TIME DRYFIELD_NIGHT
 #include "../../shared/trailer_coach.h"
 

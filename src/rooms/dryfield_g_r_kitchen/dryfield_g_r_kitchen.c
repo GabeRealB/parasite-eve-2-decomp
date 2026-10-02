@@ -46,6 +46,9 @@
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 #include "../../shared/room_events.h"
 #include "../../shared/glow_draw.h"
+/// Selects the daytime sound bank for the shared G & R kitchen door handler.
+///
+/// Keep this binding through the door-handler implementation fragment.
 #define DRYFIELD_TIME DRYFIELD_DAY
 #include "../../shared/g_r_kitchen.h"
 

@@ -157,6 +157,9 @@ extern Task* gRoomCutsceneSoundTask;
 /// so it is declared here, after its neighbours and before the library header.
 extern RoomCutsceneRec gMotelRoom6CutsceneRec;
 
+/// Selects the daytime motel room 6 glow export and action-handler signature.
+///
+/// Keep this binding through all motel room 6 implementation fragments.
 #define DRYFIELD_TIME DRYFIELD_DAY
 #include "../../shared/motel_room_6.h"
 

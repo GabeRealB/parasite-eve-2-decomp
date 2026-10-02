@@ -71,6 +71,9 @@
 #define ROOM_CUTSCENE_SOUND_TASK gRoomCutsceneSoundTask.task
 #include "../../shared/room_cutscene.h"
 #include "../../shared/glow_draw.h"
+/// Selects the daytime trailer coach view that uses the finer depth shift.
+///
+/// Keep this binding through the depth-shift implementation fragment.
 #define DRYFIELD_TIME DRYFIELD_DAY
 #include "../../shared/trailer_coach.h"
 

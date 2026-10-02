@@ -49,6 +49,9 @@
 #include "../../shared/action_prompt.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_events.h"
+/// Selects the daytime factory instance for shared room declarations and code.
+///
+/// Keep this binding through all factory implementation fragments.
 #define DRYFIELD_TIME DRYFIELD_DAY
 #include "../../shared/factory_lift.h"
 

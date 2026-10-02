@@ -41,6 +41,9 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_events.h"
+/// Selects the nighttime factory instance for shared room declarations and code.
+///
+/// Keep this binding through all factory implementation fragments.
 #define DRYFIELD_TIME DRYFIELD_NIGHT
 #include "../../shared/factory_lift.h"
 

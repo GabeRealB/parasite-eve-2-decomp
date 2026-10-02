@@ -46,6 +46,9 @@
 // The flag symbol is four bytes; the gate writes the first.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 #include "../../shared/room_events.h"
+/// Selects the nighttime sound bank for the shared G & R kitchen door handler.
+///
+/// Keep this binding through the door-handler implementation fragment.
 #define DRYFIELD_TIME DRYFIELD_NIGHT
 #include "../../shared/g_r_kitchen.h"
 
