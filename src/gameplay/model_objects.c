@@ -1069,7 +1069,12 @@ u32* tmdDrawStreamPrimGt3PreXformOffsetLayer(TmdStreamWorkspace* workspace, s32 
         /// offset-layer/base pair; ordering-table head insertion draws it after
         /// the opaque base. The command is fixed, independent of `objectFlags`.
         TMD_GT3_OFFSET_LAYER_SEMI_TRANS_COMMAND = 0x36,
-        TMD_GT3_OFFSET_LAYER_PACKET_COUNT       = 2, // Layer first, model-texture base second
+        /// Number of `POLY_GT3` packet slots consumed by one offset-layer triangle element.
+        ///
+        /// Slot 0 holds the semitransparent offset-textured layer; slot 1 holds
+        /// the opaque model-textured base. Defines the pair's storage stride,
+        /// including both DMA tags; culled elements still consume both slots.
+        TMD_GT3_OFFSET_LAYER_PACKETS_PER_ELEMENT = 2,
         /// Right shift converting an offset-layer triangle's scaled GTE OTZ to an OT tag index.
         ///
         /// Applied after the u32 left shift by `gDisplayState.otDepthShift`
@@ -1086,7 +1091,7 @@ u32* tmdDrawStreamPrimGt3PreXformOffsetLayer(TmdStreamWorkspace* workspace, s32 
         TMD_GT3_OFFSET_LAYER_OT_INDEX_SHIFT = 4
     };
     /// One element's offset-textured layer followed by its opaque base.
-    typedef POLY_GT3 _TmdOffsetLayerTrianglePair[TMD_GT3_OFFSET_LAYER_PACKET_COUNT];
+    typedef POLY_GT3 _TmdOffsetLayerTrianglePair[TMD_GT3_OFFSET_LAYER_PACKETS_PER_ELEMENT];
 
     _TmdOffsetLayerTrianglePair* packetPair;
     s32*                         gteResultDestination;
