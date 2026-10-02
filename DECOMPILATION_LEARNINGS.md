@@ -36011,7 +36011,7 @@ t1 = (m * cos0) / 4096;
 ```
 
 A later `m = value->m[2][0]; prod = m * sin0` with `prod` in `$a2` is the
-same pattern for the second product (`lh v0` / `mflo a2`). `Gp_ExtractEuler`
+same pattern for the second product (`lh v0` / `mflo a2`). `gfxExtractSmallestEuler`
 is the example.
 
 ## `if (s16 <= 0)` so `bgtz` takes the then-block after the else
@@ -36028,14 +36028,14 @@ if (vx0 <= 0) {
 }
 ```
 
-`Gp_ExtractEuler` is the example.
+`gfxExtractSmallestEuler` is the example.
 
 ## Reassign dead saved regs so later sums reuse `$s2` / `$s1`
 
 `sin0` / `cos0` live in `$s2` / `$s1` across the `rsin`/`rcos`/`ratan2`
 calls. After the last use, new `sum0` / `sum1` locals take `$a1` / `$v0`.
 Write the abs-sums back into `sin0` / `cos0` so `addu s2` / `addu s1` /
-`slt v0, s2, s1`. `Gp_ExtractEuler` is the example.
+`slt v0, s2, s1`. `gfxExtractSmallestEuler` is the example.
 
 ## Two `+r` barriers around an abs so the add stays after `bgez` / `nop`
 
@@ -36055,7 +36055,7 @@ __asm__ volatile("" : "+r"(az), "+r"(ax));
 sin0 = ax + az;
 ```
 
-Same `+r` pin as `func_8009AA5C`. `Gp_ExtractEuler` is the example.
+Same `+r` pin as `func_8009AA5C`. `gfxExtractSmallestEuler` is the example.
 
 ## Memory clobber so `gte_lddp` reloads a just-stored weight
 
@@ -98630,7 +98630,7 @@ where a value lived:
 
 ```c
 s16 sp10;  u16 sp12;                      /* m2c: two stack locals, 0x10 / 0x12 */
-Gp_ExtractEuler((SVECTOR *)&sp10, ...);
+gfxExtractSmallestEuler((SVECTOR *)&sp10, ...);
 temp_v0 = temp_a2 - sp12;                 /* sp12 read but never written */
 ...
 sp12 = (s16)sp12 - 0x40;                  /* stored, never read again */
@@ -125819,7 +125819,7 @@ Two smaller shape points from the same function. `&coord[5]` and `&target[4]`
 must be real pointer locals (`head`, `aim`): indexing `target[4].workm.t[0]` off
 the array base folds into one `lw $v1, 0x178($a1)` and loses the target's
 `addiu a1,a1,0x140`. And `&coord[3].coord` is a `MATRIX*` *local*, not a call
-argument: it feeds both `Gp_ExtractEuler` and `RotMatrix`, so the target computes
+argument: it feeds both `gfxExtractSmallestEuler` and `RotMatrix`, so the target computes
 `addiu $s1,$v0,0xF4` once and passes `move a1,s1` twice; as a naked argument GCC
 folds it into `addiu a1,a1,0xF4` and drops the instruction.
 

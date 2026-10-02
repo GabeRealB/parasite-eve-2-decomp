@@ -39,10 +39,20 @@ Task* Gp_CopyCoordOffset(Task* arg0, GfxCoord* arg1, SVECTOR* arg2);
 
 void Gp_MtxToEuler(MATRIX* arg0, SVECTOR* arg1);
 
-/// Extracts ZYX Euler angles from `arg1`'s rotation into `arg0`. Tries `vx`
-/// and `vx ± 0x800` (the other Euler solution) and keeps the candidate with
-/// the smaller sum of absolute angles. Returns `arg0`.
-SVECTOR* Gp_ExtractEuler(SVECTOR* arg0, MATRIX* arg1);
+/// Writes the smaller-magnitude XYZ Euler angles of `matrix` into `angles`.
+///
+/// `vx`, `vy` and `vz` are signed X, Y and Z angles, 4096 units per turn, for
+/// the product Rx(x) * Ry(y) * Rz(z) that `RotMatrix` builds. Translation is
+/// not read and `matrix` is not modified. `gfxMatrixToEuler` reports one
+/// solution of that product; this routine also forms the solution whose X
+/// differs by half a turn and stores the candidate with the smaller sum of
+/// absolute components. A tie keeps the half-turn solution.
+///
+/// The store replaces all eight bytes of `angles`. Only xyz are defined
+/// angles; the fourth halfword is not an angle and has no defined value.
+/// `matrix` must be halfword-aligned. Returns `angles`. Does not reserve
+/// scratch.
+SVECTOR* gfxExtractSmallestEuler(SVECTOR* angles, const MATRIX* matrix);
 
 /// Lerps the 3x3 rotation of `arg0` toward `arg1` by `arg3 / ONE`, then
 /// orthonormalizes into `arg2`. Outer products of each interpolated row

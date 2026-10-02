@@ -1713,7 +1713,7 @@ static void func_actor_113100_80132BDC(Task* task)
     TransposeMatrix(&part->workm, coord);
     TransposeMatrix(view, &sp10);
     MulMatrix0(coord, &sp10, coord);
-    Gp_ExtractEuler(&sp30, &part->coord);
+    gfxExtractSmallestEuler(&sp30, &part->coord);
     RotMatrixX(sp30.vy, coord);
     node->composeStamp = GRAPHICS_COORD_DIRTY;
 }
@@ -1833,7 +1833,7 @@ static void func_actor_113100_801330E8(Task* arg0)
     coord = arg0->extra.tmd->coords;
     work  = (Actor113100Work*)arg0->work;
 
-    Gp_ExtractEuler(&vec, &coord->coord);
+    gfxExtractSmallestEuler(&vec, &coord->coord);
     diff = (u16)work->walk.rotY - (u16)vec.vy;
     if (ABS(diff) >= 0x41) {
         vy = vec.vy;

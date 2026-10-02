@@ -3047,7 +3047,7 @@ static void func_actor_503500_80140654(Task* arg0)
         case 2:
             for (i = 1; i < 9; i++) {
                 part = &coord[i];
-                Gp_ExtractEuler(&rot, &part->coord);
+                gfxExtractSmallestEuler(&rot, &part->coord);
                 p = &rot.vx;
                 j = 1;
                 do {
@@ -3691,7 +3691,7 @@ static void func_actor_503500_80142220(SVECTOR* angles, GfxCoord* nodes)
 
     for (i = 2; i < 8; i++) {
         m = &nodes[i].coord;
-        Gp_ExtractEuler(&ang, m);
+        gfxExtractSmallestEuler(&ang, m);
         ang.vx                 = angles[i].vx;
         *(s32*)&nodes[i].coord = ONE;
         MATRIX_PAIR(m, 0, 2)   = 0;

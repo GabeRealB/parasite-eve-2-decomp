@@ -1403,39 +1403,47 @@ void Gp_MtxToEuler(MATRIX* arg0, SVECTOR* arg1)
     arg1->vz = -ratan2(in.vx, in.vy);
 }
 
-SVECTOR* Gp_ExtractEuler(SVECTOR* arg0, MATRIX* arg1)
+SVECTOR* gfxExtractSmallestEuler(SVECTOR* angles, const MATRIX* matrix)
 {
-    SVECTOR ang0;
-    SVECTOR ang1;
-    s32     sin0;
-    s32     cos0;
-    s32     sin1;
-    s32     cos1;
+    // Half a turn in the 4096-unit angle system: the other solution's X.
+    enum { GRAPHICS_EULER_HALF_TURN = 0x800 };
 
-    ang0.vx = -ratan2(arg1->m[1][2], arg1->m[2][2]);
-    ang1.vx = (ang0.vx <= 0) ? ang0.vx + 0x800 : ang0.vx - 0x800;
+    SVECTOR principal;
+    SVECTOR alternate;
+    s32     principalSin;
+    s32     principalCos;
+    s32     alternateSin;
+    s32     alternateCos;
 
-    sin0 = rsin(ang0.vx);
-    cos0 = rcos(ang0.vx);
-    sin1 = rsin(ang1.vx);
-    cos1 = rcos(ang1.vx);
+    // X cancels column 2's Y against its Z. Half a turn from that X is the
+    // other solution of Rx(x) * Ry(y) * Rz(z).
+    principal.vx = -ratan2(matrix->m[1][2], matrix->m[2][2]);
+    alternate.vx = (principal.vx <= 0) ? principal.vx + GRAPHICS_EULER_HALF_TURN : principal.vx - GRAPHICS_EULER_HALF_TURN;
 
-    ang0.vy = ratan2(arg1->m[0][2], (arg1->m[2][2] * cos0) / 4096 - (arg1->m[1][2] * sin0) / 4096);
-    ang1.vy = ratan2(arg1->m[0][2], (arg1->m[2][2] * cos1) / 4096 - (arg1->m[1][2] * sin1) / 4096);
+    principalSin = rsin(principal.vx);
+    principalCos = rcos(principal.vx);
+    alternateSin = rsin(alternate.vx);
+    alternateCos = rcos(alternate.vx);
 
-    ang0.vz = ratan2((arg1->m[1][0] * cos0) / 4096 + (arg1->m[2][0] * sin0) / 4096,
-                     (arg1->m[1][1] * cos0) / 4096 + (arg1->m[2][1] * sin0) / 4096);
-    ang1.vz = ratan2((arg1->m[1][0] * cos1) / 4096 + (arg1->m[2][0] * sin1) / 4096,
-                     (arg1->m[1][1] * cos1) / 4096 + (arg1->m[2][1] * sin1) / 4096);
+    // Y and Z are the residual rotation once that X is removed.
+    principal.vy = ratan2(matrix->m[0][2], (matrix->m[2][2] * principalCos) / ONE - (matrix->m[1][2] * principalSin) / ONE);
+    alternate.vy = ratan2(matrix->m[0][2], (matrix->m[2][2] * alternateCos) / ONE - (matrix->m[1][2] * alternateSin) / ONE);
 
-    sin0 = ABS(ang0.vx) + ABS(ang0.vy) + ABS(ang0.vz);
-    cos0 = ABS(ang1.vx) + ABS(ang1.vy) + ABS(ang1.vz);
-    if (sin0 < cos0) {
-        *arg0 = ang0;
+    principal.vz = ratan2((matrix->m[1][0] * principalCos) / ONE + (matrix->m[2][0] * principalSin) / ONE,
+                          (matrix->m[1][1] * principalCos) / ONE + (matrix->m[2][1] * principalSin) / ONE);
+    alternate.vz = ratan2((matrix->m[1][0] * alternateCos) / ONE + (matrix->m[2][0] * alternateSin) / ONE,
+                          (matrix->m[1][1] * alternateCos) / ONE + (matrix->m[2][1] * alternateSin) / ONE);
+
+    // Nearer zero wins. A tie keeps the half-turn X. The sums reuse the
+    // principal sine and cosine locals so the comparison keeps those registers.
+    principalSin = ABS(principal.vx) + ABS(principal.vy) + ABS(principal.vz);
+    principalCos = ABS(alternate.vx) + ABS(alternate.vy) + ABS(alternate.vz);
+    if (principalSin < principalCos) {
+        *angles = principal;
     } else {
-        *arg0 = ang1;
+        *angles = alternate;
     }
-    return arg0;
+    return angles;
 }
 
 void Gp_LerpOrthonormal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2, s32 arg3)
@@ -1636,7 +1644,7 @@ void func_800B17D4(Task* arg0, Task* arg1, GpHeadAim* arg2)
 
     base = arg0->extra.tmd->coords;
     rec  = base + 4;
-    Gp_ExtractEuler(&euler, &base[4].coord);
+    gfxExtractSmallestEuler(&euler, &base[4].coord);
 
     ang.vx   = euler.vx + (ang.vx - euler.vx) * rate / 4096;
     ang.vy   = euler.vy + (ang.vy - euler.vy) * rate / 4096;

@@ -21,7 +21,7 @@ void reverseWalkTurnToYaw(Task* arg0)
     coord = arg0->extra.tmd->coords;
     work  = (Actor350500Work*)arg0->work;
 
-    Gp_ExtractEuler(&vec, &coord->coord);
+    gfxExtractSmallestEuler(&vec, &coord->coord);
     diff = (u16)work->walk.rotY - (u16)vec.vy;
     if (ABS(diff) >= 0x61) {
         vy = vec.vy;

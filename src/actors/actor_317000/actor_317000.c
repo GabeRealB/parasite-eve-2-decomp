@@ -411,7 +411,7 @@ static void func_actor_317000_80161E68(Task* task)
 /// (the player) are normalised into `dir`, whose yaw `ratan2` takes over
 /// `dir.vz`, and the result is written as the roll/pitch-free facing
 /// `{ 0, yaw, 0 }` at `GfxCoord::param.rot`. The same yaw is then compared
-/// against the yaw `Gp_ExtractEuler` reads back out of the node's own matrix:
+/// against the yaw `gfxExtractSmallestEuler` reads back out of the node's own matrix:
 /// when the two are within 0x40 (64 of 4096 units) the actor is facing its
 /// target already, which clears the work's dispatch index and its companion
 /// halfword; otherwise the matrix's yaw is stepped toward the target by that
@@ -446,7 +446,7 @@ static void func_actor_317000_801620BC(Task* task)
     coord->param.rot.vy = rot.vy;
     coord->param.rot.vz = rot.vz;
 
-    Gp_ExtractEuler(&ang, &coord->coord);
+    gfxExtractSmallestEuler(&ang, &coord->coord);
     diff    = ratan2(dir.vx, dir.vz) - ang.vy;
     absDiff = abs(diff);
     if (absDiff >= 0x41) {
@@ -471,7 +471,7 @@ static void func_actor_317000_801620BC(Task* task)
 /// transpose of the actor's third coordinate's `workm`, and normalised again
 /// into `dir`. The three `ratan2`s reduce `dir` to an Euler triple -- the YZ,
 /// XZ and XY plane angles, the middle one against the negated magnitude of
-/// `dir.vz` -- which is added halfword-wise to the euler `Gp_ExtractEuler`
+/// `dir.vz` -- which is added halfword-wise to the euler `gfxExtractSmallestEuler`
 /// reads out of `coord[5]` before `RotMatrix` rebuilds it. An eighth of the
 /// rebuilt euler then offsets `coord[3]`'s own euler, and `coord[5]` is
 /// re-read and scaled by 5/8 before being rewritten as the identity rotated
@@ -512,21 +512,21 @@ static void func_actor_317000_801621F4(Task* task, Task* targetTask, s32 arg2, s
     rot.vy = ratan2(dir.vx, -ABS(dir.vz));
     rot.vz = ratan2(dir.vx, dir.vy);
 
-    Gp_ExtractEuler(&ang, &coord[5].coord);
+    gfxExtractSmallestEuler(&ang, &coord[5].coord);
     ang.vx = (u16)ang.vx + (u16)rot.vx;
     ang.vy = (u16)ang.vy + (u16)rot.vy;
     ang.vz = (u16)ang.vz + (u16)rot.vz;
     RotMatrix(&ang, &coord[5].coord);
 
-    Gp_ExtractEuler(&rot, &coord[5].coord);
+    gfxExtractSmallestEuler(&rot, &coord[5].coord);
     arm = &task->extra.tmd->coords[3].coord;
-    Gp_ExtractEuler(&vec, arm);
+    gfxExtractSmallestEuler(&vec, arm);
     vec.vx = (u16)vec.vx + rot.vx / 8;
     vec.vy = (u16)vec.vy + rot.vy / 8;
     vec.vz = (u16)vec.vz + rot.vz / 8;
     RotMatrix(&vec, arm);
 
-    Gp_ExtractEuler(&vec, &coord[5].coord);
+    gfxExtractSmallestEuler(&vec, &coord[5].coord);
     vec.vx = vec.vx * 5 / 8;
     vec.vy = vec.vy * 5 / 8;
     vec.vz = vec.vz * 5 / 8;
@@ -720,7 +720,7 @@ static void func_actor_317000_801627D0(Task* arg0)
     coord = arg0->extra.tmd->coords;
     work  = (Actor317000Work*)arg0->work;
 
-    Gp_ExtractEuler(&vec, &coord->coord);
+    gfxExtractSmallestEuler(&vec, &coord->coord);
     diff = (u16)work->walk.rotY - (u16)vec.vy;
     if (ABS(diff) >= 0x41) {
         vy = vec.vy;
@@ -861,7 +861,7 @@ s32 func_actor_317000_80162BC4(Task* task, s32 arg1, s32 mode, s32 arg3)
 /// latches the payload's halfword at 0x2 into `Actor317000Work::field_4C5` --
 /// 0 for mode 0, the mode itself for mode 1 -- and for any other mode dumps the
 /// root coordinate's matrix translation (`"pos"`) and the euler angles
-/// `Gp_ExtractEuler` derives from its rotation matrix (`"rot"`) through
+/// `gfxExtractSmallestEuler` derives from its rotation matrix (`"rot"`) through
 /// `GPU_printf`, both under the `"%s=(%d,%d,%d)\n"` format. Returns 0
 /// either way.
 s32 func_actor_317000_80162CA0(Task* task, s32 arg1, ActorCommand* msg)
@@ -883,7 +883,7 @@ s32 func_actor_317000_80162CA0(Task* task, s32 arg1, ActorCommand* msg)
             break;
         default:
             GPU_printf("%s=(%d,%d,%d)\n", "pos", coord->coord.t[0], coord->coord.t[1], coord->coord.t[2]);
-            Gp_ExtractEuler(&rot, &coord->coord);
+            gfxExtractSmallestEuler(&rot, &coord->coord);
             GPU_printf("%s=(%d,%d,%d)\n", "rot", rot.vx, rot.vy, rot.vz);
             break;
     }

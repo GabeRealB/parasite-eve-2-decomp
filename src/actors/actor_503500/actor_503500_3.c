@@ -3479,7 +3479,7 @@ static void func_actor_503500_80139014(Task* arg0)
         case 2:
             for (i = 1; i < 9; i++) {
                 part = &coord[i];
-                Gp_ExtractEuler(&rot, &part->coord);
+                gfxExtractSmallestEuler(&rot, &part->coord);
                 p = &rot.vx;
                 j = 1;
                 do {
