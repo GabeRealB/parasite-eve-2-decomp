@@ -135,11 +135,26 @@ typedef struct {
 } SpriteView;
 STATIC_ASSERT_SIZEOF(SpriteView, 0xC);
 
-/// Per-stage wrapper. `field_0` is an array of `SpriteView*`, indexed
-/// 1-based by `GameSession.location.loc.area` / `GameLocationKey.area`.
-typedef struct _GpSprtTbl {
-    /* 0x0 */ SpriteView** field_0;
-} GpSprtTbl;
+/// A stage map's directory of per-area sprite-view arrays.
+///
+/// `Gp_SprtTables[stage - 1]` selects the record owned by that stage's map
+/// overlay. Callers that index `[spriteVariant - 1]` or `[0]` address the
+/// same record: each published stage entry is one record and the session
+/// sprite variant is 1. The record stores no further variant slots.
+///
+/// `areaViews` is indexed by the 1-based area minus one. An entry borrows
+/// that area's room-overlay `SpriteView` array, or is NULL when the area has
+/// no sprite views. The mapped 1-based view index then selects an element at
+/// index minus one. Neither level stores a count or terminator. Lookups
+/// require a valid 1-based stage and area within the loaded directory, a
+/// non-NULL area entry, and a view index inside that array. The pointer
+/// array and the view arrays stay valid while their owning map and room
+/// overlays are loaded. Consumers read the directory and may change batch
+/// visibility and source geometry in the borrowed view records.
+typedef struct {
+    SpriteView** areaViews; // Borrowed per-area sprite-view arrays, indexed by area - 1; NULL when that area has none
+} SpriteAreaTable;
+STATIC_ASSERT_SIZEOF(SpriteAreaTable, 4);
 
 /// Halfword UV and word size transfers used when building GPU sprites.
 typedef union GpSpritePacket {

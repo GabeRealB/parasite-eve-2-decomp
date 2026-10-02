@@ -567,7 +567,7 @@ void func_neo_ark_altar_8017DC40(s32 arg0)
     SpriteBatch*     batches;
 
     sess  = &gGameSession->location.loc;
-    rec   = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1];
+    rec   = Gp_SprtTables[sess->stage - 1][0].areaViews[sess->area - 1];
     arg0 &= 0xFF;
     if (arg0 == 0) {
         batches           = rec[3].batches;
@@ -799,7 +799,7 @@ static void func_neo_ark_altar_8017E148(void)
     s32              i;
 
     sess = &gGameSession->location.loc;
-    rec  = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1];
+    rec  = Gp_SprtTables[sess->stage - 1][0].areaViews[sess->area - 1];
     if (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_ALTAR_SWITCH_STATE) == 0) {
         batches                  = rec[3].batches;
         batches[1].hidden        = 1;

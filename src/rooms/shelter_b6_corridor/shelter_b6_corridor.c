@@ -762,7 +762,7 @@ void func_shelter_b6_corridor_8017ECA8(Task* task)
 void func_shelter_b6_corridor_8017EE08(s32 arg0, s32 arg1)
 {
     GameLocationKey* sess = &gGameSession->location.loc;
-    SpriteView*      rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
+    SpriteView*      rec  = Gp_SprtTables[sess->stage - 1]->areaViews[sess->area - 1];
     SpriteBatch*     batches;
     s32              run = arg0 & 0xFF;
     s32              flag;

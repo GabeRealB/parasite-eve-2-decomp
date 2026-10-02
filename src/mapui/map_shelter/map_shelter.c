@@ -1219,7 +1219,7 @@ static SpriteView* D_map_shelter_8017B54C[49] = {
     D_shelter_r49_8017DCA0,
 };
 
-GpSprtTbl D_map_shelter_8017B610 = { D_map_shelter_8017B54C };
+SpriteAreaTable D_map_shelter_8017B610 = { D_map_shelter_8017B54C };
 
 WorldCollisionSurfaceProperties** D_map_shelter_8017B614[49] = {
     D_mine_mesa_80189A60,

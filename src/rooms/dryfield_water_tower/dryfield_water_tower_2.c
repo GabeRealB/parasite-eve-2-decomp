@@ -3144,7 +3144,7 @@ void func_dryfield_water_tower_801802D8(u8 arg0)
 
     sess = &gGameSession->location.loc;
     if (sess->stage == GAME_STAGE_DRYFIELD) {
-        batches = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1][18].batches;
+        batches = Gp_SprtTables[sess->stage - 1]->areaViews[sess->area - 1][18].batches;
         if (!(arg0 & 0xFF)) {
             batches[1].hidden = 1;
             return;

@@ -744,7 +744,7 @@ static SpriteView* D_map_dryfield_full_8017AB14[38] = {
     D_dryfield_night_underpass_8017F420,
 };
 
-GpSprtTbl D_map_dryfield_full_8017ABAC = { D_map_dryfield_full_8017AB14 };
+SpriteAreaTable D_map_dryfield_full_8017ABAC = { D_map_dryfield_full_8017AB14 };
 
 WorldCollisionSurfaceProperties** D_map_dryfield_full_8017ABB0[38] = {
     D_dryfield_night_gas_station_80190780,

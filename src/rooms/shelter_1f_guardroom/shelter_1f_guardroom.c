@@ -364,7 +364,7 @@ static void func_shelter_1f_guardroom_8017D9CC(s32 arg0)
     GameLocationKey* sess = &gGameSession->location.loc;
     SpriteBatch*     batches;
 
-    batches = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1][2].batches;
+    batches = Gp_SprtTables[sess->stage - 1][0].areaViews[sess->area - 1][2].batches;
     if ((arg0 & 0xFF) == 0) {
         batches[1].hidden = 1;
     } else {

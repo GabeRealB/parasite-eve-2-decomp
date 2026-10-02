@@ -3254,7 +3254,7 @@ void func_dryfield_night_gas_station_80180C3C(s32 arg0)
     s32              flag;
 
     sess = &gGameSession->location.loc;
-    rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
+    rec  = Gp_SprtTables[sess->stage - 1]->areaViews[sess->area - 1];
     flag = arg0 & 0xFF;
 
     switch (flag) {
@@ -3296,7 +3296,7 @@ void func_dryfield_night_gas_station_80180C3C(s32 arg0)
 static void func_dryfield_night_gas_station_80180D1C(void)
 {
     GameLocationKey* sess = &gGameSession->location.loc;
-    SpriteView*      view = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1];
+    SpriteView*      view = Gp_SprtTables[sess->stage - 1][0].areaViews[sess->area - 1];
     s32              flag = GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_8_STATE);
 
     switch (flag) {
@@ -3321,7 +3321,7 @@ static void func_dryfield_night_gas_station_80180DC8(s16 arg0)
     GameLocationKey* sess = &gGameSession->location.loc;
     SpriteView*      rec =
         Gp_SprtTables[sess->stage - 1][0]
-            .field_0[sess->area - 1];
+            .areaViews[sess->area - 1];
     SpriteBatch* batches;
 
     switch (arg0) {

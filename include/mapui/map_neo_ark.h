@@ -70,7 +70,7 @@ extern GpViewTbl D_map_neo_ark_8017AD28;
 
 extern ViewIndexTable D_map_neo_ark_8017ADB0;
 
-extern GpSprtTbl D_map_neo_ark_8017AE38;
+extern SpriteAreaTable D_map_neo_ark_8017AE38;
 
 extern WorldCollisionSurfaceProperties** D_map_neo_ark_8017AE3C[];
 

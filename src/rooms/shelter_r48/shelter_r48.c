@@ -2216,7 +2216,7 @@ void func_shelter_r48_8017E224(Task* task)
 void func_shelter_r48_8017E27C(u8 arg0)
 {
     GameLocationKey* loc = &gGameSession->location.loc;
-    SpriteView*      rec = Gp_SprtTables[loc->stage - 1]->field_0[loc->area - 1];
+    SpriteView*      rec = Gp_SprtTables[loc->stage - 1]->areaViews[loc->area - 1];
     SpriteBatch*     batches;
 
     if (arg0 == 0) {

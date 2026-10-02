@@ -68,7 +68,7 @@ extern GpViewTbl D_map_dryfield_8017AB60;
 
 extern ViewIndexTable D_map_dryfield_8017ABFC;
 
-extern GpSprtTbl D_map_dryfield_8017AC98;
+extern SpriteAreaTable D_map_dryfield_8017AC98;
 
 extern WorldCollisionSurfaceProperties** D_map_dryfield_8017AC9C[];
 

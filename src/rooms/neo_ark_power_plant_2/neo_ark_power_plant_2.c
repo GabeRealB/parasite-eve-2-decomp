@@ -963,7 +963,7 @@ void func_neo_ark_power_plant_2_8017FD88(s32 arg0)
     SpriteBatch*     batches;
     s32              mode;
 
-    batches = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1][5].batches;
+    batches = Gp_SprtTables[sess->stage - 1][0].areaViews[sess->area - 1][5].batches;
     mode    = arg0 & 0xFF;
     if (mode == 0) {
         batches[2].hidden = 0;

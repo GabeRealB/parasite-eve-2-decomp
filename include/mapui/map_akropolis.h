@@ -63,7 +63,7 @@ extern WorldCoordRoomLighting* D_map_akropolis_8017AA28[];
 
 extern GpRoomObjTbl D_map_akropolis_8017AAC8;
 
-extern GpSprtTbl D_map_akropolis_8017AB1C;
+extern SpriteAreaTable D_map_akropolis_8017AB1C;
 
 extern DirectionWarpEntry* D_map_akropolis_8017AB20[];
 

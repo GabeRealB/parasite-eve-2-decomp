@@ -2997,7 +2997,7 @@ static void func_acropolis_bridge_8017E04C(Task* task)
     sess                    = &gGameSession->location.loc;
     task->state++;
     view                                 = Gp_GetViewIndex();
-    rec                                  = Gp_SprtTables[sess->stage - 1][gGameSession->spriteVariant - 1].field_0[sess->area - 1];
+    rec                                  = Gp_SprtTables[sess->stage - 1][gGameSession->spriteVariant - 1].areaViews[sess->area - 1];
     rec[(u8)view - 1].batches[35].hidden = 1;
     gGameSession->cutsceneHold           = 1;
     Gp_MsgPlayer3F3(0);
@@ -3094,7 +3094,7 @@ static void func_acropolis_bridge_8017E3A0(Task* task)
     s32                        step;
 
     view                                 = Gp_GetViewIndex();
-    rec                                  = Gp_SprtTables[sess->stage - 1][gGameSession->spriteVariant - 1].field_0[sess->area - 1];
+    rec                                  = Gp_SprtTables[sess->stage - 1][gGameSession->spriteVariant - 1].areaViews[sess->area - 1];
     rec[(u8)view - 1].batches[35].hidden = 0;
 
     tick = work->field_A;
@@ -3192,7 +3192,7 @@ static void func_acropolis_bridge_8017E60C(s32 digits, s32 hidePrompt)
     u8               lo;
 
     Gp_GetViewIndex();
-    batches = Gp_SprtTables[sess->stage - 1][gGameSession->spriteVariant - 1].field_0[sess->area - 1][7].batches;
+    batches = Gp_SprtTables[sess->stage - 1][gGameSession->spriteVariant - 1].areaViews[sess->area - 1][7].batches;
 
     if ((s16)hidePrompt != 0) {
         batches[35].hidden = 1;
@@ -3264,7 +3264,7 @@ static void func_acropolis_bridge_8017E81C(void)
     s32              i;
 
     Gp_GetViewIndex();
-    batches = Gp_SprtTables[sess->stage - 1][gGameSession->spriteVariant - 1].field_0[sess->area - 1][7].batches;
+    batches = Gp_SprtTables[sess->stage - 1][gGameSession->spriteVariant - 1].areaViews[sess->area - 1][7].batches;
 
     for (i = 0x15; i < 0x1F; i++) {
         batches[i].hidden = 1;
@@ -3298,7 +3298,7 @@ static void func_acropolis_bridge_8017EB4C(s32 state, s8 dx, s8 dy)
     SpriteBatch*     batches;
     s32              mode;
 
-    rec     = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].field_0[sess->area - 1];
+    rec     = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].areaViews[sess->area - 1];
     batches = rec[9].batches;
     sources = rec[9].sources.elements;
     mode    = state & 0xFF;
@@ -3364,7 +3364,7 @@ void func_acropolis_bridge_8017F2D0(s32 flags)
     SpriteView*      rec;
     SpriteBatch*     batches;
 
-    rec = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].field_0[sess->area - 1];
+    rec = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].areaViews[sess->area - 1];
 
     batches = rec[1].batches;
     if ((flags & 0xFF) == 0) {
@@ -3393,7 +3393,7 @@ void func_acropolis_bridge_8017F358(s32 state)
     SpriteBatch*     batches;
     s32              mode;
 
-    rec     = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].field_0[sess->area - 1];
+    rec     = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].areaViews[sess->area - 1];
     batches = rec[9].batches;
     mode    = state & 0xFF;
 

@@ -735,7 +735,7 @@ static SpriteView* D_map_akropolis_8017AACC[20] = {
     D_mist_shooting_gallery_8018BD10,
 };
 
-GpSprtTbl D_map_akropolis_8017AB1C = { D_map_akropolis_8017AACC };
+SpriteAreaTable D_map_akropolis_8017AB1C = { D_map_akropolis_8017AACC };
 
 DirectionWarpEntry* D_map_akropolis_8017AB20[20] = {
     D_acropolis_square_80183BBC,

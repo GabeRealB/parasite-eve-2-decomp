@@ -1065,7 +1065,7 @@ void func_shelter_b6_nursery_80180038(s32 arg0)
     SpriteBatch*     batches;
     s32              mode;
 
-    batches = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1][12].batches;
+    batches = Gp_SprtTables[sess->stage - 1][0].areaViews[sess->area - 1][12].batches;
     mode    = arg0 & 0xFF;
     if (mode == 0) {
         batches[1].hidden = 0;

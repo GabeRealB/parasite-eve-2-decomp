@@ -1109,7 +1109,7 @@ void func_actor_335800_801622C0(s32 arg0)
 
     g    = gGameSession;
     sess = &g->location.loc;
-    rec  = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].field_0[sess->area - 1];
+    rec  = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].areaViews[sess->area - 1];
     switch (arg0) {
         case 0:
             batches           = rec[38].batches;

@@ -1272,7 +1272,7 @@ void func_dryfield_water_tank_8017EFF4(s32 arg0)
 
     sess = &gGameSession->location.loc;
     if (sess->stage == GAME_STAGE_DRYFIELD) {
-        rec = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
+        rec = Gp_SprtTables[sess->stage - 1]->areaViews[sess->area - 1];
         if (!(arg0 & 0xFF)) {
             batches           = rec[2].batches;
             batches[3].hidden = 0;

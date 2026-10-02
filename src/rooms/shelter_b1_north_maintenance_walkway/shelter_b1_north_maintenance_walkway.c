@@ -258,7 +258,7 @@ static void func_shelter_b1_north_maintenance_walkway_8017DB54(u8 arg0)
     SpriteBatch*     batches;
     s32              mode;
 
-    rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
+    rec  = Gp_SprtTables[sess->stage - 1]->areaViews[sess->area - 1];
     mode = arg0 & 0xFF;
     if (mode == 0) {
         batches           = rec[2].batches;

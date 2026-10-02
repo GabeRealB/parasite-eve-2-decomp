@@ -2199,7 +2199,7 @@ void func_mine_cavern_8017E3A0(s32 arg0)
     s32              v;
 
     sess = &gGameSession->location.loc;
-    rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
+    rec  = Gp_SprtTables[sess->stage - 1]->areaViews[sess->area - 1];
     v    = arg0 & 0xFF;
 
     if (v == 1) {

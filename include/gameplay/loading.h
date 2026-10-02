@@ -33,7 +33,7 @@ void Gp_SetupSprtDisplay(Task* task);
 extern WorldCollisionSurfaceProperties*** Gp_RoomParamTables[];
 
 /// Per-stage pointer table. Index is `GameSession.location.loc.stage - 1`.
-extern GpSprtTbl* Gp_SprtTables[];
+extern SpriteAreaTable* Gp_SprtTables[];
 
 void Gp_LinkViewSprts(void);
 

@@ -1951,7 +1951,7 @@ static void func_mine_forked_tunnel_8017E48C(s32 arg0)
     SpriteBatch*     view5Batches;
 
     sess = &gGameSession->location.loc;
-    rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
+    rec  = Gp_SprtTables[sess->stage - 1]->areaViews[sess->area - 1];
 
     if (!(arg0 & 0xFF)) {
         view4Batches           = rec[3].batches;

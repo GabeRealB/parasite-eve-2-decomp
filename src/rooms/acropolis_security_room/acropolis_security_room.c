@@ -2861,7 +2861,7 @@ static void func_acropolis_security_room_8017FD64(s32 flags)
     GameLocationKey* sess = &g->location.loc;
     SpriteBatch*     batches;
 
-    batches = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].field_0[sess->area - 1][5].batches;
+    batches = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].areaViews[sess->area - 1][5].batches;
     switch (flags & 0xFF) {
         case 0:
             batches[1].hidden = 1;

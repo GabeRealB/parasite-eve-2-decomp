@@ -67,7 +67,7 @@ extern GpViewTbl D_map_shelter_8017B480;
 
 extern ViewIndexTable D_map_shelter_8017B548;
 
-extern GpSprtTbl D_map_shelter_8017B610;
+extern SpriteAreaTable D_map_shelter_8017B610;
 
 extern WorldCollisionSurfaceProperties** D_map_shelter_8017B614[];
 

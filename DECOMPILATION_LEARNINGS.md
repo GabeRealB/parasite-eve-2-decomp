@@ -57384,12 +57384,12 @@ computation and the scheduler emits it in the first slot after the `jal`:
 ```c
 /* andi lands immediately after the jal's delay slot */
 view = Gp_GetViewIndex() & 0xFF;
-rec  = Gp_SprtTables[...][...].field_0[...];
+rec  = Gp_SprtTables[...][...].areaViews[...];
 rec[view - 1].batches[35].hidden = 1;
 
 /* andi sinks into the table walk, as the target has */
 view = Gp_GetViewIndex();
-rec  = Gp_SprtTables[...][...].field_0[...];
+rec  = Gp_SprtTables[...][...].areaViews[...];
 rec[(u8)view - 1].batches[35].hidden = 1;
 ```
 
@@ -91550,7 +91550,7 @@ Inputs: `base.c` (98.45%, `regs=1 reorder=1`), `base_1.c` (100%). Compiler SHA25
 ## A 1-based global table from an m2c byte-pointer seed: the `-1` folds into the symbol
 
 `func_dryfield_night_junk_yard_8017D9B8` walks
-`Gp_SprtTables[gGameSession->location.loc.stage - 1][0].field_0[gGameSession->location.loc.area - 1]`,
+`Gp_SprtTables[gGameSession->location.loc.stage - 1][0].areaViews[gGameSession->location.loc.area - 1]`,
 and m2c seeded the first level as byte arithmetic,
 `(u8 *)&Gp_SprtTables + (idx - 1) * 4`. That spelling lets `pointer_int_sum`
 apply the distributive law, so combine emerges with `idx * 4 + (%lo(SYM) - 4)`:
@@ -93750,7 +93750,7 @@ magic constant, and do not chase the operand's register home — it follows.
 
 ## A displacement past the struct's own size is an array index: `rec[16].batches` reads as `0xC4` (func_dryfield_night_motel_balcony_8017E4B8, 2026-09-16)
 
-The room sprite idiom `Gp_SprtTables[sess->field_3 - 1][g->spriteVariant - 1].field_0[sess->field_2 - 1]`
+The room sprite idiom `Gp_SprtTables[sess->field_3 - 1][g->spriteVariant - 1].areaViews[sess->field_2 - 1]`
 yields a `SpriteView*` (`SpriteView` is 0xC bytes), but the m2c seed then loaded
 four "fields" of it — `M2C_FIELD(temp_v1, void **, 0xC4)`, `0xD0`, `0xDC`,
 `0x100` — none of which exists. Each is a subscript:
@@ -93770,7 +93770,7 @@ Gaps are the source's business, not a mis-read: index 21 skips 19 and 20 because
 the function touches four sprites of that view, not a contiguous run.
 
 ```c
-rec = Gp_SprtTables[sess->field_3 - 1][g->spriteVariant - 1].field_0[sess->field_2 - 1];
+rec = Gp_SprtTables[sess->field_3 - 1][g->spriteVariant - 1].areaViews[sess->field_2 - 1];
 
 cmd            = rec[16].batches;
 cmd[2].hidden = 0;
@@ -94673,9 +94673,9 @@ expression as a unit and only then shifts it, so the `- 1` survives. Write the
 lookup as an array index on the real type rather than as byte arithmetic:
 
 ```c
-rec = Gp_SprtTables[sess->field_3 - 1]->field_0[sess->field_2 - 1];   /* 100% */
-rec = (*(GpSprtTbl**)((s8*)Gp_SprtTables + (sess->field_3 - 1) * 4))
-          ->field_0[sess->field_2 - 1];                              /* 96.2% */
+rec = Gp_SprtTables[sess->field_3 - 1]->areaViews[sess->field_2 - 1];   /* 100% */
+rec = (*(SpriteAreaTable**)((s8*)Gp_SprtTables + (sess->field_3 - 1) * 4))
+          ->areaViews[sess->field_2 - 1];                              /* 96.2% */
 ```
 
 The two sources differ in nothing else, yet the byte-arithmetic form also costs
@@ -94691,7 +94691,7 @@ Example: `func_dryfield_r08_8017F3B8`. Inputs: `base_1.i`
 
 ## A room's sprite table is an array of `SpriteView`: `rec[N].batches` is `lw ...,12*N+4`, and an 8-scaled index at `0xC` is `cmd[idx + 1].hidden`
 
-`Gp_SprtTables[stage - 1]->field_0[area - 1]` is a `SpriteView*` pointing to
+`Gp_SprtTables[stage - 1]->areaViews[area - 1]` is a `SpriteView*` pointing to
 that area's array of 0xC-byte view descriptors. The per-view `SpriteBatch*`
 lists occupy the same member in consecutive elements, preserving the 0xC
 array stride. So a `lw r, 0x28(v0)` on that table is `rec[3].batches`
@@ -94703,7 +94703,7 @@ landing at displacement 0xC addresses the *next* record's `hidden` off a base
 of `cmd`:
 
 ```c
-cmd = Gp_SprtTables[sess->field_3 - 1]->field_0[sess->field_2 - 1][3].batches;
+cmd = Gp_SprtTables[sess->field_3 - 1]->areaViews[sess->field_2 - 1][3].batches;
 cmd[arg0 + 1].hidden = 1;   /* sll v0,a0,3 ; addu v0,v0,a1 ; sb ...,0xC(v0) */
 ```
 
@@ -98551,7 +98551,7 @@ The same build settled the field accesses. The target computes
 ```c
 g    = gGameSession;
 sess = &g->location.loc;
-rec  = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].field_0[sess->area - 1];
+rec  = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].areaViews[sess->area - 1];
 ```
 
 Keeping `g` for `g->spriteVariant` matters as much as taking `sess` for the two
@@ -119403,7 +119403,7 @@ a definition in *both* arms is not block-local at all -- it goes to
 cannot pick `$v0`, because the branch constant has it over an overlapping range.
 
 ```c
-    rec = Gp_SprtTables[sess->field_3 - 1][0].field_0[sess->field_2 - 1];
+    rec = Gp_SprtTables[sess->field_3 - 1][0].areaViews[sess->field_2 - 1];
     if (GameFlag_GetNibble(0xD9) == 0) {
         cmd            = rec[3].batches;
         cmd[1].hidden = 1;
@@ -120896,7 +120896,7 @@ delay slot (`addiu $v0,$zero,1`), with both arms' pointer temps in `$v1`:
 
 ```c
     if (sess->field_3 == 2) {
-        rec = Gp_SprtTables[sess->field_3 - 1]->field_0[sess->field_2 - 1];
+        rec = Gp_SprtTables[sess->field_3 - 1]->areaViews[sess->field_2 - 1];
         if (!(arg0 & 0xFF)) { rec[2].batches[3].hidden = 0; rec[7].batches[1].hidden = 1; return; }
         rec[2].batches[3].hidden = 1;  rec[7].batches[1].hidden = 0;
     }

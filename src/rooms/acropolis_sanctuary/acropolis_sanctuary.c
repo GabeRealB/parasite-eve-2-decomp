@@ -2081,7 +2081,7 @@ static void func_acropolis_sanctuary_8017DF88(s32 arg0, s32 arg1)
     GameLocationKey* sess = &g->location.loc;
     SpriteBatch*     batches;
 
-    batches = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].field_0[sess->area - 1][(arg1 & 0xFF) - 1].batches;
+    batches = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].areaViews[sess->area - 1][(arg1 & 0xFF) - 1].batches;
     if ((arg0 & 0xFF) == 0) {
         batches[1].hidden = 0;
         batches[2].hidden = 1;

@@ -62,7 +62,7 @@ void Gp_LinkViewSprts(void)
     s32              view;
     DisplayState*    ds;
     GpSprtPrim**     table;
-    GpSprtTbl*       tbl;
+    SpriteAreaTable* tbl;
     SpriteView*      recs;
     SpriteBatch*     batch;
     SpriteSource*    sources;
@@ -73,7 +73,7 @@ void Gp_LinkViewSprts(void)
     ds            = &gDisplayState;
     Gp_SprtCursor = table[ds->drawBuffer];
     tbl           = Gp_SprtTables[sess->stage - 1];
-    recs          = tbl->field_0[sess->area - 1];
+    recs          = tbl->areaViews[sess->area - 1];
     batch         = recs[(u8)view - 1].batches;
     sources       = recs[(u8)view - 1].sources.elements;
     // The first count selects decoded strips or the cached sprite background.
@@ -146,7 +146,7 @@ static void Gp_SetSprtShadeBits(s32 arg0)
     GameLocationKey* sess;
     s32              view;
     GpSprtPrim*      prim;
-    GpSprtTbl*       tbl;
+    SpriteAreaTable* tbl;
     SpriteView*      recs;
     SpriteBatch*     batch;
     u32              i;
@@ -155,7 +155,7 @@ static void Gp_SetSprtShadeBits(s32 arg0)
     view          = Gp_GetViewIndex();
     Gp_SprtCursor = Gp_SprtLists[gDisplayState.drawBuffer];
     tbl           = Gp_SprtTables[sess->stage - 1];
-    recs          = tbl->field_0[sess->area - 1];
+    recs          = tbl->areaViews[sess->area - 1];
     batch         = recs[(u8)view - 1].batches;
     prim          = Gp_SprtCursor;
     if (batch->firstSprite != SPRITE_BATCH_END) {
@@ -199,7 +199,7 @@ void Gp_AllocSprtLists(void)
     sess          = &gGameSession->location.loc;
     count.address = 0;
     view          = Gp_GetViewIndex();
-    recs          = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
+    recs          = Gp_SprtTables[sess->stage - 1]->areaViews[sess->area - 1];
     batch         = recs[view - 1].batches;
     sources       = recs[view - 1].sources.elements;
     while (batch->firstSprite != SPRITE_BATCH_END) {
@@ -342,18 +342,18 @@ s8 Gp_FindViewIndex(s32 arg0)
 
 static s32 Gp_ViewSprtCmdEmpty(void)
 {
-    GameSession*     session;
-    GameLocationKey* sess;
-    GpSprtTbl**      tbl68;
-    s32              i;
-    ViewIndexTable*  viewIndexTable;
-    u8***            areaViewMaps;
-    u8**             roomViewMaps;
-    u8*              viewMap;
-    u8               mappedViewIndex;
-    GpSprtTbl*       tbl2;
-    SpriteView**     mid2;
-    SpriteView*      recs;
+    GameSession*      session;
+    GameLocationKey*  sess;
+    SpriteAreaTable** tbl68;
+    s32               i;
+    ViewIndexTable*   viewIndexTable;
+    u8***             areaViewMaps;
+    u8**              roomViewMaps;
+    u8*               viewMap;
+    u8                mappedViewIndex;
+    SpriteAreaTable*  tbl2;
+    SpriteView**      mid2;
+    SpriteView*       recs;
 
     session         = gGameSession;
     tbl68           = Gp_SprtTables;
@@ -366,7 +366,7 @@ static s32 Gp_ViewSprtCmdEmpty(void)
     viewMap         = roomViewMaps[sess->room - 1];
     mappedViewIndex = viewMap[sess->view - 1];
     tbl2            = *tbl68;
-    mid2            = tbl2->field_0;
+    mid2            = tbl2->areaViews;
     recs            = mid2[sess->area - 1];
     return recs[mappedViewIndex - 1].batches->spriteCount == 0;
 }
@@ -381,7 +381,7 @@ static void func_800AD024(void)
     u8**             roomViewMaps;
     u8*              viewMap;
     u8               mappedViewIndex;
-    GpSprtTbl*       tbl2;
+    SpriteAreaTable* tbl2;
     SpriteView**     mid2;
     SpriteView*      recs;
     SpriteDrawArea*  drawArea;
@@ -395,7 +395,7 @@ static void func_800AD024(void)
     viewMap         = roomViewMaps[sess->room - 1];
     mappedViewIndex = viewMap[sess->view - 1];
     tbl2            = Gp_SprtTables[sess->stage - 1];
-    mid2            = tbl2->field_0;
+    mid2            = tbl2->areaViews;
     recs            = mid2[sess->area - 1];
     drawArea        = recs[mappedViewIndex - 1].drawAreas;
     if (drawArea != NULL) {
@@ -453,7 +453,7 @@ void* Gp_GetViewSprtExtra(void)
     u8**             roomViewMaps;
     u8*              viewMap;
     u8               mappedViewIndex;
-    GpSprtTbl*       tbl2;
+    SpriteAreaTable* tbl2;
     SpriteView**     mid2;
     SpriteView*      recs;
 
@@ -465,7 +465,7 @@ void* Gp_GetViewSprtExtra(void)
     viewMap         = roomViewMaps[sess->room - 1];
     mappedViewIndex = viewMap[sess->view - 1];
     tbl2            = Gp_SprtTables[sess->stage - 1];
-    mid2            = tbl2->field_0;
+    mid2            = tbl2->areaViews;
     recs            = mid2[sess->area - 1];
     return recs[mappedViewIndex - 1].drawAreas;
 }

@@ -844,7 +844,7 @@ static SpriteView* D_map_neo_ark_8017ADB4[33] = {
     D_neo_ark_substation_8017F584,
 };
 
-GpSprtTbl D_map_neo_ark_8017AE38 = { D_map_neo_ark_8017ADB4 };
+SpriteAreaTable D_map_neo_ark_8017AE38 = { D_map_neo_ark_8017ADB4 };
 
 WorldCollisionSurfaceProperties** D_map_neo_ark_8017AE3C[33] = {
     D_shelter_1f_parking_garage_80181954,
