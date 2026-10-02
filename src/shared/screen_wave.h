@@ -20,7 +20,8 @@
  *   ScreenWaveCtx    gScreenWaveSpawnCtx   the context screenWaveRun fills
  *   TaskDesc         gScreenWaveTaskDesc[] the wave task screenWaveRun spawns
  *
- * The grid task's records are OverlayWaveRec rather than OverlayWaveRec6.
+ * The grid task's records are the eight-byte ScreenWaveGridOscillator rather
+ * than OverlayWaveRec6.
  * `SCREEN_WAVE_GRID` is the quad array the grid task indexes, as
  * `[buffer][row][column]`: two frame buffers, 30 rows and 8 columns of 40 by 8
  * quads. It defaults to `gScreenWaveGrid`. A package whose object is larger

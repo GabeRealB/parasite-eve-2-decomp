@@ -190,8 +190,8 @@ extern ScreenWaveCtx* gScreenWaveCtx;
 /// Per-column and per-row phase records: each is seeded with a random offset
 /// and speed at spawn and advanced by its speed on every frame
 /// `gSceneCombatState.actorControl` is clear.
-extern OverlayWaveRec gScreenWaveColumns[10];
-extern OverlayWaveRec gScreenWaveRows[30];
+extern ScreenWaveGridOscillator gScreenWaveColumns[10];
+extern ScreenWaveGridOscillator gScreenWaveRows[30];
 
 /// Double-buffered 8 by 30 meshes of textured quads, one mesh per frame
 /// buffer. `screenWaveGridTask` builds them once and moves their corners.
@@ -379,9 +379,9 @@ ScreenWaveCtx* gScreenWaveCtx = NULL;
 Task* D_actor_342100_80164BB8 = NULL;
 
 // Nine active columns and one retained zero entry.
-OverlayWaveRec gScreenWaveColumns[10] = { 0 };
+ScreenWaveGridOscillator gScreenWaveColumns[10] = { 0 };
 
-OverlayWaveRec gScreenWaveRows[30] = { 0 };
+ScreenWaveGridOscillator gScreenWaveRows[30] = { 0 };
 
 POLY_FT4 gScreenWaveGrid[2][30][8] = { 0 };
 

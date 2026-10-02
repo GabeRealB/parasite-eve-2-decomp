@@ -84,17 +84,21 @@ typedef struct {
 } ScreenWaveCtx;
 STATIC_ASSERT_SIZEOF(ScreenWaveCtx, 0xC);
 
-/// One row's or column's sine wave in a screen-wave mesh whose phase tables
-/// are padded to eight bytes: `phase` advances by `speed` every frame, and the
-/// displacement a vertex takes is the sine of its position plus `phase` and
-/// the fixed `offset`.
-typedef struct OverlayWaveRec {
-    s16 phase;
-    s16 offset;
-    s16 speed;
-    s16 pad_6;
-} OverlayWaveRec;
-STATIC_ASSERT_SIZEOF(OverlayWaveRec, 0x8);
+/// One row's or column's sine wave in the screen-wave grid task's mesh.
+///
+/// The grid task keeps nine column waves and thirty row waves in arrays of
+/// these, which their packages own as `gScreenWaveColumns` and
+/// `gScreenWaveRows`. Each frame `phase` advances by `speed`, and a quad
+/// corner on the line is pushed by the sine of its position along the line
+/// plus `phase` and `offset`. Angles use the `rsin` scale, 4096 to a turn.
+/// The 10x30 task's records are the six-byte `OverlayWaveRec6`.
+typedef struct {
+    s16 phase;   // Current phase, advanced by `speed` each frame while actors run; starts at 0
+    s16 offset;  // Fixed random phase offset, 0 to 4095, set when the task starts
+    s16 speed;   // Phase step per frame, 20 to 119
+    s16 field_6; // Never read or written by the grid task; role unproven
+} ScreenWaveGridOscillator;
+STATIC_ASSERT_SIZEOF(ScreenWaveGridOscillator, 0x8);
 
 /// The same wave record in the meshes whose phase tables are packed six bytes
 /// apart.
@@ -109,8 +113,8 @@ STATIC_ASSERT_SIZEOF(OverlayWaveRec6, 0x6);
 /// the scratch stack for one frame: a copy of the row and column wave records
 /// the mesh's vertices are displaced by.
 typedef struct OverlayWaveScratch {
-    OverlayWaveRec rows[30];
-    OverlayWaveRec cols[9];
+    ScreenWaveGridOscillator rows[30];
+    ScreenWaveGridOscillator cols[9];
 } OverlayWaveScratch;
 STATIC_ASSERT_SIZEOF(OverlayWaveScratch, 0x138);
 

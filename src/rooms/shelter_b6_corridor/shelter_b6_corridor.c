@@ -77,8 +77,8 @@ extern EvsCommand D_shelter_b6_corridor_8017F684[];
 extern ScreenWaveCtx* gScreenWaveCtx;
 
 /// Phase records of the wave's 9 column edges and 30 row edges.
-extern OverlayWaveRec gScreenWaveColumns[10];
-extern OverlayWaveRec gScreenWaveRows[30];
+extern ScreenWaveGridOscillator gScreenWaveColumns[10];
+extern ScreenWaveGridOscillator gScreenWaveRows[30];
 
 /// Screen-wave quad meshes for this room, plus the unread bytes after them.
 ///
@@ -511,9 +511,9 @@ WorldCollisionSurfaceProperties* D_shelter_b6_corridor_80180548[8] = {
 ScreenWaveCtx* gScreenWaveCtx = NULL;
 
 // Nine active columns and one retained zero entry.
-OverlayWaveRec gScreenWaveColumns[10] = { 0 };
+ScreenWaveGridOscillator gScreenWaveColumns[10] = { 0 };
 
-OverlayWaveRec gScreenWaveRows[30] = { 0 };
+ScreenWaveGridOscillator gScreenWaveRows[30] = { 0 };
 
 _ShelterB6CorridorScreenWaveGrid gScreenWaveGrid = { { 0 }, { 0 } };
 

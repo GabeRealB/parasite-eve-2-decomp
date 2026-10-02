@@ -10,30 +10,30 @@
 /// vertex by the sine of its row and column waves.
 void screenWaveGridTask(Task* arg0)
 {
-    OverlayWaveScratch* scratch;
-    OverlayWaveScratch* head;
-    ScreenWaveCtx*      ctx;
-    OverlayWaveRec*     cols;
-    POLY_FT4*           p;
-    DR_STP*             stp;
-    s32                 i;
-    s32                 j;
-    s32                 k;
-    s32                 rowIndex;
-    s32                 rowBack;
-    s32                 u0;
-    s32                 u1;
-    s32                 v0;
-    s32                 v1;
-    s32                 waveX0;
-    s32                 waveY0;
-    s32                 waveX1;
-    s32                 waveY1;
-    s32                 waveX2;
-    s32                 waveY2;
-    s32                 waveX3;
-    s32                 waveY3;
-    OverlayWaveRec*     row;
+    OverlayWaveScratch*       scratch;
+    OverlayWaveScratch*       head;
+    ScreenWaveCtx*            ctx;
+    ScreenWaveGridOscillator* cols;
+    POLY_FT4*                 p;
+    DR_STP*                   stp;
+    s32                       i;
+    s32                       j;
+    s32                       k;
+    s32                       rowIndex;
+    s32                       rowBack;
+    s32                       u0;
+    s32                       u1;
+    s32                       v0;
+    s32                       v1;
+    s32                       waveX0;
+    s32                       waveY0;
+    s32                       waveX1;
+    s32                       waveY1;
+    s32                       waveX2;
+    s32                       waveY2;
+    s32                       waveX3;
+    s32                       waveY3;
+    ScreenWaveGridOscillator* row;
     POLY_FT4(*grid)
     [8];
     s32 tpage0;
@@ -134,6 +134,8 @@ void screenWaveGridTask(Task* arg0)
                     break;
             }
             gScreenWaveRamp = gScreenWaveCtx->frame * gScreenWaveCtx->scale / gScreenWaveCtx->span;
+            // Advance every wave, and copy its phase and offset - the two
+            // halfwords the vertex pass reads - into the scratch block as one word.
             for (i = 0; i < 9; i++) {
                 if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
                     gScreenWaveColumns[i].phase += gScreenWaveColumns[i].speed;
@@ -169,15 +171,15 @@ void screenWaveGridTask(Task* arg0)
                         p->y1 = -112;
                     }
                     {
-                        OverlayWaveRec* next = row + 1;
-                        waveX2               = gScreenWaveRamp * (rsin(((j + 1) << 9) + cols[k].phase + cols[k].offset) << 3);
-                        p->x2                = k * 40 + (s16)((waveX2 >> 20) - 160);
-                        waveY2               = gScreenWaveRamp * (rsin((k << 10) + row[1].phase + next->offset) << 3);
-                        p->y2                = (j + 1) * 8 + (s16)((ABS(waveY2) >> 20) - 104);
-                        waveX3               = gScreenWaveRamp * (rsin(((j + 1) << 9) + cols[k + 1].phase + cols[k + 1].offset) << 3);
-                        p->x3                = (k + 1) * 40 + (s16)((waveX3 >> 20) - 160);
-                        waveY3               = gScreenWaveRamp * (rsin(((k + 1) << 10) + row[1].phase + next->offset) << 3);
-                        p->y3                = (j + 1) * 8 + (s16)((ABS(waveY3) >> 20) - 104);
+                        ScreenWaveGridOscillator* next = row + 1;
+                        waveX2                         = gScreenWaveRamp * (rsin(((j + 1) << 9) + cols[k].phase + cols[k].offset) << 3);
+                        p->x2                          = k * 40 + (s16)((waveX2 >> 20) - 160);
+                        waveY2                         = gScreenWaveRamp * (rsin((k << 10) + row[1].phase + next->offset) << 3);
+                        p->y2                          = (j + 1) * 8 + (s16)((ABS(waveY2) >> 20) - 104);
+                        waveX3                         = gScreenWaveRamp * (rsin(((j + 1) << 9) + cols[k + 1].phase + cols[k + 1].offset) << 3);
+                        p->x3                          = (k + 1) * 40 + (s16)((waveX3 >> 20) - 160);
+                        waveY3                         = gScreenWaveRamp * (rsin(((k + 1) << 10) + row[1].phase + next->offset) << 3);
+                        p->y3                          = (j + 1) * 8 + (s16)((ABS(waveY3) >> 20) - 104);
                     }
                     addPrim(&gGpuCurrentOt[3], p);
                 }

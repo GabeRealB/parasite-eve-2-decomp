@@ -13,9 +13,9 @@ extern TmdSource gActor205200EveBreaMaskedBody;
 
 extern ScreenWaveCtx* gScreenWaveCtx;
 
-extern OverlayWaveRec gScreenWaveColumns[10];
+extern ScreenWaveGridOscillator gScreenWaveColumns[10];
 
-extern OverlayWaveRec gScreenWaveRows[30];
+extern ScreenWaveGridOscillator gScreenWaveRows[30];
 
 /// Double-buffered 8 by 30 meshes of textured quads, one mesh per frame
 /// buffer. `screenWaveGridTask` builds them once and moves their corners.

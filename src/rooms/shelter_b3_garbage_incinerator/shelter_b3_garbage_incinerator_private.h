@@ -68,9 +68,9 @@ extern u16 CapCaption_Data_8015E66A;
 
 extern u8 CapCaption_Data_8015E66C[4];
 
-extern OverlayWaveRec gScreenWaveColumns[10];
+extern ScreenWaveGridOscillator gScreenWaveColumns[10];
 
-extern OverlayWaveRec gScreenWaveRows[30];
+extern ScreenWaveGridOscillator gScreenWaveRows[30];
 
 /// Double-buffered 8 by 30 meshes of textured quads, one mesh per frame
 /// buffer. `screenWaveGridTask` builds them once and moves their corners.
