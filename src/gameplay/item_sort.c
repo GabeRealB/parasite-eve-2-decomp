@@ -80,9 +80,7 @@ static inline InventoryItemRow* _gpScanTable(InventoryItemRange* scan);
 /// free slot.
 static s32 Gp_CanAddItemQty(InventoryItemRange* arg0, s32 arg1, s32 arg2);
 
-/// Whether item `item` has been seen. Ids at or above 0x180 have no bit in
-/// the save and always count as seen. Inline form of `Gp_HasItemSeenBit`.
-static inline s32 _gpHasItemSeenBit(s32 item);
+static inline bool _itemIsIdentified(s32 itemId);
 
 /// Empties the removable consumable loads of weapon item `item`, the same clear
 /// `Gp_ClearEquipSlot` performs.
@@ -751,23 +749,28 @@ InventoryItemRow* Gp_AddItem(InventoryItemRange* arg0, s32 arg1, s32 arg2)
     return dest;
 }
 
-/// Whether item `item` has been seen. Ids at or above 0x180 have no bit in
-/// the save and always count as seen. Inline form of `Gp_HasItemSeenBit`.
-static inline s32 _gpHasItemSeenBit(s32 item)
+/// Returns whether an item uses its identified name and description.
+///
+/// `itemId` is a nonnegative catalogue id. Ids below 0x180 use the live save's
+/// persistent identification flag; larger ids always return true. Items without
+/// unidentified text start identified, and examination or use can identify others.
+static inline bool _itemIsIdentified(s32 itemId)
 {
-    McSaveData* p;
-    s32         word;
-    s32         bit;
-    s32         val;
+    enum {
+        ITEM_IDENTIFICATION_ID_LIMIT      = 0x180,
+        ITEM_IDENTIFICATION_BITS_PER_WORD = 32
+    };
+    const McSaveData* save;
+    s32               wordIndex;
+    u32               bitMask;
 
-    word = item / 32;
-    bit  = 1 << (item % 32);
-    if ((u32)item >= 0x180) {
-        return 1;
+    wordIndex = itemId / ITEM_IDENTIFICATION_BITS_PER_WORD;
+    bitMask   = 1U << (itemId % ITEM_IDENTIFICATION_BITS_PER_WORD);
+    if ((u32)itemId >= ITEM_IDENTIFICATION_ID_LIMIT) {
+        return true;
     }
-    p   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    val = p->state.itemSeenBits[word] & bit;
-    return val != 0;
+    save = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+    return (save->state.itemSeenBits[wordIndex] & bitMask) != 0;
 }
 
 char* Gp_GetItemText(s32 arg0, s32 arg1, s32 arg2)
@@ -802,7 +805,7 @@ char* Gp_GetItemText(s32 arg0, s32 arg1, s32 arg2)
             desc = &Gp_KeyItemDescs[(arg0)-0x100];
         }
         if (arg2 == 0) {
-            arg2 = _gpHasItemSeenBit(arg0);
+            arg2 = _itemIsIdentified(arg0);
         }
         // The parser reads signed bytes, even though catalogue text uses u8 storage.
         str = (const s8*)desc->textFields;
