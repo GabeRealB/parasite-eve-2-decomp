@@ -127,11 +127,11 @@ void Mem_ConfigureAuxHeap(s32 arg0, s32 arg1)
         gMemActiveAuxHeap  = (void*)0x80189950;
         GActiveAuxHeapSize = 0x4D6B0;
     } else {
-        Mem_AuxRegionBase  = (u8*)entries[arg1].pixels;
-        Mem_AuxRegionBytes = entries[arg1].size + 0x26000;
-        Gpu_PrimHeapBase   = (u8*)entries[arg1].pixels;
+        Mem_AuxRegionBase  = entries[arg1].regionBase;
+        Mem_AuxRegionBytes = entries[arg1].byteExtent + 0x26000;
+        Gpu_PrimHeapBase   = entries[arg1].regionBase;
         gMemActiveAuxHeap  = Gpu_PrimHeapBase + 0x10000;
-        GActiveAuxHeapSize = entries[arg1].size - 0x10000;
+        GActiveAuxHeapSize = entries[arg1].byteExtent - 0x10000;
     }
     i                = 0;
     Gpu_PrimHeapSize = 0x10000;
@@ -259,7 +259,7 @@ void Gfx_StoreImageSlot(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     }
     rect.w = 0x140;
     rect.h = 0xF0;
-    StoreImage(&rect, entries[arg1].pixels);
+    StoreImage(&rect, (u_long*)entries[arg1].regionBase);
     DrawSync(0);
 
     imgBufSize = 0x25800;
@@ -272,7 +272,7 @@ void Gfx_StoreImageSlot(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     Mem_AuxRegionBytes = 0x10000;
     GAuxHeapSize       = size;
 
-    ptr               = (u8*)entries[arg1].pixels + imgBufSize;
+    ptr               = entries[arg1].regionBase + imgBufSize;
     Gpu_PrimHeapBase  = ptr;
     gMemActiveAuxHeap = ptr + arg3;
     Mem_AuxRegionBase = ptr;
@@ -293,7 +293,7 @@ void Gfx_LoadImageSlot(s32 arg0, s32 arg1, s32 arg2)
     rect.w = 0x140;
     rect.h = 0xF0;
     rect.x = 0;
-    LoadImage(&rect, entries[arg1].pixels);
+    LoadImage(&rect, (u_long*)entries[arg1].regionBase);
 }
 
 void Boot_InitCd(void)

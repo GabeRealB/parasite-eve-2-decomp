@@ -6,10 +6,23 @@
 
 #include "common.h"
 
-/// 8-byte VRAM/heap slot: pointer + size. Tables selected via Gfx_ImageSlotTables.
-typedef struct _GfxImageSlot {
-    /* 0x0 */ u_long* pixels;
-    /* 0x4 */ s32     size;
+/// RAM region one area uses for a captured frame and the auxiliary heap.
+///
+/// `regionBase` is that region's first byte. The captured frame is one
+/// 320×240 16-bit image, the same length as `FsImgBuffers`, stored at this
+/// address; image transfer reads and writes it as a `u_long*`. Heap
+/// configuration uses the same address as the auxiliary region's base.
+/// `byteExtent` counts the bytes from `regionBase` up to, but not including,
+/// the resident image workspace `Fs_ImgBuffers`. It is not the captured
+/// frame's length. Every nonempty slot's base and extent meet at that
+/// workspace.
+///
+/// An empty slot has a null `regionBase` and a zero `byteExtent`. Frame
+/// transfer and heap configuration dereference the base, so both require a
+/// nonempty slot.
+typedef struct {
+    u8* regionBase; // First byte of this area's image memory; NULL when the slot is empty
+    s32 byteExtent; // Bytes from `regionBase` to `Fs_ImgBuffers`; 0 when the slot is empty
 } GfxImageSlot;
 STATIC_ASSERT_SIZEOF(GfxImageSlot, 0x8);
 
