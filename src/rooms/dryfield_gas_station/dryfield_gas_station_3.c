@@ -500,13 +500,47 @@ GpAreaVariant D_dryfield_gas_station_80184A38[12] = {
     { NULL, NULL },
 };
 
-WorldCoordLight D_dryfield_gas_station_80184A98[2] = {
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2000, -4000, -2000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 0x2856, 8167, 7585 }, { 0, 0 } },
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2000, 2000, -1000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 1966, 2048 }, { 0, 0 } },
+/// The gas station's two directional model lights, contributing in every room view.
+///
+/// Local translations supply direction vectors, normalized when shading;
+/// RGB intensities have 12 fractional bits (`ONE` is 1.0). The loaded room
+/// overlay owns these records. Coordinate updates attach the view parent and
+/// compose the transforms; shading overwrites attenuation, so they stay writable.
+static WorldCoordLight _gDryfieldGasStationDirectionalLights[] = {
+    {
+        .transform = {
+            .lighting = {
+                .composeStamp = GRAPHICS_COORD_DIRTY,
+                .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { 2000, -4000, -2000 } },
+                .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { 0, 0, 0 } },
+                .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                .unknown_46   = { 0, 0, 0, 0 },
+                .attenuation  = 0,
+                .parent       = NULL,
+            },
+        },
+        .color      = { .r = 0x2856, .g = 8167, .b = 7585 },
+        .unknown_56 = { 0, 0 },
+    },
+    {
+        .transform = {
+            .lighting = {
+                .composeStamp = GRAPHICS_COORD_DIRTY,
+                .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -2000, 2000, -1000 } },
+                .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { 0, 0, 0 } },
+                .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                .unknown_46   = { 0, 0, 0, 0 },
+                .attenuation  = 0,
+                .parent       = NULL,
+            },
+        },
+        .color      = { .r = 2457, .g = 1966, .b = 2048 },
+        .unknown_56 = { 0, 0 },
+    },
 };
 
 WorldCoordRoomLights D_dryfield_gas_station_80184B48[1] = {
-    { ARRAY_SIZE(D_dryfield_gas_station_80184A98), D_dryfield_gas_station_80184A98, 0, NULL, 0, NULL },
+    { ARRAY_SIZE(_gDryfieldGasStationDirectionalLights), _gDryfieldGasStationDirectionalLights, 0, NULL, 0, NULL },
 };
 
 WorldCollisionFootstepSounds D_dryfield_gas_station_80184B60 = {
