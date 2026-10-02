@@ -1035,43 +1035,44 @@ static void func_shelter_b4_upper_sewer_8017DD98(Task* task, ShelterB4UpperSewer
     SVECTOR           v0, v1, v2, v3;
     long              sxy0, sxy1, sxy2, sxy3;
     long              p, flag;
-    RoomWaterScratch* w;
-    u8*               head;
+    WaterQuadScratch* scratch;
+    WaterQuadScratch* scratchEnd;
     POLY_F4*          poly;
     DR_MODE*          dr;
     s32               otz;
     s32               i;
 
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    head                       = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8)   = head - 0xC;
-    w                          = (RoomWaterScratch*)(head - 0xC);
+    scratchEnd                 = SCRATCH_STACK_CURSOR(WaterQuadScratch);
+    // One scratch reservation holds the values reused across the surface list.
+    SCRATCH_STACK_CURSOR(WaterQuadScratch) = scratchEnd - 1;
+    scratch                                = scratchEnd - 1;
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
-    w->y = y;
+    scratch->y = y;
     for (; e->count != WATER_SURFACE_LIST_END; e++) {
         if (e->alongZ == 0) {
-            w->dx = e->width / e->count;
-            w->dz = e->depth;
-            w->x  = e->x;
-            w->z  = e->z;
+            scratch->dx = e->width / e->count;
+            scratch->dz = e->depth;
+            scratch->x  = e->x;
+            scratch->z  = e->z;
             for (i = 0; i < e->count; i++) {
-                v0.vx   = w->x + w->dx * i;
-                v0.vy   = w->y;
-                v0.vz   = w->z;
-                v1.vx   = w->x + w->dx * (i + 1);
-                v1.vy   = w->y;
-                v1.vz   = w->z;
-                w->wave = 0;
-                v2.vx   = w->x + w->dx * i;
-                v2.vy   = w->y + w->wave;
-                v2.vz   = w->z + w->dz;
-                w->wave = 0;
-                v3.vx   = w->x + w->dx * (i + 1);
-                v3.vy   = w->y + w->wave;
-                v3.vz   = w->z + w->dz;
-                otz     = RotTransPers4(&v0, &v1, &v2, &v3, &sxy0, &sxy1, &sxy2, &sxy3, &p, &flag);
+                v0.vx            = scratch->x + scratch->dx * i;
+                v0.vy            = scratch->y;
+                v0.vz            = scratch->z;
+                v1.vx            = scratch->x + scratch->dx * (i + 1);
+                v1.vy            = scratch->y;
+                v1.vz            = scratch->z;
+                scratch->yOffset = 0;
+                v2.vx            = scratch->x + scratch->dx * i;
+                v2.vy            = scratch->y + scratch->yOffset;
+                v2.vz            = scratch->z + scratch->dz;
+                scratch->yOffset = 0;
+                v3.vx            = scratch->x + scratch->dx * (i + 1);
+                v3.vy            = scratch->y + scratch->yOffset;
+                v3.vz            = scratch->z + scratch->dz;
+                otz              = RotTransPers4(&v0, &v1, &v2, &v3, &sxy0, &sxy1, &sxy2, &sxy3, &p, &flag);
                 if (flag >= 0) {
                     poly                              = (POLY_F4*)D_shelter_b4_upper_sewer_80188D30;
                     D_shelter_b4_upper_sewer_80188D30 = (u8*)(poly + 1);
@@ -1095,26 +1096,26 @@ static void func_shelter_b4_upper_sewer_8017DD98(Task* task, ShelterB4UpperSewer
                 }
             }
         } else {
-            w->dx = e->width;
-            w->dz = e->depth / e->count;
-            w->x  = e->x;
-            w->z  = e->z;
+            scratch->dx = e->width;
+            scratch->dz = e->depth / e->count;
+            scratch->x  = e->x;
+            scratch->z  = e->z;
             for (i = 0; i < e->count; i++) {
-                v0.vx   = w->x;
-                v0.vy   = w->y;
-                v0.vz   = w->z + w->dz * i;
-                v1.vx   = w->x;
-                v1.vy   = w->y;
-                v1.vz   = w->z + w->dz * (i + 1);
-                w->wave = 0;
-                v2.vx   = w->x + w->dx;
-                v2.vy   = w->y + w->wave;
-                v2.vz   = w->z + w->dz * i;
-                w->wave = 0;
-                v3.vx   = w->x + w->dx;
-                v3.vy   = w->y + w->wave;
-                v3.vz   = w->z + w->dz * (i + 1);
-                otz     = RotTransPers4(&v0, &v1, &v2, &v3, &sxy0, &sxy1, &sxy2, &sxy3, &p, &flag);
+                v0.vx            = scratch->x;
+                v0.vy            = scratch->y;
+                v0.vz            = scratch->z + scratch->dz * i;
+                v1.vx            = scratch->x;
+                v1.vy            = scratch->y;
+                v1.vz            = scratch->z + scratch->dz * (i + 1);
+                scratch->yOffset = 0;
+                v2.vx            = scratch->x + scratch->dx;
+                v2.vy            = scratch->y + scratch->yOffset;
+                v2.vz            = scratch->z + scratch->dz * i;
+                scratch->yOffset = 0;
+                v3.vx            = scratch->x + scratch->dx;
+                v3.vy            = scratch->y + scratch->yOffset;
+                v3.vz            = scratch->z + scratch->dz * (i + 1);
+                otz              = RotTransPers4(&v0, &v1, &v2, &v3, &sxy0, &sxy1, &sxy2, &sxy3, &p, &flag);
                 if (flag >= 0) {
                     poly                              = (POLY_F4*)D_shelter_b4_upper_sewer_80188D30;
                     D_shelter_b4_upper_sewer_80188D30 = (u8*)(poly + 1);
@@ -1139,7 +1140,7 @@ static void func_shelter_b4_upper_sewer_8017DD98(Task* task, ShelterB4UpperSewer
             }
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(0xC);
+    SCRATCH_STACK_RELEASE_BLOCK(WaterQuadScratch);
 }
 
 /// The room's water task: runs its state (`func_shelter_b4_upper_sewer_8017E55C`

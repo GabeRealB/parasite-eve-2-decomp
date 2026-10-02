@@ -150,20 +150,22 @@ typedef struct RoomMirrorExtentScratch {
 } RoomMirrorExtentScratch;
 STATIC_ASSERT_SIZEOF(RoomMirrorExtentScratch, 0x34);
 
-/// Per-surface values a room's water drawer keeps in a block it takes from
-/// the scratchpad stack rather than in registers: the surface height `y`, the
-/// spacing `dx` and `dz` between vertices along X and Z, the height `wave`
-/// adds to the vertex being placed, and the corner `x`, `z` of the surface
-/// being drawn.
-typedef struct RoomWaterScratch {
-    s16 y;
-    s16 dx;
-    s16 wave;
-    s16 dz;
-    s16 x;
-    s16 z;
-} RoomWaterScratch;
-STATIC_ASSERT_SIZEOF(RoomWaterScratch, 0xC);
+/// World-coordinate working values for constructing a water surface's quad strips.
+///
+/// All values are signed world units. A drawer reserves one block on the
+/// scratchpad stack for its call, reuses it for each surface, then releases it.
+/// The subdivided axis stores its per-segment step; the other axis stores the
+/// span across the strip. Values are narrowed to signed halfwords before
+/// vertex arithmetic. `yOffset` is overwritten for each displaced vertex.
+typedef struct {
+    s16 y;       // Undisplaced surface height
+    s16 dx;      // X span of one quad (segment step or span across the strip)
+    s16 yOffset; // Added to y for the current vertex (0 flat, signed sine displacement for waves)
+    s16 dz;      // Z span of one quad (segment step or span across the strip)
+    s16 x;       // Surface's starting X, including any drawer-specific offset
+    s16 z;       // Surface's starting Z
+} WaterQuadScratch;
+STATIC_ASSERT_SIZEOF(WaterQuadScratch, 0xC);
 
 /// End marker in a water-surface descriptor table's signed count or list-marker field.
 ///

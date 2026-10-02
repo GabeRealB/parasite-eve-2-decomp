@@ -140278,12 +140278,12 @@ read `f4` before the draw. Reading `f4` into a local first and putting
 the `lo_sum` of the struct's address short-lived enough that loop.c did not
 hoist it into an extra `$s` register.
 
-### Scratchpad-stack push: store `head - K` first, then assign the block pointer (func_shelter_b4_reservoir_8017EA00, 2026-09-24)
+### Scratchpad-stack push: store `scratchEnd - 1` first, then assign the block pointer (func_shelter_b4_reservoir_8017EA00, 2026-09-24)
 **Symptom.** Target: `addiu v0,s0,-0xc; move s1,v0; sw v0,0(v1)` — the new
 scratchpad top is computed into a temp, copied into the block pointer, and the
-temp is what gets stored to `0x1F8003FC`. Writing `s = head - 0xC; *(T**)0x1F8003FC = s;`
+temp is what gets stored to `0x1F8003FC`. Writing `scratch = scratchEnd - 1; SCRATCH_STACK_CURSOR(WaterQuadScratch) = scratch;`
 computes straight into `s1` and stores `s1` (one instruction short).
-**Fix.** `*(u8**)0x1F8003FC = head - 0xC; s = (T*)(head - 0xC);` — CSE reuses the
+**Fix.** `SCRATCH_STACK_CURSOR(WaterQuadScratch) = scratchEnd - 1; scratch = scratchEnd - 1;` — CSE reuses the
 stored value and the block pointer becomes a copy of it.
 
 Same function: an OT index of `otz + 1` used by two `addPrim`s matched when

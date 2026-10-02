@@ -1040,8 +1040,8 @@ static void func_shelter_b4_water_supply_8017E5D8(Task* task)
     long                         p, flag;
     s32                          phase;
     ShelterB4WaterSupplySurface* e;
-    RoomWaterScratch*            w;
-    u8*                          head;
+    WaterQuadScratch*            scratch;
+    WaterQuadScratch*            scratchEnd;
     POLY_G4*                     poly;
     DR_MODE*                     dr;
     s32                          otz;
@@ -1049,35 +1049,36 @@ static void func_shelter_b4_water_supply_8017E5D8(Task* task)
 
     e                          = D_shelter_b4_water_supply_8018265C;
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    head                       = SCRATCH_STACK_CURSOR(u8);
+    scratchEnd                 = SCRATCH_STACK_CURSOR(WaterQuadScratch);
     phase                      = -(gDisplayState.animFrame * 16);
-    SCRATCH_STACK_CURSOR(u8)   = head - 0xC;
-    w                          = (RoomWaterScratch*)(head - 0xC);
+    // One scratch reservation holds the values reused across the surface list.
+    SCRATCH_STACK_CURSOR(WaterQuadScratch) = scratchEnd - 1;
+    scratch                                = scratchEnd - 1;
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
-    w->y = D_shelter_b4_water_supply_80182638;
+    scratch->y = D_shelter_b4_water_supply_80182638;
     for (; e->count != WATER_SURFACE_LIST_END; e++) {
-        w->dx = e->width / 16;
-        w->dz = e->depth / 2;
-        w->x  = e->x;
-        w->z  = e->z;
+        scratch->dx = e->width / 16;
+        scratch->dz = e->depth / 2;
+        scratch->x  = e->x;
+        scratch->z  = e->z;
         for (i = 0; i < 16; i++) {
-            v0.vx   = w->x + w->dx * i;
-            v0.vy   = w->y;
-            v0.vz   = w->z;
-            v1.vx   = w->x + w->dx * (i + 1);
-            v1.vy   = w->y;
-            v1.vz   = w->z;
-            w->wave = (u32)rsin(phase + (i << 9)) >> 6;
-            v2.vx   = w->x + w->dx * i;
-            v2.vy   = w->y + w->wave;
-            v2.vz   = w->z + w->dz;
-            w->wave = (u32)rsin(phase + ((i + 1) << 9)) >> 6;
-            v3.vx   = w->x + w->dx * (i + 1);
-            v3.vy   = w->y + w->wave;
-            v3.vz   = w->z + w->dz;
-            otz     = RotTransPers4(&v0, &v1, &v2, &v3, &sxy0, &sxy1, &sxy2, &sxy3, &p, &flag);
+            v0.vx            = scratch->x + scratch->dx * i;
+            v0.vy            = scratch->y;
+            v0.vz            = scratch->z;
+            v1.vx            = scratch->x + scratch->dx * (i + 1);
+            v1.vy            = scratch->y;
+            v1.vz            = scratch->z;
+            scratch->yOffset = (u32)rsin(phase + (i << 9)) >> 6;
+            v2.vx            = scratch->x + scratch->dx * i;
+            v2.vy            = scratch->y + scratch->yOffset;
+            v2.vz            = scratch->z + scratch->dz;
+            scratch->yOffset = (u32)rsin(phase + ((i + 1) << 9)) >> 6;
+            v3.vx            = scratch->x + scratch->dx * (i + 1);
+            v3.vy            = scratch->y + scratch->yOffset;
+            v3.vz            = scratch->z + scratch->dz;
+            otz              = RotTransPers4(&v0, &v1, &v2, &v3, &sxy0, &sxy1, &sxy2, &sxy3, &p, &flag);
             if (flag >= 0) {
                 poly                               = (POLY_G4*)D_shelter_b4_water_supply_80184E50;
                 D_shelter_b4_water_supply_80184E50 = (u8*)(poly + 1);
@@ -1110,21 +1111,21 @@ static void func_shelter_b4_water_supply_8017E5D8(Task* task)
             }
         }
         for (i = 0; i < 16; i++) {
-            w->wave = (u32)rsin(phase + (i << 9)) >> 6;
-            v0.vx   = w->x + w->dx * i;
-            v0.vy   = w->y + w->wave;
-            v0.vz   = w->z + w->dz;
-            w->wave = (u32)rsin(phase + ((i + 1) << 9)) >> 6;
-            v1.vx   = w->x + w->dx * (i + 1);
-            v1.vy   = w->y + w->wave;
-            v1.vz   = w->z + w->dz;
-            v2.vx   = w->x + w->dx * i;
-            v2.vy   = w->y;
-            v2.vz   = w->z + w->dz * 2;
-            v3.vx   = w->x + w->dx * (i + 1);
-            v3.vy   = w->y;
-            v3.vz   = w->z + w->dz * 2;
-            otz     = RotTransPers4(&v0, &v1, &v2, &v3, &sxy0, &sxy1, &sxy2, &sxy3, &p, &flag);
+            scratch->yOffset = (u32)rsin(phase + (i << 9)) >> 6;
+            v0.vx            = scratch->x + scratch->dx * i;
+            v0.vy            = scratch->y + scratch->yOffset;
+            v0.vz            = scratch->z + scratch->dz;
+            scratch->yOffset = (u32)rsin(phase + ((i + 1) << 9)) >> 6;
+            v1.vx            = scratch->x + scratch->dx * (i + 1);
+            v1.vy            = scratch->y + scratch->yOffset;
+            v1.vz            = scratch->z + scratch->dz;
+            v2.vx            = scratch->x + scratch->dx * i;
+            v2.vy            = scratch->y;
+            v2.vz            = scratch->z + scratch->dz * 2;
+            v3.vx            = scratch->x + scratch->dx * (i + 1);
+            v3.vy            = scratch->y;
+            v3.vz            = scratch->z + scratch->dz * 2;
+            otz              = RotTransPers4(&v0, &v1, &v2, &v3, &sxy0, &sxy1, &sxy2, &sxy3, &p, &flag);
             if (flag >= 0) {
                 poly                               = (POLY_G4*)D_shelter_b4_water_supply_80184E50;
                 D_shelter_b4_water_supply_80184E50 = (u8*)(poly + 1);
@@ -1157,7 +1158,7 @@ static void func_shelter_b4_water_supply_8017E5D8(Task* task)
             }
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(0xC);
+    SCRATCH_STACK_RELEASE_BLOCK(WaterQuadScratch);
 }
 
 /// The water task: runs its current state - `func_shelter_b4_water_supply_8017ED90`

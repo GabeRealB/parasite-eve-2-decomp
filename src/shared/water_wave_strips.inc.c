@@ -66,8 +66,8 @@ static void WATER_WAVE_STRIPS_FUNC(Task* task)
     long                         p, flag;
     s32                          phase;
     WATER_WAVE_STRIPS_SURFACE_T* surface;
-    RoomWaterScratch*            w;
-    u8*                          head;
+    WaterQuadScratch*            scratch;
+    WaterQuadScratch*            scratchEnd;
     POLY_G4*                     poly;
     DR_MODE*                     dr;
     s32                          otz;
@@ -94,41 +94,42 @@ static void WATER_WAVE_STRIPS_FUNC(Task* task)
     } else {
         WATER_WAVE_STRIPS_PRIM_CURSOR = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * 0xC000;
     }
-    head                       = SCRATCH_STACK_CURSOR(u8);
+    scratchEnd                 = SCRATCH_STACK_CURSOR(WaterQuadScratch);
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
 #else
     surface                    = WATER_WAVE_STRIPS_SURFACES;
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    head                       = SCRATCH_STACK_CURSOR(u8);
+    scratchEnd                 = SCRATCH_STACK_CURSOR(WaterQuadScratch);
     phase                      = -(gDisplayState.animFrame * 16);
 #endif
-    SCRATCH_STACK_CURSOR(u8) = head - 0xC;
-    w                        = (RoomWaterScratch*)(head - 0xC);
+    // One scratch reservation holds the values reused across the surface list.
+    SCRATCH_STACK_CURSOR(WaterQuadScratch) = scratchEnd - 1;
+    scratch                                = scratchEnd - 1;
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
-    w->y = WATER_WAVE_STRIPS_HEIGHT;
+    scratch->y = WATER_WAVE_STRIPS_HEIGHT;
     for (; WATER_WAVE_STRIPS_SEGMENT_COUNT(surface) != WATER_SURFACE_LIST_END; surface++) {
-        w->dx = surface->width / 2;
-        w->dz = surface->depth / 16;
-        w->x  = surface->x;
-        w->z  = surface->z;
+        scratch->dx = surface->width / 2;
+        scratch->dz = surface->depth / 16;
+        scratch->x  = surface->x;
+        scratch->z  = surface->z;
         for (i = 0; i < 16; i++) {
-            v0.vx   = w->x;
-            v0.vy   = w->y;
-            v0.vz   = w->z + w->dz * i;
-            v1.vx   = w->x;
-            v1.vy   = w->y;
-            v1.vz   = w->z + w->dz * (i + 1);
-            w->wave = (u32)rsin(phase + (i << 9)) >> WATER_WAVE_STRIPS_WAVE_SHIFT;
-            v2.vx   = w->x + w->dx;
-            v2.vy   = w->y + w->wave;
-            v2.vz   = w->z + w->dz * i;
-            w->wave = (u32)rsin(phase + ((i + 1) << 9)) >> WATER_WAVE_STRIPS_WAVE_SHIFT;
-            v3.vx   = w->x + w->dx;
-            v3.vy   = w->y + w->wave;
-            v3.vz   = w->z + w->dz * (i + 1);
-            otz     = RotTransPers4(&v0, &v1, &v2, &v3, &sxy0, &sxy1, &sxy2, &sxy3, &p, &flag);
+            v0.vx            = scratch->x;
+            v0.vy            = scratch->y;
+            v0.vz            = scratch->z + scratch->dz * i;
+            v1.vx            = scratch->x;
+            v1.vy            = scratch->y;
+            v1.vz            = scratch->z + scratch->dz * (i + 1);
+            scratch->yOffset = (u32)rsin(phase + (i << 9)) >> WATER_WAVE_STRIPS_WAVE_SHIFT;
+            v2.vx            = scratch->x + scratch->dx;
+            v2.vy            = scratch->y + scratch->yOffset;
+            v2.vz            = scratch->z + scratch->dz * i;
+            scratch->yOffset = (u32)rsin(phase + ((i + 1) << 9)) >> WATER_WAVE_STRIPS_WAVE_SHIFT;
+            v3.vx            = scratch->x + scratch->dx;
+            v3.vy            = scratch->y + scratch->yOffset;
+            v3.vz            = scratch->z + scratch->dz * (i + 1);
+            otz              = RotTransPers4(&v0, &v1, &v2, &v3, &sxy0, &sxy1, &sxy2, &sxy3, &p, &flag);
             if (flag >= 0) {
                 poly                          = (POLY_G4*)WATER_WAVE_STRIPS_PRIM_CURSOR;
                 WATER_WAVE_STRIPS_PRIM_CURSOR = (u8*)(poly + 1);
@@ -150,21 +151,21 @@ static void WATER_WAVE_STRIPS_FUNC(Task* task)
             }
         }
         for (i = 0; i < 16; i++) {
-            w->wave = (u32)rsin(phase + (i << 9)) >> WATER_WAVE_STRIPS_WAVE_SHIFT;
-            v0.vx   = w->x + w->dx;
-            v0.vy   = w->y + w->wave;
-            v0.vz   = w->z + w->dz * i;
-            w->wave = (u32)rsin(phase + ((i + 1) << 9)) >> WATER_WAVE_STRIPS_WAVE_SHIFT;
-            v1.vx   = w->x + w->dx;
-            v1.vy   = w->y + w->wave;
-            v1.vz   = w->z + w->dz * (i + 1);
-            v2.vx   = w->x + w->dx * 2;
-            v2.vy   = w->y;
-            v2.vz   = w->z + w->dz * i;
-            v3.vx   = w->x + w->dx * 2;
-            v3.vy   = w->y;
-            v3.vz   = w->z + w->dz * (i + 1);
-            otz     = RotTransPers4(&v0, &v1, &v2, &v3, &sxy0, &sxy1, &sxy2, &sxy3, &p, &flag);
+            scratch->yOffset = (u32)rsin(phase + (i << 9)) >> WATER_WAVE_STRIPS_WAVE_SHIFT;
+            v0.vx            = scratch->x + scratch->dx;
+            v0.vy            = scratch->y + scratch->yOffset;
+            v0.vz            = scratch->z + scratch->dz * i;
+            scratch->yOffset = (u32)rsin(phase + ((i + 1) << 9)) >> WATER_WAVE_STRIPS_WAVE_SHIFT;
+            v1.vx            = scratch->x + scratch->dx;
+            v1.vy            = scratch->y + scratch->yOffset;
+            v1.vz            = scratch->z + scratch->dz * (i + 1);
+            v2.vx            = scratch->x + scratch->dx * 2;
+            v2.vy            = scratch->y;
+            v2.vz            = scratch->z + scratch->dz * i;
+            v3.vx            = scratch->x + scratch->dx * 2;
+            v3.vy            = scratch->y;
+            v3.vz            = scratch->z + scratch->dz * (i + 1);
+            otz              = RotTransPers4(&v0, &v1, &v2, &v3, &sxy0, &sxy1, &sxy2, &sxy3, &p, &flag);
             if (flag >= 0) {
                 poly                          = (POLY_G4*)WATER_WAVE_STRIPS_PRIM_CURSOR;
                 WATER_WAVE_STRIPS_PRIM_CURSOR = (u8*)(poly + 1);
@@ -186,7 +187,7 @@ static void WATER_WAVE_STRIPS_FUNC(Task* task)
             }
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(0xC);
+    SCRATCH_STACK_RELEASE_BLOCK(WaterQuadScratch);
 }
 
 #undef WATER_WAVE_STRIPS_FUNC
