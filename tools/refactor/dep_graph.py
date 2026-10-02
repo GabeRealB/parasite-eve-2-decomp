@@ -273,6 +273,31 @@ def build(root: str, version: str, jobs: int, out_path: str) -> None:
     for usr in sdk & set(nodes):
         nodes[usr]["sdk"] = True
 
+    # A file-local symbol of a shared fragment is one definition, but every
+    # translation unit that includes the fragment gives it its own USR
+    # (`c:<carrier>.c@Name`), so it arrived as one node per carrier - and one
+    # worklist step per carrier for a single line of source. Nodes declared at
+    # the same place under the same name are one item.
+    by_place = collections.defaultdict(list)
+    for usr, meta in nodes.items():
+        if meta.get("file"):
+            by_place[(meta["name"], meta["file"], meta.get("line"))].append(usr)
+    same = {}
+    for group in by_place.values():
+        if len(group) > 1:
+            keep = min(group)
+            for usr in group:
+                if usr != keep:
+                    same[usr] = keep
+    if same:
+        for usr, keep in same.items():
+            nodes.pop(usr, None)
+            edges.setdefault(keep, set()).update(edges.pop(usr, set()))
+        for usr in list(edges):
+            edges[usr] = {same.get(d, d) for d in edges[usr]} - {usr}
+        alias.update(same)
+        print(f"  merged {len(same)} per-carrier copies of shared-fragment symbols", file=sys.stderr)
+
     macro_refs.add_graph(root, nodes, edges)
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     with open(out_path, "w") as fh:
@@ -921,11 +946,11 @@ def main() -> int:
     merge_groups(comp, asset_groups(root, nodes, edges))
 
     if args.command == "worklist":
-        out = os.path.join(root, "local", "worklist.tsv")
+        out = args.worklist if os.path.isabs(args.worklist) else os.path.join(root, args.worklist)
         rows = worklist(root, args.version, nodes, edges, comp, done, out)
         groups = len({r[0] for r in rows})
         multi = len({r[0] for r in rows if int(r[1]) > 1})
-        print(f"{len(rows)} items in {groups} ordered steps -> local/worklist.tsv")
+        print(f"{len(rows)} items in {groups} ordered steps -> {os.path.relpath(out, root)}")
         print(f"  steps needing more than one item at once: {multi}")
         vis = collections.Counter(r[4] for r in rows)
         for k, n in vis.most_common():
