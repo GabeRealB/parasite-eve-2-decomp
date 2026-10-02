@@ -19,19 +19,27 @@ typedef void (*CapTextUpdateCallback)(s32 cursorX, s32 cursorY, const u16* text,
 
 struct _GpCapCmd;
 
-/// File-relative byte offset before relocation; text pointer afterward.
-/// The -1 terminator remains an integer in either state.
+/// End of a CAP sequence table; relocation leaves this reference unchanged.
+enum { CAP_TEXT_REF_END = -1 };
+
+/// A CAP sequence record's serialized or relocated text reference.
+///
+/// Nonterminal references are byte offsets from the CAP file base until in-place
+/// relocation replaces them with addresses. `offset == CAP_TEXT_REF_END` ends
+/// the sequence in either state and must not be dereferenced through `text`.
+/// Text is a borrowed stream of u16 codes ending in 0xFFFF.
+/// Its containing CAP file must remain loaded throughout playback.
 typedef union {
-    s32  offset;
-    u16* text;
-} GpCapTextRef;
-STATIC_ASSERT_SIZEOF(GpCapTextRef, 4);
+    s32        offset; // File-relative byte offset before relocation; also tests CAP_TEXT_REF_END.
+    const u16* text;   // Relocated, read-only CAP code stream borrowed from the loaded file.
+} CapTextRef;
+STATIC_ASSERT_SIZEOF(CapTextRef, 4);
 
 /// 0xC-byte sequence-table record. `Gp_CapTable` is the current table
 /// (`Gp_StartCap` stores its first arg there). `Gp_FindCapEvt` walks
 /// from a start index until `field_8.offset == -1` (terminator) or `field_5`
 /// equals `Gp_CapEventKey` (the key `Gp_StartCap` saved from its third arg).
-/// When not -1, `field_8.text` is a relocated `u16*` text stream walked by
+/// When not -1, `field_8.text` is a relocated `const u16*` text stream walked by
 /// `Gp_CapTextTopY` / `Gp_CapTextHeight` / `func_800E6BB8` / `Gp_CapCenterX` / `Gp_CapCenterXLine` (codes `-1` end,
 /// `-2` newline, `-3` skip; else glyph index `& 0x3FF` into `Gp_CapGlyphs`).
 typedef struct _GpEvt12 {
@@ -44,11 +52,11 @@ typedef struct _GpEvt12 {
         } bytes;
         u32 packed;
     } prefix;
-    /* 0x4 */ u8           field_4; // flags copied to D_80115670; bit 0 cleared if field_7
-    /* 0x5 */ u8           field_5; // compared with Gp_CapEventKey
-    /* 0x6 */ u8           field_6;
-    /* 0x7 */ u8           field_7; // copied to D_80115678
-    /* 0x8 */ GpCapTextRef field_8;
+    /* 0x4 */ u8         field_4; // flags copied to D_80115670; bit 0 cleared if field_7
+    /* 0x5 */ u8         field_5; // compared with Gp_CapEventKey
+    /* 0x6 */ u8         field_6;
+    /* 0x7 */ u8         field_7; // copied to D_80115678
+    /* 0x8 */ CapTextRef field_8;
 } GpEvt12;
 STATIC_ASSERT_SIZEOF(GpEvt12, 0xC);
 

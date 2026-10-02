@@ -53,7 +53,7 @@ s32 D_801156A8;
 
 #include "captions.h"
 
-u16 func_800E5578(u16* arg0, s32 arg1, u8 arg2, u16 arg3);
+u16 func_800E5578(const u16* arg0, s32 arg1, u8 arg2, u16 arg3);
 
 void func_800E62C0(void);
 
@@ -64,11 +64,11 @@ void Gp_CapExit(Task* arg0);
 /// `Gp_CapCaretDir` pulse the vertex greys between 8 and 15.
 void Gp_DrawCapCaret(s32 unusedX, s32 unusedY);
 
-s16 Gp_CapCenterX(u16* text);
+s16 Gp_CapCenterX(const u16* text);
 
-s16 Gp_CapCenterXLine(u16* arg0, s32 arg1);
+s16 Gp_CapCenterXLine(const u16* arg0, s32 arg1);
 
-s32 func_800E6BB8(u16* arg0);
+s32 func_800E6BB8(const u16* arg0);
 
 void func_800E704C(void);
 
@@ -80,36 +80,36 @@ void func_80724714(void);
 
 void func_800E44A0(Task* task)
 {
-    Task*        target;
-    Task*        lookupTask;
-    s16          eventIndex;
-    s32          viewId;
-    GpCapTextRef sceneText;
-    GpCapTextRef dialogText;
-    GpCapTextRef timedText;
-    GpCapTextRef choiceText;
-    s32          nextView;
-    s32          taskState;
-    s32          phase;
-    s32          activeViewFlags;
-    s32          soundId;
-    s32          confirmMask;
-    u16          oldChoice;
-    u8           viewPhase;
-    s32          holdFrames;
-    s32          eventFlags;
-    u8           choiceSound;
-    u8           view;
-    u8           nextPhase;
-    s32          firstPhase;
-    s32          capFlags;
-    s32          viewFlags;
-    s32          activeFlags;
-    s8           savedViewPhase;
-    s8           spawnDelay;
-    s8           viewPending;
-    s32          nextChoiceIndex;
-    s32          nextTextIndex;
+    Task*      target;
+    Task*      lookupTask;
+    s16        eventIndex;
+    s32        viewId;
+    CapTextRef sceneText;
+    CapTextRef dialogText;
+    CapTextRef timedText;
+    CapTextRef choiceText;
+    s32        nextView;
+    s32        taskState;
+    s32        phase;
+    s32        activeViewFlags;
+    s32        soundId;
+    s32        confirmMask;
+    u16        oldChoice;
+    u8         viewPhase;
+    s32        holdFrames;
+    s32        eventFlags;
+    u8         choiceSound;
+    u8         view;
+    u8         nextPhase;
+    s32        firstPhase;
+    s32        capFlags;
+    s32        viewFlags;
+    s32        activeFlags;
+    s8         savedViewPhase;
+    s8         spawnDelay;
+    s8         viewPending;
+    s32        nextChoiceIndex;
+    s32        nextTextIndex;
 
     D_8011565A = 1;
     if (D_8011564A != -1) {
@@ -218,7 +218,7 @@ resumeView:
             }
             func_800E704C();
             sceneText = Gp_CapTable[(s16)D_801155AE].field_8;
-            if (sceneText.offset != -1) {
+            if (sceneText.offset != CAP_TEXT_REF_END) {
                 D_801155B4 = Gp_CapTextTopY(sceneText.text);
                 D_801155B2 = Gp_CapCenterX(Gp_CapTable[(s16)D_801155AE].field_8.text);
                 D_801155B6 = Gp_CapTextHeight(Gp_CapTable[(s16)D_801155AE].field_8.text);
@@ -320,7 +320,7 @@ resumeView:
                     D_801155B0 = 0;
                     D_801155C0 = 0;
                     dialogText = Gp_CapTable[(s16)D_801155AE].field_8;
-                    if (dialogText.offset == -1) {
+                    if (dialogText.offset == CAP_TEXT_REF_END) {
                         task->state += 1;
                         return;
                     }
@@ -338,7 +338,7 @@ resumeView:
                     if (D_8011569A == 0) {
                         func_800E704C();
                         timedText = Gp_CapTable[(s16)D_801155AE].field_8;
-                        if (timedText.offset != -1) {
+                        if (timedText.offset != CAP_TEXT_REF_END) {
                             D_801155B4 = Gp_CapTextTopY(timedText.text);
                             D_801155B6 = Gp_CapTextHeight(Gp_CapTable[(s16)D_801155AE].field_8.text);
                             goto resetText;
@@ -353,7 +353,7 @@ resumeView:
                 } else {
                     func_800E5578(Gp_CapTable[(s16)D_801155AE].field_8.text, 0x80, 1, Gp_CapTable[(s16)D_801155AE].prefix.bytes.field_0 | ((Gp_CapTable[(s16)D_801155AE].prefix.bytes.field_1 & 0x12) << 8));
                     nextChoiceIndex = Gp_FindCapEvt((s16)D_801155AE + 1);
-                    if ((Gp_CapTable[nextChoiceIndex].field_8.offset != -1) && (Gp_CapTable[nextChoiceIndex].field_6 == 0)) {
+                    if ((Gp_CapTable[nextChoiceIndex].field_8.offset != CAP_TEXT_REF_END) && (Gp_CapTable[nextChoiceIndex].field_6 == 0)) {
                         if (Gp_CapTable[nextChoiceIndex].prefix.bytes.field_2 == 0) {
                             if (Gp_CapTable[nextChoiceIndex].prefix.bytes.field_3 == 0) {
                                 goto checkChoice;
@@ -425,7 +425,7 @@ resumeView:
                             D_8011567A = (s16)(u16)D_80115678;
                             func_800E704C();
                             choiceText = Gp_CapTable[(s16)D_801155AE].field_8;
-                            if (choiceText.offset == -1) {
+                            if (choiceText.offset == CAP_TEXT_REF_END) {
                                 task->state += 1;
                             } else {
                                 D_801155B4 = Gp_CapTextTopY(choiceText.text);
@@ -482,7 +482,7 @@ resumeView:
                 if ((Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) || (D_80115670 & 1)) {
                     D_801155AC    = func_800E5578(Gp_CapTable[(s16)D_801155AE].field_8.text, 0x80, 1, Gp_CapTable[(s16)D_801155AE].prefix.bytes.field_0 | ((Gp_CapTable[(s16)D_801155AE].prefix.bytes.field_1 & 0x12) << 8));
                     nextTextIndex = Gp_FindCapEvt((s16)D_801155AE + 1);
-                    if (((Gp_CapTable[nextTextIndex].field_8.offset != -1) && (Gp_CapTable[nextTextIndex].field_6 == 0) && ((Gp_CapTable[nextTextIndex].prefix.bytes.field_2 != 0) || (Gp_CapTable[nextTextIndex].prefix.bytes.field_3 == 0))) || (Gp_CapTable[(s16)D_801155AE].prefix.bytes.field_1 & 4)) {
+                    if (((Gp_CapTable[nextTextIndex].field_8.offset != CAP_TEXT_REF_END) && (Gp_CapTable[nextTextIndex].field_6 == 0) && ((Gp_CapTable[nextTextIndex].prefix.bytes.field_2 != 0) || (Gp_CapTable[nextTextIndex].prefix.bytes.field_3 == 0))) || (Gp_CapTable[(s16)D_801155AE].prefix.bytes.field_1 & 4)) {
                         Gp_DrawCapCaret(0xA0, 0xDC);
                         return;
                     }
@@ -504,12 +504,12 @@ resumeView:
     }
 }
 
-u16 func_800E5578(u16* arg0, s32 arg1, u8 arg2, u16 arg3)
+u16 func_800E5578(const u16* arg0, s32 arg1, u8 arg2, u16 arg3)
 {
     u8             title;
     u8             flagA;
-    u16*           text;
-    u16*           body;
+    const u16*     text;
+    const u16*     body;
     s16            lineEnd;
     u16            ret;
     u16            inChoice;
@@ -528,7 +528,7 @@ u16 func_800E5578(u16* arg0, s32 arg1, u8 arg2, u16 arg3)
     s16            glyphY;
     s32            palette;
     s32            titleWidth;
-    u16*           next;
+    const u16*     next;
     s32            g;
     s16            t2;
     s16            top;
@@ -957,7 +957,7 @@ void Gp_DrawCapCaret(s32 unusedX, s32 unusedY)
     }
 }
 
-s16 Gp_CapCenterX(u16* text)
+s16 Gp_CapCenterX(const u16* text)
 {
     s16 lineW = 0;
     s16 maxW  = 0;
@@ -987,7 +987,7 @@ s16 Gp_CapCenterX(u16* text)
     return (0x140 - maxW) / 2 - 5;
 }
 
-s16 Gp_CapCenterXLine(u16* arg0, s32 arg1)
+s16 Gp_CapCenterXLine(const u16* arg0, s32 arg1)
 {
     s16 lineW;
     s16 selectedW;
@@ -1025,7 +1025,7 @@ s16 Gp_CapCenterXLine(u16* arg0, s32 arg1)
     return (0x140 - selectedW) / 2 - 5;
 }
 
-s16 Gp_CapTextHeight(u16* arg0)
+s16 Gp_CapTextHeight(const u16* arg0)
 {
     s16 lineH = 0;
     s16 total = 0;
@@ -1054,14 +1054,14 @@ s16 Gp_CapTextHeight(u16* arg0)
     return total;
 }
 
-s16 Gp_CapTextTopY(u16* arg0)
+s16 Gp_CapTextTopY(const u16* arg0)
 {
-    s16  lineH     = 0;
-    s16  total     = 0;
-    s16  i         = 0;
-    s16  seenBreak = 0;
-    u16* text      = arg0;
-    s16  code      = text[0];
+    s16        lineH     = 0;
+    s16        total     = 0;
+    s16        i         = 0;
+    s16        seenBreak = 0;
+    const u16* text      = arg0;
+    s16        code      = text[0];
 
     while (code != -1) {
         if (code == -2) {
@@ -1086,7 +1086,7 @@ s16 Gp_CapTextTopY(u16* arg0)
     return 0xD0 - total;
 }
 
-s32 func_800E6BB8(u16* arg0)
+s32 func_800E6BB8(const u16* arg0)
 {
     s16 height = 0;
     s16 i      = 0;
@@ -1219,7 +1219,7 @@ s32 Gp_FindCapEvt(s32 arg0)
     GpEvt12* base;
     GpEvt12* p;
 
-    flag = -1;
+    flag = CAP_TEXT_REF_END;
     id   = Gp_CapEventKey;
     base = Gp_CapTable;
     p    = Gp_CapEventAt(base, arg0);

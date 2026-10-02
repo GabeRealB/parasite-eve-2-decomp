@@ -147,9 +147,9 @@ extern u8 D_8011569C;
 
 void func_800E44A0(Task* task);
 
-s16 Gp_CapTextHeight(u16* arg0);
+s16 Gp_CapTextHeight(const u16* arg0);
 
-s16 Gp_CapTextTopY(u16* arg0);
+s16 Gp_CapTextTopY(const u16* arg0);
 
 void Gp_ApplyCapEvtFlags(void);
 

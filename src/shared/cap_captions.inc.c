@@ -26,13 +26,13 @@ static void CapCaption_RunSchedule(Task* task);
 static void CapCaption_DrawCurrent(void);
 static s32  CapCaption_Relocate(GpCapFileAddress base);
 static s32  CapCaption_SelectScript(s16 arg0, s16 arg1, s32 arg2);
-static s32  CapCaption_DrawText(u16* arg0, s32 arg1, s32 arg2, s32 arg3);
-static s16  CapCaption_TextTopY(u16* arg0);
+static s32  CapCaption_DrawText(const u16* arg0, s32 arg1, s32 arg2, s32 arg3);
+static s16  CapCaption_TextTopY(const u16* arg0);
 static void CapCaption_DrawCaret(void);
-static s16  CapCaption_CenterX(u16* arg0);
-static s16  CapCaption_CenterLineX(u16* arg0, s32 arg1);
-static s16  CapCaption_TextHeight(u16* arg0);
-static s32  CapCaption_LineHeight(u16* arg0);
+static s16  CapCaption_CenterX(const u16* arg0);
+static s16  CapCaption_CenterLineX(const u16* arg0, s32 arg1);
+static s16  CapCaption_TextHeight(const u16* arg0);
+static s32  CapCaption_LineHeight(const u16* arg0);
 static s32  CapCaption_FindKeyedLine(s32 arg0);
 static void CapCaption_TimedTask(Task* task);
 static void CapCaption_CancelableTask(Task* task);
@@ -80,7 +80,7 @@ static void CapCaption_RunSchedule(Task* task)
 static void CapCaption_DrawCurrent(void)
 {
     if ((CapCaption_Data_8015E658 != NULL) &&
-        (CapCaption_Data_8015E658[CapCaption_Data_8015E662].field_8.offset != -1) &&
+        (CapCaption_Data_8015E658[CapCaption_Data_8015E662].field_8.offset != CAP_TEXT_REF_END) &&
         (Gp_CapBusy() == 0)) {
         CapCaption_DrawText(CapCaption_Data_8015E658[CapCaption_Data_8015E662].field_8.text, 0x80, 1,
                             CapCaption_Data_8015E658[CapCaption_Data_8015E662].prefix.bytes.field_0 |
@@ -117,7 +117,7 @@ static s32 CapCaption_Relocate(GpCapFileAddress base)
         rec                         = evts->records;
         count                       = evts->count;
         if (count > 0) {
-            flag = -1;
+            flag = CAP_TEXT_REF_END;
             do {
                 if (rec->field_8.offset != flag) {
                     rec->field_8.offset += base.address;
@@ -173,10 +173,10 @@ static s32 CapCaption_SelectScript(s16 arg0, s16 arg1, s32 arg2)
     return 0;
 }
 
-static s32 CapCaption_DrawText(u16* arg0, s32 arg1, s32 arg2, s32 arg3)
+static s32 CapCaption_DrawText(const u16* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    u16*           text;
-    u16*           body;
+    const u16*     text;
+    const u16*     body;
     s32            title;
     s16            sc;
     u32            shifted;
@@ -368,14 +368,14 @@ static s32 CapCaption_DrawText(u16* arg0, s32 arg1, s32 arg2, s32 arg3)
 /// the first `-2` adds its height (the tallest glyph's `height + 2`, or 2 when empty)
 /// and the total is subtracted from `CapCaption_Data_8015E660`. Gameplay's
 /// `Gp_CapTextTopY` is the same walk against a fixed 0xD0.
-static s16 CapCaption_TextTopY(u16* arg0)
+static s16 CapCaption_TextTopY(const u16* arg0)
 {
-    s16  lineH     = 0;
-    s16  total     = 0;
-    s16  i         = 0;
-    s16  seenBreak = 0;
-    u16* text      = arg0;
-    s16  code      = text[0];
+    s16        lineH     = 0;
+    s16        total     = 0;
+    s16        i         = 0;
+    s16        seenBreak = 0;
+    const u16* text      = arg0;
+    s16        code      = text[0];
 
     while (code != -1) {
         if (code == -2) {
@@ -451,7 +451,7 @@ static void CapCaption_DrawCaret(void)
 /// running maximum, `-3` and `0x8400`-masked codes indent it by 3 and 0x10, and
 /// each glyph code (non-negative, `& 0x3FF` indexing `CapCaption_Data_8015E654`)
 /// advances it by that glyph's `width - 1`.
-static s16 CapCaption_CenterX(u16* arg0)
+static s16 CapCaption_CenterX(const u16* arg0)
 {
     s16 lineW;
     s16 maxW;
@@ -490,7 +490,7 @@ static s16 CapCaption_CenterX(u16* arg0)
 /// Same walk as `CapCaption_CenterX`, but keeps the width of the
 /// selected line instead of the widest; gameplay's `Gp_CapCenterXLine`
 /// compiles to the same bytes.
-static s16 CapCaption_CenterLineX(u16* arg0, s32 arg1)
+static s16 CapCaption_CenterLineX(const u16* arg0, s32 arg1)
 {
     s16 lineW;
     s16 selectedW;
@@ -532,7 +532,7 @@ static s16 CapCaption_CenterLineX(u16* arg0, s32 arg1)
 /// line break adds the line's height (the tallest glyph's `height + 2`, or 2 when
 /// the line is empty). Gameplay's `Gp_CapTextHeight` is the same walk plus a
 /// final `2 -> 0` clamp.
-static s16 CapCaption_TextHeight(u16* arg0)
+static s16 CapCaption_TextHeight(const u16* arg0)
 {
     s16 lineH = 0;
     s16 total = 0;
@@ -569,7 +569,7 @@ static s16 CapCaption_TextHeight(u16* arg0)
 /// 0xD, and any other negative code is stepped over like a glyph without
 /// touching the maximum. A maximum still at 0 — the stream opened with `-2` —
 /// comes back as 2.
-static s32 CapCaption_LineHeight(u16* arg0)
+static s32 CapCaption_LineHeight(const u16* arg0)
 {
     s16 height = 0;
     s16 i      = 0;
@@ -604,7 +604,7 @@ static s32 CapCaption_FindKeyedLine(s32 arg0)
     GpEvt12* base;
     GpEvt12* p;
 
-    flag = -1;
+    flag = CAP_TEXT_REF_END;
     id   = CapCaption_Data_8015E666;
     base = CapCaption_Data_8015E658;
     p    = Gp_CapEventAt(base, arg0);

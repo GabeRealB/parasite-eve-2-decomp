@@ -37,7 +37,8 @@ and nothing is relocated when `field_8 <= 0`.
 walks both tables:
 
 - **Event table** — `GpCapEvtTable { s32 count; }` followed by `count`
-  `GpEvt12` records. Each record's `field_8` is rebased **unless it is `-1`**,
+  `GpEvt12` records. Each record's `field_8.offset` is rebased **unless it is
+  `CAP_TEXT_REF_END` (`-1`)**,
   in which case the walk skips an extra record. `-1` is the terminator sentinel,
   so a terminator consumes a slot without owning text.
 - **Pointer table** — `GpCapPtrTable { s32 count; }` followed by `count` words.
@@ -64,13 +65,17 @@ So **the pointer table is the command index**: `Gp_CapCmds[i]` is a
 0x5  u8  field_5    matched against Gp_CapEventKey
 0x6  u8  field_6
 0x7  u8  field_7    copied to D_80115678
-0x8  s32 field_8    -1 terminator, else relocated u16* text
+0x8  CapTextRef field_8    file-relative byte offset, then const u16* text; -1 ends the run
 ```
 
-Text is `u16*`, not bytes.
+`CapTextRef.offset` holds a file-relative byte offset before relocation. Adding
+the CAP file base to that word makes `CapTextRef.text` a borrowed `const u16*`
+code stream; the containing file must stay loaded during playback. Text codes
+are u16 elements, with 0xFFFF ending the stream. The separate table-end sentinel
+`CAP_TEXT_REF_END` (`-1`) is never relocated or dereferenced.
 
 `Gp_FindCapEvt(start)` scans forward from `start` through `Gp_CapTable` and
-stops at the first record whose `field_8 == -1` **or** whose `field_5` equals
+stops at the first record whose `field_8.offset == CAP_TEXT_REF_END` **or** whose `field_5` equals
 the current `Gp_CapEventKey`, returning the index. So an event slot is a run of
 records terminated by `-1`, and the key selects a variant within the run.
 

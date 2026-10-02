@@ -89,7 +89,7 @@ s32 Gp_RelocCapFile(GpCapFileAddress base)
         rec                         = evts->records;
         count                       = evts->count;
         if (count > 0) {
-            flag = -1;
+            flag = CAP_TEXT_REF_END;
             do {
                 if (rec->field_8.offset != flag) {
                     rec->field_8.offset += base.address;

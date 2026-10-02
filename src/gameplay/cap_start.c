@@ -85,7 +85,7 @@ s32 Gp_StartCap(GpEvt12* arg0, s16 arg1, s16 arg2)
     }
 
     D_801155AE = Gp_FindCapEvt((s16)D_801155AE);
-    if (Gp_CapTable[(s16)D_801155AE].field_8.offset == -1) {
+    if (Gp_CapTable[(s16)D_801155AE].field_8.offset == CAP_TEXT_REF_END) {
         Gp_CapTable = 0;
         return 0;
     }
