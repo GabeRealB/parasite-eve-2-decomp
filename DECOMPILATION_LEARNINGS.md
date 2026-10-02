@@ -15973,12 +15973,12 @@ addiu a1, v0, 0x504
 ```
 
 Force the intermediate into the final register by assigning through the *same*
-pointer variable twice — first the integer `offset + base`, then the struct
-field that adds the fixed mid-struct offset:
+pointer variable twice — first the integer `offset + base`, then the byte
+displacement that locates the contained array:
 
 ```c
-slot = (MidiNoteSlot*)(offset + (s32)obj);
-slot = ((MidiSong*)slot)->voiceSlots; /* addiu a1, a1, 0x504 */
+slot = (_MidiNoteSlot*)(slotOffsetBytes + (s32)obj);
+slot = (_MidiNoteSlot*)((u8*)slot + OFFSET_OF(MidiSong, voiceSlots)); /* addiu a1, a1, 0x504 */
 ```
 
 `Midi_InitSlot` is the pure example (voice-slot clear loop). Pair with the

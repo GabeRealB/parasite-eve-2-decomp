@@ -112,23 +112,31 @@ typedef struct _MidiTrack {
 } MidiTrack;
 STATIC_ASSERT_SIZEOF(MidiTrack, 0x3C);
 
-/// Active SPU voice slot (18 records at song offset 0x504). A negative voice
-/// or channel marks a free entry. Program/layer identify the bank note;
-/// velocity and volumeScale contribute to the volume update. Pitch bend is
-/// scaled using the selected note's bend range, and reverb records its send.
-typedef struct _MidiNoteSlot {
-    /* 0x0 */ s8  voice;
-    /* 0x1 */ s8  channel;
-    /* 0x2 */ s8  key;
-    /* 0x3 */ u8  velocity;
-    /* 0x4 */ s8  volumeScale;
-    /* 0x5 */ s8  pan;
-    /* 0x6 */ u8  program;
-    /* 0x7 */ u8  layer;
-    /* 0x8 */ s16 pitchBend;
-    /* 0xA */ s16 reverb;
-} MidiNoteSlot;
-STATIC_ASSERT_SIZEOF(MidiNoteSlot, 0xC);
+// Both selectors are invalidated when a note slot is reset or its voice released.
+enum { MIDI_NOTE_SLOT_FREE = -1 };
+
+/// One bank sample layer playing a MIDI note on an allocated SPU voice.
+///
+/// A song owns eighteen slots, indexed by SPU voice number (0..17). Each matching
+/// bank layer gets its own slot, so one note may occupy several voices. Note-off
+/// retains the slot through the release envelope; voice release or stealing
+/// clears the record and sets both voice and channel to `MIDI_NOTE_SLOT_FREE`.
+/// The SPU callback retains the slot's address while that voice is allocated.
+/// Program and layer retain the original sample selection across program changes;
+/// volume and pan updates combine the saved bank controls with live channel controls.
+typedef struct {
+    s8  voice;         // SPU voice number (0..17), or -1 when free
+    s8  channel;       // MIDI channel (0..15), or -1 when free
+    s8  key;           // MIDI note key (0..127); compared for note-off and used for pitch
+    u8  velocity;      // Note-on velocity (1..127), indexing the velocity gain curve
+    s8  volumeScale;   // Low signed byte of (program gain * layer gain) / 128; mixed / 127
+    s8  pan;           // Combined program/layer pan, clamped to 0..127 before channel offset
+    u8  program;       // Bank program/group index, below the loaded bank's groupCount
+    u8  layer;         // Layer index within that program, below its layerCount
+    s16 pitchOffset;   // Signed Q8 semitone offset after scaling the channel's pitch wheel
+    s16 reverbEnabled; // Saved layer reverb switch (0 disabled, 1 enabled); no individual reader
+} _MidiNoteSlot;
+STATIC_ASSERT_SIZEOF(_MidiNoteSlot, 0xC);
 
 /// Resident sequence, its timing/volume state, eighteen tracks, sixteen MIDI
 /// channels and eighteen SPU voice slots. The sequence buffer is byte data;
@@ -156,7 +164,7 @@ typedef struct _MidiSong {
     /* 0x48 */ SndBankLayer*      notes;
     /* 0x4C */ MidiTrack          entries[18];
     /* 0x484 */ _MidiChannelTable channels;
-    /* 0x504 */ MidiNoteSlot      voiceSlots[0x12];
+    /* 0x504 */ _MidiNoteSlot     voiceSlots[0x12];
 } MidiSong;
 STATIC_ASSERT_SIZEOF(MidiSong, 0x5DC);
 
@@ -807,7 +815,7 @@ static s32 Midi_InitSequence(u8 arg0, u16 arg1)
 
                 obj->volumeDirtyChannels = 0xFFFF;
                 obj->songTicks           = 0;
-                for (j = 0; j < 0x12; j++) {
+                for (j = 0; j < ARRAY_SIZE(obj->voiceSlots); j++) {
                     Midi_ClearVoiceEntry(&obj->voiceSlots[j]);
                 }
 
@@ -1119,19 +1127,19 @@ static void* Midi_GetFixedBuffer(s32 unused1, s32 unused2)
 
 static void Midi_ClearVoiceEntry(void* context)
 {
-    MidiNoteSlot* slot = context;
-    u32           i;
-    s32*          ptr;
+    _MidiNoteSlot* slot = context;
+    u32            wordIndex;
+    s32*           words;
 
-    ptr = (s32*)slot;
-    i   = 0;
+    words     = (s32*)slot;
+    wordIndex = 0;
     do {
-        *ptr = 0;
-        i++;
-        ptr++;
-    } while (i < 3U);
-    slot->channel = -1;
-    slot->voice   = -1;
+        *words = 0;
+        wordIndex++;
+        words++;
+    } while (wordIndex < sizeof(*slot) / sizeof(*words));
+    slot->channel = MIDI_NOTE_SLOT_FREE;
+    slot->voice   = MIDI_NOTE_SLOT_FREE;
 }
 
 void SndEvt_EnqueueType5Pending(void)
@@ -1178,14 +1186,14 @@ void SndEvt_FlushType5Pending(void)
 
 static void Midi_InitSlot(s32 arg0)
 {
-    MidiSong*     obj;
-    s32*          p;
-    u32           i;
-    s32           offset;
-    u32           k;
-    MidiNoteSlot* slot;
-    s32*          q;
-    s8            freemark;
+    MidiSong*      obj;
+    s32*           p;
+    u32            i;
+    s32            slotOffsetBytes;
+    u32            slotWordIndex;
+    _MidiNoteSlot* slot;
+    s32*           slotWords;
+    s8             freeSlotMarker;
 
     arg0 &= 0xFF;
     obj   = &(&Midi_Song)[arg0];
@@ -1201,24 +1209,25 @@ static void Midi_InitSlot(s32 arg0)
     LinInterp_Setup(&obj->volumeRamp, 0, 0, 0);
     Midi_InitChannelTable(&obj->channels);
 
-    i        = 0;
-    freemark = -1;
-    offset   = 0;
+    i               = 0;
+    freeSlotMarker  = MIDI_NOTE_SLOT_FREE;
+    slotOffsetBytes = 0;
     do {
-        slot = (MidiNoteSlot*)(offset + (s32)obj);
-        slot = ((MidiSong*)slot)->voiceSlots;
-        q    = (s32*)slot;
-        k    = 0;
+        // Keep offset-first address formation, then locate the contained slot.
+        slot          = (_MidiNoteSlot*)(slotOffsetBytes + (s32)obj);
+        slot          = (_MidiNoteSlot*)((u8*)slot + OFFSET_OF(MidiSong, voiceSlots));
+        slotWords     = (s32*)slot;
+        slotWordIndex = 0;
         do {
-            *q = 0;
-            k++;
-            q++;
-        } while (k < 3U);
-        offset += 0xC;
+            *slotWords = 0;
+            slotWordIndex++;
+            slotWords++;
+        } while (slotWordIndex < sizeof(*slot) / sizeof(*slotWords));
+        slotOffsetBytes += (s32)sizeof(*slot);
         i++;
-        slot->channel = freemark;
-        slot->voice   = freemark;
-    } while ((s32)i < 0x12);
+        slot->channel = freeSlotMarker;
+        slot->voice   = freeSlotMarker;
+    } while ((s32)i < ARRAY_SIZE(obj->voiceSlots));
 }
 
 /// Reads the big-endian 32-bit value at `p`, the form every length in a
@@ -1253,11 +1262,11 @@ static void Midi_ResetTrackFlags(MidiSong* song)
 
 static void Midi_KeyOffVoices(MidiSong* song)
 {
-    s32           i;
-    MidiNoteSlot* slot;
-    u8            status;
-    SpuVoiceRef   sp10;
-    u16           temp;
+    s32            i;
+    _MidiNoteSlot* slot;
+    u8             status;
+    SpuVoiceRef    sp10;
+    u16            temp;
 
     i    = 0;
     slot = song->voiceSlots;
@@ -1277,7 +1286,7 @@ static void Midi_KeyOffVoices(MidiSong* song)
         }
         i++;
         slot++;
-    } while (i < 0x12);
+    } while (i < ARRAY_SIZE(song->voiceSlots));
 }
 
 static void Midi_DriveTrack(MidiSong* song, MidiTrack* track)
@@ -1347,19 +1356,19 @@ static void Midi_UpdateVoiceVolumes(MidiSong* song)
         MIDI_CHANNEL_GAIN_DIVISOR = SOUND_EVENT_MIDI_VOLUME_FULL * MIDI_VELOCITY_GAIN_FULL,
         MIDI_VOICE_GAIN_DIVISOR   = SOUND_EVENT_MIDI_VOLUME_FULL * SOUND_EVENT_MIDI_VOLUME_FULL
     };
-    SpuVoiceRef   sp10;
-    s16           sp18[2];
-    LinInterp*    interp;
-    s32           volume;
-    s32           i;
-    MidiNoteSlot* slot;
-    _MidiChannel* channelControls;
-    s32           product;
-    u32           vol;
-    s32           channel;
-    s32           mask;
-    s32           pan;
-    s8            voice;
+    SpuVoiceRef    sp10;
+    s16            sp18[2];
+    LinInterp*     interp;
+    s32            volume;
+    s32            i;
+    _MidiNoteSlot* slot;
+    _MidiChannel*  channelControls;
+    s32            product;
+    u32            vol;
+    s32            channel;
+    s32            mask;
+    s32            pan;
+    s8             voice;
 
     interp = &song->volumeRamp;
     if (song->sequenceId == 0x4F && D_80082120 == 5) {
@@ -1398,7 +1407,7 @@ static void Midi_UpdateVoiceVolumes(MidiSong* song)
         }
         i++;
         slot++;
-    } while (i < 0x12);
+    } while (i < ARRAY_SIZE(song->voiceSlots));
 }
 
 /* Note off: keys off every voice slot playing this channel's key, unless the
@@ -1420,7 +1429,7 @@ static inline u8* _midiNoteOff(s32 status, u8* data, MidiSong* song)
     if (song->channels.entries[channel].noteEventsDisabled != 0) {
         return ptr + 2;
     }
-    for (i = 0; i < 0x12; i++) {
+    for (i = 0; i < ARRAY_SIZE(song->voiceSlots); i++) {
         if ((song->voiceSlots[i].key == key) && (song->voiceSlots[i].channel == channel)) {
             Spu_KeyOff(song->voiceSlots[i].voice);
         }
@@ -1435,25 +1444,25 @@ static u8* Midi_Event1(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* unused)
         SOUND_BANK_PAN_CENTER           = 64,
         SOUND_BANK_PAN_MAX              = 127
     };
-    s16           priorities[2];
-    SpuVoiceRef   ref;
-    u8            channel;
-    u8            program;
-    u8            key;
-    u8            velocity;
-    u8            layer;
-    s8            voice;
-    u16           priority;
-    s32           i;
-    s16           pan;
-    s32           reverb;
-    s32           bend;
-    s32           product;
-    s32           scale;
-    SndBankGroup* group;
-    SndBankLayer* bankLayer;
-    MidiNoteSlot* slot;
-    SpuVoiceAttr* attr;
+    s16            priorities[2];
+    SpuVoiceRef    ref;
+    u8             channel;
+    u8             program;
+    u8             key;
+    u8             velocity;
+    u8             layer;
+    s8             voice;
+    u16            priority;
+    s32            i;
+    s16            pan;
+    s32            reverb;
+    s32            bend;
+    s32            product;
+    s32            scale;
+    SndBankGroup*  group;
+    SndBankLayer*  bankLayer;
+    _MidiNoteSlot* slot;
+    SpuVoiceAttr*  attr;
 
     velocity = arg1[2];
     if (velocity == 0) {
@@ -1503,10 +1512,10 @@ static u8* Midi_Event1(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* unused)
                     reverb        = bankLayer->reverb;
                     if (reverb == SPU_ON) {
                         Spu_EnableReverbVoice(slot->voice);
-                        slot->reverb = reverb;
+                        slot->reverbEnabled = reverb;
                     } else {
                         Spu_DisableReverbVoice(slot->voice);
-                        slot->reverb = 0;
+                        slot->reverbEnabled = SPU_OFF;
                     }
                     bend = song->channels.entries[channel].pitchBend;
                     if (bend != 0) {
@@ -1515,14 +1524,14 @@ static u8* Midi_Event1(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* unused)
                         } else {
                             scale = bankLayer->bendDown;
                         }
-                        product         = (scale << MIDI_PITCH_FRACTION_BITS) * bend;
-                        slot->pitchBend = product / MIDI_PITCH_BEND_MAX;
+                        product           = (scale << MIDI_PITCH_FRACTION_BITS) * bend;
+                        slot->pitchOffset = product / MIDI_PITCH_BEND_MAX;
                     }
                     attr        = ref.field_4;
                     attr->addr  = bankLayer->waveAddr;
                     attr->adsr1 = bankLayer->adsr1;
                     attr->adsr2 = bankLayer->adsr2;
-                    attr->pitch = Spu_CalcVolume(key, slot->pitchBend, bankLayer->rootKey, bankLayer->fineTune);
+                    attr->pitch = Spu_CalcVolume(key, slot->pitchOffset, bankLayer->rootKey, bankLayer->fineTune);
                     attr->mask  = SPU_VOICE_WDSA | SPU_VOICE_ADSR_ADSR1 | SPU_VOICE_ADSR_ADSR2 | SPU_VOICE_PITCH;
                     Spu_KeyOn(slot->voice);
                 }
@@ -1765,15 +1774,15 @@ static u8* Midi_SetProgram(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* unused
 static u8* Midi_PitchBend(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* unused)
 {
     enum { MIDI_PITCH_WHEEL_CENTER = 0x2000 };
-    SpuVoiceRef   sp10;
-    u8            channel;
-    s32           i;
-    s16           pitchBend;
-    MidiNoteSlot* slot;
-    SndBankLayer* bankLayer;
-    s32           scale;
-    s16           pitch;
-    SpuVoiceAttr* attr;
+    SpuVoiceRef    sp10;
+    u8             channel;
+    s32            i;
+    s16            pitchBend;
+    _MidiNoteSlot* slot;
+    SndBankLayer*  bankLayer;
+    s32            scale;
+    s16            pitch;
+    SpuVoiceAttr*  attr;
 
     channel                                   = arg0 & MIDI_CHANNEL_STATUS_MASK;
     i                                         = 0;
@@ -1791,15 +1800,15 @@ static u8* Midi_PitchBend(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* unused)
                 scale   = bankLayer->bendDown;
                 scale <<= MIDI_PITCH_FRACTION_BITS;
             }
-            scale          *= pitchBend;
-            pitch           = scale / MIDI_PITCH_BEND_MAX;
-            slot->pitchBend = pitch;
-            attr            = sp10.field_4;
-            attr->pitch     = Spu_CalcVolume((u16)slot->key, pitch, bankLayer->rootKey, bankLayer->fineTune);
-            attr->mask     |= SPU_VOICE_PITCH;
+            scale            *= pitchBend;
+            pitch             = scale / MIDI_PITCH_BEND_MAX;
+            slot->pitchOffset = pitch;
+            attr              = sp10.field_4;
+            attr->pitch       = Spu_CalcVolume((u16)slot->key, pitch, bankLayer->rootKey, bankLayer->fineTune);
+            attr->mask       |= SPU_VOICE_PITCH;
         }
         i += 1;
-    } while (i < 0x12);
+    } while (i < ARRAY_SIZE(song->voiceSlots));
     return arg1 + 3;
 }
 
