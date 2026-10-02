@@ -170,7 +170,7 @@ static u8* Text_ItoaHex(u8* arg0, u32 arg1);
 
 static void Text_DrawGlyphImmediate(TextDrawReq* request, const _FontGlyph* glyph, s32 arg2);
 
-static void Text_DrawGlyphQueued(TextDrawReq* request, const _FontGlyph* glyph, s32 arg2);
+static void _textDrawGlyphFill(TextDrawReq* request, const _FontGlyph* glyph, s32 colorRgb);
 
 static void _textDrawGlyphOutline(TextDrawReq* request, const _FontGlyph* glyph, s32 unusedColor);
 
@@ -738,7 +738,7 @@ void Text_DrawString(TextDrawReq* request, u8* text)
             break;
         case TEXT_DRAW_FILL_ONLY:
         default:
-            draw = Text_DrawGlyphQueued;
+            draw = _textDrawGlyphFill;
             break;
     }
     while ((c = *ptr) != 0 && c != '\n' && c != '\r') {
@@ -1262,25 +1262,60 @@ static void Text_DrawGlyphImmediate(TextDrawReq* request, const _FontGlyph* glyp
     DrawPrim(p);
 }
 
-static void Text_DrawGlyphQueued(TextDrawReq* request, const _FontGlyph* glyph, s32 arg2)
+/// Initializes one opaque, color-modulated UI-glyph fill sprite.
+///
+/// `fill` is a writable, word-aligned `SPRT`, separate from the borrowed,
+/// read-only request and glyph. Sets the payload length, RGB, command,
+/// rectangle and fill palette; allocation and DMA linking belong to the caller.
+/// `colorRgb` supplies RGB in bits 0..23 (red low); its high byte is replaced.
+/// Screen coordinates narrow to signed 16-bit pixels, V wraps modulo 256 after
+/// the signed bias, and minus-one dimensions decode to 1..256 pixels/texels.
+static inline void _textInitGlyphFillSprite(SPRT* fill, const TextDrawReq* request,
+                                            const _FontGlyph* glyph, s32 colorRgb)
 {
-    SPRT* p;
-    s32   temp;
+    /// 4bpp glyph-fill palette at VRAM word X=976, Y=511.
+    ///
+    /// The first 16 colors uploaded by `Text_LoadClutImages`: indices 0..10
+    /// are transparent; 11..15 are RGB5 grays 7, 13, 19, 25 and 31.
+    /// The sprite modulates these colors by RGB and disables blending.
+    enum { TEXT_QUEUED_GLYPH_FILL_CLUT = getClut(976, 511) };
 
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    setlen(p, 4);
-    GPU_PRIMITIVE_COLOR_WORD(p, 0) = arg2;
-    setcode(p, 0x64);
-    p->x0   = request->x + glyph->xOffset;
-    p->y0   = (request->y - glyph->heightMinusOne) + glyph->yOffset;
-    p->u0   = glyph->u;
-    p->v0   = glyph->v + request->vBias;
-    p->w    = glyph->widthMinusOne + 1;
-    temp    = glyph->heightMinusOne;
-    p->clut = 0x7FFD;
-    p->h    = temp + 1;
-    addPrim(gGpuCurrentOt + request->otIndex, p);
+    s32 heightMinusOne;
+
+    GPU_PRIMITIVE_COLOR_WORD(fill, 0) = colorRgb;
+    setSprt(fill);
+    fill->x0       = request->x + glyph->xOffset;
+    fill->y0       = (request->y - glyph->heightMinusOne) + glyph->yOffset;
+    fill->u0       = glyph->u;
+    fill->v0       = glyph->v + request->vBias;
+    fill->w        = glyph->widthMinusOne + 1;
+    heightMinusOne = glyph->heightMinusOne;
+    fill->clut     = TEXT_QUEUED_GLYPH_FILL_CLUT;
+    fill->h        = heightMinusOne + 1;
+}
+
+/// Queues one opaque, color-modulated UI-glyph fill without an outline.
+///
+/// Borrows `request` and `glyph` without modifying or retaining them or advancing
+/// the pen. Pen coordinates and glyph offsets are draw-environment pixels; the
+/// last row lies at pen Y plus the glyph's Y offset. U/V are page-local texels,
+/// with signed V bias wrapping modulo 256; dimensions decode to 1..256.
+/// `colorRgb` is the live modulation RGB, including inline color changes,
+/// in bits 0..23 (red low); its high byte is replaced by the sprite command.
+///
+/// Reserves one `SPRT` (20 bytes) at the word-aligned `gGpuPrimCursor`. The arena
+/// and signed `request->otIndex` entry in `gGpuCurrentOt` must be writable and
+/// in bounds. Font textures and the fill palette must already be resident.
+/// The caller must prepend a 4bpp font-page command before this entry executes;
+/// keep the packet intact until GPU drawing completes.
+static void _textDrawGlyphFill(TextDrawReq* request, const _FontGlyph* glyph, s32 colorRgb)
+{
+    SPRT* fill;
+
+    fill           = gGpuPrimCursor;
+    gGpuPrimCursor = fill + 1;
+    _textInitGlyphFillSprite(fill, request, glyph, colorRgb);
+    addPrim(gGpuCurrentOt + request->otIndex, fill);
 }
 
 /// Initializes a raw, semitransparent UI-glyph outline at the current text pen.
