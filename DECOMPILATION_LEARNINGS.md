@@ -38978,9 +38978,9 @@ two independent scratch-head store-address materializations.
 Adding a matrix translation into a scratch `SVECTOR` three components at a time:
 
 ```c
-block->self.vx += *(u16*)&gGfxViewCoord.workm.t[0];   /* wrong */
-block->self.vy += *(u16*)&gGfxViewCoord.workm.t[1];
-block->self.vz += *(u16*)&gGfxViewCoord.workm.t[2];
+block->eyeView.vx += *(u16*)&gGfxViewCoord.workm.t[0];   /* wrong */
+block->eyeView.vy += *(u16*)&gGfxViewCoord.workm.t[1];
+block->eyeView.vz += *(u16*)&gGfxViewCoord.workm.t[2];
 ```
 
 emits the right eight instructions but in the wrong order: GCC 2.8.1 hoists the
@@ -38990,9 +38990,9 @@ too keeps each component self-contained, so the schedule degenerates back to
 `lhu`/`lhu`/`nop`/`addu`/`sh` per component exactly as in the target:
 
 ```c
-*(u16*)&block->self.vx = *(u16*)&block->self.vx + *(u16*)&gGfxViewCoord.workm.t[0];
-*(u16*)&block->self.vy = *(u16*)&block->self.vy + *(u16*)&gGfxViewCoord.workm.t[1];
-*(u16*)&block->self.vz = *(u16*)&block->self.vz + *(u16*)&gGfxViewCoord.workm.t[2];
+*(u16*)&block->eyeView.vx = *(u16*)&block->eyeView.vx + *(u16*)&gGfxViewCoord.workm.t[0];
+*(u16*)&block->eyeView.vy = *(u16*)&block->eyeView.vy + *(u16*)&gGfxViewCoord.workm.t[1];
+*(u16*)&block->eyeView.vz = *(u16*)&block->eyeView.vz + *(u16*)&gGfxViewCoord.workm.t[2];
 ```
 
 The `+=` form goes through the `s16` field's own mode, which gives the RMW a

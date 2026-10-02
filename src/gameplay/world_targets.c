@@ -41,18 +41,20 @@
 #include "main/text.h"
 #include "main/ui.h"
 
-/// 0x38-byte scratch from the scratch stack used by `Gp_ScanLockNodes`.
-/// `src` is the actor's `coord.t` (lowered by 1000 on Y) before
-/// `gGfxViewCoord.workm` rotates it into `self`, the world-space aim origin.
-/// `node` is the candidate `gWorldTargetListHead` node's world position; both are
-/// handed to `func_800E0308` as the line-of-sight segment.
-typedef struct _GpLockScanScratch {
-    /* 0x00 */ SVECTOR self;
-    /* 0x08 */ SVECTOR node;
-    /* 0x10 */ SVECTOR src;
-    /* 0x18 */ byte    pad_18[0x20];
-} GpLockScanScratch;
-STATIC_ASSERT_SIZEOF(GpLockScanScratch, 0x38);
+/// Scratch-stack block holding the line-of-sight segment of one lock-on scan.
+///
+/// The aim point is the aiming actor's world position raised by 1000 units.
+/// Each candidate target's body point is placed in view space, and the target
+/// can be locked only while no world occluder blocks the segment between the
+/// two view-space points. The occluder test maps occluder geometry into the
+/// same space through the current view matrix.
+typedef struct {
+    SVECTOR eyeView;      // Aim point in view space; segment end
+    SVECTOR targetView;   // Candidate's body point, local to its coordinate until transformed into view space; segment start
+    SVECTOR eyeWorld;     // Aim point in world space, before the view transform
+    byte    unused18[32]; // Reserved with the block but never accessed; role unproven
+} _WorldTargetLockScanScratch;
+STATIC_ASSERT_SIZEOF(_WorldTargetLockScanScratch, 0x38);
 
 /// Projected screen position of a target bound to a readout.
 ///
@@ -274,38 +276,38 @@ void Gp_DrawTargetCursor(void)
 
 static void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag)
 {
-    GpLockScanScratch* block;
-    GameActor*         actor;
-    GfxCoord*          coord;
-    GfxCoord*          nodeCoord;
-    WorldTargetNode*   node;
-    WorldTargetNode*   best;
-    s32                bestAngle;
-    u32                bestDist;
-    s32                baseAngle;
-    s32                angle;
-    u32                dist;
-    s32                sub;
-    SVECTOR            tmp;
-    SVECTOR*           srcp;
+    _WorldTargetLockScanScratch* block;
+    GameActor*                   actor;
+    GfxCoord*                    coord;
+    GfxCoord*                    nodeCoord;
+    WorldTargetNode*             node;
+    WorldTargetNode*             best;
+    s32                          bestAngle;
+    u32                          bestDist;
+    s32                          baseAngle;
+    s32                          angle;
+    u32                          dist;
+    s32                          sub;
+    SVECTOR                      tmp;
+    SVECTOR*                     srcp;
 
     best = NULL;
-    SCRATCH_STACK_RESERVE_BLOCK(GpLockScanScratch);
-    block         = SCRATCH_STACK_CURSOR(GpLockScanScratch);
-    actor         = arg0->work;
-    coord         = arg0->extra.tmd->coords;
-    block->src.vx = coord->coord.t[0];
-    block->src.vy = coord->coord.t[1] - 1000;
-    block->src.vz = coord->coord.t[2];
+    SCRATCH_STACK_RESERVE_BLOCK(_WorldTargetLockScanScratch);
+    block              = SCRATCH_STACK_CURSOR(_WorldTargetLockScanScratch);
+    actor              = arg0->work;
+    coord              = arg0->extra.tmd->coords;
+    block->eyeWorld.vx = coord->coord.t[0];
+    block->eyeWorld.vy = coord->coord.t[1] - 1000;
+    block->eyeWorld.vz = coord->coord.t[2];
     Gp_UpdateCoord(&gGfxViewCoord);
-    srcp = &block->src;
+    srcp = &block->eyeWorld;
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(srcp);
     gte_rtv0();
-    gte_stsv(&block->self);
-    block->self.vx += gGfxViewCoord.workm.t[0];
-    block->self.vy += gGfxViewCoord.workm.t[1];
-    block->self.vz += gGfxViewCoord.workm.t[2];
+    gte_stsv(&block->eyeView);
+    block->eyeView.vx += gGfxViewCoord.workm.t[0];
+    block->eyeView.vy += gGfxViewCoord.workm.t[1];
+    block->eyeView.vz += gGfxViewCoord.workm.t[2];
 
     if (actor->targetNode != NULL && flag != 0) {
         node      = actor->targetNode;
@@ -362,19 +364,19 @@ static void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag)
             continue;
         }
         Gp_UpdateCoord(GP_NODE_ENEMY(node)->coord);
-        block->node.vx = GP_NODE_ENEMY(node)->bodyPos.vx;
-        block->node.vy = GP_NODE_ENEMY(node)->bodyPos.vy;
-        block->node.vz = GP_NODE_ENEMY(node)->bodyPos.vz;
-        nodeCoord      = GP_NODE_ENEMY(node)->coord;
-        tmp            = block->node;
+        block->targetView.vx = GP_NODE_ENEMY(node)->bodyPos.vx;
+        block->targetView.vy = GP_NODE_ENEMY(node)->bodyPos.vy;
+        block->targetView.vz = GP_NODE_ENEMY(node)->bodyPos.vz;
+        nodeCoord            = GP_NODE_ENEMY(node)->coord;
+        tmp                  = block->targetView;
         gte_SetRotMatrix(&nodeCoord->workm);
         gte_ldv0(&tmp);
         gte_rtv0();
-        gte_stsv(&block->node);
-        block->node.vx += GP_NODE_ENEMY(node)->coord->workm.t[0];
-        block->node.vy += GP_NODE_ENEMY(node)->coord->workm.t[1];
-        block->node.vz += GP_NODE_ENEMY(node)->coord->workm.t[2];
-        if (func_800E0308(&block->node, &block->self) != 1) {
+        gte_stsv(&block->targetView);
+        block->targetView.vx += GP_NODE_ENEMY(node)->coord->workm.t[0];
+        block->targetView.vy += GP_NODE_ENEMY(node)->coord->workm.t[1];
+        block->targetView.vz += GP_NODE_ENEMY(node)->coord->workm.t[2];
+        if (func_800E0308(&block->targetView, &block->eyeView) != 1) {
             bestAngle = angle;
             best      = node;
             bestDist  = dist;
@@ -383,7 +385,7 @@ static void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag)
     if (best != NULL) {
         Gp_GetLockPos(best, out);
     }
-    SCRATCH_STACK_RELEASE_BLOCK(GpLockScanScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_WorldTargetLockScanScratch);
     return best;
 }
 
