@@ -7318,7 +7318,7 @@ slot->usesBufferedPose  = 0;
 ```
 
 `func_800B4538` is the example. The same tail is in `animationSeekSlotWithBlend` /
-`Gp_AnimPlaySlot`.
+`animationPlaySlotWithBlend`.
 
 
 ## `s16` step in `$a0`, extra copies, sequential clamp for `bgez`
@@ -26830,7 +26830,7 @@ the `t4`/`t3` swap.
 
 ## Late `i = 1` needs other loop constants live first
 
-A case that does `i = 1; field += i;` then a `Gp_AnimPlaySlot` walk wants
+A case that does `i = 1; field += i;` then an `animationPlaySlotWithBlend` walk wants
 `li s1, 1` in the *second* `bnez` delay (after the poll), `addu` with `$s1`,
 and `$s2 = index` / `$s0 = actor`. Assigning `i = 1` before the poll makes `i`
 live across the jal — correct registers and `addu`, but `li s1, 1` fills the
@@ -26850,7 +26850,7 @@ actor->statePhase += i;
 actor = arg0->actor;
 if (i < actor->animationSlotCount) {
     do {
-        Gp_AnimPlaySlot(..., anim, ..., extra, ...);
+        animationPlaySlotWithBlend(..., anim, ..., extra, ...);
         i++;
     } while (i < actor->animationSlotCount);
 }
@@ -31013,18 +31013,18 @@ assign them in that order *before* the call:
 register s32   extra asm("s3");
 register void* sets asm("s1");
 
-extra = arg4;
-sets  = arg7;
+extra = trackRecordOffset;
+sets  = replacementSetTable;
 animationTickSlotPose(...);
 animationTickSlotPose(...);
 if (sets != NULL) {
-    ctx->sets = sets;
+    context->sets = sets;
     slot->sets    = sets;
 }
-idx = set->trackStartIndices[slot->trackIndex] + extra;
+recordIndex = set->trackStartIndices[slot->trackIndex] + extra;
 ```
 
-`Gp_AnimPlaySlot` is the example.
+`animationPlaySlotWithBlend` is the example.
 
 ## Nested `for (i = 0; i < n; )` + `do { } while (++i < n)` for two delay slots
 
@@ -144189,7 +144189,7 @@ constant for that subreg as a fresh HImode pseudo, so a second `li` appears and
 `y` lands elsewhere. The seed pinned `y` to `$a1`. Declaring `y` with the
 field's type, `s16`, keeps one pseudo and matches unpinned.
 
-## A stack argument loaded at entry into `$s` although used once is a reassigned parameter (Gp_AnimPlaySlot, 2026-09-26)
+## A stack argument loaded at entry into `$s` although used once is a reassigned parameter (animationPlaySlotWithBlend, 2026-09-26)
 
 The target loaded a stack argument (`lw s3,0x38(sp)`) in the prologue and read
 it once, after a call and a branch. Written as a plain use, the parameter is a
@@ -144197,9 +144197,9 @@ set-once pseudo `REG_EQUIV` to its arrival slot with a single use in another
 block, so `update_equiv_regs` sinks the load to the use and it lands in a
 scratch register; the seed pinned a copy to `$s3`. A second set of the
 parameter removes the equivalence and keeps the entry load: the original
-rebases the parameter in place (`arg4 = (u16)(base + arg4); idx = arg4;`).
-Operand order then depends on the spelling. `arg4 += base` and
-`arg4 = base + arg4` both emit `addu a1,s3,v0`, the latter because
+rebases the parameter in place (`trackRecordOffset = (u16)(base + trackRecordOffset); _animationSelectPlayRecord(slot, records, trackRecordOffset);`).
+Operand order then depends on the spelling. `trackRecordOffset += base` and
+`trackRecordOffset = base + trackRecordOffset` both emit `addu a1,s3,v0`, the latter because
 `expand_binop` swaps a commutative add whose second operand is the target.
 Only a conversion between the add and the parameter, here the truncation to
 the 16-bit index, keeps `base` first (`addu a1,v0,s3`).

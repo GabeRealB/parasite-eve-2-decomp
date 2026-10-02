@@ -4864,8 +4864,8 @@ void Gp_TickActorAnimState(Task* arg0)
             actor              = arg0->work;
             if (i < actor->animationSlotCount) {
                 do {
-                    Gp_AnimPlaySlot(&actor->animationContext, i, 0, anim, 0, 0, extra,
-                                    actor->animationSets);
+                    animationPlaySlotWithBlend(&actor->animationContext, i, 0, anim, 0, 0, extra,
+                                               actor->animationSets);
                     actor->animationSlots[i].rate = actor->animationRate;
                     i++;
                 } while (i < actor->animationSlotCount);
@@ -5638,7 +5638,7 @@ void Gp_AnimPlayChildSlots(Task* arg0, s32 arg1, s32 arg2)
     i     = 1;
     if (i < actor->animationSlotCount) {
         do {
-            Gp_AnimPlaySlot(&actor->animationContext, i, 0, arg1, 0, 0, 0, actor->animationSets);
+            animationPlaySlotWithBlend(&actor->animationContext, i, 0, arg1, 0, 0, 0, actor->animationSets);
             actor->animationSlots[i].rate = actor->animationRate;
             i++;
         } while (i < actor->animationSlotCount);
@@ -5654,7 +5654,7 @@ void Gp_AnimPlayChildSlotsEx(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     i     = 1;
     if (i < actor->animationSlotCount) {
         do {
-            Gp_AnimPlaySlot(&actor->animationContext, i, 0, arg1, 0, 0, arg3, actor->animationSets);
+            animationPlaySlotWithBlend(&actor->animationContext, i, 0, arg1, 0, 0, arg3, actor->animationSets);
             actor->animationSlots[i].rate = actor->animationRate;
             i++;
         } while (i < actor->animationSlotCount);

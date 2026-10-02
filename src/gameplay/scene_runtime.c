@@ -3017,51 +3017,69 @@ static void func_800B4754(AnimationContext* unusedContext, AnimationSlot* arg1, 
     arg1->currentPose.indices.setIndex    = arg2;
 }
 
-void Gp_AnimPlaySlot(AnimationContext* context, s32 arg1, AnimationPose* arg2, u16 arg3, s32 arg4, s32 arg5, s32 arg6,
-                     void* arg7)
+/// Selects a play request's next record while retaining the capture tick's flags.
+///
+/// `candidateIndex` is an absolute u16 element index into the target set's
+/// borrowed records. Jumps replace it with their unsigned offset and add walk
+/// flags, including a boundary when the target equals the slot's prior next
+/// index; set indices are not compared. Stops ignore their offset, retain that
+/// prior index and add the boundary flag. The retained index must also fit the
+/// target array even when the set changes. Every visited record must be readable
+/// and the chain must terminate. Installs only the next record index; the caller
+/// installs the set index. No bounds are checked.
+static inline void _animationSelectPlayRecord(AnimationSlot* playbackSlot, const AnimationRecord* recordArray,
+                                              u16 candidateIndex)
 {
-    AnimationSlot*         slot;
-    AnimationSet*          set;
-    const AnimationRecord* recs;
-    const AnimationRecord* rec;
-    u16                    recordIndex;
-    u16                    blendTime;
-    u8(*bufferedPose)[ANIMATION_POSE_BUFFER_BYTES];
+    const AnimationRecord* controlRecord;
 
-    // Capture this slot's encoded blend before replacing its destination keyframe.
-    bufferedPose = context->poseBuffer + arg1;
-    slot         = &context->slots[arg1];
-    animationTickSlotPose(context, arg1, arg2, bufferedPose);
-    slot->currentPose.indices.setIndex = ANIMATION_SET_BUFFERED_POSE;
-    if (arg7 != NULL) {
-        context->sets = arg7;
-        slot->sets    = arg7;
-    }
-    set  = slot->sets[arg3];
-    recs = set->records;
-    /* arg4 is an offset into the track's records; rebase it to a record index. */
-    arg4        = (u16)(set->trackStartIndices[slot->trackIndex] + arg4);
-    recordIndex = arg4;
-    while ((s8)recs[recordIndex].flags < 0) {
-        rec = recs - -(s32)recordIndex;
-        if (rec->flags < ANIMATION_RECORD_END_THRESHOLD) {
-            recordIndex = rec->wordOffset;
-            if (recordIndex == slot->nextPose.indices.recordIndex) {
-                slot->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
+    // The signed byte tests the control bit; the unsigned threshold distinguishes stops.
+    while ((s8)recordArray[candidateIndex].flags < 0) {
+        // Subtracting the negated promoted index preserves the address-add operand order.
+        controlRecord = recordArray - -candidateIndex;
+        if (controlRecord->flags < ANIMATION_RECORD_END_THRESHOLD) {
+            candidateIndex = controlRecord->wordOffset;
+            if (candidateIndex == playbackSlot->nextPose.indices.recordIndex) {
+                playbackSlot->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
             }
-            slot->flags |= ANIMATION_SLOT_FOLLOWED_JUMP;
+            playbackSlot->flags |= ANIMATION_SLOT_FOLLOWED_JUMP;
         } else {
-            recordIndex  = slot->nextPose.indices.recordIndex;
-            slot->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
+            candidateIndex       = playbackSlot->nextPose.indices.recordIndex;
+            playbackSlot->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
             break;
         }
     }
-    slot->nextPose.indices.recordIndex = recordIndex;
-    slot->nextPose.indices.setIndex    = arg3;
-    blendTime                          = arg6 << ANIMATION_TIME_FRACTION_BITS;
-    slot->timeSpan                     = blendTime;
-    slot->timeLeft                     = blendTime;
-    slot->usesBufferedPose             = 0;
+    playbackSlot->nextPose.indices.recordIndex = candidateIndex;
+}
+
+void animationPlaySlotWithBlend(AnimationContext* context, s32 slotIndex, AnimationPose* unpackedDestination,
+                                u16 setIndex, s32 trackRecordOffset, s32 unusedArgument, s32 blendFrames,
+                                AnimationSet** replacementSetTable)
+{
+    AnimationSlot*         slot;
+    AnimationSet*          set;
+    const AnimationRecord* records;
+    u16                    blendDuration;
+    u8(*bufferedPose)[ANIMATION_POSE_BUFFER_BYTES];
+
+    // Capture this slot's encoded blend before replacing its destination keyframe.
+    bufferedPose = context->poseBuffer + slotIndex;
+    slot         = &context->slots[slotIndex];
+    animationTickSlotPose(context, slotIndex, unpackedDestination, bufferedPose);
+    slot->currentPose.indices.setIndex = ANIMATION_SET_BUFFERED_POSE;
+    if (replacementSetTable != NULL) {
+        context->sets = replacementSetTable;
+        slot->sets    = replacementSetTable;
+    }
+    // Resolve the new track using the replacement table only after capturing the old pose.
+    set               = slot->sets[setIndex];
+    records           = set->records;
+    trackRecordOffset = (u16)(set->trackStartIndices[slot->trackIndex] + trackRecordOffset);
+    _animationSelectPlayRecord(slot, records, trackRecordOffset);
+    slot->nextPose.indices.setIndex = setIndex;
+    blendDuration                   = blendFrames << ANIMATION_TIME_FRACTION_BITS;
+    slot->timeSpan                  = blendDuration;
+    slot->timeLeft                  = blendDuration;
+    slot->usesBufferedPose          = 0;
 }
 
 void Gp_SaveEnemyPose(Enemy* enemy)
