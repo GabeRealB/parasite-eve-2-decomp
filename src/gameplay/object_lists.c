@@ -48,18 +48,41 @@ typedef struct _GpPushScratch {
 } GpPushScratch;
 STATIC_ASSERT_SIZEOF(GpPushScratch, 0x40);
 
-/// 0x34-byte scratch from the scratch stack used by `func_800E0C10`.
-/// `acc[0]` sums `response.normal * distance` for every contributing
-/// `WorldCollisionContact` that sits at or above the floor cutoff (`response.normal.vy >=
-/// -0xDDA`); records below it instead accumulate into `acc[1].vy` and
-/// bump `count`, so the average of that column can be folded in at the
-/// end. `acc[2]` holds the pairwise XZ products used to detect two
-/// records pushing in opposing directions.
-typedef struct _GpSlideScratch {
-    /* 0x00 */ VECTOR acc[3];
-    /* 0x30 */ s32    count;
-} GpSlideScratch;
-STATIC_ASSERT_SIZEOF(GpSlideScratch, 0x34);
+/// Grid-normal Y below which a face counts as a floor.
+///
+/// Components use 4096 for one unit. The floor query records a face only when
+/// its normal Y is below this value, and pushback splits contacts on the same
+/// boundary. 3546 is about the cosine of 30 degrees at this scale, so the
+/// boundary sits about 30 degrees off -Y.
+enum { WORLD_COLLISION_FLOOR_NORMAL_Y = -0xDDA };
+
+/// X or Z product of two 4096-unit normals below which they count as opposed.
+///
+/// The value is minus half of one squared unit. A more negative product on
+/// either axis selects the opposed-push result. The correction is still stored.
+enum { WORLD_COLLISION_OPPOSED_NORMAL_PRODUCT = -0x800000 };
+
+/// Shift from a 12-bit normal-times-distance product to a 16.16 correction.
+enum { WORLD_COLLISION_PUSHBACK_FRACTION_SHIFT = 4 };
+
+/// Scratch-stack workspace for resolving grid contacts into one pushback step.
+///
+/// The block is reserved uninitialized for that resolution and released before
+/// it returns. Only occupied grid contacts on surfaces that apply pushback are
+/// accumulated. `nonFloorSum` totals `normal * distance` for contacts whose
+/// normal is not a floor. `floorSum` totals the vertical part of the floor
+/// contacts, clearing X and Z on every one of them, and `floorCount` is how
+/// many entered that sum so it can be averaged in. `opposedProduct` holds the
+/// latest pairwise X and Z products of the non-floor normals; its Y is unused.
+/// Distances are world-coordinate units, so each product has twelve fractional
+/// bits before `WORLD_COLLISION_PUSHBACK_FRACTION_SHIFT`.
+typedef struct {
+    VECTOR nonFloorSum;    // Sum of normal*distance for pushback contacts that are not floors
+    VECTOR floorSum;       // Floor contacts: Y sums normal.vy*distance; X and Z are cleared each contact
+    VECTOR opposedProduct; // Latest pairwise X and Z products of non-floor normals; Y is unused
+    s32    floorCount;     // Floor contacts included in floorSum; zero skips the average
+} _WorldCollisionPushbackScratch;
+STATIC_ASSERT_SIZEOF(_WorldCollisionPushbackScratch, 0x34);
 
 /// 0x20-byte scratch from the scratch stack used by `func_800E0994`.
 /// `local[0]` / `local[1]` are `(0, pos.vy +/- radius, 0)` in the
@@ -412,14 +435,14 @@ static void Gp_WorldToGrid(VECTOR3* arg0, SVECTOR3* arg1)
 
 s32 func_800E0C10(WorldCollisionContact* arg0, WorldCollisionDelta* delta, s32 arg2, s32* arg3)
 {
-    u8*                    head;
-    GpSlideScratch*        s;
-    WorldCollisionContact* rec;
-    s32                    i;
-    s32                    j;
-    s32                    count;
-    s32                    mask;
-    s32                    ret;
+    u8*                             head;
+    _WorldCollisionPushbackScratch* scratch;
+    WorldCollisionContact*          rec;
+    s32                             i;
+    s32                             j;
+    s32                             count;
+    s32                             mask;
+    s32                             ret;
 
     count = 0;
     ret   = 0;
@@ -434,32 +457,33 @@ s32 func_800E0C10(WorldCollisionContact* arg0, WorldCollisionDelta* delta, s32 a
         }
 
         head                       = SCRATCH_STACK_CURSOR(u8);
-        SCRATCH_STACK_CURSOR(void) = head - 0x34;
-        s                          = (GpSlideScratch*)(head - 0x34);
+        SCRATCH_STACK_CURSOR(void) = head - sizeof(_WorldCollisionPushbackScratch);
+        scratch                    = (_WorldCollisionPushbackScratch*)(head - sizeof(_WorldCollisionPushbackScratch));
 
-        s->acc[0].vx = 0;
-        s->acc[0].vy = 0;
-        s->acc[0].vz = 0;
-        s->acc[1].vx = 0;
-        s->acc[1].vy = 0;
-        s->acc[1].vz = 0;
-        s->count     = 0;
+        scratch->nonFloorSum.vx = 0;
+        scratch->nonFloorSum.vy = 0;
+        scratch->nonFloorSum.vz = 0;
+        scratch->floorSum.vx    = 0;
+        scratch->floorSum.vy    = 0;
+        scratch->floorSum.vz    = 0;
+        scratch->floorCount     = 0;
 
+        // Separate floor contacts from the rest of the pushback.
         for (i = 0; i < arg2; i++) {
             rec = &arg0[i];
             if ((rec->flags & WORLD_COLLISION_CONTACT_OCCUPIED) && (rec->key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_GRID) {
                 mask |= 1 << rec->key.value;
                 if (Gp_RoomParams[rec->key.value & 7] == WORLD_COLLISION_SURFACE_APPLY_PUSHBACK) {
-                    if (rec->response.normal.vy >= -0xDDA) {
-                        s->acc[0].vx += rec->response.normal.vx * rec->distance;
-                        s->acc[0].vy += rec->response.normal.vy * rec->distance;
-                        s->acc[0].vz += rec->response.normal.vz * rec->distance;
-                        list[count++] = i;
+                    if (rec->response.normal.vy >= WORLD_COLLISION_FLOOR_NORMAL_Y) {
+                        scratch->nonFloorSum.vx += rec->response.normal.vx * rec->distance;
+                        scratch->nonFloorSum.vy += rec->response.normal.vy * rec->distance;
+                        scratch->nonFloorSum.vz += rec->response.normal.vz * rec->distance;
+                        list[count++]            = i;
                     } else {
-                        s->acc[1].vx  = 0;
-                        s->acc[1].vy += rec->response.normal.vy * rec->distance;
-                        s->acc[1].vz  = 0;
-                        s->count++;
+                        scratch->floorSum.vx  = 0;
+                        scratch->floorSum.vy += rec->response.normal.vy * rec->distance;
+                        scratch->floorSum.vz  = 0;
+                        scratch->floorCount++;
                     }
                 }
                 ret = 1;
@@ -470,26 +494,28 @@ s32 func_800E0C10(WorldCollisionContact* arg0, WorldCollisionDelta* delta, s32 a
             *arg3 = mask;
         }
 
+        // Record when two non-floor normals oppose on X or Z.
         for (i = 0; i < count; i++) {
             for (j = 1; j < count; j++) {
-                s->acc[2].vx = arg0[list[i]].response.normal.vx * arg0[list[j]].response.normal.vx;
-                s->acc[2].vz = arg0[list[i]].response.normal.vz * arg0[list[j]].response.normal.vz;
-                if (s->acc[2].vx < -0x800000 || s->acc[2].vz < -0x800000) {
+                scratch->opposedProduct.vx = arg0[list[i]].response.normal.vx * arg0[list[j]].response.normal.vx;
+                scratch->opposedProduct.vz = arg0[list[i]].response.normal.vz * arg0[list[j]].response.normal.vz;
+                if (scratch->opposedProduct.vx < WORLD_COLLISION_OPPOSED_NORMAL_PRODUCT || scratch->opposedProduct.vz < WORLD_COLLISION_OPPOSED_NORMAL_PRODUCT) {
                     ret = 2;
                 }
             }
         }
 
-        delta->fixed.vx.word = s->acc[0].vx << 4;
-        delta->fixed.vy.word = s->acc[0].vy << 4;
-        delta->fixed.vz.word = s->acc[0].vz << 4;
-        if (s->count != 0) {
-            delta->fixed.vx.word += (s->acc[1].vx / s->count) << 4;
-            delta->fixed.vy.word += (s->acc[1].vy / s->count) << 4;
-            delta->fixed.vz.word += (s->acc[1].vz / s->count) << 4;
+        // Convert the 12-bit products to a 16.16 correction, averaging the floors.
+        delta->fixed.vx.word = scratch->nonFloorSum.vx << WORLD_COLLISION_PUSHBACK_FRACTION_SHIFT;
+        delta->fixed.vy.word = scratch->nonFloorSum.vy << WORLD_COLLISION_PUSHBACK_FRACTION_SHIFT;
+        delta->fixed.vz.word = scratch->nonFloorSum.vz << WORLD_COLLISION_PUSHBACK_FRACTION_SHIFT;
+        if (scratch->floorCount != 0) {
+            delta->fixed.vx.word += (scratch->floorSum.vx / scratch->floorCount) << WORLD_COLLISION_PUSHBACK_FRACTION_SHIFT;
+            delta->fixed.vy.word += (scratch->floorSum.vy / scratch->floorCount) << WORLD_COLLISION_PUSHBACK_FRACTION_SHIFT;
+            delta->fixed.vz.word += (scratch->floorSum.vz / scratch->floorCount) << WORLD_COLLISION_PUSHBACK_FRACTION_SHIFT;
         }
 
-        SCRATCH_STACK_RELEASE_BYTES(0x34);
+        SCRATCH_STACK_RELEASE_BYTES(sizeof(_WorldCollisionPushbackScratch));
         return ret;
     }
 }
