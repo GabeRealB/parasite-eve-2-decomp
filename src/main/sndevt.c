@@ -162,37 +162,76 @@ typedef struct {
 } _MidiNoteSlot;
 STATIC_ASSERT_SIZEOF(_MidiNoteSlot, 0xC);
 
-/// Resident sequence, its timing/volume state, eighteen tracks, sixteen MIDI
-/// channels and eighteen SPU voice slots. The sequence buffer is byte data;
-/// sequenceBytes is its aligned length and waveBytes describes its bank data.
-typedef struct _MidiSong {
-    /* 0x00 */ u8                 status;
-    /* 0x01 */ u8                 sequenceId;
-    /* 0x02 */ u8                 format;
-    /* 0x03 */ u8                 trackCount;
-    /* 0x04 */ u8                 field_4;
-    /* 0x05 */ u8                 field_5;
-    /* 0x06 */ u8                 field_6;
-    /* 0x07 */ u8                 field_7;
-    /* 0x08 */ s16                volumeScale;
-    /* 0x0A */ s16                sequenceBytes;
-    /* 0x0C */ s32                volumeDirtyChannels;
-    /* 0x10 */ u8*                sequenceData;
-    /* 0x14 */ LinInterp          volumeRamp;
-    /* 0x24 */ u8                 unknown_24[0x10];
-    /* 0x34 */ s32                ticksPerQuarter;
-    /* 0x38 */ s32                songTicks;
-    /* 0x3C */ s32                waveBytes;
-    /* 0x40 */ SndBank*           bank;
-    /* 0x44 */ SndBankGroup*      groups;
-    /* 0x48 */ SndBankLayer*      notes;
-    /* 0x4C */ _MidiTrack         entries[18];
-    /* 0x484 */ _MidiChannelTable channels;
-    /* 0x504 */ _MidiNoteSlot     voiceSlots[0x12];
-} MidiSong;
-STATIC_ASSERT_SIZEOF(MidiSong, 0x5DC);
+// Playback phase stored in a song's status byte.
+enum {
+    MIDI_SONG_IDLE       = 0,    // Stopped; a loaded sequence can start
+    MIDI_SONG_PLAYING    = 2,    // Tracks advance at the published tempo
+    MIDI_SONG_STOPPING   = 4,    // Release voices and return to idle
+    MIDI_SONG_MUTED      = 8,    // Tracks continue while gain falls to silence
+    MIDI_SONG_UNMUTING   = 0x10, // Tracks continue while gain returns
+    MIDI_SONG_FADING_IN  = 0x40, // Gain rises, then playback continues
+    MIDI_SONG_FADING_OUT = 0x80, // Gain falls, then the sequence stops
+    // Phases from which a mute fade is accepted.
+    MIDI_SONG_MUTABLE = MIDI_SONG_PLAYING | MIDI_SONG_UNMUTING,
+    // Playing, muted, or fading. Stopping and unmuting are excluded.
+    MIDI_SONG_BUSY = MIDI_SONG_PLAYING | MIDI_SONG_MUTED | MIDI_SONG_FADING_IN | MIDI_SONG_FADING_OUT
+};
 
-typedef u8* (*MidiHandler)(s32, u8*, MidiSong*, _MidiTrack*);
+// Tempo, channel-dirty mask, and the fixed track and voice capacities.
+enum {
+    MIDI_SONG_INITIAL_TEMPO_BPM  = 0xFF,     // Quarter notes per minute before a tempo event
+    MIDI_MICROSECONDS_PER_MINUTE = 60000000, // SMF tempo: quarter notes per minute = this / microseconds per quarter
+    MIDI_SONG_ALL_CHANNELS_DIRTY = 0xFFFF,   // Every channel bit in volumeDirtyChannels
+    MIDI_SONG_TRACK_CAPACITY     = 18,       // Track records; the header count is not checked against this
+    MIDI_SONG_VOICE_COUNT        = 18        // Voice slots, indexed by SPU voice 0..17
+};
+
+/// Resident MIDI sequence: its image, tempo, gain, tracks, channels and voices.
+///
+/// One record is resident. Its sequence id is 255 until a sequence is loaded;
+/// command id 0 addresses every loaded sequence. The image is borrowed from the
+/// loader and remains valid until that buffer is reused.
+///
+/// Tempo is quarter notes per minute, truncated to a byte. A tempo event writes
+/// the pending byte, and playback publishes it after every track has advanced,
+/// so the new tempo starts on the next update. The offset bytes are added to
+/// that tempo and published with it; every writer stores zero.
+///
+/// Startup gain is (mix-table level * 3) << 5. A volume command replaces it
+/// with the mix-table level times the requested gain. Playback zero-extends
+/// the stored value. Sequence 0x5A ignores it and repeats the startup formula;
+/// sequence 0x4F refreshes every voice on each track advance.
+///
+/// `groups` caches the bank's program table. `layers` caches its layer table
+/// and has no reader; playback looks layers up through the bank.
+typedef struct {
+    u8                status;                            // Playback phase (MIDI_SONG_IDLE through MIDI_SONG_FADING_OUT)
+    u8                sequenceId;                        // Loaded sequence id (255 none)
+    u8                format;                            // SMF format low byte; stored, no reader
+    u8                trackCount;                        // Active tracks; low byte of the SMF track count
+    u8                currentTempoBpm;                   // Quarter notes per minute used while advancing tracks
+    u8                currentTempoOffsetBpm;             // Added to the tempo; every writer stores 0
+    u8                pendingTempoBpm;                   // Tempo published after this update's tracks advance
+    u8                pendingTempoOffsetBpm;             // Offset published with the pending tempo; writers store 0
+    s16               volumeScale;                       // Sequence gain, zero-extended and divided by 127 with master volume
+    s16               sequenceBytes;                     // 4-byte-aligned image length in bytes; startup 16, no reader
+    s32               volumeDirtyChannels;               // Bit per channel (0..15) whose playing voices need new volumes
+    u8*               sequenceData;                      // Borrowed sequence image, header included
+    LinInterp         volumeRamp;                        // Fade, mute and unmute gain (0 silence, 65535 unity)
+    u8                unknown_24[0x10];                  // No individual access; role unproven
+    s32               ticksPerQuarter;                   // SMF division, applied as MIDI ticks per quarter note
+    s32               songTicks;                         // Sum of whole MIDI ticks each driven track advances; no other reader
+    s32               waveBytes;                         // Cached sample-pool byte length; startup 16, no reader
+    SndBank*          bank;                              // Program and layer tables for this sequence
+    SndBankGroup*     groups;                            // Cached program table, indexed by the channel's program
+    SndBankLayer*     layers;                            // Cached layer table; no reader
+    _MidiTrack        tracks[MIDI_SONG_TRACK_CAPACITY];  // Sequence tracks; capacity is not enforced on the header count
+    _MidiChannelTable channels;                          // Sixteen channel control records
+    _MidiNoteSlot     voiceSlots[MIDI_SONG_VOICE_COUNT]; // One slot per SPU voice 0..17
+} _MidiSong;
+STATIC_ASSERT_SIZEOF(_MidiSong, 0x5DC);
+
+typedef u8* (*MidiHandler)(s32, u8*, _MidiSong*, _MidiTrack*);
 
 /* Define BSS before API headers to preserve first-declaration order. */
 /// Permission for the audio interrupt to drain deferred sound events (0 defer, 1 process).
@@ -238,7 +277,7 @@ static u8 D_8007F2F0;
 /// Unreferenced.
 static u8 D_8007F2F8[8];
 
-static MidiSong Midi_Song;
+static _MidiSong Midi_Song;
 
 static u8 D_8007F8E0[0x2800];
 
@@ -333,7 +372,7 @@ static void Midi_FadeVolume(u8 arg0, s32 arg1);
 
 static void Midi_SetVolumeScale(u8 arg0, u8 arg1);
 
-static MidiSong* Midi_GetSlot(s32 unused);
+static _MidiSong* Midi_GetSlot(s32 unused);
 
 static void* Midi_GetFixedBuffer(s32 unused1, s32 unused2);
 
@@ -345,42 +384,42 @@ static void Midi_InitSlot(s32 arg0);
  * id/length header followed by `length` bytes, so track 0 follows the file
  * header chunk at `arg2`, and each later track follows the one before it,
  * whose data pointer must already be set. */
-static u8* Midi_ResolveTrackData(MidiSong* song, s32 arg1, u8* arg2);
+static u8* Midi_ResolveTrackData(_MidiSong* song, s32 arg1, u8* arg2);
 
-static void Midi_ResetTrackFlags(MidiSong* song);
+static void Midi_ResetTrackFlags(_MidiSong* song);
 
-static void Midi_KeyOffVoices(MidiSong* song);
+static void Midi_KeyOffVoices(_MidiSong* song);
 
-static void Midi_DriveTrack(MidiSong* song, _MidiTrack* track);
+static void Midi_DriveTrack(_MidiSong* song, _MidiTrack* track);
 
-static void Midi_UpdateVoiceVolumes(MidiSong* song);
+static void Midi_UpdateVoiceVolumes(_MidiSong* song);
 
 /* Note off: keys off every voice slot playing this channel's key, unless the
  * channel's noteEventsDisabled flag is set. A note on with zero velocity is a note off
  * too, and its event is one byte longer. Returns the cursor past the event. */
-static inline u8* _midiNoteOff(s32 status, u8* data, MidiSong* song);
+static inline u8* _midiNoteOff(s32 status, u8* data, _MidiSong* song);
 
-static u8* Midi_Event1(s32 arg0, u8* arg1, MidiSong* song, _MidiTrack* unused);
+static u8* Midi_Event1(s32 arg0, u8* arg1, _MidiSong* song, _MidiTrack* unused);
 
-static u8* Midi_Event3(s32 arg0, u8* arg1, MidiSong* song, _MidiTrack* track);
+static u8* Midi_Event3(s32 arg0, u8* arg1, _MidiSong* song, _MidiTrack* track);
 
 /* Decodes the variable-length quantity at `p`, storing how many bytes it
  * took in `*len`. */
 static inline s32 _midiReadVlq(u8* p, u8* len);
 
-static u8* Midi_HandleMetaSysex(s32 unused1, u8* arg1, MidiSong* song, _MidiTrack* track);
+static u8* Midi_HandleMetaSysex(s32 unused1, u8* arg1, _MidiSong* song, _MidiTrack* track);
 
 static s32 Midi_ReadVlq(u8* arg0, u8* arg1);
 
 static void Midi_InitChannelTable(_MidiChannelTable* channels);
 
-static u8* Midi_IncPtr(s32 unused1, u8* arg1, MidiSong* unusedSong, _MidiTrack* unusedTrack);
+static u8* Midi_IncPtr(s32 unused1, u8* arg1, _MidiSong* unusedSong, _MidiTrack* unusedTrack);
 
-static u8* Midi_KeyOffChannel(s32 arg0, u8* arg1, MidiSong* song, _MidiTrack* unused);
+static u8* Midi_KeyOffChannel(s32 arg0, u8* arg1, _MidiSong* song, _MidiTrack* unused);
 
-static u8* Midi_SetProgram(s32 arg0, u8* arg1, MidiSong* song, _MidiTrack* unused);
+static u8* Midi_SetProgram(s32 arg0, u8* arg1, _MidiSong* song, _MidiTrack* unused);
 
-static u8* Midi_PitchBend(s32 arg0, u8* arg1, MidiSong* song, _MidiTrack* unused);
+static u8* Midi_PitchBend(s32 arg0, u8* arg1, _MidiSong* song, _MidiTrack* unused);
 
 static s32 SndBank_SetupFromLoad(SndLoadState* load);
 
@@ -741,9 +780,9 @@ static void SndEvt_HandleKeyOffMatching(SndEvt* unused)
 
 s32 Midi_InitSystem(u32 unused)
 {
-    s32       i;
-    MidiSong* state;
-    SndBank*  bank;
+    s32        i;
+    _MidiSong* song;
+    SndBank*   bank;
 
     for (i = 0; i <= 0; i++) {
         Midi_InitSlot(i & 0xFF);
@@ -753,21 +792,21 @@ s32 Midi_InitSystem(u32 unused)
     D_800820E0 = 0;
     D_800820E4 = 0;
     Spu_SetVoiceRange(0, 0, 0x10);
-    state                = Midi_GetSlot(0xFF);
-    state->sequenceId    = 0xFF;
-    state->sequenceBytes = 0x10;
-    state->sequenceData  = D_8007F8E0;
+    song                = Midi_GetSlot(SOUND_EVENT_MIDI_INVALID_SEQUENCE);
+    song->sequenceId    = SOUND_EVENT_MIDI_INVALID_SEQUENCE;
+    song->sequenceBytes = 0x10;
+    song->sequenceData  = D_8007F8E0;
     do {
-        bank                   = &Snd_Banks[Snd_BankSlotsByType[15]];
-        state->bank            = bank;
-        bank->bankId           = 0xF0FF;
-        state->bank->heapBlock = SndHeap_Malloc(SOUND_BANK_SEQUENCE_TABLE_BYTES);
+        bank                  = &Snd_Banks[Snd_BankSlotsByType[15]];
+        song->bank            = bank;
+        bank->bankId          = 0xF0FF;
+        song->bank->heapBlock = SndHeap_Malloc(SOUND_BANK_SEQUENCE_TABLE_BYTES);
     } while (0);
-    state->bank->groups          = state->bank->heapBlock;
-    state->bank->layers          = state->bank->heapBlock;
-    state->bank->groupFirstLayer = state->bank->heapBlock;
-    Snd_SequenceBankBuffer       = state->bank->heapBlock;
-    state->waveBytes             = 0x10;
+    song->bank->groups          = song->bank->heapBlock;
+    song->bank->layers          = song->bank->heapBlock;
+    song->bank->groupFirstLayer = song->bank->heapBlock;
+    Snd_SequenceBankBuffer      = song->bank->heapBlock;
+    song->waveBytes             = 0x10;
     return -1;
 }
 
@@ -775,7 +814,7 @@ static s32 Midi_InitSequence(u8 arg0, u16 arg1)
 {
     s32         i;
     s32         j;
-    MidiSong*   obj;
+    _MidiSong*  song;
     _MidiTrack* tracks;
     _MidiTrack* track;
     u8*         data;
@@ -785,30 +824,30 @@ static s32 Midi_InitSequence(u8 arg0, u16 arg1)
 
     i = 0;
     do {
-        obj = &Midi_Song + i;
-        if (obj->sequenceId != 0xFF) {
-            if ((obj->sequenceId == arg0) && (obj->status == 0)) {
-                Midi_InitChannelTable(&obj->channels);
-                data = obj->sequenceData;
+        song = &Midi_Song + i;
+        if (song->sequenceId != SOUND_EVENT_MIDI_INVALID_SEQUENCE) {
+            if ((song->sequenceId == arg0) && (song->status == MIDI_SONG_IDLE)) {
+                Midi_InitChannelTable(&song->channels);
+                data = song->sequenceData;
                 if (((data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3]) != 0x4D546864) {
                     return -1;
                 }
 
-                tracks          = obj->entries;
-                obj->format     = data[9];
-                clearPtr        = (s32*)tracks;
-                obj->trackCount = data[0xB];
+                tracks           = song->tracks;
+                song->format     = data[9];
+                clearPtr         = (s32*)tracks;
+                song->trackCount = data[0xB];
 
                 // Clear each complete active record through its 32-bit representation.
-                for (j = 0; j < obj->trackCount * (sizeof(_MidiTrack) / sizeof(s32)); j++) {
+                for (j = 0; j < song->trackCount * (sizeof(_MidiTrack) / sizeof(s32)); j++) {
                     *clearPtr++ = 0;
                 }
 
-                if (obj->trackCount != 0) {
+                if (song->trackCount != 0) {
                     j     = 0;
                     track = tracks;
                     do {
-                        trackPtr                              = Midi_ResolveTrackData(obj, j & 0xFF, obj->sequenceData);
+                        trackPtr                              = Midi_ResolveTrackData(song, j & 0xFF, song->sequenceData);
                         track->savedCursors.startup.dataStart = trackPtr;
                         track->eventCursor                    = trackPtr;
                         if ((trackPtr < D_8007F8E0) || (trackPtr >= (u8*)&D_800820E0)) {
@@ -819,29 +858,29 @@ static s32 Midi_InitSequence(u8 arg0, u16 arg1)
                         track->tickFraction    = MIDI_TRACK_INITIAL_TICK_FRACTION;
                         j++;
                         track++;
-                    } while (j < obj->trackCount);
+                    } while (j < song->trackCount);
                 }
 
-                obj->groups          = obj->bank->groups;
-                obj->notes           = obj->bank->layers;
-                obj->ticksPerQuarter = (data[0xC] << 8) | data[0xD];
-                obj->field_6         = 0xFF;
-                obj->field_4         = 0xFF;
-                obj->field_7         = 0;
-                obj->field_5         = 0;
-                obj->volumeScale     = (D_800689F0[obj->sequenceId] * 3) << 5;
-                LinInterp_Setup(&obj->volumeRamp, 0, D_8007F2F0, arg1);
+                song->groups                = song->bank->groups;
+                song->layers                = song->bank->layers;
+                song->ticksPerQuarter       = (data[0xC] << 8) | data[0xD];
+                song->pendingTempoBpm       = MIDI_SONG_INITIAL_TEMPO_BPM;
+                song->currentTempoBpm       = MIDI_SONG_INITIAL_TEMPO_BPM;
+                song->pendingTempoOffsetBpm = 0;
+                song->currentTempoOffsetBpm = 0;
+                song->volumeScale           = (D_800689F0[song->sequenceId] * 3) << 5;
+                LinInterp_Setup(&song->volumeRamp, 0, D_8007F2F0, arg1);
 
                 if (arg1 != 0) {
-                    obj->status = 0x40;
+                    song->status = MIDI_SONG_FADING_IN;
                 } else {
-                    obj->status = 2;
+                    song->status = MIDI_SONG_PLAYING;
                 }
 
-                obj->volumeDirtyChannels = 0xFFFF;
-                obj->songTicks           = 0;
-                for (j = 0; j < ARRAY_SIZE(obj->voiceSlots); j++) {
-                    Midi_ClearVoiceEntry(&obj->voiceSlots[j]);
+                song->volumeDirtyChannels = MIDI_SONG_ALL_CHANNELS_DIRTY;
+                song->songTicks           = 0;
+                for (j = 0; j < ARRAY_SIZE(song->voiceSlots); j++) {
+                    Midi_ClearVoiceEntry(&song->voiceSlots[j]);
                 }
 
                 return i;
@@ -857,57 +896,58 @@ static s32 Midi_InitSequence(u8 arg0, u16 arg1)
 
 s32 Midi_Tick(s32* unused)
 {
-    MidiSong* song;
-    s32       i;
-    s32       j;
+    _MidiSong* song;
+    s32        i;
+    s32        j;
 
     for (i = 0; i < 1; i++) {
         song = &Midi_Song + i;
-        if (song->sequenceId == 0xFF) {
+        if (song->sequenceId == SOUND_EVENT_MIDI_INVALID_SEQUENCE) {
             break;
         }
         switch (song->status) {
-            case 0:
+            case MIDI_SONG_IDLE:
                 break;
-            case 0x40:
-            case 0x80:
+            case MIDI_SONG_FADING_IN:
+            case MIDI_SONG_FADING_OUT:
                 if (song->volumeRamp.gain == song->volumeRamp.targetGain) {
-                    if (song->status == 0x40) {
-                        song->status = 2;
+                    if (song->status == MIDI_SONG_FADING_IN) {
+                        song->status = MIDI_SONG_PLAYING;
                     } else {
-                        song->status = 4;
+                        song->status = MIDI_SONG_STOPPING;
                         goto stop;
                     }
                 }
                 /* fallthrough */
-            case 8:
+            case MIDI_SONG_MUTED:
                 LinInterp_Step(&song->volumeRamp);
-                song->volumeDirtyChannels = 0xFFFF;
+                song->volumeDirtyChannels = MIDI_SONG_ALL_CHANNELS_DIRTY;
                 /* fallthrough */
-            case 2:
+            case MIDI_SONG_PLAYING:
             play:
                 for (j = 0; j < song->trackCount; j++) {
-                    if (song->entries[j].ended == false) {
-                        Midi_DriveTrack(song, &song->entries[j]);
+                    if (song->tracks[j].ended == false) {
+                        Midi_DriveTrack(song, &song->tracks[j]);
                     }
                 }
-                song->field_4 = song->field_6;
-                song->field_5 = song->field_7;
+                // The tempo event's pending bytes apply on the next update.
+                song->currentTempoBpm       = song->pendingTempoBpm;
+                song->currentTempoOffsetBpm = song->pendingTempoOffsetBpm;
                 break;
-            case 4:
+            case MIDI_SONG_STOPPING:
             stop:
                 Midi_ResetTrackFlags(song);
                 Midi_KeyOffVoices(song);
-                song->status = 0;
+                song->status = MIDI_SONG_IDLE;
                 break;
-            case 0x10:
-                if (song->status == 8 && song->volumeRamp.gain >= song->volumeRamp.targetGain) {
-                    song->volumeDirtyChannels = 0xFFFF;
-                    song->status              = 2;
+            case MIDI_SONG_UNMUTING:
+                if (song->status == MIDI_SONG_MUTED && song->volumeRamp.gain >= song->volumeRamp.targetGain) {
+                    song->volumeDirtyChannels = MIDI_SONG_ALL_CHANNELS_DIRTY;
+                    song->status              = MIDI_SONG_PLAYING;
                     goto play;
                 }
                 LinInterp_Step(&song->volumeRamp);
-                song->volumeDirtyChannels = 0xFFFF;
+                song->volumeDirtyChannels = MIDI_SONG_ALL_CHANNELS_DIRTY;
                 goto play;
         }
         if (song->volumeDirtyChannels != 0) {
@@ -1020,12 +1060,12 @@ s32 Midi_IsBusy(s32 arg0)
     s32 i;
 
     arg0 &= 0xFF;
-    if (arg0 == 0xFF) {
+    if (arg0 == SOUND_EVENT_MIDI_INVALID_SEQUENCE) {
         return 0;
     }
     for (i = 0; i <= 0; i++) {
-        if ((arg0 == (&Midi_Song)[i].sequenceId) || (arg0 == 0)) {
-            if ((&Midi_Song)[i].status & 0xCA) {
+        if ((arg0 == (&Midi_Song)[i].sequenceId) || (arg0 == SOUND_EVENT_MIDI_ALL_SEQUENCES)) {
+            if ((&Midi_Song)[i].status & MIDI_SONG_BUSY) {
                 return 1;
             }
         }
@@ -1040,7 +1080,7 @@ s32 Midi_IsChannelFree(u8 arg0)
     if (gSndVolumeReducedMode == SOUND_VOLUME_MODE_REDUCED) {
         return 0;
     }
-    if (arg0 == 0xFF) {
+    if (arg0 == SOUND_EVENT_MIDI_INVALID_SEQUENCE) {
         return 1;
     }
     for (i = 0; i <= 0; i++) {
@@ -1053,17 +1093,17 @@ s32 Midi_IsChannelFree(u8 arg0)
 
 static void Midi_StartFadeOut(u8 arg0, u16 arg1)
 {
-    s32       i;
-    MidiSong* ptr;
+    s32        i;
+    _MidiSong* song;
 
     for (i = 0; i <= 0; i++) {
-        ptr = &Midi_Song + i;
-        if ((arg0 == ptr->sequenceId) || (arg0 == 0)) {
-            if (ptr->status == 2) {
-                ptr->status = 0x80;
-                LinInterp_Setup(&ptr->volumeRamp, D_8007F2F0, 0, arg1);
+        song = &Midi_Song + i;
+        if ((arg0 == song->sequenceId) || (arg0 == SOUND_EVENT_MIDI_ALL_SEQUENCES)) {
+            if (song->status == MIDI_SONG_PLAYING) {
+                song->status = MIDI_SONG_FADING_OUT;
+                LinInterp_Setup(&song->volumeRamp, D_8007F2F0, 0, arg1);
             } else {
-                ptr->status = 4;
+                song->status = MIDI_SONG_STOPPING;
             }
         }
     }
@@ -1071,21 +1111,21 @@ static void Midi_StartFadeOut(u8 arg0, u16 arg1)
 
 static void Midi_FadeVolume(u8 arg0, s32 arg1)
 {
-    s32       i;
-    MidiSong* ptr;
+    s32        i;
+    _MidiSong* song;
 
     for (i = 0; i <= 0; i++) {
-        ptr = &Midi_Song + i;
-        if ((arg0 == ptr->sequenceId) || (arg0 == 0)) {
+        song = &Midi_Song + i;
+        if ((arg0 == song->sequenceId) || (arg0 == SOUND_EVENT_MIDI_ALL_SEQUENCES)) {
             if (arg1 == 0) {
-                if (ptr->status == 8) {
-                    ptr->status = 0x10;
-                    LinInterp_Setup(&ptr->volumeRamp, 0, D_8007F2F0, 8);
+                if (song->status == MIDI_SONG_MUTED) {
+                    song->status = MIDI_SONG_UNMUTING;
+                    LinInterp_Setup(&song->volumeRamp, 0, D_8007F2F0, 8);
                 }
             } else {
-                if (ptr->status & 0x12) {
-                    ptr->status = 8;
-                    LinInterp_Setup(&ptr->volumeRamp, D_8007F2F0, 0, 8);
+                if (song->status & MIDI_SONG_MUTABLE) {
+                    song->status = MIDI_SONG_MUTED;
+                    LinInterp_Setup(&song->volumeRamp, D_8007F2F0, 0, 8);
                 }
             }
         }
@@ -1094,19 +1134,19 @@ static void Midi_FadeVolume(u8 arg0, s32 arg1)
 
 static void Midi_SetVolumeScale(u8 arg0, u8 arg1)
 {
-    s32       i;
-    u8*       table;
-    MidiSong* arr;
-    s32       product;
+    s32        i;
+    u8*        table;
+    _MidiSong* song;
+    s32        product;
 
-    i   = 0;
-    arr = &Midi_Song;
+    i    = 0;
+    song = &Midi_Song;
     for (; i <= 0; i++) {
-        if ((arg0 == arr[i].sequenceId) || (arg0 == 0)) {
-            table                      = D_800689F0;
-            product                    = table[arr[i].sequenceId] * arg1;
-            arr[i].volumeDirtyChannels = 0xFFFF;
-            arr[i].volumeScale         = product;
+        if ((arg0 == song[i].sequenceId) || (arg0 == SOUND_EVENT_MIDI_ALL_SEQUENCES)) {
+            table                       = D_800689F0;
+            product                     = table[song[i].sequenceId] * arg1;
+            song[i].volumeDirtyChannels = MIDI_SONG_ALL_CHANNELS_DIRTY;
+            song[i].volumeScale         = product;
         }
     }
 }
@@ -1125,7 +1165,7 @@ void Midi_SetMasterVolume(s32 arg0)
     }
 
     i   = 0;
-    val = 0xFFFF;
+    val = MIDI_SONG_ALL_CHANNELS_DIRTY;
     for (; i <= 0; i++) {
         (&Midi_Song)[i].volumeDirtyChannels = val;
     }
@@ -1136,11 +1176,11 @@ s32 Midi_GetMasterVolume(void)
     return D_8007F2F0;
 }
 
-static MidiSong* Midi_GetSlot(s32 unused)
+static _MidiSong* Midi_GetSlot(s32 unused)
 {
-    if (Midi_Song.status != 0) {
+    if (Midi_Song.status != MIDI_SONG_IDLE) {
         Midi_ResetTrackFlags(&Midi_Song);
-        Midi_Song.status = 4;
+        Midi_Song.status = MIDI_SONG_STOPPING;
     }
     return &Midi_Song;
 }
@@ -1211,7 +1251,7 @@ void SndEvt_FlushType5Pending(void)
 
 static void Midi_InitSlot(s32 arg0)
 {
-    MidiSong*      obj;
+    _MidiSong*     song;
     s32*           p;
     u32            i;
     s32            slotOffsetBytes;
@@ -1221,26 +1261,26 @@ static void Midi_InitSlot(s32 arg0)
     s8             freeSlotMarker;
 
     arg0 &= 0xFF;
-    obj   = &(&Midi_Song)[arg0];
+    song  = &(&Midi_Song)[arg0];
 
-    p = (s32*)obj;
+    p = (s32*)song;
     i = 0;
     do {
         *p = 0;
         i++;
         p++;
-    } while (i < 0x177U);
+    } while (i < sizeof(*song) / sizeof(*p));
 
-    LinInterp_Setup(&obj->volumeRamp, 0, 0, 0);
-    Midi_InitChannelTable(&obj->channels);
+    LinInterp_Setup(&song->volumeRamp, 0, 0, 0);
+    Midi_InitChannelTable(&song->channels);
 
     i               = 0;
     freeSlotMarker  = MIDI_NOTE_SLOT_FREE;
     slotOffsetBytes = 0;
     do {
         // Keep offset-first address formation, then locate the contained slot.
-        slot          = (_MidiNoteSlot*)(slotOffsetBytes + (s32)obj);
-        slot          = (_MidiNoteSlot*)((u8*)slot + OFFSET_OF(MidiSong, voiceSlots));
+        slot          = (_MidiNoteSlot*)(slotOffsetBytes + (s32)song);
+        slot          = (_MidiNoteSlot*)((u8*)slot + OFFSET_OF(_MidiSong, voiceSlots));
         slotWords     = (s32*)slot;
         slotWordIndex = 0;
         do {
@@ -1252,7 +1292,7 @@ static void Midi_InitSlot(s32 arg0)
         i++;
         slot->channel = freeSlotMarker;
         slot->voice   = freeSlotMarker;
-    } while ((s32)i < ARRAY_SIZE(obj->voiceSlots));
+    } while ((s32)i < ARRAY_SIZE(song->voiceSlots));
 }
 
 /// Reads the big-endian 32-bit value at `p`, the form every length in a
@@ -1263,12 +1303,12 @@ static void Midi_InitSlot(s32 arg0)
  * id/length header followed by `length` bytes, so track 0 follows the file
  * header chunk at `arg2`, and each later track follows the one before it,
  * whose data pointer must already be set. */
-static u8* Midi_ResolveTrackData(MidiSong* song, s32 arg1, u8* arg2)
+static u8* Midi_ResolveTrackData(_MidiSong* song, s32 arg1, u8* arg2)
 {
     u32 len;
 
     if ((u8)arg1 != 0) {
-        arg2 = song->entries[(u8)arg1 - 1].savedCursors.startup.dataStart;
+        arg2 = song->tracks[(u8)arg1 - 1].savedCursors.startup.dataStart;
         len  = MIDI_READ_BE32(arg2 - 4);
         return arg2 + len + 8;
     }
@@ -1276,16 +1316,16 @@ static u8* Midi_ResolveTrackData(MidiSong* song, s32 arg1, u8* arg2)
     return arg2 + 8 + len + 8;
 }
 
-static void Midi_ResetTrackFlags(MidiSong* song)
+static void Midi_ResetTrackFlags(_MidiSong* song)
 {
     s32 i;
 
     for (i = 0; i < song->trackCount; i++) {
-        song->entries[i].ended = true;
+        song->tracks[i].ended = true;
     }
 }
 
-static void Midi_KeyOffVoices(MidiSong* song)
+static void Midi_KeyOffVoices(_MidiSong* song)
 {
     s32            i;
     _MidiNoteSlot* slot;
@@ -1314,7 +1354,7 @@ static void Midi_KeyOffVoices(MidiSong* song)
     } while (i < ARRAY_SIZE(song->voiceSlots));
 }
 
-static void Midi_DriveTrack(MidiSong* song, _MidiTrack* track)
+static void Midi_DriveTrack(_MidiSong* song, _MidiTrack* track)
 {
     u8  len;
     u32 temp;
@@ -1324,7 +1364,7 @@ static void Midi_DriveTrack(MidiSong* song, _MidiTrack* track)
     u8  status;
 
     // Carry the fractional numerator while advancing by whole MIDI ticks.
-    temp = track->tickFraction + (song->field_4 + song->field_5) * song->ticksPerQuarter;
+    temp = track->tickFraction + (song->currentTempoBpm + song->currentTempoOffsetBpm) * song->ticksPerQuarter;
     if (gDisplayState.region == MODE_PAL) {
         quot = temp / MIDI_TRACK_PAL_TICK_DIVISOR;
     } else {
@@ -1339,7 +1379,7 @@ static void Midi_DriveTrack(MidiSong* song, _MidiTrack* track)
     song->songTicks    += quot;
     ticks               = quot;
     if (song->sequenceId == 0x4F) {
-        song->volumeDirtyChannels = 0xFFFF;
+        song->volumeDirtyChannels = MIDI_SONG_ALL_CHANNELS_DIRTY;
     }
     while (ticks >= track->ticksUntilEvent) {
         ticks                 -= track->ticksUntilEvent;
@@ -1362,7 +1402,7 @@ static void Midi_DriveTrack(MidiSong* song, _MidiTrack* track)
             if (track->eventCursor == NULL) {
                 track->nrpnMsb      = MIDI_TRACK_NRPN_IDLE;
                 track->tickFraction = 0;
-                song->status        = 4;
+                song->status        = MIDI_SONG_STOPPING;
                 return;
             }
             track->ticksUntilEvent = Midi_ReadVlq(track->eventCursor, &len);
@@ -1373,7 +1413,7 @@ end:
     track->ticksUntilEvent -= ticks;
 }
 
-static void Midi_UpdateVoiceVolumes(MidiSong* song)
+static void Midi_UpdateVoiceVolumes(_MidiSong* song)
 {
     // The velocity curve reaches 16383; retain a 0..127 channel gain before
     // combining it with the note's gain and the song's SPU volume.
@@ -1439,7 +1479,7 @@ static void Midi_UpdateVoiceVolumes(MidiSong* song)
 /* Note off: keys off every voice slot playing this channel's key, unless the
  * channel's noteEventsDisabled flag is set. A note on with zero velocity is a note off
  * too, and its event is one byte longer. Returns the cursor past the event. */
-static inline u8* _midiNoteOff(s32 status, u8* data, MidiSong* song)
+static inline u8* _midiNoteOff(s32 status, u8* data, _MidiSong* song)
 {
     s32 i;
     u8  channel;
@@ -1463,7 +1503,7 @@ static inline u8* _midiNoteOff(s32 status, u8* data, MidiSong* song)
     return ptr + 2;
 }
 
-static u8* Midi_Event1(s32 arg0, u8* arg1, MidiSong* song, _MidiTrack* unused)
+static u8* Midi_Event1(s32 arg0, u8* arg1, _MidiSong* song, _MidiTrack* unused)
 {
     enum {
         SOUND_BANK_VOLUME_FRACTION_BITS = 7,
@@ -1568,7 +1608,7 @@ static u8* Midi_Event1(s32 arg0, u8* arg1, MidiSong* song, _MidiTrack* unused)
     return arg1;
 }
 
-static u8* Midi_Event3(s32 arg0, u8* arg1, MidiSong* song, _MidiTrack* track)
+static u8* Midi_Event3(s32 arg0, u8* arg1, _MidiSong* song, _MidiTrack* track)
 {
     enum {
         MIDI_TRACK_CONTROL_DATA_ENTRY   = 6,
@@ -1678,7 +1718,7 @@ static inline s32 _midiReadVlq(u8* p, u8* len)
     return result;
 }
 
-static u8* Midi_HandleMetaSysex(s32 unused1, u8* arg1, MidiSong* song, _MidiTrack* track)
+static u8* Midi_HandleMetaSysex(s32 unused1, u8* arg1, _MidiSong* song, _MidiTrack* track)
 {
     enum {
         MIDI_TRACK_COMMAND_CALL   = 0xF5,
@@ -1742,12 +1782,13 @@ static u8* Midi_HandleMetaSysex(s32 unused1, u8* arg1, MidiSong* song, _MidiTrac
             break;
         tempo: {
             u32 tempo_val;
-            tempo_val     = var_t0[2] << 16;
-            tempo_val    |= var_t0[3] << 8;
-            tempo_val    |= var_t0[4];
-            var_t0       += 5;
-            song->field_7 = 0;
-            song->field_6 = 0x3938700U / tempo_val;
+            tempo_val  = var_t0[2] << 16;
+            tempo_val |= var_t0[3] << 8;
+            tempo_val |= var_t0[4];
+            var_t0    += 5;
+            // Quarter notes per minute, truncated to a byte on store.
+            song->pendingTempoOffsetBpm = 0;
+            song->pendingTempoBpm       = MIDI_MICROSECONDS_PER_MINUTE / tempo_val;
         } break;
         vlq: {
             s32 hdrLen;
@@ -1791,23 +1832,23 @@ static void Midi_InitChannelTable(_MidiChannelTable* channels)
     }
 }
 
-static u8* Midi_IncPtr(s32 unused1, u8* arg1, MidiSong* unusedSong, _MidiTrack* unusedTrack)
+static u8* Midi_IncPtr(s32 unused1, u8* arg1, _MidiSong* unusedSong, _MidiTrack* unusedTrack)
 {
     return arg1 + 1;
 }
 
-static u8* Midi_KeyOffChannel(s32 arg0, u8* arg1, MidiSong* song, _MidiTrack* unused)
+static u8* Midi_KeyOffChannel(s32 arg0, u8* arg1, _MidiSong* song, _MidiTrack* unused)
 {
     return _midiNoteOff(arg0, arg1, song);
 }
 
-static u8* Midi_SetProgram(s32 arg0, u8* arg1, MidiSong* song, _MidiTrack* unused)
+static u8* Midi_SetProgram(s32 arg0, u8* arg1, _MidiSong* song, _MidiTrack* unused)
 {
     song->channels.entries[arg0 & MIDI_CHANNEL_STATUS_MASK].program = arg1[1];
     return arg1 + 2;
 }
 
-static u8* Midi_PitchBend(s32 arg0, u8* arg1, MidiSong* song, _MidiTrack* unused)
+static u8* Midi_PitchBend(s32 arg0, u8* arg1, _MidiSong* song, _MidiTrack* unused)
 {
     enum { MIDI_PITCH_WHEEL_CENTER = 0x2000 };
     SpuVoiceRef    sp10;
@@ -2092,10 +2133,10 @@ static inline void _sndBankRebaseNotes(SndBank* bank, s32 count)
 
 static s32 SndLoad_Complete(SndLoadState* load)
 {
-    SndBank*  bank;
-    MidiSong* song;
-    s32       id;
-    s32       ret;
+    SndBank*   bank;
+    _MidiSong* song;
+    s32        id;
+    s32        ret;
 
     if (D_800689E8 == 6) {
         gSndLoadBankId = SOUND_LOAD_BANK_NONE;
@@ -2222,7 +2263,7 @@ s32 SndLoad_FeedSectorOrError(void* arg0)
 s32 SndBank_FinalizeLoad(SndLoadState* load)
 {
     SndBank*      bank;
-    MidiSong*     state;
+    _MidiSong*    song;
     u16           index;
     s32           i;
     SndBankLayer* bankLayer;
@@ -2241,18 +2282,18 @@ s32 SndBank_FinalizeLoad(SndLoadState* load)
     return -1;
 
 success:
-    index               &= 0xFF;
-    state                = Midi_GetSlot(index);
-    state->sequenceId    = index;
-    state->sequenceBytes = (load->payload.header.imageBytes + 3) & 0xFFFC;
-    temp                 = load->imageBuffer;
-    state->bank          = bank;
-    state->sequenceData  = temp;
-    state->waveBytes     = load->payload.header.waveBytes;
-    i                    = load->payload.header.noteCount;
-    base                 = ((volatile SndBank*)bank)->spuAddr;
-    bankLayer            = ((volatile SndBank*)bank)->layers;
-    i                    = i - 1;
+    index              &= 0xFF;
+    song                = Midi_GetSlot(index);
+    song->sequenceId    = index;
+    song->sequenceBytes = (load->payload.header.imageBytes + 3) & 0xFFFC;
+    temp                = load->imageBuffer;
+    song->bank          = bank;
+    song->sequenceData  = temp;
+    song->waveBytes     = load->payload.header.waveBytes;
+    i                   = load->payload.header.noteCount;
+    base                = ((volatile SndBank*)bank)->spuAddr;
+    bankLayer           = ((volatile SndBank*)bank)->layers;
+    i                   = i - 1;
     if (i != -1) {
         end = -1;
         do {
@@ -2261,7 +2302,7 @@ success:
             bankLayer++;
         } while (i != end);
     }
-    Snd_BuildGroupIndex(state->bank);
+    Snd_BuildGroupIndex(song->bank);
     gSndLoadBankId    = SOUND_LOAD_BANK_NONE;
     load->bank        = 0;
     load->imageBuffer = 0;

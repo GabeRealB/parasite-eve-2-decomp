@@ -11416,7 +11416,7 @@ void init_slots(s32* arg0) {
 }
 ```
 
-`Midi_InitChannelTable` (init of `MidiSong::channels.entries[16]`) is the pure example.
+`Midi_InitChannelTable` (init of `_MidiSong::channels.entries[16]`) is the pure example.
 
 ## Shared `return 0` via switch `break` (not early return)
 
@@ -14331,7 +14331,7 @@ equality branch (and the matching reload of `field_1` on the `index == 0` path).
 Keeping `u8` params and moving the table assignment is what preserves both.
 
 `Midi_SetVolumeScale` is the pure example. Pair with the one-iteration
-`for (i = 0; i <= 0; i++)` + `MidiSong` array pattern for `Midi_Song`.
+`for (i = 0; i <= 0; i++)` + `_MidiSong` array pattern for `Midi_Song`.
 
 ## Stack-struct pointer: RMW via temp forces `lw v1` then `lw a0`
 
@@ -15403,7 +15403,7 @@ path that builds a big-endian u32 then adds the base, write
 `addu v0, v0, a2` (offset first).
 
 `Midi_ResolveTrackData` is the pure example (track data pointer resolve from
-`MidiSong` / `field_10`).
+`_MidiSong` / `sequenceData`).
 
 ## Force `move aN, s0` for a known-zero live return value
 
@@ -15977,8 +15977,8 @@ pointer variable twice — first the integer `offset + base`, then the byte
 displacement that locates the contained array:
 
 ```c
-slot = (_MidiNoteSlot*)(slotOffsetBytes + (s32)obj);
-slot = (_MidiNoteSlot*)((u8*)slot + OFFSET_OF(MidiSong, voiceSlots)); /* addiu a1, a1, 0x504 */
+slot = (_MidiNoteSlot*)(slotOffsetBytes + (s32)song);
+slot = (_MidiNoteSlot*)((u8*)slot + OFFSET_OF(_MidiSong, voiceSlots)); /* addiu a1, a1, 0x504 */
 ```
 
 `Midi_InitSlot` is the pure example (voice-slot clear loop). Pair with the
@@ -17763,7 +17763,7 @@ cursor += 0x3C;
 } while (++j < (s32)obj->field_3);
 ```
 
-`Midi_Tick` is the pure example (MidiSong status driver over Midi_Song).
+`Midi_Tick` is the pure example (_MidiSong status driver over Midi_Song).
 
 
 ## Reuse a temp through field copy and `&= ~const` masks
