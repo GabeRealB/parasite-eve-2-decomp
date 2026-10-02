@@ -299,23 +299,27 @@ typedef struct {
 } GlowCentreRadiusFirstScratch;
 STATIC_ASSERT_SIZEOF(GlowCentreRadiusFirstScratch, 0x10);
 
-/// 0x18-byte scratch block `Room_Draw11`, `Room_Draw12`, `Room_Draw33` and `Room_Draw34` take
-/// from the scratch stack. Two `SVECTOR`s (`arg0` and `arg0 + 1`) are projected
-/// through `gGfxViewCoord.workm`.
-/// `otz0`/`otz1` are the `gte_stszotz` of those points, `r0`/`r1` are
-/// `(s16)arg1 * 64 / otz`, and `sx0`/`sy0` plus `sx1`/`sy1` are the two
-/// `gte_stsxy` centres.
-typedef struct _RoomDraw11Scratch {
-    /* 0x00 */ s32 otz0;
-    /* 0x04 */ s32 otz1;
-    /* 0x08 */ s32 r0;
-    /* 0x0C */ s32 r1;
-    /* 0x10 */ u16 sx0;
-    /* 0x12 */ u16 sy0;
-    /* 0x14 */ u16 sx1;
-    /* 0x16 */ u16 sy1;
-} RoomDraw11Scratch;
-STATIC_ASSERT_SIZEOF(RoomDraw11Scratch, 0x18);
+/// Scratch-stack block for projecting the two ends of a glow and sizing the
+/// primitive around each.
+///
+/// Both points go through `gGfxViewCoord.workm`, one perspective transform
+/// each; every transform writes that end's screen position as one screen-XY
+/// word, so its two halves stay adjacent, and then its ordering-table depth.
+/// No GTE flag word is kept: unlike `OverlayPointPairScratch`, the drawer
+/// rejects the pair by the second end's depth alone. The radius at each end
+/// is a caller size times 64 divided by that end's depth, so the glow narrows
+/// with distance.
+typedef struct {
+    s32 otz0;    // Ordering-table depth of the first point, and the divisor for its radius
+    s32 otz1;    // Ordering-table depth of the second point, and the divisor for its radius
+    s32 radius0; // On-screen radius at the first point, in pixels
+    s32 radius1; // On-screen radius at the second point, in pixels
+    u16 sx0;     // Raw projected X of the first point; first half of its screen-XY word
+    u16 sy0;     // Raw projected Y of the first point; second half of that word
+    u16 sx1;     // Raw projected X of the second point; first half of its screen-XY word
+    u16 sy1;     // Raw projected Y of the second point; second half of that word
+} GlowPointPairScratch;
+STATIC_ASSERT_SIZEOF(GlowPointPairScratch, 0x18);
 
 /// Scratch-stack workspace for one eight-wedge room-effect disc.
 ///

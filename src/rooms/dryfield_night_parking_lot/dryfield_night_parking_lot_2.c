@@ -672,51 +672,41 @@ void func_dryfield_night_parking_lot_8017DC88(Task* unused)
 /// frame parity.
 static void func_dryfield_night_parking_lot_8017E08C(SVECTOR* arg0, SVECTOR* arg1, s32 arg2)
 {
-    u8*                head;
-    RoomDraw11Scratch* block;
-    POLY_G4*           prim;
-    POLY_G4*           p;
-    s32                ang;
-    s32                t;
-    s32                t2;
-    s32                t3;
-    s32                rgb;
-    s32                extent;
-    s32                r0;
-    s32                r1;
+    GlowPointPairScratch* block;
+    POLY_G4*              prim;
+    POLY_G4*              p;
+    s32                   ang;
+    s32                   t;
+    s32                   t2;
+    s32                   t3;
+    s32                   rgb;
+    s32                   extent;
+    s32                   r0;
+    s32                   r1;
 
-    {
-        void** scratch;
-        u8*    tmp;
-
-        scratch  = SCRATCH_STACK_CURSOR_SLOT;
-        head     = *scratch;
-        tmp      = head - 0x18;
-        *scratch = tmp;
-        block    = (RoomDraw11Scratch*)tmp;
-    }
+    block = SCRATCH_STACK_RESERVE_BLOCK(GlowPointPairScratch);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
-    gte_stsxy(&((RoomDraw11Scratch*)(head - 0x18))->sx0);
+    gte_stsxy(&block->sx0);
     gte_stszotz(&block->otz0);
     gte_ldv0(arg1);
     gte_rtps();
-    gte_stsxy(&((RoomDraw11Scratch*)(head - 0x18))->sx1);
-    gte_stszotz(&((RoomDraw11Scratch*)(head - 0x18))->otz1);
+    gte_stsxy(&block->sx1);
+    gte_stszotz(&block->otz1);
     if (block->otz1 >= 0x11) {
-        if (((RoomDraw11Scratch*)(head - 0x18))->otz0 < 0x10) {
-            ((RoomDraw11Scratch*)(head - 0x18))->otz0 = 0x10;
+        if (block->otz0 < 0x10) {
+            block->otz0 = 0x10;
         }
-        extent    = (s16)arg2 * 64;
-        r0        = extent / ((RoomDraw11Scratch*)(head - 0x18))->otz0;
-        r1        = extent / block->otz1;
-        ang       = 0;
-        rgb       = (((u8)gDisplayState.animFrame & 1) * 16) | 0x20;
-        block->r0 = r0;
-        block->r1 = r1;
+        extent         = (s16)arg2 * 64;
+        r0             = extent / block->otz0;
+        r1             = extent / block->otz1;
+        ang            = 0;
+        rgb            = (((u8)gDisplayState.animFrame & 1) * 16) | 0x20;
+        block->radius0 = r0;
+        block->radius1 = r1;
         do {
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
@@ -730,16 +720,16 @@ static void func_dryfield_night_parking_lot_8017E08C(SVECTOR* arg0, SVECTOR* arg
             p->r3    = 0;
             p->g3    = 0;
             p->b3    = 0;
-            p->x0    = block->sx0 + ((block->r0 * rsin(ang)) >> 12);
-            p->y0    = block->sy0 + ((block->r0 * rcos(ang)) >> 12);
+            p->x0    = block->sx0 + ((block->radius0 * rsin(ang)) >> 12);
+            p->y0    = block->sy0 + ((block->radius0 * rcos(ang)) >> 12);
             t        = ang + 0x200;
-            prim->x1 = block->sx0 + ((block->r0 * rsin(t)) >> 12);
-            prim->y1 = block->sy0 + ((block->r0 * rcos(t)) >> 12);
+            prim->x1 = block->sx0 + ((block->radius0 * rsin(t)) >> 12);
+            prim->y1 = block->sy0 + ((block->radius0 * rcos(t)) >> 12);
             t2       = ang + 0x400;
             p->x2    = block->sx0;
             prim->y2 = block->sy0;
-            prim->x3 = block->sx0 + ((block->r0 * rsin(t2)) >> 12);
-            prim->y3 = block->sy0 + ((block->r0 * rcos(t2)) >> 12);
+            prim->x3 = block->sx0 + ((block->radius0 * rsin(t2)) >> 12);
+            prim->y3 = block->sy0 + ((block->radius0 * rcos(t2)) >> 12);
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz0);
@@ -751,10 +741,10 @@ static void func_dryfield_night_parking_lot_8017E08C(SVECTOR* arg0, SVECTOR* arg
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, rgb, rgb, rgb);
             setRGB3(prim, rgb, rgb, rgb);
-            prim->x0 = block->sx0 + ((block->r0 * rsin((ang * 2))) >> 12);
-            prim->y0 = block->sy0 + ((block->r0 * rcos((ang * 2))) >> 12);
-            prim->x1 = block->sx1 + ((block->r1 * rsin((ang * 2))) >> 12);
-            prim->y1 = block->sy1 + ((block->r1 * rcos((ang * 2))) >> 12);
+            prim->x0 = block->sx0 + ((block->radius0 * rsin((ang * 2))) >> 12);
+            prim->y0 = block->sy0 + ((block->radius0 * rcos((ang * 2))) >> 12);
+            prim->x1 = block->sx1 + ((block->radius1 * rsin((ang * 2))) >> 12);
+            prim->y1 = block->sy1 + ((block->radius1 * rcos((ang * 2))) >> 12);
             prim->x2 = block->sx0;
             prim->y2 = block->sy0;
             prim->x3 = block->sx1;
@@ -772,23 +762,23 @@ static void func_dryfield_night_parking_lot_8017E08C(SVECTOR* arg0, SVECTOR* arg
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, rgb, rgb, rgb);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx1 + ((block->r1 * rsin(t3)) >> 12);
-            prim->y0 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
+            prim->x0 = block->sx1 + ((block->radius1 * rsin(t3)) >> 12);
+            prim->y0 = block->sy1 + ((block->radius1 * rcos(t)) >> 12);
             t        = 0xE00;
             t       -= ang;
-            prim->x1 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
-            prim->y1 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
+            prim->x1 = block->sx1 + ((block->radius1 * rsin(t)) >> 12);
+            prim->y1 = block->sy1 + ((block->radius1 * rcos(t)) >> 12);
             t        = 0xC00;
             t       -= ang;
             prim->x2 = block->sx1;
             prim->y2 = block->sy1;
-            prim->x3 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
-            prim->y3 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
+            prim->x3 = block->sx1 + ((block->radius1 * rsin(t)) >> 12);
+            prim->y3 = block->sy1 + ((block->radius1 * rcos(t)) >> 12);
             ang      = t2;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz1);
         } while (ang < 0x800);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BLOCK(GlowPointPairScratch);
 }

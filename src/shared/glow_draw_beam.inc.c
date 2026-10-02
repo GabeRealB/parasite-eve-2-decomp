@@ -10,63 +10,53 @@
 /// alternates between 0x20 and 0x28 with the display frame counter.
 void glowDrawBeam(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    u8*                head;
-    RoomDraw11Scratch* block;
-    POLY_G4*           prim;
-    POLY_G4*           p;
-    SVECTOR*           p1;
-    s32                ang;
-    s32                t;
-    s32                t2;
-    s32                t3;
-    s32                packed;
-    s32                extent;
-    s32                r0;
-    s32                r1;
-    s32                base;
-    u8                 blend;
-    u8                 r;
-    u8                 g;
-    u8                 b;
+    GlowPointPairScratch* block;
+    POLY_G4*              prim;
+    POLY_G4*              p;
+    SVECTOR*              p1;
+    s32                   ang;
+    s32                   t;
+    s32                   t2;
+    s32                   t3;
+    s32                   packed;
+    s32                   extent;
+    s32                   r0;
+    s32                   r1;
+    s32                   base;
+    u8                    blend;
+    u8                    r;
+    u8                    g;
+    u8                    b;
 
-    {
-        void** scratch;
-        u8*    tmp;
-
-        scratch  = SCRATCH_STACK_CURSOR_SLOT;
-        head     = *scratch;
-        tmp      = head - 0x18;
-        *scratch = tmp;
-        p1       = arg0 + 1;
-        block    = (RoomDraw11Scratch*)tmp;
-    }
+    p1    = arg0 + 1;
+    block = SCRATCH_STACK_RESERVE_BLOCK(GlowPointPairScratch);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
-    gte_stsxy(&((RoomDraw11Scratch*)(head - 0x18))->sx0);
+    gte_stsxy(&block->sx0);
     gte_stszotz(&block->otz0);
     gte_ldv0(p1);
     gte_rtps();
-    gte_stsxy(&((RoomDraw11Scratch*)(head - 0x18))->sx1);
-    gte_stszotz(&((RoomDraw11Scratch*)(head - 0x18))->otz1);
+    gte_stsxy(&block->sx1);
+    gte_stszotz(&block->otz1);
     if (block->otz1 >= 0x11) {
-        if (((RoomDraw11Scratch*)(head - 0x18))->otz0 < 0x10) {
-            ((RoomDraw11Scratch*)(head - 0x18))->otz0 = 0x10;
+        if (block->otz0 < 0x10) {
+            block->otz0 = 0x10;
         }
-        extent    = (s16)arg1 * 64;
-        r0        = extent / ((RoomDraw11Scratch*)(head - 0x18))->otz0;
-        r1        = extent / block->otz1;
-        packed    = arg3 << 16;
-        blend     = (((u8)gDisplayState.animFrame & 1) * 8) | 0x20;
-        r         = blend * (packed >> 24);
-        g         = blend * ((packed >> 20) & 1);
-        base      = (s16)arg2;
-        b         = blend * (arg3 & 1);
-        ang       = 0;
-        block->r0 = r0;
-        block->r1 = r1;
+        extent         = (s16)arg1 * 64;
+        r0             = extent / block->otz0;
+        r1             = extent / block->otz1;
+        packed         = arg3 << 16;
+        blend          = (((u8)gDisplayState.animFrame & 1) * 8) | 0x20;
+        r              = blend * (packed >> 24);
+        g              = blend * ((packed >> 20) & 1);
+        base           = (s16)arg2;
+        b              = blend * (arg3 & 1);
+        ang            = 0;
+        block->radius0 = r0;
+        block->radius1 = r1;
         do {
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
@@ -80,16 +70,16 @@ void glowDrawBeam(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3)
             p->r3    = 0;
             p->g3    = 0;
             p->b3    = 0;
-            p->x0    = block->sx0 + ((block->r0 * rsin(base + ang)) >> 12);
-            p->y0    = block->sy0 + ((block->r0 * rcos(base + ang)) >> 12);
+            p->x0    = block->sx0 + ((block->radius0 * rsin(base + ang)) >> 12);
+            p->y0    = block->sy0 + ((block->radius0 * rcos(base + ang)) >> 12);
             t        = ang + 0x200;
-            prim->x1 = block->sx0 + ((block->r0 * rsin(base + t)) >> 12);
-            prim->y1 = block->sy0 + ((block->r0 * rcos(base + t)) >> 12);
+            prim->x1 = block->sx0 + ((block->radius0 * rsin(base + t)) >> 12);
+            prim->y1 = block->sy0 + ((block->radius0 * rcos(base + t)) >> 12);
             t2       = ang + 0x400;
             p->x2    = block->sx0;
             prim->y2 = block->sy0;
-            prim->x3 = block->sx0 + ((block->r0 * rsin(base + t2)) >> 12);
-            prim->y3 = block->sy0 + ((block->r0 * rcos(base + t2)) >> 12);
+            prim->x3 = block->sx0 + ((block->radius0 * rsin(base + t2)) >> 12);
+            prim->y3 = block->sy0 + ((block->radius0 * rcos(base + t2)) >> 12);
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz0);
@@ -101,10 +91,10 @@ void glowDrawBeam(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3)
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, r, g, b);
             setRGB3(prim, r, g, b);
-            prim->x0 = block->sx0 + ((block->r0 * rsin(base + (ang * 2))) >> 12);
-            prim->y0 = block->sy0 + ((block->r0 * rcos(base + (ang * 2))) >> 12);
-            prim->x1 = block->sx1 + ((block->r1 * rsin(base + (ang * 2))) >> 12);
-            prim->y1 = block->sy1 + ((block->r1 * rcos(base + (ang * 2))) >> 12);
+            prim->x0 = block->sx0 + ((block->radius0 * rsin(base + (ang * 2))) >> 12);
+            prim->y0 = block->sy0 + ((block->radius0 * rcos(base + (ang * 2))) >> 12);
+            prim->x1 = block->sx1 + ((block->radius1 * rsin(base + (ang * 2))) >> 12);
+            prim->y1 = block->sy1 + ((block->radius1 * rcos(base + (ang * 2))) >> 12);
             prim->x2 = block->sx0;
             prim->y2 = block->sy0;
             prim->x3 = block->sx1;
@@ -122,22 +112,22 @@ void glowDrawBeam(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3)
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, r, g, b);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx1 + ((block->r1 * rsin(base - t3)) >> 12);
-            prim->y0 = block->sy1 + ((block->r1 * rcos(base - t)) >> 12);
+            prim->x0 = block->sx1 + ((block->radius1 * rsin(base - t3)) >> 12);
+            prim->y0 = block->sy1 + ((block->radius1 * rcos(base - t)) >> 12);
             t        = ang - 0xE00;
-            prim->x1 = block->sx1 + ((block->r1 * rsin(base - t)) >> 12);
-            prim->y1 = block->sy1 + ((block->r1 * rcos(base - t)) >> 12);
+            prim->x1 = block->sx1 + ((block->radius1 * rsin(base - t)) >> 12);
+            prim->y1 = block->sy1 + ((block->radius1 * rcos(base - t)) >> 12);
             t        = ang - 0xC00;
             prim->x2 = block->sx1;
             prim->y2 = block->sy1;
             t        = base - t;
-            prim->x3 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
-            prim->y3 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
+            prim->x3 = block->sx1 + ((block->radius1 * rsin(t)) >> 12);
+            prim->y3 = block->sy1 + ((block->radius1 * rcos(t)) >> 12);
             ang      = t2;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz1);
         } while (ang < 0x800);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BLOCK(GlowPointPairScratch);
 }
