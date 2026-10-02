@@ -1323,11 +1323,23 @@ void func_shelter_b2_septic_tank_8017DB10(Task* task)
     setRGB1(p, 0, 0x40, 0x80);            \
     setRGB2(p, 0, 0x10, 0x20);            \
     setRGB3(p, 0, 0x10, 0x20)
-#define WATER_WAVE_STRIPS_FAR_COLOURS(p) \
-    setRGB0(p, 0, 0x40, 0x80);           \
-    setRGB1(p, 0, 0x40, 0x80);           \
-    setRGB2(p, 0, 0x10, 0x20);           \
-    setRGB3(p, 0, 0x10, 0x20)
+/// Sets the second X strip's blue vertex colours for subtractive blending.
+static inline void _shelterB2SepticTankSetSecondWaterStripColours(POLY_G4* quad)
+{
+    setRGB0(quad, 0, 0x40, 0x80);
+    setRGB1(quad, 0, 0x40, 0x80);
+    setRGB2(quad, 0, 0x10, 0x20);
+    setRGB3(quad, 0, 0x10, 0x20);
+}
+
+/// Binds the second X strip's blue vertex colours for subtractive blending.
+///
+/// A writable `POLY_G4*` is evaluated once. The seam (vertices 0/1) is
+/// (0, 0x40, 0x80); the outer edge (vertices 2/3) is (0, 0x10, 0x20), in
+/// unsigned RGB bytes. Other packet fields are preserved; no caller locals
+/// are captured. Psy-Q's `POLY_G4` and `setRGB0` through `setRGB3` must be
+/// visible. `water_wave_strips.inc.c` consumes and undefines this override.
+#define WATER_WAVE_STRIPS_SET_SECOND_STRIP_COLOURS(quad) _shelterB2SepticTankSetSecondWaterStripColours(quad)
 #include "../../shared/water_wave_strips.inc.c"
 
 #define WATER_WAVE_STRIPS_FUNC        waterDrawWaveStrips2
@@ -1341,11 +1353,11 @@ void func_shelter_b2_septic_tank_8017DB10(Task* task)
     setRGB1(p, 0, 0x40, 0x80);            \
     setRGB2(p, 0, 0x10, 0x20);            \
     setRGB3(p, 0, 0x10, 0x20)
-#define WATER_WAVE_STRIPS_FAR_COLOURS(p) \
-    setRGB0(p, 0, 0x40, 0x80);           \
-    setRGB1(p, 0, 0x40, 0x80);           \
-    setRGB2(p, 0, 0x10, 0x20);           \
-    setRGB3(p, 0, 0x10, 0x20)
+/// Rebinds the second surface list to the same seam-to-edge blue palette.
+///
+/// Has the same `POLY_G4*`, single-evaluation and packet-preservation contract
+/// as the first instance; the preceding include has undefined that binding.
+#define WATER_WAVE_STRIPS_SET_SECOND_STRIP_COLOURS(quad) _shelterB2SepticTankSetSecondWaterStripColours(quad)
 #include "../../shared/water_wave_strips.inc.c"
 
 /// The water task: runs its current state - `func_shelter_b2_septic_tank_8017EAB8`
