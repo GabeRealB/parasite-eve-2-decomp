@@ -3981,9 +3981,9 @@ static void func_actor_403000_801332E8(Task* arg0)
             work->field_AE2 = target;
         }
     }
-    Gfx_RotMatrixZ(&arg0->extra.tmd->coords[22].coord, work->field_AE2 / 2, 1);
+    gfxRotMatrixZ(&arg0->extra.tmd->coords[22].coord, work->field_AE2 / 2, GRAPHICS_ROTATION_REPLACE);
     arg0->extra.tmd->coords[22].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gfx_RotMatrixZ(&arg0->extra.tmd->coords[23].coord, work->field_AE2 * 3 / 4, 1);
+    gfxRotMatrixZ(&arg0->extra.tmd->coords[23].coord, work->field_AE2 * 3 / 4, GRAPHICS_ROTATION_REPLACE);
     arg0->extra.tmd->coords[23].composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
@@ -4054,9 +4054,9 @@ static void func_actor_403000_80133444(Task* arg0)
             work->field_AE4 = target;
         }
     }
-    Gfx_RotMatrixZ(&arg0->extra.tmd->coords[6].coord, work->field_AE4 / 2, 0);
+    gfxRotMatrixZ(&arg0->extra.tmd->coords[6].coord, work->field_AE4 / 2, GRAPHICS_ROTATION_COMPOSE);
     arg0->extra.tmd->coords[6].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gfx_RotMatrixZ(&arg0->extra.tmd->coords[7].coord, work->field_AE4 * 3 / 4, 0);
+    gfxRotMatrixZ(&arg0->extra.tmd->coords[7].coord, work->field_AE4 * 3 / 4, GRAPHICS_ROTATION_COMPOSE);
     arg0->extra.tmd->coords[7].composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
@@ -7678,7 +7678,7 @@ s32 func_actor_403000_8013D364(Task* task, s32 arg1, ActorTransform* placement)
     task->extra.tmd->coords->coord.t[2] = placement->pos.vz;
     gfxRotMatrixY(&task->extra.tmd->coords->coord, placement->rot.vy, 1);
     gfxRotMatrixX(&task->extra.tmd->coords->coord, placement->rot.vx, GRAPHICS_ROTATION_COMPOSE);
-    Gfx_RotMatrixZ(&task->extra.tmd->coords->coord, placement->rot.vz, 0);
+    gfxRotMatrixZ(&task->extra.tmd->coords->coord, placement->rot.vz, GRAPHICS_ROTATION_COMPOSE);
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     coord                                 = task->extra.tmd->coords;
     work->yaw                             = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);

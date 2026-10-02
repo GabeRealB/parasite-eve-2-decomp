@@ -2215,7 +2215,7 @@ void func_actor_403600_80135C28(Task* arg0)
                 case 2:
                     arg0->killCountdown = 0x2E;
                     temp_v0_2->field_E4 = 0x1F;
-                    Gfx_RotMatrixZ(mtx, 0x800, 0);
+                    gfxRotMatrixZ(mtx, 0x800, GRAPHICS_ROTATION_COMPOSE);
                     temp_s4->composeStamp = GRAPHICS_COORD_DIRTY;
                     break;
                 default:

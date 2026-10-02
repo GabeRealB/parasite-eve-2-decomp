@@ -10522,7 +10522,7 @@ switch (mode) {          /* beqz v1 / li v0,1 / beq v1,v0 / j tail */
         ...
         break;
 }
-Gfx_RotMatrixZ(&coord->coord, coord->angle, 1);
+gfxRotMatrixZ(&coord->coord, coord->param.rot.vz, GRAPHICS_ROTATION_REPLACE);
 ```
 
 `func_tonfa_baton_8011DA74` is the minimal example: identical C bodies, 89% as
@@ -21338,8 +21338,8 @@ documented under RotMatrixX scratch blocks.
 ## RotMatrixZ: early cos in `$v1`, and barrier before sin/cos reloads
 
 Y-axis `gfxRotMatrixY` loads **sin** early into `$v1` so it pairs with
-`li v0,ONE` and is stored after the zero/ONE block. Z-axis `Gfx_RotMatrixZ`
-does the same shape but with **cos** — the flag≠0 path ends with
+`li v0,ONE` and is stored after the zero/ONE block. Z-axis `gfxRotMatrixZ`
+does the same shape but with **cos** — the replace≠0 path ends with
 `m[2][2]=ONE` / `m[1][1]=cos` in the `j` delay, so:
 
 ```c
@@ -21357,14 +21357,14 @@ the sin store into the `li`/zero schedule (wrong).
 
 Else path needs `m[2][2]=ONE` **before** reloading sin/cos from the scratch
 block. A volatile store alone does not stop GCC 2.8.1 from hoisting the
-non-volatile `block->angleSin` / `block->angleCos` loads above it — insert a
+non-volatile `scratch->angleSin` / `scratch->angleCos` loads above it — insert a
 compiler memory barrier:
 
 ```c
 vmat->m[2][2] = ONE;
 __asm__ volatile("" ::: "memory");
-sin_u = block->angleSin;
-cos2  = block->angleCos; /* asm("a0") */
+sin_u = scratch->angleSin;
+cos2  = scratch->angleCos; /* asm("a0") */
 ```
 
 Z-axis also inverts the Y-axis move/negu split: copy sin to `$v1`, negate the
@@ -21380,7 +21380,7 @@ vmat->m[1][0] = copy;
 vmat->m[1][1] = cos2;
 ```
 
-`Gfx_RotMatrixZ` is the pure example (Z-axis; X sibling is `gfxRotMatrixX`).
+`gfxRotMatrixZ` is the pure example (Z-axis; X sibling is `gfxRotMatrixX`).
 
 ## RotMatrixX: dual cos loads via `volatile _GfxAxisRotationScratch*`
 
@@ -21407,7 +21407,7 @@ vmat->m[1][1] = cos_u;
 
 Replace≠0 path is non-volatile and uses load-then-zero before `-sin` into
 `m[1][2]` (same delay-fill as Y-axis `m[2][0]`). `gfxRotMatrixX` is the pure
-example (X-axis; siblings `gfxRotMatrixY` Y / `Gfx_RotMatrixZ` Z).
+example (X-axis; siblings `gfxRotMatrixY` Y / `gfxRotMatrixZ` Z).
 
 ## Duplicate `setlen` in both branches for delayed-slot tpage if/else
 
@@ -76129,7 +76129,7 @@ two dumps are the whole difference:
 
 ```c
 /* m2c form: base_1.i.dbr load 77 ends (insn_list 68 (nil))        */
-/*   -> the store stays first, and the jal Gfx_RotMatrixZ delay     */
+/*   -> the store stays first, and the jal gfxRotMatrixZ delay     */
 /*      slot gets the arg setup addu $a0,$s0,$zero                  */
 /* struct form: the load has no dep; the store carries              */
 /*   (insn_list:REG_DEP_ANTI 75 ...) instead, so it sinks below the */
@@ -134816,7 +134816,7 @@ member the real type does declare is the one place to stop.
 Routines that carve a block off `SCRATCH_STACK_CURSOR_SLOT` each write their own byte
 count, and one can reserve more than the block uses: `gfxMatrixToEuler`
 reserves 0x30 for the same `MATRIX`-plus-sine-and-cosine block that
-`gfxRotMatrixX`, `gfxRotMatrixY` and `Gfx_RotMatrixZ` reserve 0x24 for. Sizing the type to the larger reserve
+`gfxRotMatrixX`, `gfxRotMatrixY` and `gfxRotMatrixZ` reserve 0x24 for. Sizing the type to the larger reserve
 - a trailing `pad` - asserts a boundary nothing pins, because the arithmetic is
 on the `u8*` head and no `sizeof` depends on it. It also leaves the smaller
 callers reserving less than the type claims, which reads as a bug and invites

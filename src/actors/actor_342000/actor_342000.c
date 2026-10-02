@@ -724,7 +724,7 @@ void func_actor_342000_801628C8(Task* arg0)
             ang                       = &work->field_274;
             gfxRotMatrixY(&mtx->mat, ang[1], 1);
             gfxRotMatrixX(&mtx->mat, ang[0], GRAPHICS_ROTATION_COMPOSE);
-            Gfx_RotMatrixZ(&mtx->mat, ang[2], 0);
+            gfxRotMatrixZ(&mtx->mat, ang[2], GRAPHICS_ROTATION_COMPOSE);
             gfxScaleMatrixColumns(&mtx->mat, &work->field_264);
             work->coord.composeStamp = GRAPHICS_COORD_DIRTY;
             /* fallthrough */

@@ -205,7 +205,7 @@ static void func_tonfa_baton_8011DA74(Task* arg0)
             }
             break;
     }
-    Gfx_RotMatrixZ(&coord->coord, coord->param.rot.vz, 1);
+    gfxRotMatrixZ(&coord->coord, coord->param.rot.vz, GRAPHICS_ROTATION_REPLACE);
 }
 
 static void func_tonfa_baton_8011DB6C(Task* arg0)

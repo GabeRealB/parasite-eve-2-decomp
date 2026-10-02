@@ -88,6 +88,6 @@ void gluttonSpinnerChase(Enemy* enemy, Task* task)
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 
     gfxRotMatrixY(&task->extra.tmd->coords->coord, work->field_98 / 2, 0);
-    Gfx_RotMatrixZ(&task->extra.tmd->coords->coord, work->field_98 * 2, 0);
+    gfxRotMatrixZ(&task->extra.tmd->coords->coord, work->field_98 * 2, GRAPHICS_ROTATION_COMPOSE);
     gfxRotMatrixX(&task->extra.tmd->coords->coord, work->field_96, GRAPHICS_ROTATION_COMPOSE);
 }

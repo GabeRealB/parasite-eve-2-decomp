@@ -4629,7 +4629,7 @@ void func_actor_560800_80132C60(Task* arg0)
     }
     gfxRotMatrixY(&arg0->extra.tmd->coords[4].coord, work->field_4C0, 0);
     gfxRotMatrixX(&arg0->extra.tmd->coords[4].coord, work->field_4C6, GRAPHICS_ROTATION_COMPOSE);
-    Gfx_RotMatrixZ(&arg0->extra.tmd->coords[2].coord, work->field_4C4, 0);
+    gfxRotMatrixZ(&arg0->extra.tmd->coords[2].coord, work->field_4C4, GRAPHICS_ROTATION_COMPOSE);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->field_4CA != 0) {
         work->field_4C0 = 0;
@@ -6251,7 +6251,7 @@ static void func_actor_560800_80136AA8(Task* arg0)
     s->ang.vz = s->rot[0].vz;
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, s->rot[0].vy, 1);
     gfxRotMatrixX(&arg0->extra.tmd->coords->coord, s->rot[0].vx + 0x400, GRAPHICS_ROTATION_COMPOSE);
-    Gfx_RotMatrixZ(&arg0->extra.tmd->coords->coord, s->rot[0].vz, 0);
+    gfxRotMatrixZ(&arg0->extra.tmd->coords->coord, s->rot[0].vz, GRAPHICS_ROTATION_COMPOSE);
     s->link  = arg0->extra.tmd->coords->coord;
     s->chain = s->link;
     gte_SetRotMatrix(&s->chain);
@@ -6317,7 +6317,7 @@ static void func_actor_560800_80136AA8(Task* arg0)
         }
         gfxRotMatrixY(&arg0->extra.tmd->coords[i].coord, s->rot[i].vy, 1);
         gfxRotMatrixX(&arg0->extra.tmd->coords[i].coord, s->rot[i].vx, GRAPHICS_ROTATION_COMPOSE);
-        Gfx_RotMatrixZ(&arg0->extra.tmd->coords[i].coord, s->rot[i].vz, 0);
+        gfxRotMatrixZ(&arg0->extra.tmd->coords[i].coord, s->rot[i].vz, GRAPHICS_ROTATION_COMPOSE);
         gte_SetRotMatrix(&s->chain);
         gte_ldclmv(&arg0->extra.tmd->coords[i].coord);
         gte_rtir();
@@ -6597,8 +6597,8 @@ void func_actor_560800_80137BEC(Task* task)
                 gfxRotMatrixY(&task->extra.tmd->coords[j].coord, work->rot[j].vy, 1);
                 gfxRotMatrixX(&task->extra.tmd->coords[j].coord,
                               work->rot[j].vx + work->swing[j].vx, GRAPHICS_ROTATION_COMPOSE);
-                Gfx_RotMatrixZ(&task->extra.tmd->coords[j].coord,
-                               work->rot[j].vz + work->swing[j].vz, 0);
+                gfxRotMatrixZ(&task->extra.tmd->coords[j].coord,
+                              work->rot[j].vz + work->swing[j].vz, GRAPHICS_ROTATION_COMPOSE);
                 i += 1;
             } while ((u32)(i & 0xFFFF) < 6U);
             t286              = work->field_286 + 4;
@@ -6699,7 +6699,7 @@ void func_actor_560800_80137F58(Task* task, s32 msgId, VECTOR* msg)
                     part->field_258 = pose->pos.vz;
                     gfxRotMatrixY(&coord->coord, pose->rot.vy, 1);
                     gfxRotMatrixX(&coord->coord, pose->rot.vx + 0x400, GRAPHICS_ROTATION_COMPOSE);
-                    Gfx_RotMatrixZ(&coord->coord, pose->rot.vz, 0);
+                    gfxRotMatrixZ(&coord->coord, pose->rot.vz, GRAPHICS_ROTATION_COMPOSE);
                     part->rot[0].vx = pose->rot.vx;
                     part->rot[0].vy = pose->rot.vy;
                     part->rot[0].vz = pose->rot.vz;
@@ -6708,7 +6708,7 @@ void func_actor_560800_80137F58(Task* task, s32 msgId, VECTOR* msg)
                     do {
                         gfxRotMatrixY(&work->parts[i & 0xFFFF]->extra.tmd->coords[j & 0xFFFF].coord, 0, 1);
                         gfxRotMatrixX(&work->parts[i & 0xFFFF]->extra.tmd->coords[j & 0xFFFF].coord, 0, GRAPHICS_ROTATION_COMPOSE);
-                        Gfx_RotMatrixZ(&work->parts[i & 0xFFFF]->extra.tmd->coords[j & 0xFFFF].coord, 0, 0);
+                        gfxRotMatrixZ(&work->parts[i & 0xFFFF]->extra.tmd->coords[j & 0xFFFF].coord, 0, GRAPHICS_ROTATION_COMPOSE);
                         part->rot[j & 0xFFFF].vx = 0;
                         part->rot[j & 0xFFFF].vy = 0;
                         part->rot[j & 0xFFFF].vz = 0;
@@ -6740,7 +6740,7 @@ void func_actor_560800_80137F58(Task* task, s32 msgId, VECTOR* msg)
             if (work->field_48 != 0) {
                 gfxRotMatrixY(&coord->coord, pose->rot.vy, 1);
                 gfxRotMatrixX(&coord->coord, pose->rot.vx + 0x400, GRAPHICS_ROTATION_COMPOSE);
-                Gfx_RotMatrixZ(&coord->coord, pose->rot.vz, 0);
+                gfxRotMatrixZ(&coord->coord, pose->rot.vz, GRAPHICS_ROTATION_COMPOSE);
                 part->rot[0].vx = pose->rot.vx;
                 part->rot[0].vy = pose->rot.vy;
                 part->rot[0].vz = pose->rot.vz;
@@ -6748,7 +6748,7 @@ void func_actor_560800_80137F58(Task* task, s32 msgId, VECTOR* msg)
                 do {
                     gfxRotMatrixY(&work->parts[i & 0xFFFF]->extra.tmd->coords[j & 0xFFFF].coord, 0, 1);
                     gfxRotMatrixX(&work->parts[i & 0xFFFF]->extra.tmd->coords[j & 0xFFFF].coord, 0, GRAPHICS_ROTATION_COMPOSE);
-                    Gfx_RotMatrixZ(&work->parts[i & 0xFFFF]->extra.tmd->coords[j & 0xFFFF].coord, 0, 0);
+                    gfxRotMatrixZ(&work->parts[i & 0xFFFF]->extra.tmd->coords[j & 0xFFFF].coord, 0, GRAPHICS_ROTATION_COMPOSE);
                     part->rot[j & 0xFFFF].vx = 0;
                     part->rot[j & 0xFFFF].vy = 0;
                     part->rot[j & 0xFFFF].vz = 0;

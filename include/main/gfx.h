@@ -82,7 +82,23 @@ void gfxRotMatrixX(MATRIX* matrix, s32 angle, s32 replace);
 /// about the matrix's own Y.
 void gfxRotMatrixY(MATRIX* matrix, s32 angle, s32 replace);
 
-void Gfx_RotMatrixZ(MATRIX* matrix, s32 angle, s32 flag);
+/// Rotates `matrix` about Z and preserves its translation.
+///
+/// `matrix` must be a live, writable, word-aligned `MATRIX`. `angle` is signed,
+/// with 4096 units per turn; `rsin` and `rcos` supply signed matrix elements
+/// scaled by `ONE` (4096). The pure Rz has cosine at `m[0][0]` and `m[1][1]`,
+/// negative sine at `m[0][1]`, sine at `m[1][0]`, and the identity along Z.
+///
+/// Nonzero `replace` (`GRAPHICS_ROTATION_REPLACE`) installs Rz in the nine
+/// rotation elements. Zero (`GRAPHICS_ROTATION_COMPOSE`) right-multiplies the
+/// current rotation by Rz. For a local-to-parent matrix, replacement sets the
+/// orientation in the parent frame; composition turns about the current local Z.
+/// Composition requires initialized rotation elements and overwrites GTE
+/// rotation, product and flag registers. The initialized scratch stack must have
+/// room for a word-aligned 0x24-byte reservation, disjoint from `matrix` and
+/// released before return. No caller pointer is retained; the caller manages
+/// any containing coordinate's dirty stamp.
+void gfxRotMatrixZ(MATRIX* matrix, s32 angle, s32 replace);
 
 /// Decomposes a rotation matrix into XYZ Euler angles.
 ///

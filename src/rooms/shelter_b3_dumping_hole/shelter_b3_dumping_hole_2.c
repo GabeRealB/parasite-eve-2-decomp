@@ -2401,7 +2401,7 @@ static void func_shelter_b3_dumping_hole_8017E7DC(Task* arg0)
     coord->coord.t[2] = placement->pos.vz;
     gfxRotMatrixY(&coord->coord, placement->rot.vy, 1);
     gfxRotMatrixX(&coord->coord, placement->rot.vx, GRAPHICS_ROTATION_COMPOSE);
-    Gfx_RotMatrixZ(&coord->coord, placement->rot.vz, 0);
+    gfxRotMatrixZ(&coord->coord, placement->rot.vz, GRAPHICS_ROTATION_COMPOSE);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     taskReparent(D_shelter_b3_dumping_hole_8018F4A8, arg0);
     Gp_UpdateCoord(coord);
@@ -3138,7 +3138,7 @@ void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
             work->rot.vz += work->rotSpeed.vz;
             gfxRotMatrixY(&coord->coord, work->rot.vy, 1);
             gfxRotMatrixX(&coord->coord, work->rot.vx, GRAPHICS_ROTATION_COMPOSE);
-            Gfx_RotMatrixZ(&coord->coord, work->rot.vz, 0);
+            gfxRotMatrixZ(&coord->coord, work->rot.vz, GRAPHICS_ROTATION_COMPOSE);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             break;
     }

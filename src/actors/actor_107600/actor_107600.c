@@ -58,7 +58,7 @@
 /// root's rotation from.
 /// The trio at +0x50 is a second rotation set: `func_actor_107600_80134A50`
 /// wraps each to 12 bits and feeds them to `gfxRotMatrixX`, `gfxRotMatrixY`
-/// and `Gfx_RotMatrixZ` in turn.
+/// and `gfxRotMatrixZ` in turn.
 ///
 /// `rec18` is the collision table `obj.context.contacts` points at and
 /// `func_actor_107600_80134958` hands to `Gp_InitRec18Table` with count 8, so
@@ -84,7 +84,7 @@ typedef struct Actor107600Work {
     /* 0x04E */ byte                  pad_4E[0x2];
     /* 0x050 */ u16                   field_50;  // fed to gfxRotMatrixX
     /* 0x052 */ u16                   field_52;  // fed to gfxRotMatrixY
-    /* 0x054 */ u16                   field_54;  // fed to Gfx_RotMatrixZ
+    /* 0x054 */ u16                   field_54;  // fed to gfxRotMatrixZ
     /* 0x056 */ byte                  pad_56[0x2];
     /* 0x058 */ s16                   field_58;  // spin velocity added to field_50 while tumbling
     /* 0x05A */ s16                   field_5A;  // spin velocity added to field_52
@@ -2098,7 +2098,7 @@ static void func_actor_107600_801349E0(Task* arg0)
 
 /// Builds a second rotation from the work block's angle trio at +0x50: wrap
 /// each to 12 bits, lay an unscaled `MATRIX` down at the scratchpad head, apply
-/// `Gfx_RotMatrixZ`/`X`/`Y` to it in that order, copy its 3x3 into the model's
+/// `gfxRotMatrixZ`, `gfxRotMatrixX` and `gfxRotMatrixY` in that order, copy its 3x3 into the model's
 /// `GfxCoord::coord` through `func_actor_107600_80134B2C`, and hand the
 /// scratch block back.
 static void func_actor_107600_80134A50(Task* arg0)
@@ -2117,7 +2117,7 @@ static void func_actor_107600_80134A50(Task* arg0)
     MATRIX_PAIR(m, 2, 0)         = 0;
     m->m[2][2]                   = 0x1000;
     SCRATCH_STACK_CURSOR(MATRIX) = m;
-    Gfx_RotMatrixZ(m, (s16)work->field_54, 0);
+    gfxRotMatrixZ(m, (s16)work->field_54, GRAPHICS_ROTATION_COMPOSE);
     gfxRotMatrixX(m, (s16)work->field_50, GRAPHICS_ROTATION_COMPOSE);
     gfxRotMatrixY(m, (s16)work->field_52, 0);
     func_actor_107600_80134B2C(m, &coord->coord);

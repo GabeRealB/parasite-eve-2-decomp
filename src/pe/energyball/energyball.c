@@ -619,7 +619,7 @@ void func_energyball_8013107C(Task* arg0)
     }
 
     if (arg0->state == 0) {
-        Gfx_RotMatrixZ(&coord->coord, arg0->spawnArg1.value & 0xFFF, 0);
+        gfxRotMatrixZ(&coord->coord, arg0->spawnArg1.value & 0xFFF, GRAPHICS_ROTATION_COMPOSE);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         mem->scale          = 0x80;
         mem->angle          = 0x100;

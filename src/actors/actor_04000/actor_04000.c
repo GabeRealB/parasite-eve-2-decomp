@@ -2512,7 +2512,7 @@ static void Actor04000_Fn04FA4(Enemy* arg0, Task* arg1)
         arg1->extra.tmd->coords->coord.t[1] = 0;
         work->field_0                       = 3;
         work->field_479                     = 0;
-        Gfx_RotMatrixZ(&arg1->extra.tmd->coords->coord, -work->field_19C, 0);
+        gfxRotMatrixZ(&arg1->extra.tmd->coords->coord, -work->field_19C, GRAPHICS_ROTATION_COMPOSE);
     } else {
         step = work->field_19C;
         rot  = step;
@@ -2521,7 +2521,7 @@ static void Actor04000_Fn04FA4(Enemy* arg0, Task* arg1)
             if (abs(rot) > 0x92) {
                 step = (rot < 0) ? 0x92 : -0x92;
             }
-            Gfx_RotMatrixZ(&arg1->extra.tmd->coords->coord, step, 0);
+            gfxRotMatrixZ(&arg1->extra.tmd->coords->coord, step, GRAPHICS_ROTATION_COMPOSE);
             work->field_19C += step;
         }
     }
@@ -2698,7 +2698,7 @@ static void Actor04000_Fn055C8(Enemy* arg0, Task* arg1)
                 gte_stsv(&sv);
                 arg1->extra.tmd->coords->coord.t[0] += sv.vx;
                 arg1->extra.tmd->coords->coord.t[2] += sv.vz;
-                Gfx_RotMatrixZ(&arg1->extra.tmd->coords->coord, -0x88, 0);
+                gfxRotMatrixZ(&arg1->extra.tmd->coords->coord, -0x88, GRAPHICS_ROTATION_COMPOSE);
                 arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
             }
             if (work->field_58 & 1) {
@@ -3196,7 +3196,7 @@ static void Actor04000_Fn06D38(Enemy* arg0, Task* arg1)
         work->obj270.flags          |= WORLD_COLLISION_BODY_GRID_ENABLED;
         animDriverTick(arg1);
         angle = ratan2(-arg1->extra.tmd->coords->coord.m[2][0], arg1->extra.tmd->coords->coord.m[2][2]);
-        Gfx_RotMatrixZ(&arg1->extra.tmd->coords->coord, 0x800, 1);
+        gfxRotMatrixZ(&arg1->extra.tmd->coords->coord, 0x800, GRAPHICS_ROTATION_REPLACE);
         gfxRotMatrixY(&arg1->extra.tmd->coords->coord, angle, 0);
         arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         return;

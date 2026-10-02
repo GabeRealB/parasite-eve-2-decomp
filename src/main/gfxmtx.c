@@ -449,37 +449,43 @@ void gfxRotMatrixY(MATRIX* matrix, s32 angle, s32 replace)
     SCRATCH_STACK_RELEASE_BLOCK(_GfxAxisRotationScratch);
 }
 
-void Gfx_RotMatrixZ(MATRIX* matrix, s32 angle, s32 flag)
+/// Builds a pure Z-axis rotation from precomputed sine and cosine.
+///
+/// `scratch` holds `angleSin` and `angleCos` for the same angle, scaled by
+/// `ONE` (4096) and in [-ONE, ONE]. Its matrix need not be initialized.
+/// `rotation` is a live, writable `MATRIX`, disjoint from `scratch` or exactly
+/// `&scratch->rotation`. Writes only the nine signed 16-bit rotation elements,
+/// preserving the alignment bytes and translation. The caller owns both
+/// objects; no scratch reservation, GTE state or retained pointer is involved.
+static __inline__ void _gfxBuildZRotation(MATRIX* rotation, const _GfxAxisRotationScratch* scratch)
 {
-    _GfxAxisRotationScratch* block;
+    rotation->m[0][0] = scratch->angleCos;
+    rotation->m[0][1] = -scratch->angleSin;
+    rotation->m[0][2] = 0;
+    rotation->m[1][0] = scratch->angleSin;
+    rotation->m[1][1] = scratch->angleCos;
+    rotation->m[1][2] = 0;
+    rotation->m[2][0] = 0;
+    rotation->m[2][1] = 0;
+    rotation->m[2][2] = ONE;
+}
 
-    block = SCRATCH_STACK_RESERVE_BLOCK(_GfxAxisRotationScratch);
+void gfxRotMatrixZ(MATRIX* matrix, s32 angle, s32 replace)
+{
+    _GfxAxisRotationScratch* scratch;
 
-    block->angleSin = rsin(angle);
-    block->angleCos = rcos(angle);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_GfxAxisRotationScratch);
 
-    if (flag != 0) {
-        matrix->m[0][0] = block->angleCos;
-        matrix->m[0][1] = -block->angleSin;
-        matrix->m[0][2] = 0;
-        matrix->m[1][0] = block->angleSin;
-        matrix->m[1][1] = block->angleCos;
-        matrix->m[1][2] = 0;
-        matrix->m[2][0] = 0;
-        matrix->m[2][1] = 0;
-        matrix->m[2][2] = ONE;
+    scratch->angleSin = rsin(angle);
+    scratch->angleCos = rcos(angle);
+
+    // Build Rz directly for replacement, or in scratch for matrix * Rz.
+    // Composition reads only the 3x3, so scratch translation stays unset.
+    if (replace != 0) {
+        _gfxBuildZRotation(matrix, scratch);
     } else {
-        block->rotation.m[0][0] = block->angleCos;
-        block->rotation.m[0][1] = -block->angleSin;
-        block->rotation.m[0][2] = 0;
-        block->rotation.m[1][0] = block->angleSin;
-        block->rotation.m[1][1] = block->angleCos;
-        block->rotation.m[1][2] = 0;
-        block->rotation.m[2][0] = 0;
-        block->rotation.m[2][1] = 0;
-        block->rotation.m[2][2] = ONE;
-
-        gte_MulMatrix0(matrix, &block->rotation, matrix);
+        _gfxBuildZRotation(&scratch->rotation, scratch);
+        gte_MulMatrix0(matrix, &scratch->rotation, matrix);
     }
 
     SCRATCH_STACK_RELEASE_BLOCK(_GfxAxisRotationScratch);

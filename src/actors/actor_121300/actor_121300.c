@@ -1980,7 +1980,7 @@ void func_actor_121300_8013293C(Task* arg0)
             work->rotZ        += work->spinZ * D_actor_121300_8013CC04 / 100;
             gfxRotMatrixY(&coord->coord, work->rotY, 1);
             gfxRotMatrixX(&coord->coord, work->rotX, GRAPHICS_ROTATION_COMPOSE);
-            Gfx_RotMatrixZ(&coord->coord, work->rotZ, 0);
+            gfxRotMatrixZ(&coord->coord, work->rotZ, GRAPHICS_ROTATION_COMPOSE);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             if (coord->coord.t[1] >= -499) {
                 taskKill(arg0);

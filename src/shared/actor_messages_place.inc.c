@@ -10,7 +10,7 @@ s32 actorMsgPlace(Task* task, s32 arg1, ActorTransform* placement)
     task->extra.tmd->coords->coord.t[2] = placement->pos.vz;
     gfxRotMatrixX(&task->extra.tmd->coords->coord, placement->rot.vx, GRAPHICS_ROTATION_REPLACE);
     gfxRotMatrixY(&task->extra.tmd->coords->coord, placement->rot.vy, 0);
-    Gfx_RotMatrixZ(&task->extra.tmd->coords->coord, placement->rot.vz, 0);
+    gfxRotMatrixZ(&task->extra.tmd->coords->coord, placement->rot.vz, GRAPHICS_ROTATION_COMPOSE);
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     return 1;
 }

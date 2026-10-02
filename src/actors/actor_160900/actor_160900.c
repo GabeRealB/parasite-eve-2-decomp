@@ -1215,7 +1215,7 @@ void func_actor_160900_80132C08(Task* task)
     }
     func_actor_160900_80132844(task);
     if (gGameSession->location.loc.view == 0x2E) {
-        Gfx_RotMatrixZ(&task->extra.tmd->coords[18].coord, 0x800, 1);
+        gfxRotMatrixZ(&task->extra.tmd->coords[18].coord, 0x800, GRAPHICS_ROTATION_REPLACE);
     } else {
         gfxRotMatrixX(&task->extra.tmd->coords[18].coord, 0x79C, GRAPHICS_ROTATION_REPLACE);
     }

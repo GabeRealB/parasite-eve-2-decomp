@@ -7082,7 +7082,7 @@ s32 func_actor_444000_80143D7C(Task* arg0, s32 arg1, ActorTransform* placement)
     if ((u32)((u16)work->field_0 - 0x12) >= 2U) {
         gfxRotMatrixX(&arg0->extra.tmd->coords->coord, placement->rot.vx, GRAPHICS_ROTATION_REPLACE);
         gfxRotMatrixY(&arg0->extra.tmd->coords->coord, placement->rot.vy, 0);
-        Gfx_RotMatrixZ(&arg0->extra.tmd->coords->coord, placement->rot.vz, 0);
+        gfxRotMatrixZ(&arg0->extra.tmd->coords->coord, placement->rot.vz, GRAPHICS_ROTATION_COMPOSE);
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     return 1;

@@ -598,7 +598,7 @@ void func_lifedrain_801308C0(Task* arg0)
     }
 
     if (arg0->state == 0) {
-        Gfx_RotMatrixZ(&coord->coord, arg0->spawnArg1.value & 0xFFF, 0);
+        gfxRotMatrixZ(&coord->coord, arg0->spawnArg1.value & 0xFFF, GRAPHICS_ROTATION_COMPOSE);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         kind                = (Gp_StateC08.field_0 % 10U) - 1;
         mem->index          = kind;

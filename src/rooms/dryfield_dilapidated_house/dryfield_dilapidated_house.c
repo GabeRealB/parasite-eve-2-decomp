@@ -129,8 +129,9 @@ STATIC_ASSERT_SIZEOF(DdhAngleStep, 0x40);
 /// `func_dryfield_dilapidated_house_80183D5C`, reached as `task->spawnArg2.pointer`
 /// and handed to `effectKillTask` when their ramp runs out. `field_24` is a
 /// scale and `field_26` an angle in the 0x100-step rotation space: the pair starts
-/// at 0x80 / 0x100, steps by -8 and +0x80 per frame and drives one
-/// `Gfx_RotMatrixZ` + `Gp_UpdateCoord` + draw call per frame. `field_22` is the
+/// at 0x80 / 0x100, steps by -8 and +0x80 per frame and drives one draw call
+/// per frame. `gfxRotMatrixZ` composes the initial orientation before
+/// `Gp_UpdateCoord` refreshes it. `field_22` is the
 /// per-frame tick the task rolls back while `gRoomEffectState->effectControl` is not running;
 /// `field_20` and `field_28` are a third ramp value the two `80182744` states
 /// seed from one `gRandomLcgState` draw and hand to the same draw routine.
@@ -4349,7 +4350,7 @@ void func_dryfield_dilapidated_house_80183D5C(Task* arg0)
     }
 
     if (arg0->state == 0) {
-        Gfx_RotMatrixZ(&coord->coord, arg0->spawnArg1.value, 0);
+        gfxRotMatrixZ(&coord->coord, arg0->spawnArg1.value, GRAPHICS_ROTATION_COMPOSE);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
         mem->field_24 = 0x80;
