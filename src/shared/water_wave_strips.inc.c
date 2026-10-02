@@ -1,5 +1,19 @@
 /* Part of the water effects library; see water_effects.h. */
 
+// WATER_WAVE_STRIPS_AMPLITUDE_SHIFT is required for each included instance.
+// Bind an integer preprocessor constant in 0..16: it scales the signed
+// -4096..4096 sine result into world-coordinate Y displacement at the seam.
+// The septic tank binds 5 (-128..128 units); the main corridor and water supply
+// bind 6 (-64..64 units). The unsigned 32-bit shift followed by the signed
+// 16-bit yOffset store preserves negative offsets throughout this shift range.
+// The binding captures no identifiers, has no side effects, and is undefined
+// at the end of this file; a second include must bind it again.
+#ifndef WATER_WAVE_STRIPS_AMPLITUDE_SHIFT
+#error "Define WATER_WAVE_STRIPS_AMPLITUDE_SHIFT before including water_wave_strips.inc.c"
+#elif WATER_WAVE_STRIPS_AMPLITUDE_SHIFT < 0 || WATER_WAVE_STRIPS_AMPLITUDE_SHIFT > 16
+#error "WATER_WAVE_STRIPS_AMPLITUDE_SHIFT must be in 0..16 to preserve signed Y offsets"
+#endif
+
 #ifndef WATER_WAVE_STRIPS_FUNC
 #define WATER_WAVE_STRIPS_FUNC waterDrawWaveStrips
 #endif
@@ -68,7 +82,7 @@
 /// WATER_WAVE_STRIPS_HEIGHT as two strips of 16 semi-transparent gouraud quads
 /// side by side along X, each running along Z and projected through the view
 /// matrix. The seam between them is lifted by a sine wave along Z, scrolling
-/// with the display frame (amplitude `rsin >> WATER_WAVE_STRIPS_WAVE_SHIFT`);
+/// with the display frame (scaled by `WATER_WAVE_STRIPS_AMPLITUDE_SHIFT`);
 /// each quad is followed by a draw-mode packet selecting blend mode 2. The
 /// packets append to `WATER_WAVE_STRIPS_PRIM_CURSOR`, with initialization
 /// selected by `WATER_WAVE_STRIPS_RESET_ACTOR_LOAD_CURSOR`.
@@ -136,11 +150,11 @@ static void WATER_WAVE_STRIPS_FUNC(Task* task)
             v1.vx            = scratch->x;
             v1.vy            = scratch->y;
             v1.vz            = scratch->z + scratch->dz * (i + 1);
-            scratch->yOffset = (u32)rsin(phase + (i << 9)) >> WATER_WAVE_STRIPS_WAVE_SHIFT;
+            scratch->yOffset = (u32)rsin(phase + (i << 9)) >> WATER_WAVE_STRIPS_AMPLITUDE_SHIFT;
             v2.vx            = scratch->x + scratch->dx;
             v2.vy            = scratch->y + scratch->yOffset;
             v2.vz            = scratch->z + scratch->dz * i;
-            scratch->yOffset = (u32)rsin(phase + ((i + 1) << 9)) >> WATER_WAVE_STRIPS_WAVE_SHIFT;
+            scratch->yOffset = (u32)rsin(phase + ((i + 1) << 9)) >> WATER_WAVE_STRIPS_AMPLITUDE_SHIFT;
             v3.vx            = scratch->x + scratch->dx;
             v3.vy            = scratch->y + scratch->yOffset;
             v3.vz            = scratch->z + scratch->dz * (i + 1);
@@ -166,11 +180,11 @@ static void WATER_WAVE_STRIPS_FUNC(Task* task)
             }
         }
         for (i = 0; i < 16; i++) {
-            scratch->yOffset = (u32)rsin(phase + (i << 9)) >> WATER_WAVE_STRIPS_WAVE_SHIFT;
+            scratch->yOffset = (u32)rsin(phase + (i << 9)) >> WATER_WAVE_STRIPS_AMPLITUDE_SHIFT;
             v0.vx            = scratch->x + scratch->dx;
             v0.vy            = scratch->y + scratch->yOffset;
             v0.vz            = scratch->z + scratch->dz * i;
-            scratch->yOffset = (u32)rsin(phase + ((i + 1) << 9)) >> WATER_WAVE_STRIPS_WAVE_SHIFT;
+            scratch->yOffset = (u32)rsin(phase + ((i + 1) << 9)) >> WATER_WAVE_STRIPS_AMPLITUDE_SHIFT;
             v1.vx            = scratch->x + scratch->dx;
             v1.vy            = scratch->y + scratch->yOffset;
             v1.vz            = scratch->z + scratch->dz * (i + 1);
@@ -213,5 +227,5 @@ static void WATER_WAVE_STRIPS_FUNC(Task* task)
 #undef WATER_WAVE_STRIPS_SURFACE_T
 #undef WATER_WAVE_STRIPS_SEGMENT_COUNT
 #undef WATER_WAVE_STRIPS_RESET_ACTOR_LOAD_CURSOR
-#undef WATER_WAVE_STRIPS_WAVE_SHIFT
+#undef WATER_WAVE_STRIPS_AMPLITUDE_SHIFT
 #undef WATER_WAVE_STRIPS_PRIM_CURSOR

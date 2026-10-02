@@ -1020,7 +1020,11 @@ static s32 func_shelter_b4_water_supply_8017DDFC(RoomEventMsg* in, RoomEventMsg*
 #define WATER_WAVE_STRIPS_SURFACES               D_shelter_b4_water_supply_80182648
 #define WATER_WAVE_STRIPS_HEIGHT                 D_shelter_b4_water_supply_80182638
 #define WATER_WAVE_STRIPS_PRIM_CURSOR            D_shelter_b4_water_supply_80184E50
-#define WATER_WAVE_STRIPS_WAVE_SHIFT             6
+/// Scales the seam's sine displacement to -64..64 world-coordinate Y units.
+///
+/// Integer shift count for `water_wave_strips.inc.c`; see its configuration
+/// contract. The include consumes and undefines this binding.
+#define WATER_WAVE_STRIPS_AMPLITUDE_SHIFT 6
 #include "../../shared/water_wave_strips.inc.c"
 
 /// Draws each surface in `D_shelter_b4_water_supply_8018265C` at height

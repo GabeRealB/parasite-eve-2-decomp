@@ -1878,7 +1878,11 @@ void func_shelter_b2_main_corridor_8017E338(Task* task)
 #define WATER_WAVE_STRIPS_SURFACES                D_shelter_b2_main_corridor_80182DEC
 #define WATER_WAVE_STRIPS_HEIGHT                  D_shelter_b2_main_corridor_80182E28
 #define WATER_WAVE_STRIPS_PRIM_CURSOR             D_shelter_b2_main_corridor_80189660
-#define WATER_WAVE_STRIPS_WAVE_SHIFT              6
+/// Scales the seam's sine displacement to -64..64 world-coordinate Y units.
+///
+/// Integer shift count for `water_wave_strips.inc.c`; see its configuration
+/// contract. The include consumes and undefines this binding.
+#define WATER_WAVE_STRIPS_AMPLITUDE_SHIFT 6
 #include "../../shared/water_wave_strips.inc.c"
 
 /// The water task: runs its state, first

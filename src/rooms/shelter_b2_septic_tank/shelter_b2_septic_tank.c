@@ -1313,7 +1313,11 @@ void func_shelter_b2_septic_tank_8017DB10(Task* task)
 #define WATER_WAVE_STRIPS_SURFACES    D_shelter_b2_septic_tank_801832CC
 #define WATER_WAVE_STRIPS_HEIGHT      D_shelter_b2_septic_tank_801832BC
 #define WATER_WAVE_STRIPS_PRIM_CURSOR D_shelter_b2_septic_tank_80187054
-#define WATER_WAVE_STRIPS_WAVE_SHIFT  5
+/// Scales the seam's sine displacement to -128..128 world-coordinate Y units.
+///
+/// Integer shift count for `water_wave_strips.inc.c`; see its configuration
+/// contract. The include consumes and undefines this binding.
+#define WATER_WAVE_STRIPS_AMPLITUDE_SHIFT 5
 #define WATER_WAVE_STRIPS_NEAR_COLOURS(p) \
     setRGB0(p, 0, 0x40, 0x80);            \
     setRGB1(p, 0, 0x40, 0x80);            \
@@ -1330,7 +1334,8 @@ void func_shelter_b2_septic_tank_8017DB10(Task* task)
 #define WATER_WAVE_STRIPS_SURFACES    D_shelter_b2_septic_tank_801832F0
 #define WATER_WAVE_STRIPS_HEIGHT      D_shelter_b2_septic_tank_801832BC
 #define WATER_WAVE_STRIPS_PRIM_CURSOR D_shelter_b2_septic_tank_80187054
-#define WATER_WAVE_STRIPS_WAVE_SHIFT  5
+/// Rebinds the second surface list's seam displacement to -128..128 Y units.
+#define WATER_WAVE_STRIPS_AMPLITUDE_SHIFT 5
 #define WATER_WAVE_STRIPS_NEAR_COLOURS(p) \
     setRGB0(p, 0, 0x40, 0x80);            \
     setRGB1(p, 0, 0x40, 0x80);            \
