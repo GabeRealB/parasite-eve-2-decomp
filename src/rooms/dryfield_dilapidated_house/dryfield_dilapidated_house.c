@@ -78,8 +78,6 @@
 
 extern SVECTOR D_dryfield_dilapidated_house_80186944[2];
 
-extern WorldCoordSpotLight D_dryfield_dilapidated_house_8018959C[1];
-
 extern AnimationSet* D_dryfield_dilapidated_house_80183F00[16];
 
 /// Work block of the task family whose state-0 init is
@@ -1609,7 +1607,34 @@ static WorldCoordPointLight _gDryfieldDilapidatedHousePointLights[] = {
     },
 };
 
-WorldCoordSpotLight D_dryfield_dilapidated_house_8018959C[1] = { { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { -ONE, 0, 0 }, { 0, -2902, 2901 }, { 0, 2901, 2901 } }, { -5000, -2500, -4000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 0, 0, 0 }, { 0, 0 } }, { 0, 2896, 2896, 0 }, 100, 3000, 625 } };
+/// Authored cone-light table for every view of the Dryfield dilapidated house.
+///
+/// The single entry has zero RGB intensity. Position and falloff radii use
+/// integer world units; the axis has 12 fractional bits and the opening uses
+/// 0x1000 units per turn. The room light collection borrows this writable table
+/// while the overlay is loaded: coordinate updates rebuild its orientation and
+/// composed transform, and lighting queries overwrite attenuation.
+static WorldCoordSpotLight _gDryfieldDilapidatedHouseConeLights[1] = {
+    {
+        .head = {
+            .transform  = { .lighting = {
+                                .composeStamp = GRAPHICS_COORD_DIRTY,
+                                .local        = { { { -ONE, 0, 0 }, { 0, -2902, 2901 }, { 0, 2901, 2901 } }, { -5000, -2500, -4000 } },
+                                .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                                .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                                .unknown_46   = { 0, 0, 0, 0 },
+                                .attenuation  = 0,
+                                .parent       = NULL,
+                           } },
+            .color      = { 0, 0, 0 },
+            .unknown_56 = { 0, 0 },
+        },
+        .axis  = { 0, 2896, 2896, 0 },
+        .inner = 100,
+        .outer = 3000,
+        .angle = 625,
+    },
+};
 
 /// Unreferenced bytes following the room's cone light in the overlay image.
 ///
@@ -2375,7 +2400,7 @@ static u8 _gDryfieldDilapidatedHouseUnreferencedData[] = {
 };
 
 WorldCoordRoomLights D_dryfield_dilapidated_house_801898FC[1] = {
-    { 0, NULL, ARRAY_SIZE(_gDryfieldDilapidatedHousePointLights), _gDryfieldDilapidatedHousePointLights, ARRAY_SIZE(D_dryfield_dilapidated_house_8018959C), D_dryfield_dilapidated_house_8018959C },
+    { 0, NULL, ARRAY_SIZE(_gDryfieldDilapidatedHousePointLights), _gDryfieldDilapidatedHousePointLights, ARRAY_SIZE(_gDryfieldDilapidatedHouseConeLights), _gDryfieldDilapidatedHouseConeLights },
 };
 
 AreaResource D_dryfield_dilapidated_house_80189914[3] = {
