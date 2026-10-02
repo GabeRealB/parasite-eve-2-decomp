@@ -74,26 +74,68 @@ typedef struct {
 } _SndPitchEnvelope;
 STATIC_ASSERT_SIZEOF(_SndPitchEnvelope, 0x18);
 
-/// FX/envelope sub-block embedded at SndVoice + 0x10 (SndVoice_SetupEnvelope / SndVoice_TickEnvelope).
-/// field_0 is an active flag; field_1 is the state-machine index; field_2 is a
-/// secondary gate; field_20 points at the current `_SndPitchEnvelope`.
-typedef struct _SndVoiceFx {
-    /* 0x00 */ s8                 field_0;
-    /* 0x01 */ s8                 field_1;
-    /* 0x02 */ s8                 field_2;
-    /* 0x03 */ u8                 pad_3;
-    /* 0x04 */ s32                field_4;
-    /* 0x08 */ s16                field_8;
-    /* 0x0A */ s16                field_A;
-    /* 0x0C */ u16                field_C;
-    /* 0x0E */ s16                field_E;
-    /* 0x10 */ s32                field_10;
-    /* 0x14 */ s32                field_14;
-    /* 0x18 */ s32                field_18;
-    /* 0x1C */ s32                field_1C;
-    /* 0x20 */ _SndPitchEnvelope* field_20;
-} SndVoiceFx;
-STATIC_ASSERT_SIZEOF(SndVoiceFx, 0x24);
+/// Stage of a `_SndVoiceEnvelope`.
+///
+/// Delay through sustain run in order. Release replaces whichever of those is
+/// current. Once the tracked ramp reaches `releaseLevel`, the next stage holds
+/// that level.
+enum {
+    SOUND_VOICE_ENVELOPE_DELAY        = 0,
+    SOUND_VOICE_ENVELOPE_ATTACK       = 1,
+    SOUND_VOICE_ENVELOPE_HOLD         = 2,
+    SOUND_VOICE_ENVELOPE_DECAY        = 3,
+    SOUND_VOICE_ENVELOPE_SUSTAIN      = 4,
+    SOUND_VOICE_ENVELOPE_RELEASE      = 5,
+    SOUND_VOICE_ENVELOPE_RELEASE_HOLD = 6
+};
+
+/// `releaseRequest` on a `_SndVoiceEnvelope`.
+///
+/// Pending asks the next update to capture the release step and enter release.
+/// Started means that step has been captured, so a later gate expiry does not
+/// capture it again.
+enum {
+    SOUND_VOICE_ENVELOPE_HELD            = 0,
+    SOUND_VOICE_ENVELOPE_RELEASE_PENDING = 1,
+    SOUND_VOICE_ENVELOPE_RELEASE_STARTED = 2
+};
+
+/// Pitch-envelope player for one scripted voice.
+///
+/// `SndVoice` embeds one. Setup copies the layer's root key and fine tune
+/// because the voice does not keep the layer, and arms playback only when the
+/// addressed chunk is an `oneE` (`_SndPitchEnvelope`). No chunk, or no owning
+/// script, clears `active`. Any other tag still stores `envelope` and leaves
+/// `active`, `stage` and `releaseRequest` as they were.
+///
+/// `keyedPitch` is the note's Q7 pitch, where 128 is one semitone. Each stage
+/// doubles it before adding an offset, so it shares the chunk's 1/256 semitone
+/// scale. `stageUpdates` counts audio updates already played in the current
+/// stage.
+///
+/// `attackOffset`, `decayOffset` and `releaseOffset` are the running ramps.
+/// `rampOffset` is the offset last stored by a ramp, in the same units. Hold
+/// and sustain play their levels without storing them there, so release starts
+/// from the ramp's end rather than from the level being played, and then
+/// `rampOffset` tracks the release ramp. `releaseStep` is the signed step
+/// captured when release starts, chosen so the ramp moves toward `releaseLevel`.
+typedef struct {
+    s8                 active;         // 0 off, 1 running; a mismatched oneE tag does not change it
+    s8                 stage;          // SOUND_VOICE_ENVELOPE_DELAY through RELEASE_HOLD
+    s8                 releaseRequest; // SOUND_VOICE_ENVELOPE_HELD, RELEASE_PENDING or RELEASE_STARTED
+    u8                 pad;            // No reader or writer; byte before the word-aligned keyed pitch
+    s32                keyedPitch;     // Keyed Q7 pitch; low 16 bits of keyMin plus the note's pitch offset
+    u16                rootKey;        // Cached layer root key, for converting the sounding pitch
+    u16                fineTune;       // Cached layer fine tune, in 1/128 semitone steps
+    u16                stageUpdates;   // Audio updates already played in the current stage
+    s16                releaseStep;    // Signed step added on each release update, toward releaseLevel
+    s32                rampOffset;     // Offset last stored by a ramp, in 1/256 semitone steps
+    s32                attackOffset;   // Running attack ramp; the pitch offset during attack
+    s32                decayOffset;    // Running decay ramp; the pitch offset during decay
+    s32                releaseOffset;  // Running release ramp; the pitch offset during release
+    _SndPitchEnvelope* envelope;       // Addressed oneE chunk; stored even when its tag does not arm playback
+} _SndVoiceEnvelope;
+STATIC_ASSERT_SIZEOF(_SndVoiceEnvelope, 0x24);
 
 /// `oneV` FourCC. A command with this tag keys on one voice.
 ///
@@ -171,7 +213,7 @@ STATIC_ASSERT_SIZEOF(_SndScriptNote, 0x18);
 /// SPU voices 16..23 have records in SndScript_Voices; voices 0..15 belong to
 /// the MIDI sequencer and are never allocated here.
 /// field_0 is the SPU voice index; field_4 is a countdown/timer (SndVoice_Tick).
-/// field_10 contains the FX state, including its active and secondary gates.
+/// field_10 is this voice's `_SndVoiceEnvelope`.
 /// field_34/field_38/field_3C are parent/prev/next list links (SndVoice_Detach free).
 struct _SndVoice {
     /* 0x00 */ s8                 field_0;
@@ -183,7 +225,7 @@ struct _SndVoice {
     /* 0x0A */ u8                 field_A;
     /* 0x0B */ u8                 pad_0B;
     /* 0x0C */ _SndScriptNote*    field_C; // note command that started this voice
-    /* 0x10 */ SndVoiceFx         field_10;
+    /* 0x10 */ _SndVoiceEnvelope  field_10;
     /* 0x34 */ struct _SndScript* field_34;
     /* 0x38 */ SndVoice*          field_38;
     /* 0x3C */ SndVoice*          field_3C;
@@ -1284,7 +1326,7 @@ static s32 SndVoice_DriveSlots(s32* unused)
                 if (p->field_40 != NULL) {
                     node = p->field_40;
                     do {
-                        if (node->field_10.field_0 != 0) {
+                        if (node->field_10.active != 0) {
                             count++;
                             SndVoice_TickEnvelope(node);
                         }
@@ -1597,8 +1639,8 @@ static s32 SndScript_Exec(SndScript* script)
                     SndVoice_SetupEnvelope(voice, envelopeOffset, pitch & 0xFFFF, bankLayer);
                     result = 1;
                 } else {
-                    voice->field_10.field_0 = 0;
-                    result                  = 1;
+                    voice->field_10.active = 0;
+                    result                 = 1;
                 }
             }
             script->field_8  = (s32)(script->field_8 - (note->delayTicks << 0x10));
@@ -1630,84 +1672,85 @@ done:
 static void SndVoice_TickEnvelope(SndVoice* voice)
 {
     SpuVoiceRef        sp10;
-    SndVoiceFx*        fx;
+    _SndVoiceEnvelope* player;
     _SndPitchEnvelope* envelope;
     s32                pitch;
     s32                temp;
     s32                level;
     SpuVoiceAttr*      attr;
 
-    fx       = &voice->field_10;
-    envelope = fx->field_20;
+    player   = &voice->field_10;
+    envelope = player->envelope;
 
-    // Release, when requested, replaces the current stage. A stage whose count
-    // is exhausted falls through and plays the next stage on this update.
-    if (fx->field_2 == 1) {
-        fx->field_1 = 5;
-        temp        = (fx->field_10 - envelope->releaseLevel) * envelope->releaseSlope;
+    // A pending release replaces the current stage and starts from the last
+    // ramp offset, not the level being played. An exhausted stage falls
+    // through and plays the next stage on this update.
+    if (player->releaseRequest == SOUND_VOICE_ENVELOPE_RELEASE_PENDING) {
+        player->stage = SOUND_VOICE_ENVELOPE_RELEASE;
+        temp          = (player->rampOffset - envelope->releaseLevel) * envelope->releaseSlope;
         if (temp > 0) {
-            fx->field_E = -envelope->releaseSlope;
+            player->releaseStep = -envelope->releaseSlope;
         } else {
-            fx->field_E = envelope->releaseSlope;
+            player->releaseStep = envelope->releaseSlope;
         }
 
-        fx->field_C  = 0;
-        fx->field_2  = 2;
-        fx->field_1C = fx->field_10;
+        player->stageUpdates   = 0;
+        player->releaseRequest = SOUND_VOICE_ENVELOPE_RELEASE_STARTED;
+        player->releaseOffset  = player->rampOffset;
     }
 
-    switch (fx->field_1) {
-        case 0:
-            if (fx->field_C < envelope->delayUpdates) {
-                fx->field_C++;
+    switch (player->stage) {
+        case SOUND_VOICE_ENVELOPE_DELAY:
+            if (player->stageUpdates < envelope->delayUpdates) {
+                player->stageUpdates++;
                 break;
             }
-            fx->field_1  = 1;
-            fx->field_C  = 0;
-            fx->field_14 = 0;
-            fx->field_10 = 0;
-        case 1:
-            pitch = (fx->field_4 << 1) + fx->field_14;
-            if (fx->field_C < envelope->attackUpdates) {
-                fx->field_C++;
-                fx->field_10 = fx->field_14 += envelope->attackSlope;
+            player->stage        = SOUND_VOICE_ENVELOPE_ATTACK;
+            player->stageUpdates = 0;
+            player->attackOffset = 0;
+            player->rampOffset   = 0;
+        case SOUND_VOICE_ENVELOPE_ATTACK:
+            pitch = (player->keyedPitch << 1) + player->attackOffset;
+            if (player->stageUpdates < envelope->attackUpdates) {
+                player->stageUpdates++;
+                player->rampOffset = player->attackOffset += envelope->attackSlope;
                 goto apply;
             }
-            fx->field_1 = 2;
-            fx->field_C = 0;
-        case 2:
-            pitch = (fx->field_4 << 1) + envelope->attackLevel;
-            if (fx->field_C < envelope->holdUpdates) {
-                fx->field_C++;
+            player->stage        = SOUND_VOICE_ENVELOPE_HOLD;
+            player->stageUpdates = 0;
+        case SOUND_VOICE_ENVELOPE_HOLD:
+            pitch = (player->keyedPitch << 1) + envelope->attackLevel;
+            if (player->stageUpdates < envelope->holdUpdates) {
+                player->stageUpdates++;
                 goto apply;
             }
-            fx->field_1  = 3;
-            fx->field_18 = envelope->attackLevel;
-            level        = envelope->attackLevel;
-            fx->field_C  = 0;
-            fx->field_10 = level;
-        case 3:
-            pitch = (fx->field_4 << 1) + fx->field_18;
-            if (fx->field_C < envelope->decayUpdates) {
-                fx->field_C++;
-                fx->field_10 = fx->field_18 += envelope->decaySlope;
+            player->stage        = SOUND_VOICE_ENVELOPE_DECAY;
+            player->decayOffset  = envelope->attackLevel;
+            level                = envelope->attackLevel;
+            player->stageUpdates = 0;
+            player->rampOffset   = level;
+        case SOUND_VOICE_ENVELOPE_DECAY:
+            pitch = (player->keyedPitch << 1) + player->decayOffset;
+            if (player->stageUpdates < envelope->decayUpdates) {
+                player->stageUpdates++;
+                player->rampOffset = player->decayOffset += envelope->decaySlope;
                 goto apply;
             }
-            fx->field_1 = 4;
-        case 4:
-            pitch = (fx->field_4 << 1) + envelope->sustainLevel;
+            player->stage = SOUND_VOICE_ENVELOPE_SUSTAIN;
+        case SOUND_VOICE_ENVELOPE_SUSTAIN:
+            pitch = (player->keyedPitch << 1) + envelope->sustainLevel;
             goto apply;
-        case 5:
-            temp = (fx->field_10 - envelope->releaseLevel) * envelope->releaseSlope;
+        case SOUND_VOICE_ENVELOPE_RELEASE:
+            temp = (player->rampOffset - envelope->releaseLevel) * envelope->releaseSlope;
             if (temp >= 0) {
-                fx->field_1 = 6;
+                player->stage = SOUND_VOICE_ENVELOPE_RELEASE_HOLD;
             } else {
-                fx->field_10 = fx->field_1C += fx->field_E;
+                player->rampOffset = player->releaseOffset += player->releaseStep;
             }
-            pitch = (fx->field_4 << 1) + fx->field_1C;
+            pitch = (player->keyedPitch << 1) + player->releaseOffset;
             goto apply;
-        case 6:
-            pitch = (fx->field_4 << 1) + envelope->releaseLevel;
+        case SOUND_VOICE_ENVELOPE_RELEASE_HOLD:
+            pitch = (player->keyedPitch << 1) + envelope->releaseLevel;
             goto apply;
         default:
             break;
@@ -1718,7 +1761,7 @@ apply:
     Spu_GetVoiceRef(voice->field_0, &sp10);
     attr = sp10.field_4;
     attr->pitch =
-        Spu_CalcVolume((pitch >> 8) & 0xFFFF, pitch & 0xFF, (u16)fx->field_8, (u16)fx->field_A);
+        Spu_CalcVolume((pitch >> 8) & 0xFFFF, pitch & 0xFF, player->rootKey, player->fineTune);
     attr->mask |= SPU_VOICE_PITCH;
 }
 
@@ -2199,9 +2242,9 @@ static s32 SndVoice_Tick(SndVoice* voice)
     if (temp <= 0) {
         voice->field_4 = 0;
         Spu_KeyOff(voice->field_0);
-        if (voice->field_10.field_0 != 0) {
-            if (voice->field_10.field_2 == 0) {
-                voice->field_10.field_2 = 1;
+        if (voice->field_10.active != 0) {
+            if (voice->field_10.releaseRequest == SOUND_VOICE_ENVELOPE_HELD) {
+                voice->field_10.releaseRequest = SOUND_VOICE_ENVELOPE_RELEASE_PENDING;
             }
             goto block_8;
         }
@@ -2214,7 +2257,7 @@ static s32 SndVoice_Tick(SndVoice* voice)
             }
         }
     block_8:
-        if (voice->field_10.field_0 != 0) {
+        if (voice->field_10.active != 0) {
             SndVoice_TickEnvelope(voice);
         }
     }
@@ -2251,9 +2294,9 @@ static s32 SndScript_TickVoices(SndScript* script)
                 } else {
                     Spu_KeyOff(node->field_0);
                 }
-                if (node->field_10.field_0 != 0) {
-                    count                 += 1;
-                    node->field_10.field_2 = 1;
+                if (node->field_10.active != 0) {
+                    count                        += 1;
+                    node->field_10.releaseRequest = SOUND_VOICE_ENVELOPE_RELEASE_PENDING;
                 }
             }
             node = node->field_3C;
@@ -2277,38 +2320,39 @@ static void SndVoice_ScaleVolume(s8 arg0, s8 arg1, SndVoice* voice, LinInterp* r
 
 static void SndVoice_SetupEnvelope(SndVoice* voice, s16 envelopeOffset, u32 pitch, SndBankLayer* bankLayer)
 {
-    SndVoiceFx*        p;
+    _SndVoiceEnvelope* player;
     u8*                base;
     _SndPitchEnvelope* envelope;
     s32                magic;
     s16                temp;
 
-    p = &voice->field_10;
+    player = &voice->field_10;
     if (envelopeOffset == SOUND_SCRIPT_NOTE_NO_ENVELOPE) {
-        voice->field_10.field_0 = 0;
+        voice->field_10.active = 0;
         return;
     }
     if (voice->field_34 == NULL) {
-        voice->field_10.field_0 = 0;
+        voice->field_10.active = 0;
         return;
     }
     // pitchEnvelopeOffset is a byte offset from the start of the bank image.
-    base        = (u8*)voice->field_34->field_44->image;
-    envelope    = (_SndPitchEnvelope*)&base[envelopeOffset];
-    p->field_20 = envelope;
-    magic       = envelope->magic;
+    // A tag other than oneE keeps the pointer and leaves the player flags unchanged.
+    base             = (u8*)voice->field_34->field_44->image;
+    envelope         = (_SndPitchEnvelope*)&base[envelopeOffset];
+    player->envelope = envelope;
+    magic            = envelope->magic;
     if (magic == SOUND_SCRIPT_PITCH_ENVELOPE_TAG) {
-        voice->field_10.field_0 = 1;
-        p->field_1              = 0;
-        p->field_2              = 0;
-        p->field_4              = pitch & 0xFFFF;
-        p->field_8              = bankLayer->rootKey;
-        temp                    = bankLayer->fineTune;
-        p->field_C              = 0;
-        p->field_14             = 0;
-        p->field_18             = 0;
-        p->field_1C             = 0;
-        p->field_A              = temp;
+        voice->field_10.active = 1;
+        player->stage          = SOUND_VOICE_ENVELOPE_DELAY;
+        player->releaseRequest = SOUND_VOICE_ENVELOPE_HELD;
+        player->keyedPitch     = pitch & 0xFFFF;
+        player->rootKey        = bankLayer->rootKey;
+        temp                   = bankLayer->fineTune;
+        player->stageUpdates   = 0;
+        player->attackOffset   = 0;
+        player->decayOffset    = 0;
+        player->releaseOffset  = 0;
+        player->fineTune       = temp;
     }
 }
 

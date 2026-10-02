@@ -15507,7 +15507,7 @@ p->field_d = 0;
 p->field_y = temp;
 ```
 
-`SndVoice_SetupEnvelope` is the pure example (SndVoiceFx init from SndBankLayer bytes).
+`SndVoice_SetupEnvelope` is the pure example (_SndVoiceEnvelope init from SndBankLayer bytes).
 
 ## Overlay pointer at a fixed offset for multi-field base `$tN`
 
@@ -15516,13 +15516,13 @@ as `N(t0)`, take the address of the first field (or cast it to a nested
 struct type) and store through that pointer:
 
 ```c
-SndVoiceFx* p = (SndVoiceFx*)&arg0->field_10;
-p->field_20 = chunk;
-p->field_1 = 0;
+_SndVoiceEnvelope* p = (_SndVoiceEnvelope*)&arg0->field_10;
+p->envelope = chunk;
+p->stage = 0;
 /* ... */
 ```
 
-Keep one or two stores as `index->field_10 = …` (parent-relative) when the
+Keep one or two stores as `index->field_10.active = …` (parent-relative) when the
 target uses `sb …, 0x10(a0)` rather than `sb …, 0(t0)`.
 
 ## Prefer separate stores over `next` + goto for shared `field_30`
