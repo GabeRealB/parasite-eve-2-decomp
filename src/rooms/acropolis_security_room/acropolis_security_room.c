@@ -1558,14 +1558,70 @@ GpAreaVariant D_acropolis_security_room_80184088[4] = {
     { NULL, NULL },
 };
 
-WorldCoordPointLight D_acropolis_security_room_801840A8[3] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -2267, -2365 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1280, 2128 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -2267, -472 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1280, 2128 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -2993, 1623 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1280, 2128 },
+/// The security room's three white point lights, contributing in every view.
+///
+/// Positions and falloff radii use integer world units; RGB intensity uses
+/// 12 fractional bits (`ONE` is full strength). Each light is full strength
+/// within 1280 units and fades to zero at 2128 units. The loaded room overlay
+/// owns these writable records: coordinate updates parent and compose their
+/// transforms, and lighting queries overwrite attenuation. Borrowed pointers
+/// must not outlive the overlay.
+static WorldCoordPointLight _gAcropolisSecurityRoomPointLights[] = {
+    {
+        .head = {
+            .transform  = { .lighting = {
+                                .composeStamp = GRAPHICS_COORD_DIRTY,
+                                .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -2267, -2365 } },
+                                .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                                .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                                .unknown_46   = { 0, 0, 0, 0 },
+                                .attenuation  = 0,
+                                .parent       = NULL,
+                           } },
+            .color      = { ONE, ONE, ONE },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 1280,
+        .outer = 2128,
+    },
+    {
+        .head = {
+            .transform  = { .lighting = {
+                                .composeStamp = GRAPHICS_COORD_DIRTY,
+                                .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -2267, -472 } },
+                                .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                                .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                                .unknown_46   = { 0, 0, 0, 0 },
+                                .attenuation  = 0,
+                                .parent       = NULL,
+                           } },
+            .color      = { ONE, ONE, ONE },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 1280,
+        .outer = 2128,
+    },
+    {
+        .head = {
+            .transform  = { .lighting = {
+                                .composeStamp = GRAPHICS_COORD_DIRTY,
+                                .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -2993, 1623 } },
+                                .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                                .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                                .unknown_46   = { 0, 0, 0, 0 },
+                                .attenuation  = 0,
+                                .parent       = NULL,
+                           } },
+            .color      = { ONE, ONE, ONE },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 1280,
+        .outer = 2128,
+    },
 };
 
 WorldCoordRoomLights D_acropolis_security_room_801841C8[1] = {
-    { 0, NULL, ARRAY_SIZE(D_acropolis_security_room_801840A8), D_acropolis_security_room_801840A8, 0, NULL },
+    { 0, NULL, ARRAY_SIZE(_gAcropolisSecurityRoomPointLights), _gAcropolisSecurityRoomPointLights, 0, NULL },
 };
 
 SpriteBatch D_acropolis_security_room_801841E0[2] = {
