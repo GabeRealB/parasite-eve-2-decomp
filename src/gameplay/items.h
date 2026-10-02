@@ -13,7 +13,7 @@
 
 /// Qty table indexed by raw item id. `Gp_RelatedQty1` is the 0x80–0x9F slice
 /// at +0x200 (`Gp_EquipRelatedBank`).
-extern GpRelatedItemTable Gp_RelatedQty1;
+extern EquipmentWeaponLoadOptionsTable Gp_RelatedQty1;
 
 extern GpItemMap Gp_ItemMaps[];
 

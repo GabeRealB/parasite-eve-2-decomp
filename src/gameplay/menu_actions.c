@@ -700,7 +700,7 @@ static s32 Gp_NthStockRelated(InventoryItemRange* arg0, s32 arg1, s32 arg2)
     if (mode != 2) {
         i = 0;
         // Keep the row byte offset separate from the consumable-choice index.
-        table0 = Gp_RelatedQty0.bytes;
+        table0 = (const u8*)Gp_RelatedQty0.rows;
         idx    = arg2 - EQUIPMENT_WEAPON_ITEM_FIRST;
         do {
             temp = i + idx * (s32)sizeof(EquipmentWeaponLoadOptions);
@@ -720,7 +720,7 @@ static s32 Gp_NthStockRelated(InventoryItemRange* arg0, s32 arg1, s32 arg2)
     if (mode != 1) {
         if (arg1 >= 0) {
             i      = 0;
-            table1 = Gp_RelatedQty1.bytes;
+            table1 = (const u8*)Gp_RelatedQty1.rows;
             idx    = arg2 - EQUIPMENT_WEAPON_ITEM_FIRST;
             do {
                 temp = i + idx * (s32)sizeof(EquipmentWeaponLoadOptions);

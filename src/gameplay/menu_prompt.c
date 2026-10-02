@@ -1320,8 +1320,8 @@ void Gp_CountAmmoRows(UiList* arg0, s32 arg1)
     i     = count;
     if (count < limit) {
         // Search the primary and secondary load choices as packed row bytes.
-        table0 = Gp_RelatedQty0.bytes;
-        table1 = Gp_RelatedQty1.bytes;
+        table0 = (const u8*)Gp_RelatedQty0.rows;
+        table1 = (const u8*)Gp_RelatedQty1.rows;
         temp   = (u8)item * sizeof(InventoryItemRow);
         rec    = (InventoryItemRow*)&rowBytes[temp];
         do {

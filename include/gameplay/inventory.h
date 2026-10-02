@@ -31,12 +31,15 @@ typedef struct {
 } EquipmentWeaponLoadOptions;
 STATIC_ASSERT_SIZEOF(EquipmentWeaponLoadOptions, 0x4);
 
-/// The 32 weapon entries, also read as packed bytes by the ammo-row scan.
-typedef union GpRelatedItemTable {
-    EquipmentWeaponLoadOptions rows[32];
-    u8                         bytes[32 * sizeof(EquipmentWeaponLoadOptions)];
-} GpRelatedItemTable;
-STATIC_ASSERT_SIZEOF(GpRelatedItemTable, 0x80);
+/// Catalogue of load options for every weapon item id 0x80..0x9F.
+///
+/// `Gp_RelatedQty0` is the primary load and `Gp_RelatedQty1` the secondary,
+/// indexed by item id minus `EQUIPMENT_WEAPON_ITEM_FIRST`. Each row is that
+/// weapon's capacity and the consumables its load accepts.
+typedef struct {
+    EquipmentWeaponLoadOptions rows[32]; // Indexed by weapon item id minus EQUIPMENT_WEAPON_ITEM_FIRST.
+} EquipmentWeaponLoadOptionsTable;
+STATIC_ASSERT_SIZEOF(EquipmentWeaponLoadOptionsTable, 0x80);
 
 /// 4-byte row in `Gp_StackLimits`, indexed by item id − 0xA0 (ids ≥ 0xA0).
 /// perBuy is the default pickup/purchase count; maxHeld is the quantity limit.

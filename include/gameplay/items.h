@@ -114,7 +114,7 @@ extern ItemDesc Gp_ItemDescs[];
 extern ItemDesc Gp_KeyItemDescs[];
 
 /// Weapon quantity/related-id rows, indexed by item id minus 0x80.
-extern GpRelatedItemTable Gp_RelatedQty0;
+extern EquipmentWeaponLoadOptionsTable Gp_RelatedQty0;
 
 extern GpItemA0 Gp_StackLimits[];
 
