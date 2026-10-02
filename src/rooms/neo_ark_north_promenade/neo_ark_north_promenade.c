@@ -122,30 +122,30 @@ GpWarpRec D_neo_ark_north_promenade_80181DD4[2] = {
     { { .words = { 1024, 1193, 0, 0x2C19 } }, { 0, 0, 0, 0 }, { .words = { 1024, 1193, 0, 0x2C19 } }, { 0, 0, 0, 0 }, 0x550A0002, 0x550A0001, 0x550A0003, 2, 0, 434 },
 };
 
-SVECTOR D_neo_ark_north_promenade_80181E44[12] = {
+static SVECTOR _gNeoArkNorthPromenadeCollision04E2CNormals[12] = {
 #include "assets/neo_ark_north_promenade_collision_04E2C_normals.inc"
 };
 
-SVECTOR D_neo_ark_north_promenade_80181EA4[79] = {
+static SVECTOR _gNeoArkNorthPromenadeCollision04E2CVerts[79] = {
 #include "assets/neo_ark_north_promenade_collision_04E2C_verts.inc"
 };
 
-WorldCollisionGridFace D_neo_ark_north_promenade_8018211C[31] = {
+static WorldCollisionGridFace _gNeoArkNorthPromenadeCollision04E2CFaces[31] = {
 #include "assets/neo_ark_north_promenade_collision_04E2C_faces.inc"
 };
 
-s16 D_neo_ark_north_promenade_80182290[142] = {
+static s16 _gNeoArkNorthPromenadeCollision04E2CCells[142] = {
 #include "assets/neo_ark_north_promenade_collision_04E2C_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_neo_ark_north_promenade_80182290[i])
-s16* D_neo_ark_north_promenade_801823AC[16] = {
+#define GRID_CELL(i) (&_gNeoArkNorthPromenadeCollision04E2CCells[i])
+static s16* _gNeoArkNorthPromenadeCollision04E2CTable[16] = {
 #include "assets/neo_ark_north_promenade_collision_04E2C_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_neo_ark_north_promenade_801823EC[1] = {
-    { NULL, D_neo_ark_north_promenade_80181E44, D_neo_ark_north_promenade_80181EA4, D_neo_ark_north_promenade_8018211C, D_neo_ark_north_promenade_801823AC, -700, -700, 4, 4, 4000, 31 },
+    { NULL, _gNeoArkNorthPromenadeCollision04E2CNormals, _gNeoArkNorthPromenadeCollision04E2CVerts, _gNeoArkNorthPromenadeCollision04E2CFaces, _gNeoArkNorthPromenadeCollision04E2CTable, -700, -700, 4, 4, 4000, 31 },
 };
 
 GpViewRec D_neo_ark_north_promenade_80182410[6] = {

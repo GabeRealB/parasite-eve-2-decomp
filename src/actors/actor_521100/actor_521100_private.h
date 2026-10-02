@@ -126,95 +126,95 @@ typedef struct Actor521100FireRow {
 } Actor521100FireRow;
 STATIC_ASSERT_SIZEOF(Actor521100FireRow, 4);
 
-extern AnimationSet D_actor_521100_80142CCC;
+extern AnimationSet gActor521100Animation10EAC;
 
-extern AnimationSet D_actor_521100_80143434;
+extern AnimationSet gActor521100Animation11614;
 
-extern AnimationSet D_actor_521100_80144024;
+extern AnimationSet gActor521100Animation12204;
 
-extern AnimationSet D_actor_521100_8014453C;
+extern AnimationSet gActor521100Animation1271C;
 
-extern AnimationSet D_actor_521100_80145274;
+extern AnimationSet gActor521100Animation13454;
 
-extern AnimationSet D_actor_521100_801459AC;
+extern AnimationSet gActor521100Animation13B8C;
 
-extern AnimationSet D_actor_521100_80146210;
+extern AnimationSet gActor521100Animation143F0;
 
-extern AnimationSet D_actor_521100_80146738;
+extern AnimationSet gActor521100Animation14918;
 
-extern AnimationSet D_actor_521100_80146A58;
+extern AnimationSet gActor521100Animation14C38;
 
-extern AnimationSet D_actor_521100_80146F88;
+extern AnimationSet gActor521100Animation15168;
 
-extern AnimationSet D_actor_521100_80147118;
+extern AnimationSet gActor521100Animation152F8;
 
-extern AnimationSet D_actor_521100_80147724;
+extern AnimationSet gActor521100Animation15904;
 
-extern AnimationSet D_actor_521100_80147C48;
+extern AnimationSet gActor521100Animation15E28;
 
-extern AnimationSet D_actor_521100_80148448;
+extern AnimationSet gActor521100Animation16628;
 
-extern AnimationSet D_actor_521100_80148DB0;
+extern AnimationSet gActor521100Animation16F90;
 
-extern AnimationSet D_actor_521100_8014A940;
+extern AnimationSet gActor521100Animation18B20;
 
-extern AnimationSet D_actor_521100_8014C704;
+extern AnimationSet gActor521100Animation1A8E4;
 
-extern AnimationSet D_actor_521100_8014D718;
+extern AnimationSet gActor521100Animation1B8F8;
 
-extern AnimationSet D_actor_521100_8014DF24;
+extern AnimationSet gActor521100Animation1C104;
 
-extern AnimationSet D_actor_521100_8014E3AC;
+extern AnimationSet gActor521100Animation1C58C;
 
-extern AnimationSet D_actor_521100_801526A0;
+extern AnimationSet gActor521100Animation20880;
 
-extern AnimationSet D_actor_521100_80152DB4;
+extern AnimationSet gActor521100Animation20F94;
 
-extern AnimationSet D_actor_521100_8015359C;
+extern AnimationSet gActor521100Animation2177C;
 
-extern AnimationSet D_actor_521100_80153ED8;
+extern AnimationSet gActor521100Animation220B8;
 
-extern AnimationSet D_actor_521100_801547C0;
+extern AnimationSet gActor521100Animation229A0;
 
-extern AnimationSet D_actor_521100_80154FAC;
+extern AnimationSet gActor521100Animation2318C;
 
-extern AnimationSet D_actor_521100_801557E0;
+extern AnimationSet gActor521100Animation239C0;
 
-extern AnimationSet D_actor_521100_80156D7C;
+extern AnimationSet gActor521100Animation24F5C;
 
-extern AnimationSet D_actor_521100_801578EC;
+extern AnimationSet gActor521100Animation25ACC;
 
-extern AnimationSet D_actor_521100_80157E44;
+extern AnimationSet gActor521100Animation26024;
 
-extern AnimationSet D_actor_521100_80158C5C;
+extern AnimationSet gActor521100Animation26E3C;
 
-extern AnimationSet D_actor_521100_80158DEC;
+extern AnimationSet gActor521100Animation26FCC;
 
-extern AnimationSet D_actor_521100_80158FC8;
+extern AnimationSet gActor521100Animation271A8;
 
-extern AnimationSet D_actor_521100_80159898;
+extern AnimationSet gActor521100Animation27A78;
 
-extern AnimationSet D_actor_521100_80159BD0;
+extern AnimationSet gActor521100Animation27DB0;
 
-extern AnimationSet D_actor_521100_8015A1A0;
+extern AnimationSet gActor521100Animation28380;
 
-extern AnimationSet D_actor_521100_8015ABF8;
+extern AnimationSet gActor521100Animation28DD8;
 
-extern AnimationSet D_actor_521100_8015B018;
+extern AnimationSet gActor521100Animation291F8;
 
-extern AnimationSet D_actor_521100_8015B354;
+extern AnimationSet gActor521100Animation29534;
 
-extern AnimationSet D_actor_521100_8015B8A8;
+extern AnimationSet gActor521100Animation29A88;
 
-extern AnimationSet D_actor_521100_8015C7B8;
+extern AnimationSet gActor521100Animation2A998;
 
-extern AnimationSet D_actor_521100_8015D6BC;
+extern AnimationSet gActor521100Animation2B89C;
 
-extern AnimationSet D_actor_521100_8015E198;
+extern AnimationSet gActor521100Animation2C378;
 
-extern AnimationSet D_actor_521100_8015EAC8;
+extern AnimationSet gActor521100Animation2CCA8;
 
-extern AnimationSet D_actor_521100_8015F528;
+extern AnimationSet gActor521100Animation2D708;
 
 extern AnimationSet* D_actor_521100_8015F73C[36];
 

@@ -16,7 +16,7 @@ extern TaskDesc D_dryfield_trailer_coach_80183F84;
 
 extern GpAreaVariant D_dryfield_trailer_coach_801876F0[13];
 
-extern TmdSource D_dryfield_trailer_coach_80184554;
+extern TmdSource gDryfieldTrailerCoachAcropolisSanctuaryModel090F0;
 
 // dryfield_trailer_coach
 extern GpRoomObjRec D_dryfield_trailer_coach_801871CC[];

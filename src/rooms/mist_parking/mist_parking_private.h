@@ -47,55 +47,55 @@ extern Task* D_mist_parking_80195320;
 
 extern Task* D_mist_parking_80195324;
 
-extern TmdSource D_mist_parking_80187294;
+extern TmdSource gMistParkingModel09B9C;
 
-extern AnimationSet D_mist_parking_80187594;
+extern AnimationSet gMistParkingAnimation09FD4;
 
-extern AnimationSet D_mist_parking_80187D34;
+extern AnimationSet gMistParkingAnimation0A774;
 
-extern AnimationSet D_mist_parking_8018821C;
+extern AnimationSet gMistParkingAnimation0AC5C;
 
-extern AnimationSet D_mist_parking_801886F8;
+extern AnimationSet gMistParkingAnimation0B138;
 
-extern AnimationSet D_mist_parking_80188CC0;
+extern AnimationSet gMistParkingAnimation0B700;
 
-extern AnimationSet D_mist_parking_80189074;
+extern AnimationSet gMistParkingAnimation0BAB4;
 
-extern AnimationSet D_mist_parking_80189770;
+extern AnimationSet gMistParkingAnimation0C1B0;
 
-extern AnimationSet D_mist_parking_80189C48;
+extern AnimationSet gMistParkingAnimation0C688;
 
-extern AnimationSet D_mist_parking_8018A340;
+extern AnimationSet gMistParkingAnimation0CD80;
 
-extern AnimationSet D_mist_parking_8018A620;
+extern AnimationSet gMistParkingAnimation0D060;
 
-extern AnimationSet D_mist_parking_8018A9A4;
+extern AnimationSet gMistParkingAnimation0D3E4;
 
-extern AnimationSet D_mist_parking_8018AC64;
+extern AnimationSet gMistParkingAnimation0D6A4;
 
-extern AnimationSet D_mist_parking_8018B054;
+extern AnimationSet gMistParkingAnimation0DA94;
 
-extern AnimationSet D_mist_parking_8018B454;
+extern AnimationSet gMistParkingAnimation0DE94;
 
-extern AnimationSet D_mist_parking_8018B790;
+extern AnimationSet gMistParkingAnimation0E1D0;
 
-extern AnimationSet D_mist_parking_8018BCA0;
+extern AnimationSet gMistParkingAnimation0E6E0;
 
-extern AnimationSet D_mist_parking_8018BFCC;
+extern AnimationSet gMistParkingAnimation0EA0C;
 
-extern AnimationSet D_mist_parking_8018C3A0;
+extern AnimationSet gMistParkingAnimation0EDE0;
 
-extern AnimationSet D_mist_parking_8018C70C;
+extern AnimationSet gMistParkingAnimation0F14C;
 
-extern AnimationSet D_mist_parking_8018CB34;
+extern AnimationSet gMistParkingAnimation0F574;
 
-extern AnimationSet D_mist_parking_8018CDB0;
+extern AnimationSet gMistParkingAnimation0F7F0;
 
-extern AnimationSet D_mist_parking_8018D220;
+extern AnimationSet gMistParkingAnimation0FC60;
 
-extern AnimationSet D_mist_parking_8018D41C;
+extern AnimationSet gMistParkingAnimation0FE5C;
 
-extern AnimationSet D_mist_parking_8018D734;
+extern AnimationSet gMistParkingAnimation10174;
 
 extern GpCopyArg D_mist_parking_8018D82C;
 
@@ -113,11 +113,11 @@ extern EvsCommand D_mist_parking_8018F194[10];
 
 extern WorldCollisionGrid D_mist_parking_8018FCB8;
 
-extern AnimationSet D_mist_parking_8018FFB8;
+extern AnimationSet gMistParkingAnimation129F8;
 
-extern AnimationSet D_mist_parking_8019038C;
+extern AnimationSet gMistParkingAnimation12DCC;
 
-extern AnimationSet D_mist_parking_801907FC;
+extern AnimationSet gMistParkingAnimation1323C;
 
 extern GpCopyArg D_mist_parking_80190870;
 

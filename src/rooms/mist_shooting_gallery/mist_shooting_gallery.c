@@ -745,53 +745,53 @@ TaskMessageEntry D_mist_shooting_gallery_801850E8[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-SVECTOR D_mist_shooting_gallery_80185110[3] = {
+static SVECTOR _gMistShootingGalleryCollision07BD8Normals[3] = {
 #include "assets/mist_shooting_gallery_collision_07BD8_normals.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_80185128[8] = {
+static SVECTOR _gMistShootingGalleryCollision07BD8Verts[8] = {
 #include "assets/mist_shooting_gallery_collision_07BD8_verts.inc"
 };
 
-WorldCollisionGridFace D_mist_shooting_gallery_80185168[3] = {
+static WorldCollisionGridFace _gMistShootingGalleryCollision07BD8Faces[3] = {
 #include "assets/mist_shooting_gallery_collision_07BD8_faces.inc"
 };
 
-s16 D_mist_shooting_gallery_8018518C[4] = {
+static s16 _gMistShootingGalleryCollision07BD8Cells[4] = {
 #include "assets/mist_shooting_gallery_collision_07BD8_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_mist_shooting_gallery_8018518C[i])
-s16* D_mist_shooting_gallery_80185194[1] = {
+#define GRID_CELL(i) (&_gMistShootingGalleryCollision07BD8Cells[i])
+static s16* _gMistShootingGalleryCollision07BD8Table[1] = {
 #include "assets/mist_shooting_gallery_collision_07BD8_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_mist_shooting_gallery_80185198 = { NULL, D_mist_shooting_gallery_80185110, D_mist_shooting_gallery_80185128, D_mist_shooting_gallery_80185168, D_mist_shooting_gallery_80185194, 0x28B9, -4925, 1, 1, 4000, 3 };
+WorldCollisionGrid D_mist_shooting_gallery_80185198 = { NULL, _gMistShootingGalleryCollision07BD8Normals, _gMistShootingGalleryCollision07BD8Verts, _gMistShootingGalleryCollision07BD8Faces, _gMistShootingGalleryCollision07BD8Table, 0x28B9, -4925, 1, 1, 4000, 3 };
 
-SVECTOR D_mist_shooting_gallery_801851BC[1] = {
+static SVECTOR _gMistShootingGalleryCollision07C38Normals[1] = {
 #include "assets/mist_shooting_gallery_collision_07C38_normals.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_801851C4[4] = {
+static SVECTOR _gMistShootingGalleryCollision07C38Verts[4] = {
 #include "assets/mist_shooting_gallery_collision_07C38_verts.inc"
 };
 
-WorldCollisionGridFace D_mist_shooting_gallery_801851E4[1] = {
+static WorldCollisionGridFace _gMistShootingGalleryCollision07C38Faces[1] = {
 #include "assets/mist_shooting_gallery_collision_07C38_faces.inc"
 };
 
-s16 D_mist_shooting_gallery_801851F0[2] = {
+static s16 _gMistShootingGalleryCollision07C38Cells[2] = {
 #include "assets/mist_shooting_gallery_collision_07C38_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_mist_shooting_gallery_801851F0[i])
-s16* D_mist_shooting_gallery_801851F4[1] = {
+#define GRID_CELL(i) (&_gMistShootingGalleryCollision07C38Cells[i])
+static s16* _gMistShootingGalleryCollision07C38Table[1] = {
 #include "assets/mist_shooting_gallery_collision_07C38_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_mist_shooting_gallery_801851F8 = { NULL, D_mist_shooting_gallery_801851BC, D_mist_shooting_gallery_801851C4, D_mist_shooting_gallery_801851E4, D_mist_shooting_gallery_801851F4, 6500, -3680, 1, 1, 4000, 1 };
+WorldCollisionGrid D_mist_shooting_gallery_801851F8 = { NULL, _gMistShootingGalleryCollision07C38Normals, _gMistShootingGalleryCollision07C38Verts, _gMistShootingGalleryCollision07C38Faces, _gMistShootingGalleryCollision07C38Table, 6500, -3680, 1, 1, 4000, 1 };
 
 RoomsShared8018055cCourse gJukeboxTracksAttach0[3] = {
     { 20, D_mist_shooting_gallery_8017D898 },

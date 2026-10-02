@@ -77,8 +77,8 @@ s32 func_neo_ark_submarine_tunnel_8017F27C(Task*, s32, TaskMessageArg, TaskMessa
 s32 func_neo_ark_submarine_tunnel_8017F284(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_neo_ark_submarine_tunnel_8017F2C8(Task*, s32, s32, s32);
 
-extern AnimationSet D_neo_ark_submarine_tunnel_801814A0;
-extern AnimationSet D_neo_ark_submarine_tunnel_80181A0C;
+static AnimationSet _gNeoArkSubmarineTunnelAnimation03EE0;
+static AnimationSet _gNeoArkSubmarineTunnelAnimation0444C;
 
 extern AnimationPlayRequest D_neo_ark_submarine_tunnel_80181A88;
 extern AnimationPlayRequest D_neo_ark_submarine_tunnel_80181A9C;
@@ -89,48 +89,48 @@ TaskDesc D_neo_ark_submarine_tunnel_801810E4 = { { { TASK_BODY_NONE, 192 } }, wa
 
 TaskDesc D_neo_ark_submarine_tunnel_801810F0 = { { { TASK_BODY_NONE, 192 } }, waterDistortBandTask, { .value = 0 } };
 
-AnimationPackedPose D_neo_ark_submarine_tunnel_801810FC[6] = {
+static AnimationPackedPose _gNeoArkSubmarineTunnelAnimation03EE0Bank1[6] = {
 #include "assets/neo_ark_submarine_tunnel_animation_03EE0_bank1.inc"
 };
 
-AnimationPackedRotation D_neo_ark_submarine_tunnel_80181144[64] = {
+static AnimationPackedRotation _gNeoArkSubmarineTunnelAnimation03EE0Bank4[64] = {
 #include "assets/neo_ark_submarine_tunnel_animation_03EE0_bank4.inc"
 };
 
-AnimationRecord D_neo_ark_submarine_tunnel_80181244[141] = {
+static AnimationRecord _gNeoArkSubmarineTunnelAnimation03EE0Records[141] = {
 #include "assets/neo_ark_submarine_tunnel_animation_03EE0_records.inc"
 };
 
-u16 D_neo_ark_submarine_tunnel_80181478[20] = {
+static u16 _gNeoArkSubmarineTunnelAnimation03EE0Indices[20] = {
 #include "assets/neo_ark_submarine_tunnel_animation_03EE0_indices.inc"
 };
 
-AnimationSet D_neo_ark_submarine_tunnel_801814A0 = {
-    D_neo_ark_submarine_tunnel_80181244,
-    D_neo_ark_submarine_tunnel_80181478,
-    { NULL, D_neo_ark_submarine_tunnel_801810FC, NULL, NULL, D_neo_ark_submarine_tunnel_80181144, NULL, NULL, NULL },
+static AnimationSet _gNeoArkSubmarineTunnelAnimation03EE0 = {
+    _gNeoArkSubmarineTunnelAnimation03EE0Records,
+    _gNeoArkSubmarineTunnelAnimation03EE0Indices,
+    { NULL, _gNeoArkSubmarineTunnelAnimation03EE0Bank1, NULL, NULL, _gNeoArkSubmarineTunnelAnimation03EE0Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_neo_ark_submarine_tunnel_801814C8[10] = {
+static AnimationPackedPose _gNeoArkSubmarineTunnelAnimation0444CBank1[10] = {
 #include "assets/neo_ark_submarine_tunnel_animation_0444C_bank1.inc"
 };
 
-AnimationPackedRotation D_neo_ark_submarine_tunnel_80181540[126] = {
+static AnimationPackedRotation _gNeoArkSubmarineTunnelAnimation0444CBank4[126] = {
 #include "assets/neo_ark_submarine_tunnel_animation_0444C_bank4.inc"
 };
 
-AnimationRecord D_neo_ark_submarine_tunnel_80181738[171] = {
+static AnimationRecord _gNeoArkSubmarineTunnelAnimation0444CRecords[171] = {
 #include "assets/neo_ark_submarine_tunnel_animation_0444C_records.inc"
 };
 
-u16 D_neo_ark_submarine_tunnel_801819E4[20] = {
+static u16 _gNeoArkSubmarineTunnelAnimation0444CIndices[20] = {
 #include "assets/neo_ark_submarine_tunnel_animation_0444C_indices.inc"
 };
 
-AnimationSet D_neo_ark_submarine_tunnel_80181A0C = {
-    D_neo_ark_submarine_tunnel_80181738,
-    D_neo_ark_submarine_tunnel_801819E4,
-    { NULL, D_neo_ark_submarine_tunnel_801814C8, NULL, NULL, D_neo_ark_submarine_tunnel_80181540, NULL, NULL, NULL },
+static AnimationSet _gNeoArkSubmarineTunnelAnimation0444C = {
+    _gNeoArkSubmarineTunnelAnimation0444CRecords,
+    _gNeoArkSubmarineTunnelAnimation0444CIndices,
+    { NULL, _gNeoArkSubmarineTunnelAnimation0444CBank1, NULL, NULL, _gNeoArkSubmarineTunnelAnimation0444CBank4, NULL, NULL, NULL },
 };
 
 TaskDesc gScreenWaveTaskDesc[2] = {
@@ -149,8 +149,8 @@ TaskMessageEntry D_neo_ark_submarine_tunnel_80181A50[5] = {
 };
 
 AnimationSet* D_neo_ark_submarine_tunnel_80181A78[2] = {
-    &D_neo_ark_submarine_tunnel_80181A0C,
-    &D_neo_ark_submarine_tunnel_801814A0,
+    &_gNeoArkSubmarineTunnelAnimation0444C,
+    &_gNeoArkSubmarineTunnelAnimation03EE0,
 };
 
 GpCopyArg D_neo_ark_submarine_tunnel_80181A80 = { { .sets = D_neo_ark_submarine_tunnel_80181A78 }, 2 };

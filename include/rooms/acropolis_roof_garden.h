@@ -14,7 +14,7 @@
 
 extern GpAreaVariant D_acropolis_roof_garden_80185934[12];
 
-extern TmdSource D_acropolis_roof_garden_80186E70;
+extern TmdSource gAcropolisRoofGardenModel09868;
 
 // acropolis_roof_garden
 extern GpRoomObjRec D_acropolis_roof_garden_80184C8C[];

@@ -177,8 +177,8 @@ AnimationPlayRequest D_acropolis_helicopter_landing_pad_801838E0 = { { .index = 
 
 AnimationSet* D_acropolis_helicopter_landing_pad_801838F4[3] = {
     NULL,
-    &D_actor_511000_80136AE8,
-    &D_actor_511000_801398FC,
+    &gActor511000Animation04CC8,
+    &gActor511000Animation07ADC,
 };
 
 GpCopyArg D_acropolis_helicopter_landing_pad_80183900 = { { .sets = D_acropolis_helicopter_landing_pad_801838F4 }, 3 };
@@ -564,30 +564,30 @@ GpWarpRec D_acropolis_helicopter_landing_pad_80184F4C[3] = {
     { { .words = { 2048, -6400, 600, -5280 } }, { 0, 0, 0, 0 }, { .words = { 2048, -6387, 451, -5400 } }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 1, 0 },
 };
 
-SVECTOR D_acropolis_helicopter_landing_pad_80184FF4[15] = {
+static SVECTOR _gAcropolisHelicopterLandingPadCollision083D8Normals[15] = {
 #include "assets/acropolis_helicopter_landing_pad_collision_083D8_normals.inc"
 };
 
-SVECTOR D_acropolis_helicopter_landing_pad_8018506C[92] = {
+static SVECTOR _gAcropolisHelicopterLandingPadCollision083D8Verts[92] = {
 #include "assets/acropolis_helicopter_landing_pad_collision_083D8_verts.inc"
 };
 
-WorldCollisionGridFace D_acropolis_helicopter_landing_pad_8018534C[37] = {
+static WorldCollisionGridFace _gAcropolisHelicopterLandingPadCollision083D8Faces[37] = {
 #include "assets/acropolis_helicopter_landing_pad_collision_083D8_faces.inc"
 };
 
-s16 D_acropolis_helicopter_landing_pad_80185508[512] = {
+static s16 _gAcropolisHelicopterLandingPadCollision083D8Cells[512] = {
 #include "assets/acropolis_helicopter_landing_pad_collision_083D8_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_acropolis_helicopter_landing_pad_80185508[i])
-s16* D_acropolis_helicopter_landing_pad_80185908[36] = {
+#define GRID_CELL(i) (&_gAcropolisHelicopterLandingPadCollision083D8Cells[i])
+static s16* _gAcropolisHelicopterLandingPadCollision083D8Table[36] = {
 #include "assets/acropolis_helicopter_landing_pad_collision_083D8_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_acropolis_helicopter_landing_pad_80185998[1] = {
-    { NULL, D_acropolis_helicopter_landing_pad_80184FF4, D_acropolis_helicopter_landing_pad_8018506C, D_acropolis_helicopter_landing_pad_8018534C, D_acropolis_helicopter_landing_pad_80185908, 0x2710, 0x2710, 6, 6, 4000, 37 },
+    { NULL, _gAcropolisHelicopterLandingPadCollision083D8Normals, _gAcropolisHelicopterLandingPadCollision083D8Verts, _gAcropolisHelicopterLandingPadCollision083D8Faces, _gAcropolisHelicopterLandingPadCollision083D8Table, 0x2710, 0x2710, 6, 6, 4000, 37 },
 };
 
 WorldCollisionTrigger D_acropolis_helicopter_landing_pad_801859BC[16] = {

@@ -1504,30 +1504,30 @@ GpWarpRec D_acropolis_security_room_801839F0[1] = {
     { { .words = { 0, -46, -935, -2877 } }, { 0, 0, 0, 0 }, { .words = { 0, -46, -935, -2877 } }, { 0, 0, 0, 0 }, 0x51060005, 0x51060004, 0, 2, 0, 498 },
 };
 
-SVECTOR D_acropolis_security_room_80183A28[11] = {
+static SVECTOR _gAcropolisSecurityRoomCollision067D4Normals[11] = {
 #include "assets/acropolis_security_room_collision_067D4_normals.inc"
 };
 
-SVECTOR D_acropolis_security_room_80183A80[50] = {
+static SVECTOR _gAcropolisSecurityRoomCollision067D4Verts[50] = {
 #include "assets/acropolis_security_room_collision_067D4_verts.inc"
 };
 
-WorldCollisionGridFace D_acropolis_security_room_80183C10[24] = {
+static WorldCollisionGridFace _gAcropolisSecurityRoomCollision067D4Faces[24] = {
 #include "assets/acropolis_security_room_collision_067D4_faces.inc"
 };
 
-s16 D_acropolis_security_room_80183D30[46] = {
+static s16 _gAcropolisSecurityRoomCollision067D4Cells[46] = {
 #include "assets/acropolis_security_room_collision_067D4_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_acropolis_security_room_80183D30[i])
-s16* D_acropolis_security_room_80183D8C[2] = {
+#define GRID_CELL(i) (&_gAcropolisSecurityRoomCollision067D4Cells[i])
+static s16* _gAcropolisSecurityRoomCollision067D4Table[2] = {
 #include "assets/acropolis_security_room_collision_067D4_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_acropolis_security_room_80183D94[1] = {
-    { NULL, D_acropolis_security_room_80183A28, D_acropolis_security_room_80183A80, D_acropolis_security_room_80183C10, D_acropolis_security_room_80183D8C, 1250, 3250, 1, 2, 4000, 24 },
+    { NULL, _gAcropolisSecurityRoomCollision067D4Normals, _gAcropolisSecurityRoomCollision067D4Verts, _gAcropolisSecurityRoomCollision067D4Faces, _gAcropolisSecurityRoomCollision067D4Table, 1250, 3250, 1, 2, 4000, 24 },
 };
 
 WorldCollisionTrigger D_acropolis_security_room_80183DB8[4] = {
@@ -1914,36 +1914,36 @@ WorldCollisionSurfaceProperties* D_acropolis_security_room_80184FA0[8] = {
     D_acropolis_security_room_80184F90,
 };
 
-TmdBone D_acropolis_security_room_80184FC0[3] = {
+static TmdBone _gAcropolisSecurityRoomAcropolisSanctuaryModel090F0Skeleton[3] = {
 #include "assets/acropolis_sanctuary_model_090F0_skeleton.inc"
 };
 
-u32 D_acropolis_security_room_8018502C[3] = {
+static u32 _gAcropolisSecurityRoomAcropolisSanctuaryModel090F0PartVerts[3] = {
 #include "assets/acropolis_sanctuary_model_090F0_partVerts.inc"
 };
 
-SVECTOR D_acropolis_security_room_80185038[56] = {
+static SVECTOR _gAcropolisSecurityRoomAcropolisSanctuaryModel090F0Verts[56] = {
 #include "assets/acropolis_sanctuary_model_090F0_verts.inc"
 };
 
-SVECTOR D_acropolis_security_room_801851F8[6] = {
+static SVECTOR _gAcropolisSecurityRoomAcropolisSanctuaryModel090F0Normals[6] = {
 #include "assets/acropolis_sanctuary_model_090F0_normals.inc"
 };
 
-u32 D_acropolis_security_room_80185228[215] = {
+static u32 _gAcropolisSecurityRoomAcropolisSanctuaryModel090F0Stream[215] = {
 #include "assets/acropolis_sanctuary_model_090F0_stream.inc"
 };
 
-TmdSource D_acropolis_security_room_80185584 = {
+TmdSource gAcropolisSecurityRoomAcropolisSanctuaryModel090F0 = {
     0,
     1768,
     0,
     3,
-    D_acropolis_security_room_8018502C,
-    D_acropolis_security_room_80185038,
-    D_acropolis_security_room_801851F8,
-    D_acropolis_security_room_80184FC0,
-    D_acropolis_security_room_80185228,
+    _gAcropolisSecurityRoomAcropolisSanctuaryModel090F0PartVerts,
+    _gAcropolisSecurityRoomAcropolisSanctuaryModel090F0Verts,
+    _gAcropolisSecurityRoomAcropolisSanctuaryModel090F0Normals,
+    _gAcropolisSecurityRoomAcropolisSanctuaryModel090F0Skeleton,
+    _gAcropolisSecurityRoomAcropolisSanctuaryModel090F0Stream,
 };
 
 Task* D_acropolis_security_room_801855A8;

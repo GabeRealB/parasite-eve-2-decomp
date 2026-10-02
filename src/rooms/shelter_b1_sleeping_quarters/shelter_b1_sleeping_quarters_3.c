@@ -52,29 +52,29 @@ GpWarpRec D_shelter_b1_sleeping_quarters_80180660[2] = {
     { { .words = { 2048, 0x2E2C, 0, 5980 } }, { 0, 0, 0, 0 }, { .words = { 2048, 0x2E2C, 0, 5980 } }, { 0, 0, 0, 0 }, 0x540E0002, 0x540E0001, 0, 9, 0, 435 },
 };
 
-SVECTOR D_shelter_b1_sleeping_quarters_801806D0[7] = {
+static SVECTOR _gShelterB1SleepingQuartersCollision03B14Normals[7] = {
 #include "assets/shelter_b1_sleeping_quarters_collision_03B14_normals.inc"
 };
 
-SVECTOR D_shelter_b1_sleeping_quarters_80180708[143] = {
+static SVECTOR _gShelterB1SleepingQuartersCollision03B14Verts[143] = {
 #include "assets/shelter_b1_sleeping_quarters_collision_03B14_verts.inc"
 };
 
-WorldCollisionGridFace D_shelter_b1_sleeping_quarters_80180B80[64] = {
+static WorldCollisionGridFace _gShelterB1SleepingQuartersCollision03B14Faces[64] = {
 #include "assets/shelter_b1_sleeping_quarters_collision_03B14_faces.inc"
 };
 
-s16 D_shelter_b1_sleeping_quarters_80180E80[274] = {
+static s16 _gShelterB1SleepingQuartersCollision03B14Cells[274] = {
 #include "assets/shelter_b1_sleeping_quarters_collision_03B14_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_shelter_b1_sleeping_quarters_80180E80[i])
-s16* D_shelter_b1_sleeping_quarters_801810A4[12] = {
+#define GRID_CELL(i) (&_gShelterB1SleepingQuartersCollision03B14Cells[i])
+static s16* _gShelterB1SleepingQuartersCollision03B14Table[12] = {
 #include "assets/shelter_b1_sleeping_quarters_collision_03B14_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b1_sleeping_quarters_801810D4 = { NULL, D_shelter_b1_sleeping_quarters_801806D0, D_shelter_b1_sleeping_quarters_80180708, D_shelter_b1_sleeping_quarters_80180B80, D_shelter_b1_sleeping_quarters_801810A4, 1400, 4400, 4, 3, 4000, 64 };
+WorldCollisionGrid D_shelter_b1_sleeping_quarters_801810D4 = { NULL, _gShelterB1SleepingQuartersCollision03B14Normals, _gShelterB1SleepingQuartersCollision03B14Verts, _gShelterB1SleepingQuartersCollision03B14Faces, _gShelterB1SleepingQuartersCollision03B14Table, 1400, 4400, 4, 3, 4000, 64 };
 
 GpViewRec D_shelter_b1_sleeping_quarters_801810F8[10] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -6200, 0x7530, -1480 } }, 564 },

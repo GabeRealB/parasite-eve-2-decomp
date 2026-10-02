@@ -69,72 +69,72 @@ DryfieldToiletMessageEntry D_dryfield_toilet_801802A4[6] = {
 
 s32 D_dryfield_toilet_801802D4 = 4098;
 
-SVECTOR D_dryfield_toilet_801802D8[1] = {
+static SVECTOR _gDryfieldToiletCollision02D54Normals[1] = {
 #include "assets/dryfield_toilet_collision_02D54_normals.inc"
 };
 
-SVECTOR D_dryfield_toilet_801802E0[4] = {
+static SVECTOR _gDryfieldToiletCollision02D54Verts[4] = {
 #include "assets/dryfield_toilet_collision_02D54_verts.inc"
 };
 
-WorldCollisionGridFace D_dryfield_toilet_80180300[1] = {
+static WorldCollisionGridFace _gDryfieldToiletCollision02D54Faces[1] = {
 #include "assets/dryfield_toilet_collision_02D54_faces.inc"
 };
 
-s16 D_dryfield_toilet_8018030C[2] = {
+static s16 _gDryfieldToiletCollision02D54Cells[2] = {
 #include "assets/dryfield_toilet_collision_02D54_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_dryfield_toilet_8018030C[i])
-s16* D_dryfield_toilet_80180310[1] = {
+#define GRID_CELL(i) (&_gDryfieldToiletCollision02D54Cells[i])
+static s16* _gDryfieldToiletCollision02D54Table[1] = {
 #include "assets/dryfield_toilet_collision_02D54_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_toilet_80180314 = { NULL, D_dryfield_toilet_801802D8, D_dryfield_toilet_801802E0, D_dryfield_toilet_80180300, D_dryfield_toilet_80180310, 2250, 590, 1, 1, 4000, 1 };
+WorldCollisionGrid D_dryfield_toilet_80180314 = { NULL, _gDryfieldToiletCollision02D54Normals, _gDryfieldToiletCollision02D54Verts, _gDryfieldToiletCollision02D54Faces, _gDryfieldToiletCollision02D54Table, 2250, 590, 1, 1, 4000, 1 };
 
-AnimationPackedPose D_dryfield_toilet_80180338[6] = {
+static AnimationPackedPose _gDryfieldToiletAnimation03054Bank1[6] = {
 #include "assets/dryfield_toilet_animation_03054_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_toilet_80180380[46] = {
+static AnimationPackedRotation _gDryfieldToiletAnimation03054Bank4[46] = {
 #include "assets/dryfield_toilet_animation_03054_bank4.inc"
 };
 
-AnimationRecord D_dryfield_toilet_80180438[109] = {
+static AnimationRecord _gDryfieldToiletAnimation03054Records[109] = {
 #include "assets/dryfield_toilet_animation_03054_records.inc"
 };
 
-u16 D_dryfield_toilet_801805EC[20] = {
+static u16 _gDryfieldToiletAnimation03054Indices[20] = {
 #include "assets/dryfield_toilet_animation_03054_indices.inc"
 };
 
-AnimationSet D_dryfield_toilet_80180614 = {
-    D_dryfield_toilet_80180438,
-    D_dryfield_toilet_801805EC,
-    { NULL, D_dryfield_toilet_80180338, NULL, NULL, D_dryfield_toilet_80180380, NULL, NULL, NULL },
+AnimationSet gDryfieldToiletAnimation03054 = {
+    _gDryfieldToiletAnimation03054Records,
+    _gDryfieldToiletAnimation03054Indices,
+    { NULL, _gDryfieldToiletAnimation03054Bank1, NULL, NULL, _gDryfieldToiletAnimation03054Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_toilet_8018063C[9] = {
+static AnimationPackedPose _gDryfieldToiletAnimation035A4Bank1[9] = {
 #include "assets/dryfield_toilet_animation_035A4_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_toilet_801806A8[131] = {
+static AnimationPackedRotation _gDryfieldToiletAnimation035A4Bank4[131] = {
 #include "assets/dryfield_toilet_animation_035A4_bank4.inc"
 };
 
-AnimationRecord D_dryfield_toilet_801808B4[162] = {
+static AnimationRecord _gDryfieldToiletAnimation035A4Records[162] = {
 #include "assets/dryfield_toilet_animation_035A4_records.inc"
 };
 
-u16 D_dryfield_toilet_80180B3C[20] = {
+static u16 _gDryfieldToiletAnimation035A4Indices[20] = {
 #include "assets/dryfield_toilet_animation_035A4_indices.inc"
 };
 
-AnimationSet D_dryfield_toilet_80180B64 = {
-    D_dryfield_toilet_801808B4,
-    D_dryfield_toilet_80180B3C,
-    { NULL, D_dryfield_toilet_8018063C, NULL, NULL, D_dryfield_toilet_801806A8, NULL, NULL, NULL },
+AnimationSet gDryfieldToiletAnimation035A4 = {
+    _gDryfieldToiletAnimation035A4Records,
+    _gDryfieldToiletAnimation035A4Indices,
+    { NULL, _gDryfieldToiletAnimation035A4Bank1, NULL, NULL, _gDryfieldToiletAnimation035A4Bank4, NULL, NULL, NULL },
 };
 
 static void func_dryfield_toilet_8017D5E4(void);

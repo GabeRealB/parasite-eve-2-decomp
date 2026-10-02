@@ -92,29 +92,29 @@ GpWarpRec D_shelter_b3_incinerator_control_room_8018192C[4] = {
     { { .words = { 2048, -5333, 0, 2984 } }, { 0, 0, 0, 0 }, { .words = { 2048, -5333, 0, 2984 } }, { 0, 0, 0, 0 }, 0, 0, 0, 6, 0, 0 },
 };
 
-SVECTOR D_shelter_b3_incinerator_control_room_80181A0C[10] = {
+static SVECTOR _gShelterB3IncineratorControlRoomCollision04700Normals[10] = {
 #include "assets/shelter_b3_incinerator_control_room_collision_04700_normals.inc"
 };
 
-SVECTOR D_shelter_b3_incinerator_control_room_80181A5C[27] = {
+static SVECTOR _gShelterB3IncineratorControlRoomCollision04700Verts[27] = {
 #include "assets/shelter_b3_incinerator_control_room_collision_04700_verts.inc"
 };
 
-WorldCollisionGridFace D_shelter_b3_incinerator_control_room_80181B34[19] = {
+static WorldCollisionGridFace _gShelterB3IncineratorControlRoomCollision04700Faces[19] = {
 #include "assets/shelter_b3_incinerator_control_room_collision_04700_faces.inc"
 };
 
-s16 D_shelter_b3_incinerator_control_room_80181C18[68] = {
+static s16 _gShelterB3IncineratorControlRoomCollision04700Cells[68] = {
 #include "assets/shelter_b3_incinerator_control_room_collision_04700_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_shelter_b3_incinerator_control_room_80181C18[i])
-s16* D_shelter_b3_incinerator_control_room_80181CA0[8] = {
+#define GRID_CELL(i) (&_gShelterB3IncineratorControlRoomCollision04700Cells[i])
+static s16* _gShelterB3IncineratorControlRoomCollision04700Table[8] = {
 #include "assets/shelter_b3_incinerator_control_room_collision_04700_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b3_incinerator_control_room_80181CC0 = { NULL, D_shelter_b3_incinerator_control_room_80181A0C, D_shelter_b3_incinerator_control_room_80181A5C, D_shelter_b3_incinerator_control_room_80181B34, D_shelter_b3_incinerator_control_room_80181CA0, 6742, 3500, 4, 2, 4000, 19 };
+WorldCollisionGrid D_shelter_b3_incinerator_control_room_80181CC0 = { NULL, _gShelterB3IncineratorControlRoomCollision04700Normals, _gShelterB3IncineratorControlRoomCollision04700Verts, _gShelterB3IncineratorControlRoomCollision04700Faces, _gShelterB3IncineratorControlRoomCollision04700Table, 6742, 3500, 4, 2, 4000, 19 };
 
 GpViewRec D_shelter_b3_incinerator_control_room_80181CE4[8] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 1000, 0x7530, 0 } }, 541 },

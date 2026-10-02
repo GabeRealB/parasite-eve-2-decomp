@@ -5,14 +5,14 @@
 
 #include "main/tmd_types.h"
 
-extern AnimationSet D_actor_303600_801693C0;
+extern AnimationSet gActor303600Animation075A0;
 
-extern AnimationSet D_actor_303600_80169610;
+extern AnimationSet gActor303600Animation077F0;
 
-extern AnimationSet D_actor_303600_80169A50;
+extern AnimationSet gActor303600Animation07C30;
 
-extern AnimationSet D_actor_303600_80169C7C;
+extern AnimationSet gActor303600Animation07E5C;
 
-extern TmdSource D_actor_303600_801690A4;
+extern TmdSource gActor303600Model02DD0;
 
 #endif // INCLUDE_ACTORS_ACTOR_303600_H

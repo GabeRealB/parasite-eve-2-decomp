@@ -1141,36 +1141,36 @@ WorldCollisionSurfaceProperties* D_acropolis_helicopter_landing_pad_80187DC8[8] 
     D_acropolis_helicopter_landing_pad_80187D98,
 };
 
-TmdBone D_acropolis_helicopter_landing_pad_80187DE8[1] = {
+static TmdBone _gAcropolisHelicopterLandingPadModel0A8E8Skeleton[1] = {
 #include "assets/acropolis_helicopter_landing_pad_model_0A8E8_skeleton.inc"
 };
 
-u32 D_acropolis_helicopter_landing_pad_80187E0C[1] = {
+static u32 _gAcropolisHelicopterLandingPadModel0A8E8PartVerts[1] = {
 #include "assets/acropolis_helicopter_landing_pad_model_0A8E8_partVerts.inc"
 };
 
-SVECTOR D_acropolis_helicopter_landing_pad_80187E10[13] = {
+static SVECTOR _gAcropolisHelicopterLandingPadModel0A8E8Verts[13] = {
 #include "assets/acropolis_helicopter_landing_pad_model_0A8E8_verts.inc"
 };
 
-SVECTOR D_acropolis_helicopter_landing_pad_80187E78[6] = {
+static SVECTOR _gAcropolisHelicopterLandingPadModel0A8E8Normals[6] = {
 #include "assets/acropolis_helicopter_landing_pad_model_0A8E8_normals.inc"
 };
 
-u32 D_acropolis_helicopter_landing_pad_80187EA8[42] = {
+static u32 _gAcropolisHelicopterLandingPadModel0A8E8Stream[42] = {
 #include "assets/acropolis_helicopter_landing_pad_model_0A8E8_stream.inc"
 };
 
-TmdSource D_acropolis_helicopter_landing_pad_80187F50 = {
+TmdSource gAcropolisHelicopterLandingPadModel0A8E8 = {
     0,
     312,
     0,
     1,
-    D_acropolis_helicopter_landing_pad_80187E0C,
-    D_acropolis_helicopter_landing_pad_80187E10,
-    D_acropolis_helicopter_landing_pad_80187E78,
-    D_acropolis_helicopter_landing_pad_80187DE8,
-    D_acropolis_helicopter_landing_pad_80187EA8,
+    _gAcropolisHelicopterLandingPadModel0A8E8PartVerts,
+    _gAcropolisHelicopterLandingPadModel0A8E8Verts,
+    _gAcropolisHelicopterLandingPadModel0A8E8Normals,
+    _gAcropolisHelicopterLandingPadModel0A8E8Skeleton,
+    _gAcropolisHelicopterLandingPadModel0A8E8Stream,
 };
 
 s32 D_acropolis_helicopter_landing_pad_80187F74 = 0;

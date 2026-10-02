@@ -179,49 +179,49 @@ s32  func_shelter_b1_sterilization_room_801803EC(s32, s32, RoomEventMsg*, RoomEv
 s32  func_shelter_b1_sterilization_room_80180430(s32, s32, s32);
 void func_shelter_b1_sterilization_room_80180188(Task*);
 
-extern AnimationSet D_shelter_b1_sterilization_room_80185228;
-extern AnimationSet D_shelter_b1_sterilization_room_801853DC;
-extern AnimationSet D_shelter_b1_sterilization_room_80185AFC;
-extern AnimationSet D_shelter_b1_sterilization_room_80185C8C;
-extern AnimationSet D_shelter_b1_sterilization_room_80186910;
-extern AnimationSet D_shelter_b1_sterilization_room_80187E18;
-extern AnimationSet D_shelter_b1_sterilization_room_801884DC;
+static AnimationSet _gShelterB1SterilizationRoomAnimation07C68;
+static AnimationSet _gShelterB1SterilizationRoomAnimation07E1C;
+static AnimationSet _gShelterB1SterilizationRoomAnimation0853C;
+static AnimationSet _gShelterB1SterilizationRoomAnimation086CC;
+static AnimationSet _gShelterB1SterilizationRoomAnimation09350;
+static AnimationSet _gShelterB1SterilizationRoomAnimation0A858;
+static AnimationSet _gShelterB1SterilizationRoomAnimation0AF1C;
 void                func_shelter_b1_sterilization_room_80180D74(Task*);
 void                func_shelter_b1_sterilization_room_80180F74(Task*);
 void                func_shelter_b1_sterilization_room_801811E0(Task*);
 
 #include "../../shared/telephone_data.inc.c"
 
-TmdBone D_shelter_b1_sterilization_room_80184834[3] = {
+static TmdBone _gShelterB1SterilizationRoomAcropolisSanctuaryModel090F0Skeleton[3] = {
 #include "assets/acropolis_sanctuary_model_090F0_skeleton.inc"
 };
 
-u32 D_shelter_b1_sterilization_room_801848A0[3] = {
+static u32 _gShelterB1SterilizationRoomAcropolisSanctuaryModel090F0PartVerts[3] = {
 #include "assets/acropolis_sanctuary_model_090F0_partVerts.inc"
 };
 
-SVECTOR D_shelter_b1_sterilization_room_801848AC[56] = {
+static SVECTOR _gShelterB1SterilizationRoomAcropolisSanctuaryModel090F0Verts[56] = {
 #include "assets/acropolis_sanctuary_model_090F0_verts.inc"
 };
 
-SVECTOR D_shelter_b1_sterilization_room_80184A6C[6] = {
+static SVECTOR _gShelterB1SterilizationRoomAcropolisSanctuaryModel090F0Normals[6] = {
 #include "assets/acropolis_sanctuary_model_090F0_normals.inc"
 };
 
-u32 D_shelter_b1_sterilization_room_80184A9C[215] = {
+static u32 _gShelterB1SterilizationRoomAcropolisSanctuaryModel090F0Stream[215] = {
 #include "assets/acropolis_sanctuary_model_090F0_stream.inc"
 };
 
-TmdSource D_shelter_b1_sterilization_room_80184DF8 = {
+TmdSource gShelterB1SterilizationRoomAcropolisSanctuaryModel090F0 = {
     0,
     1768,
     0,
     3,
-    D_shelter_b1_sterilization_room_801848A0,
-    D_shelter_b1_sterilization_room_801848AC,
-    D_shelter_b1_sterilization_room_80184A6C,
-    D_shelter_b1_sterilization_room_80184834,
-    D_shelter_b1_sterilization_room_80184A9C,
+    _gShelterB1SterilizationRoomAcropolisSanctuaryModel090F0PartVerts,
+    _gShelterB1SterilizationRoomAcropolisSanctuaryModel090F0Verts,
+    _gShelterB1SterilizationRoomAcropolisSanctuaryModel090F0Normals,
+    _gShelterB1SterilizationRoomAcropolisSanctuaryModel090F0Skeleton,
+    _gShelterB1SterilizationRoomAcropolisSanctuaryModel090F0Stream,
 };
 
 TaskDesc gRoomCutsceneTaskDescs[3] = {
@@ -245,182 +245,182 @@ s32 D_shelter_b1_sterilization_room_80184E7C = 0x11004;
 
 s16 D_shelter_b1_sterilization_room_80184E80[3] = { 0 };
 
-SVECTOR D_shelter_b1_sterilization_room_80184E88[4] = {
+static SVECTOR _gShelterB1SterilizationRoomCollision07968Normals[4] = {
 #include "assets/shelter_b1_sterilization_room_collision_07968_normals.inc"
 };
 
-SVECTOR D_shelter_b1_sterilization_room_80184EA8[8] = {
+static SVECTOR _gShelterB1SterilizationRoomCollision07968Verts[8] = {
 #include "assets/shelter_b1_sterilization_room_collision_07968_verts.inc"
 };
 
-WorldCollisionGridFace D_shelter_b1_sterilization_room_80184EE8[4] = {
+static WorldCollisionGridFace _gShelterB1SterilizationRoomCollision07968Faces[4] = {
 #include "assets/shelter_b1_sterilization_room_collision_07968_faces.inc"
 };
 
-s16 D_shelter_b1_sterilization_room_80184F18[6] = {
+static s16 _gShelterB1SterilizationRoomCollision07968Cells[6] = {
 #include "assets/shelter_b1_sterilization_room_collision_07968_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_shelter_b1_sterilization_room_80184F18[i])
-s16* D_shelter_b1_sterilization_room_80184F24[1] = {
+#define GRID_CELL(i) (&_gShelterB1SterilizationRoomCollision07968Cells[i])
+static s16* _gShelterB1SterilizationRoomCollision07968Table[1] = {
 #include "assets/shelter_b1_sterilization_room_collision_07968_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b1_sterilization_room_80184F28 = { NULL, D_shelter_b1_sterilization_room_80184E88, D_shelter_b1_sterilization_room_80184EA8, D_shelter_b1_sterilization_room_80184EE8, D_shelter_b1_sterilization_room_80184F24, 641, 540, 1, 1, 4000, 4 };
+WorldCollisionGrid D_shelter_b1_sterilization_room_80184F28 = { NULL, _gShelterB1SterilizationRoomCollision07968Normals, _gShelterB1SterilizationRoomCollision07968Verts, _gShelterB1SterilizationRoomCollision07968Faces, _gShelterB1SterilizationRoomCollision07968Table, 641, 540, 1, 1, 4000, 4 };
 
-AnimationPackedPose D_shelter_b1_sterilization_room_80184F4C[6] = {
+static AnimationPackedPose _gShelterB1SterilizationRoomAnimation07C68Bank1[6] = {
 #include "assets/shelter_b1_sterilization_room_animation_07C68_bank1.inc"
 };
 
-AnimationPackedRotation D_shelter_b1_sterilization_room_80184F94[46] = {
+static AnimationPackedRotation _gShelterB1SterilizationRoomAnimation07C68Bank4[46] = {
 #include "assets/shelter_b1_sterilization_room_animation_07C68_bank4.inc"
 };
 
-AnimationRecord D_shelter_b1_sterilization_room_8018504C[109] = {
+static AnimationRecord _gShelterB1SterilizationRoomAnimation07C68Records[109] = {
 #include "assets/shelter_b1_sterilization_room_animation_07C68_records.inc"
 };
 
-u16 D_shelter_b1_sterilization_room_80185200[20] = {
+static u16 _gShelterB1SterilizationRoomAnimation07C68Indices[20] = {
 #include "assets/shelter_b1_sterilization_room_animation_07C68_indices.inc"
 };
 
-AnimationSet D_shelter_b1_sterilization_room_80185228 = {
-    D_shelter_b1_sterilization_room_8018504C,
-    D_shelter_b1_sterilization_room_80185200,
-    { NULL, D_shelter_b1_sterilization_room_80184F4C, NULL, NULL, D_shelter_b1_sterilization_room_80184F94, NULL, NULL, NULL },
+static AnimationSet _gShelterB1SterilizationRoomAnimation07C68 = {
+    _gShelterB1SterilizationRoomAnimation07C68Records,
+    _gShelterB1SterilizationRoomAnimation07C68Indices,
+    { NULL, _gShelterB1SterilizationRoomAnimation07C68Bank1, NULL, NULL, _gShelterB1SterilizationRoomAnimation07C68Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_shelter_b1_sterilization_room_80185250[2] = {
+static AnimationPackedPose _gShelterB1SterilizationRoomAnimation07E1CBank1[2] = {
 #include "assets/shelter_b1_sterilization_room_animation_07E1C_bank1.inc"
 };
 
-AnimationPackedRotation D_shelter_b1_sterilization_room_80185268[26] = {
+static AnimationPackedRotation _gShelterB1SterilizationRoomAnimation07E1CBank4[26] = {
 #include "assets/shelter_b1_sterilization_room_animation_07E1C_bank4.inc"
 };
 
-AnimationRecord D_shelter_b1_sterilization_room_801852D0[57] = {
+static AnimationRecord _gShelterB1SterilizationRoomAnimation07E1CRecords[57] = {
 #include "assets/shelter_b1_sterilization_room_animation_07E1C_records.inc"
 };
 
-u16 D_shelter_b1_sterilization_room_801853B4[20] = {
+static u16 _gShelterB1SterilizationRoomAnimation07E1CIndices[20] = {
 #include "assets/shelter_b1_sterilization_room_animation_07E1C_indices.inc"
 };
 
-AnimationSet D_shelter_b1_sterilization_room_801853DC = {
-    D_shelter_b1_sterilization_room_801852D0,
-    D_shelter_b1_sterilization_room_801853B4,
-    { NULL, D_shelter_b1_sterilization_room_80185250, NULL, NULL, D_shelter_b1_sterilization_room_80185268, NULL, NULL, NULL },
+static AnimationSet _gShelterB1SterilizationRoomAnimation07E1C = {
+    _gShelterB1SterilizationRoomAnimation07E1CRecords,
+    _gShelterB1SterilizationRoomAnimation07E1CIndices,
+    { NULL, _gShelterB1SterilizationRoomAnimation07E1CBank1, NULL, NULL, _gShelterB1SterilizationRoomAnimation07E1CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_shelter_b1_sterilization_room_80185404[8] = {
+static AnimationPackedPose _gShelterB1SterilizationRoomAnimation0853CBank1[8] = {
 #include "assets/shelter_b1_sterilization_room_animation_0853C_bank1.inc"
 };
 
-AnimationPackedRotation D_shelter_b1_sterilization_room_80185464[161] = {
+static AnimationPackedRotation _gShelterB1SterilizationRoomAnimation0853CBank4[161] = {
 #include "assets/shelter_b1_sterilization_room_animation_0853C_bank4.inc"
 };
 
-AnimationRecord D_shelter_b1_sterilization_room_801856E8[251] = {
+static AnimationRecord _gShelterB1SterilizationRoomAnimation0853CRecords[251] = {
 #include "assets/shelter_b1_sterilization_room_animation_0853C_records.inc"
 };
 
-u16 D_shelter_b1_sterilization_room_80185AD4[20] = {
+static u16 _gShelterB1SterilizationRoomAnimation0853CIndices[20] = {
 #include "assets/shelter_b1_sterilization_room_animation_0853C_indices.inc"
 };
 
-AnimationSet D_shelter_b1_sterilization_room_80185AFC = {
-    D_shelter_b1_sterilization_room_801856E8,
-    D_shelter_b1_sterilization_room_80185AD4,
-    { NULL, D_shelter_b1_sterilization_room_80185404, NULL, NULL, D_shelter_b1_sterilization_room_80185464, NULL, NULL, NULL },
+static AnimationSet _gShelterB1SterilizationRoomAnimation0853C = {
+    _gShelterB1SterilizationRoomAnimation0853CRecords,
+    _gShelterB1SterilizationRoomAnimation0853CIndices,
+    { NULL, _gShelterB1SterilizationRoomAnimation0853CBank1, NULL, NULL, _gShelterB1SterilizationRoomAnimation0853CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_shelter_b1_sterilization_room_80185B24[2] = {
+static AnimationPackedPose _gShelterB1SterilizationRoomAnimation086CCBank1[2] = {
 #include "assets/shelter_b1_sterilization_room_animation_086CC_bank1.inc"
 };
 
-AnimationPackedRotation D_shelter_b1_sterilization_room_80185B3C[17] = {
+static AnimationPackedRotation _gShelterB1SterilizationRoomAnimation086CCBank4[17] = {
 #include "assets/shelter_b1_sterilization_room_animation_086CC_bank4.inc"
 };
 
-AnimationRecord D_shelter_b1_sterilization_room_80185B80[57] = {
+static AnimationRecord _gShelterB1SterilizationRoomAnimation086CCRecords[57] = {
 #include "assets/shelter_b1_sterilization_room_animation_086CC_records.inc"
 };
 
-u16 D_shelter_b1_sterilization_room_80185C64[20] = {
+static u16 _gShelterB1SterilizationRoomAnimation086CCIndices[20] = {
 #include "assets/shelter_b1_sterilization_room_animation_086CC_indices.inc"
 };
 
-AnimationSet D_shelter_b1_sterilization_room_80185C8C = {
-    D_shelter_b1_sterilization_room_80185B80,
-    D_shelter_b1_sterilization_room_80185C64,
-    { NULL, D_shelter_b1_sterilization_room_80185B24, NULL, NULL, D_shelter_b1_sterilization_room_80185B3C, NULL, NULL, NULL },
+static AnimationSet _gShelterB1SterilizationRoomAnimation086CC = {
+    _gShelterB1SterilizationRoomAnimation086CCRecords,
+    _gShelterB1SterilizationRoomAnimation086CCIndices,
+    { NULL, _gShelterB1SterilizationRoomAnimation086CCBank1, NULL, NULL, _gShelterB1SterilizationRoomAnimation086CCBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_shelter_b1_sterilization_room_80185CB4[31] = {
+static AnimationPackedPose _gShelterB1SterilizationRoomAnimation09350Bank1[31] = {
 #include "assets/shelter_b1_sterilization_room_animation_09350_bank1.inc"
 };
 
-AnimationPackedRotation D_shelter_b1_sterilization_room_80185E28[308] = {
+static AnimationPackedRotation _gShelterB1SterilizationRoomAnimation09350Bank4[308] = {
 #include "assets/shelter_b1_sterilization_room_animation_09350_bank4.inc"
 };
 
-AnimationRecord D_shelter_b1_sterilization_room_801862F8[380] = {
+static AnimationRecord _gShelterB1SterilizationRoomAnimation09350Records[380] = {
 #include "assets/shelter_b1_sterilization_room_animation_09350_records.inc"
 };
 
-u16 D_shelter_b1_sterilization_room_801868E8[20] = {
+static u16 _gShelterB1SterilizationRoomAnimation09350Indices[20] = {
 #include "assets/shelter_b1_sterilization_room_animation_09350_indices.inc"
 };
 
-AnimationSet D_shelter_b1_sterilization_room_80186910 = {
-    D_shelter_b1_sterilization_room_801862F8,
-    D_shelter_b1_sterilization_room_801868E8,
-    { NULL, D_shelter_b1_sterilization_room_80185CB4, NULL, NULL, D_shelter_b1_sterilization_room_80185E28, NULL, NULL, NULL },
+static AnimationSet _gShelterB1SterilizationRoomAnimation09350 = {
+    _gShelterB1SterilizationRoomAnimation09350Records,
+    _gShelterB1SterilizationRoomAnimation09350Indices,
+    { NULL, _gShelterB1SterilizationRoomAnimation09350Bank1, NULL, NULL, _gShelterB1SterilizationRoomAnimation09350Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_shelter_b1_sterilization_room_80186938[41] = {
+static AnimationPackedPose _gShelterB1SterilizationRoomAnimation0A858Bank1[41] = {
 #include "assets/shelter_b1_sterilization_room_animation_0A858_bank1.inc"
 };
 
-AnimationPackedRotation D_shelter_b1_sterilization_room_80186B24[549] = {
+static AnimationPackedRotation _gShelterB1SterilizationRoomAnimation0A858Bank4[549] = {
 #include "assets/shelter_b1_sterilization_room_animation_0A858_bank4.inc"
 };
 
-AnimationRecord D_shelter_b1_sterilization_room_801873B8[654] = {
+static AnimationRecord _gShelterB1SterilizationRoomAnimation0A858Records[654] = {
 #include "assets/shelter_b1_sterilization_room_animation_0A858_records.inc"
 };
 
-u16 D_shelter_b1_sterilization_room_80187DF0[20] = {
+static u16 _gShelterB1SterilizationRoomAnimation0A858Indices[20] = {
 #include "assets/shelter_b1_sterilization_room_animation_0A858_indices.inc"
 };
 
-AnimationSet D_shelter_b1_sterilization_room_80187E18 = {
-    D_shelter_b1_sterilization_room_801873B8,
-    D_shelter_b1_sterilization_room_80187DF0,
-    { NULL, D_shelter_b1_sterilization_room_80186938, NULL, NULL, D_shelter_b1_sterilization_room_80186B24, NULL, NULL, NULL },
+static AnimationSet _gShelterB1SterilizationRoomAnimation0A858 = {
+    _gShelterB1SterilizationRoomAnimation0A858Records,
+    _gShelterB1SterilizationRoomAnimation0A858Indices,
+    { NULL, _gShelterB1SterilizationRoomAnimation0A858Bank1, NULL, NULL, _gShelterB1SterilizationRoomAnimation0A858Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_shelter_b1_sterilization_room_80187E40[4] = {
+static AnimationPackedPose _gShelterB1SterilizationRoomAnimation0AF1CBank1[4] = {
 #include "assets/shelter_b1_sterilization_room_animation_0AF1C_bank1.inc"
 };
 
-AnimationPackedRotation D_shelter_b1_sterilization_room_80187E70[151] = {
+static AnimationPackedRotation _gShelterB1SterilizationRoomAnimation0AF1CBank4[151] = {
 #include "assets/shelter_b1_sterilization_room_animation_0AF1C_bank4.inc"
 };
 
-AnimationRecord D_shelter_b1_sterilization_room_801880CC[250] = {
+static AnimationRecord _gShelterB1SterilizationRoomAnimation0AF1CRecords[250] = {
 #include "assets/shelter_b1_sterilization_room_animation_0AF1C_records.inc"
 };
 
-u16 D_shelter_b1_sterilization_room_801884B4[20] = {
+static u16 _gShelterB1SterilizationRoomAnimation0AF1CIndices[20] = {
 #include "assets/shelter_b1_sterilization_room_animation_0AF1C_indices.inc"
 };
 
-AnimationSet D_shelter_b1_sterilization_room_801884DC = {
-    D_shelter_b1_sterilization_room_801880CC,
-    D_shelter_b1_sterilization_room_801884B4,
-    { NULL, D_shelter_b1_sterilization_room_80187E40, NULL, NULL, D_shelter_b1_sterilization_room_80187E70, NULL, NULL, NULL },
+static AnimationSet _gShelterB1SterilizationRoomAnimation0AF1C = {
+    _gShelterB1SterilizationRoomAnimation0AF1CRecords,
+    _gShelterB1SterilizationRoomAnimation0AF1CIndices,
+    { NULL, _gShelterB1SterilizationRoomAnimation0AF1CBank1, NULL, NULL, _gShelterB1SterilizationRoomAnimation0AF1CBank4, NULL, NULL, NULL },
 };
 
 TaskDesc D_shelter_b1_sterilization_room_80188504[9] = {
@@ -437,13 +437,13 @@ TaskDesc D_shelter_b1_sterilization_room_80188504[9] = {
 
 AnimationSet* D_shelter_b1_sterilization_room_80188570[8] = {
     NULL,
-    &D_shelter_b1_sterilization_room_80185228,
-    &D_shelter_b1_sterilization_room_801853DC,
-    &D_shelter_b1_sterilization_room_80185AFC,
-    &D_shelter_b1_sterilization_room_80185C8C,
-    &D_shelter_b1_sterilization_room_80186910,
-    &D_shelter_b1_sterilization_room_80187E18,
-    &D_shelter_b1_sterilization_room_801884DC,
+    &_gShelterB1SterilizationRoomAnimation07C68,
+    &_gShelterB1SterilizationRoomAnimation07E1C,
+    &_gShelterB1SterilizationRoomAnimation0853C,
+    &_gShelterB1SterilizationRoomAnimation086CC,
+    &_gShelterB1SterilizationRoomAnimation09350,
+    &_gShelterB1SterilizationRoomAnimation0A858,
+    &_gShelterB1SterilizationRoomAnimation0AF1C,
 };
 
 GpCopyArg D_shelter_b1_sterilization_room_80188590 = { { .sets = D_shelter_b1_sterilization_room_80188570 }, 8 };

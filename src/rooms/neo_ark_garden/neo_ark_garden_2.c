@@ -107,30 +107,30 @@ GpWarpRec D_neo_ark_garden_8018142C[3] = {
     { { .words = { 0, -7543, 0, -0x4876 } }, { 0, 0, 0, 0 }, { .words = { 0, -7543, 0, -0x4876 } }, { 0, 0, 0, 0 }, 0, 0, 0, 3, 0, 437 },
 };
 
-SVECTOR D_neo_ark_garden_801814D4[5] = {
+static SVECTOR _gNeoArkGardenCollision04104Normals[5] = {
 #include "assets/neo_ark_garden_collision_04104_normals.inc"
 };
 
-SVECTOR D_neo_ark_garden_801814FC[22] = {
+static SVECTOR _gNeoArkGardenCollision04104Verts[22] = {
 #include "assets/neo_ark_garden_collision_04104_verts.inc"
 };
 
-WorldCollisionGridFace D_neo_ark_garden_801815AC[9] = {
+static WorldCollisionGridFace _gNeoArkGardenCollision04104Faces[9] = {
 #include "assets/neo_ark_garden_collision_04104_faces.inc"
 };
 
-s16 D_neo_ark_garden_80181618[62] = {
+static s16 _gNeoArkGardenCollision04104Cells[62] = {
 #include "assets/neo_ark_garden_collision_04104_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_neo_ark_garden_80181618[i])
-s16* D_neo_ark_garden_80181694[12] = {
+#define GRID_CELL(i) (&_gNeoArkGardenCollision04104Cells[i])
+static s16* _gNeoArkGardenCollision04104Table[12] = {
 #include "assets/neo_ark_garden_collision_04104_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_neo_ark_garden_801816C4[1] = {
-    { NULL, D_neo_ark_garden_801814D4, D_neo_ark_garden_801814FC, D_neo_ark_garden_801815AC, D_neo_ark_garden_80181694, 0x2710, 0x4E20, 4, 3, 4000, 9 },
+    { NULL, _gNeoArkGardenCollision04104Normals, _gNeoArkGardenCollision04104Verts, _gNeoArkGardenCollision04104Faces, _gNeoArkGardenCollision04104Table, 0x2710, 0x4E20, 4, 3, 4000, 9 },
 };
 
 GpViewRec D_neo_ark_garden_801816E8[7] = {

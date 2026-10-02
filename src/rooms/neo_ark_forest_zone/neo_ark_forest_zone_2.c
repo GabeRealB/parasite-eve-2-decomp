@@ -128,48 +128,48 @@ extern WorldCoordRoomLights  D_neo_ark_forest_zone_8018269C[1];
 void func_neo_ark_forest_zone_80181430(Task*);
 void func_neo_ark_forest_zone_8018151C(Task*);
 
-AnimationPackedPose D_neo_ark_forest_zone_80181580[6] = {
+static AnimationPackedPose _gNeoArkForestZoneAnimation04364Bank1[6] = {
 #include "assets/neo_ark_forest_zone_animation_04364_bank1.inc"
 };
 
-AnimationPackedRotation D_neo_ark_forest_zone_801815C8[64] = {
+static AnimationPackedRotation _gNeoArkForestZoneAnimation04364Bank4[64] = {
 #include "assets/neo_ark_forest_zone_animation_04364_bank4.inc"
 };
 
-AnimationRecord D_neo_ark_forest_zone_801816C8[141] = {
+static AnimationRecord _gNeoArkForestZoneAnimation04364Records[141] = {
 #include "assets/neo_ark_forest_zone_animation_04364_records.inc"
 };
 
-u16 D_neo_ark_forest_zone_801818FC[20] = {
+static u16 _gNeoArkForestZoneAnimation04364Indices[20] = {
 #include "assets/neo_ark_forest_zone_animation_04364_indices.inc"
 };
 
-AnimationSet D_neo_ark_forest_zone_80181924 = {
-    D_neo_ark_forest_zone_801816C8,
-    D_neo_ark_forest_zone_801818FC,
-    { NULL, D_neo_ark_forest_zone_80181580, NULL, NULL, D_neo_ark_forest_zone_801815C8, NULL, NULL, NULL },
+static AnimationSet _gNeoArkForestZoneAnimation04364 = {
+    _gNeoArkForestZoneAnimation04364Records,
+    _gNeoArkForestZoneAnimation04364Indices,
+    { NULL, _gNeoArkForestZoneAnimation04364Bank1, NULL, NULL, _gNeoArkForestZoneAnimation04364Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_neo_ark_forest_zone_8018194C[10] = {
+static AnimationPackedPose _gNeoArkForestZoneAnimation047D4Bank1[10] = {
 #include "assets/neo_ark_forest_zone_animation_047D4_bank1.inc"
 };
 
-AnimationPackedRotation D_neo_ark_forest_zone_801819C4[95] = {
+static AnimationPackedRotation _gNeoArkForestZoneAnimation047D4Bank4[95] = {
 #include "assets/neo_ark_forest_zone_animation_047D4_bank4.inc"
 };
 
-AnimationRecord D_neo_ark_forest_zone_80181B40[139] = {
+static AnimationRecord _gNeoArkForestZoneAnimation047D4Records[139] = {
 #include "assets/neo_ark_forest_zone_animation_047D4_records.inc"
 };
 
-u16 D_neo_ark_forest_zone_80181D6C[20] = {
+static u16 _gNeoArkForestZoneAnimation047D4Indices[20] = {
 #include "assets/neo_ark_forest_zone_animation_047D4_indices.inc"
 };
 
-AnimationSet D_neo_ark_forest_zone_80181D94 = {
-    D_neo_ark_forest_zone_80181B40,
-    D_neo_ark_forest_zone_80181D6C,
-    { NULL, D_neo_ark_forest_zone_8018194C, NULL, NULL, D_neo_ark_forest_zone_801819C4, NULL, NULL, NULL },
+static AnimationSet _gNeoArkForestZoneAnimation047D4 = {
+    _gNeoArkForestZoneAnimation047D4Records,
+    _gNeoArkForestZoneAnimation047D4Indices,
+    { NULL, _gNeoArkForestZoneAnimation047D4Bank1, NULL, NULL, _gNeoArkForestZoneAnimation047D4Bank4, NULL, NULL, NULL },
 };
 
 TaskDesc D_neo_ark_forest_zone_80181DBC = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
@@ -184,8 +184,8 @@ TaskMessageEntry D_neo_ark_forest_zone_80181DC8[6] = {
 };
 
 AnimationSet* D_neo_ark_forest_zone_80181DF8[2] = {
-    &D_neo_ark_forest_zone_80181D94,
-    &D_neo_ark_forest_zone_80181924,
+    &_gNeoArkForestZoneAnimation047D4,
+    &_gNeoArkForestZoneAnimation04364,
 };
 
 GpCopyArg D_neo_ark_forest_zone_80181E00 = { { .sets = D_neo_ark_forest_zone_80181DF8 }, 2 };
@@ -256,30 +256,30 @@ GpWarpRec D_neo_ark_forest_zone_801820C4[3] = {
     { { .words = { 0, -3000, 0, -770 } }, { 0, 0, 0, 0 }, { .words = { 0, -3000, 0, -770 } }, { 0, 0, 0, 0 }, 0x550B0004, 0x550B0003, 0, 4, 0, 0 },
 };
 
-SVECTOR D_neo_ark_forest_zone_8018216C[6] = {
+static SVECTOR _gNeoArkForestZoneCollision04CB4Normals[6] = {
 #include "assets/neo_ark_forest_zone_collision_04CB4_normals.inc"
 };
 
-SVECTOR D_neo_ark_forest_zone_8018219C[8] = {
+static SVECTOR _gNeoArkForestZoneCollision04CB4Verts[8] = {
 #include "assets/neo_ark_forest_zone_collision_04CB4_verts.inc"
 };
 
-WorldCollisionGridFace D_neo_ark_forest_zone_801821DC[6] = {
+static WorldCollisionGridFace _gNeoArkForestZoneCollision04CB4Faces[6] = {
 #include "assets/neo_ark_forest_zone_collision_04CB4_faces.inc"
 };
 
-s16 D_neo_ark_forest_zone_80182224[30] = {
+static s16 _gNeoArkForestZoneCollision04CB4Cells[30] = {
 #include "assets/neo_ark_forest_zone_collision_04CB4_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_neo_ark_forest_zone_80182224[i])
-s16* D_neo_ark_forest_zone_80182260[5] = {
+#define GRID_CELL(i) (&_gNeoArkForestZoneCollision04CB4Cells[i])
+static s16* _gNeoArkForestZoneCollision04CB4Table[5] = {
 #include "assets/neo_ark_forest_zone_collision_04CB4_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_neo_ark_forest_zone_80182274[1] = {
-    { NULL, D_neo_ark_forest_zone_8018216C, D_neo_ark_forest_zone_8018219C, D_neo_ark_forest_zone_801821DC, D_neo_ark_forest_zone_80182260, 8000, 1300, 5, 1, 4000, 6 },
+    { NULL, _gNeoArkForestZoneCollision04CB4Normals, _gNeoArkForestZoneCollision04CB4Verts, _gNeoArkForestZoneCollision04CB4Faces, _gNeoArkForestZoneCollision04CB4Table, 8000, 1300, 5, 1, 4000, 6 },
 };
 
 GpViewRec D_neo_ark_forest_zone_80182298[6] = {

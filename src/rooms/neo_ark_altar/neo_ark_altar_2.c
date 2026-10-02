@@ -208,30 +208,30 @@ GpWarpRec D_neo_ark_altar_8017F0FC[1] = {
     { { .words = { 1024, 7533, -3600, -7520 } }, { 0, 0, 0, 0 }, { .words = { 2048, -2944, 0, -2035 } }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 1, 0 },
 };
 
-SVECTOR D_neo_ark_altar_8017F134[9] = {
+static SVECTOR _gNeoArkAltarCollision01FBCNormals[9] = {
 #include "assets/neo_ark_altar_collision_01FBC_normals.inc"
 };
 
-SVECTOR D_neo_ark_altar_8017F17C[58] = {
+static SVECTOR _gNeoArkAltarCollision01FBCVerts[58] = {
 #include "assets/neo_ark_altar_collision_01FBC_verts.inc"
 };
 
-WorldCollisionGridFace D_neo_ark_altar_8017F34C[29] = {
+static WorldCollisionGridFace _gNeoArkAltarCollision01FBCFaces[29] = {
 #include "assets/neo_ark_altar_collision_01FBC_faces.inc"
 };
 
-s16 D_neo_ark_altar_8017F4A8[94] = {
+static s16 _gNeoArkAltarCollision01FBCCells[94] = {
 #include "assets/neo_ark_altar_collision_01FBC_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_neo_ark_altar_8017F4A8[i])
-s16* D_neo_ark_altar_8017F564[6] = {
+#define GRID_CELL(i) (&_gNeoArkAltarCollision01FBCCells[i])
+static s16* _gNeoArkAltarCollision01FBCTable[6] = {
 #include "assets/neo_ark_altar_collision_01FBC_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_neo_ark_altar_8017F57C[1] = {
-    { NULL, D_neo_ark_altar_8017F134, D_neo_ark_altar_8017F17C, D_neo_ark_altar_8017F34C, D_neo_ark_altar_8017F564, -2640, 0x2710, 3, 2, 4000, 29 },
+    { NULL, _gNeoArkAltarCollision01FBCNormals, _gNeoArkAltarCollision01FBCVerts, _gNeoArkAltarCollision01FBCFaces, _gNeoArkAltarCollision01FBCTable, -2640, 0x2710, 3, 2, 4000, 29 },
 };
 
 GpViewRec D_neo_ark_altar_8017F5A0[8] = {

@@ -76,30 +76,30 @@ GpWarpRec D_mine_tunnel_8017E174[2] = {
     { { .words = { 1024, 500, 0, 1630 } }, { 0, 0, 0, 0 }, { .words = { 1024, 500, 0, 1630 } }, { 0, 0, 0, 0 }, 0x54040004, 0x54040003, 0, 5, 0, 0 },
 };
 
-SVECTOR D_mine_tunnel_8017E1E4[29] = {
+static SVECTOR _gMineTunnelCollision012ACNormals[29] = {
 #include "assets/mine_tunnel_collision_012AC_normals.inc"
 };
 
-SVECTOR D_mine_tunnel_8017E2CC[80] = {
+static SVECTOR _gMineTunnelCollision012ACVerts[80] = {
 #include "assets/mine_tunnel_collision_012AC_verts.inc"
 };
 
-WorldCollisionGridFace D_mine_tunnel_8017E54C[37] = {
+static WorldCollisionGridFace _gMineTunnelCollision012ACFaces[37] = {
 #include "assets/mine_tunnel_collision_012AC_faces.inc"
 };
 
-s16 D_mine_tunnel_8017E708[158] = {
+static s16 _gMineTunnelCollision012ACCells[158] = {
 #include "assets/mine_tunnel_collision_012AC_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_mine_tunnel_8017E708[i])
-s16* D_mine_tunnel_8017E844[10] = {
+#define GRID_CELL(i) (&_gMineTunnelCollision012ACCells[i])
+static s16* _gMineTunnelCollision012ACTable[10] = {
 #include "assets/mine_tunnel_collision_012AC_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_mine_tunnel_8017E86C[1] = {
-    { NULL, D_mine_tunnel_8017E1E4, D_mine_tunnel_8017E2CC, D_mine_tunnel_8017E54C, D_mine_tunnel_8017E844, 1000, 1000, 5, 2, 4000, 37 },
+    { NULL, _gMineTunnelCollision012ACNormals, _gMineTunnelCollision012ACVerts, _gMineTunnelCollision012ACFaces, _gMineTunnelCollision012ACTable, 1000, 1000, 5, 2, 4000, 37 },
 };
 
 GpViewRec D_mine_tunnel_8017E890[5] = {

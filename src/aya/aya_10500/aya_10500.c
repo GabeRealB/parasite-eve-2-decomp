@@ -27,27 +27,27 @@ extern struct _GpImgRec* D_aya_10500_8011D1B0[];
  * stored once whatever carries it, so they come from that package's assets.
  */
 
-static u_long D_aya_10500_8011C308[] = {
+static u_long _gAya10500Aya10200Image06AC4[] = {
 #include "assets/aya_10200_image_06AC4.inc"
 };
 static GpImgRec D_aya_10500_8011C628[] = {
-    { 0, 0, { 0, 0, 25, 16 }, D_aya_10500_8011C308 },
+    { 0, 0, { 0, 0, 25, 16 }, _gAya10500Aya10200Image06AC4 },
     { GP_IMG_REC_END },
 };
 
-static u_long D_aya_10500_8011C648[] = {
+static u_long _gAya10500Aya10200Image06E04[] = {
 #include "assets/aya_10200_image_06E04.inc"
 };
 static GpImgRec D_aya_10500_8011C968[] = {
-    { 0, 0, { 0, 0, 25, 16 }, D_aya_10500_8011C648 },
+    { 0, 0, { 0, 0, 25, 16 }, _gAya10500Aya10200Image06E04 },
     { GP_IMG_REC_END },
 };
 
-static u_long D_aya_10500_8011C988[] = {
+static u_long _gAya10500Aya10200Image07144[] = {
 #include "assets/aya_10200_image_07144.inc"
 };
 static GpImgRec D_aya_10500_8011CCA8[] = {
-    { 0, 0, { 0, 0, 25, 16 }, D_aya_10500_8011C988 },
+    { 0, 0, { 0, 0, 25, 16 }, _gAya10500Aya10200Image07144 },
     { GP_IMG_REC_END },
 };
 

@@ -586,637 +586,637 @@ MistShootingGallerySpawn* D_mist_shooting_gallery_8018690C = D_mist_shooting_gal
 
 MistShootingGallerySpawn* D_mist_shooting_gallery_80186910 = D_mist_shooting_gallery_80186540;
 
-TmdBone D_mist_shooting_gallery_80186914[1] = {
+static TmdBone _gMistShootingGalleryModel093FCSkeleton[1] = {
 #include "assets/mist_shooting_gallery_model_093FC_skeleton.inc"
 };
 
-u32 D_mist_shooting_gallery_80186938[1] = {
+static u32 _gMistShootingGalleryModel093FCPartVerts[1] = {
 #include "assets/mist_shooting_gallery_model_093FC_partVerts.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_8018693C[10] = {
+static SVECTOR _gMistShootingGalleryModel093FCVerts[10] = {
 #include "assets/mist_shooting_gallery_model_093FC_verts.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_8018698C[6] = {
+static SVECTOR _gMistShootingGalleryModel093FCNormals[6] = {
 #include "assets/mist_shooting_gallery_model_093FC_normals.inc"
 };
 
-u32 D_mist_shooting_gallery_801869BC[73] = {
+static u32 _gMistShootingGalleryModel093FCStream[73] = {
 #include "assets/mist_shooting_gallery_model_093FC_stream.inc"
 };
 
-TmdSource D_mist_shooting_gallery_80186AE0 = {
+TmdSource gMistShootingGalleryModel093FC = {
     0,
     528,
     0,
     1,
-    D_mist_shooting_gallery_80186938,
-    D_mist_shooting_gallery_8018693C,
-    D_mist_shooting_gallery_8018698C,
-    D_mist_shooting_gallery_80186914,
-    D_mist_shooting_gallery_801869BC,
+    _gMistShootingGalleryModel093FCPartVerts,
+    _gMistShootingGalleryModel093FCVerts,
+    _gMistShootingGalleryModel093FCNormals,
+    _gMistShootingGalleryModel093FCSkeleton,
+    _gMistShootingGalleryModel093FCStream,
 };
 
-TmdBone D_mist_shooting_gallery_80186B04[1] = {
+static TmdBone _gMistShootingGalleryModel095ECSkeleton[1] = {
 #include "assets/mist_shooting_gallery_model_095EC_skeleton.inc"
 };
 
-u32 D_mist_shooting_gallery_80186B28[1] = {
+static u32 _gMistShootingGalleryModel095ECPartVerts[1] = {
 #include "assets/mist_shooting_gallery_model_095EC_partVerts.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_80186B2C[10] = {
+static SVECTOR _gMistShootingGalleryModel095ECVerts[10] = {
 #include "assets/mist_shooting_gallery_model_095EC_verts.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_80186B7C[6] = {
+static SVECTOR _gMistShootingGalleryModel095ECNormals[6] = {
 #include "assets/mist_shooting_gallery_model_095EC_normals.inc"
 };
 
-u32 D_mist_shooting_gallery_80186BAC[73] = {
+static u32 _gMistShootingGalleryModel095ECStream[73] = {
 #include "assets/mist_shooting_gallery_model_095EC_stream.inc"
 };
 
-TmdSource D_mist_shooting_gallery_80186CD0 = {
+TmdSource gMistShootingGalleryModel095EC = {
     0,
     528,
     0,
     1,
-    D_mist_shooting_gallery_80186B28,
-    D_mist_shooting_gallery_80186B2C,
-    D_mist_shooting_gallery_80186B7C,
-    D_mist_shooting_gallery_80186B04,
-    D_mist_shooting_gallery_80186BAC,
+    _gMistShootingGalleryModel095ECPartVerts,
+    _gMistShootingGalleryModel095ECVerts,
+    _gMistShootingGalleryModel095ECNormals,
+    _gMistShootingGalleryModel095ECSkeleton,
+    _gMistShootingGalleryModel095ECStream,
 };
 
-TmdBone D_mist_shooting_gallery_80186CF4[1] = {
+static TmdBone _gMistShootingGalleryModel097DCSkeleton[1] = {
 #include "assets/mist_shooting_gallery_model_097DC_skeleton.inc"
 };
 
-u32 D_mist_shooting_gallery_80186D18[1] = {
+static u32 _gMistShootingGalleryModel097DCPartVerts[1] = {
 #include "assets/mist_shooting_gallery_model_097DC_partVerts.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_80186D1C[10] = {
+static SVECTOR _gMistShootingGalleryModel097DCVerts[10] = {
 #include "assets/mist_shooting_gallery_model_097DC_verts.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_80186D6C[6] = {
+static SVECTOR _gMistShootingGalleryModel097DCNormals[6] = {
 #include "assets/mist_shooting_gallery_model_097DC_normals.inc"
 };
 
-u32 D_mist_shooting_gallery_80186D9C[73] = {
+static u32 _gMistShootingGalleryModel097DCStream[73] = {
 #include "assets/mist_shooting_gallery_model_097DC_stream.inc"
 };
 
-TmdSource D_mist_shooting_gallery_80186EC0 = {
+TmdSource gMistShootingGalleryModel097DC = {
     0,
     528,
     0,
     1,
-    D_mist_shooting_gallery_80186D18,
-    D_mist_shooting_gallery_80186D1C,
-    D_mist_shooting_gallery_80186D6C,
-    D_mist_shooting_gallery_80186CF4,
-    D_mist_shooting_gallery_80186D9C,
+    _gMistShootingGalleryModel097DCPartVerts,
+    _gMistShootingGalleryModel097DCVerts,
+    _gMistShootingGalleryModel097DCNormals,
+    _gMistShootingGalleryModel097DCSkeleton,
+    _gMistShootingGalleryModel097DCStream,
 };
 
-TmdBone D_mist_shooting_gallery_80186EE4[1] = {
+static TmdBone _gMistShootingGalleryModel099CCSkeleton[1] = {
 #include "assets/mist_shooting_gallery_model_099CC_skeleton.inc"
 };
 
-u32 D_mist_shooting_gallery_80186F08[1] = {
+static u32 _gMistShootingGalleryModel099CCPartVerts[1] = {
 #include "assets/mist_shooting_gallery_model_099CC_partVerts.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_80186F0C[10] = {
+static SVECTOR _gMistShootingGalleryModel099CCVerts[10] = {
 #include "assets/mist_shooting_gallery_model_099CC_verts.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_80186F5C[6] = {
+static SVECTOR _gMistShootingGalleryModel099CCNormals[6] = {
 #include "assets/mist_shooting_gallery_model_099CC_normals.inc"
 };
 
-u32 D_mist_shooting_gallery_80186F8C[73] = {
+static u32 _gMistShootingGalleryModel099CCStream[73] = {
 #include "assets/mist_shooting_gallery_model_099CC_stream.inc"
 };
 
-TmdSource D_mist_shooting_gallery_801870B0 = {
+TmdSource gMistShootingGalleryModel099CC = {
     0,
     528,
     0,
     1,
-    D_mist_shooting_gallery_80186F08,
-    D_mist_shooting_gallery_80186F0C,
-    D_mist_shooting_gallery_80186F5C,
-    D_mist_shooting_gallery_80186EE4,
-    D_mist_shooting_gallery_80186F8C,
+    _gMistShootingGalleryModel099CCPartVerts,
+    _gMistShootingGalleryModel099CCVerts,
+    _gMistShootingGalleryModel099CCNormals,
+    _gMistShootingGalleryModel099CCSkeleton,
+    _gMistShootingGalleryModel099CCStream,
 };
 
-TmdBone D_mist_shooting_gallery_801870D4[1] = {
+static TmdBone _gMistShootingGalleryModel09BBCSkeleton[1] = {
 #include "assets/mist_shooting_gallery_model_09BBC_skeleton.inc"
 };
 
-u32 D_mist_shooting_gallery_801870F8[1] = {
+static u32 _gMistShootingGalleryModel09BBCPartVerts[1] = {
 #include "assets/mist_shooting_gallery_model_09BBC_partVerts.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_801870FC[10] = {
+static SVECTOR _gMistShootingGalleryModel09BBCVerts[10] = {
 #include "assets/mist_shooting_gallery_model_09BBC_verts.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_8018714C[6] = {
+static SVECTOR _gMistShootingGalleryModel09BBCNormals[6] = {
 #include "assets/mist_shooting_gallery_model_09BBC_normals.inc"
 };
 
-u32 D_mist_shooting_gallery_8018717C[73] = {
+static u32 _gMistShootingGalleryModel09BBCStream[73] = {
 #include "assets/mist_shooting_gallery_model_09BBC_stream.inc"
 };
 
-TmdSource D_mist_shooting_gallery_801872A0 = {
+TmdSource gMistShootingGalleryModel09BBC = {
     0,
     528,
     0,
     1,
-    D_mist_shooting_gallery_801870F8,
-    D_mist_shooting_gallery_801870FC,
-    D_mist_shooting_gallery_8018714C,
-    D_mist_shooting_gallery_801870D4,
-    D_mist_shooting_gallery_8018717C,
+    _gMistShootingGalleryModel09BBCPartVerts,
+    _gMistShootingGalleryModel09BBCVerts,
+    _gMistShootingGalleryModel09BBCNormals,
+    _gMistShootingGalleryModel09BBCSkeleton,
+    _gMistShootingGalleryModel09BBCStream,
 };
 
-TmdBone D_mist_shooting_gallery_801872C4[1] = {
+static TmdBone _gMistShootingGalleryModel09DACSkeleton[1] = {
 #include "assets/mist_shooting_gallery_model_09DAC_skeleton.inc"
 };
 
-u32 D_mist_shooting_gallery_801872E8[1] = {
+static u32 _gMistShootingGalleryModel09DACPartVerts[1] = {
 #include "assets/mist_shooting_gallery_model_09DAC_partVerts.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_801872EC[10] = {
+static SVECTOR _gMistShootingGalleryModel09DACVerts[10] = {
 #include "assets/mist_shooting_gallery_model_09DAC_verts.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_8018733C[6] = {
+static SVECTOR _gMistShootingGalleryModel09DACNormals[6] = {
 #include "assets/mist_shooting_gallery_model_09DAC_normals.inc"
 };
 
-u32 D_mist_shooting_gallery_8018736C[73] = {
+static u32 _gMistShootingGalleryModel09DACStream[73] = {
 #include "assets/mist_shooting_gallery_model_09DAC_stream.inc"
 };
 
-TmdSource D_mist_shooting_gallery_80187490 = {
+TmdSource gMistShootingGalleryModel09DAC = {
     0,
     528,
     0,
     1,
-    D_mist_shooting_gallery_801872E8,
-    D_mist_shooting_gallery_801872EC,
-    D_mist_shooting_gallery_8018733C,
-    D_mist_shooting_gallery_801872C4,
-    D_mist_shooting_gallery_8018736C,
+    _gMistShootingGalleryModel09DACPartVerts,
+    _gMistShootingGalleryModel09DACVerts,
+    _gMistShootingGalleryModel09DACNormals,
+    _gMistShootingGalleryModel09DACSkeleton,
+    _gMistShootingGalleryModel09DACStream,
 };
 
-TmdBone D_mist_shooting_gallery_801874B4[1] = {
+static TmdBone _gMistShootingGalleryModel09F9CSkeleton[1] = {
 #include "assets/mist_shooting_gallery_model_09F9C_skeleton.inc"
 };
 
-u32 D_mist_shooting_gallery_801874D8[1] = {
+static u32 _gMistShootingGalleryModel09F9CPartVerts[1] = {
 #include "assets/mist_shooting_gallery_model_09F9C_partVerts.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_801874DC[10] = {
+static SVECTOR _gMistShootingGalleryModel09F9CVerts[10] = {
 #include "assets/mist_shooting_gallery_model_09F9C_verts.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_8018752C[6] = {
+static SVECTOR _gMistShootingGalleryModel09F9CNormals[6] = {
 #include "assets/mist_shooting_gallery_model_09F9C_normals.inc"
 };
 
-u32 D_mist_shooting_gallery_8018755C[73] = {
+static u32 _gMistShootingGalleryModel09F9CStream[73] = {
 #include "assets/mist_shooting_gallery_model_09F9C_stream.inc"
 };
 
-TmdSource D_mist_shooting_gallery_80187680 = {
+TmdSource gMistShootingGalleryModel09F9C = {
     0,
     528,
     0,
     1,
-    D_mist_shooting_gallery_801874D8,
-    D_mist_shooting_gallery_801874DC,
-    D_mist_shooting_gallery_8018752C,
-    D_mist_shooting_gallery_801874B4,
-    D_mist_shooting_gallery_8018755C,
+    _gMistShootingGalleryModel09F9CPartVerts,
+    _gMistShootingGalleryModel09F9CVerts,
+    _gMistShootingGalleryModel09F9CNormals,
+    _gMistShootingGalleryModel09F9CSkeleton,
+    _gMistShootingGalleryModel09F9CStream,
 };
 
-TmdBone D_mist_shooting_gallery_801876A4[1] = {
+static TmdBone _gMistShootingGalleryModel0A18CSkeleton[1] = {
 #include "assets/mist_shooting_gallery_model_0A18C_skeleton.inc"
 };
 
-u32 D_mist_shooting_gallery_801876C8[1] = {
+static u32 _gMistShootingGalleryModel0A18CPartVerts[1] = {
 #include "assets/mist_shooting_gallery_model_0A18C_partVerts.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_801876CC[10] = {
+static SVECTOR _gMistShootingGalleryModel0A18CVerts[10] = {
 #include "assets/mist_shooting_gallery_model_0A18C_verts.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_8018771C[6] = {
+static SVECTOR _gMistShootingGalleryModel0A18CNormals[6] = {
 #include "assets/mist_shooting_gallery_model_0A18C_normals.inc"
 };
 
-u32 D_mist_shooting_gallery_8018774C[73] = {
+static u32 _gMistShootingGalleryModel0A18CStream[73] = {
 #include "assets/mist_shooting_gallery_model_0A18C_stream.inc"
 };
 
-TmdSource D_mist_shooting_gallery_80187870 = {
+TmdSource gMistShootingGalleryModel0A18C = {
     0,
     528,
     0,
     1,
-    D_mist_shooting_gallery_801876C8,
-    D_mist_shooting_gallery_801876CC,
-    D_mist_shooting_gallery_8018771C,
-    D_mist_shooting_gallery_801876A4,
-    D_mist_shooting_gallery_8018774C,
+    _gMistShootingGalleryModel0A18CPartVerts,
+    _gMistShootingGalleryModel0A18CVerts,
+    _gMistShootingGalleryModel0A18CNormals,
+    _gMistShootingGalleryModel0A18CSkeleton,
+    _gMistShootingGalleryModel0A18CStream,
 };
 
-TmdBone D_mist_shooting_gallery_80187894[1] = {
+static TmdBone _gMistShootingGalleryModel0A37CSkeleton[1] = {
 #include "assets/mist_shooting_gallery_model_0A37C_skeleton.inc"
 };
 
-u32 D_mist_shooting_gallery_801878B8[1] = {
+static u32 _gMistShootingGalleryModel0A37CPartVerts[1] = {
 #include "assets/mist_shooting_gallery_model_0A37C_partVerts.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_801878BC[10] = {
+static SVECTOR _gMistShootingGalleryModel0A37CVerts[10] = {
 #include "assets/mist_shooting_gallery_model_0A37C_verts.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_8018790C[6] = {
+static SVECTOR _gMistShootingGalleryModel0A37CNormals[6] = {
 #include "assets/mist_shooting_gallery_model_0A37C_normals.inc"
 };
 
-u32 D_mist_shooting_gallery_8018793C[73] = {
+static u32 _gMistShootingGalleryModel0A37CStream[73] = {
 #include "assets/mist_shooting_gallery_model_0A37C_stream.inc"
 };
 
-TmdSource D_mist_shooting_gallery_80187A60 = {
+TmdSource gMistShootingGalleryModel0A37C = {
     0,
     528,
     0,
     1,
-    D_mist_shooting_gallery_801878B8,
-    D_mist_shooting_gallery_801878BC,
-    D_mist_shooting_gallery_8018790C,
-    D_mist_shooting_gallery_80187894,
-    D_mist_shooting_gallery_8018793C,
+    _gMistShootingGalleryModel0A37CPartVerts,
+    _gMistShootingGalleryModel0A37CVerts,
+    _gMistShootingGalleryModel0A37CNormals,
+    _gMistShootingGalleryModel0A37CSkeleton,
+    _gMistShootingGalleryModel0A37CStream,
 };
 
-TmdBone D_mist_shooting_gallery_80187A84[1] = {
+static TmdBone _gMistShootingGalleryModel0A56CSkeleton[1] = {
 #include "assets/mist_shooting_gallery_model_0A56C_skeleton.inc"
 };
 
-u32 D_mist_shooting_gallery_80187AA8[1] = {
+static u32 _gMistShootingGalleryModel0A56CPartVerts[1] = {
 #include "assets/mist_shooting_gallery_model_0A56C_partVerts.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_80187AAC[10] = {
+static SVECTOR _gMistShootingGalleryModel0A56CVerts[10] = {
 #include "assets/mist_shooting_gallery_model_0A56C_verts.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_80187AFC[6] = {
+static SVECTOR _gMistShootingGalleryModel0A56CNormals[6] = {
 #include "assets/mist_shooting_gallery_model_0A56C_normals.inc"
 };
 
-u32 D_mist_shooting_gallery_80187B2C[73] = {
+static u32 _gMistShootingGalleryModel0A56CStream[73] = {
 #include "assets/mist_shooting_gallery_model_0A56C_stream.inc"
 };
 
-TmdSource D_mist_shooting_gallery_80187C50 = {
+TmdSource gMistShootingGalleryModel0A56C = {
     0,
     528,
     0,
     1,
-    D_mist_shooting_gallery_80187AA8,
-    D_mist_shooting_gallery_80187AAC,
-    D_mist_shooting_gallery_80187AFC,
-    D_mist_shooting_gallery_80187A84,
-    D_mist_shooting_gallery_80187B2C,
+    _gMistShootingGalleryModel0A56CPartVerts,
+    _gMistShootingGalleryModel0A56CVerts,
+    _gMistShootingGalleryModel0A56CNormals,
+    _gMistShootingGalleryModel0A56CSkeleton,
+    _gMistShootingGalleryModel0A56CStream,
 };
 
-TmdBone D_mist_shooting_gallery_80187C74[1] = {
+static TmdBone _gMistShootingGalleryModel0A81CSkeleton[1] = {
 #include "assets/mist_shooting_gallery_model_0A81C_skeleton.inc"
 };
 
-u32 D_mist_shooting_gallery_80187C98[1] = {
+static u32 _gMistShootingGalleryModel0A81CPartVerts[1] = {
 #include "assets/mist_shooting_gallery_model_0A81C_partVerts.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_80187C9C[24] = {
+static SVECTOR _gMistShootingGalleryModel0A81CVerts[24] = {
 #include "assets/mist_shooting_gallery_model_0A81C_verts.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_80187D5C[16] = {
+static SVECTOR _gMistShootingGalleryModel0A81CNormals[16] = {
 #include "assets/mist_shooting_gallery_model_0A81C_normals.inc"
 };
 
-u32 D_mist_shooting_gallery_80187DDC[150] = {
+static u32 _gMistShootingGalleryModel0A81CStream[150] = {
 #include "assets/mist_shooting_gallery_model_0A81C_stream.inc"
 };
 
-TmdSource D_mist_shooting_gallery_80188034 = {
+TmdSource gMistShootingGalleryModel0A81C = {
     0,
     1056,
     0,
     1,
-    D_mist_shooting_gallery_80187C98,
-    D_mist_shooting_gallery_80187C9C,
-    D_mist_shooting_gallery_80187D5C,
-    D_mist_shooting_gallery_80187C74,
-    D_mist_shooting_gallery_80187DDC,
+    _gMistShootingGalleryModel0A81CPartVerts,
+    _gMistShootingGalleryModel0A81CVerts,
+    _gMistShootingGalleryModel0A81CNormals,
+    _gMistShootingGalleryModel0A81CSkeleton,
+    _gMistShootingGalleryModel0A81CStream,
 };
 
-TmdBone D_mist_shooting_gallery_80188058[1] = {
+static TmdBone _gMistShootingGalleryModel0AB30Skeleton[1] = {
 #include "assets/mist_shooting_gallery_model_0AB30_skeleton.inc"
 };
 
-u32 D_mist_shooting_gallery_8018807C[1] = {
+static u32 _gMistShootingGalleryModel0AB30PartVerts[1] = {
 #include "assets/mist_shooting_gallery_model_0AB30_partVerts.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_80188080[8] = {
+static SVECTOR _gMistShootingGalleryModel0AB30Verts[8] = {
 #include "assets/mist_shooting_gallery_model_0AB30_verts.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_801880C0[6] = {
+static SVECTOR _gMistShootingGalleryModel0AB30Normals[6] = {
 #include "assets/mist_shooting_gallery_model_0AB30_normals.inc"
 };
 
-u32 D_mist_shooting_gallery_801880F0[42] = {
+static u32 _gMistShootingGalleryModel0AB30Stream[42] = {
 #include "assets/mist_shooting_gallery_model_0AB30_stream.inc"
 };
 
-TmdSource D_mist_shooting_gallery_80188198 = {
+TmdSource gMistShootingGalleryModel0AB30 = {
     0,
     312,
     0,
     1,
-    D_mist_shooting_gallery_8018807C,
-    D_mist_shooting_gallery_80188080,
-    D_mist_shooting_gallery_801880C0,
-    D_mist_shooting_gallery_80188058,
-    D_mist_shooting_gallery_801880F0,
+    _gMistShootingGalleryModel0AB30PartVerts,
+    _gMistShootingGalleryModel0AB30Verts,
+    _gMistShootingGalleryModel0AB30Normals,
+    _gMistShootingGalleryModel0AB30Skeleton,
+    _gMistShootingGalleryModel0AB30Stream,
 };
 
-TmdBone D_mist_shooting_gallery_801881BC[1] = {
+static TmdBone _gMistShootingGalleryModel0AC94Skeleton[1] = {
 #include "assets/mist_shooting_gallery_model_0AC94_skeleton.inc"
 };
 
-u32 D_mist_shooting_gallery_801881E0[1] = {
+static u32 _gMistShootingGalleryModel0AC94PartVerts[1] = {
 #include "assets/mist_shooting_gallery_model_0AC94_partVerts.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_801881E4[8] = {
+static SVECTOR _gMistShootingGalleryModel0AC94Verts[8] = {
 #include "assets/mist_shooting_gallery_model_0AC94_verts.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_80188224[6] = {
+static SVECTOR _gMistShootingGalleryModel0AC94Normals[6] = {
 #include "assets/mist_shooting_gallery_model_0AC94_normals.inc"
 };
 
-u32 D_mist_shooting_gallery_80188254[42] = {
+static u32 _gMistShootingGalleryModel0AC94Stream[42] = {
 #include "assets/mist_shooting_gallery_model_0AC94_stream.inc"
 };
 
-TmdSource D_mist_shooting_gallery_801882FC = {
+TmdSource gMistShootingGalleryModel0AC94 = {
     0,
     312,
     0,
     1,
-    D_mist_shooting_gallery_801881E0,
-    D_mist_shooting_gallery_801881E4,
-    D_mist_shooting_gallery_80188224,
-    D_mist_shooting_gallery_801881BC,
-    D_mist_shooting_gallery_80188254,
+    _gMistShootingGalleryModel0AC94PartVerts,
+    _gMistShootingGalleryModel0AC94Verts,
+    _gMistShootingGalleryModel0AC94Normals,
+    _gMistShootingGalleryModel0AC94Skeleton,
+    _gMistShootingGalleryModel0AC94Stream,
 };
 
-TmdBone D_mist_shooting_gallery_80188320[1] = {
+static TmdBone _gMistShootingGalleryModel0ADF8Skeleton[1] = {
 #include "assets/mist_shooting_gallery_model_0ADF8_skeleton.inc"
 };
 
-u32 D_mist_shooting_gallery_80188344[1] = {
+static u32 _gMistShootingGalleryModel0ADF8PartVerts[1] = {
 #include "assets/mist_shooting_gallery_model_0ADF8_partVerts.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_80188348[8] = {
+static SVECTOR _gMistShootingGalleryModel0ADF8Verts[8] = {
 #include "assets/mist_shooting_gallery_model_0ADF8_verts.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_80188388[6] = {
+static SVECTOR _gMistShootingGalleryModel0ADF8Normals[6] = {
 #include "assets/mist_shooting_gallery_model_0ADF8_normals.inc"
 };
 
-u32 D_mist_shooting_gallery_801883B8[42] = {
+static u32 _gMistShootingGalleryModel0ADF8Stream[42] = {
 #include "assets/mist_shooting_gallery_model_0ADF8_stream.inc"
 };
 
-TmdSource D_mist_shooting_gallery_80188460 = {
+TmdSource gMistShootingGalleryModel0ADF8 = {
     0,
     312,
     0,
     1,
-    D_mist_shooting_gallery_80188344,
-    D_mist_shooting_gallery_80188348,
-    D_mist_shooting_gallery_80188388,
-    D_mist_shooting_gallery_80188320,
-    D_mist_shooting_gallery_801883B8,
+    _gMistShootingGalleryModel0ADF8PartVerts,
+    _gMistShootingGalleryModel0ADF8Verts,
+    _gMistShootingGalleryModel0ADF8Normals,
+    _gMistShootingGalleryModel0ADF8Skeleton,
+    _gMistShootingGalleryModel0ADF8Stream,
 };
 
-TmdBone D_mist_shooting_gallery_80188484[1] = {
+static TmdBone _gMistShootingGalleryModel0AF5CSkeleton[1] = {
 #include "assets/mist_shooting_gallery_model_0AF5C_skeleton.inc"
 };
 
-u32 D_mist_shooting_gallery_801884A8[1] = {
+static u32 _gMistShootingGalleryModel0AF5CPartVerts[1] = {
 #include "assets/mist_shooting_gallery_model_0AF5C_partVerts.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_801884AC[8] = {
+static SVECTOR _gMistShootingGalleryModel0AF5CVerts[8] = {
 #include "assets/mist_shooting_gallery_model_0AF5C_verts.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_801884EC[6] = {
+static SVECTOR _gMistShootingGalleryModel0AF5CNormals[6] = {
 #include "assets/mist_shooting_gallery_model_0AF5C_normals.inc"
 };
 
-u32 D_mist_shooting_gallery_8018851C[42] = {
+static u32 _gMistShootingGalleryModel0AF5CStream[42] = {
 #include "assets/mist_shooting_gallery_model_0AF5C_stream.inc"
 };
 
-TmdSource D_mist_shooting_gallery_801885C4 = {
+TmdSource gMistShootingGalleryModel0AF5C = {
     0,
     312,
     0,
     1,
-    D_mist_shooting_gallery_801884A8,
-    D_mist_shooting_gallery_801884AC,
-    D_mist_shooting_gallery_801884EC,
-    D_mist_shooting_gallery_80188484,
-    D_mist_shooting_gallery_8018851C,
+    _gMistShootingGalleryModel0AF5CPartVerts,
+    _gMistShootingGalleryModel0AF5CVerts,
+    _gMistShootingGalleryModel0AF5CNormals,
+    _gMistShootingGalleryModel0AF5CSkeleton,
+    _gMistShootingGalleryModel0AF5CStream,
 };
 
-TmdBone D_mist_shooting_gallery_801885E8[1] = {
+static TmdBone _gMistShootingGalleryModel0B0D0Skeleton[1] = {
 #include "assets/mist_shooting_gallery_model_0B0D0_skeleton.inc"
 };
 
-u32 D_mist_shooting_gallery_8018860C[1] = {
+static u32 _gMistShootingGalleryModel0B0D0PartVerts[1] = {
 #include "assets/mist_shooting_gallery_model_0B0D0_partVerts.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_80188610[10] = {
+static SVECTOR _gMistShootingGalleryModel0B0D0Verts[10] = {
 #include "assets/mist_shooting_gallery_model_0B0D0_verts.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_80188660[6] = {
+static SVECTOR _gMistShootingGalleryModel0B0D0Normals[6] = {
 #include "assets/mist_shooting_gallery_model_0B0D0_normals.inc"
 };
 
-u32 D_mist_shooting_gallery_80188690[73] = {
+static u32 _gMistShootingGalleryModel0B0D0Stream[73] = {
 #include "assets/mist_shooting_gallery_model_0B0D0_stream.inc"
 };
 
-TmdSource D_mist_shooting_gallery_801887B4 = {
+TmdSource gMistShootingGalleryModel0B0D0 = {
     0,
     528,
     0,
     1,
-    D_mist_shooting_gallery_8018860C,
-    D_mist_shooting_gallery_80188610,
-    D_mist_shooting_gallery_80188660,
-    D_mist_shooting_gallery_801885E8,
-    D_mist_shooting_gallery_80188690,
+    _gMistShootingGalleryModel0B0D0PartVerts,
+    _gMistShootingGalleryModel0B0D0Verts,
+    _gMistShootingGalleryModel0B0D0Normals,
+    _gMistShootingGalleryModel0B0D0Skeleton,
+    _gMistShootingGalleryModel0B0D0Stream,
 };
 
-TmdBone D_mist_shooting_gallery_801887D8[1] = {
+static TmdBone _gMistShootingGalleryModel0B2C0Skeleton[1] = {
 #include "assets/mist_shooting_gallery_model_0B2C0_skeleton.inc"
 };
 
-u32 D_mist_shooting_gallery_801887FC[1] = {
+static u32 _gMistShootingGalleryModel0B2C0PartVerts[1] = {
 #include "assets/mist_shooting_gallery_model_0B2C0_partVerts.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_80188800[10] = {
+static SVECTOR _gMistShootingGalleryModel0B2C0Verts[10] = {
 #include "assets/mist_shooting_gallery_model_0B2C0_verts.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_80188850[6] = {
+static SVECTOR _gMistShootingGalleryModel0B2C0Normals[6] = {
 #include "assets/mist_shooting_gallery_model_0B2C0_normals.inc"
 };
 
-u32 D_mist_shooting_gallery_80188880[73] = {
+static u32 _gMistShootingGalleryModel0B2C0Stream[73] = {
 #include "assets/mist_shooting_gallery_model_0B2C0_stream.inc"
 };
 
-TmdSource D_mist_shooting_gallery_801889A4 = {
+TmdSource gMistShootingGalleryModel0B2C0 = {
     0,
     528,
     0,
     1,
-    D_mist_shooting_gallery_801887FC,
-    D_mist_shooting_gallery_80188800,
-    D_mist_shooting_gallery_80188850,
-    D_mist_shooting_gallery_801887D8,
-    D_mist_shooting_gallery_80188880,
+    _gMistShootingGalleryModel0B2C0PartVerts,
+    _gMistShootingGalleryModel0B2C0Verts,
+    _gMistShootingGalleryModel0B2C0Normals,
+    _gMistShootingGalleryModel0B2C0Skeleton,
+    _gMistShootingGalleryModel0B2C0Stream,
 };
 
-TmdBone D_mist_shooting_gallery_801889C8[1] = {
+static TmdBone _gMistShootingGalleryModel0B4B0Skeleton[1] = {
 #include "assets/mist_shooting_gallery_model_0B4B0_skeleton.inc"
 };
 
-u32 D_mist_shooting_gallery_801889EC[1] = {
+static u32 _gMistShootingGalleryModel0B4B0PartVerts[1] = {
 #include "assets/mist_shooting_gallery_model_0B4B0_partVerts.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_801889F0[10] = {
+static SVECTOR _gMistShootingGalleryModel0B4B0Verts[10] = {
 #include "assets/mist_shooting_gallery_model_0B4B0_verts.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_80188A40[6] = {
+static SVECTOR _gMistShootingGalleryModel0B4B0Normals[6] = {
 #include "assets/mist_shooting_gallery_model_0B4B0_normals.inc"
 };
 
-u32 D_mist_shooting_gallery_80188A70[73] = {
+static u32 _gMistShootingGalleryModel0B4B0Stream[73] = {
 #include "assets/mist_shooting_gallery_model_0B4B0_stream.inc"
 };
 
-TmdSource D_mist_shooting_gallery_80188B94 = {
+TmdSource gMistShootingGalleryModel0B4B0 = {
     0,
     528,
     0,
     1,
-    D_mist_shooting_gallery_801889EC,
-    D_mist_shooting_gallery_801889F0,
-    D_mist_shooting_gallery_80188A40,
-    D_mist_shooting_gallery_801889C8,
-    D_mist_shooting_gallery_80188A70,
+    _gMistShootingGalleryModel0B4B0PartVerts,
+    _gMistShootingGalleryModel0B4B0Verts,
+    _gMistShootingGalleryModel0B4B0Normals,
+    _gMistShootingGalleryModel0B4B0Skeleton,
+    _gMistShootingGalleryModel0B4B0Stream,
 };
 
-TmdBone D_mist_shooting_gallery_80188BB8[1] = {
+static TmdBone _gMistShootingGalleryModel0B6A0Skeleton[1] = {
 #include "assets/mist_shooting_gallery_model_0B6A0_skeleton.inc"
 };
 
-u32 D_mist_shooting_gallery_80188BDC[1] = {
+static u32 _gMistShootingGalleryModel0B6A0PartVerts[1] = {
 #include "assets/mist_shooting_gallery_model_0B6A0_partVerts.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_80188BE0[10] = {
+static SVECTOR _gMistShootingGalleryModel0B6A0Verts[10] = {
 #include "assets/mist_shooting_gallery_model_0B6A0_verts.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_80188C30[6] = {
+static SVECTOR _gMistShootingGalleryModel0B6A0Normals[6] = {
 #include "assets/mist_shooting_gallery_model_0B6A0_normals.inc"
 };
 
-u32 D_mist_shooting_gallery_80188C60[73] = {
+static u32 _gMistShootingGalleryModel0B6A0Stream[73] = {
 #include "assets/mist_shooting_gallery_model_0B6A0_stream.inc"
 };
 
-TmdSource D_mist_shooting_gallery_80188D84 = {
+TmdSource gMistShootingGalleryModel0B6A0 = {
     0,
     528,
     0,
     1,
-    D_mist_shooting_gallery_80188BDC,
-    D_mist_shooting_gallery_80188BE0,
-    D_mist_shooting_gallery_80188C30,
-    D_mist_shooting_gallery_80188BB8,
-    D_mist_shooting_gallery_80188C60,
+    _gMistShootingGalleryModel0B6A0PartVerts,
+    _gMistShootingGalleryModel0B6A0Verts,
+    _gMistShootingGalleryModel0B6A0Normals,
+    _gMistShootingGalleryModel0B6A0Skeleton,
+    _gMistShootingGalleryModel0B6A0Stream,
 };
 
-SVECTOR D_mist_shooting_gallery_80188DA8[22] = {
+static SVECTOR _gMistShootingGalleryCollision0C3A8Normals[22] = {
 #include "assets/mist_shooting_gallery_collision_0C3A8_normals.inc"
 };
 
-SVECTOR D_mist_shooting_gallery_80188E58[136] = {
+static SVECTOR _gMistShootingGalleryCollision0C3A8Verts[136] = {
 #include "assets/mist_shooting_gallery_collision_0C3A8_verts.inc"
 };
 
-WorldCollisionGridFace D_mist_shooting_gallery_80189298[57] = {
+static WorldCollisionGridFace _gMistShootingGalleryCollision0C3A8Faces[57] = {
 #include "assets/mist_shooting_gallery_collision_0C3A8_faces.inc"
 };
 
-s16 D_mist_shooting_gallery_80189544[474] = {
+static s16 _gMistShootingGalleryCollision0C3A8Cells[474] = {
 #include "assets/mist_shooting_gallery_collision_0C3A8_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_mist_shooting_gallery_80189544[i])
-s16* D_mist_shooting_gallery_801898F8[28] = {
+#define GRID_CELL(i) (&_gMistShootingGalleryCollision0C3A8Cells[i])
+static s16* _gMistShootingGalleryCollision0C3A8Table[28] = {
 #include "assets/mist_shooting_gallery_collision_0C3A8_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_mist_shooting_gallery_80189968 = { NULL, D_mist_shooting_gallery_80188DA8, D_mist_shooting_gallery_80188E58, D_mist_shooting_gallery_80189298, D_mist_shooting_gallery_801898F8, 0x2EE0, 7000, 7, 4, 4000, 57 };
+WorldCollisionGrid D_mist_shooting_gallery_80189968 = { NULL, _gMistShootingGalleryCollision0C3A8Normals, _gMistShootingGalleryCollision0C3A8Verts, _gMistShootingGalleryCollision0C3A8Faces, _gMistShootingGalleryCollision0C3A8Table, 0x2EE0, 7000, 7, 4, 4000, 57 };
 
 GpViewRec D_mist_shooting_gallery_8018998C[18] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -500, 0x7530, 0 } }, 289 },

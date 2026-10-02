@@ -158,26 +158,26 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-AnimationPackedPose D_mist_parking_801869DC[2] = {
+static AnimationPackedPose _gMistParkingAnimation095D0Bank1[2] = {
 #include "assets/mist_parking_animation_095D0_bank1.inc"
 };
 
-AnimationPackedRotation D_mist_parking_801869F4[17] = {
+static AnimationPackedRotation _gMistParkingAnimation095D0Bank4[17] = {
 #include "assets/mist_parking_animation_095D0_bank4.inc"
 };
 
-AnimationRecord D_mist_parking_80186A38[76] = {
+static AnimationRecord _gMistParkingAnimation095D0Records[76] = {
 #include "assets/mist_parking_animation_095D0_records.inc"
 };
 
-u16 D_mist_parking_80186B68[20] = {
+static u16 _gMistParkingAnimation095D0Indices[20] = {
 #include "assets/mist_parking_animation_095D0_indices.inc"
 };
 
-AnimationSet D_mist_parking_80186B90 = {
-    D_mist_parking_80186A38,
-    D_mist_parking_80186B68,
-    { NULL, D_mist_parking_801869DC, NULL, NULL, D_mist_parking_801869F4, NULL, NULL, NULL },
+static AnimationSet _gMistParkingAnimation095D0 = {
+    _gMistParkingAnimation095D0Records,
+    _gMistParkingAnimation095D0Indices,
+    { NULL, _gMistParkingAnimation095D0Bank1, NULL, NULL, _gMistParkingAnimation095D0Bank4, NULL, NULL, NULL },
 };
 
 // Message-table callbacks use the argument views required by this TU.
@@ -207,7 +207,7 @@ ActorTransform D_mist_parking_80186BF8 = { { 8448, 1, -3828, 0 }, { 0, 2048, 0, 
 ActorTransform D_mist_parking_80186C10 = { { 3310, 0, -3550, 0 }, { 0, -1024, 0, 0 } };
 
 AnimationSet* D_mist_parking_80186C28[1] = {
-    &D_mist_parking_80186B90,
+    &_gMistParkingAnimation095D0,
 };
 
 GpCopyArg D_mist_parking_80186C2C = { { .sets = D_mist_parking_80186C28 }, 1 };
@@ -265,560 +265,560 @@ EvsCommand D_mist_parking_80186EFC[12] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-TmdBone D_mist_parking_8018701C[1] = {
+static TmdBone _gMistParkingModel09B9CSkeleton[1] = {
 #include "assets/mist_parking_model_09B9C_skeleton.inc"
 };
 
-u32 D_mist_parking_80187040[1] = {
+static u32 _gMistParkingModel09B9CPartVerts[1] = {
 #include "assets/mist_parking_model_09B9C_partVerts.inc"
 };
 
-SVECTOR D_mist_parking_80187044[35] = {
+static SVECTOR _gMistParkingModel09B9CVerts[35] = {
 #include "assets/mist_parking_model_09B9C_verts.inc"
 };
 
-u32 D_mist_parking_8018715C[78] = {
+static u32 _gMistParkingModel09B9CStream[78] = {
 #include "assets/mist_parking_model_09B9C_stream.inc"
 };
 
-TmdSource D_mist_parking_80187294 = {
+TmdSource gMistParkingModel09B9C = {
     0,
     576,
     0,
     1,
-    D_mist_parking_80187040,
-    D_mist_parking_80187044,
-    &D_mist_parking_80187044[35],
-    D_mist_parking_8018701C,
-    D_mist_parking_8018715C,
+    _gMistParkingModel09B9CPartVerts,
+    _gMistParkingModel09B9CVerts,
+    &_gMistParkingModel09B9CVerts[35],
+    _gMistParkingModel09B9CSkeleton,
+    _gMistParkingModel09B9CStream,
 };
 
-AnimationPackedPose D_mist_parking_801872B8[6] = {
+static AnimationPackedPose _gMistParkingAnimation09FD4Bank1[6] = {
 #include "assets/mist_parking_animation_09FD4_bank1.inc"
 };
 
-AnimationPackedRotation D_mist_parking_80187300[46] = {
+static AnimationPackedRotation _gMistParkingAnimation09FD4Bank4[46] = {
 #include "assets/mist_parking_animation_09FD4_bank4.inc"
 };
 
-AnimationRecord D_mist_parking_801873B8[109] = {
+static AnimationRecord _gMistParkingAnimation09FD4Records[109] = {
 #include "assets/mist_parking_animation_09FD4_records.inc"
 };
 
-u16 D_mist_parking_8018756C[20] = {
+static u16 _gMistParkingAnimation09FD4Indices[20] = {
 #include "assets/mist_parking_animation_09FD4_indices.inc"
 };
 
-AnimationSet D_mist_parking_80187594 = {
-    D_mist_parking_801873B8,
-    D_mist_parking_8018756C,
-    { NULL, D_mist_parking_801872B8, NULL, NULL, D_mist_parking_80187300, NULL, NULL, NULL },
+AnimationSet gMistParkingAnimation09FD4 = {
+    _gMistParkingAnimation09FD4Records,
+    _gMistParkingAnimation09FD4Indices,
+    { NULL, _gMistParkingAnimation09FD4Bank1, NULL, NULL, _gMistParkingAnimation09FD4Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mist_parking_801875BC[13] = {
+static AnimationPackedPose _gMistParkingAnimation0A774Bank1[13] = {
 #include "assets/mist_parking_animation_0A774_bank1.inc"
 };
 
-AnimationPackedRotation D_mist_parking_80187658[179] = {
+static AnimationPackedRotation _gMistParkingAnimation0A774Bank4[179] = {
 #include "assets/mist_parking_animation_0A774_bank4.inc"
 };
 
-AnimationRecord D_mist_parking_80187924[250] = {
+static AnimationRecord _gMistParkingAnimation0A774Records[250] = {
 #include "assets/mist_parking_animation_0A774_records.inc"
 };
 
-u16 D_mist_parking_80187D0C[20] = {
+static u16 _gMistParkingAnimation0A774Indices[20] = {
 #include "assets/mist_parking_animation_0A774_indices.inc"
 };
 
-AnimationSet D_mist_parking_80187D34 = {
-    D_mist_parking_80187924,
-    D_mist_parking_80187D0C,
-    { NULL, D_mist_parking_801875BC, NULL, NULL, D_mist_parking_80187658, NULL, NULL, NULL },
+AnimationSet gMistParkingAnimation0A774 = {
+    _gMistParkingAnimation0A774Records,
+    _gMistParkingAnimation0A774Indices,
+    { NULL, _gMistParkingAnimation0A774Bank1, NULL, NULL, _gMistParkingAnimation0A774Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mist_parking_80187D5C[6] = {
+static AnimationPackedPose _gMistParkingAnimation0AC5CBank1[6] = {
 #include "assets/mist_parking_animation_0AC5C_bank1.inc"
 };
 
-AnimationPackedRotation D_mist_parking_80187DA4[110] = {
+static AnimationPackedRotation _gMistParkingAnimation0AC5CBank4[110] = {
 #include "assets/mist_parking_animation_0AC5C_bank4.inc"
 };
 
-AnimationRecord D_mist_parking_80187F5C[166] = {
+static AnimationRecord _gMistParkingAnimation0AC5CRecords[166] = {
 #include "assets/mist_parking_animation_0AC5C_records.inc"
 };
 
-u16 D_mist_parking_801881F4[20] = {
+static u16 _gMistParkingAnimation0AC5CIndices[20] = {
 #include "assets/mist_parking_animation_0AC5C_indices.inc"
 };
 
-AnimationSet D_mist_parking_8018821C = {
-    D_mist_parking_80187F5C,
-    D_mist_parking_801881F4,
-    { NULL, D_mist_parking_80187D5C, NULL, NULL, D_mist_parking_80187DA4, NULL, NULL, NULL },
+AnimationSet gMistParkingAnimation0AC5C = {
+    _gMistParkingAnimation0AC5CRecords,
+    _gMistParkingAnimation0AC5CIndices,
+    { NULL, _gMistParkingAnimation0AC5CBank1, NULL, NULL, _gMistParkingAnimation0AC5CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mist_parking_80188244[9] = {
+static AnimationPackedPose _gMistParkingAnimation0B138Bank1[9] = {
 #include "assets/mist_parking_animation_0B138_bank1.inc"
 };
 
-AnimationPackedRotation D_mist_parking_801882B0[117] = {
+static AnimationPackedRotation _gMistParkingAnimation0B138Bank4[117] = {
 #include "assets/mist_parking_animation_0B138_bank4.inc"
 };
 
-AnimationRecord D_mist_parking_80188484[147] = {
+static AnimationRecord _gMistParkingAnimation0B138Records[147] = {
 #include "assets/mist_parking_animation_0B138_records.inc"
 };
 
-u16 D_mist_parking_801886D0[20] = {
+static u16 _gMistParkingAnimation0B138Indices[20] = {
 #include "assets/mist_parking_animation_0B138_indices.inc"
 };
 
-AnimationSet D_mist_parking_801886F8 = {
-    D_mist_parking_80188484,
-    D_mist_parking_801886D0,
-    { NULL, D_mist_parking_80188244, NULL, NULL, D_mist_parking_801882B0, NULL, NULL, NULL },
+AnimationSet gMistParkingAnimation0B138 = {
+    _gMistParkingAnimation0B138Records,
+    _gMistParkingAnimation0B138Indices,
+    { NULL, _gMistParkingAnimation0B138Bank1, NULL, NULL, _gMistParkingAnimation0B138Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mist_parking_80188720[10] = {
+static AnimationPackedPose _gMistParkingAnimation0B700Bank1[10] = {
 #include "assets/mist_parking_animation_0B700_bank1.inc"
 };
 
-AnimationPackedRotation D_mist_parking_80188798[143] = {
+static AnimationPackedRotation _gMistParkingAnimation0B700Bank4[143] = {
 #include "assets/mist_parking_animation_0B700_bank4.inc"
 };
 
-AnimationRecord D_mist_parking_801889D4[177] = {
+static AnimationRecord _gMistParkingAnimation0B700Records[177] = {
 #include "assets/mist_parking_animation_0B700_records.inc"
 };
 
-u16 D_mist_parking_80188C98[20] = {
+static u16 _gMistParkingAnimation0B700Indices[20] = {
 #include "assets/mist_parking_animation_0B700_indices.inc"
 };
 
-AnimationSet D_mist_parking_80188CC0 = {
-    D_mist_parking_801889D4,
-    D_mist_parking_80188C98,
-    { NULL, D_mist_parking_80188720, NULL, NULL, D_mist_parking_80188798, NULL, NULL, NULL },
+AnimationSet gMistParkingAnimation0B700 = {
+    _gMistParkingAnimation0B700Records,
+    _gMistParkingAnimation0B700Indices,
+    { NULL, _gMistParkingAnimation0B700Bank1, NULL, NULL, _gMistParkingAnimation0B700Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mist_parking_80188CE8[5] = {
+static AnimationPackedPose _gMistParkingAnimation0BAB4Bank1[5] = {
 #include "assets/mist_parking_animation_0BAB4_bank1.inc"
 };
 
-AnimationPackedRotation D_mist_parking_80188D24[65] = {
+static AnimationPackedRotation _gMistParkingAnimation0BAB4Bank4[65] = {
 #include "assets/mist_parking_animation_0BAB4_bank4.inc"
 };
 
-AnimationRecord D_mist_parking_80188E28[137] = {
+static AnimationRecord _gMistParkingAnimation0BAB4Records[137] = {
 #include "assets/mist_parking_animation_0BAB4_records.inc"
 };
 
-u16 D_mist_parking_8018904C[20] = {
+static u16 _gMistParkingAnimation0BAB4Indices[20] = {
 #include "assets/mist_parking_animation_0BAB4_indices.inc"
 };
 
-AnimationSet D_mist_parking_80189074 = {
-    D_mist_parking_80188E28,
-    D_mist_parking_8018904C,
-    { NULL, D_mist_parking_80188CE8, NULL, NULL, D_mist_parking_80188D24, NULL, NULL, NULL },
+AnimationSet gMistParkingAnimation0BAB4 = {
+    _gMistParkingAnimation0BAB4Records,
+    _gMistParkingAnimation0BAB4Indices,
+    { NULL, _gMistParkingAnimation0BAB4Bank1, NULL, NULL, _gMistParkingAnimation0BAB4Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mist_parking_8018909C[12] = {
+static AnimationPackedPose _gMistParkingAnimation0C1B0Bank1[12] = {
 #include "assets/mist_parking_animation_0C1B0_bank1.inc"
 };
 
-AnimationPackedRotation D_mist_parking_8018912C[153] = {
+static AnimationPackedRotation _gMistParkingAnimation0C1B0Bank4[153] = {
 #include "assets/mist_parking_animation_0C1B0_bank4.inc"
 };
 
-AnimationRecord D_mist_parking_80189390[238] = {
+static AnimationRecord _gMistParkingAnimation0C1B0Records[238] = {
 #include "assets/mist_parking_animation_0C1B0_records.inc"
 };
 
-u16 D_mist_parking_80189748[20] = {
+static u16 _gMistParkingAnimation0C1B0Indices[20] = {
 #include "assets/mist_parking_animation_0C1B0_indices.inc"
 };
 
-AnimationSet D_mist_parking_80189770 = {
-    D_mist_parking_80189390,
-    D_mist_parking_80189748,
-    { NULL, D_mist_parking_8018909C, NULL, NULL, D_mist_parking_8018912C, NULL, NULL, NULL },
+AnimationSet gMistParkingAnimation0C1B0 = {
+    _gMistParkingAnimation0C1B0Records,
+    _gMistParkingAnimation0C1B0Indices,
+    { NULL, _gMistParkingAnimation0C1B0Bank1, NULL, NULL, _gMistParkingAnimation0C1B0Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mist_parking_80189798[7] = {
+static AnimationPackedPose _gMistParkingAnimation0C688Bank1[7] = {
 #include "assets/mist_parking_animation_0C688_bank1.inc"
 };
 
-AnimationPackedRotation D_mist_parking_801897EC[94] = {
+static AnimationPackedRotation _gMistParkingAnimation0C688Bank4[94] = {
 #include "assets/mist_parking_animation_0C688_bank4.inc"
 };
 
-AnimationRecord D_mist_parking_80189964[175] = {
+static AnimationRecord _gMistParkingAnimation0C688Records[175] = {
 #include "assets/mist_parking_animation_0C688_records.inc"
 };
 
-u16 D_mist_parking_80189C20[20] = {
+static u16 _gMistParkingAnimation0C688Indices[20] = {
 #include "assets/mist_parking_animation_0C688_indices.inc"
 };
 
-AnimationSet D_mist_parking_80189C48 = {
-    D_mist_parking_80189964,
-    D_mist_parking_80189C20,
-    { NULL, D_mist_parking_80189798, NULL, NULL, D_mist_parking_801897EC, NULL, NULL, NULL },
+AnimationSet gMistParkingAnimation0C688 = {
+    _gMistParkingAnimation0C688Records,
+    _gMistParkingAnimation0C688Indices,
+    { NULL, _gMistParkingAnimation0C688Bank1, NULL, NULL, _gMistParkingAnimation0C688Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mist_parking_80189C70[12] = {
+static AnimationPackedPose _gMistParkingAnimation0CD80Bank1[12] = {
 #include "assets/mist_parking_animation_0CD80_bank1.inc"
 };
 
-AnimationPackedRotation D_mist_parking_80189D00[177] = {
+static AnimationPackedRotation _gMistParkingAnimation0CD80Bank4[177] = {
 #include "assets/mist_parking_animation_0CD80_bank4.inc"
 };
 
-AnimationRecord D_mist_parking_80189FC4[213] = {
+static AnimationRecord _gMistParkingAnimation0CD80Records[213] = {
 #include "assets/mist_parking_animation_0CD80_records.inc"
 };
 
-u16 D_mist_parking_8018A318[20] = {
+static u16 _gMistParkingAnimation0CD80Indices[20] = {
 #include "assets/mist_parking_animation_0CD80_indices.inc"
 };
 
-AnimationSet D_mist_parking_8018A340 = {
-    D_mist_parking_80189FC4,
-    D_mist_parking_8018A318,
-    { NULL, D_mist_parking_80189C70, NULL, NULL, D_mist_parking_80189D00, NULL, NULL, NULL },
+AnimationSet gMistParkingAnimation0CD80 = {
+    _gMistParkingAnimation0CD80Records,
+    _gMistParkingAnimation0CD80Indices,
+    { NULL, _gMistParkingAnimation0CD80Bank1, NULL, NULL, _gMistParkingAnimation0CD80Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mist_parking_8018A368[3] = {
+static AnimationPackedPose _gMistParkingAnimation0D060Bank1[3] = {
 #include "assets/mist_parking_animation_0D060_bank1.inc"
 };
 
-AnimationPackedRotation D_mist_parking_8018A38C[63] = {
+static AnimationPackedRotation _gMistParkingAnimation0D060Bank4[63] = {
 #include "assets/mist_parking_animation_0D060_bank4.inc"
 };
 
-AnimationRecord D_mist_parking_8018A488[92] = {
+static AnimationRecord _gMistParkingAnimation0D060Records[92] = {
 #include "assets/mist_parking_animation_0D060_records.inc"
 };
 
-u16 D_mist_parking_8018A5F8[20] = {
+static u16 _gMistParkingAnimation0D060Indices[20] = {
 #include "assets/mist_parking_animation_0D060_indices.inc"
 };
 
-AnimationSet D_mist_parking_8018A620 = {
-    D_mist_parking_8018A488,
-    D_mist_parking_8018A5F8,
-    { NULL, D_mist_parking_8018A368, NULL, NULL, D_mist_parking_8018A38C, NULL, NULL, NULL },
+AnimationSet gMistParkingAnimation0D060 = {
+    _gMistParkingAnimation0D060Records,
+    _gMistParkingAnimation0D060Indices,
+    { NULL, _gMistParkingAnimation0D060Bank1, NULL, NULL, _gMistParkingAnimation0D060Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mist_parking_8018A648[6] = {
+static AnimationPackedPose _gMistParkingAnimation0D3E4Bank1[6] = {
 #include "assets/mist_parking_animation_0D3E4_bank1.inc"
 };
 
-AnimationPackedRotation D_mist_parking_8018A690[69] = {
+static AnimationPackedRotation _gMistParkingAnimation0D3E4Bank4[69] = {
 #include "assets/mist_parking_animation_0D3E4_bank4.inc"
 };
 
-AnimationRecord D_mist_parking_8018A7A4[118] = {
+static AnimationRecord _gMistParkingAnimation0D3E4Records[118] = {
 #include "assets/mist_parking_animation_0D3E4_records.inc"
 };
 
-u16 D_mist_parking_8018A97C[20] = {
+static u16 _gMistParkingAnimation0D3E4Indices[20] = {
 #include "assets/mist_parking_animation_0D3E4_indices.inc"
 };
 
-AnimationSet D_mist_parking_8018A9A4 = {
-    D_mist_parking_8018A7A4,
-    D_mist_parking_8018A97C,
-    { NULL, D_mist_parking_8018A648, NULL, NULL, D_mist_parking_8018A690, NULL, NULL, NULL },
+AnimationSet gMistParkingAnimation0D3E4 = {
+    _gMistParkingAnimation0D3E4Records,
+    _gMistParkingAnimation0D3E4Indices,
+    { NULL, _gMistParkingAnimation0D3E4Bank1, NULL, NULL, _gMistParkingAnimation0D3E4Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mist_parking_8018A9CC[4] = {
+static AnimationPackedPose _gMistParkingAnimation0D6A4Bank1[4] = {
 #include "assets/mist_parking_animation_0D6A4_bank1.inc"
 };
 
-AnimationPackedRotation D_mist_parking_8018A9FC[40] = {
+static AnimationPackedRotation _gMistParkingAnimation0D6A4Bank4[40] = {
 #include "assets/mist_parking_animation_0D6A4_bank4.inc"
 };
 
-AnimationRecord D_mist_parking_8018AA9C[104] = {
+static AnimationRecord _gMistParkingAnimation0D6A4Records[104] = {
 #include "assets/mist_parking_animation_0D6A4_records.inc"
 };
 
-u16 D_mist_parking_8018AC3C[20] = {
+static u16 _gMistParkingAnimation0D6A4Indices[20] = {
 #include "assets/mist_parking_animation_0D6A4_indices.inc"
 };
 
-AnimationSet D_mist_parking_8018AC64 = {
-    D_mist_parking_8018AA9C,
-    D_mist_parking_8018AC3C,
-    { NULL, D_mist_parking_8018A9CC, NULL, NULL, D_mist_parking_8018A9FC, NULL, NULL, NULL },
+AnimationSet gMistParkingAnimation0D6A4 = {
+    _gMistParkingAnimation0D6A4Records,
+    _gMistParkingAnimation0D6A4Indices,
+    { NULL, _gMistParkingAnimation0D6A4Bank1, NULL, NULL, _gMistParkingAnimation0D6A4Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mist_parking_8018AC8C[7] = {
+static AnimationPackedPose _gMistParkingAnimation0DA94Bank1[7] = {
 #include "assets/mist_parking_animation_0DA94_bank1.inc"
 };
 
-AnimationPackedRotation D_mist_parking_8018ACE0[62] = {
+static AnimationPackedRotation _gMistParkingAnimation0DA94Bank4[62] = {
 #include "assets/mist_parking_animation_0DA94_bank4.inc"
 };
 
-AnimationRecord D_mist_parking_8018ADD8[149] = {
+static AnimationRecord _gMistParkingAnimation0DA94Records[149] = {
 #include "assets/mist_parking_animation_0DA94_records.inc"
 };
 
-u16 D_mist_parking_8018B02C[20] = {
+static u16 _gMistParkingAnimation0DA94Indices[20] = {
 #include "assets/mist_parking_animation_0DA94_indices.inc"
 };
 
-AnimationSet D_mist_parking_8018B054 = {
-    D_mist_parking_8018ADD8,
-    D_mist_parking_8018B02C,
-    { NULL, D_mist_parking_8018AC8C, NULL, NULL, D_mist_parking_8018ACE0, NULL, NULL, NULL },
+AnimationSet gMistParkingAnimation0DA94 = {
+    _gMistParkingAnimation0DA94Records,
+    _gMistParkingAnimation0DA94Indices,
+    { NULL, _gMistParkingAnimation0DA94Bank1, NULL, NULL, _gMistParkingAnimation0DA94Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mist_parking_8018B07C[10] = {
+static AnimationPackedPose _gMistParkingAnimation0DE94Bank1[10] = {
 #include "assets/mist_parking_animation_0DE94_bank1.inc"
 };
 
-AnimationPackedRotation D_mist_parking_8018B0F4[85] = {
+static AnimationPackedRotation _gMistParkingAnimation0DE94Bank4[85] = {
 #include "assets/mist_parking_animation_0DE94_bank4.inc"
 };
 
-AnimationRecord D_mist_parking_8018B248[121] = {
+static AnimationRecord _gMistParkingAnimation0DE94Records[121] = {
 #include "assets/mist_parking_animation_0DE94_records.inc"
 };
 
-u16 D_mist_parking_8018B42C[20] = {
+static u16 _gMistParkingAnimation0DE94Indices[20] = {
 #include "assets/mist_parking_animation_0DE94_indices.inc"
 };
 
-AnimationSet D_mist_parking_8018B454 = {
-    D_mist_parking_8018B248,
-    D_mist_parking_8018B42C,
-    { NULL, D_mist_parking_8018B07C, NULL, NULL, D_mist_parking_8018B0F4, NULL, NULL, NULL },
+AnimationSet gMistParkingAnimation0DE94 = {
+    _gMistParkingAnimation0DE94Records,
+    _gMistParkingAnimation0DE94Indices,
+    { NULL, _gMistParkingAnimation0DE94Bank1, NULL, NULL, _gMistParkingAnimation0DE94Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mist_parking_8018B47C[8] = {
+static AnimationPackedPose _gMistParkingAnimation0E1D0Bank1[8] = {
 #include "assets/mist_parking_animation_0E1D0_bank1.inc"
 };
 
-AnimationPackedRotation D_mist_parking_8018B4DC[65] = {
+static AnimationPackedRotation _gMistParkingAnimation0E1D0Bank4[65] = {
 #include "assets/mist_parking_animation_0E1D0_bank4.inc"
 };
 
-AnimationRecord D_mist_parking_8018B5E0[98] = {
+static AnimationRecord _gMistParkingAnimation0E1D0Records[98] = {
 #include "assets/mist_parking_animation_0E1D0_records.inc"
 };
 
-u16 D_mist_parking_8018B768[20] = {
+static u16 _gMistParkingAnimation0E1D0Indices[20] = {
 #include "assets/mist_parking_animation_0E1D0_indices.inc"
 };
 
-AnimationSet D_mist_parking_8018B790 = {
-    D_mist_parking_8018B5E0,
-    D_mist_parking_8018B768,
-    { NULL, D_mist_parking_8018B47C, NULL, NULL, D_mist_parking_8018B4DC, NULL, NULL, NULL },
+AnimationSet gMistParkingAnimation0E1D0 = {
+    _gMistParkingAnimation0E1D0Records,
+    _gMistParkingAnimation0E1D0Indices,
+    { NULL, _gMistParkingAnimation0E1D0Bank1, NULL, NULL, _gMistParkingAnimation0E1D0Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mist_parking_8018B7B8[10] = {
+static AnimationPackedPose _gMistParkingAnimation0E6E0Bank1[10] = {
 #include "assets/mist_parking_animation_0E6E0_bank1.inc"
 };
 
-AnimationPackedRotation D_mist_parking_8018B830[109] = {
+static AnimationPackedRotation _gMistParkingAnimation0E6E0Bank4[109] = {
 #include "assets/mist_parking_animation_0E6E0_bank4.inc"
 };
 
-AnimationRecord D_mist_parking_8018B9E4[165] = {
+static AnimationRecord _gMistParkingAnimation0E6E0Records[165] = {
 #include "assets/mist_parking_animation_0E6E0_records.inc"
 };
 
-u16 D_mist_parking_8018BC78[20] = {
+static u16 _gMistParkingAnimation0E6E0Indices[20] = {
 #include "assets/mist_parking_animation_0E6E0_indices.inc"
 };
 
-AnimationSet D_mist_parking_8018BCA0 = {
-    D_mist_parking_8018B9E4,
-    D_mist_parking_8018BC78,
-    { NULL, D_mist_parking_8018B7B8, NULL, NULL, D_mist_parking_8018B830, NULL, NULL, NULL },
+AnimationSet gMistParkingAnimation0E6E0 = {
+    _gMistParkingAnimation0E6E0Records,
+    _gMistParkingAnimation0E6E0Indices,
+    { NULL, _gMistParkingAnimation0E6E0Bank1, NULL, NULL, _gMistParkingAnimation0E6E0Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mist_parking_8018BCC8[7] = {
+static AnimationPackedPose _gMistParkingAnimation0EA0CBank1[7] = {
 #include "assets/mist_parking_animation_0EA0C_bank1.inc"
 };
 
-AnimationPackedRotation D_mist_parking_8018BD1C[56] = {
+static AnimationPackedRotation _gMistParkingAnimation0EA0CBank4[56] = {
 #include "assets/mist_parking_animation_0EA0C_bank4.inc"
 };
 
-AnimationRecord D_mist_parking_8018BDFC[106] = {
+static AnimationRecord _gMistParkingAnimation0EA0CRecords[106] = {
 #include "assets/mist_parking_animation_0EA0C_records.inc"
 };
 
-u16 D_mist_parking_8018BFA4[20] = {
+static u16 _gMistParkingAnimation0EA0CIndices[20] = {
 #include "assets/mist_parking_animation_0EA0C_indices.inc"
 };
 
-AnimationSet D_mist_parking_8018BFCC = {
-    D_mist_parking_8018BDFC,
-    D_mist_parking_8018BFA4,
-    { NULL, D_mist_parking_8018BCC8, NULL, NULL, D_mist_parking_8018BD1C, NULL, NULL, NULL },
+AnimationSet gMistParkingAnimation0EA0C = {
+    _gMistParkingAnimation0EA0CRecords,
+    _gMistParkingAnimation0EA0CIndices,
+    { NULL, _gMistParkingAnimation0EA0CBank1, NULL, NULL, _gMistParkingAnimation0EA0CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mist_parking_8018BFF4[8] = {
+static AnimationPackedPose _gMistParkingAnimation0EDE0Bank1[8] = {
 #include "assets/mist_parking_animation_0EDE0_bank1.inc"
 };
 
-AnimationPackedRotation D_mist_parking_8018C054[84] = {
+static AnimationPackedRotation _gMistParkingAnimation0EDE0Bank4[84] = {
 #include "assets/mist_parking_animation_0EDE0_bank4.inc"
 };
 
-AnimationRecord D_mist_parking_8018C1A4[117] = {
+static AnimationRecord _gMistParkingAnimation0EDE0Records[117] = {
 #include "assets/mist_parking_animation_0EDE0_records.inc"
 };
 
-u16 D_mist_parking_8018C378[20] = {
+static u16 _gMistParkingAnimation0EDE0Indices[20] = {
 #include "assets/mist_parking_animation_0EDE0_indices.inc"
 };
 
-AnimationSet D_mist_parking_8018C3A0 = {
-    D_mist_parking_8018C1A4,
-    D_mist_parking_8018C378,
-    { NULL, D_mist_parking_8018BFF4, NULL, NULL, D_mist_parking_8018C054, NULL, NULL, NULL },
+AnimationSet gMistParkingAnimation0EDE0 = {
+    _gMistParkingAnimation0EDE0Records,
+    _gMistParkingAnimation0EDE0Indices,
+    { NULL, _gMistParkingAnimation0EDE0Bank1, NULL, NULL, _gMistParkingAnimation0EDE0Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mist_parking_8018C3C8[7] = {
+static AnimationPackedPose _gMistParkingAnimation0F14CBank1[7] = {
 #include "assets/mist_parking_animation_0F14C_bank1.inc"
 };
 
-AnimationPackedRotation D_mist_parking_8018C41C[74] = {
+static AnimationPackedRotation _gMistParkingAnimation0F14CBank4[74] = {
 #include "assets/mist_parking_animation_0F14C_bank4.inc"
 };
 
-AnimationRecord D_mist_parking_8018C544[104] = {
+static AnimationRecord _gMistParkingAnimation0F14CRecords[104] = {
 #include "assets/mist_parking_animation_0F14C_records.inc"
 };
 
-u16 D_mist_parking_8018C6E4[20] = {
+static u16 _gMistParkingAnimation0F14CIndices[20] = {
 #include "assets/mist_parking_animation_0F14C_indices.inc"
 };
 
-AnimationSet D_mist_parking_8018C70C = {
-    D_mist_parking_8018C544,
-    D_mist_parking_8018C6E4,
-    { NULL, D_mist_parking_8018C3C8, NULL, NULL, D_mist_parking_8018C41C, NULL, NULL, NULL },
+AnimationSet gMistParkingAnimation0F14C = {
+    _gMistParkingAnimation0F14CRecords,
+    _gMistParkingAnimation0F14CIndices,
+    { NULL, _gMistParkingAnimation0F14CBank1, NULL, NULL, _gMistParkingAnimation0F14CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mist_parking_8018C734[5] = {
+static AnimationPackedPose _gMistParkingAnimation0F574Bank1[5] = {
 #include "assets/mist_parking_animation_0F574_bank1.inc"
 };
 
-AnimationPackedRotation D_mist_parking_8018C770[90] = {
+static AnimationPackedRotation _gMistParkingAnimation0F574Bank4[90] = {
 #include "assets/mist_parking_animation_0F574_bank4.inc"
 };
 
-AnimationRecord D_mist_parking_8018C8D8[141] = {
+static AnimationRecord _gMistParkingAnimation0F574Records[141] = {
 #include "assets/mist_parking_animation_0F574_records.inc"
 };
 
-u16 D_mist_parking_8018CB0C[20] = {
+static u16 _gMistParkingAnimation0F574Indices[20] = {
 #include "assets/mist_parking_animation_0F574_indices.inc"
 };
 
-AnimationSet D_mist_parking_8018CB34 = {
-    D_mist_parking_8018C8D8,
-    D_mist_parking_8018CB0C,
-    { NULL, D_mist_parking_8018C734, NULL, NULL, D_mist_parking_8018C770, NULL, NULL, NULL },
+AnimationSet gMistParkingAnimation0F574 = {
+    _gMistParkingAnimation0F574Records,
+    _gMistParkingAnimation0F574Indices,
+    { NULL, _gMistParkingAnimation0F574Bank1, NULL, NULL, _gMistParkingAnimation0F574Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mist_parking_8018CB5C[3] = {
+static AnimationPackedPose _gMistParkingAnimation0F7F0Bank1[3] = {
 #include "assets/mist_parking_animation_0F7F0_bank1.inc"
 };
 
-AnimationPackedRotation D_mist_parking_8018CB80[43] = {
+static AnimationPackedRotation _gMistParkingAnimation0F7F0Bank4[43] = {
 #include "assets/mist_parking_animation_0F7F0_bank4.inc"
 };
 
-AnimationRecord D_mist_parking_8018CC2C[87] = {
+static AnimationRecord _gMistParkingAnimation0F7F0Records[87] = {
 #include "assets/mist_parking_animation_0F7F0_records.inc"
 };
 
-u16 D_mist_parking_8018CD88[20] = {
+static u16 _gMistParkingAnimation0F7F0Indices[20] = {
 #include "assets/mist_parking_animation_0F7F0_indices.inc"
 };
 
-AnimationSet D_mist_parking_8018CDB0 = {
-    D_mist_parking_8018CC2C,
-    D_mist_parking_8018CD88,
-    { NULL, D_mist_parking_8018CB5C, NULL, NULL, D_mist_parking_8018CB80, NULL, NULL, NULL },
+AnimationSet gMistParkingAnimation0F7F0 = {
+    _gMistParkingAnimation0F7F0Records,
+    _gMistParkingAnimation0F7F0Indices,
+    { NULL, _gMistParkingAnimation0F7F0Bank1, NULL, NULL, _gMistParkingAnimation0F7F0Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mist_parking_8018CDD8[5] = {
+static AnimationPackedPose _gMistParkingAnimation0FC60Bank1[5] = {
 #include "assets/mist_parking_animation_0FC60_bank1.inc"
 };
 
-AnimationPackedRotation D_mist_parking_8018CE14[99] = {
+static AnimationPackedRotation _gMistParkingAnimation0FC60Bank4[99] = {
 #include "assets/mist_parking_animation_0FC60_bank4.inc"
 };
 
-AnimationRecord D_mist_parking_8018CFA0[150] = {
+static AnimationRecord _gMistParkingAnimation0FC60Records[150] = {
 #include "assets/mist_parking_animation_0FC60_records.inc"
 };
 
-u16 D_mist_parking_8018D1F8[20] = {
+static u16 _gMistParkingAnimation0FC60Indices[20] = {
 #include "assets/mist_parking_animation_0FC60_indices.inc"
 };
 
-AnimationSet D_mist_parking_8018D220 = {
-    D_mist_parking_8018CFA0,
-    D_mist_parking_8018D1F8,
-    { NULL, D_mist_parking_8018CDD8, NULL, NULL, D_mist_parking_8018CE14, NULL, NULL, NULL },
+AnimationSet gMistParkingAnimation0FC60 = {
+    _gMistParkingAnimation0FC60Records,
+    _gMistParkingAnimation0FC60Indices,
+    { NULL, _gMistParkingAnimation0FC60Bank1, NULL, NULL, _gMistParkingAnimation0FC60Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mist_parking_8018D248[4] = {
+static AnimationPackedPose _gMistParkingAnimation0FE5CBank1[4] = {
 #include "assets/mist_parking_animation_0FE5C_bank1.inc"
 };
 
-AnimationPackedRotation D_mist_parking_8018D278[17] = {
+static AnimationPackedRotation _gMistParkingAnimation0FE5CBank4[17] = {
 #include "assets/mist_parking_animation_0FE5C_bank4.inc"
 };
 
-AnimationRecord D_mist_parking_8018D2BC[78] = {
+static AnimationRecord _gMistParkingAnimation0FE5CRecords[78] = {
 #include "assets/mist_parking_animation_0FE5C_records.inc"
 };
 
-u16 D_mist_parking_8018D3F4[20] = {
+static u16 _gMistParkingAnimation0FE5CIndices[20] = {
 #include "assets/mist_parking_animation_0FE5C_indices.inc"
 };
 
-AnimationSet D_mist_parking_8018D41C = {
-    D_mist_parking_8018D2BC,
-    D_mist_parking_8018D3F4,
-    { NULL, D_mist_parking_8018D248, NULL, NULL, D_mist_parking_8018D278, NULL, NULL, NULL },
+AnimationSet gMistParkingAnimation0FE5C = {
+    _gMistParkingAnimation0FE5CRecords,
+    _gMistParkingAnimation0FE5CIndices,
+    { NULL, _gMistParkingAnimation0FE5CBank1, NULL, NULL, _gMistParkingAnimation0FE5CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mist_parking_8018D444[7] = {
+static AnimationPackedPose _gMistParkingAnimation10174Bank1[7] = {
 #include "assets/mist_parking_animation_10174_bank1.inc"
 };
 
-AnimationPackedRotation D_mist_parking_8018D498[54] = {
+static AnimationPackedRotation _gMistParkingAnimation10174Bank4[54] = {
 #include "assets/mist_parking_animation_10174_bank4.inc"
 };
 
-AnimationRecord D_mist_parking_8018D570[103] = {
+static AnimationRecord _gMistParkingAnimation10174Records[103] = {
 #include "assets/mist_parking_animation_10174_records.inc"
 };
 
-u16 D_mist_parking_8018D70C[20] = {
+static u16 _gMistParkingAnimation10174Indices[20] = {
 #include "assets/mist_parking_animation_10174_indices.inc"
 };
 
-AnimationSet D_mist_parking_8018D734 = {
-    D_mist_parking_8018D570,
-    D_mist_parking_8018D70C,
-    { NULL, D_mist_parking_8018D444, NULL, NULL, D_mist_parking_8018D498, NULL, NULL, NULL },
+AnimationSet gMistParkingAnimation10174 = {
+    _gMistParkingAnimation10174Records,
+    _gMistParkingAnimation10174Indices,
+    { NULL, _gMistParkingAnimation10174Bank1, NULL, NULL, _gMistParkingAnimation10174Bank4, NULL, NULL, NULL },
 };
 
 /// Texts and panel descriptors of the shop list's two special rows (ids

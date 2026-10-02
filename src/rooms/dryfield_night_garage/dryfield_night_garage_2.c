@@ -96,10 +96,10 @@ TaskDesc D_dryfield_night_garage_80182C98[2] = {
 
 AnimationSet* D_dryfield_night_garage_80182CB0[5] = {
     NULL,
-    &D_dryfield_night_garage_80182140,
-    &D_dryfield_night_garage_80182514,
-    &D_dryfield_night_garage_80182904,
-    &D_dryfield_night_garage_80182C70,
+    &gDryfieldNightGarageAnimation04B80,
+    &gDryfieldNightGarageAnimation04F54,
+    &gDryfieldNightGarageAnimation05344,
+    &gDryfieldNightGarageAnimation056B0,
 };
 
 GpCopyArg D_dryfield_night_garage_80182CC4 = { { .sets = D_dryfield_night_garage_80182CB0 }, 5 };
@@ -278,54 +278,54 @@ GpWarpRec D_dryfield_night_garage_80183440[2] = {
     { { .words = { 2048, 912, 0, 7143 } }, { 0, 0, 0, 0 }, { .words = { 2048, 912, 0, 7143 } }, { 0, 0, 0, 0 }, 0x53180002, 0x53180001, 0x53180007, 6, 0, 472 },
 };
 
-SVECTOR D_dryfield_night_garage_801834B0[40] = {
+static SVECTOR _gDryfieldNightGarageCollision06814Normals[40] = {
 #include "assets/dryfield_night_garage_collision_06814_normals.inc"
 };
 
-SVECTOR D_dryfield_night_garage_801835F0[110] = {
+static SVECTOR _gDryfieldNightGarageCollision06814Verts[110] = {
 #include "assets/dryfield_night_garage_collision_06814_verts.inc"
 };
 
-WorldCollisionGridFace D_dryfield_night_garage_80183960[55] = {
+static WorldCollisionGridFace _gDryfieldNightGarageCollision06814Faces[55] = {
 #include "assets/dryfield_night_garage_collision_06814_faces.inc"
 };
 
-s16 D_dryfield_night_garage_80183BF4[222] = {
+static s16 _gDryfieldNightGarageCollision06814Cells[222] = {
 #include "assets/dryfield_night_garage_collision_06814_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_dryfield_night_garage_80183BF4[i])
-s16* D_dryfield_night_garage_80183DB0[9] = {
+#define GRID_CELL(i) (&_gDryfieldNightGarageCollision06814Cells[i])
+static s16* _gDryfieldNightGarageCollision06814Table[9] = {
 #include "assets/dryfield_night_garage_collision_06814_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_night_garage_80183DD4 = { NULL, D_dryfield_night_garage_801834B0, D_dryfield_night_garage_801835F0, D_dryfield_night_garage_80183960, D_dryfield_night_garage_80183DB0, 150, 0, 3, 3, 4000, 55 };
+WorldCollisionGrid D_dryfield_night_garage_80183DD4 = { NULL, _gDryfieldNightGarageCollision06814Normals, _gDryfieldNightGarageCollision06814Verts, _gDryfieldNightGarageCollision06814Faces, _gDryfieldNightGarageCollision06814Table, 150, 0, 3, 3, 4000, 55 };
 
-SVECTOR D_dryfield_night_garage_80183DF8[29] = {
+static SVECTOR _gDryfieldNightGarageCollision06E14Normals[29] = {
 #include "assets/dryfield_night_garage_collision_06E14_normals.inc"
 };
 
-SVECTOR D_dryfield_night_garage_80183EE0[74] = {
+static SVECTOR _gDryfieldNightGarageCollision06E14Verts[74] = {
 #include "assets/dryfield_night_garage_collision_06E14_verts.inc"
 };
 
-WorldCollisionGridFace D_dryfield_night_garage_80184130[34] = {
+static WorldCollisionGridFace _gDryfieldNightGarageCollision06E14Faces[34] = {
 #include "assets/dryfield_night_garage_collision_06E14_faces.inc"
 };
 
-s16 D_dryfield_night_garage_801842C8[116] = {
+static s16 _gDryfieldNightGarageCollision06E14Cells[116] = {
 #include "assets/dryfield_night_garage_collision_06E14_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_dryfield_night_garage_801842C8[i])
-s16* D_dryfield_night_garage_801843B0[9] = {
+#define GRID_CELL(i) (&_gDryfieldNightGarageCollision06E14Cells[i])
+static s16* _gDryfieldNightGarageCollision06E14Table[9] = {
 #include "assets/dryfield_night_garage_collision_06E14_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_dryfield_night_garage_801843D4[1] = {
-    { NULL, D_dryfield_night_garage_80183DF8, D_dryfield_night_garage_80183EE0, D_dryfield_night_garage_80184130, D_dryfield_night_garage_801843B0, 150, 0, 3, 3, 4000, 34 },
+    { NULL, _gDryfieldNightGarageCollision06E14Normals, _gDryfieldNightGarageCollision06E14Verts, _gDryfieldNightGarageCollision06E14Faces, _gDryfieldNightGarageCollision06E14Table, 150, 0, 3, 3, 4000, 34 },
 };
 
 GpViewRec D_dryfield_night_garage_801843F8[15] = {

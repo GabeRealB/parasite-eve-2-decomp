@@ -13,7 +13,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-extern TmdSource D_shelter_b6_nursery_801852D0;
+extern TmdSource gShelterB6NurseryModel07BAC;
 
 extern GpAreaVariant D_shelter_b6_nursery_801874A4[13];
 

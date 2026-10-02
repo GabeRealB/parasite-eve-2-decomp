@@ -44,11 +44,11 @@ D_acropolis_fire_escape_80181DBC = 0x80181DBC; // size:0x4 defined:True
 D_acropolis_fire_escape_80181DC0 = 0x80181DC0; // size:0x2 defined:True
 D_acropolis_fire_escape_80181DC4 = 0x80181DC4; // size:0x8 defined:True
 D_acropolis_fire_escape_80181DCC = 0x80181DCC; // size:0xA8 defined:True
-D_acropolis_fire_escape_80181E74 = 0x80181E74; // size:0x50 defined:True
-D_acropolis_fire_escape_80181EC4 = 0x80181EC4; // size:0x1B8 defined:True
-D_acropolis_fire_escape_8018207C = 0x8018207C; // size:0x114 defined:True
-D_acropolis_fire_escape_80182190 = 0x80182190; // size:0x1E defined:True
-D_acropolis_fire_escape_80182284 = 0x80182284; // size:0x24 defined:True
+gAcropolisFireEscapeCollision04CE8Normals = 0x80181E74; // size:0x50 defined:True
+gAcropolisFireEscapeCollision04CE8Verts = 0x80181EC4; // size:0x1B8 defined:True
+gAcropolisFireEscapeCollision04CE8Faces = 0x8018207C; // size:0x114 defined:True
+_gAcropolisFireEscapeCollision04CE8Cells = 0x80182190; // size:0x1E defined:True
+_gAcropolisFireEscapeCollision04CE8Table = 0x80182284; // size:0x24 defined:True
 D_acropolis_fire_escape_801822A8 = 0x801822A8; // size:0x24 defined:True
 D_acropolis_fire_escape_801822CC = 0x801822CC; // size:0x260 defined:True
 D_acropolis_square_80188888 = 0x80188888; // absolute:True owner=acropolis_square

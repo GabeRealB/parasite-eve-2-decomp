@@ -66,10 +66,10 @@ extern WorldCollisionTrigger  D_dryfield_toilet_8018227C[6];
 extern WorldCollisionTrigger  D_dryfield_toilet_80182444[9];
 extern WorldCoordRoomLights   D_dryfield_toilet_801828AC[1];
 
-extern WorldCollisionGridFace D_dryfield_toilet_801812EC[17];
-extern SVECTOR                D_dryfield_toilet_80181184[7];
-extern SVECTOR                D_dryfield_toilet_801811BC[38];
-extern s16*                   D_dryfield_toilet_801813FC[2];
+static WorldCollisionGridFace _gDryfieldToiletCollision03E44Faces[17];
+static SVECTOR                _gDryfieldToiletCollision03E44Normals[7];
+static SVECTOR                _gDryfieldToiletCollision03E44Verts[38];
+static s16*                   _gDryfieldToiletCollision03E44Table[2];
 
 extern AreaResource D_dryfield_toilet_801828C4[3];
 extern AreaResource D_dryfield_toilet_801828E8[2];
@@ -80,7 +80,7 @@ extern SVECTOR D_dryfield_toilet_8018705C[1604];
 
 extern DryfieldToiletAnimStorage0B8C D_dryfield_toilet_80180B8C;
 
-DryfieldToiletAnimStorage0B8C D_dryfield_toilet_80180B8C = { .data = { { NULL, &D_dryfield_toilet_80180614, &D_dryfield_toilet_80180B64 }, { { .words = D_dryfield_toilet_80180B8C.words }, 4 } } };
+DryfieldToiletAnimStorage0B8C D_dryfield_toilet_80180B8C = { .data = { { NULL, &gDryfieldToiletAnimation03054, &gDryfieldToiletAnimation035A4 }, { { .words = D_dryfield_toilet_80180B8C.words }, 4 } } };
 
 AnimationPlayRequest D_dryfield_toilet_80180BA0 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -191,29 +191,29 @@ GpWarpRec D_dryfield_toilet_8018114C[1] = {
     { { .words = { 2048, -1660, 0, 1653 } }, { 0, 0, 0, 0 }, { .words = { 2048, -1660, 0, 1653 } }, { 0, 0, 0, 0 }, 0x52100002, 0x52100001, 0, 2, 0, 480 },
 };
 
-SVECTOR D_dryfield_toilet_80181184[7] = {
+static SVECTOR _gDryfieldToiletCollision03E44Normals[7] = {
 #include "assets/dryfield_toilet_collision_03E44_normals.inc"
 };
 
-SVECTOR D_dryfield_toilet_801811BC[38] = {
+static SVECTOR _gDryfieldToiletCollision03E44Verts[38] = {
 #include "assets/dryfield_toilet_collision_03E44_verts.inc"
 };
 
-WorldCollisionGridFace D_dryfield_toilet_801812EC[17] = {
+static WorldCollisionGridFace _gDryfieldToiletCollision03E44Faces[17] = {
 #include "assets/dryfield_toilet_collision_03E44_faces.inc"
 };
 
-s16 D_dryfield_toilet_801813B8[34] = {
+static s16 _gDryfieldToiletCollision03E44Cells[34] = {
 #include "assets/dryfield_toilet_collision_03E44_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_dryfield_toilet_801813B8[i])
-s16* D_dryfield_toilet_801813FC[2] = {
+#define GRID_CELL(i) (&_gDryfieldToiletCollision03E44Cells[i])
+static s16* _gDryfieldToiletCollision03E44Table[2] = {
 #include "assets/dryfield_toilet_collision_03E44_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_toilet_80181404 = { NULL, D_dryfield_toilet_80181184, D_dryfield_toilet_801811BC, D_dryfield_toilet_801812EC, D_dryfield_toilet_801813FC, 2970, 2300, 1, 2, 4000, 17 };
+WorldCollisionGrid D_dryfield_toilet_80181404 = { NULL, _gDryfieldToiletCollision03E44Normals, _gDryfieldToiletCollision03E44Verts, _gDryfieldToiletCollision03E44Faces, _gDryfieldToiletCollision03E44Table, 2970, 2300, 1, 2, 4000, 17 };
 
 GpViewRec D_dryfield_toilet_80181428[11] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x7530, 0 } }, 1524 },

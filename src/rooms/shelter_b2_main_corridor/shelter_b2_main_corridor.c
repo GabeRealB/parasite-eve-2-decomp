@@ -175,26 +175,26 @@ void func_shelter_b2_main_corridor_8017EB8C(Task*);
 
 ShelterB2MainCorridorTaskStorage D_shelter_b2_main_corridor_801828E0 = { 0, { { { TASK_BODY_NONE, 32 } }, roomDepartureTask, { .value = 0 } } };
 
-AnimationPackedPose D_shelter_b2_main_corridor_801828F0[2] = {
+static AnimationPackedPose _gShelterB2MainCorridorAnimation05620Bank1[2] = {
 #include "assets/shelter_b2_main_corridor_animation_05620_bank1.inc"
 };
 
-AnimationPackedRotation D_shelter_b2_main_corridor_80182908[62] = {
+static AnimationPackedRotation _gShelterB2MainCorridorAnimation05620Bank4[62] = {
 #include "assets/shelter_b2_main_corridor_animation_05620_bank4.inc"
 };
 
-AnimationRecord D_shelter_b2_main_corridor_80182A00[110] = {
+static AnimationRecord _gShelterB2MainCorridorAnimation05620Records[110] = {
 #include "assets/shelter_b2_main_corridor_animation_05620_records.inc"
 };
 
-u16 D_shelter_b2_main_corridor_80182BB8[20] = {
+static u16 _gShelterB2MainCorridorAnimation05620Indices[20] = {
 #include "assets/shelter_b2_main_corridor_animation_05620_indices.inc"
 };
 
-AnimationSet D_shelter_b2_main_corridor_80182BE0 = {
-    D_shelter_b2_main_corridor_80182A00,
-    D_shelter_b2_main_corridor_80182BB8,
-    { NULL, D_shelter_b2_main_corridor_801828F0, NULL, NULL, D_shelter_b2_main_corridor_80182908, NULL, NULL, NULL },
+static AnimationSet _gShelterB2MainCorridorAnimation05620 = {
+    _gShelterB2MainCorridorAnimation05620Records,
+    _gShelterB2MainCorridorAnimation05620Indices,
+    { NULL, _gShelterB2MainCorridorAnimation05620Bank1, NULL, NULL, _gShelterB2MainCorridorAnimation05620Bank4, NULL, NULL, NULL },
 };
 
 TaskDesc D_shelter_b2_main_corridor_80182C08 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
@@ -214,7 +214,7 @@ TaskDesc D_shelter_b2_main_corridor_80182C44[2] = {
 };
 
 AnimationSet* D_shelter_b2_main_corridor_80182C5C[1] = {
-    &D_shelter_b2_main_corridor_80182BE0,
+    &_gShelterB2MainCorridorAnimation05620,
 };
 
 GpCopyArg D_shelter_b2_main_corridor_80182C60 = { { .sets = D_shelter_b2_main_corridor_80182C5C }, 1 };
@@ -397,29 +397,29 @@ GpWarpRec D_shelter_b2_main_corridor_801830D4[6] = {
     { { .words = { 2048, 31, 0, 72 } }, { 0, 0, 0, 0 }, { .words = { 2304, -1000, 0, -1400 } }, { 0, 0, 0, 0 }, 0x54210002, 0x54210001, 0, 7, 0, 0 },
 };
 
-SVECTOR D_shelter_b2_main_corridor_80183224[50] = {
+static SVECTOR _gShelterB2MainCorridorCollision06E80Normals[50] = {
 #include "assets/shelter_b2_main_corridor_collision_06E80_normals.inc"
 };
 
-SVECTOR D_shelter_b2_main_corridor_801833B4[220] = {
+static SVECTOR _gShelterB2MainCorridorCollision06E80Verts[220] = {
 #include "assets/shelter_b2_main_corridor_collision_06E80_verts.inc"
 };
 
-WorldCollisionGridFace D_shelter_b2_main_corridor_80183A94[104] = {
+static WorldCollisionGridFace _gShelterB2MainCorridorCollision06E80Faces[104] = {
 #include "assets/shelter_b2_main_corridor_collision_06E80_faces.inc"
 };
 
-s16 D_shelter_b2_main_corridor_80183F74[550] = {
+static s16 _gShelterB2MainCorridorCollision06E80Cells[550] = {
 #include "assets/shelter_b2_main_corridor_collision_06E80_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_shelter_b2_main_corridor_80183F74[i])
-s16* D_shelter_b2_main_corridor_801843C0[32] = {
+#define GRID_CELL(i) (&_gShelterB2MainCorridorCollision06E80Cells[i])
+static s16* _gShelterB2MainCorridorCollision06E80Table[32] = {
 #include "assets/shelter_b2_main_corridor_collision_06E80_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b2_main_corridor_80184440 = { NULL, D_shelter_b2_main_corridor_80183224, D_shelter_b2_main_corridor_801833B4, D_shelter_b2_main_corridor_80183A94, D_shelter_b2_main_corridor_801843C0, 6972, 0x5032, 4, 8, 4000, 104 };
+WorldCollisionGrid D_shelter_b2_main_corridor_80184440 = { NULL, _gShelterB2MainCorridorCollision06E80Normals, _gShelterB2MainCorridorCollision06E80Verts, _gShelterB2MainCorridorCollision06E80Faces, _gShelterB2MainCorridorCollision06E80Table, 6972, 0x5032, 4, 8, 4000, 104 };
 
 GpViewRec D_shelter_b2_main_corridor_80184464[13] = {
     { { { { 4095, 0, 0 }, { 0, 0, -4096 }, { 0, 4095, 0 } }, { 0, 0x5EE9, 8000 } }, 230 },

@@ -170,11 +170,11 @@ static const TaskFuncTable3 D_mine_forked_tunnel_8017D5DC = {
     { func_mine_forked_tunnel_8017E1E8, func_mine_forked_tunnel_8017E24C, taskKill },
 };
 
-extern u32     D_mine_forked_tunnel_801807FC[1];
-extern SVECTOR D_mine_forked_tunnel_80180800[20];
-extern SVECTOR D_mine_forked_tunnel_801808A0[12];
-extern TmdBone D_mine_forked_tunnel_801807D8[1];
-extern u32     D_mine_forked_tunnel_80180900[104];
+static u32     _gMineForkedTunnelModel03340PartVerts[1];
+static SVECTOR _gMineForkedTunnelModel03340Verts[20];
+static SVECTOR _gMineForkedTunnelModel03340Normals[12];
+static TmdBone _gMineForkedTunnelModel03340Skeleton[1];
+static u32     _gMineForkedTunnelModel03340Stream[104];
 
 s32 func_mine_forked_tunnel_8017E0E8(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_mine_forked_tunnel_8017E0F0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -192,68 +192,68 @@ extern WorldCoordRoomAmbientEntry D_mine_forked_tunnel_80185564[8];
 extern WorldCoordRoomLights       D_mine_forked_tunnel_80184F38[1];
 void                              func_mine_forked_tunnel_8017E2B4(void);
 
-TmdBone D_mine_forked_tunnel_8017E828[1] = {
+static TmdBone _gMineForkedTunnelModel01B48Skeleton[1] = {
 #include "assets/mine_forked_tunnel_model_01B48_skeleton.inc"
 };
 
-u32 D_mine_forked_tunnel_8017E84C[1] = {
+static u32 _gMineForkedTunnelModel01B48PartVerts[1] = {
 #include "assets/mine_forked_tunnel_model_01B48_partVerts.inc"
 };
 
-SVECTOR D_mine_forked_tunnel_8017E850[223] = {
+static SVECTOR _gMineForkedTunnelModel01B48Verts[223] = {
 #include "assets/mine_forked_tunnel_model_01B48_verts.inc"
 };
 
-SVECTOR D_mine_forked_tunnel_8017EF48[56] = {
+static SVECTOR _gMineForkedTunnelModel01B48Normals[56] = {
 #include "assets/mine_forked_tunnel_model_01B48_normals.inc"
 };
 
-u32 D_mine_forked_tunnel_8017F108[1451] = {
+static u32 _gMineForkedTunnelModel01B48Stream[1451] = {
 #include "assets/mine_forked_tunnel_model_01B48_stream.inc"
 };
 
-TmdSource D_mine_forked_tunnel_801807B4 = {
+TmdSource gMineForkedTunnelModel01B48 = {
     0,
     10460,
     0,
     1,
-    D_mine_forked_tunnel_8017E84C,
-    D_mine_forked_tunnel_8017E850,
-    D_mine_forked_tunnel_8017EF48,
-    D_mine_forked_tunnel_8017E828,
-    D_mine_forked_tunnel_8017F108,
+    _gMineForkedTunnelModel01B48PartVerts,
+    _gMineForkedTunnelModel01B48Verts,
+    _gMineForkedTunnelModel01B48Normals,
+    _gMineForkedTunnelModel01B48Skeleton,
+    _gMineForkedTunnelModel01B48Stream,
 };
 
-TmdBone D_mine_forked_tunnel_801807D8[1] = {
+static TmdBone _gMineForkedTunnelModel03340Skeleton[1] = {
 #include "assets/mine_forked_tunnel_model_03340_skeleton.inc"
 };
 
-u32 D_mine_forked_tunnel_801807FC[1] = {
+static u32 _gMineForkedTunnelModel03340PartVerts[1] = {
 #include "assets/mine_forked_tunnel_model_03340_partVerts.inc"
 };
 
-SVECTOR D_mine_forked_tunnel_80180800[20] = {
+static SVECTOR _gMineForkedTunnelModel03340Verts[20] = {
 #include "assets/mine_forked_tunnel_model_03340_verts.inc"
 };
 
-SVECTOR D_mine_forked_tunnel_801808A0[12] = {
+static SVECTOR _gMineForkedTunnelModel03340Normals[12] = {
 #include "assets/mine_forked_tunnel_model_03340_normals.inc"
 };
 
-u32 D_mine_forked_tunnel_80180900[104] = {
+static u32 _gMineForkedTunnelModel03340Stream[104] = {
 #include "assets/mine_forked_tunnel_model_03340_stream.inc"
 };
 
-TmdSource D_mine_forked_tunnel_80180AA0 = {
+static TmdSource _gMineForkedTunnelModel03340 = {
     0,
     728,
     0,
     1,
-    D_mine_forked_tunnel_801807FC,
-    D_mine_forked_tunnel_80180800,
-    D_mine_forked_tunnel_801808A0,
-    D_mine_forked_tunnel_801807D8,
-    D_mine_forked_tunnel_80180900,
+    _gMineForkedTunnelModel03340PartVerts,
+    _gMineForkedTunnelModel03340Verts,
+    _gMineForkedTunnelModel03340Normals,
+    _gMineForkedTunnelModel03340Skeleton,
+    _gMineForkedTunnelModel03340Stream,
 };
 
 SVECTOR D_mine_forked_tunnel_80180AC4[240] = {
@@ -802,8 +802,8 @@ SVECTOR D_mine_forked_tunnel_801819C4[54] = {
 void func_mine_forked_tunnel_8017DDE8(Task*);
 
 TaskDesc D_mine_forked_tunnel_80181B74[2] = {
-    { { { TASK_BODY_TMD, 192 } }, func_mine_forked_tunnel_8017DBE4, { .model = &D_mine_forked_tunnel_801807B4 } },
-    { { { TASK_BODY_TMD, 192 } }, func_mine_forked_tunnel_8017DDE8, { .model = &D_mine_forked_tunnel_80180AA0 } },
+    { { { TASK_BODY_TMD, 192 } }, func_mine_forked_tunnel_8017DBE4, { .model = &gMineForkedTunnelModel01B48 } },
+    { { { TASK_BODY_TMD, 192 } }, func_mine_forked_tunnel_8017DDE8, { .model = &_gMineForkedTunnelModel03340 } },
 };
 
 s32 func_mine_forked_tunnel_8017D8EC(Task*, s32, ActorCommand* msg);
@@ -819,29 +819,29 @@ ActorTransform D_mine_forked_tunnel_80181BA4 = { { 180, -235, -780, 0 }, { 0, 0,
 
 ActorTransform D_mine_forked_tunnel_80181BBC = { { 2253, 964, 1131, 0 }, { 0, 2047, 0, 0 } };
 
-SVECTOR D_mine_forked_tunnel_80181BD4[3] = {
+static SVECTOR _gMineForkedTunnelCollision0469CNormals[3] = {
 #include "assets/mine_forked_tunnel_collision_0469C_normals.inc"
 };
 
-SVECTOR D_mine_forked_tunnel_80181BEC[8] = {
+static SVECTOR _gMineForkedTunnelCollision0469CVerts[8] = {
 #include "assets/mine_forked_tunnel_collision_0469C_verts.inc"
 };
 
-WorldCollisionGridFace D_mine_forked_tunnel_80181C2C[3] = {
+static WorldCollisionGridFace _gMineForkedTunnelCollision0469CFaces[3] = {
 #include "assets/mine_forked_tunnel_collision_0469C_faces.inc"
 };
 
-s16 D_mine_forked_tunnel_80181C50[4] = {
+static s16 _gMineForkedTunnelCollision0469CCells[4] = {
 #include "assets/mine_forked_tunnel_collision_0469C_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_mine_forked_tunnel_80181C50[i])
-s16* D_mine_forked_tunnel_80181C58[1] = {
+#define GRID_CELL(i) (&_gMineForkedTunnelCollision0469CCells[i])
+static s16* _gMineForkedTunnelCollision0469CTable[1] = {
 #include "assets/mine_forked_tunnel_collision_0469C_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_mine_forked_tunnel_80181C5C = { NULL, D_mine_forked_tunnel_80181BD4, D_mine_forked_tunnel_80181BEC, D_mine_forked_tunnel_80181C2C, D_mine_forked_tunnel_80181C58, -1747, -7643, 1, 1, 4000, 3 };
+WorldCollisionGrid D_mine_forked_tunnel_80181C5C = { NULL, _gMineForkedTunnelCollision0469CNormals, _gMineForkedTunnelCollision0469CVerts, _gMineForkedTunnelCollision0469CFaces, _gMineForkedTunnelCollision0469CTable, -1747, -7643, 1, 1, 4000, 3 };
 
 TaskMessageEntry D_mine_forked_tunnel_80181C80[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_mine_forked_tunnel_8017E0F0 },
@@ -851,70 +851,70 @@ TaskMessageEntry D_mine_forked_tunnel_80181C80[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-AnimationPackedPose D_mine_forked_tunnel_80181CA8[6] = {
+static AnimationPackedPose _gMineForkedTunnelAnimation049C4Bank1[6] = {
 #include "assets/mine_forked_tunnel_animation_049C4_bank1.inc"
 };
 
-AnimationPackedRotation D_mine_forked_tunnel_80181CF0[46] = {
+static AnimationPackedRotation _gMineForkedTunnelAnimation049C4Bank4[46] = {
 #include "assets/mine_forked_tunnel_animation_049C4_bank4.inc"
 };
 
-AnimationRecord D_mine_forked_tunnel_80181DA8[109] = {
+static AnimationRecord _gMineForkedTunnelAnimation049C4Records[109] = {
 #include "assets/mine_forked_tunnel_animation_049C4_records.inc"
 };
 
-u16 D_mine_forked_tunnel_80181F5C[20] = {
+static u16 _gMineForkedTunnelAnimation049C4Indices[20] = {
 #include "assets/mine_forked_tunnel_animation_049C4_indices.inc"
 };
 
-AnimationSet D_mine_forked_tunnel_80181F84 = {
-    D_mine_forked_tunnel_80181DA8,
-    D_mine_forked_tunnel_80181F5C,
-    { NULL, D_mine_forked_tunnel_80181CA8, NULL, NULL, D_mine_forked_tunnel_80181CF0, NULL, NULL, NULL },
+static AnimationSet _gMineForkedTunnelAnimation049C4 = {
+    _gMineForkedTunnelAnimation049C4Records,
+    _gMineForkedTunnelAnimation049C4Indices,
+    { NULL, _gMineForkedTunnelAnimation049C4Bank1, NULL, NULL, _gMineForkedTunnelAnimation049C4Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mine_forked_tunnel_80181FAC[2] = {
+static AnimationPackedPose _gMineForkedTunnelAnimation04C50Bank1[2] = {
 #include "assets/mine_forked_tunnel_animation_04C50_bank1.inc"
 };
 
-AnimationPackedRotation D_mine_forked_tunnel_80181FC4[47] = {
+static AnimationPackedRotation _gMineForkedTunnelAnimation04C50Bank4[47] = {
 #include "assets/mine_forked_tunnel_animation_04C50_bank4.inc"
 };
 
-AnimationRecord D_mine_forked_tunnel_80182080[90] = {
+static AnimationRecord _gMineForkedTunnelAnimation04C50Records[90] = {
 #include "assets/mine_forked_tunnel_animation_04C50_records.inc"
 };
 
-u16 D_mine_forked_tunnel_801821E8[20] = {
+static u16 _gMineForkedTunnelAnimation04C50Indices[20] = {
 #include "assets/mine_forked_tunnel_animation_04C50_indices.inc"
 };
 
-AnimationSet D_mine_forked_tunnel_80182210 = {
-    D_mine_forked_tunnel_80182080,
-    D_mine_forked_tunnel_801821E8,
-    { NULL, D_mine_forked_tunnel_80181FAC, NULL, NULL, D_mine_forked_tunnel_80181FC4, NULL, NULL, NULL },
+static AnimationSet _gMineForkedTunnelAnimation04C50 = {
+    _gMineForkedTunnelAnimation04C50Records,
+    _gMineForkedTunnelAnimation04C50Indices,
+    { NULL, _gMineForkedTunnelAnimation04C50Bank1, NULL, NULL, _gMineForkedTunnelAnimation04C50Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mine_forked_tunnel_80182238[33] = {
+static AnimationPackedPose _gMineForkedTunnelAnimation05B1CBank1[33] = {
 #include "assets/mine_forked_tunnel_animation_05B1C_bank1.inc"
 };
 
-AnimationPackedRotation D_mine_forked_tunnel_801823C4[381] = {
+static AnimationPackedRotation _gMineForkedTunnelAnimation05B1CBank4[381] = {
 #include "assets/mine_forked_tunnel_animation_05B1C_bank4.inc"
 };
 
-AnimationRecord D_mine_forked_tunnel_801829B8[447] = {
+static AnimationRecord _gMineForkedTunnelAnimation05B1CRecords[447] = {
 #include "assets/mine_forked_tunnel_animation_05B1C_records.inc"
 };
 
-u16 D_mine_forked_tunnel_801830B4[20] = {
+static u16 _gMineForkedTunnelAnimation05B1CIndices[20] = {
 #include "assets/mine_forked_tunnel_animation_05B1C_indices.inc"
 };
 
-AnimationSet D_mine_forked_tunnel_801830DC = {
-    D_mine_forked_tunnel_801829B8,
-    D_mine_forked_tunnel_801830B4,
-    { NULL, D_mine_forked_tunnel_80182238, NULL, NULL, D_mine_forked_tunnel_801823C4, NULL, NULL, NULL },
+static AnimationSet _gMineForkedTunnelAnimation05B1C = {
+    _gMineForkedTunnelAnimation05B1CRecords,
+    _gMineForkedTunnelAnimation05B1CIndices,
+    { NULL, _gMineForkedTunnelAnimation05B1CBank1, NULL, NULL, _gMineForkedTunnelAnimation05B1CBank4, NULL, NULL, NULL },
 };
 
 TaskDesc D_mine_forked_tunnel_80183104[2] = {
@@ -924,9 +924,9 @@ TaskDesc D_mine_forked_tunnel_80183104[2] = {
 
 AnimationSet* D_mine_forked_tunnel_8018311C[4] = {
     NULL,
-    &D_mine_forked_tunnel_80181F84,
-    &D_mine_forked_tunnel_80182210,
-    &D_mine_forked_tunnel_801830DC,
+    &_gMineForkedTunnelAnimation049C4,
+    &_gMineForkedTunnelAnimation04C50,
+    &_gMineForkedTunnelAnimation05B1C,
 };
 
 GpCopyArg D_mine_forked_tunnel_8018312C = { { .sets = D_mine_forked_tunnel_8018311C }, 4 };
@@ -1035,29 +1035,29 @@ GpWarpRec D_mine_forked_tunnel_80183654[1] = {
     { { .words = { 2048, 2350, 0, 0x2904 } }, { 0, 0, 0, 0 }, { .words = { 2048, 2350, 0, 0x2904 } }, { 0, 0, 0, 0 }, 0x54070002, 0x54070001, 0, 3, 0, 0 },
 };
 
-SVECTOR D_mine_forked_tunnel_8018368C[33] = {
+static SVECTOR _gMineForkedTunnelCollision067B0Normals[33] = {
 #include "assets/mine_forked_tunnel_collision_067B0_normals.inc"
 };
 
-SVECTOR D_mine_forked_tunnel_80183794[88] = {
+static SVECTOR _gMineForkedTunnelCollision067B0Verts[88] = {
 #include "assets/mine_forked_tunnel_collision_067B0_verts.inc"
 };
 
-WorldCollisionGridFace D_mine_forked_tunnel_80183A54[37] = {
+static WorldCollisionGridFace _gMineForkedTunnelCollision067B0Faces[37] = {
 #include "assets/mine_forked_tunnel_collision_067B0_faces.inc"
 };
 
-s16 D_mine_forked_tunnel_80183C10[160] = {
+static s16 _gMineForkedTunnelCollision067B0Cells[160] = {
 #include "assets/mine_forked_tunnel_collision_067B0_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_mine_forked_tunnel_80183C10[i])
-s16* D_mine_forked_tunnel_80183D50[8] = {
+#define GRID_CELL(i) (&_gMineForkedTunnelCollision067B0Cells[i])
+static s16* _gMineForkedTunnelCollision067B0Table[8] = {
 #include "assets/mine_forked_tunnel_collision_067B0_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_mine_forked_tunnel_80183D70 = { NULL, D_mine_forked_tunnel_8018368C, D_mine_forked_tunnel_80183794, D_mine_forked_tunnel_80183A54, D_mine_forked_tunnel_80183D50, 650, 520, 2, 4, 4000, 37 };
+WorldCollisionGrid D_mine_forked_tunnel_80183D70 = { NULL, _gMineForkedTunnelCollision067B0Normals, _gMineForkedTunnelCollision067B0Verts, _gMineForkedTunnelCollision067B0Faces, _gMineForkedTunnelCollision067B0Table, 650, 520, 2, 4, 4000, 37 };
 
 GpViewRec D_mine_forked_tunnel_80183D94[7] = {
     { { { { 4095, 0, 0 }, { 0, 0, -4096 }, { 0, 4095, 0 } }, { -1500, 0x40CA, -5500 } }, 289 },

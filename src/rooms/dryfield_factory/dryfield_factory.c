@@ -60,31 +60,31 @@ extern RoomEventMsg gRoomEventMsg;
 extern u8           gRoomEventActive;
 extern RoomEventReq gRoomEventReq;
 
-extern s16* D_dryfield_factory_80187BD8[8];
+static s16* _gDryfieldFactoryCollision0A638Table[8];
 
-SVECTOR D_dryfield_factory_80187008[28] = {
+static SVECTOR _gDryfieldFactoryCollision0A638Normals[28] = {
 #include "assets/dryfield_factory_collision_0A638_normals.inc"
 };
 
-SVECTOR D_dryfield_factory_801870E8[170] = {
+static SVECTOR _gDryfieldFactoryCollision0A638Verts[170] = {
 #include "assets/dryfield_factory_collision_0A638_verts.inc"
 };
 
-WorldCollisionGridFace D_dryfield_factory_80187638[72] = {
+static WorldCollisionGridFace _gDryfieldFactoryCollision0A638Faces[72] = {
 #include "assets/dryfield_factory_collision_0A638_faces.inc"
 };
 
-s16 D_dryfield_factory_80187998[288] = {
+static s16 _gDryfieldFactoryCollision0A638Cells[288] = {
 #include "assets/dryfield_factory_collision_0A638_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_dryfield_factory_80187998[i])
-s16* D_dryfield_factory_80187BD8[8] = {
+#define GRID_CELL(i) (&_gDryfieldFactoryCollision0A638Cells[i])
+static s16* _gDryfieldFactoryCollision0A638Table[8] = {
 #include "assets/dryfield_factory_collision_0A638_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid gFactoryDayGrid = { NULL, D_dryfield_factory_80187008, D_dryfield_factory_801870E8, D_dryfield_factory_80187638, D_dryfield_factory_80187BD8, 444, 222, 2, 4, 4000, 72 };
+WorldCollisionGrid gFactoryDayGrid = { NULL, _gDryfieldFactoryCollision0A638Normals, _gDryfieldFactoryCollision0A638Verts, _gDryfieldFactoryCollision0A638Faces, _gDryfieldFactoryCollision0A638Table, 444, 222, 2, 4, 4000, 72 };
 
 GpViewRec D_dryfield_factory_80187C1C[19] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -3057, 0x44F4, -6028 } }, 240 },

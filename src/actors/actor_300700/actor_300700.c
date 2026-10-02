@@ -58,58 +58,58 @@ extern AnimationSet* gMothAnimSets[2];
 
 extern ActorSpriteUv gMothBurstUvs[];
 
-TmdBone D_actor_300700_80165490[4] = {
+static TmdBone _gActor300700MothBodySkeleton[4] = {
 #include "assets/moth_body_skeleton.inc"
 };
 
-u32 D_actor_300700_80165520[4] = {
+static u32 _gActor300700MothBodyPartVerts[4] = {
 #include "assets/moth_body_partVerts.inc"
 };
 
-SVECTOR D_actor_300700_80165530[26] = {
+static SVECTOR _gActor300700MothBodyVerts[26] = {
 #include "assets/moth_body_verts.inc"
 };
 
-SVECTOR D_actor_300700_80165600[20] = {
+static SVECTOR _gActor300700MothBodyNormals[20] = {
 #include "assets/moth_body_normals.inc"
 };
 
-u32 D_actor_300700_801656A0[265] = {
+static u32 _gActor300700MothBodyStream[265] = {
 #include "assets/moth_body_stream.inc"
 };
 
-TmdSource D_actor_300700_80165AC4 = {
+static TmdSource _gActor300700MothBody = {
     0,
     1488,
     208,
     4,
-    D_actor_300700_80165520,
-    D_actor_300700_80165530,
-    D_actor_300700_80165600,
-    D_actor_300700_80165490,
-    D_actor_300700_801656A0,
+    _gActor300700MothBodyPartVerts,
+    _gActor300700MothBodyVerts,
+    _gActor300700MothBodyNormals,
+    _gActor300700MothBodySkeleton,
+    _gActor300700MothBodyStream,
 };
 
-AnimationPackedPose D_actor_300700_80165AE8[2] = {
+static AnimationPackedPose _gActor300700Animation03D1CBank1[2] = {
 #include "assets/actor_300700_animation_03D1C_bank1.inc"
 };
 
-AnimationPackedRotation D_actor_300700_80165B00[1] = {
+static AnimationPackedRotation _gActor300700Animation03D1CBank4[1] = {
 #include "assets/actor_300700_animation_03D1C_bank4.inc"
 };
 
-AnimationRecord D_actor_300700_80165B04[12] = {
+static AnimationRecord _gActor300700Animation03D1CRecords[12] = {
 #include "assets/actor_300700_animation_03D1C_records.inc"
 };
 
-u16 D_actor_300700_80165B34[4] = {
+static u16 _gActor300700Animation03D1CIndices[4] = {
 #include "assets/actor_300700_animation_03D1C_indices.inc"
 };
 
-AnimationSet D_actor_300700_80165B3C = {
-    D_actor_300700_80165B04,
-    D_actor_300700_80165B34,
-    { NULL, D_actor_300700_80165AE8, NULL, NULL, D_actor_300700_80165B00, NULL, NULL, NULL },
+static AnimationSet _gActor300700Animation03D1C = {
+    _gActor300700Animation03D1CRecords,
+    _gActor300700Animation03D1CIndices,
+    { NULL, _gActor300700Animation03D1CBank1, NULL, NULL, _gActor300700Animation03D1CBank4, NULL, NULL, NULL },
 };
 
 DamageAttack gMothAttack = { 5, 1 };
@@ -127,11 +127,11 @@ u16 gMothSpeeds[8] = {
     36,
 };
 
-TaskDesc D_actor_300700_80165B88 = { { { TASK_BODY_TMD, 96 } }, mothTask, { .model = &D_actor_300700_80165AC4 } };
+TaskDesc D_actor_300700_80165B88 = { { { TASK_BODY_TMD, 96 } }, mothTask, { .model = &_gActor300700MothBody } };
 
 AnimationSet* gMothAnimSets[2] = {
     NULL,
-    &D_actor_300700_80165B3C,
+    &_gActor300700Animation03D1C,
 };
 
 ActorSpriteUv gMothBurstUvs[8] = {
@@ -145,36 +145,36 @@ ActorSpriteUv gMothBurstUvs[8] = {
     { 96, 0, 224, 0 },
 };
 
-TmdBone D_actor_300700_80165BBC[7] = {
+static TmdBone _gActor300700RatBodySkeleton[7] = {
 #include "assets/rat_body_skeleton.inc"
 };
 
-u32 D_actor_300700_80165CB8[7] = {
+static u32 _gActor300700RatBodyPartVerts[7] = {
 #include "assets/rat_body_partVerts.inc"
 };
 
-SVECTOR D_actor_300700_80165CD4[78] = {
+static SVECTOR _gActor300700RatBodyVerts[78] = {
 #include "assets/rat_body_verts.inc"
 };
 
-SVECTOR D_actor_300700_80165F44[113] = {
+static SVECTOR _gActor300700RatBodyNormals[113] = {
 #include "assets/rat_body_normals.inc"
 };
 
-u32 D_actor_300700_801662CC[1101] = {
+static u32 _gActor300700RatBodyStream[1101] = {
 #include "assets/rat_body_stream.inc"
 };
 
-TmdSource D_actor_300700_80167400 = {
+TmdSource gActor300700RatBody = {
     0,
     5164,
     2392,
     7,
-    D_actor_300700_80165CB8,
-    D_actor_300700_80165CD4,
-    D_actor_300700_80165F44,
-    D_actor_300700_80165BBC,
-    D_actor_300700_801662CC,
+    _gActor300700RatBodyPartVerts,
+    _gActor300700RatBodyVerts,
+    _gActor300700RatBodyNormals,
+    _gActor300700RatBodySkeleton,
+    _gActor300700RatBodyStream,
 };
 
 #include "../../shared/moth_spawn.inc.c"

@@ -14,23 +14,23 @@
 
 extern TaskDesc D_acropolis_cafeteria_80182AD8[4];
 
-extern TmdSource D_acropolis_cafeteria_80184E5C;
+extern TmdSource gAcropolisCafeteriaModel077D8;
 
 extern GpAreaVariant D_acropolis_cafeteria_80189DCC[11];
 
 /// Models those descriptors attach.
-extern TmdSource D_acropolis_cafeteria_801858C4;
+extern TmdSource gAcropolisCafeteriaModel07CA8;
 
-extern TmdSource D_acropolis_cafeteria_8018625C;
+extern TmdSource gAcropolisCafeteriaModel08638;
 
-extern TmdSource D_acropolis_cafeteria_80186CAC;
+extern TmdSource gAcropolisCafeteriaModel09090;
 
-extern TmdSource D_acropolis_cafeteria_80187518;
+extern TmdSource gAcropolisCafeteriaModel09A20;
 
 /// Models the Akropolis map UI overlay's enemy descriptors attach.
-extern TmdSource D_acropolis_cafeteria_8018D230;
+extern TmdSource gAcropolisCafeteriaModel0F7A4;
 
-extern TmdSource D_acropolis_cafeteria_8018D57C;
+extern TmdSource gAcropolisCafeteriaModel0FDFC;
 
 // acropolis_cafeteria
 extern GpRoomObjRec D_acropolis_cafeteria_8018753C[];

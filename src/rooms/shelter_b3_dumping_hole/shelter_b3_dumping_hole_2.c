@@ -444,9 +444,9 @@ void func_shelter_b3_dumping_hole_801819F0(void);
 
 void func_shelter_b3_dumping_hole_80181A48(Task*);
 
-extern AnimationSet                        D_shelter_b3_dumping_hole_80189DD0;
-extern AnimationSet                        D_shelter_b3_dumping_hole_8018A274;
-extern AnimationSet                        D_shelter_b3_dumping_hole_8018AF84;
+static AnimationSet                        _gShelterB3DumpingHoleAnimation0C810;
+static AnimationSet                        _gShelterB3DumpingHoleAnimation0CCB4;
+static AnimationSet                        _gShelterB3DumpingHoleAnimation0D9C4;
 extern ShelterB3DumpingHoleAnimStorageAFC8 D_shelter_b3_dumping_hole_8018AFC8;
 
 extern AnimationPlayRequest                D_shelter_b3_dumping_hole_8018AFF4;
@@ -726,9 +726,9 @@ EvsCommand D_shelter_b3_dumping_hole_80188A78[14] = {
 TaskDesc D_shelter_b3_dumping_hole_80188BC8[5] = {
     { { { TASK_BODY_NONE, 192 } }, func_shelter_b3_dumping_hole_8017F820, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_shelter_b3_dumping_hole_8017FBA0, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_shelter_b3_dumping_hole_8017E94C, { .model = &D_shelter_b3_dumping_hole_801877F4 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_shelter_b3_dumping_hole_8017E94C, { .model = &D_shelter_b3_dumping_hole_80187A70 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_shelter_b3_dumping_hole_8017E94C, { .model = &D_shelter_b3_dumping_hole_80187D74 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_shelter_b3_dumping_hole_8017E94C, { .model = &gShelterB3DumpingHoleModel0A0CC } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_shelter_b3_dumping_hole_8017E94C, { .model = &gShelterB3DumpingHoleModel0A348 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_shelter_b3_dumping_hole_8017E94C, { .model = &gShelterB3DumpingHoleModel0A5EC } },
 };
 
 TaskDesc D_shelter_b3_dumping_hole_80188C04[4] = {
@@ -738,36 +738,36 @@ TaskDesc D_shelter_b3_dumping_hole_80188C04[4] = {
     { { { TASK_BODY_COORD, 192 } }, func_shelter_b3_dumping_hole_8017E440, { .value = 0 } },
 };
 
-TmdBone D_shelter_b3_dumping_hole_80188C34[4] = {
+static TmdBone _gShelterB3DumpingHoleModel0BAC8Skeleton[4] = {
 #include "assets/shelter_b3_dumping_hole_model_0BAC8_skeleton.inc"
 };
 
-u32 D_shelter_b3_dumping_hole_80188CC4[4] = {
+static u32 _gShelterB3DumpingHoleModel0BAC8PartVerts[4] = {
 #include "assets/shelter_b3_dumping_hole_model_0BAC8_partVerts.inc"
 };
 
-SVECTOR D_shelter_b3_dumping_hole_80188CD4[100] = {
+static SVECTOR _gShelterB3DumpingHoleModel0BAC8Verts[100] = {
 #include "assets/shelter_b3_dumping_hole_model_0BAC8_verts.inc"
 };
 
-SVECTOR D_shelter_b3_dumping_hole_80188FF4[18] = {
+static SVECTOR _gShelterB3DumpingHoleModel0BAC8Normals[18] = {
 #include "assets/shelter_b3_dumping_hole_model_0BAC8_normals.inc"
 };
 
-u32 D_shelter_b3_dumping_hole_80189084[365] = {
+static u32 _gShelterB3DumpingHoleModel0BAC8Stream[365] = {
 #include "assets/shelter_b3_dumping_hole_model_0BAC8_stream.inc"
 };
 
-TmdSource D_shelter_b3_dumping_hole_80189638 = {
+static TmdSource _gShelterB3DumpingHoleModel0BAC8 = {
     0,
     2600,
     0,
     4,
-    D_shelter_b3_dumping_hole_80188CC4,
-    D_shelter_b3_dumping_hole_80188CD4,
-    D_shelter_b3_dumping_hole_80188FF4,
-    D_shelter_b3_dumping_hole_80188C34,
-    D_shelter_b3_dumping_hole_80189084,
+    _gShelterB3DumpingHoleModel0BAC8PartVerts,
+    _gShelterB3DumpingHoleModel0BAC8Verts,
+    _gShelterB3DumpingHoleModel0BAC8Normals,
+    _gShelterB3DumpingHoleModel0BAC8Skeleton,
+    _gShelterB3DumpingHoleModel0BAC8Stream,
 };
 
 ShelterB3DumpingHole2MessageEntry D_shelter_b3_dumping_hole_8018965C[2] = {
@@ -832,74 +832,74 @@ EvsCommand D_shelter_b3_dumping_hole_801899A4[13] = {
 };
 
 TaskDesc D_shelter_b3_dumping_hole_80189ADC[2] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_shelter_b3_dumping_hole_80181560, { .model = &D_shelter_b3_dumping_hole_80189638 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_shelter_b3_dumping_hole_80181560, { .model = &_gShelterB3DumpingHoleModel0BAC8 } },
     { { { TASK_BODY_COORD, 192 } }, func_shelter_b3_dumping_hole_8018005C, { .value = 0 } },
 };
 
-AnimationPackedPose D_shelter_b3_dumping_hole_80189AF4[6] = {
+static AnimationPackedPose _gShelterB3DumpingHoleAnimation0C810Bank1[6] = {
 #include "assets/shelter_b3_dumping_hole_animation_0C810_bank1.inc"
 };
 
-AnimationPackedRotation D_shelter_b3_dumping_hole_80189B3C[46] = {
+static AnimationPackedRotation _gShelterB3DumpingHoleAnimation0C810Bank4[46] = {
 #include "assets/shelter_b3_dumping_hole_animation_0C810_bank4.inc"
 };
 
-AnimationRecord D_shelter_b3_dumping_hole_80189BF4[109] = {
+static AnimationRecord _gShelterB3DumpingHoleAnimation0C810Records[109] = {
 #include "assets/shelter_b3_dumping_hole_animation_0C810_records.inc"
 };
 
-u16 D_shelter_b3_dumping_hole_80189DA8[20] = {
+static u16 _gShelterB3DumpingHoleAnimation0C810Indices[20] = {
 #include "assets/shelter_b3_dumping_hole_animation_0C810_indices.inc"
 };
 
-AnimationSet D_shelter_b3_dumping_hole_80189DD0 = {
-    D_shelter_b3_dumping_hole_80189BF4,
-    D_shelter_b3_dumping_hole_80189DA8,
-    { NULL, D_shelter_b3_dumping_hole_80189AF4, NULL, NULL, D_shelter_b3_dumping_hole_80189B3C, NULL, NULL, NULL },
+static AnimationSet _gShelterB3DumpingHoleAnimation0C810 = {
+    _gShelterB3DumpingHoleAnimation0C810Records,
+    _gShelterB3DumpingHoleAnimation0C810Indices,
+    { NULL, _gShelterB3DumpingHoleAnimation0C810Bank1, NULL, NULL, _gShelterB3DumpingHoleAnimation0C810Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_shelter_b3_dumping_hole_80189DF8[9] = {
+static AnimationPackedPose _gShelterB3DumpingHoleAnimation0CCB4Bank1[9] = {
 #include "assets/shelter_b3_dumping_hole_animation_0CCB4_bank1.inc"
 };
 
-AnimationPackedRotation D_shelter_b3_dumping_hole_80189E64[97] = {
+static AnimationPackedRotation _gShelterB3DumpingHoleAnimation0CCB4Bank4[97] = {
 #include "assets/shelter_b3_dumping_hole_animation_0CCB4_bank4.inc"
 };
 
-AnimationRecord D_shelter_b3_dumping_hole_80189FE8[153] = {
+static AnimationRecord _gShelterB3DumpingHoleAnimation0CCB4Records[153] = {
 #include "assets/shelter_b3_dumping_hole_animation_0CCB4_records.inc"
 };
 
-u16 D_shelter_b3_dumping_hole_8018A24C[20] = {
+static u16 _gShelterB3DumpingHoleAnimation0CCB4Indices[20] = {
 #include "assets/shelter_b3_dumping_hole_animation_0CCB4_indices.inc"
 };
 
-AnimationSet D_shelter_b3_dumping_hole_8018A274 = {
-    D_shelter_b3_dumping_hole_80189FE8,
-    D_shelter_b3_dumping_hole_8018A24C,
-    { NULL, D_shelter_b3_dumping_hole_80189DF8, NULL, NULL, D_shelter_b3_dumping_hole_80189E64, NULL, NULL, NULL },
+static AnimationSet _gShelterB3DumpingHoleAnimation0CCB4 = {
+    _gShelterB3DumpingHoleAnimation0CCB4Records,
+    _gShelterB3DumpingHoleAnimation0CCB4Indices,
+    { NULL, _gShelterB3DumpingHoleAnimation0CCB4Bank1, NULL, NULL, _gShelterB3DumpingHoleAnimation0CCB4Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_shelter_b3_dumping_hole_8018A29C[28] = {
+static AnimationPackedPose _gShelterB3DumpingHoleAnimation0D9C4Bank1[28] = {
 #include "assets/shelter_b3_dumping_hole_animation_0D9C4_bank1.inc"
 };
 
-AnimationPackedRotation D_shelter_b3_dumping_hole_8018A3EC[232] = {
+static AnimationPackedRotation _gShelterB3DumpingHoleAnimation0D9C4Bank4[232] = {
 #include "assets/shelter_b3_dumping_hole_animation_0D9C4_bank4.inc"
 };
 
-AnimationRecord D_shelter_b3_dumping_hole_8018A78C[500] = {
+static AnimationRecord _gShelterB3DumpingHoleAnimation0D9C4Records[500] = {
 #include "assets/shelter_b3_dumping_hole_animation_0D9C4_records.inc"
 };
 
-u16 D_shelter_b3_dumping_hole_8018AF5C[20] = {
+static u16 _gShelterB3DumpingHoleAnimation0D9C4Indices[20] = {
 #include "assets/shelter_b3_dumping_hole_animation_0D9C4_indices.inc"
 };
 
-AnimationSet D_shelter_b3_dumping_hole_8018AF84 = {
-    D_shelter_b3_dumping_hole_8018A78C,
-    D_shelter_b3_dumping_hole_8018AF5C,
-    { NULL, D_shelter_b3_dumping_hole_8018A29C, NULL, NULL, D_shelter_b3_dumping_hole_8018A3EC, NULL, NULL, NULL },
+static AnimationSet _gShelterB3DumpingHoleAnimation0D9C4 = {
+    _gShelterB3DumpingHoleAnimation0D9C4Records,
+    _gShelterB3DumpingHoleAnimation0D9C4Indices,
+    { NULL, _gShelterB3DumpingHoleAnimation0D9C4Bank1, NULL, NULL, _gShelterB3DumpingHoleAnimation0D9C4Bank4, NULL, NULL, NULL },
 };
 
 PadScriptCmd D_shelter_b3_dumping_hole_8018AFAC[2] = {
@@ -914,7 +914,7 @@ PadScriptVibrationSegment D_shelter_b3_dumping_hole_8018AFB4[2] = {
 
 TaskDesc D_shelter_b3_dumping_hole_8018AFBC = { { { TASK_BODY_NONE, 192 } }, func_shelter_b3_dumping_hole_80181A48, { .value = 0 } };
 
-ShelterB3DumpingHoleAnimStorageAFC8 D_shelter_b3_dumping_hole_8018AFC8 = { .data = { { NULL, &D_shelter_b3_dumping_hole_80189DD0, &D_shelter_b3_dumping_hole_8018A274, &D_shelter_b3_dumping_hole_8018AF84 }, { { .words = D_shelter_b3_dumping_hole_8018AFC8.words }, 5 } } };
+ShelterB3DumpingHoleAnimStorageAFC8 D_shelter_b3_dumping_hole_8018AFC8 = { .data = { { NULL, &_gShelterB3DumpingHoleAnimation0C810, &_gShelterB3DumpingHoleAnimation0CCB4, &_gShelterB3DumpingHoleAnimation0D9C4 }, { { .words = D_shelter_b3_dumping_hole_8018AFC8.words }, 5 } } };
 
 AnimationPlayRequest D_shelter_b3_dumping_hole_8018AFE0 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
@@ -1118,30 +1118,30 @@ SVECTOR D_shelter_b3_dumping_hole_8018B86C[44] = {
     { 16500, -4380, -12550, 0 },
 };
 
-SVECTOR D_shelter_b3_dumping_hole_8018B9CC[35] = {
+static SVECTOR _gShelterB3DumpingHoleCollision0EE2CNormals[35] = {
 #include "assets/shelter_b3_dumping_hole_collision_0EE2C_normals.inc"
 };
 
-SVECTOR D_shelter_b3_dumping_hole_8018BAE4[90] = {
+static SVECTOR _gShelterB3DumpingHoleCollision0EE2CVerts[90] = {
 #include "assets/shelter_b3_dumping_hole_collision_0EE2C_verts.inc"
 };
 
-WorldCollisionGridFace D_shelter_b3_dumping_hole_8018BDB4[56] = {
+static WorldCollisionGridFace _gShelterB3DumpingHoleCollision0EE2CFaces[56] = {
 #include "assets/shelter_b3_dumping_hole_collision_0EE2C_faces.inc"
 };
 
-s16 D_shelter_b3_dumping_hole_8018C054[412] = {
+static s16 _gShelterB3DumpingHoleCollision0EE2CCells[412] = {
 #include "assets/shelter_b3_dumping_hole_collision_0EE2C_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_shelter_b3_dumping_hole_8018C054[i])
-s16* D_shelter_b3_dumping_hole_8018C38C[24] = {
+#define GRID_CELL(i) (&_gShelterB3DumpingHoleCollision0EE2CCells[i])
+static s16* _gShelterB3DumpingHoleCollision0EE2CTable[24] = {
 #include "assets/shelter_b3_dumping_hole_collision_0EE2C_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_shelter_b3_dumping_hole_8018C3EC[1] = {
-    { NULL, D_shelter_b3_dumping_hole_8018B9CC, D_shelter_b3_dumping_hole_8018BAE4, D_shelter_b3_dumping_hole_8018BDB4, D_shelter_b3_dumping_hole_8018C38C, 100, 0x2F44, 6, 4, 4000, 56 },
+    { NULL, _gShelterB3DumpingHoleCollision0EE2CNormals, _gShelterB3DumpingHoleCollision0EE2CVerts, _gShelterB3DumpingHoleCollision0EE2CFaces, _gShelterB3DumpingHoleCollision0EE2CTable, 100, 0x2F44, 6, 4, 4000, 56 },
 };
 
 GpViewRec D_shelter_b3_dumping_hole_8018C410[37] = {

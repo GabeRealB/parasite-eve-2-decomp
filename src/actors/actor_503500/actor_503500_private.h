@@ -342,43 +342,43 @@ typedef struct {
 } Actor5035003MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor5035003MsgEntry, 8);
 
-extern AnimationSet D_actor_503500_8015F934;
+extern AnimationSet gActor503500Animation2DB14;
 
-extern AnimationSet D_actor_503500_801602FC;
+extern AnimationSet gActor503500Animation2E4DC;
 
-extern AnimationSet D_actor_503500_80160DA8;
+extern AnimationSet gActor503500Animation2EF88;
 
-extern AnimationSet D_actor_503500_80161A90;
+extern AnimationSet gActor503500Animation2FC70;
 
-extern AnimationSet D_actor_503500_80162500;
+extern AnimationSet gActor503500Animation306E0;
 
-extern AnimationSet D_actor_503500_80162D3C;
+extern AnimationSet gActor503500Animation30F1C;
 
-extern AnimationSet D_actor_503500_801635A8;
+extern AnimationSet gActor503500Animation31788;
 
-extern AnimationSet D_actor_503500_80163BAC;
+extern AnimationSet gActor503500Animation31D8C;
 
-extern AnimationSet D_actor_503500_80164C44;
+extern AnimationSet gActor503500Animation32E24;
 
-extern AnimationSet D_actor_503500_801651FC;
+extern AnimationSet gActor503500Animation333DC;
 
-extern AnimationSet D_actor_503500_80165A34;
+extern AnimationSet gActor503500Animation33C14;
 
-extern AnimationSet D_actor_503500_80165CDC;
+extern AnimationSet gActor503500Animation33EBC;
 
-extern AnimationSet D_actor_503500_80165FF8;
+extern AnimationSet gActor503500Animation341D8;
 
-extern AnimationSet D_actor_503500_80166EE8;
+extern AnimationSet gActor503500Animation350C8;
 
-extern AnimationSet D_actor_503500_801671B0;
+extern AnimationSet gActor503500Animation35390;
 
-extern AnimationSet D_actor_503500_801674FC;
+extern AnimationSet gActor503500Animation356DC;
 
-extern AnimationSet D_actor_503500_8016A900;
+extern AnimationSet gActor503500Animation38AE0;
 
-extern AnimationSet D_actor_503500_8016BFB0;
+extern AnimationSet gActor503500Animation3A190;
 
-extern AnimationSet D_actor_503500_8016E788;
+extern AnimationSet gActor503500Animation3C968;
 
 extern DamageAttack* D_actor_503500_8016E7CC[1];
 

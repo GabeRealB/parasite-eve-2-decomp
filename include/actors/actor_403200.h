@@ -4,12 +4,12 @@
 #include "gameplay/animation.h"
 
 // Native animation sets referenced by room script banks.
-extern AnimationSet D_actor_403200_8015EC00;
+extern AnimationSet gActor403200Animation2CDE0;
 
-extern AnimationSet D_actor_403200_8015ED84;
+extern AnimationSet gActor403200Animation2CF64;
 
-extern AnimationSet D_actor_403200_8015EFF0;
+extern AnimationSet gActor403200Animation2D1D0;
 
-extern AnimationSet D_actor_403200_8015F748;
+extern AnimationSet gActor403200Animation2D928;
 
 #endif // INCLUDE_ACTORS_ACTOR_403200_H

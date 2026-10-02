@@ -307,20 +307,20 @@ s32 D_dryfield_dilapidated_house_80183EFC = 0;
 
 AnimationSet* D_dryfield_dilapidated_house_80183F00[16] = {
     NULL,
-    &D_actor_521100_80138F88,
+    &gActor521100Animation07168,
     NULL,
     NULL,
-    &D_actor_521100_80137294,
+    &gActor521100Animation05474,
     NULL,
-    &D_actor_521100_801377E4,
+    &gActor521100Animation059C4,
     NULL,
-    &D_actor_521100_80137DB8,
+    &gActor521100Animation05F98,
     NULL,
-    &D_actor_521100_8013805C,
-    &D_actor_521100_801399C4,
-    &D_actor_521100_8013A02C,
-    &D_actor_521100_8013AE50,
-    &D_actor_521100_8013AFE0,
+    &gActor521100Animation0623C,
+    &gActor521100Animation07BA4,
+    &gActor521100Animation0820C,
+    &gActor521100Animation09030,
+    &gActor521100Animation091C0,
     NULL,
 };
 
@@ -682,68 +682,68 @@ EvsCommand D_dryfield_dilapidated_house_80185788[4] = {
 
 Task* D_dryfield_dilapidated_house_801857E8 = NULL;
 
-TmdBone D_dryfield_dilapidated_house_801857EC[1] = {
+static TmdBone _gDryfieldDilapidatedHouseModel08794Skeleton[1] = {
 #include "assets/dryfield_dilapidated_house_model_08794_skeleton.inc"
 };
 
-u32 D_dryfield_dilapidated_house_80185810[1] = {
+static u32 _gDryfieldDilapidatedHouseModel08794PartVerts[1] = {
 #include "assets/dryfield_dilapidated_house_model_08794_partVerts.inc"
 };
 
-SVECTOR D_dryfield_dilapidated_house_80185814[40] = {
+static SVECTOR _gDryfieldDilapidatedHouseModel08794Verts[40] = {
 #include "assets/dryfield_dilapidated_house_model_08794_verts.inc"
 };
 
-SVECTOR D_dryfield_dilapidated_house_80185954[128] = {
+static SVECTOR _gDryfieldDilapidatedHouseModel08794Normals[128] = {
 #include "assets/dryfield_dilapidated_house_model_08794_normals.inc"
 };
 
-u32 D_dryfield_dilapidated_house_80185D54[171] = {
+static u32 _gDryfieldDilapidatedHouseModel08794Stream[171] = {
 #include "assets/dryfield_dilapidated_house_model_08794_stream.inc"
 };
 
-TmdSource D_dryfield_dilapidated_house_80186000 = {
+static TmdSource _gDryfieldDilapidatedHouseModel08794 = {
     0,
     1160,
     0,
     1,
-    D_dryfield_dilapidated_house_80185810,
-    D_dryfield_dilapidated_house_80185814,
-    D_dryfield_dilapidated_house_80185954,
-    D_dryfield_dilapidated_house_801857EC,
-    D_dryfield_dilapidated_house_80185D54,
+    _gDryfieldDilapidatedHouseModel08794PartVerts,
+    _gDryfieldDilapidatedHouseModel08794Verts,
+    _gDryfieldDilapidatedHouseModel08794Normals,
+    _gDryfieldDilapidatedHouseModel08794Skeleton,
+    _gDryfieldDilapidatedHouseModel08794Stream,
 };
 
-TmdBone D_dryfield_dilapidated_house_80186024[1] = {
+static TmdBone _gDryfieldDilapidatedHouseModel08D0CSkeleton[1] = {
 #include "assets/dryfield_dilapidated_house_model_08D0C_skeleton.inc"
 };
 
-u32 D_dryfield_dilapidated_house_80186048[1] = {
+static u32 _gDryfieldDilapidatedHouseModel08D0CPartVerts[1] = {
 #include "assets/dryfield_dilapidated_house_model_08D0C_partVerts.inc"
 };
 
-SVECTOR D_dryfield_dilapidated_house_8018604C[40] = {
+static SVECTOR _gDryfieldDilapidatedHouseModel08D0CVerts[40] = {
 #include "assets/dryfield_dilapidated_house_model_08D0C_verts.inc"
 };
 
-SVECTOR D_dryfield_dilapidated_house_8018618C[40] = {
+static SVECTOR _gDryfieldDilapidatedHouseModel08D0CNormals[40] = {
 #include "assets/dryfield_dilapidated_house_model_08D0C_normals.inc"
 };
 
-u32 D_dryfield_dilapidated_house_801862CC[171] = {
+static u32 _gDryfieldDilapidatedHouseModel08D0CStream[171] = {
 #include "assets/dryfield_dilapidated_house_model_08D0C_stream.inc"
 };
 
-TmdSource D_dryfield_dilapidated_house_80186578 = {
+static TmdSource _gDryfieldDilapidatedHouseModel08D0C = {
     0,
     1160,
     0,
     1,
-    D_dryfield_dilapidated_house_80186048,
-    D_dryfield_dilapidated_house_8018604C,
-    D_dryfield_dilapidated_house_8018618C,
-    D_dryfield_dilapidated_house_80186024,
-    D_dryfield_dilapidated_house_801862CC,
+    _gDryfieldDilapidatedHouseModel08D0CPartVerts,
+    _gDryfieldDilapidatedHouseModel08D0CVerts,
+    _gDryfieldDilapidatedHouseModel08D0CNormals,
+    _gDryfieldDilapidatedHouseModel08D0CSkeleton,
+    _gDryfieldDilapidatedHouseModel08D0CStream,
 };
 
 SVECTOR D_dryfield_dilapidated_house_8018659C[32] = {
@@ -888,8 +888,8 @@ SVECTOR D_dryfield_dilapidated_house_80186844[2] = {
 };
 
 TaskDesc D_dryfield_dilapidated_house_80186854[4] = {
-    { { { TASK_BODY_TMD, 192 } }, func_dryfield_dilapidated_house_80180F04, { .model = &D_dryfield_dilapidated_house_80186000 } },
-    { { { TASK_BODY_TMD, 192 } }, func_dryfield_dilapidated_house_80181134, { .model = &D_dryfield_dilapidated_house_80186578 } },
+    { { { TASK_BODY_TMD, 192 } }, func_dryfield_dilapidated_house_80180F04, { .model = &_gDryfieldDilapidatedHouseModel08794 } },
+    { { { TASK_BODY_TMD, 192 } }, func_dryfield_dilapidated_house_80181134, { .model = &_gDryfieldDilapidatedHouseModel08D0C } },
     { { { TASK_BODY_COORD, 192 } }, func_dryfield_dilapidated_house_801812E8, { .value = 0 } },
     { { { TASK_BODY_COORD, 192 } }, func_dryfield_dilapidated_house_8018145C, { .value = 0 } },
 };
@@ -948,30 +948,30 @@ GpWarpRec D_dryfield_dilapidated_house_80186974[2] = {
     { { .words = { 1024, -5403, 2, -400 } }, { 0, 0, 0, 0 }, { .words = { 2048, -5184, 2, 200 } }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
 };
 
-SVECTOR D_dryfield_dilapidated_house_801869E4[12] = {
+static SVECTOR _gDryfieldDilapidatedHouseCollision09D24Normals[12] = {
 #include "assets/dryfield_dilapidated_house_collision_09D24_normals.inc"
 };
 
-SVECTOR D_dryfield_dilapidated_house_80186A44[116] = {
+static SVECTOR _gDryfieldDilapidatedHouseCollision09D24Verts[116] = {
 #include "assets/dryfield_dilapidated_house_collision_09D24_verts.inc"
 };
 
-WorldCollisionGridFace D_dryfield_dilapidated_house_80186DE4[70] = {
+static WorldCollisionGridFace _gDryfieldDilapidatedHouseCollision09D24Faces[70] = {
 #include "assets/dryfield_dilapidated_house_collision_09D24_faces.inc"
 };
 
-s16 D_dryfield_dilapidated_house_8018712C[208] = {
+static s16 _gDryfieldDilapidatedHouseCollision09D24Cells[208] = {
 #include "assets/dryfield_dilapidated_house_collision_09D24_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_dryfield_dilapidated_house_8018712C[i])
-s16* D_dryfield_dilapidated_house_801872CC[6] = {
+#define GRID_CELL(i) (&_gDryfieldDilapidatedHouseCollision09D24Cells[i])
+static s16* _gDryfieldDilapidatedHouseCollision09D24Table[6] = {
 #include "assets/dryfield_dilapidated_house_collision_09D24_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_dryfield_dilapidated_house_801872E4[1] = {
-    { NULL, D_dryfield_dilapidated_house_801869E4, D_dryfield_dilapidated_house_80186A44, D_dryfield_dilapidated_house_80186DE4, D_dryfield_dilapidated_house_801872CC, 6000, 3200, 3, 2, 4000, 70 },
+    { NULL, _gDryfieldDilapidatedHouseCollision09D24Normals, _gDryfieldDilapidatedHouseCollision09D24Verts, _gDryfieldDilapidatedHouseCollision09D24Faces, _gDryfieldDilapidatedHouseCollision09D24Table, 6000, 3200, 3, 2, 4000, 70 },
 };
 
 GpViewRec D_dryfield_dilapidated_house_80187308[21] = {

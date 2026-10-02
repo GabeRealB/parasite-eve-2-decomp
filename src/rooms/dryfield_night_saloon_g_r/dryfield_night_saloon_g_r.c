@@ -242,399 +242,399 @@ TaskDesc D_dryfield_night_saloon_g_r_8017F940[1] = {
     { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_saloon_g_r_8017DB74, { .value = 0 } },
 };
 
-AnimationPackedPose D_dryfield_night_saloon_g_r_8017F94C[6] = {
+static AnimationPackedPose _gDryfieldNightSaloonGRAnimation02668Bank1[6] = {
 #include "assets/dryfield_night_saloon_g_r_animation_02668_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_saloon_g_r_8017F994[46] = {
+static AnimationPackedRotation _gDryfieldNightSaloonGRAnimation02668Bank4[46] = {
 #include "assets/dryfield_night_saloon_g_r_animation_02668_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_saloon_g_r_8017FA4C[109] = {
+static AnimationRecord _gDryfieldNightSaloonGRAnimation02668Records[109] = {
 #include "assets/dryfield_night_saloon_g_r_animation_02668_records.inc"
 };
 
-u16 D_dryfield_night_saloon_g_r_8017FC00[20] = {
+static u16 _gDryfieldNightSaloonGRAnimation02668Indices[20] = {
 #include "assets/dryfield_night_saloon_g_r_animation_02668_indices.inc"
 };
 
-AnimationSet D_dryfield_night_saloon_g_r_8017FC28 = {
-    D_dryfield_night_saloon_g_r_8017FA4C,
-    D_dryfield_night_saloon_g_r_8017FC00,
-    { NULL, D_dryfield_night_saloon_g_r_8017F94C, NULL, NULL, D_dryfield_night_saloon_g_r_8017F994, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightSaloonGRAnimation02668 = {
+    _gDryfieldNightSaloonGRAnimation02668Records,
+    _gDryfieldNightSaloonGRAnimation02668Indices,
+    { NULL, _gDryfieldNightSaloonGRAnimation02668Bank1, NULL, NULL, _gDryfieldNightSaloonGRAnimation02668Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_saloon_g_r_8017FC50[8] = {
+static AnimationPackedPose _gDryfieldNightSaloonGRAnimation02A3CBank1[8] = {
 #include "assets/dryfield_night_saloon_g_r_animation_02A3C_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_saloon_g_r_8017FCB0[84] = {
+static AnimationPackedRotation _gDryfieldNightSaloonGRAnimation02A3CBank4[84] = {
 #include "assets/dryfield_night_saloon_g_r_animation_02A3C_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_saloon_g_r_8017FE00[117] = {
+static AnimationRecord _gDryfieldNightSaloonGRAnimation02A3CRecords[117] = {
 #include "assets/dryfield_night_saloon_g_r_animation_02A3C_records.inc"
 };
 
-u16 D_dryfield_night_saloon_g_r_8017FFD4[20] = {
+static u16 _gDryfieldNightSaloonGRAnimation02A3CIndices[20] = {
 #include "assets/dryfield_night_saloon_g_r_animation_02A3C_indices.inc"
 };
 
-AnimationSet D_dryfield_night_saloon_g_r_8017FFFC = {
-    D_dryfield_night_saloon_g_r_8017FE00,
-    D_dryfield_night_saloon_g_r_8017FFD4,
-    { NULL, D_dryfield_night_saloon_g_r_8017FC50, NULL, NULL, D_dryfield_night_saloon_g_r_8017FCB0, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightSaloonGRAnimation02A3C = {
+    _gDryfieldNightSaloonGRAnimation02A3CRecords,
+    _gDryfieldNightSaloonGRAnimation02A3CIndices,
+    { NULL, _gDryfieldNightSaloonGRAnimation02A3CBank1, NULL, NULL, _gDryfieldNightSaloonGRAnimation02A3CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_saloon_g_r_80180024[7] = {
+static AnimationPackedPose _gDryfieldNightSaloonGRAnimation02E2CBank1[7] = {
 #include "assets/dryfield_night_saloon_g_r_animation_02E2C_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_saloon_g_r_80180078[62] = {
+static AnimationPackedRotation _gDryfieldNightSaloonGRAnimation02E2CBank4[62] = {
 #include "assets/dryfield_night_saloon_g_r_animation_02E2C_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_saloon_g_r_80180170[149] = {
+static AnimationRecord _gDryfieldNightSaloonGRAnimation02E2CRecords[149] = {
 #include "assets/dryfield_night_saloon_g_r_animation_02E2C_records.inc"
 };
 
-u16 D_dryfield_night_saloon_g_r_801803C4[20] = {
+static u16 _gDryfieldNightSaloonGRAnimation02E2CIndices[20] = {
 #include "assets/dryfield_night_saloon_g_r_animation_02E2C_indices.inc"
 };
 
-AnimationSet D_dryfield_night_saloon_g_r_801803EC = {
-    D_dryfield_night_saloon_g_r_80180170,
-    D_dryfield_night_saloon_g_r_801803C4,
-    { NULL, D_dryfield_night_saloon_g_r_80180024, NULL, NULL, D_dryfield_night_saloon_g_r_80180078, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightSaloonGRAnimation02E2C = {
+    _gDryfieldNightSaloonGRAnimation02E2CRecords,
+    _gDryfieldNightSaloonGRAnimation02E2CIndices,
+    { NULL, _gDryfieldNightSaloonGRAnimation02E2CBank1, NULL, NULL, _gDryfieldNightSaloonGRAnimation02E2CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_saloon_g_r_80180414[7] = {
+static AnimationPackedPose _gDryfieldNightSaloonGRAnimation03198Bank1[7] = {
 #include "assets/dryfield_night_saloon_g_r_animation_03198_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_saloon_g_r_80180468[74] = {
+static AnimationPackedRotation _gDryfieldNightSaloonGRAnimation03198Bank4[74] = {
 #include "assets/dryfield_night_saloon_g_r_animation_03198_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_saloon_g_r_80180590[104] = {
+static AnimationRecord _gDryfieldNightSaloonGRAnimation03198Records[104] = {
 #include "assets/dryfield_night_saloon_g_r_animation_03198_records.inc"
 };
 
-u16 D_dryfield_night_saloon_g_r_80180730[20] = {
+static u16 _gDryfieldNightSaloonGRAnimation03198Indices[20] = {
 #include "assets/dryfield_night_saloon_g_r_animation_03198_indices.inc"
 };
 
-AnimationSet D_dryfield_night_saloon_g_r_80180758 = {
-    D_dryfield_night_saloon_g_r_80180590,
-    D_dryfield_night_saloon_g_r_80180730,
-    { NULL, D_dryfield_night_saloon_g_r_80180414, NULL, NULL, D_dryfield_night_saloon_g_r_80180468, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightSaloonGRAnimation03198 = {
+    _gDryfieldNightSaloonGRAnimation03198Records,
+    _gDryfieldNightSaloonGRAnimation03198Indices,
+    { NULL, _gDryfieldNightSaloonGRAnimation03198Bank1, NULL, NULL, _gDryfieldNightSaloonGRAnimation03198Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_saloon_g_r_80180780[10] = {
+static AnimationPackedPose _gDryfieldNightSaloonGRAnimation036B8Bank1[10] = {
 #include "assets/dryfield_night_saloon_g_r_animation_036B8_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_saloon_g_r_801807F8[100] = {
+static AnimationPackedRotation _gDryfieldNightSaloonGRAnimation036B8Bank4[100] = {
 #include "assets/dryfield_night_saloon_g_r_animation_036B8_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_saloon_g_r_80180988[178] = {
+static AnimationRecord _gDryfieldNightSaloonGRAnimation036B8Records[178] = {
 #include "assets/dryfield_night_saloon_g_r_animation_036B8_records.inc"
 };
 
-u16 D_dryfield_night_saloon_g_r_80180C50[20] = {
+static u16 _gDryfieldNightSaloonGRAnimation036B8Indices[20] = {
 #include "assets/dryfield_night_saloon_g_r_animation_036B8_indices.inc"
 };
 
-AnimationSet D_dryfield_night_saloon_g_r_80180C78 = {
-    D_dryfield_night_saloon_g_r_80180988,
-    D_dryfield_night_saloon_g_r_80180C50,
-    { NULL, D_dryfield_night_saloon_g_r_80180780, NULL, NULL, D_dryfield_night_saloon_g_r_801807F8, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightSaloonGRAnimation036B8 = {
+    _gDryfieldNightSaloonGRAnimation036B8Records,
+    _gDryfieldNightSaloonGRAnimation036B8Indices,
+    { NULL, _gDryfieldNightSaloonGRAnimation036B8Bank1, NULL, NULL, _gDryfieldNightSaloonGRAnimation036B8Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_saloon_g_r_80180CA0[5] = {
+static AnimationPackedPose _gDryfieldNightSaloonGRAnimation03998Bank1[5] = {
 #include "assets/dryfield_night_saloon_g_r_animation_03998_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_saloon_g_r_80180CDC[59] = {
+static AnimationPackedRotation _gDryfieldNightSaloonGRAnimation03998Bank4[59] = {
 #include "assets/dryfield_night_saloon_g_r_animation_03998_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_saloon_g_r_80180DC8[90] = {
+static AnimationRecord _gDryfieldNightSaloonGRAnimation03998Records[90] = {
 #include "assets/dryfield_night_saloon_g_r_animation_03998_records.inc"
 };
 
-u16 D_dryfield_night_saloon_g_r_80180F30[20] = {
+static u16 _gDryfieldNightSaloonGRAnimation03998Indices[20] = {
 #include "assets/dryfield_night_saloon_g_r_animation_03998_indices.inc"
 };
 
-AnimationSet D_dryfield_night_saloon_g_r_80180F58 = {
-    D_dryfield_night_saloon_g_r_80180DC8,
-    D_dryfield_night_saloon_g_r_80180F30,
-    { NULL, D_dryfield_night_saloon_g_r_80180CA0, NULL, NULL, D_dryfield_night_saloon_g_r_80180CDC, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightSaloonGRAnimation03998 = {
+    _gDryfieldNightSaloonGRAnimation03998Records,
+    _gDryfieldNightSaloonGRAnimation03998Indices,
+    { NULL, _gDryfieldNightSaloonGRAnimation03998Bank1, NULL, NULL, _gDryfieldNightSaloonGRAnimation03998Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_saloon_g_r_80180F80[6] = {
+static AnimationPackedPose _gDryfieldNightSaloonGRAnimation03E80Bank1[6] = {
 #include "assets/dryfield_night_saloon_g_r_animation_03E80_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_saloon_g_r_80180FC8[110] = {
+static AnimationPackedRotation _gDryfieldNightSaloonGRAnimation03E80Bank4[110] = {
 #include "assets/dryfield_night_saloon_g_r_animation_03E80_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_saloon_g_r_80181180[166] = {
+static AnimationRecord _gDryfieldNightSaloonGRAnimation03E80Records[166] = {
 #include "assets/dryfield_night_saloon_g_r_animation_03E80_records.inc"
 };
 
-u16 D_dryfield_night_saloon_g_r_80181418[20] = {
+static u16 _gDryfieldNightSaloonGRAnimation03E80Indices[20] = {
 #include "assets/dryfield_night_saloon_g_r_animation_03E80_indices.inc"
 };
 
-AnimationSet D_dryfield_night_saloon_g_r_80181440 = {
-    D_dryfield_night_saloon_g_r_80181180,
-    D_dryfield_night_saloon_g_r_80181418,
-    { NULL, D_dryfield_night_saloon_g_r_80180F80, NULL, NULL, D_dryfield_night_saloon_g_r_80180FC8, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightSaloonGRAnimation03E80 = {
+    _gDryfieldNightSaloonGRAnimation03E80Records,
+    _gDryfieldNightSaloonGRAnimation03E80Indices,
+    { NULL, _gDryfieldNightSaloonGRAnimation03E80Bank1, NULL, NULL, _gDryfieldNightSaloonGRAnimation03E80Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_saloon_g_r_80181468[3] = {
+static AnimationPackedPose _gDryfieldNightSaloonGRAnimation04238Bank1[3] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04238_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_saloon_g_r_8018148C[81] = {
+static AnimationPackedRotation _gDryfieldNightSaloonGRAnimation04238Bank4[81] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04238_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_saloon_g_r_801815D0[128] = {
+static AnimationRecord _gDryfieldNightSaloonGRAnimation04238Records[128] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04238_records.inc"
 };
 
-u16 D_dryfield_night_saloon_g_r_801817D0[20] = {
+static u16 _gDryfieldNightSaloonGRAnimation04238Indices[20] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04238_indices.inc"
 };
 
-AnimationSet D_dryfield_night_saloon_g_r_801817F8 = {
-    D_dryfield_night_saloon_g_r_801815D0,
-    D_dryfield_night_saloon_g_r_801817D0,
-    { NULL, D_dryfield_night_saloon_g_r_80181468, NULL, NULL, D_dryfield_night_saloon_g_r_8018148C, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightSaloonGRAnimation04238 = {
+    _gDryfieldNightSaloonGRAnimation04238Records,
+    _gDryfieldNightSaloonGRAnimation04238Indices,
+    { NULL, _gDryfieldNightSaloonGRAnimation04238Bank1, NULL, NULL, _gDryfieldNightSaloonGRAnimation04238Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_saloon_g_r_80181820[3] = {
+static AnimationPackedPose _gDryfieldNightSaloonGRAnimation04430Bank1[3] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04430_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_saloon_g_r_80181844[34] = {
+static AnimationPackedRotation _gDryfieldNightSaloonGRAnimation04430Bank4[34] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04430_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_saloon_g_r_801818CC[63] = {
+static AnimationRecord _gDryfieldNightSaloonGRAnimation04430Records[63] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04430_records.inc"
 };
 
-u16 D_dryfield_night_saloon_g_r_801819C8[20] = {
+static u16 _gDryfieldNightSaloonGRAnimation04430Indices[20] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04430_indices.inc"
 };
 
-AnimationSet D_dryfield_night_saloon_g_r_801819F0 = {
-    D_dryfield_night_saloon_g_r_801818CC,
-    D_dryfield_night_saloon_g_r_801819C8,
-    { NULL, D_dryfield_night_saloon_g_r_80181820, NULL, NULL, D_dryfield_night_saloon_g_r_80181844, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightSaloonGRAnimation04430 = {
+    _gDryfieldNightSaloonGRAnimation04430Records,
+    _gDryfieldNightSaloonGRAnimation04430Indices,
+    { NULL, _gDryfieldNightSaloonGRAnimation04430Bank1, NULL, NULL, _gDryfieldNightSaloonGRAnimation04430Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_saloon_g_r_80181A18[5] = {
+static AnimationPackedPose _gDryfieldNightSaloonGRAnimation04784Bank1[5] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04784_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_saloon_g_r_80181A54[58] = {
+static AnimationPackedRotation _gDryfieldNightSaloonGRAnimation04784Bank4[58] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04784_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_saloon_g_r_80181B3C[120] = {
+static AnimationRecord _gDryfieldNightSaloonGRAnimation04784Records[120] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04784_records.inc"
 };
 
-u16 D_dryfield_night_saloon_g_r_80181D1C[20] = {
+static u16 _gDryfieldNightSaloonGRAnimation04784Indices[20] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04784_indices.inc"
 };
 
-AnimationSet D_dryfield_night_saloon_g_r_80181D44 = {
-    D_dryfield_night_saloon_g_r_80181B3C,
-    D_dryfield_night_saloon_g_r_80181D1C,
-    { NULL, D_dryfield_night_saloon_g_r_80181A18, NULL, NULL, D_dryfield_night_saloon_g_r_80181A54, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightSaloonGRAnimation04784 = {
+    _gDryfieldNightSaloonGRAnimation04784Records,
+    _gDryfieldNightSaloonGRAnimation04784Indices,
+    { NULL, _gDryfieldNightSaloonGRAnimation04784Bank1, NULL, NULL, _gDryfieldNightSaloonGRAnimation04784Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_saloon_g_r_80181D6C[3] = {
+static AnimationPackedPose _gDryfieldNightSaloonGRAnimation0497CBank1[3] = {
 #include "assets/dryfield_night_saloon_g_r_animation_0497C_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_saloon_g_r_80181D90[34] = {
+static AnimationPackedRotation _gDryfieldNightSaloonGRAnimation0497CBank4[34] = {
 #include "assets/dryfield_night_saloon_g_r_animation_0497C_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_saloon_g_r_80181E18[63] = {
+static AnimationRecord _gDryfieldNightSaloonGRAnimation0497CRecords[63] = {
 #include "assets/dryfield_night_saloon_g_r_animation_0497C_records.inc"
 };
 
-u16 D_dryfield_night_saloon_g_r_80181F14[20] = {
+static u16 _gDryfieldNightSaloonGRAnimation0497CIndices[20] = {
 #include "assets/dryfield_night_saloon_g_r_animation_0497C_indices.inc"
 };
 
-AnimationSet D_dryfield_night_saloon_g_r_80181F3C = {
-    D_dryfield_night_saloon_g_r_80181E18,
-    D_dryfield_night_saloon_g_r_80181F14,
-    { NULL, D_dryfield_night_saloon_g_r_80181D6C, NULL, NULL, D_dryfield_night_saloon_g_r_80181D90, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightSaloonGRAnimation0497C = {
+    _gDryfieldNightSaloonGRAnimation0497CRecords,
+    _gDryfieldNightSaloonGRAnimation0497CIndices,
+    { NULL, _gDryfieldNightSaloonGRAnimation0497CBank1, NULL, NULL, _gDryfieldNightSaloonGRAnimation0497CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_saloon_g_r_80181F64[4] = {
+static AnimationPackedPose _gDryfieldNightSaloonGRAnimation04C24Bank1[4] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04C24_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_saloon_g_r_80181F94[46] = {
+static AnimationPackedRotation _gDryfieldNightSaloonGRAnimation04C24Bank4[46] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04C24_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_saloon_g_r_8018204C[92] = {
+static AnimationRecord _gDryfieldNightSaloonGRAnimation04C24Records[92] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04C24_records.inc"
 };
 
-u16 D_dryfield_night_saloon_g_r_801821BC[20] = {
+static u16 _gDryfieldNightSaloonGRAnimation04C24Indices[20] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04C24_indices.inc"
 };
 
-AnimationSet D_dryfield_night_saloon_g_r_801821E4 = {
-    D_dryfield_night_saloon_g_r_8018204C,
-    D_dryfield_night_saloon_g_r_801821BC,
-    { NULL, D_dryfield_night_saloon_g_r_80181F64, NULL, NULL, D_dryfield_night_saloon_g_r_80181F94, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightSaloonGRAnimation04C24 = {
+    _gDryfieldNightSaloonGRAnimation04C24Records,
+    _gDryfieldNightSaloonGRAnimation04C24Indices,
+    { NULL, _gDryfieldNightSaloonGRAnimation04C24Bank1, NULL, NULL, _gDryfieldNightSaloonGRAnimation04C24Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_saloon_g_r_8018220C[6] = {
+static AnimationPackedPose _gDryfieldNightSaloonGRAnimation04F58Bank1[6] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04F58_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_saloon_g_r_80182254[68] = {
+static AnimationPackedRotation _gDryfieldNightSaloonGRAnimation04F58Bank4[68] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04F58_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_saloon_g_r_80182364[99] = {
+static AnimationRecord _gDryfieldNightSaloonGRAnimation04F58Records[99] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04F58_records.inc"
 };
 
-u16 D_dryfield_night_saloon_g_r_801824F0[20] = {
+static u16 _gDryfieldNightSaloonGRAnimation04F58Indices[20] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04F58_indices.inc"
 };
 
-AnimationSet D_dryfield_night_saloon_g_r_80182518 = {
-    D_dryfield_night_saloon_g_r_80182364,
-    D_dryfield_night_saloon_g_r_801824F0,
-    { NULL, D_dryfield_night_saloon_g_r_8018220C, NULL, NULL, D_dryfield_night_saloon_g_r_80182254, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightSaloonGRAnimation04F58 = {
+    _gDryfieldNightSaloonGRAnimation04F58Records,
+    _gDryfieldNightSaloonGRAnimation04F58Indices,
+    { NULL, _gDryfieldNightSaloonGRAnimation04F58Bank1, NULL, NULL, _gDryfieldNightSaloonGRAnimation04F58Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_saloon_g_r_80182540[10] = {
+static AnimationPackedPose _gDryfieldNightSaloonGRAnimation053C0Bank1[10] = {
 #include "assets/dryfield_night_saloon_g_r_animation_053C0_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_saloon_g_r_801825B8[96] = {
+static AnimationPackedRotation _gDryfieldNightSaloonGRAnimation053C0Bank4[96] = {
 #include "assets/dryfield_night_saloon_g_r_animation_053C0_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_saloon_g_r_80182738[136] = {
+static AnimationRecord _gDryfieldNightSaloonGRAnimation053C0Records[136] = {
 #include "assets/dryfield_night_saloon_g_r_animation_053C0_records.inc"
 };
 
-u16 D_dryfield_night_saloon_g_r_80182958[20] = {
+static u16 _gDryfieldNightSaloonGRAnimation053C0Indices[20] = {
 #include "assets/dryfield_night_saloon_g_r_animation_053C0_indices.inc"
 };
 
-AnimationSet D_dryfield_night_saloon_g_r_80182980 = {
-    D_dryfield_night_saloon_g_r_80182738,
-    D_dryfield_night_saloon_g_r_80182958,
-    { NULL, D_dryfield_night_saloon_g_r_80182540, NULL, NULL, D_dryfield_night_saloon_g_r_801825B8, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightSaloonGRAnimation053C0 = {
+    _gDryfieldNightSaloonGRAnimation053C0Records,
+    _gDryfieldNightSaloonGRAnimation053C0Indices,
+    { NULL, _gDryfieldNightSaloonGRAnimation053C0Bank1, NULL, NULL, _gDryfieldNightSaloonGRAnimation053C0Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_saloon_g_r_801829A8[6] = {
+static AnimationPackedPose _gDryfieldNightSaloonGRAnimation0570CBank1[6] = {
 #include "assets/dryfield_night_saloon_g_r_animation_0570C_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_saloon_g_r_801829F0[71] = {
+static AnimationPackedRotation _gDryfieldNightSaloonGRAnimation0570CBank4[71] = {
 #include "assets/dryfield_night_saloon_g_r_animation_0570C_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_saloon_g_r_80182B0C[102] = {
+static AnimationRecord _gDryfieldNightSaloonGRAnimation0570CRecords[102] = {
 #include "assets/dryfield_night_saloon_g_r_animation_0570C_records.inc"
 };
 
-u16 D_dryfield_night_saloon_g_r_80182CA4[20] = {
+static u16 _gDryfieldNightSaloonGRAnimation0570CIndices[20] = {
 #include "assets/dryfield_night_saloon_g_r_animation_0570C_indices.inc"
 };
 
-AnimationSet D_dryfield_night_saloon_g_r_80182CCC = {
-    D_dryfield_night_saloon_g_r_80182B0C,
-    D_dryfield_night_saloon_g_r_80182CA4,
-    { NULL, D_dryfield_night_saloon_g_r_801829A8, NULL, NULL, D_dryfield_night_saloon_g_r_801829F0, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightSaloonGRAnimation0570C = {
+    _gDryfieldNightSaloonGRAnimation0570CRecords,
+    _gDryfieldNightSaloonGRAnimation0570CIndices,
+    { NULL, _gDryfieldNightSaloonGRAnimation0570CBank1, NULL, NULL, _gDryfieldNightSaloonGRAnimation0570CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_saloon_g_r_80182CF4[5] = {
+static AnimationPackedPose _gDryfieldNightSaloonGRAnimation05B7CBank1[5] = {
 #include "assets/dryfield_night_saloon_g_r_animation_05B7C_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_saloon_g_r_80182D30[99] = {
+static AnimationPackedRotation _gDryfieldNightSaloonGRAnimation05B7CBank4[99] = {
 #include "assets/dryfield_night_saloon_g_r_animation_05B7C_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_saloon_g_r_80182EBC[150] = {
+static AnimationRecord _gDryfieldNightSaloonGRAnimation05B7CRecords[150] = {
 #include "assets/dryfield_night_saloon_g_r_animation_05B7C_records.inc"
 };
 
-u16 D_dryfield_night_saloon_g_r_80183114[20] = {
+static u16 _gDryfieldNightSaloonGRAnimation05B7CIndices[20] = {
 #include "assets/dryfield_night_saloon_g_r_animation_05B7C_indices.inc"
 };
 
-AnimationSet D_dryfield_night_saloon_g_r_8018313C = {
-    D_dryfield_night_saloon_g_r_80182EBC,
-    D_dryfield_night_saloon_g_r_80183114,
-    { NULL, D_dryfield_night_saloon_g_r_80182CF4, NULL, NULL, D_dryfield_night_saloon_g_r_80182D30, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightSaloonGRAnimation05B7C = {
+    _gDryfieldNightSaloonGRAnimation05B7CRecords,
+    _gDryfieldNightSaloonGRAnimation05B7CIndices,
+    { NULL, _gDryfieldNightSaloonGRAnimation05B7CBank1, NULL, NULL, _gDryfieldNightSaloonGRAnimation05B7CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_saloon_g_r_80183164[13] = {
+static AnimationPackedPose _gDryfieldNightSaloonGRAnimation0631CBank1[13] = {
 #include "assets/dryfield_night_saloon_g_r_animation_0631C_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_saloon_g_r_80183200[179] = {
+static AnimationPackedRotation _gDryfieldNightSaloonGRAnimation0631CBank4[179] = {
 #include "assets/dryfield_night_saloon_g_r_animation_0631C_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_saloon_g_r_801834CC[250] = {
+static AnimationRecord _gDryfieldNightSaloonGRAnimation0631CRecords[250] = {
 #include "assets/dryfield_night_saloon_g_r_animation_0631C_records.inc"
 };
 
-u16 D_dryfield_night_saloon_g_r_801838B4[20] = {
+static u16 _gDryfieldNightSaloonGRAnimation0631CIndices[20] = {
 #include "assets/dryfield_night_saloon_g_r_animation_0631C_indices.inc"
 };
 
-AnimationSet D_dryfield_night_saloon_g_r_801838DC = {
-    D_dryfield_night_saloon_g_r_801834CC,
-    D_dryfield_night_saloon_g_r_801838B4,
-    { NULL, D_dryfield_night_saloon_g_r_80183164, NULL, NULL, D_dryfield_night_saloon_g_r_80183200, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightSaloonGRAnimation0631C = {
+    _gDryfieldNightSaloonGRAnimation0631CRecords,
+    _gDryfieldNightSaloonGRAnimation0631CIndices,
+    { NULL, _gDryfieldNightSaloonGRAnimation0631CBank1, NULL, NULL, _gDryfieldNightSaloonGRAnimation0631CBank4, NULL, NULL, NULL },
 };
 
 AnimationSet* D_dryfield_night_saloon_g_r_80183904[18] = {
     NULL,
-    &D_dryfield_night_saloon_g_r_8017FC28,
-    &D_dryfield_night_saloon_g_r_801821E4,
-    &D_dryfield_night_saloon_g_r_80182518,
-    &D_dryfield_night_saloon_g_r_80182980,
-    &D_dryfield_night_saloon_g_r_8017FFFC,
-    &D_dryfield_night_saloon_g_r_801803EC,
-    &D_dryfield_night_saloon_g_r_80180758,
-    &D_dryfield_night_saloon_g_r_80181440,
-    &D_dryfield_night_saloon_g_r_80180C78,
-    &D_dryfield_night_saloon_g_r_80180F58,
-    &D_dryfield_night_saloon_g_r_801819F0,
-    &D_dryfield_night_saloon_g_r_80181D44,
-    &D_dryfield_night_saloon_g_r_80181F3C,
-    &D_dryfield_night_saloon_g_r_8018313C,
-    &D_dryfield_night_saloon_g_r_801838DC,
-    &D_dryfield_night_saloon_g_r_80182CCC,
-    &D_dryfield_night_saloon_g_r_801817F8,
+    &_gDryfieldNightSaloonGRAnimation02668,
+    &_gDryfieldNightSaloonGRAnimation04C24,
+    &_gDryfieldNightSaloonGRAnimation04F58,
+    &_gDryfieldNightSaloonGRAnimation053C0,
+    &_gDryfieldNightSaloonGRAnimation02A3C,
+    &_gDryfieldNightSaloonGRAnimation02E2C,
+    &_gDryfieldNightSaloonGRAnimation03198,
+    &_gDryfieldNightSaloonGRAnimation03E80,
+    &_gDryfieldNightSaloonGRAnimation036B8,
+    &_gDryfieldNightSaloonGRAnimation03998,
+    &_gDryfieldNightSaloonGRAnimation04430,
+    &_gDryfieldNightSaloonGRAnimation04784,
+    &_gDryfieldNightSaloonGRAnimation0497C,
+    &_gDryfieldNightSaloonGRAnimation05B7C,
+    &_gDryfieldNightSaloonGRAnimation0631C,
+    &_gDryfieldNightSaloonGRAnimation0570C,
+    &_gDryfieldNightSaloonGRAnimation04238,
 };
 
 GpCopyArg D_dryfield_night_saloon_g_r_8018394C = { { .sets = D_dryfield_night_saloon_g_r_80183904 }, 18 };
@@ -1091,30 +1091,30 @@ GpWarpRec D_dryfield_night_saloon_g_r_801851BC[2] = {
     { { .words = { 3072, 4665, 0, 4567 } }, { 0, 0, 0, 0 }, { .words = { 3072, 4665, 0, 4567 } }, { 0, 0, 0, 0 }, 0x53120004, 0x53120003, 0, 7, 0, 478 },
 };
 
-SVECTOR D_dryfield_night_saloon_g_r_8018522C[9] = {
+static SVECTOR _gDryfieldNightSaloonGRCollision08590Normals[9] = {
 #include "assets/dryfield_night_saloon_g_r_collision_08590_normals.inc"
 };
 
-SVECTOR D_dryfield_night_saloon_g_r_80185274[116] = {
+static SVECTOR _gDryfieldNightSaloonGRCollision08590Verts[116] = {
 #include "assets/dryfield_night_saloon_g_r_collision_08590_verts.inc"
 };
 
-WorldCollisionGridFace D_dryfield_night_saloon_g_r_80185614[61] = {
+static WorldCollisionGridFace _gDryfieldNightSaloonGRCollision08590Faces[61] = {
 #include "assets/dryfield_night_saloon_g_r_collision_08590_faces.inc"
 };
 
-s16 D_dryfield_night_saloon_g_r_801858F0[280] = {
+static s16 _gDryfieldNightSaloonGRCollision08590Cells[280] = {
 #include "assets/dryfield_night_saloon_g_r_collision_08590_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_dryfield_night_saloon_g_r_801858F0[i])
-s16* D_dryfield_night_saloon_g_r_80185B20[12] = {
+#define GRID_CELL(i) (&_gDryfieldNightSaloonGRCollision08590Cells[i])
+static s16* _gDryfieldNightSaloonGRCollision08590Table[12] = {
 #include "assets/dryfield_night_saloon_g_r_collision_08590_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_dryfield_night_saloon_g_r_80185B50[1] = {
-    { NULL, D_dryfield_night_saloon_g_r_8018522C, D_dryfield_night_saloon_g_r_80185274, D_dryfield_night_saloon_g_r_80185614, D_dryfield_night_saloon_g_r_80185B20, 4500, 5400, 3, 4, 4000, 61 },
+    { NULL, _gDryfieldNightSaloonGRCollision08590Normals, _gDryfieldNightSaloonGRCollision08590Verts, _gDryfieldNightSaloonGRCollision08590Faces, _gDryfieldNightSaloonGRCollision08590Table, 4500, 5400, 3, 4, 4000, 61 },
 };
 
 GpViewRec D_dryfield_night_saloon_g_r_80185B74[13] = {

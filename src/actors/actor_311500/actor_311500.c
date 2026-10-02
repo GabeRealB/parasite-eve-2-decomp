@@ -109,86 +109,86 @@ extern s32 D_actor_311500_801692FC[2];
 extern s32 D_actor_311500_80169304[8];
 extern s32 D_actor_311500_80169324[3];
 
-extern AnimationSet D_actor_311500_80168FA8;
-extern AnimationSet D_actor_311500_80169290;
-extern TmdSource    D_actor_311500_80168BF8;
+static AnimationSet _gActor311500Animation07188;
+static AnimationSet _gActor311500Animation07470;
+static TmdSource    _gActor311500StrangerBody;
 void                func_actor_311500_80163334(Task*);
 void                func_actor_311500_801636A0(Task*, s32, s32, u32*);
 
-TmdBone D_actor_311500_801636B4[19] = {
+static TmdBone _gActor311500StrangerBodySkeleton[19] = {
 #include "assets/stranger_body_skeleton.inc"
 };
 
-u32 D_actor_311500_80163960[19] = {
+static u32 _gActor311500StrangerBodyPartVerts[19] = {
 #include "assets/stranger_body_partVerts.inc"
 };
 
-SVECTOR D_actor_311500_801639AC[311] = {
+static SVECTOR _gActor311500StrangerBodyVerts[311] = {
 #include "assets/stranger_body_verts.inc"
 };
 
-SVECTOR D_actor_311500_80164364[309] = {
+static SVECTOR _gActor311500StrangerBodyNormals[309] = {
 #include "assets/stranger_body_normals.inc"
 };
 
-u32 D_actor_311500_80164D0C[4027] = {
+static u32 _gActor311500StrangerBodyStream[4027] = {
 #include "assets/stranger_body_stream.inc"
 };
 
-TmdSource D_actor_311500_80168BF8 = {
+static TmdSource _gActor311500StrangerBody = {
     0,
     20180,
     7860,
     19,
-    D_actor_311500_80163960,
-    D_actor_311500_801639AC,
-    D_actor_311500_80164364,
-    D_actor_311500_801636B4,
-    D_actor_311500_80164D0C,
+    _gActor311500StrangerBodyPartVerts,
+    _gActor311500StrangerBodyVerts,
+    _gActor311500StrangerBodyNormals,
+    _gActor311500StrangerBodySkeleton,
+    _gActor311500StrangerBodyStream,
 };
 
-AnimationPackedPose D_actor_311500_80168C1C[6] = {
+static AnimationPackedPose _gActor311500Animation07188Bank1[6] = {
 #include "assets/actor_311500_animation_07188_bank1.inc"
 };
 
-AnimationPackedRotation D_actor_311500_80168C64[81] = {
+static AnimationPackedRotation _gActor311500Animation07188Bank4[81] = {
 #include "assets/actor_311500_animation_07188_bank4.inc"
 };
 
-AnimationRecord D_actor_311500_80168DA8[118] = {
+static AnimationRecord _gActor311500Animation07188Records[118] = {
 #include "assets/actor_311500_animation_07188_records.inc"
 };
 
-u16 D_actor_311500_80168F80[20] = {
+static u16 _gActor311500Animation07188Indices[20] = {
 #include "assets/actor_311500_animation_07188_indices.inc"
 };
 
-AnimationSet D_actor_311500_80168FA8 = {
-    D_actor_311500_80168DA8,
-    D_actor_311500_80168F80,
-    { NULL, D_actor_311500_80168C1C, NULL, NULL, D_actor_311500_80168C64, NULL, NULL, NULL },
+static AnimationSet _gActor311500Animation07188 = {
+    _gActor311500Animation07188Records,
+    _gActor311500Animation07188Indices,
+    { NULL, _gActor311500Animation07188Bank1, NULL, NULL, _gActor311500Animation07188Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_actor_311500_80168FD0[5] = {
+static AnimationPackedPose _gActor311500Animation07470Bank1[5] = {
 #include "assets/actor_311500_animation_07470_bank1.inc"
 };
 
-AnimationPackedRotation D_actor_311500_8016900C[52] = {
+static AnimationPackedRotation _gActor311500Animation07470Bank4[52] = {
 #include "assets/actor_311500_animation_07470_bank4.inc"
 };
 
-AnimationRecord D_actor_311500_801690DC[99] = {
+static AnimationRecord _gActor311500Animation07470Records[99] = {
 #include "assets/actor_311500_animation_07470_records.inc"
 };
 
-u16 D_actor_311500_80169268[20] = {
+static u16 _gActor311500Animation07470Indices[20] = {
 #include "assets/actor_311500_animation_07470_indices.inc"
 };
 
-AnimationSet D_actor_311500_80169290 = {
-    D_actor_311500_801690DC,
-    D_actor_311500_80169268,
-    { NULL, D_actor_311500_80168FD0, NULL, NULL, D_actor_311500_8016900C, NULL, NULL, NULL },
+static AnimationSet _gActor311500Animation07470 = {
+    _gActor311500Animation07470Records,
+    _gActor311500Animation07470Indices,
+    { NULL, _gActor311500Animation07470Bank1, NULL, NULL, _gActor311500Animation07470Bank4, NULL, NULL, NULL },
 };
 
 DamageAttack D_actor_311500_801692B8[2] = {
@@ -220,8 +220,8 @@ u16 D_actor_311500_801692D0[18] = {
 };
 
 AnimationSet* D_actor_311500_801692F4[2] = {
-    &D_actor_311500_80169290,
-    &D_actor_311500_80168FA8,
+    &_gActor311500Animation07470,
+    &_gActor311500Animation07188,
 };
 
 s32 D_actor_311500_801692FC[2] = {
@@ -250,7 +250,7 @@ Actor311500MessageEntry D_actor_311500_80169330[1] = {
     { 2006, { .call0 = func_actor_311500_801636A0 } },
 };
 
-TaskDesc D_actor_311500_80169338 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_311500_80163334, { .model = &D_actor_311500_80168BF8 } }; /// Walks the first `count` contact records (stopping at a zero key) and keeps,
+TaskDesc D_actor_311500_80169338 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_311500_80163334, { .model = &_gActor311500StrangerBody } }; /// Walks the first `count` contact records (stopping at a zero key) and keeps,
 
 static void        func_actor_311500_801629D8(Task* arg0);
 static inline void _actor311500ResetAnim(Task* task, u8 rate);
@@ -655,9 +655,9 @@ case0:
     }
     switch (actor->state) {
         case 0:
-            Mem_CopyUnaligned(&D_actor_311500_80169304, D_acropolis_fire_escape_80181EC4, 0x20);
-            Mem_CopyUnaligned(&D_actor_311500_801692FC, D_acropolis_fire_escape_80181E74, 8);
-            Mem_CopyUnaligned(&D_actor_311500_80169324, D_acropolis_fire_escape_8018207C, sizeof(*D_acropolis_fire_escape_8018207C));
+            Mem_CopyUnaligned(&D_actor_311500_80169304, gAcropolisFireEscapeCollision04CE8Verts, 0x20);
+            Mem_CopyUnaligned(&D_actor_311500_801692FC, gAcropolisFireEscapeCollision04CE8Normals, 8);
+            Mem_CopyUnaligned(&D_actor_311500_80169324, gAcropolisFireEscapeCollision04CE8Faces, sizeof(*gAcropolisFireEscapeCollision04CE8Faces));
             func_actor_311500_801629D8(actor);
             work = actor->work;
             anim = work;
@@ -691,9 +691,9 @@ case0:
                 goto case1;
             }
             if ((func_actor_311500_80162F28(actor) << 0x10) < 0) {
-                memFillBytes(D_acropolis_fire_escape_80181EC4, 0, 0x20);
-                memFillBytes(D_acropolis_fire_escape_80181E74, 0, 8);
-                memFillBytes(D_acropolis_fire_escape_8018207C, 0, sizeof(*D_acropolis_fire_escape_8018207C));
+                memFillBytes(gAcropolisFireEscapeCollision04CE8Verts, 0, 0x20);
+                memFillBytes(gAcropolisFireEscapeCollision04CE8Normals, 0, 8);
+                memFillBytes(gAcropolisFireEscapeCollision04CE8Faces, 0, sizeof(*gAcropolisFireEscapeCollision04CE8Faces));
                 work->field_4D4 = 0;
                 work->field_4C0 = 0;
                 actor->state   += 1;

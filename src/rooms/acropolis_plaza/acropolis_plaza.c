@@ -338,8 +338,8 @@ void func_acropolis_plaza_80180270(Task*);
 extern WorldCollisionGrid   D_acropolis_plaza_80199180[1];
 extern WorldCoordRoomLights D_acropolis_plaza_80199EE8[1];
 
-extern SVECTOR D_acropolis_plaza_80198AA0[30];
-extern SVECTOR D_acropolis_plaza_80198B90[80];
+static SVECTOR _gAcropolisPlazaCollision1BBC0Normals[30];
+static SVECTOR _gAcropolisPlazaCollision1BBC0Verts[80];
 
 AnimationPlayRequest D_acropolis_plaza_8018261C = { { .index = 0 }, 1, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -1791,774 +1791,774 @@ VECTOR3 D_acropolis_plaza_801907C4[400] = {
     { 1391, -1000, 0x35E1 },
 };
 
-AnimationPackedPose D_acropolis_plaza_80191A84[15] = {
+static AnimationPackedPose _gAcropolisPlazaAnimation148BCBank1[15] = {
 #include "assets/acropolis_plaza_animation_148BC_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_plaza_80191B38[79] = {
+static AnimationPackedRotation _gAcropolisPlazaAnimation148BCBank4[79] = {
 #include "assets/acropolis_plaza_animation_148BC_bank4.inc"
 };
 
-AnimationRecord D_acropolis_plaza_80191C74[120] = {
+static AnimationRecord _gAcropolisPlazaAnimation148BCRecords[120] = {
 #include "assets/acropolis_plaza_animation_148BC_records.inc"
 };
 
-u16 D_acropolis_plaza_80191E54[20] = {
+static u16 _gAcropolisPlazaAnimation148BCIndices[20] = {
 #include "assets/acropolis_plaza_animation_148BC_indices.inc"
 };
 
-AnimationSet D_acropolis_plaza_80191E7C = {
-    D_acropolis_plaza_80191C74,
-    D_acropolis_plaza_80191E54,
-    { NULL, D_acropolis_plaza_80191A84, NULL, NULL, D_acropolis_plaza_80191B38, NULL, NULL, NULL },
+AnimationSet gAcropolisPlazaAnimation148BC = {
+    _gAcropolisPlazaAnimation148BCRecords,
+    _gAcropolisPlazaAnimation148BCIndices,
+    { NULL, _gAcropolisPlazaAnimation148BCBank1, NULL, NULL, _gAcropolisPlazaAnimation148BCBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_plaza_80191EA4[40] = {
+static AnimationPackedPose _gAcropolisPlazaAnimation156B4Bank1[40] = {
 #include "assets/acropolis_plaza_animation_156B4_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_plaza_80192084[330] = {
+static AnimationPackedRotation _gAcropolisPlazaAnimation156B4Bank4[330] = {
 #include "assets/acropolis_plaza_animation_156B4_bank4.inc"
 };
 
-AnimationRecord D_acropolis_plaza_801925AC[424] = {
+static AnimationRecord _gAcropolisPlazaAnimation156B4Records[424] = {
 #include "assets/acropolis_plaza_animation_156B4_records.inc"
 };
 
-u16 D_acropolis_plaza_80192C4C[20] = {
+static u16 _gAcropolisPlazaAnimation156B4Indices[20] = {
 #include "assets/acropolis_plaza_animation_156B4_indices.inc"
 };
 
-AnimationSet D_acropolis_plaza_80192C74 = {
-    D_acropolis_plaza_801925AC,
-    D_acropolis_plaza_80192C4C,
-    { NULL, D_acropolis_plaza_80191EA4, NULL, NULL, D_acropolis_plaza_80192084, NULL, NULL, NULL },
+AnimationSet gAcropolisPlazaAnimation156B4 = {
+    _gAcropolisPlazaAnimation156B4Records,
+    _gAcropolisPlazaAnimation156B4Indices,
+    { NULL, _gAcropolisPlazaAnimation156B4Bank1, NULL, NULL, _gAcropolisPlazaAnimation156B4Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_plaza_80192C9C[3] = {
+static AnimationPackedPose _gAcropolisPlazaAnimation15864Bank1[3] = {
 #include "assets/acropolis_plaza_animation_15864_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_plaza_80192CC0[22] = {
+static AnimationPackedRotation _gAcropolisPlazaAnimation15864Bank4[22] = {
 #include "assets/acropolis_plaza_animation_15864_bank4.inc"
 };
 
-AnimationRecord D_acropolis_plaza_80192D18[57] = {
+static AnimationRecord _gAcropolisPlazaAnimation15864Records[57] = {
 #include "assets/acropolis_plaza_animation_15864_records.inc"
 };
 
-u16 D_acropolis_plaza_80192DFC[20] = {
+static u16 _gAcropolisPlazaAnimation15864Indices[20] = {
 #include "assets/acropolis_plaza_animation_15864_indices.inc"
 };
 
-AnimationSet D_acropolis_plaza_80192E24 = {
-    D_acropolis_plaza_80192D18,
-    D_acropolis_plaza_80192DFC,
-    { NULL, D_acropolis_plaza_80192C9C, NULL, NULL, D_acropolis_plaza_80192CC0, NULL, NULL, NULL },
+AnimationSet gAcropolisPlazaAnimation15864 = {
+    _gAcropolisPlazaAnimation15864Records,
+    _gAcropolisPlazaAnimation15864Indices,
+    { NULL, _gAcropolisPlazaAnimation15864Bank1, NULL, NULL, _gAcropolisPlazaAnimation15864Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_plaza_80192E4C[3] = {
+static AnimationPackedPose _gAcropolisPlazaAnimation15CC8Bank1[3] = {
 #include "assets/acropolis_plaza_animation_15CC8_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_plaza_80192E70[111] = {
+static AnimationPackedRotation _gAcropolisPlazaAnimation15CC8Bank4[111] = {
 #include "assets/acropolis_plaza_animation_15CC8_bank4.inc"
 };
 
-AnimationRecord D_acropolis_plaza_8019302C[141] = {
+static AnimationRecord _gAcropolisPlazaAnimation15CC8Records[141] = {
 #include "assets/acropolis_plaza_animation_15CC8_records.inc"
 };
 
-u16 D_acropolis_plaza_80193260[20] = {
+static u16 _gAcropolisPlazaAnimation15CC8Indices[20] = {
 #include "assets/acropolis_plaza_animation_15CC8_indices.inc"
 };
 
-AnimationSet D_acropolis_plaza_80193288 = {
-    D_acropolis_plaza_8019302C,
-    D_acropolis_plaza_80193260,
-    { NULL, D_acropolis_plaza_80192E4C, NULL, NULL, D_acropolis_plaza_80192E70, NULL, NULL, NULL },
+AnimationSet gAcropolisPlazaAnimation15CC8 = {
+    _gAcropolisPlazaAnimation15CC8Records,
+    _gAcropolisPlazaAnimation15CC8Indices,
+    { NULL, _gAcropolisPlazaAnimation15CC8Bank1, NULL, NULL, _gAcropolisPlazaAnimation15CC8Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_plaza_801932B0[3] = {
+static AnimationPackedPose _gAcropolisPlazaAnimation15F78Bank1[3] = {
 #include "assets/acropolis_plaza_animation_15F78_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_plaza_801932D4[57] = {
+static AnimationPackedRotation _gAcropolisPlazaAnimation15F78Bank4[57] = {
 #include "assets/acropolis_plaza_animation_15F78_bank4.inc"
 };
 
-AnimationRecord D_acropolis_plaza_801933B8[86] = {
+static AnimationRecord _gAcropolisPlazaAnimation15F78Records[86] = {
 #include "assets/acropolis_plaza_animation_15F78_records.inc"
 };
 
-u16 D_acropolis_plaza_80193510[20] = {
+static u16 _gAcropolisPlazaAnimation15F78Indices[20] = {
 #include "assets/acropolis_plaza_animation_15F78_indices.inc"
 };
 
-AnimationSet D_acropolis_plaza_80193538 = {
-    D_acropolis_plaza_801933B8,
-    D_acropolis_plaza_80193510,
-    { NULL, D_acropolis_plaza_801932B0, NULL, NULL, D_acropolis_plaza_801932D4, NULL, NULL, NULL },
+AnimationSet gAcropolisPlazaAnimation15F78 = {
+    _gAcropolisPlazaAnimation15F78Records,
+    _gAcropolisPlazaAnimation15F78Indices,
+    { NULL, _gAcropolisPlazaAnimation15F78Bank1, NULL, NULL, _gAcropolisPlazaAnimation15F78Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_plaza_80193560[9] = {
+static AnimationPackedPose _gAcropolisPlazaAnimation1622CBank1[9] = {
 #include "assets/acropolis_plaza_animation_1622C_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_plaza_801935CC[42] = {
+static AnimationPackedRotation _gAcropolisPlazaAnimation1622CBank4[42] = {
 #include "assets/acropolis_plaza_animation_1622C_bank4.inc"
 };
 
-AnimationRecord D_acropolis_plaza_80193674[84] = {
+static AnimationRecord _gAcropolisPlazaAnimation1622CRecords[84] = {
 #include "assets/acropolis_plaza_animation_1622C_records.inc"
 };
 
-u16 D_acropolis_plaza_801937C4[20] = {
+static u16 _gAcropolisPlazaAnimation1622CIndices[20] = {
 #include "assets/acropolis_plaza_animation_1622C_indices.inc"
 };
 
-AnimationSet D_acropolis_plaza_801937EC = {
-    D_acropolis_plaza_80193674,
-    D_acropolis_plaza_801937C4,
-    { NULL, D_acropolis_plaza_80193560, NULL, NULL, D_acropolis_plaza_801935CC, NULL, NULL, NULL },
+AnimationSet gAcropolisPlazaAnimation1622C = {
+    _gAcropolisPlazaAnimation1622CRecords,
+    _gAcropolisPlazaAnimation1622CIndices,
+    { NULL, _gAcropolisPlazaAnimation1622CBank1, NULL, NULL, _gAcropolisPlazaAnimation1622CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_plaza_80193814[3] = {
+static AnimationPackedPose _gAcropolisPlazaAnimation1643CBank1[3] = {
 #include "assets/acropolis_plaza_animation_1643C_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_plaza_80193838[33] = {
+static AnimationPackedRotation _gAcropolisPlazaAnimation1643CBank4[33] = {
 #include "assets/acropolis_plaza_animation_1643C_bank4.inc"
 };
 
-AnimationRecord D_acropolis_plaza_801938BC[70] = {
+static AnimationRecord _gAcropolisPlazaAnimation1643CRecords[70] = {
 #include "assets/acropolis_plaza_animation_1643C_records.inc"
 };
 
-u16 D_acropolis_plaza_801939D4[20] = {
+static u16 _gAcropolisPlazaAnimation1643CIndices[20] = {
 #include "assets/acropolis_plaza_animation_1643C_indices.inc"
 };
 
-AnimationSet D_acropolis_plaza_801939FC = {
-    D_acropolis_plaza_801938BC,
-    D_acropolis_plaza_801939D4,
-    { NULL, D_acropolis_plaza_80193814, NULL, NULL, D_acropolis_plaza_80193838, NULL, NULL, NULL },
+AnimationSet gAcropolisPlazaAnimation1643C = {
+    _gAcropolisPlazaAnimation1643CRecords,
+    _gAcropolisPlazaAnimation1643CIndices,
+    { NULL, _gAcropolisPlazaAnimation1643CBank1, NULL, NULL, _gAcropolisPlazaAnimation1643CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_plaza_80193A24[2] = {
+static AnimationPackedPose _gAcropolisPlazaAnimation16610Bank1[2] = {
 #include "assets/acropolis_plaza_animation_16610_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_plaza_80193A3C[26] = {
+static AnimationPackedRotation _gAcropolisPlazaAnimation16610Bank4[26] = {
 #include "assets/acropolis_plaza_animation_16610_bank4.inc"
 };
 
-AnimationRecord D_acropolis_plaza_80193AA4[65] = {
+static AnimationRecord _gAcropolisPlazaAnimation16610Records[65] = {
 #include "assets/acropolis_plaza_animation_16610_records.inc"
 };
 
-u16 D_acropolis_plaza_80193BA8[20] = {
+static u16 _gAcropolisPlazaAnimation16610Indices[20] = {
 #include "assets/acropolis_plaza_animation_16610_indices.inc"
 };
 
-AnimationSet D_acropolis_plaza_80193BD0 = {
-    D_acropolis_plaza_80193AA4,
-    D_acropolis_plaza_80193BA8,
-    { NULL, D_acropolis_plaza_80193A24, NULL, NULL, D_acropolis_plaza_80193A3C, NULL, NULL, NULL },
+AnimationSet gAcropolisPlazaAnimation16610 = {
+    _gAcropolisPlazaAnimation16610Records,
+    _gAcropolisPlazaAnimation16610Indices,
+    { NULL, _gAcropolisPlazaAnimation16610Bank1, NULL, NULL, _gAcropolisPlazaAnimation16610Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_plaza_80193BF8[4] = {
+static AnimationPackedPose _gAcropolisPlazaAnimation168FCBank1[4] = {
 #include "assets/acropolis_plaza_animation_168FC_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_plaza_80193C28[63] = {
+static AnimationPackedRotation _gAcropolisPlazaAnimation168FCBank4[63] = {
 #include "assets/acropolis_plaza_animation_168FC_bank4.inc"
 };
 
-AnimationRecord D_acropolis_plaza_80193D24[92] = {
+static AnimationRecord _gAcropolisPlazaAnimation168FCRecords[92] = {
 #include "assets/acropolis_plaza_animation_168FC_records.inc"
 };
 
-u16 D_acropolis_plaza_80193E94[20] = {
+static u16 _gAcropolisPlazaAnimation168FCIndices[20] = {
 #include "assets/acropolis_plaza_animation_168FC_indices.inc"
 };
 
-AnimationSet D_acropolis_plaza_80193EBC = {
-    D_acropolis_plaza_80193D24,
-    D_acropolis_plaza_80193E94,
-    { NULL, D_acropolis_plaza_80193BF8, NULL, NULL, D_acropolis_plaza_80193C28, NULL, NULL, NULL },
+AnimationSet gAcropolisPlazaAnimation168FC = {
+    _gAcropolisPlazaAnimation168FCRecords,
+    _gAcropolisPlazaAnimation168FCIndices,
+    { NULL, _gAcropolisPlazaAnimation168FCBank1, NULL, NULL, _gAcropolisPlazaAnimation168FCBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_plaza_80193EE4[6] = {
+static AnimationPackedPose _gAcropolisPlazaAnimation16D00Bank1[6] = {
 #include "assets/acropolis_plaza_animation_16D00_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_plaza_80193F2C[92] = {
+static AnimationPackedRotation _gAcropolisPlazaAnimation16D00Bank4[92] = {
 #include "assets/acropolis_plaza_animation_16D00_bank4.inc"
 };
 
-AnimationRecord D_acropolis_plaza_8019409C[127] = {
+static AnimationRecord _gAcropolisPlazaAnimation16D00Records[127] = {
 #include "assets/acropolis_plaza_animation_16D00_records.inc"
 };
 
-u16 D_acropolis_plaza_80194298[20] = {
+static u16 _gAcropolisPlazaAnimation16D00Indices[20] = {
 #include "assets/acropolis_plaza_animation_16D00_indices.inc"
 };
 
-AnimationSet D_acropolis_plaza_801942C0 = {
-    D_acropolis_plaza_8019409C,
-    D_acropolis_plaza_80194298,
-    { NULL, D_acropolis_plaza_80193EE4, NULL, NULL, D_acropolis_plaza_80193F2C, NULL, NULL, NULL },
+AnimationSet gAcropolisPlazaAnimation16D00 = {
+    _gAcropolisPlazaAnimation16D00Records,
+    _gAcropolisPlazaAnimation16D00Indices,
+    { NULL, _gAcropolisPlazaAnimation16D00Bank1, NULL, NULL, _gAcropolisPlazaAnimation16D00Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_plaza_801942E8[2] = {
+static AnimationPackedPose _gAcropolisPlazaAnimation16EE4Bank1[2] = {
 #include "assets/acropolis_plaza_animation_16EE4_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_plaza_80194300[18] = {
+static AnimationPackedRotation _gAcropolisPlazaAnimation16EE4Bank4[18] = {
 #include "assets/acropolis_plaza_animation_16EE4_bank4.inc"
 };
 
-AnimationRecord D_acropolis_plaza_80194348[77] = {
+static AnimationRecord _gAcropolisPlazaAnimation16EE4Records[77] = {
 #include "assets/acropolis_plaza_animation_16EE4_records.inc"
 };
 
-u16 D_acropolis_plaza_8019447C[20] = {
+static u16 _gAcropolisPlazaAnimation16EE4Indices[20] = {
 #include "assets/acropolis_plaza_animation_16EE4_indices.inc"
 };
 
-AnimationSet D_acropolis_plaza_801944A4 = {
-    D_acropolis_plaza_80194348,
-    D_acropolis_plaza_8019447C,
-    { NULL, D_acropolis_plaza_801942E8, NULL, NULL, D_acropolis_plaza_80194300, NULL, NULL, NULL },
+AnimationSet gAcropolisPlazaAnimation16EE4 = {
+    _gAcropolisPlazaAnimation16EE4Records,
+    _gAcropolisPlazaAnimation16EE4Indices,
+    { NULL, _gAcropolisPlazaAnimation16EE4Bank1, NULL, NULL, _gAcropolisPlazaAnimation16EE4Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_plaza_801944CC[3] = {
+static AnimationPackedPose _gAcropolisPlazaAnimation170C0Bank1[3] = {
 #include "assets/acropolis_plaza_animation_170C0_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_plaza_801944F0[29] = {
+static AnimationPackedRotation _gAcropolisPlazaAnimation170C0Bank4[29] = {
 #include "assets/acropolis_plaza_animation_170C0_bank4.inc"
 };
 
-AnimationRecord D_acropolis_plaza_80194564[61] = {
+static AnimationRecord _gAcropolisPlazaAnimation170C0Records[61] = {
 #include "assets/acropolis_plaza_animation_170C0_records.inc"
 };
 
-u16 D_acropolis_plaza_80194658[20] = {
+static u16 _gAcropolisPlazaAnimation170C0Indices[20] = {
 #include "assets/acropolis_plaza_animation_170C0_indices.inc"
 };
 
-AnimationSet D_acropolis_plaza_80194680 = {
-    D_acropolis_plaza_80194564,
-    D_acropolis_plaza_80194658,
-    { NULL, D_acropolis_plaza_801944CC, NULL, NULL, D_acropolis_plaza_801944F0, NULL, NULL, NULL },
+AnimationSet gAcropolisPlazaAnimation170C0 = {
+    _gAcropolisPlazaAnimation170C0Records,
+    _gAcropolisPlazaAnimation170C0Indices,
+    { NULL, _gAcropolisPlazaAnimation170C0Bank1, NULL, NULL, _gAcropolisPlazaAnimation170C0Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_plaza_801946A8[3] = {
+static AnimationPackedPose _gAcropolisPlazaAnimation17298Bank1[3] = {
 #include "assets/acropolis_plaza_animation_17298_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_plaza_801946CC[28] = {
+static AnimationPackedRotation _gAcropolisPlazaAnimation17298Bank4[28] = {
 #include "assets/acropolis_plaza_animation_17298_bank4.inc"
 };
 
-AnimationRecord D_acropolis_plaza_8019473C[61] = {
+static AnimationRecord _gAcropolisPlazaAnimation17298Records[61] = {
 #include "assets/acropolis_plaza_animation_17298_records.inc"
 };
 
-u16 D_acropolis_plaza_80194830[20] = {
+static u16 _gAcropolisPlazaAnimation17298Indices[20] = {
 #include "assets/acropolis_plaza_animation_17298_indices.inc"
 };
 
-AnimationSet D_acropolis_plaza_80194858 = {
-    D_acropolis_plaza_8019473C,
-    D_acropolis_plaza_80194830,
-    { NULL, D_acropolis_plaza_801946A8, NULL, NULL, D_acropolis_plaza_801946CC, NULL, NULL, NULL },
+AnimationSet gAcropolisPlazaAnimation17298 = {
+    _gAcropolisPlazaAnimation17298Records,
+    _gAcropolisPlazaAnimation17298Indices,
+    { NULL, _gAcropolisPlazaAnimation17298Bank1, NULL, NULL, _gAcropolisPlazaAnimation17298Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_plaza_80194880[9] = {
+static AnimationPackedPose _gAcropolisPlazaAnimation1754CBank1[9] = {
 #include "assets/acropolis_plaza_animation_1754C_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_plaza_801948EC[44] = {
+static AnimationPackedRotation _gAcropolisPlazaAnimation1754CBank4[44] = {
 #include "assets/acropolis_plaza_animation_1754C_bank4.inc"
 };
 
-AnimationRecord D_acropolis_plaza_8019499C[82] = {
+static AnimationRecord _gAcropolisPlazaAnimation1754CRecords[82] = {
 #include "assets/acropolis_plaza_animation_1754C_records.inc"
 };
 
-u16 D_acropolis_plaza_80194AE4[20] = {
+static u16 _gAcropolisPlazaAnimation1754CIndices[20] = {
 #include "assets/acropolis_plaza_animation_1754C_indices.inc"
 };
 
-AnimationSet D_acropolis_plaza_80194B0C = {
-    D_acropolis_plaza_8019499C,
-    D_acropolis_plaza_80194AE4,
-    { NULL, D_acropolis_plaza_80194880, NULL, NULL, D_acropolis_plaza_801948EC, NULL, NULL, NULL },
+AnimationSet gAcropolisPlazaAnimation1754C = {
+    _gAcropolisPlazaAnimation1754CRecords,
+    _gAcropolisPlazaAnimation1754CIndices,
+    { NULL, _gAcropolisPlazaAnimation1754CBank1, NULL, NULL, _gAcropolisPlazaAnimation1754CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_plaza_80194B34[2] = {
+static AnimationPackedPose _gAcropolisPlazaAnimation17818Bank1[2] = {
 #include "assets/acropolis_plaza_animation_17818_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_plaza_80194B4C[47] = {
+static AnimationPackedRotation _gAcropolisPlazaAnimation17818Bank4[47] = {
 #include "assets/acropolis_plaza_animation_17818_bank4.inc"
 };
 
-AnimationRecord D_acropolis_plaza_80194C08[106] = {
+static AnimationRecord _gAcropolisPlazaAnimation17818Records[106] = {
 #include "assets/acropolis_plaza_animation_17818_records.inc"
 };
 
-u16 D_acropolis_plaza_80194DB0[20] = {
+static u16 _gAcropolisPlazaAnimation17818Indices[20] = {
 #include "assets/acropolis_plaza_animation_17818_indices.inc"
 };
 
-AnimationSet D_acropolis_plaza_80194DD8 = {
-    D_acropolis_plaza_80194C08,
-    D_acropolis_plaza_80194DB0,
-    { NULL, D_acropolis_plaza_80194B34, NULL, NULL, D_acropolis_plaza_80194B4C, NULL, NULL, NULL },
+AnimationSet gAcropolisPlazaAnimation17818 = {
+    _gAcropolisPlazaAnimation17818Records,
+    _gAcropolisPlazaAnimation17818Indices,
+    { NULL, _gAcropolisPlazaAnimation17818Bank1, NULL, NULL, _gAcropolisPlazaAnimation17818Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_plaza_80194E00[2] = {
+static AnimationPackedPose _gAcropolisPlazaAnimation17A00Bank1[2] = {
 #include "assets/acropolis_plaza_animation_17A00_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_plaza_80194E18[31] = {
+static AnimationPackedRotation _gAcropolisPlazaAnimation17A00Bank4[31] = {
 #include "assets/acropolis_plaza_animation_17A00_bank4.inc"
 };
 
-AnimationRecord D_acropolis_plaza_80194E94[65] = {
+static AnimationRecord _gAcropolisPlazaAnimation17A00Records[65] = {
 #include "assets/acropolis_plaza_animation_17A00_records.inc"
 };
 
-u16 D_acropolis_plaza_80194F98[20] = {
+static u16 _gAcropolisPlazaAnimation17A00Indices[20] = {
 #include "assets/acropolis_plaza_animation_17A00_indices.inc"
 };
 
-AnimationSet D_acropolis_plaza_80194FC0 = {
-    D_acropolis_plaza_80194E94,
-    D_acropolis_plaza_80194F98,
-    { NULL, D_acropolis_plaza_80194E00, NULL, NULL, D_acropolis_plaza_80194E18, NULL, NULL, NULL },
+AnimationSet gAcropolisPlazaAnimation17A00 = {
+    _gAcropolisPlazaAnimation17A00Records,
+    _gAcropolisPlazaAnimation17A00Indices,
+    { NULL, _gAcropolisPlazaAnimation17A00Bank1, NULL, NULL, _gAcropolisPlazaAnimation17A00Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_plaza_80194FE8[4] = {
+static AnimationPackedPose _gAcropolisPlazaAnimation17C68Bank1[4] = {
 #include "assets/acropolis_plaza_animation_17C68_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_plaza_80195018[45] = {
+static AnimationPackedRotation _gAcropolisPlazaAnimation17C68Bank4[45] = {
 #include "assets/acropolis_plaza_animation_17C68_bank4.inc"
 };
 
-AnimationRecord D_acropolis_plaza_801950CC[77] = {
+static AnimationRecord _gAcropolisPlazaAnimation17C68Records[77] = {
 #include "assets/acropolis_plaza_animation_17C68_records.inc"
 };
 
-u16 D_acropolis_plaza_80195200[20] = {
+static u16 _gAcropolisPlazaAnimation17C68Indices[20] = {
 #include "assets/acropolis_plaza_animation_17C68_indices.inc"
 };
 
-AnimationSet D_acropolis_plaza_80195228 = {
-    D_acropolis_plaza_801950CC,
-    D_acropolis_plaza_80195200,
-    { NULL, D_acropolis_plaza_80194FE8, NULL, NULL, D_acropolis_plaza_80195018, NULL, NULL, NULL },
+AnimationSet gAcropolisPlazaAnimation17C68 = {
+    _gAcropolisPlazaAnimation17C68Records,
+    _gAcropolisPlazaAnimation17C68Indices,
+    { NULL, _gAcropolisPlazaAnimation17C68Bank1, NULL, NULL, _gAcropolisPlazaAnimation17C68Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_plaza_80195250[3] = {
+static AnimationPackedPose _gAcropolisPlazaAnimation17E54Bank1[3] = {
 #include "assets/acropolis_plaza_animation_17E54_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_plaza_80195274[18] = {
+static AnimationPackedRotation _gAcropolisPlazaAnimation17E54Bank4[18] = {
 #include "assets/acropolis_plaza_animation_17E54_bank4.inc"
 };
 
-AnimationRecord D_acropolis_plaza_801952BC[76] = {
+static AnimationRecord _gAcropolisPlazaAnimation17E54Records[76] = {
 #include "assets/acropolis_plaza_animation_17E54_records.inc"
 };
 
-u16 D_acropolis_plaza_801953EC[20] = {
+static u16 _gAcropolisPlazaAnimation17E54Indices[20] = {
 #include "assets/acropolis_plaza_animation_17E54_indices.inc"
 };
 
-AnimationSet D_acropolis_plaza_80195414 = {
-    D_acropolis_plaza_801952BC,
-    D_acropolis_plaza_801953EC,
-    { NULL, D_acropolis_plaza_80195250, NULL, NULL, D_acropolis_plaza_80195274, NULL, NULL, NULL },
+AnimationSet gAcropolisPlazaAnimation17E54 = {
+    _gAcropolisPlazaAnimation17E54Records,
+    _gAcropolisPlazaAnimation17E54Indices,
+    { NULL, _gAcropolisPlazaAnimation17E54Bank1, NULL, NULL, _gAcropolisPlazaAnimation17E54Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_plaza_8019543C[2] = {
+static AnimationPackedPose _gAcropolisPlazaAnimation17FF4Bank1[2] = {
 #include "assets/acropolis_plaza_animation_17FF4_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_plaza_80195454[21] = {
+static AnimationPackedRotation _gAcropolisPlazaAnimation17FF4Bank4[21] = {
 #include "assets/acropolis_plaza_animation_17FF4_bank4.inc"
 };
 
-AnimationRecord D_acropolis_plaza_801954A8[57] = {
+static AnimationRecord _gAcropolisPlazaAnimation17FF4Records[57] = {
 #include "assets/acropolis_plaza_animation_17FF4_records.inc"
 };
 
-u16 D_acropolis_plaza_8019558C[20] = {
+static u16 _gAcropolisPlazaAnimation17FF4Indices[20] = {
 #include "assets/acropolis_plaza_animation_17FF4_indices.inc"
 };
 
-AnimationSet D_acropolis_plaza_801955B4 = {
-    D_acropolis_plaza_801954A8,
-    D_acropolis_plaza_8019558C,
-    { NULL, D_acropolis_plaza_8019543C, NULL, NULL, D_acropolis_plaza_80195454, NULL, NULL, NULL },
+AnimationSet gAcropolisPlazaAnimation17FF4 = {
+    _gAcropolisPlazaAnimation17FF4Records,
+    _gAcropolisPlazaAnimation17FF4Indices,
+    { NULL, _gAcropolisPlazaAnimation17FF4Bank1, NULL, NULL, _gAcropolisPlazaAnimation17FF4Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_plaza_801955DC[2] = {
+static AnimationPackedPose _gAcropolisPlazaAnimation181CCBank1[2] = {
 #include "assets/acropolis_plaza_animation_181CC_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_plaza_801955F4[16] = {
+static AnimationPackedRotation _gAcropolisPlazaAnimation181CCBank4[16] = {
 #include "assets/acropolis_plaza_animation_181CC_bank4.inc"
 };
 
-AnimationRecord D_acropolis_plaza_80195634[76] = {
+static AnimationRecord _gAcropolisPlazaAnimation181CCRecords[76] = {
 #include "assets/acropolis_plaza_animation_181CC_records.inc"
 };
 
-u16 D_acropolis_plaza_80195764[20] = {
+static u16 _gAcropolisPlazaAnimation181CCIndices[20] = {
 #include "assets/acropolis_plaza_animation_181CC_indices.inc"
 };
 
-AnimationSet D_acropolis_plaza_8019578C = {
-    D_acropolis_plaza_80195634,
-    D_acropolis_plaza_80195764,
-    { NULL, D_acropolis_plaza_801955DC, NULL, NULL, D_acropolis_plaza_801955F4, NULL, NULL, NULL },
+AnimationSet gAcropolisPlazaAnimation181CC = {
+    _gAcropolisPlazaAnimation181CCRecords,
+    _gAcropolisPlazaAnimation181CCIndices,
+    { NULL, _gAcropolisPlazaAnimation181CCBank1, NULL, NULL, _gAcropolisPlazaAnimation181CCBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_plaza_801957B4[4] = {
+static AnimationPackedPose _gAcropolisPlazaAnimation183B8Bank1[4] = {
 #include "assets/acropolis_plaza_animation_183B8_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_plaza_801957E4[30] = {
+static AnimationPackedRotation _gAcropolisPlazaAnimation183B8Bank4[30] = {
 #include "assets/acropolis_plaza_animation_183B8_bank4.inc"
 };
 
-AnimationRecord D_acropolis_plaza_8019585C[61] = {
+static AnimationRecord _gAcropolisPlazaAnimation183B8Records[61] = {
 #include "assets/acropolis_plaza_animation_183B8_records.inc"
 };
 
-u16 D_acropolis_plaza_80195950[20] = {
+static u16 _gAcropolisPlazaAnimation183B8Indices[20] = {
 #include "assets/acropolis_plaza_animation_183B8_indices.inc"
 };
 
-AnimationSet D_acropolis_plaza_80195978 = {
-    D_acropolis_plaza_8019585C,
-    D_acropolis_plaza_80195950,
-    { NULL, D_acropolis_plaza_801957B4, NULL, NULL, D_acropolis_plaza_801957E4, NULL, NULL, NULL },
+AnimationSet gAcropolisPlazaAnimation183B8 = {
+    _gAcropolisPlazaAnimation183B8Records,
+    _gAcropolisPlazaAnimation183B8Indices,
+    { NULL, _gAcropolisPlazaAnimation183B8Bank1, NULL, NULL, _gAcropolisPlazaAnimation183B8Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_plaza_801959A0[5] = {
+static AnimationPackedPose _gAcropolisPlazaAnimation18614Bank1[5] = {
 #include "assets/acropolis_plaza_animation_18614_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_plaza_801959DC[44] = {
+static AnimationPackedRotation _gAcropolisPlazaAnimation18614Bank4[44] = {
 #include "assets/acropolis_plaza_animation_18614_bank4.inc"
 };
 
-AnimationRecord D_acropolis_plaza_80195A8C[72] = {
+static AnimationRecord _gAcropolisPlazaAnimation18614Records[72] = {
 #include "assets/acropolis_plaza_animation_18614_records.inc"
 };
 
-u16 D_acropolis_plaza_80195BAC[20] = {
+static u16 _gAcropolisPlazaAnimation18614Indices[20] = {
 #include "assets/acropolis_plaza_animation_18614_indices.inc"
 };
 
-AnimationSet D_acropolis_plaza_80195BD4 = {
-    D_acropolis_plaza_80195A8C,
-    D_acropolis_plaza_80195BAC,
-    { NULL, D_acropolis_plaza_801959A0, NULL, NULL, D_acropolis_plaza_801959DC, NULL, NULL, NULL },
+AnimationSet gAcropolisPlazaAnimation18614 = {
+    _gAcropolisPlazaAnimation18614Records,
+    _gAcropolisPlazaAnimation18614Indices,
+    { NULL, _gAcropolisPlazaAnimation18614Bank1, NULL, NULL, _gAcropolisPlazaAnimation18614Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_plaza_80195BFC[2] = {
+static AnimationPackedPose _gAcropolisPlazaAnimation18904Bank1[2] = {
 #include "assets/acropolis_plaza_animation_18904_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_plaza_80195C14[44] = {
+static AnimationPackedRotation _gAcropolisPlazaAnimation18904Bank4[44] = {
 #include "assets/acropolis_plaza_animation_18904_bank4.inc"
 };
 
-AnimationRecord D_acropolis_plaza_80195CC4[118] = {
+static AnimationRecord _gAcropolisPlazaAnimation18904Records[118] = {
 #include "assets/acropolis_plaza_animation_18904_records.inc"
 };
 
-u16 D_acropolis_plaza_80195E9C[20] = {
+static u16 _gAcropolisPlazaAnimation18904Indices[20] = {
 #include "assets/acropolis_plaza_animation_18904_indices.inc"
 };
 
-AnimationSet D_acropolis_plaza_80195EC4 = {
-    D_acropolis_plaza_80195CC4,
-    D_acropolis_plaza_80195E9C,
-    { NULL, D_acropolis_plaza_80195BFC, NULL, NULL, D_acropolis_plaza_80195C14, NULL, NULL, NULL },
+AnimationSet gAcropolisPlazaAnimation18904 = {
+    _gAcropolisPlazaAnimation18904Records,
+    _gAcropolisPlazaAnimation18904Indices,
+    { NULL, _gAcropolisPlazaAnimation18904Bank1, NULL, NULL, _gAcropolisPlazaAnimation18904Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_plaza_80195EEC[9] = {
+static AnimationPackedPose _gAcropolisPlazaAnimation18DE0Bank1[9] = {
 #include "assets/acropolis_plaza_animation_18DE0_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_plaza_80195F58[85] = {
+static AnimationPackedRotation _gAcropolisPlazaAnimation18DE0Bank4[85] = {
 #include "assets/acropolis_plaza_animation_18DE0_bank4.inc"
 };
 
-AnimationRecord D_acropolis_plaza_801960AC[179] = {
+static AnimationRecord _gAcropolisPlazaAnimation18DE0Records[179] = {
 #include "assets/acropolis_plaza_animation_18DE0_records.inc"
 };
 
-u16 D_acropolis_plaza_80196378[20] = {
+static u16 _gAcropolisPlazaAnimation18DE0Indices[20] = {
 #include "assets/acropolis_plaza_animation_18DE0_indices.inc"
 };
 
-AnimationSet D_acropolis_plaza_801963A0 = {
-    D_acropolis_plaza_801960AC,
-    D_acropolis_plaza_80196378,
-    { NULL, D_acropolis_plaza_80195EEC, NULL, NULL, D_acropolis_plaza_80195F58, NULL, NULL, NULL },
+AnimationSet gAcropolisPlazaAnimation18DE0 = {
+    _gAcropolisPlazaAnimation18DE0Records,
+    _gAcropolisPlazaAnimation18DE0Indices,
+    { NULL, _gAcropolisPlazaAnimation18DE0Bank1, NULL, NULL, _gAcropolisPlazaAnimation18DE0Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_plaza_801963C8[2] = {
+static AnimationPackedPose _gAcropolisPlazaAnimation18F98Bank1[2] = {
 #include "assets/acropolis_plaza_animation_18F98_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_plaza_801963E0[8] = {
+static AnimationPackedRotation _gAcropolisPlazaAnimation18F98Bank4[8] = {
 #include "assets/acropolis_plaza_animation_18F98_bank4.inc"
 };
 
-AnimationRecord D_acropolis_plaza_80196400[76] = {
+static AnimationRecord _gAcropolisPlazaAnimation18F98Records[76] = {
 #include "assets/acropolis_plaza_animation_18F98_records.inc"
 };
 
-u16 D_acropolis_plaza_80196530[20] = {
+static u16 _gAcropolisPlazaAnimation18F98Indices[20] = {
 #include "assets/acropolis_plaza_animation_18F98_indices.inc"
 };
 
-AnimationSet D_acropolis_plaza_80196558 = {
-    D_acropolis_plaza_80196400,
-    D_acropolis_plaza_80196530,
-    { NULL, D_acropolis_plaza_801963C8, NULL, NULL, D_acropolis_plaza_801963E0, NULL, NULL, NULL },
+AnimationSet gAcropolisPlazaAnimation18F98 = {
+    _gAcropolisPlazaAnimation18F98Records,
+    _gAcropolisPlazaAnimation18F98Indices,
+    { NULL, _gAcropolisPlazaAnimation18F98Bank1, NULL, NULL, _gAcropolisPlazaAnimation18F98Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_plaza_80196580[5] = {
+static AnimationPackedPose _gAcropolisPlazaAnimation19610Bank1[5] = {
 #include "assets/acropolis_plaza_animation_19610_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_plaza_801965BC[173] = {
+static AnimationPackedRotation _gAcropolisPlazaAnimation19610Bank4[173] = {
 #include "assets/acropolis_plaza_animation_19610_bank4.inc"
 };
 
-AnimationRecord D_acropolis_plaza_80196870[206] = {
+static AnimationRecord _gAcropolisPlazaAnimation19610Records[206] = {
 #include "assets/acropolis_plaza_animation_19610_records.inc"
 };
 
-u16 D_acropolis_plaza_80196BA8[20] = {
+static u16 _gAcropolisPlazaAnimation19610Indices[20] = {
 #include "assets/acropolis_plaza_animation_19610_indices.inc"
 };
 
-AnimationSet D_acropolis_plaza_80196BD0 = {
-    D_acropolis_plaza_80196870,
-    D_acropolis_plaza_80196BA8,
-    { NULL, D_acropolis_plaza_80196580, NULL, NULL, D_acropolis_plaza_801965BC, NULL, NULL, NULL },
+AnimationSet gAcropolisPlazaAnimation19610 = {
+    _gAcropolisPlazaAnimation19610Records,
+    _gAcropolisPlazaAnimation19610Indices,
+    { NULL, _gAcropolisPlazaAnimation19610Bank1, NULL, NULL, _gAcropolisPlazaAnimation19610Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_plaza_80196BF8[7] = {
+static AnimationPackedPose _gAcropolisPlazaAnimation19AD8Bank1[7] = {
 #include "assets/acropolis_plaza_animation_19AD8_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_plaza_80196C4C[115] = {
+static AnimationPackedRotation _gAcropolisPlazaAnimation19AD8Bank4[115] = {
 #include "assets/acropolis_plaza_animation_19AD8_bank4.inc"
 };
 
-AnimationRecord D_acropolis_plaza_80196E18[150] = {
+static AnimationRecord _gAcropolisPlazaAnimation19AD8Records[150] = {
 #include "assets/acropolis_plaza_animation_19AD8_records.inc"
 };
 
-u16 D_acropolis_plaza_80197070[20] = {
+static u16 _gAcropolisPlazaAnimation19AD8Indices[20] = {
 #include "assets/acropolis_plaza_animation_19AD8_indices.inc"
 };
 
-AnimationSet D_acropolis_plaza_80197098 = {
-    D_acropolis_plaza_80196E18,
-    D_acropolis_plaza_80197070,
-    { NULL, D_acropolis_plaza_80196BF8, NULL, NULL, D_acropolis_plaza_80196C4C, NULL, NULL, NULL },
+AnimationSet gAcropolisPlazaAnimation19AD8 = {
+    _gAcropolisPlazaAnimation19AD8Records,
+    _gAcropolisPlazaAnimation19AD8Indices,
+    { NULL, _gAcropolisPlazaAnimation19AD8Bank1, NULL, NULL, _gAcropolisPlazaAnimation19AD8Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_plaza_801970C0[6] = {
+static AnimationPackedPose _gAcropolisPlazaAnimation19D64Bank1[6] = {
 #include "assets/acropolis_plaza_animation_19D64_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_plaza_80197108[47] = {
+static AnimationPackedRotation _gAcropolisPlazaAnimation19D64Bank4[47] = {
 #include "assets/acropolis_plaza_animation_19D64_bank4.inc"
 };
 
-AnimationRecord D_acropolis_plaza_801971C4[78] = {
+static AnimationRecord _gAcropolisPlazaAnimation19D64Records[78] = {
 #include "assets/acropolis_plaza_animation_19D64_records.inc"
 };
 
-u16 D_acropolis_plaza_801972FC[20] = {
+static u16 _gAcropolisPlazaAnimation19D64Indices[20] = {
 #include "assets/acropolis_plaza_animation_19D64_indices.inc"
 };
 
-AnimationSet D_acropolis_plaza_80197324 = {
-    D_acropolis_plaza_801971C4,
-    D_acropolis_plaza_801972FC,
-    { NULL, D_acropolis_plaza_801970C0, NULL, NULL, D_acropolis_plaza_80197108, NULL, NULL, NULL },
+AnimationSet gAcropolisPlazaAnimation19D64 = {
+    _gAcropolisPlazaAnimation19D64Records,
+    _gAcropolisPlazaAnimation19D64Indices,
+    { NULL, _gAcropolisPlazaAnimation19D64Bank1, NULL, NULL, _gAcropolisPlazaAnimation19D64Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_plaza_8019734C[2] = {
+static AnimationPackedPose _gAcropolisPlazaAnimation19F7CBank1[2] = {
 #include "assets/acropolis_plaza_animation_19F7C_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_plaza_80197364[34] = {
+static AnimationPackedRotation _gAcropolisPlazaAnimation19F7CBank4[34] = {
 #include "assets/acropolis_plaza_animation_19F7C_bank4.inc"
 };
 
-AnimationRecord D_acropolis_plaza_801973EC[74] = {
+static AnimationRecord _gAcropolisPlazaAnimation19F7CRecords[74] = {
 #include "assets/acropolis_plaza_animation_19F7C_records.inc"
 };
 
-u16 D_acropolis_plaza_80197514[20] = {
+static u16 _gAcropolisPlazaAnimation19F7CIndices[20] = {
 #include "assets/acropolis_plaza_animation_19F7C_indices.inc"
 };
 
-AnimationSet D_acropolis_plaza_8019753C = {
-    D_acropolis_plaza_801973EC,
-    D_acropolis_plaza_80197514,
-    { NULL, D_acropolis_plaza_8019734C, NULL, NULL, D_acropolis_plaza_80197364, NULL, NULL, NULL },
+AnimationSet gAcropolisPlazaAnimation19F7C = {
+    _gAcropolisPlazaAnimation19F7CRecords,
+    _gAcropolisPlazaAnimation19F7CIndices,
+    { NULL, _gAcropolisPlazaAnimation19F7CBank1, NULL, NULL, _gAcropolisPlazaAnimation19F7CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_plaza_80197564[5] = {
+static AnimationPackedPose _gAcropolisPlazaAnimation1A4F8Bank1[5] = {
 #include "assets/acropolis_plaza_animation_1A4F8_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_plaza_801975A0[137] = {
+static AnimationPackedRotation _gAcropolisPlazaAnimation1A4F8Bank4[137] = {
 #include "assets/acropolis_plaza_animation_1A4F8_bank4.inc"
 };
 
-AnimationRecord D_acropolis_plaza_801977C4[179] = {
+static AnimationRecord _gAcropolisPlazaAnimation1A4F8Records[179] = {
 #include "assets/acropolis_plaza_animation_1A4F8_records.inc"
 };
 
-u16 D_acropolis_plaza_80197A90[20] = {
+static u16 _gAcropolisPlazaAnimation1A4F8Indices[20] = {
 #include "assets/acropolis_plaza_animation_1A4F8_indices.inc"
 };
 
-AnimationSet D_acropolis_plaza_80197AB8 = {
-    D_acropolis_plaza_801977C4,
-    D_acropolis_plaza_80197A90,
-    { NULL, D_acropolis_plaza_80197564, NULL, NULL, D_acropolis_plaza_801975A0, NULL, NULL, NULL },
+AnimationSet gAcropolisPlazaAnimation1A4F8 = {
+    _gAcropolisPlazaAnimation1A4F8Records,
+    _gAcropolisPlazaAnimation1A4F8Indices,
+    { NULL, _gAcropolisPlazaAnimation1A4F8Bank1, NULL, NULL, _gAcropolisPlazaAnimation1A4F8Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_plaza_80197AE0[7] = {
+static AnimationPackedPose _gAcropolisPlazaAnimation1A784Bank1[7] = {
 #include "assets/acropolis_plaza_animation_1A784_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_plaza_80197B34[45] = {
+static AnimationPackedRotation _gAcropolisPlazaAnimation1A784Bank4[45] = {
 #include "assets/acropolis_plaza_animation_1A784_bank4.inc"
 };
 
-AnimationRecord D_acropolis_plaza_80197BE8[77] = {
+static AnimationRecord _gAcropolisPlazaAnimation1A784Records[77] = {
 #include "assets/acropolis_plaza_animation_1A784_records.inc"
 };
 
-u16 D_acropolis_plaza_80197D1C[20] = {
+static u16 _gAcropolisPlazaAnimation1A784Indices[20] = {
 #include "assets/acropolis_plaza_animation_1A784_indices.inc"
 };
 
-AnimationSet D_acropolis_plaza_80197D44 = {
-    D_acropolis_plaza_80197BE8,
-    D_acropolis_plaza_80197D1C,
-    { NULL, D_acropolis_plaza_80197AE0, NULL, NULL, D_acropolis_plaza_80197B34, NULL, NULL, NULL },
+AnimationSet gAcropolisPlazaAnimation1A784 = {
+    _gAcropolisPlazaAnimation1A784Records,
+    _gAcropolisPlazaAnimation1A784Indices,
+    { NULL, _gAcropolisPlazaAnimation1A784Bank1, NULL, NULL, _gAcropolisPlazaAnimation1A784Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_plaza_80197D6C[2] = {
+static AnimationPackedPose _gAcropolisPlazaAnimation1AAACBank1[2] = {
 #include "assets/acropolis_plaza_animation_1AAAC_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_plaza_80197D84[66] = {
+static AnimationPackedRotation _gAcropolisPlazaAnimation1AAACBank4[66] = {
 #include "assets/acropolis_plaza_animation_1AAAC_bank4.inc"
 };
 
-AnimationRecord D_acropolis_plaza_80197E8C[110] = {
+static AnimationRecord _gAcropolisPlazaAnimation1AAACRecords[110] = {
 #include "assets/acropolis_plaza_animation_1AAAC_records.inc"
 };
 
-u16 D_acropolis_plaza_80198044[20] = {
+static u16 _gAcropolisPlazaAnimation1AAACIndices[20] = {
 #include "assets/acropolis_plaza_animation_1AAAC_indices.inc"
 };
 
-AnimationSet D_acropolis_plaza_8019806C = {
-    D_acropolis_plaza_80197E8C,
-    D_acropolis_plaza_80198044,
-    { NULL, D_acropolis_plaza_80197D6C, NULL, NULL, D_acropolis_plaza_80197D84, NULL, NULL, NULL },
+AnimationSet gAcropolisPlazaAnimation1AAAC = {
+    _gAcropolisPlazaAnimation1AAACRecords,
+    _gAcropolisPlazaAnimation1AAACIndices,
+    { NULL, _gAcropolisPlazaAnimation1AAACBank1, NULL, NULL, _gAcropolisPlazaAnimation1AAACBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_plaza_80198094[2] = {
+static AnimationPackedPose _gAcropolisPlazaAnimation1AE04Bank1[2] = {
 #include "assets/acropolis_plaza_animation_1AE04_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_plaza_801980AC[78] = {
+static AnimationPackedRotation _gAcropolisPlazaAnimation1AE04Bank4[78] = {
 #include "assets/acropolis_plaza_animation_1AE04_bank4.inc"
 };
 
-AnimationRecord D_acropolis_plaza_801981E4[110] = {
+static AnimationRecord _gAcropolisPlazaAnimation1AE04Records[110] = {
 #include "assets/acropolis_plaza_animation_1AE04_records.inc"
 };
 
-u16 D_acropolis_plaza_8019839C[20] = {
+static u16 _gAcropolisPlazaAnimation1AE04Indices[20] = {
 #include "assets/acropolis_plaza_animation_1AE04_indices.inc"
 };
 
-AnimationSet D_acropolis_plaza_801983C4 = {
-    D_acropolis_plaza_801981E4,
-    D_acropolis_plaza_8019839C,
-    { NULL, D_acropolis_plaza_80198094, NULL, NULL, D_acropolis_plaza_801980AC, NULL, NULL, NULL },
+AnimationSet gAcropolisPlazaAnimation1AE04 = {
+    _gAcropolisPlazaAnimation1AE04Records,
+    _gAcropolisPlazaAnimation1AE04Indices,
+    { NULL, _gAcropolisPlazaAnimation1AE04Bank1, NULL, NULL, _gAcropolisPlazaAnimation1AE04Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_plaza_801983EC[2] = {
+static AnimationPackedPose _gAcropolisPlazaAnimation1AFA4Bank1[2] = {
 #include "assets/acropolis_plaza_animation_1AFA4_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_plaza_80198404[19] = {
+static AnimationPackedRotation _gAcropolisPlazaAnimation1AFA4Bank4[19] = {
 #include "assets/acropolis_plaza_animation_1AFA4_bank4.inc"
 };
 
-AnimationRecord D_acropolis_plaza_80198450[59] = {
+static AnimationRecord _gAcropolisPlazaAnimation1AFA4Records[59] = {
 #include "assets/acropolis_plaza_animation_1AFA4_records.inc"
 };
 
-u16 D_acropolis_plaza_8019853C[20] = {
+static u16 _gAcropolisPlazaAnimation1AFA4Indices[20] = {
 #include "assets/acropolis_plaza_animation_1AFA4_indices.inc"
 };
 
-AnimationSet D_acropolis_plaza_80198564 = {
-    D_acropolis_plaza_80198450,
-    D_acropolis_plaza_8019853C,
-    { NULL, D_acropolis_plaza_801983EC, NULL, NULL, D_acropolis_plaza_80198404, NULL, NULL, NULL },
+AnimationSet gAcropolisPlazaAnimation1AFA4 = {
+    _gAcropolisPlazaAnimation1AFA4Records,
+    _gAcropolisPlazaAnimation1AFA4Indices,
+    { NULL, _gAcropolisPlazaAnimation1AFA4Bank1, NULL, NULL, _gAcropolisPlazaAnimation1AFA4Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_plaza_8019858C[5] = {
+static AnimationPackedPose _gAcropolisPlazaAnimation1B1F8Bank1[5] = {
 #include "assets/acropolis_plaza_animation_1B1F8_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_plaza_801985C8[42] = {
+static AnimationPackedRotation _gAcropolisPlazaAnimation1B1F8Bank4[42] = {
 #include "assets/acropolis_plaza_animation_1B1F8_bank4.inc"
 };
 
-AnimationRecord D_acropolis_plaza_80198670[72] = {
+static AnimationRecord _gAcropolisPlazaAnimation1B1F8Records[72] = {
 #include "assets/acropolis_plaza_animation_1B1F8_records.inc"
 };
 
-u16 D_acropolis_plaza_80198790[20] = {
+static u16 _gAcropolisPlazaAnimation1B1F8Indices[20] = {
 #include "assets/acropolis_plaza_animation_1B1F8_indices.inc"
 };
 
-AnimationSet D_acropolis_plaza_801987B8 = {
-    D_acropolis_plaza_80198670,
-    D_acropolis_plaza_80198790,
-    { NULL, D_acropolis_plaza_8019858C, NULL, NULL, D_acropolis_plaza_801985C8, NULL, NULL, NULL },
+AnimationSet gAcropolisPlazaAnimation1B1F8 = {
+    _gAcropolisPlazaAnimation1B1F8Records,
+    _gAcropolisPlazaAnimation1B1F8Indices,
+    { NULL, _gAcropolisPlazaAnimation1B1F8Bank1, NULL, NULL, _gAcropolisPlazaAnimation1B1F8Bank4, NULL, NULL, NULL },
 };
 
 s16 D_acropolis_plaza_801987E0[32] = {
@@ -2668,30 +2668,30 @@ GpWarpRec D_acropolis_plaza_80198A68[1] = {
     { { .words = { 3072, 0x5AA0, 0, 1800 } }, { 0, 0, 0, 0 }, { .words = { 3072, 0x5AA0, 0, 1800 } }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
 };
 
-SVECTOR D_acropolis_plaza_80198AA0[30] = {
+static SVECTOR _gAcropolisPlazaCollision1BBC0Normals[30] = {
 #include "assets/acropolis_plaza_collision_1BBC0_normals.inc"
 };
 
-SVECTOR D_acropolis_plaza_80198B90[80] = {
+static SVECTOR _gAcropolisPlazaCollision1BBC0Verts[80] = {
 #include "assets/acropolis_plaza_collision_1BBC0_verts.inc"
 };
 
-WorldCollisionGridFace D_acropolis_plaza_80198E10[32] = {
+static WorldCollisionGridFace _gAcropolisPlazaCollision1BBC0Faces[32] = {
 #include "assets/acropolis_plaza_collision_1BBC0_faces.inc"
 };
 
-s16 D_acropolis_plaza_80198F90[192] = {
+static s16 _gAcropolisPlazaCollision1BBC0Cells[192] = {
 #include "assets/acropolis_plaza_collision_1BBC0_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_acropolis_plaza_80198F90[i])
-s16* D_acropolis_plaza_80199110[28] = {
+#define GRID_CELL(i) (&_gAcropolisPlazaCollision1BBC0Cells[i])
+static s16* _gAcropolisPlazaCollision1BBC0Table[28] = {
 #include "assets/acropolis_plaza_collision_1BBC0_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_acropolis_plaza_80199180[1] = {
-    { NULL, D_acropolis_plaza_80198AA0, D_acropolis_plaza_80198B90, D_acropolis_plaza_80198E10, D_acropolis_plaza_80199110, 0, 0, 7, 4, 4000, 32 },
+    { NULL, _gAcropolisPlazaCollision1BBC0Normals, _gAcropolisPlazaCollision1BBC0Verts, _gAcropolisPlazaCollision1BBC0Faces, _gAcropolisPlazaCollision1BBC0Table, 0, 0, 7, 4, 4000, 32 },
 };
 
 WorldCollisionTrigger D_acropolis_plaza_801991A4 = { NULL, NULL, NULL, { 5744, -112, 8227, 0 }, { { 2736, 0, 3200, 0 }, { -3471, 0, -2304, 0 }, { 3471, 0, 2305, 0 }, { -2736, 0, -3199, 0 } }, { 0, 4113, 0, 0 }, { 2106, 0, -3513, 0 }, 4190, WORLD_COLLISION_TRIGGER_ACTION_CLEAR | WORLD_COLLISION_TRIGGER_AUTOMATIC, 0, 119, WORLD_COLLISION_TRIGGER_QUAD, 0 };
@@ -3413,7 +3413,7 @@ void func_acropolis_plaza_8017DBFC(Task* task)
     }
 }
 
-/// Rebuilds the eight box vertices in `D_acropolis_plaza_80198B90` around the
+/// Rebuilds the eight box vertices in `_gAcropolisPlazaCollision1BBC0Verts` around the
 /// scene work's world position.
 static void func_acropolis_plaza_8017DD90(Task* arg0)
 {
@@ -3427,40 +3427,40 @@ static void func_acropolis_plaza_8017DD90(Task* arg0)
     s16                      right;
     s16                      far;
 
-    D_acropolis_plaza_80198B90[0].vx = near;
-    D_acropolis_plaza_80198B90[1].vx = near;
-    D_acropolis_plaza_80198B90[2].vx = near;
-    D_acropolis_plaza_80198B90[3].vx = near;
+    _gAcropolisPlazaCollision1BBC0Verts[0].vx = near;
+    _gAcropolisPlazaCollision1BBC0Verts[1].vx = near;
+    _gAcropolisPlazaCollision1BBC0Verts[2].vx = near;
+    _gAcropolisPlazaCollision1BBC0Verts[3].vx = near;
 
     top   = y + 0x3E8;
     left  = z - 0x1000;
     right = z + 0x3000;
     far   = x + 0x7D0;
 
-    D_acropolis_plaza_80198B90[0].vy = y;
-    D_acropolis_plaza_80198B90[1].vy = y;
-    D_acropolis_plaza_80198B90[2].vy = top;
-    D_acropolis_plaza_80198B90[3].vy = top;
+    _gAcropolisPlazaCollision1BBC0Verts[0].vy = y;
+    _gAcropolisPlazaCollision1BBC0Verts[1].vy = y;
+    _gAcropolisPlazaCollision1BBC0Verts[2].vy = top;
+    _gAcropolisPlazaCollision1BBC0Verts[3].vy = top;
 
-    D_acropolis_plaza_80198B90[0].vz = left;
-    D_acropolis_plaza_80198B90[1].vz = right;
-    D_acropolis_plaza_80198B90[2].vz = left;
-    D_acropolis_plaza_80198B90[3].vz = right;
+    _gAcropolisPlazaCollision1BBC0Verts[0].vz = left;
+    _gAcropolisPlazaCollision1BBC0Verts[1].vz = right;
+    _gAcropolisPlazaCollision1BBC0Verts[2].vz = left;
+    _gAcropolisPlazaCollision1BBC0Verts[3].vz = right;
 
-    D_acropolis_plaza_80198B90[4].vx = far;
-    D_acropolis_plaza_80198B90[5].vx = far;
-    D_acropolis_plaza_80198B90[6].vx = far;
-    D_acropolis_plaza_80198B90[7].vx = far;
+    _gAcropolisPlazaCollision1BBC0Verts[4].vx = far;
+    _gAcropolisPlazaCollision1BBC0Verts[5].vx = far;
+    _gAcropolisPlazaCollision1BBC0Verts[6].vx = far;
+    _gAcropolisPlazaCollision1BBC0Verts[7].vx = far;
 
-    D_acropolis_plaza_80198B90[4].vy = y;
-    D_acropolis_plaza_80198B90[5].vy = y;
-    D_acropolis_plaza_80198B90[6].vy = top;
-    D_acropolis_plaza_80198B90[7].vy = top;
+    _gAcropolisPlazaCollision1BBC0Verts[4].vy = y;
+    _gAcropolisPlazaCollision1BBC0Verts[5].vy = y;
+    _gAcropolisPlazaCollision1BBC0Verts[6].vy = top;
+    _gAcropolisPlazaCollision1BBC0Verts[7].vy = top;
 
-    D_acropolis_plaza_80198B90[4].vz = right;
-    D_acropolis_plaza_80198B90[5].vz = left;
-    D_acropolis_plaza_80198B90[6].vz = right;
-    D_acropolis_plaza_80198B90[7].vz = left;
+    _gAcropolisPlazaCollision1BBC0Verts[4].vz = right;
+    _gAcropolisPlazaCollision1BBC0Verts[5].vz = left;
+    _gAcropolisPlazaCollision1BBC0Verts[6].vz = right;
+    _gAcropolisPlazaCollision1BBC0Verts[7].vz = left;
 }
 
 /// Applies the plaza camera for view set `arg0`.

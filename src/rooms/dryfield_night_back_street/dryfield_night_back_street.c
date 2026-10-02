@@ -117,30 +117,30 @@ GpWarpRec D_dryfield_night_back_street_801803CC[4] = {
     { { .words = { 2048, 9463, 2, 5532 } }, { 0, 0, 0, 0 }, { .words = { 3072, 9800, 2, 4668 } }, { 0, 0, 0, 0 }, 0x53050002, 0x53050001, 0x53050005, 5, 0, 467 },
 };
 
-SVECTOR D_dryfield_night_back_street_801804AC[19] = {
+static SVECTOR _gDryfieldNightBackStreetCollision03574Normals[19] = {
 #include "assets/dryfield_night_back_street_collision_03574_normals.inc"
 };
 
-SVECTOR D_dryfield_night_back_street_80180544[72] = {
+static SVECTOR _gDryfieldNightBackStreetCollision03574Verts[72] = {
 #include "assets/dryfield_night_back_street_collision_03574_verts.inc"
 };
 
-WorldCollisionGridFace D_dryfield_night_back_street_80180784[32] = {
+static WorldCollisionGridFace _gDryfieldNightBackStreetCollision03574Faces[32] = {
 #include "assets/dryfield_night_back_street_collision_03574_faces.inc"
 };
 
-s16 D_dryfield_night_back_street_80180904[224] = {
+static s16 _gDryfieldNightBackStreetCollision03574Cells[224] = {
 #include "assets/dryfield_night_back_street_collision_03574_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_dryfield_night_back_street_80180904[i])
-s16* D_dryfield_night_back_street_80180AC4[28] = {
+#define GRID_CELL(i) (&_gDryfieldNightBackStreetCollision03574Cells[i])
+static s16* _gDryfieldNightBackStreetCollision03574Table[28] = {
 #include "assets/dryfield_night_back_street_collision_03574_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_dryfield_night_back_street_80180B34[1] = {
-    { NULL, D_dryfield_night_back_street_801804AC, D_dryfield_night_back_street_80180544, D_dryfield_night_back_street_80180784, D_dryfield_night_back_street_80180AC4, 0x2AFE, 100, 7, 4, 4000, 32 },
+    { NULL, _gDryfieldNightBackStreetCollision03574Normals, _gDryfieldNightBackStreetCollision03574Verts, _gDryfieldNightBackStreetCollision03574Faces, _gDryfieldNightBackStreetCollision03574Table, 0x2AFE, 100, 7, 4, 4000, 32 },
 };
 
 GpViewRec D_dryfield_night_back_street_80180B58[5] = {

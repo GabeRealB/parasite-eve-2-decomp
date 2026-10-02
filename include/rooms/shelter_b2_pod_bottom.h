@@ -12,13 +12,13 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-extern TmdSource D_shelter_b2_pod_bottom_80187B10;
+extern TmdSource gShelterB2PodBottomModel0A2A0;
 
-extern TmdSource D_shelter_b2_pod_bottom_80187E14;
+extern TmdSource gShelterB2PodBottomModel0A68C;
 
-extern TmdSource D_shelter_b2_pod_bottom_80188264;
+extern TmdSource gShelterB2PodBottomModel0AA08;
 
-extern TmdSource D_shelter_b2_pod_bottom_8018864C;
+extern TmdSource gShelterB2PodBottomModel0AE48;
 
 extern GpAreaVariant D_shelter_b2_pod_bottom_80187678[11];
 

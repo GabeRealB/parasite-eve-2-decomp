@@ -191,158 +191,158 @@ EvsCommand D_shelter_b1_pod_access_tunnel_80181120[7] = {
 
 TaskDesc D_shelter_b1_pod_access_tunnel_801811C8 = { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_pod_access_tunnel_8017DF40, { .value = 0 } };
 
-AnimationPackedPose D_shelter_b1_pod_access_tunnel_801811D4[6] = {
+static AnimationPackedPose _gShelterB1PodAccessTunnelAnimation03EF0Bank1[6] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_03EF0_bank1.inc"
 };
 
-AnimationPackedRotation D_shelter_b1_pod_access_tunnel_8018121C[46] = {
+static AnimationPackedRotation _gShelterB1PodAccessTunnelAnimation03EF0Bank4[46] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_03EF0_bank4.inc"
 };
 
-AnimationRecord D_shelter_b1_pod_access_tunnel_801812D4[109] = {
+static AnimationRecord _gShelterB1PodAccessTunnelAnimation03EF0Records[109] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_03EF0_records.inc"
 };
 
-u16 D_shelter_b1_pod_access_tunnel_80181488[20] = {
+static u16 _gShelterB1PodAccessTunnelAnimation03EF0Indices[20] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_03EF0_indices.inc"
 };
 
-AnimationSet D_shelter_b1_pod_access_tunnel_801814B0 = {
-    D_shelter_b1_pod_access_tunnel_801812D4,
-    D_shelter_b1_pod_access_tunnel_80181488,
-    { NULL, D_shelter_b1_pod_access_tunnel_801811D4, NULL, NULL, D_shelter_b1_pod_access_tunnel_8018121C, NULL, NULL, NULL },
+static AnimationSet _gShelterB1PodAccessTunnelAnimation03EF0 = {
+    _gShelterB1PodAccessTunnelAnimation03EF0Records,
+    _gShelterB1PodAccessTunnelAnimation03EF0Indices,
+    { NULL, _gShelterB1PodAccessTunnelAnimation03EF0Bank1, NULL, NULL, _gShelterB1PodAccessTunnelAnimation03EF0Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_shelter_b1_pod_access_tunnel_801814D8[4] = {
+static AnimationPackedPose _gShelterB1PodAccessTunnelAnimation041A4Bank1[4] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_041A4_bank1.inc"
 };
 
-AnimationPackedRotation D_shelter_b1_pod_access_tunnel_80181508[49] = {
+static AnimationPackedRotation _gShelterB1PodAccessTunnelAnimation041A4Bank4[49] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_041A4_bank4.inc"
 };
 
-AnimationRecord D_shelter_b1_pod_access_tunnel_801815CC[92] = {
+static AnimationRecord _gShelterB1PodAccessTunnelAnimation041A4Records[92] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_041A4_records.inc"
 };
 
-u16 D_shelter_b1_pod_access_tunnel_8018173C[20] = {
+static u16 _gShelterB1PodAccessTunnelAnimation041A4Indices[20] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_041A4_indices.inc"
 };
 
-AnimationSet D_shelter_b1_pod_access_tunnel_80181764 = {
-    D_shelter_b1_pod_access_tunnel_801815CC,
-    D_shelter_b1_pod_access_tunnel_8018173C,
-    { NULL, D_shelter_b1_pod_access_tunnel_801814D8, NULL, NULL, D_shelter_b1_pod_access_tunnel_80181508, NULL, NULL, NULL },
+static AnimationSet _gShelterB1PodAccessTunnelAnimation041A4 = {
+    _gShelterB1PodAccessTunnelAnimation041A4Records,
+    _gShelterB1PodAccessTunnelAnimation041A4Indices,
+    { NULL, _gShelterB1PodAccessTunnelAnimation041A4Bank1, NULL, NULL, _gShelterB1PodAccessTunnelAnimation041A4Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_shelter_b1_pod_access_tunnel_8018178C[14] = {
+static AnimationPackedPose _gShelterB1PodAccessTunnelAnimation048DCBank1[14] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_048DC_bank1.inc"
 };
 
-AnimationPackedRotation D_shelter_b1_pod_access_tunnel_80181834[159] = {
+static AnimationPackedRotation _gShelterB1PodAccessTunnelAnimation048DCBank4[159] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_048DC_bank4.inc"
 };
 
-AnimationRecord D_shelter_b1_pod_access_tunnel_80181AB0[241] = {
+static AnimationRecord _gShelterB1PodAccessTunnelAnimation048DCRecords[241] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_048DC_records.inc"
 };
 
-u16 D_shelter_b1_pod_access_tunnel_80181E74[20] = {
+static u16 _gShelterB1PodAccessTunnelAnimation048DCIndices[20] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_048DC_indices.inc"
 };
 
-AnimationSet D_shelter_b1_pod_access_tunnel_80181E9C = {
-    D_shelter_b1_pod_access_tunnel_80181AB0,
-    D_shelter_b1_pod_access_tunnel_80181E74,
-    { NULL, D_shelter_b1_pod_access_tunnel_8018178C, NULL, NULL, D_shelter_b1_pod_access_tunnel_80181834, NULL, NULL, NULL },
+static AnimationSet _gShelterB1PodAccessTunnelAnimation048DC = {
+    _gShelterB1PodAccessTunnelAnimation048DCRecords,
+    _gShelterB1PodAccessTunnelAnimation048DCIndices,
+    { NULL, _gShelterB1PodAccessTunnelAnimation048DCBank1, NULL, NULL, _gShelterB1PodAccessTunnelAnimation048DCBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_shelter_b1_pod_access_tunnel_80181EC4[4] = {
+static AnimationPackedPose _gShelterB1PodAccessTunnelAnimation04BA0Bank1[4] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_04BA0_bank1.inc"
 };
 
-AnimationPackedRotation D_shelter_b1_pod_access_tunnel_80181EF4[35] = {
+static AnimationPackedRotation _gShelterB1PodAccessTunnelAnimation04BA0Bank4[35] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_04BA0_bank4.inc"
 };
 
-AnimationRecord D_shelter_b1_pod_access_tunnel_80181F80[110] = {
+static AnimationRecord _gShelterB1PodAccessTunnelAnimation04BA0Records[110] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_04BA0_records.inc"
 };
 
-u16 D_shelter_b1_pod_access_tunnel_80182138[20] = {
+static u16 _gShelterB1PodAccessTunnelAnimation04BA0Indices[20] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_04BA0_indices.inc"
 };
 
-AnimationSet D_shelter_b1_pod_access_tunnel_80182160 = {
-    D_shelter_b1_pod_access_tunnel_80181F80,
-    D_shelter_b1_pod_access_tunnel_80182138,
-    { NULL, D_shelter_b1_pod_access_tunnel_80181EC4, NULL, NULL, D_shelter_b1_pod_access_tunnel_80181EF4, NULL, NULL, NULL },
+static AnimationSet _gShelterB1PodAccessTunnelAnimation04BA0 = {
+    _gShelterB1PodAccessTunnelAnimation04BA0Records,
+    _gShelterB1PodAccessTunnelAnimation04BA0Indices,
+    { NULL, _gShelterB1PodAccessTunnelAnimation04BA0Bank1, NULL, NULL, _gShelterB1PodAccessTunnelAnimation04BA0Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_shelter_b1_pod_access_tunnel_80182188[2] = {
+static AnimationPackedPose _gShelterB1PodAccessTunnelAnimation04DF4Bank1[2] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_04DF4_bank1.inc"
 };
 
-AnimationPackedRotation D_shelter_b1_pod_access_tunnel_801821A0[29] = {
+static AnimationPackedRotation _gShelterB1PodAccessTunnelAnimation04DF4Bank4[29] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_04DF4_bank4.inc"
 };
 
-AnimationRecord D_shelter_b1_pod_access_tunnel_80182214[94] = {
+static AnimationRecord _gShelterB1PodAccessTunnelAnimation04DF4Records[94] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_04DF4_records.inc"
 };
 
-u16 D_shelter_b1_pod_access_tunnel_8018238C[20] = {
+static u16 _gShelterB1PodAccessTunnelAnimation04DF4Indices[20] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_04DF4_indices.inc"
 };
 
-AnimationSet D_shelter_b1_pod_access_tunnel_801823B4 = {
-    D_shelter_b1_pod_access_tunnel_80182214,
-    D_shelter_b1_pod_access_tunnel_8018238C,
-    { NULL, D_shelter_b1_pod_access_tunnel_80182188, NULL, NULL, D_shelter_b1_pod_access_tunnel_801821A0, NULL, NULL, NULL },
+static AnimationSet _gShelterB1PodAccessTunnelAnimation04DF4 = {
+    _gShelterB1PodAccessTunnelAnimation04DF4Records,
+    _gShelterB1PodAccessTunnelAnimation04DF4Indices,
+    { NULL, _gShelterB1PodAccessTunnelAnimation04DF4Bank1, NULL, NULL, _gShelterB1PodAccessTunnelAnimation04DF4Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_shelter_b1_pod_access_tunnel_801823DC[10] = {
+static AnimationPackedPose _gShelterB1PodAccessTunnelAnimation05378Bank1[10] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_05378_bank1.inc"
 };
 
-AnimationPackedRotation D_shelter_b1_pod_access_tunnel_80182454[135] = {
+static AnimationPackedRotation _gShelterB1PodAccessTunnelAnimation05378Bank4[135] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_05378_bank4.inc"
 };
 
-AnimationRecord D_shelter_b1_pod_access_tunnel_80182670[168] = {
+static AnimationRecord _gShelterB1PodAccessTunnelAnimation05378Records[168] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_05378_records.inc"
 };
 
-u16 D_shelter_b1_pod_access_tunnel_80182910[20] = {
+static u16 _gShelterB1PodAccessTunnelAnimation05378Indices[20] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_05378_indices.inc"
 };
 
-AnimationSet D_shelter_b1_pod_access_tunnel_80182938 = {
-    D_shelter_b1_pod_access_tunnel_80182670,
-    D_shelter_b1_pod_access_tunnel_80182910,
-    { NULL, D_shelter_b1_pod_access_tunnel_801823DC, NULL, NULL, D_shelter_b1_pod_access_tunnel_80182454, NULL, NULL, NULL },
+static AnimationSet _gShelterB1PodAccessTunnelAnimation05378 = {
+    _gShelterB1PodAccessTunnelAnimation05378Records,
+    _gShelterB1PodAccessTunnelAnimation05378Indices,
+    { NULL, _gShelterB1PodAccessTunnelAnimation05378Bank1, NULL, NULL, _gShelterB1PodAccessTunnelAnimation05378Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_shelter_b1_pod_access_tunnel_80182960[6] = {
+static AnimationPackedPose _gShelterB1PodAccessTunnelAnimation05744Bank1[6] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_05744_bank1.inc"
 };
 
-AnimationPackedRotation D_shelter_b1_pod_access_tunnel_801829A8[64] = {
+static AnimationPackedRotation _gShelterB1PodAccessTunnelAnimation05744Bank4[64] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_05744_bank4.inc"
 };
 
-AnimationRecord D_shelter_b1_pod_access_tunnel_80182AA8[141] = {
+static AnimationRecord _gShelterB1PodAccessTunnelAnimation05744Records[141] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_05744_records.inc"
 };
 
-u16 D_shelter_b1_pod_access_tunnel_80182CDC[20] = {
+static u16 _gShelterB1PodAccessTunnelAnimation05744Indices[20] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_05744_indices.inc"
 };
 
-AnimationSet D_shelter_b1_pod_access_tunnel_80182D04 = {
-    D_shelter_b1_pod_access_tunnel_80182AA8,
-    D_shelter_b1_pod_access_tunnel_80182CDC,
-    { NULL, D_shelter_b1_pod_access_tunnel_80182960, NULL, NULL, D_shelter_b1_pod_access_tunnel_801829A8, NULL, NULL, NULL },
+static AnimationSet _gShelterB1PodAccessTunnelAnimation05744 = {
+    _gShelterB1PodAccessTunnelAnimation05744Records,
+    _gShelterB1PodAccessTunnelAnimation05744Indices,
+    { NULL, _gShelterB1PodAccessTunnelAnimation05744Bank1, NULL, NULL, _gShelterB1PodAccessTunnelAnimation05744Bank4, NULL, NULL, NULL },
 };
 
 TaskDesc D_shelter_b1_pod_access_tunnel_80182D2C[3] = {
@@ -353,13 +353,13 @@ TaskDesc D_shelter_b1_pod_access_tunnel_80182D2C[3] = {
 
 AnimationSet* D_shelter_b1_pod_access_tunnel_80182D50[8] = {
     NULL,
-    &D_shelter_b1_pod_access_tunnel_801814B0,
-    &D_shelter_b1_pod_access_tunnel_80181764,
-    &D_shelter_b1_pod_access_tunnel_80181E9C,
-    &D_shelter_b1_pod_access_tunnel_80182160,
-    &D_shelter_b1_pod_access_tunnel_801823B4,
-    &D_shelter_b1_pod_access_tunnel_80182938,
-    &D_shelter_b1_pod_access_tunnel_80182D04,
+    &_gShelterB1PodAccessTunnelAnimation03EF0,
+    &_gShelterB1PodAccessTunnelAnimation041A4,
+    &_gShelterB1PodAccessTunnelAnimation048DC,
+    &_gShelterB1PodAccessTunnelAnimation04BA0,
+    &_gShelterB1PodAccessTunnelAnimation04DF4,
+    &_gShelterB1PodAccessTunnelAnimation05378,
+    &_gShelterB1PodAccessTunnelAnimation05744,
 };
 
 GpCopyArg D_shelter_b1_pod_access_tunnel_80182D70 = { { .sets = D_shelter_b1_pod_access_tunnel_80182D50 }, 8 };
@@ -573,29 +573,29 @@ GpWarpRec D_shelter_b1_pod_access_tunnel_80183A1C[3] = {
     { { .words = { 2048, 4530, 0, -1050 } }, { 0, 0, 0, 0 }, { .words = { 3328, 5350, 0, -1750 } }, { 0, 0, 0, 0 }, 0x54110007, 0, 0, 4, 0, 438 },
 };
 
-SVECTOR D_shelter_b1_pod_access_tunnel_80183AC4[6] = {
+static SVECTOR _gShelterB1PodAccessTunnelCollision06664Normals[6] = {
 #include "assets/shelter_b1_pod_access_tunnel_collision_06664_normals.inc"
 };
 
-SVECTOR D_shelter_b1_pod_access_tunnel_80183AF4[12] = {
+static SVECTOR _gShelterB1PodAccessTunnelCollision06664Verts[12] = {
 #include "assets/shelter_b1_pod_access_tunnel_collision_06664_verts.inc"
 };
 
-WorldCollisionGridFace D_shelter_b1_pod_access_tunnel_80183B54[10] = {
+static WorldCollisionGridFace _gShelterB1PodAccessTunnelCollision06664Faces[10] = {
 #include "assets/shelter_b1_pod_access_tunnel_collision_06664_faces.inc"
 };
 
-s16 D_shelter_b1_pod_access_tunnel_80183BCC[36] = {
+static s16 _gShelterB1PodAccessTunnelCollision06664Cells[36] = {
 #include "assets/shelter_b1_pod_access_tunnel_collision_06664_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_shelter_b1_pod_access_tunnel_80183BCC[i])
-s16* D_shelter_b1_pod_access_tunnel_80183C14[4] = {
+#define GRID_CELL(i) (&_gShelterB1PodAccessTunnelCollision06664Cells[i])
+static s16* _gShelterB1PodAccessTunnelCollision06664Table[4] = {
 #include "assets/shelter_b1_pod_access_tunnel_collision_06664_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b1_pod_access_tunnel_80183C24 = { NULL, D_shelter_b1_pod_access_tunnel_80183AC4, D_shelter_b1_pod_access_tunnel_80183AF4, D_shelter_b1_pod_access_tunnel_80183B54, D_shelter_b1_pod_access_tunnel_80183C14, -750, 6500, 2, 2, 4000, 10 };
+WorldCollisionGrid D_shelter_b1_pod_access_tunnel_80183C24 = { NULL, _gShelterB1PodAccessTunnelCollision06664Normals, _gShelterB1PodAccessTunnelCollision06664Verts, _gShelterB1PodAccessTunnelCollision06664Faces, _gShelterB1PodAccessTunnelCollision06664Table, -750, 6500, 2, 2, 4000, 10 };
 
 GpViewRec D_shelter_b1_pod_access_tunnel_80183C48[14] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -4000, 0x37D3, 2550 } }, 296 },

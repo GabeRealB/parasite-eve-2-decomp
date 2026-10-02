@@ -74,29 +74,29 @@ GpWarpRec D_shelter_b1_armory_80182588[4] = {
     { { .words = { 1024, 5900, 0, -1820 } }, { 0, 0, 0, 0 }, { .words = { 1024, 5900, 0, -1820 } }, { 0, 0, 0, 0 }, 0x540D0007, 0x540D0006, 0x540D000A, 4, 0, 429 },
 };
 
-SVECTOR D_shelter_b1_armory_80182668[11] = {
+static SVECTOR _gShelterB1ArmoryCollision05910Normals[11] = {
 #include "assets/shelter_b1_armory_collision_05910_normals.inc"
 };
 
-SVECTOR D_shelter_b1_armory_801826C0[111] = {
+static SVECTOR _gShelterB1ArmoryCollision05910Verts[111] = {
 #include "assets/shelter_b1_armory_collision_05910_verts.inc"
 };
 
-WorldCollisionGridFace D_shelter_b1_armory_80182A38[55] = {
+static WorldCollisionGridFace _gShelterB1ArmoryCollision05910Faces[55] = {
 #include "assets/shelter_b1_armory_collision_05910_faces.inc"
 };
 
-s16 D_shelter_b1_armory_80182CCC[234] = {
+static s16 _gShelterB1ArmoryCollision05910Cells[234] = {
 #include "assets/shelter_b1_armory_collision_05910_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_shelter_b1_armory_80182CCC[i])
-s16* D_shelter_b1_armory_80182EA0[12] = {
+#define GRID_CELL(i) (&_gShelterB1ArmoryCollision05910Cells[i])
+static s16* _gShelterB1ArmoryCollision05910Table[12] = {
 #include "assets/shelter_b1_armory_collision_05910_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b1_armory_80182ED0 = { NULL, D_shelter_b1_armory_80182668, D_shelter_b1_armory_801826C0, D_shelter_b1_armory_80182A38, D_shelter_b1_armory_80182EA0, 1400, 4400, 4, 3, 4000, 55 };
+WorldCollisionGrid D_shelter_b1_armory_80182ED0 = { NULL, _gShelterB1ArmoryCollision05910Normals, _gShelterB1ArmoryCollision05910Verts, _gShelterB1ArmoryCollision05910Faces, _gShelterB1ArmoryCollision05910Table, 1400, 4400, 4, 3, 4000, 55 };
 
 GpViewRec D_shelter_b1_armory_80182EF4[13] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -6200, 0x7530, -1480 } }, 564 },

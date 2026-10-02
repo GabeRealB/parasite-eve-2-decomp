@@ -74,10 +74,10 @@ extern GeneratorClip gGeneratorHitPulse[];
 extern s16           gGeneratorPoseStartFrames[];
 extern s16           gGeneratorReleaseIds[];
 
-extern AnimationSet D_actor_105400_8013C5E0;
-extern AnimationSet D_actor_105400_8013CA20;
-extern AnimationSet D_actor_105400_8013CE08;
-extern TmdSource    D_actor_105400_8013C46C;
+static AnimationSet _gActor105400Animation0A7C0;
+static AnimationSet _gActor105400Animation0AC00;
+static AnimationSet _gActor105400Animation0AFE8;
+static TmdSource    _gActor105400ProtoGeneratorBody;
 
 GeneratorMsgEntry gGeneratorMessages[3] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = generatorSetReleaseBits } },
@@ -109,102 +109,102 @@ SVECTOR gGeneratorHitEffectOffsets[2] = {
     { 0, -1000, 1600, 0 },
 };
 
-TmdBone D_actor_105400_80133A50[10] = {
+static TmdBone _gActor105400ProtoGeneratorBodySkeleton[10] = {
 #include "assets/proto_generator_body_skeleton.inc"
 };
 
-u32 D_actor_105400_80133BB8[10] = {
+static u32 _gActor105400ProtoGeneratorBodyPartVerts[10] = {
 #include "assets/proto_generator_body_partVerts.inc"
 };
 
-SVECTOR D_actor_105400_80133BE0[603] = {
+static SVECTOR _gActor105400ProtoGeneratorBodyVerts[603] = {
 #include "assets/proto_generator_body_verts.inc"
 };
 
-SVECTOR D_actor_105400_80134EB8[641] = {
+static SVECTOR _gActor105400ProtoGeneratorBodyNormals[641] = {
 #include "assets/proto_generator_body_normals.inc"
 };
 
-u32 D_actor_105400_801362C0[6251] = {
+static u32 _gActor105400ProtoGeneratorBodyStream[6251] = {
 #include "assets/proto_generator_body_stream.inc"
 };
 
-TmdSource D_actor_105400_8013C46C = {
+static TmdSource _gActor105400ProtoGeneratorBody = {
     0,
     37128,
     7312,
     10,
-    D_actor_105400_80133BB8,
-    D_actor_105400_80133BE0,
-    D_actor_105400_80134EB8,
-    D_actor_105400_80133A50,
-    D_actor_105400_801362C0,
+    _gActor105400ProtoGeneratorBodyPartVerts,
+    _gActor105400ProtoGeneratorBodyVerts,
+    _gActor105400ProtoGeneratorBodyNormals,
+    _gActor105400ProtoGeneratorBodySkeleton,
+    _gActor105400ProtoGeneratorBodyStream,
 };
 
-AnimationPackedPose D_actor_105400_8013C490[4] = {
+static AnimationPackedPose _gActor105400Animation0A7C0Bank1[4] = {
 #include "assets/actor_105400_animation_0A7C0_bank1.inc"
 };
 
-AnimationPackedRotation D_actor_105400_8013C4C0[9] = {
+static AnimationPackedRotation _gActor105400Animation0A7C0Bank4[9] = {
 #include "assets/actor_105400_animation_0A7C0_bank4.inc"
 };
 
-AnimationRecord D_actor_105400_8013C4E4[58] = {
+static AnimationRecord _gActor105400Animation0A7C0Records[58] = {
 #include "assets/actor_105400_animation_0A7C0_records.inc"
 };
 
-u16 D_actor_105400_8013C5CC[10] = {
+static u16 _gActor105400Animation0A7C0Indices[10] = {
 #include "assets/actor_105400_animation_0A7C0_indices.inc"
 };
 
-AnimationSet D_actor_105400_8013C5E0 = {
-    D_actor_105400_8013C4E4,
-    D_actor_105400_8013C5CC,
-    { NULL, D_actor_105400_8013C490, NULL, NULL, D_actor_105400_8013C4C0, NULL, NULL, NULL },
+static AnimationSet _gActor105400Animation0A7C0 = {
+    _gActor105400Animation0A7C0Records,
+    _gActor105400Animation0A7C0Indices,
+    { NULL, _gActor105400Animation0A7C0Bank1, NULL, NULL, _gActor105400Animation0A7C0Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_actor_105400_8013C608[11] = {
+static AnimationPackedPose _gActor105400Animation0AC00Bank1[11] = {
 #include "assets/actor_105400_animation_0AC00_bank1.inc"
 };
 
-AnimationPackedRotation D_actor_105400_8013C68C[90] = {
+static AnimationPackedRotation _gActor105400Animation0AC00Bank4[90] = {
 #include "assets/actor_105400_animation_0AC00_bank4.inc"
 };
 
-AnimationRecord D_actor_105400_8013C7F4[134] = {
+static AnimationRecord _gActor105400Animation0AC00Records[134] = {
 #include "assets/actor_105400_animation_0AC00_records.inc"
 };
 
-u16 D_actor_105400_8013CA0C[10] = {
+static u16 _gActor105400Animation0AC00Indices[10] = {
 #include "assets/actor_105400_animation_0AC00_indices.inc"
 };
 
-AnimationSet D_actor_105400_8013CA20 = {
-    D_actor_105400_8013C7F4,
-    D_actor_105400_8013CA0C,
-    { NULL, D_actor_105400_8013C608, NULL, NULL, D_actor_105400_8013C68C, NULL, NULL, NULL },
+static AnimationSet _gActor105400Animation0AC00 = {
+    _gActor105400Animation0AC00Records,
+    _gActor105400Animation0AC00Indices,
+    { NULL, _gActor105400Animation0AC00Bank1, NULL, NULL, _gActor105400Animation0AC00Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_actor_105400_8013CA48[8] = {
+static AnimationPackedPose _gActor105400Animation0AFE8Bank1[8] = {
 #include "assets/actor_105400_animation_0AFE8_bank1.inc"
 };
 
-AnimationPackedRotation D_actor_105400_8013CAA8[85] = {
+static AnimationPackedRotation _gActor105400Animation0AFE8Bank4[85] = {
 #include "assets/actor_105400_animation_0AFE8_bank4.inc"
 };
 
-AnimationRecord D_actor_105400_8013CBFC[126] = {
+static AnimationRecord _gActor105400Animation0AFE8Records[126] = {
 #include "assets/actor_105400_animation_0AFE8_records.inc"
 };
 
-u16 D_actor_105400_8013CDF4[10] = {
+static u16 _gActor105400Animation0AFE8Indices[10] = {
 #include "assets/actor_105400_animation_0AFE8_indices.inc"
 };
 
-AnimationSet D_actor_105400_8013CE08 = {
-    D_actor_105400_8013CBFC,
-    D_actor_105400_8013CDF4,
-    { NULL, D_actor_105400_8013CA48, NULL, NULL, D_actor_105400_8013CAA8, NULL, NULL, NULL },
+static AnimationSet _gActor105400Animation0AFE8 = {
+    _gActor105400Animation0AFE8Records,
+    _gActor105400Animation0AFE8Indices,
+    { NULL, _gActor105400Animation0AFE8Bank1, NULL, NULL, _gActor105400Animation0AFE8Bank4, NULL, NULL, NULL },
 };
 
 EnemyParams gGeneratorParams = { NULL, 250, 200, 100, 100, 100, 0, 0, 0 };
@@ -246,15 +246,15 @@ GeneratorClip gGeneratorHitPulse[4] = {
 };
 
 TaskDesc gGeneratorTasks[2] = {
-    { { { TASK_BODY_TMD, 96 } }, generatorTask, { .model = &D_actor_105400_8013C46C } },
+    { { { TASK_BODY_TMD, 96 } }, generatorTask, { .model = &_gActor105400ProtoGeneratorBody } },
     { { { TASK_BODY_COORD, 96 } }, generatorLifeSupportTask, { .value = 0 } },
 };
 
 AnimationSet* gGeneratorAnimSets[4] = {
     NULL,
-    &D_actor_105400_8013C5E0,
-    &D_actor_105400_8013CA20,
-    &D_actor_105400_8013CE08,
+    &_gActor105400Animation0A7C0,
+    &_gActor105400Animation0AC00,
+    &_gActor105400Animation0AFE8,
 };
 
 #include "../../shared/generator_body_hit.inc.c"

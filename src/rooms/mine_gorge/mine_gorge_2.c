@@ -126,56 +126,56 @@ GpWarpRec D_mine_gorge_8017E7F0[3] = {
     { { .words = { 1024, 300, 0, 1500 } }, { 0, 0, 0, 0 }, { .words = { 1024, 300, 0, 1500 } }, { 0, 0, 0, 0 }, 0x54050006, 0x54050005, 0x54050008, 6, 0, 448 },
 };
 
-SVECTOR D_mine_gorge_8017E898[30] = {
+static SVECTOR _gMineGorgeCollision01BC4Normals[30] = {
 #include "assets/mine_gorge_collision_01BC4_normals.inc"
 };
 
-SVECTOR D_mine_gorge_8017E988[120] = {
+static SVECTOR _gMineGorgeCollision01BC4Verts[120] = {
 #include "assets/mine_gorge_collision_01BC4_verts.inc"
 };
 
-WorldCollisionGridFace D_mine_gorge_8017ED48[49] = {
+static WorldCollisionGridFace _gMineGorgeCollision01BC4Faces[49] = {
 #include "assets/mine_gorge_collision_01BC4_faces.inc"
 };
 
-s16 D_mine_gorge_8017EF94[224] = {
+static s16 _gMineGorgeCollision01BC4Cells[224] = {
 #include "assets/mine_gorge_collision_01BC4_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_mine_gorge_8017EF94[i])
-s16* D_mine_gorge_8017F154[12] = {
+#define GRID_CELL(i) (&_gMineGorgeCollision01BC4Cells[i])
+static s16* _gMineGorgeCollision01BC4Table[12] = {
 #include "assets/mine_gorge_collision_01BC4_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_mine_gorge_8017F184[1] = {
-    { NULL, D_mine_gorge_8017E898, D_mine_gorge_8017E988, D_mine_gorge_8017ED48, D_mine_gorge_8017F154, 1244, 2085, 6, 2, 4000, 49 },
+    { NULL, _gMineGorgeCollision01BC4Normals, _gMineGorgeCollision01BC4Verts, _gMineGorgeCollision01BC4Faces, _gMineGorgeCollision01BC4Table, 1244, 2085, 6, 2, 4000, 49 },
 };
 
-SVECTOR D_mine_gorge_8017F1A8[28] = {
+static SVECTOR _gMineGorgeCollision02430Normals[28] = {
 #include "assets/mine_gorge_collision_02430_normals.inc"
 };
 
-SVECTOR D_mine_gorge_8017F288[108] = {
+static SVECTOR _gMineGorgeCollision02430Verts[108] = {
 #include "assets/mine_gorge_collision_02430_verts.inc"
 };
 
-WorldCollisionGridFace D_mine_gorge_8017F5E8[46] = {
+static WorldCollisionGridFace _gMineGorgeCollision02430Faces[46] = {
 #include "assets/mine_gorge_collision_02430_faces.inc"
 };
 
-s16 D_mine_gorge_8017F810[216] = {
+static s16 _gMineGorgeCollision02430Cells[216] = {
 #include "assets/mine_gorge_collision_02430_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_mine_gorge_8017F810[i])
-s16* D_mine_gorge_8017F9C0[12] = {
+#define GRID_CELL(i) (&_gMineGorgeCollision02430Cells[i])
+static s16* _gMineGorgeCollision02430Table[12] = {
 #include "assets/mine_gorge_collision_02430_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_mine_gorge_8017F9F0[1] = {
-    { NULL, D_mine_gorge_8017F1A8, D_mine_gorge_8017F288, D_mine_gorge_8017F5E8, D_mine_gorge_8017F9C0, 1244, 2085, 6, 2, 4000, 46 },
+    { NULL, _gMineGorgeCollision02430Normals, _gMineGorgeCollision02430Verts, _gMineGorgeCollision02430Faces, _gMineGorgeCollision02430Table, 1244, 2085, 6, 2, 4000, 46 },
 };
 
 GpViewRec D_mine_gorge_8017FA14[11] = {

@@ -132,30 +132,30 @@ GpWarpRec D_neo_ark_pyramid_8017FC6C[2] = {
     { { .words = { 3072, 3200, -650, -7490 } }, { 0, 0, 0, 0 }, { .words = { 3072, 4200, -1160, -7500 } }, { 0, 0, 0, 0 }, 0, 0, 0, 4, 1, 0 },
 };
 
-SVECTOR D_neo_ark_pyramid_8017FCDC[13] = {
+static SVECTOR _gNeoArkPyramidCollision02D04Normals[13] = {
 #include "assets/neo_ark_pyramid_collision_02D04_normals.inc"
 };
 
-SVECTOR D_neo_ark_pyramid_8017FD44[66] = {
+static SVECTOR _gNeoArkPyramidCollision02D04Verts[66] = {
 #include "assets/neo_ark_pyramid_collision_02D04_verts.inc"
 };
 
-WorldCollisionGridFace D_neo_ark_pyramid_8017FF54[36] = {
+static WorldCollisionGridFace _gNeoArkPyramidCollision02D04Faces[36] = {
 #include "assets/neo_ark_pyramid_collision_02D04_faces.inc"
 };
 
-s16 D_neo_ark_pyramid_80180104[194] = {
+static s16 _gNeoArkPyramidCollision02D04Cells[194] = {
 #include "assets/neo_ark_pyramid_collision_02D04_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_neo_ark_pyramid_80180104[i])
-s16* D_neo_ark_pyramid_80180288[15] = {
+#define GRID_CELL(i) (&_gNeoArkPyramidCollision02D04Cells[i])
+static s16* _gNeoArkPyramidCollision02D04Table[15] = {
 #include "assets/neo_ark_pyramid_collision_02D04_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_neo_ark_pyramid_801802C4[1] = {
-    { NULL, D_neo_ark_pyramid_8017FCDC, D_neo_ark_pyramid_8017FD44, D_neo_ark_pyramid_8017FF54, D_neo_ark_pyramid_80180288, 4000, 0x2CEC, 5, 3, 4000, 36 },
+    { NULL, _gNeoArkPyramidCollision02D04Normals, _gNeoArkPyramidCollision02D04Verts, _gNeoArkPyramidCollision02D04Faces, _gNeoArkPyramidCollision02D04Table, 4000, 0x2CEC, 5, 3, 4000, 36 },
 };
 
 GpViewRec D_neo_ark_pyramid_801802E8[8] = {

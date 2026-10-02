@@ -333,10 +333,10 @@ void                             func_acropolis_bridge_8017D954(void);
 void                             func_acropolis_bridge_8017F2D0(s32);
 void                             func_acropolis_bridge_8017F358(s32);
 
-extern SVECTOR D_acropolis_bridge_80187E04[171];
-extern TmdBone D_acropolis_bridge_80187DDC[1];
-extern u32     D_acropolis_bridge_80187E00[1];
-extern u32     D_acropolis_bridge_8018835C[691];
+static SVECTOR _gAcropolisBridgeModel0AD9CVerts[171];
+static TmdBone _gAcropolisBridgeModel0AD9CSkeleton[1];
+static u32     _gAcropolisBridgeModel0AD9CPartVerts[1];
+static u32     _gAcropolisBridgeModel0AD9CStream[691];
 s32            func_acropolis_bridge_8017D6F4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32            func_acropolis_bridge_8017D7F0(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32            func_acropolis_bridge_8017D7F8(Task*, s32, s32, s32);
@@ -371,24 +371,24 @@ void                                func_acropolis_bridge_801874DC(Task*);
 void                                func_acropolis_bridge_80187D04(Task*);
 void                                func_acropolis_bridge_80187D80(Task*);
 
-TmdBone D_acropolis_bridge_80187DDC[1] = {
+static TmdBone _gAcropolisBridgeModel0AD9CSkeleton[1] = {
 #include "assets/acropolis_bridge_model_0AD9C_skeleton.inc"
 };
 
-u32 D_acropolis_bridge_80187E00[1] = {
+static u32 _gAcropolisBridgeModel0AD9CPartVerts[1] = {
 #include "assets/acropolis_bridge_model_0AD9C_partVerts.inc"
 };
 
-SVECTOR D_acropolis_bridge_80187E04[171] = {
+static SVECTOR _gAcropolisBridgeModel0AD9CVerts[171] = {
 #include "assets/acropolis_bridge_model_0AD9C_verts.inc"
 };
 
-u32 D_acropolis_bridge_8018835C[691] = {
+static u32 _gAcropolisBridgeModel0AD9CStream[691] = {
 #include "assets/acropolis_bridge_model_0AD9C_stream.inc"
 };
 
 TmdSource D_acropolis_bridge_80188E28[1] = {
-    { 0, 5480, 0, 1, D_acropolis_bridge_80187E00, D_acropolis_bridge_80187E04, &D_acropolis_bridge_80187E04[171], D_acropolis_bridge_80187DDC, D_acropolis_bridge_8018835C },
+    { 0, 5480, 0, 1, _gAcropolisBridgeModel0AD9CPartVerts, _gAcropolisBridgeModel0AD9CVerts, &_gAcropolisBridgeModel0AD9CVerts[171], _gAcropolisBridgeModel0AD9CSkeleton, _gAcropolisBridgeModel0AD9CStream },
 };
 
 TaskMessageEntry D_acropolis_bridge_80188E4C[6] = {
@@ -837,56 +837,56 @@ GpWarpRec D_acropolis_bridge_80189AB4[2] = {
     { { .words = { 1024, -0x3D4E, 0, -2098 } }, { 0, 0, 0, 0 }, { .words = { 1024, -0x3D4E, 0, -2098 } }, { 0, 0, 0, 0 }, 0x510E0006, 0x510E0005, 0, 2, 0, 490 },
 };
 
-SVECTOR D_acropolis_bridge_80189B24[19] = {
+static SVECTOR _gAcropolisBridgeCollision0D2DCNormals[19] = {
 #include "assets/acropolis_bridge_collision_0D2DC_normals.inc"
 };
 
-SVECTOR D_acropolis_bridge_80189BBC[193] = {
+static SVECTOR _gAcropolisBridgeCollision0D2DCVerts[193] = {
 #include "assets/acropolis_bridge_collision_0D2DC_verts.inc"
 };
 
-WorldCollisionGridFace D_acropolis_bridge_8018A1C4[92] = {
+static WorldCollisionGridFace _gAcropolisBridgeCollision0D2DCFaces[92] = {
 #include "assets/acropolis_bridge_collision_0D2DC_faces.inc"
 };
 
-s16 D_acropolis_bridge_8018A614[274] = {
+static s16 _gAcropolisBridgeCollision0D2DCCells[274] = {
 #include "assets/acropolis_bridge_collision_0D2DC_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_acropolis_bridge_8018A614[i])
-s16* D_acropolis_bridge_8018A838[25] = {
+#define GRID_CELL(i) (&_gAcropolisBridgeCollision0D2DCCells[i])
+static s16* _gAcropolisBridgeCollision0D2DCTable[25] = {
 #include "assets/acropolis_bridge_collision_0D2DC_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_acropolis_bridge_8018A89C[1] = {
-    { NULL, D_acropolis_bridge_80189B24, D_acropolis_bridge_80189BBC, D_acropolis_bridge_8018A1C4, D_acropolis_bridge_8018A838, 0x3E94, 8470, 5, 5, 4000, 92 },
+    { NULL, _gAcropolisBridgeCollision0D2DCNormals, _gAcropolisBridgeCollision0D2DCVerts, _gAcropolisBridgeCollision0D2DCFaces, _gAcropolisBridgeCollision0D2DCTable, 0x3E94, 8470, 5, 5, 4000, 92 },
 };
 
-SVECTOR D_acropolis_bridge_8018A8C0[17] = {
+static SVECTOR _gAcropolisBridgeCollision0E0D4Normals[17] = {
 #include "assets/acropolis_bridge_collision_0E0D4_normals.inc"
 };
 
-SVECTOR D_acropolis_bridge_8018A948[205] = {
+static SVECTOR _gAcropolisBridgeCollision0E0D4Verts[205] = {
 #include "assets/acropolis_bridge_collision_0E0D4_verts.inc"
 };
 
-WorldCollisionGridFace D_acropolis_bridge_8018AFB0[93] = {
+static WorldCollisionGridFace _gAcropolisBridgeCollision0E0D4Faces[93] = {
 #include "assets/acropolis_bridge_collision_0E0D4_faces.inc"
 };
 
-s16 D_acropolis_bridge_8018B40C[274] = {
+static s16 _gAcropolisBridgeCollision0E0D4Cells[274] = {
 #include "assets/acropolis_bridge_collision_0E0D4_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_acropolis_bridge_8018B40C[i])
-s16* D_acropolis_bridge_8018B630[25] = {
+#define GRID_CELL(i) (&_gAcropolisBridgeCollision0E0D4Cells[i])
+static s16* _gAcropolisBridgeCollision0E0D4Table[25] = {
 #include "assets/acropolis_bridge_collision_0E0D4_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_acropolis_bridge_8018B694[1] = {
-    { NULL, D_acropolis_bridge_8018A8C0, D_acropolis_bridge_8018A948, D_acropolis_bridge_8018AFB0, D_acropolis_bridge_8018B630, 0x3E94, 8470, 5, 5, 4000, 93 },
+    { NULL, _gAcropolisBridgeCollision0E0D4Normals, _gAcropolisBridgeCollision0E0D4Verts, _gAcropolisBridgeCollision0E0D4Faces, _gAcropolisBridgeCollision0E0D4Table, 0x3E94, 8470, 5, 5, 4000, 93 },
 };
 
 WorldCollisionTrigger D_acropolis_bridge_8018B6B8[4] = {
@@ -2308,156 +2308,156 @@ DamageAttack D_acropolis_bridge_80190C54[2] = {
 
 EnemyParams D_acropolis_bridge_80190C5C = { D_acropolis_bridge_80190C54, 80, 6, 36, 1, 100, 0, 100, 0 };
 
-TmdBone D_acropolis_bridge_80190C6C[4] = {
+static TmdBone _gAcropolisBridgeModel13870Skeleton[4] = {
 #include "assets/acropolis_bridge_model_13870_skeleton.inc"
 };
 
-u32 D_acropolis_bridge_80190CFC[4] = {
+static u32 _gAcropolisBridgeModel13870PartVerts[4] = {
 #include "assets/acropolis_bridge_model_13870_partVerts.inc"
 };
 
-SVECTOR D_acropolis_bridge_80190D0C[18] = {
+static SVECTOR _gAcropolisBridgeModel13870Verts[18] = {
 #include "assets/acropolis_bridge_model_13870_verts.inc"
 };
 
-SVECTOR D_acropolis_bridge_80190D9C[18] = {
+static SVECTOR _gAcropolisBridgeModel13870Normals[18] = {
 #include "assets/acropolis_bridge_model_13870_normals.inc"
 };
 
-u32 D_acropolis_bridge_80190E2C[220] = {
+static u32 _gAcropolisBridgeModel13870Stream[220] = {
 #include "assets/acropolis_bridge_model_13870_stream.inc"
 };
 
-TmdSource D_acropolis_bridge_8019119C = {
+static TmdSource _gAcropolisBridgeModel13870 = {
     0,
     1008,
     416,
     4,
-    D_acropolis_bridge_80190CFC,
-    D_acropolis_bridge_80190D0C,
-    D_acropolis_bridge_80190D9C,
-    D_acropolis_bridge_80190C6C,
-    D_acropolis_bridge_80190E2C,
+    _gAcropolisBridgeModel13870PartVerts,
+    _gAcropolisBridgeModel13870Verts,
+    _gAcropolisBridgeModel13870Normals,
+    _gAcropolisBridgeModel13870Skeleton,
+    _gAcropolisBridgeModel13870Stream,
 };
 
-AnimationPackedPose D_acropolis_bridge_801911C0[6] = {
+static AnimationPackedPose _gAcropolisBridgeAnimation13CD8Bank1[6] = {
 #include "assets/acropolis_bridge_animation_13CD8_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_bridge_80191208[9] = {
+static AnimationPackedRotation _gAcropolisBridgeAnimation13CD8Bank4[9] = {
 #include "assets/acropolis_bridge_animation_13CD8_bank4.inc"
 };
 
-AnimationRecord D_acropolis_bridge_8019122C[25] = {
+static AnimationRecord _gAcropolisBridgeAnimation13CD8Records[25] = {
 #include "assets/acropolis_bridge_animation_13CD8_records.inc"
 };
 
-u16 D_acropolis_bridge_80191290[4] = {
+static u16 _gAcropolisBridgeAnimation13CD8Indices[4] = {
 #include "assets/acropolis_bridge_animation_13CD8_indices.inc"
 };
 
-AnimationSet D_acropolis_bridge_80191298 = {
-    D_acropolis_bridge_8019122C,
-    D_acropolis_bridge_80191290,
-    { NULL, D_acropolis_bridge_801911C0, NULL, NULL, D_acropolis_bridge_80191208, NULL, NULL, NULL },
+static AnimationSet _gAcropolisBridgeAnimation13CD8 = {
+    _gAcropolisBridgeAnimation13CD8Records,
+    _gAcropolisBridgeAnimation13CD8Indices,
+    { NULL, _gAcropolisBridgeAnimation13CD8Bank1, NULL, NULL, _gAcropolisBridgeAnimation13CD8Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_bridge_801912C0[6] = {
+static AnimationPackedPose _gAcropolisBridgeAnimation13DD8Bank1[6] = {
 #include "assets/acropolis_bridge_animation_13DD8_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_bridge_80191308[9] = {
+static AnimationPackedRotation _gAcropolisBridgeAnimation13DD8Bank4[9] = {
 #include "assets/acropolis_bridge_animation_13DD8_bank4.inc"
 };
 
-AnimationRecord D_acropolis_bridge_8019132C[25] = {
+static AnimationRecord _gAcropolisBridgeAnimation13DD8Records[25] = {
 #include "assets/acropolis_bridge_animation_13DD8_records.inc"
 };
 
-u16 D_acropolis_bridge_80191390[4] = {
+static u16 _gAcropolisBridgeAnimation13DD8Indices[4] = {
 #include "assets/acropolis_bridge_animation_13DD8_indices.inc"
 };
 
-AnimationSet D_acropolis_bridge_80191398 = {
-    D_acropolis_bridge_8019132C,
-    D_acropolis_bridge_80191390,
-    { NULL, D_acropolis_bridge_801912C0, NULL, NULL, D_acropolis_bridge_80191308, NULL, NULL, NULL },
+static AnimationSet _gAcropolisBridgeAnimation13DD8 = {
+    _gAcropolisBridgeAnimation13DD8Records,
+    _gAcropolisBridgeAnimation13DD8Indices,
+    { NULL, _gAcropolisBridgeAnimation13DD8Bank1, NULL, NULL, _gAcropolisBridgeAnimation13DD8Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_bridge_801913C0[2] = {
+static AnimationPackedPose _gAcropolisBridgeAnimation13E48Bank1[2] = {
 #include "assets/acropolis_bridge_animation_13E48_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_bridge_801913D8[2] = {
+static AnimationPackedRotation _gAcropolisBridgeAnimation13E48Bank4[2] = {
 #include "assets/acropolis_bridge_animation_13E48_bank4.inc"
 };
 
-AnimationRecord D_acropolis_bridge_801913E0[8] = {
+static AnimationRecord _gAcropolisBridgeAnimation13E48Records[8] = {
 #include "assets/acropolis_bridge_animation_13E48_records.inc"
 };
 
-u16 D_acropolis_bridge_80191400[4] = {
+static u16 _gAcropolisBridgeAnimation13E48Indices[4] = {
 #include "assets/acropolis_bridge_animation_13E48_indices.inc"
 };
 
-AnimationSet D_acropolis_bridge_80191408 = {
-    D_acropolis_bridge_801913E0,
-    D_acropolis_bridge_80191400,
-    { NULL, D_acropolis_bridge_801913C0, NULL, NULL, D_acropolis_bridge_801913D8, NULL, NULL, NULL },
+static AnimationSet _gAcropolisBridgeAnimation13E48 = {
+    _gAcropolisBridgeAnimation13E48Records,
+    _gAcropolisBridgeAnimation13E48Indices,
+    { NULL, _gAcropolisBridgeAnimation13E48Bank1, NULL, NULL, _gAcropolisBridgeAnimation13E48Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_bridge_80191430[6] = {
+static AnimationPackedPose _gAcropolisBridgeAnimation13F60Bank1[6] = {
 #include "assets/acropolis_bridge_animation_13F60_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_bridge_80191478[10] = {
+static AnimationPackedRotation _gAcropolisBridgeAnimation13F60Bank4[10] = {
 #include "assets/acropolis_bridge_animation_13F60_bank4.inc"
 };
 
-AnimationRecord D_acropolis_bridge_801914A0[30] = {
+static AnimationRecord _gAcropolisBridgeAnimation13F60Records[30] = {
 #include "assets/acropolis_bridge_animation_13F60_records.inc"
 };
 
-u16 D_acropolis_bridge_80191518[4] = {
+static u16 _gAcropolisBridgeAnimation13F60Indices[4] = {
 #include "assets/acropolis_bridge_animation_13F60_indices.inc"
 };
 
-AnimationSet D_acropolis_bridge_80191520 = {
-    D_acropolis_bridge_801914A0,
-    D_acropolis_bridge_80191518,
-    { NULL, D_acropolis_bridge_80191430, NULL, NULL, D_acropolis_bridge_80191478, NULL, NULL, NULL },
+static AnimationSet _gAcropolisBridgeAnimation13F60 = {
+    _gAcropolisBridgeAnimation13F60Records,
+    _gAcropolisBridgeAnimation13F60Indices,
+    { NULL, _gAcropolisBridgeAnimation13F60Bank1, NULL, NULL, _gAcropolisBridgeAnimation13F60Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_bridge_80191548[2] = {
+static AnimationPackedPose _gAcropolisBridgeAnimation13FE0Bank1[2] = {
 #include "assets/acropolis_bridge_animation_13FE0_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_bridge_80191560[2] = {
+static AnimationPackedRotation _gAcropolisBridgeAnimation13FE0Bank4[2] = {
 #include "assets/acropolis_bridge_animation_13FE0_bank4.inc"
 };
 
-AnimationRecord D_acropolis_bridge_80191568[12] = {
+static AnimationRecord _gAcropolisBridgeAnimation13FE0Records[12] = {
 #include "assets/acropolis_bridge_animation_13FE0_records.inc"
 };
 
-u16 D_acropolis_bridge_80191598[4] = {
+static u16 _gAcropolisBridgeAnimation13FE0Indices[4] = {
 #include "assets/acropolis_bridge_animation_13FE0_indices.inc"
 
 };
 
-AnimationSet D_acropolis_bridge_801915A0 = {
-    D_acropolis_bridge_80191568,
-    D_acropolis_bridge_80191598,
-    { NULL, D_acropolis_bridge_80191548, NULL, NULL, D_acropolis_bridge_80191560, NULL, NULL, NULL },
+static AnimationSet _gAcropolisBridgeAnimation13FE0 = {
+    _gAcropolisBridgeAnimation13FE0Records,
+    _gAcropolisBridgeAnimation13FE0Indices,
+    { NULL, _gAcropolisBridgeAnimation13FE0Bank1, NULL, NULL, _gAcropolisBridgeAnimation13FE0Bank4, NULL, NULL, NULL },
 };
 
 AnimationSet* D_acropolis_bridge_801915C8[7] = {
     NULL,
-    &D_acropolis_bridge_80191298,
-    &D_acropolis_bridge_80191398,
-    &D_acropolis_bridge_80191408,
-    &D_acropolis_bridge_80191520,
-    &D_acropolis_bridge_801915A0,
+    &_gAcropolisBridgeAnimation13CD8,
+    &_gAcropolisBridgeAnimation13DD8,
+    &_gAcropolisBridgeAnimation13E48,
+    &_gAcropolisBridgeAnimation13F60,
+    &_gAcropolisBridgeAnimation13FE0,
     NULL,
 };
 
@@ -2637,7 +2637,7 @@ void (*D_acropolis_bridge_8019175C[9])(Task*) = {
     func_acropolis_bridge_80186BBC,
 };
 
-AcropolisBridgeStorage1780 D_acropolis_bridge_80191780 = { { { { TASK_BODY_TMD, 96 } }, func_acropolis_bridge_80187D80, { .model = &D_acropolis_bridge_8019119C } }, { 0 } };
+AcropolisBridgeStorage1780 D_acropolis_bridge_80191780 = { { { { TASK_BODY_TMD, 96 } }, func_acropolis_bridge_80187D80, { .model = &_gAcropolisBridgeModel13870 } }, { 0 } };
 
 Task* D_acropolis_bridge_80191794 = NULL;
 

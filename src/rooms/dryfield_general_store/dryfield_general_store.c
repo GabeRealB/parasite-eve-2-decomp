@@ -120,26 +120,26 @@ TaskMessageEntry D_dryfield_general_store_8017E188[6] = {
 
 s32 D_dryfield_general_store_8017E1B8 = 0x90302;
 
-AnimationPackedPose D_dryfield_general_store_8017E1BC[6] = {
+static AnimationPackedPose _gDryfieldGeneralStoreAnimation00ED8Bank1[6] = {
 #include "assets/dryfield_general_store_animation_00ED8_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_general_store_8017E204[46] = {
+static AnimationPackedRotation _gDryfieldGeneralStoreAnimation00ED8Bank4[46] = {
 #include "assets/dryfield_general_store_animation_00ED8_bank4.inc"
 };
 
-AnimationRecord D_dryfield_general_store_8017E2BC[109] = {
+static AnimationRecord _gDryfieldGeneralStoreAnimation00ED8Records[109] = {
 #include "assets/dryfield_general_store_animation_00ED8_records.inc"
 };
 
-u16 D_dryfield_general_store_8017E470[20] = {
+static u16 _gDryfieldGeneralStoreAnimation00ED8Indices[20] = {
 #include "assets/dryfield_general_store_animation_00ED8_indices.inc"
 };
 
-AnimationSet D_dryfield_general_store_8017E498 = {
-    D_dryfield_general_store_8017E2BC,
-    D_dryfield_general_store_8017E470,
-    { NULL, D_dryfield_general_store_8017E1BC, NULL, NULL, D_dryfield_general_store_8017E204, NULL, NULL, NULL },
+static AnimationSet _gDryfieldGeneralStoreAnimation00ED8 = {
+    _gDryfieldGeneralStoreAnimation00ED8Records,
+    _gDryfieldGeneralStoreAnimation00ED8Indices,
+    { NULL, _gDryfieldGeneralStoreAnimation00ED8Bank1, NULL, NULL, _gDryfieldGeneralStoreAnimation00ED8Bank4, NULL, NULL, NULL },
 };
 
 TaskDesc D_dryfield_general_store_8017E4C0 = { { { TASK_BODY_NONE, 192 } }, func_dryfield_general_store_8017DFB4, { .value = 0 } };
@@ -148,7 +148,7 @@ TaskDesc D_dryfield_general_store_8017E4CC = { { { TASK_BODY_NONE, 192 } }, func
 
 AnimationSet* D_dryfield_general_store_8017E4D8[2] = {
     NULL,
-    &D_dryfield_general_store_8017E498,
+    &_gDryfieldGeneralStoreAnimation00ED8,
 };
 
 GpCopyArg D_dryfield_general_store_8017E4E0 = { { .sets = D_dryfield_general_store_8017E4D8 }, 2 };
@@ -208,30 +208,30 @@ GpWarpRec D_dryfield_general_store_8017E690[3] = {
     { { .words = { 3072, 8649, 0, 7411 } }, { 0, 0, 0, 0 }, { .words = { 512, 8209, 0, 6766 } }, { 0, 0, 0, 0 }, 0x5203000E, 0x5203000D, 0x52030006, 14, 0, 0 },
 };
 
-SVECTOR D_dryfield_general_store_8017E738[13] = {
+static SVECTOR _gDryfieldGeneralStoreCollision01C78Normals[13] = {
 #include "assets/dryfield_general_store_collision_01C78_normals.inc"
 };
 
-SVECTOR D_dryfield_general_store_8017E7A0[137] = {
+static SVECTOR _gDryfieldGeneralStoreCollision01C78Verts[137] = {
 #include "assets/dryfield_general_store_collision_01C78_verts.inc"
 };
 
-WorldCollisionGridFace D_dryfield_general_store_8017EBE8[83] = {
+static WorldCollisionGridFace _gDryfieldGeneralStoreCollision01C78Faces[83] = {
 #include "assets/dryfield_general_store_collision_01C78_faces.inc"
 };
 
-s16 D_dryfield_general_store_8017EFCC[292] = {
+static s16 _gDryfieldGeneralStoreCollision01C78Cells[292] = {
 #include "assets/dryfield_general_store_collision_01C78_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_dryfield_general_store_8017EFCC[i])
-s16* D_dryfield_general_store_8017F214[9] = {
+#define GRID_CELL(i) (&_gDryfieldGeneralStoreCollision01C78Cells[i])
+static s16* _gDryfieldGeneralStoreCollision01C78Table[9] = {
 #include "assets/dryfield_general_store_collision_01C78_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_dryfield_general_store_8017F238[1] = {
-    { NULL, D_dryfield_general_store_8017E738, D_dryfield_general_store_8017E7A0, D_dryfield_general_store_8017EBE8, D_dryfield_general_store_8017F214, 0, 0, 3, 3, 4000, 83 },
+    { NULL, _gDryfieldGeneralStoreCollision01C78Normals, _gDryfieldGeneralStoreCollision01C78Verts, _gDryfieldGeneralStoreCollision01C78Faces, _gDryfieldGeneralStoreCollision01C78Table, 0, 0, 3, 3, 4000, 83 },
 };
 
 GpViewRec D_dryfield_general_store_8017F25C[16] = {

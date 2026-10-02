@@ -225,30 +225,30 @@ SVECTOR D_neo_ark_pavilion_80183A74[8] = {
     { 0, 0, 0, -1 },
 };
 
-SVECTOR D_neo_ark_pavilion_80183AB4[8] = {
+static SVECTOR _gNeoArkPavilionCollision06C24Normals[8] = {
 #include "assets/neo_ark_pavilion_collision_06C24_normals.inc"
 };
 
-SVECTOR D_neo_ark_pavilion_80183AF4[102] = {
+static SVECTOR _gNeoArkPavilionCollision06C24Verts[102] = {
 #include "assets/neo_ark_pavilion_collision_06C24_verts.inc"
 };
 
-WorldCollisionGridFace D_neo_ark_pavilion_80183E24[52] = {
+static WorldCollisionGridFace _gNeoArkPavilionCollision06C24Faces[52] = {
 #include "assets/neo_ark_pavilion_collision_06C24_faces.inc"
 };
 
-s16 D_neo_ark_pavilion_80184094[156] = {
+static s16 _gNeoArkPavilionCollision06C24Cells[156] = {
 #include "assets/neo_ark_pavilion_collision_06C24_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_neo_ark_pavilion_80184094[i])
-s16* D_neo_ark_pavilion_801841CC[6] = {
+#define GRID_CELL(i) (&_gNeoArkPavilionCollision06C24Cells[i])
+static s16* _gNeoArkPavilionCollision06C24Table[6] = {
 #include "assets/neo_ark_pavilion_collision_06C24_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_neo_ark_pavilion_801841E4[1] = {
-    { NULL, D_neo_ark_pavilion_80183AB4, D_neo_ark_pavilion_80183AF4, D_neo_ark_pavilion_80183E24, D_neo_ark_pavilion_801841CC, 5100, -6900, 3, 2, 4000, 52 },
+    { NULL, _gNeoArkPavilionCollision06C24Normals, _gNeoArkPavilionCollision06C24Verts, _gNeoArkPavilionCollision06C24Faces, _gNeoArkPavilionCollision06C24Table, 5100, -6900, 3, 2, 4000, 52 },
 };
 
 GpViewRec D_neo_ark_pavilion_80184208[7] = {

@@ -14,7 +14,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-extern TmdSource D_shelter_b2_laboratory_801829E4;
+extern TmdSource gShelterB2LaboratoryAcropolisSanctuaryModel090F0;
 
 extern GpAreaApplyRec D_shelter_b2_laboratory_80186488[5];
 

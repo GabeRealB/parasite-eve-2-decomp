@@ -4,7 +4,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-extern TmdSource D_actor_800200_80169ECC;
+extern TmdSource gActor800200FlintBody;
 
 void func_actor_800200_801626EC(Task* task);
 

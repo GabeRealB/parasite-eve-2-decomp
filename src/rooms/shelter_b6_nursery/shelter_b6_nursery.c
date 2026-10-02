@@ -277,36 +277,36 @@ SVECTOR D_shelter_b6_nursery_8018504C[7] = {
     { 7000, -1500, 2000, 0 },
 };
 
-TmdBone D_shelter_b6_nursery_80185084[1] = {
+static TmdBone _gShelterB6NurseryModel07BACSkeleton[1] = {
 #include "assets/shelter_b6_nursery_model_07BAC_skeleton.inc"
 };
 
-u32 D_shelter_b6_nursery_801850A8[1] = {
+static u32 _gShelterB6NurseryModel07BACPartVerts[1] = {
 #include "assets/shelter_b6_nursery_model_07BAC_partVerts.inc"
 };
 
-SVECTOR D_shelter_b6_nursery_801850AC[12] = {
+static SVECTOR _gShelterB6NurseryModel07BACVerts[12] = {
 #include "assets/shelter_b6_nursery_model_07BAC_verts.inc"
 };
 
-SVECTOR D_shelter_b6_nursery_8018510C[12] = {
+static SVECTOR _gShelterB6NurseryModel07BACNormals[12] = {
 #include "assets/shelter_b6_nursery_model_07BAC_normals.inc"
 };
 
-u32 D_shelter_b6_nursery_8018516C[89] = {
+static u32 _gShelterB6NurseryModel07BACStream[89] = {
 #include "assets/shelter_b6_nursery_model_07BAC_stream.inc"
 };
 
-TmdSource D_shelter_b6_nursery_801852D0 = {
+TmdSource gShelterB6NurseryModel07BAC = {
     0,
     576,
     0,
     1,
-    D_shelter_b6_nursery_801850A8,
-    D_shelter_b6_nursery_801850AC,
-    D_shelter_b6_nursery_8018510C,
-    D_shelter_b6_nursery_80185084,
-    D_shelter_b6_nursery_8018516C,
+    _gShelterB6NurseryModel07BACPartVerts,
+    _gShelterB6NurseryModel07BACVerts,
+    _gShelterB6NurseryModel07BACNormals,
+    _gShelterB6NurseryModel07BACSkeleton,
+    _gShelterB6NurseryModel07BACStream,
 };
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
@@ -324,29 +324,29 @@ GpWarpRec D_shelter_b6_nursery_8018530C[2] = {
     { { .words = { 3072, 0x4CF4, 0, 3600 } }, { 0, 0, 0, 0 }, { .words = { 3072, 0x4CF4, 0, 3600 } }, { 0, 0, 0, 0 }, 0, 0, 0, 6, 0, 0 },
 };
 
-SVECTOR D_shelter_b6_nursery_8018537C[14] = {
+static SVECTOR _gShelterB6NurseryCollision082E0Normals[14] = {
 #include "assets/shelter_b6_nursery_collision_082E0_normals.inc"
 };
 
-SVECTOR D_shelter_b6_nursery_801853EC[54] = {
+static SVECTOR _gShelterB6NurseryCollision082E0Verts[54] = {
 #include "assets/shelter_b6_nursery_collision_082E0_verts.inc"
 };
 
-WorldCollisionGridFace D_shelter_b6_nursery_8018559C[43] = {
+static WorldCollisionGridFace _gShelterB6NurseryCollision082E0Faces[43] = {
 #include "assets/shelter_b6_nursery_collision_082E0_faces.inc"
 };
 
-s16 D_shelter_b6_nursery_801857A0[120] = {
+static s16 _gShelterB6NurseryCollision082E0Cells[120] = {
 #include "assets/shelter_b6_nursery_collision_082E0_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_shelter_b6_nursery_801857A0[i])
-s16* D_shelter_b6_nursery_80185890[4] = {
+#define GRID_CELL(i) (&_gShelterB6NurseryCollision082E0Cells[i])
+static s16* _gShelterB6NurseryCollision082E0Table[4] = {
 #include "assets/shelter_b6_nursery_collision_082E0_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b6_nursery_801858A0 = { NULL, D_shelter_b6_nursery_8018537C, D_shelter_b6_nursery_801853EC, D_shelter_b6_nursery_8018559C, D_shelter_b6_nursery_80185890, -50, 1450, 2, 2, 4000, 43 };
+WorldCollisionGrid D_shelter_b6_nursery_801858A0 = { NULL, _gShelterB6NurseryCollision082E0Normals, _gShelterB6NurseryCollision082E0Verts, _gShelterB6NurseryCollision082E0Faces, _gShelterB6NurseryCollision082E0Table, -50, 1450, 2, 2, 4000, 43 };
 
 GpViewRec D_shelter_b6_nursery_801858C4[19] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -3500, 0x61A8, -2500 } }, 447 },

@@ -16,7 +16,7 @@ extern TaskDesc D_dryfield_night_trailer_coach_801846D0;
 
 extern GpAreaVariant D_dryfield_night_trailer_coach_8018C15C[13];
 
-extern TmdSource D_dryfield_night_trailer_coach_80184CA0;
+extern TmdSource gDryfieldNightTrailerCoachAcropolisSanctuaryModel090F0;
 
 // dryfield_night_trailer_coach
 extern WorldCoordRoomLighting D_dryfield_night_trailer_coach_80189500[];

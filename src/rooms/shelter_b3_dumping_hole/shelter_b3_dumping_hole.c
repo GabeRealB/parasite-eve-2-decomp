@@ -51,38 +51,38 @@ s32 func_shelter_b3_dumping_hole_8017D82C(s32, s32, s32);
 s32 func_shelter_b3_dumping_hole_8017D868(void);
 s32 func_shelter_b3_dumping_hole_8017D870(void);
 
-extern AnimationSet D_shelter_b3_dumping_hole_80188074;
+static AnimationSet _gShelterB3DumpingHoleAnimation0AAB4;
 
-TmdBone D_shelter_b3_dumping_hole_80186F8C[3] = {
+static TmdBone _gShelterB3DumpingHoleAcropolisSanctuaryModel090F0Skeleton[3] = {
 #include "assets/acropolis_sanctuary_model_090F0_skeleton.inc"
 };
 
-u32 D_shelter_b3_dumping_hole_80186FF8[3] = {
+static u32 _gShelterB3DumpingHoleAcropolisSanctuaryModel090F0PartVerts[3] = {
 #include "assets/acropolis_sanctuary_model_090F0_partVerts.inc"
 };
 
-SVECTOR D_shelter_b3_dumping_hole_80187004[56] = {
+static SVECTOR _gShelterB3DumpingHoleAcropolisSanctuaryModel090F0Verts[56] = {
 #include "assets/acropolis_sanctuary_model_090F0_verts.inc"
 };
 
-SVECTOR D_shelter_b3_dumping_hole_801871C4[6] = {
+static SVECTOR _gShelterB3DumpingHoleAcropolisSanctuaryModel090F0Normals[6] = {
 #include "assets/acropolis_sanctuary_model_090F0_normals.inc"
 };
 
-u32 D_shelter_b3_dumping_hole_801871F4[215] = {
+static u32 _gShelterB3DumpingHoleAcropolisSanctuaryModel090F0Stream[215] = {
 #include "assets/acropolis_sanctuary_model_090F0_stream.inc"
 };
 
-TmdSource D_shelter_b3_dumping_hole_80187550 = {
+TmdSource gShelterB3DumpingHoleAcropolisSanctuaryModel090F0 = {
     0,
     1768,
     0,
     3,
-    D_shelter_b3_dumping_hole_80186FF8,
-    D_shelter_b3_dumping_hole_80187004,
-    D_shelter_b3_dumping_hole_801871C4,
-    D_shelter_b3_dumping_hole_80186F8C,
-    D_shelter_b3_dumping_hole_801871F4,
+    _gShelterB3DumpingHoleAcropolisSanctuaryModel090F0PartVerts,
+    _gShelterB3DumpingHoleAcropolisSanctuaryModel090F0Verts,
+    _gShelterB3DumpingHoleAcropolisSanctuaryModel090F0Normals,
+    _gShelterB3DumpingHoleAcropolisSanctuaryModel090F0Skeleton,
+    _gShelterB3DumpingHoleAcropolisSanctuaryModel090F0Stream,
 };
 
 ShelterB3DumpingHoleMessageEntry D_shelter_b3_dumping_hole_80187574[6] = {
@@ -94,132 +94,132 @@ ShelterB3DumpingHoleMessageEntry D_shelter_b3_dumping_hole_80187574[6] = {
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
-TmdBone D_shelter_b3_dumping_hole_801875A4[1] = {
+static TmdBone _gShelterB3DumpingHoleModel0A0CCSkeleton[1] = {
 #include "assets/shelter_b3_dumping_hole_model_0A0CC_skeleton.inc"
 };
 
-u32 D_shelter_b3_dumping_hole_801875C8[1] = {
+static u32 _gShelterB3DumpingHoleModel0A0CCPartVerts[1] = {
 #include "assets/shelter_b3_dumping_hole_model_0A0CC_partVerts.inc"
 };
 
-SVECTOR D_shelter_b3_dumping_hole_801875CC[9] = {
+static SVECTOR _gShelterB3DumpingHoleModel0A0CCVerts[9] = {
 #include "assets/shelter_b3_dumping_hole_model_0A0CC_verts.inc"
 };
 
-SVECTOR D_shelter_b3_dumping_hole_80187614[15] = {
+static SVECTOR _gShelterB3DumpingHoleModel0A0CCNormals[15] = {
 #include "assets/shelter_b3_dumping_hole_model_0A0CC_normals.inc"
 };
 
-u32 D_shelter_b3_dumping_hole_8018768C[90] = {
+static u32 _gShelterB3DumpingHoleModel0A0CCStream[90] = {
 #include "assets/shelter_b3_dumping_hole_model_0A0CC_stream.inc"
 };
 
-TmdSource D_shelter_b3_dumping_hole_801877F4 = {
+TmdSource gShelterB3DumpingHoleModel0A0CC = {
     0,
     560,
     0,
     1,
-    D_shelter_b3_dumping_hole_801875C8,
-    D_shelter_b3_dumping_hole_801875CC,
-    D_shelter_b3_dumping_hole_80187614,
-    D_shelter_b3_dumping_hole_801875A4,
-    D_shelter_b3_dumping_hole_8018768C,
+    _gShelterB3DumpingHoleModel0A0CCPartVerts,
+    _gShelterB3DumpingHoleModel0A0CCVerts,
+    _gShelterB3DumpingHoleModel0A0CCNormals,
+    _gShelterB3DumpingHoleModel0A0CCSkeleton,
+    _gShelterB3DumpingHoleModel0A0CCStream,
 };
 
-TmdBone D_shelter_b3_dumping_hole_80187818[1] = {
+static TmdBone _gShelterB3DumpingHoleModel0A348Skeleton[1] = {
 #include "assets/shelter_b3_dumping_hole_model_0A348_skeleton.inc"
 };
 
-u32 D_shelter_b3_dumping_hole_8018783C[1] = {
+static u32 _gShelterB3DumpingHoleModel0A348PartVerts[1] = {
 #include "assets/shelter_b3_dumping_hole_model_0A348_partVerts.inc"
 };
 
-SVECTOR D_shelter_b3_dumping_hole_80187840[9] = {
+static SVECTOR _gShelterB3DumpingHoleModel0A348Verts[9] = {
 #include "assets/shelter_b3_dumping_hole_model_0A348_verts.inc"
 };
 
-SVECTOR D_shelter_b3_dumping_hole_80187888[16] = {
+static SVECTOR _gShelterB3DumpingHoleModel0A348Normals[16] = {
 #include "assets/shelter_b3_dumping_hole_model_0A348_normals.inc"
 };
 
-u32 D_shelter_b3_dumping_hole_80187908[90] = {
+static u32 _gShelterB3DumpingHoleModel0A348Stream[90] = {
 #include "assets/shelter_b3_dumping_hole_model_0A348_stream.inc"
 };
 
-TmdSource D_shelter_b3_dumping_hole_80187A70 = {
+TmdSource gShelterB3DumpingHoleModel0A348 = {
     0,
     560,
     0,
     1,
-    D_shelter_b3_dumping_hole_8018783C,
-    D_shelter_b3_dumping_hole_80187840,
-    D_shelter_b3_dumping_hole_80187888,
-    D_shelter_b3_dumping_hole_80187818,
-    D_shelter_b3_dumping_hole_80187908,
+    _gShelterB3DumpingHoleModel0A348PartVerts,
+    _gShelterB3DumpingHoleModel0A348Verts,
+    _gShelterB3DumpingHoleModel0A348Normals,
+    _gShelterB3DumpingHoleModel0A348Skeleton,
+    _gShelterB3DumpingHoleModel0A348Stream,
 };
 
-TmdBone D_shelter_b3_dumping_hole_80187A94[1] = {
+static TmdBone _gShelterB3DumpingHoleModel0A5ECSkeleton[1] = {
 #include "assets/shelter_b3_dumping_hole_model_0A5EC_skeleton.inc"
 };
 
-u32 D_shelter_b3_dumping_hole_80187AB8[1] = {
+static u32 _gShelterB3DumpingHoleModel0A5ECPartVerts[1] = {
 #include "assets/shelter_b3_dumping_hole_model_0A5EC_partVerts.inc"
 };
 
-SVECTOR D_shelter_b3_dumping_hole_80187ABC[11] = {
+static SVECTOR _gShelterB3DumpingHoleModel0A5ECVerts[11] = {
 #include "assets/shelter_b3_dumping_hole_model_0A5EC_verts.inc"
 };
 
-SVECTOR D_shelter_b3_dumping_hole_80187B14[19] = {
+static SVECTOR _gShelterB3DumpingHoleModel0A5ECNormals[19] = {
 #include "assets/shelter_b3_dumping_hole_model_0A5EC_normals.inc"
 };
 
-u32 D_shelter_b3_dumping_hole_80187BAC[114] = {
+static u32 _gShelterB3DumpingHoleModel0A5ECStream[114] = {
 #include "assets/shelter_b3_dumping_hole_model_0A5EC_stream.inc"
 };
 
-TmdSource D_shelter_b3_dumping_hole_80187D74 = {
+TmdSource gShelterB3DumpingHoleModel0A5EC = {
     0,
     720,
     0,
     1,
-    D_shelter_b3_dumping_hole_80187AB8,
-    D_shelter_b3_dumping_hole_80187ABC,
-    D_shelter_b3_dumping_hole_80187B14,
-    D_shelter_b3_dumping_hole_80187A94,
-    D_shelter_b3_dumping_hole_80187BAC,
+    _gShelterB3DumpingHoleModel0A5ECPartVerts,
+    _gShelterB3DumpingHoleModel0A5ECVerts,
+    _gShelterB3DumpingHoleModel0A5ECNormals,
+    _gShelterB3DumpingHoleModel0A5ECSkeleton,
+    _gShelterB3DumpingHoleModel0A5ECStream,
 };
 
-AnimationPackedPose D_shelter_b3_dumping_hole_80187D98[6] = {
+static AnimationPackedPose _gShelterB3DumpingHoleAnimation0AAB4Bank1[6] = {
 #include "assets/shelter_b3_dumping_hole_animation_0AAB4_bank1.inc"
 };
 
-AnimationPackedRotation D_shelter_b3_dumping_hole_80187DE0[46] = {
+static AnimationPackedRotation _gShelterB3DumpingHoleAnimation0AAB4Bank4[46] = {
 #include "assets/shelter_b3_dumping_hole_animation_0AAB4_bank4.inc"
 };
 
-AnimationRecord D_shelter_b3_dumping_hole_80187E98[109] = {
+static AnimationRecord _gShelterB3DumpingHoleAnimation0AAB4Records[109] = {
 #include "assets/shelter_b3_dumping_hole_animation_0AAB4_records.inc"
 };
 
-u16 D_shelter_b3_dumping_hole_8018804C[20] = {
+static u16 _gShelterB3DumpingHoleAnimation0AAB4Indices[20] = {
 #include "assets/shelter_b3_dumping_hole_animation_0AAB4_indices.inc"
 };
 
-AnimationSet D_shelter_b3_dumping_hole_80188074 = {
-    D_shelter_b3_dumping_hole_80187E98,
-    D_shelter_b3_dumping_hole_8018804C,
-    { NULL, D_shelter_b3_dumping_hole_80187D98, NULL, NULL, D_shelter_b3_dumping_hole_80187DE0, NULL, NULL, NULL },
+static AnimationSet _gShelterB3DumpingHoleAnimation0AAB4 = {
+    _gShelterB3DumpingHoleAnimation0AAB4Records,
+    _gShelterB3DumpingHoleAnimation0AAB4Indices,
+    { NULL, _gShelterB3DumpingHoleAnimation0AAB4Bank1, NULL, NULL, _gShelterB3DumpingHoleAnimation0AAB4Bank4, NULL, NULL, NULL },
 };
 
 s16 D_shelter_b3_dumping_hole_8018809C = 1;
 
 AnimationSet* D_shelter_b3_dumping_hole_801880A0[6] = {
-    &D_shelter_b3_dumping_hole_80188074,
-    &D_actor_403200_8015ED84,
-    &D_actor_403200_8015EFF0,
-    &D_actor_403200_8015F748,
-    &D_actor_403200_8015EC00,
+    &_gShelterB3DumpingHoleAnimation0AAB4,
+    &gActor403200Animation2CF64,
+    &gActor403200Animation2D1D0,
+    &gActor403200Animation2D928,
+    &gActor403200Animation2CDE0,
     NULL,
 }; /// Message-table handler that accepts every message without acting on it.
 

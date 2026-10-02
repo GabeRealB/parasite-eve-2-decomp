@@ -65,10 +65,10 @@ extern PadScriptVibrationSegment D_actor_503500_801468B0[2];
 extern DVECTOR_XZ D_actor_503500_80147D90[];
 extern DVECTOR_XZ D_actor_503500_80148330[];
 
-extern u32     D_actor_503500_8014735C[1];
-extern SVECTOR D_actor_503500_80147360[92];
-extern TmdBone D_actor_503500_80147338[1];
-extern u32     D_actor_503500_80147640[459];
+static u32     _gActor503500Model15820PartVerts[1];
+static SVECTOR _gActor503500Model15820Verts[92];
+static TmdBone _gActor503500Model15820Skeleton[1];
+static u32     _gActor503500Model15820Stream[459];
 
 s32 func_actor_503500_80132584(Task*, s32, s32);
 s32 func_actor_503500_80132664(Task*, s32, ActorCommand* msg);
@@ -87,60 +87,60 @@ PadScriptCmd D_actor_503500_801468A8[2] = {
 
 PadScriptVibrationSegment D_actor_503500_801468B0[2] = { { 0, 0, 2, 0 }, { 156, 106, 2, 1 } };
 
-TmdBone D_actor_503500_801468B8[1] = {
+static TmdBone _gActor503500Model14DA0Skeleton[1] = {
 #include "assets/actor_503500_model_14DA0_skeleton.inc"
 };
 
-u32 D_actor_503500_801468DC[1] = {
+static u32 _gActor503500Model14DA0PartVerts[1] = {
 #include "assets/actor_503500_model_14DA0_partVerts.inc"
 };
 
-SVECTOR D_actor_503500_801468E0[92] = {
+static SVECTOR _gActor503500Model14DA0Verts[92] = {
 #include "assets/actor_503500_model_14DA0_verts.inc"
 };
 
-u32 D_actor_503500_80146BC0[469] = {
+static u32 _gActor503500Model14DA0Stream[469] = {
 #include "assets/actor_503500_model_14DA0_stream.inc"
 };
 
-TmdSource D_actor_503500_80147314 = {
+TmdSource gActor503500Model14DA0 = {
     0,
     3600,
     0,
     1,
-    D_actor_503500_801468DC,
-    D_actor_503500_801468E0,
-    &D_actor_503500_801468E0[92],
-    D_actor_503500_801468B8,
-    D_actor_503500_80146BC0,
+    _gActor503500Model14DA0PartVerts,
+    _gActor503500Model14DA0Verts,
+    &_gActor503500Model14DA0Verts[92],
+    _gActor503500Model14DA0Skeleton,
+    _gActor503500Model14DA0Stream,
 };
 
-TmdBone D_actor_503500_80147338[1] = {
+static TmdBone _gActor503500Model15820Skeleton[1] = {
 #include "assets/actor_503500_model_15820_skeleton.inc"
 };
 
-u32 D_actor_503500_8014735C[1] = {
+static u32 _gActor503500Model15820PartVerts[1] = {
 #include "assets/actor_503500_model_15820_partVerts.inc"
 };
 
-SVECTOR D_actor_503500_80147360[92] = {
+static SVECTOR _gActor503500Model15820Verts[92] = {
 #include "assets/actor_503500_model_15820_verts.inc"
 };
 
-u32 D_actor_503500_80147640[459] = {
+static u32 _gActor503500Model15820Stream[459] = {
 #include "assets/actor_503500_model_15820_stream.inc"
 };
 
-TmdSource D_actor_503500_80147D6C = {
+TmdSource gActor503500Model15820 = {
     0,
     3552,
     0,
     1,
-    D_actor_503500_8014735C,
-    D_actor_503500_80147360,
-    &D_actor_503500_80147360[92],
-    D_actor_503500_80147338,
-    D_actor_503500_80147640,
+    _gActor503500Model15820PartVerts,
+    _gActor503500Model15820Verts,
+    &_gActor503500Model15820Verts[92],
+    _gActor503500Model15820Skeleton,
+    _gActor503500Model15820Stream,
 };
 
 DVECTOR_XZ D_actor_503500_80147D90[360] = {

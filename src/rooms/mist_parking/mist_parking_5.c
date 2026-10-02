@@ -187,29 +187,29 @@ GpWarpRec D_mist_parking_801915E8[4] = {
     { { .words = { 2048, 5022, 0, -5260 } }, { 0, 0, 0, 0 }, { .words = { 2048, 5022, 0, -5260 } }, { 0, 0, 0, 0 }, 0, 0, 0, 5, 0, 0 },
 };
 
-SVECTOR D_mist_parking_801916C8[13] = {
+static SVECTOR _gMistParkingCollision14C44Normals[13] = {
 #include "assets/mist_parking_collision_14C44_normals.inc"
 };
 
-SVECTOR D_mist_parking_80191730[125] = {
+static SVECTOR _gMistParkingCollision14C44Verts[125] = {
 #include "assets/mist_parking_collision_14C44_verts.inc"
 };
 
-WorldCollisionGridFace D_mist_parking_80191B18[66] = {
+static WorldCollisionGridFace _gMistParkingCollision14C44Faces[66] = {
 #include "assets/mist_parking_collision_14C44_faces.inc"
 };
 
-s16 D_mist_parking_80191E30[434] = {
+static s16 _gMistParkingCollision14C44Cells[434] = {
 #include "assets/mist_parking_collision_14C44_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_mist_parking_80191E30[i])
-s16* D_mist_parking_80192194[28] = {
+#define GRID_CELL(i) (&_gMistParkingCollision14C44Cells[i])
+static s16* _gMistParkingCollision14C44Table[28] = {
 #include "assets/mist_parking_collision_14C44_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_mist_parking_80192204 = { NULL, D_mist_parking_801916C8, D_mist_parking_80191730, D_mist_parking_80191B18, D_mist_parking_80192194, 0x2AF8, 7000, 7, 4, 4000, 66 };
+WorldCollisionGrid D_mist_parking_80192204 = { NULL, _gMistParkingCollision14C44Normals, _gMistParkingCollision14C44Verts, _gMistParkingCollision14C44Faces, _gMistParkingCollision14C44Table, 0x2AF8, 7000, 7, 4, 4000, 66 };
 
 GpViewRec D_mist_parking_80192228[20] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x6978, 0 } }, 257 },

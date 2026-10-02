@@ -117,29 +117,29 @@ GpAreaVariant D_shelter_b1_pod_service_gantry_8017FBF8[11] = {
     { NULL, NULL },
 };
 
-SVECTOR D_shelter_b1_pod_service_gantry_8017FC50[13] = {
+static SVECTOR _gShelterB1PodServiceGantryCollision02C04Normals[13] = {
 #include "assets/shelter_b1_pod_service_gantry_collision_02C04_normals.inc"
 };
 
-SVECTOR D_shelter_b1_pod_service_gantry_8017FCB8[66] = {
+static SVECTOR _gShelterB1PodServiceGantryCollision02C04Verts[66] = {
 #include "assets/shelter_b1_pod_service_gantry_collision_02C04_verts.inc"
 };
 
-WorldCollisionGridFace D_shelter_b1_pod_service_gantry_8017FEC8[30] = {
+static WorldCollisionGridFace _gShelterB1PodServiceGantryCollision02C04Faces[30] = {
 #include "assets/shelter_b1_pod_service_gantry_collision_02C04_faces.inc"
 };
 
-s16 D_shelter_b1_pod_service_gantry_80180030[172] = {
+static s16 _gShelterB1PodServiceGantryCollision02C04Cells[172] = {
 #include "assets/shelter_b1_pod_service_gantry_collision_02C04_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_shelter_b1_pod_service_gantry_80180030[i])
-s16* D_shelter_b1_pod_service_gantry_80180188[15] = {
+#define GRID_CELL(i) (&_gShelterB1PodServiceGantryCollision02C04Cells[i])
+static s16* _gShelterB1PodServiceGantryCollision02C04Table[15] = {
 #include "assets/shelter_b1_pod_service_gantry_collision_02C04_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b1_pod_service_gantry_801801C4 = { NULL, D_shelter_b1_pod_service_gantry_8017FC50, D_shelter_b1_pod_service_gantry_8017FCB8, D_shelter_b1_pod_service_gantry_8017FEC8, D_shelter_b1_pod_service_gantry_80180188, 1003, -1010, 5, 3, 4000, 30 };
+WorldCollisionGrid D_shelter_b1_pod_service_gantry_801801C4 = { NULL, _gShelterB1PodServiceGantryCollision02C04Normals, _gShelterB1PodServiceGantryCollision02C04Verts, _gShelterB1PodServiceGantryCollision02C04Faces, _gShelterB1PodServiceGantryCollision02C04Table, 1003, -1010, 5, 3, 4000, 30 };
 
 GpViewRec D_shelter_b1_pod_service_gantry_801801E8[46] = {
     { { { { 1403, 0, 3848 }, { 2757, 2857, -1005 }, { -2684, 2934, 978 } }, { -0x2DC3, 4293, -2180 } }, 207 },

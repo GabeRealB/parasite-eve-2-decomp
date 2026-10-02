@@ -221,30 +221,30 @@ GpWarpRec D_mine_refuge_80181910[1] = {
     { { .words = { 0, 1472, 0, 288 } }, { 0, 0, 0, 0 }, { .words = { 0, 1472, 0, 288 } }, { 0, 0, 0, 0 }, 0x54060002, 0x54060001, 0, 2, 0, 0 },
 };
 
-SVECTOR D_mine_refuge_80181948[12] = {
+static SVECTOR _gMineRefugeCollision045E4Normals[12] = {
 #include "assets/mine_refuge_collision_045E4_normals.inc"
 };
 
-SVECTOR D_mine_refuge_801819A8[34] = {
+static SVECTOR _gMineRefugeCollision045E4Verts[34] = {
 #include "assets/mine_refuge_collision_045E4_verts.inc"
 };
 
-WorldCollisionGridFace D_mine_refuge_80181AB8[15] = {
+static WorldCollisionGridFace _gMineRefugeCollision045E4Faces[15] = {
 #include "assets/mine_refuge_collision_045E4_faces.inc"
 };
 
-s16 D_mine_refuge_80181B6C[24] = {
+static s16 _gMineRefugeCollision045E4Cells[24] = {
 #include "assets/mine_refuge_collision_045E4_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_mine_refuge_80181B6C[i])
-s16* D_mine_refuge_80181B9C[2] = {
+#define GRID_CELL(i) (&_gMineRefugeCollision045E4Cells[i])
+static s16* _gMineRefugeCollision045E4Table[2] = {
 #include "assets/mine_refuge_collision_045E4_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_mine_refuge_80181BA4[1] = {
-    { NULL, D_mine_refuge_80181948, D_mine_refuge_801819A8, D_mine_refuge_80181AB8, D_mine_refuge_80181B9C, 200, 200, 1, 2, 4000, 15 },
+    { NULL, _gMineRefugeCollision045E4Normals, _gMineRefugeCollision045E4Verts, _gMineRefugeCollision045E4Faces, _gMineRefugeCollision045E4Table, 200, 200, 1, 2, 4000, 15 },
 };
 
 GpViewRec D_mine_refuge_80181BC8[7] = {

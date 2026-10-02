@@ -13,75 +13,75 @@
 #include "main/task_types.h"
 
 // Native animation sets shared with the companion actor overlay.
-extern AnimationSet D_acropolis_plaza_80191E7C;
+extern AnimationSet gAcropolisPlazaAnimation148BC;
 
-extern AnimationSet D_acropolis_plaza_80192C74;
+extern AnimationSet gAcropolisPlazaAnimation156B4;
 
-extern AnimationSet D_acropolis_plaza_80192E24;
+extern AnimationSet gAcropolisPlazaAnimation15864;
 
-extern AnimationSet D_acropolis_plaza_80193288;
+extern AnimationSet gAcropolisPlazaAnimation15CC8;
 
-extern AnimationSet D_acropolis_plaza_80193538;
+extern AnimationSet gAcropolisPlazaAnimation15F78;
 
-extern AnimationSet D_acropolis_plaza_801937EC;
+extern AnimationSet gAcropolisPlazaAnimation1622C;
 
-extern AnimationSet D_acropolis_plaza_801939FC;
+extern AnimationSet gAcropolisPlazaAnimation1643C;
 
-extern AnimationSet D_acropolis_plaza_80193BD0;
+extern AnimationSet gAcropolisPlazaAnimation16610;
 
-extern AnimationSet D_acropolis_plaza_80193EBC;
+extern AnimationSet gAcropolisPlazaAnimation168FC;
 
-extern AnimationSet D_acropolis_plaza_801942C0;
+extern AnimationSet gAcropolisPlazaAnimation16D00;
 
-extern AnimationSet D_acropolis_plaza_801944A4;
+extern AnimationSet gAcropolisPlazaAnimation16EE4;
 
-extern AnimationSet D_acropolis_plaza_80194680;
+extern AnimationSet gAcropolisPlazaAnimation170C0;
 
-extern AnimationSet D_acropolis_plaza_80194858;
+extern AnimationSet gAcropolisPlazaAnimation17298;
 
-extern AnimationSet D_acropolis_plaza_80194B0C;
+extern AnimationSet gAcropolisPlazaAnimation1754C;
 
-extern AnimationSet D_acropolis_plaza_80194DD8;
+extern AnimationSet gAcropolisPlazaAnimation17818;
 
-extern AnimationSet D_acropolis_plaza_80194FC0;
+extern AnimationSet gAcropolisPlazaAnimation17A00;
 
-extern AnimationSet D_acropolis_plaza_80195228;
+extern AnimationSet gAcropolisPlazaAnimation17C68;
 
-extern AnimationSet D_acropolis_plaza_80195414;
+extern AnimationSet gAcropolisPlazaAnimation17E54;
 
-extern AnimationSet D_acropolis_plaza_801955B4;
+extern AnimationSet gAcropolisPlazaAnimation17FF4;
 
-extern AnimationSet D_acropolis_plaza_8019578C;
+extern AnimationSet gAcropolisPlazaAnimation181CC;
 
-extern AnimationSet D_acropolis_plaza_80195978;
+extern AnimationSet gAcropolisPlazaAnimation183B8;
 
-extern AnimationSet D_acropolis_plaza_80195BD4;
+extern AnimationSet gAcropolisPlazaAnimation18614;
 
-extern AnimationSet D_acropolis_plaza_80195EC4;
+extern AnimationSet gAcropolisPlazaAnimation18904;
 
-extern AnimationSet D_acropolis_plaza_801963A0;
+extern AnimationSet gAcropolisPlazaAnimation18DE0;
 
-extern AnimationSet D_acropolis_plaza_80196558;
+extern AnimationSet gAcropolisPlazaAnimation18F98;
 
-extern AnimationSet D_acropolis_plaza_80196BD0;
+extern AnimationSet gAcropolisPlazaAnimation19610;
 
-extern AnimationSet D_acropolis_plaza_80197098;
+extern AnimationSet gAcropolisPlazaAnimation19AD8;
 
-extern AnimationSet D_acropolis_plaza_80197324;
+extern AnimationSet gAcropolisPlazaAnimation19D64;
 
-extern AnimationSet D_acropolis_plaza_8019753C;
+extern AnimationSet gAcropolisPlazaAnimation19F7C;
 
-extern AnimationSet D_acropolis_plaza_80197AB8;
+extern AnimationSet gAcropolisPlazaAnimation1A4F8;
 
-extern AnimationSet D_acropolis_plaza_80197D44;
+extern AnimationSet gAcropolisPlazaAnimation1A784;
 
-extern AnimationSet D_acropolis_plaza_8019806C;
+extern AnimationSet gAcropolisPlazaAnimation1AAAC;
 
-extern AnimationSet D_acropolis_plaza_801983C4;
+extern AnimationSet gAcropolisPlazaAnimation1AE04;
 
-extern AnimationSet D_acropolis_plaza_80198564;
+extern AnimationSet gAcropolisPlazaAnimation1AFA4;
 
-extern AnimationSet D_acropolis_plaza_801987B8;
+extern AnimationSet gAcropolisPlazaAnimation1B1F8;
 
 extern TaskDesc D_acropolis_plaza_80183824[12];
 

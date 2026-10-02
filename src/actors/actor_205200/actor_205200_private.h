@@ -9,7 +9,7 @@
 
 #include "overlay.h"
 
-extern TmdSource D_actor_205200_801517EC;
+extern TmdSource gActor205200EveBreaMaskedBody;
 
 extern OverlayWaveCtx* gScreenWaveCtx;
 

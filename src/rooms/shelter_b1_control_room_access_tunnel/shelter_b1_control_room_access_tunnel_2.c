@@ -57,29 +57,29 @@ GpWarpRec D_shelter_b1_control_room_access_tunnel_80181F08[2] = {
     { { .words = { 1024, 831, -24, 119 } }, { 0, 0, 0, 0 }, { .words = { 1024, 831, -24, 119 } }, { 0, 0, 0, 0 }, 0x54190004, 0x54190003, 0, 3, 0, 0 },
 };
 
-SVECTOR D_shelter_b1_control_room_access_tunnel_80181F78[6] = {
+static SVECTOR _gShelterB1ControlRoomAccessTunnelCollision04AB0Normals[6] = {
 #include "assets/shelter_b1_control_room_access_tunnel_collision_04AB0_normals.inc"
 };
 
-SVECTOR D_shelter_b1_control_room_access_tunnel_80181FA8[12] = {
+static SVECTOR _gShelterB1ControlRoomAccessTunnelCollision04AB0Verts[12] = {
 #include "assets/shelter_b1_control_room_access_tunnel_collision_04AB0_verts.inc"
 };
 
-WorldCollisionGridFace D_shelter_b1_control_room_access_tunnel_80182008[6] = {
+static WorldCollisionGridFace _gShelterB1ControlRoomAccessTunnelCollision04AB0Faces[6] = {
 #include "assets/shelter_b1_control_room_access_tunnel_collision_04AB0_faces.inc"
 };
 
-s16 D_shelter_b1_control_room_access_tunnel_80182050[12] = {
+static s16 _gShelterB1ControlRoomAccessTunnelCollision04AB0Cells[12] = {
 #include "assets/shelter_b1_control_room_access_tunnel_collision_04AB0_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_shelter_b1_control_room_access_tunnel_80182050[i])
-s16* D_shelter_b1_control_room_access_tunnel_80182068[2] = {
+#define GRID_CELL(i) (&_gShelterB1ControlRoomAccessTunnelCollision04AB0Cells[i])
+static s16* _gShelterB1ControlRoomAccessTunnelCollision04AB0Table[2] = {
 #include "assets/shelter_b1_control_room_access_tunnel_collision_04AB0_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b1_control_room_access_tunnel_80182070 = { NULL, D_shelter_b1_control_room_access_tunnel_80181F78, D_shelter_b1_control_room_access_tunnel_80181FA8, D_shelter_b1_control_room_access_tunnel_80182008, D_shelter_b1_control_room_access_tunnel_80182068, -106, 1242, 2, 1, 4000, 6 };
+WorldCollisionGrid D_shelter_b1_control_room_access_tunnel_80182070 = { NULL, _gShelterB1ControlRoomAccessTunnelCollision04AB0Normals, _gShelterB1ControlRoomAccessTunnelCollision04AB0Verts, _gShelterB1ControlRoomAccessTunnelCollision04AB0Faces, _gShelterB1ControlRoomAccessTunnelCollision04AB0Table, -106, 1242, 2, 1, 4000, 6 };
 
 GpViewRec D_shelter_b1_control_room_access_tunnel_80182094[3] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -3648, 8565, 0 } }, 235 },

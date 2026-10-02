@@ -193,36 +193,36 @@ void func_shelter_b3_garbage_incinerator_8017FA3C(void);
 
 TaskDesc D_shelter_b3_garbage_incinerator_801855E0 = { { { TASK_BODY_NONE, 192 } }, func_shelter_b3_garbage_incinerator_8017DCD4, { .value = 0 } };
 
-TmdBone D_shelter_b3_garbage_incinerator_801855EC[1] = {
+static TmdBone _gShelterB3GarbageIncineratorModel081E4Skeleton[1] = {
 #include "assets/shelter_b3_garbage_incinerator_model_081E4_skeleton.inc"
 };
 
-u32 D_shelter_b3_garbage_incinerator_80185610[1] = {
+static u32 _gShelterB3GarbageIncineratorModel081E4PartVerts[1] = {
 #include "assets/shelter_b3_garbage_incinerator_model_081E4_partVerts.inc"
 };
 
-SVECTOR D_shelter_b3_garbage_incinerator_80185614[49] = {
+static SVECTOR _gShelterB3GarbageIncineratorModel081E4Verts[49] = {
 #include "assets/shelter_b3_garbage_incinerator_model_081E4_verts.inc"
 };
 
-SVECTOR D_shelter_b3_garbage_incinerator_8018579C[1] = {
+static SVECTOR _gShelterB3GarbageIncineratorModel081E4Normals[1] = {
 #include "assets/shelter_b3_garbage_incinerator_model_081E4_normals.inc"
 };
 
-u32 D_shelter_b3_garbage_incinerator_801857A4[222] = {
+static u32 _gShelterB3GarbageIncineratorModel081E4Stream[222] = {
 #include "assets/shelter_b3_garbage_incinerator_model_081E4_stream.inc"
 };
 
-TmdSource D_shelter_b3_garbage_incinerator_80185B1C = {
+static TmdSource _gShelterB3GarbageIncineratorModel081E4 = {
     0,
     1872,
     0,
     1,
-    D_shelter_b3_garbage_incinerator_80185610,
-    D_shelter_b3_garbage_incinerator_80185614,
-    D_shelter_b3_garbage_incinerator_8018579C,
-    D_shelter_b3_garbage_incinerator_801855EC,
-    D_shelter_b3_garbage_incinerator_801857A4,
+    _gShelterB3GarbageIncineratorModel081E4PartVerts,
+    _gShelterB3GarbageIncineratorModel081E4Verts,
+    _gShelterB3GarbageIncineratorModel081E4Normals,
+    _gShelterB3GarbageIncineratorModel081E4Skeleton,
+    _gShelterB3GarbageIncineratorModel081E4Stream,
 };
 
 ShelterB3GarbageIncinerator2ExtendedMessageEntry D_shelter_b3_garbage_incinerator_80185B40[3] = {
@@ -238,7 +238,7 @@ ActorTransform D_shelter_b3_garbage_incinerator_80185B58[2] = {
 
 ActorTransform D_shelter_b3_garbage_incinerator_80185B88 = { { 0x36B0, 3000, -0x4650, 0 }, { 0, 0, 0, 0 } };
 
-TaskDesc D_shelter_b3_garbage_incinerator_80185BA0 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_shelter_b3_garbage_incinerator_8017E158, { .model = &D_shelter_b3_garbage_incinerator_80185B1C } };
+TaskDesc D_shelter_b3_garbage_incinerator_80185BA0 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_shelter_b3_garbage_incinerator_8017E158, { .model = &_gShelterB3GarbageIncineratorModel081E4 } };
 
 TaskDesc D_shelter_b3_garbage_incinerator_80185BAC[2] = {
     { { { TASK_BODY_NONE, 192 } }, screenWaveGridTask, { .value = 0 } },
@@ -247,70 +247,70 @@ TaskDesc D_shelter_b3_garbage_incinerator_80185BAC[2] = {
 
 s32 gScreenWaveRamp = 256;
 
-AnimationPackedPose D_shelter_b3_garbage_incinerator_80185BC8[6] = {
+static AnimationPackedPose _gShelterB3GarbageIncineratorAnimation088E4Bank1[6] = {
 #include "assets/shelter_b3_garbage_incinerator_animation_088E4_bank1.inc"
 };
 
-AnimationPackedRotation D_shelter_b3_garbage_incinerator_80185C10[46] = {
+static AnimationPackedRotation _gShelterB3GarbageIncineratorAnimation088E4Bank4[46] = {
 #include "assets/shelter_b3_garbage_incinerator_animation_088E4_bank4.inc"
 };
 
-AnimationRecord D_shelter_b3_garbage_incinerator_80185CC8[109] = {
+static AnimationRecord _gShelterB3GarbageIncineratorAnimation088E4Records[109] = {
 #include "assets/shelter_b3_garbage_incinerator_animation_088E4_records.inc"
 };
 
-u16 D_shelter_b3_garbage_incinerator_80185E7C[20] = {
+static u16 _gShelterB3GarbageIncineratorAnimation088E4Indices[20] = {
 #include "assets/shelter_b3_garbage_incinerator_animation_088E4_indices.inc"
 };
 
-AnimationSet D_shelter_b3_garbage_incinerator_80185EA4 = {
-    D_shelter_b3_garbage_incinerator_80185CC8,
-    D_shelter_b3_garbage_incinerator_80185E7C,
-    { NULL, D_shelter_b3_garbage_incinerator_80185BC8, NULL, NULL, D_shelter_b3_garbage_incinerator_80185C10, NULL, NULL, NULL },
+static AnimationSet _gShelterB3GarbageIncineratorAnimation088E4 = {
+    _gShelterB3GarbageIncineratorAnimation088E4Records,
+    _gShelterB3GarbageIncineratorAnimation088E4Indices,
+    { NULL, _gShelterB3GarbageIncineratorAnimation088E4Bank1, NULL, NULL, _gShelterB3GarbageIncineratorAnimation088E4Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_shelter_b3_garbage_incinerator_80185ECC[16] = {
+static AnimationPackedPose _gShelterB3GarbageIncineratorAnimation09320Bank1[16] = {
 #include "assets/shelter_b3_garbage_incinerator_animation_09320_bank1.inc"
 };
 
-AnimationPackedRotation D_shelter_b3_garbage_incinerator_80185F8C[246] = {
+static AnimationPackedRotation _gShelterB3GarbageIncineratorAnimation09320Bank4[246] = {
 #include "assets/shelter_b3_garbage_incinerator_animation_09320_bank4.inc"
 };
 
-AnimationRecord D_shelter_b3_garbage_incinerator_80186364[341] = {
+static AnimationRecord _gShelterB3GarbageIncineratorAnimation09320Records[341] = {
 #include "assets/shelter_b3_garbage_incinerator_animation_09320_records.inc"
 };
 
-u16 D_shelter_b3_garbage_incinerator_801868B8[20] = {
+static u16 _gShelterB3GarbageIncineratorAnimation09320Indices[20] = {
 #include "assets/shelter_b3_garbage_incinerator_animation_09320_indices.inc"
 };
 
-AnimationSet D_shelter_b3_garbage_incinerator_801868E0 = {
-    D_shelter_b3_garbage_incinerator_80186364,
-    D_shelter_b3_garbage_incinerator_801868B8,
-    { NULL, D_shelter_b3_garbage_incinerator_80185ECC, NULL, NULL, D_shelter_b3_garbage_incinerator_80185F8C, NULL, NULL, NULL },
+static AnimationSet _gShelterB3GarbageIncineratorAnimation09320 = {
+    _gShelterB3GarbageIncineratorAnimation09320Records,
+    _gShelterB3GarbageIncineratorAnimation09320Indices,
+    { NULL, _gShelterB3GarbageIncineratorAnimation09320Bank1, NULL, NULL, _gShelterB3GarbageIncineratorAnimation09320Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_shelter_b3_garbage_incinerator_80186908[14] = {
+static AnimationPackedPose _gShelterB3GarbageIncineratorAnimation09988Bank1[14] = {
 #include "assets/shelter_b3_garbage_incinerator_animation_09988_bank1.inc"
 };
 
-AnimationPackedRotation D_shelter_b3_garbage_incinerator_801869B0[148] = {
+static AnimationPackedRotation _gShelterB3GarbageIncineratorAnimation09988Bank4[148] = {
 #include "assets/shelter_b3_garbage_incinerator_animation_09988_bank4.inc"
 };
 
-AnimationRecord D_shelter_b3_garbage_incinerator_80186C00[200] = {
+static AnimationRecord _gShelterB3GarbageIncineratorAnimation09988Records[200] = {
 #include "assets/shelter_b3_garbage_incinerator_animation_09988_records.inc"
 };
 
-u16 D_shelter_b3_garbage_incinerator_80186F20[20] = {
+static u16 _gShelterB3GarbageIncineratorAnimation09988Indices[20] = {
 #include "assets/shelter_b3_garbage_incinerator_animation_09988_indices.inc"
 };
 
-AnimationSet D_shelter_b3_garbage_incinerator_80186F48 = {
-    D_shelter_b3_garbage_incinerator_80186C00,
-    D_shelter_b3_garbage_incinerator_80186F20,
-    { NULL, D_shelter_b3_garbage_incinerator_80186908, NULL, NULL, D_shelter_b3_garbage_incinerator_801869B0, NULL, NULL, NULL },
+static AnimationSet _gShelterB3GarbageIncineratorAnimation09988 = {
+    _gShelterB3GarbageIncineratorAnimation09988Records,
+    _gShelterB3GarbageIncineratorAnimation09988Indices,
+    { NULL, _gShelterB3GarbageIncineratorAnimation09988Bank1, NULL, NULL, _gShelterB3GarbageIncineratorAnimation09988Bank4, NULL, NULL, NULL },
 };
 
 ShelterB3GarbageIncinerator2MessageEntry gBlazeFadeMessages[1] = {
@@ -318,9 +318,9 @@ ShelterB3GarbageIncinerator2MessageEntry gBlazeFadeMessages[1] = {
 };
 
 AnimationSet* D_shelter_b3_garbage_incinerator_80186F78[4] = {
-    &D_shelter_b3_garbage_incinerator_80185EA4,
-    &D_shelter_b3_garbage_incinerator_80186F48,
-    &D_shelter_b3_garbage_incinerator_801868E0,
+    &_gShelterB3GarbageIncineratorAnimation088E4,
+    &_gShelterB3GarbageIncineratorAnimation09988,
+    &_gShelterB3GarbageIncineratorAnimation09320,
     NULL,
 };
 

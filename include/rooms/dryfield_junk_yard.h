@@ -15,7 +15,7 @@
 extern GpAreaVariant D_dryfield_junk_yard_8017F558[13];
 
 /// Models the Dryfield map UI overlay's enemy descriptors attach.
-extern TmdSource D_dryfield_junk_yard_8017ECE0;
+extern TmdSource gDryfieldJunkYardModel01378;
 
 // dryfield_junk_yard
 extern GpRoomObjRec D_dryfield_junk_yard_8017ED04[];

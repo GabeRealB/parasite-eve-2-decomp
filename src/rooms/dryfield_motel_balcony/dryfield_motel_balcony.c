@@ -145,30 +145,30 @@ GpWarpRec D_dryfield_motel_balcony_801822F0[4] = {
     { { .words = { 2048, -1990, -3200, 0x29A8 } }, { 0, 0, 0, 0 }, { .words = { 2048, -1990, -3200, 0x29A8 } }, { 0, 0, 0, 0 }, 0x521D0002, 0x521D0001, 0x521D0009, 4, 0, 466 },
 };
 
-SVECTOR D_dryfield_motel_balcony_801823D0[7] = {
+static SVECTOR _gDryfieldMotelBalconyCollision0559CNormals[7] = {
 #include "assets/dryfield_motel_balcony_collision_0559C_normals.inc"
 };
 
-SVECTOR D_dryfield_motel_balcony_80182408[69] = {
+static SVECTOR _gDryfieldMotelBalconyCollision0559CVerts[69] = {
 #include "assets/dryfield_motel_balcony_collision_0559C_verts.inc"
 };
 
-WorldCollisionGridFace D_dryfield_motel_balcony_80182630[32] = {
+static WorldCollisionGridFace _gDryfieldMotelBalconyCollision0559CFaces[32] = {
 #include "assets/dryfield_motel_balcony_collision_0559C_faces.inc"
 };
 
-s16 D_dryfield_motel_balcony_801827B0[342] = {
+static s16 _gDryfieldMotelBalconyCollision0559CCells[342] = {
 #include "assets/dryfield_motel_balcony_collision_0559C_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_dryfield_motel_balcony_801827B0[i])
-s16* D_dryfield_motel_balcony_80182A5C[64] = {
+#define GRID_CELL(i) (&_gDryfieldMotelBalconyCollision0559CCells[i])
+static s16* _gDryfieldMotelBalconyCollision0559CTable[64] = {
 #include "assets/dryfield_motel_balcony_collision_0559C_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_dryfield_motel_balcony_80182B5C[1] = {
-    { NULL, D_dryfield_motel_balcony_801823D0, D_dryfield_motel_balcony_80182408, D_dryfield_motel_balcony_80182630, D_dryfield_motel_balcony_80182A5C, 0x32BE, 0x341C, 8, 8, 4000, 32 },
+    { NULL, _gDryfieldMotelBalconyCollision0559CNormals, _gDryfieldMotelBalconyCollision0559CVerts, _gDryfieldMotelBalconyCollision0559CFaces, _gDryfieldMotelBalconyCollision0559CTable, 0x32BE, 0x341C, 8, 8, 4000, 32 },
 };
 
 GpViewRec D_dryfield_motel_balcony_80182B80[22] = {

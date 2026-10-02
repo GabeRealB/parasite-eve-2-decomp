@@ -174,26 +174,26 @@ s32 func_dryfield_night_water_hole_8017DAD4(Task*, s32, TaskMessageArg, TaskMess
 s32 func_dryfield_night_water_hole_8017DC28(Task*, s32, s32, s32);
 s32 func_dryfield_night_water_hole_8017DD5C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
-AnimationPackedPose D_dryfield_night_water_hole_80180220[6] = {
+static AnimationPackedPose _gDryfieldNightWaterHoleAnimation03004Bank1[6] = {
 #include "assets/dryfield_night_water_hole_animation_03004_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_water_hole_80180268[64] = {
+static AnimationPackedRotation _gDryfieldNightWaterHoleAnimation03004Bank4[64] = {
 #include "assets/dryfield_night_water_hole_animation_03004_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_water_hole_80180368[141] = {
+static AnimationRecord _gDryfieldNightWaterHoleAnimation03004Records[141] = {
 #include "assets/dryfield_night_water_hole_animation_03004_records.inc"
 };
 
-u16 D_dryfield_night_water_hole_8018059C[20] = {
+static u16 _gDryfieldNightWaterHoleAnimation03004Indices[20] = {
 #include "assets/dryfield_night_water_hole_animation_03004_indices.inc"
 };
 
-AnimationSet D_dryfield_night_water_hole_801805C4 = {
-    D_dryfield_night_water_hole_80180368,
-    D_dryfield_night_water_hole_8018059C,
-    { NULL, D_dryfield_night_water_hole_80180220, NULL, NULL, D_dryfield_night_water_hole_80180268, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightWaterHoleAnimation03004 = {
+    _gDryfieldNightWaterHoleAnimation03004Records,
+    _gDryfieldNightWaterHoleAnimation03004Indices,
+    { NULL, _gDryfieldNightWaterHoleAnimation03004Bank1, NULL, NULL, _gDryfieldNightWaterHoleAnimation03004Bank4, NULL, NULL, NULL },
 };
 
 TaskDesc D_dryfield_night_water_hole_801805EC = { { { TASK_BODY_NONE, 32 } }, roomDepartureTask, { .value = 0 } };
@@ -207,7 +207,7 @@ TaskMessageEntry D_dryfield_night_water_hole_801805F8[5] = {
 };
 
 AnimationSet* D_dryfield_night_water_hole_80180620[1] = {
-    &D_dryfield_night_water_hole_801805C4,
+    &_gDryfieldNightWaterHoleAnimation03004,
 };
 
 GpCopyArg D_dryfield_night_water_hole_80180624 = { { .sets = D_dryfield_night_water_hole_80180620 }, 1 };
@@ -390,30 +390,30 @@ GpWarpRec D_dryfield_night_water_hole_80180AAC[3] = {
     { { .words = { 1024, 4680, 0, -954 } }, { 0, 0, 0, 0 }, { .words = { 1024, 4680, 0, -954 } }, { 0, 0, 0, 0 }, 0x53200008, 0, 0, 2, 0, 445 },
 };
 
-SVECTOR D_dryfield_night_water_hole_80180B54[10] = {
+static SVECTOR _gDryfieldNightWaterHoleCollision03990Normals[10] = {
 #include "assets/dryfield_night_water_hole_collision_03990_normals.inc"
 };
 
-SVECTOR D_dryfield_night_water_hole_80180BA4[54] = {
+static SVECTOR _gDryfieldNightWaterHoleCollision03990Verts[54] = {
 #include "assets/dryfield_night_water_hole_collision_03990_verts.inc"
 };
 
-WorldCollisionGridFace D_dryfield_night_water_hole_80180D54[23] = {
+static WorldCollisionGridFace _gDryfieldNightWaterHoleCollision03990Faces[23] = {
 #include "assets/dryfield_night_water_hole_collision_03990_faces.inc"
 };
 
-s16 D_dryfield_night_water_hole_80180E68[92] = {
+static s16 _gDryfieldNightWaterHoleCollision03990Cells[92] = {
 #include "assets/dryfield_night_water_hole_collision_03990_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_dryfield_night_water_hole_80180E68[i])
-s16* D_dryfield_night_water_hole_80180F20[12] = {
+#define GRID_CELL(i) (&_gDryfieldNightWaterHoleCollision03990Cells[i])
+static s16* _gDryfieldNightWaterHoleCollision03990Table[12] = {
 #include "assets/dryfield_night_water_hole_collision_03990_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_dryfield_night_water_hole_80180F50[1] = {
-    { NULL, D_dryfield_night_water_hole_80180B54, D_dryfield_night_water_hole_80180BA4, D_dryfield_night_water_hole_80180D54, D_dryfield_night_water_hole_80180F20, -4000, 5000, 6, 2, 4000, 23 },
+    { NULL, _gDryfieldNightWaterHoleCollision03990Normals, _gDryfieldNightWaterHoleCollision03990Verts, _gDryfieldNightWaterHoleCollision03990Faces, _gDryfieldNightWaterHoleCollision03990Table, -4000, 5000, 6, 2, 4000, 23 },
 };
 
 GpViewRec D_dryfield_night_water_hole_80180F74[26] = {

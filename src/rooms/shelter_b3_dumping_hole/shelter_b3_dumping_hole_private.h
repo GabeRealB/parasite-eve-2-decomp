@@ -9,11 +9,11 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-extern TmdSource D_shelter_b3_dumping_hole_801877F4;
+extern TmdSource gShelterB3DumpingHoleModel0A0CC;
 
-extern TmdSource D_shelter_b3_dumping_hole_80187A70;
+extern TmdSource gShelterB3DumpingHoleModel0A348;
 
-extern TmdSource D_shelter_b3_dumping_hole_80187D74;
+extern TmdSource gShelterB3DumpingHoleModel0A5EC;
 
 extern s16 D_shelter_b3_dumping_hole_8018809C;
 

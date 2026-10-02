@@ -36,28 +36,28 @@ s32  func_shelter_b2_breeding_room_8017D750(Task*, s32, TaskMessageArg, TaskMess
 s32  func_shelter_b2_breeding_room_8017D758(Task*, s32, s32, TaskMessageArg);
 void func_shelter_b2_breeding_room_8017D7A8(Task*);
 
-extern SVECTOR D_shelter_b2_breeding_room_801803A4[4];
-extern TmdBone D_shelter_b2_breeding_room_8018037C[1];
-extern u32     D_shelter_b2_breeding_room_801803A0[1];
-extern u32     D_shelter_b2_breeding_room_801803C4[11];
+static SVECTOR _gShelterB2BreedingRoomModel02E04Verts[4];
+static TmdBone _gShelterB2BreedingRoomModel02E04Skeleton[1];
+static u32     _gShelterB2BreedingRoomModel02E04PartVerts[1];
+static u32     _gShelterB2BreedingRoomModel02E04Stream[11];
 
-TmdBone D_shelter_b2_breeding_room_8018037C[1] = {
+static TmdBone _gShelterB2BreedingRoomModel02E04Skeleton[1] = {
 #include "assets/shelter_b2_breeding_room_model_02E04_skeleton.inc"
 };
 
-u32 D_shelter_b2_breeding_room_801803A0[1] = {
+static u32 _gShelterB2BreedingRoomModel02E04PartVerts[1] = {
 #include "assets/shelter_b2_breeding_room_model_02E04_partVerts.inc"
 };
 
-SVECTOR D_shelter_b2_breeding_room_801803A4[4] = {
+static SVECTOR _gShelterB2BreedingRoomModel02E04Verts[4] = {
 #include "assets/shelter_b2_breeding_room_model_02E04_verts.inc"
 };
 
-u32 D_shelter_b2_breeding_room_801803C4[11] = {
+static u32 _gShelterB2BreedingRoomModel02E04Stream[11] = {
 #include "assets/shelter_b2_breeding_room_model_02E04_stream.inc"
 };
 
-TmdSource D_shelter_b2_breeding_room_801803F0 = { 0, 40, 0, 1, D_shelter_b2_breeding_room_801803A0, D_shelter_b2_breeding_room_801803A4, &D_shelter_b2_breeding_room_801803A4[4], D_shelter_b2_breeding_room_8018037C, D_shelter_b2_breeding_room_801803C4 };
+TmdSource gShelterB2BreedingRoomModel02E04 = { 0, 40, 0, 1, _gShelterB2BreedingRoomModel02E04PartVerts, _gShelterB2BreedingRoomModel02E04Verts, &_gShelterB2BreedingRoomModel02E04Verts[4], _gShelterB2BreedingRoomModel02E04Skeleton, _gShelterB2BreedingRoomModel02E04Stream };
 
 TaskMessageEntry D_shelter_b2_breeding_room_80180414[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_breeding_room_8017D660 },

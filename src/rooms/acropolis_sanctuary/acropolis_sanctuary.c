@@ -300,26 +300,26 @@ s32 func_acropolis_sanctuary_8017D808(Task*, s32, TaskMessageArg, TaskMessageArg
 s32 func_acropolis_sanctuary_8017D810(Task*, s32, s32, TaskMessageArg);
 s32 func_acropolis_sanctuary_8017D848(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
-AnimationPackedPose D_acropolis_sanctuary_80180348[8] = {
+static AnimationPackedPose _gAcropolisSanctuaryAnimation03234Bank1[8] = {
 #include "assets/acropolis_sanctuary_animation_03234_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_sanctuary_801803A8[115] = {
+static AnimationPackedRotation _gAcropolisSanctuaryAnimation03234Bank4[115] = {
 #include "assets/acropolis_sanctuary_animation_03234_bank4.inc"
 };
 
-AnimationRecord D_acropolis_sanctuary_80180574[150] = {
+static AnimationRecord _gAcropolisSanctuaryAnimation03234Records[150] = {
 #include "assets/acropolis_sanctuary_animation_03234_records.inc"
 };
 
-u16 D_acropolis_sanctuary_801807CC[20] = {
+static u16 _gAcropolisSanctuaryAnimation03234Indices[20] = {
 #include "assets/acropolis_sanctuary_animation_03234_indices.inc"
 };
 
-AnimationSet D_acropolis_sanctuary_801807F4 = {
-    D_acropolis_sanctuary_80180574,
-    D_acropolis_sanctuary_801807CC,
-    { NULL, D_acropolis_sanctuary_80180348, NULL, NULL, D_acropolis_sanctuary_801803A8, NULL, NULL, NULL },
+static AnimationSet _gAcropolisSanctuaryAnimation03234 = {
+    _gAcropolisSanctuaryAnimation03234Records,
+    _gAcropolisSanctuaryAnimation03234Indices,
+    { NULL, _gAcropolisSanctuaryAnimation03234Bank1, NULL, NULL, _gAcropolisSanctuaryAnimation03234Bank4, NULL, NULL, NULL },
 };
 
 TaskMessageEntry D_acropolis_sanctuary_8018081C[5] = {
@@ -349,15 +349,15 @@ ActorTransform D_acropolis_sanctuary_801808EC = { { -5724, 0, -8276, 0 }, { 0, -
 AnimationPlayRequest D_acropolis_sanctuary_80180904 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 AnimationSet* D_acropolis_sanctuary_80180918[9] = {
-    &D_actor_210700_8014BC4C,
-    &D_actor_210700_8014C618,
-    &D_actor_210700_8014C974,
-    &D_actor_210700_8014CC2C,
-    &D_actor_210700_8014CFAC,
-    &D_actor_210700_8014D244,
-    &D_actor_210700_8014D9F0,
-    &D_actor_210700_80150608,
-    &D_acropolis_sanctuary_801807F4,
+    &gActor210700Animation01E2C,
+    &gActor210700Animation027F8,
+    &gActor210700Animation02B54,
+    &gActor210700Animation02E0C,
+    &gActor210700Animation0318C,
+    &gActor210700Animation03424,
+    &gActor210700Animation03BD0,
+    &gActor210700Animation067E8,
+    &_gAcropolisSanctuaryAnimation03234,
 };
 
 GpCopyArg D_acropolis_sanctuary_8018093C = { { .sets = D_acropolis_sanctuary_80180918 }, 9 };
@@ -569,52 +569,52 @@ EvsCommand D_acropolis_sanctuary_80181814[11] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-AnimationPackedPose D_acropolis_sanctuary_8018191C[7] = {
+static AnimationPackedPose _gAcropolisSanctuaryAnimation04708Bank1[7] = {
 #include "assets/acropolis_sanctuary_animation_04708_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_sanctuary_80181970[84] = {
+static AnimationPackedRotation _gAcropolisSanctuaryAnimation04708Bank4[84] = {
 #include "assets/acropolis_sanctuary_animation_04708_bank4.inc"
 };
 
-AnimationRecord D_acropolis_sanctuary_80181AC0[120] = {
+static AnimationRecord _gAcropolisSanctuaryAnimation04708Records[120] = {
 #include "assets/acropolis_sanctuary_animation_04708_records.inc"
 };
 
-u16 D_acropolis_sanctuary_80181CA0[20] = {
+static u16 _gAcropolisSanctuaryAnimation04708Indices[20] = {
 #include "assets/acropolis_sanctuary_animation_04708_indices.inc"
 };
 
-AnimationSet D_acropolis_sanctuary_80181CC8 = {
-    D_acropolis_sanctuary_80181AC0,
-    D_acropolis_sanctuary_80181CA0,
-    { NULL, D_acropolis_sanctuary_8018191C, NULL, NULL, D_acropolis_sanctuary_80181970, NULL, NULL, NULL },
+static AnimationSet _gAcropolisSanctuaryAnimation04708 = {
+    _gAcropolisSanctuaryAnimation04708Records,
+    _gAcropolisSanctuaryAnimation04708Indices,
+    { NULL, _gAcropolisSanctuaryAnimation04708Bank1, NULL, NULL, _gAcropolisSanctuaryAnimation04708Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_sanctuary_80181CF0[8] = {
+static AnimationPackedPose _gAcropolisSanctuaryAnimation04AFCBank1[8] = {
 #include "assets/acropolis_sanctuary_animation_04AFC_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_sanctuary_80181D50[88] = {
+static AnimationPackedRotation _gAcropolisSanctuaryAnimation04AFCBank4[88] = {
 #include "assets/acropolis_sanctuary_animation_04AFC_bank4.inc"
 };
 
-AnimationRecord D_acropolis_sanctuary_80181EB0[121] = {
+static AnimationRecord _gAcropolisSanctuaryAnimation04AFCRecords[121] = {
 #include "assets/acropolis_sanctuary_animation_04AFC_records.inc"
 };
 
-u16 D_acropolis_sanctuary_80182094[20] = {
+static u16 _gAcropolisSanctuaryAnimation04AFCIndices[20] = {
 #include "assets/acropolis_sanctuary_animation_04AFC_indices.inc"
 };
 
-AnimationSet D_acropolis_sanctuary_801820BC = {
-    D_acropolis_sanctuary_80181EB0,
-    D_acropolis_sanctuary_80182094,
-    { NULL, D_acropolis_sanctuary_80181CF0, NULL, NULL, D_acropolis_sanctuary_80181D50, NULL, NULL, NULL },
+static AnimationSet _gAcropolisSanctuaryAnimation04AFC = {
+    _gAcropolisSanctuaryAnimation04AFCRecords,
+    _gAcropolisSanctuaryAnimation04AFCIndices,
+    { NULL, _gAcropolisSanctuaryAnimation04AFCBank1, NULL, NULL, _gAcropolisSanctuaryAnimation04AFCBank4, NULL, NULL, NULL },
 };
 
 AnimationSet* D_acropolis_sanctuary_801820E4[1] = {
-    &D_acropolis_sanctuary_80181CC8,
+    &_gAcropolisSanctuaryAnimation04708,
 };
 
 EvsSceneKey D_acropolis_sanctuary_801820E8 = { 1, 14, 11 };
@@ -641,29 +641,29 @@ EvsCommand D_acropolis_sanctuary_801821C8[5] = {
 
 TaskDesc D_acropolis_sanctuary_80182240 = { { { TASK_BODY_NONE, 192 } }, func_acropolis_sanctuary_8017DA40, { .value = 0 } };
 
-SVECTOR D_acropolis_sanctuary_8018224C[4] = {
+static SVECTOR _gAcropolisSanctuaryCollision04D2CNormals[4] = {
 #include "assets/acropolis_sanctuary_collision_04D2C_normals.inc"
 };
 
-SVECTOR D_acropolis_sanctuary_8018226C[8] = {
+static SVECTOR _gAcropolisSanctuaryCollision04D2CVerts[8] = {
 #include "assets/acropolis_sanctuary_collision_04D2C_verts.inc"
 };
 
-WorldCollisionGridFace D_acropolis_sanctuary_801822AC[4] = {
+static WorldCollisionGridFace _gAcropolisSanctuaryCollision04D2CFaces[4] = {
 #include "assets/acropolis_sanctuary_collision_04D2C_faces.inc"
 };
 
-s16 D_acropolis_sanctuary_801822DC[6] = {
+static s16 _gAcropolisSanctuaryCollision04D2CCells[6] = {
 #include "assets/acropolis_sanctuary_collision_04D2C_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_acropolis_sanctuary_801822DC[i])
-s16* D_acropolis_sanctuary_801822E8[1] = {
+#define GRID_CELL(i) (&_gAcropolisSanctuaryCollision04D2CCells[i])
+static s16* _gAcropolisSanctuaryCollision04D2CTable[1] = {
 #include "assets/acropolis_sanctuary_collision_04D2C_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_acropolis_sanctuary_801822EC = { NULL, D_acropolis_sanctuary_8018224C, D_acropolis_sanctuary_8018226C, D_acropolis_sanctuary_801822AC, D_acropolis_sanctuary_801822E8, 4941, 8914, 1, 1, 4000, 4 };
+WorldCollisionGrid D_acropolis_sanctuary_801822EC = { NULL, _gAcropolisSanctuaryCollision04D2CNormals, _gAcropolisSanctuaryCollision04D2CVerts, _gAcropolisSanctuaryCollision04D2CFaces, _gAcropolisSanctuaryCollision04D2CTable, 4941, 8914, 1, 1, 4000, 4 };
 
 TaskMessageEntry D_acropolis_sanctuary_80182310[2] = {
     { 3101, func_acropolis_sanctuary_8017F918 },
@@ -823,29 +823,29 @@ GpWarpRec D_acropolis_sanctuary_8018280C[3] = {
     { { .words = { 1024, -9757, 2, -8070 } }, { 0, 0, 0, 0 }, { .words = { 1024, -9757, 2, -8070 } }, { 0, 0, 0, 0 }, 0x510C0002, 0x510C0001, 0, 2, 0, 493 },
 };
 
-SVECTOR D_acropolis_sanctuary_801828B4[42] = {
+static SVECTOR _gAcropolisSanctuaryCollision05FA8Normals[42] = {
 #include "assets/acropolis_sanctuary_collision_05FA8_normals.inc"
 };
 
-SVECTOR D_acropolis_sanctuary_80182A04[136] = {
+static SVECTOR _gAcropolisSanctuaryCollision05FA8Verts[136] = {
 #include "assets/acropolis_sanctuary_collision_05FA8_verts.inc"
 };
 
-WorldCollisionGridFace D_acropolis_sanctuary_80182E44[85] = {
+static WorldCollisionGridFace _gAcropolisSanctuaryCollision05FA8Faces[85] = {
 #include "assets/acropolis_sanctuary_collision_05FA8_faces.inc"
 };
 
-s16 D_acropolis_sanctuary_80183240[386] = {
+static s16 _gAcropolisSanctuaryCollision05FA8Cells[386] = {
 #include "assets/acropolis_sanctuary_collision_05FA8_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_acropolis_sanctuary_80183240[i])
-s16* D_acropolis_sanctuary_80183544[9] = {
+#define GRID_CELL(i) (&_gAcropolisSanctuaryCollision05FA8Cells[i])
+static s16* _gAcropolisSanctuaryCollision05FA8Table[9] = {
 #include "assets/acropolis_sanctuary_collision_05FA8_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_acropolis_sanctuary_80183568 = { NULL, D_acropolis_sanctuary_801828B4, D_acropolis_sanctuary_80182A04, D_acropolis_sanctuary_80182E44, D_acropolis_sanctuary_80183544, 0x2A44, 0x332D, 3, 3, 4000, 85 };
+WorldCollisionGrid D_acropolis_sanctuary_80183568 = { NULL, _gAcropolisSanctuaryCollision05FA8Normals, _gAcropolisSanctuaryCollision05FA8Verts, _gAcropolisSanctuaryCollision05FA8Faces, _gAcropolisSanctuaryCollision05FA8Table, 0x2A44, 0x332D, 3, 3, 4000, 85 };
 
 WorldCollisionTrigger D_acropolis_sanctuary_8018358C[18] = {
     { NULL, NULL, NULL, { -7168, -1376, -8000, 0 }, { { 0, -2048, -1504, 0 }, { 0, 2048, -1504, 0 }, { 0, -2048, 1504, 0 }, { 0, 2048, 1504, 0 } }, { -4097, 0, 0, 0 }, { 0, 0, 0, 0 }, 2534, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -1669,68 +1669,68 @@ GpAreaApplyRec D_acropolis_sanctuary_80186418[11] = {
     { 255, 0, 0, 0 },
 };
 
-TmdBone D_acropolis_sanctuary_80186444[3] = {
+static TmdBone _gAcropolisSanctuaryModel090F0Skeleton[3] = {
 #include "assets/acropolis_sanctuary_model_090F0_skeleton.inc"
 };
 
-u32 D_acropolis_sanctuary_801864B0[3] = {
+static u32 _gAcropolisSanctuaryModel090F0PartVerts[3] = {
 #include "assets/acropolis_sanctuary_model_090F0_partVerts.inc"
 };
 
-SVECTOR D_acropolis_sanctuary_801864BC[56] = {
+static SVECTOR _gAcropolisSanctuaryModel090F0Verts[56] = {
 #include "assets/acropolis_sanctuary_model_090F0_verts.inc"
 };
 
-SVECTOR D_acropolis_sanctuary_8018667C[6] = {
+static SVECTOR _gAcropolisSanctuaryModel090F0Normals[6] = {
 #include "assets/acropolis_sanctuary_model_090F0_normals.inc"
 };
 
-u32 D_acropolis_sanctuary_801866AC[215] = {
+static u32 _gAcropolisSanctuaryModel090F0Stream[215] = {
 #include "assets/acropolis_sanctuary_model_090F0_stream.inc"
 };
 
-TmdSource D_acropolis_sanctuary_80186A08 = {
+TmdSource gAcropolisSanctuaryModel090F0 = {
     0,
     1768,
     0,
     3,
-    D_acropolis_sanctuary_801864B0,
-    D_acropolis_sanctuary_801864BC,
-    D_acropolis_sanctuary_8018667C,
-    D_acropolis_sanctuary_80186444,
-    D_acropolis_sanctuary_801866AC,
+    _gAcropolisSanctuaryModel090F0PartVerts,
+    _gAcropolisSanctuaryModel090F0Verts,
+    _gAcropolisSanctuaryModel090F0Normals,
+    _gAcropolisSanctuaryModel090F0Skeleton,
+    _gAcropolisSanctuaryModel090F0Stream,
 };
 
-TmdBone D_acropolis_sanctuary_80186A2C[1] = {
+static TmdBone _gAcropolisSanctuaryModel09584Skeleton[1] = {
 #include "assets/acropolis_sanctuary_model_09584_skeleton.inc"
 };
 
-u32 D_acropolis_sanctuary_80186A50[1] = {
+static u32 _gAcropolisSanctuaryModel09584PartVerts[1] = {
 #include "assets/acropolis_sanctuary_model_09584_partVerts.inc"
 };
 
-SVECTOR D_acropolis_sanctuary_80186A54[19] = {
+static SVECTOR _gAcropolisSanctuaryModel09584Verts[19] = {
 #include "assets/acropolis_sanctuary_model_09584_verts.inc"
 };
 
-SVECTOR D_acropolis_sanctuary_80186AEC[11] = {
+static SVECTOR _gAcropolisSanctuaryModel09584Normals[11] = {
 #include "assets/acropolis_sanctuary_model_09584_normals.inc"
 };
 
-u32 D_acropolis_sanctuary_80186B44[73] = {
+static u32 _gAcropolisSanctuaryModel09584Stream[73] = {
 #include "assets/acropolis_sanctuary_model_09584_stream.inc"
 };
 
-TmdSource D_acropolis_sanctuary_80186C68 = {
+TmdSource gAcropolisSanctuaryModel09584 = {
     0,
     440,
     0,
     1,
-    D_acropolis_sanctuary_80186A50,
-    D_acropolis_sanctuary_80186A54,
-    D_acropolis_sanctuary_80186AEC,
-    D_acropolis_sanctuary_80186A2C,
-    D_acropolis_sanctuary_80186B44,
+    _gAcropolisSanctuaryModel09584PartVerts,
+    _gAcropolisSanctuaryModel09584Verts,
+    _gAcropolisSanctuaryModel09584Normals,
+    _gAcropolisSanctuaryModel09584Skeleton,
+    _gAcropolisSanctuaryModel09584Stream,
 };
 
 u32 D_acropolis_sanctuary_80186C8C = 0xB000000;

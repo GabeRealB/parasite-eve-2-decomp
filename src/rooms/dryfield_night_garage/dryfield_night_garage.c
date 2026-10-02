@@ -214,140 +214,140 @@ EvsCommand D_dryfield_night_garage_80181C7C[4] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-SVECTOR D_dryfield_night_garage_80181CDC[4] = {
+static SVECTOR _gDryfieldNightGarageCollision047BCNormals[4] = {
 #include "assets/dryfield_night_garage_collision_047BC_normals.inc"
 };
 
-SVECTOR D_dryfield_night_garage_80181CFC[8] = {
+static SVECTOR _gDryfieldNightGarageCollision047BCVerts[8] = {
 #include "assets/dryfield_night_garage_collision_047BC_verts.inc"
 };
 
-WorldCollisionGridFace D_dryfield_night_garage_80181D3C[4] = {
+static WorldCollisionGridFace _gDryfieldNightGarageCollision047BCFaces[4] = {
 #include "assets/dryfield_night_garage_collision_047BC_faces.inc"
 };
 
-s16 D_dryfield_night_garage_80181D6C[6] = {
+static s16 _gDryfieldNightGarageCollision047BCCells[6] = {
 #include "assets/dryfield_night_garage_collision_047BC_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_dryfield_night_garage_80181D6C[i])
-s16* D_dryfield_night_garage_80181D78[1] = {
+#define GRID_CELL(i) (&_gDryfieldNightGarageCollision047BCCells[i])
+static s16* _gDryfieldNightGarageCollision047BCTable[1] = {
 #include "assets/dryfield_night_garage_collision_047BC_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_night_garage_80181D7C = { NULL, D_dryfield_night_garage_80181CDC, D_dryfield_night_garage_80181CFC, D_dryfield_night_garage_80181D3C, D_dryfield_night_garage_80181D78, 722, 250, 1, 1, 4000, 4 };
+WorldCollisionGrid D_dryfield_night_garage_80181D7C = { NULL, _gDryfieldNightGarageCollision047BCNormals, _gDryfieldNightGarageCollision047BCVerts, _gDryfieldNightGarageCollision047BCFaces, _gDryfieldNightGarageCollision047BCTable, 722, 250, 1, 1, 4000, 4 };
 
-SVECTOR D_dryfield_night_garage_80181DA0[4] = {
+static SVECTOR _gDryfieldNightGarageCollision04880Normals[4] = {
 #include "assets/dryfield_night_garage_collision_04880_normals.inc"
 };
 
-SVECTOR D_dryfield_night_garage_80181DC0[8] = {
+static SVECTOR _gDryfieldNightGarageCollision04880Verts[8] = {
 #include "assets/dryfield_night_garage_collision_04880_verts.inc"
 };
 
-WorldCollisionGridFace D_dryfield_night_garage_80181E00[4] = {
+static WorldCollisionGridFace _gDryfieldNightGarageCollision04880Faces[4] = {
 #include "assets/dryfield_night_garage_collision_04880_faces.inc"
 };
 
-s16 D_dryfield_night_garage_80181E30[6] = {
+static s16 _gDryfieldNightGarageCollision04880Cells[6] = {
 #include "assets/dryfield_night_garage_collision_04880_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_dryfield_night_garage_80181E30[i])
-s16* D_dryfield_night_garage_80181E3C[1] = {
+#define GRID_CELL(i) (&_gDryfieldNightGarageCollision04880Cells[i])
+static s16* _gDryfieldNightGarageCollision04880Table[1] = {
 #include "assets/dryfield_night_garage_collision_04880_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_night_garage_80181E40 = { NULL, D_dryfield_night_garage_80181DA0, D_dryfield_night_garage_80181DC0, D_dryfield_night_garage_80181E00, D_dryfield_night_garage_80181E3C, -1900, -4890, 1, 1, 4000, 4 };
+WorldCollisionGrid D_dryfield_night_garage_80181E40 = { NULL, _gDryfieldNightGarageCollision04880Normals, _gDryfieldNightGarageCollision04880Verts, _gDryfieldNightGarageCollision04880Faces, _gDryfieldNightGarageCollision04880Table, -1900, -4890, 1, 1, 4000, 4 };
 
-AnimationPackedPose D_dryfield_night_garage_80181E64[6] = {
+static AnimationPackedPose _gDryfieldNightGarageAnimation04B80Bank1[6] = {
 #include "assets/dryfield_night_garage_animation_04B80_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_garage_80181EAC[46] = {
+static AnimationPackedRotation _gDryfieldNightGarageAnimation04B80Bank4[46] = {
 #include "assets/dryfield_night_garage_animation_04B80_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_garage_80181F64[109] = {
+static AnimationRecord _gDryfieldNightGarageAnimation04B80Records[109] = {
 #include "assets/dryfield_night_garage_animation_04B80_records.inc"
 };
 
-u16 D_dryfield_night_garage_80182118[20] = {
+static u16 _gDryfieldNightGarageAnimation04B80Indices[20] = {
 #include "assets/dryfield_night_garage_animation_04B80_indices.inc"
 };
 
-AnimationSet D_dryfield_night_garage_80182140 = {
-    D_dryfield_night_garage_80181F64,
-    D_dryfield_night_garage_80182118,
-    { NULL, D_dryfield_night_garage_80181E64, NULL, NULL, D_dryfield_night_garage_80181EAC, NULL, NULL, NULL },
+AnimationSet gDryfieldNightGarageAnimation04B80 = {
+    _gDryfieldNightGarageAnimation04B80Records,
+    _gDryfieldNightGarageAnimation04B80Indices,
+    { NULL, _gDryfieldNightGarageAnimation04B80Bank1, NULL, NULL, _gDryfieldNightGarageAnimation04B80Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_garage_80182168[8] = {
+static AnimationPackedPose _gDryfieldNightGarageAnimation04F54Bank1[8] = {
 #include "assets/dryfield_night_garage_animation_04F54_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_garage_801821C8[84] = {
+static AnimationPackedRotation _gDryfieldNightGarageAnimation04F54Bank4[84] = {
 #include "assets/dryfield_night_garage_animation_04F54_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_garage_80182318[117] = {
+static AnimationRecord _gDryfieldNightGarageAnimation04F54Records[117] = {
 #include "assets/dryfield_night_garage_animation_04F54_records.inc"
 };
 
-u16 D_dryfield_night_garage_801824EC[20] = {
+static u16 _gDryfieldNightGarageAnimation04F54Indices[20] = {
 #include "assets/dryfield_night_garage_animation_04F54_indices.inc"
 };
 
-AnimationSet D_dryfield_night_garage_80182514 = {
-    D_dryfield_night_garage_80182318,
-    D_dryfield_night_garage_801824EC,
-    { NULL, D_dryfield_night_garage_80182168, NULL, NULL, D_dryfield_night_garage_801821C8, NULL, NULL, NULL },
+AnimationSet gDryfieldNightGarageAnimation04F54 = {
+    _gDryfieldNightGarageAnimation04F54Records,
+    _gDryfieldNightGarageAnimation04F54Indices,
+    { NULL, _gDryfieldNightGarageAnimation04F54Bank1, NULL, NULL, _gDryfieldNightGarageAnimation04F54Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_garage_8018253C[7] = {
+static AnimationPackedPose _gDryfieldNightGarageAnimation05344Bank1[7] = {
 #include "assets/dryfield_night_garage_animation_05344_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_garage_80182590[62] = {
+static AnimationPackedRotation _gDryfieldNightGarageAnimation05344Bank4[62] = {
 #include "assets/dryfield_night_garage_animation_05344_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_garage_80182688[149] = {
+static AnimationRecord _gDryfieldNightGarageAnimation05344Records[149] = {
 #include "assets/dryfield_night_garage_animation_05344_records.inc"
 };
 
-u16 D_dryfield_night_garage_801828DC[20] = {
+static u16 _gDryfieldNightGarageAnimation05344Indices[20] = {
 #include "assets/dryfield_night_garage_animation_05344_indices.inc"
 };
 
-AnimationSet D_dryfield_night_garage_80182904 = {
-    D_dryfield_night_garage_80182688,
-    D_dryfield_night_garage_801828DC,
-    { NULL, D_dryfield_night_garage_8018253C, NULL, NULL, D_dryfield_night_garage_80182590, NULL, NULL, NULL },
+AnimationSet gDryfieldNightGarageAnimation05344 = {
+    _gDryfieldNightGarageAnimation05344Records,
+    _gDryfieldNightGarageAnimation05344Indices,
+    { NULL, _gDryfieldNightGarageAnimation05344Bank1, NULL, NULL, _gDryfieldNightGarageAnimation05344Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_garage_8018292C[7] = {
+static AnimationPackedPose _gDryfieldNightGarageAnimation056B0Bank1[7] = {
 #include "assets/dryfield_night_garage_animation_056B0_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_garage_80182980[74] = {
+static AnimationPackedRotation _gDryfieldNightGarageAnimation056B0Bank4[74] = {
 #include "assets/dryfield_night_garage_animation_056B0_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_garage_80182AA8[104] = {
+static AnimationRecord _gDryfieldNightGarageAnimation056B0Records[104] = {
 #include "assets/dryfield_night_garage_animation_056B0_records.inc"
 };
 
-u16 D_dryfield_night_garage_80182C48[20] = {
+static u16 _gDryfieldNightGarageAnimation056B0Indices[20] = {
 #include "assets/dryfield_night_garage_animation_056B0_indices.inc"
 };
 
-AnimationSet D_dryfield_night_garage_80182C70 = {
-    D_dryfield_night_garage_80182AA8,
-    D_dryfield_night_garage_80182C48,
-    { NULL, D_dryfield_night_garage_8018292C, NULL, NULL, D_dryfield_night_garage_80182980, NULL, NULL, NULL },
+AnimationSet gDryfieldNightGarageAnimation056B0 = {
+    _gDryfieldNightGarageAnimation056B0Records,
+    _gDryfieldNightGarageAnimation056B0Indices,
+    { NULL, _gDryfieldNightGarageAnimation056B0Bank1, NULL, NULL, _gDryfieldNightGarageAnimation056B0Bank4, NULL, NULL, NULL },
 };
 
 static inline s32 Shop_AddItemCount(s32 item, s32 count);

@@ -194,48 +194,48 @@ TaskMessageEntry D_dryfield_main_street_80180EA0[6] = {
 
 s32 D_dryfield_main_street_80180ED0 = 514;
 
-AnimationPackedPose D_dryfield_main_street_80180ED4[6] = {
+static AnimationPackedPose _gDryfieldMainStreetAnimation03BF0Bank1[6] = {
 #include "assets/dryfield_main_street_animation_03BF0_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_main_street_80180F1C[46] = {
+static AnimationPackedRotation _gDryfieldMainStreetAnimation03BF0Bank4[46] = {
 #include "assets/dryfield_main_street_animation_03BF0_bank4.inc"
 };
 
-AnimationRecord D_dryfield_main_street_80180FD4[109] = {
+static AnimationRecord _gDryfieldMainStreetAnimation03BF0Records[109] = {
 #include "assets/dryfield_main_street_animation_03BF0_records.inc"
 };
 
-u16 D_dryfield_main_street_80181188[20] = {
+static u16 _gDryfieldMainStreetAnimation03BF0Indices[20] = {
 #include "assets/dryfield_main_street_animation_03BF0_indices.inc"
 };
 
-AnimationSet D_dryfield_main_street_801811B0 = {
-    D_dryfield_main_street_80180FD4,
-    D_dryfield_main_street_80181188,
-    { NULL, D_dryfield_main_street_80180ED4, NULL, NULL, D_dryfield_main_street_80180F1C, NULL, NULL, NULL },
+static AnimationSet _gDryfieldMainStreetAnimation03BF0 = {
+    _gDryfieldMainStreetAnimation03BF0Records,
+    _gDryfieldMainStreetAnimation03BF0Indices,
+    { NULL, _gDryfieldMainStreetAnimation03BF0Bank1, NULL, NULL, _gDryfieldMainStreetAnimation03BF0Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_main_street_801811D8[7] = {
+static AnimationPackedPose _gDryfieldMainStreetAnimation03F84Bank1[7] = {
 #include "assets/dryfield_main_street_animation_03F84_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_main_street_8018122C[65] = {
+static AnimationPackedRotation _gDryfieldMainStreetAnimation03F84Bank4[65] = {
 #include "assets/dryfield_main_street_animation_03F84_bank4.inc"
 };
 
-AnimationRecord D_dryfield_main_street_80181330[123] = {
+static AnimationRecord _gDryfieldMainStreetAnimation03F84Records[123] = {
 #include "assets/dryfield_main_street_animation_03F84_records.inc"
 };
 
-u16 D_dryfield_main_street_8018151C[20] = {
+static u16 _gDryfieldMainStreetAnimation03F84Indices[20] = {
 #include "assets/dryfield_main_street_animation_03F84_indices.inc"
 };
 
-AnimationSet D_dryfield_main_street_80181544 = {
-    D_dryfield_main_street_80181330,
-    D_dryfield_main_street_8018151C,
-    { NULL, D_dryfield_main_street_801811D8, NULL, NULL, D_dryfield_main_street_8018122C, NULL, NULL, NULL },
+static AnimationSet _gDryfieldMainStreetAnimation03F84 = {
+    _gDryfieldMainStreetAnimation03F84Records,
+    _gDryfieldMainStreetAnimation03F84Indices,
+    { NULL, _gDryfieldMainStreetAnimation03F84Bank1, NULL, NULL, _gDryfieldMainStreetAnimation03F84Bank4, NULL, NULL, NULL },
 };
 
 TaskDesc D_dryfield_main_street_8018156C[2] = {
@@ -243,7 +243,7 @@ TaskDesc D_dryfield_main_street_8018156C[2] = {
     { { { TASK_BODY_NONE, 192 } }, func_dryfield_main_street_8017E3A8, { .value = 0 } },
 };
 
-DryfieldMainStreetAnimStorage1584 D_dryfield_main_street_80181584 = { .data = { { NULL, &D_dryfield_main_street_801811B0, &D_dryfield_main_street_80181544 }, { { .words = D_dryfield_main_street_80181584.words }, 4 } } };
+DryfieldMainStreetAnimStorage1584 D_dryfield_main_street_80181584 = { .data = { { NULL, &_gDryfieldMainStreetAnimation03BF0, &_gDryfieldMainStreetAnimation03F84 }, { { .words = D_dryfield_main_street_80181584.words }, 4 } } };
 
 AnimationPlayRequest D_dryfield_main_street_80181598 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -369,30 +369,30 @@ GpWarpRec D_dryfield_main_street_80181BDC[7] = {
     { { .words = { 3072, -488, 0, 8495 } }, { 0, 0, 0, 0 }, { .words = { 3072, -488, 0, 8495 } }, { 0, 0, 0, 0 }, 0x52020002, 0x52020001, 0, 9, 0, 482 },
 };
 
-SVECTOR D_dryfield_main_street_80181D64[20] = {
+static SVECTOR _gDryfieldMainStreetCollision056DCNormals[20] = {
 #include "assets/dryfield_main_street_collision_056DC_normals.inc"
 };
 
-SVECTOR D_dryfield_main_street_80181E04[180] = {
+static SVECTOR _gDryfieldMainStreetCollision056DCVerts[180] = {
 #include "assets/dryfield_main_street_collision_056DC_verts.inc"
 };
 
-WorldCollisionGridFace D_dryfield_main_street_801823A4[85] = {
+static WorldCollisionGridFace _gDryfieldMainStreetCollision056DCFaces[85] = {
 #include "assets/dryfield_main_street_collision_056DC_faces.inc"
 };
 
-s16 D_dryfield_main_street_801827A0[554] = {
+static s16 _gDryfieldMainStreetCollision056DCCells[554] = {
 #include "assets/dryfield_main_street_collision_056DC_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_dryfield_main_street_801827A0[i])
-s16* D_dryfield_main_street_80182BF4[42] = {
+#define GRID_CELL(i) (&_gDryfieldMainStreetCollision056DCCells[i])
+static s16* _gDryfieldMainStreetCollision056DCTable[42] = {
 #include "assets/dryfield_main_street_collision_056DC_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_dryfield_main_street_80182C9C[1] = {
-    { NULL, D_dryfield_main_street_80181D64, D_dryfield_main_street_80181E04, D_dryfield_main_street_801823A4, D_dryfield_main_street_80182BF4, 0x2EE6, 0x2C4C, 6, 7, 4000, 85 },
+    { NULL, _gDryfieldMainStreetCollision056DCNormals, _gDryfieldMainStreetCollision056DCVerts, _gDryfieldMainStreetCollision056DCFaces, _gDryfieldMainStreetCollision056DCTable, 0x2EE6, 0x2C4C, 6, 7, 4000, 85 },
 };
 
 GpViewRec D_dryfield_main_street_80182CC0[13] = {

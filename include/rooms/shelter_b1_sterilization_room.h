@@ -12,7 +12,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-extern TmdSource D_shelter_b1_sterilization_room_80184DF8;
+extern TmdSource gShelterB1SterilizationRoomAcropolisSanctuaryModel090F0;
 
 extern GpAreaVariant D_shelter_b1_sterilization_room_8018C14C[11];
 

@@ -87,7 +87,7 @@ extern WorldCollisionOccluder D_dryfield_night_water_tank_801807CC[2];
 extern WorldCollisionTrigger  D_dryfield_night_water_tank_8018038C[4];
 extern WorldCollisionTrigger  D_dryfield_night_water_tank_801804BC[8];
 extern WorldCoordRoomLights   D_dryfield_night_water_tank_80180374[1];
-extern TmdSource              D_dryfield_night_water_tank_8017EE04;
+static TmdSource              _gDryfieldNightWaterTankModel00FF8;
 
 s32  func_dryfield_night_water_tank_8017D70C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_dryfield_night_water_tank_8017D714(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -142,64 +142,64 @@ TaskDesc D_dryfield_night_water_tank_8017E010[2] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-SVECTOR D_dryfield_night_water_tank_8017E028[2] = {
+static SVECTOR _gDryfieldNightWaterTankCollision00ACCNormals[2] = {
 #include "assets/dryfield_night_water_tank_collision_00ACC_normals.inc"
 };
 
-SVECTOR D_dryfield_night_water_tank_8017E038[6] = {
+static SVECTOR _gDryfieldNightWaterTankCollision00ACCVerts[6] = {
 #include "assets/dryfield_night_water_tank_collision_00ACC_verts.inc"
 };
 
-WorldCollisionGridFace D_dryfield_night_water_tank_8017E068[2] = {
+static WorldCollisionGridFace _gDryfieldNightWaterTankCollision00ACCFaces[2] = {
 #include "assets/dryfield_night_water_tank_collision_00ACC_faces.inc"
 };
 
-s16 D_dryfield_night_water_tank_8017E080[4] = {
+static s16 _gDryfieldNightWaterTankCollision00ACCCells[4] = {
 #include "assets/dryfield_night_water_tank_collision_00ACC_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_dryfield_night_water_tank_8017E080[i])
-s16* D_dryfield_night_water_tank_8017E088[1] = {
+#define GRID_CELL(i) (&_gDryfieldNightWaterTankCollision00ACCCells[i])
+static s16* _gDryfieldNightWaterTankCollision00ACCTable[1] = {
 #include "assets/dryfield_night_water_tank_collision_00ACC_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_night_water_tank_8017E08C = { NULL, D_dryfield_night_water_tank_8017E028, D_dryfield_night_water_tank_8017E038, D_dryfield_night_water_tank_8017E068, D_dryfield_night_water_tank_8017E088, -1016, 2444, 1, 1, 4000, 2 };
+WorldCollisionGrid D_dryfield_night_water_tank_8017E08C = { NULL, _gDryfieldNightWaterTankCollision00ACCNormals, _gDryfieldNightWaterTankCollision00ACCVerts, _gDryfieldNightWaterTankCollision00ACCFaces, _gDryfieldNightWaterTankCollision00ACCTable, -1016, 2444, 1, 1, 4000, 2 };
 
-TmdBone D_dryfield_night_water_tank_8017E0B0[1] = {
+static TmdBone _gDryfieldNightWaterTankModel00FF8Skeleton[1] = {
 #include "assets/dryfield_night_water_tank_model_00FF8_skeleton.inc"
 };
 
-u32 D_dryfield_night_water_tank_8017E0D4[1] = {
+static u32 _gDryfieldNightWaterTankModel00FF8PartVerts[1] = {
 #include "assets/dryfield_night_water_tank_model_00FF8_partVerts.inc"
 };
 
-SVECTOR D_dryfield_night_water_tank_8017E0D8[84] = {
+static SVECTOR _gDryfieldNightWaterTankModel00FF8Verts[84] = {
 #include "assets/dryfield_night_water_tank_model_00FF8_verts.inc"
 };
 
-SVECTOR D_dryfield_night_water_tank_8017E378[72] = {
+static SVECTOR _gDryfieldNightWaterTankModel00FF8Normals[72] = {
 #include "assets/dryfield_night_water_tank_model_00FF8_normals.inc"
 };
 
-u32 D_dryfield_night_water_tank_8017E5B8[531] = {
+static u32 _gDryfieldNightWaterTankModel00FF8Stream[531] = {
 #include "assets/dryfield_night_water_tank_model_00FF8_stream.inc"
 };
 
-TmdSource D_dryfield_night_water_tank_8017EE04 = {
+static TmdSource _gDryfieldNightWaterTankModel00FF8 = {
     0,
     3768,
     0,
     1,
-    D_dryfield_night_water_tank_8017E0D4,
-    D_dryfield_night_water_tank_8017E0D8,
-    D_dryfield_night_water_tank_8017E378,
-    D_dryfield_night_water_tank_8017E0B0,
-    D_dryfield_night_water_tank_8017E5B8,
+    _gDryfieldNightWaterTankModel00FF8PartVerts,
+    _gDryfieldNightWaterTankModel00FF8Verts,
+    _gDryfieldNightWaterTankModel00FF8Normals,
+    _gDryfieldNightWaterTankModel00FF8Skeleton,
+    _gDryfieldNightWaterTankModel00FF8Stream,
 };
 
 TaskDesc D_dryfield_night_water_tank_8017EE28[2] = {
-    { { { TASK_BODY_TMD, 192 } }, waterTankSwayTask, { .model = &D_dryfield_night_water_tank_8017EE04 } },
+    { { { TASK_BODY_TMD, 192 } }, waterTankSwayTask, { .model = &_gDryfieldNightWaterTankModel00FF8 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -247,29 +247,29 @@ GpWarpRec D_dryfield_night_water_tank_8017EE7C[2] = {
     { { .words = { 2560, 870, -0x4010, 934 } }, { 0, 0, 0, 0 }, { .words = { 2560, 870, -0x4010, 934 } }, { 0, 0, 0, 0 }, 0, 0, 0, 4, 0, 0 },
 };
 
-SVECTOR D_dryfield_night_water_tank_8017EEEC[16] = {
+static SVECTOR _gDryfieldNightWaterTankCollision01EF0Normals[16] = {
 #include "assets/dryfield_night_water_tank_collision_01EF0_normals.inc"
 };
 
-SVECTOR D_dryfield_night_water_tank_8017EF6C[78] = {
+static SVECTOR _gDryfieldNightWaterTankCollision01EF0Verts[78] = {
 #include "assets/dryfield_night_water_tank_collision_01EF0_verts.inc"
 };
 
-WorldCollisionGridFace D_dryfield_night_water_tank_8017F1DC[38] = {
+static WorldCollisionGridFace _gDryfieldNightWaterTankCollision01EF0Faces[38] = {
 #include "assets/dryfield_night_water_tank_collision_01EF0_faces.inc"
 };
 
-s16 D_dryfield_night_water_tank_8017F3A4[126] = {
+static s16 _gDryfieldNightWaterTankCollision01EF0Cells[126] = {
 #include "assets/dryfield_night_water_tank_collision_01EF0_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_dryfield_night_water_tank_8017F3A4[i])
-s16* D_dryfield_night_water_tank_8017F4A0[4] = {
+#define GRID_CELL(i) (&_gDryfieldNightWaterTankCollision01EF0Cells[i])
+static s16* _gDryfieldNightWaterTankCollision01EF0Table[4] = {
 #include "assets/dryfield_night_water_tank_collision_01EF0_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_night_water_tank_8017F4B0 = { NULL, D_dryfield_night_water_tank_8017EEEC, D_dryfield_night_water_tank_8017EF6C, D_dryfield_night_water_tank_8017F1DC, D_dryfield_night_water_tank_8017F4A0, 3500, 3300, 2, 2, 4000, 38 };
+WorldCollisionGrid D_dryfield_night_water_tank_8017F4B0 = { NULL, _gDryfieldNightWaterTankCollision01EF0Normals, _gDryfieldNightWaterTankCollision01EF0Verts, _gDryfieldNightWaterTankCollision01EF0Faces, _gDryfieldNightWaterTankCollision01EF0Table, 3500, 3300, 2, 2, 4000, 38 };
 
 GpViewRec D_dryfield_night_water_tank_8017F4D4[6] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x5DC0, 0 } }, 322 },

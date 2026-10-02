@@ -20,9 +20,9 @@ extern PadScriptVibrationSegment D_acropolis_helicopter_landing_pad_80187D3C;
 
 extern GpAreaVariant D_acropolis_helicopter_landing_pad_801861E8[13];
 
-extern TmdSource D_acropolis_helicopter_landing_pad_801836EC;
+extern TmdSource gAcropolisHelicopterLandingPadModel0547C;
 
-extern TmdSource D_acropolis_helicopter_landing_pad_80187F50;
+extern TmdSource gAcropolisHelicopterLandingPadModel0A8E8;
 
 // acropolis_helicopter_landing_pad
 extern GpRoomObjRec D_acropolis_helicopter_landing_pad_80184F10[];

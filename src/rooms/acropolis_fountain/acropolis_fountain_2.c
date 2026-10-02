@@ -181,30 +181,30 @@ GpWarpRec D_acropolis_fountain_8017E868[5] = {
     { { .words = { 1024, -5162, 66, -5011 } }, { 0, 0, 0, 0 }, { .words = { 1024, -5162, 66, -5011 } }, { 0, 0, 0, 0 }, 0x51080006, 0x51080005, 0, 17, 0, 0 },
 };
 
-SVECTOR D_acropolis_fountain_8017E980[32] = {
+static SVECTOR _gAcropolisFountainCollision0204CNormals[32] = {
 #include "assets/acropolis_fountain_collision_0204C_normals.inc"
 };
 
-SVECTOR D_acropolis_fountain_8017EA80[181] = {
+static SVECTOR _gAcropolisFountainCollision0204CVerts[181] = {
 #include "assets/acropolis_fountain_collision_0204C_verts.inc"
 };
 
-WorldCollisionGridFace D_acropolis_fountain_8017F028[66] = {
+static WorldCollisionGridFace _gAcropolisFountainCollision0204CFaces[66] = {
 #include "assets/acropolis_fountain_collision_0204C_faces.inc"
 };
 
-s16 D_acropolis_fountain_8017F340[326] = {
+static s16 _gAcropolisFountainCollision0204CCells[326] = {
 #include "assets/acropolis_fountain_collision_0204C_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_acropolis_fountain_8017F340[i])
-s16* D_acropolis_fountain_8017F5CC[16] = {
+#define GRID_CELL(i) (&_gAcropolisFountainCollision0204CCells[i])
+static s16* _gAcropolisFountainCollision0204CTable[16] = {
 #include "assets/acropolis_fountain_collision_0204C_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_acropolis_fountain_8017F60C[1] = {
-    { NULL, D_acropolis_fountain_8017E980, D_acropolis_fountain_8017EA80, D_acropolis_fountain_8017F028, D_acropolis_fountain_8017F5CC, 6000, 8530, 4, 4, 4000, 66 },
+    { NULL, _gAcropolisFountainCollision0204CNormals, _gAcropolisFountainCollision0204CVerts, _gAcropolisFountainCollision0204CFaces, _gAcropolisFountainCollision0204CTable, 6000, 8530, 4, 4, 4000, 66 },
 };
 
 WorldCollisionTrigger D_acropolis_fountain_8017F630[12] = {

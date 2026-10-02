@@ -105,48 +105,48 @@ s32  func_neo_ark_power_plant_2_8017D694(Task*, s32, TaskMessageArg, TaskMessage
 void func_neo_ark_power_plant_2_8017D69C(void);
 void func_neo_ark_power_plant_2_8017D6D4(void);
 
-AnimationPackedPose D_neo_ark_power_plant_2_8017FDF0[3] = {
+static AnimationPackedPose _gNeoArkPowerPlant2Animation02A4CBank1[3] = {
 #include "assets/neo_ark_power_plant_2_animation_02A4C_bank1.inc"
 };
 
-AnimationPackedRotation D_neo_ark_power_plant_2_8017FE14[28] = {
+static AnimationPackedRotation _gNeoArkPowerPlant2Animation02A4CBank4[28] = {
 #include "assets/neo_ark_power_plant_2_animation_02A4C_bank4.inc"
 };
 
-AnimationRecord D_neo_ark_power_plant_2_8017FE84[88] = {
+static AnimationRecord _gNeoArkPowerPlant2Animation02A4CRecords[88] = {
 #include "assets/neo_ark_power_plant_2_animation_02A4C_records.inc"
 };
 
-u16 D_neo_ark_power_plant_2_8017FFE4[20] = {
+static u16 _gNeoArkPowerPlant2Animation02A4CIndices[20] = {
 #include "assets/neo_ark_power_plant_2_animation_02A4C_indices.inc"
 };
 
-AnimationSet D_neo_ark_power_plant_2_8018000C = {
-    D_neo_ark_power_plant_2_8017FE84,
-    D_neo_ark_power_plant_2_8017FFE4,
-    { NULL, D_neo_ark_power_plant_2_8017FDF0, NULL, NULL, D_neo_ark_power_plant_2_8017FE14, NULL, NULL, NULL },
+static AnimationSet _gNeoArkPowerPlant2Animation02A4C = {
+    _gNeoArkPowerPlant2Animation02A4CRecords,
+    _gNeoArkPowerPlant2Animation02A4CIndices,
+    { NULL, _gNeoArkPowerPlant2Animation02A4CBank1, NULL, NULL, _gNeoArkPowerPlant2Animation02A4CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_neo_ark_power_plant_2_80180034[2] = {
+static AnimationPackedPose _gNeoArkPowerPlant2Animation02C10Bank1[2] = {
 #include "assets/neo_ark_power_plant_2_animation_02C10_bank1.inc"
 };
 
-AnimationPackedRotation D_neo_ark_power_plant_2_8018004C[22] = {
+static AnimationPackedRotation _gNeoArkPowerPlant2Animation02C10Bank4[22] = {
 #include "assets/neo_ark_power_plant_2_animation_02C10_bank4.inc"
 };
 
-AnimationRecord D_neo_ark_power_plant_2_801800A4[65] = {
+static AnimationRecord _gNeoArkPowerPlant2Animation02C10Records[65] = {
 #include "assets/neo_ark_power_plant_2_animation_02C10_records.inc"
 };
 
-u16 D_neo_ark_power_plant_2_801801A8[20] = {
+static u16 _gNeoArkPowerPlant2Animation02C10Indices[20] = {
 #include "assets/neo_ark_power_plant_2_animation_02C10_indices.inc"
 };
 
-AnimationSet D_neo_ark_power_plant_2_801801D0 = {
-    D_neo_ark_power_plant_2_801800A4,
-    D_neo_ark_power_plant_2_801801A8,
-    { NULL, D_neo_ark_power_plant_2_80180034, NULL, NULL, D_neo_ark_power_plant_2_8018004C, NULL, NULL, NULL },
+static AnimationSet _gNeoArkPowerPlant2Animation02C10 = {
+    _gNeoArkPowerPlant2Animation02C10Records,
+    _gNeoArkPowerPlant2Animation02C10Indices,
+    { NULL, _gNeoArkPowerPlant2Animation02C10Bank1, NULL, NULL, _gNeoArkPowerPlant2Animation02C10Bank4, NULL, NULL, NULL },
 };
 
 TaskMessageEntry D_neo_ark_power_plant_2_801801F8[5] = {
@@ -167,8 +167,8 @@ ActorCommand D_neo_ark_power_plant_2_8018023C = { { .loc = { 5, 16 } }, 3 };
 
 AnimationSet* D_neo_ark_power_plant_2_80180240[3] = {
     NULL,
-    &D_neo_ark_power_plant_2_8018000C,
-    &D_neo_ark_power_plant_2_801801D0,
+    &_gNeoArkPowerPlant2Animation02A4C,
+    &_gNeoArkPowerPlant2Animation02C10,
 };
 
 AnimationPlayRequest D_neo_ark_power_plant_2_8018024C = { { .sets = D_neo_ark_power_plant_2_80180240 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
@@ -265,30 +265,30 @@ GpWarpRec D_neo_ark_power_plant_2_801806B0[1] = {
     { { .words = { 3072, 4000, -5000, -400 } }, { 0, 0, 0, 0 }, { .words = { 3072, 4000, -5000, -400 } }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
 };
 
-SVECTOR D_neo_ark_power_plant_2_801806E8[11] = {
+static SVECTOR _gNeoArkPowerPlant2Collision03804Normals[11] = {
 #include "assets/neo_ark_power_plant_2_collision_03804_normals.inc"
 };
 
-SVECTOR D_neo_ark_power_plant_2_80180740[82] = {
+static SVECTOR _gNeoArkPowerPlant2Collision03804Verts[82] = {
 #include "assets/neo_ark_power_plant_2_collision_03804_verts.inc"
 };
 
-WorldCollisionGridFace D_neo_ark_power_plant_2_801809D0[41] = {
+static WorldCollisionGridFace _gNeoArkPowerPlant2Collision03804Faces[41] = {
 #include "assets/neo_ark_power_plant_2_collision_03804_faces.inc"
 };
 
-s16 D_neo_ark_power_plant_2_80180BBC[236] = {
+static s16 _gNeoArkPowerPlant2Collision03804Cells[236] = {
 #include "assets/neo_ark_power_plant_2_collision_03804_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_neo_ark_power_plant_2_80180BBC[i])
-s16* D_neo_ark_power_plant_2_80180D94[12] = {
+#define GRID_CELL(i) (&_gNeoArkPowerPlant2Collision03804Cells[i])
+static s16* _gNeoArkPowerPlant2Collision03804Table[12] = {
 #include "assets/neo_ark_power_plant_2_collision_03804_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_neo_ark_power_plant_2_80180DC4[1] = {
-    { NULL, D_neo_ark_power_plant_2_801806E8, D_neo_ark_power_plant_2_80180740, D_neo_ark_power_plant_2_801809D0, D_neo_ark_power_plant_2_80180D94, 100, 0x2F44, 3, 4, 4000, 41 },
+    { NULL, _gNeoArkPowerPlant2Collision03804Normals, _gNeoArkPowerPlant2Collision03804Verts, _gNeoArkPowerPlant2Collision03804Faces, _gNeoArkPowerPlant2Collision03804Table, 100, 0x2F44, 3, 4, 4000, 41 },
 };
 
 GpViewRec D_neo_ark_power_plant_2_80180DE8[9] = {

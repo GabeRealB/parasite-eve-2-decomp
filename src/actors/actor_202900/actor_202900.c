@@ -73,141 +73,141 @@ static void func_actor_202900_8014A260(void);
 static void func_actor_202900_8014A304(void);
 static s32  func_actor_202900_8014A394(void);
 
-extern TmdSource D_actor_202900_801559A8;
-extern TmdSource D_actor_202900_80155B48;
+static TmdSource _gActor202900AnmcWomanCafeteriaBody;
+static TmdSource _gActor202900Model0BC44;
 void             func_actor_202900_8014A02C(Task*);
 void             func_actor_202900_8014A088(Task*);
 
 s32 func_actor_202900_8014A3E0(Task*, s32, AnimationPlayRequest*);
 
-AnimationPackedPose D_actor_202900_8014A4AC[158] = {
+static AnimationPackedPose _gActor202900Animation06098Bank1[158] = {
 #include "assets/actor_202900_animation_06098_bank1.inc"
 };
 
-AnimationPackedRotation D_actor_202900_8014AC14[2161] = {
+static AnimationPackedRotation _gActor202900Animation06098Bank4[2161] = {
 #include "assets/actor_202900_animation_06098_bank4.inc"
 };
 
-AnimationRecord D_actor_202900_8014CDD8[3118] = {
+static AnimationRecord _gActor202900Animation06098Records[3118] = {
 #include "assets/actor_202900_animation_06098_records.inc"
 };
 
-u16 D_actor_202900_8014FE90[20] = {
+static u16 _gActor202900Animation06098Indices[20] = {
 #include "assets/actor_202900_animation_06098_indices.inc"
 };
 
-AnimationSet D_actor_202900_8014FEB8 = {
-    D_actor_202900_8014CDD8,
-    D_actor_202900_8014FE90,
-    { NULL, D_actor_202900_8014A4AC, NULL, NULL, D_actor_202900_8014AC14, NULL, NULL, NULL },
+AnimationSet gActor202900Animation06098 = {
+    _gActor202900Animation06098Records,
+    _gActor202900Animation06098Indices,
+    { NULL, _gActor202900Animation06098Bank1, NULL, NULL, _gActor202900Animation06098Bank4, NULL, NULL, NULL },
 };
 
-TmdBone D_actor_202900_8014FEE0[19] = {
+static TmdBone _gActor202900AnmcWomanCafeteriaBodySkeleton[19] = {
 #include "assets/anmc_woman_cafeteria_body_skeleton.inc"
 };
 
-u32 D_actor_202900_8015018C[19] = {
+static u32 _gActor202900AnmcWomanCafeteriaBodyPartVerts[19] = {
 #include "assets/anmc_woman_cafeteria_body_partVerts.inc"
 };
 
-SVECTOR D_actor_202900_801501D8[377] = {
+static SVECTOR _gActor202900AnmcWomanCafeteriaBodyVerts[377] = {
 #include "assets/anmc_woman_cafeteria_body_verts.inc"
 };
 
-SVECTOR D_actor_202900_80150DA0[406] = {
+static SVECTOR _gActor202900AnmcWomanCafeteriaBodyNormals[406] = {
 #include "assets/anmc_woman_cafeteria_body_normals.inc"
 };
 
-u32 D_actor_202900_80151A50[4054] = {
+static u32 _gActor202900AnmcWomanCafeteriaBodyStream[4054] = {
 #include "assets/anmc_woman_cafeteria_body_stream.inc"
 };
 
-TmdSource D_actor_202900_801559A8 = {
+static TmdSource _gActor202900AnmcWomanCafeteriaBody = {
     0,
     22188,
     6568,
     19,
-    D_actor_202900_8015018C,
-    D_actor_202900_801501D8,
-    D_actor_202900_80150DA0,
-    D_actor_202900_8014FEE0,
-    D_actor_202900_80151A50,
+    _gActor202900AnmcWomanCafeteriaBodyPartVerts,
+    _gActor202900AnmcWomanCafeteriaBodyVerts,
+    _gActor202900AnmcWomanCafeteriaBodyNormals,
+    _gActor202900AnmcWomanCafeteriaBodySkeleton,
+    _gActor202900AnmcWomanCafeteriaBodyStream,
 };
 
-TmdBone D_actor_202900_801559CC[1] = {
+static TmdBone _gActor202900Model0BC44Skeleton[1] = {
 #include "assets/actor_202900_model_0BC44_skeleton.inc"
 };
 
-u32 D_actor_202900_801559F0[1] = {
+static u32 _gActor202900Model0BC44PartVerts[1] = {
 #include "assets/actor_202900_model_0BC44_partVerts.inc"
 };
 
-SVECTOR D_actor_202900_801559F4[6] = {
+static SVECTOR _gActor202900Model0BC44Verts[6] = {
 #include "assets/actor_202900_model_0BC44_verts.inc"
 };
 
-SVECTOR D_actor_202900_80155A24[8] = {
+static SVECTOR _gActor202900Model0BC44Normals[8] = {
 #include "assets/actor_202900_model_0BC44_normals.inc"
 };
 
-u32 D_actor_202900_80155A64[57] = {
+static u32 _gActor202900Model0BC44Stream[57] = {
 #include "assets/actor_202900_model_0BC44_stream.inc"
 };
 
-TmdSource D_actor_202900_80155B48 = {
+static TmdSource _gActor202900Model0BC44 = {
     0,
     320,
     0,
     1,
-    D_actor_202900_801559F0,
-    D_actor_202900_801559F4,
-    D_actor_202900_80155A24,
-    D_actor_202900_801559CC,
-    D_actor_202900_80155A64,
+    _gActor202900Model0BC44PartVerts,
+    _gActor202900Model0BC44Verts,
+    _gActor202900Model0BC44Normals,
+    _gActor202900Model0BC44Skeleton,
+    _gActor202900Model0BC44Stream,
 };
 
-AnimationPackedPose D_actor_202900_80155B6C[25] = {
+static AnimationPackedPose _gActor202900Animation0CDB4Bank1[25] = {
 #include "assets/actor_202900_animation_0CDB4_bank1.inc"
 };
 
-AnimationPackedRotation D_actor_202900_80155C98[427] = {
+static AnimationPackedRotation _gActor202900Animation0CDB4Bank4[427] = {
 #include "assets/actor_202900_animation_0CDB4_bank4.inc"
 };
 
-AnimationRecord D_actor_202900_80156344[538] = {
+static AnimationRecord _gActor202900Animation0CDB4Records[538] = {
 #include "assets/actor_202900_animation_0CDB4_records.inc"
 };
 
-u16 D_actor_202900_80156BAC[20] = {
+static u16 _gActor202900Animation0CDB4Indices[20] = {
 #include "assets/actor_202900_animation_0CDB4_indices.inc"
 };
 
-AnimationSet D_actor_202900_80156BD4 = {
-    D_actor_202900_80156344,
-    D_actor_202900_80156BAC,
-    { NULL, D_actor_202900_80155B6C, NULL, NULL, D_actor_202900_80155C98, NULL, NULL, NULL },
+static AnimationSet _gActor202900Animation0CDB4 = {
+    _gActor202900Animation0CDB4Records,
+    _gActor202900Animation0CDB4Indices,
+    { NULL, _gActor202900Animation0CDB4Bank1, NULL, NULL, _gActor202900Animation0CDB4Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_actor_202900_80156BFC[2] = {
+static AnimationPackedPose _gActor202900Animation0CFC4Bank1[2] = {
 #include "assets/actor_202900_animation_0CFC4_bank1.inc"
 };
 
-AnimationPackedRotation D_actor_202900_80156C14[33] = {
+static AnimationPackedRotation _gActor202900Animation0CFC4Bank4[33] = {
 #include "assets/actor_202900_animation_0CFC4_bank4.inc"
 };
 
-AnimationRecord D_actor_202900_80156C98[73] = {
+static AnimationRecord _gActor202900Animation0CFC4Records[73] = {
 #include "assets/actor_202900_animation_0CFC4_records.inc"
 };
 
-u16 D_actor_202900_80156DBC[20] = {
+static u16 _gActor202900Animation0CFC4Indices[20] = {
 #include "assets/actor_202900_animation_0CFC4_indices.inc"
 };
 
-AnimationSet D_actor_202900_80156DE4 = {
-    D_actor_202900_80156C98,
-    D_actor_202900_80156DBC,
-    { NULL, D_actor_202900_80156BFC, NULL, NULL, D_actor_202900_80156C14, NULL, NULL, NULL },
+static AnimationSet _gActor202900Animation0CFC4 = {
+    _gActor202900Animation0CFC4Records,
+    _gActor202900Animation0CFC4Indices,
+    { NULL, _gActor202900Animation0CFC4Bank1, NULL, NULL, _gActor202900Animation0CFC4Bank4, NULL, NULL, NULL },
 };
 
 Actor202900MessageEntry D_actor_202900_80156E0C[3] = {
@@ -217,8 +217,8 @@ Actor202900MessageEntry D_actor_202900_80156E0C[3] = {
 };
 
 TaskDesc D_actor_202900_80156E24[2] = {
-    { { { TASK_BODY_TMD, 192 } }, func_actor_202900_8014A02C, { .model = &D_actor_202900_801559A8 } },
-    { { { TASK_BODY_TMD, 192 } }, func_actor_202900_8014A088, { .model = &D_actor_202900_80155B48 } },
+    { { { TASK_BODY_TMD, 192 } }, func_actor_202900_8014A02C, { .model = &_gActor202900AnmcWomanCafeteriaBody } },
+    { { { TASK_BODY_TMD, 192 } }, func_actor_202900_8014A088, { .model = &_gActor202900Model0BC44 } },
 };
 
 u8 D_actor_202900_80156E3C[24] = {

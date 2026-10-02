@@ -18,7 +18,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-extern TmdSource D_actor_300700_80167400;
+extern TmdSource gActor300700RatBody;
 
 extern DamageAttack gRatAttack;
 

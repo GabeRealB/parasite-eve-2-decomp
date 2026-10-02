@@ -125,30 +125,30 @@ SVECTOR D_neo_ark_island_80181CF8[7] = {
     { 0, 0, 0, -1 },
 };
 
-SVECTOR D_neo_ark_island_80181D30[13] = {
+static SVECTOR _gNeoArkIslandCollision05108Normals[13] = {
 #include "assets/neo_ark_island_collision_05108_normals.inc"
 };
 
-SVECTOR D_neo_ark_island_80181D98[127] = {
+static SVECTOR _gNeoArkIslandCollision05108Verts[127] = {
 #include "assets/neo_ark_island_collision_05108_verts.inc"
 };
 
-WorldCollisionGridFace D_neo_ark_island_80182190[61] = {
+static WorldCollisionGridFace _gNeoArkIslandCollision05108Faces[61] = {
 #include "assets/neo_ark_island_collision_05108_faces.inc"
 };
 
-s16 D_neo_ark_island_8018246C[262] = {
+static s16 _gNeoArkIslandCollision05108Cells[262] = {
 #include "assets/neo_ark_island_collision_05108_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_neo_ark_island_8018246C[i])
-s16* D_neo_ark_island_80182678[20] = {
+#define GRID_CELL(i) (&_gNeoArkIslandCollision05108Cells[i])
+static s16* _gNeoArkIslandCollision05108Table[20] = {
 #include "assets/neo_ark_island_collision_05108_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_neo_ark_island_801826C8[1] = {
-    { NULL, D_neo_ark_island_80181D30, D_neo_ark_island_80181D98, D_neo_ark_island_80182190, D_neo_ark_island_80182678, 5100, 7000, 4, 5, 4000, 61 },
+    { NULL, _gNeoArkIslandCollision05108Normals, _gNeoArkIslandCollision05108Verts, _gNeoArkIslandCollision05108Faces, _gNeoArkIslandCollision05108Table, 5100, 7000, 4, 5, 4000, 61 },
 };
 
 GpViewRec D_neo_ark_island_801826EC[5] = {

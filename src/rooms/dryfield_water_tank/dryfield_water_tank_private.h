@@ -46,41 +46,41 @@ extern TaskDesc D_dryfield_water_tank_8017FF88[2];
 
 extern TaskDesc D_dryfield_water_tank_80180794;
 
-extern AnimationSet D_dryfield_water_tank_80180A7C;
+extern AnimationSet gDryfieldWaterTankAnimation034BC;
 
-extern AnimationSet D_dryfield_water_tank_80180D3C;
+extern AnimationSet gDryfieldWaterTankAnimation0377C;
 
-extern AnimationSet D_dryfield_water_tank_80181020;
+extern AnimationSet gDryfieldWaterTankAnimation03A60;
 
-extern AnimationSet D_dryfield_water_tank_80181274;
+extern AnimationSet gDryfieldWaterTankAnimation03CB4;
 
-extern AnimationSet D_dryfield_water_tank_801815C0;
+extern AnimationSet gDryfieldWaterTankAnimation04000;
 
-extern AnimationSet D_dryfield_water_tank_80181D7C;
+extern AnimationSet gDryfieldWaterTankAnimation047BC;
 
-extern AnimationSet D_dryfield_water_tank_80182060;
+extern AnimationSet gDryfieldWaterTankAnimation04AA0;
 
-extern AnimationSet D_dryfield_water_tank_80182258;
+extern AnimationSet gDryfieldWaterTankAnimation04C98;
 
-extern AnimationSet D_dryfield_water_tank_801825AC;
+extern AnimationSet gDryfieldWaterTankAnimation04FEC;
 
-extern AnimationSet D_dryfield_water_tank_801827A4;
+extern AnimationSet gDryfieldWaterTankAnimation051E4;
 
-extern AnimationSet D_dryfield_water_tank_80182CC4;
+extern AnimationSet gDryfieldWaterTankAnimation05704;
 
-extern AnimationSet D_dryfield_water_tank_80182FA4;
+extern AnimationSet gDryfieldWaterTankAnimation059E4;
 
-extern AnimationSet D_dryfield_water_tank_80183378;
+extern AnimationSet gDryfieldWaterTankAnimation05DB8;
 
-extern AnimationSet D_dryfield_water_tank_80183768;
+extern AnimationSet gDryfieldWaterTankAnimation061A8;
 
-extern AnimationSet D_dryfield_water_tank_80183AD4;
+extern AnimationSet gDryfieldWaterTankAnimation06514;
 
-extern AnimationSet D_dryfield_water_tank_80183E00;
+extern AnimationSet gDryfieldWaterTankAnimation06840;
 
-extern AnimationSet D_dryfield_water_tank_80184228;
+extern AnimationSet gDryfieldWaterTankAnimation06C68;
 
-extern AnimationSet D_dryfield_water_tank_80184508;
+extern AnimationSet gDryfieldWaterTankAnimation06F48;
 
 extern DryfieldWaterTankMessageEntry D_dryfield_water_tank_8017FD90[3];
 

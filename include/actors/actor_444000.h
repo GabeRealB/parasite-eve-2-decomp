@@ -6,56 +6,56 @@
 #include "main/tmd_types.h"
 
 // Native animation sets shared with the companion actor overlay.
-extern AnimationSet D_actor_444000_801529F4;
+extern AnimationSet gActor444000Animation20BD4;
 
-extern AnimationSet D_actor_444000_80152AA0;
+extern AnimationSet gActor444000Animation20C80;
 
-extern AnimationSet D_actor_444000_80152B4C;
+extern AnimationSet gActor444000Animation20D2C;
 
-extern AnimationSet D_actor_444000_80152E34;
+extern AnimationSet gActor444000Animation21014;
 
-extern AnimationSet D_actor_444000_801530F8;
+extern AnimationSet gActor444000Animation212D8;
 
-extern AnimationSet D_actor_444000_801533D4;
+extern AnimationSet gActor444000Animation215B4;
 
-extern AnimationSet D_actor_444000_8015E060;
+extern AnimationSet gActor444000Animation2C240;
 
-extern AnimationSet D_actor_444000_8015E0EC;
+extern AnimationSet gActor444000Animation2C2CC;
 
-extern AnimationSet D_actor_444000_8015E178;
+extern AnimationSet gActor444000Animation2C358;
 
-extern AnimationSet D_actor_444000_80157A00;
+extern AnimationSet gActor444000Animation25BE0;
 
-extern AnimationSet D_actor_444000_80157D34;
+extern AnimationSet gActor444000Animation25F14;
 
-extern AnimationSet D_actor_444000_80158060;
+extern AnimationSet gActor444000Animation26240;
 
-extern AnimationSet D_actor_444000_8015FFB8;
+extern AnimationSet gActor444000Animation2E198;
 
-extern AnimationSet D_actor_444000_80160368;
+extern AnimationSet gActor444000Animation2E548;
 
-extern AnimationSet D_actor_444000_801608A0;
+extern AnimationSet gActor444000Animation2EA80;
 
-extern AnimationSet D_actor_444000_80160C34;
+extern AnimationSet gActor444000Animation2EE14;
 
-extern TmdSource D_actor_444000_80146F68;
+extern TmdSource gActor444000Actor403200Model10824;
 
-extern TmdSource D_actor_444000_80147D10;
+extern TmdSource gActor444000Actor403200Model12884;
 
-extern TmdSource D_actor_444000_80148E94;
+extern TmdSource gActor444000Actor403200Model13774;
 
-extern TmdSource D_actor_444000_8014A650;
+extern TmdSource gActor444000GluttonLegLeft;
 
-extern TmdSource D_actor_444000_8014BE0C;
+extern TmdSource gActor444000GluttonLegRight;
 
-extern TmdSource D_actor_444000_8014D5FC;
+extern TmdSource gActor444000Actor403200Model18BE4;
 
-extern TmdSource D_actor_444000_8014ED78;
+extern TmdSource gActor444000Model1C814;
 
-extern TmdSource D_actor_444000_8014F8C0;
+extern TmdSource gActor444000Model1D36C;
 
-extern TmdSource D_actor_444000_8014FE00;
+extern TmdSource gActor444000Model1DC9C;
 
-extern TmdSource D_actor_444000_80150170;
+extern TmdSource gActor444000Model1E14C;
 
 #endif // INCLUDE_ACTORS_ACTOR_444000_H

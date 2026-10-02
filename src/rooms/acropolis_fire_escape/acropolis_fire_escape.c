@@ -269,30 +269,30 @@ GpWarpRec D_acropolis_fire_escape_80181DCC[3] = {
     { { .words = { 0, -4294, -2450, 340 } }, { 0, 0, 0, 0 }, { .words = { 0, -4294, -1800, 1240 } }, { 0, 0, 0, 0 }, 0, 0, 0, 6, 1, 0 },
 };
 
-SVECTOR D_acropolis_fire_escape_80181E74[10] = {
+SVECTOR gAcropolisFireEscapeCollision04CE8Normals[10] = {
 #include "assets/acropolis_fire_escape_collision_04CE8_normals.inc"
 };
 
-SVECTOR D_acropolis_fire_escape_80181EC4[55] = {
+SVECTOR gAcropolisFireEscapeCollision04CE8Verts[55] = {
 #include "assets/acropolis_fire_escape_collision_04CE8_verts.inc"
 };
 
-WorldCollisionGridFace D_acropolis_fire_escape_8018207C[23] = {
+WorldCollisionGridFace gAcropolisFireEscapeCollision04CE8Faces[23] = {
 #include "assets/acropolis_fire_escape_collision_04CE8_faces.inc"
 };
 
-s16 D_acropolis_fire_escape_80182190[122] = {
+static s16 _gAcropolisFireEscapeCollision04CE8Cells[122] = {
 #include "assets/acropolis_fire_escape_collision_04CE8_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_acropolis_fire_escape_80182190[i])
-s16* D_acropolis_fire_escape_80182284[9] = {
+#define GRID_CELL(i) (&_gAcropolisFireEscapeCollision04CE8Cells[i])
+static s16* _gAcropolisFireEscapeCollision04CE8Table[9] = {
 #include "assets/acropolis_fire_escape_collision_04CE8_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_acropolis_fire_escape_801822A8[1] = {
-    { NULL, D_acropolis_fire_escape_80181E74, D_acropolis_fire_escape_80181EC4, D_acropolis_fire_escape_8018207C, D_acropolis_fire_escape_80182284, 5000, 3800, 3, 3, 4000, 23 },
+    { NULL, gAcropolisFireEscapeCollision04CE8Normals, gAcropolisFireEscapeCollision04CE8Verts, gAcropolisFireEscapeCollision04CE8Faces, _gAcropolisFireEscapeCollision04CE8Table, 5000, 3800, 3, 3, 4000, 23 },
 };
 
 WorldCollisionTrigger D_acropolis_fire_escape_801822CC[8] = {

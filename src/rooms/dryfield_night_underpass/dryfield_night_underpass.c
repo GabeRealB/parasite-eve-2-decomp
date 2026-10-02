@@ -208,30 +208,30 @@ GpWarpRec D_dryfield_night_underpass_8017DE60[3] = {
     { { .words = { 2048, 1212, -1000, -7543 } }, { 0, 0, 0, 0 }, { .words = { 2048, 1212, -1000, -7543 } }, { 0, 0, 0, 0 }, 0x53260001, 0x53260001, 0, 7, 2, 0 },
 };
 
-SVECTOR D_dryfield_night_underpass_8017DF08[12] = {
+static SVECTOR _gDryfieldNightUnderpassCollision01114Normals[12] = {
 #include "assets/dryfield_night_underpass_collision_01114_normals.inc"
 };
 
-SVECTOR D_dryfield_night_underpass_8017DF68[70] = {
+static SVECTOR _gDryfieldNightUnderpassCollision01114Verts[70] = {
 #include "assets/dryfield_night_underpass_collision_01114_verts.inc"
 };
 
-WorldCollisionGridFace D_dryfield_night_underpass_8017E198[46] = {
+static WorldCollisionGridFace _gDryfieldNightUnderpassCollision01114Faces[46] = {
 #include "assets/dryfield_night_underpass_collision_01114_faces.inc"
 };
 
-s16 D_dryfield_night_underpass_8017E3C0[346] = {
+static s16 _gDryfieldNightUnderpassCollision01114Cells[346] = {
 #include "assets/dryfield_night_underpass_collision_01114_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_dryfield_night_underpass_8017E3C0[i])
-s16* D_dryfield_night_underpass_8017E674[24] = {
+#define GRID_CELL(i) (&_gDryfieldNightUnderpassCollision01114Cells[i])
+static s16* _gDryfieldNightUnderpassCollision01114Table[24] = {
 #include "assets/dryfield_night_underpass_collision_01114_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_dryfield_night_underpass_8017E6D4[1] = {
-    { NULL, D_dryfield_night_underpass_8017DF08, D_dryfield_night_underpass_8017DF68, D_dryfield_night_underpass_8017E198, D_dryfield_night_underpass_8017E674, 3000, 0x32C8, 6, 4, 4000, 46 },
+    { NULL, _gDryfieldNightUnderpassCollision01114Normals, _gDryfieldNightUnderpassCollision01114Verts, _gDryfieldNightUnderpassCollision01114Faces, _gDryfieldNightUnderpassCollision01114Table, 3000, 0x32C8, 6, 4, 4000, 46 },
 };
 
 GpViewRec D_dryfield_night_underpass_8017E6F8[26] = {

@@ -13,7 +13,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-extern TmdSource D_shelter_b2_breeding_room_801803F0;
+extern TmdSource gShelterB2BreedingRoomModel02E04;
 
 // shelter_b2_breeding_room
 extern u8* D_shelter_b2_breeding_room_8018055C[];

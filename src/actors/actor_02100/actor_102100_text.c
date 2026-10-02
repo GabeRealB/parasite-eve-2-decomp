@@ -226,11 +226,11 @@ typedef struct Actor02100Work {
 } Actor02100Work;
 STATIC_ASSERT_SIZEOF(Actor02100Work, 0x19C);
 
-extern TmdBone Actor02100_D036BC[3];
-extern u32     Actor02100_D03728[3];
-extern SVECTOR Actor02100_D03734[40];
-extern SVECTOR Actor02100_D03874[32];
-extern u32     Actor02100_D03974[243];
+static TmdBone _gActor02100WatcherBodySkeleton[3];
+static u32     _gActor02100WatcherBodyPartVerts[3];
+static SVECTOR _gActor02100WatcherBodyVerts[40];
+static SVECTOR _gActor02100WatcherBodyNormals[32];
+static u32     _gActor02100WatcherBodyStream[243];
 
 extern DamageAttack             Actor02100_D03D64[5];
 extern EnemyParams              Actor02100_D03D78;
@@ -254,36 +254,36 @@ static const GpEnemyTaskFuncTable3 Actor02100_D00004 = { {
     Actor02100_Fn035D4,
 } };
 
-TmdBone Actor02100_D036BC[3] = {
+static TmdBone _gActor02100WatcherBodySkeleton[3] = {
 #include "assets/watcher_body_skeleton.inc"
 };
 
-u32 Actor02100_D03728[3] = {
+static u32 _gActor02100WatcherBodyPartVerts[3] = {
 #include "assets/watcher_body_partVerts.inc"
 };
 
-SVECTOR Actor02100_D03734[40] = {
+static SVECTOR _gActor02100WatcherBodyVerts[40] = {
 #include "assets/watcher_body_verts.inc"
 };
 
-SVECTOR Actor02100_D03874[32] = {
+static SVECTOR _gActor02100WatcherBodyNormals[32] = {
 #include "assets/watcher_body_normals.inc"
 };
 
-u32 Actor02100_D03974[243] = {
+static u32 _gActor02100WatcherBodyStream[243] = {
 #include "assets/watcher_body_stream.inc"
 };
 
-TmdSource Actor02100_D03D40 = {
+static TmdSource _gActor02100WatcherBody = {
     0,
     0x6A8,
     0,
     3,
-    Actor02100_D03728,
-    Actor02100_D03734,
-    Actor02100_D03874,
-    Actor02100_D036BC,
-    Actor02100_D03974,
+    _gActor02100WatcherBodyPartVerts,
+    _gActor02100WatcherBodyVerts,
+    _gActor02100WatcherBodyNormals,
+    _gActor02100WatcherBodySkeleton,
+    _gActor02100WatcherBodyStream,
 };
 
 DamageAttack Actor02100_D03D64[5] = {
@@ -314,7 +314,7 @@ Actor02100Fn02924Widths Actor02100_D03DD8[5] = {
 
 s16 Actor02100_D03E00[8] = { 3000, 3500, 4000, 4500, 5000, 6000, 7000, 8000 };
 
-TaskDesc Actor02100_D03E10 = { { { TASK_BODY_TMD, 0x60 } }, Actor02100_Fn03168, { .model = &Actor02100_D03D40 } };
+TaskDesc Actor02100_D03E10 = { { { TASK_BODY_TMD, 0x60 } }, Actor02100_Fn03168, { .model = &_gActor02100WatcherBody } };
 
 Actor02100Fn02924Corners Actor02100_D03E1C[2] = {
     { { 0, 1, 2, 3 } },

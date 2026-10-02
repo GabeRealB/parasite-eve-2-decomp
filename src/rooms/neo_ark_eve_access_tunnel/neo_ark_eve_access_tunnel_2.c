@@ -110,30 +110,30 @@ GpWarpRec D_neo_ark_eve_access_tunnel_8017EB98[2] = {
     { { .words = { 1024, -1167, 0, 4892 } }, { 0, 0, 0, 0 }, { .words = { 1024, -1167, 0, 4892 } }, { 0, 0, 0, 0 }, 0x55080004, 0x55080003, 0, 5, 0, 444 },
 };
 
-SVECTOR D_neo_ark_eve_access_tunnel_8017EC08[19] = {
+static SVECTOR _gNeoArkEveAccessTunnelCollision01A9CNormals[19] = {
 #include "assets/neo_ark_eve_access_tunnel_collision_01A9C_normals.inc"
 };
 
-SVECTOR D_neo_ark_eve_access_tunnel_8017ECA0[55] = {
+static SVECTOR _gNeoArkEveAccessTunnelCollision01A9CVerts[55] = {
 #include "assets/neo_ark_eve_access_tunnel_collision_01A9C_verts.inc"
 };
 
-WorldCollisionGridFace D_neo_ark_eve_access_tunnel_8017EE58[28] = {
+static WorldCollisionGridFace _gNeoArkEveAccessTunnelCollision01A9CFaces[28] = {
 #include "assets/neo_ark_eve_access_tunnel_collision_01A9C_faces.inc"
 };
 
-s16 D_neo_ark_eve_access_tunnel_8017EFA8[82] = {
+static s16 _gNeoArkEveAccessTunnelCollision01A9CCells[82] = {
 #include "assets/neo_ark_eve_access_tunnel_collision_01A9C_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_neo_ark_eve_access_tunnel_8017EFA8[i])
-s16* D_neo_ark_eve_access_tunnel_8017F04C[4] = {
+#define GRID_CELL(i) (&_gNeoArkEveAccessTunnelCollision01A9CCells[i])
+static s16* _gNeoArkEveAccessTunnelCollision01A9CTable[4] = {
 #include "assets/neo_ark_eve_access_tunnel_collision_01A9C_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_neo_ark_eve_access_tunnel_8017F05C[1] = {
-    { NULL, D_neo_ark_eve_access_tunnel_8017EC08, D_neo_ark_eve_access_tunnel_8017ECA0, D_neo_ark_eve_access_tunnel_8017EE58, D_neo_ark_eve_access_tunnel_8017F04C, 4452, 146, 2, 2, 4000, 28 },
+    { NULL, _gNeoArkEveAccessTunnelCollision01A9CNormals, _gNeoArkEveAccessTunnelCollision01A9CVerts, _gNeoArkEveAccessTunnelCollision01A9CFaces, _gNeoArkEveAccessTunnelCollision01A9CTable, 4452, 146, 2, 2, 4000, 28 },
 };
 
 GpViewRec D_neo_ark_eve_access_tunnel_8017F080[7] = {

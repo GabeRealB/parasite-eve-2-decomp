@@ -24,19 +24,19 @@ extern s32 D_actor_215100_8014D03C;
 
 extern s32 D_actor_215100_8014D044;
 
-extern AnimationSet D_actor_215100_8014D304;
+extern AnimationSet gActor215100Animation034E4;
 
-extern AnimationSet D_actor_215100_8014D574;
+extern AnimationSet gActor215100Animation03754;
 
-extern AnimationSet D_actor_215100_8014D7CC;
+extern AnimationSet gActor215100Animation039AC;
 
-extern AnimationSet D_actor_215100_8014D968;
+extern AnimationSet gActor215100Animation03B48;
 
-extern AnimationSet D_actor_215100_8014DBB8;
+extern AnimationSet gActor215100Animation03D98;
 
-extern AnimationSet D_actor_215100_8014DE10;
+extern AnimationSet gActor215100Animation03FF0;
 
-extern AnimationSet D_actor_215100_8014E114;
+extern AnimationSet gActor215100Animation042F4;
 
 extern EvsCommand D_actor_215100_8014EB98[3];
 

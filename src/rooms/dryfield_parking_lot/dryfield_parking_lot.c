@@ -121,30 +121,30 @@ GpWarpRec D_dryfield_parking_lot_8017DC64[5] = {
     { { .words = { 0, 4771, -450, 1414 } }, { 0, 0, 0, 0 }, { .words = { 0, 4491, 0, 2215 } }, { 0, 0, 0, 0 }, 0, 0, 0, 6, 1, 0 },
 };
 
-SVECTOR D_dryfield_parking_lot_8017DD7C[18] = {
+static SVECTOR _gDryfieldParkingLotCollision0131CNormals[18] = {
 #include "assets/dryfield_parking_lot_collision_0131C_normals.inc"
 };
 
-SVECTOR D_dryfield_parking_lot_8017DE0C[132] = {
+static SVECTOR _gDryfieldParkingLotCollision0131CVerts[132] = {
 #include "assets/dryfield_parking_lot_collision_0131C_verts.inc"
 };
 
-WorldCollisionGridFace D_dryfield_parking_lot_8017E22C[55] = {
+static WorldCollisionGridFace _gDryfieldParkingLotCollision0131CFaces[55] = {
 #include "assets/dryfield_parking_lot_collision_0131C_faces.inc"
 };
 
-s16 D_dryfield_parking_lot_8017E4C0[436] = {
+static s16 _gDryfieldParkingLotCollision0131CCells[436] = {
 #include "assets/dryfield_parking_lot_collision_0131C_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_dryfield_parking_lot_8017E4C0[i])
-s16* D_dryfield_parking_lot_8017E828[45] = {
+#define GRID_CELL(i) (&_gDryfieldParkingLotCollision0131CCells[i])
+static s16* _gDryfieldParkingLotCollision0131CTable[45] = {
 #include "assets/dryfield_parking_lot_collision_0131C_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_dryfield_parking_lot_8017E8DC[1] = {
-    { NULL, D_dryfield_parking_lot_8017DD7C, D_dryfield_parking_lot_8017DE0C, D_dryfield_parking_lot_8017E22C, D_dryfield_parking_lot_8017E828, 0x4588, 8900, 9, 5, 4000, 55 },
+    { NULL, _gDryfieldParkingLotCollision0131CNormals, _gDryfieldParkingLotCollision0131CVerts, _gDryfieldParkingLotCollision0131CFaces, _gDryfieldParkingLotCollision0131CTable, 0x4588, 8900, 9, 5, 4000, 55 },
 };
 
 GpViewRec D_dryfield_parking_lot_8017E900[7] = {

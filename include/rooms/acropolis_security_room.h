@@ -14,7 +14,7 @@
 
 extern GpAreaVariant D_acropolis_security_room_80184088[4];
 
-extern TmdSource D_acropolis_security_room_80185584;
+extern TmdSource gAcropolisSecurityRoomAcropolisSanctuaryModel090F0;
 
 // acropolis_security_room
 extern GpRoomObjRec D_acropolis_security_room_801839D0[];

@@ -189,18 +189,18 @@ void                 func_mist_r18_8017EC78(void);
 void                 func_mist_r18_8017ECC0(s8);
 void                 func_mist_r18_8017ECCC(void);
 
-extern AnimationSet D_mist_r18_8017F834;
-extern AnimationSet D_mist_r18_801806A8;
-extern AnimationSet D_mist_r18_80180D1C;
-extern AnimationSet D_mist_r18_80181250;
-extern AnimationSet D_mist_r18_80181D4C;
-extern AnimationSet D_mist_r18_80182394;
-extern AnimationSet D_mist_r18_80183064;
-extern AnimationSet D_mist_r18_801847F0;
-extern AnimationSet D_mist_r18_80184B8C;
-extern AnimationSet D_mist_r18_80184E80;
-extern TmdSource    D_mist_r18_8017F064;
-extern TmdSource    D_mist_r18_8017F25C;
+static AnimationSet _gMistR18Animation02274;
+static AnimationSet _gMistR18Animation030E8;
+static AnimationSet _gMistR18Animation0375C;
+static AnimationSet _gMistR18Animation03C90;
+static AnimationSet _gMistR18Animation0478C;
+static AnimationSet _gMistR18Animation04DD4;
+static AnimationSet _gMistR18Animation05AA4;
+static AnimationSet _gMistR18Animation07230;
+static AnimationSet _gMistR18Animation075CC;
+static AnimationSet _gMistR18Animation078C0;
+static TmdSource    _gMistR18Actor213000Model072AC;
+static TmdSource    _gMistR18Actor213000Prop;
 void                func_mist_r18_8017D5EC(Task*);
 void                func_mist_r18_8017DA8C(Task*);
 void                func_mist_r18_8017E2C8(Task*);
@@ -209,284 +209,284 @@ void                func_mist_r18_8017E854(Task*);
 void                func_mist_r18_8017EA98(Task*);
 void                func_mist_r18_8017EC98(Task*);
 
-TmdBone D_mist_r18_8017EDBC[1] = {
+static TmdBone _gMistR18Actor213000Model072ACSkeleton[1] = {
 #include "assets/actor_213000_model_072AC_skeleton.inc"
 };
 
-u32 D_mist_r18_8017EDE0[1] = {
+static u32 _gMistR18Actor213000Model072ACPartVerts[1] = {
 #include "assets/actor_213000_model_072AC_partVerts.inc"
 };
 
-SVECTOR D_mist_r18_8017EDE4[14] = {
+static SVECTOR _gMistR18Actor213000Model072ACVerts[14] = {
 #include "assets/actor_213000_model_072AC_verts.inc"
 };
 
-SVECTOR D_mist_r18_8017EE54[17] = {
+static SVECTOR _gMistR18Actor213000Model072ACNormals[17] = {
 #include "assets/actor_213000_model_072AC_normals.inc"
 };
 
-u32 D_mist_r18_8017EEDC[98] = {
+static u32 _gMistR18Actor213000Model072ACStream[98] = {
 #include "assets/actor_213000_model_072AC_stream.inc"
 };
 
-TmdSource D_mist_r18_8017F064 = {
+static TmdSource _gMistR18Actor213000Model072AC = {
     0,
     652,
     0,
     1,
-    D_mist_r18_8017EDE0,
-    D_mist_r18_8017EDE4,
-    D_mist_r18_8017EE54,
-    D_mist_r18_8017EDBC,
-    D_mist_r18_8017EEDC,
+    _gMistR18Actor213000Model072ACPartVerts,
+    _gMistR18Actor213000Model072ACVerts,
+    _gMistR18Actor213000Model072ACNormals,
+    _gMistR18Actor213000Model072ACSkeleton,
+    _gMistR18Actor213000Model072ACStream,
 };
 
-TmdBone D_mist_r18_8017F088[1] = {
+static TmdBone _gMistR18Actor213000PropSkeleton[1] = {
 #include "assets/actor_213000_prop_skeleton.inc"
 };
 
-u32 D_mist_r18_8017F0AC[1] = {
+static u32 _gMistR18Actor213000PropPartVerts[1] = {
 #include "assets/actor_213000_prop_partVerts.inc"
 };
 
-SVECTOR D_mist_r18_8017F0B0[14] = {
+static SVECTOR _gMistR18Actor213000PropVerts[14] = {
 #include "assets/actor_213000_prop_verts.inc"
 };
 
-u32 D_mist_r18_8017F120[79] = {
+static u32 _gMistR18Actor213000PropStream[79] = {
 #include "assets/actor_213000_prop_stream.inc"
 };
 
-TmdSource D_mist_r18_8017F25C = {
+static TmdSource _gMistR18Actor213000Prop = {
     0,
     528,
     0,
     1,
-    D_mist_r18_8017F0AC,
-    D_mist_r18_8017F0B0,
-    &D_mist_r18_8017F0B0[14],
-    D_mist_r18_8017F088,
-    D_mist_r18_8017F120,
+    _gMistR18Actor213000PropPartVerts,
+    _gMistR18Actor213000PropVerts,
+    &_gMistR18Actor213000PropVerts[14],
+    _gMistR18Actor213000PropSkeleton,
+    _gMistR18Actor213000PropStream,
 };
 
-AnimationPackedPose D_mist_r18_8017F280[7] = {
+static AnimationPackedPose _gMistR18Animation02274Bank1[7] = {
 #include "assets/mist_r18_animation_02274_bank1.inc"
 };
 
-AnimationPackedRotation D_mist_r18_8017F2D4[113] = {
+static AnimationPackedRotation _gMistR18Animation02274Bank4[113] = {
 #include "assets/mist_r18_animation_02274_bank4.inc"
 };
 
-AnimationRecord D_mist_r18_8017F498[221] = {
+static AnimationRecord _gMistR18Animation02274Records[221] = {
 #include "assets/mist_r18_animation_02274_records.inc"
 };
 
-u16 D_mist_r18_8017F80C[20] = {
+static u16 _gMistR18Animation02274Indices[20] = {
 #include "assets/mist_r18_animation_02274_indices.inc"
 };
 
-AnimationSet D_mist_r18_8017F834 = {
-    D_mist_r18_8017F498,
-    D_mist_r18_8017F80C,
-    { NULL, D_mist_r18_8017F280, NULL, NULL, D_mist_r18_8017F2D4, NULL, NULL, NULL },
+static AnimationSet _gMistR18Animation02274 = {
+    _gMistR18Animation02274Records,
+    _gMistR18Animation02274Indices,
+    { NULL, _gMistR18Animation02274Bank1, NULL, NULL, _gMistR18Animation02274Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mist_r18_8017F85C[5] = {
+static AnimationPackedPose _gMistR18Animation030E8Bank1[5] = {
 #include "assets/mist_r18_animation_030E8_bank1.inc"
 };
 
-AnimationPackedRotation D_mist_r18_8017F898[395] = {
+static AnimationPackedRotation _gMistR18Animation030E8Bank4[395] = {
 #include "assets/mist_r18_animation_030E8_bank4.inc"
 };
 
-AnimationRecord D_mist_r18_8017FEC4[495] = {
+static AnimationRecord _gMistR18Animation030E8Records[495] = {
 #include "assets/mist_r18_animation_030E8_records.inc"
 };
 
-u16 D_mist_r18_80180680[20] = {
+static u16 _gMistR18Animation030E8Indices[20] = {
 #include "assets/mist_r18_animation_030E8_indices.inc"
 };
 
-AnimationSet D_mist_r18_801806A8 = {
-    D_mist_r18_8017FEC4,
-    D_mist_r18_80180680,
-    { NULL, D_mist_r18_8017F85C, NULL, NULL, D_mist_r18_8017F898, NULL, NULL, NULL },
+static AnimationSet _gMistR18Animation030E8 = {
+    _gMistR18Animation030E8Records,
+    _gMistR18Animation030E8Indices,
+    { NULL, _gMistR18Animation030E8Bank1, NULL, NULL, _gMistR18Animation030E8Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mist_r18_801806D0[7] = {
+static AnimationPackedPose _gMistR18Animation0375CBank1[7] = {
 #include "assets/mist_r18_animation_0375C_bank1.inc"
 };
 
-AnimationPackedRotation D_mist_r18_80180724[154] = {
+static AnimationPackedRotation _gMistR18Animation0375CBank4[154] = {
 #include "assets/mist_r18_animation_0375C_bank4.inc"
 };
 
-AnimationRecord D_mist_r18_8018098C[218] = {
+static AnimationRecord _gMistR18Animation0375CRecords[218] = {
 #include "assets/mist_r18_animation_0375C_records.inc"
 };
 
-u16 D_mist_r18_80180CF4[20] = {
+static u16 _gMistR18Animation0375CIndices[20] = {
 #include "assets/mist_r18_animation_0375C_indices.inc"
 };
 
-AnimationSet D_mist_r18_80180D1C = {
-    D_mist_r18_8018098C,
-    D_mist_r18_80180CF4,
-    { NULL, D_mist_r18_801806D0, NULL, NULL, D_mist_r18_80180724, NULL, NULL, NULL },
+static AnimationSet _gMistR18Animation0375C = {
+    _gMistR18Animation0375CRecords,
+    _gMistR18Animation0375CIndices,
+    { NULL, _gMistR18Animation0375CBank1, NULL, NULL, _gMistR18Animation0375CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mist_r18_80180D44[2] = {
+static AnimationPackedPose _gMistR18Animation03C90Bank1[2] = {
 #include "assets/mist_r18_animation_03C90_bank1.inc"
 };
 
-AnimationPackedRotation D_mist_r18_80180D5C[95] = {
+static AnimationPackedRotation _gMistR18Animation03C90Bank4[95] = {
 #include "assets/mist_r18_animation_03C90_bank4.inc"
 };
 
-AnimationRecord D_mist_r18_80180ED8[212] = {
+static AnimationRecord _gMistR18Animation03C90Records[212] = {
 #include "assets/mist_r18_animation_03C90_records.inc"
 };
 
-u16 D_mist_r18_80181228[20] = {
+static u16 _gMistR18Animation03C90Indices[20] = {
 #include "assets/mist_r18_animation_03C90_indices.inc"
 };
 
-AnimationSet D_mist_r18_80181250 = {
-    D_mist_r18_80180ED8,
-    D_mist_r18_80181228,
-    { NULL, D_mist_r18_80180D44, NULL, NULL, D_mist_r18_80180D5C, NULL, NULL, NULL },
+static AnimationSet _gMistR18Animation03C90 = {
+    _gMistR18Animation03C90Records,
+    _gMistR18Animation03C90Indices,
+    { NULL, _gMistR18Animation03C90Bank1, NULL, NULL, _gMistR18Animation03C90Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mist_r18_80181278[16] = {
+static AnimationPackedPose _gMistR18Animation0478CBank1[16] = {
 #include "assets/mist_r18_animation_0478C_bank1.inc"
 };
 
-AnimationPackedRotation D_mist_r18_80181338[285] = {
+static AnimationPackedRotation _gMistR18Animation0478CBank4[285] = {
 #include "assets/mist_r18_animation_0478C_bank4.inc"
 };
 
-AnimationRecord D_mist_r18_801817AC[350] = {
+static AnimationRecord _gMistR18Animation0478CRecords[350] = {
 #include "assets/mist_r18_animation_0478C_records.inc"
 };
 
-u16 D_mist_r18_80181D24[20] = {
+static u16 _gMistR18Animation0478CIndices[20] = {
 #include "assets/mist_r18_animation_0478C_indices.inc"
 };
 
-AnimationSet D_mist_r18_80181D4C = {
-    D_mist_r18_801817AC,
-    D_mist_r18_80181D24,
-    { NULL, D_mist_r18_80181278, NULL, NULL, D_mist_r18_80181338, NULL, NULL, NULL },
+static AnimationSet _gMistR18Animation0478C = {
+    _gMistR18Animation0478CRecords,
+    _gMistR18Animation0478CIndices,
+    { NULL, _gMistR18Animation0478CBank1, NULL, NULL, _gMistR18Animation0478CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mist_r18_80181D74[18] = {
+static AnimationPackedPose _gMistR18Animation04DD4Bank1[18] = {
 #include "assets/mist_r18_animation_04DD4_bank1.inc"
 };
 
-AnimationPackedRotation D_mist_r18_80181E4C[59] = {
+static AnimationPackedRotation _gMistR18Animation04DD4Bank4[59] = {
 #include "assets/mist_r18_animation_04DD4_bank4.inc"
 };
 
-AnimationRecord D_mist_r18_80181F38[269] = {
+static AnimationRecord _gMistR18Animation04DD4Records[269] = {
 #include "assets/mist_r18_animation_04DD4_records.inc"
 };
 
-u16 D_mist_r18_8018236C[20] = {
+static u16 _gMistR18Animation04DD4Indices[20] = {
 #include "assets/mist_r18_animation_04DD4_indices.inc"
 };
 
-AnimationSet D_mist_r18_80182394 = {
-    D_mist_r18_80181F38,
-    D_mist_r18_8018236C,
-    { NULL, D_mist_r18_80181D74, NULL, NULL, D_mist_r18_80181E4C, NULL, NULL, NULL },
+static AnimationSet _gMistR18Animation04DD4 = {
+    _gMistR18Animation04DD4Records,
+    _gMistR18Animation04DD4Indices,
+    { NULL, _gMistR18Animation04DD4Bank1, NULL, NULL, _gMistR18Animation04DD4Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mist_r18_801823BC[18] = {
+static AnimationPackedPose _gMistR18Animation05AA4Bank1[18] = {
 #include "assets/mist_r18_animation_05AA4_bank1.inc"
 };
 
-AnimationPackedRotation D_mist_r18_80182494[342] = {
+static AnimationPackedRotation _gMistR18Animation05AA4Bank4[342] = {
 #include "assets/mist_r18_animation_05AA4_bank4.inc"
 };
 
-AnimationRecord D_mist_r18_801829EC[404] = {
+static AnimationRecord _gMistR18Animation05AA4Records[404] = {
 #include "assets/mist_r18_animation_05AA4_records.inc"
 };
 
-u16 D_mist_r18_8018303C[20] = {
+static u16 _gMistR18Animation05AA4Indices[20] = {
 #include "assets/mist_r18_animation_05AA4_indices.inc"
 };
 
-AnimationSet D_mist_r18_80183064 = {
-    D_mist_r18_801829EC,
-    D_mist_r18_8018303C,
-    { NULL, D_mist_r18_801823BC, NULL, NULL, D_mist_r18_80182494, NULL, NULL, NULL },
+static AnimationSet _gMistR18Animation05AA4 = {
+    _gMistR18Animation05AA4Records,
+    _gMistR18Animation05AA4Indices,
+    { NULL, _gMistR18Animation05AA4Bank1, NULL, NULL, _gMistR18Animation05AA4Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mist_r18_8018308C[2] = {
+static AnimationPackedPose _gMistR18Animation07230Bank1[2] = {
 #include "assets/mist_r18_animation_07230_bank1.inc"
 };
 
-AnimationPackedRotation D_mist_r18_801830A4[685] = {
+static AnimationPackedRotation _gMistR18Animation07230Bank4[685] = {
 #include "assets/mist_r18_animation_07230_bank4.inc"
 };
 
-AnimationRecord D_mist_r18_80183B58[796] = {
+static AnimationRecord _gMistR18Animation07230Records[796] = {
 #include "assets/mist_r18_animation_07230_records.inc"
 };
 
-u16 D_mist_r18_801847C8[20] = {
+static u16 _gMistR18Animation07230Indices[20] = {
 #include "assets/mist_r18_animation_07230_indices.inc"
 };
 
-AnimationSet D_mist_r18_801847F0 = {
-    D_mist_r18_80183B58,
-    D_mist_r18_801847C8,
-    { NULL, D_mist_r18_8018308C, NULL, NULL, D_mist_r18_801830A4, NULL, NULL, NULL },
+static AnimationSet _gMistR18Animation07230 = {
+    _gMistR18Animation07230Records,
+    _gMistR18Animation07230Indices,
+    { NULL, _gMistR18Animation07230Bank1, NULL, NULL, _gMistR18Animation07230Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mist_r18_80184818[3] = {
+static AnimationPackedPose _gMistR18Animation075CCBank1[3] = {
 #include "assets/mist_r18_animation_075CC_bank1.inc"
 };
 
-AnimationPackedRotation D_mist_r18_8018483C[86] = {
+static AnimationPackedRotation _gMistR18Animation075CCBank4[86] = {
 #include "assets/mist_r18_animation_075CC_bank4.inc"
 };
 
-AnimationRecord D_mist_r18_80184994[116] = {
+static AnimationRecord _gMistR18Animation075CCRecords[116] = {
 #include "assets/mist_r18_animation_075CC_records.inc"
 };
 
-u16 D_mist_r18_80184B64[20] = {
+static u16 _gMistR18Animation075CCIndices[20] = {
 #include "assets/mist_r18_animation_075CC_indices.inc"
 };
 
-AnimationSet D_mist_r18_80184B8C = {
-    D_mist_r18_80184994,
-    D_mist_r18_80184B64,
-    { NULL, D_mist_r18_80184818, NULL, NULL, D_mist_r18_8018483C, NULL, NULL, NULL },
+static AnimationSet _gMistR18Animation075CC = {
+    _gMistR18Animation075CCRecords,
+    _gMistR18Animation075CCIndices,
+    { NULL, _gMistR18Animation075CCBank1, NULL, NULL, _gMistR18Animation075CCBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mist_r18_80184BB4[6] = {
+static AnimationPackedPose _gMistR18Animation078C0Bank1[6] = {
 #include "assets/mist_r18_animation_078C0_bank1.inc"
 };
 
-AnimationPackedRotation D_mist_r18_80184BFC[52] = {
+static AnimationPackedRotation _gMistR18Animation078C0Bank4[52] = {
 #include "assets/mist_r18_animation_078C0_bank4.inc"
 };
 
-AnimationRecord D_mist_r18_80184CCC[99] = {
+static AnimationRecord _gMistR18Animation078C0Records[99] = {
 #include "assets/mist_r18_animation_078C0_records.inc"
 };
 
-u16 D_mist_r18_80184E58[20] = {
+static u16 _gMistR18Animation078C0Indices[20] = {
 #include "assets/mist_r18_animation_078C0_indices.inc"
 };
 
-AnimationSet D_mist_r18_80184E80 = {
-    D_mist_r18_80184CCC,
-    D_mist_r18_80184E58,
-    { NULL, D_mist_r18_80184BB4, NULL, NULL, D_mist_r18_80184BFC, NULL, NULL, NULL },
+static AnimationSet _gMistR18Animation078C0 = {
+    _gMistR18Animation078C0Records,
+    _gMistR18Animation078C0Indices,
+    { NULL, _gMistR18Animation078C0Bank1, NULL, NULL, _gMistR18Animation078C0Bank4, NULL, NULL, NULL },
 };
 
 u8 D_mist_r18_80184EA8[60] = {
@@ -555,11 +555,11 @@ u8 D_mist_r18_80184EA8[60] = {
 MistR18TextSpawn D_mist_r18_80184EE4 = { -150, -90, 704, 48, 16, 260, 1, 0, D_mist_r18_80184EA8, Caption_Glyphs, 13, 45, 216, 29 };
 
 TaskDesc D_mist_r18_80184F04[8] = {
-    { { { TASK_BODY_TMD, 192 } }, func_mist_r18_8017E2C8, { .model = &D_mist_r18_8017F064 } },
-    { { { TASK_BODY_TMD, 192 } }, func_mist_r18_8017E2C8, { .model = &D_mist_r18_8017F25C } },
+    { { { TASK_BODY_TMD, 192 } }, func_mist_r18_8017E2C8, { .model = &_gMistR18Actor213000Model072AC } },
+    { { { TASK_BODY_TMD, 192 } }, func_mist_r18_8017E2C8, { .model = &_gMistR18Actor213000Prop } },
     { { { TASK_BODY_COORD, 192 } }, func_mist_r18_8017DA8C, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_mist_r18_8017E854, { .value = 0 } },
-    { { { TASK_BODY_TMD, 192 } }, func_mist_r18_8017EA98, { .model = &D_mist_r18_8017F25C } },
+    { { { TASK_BODY_TMD, 192 } }, func_mist_r18_8017EA98, { .model = &_gMistR18Actor213000Prop } },
     { { { TASK_BODY_NONE, 192 } }, func_mist_r18_8017D5EC, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_mist_r18_8017E3A4, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_mist_r18_8017EC98, { .value = 0 } },
@@ -567,16 +567,16 @@ TaskDesc D_mist_r18_80184F04[8] = {
 
 AnimationSet* D_mist_r18_80184F64[11] = {
     NULL,
-    &D_mist_r18_8017F834,
-    &D_mist_r18_801806A8,
-    &D_mist_r18_80180D1C,
-    &D_mist_r18_80181250,
-    &D_mist_r18_80181D4C,
-    &D_mist_r18_80182394,
-    &D_mist_r18_80183064,
-    &D_mist_r18_801847F0,
-    &D_mist_r18_80184B8C,
-    &D_mist_r18_80184E80,
+    &_gMistR18Animation02274,
+    &_gMistR18Animation030E8,
+    &_gMistR18Animation0375C,
+    &_gMistR18Animation03C90,
+    &_gMistR18Animation0478C,
+    &_gMistR18Animation04DD4,
+    &_gMistR18Animation05AA4,
+    &_gMistR18Animation07230,
+    &_gMistR18Animation075CC,
+    &_gMistR18Animation078C0,
 };
 
 GpCopyArg D_mist_r18_80184F90 = { { .sets = D_mist_r18_80184F64 }, 11 };
@@ -916,30 +916,30 @@ GpWarpRec D_mist_r18_8018662C[1] = {
     { { .words = { 2048, -6000, 0, 3218 } }, { 0, 0, 0, 0 }, { .words = { 2048, -6000, 0, 3218 } }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
 };
 
-SVECTOR D_mist_r18_80186664[1] = {
+static SVECTOR _gMistR18Collision09138Normals[1] = {
 #include "assets/mist_r18_collision_09138_normals.inc"
 };
 
-SVECTOR D_mist_r18_8018666C[4] = {
+static SVECTOR _gMistR18Collision09138Verts[4] = {
 #include "assets/mist_r18_collision_09138_verts.inc"
 };
 
-WorldCollisionGridFace D_mist_r18_8018668C[1] = {
+static WorldCollisionGridFace _gMistR18Collision09138Faces[1] = {
 #include "assets/mist_r18_collision_09138_faces.inc"
 };
 
-s16 D_mist_r18_80186698[24] = {
+static s16 _gMistR18Collision09138Cells[24] = {
 #include "assets/mist_r18_collision_09138_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_mist_r18_80186698[i])
-s16* D_mist_r18_801866C8[12] = {
+#define GRID_CELL(i) (&_gMistR18Collision09138Cells[i])
+static s16* _gMistR18Collision09138Table[12] = {
 #include "assets/mist_r18_collision_09138_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_mist_r18_801866F8[1] = {
-    { NULL, D_mist_r18_80186664, D_mist_r18_8018666C, D_mist_r18_8018668C, D_mist_r18_801866C8, 7000, 5000, 4, 3, 4000, 1 },
+    { NULL, _gMistR18Collision09138Normals, _gMistR18Collision09138Verts, _gMistR18Collision09138Faces, _gMistR18Collision09138Table, 7000, 5000, 4, 3, 4000, 1 },
 };
 
 GpViewRec D_mist_r18_8018671C[10] = {

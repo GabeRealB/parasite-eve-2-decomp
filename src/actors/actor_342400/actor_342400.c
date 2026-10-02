@@ -140,23 +140,23 @@ s16 D_actor_342400_8016C054[6][4] = {
     { 9, 15, 9, 15 },
 };
 
-TmdBone D_actor_342400_8016C084[1] = {
+static TmdBone _gActor342400MadChaserBurstHeadSkeleton[1] = {
 #include "assets/mad_chaser_burst_head_skeleton.inc"
 };
 
-u32 D_actor_342400_8016C0A8[1] = {
+static u32 _gActor342400MadChaserBurstHeadPartVerts[1] = {
 #include "assets/mad_chaser_burst_head_partVerts.inc"
 };
 
-SVECTOR D_actor_342400_8016C0AC[48] = {
+static SVECTOR _gActor342400MadChaserBurstHeadVerts[48] = {
 #include "assets/mad_chaser_burst_head_verts.inc"
 };
 
-SVECTOR D_actor_342400_8016C22C[53] = {
+static SVECTOR _gActor342400MadChaserBurstHeadNormals[53] = {
 #include "assets/mad_chaser_burst_head_normals.inc"
 };
 
-u32 D_actor_342400_8016C3D4[486] = {
+static u32 _gActor342400MadChaserBurstHeadStream[486] = {
 #include "assets/mad_chaser_burst_head_stream.inc"
 };
 
@@ -165,30 +165,30 @@ TmdSource gMadChaserChunkModel0 = {
     3260,
     0,
     1,
-    D_actor_342400_8016C0A8,
-    D_actor_342400_8016C0AC,
-    D_actor_342400_8016C22C,
-    D_actor_342400_8016C084,
-    D_actor_342400_8016C3D4,
+    _gActor342400MadChaserBurstHeadPartVerts,
+    _gActor342400MadChaserBurstHeadVerts,
+    _gActor342400MadChaserBurstHeadNormals,
+    _gActor342400MadChaserBurstHeadSkeleton,
+    _gActor342400MadChaserBurstHeadStream,
 };
 
-TmdBone D_actor_342400_8016CB90[1] = {
+static TmdBone _gActor342400MadChaserBurstArmSkeleton[1] = {
 #include "assets/mad_chaser_burst_arm_skeleton.inc"
 };
 
-u32 D_actor_342400_8016CBB4[1] = {
+static u32 _gActor342400MadChaserBurstArmPartVerts[1] = {
 #include "assets/mad_chaser_burst_arm_partVerts.inc"
 };
 
-SVECTOR D_actor_342400_8016CBB8[28] = {
+static SVECTOR _gActor342400MadChaserBurstArmVerts[28] = {
 #include "assets/mad_chaser_burst_arm_verts.inc"
 };
 
-SVECTOR D_actor_342400_8016CC98[37] = {
+static SVECTOR _gActor342400MadChaserBurstArmNormals[37] = {
 #include "assets/mad_chaser_burst_arm_normals.inc"
 };
 
-u32 D_actor_342400_8016CDC0[276] = {
+static u32 _gActor342400MadChaserBurstArmStream[276] = {
 #include "assets/mad_chaser_burst_arm_stream.inc"
 };
 
@@ -197,30 +197,30 @@ TmdSource gMadChaserChunkModel1 = {
     1828,
     0,
     1,
-    D_actor_342400_8016CBB4,
-    D_actor_342400_8016CBB8,
-    D_actor_342400_8016CC98,
-    D_actor_342400_8016CB90,
-    D_actor_342400_8016CDC0,
+    _gActor342400MadChaserBurstArmPartVerts,
+    _gActor342400MadChaserBurstArmVerts,
+    _gActor342400MadChaserBurstArmNormals,
+    _gActor342400MadChaserBurstArmSkeleton,
+    _gActor342400MadChaserBurstArmStream,
 };
 
-TmdBone D_actor_342400_8016D234[1] = {
+static TmdBone _gActor342400MadChaserBurstTailSkeleton[1] = {
 #include "assets/mad_chaser_burst_tail_skeleton.inc"
 };
 
-u32 D_actor_342400_8016D258[1] = {
+static u32 _gActor342400MadChaserBurstTailPartVerts[1] = {
 #include "assets/mad_chaser_burst_tail_partVerts.inc"
 };
 
-SVECTOR D_actor_342400_8016D25C[25] = {
+static SVECTOR _gActor342400MadChaserBurstTailVerts[25] = {
 #include "assets/mad_chaser_burst_tail_verts.inc"
 };
 
-SVECTOR D_actor_342400_8016D324[32] = {
+static SVECTOR _gActor342400MadChaserBurstTailNormals[32] = {
 #include "assets/mad_chaser_burst_tail_normals.inc"
 };
 
-u32 D_actor_342400_8016D424[215] = {
+static u32 _gActor342400MadChaserBurstTailStream[215] = {
 #include "assets/mad_chaser_burst_tail_stream.inc"
 };
 
@@ -229,43 +229,43 @@ TmdSource gMadChaserChunkModel2 = {
     1448,
     0,
     1,
-    D_actor_342400_8016D258,
-    D_actor_342400_8016D25C,
-    D_actor_342400_8016D324,
-    D_actor_342400_8016D234,
-    D_actor_342400_8016D424,
+    _gActor342400MadChaserBurstTailPartVerts,
+    _gActor342400MadChaserBurstTailVerts,
+    _gActor342400MadChaserBurstTailNormals,
+    _gActor342400MadChaserBurstTailSkeleton,
+    _gActor342400MadChaserBurstTailStream,
 };
 
-TmdBone D_actor_342400_8016D7A4[9] = {
+static TmdBone _gActor342400MadChaserBodySkeleton[9] = {
 #include "assets/mad_chaser_body_skeleton.inc"
 };
 
-u32 D_actor_342400_8016D8E8[9] = {
+static u32 _gActor342400MadChaserBodyPartVerts[9] = {
 #include "assets/mad_chaser_body_partVerts.inc"
 };
 
-SVECTOR D_actor_342400_8016D90C[160] = {
+static SVECTOR _gActor342400MadChaserBodyVerts[160] = {
 #include "assets/mad_chaser_body_verts.inc"
 };
 
-SVECTOR D_actor_342400_8016DE0C[206] = {
+static SVECTOR _gActor342400MadChaserBodyNormals[206] = {
 #include "assets/mad_chaser_body_normals.inc"
 };
 
-u32 D_actor_342400_8016E47C[2105] = {
+static u32 _gActor342400MadChaserBodyStream[2105] = {
 #include "assets/mad_chaser_body_stream.inc"
 };
 
-TmdSource D_actor_342400_80170560 = {
+TmdSource gActor342400MadChaserBody = {
     0,
     11212,
     3088,
     9,
-    D_actor_342400_8016D8E8,
-    D_actor_342400_8016D90C,
-    D_actor_342400_8016DE0C,
-    D_actor_342400_8016D7A4,
-    D_actor_342400_8016E47C,
+    _gActor342400MadChaserBodyPartVerts,
+    _gActor342400MadChaserBodyVerts,
+    _gActor342400MadChaserBodyNormals,
+    _gActor342400MadChaserBodySkeleton,
+    _gActor342400MadChaserBodyStream,
 };
 
 DamageAttack D_actor_342400_80170584[1] = {

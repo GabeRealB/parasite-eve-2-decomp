@@ -219,29 +219,29 @@ GpWarpRec D_shelter_b2_operating_room_80180BD0[3] = {
     { { .words = { 0, 496, 0, 1017 } }, { 0, 0, 0, 0 }, { .words = { 0, 496, 0, 1017 } }, { 0, 0, 0, 0 }, 0x541D0006, 0x541D0005, 0, 7, 0, 0 },
 };
 
-SVECTOR D_shelter_b2_operating_room_80180C78[18] = {
+static SVECTOR _gShelterB2OperatingRoomCollision03DA4Normals[18] = {
 #include "assets/shelter_b2_operating_room_collision_03DA4_normals.inc"
 };
 
-SVECTOR D_shelter_b2_operating_room_80180D08[99] = {
+static SVECTOR _gShelterB2OperatingRoomCollision03DA4Verts[99] = {
 #include "assets/shelter_b2_operating_room_collision_03DA4_verts.inc"
 };
 
-WorldCollisionGridFace D_shelter_b2_operating_room_80181020[42] = {
+static WorldCollisionGridFace _gShelterB2OperatingRoomCollision03DA4Faces[42] = {
 #include "assets/shelter_b2_operating_room_collision_03DA4_faces.inc"
 };
 
-s16 D_shelter_b2_operating_room_80181218[150] = {
+static s16 _gShelterB2OperatingRoomCollision03DA4Cells[150] = {
 #include "assets/shelter_b2_operating_room_collision_03DA4_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_shelter_b2_operating_room_80181218[i])
-s16* D_shelter_b2_operating_room_80181344[8] = {
+#define GRID_CELL(i) (&_gShelterB2OperatingRoomCollision03DA4Cells[i])
+static s16* _gShelterB2OperatingRoomCollision03DA4Table[8] = {
 #include "assets/shelter_b2_operating_room_collision_03DA4_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b2_operating_room_80181364 = { NULL, D_shelter_b2_operating_room_80180C78, D_shelter_b2_operating_room_80180D08, D_shelter_b2_operating_room_80181020, D_shelter_b2_operating_room_80181344, 1000, 0, 4, 2, 4000, 42 };
+WorldCollisionGrid D_shelter_b2_operating_room_80181364 = { NULL, _gShelterB2OperatingRoomCollision03DA4Normals, _gShelterB2OperatingRoomCollision03DA4Verts, _gShelterB2OperatingRoomCollision03DA4Faces, _gShelterB2OperatingRoomCollision03DA4Table, 1000, 0, 4, 2, 4000, 42 };
 
 GpViewRec D_shelter_b2_operating_room_80181388[12] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -5500, 0x5208, -3500 } }, 380 },

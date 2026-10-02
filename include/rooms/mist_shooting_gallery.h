@@ -98,42 +98,42 @@ void func_mist_shooting_gallery_80182064(Task* task);
 
 void func_mist_shooting_gallery_8018018C(Task* task);
 
-extern TmdSource D_mist_shooting_gallery_80186AE0;
+extern TmdSource gMistShootingGalleryModel093FC;
 
-extern TmdSource D_mist_shooting_gallery_80186CD0;
+extern TmdSource gMistShootingGalleryModel095EC;
 
-extern TmdSource D_mist_shooting_gallery_80186EC0;
+extern TmdSource gMistShootingGalleryModel097DC;
 
-extern TmdSource D_mist_shooting_gallery_801870B0;
+extern TmdSource gMistShootingGalleryModel099CC;
 
-extern TmdSource D_mist_shooting_gallery_801872A0;
+extern TmdSource gMistShootingGalleryModel09BBC;
 
-extern TmdSource D_mist_shooting_gallery_80187490;
+extern TmdSource gMistShootingGalleryModel09DAC;
 
-extern TmdSource D_mist_shooting_gallery_80187680;
+extern TmdSource gMistShootingGalleryModel09F9C;
 
-extern TmdSource D_mist_shooting_gallery_80187870;
+extern TmdSource gMistShootingGalleryModel0A18C;
 
-extern TmdSource D_mist_shooting_gallery_80187A60;
+extern TmdSource gMistShootingGalleryModel0A37C;
 
-extern TmdSource D_mist_shooting_gallery_80187C50;
+extern TmdSource gMistShootingGalleryModel0A56C;
 
-extern TmdSource D_mist_shooting_gallery_80188034;
+extern TmdSource gMistShootingGalleryModel0A81C;
 
-extern TmdSource D_mist_shooting_gallery_80188198;
+extern TmdSource gMistShootingGalleryModel0AB30;
 
-extern TmdSource D_mist_shooting_gallery_801882FC;
+extern TmdSource gMistShootingGalleryModel0AC94;
 
-extern TmdSource D_mist_shooting_gallery_80188460;
+extern TmdSource gMistShootingGalleryModel0ADF8;
 
-extern TmdSource D_mist_shooting_gallery_801885C4;
+extern TmdSource gMistShootingGalleryModel0AF5C;
 
-extern TmdSource D_mist_shooting_gallery_801887B4;
+extern TmdSource gMistShootingGalleryModel0B0D0;
 
-extern TmdSource D_mist_shooting_gallery_801889A4;
+extern TmdSource gMistShootingGalleryModel0B2C0;
 
-extern TmdSource D_mist_shooting_gallery_80188B94;
+extern TmdSource gMistShootingGalleryModel0B4B0;
 
-extern TmdSource D_mist_shooting_gallery_80188D84;
+extern TmdSource gMistShootingGalleryModel0B6A0;
 
 #endif // INCLUDE_ROOMS_MIST_SHOOTING_GALLERY_H

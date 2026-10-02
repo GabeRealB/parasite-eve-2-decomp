@@ -143,25 +143,25 @@ extern EnemyParams D_actor_510900_80167980;
 /// from; the spawn hands it over whole, so it is only ever a byte address here.
 extern u8 D_actor_510900_80167AA4[];
 
-extern TmdSource D_actor_510900_80141B64;
+extern TmdSource gActor510900No9GolemAkropolisBody;
 
-extern TmdSource D_actor_510900_80141E08;
+extern TmdSource gActor510900Model0FE60;
 
-extern TmdSource D_actor_510900_80142124;
+extern TmdSource gActor510900No9GolemAkropolisProp;
 
-extern TmdSource D_actor_510900_80142480;
+extern TmdSource gActor510900Model10468;
 
-extern TmdSource D_actor_510900_801427AC;
+extern TmdSource gActor510900GolemGrenade;
 
-extern TmdSource D_actor_510900_8014313C;
+extern TmdSource gActor510900Model10C8C;
 
-extern AnimationSet D_actor_510900_801597B4;
+extern AnimationSet gActor510900Animation27994;
 
-extern AnimationSet D_actor_510900_80159DFC;
+extern AnimationSet gActor510900Animation27FDC;
 
-extern AnimationSet D_actor_510900_80167294;
+extern AnimationSet gActor510900Animation35474;
 
-extern AnimationSet D_actor_510900_80167940;
+extern AnimationSet gActor510900Animation35B20;
 
 extern DamageAttack D_actor_510900_80167968;
 

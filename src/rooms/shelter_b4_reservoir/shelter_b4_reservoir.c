@@ -205,32 +205,32 @@ TaskDesc gScreenWaveTaskDesc[2] = {
 
 s32 gScreenWaveRamp = 256;
 
-TmdBone D_shelter_b4_reservoir_80184740[1] = {
+static TmdBone _gShelterB4ReservoirModel07220Skeleton[1] = {
 #include "assets/shelter_b4_reservoir_model_07220_skeleton.inc"
 };
 
-u32 D_shelter_b4_reservoir_80184764[1] = {
+static u32 _gShelterB4ReservoirModel07220PartVerts[1] = {
 #include "assets/shelter_b4_reservoir_model_07220_partVerts.inc"
 };
 
-SVECTOR D_shelter_b4_reservoir_80184768[15] = {
+static SVECTOR _gShelterB4ReservoirModel07220Verts[15] = {
 #include "assets/shelter_b4_reservoir_model_07220_verts.inc"
 };
 
-u32 D_shelter_b4_reservoir_801847E0[46] = {
+static u32 _gShelterB4ReservoirModel07220Stream[46] = {
 #include "assets/shelter_b4_reservoir_model_07220_stream.inc"
 };
 
-TmdSource D_shelter_b4_reservoir_80184898 = {
+static TmdSource _gShelterB4ReservoirModel07220 = {
     0,
     320,
     0,
     1,
-    D_shelter_b4_reservoir_80184764,
-    D_shelter_b4_reservoir_80184768,
-    &D_shelter_b4_reservoir_80184768[15],
-    D_shelter_b4_reservoir_80184740,
-    D_shelter_b4_reservoir_801847E0,
+    _gShelterB4ReservoirModel07220PartVerts,
+    _gShelterB4ReservoirModel07220Verts,
+    &_gShelterB4ReservoirModel07220Verts[15],
+    _gShelterB4ReservoirModel07220Skeleton,
+    _gShelterB4ReservoirModel07220Stream,
 };
 
 TaskMessageEntry D_shelter_b4_reservoir_801848BC[6] = {
@@ -252,7 +252,7 @@ TaskDesc D_shelter_b4_reservoir_801848EC[4] = {
 ActorCommand D_shelter_b4_reservoir_8018491C = { { .loc = { 4, 45 } }, 6 };
 
 TaskDesc D_shelter_b4_reservoir_80184920[1] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 32 } }, func_shelter_b4_reservoir_8017E558, { .model = &D_shelter_b4_reservoir_80184898 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 32 } }, func_shelter_b4_reservoir_8017E558, { .model = &_gShelterB4ReservoirModel07220 } },
 };
 
 Task* D_shelter_b4_reservoir_8018492C = 0;
@@ -498,30 +498,30 @@ SVECTOR D_shelter_b4_reservoir_801851E4[5] = {
     { 0, 0, 0, -1 },
 };
 
-SVECTOR D_shelter_b4_reservoir_8018520C[22] = {
+static SVECTOR _gShelterB4ReservoirCollision084F8Normals[22] = {
 #include "assets/shelter_b4_reservoir_collision_084F8_normals.inc"
 };
 
-SVECTOR D_shelter_b4_reservoir_801852BC[98] = {
+static SVECTOR _gShelterB4ReservoirCollision084F8Verts[98] = {
 #include "assets/shelter_b4_reservoir_collision_084F8_verts.inc"
 };
 
-WorldCollisionGridFace D_shelter_b4_reservoir_801855CC[45] = {
+static WorldCollisionGridFace _gShelterB4ReservoirCollision084F8Faces[45] = {
 #include "assets/shelter_b4_reservoir_collision_084F8_faces.inc"
 };
 
-s16 D_shelter_b4_reservoir_801857E8[310] = {
+static s16 _gShelterB4ReservoirCollision084F8Cells[310] = {
 #include "assets/shelter_b4_reservoir_collision_084F8_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_shelter_b4_reservoir_801857E8[i])
-s16* D_shelter_b4_reservoir_80185A54[25] = {
+#define GRID_CELL(i) (&_gShelterB4ReservoirCollision084F8Cells[i])
+static s16* _gShelterB4ReservoirCollision084F8Table[25] = {
 #include "assets/shelter_b4_reservoir_collision_084F8_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_shelter_b4_reservoir_80185AB8[1] = {
-    { NULL, D_shelter_b4_reservoir_8018520C, D_shelter_b4_reservoir_801852BC, D_shelter_b4_reservoir_801855CC, D_shelter_b4_reservoir_80185A54, 0x2AC6, 6000, 5, 5, 4000, 45 },
+    { NULL, _gShelterB4ReservoirCollision084F8Normals, _gShelterB4ReservoirCollision084F8Verts, _gShelterB4ReservoirCollision084F8Faces, _gShelterB4ReservoirCollision084F8Table, 0x2AC6, 6000, 5, 5, 4000, 45 },
 };
 
 GpViewRec D_shelter_b4_reservoir_80185ADC[10] = {

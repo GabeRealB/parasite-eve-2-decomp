@@ -179,26 +179,26 @@ static inline TaskDesc* Reflection_GetTasks(void)
 
 TaskDesc D_neo_ark_observatory_80180DD4 = { { { TASK_BODY_NONE, 32 } }, roomDepartureTask, { .value = 0 } };
 
-AnimationPackedPose D_neo_ark_observatory_80180DE0[6] = {
+static AnimationPackedPose _gNeoArkObservatoryAnimation03BC4Bank1[6] = {
 #include "assets/neo_ark_observatory_animation_03BC4_bank1.inc"
 };
 
-AnimationPackedRotation D_neo_ark_observatory_80180E28[64] = {
+static AnimationPackedRotation _gNeoArkObservatoryAnimation03BC4Bank4[64] = {
 #include "assets/neo_ark_observatory_animation_03BC4_bank4.inc"
 };
 
-AnimationRecord D_neo_ark_observatory_80180F28[141] = {
+static AnimationRecord _gNeoArkObservatoryAnimation03BC4Records[141] = {
 #include "assets/neo_ark_observatory_animation_03BC4_records.inc"
 };
 
-u16 D_neo_ark_observatory_8018115C[20] = {
+static u16 _gNeoArkObservatoryAnimation03BC4Indices[20] = {
 #include "assets/neo_ark_observatory_animation_03BC4_indices.inc"
 };
 
-AnimationSet D_neo_ark_observatory_80181184 = {
-    D_neo_ark_observatory_80180F28,
-    D_neo_ark_observatory_8018115C,
-    { NULL, D_neo_ark_observatory_80180DE0, NULL, NULL, D_neo_ark_observatory_80180E28, NULL, NULL, NULL },
+static AnimationSet _gNeoArkObservatoryAnimation03BC4 = {
+    _gNeoArkObservatoryAnimation03BC4Records,
+    _gNeoArkObservatoryAnimation03BC4Indices,
+    { NULL, _gNeoArkObservatoryAnimation03BC4Bank1, NULL, NULL, _gNeoArkObservatoryAnimation03BC4Bank4, NULL, NULL, NULL },
 };
 
 TaskDesc D_neo_ark_observatory_801811AC = { { { TASK_BODY_NONE, 192 } }, func_neo_ark_observatory_8017FB1C, { .value = 0 } };
@@ -211,7 +211,7 @@ TaskMessageEntry D_neo_ark_observatory_801811B8[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-NeoArkObservatoryAnimStorage11E0 D_neo_ark_observatory_801811E0 = { .data = { { &D_neo_ark_observatory_80181184 }, { { .words = D_neo_ark_observatory_801811E0.words }, 32 }, { { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_ENABLE } }, { { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 12 }, { .value = 0 } }, { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_neo_ark_observatory_801811E0.data.copy } }, { .value = 0 } }, { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = D_neo_ark_observatory_801811E0.data.arguments }, { .value = 0 } }, { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x55070009 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } }, { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } }, { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } }, { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } }, { .opcode = EVENT_SCRIPT_OPCODE_END } } } };
+NeoArkObservatoryAnimStorage11E0 D_neo_ark_observatory_801811E0 = { .data = { { &_gNeoArkObservatoryAnimation03BC4 }, { { .words = D_neo_ark_observatory_801811E0.words }, 32 }, { { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_ENABLE } }, { { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 12 }, { .value = 0 } }, { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_neo_ark_observatory_801811E0.data.copy } }, { .value = 0 } }, { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = D_neo_ark_observatory_801811E0.data.arguments }, { .value = 0 } }, { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x55070009 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } }, { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } }, { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } }, { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } }, { .opcode = EVENT_SCRIPT_OPCODE_END } } } };
 
 EvsCommand D_neo_ark_observatory_801812C0[7] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -225,29 +225,29 @@ EvsCommand D_neo_ark_observatory_801812C0[7] = {
 
 SVECTOR D_neo_ark_observatory_80181368 = { 0, 0, -200, 0 };
 
-SVECTOR D_neo_ark_observatory_80181370[4] = {
+static SVECTOR _gNeoArkObservatoryCollision03E50Normals[4] = {
 #include "assets/neo_ark_observatory_collision_03E50_normals.inc"
 };
 
-SVECTOR D_neo_ark_observatory_80181390[8] = {
+static SVECTOR _gNeoArkObservatoryCollision03E50Verts[8] = {
 #include "assets/neo_ark_observatory_collision_03E50_verts.inc"
 };
 
-WorldCollisionGridFace D_neo_ark_observatory_801813D0[4] = {
+static WorldCollisionGridFace _gNeoArkObservatoryCollision03E50Faces[4] = {
 #include "assets/neo_ark_observatory_collision_03E50_faces.inc"
 };
 
-s16 D_neo_ark_observatory_80181400[6] = {
+static s16 _gNeoArkObservatoryCollision03E50Cells[6] = {
 #include "assets/neo_ark_observatory_collision_03E50_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_neo_ark_observatory_80181400[i])
-s16* D_neo_ark_observatory_8018140C[1] = {
+#define GRID_CELL(i) (&_gNeoArkObservatoryCollision03E50Cells[i])
+static s16* _gNeoArkObservatoryCollision03E50Table[1] = {
 #include "assets/neo_ark_observatory_collision_03E50_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid gFollowCollisionSource = { NULL, D_neo_ark_observatory_80181370, D_neo_ark_observatory_80181390, D_neo_ark_observatory_801813D0, D_neo_ark_observatory_8018140C, 399, 500, 1, 1, 4000, 4 };
+WorldCollisionGrid gFollowCollisionSource = { NULL, _gNeoArkObservatoryCollision03E50Normals, _gNeoArkObservatoryCollision03E50Verts, _gNeoArkObservatoryCollision03E50Faces, _gNeoArkObservatoryCollision03E50Table, 399, 500, 1, 1, 4000, 4 };
 
 SVECTOR D_neo_ark_observatory_80181434[22] = {
     { 512, -5120, 8192, 0 },
@@ -376,29 +376,29 @@ GpWarpRec D_neo_ark_observatory_801815E8[3] = {
     { { .words = { 3072, 6490, 0, 1700 } }, { 0, 0, 0, 0 }, { .words = { 3072, 6490, 0, 1700 } }, { 0, 0, 0, 0 }, 0, 0, 0, 10, 0, 0 },
 };
 
-SVECTOR D_neo_ark_observatory_80181690[26] = {
+static SVECTOR _gNeoArkObservatoryCollision049E4Normals[26] = {
 #include "assets/neo_ark_observatory_collision_049E4_normals.inc"
 };
 
-SVECTOR D_neo_ark_observatory_80181760[106] = {
+static SVECTOR _gNeoArkObservatoryCollision049E4Verts[106] = {
 #include "assets/neo_ark_observatory_collision_049E4_verts.inc"
 };
 
-WorldCollisionGridFace D_neo_ark_observatory_80181AB0[48] = {
+static WorldCollisionGridFace _gNeoArkObservatoryCollision049E4Faces[48] = {
 #include "assets/neo_ark_observatory_collision_049E4_faces.inc"
 };
 
-s16 D_neo_ark_observatory_80181CF0[306] = {
+static s16 _gNeoArkObservatoryCollision049E4Cells[306] = {
 #include "assets/neo_ark_observatory_collision_049E4_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_neo_ark_observatory_80181CF0[i])
-s16* D_neo_ark_observatory_80181F54[20] = {
+#define GRID_CELL(i) (&_gNeoArkObservatoryCollision049E4Cells[i])
+static s16* _gNeoArkObservatoryCollision049E4Table[20] = {
 #include "assets/neo_ark_observatory_collision_049E4_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid gFollowCollisionGrid = { NULL, D_neo_ark_observatory_80181690, D_neo_ark_observatory_80181760, D_neo_ark_observatory_80181AB0, D_neo_ark_observatory_80181F54, 0, 0, 4, 5, 4000, 48 };
+WorldCollisionGrid gFollowCollisionGrid = { NULL, _gNeoArkObservatoryCollision049E4Normals, _gNeoArkObservatoryCollision049E4Verts, _gNeoArkObservatoryCollision049E4Faces, _gNeoArkObservatoryCollision049E4Table, 0, 0, 4, 5, 4000, 48 };
 
 GpViewRec D_neo_ark_observatory_80181FC8[21] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -7000, 0x61A8, -8000 } }, 329 },

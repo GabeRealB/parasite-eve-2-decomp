@@ -20,15 +20,15 @@ STATIC_ASSERT_SIZEOF(Actor143000Spawn, 4);
 
 extern Actor143000Spawn D_actor_143000_80135C08;
 
-extern AnimationSet D_actor_143000_80134840;
+extern AnimationSet gActor143000Animation02A20;
 
-extern AnimationSet D_actor_143000_80134AEC;
+extern AnimationSet gActor143000Animation02CCC;
 
-extern AnimationSet D_actor_143000_80134D08;
+extern AnimationSet gActor143000Animation02EE8;
 
-extern AnimationSet D_actor_143000_80134EB0;
+extern AnimationSet gActor143000Animation03090;
 
-extern AnimationSet D_actor_143000_80135068;
+extern AnimationSet gActor143000Animation03248;
 
 extern TaskDesc D_actor_143000_801350B0[2];
 

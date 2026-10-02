@@ -219,36 +219,36 @@ extern WorldCollisionSurfaceProperties D_shelter_b2_laboratory_80186460[1];
 
 #include "../../shared/telephone_data.inc.c"
 
-TmdBone D_shelter_b2_laboratory_80182420[3] = {
+static TmdBone _gShelterB2LaboratoryAcropolisSanctuaryModel090F0Skeleton[3] = {
 #include "assets/acropolis_sanctuary_model_090F0_skeleton.inc"
 };
 
-u32 D_shelter_b2_laboratory_8018248C[3] = {
+static u32 _gShelterB2LaboratoryAcropolisSanctuaryModel090F0PartVerts[3] = {
 #include "assets/acropolis_sanctuary_model_090F0_partVerts.inc"
 };
 
-SVECTOR D_shelter_b2_laboratory_80182498[56] = {
+static SVECTOR _gShelterB2LaboratoryAcropolisSanctuaryModel090F0Verts[56] = {
 #include "assets/acropolis_sanctuary_model_090F0_verts.inc"
 };
 
-SVECTOR D_shelter_b2_laboratory_80182658[6] = {
+static SVECTOR _gShelterB2LaboratoryAcropolisSanctuaryModel090F0Normals[6] = {
 #include "assets/acropolis_sanctuary_model_090F0_normals.inc"
 };
 
-u32 D_shelter_b2_laboratory_80182688[215] = {
+static u32 _gShelterB2LaboratoryAcropolisSanctuaryModel090F0Stream[215] = {
 #include "assets/acropolis_sanctuary_model_090F0_stream.inc"
 };
 
-TmdSource D_shelter_b2_laboratory_801829E4 = {
+TmdSource gShelterB2LaboratoryAcropolisSanctuaryModel090F0 = {
     0,
     1768,
     0,
     3,
-    D_shelter_b2_laboratory_8018248C,
-    D_shelter_b2_laboratory_80182498,
-    D_shelter_b2_laboratory_80182658,
-    D_shelter_b2_laboratory_80182420,
-    D_shelter_b2_laboratory_80182688,
+    _gShelterB2LaboratoryAcropolisSanctuaryModel090F0PartVerts,
+    _gShelterB2LaboratoryAcropolisSanctuaryModel090F0Verts,
+    _gShelterB2LaboratoryAcropolisSanctuaryModel090F0Normals,
+    _gShelterB2LaboratoryAcropolisSanctuaryModel090F0Skeleton,
+    _gShelterB2LaboratoryAcropolisSanctuaryModel090F0Stream,
 };
 
 TaskDesc gRoomCutsceneTaskDescs[3] = {
@@ -356,29 +356,29 @@ GpWarpRec D_shelter_b2_laboratory_80182C10[2] = {
     { { .words = { 2048, 6350, 0, 2900 } }, { 0, 0, 0, 0 }, { .words = { 2048, 6350, 0, 2900 } }, { 0, 0, 0, 0 }, 0x541F0002, 0x541F0001, 0, 4, 0, 0 },
 };
 
-SVECTOR D_shelter_b2_laboratory_80182C80[23] = {
+static SVECTOR _gShelterB2LaboratoryCollision05F9CNormals[23] = {
 #include "assets/shelter_b2_laboratory_collision_05F9C_normals.inc"
 };
 
-SVECTOR D_shelter_b2_laboratory_80182D38[123] = {
+static SVECTOR _gShelterB2LaboratoryCollision05F9CVerts[123] = {
 #include "assets/shelter_b2_laboratory_collision_05F9C_verts.inc"
 };
 
-WorldCollisionGridFace D_shelter_b2_laboratory_80183110[51] = {
+static WorldCollisionGridFace _gShelterB2LaboratoryCollision05F9CFaces[51] = {
 #include "assets/shelter_b2_laboratory_collision_05F9C_faces.inc"
 };
 
-s16 D_shelter_b2_laboratory_80183374[220] = {
+static s16 _gShelterB2LaboratoryCollision05F9CCells[220] = {
 #include "assets/shelter_b2_laboratory_collision_05F9C_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_shelter_b2_laboratory_80183374[i])
-s16* D_shelter_b2_laboratory_8018352C[12] = {
+#define GRID_CELL(i) (&_gShelterB2LaboratoryCollision05F9CCells[i])
+static s16* _gShelterB2LaboratoryCollision05F9CTable[12] = {
 #include "assets/shelter_b2_laboratory_collision_05F9C_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b2_laboratory_8018355C = { NULL, D_shelter_b2_laboratory_80182C80, D_shelter_b2_laboratory_80182D38, D_shelter_b2_laboratory_80183110, D_shelter_b2_laboratory_8018352C, 1411, 4736, 4, 3, 4000, 51 };
+WorldCollisionGrid D_shelter_b2_laboratory_8018355C = { NULL, _gShelterB2LaboratoryCollision05F9CNormals, _gShelterB2LaboratoryCollision05F9CVerts, _gShelterB2LaboratoryCollision05F9CFaces, _gShelterB2LaboratoryCollision05F9CTable, 1411, 4736, 4, 3, 4000, 51 };
 
 GpViewRec D_shelter_b2_laboratory_80183580[15] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -6200, 0x7530, -1480 } }, 564 },

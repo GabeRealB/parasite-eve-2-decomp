@@ -201,136 +201,136 @@ void func_acropolis_patio_8017DBAC(s32, s32, AcropolisPatioMsg8*);
 void func_acropolis_patio_8017DD80(Task*);
 void func_acropolis_patio_8017DE2C(Task*);
 
-AnimationPackedPose D_acropolis_patio_8017ECEC[2] = {
+static AnimationPackedPose _gAcropolisPatioAnimation018A0Bank1[2] = {
 #include "assets/acropolis_patio_animation_018A0_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_patio_8017ED04[20] = {
+static AnimationPackedRotation _gAcropolisPatioAnimation018A0Bank4[20] = {
 #include "assets/acropolis_patio_animation_018A0_bank4.inc"
 };
 
-AnimationRecord D_acropolis_patio_8017ED54[57] = {
+static AnimationRecord _gAcropolisPatioAnimation018A0Records[57] = {
 #include "assets/acropolis_patio_animation_018A0_records.inc"
 };
 
-u16 D_acropolis_patio_8017EE38[20] = {
+static u16 _gAcropolisPatioAnimation018A0Indices[20] = {
 #include "assets/acropolis_patio_animation_018A0_indices.inc"
 };
 
-AnimationSet D_acropolis_patio_8017EE60 = {
-    D_acropolis_patio_8017ED54,
-    D_acropolis_patio_8017EE38,
-    { NULL, D_acropolis_patio_8017ECEC, NULL, NULL, D_acropolis_patio_8017ED04, NULL, NULL, NULL },
+static AnimationSet _gAcropolisPatioAnimation018A0 = {
+    _gAcropolisPatioAnimation018A0Records,
+    _gAcropolisPatioAnimation018A0Indices,
+    { NULL, _gAcropolisPatioAnimation018A0Bank1, NULL, NULL, _gAcropolisPatioAnimation018A0Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_patio_8017EE88[2] = {
+static AnimationPackedPose _gAcropolisPatioAnimation01B48Bank1[2] = {
 #include "assets/acropolis_patio_animation_01B48_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_patio_8017EEA0[41] = {
+static AnimationPackedRotation _gAcropolisPatioAnimation01B48Bank4[41] = {
 #include "assets/acropolis_patio_animation_01B48_bank4.inc"
 };
 
-AnimationRecord D_acropolis_patio_8017EF44[103] = {
+static AnimationRecord _gAcropolisPatioAnimation01B48Records[103] = {
 #include "assets/acropolis_patio_animation_01B48_records.inc"
 };
 
-u16 D_acropolis_patio_8017F0E0[20] = {
+static u16 _gAcropolisPatioAnimation01B48Indices[20] = {
 #include "assets/acropolis_patio_animation_01B48_indices.inc"
 };
 
-AnimationSet D_acropolis_patio_8017F108 = {
-    D_acropolis_patio_8017EF44,
-    D_acropolis_patio_8017F0E0,
-    { NULL, D_acropolis_patio_8017EE88, NULL, NULL, D_acropolis_patio_8017EEA0, NULL, NULL, NULL },
+static AnimationSet _gAcropolisPatioAnimation01B48 = {
+    _gAcropolisPatioAnimation01B48Records,
+    _gAcropolisPatioAnimation01B48Indices,
+    { NULL, _gAcropolisPatioAnimation01B48Bank1, NULL, NULL, _gAcropolisPatioAnimation01B48Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_patio_8017F130[2] = {
+static AnimationPackedPose _gAcropolisPatioAnimation01CE4Bank1[2] = {
 #include "assets/acropolis_patio_animation_01CE4_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_patio_8017F148[20] = {
+static AnimationPackedRotation _gAcropolisPatioAnimation01CE4Bank4[20] = {
 #include "assets/acropolis_patio_animation_01CE4_bank4.inc"
 };
 
-AnimationRecord D_acropolis_patio_8017F198[57] = {
+static AnimationRecord _gAcropolisPatioAnimation01CE4Records[57] = {
 #include "assets/acropolis_patio_animation_01CE4_records.inc"
 };
 
-u16 D_acropolis_patio_8017F27C[20] = {
+static u16 _gAcropolisPatioAnimation01CE4Indices[20] = {
 #include "assets/acropolis_patio_animation_01CE4_indices.inc"
 };
 
-AnimationSet D_acropolis_patio_8017F2A4 = {
-    D_acropolis_patio_8017F198,
-    D_acropolis_patio_8017F27C,
-    { NULL, D_acropolis_patio_8017F130, NULL, NULL, D_acropolis_patio_8017F148, NULL, NULL, NULL },
+static AnimationSet _gAcropolisPatioAnimation01CE4 = {
+    _gAcropolisPatioAnimation01CE4Records,
+    _gAcropolisPatioAnimation01CE4Indices,
+    { NULL, _gAcropolisPatioAnimation01CE4Bank1, NULL, NULL, _gAcropolisPatioAnimation01CE4Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_patio_8017F2CC[12] = {
+static AnimationPackedPose _gAcropolisPatioAnimation022B8Bank1[12] = {
 #include "assets/acropolis_patio_animation_022B8_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_patio_8017F35C[138] = {
+static AnimationPackedRotation _gAcropolisPatioAnimation022B8Bank4[138] = {
 #include "assets/acropolis_patio_animation_022B8_bank4.inc"
 };
 
-AnimationRecord D_acropolis_patio_8017F584[179] = {
+static AnimationRecord _gAcropolisPatioAnimation022B8Records[179] = {
 #include "assets/acropolis_patio_animation_022B8_records.inc"
 };
 
-u16 D_acropolis_patio_8017F850[20] = {
+static u16 _gAcropolisPatioAnimation022B8Indices[20] = {
 #include "assets/acropolis_patio_animation_022B8_indices.inc"
 };
 
-AnimationSet D_acropolis_patio_8017F878 = {
-    D_acropolis_patio_8017F584,
-    D_acropolis_patio_8017F850,
-    { NULL, D_acropolis_patio_8017F2CC, NULL, NULL, D_acropolis_patio_8017F35C, NULL, NULL, NULL },
+static AnimationSet _gAcropolisPatioAnimation022B8 = {
+    _gAcropolisPatioAnimation022B8Records,
+    _gAcropolisPatioAnimation022B8Indices,
+    { NULL, _gAcropolisPatioAnimation022B8Bank1, NULL, NULL, _gAcropolisPatioAnimation022B8Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_patio_8017F8A0[19] = {
+static AnimationPackedPose _gAcropolisPatioAnimation02AD0Bank1[19] = {
 #include "assets/acropolis_patio_animation_02AD0_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_patio_8017F984[189] = {
+static AnimationPackedRotation _gAcropolisPatioAnimation02AD0Bank4[189] = {
 #include "assets/acropolis_patio_animation_02AD0_bank4.inc"
 };
 
-AnimationRecord D_acropolis_patio_8017FC78[252] = {
+static AnimationRecord _gAcropolisPatioAnimation02AD0Records[252] = {
 #include "assets/acropolis_patio_animation_02AD0_records.inc"
 };
 
-u16 D_acropolis_patio_80180068[20] = {
+static u16 _gAcropolisPatioAnimation02AD0Indices[20] = {
 #include "assets/acropolis_patio_animation_02AD0_indices.inc"
 };
 
-AnimationSet D_acropolis_patio_80180090 = {
-    D_acropolis_patio_8017FC78,
-    D_acropolis_patio_80180068,
-    { NULL, D_acropolis_patio_8017F8A0, NULL, NULL, D_acropolis_patio_8017F984, NULL, NULL, NULL },
+static AnimationSet _gAcropolisPatioAnimation02AD0 = {
+    _gAcropolisPatioAnimation02AD0Records,
+    _gAcropolisPatioAnimation02AD0Indices,
+    { NULL, _gAcropolisPatioAnimation02AD0Bank1, NULL, NULL, _gAcropolisPatioAnimation02AD0Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_patio_801800B8[2] = {
+static AnimationPackedPose _gAcropolisPatioAnimation02CA4Bank1[2] = {
 #include "assets/acropolis_patio_animation_02CA4_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_patio_801800D0[15] = {
+static AnimationPackedRotation _gAcropolisPatioAnimation02CA4Bank4[15] = {
 #include "assets/acropolis_patio_animation_02CA4_bank4.inc"
 };
 
-AnimationRecord D_acropolis_patio_8018010C[76] = {
+static AnimationRecord _gAcropolisPatioAnimation02CA4Records[76] = {
 #include "assets/acropolis_patio_animation_02CA4_records.inc"
 };
 
-u16 D_acropolis_patio_8018023C[20] = {
+static u16 _gAcropolisPatioAnimation02CA4Indices[20] = {
 #include "assets/acropolis_patio_animation_02CA4_indices.inc"
 };
 
-AnimationSet D_acropolis_patio_80180264 = {
-    D_acropolis_patio_8018010C,
-    D_acropolis_patio_8018023C,
-    { NULL, D_acropolis_patio_801800B8, NULL, NULL, D_acropolis_patio_801800D0, NULL, NULL, NULL },
+static AnimationSet _gAcropolisPatioAnimation02CA4 = {
+    _gAcropolisPatioAnimation02CA4Records,
+    _gAcropolisPatioAnimation02CA4Indices,
+    { NULL, _gAcropolisPatioAnimation02CA4Bank1, NULL, NULL, _gAcropolisPatioAnimation02CA4Bank4, NULL, NULL, NULL },
 };
 
 AcropolisPatioMessageEntry D_acropolis_patio_8018028C[6] = {
@@ -360,12 +360,12 @@ ActorTransform D_acropolis_patio_80180334 = { { -6612, 1, 315, 0 }, { 0, -800, 0
 ActorTransform D_acropolis_patio_8018034C = { { 1452, 1, 593, 0 }, { 0, -1024, 0, 0 } };
 
 AnimationSet* D_acropolis_patio_80180364[6] = {
-    &D_acropolis_patio_8017EE60,
-    &D_acropolis_patio_8017F2A4,
-    &D_acropolis_patio_8017F108,
-    &D_acropolis_patio_80180264,
-    &D_acropolis_patio_8017F878,
-    &D_acropolis_patio_80180090,
+    &_gAcropolisPatioAnimation018A0,
+    &_gAcropolisPatioAnimation01CE4,
+    &_gAcropolisPatioAnimation01B48,
+    &_gAcropolisPatioAnimation02CA4,
+    &_gAcropolisPatioAnimation022B8,
+    &_gAcropolisPatioAnimation02AD0,
 };
 
 AnimationPlayRequest D_acropolis_patio_8018037C = { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 5, ANIMATION_WORLD_COLLISION_DISABLE };
@@ -541,100 +541,100 @@ EvsCommand D_acropolis_patio_80180EDC[9] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-AnimationPackedPose D_acropolis_patio_80180FB4[6] = {
+static AnimationPackedPose _gAcropolisPatioAnimation03CD0Bank1[6] = {
 #include "assets/acropolis_patio_animation_03CD0_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_patio_80180FFC[46] = {
+static AnimationPackedRotation _gAcropolisPatioAnimation03CD0Bank4[46] = {
 #include "assets/acropolis_patio_animation_03CD0_bank4.inc"
 };
 
-AnimationRecord D_acropolis_patio_801810B4[109] = {
+static AnimationRecord _gAcropolisPatioAnimation03CD0Records[109] = {
 #include "assets/acropolis_patio_animation_03CD0_records.inc"
 };
 
-u16 D_acropolis_patio_80181268[20] = {
+static u16 _gAcropolisPatioAnimation03CD0Indices[20] = {
 #include "assets/acropolis_patio_animation_03CD0_indices.inc"
 };
 
-AnimationSet D_acropolis_patio_80181290 = {
-    D_acropolis_patio_801810B4,
-    D_acropolis_patio_80181268,
-    { NULL, D_acropolis_patio_80180FB4, NULL, NULL, D_acropolis_patio_80180FFC, NULL, NULL, NULL },
+static AnimationSet _gAcropolisPatioAnimation03CD0 = {
+    _gAcropolisPatioAnimation03CD0Records,
+    _gAcropolisPatioAnimation03CD0Indices,
+    { NULL, _gAcropolisPatioAnimation03CD0Bank1, NULL, NULL, _gAcropolisPatioAnimation03CD0Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_patio_801812B8[13] = {
+static AnimationPackedPose _gAcropolisPatioAnimation04470Bank1[13] = {
 #include "assets/acropolis_patio_animation_04470_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_patio_80181354[179] = {
+static AnimationPackedRotation _gAcropolisPatioAnimation04470Bank4[179] = {
 #include "assets/acropolis_patio_animation_04470_bank4.inc"
 };
 
-AnimationRecord D_acropolis_patio_80181620[250] = {
+static AnimationRecord _gAcropolisPatioAnimation04470Records[250] = {
 #include "assets/acropolis_patio_animation_04470_records.inc"
 };
 
-u16 D_acropolis_patio_80181A08[20] = {
+static u16 _gAcropolisPatioAnimation04470Indices[20] = {
 #include "assets/acropolis_patio_animation_04470_indices.inc"
 };
 
-AnimationSet D_acropolis_patio_80181A30 = {
-    D_acropolis_patio_80181620,
-    D_acropolis_patio_80181A08,
-    { NULL, D_acropolis_patio_801812B8, NULL, NULL, D_acropolis_patio_80181354, NULL, NULL, NULL },
+static AnimationSet _gAcropolisPatioAnimation04470 = {
+    _gAcropolisPatioAnimation04470Records,
+    _gAcropolisPatioAnimation04470Indices,
+    { NULL, _gAcropolisPatioAnimation04470Bank1, NULL, NULL, _gAcropolisPatioAnimation04470Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_patio_80181A58[9] = {
+static AnimationPackedPose _gAcropolisPatioAnimation0494CBank1[9] = {
 #include "assets/acropolis_patio_animation_0494C_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_patio_80181AC4[109] = {
+static AnimationPackedRotation _gAcropolisPatioAnimation0494CBank4[109] = {
 #include "assets/acropolis_patio_animation_0494C_bank4.inc"
 };
 
-AnimationRecord D_acropolis_patio_80181C78[155] = {
+static AnimationRecord _gAcropolisPatioAnimation0494CRecords[155] = {
 #include "assets/acropolis_patio_animation_0494C_records.inc"
 };
 
-u16 D_acropolis_patio_80181EE4[20] = {
+static u16 _gAcropolisPatioAnimation0494CIndices[20] = {
 #include "assets/acropolis_patio_animation_0494C_indices.inc"
 };
 
-AnimationSet D_acropolis_patio_80181F0C = {
-    D_acropolis_patio_80181C78,
-    D_acropolis_patio_80181EE4,
-    { NULL, D_acropolis_patio_80181A58, NULL, NULL, D_acropolis_patio_80181AC4, NULL, NULL, NULL },
+static AnimationSet _gAcropolisPatioAnimation0494C = {
+    _gAcropolisPatioAnimation0494CRecords,
+    _gAcropolisPatioAnimation0494CIndices,
+    { NULL, _gAcropolisPatioAnimation0494CBank1, NULL, NULL, _gAcropolisPatioAnimation0494CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_patio_80181F34[11] = {
+static AnimationPackedPose _gAcropolisPatioAnimation04FC8Bank1[11] = {
 #include "assets/acropolis_patio_animation_04FC8_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_patio_80181FB8[161] = {
+static AnimationPackedRotation _gAcropolisPatioAnimation04FC8Bank4[161] = {
 #include "assets/acropolis_patio_animation_04FC8_bank4.inc"
 };
 
-AnimationRecord D_acropolis_patio_8018223C[201] = {
+static AnimationRecord _gAcropolisPatioAnimation04FC8Records[201] = {
 #include "assets/acropolis_patio_animation_04FC8_records.inc"
 };
 
-u16 D_acropolis_patio_80182560[20] = {
+static u16 _gAcropolisPatioAnimation04FC8Indices[20] = {
 #include "assets/acropolis_patio_animation_04FC8_indices.inc"
 };
 
-AnimationSet D_acropolis_patio_80182588 = {
-    D_acropolis_patio_8018223C,
-    D_acropolis_patio_80182560,
-    { NULL, D_acropolis_patio_80181F34, NULL, NULL, D_acropolis_patio_80181FB8, NULL, NULL, NULL },
+static AnimationSet _gAcropolisPatioAnimation04FC8 = {
+    _gAcropolisPatioAnimation04FC8Records,
+    _gAcropolisPatioAnimation04FC8Indices,
+    { NULL, _gAcropolisPatioAnimation04FC8Bank1, NULL, NULL, _gAcropolisPatioAnimation04FC8Bank4, NULL, NULL, NULL },
 };
 
 AnimationSet* D_acropolis_patio_801825B0[5] = {
     NULL,
-    &D_acropolis_patio_80181290,
-    &D_acropolis_patio_80181A30,
-    &D_acropolis_patio_80181F0C,
-    &D_acropolis_patio_80182588,
+    &_gAcropolisPatioAnimation03CD0,
+    &_gAcropolisPatioAnimation04470,
+    &_gAcropolisPatioAnimation0494C,
+    &_gAcropolisPatioAnimation04FC8,
 };
 
 GpCopyArg D_acropolis_patio_801825C4 = { { .sets = D_acropolis_patio_801825B0 }, 5 };
@@ -877,30 +877,30 @@ GpWarpRec D_acropolis_patio_80182EEC[4] = {
     { { .words = { 2304, 4223, -460, 1263 } }, { 0, 0, 0, 0 }, { .words = { 2304, 4408, -600, 1264 } }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 1, 0 },
 };
 
-SVECTOR D_acropolis_patio_80182FCC[33] = {
+static SVECTOR _gAcropolisPatioCollision06838Normals[33] = {
 #include "assets/acropolis_patio_collision_06838_normals.inc"
 };
 
-SVECTOR D_acropolis_patio_801830D4[201] = {
+static SVECTOR _gAcropolisPatioCollision06838Verts[201] = {
 #include "assets/acropolis_patio_collision_06838_verts.inc"
 };
 
-WorldCollisionGridFace D_acropolis_patio_8018371C[70] = {
+static WorldCollisionGridFace _gAcropolisPatioCollision06838Faces[70] = {
 #include "assets/acropolis_patio_collision_06838_faces.inc"
 };
 
-s16 D_acropolis_patio_80183A64[402] = {
+static s16 _gAcropolisPatioCollision06838Cells[402] = {
 #include "assets/acropolis_patio_collision_06838_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_acropolis_patio_80183A64[i])
-s16* D_acropolis_patio_80183D88[28] = {
+#define GRID_CELL(i) (&_gAcropolisPatioCollision06838Cells[i])
+static s16* _gAcropolisPatioCollision06838Table[28] = {
 #include "assets/acropolis_patio_collision_06838_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_acropolis_patio_80183DF8[1] = {
-    { NULL, D_acropolis_patio_80182FCC, D_acropolis_patio_801830D4, D_acropolis_patio_8018371C, D_acropolis_patio_80183D88, 9010, 7675, 7, 4, 4000, 70 },
+    { NULL, _gAcropolisPatioCollision06838Normals, _gAcropolisPatioCollision06838Verts, _gAcropolisPatioCollision06838Faces, _gAcropolisPatioCollision06838Table, 9010, 7675, 7, 4, 4000, 70 },
 };
 
 WorldCollisionTrigger D_acropolis_patio_80183E1C[14] = {

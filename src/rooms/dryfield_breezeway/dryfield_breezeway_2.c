@@ -329,36 +329,36 @@ TaskDesc D_dryfield_breezeway_801820B0[2] = {
 
 TaskDesc D_dryfield_breezeway_801820C8 = { { { TASK_BODY_NONE, 192 } }, taskKill, { .value = 0 } };
 
-TmdBone D_dryfield_breezeway_801820D4[1] = {
+static TmdBone _gDryfieldBreezewayModel04E8CSkeleton[1] = {
 #include "assets/dryfield_breezeway_model_04E8C_skeleton.inc"
 };
 
-u32 D_dryfield_breezeway_801820F8[1] = {
+static u32 _gDryfieldBreezewayModel04E8CPartVerts[1] = {
 #include "assets/dryfield_breezeway_model_04E8C_partVerts.inc"
 };
 
-SVECTOR D_dryfield_breezeway_801820FC[88] = {
+static SVECTOR _gDryfieldBreezewayModel04E8CVerts[88] = {
 #include "assets/dryfield_breezeway_model_04E8C_verts.inc"
 };
 
-SVECTOR D_dryfield_breezeway_801823BC[18] = {
+static SVECTOR _gDryfieldBreezewayModel04E8CNormals[18] = {
 #include "assets/dryfield_breezeway_model_04E8C_normals.inc"
 };
 
-u32 D_dryfield_breezeway_8018244C[596] = {
+static u32 _gDryfieldBreezewayModel04E8CStream[596] = {
 #include "assets/dryfield_breezeway_model_04E8C_stream.inc"
 };
 
-TmdSource D_dryfield_breezeway_80182D9C = {
+static TmdSource _gDryfieldBreezewayModel04E8C = {
     0,
     4324,
     0,
     1,
-    D_dryfield_breezeway_801820F8,
-    D_dryfield_breezeway_801820FC,
-    D_dryfield_breezeway_801823BC,
-    D_dryfield_breezeway_801820D4,
-    D_dryfield_breezeway_8018244C,
+    _gDryfieldBreezewayModel04E8CPartVerts,
+    _gDryfieldBreezewayModel04E8CVerts,
+    _gDryfieldBreezewayModel04E8CNormals,
+    _gDryfieldBreezewayModel04E8CSkeleton,
+    _gDryfieldBreezewayModel04E8CStream,
 };
 
 TaskDesc D_dryfield_breezeway_80182DC0 = { { { TASK_BODY_NONE, 192 } }, func_dryfield_breezeway_8017FA80, { .value = 0 } };
@@ -379,7 +379,7 @@ OverlayHotspot D_dryfield_breezeway_80182E00[2] = {
     { 0, 0, 0, 0, -1, 0, 0 },
 };
 
-TaskDesc D_dryfield_breezeway_80182E18 = { { { TASK_BODY_TMD, 192 } }, func_dryfield_breezeway_8017FC38, { .model = &D_dryfield_breezeway_80182D9C } };
+TaskDesc D_dryfield_breezeway_80182E18 = { { { TASK_BODY_TMD, 192 } }, func_dryfield_breezeway_8017FC38, { .model = &_gDryfieldBreezewayModel04E8C } };
 
 u_long D_dryfield_breezeway_80182E24[64] = {
     0,

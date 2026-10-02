@@ -131,36 +131,36 @@ ActorTransform D_acropolis_helicopter_landing_pad_80182394 = { { -5340, 120, -19
 
 ActorTransform D_acropolis_helicopter_landing_pad_801823AC = { { -5340, -2880, -1900, 0 }, { 0, 0, 0, 0 } };
 
-TmdBone D_acropolis_helicopter_landing_pad_801823C4[1] = {
+static TmdBone _gAcropolisHelicopterLandingPadModel0547CSkeleton[1] = {
 #include "assets/acropolis_helicopter_landing_pad_model_0547C_skeleton.inc"
 };
 
-u32 D_acropolis_helicopter_landing_pad_801823E8[1] = {
+static u32 _gAcropolisHelicopterLandingPadModel0547CPartVerts[1] = {
 #include "assets/acropolis_helicopter_landing_pad_model_0547C_partVerts.inc"
 };
 
-SVECTOR D_acropolis_helicopter_landing_pad_801823EC[191] = {
+static SVECTOR _gAcropolisHelicopterLandingPadModel0547CVerts[191] = {
 #include "assets/acropolis_helicopter_landing_pad_model_0547C_verts.inc"
 };
 
-SVECTOR D_acropolis_helicopter_landing_pad_801829E4[11] = {
+static SVECTOR _gAcropolisHelicopterLandingPadModel0547CNormals[11] = {
 #include "assets/acropolis_helicopter_landing_pad_model_0547C_normals.inc"
 };
 
-u32 D_acropolis_helicopter_landing_pad_80182A3C[812] = {
+static u32 _gAcropolisHelicopterLandingPadModel0547CStream[812] = {
 #include "assets/acropolis_helicopter_landing_pad_model_0547C_stream.inc"
 };
 
-TmdSource D_acropolis_helicopter_landing_pad_801836EC = {
+TmdSource gAcropolisHelicopterLandingPadModel0547C = {
     0,
     6956,
     0,
     1,
-    D_acropolis_helicopter_landing_pad_801823E8,
-    D_acropolis_helicopter_landing_pad_801823EC,
-    D_acropolis_helicopter_landing_pad_801829E4,
-    D_acropolis_helicopter_landing_pad_801823C4,
-    D_acropolis_helicopter_landing_pad_80182A3C,
+    _gAcropolisHelicopterLandingPadModel0547CPartVerts,
+    _gAcropolisHelicopterLandingPadModel0547CVerts,
+    _gAcropolisHelicopterLandingPadModel0547CNormals,
+    _gAcropolisHelicopterLandingPadModel0547CSkeleton,
+    _gAcropolisHelicopterLandingPadModel0547CStream,
 };
 
 static void func_acropolis_helicopter_landing_pad_8017D658(Task* task);

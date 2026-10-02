@@ -74,30 +74,30 @@ GpWarpRec D_neo_ark_eve_elevator_8017D76C[1] = {
     { { .words = { 3072, -960, 0, 0 } }, { 0, 0, 0, 0 }, { .words = { 3072, -960, 0, 0 } }, { 0, 0, 0, 0 }, 0x55090002, 0x55090001, 0, 2, 0, 444 },
 };
 
-SVECTOR D_neo_ark_eve_elevator_8017D7A4[14] = {
+static SVECTOR _gNeoArkEveElevatorCollision0046CNormals[14] = {
 #include "assets/neo_ark_eve_elevator_collision_0046C_normals.inc"
 };
 
-SVECTOR D_neo_ark_eve_elevator_8017D814[24] = {
+static SVECTOR _gNeoArkEveElevatorCollision0046CVerts[24] = {
 #include "assets/neo_ark_eve_elevator_collision_0046C_verts.inc"
 };
 
-WorldCollisionGridFace D_neo_ark_eve_elevator_8017D8D4[24] = {
+static WorldCollisionGridFace _gNeoArkEveElevatorCollision0046CFaces[24] = {
 #include "assets/neo_ark_eve_elevator_collision_0046C_faces.inc"
 };
 
-s16 D_neo_ark_eve_elevator_8017D9F4[26] = {
+static s16 _gNeoArkEveElevatorCollision0046CCells[26] = {
 #include "assets/neo_ark_eve_elevator_collision_0046C_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_neo_ark_eve_elevator_8017D9F4[i])
-s16* D_neo_ark_eve_elevator_8017DA28[1] = {
+#define GRID_CELL(i) (&_gNeoArkEveElevatorCollision0046CCells[i])
+static s16* _gNeoArkEveElevatorCollision0046CTable[1] = {
 #include "assets/neo_ark_eve_elevator_collision_0046C_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_neo_ark_eve_elevator_8017DA2C[1] = {
-    { NULL, D_neo_ark_eve_elevator_8017D7A4, D_neo_ark_eve_elevator_8017D814, D_neo_ark_eve_elevator_8017D8D4, D_neo_ark_eve_elevator_8017DA28, 2050, 1050, 1, 1, 4000, 24 },
+    { NULL, _gNeoArkEveElevatorCollision0046CNormals, _gNeoArkEveElevatorCollision0046CVerts, _gNeoArkEveElevatorCollision0046CFaces, _gNeoArkEveElevatorCollision0046CTable, 2050, 1050, 1, 1, 4000, 24 },
 };
 
 GpViewRec D_neo_ark_eve_elevator_8017DA50[4] = {

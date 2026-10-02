@@ -13,7 +13,7 @@
 #include "main/tmd_types.h"
 
 /// Models the Neo Ark map UI overlay's enemy descriptors attach.
-extern TmdSource D_shelter_1f_vehicular_airlock_80182004;
+extern TmdSource gShelter1fVehicularAirlockModel03A58;
 
 extern GpAreaVariant D_shelter_1f_vehicular_airlock_80182A04[12];
 

@@ -86,68 +86,68 @@ MineCavernTint D_mine_cavern_8018E3E0[5] = {
 
 TaskDesc D_mine_cavern_8018E3F4 = { { { TASK_BODY_NONE, 96 } }, func_mine_cavern_80182DC8, { .value = 0 } };
 
-TmdBone D_mine_cavern_8018E400[1] = {
+static TmdBone _gMineCavernModel10F60Skeleton[1] = {
 #include "assets/mine_cavern_model_10F60_skeleton.inc"
 };
 
-u32 D_mine_cavern_8018E424[1] = {
+static u32 _gMineCavernModel10F60PartVerts[1] = {
 #include "assets/mine_cavern_model_10F60_partVerts.inc"
 };
 
-SVECTOR D_mine_cavern_8018E428[20] = {
+static SVECTOR _gMineCavernModel10F60Verts[20] = {
 #include "assets/mine_cavern_model_10F60_verts.inc"
 };
 
-SVECTOR D_mine_cavern_8018E4C8[11] = {
+static SVECTOR _gMineCavernModel10F60Normals[11] = {
 #include "assets/mine_cavern_model_10F60_normals.inc"
 };
 
-u32 D_mine_cavern_8018E520[104] = {
+static u32 _gMineCavernModel10F60Stream[104] = {
 #include "assets/mine_cavern_model_10F60_stream.inc"
 };
 
-TmdSource D_mine_cavern_8018E6C0 = {
+static TmdSource _gMineCavernModel10F60 = {
     0,
     728,
     0,
     1,
-    D_mine_cavern_8018E424,
-    D_mine_cavern_8018E428,
-    D_mine_cavern_8018E4C8,
-    D_mine_cavern_8018E400,
-    D_mine_cavern_8018E520,
+    _gMineCavernModel10F60PartVerts,
+    _gMineCavernModel10F60Verts,
+    _gMineCavernModel10F60Normals,
+    _gMineCavernModel10F60Skeleton,
+    _gMineCavernModel10F60Stream,
 };
 
-TmdBone D_mine_cavern_8018E6E4[1] = {
+static TmdBone _gMineCavernModel11244Skeleton[1] = {
 #include "assets/mine_cavern_model_11244_skeleton.inc"
 };
 
-u32 D_mine_cavern_8018E708[1] = {
+static u32 _gMineCavernModel11244PartVerts[1] = {
 #include "assets/mine_cavern_model_11244_partVerts.inc"
 };
 
-SVECTOR D_mine_cavern_8018E70C[20] = {
+static SVECTOR _gMineCavernModel11244Verts[20] = {
 #include "assets/mine_cavern_model_11244_verts.inc"
 };
 
-SVECTOR D_mine_cavern_8018E7AC[11] = {
+static SVECTOR _gMineCavernModel11244Normals[11] = {
 #include "assets/mine_cavern_model_11244_normals.inc"
 };
 
-u32 D_mine_cavern_8018E804[174] = {
+static u32 _gMineCavernModel11244Stream[174] = {
 #include "assets/mine_cavern_model_11244_stream.inc"
 };
 
-TmdSource D_mine_cavern_8018EABC = {
+static TmdSource _gMineCavernModel11244 = {
     0,
     1248,
     0,
     1,
-    D_mine_cavern_8018E708,
-    D_mine_cavern_8018E70C,
-    D_mine_cavern_8018E7AC,
-    D_mine_cavern_8018E6E4,
-    D_mine_cavern_8018E804,
+    _gMineCavernModel11244PartVerts,
+    _gMineCavernModel11244Verts,
+    _gMineCavernModel11244Normals,
+    _gMineCavernModel11244Skeleton,
+    _gMineCavernModel11244Stream,
 };
 
 DamageAttack D_mine_cavern_8018EAE0[1] = {
@@ -203,8 +203,8 @@ SVECTOR D_mine_cavern_8018EB18[4] = {
 };
 
 TaskDesc D_mine_cavern_8018EB38[2] = {
-    { { { TASK_BODY_TMD, 96 } }, func_mine_cavern_80183A68, { .model = &D_mine_cavern_8018E6C0 } },
-    { { { TASK_BODY_TMD, 96 } }, func_mine_cavern_80183C10, { .model = &D_mine_cavern_8018EABC } },
+    { { { TASK_BODY_TMD, 96 } }, func_mine_cavern_80183A68, { .model = &_gMineCavernModel10F60 } },
+    { { { TASK_BODY_TMD, 96 } }, func_mine_cavern_80183C10, { .model = &_gMineCavernModel11244 } },
 };
 
 s32 D_mine_cavern_8018EB54;

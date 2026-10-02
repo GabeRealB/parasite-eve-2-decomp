@@ -68,156 +68,156 @@ void factoryPanelRun(Task*);
 void factoryPromptTask(Task*);
 void factoryPanelTrigger(Task*);
 
-extern WorldCollisionGridFace D_dryfield_night_factory_80187630[72];
-extern SVECTOR                D_dryfield_night_factory_80187000[28];
-extern SVECTOR                D_dryfield_night_factory_801870E0[170];
-extern s16*                   D_dryfield_night_factory_80187BD0[8];
+static WorldCollisionGridFace _gDryfieldNightFactoryCollision0A630Faces[72];
+static SVECTOR                _gDryfieldNightFactoryCollision0A630Normals[28];
+static SVECTOR                _gDryfieldNightFactoryCollision0A630Verts[170];
+static s16*                   _gDryfieldNightFactoryCollision0A630Table[8];
 
-TmdBone D_dryfield_night_factory_801826BC[1] = {
+static TmdBone _gDryfieldNightFactoryDryfieldFactoryModel06604Skeleton[1] = {
 #include "assets/dryfield_factory_model_06604_skeleton.inc"
 };
 
-u32 D_dryfield_night_factory_801826E0[1] = {
+static u32 _gDryfieldNightFactoryDryfieldFactoryModel06604PartVerts[1] = {
 #include "assets/dryfield_factory_model_06604_partVerts.inc"
 };
 
-SVECTOR D_dryfield_night_factory_801826E4[306] = {
+static SVECTOR _gDryfieldNightFactoryDryfieldFactoryModel06604Verts[306] = {
 #include "assets/dryfield_factory_model_06604_verts.inc"
 };
 
-SVECTOR D_dryfield_night_factory_80183074[353] = {
+static SVECTOR _gDryfieldNightFactoryDryfieldFactoryModel06604Normals[353] = {
 #include "assets/dryfield_factory_model_06604_normals.inc"
 };
 
-u32 D_dryfield_night_factory_80183B7C[2811] = {
+static u32 _gDryfieldNightFactoryDryfieldFactoryModel06604Stream[2811] = {
 #include "assets/dryfield_factory_model_06604_stream.inc"
 };
 
-TmdSource D_dryfield_night_factory_80186768 = {
+static TmdSource _gDryfieldNightFactoryDryfieldFactoryModel06604 = {
     0,
     19284,
     0,
     1,
-    D_dryfield_night_factory_801826E0,
-    D_dryfield_night_factory_801826E4,
-    D_dryfield_night_factory_80183074,
-    D_dryfield_night_factory_801826BC,
-    D_dryfield_night_factory_80183B7C,
+    _gDryfieldNightFactoryDryfieldFactoryModel06604PartVerts,
+    _gDryfieldNightFactoryDryfieldFactoryModel06604Verts,
+    _gDryfieldNightFactoryDryfieldFactoryModel06604Normals,
+    _gDryfieldNightFactoryDryfieldFactoryModel06604Skeleton,
+    _gDryfieldNightFactoryDryfieldFactoryModel06604Stream,
 };
 
-TmdBone D_dryfield_night_factory_8018678C[1] = {
+static TmdBone _gDryfieldNightFactoryDryfieldFactoryModel093E4Skeleton[1] = {
 #include "assets/dryfield_factory_model_093E4_skeleton.inc"
 };
 
-u32 D_dryfield_night_factory_801867B0[1] = {
+static u32 _gDryfieldNightFactoryDryfieldFactoryModel093E4PartVerts[1] = {
 #include "assets/dryfield_factory_model_093E4_partVerts.inc"
 };
 
-SVECTOR D_dryfield_night_factory_801867B4[25] = {
+static SVECTOR _gDryfieldNightFactoryDryfieldFactoryModel093E4Verts[25] = {
 #include "assets/dryfield_factory_model_093E4_verts.inc"
 };
 
-SVECTOR D_dryfield_night_factory_8018687C[28] = {
+static SVECTOR _gDryfieldNightFactoryDryfieldFactoryModel093E4Normals[28] = {
 #include "assets/dryfield_factory_model_093E4_normals.inc"
 };
 
-u32 D_dryfield_night_factory_8018695C[139] = {
+static u32 _gDryfieldNightFactoryDryfieldFactoryModel093E4Stream[139] = {
 #include "assets/dryfield_factory_model_093E4_stream.inc"
 };
 
-TmdSource D_dryfield_night_factory_80186B88 = {
+static TmdSource _gDryfieldNightFactoryDryfieldFactoryModel093E4 = {
     0,
     856,
     0,
     1,
-    D_dryfield_night_factory_801867B0,
-    D_dryfield_night_factory_801867B4,
-    D_dryfield_night_factory_8018687C,
-    D_dryfield_night_factory_8018678C,
-    D_dryfield_night_factory_8018695C,
+    _gDryfieldNightFactoryDryfieldFactoryModel093E4PartVerts,
+    _gDryfieldNightFactoryDryfieldFactoryModel093E4Verts,
+    _gDryfieldNightFactoryDryfieldFactoryModel093E4Normals,
+    _gDryfieldNightFactoryDryfieldFactoryModel093E4Skeleton,
+    _gDryfieldNightFactoryDryfieldFactoryModel093E4Stream,
 };
 
-SVECTOR D_dryfield_night_factory_80186BAC[2] = {
+static SVECTOR _gDryfieldNightFactoryCollision09660Normals[2] = {
 #include "assets/dryfield_night_factory_collision_09660_normals.inc"
 };
 
-SVECTOR D_dryfield_night_factory_80186BBC[8] = {
+static SVECTOR _gDryfieldNightFactoryCollision09660Verts[8] = {
 #include "assets/dryfield_night_factory_collision_09660_verts.inc"
 };
 
-WorldCollisionGridFace D_dryfield_night_factory_80186BFC[2] = {
+static WorldCollisionGridFace _gDryfieldNightFactoryCollision09660Faces[2] = {
 #include "assets/dryfield_night_factory_collision_09660_faces.inc"
 };
 
-s16 D_dryfield_night_factory_80186C14[4] = {
+static s16 _gDryfieldNightFactoryCollision09660Cells[4] = {
 #include "assets/dryfield_night_factory_collision_09660_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_dryfield_night_factory_80186C14[i])
-s16* D_dryfield_night_factory_80186C1C[1] = {
+#define GRID_CELL(i) (&_gDryfieldNightFactoryCollision09660Cells[i])
+static s16* _gDryfieldNightFactoryCollision09660Table[1] = {
 #include "assets/dryfield_night_factory_collision_09660_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid gFactoryBarrierTemplate = { NULL, D_dryfield_night_factory_80186BAC, D_dryfield_night_factory_80186BBC, D_dryfield_night_factory_80186BFC, D_dryfield_night_factory_80186C1C, -4464, -3949, 1, 1, 4000, 2 };
+WorldCollisionGrid gFactoryBarrierTemplate = { NULL, _gDryfieldNightFactoryCollision09660Normals, _gDryfieldNightFactoryCollision09660Verts, _gDryfieldNightFactoryCollision09660Faces, _gDryfieldNightFactoryCollision09660Table, -4464, -3949, 1, 1, 4000, 2 };
 
-SVECTOR D_dryfield_night_factory_80186C44[4] = {
+static SVECTOR _gDryfieldNightFactoryCollision09730Normals[4] = {
 #include "assets/dryfield_night_factory_collision_09730_normals.inc"
 };
 
-SVECTOR D_dryfield_night_factory_80186C64[8] = {
+static SVECTOR _gDryfieldNightFactoryCollision09730Verts[8] = {
 #include "assets/dryfield_night_factory_collision_09730_verts.inc"
 };
 
-WorldCollisionGridFace D_dryfield_night_factory_80186CA4[4] = {
+static WorldCollisionGridFace _gDryfieldNightFactoryCollision09730Faces[4] = {
 #include "assets/dryfield_night_factory_collision_09730_faces.inc"
 };
 
-s16 D_dryfield_night_factory_80186CD4[10] = {
+static s16 _gDryfieldNightFactoryCollision09730Cells[10] = {
 #include "assets/dryfield_night_factory_collision_09730_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_dryfield_night_factory_80186CD4[i])
-s16* D_dryfield_night_factory_80186CE8[2] = {
+#define GRID_CELL(i) (&_gDryfieldNightFactoryCollision09730Cells[i])
+static s16* _gDryfieldNightFactoryCollision09730Table[2] = {
 #include "assets/dryfield_night_factory_collision_09730_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid gFactoryLiftTemplate = { NULL, D_dryfield_night_factory_80186C44, D_dryfield_night_factory_80186C64, D_dryfield_night_factory_80186CA4, D_dryfield_night_factory_80186CE8, 750, 2191, 1, 2, 4000, 4 };
+WorldCollisionGrid gFactoryLiftTemplate = { NULL, _gDryfieldNightFactoryCollision09730Normals, _gDryfieldNightFactoryCollision09730Verts, _gDryfieldNightFactoryCollision09730Faces, _gDryfieldNightFactoryCollision09730Table, 750, 2191, 1, 2, 4000, 4 };
 
-SVECTOR D_dryfield_night_factory_80186D14[4] = {
+static SVECTOR _gDryfieldNightFactoryCollision097FCNormals[4] = {
 #include "assets/dryfield_night_factory_collision_097FC_normals.inc"
 };
 
-SVECTOR D_dryfield_night_factory_80186D34[8] = {
+static SVECTOR _gDryfieldNightFactoryCollision097FCVerts[8] = {
 #include "assets/dryfield_night_factory_collision_097FC_verts.inc"
 };
 
-WorldCollisionGridFace D_dryfield_night_factory_80186D74[4] = {
+static WorldCollisionGridFace _gDryfieldNightFactoryCollision097FCFaces[4] = {
 #include "assets/dryfield_night_factory_collision_097FC_faces.inc"
 };
 
-s16 D_dryfield_night_factory_80186DA4[8] = {
+static s16 _gDryfieldNightFactoryCollision097FCCells[8] = {
 #include "assets/dryfield_night_factory_collision_097FC_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_dryfield_night_factory_80186DA4[i])
-s16* D_dryfield_night_factory_80186DB4[2] = {
+#define GRID_CELL(i) (&_gDryfieldNightFactoryCollision097FCCells[i])
+static s16* _gDryfieldNightFactoryCollision097FCTable[2] = {
 #include "assets/dryfield_night_factory_collision_097FC_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid gFactoryLiftTurnedTemplate = { NULL, D_dryfield_night_factory_80186D14, D_dryfield_night_factory_80186D34, D_dryfield_night_factory_80186D74, D_dryfield_night_factory_80186DB4, 750, 1950, 1, 2, 4000, 4 };
+WorldCollisionGrid gFactoryLiftTurnedTemplate = { NULL, _gDryfieldNightFactoryCollision097FCNormals, _gDryfieldNightFactoryCollision097FCVerts, _gDryfieldNightFactoryCollision097FCFaces, _gDryfieldNightFactoryCollision097FCTable, 750, 1950, 1, 2, 4000, 4 };
 
 TaskDesc gFactoryNightSpawnTable[8] = {
     { { { TASK_BODY_NONE, 192 } }, factoryPowerScene, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, factoryLampScene, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, factoryCapScene, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, factoryWhiteoutScene, { .value = 0 } },
-    { { { TASK_BODY_TMD, 192 } }, factoryLiftRun, { .model = &D_dryfield_night_factory_80186768 } },
+    { { { TASK_BODY_TMD, 192 } }, factoryLiftRun, { .model = &_gDryfieldNightFactoryDryfieldFactoryModel06604 } },
     { { { TASK_BODY_COORD, 192 } }, factoryBarrierCollision, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, factoryHatchScene, { .value = 0 } },
-    { { { TASK_BODY_TMD, 192 } }, factoryHatchRun, { .model = &D_dryfield_night_factory_80186B88 } },
+    { { { TASK_BODY_TMD, 192 } }, factoryHatchRun, { .model = &_gDryfieldNightFactoryDryfieldFactoryModel093E4 } },
 };
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
@@ -290,29 +290,29 @@ GpWarpRec D_dryfield_night_factory_80186F58[3] = {
     { { .words = { 3072, 5445, 1, 6866 } }, { 0, 0, 0, 0 }, { .words = { 1024, 1100, 0, 7060 } }, { 0, 0, 0, 0 }, 0x53170014, 0x53170006, 0, 6, 2, 473 },
 };
 
-SVECTOR D_dryfield_night_factory_80187000[28] = {
+static SVECTOR _gDryfieldNightFactoryCollision0A630Normals[28] = {
 #include "assets/dryfield_night_factory_collision_0A630_normals.inc"
 };
 
-SVECTOR D_dryfield_night_factory_801870E0[170] = {
+static SVECTOR _gDryfieldNightFactoryCollision0A630Verts[170] = {
 #include "assets/dryfield_night_factory_collision_0A630_verts.inc"
 };
 
-WorldCollisionGridFace D_dryfield_night_factory_80187630[72] = {
+static WorldCollisionGridFace _gDryfieldNightFactoryCollision0A630Faces[72] = {
 #include "assets/dryfield_night_factory_collision_0A630_faces.inc"
 };
 
-s16 D_dryfield_night_factory_80187990[288] = {
+static s16 _gDryfieldNightFactoryCollision0A630Cells[288] = {
 #include "assets/dryfield_night_factory_collision_0A630_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_dryfield_night_factory_80187990[i])
-s16* D_dryfield_night_factory_80187BD0[8] = {
+#define GRID_CELL(i) (&_gDryfieldNightFactoryCollision0A630Cells[i])
+static s16* _gDryfieldNightFactoryCollision0A630Table[8] = {
 #include "assets/dryfield_night_factory_collision_0A630_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid gFactoryNightGrid = { NULL, D_dryfield_night_factory_80187000, D_dryfield_night_factory_801870E0, D_dryfield_night_factory_80187630, D_dryfield_night_factory_80187BD0, 444, 222, 2, 4, 4000, 72 };
+WorldCollisionGrid gFactoryNightGrid = { NULL, _gDryfieldNightFactoryCollision0A630Normals, _gDryfieldNightFactoryCollision0A630Verts, _gDryfieldNightFactoryCollision0A630Faces, _gDryfieldNightFactoryCollision0A630Table, 444, 222, 2, 4, 4000, 72 };
 
 GpViewRec D_dryfield_night_factory_80187C14[19] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -3057, 0x44F4, -6028 } }, 240 },

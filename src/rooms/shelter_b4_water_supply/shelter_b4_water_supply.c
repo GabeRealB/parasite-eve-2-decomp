@@ -291,29 +291,29 @@ GpWarpRec D_shelter_b4_water_supply_80182744[3] = {
     { { .words = { 3072, 0x3CF0, -3600, -1000 } }, { 0, 0, 0, 0 }, { .words = { 3072, 0x3CF0, -3600, -1000 } }, { 0, 0, 0, 0 }, 0x542E0004, 0, 0x542E0006, 2, 0, 445 },
 };
 
-SVECTOR D_shelter_b4_water_supply_801827EC[12] = {
+static SVECTOR _gShelterB4WaterSupplyCollision0587CNormals[12] = {
 #include "assets/shelter_b4_water_supply_collision_0587C_normals.inc"
 };
 
-SVECTOR D_shelter_b4_water_supply_8018284C[59] = {
+static SVECTOR _gShelterB4WaterSupplyCollision0587CVerts[59] = {
 #include "assets/shelter_b4_water_supply_collision_0587C_verts.inc"
 };
 
-WorldCollisionGridFace D_shelter_b4_water_supply_80182A24[45] = {
+static WorldCollisionGridFace _gShelterB4WaterSupplyCollision0587CFaces[45] = {
 #include "assets/shelter_b4_water_supply_collision_0587C_faces.inc"
 };
 
-s16 D_shelter_b4_water_supply_80182C40[222] = {
+static s16 _gShelterB4WaterSupplyCollision0587CCells[222] = {
 #include "assets/shelter_b4_water_supply_collision_0587C_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_shelter_b4_water_supply_80182C40[i])
-s16* D_shelter_b4_water_supply_80182DFC[16] = {
+#define GRID_CELL(i) (&_gShelterB4WaterSupplyCollision0587CCells[i])
+static s16* _gShelterB4WaterSupplyCollision0587CTable[16] = {
 #include "assets/shelter_b4_water_supply_collision_0587C_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b4_water_supply_80182E3C = { NULL, D_shelter_b4_water_supply_801827EC, D_shelter_b4_water_supply_8018284C, D_shelter_b4_water_supply_80182A24, D_shelter_b4_water_supply_80182DFC, -400, 0x364C, 4, 4, 4000, 45 };
+WorldCollisionGrid D_shelter_b4_water_supply_80182E3C = { NULL, _gShelterB4WaterSupplyCollision0587CNormals, _gShelterB4WaterSupplyCollision0587CVerts, _gShelterB4WaterSupplyCollision0587CFaces, _gShelterB4WaterSupplyCollision0587CTable, -400, 0x364C, 4, 4, 4000, 45 };
 
 GpViewRec D_shelter_b4_water_supply_80182E60[11] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -6828, 0x7D00, 6785 } }, 447 },

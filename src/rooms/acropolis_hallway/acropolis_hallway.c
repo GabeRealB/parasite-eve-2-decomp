@@ -58,11 +58,11 @@ static const TaskFuncTable3 D_acropolis_hallway_8017D5C4 = {
     { func_acropolis_hallway_8017D784, func_acropolis_hallway_8017D7C8, taskKill },
 };
 
-extern u32     D_acropolis_hallway_8017F8A4[1];
-extern SVECTOR D_acropolis_hallway_8017F8A8[21];
-extern SVECTOR D_acropolis_hallway_8017F950[6];
-extern TmdBone D_acropolis_hallway_8017F880[1];
-extern u32     D_acropolis_hallway_8017F980[42];
+static u32     _gAcropolisHallwayModel023C0PartVerts[1];
+static SVECTOR _gAcropolisHallwayModel023C0Verts[21];
+static SVECTOR _gAcropolisHallwayModel023C0Normals[6];
+static TmdBone _gAcropolisHallwayModel023C0Skeleton[1];
+static u32     _gAcropolisHallwayModel023C0Stream[42];
 
 extern WorldCollisionGrid    D_acropolis_hallway_8017E5D0[1];
 extern WorldCollisionTrigger D_acropolis_hallway_8017E5F4[4];
@@ -102,30 +102,30 @@ GpWarpRec D_acropolis_hallway_8017E278[4] = {
     { { .words = { 1024, -2963, -937, -623 } }, { 0, 0, 0, 0 }, { .words = { 1024, -2963, -937, -623 } }, { 0, 0, 0, 0 }, 0x51070004, 0x51070003, 0, 2, 0, 500 },
 };
 
-SVECTOR D_acropolis_hallway_8017E358[10] = {
+static SVECTOR _gAcropolisHallwayCollision01010Normals[10] = {
 #include "assets/acropolis_hallway_collision_01010_normals.inc"
 };
 
-SVECTOR D_acropolis_hallway_8017E3A8[35] = {
+static SVECTOR _gAcropolisHallwayCollision01010Verts[35] = {
 #include "assets/acropolis_hallway_collision_01010_verts.inc"
 };
 
-WorldCollisionGridFace D_acropolis_hallway_8017E4C0[17] = {
+static WorldCollisionGridFace _gAcropolisHallwayCollision01010Faces[17] = {
 #include "assets/acropolis_hallway_collision_01010_faces.inc"
 };
 
-s16 D_acropolis_hallway_8017E58C[30] = {
+static s16 _gAcropolisHallwayCollision01010Cells[30] = {
 #include "assets/acropolis_hallway_collision_01010_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_acropolis_hallway_8017E58C[i])
-s16* D_acropolis_hallway_8017E5C8[2] = {
+#define GRID_CELL(i) (&_gAcropolisHallwayCollision01010Cells[i])
+static s16* _gAcropolisHallwayCollision01010Table[2] = {
 #include "assets/acropolis_hallway_collision_01010_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_acropolis_hallway_8017E5D0[1] = {
-    { NULL, D_acropolis_hallway_8017E358, D_acropolis_hallway_8017E3A8, D_acropolis_hallway_8017E4C0, D_acropolis_hallway_8017E5C8, 3250, 1250, 2, 1, 4000, 17 },
+    { NULL, _gAcropolisHallwayCollision01010Normals, _gAcropolisHallwayCollision01010Verts, _gAcropolisHallwayCollision01010Faces, _gAcropolisHallwayCollision01010Table, 3250, 1250, 2, 1, 4000, 17 },
 };
 
 WorldCollisionTrigger D_acropolis_hallway_8017E5F4[4] = {
@@ -311,64 +311,64 @@ WorldCollisionSurfaceProperties* D_acropolis_hallway_8017ED40[8] = {
     D_acropolis_hallway_8017ED28,
 };
 
-TmdBone D_acropolis_hallway_8017ED60[1] = {
+static TmdBone _gAcropolisHallwayModel01AE0Skeleton[1] = {
 #include "assets/acropolis_hallway_model_01AE0_skeleton.inc"
 };
 
-u32 D_acropolis_hallway_8017ED84[1] = {
+static u32 _gAcropolisHallwayModel01AE0PartVerts[1] = {
 #include "assets/acropolis_hallway_model_01AE0_partVerts.inc"
 };
 
-SVECTOR D_acropolis_hallway_8017ED88[99] = {
+static SVECTOR _gAcropolisHallwayModel01AE0Verts[99] = {
 #include "assets/acropolis_hallway_model_01AE0_verts.inc"
 };
 
-u32 D_acropolis_hallway_8017F0A0[495] = {
+static u32 _gAcropolisHallwayModel01AE0Stream[495] = {
 #include "assets/acropolis_hallway_model_01AE0_stream.inc"
 };
 
-TmdSource D_acropolis_hallway_8017F85C = {
+TmdSource gAcropolisHallwayModel01AE0 = {
     0,
     3728,
     0,
     1,
-    D_acropolis_hallway_8017ED84,
-    D_acropolis_hallway_8017ED88,
-    &D_acropolis_hallway_8017ED88[99],
-    D_acropolis_hallway_8017ED60,
-    D_acropolis_hallway_8017F0A0,
+    _gAcropolisHallwayModel01AE0PartVerts,
+    _gAcropolisHallwayModel01AE0Verts,
+    &_gAcropolisHallwayModel01AE0Verts[99],
+    _gAcropolisHallwayModel01AE0Skeleton,
+    _gAcropolisHallwayModel01AE0Stream,
 };
 
-TmdBone D_acropolis_hallway_8017F880[1] = {
+static TmdBone _gAcropolisHallwayModel023C0Skeleton[1] = {
 #include "assets/acropolis_hallway_model_023C0_skeleton.inc"
 };
 
-u32 D_acropolis_hallway_8017F8A4[1] = {
+static u32 _gAcropolisHallwayModel023C0PartVerts[1] = {
 #include "assets/acropolis_hallway_model_023C0_partVerts.inc"
 };
 
-SVECTOR D_acropolis_hallway_8017F8A8[21] = {
+static SVECTOR _gAcropolisHallwayModel023C0Verts[21] = {
 #include "assets/acropolis_hallway_model_023C0_verts.inc"
 };
 
-SVECTOR D_acropolis_hallway_8017F950[6] = {
+static SVECTOR _gAcropolisHallwayModel023C0Normals[6] = {
 #include "assets/acropolis_hallway_model_023C0_normals.inc"
 };
 
-u32 D_acropolis_hallway_8017F980[42] = {
+static u32 _gAcropolisHallwayModel023C0Stream[42] = {
 #include "assets/acropolis_hallway_model_023C0_stream.inc"
 };
 
-TmdSource D_acropolis_hallway_8017FA28 = {
+static TmdSource _gAcropolisHallwayModel023C0 = {
     0,
     312,
     0,
     1,
-    D_acropolis_hallway_8017F8A4,
-    D_acropolis_hallway_8017F8A8,
-    D_acropolis_hallway_8017F950,
-    D_acropolis_hallway_8017F880,
-    D_acropolis_hallway_8017F980,
+    _gAcropolisHallwayModel023C0PartVerts,
+    _gAcropolisHallwayModel023C0Verts,
+    _gAcropolisHallwayModel023C0Normals,
+    _gAcropolisHallwayModel023C0Skeleton,
+    _gAcropolisHallwayModel023C0Stream,
 };
 
 SVECTOR ActorContact_ScratchPosition = { 0 };

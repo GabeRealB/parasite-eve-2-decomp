@@ -103,30 +103,30 @@ GpWarpRec D_dryfield_night_souvenir_shop_8017E104[1] = {
     { { .words = { 0, 2000, 0, -3550 } }, { 0, 0, 0, 0 }, { .words = { 512, 1381, 0, -2750 } }, { 0, 0, 0, 0 }, 0x53060002, 0x53060001, 0, 2, 0, 469 },
 };
 
-SVECTOR D_dryfield_night_souvenir_shop_8017E13C[11] = {
+static SVECTOR _gDryfieldNightSouvenirShopCollision01044Normals[11] = {
 #include "assets/dryfield_night_souvenir_shop_collision_01044_normals.inc"
 };
 
-SVECTOR D_dryfield_night_souvenir_shop_8017E194[62] = {
+static SVECTOR _gDryfieldNightSouvenirShopCollision01044Verts[62] = {
 #include "assets/dryfield_night_souvenir_shop_collision_01044_verts.inc"
 };
 
-WorldCollisionGridFace D_dryfield_night_souvenir_shop_8017E384[34] = {
+static WorldCollisionGridFace _gDryfieldNightSouvenirShopCollision01044Faces[34] = {
 #include "assets/dryfield_night_souvenir_shop_collision_01044_faces.inc"
 };
 
-s16 D_dryfield_night_souvenir_shop_8017E51C[108] = {
+static s16 _gDryfieldNightSouvenirShopCollision01044Cells[108] = {
 #include "assets/dryfield_night_souvenir_shop_collision_01044_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_dryfield_night_souvenir_shop_8017E51C[i])
-s16* D_dryfield_night_souvenir_shop_8017E5F4[4] = {
+#define GRID_CELL(i) (&_gDryfieldNightSouvenirShopCollision01044Cells[i])
+static s16* _gDryfieldNightSouvenirShopCollision01044Table[4] = {
 #include "assets/dryfield_night_souvenir_shop_collision_01044_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_dryfield_night_souvenir_shop_8017E604[1] = {
-    { NULL, D_dryfield_night_souvenir_shop_8017E13C, D_dryfield_night_souvenir_shop_8017E194, D_dryfield_night_souvenir_shop_8017E384, D_dryfield_night_souvenir_shop_8017E5F4, 100, 4100, 2, 2, 4000, 34 },
+    { NULL, _gDryfieldNightSouvenirShopCollision01044Normals, _gDryfieldNightSouvenirShopCollision01044Verts, _gDryfieldNightSouvenirShopCollision01044Faces, _gDryfieldNightSouvenirShopCollision01044Table, 100, 4100, 2, 2, 4000, 34 },
 };
 
 GpViewRec D_dryfield_night_souvenir_shop_8017E628[4] = {

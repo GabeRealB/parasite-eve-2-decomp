@@ -115,9 +115,9 @@ extern WorldCoordRoomLights       D_dryfield_night_driveway_80181DB0[1];
 
 extern AnimationPlayRequest D_dryfield_night_driveway_8017F380;
 extern AnimationPlayRequest D_dryfield_night_driveway_8017F3A8;
-extern AnimationSet         D_dryfield_night_driveway_8017EE30;
-extern AnimationSet         D_dryfield_night_driveway_8017F044;
-extern AnimationSet         D_dryfield_night_driveway_8017F324;
+static AnimationSet         _gDryfieldNightDrivewayAnimation01870;
+static AnimationSet         _gDryfieldNightDrivewayAnimation01A84;
+static AnimationSet         _gDryfieldNightDrivewayAnimation01D64;
 extern GpCopyArg            D_dryfield_night_driveway_8017F378;
 s32                         func_dryfield_night_driveway_8017DCE4(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32                         func_dryfield_night_driveway_8017DCEC(Task*, s32, TaskMessageArg, TaskMessageArg);
@@ -127,92 +127,92 @@ void                        func_dryfield_night_driveway_8017DC88(u8);
 
 TaskDesc gRoomEventStagedTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
-AnimationPackedPose D_dryfield_night_driveway_8017E684[10] = {
+static AnimationPackedPose _gDryfieldNightDrivewayAnimation0150CBank1[10] = {
 #include "assets/dryfield_night_driveway_animation_0150C_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_driveway_8017E6FC[95] = {
+static AnimationPackedRotation _gDryfieldNightDrivewayAnimation0150CBank4[95] = {
 #include "assets/dryfield_night_driveway_animation_0150C_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_driveway_8017E878[139] = {
+static AnimationRecord _gDryfieldNightDrivewayAnimation0150CRecords[139] = {
 #include "assets/dryfield_night_driveway_animation_0150C_records.inc"
 };
 
-u16 D_dryfield_night_driveway_8017EAA4[20] = {
+static u16 _gDryfieldNightDrivewayAnimation0150CIndices[20] = {
 #include "assets/dryfield_night_driveway_animation_0150C_indices.inc"
 };
 
-AnimationSet D_dryfield_night_driveway_8017EACC = {
-    D_dryfield_night_driveway_8017E878,
-    D_dryfield_night_driveway_8017EAA4,
-    { NULL, D_dryfield_night_driveway_8017E684, NULL, NULL, D_dryfield_night_driveway_8017E6FC, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDrivewayAnimation0150C = {
+    _gDryfieldNightDrivewayAnimation0150CRecords,
+    _gDryfieldNightDrivewayAnimation0150CIndices,
+    { NULL, _gDryfieldNightDrivewayAnimation0150CBank1, NULL, NULL, _gDryfieldNightDrivewayAnimation0150CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_driveway_8017EAF4[6] = {
+static AnimationPackedPose _gDryfieldNightDrivewayAnimation01870Bank1[6] = {
 #include "assets/dryfield_night_driveway_animation_01870_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_driveway_8017EB3C[75] = {
+static AnimationPackedRotation _gDryfieldNightDrivewayAnimation01870Bank4[75] = {
 #include "assets/dryfield_night_driveway_animation_01870_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_driveway_8017EC68[104] = {
+static AnimationRecord _gDryfieldNightDrivewayAnimation01870Records[104] = {
 #include "assets/dryfield_night_driveway_animation_01870_records.inc"
 };
 
-u16 D_dryfield_night_driveway_8017EE08[20] = {
+static u16 _gDryfieldNightDrivewayAnimation01870Indices[20] = {
 #include "assets/dryfield_night_driveway_animation_01870_indices.inc"
 };
 
-AnimationSet D_dryfield_night_driveway_8017EE30 = {
-    D_dryfield_night_driveway_8017EC68,
-    D_dryfield_night_driveway_8017EE08,
-    { NULL, D_dryfield_night_driveway_8017EAF4, NULL, NULL, D_dryfield_night_driveway_8017EB3C, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDrivewayAnimation01870 = {
+    _gDryfieldNightDrivewayAnimation01870Records,
+    _gDryfieldNightDrivewayAnimation01870Indices,
+    { NULL, _gDryfieldNightDrivewayAnimation01870Bank1, NULL, NULL, _gDryfieldNightDrivewayAnimation01870Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_driveway_8017EE58[2] = {
+static AnimationPackedPose _gDryfieldNightDrivewayAnimation01A84Bank1[2] = {
 #include "assets/dryfield_night_driveway_animation_01A84_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_driveway_8017EE70[24] = {
+static AnimationPackedRotation _gDryfieldNightDrivewayAnimation01A84Bank4[24] = {
 #include "assets/dryfield_night_driveway_animation_01A84_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_driveway_8017EED0[83] = {
+static AnimationRecord _gDryfieldNightDrivewayAnimation01A84Records[83] = {
 #include "assets/dryfield_night_driveway_animation_01A84_records.inc"
 };
 
-u16 D_dryfield_night_driveway_8017F01C[20] = {
+static u16 _gDryfieldNightDrivewayAnimation01A84Indices[20] = {
 #include "assets/dryfield_night_driveway_animation_01A84_indices.inc"
 };
 
-AnimationSet D_dryfield_night_driveway_8017F044 = {
-    D_dryfield_night_driveway_8017EED0,
-    D_dryfield_night_driveway_8017F01C,
-    { NULL, D_dryfield_night_driveway_8017EE58, NULL, NULL, D_dryfield_night_driveway_8017EE70, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDrivewayAnimation01A84 = {
+    _gDryfieldNightDrivewayAnimation01A84Records,
+    _gDryfieldNightDrivewayAnimation01A84Indices,
+    { NULL, _gDryfieldNightDrivewayAnimation01A84Bank1, NULL, NULL, _gDryfieldNightDrivewayAnimation01A84Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_driveway_8017F06C[5] = {
+static AnimationPackedPose _gDryfieldNightDrivewayAnimation01D64Bank1[5] = {
 #include "assets/dryfield_night_driveway_animation_01D64_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_driveway_8017F0A8[60] = {
+static AnimationPackedRotation _gDryfieldNightDrivewayAnimation01D64Bank4[60] = {
 #include "assets/dryfield_night_driveway_animation_01D64_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_driveway_8017F198[89] = {
+static AnimationRecord _gDryfieldNightDrivewayAnimation01D64Records[89] = {
 #include "assets/dryfield_night_driveway_animation_01D64_records.inc"
 };
 
-u16 D_dryfield_night_driveway_8017F2FC[20] = {
+static u16 _gDryfieldNightDrivewayAnimation01D64Indices[20] = {
 #include "assets/dryfield_night_driveway_animation_01D64_indices.inc"
 };
 
-AnimationSet D_dryfield_night_driveway_8017F324 = {
-    D_dryfield_night_driveway_8017F198,
-    D_dryfield_night_driveway_8017F2FC,
-    { NULL, D_dryfield_night_driveway_8017F06C, NULL, NULL, D_dryfield_night_driveway_8017F0A8, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDrivewayAnimation01D64 = {
+    _gDryfieldNightDrivewayAnimation01D64Records,
+    _gDryfieldNightDrivewayAnimation01D64Indices,
+    { NULL, _gDryfieldNightDrivewayAnimation01D64Bank1, NULL, NULL, _gDryfieldNightDrivewayAnimation01D64Bank4, NULL, NULL, NULL },
 };
 
 TaskDesc gDrivewayCutsceneTasks[3] = {
@@ -222,7 +222,7 @@ TaskDesc gDrivewayCutsceneTasks[3] = {
 };
 
 AnimationSet* D_dryfield_night_driveway_8017F370[2] = {
-    &D_dryfield_night_driveway_8017EACC,
+    &_gDryfieldNightDrivewayAnimation0150C,
     NULL,
 };
 
@@ -317,7 +317,7 @@ ActorTransform D_dryfield_night_driveway_8017F894 = { { -8800, 0, -1500, 0 }, { 
 
 ActorTransform D_dryfield_night_driveway_8017F8AC = { { -3800, 0, -1500, 0 }, { 0, 3413, 0, 0 } };
 
-DryfieldNightDrivewayAnimStorageF8C4 D_dryfield_night_driveway_8017F8C4 = { .data = { { &D_dryfield_night_driveway_8017EE30, &D_dryfield_night_driveway_8017F044, &D_dryfield_night_driveway_8017F324, NULL }, { { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE }, { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE } } } };
+DryfieldNightDrivewayAnimStorageF8C4 D_dryfield_night_driveway_8017F8C4 = { .data = { { &_gDryfieldNightDrivewayAnimation01870, &_gDryfieldNightDrivewayAnimation01A84, &_gDryfieldNightDrivewayAnimation01D64, NULL }, { { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE }, { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE } } } };
 
 AnimationPlayRequest D_dryfield_night_driveway_8017F8FC = { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
@@ -529,30 +529,30 @@ GpWarpRec D_dryfield_night_driveway_80180628[4] = {
     { { .words = { 0x7FFF, -1300, 0, 1700 } }, { 0, 0, 0, 0 }, { .words = { 1024, -3400, 0, 600 } }, { 0, 0, 0, 0 }, 0, 0, 0, 4, 0, 0 },
 };
 
-SVECTOR D_dryfield_night_driveway_80180708[13] = {
+static SVECTOR _gDryfieldNightDrivewayCollision0364CNormals[13] = {
 #include "assets/dryfield_night_driveway_collision_0364C_normals.inc"
 };
 
-SVECTOR D_dryfield_night_driveway_80180770[64] = {
+static SVECTOR _gDryfieldNightDrivewayCollision0364CVerts[64] = {
 #include "assets/dryfield_night_driveway_collision_0364C_verts.inc"
 };
 
-WorldCollisionGridFace D_dryfield_night_driveway_80180970[23] = {
+static WorldCollisionGridFace _gDryfieldNightDrivewayCollision0364CFaces[23] = {
 #include "assets/dryfield_night_driveway_collision_0364C_faces.inc"
 };
 
-s16 D_dryfield_night_driveway_80180A84[154] = {
+static s16 _gDryfieldNightDrivewayCollision0364CCells[154] = {
 #include "assets/dryfield_night_driveway_collision_0364C_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_dryfield_night_driveway_80180A84[i])
-s16* D_dryfield_night_driveway_80180BB8[21] = {
+#define GRID_CELL(i) (&_gDryfieldNightDrivewayCollision0364CCells[i])
+static s16* _gDryfieldNightDrivewayCollision0364CTable[21] = {
 #include "assets/dryfield_night_driveway_collision_0364C_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_dryfield_night_driveway_80180C0C[1] = {
-    { NULL, D_dryfield_night_driveway_80180708, D_dryfield_night_driveway_80180770, D_dryfield_night_driveway_80180970, D_dryfield_night_driveway_80180BB8, 0x2B16, 5210, 7, 3, 4000, 23 },
+    { NULL, _gDryfieldNightDrivewayCollision0364CNormals, _gDryfieldNightDrivewayCollision0364CVerts, _gDryfieldNightDrivewayCollision0364CFaces, _gDryfieldNightDrivewayCollision0364CTable, 0x2B16, 5210, 7, 3, 4000, 23 },
 };
 
 GpViewRec D_dryfield_night_driveway_80180C30[10] = {

@@ -136,29 +136,29 @@ SVECTOR D_neo_ark_bridge_801820CC[9] = {
     { 0, 0, 0, -1 },
 };
 
-SVECTOR D_neo_ark_bridge_80182114[5] = {
+static SVECTOR _gNeoArkBridgeCollision05254Normals[5] = {
 #include "assets/neo_ark_bridge_collision_05254_normals.inc"
 };
 
-SVECTOR D_neo_ark_bridge_8018213C[97] = {
+static SVECTOR _gNeoArkBridgeCollision05254Verts[97] = {
 #include "assets/neo_ark_bridge_collision_05254_verts.inc"
 };
 
-WorldCollisionGridFace D_neo_ark_bridge_80182444[43] = {
+static WorldCollisionGridFace _gNeoArkBridgeCollision05254Faces[43] = {
 #include "assets/neo_ark_bridge_collision_05254_faces.inc"
 };
 
-s16 D_neo_ark_bridge_80182648[188] = {
+static s16 _gNeoArkBridgeCollision05254Cells[188] = {
 #include "assets/neo_ark_bridge_collision_05254_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_neo_ark_bridge_80182648[i])
-s16* D_neo_ark_bridge_801827C0[21] = {
+#define GRID_CELL(i) (&_gNeoArkBridgeCollision05254Cells[i])
+static s16* _gNeoArkBridgeCollision05254Table[21] = {
 #include "assets/neo_ark_bridge_collision_05254_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_neo_ark_bridge_80182814 = { NULL, D_neo_ark_bridge_80182114, D_neo_ark_bridge_8018213C, D_neo_ark_bridge_80182444, D_neo_ark_bridge_801827C0, 5100, 0x2FA8, 3, 7, 4000, 43 };
+WorldCollisionGrid D_neo_ark_bridge_80182814 = { NULL, _gNeoArkBridgeCollision05254Normals, _gNeoArkBridgeCollision05254Verts, _gNeoArkBridgeCollision05254Faces, _gNeoArkBridgeCollision05254Table, 5100, 0x2FA8, 3, 7, 4000, 43 };
 
 GpViewRec D_neo_ark_bridge_80182838[6] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 2070, 0x7530, 2510 } }, 329 },

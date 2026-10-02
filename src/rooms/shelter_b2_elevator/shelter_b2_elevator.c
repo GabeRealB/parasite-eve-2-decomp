@@ -68,65 +68,65 @@ s32  func_shelter_b2_elevator_8017DAE0(Task*, s32, TaskMessageArg, TaskMessageAr
 void func_shelter_b2_elevator_8017D70C(Task*);
 void func_shelter_b2_elevator_8017D888(Task*);
 
-TmdBone D_shelter_b2_elevator_8017DB78[1] = {
+static TmdBone _gShelterB2ElevatorModel00688Skeleton[1] = {
 #include "assets/shelter_b2_elevator_model_00688_skeleton.inc"
 };
 
-u32 D_shelter_b2_elevator_8017DB9C[1] = {
+static u32 _gShelterB2ElevatorModel00688PartVerts[1] = {
 #include "assets/shelter_b2_elevator_model_00688_partVerts.inc"
 };
 
-SVECTOR D_shelter_b2_elevator_8017DBA0[21] = {
+static SVECTOR _gShelterB2ElevatorModel00688Verts[21] = {
 #include "assets/shelter_b2_elevator_model_00688_verts.inc"
 };
 
-u32 D_shelter_b2_elevator_8017DC48[66] = {
+static u32 _gShelterB2ElevatorModel00688Stream[66] = {
 #include "assets/shelter_b2_elevator_model_00688_stream.inc"
 };
 
-TmdSource D_shelter_b2_elevator_8017DD50 = {
+static TmdSource _gShelterB2ElevatorModel00688 = {
     0,
     480,
     0,
     1,
-    D_shelter_b2_elevator_8017DB9C,
-    D_shelter_b2_elevator_8017DBA0,
-    &D_shelter_b2_elevator_8017DBA0[21],
-    D_shelter_b2_elevator_8017DB78,
-    D_shelter_b2_elevator_8017DC48,
+    _gShelterB2ElevatorModel00688PartVerts,
+    _gShelterB2ElevatorModel00688Verts,
+    &_gShelterB2ElevatorModel00688Verts[21],
+    _gShelterB2ElevatorModel00688Skeleton,
+    _gShelterB2ElevatorModel00688Stream,
 };
 
-TmdBone D_shelter_b2_elevator_8017DD74[1] = {
+static TmdBone _gShelterB2ElevatorModel00884Skeleton[1] = {
 #include "assets/shelter_b2_elevator_model_00884_skeleton.inc"
 };
 
-u32 D_shelter_b2_elevator_8017DD98[1] = {
+static u32 _gShelterB2ElevatorModel00884PartVerts[1] = {
 #include "assets/shelter_b2_elevator_model_00884_partVerts.inc"
 };
 
-SVECTOR D_shelter_b2_elevator_8017DD9C[21] = {
+static SVECTOR _gShelterB2ElevatorModel00884Verts[21] = {
 #include "assets/shelter_b2_elevator_model_00884_verts.inc"
 };
 
-u32 D_shelter_b2_elevator_8017DE44[66] = {
+static u32 _gShelterB2ElevatorModel00884Stream[66] = {
 #include "assets/shelter_b2_elevator_model_00884_stream.inc"
 };
 
-TmdSource D_shelter_b2_elevator_8017DF4C = {
+static TmdSource _gShelterB2ElevatorModel00884 = {
     0,
     480,
     0,
     1,
-    D_shelter_b2_elevator_8017DD98,
-    D_shelter_b2_elevator_8017DD9C,
-    &D_shelter_b2_elevator_8017DD9C[21],
-    D_shelter_b2_elevator_8017DD74,
-    D_shelter_b2_elevator_8017DE44,
+    _gShelterB2ElevatorModel00884PartVerts,
+    _gShelterB2ElevatorModel00884Verts,
+    &_gShelterB2ElevatorModel00884Verts[21],
+    _gShelterB2ElevatorModel00884Skeleton,
+    _gShelterB2ElevatorModel00884Stream,
 };
 
 TaskDesc D_shelter_b2_elevator_8017DF70[4] = {
-    { { { TASK_BODY_TMD, 192 } }, func_shelter_b2_elevator_8017D70C, { .model = &D_shelter_b2_elevator_8017DD50 } },
-    { { { TASK_BODY_TMD, 192 } }, func_shelter_b2_elevator_8017D70C, { .model = &D_shelter_b2_elevator_8017DF4C } },
+    { { { TASK_BODY_TMD, 192 } }, func_shelter_b2_elevator_8017D70C, { .model = &_gShelterB2ElevatorModel00688 } },
+    { { { TASK_BODY_TMD, 192 } }, func_shelter_b2_elevator_8017D70C, { .model = &_gShelterB2ElevatorModel00884 } },
     { { { TASK_BODY_NONE, 32 } }, func_shelter_b2_elevator_8017D888, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
@@ -153,29 +153,29 @@ GpWarpRec D_shelter_b2_elevator_8017DFE0[1] = {
     { { .words = { 1024, 0x2CEA, 0, -496 } }, { 0, 0, 0, 0 }, { .words = { 1024, 0x2CEA, 0, -496 } }, { 0, 0, 0, 0 }, 0x541A0002, 0x541A0001, 0, 2, 0, 0 },
 };
 
-SVECTOR D_shelter_b2_elevator_8017E018[6] = {
+static SVECTOR _gShelterB2ElevatorCollision00B24Normals[6] = {
 #include "assets/shelter_b2_elevator_collision_00B24_normals.inc"
 };
 
-SVECTOR D_shelter_b2_elevator_8017E048[8] = {
+static SVECTOR _gShelterB2ElevatorCollision00B24Verts[8] = {
 #include "assets/shelter_b2_elevator_collision_00B24_verts.inc"
 };
 
-WorldCollisionGridFace D_shelter_b2_elevator_8017E088[6] = {
+static WorldCollisionGridFace _gShelterB2ElevatorCollision00B24Faces[6] = {
 #include "assets/shelter_b2_elevator_collision_00B24_faces.inc"
 };
 
-s16 D_shelter_b2_elevator_8017E0D0[8] = {
+static s16 _gShelterB2ElevatorCollision00B24Cells[8] = {
 #include "assets/shelter_b2_elevator_collision_00B24_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_shelter_b2_elevator_8017E0D0[i])
-s16* D_shelter_b2_elevator_8017E0E0[1] = {
+#define GRID_CELL(i) (&_gShelterB2ElevatorCollision00B24Cells[i])
+static s16* _gShelterB2ElevatorCollision00B24Table[1] = {
 #include "assets/shelter_b2_elevator_collision_00B24_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b2_elevator_8017E0E4 = { NULL, D_shelter_b2_elevator_8017E018, D_shelter_b2_elevator_8017E048, D_shelter_b2_elevator_8017E088, D_shelter_b2_elevator_8017E0E0, -0x2AF8, 1450, 1, 1, 4000, 6 };
+WorldCollisionGrid D_shelter_b2_elevator_8017E0E4 = { NULL, _gShelterB2ElevatorCollision00B24Normals, _gShelterB2ElevatorCollision00B24Verts, _gShelterB2ElevatorCollision00B24Faces, _gShelterB2ElevatorCollision00B24Table, -0x2AF8, 1450, 1, 1, 4000, 6 };
 
 GpViewRec D_shelter_b2_elevator_8017E108[15] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -0x2EE0, 0x7530, 450 } }, 2748 },

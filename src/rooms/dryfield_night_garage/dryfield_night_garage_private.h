@@ -10,13 +10,13 @@
 
 #include "main/task_types.h"
 
-extern AnimationSet D_dryfield_night_garage_80182140;
+extern AnimationSet gDryfieldNightGarageAnimation04B80;
 
-extern AnimationSet D_dryfield_night_garage_80182514;
+extern AnimationSet gDryfieldNightGarageAnimation04F54;
 
-extern AnimationSet D_dryfield_night_garage_80182904;
+extern AnimationSet gDryfieldNightGarageAnimation05344;
 
-extern AnimationSet D_dryfield_night_garage_80182C70;
+extern AnimationSet gDryfieldNightGarageAnimation056B0;
 
 extern TaskDesc D_dryfield_night_garage_80182C98[2];
 

@@ -72,48 +72,48 @@ void                        func_dryfield_underpass_8017DA08(void);
 s32 func_dryfield_underpass_8017D900(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_underpass_8017D908(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
-AnimationPackedPose D_dryfield_underpass_8017DEE0[10] = {
+static AnimationPackedPose _gDryfieldUnderpassAnimation00E64Bank1[10] = {
 #include "assets/dryfield_underpass_animation_00E64_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_underpass_8017DF58[126] = {
+static AnimationPackedRotation _gDryfieldUnderpassAnimation00E64Bank4[126] = {
 #include "assets/dryfield_underpass_animation_00E64_bank4.inc"
 };
 
-AnimationRecord D_dryfield_underpass_8017E150[171] = {
+static AnimationRecord _gDryfieldUnderpassAnimation00E64Records[171] = {
 #include "assets/dryfield_underpass_animation_00E64_records.inc"
 };
 
-u16 D_dryfield_underpass_8017E3FC[20] = {
+static u16 _gDryfieldUnderpassAnimation00E64Indices[20] = {
 #include "assets/dryfield_underpass_animation_00E64_indices.inc"
 };
 
-AnimationSet D_dryfield_underpass_8017E424 = {
-    D_dryfield_underpass_8017E150,
-    D_dryfield_underpass_8017E3FC,
-    { NULL, D_dryfield_underpass_8017DEE0, NULL, NULL, D_dryfield_underpass_8017DF58, NULL, NULL, NULL },
+static AnimationSet _gDryfieldUnderpassAnimation00E64 = {
+    _gDryfieldUnderpassAnimation00E64Records,
+    _gDryfieldUnderpassAnimation00E64Indices,
+    { NULL, _gDryfieldUnderpassAnimation00E64Bank1, NULL, NULL, _gDryfieldUnderpassAnimation00E64Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_underpass_8017E44C[6] = {
+static AnimationPackedPose _gDryfieldUnderpassAnimation01230Bank1[6] = {
 #include "assets/dryfield_underpass_animation_01230_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_underpass_8017E494[64] = {
+static AnimationPackedRotation _gDryfieldUnderpassAnimation01230Bank4[64] = {
 #include "assets/dryfield_underpass_animation_01230_bank4.inc"
 };
 
-AnimationRecord D_dryfield_underpass_8017E594[141] = {
+static AnimationRecord _gDryfieldUnderpassAnimation01230Records[141] = {
 #include "assets/dryfield_underpass_animation_01230_records.inc"
 };
 
-u16 D_dryfield_underpass_8017E7C8[20] = {
+static u16 _gDryfieldUnderpassAnimation01230Indices[20] = {
 #include "assets/dryfield_underpass_animation_01230_indices.inc"
 };
 
-AnimationSet D_dryfield_underpass_8017E7F0 = {
-    D_dryfield_underpass_8017E594,
-    D_dryfield_underpass_8017E7C8,
-    { NULL, D_dryfield_underpass_8017E44C, NULL, NULL, D_dryfield_underpass_8017E494, NULL, NULL, NULL },
+static AnimationSet _gDryfieldUnderpassAnimation01230 = {
+    _gDryfieldUnderpassAnimation01230Records,
+    _gDryfieldUnderpassAnimation01230Indices,
+    { NULL, _gDryfieldUnderpassAnimation01230Bank1, NULL, NULL, _gDryfieldUnderpassAnimation01230Bank4, NULL, NULL, NULL },
 };
 
 TaskDesc gUnderpassSwitchTaskDesc[2] = {
@@ -131,8 +131,8 @@ TaskMessageEntry D_dryfield_underpass_8017E830[6] = {
 };
 
 AnimationSet* D_dryfield_underpass_8017E860[2] = {
-    &D_dryfield_underpass_8017E424,
-    &D_dryfield_underpass_8017E7F0,
+    &_gDryfieldUnderpassAnimation00E64,
+    &_gDryfieldUnderpassAnimation01230,
 };
 
 GpCopyArg D_dryfield_underpass_8017E868 = { { .sets = D_dryfield_underpass_8017E860 }, 2 };
@@ -318,30 +318,30 @@ GpWarpRec D_dryfield_underpass_8017EC10[3] = {
     { { .words = { 2048, 1212, -1000, -7543 } }, { 0, 0, 0, 0 }, { .words = { 2048, 1212, -1000, -7543 } }, { 0, 0, 0, 0 }, 0x52260001, 0x52260001, 0, 7, 2, 0 },
 };
 
-SVECTOR D_dryfield_underpass_8017ECB8[12] = {
+static SVECTOR _gDryfieldUnderpassCollision01EC4Normals[12] = {
 #include "assets/dryfield_underpass_collision_01EC4_normals.inc"
 };
 
-SVECTOR D_dryfield_underpass_8017ED18[70] = {
+static SVECTOR _gDryfieldUnderpassCollision01EC4Verts[70] = {
 #include "assets/dryfield_underpass_collision_01EC4_verts.inc"
 };
 
-WorldCollisionGridFace D_dryfield_underpass_8017EF48[46] = {
+static WorldCollisionGridFace _gDryfieldUnderpassCollision01EC4Faces[46] = {
 #include "assets/dryfield_underpass_collision_01EC4_faces.inc"
 };
 
-s16 D_dryfield_underpass_8017F170[346] = {
+static s16 _gDryfieldUnderpassCollision01EC4Cells[346] = {
 #include "assets/dryfield_underpass_collision_01EC4_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_dryfield_underpass_8017F170[i])
-s16* D_dryfield_underpass_8017F424[24] = {
+#define GRID_CELL(i) (&_gDryfieldUnderpassCollision01EC4Cells[i])
+static s16* _gDryfieldUnderpassCollision01EC4Table[24] = {
 #include "assets/dryfield_underpass_collision_01EC4_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_dryfield_underpass_8017F484[1] = {
-    { NULL, D_dryfield_underpass_8017ECB8, D_dryfield_underpass_8017ED18, D_dryfield_underpass_8017EF48, D_dryfield_underpass_8017F424, 3000, 0x32C8, 6, 4, 4000, 46 },
+    { NULL, _gDryfieldUnderpassCollision01EC4Normals, _gDryfieldUnderpassCollision01EC4Verts, _gDryfieldUnderpassCollision01EC4Faces, _gDryfieldUnderpassCollision01EC4Table, 3000, 0x32C8, 6, 4, 4000, 46 },
 };
 
 GpViewRec D_dryfield_underpass_8017F4A8[26] = {

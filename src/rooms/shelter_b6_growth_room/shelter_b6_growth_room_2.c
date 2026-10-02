@@ -52,29 +52,29 @@ extern TaskDesc D_80135E78;
 /// The layout template and the live copy the reset below restores from it.
 extern WorldCollisionGrid D_shelter_b6_growth_room_8017F234;
 
-SVECTOR D_shelter_b6_growth_room_8017F194[4] = {
+static SVECTOR _gShelterB6GrowthRoomCollision01C74Normals[4] = {
 #include "assets/shelter_b6_growth_room_collision_01C74_normals.inc"
 };
 
-SVECTOR D_shelter_b6_growth_room_8017F1B4[8] = {
+static SVECTOR _gShelterB6GrowthRoomCollision01C74Verts[8] = {
 #include "assets/shelter_b6_growth_room_collision_01C74_verts.inc"
 };
 
-WorldCollisionGridFace D_shelter_b6_growth_room_8017F1F4[4] = {
+static WorldCollisionGridFace _gShelterB6GrowthRoomCollision01C74Faces[4] = {
 #include "assets/shelter_b6_growth_room_collision_01C74_faces.inc"
 };
 
-s16 D_shelter_b6_growth_room_8017F224[6] = {
+static s16 _gShelterB6GrowthRoomCollision01C74Cells[6] = {
 #include "assets/shelter_b6_growth_room_collision_01C74_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_shelter_b6_growth_room_8017F224[i])
-s16* D_shelter_b6_growth_room_8017F230[1] = {
+#define GRID_CELL(i) (&_gShelterB6GrowthRoomCollision01C74Cells[i])
+static s16* _gShelterB6GrowthRoomCollision01C74Table[1] = {
 #include "assets/shelter_b6_growth_room_collision_01C74_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b6_growth_room_8017F234 = { NULL, D_shelter_b6_growth_room_8017F194, D_shelter_b6_growth_room_8017F1B4, D_shelter_b6_growth_room_8017F1F4, D_shelter_b6_growth_room_8017F230, -3145, -6145, 1, 1, 4000, 4 };
+WorldCollisionGrid D_shelter_b6_growth_room_8017F234 = { NULL, _gShelterB6GrowthRoomCollision01C74Normals, _gShelterB6GrowthRoomCollision01C74Verts, _gShelterB6GrowthRoomCollision01C74Faces, _gShelterB6GrowthRoomCollision01C74Table, -3145, -6145, 1, 1, 4000, 4 };
 
 /// World positions shared by the view-specific starts below.
 SVECTOR D_shelter_b6_growth_room_8017F258[36] = {
@@ -128,29 +128,29 @@ GpWarpRec D_shelter_b6_growth_room_8017F380[1] = {
     { { .words = { 0, 4030, 0, -2950 } }, { 0, 0, 0, 0 }, { .words = { 0, 4030, 0, -2950 } }, { 0, 0, 0, 0 }, 0, 0, 0, 4, 0, 437 },
 };
 
-SVECTOR D_shelter_b6_growth_room_8017F3B8[14] = {
+static SVECTOR _gShelterB6GrowthRoomCollision02530Normals[14] = {
 #include "assets/shelter_b6_growth_room_collision_02530_normals.inc"
 };
 
-SVECTOR D_shelter_b6_growth_room_8017F428[80] = {
+static SVECTOR _gShelterB6GrowthRoomCollision02530Verts[80] = {
 #include "assets/shelter_b6_growth_room_collision_02530_verts.inc"
 };
 
-WorldCollisionGridFace D_shelter_b6_growth_room_8017F6A8[54] = {
+static WorldCollisionGridFace _gShelterB6GrowthRoomCollision02530Faces[54] = {
 #include "assets/shelter_b6_growth_room_collision_02530_faces.inc"
 };
 
-s16 D_shelter_b6_growth_room_8017F930[208] = {
+static s16 _gShelterB6GrowthRoomCollision02530Cells[208] = {
 #include "assets/shelter_b6_growth_room_collision_02530_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_shelter_b6_growth_room_8017F930[i])
-s16* D_shelter_b6_growth_room_8017FAD0[8] = {
+#define GRID_CELL(i) (&_gShelterB6GrowthRoomCollision02530Cells[i])
+static s16* _gShelterB6GrowthRoomCollision02530Table[8] = {
 #include "assets/shelter_b6_growth_room_collision_02530_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b6_growth_room_8017FAF0 = { NULL, D_shelter_b6_growth_room_8017F3B8, D_shelter_b6_growth_room_8017F428, D_shelter_b6_growth_room_8017F6A8, D_shelter_b6_growth_room_8017FAD0, 500, 4000, 2, 4, 4000, 54 };
+WorldCollisionGrid D_shelter_b6_growth_room_8017FAF0 = { NULL, _gShelterB6GrowthRoomCollision02530Normals, _gShelterB6GrowthRoomCollision02530Verts, _gShelterB6GrowthRoomCollision02530Faces, _gShelterB6GrowthRoomCollision02530Table, 500, 4000, 2, 4, 4000, 54 };
 
 GpViewRec D_shelter_b6_growth_room_8017FB14[8] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -2500, 0x61A8, -3500 } }, 289 },

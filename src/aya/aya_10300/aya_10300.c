@@ -24,43 +24,43 @@ extern struct _GpImgRec* D_aya_10300_8011CD64[];
  * image bytes are assets, generated from the extracted package.
  */
 
-static u_long D_aya_10300_8011BEBC[] = {
+static u_long _gAya10300Image0674C[] = {
 #include "assets/aya_10300_image_0674C.inc"
 };
 static GpImgRec D_aya_10300_8011C1DC[] = {
-    { 0, 0, { 0, 0, 25, 16 }, D_aya_10300_8011BEBC },
+    { 0, 0, { 0, 0, 25, 16 }, _gAya10300Image0674C },
     { GP_IMG_REC_END },
 };
 
-static u_long D_aya_10300_8011C1FC[] = {
+static u_long _gAya10300Image06A8C[] = {
 #include "assets/aya_10300_image_06A8C.inc"
 };
 static GpImgRec D_aya_10300_8011C51C[] = {
-    { 0, 0, { 0, 0, 25, 16 }, D_aya_10300_8011C1FC },
+    { 0, 0, { 0, 0, 25, 16 }, _gAya10300Image06A8C },
     { GP_IMG_REC_END },
 };
 
-static u_long D_aya_10300_8011C53C[] = {
+static u_long _gAya10300Image06DCC[] = {
 #include "assets/aya_10300_image_06DCC.inc"
 };
 static GpImgRec D_aya_10300_8011C85C[] = {
-    { 0, 0, { 0, 0, 25, 16 }, D_aya_10300_8011C53C },
+    { 0, 0, { 0, 0, 25, 16 }, _gAya10300Image06DCC },
     { GP_IMG_REC_END },
 };
 
-static u_long D_aya_10300_8011C87C[] = {
+static u_long _gAya10300Image0710C[] = {
 #include "assets/aya_10300_image_0710C.inc"
 };
 static GpImgRec D_aya_10300_8011CAAC[] = {
-    { 0, 0, { 0, 0, 14, 20 }, D_aya_10300_8011C87C },
+    { 0, 0, { 0, 0, 14, 20 }, _gAya10300Image0710C },
     { GP_IMG_REC_END },
 };
 
-static u_long D_aya_10300_8011CACC[] = {
+static u_long _gAya10300Image0735C[] = {
 #include "assets/aya_10300_image_0735C.inc"
 };
 static GpImgRec D_aya_10300_8011CCFC[] = {
-    { 0, 0, { 0, 0, 14, 20 }, D_aya_10300_8011CACC },
+    { 0, 0, { 0, 0, 14, 20 }, _gAya10300Image0735C },
     { GP_IMG_REC_END },
 };
 

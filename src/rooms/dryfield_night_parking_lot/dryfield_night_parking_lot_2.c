@@ -67,26 +67,26 @@ extern WorldCoordRoomLights   D_dryfield_night_parking_lot_80180C90[1];
 
 extern TaskDesc D_8014D8A4;
 
-AnimationPackedPose D_dryfield_night_parking_lot_8017E7E4[10] = {
+static AnimationPackedPose _gDryfieldNightParkingLotAnimation0166CBank1[10] = {
 #include "assets/dryfield_night_parking_lot_animation_0166C_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_parking_lot_8017E85C[95] = {
+static AnimationPackedRotation _gDryfieldNightParkingLotAnimation0166CBank4[95] = {
 #include "assets/dryfield_night_parking_lot_animation_0166C_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_parking_lot_8017E9D8[139] = {
+static AnimationRecord _gDryfieldNightParkingLotAnimation0166CRecords[139] = {
 #include "assets/dryfield_night_parking_lot_animation_0166C_records.inc"
 };
 
-u16 D_dryfield_night_parking_lot_8017EC04[20] = {
+static u16 _gDryfieldNightParkingLotAnimation0166CIndices[20] = {
 #include "assets/dryfield_night_parking_lot_animation_0166C_indices.inc"
 };
 
-AnimationSet D_dryfield_night_parking_lot_8017EC2C = {
-    D_dryfield_night_parking_lot_8017E9D8,
-    D_dryfield_night_parking_lot_8017EC04,
-    { NULL, D_dryfield_night_parking_lot_8017E7E4, NULL, NULL, D_dryfield_night_parking_lot_8017E85C, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightParkingLotAnimation0166C = {
+    _gDryfieldNightParkingLotAnimation0166CRecords,
+    _gDryfieldNightParkingLotAnimation0166CIndices,
+    { NULL, _gDryfieldNightParkingLotAnimation0166CBank1, NULL, NULL, _gDryfieldNightParkingLotAnimation0166CBank4, NULL, NULL, NULL },
 };
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
@@ -101,7 +101,7 @@ TaskMessageEntry D_dryfield_night_parking_lot_8017EC60[6] = {
 };
 
 AnimationSet* D_dryfield_night_parking_lot_8017EC90[2] = {
-    &D_dryfield_night_parking_lot_8017EC2C,
+    &_gDryfieldNightParkingLotAnimation0166C,
     NULL,
 };
 
@@ -197,30 +197,30 @@ GpWarpRec D_dryfield_night_parking_lot_8017EE58[5] = {
     { { .words = { 0, 4771, -450, 1414 } }, { 0, 0, 0, 0 }, { .words = { 0, 4491, 0, 2215 } }, { 0, 0, 0, 0 }, 0, 0, 0, 6, 1, 0 },
 };
 
-SVECTOR D_dryfield_night_parking_lot_8017EF70[18] = {
+static SVECTOR _gDryfieldNightParkingLotCollision02510Normals[18] = {
 #include "assets/dryfield_night_parking_lot_collision_02510_normals.inc"
 };
 
-SVECTOR D_dryfield_night_parking_lot_8017F000[132] = {
+static SVECTOR _gDryfieldNightParkingLotCollision02510Verts[132] = {
 #include "assets/dryfield_night_parking_lot_collision_02510_verts.inc"
 };
 
-WorldCollisionGridFace D_dryfield_night_parking_lot_8017F420[55] = {
+static WorldCollisionGridFace _gDryfieldNightParkingLotCollision02510Faces[55] = {
 #include "assets/dryfield_night_parking_lot_collision_02510_faces.inc"
 };
 
-s16 D_dryfield_night_parking_lot_8017F6B4[436] = {
+static s16 _gDryfieldNightParkingLotCollision02510Cells[436] = {
 #include "assets/dryfield_night_parking_lot_collision_02510_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_dryfield_night_parking_lot_8017F6B4[i])
-s16* D_dryfield_night_parking_lot_8017FA1C[45] = {
+#define GRID_CELL(i) (&_gDryfieldNightParkingLotCollision02510Cells[i])
+static s16* _gDryfieldNightParkingLotCollision02510Table[45] = {
 #include "assets/dryfield_night_parking_lot_collision_02510_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_dryfield_night_parking_lot_8017FAD0[1] = {
-    { NULL, D_dryfield_night_parking_lot_8017EF70, D_dryfield_night_parking_lot_8017F000, D_dryfield_night_parking_lot_8017F420, D_dryfield_night_parking_lot_8017FA1C, 0x4588, 8900, 9, 5, 4000, 55 },
+    { NULL, _gDryfieldNightParkingLotCollision02510Normals, _gDryfieldNightParkingLotCollision02510Verts, _gDryfieldNightParkingLotCollision02510Faces, _gDryfieldNightParkingLotCollision02510Table, 0x4588, 8900, 9, 5, 4000, 55 },
 };
 
 GpViewRec D_dryfield_night_parking_lot_8017FAF4[11] = {

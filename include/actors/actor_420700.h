@@ -4,28 +4,28 @@
 #include "gameplay/animation.h"
 
 // Animation sets used by the trailer-coach event scripts.
-extern AnimationSet D_actor_420700_80133A7C;
+extern AnimationSet gActor420700Animation01C5C;
 
-extern AnimationSet D_actor_420700_80133CDC;
+extern AnimationSet gActor420700Animation01EBC;
 
-extern AnimationSet D_actor_420700_80134148;
+extern AnimationSet gActor420700Animation02328;
 
-extern AnimationSet D_actor_420700_80134D38;
+extern AnimationSet gActor420700Animation02F18;
 
-extern AnimationSet D_actor_420700_80134F8C;
+extern AnimationSet gActor420700Animation0316C;
 
-extern AnimationSet D_actor_420700_80135224;
+extern AnimationSet gActor420700Animation03404;
 
-extern AnimationSet D_actor_420700_801353F4;
+extern AnimationSet gActor420700Animation035D4;
 
-extern AnimationSet D_actor_420700_80135BF8;
+extern AnimationSet gActor420700Animation03DD8;
 
-extern AnimationSet D_actor_420700_80132C00;
+extern AnimationSet gActor420700Animation00DE0;
 
-extern AnimationSet D_actor_420700_801331C8;
+extern AnimationSet gActor420700Animation013A8;
 
-extern AnimationSet D_actor_420700_8013346C;
+extern AnimationSet gActor420700Animation0164C;
 
-extern AnimationSet D_actor_420700_80133698;
+extern AnimationSet gActor420700Animation01878;
 
 #endif // INCLUDE_ACTORS_ACTOR_420700_H

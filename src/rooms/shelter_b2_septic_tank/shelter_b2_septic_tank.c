@@ -123,26 +123,26 @@ s32 func_shelter_b2_septic_tank_8017D7B4(Task*, s32, RoomEventMsg*, RoomEventMsg
 s32 func_shelter_b2_septic_tank_8017D904(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_shelter_b2_septic_tank_8017D90C(Task*, s32, RoomEventMsg*, TaskMessageArg);
 
-AnimationPackedPose D_shelter_b2_septic_tank_80182B74[6] = {
+static AnimationPackedPose _gShelterB2SepticTankAnimation05958Bank1[6] = {
 #include "assets/shelter_b2_septic_tank_animation_05958_bank1.inc"
 };
 
-AnimationPackedRotation D_shelter_b2_septic_tank_80182BBC[64] = {
+static AnimationPackedRotation _gShelterB2SepticTankAnimation05958Bank4[64] = {
 #include "assets/shelter_b2_septic_tank_animation_05958_bank4.inc"
 };
 
-AnimationRecord D_shelter_b2_septic_tank_80182CBC[141] = {
+static AnimationRecord _gShelterB2SepticTankAnimation05958Records[141] = {
 #include "assets/shelter_b2_septic_tank_animation_05958_records.inc"
 };
 
-u16 D_shelter_b2_septic_tank_80182EF0[20] = {
+static u16 _gShelterB2SepticTankAnimation05958Indices[20] = {
 #include "assets/shelter_b2_septic_tank_animation_05958_indices.inc"
 };
 
-AnimationSet D_shelter_b2_septic_tank_80182F18 = {
-    D_shelter_b2_septic_tank_80182CBC,
-    D_shelter_b2_septic_tank_80182EF0,
-    { NULL, D_shelter_b2_septic_tank_80182B74, NULL, NULL, D_shelter_b2_septic_tank_80182BBC, NULL, NULL, NULL },
+static AnimationSet _gShelterB2SepticTankAnimation05958 = {
+    _gShelterB2SepticTankAnimation05958Records,
+    _gShelterB2SepticTankAnimation05958Indices,
+    { NULL, _gShelterB2SepticTankAnimation05958Bank1, NULL, NULL, _gShelterB2SepticTankAnimation05958Bank4, NULL, NULL, NULL },
 };
 
 TaskDesc D_shelter_b2_septic_tank_80182F40 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
@@ -156,7 +156,7 @@ TaskMessageEntry D_shelter_b2_septic_tank_80182F4C[5] = {
 };
 
 AnimationSet* D_shelter_b2_septic_tank_80182F74[1] = {
-    &D_shelter_b2_septic_tank_80182F18,
+    &_gShelterB2SepticTankAnimation05958,
 };
 
 GpCopyArg D_shelter_b2_septic_tank_80182F78 = { { .sets = D_shelter_b2_septic_tank_80182F74 }, 1 };
@@ -402,29 +402,29 @@ SVECTOR D_shelter_b2_septic_tank_801836B4[12] = {
     { 0, 0, 0, -1 },
 };
 
-SVECTOR D_shelter_b2_septic_tank_80183714[18] = {
+static SVECTOR _gShelterB2SepticTankCollision0684CNormals[18] = {
 #include "assets/shelter_b2_septic_tank_collision_0684C_normals.inc"
 };
 
-SVECTOR D_shelter_b2_septic_tank_801837A4[82] = {
+static SVECTOR _gShelterB2SepticTankCollision0684CVerts[82] = {
 #include "assets/shelter_b2_septic_tank_collision_0684C_verts.inc"
 };
 
-WorldCollisionGridFace D_shelter_b2_septic_tank_80183A34[31] = {
+static WorldCollisionGridFace _gShelterB2SepticTankCollision0684CFaces[31] = {
 #include "assets/shelter_b2_septic_tank_collision_0684C_faces.inc"
 };
 
-s16 D_shelter_b2_septic_tank_80183BA8[270] = {
+static s16 _gShelterB2SepticTankCollision0684CCells[270] = {
 #include "assets/shelter_b2_septic_tank_collision_0684C_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_shelter_b2_septic_tank_80183BA8[i])
-s16* D_shelter_b2_septic_tank_80183DC4[18] = {
+#define GRID_CELL(i) (&_gShelterB2SepticTankCollision0684CCells[i])
+static s16* _gShelterB2SepticTankCollision0684CTable[18] = {
 #include "assets/shelter_b2_septic_tank_collision_0684C_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b2_septic_tank_80183E0C = { NULL, D_shelter_b2_septic_tank_80183714, D_shelter_b2_septic_tank_801837A4, D_shelter_b2_septic_tank_80183A34, D_shelter_b2_septic_tank_80183DC4, 5374, 0x47A9, 3, 6, 4000, 31 };
+WorldCollisionGrid D_shelter_b2_septic_tank_80183E0C = { NULL, _gShelterB2SepticTankCollision0684CNormals, _gShelterB2SepticTankCollision0684CVerts, _gShelterB2SepticTankCollision0684CFaces, _gShelterB2SepticTankCollision0684CTable, 5374, 0x47A9, 3, 6, 4000, 31 };
 
 GpViewRec D_shelter_b2_septic_tank_80183E30[6] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 34, 0x510F, 6334 } }, 230 },

@@ -68,29 +68,29 @@ GpWarpRec D_shelter_b6_training_room_80184420[2] = {
     { { .words = { 3072, 4500, 0, 9390 } }, { 0, 0, 0, 0 }, { .words = { 3072, 4500, 0, 9390 } }, { 0, 0, 0, 0 }, 0, 0, 0, 4, 0, 0 },
 };
 
-SVECTOR D_shelter_b6_training_room_80184490[7] = {
+static SVECTOR _gShelterB6TrainingRoomCollision07174Normals[7] = {
 #include "assets/shelter_b6_training_room_collision_07174_normals.inc"
 };
 
-SVECTOR D_shelter_b6_training_room_801844C8[22] = {
+static SVECTOR _gShelterB6TrainingRoomCollision07174Verts[22] = {
 #include "assets/shelter_b6_training_room_collision_07174_verts.inc"
 };
 
-WorldCollisionGridFace D_shelter_b6_training_room_80184578[21] = {
+static WorldCollisionGridFace _gShelterB6TrainingRoomCollision07174Faces[21] = {
 #include "assets/shelter_b6_training_room_collision_07174_faces.inc"
 };
 
-s16 D_shelter_b6_training_room_80184674[84] = {
+static s16 _gShelterB6TrainingRoomCollision07174Cells[84] = {
 #include "assets/shelter_b6_training_room_collision_07174_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_shelter_b6_training_room_80184674[i])
-s16* D_shelter_b6_training_room_8018471C[6] = {
+#define GRID_CELL(i) (&_gShelterB6TrainingRoomCollision07174Cells[i])
+static s16* _gShelterB6TrainingRoomCollision07174Table[6] = {
 #include "assets/shelter_b6_training_room_collision_07174_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b6_training_room_80184734 = { NULL, D_shelter_b6_training_room_80184490, D_shelter_b6_training_room_801844C8, D_shelter_b6_training_room_80184578, D_shelter_b6_training_room_8018471C, 0, -750, 2, 3, 4000, 21 };
+WorldCollisionGrid D_shelter_b6_training_room_80184734 = { NULL, _gShelterB6TrainingRoomCollision07174Normals, _gShelterB6TrainingRoomCollision07174Verts, _gShelterB6TrainingRoomCollision07174Faces, _gShelterB6TrainingRoomCollision07174Table, 0, -750, 2, 3, 4000, 21 };
 
 GpViewRec D_shelter_b6_training_room_80184758[8] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -2500, 0x61A8, -5250 } }, 380 },

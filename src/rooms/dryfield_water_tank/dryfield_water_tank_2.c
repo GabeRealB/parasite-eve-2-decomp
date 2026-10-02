@@ -100,7 +100,7 @@ extern SVECTOR D_dryfield_water_tank_801847C0[];
 
 void func_dryfield_water_tank_8017E9F8(Task*);
 
-extern TmdSource D_dryfield_water_tank_8017FD3C;
+static TmdSource _gDryfieldWaterTankModel020D4;
 void             func_dryfield_water_tank_8017E3C4(Task*);
 void             func_dryfield_water_tank_8017E568(Task*);
 void             func_dryfield_water_tank_8017EB80(s16);
@@ -153,32 +153,32 @@ TaskDesc D_dryfield_water_tank_8017F34C[2] = {
     { { { TASK_BODY_NONE, 32 } }, func_dryfield_water_tank_8017D618, { .value = 0 } },
 };
 
-TmdBone D_dryfield_water_tank_8017F364[1] = {
+static TmdBone _gDryfieldWaterTankModel020D4Skeleton[1] = {
 #include "assets/dryfield_water_tank_model_020D4_skeleton.inc"
 };
 
-u32 D_dryfield_water_tank_8017F388[1] = {
+static u32 _gDryfieldWaterTankModel020D4PartVerts[1] = {
 #include "assets/dryfield_water_tank_model_020D4_partVerts.inc"
 };
 
-SVECTOR D_dryfield_water_tank_8017F38C[97] = {
+static SVECTOR _gDryfieldWaterTankModel020D4Verts[97] = {
 #include "assets/dryfield_water_tank_model_020D4_verts.inc"
 };
 
-u32 D_dryfield_water_tank_8017F694[426] = {
+static u32 _gDryfieldWaterTankModel020D4Stream[426] = {
 #include "assets/dryfield_water_tank_model_020D4_stream.inc"
 };
 
-TmdSource D_dryfield_water_tank_8017FD3C = {
+static TmdSource _gDryfieldWaterTankModel020D4 = {
     0,
     3360,
     0,
     1,
-    D_dryfield_water_tank_8017F388,
-    D_dryfield_water_tank_8017F38C,
-    &D_dryfield_water_tank_8017F38C[97],
-    D_dryfield_water_tank_8017F364,
-    D_dryfield_water_tank_8017F694,
+    _gDryfieldWaterTankModel020D4PartVerts,
+    _gDryfieldWaterTankModel020D4Verts,
+    &_gDryfieldWaterTankModel020D4Verts[97],
+    _gDryfieldWaterTankModel020D4Skeleton,
+    _gDryfieldWaterTankModel020D4Stream,
 };
 
 ActorTransform D_dryfield_water_tank_8017FD60[2] = {
@@ -234,56 +234,56 @@ EvsCommand D_dryfield_water_tank_8017FEC8[8] = {
 
 TaskDesc D_dryfield_water_tank_8017FF88[2] = {
     { { { TASK_BODY_NONE, 192 } }, func_dryfield_water_tank_8017DEA4, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_dryfield_water_tank_8017DD20, { .model = &D_dryfield_water_tank_8017FD3C } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_dryfield_water_tank_8017DD20, { .model = &_gDryfieldWaterTankModel020D4 } },
 };
 
-AnimationPackedPose D_dryfield_water_tank_8017FFA0[2] = {
+static AnimationPackedPose _gDryfieldWaterTankAnimation02B70Bank1[2] = {
 #include "assets/dryfield_water_tank_animation_02B70_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_water_tank_8017FFB8[8] = {
+static AnimationPackedRotation _gDryfieldWaterTankAnimation02B70Bank4[8] = {
 #include "assets/dryfield_water_tank_animation_02B70_bank4.inc"
 };
 
-AnimationRecord D_dryfield_water_tank_8017FFD8[76] = {
+static AnimationRecord _gDryfieldWaterTankAnimation02B70Records[76] = {
 #include "assets/dryfield_water_tank_animation_02B70_records.inc"
 };
 
-u16 D_dryfield_water_tank_80180108[20] = {
+static u16 _gDryfieldWaterTankAnimation02B70Indices[20] = {
 #include "assets/dryfield_water_tank_animation_02B70_indices.inc"
 };
 
-AnimationSet D_dryfield_water_tank_80180130 = {
-    D_dryfield_water_tank_8017FFD8,
-    D_dryfield_water_tank_80180108,
-    { NULL, D_dryfield_water_tank_8017FFA0, NULL, NULL, D_dryfield_water_tank_8017FFB8, NULL, NULL, NULL },
+static AnimationSet _gDryfieldWaterTankAnimation02B70 = {
+    _gDryfieldWaterTankAnimation02B70Records,
+    _gDryfieldWaterTankAnimation02B70Indices,
+    { NULL, _gDryfieldWaterTankAnimation02B70Bank1, NULL, NULL, _gDryfieldWaterTankAnimation02B70Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_water_tank_80180158[7] = {
+static AnimationPackedPose _gDryfieldWaterTankAnimation02F04Bank1[7] = {
 #include "assets/dryfield_water_tank_animation_02F04_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_water_tank_801801AC[65] = {
+static AnimationPackedRotation _gDryfieldWaterTankAnimation02F04Bank4[65] = {
 #include "assets/dryfield_water_tank_animation_02F04_bank4.inc"
 };
 
-AnimationRecord D_dryfield_water_tank_801802B0[123] = {
+static AnimationRecord _gDryfieldWaterTankAnimation02F04Records[123] = {
 #include "assets/dryfield_water_tank_animation_02F04_records.inc"
 };
 
-u16 D_dryfield_water_tank_8018049C[20] = {
+static u16 _gDryfieldWaterTankAnimation02F04Indices[20] = {
 #include "assets/dryfield_water_tank_animation_02F04_indices.inc"
 };
 
-AnimationSet D_dryfield_water_tank_801804C4 = {
-    D_dryfield_water_tank_801802B0,
-    D_dryfield_water_tank_8018049C,
-    { NULL, D_dryfield_water_tank_80180158, NULL, NULL, D_dryfield_water_tank_801801AC, NULL, NULL, NULL },
+static AnimationSet _gDryfieldWaterTankAnimation02F04 = {
+    _gDryfieldWaterTankAnimation02F04Records,
+    _gDryfieldWaterTankAnimation02F04Indices,
+    { NULL, _gDryfieldWaterTankAnimation02F04Bank1, NULL, NULL, _gDryfieldWaterTankAnimation02F04Bank4, NULL, NULL, NULL },
 };
 
 AnimationSet* D_dryfield_water_tank_801804EC[2] = {
-    &D_dryfield_water_tank_80180130,
-    &D_dryfield_water_tank_801804C4,
+    &_gDryfieldWaterTankAnimation02B70,
+    &_gDryfieldWaterTankAnimation02F04,
 };
 
 ActorTransform D_dryfield_water_tank_801804F4 = { { 2600, -0x2EE0, -450, 0 }, { 0, 512, 0, 0 } };
@@ -328,400 +328,400 @@ TaskDesc D_dryfield_water_tank_80180764[4] = {
 
 TaskDesc D_dryfield_water_tank_80180794 = { { { TASK_BODY_NONE, 192 } }, func_dryfield_water_tank_8017E9F8, { .value = 0 } };
 
-AnimationPackedPose D_dryfield_water_tank_801807A0[6] = {
+static AnimationPackedPose _gDryfieldWaterTankAnimation034BCBank1[6] = {
 #include "assets/dryfield_water_tank_animation_034BC_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_water_tank_801807E8[46] = {
+static AnimationPackedRotation _gDryfieldWaterTankAnimation034BCBank4[46] = {
 #include "assets/dryfield_water_tank_animation_034BC_bank4.inc"
 };
 
-AnimationRecord D_dryfield_water_tank_801808A0[109] = {
+static AnimationRecord _gDryfieldWaterTankAnimation034BCRecords[109] = {
 #include "assets/dryfield_water_tank_animation_034BC_records.inc"
 };
 
-u16 D_dryfield_water_tank_80180A54[20] = {
+static u16 _gDryfieldWaterTankAnimation034BCIndices[20] = {
 #include "assets/dryfield_water_tank_animation_034BC_indices.inc"
 };
 
-AnimationSet D_dryfield_water_tank_80180A7C = {
-    D_dryfield_water_tank_801808A0,
-    D_dryfield_water_tank_80180A54,
-    { NULL, D_dryfield_water_tank_801807A0, NULL, NULL, D_dryfield_water_tank_801807E8, NULL, NULL, NULL },
+AnimationSet gDryfieldWaterTankAnimation034BC = {
+    _gDryfieldWaterTankAnimation034BCRecords,
+    _gDryfieldWaterTankAnimation034BCIndices,
+    { NULL, _gDryfieldWaterTankAnimation034BCBank1, NULL, NULL, _gDryfieldWaterTankAnimation034BCBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_water_tank_80180AA4[4] = {
+static AnimationPackedPose _gDryfieldWaterTankAnimation0377CBank1[4] = {
 #include "assets/dryfield_water_tank_animation_0377C_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_water_tank_80180AD4[55] = {
+static AnimationPackedRotation _gDryfieldWaterTankAnimation0377CBank4[55] = {
 #include "assets/dryfield_water_tank_animation_0377C_bank4.inc"
 };
 
-AnimationRecord D_dryfield_water_tank_80180BB0[89] = {
+static AnimationRecord _gDryfieldWaterTankAnimation0377CRecords[89] = {
 #include "assets/dryfield_water_tank_animation_0377C_records.inc"
 };
 
-u16 D_dryfield_water_tank_80180D14[20] = {
+static u16 _gDryfieldWaterTankAnimation0377CIndices[20] = {
 #include "assets/dryfield_water_tank_animation_0377C_indices.inc"
 };
 
-AnimationSet D_dryfield_water_tank_80180D3C = {
-    D_dryfield_water_tank_80180BB0,
-    D_dryfield_water_tank_80180D14,
-    { NULL, D_dryfield_water_tank_80180AA4, NULL, NULL, D_dryfield_water_tank_80180AD4, NULL, NULL, NULL },
+AnimationSet gDryfieldWaterTankAnimation0377C = {
+    _gDryfieldWaterTankAnimation0377CRecords,
+    _gDryfieldWaterTankAnimation0377CIndices,
+    { NULL, _gDryfieldWaterTankAnimation0377CBank1, NULL, NULL, _gDryfieldWaterTankAnimation0377CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_water_tank_80180D64[5] = {
+static AnimationPackedPose _gDryfieldWaterTankAnimation03A60Bank1[5] = {
 #include "assets/dryfield_water_tank_animation_03A60_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_water_tank_80180DA0[60] = {
+static AnimationPackedRotation _gDryfieldWaterTankAnimation03A60Bank4[60] = {
 #include "assets/dryfield_water_tank_animation_03A60_bank4.inc"
 };
 
-AnimationRecord D_dryfield_water_tank_80180E90[90] = {
+static AnimationRecord _gDryfieldWaterTankAnimation03A60Records[90] = {
 #include "assets/dryfield_water_tank_animation_03A60_records.inc"
 };
 
-u16 D_dryfield_water_tank_80180FF8[20] = {
+static u16 _gDryfieldWaterTankAnimation03A60Indices[20] = {
 #include "assets/dryfield_water_tank_animation_03A60_indices.inc"
 };
 
-AnimationSet D_dryfield_water_tank_80181020 = {
-    D_dryfield_water_tank_80180E90,
-    D_dryfield_water_tank_80180FF8,
-    { NULL, D_dryfield_water_tank_80180D64, NULL, NULL, D_dryfield_water_tank_80180DA0, NULL, NULL, NULL },
+AnimationSet gDryfieldWaterTankAnimation03A60 = {
+    _gDryfieldWaterTankAnimation03A60Records,
+    _gDryfieldWaterTankAnimation03A60Indices,
+    { NULL, _gDryfieldWaterTankAnimation03A60Bank1, NULL, NULL, _gDryfieldWaterTankAnimation03A60Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_water_tank_80181048[2] = {
+static AnimationPackedPose _gDryfieldWaterTankAnimation03CB4Bank1[2] = {
 #include "assets/dryfield_water_tank_animation_03CB4_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_water_tank_80181060[30] = {
+static AnimationPackedRotation _gDryfieldWaterTankAnimation03CB4Bank4[30] = {
 #include "assets/dryfield_water_tank_animation_03CB4_bank4.inc"
 };
 
-AnimationRecord D_dryfield_water_tank_801810D8[93] = {
+static AnimationRecord _gDryfieldWaterTankAnimation03CB4Records[93] = {
 #include "assets/dryfield_water_tank_animation_03CB4_records.inc"
 };
 
-u16 D_dryfield_water_tank_8018124C[20] = {
+static u16 _gDryfieldWaterTankAnimation03CB4Indices[20] = {
 #include "assets/dryfield_water_tank_animation_03CB4_indices.inc"
 };
 
-AnimationSet D_dryfield_water_tank_80181274 = {
-    D_dryfield_water_tank_801810D8,
-    D_dryfield_water_tank_8018124C,
-    { NULL, D_dryfield_water_tank_80181048, NULL, NULL, D_dryfield_water_tank_80181060, NULL, NULL, NULL },
+AnimationSet gDryfieldWaterTankAnimation03CB4 = {
+    _gDryfieldWaterTankAnimation03CB4Records,
+    _gDryfieldWaterTankAnimation03CB4Indices,
+    { NULL, _gDryfieldWaterTankAnimation03CB4Bank1, NULL, NULL, _gDryfieldWaterTankAnimation03CB4Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_water_tank_8018129C[6] = {
+static AnimationPackedPose _gDryfieldWaterTankAnimation04000Bank1[6] = {
 #include "assets/dryfield_water_tank_animation_04000_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_water_tank_801812E4[60] = {
+static AnimationPackedRotation _gDryfieldWaterTankAnimation04000Bank4[60] = {
 #include "assets/dryfield_water_tank_animation_04000_bank4.inc"
 };
 
-AnimationRecord D_dryfield_water_tank_801813D4[113] = {
+static AnimationRecord _gDryfieldWaterTankAnimation04000Records[113] = {
 #include "assets/dryfield_water_tank_animation_04000_records.inc"
 };
 
-u16 D_dryfield_water_tank_80181598[20] = {
+static u16 _gDryfieldWaterTankAnimation04000Indices[20] = {
 #include "assets/dryfield_water_tank_animation_04000_indices.inc"
 };
 
-AnimationSet D_dryfield_water_tank_801815C0 = {
-    D_dryfield_water_tank_801813D4,
-    D_dryfield_water_tank_80181598,
-    { NULL, D_dryfield_water_tank_8018129C, NULL, NULL, D_dryfield_water_tank_801812E4, NULL, NULL, NULL },
+AnimationSet gDryfieldWaterTankAnimation04000 = {
+    _gDryfieldWaterTankAnimation04000Records,
+    _gDryfieldWaterTankAnimation04000Indices,
+    { NULL, _gDryfieldWaterTankAnimation04000Bank1, NULL, NULL, _gDryfieldWaterTankAnimation04000Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_water_tank_801815E8[22] = {
+static AnimationPackedPose _gDryfieldWaterTankAnimation047BCBank1[22] = {
 #include "assets/dryfield_water_tank_animation_047BC_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_water_tank_801816F0[170] = {
+static AnimationPackedRotation _gDryfieldWaterTankAnimation047BCBank4[170] = {
 #include "assets/dryfield_water_tank_animation_047BC_bank4.inc"
 };
 
-AnimationRecord D_dryfield_water_tank_80181998[239] = {
+static AnimationRecord _gDryfieldWaterTankAnimation047BCRecords[239] = {
 #include "assets/dryfield_water_tank_animation_047BC_records.inc"
 };
 
-u16 D_dryfield_water_tank_80181D54[20] = {
+static u16 _gDryfieldWaterTankAnimation047BCIndices[20] = {
 #include "assets/dryfield_water_tank_animation_047BC_indices.inc"
 };
 
-AnimationSet D_dryfield_water_tank_80181D7C = {
-    D_dryfield_water_tank_80181998,
-    D_dryfield_water_tank_80181D54,
-    { NULL, D_dryfield_water_tank_801815E8, NULL, NULL, D_dryfield_water_tank_801816F0, NULL, NULL, NULL },
+AnimationSet gDryfieldWaterTankAnimation047BC = {
+    _gDryfieldWaterTankAnimation047BCRecords,
+    _gDryfieldWaterTankAnimation047BCIndices,
+    { NULL, _gDryfieldWaterTankAnimation047BCBank1, NULL, NULL, _gDryfieldWaterTankAnimation047BCBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_water_tank_80181DA4[5] = {
+static AnimationPackedPose _gDryfieldWaterTankAnimation04AA0Bank1[5] = {
 #include "assets/dryfield_water_tank_animation_04AA0_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_water_tank_80181DE0[60] = {
+static AnimationPackedRotation _gDryfieldWaterTankAnimation04AA0Bank4[60] = {
 #include "assets/dryfield_water_tank_animation_04AA0_bank4.inc"
 };
 
-AnimationRecord D_dryfield_water_tank_80181ED0[90] = {
+static AnimationRecord _gDryfieldWaterTankAnimation04AA0Records[90] = {
 #include "assets/dryfield_water_tank_animation_04AA0_records.inc"
 };
 
-u16 D_dryfield_water_tank_80182038[20] = {
+static u16 _gDryfieldWaterTankAnimation04AA0Indices[20] = {
 #include "assets/dryfield_water_tank_animation_04AA0_indices.inc"
 };
 
-AnimationSet D_dryfield_water_tank_80182060 = {
-    D_dryfield_water_tank_80181ED0,
-    D_dryfield_water_tank_80182038,
-    { NULL, D_dryfield_water_tank_80181DA4, NULL, NULL, D_dryfield_water_tank_80181DE0, NULL, NULL, NULL },
+AnimationSet gDryfieldWaterTankAnimation04AA0 = {
+    _gDryfieldWaterTankAnimation04AA0Records,
+    _gDryfieldWaterTankAnimation04AA0Indices,
+    { NULL, _gDryfieldWaterTankAnimation04AA0Bank1, NULL, NULL, _gDryfieldWaterTankAnimation04AA0Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_water_tank_80182088[3] = {
+static AnimationPackedPose _gDryfieldWaterTankAnimation04C98Bank1[3] = {
 #include "assets/dryfield_water_tank_animation_04C98_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_water_tank_801820AC[34] = {
+static AnimationPackedRotation _gDryfieldWaterTankAnimation04C98Bank4[34] = {
 #include "assets/dryfield_water_tank_animation_04C98_bank4.inc"
 };
 
-AnimationRecord D_dryfield_water_tank_80182134[63] = {
+static AnimationRecord _gDryfieldWaterTankAnimation04C98Records[63] = {
 #include "assets/dryfield_water_tank_animation_04C98_records.inc"
 };
 
-u16 D_dryfield_water_tank_80182230[20] = {
+static u16 _gDryfieldWaterTankAnimation04C98Indices[20] = {
 #include "assets/dryfield_water_tank_animation_04C98_indices.inc"
 };
 
-AnimationSet D_dryfield_water_tank_80182258 = {
-    D_dryfield_water_tank_80182134,
-    D_dryfield_water_tank_80182230,
-    { NULL, D_dryfield_water_tank_80182088, NULL, NULL, D_dryfield_water_tank_801820AC, NULL, NULL, NULL },
+AnimationSet gDryfieldWaterTankAnimation04C98 = {
+    _gDryfieldWaterTankAnimation04C98Records,
+    _gDryfieldWaterTankAnimation04C98Indices,
+    { NULL, _gDryfieldWaterTankAnimation04C98Bank1, NULL, NULL, _gDryfieldWaterTankAnimation04C98Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_water_tank_80182280[5] = {
+static AnimationPackedPose _gDryfieldWaterTankAnimation04FECBank1[5] = {
 #include "assets/dryfield_water_tank_animation_04FEC_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_water_tank_801822BC[58] = {
+static AnimationPackedRotation _gDryfieldWaterTankAnimation04FECBank4[58] = {
 #include "assets/dryfield_water_tank_animation_04FEC_bank4.inc"
 };
 
-AnimationRecord D_dryfield_water_tank_801823A4[120] = {
+static AnimationRecord _gDryfieldWaterTankAnimation04FECRecords[120] = {
 #include "assets/dryfield_water_tank_animation_04FEC_records.inc"
 };
 
-u16 D_dryfield_water_tank_80182584[20] = {
+static u16 _gDryfieldWaterTankAnimation04FECIndices[20] = {
 #include "assets/dryfield_water_tank_animation_04FEC_indices.inc"
 };
 
-AnimationSet D_dryfield_water_tank_801825AC = {
-    D_dryfield_water_tank_801823A4,
-    D_dryfield_water_tank_80182584,
-    { NULL, D_dryfield_water_tank_80182280, NULL, NULL, D_dryfield_water_tank_801822BC, NULL, NULL, NULL },
+AnimationSet gDryfieldWaterTankAnimation04FEC = {
+    _gDryfieldWaterTankAnimation04FECRecords,
+    _gDryfieldWaterTankAnimation04FECIndices,
+    { NULL, _gDryfieldWaterTankAnimation04FECBank1, NULL, NULL, _gDryfieldWaterTankAnimation04FECBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_water_tank_801825D4[3] = {
+static AnimationPackedPose _gDryfieldWaterTankAnimation051E4Bank1[3] = {
 #include "assets/dryfield_water_tank_animation_051E4_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_water_tank_801825F8[34] = {
+static AnimationPackedRotation _gDryfieldWaterTankAnimation051E4Bank4[34] = {
 #include "assets/dryfield_water_tank_animation_051E4_bank4.inc"
 };
 
-AnimationRecord D_dryfield_water_tank_80182680[63] = {
+static AnimationRecord _gDryfieldWaterTankAnimation051E4Records[63] = {
 #include "assets/dryfield_water_tank_animation_051E4_records.inc"
 };
 
-u16 D_dryfield_water_tank_8018277C[20] = {
+static u16 _gDryfieldWaterTankAnimation051E4Indices[20] = {
 #include "assets/dryfield_water_tank_animation_051E4_indices.inc"
 };
 
-AnimationSet D_dryfield_water_tank_801827A4 = {
-    D_dryfield_water_tank_80182680,
-    D_dryfield_water_tank_8018277C,
-    { NULL, D_dryfield_water_tank_801825D4, NULL, NULL, D_dryfield_water_tank_801825F8, NULL, NULL, NULL },
+AnimationSet gDryfieldWaterTankAnimation051E4 = {
+    _gDryfieldWaterTankAnimation051E4Records,
+    _gDryfieldWaterTankAnimation051E4Indices,
+    { NULL, _gDryfieldWaterTankAnimation051E4Bank1, NULL, NULL, _gDryfieldWaterTankAnimation051E4Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_water_tank_801827CC[10] = {
+static AnimationPackedPose _gDryfieldWaterTankAnimation05704Bank1[10] = {
 #include "assets/dryfield_water_tank_animation_05704_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_water_tank_80182844[100] = {
+static AnimationPackedRotation _gDryfieldWaterTankAnimation05704Bank4[100] = {
 #include "assets/dryfield_water_tank_animation_05704_bank4.inc"
 };
 
-AnimationRecord D_dryfield_water_tank_801829D4[178] = {
+static AnimationRecord _gDryfieldWaterTankAnimation05704Records[178] = {
 #include "assets/dryfield_water_tank_animation_05704_records.inc"
 };
 
-u16 D_dryfield_water_tank_80182C9C[20] = {
+static u16 _gDryfieldWaterTankAnimation05704Indices[20] = {
 #include "assets/dryfield_water_tank_animation_05704_indices.inc"
 };
 
-AnimationSet D_dryfield_water_tank_80182CC4 = {
-    D_dryfield_water_tank_801829D4,
-    D_dryfield_water_tank_80182C9C,
-    { NULL, D_dryfield_water_tank_801827CC, NULL, NULL, D_dryfield_water_tank_80182844, NULL, NULL, NULL },
+AnimationSet gDryfieldWaterTankAnimation05704 = {
+    _gDryfieldWaterTankAnimation05704Records,
+    _gDryfieldWaterTankAnimation05704Indices,
+    { NULL, _gDryfieldWaterTankAnimation05704Bank1, NULL, NULL, _gDryfieldWaterTankAnimation05704Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_water_tank_80182CEC[5] = {
+static AnimationPackedPose _gDryfieldWaterTankAnimation059E4Bank1[5] = {
 #include "assets/dryfield_water_tank_animation_059E4_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_water_tank_80182D28[59] = {
+static AnimationPackedRotation _gDryfieldWaterTankAnimation059E4Bank4[59] = {
 #include "assets/dryfield_water_tank_animation_059E4_bank4.inc"
 };
 
-AnimationRecord D_dryfield_water_tank_80182E14[90] = {
+static AnimationRecord _gDryfieldWaterTankAnimation059E4Records[90] = {
 #include "assets/dryfield_water_tank_animation_059E4_records.inc"
 };
 
-u16 D_dryfield_water_tank_80182F7C[20] = {
+static u16 _gDryfieldWaterTankAnimation059E4Indices[20] = {
 #include "assets/dryfield_water_tank_animation_059E4_indices.inc"
 };
 
-AnimationSet D_dryfield_water_tank_80182FA4 = {
-    D_dryfield_water_tank_80182E14,
-    D_dryfield_water_tank_80182F7C,
-    { NULL, D_dryfield_water_tank_80182CEC, NULL, NULL, D_dryfield_water_tank_80182D28, NULL, NULL, NULL },
+AnimationSet gDryfieldWaterTankAnimation059E4 = {
+    _gDryfieldWaterTankAnimation059E4Records,
+    _gDryfieldWaterTankAnimation059E4Indices,
+    { NULL, _gDryfieldWaterTankAnimation059E4Bank1, NULL, NULL, _gDryfieldWaterTankAnimation059E4Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_water_tank_80182FCC[8] = {
+static AnimationPackedPose _gDryfieldWaterTankAnimation05DB8Bank1[8] = {
 #include "assets/dryfield_water_tank_animation_05DB8_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_water_tank_8018302C[84] = {
+static AnimationPackedRotation _gDryfieldWaterTankAnimation05DB8Bank4[84] = {
 #include "assets/dryfield_water_tank_animation_05DB8_bank4.inc"
 };
 
-AnimationRecord D_dryfield_water_tank_8018317C[117] = {
+static AnimationRecord _gDryfieldWaterTankAnimation05DB8Records[117] = {
 #include "assets/dryfield_water_tank_animation_05DB8_records.inc"
 };
 
-u16 D_dryfield_water_tank_80183350[20] = {
+static u16 _gDryfieldWaterTankAnimation05DB8Indices[20] = {
 #include "assets/dryfield_water_tank_animation_05DB8_indices.inc"
 };
 
-AnimationSet D_dryfield_water_tank_80183378 = {
-    D_dryfield_water_tank_8018317C,
-    D_dryfield_water_tank_80183350,
-    { NULL, D_dryfield_water_tank_80182FCC, NULL, NULL, D_dryfield_water_tank_8018302C, NULL, NULL, NULL },
+AnimationSet gDryfieldWaterTankAnimation05DB8 = {
+    _gDryfieldWaterTankAnimation05DB8Records,
+    _gDryfieldWaterTankAnimation05DB8Indices,
+    { NULL, _gDryfieldWaterTankAnimation05DB8Bank1, NULL, NULL, _gDryfieldWaterTankAnimation05DB8Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_water_tank_801833A0[7] = {
+static AnimationPackedPose _gDryfieldWaterTankAnimation061A8Bank1[7] = {
 #include "assets/dryfield_water_tank_animation_061A8_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_water_tank_801833F4[62] = {
+static AnimationPackedRotation _gDryfieldWaterTankAnimation061A8Bank4[62] = {
 #include "assets/dryfield_water_tank_animation_061A8_bank4.inc"
 };
 
-AnimationRecord D_dryfield_water_tank_801834EC[149] = {
+static AnimationRecord _gDryfieldWaterTankAnimation061A8Records[149] = {
 #include "assets/dryfield_water_tank_animation_061A8_records.inc"
 };
 
-u16 D_dryfield_water_tank_80183740[20] = {
+static u16 _gDryfieldWaterTankAnimation061A8Indices[20] = {
 #include "assets/dryfield_water_tank_animation_061A8_indices.inc"
 };
 
-AnimationSet D_dryfield_water_tank_80183768 = {
-    D_dryfield_water_tank_801834EC,
-    D_dryfield_water_tank_80183740,
-    { NULL, D_dryfield_water_tank_801833A0, NULL, NULL, D_dryfield_water_tank_801833F4, NULL, NULL, NULL },
+AnimationSet gDryfieldWaterTankAnimation061A8 = {
+    _gDryfieldWaterTankAnimation061A8Records,
+    _gDryfieldWaterTankAnimation061A8Indices,
+    { NULL, _gDryfieldWaterTankAnimation061A8Bank1, NULL, NULL, _gDryfieldWaterTankAnimation061A8Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_water_tank_80183790[7] = {
+static AnimationPackedPose _gDryfieldWaterTankAnimation06514Bank1[7] = {
 #include "assets/dryfield_water_tank_animation_06514_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_water_tank_801837E4[74] = {
+static AnimationPackedRotation _gDryfieldWaterTankAnimation06514Bank4[74] = {
 #include "assets/dryfield_water_tank_animation_06514_bank4.inc"
 };
 
-AnimationRecord D_dryfield_water_tank_8018390C[104] = {
+static AnimationRecord _gDryfieldWaterTankAnimation06514Records[104] = {
 #include "assets/dryfield_water_tank_animation_06514_records.inc"
 };
 
-u16 D_dryfield_water_tank_80183AAC[20] = {
+static u16 _gDryfieldWaterTankAnimation06514Indices[20] = {
 #include "assets/dryfield_water_tank_animation_06514_indices.inc"
 };
 
-AnimationSet D_dryfield_water_tank_80183AD4 = {
-    D_dryfield_water_tank_8018390C,
-    D_dryfield_water_tank_80183AAC,
-    { NULL, D_dryfield_water_tank_80183790, NULL, NULL, D_dryfield_water_tank_801837E4, NULL, NULL, NULL },
+AnimationSet gDryfieldWaterTankAnimation06514 = {
+    _gDryfieldWaterTankAnimation06514Records,
+    _gDryfieldWaterTankAnimation06514Indices,
+    { NULL, _gDryfieldWaterTankAnimation06514Bank1, NULL, NULL, _gDryfieldWaterTankAnimation06514Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_water_tank_80183AFC[7] = {
+static AnimationPackedPose _gDryfieldWaterTankAnimation06840Bank1[7] = {
 #include "assets/dryfield_water_tank_animation_06840_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_water_tank_80183B50[56] = {
+static AnimationPackedRotation _gDryfieldWaterTankAnimation06840Bank4[56] = {
 #include "assets/dryfield_water_tank_animation_06840_bank4.inc"
 };
 
-AnimationRecord D_dryfield_water_tank_80183C30[106] = {
+static AnimationRecord _gDryfieldWaterTankAnimation06840Records[106] = {
 #include "assets/dryfield_water_tank_animation_06840_records.inc"
 };
 
-u16 D_dryfield_water_tank_80183DD8[20] = {
+static u16 _gDryfieldWaterTankAnimation06840Indices[20] = {
 #include "assets/dryfield_water_tank_animation_06840_indices.inc"
 };
 
-AnimationSet D_dryfield_water_tank_80183E00 = {
-    D_dryfield_water_tank_80183C30,
-    D_dryfield_water_tank_80183DD8,
-    { NULL, D_dryfield_water_tank_80183AFC, NULL, NULL, D_dryfield_water_tank_80183B50, NULL, NULL, NULL },
+AnimationSet gDryfieldWaterTankAnimation06840 = {
+    _gDryfieldWaterTankAnimation06840Records,
+    _gDryfieldWaterTankAnimation06840Indices,
+    { NULL, _gDryfieldWaterTankAnimation06840Bank1, NULL, NULL, _gDryfieldWaterTankAnimation06840Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_water_tank_80183E28[5] = {
+static AnimationPackedPose _gDryfieldWaterTankAnimation06C68Bank1[5] = {
 #include "assets/dryfield_water_tank_animation_06C68_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_water_tank_80183E64[90] = {
+static AnimationPackedRotation _gDryfieldWaterTankAnimation06C68Bank4[90] = {
 #include "assets/dryfield_water_tank_animation_06C68_bank4.inc"
 };
 
-AnimationRecord D_dryfield_water_tank_80183FCC[141] = {
+static AnimationRecord _gDryfieldWaterTankAnimation06C68Records[141] = {
 #include "assets/dryfield_water_tank_animation_06C68_records.inc"
 };
 
-u16 D_dryfield_water_tank_80184200[20] = {
+static u16 _gDryfieldWaterTankAnimation06C68Indices[20] = {
 #include "assets/dryfield_water_tank_animation_06C68_indices.inc"
 };
 
-AnimationSet D_dryfield_water_tank_80184228 = {
-    D_dryfield_water_tank_80183FCC,
-    D_dryfield_water_tank_80184200,
-    { NULL, D_dryfield_water_tank_80183E28, NULL, NULL, D_dryfield_water_tank_80183E64, NULL, NULL, NULL },
+AnimationSet gDryfieldWaterTankAnimation06C68 = {
+    _gDryfieldWaterTankAnimation06C68Records,
+    _gDryfieldWaterTankAnimation06C68Indices,
+    { NULL, _gDryfieldWaterTankAnimation06C68Bank1, NULL, NULL, _gDryfieldWaterTankAnimation06C68Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_water_tank_80184250[3] = {
+static AnimationPackedPose _gDryfieldWaterTankAnimation06F48Bank1[3] = {
 #include "assets/dryfield_water_tank_animation_06F48_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_water_tank_80184274[51] = {
+static AnimationPackedRotation _gDryfieldWaterTankAnimation06F48Bank4[51] = {
 #include "assets/dryfield_water_tank_animation_06F48_bank4.inc"
 };
 
-AnimationRecord D_dryfield_water_tank_80184340[104] = {
+static AnimationRecord _gDryfieldWaterTankAnimation06F48Records[104] = {
 #include "assets/dryfield_water_tank_animation_06F48_records.inc"
 };
 
-u16 D_dryfield_water_tank_801844E0[20] = {
+static u16 _gDryfieldWaterTankAnimation06F48Indices[20] = {
 #include "assets/dryfield_water_tank_animation_06F48_indices.inc"
 };
 
-AnimationSet D_dryfield_water_tank_80184508 = {
-    D_dryfield_water_tank_80184340,
-    D_dryfield_water_tank_801844E0,
-    { NULL, D_dryfield_water_tank_80184250, NULL, NULL, D_dryfield_water_tank_80184274, NULL, NULL, NULL },
+AnimationSet gDryfieldWaterTankAnimation06F48 = {
+    _gDryfieldWaterTankAnimation06F48Records,
+    _gDryfieldWaterTankAnimation06F48Indices,
+    { NULL, _gDryfieldWaterTankAnimation06F48Bank1, NULL, NULL, _gDryfieldWaterTankAnimation06F48Bank4, NULL, NULL, NULL },
 };
 
 SVECTOR D_dryfield_water_tank_80184530[82] = {

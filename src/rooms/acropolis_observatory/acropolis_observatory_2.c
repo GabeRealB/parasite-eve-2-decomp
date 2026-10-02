@@ -653,29 +653,29 @@ SVECTOR D_acropolis_observatory_8017F16C[300] = {
     { -2915, -2995, -0x29FE, 0 },
 };
 
-AnimationPackedPose D_acropolis_observatory_8017FACC[7] = {
+static AnimationPackedPose _gAcropolisObservatoryAnimation02878Bank1[7] = {
 #include "assets/acropolis_observatory_animation_02878_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_observatory_8017FB20[65] = {
+static AnimationPackedRotation _gAcropolisObservatoryAnimation02878Bank4[65] = {
 #include "assets/acropolis_observatory_animation_02878_bank4.inc"
 };
 
-AnimationRecord D_acropolis_observatory_8017FC24[123] = {
+static AnimationRecord _gAcropolisObservatoryAnimation02878Records[123] = {
 #include "assets/acropolis_observatory_animation_02878_records.inc"
 };
 
-u16 D_acropolis_observatory_8017FE10[20] = {
+static u16 _gAcropolisObservatoryAnimation02878Indices[20] = {
 #include "assets/acropolis_observatory_animation_02878_indices.inc"
 };
 
-AnimationSet D_acropolis_observatory_8017FE38 = {
-    D_acropolis_observatory_8017FC24,
-    D_acropolis_observatory_8017FE10,
-    { NULL, D_acropolis_observatory_8017FACC, NULL, NULL, D_acropolis_observatory_8017FB20, NULL, NULL, NULL },
+AnimationSet gAcropolisObservatoryAnimation02878 = {
+    _gAcropolisObservatoryAnimation02878Records,
+    _gAcropolisObservatoryAnimation02878Indices,
+    { NULL, _gAcropolisObservatoryAnimation02878Bank1, NULL, NULL, _gAcropolisObservatoryAnimation02878Bank4, NULL, NULL, NULL },
 };
 
-AnimationSet* gAcropolisObservatoryPlayerAnimationSets[2] = { NULL, &D_acropolis_observatory_8017FE38 };
+AnimationSet* gAcropolisObservatoryPlayerAnimationSets[2] = { NULL, &gAcropolisObservatoryAnimation02878 };
 
 /// Streamed-scene ride, entry 0 of the room's task table: the same ride as
 /// `func_acropolis_observatory_8017DD3C` (entry 1), walking the player's matrix

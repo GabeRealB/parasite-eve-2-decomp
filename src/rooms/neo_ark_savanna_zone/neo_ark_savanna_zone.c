@@ -113,30 +113,30 @@ GpWarpRec D_neo_ark_savanna_zone_8017FA04[2] = {
     { { .words = { 3072, 0x34BC, 0, 1500 } }, { 0, 0, 0, 0 }, { .words = { 3072, 0x34BC, 0, 1500 } }, { 0, 0, 0, 0 }, 0x55120004, 0x55120003, 0, 2, 0, 0 },
 };
 
-SVECTOR D_neo_ark_savanna_zone_8017FA74[5] = {
+static SVECTOR _gNeoArkSavannaZoneCollision02610Normals[5] = {
 #include "assets/neo_ark_savanna_zone_collision_02610_normals.inc"
 };
 
-SVECTOR D_neo_ark_savanna_zone_8017FA9C[12] = {
+static SVECTOR _gNeoArkSavannaZoneCollision02610Verts[12] = {
 #include "assets/neo_ark_savanna_zone_collision_02610_verts.inc"
 };
 
-WorldCollisionGridFace D_neo_ark_savanna_zone_8017FAFC[11] = {
+static WorldCollisionGridFace _gNeoArkSavannaZoneCollision02610Faces[11] = {
 #include "assets/neo_ark_savanna_zone_collision_02610_faces.inc"
 };
 
-s16 D_neo_ark_savanna_zone_8017FB80[32] = {
+static s16 _gNeoArkSavannaZoneCollision02610Cells[32] = {
 #include "assets/neo_ark_savanna_zone_collision_02610_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_neo_ark_savanna_zone_8017FB80[i])
-s16* D_neo_ark_savanna_zone_8017FBC0[4] = {
+#define GRID_CELL(i) (&_gNeoArkSavannaZoneCollision02610Cells[i])
+static s16* _gNeoArkSavannaZoneCollision02610Table[4] = {
 #include "assets/neo_ark_savanna_zone_collision_02610_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_neo_ark_savanna_zone_8017FBD0[1] = {
-    { NULL, D_neo_ark_savanna_zone_8017FA74, D_neo_ark_savanna_zone_8017FA9C, D_neo_ark_savanna_zone_8017FAFC, D_neo_ark_savanna_zone_8017FBC0, 50, 50, 4, 1, 4000, 11 },
+    { NULL, _gNeoArkSavannaZoneCollision02610Normals, _gNeoArkSavannaZoneCollision02610Verts, _gNeoArkSavannaZoneCollision02610Faces, _gNeoArkSavannaZoneCollision02610Table, 50, 50, 4, 1, 4000, 11 },
 };
 
 GpViewRec D_neo_ark_savanna_zone_8017FBF4[4] = {

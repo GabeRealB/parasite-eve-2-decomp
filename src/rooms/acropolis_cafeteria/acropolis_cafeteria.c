@@ -98,7 +98,7 @@ extern WorldCollisionTrigger  D_acropolis_cafeteria_80188C8C[18];
 extern WorldCollisionTrigger  D_acropolis_cafeteria_801891E4[16];
 extern WorldCollisionTrigger  D_acropolis_cafeteria_801896A4[20];
 
-extern AnimationSet D_acropolis_cafeteria_80184CC4;
+static AnimationSet _gAcropolisCafeteriaAnimation07704;
 s32                 func_acropolis_cafeteria_8017D700(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32                 func_acropolis_cafeteria_8017E0D4(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32                 func_acropolis_cafeteria_8017E0DC(Task*, s32, s32, s32);
@@ -158,7 +158,7 @@ ActorTransform D_acropolis_cafeteria_80182C14 = { { -2800, -300, -892, 0 }, { 0,
 AnimationPlayRequest D_acropolis_cafeteria_80182C2C = { { .index = 0 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 AnimationSet* D_acropolis_cafeteria_80182C40[1] = {
-    &D_actor_202900_8014FEB8,
+    &gActor202900Animation06098,
 };
 
 GpCopyArg D_acropolis_cafeteria_80182C44 = { { .sets = D_acropolis_cafeteria_80182C40 }, 1 };
@@ -166,10 +166,10 @@ GpCopyArg D_acropolis_cafeteria_80182C44 = { { .sets = D_acropolis_cafeteria_801
 AnimationPlayRequest D_acropolis_cafeteria_80182C4C = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 AnimationSet* D_acropolis_cafeteria_80182C60[4] = {
-    &D_actor_310600_801668FC,
-    &D_acropolis_cafeteria_80184CC4,
-    &D_actor_210600_80151D14,
-    &D_actor_210600_80153E70,
+    &gActor310600Animation04ADC,
+    &_gAcropolisCafeteriaAnimation07704,
+    &gActor210600Animation07EF4,
+    &gActor210600Animation0A050,
 };
 
 GpCopyArg D_acropolis_cafeteria_80182C70 = { { .sets = D_acropolis_cafeteria_80182C60 }, 4 };
@@ -479,26 +479,26 @@ TaskDesc D_acropolis_cafeteria_80184178[3] = {
     { { { TASK_BODY_NONE, 192 } }, func_acropolis_cafeteria_8017E47C, { .value = 0 } },
 };
 
-AnimationPackedPose D_acropolis_cafeteria_8018419C[23] = {
+static AnimationPackedPose _gAcropolisCafeteriaAnimation07704Bank1[23] = {
 #include "assets/acropolis_cafeteria_animation_07704_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_cafeteria_801842B0[286] = {
+static AnimationPackedRotation _gAcropolisCafeteriaAnimation07704Bank4[286] = {
 #include "assets/acropolis_cafeteria_animation_07704_bank4.inc"
 };
 
-AnimationRecord D_acropolis_cafeteria_80184728[349] = {
+static AnimationRecord _gAcropolisCafeteriaAnimation07704Records[349] = {
 #include "assets/acropolis_cafeteria_animation_07704_records.inc"
 };
 
-u16 D_acropolis_cafeteria_80184C9C[20] = {
+static u16 _gAcropolisCafeteriaAnimation07704Indices[20] = {
 #include "assets/acropolis_cafeteria_animation_07704_indices.inc"
 };
 
-AnimationSet D_acropolis_cafeteria_80184CC4 = {
-    D_acropolis_cafeteria_80184728,
-    D_acropolis_cafeteria_80184C9C,
-    { NULL, D_acropolis_cafeteria_8018419C, NULL, NULL, D_acropolis_cafeteria_801842B0, NULL, NULL, NULL },
+static AnimationSet _gAcropolisCafeteriaAnimation07704 = {
+    _gAcropolisCafeteriaAnimation07704Records,
+    _gAcropolisCafeteriaAnimation07704Indices,
+    { NULL, _gAcropolisCafeteriaAnimation07704Bank1, NULL, NULL, _gAcropolisCafeteriaAnimation07704Bank4, NULL, NULL, NULL },
 };
 
 TaskMessageEntry D_acropolis_cafeteria_80184CEC[2] = {
@@ -508,162 +508,162 @@ TaskMessageEntry D_acropolis_cafeteria_80184CEC[2] = {
 
 s32 D_acropolis_cafeteria_80184CFC = 0;
 
-TmdBone D_acropolis_cafeteria_80184D00[1] = {
+static TmdBone _gAcropolisCafeteriaModel077D8Skeleton[1] = {
 #include "assets/acropolis_cafeteria_model_077D8_skeleton.inc"
 };
 
-u32 D_acropolis_cafeteria_80184D24[1] = {
+static u32 _gAcropolisCafeteriaModel077D8PartVerts[1] = {
 #include "assets/acropolis_cafeteria_model_077D8_partVerts.inc"
 };
 
-SVECTOR D_acropolis_cafeteria_80184D28[14] = {
+static SVECTOR _gAcropolisCafeteriaModel077D8Verts[14] = {
 #include "assets/acropolis_cafeteria_model_077D8_verts.inc"
 };
 
-u32 D_acropolis_cafeteria_80184D98[49] = {
+static u32 _gAcropolisCafeteriaModel077D8Stream[49] = {
 #include "assets/acropolis_cafeteria_model_077D8_stream.inc"
 };
 
-TmdSource D_acropolis_cafeteria_80184E5C = {
+TmdSource gAcropolisCafeteriaModel077D8 = {
     0,
     296,
     0,
     1,
-    D_acropolis_cafeteria_80184D24,
-    D_acropolis_cafeteria_80184D28,
-    &D_acropolis_cafeteria_80184D28[14],
-    D_acropolis_cafeteria_80184D00,
-    D_acropolis_cafeteria_80184D98,
+    _gAcropolisCafeteriaModel077D8PartVerts,
+    _gAcropolisCafeteriaModel077D8Verts,
+    &_gAcropolisCafeteriaModel077D8Verts[14],
+    _gAcropolisCafeteriaModel077D8Skeleton,
+    _gAcropolisCafeteriaModel077D8Stream,
 };
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-TmdBone D_acropolis_cafeteria_80184E90[1] = {
+static TmdBone _gAcropolisCafeteriaModel07CA8Skeleton[1] = {
 #include "assets/acropolis_cafeteria_model_07CA8_skeleton.inc"
 };
 
-u32 D_acropolis_cafeteria_80184EB4[1] = {
+static u32 _gAcropolisCafeteriaModel07CA8PartVerts[1] = {
 #include "assets/acropolis_cafeteria_model_07CA8_partVerts.inc"
 };
 
-SVECTOR D_acropolis_cafeteria_80184EB8[46] = {
+static SVECTOR _gAcropolisCafeteriaModel07CA8Verts[46] = {
 #include "assets/acropolis_cafeteria_model_07CA8_verts.inc"
 };
 
-SVECTOR D_acropolis_cafeteria_80185028[72] = {
+static SVECTOR _gAcropolisCafeteriaModel07CA8Normals[72] = {
 #include "assets/acropolis_cafeteria_model_07CA8_normals.inc"
 };
 
-u32 D_acropolis_cafeteria_80185268[407] = {
+static u32 _gAcropolisCafeteriaModel07CA8Stream[407] = {
 #include "assets/acropolis_cafeteria_model_07CA8_stream.inc"
 };
 
-TmdSource D_acropolis_cafeteria_801858C4 = {
+TmdSource gAcropolisCafeteriaModel07CA8 = {
     0,
     2952,
     0,
     1,
-    D_acropolis_cafeteria_80184EB4,
-    D_acropolis_cafeteria_80184EB8,
-    D_acropolis_cafeteria_80185028,
-    D_acropolis_cafeteria_80184E90,
-    D_acropolis_cafeteria_80185268,
+    _gAcropolisCafeteriaModel07CA8PartVerts,
+    _gAcropolisCafeteriaModel07CA8Verts,
+    _gAcropolisCafeteriaModel07CA8Normals,
+    _gAcropolisCafeteriaModel07CA8Skeleton,
+    _gAcropolisCafeteriaModel07CA8Stream,
 };
 
-TmdBone D_acropolis_cafeteria_801858E8[1] = {
+static TmdBone _gAcropolisCafeteriaModel08638Skeleton[1] = {
 #include "assets/acropolis_cafeteria_model_08638_skeleton.inc"
 };
 
-u32 D_acropolis_cafeteria_8018590C[1] = {
+static u32 _gAcropolisCafeteriaModel08638PartVerts[1] = {
 #include "assets/acropolis_cafeteria_model_08638_partVerts.inc"
 };
 
-SVECTOR D_acropolis_cafeteria_80185910[31] = {
+static SVECTOR _gAcropolisCafeteriaModel08638Verts[31] = {
 #include "assets/acropolis_cafeteria_model_08638_verts.inc"
 };
 
-SVECTOR D_acropolis_cafeteria_80185A08[62] = {
+static SVECTOR _gAcropolisCafeteriaModel08638Normals[62] = {
 #include "assets/acropolis_cafeteria_model_08638_normals.inc"
 };
 
-u32 D_acropolis_cafeteria_80185BF8[409] = {
+static u32 _gAcropolisCafeteriaModel08638Stream[409] = {
 #include "assets/acropolis_cafeteria_model_08638_stream.inc"
 };
 
-TmdSource D_acropolis_cafeteria_8018625C = {
+TmdSource gAcropolisCafeteriaModel08638 = {
     0,
     2880,
     0,
     1,
-    D_acropolis_cafeteria_8018590C,
-    D_acropolis_cafeteria_80185910,
-    D_acropolis_cafeteria_80185A08,
-    D_acropolis_cafeteria_801858E8,
-    D_acropolis_cafeteria_80185BF8,
+    _gAcropolisCafeteriaModel08638PartVerts,
+    _gAcropolisCafeteriaModel08638Verts,
+    _gAcropolisCafeteriaModel08638Normals,
+    _gAcropolisCafeteriaModel08638Skeleton,
+    _gAcropolisCafeteriaModel08638Stream,
 };
 
-TmdBone D_acropolis_cafeteria_80186280[1] = {
+static TmdBone _gAcropolisCafeteriaModel09090Skeleton[1] = {
 #include "assets/acropolis_cafeteria_model_09090_skeleton.inc"
 };
 
-u32 D_acropolis_cafeteria_801862A4[1] = {
+static u32 _gAcropolisCafeteriaModel09090PartVerts[1] = {
 #include "assets/acropolis_cafeteria_model_09090_partVerts.inc"
 };
 
-SVECTOR D_acropolis_cafeteria_801862A8[46] = {
+static SVECTOR _gAcropolisCafeteriaModel09090Verts[46] = {
 #include "assets/acropolis_cafeteria_model_09090_verts.inc"
 };
 
-SVECTOR D_acropolis_cafeteria_80186418[71] = {
+static SVECTOR _gAcropolisCafeteriaModel09090Normals[71] = {
 #include "assets/acropolis_cafeteria_model_09090_normals.inc"
 };
 
-u32 D_acropolis_cafeteria_80186650[407] = {
+static u32 _gAcropolisCafeteriaModel09090Stream[407] = {
 #include "assets/acropolis_cafeteria_model_09090_stream.inc"
 };
 
-TmdSource D_acropolis_cafeteria_80186CAC = {
+TmdSource gAcropolisCafeteriaModel09090 = {
     0,
     2952,
     0,
     1,
-    D_acropolis_cafeteria_801862A4,
-    D_acropolis_cafeteria_801862A8,
-    D_acropolis_cafeteria_80186418,
-    D_acropolis_cafeteria_80186280,
-    D_acropolis_cafeteria_80186650,
+    _gAcropolisCafeteriaModel09090PartVerts,
+    _gAcropolisCafeteriaModel09090Verts,
+    _gAcropolisCafeteriaModel09090Normals,
+    _gAcropolisCafeteriaModel09090Skeleton,
+    _gAcropolisCafeteriaModel09090Stream,
 };
 
-TmdBone D_acropolis_cafeteria_80186CD0[1] = {
+static TmdBone _gAcropolisCafeteriaModel09A20Skeleton[1] = {
 #include "assets/acropolis_cafeteria_model_09A20_skeleton.inc"
 };
 
-u32 D_acropolis_cafeteria_80186CF4[1] = {
+static u32 _gAcropolisCafeteriaModel09A20PartVerts[1] = {
 #include "assets/acropolis_cafeteria_model_09A20_partVerts.inc"
 };
 
-SVECTOR D_acropolis_cafeteria_80186CF8[37] = {
+static SVECTOR _gAcropolisCafeteriaModel09A20Verts[37] = {
 #include "assets/acropolis_cafeteria_model_09A20_verts.inc"
 };
 
-SVECTOR D_acropolis_cafeteria_80186E20[56] = {
+static SVECTOR _gAcropolisCafeteriaModel09A20Normals[56] = {
 #include "assets/acropolis_cafeteria_model_09A20_normals.inc"
 };
 
-u32 D_acropolis_cafeteria_80186FE0[334] = {
+static u32 _gAcropolisCafeteriaModel09A20Stream[334] = {
 #include "assets/acropolis_cafeteria_model_09A20_stream.inc"
 };
 
-TmdSource D_acropolis_cafeteria_80187518 = {
+TmdSource gAcropolisCafeteriaModel09A20 = {
     0,
     2296,
     0,
     1,
-    D_acropolis_cafeteria_80186CF4,
-    D_acropolis_cafeteria_80186CF8,
-    D_acropolis_cafeteria_80186E20,
-    D_acropolis_cafeteria_80186CD0,
-    D_acropolis_cafeteria_80186FE0,
+    _gAcropolisCafeteriaModel09A20PartVerts,
+    _gAcropolisCafeteriaModel09A20Verts,
+    _gAcropolisCafeteriaModel09A20Normals,
+    _gAcropolisCafeteriaModel09A20Skeleton,
+    _gAcropolisCafeteriaModel09A20Stream,
 };
 
 GpRoomObjRec D_acropolis_cafeteria_8018753C[4] = {
@@ -754,30 +754,30 @@ GpWarpRec D_acropolis_cafeteria_801875E4[3] = {
     { { .words = { 3072, -986, -300, -5486 } }, { 0, 0, 0, 0 }, { .words = { 3072, -986, -300, -5486 } }, { 0, 0, 0, 0 }, 0x51040005, 0x51040004, 0x51040003, 5, 0, 500 },
 };
 
-SVECTOR D_acropolis_cafeteria_8018768C[36] = {
+static SVECTOR _gAcropolisCafeteriaCollision0B1E8Normals[36] = {
 #include "assets/acropolis_cafeteria_collision_0B1E8_normals.inc"
 };
 
-SVECTOR D_acropolis_cafeteria_801877AC[207] = {
+static SVECTOR _gAcropolisCafeteriaCollision0B1E8Verts[207] = {
 #include "assets/acropolis_cafeteria_collision_0B1E8_verts.inc"
 };
 
-WorldCollisionGridFace D_acropolis_cafeteria_80187E24[120] = {
+static WorldCollisionGridFace _gAcropolisCafeteriaCollision0B1E8Faces[120] = {
 #include "assets/acropolis_cafeteria_collision_0B1E8_faces.inc"
 };
 
-s16 D_acropolis_cafeteria_801883C4[480] = {
+static s16 _gAcropolisCafeteriaCollision0B1E8Cells[480] = {
 #include "assets/acropolis_cafeteria_collision_0B1E8_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_acropolis_cafeteria_801883C4[i])
-s16* D_acropolis_cafeteria_80188784[9] = {
+#define GRID_CELL(i) (&_gAcropolisCafeteriaCollision0B1E8Cells[i])
+static s16* _gAcropolisCafeteriaCollision0B1E8Table[9] = {
 #include "assets/acropolis_cafeteria_collision_0B1E8_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_acropolis_cafeteria_801887A8[1] = {
-    { NULL, D_acropolis_cafeteria_8018768C, D_acropolis_cafeteria_801877AC, D_acropolis_cafeteria_80187E24, D_acropolis_cafeteria_80188784, 5600, 6098, 3, 3, 4000, 120 },
+    { NULL, _gAcropolisCafeteriaCollision0B1E8Normals, _gAcropolisCafeteriaCollision0B1E8Verts, _gAcropolisCafeteriaCollision0B1E8Faces, _gAcropolisCafeteriaCollision0B1E8Table, 5600, 6098, 3, 3, 4000, 120 },
 };
 
 WorldCollisionTrigger D_acropolis_cafeteria_801887CC[16] = {

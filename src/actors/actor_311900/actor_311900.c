@@ -78,117 +78,117 @@ static s32  func_actor_311900_80162658(GfxCoord* arg0, s16 arg1);
 static void func_actor_311900_8016278C(Task* task);
 static void func_actor_311900_8016281C(Task* task);
 
-extern TmdSource D_actor_311900_80168784;
-extern TmdSource D_actor_311900_8016DF4C;
+static TmdSource _gActor311900RupertBroderickBody1;
+static TmdSource _gActor311900SwatMember2Body;
 void             func_actor_311900_8016222C(Task*);
 void             func_actor_311900_8016249C(Task*);
 
-TmdBone D_actor_311900_801628B0[20] = {
+static TmdBone _gActor311900RupertBroderickBody1Skeleton[20] = {
 #include "assets/rupert_broderick_body_1_skeleton.inc"
 };
 
-u32 D_actor_311900_80162B80[20] = {
+static u32 _gActor311900RupertBroderickBody1PartVerts[20] = {
 #include "assets/rupert_broderick_body_1_partVerts.inc"
 };
 
-SVECTOR D_actor_311900_80162BD0[386] = {
+static SVECTOR _gActor311900RupertBroderickBody1Verts[386] = {
 #include "assets/rupert_broderick_body_1_verts.inc"
 };
 
-SVECTOR D_actor_311900_801637E0[385] = {
+static SVECTOR _gActor311900RupertBroderickBody1Normals[385] = {
 #include "assets/rupert_broderick_body_1_normals.inc"
 };
 
-u32 D_actor_311900_801643E8[4327] = {
+static u32 _gActor311900RupertBroderickBody1Stream[4327] = {
 #include "assets/rupert_broderick_body_1_stream.inc"
 };
 
-TmdSource D_actor_311900_80168784 = {
+static TmdSource _gActor311900RupertBroderickBody1 = {
     0,
     23980,
     6012,
     20,
-    D_actor_311900_80162B80,
-    D_actor_311900_80162BD0,
-    D_actor_311900_801637E0,
-    D_actor_311900_801628B0,
-    D_actor_311900_801643E8,
+    _gActor311900RupertBroderickBody1PartVerts,
+    _gActor311900RupertBroderickBody1Verts,
+    _gActor311900RupertBroderickBody1Normals,
+    _gActor311900RupertBroderickBody1Skeleton,
+    _gActor311900RupertBroderickBody1Stream,
 };
 
-TmdBone D_actor_311900_801687A8[20] = {
+static TmdBone _gActor311900SwatMember2BodySkeleton[20] = {
 #include "assets/swat_member_2_body_skeleton.inc"
 };
 
-u32 D_actor_311900_80168A78[20] = {
+static u32 _gActor311900SwatMember2BodyPartVerts[20] = {
 #include "assets/swat_member_2_body_partVerts.inc"
 };
 
-SVECTOR D_actor_311900_80168AC8[360] = {
+static SVECTOR _gActor311900SwatMember2BodyVerts[360] = {
 #include "assets/swat_member_2_body_verts.inc"
 };
 
-SVECTOR D_actor_311900_80169608[358] = {
+static SVECTOR _gActor311900SwatMember2BodyNormals[358] = {
 #include "assets/swat_member_2_body_normals.inc"
 };
 
-u32 D_actor_311900_8016A138[3973] = {
+static u32 _gActor311900SwatMember2BodyStream[3973] = {
 #include "assets/swat_member_2_body_stream.inc"
 };
 
-TmdSource D_actor_311900_8016DF4C = {
+static TmdSource _gActor311900SwatMember2Body = {
     0,
     21176,
     6792,
     20,
-    D_actor_311900_80168A78,
-    D_actor_311900_80168AC8,
-    D_actor_311900_80169608,
-    D_actor_311900_801687A8,
-    D_actor_311900_8016A138,
+    _gActor311900SwatMember2BodyPartVerts,
+    _gActor311900SwatMember2BodyVerts,
+    _gActor311900SwatMember2BodyNormals,
+    _gActor311900SwatMember2BodySkeleton,
+    _gActor311900SwatMember2BodyStream,
 };
 
-AnimationPackedPose D_actor_311900_8016DF70[11] = {
+static AnimationPackedPose _gActor311900Animation0C9A8Bank1[11] = {
 #include "assets/actor_311900_animation_0C9A8_bank1.inc"
 };
 
-AnimationPackedRotation D_actor_311900_8016DFF4[201] = {
+static AnimationPackedRotation _gActor311900Animation0C9A8Bank4[201] = {
 #include "assets/actor_311900_animation_0C9A8_bank4.inc"
 };
 
-AnimationRecord D_actor_311900_8016E318[290] = {
+static AnimationRecord _gActor311900Animation0C9A8Records[290] = {
 #include "assets/actor_311900_animation_0C9A8_records.inc"
 };
 
-u16 D_actor_311900_8016E7A0[20] = {
+static u16 _gActor311900Animation0C9A8Indices[20] = {
 #include "assets/actor_311900_animation_0C9A8_indices.inc"
 };
 
-AnimationSet D_actor_311900_8016E7C8 = {
-    D_actor_311900_8016E318,
-    D_actor_311900_8016E7A0,
-    { NULL, D_actor_311900_8016DF70, NULL, NULL, D_actor_311900_8016DFF4, NULL, NULL, NULL },
+static AnimationSet _gActor311900Animation0C9A8 = {
+    _gActor311900Animation0C9A8Records,
+    _gActor311900Animation0C9A8Indices,
+    { NULL, _gActor311900Animation0C9A8Bank1, NULL, NULL, _gActor311900Animation0C9A8Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_actor_311900_8016E7F0[6] = {
+static AnimationPackedPose _gActor311900Animation0CDA0Bank1[6] = {
 #include "assets/actor_311900_animation_0CDA0_bank1.inc"
 };
 
-AnimationPackedRotation D_actor_311900_8016E838[75] = {
+static AnimationPackedRotation _gActor311900Animation0CDA0Bank4[75] = {
 #include "assets/actor_311900_animation_0CDA0_bank4.inc"
 };
 
-AnimationRecord D_actor_311900_8016E964[141] = {
+static AnimationRecord _gActor311900Animation0CDA0Records[141] = {
 #include "assets/actor_311900_animation_0CDA0_records.inc"
 };
 
-u16 D_actor_311900_8016EB98[20] = {
+static u16 _gActor311900Animation0CDA0Indices[20] = {
 #include "assets/actor_311900_animation_0CDA0_indices.inc"
 };
 
-AnimationSet D_actor_311900_8016EBC0 = {
-    D_actor_311900_8016E964,
-    D_actor_311900_8016EB98,
-    { NULL, D_actor_311900_8016E7F0, NULL, NULL, D_actor_311900_8016E838, NULL, NULL, NULL },
+static AnimationSet _gActor311900Animation0CDA0 = {
+    _gActor311900Animation0CDA0Records,
+    _gActor311900Animation0CDA0Indices,
+    { NULL, _gActor311900Animation0CDA0Bank1, NULL, NULL, _gActor311900Animation0CDA0Bank4, NULL, NULL, NULL },
 };
 
 u8 D_actor_311900_8016EBE8[12] = {
@@ -221,9 +221,9 @@ u8 D_actor_311900_8016EBF4[12] = {
     0,
 };
 
-TaskDesc D_actor_311900_8016EC00 = { { { TASK_BODY_TMD, 96 } }, func_actor_311900_8016249C, { .model = &D_actor_311900_8016DF4C } };
+TaskDesc D_actor_311900_8016EC00 = { { { TASK_BODY_TMD, 96 } }, func_actor_311900_8016249C, { .model = &_gActor311900SwatMember2Body } };
 
-TaskDesc D_actor_311900_8016EC0C = { { { TASK_BODY_TMD, 96 } }, func_actor_311900_8016222C, { .model = &D_actor_311900_80168784 } };
+TaskDesc D_actor_311900_8016EC0C = { { { TASK_BODY_TMD, 96 } }, func_actor_311900_8016222C, { .model = &_gActor311900RupertBroderickBody1 } };
 
 u16 D_actor_311900_8016EC18[4][256];
 

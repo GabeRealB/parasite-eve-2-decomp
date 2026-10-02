@@ -14,7 +14,7 @@ extern TmdSource gMadChaserChunkModel1;
 
 extern TmdSource gMadChaserChunkModel2;
 
-extern TmdSource D_actor_342400_80170560;
+extern TmdSource gActor342400MadChaserBody;
 
 extern EnemyParams gMadChaserEnemyParams;
 

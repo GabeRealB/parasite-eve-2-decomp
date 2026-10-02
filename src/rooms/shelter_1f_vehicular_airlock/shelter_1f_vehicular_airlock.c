@@ -91,10 +91,10 @@ s32 func_shelter_1f_vehicular_airlock_8017D988(Task*, s32, TaskMessageArg, TaskM
 s32 func_shelter_1f_vehicular_airlock_8017D990(Task*, s32, s32, TaskMessageArg);
 s32 func_shelter_1f_vehicular_airlock_8017D9F4(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern u32     D_shelter_1f_vehicular_airlock_80180C74[1];
-extern SVECTOR D_shelter_1f_vehicular_airlock_80180C78[116];
-extern TmdBone D_shelter_1f_vehicular_airlock_80180C50[1];
-extern u32     D_shelter_1f_vehicular_airlock_80181018[1019];
+static u32     _gShelter1fVehicularAirlockModel03A58PartVerts[1];
+static SVECTOR _gShelter1fVehicularAirlockModel03A58Verts[116];
+static TmdBone _gShelter1fVehicularAirlockModel03A58Skeleton[1];
+static u32     _gShelter1fVehicularAirlockModel03A58Stream[1019];
 
 extern WorldCollisionGrid         D_shelter_1f_vehicular_airlock_80182438[1];
 extern WorldCollisionTrigger      D_shelter_1f_vehicular_airlock_80182714[2];
@@ -102,32 +102,32 @@ extern WorldCollisionTrigger      D_shelter_1f_vehicular_airlock_801827AC[7];
 extern WorldCoordRoomAmbientEntry D_shelter_1f_vehicular_airlock_801829C0[4];
 extern WorldCoordRoomLights       D_shelter_1f_vehicular_airlock_801826FC[1];
 
-TmdBone D_shelter_1f_vehicular_airlock_80180C50[1] = {
+static TmdBone _gShelter1fVehicularAirlockModel03A58Skeleton[1] = {
 #include "assets/shelter_1f_vehicular_airlock_model_03A58_skeleton.inc"
 };
 
-u32 D_shelter_1f_vehicular_airlock_80180C74[1] = {
+static u32 _gShelter1fVehicularAirlockModel03A58PartVerts[1] = {
 #include "assets/shelter_1f_vehicular_airlock_model_03A58_partVerts.inc"
 };
 
-SVECTOR D_shelter_1f_vehicular_airlock_80180C78[116] = {
+static SVECTOR _gShelter1fVehicularAirlockModel03A58Verts[116] = {
 #include "assets/shelter_1f_vehicular_airlock_model_03A58_verts.inc"
 };
 
-u32 D_shelter_1f_vehicular_airlock_80181018[1019] = {
+static u32 _gShelter1fVehicularAirlockModel03A58Stream[1019] = {
 #include "assets/shelter_1f_vehicular_airlock_model_03A58_stream.inc"
 };
 
-TmdSource D_shelter_1f_vehicular_airlock_80182004 = {
+TmdSource gShelter1fVehicularAirlockModel03A58 = {
     0,
     6672,
     0,
     1,
-    D_shelter_1f_vehicular_airlock_80180C74,
-    D_shelter_1f_vehicular_airlock_80180C78,
-    &D_shelter_1f_vehicular_airlock_80180C78[116],
-    D_shelter_1f_vehicular_airlock_80180C50,
-    D_shelter_1f_vehicular_airlock_80181018,
+    _gShelter1fVehicularAirlockModel03A58PartVerts,
+    _gShelter1fVehicularAirlockModel03A58Verts,
+    &_gShelter1fVehicularAirlockModel03A58Verts[116],
+    _gShelter1fVehicularAirlockModel03A58Skeleton,
+    _gShelter1fVehicularAirlockModel03A58Stream,
 };
 
 TaskDesc D_shelter_1f_vehicular_airlock_80182028 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
@@ -188,30 +188,30 @@ GpWarpRec D_shelter_1f_vehicular_airlock_8018211C[3] = {
     { { .words = { 1024, -0x2710, 0, 0 } }, { 0, 0, 0, 0 }, { .words = { 1024, -0x2710, 0, 0 } }, { 0, 0, 0, 0 }, 0x55020004, 0x55020003, 0, 3, 0, 428 },
 };
 
-SVECTOR D_shelter_1f_vehicular_airlock_801821C4[10] = {
+static SVECTOR _gShelter1fVehicularAirlockCollision04E78Normals[10] = {
 #include "assets/shelter_1f_vehicular_airlock_collision_04E78_normals.inc"
 };
 
-SVECTOR D_shelter_1f_vehicular_airlock_80182214[33] = {
+static SVECTOR _gShelter1fVehicularAirlockCollision04E78Verts[33] = {
 #include "assets/shelter_1f_vehicular_airlock_collision_04E78_verts.inc"
 };
 
-WorldCollisionGridFace D_shelter_1f_vehicular_airlock_8018231C[12] = {
+static WorldCollisionGridFace _gShelter1fVehicularAirlockCollision04E78Faces[12] = {
 #include "assets/shelter_1f_vehicular_airlock_collision_04E78_faces.inc"
 };
 
-s16 D_shelter_1f_vehicular_airlock_801823AC[52] = {
+static s16 _gShelter1fVehicularAirlockCollision04E78Cells[52] = {
 #include "assets/shelter_1f_vehicular_airlock_collision_04E78_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_shelter_1f_vehicular_airlock_801823AC[i])
-s16* D_shelter_1f_vehicular_airlock_80182414[9] = {
+#define GRID_CELL(i) (&_gShelter1fVehicularAirlockCollision04E78Cells[i])
+static s16* _gShelter1fVehicularAirlockCollision04E78Table[9] = {
 #include "assets/shelter_1f_vehicular_airlock_collision_04E78_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_shelter_1f_vehicular_airlock_80182438[1] = {
-    { NULL, D_shelter_1f_vehicular_airlock_801821C4, D_shelter_1f_vehicular_airlock_80182214, D_shelter_1f_vehicular_airlock_8018231C, D_shelter_1f_vehicular_airlock_80182414, 0x2CEC, 3000, 3, 3, 4000, 12 },
+    { NULL, _gShelter1fVehicularAirlockCollision04E78Normals, _gShelter1fVehicularAirlockCollision04E78Verts, _gShelter1fVehicularAirlockCollision04E78Faces, _gShelter1fVehicularAirlockCollision04E78Table, 0x2CEC, 3000, 3, 3, 4000, 12 },
 };
 
 GpViewRec D_shelter_1f_vehicular_airlock_8018245C[3] = {

@@ -32,38 +32,38 @@ s32 func_shelter_b1_sleeping_quarters_8017D670(Task*, s32, RoomEventMsg*, RoomEv
 s32 func_shelter_b1_sleeping_quarters_8017D6FC(Task*, s32, s32, TaskMessageArg);
 s32 func_shelter_b1_sleeping_quarters_8017D770(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern u32     D_shelter_b1_sleeping_quarters_80180308[1];
-extern SVECTOR D_shelter_b1_sleeping_quarters_8018030C[22];
-extern TmdBone D_shelter_b1_sleeping_quarters_801802E4[1];
-extern u32     D_shelter_b1_sleeping_quarters_801803BC[78];
+static u32     _gShelterB1SleepingQuartersModel02DFCPartVerts[1];
+static SVECTOR _gShelterB1SleepingQuartersModel02DFCVerts[22];
+static TmdBone _gShelterB1SleepingQuartersModel02DFCSkeleton[1];
+static u32     _gShelterB1SleepingQuartersModel02DFCStream[78];
 
-TmdBone D_shelter_b1_sleeping_quarters_801802E4[1] = {
+static TmdBone _gShelterB1SleepingQuartersModel02DFCSkeleton[1] = {
 #include "assets/shelter_b1_sleeping_quarters_model_02DFC_skeleton.inc"
 };
 
-u32 D_shelter_b1_sleeping_quarters_80180308[1] = {
+static u32 _gShelterB1SleepingQuartersModel02DFCPartVerts[1] = {
 #include "assets/shelter_b1_sleeping_quarters_model_02DFC_partVerts.inc"
 };
 
-SVECTOR D_shelter_b1_sleeping_quarters_8018030C[22] = {
+static SVECTOR _gShelterB1SleepingQuartersModel02DFCVerts[22] = {
 #include "assets/shelter_b1_sleeping_quarters_model_02DFC_verts.inc"
 };
 
-u32 D_shelter_b1_sleeping_quarters_801803BC[78] = {
+static u32 _gShelterB1SleepingQuartersModel02DFCStream[78] = {
 #include "assets/shelter_b1_sleeping_quarters_model_02DFC_stream.inc"
 
 };
 
-TmdSource D_shelter_b1_sleeping_quarters_801804F4 = {
+TmdSource gShelterB1SleepingQuartersModel02DFC = {
     0,
     552,
     0,
     1,
-    D_shelter_b1_sleeping_quarters_80180308,
-    D_shelter_b1_sleeping_quarters_8018030C,
-    &D_shelter_b1_sleeping_quarters_8018030C[22],
-    D_shelter_b1_sleeping_quarters_801802E4,
-    D_shelter_b1_sleeping_quarters_801803BC,
+    _gShelterB1SleepingQuartersModel02DFCPartVerts,
+    _gShelterB1SleepingQuartersModel02DFCVerts,
+    &_gShelterB1SleepingQuartersModel02DFCVerts[22],
+    _gShelterB1SleepingQuartersModel02DFCSkeleton,
+    _gShelterB1SleepingQuartersModel02DFCStream,
 };
 
 TaskMessageEntry D_shelter_b1_sleeping_quarters_80180518[5] = {

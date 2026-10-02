@@ -205,36 +205,36 @@ Actor205200MessageEntry D_actor_205200_8014CA78[2] = {
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
-TmdBone D_actor_205200_8014CA88[19] = {
+static TmdBone _gActor205200EveBreaMaskedBodySkeleton[19] = {
 #include "assets/eve_brea_masked_body_skeleton.inc"
 };
 
-u32 D_actor_205200_8014CD34[19] = {
+static u32 _gActor205200EveBreaMaskedBodyPartVerts[19] = {
 #include "assets/eve_brea_masked_body_partVerts.inc"
 };
 
-SVECTOR D_actor_205200_8014CD80[312] = {
+static SVECTOR _gActor205200EveBreaMaskedBodyVerts[312] = {
 #include "assets/eve_brea_masked_body_verts.inc"
 };
 
-SVECTOR D_actor_205200_8014D740[338] = {
+static SVECTOR _gActor205200EveBreaMaskedBodyNormals[338] = {
 #include "assets/eve_brea_masked_body_normals.inc"
 };
 
-u32 D_actor_205200_8014E1D0[3463] = {
+static u32 _gActor205200EveBreaMaskedBodyStream[3463] = {
 #include "assets/eve_brea_masked_body_stream.inc"
 };
 
-TmdSource D_actor_205200_801517EC = {
+TmdSource gActor205200EveBreaMaskedBody = {
     0,
     18392,
     6232,
     19,
-    D_actor_205200_8014CD34,
-    D_actor_205200_8014CD80,
-    D_actor_205200_8014D740,
-    D_actor_205200_8014CA88,
-    D_actor_205200_8014E1D0,
+    _gActor205200EveBreaMaskedBodyPartVerts,
+    _gActor205200EveBreaMaskedBodyVerts,
+    _gActor205200EveBreaMaskedBodyNormals,
+    _gActor205200EveBreaMaskedBodySkeleton,
+    _gActor205200EveBreaMaskedBodyStream,
 };
 
 static void func_actor_205200_8014A72C(Enemy* enemy, Task* task);

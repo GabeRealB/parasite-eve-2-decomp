@@ -128,30 +128,30 @@ GpWarpRec D_dryfield_garage_8017DCFC[2] = {
     { { .words = { 2048, 950, 0, 7300 } }, { 0, 0, 0, 0 }, { .words = { 2048, 1100, 0, 7300 } }, { 0, 0, 0, 0 }, 0x52180002, 0x52180001, 0x52180007, 6, 0, 472 },
 };
 
-SVECTOR D_dryfield_garage_8017DD6C[39] = {
+SVECTOR gDryfieldGarageCollision0108CNormals[39] = {
 #include "assets/dryfield_garage_collision_0108C_normals.inc"
 };
 
-SVECTOR D_dryfield_garage_8017DEA4[106] = {
+SVECTOR gDryfieldGarageCollision0108CVerts[106] = {
 #include "assets/dryfield_garage_collision_0108C_verts.inc"
 };
 
-WorldCollisionGridFace D_dryfield_garage_8017E1F4[54] = {
+WorldCollisionGridFace gDryfieldGarageCollision0108CFaces[54] = {
 #include "assets/dryfield_garage_collision_0108C_faces.inc"
 };
 
-s16 D_dryfield_garage_8017E47C[214] = {
+static s16 _gDryfieldGarageCollision0108CCells[214] = {
 #include "assets/dryfield_garage_collision_0108C_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_dryfield_garage_8017E47C[i])
-s16* D_dryfield_garage_8017E628[9] = {
+#define GRID_CELL(i) (&_gDryfieldGarageCollision0108CCells[i])
+static s16* _gDryfieldGarageCollision0108CTable[9] = {
 #include "assets/dryfield_garage_collision_0108C_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_dryfield_garage_8017E64C[1] = {
-    { NULL, D_dryfield_garage_8017DD6C, D_dryfield_garage_8017DEA4, D_dryfield_garage_8017E1F4, D_dryfield_garage_8017E628, 150, 0, 3, 3, 4000, 54 },
+    { NULL, gDryfieldGarageCollision0108CNormals, gDryfieldGarageCollision0108CVerts, gDryfieldGarageCollision0108CFaces, _gDryfieldGarageCollision0108CTable, 150, 0, 3, 3, 4000, 54 },
 };
 
 GpViewRec D_dryfield_garage_8017E670[15] = {

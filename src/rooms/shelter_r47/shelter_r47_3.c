@@ -180,29 +180,29 @@ GpAreaVariant D_shelter_r47_80187CB8[12] = {
     { NULL, NULL },
 };
 
-SVECTOR D_shelter_r47_80187D18[13] = {
+static SVECTOR _gShelterR47Collision0ACCCNormals[13] = {
 #include "assets/shelter_r47_collision_0ACCC_normals.inc"
 };
 
-SVECTOR D_shelter_r47_80187D80[66] = {
+static SVECTOR _gShelterR47Collision0ACCCVerts[66] = {
 #include "assets/shelter_r47_collision_0ACCC_verts.inc"
 };
 
-WorldCollisionGridFace D_shelter_r47_80187F90[30] = {
+static WorldCollisionGridFace _gShelterR47Collision0ACCCFaces[30] = {
 #include "assets/shelter_r47_collision_0ACCC_faces.inc"
 };
 
-s16 D_shelter_r47_801880F8[172] = {
+static s16 _gShelterR47Collision0ACCCCells[172] = {
 #include "assets/shelter_r47_collision_0ACCC_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_shelter_r47_801880F8[i])
-s16* D_shelter_r47_80188250[15] = {
+#define GRID_CELL(i) (&_gShelterR47Collision0ACCCCells[i])
+static s16* _gShelterR47Collision0ACCCTable[15] = {
 #include "assets/shelter_r47_collision_0ACCC_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_r47_8018828C = { NULL, D_shelter_r47_80187D18, D_shelter_r47_80187D80, D_shelter_r47_80187F90, D_shelter_r47_80188250, 1003, -1010, 5, 3, 4000, 30 };
+WorldCollisionGrid D_shelter_r47_8018828C = { NULL, _gShelterR47Collision0ACCCNormals, _gShelterR47Collision0ACCCVerts, _gShelterR47Collision0ACCCFaces, _gShelterR47Collision0ACCCTable, 1003, -1010, 5, 3, 4000, 30 };
 
 GpViewRec D_shelter_r47_801882B0[46] = {
     { { { { 1403, 0, 3848 }, { 2757, 2857, -1005 }, { -2684, 2934, 978 } }, { -0x2DC3, 4293, -2180 } }, 207 },

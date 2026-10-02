@@ -14,7 +14,7 @@
 
 extern GpAreaVariant D_acropolis_hallway_8017EA3C[13];
 
-extern TmdSource D_acropolis_hallway_8017F85C;
+extern TmdSource gAcropolisHallwayModel01AE0;
 
 // acropolis_hallway
 extern GpRoomObjRec D_acropolis_hallway_8017E258[];

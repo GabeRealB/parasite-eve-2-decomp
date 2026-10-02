@@ -13,7 +13,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-extern TmdSource D_shelter_b1_sleeping_quarters_801804F4;
+extern TmdSource gShelterB1SleepingQuartersModel02DFC;
 
 extern GpAreaVariant D_shelter_b1_sleeping_quarters_80183FDC[22];
 

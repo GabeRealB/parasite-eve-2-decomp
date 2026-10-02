@@ -71,29 +71,29 @@ extern WorldCoordRoomLights   D_neo_ark_power_plant_1_8017FB80[1];
 extern AnimationPlayRequest D_neo_ark_power_plant_1_8017EB40;
 extern AnimationPlayRequest D_neo_ark_power_plant_1_8017EEAC;
 
-extern AnimationSet                     D_neo_ark_power_plant_1_8017EAF0;
+static AnimationSet                     _gNeoArkPowerPlant1Animation01530;
 extern NeoArkPowerPlant1AnimStorageEEC0 D_neo_ark_power_plant_1_8017EEC0;
 
-AnimationPackedPose D_neo_ark_power_plant_1_8017E5AC[10] = {
+static AnimationPackedPose _gNeoArkPowerPlant1Animation01530Bank1[10] = {
 #include "assets/neo_ark_power_plant_1_animation_01530_bank1.inc"
 };
 
-AnimationPackedRotation D_neo_ark_power_plant_1_8017E624[126] = {
+static AnimationPackedRotation _gNeoArkPowerPlant1Animation01530Bank4[126] = {
 #include "assets/neo_ark_power_plant_1_animation_01530_bank4.inc"
 };
 
-AnimationRecord D_neo_ark_power_plant_1_8017E81C[171] = {
+static AnimationRecord _gNeoArkPowerPlant1Animation01530Records[171] = {
 #include "assets/neo_ark_power_plant_1_animation_01530_records.inc"
 };
 
-u16 D_neo_ark_power_plant_1_8017EAC8[20] = {
+static u16 _gNeoArkPowerPlant1Animation01530Indices[20] = {
 #include "assets/neo_ark_power_plant_1_animation_01530_indices.inc"
 };
 
-AnimationSet D_neo_ark_power_plant_1_8017EAF0 = {
-    D_neo_ark_power_plant_1_8017E81C,
-    D_neo_ark_power_plant_1_8017EAC8,
-    { NULL, D_neo_ark_power_plant_1_8017E5AC, NULL, NULL, D_neo_ark_power_plant_1_8017E624, NULL, NULL, NULL },
+static AnimationSet _gNeoArkPowerPlant1Animation01530 = {
+    _gNeoArkPowerPlant1Animation01530Records,
+    _gNeoArkPowerPlant1Animation01530Indices,
+    { NULL, _gNeoArkPowerPlant1Animation01530Bank1, NULL, NULL, _gNeoArkPowerPlant1Animation01530Bank4, NULL, NULL, NULL },
 };
 
 TaskMessageEntry D_neo_ark_power_plant_1_8017EB18[5] = {
@@ -167,7 +167,7 @@ EvsCommand D_neo_ark_power_plant_1_8017EDBC[10] = {
 
 AnimationPlayRequest D_neo_ark_power_plant_1_8017EEAC = { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_ENABLE };
 
-NeoArkPowerPlant1AnimStorageEEC0 D_neo_ark_power_plant_1_8017EEC0 = { .data = { { &D_neo_ark_power_plant_1_8017EAF0 }, { { .words = D_neo_ark_power_plant_1_8017EEC0.words }, 2 } } };
+NeoArkPowerPlant1AnimStorageEEC0 D_neo_ark_power_plant_1_8017EEC0 = { .data = { { &_gNeoArkPowerPlant1Animation01530 }, { { .words = D_neo_ark_power_plant_1_8017EEC0.words }, 2 } } };
 
 ActorTransform D_neo_ark_power_plant_1_8017EECC = { { 4800, 2, -0x2A94, 0 }, { 0, 0, 0, 0 } };
 
@@ -298,30 +298,30 @@ WorldCoordRoomLights D_neo_ark_power_plant_1_8017FB80[1] = {
     { 0, NULL, ARRAY_SIZE(D_neo_ark_power_plant_1_8017F220), D_neo_ark_power_plant_1_8017F220, 0, NULL },
 };
 
-SVECTOR D_neo_ark_power_plant_1_8017FB98[10] = {
+static SVECTOR _gNeoArkPowerPlant1Collision02AD0Normals[10] = {
 #include "assets/neo_ark_power_plant_1_collision_02AD0_normals.inc"
 };
 
-SVECTOR D_neo_ark_power_plant_1_8017FBE8[58] = {
+static SVECTOR _gNeoArkPowerPlant1Collision02AD0Verts[58] = {
 #include "assets/neo_ark_power_plant_1_collision_02AD0_verts.inc"
 };
 
-WorldCollisionGridFace D_neo_ark_power_plant_1_8017FDB8[30] = {
+static WorldCollisionGridFace _gNeoArkPowerPlant1Collision02AD0Faces[30] = {
 #include "assets/neo_ark_power_plant_1_collision_02AD0_faces.inc"
 };
 
-s16 D_neo_ark_power_plant_1_8017FF20[160] = {
+static s16 _gNeoArkPowerPlant1Collision02AD0Cells[160] = {
 #include "assets/neo_ark_power_plant_1_collision_02AD0_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_neo_ark_power_plant_1_8017FF20[i])
-s16* D_neo_ark_power_plant_1_80180060[12] = {
+#define GRID_CELL(i) (&_gNeoArkPowerPlant1Collision02AD0Cells[i])
+static s16* _gNeoArkPowerPlant1Collision02AD0Table[12] = {
 #include "assets/neo_ark_power_plant_1_collision_02AD0_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_neo_ark_power_plant_1_80180090[1] = {
-    { NULL, D_neo_ark_power_plant_1_8017FB98, D_neo_ark_power_plant_1_8017FBE8, D_neo_ark_power_plant_1_8017FDB8, D_neo_ark_power_plant_1_80180060, 100, 0x2EE0, 3, 4, 4000, 30 },
+    { NULL, _gNeoArkPowerPlant1Collision02AD0Normals, _gNeoArkPowerPlant1Collision02AD0Verts, _gNeoArkPowerPlant1Collision02AD0Faces, _gNeoArkPowerPlant1Collision02AD0Table, 100, 0x2EE0, 3, 4, 4000, 30 },
 };
 
 GpViewRec D_neo_ark_power_plant_1_801800B4[9] = {

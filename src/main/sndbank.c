@@ -289,8 +289,8 @@ TaskDesc D_800678F4[] = {
     { { { TASK_BODY_TMD, 0x50 } }, func_actor_800100_80163CF0, { &D_kyle_800102_8016CE38 } },
     { { { TASK_BODY_TMD, 0x50 } }, func_actor_800100_80163CF0, { &D_kyle_800103_8016C594 } },
     { { { TASK_BODY_TMD, 0x50 } }, func_actor_800100_80163CF0, { &D_kyle_800104_8016C594 } },
-    { { { TASK_BODY_TMD, 0x50 } }, func_actor_800200_801626EC, { &D_actor_800200_80169ECC } },
-    { { { TASK_BODY_TMD, 0x50 } }, func_actor_800300_801625F4, { &D_actor_800300_8016885C } },
+    { { { TASK_BODY_TMD, 0x50 } }, func_actor_800200_801626EC, { &gActor800200FlintBody } },
+    { { { TASK_BODY_TMD, 0x50 } }, func_actor_800300_801625F4, { &gActor800300Model02CF4 } },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_TMD, 0x50 } }, func_8010B610, { &D_kyle_800101_8016C9E8 } },
     { { { TASK_BODY_TMD, 0x50 } }, func_8010B610, { &D_kyle_800101_8016D32C } },
@@ -317,10 +317,10 @@ TaskDesc D_800678F4[] = {
     { { { TASK_BODY_TMD, 0x50 } }, func_8010B610, { &D_kyle_800103_8016DE3C } },
     { { { TASK_BODY_TMD, 0x50 } }, func_8010B610, { &D_kyle_800104_8016E568 } },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
-    { { { TASK_BODY_TMD, 0x50 } }, func_acropolis_cafeteria_80181E70, { &D_acropolis_cafeteria_801858C4 } },
-    { { { TASK_BODY_TMD, 0x50 } }, func_acropolis_cafeteria_80181E70, { &D_acropolis_cafeteria_8018625C } },
-    { { { TASK_BODY_TMD, 0x50 } }, func_acropolis_cafeteria_80181E70, { &D_acropolis_cafeteria_80186CAC } },
-    { { { TASK_BODY_TMD, 0x50 } }, func_acropolis_cafeteria_80181E70, { &D_acropolis_cafeteria_80187518 } },
+    { { { TASK_BODY_TMD, 0x50 } }, func_acropolis_cafeteria_80181E70, { &gAcropolisCafeteriaModel07CA8 } },
+    { { { TASK_BODY_TMD, 0x50 } }, func_acropolis_cafeteria_80181E70, { &gAcropolisCafeteriaModel08638 } },
+    { { { TASK_BODY_TMD, 0x50 } }, func_acropolis_cafeteria_80181E70, { &gAcropolisCafeteriaModel09090 } },
+    { { { TASK_BODY_TMD, 0x50 } }, func_acropolis_cafeteria_80181E70, { &gAcropolisCafeteriaModel09A20 } },
 };
 
 static u8 D_800680A4             = 0;

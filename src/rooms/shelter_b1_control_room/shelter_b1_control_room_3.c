@@ -51,29 +51,29 @@ GpWarpRec D_shelter_b1_control_room_80181C78[3] = {
     { { .words = { 3072, 0x283C, -600, -3700 } }, { 0, 0, 0, 0 }, { .words = { 3072, 0x283C, -600, -3700 } }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
 };
 
-SVECTOR D_shelter_b1_control_room_80181D20[7] = {
+static SVECTOR _gShelterB1ControlRoomCollision04B38Normals[7] = {
 #include "assets/shelter_b1_control_room_collision_04B38_normals.inc"
 };
 
-SVECTOR D_shelter_b1_control_room_80181D58[56] = {
+static SVECTOR _gShelterB1ControlRoomCollision04B38Verts[56] = {
 #include "assets/shelter_b1_control_room_collision_04B38_verts.inc"
 };
 
-WorldCollisionGridFace D_shelter_b1_control_room_80181F18[29] = {
+static WorldCollisionGridFace _gShelterB1ControlRoomCollision04B38Faces[29] = {
 #include "assets/shelter_b1_control_room_collision_04B38_faces.inc"
 };
 
-s16 D_shelter_b1_control_room_80182074[60] = {
+static s16 _gShelterB1ControlRoomCollision04B38Cells[60] = {
 #include "assets/shelter_b1_control_room_collision_04B38_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_shelter_b1_control_room_80182074[i])
-s16* D_shelter_b1_control_room_801820EC[3] = {
+#define GRID_CELL(i) (&_gShelterB1ControlRoomCollision04B38Cells[i])
+static s16* _gShelterB1ControlRoomCollision04B38Table[3] = {
 #include "assets/shelter_b1_control_room_collision_04B38_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b1_control_room_801820F8 = { NULL, D_shelter_b1_control_room_80181D20, D_shelter_b1_control_room_80181D58, D_shelter_b1_control_room_80181F18, D_shelter_b1_control_room_801820EC, 350, 6000, 3, 1, 4000, 29 };
+WorldCollisionGrid D_shelter_b1_control_room_801820F8 = { NULL, _gShelterB1ControlRoomCollision04B38Normals, _gShelterB1ControlRoomCollision04B38Verts, _gShelterB1ControlRoomCollision04B38Faces, _gShelterB1ControlRoomCollision04B38Table, 350, 6000, 3, 1, 4000, 29 };
 
 GpViewRec D_shelter_b1_control_room_8018211C[8] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -4900, 0x61A8, 4250 } }, 541 },

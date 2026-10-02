@@ -73,32 +73,32 @@ static void func_dryfield_night_motel_loft_8017E540(GfxCoord* coord, s16 scale, 
 
 extern WorldCollisionGrid D_dryfield_night_motel_loft_8017F120;
 
-TmdBone D_dryfield_night_motel_loft_8017E888[1] = {
+static TmdBone _gDryfieldNightMotelLoftActor135400Model071ACSkeleton[1] = {
 #include "assets/actor_135400_model_071AC_skeleton.inc"
 };
 
-u32 D_dryfield_night_motel_loft_8017E8AC[1] = {
+static u32 _gDryfieldNightMotelLoftActor135400Model071ACPartVerts[1] = {
 #include "assets/actor_135400_model_071AC_partVerts.inc"
 };
 
-SVECTOR D_dryfield_night_motel_loft_8017E8B0[20] = {
+static SVECTOR _gDryfieldNightMotelLoftActor135400Model071ACVerts[20] = {
 #include "assets/actor_135400_model_071AC_verts.inc"
 };
 
-u32 D_dryfield_night_motel_loft_8017E950[106] = {
+static u32 _gDryfieldNightMotelLoftActor135400Model071ACStream[106] = {
 #include "assets/actor_135400_model_071AC_stream.inc"
 };
 
-TmdSource D_dryfield_night_motel_loft_8017EAF8 = {
+TmdSource gDryfieldNightMotelLoftActor135400Model071AC = {
     0,
     800,
     0,
     1,
-    D_dryfield_night_motel_loft_8017E8AC,
-    D_dryfield_night_motel_loft_8017E8B0,
-    &D_dryfield_night_motel_loft_8017E8B0[20],
-    D_dryfield_night_motel_loft_8017E888,
-    D_dryfield_night_motel_loft_8017E950,
+    _gDryfieldNightMotelLoftActor135400Model071ACPartVerts,
+    _gDryfieldNightMotelLoftActor135400Model071ACVerts,
+    &_gDryfieldNightMotelLoftActor135400Model071ACVerts[20],
+    _gDryfieldNightMotelLoftActor135400Model071ACSkeleton,
+    _gDryfieldNightMotelLoftActor135400Model071ACStream,
 };
 
 TaskMessageEntry D_dryfield_night_motel_loft_8017EB1C[6] = {
@@ -143,29 +143,29 @@ EvsCommand D_dryfield_night_motel_loft_8017EB78[17] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-SVECTOR D_dryfield_night_motel_loft_8017ED10[1] = {
+static SVECTOR _gDryfieldNightMotelLoftCollision01794Normals[1] = {
 #include "assets/dryfield_night_motel_loft_collision_01794_normals.inc"
 };
 
-SVECTOR D_dryfield_night_motel_loft_8017ED18[4] = {
+static SVECTOR _gDryfieldNightMotelLoftCollision01794Verts[4] = {
 #include "assets/dryfield_night_motel_loft_collision_01794_verts.inc"
 };
 
-WorldCollisionGridFace D_dryfield_night_motel_loft_8017ED38[1] = {
+static WorldCollisionGridFace _gDryfieldNightMotelLoftCollision01794Faces[1] = {
 #include "assets/dryfield_night_motel_loft_collision_01794_faces.inc"
 };
 
-s16 D_dryfield_night_motel_loft_8017ED44[4] = {
+static s16 _gDryfieldNightMotelLoftCollision01794Cells[4] = {
 #include "assets/dryfield_night_motel_loft_collision_01794_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_dryfield_night_motel_loft_8017ED44[i])
-s16* D_dryfield_night_motel_loft_8017ED4C[2] = {
+#define GRID_CELL(i) (&_gDryfieldNightMotelLoftCollision01794Cells[i])
+static s16* _gDryfieldNightMotelLoftCollision01794Table[2] = {
 #include "assets/dryfield_night_motel_loft_collision_01794_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_night_motel_loft_8017ED54 = { NULL, D_dryfield_night_motel_loft_8017ED10, D_dryfield_night_motel_loft_8017ED18, D_dryfield_night_motel_loft_8017ED38, D_dryfield_night_motel_loft_8017ED4C, 5872, 2740, 1, 2, 4000, 1 };
+WorldCollisionGrid D_dryfield_night_motel_loft_8017ED54 = { NULL, _gDryfieldNightMotelLoftCollision01794Normals, _gDryfieldNightMotelLoftCollision01794Verts, _gDryfieldNightMotelLoftCollision01794Faces, _gDryfieldNightMotelLoftCollision01794Table, 5872, 2740, 1, 2, 4000, 1 };
 
 SVECTOR D_dryfield_night_motel_loft_8017ED78[7] = {
     { 5200, -2110, -1240, 0 },
@@ -220,29 +220,29 @@ GpWarpRec D_dryfield_night_motel_loft_8017EDFC[1] = {
     { { .words = { 0, 3953, 0, -2156 } }, { 0, 0, 0, 0 }, { .words = { 0, 3953, 0, -2156 } }, { 0, 0, 0, 0 }, 0x531F0002, 0x531F0001, 0, 2, 0, 466 },
 };
 
-SVECTOR D_dryfield_night_motel_loft_8017EE34[9] = {
+static SVECTOR _gDryfieldNightMotelLoftCollision01B60Normals[9] = {
 #include "assets/dryfield_night_motel_loft_collision_01B60_normals.inc"
 };
 
-SVECTOR D_dryfield_night_motel_loft_8017EE7C[34] = {
+static SVECTOR _gDryfieldNightMotelLoftCollision01B60Verts[34] = {
 #include "assets/dryfield_night_motel_loft_collision_01B60_verts.inc"
 };
 
-WorldCollisionGridFace D_dryfield_night_motel_loft_8017EF8C[18] = {
+static WorldCollisionGridFace _gDryfieldNightMotelLoftCollision01B60Faces[18] = {
 #include "assets/dryfield_night_motel_loft_collision_01B60_faces.inc"
 };
 
-s16 D_dryfield_night_motel_loft_8017F064[82] = {
+static s16 _gDryfieldNightMotelLoftCollision01B60Cells[82] = {
 #include "assets/dryfield_night_motel_loft_collision_01B60_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_dryfield_night_motel_loft_8017F064[i])
-s16* D_dryfield_night_motel_loft_8017F108[6] = {
+#define GRID_CELL(i) (&_gDryfieldNightMotelLoftCollision01B60Cells[i])
+static s16* _gDryfieldNightMotelLoftCollision01B60Table[6] = {
 #include "assets/dryfield_night_motel_loft_collision_01B60_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_night_motel_loft_8017F120 = { NULL, D_dryfield_night_motel_loft_8017EE34, D_dryfield_night_motel_loft_8017EE7C, D_dryfield_night_motel_loft_8017EF8C, D_dryfield_night_motel_loft_8017F108, 6000, 2500, 3, 2, 4000, 18 };
+WorldCollisionGrid D_dryfield_night_motel_loft_8017F120 = { NULL, _gDryfieldNightMotelLoftCollision01B60Normals, _gDryfieldNightMotelLoftCollision01B60Verts, _gDryfieldNightMotelLoftCollision01B60Faces, _gDryfieldNightMotelLoftCollision01B60Table, 6000, 2500, 3, 2, 4000, 18 };
 
 GpViewRec D_dryfield_night_motel_loft_8017F144[11] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x6978, 0 } }, 541 },

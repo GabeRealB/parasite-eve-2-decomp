@@ -483,18 +483,18 @@ static GpEnemyDesc D_map_akropolis_8017A66C[1] = {
 };
 
 static GpEnemyDesc D_map_akropolis_8017A67C[3] = {
-    { 4, { 0 }, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, func_acropolis_cafeteria_8018286C, { &D_acropolis_cafeteria_8018D230 } } },
-    { 0x107, { 0 }, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, func_acropolis_cafeteria_801827C4, { &D_acropolis_cafeteria_8018D57C } } },
+    { 4, { 0 }, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, func_acropolis_cafeteria_8018286C, { &gAcropolisCafeteriaModel0F7A4 } } },
+    { 0x107, { 0 }, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, func_acropolis_cafeteria_801827C4, { &gAcropolisCafeteriaModel0FDFC } } },
     { 0xFFFF },
 };
 
 static GpEnemyDesc D_map_akropolis_8017A6AC[2] = {
-    { 0x701, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, Gp_ItemPickupTilt, { &D_acropolis_security_room_80185584 } } },
+    { 0x701, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, Gp_ItemPickupTilt, { &gAcropolisSecurityRoomAcropolisSanctuaryModel090F0 } } },
     { 0xFFFF },
 };
 
 static GpEnemyDesc D_map_akropolis_8017A6CC[2] = {
-    { 0x104, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, func_acropolis_hallway_8017E120, { &D_acropolis_hallway_8017F85C } } },
+    { 0x104, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, func_acropolis_hallway_8017E120, { &gAcropolisHallwayModel01AE0 } } },
     { 0xFFFF },
 };
 
@@ -515,13 +515,13 @@ static GpEnemyDesc D_map_akropolis_8017A71C[1] = {
 };
 
 static GpEnemyDesc D_map_akropolis_8017A72C[3] = {
-    { 0x103, { 0 }, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, func_acropolis_sanctuary_80180264, { &D_acropolis_sanctuary_80186C68 } } },
-    { 0x702, { 0 }, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, Gp_ItemPickupTilt, { &D_acropolis_sanctuary_80186A08 } } },
+    { 0x103, { 0 }, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, func_acropolis_sanctuary_80180264, { &gAcropolisSanctuaryModel09584 } } },
+    { 0x702, { 0 }, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, Gp_ItemPickupTilt, { &gAcropolisSanctuaryModel090F0 } } },
     { 0xFFFF },
 };
 
 static GpEnemyDesc D_map_akropolis_8017A75C[2] = {
-    { 0x105, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, func_acropolis_roof_garden_80180160, { &D_acropolis_roof_garden_80186E70 } } },
+    { 0x105, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, func_acropolis_roof_garden_80180160, { &gAcropolisRoofGardenModel09868 } } },
     { 0xFFFF },
 };
 
@@ -543,8 +543,8 @@ static GpBit2Rec D_map_akropolis_8017A7AC[2] = {
 };
 
 static GpEnemyDesc D_map_akropolis_8017A7CC[3] = {
-    { 0x204, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, func_acropolis_helicopter_landing_pad_8017D964, { &D_acropolis_helicopter_landing_pad_801836EC } } },
-    { 0xA4, { 0 }, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, func_acropolis_helicopter_landing_pad_801822B0, { &D_acropolis_helicopter_landing_pad_80187F50 } } },
+    { 0x204, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, func_acropolis_helicopter_landing_pad_8017D964, { &gAcropolisHelicopterLandingPadModel0547C } } },
+    { 0xA4, { 0 }, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, func_acropolis_helicopter_landing_pad_801822B0, { &gAcropolisHelicopterLandingPadModel0A8E8 } } },
     { 0xFFFF },
 };
 

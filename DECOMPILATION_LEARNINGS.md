@@ -2277,14 +2277,14 @@ makes the tails incomparable, so jump.c emits two full copies (extra block,
 
 ```c
 case 3:
-    D_80114B78[0] = &Actor01900_D10B68;
+    D_80114B78[0] = &_gActor01900StrangerBurstHand;
     vec.vz = 0x64;
     vec.vy = 0;
     vec.vx = 0;
     eff = Gp_SpawnEff(0xA0005, obj->field_8 + 9, 0x200, &vec);
     goto body;
 case 4:
-    D_80114B78[0] = &Actor01900_D10B68;
+    D_80114B78[0] = &_gActor01900StrangerBurstHand;
     vec.vy = 0;
     vec.vx = 0;
     eff = Gp_SpawnEff(0xA0005, obj->field_8 + 12, 0x200, &vec);
@@ -90428,10 +90428,10 @@ converges later is evidence the *source* had it twice.
 
 ```c
 if ((gRandomLcgState >> 16) & 1) {
-    D_800678F0[0] = Actor00400_D0F25C;
+    D_800678F0[0] = _gActor00400DiverBurstLegRight;
     eff = Gp_SpawnEff(0x20010, &coord[8], 0x200, NULL);
 } else {
-    D_800678F0[0] = Actor00400_D0F790;
+    D_800678F0[0] = _gActor00400DiverBurstArmLeft2;
     eff = Gp_SpawnEff(0x20010, &coord[8], 0x200, NULL);
 }
 ```

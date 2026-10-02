@@ -67,163 +67,163 @@ extern AnimationSet* D_actor_111800_8013A448[8];
 /// cutscene-mode flag and `gDisplayState.pendingMode` is a live cutscene. `func_acropolis_square_80182360` is
 /// the room overlay's handler the view-matrix test calls with `t[0]`.
 
-extern TmdSource D_actor_111800_80138004;
+static TmdSource _gActor111800GrinningStrangerBody;
 void             func_actor_111800_8013251C(Task*);
 
-TmdBone D_actor_111800_801329C4[19] = {
+static TmdBone _gActor111800GrinningStrangerBodySkeleton[19] = {
 #include "assets/grinning_stranger_body_skeleton.inc"
 };
 
-u32 D_actor_111800_80132C70[19] = {
+static u32 _gActor111800GrinningStrangerBodyPartVerts[19] = {
 #include "assets/grinning_stranger_body_partVerts.inc"
 };
 
-SVECTOR D_actor_111800_80132CBC[306] = {
+static SVECTOR _gActor111800GrinningStrangerBodyVerts[306] = {
 #include "assets/grinning_stranger_body_verts.inc"
 };
 
-SVECTOR D_actor_111800_8013364C[365] = {
+static SVECTOR _gActor111800GrinningStrangerBodyNormals[365] = {
 #include "assets/grinning_stranger_body_normals.inc"
 };
 
-u32 D_actor_111800_801341B4[3988] = {
+static u32 _gActor111800GrinningStrangerBodyStream[3988] = {
 #include "assets/grinning_stranger_body_stream.inc"
 };
 
-TmdSource D_actor_111800_80138004 = {
+static TmdSource _gActor111800GrinningStrangerBody = {
     0,
     20032,
     7672,
     19,
-    D_actor_111800_80132C70,
-    D_actor_111800_80132CBC,
-    D_actor_111800_8013364C,
-    D_actor_111800_801329C4,
-    D_actor_111800_801341B4,
+    _gActor111800GrinningStrangerBodyPartVerts,
+    _gActor111800GrinningStrangerBodyVerts,
+    _gActor111800GrinningStrangerBodyNormals,
+    _gActor111800GrinningStrangerBodySkeleton,
+    _gActor111800GrinningStrangerBodyStream,
 };
 
-AnimationPackedPose D_actor_111800_80138028[4] = {
+static AnimationPackedPose _gActor111800Animation065FCBank1[4] = {
 #include "assets/actor_111800_animation_065FC_bank1.inc"
 };
 
-AnimationPackedRotation D_actor_111800_80138058[69] = {
+static AnimationPackedRotation _gActor111800Animation065FCBank4[69] = {
 #include "assets/actor_111800_animation_065FC_bank4.inc"
 };
 
-AnimationRecord D_actor_111800_8013816C[162] = {
+static AnimationRecord _gActor111800Animation065FCRecords[162] = {
 #include "assets/actor_111800_animation_065FC_records.inc"
 };
 
-u16 D_actor_111800_801383F4[20] = {
+static u16 _gActor111800Animation065FCIndices[20] = {
 #include "assets/actor_111800_animation_065FC_indices.inc"
 };
 
-AnimationSet D_actor_111800_8013841C = {
-    D_actor_111800_8013816C,
-    D_actor_111800_801383F4,
-    { NULL, D_actor_111800_80138028, NULL, NULL, D_actor_111800_80138058, NULL, NULL, NULL },
+static AnimationSet _gActor111800Animation065FC = {
+    _gActor111800Animation065FCRecords,
+    _gActor111800Animation065FCIndices,
+    { NULL, _gActor111800Animation065FCBank1, NULL, NULL, _gActor111800Animation065FCBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_actor_111800_80138444[28] = {
+static AnimationPackedPose _gActor111800Animation07120Bank1[28] = {
 #include "assets/actor_111800_animation_07120_bank1.inc"
 };
 
-AnimationPackedRotation D_actor_111800_80138594[247] = {
+static AnimationPackedRotation _gActor111800Animation07120Bank4[247] = {
 #include "assets/actor_111800_animation_07120_bank4.inc"
 };
 
-AnimationRecord D_actor_111800_80138970[362] = {
+static AnimationRecord _gActor111800Animation07120Records[362] = {
 #include "assets/actor_111800_animation_07120_records.inc"
 };
 
-u16 D_actor_111800_80138F18[20] = {
+static u16 _gActor111800Animation07120Indices[20] = {
 #include "assets/actor_111800_animation_07120_indices.inc"
 };
 
-AnimationSet D_actor_111800_80138F40 = {
-    D_actor_111800_80138970,
-    D_actor_111800_80138F18,
-    { NULL, D_actor_111800_80138444, NULL, NULL, D_actor_111800_80138594, NULL, NULL, NULL },
+static AnimationSet _gActor111800Animation07120 = {
+    _gActor111800Animation07120Records,
+    _gActor111800Animation07120Indices,
+    { NULL, _gActor111800Animation07120Bank1, NULL, NULL, _gActor111800Animation07120Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_actor_111800_80138F68[32] = {
+static AnimationPackedPose _gActor111800Animation07BA4Bank1[32] = {
 #include "assets/actor_111800_animation_07BA4_bank1.inc"
 };
 
-AnimationPackedRotation D_actor_111800_801390E8[223] = {
+static AnimationPackedRotation _gActor111800Animation07BA4Bank4[223] = {
 #include "assets/actor_111800_animation_07BA4_bank4.inc"
 };
 
-AnimationRecord D_actor_111800_80139464[334] = {
+static AnimationRecord _gActor111800Animation07BA4Records[334] = {
 #include "assets/actor_111800_animation_07BA4_records.inc"
 };
 
-u16 D_actor_111800_8013999C[20] = {
+static u16 _gActor111800Animation07BA4Indices[20] = {
 #include "assets/actor_111800_animation_07BA4_indices.inc"
 };
 
-AnimationSet D_actor_111800_801399C4 = {
-    D_actor_111800_80139464,
-    D_actor_111800_8013999C,
-    { NULL, D_actor_111800_80138F68, NULL, NULL, D_actor_111800_801390E8, NULL, NULL, NULL },
+static AnimationSet _gActor111800Animation07BA4 = {
+    _gActor111800Animation07BA4Records,
+    _gActor111800Animation07BA4Indices,
+    { NULL, _gActor111800Animation07BA4Bank1, NULL, NULL, _gActor111800Animation07BA4Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_actor_111800_801399EC[6] = {
+static AnimationPackedPose _gActor111800Animation07FACBank1[6] = {
 #include "assets/actor_111800_animation_07FAC_bank1.inc"
 };
 
-AnimationPackedRotation D_actor_111800_80139A34[70] = {
+static AnimationPackedRotation _gActor111800Animation07FACBank4[70] = {
 #include "assets/actor_111800_animation_07FAC_bank4.inc"
 };
 
-AnimationRecord D_actor_111800_80139B4C[150] = {
+static AnimationRecord _gActor111800Animation07FACRecords[150] = {
 #include "assets/actor_111800_animation_07FAC_records.inc"
 };
 
-u16 D_actor_111800_80139DA4[20] = {
+static u16 _gActor111800Animation07FACIndices[20] = {
 #include "assets/actor_111800_animation_07FAC_indices.inc"
 };
 
-AnimationSet D_actor_111800_80139DCC = {
-    D_actor_111800_80139B4C,
-    D_actor_111800_80139DA4,
-    { NULL, D_actor_111800_801399EC, NULL, NULL, D_actor_111800_80139A34, NULL, NULL, NULL },
+static AnimationSet _gActor111800Animation07FAC = {
+    _gActor111800Animation07FACRecords,
+    _gActor111800Animation07FACIndices,
+    { NULL, _gActor111800Animation07FACBank1, NULL, NULL, _gActor111800Animation07FACBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_actor_111800_80139DF4[18] = {
+static AnimationPackedPose _gActor111800Animation08600Bank1[18] = {
 #include "assets/actor_111800_animation_08600_bank1.inc"
 };
 
-AnimationPackedRotation D_actor_111800_80139ECC[146] = {
+static AnimationPackedRotation _gActor111800Animation08600Bank4[146] = {
 #include "assets/actor_111800_animation_08600_bank4.inc"
 };
 
-AnimationRecord D_actor_111800_8013A114[185] = {
+static AnimationRecord _gActor111800Animation08600Records[185] = {
 #include "assets/actor_111800_animation_08600_records.inc"
 };
 
-u16 D_actor_111800_8013A3F8[20] = {
+static u16 _gActor111800Animation08600Indices[20] = {
 #include "assets/actor_111800_animation_08600_indices.inc"
 };
 
-AnimationSet D_actor_111800_8013A420 = {
-    D_actor_111800_8013A114,
-    D_actor_111800_8013A3F8,
-    { NULL, D_actor_111800_80139DF4, NULL, NULL, D_actor_111800_80139ECC, NULL, NULL, NULL },
+static AnimationSet _gActor111800Animation08600 = {
+    _gActor111800Animation08600Records,
+    _gActor111800Animation08600Indices,
+    { NULL, _gActor111800Animation08600Bank1, NULL, NULL, _gActor111800Animation08600Bank4, NULL, NULL, NULL },
 };
 
 AnimationSet* D_actor_111800_8013A448[8] = {
-    &D_actor_111800_8013841C,
-    &D_actor_111800_80138F40,
-    &D_actor_111800_801399C4,
+    &_gActor111800Animation065FC,
+    &_gActor111800Animation07120,
+    &_gActor111800Animation07BA4,
     NULL,
     NULL,
-    &D_actor_111800_80139DCC,
-    &D_actor_111800_8013A420,
+    &_gActor111800Animation07FAC,
+    &_gActor111800Animation08600,
     NULL,
 };
 
-TaskDesc D_actor_111800_8013A468 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_111800_8013251C, { .model = &D_actor_111800_80138004 } }; /// Turns joint `coord` by `yaw` about the world Y axis: builds its world
+TaskDesc D_actor_111800_8013A468 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_111800_8013251C, { .model = &_gActor111800GrinningStrangerBody } }; /// Turns joint `coord` by `yaw` about the world Y axis: builds its world
 
 static inline void    _actor111800TickAnim(Task* task);
 static inline void    _actor111800Reseed(Task* task, u16 id, u16 frames);

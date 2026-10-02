@@ -133,30 +133,30 @@ SVECTOR* D_neo_ark_submarine_tunnel_80181F94[4] = {
     D_neo_ark_submarine_tunnel_80181F54,
 };
 
-SVECTOR D_neo_ark_submarine_tunnel_80181FA4[27] = {
+static SVECTOR _gNeoArkSubmarineTunnelCollision04F1CNormals[27] = {
 #include "assets/neo_ark_submarine_tunnel_collision_04F1C_normals.inc"
 };
 
-SVECTOR D_neo_ark_submarine_tunnel_8018207C[65] = {
+static SVECTOR _gNeoArkSubmarineTunnelCollision04F1CVerts[65] = {
 #include "assets/neo_ark_submarine_tunnel_collision_04F1C_verts.inc"
 };
 
-WorldCollisionGridFace D_neo_ark_submarine_tunnel_80182284[31] = {
+static WorldCollisionGridFace _gNeoArkSubmarineTunnelCollision04F1CFaces[31] = {
 #include "assets/neo_ark_submarine_tunnel_collision_04F1C_faces.inc"
 };
 
-s16 D_neo_ark_submarine_tunnel_801823F8[102] = {
+static s16 _gNeoArkSubmarineTunnelCollision04F1CCells[102] = {
 #include "assets/neo_ark_submarine_tunnel_collision_04F1C_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_neo_ark_submarine_tunnel_801823F8[i])
-s16* D_neo_ark_submarine_tunnel_801824C4[6] = {
+#define GRID_CELL(i) (&_gNeoArkSubmarineTunnelCollision04F1CCells[i])
+static s16* _gNeoArkSubmarineTunnelCollision04F1CTable[6] = {
 #include "assets/neo_ark_submarine_tunnel_collision_04F1C_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_neo_ark_submarine_tunnel_801824DC[1] = {
-    { NULL, D_neo_ark_submarine_tunnel_80181FA4, D_neo_ark_submarine_tunnel_8018207C, D_neo_ark_submarine_tunnel_80182284, D_neo_ark_submarine_tunnel_801824C4, 0x2710, 1000, 6, 1, 4000, 31 },
+    { NULL, _gNeoArkSubmarineTunnelCollision04F1CNormals, _gNeoArkSubmarineTunnelCollision04F1CVerts, _gNeoArkSubmarineTunnelCollision04F1CFaces, _gNeoArkSubmarineTunnelCollision04F1CTable, 0x2710, 1000, 6, 1, 4000, 31 },
 };
 
 GpViewRec D_neo_ark_submarine_tunnel_80182500[10] = {

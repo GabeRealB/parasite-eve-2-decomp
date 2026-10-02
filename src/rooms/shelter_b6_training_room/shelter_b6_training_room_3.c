@@ -109,102 +109,102 @@ TaskMessageEntry D_shelter_b6_training_room_80182AF4[6] = {
 
 s32 D_shelter_b6_training_room_80182B24 = 0x11805;
 
-AnimationPackedPose D_shelter_b6_training_room_80182B28[6] = {
+static AnimationPackedPose _gShelterB6TrainingRoomAnimation05844Bank1[6] = {
 #include "assets/shelter_b6_training_room_animation_05844_bank1.inc"
 };
 
-AnimationPackedRotation D_shelter_b6_training_room_80182B70[46] = {
+static AnimationPackedRotation _gShelterB6TrainingRoomAnimation05844Bank4[46] = {
 #include "assets/shelter_b6_training_room_animation_05844_bank4.inc"
 };
 
-AnimationRecord D_shelter_b6_training_room_80182C28[109] = {
+static AnimationRecord _gShelterB6TrainingRoomAnimation05844Records[109] = {
 #include "assets/shelter_b6_training_room_animation_05844_records.inc"
 };
 
-u16 D_shelter_b6_training_room_80182DDC[20] = {
+static u16 _gShelterB6TrainingRoomAnimation05844Indices[20] = {
 #include "assets/shelter_b6_training_room_animation_05844_indices.inc"
 };
 
-AnimationSet D_shelter_b6_training_room_80182E04 = {
-    D_shelter_b6_training_room_80182C28,
-    D_shelter_b6_training_room_80182DDC,
-    { NULL, D_shelter_b6_training_room_80182B28, NULL, NULL, D_shelter_b6_training_room_80182B70, NULL, NULL, NULL },
+static AnimationSet _gShelterB6TrainingRoomAnimation05844 = {
+    _gShelterB6TrainingRoomAnimation05844Records,
+    _gShelterB6TrainingRoomAnimation05844Indices,
+    { NULL, _gShelterB6TrainingRoomAnimation05844Bank1, NULL, NULL, _gShelterB6TrainingRoomAnimation05844Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_shelter_b6_training_room_80182E2C[13] = {
+static AnimationPackedPose _gShelterB6TrainingRoomAnimation05F74Bank1[13] = {
 #include "assets/shelter_b6_training_room_animation_05F74_bank1.inc"
 };
 
-AnimationPackedRotation D_shelter_b6_training_room_80182EC8[171] = {
+static AnimationPackedRotation _gShelterB6TrainingRoomAnimation05F74Bank4[171] = {
 #include "assets/shelter_b6_training_room_animation_05F74_bank4.inc"
 };
 
-AnimationRecord D_shelter_b6_training_room_80183174[230] = {
+static AnimationRecord _gShelterB6TrainingRoomAnimation05F74Records[230] = {
 #include "assets/shelter_b6_training_room_animation_05F74_records.inc"
 };
 
-u16 D_shelter_b6_training_room_8018350C[20] = {
+static u16 _gShelterB6TrainingRoomAnimation05F74Indices[20] = {
 #include "assets/shelter_b6_training_room_animation_05F74_indices.inc"
 };
 
-AnimationSet D_shelter_b6_training_room_80183534 = {
-    D_shelter_b6_training_room_80183174,
-    D_shelter_b6_training_room_8018350C,
-    { NULL, D_shelter_b6_training_room_80182E2C, NULL, NULL, D_shelter_b6_training_room_80182EC8, NULL, NULL, NULL },
+static AnimationSet _gShelterB6TrainingRoomAnimation05F74 = {
+    _gShelterB6TrainingRoomAnimation05F74Records,
+    _gShelterB6TrainingRoomAnimation05F74Indices,
+    { NULL, _gShelterB6TrainingRoomAnimation05F74Bank1, NULL, NULL, _gShelterB6TrainingRoomAnimation05F74Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_shelter_b6_training_room_8018355C[3] = {
+static AnimationPackedPose _gShelterB6TrainingRoomAnimation061B8Bank1[3] = {
 #include "assets/shelter_b6_training_room_animation_061B8_bank1.inc"
 };
 
-AnimationPackedRotation D_shelter_b6_training_room_80183580[28] = {
+static AnimationPackedRotation _gShelterB6TrainingRoomAnimation061B8Bank4[28] = {
 #include "assets/shelter_b6_training_room_animation_061B8_bank4.inc"
 };
 
-AnimationRecord D_shelter_b6_training_room_801835F0[88] = {
+static AnimationRecord _gShelterB6TrainingRoomAnimation061B8Records[88] = {
 #include "assets/shelter_b6_training_room_animation_061B8_records.inc"
 };
 
-u16 D_shelter_b6_training_room_80183750[20] = {
+static u16 _gShelterB6TrainingRoomAnimation061B8Indices[20] = {
 #include "assets/shelter_b6_training_room_animation_061B8_indices.inc"
 };
 
-AnimationSet D_shelter_b6_training_room_80183778 = {
-    D_shelter_b6_training_room_801835F0,
-    D_shelter_b6_training_room_80183750,
-    { NULL, D_shelter_b6_training_room_8018355C, NULL, NULL, D_shelter_b6_training_room_80183580, NULL, NULL, NULL },
+static AnimationSet _gShelterB6TrainingRoomAnimation061B8 = {
+    _gShelterB6TrainingRoomAnimation061B8Records,
+    _gShelterB6TrainingRoomAnimation061B8Indices,
+    { NULL, _gShelterB6TrainingRoomAnimation061B8Bank1, NULL, NULL, _gShelterB6TrainingRoomAnimation061B8Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_shelter_b6_training_room_801837A0[2] = {
+static AnimationPackedPose _gShelterB6TrainingRoomAnimation063C0Bank1[2] = {
 #include "assets/shelter_b6_training_room_animation_063C0_bank1.inc"
 };
 
-AnimationPackedRotation D_shelter_b6_training_room_801837B8[29] = {
+static AnimationPackedRotation _gShelterB6TrainingRoomAnimation063C0Bank4[29] = {
 #include "assets/shelter_b6_training_room_animation_063C0_bank4.inc"
 };
 
-AnimationRecord D_shelter_b6_training_room_8018382C[75] = {
+static AnimationRecord _gShelterB6TrainingRoomAnimation063C0Records[75] = {
 #include "assets/shelter_b6_training_room_animation_063C0_records.inc"
 };
 
-u16 D_shelter_b6_training_room_80183958[20] = {
+static u16 _gShelterB6TrainingRoomAnimation063C0Indices[20] = {
 #include "assets/shelter_b6_training_room_animation_063C0_indices.inc"
 };
 
-AnimationSet D_shelter_b6_training_room_80183980 = {
-    D_shelter_b6_training_room_8018382C,
-    D_shelter_b6_training_room_80183958,
-    { NULL, D_shelter_b6_training_room_801837A0, NULL, NULL, D_shelter_b6_training_room_801837B8, NULL, NULL, NULL },
+static AnimationSet _gShelterB6TrainingRoomAnimation063C0 = {
+    _gShelterB6TrainingRoomAnimation063C0Records,
+    _gShelterB6TrainingRoomAnimation063C0Indices,
+    { NULL, _gShelterB6TrainingRoomAnimation063C0Bank1, NULL, NULL, _gShelterB6TrainingRoomAnimation063C0Bank4, NULL, NULL, NULL },
 };
 
 TaskDesc D_shelter_b6_training_room_801839A8 = { { { TASK_BODY_NONE, 96 } }, func_shelter_b6_training_room_8017D9C8, { .value = 0 } };
 
 AnimationSet* D_shelter_b6_training_room_801839B4[5] = {
     NULL,
-    &D_shelter_b6_training_room_80182E04,
-    &D_shelter_b6_training_room_80183534,
-    &D_shelter_b6_training_room_80183778,
-    &D_shelter_b6_training_room_80183980,
+    &_gShelterB6TrainingRoomAnimation05844,
+    &_gShelterB6TrainingRoomAnimation05F74,
+    &_gShelterB6TrainingRoomAnimation061B8,
+    &_gShelterB6TrainingRoomAnimation063C0,
 };
 
 GpCopyArg D_shelter_b6_training_room_801839C8 = { { .sets = D_shelter_b6_training_room_801839B4 }, 5 };

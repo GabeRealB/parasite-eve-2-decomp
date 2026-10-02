@@ -42,94 +42,94 @@ TaskDesc D_mist_parking_8018FC24[2] = {
 
 ActorTransform D_mist_parking_8018FC3C = { { 2105, -910, -3460, 0 }, { 20, 1081, 0, 0 } };
 
-SVECTOR D_mist_parking_8018FC54[2] = {
+static SVECTOR _gMistParkingCollision126F8Normals[2] = {
 #include "assets/mist_parking_collision_126F8_normals.inc"
 };
 
-SVECTOR D_mist_parking_8018FC64[6] = {
+static SVECTOR _gMistParkingCollision126F8Verts[6] = {
 #include "assets/mist_parking_collision_126F8_verts.inc"
 };
 
-WorldCollisionGridFace D_mist_parking_8018FC94[2] = {
+static WorldCollisionGridFace _gMistParkingCollision126F8Faces[2] = {
 #include "assets/mist_parking_collision_126F8_faces.inc"
 };
 
-s16 D_mist_parking_8018FCAC[4] = {
+static s16 _gMistParkingCollision126F8Cells[4] = {
 #include "assets/mist_parking_collision_126F8_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_mist_parking_8018FCAC[i])
-s16* D_mist_parking_8018FCB4[1] = {
+#define GRID_CELL(i) (&_gMistParkingCollision126F8Cells[i])
+static s16* _gMistParkingCollision126F8Table[1] = {
 #include "assets/mist_parking_collision_126F8_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_mist_parking_8018FCB8 = { NULL, D_mist_parking_8018FC54, D_mist_parking_8018FC64, D_mist_parking_8018FC94, D_mist_parking_8018FCB4, -4800, 6558, 1, 1, 4000, 2 };
+WorldCollisionGrid D_mist_parking_8018FCB8 = { NULL, _gMistParkingCollision126F8Normals, _gMistParkingCollision126F8Verts, _gMistParkingCollision126F8Faces, _gMistParkingCollision126F8Table, -4800, 6558, 1, 1, 4000, 2 };
 
-AnimationPackedPose D_mist_parking_8018FCDC[6] = {
+static AnimationPackedPose _gMistParkingAnimation129F8Bank1[6] = {
 #include "assets/mist_parking_animation_129F8_bank1.inc"
 };
 
-AnimationPackedRotation D_mist_parking_8018FD24[46] = {
+static AnimationPackedRotation _gMistParkingAnimation129F8Bank4[46] = {
 #include "assets/mist_parking_animation_129F8_bank4.inc"
 };
 
-AnimationRecord D_mist_parking_8018FDDC[109] = {
+static AnimationRecord _gMistParkingAnimation129F8Records[109] = {
 #include "assets/mist_parking_animation_129F8_records.inc"
 };
 
-u16 D_mist_parking_8018FF90[20] = {
+static u16 _gMistParkingAnimation129F8Indices[20] = {
 #include "assets/mist_parking_animation_129F8_indices.inc"
 };
 
-AnimationSet D_mist_parking_8018FFB8 = {
-    D_mist_parking_8018FDDC,
-    D_mist_parking_8018FF90,
-    { NULL, D_mist_parking_8018FCDC, NULL, NULL, D_mist_parking_8018FD24, NULL, NULL, NULL },
+AnimationSet gMistParkingAnimation129F8 = {
+    _gMistParkingAnimation129F8Records,
+    _gMistParkingAnimation129F8Indices,
+    { NULL, _gMistParkingAnimation129F8Bank1, NULL, NULL, _gMistParkingAnimation129F8Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mist_parking_8018FFE0[8] = {
+static AnimationPackedPose _gMistParkingAnimation12DCCBank1[8] = {
 #include "assets/mist_parking_animation_12DCC_bank1.inc"
 };
 
-AnimationPackedRotation D_mist_parking_80190040[84] = {
+static AnimationPackedRotation _gMistParkingAnimation12DCCBank4[84] = {
 #include "assets/mist_parking_animation_12DCC_bank4.inc"
 };
 
-AnimationRecord D_mist_parking_80190190[117] = {
+static AnimationRecord _gMistParkingAnimation12DCCRecords[117] = {
 #include "assets/mist_parking_animation_12DCC_records.inc"
 };
 
-u16 D_mist_parking_80190364[20] = {
+static u16 _gMistParkingAnimation12DCCIndices[20] = {
 #include "assets/mist_parking_animation_12DCC_indices.inc"
 };
 
-AnimationSet D_mist_parking_8019038C = {
-    D_mist_parking_80190190,
-    D_mist_parking_80190364,
-    { NULL, D_mist_parking_8018FFE0, NULL, NULL, D_mist_parking_80190040, NULL, NULL, NULL },
+AnimationSet gMistParkingAnimation12DCC = {
+    _gMistParkingAnimation12DCCRecords,
+    _gMistParkingAnimation12DCCIndices,
+    { NULL, _gMistParkingAnimation12DCCBank1, NULL, NULL, _gMistParkingAnimation12DCCBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mist_parking_801903B4[5] = {
+static AnimationPackedPose _gMistParkingAnimation1323CBank1[5] = {
 #include "assets/mist_parking_animation_1323C_bank1.inc"
 };
 
-AnimationPackedRotation D_mist_parking_801903F0[99] = {
+static AnimationPackedRotation _gMistParkingAnimation1323CBank4[99] = {
 #include "assets/mist_parking_animation_1323C_bank4.inc"
 };
 
-AnimationRecord D_mist_parking_8019057C[150] = {
+static AnimationRecord _gMistParkingAnimation1323CRecords[150] = {
 #include "assets/mist_parking_animation_1323C_records.inc"
 };
 
-u16 D_mist_parking_801907D4[20] = {
+static u16 _gMistParkingAnimation1323CIndices[20] = {
 #include "assets/mist_parking_animation_1323C_indices.inc"
 };
 
-AnimationSet D_mist_parking_801907FC = {
-    D_mist_parking_8019057C,
-    D_mist_parking_801907D4,
-    { NULL, D_mist_parking_801903B4, NULL, NULL, D_mist_parking_801903F0, NULL, NULL, NULL },
+AnimationSet gMistParkingAnimation1323C = {
+    _gMistParkingAnimation1323CRecords,
+    _gMistParkingAnimation1323CIndices,
+    { NULL, _gMistParkingAnimation1323CBank1, NULL, NULL, _gMistParkingAnimation1323CBank4, NULL, NULL, NULL },
 };
 
 static void func_mist_parking_801839CC(Task* task);

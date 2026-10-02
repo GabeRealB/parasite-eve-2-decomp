@@ -253,378 +253,378 @@ TaskDesc D_mine_cavern_80183CA4[2] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-AnimationPackedPose D_mine_cavern_80183CBC[6] = {
+static AnimationPackedPose _gMineCavernAnimation069D8Bank1[6] = {
 #include "assets/mine_cavern_animation_069D8_bank1.inc"
 };
 
-AnimationPackedRotation D_mine_cavern_80183D04[46] = {
+static AnimationPackedRotation _gMineCavernAnimation069D8Bank4[46] = {
 #include "assets/mine_cavern_animation_069D8_bank4.inc"
 };
 
-AnimationRecord D_mine_cavern_80183DBC[109] = {
+static AnimationRecord _gMineCavernAnimation069D8Records[109] = {
 #include "assets/mine_cavern_animation_069D8_records.inc"
 };
 
-u16 D_mine_cavern_80183F70[20] = {
+static u16 _gMineCavernAnimation069D8Indices[20] = {
 #include "assets/mine_cavern_animation_069D8_indices.inc"
 };
 
-AnimationSet D_mine_cavern_80183F98 = {
-    D_mine_cavern_80183DBC,
-    D_mine_cavern_80183F70,
-    { NULL, D_mine_cavern_80183CBC, NULL, NULL, D_mine_cavern_80183D04, NULL, NULL, NULL },
+static AnimationSet _gMineCavernAnimation069D8 = {
+    _gMineCavernAnimation069D8Records,
+    _gMineCavernAnimation069D8Indices,
+    { NULL, _gMineCavernAnimation069D8Bank1, NULL, NULL, _gMineCavernAnimation069D8Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mine_cavern_80183FC0[13] = {
+static AnimationPackedPose _gMineCavernAnimation07178Bank1[13] = {
 #include "assets/mine_cavern_animation_07178_bank1.inc"
 };
 
-AnimationPackedRotation D_mine_cavern_8018405C[179] = {
+static AnimationPackedRotation _gMineCavernAnimation07178Bank4[179] = {
 #include "assets/mine_cavern_animation_07178_bank4.inc"
 };
 
-AnimationRecord D_mine_cavern_80184328[250] = {
+static AnimationRecord _gMineCavernAnimation07178Records[250] = {
 #include "assets/mine_cavern_animation_07178_records.inc"
 };
 
-u16 D_mine_cavern_80184710[20] = {
+static u16 _gMineCavernAnimation07178Indices[20] = {
 #include "assets/mine_cavern_animation_07178_indices.inc"
 };
 
-AnimationSet D_mine_cavern_80184738 = {
-    D_mine_cavern_80184328,
-    D_mine_cavern_80184710,
-    { NULL, D_mine_cavern_80183FC0, NULL, NULL, D_mine_cavern_8018405C, NULL, NULL, NULL },
+static AnimationSet _gMineCavernAnimation07178 = {
+    _gMineCavernAnimation07178Records,
+    _gMineCavernAnimation07178Indices,
+    { NULL, _gMineCavernAnimation07178Bank1, NULL, NULL, _gMineCavernAnimation07178Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mine_cavern_80184760[6] = {
+static AnimationPackedPose _gMineCavernAnimation07544Bank1[6] = {
 #include "assets/mine_cavern_animation_07544_bank1.inc"
 };
 
-AnimationPackedRotation D_mine_cavern_801847A8[64] = {
+static AnimationPackedRotation _gMineCavernAnimation07544Bank4[64] = {
 #include "assets/mine_cavern_animation_07544_bank4.inc"
 };
 
-AnimationRecord D_mine_cavern_801848A8[141] = {
+static AnimationRecord _gMineCavernAnimation07544Records[141] = {
 #include "assets/mine_cavern_animation_07544_records.inc"
 };
 
-u16 D_mine_cavern_80184ADC[20] = {
+static u16 _gMineCavernAnimation07544Indices[20] = {
 #include "assets/mine_cavern_animation_07544_indices.inc"
 };
 
-AnimationSet D_mine_cavern_80184B04 = {
-    D_mine_cavern_801848A8,
-    D_mine_cavern_80184ADC,
-    { NULL, D_mine_cavern_80184760, NULL, NULL, D_mine_cavern_801847A8, NULL, NULL, NULL },
+static AnimationSet _gMineCavernAnimation07544 = {
+    _gMineCavernAnimation07544Records,
+    _gMineCavernAnimation07544Indices,
+    { NULL, _gMineCavernAnimation07544Bank1, NULL, NULL, _gMineCavernAnimation07544Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mine_cavern_80184B2C[4] = {
+static AnimationPackedPose _gMineCavernAnimation07784Bank1[4] = {
 #include "assets/mine_cavern_animation_07784_bank1.inc"
 };
 
-AnimationPackedRotation D_mine_cavern_80184B5C[42] = {
+static AnimationPackedRotation _gMineCavernAnimation07784Bank4[42] = {
 #include "assets/mine_cavern_animation_07784_bank4.inc"
 };
 
-AnimationRecord D_mine_cavern_80184C04[70] = {
+static AnimationRecord _gMineCavernAnimation07784Records[70] = {
 #include "assets/mine_cavern_animation_07784_records.inc"
 };
 
-u16 D_mine_cavern_80184D1C[20] = {
+static u16 _gMineCavernAnimation07784Indices[20] = {
 #include "assets/mine_cavern_animation_07784_indices.inc"
 };
 
-AnimationSet D_mine_cavern_80184D44 = {
-    D_mine_cavern_80184C04,
-    D_mine_cavern_80184D1C,
-    { NULL, D_mine_cavern_80184B2C, NULL, NULL, D_mine_cavern_80184B5C, NULL, NULL, NULL },
+static AnimationSet _gMineCavernAnimation07784 = {
+    _gMineCavernAnimation07784Records,
+    _gMineCavernAnimation07784Indices,
+    { NULL, _gMineCavernAnimation07784Bank1, NULL, NULL, _gMineCavernAnimation07784Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mine_cavern_80184D6C[3] = {
+static AnimationPackedPose _gMineCavernAnimation07958Bank1[3] = {
 #include "assets/mine_cavern_animation_07958_bank1.inc"
 };
 
-AnimationPackedRotation D_mine_cavern_80184D90[31] = {
+static AnimationPackedRotation _gMineCavernAnimation07958Bank4[31] = {
 #include "assets/mine_cavern_animation_07958_bank4.inc"
 };
 
-AnimationRecord D_mine_cavern_80184E0C[57] = {
+static AnimationRecord _gMineCavernAnimation07958Records[57] = {
 #include "assets/mine_cavern_animation_07958_records.inc"
 };
 
-u16 D_mine_cavern_80184EF0[20] = {
+static u16 _gMineCavernAnimation07958Indices[20] = {
 #include "assets/mine_cavern_animation_07958_indices.inc"
 };
 
-AnimationSet D_mine_cavern_80184F18 = {
-    D_mine_cavern_80184E0C,
-    D_mine_cavern_80184EF0,
-    { NULL, D_mine_cavern_80184D6C, NULL, NULL, D_mine_cavern_80184D90, NULL, NULL, NULL },
+static AnimationSet _gMineCavernAnimation07958 = {
+    _gMineCavernAnimation07958Records,
+    _gMineCavernAnimation07958Indices,
+    { NULL, _gMineCavernAnimation07958Bank1, NULL, NULL, _gMineCavernAnimation07958Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mine_cavern_80184F40[3] = {
+static AnimationPackedPose _gMineCavernAnimation07BA4Bank1[3] = {
 #include "assets/mine_cavern_animation_07BA4_bank1.inc"
 };
 
-AnimationPackedRotation D_mine_cavern_80184F64[29] = {
+static AnimationPackedRotation _gMineCavernAnimation07BA4Bank4[29] = {
 #include "assets/mine_cavern_animation_07BA4_bank4.inc"
 };
 
-AnimationRecord D_mine_cavern_80184FD8[89] = {
+static AnimationRecord _gMineCavernAnimation07BA4Records[89] = {
 #include "assets/mine_cavern_animation_07BA4_records.inc"
 };
 
-u16 D_mine_cavern_8018513C[20] = {
+static u16 _gMineCavernAnimation07BA4Indices[20] = {
 #include "assets/mine_cavern_animation_07BA4_indices.inc"
 };
 
-AnimationSet D_mine_cavern_80185164 = {
-    D_mine_cavern_80184FD8,
-    D_mine_cavern_8018513C,
-    { NULL, D_mine_cavern_80184F40, NULL, NULL, D_mine_cavern_80184F64, NULL, NULL, NULL },
+static AnimationSet _gMineCavernAnimation07BA4 = {
+    _gMineCavernAnimation07BA4Records,
+    _gMineCavernAnimation07BA4Indices,
+    { NULL, _gMineCavernAnimation07BA4Bank1, NULL, NULL, _gMineCavernAnimation07BA4Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mine_cavern_8018518C[8] = {
+static AnimationPackedPose _gMineCavernAnimation08178Bank1[8] = {
 #include "assets/mine_cavern_animation_08178_bank1.inc"
 };
 
-AnimationPackedRotation D_mine_cavern_801851EC[117] = {
+static AnimationPackedRotation _gMineCavernAnimation08178Bank4[117] = {
 #include "assets/mine_cavern_animation_08178_bank4.inc"
 };
 
-AnimationRecord D_mine_cavern_801853C0[212] = {
+static AnimationRecord _gMineCavernAnimation08178Records[212] = {
 #include "assets/mine_cavern_animation_08178_records.inc"
 };
 
-u16 D_mine_cavern_80185710[20] = {
+static u16 _gMineCavernAnimation08178Indices[20] = {
 #include "assets/mine_cavern_animation_08178_indices.inc"
 };
 
-AnimationSet D_mine_cavern_80185738 = {
-    D_mine_cavern_801853C0,
-    D_mine_cavern_80185710,
-    { NULL, D_mine_cavern_8018518C, NULL, NULL, D_mine_cavern_801851EC, NULL, NULL, NULL },
+static AnimationSet _gMineCavernAnimation08178 = {
+    _gMineCavernAnimation08178Records,
+    _gMineCavernAnimation08178Indices,
+    { NULL, _gMineCavernAnimation08178Bank1, NULL, NULL, _gMineCavernAnimation08178Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mine_cavern_80185760[4] = {
+static AnimationPackedPose _gMineCavernAnimation08420Bank1[4] = {
 #include "assets/mine_cavern_animation_08420_bank1.inc"
 };
 
-AnimationPackedRotation D_mine_cavern_80185790[46] = {
+static AnimationPackedRotation _gMineCavernAnimation08420Bank4[46] = {
 #include "assets/mine_cavern_animation_08420_bank4.inc"
 };
 
-AnimationRecord D_mine_cavern_80185848[92] = {
+static AnimationRecord _gMineCavernAnimation08420Records[92] = {
 #include "assets/mine_cavern_animation_08420_records.inc"
 };
 
-u16 D_mine_cavern_801859B8[20] = {
+static u16 _gMineCavernAnimation08420Indices[20] = {
 #include "assets/mine_cavern_animation_08420_indices.inc"
 };
 
-AnimationSet D_mine_cavern_801859E0 = {
-    D_mine_cavern_80185848,
-    D_mine_cavern_801859B8,
-    { NULL, D_mine_cavern_80185760, NULL, NULL, D_mine_cavern_80185790, NULL, NULL, NULL },
+static AnimationSet _gMineCavernAnimation08420 = {
+    _gMineCavernAnimation08420Records,
+    _gMineCavernAnimation08420Indices,
+    { NULL, _gMineCavernAnimation08420Bank1, NULL, NULL, _gMineCavernAnimation08420Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mine_cavern_80185A08[12] = {
+static AnimationPackedPose _gMineCavernAnimation08AC0Bank1[12] = {
 #include "assets/mine_cavern_animation_08AC0_bank1.inc"
 };
 
-AnimationPackedRotation D_mine_cavern_80185A98[164] = {
+static AnimationPackedRotation _gMineCavernAnimation08AC0Bank4[164] = {
 #include "assets/mine_cavern_animation_08AC0_bank4.inc"
 };
 
-AnimationRecord D_mine_cavern_80185D28[204] = {
+static AnimationRecord _gMineCavernAnimation08AC0Records[204] = {
 #include "assets/mine_cavern_animation_08AC0_records.inc"
 };
 
-u16 D_mine_cavern_80186058[20] = {
+static u16 _gMineCavernAnimation08AC0Indices[20] = {
 #include "assets/mine_cavern_animation_08AC0_indices.inc"
 };
 
-AnimationSet D_mine_cavern_80186080 = {
-    D_mine_cavern_80185D28,
-    D_mine_cavern_80186058,
-    { NULL, D_mine_cavern_80185A08, NULL, NULL, D_mine_cavern_80185A98, NULL, NULL, NULL },
+static AnimationSet _gMineCavernAnimation08AC0 = {
+    _gMineCavernAnimation08AC0Records,
+    _gMineCavernAnimation08AC0Indices,
+    { NULL, _gMineCavernAnimation08AC0Bank1, NULL, NULL, _gMineCavernAnimation08AC0Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mine_cavern_801860A8[2] = {
+static AnimationPackedPose _gMineCavernAnimation08CB4Bank1[2] = {
 #include "assets/mine_cavern_animation_08CB4_bank1.inc"
 };
 
-AnimationPackedRotation D_mine_cavern_801860C0[20] = {
+static AnimationPackedRotation _gMineCavernAnimation08CB4Bank4[20] = {
 #include "assets/mine_cavern_animation_08CB4_bank4.inc"
 };
 
-AnimationRecord D_mine_cavern_80186110[79] = {
+static AnimationRecord _gMineCavernAnimation08CB4Records[79] = {
 #include "assets/mine_cavern_animation_08CB4_records.inc"
 };
 
-u16 D_mine_cavern_8018624C[20] = {
+static u16 _gMineCavernAnimation08CB4Indices[20] = {
 #include "assets/mine_cavern_animation_08CB4_indices.inc"
 };
 
-AnimationSet D_mine_cavern_80186274 = {
-    D_mine_cavern_80186110,
-    D_mine_cavern_8018624C,
-    { NULL, D_mine_cavern_801860A8, NULL, NULL, D_mine_cavern_801860C0, NULL, NULL, NULL },
+static AnimationSet _gMineCavernAnimation08CB4 = {
+    _gMineCavernAnimation08CB4Records,
+    _gMineCavernAnimation08CB4Indices,
+    { NULL, _gMineCavernAnimation08CB4Bank1, NULL, NULL, _gMineCavernAnimation08CB4Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mine_cavern_8018629C[11] = {
+static AnimationPackedPose _gMineCavernAnimation092C4Bank1[11] = {
 #include "assets/mine_cavern_animation_092C4_bank1.inc"
 };
 
-AnimationPackedRotation D_mine_cavern_80186320[150] = {
+static AnimationPackedRotation _gMineCavernAnimation092C4Bank4[150] = {
 #include "assets/mine_cavern_animation_092C4_bank4.inc"
 };
 
-AnimationRecord D_mine_cavern_80186578[185] = {
+static AnimationRecord _gMineCavernAnimation092C4Records[185] = {
 #include "assets/mine_cavern_animation_092C4_records.inc"
 };
 
-u16 D_mine_cavern_8018685C[20] = {
+static u16 _gMineCavernAnimation092C4Indices[20] = {
 #include "assets/mine_cavern_animation_092C4_indices.inc"
 };
 
-AnimationSet D_mine_cavern_80186884 = {
-    D_mine_cavern_80186578,
-    D_mine_cavern_8018685C,
-    { NULL, D_mine_cavern_8018629C, NULL, NULL, D_mine_cavern_80186320, NULL, NULL, NULL },
+static AnimationSet _gMineCavernAnimation092C4 = {
+    _gMineCavernAnimation092C4Records,
+    _gMineCavernAnimation092C4Indices,
+    { NULL, _gMineCavernAnimation092C4Bank1, NULL, NULL, _gMineCavernAnimation092C4Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mine_cavern_801868AC[8] = {
+static AnimationPackedPose _gMineCavernAnimation096E4Bank1[8] = {
 #include "assets/mine_cavern_animation_096E4_bank1.inc"
 };
 
-AnimationPackedRotation D_mine_cavern_8018690C[88] = {
+static AnimationPackedRotation _gMineCavernAnimation096E4Bank4[88] = {
 #include "assets/mine_cavern_animation_096E4_bank4.inc"
 };
 
-AnimationRecord D_mine_cavern_80186A6C[132] = {
+static AnimationRecord _gMineCavernAnimation096E4Records[132] = {
 #include "assets/mine_cavern_animation_096E4_records.inc"
 };
 
-u16 D_mine_cavern_80186C7C[20] = {
+static u16 _gMineCavernAnimation096E4Indices[20] = {
 #include "assets/mine_cavern_animation_096E4_indices.inc"
 };
 
-AnimationSet D_mine_cavern_80186CA4 = {
-    D_mine_cavern_80186A6C,
-    D_mine_cavern_80186C7C,
-    { NULL, D_mine_cavern_801868AC, NULL, NULL, D_mine_cavern_8018690C, NULL, NULL, NULL },
+static AnimationSet _gMineCavernAnimation096E4 = {
+    _gMineCavernAnimation096E4Records,
+    _gMineCavernAnimation096E4Indices,
+    { NULL, _gMineCavernAnimation096E4Bank1, NULL, NULL, _gMineCavernAnimation096E4Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mine_cavern_80186CCC[5] = {
+static AnimationPackedPose _gMineCavernAnimation099C8Bank1[5] = {
 #include "assets/mine_cavern_animation_099C8_bank1.inc"
 };
 
-AnimationPackedRotation D_mine_cavern_80186D08[58] = {
+static AnimationPackedRotation _gMineCavernAnimation099C8Bank4[58] = {
 #include "assets/mine_cavern_animation_099C8_bank4.inc"
 };
 
-AnimationRecord D_mine_cavern_80186DF0[92] = {
+static AnimationRecord _gMineCavernAnimation099C8Records[92] = {
 #include "assets/mine_cavern_animation_099C8_records.inc"
 };
 
-u16 D_mine_cavern_80186F60[20] = {
+static u16 _gMineCavernAnimation099C8Indices[20] = {
 #include "assets/mine_cavern_animation_099C8_indices.inc"
 };
 
-AnimationSet D_mine_cavern_80186F88 = {
-    D_mine_cavern_80186DF0,
-    D_mine_cavern_80186F60,
-    { NULL, D_mine_cavern_80186CCC, NULL, NULL, D_mine_cavern_80186D08, NULL, NULL, NULL },
+static AnimationSet _gMineCavernAnimation099C8 = {
+    _gMineCavernAnimation099C8Records,
+    _gMineCavernAnimation099C8Indices,
+    { NULL, _gMineCavernAnimation099C8Bank1, NULL, NULL, _gMineCavernAnimation099C8Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mine_cavern_80186FB0[2] = {
+static AnimationPackedPose _gMineCavernAnimation09C2CBank1[2] = {
 #include "assets/mine_cavern_animation_09C2C_bank1.inc"
 };
 
-AnimationPackedRotation D_mine_cavern_80186FC8[22] = {
+static AnimationPackedRotation _gMineCavernAnimation09C2CBank4[22] = {
 #include "assets/mine_cavern_animation_09C2C_bank4.inc"
 };
 
-AnimationRecord D_mine_cavern_80187020[105] = {
+static AnimationRecord _gMineCavernAnimation09C2CRecords[105] = {
 #include "assets/mine_cavern_animation_09C2C_records.inc"
 };
 
-u16 D_mine_cavern_801871C4[20] = {
+static u16 _gMineCavernAnimation09C2CIndices[20] = {
 #include "assets/mine_cavern_animation_09C2C_indices.inc"
 };
 
-AnimationSet D_mine_cavern_801871EC = {
-    D_mine_cavern_80187020,
-    D_mine_cavern_801871C4,
-    { NULL, D_mine_cavern_80186FB0, NULL, NULL, D_mine_cavern_80186FC8, NULL, NULL, NULL },
+static AnimationSet _gMineCavernAnimation09C2C = {
+    _gMineCavernAnimation09C2CRecords,
+    _gMineCavernAnimation09C2CIndices,
+    { NULL, _gMineCavernAnimation09C2CBank1, NULL, NULL, _gMineCavernAnimation09C2CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mine_cavern_80187214[4] = {
+static AnimationPackedPose _gMineCavernAnimation09F1CBank1[4] = {
 #include "assets/mine_cavern_animation_09F1C_bank1.inc"
 };
 
-AnimationPackedRotation D_mine_cavern_80187244[40] = {
+static AnimationPackedRotation _gMineCavernAnimation09F1CBank4[40] = {
 #include "assets/mine_cavern_animation_09F1C_bank4.inc"
 };
 
-AnimationRecord D_mine_cavern_801872E4[116] = {
+static AnimationRecord _gMineCavernAnimation09F1CRecords[116] = {
 #include "assets/mine_cavern_animation_09F1C_records.inc"
 };
 
-u16 D_mine_cavern_801874B4[20] = {
+static u16 _gMineCavernAnimation09F1CIndices[20] = {
 #include "assets/mine_cavern_animation_09F1C_indices.inc"
 };
 
-AnimationSet D_mine_cavern_801874DC = {
-    D_mine_cavern_801872E4,
-    D_mine_cavern_801874B4,
-    { NULL, D_mine_cavern_80187214, NULL, NULL, D_mine_cavern_80187244, NULL, NULL, NULL },
+static AnimationSet _gMineCavernAnimation09F1C = {
+    _gMineCavernAnimation09F1CRecords,
+    _gMineCavernAnimation09F1CIndices,
+    { NULL, _gMineCavernAnimation09F1CBank1, NULL, NULL, _gMineCavernAnimation09F1CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mine_cavern_80187504[10] = {
+static AnimationPackedPose _gMineCavernAnimation0A38CBank1[10] = {
 #include "assets/mine_cavern_animation_0A38C_bank1.inc"
 };
 
-AnimationPackedRotation D_mine_cavern_8018757C[95] = {
+static AnimationPackedRotation _gMineCavernAnimation0A38CBank4[95] = {
 #include "assets/mine_cavern_animation_0A38C_bank4.inc"
 };
 
-AnimationRecord D_mine_cavern_801876F8[139] = {
+static AnimationRecord _gMineCavernAnimation0A38CRecords[139] = {
 #include "assets/mine_cavern_animation_0A38C_records.inc"
 };
 
-u16 D_mine_cavern_80187924[20] = {
+static u16 _gMineCavernAnimation0A38CIndices[20] = {
 #include "assets/mine_cavern_animation_0A38C_indices.inc"
 };
 
-AnimationSet D_mine_cavern_8018794C = {
-    D_mine_cavern_801876F8,
-    D_mine_cavern_80187924,
-    { NULL, D_mine_cavern_80187504, NULL, NULL, D_mine_cavern_8018757C, NULL, NULL, NULL },
+static AnimationSet _gMineCavernAnimation0A38C = {
+    _gMineCavernAnimation0A38CRecords,
+    _gMineCavernAnimation0A38CIndices,
+    { NULL, _gMineCavernAnimation0A38CBank1, NULL, NULL, _gMineCavernAnimation0A38CBank4, NULL, NULL, NULL },
 };
 
 TaskDesc D_mine_cavern_80187974 = { { { TASK_BODY_NONE, 192 } }, func_mine_cavern_8017E18C, { .value = 0 } };
 
 AnimationSet* D_mine_cavern_80187980[17] = {
     NULL,
-    &D_mine_cavern_80183F98,
-    &D_mine_cavern_80184B04,
-    &D_mine_cavern_80184D44,
-    &D_mine_cavern_80184F18,
-    &D_mine_cavern_80185164,
-    &D_mine_cavern_80185738,
-    &D_mine_cavern_801859E0,
-    &D_mine_cavern_80184738,
-    &D_mine_cavern_80186080,
-    &D_mine_cavern_80186274,
-    &D_mine_cavern_80186884,
-    &D_mine_cavern_80186CA4,
-    &D_mine_cavern_80186F88,
-    &D_mine_cavern_801871EC,
-    &D_mine_cavern_801874DC,
-    &D_mine_cavern_8018794C,
+    &_gMineCavernAnimation069D8,
+    &_gMineCavernAnimation07544,
+    &_gMineCavernAnimation07784,
+    &_gMineCavernAnimation07958,
+    &_gMineCavernAnimation07BA4,
+    &_gMineCavernAnimation08178,
+    &_gMineCavernAnimation08420,
+    &_gMineCavernAnimation07178,
+    &_gMineCavernAnimation08AC0,
+    &_gMineCavernAnimation08CB4,
+    &_gMineCavernAnimation092C4,
+    &_gMineCavernAnimation096E4,
+    &_gMineCavernAnimation099C8,
+    &_gMineCavernAnimation09C2C,
+    &_gMineCavernAnimation09F1C,
+    &_gMineCavernAnimation0A38C,
 };
 
 GpCopyArg D_mine_cavern_801879C4 = { { .sets = D_mine_cavern_80187980 }, 17 };
@@ -1075,30 +1075,30 @@ GpWarpRec D_mine_cavern_80189074[2] = {
     { { .words = { 0, 2840, 0, 0 } }, { 0, 0, 0, 0 }, { .words = { 0, 2840, 0, 0 } }, { 0, 0, 0, 0 }, 0x54020004, 0x54020003, 0x54020012, 23, 0, 441 },
 };
 
-SVECTOR D_mine_cavern_801890E4[30] = {
+static SVECTOR _gMineCavernCollision0C25CNormals[30] = {
 #include "assets/mine_cavern_collision_0C25C_normals.inc"
 };
 
-SVECTOR D_mine_cavern_801891D4[88] = {
+static SVECTOR _gMineCavernCollision0C25CVerts[88] = {
 #include "assets/mine_cavern_collision_0C25C_verts.inc"
 };
 
-WorldCollisionGridFace D_mine_cavern_80189494[38] = {
+static WorldCollisionGridFace _gMineCavernCollision0C25CFaces[38] = {
 #include "assets/mine_cavern_collision_0C25C_faces.inc"
 };
 
-s16 D_mine_cavern_8018965C[188] = {
+static s16 _gMineCavernCollision0C25CCells[188] = {
 #include "assets/mine_cavern_collision_0C25C_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_mine_cavern_8018965C[i])
-s16* D_mine_cavern_801897D4[18] = {
+#define GRID_CELL(i) (&_gMineCavernCollision0C25CCells[i])
+static s16* _gMineCavernCollision0C25CTable[18] = {
 #include "assets/mine_cavern_collision_0C25C_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_mine_cavern_8018981C[1] = {
-    { NULL, D_mine_cavern_801890E4, D_mine_cavern_801891D4, D_mine_cavern_80189494, D_mine_cavern_801897D4, 1000, 1200, 6, 3, 4000, 38 },
+    { NULL, _gMineCavernCollision0C25CNormals, _gMineCavernCollision0C25CVerts, _gMineCavernCollision0C25CFaces, _gMineCavernCollision0C25CTable, 1000, 1200, 6, 3, 4000, 38 },
 };
 
 GpViewRec D_mine_cavern_80189840[25] = {

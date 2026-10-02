@@ -140,31 +140,31 @@ TaskMessageEntry D_shelter_b6_corridor_8017EF24[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-AnimationPackedPose D_shelter_b6_corridor_8017EF54[6] = {
+static AnimationPackedPose _gShelterB6CorridorAnimation01C70Bank1[6] = {
 #include "assets/shelter_b6_corridor_animation_01C70_bank1.inc"
 };
 
-AnimationPackedRotation D_shelter_b6_corridor_8017EF9C[46] = {
+static AnimationPackedRotation _gShelterB6CorridorAnimation01C70Bank4[46] = {
 #include "assets/shelter_b6_corridor_animation_01C70_bank4.inc"
 };
 
-AnimationRecord D_shelter_b6_corridor_8017F054[109] = {
+static AnimationRecord _gShelterB6CorridorAnimation01C70Records[109] = {
 #include "assets/shelter_b6_corridor_animation_01C70_records.inc"
 };
 
-u16 D_shelter_b6_corridor_8017F208[20] = {
+static u16 _gShelterB6CorridorAnimation01C70Indices[20] = {
 #include "assets/shelter_b6_corridor_animation_01C70_indices.inc"
 };
 
-AnimationSet D_shelter_b6_corridor_8017F230 = {
-    D_shelter_b6_corridor_8017F054,
-    D_shelter_b6_corridor_8017F208,
-    { NULL, D_shelter_b6_corridor_8017EF54, NULL, NULL, D_shelter_b6_corridor_8017EF9C, NULL, NULL, NULL },
+static AnimationSet _gShelterB6CorridorAnimation01C70 = {
+    _gShelterB6CorridorAnimation01C70Records,
+    _gShelterB6CorridorAnimation01C70Indices,
+    { NULL, _gShelterB6CorridorAnimation01C70Bank1, NULL, NULL, _gShelterB6CorridorAnimation01C70Bank4, NULL, NULL, NULL },
 };
 
 AnimationSet* D_shelter_b6_corridor_8017F258[2] = {
     NULL,
-    &D_shelter_b6_corridor_8017F230,
+    &_gShelterB6CorridorAnimation01C70,
 };
 
 GpCopyArg D_shelter_b6_corridor_8017F260 = { { .sets = D_shelter_b6_corridor_8017F258 }, 2 };
@@ -287,29 +287,29 @@ GpWarpRec D_shelter_b6_corridor_8017F8BC[2] = {
     { { .words = { 3072, 8400, 0, 0 } }, { 0, 0, 0, 0 }, { .words = { 3072, 8400, 0, 0 } }, { 0, 0, 0, 0 }, 0, 0x55180003, 0, 3, 0, 0 },
 };
 
-SVECTOR D_shelter_b6_corridor_8017F92C[6] = {
+static SVECTOR _gShelterB6CorridorCollision024D0Normals[6] = {
 #include "assets/shelter_b6_corridor_collision_024D0_normals.inc"
 };
 
-SVECTOR D_shelter_b6_corridor_8017F95C[12] = {
+static SVECTOR _gShelterB6CorridorCollision024D0Verts[12] = {
 #include "assets/shelter_b6_corridor_collision_024D0_verts.inc"
 };
 
-WorldCollisionGridFace D_shelter_b6_corridor_8017F9BC[12] = {
+static WorldCollisionGridFace _gShelterB6CorridorCollision024D0Faces[12] = {
 #include "assets/shelter_b6_corridor_collision_024D0_faces.inc"
 };
 
-s16 D_shelter_b6_corridor_8017FA4C[28] = {
+static s16 _gShelterB6CorridorCollision024D0Cells[28] = {
 #include "assets/shelter_b6_corridor_collision_024D0_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_shelter_b6_corridor_8017FA4C[i])
-s16* D_shelter_b6_corridor_8017FA84[3] = {
+#define GRID_CELL(i) (&_gShelterB6CorridorCollision024D0Cells[i])
+static s16* _gShelterB6CorridorCollision024D0Table[3] = {
 #include "assets/shelter_b6_corridor_collision_024D0_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b6_corridor_8017FA90 = { NULL, D_shelter_b6_corridor_8017F92C, D_shelter_b6_corridor_8017F95C, D_shelter_b6_corridor_8017F9BC, D_shelter_b6_corridor_8017FA84, 0, 1350, 3, 1, 4000, 12 };
+WorldCollisionGrid D_shelter_b6_corridor_8017FA90 = { NULL, _gShelterB6CorridorCollision024D0Normals, _gShelterB6CorridorCollision024D0Verts, _gShelterB6CorridorCollision024D0Faces, _gShelterB6CorridorCollision024D0Table, 0, 1350, 3, 1, 4000, 12 };
 
 GpViewRec D_shelter_b6_corridor_8017FAB4[5] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -4500, 0x61A8, 0 } }, 680 },

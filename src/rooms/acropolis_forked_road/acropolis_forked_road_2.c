@@ -433,55 +433,55 @@ SVECTOR D_acropolis_forked_road_80180F80[300] = {
     { 6590, -2995, 1250, 0 },
 };
 
-AnimationPackedPose D_acropolis_forked_road_801818E0[6] = {
+static AnimationPackedPose _gAcropolisForkedRoadAnimation045FCBank1[6] = {
 #include "assets/acropolis_forked_road_animation_045FC_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_forked_road_80181928[46] = {
+static AnimationPackedRotation _gAcropolisForkedRoadAnimation045FCBank4[46] = {
 #include "assets/acropolis_forked_road_animation_045FC_bank4.inc"
 };
 
-AnimationRecord D_acropolis_forked_road_801819E0[109] = {
+static AnimationRecord _gAcropolisForkedRoadAnimation045FCRecords[109] = {
 #include "assets/acropolis_forked_road_animation_045FC_records.inc"
 };
 
-u16 D_acropolis_forked_road_80181B94[20] = {
+static u16 _gAcropolisForkedRoadAnimation045FCIndices[20] = {
 #include "assets/acropolis_forked_road_animation_045FC_indices.inc"
 };
 
-AnimationSet D_acropolis_forked_road_80181BBC = {
-    D_acropolis_forked_road_801819E0,
-    D_acropolis_forked_road_80181B94,
-    { NULL, D_acropolis_forked_road_801818E0, NULL, NULL, D_acropolis_forked_road_80181928, NULL, NULL, NULL },
+static AnimationSet _gAcropolisForkedRoadAnimation045FC = {
+    _gAcropolisForkedRoadAnimation045FCRecords,
+    _gAcropolisForkedRoadAnimation045FCIndices,
+    { NULL, _gAcropolisForkedRoadAnimation045FCBank1, NULL, NULL, _gAcropolisForkedRoadAnimation045FCBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_forked_road_80181BE4[10] = {
+static AnimationPackedPose _gAcropolisForkedRoadAnimation04A6CBank1[10] = {
 #include "assets/acropolis_forked_road_animation_04A6C_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_forked_road_80181C5C[95] = {
+static AnimationPackedRotation _gAcropolisForkedRoadAnimation04A6CBank4[95] = {
 #include "assets/acropolis_forked_road_animation_04A6C_bank4.inc"
 };
 
-AnimationRecord D_acropolis_forked_road_80181DD8[139] = {
+static AnimationRecord _gAcropolisForkedRoadAnimation04A6CRecords[139] = {
 #include "assets/acropolis_forked_road_animation_04A6C_records.inc"
 };
 
-u16 D_acropolis_forked_road_80182004[20] = {
+static u16 _gAcropolisForkedRoadAnimation04A6CIndices[20] = {
 #include "assets/acropolis_forked_road_animation_04A6C_indices.inc"
 
 };
 
-AnimationSet D_acropolis_forked_road_8018202C = {
-    D_acropolis_forked_road_80181DD8,
-    D_acropolis_forked_road_80182004,
-    { NULL, D_acropolis_forked_road_80181BE4, NULL, NULL, D_acropolis_forked_road_80181C5C, NULL, NULL, NULL },
+static AnimationSet _gAcropolisForkedRoadAnimation04A6C = {
+    _gAcropolisForkedRoadAnimation04A6CRecords,
+    _gAcropolisForkedRoadAnimation04A6CIndices,
+    { NULL, _gAcropolisForkedRoadAnimation04A6CBank1, NULL, NULL, _gAcropolisForkedRoadAnimation04A6CBank4, NULL, NULL, NULL },
 };
 
 AnimationSet* D_acropolis_forked_road_80182054[3] = {
     NULL,
-    &D_acropolis_forked_road_80181BBC,
-    &D_acropolis_forked_road_8018202C,
+    &_gAcropolisForkedRoadAnimation045FC,
+    &_gAcropolisForkedRoadAnimation04A6C,
 };
 
 GpCopyArg D_acropolis_forked_road_80182060 = { { .sets = D_acropolis_forked_road_80182054 }, 3 };
@@ -606,30 +606,30 @@ GpWarpRec D_acropolis_forked_road_80182288[5] = {
     { { .words = { 3072, -261, 1, 1205 } }, { 0, 0, 0, 0 }, { .words = { 3072, -261, 1, 1205 } }, { 0, 0, 0, 0 }, 0, 0, 0, 3, 0, 494 },
 };
 
-SVECTOR D_acropolis_forked_road_801823A0[18] = {
+static SVECTOR _gAcropolisForkedRoadCollision05630Normals[18] = {
 #include "assets/acropolis_forked_road_collision_05630_normals.inc"
 };
 
-SVECTOR D_acropolis_forked_road_80182430[118] = {
+static SVECTOR _gAcropolisForkedRoadCollision05630Verts[118] = {
 #include "assets/acropolis_forked_road_collision_05630_verts.inc"
 };
 
-WorldCollisionGridFace D_acropolis_forked_road_801827E0[38] = {
+static WorldCollisionGridFace _gAcropolisForkedRoadCollision05630Faces[38] = {
 #include "assets/acropolis_forked_road_collision_05630_faces.inc"
 };
 
-s16 D_acropolis_forked_road_801829A8[244] = {
+static s16 _gAcropolisForkedRoadCollision05630Cells[244] = {
 #include "assets/acropolis_forked_road_collision_05630_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_acropolis_forked_road_801829A8[i])
-s16* D_acropolis_forked_road_80182B90[24] = {
+#define GRID_CELL(i) (&_gAcropolisForkedRoadCollision05630Cells[i])
+static s16* _gAcropolisForkedRoadCollision05630Table[24] = {
 #include "assets/acropolis_forked_road_collision_05630_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_acropolis_forked_road_80182BF0[1] = {
-    { NULL, D_acropolis_forked_road_801823A0, D_acropolis_forked_road_80182430, D_acropolis_forked_road_801827E0, D_acropolis_forked_road_80182B90, 0x303E, 6900, 6, 4, 4000, 38 },
+    { NULL, _gAcropolisForkedRoadCollision05630Normals, _gAcropolisForkedRoadCollision05630Verts, _gAcropolisForkedRoadCollision05630Faces, _gAcropolisForkedRoadCollision05630Table, 0x303E, 6900, 6, 4, 4000, 38 },
 };
 
 WorldCollisionTrigger D_acropolis_forked_road_80182C14[6] = {

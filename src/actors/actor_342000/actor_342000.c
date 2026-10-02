@@ -205,48 +205,48 @@ void func_actor_342000_8016447C(void);
 void func_actor_342000_8016449C(void);
 void func_actor_342000_801644BC(void);
 
-AnimationPackedPose D_actor_342000_801644E4[6] = {
+static AnimationPackedPose _gActor342000Animation029A0Bank1[6] = {
 #include "assets/actor_342000_animation_029A0_bank1.inc"
 };
 
-AnimationPackedRotation D_actor_342000_8016452C[46] = {
+static AnimationPackedRotation _gActor342000Animation029A0Bank4[46] = {
 #include "assets/actor_342000_animation_029A0_bank4.inc"
 };
 
-AnimationRecord D_actor_342000_801645E4[109] = {
+static AnimationRecord _gActor342000Animation029A0Records[109] = {
 #include "assets/actor_342000_animation_029A0_records.inc"
 };
 
-u16 D_actor_342000_80164798[20] = {
+static u16 _gActor342000Animation029A0Indices[20] = {
 #include "assets/actor_342000_animation_029A0_indices.inc"
 };
 
-AnimationSet D_actor_342000_801647C0 = {
-    D_actor_342000_801645E4,
-    D_actor_342000_80164798,
-    { NULL, D_actor_342000_801644E4, NULL, NULL, D_actor_342000_8016452C, NULL, NULL, NULL },
+static AnimationSet _gActor342000Animation029A0 = {
+    _gActor342000Animation029A0Records,
+    _gActor342000Animation029A0Indices,
+    { NULL, _gActor342000Animation029A0Bank1, NULL, NULL, _gActor342000Animation029A0Bank4, NULL, NULL, NULL },
 };
 
 AnimationSet* D_actor_342000_801647E8[4] = {
-    &D_actor_342000_801647C0,
-    &D_actor_444000_80160368,
-    &D_actor_444000_801608A0,
-    &D_actor_444000_80160C34,
+    &_gActor342000Animation029A0,
+    &gActor444000Animation2E548,
+    &gActor444000Animation2EA80,
+    &gActor444000Animation2EE14,
 };
 
 AnimationSet* D_actor_342000_801647F8[2] = {
-    &D_actor_444000_801529F4,
-    &D_actor_444000_80157A00,
+    &gActor444000Animation20BD4,
+    &gActor444000Animation25BE0,
 };
 
 AnimationSet* D_actor_342000_80164800[2] = {
-    &D_actor_444000_80152AA0,
-    &D_actor_444000_80157D34,
+    &gActor444000Animation20C80,
+    &gActor444000Animation25F14,
 };
 
 AnimationSet* D_actor_342000_80164808[2] = {
-    &D_actor_444000_80152B4C,
-    &D_actor_444000_80158060,
+    &gActor444000Animation20D2C,
+    &gActor444000Animation26240,
 };
 
 s16 D_actor_342000_80164810[4] = {
@@ -380,14 +380,14 @@ EvsCommand D_actor_342000_80164E30[19] = {
 TaskDesc D_actor_342000_80164FF8[10] = {
     { { { TASK_BODY_NONE, 192 } }, func_actor_342000_8016382C, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_actor_342000_80163EAC, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_342000_801628C8, { .model = &D_actor_444000_80146F68 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_342000_801625D8, { .model = &D_actor_444000_8014BE0C } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_342000_801625D8, { .model = &D_actor_444000_8014A650 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_342000_801625D8, { .model = &D_actor_444000_80147D10 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_342000_801625D8, { .model = &D_actor_444000_80148E94 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_342000_801625D8, { .model = &D_actor_444000_8014D5FC } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_342000_8016201C, { .model = &D_actor_444000_8014ED78 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_342000_8016201C, { .model = &D_actor_444000_8014F8C0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_342000_801628C8, { .model = &gActor444000Actor403200Model10824 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_342000_801625D8, { .model = &gActor444000GluttonLegRight } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_342000_801625D8, { .model = &gActor444000GluttonLegLeft } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_342000_801625D8, { .model = &gActor444000Actor403200Model12884 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_342000_801625D8, { .model = &gActor444000Actor403200Model13774 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_342000_801625D8, { .model = &gActor444000Actor403200Model18BE4 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_342000_8016201C, { .model = &gActor444000Model1C814 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_342000_8016201C, { .model = &gActor444000Model1D36C } },
 };
 
 Task* D_actor_342000_80165070;

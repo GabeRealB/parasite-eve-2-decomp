@@ -55,34 +55,34 @@ s32 func_mine_gorge_8017D7F4(Task*, s32, s32, TaskMessageArg);
 
 void func_mine_gorge_8017D8BC(u8);
 
-extern AnimationSet D_mine_gorge_8017E258;
+static AnimationSet _gMineGorgeAnimation00C98;
 
 extern AnimationPlayRequest D_mine_gorge_8017E2DC;
 extern AnimationPlayRequest D_mine_gorge_8017E5E8;
 extern GpCopyArg            D_mine_gorge_8017E5E0;
 void                        func_mine_gorge_8017D8C8(s32);
 
-AnimationPackedPose D_mine_gorge_8017DE10[10] = {
+static AnimationPackedPose _gMineGorgeAnimation00C98Bank1[10] = {
 #include "assets/mine_gorge_animation_00C98_bank1.inc"
 };
 
-AnimationPackedRotation D_mine_gorge_8017DE88[95] = {
+static AnimationPackedRotation _gMineGorgeAnimation00C98Bank4[95] = {
 #include "assets/mine_gorge_animation_00C98_bank4.inc"
 };
 
-AnimationRecord D_mine_gorge_8017E004[139] = {
+static AnimationRecord _gMineGorgeAnimation00C98Records[139] = {
 #include "assets/mine_gorge_animation_00C98_records.inc"
 };
 
-u16 D_mine_gorge_8017E230[20] = {
+static u16 _gMineGorgeAnimation00C98Indices[20] = {
 #include "assets/mine_gorge_animation_00C98_indices.inc"
 
 };
 
-AnimationSet D_mine_gorge_8017E258 = {
-    D_mine_gorge_8017E004,
-    D_mine_gorge_8017E230,
-    { NULL, D_mine_gorge_8017DE10, NULL, NULL, D_mine_gorge_8017DE88, NULL, NULL, NULL },
+static AnimationSet _gMineGorgeAnimation00C98 = {
+    _gMineGorgeAnimation00C98Records,
+    _gMineGorgeAnimation00C98Indices,
+    { NULL, _gMineGorgeAnimation00C98Bank1, NULL, NULL, _gMineGorgeAnimation00C98Bank4, NULL, NULL, NULL },
 };
 
 TaskMessageEntry D_mine_gorge_8017E280[6] = {
@@ -141,7 +141,7 @@ EvsCommand D_mine_gorge_8017E500[9] = {
 };
 
 AnimationSet* D_mine_gorge_8017E5D8[2] = {
-    &D_mine_gorge_8017E258,
+    &_gMineGorgeAnimation00C98,
     NULL,
 };
 

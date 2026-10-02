@@ -228,30 +228,30 @@ GpWarpRec D_neo_ark_r26_8017E0EC[1] = {
     { { .words = { 2048, 0, 0, 0 } }, { 0, 0, 0, 0 }, { .words = { 2048, 0, 0, 0 } }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
 };
 
-SVECTOR D_neo_ark_r26_8017E124[1] = {
+static SVECTOR _gNeoArkR26Collision00BDCNormals[1] = {
 #include "assets/neo_ark_r26_collision_00BDC_normals.inc"
 };
 
-SVECTOR D_neo_ark_r26_8017E12C[4] = {
+static SVECTOR _gNeoArkR26Collision00BDCVerts[4] = {
 #include "assets/neo_ark_r26_collision_00BDC_verts.inc"
 };
 
-WorldCollisionGridFace D_neo_ark_r26_8017E14C[1] = {
+static WorldCollisionGridFace _gNeoArkR26Collision00BDCFaces[1] = {
 #include "assets/neo_ark_r26_collision_00BDC_faces.inc"
 };
 
-s16 D_neo_ark_r26_8017E158[16] = {
+static s16 _gNeoArkR26Collision00BDCCells[16] = {
 #include "assets/neo_ark_r26_collision_00BDC_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_neo_ark_r26_8017E158[i])
-s16* D_neo_ark_r26_8017E178[9] = {
+#define GRID_CELL(i) (&_gNeoArkR26Collision00BDCCells[i])
+static s16* _gNeoArkR26Collision00BDCTable[9] = {
 #include "assets/neo_ark_r26_collision_00BDC_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_neo_ark_r26_8017E19C[1] = {
-    { NULL, D_neo_ark_r26_8017E124, D_neo_ark_r26_8017E12C, D_neo_ark_r26_8017E14C, D_neo_ark_r26_8017E178, 4000, 4000, 3, 3, 4000, 1 },
+    { NULL, _gNeoArkR26Collision00BDCNormals, _gNeoArkR26Collision00BDCVerts, _gNeoArkR26Collision00BDCFaces, _gNeoArkR26Collision00BDCTable, 4000, 4000, 3, 3, 4000, 1 },
 };
 
 GpViewRec D_neo_ark_r26_8017E1C0[4] = {

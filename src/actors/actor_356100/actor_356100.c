@@ -252,7 +252,7 @@ typedef struct {
 } Actor356100MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor356100MessageEntry, 8);
 
-extern TmdSource D_actor_356100_8016FC74;
+static TmdSource _gActor356100HornedStrangerBody;
 s32              func_actor_356100_80169E5C(void);
 s32              func_actor_356100_8016A0B8(Task*, s32, Actor356100Event*);
 void             func_actor_356100_8016A910(Task*);
@@ -276,80 +276,80 @@ Actor356100TintRow D_actor_356100_8016A994[3] = {
     { 0, 500, 7, 0 },
 };
 
-TmdBone D_actor_356100_8016A9AC[21] = {
+static TmdBone _gActor356100HornedStrangerBodySkeleton[21] = {
 #include "assets/horned_stranger_body_skeleton.inc"
 };
 
-u32 D_actor_356100_8016ACA0[21] = {
+static u32 _gActor356100HornedStrangerBodyPartVerts[21] = {
 #include "assets/horned_stranger_body_partVerts.inc"
 };
 
-SVECTOR D_actor_356100_8016ACF4[293] = {
+static SVECTOR _gActor356100HornedStrangerBodyVerts[293] = {
 #include "assets/horned_stranger_body_verts.inc"
 };
 
-SVECTOR D_actor_356100_8016B61C[363] = {
+static SVECTOR _gActor356100HornedStrangerBodyNormals[363] = {
 #include "assets/horned_stranger_body_normals.inc"
 };
 
-u32 D_actor_356100_8016C174[3776] = {
+static u32 _gActor356100HornedStrangerBodyStream[3776] = {
 #include "assets/horned_stranger_body_stream.inc"
 };
 
-TmdSource D_actor_356100_8016FC74 = {
+static TmdSource _gActor356100HornedStrangerBody = {
     0,
     18488,
     7600,
     21,
-    D_actor_356100_8016ACA0,
-    D_actor_356100_8016ACF4,
-    D_actor_356100_8016B61C,
-    D_actor_356100_8016A9AC,
-    D_actor_356100_8016C174,
+    _gActor356100HornedStrangerBodyPartVerts,
+    _gActor356100HornedStrangerBodyVerts,
+    _gActor356100HornedStrangerBodyNormals,
+    _gActor356100HornedStrangerBodySkeleton,
+    _gActor356100HornedStrangerBodyStream,
 };
 
-AnimationPackedPose D_actor_356100_8016FC98[75] = {
+static AnimationPackedPose _gActor356100Animation0FE9CBank1[75] = {
 #include "assets/actor_356100_animation_0FE9C_bank1.inc"
 };
 
-AnimationPackedRotation D_actor_356100_8017001C[657] = {
+static AnimationPackedRotation _gActor356100Animation0FE9CBank4[657] = {
 #include "assets/actor_356100_animation_0FE9C_bank4.inc"
 };
 
-AnimationRecord D_actor_356100_80170A60[1164] = {
+static AnimationRecord _gActor356100Animation0FE9CRecords[1164] = {
 #include "assets/actor_356100_animation_0FE9C_records.inc"
 };
 
-u16 D_actor_356100_80171C90[22] = {
+static u16 _gActor356100Animation0FE9CIndices[22] = {
 #include "assets/actor_356100_animation_0FE9C_indices.inc"
 };
 
-AnimationSet D_actor_356100_80171CBC = {
-    D_actor_356100_80170A60,
-    D_actor_356100_80171C90,
-    { NULL, D_actor_356100_8016FC98, NULL, NULL, D_actor_356100_8017001C, NULL, NULL, NULL },
+static AnimationSet _gActor356100Animation0FE9C = {
+    _gActor356100Animation0FE9CRecords,
+    _gActor356100Animation0FE9CIndices,
+    { NULL, _gActor356100Animation0FE9CBank1, NULL, NULL, _gActor356100Animation0FE9CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_actor_356100_80171CE4[28] = {
+static AnimationPackedPose _gActor356100Animation10A84Bank1[28] = {
 #include "assets/actor_356100_animation_10A84_bank1.inc"
 };
 
-AnimationPackedRotation D_actor_356100_80171E34[263] = {
+static AnimationPackedRotation _gActor356100Animation10A84Bank4[263] = {
 #include "assets/actor_356100_animation_10A84_bank4.inc"
 };
 
-AnimationRecord D_actor_356100_80172250[394] = {
+static AnimationRecord _gActor356100Animation10A84Records[394] = {
 #include "assets/actor_356100_animation_10A84_records.inc"
 };
 
-u16 D_actor_356100_80172878[22] = {
+static u16 _gActor356100Animation10A84Indices[22] = {
 #include "assets/actor_356100_animation_10A84_indices.inc"
 };
 
-AnimationSet D_actor_356100_801728A4 = {
-    D_actor_356100_80172250,
-    D_actor_356100_80172878,
-    { NULL, D_actor_356100_80171CE4, NULL, NULL, D_actor_356100_80171E34, NULL, NULL, NULL },
+static AnimationSet _gActor356100Animation10A84 = {
+    _gActor356100Animation10A84Records,
+    _gActor356100Animation10A84Indices,
+    { NULL, _gActor356100Animation10A84Bank1, NULL, NULL, _gActor356100Animation10A84Bank4, NULL, NULL, NULL },
 };
 
 s8 D_actor_356100_801728CC[45][45] = {
@@ -686,7 +686,7 @@ Actor356100MessageEntry D_actor_356100_80173258[7] = {
 
 u16 D_actor_356100_80173290 = 0;
 
-TaskDesc D_actor_356100_80173294 = { { { TASK_BODY_TMD, 96 } }, func_actor_356100_8016A910, { .model = &D_actor_356100_8016FC74 } };
+TaskDesc D_actor_356100_80173294 = { { { TASK_BODY_TMD, 96 } }, func_actor_356100_8016A910, { .model = &_gActor356100HornedStrangerBody } };
 
 static SVECTOR ActorContact_ScratchPosition = { 0 };
 

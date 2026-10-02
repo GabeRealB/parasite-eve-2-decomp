@@ -152,30 +152,30 @@ GpWarpRec D_shelter_1f_parking_garage_80180C84[2] = {
     { { .words = { 2048, 2000, 0, 1700 } }, { 0, 0, 0, 0 }, { .words = { 2048, 2000, 0, 1700 } }, { 0, 0, 0, 0 }, 0x55010002, 0x55010001, 0, 4, 0, 0 },
 };
 
-SVECTOR D_shelter_1f_parking_garage_80180CF4[11] = {
+static SVECTOR _gShelter1fParkingGarageCollision03A28Normals[11] = {
 #include "assets/shelter_1f_parking_garage_collision_03A28_normals.inc"
 };
 
-SVECTOR D_shelter_1f_parking_garage_80180D4C[34] = {
+static SVECTOR _gShelter1fParkingGarageCollision03A28Verts[34] = {
 #include "assets/shelter_1f_parking_garage_collision_03A28_verts.inc"
 };
 
-WorldCollisionGridFace D_shelter_1f_parking_garage_80180E5C[13] = {
+static WorldCollisionGridFace _gShelter1fParkingGarageCollision03A28Faces[13] = {
 #include "assets/shelter_1f_parking_garage_collision_03A28_faces.inc"
 };
 
-s16 D_shelter_1f_parking_garage_80180EF8[88] = {
+static s16 _gShelter1fParkingGarageCollision03A28Cells[88] = {
 #include "assets/shelter_1f_parking_garage_collision_03A28_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_shelter_1f_parking_garage_80180EF8[i])
-s16* D_shelter_1f_parking_garage_80180FA8[16] = {
+#define GRID_CELL(i) (&_gShelter1fParkingGarageCollision03A28Cells[i])
+static s16* _gShelter1fParkingGarageCollision03A28Table[16] = {
 #include "assets/shelter_1f_parking_garage_collision_03A28_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_shelter_1f_parking_garage_80180FE8[1] = {
-    { NULL, D_shelter_1f_parking_garage_80180CF4, D_shelter_1f_parking_garage_80180D4C, D_shelter_1f_parking_garage_80180E5C, D_shelter_1f_parking_garage_80180FA8, 500, 6250, 4, 4, 4000, 13 },
+    { NULL, _gShelter1fParkingGarageCollision03A28Normals, _gShelter1fParkingGarageCollision03A28Verts, _gShelter1fParkingGarageCollision03A28Faces, _gShelter1fParkingGarageCollision03A28Table, 500, 6250, 4, 4, 4000, 13 },
 };
 
 GpViewRec D_shelter_1f_parking_garage_8018100C[4] = {

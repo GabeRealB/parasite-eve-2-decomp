@@ -164,40 +164,40 @@ static void Actor02400_Fn031D0(Task* task);
 static void Actor02400_Fn03228(Task* task);
 static void Actor02400_Fn03278(Task* task);
 
-extern TmdSource Actor02400_D04580;
+static TmdSource _gActor02400AmoebaBody;
 void             Actor02400_Fn02DB0(Task*);
 void             Actor02400_Fn03358(Task*);
 
-TmdBone Actor02400_D03448[4] = {
+static TmdBone _gActor02400AmoebaBodySkeleton[4] = {
 #include "assets/amoeba_body_skeleton.inc"
 };
 
-u32 Actor02400_D034D8[4] = {
+static u32 _gActor02400AmoebaBodyPartVerts[4] = {
 #include "assets/amoeba_body_partVerts.inc"
 };
 
-SVECTOR Actor02400_D034E8[87] = {
+static SVECTOR _gActor02400AmoebaBodyVerts[87] = {
 #include "assets/amoeba_body_verts.inc"
 };
 
-SVECTOR Actor02400_D037A0[58] = {
+static SVECTOR _gActor02400AmoebaBodyNormals[58] = {
 #include "assets/amoeba_body_normals.inc"
 };
 
-u32 Actor02400_D03970[772] = {
+static u32 _gActor02400AmoebaBodyStream[772] = {
 #include "assets/amoeba_body_stream.inc"
 };
 
-TmdSource Actor02400_D04580 = {
+static TmdSource _gActor02400AmoebaBody = {
     0,
     4168,
     1040,
     4,
-    Actor02400_D034D8,
-    Actor02400_D034E8,
-    Actor02400_D037A0,
-    Actor02400_D03448,
-    Actor02400_D03970,
+    _gActor02400AmoebaBodyPartVerts,
+    _gActor02400AmoebaBodyVerts,
+    _gActor02400AmoebaBodyNormals,
+    _gActor02400AmoebaBodySkeleton,
+    _gActor02400AmoebaBodyStream,
 };
 
 DamageAttack Actor02400_BodyPairs[4] = {
@@ -292,7 +292,7 @@ s16 Actor02400_D0463C[16] = {
 };
 
 TaskDesc Actor02400_D0465C[2] = {
-    { { { TASK_BODY_TMD, 96 } }, Actor02400_Fn02DB0, { .model = &Actor02400_D04580 } },
+    { { { TASK_BODY_TMD, 96 } }, Actor02400_Fn02DB0, { .model = &_gActor02400AmoebaBody } },
     { { { TASK_BODY_COORD, 96 } }, Actor02400_Fn03358, { .value = 0 } },
 };
 

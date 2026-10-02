@@ -310,29 +310,29 @@ SVECTOR D_shelter_b4_upper_sewer_80186708[9] = {
     { 0, 0, 0, -1 },
 };
 
-SVECTOR D_shelter_b4_upper_sewer_80186750[7] = {
+static SVECTOR _gShelterB4UpperSewerCollision09938Normals[7] = {
 #include "assets/shelter_b4_upper_sewer_collision_09938_normals.inc"
 };
 
-SVECTOR D_shelter_b4_upper_sewer_80186788[87] = {
+static SVECTOR _gShelterB4UpperSewerCollision09938Verts[87] = {
 #include "assets/shelter_b4_upper_sewer_collision_09938_verts.inc"
 };
 
-WorldCollisionGridFace D_shelter_b4_upper_sewer_80186A40[42] = {
+static WorldCollisionGridFace _gShelterB4UpperSewerCollision09938Faces[42] = {
 #include "assets/shelter_b4_upper_sewer_collision_09938_faces.inc"
 };
 
-s16 D_shelter_b4_upper_sewer_80186C38[292] = {
+static s16 _gShelterB4UpperSewerCollision09938Cells[292] = {
 #include "assets/shelter_b4_upper_sewer_collision_09938_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_shelter_b4_upper_sewer_80186C38[i])
-s16* D_shelter_b4_upper_sewer_80186E80[30] = {
+#define GRID_CELL(i) (&_gShelterB4UpperSewerCollision09938Cells[i])
+static s16* _gShelterB4UpperSewerCollision09938Table[30] = {
 #include "assets/shelter_b4_upper_sewer_collision_09938_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b4_upper_sewer_80186EF8 = { NULL, D_shelter_b4_upper_sewer_80186750, D_shelter_b4_upper_sewer_80186788, D_shelter_b4_upper_sewer_80186A40, D_shelter_b4_upper_sewer_80186E80, 0x271A, 6000, 6, 5, 4000, 42 };
+WorldCollisionGrid D_shelter_b4_upper_sewer_80186EF8 = { NULL, _gShelterB4UpperSewerCollision09938Normals, _gShelterB4UpperSewerCollision09938Verts, _gShelterB4UpperSewerCollision09938Faces, _gShelterB4UpperSewerCollision09938Table, 0x271A, 6000, 6, 5, 4000, 42 };
 
 GpViewRec D_shelter_b4_upper_sewer_80186F1C[14] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x7530, -1010 } }, 230 },

@@ -198,29 +198,29 @@ SVECTOR D_neo_ark_submarine_gallery_80181B1C[6] = {
     { 0, 0, 0, -1 },
 };
 
-SVECTOR D_neo_ark_submarine_gallery_80181B4C[31] = {
+static SVECTOR _gNeoArkSubmarineGalleryCollision04DDCNormals[31] = {
 #include "assets/neo_ark_submarine_gallery_collision_04DDC_normals.inc"
 };
 
-SVECTOR D_neo_ark_submarine_gallery_80181C44[104] = {
+static SVECTOR _gNeoArkSubmarineGalleryCollision04DDCVerts[104] = {
 #include "assets/neo_ark_submarine_gallery_collision_04DDC_verts.inc"
 };
 
-WorldCollisionGridFace D_neo_ark_submarine_gallery_80181F84[50] = {
+static WorldCollisionGridFace _gNeoArkSubmarineGalleryCollision04DDCFaces[50] = {
 #include "assets/neo_ark_submarine_gallery_collision_04DDC_faces.inc"
 };
 
-s16 D_neo_ark_submarine_gallery_801821DC[206] = {
+static s16 _gNeoArkSubmarineGalleryCollision04DDCCells[206] = {
 #include "assets/neo_ark_submarine_gallery_collision_04DDC_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_neo_ark_submarine_gallery_801821DC[i])
-s16* D_neo_ark_submarine_gallery_80182378[9] = {
+#define GRID_CELL(i) (&_gNeoArkSubmarineGalleryCollision04DDCCells[i])
+static s16* _gNeoArkSubmarineGalleryCollision04DDCTable[9] = {
 #include "assets/neo_ark_submarine_gallery_collision_04DDC_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_neo_ark_submarine_gallery_8018239C = { NULL, D_neo_ark_submarine_gallery_80181B4C, D_neo_ark_submarine_gallery_80181C44, D_neo_ark_submarine_gallery_80181F84, D_neo_ark_submarine_gallery_80182378, 5000, 5000, 3, 3, 4000, 50 };
+WorldCollisionGrid D_neo_ark_submarine_gallery_8018239C = { NULL, _gNeoArkSubmarineGalleryCollision04DDCNormals, _gNeoArkSubmarineGalleryCollision04DDCVerts, _gNeoArkSubmarineGalleryCollision04DDCFaces, _gNeoArkSubmarineGalleryCollision04DDCTable, 5000, 5000, 3, 3, 4000, 50 };
 
 GpViewRec D_neo_ark_submarine_gallery_801823C0[7] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x4E20, 0 } }, 603 },

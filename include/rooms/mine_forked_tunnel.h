@@ -14,7 +14,7 @@
 
 extern GpAreaVariant D_mine_forked_tunnel_80185504[12];
 
-extern TmdSource D_mine_forked_tunnel_801807B4;
+extern TmdSource gMineForkedTunnelModel01B48;
 
 // mine_forked_tunnel
 extern WorldCoordRoomLighting D_mine_forked_tunnel_80183634[];

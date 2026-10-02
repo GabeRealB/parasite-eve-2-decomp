@@ -260,92 +260,92 @@ void                        func_actor_335800_80162E34(Task*);
 void                        func_actor_335800_80162F10(Task*);
 void                        func_actor_335800_80163A34(Task*);
 
-AnimationPackedPose D_actor_335800_801640A0[6] = {
+static AnimationPackedPose _gActor335800Animation0255CBank1[6] = {
 #include "assets/actor_335800_animation_0255C_bank1.inc"
 };
 
-AnimationPackedRotation D_actor_335800_801640E8[46] = {
+static AnimationPackedRotation _gActor335800Animation0255CBank4[46] = {
 #include "assets/actor_335800_animation_0255C_bank4.inc"
 };
 
-AnimationRecord D_actor_335800_801641A0[109] = {
+static AnimationRecord _gActor335800Animation0255CRecords[109] = {
 #include "assets/actor_335800_animation_0255C_records.inc"
 };
 
-u16 D_actor_335800_80164354[20] = {
+static u16 _gActor335800Animation0255CIndices[20] = {
 #include "assets/actor_335800_animation_0255C_indices.inc"
 };
 
-AnimationSet D_actor_335800_8016437C = {
-    D_actor_335800_801641A0,
-    D_actor_335800_80164354,
-    { NULL, D_actor_335800_801640A0, NULL, NULL, D_actor_335800_801640E8, NULL, NULL, NULL },
+static AnimationSet _gActor335800Animation0255C = {
+    _gActor335800Animation0255CRecords,
+    _gActor335800Animation0255CIndices,
+    { NULL, _gActor335800Animation0255CBank1, NULL, NULL, _gActor335800Animation0255CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_actor_335800_801643A4[12] = {
+static AnimationPackedPose _gActor335800Animation02B78Bank1[12] = {
 #include "assets/actor_335800_animation_02B78_bank1.inc"
 };
 
-AnimationPackedRotation D_actor_335800_80164434[146] = {
+static AnimationPackedRotation _gActor335800Animation02B78Bank4[146] = {
 #include "assets/actor_335800_animation_02B78_bank4.inc"
 };
 
-AnimationRecord D_actor_335800_8016467C[189] = {
+static AnimationRecord _gActor335800Animation02B78Records[189] = {
 #include "assets/actor_335800_animation_02B78_records.inc"
 };
 
-u16 D_actor_335800_80164970[20] = {
+static u16 _gActor335800Animation02B78Indices[20] = {
 #include "assets/actor_335800_animation_02B78_indices.inc"
 };
 
-AnimationSet D_actor_335800_80164998 = {
-    D_actor_335800_8016467C,
-    D_actor_335800_80164970,
-    { NULL, D_actor_335800_801643A4, NULL, NULL, D_actor_335800_80164434, NULL, NULL, NULL },
+static AnimationSet _gActor335800Animation02B78 = {
+    _gActor335800Animation02B78Records,
+    _gActor335800Animation02B78Indices,
+    { NULL, _gActor335800Animation02B78Bank1, NULL, NULL, _gActor335800Animation02B78Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_actor_335800_801649C0[2] = {
+static AnimationPackedPose _gActor335800Animation02D8CBank1[2] = {
 #include "assets/actor_335800_animation_02D8C_bank1.inc"
 };
 
-AnimationPackedRotation D_actor_335800_801649D8[24] = {
+static AnimationPackedRotation _gActor335800Animation02D8CBank4[24] = {
 #include "assets/actor_335800_animation_02D8C_bank4.inc"
 };
 
-AnimationRecord D_actor_335800_80164A38[83] = {
+static AnimationRecord _gActor335800Animation02D8CRecords[83] = {
 #include "assets/actor_335800_animation_02D8C_records.inc"
 };
 
-u16 D_actor_335800_80164B84[20] = {
+static u16 _gActor335800Animation02D8CIndices[20] = {
 #include "assets/actor_335800_animation_02D8C_indices.inc"
 };
 
-AnimationSet D_actor_335800_80164BAC = {
-    D_actor_335800_80164A38,
-    D_actor_335800_80164B84,
-    { NULL, D_actor_335800_801649C0, NULL, NULL, D_actor_335800_801649D8, NULL, NULL, NULL },
+static AnimationSet _gActor335800Animation02D8C = {
+    _gActor335800Animation02D8CRecords,
+    _gActor335800Animation02D8CIndices,
+    { NULL, _gActor335800Animation02D8CBank1, NULL, NULL, _gActor335800Animation02D8CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_actor_335800_80164BD4[2] = {
+static AnimationPackedPose _gActor335800Animation02F98Bank1[2] = {
 #include "assets/actor_335800_animation_02F98_bank1.inc"
 };
 
-AnimationPackedRotation D_actor_335800_80164BEC[23] = {
+static AnimationPackedRotation _gActor335800Animation02F98Bank4[23] = {
 #include "assets/actor_335800_animation_02F98_bank4.inc"
 };
 
-AnimationRecord D_actor_335800_80164C48[82] = {
+static AnimationRecord _gActor335800Animation02F98Records[82] = {
 #include "assets/actor_335800_animation_02F98_records.inc"
 };
 
-u16 D_actor_335800_80164D90[20] = {
+static u16 _gActor335800Animation02F98Indices[20] = {
 #include "assets/actor_335800_animation_02F98_indices.inc"
 };
 
-AnimationSet D_actor_335800_80164DB8 = {
-    D_actor_335800_80164C48,
-    D_actor_335800_80164D90,
-    { NULL, D_actor_335800_80164BD4, NULL, NULL, D_actor_335800_80164BEC, NULL, NULL, NULL },
+static AnimationSet _gActor335800Animation02F98 = {
+    _gActor335800Animation02F98Records,
+    _gActor335800Animation02F98Indices,
+    { NULL, _gActor335800Animation02F98Bank1, NULL, NULL, _gActor335800Animation02F98Bank4, NULL, NULL, NULL },
 };
 
 TaskDesc D_actor_335800_80164DE0[4] = {
@@ -357,10 +357,10 @@ TaskDesc D_actor_335800_80164DE0[4] = {
 
 AnimationSet* D_actor_335800_80164E10[5] = {
     NULL,
-    &D_actor_335800_8016437C,
-    &D_actor_335800_80164998,
-    &D_actor_335800_80164BAC,
-    &D_actor_335800_80164DB8,
+    &_gActor335800Animation0255C,
+    &_gActor335800Animation02B78,
+    &_gActor335800Animation02D8C,
+    &_gActor335800Animation02F98,
 };
 
 GpCopyArg D_actor_335800_80164E24 = { { .sets = D_actor_335800_80164E10 }, 5 };
@@ -648,196 +648,196 @@ EvsCommand D_actor_335800_80166098[10] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-TmdBone D_actor_335800_80166188[20] = {
+static TmdBone _gActor335800GaryDouglasBodySkeleton[20] = {
 #include "assets/gary_douglas_body_skeleton.inc"
 };
 
-u32 D_actor_335800_80166458[20] = {
+static u32 _gActor335800GaryDouglasBodyPartVerts[20] = {
 #include "assets/gary_douglas_body_partVerts.inc"
 };
 
-SVECTOR D_actor_335800_801664A8[364] = {
+static SVECTOR _gActor335800GaryDouglasBodyVerts[364] = {
 #include "assets/gary_douglas_body_verts.inc"
 };
 
-SVECTOR D_actor_335800_80167008[354] = {
+static SVECTOR _gActor335800GaryDouglasBodyNormals[354] = {
 #include "assets/gary_douglas_body_normals.inc"
 };
 
-u32 D_actor_335800_80167B18[4151] = {
+static u32 _gActor335800GaryDouglasBodyStream[4151] = {
 #include "assets/gary_douglas_body_stream.inc"
 };
 
-TmdSource D_actor_335800_8016BBF4 = {
+static TmdSource _gActor335800GaryDouglasBody = {
     0,
     22008,
     6952,
     20,
-    D_actor_335800_80166458,
-    D_actor_335800_801664A8,
-    D_actor_335800_80167008,
-    D_actor_335800_80166188,
-    D_actor_335800_80167B18,
+    _gActor335800GaryDouglasBodyPartVerts,
+    _gActor335800GaryDouglasBodyVerts,
+    _gActor335800GaryDouglasBodyNormals,
+    _gActor335800GaryDouglasBodySkeleton,
+    _gActor335800GaryDouglasBodyStream,
 };
 
-TmdBone D_actor_335800_8016BC18[1] = {
+static TmdBone _gActor335800GaryDouglasHeadHatSkeleton[1] = {
 #include "assets/gary_douglas_head_hat_skeleton.inc"
 };
 
-u32 D_actor_335800_8016BC3C[1] = {
+static u32 _gActor335800GaryDouglasHeadHatPartVerts[1] = {
 #include "assets/gary_douglas_head_hat_partVerts.inc"
 };
 
-SVECTOR D_actor_335800_8016BC40[21] = {
+static SVECTOR _gActor335800GaryDouglasHeadHatVerts[21] = {
 #include "assets/gary_douglas_head_hat_verts.inc"
 };
 
-SVECTOR D_actor_335800_8016BCE8[21] = {
+static SVECTOR _gActor335800GaryDouglasHeadHatNormals[21] = {
 #include "assets/gary_douglas_head_hat_normals.inc"
 };
 
-u32 D_actor_335800_8016BD90[207] = {
+static u32 _gActor335800GaryDouglasHeadHatStream[207] = {
 #include "assets/gary_douglas_head_hat_stream.inc"
 };
 
-TmdSource D_actor_335800_8016C0CC = {
+static TmdSource _gActor335800GaryDouglasHeadHat = {
     0,
     1352,
     0,
     1,
-    D_actor_335800_8016BC3C,
-    D_actor_335800_8016BC40,
-    D_actor_335800_8016BCE8,
-    D_actor_335800_8016BC18,
-    D_actor_335800_8016BD90,
+    _gActor335800GaryDouglasHeadHatPartVerts,
+    _gActor335800GaryDouglasHeadHatVerts,
+    _gActor335800GaryDouglasHeadHatNormals,
+    _gActor335800GaryDouglasHeadHatSkeleton,
+    _gActor335800GaryDouglasHeadHatStream,
 };
 
-TmdBone D_actor_335800_8016C0F0[1] = {
+static TmdBone _gActor335800Actor120300Model082F8Skeleton[1] = {
 #include "assets/actor_120300_model_082F8_skeleton.inc"
 };
 
-u32 D_actor_335800_8016C114[1] = {
+static u32 _gActor335800Actor120300Model082F8PartVerts[1] = {
 #include "assets/actor_120300_model_082F8_partVerts.inc"
 };
 
-SVECTOR D_actor_335800_8016C118[34] = {
+static SVECTOR _gActor335800Actor120300Model082F8Verts[34] = {
 #include "assets/actor_120300_model_082F8_verts.inc"
 };
 
-SVECTOR D_actor_335800_8016C228[28] = {
+static SVECTOR _gActor335800Actor120300Model082F8Normals[28] = {
 #include "assets/actor_120300_model_082F8_normals.inc"
 };
 
-u32 D_actor_335800_8016C308[238] = {
+static u32 _gActor335800Actor120300Model082F8Stream[238] = {
 #include "assets/actor_120300_model_082F8_stream.inc"
 };
 
-TmdSource D_actor_335800_8016C6C0 = {
+static TmdSource _gActor335800Actor120300Model082F8 = {
     0,
     1692,
     0,
     1,
-    D_actor_335800_8016C114,
-    D_actor_335800_8016C118,
-    D_actor_335800_8016C228,
-    D_actor_335800_8016C0F0,
-    D_actor_335800_8016C308,
+    _gActor335800Actor120300Model082F8PartVerts,
+    _gActor335800Actor120300Model082F8Verts,
+    _gActor335800Actor120300Model082F8Normals,
+    _gActor335800Actor120300Model082F8Skeleton,
+    _gActor335800Actor120300Model082F8Stream,
 };
 
-AnimationPackedPose D_actor_335800_8016C6E4[2] = {
+static AnimationPackedPose _gActor335800Animation0AB18Bank1[2] = {
 #include "assets/actor_335800_animation_0AB18_bank1.inc"
 };
 
-AnimationPackedRotation D_actor_335800_8016C6FC[32] = {
+static AnimationPackedRotation _gActor335800Animation0AB18Bank4[32] = {
 #include "assets/actor_335800_animation_0AB18_bank4.inc"
 };
 
-AnimationRecord D_actor_335800_8016C77C[101] = {
+static AnimationRecord _gActor335800Animation0AB18Records[101] = {
 #include "assets/actor_335800_animation_0AB18_records.inc"
 };
 
-u16 D_actor_335800_8016C910[20] = {
+static u16 _gActor335800Animation0AB18Indices[20] = {
 #include "assets/actor_335800_animation_0AB18_indices.inc"
 };
 
-AnimationSet D_actor_335800_8016C938 = {
-    D_actor_335800_8016C77C,
-    D_actor_335800_8016C910,
-    { NULL, D_actor_335800_8016C6E4, NULL, NULL, D_actor_335800_8016C6FC, NULL, NULL, NULL },
+static AnimationSet _gActor335800Animation0AB18 = {
+    _gActor335800Animation0AB18Records,
+    _gActor335800Animation0AB18Indices,
+    { NULL, _gActor335800Animation0AB18Bank1, NULL, NULL, _gActor335800Animation0AB18Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_actor_335800_8016C960[11] = {
+static AnimationPackedPose _gActor335800Animation0B59CBank1[11] = {
 #include "assets/actor_335800_animation_0B59C_bank1.inc"
 };
 
-AnimationPackedRotation D_actor_335800_8016C9E4[255] = {
+static AnimationPackedRotation _gActor335800Animation0B59CBank4[255] = {
 #include "assets/actor_335800_animation_0B59C_bank4.inc"
 };
 
-AnimationRecord D_actor_335800_8016CDE0[365] = {
+static AnimationRecord _gActor335800Animation0B59CRecords[365] = {
 #include "assets/actor_335800_animation_0B59C_records.inc"
 };
 
-u16 D_actor_335800_8016D394[20] = {
+static u16 _gActor335800Animation0B59CIndices[20] = {
 #include "assets/actor_335800_animation_0B59C_indices.inc"
 };
 
-AnimationSet D_actor_335800_8016D3BC = {
-    D_actor_335800_8016CDE0,
-    D_actor_335800_8016D394,
-    { NULL, D_actor_335800_8016C960, NULL, NULL, D_actor_335800_8016C9E4, NULL, NULL, NULL },
+static AnimationSet _gActor335800Animation0B59C = {
+    _gActor335800Animation0B59CRecords,
+    _gActor335800Animation0B59CIndices,
+    { NULL, _gActor335800Animation0B59CBank1, NULL, NULL, _gActor335800Animation0B59CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_actor_335800_8016D3E4[34] = {
+static AnimationPackedPose _gActor335800Animation0CA48Bank1[34] = {
 #include "assets/actor_335800_animation_0CA48_bank1.inc"
 };
 
-AnimationPackedRotation D_actor_335800_8016D57C[546] = {
+static AnimationPackedRotation _gActor335800Animation0CA48Bank4[546] = {
 #include "assets/actor_335800_animation_0CA48_bank4.inc"
 };
 
-AnimationRecord D_actor_335800_8016DE04[655] = {
+static AnimationRecord _gActor335800Animation0CA48Records[655] = {
 #include "assets/actor_335800_animation_0CA48_records.inc"
 };
 
-u16 D_actor_335800_8016E840[20] = {
+static u16 _gActor335800Animation0CA48Indices[20] = {
 #include "assets/actor_335800_animation_0CA48_indices.inc"
 };
 
-AnimationSet D_actor_335800_8016E868 = {
-    D_actor_335800_8016DE04,
-    D_actor_335800_8016E840,
-    { NULL, D_actor_335800_8016D3E4, NULL, NULL, D_actor_335800_8016D57C, NULL, NULL, NULL },
+static AnimationSet _gActor335800Animation0CA48 = {
+    _gActor335800Animation0CA48Records,
+    _gActor335800Animation0CA48Indices,
+    { NULL, _gActor335800Animation0CA48Bank1, NULL, NULL, _gActor335800Animation0CA48Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_actor_335800_8016E890[4] = {
+static AnimationPackedPose _gActor335800Animation0CC7CBank1[4] = {
 #include "assets/actor_335800_animation_0CC7C_bank1.inc"
 };
 
-AnimationPackedRotation D_actor_335800_8016E8C0[35] = {
+static AnimationPackedRotation _gActor335800Animation0CC7CBank4[35] = {
 #include "assets/actor_335800_animation_0CC7C_bank4.inc"
 };
 
-AnimationRecord D_actor_335800_8016E94C[74] = {
+static AnimationRecord _gActor335800Animation0CC7CRecords[74] = {
 #include "assets/actor_335800_animation_0CC7C_records.inc"
 };
 
-u16 D_actor_335800_8016EA74[20] = {
+static u16 _gActor335800Animation0CC7CIndices[20] = {
 #include "assets/actor_335800_animation_0CC7C_indices.inc"
 };
 
-AnimationSet D_actor_335800_8016EA9C = {
-    D_actor_335800_8016E94C,
-    D_actor_335800_8016EA74,
-    { NULL, D_actor_335800_8016E890, NULL, NULL, D_actor_335800_8016E8C0, NULL, NULL, NULL },
+static AnimationSet _gActor335800Animation0CC7C = {
+    _gActor335800Animation0CC7CRecords,
+    _gActor335800Animation0CC7CIndices,
+    { NULL, _gActor335800Animation0CC7CBank1, NULL, NULL, _gActor335800Animation0CC7CBank4, NULL, NULL, NULL },
 };
 
 AnimationSet* D_actor_335800_8016EAC4[5] = {
     NULL,
-    &D_actor_335800_8016C938,
-    &D_actor_335800_8016D3BC,
-    &D_actor_335800_8016E868,
-    &D_actor_335800_8016EA9C,
+    &_gActor335800Animation0AB18,
+    &_gActor335800Animation0B59C,
+    &_gActor335800Animation0CA48,
+    &_gActor335800Animation0CC7C,
 };
 
 AnimationSet** gActorMotionAnimBanks[1] = {
@@ -845,9 +845,9 @@ AnimationSet** gActorMotionAnimBanks[1] = {
 };
 
 TaskDesc D_actor_335800_8016EADC[3] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_335800_80162F10, { .model = &D_actor_335800_8016BBF4 } },
-    { { { TASK_BODY_TMD, 192 } }, func_actor_335800_80162E34, { .model = &D_actor_335800_8016C0CC } },
-    { { { TASK_BODY_TMD, 192 } }, func_actor_335800_80162E34, { .model = &D_actor_335800_8016C6C0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_335800_80162F10, { .model = &_gActor335800GaryDouglasBody } },
+    { { { TASK_BODY_TMD, 192 } }, func_actor_335800_80162E34, { .model = &_gActor335800GaryDouglasHeadHat } },
+    { { { TASK_BODY_TMD, 192 } }, func_actor_335800_80162E34, { .model = &_gActor335800Actor120300Model082F8 } },
 };
 
 Actor335800MsgEntry D_actor_335800_8016EB00[6] = {
@@ -859,70 +859,70 @@ Actor335800MsgEntry D_actor_335800_8016EB00[6] = {
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
-TmdBone D_actor_335800_8016EB30[19] = {
+static TmdBone _gActor335800FlintBodySkeleton[19] = {
 #include "assets/flint_body_skeleton.inc"
 };
 
-u32 D_actor_335800_8016EDDC[19] = {
+static u32 _gActor335800FlintBodyPartVerts[19] = {
 #include "assets/flint_body_partVerts.inc"
 };
 
-SVECTOR D_actor_335800_8016EE28[238] = {
+static SVECTOR _gActor335800FlintBodyVerts[238] = {
 #include "assets/flint_body_verts.inc"
 };
 
-SVECTOR D_actor_335800_8016F598[238] = {
+static SVECTOR _gActor335800FlintBodyNormals[238] = {
 #include "assets/flint_body_normals.inc"
 };
 
-u32 D_actor_335800_8016FD08[2784] = {
+static u32 _gActor335800FlintBodyStream[2784] = {
 #include "assets/flint_body_stream.inc"
 };
 
-TmdSource D_actor_335800_80172888 = {
+static TmdSource _gActor335800FlintBody = {
     0,
     13636,
     6016,
     19,
-    D_actor_335800_8016EDDC,
-    D_actor_335800_8016EE28,
-    D_actor_335800_8016F598,
-    D_actor_335800_8016EB30,
-    D_actor_335800_8016FD08,
+    _gActor335800FlintBodyPartVerts,
+    _gActor335800FlintBodyVerts,
+    _gActor335800FlintBodyNormals,
+    _gActor335800FlintBodySkeleton,
+    _gActor335800FlintBodyStream,
 };
 
-AnimationPackedPose D_actor_335800_801728AC[7] = {
+static AnimationPackedPose _gActor335800Animation11048Bank1[7] = {
 #include "assets/actor_335800_animation_11048_bank1.inc"
 };
 
-AnimationPackedRotation D_actor_335800_80172900[128] = {
+static AnimationPackedRotation _gActor335800Animation11048Bank4[128] = {
 #include "assets/actor_335800_animation_11048_bank4.inc"
 };
 
-AnimationRecord D_actor_335800_80172B00[208] = {
+static AnimationRecord _gActor335800Animation11048Records[208] = {
 #include "assets/actor_335800_animation_11048_records.inc"
 };
 
-u16 D_actor_335800_80172E40[20] = {
+static u16 _gActor335800Animation11048Indices[20] = {
 #include "assets/actor_335800_animation_11048_indices.inc"
 };
 
-AnimationSet D_actor_335800_80172E68 = {
-    D_actor_335800_80172B00,
-    D_actor_335800_80172E40,
-    { NULL, D_actor_335800_801728AC, NULL, NULL, D_actor_335800_80172900, NULL, NULL, NULL },
+static AnimationSet _gActor335800Animation11048 = {
+    _gActor335800Animation11048Records,
+    _gActor335800Animation11048Indices,
+    { NULL, _gActor335800Animation11048Bank1, NULL, NULL, _gActor335800Animation11048Bank4, NULL, NULL, NULL },
 };
 
 AnimationSet* D_actor_335800_80172E90[2] = {
     NULL,
-    &D_actor_335800_80172E68,
+    &_gActor335800Animation11048,
 };
 
 AnimationSet** D_actor_335800_80172E98[1] = {
     D_actor_335800_80172E90,
 };
 
-TaskDesc D_actor_335800_80172E9C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_335800_80163A34, { .model = &D_actor_335800_80172888 } };
+TaskDesc D_actor_335800_80172E9C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_335800_80163A34, { .model = &_gActor335800FlintBody } };
 
 Actor335800MsgEntry D_actor_335800_80172EA8[6] = {
     { 2003, { .call1 = actorMotionPlayAnim19 } },

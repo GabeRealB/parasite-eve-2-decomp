@@ -151,9 +151,9 @@ typedef struct Actor403600ProjectileWork {
 } Actor403600ProjectileWork;
 STATIC_ASSERT_SIZEOF(Actor403600ProjectileWork, 0x15C);
 
-extern TmdSource D_actor_403600_80149818;
+extern TmdSource gActor403600EveBody;
 
-extern TmdSource D_actor_403600_80150E78;
+extern TmdSource gActor403600Model199B8;
 
 extern DamageAttack D_actor_403600_80150E9C;
 
@@ -167,57 +167,57 @@ extern EnemyParams D_actor_403600_80150EC8;
 
 extern EnemyParams D_actor_403600_80150ED8;
 
-extern AnimationSet D_actor_403600_80151CD0;
+extern AnimationSet gActor403600Animation1FEB0;
 
-extern AnimationSet D_actor_403600_8015270C;
+extern AnimationSet gActor403600Animation208EC;
 
-extern AnimationSet D_actor_403600_801531BC;
+extern AnimationSet gActor403600Animation2139C;
 
-extern AnimationSet D_actor_403600_80154244;
+extern AnimationSet gActor403600Animation22424;
 
-extern AnimationSet D_actor_403600_80154724;
+extern AnimationSet gActor403600Animation22904;
 
-extern AnimationSet D_actor_403600_801555C8;
+extern AnimationSet gActor403600Animation237A8;
 
-extern AnimationSet D_actor_403600_80155FFC;
+extern AnimationSet gActor403600Animation241DC;
 
-extern AnimationSet D_actor_403600_80156A74;
+extern AnimationSet gActor403600Animation24C54;
 
-extern AnimationSet D_actor_403600_80157490;
+extern AnimationSet gActor403600Animation25670;
 
-extern AnimationSet D_actor_403600_80158470;
+extern AnimationSet gActor403600Animation26650;
 
-extern AnimationSet D_actor_403600_80158FA4;
+extern AnimationSet gActor403600Animation27184;
 
-extern AnimationSet D_actor_403600_80159880;
+extern AnimationSet gActor403600Animation27A60;
 
-extern AnimationSet D_actor_403600_8015A218;
+extern AnimationSet gActor403600Animation283F8;
 
-extern AnimationSet D_actor_403600_8015B054;
+extern AnimationSet gActor403600Animation29234;
 
-extern AnimationSet D_actor_403600_8015B494;
+extern AnimationSet gActor403600Animation29674;
 
-extern AnimationSet D_actor_403600_8015BAD4;
+extern AnimationSet gActor403600Animation29CB4;
 
-extern AnimationSet D_actor_403600_8015C528;
+extern AnimationSet gActor403600Animation2A708;
 
-extern AnimationSet D_actor_403600_8015C70C;
+extern AnimationSet gActor403600Animation2A8EC;
 
-extern AnimationSet D_actor_403600_8015D184;
+extern AnimationSet gActor403600Animation2B364;
 
-extern AnimationSet D_actor_403600_8015DDAC;
+extern AnimationSet gActor403600Animation2BF8C;
 
-extern AnimationSet D_actor_403600_8015DEE4;
+extern AnimationSet gActor403600Animation2C0C4;
 
-extern AnimationSet D_actor_403600_8015E72C;
+extern AnimationSet gActor403600Animation2C90C;
 
-extern AnimationSet D_actor_403600_8015EEC8;
+extern AnimationSet gActor403600Animation2D0A8;
 
-extern AnimationSet D_actor_403600_8015F6D4;
+extern AnimationSet gActor403600Animation2D8B4;
 
-extern AnimationSet D_actor_403600_8015FEE8;
+extern AnimationSet gActor403600Animation2E0C8;
 
-extern AnimationSet D_actor_403600_801604DC;
+extern AnimationSet gActor403600Animation2E6BC;
 
 extern TaskDesc D_actor_403600_801421A0[4];
 

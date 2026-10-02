@@ -159,29 +159,29 @@ GpWarpRec D_shelter_b2_south_maintenance_walkway_80182644[2] = {
     { { .words = { 2048, 2048, 0, 4600 } }, { 0, 0, 0, 0 }, { .words = { 2048, 2048, 0, 4600 } }, { 0, 0, 0, 0 }, 0x541C0002, 0x541C0001, 0, 5, 0, 456 },
 };
 
-SVECTOR D_shelter_b2_south_maintenance_walkway_801826B4[14] = {
+static SVECTOR _gShelterB2SouthMaintenanceWalkwayCollision05428Normals[14] = {
 #include "assets/shelter_b2_south_maintenance_walkway_collision_05428_normals.inc"
 };
 
-SVECTOR D_shelter_b2_south_maintenance_walkway_80182724[38] = {
+static SVECTOR _gShelterB2SouthMaintenanceWalkwayCollision05428Verts[38] = {
 #include "assets/shelter_b2_south_maintenance_walkway_collision_05428_verts.inc"
 };
 
-WorldCollisionGridFace D_shelter_b2_south_maintenance_walkway_80182854[18] = {
+static WorldCollisionGridFace _gShelterB2SouthMaintenanceWalkwayCollision05428Faces[18] = {
 #include "assets/shelter_b2_south_maintenance_walkway_collision_05428_faces.inc"
 };
 
-s16 D_shelter_b2_south_maintenance_walkway_8018292C[82] = {
+static s16 _gShelterB2SouthMaintenanceWalkwayCollision05428Cells[82] = {
 #include "assets/shelter_b2_south_maintenance_walkway_collision_05428_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_shelter_b2_south_maintenance_walkway_8018292C[i])
-s16* D_shelter_b2_south_maintenance_walkway_801829D0[6] = {
+#define GRID_CELL(i) (&_gShelterB2SouthMaintenanceWalkwayCollision05428Cells[i])
+static s16* _gShelterB2SouthMaintenanceWalkwayCollision05428Table[6] = {
 #include "assets/shelter_b2_south_maintenance_walkway_collision_05428_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b2_south_maintenance_walkway_801829E8 = { NULL, D_shelter_b2_south_maintenance_walkway_801826B4, D_shelter_b2_south_maintenance_walkway_80182724, D_shelter_b2_south_maintenance_walkway_80182854, D_shelter_b2_south_maintenance_walkway_801829D0, 2872, 5300, 2, 3, 4000, 18 };
+WorldCollisionGrid D_shelter_b2_south_maintenance_walkway_801829E8 = { NULL, _gShelterB2SouthMaintenanceWalkwayCollision05428Normals, _gShelterB2SouthMaintenanceWalkwayCollision05428Verts, _gShelterB2SouthMaintenanceWalkwayCollision05428Faces, _gShelterB2SouthMaintenanceWalkwayCollision05428Table, 2872, 5300, 2, 3, 4000, 18 };
 
 GpViewRec D_shelter_b2_south_maintenance_walkway_80182A0C[5] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x35D2, 0 } }, 235 },

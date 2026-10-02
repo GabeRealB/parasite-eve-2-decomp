@@ -4,9 +4,9 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-extern TmdSource D_actor_503500_80147314;
+extern TmdSource gActor503500Model14DA0;
 
-extern TmdSource D_actor_503500_80147D6C;
+extern TmdSource gActor503500Model15820;
 
 /// An enemy task and the models its descriptors attach, named by the enemy
 /// descriptor tables of the Shelter map UI overlay.

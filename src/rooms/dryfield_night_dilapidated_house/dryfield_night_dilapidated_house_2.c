@@ -68,890 +68,890 @@ TaskMessageEntry D_dryfield_night_dilapidated_house_8017E700[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_dilapidated_house_8017E728[6] = {
+static AnimationPackedPose _gDryfieldNightDilapidatedHouseAnimation01444Bank1[6] = {
 #include "assets/dryfield_night_dilapidated_house_animation_01444_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_dilapidated_house_8017E770[46] = {
+static AnimationPackedRotation _gDryfieldNightDilapidatedHouseAnimation01444Bank4[46] = {
 #include "assets/dryfield_night_dilapidated_house_animation_01444_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_dilapidated_house_8017E828[109] = {
+static AnimationRecord _gDryfieldNightDilapidatedHouseAnimation01444Records[109] = {
 #include "assets/dryfield_night_dilapidated_house_animation_01444_records.inc"
 };
 
-u16 D_dryfield_night_dilapidated_house_8017E9DC[20] = {
+static u16 _gDryfieldNightDilapidatedHouseAnimation01444Indices[20] = {
 #include "assets/dryfield_night_dilapidated_house_animation_01444_indices.inc"
 };
 
-AnimationSet D_dryfield_night_dilapidated_house_8017EA04 = {
-    D_dryfield_night_dilapidated_house_8017E828,
-    D_dryfield_night_dilapidated_house_8017E9DC,
-    { NULL, D_dryfield_night_dilapidated_house_8017E728, NULL, NULL, D_dryfield_night_dilapidated_house_8017E770, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDilapidatedHouseAnimation01444 = {
+    _gDryfieldNightDilapidatedHouseAnimation01444Records,
+    _gDryfieldNightDilapidatedHouseAnimation01444Indices,
+    { NULL, _gDryfieldNightDilapidatedHouseAnimation01444Bank1, NULL, NULL, _gDryfieldNightDilapidatedHouseAnimation01444Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_dilapidated_house_8017EA2C[22] = {
+static AnimationPackedPose _gDryfieldNightDilapidatedHouseAnimation01C10Bank1[22] = {
 #include "assets/dryfield_night_dilapidated_house_animation_01C10_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_dilapidated_house_8017EB34[182] = {
+static AnimationPackedRotation _gDryfieldNightDilapidatedHouseAnimation01C10Bank4[182] = {
 #include "assets/dryfield_night_dilapidated_house_animation_01C10_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_dilapidated_house_8017EE0C[231] = {
+static AnimationRecord _gDryfieldNightDilapidatedHouseAnimation01C10Records[231] = {
 #include "assets/dryfield_night_dilapidated_house_animation_01C10_records.inc"
 };
 
-u16 D_dryfield_night_dilapidated_house_8017F1A8[20] = {
+static u16 _gDryfieldNightDilapidatedHouseAnimation01C10Indices[20] = {
 #include "assets/dryfield_night_dilapidated_house_animation_01C10_indices.inc"
 };
 
-AnimationSet D_dryfield_night_dilapidated_house_8017F1D0 = {
-    D_dryfield_night_dilapidated_house_8017EE0C,
-    D_dryfield_night_dilapidated_house_8017F1A8,
-    { NULL, D_dryfield_night_dilapidated_house_8017EA2C, NULL, NULL, D_dryfield_night_dilapidated_house_8017EB34, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDilapidatedHouseAnimation01C10 = {
+    _gDryfieldNightDilapidatedHouseAnimation01C10Records,
+    _gDryfieldNightDilapidatedHouseAnimation01C10Indices,
+    { NULL, _gDryfieldNightDilapidatedHouseAnimation01C10Bank1, NULL, NULL, _gDryfieldNightDilapidatedHouseAnimation01C10Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_dilapidated_house_8017F1F8[2] = {
+static AnimationPackedPose _gDryfieldNightDilapidatedHouseAnimation01DE4Bank1[2] = {
 #include "assets/dryfield_night_dilapidated_house_animation_01DE4_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_dilapidated_house_8017F210[15] = {
+static AnimationPackedRotation _gDryfieldNightDilapidatedHouseAnimation01DE4Bank4[15] = {
 #include "assets/dryfield_night_dilapidated_house_animation_01DE4_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_dilapidated_house_8017F24C[76] = {
+static AnimationRecord _gDryfieldNightDilapidatedHouseAnimation01DE4Records[76] = {
 #include "assets/dryfield_night_dilapidated_house_animation_01DE4_records.inc"
 };
 
-u16 D_dryfield_night_dilapidated_house_8017F37C[20] = {
+static u16 _gDryfieldNightDilapidatedHouseAnimation01DE4Indices[20] = {
 #include "assets/dryfield_night_dilapidated_house_animation_01DE4_indices.inc"
 };
 
-AnimationSet D_dryfield_night_dilapidated_house_8017F3A4 = {
-    D_dryfield_night_dilapidated_house_8017F24C,
-    D_dryfield_night_dilapidated_house_8017F37C,
-    { NULL, D_dryfield_night_dilapidated_house_8017F1F8, NULL, NULL, D_dryfield_night_dilapidated_house_8017F210, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDilapidatedHouseAnimation01DE4 = {
+    _gDryfieldNightDilapidatedHouseAnimation01DE4Records,
+    _gDryfieldNightDilapidatedHouseAnimation01DE4Indices,
+    { NULL, _gDryfieldNightDilapidatedHouseAnimation01DE4Bank1, NULL, NULL, _gDryfieldNightDilapidatedHouseAnimation01DE4Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_dilapidated_house_8017F3CC[7] = {
+static AnimationPackedPose _gDryfieldNightDilapidatedHouseAnimation0219CBank1[7] = {
 #include "assets/dryfield_night_dilapidated_house_animation_0219C_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_dilapidated_house_8017F420[82] = {
+static AnimationPackedRotation _gDryfieldNightDilapidatedHouseAnimation0219CBank4[82] = {
 #include "assets/dryfield_night_dilapidated_house_animation_0219C_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_dilapidated_house_8017F568[115] = {
+static AnimationRecord _gDryfieldNightDilapidatedHouseAnimation0219CRecords[115] = {
 #include "assets/dryfield_night_dilapidated_house_animation_0219C_records.inc"
 };
 
-u16 D_dryfield_night_dilapidated_house_8017F734[20] = {
+static u16 _gDryfieldNightDilapidatedHouseAnimation0219CIndices[20] = {
 #include "assets/dryfield_night_dilapidated_house_animation_0219C_indices.inc"
 };
 
-AnimationSet D_dryfield_night_dilapidated_house_8017F75C = {
-    D_dryfield_night_dilapidated_house_8017F568,
-    D_dryfield_night_dilapidated_house_8017F734,
-    { NULL, D_dryfield_night_dilapidated_house_8017F3CC, NULL, NULL, D_dryfield_night_dilapidated_house_8017F420, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDilapidatedHouseAnimation0219C = {
+    _gDryfieldNightDilapidatedHouseAnimation0219CRecords,
+    _gDryfieldNightDilapidatedHouseAnimation0219CIndices,
+    { NULL, _gDryfieldNightDilapidatedHouseAnimation0219CBank1, NULL, NULL, _gDryfieldNightDilapidatedHouseAnimation0219CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_dilapidated_house_8017F784[3] = {
+static AnimationPackedPose _gDryfieldNightDilapidatedHouseAnimation02368Bank1[3] = {
 #include "assets/dryfield_night_dilapidated_house_animation_02368_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_dilapidated_house_8017F7A8[19] = {
+static AnimationPackedRotation _gDryfieldNightDilapidatedHouseAnimation02368Bank4[19] = {
 #include "assets/dryfield_night_dilapidated_house_animation_02368_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_dilapidated_house_8017F7F4[67] = {
+static AnimationRecord _gDryfieldNightDilapidatedHouseAnimation02368Records[67] = {
 #include "assets/dryfield_night_dilapidated_house_animation_02368_records.inc"
 };
 
-u16 D_dryfield_night_dilapidated_house_8017F900[20] = {
+static u16 _gDryfieldNightDilapidatedHouseAnimation02368Indices[20] = {
 #include "assets/dryfield_night_dilapidated_house_animation_02368_indices.inc"
 };
 
-AnimationSet D_dryfield_night_dilapidated_house_8017F928 = {
-    D_dryfield_night_dilapidated_house_8017F7F4,
-    D_dryfield_night_dilapidated_house_8017F900,
-    { NULL, D_dryfield_night_dilapidated_house_8017F784, NULL, NULL, D_dryfield_night_dilapidated_house_8017F7A8, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDilapidatedHouseAnimation02368 = {
+    _gDryfieldNightDilapidatedHouseAnimation02368Records,
+    _gDryfieldNightDilapidatedHouseAnimation02368Indices,
+    { NULL, _gDryfieldNightDilapidatedHouseAnimation02368Bank1, NULL, NULL, _gDryfieldNightDilapidatedHouseAnimation02368Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_dilapidated_house_8017F950[6] = {
+static AnimationPackedPose _gDryfieldNightDilapidatedHouseAnimation02734Bank1[6] = {
 #include "assets/dryfield_night_dilapidated_house_animation_02734_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_dilapidated_house_8017F998[64] = {
+static AnimationPackedRotation _gDryfieldNightDilapidatedHouseAnimation02734Bank4[64] = {
 #include "assets/dryfield_night_dilapidated_house_animation_02734_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_dilapidated_house_8017FA98[141] = {
+static AnimationRecord _gDryfieldNightDilapidatedHouseAnimation02734Records[141] = {
 #include "assets/dryfield_night_dilapidated_house_animation_02734_records.inc"
 };
 
-u16 D_dryfield_night_dilapidated_house_8017FCCC[20] = {
+static u16 _gDryfieldNightDilapidatedHouseAnimation02734Indices[20] = {
 #include "assets/dryfield_night_dilapidated_house_animation_02734_indices.inc"
 };
 
-AnimationSet D_dryfield_night_dilapidated_house_8017FCF4 = {
-    D_dryfield_night_dilapidated_house_8017FA98,
-    D_dryfield_night_dilapidated_house_8017FCCC,
-    { NULL, D_dryfield_night_dilapidated_house_8017F950, NULL, NULL, D_dryfield_night_dilapidated_house_8017F998, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDilapidatedHouseAnimation02734 = {
+    _gDryfieldNightDilapidatedHouseAnimation02734Records,
+    _gDryfieldNightDilapidatedHouseAnimation02734Indices,
+    { NULL, _gDryfieldNightDilapidatedHouseAnimation02734Bank1, NULL, NULL, _gDryfieldNightDilapidatedHouseAnimation02734Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_dilapidated_house_8017FD1C[7] = {
+static AnimationPackedPose _gDryfieldNightDilapidatedHouseAnimation02A4CBank1[7] = {
 #include "assets/dryfield_night_dilapidated_house_animation_02A4C_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_dilapidated_house_8017FD70[54] = {
+static AnimationPackedRotation _gDryfieldNightDilapidatedHouseAnimation02A4CBank4[54] = {
 #include "assets/dryfield_night_dilapidated_house_animation_02A4C_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_dilapidated_house_8017FE48[103] = {
+static AnimationRecord _gDryfieldNightDilapidatedHouseAnimation02A4CRecords[103] = {
 #include "assets/dryfield_night_dilapidated_house_animation_02A4C_records.inc"
 };
 
-u16 D_dryfield_night_dilapidated_house_8017FFE4[20] = {
+static u16 _gDryfieldNightDilapidatedHouseAnimation02A4CIndices[20] = {
 #include "assets/dryfield_night_dilapidated_house_animation_02A4C_indices.inc"
 };
 
-AnimationSet D_dryfield_night_dilapidated_house_8018000C = {
-    D_dryfield_night_dilapidated_house_8017FE48,
-    D_dryfield_night_dilapidated_house_8017FFE4,
-    { NULL, D_dryfield_night_dilapidated_house_8017FD1C, NULL, NULL, D_dryfield_night_dilapidated_house_8017FD70, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDilapidatedHouseAnimation02A4C = {
+    _gDryfieldNightDilapidatedHouseAnimation02A4CRecords,
+    _gDryfieldNightDilapidatedHouseAnimation02A4CIndices,
+    { NULL, _gDryfieldNightDilapidatedHouseAnimation02A4CBank1, NULL, NULL, _gDryfieldNightDilapidatedHouseAnimation02A4CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_dilapidated_house_80180034[10] = {
+static AnimationPackedPose _gDryfieldNightDilapidatedHouseAnimation02E4CBank1[10] = {
 #include "assets/dryfield_night_dilapidated_house_animation_02E4C_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_dilapidated_house_801800AC[85] = {
+static AnimationPackedRotation _gDryfieldNightDilapidatedHouseAnimation02E4CBank4[85] = {
 #include "assets/dryfield_night_dilapidated_house_animation_02E4C_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_dilapidated_house_80180200[121] = {
+static AnimationRecord _gDryfieldNightDilapidatedHouseAnimation02E4CRecords[121] = {
 #include "assets/dryfield_night_dilapidated_house_animation_02E4C_records.inc"
 };
 
-u16 D_dryfield_night_dilapidated_house_801803E4[20] = {
+static u16 _gDryfieldNightDilapidatedHouseAnimation02E4CIndices[20] = {
 #include "assets/dryfield_night_dilapidated_house_animation_02E4C_indices.inc"
 };
 
-AnimationSet D_dryfield_night_dilapidated_house_8018040C = {
-    D_dryfield_night_dilapidated_house_80180200,
-    D_dryfield_night_dilapidated_house_801803E4,
-    { NULL, D_dryfield_night_dilapidated_house_80180034, NULL, NULL, D_dryfield_night_dilapidated_house_801800AC, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDilapidatedHouseAnimation02E4C = {
+    _gDryfieldNightDilapidatedHouseAnimation02E4CRecords,
+    _gDryfieldNightDilapidatedHouseAnimation02E4CIndices,
+    { NULL, _gDryfieldNightDilapidatedHouseAnimation02E4CBank1, NULL, NULL, _gDryfieldNightDilapidatedHouseAnimation02E4CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_dilapidated_house_80180434[4] = {
+static AnimationPackedPose _gDryfieldNightDilapidatedHouseAnimation03048Bank1[4] = {
 #include "assets/dryfield_night_dilapidated_house_animation_03048_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_dilapidated_house_80180464[17] = {
+static AnimationPackedRotation _gDryfieldNightDilapidatedHouseAnimation03048Bank4[17] = {
 #include "assets/dryfield_night_dilapidated_house_animation_03048_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_dilapidated_house_801804A8[78] = {
+static AnimationRecord _gDryfieldNightDilapidatedHouseAnimation03048Records[78] = {
 #include "assets/dryfield_night_dilapidated_house_animation_03048_records.inc"
 };
 
-u16 D_dryfield_night_dilapidated_house_801805E0[20] = {
+static u16 _gDryfieldNightDilapidatedHouseAnimation03048Indices[20] = {
 #include "assets/dryfield_night_dilapidated_house_animation_03048_indices.inc"
 };
 
-AnimationSet D_dryfield_night_dilapidated_house_80180608 = {
-    D_dryfield_night_dilapidated_house_801804A8,
-    D_dryfield_night_dilapidated_house_801805E0,
-    { NULL, D_dryfield_night_dilapidated_house_80180434, NULL, NULL, D_dryfield_night_dilapidated_house_80180464, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDilapidatedHouseAnimation03048 = {
+    _gDryfieldNightDilapidatedHouseAnimation03048Records,
+    _gDryfieldNightDilapidatedHouseAnimation03048Indices,
+    { NULL, _gDryfieldNightDilapidatedHouseAnimation03048Bank1, NULL, NULL, _gDryfieldNightDilapidatedHouseAnimation03048Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_dilapidated_house_80180630[8] = {
+static AnimationPackedPose _gDryfieldNightDilapidatedHouseAnimation03384Bank1[8] = {
 #include "assets/dryfield_night_dilapidated_house_animation_03384_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_dilapidated_house_80180690[65] = {
+static AnimationPackedRotation _gDryfieldNightDilapidatedHouseAnimation03384Bank4[65] = {
 #include "assets/dryfield_night_dilapidated_house_animation_03384_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_dilapidated_house_80180794[98] = {
+static AnimationRecord _gDryfieldNightDilapidatedHouseAnimation03384Records[98] = {
 #include "assets/dryfield_night_dilapidated_house_animation_03384_records.inc"
 };
 
-u16 D_dryfield_night_dilapidated_house_8018091C[20] = {
+static u16 _gDryfieldNightDilapidatedHouseAnimation03384Indices[20] = {
 #include "assets/dryfield_night_dilapidated_house_animation_03384_indices.inc"
 };
 
-AnimationSet D_dryfield_night_dilapidated_house_80180944 = {
-    D_dryfield_night_dilapidated_house_80180794,
-    D_dryfield_night_dilapidated_house_8018091C,
-    { NULL, D_dryfield_night_dilapidated_house_80180630, NULL, NULL, D_dryfield_night_dilapidated_house_80180690, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDilapidatedHouseAnimation03384 = {
+    _gDryfieldNightDilapidatedHouseAnimation03384Records,
+    _gDryfieldNightDilapidatedHouseAnimation03384Indices,
+    { NULL, _gDryfieldNightDilapidatedHouseAnimation03384Bank1, NULL, NULL, _gDryfieldNightDilapidatedHouseAnimation03384Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_dilapidated_house_8018096C[6] = {
+static AnimationPackedPose _gDryfieldNightDilapidatedHouseAnimation0378CBank1[6] = {
 #include "assets/dryfield_night_dilapidated_house_animation_0378C_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_dilapidated_house_801809B4[65] = {
+static AnimationPackedRotation _gDryfieldNightDilapidatedHouseAnimation0378CBank4[65] = {
 #include "assets/dryfield_night_dilapidated_house_animation_0378C_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_dilapidated_house_80180AB8[155] = {
+static AnimationRecord _gDryfieldNightDilapidatedHouseAnimation0378CRecords[155] = {
 #include "assets/dryfield_night_dilapidated_house_animation_0378C_records.inc"
 };
 
-u16 D_dryfield_night_dilapidated_house_80180D24[20] = {
+static u16 _gDryfieldNightDilapidatedHouseAnimation0378CIndices[20] = {
 #include "assets/dryfield_night_dilapidated_house_animation_0378C_indices.inc"
 };
 
-AnimationSet D_dryfield_night_dilapidated_house_80180D4C = {
-    D_dryfield_night_dilapidated_house_80180AB8,
-    D_dryfield_night_dilapidated_house_80180D24,
-    { NULL, D_dryfield_night_dilapidated_house_8018096C, NULL, NULL, D_dryfield_night_dilapidated_house_801809B4, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDilapidatedHouseAnimation0378C = {
+    _gDryfieldNightDilapidatedHouseAnimation0378CRecords,
+    _gDryfieldNightDilapidatedHouseAnimation0378CIndices,
+    { NULL, _gDryfieldNightDilapidatedHouseAnimation0378CBank1, NULL, NULL, _gDryfieldNightDilapidatedHouseAnimation0378CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_dilapidated_house_80180D74[4] = {
+static AnimationPackedPose _gDryfieldNightDilapidatedHouseAnimation039CCBank1[4] = {
 #include "assets/dryfield_night_dilapidated_house_animation_039CC_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_dilapidated_house_80180DA4[42] = {
+static AnimationPackedRotation _gDryfieldNightDilapidatedHouseAnimation039CCBank4[42] = {
 #include "assets/dryfield_night_dilapidated_house_animation_039CC_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_dilapidated_house_80180E4C[70] = {
+static AnimationRecord _gDryfieldNightDilapidatedHouseAnimation039CCRecords[70] = {
 #include "assets/dryfield_night_dilapidated_house_animation_039CC_records.inc"
 };
 
-u16 D_dryfield_night_dilapidated_house_80180F64[20] = {
+static u16 _gDryfieldNightDilapidatedHouseAnimation039CCIndices[20] = {
 #include "assets/dryfield_night_dilapidated_house_animation_039CC_indices.inc"
 };
 
-AnimationSet D_dryfield_night_dilapidated_house_80180F8C = {
-    D_dryfield_night_dilapidated_house_80180E4C,
-    D_dryfield_night_dilapidated_house_80180F64,
-    { NULL, D_dryfield_night_dilapidated_house_80180D74, NULL, NULL, D_dryfield_night_dilapidated_house_80180DA4, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDilapidatedHouseAnimation039CC = {
+    _gDryfieldNightDilapidatedHouseAnimation039CCRecords,
+    _gDryfieldNightDilapidatedHouseAnimation039CCIndices,
+    { NULL, _gDryfieldNightDilapidatedHouseAnimation039CCBank1, NULL, NULL, _gDryfieldNightDilapidatedHouseAnimation039CCBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_dilapidated_house_80180FB4[8] = {
+static AnimationPackedPose _gDryfieldNightDilapidatedHouseAnimation03DA0Bank1[8] = {
 #include "assets/dryfield_night_dilapidated_house_animation_03DA0_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_dilapidated_house_80181014[84] = {
+static AnimationPackedRotation _gDryfieldNightDilapidatedHouseAnimation03DA0Bank4[84] = {
 #include "assets/dryfield_night_dilapidated_house_animation_03DA0_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_dilapidated_house_80181164[117] = {
+static AnimationRecord _gDryfieldNightDilapidatedHouseAnimation03DA0Records[117] = {
 #include "assets/dryfield_night_dilapidated_house_animation_03DA0_records.inc"
 };
 
-u16 D_dryfield_night_dilapidated_house_80181338[20] = {
+static u16 _gDryfieldNightDilapidatedHouseAnimation03DA0Indices[20] = {
 #include "assets/dryfield_night_dilapidated_house_animation_03DA0_indices.inc"
 };
 
-AnimationSet D_dryfield_night_dilapidated_house_80181360 = {
-    D_dryfield_night_dilapidated_house_80181164,
-    D_dryfield_night_dilapidated_house_80181338,
-    { NULL, D_dryfield_night_dilapidated_house_80180FB4, NULL, NULL, D_dryfield_night_dilapidated_house_80181014, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDilapidatedHouseAnimation03DA0 = {
+    _gDryfieldNightDilapidatedHouseAnimation03DA0Records,
+    _gDryfieldNightDilapidatedHouseAnimation03DA0Indices,
+    { NULL, _gDryfieldNightDilapidatedHouseAnimation03DA0Bank1, NULL, NULL, _gDryfieldNightDilapidatedHouseAnimation03DA0Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_dilapidated_house_80181388[7] = {
+static AnimationPackedPose _gDryfieldNightDilapidatedHouseAnimation0410CBank1[7] = {
 #include "assets/dryfield_night_dilapidated_house_animation_0410C_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_dilapidated_house_801813DC[74] = {
+static AnimationPackedRotation _gDryfieldNightDilapidatedHouseAnimation0410CBank4[74] = {
 #include "assets/dryfield_night_dilapidated_house_animation_0410C_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_dilapidated_house_80181504[104] = {
+static AnimationRecord _gDryfieldNightDilapidatedHouseAnimation0410CRecords[104] = {
 #include "assets/dryfield_night_dilapidated_house_animation_0410C_records.inc"
 };
 
-u16 D_dryfield_night_dilapidated_house_801816A4[20] = {
+static u16 _gDryfieldNightDilapidatedHouseAnimation0410CIndices[20] = {
 #include "assets/dryfield_night_dilapidated_house_animation_0410C_indices.inc"
 };
 
-AnimationSet D_dryfield_night_dilapidated_house_801816CC = {
-    D_dryfield_night_dilapidated_house_80181504,
-    D_dryfield_night_dilapidated_house_801816A4,
-    { NULL, D_dryfield_night_dilapidated_house_80181388, NULL, NULL, D_dryfield_night_dilapidated_house_801813DC, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDilapidatedHouseAnimation0410C = {
+    _gDryfieldNightDilapidatedHouseAnimation0410CRecords,
+    _gDryfieldNightDilapidatedHouseAnimation0410CIndices,
+    { NULL, _gDryfieldNightDilapidatedHouseAnimation0410CBank1, NULL, NULL, _gDryfieldNightDilapidatedHouseAnimation0410CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_dilapidated_house_801816F4[5] = {
+static AnimationPackedPose _gDryfieldNightDilapidatedHouseAnimation04560Bank1[5] = {
 #include "assets/dryfield_night_dilapidated_house_animation_04560_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_dilapidated_house_80181730[80] = {
+static AnimationPackedRotation _gDryfieldNightDilapidatedHouseAnimation04560Bank4[80] = {
 #include "assets/dryfield_night_dilapidated_house_animation_04560_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_dilapidated_house_80181870[162] = {
+static AnimationRecord _gDryfieldNightDilapidatedHouseAnimation04560Records[162] = {
 #include "assets/dryfield_night_dilapidated_house_animation_04560_records.inc"
 };
 
-u16 D_dryfield_night_dilapidated_house_80181AF8[20] = {
+static u16 _gDryfieldNightDilapidatedHouseAnimation04560Indices[20] = {
 #include "assets/dryfield_night_dilapidated_house_animation_04560_indices.inc"
 };
 
-AnimationSet D_dryfield_night_dilapidated_house_80181B20 = {
-    D_dryfield_night_dilapidated_house_80181870,
-    D_dryfield_night_dilapidated_house_80181AF8,
-    { NULL, D_dryfield_night_dilapidated_house_801816F4, NULL, NULL, D_dryfield_night_dilapidated_house_80181730, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDilapidatedHouseAnimation04560 = {
+    _gDryfieldNightDilapidatedHouseAnimation04560Records,
+    _gDryfieldNightDilapidatedHouseAnimation04560Indices,
+    { NULL, _gDryfieldNightDilapidatedHouseAnimation04560Bank1, NULL, NULL, _gDryfieldNightDilapidatedHouseAnimation04560Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_dilapidated_house_80181B48[4] = {
+static AnimationPackedPose _gDryfieldNightDilapidatedHouseAnimation047F4Bank1[4] = {
 #include "assets/dryfield_night_dilapidated_house_animation_047F4_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_dilapidated_house_80181B78[51] = {
+static AnimationPackedRotation _gDryfieldNightDilapidatedHouseAnimation047F4Bank4[51] = {
 #include "assets/dryfield_night_dilapidated_house_animation_047F4_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_dilapidated_house_80181C44[82] = {
+static AnimationRecord _gDryfieldNightDilapidatedHouseAnimation047F4Records[82] = {
 #include "assets/dryfield_night_dilapidated_house_animation_047F4_records.inc"
 };
 
-u16 D_dryfield_night_dilapidated_house_80181D8C[20] = {
+static u16 _gDryfieldNightDilapidatedHouseAnimation047F4Indices[20] = {
 #include "assets/dryfield_night_dilapidated_house_animation_047F4_indices.inc"
 };
 
-AnimationSet D_dryfield_night_dilapidated_house_80181DB4 = {
-    D_dryfield_night_dilapidated_house_80181C44,
-    D_dryfield_night_dilapidated_house_80181D8C,
-    { NULL, D_dryfield_night_dilapidated_house_80181B48, NULL, NULL, D_dryfield_night_dilapidated_house_80181B78, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDilapidatedHouseAnimation047F4 = {
+    _gDryfieldNightDilapidatedHouseAnimation047F4Records,
+    _gDryfieldNightDilapidatedHouseAnimation047F4Indices,
+    { NULL, _gDryfieldNightDilapidatedHouseAnimation047F4Bank1, NULL, NULL, _gDryfieldNightDilapidatedHouseAnimation047F4Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_dilapidated_house_80181DDC[7] = {
+static AnimationPackedPose _gDryfieldNightDilapidatedHouseAnimation04B20Bank1[7] = {
 #include "assets/dryfield_night_dilapidated_house_animation_04B20_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_dilapidated_house_80181E30[56] = {
+static AnimationPackedRotation _gDryfieldNightDilapidatedHouseAnimation04B20Bank4[56] = {
 #include "assets/dryfield_night_dilapidated_house_animation_04B20_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_dilapidated_house_80181F10[106] = {
+static AnimationRecord _gDryfieldNightDilapidatedHouseAnimation04B20Records[106] = {
 #include "assets/dryfield_night_dilapidated_house_animation_04B20_records.inc"
 };
 
-u16 D_dryfield_night_dilapidated_house_801820B8[20] = {
+static u16 _gDryfieldNightDilapidatedHouseAnimation04B20Indices[20] = {
 #include "assets/dryfield_night_dilapidated_house_animation_04B20_indices.inc"
 };
 
-AnimationSet D_dryfield_night_dilapidated_house_801820E0 = {
-    D_dryfield_night_dilapidated_house_80181F10,
-    D_dryfield_night_dilapidated_house_801820B8,
-    { NULL, D_dryfield_night_dilapidated_house_80181DDC, NULL, NULL, D_dryfield_night_dilapidated_house_80181E30, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDilapidatedHouseAnimation04B20 = {
+    _gDryfieldNightDilapidatedHouseAnimation04B20Records,
+    _gDryfieldNightDilapidatedHouseAnimation04B20Indices,
+    { NULL, _gDryfieldNightDilapidatedHouseAnimation04B20Bank1, NULL, NULL, _gDryfieldNightDilapidatedHouseAnimation04B20Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_dilapidated_house_80182108[3] = {
+static AnimationPackedPose _gDryfieldNightDilapidatedHouseAnimation04ED8Bank1[3] = {
 #include "assets/dryfield_night_dilapidated_house_animation_04ED8_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_dilapidated_house_8018212C[81] = {
+static AnimationPackedRotation _gDryfieldNightDilapidatedHouseAnimation04ED8Bank4[81] = {
 #include "assets/dryfield_night_dilapidated_house_animation_04ED8_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_dilapidated_house_80182270[128] = {
+static AnimationRecord _gDryfieldNightDilapidatedHouseAnimation04ED8Records[128] = {
 #include "assets/dryfield_night_dilapidated_house_animation_04ED8_records.inc"
 };
 
-u16 D_dryfield_night_dilapidated_house_80182470[20] = {
+static u16 _gDryfieldNightDilapidatedHouseAnimation04ED8Indices[20] = {
 #include "assets/dryfield_night_dilapidated_house_animation_04ED8_indices.inc"
 };
 
-AnimationSet D_dryfield_night_dilapidated_house_80182498 = {
-    D_dryfield_night_dilapidated_house_80182270,
-    D_dryfield_night_dilapidated_house_80182470,
-    { NULL, D_dryfield_night_dilapidated_house_80182108, NULL, NULL, D_dryfield_night_dilapidated_house_8018212C, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDilapidatedHouseAnimation04ED8 = {
+    _gDryfieldNightDilapidatedHouseAnimation04ED8Records,
+    _gDryfieldNightDilapidatedHouseAnimation04ED8Indices,
+    { NULL, _gDryfieldNightDilapidatedHouseAnimation04ED8Bank1, NULL, NULL, _gDryfieldNightDilapidatedHouseAnimation04ED8Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_dilapidated_house_801824C0[5] = {
+static AnimationPackedPose _gDryfieldNightDilapidatedHouseAnimation0522CBank1[5] = {
 #include "assets/dryfield_night_dilapidated_house_animation_0522C_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_dilapidated_house_801824FC[58] = {
+static AnimationPackedRotation _gDryfieldNightDilapidatedHouseAnimation0522CBank4[58] = {
 #include "assets/dryfield_night_dilapidated_house_animation_0522C_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_dilapidated_house_801825E4[120] = {
+static AnimationRecord _gDryfieldNightDilapidatedHouseAnimation0522CRecords[120] = {
 #include "assets/dryfield_night_dilapidated_house_animation_0522C_records.inc"
 };
 
-u16 D_dryfield_night_dilapidated_house_801827C4[20] = {
+static u16 _gDryfieldNightDilapidatedHouseAnimation0522CIndices[20] = {
 #include "assets/dryfield_night_dilapidated_house_animation_0522C_indices.inc"
 };
 
-AnimationSet D_dryfield_night_dilapidated_house_801827EC = {
-    D_dryfield_night_dilapidated_house_801825E4,
-    D_dryfield_night_dilapidated_house_801827C4,
-    { NULL, D_dryfield_night_dilapidated_house_801824C0, NULL, NULL, D_dryfield_night_dilapidated_house_801824FC, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDilapidatedHouseAnimation0522C = {
+    _gDryfieldNightDilapidatedHouseAnimation0522CRecords,
+    _gDryfieldNightDilapidatedHouseAnimation0522CIndices,
+    { NULL, _gDryfieldNightDilapidatedHouseAnimation0522CBank1, NULL, NULL, _gDryfieldNightDilapidatedHouseAnimation0522CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_dilapidated_house_80182814[3] = {
+static AnimationPackedPose _gDryfieldNightDilapidatedHouseAnimation05424Bank1[3] = {
 #include "assets/dryfield_night_dilapidated_house_animation_05424_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_dilapidated_house_80182838[34] = {
+static AnimationPackedRotation _gDryfieldNightDilapidatedHouseAnimation05424Bank4[34] = {
 #include "assets/dryfield_night_dilapidated_house_animation_05424_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_dilapidated_house_801828C0[63] = {
+static AnimationRecord _gDryfieldNightDilapidatedHouseAnimation05424Records[63] = {
 #include "assets/dryfield_night_dilapidated_house_animation_05424_records.inc"
 };
 
-u16 D_dryfield_night_dilapidated_house_801829BC[20] = {
+static u16 _gDryfieldNightDilapidatedHouseAnimation05424Indices[20] = {
 #include "assets/dryfield_night_dilapidated_house_animation_05424_indices.inc"
 };
 
-AnimationSet D_dryfield_night_dilapidated_house_801829E4 = {
-    D_dryfield_night_dilapidated_house_801828C0,
-    D_dryfield_night_dilapidated_house_801829BC,
-    { NULL, D_dryfield_night_dilapidated_house_80182814, NULL, NULL, D_dryfield_night_dilapidated_house_80182838, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDilapidatedHouseAnimation05424 = {
+    _gDryfieldNightDilapidatedHouseAnimation05424Records,
+    _gDryfieldNightDilapidatedHouseAnimation05424Indices,
+    { NULL, _gDryfieldNightDilapidatedHouseAnimation05424Bank1, NULL, NULL, _gDryfieldNightDilapidatedHouseAnimation05424Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_dilapidated_house_80182A0C[3] = {
+static AnimationPackedPose _gDryfieldNightDilapidatedHouseAnimation055E8Bank1[3] = {
 #include "assets/dryfield_night_dilapidated_house_animation_055E8_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_dilapidated_house_80182A30[27] = {
+static AnimationPackedRotation _gDryfieldNightDilapidatedHouseAnimation055E8Bank4[27] = {
 #include "assets/dryfield_night_dilapidated_house_animation_055E8_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_dilapidated_house_80182A9C[57] = {
+static AnimationRecord _gDryfieldNightDilapidatedHouseAnimation055E8Records[57] = {
 #include "assets/dryfield_night_dilapidated_house_animation_055E8_records.inc"
 };
 
-u16 D_dryfield_night_dilapidated_house_80182B80[20] = {
+static u16 _gDryfieldNightDilapidatedHouseAnimation055E8Indices[20] = {
 #include "assets/dryfield_night_dilapidated_house_animation_055E8_indices.inc"
 };
 
-AnimationSet D_dryfield_night_dilapidated_house_80182BA8 = {
-    D_dryfield_night_dilapidated_house_80182A9C,
-    D_dryfield_night_dilapidated_house_80182B80,
-    { NULL, D_dryfield_night_dilapidated_house_80182A0C, NULL, NULL, D_dryfield_night_dilapidated_house_80182A30, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDilapidatedHouseAnimation055E8 = {
+    _gDryfieldNightDilapidatedHouseAnimation055E8Records,
+    _gDryfieldNightDilapidatedHouseAnimation055E8Indices,
+    { NULL, _gDryfieldNightDilapidatedHouseAnimation055E8Bank1, NULL, NULL, _gDryfieldNightDilapidatedHouseAnimation055E8Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_dilapidated_house_80182BD0[4] = {
+static AnimationPackedPose _gDryfieldNightDilapidatedHouseAnimation058A8Bank1[4] = {
 #include "assets/dryfield_night_dilapidated_house_animation_058A8_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_dilapidated_house_80182C00[40] = {
+static AnimationPackedRotation _gDryfieldNightDilapidatedHouseAnimation058A8Bank4[40] = {
 #include "assets/dryfield_night_dilapidated_house_animation_058A8_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_dilapidated_house_80182CA0[104] = {
+static AnimationRecord _gDryfieldNightDilapidatedHouseAnimation058A8Records[104] = {
 #include "assets/dryfield_night_dilapidated_house_animation_058A8_records.inc"
 };
 
-u16 D_dryfield_night_dilapidated_house_80182E40[20] = {
+static u16 _gDryfieldNightDilapidatedHouseAnimation058A8Indices[20] = {
 #include "assets/dryfield_night_dilapidated_house_animation_058A8_indices.inc"
 };
 
-AnimationSet D_dryfield_night_dilapidated_house_80182E68 = {
-    D_dryfield_night_dilapidated_house_80182CA0,
-    D_dryfield_night_dilapidated_house_80182E40,
-    { NULL, D_dryfield_night_dilapidated_house_80182BD0, NULL, NULL, D_dryfield_night_dilapidated_house_80182C00, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDilapidatedHouseAnimation058A8 = {
+    _gDryfieldNightDilapidatedHouseAnimation058A8Records,
+    _gDryfieldNightDilapidatedHouseAnimation058A8Indices,
+    { NULL, _gDryfieldNightDilapidatedHouseAnimation058A8Bank1, NULL, NULL, _gDryfieldNightDilapidatedHouseAnimation058A8Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_dilapidated_house_80182E90[3] = {
+static AnimationPackedPose _gDryfieldNightDilapidatedHouseAnimation05A6CBank1[3] = {
 #include "assets/dryfield_night_dilapidated_house_animation_05A6C_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_dilapidated_house_80182EB4[27] = {
+static AnimationPackedRotation _gDryfieldNightDilapidatedHouseAnimation05A6CBank4[27] = {
 #include "assets/dryfield_night_dilapidated_house_animation_05A6C_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_dilapidated_house_80182F20[57] = {
+static AnimationRecord _gDryfieldNightDilapidatedHouseAnimation05A6CRecords[57] = {
 #include "assets/dryfield_night_dilapidated_house_animation_05A6C_records.inc"
 };
 
-u16 D_dryfield_night_dilapidated_house_80183004[20] = {
+static u16 _gDryfieldNightDilapidatedHouseAnimation05A6CIndices[20] = {
 #include "assets/dryfield_night_dilapidated_house_animation_05A6C_indices.inc"
 };
 
-AnimationSet D_dryfield_night_dilapidated_house_8018302C = {
-    D_dryfield_night_dilapidated_house_80182F20,
-    D_dryfield_night_dilapidated_house_80183004,
-    { NULL, D_dryfield_night_dilapidated_house_80182E90, NULL, NULL, D_dryfield_night_dilapidated_house_80182EB4, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDilapidatedHouseAnimation05A6C = {
+    _gDryfieldNightDilapidatedHouseAnimation05A6CRecords,
+    _gDryfieldNightDilapidatedHouseAnimation05A6CIndices,
+    { NULL, _gDryfieldNightDilapidatedHouseAnimation05A6CBank1, NULL, NULL, _gDryfieldNightDilapidatedHouseAnimation05A6CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_dilapidated_house_80183054[3] = {
+static AnimationPackedPose _gDryfieldNightDilapidatedHouseAnimation05D8CBank1[3] = {
 #include "assets/dryfield_night_dilapidated_house_animation_05D8C_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_dilapidated_house_80183078[48] = {
+static AnimationPackedRotation _gDryfieldNightDilapidatedHouseAnimation05D8CBank4[48] = {
 #include "assets/dryfield_night_dilapidated_house_animation_05D8C_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_dilapidated_house_80183138[123] = {
+static AnimationRecord _gDryfieldNightDilapidatedHouseAnimation05D8CRecords[123] = {
 #include "assets/dryfield_night_dilapidated_house_animation_05D8C_records.inc"
 };
 
-u16 D_dryfield_night_dilapidated_house_80183324[20] = {
+static u16 _gDryfieldNightDilapidatedHouseAnimation05D8CIndices[20] = {
 #include "assets/dryfield_night_dilapidated_house_animation_05D8C_indices.inc"
 };
 
-AnimationSet D_dryfield_night_dilapidated_house_8018334C = {
-    D_dryfield_night_dilapidated_house_80183138,
-    D_dryfield_night_dilapidated_house_80183324,
-    { NULL, D_dryfield_night_dilapidated_house_80183054, NULL, NULL, D_dryfield_night_dilapidated_house_80183078, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDilapidatedHouseAnimation05D8C = {
+    _gDryfieldNightDilapidatedHouseAnimation05D8CRecords,
+    _gDryfieldNightDilapidatedHouseAnimation05D8CIndices,
+    { NULL, _gDryfieldNightDilapidatedHouseAnimation05D8CBank1, NULL, NULL, _gDryfieldNightDilapidatedHouseAnimation05D8CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_dilapidated_house_80183374[2] = {
+static AnimationPackedPose _gDryfieldNightDilapidatedHouseAnimation06008Bank1[2] = {
 #include "assets/dryfield_night_dilapidated_house_animation_06008_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_dilapidated_house_8018338C[32] = {
+static AnimationPackedRotation _gDryfieldNightDilapidatedHouseAnimation06008Bank4[32] = {
 #include "assets/dryfield_night_dilapidated_house_animation_06008_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_dilapidated_house_8018340C[101] = {
+static AnimationRecord _gDryfieldNightDilapidatedHouseAnimation06008Records[101] = {
 #include "assets/dryfield_night_dilapidated_house_animation_06008_records.inc"
 };
 
-u16 D_dryfield_night_dilapidated_house_801835A0[20] = {
+static u16 _gDryfieldNightDilapidatedHouseAnimation06008Indices[20] = {
 #include "assets/dryfield_night_dilapidated_house_animation_06008_indices.inc"
 };
 
-AnimationSet D_dryfield_night_dilapidated_house_801835C8 = {
-    D_dryfield_night_dilapidated_house_8018340C,
-    D_dryfield_night_dilapidated_house_801835A0,
-    { NULL, D_dryfield_night_dilapidated_house_80183374, NULL, NULL, D_dryfield_night_dilapidated_house_8018338C, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDilapidatedHouseAnimation06008 = {
+    _gDryfieldNightDilapidatedHouseAnimation06008Records,
+    _gDryfieldNightDilapidatedHouseAnimation06008Indices,
+    { NULL, _gDryfieldNightDilapidatedHouseAnimation06008Bank1, NULL, NULL, _gDryfieldNightDilapidatedHouseAnimation06008Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_dilapidated_house_801835F0[21] = {
+static AnimationPackedPose _gDryfieldNightDilapidatedHouseAnimation0679CBank1[21] = {
 #include "assets/dryfield_night_dilapidated_house_animation_0679C_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_dilapidated_house_801836EC[156] = {
+static AnimationPackedRotation _gDryfieldNightDilapidatedHouseAnimation0679CBank4[156] = {
 #include "assets/dryfield_night_dilapidated_house_animation_0679C_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_dilapidated_house_8018395C[246] = {
+static AnimationRecord _gDryfieldNightDilapidatedHouseAnimation0679CRecords[246] = {
 #include "assets/dryfield_night_dilapidated_house_animation_0679C_records.inc"
 };
 
-u16 D_dryfield_night_dilapidated_house_80183D34[20] = {
+static u16 _gDryfieldNightDilapidatedHouseAnimation0679CIndices[20] = {
 #include "assets/dryfield_night_dilapidated_house_animation_0679C_indices.inc"
 };
 
-AnimationSet D_dryfield_night_dilapidated_house_80183D5C = {
-    D_dryfield_night_dilapidated_house_8018395C,
-    D_dryfield_night_dilapidated_house_80183D34,
-    { NULL, D_dryfield_night_dilapidated_house_801835F0, NULL, NULL, D_dryfield_night_dilapidated_house_801836EC, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDilapidatedHouseAnimation0679C = {
+    _gDryfieldNightDilapidatedHouseAnimation0679CRecords,
+    _gDryfieldNightDilapidatedHouseAnimation0679CIndices,
+    { NULL, _gDryfieldNightDilapidatedHouseAnimation0679CBank1, NULL, NULL, _gDryfieldNightDilapidatedHouseAnimation0679CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_dilapidated_house_80183D84[2] = {
+static AnimationPackedPose _gDryfieldNightDilapidatedHouseAnimation06D10Bank1[2] = {
 #include "assets/dryfield_night_dilapidated_house_animation_06D10_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_dilapidated_house_80183D9C[135] = {
+static AnimationPackedRotation _gDryfieldNightDilapidatedHouseAnimation06D10Bank4[135] = {
 #include "assets/dryfield_night_dilapidated_house_animation_06D10_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_dilapidated_house_80183FB8[188] = {
+static AnimationRecord _gDryfieldNightDilapidatedHouseAnimation06D10Records[188] = {
 #include "assets/dryfield_night_dilapidated_house_animation_06D10_records.inc"
 };
 
-u16 D_dryfield_night_dilapidated_house_801842A8[20] = {
+static u16 _gDryfieldNightDilapidatedHouseAnimation06D10Indices[20] = {
 #include "assets/dryfield_night_dilapidated_house_animation_06D10_indices.inc"
 };
 
-AnimationSet D_dryfield_night_dilapidated_house_801842D0 = {
-    D_dryfield_night_dilapidated_house_80183FB8,
-    D_dryfield_night_dilapidated_house_801842A8,
-    { NULL, D_dryfield_night_dilapidated_house_80183D84, NULL, NULL, D_dryfield_night_dilapidated_house_80183D9C, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDilapidatedHouseAnimation06D10 = {
+    _gDryfieldNightDilapidatedHouseAnimation06D10Records,
+    _gDryfieldNightDilapidatedHouseAnimation06D10Indices,
+    { NULL, _gDryfieldNightDilapidatedHouseAnimation06D10Bank1, NULL, NULL, _gDryfieldNightDilapidatedHouseAnimation06D10Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_dilapidated_house_801842F8[3] = {
+static AnimationPackedPose _gDryfieldNightDilapidatedHouseAnimation06EE8Bank1[3] = {
 #include "assets/dryfield_night_dilapidated_house_animation_06EE8_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_dilapidated_house_8018431C[29] = {
+static AnimationPackedRotation _gDryfieldNightDilapidatedHouseAnimation06EE8Bank4[29] = {
 #include "assets/dryfield_night_dilapidated_house_animation_06EE8_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_dilapidated_house_80184390[60] = {
+static AnimationRecord _gDryfieldNightDilapidatedHouseAnimation06EE8Records[60] = {
 #include "assets/dryfield_night_dilapidated_house_animation_06EE8_records.inc"
 };
 
-u16 D_dryfield_night_dilapidated_house_80184480[20] = {
+static u16 _gDryfieldNightDilapidatedHouseAnimation06EE8Indices[20] = {
 #include "assets/dryfield_night_dilapidated_house_animation_06EE8_indices.inc"
 };
 
-AnimationSet D_dryfield_night_dilapidated_house_801844A8 = {
-    D_dryfield_night_dilapidated_house_80184390,
-    D_dryfield_night_dilapidated_house_80184480,
-    { NULL, D_dryfield_night_dilapidated_house_801842F8, NULL, NULL, D_dryfield_night_dilapidated_house_8018431C, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDilapidatedHouseAnimation06EE8 = {
+    _gDryfieldNightDilapidatedHouseAnimation06EE8Records,
+    _gDryfieldNightDilapidatedHouseAnimation06EE8Indices,
+    { NULL, _gDryfieldNightDilapidatedHouseAnimation06EE8Bank1, NULL, NULL, _gDryfieldNightDilapidatedHouseAnimation06EE8Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_dilapidated_house_801844D0[3] = {
+static AnimationPackedPose _gDryfieldNightDilapidatedHouseAnimation07304Bank1[3] = {
 #include "assets/dryfield_night_dilapidated_house_animation_07304_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_dilapidated_house_801844F4[80] = {
+static AnimationPackedRotation _gDryfieldNightDilapidatedHouseAnimation07304Bank4[80] = {
 #include "assets/dryfield_night_dilapidated_house_animation_07304_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_dilapidated_house_80184634[154] = {
+static AnimationRecord _gDryfieldNightDilapidatedHouseAnimation07304Records[154] = {
 #include "assets/dryfield_night_dilapidated_house_animation_07304_records.inc"
 };
 
-u16 D_dryfield_night_dilapidated_house_8018489C[20] = {
+static u16 _gDryfieldNightDilapidatedHouseAnimation07304Indices[20] = {
 #include "assets/dryfield_night_dilapidated_house_animation_07304_indices.inc"
 };
 
-AnimationSet D_dryfield_night_dilapidated_house_801848C4 = {
-    D_dryfield_night_dilapidated_house_80184634,
-    D_dryfield_night_dilapidated_house_8018489C,
-    { NULL, D_dryfield_night_dilapidated_house_801844D0, NULL, NULL, D_dryfield_night_dilapidated_house_801844F4, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDilapidatedHouseAnimation07304 = {
+    _gDryfieldNightDilapidatedHouseAnimation07304Records,
+    _gDryfieldNightDilapidatedHouseAnimation07304Indices,
+    { NULL, _gDryfieldNightDilapidatedHouseAnimation07304Bank1, NULL, NULL, _gDryfieldNightDilapidatedHouseAnimation07304Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_dilapidated_house_801848EC[2] = {
+static AnimationPackedPose _gDryfieldNightDilapidatedHouseAnimation074C0Bank1[2] = {
 #include "assets/dryfield_night_dilapidated_house_animation_074C0_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_dilapidated_house_80184904[25] = {
+static AnimationPackedRotation _gDryfieldNightDilapidatedHouseAnimation074C0Bank4[25] = {
 #include "assets/dryfield_night_dilapidated_house_animation_074C0_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_dilapidated_house_80184968[60] = {
+static AnimationRecord _gDryfieldNightDilapidatedHouseAnimation074C0Records[60] = {
 #include "assets/dryfield_night_dilapidated_house_animation_074C0_records.inc"
 };
 
-u16 D_dryfield_night_dilapidated_house_80184A58[20] = {
+static u16 _gDryfieldNightDilapidatedHouseAnimation074C0Indices[20] = {
 #include "assets/dryfield_night_dilapidated_house_animation_074C0_indices.inc"
 };
 
-AnimationSet D_dryfield_night_dilapidated_house_80184A80 = {
-    D_dryfield_night_dilapidated_house_80184968,
-    D_dryfield_night_dilapidated_house_80184A58,
-    { NULL, D_dryfield_night_dilapidated_house_801848EC, NULL, NULL, D_dryfield_night_dilapidated_house_80184904, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDilapidatedHouseAnimation074C0 = {
+    _gDryfieldNightDilapidatedHouseAnimation074C0Records,
+    _gDryfieldNightDilapidatedHouseAnimation074C0Indices,
+    { NULL, _gDryfieldNightDilapidatedHouseAnimation074C0Bank1, NULL, NULL, _gDryfieldNightDilapidatedHouseAnimation074C0Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_dilapidated_house_80184AA8[3] = {
+static AnimationPackedPose _gDryfieldNightDilapidatedHouseAnimation076A8Bank1[3] = {
 #include "assets/dryfield_night_dilapidated_house_animation_076A8_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_dilapidated_house_80184ACC[33] = {
+static AnimationPackedRotation _gDryfieldNightDilapidatedHouseAnimation076A8Bank4[33] = {
 #include "assets/dryfield_night_dilapidated_house_animation_076A8_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_dilapidated_house_80184B50[60] = {
+static AnimationRecord _gDryfieldNightDilapidatedHouseAnimation076A8Records[60] = {
 #include "assets/dryfield_night_dilapidated_house_animation_076A8_records.inc"
 };
 
-u16 D_dryfield_night_dilapidated_house_80184C40[20] = {
+static u16 _gDryfieldNightDilapidatedHouseAnimation076A8Indices[20] = {
 #include "assets/dryfield_night_dilapidated_house_animation_076A8_indices.inc"
 };
 
-AnimationSet D_dryfield_night_dilapidated_house_80184C68 = {
-    D_dryfield_night_dilapidated_house_80184B50,
-    D_dryfield_night_dilapidated_house_80184C40,
-    { NULL, D_dryfield_night_dilapidated_house_80184AA8, NULL, NULL, D_dryfield_night_dilapidated_house_80184ACC, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDilapidatedHouseAnimation076A8 = {
+    _gDryfieldNightDilapidatedHouseAnimation076A8Records,
+    _gDryfieldNightDilapidatedHouseAnimation076A8Indices,
+    { NULL, _gDryfieldNightDilapidatedHouseAnimation076A8Bank1, NULL, NULL, _gDryfieldNightDilapidatedHouseAnimation076A8Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_dilapidated_house_80184C90[3] = {
+static AnimationPackedPose _gDryfieldNightDilapidatedHouseAnimation07964Bank1[3] = {
 #include "assets/dryfield_night_dilapidated_house_animation_07964_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_dilapidated_house_80184CB4[39] = {
+static AnimationPackedRotation _gDryfieldNightDilapidatedHouseAnimation07964Bank4[39] = {
 #include "assets/dryfield_night_dilapidated_house_animation_07964_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_dilapidated_house_80184D50[107] = {
+static AnimationRecord _gDryfieldNightDilapidatedHouseAnimation07964Records[107] = {
 #include "assets/dryfield_night_dilapidated_house_animation_07964_records.inc"
 };
 
-u16 D_dryfield_night_dilapidated_house_80184EFC[20] = {
+static u16 _gDryfieldNightDilapidatedHouseAnimation07964Indices[20] = {
 #include "assets/dryfield_night_dilapidated_house_animation_07964_indices.inc"
 };
 
-AnimationSet D_dryfield_night_dilapidated_house_80184F24 = {
-    D_dryfield_night_dilapidated_house_80184D50,
-    D_dryfield_night_dilapidated_house_80184EFC,
-    { NULL, D_dryfield_night_dilapidated_house_80184C90, NULL, NULL, D_dryfield_night_dilapidated_house_80184CB4, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDilapidatedHouseAnimation07964 = {
+    _gDryfieldNightDilapidatedHouseAnimation07964Records,
+    _gDryfieldNightDilapidatedHouseAnimation07964Indices,
+    { NULL, _gDryfieldNightDilapidatedHouseAnimation07964Bank1, NULL, NULL, _gDryfieldNightDilapidatedHouseAnimation07964Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_dilapidated_house_80184F4C[3] = {
+static AnimationPackedPose _gDryfieldNightDilapidatedHouseAnimation07B44Bank1[3] = {
 #include "assets/dryfield_night_dilapidated_house_animation_07B44_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_dilapidated_house_80184F70[31] = {
+static AnimationPackedRotation _gDryfieldNightDilapidatedHouseAnimation07B44Bank4[31] = {
 #include "assets/dryfield_night_dilapidated_house_animation_07B44_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_dilapidated_house_80184FEC[60] = {
+static AnimationRecord _gDryfieldNightDilapidatedHouseAnimation07B44Records[60] = {
 #include "assets/dryfield_night_dilapidated_house_animation_07B44_records.inc"
 };
 
-u16 D_dryfield_night_dilapidated_house_801850DC[20] = {
+static u16 _gDryfieldNightDilapidatedHouseAnimation07B44Indices[20] = {
 #include "assets/dryfield_night_dilapidated_house_animation_07B44_indices.inc"
 };
 
-AnimationSet D_dryfield_night_dilapidated_house_80185104 = {
-    D_dryfield_night_dilapidated_house_80184FEC,
-    D_dryfield_night_dilapidated_house_801850DC,
-    { NULL, D_dryfield_night_dilapidated_house_80184F4C, NULL, NULL, D_dryfield_night_dilapidated_house_80184F70, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDilapidatedHouseAnimation07B44 = {
+    _gDryfieldNightDilapidatedHouseAnimation07B44Records,
+    _gDryfieldNightDilapidatedHouseAnimation07B44Indices,
+    { NULL, _gDryfieldNightDilapidatedHouseAnimation07B44Bank1, NULL, NULL, _gDryfieldNightDilapidatedHouseAnimation07B44Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_dilapidated_house_8018512C[5] = {
+static AnimationPackedPose _gDryfieldNightDilapidatedHouseAnimation07DA4Bank1[5] = {
 #include "assets/dryfield_night_dilapidated_house_animation_07DA4_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_dilapidated_house_80185168[41] = {
+static AnimationPackedRotation _gDryfieldNightDilapidatedHouseAnimation07DA4Bank4[41] = {
 #include "assets/dryfield_night_dilapidated_house_animation_07DA4_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_dilapidated_house_8018520C[76] = {
+static AnimationRecord _gDryfieldNightDilapidatedHouseAnimation07DA4Records[76] = {
 #include "assets/dryfield_night_dilapidated_house_animation_07DA4_records.inc"
 };
 
-u16 D_dryfield_night_dilapidated_house_8018533C[20] = {
+static u16 _gDryfieldNightDilapidatedHouseAnimation07DA4Indices[20] = {
 #include "assets/dryfield_night_dilapidated_house_animation_07DA4_indices.inc"
 };
 
-AnimationSet D_dryfield_night_dilapidated_house_80185364 = {
-    D_dryfield_night_dilapidated_house_8018520C,
-    D_dryfield_night_dilapidated_house_8018533C,
-    { NULL, D_dryfield_night_dilapidated_house_8018512C, NULL, NULL, D_dryfield_night_dilapidated_house_80185168, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDilapidatedHouseAnimation07DA4 = {
+    _gDryfieldNightDilapidatedHouseAnimation07DA4Records,
+    _gDryfieldNightDilapidatedHouseAnimation07DA4Indices,
+    { NULL, _gDryfieldNightDilapidatedHouseAnimation07DA4Bank1, NULL, NULL, _gDryfieldNightDilapidatedHouseAnimation07DA4Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_dilapidated_house_8018538C[3] = {
+static AnimationPackedPose _gDryfieldNightDilapidatedHouseAnimation07FC8Bank1[3] = {
 #include "assets/dryfield_night_dilapidated_house_animation_07FC8_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_dilapidated_house_801853B0[21] = {
+static AnimationPackedRotation _gDryfieldNightDilapidatedHouseAnimation07FC8Bank4[21] = {
 #include "assets/dryfield_night_dilapidated_house_animation_07FC8_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_dilapidated_house_80185404[87] = {
+static AnimationRecord _gDryfieldNightDilapidatedHouseAnimation07FC8Records[87] = {
 #include "assets/dryfield_night_dilapidated_house_animation_07FC8_records.inc"
 };
 
-u16 D_dryfield_night_dilapidated_house_80185560[20] = {
+static u16 _gDryfieldNightDilapidatedHouseAnimation07FC8Indices[20] = {
 #include "assets/dryfield_night_dilapidated_house_animation_07FC8_indices.inc"
 };
 
-AnimationSet D_dryfield_night_dilapidated_house_80185588 = {
-    D_dryfield_night_dilapidated_house_80185404,
-    D_dryfield_night_dilapidated_house_80185560,
-    { NULL, D_dryfield_night_dilapidated_house_8018538C, NULL, NULL, D_dryfield_night_dilapidated_house_801853B0, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDilapidatedHouseAnimation07FC8 = {
+    _gDryfieldNightDilapidatedHouseAnimation07FC8Records,
+    _gDryfieldNightDilapidatedHouseAnimation07FC8Indices,
+    { NULL, _gDryfieldNightDilapidatedHouseAnimation07FC8Bank1, NULL, NULL, _gDryfieldNightDilapidatedHouseAnimation07FC8Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_dilapidated_house_801855B0[5] = {
+static AnimationPackedPose _gDryfieldNightDilapidatedHouseAnimation08278Bank1[5] = {
 #include "assets/dryfield_night_dilapidated_house_animation_08278_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_dilapidated_house_801855EC[52] = {
+static AnimationPackedRotation _gDryfieldNightDilapidatedHouseAnimation08278Bank4[52] = {
 #include "assets/dryfield_night_dilapidated_house_animation_08278_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_dilapidated_house_801856BC[85] = {
+static AnimationRecord _gDryfieldNightDilapidatedHouseAnimation08278Records[85] = {
 #include "assets/dryfield_night_dilapidated_house_animation_08278_records.inc"
 };
 
-u16 D_dryfield_night_dilapidated_house_80185810[20] = {
+static u16 _gDryfieldNightDilapidatedHouseAnimation08278Indices[20] = {
 #include "assets/dryfield_night_dilapidated_house_animation_08278_indices.inc"
 };
 
-AnimationSet D_dryfield_night_dilapidated_house_80185838 = {
-    D_dryfield_night_dilapidated_house_801856BC,
-    D_dryfield_night_dilapidated_house_80185810,
-    { NULL, D_dryfield_night_dilapidated_house_801855B0, NULL, NULL, D_dryfield_night_dilapidated_house_801855EC, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDilapidatedHouseAnimation08278 = {
+    _gDryfieldNightDilapidatedHouseAnimation08278Records,
+    _gDryfieldNightDilapidatedHouseAnimation08278Indices,
+    { NULL, _gDryfieldNightDilapidatedHouseAnimation08278Bank1, NULL, NULL, _gDryfieldNightDilapidatedHouseAnimation08278Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_dilapidated_house_80185860[2] = {
+static AnimationPackedPose _gDryfieldNightDilapidatedHouseAnimation0865CBank1[2] = {
 #include "assets/dryfield_night_dilapidated_house_animation_0865C_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_dilapidated_house_80185878[87] = {
+static AnimationPackedRotation _gDryfieldNightDilapidatedHouseAnimation0865CBank4[87] = {
 #include "assets/dryfield_night_dilapidated_house_animation_0865C_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_dilapidated_house_801859D4[136] = {
+static AnimationRecord _gDryfieldNightDilapidatedHouseAnimation0865CRecords[136] = {
 #include "assets/dryfield_night_dilapidated_house_animation_0865C_records.inc"
 };
 
-u16 D_dryfield_night_dilapidated_house_80185BF4[20] = {
+static u16 _gDryfieldNightDilapidatedHouseAnimation0865CIndices[20] = {
 #include "assets/dryfield_night_dilapidated_house_animation_0865C_indices.inc"
 };
 
-AnimationSet D_dryfield_night_dilapidated_house_80185C1C = {
-    D_dryfield_night_dilapidated_house_801859D4,
-    D_dryfield_night_dilapidated_house_80185BF4,
-    { NULL, D_dryfield_night_dilapidated_house_80185860, NULL, NULL, D_dryfield_night_dilapidated_house_80185878, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDilapidatedHouseAnimation0865C = {
+    _gDryfieldNightDilapidatedHouseAnimation0865CRecords,
+    _gDryfieldNightDilapidatedHouseAnimation0865CIndices,
+    { NULL, _gDryfieldNightDilapidatedHouseAnimation0865CBank1, NULL, NULL, _gDryfieldNightDilapidatedHouseAnimation0865CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_dilapidated_house_80185C44[4] = {
+static AnimationPackedPose _gDryfieldNightDilapidatedHouseAnimation08C74Bank1[4] = {
 #include "assets/dryfield_night_dilapidated_house_animation_08C74_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_dilapidated_house_80185C74[147] = {
+static AnimationPackedRotation _gDryfieldNightDilapidatedHouseAnimation08C74Bank4[147] = {
 #include "assets/dryfield_night_dilapidated_house_animation_08C74_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_dilapidated_house_80185EC0[211] = {
+static AnimationRecord _gDryfieldNightDilapidatedHouseAnimation08C74Records[211] = {
 #include "assets/dryfield_night_dilapidated_house_animation_08C74_records.inc"
 };
 
-u16 D_dryfield_night_dilapidated_house_8018620C[20] = {
+static u16 _gDryfieldNightDilapidatedHouseAnimation08C74Indices[20] = {
 #include "assets/dryfield_night_dilapidated_house_animation_08C74_indices.inc"
 };
 
-AnimationSet D_dryfield_night_dilapidated_house_80186234 = {
-    D_dryfield_night_dilapidated_house_80185EC0,
-    D_dryfield_night_dilapidated_house_8018620C,
-    { NULL, D_dryfield_night_dilapidated_house_80185C44, NULL, NULL, D_dryfield_night_dilapidated_house_80185C74, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDilapidatedHouseAnimation08C74 = {
+    _gDryfieldNightDilapidatedHouseAnimation08C74Records,
+    _gDryfieldNightDilapidatedHouseAnimation08C74Indices,
+    { NULL, _gDryfieldNightDilapidatedHouseAnimation08C74Bank1, NULL, NULL, _gDryfieldNightDilapidatedHouseAnimation08C74Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_dilapidated_house_8018625C[4] = {
+static AnimationPackedPose _gDryfieldNightDilapidatedHouseAnimation08ED4Bank1[4] = {
 #include "assets/dryfield_night_dilapidated_house_animation_08ED4_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_dilapidated_house_8018628C[36] = {
+static AnimationPackedRotation _gDryfieldNightDilapidatedHouseAnimation08ED4Bank4[36] = {
 #include "assets/dryfield_night_dilapidated_house_animation_08ED4_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_dilapidated_house_8018631C[84] = {
+static AnimationRecord _gDryfieldNightDilapidatedHouseAnimation08ED4Records[84] = {
 #include "assets/dryfield_night_dilapidated_house_animation_08ED4_records.inc"
 };
 
-u16 D_dryfield_night_dilapidated_house_8018646C[20] = {
+static u16 _gDryfieldNightDilapidatedHouseAnimation08ED4Indices[20] = {
 #include "assets/dryfield_night_dilapidated_house_animation_08ED4_indices.inc"
 };
 
-AnimationSet D_dryfield_night_dilapidated_house_80186494 = {
-    D_dryfield_night_dilapidated_house_8018631C,
-    D_dryfield_night_dilapidated_house_8018646C,
-    { NULL, D_dryfield_night_dilapidated_house_8018625C, NULL, NULL, D_dryfield_night_dilapidated_house_8018628C, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightDilapidatedHouseAnimation08ED4 = {
+    _gDryfieldNightDilapidatedHouseAnimation08ED4Records,
+    _gDryfieldNightDilapidatedHouseAnimation08ED4Indices,
+    { NULL, _gDryfieldNightDilapidatedHouseAnimation08ED4Bank1, NULL, NULL, _gDryfieldNightDilapidatedHouseAnimation08ED4Bank4, NULL, NULL, NULL },
 };
 
 AnimationSet* D_dryfield_night_dilapidated_house_801864BC[25] = {
     NULL,
-    &D_dryfield_night_dilapidated_house_8017EA04,
-    &D_dryfield_night_dilapidated_house_8017F1D0,
-    &D_dryfield_night_dilapidated_house_8017F3A4,
-    &D_dryfield_night_dilapidated_house_8017F75C,
-    &D_dryfield_night_dilapidated_house_8017F928,
-    &D_dryfield_night_dilapidated_house_8017FCF4,
-    &D_dryfield_night_dilapidated_house_8018000C,
-    &D_dryfield_night_dilapidated_house_8018040C,
-    &D_dryfield_night_dilapidated_house_80180608,
-    &D_dryfield_night_dilapidated_house_80180944,
-    &D_dryfield_night_dilapidated_house_80180D4C,
-    &D_dryfield_night_dilapidated_house_80180F8C,
-    &D_dryfield_night_dilapidated_house_80181360,
-    &D_dryfield_night_dilapidated_house_801816CC,
-    &D_dryfield_night_dilapidated_house_80181B20,
-    &D_dryfield_night_dilapidated_house_80181DB4,
-    &D_dryfield_night_dilapidated_house_801820E0,
-    &D_dryfield_night_dilapidated_house_80182498,
-    &D_dryfield_night_dilapidated_house_801827EC,
-    &D_dryfield_night_dilapidated_house_801829E4,
-    &D_dryfield_night_dilapidated_house_80182BA8,
-    &D_dryfield_night_dilapidated_house_80182E68,
-    &D_dryfield_night_dilapidated_house_8018302C,
-    &D_dryfield_night_dilapidated_house_8018334C,
+    &_gDryfieldNightDilapidatedHouseAnimation01444,
+    &_gDryfieldNightDilapidatedHouseAnimation01C10,
+    &_gDryfieldNightDilapidatedHouseAnimation01DE4,
+    &_gDryfieldNightDilapidatedHouseAnimation0219C,
+    &_gDryfieldNightDilapidatedHouseAnimation02368,
+    &_gDryfieldNightDilapidatedHouseAnimation02734,
+    &_gDryfieldNightDilapidatedHouseAnimation02A4C,
+    &_gDryfieldNightDilapidatedHouseAnimation02E4C,
+    &_gDryfieldNightDilapidatedHouseAnimation03048,
+    &_gDryfieldNightDilapidatedHouseAnimation03384,
+    &_gDryfieldNightDilapidatedHouseAnimation0378C,
+    &_gDryfieldNightDilapidatedHouseAnimation039CC,
+    &_gDryfieldNightDilapidatedHouseAnimation03DA0,
+    &_gDryfieldNightDilapidatedHouseAnimation0410C,
+    &_gDryfieldNightDilapidatedHouseAnimation04560,
+    &_gDryfieldNightDilapidatedHouseAnimation047F4,
+    &_gDryfieldNightDilapidatedHouseAnimation04B20,
+    &_gDryfieldNightDilapidatedHouseAnimation04ED8,
+    &_gDryfieldNightDilapidatedHouseAnimation0522C,
+    &_gDryfieldNightDilapidatedHouseAnimation05424,
+    &_gDryfieldNightDilapidatedHouseAnimation055E8,
+    &_gDryfieldNightDilapidatedHouseAnimation058A8,
+    &_gDryfieldNightDilapidatedHouseAnimation05A6C,
+    &_gDryfieldNightDilapidatedHouseAnimation05D8C,
 };
 
 GpCopyArg D_dryfield_night_dilapidated_house_80186520 = { { .sets = D_dryfield_night_dilapidated_house_801864BC }, 25 };
@@ -1006,21 +1006,21 @@ ActorTransform D_dryfield_night_dilapidated_house_8018671C = { { 2900, 0, 0, 0 }
 
 AnimationSet* D_dryfield_night_dilapidated_house_80186734[16] = {
     NULL,
-    &D_dryfield_night_dilapidated_house_801835C8,
-    &D_dryfield_night_dilapidated_house_80185364,
-    &D_dryfield_night_dilapidated_house_80185588,
-    &D_dryfield_night_dilapidated_house_80185838,
-    &D_dryfield_night_dilapidated_house_80185C1C,
-    &D_dryfield_night_dilapidated_house_80186234,
-    &D_dryfield_night_dilapidated_house_801844A8,
-    &D_dryfield_night_dilapidated_house_801848C4,
-    &D_dryfield_night_dilapidated_house_80184A80,
-    &D_dryfield_night_dilapidated_house_80184C68,
-    &D_dryfield_night_dilapidated_house_80184F24,
-    &D_dryfield_night_dilapidated_house_80185104,
-    &D_dryfield_night_dilapidated_house_801842D0,
-    &D_dryfield_night_dilapidated_house_80183D5C,
-    &D_dryfield_night_dilapidated_house_80186494,
+    &_gDryfieldNightDilapidatedHouseAnimation06008,
+    &_gDryfieldNightDilapidatedHouseAnimation07DA4,
+    &_gDryfieldNightDilapidatedHouseAnimation07FC8,
+    &_gDryfieldNightDilapidatedHouseAnimation08278,
+    &_gDryfieldNightDilapidatedHouseAnimation0865C,
+    &_gDryfieldNightDilapidatedHouseAnimation08C74,
+    &_gDryfieldNightDilapidatedHouseAnimation06EE8,
+    &_gDryfieldNightDilapidatedHouseAnimation07304,
+    &_gDryfieldNightDilapidatedHouseAnimation074C0,
+    &_gDryfieldNightDilapidatedHouseAnimation076A8,
+    &_gDryfieldNightDilapidatedHouseAnimation07964,
+    &_gDryfieldNightDilapidatedHouseAnimation07B44,
+    &_gDryfieldNightDilapidatedHouseAnimation06D10,
+    &_gDryfieldNightDilapidatedHouseAnimation0679C,
+    &_gDryfieldNightDilapidatedHouseAnimation08ED4,
 };
 
 GpCopyArg D_dryfield_night_dilapidated_house_80186774 = { { .sets = D_dryfield_night_dilapidated_house_80186734 }, 16 };
@@ -1227,30 +1227,30 @@ GpWarpRec D_dryfield_night_dilapidated_house_801873AC[3] = {
     { { .words = { 0, 1596, 0, -2540 } }, { 0, 0, 0, 0 }, { .words = { 0, 2296, 0, -1578 } }, { 0, 0, 0, 0 }, 0, 0, 0, 6, 0, 0 },
 };
 
-SVECTOR D_dryfield_night_dilapidated_house_80187454[10] = {
+static SVECTOR _gDryfieldNightDilapidatedHouseCollision0A784Normals[10] = {
 #include "assets/dryfield_night_dilapidated_house_collision_0A784_normals.inc"
 };
 
-SVECTOR D_dryfield_night_dilapidated_house_801874A4[116] = {
+static SVECTOR _gDryfieldNightDilapidatedHouseCollision0A784Verts[116] = {
 #include "assets/dryfield_night_dilapidated_house_collision_0A784_verts.inc"
 };
 
-WorldCollisionGridFace D_dryfield_night_dilapidated_house_80187844[70] = {
+static WorldCollisionGridFace _gDryfieldNightDilapidatedHouseCollision0A784Faces[70] = {
 #include "assets/dryfield_night_dilapidated_house_collision_0A784_faces.inc"
 };
 
-s16 D_dryfield_night_dilapidated_house_80187B8C[208] = {
+static s16 _gDryfieldNightDilapidatedHouseCollision0A784Cells[208] = {
 #include "assets/dryfield_night_dilapidated_house_collision_0A784_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_dryfield_night_dilapidated_house_80187B8C[i])
-s16* D_dryfield_night_dilapidated_house_80187D2C[6] = {
+#define GRID_CELL(i) (&_gDryfieldNightDilapidatedHouseCollision0A784Cells[i])
+static s16* _gDryfieldNightDilapidatedHouseCollision0A784Table[6] = {
 #include "assets/dryfield_night_dilapidated_house_collision_0A784_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_dryfield_night_dilapidated_house_80187D44[1] = {
-    { NULL, D_dryfield_night_dilapidated_house_80187454, D_dryfield_night_dilapidated_house_801874A4, D_dryfield_night_dilapidated_house_80187844, D_dryfield_night_dilapidated_house_80187D2C, 6000, 3200, 3, 2, 4000, 70 },
+    { NULL, _gDryfieldNightDilapidatedHouseCollision0A784Normals, _gDryfieldNightDilapidatedHouseCollision0A784Verts, _gDryfieldNightDilapidatedHouseCollision0A784Faces, _gDryfieldNightDilapidatedHouseCollision0A784Table, 6000, 3200, 3, 2, 4000, 70 },
 };
 
 GpViewRec D_dryfield_night_dilapidated_house_80187D68[11] = {

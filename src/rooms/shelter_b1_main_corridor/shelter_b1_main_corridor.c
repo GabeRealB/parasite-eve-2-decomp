@@ -204,29 +204,29 @@ GpWarpRec D_shelter_b1_main_corridor_80183200[6] = {
     { { .words = { 2048, 0, 0, 0 } }, { 0, 0, 0, 0 }, { .words = { 0, 10, 0, -390 } }, { 0, 0, 0, 0 }, 0x540F0002, 0x540F0001, 0, 8, 0, 0 },
 };
 
-SVECTOR D_shelter_b1_main_corridor_80183350[34] = {
+static SVECTOR _gShelterB1MainCorridorCollision06B30Normals[34] = {
 #include "assets/shelter_b1_main_corridor_collision_06B30_normals.inc"
 };
 
-SVECTOR D_shelter_b1_main_corridor_80183460[172] = {
+static SVECTOR _gShelterB1MainCorridorCollision06B30Verts[172] = {
 #include "assets/shelter_b1_main_corridor_collision_06B30_verts.inc"
 };
 
-WorldCollisionGridFace D_shelter_b1_main_corridor_801839C0[82] = {
+static WorldCollisionGridFace _gShelterB1MainCorridorCollision06B30Faces[82] = {
 #include "assets/shelter_b1_main_corridor_collision_06B30_faces.inc"
 };
 
-s16 D_shelter_b1_main_corridor_80183D98[392] = {
+static s16 _gShelterB1MainCorridorCollision06B30Cells[392] = {
 #include "assets/shelter_b1_main_corridor_collision_06B30_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_shelter_b1_main_corridor_80183D98[i])
-s16* D_shelter_b1_main_corridor_801840A8[18] = {
+#define GRID_CELL(i) (&_gShelterB1MainCorridorCollision06B30Cells[i])
+static s16* _gShelterB1MainCorridorCollision06B30Table[18] = {
 #include "assets/shelter_b1_main_corridor_collision_06B30_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b1_main_corridor_801840F0 = { NULL, D_shelter_b1_main_corridor_80183350, D_shelter_b1_main_corridor_80183460, D_shelter_b1_main_corridor_801839C0, D_shelter_b1_main_corridor_801840A8, 5398, 0x4D03, 3, 6, 4000, 82 };
+WorldCollisionGrid D_shelter_b1_main_corridor_801840F0 = { NULL, _gShelterB1MainCorridorCollision06B30Normals, _gShelterB1MainCorridorCollision06B30Verts, _gShelterB1MainCorridorCollision06B30Faces, _gShelterB1MainCorridorCollision06B30Table, 5398, 0x4D03, 3, 6, 4000, 82 };
 
 GpViewRec D_shelter_b1_main_corridor_80184114[10] = {
     { { { { 4095, 0, 0 }, { 0, 0, -4096 }, { 0, 4095, 0 } }, { 0, 0x5EE9, 8000 } }, 230 },

@@ -79,29 +79,29 @@ s16 D_shelter_b1_golem_freezer_1_8017E6D0[3] = {
     0,
 };
 
-SVECTOR D_shelter_b1_golem_freezer_1_8017E6D8[1] = {
+static SVECTOR _gShelterB1GolemFreezer1Collision01154Normals[1] = {
 #include "assets/shelter_b1_golem_freezer_1_collision_01154_normals.inc"
 };
 
-SVECTOR D_shelter_b1_golem_freezer_1_8017E6E0[4] = {
+static SVECTOR _gShelterB1GolemFreezer1Collision01154Verts[4] = {
 #include "assets/shelter_b1_golem_freezer_1_collision_01154_verts.inc"
 };
 
-WorldCollisionGridFace D_shelter_b1_golem_freezer_1_8017E700[1] = {
+static WorldCollisionGridFace _gShelterB1GolemFreezer1Collision01154Faces[1] = {
 #include "assets/shelter_b1_golem_freezer_1_collision_01154_faces.inc"
 };
 
-s16 D_shelter_b1_golem_freezer_1_8017E70C[2] = {
+static s16 _gShelterB1GolemFreezer1Collision01154Cells[2] = {
 #include "assets/shelter_b1_golem_freezer_1_collision_01154_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_shelter_b1_golem_freezer_1_8017E70C[i])
-s16* D_shelter_b1_golem_freezer_1_8017E710[1] = {
+#define GRID_CELL(i) (&_gShelterB1GolemFreezer1Collision01154Cells[i])
+static s16* _gShelterB1GolemFreezer1Collision01154Table[1] = {
 #include "assets/shelter_b1_golem_freezer_1_collision_01154_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b1_golem_freezer_1_8017E714 = { NULL, D_shelter_b1_golem_freezer_1_8017E6D8, D_shelter_b1_golem_freezer_1_8017E6E0, D_shelter_b1_golem_freezer_1_8017E700, D_shelter_b1_golem_freezer_1_8017E710, 679, -454, 1, 1, 4000, 1 };
+WorldCollisionGrid D_shelter_b1_golem_freezer_1_8017E714 = { NULL, _gShelterB1GolemFreezer1Collision01154Normals, _gShelterB1GolemFreezer1Collision01154Verts, _gShelterB1GolemFreezer1Collision01154Faces, _gShelterB1GolemFreezer1Collision01154Table, 679, -454, 1, 1, 4000, 1 };
 
 SVECTOR D_shelter_b1_golem_freezer_1_8017E738[1] = {
     { 385, -3495, 555, 0 },
@@ -133,29 +133,29 @@ GpWarpRec D_shelter_b1_golem_freezer_1_8017E798[1] = {
     { { .words = { 3072, 6763, -80, 1000 } }, { 0, 0, 0, 0 }, { .words = { 3072, 6763, -80, 1000 } }, { 0, 0, 0, 0 }, 0x54150002, 0x54150001, 0, 5, 0, 433 },
 };
 
-SVECTOR D_shelter_b1_golem_freezer_1_8017E7D0[9] = {
+static SVECTOR _gShelterB1GolemFreezer1Collision01400Normals[9] = {
 #include "assets/shelter_b1_golem_freezer_1_collision_01400_normals.inc"
 };
 
-SVECTOR D_shelter_b1_golem_freezer_1_8017E818[28] = {
+static SVECTOR _gShelterB1GolemFreezer1Collision01400Verts[28] = {
 #include "assets/shelter_b1_golem_freezer_1_collision_01400_verts.inc"
 };
 
-WorldCollisionGridFace D_shelter_b1_golem_freezer_1_8017E8F8[12] = {
+static WorldCollisionGridFace _gShelterB1GolemFreezer1Collision01400Faces[12] = {
 #include "assets/shelter_b1_golem_freezer_1_collision_01400_faces.inc"
 };
 
-s16 D_shelter_b1_golem_freezer_1_8017E988[24] = {
+static s16 _gShelterB1GolemFreezer1Collision01400Cells[24] = {
 #include "assets/shelter_b1_golem_freezer_1_collision_01400_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_shelter_b1_golem_freezer_1_8017E988[i])
-s16* D_shelter_b1_golem_freezer_1_8017E9B8[2] = {
+#define GRID_CELL(i) (&_gShelterB1GolemFreezer1Collision01400Cells[i])
+static s16* _gShelterB1GolemFreezer1Collision01400Table[2] = {
 #include "assets/shelter_b1_golem_freezer_1_collision_01400_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b1_golem_freezer_1_8017E9C0 = { NULL, D_shelter_b1_golem_freezer_1_8017E7D0, D_shelter_b1_golem_freezer_1_8017E818, D_shelter_b1_golem_freezer_1_8017E8F8, D_shelter_b1_golem_freezer_1_8017E9B8, -470, -280, 2, 1, 4000, 12 };
+WorldCollisionGrid D_shelter_b1_golem_freezer_1_8017E9C0 = { NULL, _gShelterB1GolemFreezer1Collision01400Normals, _gShelterB1GolemFreezer1Collision01400Verts, _gShelterB1GolemFreezer1Collision01400Faces, _gShelterB1GolemFreezer1Collision01400Table, -470, -280, 2, 1, 4000, 12 };
 
 GpViewRec D_shelter_b1_golem_freezer_1_8017E9E4[7] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -3740, 0x61A8, -960 } }, 853 },

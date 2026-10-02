@@ -1,22 +1,22 @@
 // Overlay-local symbols for actor_311500.
 D_actor_311500_801692B8 = 0x801692B8; // size:0x8 defined:True
 D_actor_311500_801692C0 = 0x801692C0; // size:0x10 defined:True
-D_actor_311500_801636B4 = 0x801636B4; // size:0x2AC defined:True
-D_actor_311500_80163960 = 0x80163960; // size:0x4C defined:True
-D_actor_311500_801639AC = 0x801639AC; // size:0x9B8 defined:True
-D_actor_311500_80164364 = 0x80164364; // size:0x9A8 defined:True
-D_actor_311500_80164D0C = 0x80164D0C; // size:0x3EEC defined:True
-D_actor_311500_80168BF8 = 0x80168BF8; // size:0x24 defined:True
-D_actor_311500_80168C1C = 0x80168C1C; // size:0x48 defined:True
-D_actor_311500_80168C64 = 0x80168C64; // size:0x144 defined:True
-D_actor_311500_80168DA8 = 0x80168DA8; // size:0x1D8 defined:True
-D_actor_311500_80168F80 = 0x80168F80; // size:0x28 defined:True
-D_actor_311500_80168FA8 = 0x80168FA8; // size:0x28 defined:True
-D_actor_311500_80168FD0 = 0x80168FD0; // size:0x3C defined:True
-D_actor_311500_8016900C = 0x8016900C; // size:0xD0 defined:True
-D_actor_311500_801690DC = 0x801690DC; // size:0x18C defined:True
-D_actor_311500_80169268 = 0x80169268; // size:0x28 defined:True
-D_actor_311500_80169290 = 0x80169290; // size:0x28 defined:True
+_gActor311500StrangerBodySkeleton = 0x801636B4; // size:0x2AC defined:True
+_gActor311500StrangerBodyPartVerts = 0x80163960; // size:0x4C defined:True
+_gActor311500StrangerBodyVerts = 0x801639AC; // size:0x9B8 defined:True
+_gActor311500StrangerBodyNormals = 0x80164364; // size:0x9A8 defined:True
+_gActor311500StrangerBodyStream = 0x80164D0C; // size:0x3EEC defined:True
+_gActor311500StrangerBody = 0x80168BF8; // size:0x24 defined:True
+_gActor311500Animation07188Bank1 = 0x80168C1C; // size:0x48 defined:True
+_gActor311500Animation07188Bank4 = 0x80168C64; // size:0x144 defined:True
+_gActor311500Animation07188Records = 0x80168DA8; // size:0x1D8 defined:True
+_gActor311500Animation07188Indices = 0x80168F80; // size:0x28 defined:True
+_gActor311500Animation07188 = 0x80168FA8; // size:0x28 defined:True
+_gActor311500Animation07470Bank1 = 0x80168FD0; // size:0x3C defined:True
+_gActor311500Animation07470Bank4 = 0x8016900C; // size:0xD0 defined:True
+_gActor311500Animation07470Records = 0x801690DC; // size:0x18C defined:True
+_gActor311500Animation07470Indices = 0x80169268; // size:0x28 defined:True
+_gActor311500Animation07470 = 0x80169290; // size:0x28 defined:True
 D_actor_311500_801692D0 = 0x801692D0; // size:0x24 defined:True
 D_actor_311500_801692F4 = 0x801692F4; // size:0x8 defined:True
 D_actor_311500_801692FC = 0x801692FC; // size:0x8 defined:True
@@ -25,11 +25,11 @@ D_actor_311500_80169324 = 0x80169324; // size:0xC defined:True
 D_actor_311500_80169330 = 0x80169330; // size:0x8 defined:True
 D_actor_311500_80169338 = 0x80169338; // size:0xC defined:True
 
-D_acropolis_fire_escape_80181E74 = 0x80181E74; // absolute:True
+gAcropolisFireEscapeCollision04CE8Normals = 0x80181E74; // absolute:True
 
-D_acropolis_fire_escape_80181EC4 = 0x80181EC4; // absolute:True
+gAcropolisFireEscapeCollision04CE8Verts = 0x80181EC4; // absolute:True
 
-D_acropolis_fire_escape_8018207C = 0x8018207C; // absolute:True
+gAcropolisFireEscapeCollision04CE8Faces = 0x8018207C; // absolute:True
 ActorContact_TurnJoint = 0x801626CC; // type:func
 ActorContact_FindPush = 0x80161E38; // type:func
 ActorContact_Steer = 0x80162180; // type:func

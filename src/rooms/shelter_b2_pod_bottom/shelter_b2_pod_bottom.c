@@ -110,30 +110,30 @@ GpWarpRec D_shelter_b2_pod_bottom_80181D34[1] = {
     { { .words = { 1024, 1542, -1998, 7374 } }, { 0, 0, 0, 0 }, { .words = { 1024, 1542, -1998, 7374 } }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 449 },
 };
 
-SVECTOR D_shelter_b2_pod_bottom_80181D6C[40] = {
+static SVECTOR _gShelterB2PodBottomCollision0559CNormals[40] = {
 #include "assets/shelter_b2_pod_bottom_collision_0559C_normals.inc"
 };
 
-SVECTOR D_shelter_b2_pod_bottom_80181EAC[132] = {
+static SVECTOR _gShelterB2PodBottomCollision0559CVerts[132] = {
 #include "assets/shelter_b2_pod_bottom_collision_0559C_verts.inc"
 };
 
-WorldCollisionGridFace D_shelter_b2_pod_bottom_801822CC[88] = {
+static WorldCollisionGridFace _gShelterB2PodBottomCollision0559CFaces[88] = {
 #include "assets/shelter_b2_pod_bottom_collision_0559C_faces.inc"
 };
 
-s16 D_shelter_b2_pod_bottom_801826EC[498] = {
+static s16 _gShelterB2PodBottomCollision0559CCells[498] = {
 #include "assets/shelter_b2_pod_bottom_collision_0559C_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_shelter_b2_pod_bottom_801826EC[i])
-s16* D_shelter_b2_pod_bottom_80182AD0[35] = {
+#define GRID_CELL(i) (&_gShelterB2PodBottomCollision0559CCells[i])
+static s16* _gShelterB2PodBottomCollision0559CTable[35] = {
 #include "assets/shelter_b2_pod_bottom_collision_0559C_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_shelter_b2_pod_bottom_80182B5C[1] = {
-    { NULL, D_shelter_b2_pod_bottom_80181D6C, D_shelter_b2_pod_bottom_80181EAC, D_shelter_b2_pod_bottom_801822CC, D_shelter_b2_pod_bottom_80182AD0, 0, 6000, 5, 7, 4000, 88 },
+    { NULL, _gShelterB2PodBottomCollision0559CNormals, _gShelterB2PodBottomCollision0559CVerts, _gShelterB2PodBottomCollision0559CFaces, _gShelterB2PodBottomCollision0559CTable, 0, 6000, 5, 7, 4000, 88 },
 };
 
 GpViewRec D_shelter_b2_pod_bottom_80182B80[16] = {

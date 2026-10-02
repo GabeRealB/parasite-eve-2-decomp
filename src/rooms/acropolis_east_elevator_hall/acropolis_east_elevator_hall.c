@@ -93,9 +93,9 @@ static const TaskFuncTable3 D_acropolis_east_elevator_hall_8017D5D4 = {
     { func_acropolis_east_elevator_hall_8017F478, func_acropolis_east_elevator_hall_8017F4E8, taskKill },
 };
 
-extern AnimationSet D_acropolis_east_elevator_hall_80180478;
-extern AnimationSet D_acropolis_east_elevator_hall_80184DE4;
-extern AnimationSet D_acropolis_east_elevator_hall_80185BC0;
+static AnimationSet _gAcropolisEastElevatorHallAnimation02EB8;
+static AnimationSet _gAcropolisEastElevatorHallAnimation07824;
+static AnimationSet _gAcropolisEastElevatorHallAnimation08600;
 
 extern AnimationPlayRequest  D_acropolis_east_elevator_hall_80185C00;
 extern AnimationPlayRequest  D_acropolis_east_elevator_hall_80185C14;
@@ -129,85 +129,85 @@ static inline TaskDesc* Reflection_GetTasks(void)
     return D_acropolis_east_elevator_hall_8017FC90;
 }
 
-AnimationPackedPose D_acropolis_east_elevator_hall_8017FCA8[4] = {
+static AnimationPackedPose _gAcropolisEastElevatorHallAnimation02EB8Bank1[4] = {
 #include "assets/acropolis_east_elevator_hall_animation_02EB8_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_east_elevator_hall_8017FCD8[216] = {
+static AnimationPackedRotation _gAcropolisEastElevatorHallAnimation02EB8Bank4[216] = {
 #include "assets/acropolis_east_elevator_hall_animation_02EB8_bank4.inc"
 };
 
-AnimationRecord D_acropolis_east_elevator_hall_80180038[262] = {
+static AnimationRecord _gAcropolisEastElevatorHallAnimation02EB8Records[262] = {
 #include "assets/acropolis_east_elevator_hall_animation_02EB8_records.inc"
 };
 
-u16 D_acropolis_east_elevator_hall_80180450[20] = {
+static u16 _gAcropolisEastElevatorHallAnimation02EB8Indices[20] = {
 #include "assets/acropolis_east_elevator_hall_animation_02EB8_indices.inc"
 };
 
-AnimationSet D_acropolis_east_elevator_hall_80180478 = {
-    D_acropolis_east_elevator_hall_80180038,
-    D_acropolis_east_elevator_hall_80180450,
-    { NULL, D_acropolis_east_elevator_hall_8017FCA8, NULL, NULL, D_acropolis_east_elevator_hall_8017FCD8, NULL, NULL, NULL },
+static AnimationSet _gAcropolisEastElevatorHallAnimation02EB8 = {
+    _gAcropolisEastElevatorHallAnimation02EB8Records,
+    _gAcropolisEastElevatorHallAnimation02EB8Indices,
+    { NULL, _gAcropolisEastElevatorHallAnimation02EB8Bank1, NULL, NULL, _gAcropolisEastElevatorHallAnimation02EB8Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_east_elevator_hall_801804A0[156] = {
+static AnimationPackedPose _gAcropolisEastElevatorHallAnimation07824Bank1[156] = {
 #include "assets/acropolis_east_elevator_hall_animation_07824_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_east_elevator_hall_80180BF0[1724] = {
+static AnimationPackedRotation _gAcropolisEastElevatorHallAnimation07824Bank4[1724] = {
 #include "assets/acropolis_east_elevator_hall_animation_07824_bank4.inc"
 };
 
-AnimationRecord D_acropolis_east_elevator_hall_801826E0[2487] = {
+static AnimationRecord _gAcropolisEastElevatorHallAnimation07824Records[2487] = {
 #include "assets/acropolis_east_elevator_hall_animation_07824_records.inc"
 };
 
-u16 D_acropolis_east_elevator_hall_80184DBC[20] = {
+static u16 _gAcropolisEastElevatorHallAnimation07824Indices[20] = {
 #include "assets/acropolis_east_elevator_hall_animation_07824_indices.inc"
 };
 
-AnimationSet D_acropolis_east_elevator_hall_80184DE4 = {
-    D_acropolis_east_elevator_hall_801826E0,
-    D_acropolis_east_elevator_hall_80184DBC,
-    { NULL, D_acropolis_east_elevator_hall_801804A0, NULL, NULL, D_acropolis_east_elevator_hall_80180BF0, NULL, NULL, NULL },
+static AnimationSet _gAcropolisEastElevatorHallAnimation07824 = {
+    _gAcropolisEastElevatorHallAnimation07824Records,
+    _gAcropolisEastElevatorHallAnimation07824Indices,
+    { NULL, _gAcropolisEastElevatorHallAnimation07824Bank1, NULL, NULL, _gAcropolisEastElevatorHallAnimation07824Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_acropolis_east_elevator_hall_80184E0C[21] = {
+static AnimationPackedPose _gAcropolisEastElevatorHallAnimation08600Bank1[21] = {
 #include "assets/acropolis_east_elevator_hall_animation_08600_bank1.inc"
 };
 
-AnimationPackedRotation D_acropolis_east_elevator_hall_80184F08[370] = {
+static AnimationPackedRotation _gAcropolisEastElevatorHallAnimation08600Bank4[370] = {
 #include "assets/acropolis_east_elevator_hall_animation_08600_bank4.inc"
 };
 
-AnimationRecord D_acropolis_east_elevator_hall_801854D0[434] = {
+static AnimationRecord _gAcropolisEastElevatorHallAnimation08600Records[434] = {
 #include "assets/acropolis_east_elevator_hall_animation_08600_records.inc"
 };
 
-u16 D_acropolis_east_elevator_hall_80185B98[20] = {
+static u16 _gAcropolisEastElevatorHallAnimation08600Indices[20] = {
 #include "assets/acropolis_east_elevator_hall_animation_08600_indices.inc"
 };
 
-AnimationSet D_acropolis_east_elevator_hall_80185BC0 = {
-    D_acropolis_east_elevator_hall_801854D0,
-    D_acropolis_east_elevator_hall_80185B98,
-    { NULL, D_acropolis_east_elevator_hall_80184E0C, NULL, NULL, D_acropolis_east_elevator_hall_80184F08, NULL, NULL, NULL },
+static AnimationSet _gAcropolisEastElevatorHallAnimation08600 = {
+    _gAcropolisEastElevatorHallAnimation08600Records,
+    _gAcropolisEastElevatorHallAnimation08600Indices,
+    { NULL, _gAcropolisEastElevatorHallAnimation08600Bank1, NULL, NULL, _gAcropolisEastElevatorHallAnimation08600Bank4, NULL, NULL, NULL },
 };
 
 AnimationSet* D_acropolis_east_elevator_hall_80185BE8[2] = {
     NULL,
-    &D_acropolis_east_elevator_hall_80184DE4,
+    &_gAcropolisEastElevatorHallAnimation07824,
 };
 
 AnimationSet* D_acropolis_east_elevator_hall_80185BF0[2] = {
     NULL,
-    &D_acropolis_east_elevator_hall_80180478,
+    &_gAcropolisEastElevatorHallAnimation02EB8,
 };
 
 AnimationSet* D_acropolis_east_elevator_hall_80185BF8[2] = {
     NULL,
-    &D_acropolis_east_elevator_hall_80185BC0,
+    &_gAcropolisEastElevatorHallAnimation08600,
 };
 
 AnimationPlayRequest D_acropolis_east_elevator_hall_80185C00 = { { .sets = D_acropolis_east_elevator_hall_80185BE8 }, 1, ANIMATION_BLEND_RESET, 1, ANIMATION_WORLD_COLLISION_DISABLE };
@@ -343,30 +343,30 @@ GpWarpRec D_acropolis_east_elevator_hall_80186340[1] = {
     { { .words = { 1024, -5248, -31, 1068 } }, { 0, 0, 0, 0 }, { .words = { 1024, -5248, -31, 1068 } }, { 0, 0, 0, 0 }, 0x51020002, 0x51020001, 0, 4, 0, 502 },
 };
 
-SVECTOR D_acropolis_east_elevator_hall_80186378[10] = {
+static SVECTOR _gAcropolisEastElevatorHallCollision09278Normals[10] = {
 #include "assets/acropolis_east_elevator_hall_collision_09278_normals.inc"
 };
 
-SVECTOR D_acropolis_east_elevator_hall_801863C8[66] = {
+static SVECTOR _gAcropolisEastElevatorHallCollision09278Verts[66] = {
 #include "assets/acropolis_east_elevator_hall_collision_09278_verts.inc"
 };
 
-WorldCollisionGridFace D_acropolis_east_elevator_hall_801865D8[33] = {
+static WorldCollisionGridFace _gAcropolisEastElevatorHallCollision09278Faces[33] = {
 #include "assets/acropolis_east_elevator_hall_collision_09278_faces.inc"
 };
 
-s16 D_acropolis_east_elevator_hall_80186764[90] = {
+static s16 _gAcropolisEastElevatorHallCollision09278Cells[90] = {
 #include "assets/acropolis_east_elevator_hall_collision_09278_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_acropolis_east_elevator_hall_80186764[i])
-s16* D_acropolis_east_elevator_hall_80186818[8] = {
+#define GRID_CELL(i) (&_gAcropolisEastElevatorHallCollision09278Cells[i])
+static s16* _gAcropolisEastElevatorHallCollision09278Table[8] = {
 #include "assets/acropolis_east_elevator_hall_collision_09278_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_acropolis_east_elevator_hall_80186838[1] = {
-    { NULL, D_acropolis_east_elevator_hall_80186378, D_acropolis_east_elevator_hall_801863C8, D_acropolis_east_elevator_hall_801865D8, D_acropolis_east_elevator_hall_80186818, 6390, 3090, 4, 2, 4000, 33 },
+    { NULL, _gAcropolisEastElevatorHallCollision09278Normals, _gAcropolisEastElevatorHallCollision09278Verts, _gAcropolisEastElevatorHallCollision09278Faces, _gAcropolisEastElevatorHallCollision09278Table, 6390, 3090, 4, 2, 4000, 33 },
 };
 
 WorldCollisionTrigger D_acropolis_east_elevator_hall_8018685C[6] = {

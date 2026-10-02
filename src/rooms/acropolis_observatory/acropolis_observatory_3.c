@@ -178,30 +178,30 @@ GpWarpRec D_acropolis_observatory_8017FF0C[4] = {
     { { .words = { 1024, -2408, -2926, -1748 } }, { 0, 0, 0, 0 }, { .words = { 0, 0, 0, 0 } }, { 0, 0, 0, 0 }, 0, 0, 0, 6, 0, 494 },
 };
 
-SVECTOR D_acropolis_observatory_8017FFEC[22] = {
+static SVECTOR _gAcropolisObservatoryCollision03490Normals[22] = {
 #include "assets/acropolis_observatory_collision_03490_normals.inc"
 };
 
-SVECTOR D_acropolis_observatory_8018009C[155] = {
+static SVECTOR _gAcropolisObservatoryCollision03490Verts[155] = {
 #include "assets/acropolis_observatory_collision_03490_verts.inc"
 };
 
-WorldCollisionGridFace D_acropolis_observatory_80180574[62] = {
+static WorldCollisionGridFace _gAcropolisObservatoryCollision03490Faces[62] = {
 #include "assets/acropolis_observatory_collision_03490_faces.inc"
 };
 
-s16 D_acropolis_observatory_8018085C[232] = {
+static s16 _gAcropolisObservatoryCollision03490Cells[232] = {
 #include "assets/acropolis_observatory_collision_03490_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_acropolis_observatory_8018085C[i])
-s16* D_acropolis_observatory_80180A2C[9] = {
+#define GRID_CELL(i) (&_gAcropolisObservatoryCollision03490Cells[i])
+static s16* _gAcropolisObservatoryCollision03490Table[9] = {
 #include "assets/acropolis_observatory_collision_03490_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_acropolis_observatory_80180A50[1] = {
-    { NULL, D_acropolis_observatory_8017FFEC, D_acropolis_observatory_8018009C, D_acropolis_observatory_80180574, D_acropolis_observatory_80180A2C, 8340, 0x2D57, 3, 3, 4000, 62 },
+    { NULL, _gAcropolisObservatoryCollision03490Normals, _gAcropolisObservatoryCollision03490Verts, _gAcropolisObservatoryCollision03490Faces, _gAcropolisObservatoryCollision03490Table, 8340, 0x2D57, 3, 3, 4000, 62 },
 };
 
 WorldCollisionTrigger D_acropolis_observatory_80180A74[10] = {

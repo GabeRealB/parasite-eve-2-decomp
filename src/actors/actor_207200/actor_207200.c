@@ -48,89 +48,89 @@ extern SVECTOR     gSkullStalkerHitFxOffset;
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
-extern TmdSource D_actor_207200_8014E4C8;
+static TmdSource _gActor207200SkullStalkerBody;
 
 DamageAttack D_actor_207200_8014DBB8[1] = { 0 };
 
 EnemyParams gSkullStalkerParams = { D_actor_207200_8014DBB8, 1, 2, 32, 1, 100, 20, 100, 99 };
 
-TmdBone D_actor_207200_8014DBCC[3] = {
+static TmdBone _gActor207200SkullStalkerBodySkeleton[3] = {
 #include "assets/skull_stalker_body_skeleton.inc"
 };
 
-u32 D_actor_207200_8014DC38[3] = {
+static u32 _gActor207200SkullStalkerBodyPartVerts[3] = {
 #include "assets/skull_stalker_body_partVerts.inc"
 };
 
-SVECTOR D_actor_207200_8014DC44[37] = {
+static SVECTOR _gActor207200SkullStalkerBodyVerts[37] = {
 #include "assets/skull_stalker_body_verts.inc"
 };
 
-SVECTOR D_actor_207200_8014DD6C[47] = {
+static SVECTOR _gActor207200SkullStalkerBodyNormals[47] = {
 #include "assets/skull_stalker_body_normals.inc"
 };
 
-u32 D_actor_207200_8014DEE4[377] = {
+static u32 _gActor207200SkullStalkerBodyStream[377] = {
 #include "assets/skull_stalker_body_stream.inc"
 };
 
-TmdSource D_actor_207200_8014E4C8 = {
+static TmdSource _gActor207200SkullStalkerBody = {
     0,
     2184,
     332,
     3,
-    D_actor_207200_8014DC38,
-    D_actor_207200_8014DC44,
-    D_actor_207200_8014DD6C,
-    D_actor_207200_8014DBCC,
-    D_actor_207200_8014DEE4,
+    _gActor207200SkullStalkerBodyPartVerts,
+    _gActor207200SkullStalkerBodyVerts,
+    _gActor207200SkullStalkerBodyNormals,
+    _gActor207200SkullStalkerBodySkeleton,
+    _gActor207200SkullStalkerBodyStream,
 };
 
-AnimationPackedPose D_actor_207200_8014E4EC[2] = {
+static AnimationPackedPose _gActor207200Animation04708Bank1[2] = {
 #include "assets/actor_207200_animation_04708_bank1.inc"
 };
 
-AnimationPackedRotation D_actor_207200_8014E504[1] = {
+static AnimationPackedRotation _gActor207200Animation04708Bank4[1] = {
 #include "assets/actor_207200_animation_04708_bank4.inc"
 };
 
-AnimationRecord D_actor_207200_8014E508[6] = {
+static AnimationRecord _gActor207200Animation04708Records[6] = {
 #include "assets/actor_207200_animation_04708_records.inc"
 };
 
-u16 D_actor_207200_8014E520[4] = {
+static u16 _gActor207200Animation04708Indices[4] = {
 #include "assets/actor_207200_animation_04708_indices.inc"
 };
 
-AnimationSet D_actor_207200_8014E528 = {
-    D_actor_207200_8014E508,
-    D_actor_207200_8014E520,
-    { NULL, D_actor_207200_8014E4EC, NULL, NULL, D_actor_207200_8014E504, NULL, NULL, NULL },
+static AnimationSet _gActor207200Animation04708 = {
+    _gActor207200Animation04708Records,
+    _gActor207200Animation04708Indices,
+    { NULL, _gActor207200Animation04708Bank1, NULL, NULL, _gActor207200Animation04708Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_actor_207200_8014E550[24] = {
+static AnimationPackedPose _gActor207200Animation0495CBank1[24] = {
 #include "assets/actor_207200_animation_0495C_bank1.inc"
 };
 
-AnimationPackedRotation D_actor_207200_8014E670[10] = {
+static AnimationPackedRotation _gActor207200Animation0495CBank4[10] = {
 #include "assets/actor_207200_animation_0495C_bank4.inc"
 };
 
-AnimationRecord D_actor_207200_8014E698[55] = {
+static AnimationRecord _gActor207200Animation0495CRecords[55] = {
 #include "assets/actor_207200_animation_0495C_records.inc"
 };
 
-u16 D_actor_207200_8014E774[4] = {
+static u16 _gActor207200Animation0495CIndices[4] = {
 #include "assets/actor_207200_animation_0495C_indices.inc"
 };
 
-AnimationSet D_actor_207200_8014E77C = {
-    D_actor_207200_8014E698,
-    D_actor_207200_8014E774,
-    { NULL, D_actor_207200_8014E550, NULL, NULL, D_actor_207200_8014E670, NULL, NULL, NULL },
+static AnimationSet _gActor207200Animation0495C = {
+    _gActor207200Animation0495CRecords,
+    _gActor207200Animation0495CIndices,
+    { NULL, _gActor207200Animation0495CBank1, NULL, NULL, _gActor207200Animation0495CBank4, NULL, NULL, NULL },
 };
 
-TaskDesc D_actor_207200_8014E7A4 = { { { TASK_BODY_TMD, 96 } }, skullStalkerTask, { .model = &D_actor_207200_8014E4C8 } };
+TaskDesc D_actor_207200_8014E7A4 = { { { TASK_BODY_TMD, 96 } }, skullStalkerTask, { .model = &_gActor207200SkullStalkerBody } };
 
 u8 gSkullStalkerAnimSets[12] = {
     0,

@@ -166,32 +166,32 @@ s32                 func_acropolis_promenade_8017D938(Task*, s32, s32, TaskMessa
 void                func_acropolis_promenade_8017D930(void);
 void                func_acropolis_promenade_8017D988(Task*);
 
-TmdBone D_acropolis_promenade_8017FE04[1] = {
+static TmdBone _gAcropolisPromenadeAcropolisBridgeModel0AD9CSkeleton[1] = {
 #include "assets/acropolis_bridge_model_0AD9C_skeleton.inc"
 };
 
-u32 D_acropolis_promenade_8017FE28[1] = {
+static u32 _gAcropolisPromenadeAcropolisBridgeModel0AD9CPartVerts[1] = {
 #include "assets/acropolis_bridge_model_0AD9C_partVerts.inc"
 };
 
-SVECTOR D_acropolis_promenade_8017FE2C[171] = {
+static SVECTOR _gAcropolisPromenadeAcropolisBridgeModel0AD9CVerts[171] = {
 #include "assets/acropolis_bridge_model_0AD9C_verts.inc"
 };
 
-u32 D_acropolis_promenade_80180384[691] = {
+static u32 _gAcropolisPromenadeAcropolisBridgeModel0AD9CStream[691] = {
 #include "assets/acropolis_bridge_model_0AD9C_stream.inc"
 };
 
-TmdSource D_acropolis_promenade_80180E50 = {
+static TmdSource _gAcropolisPromenadeAcropolisBridgeModel0AD9C = {
     0,
     5480,
     0,
     1,
-    D_acropolis_promenade_8017FE28,
-    D_acropolis_promenade_8017FE2C,
-    &D_acropolis_promenade_8017FE2C[171],
-    D_acropolis_promenade_8017FE04,
-    D_acropolis_promenade_80180384,
+    _gAcropolisPromenadeAcropolisBridgeModel0AD9CPartVerts,
+    _gAcropolisPromenadeAcropolisBridgeModel0AD9CVerts,
+    &_gAcropolisPromenadeAcropolisBridgeModel0AD9CVerts[171],
+    _gAcropolisPromenadeAcropolisBridgeModel0AD9CSkeleton,
+    _gAcropolisPromenadeAcropolisBridgeModel0AD9CStream,
 };
 
 AcropolisPromenadeMsgEntry D_acropolis_promenade_80180E74[6] = {
@@ -204,7 +204,7 @@ AcropolisPromenadeMsgEntry D_acropolis_promenade_80180E74[6] = {
 };
 
 TaskDesc D_acropolis_promenade_80180EA4[2] = {
-    { { { TASK_BODY_TMD, 192 } }, func_acropolis_promenade_8017D988, { .model = &D_acropolis_promenade_80180E50 } },
+    { { { TASK_BODY_TMD, 192 } }, func_acropolis_promenade_8017D988, { .model = &_gAcropolisPromenadeAcropolisBridgeModel0AD9C } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -659,56 +659,56 @@ GpWarpRec D_acropolis_promenade_80181BDC[5] = {
     { { .words = { 1024, -2197, 44, -1977 } }, { 0, 0, 0, 0 }, { .words = { 1024, -2197, 44, -1977 } }, { 0, 0, 0, 0 }, 0x510B000E, 0x510B000D, 0, 4, 0, 491 },
 };
 
-SVECTOR D_acropolis_promenade_80181CF4[30] = {
+static SVECTOR _gAcropolisPromenadeCollision04E1CNormals[30] = {
 #include "assets/acropolis_promenade_collision_04E1C_normals.inc"
 };
 
-SVECTOR D_acropolis_promenade_80181DE4[93] = {
+static SVECTOR _gAcropolisPromenadeCollision04E1CVerts[93] = {
 #include "assets/acropolis_promenade_collision_04E1C_verts.inc"
 };
 
-WorldCollisionGridFace D_acropolis_promenade_801820CC[38] = {
+static WorldCollisionGridFace _gAcropolisPromenadeCollision04E1CFaces[38] = {
 #include "assets/acropolis_promenade_collision_04E1C_faces.inc"
 };
 
-s16 D_acropolis_promenade_80182294[144] = {
+static s16 _gAcropolisPromenadeCollision04E1CCells[144] = {
 #include "assets/acropolis_promenade_collision_04E1C_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_acropolis_promenade_80182294[i])
-s16* D_acropolis_promenade_801823B4[10] = {
+#define GRID_CELL(i) (&_gAcropolisPromenadeCollision04E1CCells[i])
+static s16* _gAcropolisPromenadeCollision04E1CTable[10] = {
 #include "assets/acropolis_promenade_collision_04E1C_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_acropolis_promenade_801823DC[1] = {
-    { NULL, D_acropolis_promenade_80181CF4, D_acropolis_promenade_80181DE4, D_acropolis_promenade_801820CC, D_acropolis_promenade_801823B4, 2780, 8590, 2, 5, 4000, 38 },
+    { NULL, _gAcropolisPromenadeCollision04E1CNormals, _gAcropolisPromenadeCollision04E1CVerts, _gAcropolisPromenadeCollision04E1CFaces, _gAcropolisPromenadeCollision04E1CTable, 2780, 8590, 2, 5, 4000, 38 },
 };
 
-SVECTOR D_acropolis_promenade_80182400[30] = {
+static SVECTOR _gAcropolisPromenadeCollision05610Normals[30] = {
 #include "assets/acropolis_promenade_collision_05610_normals.inc"
 };
 
-SVECTOR D_acropolis_promenade_801824F0[103] = {
+static SVECTOR _gAcropolisPromenadeCollision05610Verts[103] = {
 #include "assets/acropolis_promenade_collision_05610_verts.inc"
 };
 
-WorldCollisionGridFace D_acropolis_promenade_80182828[46] = {
+static WorldCollisionGridFace _gAcropolisPromenadeCollision05610Faces[46] = {
 #include "assets/acropolis_promenade_collision_05610_faces.inc"
 };
 
-s16 D_acropolis_promenade_80182A50[172] = {
+static s16 _gAcropolisPromenadeCollision05610Cells[172] = {
 #include "assets/acropolis_promenade_collision_05610_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_acropolis_promenade_80182A50[i])
-s16* D_acropolis_promenade_80182BA8[10] = {
+#define GRID_CELL(i) (&_gAcropolisPromenadeCollision05610Cells[i])
+static s16* _gAcropolisPromenadeCollision05610Table[10] = {
 #include "assets/acropolis_promenade_collision_05610_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_acropolis_promenade_80182BD0[1] = {
-    { NULL, D_acropolis_promenade_80182400, D_acropolis_promenade_801824F0, D_acropolis_promenade_80182828, D_acropolis_promenade_80182BA8, 2780, 8590, 2, 5, 4000, 46 },
+    { NULL, _gAcropolisPromenadeCollision05610Normals, _gAcropolisPromenadeCollision05610Verts, _gAcropolisPromenadeCollision05610Faces, _gAcropolisPromenadeCollision05610Table, 2780, 8590, 2, 5, 4000, 46 },
 };
 
 WorldCollisionTrigger D_acropolis_promenade_80182BF4[6] = {

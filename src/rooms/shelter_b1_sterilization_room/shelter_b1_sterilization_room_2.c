@@ -372,29 +372,29 @@ GpWarpRec D_shelter_b1_sterilization_room_801893E0[3] = {
     { { .words = { 2048, 6184, 0, 0x27FB } }, { 0, 0, 0, 0 }, { .words = { 2048, 6184, 0, 0x27FB } }, { 0, 0, 0, 0 }, 0, 0, 0, 5, 0, 0 },
 };
 
-SVECTOR D_shelter_b1_sterilization_room_80189488[14] = {
+static SVECTOR _gShelterB1SterilizationRoomCollision0C884Normals[14] = {
 #include "assets/shelter_b1_sterilization_room_collision_0C884_normals.inc"
 };
 
-SVECTOR D_shelter_b1_sterilization_room_801894F8[124] = {
+static SVECTOR _gShelterB1SterilizationRoomCollision0C884Verts[124] = {
 #include "assets/shelter_b1_sterilization_room_collision_0C884_verts.inc"
 };
 
-WorldCollisionGridFace D_shelter_b1_sterilization_room_801898D8[68] = {
+static WorldCollisionGridFace _gShelterB1SterilizationRoomCollision0C884Faces[68] = {
 #include "assets/shelter_b1_sterilization_room_collision_0C884_faces.inc"
 };
 
-s16 D_shelter_b1_sterilization_room_80189C08[270] = {
+static s16 _gShelterB1SterilizationRoomCollision0C884Cells[270] = {
 #include "assets/shelter_b1_sterilization_room_collision_0C884_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_shelter_b1_sterilization_room_80189C08[i])
-s16* D_shelter_b1_sterilization_room_80189E24[8] = {
+#define GRID_CELL(i) (&_gShelterB1SterilizationRoomCollision0C884Cells[i])
+static s16* _gShelterB1SterilizationRoomCollision0C884Table[8] = {
 #include "assets/shelter_b1_sterilization_room_collision_0C884_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b1_sterilization_room_80189E44 = { NULL, D_shelter_b1_sterilization_room_80189488, D_shelter_b1_sterilization_room_801894F8, D_shelter_b1_sterilization_room_801898D8, D_shelter_b1_sterilization_room_80189E24, 0, -500, 2, 4, 4000, 68 };
+WorldCollisionGrid D_shelter_b1_sterilization_room_80189E44 = { NULL, _gShelterB1SterilizationRoomCollision0C884Normals, _gShelterB1SterilizationRoomCollision0C884Verts, _gShelterB1SterilizationRoomCollision0C884Faces, _gShelterB1SterilizationRoomCollision0C884Table, 0, -500, 2, 4, 4000, 68 };
 
 GpViewRec D_shelter_b1_sterilization_room_80189E68[24] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -3500, 0x61A8, -7000 } }, 329 },

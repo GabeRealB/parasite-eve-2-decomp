@@ -179,17 +179,17 @@ static void func_mine_mesa_801817BC(void);
 
 void func_mine_mesa_8017E074(Task*);
 
-extern AnimationSet D_mine_mesa_80181C90;
+static AnimationSet _gMineMesaAnimation046D0;
 
-extern AnimationSet D_mine_mesa_80181F0C;
-extern AnimationSet D_mine_mesa_80182114;
-extern AnimationSet D_mine_mesa_80182498;
-extern AnimationSet D_mine_mesa_8018271C;
-extern AnimationSet D_mine_mesa_80183720;
-extern AnimationSet D_mine_mesa_80183A1C;
-extern AnimationSet D_mine_mesa_80183BBC;
-extern AnimationSet D_mine_mesa_80183EA4;
-extern AnimationSet D_mine_mesa_8018415C;
+static AnimationSet _gMineMesaAnimation0494C;
+static AnimationSet _gMineMesaAnimation04B54;
+static AnimationSet _gMineMesaAnimation04ED8;
+static AnimationSet _gMineMesaAnimation0515C;
+static AnimationSet _gMineMesaAnimation06160;
+static AnimationSet _gMineMesaAnimation0645C;
+static AnimationSet _gMineMesaAnimation065FC;
+static AnimationSet _gMineMesaAnimation068E4;
+static AnimationSet _gMineMesaAnimation06B9C;
 
 void func_mine_mesa_8017DFC4(Task*);
 void func_mine_mesa_8017E024(Task*);
@@ -318,225 +318,225 @@ TaskDesc D_mine_mesa_80181990[2] = {
 
 TaskDesc D_mine_mesa_801819A8 = { { { TASK_BODY_NONE, 192 } }, func_mine_mesa_8017DFC4, { .value = 0 } };
 
-AnimationPackedPose D_mine_mesa_801819B4[6] = {
+static AnimationPackedPose _gMineMesaAnimation046D0Bank1[6] = {
 #include "assets/mine_mesa_animation_046D0_bank1.inc"
 };
 
-AnimationPackedRotation D_mine_mesa_801819FC[46] = {
+static AnimationPackedRotation _gMineMesaAnimation046D0Bank4[46] = {
 #include "assets/mine_mesa_animation_046D0_bank4.inc"
 };
 
-AnimationRecord D_mine_mesa_80181AB4[109] = {
+static AnimationRecord _gMineMesaAnimation046D0Records[109] = {
 #include "assets/mine_mesa_animation_046D0_records.inc"
 };
 
-u16 D_mine_mesa_80181C68[20] = {
+static u16 _gMineMesaAnimation046D0Indices[20] = {
 #include "assets/mine_mesa_animation_046D0_indices.inc"
 };
 
-AnimationSet D_mine_mesa_80181C90 = {
-    D_mine_mesa_80181AB4,
-    D_mine_mesa_80181C68,
-    { NULL, D_mine_mesa_801819B4, NULL, NULL, D_mine_mesa_801819FC, NULL, NULL, NULL },
+static AnimationSet _gMineMesaAnimation046D0 = {
+    _gMineMesaAnimation046D0Records,
+    _gMineMesaAnimation046D0Indices,
+    { NULL, _gMineMesaAnimation046D0Bank1, NULL, NULL, _gMineMesaAnimation046D0Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mine_mesa_80181CB8[2] = {
+static AnimationPackedPose _gMineMesaAnimation0494CBank1[2] = {
 #include "assets/mine_mesa_animation_0494C_bank1.inc"
 };
 
-AnimationPackedRotation D_mine_mesa_80181CD0[32] = {
+static AnimationPackedRotation _gMineMesaAnimation0494CBank4[32] = {
 #include "assets/mine_mesa_animation_0494C_bank4.inc"
 };
 
-AnimationRecord D_mine_mesa_80181D50[101] = {
+static AnimationRecord _gMineMesaAnimation0494CRecords[101] = {
 #include "assets/mine_mesa_animation_0494C_records.inc"
 };
 
-u16 D_mine_mesa_80181EE4[20] = {
+static u16 _gMineMesaAnimation0494CIndices[20] = {
 #include "assets/mine_mesa_animation_0494C_indices.inc"
 };
 
-AnimationSet D_mine_mesa_80181F0C = {
-    D_mine_mesa_80181D50,
-    D_mine_mesa_80181EE4,
-    { NULL, D_mine_mesa_80181CB8, NULL, NULL, D_mine_mesa_80181CD0, NULL, NULL, NULL },
+static AnimationSet _gMineMesaAnimation0494C = {
+    _gMineMesaAnimation0494CRecords,
+    _gMineMesaAnimation0494CIndices,
+    { NULL, _gMineMesaAnimation0494CBank1, NULL, NULL, _gMineMesaAnimation0494CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mine_mesa_80181F34[4] = {
+static AnimationPackedPose _gMineMesaAnimation04B54Bank1[4] = {
 #include "assets/mine_mesa_animation_04B54_bank1.inc"
 };
 
-AnimationPackedRotation D_mine_mesa_80181F64[34] = {
+static AnimationPackedRotation _gMineMesaAnimation04B54Bank4[34] = {
 #include "assets/mine_mesa_animation_04B54_bank4.inc"
 };
 
-AnimationRecord D_mine_mesa_80181FEC[64] = {
+static AnimationRecord _gMineMesaAnimation04B54Records[64] = {
 #include "assets/mine_mesa_animation_04B54_records.inc"
 };
 
-u16 D_mine_mesa_801820EC[20] = {
+static u16 _gMineMesaAnimation04B54Indices[20] = {
 #include "assets/mine_mesa_animation_04B54_indices.inc"
 };
 
-AnimationSet D_mine_mesa_80182114 = {
-    D_mine_mesa_80181FEC,
-    D_mine_mesa_801820EC,
-    { NULL, D_mine_mesa_80181F34, NULL, NULL, D_mine_mesa_80181F64, NULL, NULL, NULL },
+static AnimationSet _gMineMesaAnimation04B54 = {
+    _gMineMesaAnimation04B54Records,
+    _gMineMesaAnimation04B54Indices,
+    { NULL, _gMineMesaAnimation04B54Bank1, NULL, NULL, _gMineMesaAnimation04B54Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mine_mesa_8018213C[6] = {
+static AnimationPackedPose _gMineMesaAnimation04ED8Bank1[6] = {
 #include "assets/mine_mesa_animation_04ED8_bank1.inc"
 };
 
-AnimationPackedRotation D_mine_mesa_80182184[71] = {
+static AnimationPackedRotation _gMineMesaAnimation04ED8Bank4[71] = {
 #include "assets/mine_mesa_animation_04ED8_bank4.inc"
 };
 
-AnimationRecord D_mine_mesa_801822A0[116] = {
+static AnimationRecord _gMineMesaAnimation04ED8Records[116] = {
 #include "assets/mine_mesa_animation_04ED8_records.inc"
 };
 
-u16 D_mine_mesa_80182470[20] = {
+static u16 _gMineMesaAnimation04ED8Indices[20] = {
 #include "assets/mine_mesa_animation_04ED8_indices.inc"
 };
 
-AnimationSet D_mine_mesa_80182498 = {
-    D_mine_mesa_801822A0,
-    D_mine_mesa_80182470,
-    { NULL, D_mine_mesa_8018213C, NULL, NULL, D_mine_mesa_80182184, NULL, NULL, NULL },
+static AnimationSet _gMineMesaAnimation04ED8 = {
+    _gMineMesaAnimation04ED8Records,
+    _gMineMesaAnimation04ED8Indices,
+    { NULL, _gMineMesaAnimation04ED8Bank1, NULL, NULL, _gMineMesaAnimation04ED8Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mine_mesa_801824C0[3] = {
+static AnimationPackedPose _gMineMesaAnimation0515CBank1[3] = {
 #include "assets/mine_mesa_animation_0515C_bank1.inc"
 };
 
-AnimationPackedRotation D_mine_mesa_801824E4[34] = {
+static AnimationPackedRotation _gMineMesaAnimation0515CBank4[34] = {
 #include "assets/mine_mesa_animation_0515C_bank4.inc"
 };
 
-AnimationRecord D_mine_mesa_8018256C[98] = {
+static AnimationRecord _gMineMesaAnimation0515CRecords[98] = {
 #include "assets/mine_mesa_animation_0515C_records.inc"
 };
 
-u16 D_mine_mesa_801826F4[20] = {
+static u16 _gMineMesaAnimation0515CIndices[20] = {
 #include "assets/mine_mesa_animation_0515C_indices.inc"
 };
 
-AnimationSet D_mine_mesa_8018271C = {
-    D_mine_mesa_8018256C,
-    D_mine_mesa_801826F4,
-    { NULL, D_mine_mesa_801824C0, NULL, NULL, D_mine_mesa_801824E4, NULL, NULL, NULL },
+static AnimationSet _gMineMesaAnimation0515C = {
+    _gMineMesaAnimation0515CRecords,
+    _gMineMesaAnimation0515CIndices,
+    { NULL, _gMineMesaAnimation0515CBank1, NULL, NULL, _gMineMesaAnimation0515CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mine_mesa_80182744[28] = {
+static AnimationPackedPose _gMineMesaAnimation06160Bank1[28] = {
 #include "assets/mine_mesa_animation_06160_bank1.inc"
 };
 
-AnimationPackedRotation D_mine_mesa_80182894[423] = {
+static AnimationPackedRotation _gMineMesaAnimation06160Bank4[423] = {
 #include "assets/mine_mesa_animation_06160_bank4.inc"
 };
 
-AnimationRecord D_mine_mesa_80182F30[498] = {
+static AnimationRecord _gMineMesaAnimation06160Records[498] = {
 #include "assets/mine_mesa_animation_06160_records.inc"
 };
 
-u16 D_mine_mesa_801836F8[20] = {
+static u16 _gMineMesaAnimation06160Indices[20] = {
 #include "assets/mine_mesa_animation_06160_indices.inc"
 };
 
-AnimationSet D_mine_mesa_80183720 = {
-    D_mine_mesa_80182F30,
-    D_mine_mesa_801836F8,
-    { NULL, D_mine_mesa_80182744, NULL, NULL, D_mine_mesa_80182894, NULL, NULL, NULL },
+static AnimationSet _gMineMesaAnimation06160 = {
+    _gMineMesaAnimation06160Records,
+    _gMineMesaAnimation06160Indices,
+    { NULL, _gMineMesaAnimation06160Bank1, NULL, NULL, _gMineMesaAnimation06160Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mine_mesa_80183748[4] = {
+static AnimationPackedPose _gMineMesaAnimation0645CBank1[4] = {
 #include "assets/mine_mesa_animation_0645C_bank1.inc"
 };
 
-AnimationPackedRotation D_mine_mesa_80183778[56] = {
+static AnimationPackedRotation _gMineMesaAnimation0645CBank4[56] = {
 #include "assets/mine_mesa_animation_0645C_bank4.inc"
 };
 
-AnimationRecord D_mine_mesa_80183858[103] = {
+static AnimationRecord _gMineMesaAnimation0645CRecords[103] = {
 #include "assets/mine_mesa_animation_0645C_records.inc"
 };
 
-u16 D_mine_mesa_801839F4[20] = {
+static u16 _gMineMesaAnimation0645CIndices[20] = {
 #include "assets/mine_mesa_animation_0645C_indices.inc"
 };
 
-AnimationSet D_mine_mesa_80183A1C = {
-    D_mine_mesa_80183858,
-    D_mine_mesa_801839F4,
-    { NULL, D_mine_mesa_80183748, NULL, NULL, D_mine_mesa_80183778, NULL, NULL, NULL },
+static AnimationSet _gMineMesaAnimation0645C = {
+    _gMineMesaAnimation0645CRecords,
+    _gMineMesaAnimation0645CIndices,
+    { NULL, _gMineMesaAnimation0645CBank1, NULL, NULL, _gMineMesaAnimation0645CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mine_mesa_80183A44[2] = {
+static AnimationPackedPose _gMineMesaAnimation065FCBank1[2] = {
 #include "assets/mine_mesa_animation_065FC_bank1.inc"
 };
 
-AnimationPackedRotation D_mine_mesa_80183A5C[18] = {
+static AnimationPackedRotation _gMineMesaAnimation065FCBank4[18] = {
 #include "assets/mine_mesa_animation_065FC_bank4.inc"
 };
 
-AnimationRecord D_mine_mesa_80183AA4[60] = {
+static AnimationRecord _gMineMesaAnimation065FCRecords[60] = {
 #include "assets/mine_mesa_animation_065FC_records.inc"
 };
 
-u16 D_mine_mesa_80183B94[20] = {
+static u16 _gMineMesaAnimation065FCIndices[20] = {
 #include "assets/mine_mesa_animation_065FC_indices.inc"
 };
 
-AnimationSet D_mine_mesa_80183BBC = {
-    D_mine_mesa_80183AA4,
-    D_mine_mesa_80183B94,
-    { NULL, D_mine_mesa_80183A44, NULL, NULL, D_mine_mesa_80183A5C, NULL, NULL, NULL },
+static AnimationSet _gMineMesaAnimation065FC = {
+    _gMineMesaAnimation065FCRecords,
+    _gMineMesaAnimation065FCIndices,
+    { NULL, _gMineMesaAnimation065FCBank1, NULL, NULL, _gMineMesaAnimation065FCBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mine_mesa_80183BE4[4] = {
+static AnimationPackedPose _gMineMesaAnimation068E4Bank1[4] = {
 #include "assets/mine_mesa_animation_068E4_bank1.inc"
 };
 
-AnimationPackedRotation D_mine_mesa_80183C14[45] = {
+static AnimationPackedRotation _gMineMesaAnimation068E4Bank4[45] = {
 #include "assets/mine_mesa_animation_068E4_bank4.inc"
 };
 
-AnimationRecord D_mine_mesa_80183CC8[109] = {
+static AnimationRecord _gMineMesaAnimation068E4Records[109] = {
 #include "assets/mine_mesa_animation_068E4_records.inc"
 };
 
-u16 D_mine_mesa_80183E7C[20] = {
+static u16 _gMineMesaAnimation068E4Indices[20] = {
 #include "assets/mine_mesa_animation_068E4_indices.inc"
 };
 
-AnimationSet D_mine_mesa_80183EA4 = {
-    D_mine_mesa_80183CC8,
-    D_mine_mesa_80183E7C,
-    { NULL, D_mine_mesa_80183BE4, NULL, NULL, D_mine_mesa_80183C14, NULL, NULL, NULL },
+static AnimationSet _gMineMesaAnimation068E4 = {
+    _gMineMesaAnimation068E4Records,
+    _gMineMesaAnimation068E4Indices,
+    { NULL, _gMineMesaAnimation068E4Bank1, NULL, NULL, _gMineMesaAnimation068E4Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_mine_mesa_80183ECC[2] = {
+static AnimationPackedPose _gMineMesaAnimation06B9CBank1[2] = {
 #include "assets/mine_mesa_animation_06B9C_bank1.inc"
 };
 
-AnimationPackedRotation D_mine_mesa_80183EE4[39] = {
+static AnimationPackedRotation _gMineMesaAnimation06B9CBank4[39] = {
 #include "assets/mine_mesa_animation_06B9C_bank4.inc"
 };
 
-AnimationRecord D_mine_mesa_80183F80[109] = {
+static AnimationRecord _gMineMesaAnimation06B9CRecords[109] = {
 #include "assets/mine_mesa_animation_06B9C_records.inc"
 };
 
-u16 D_mine_mesa_80184134[20] = {
+static u16 _gMineMesaAnimation06B9CIndices[20] = {
 #include "assets/mine_mesa_animation_06B9C_indices.inc"
 
 };
 
-AnimationSet D_mine_mesa_8018415C = {
-    D_mine_mesa_80183F80,
-    D_mine_mesa_80184134,
-    { NULL, D_mine_mesa_80183ECC, NULL, NULL, D_mine_mesa_80183EE4, NULL, NULL, NULL },
+static AnimationSet _gMineMesaAnimation06B9C = {
+    _gMineMesaAnimation06B9CRecords,
+    _gMineMesaAnimation06B9CIndices,
+    { NULL, _gMineMesaAnimation06B9CBank1, NULL, NULL, _gMineMesaAnimation06B9CBank4, NULL, NULL, NULL },
 };
 
 SVECTOR D_mine_mesa_80184184[46] = {
@@ -605,7 +605,7 @@ TaskDesc D_mine_mesa_801842F4[6] = {
 
 AnimationSet* D_mine_mesa_8018433C[2] = {
     NULL,
-    &D_mine_mesa_80181C90,
+    &_gMineMesaAnimation046D0,
 };
 
 GpCopyArg D_mine_mesa_80184344 = { { .sets = D_mine_mesa_8018433C }, 2 };
@@ -639,17 +639,17 @@ ActorTransform D_mine_mesa_8018443C = { { 9630, 0, 1570, 0 }, { 0, 1024, 0, 0 } 
 
 AnimationSet* D_mine_mesa_80184454[12] = {
     NULL,
-    &D_mine_mesa_80181F0C,
-    &D_mine_mesa_80182114,
-    &D_mine_mesa_80182498,
-    &D_mine_mesa_8018271C,
-    &D_mine_mesa_80183720,
-    &D_mine_mesa_80183A1C,
+    &_gMineMesaAnimation0494C,
+    &_gMineMesaAnimation04B54,
+    &_gMineMesaAnimation04ED8,
+    &_gMineMesaAnimation0515C,
+    &_gMineMesaAnimation06160,
+    &_gMineMesaAnimation0645C,
     NULL,
-    &D_mine_mesa_80183EA4,
-    &D_mine_mesa_8018415C,
-    &D_mine_mesa_80183BBC,
-    &D_mine_mesa_80183EA4,
+    &_gMineMesaAnimation068E4,
+    &_gMineMesaAnimation06B9C,
+    &_gMineMesaAnimation065FC,
+    &_gMineMesaAnimation068E4,
 };
 
 GpCopyArg D_mine_mesa_80184484 = { { .sets = D_mine_mesa_80184454 }, 12 };
@@ -1055,29 +1055,29 @@ EvsCommand D_mine_mesa_801861DC[24] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-SVECTOR D_mine_mesa_8018641C[3] = {
+static SVECTOR _gMineMesaCollision08EE4Normals[3] = {
 #include "assets/mine_mesa_collision_08EE4_normals.inc"
 };
 
-SVECTOR D_mine_mesa_80186434[8] = {
+static SVECTOR _gMineMesaCollision08EE4Verts[8] = {
 #include "assets/mine_mesa_collision_08EE4_verts.inc"
 };
 
-WorldCollisionGridFace D_mine_mesa_80186474[3] = {
+static WorldCollisionGridFace _gMineMesaCollision08EE4Faces[3] = {
 #include "assets/mine_mesa_collision_08EE4_faces.inc"
 };
 
-s16 D_mine_mesa_80186498[4] = {
+static s16 _gMineMesaCollision08EE4Cells[4] = {
 #include "assets/mine_mesa_collision_08EE4_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_mine_mesa_80186498[i])
-s16* D_mine_mesa_801864A0[1] = {
+#define GRID_CELL(i) (&_gMineMesaCollision08EE4Cells[i])
+static s16* _gMineMesaCollision08EE4Table[1] = {
 #include "assets/mine_mesa_collision_08EE4_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_mine_mesa_801864A4 = { NULL, D_mine_mesa_8018641C, D_mine_mesa_80186434, D_mine_mesa_80186474, D_mine_mesa_801864A0, 250, 150, 1, 1, 4000, 3 };
+WorldCollisionGrid D_mine_mesa_801864A4 = { NULL, _gMineMesaCollision08EE4Normals, _gMineMesaCollision08EE4Verts, _gMineMesaCollision08EE4Faces, _gMineMesaCollision08EE4Table, 250, 150, 1, 1, 4000, 3 };
 
 SVECTOR D_mine_mesa_801864C8[1] = {
     { 4000, -650, 4780, 0 },
@@ -1129,29 +1129,29 @@ GpWarpRec D_mine_mesa_80186558[2] = {
     { { .words = { 1024, 315, 0, 3562 } }, { 0, 0, 0, 0 }, { .words = { 1024, 315, 0, 3562 } }, { 0, 0, 0, 0 }, 0x54010002, 0x54010001, 0, 5, 0, 0 },
 };
 
-SVECTOR D_mine_mesa_801865C8[37] = {
+static SVECTOR _gMineMesaCollision09A4CNormals[37] = {
 #include "assets/mine_mesa_collision_09A4C_normals.inc"
 };
 
-SVECTOR D_mine_mesa_801866F0[117] = {
+static SVECTOR _gMineMesaCollision09A4CVerts[117] = {
 #include "assets/mine_mesa_collision_09A4C_verts.inc"
 };
 
-WorldCollisionGridFace D_mine_mesa_80186A98[53] = {
+static WorldCollisionGridFace _gMineMesaCollision09A4CFaces[53] = {
 #include "assets/mine_mesa_collision_09A4C_faces.inc"
 };
 
-s16 D_mine_mesa_80186D14[348] = {
+static s16 _gMineMesaCollision09A4CCells[348] = {
 #include "assets/mine_mesa_collision_09A4C_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_mine_mesa_80186D14[i])
-s16* D_mine_mesa_80186FCC[16] = {
+#define GRID_CELL(i) (&_gMineMesaCollision09A4CCells[i])
+static s16* _gMineMesaCollision09A4CTable[16] = {
 #include "assets/mine_mesa_collision_09A4C_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_mine_mesa_8018700C = { NULL, D_mine_mesa_801865C8, D_mine_mesa_801866F0, D_mine_mesa_80186A98, D_mine_mesa_80186FCC, 800, 4070, 4, 4, 4000, 53 };
+WorldCollisionGrid D_mine_mesa_8018700C = { NULL, _gMineMesaCollision09A4CNormals, _gMineMesaCollision09A4CVerts, _gMineMesaCollision09A4CFaces, _gMineMesaCollision09A4CTable, 800, 4070, 4, 4, 4000, 53 };
 
 GpViewRec D_mine_mesa_80187030[11] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -6000, 0x34BC, -4000 } }, 257 },

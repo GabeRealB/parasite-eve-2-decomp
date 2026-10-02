@@ -203,30 +203,30 @@ SVECTOR D_shelter_b3_garbage_incinerator_80187544[79] = {
     { 15640, -5050, -25500, 0 },
 };
 
-SVECTOR D_shelter_b3_garbage_incinerator_801877BC[29] = {
+static SVECTOR _gShelterB3GarbageIncineratorCollision0ADC8Normals[29] = {
 #include "assets/shelter_b3_garbage_incinerator_collision_0ADC8_normals.inc"
 };
 
-SVECTOR D_shelter_b3_garbage_incinerator_801878A4[84] = {
+static SVECTOR _gShelterB3GarbageIncineratorCollision0ADC8Verts[84] = {
 #include "assets/shelter_b3_garbage_incinerator_collision_0ADC8_verts.inc"
 };
 
-WorldCollisionGridFace D_shelter_b3_garbage_incinerator_80187B44[64] = {
+static WorldCollisionGridFace _gShelterB3GarbageIncineratorCollision0ADC8Faces[64] = {
 #include "assets/shelter_b3_garbage_incinerator_collision_0ADC8_faces.inc"
 };
 
-s16 D_shelter_b3_garbage_incinerator_80187E44[604] = {
+static s16 _gShelterB3GarbageIncineratorCollision0ADC8Cells[604] = {
 #include "assets/shelter_b3_garbage_incinerator_collision_0ADC8_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_shelter_b3_garbage_incinerator_80187E44[i])
-s16* D_shelter_b3_garbage_incinerator_801882FC[35] = {
+#define GRID_CELL(i) (&_gShelterB3GarbageIncineratorCollision0ADC8Cells[i])
+static s16* _gShelterB3GarbageIncineratorCollision0ADC8Table[35] = {
 #include "assets/shelter_b3_garbage_incinerator_collision_0ADC8_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_shelter_b3_garbage_incinerator_80188388[1] = {
-    { NULL, D_shelter_b3_garbage_incinerator_801877BC, D_shelter_b3_garbage_incinerator_801878A4, D_shelter_b3_garbage_incinerator_80187B44, D_shelter_b3_garbage_incinerator_801882FC, 0, 0x6590, 5, 7, 4000, 64 },
+    { NULL, _gShelterB3GarbageIncineratorCollision0ADC8Normals, _gShelterB3GarbageIncineratorCollision0ADC8Verts, _gShelterB3GarbageIncineratorCollision0ADC8Faces, _gShelterB3GarbageIncineratorCollision0ADC8Table, 0, 0x6590, 5, 7, 4000, 64 },
 };
 
 GpViewRec D_shelter_b3_garbage_incinerator_801883AC[40] = {

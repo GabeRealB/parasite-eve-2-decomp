@@ -413,7 +413,7 @@ static GpEnemyDesc D_map_neo_ark_8017A6AC[1] = {
 };
 
 static GpEnemyDesc D_map_neo_ark_8017A6BC[2] = {
-    { 0x124, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, func_shelter_1f_vehicular_airlock_8017D5E4, { &D_shelter_1f_vehicular_airlock_80182004 } } },
+    { 0x124, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, func_shelter_1f_vehicular_airlock_8017D5E4, { &gShelter1fVehicularAirlockModel03A58 } } },
     { 0xFFFF },
 };
 

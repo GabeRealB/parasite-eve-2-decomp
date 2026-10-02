@@ -76,9 +76,9 @@ TaskDesc D_mist_parking_80190824[5] = {
 
 AnimationSet* D_mist_parking_80190860[4] = {
     NULL,
-    &D_mist_parking_8018FFB8,
-    &D_mist_parking_8019038C,
-    &D_mist_parking_801907FC,
+    &gMistParkingAnimation129F8,
+    &gMistParkingAnimation12DCC,
+    &gMistParkingAnimation1323C,
 };
 
 GpCopyArg D_mist_parking_80190870 = { { .sets = D_mist_parking_80190860 }, 4 };

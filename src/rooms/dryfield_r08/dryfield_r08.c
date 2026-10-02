@@ -171,30 +171,30 @@ GpWarpRec D_dryfield_r08_8017F718[1] = {
     { { .words = { 1024, 3360, 0, 2976 } }, { 0, 0, 0, 0 }, { .words = { 1024, 3360, 0, 2976 } }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
 };
 
-SVECTOR D_dryfield_r08_8017F750[6] = {
+static SVECTOR _gDryfieldR08Collision025D8Normals[6] = {
 #include "assets/dryfield_r08_collision_025D8_normals.inc"
 };
 
-SVECTOR D_dryfield_r08_8017F780[59] = {
+static SVECTOR _gDryfieldR08Collision025D8Verts[59] = {
 #include "assets/dryfield_r08_collision_025D8_verts.inc"
 };
 
-WorldCollisionGridFace D_dryfield_r08_8017F958[31] = {
+static WorldCollisionGridFace _gDryfieldR08Collision025D8Faces[31] = {
 #include "assets/dryfield_r08_collision_025D8_faces.inc"
 };
 
-s16 D_dryfield_r08_8017FACC[86] = {
+static s16 _gDryfieldR08Collision025D8Cells[86] = {
 #include "assets/dryfield_r08_collision_025D8_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_dryfield_r08_8017FACC[i])
-s16* D_dryfield_r08_8017FB78[8] = {
+#define GRID_CELL(i) (&_gDryfieldR08Collision025D8Cells[i])
+static s16* _gDryfieldR08Collision025D8Table[8] = {
 #include "assets/dryfield_r08_collision_025D8_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_dryfield_r08_8017FB98[1] = {
-    { NULL, D_dryfield_r08_8017F750, D_dryfield_r08_8017F780, D_dryfield_r08_8017F958, D_dryfield_r08_8017FB78, 500, -500, 4, 2, 4000, 31 },
+    { NULL, _gDryfieldR08Collision025D8Normals, _gDryfieldR08Collision025D8Verts, _gDryfieldR08Collision025D8Faces, _gDryfieldR08Collision025D8Table, 500, -500, 4, 2, 4000, 31 },
 };
 
 GpViewRec D_dryfield_r08_8017FBBC[6] = {

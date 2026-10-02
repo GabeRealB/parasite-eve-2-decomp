@@ -197,29 +197,29 @@ GpWarpRec D_shelter_b2_elevator_hall_801838E4[3] = {
     { { .words = { 3072, 9484, 0, 3743 } }, { 0, 0, 0, 0 }, { .words = { 3072, 9484, 0, 3743 } }, { 0, 0, 0, 0 }, 0x541B0004, 0x541B0003, 0x541B0008, 6, 0, 457 },
 };
 
-SVECTOR D_shelter_b2_elevator_hall_8018398C[7] = {
+static SVECTOR _gShelterB2ElevatorHallCollision067F4Normals[7] = {
 #include "assets/shelter_b2_elevator_hall_collision_067F4_normals.inc"
 };
 
-SVECTOR D_shelter_b2_elevator_hall_801839C4[48] = {
+static SVECTOR _gShelterB2ElevatorHallCollision067F4Verts[48] = {
 #include "assets/shelter_b2_elevator_hall_collision_067F4_verts.inc"
 };
 
-WorldCollisionGridFace D_shelter_b2_elevator_hall_80183B44[28] = {
+static WorldCollisionGridFace _gShelterB2ElevatorHallCollision067F4Faces[28] = {
 #include "assets/shelter_b2_elevator_hall_collision_067F4_faces.inc"
 };
 
-s16 D_shelter_b2_elevator_hall_80183C94[124] = {
+static s16 _gShelterB2ElevatorHallCollision067F4Cells[124] = {
 #include "assets/shelter_b2_elevator_hall_collision_067F4_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_shelter_b2_elevator_hall_80183C94[i])
-s16* D_shelter_b2_elevator_hall_80183D8C[10] = {
+#define GRID_CELL(i) (&_gShelterB2ElevatorHallCollision067F4Cells[i])
+static s16* _gShelterB2ElevatorHallCollision067F4Table[10] = {
 #include "assets/shelter_b2_elevator_hall_collision_067F4_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b2_elevator_hall_80183DB4 = { NULL, D_shelter_b2_elevator_hall_8018398C, D_shelter_b2_elevator_hall_801839C4, D_shelter_b2_elevator_hall_80183B44, D_shelter_b2_elevator_hall_80183D8C, 9350, 1481, 5, 2, 4000, 28 };
+WorldCollisionGrid D_shelter_b2_elevator_hall_80183DB4 = { NULL, _gShelterB2ElevatorHallCollision067F4Normals, _gShelterB2ElevatorHallCollision067F4Verts, _gShelterB2ElevatorHallCollision067F4Faces, _gShelterB2ElevatorHallCollision067F4Table, 9350, 1481, 5, 2, 4000, 28 };
 
 GpViewRec D_shelter_b2_elevator_hall_80183DD8[7] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -20, 0x7530, -890 } }, 358 },

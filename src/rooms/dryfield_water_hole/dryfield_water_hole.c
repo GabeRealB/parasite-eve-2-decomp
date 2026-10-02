@@ -217,30 +217,30 @@ GpWarpRec D_dryfield_water_hole_8017FDBC[3] = {
     { { .words = { 1024, 4680, 0, -954 } }, { 0, 0, 0, 0 }, { .words = { 1024, 4680, 0, -954 } }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 445 },
 };
 
-SVECTOR D_dryfield_water_hole_8017FE64[10] = {
+static SVECTOR _gDryfieldWaterHoleCollision02CA0Normals[10] = {
 #include "assets/dryfield_water_hole_collision_02CA0_normals.inc"
 };
 
-SVECTOR D_dryfield_water_hole_8017FEB4[54] = {
+static SVECTOR _gDryfieldWaterHoleCollision02CA0Verts[54] = {
 #include "assets/dryfield_water_hole_collision_02CA0_verts.inc"
 };
 
-WorldCollisionGridFace D_dryfield_water_hole_80180064[23] = {
+static WorldCollisionGridFace _gDryfieldWaterHoleCollision02CA0Faces[23] = {
 #include "assets/dryfield_water_hole_collision_02CA0_faces.inc"
 };
 
-s16 D_dryfield_water_hole_80180178[92] = {
+static s16 _gDryfieldWaterHoleCollision02CA0Cells[92] = {
 #include "assets/dryfield_water_hole_collision_02CA0_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_dryfield_water_hole_80180178[i])
-s16* D_dryfield_water_hole_80180230[12] = {
+#define GRID_CELL(i) (&_gDryfieldWaterHoleCollision02CA0Cells[i])
+static s16* _gDryfieldWaterHoleCollision02CA0Table[12] = {
 #include "assets/dryfield_water_hole_collision_02CA0_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_dryfield_water_hole_80180260[1] = {
-    { NULL, D_dryfield_water_hole_8017FE64, D_dryfield_water_hole_8017FEB4, D_dryfield_water_hole_80180064, D_dryfield_water_hole_80180230, -4000, 5000, 6, 2, 4000, 23 },
+    { NULL, _gDryfieldWaterHoleCollision02CA0Normals, _gDryfieldWaterHoleCollision02CA0Verts, _gDryfieldWaterHoleCollision02CA0Faces, _gDryfieldWaterHoleCollision02CA0Table, -4000, 5000, 6, 2, 4000, 23 },
 };
 
 GpViewRec D_dryfield_water_hole_80180284[26] = {

@@ -55,29 +55,29 @@ GpWarpRec D_shelter_b2_breeding_room_80180564[2] = {
     { { .words = { 2048, 0x2E9E, 0, 5960 } }, { 0, 0, 0, 0 }, { .words = { 2048, 0x2E9E, 0, 5960 } }, { 0, 0, 0, 0 }, 0x54200002, 0x54200001, 0, 6, 0, 0 },
 };
 
-SVECTOR D_shelter_b2_breeding_room_801805D4[27] = {
+static SVECTOR _gShelterB2BreedingRoomCollision03B34Normals[27] = {
 #include "assets/shelter_b2_breeding_room_collision_03B34_normals.inc"
 };
 
-SVECTOR D_shelter_b2_breeding_room_801806AC[129] = {
+static SVECTOR _gShelterB2BreedingRoomCollision03B34Verts[129] = {
 #include "assets/shelter_b2_breeding_room_collision_03B34_verts.inc"
 };
 
-WorldCollisionGridFace D_shelter_b2_breeding_room_80180AB4[75] = {
+static WorldCollisionGridFace _gShelterB2BreedingRoomCollision03B34Faces[75] = {
 #include "assets/shelter_b2_breeding_room_collision_03B34_faces.inc"
 };
 
-s16 D_shelter_b2_breeding_room_80180E38[326] = {
+static s16 _gShelterB2BreedingRoomCollision03B34Cells[326] = {
 #include "assets/shelter_b2_breeding_room_collision_03B34_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_shelter_b2_breeding_room_80180E38[i])
-s16* D_shelter_b2_breeding_room_801810C4[12] = {
+#define GRID_CELL(i) (&_gShelterB2BreedingRoomCollision03B34Cells[i])
+static s16* _gShelterB2BreedingRoomCollision03B34Table[12] = {
 #include "assets/shelter_b2_breeding_room_collision_03B34_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b2_breeding_room_801810F4 = { NULL, D_shelter_b2_breeding_room_801805D4, D_shelter_b2_breeding_room_801806AC, D_shelter_b2_breeding_room_80180AB4, D_shelter_b2_breeding_room_801810C4, 890, 2602, 4, 3, 4000, 75 };
+WorldCollisionGrid D_shelter_b2_breeding_room_801810F4 = { NULL, _gShelterB2BreedingRoomCollision03B34Normals, _gShelterB2BreedingRoomCollision03B34Verts, _gShelterB2BreedingRoomCollision03B34Faces, _gShelterB2BreedingRoomCollision03B34Table, 890, 2602, 4, 3, 4000, 75 };
 
 GpViewRec D_shelter_b2_breeding_room_80181118[10] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -6200, 0x7530, -1480 } }, 564 },

@@ -94,7 +94,7 @@ static void func_actor_341700_8016D130(Enemy* arg0, Task* arg1);
 static void func_actor_341700_8016D2B8(Enemy* arg0, Task* arg1);
 static void func_actor_341700_8016D2E8(Enemy* arg0, Task* arg1);
 
-extern TmdSource D_actor_341700_80175F38;
+static TmdSource _gActor341700Model13558;
 static void      func_actor_341700_8016D32C(Task*);
 
 s32 func_actor_341700_8016CE28(Task*, s32, s32);
@@ -102,36 +102,36 @@ s32 func_actor_341700_8016CEB4(Task*, s32, ActorCommand* cmd);
 
 #include "../../shared/actor_contacts.h"
 
-TmdBone D_actor_341700_80174DC4[11] = {
+static TmdBone _gActor341700Model13558Skeleton[11] = {
 #include "assets/actor_341700_model_13558_skeleton.inc"
 };
 
-u32 D_actor_341700_80174F50[11] = {
+static u32 _gActor341700Model13558PartVerts[11] = {
 #include "assets/actor_341700_model_13558_partVerts.inc"
 };
 
-SVECTOR D_actor_341700_80174F7C[81] = {
+static SVECTOR _gActor341700Model13558Verts[81] = {
 #include "assets/actor_341700_model_13558_verts.inc"
 };
 
-SVECTOR D_actor_341700_80175204[46] = {
+static SVECTOR _gActor341700Model13558Normals[46] = {
 #include "assets/actor_341700_model_13558_normals.inc"
 };
 
-u32 D_actor_341700_80175374[753] = {
+static u32 _gActor341700Model13558Stream[753] = {
 #include "assets/actor_341700_model_13558_stream.inc"
 };
 
-TmdSource D_actor_341700_80175F38 = {
+static TmdSource _gActor341700Model13558 = {
     0,
     3184,
     1720,
     11,
-    D_actor_341700_80174F50,
-    D_actor_341700_80174F7C,
-    D_actor_341700_80175204,
-    D_actor_341700_80174DC4,
-    D_actor_341700_80175374,
+    _gActor341700Model13558PartVerts,
+    _gActor341700Model13558Verts,
+    _gActor341700Model13558Normals,
+    _gActor341700Model13558Skeleton,
+    _gActor341700Model13558Stream,
 };
 
 Actor3417002MessageEntry D_actor_341700_80175F5C[4] = {
@@ -795,7 +795,7 @@ u8 D_actor_341700_801760FC[600] = {
     0,
 };
 
-TaskDesc D_actor_341700_80176354 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_341700_8016D32C, { .model = &D_actor_341700_80175F38 } };
+TaskDesc D_actor_341700_80176354 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_341700_8016D32C, { .model = &_gActor341700Model13558 } };
 
 static SVECTOR ActorContact_ScratchPosition;
 

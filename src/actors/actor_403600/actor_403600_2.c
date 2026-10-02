@@ -299,51 +299,51 @@ Actor4036002MessageEntry D_actor_403600_80160504[2] = {
 };
 
 TaskDesc D_actor_403600_80160514[3] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_403600_80141180, { .model = &D_actor_403600_80149818 } },
-    { { { TASK_BODY_TMD, 96 } }, func_actor_403600_80141BE0, { .model = &D_actor_403600_80150E78 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_403600_80141CD4, { .model = &D_actor_303600_801690A4 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_403600_80141180, { .model = &gActor403600EveBody } },
+    { { { TASK_BODY_TMD, 96 } }, func_actor_403600_80141BE0, { .model = &gActor403600Model199B8 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_403600_80141CD4, { .model = &gActor303600Model02DD0 } },
 };
 
 AnimationSet* D_actor_403600_80160538[12] = {
     NULL,
-    &D_actor_403600_8015DEE4,
-    &D_actor_403600_8015DDAC,
-    &D_actor_403600_8015E72C,
-    &D_actor_403600_8015EEC8,
-    &D_actor_403600_8015F6D4,
-    &D_actor_403600_8015FEE8,
-    &D_actor_403600_8015EEC8,
-    &D_actor_403600_8015FEE8,
-    &D_actor_303600_80169610,
-    &D_actor_303600_80169A50,
-    &D_actor_303600_80169C7C,
+    &gActor403600Animation2C0C4,
+    &gActor403600Animation2BF8C,
+    &gActor403600Animation2C90C,
+    &gActor403600Animation2D0A8,
+    &gActor403600Animation2D8B4,
+    &gActor403600Animation2E0C8,
+    &gActor403600Animation2D0A8,
+    &gActor403600Animation2E0C8,
+    &gActor303600Animation077F0,
+    &gActor303600Animation07C30,
+    &gActor303600Animation07E5C,
 };
 
 AnimationPlayRequest D_actor_403600_80160568 = { { .sets = D_actor_403600_80160538 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
 AnimationSet* D_actor_403600_8016057C[22] = {
     NULL,
-    &D_actor_403600_80151CD0,
-    &D_actor_403600_8015270C,
-    &D_actor_403600_801531BC,
-    &D_actor_403600_80154244,
-    &D_actor_403600_80154724,
-    &D_actor_403600_801555C8,
-    &D_actor_403600_80155FFC,
-    &D_actor_403600_80156A74,
-    &D_actor_403600_80157490,
-    &D_actor_403600_80158470,
-    &D_actor_403600_80158FA4,
-    &D_actor_403600_80159880,
-    &D_actor_403600_8015A218,
-    &D_actor_403600_8015B054,
-    &D_actor_403600_8015B494,
-    &D_actor_403600_8015BAD4,
-    &D_actor_403600_8015C528,
-    &D_actor_403600_8015C70C,
-    &D_actor_403600_8015D184,
-    &D_actor_403600_801604DC,
-    &D_actor_303600_801693C0,
+    &gActor403600Animation1FEB0,
+    &gActor403600Animation208EC,
+    &gActor403600Animation2139C,
+    &gActor403600Animation22424,
+    &gActor403600Animation22904,
+    &gActor403600Animation237A8,
+    &gActor403600Animation241DC,
+    &gActor403600Animation24C54,
+    &gActor403600Animation25670,
+    &gActor403600Animation26650,
+    &gActor403600Animation27184,
+    &gActor403600Animation27A60,
+    &gActor403600Animation283F8,
+    &gActor403600Animation29234,
+    &gActor403600Animation29674,
+    &gActor403600Animation29CB4,
+    &gActor403600Animation2A708,
+    &gActor403600Animation2A8EC,
+    &gActor403600Animation2B364,
+    &gActor403600Animation2E6BC,
+    &gActor303600Animation075A0,
 };
 
 SVECTOR D_actor_403600_801605D4 = { 8256, -0x61A8, 6883, 0 };
@@ -953,22 +953,22 @@ static void func_actor_403600_801396F8(Task* arg0)
                 sp10.vy = 0x64;
                 Gp_SpawnEff(0x6009C, &arg0->extra.tmd->coords[1], 3, &sp10);
                 func_actor_403600_80141954(1);
-                D_800626EC[5].data.model = &D_shelter_b2_pod_bottom_80187B10;
+                D_800626EC[5].data.model = &gShelterB2PodBottomModel0A2A0;
                 temp_v0_5                = Gp_SpawnEff(0x80005, &arg0->extra.tmd->coords[1], 0, NULL);
                 if (temp_v0_5 != NULL) {
                     func_actor_403600_801419E8(temp_v0_5->task);
                 }
-                D_800626EC[5].data.model = &D_shelter_b2_pod_bottom_80187E14;
+                D_800626EC[5].data.model = &gShelterB2PodBottomModel0A68C;
                 temp_v0_6                = Gp_SpawnEff(0x80005, &arg0->extra.tmd->coords[1], 0, NULL);
                 if (temp_v0_6 != NULL) {
                     func_actor_403600_801419E8(temp_v0_6->task);
                 }
-                D_800626EC[5].data.model = &D_shelter_b2_pod_bottom_80188264;
+                D_800626EC[5].data.model = &gShelterB2PodBottomModel0AA08;
                 temp_v0_7                = Gp_SpawnEff(0x80005, &arg0->extra.tmd->coords[1], 0, NULL);
                 if (temp_v0_7 != NULL) {
                     func_actor_403600_801419E8(temp_v0_7->task);
                 }
-                D_800626EC[5].data.model = &D_shelter_b2_pod_bottom_8018864C;
+                D_800626EC[5].data.model = &gShelterB2PodBottomModel0AE48;
                 temp_v0_8                = Gp_SpawnEff(0x80005, &arg0->extra.tmd->coords[1], 0, NULL);
                 if (temp_v0_8 != NULL) {
                     func_actor_403600_801419E8(temp_v0_8->task);

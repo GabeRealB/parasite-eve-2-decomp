@@ -135,29 +135,29 @@ GpWarpRec D_shelter_b1_transfer_tunnel_8018295C[2] = {
     { { .words = { 1024, 971, 0, 18 } }, { 0, 0, 0, 0 }, { .words = { 1024, 971, 0, 18 } }, { 0, 0, 0, 0 }, 0x54180004, 0x54180003, 0, 4, 0, 0 },
 };
 
-SVECTOR D_shelter_b1_transfer_tunnel_801829CC[6] = {
+static SVECTOR _gShelterB1TransferTunnelCollision0552CNormals[6] = {
 #include "assets/shelter_b1_transfer_tunnel_collision_0552C_normals.inc"
 };
 
-SVECTOR D_shelter_b1_transfer_tunnel_801829FC[12] = {
+static SVECTOR _gShelterB1TransferTunnelCollision0552CVerts[12] = {
 #include "assets/shelter_b1_transfer_tunnel_collision_0552C_verts.inc"
 };
 
-WorldCollisionGridFace D_shelter_b1_transfer_tunnel_80182A5C[6] = {
+static WorldCollisionGridFace _gShelterB1TransferTunnelCollision0552CFaces[6] = {
 #include "assets/shelter_b1_transfer_tunnel_collision_0552C_faces.inc"
 };
 
-s16 D_shelter_b1_transfer_tunnel_80182AA4[24] = {
+static s16 _gShelterB1TransferTunnelCollision0552CCells[24] = {
 #include "assets/shelter_b1_transfer_tunnel_collision_0552C_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_shelter_b1_transfer_tunnel_80182AA4[i])
-s16* D_shelter_b1_transfer_tunnel_80182AD4[6] = {
+#define GRID_CELL(i) (&_gShelterB1TransferTunnelCollision0552CCells[i])
+static s16* _gShelterB1TransferTunnelCollision0552CTable[6] = {
 #include "assets/shelter_b1_transfer_tunnel_collision_0552C_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b1_transfer_tunnel_80182AEC = { NULL, D_shelter_b1_transfer_tunnel_801829CC, D_shelter_b1_transfer_tunnel_801829FC, D_shelter_b1_transfer_tunnel_80182A5C, D_shelter_b1_transfer_tunnel_80182AD4, 642, 1736, 3, 2, 4000, 6 };
+WorldCollisionGrid D_shelter_b1_transfer_tunnel_80182AEC = { NULL, _gShelterB1TransferTunnelCollision0552CNormals, _gShelterB1TransferTunnelCollision0552CVerts, _gShelterB1TransferTunnelCollision0552CFaces, _gShelterB1TransferTunnelCollision0552CTable, 642, 1736, 3, 2, 4000, 6 };
 
 GpViewRec D_shelter_b1_transfer_tunnel_80182B10[4] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -3722, 8164, -144 } }, 235 },

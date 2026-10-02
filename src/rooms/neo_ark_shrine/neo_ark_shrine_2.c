@@ -304,82 +304,82 @@ GpWarpRec D_neo_ark_shrine_80182814[3] = {
     { { .words = { 2048, 6950, 0, -3700 } }, { 0, 0, 0, 0 }, { .words = { 2048, 6950, 0, -3700 } }, { 0, 0, 0, 0 }, 0, 0, 0, 10, 0, 0 },
 };
 
-SVECTOR D_neo_ark_shrine_801828BC[10] = {
+static SVECTOR _gNeoArkShrineCollision0576CNormals[10] = {
 #include "assets/neo_ark_shrine_collision_0576C_normals.inc"
 };
 
-SVECTOR D_neo_ark_shrine_8018290C[46] = {
+static SVECTOR _gNeoArkShrineCollision0576CVerts[46] = {
 #include "assets/neo_ark_shrine_collision_0576C_verts.inc"
 };
 
-WorldCollisionGridFace D_neo_ark_shrine_80182A7C[30] = {
+static WorldCollisionGridFace _gNeoArkShrineCollision0576CFaces[30] = {
 #include "assets/neo_ark_shrine_collision_0576C_faces.inc"
 };
 
-s16 D_neo_ark_shrine_80182BE4[140] = {
+static s16 _gNeoArkShrineCollision0576CCells[140] = {
 #include "assets/neo_ark_shrine_collision_0576C_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_neo_ark_shrine_80182BE4[i])
-s16* D_neo_ark_shrine_80182CFC[12] = {
+#define GRID_CELL(i) (&_gNeoArkShrineCollision0576CCells[i])
+static s16* _gNeoArkShrineCollision0576CTable[12] = {
 #include "assets/neo_ark_shrine_collision_0576C_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_neo_ark_shrine_80182D2C[1] = {
-    { NULL, D_neo_ark_shrine_801828BC, D_neo_ark_shrine_8018290C, D_neo_ark_shrine_80182A7C, D_neo_ark_shrine_80182CFC, 0, 5000, 4, 3, 4000, 30 },
+    { NULL, _gNeoArkShrineCollision0576CNormals, _gNeoArkShrineCollision0576CVerts, _gNeoArkShrineCollision0576CFaces, _gNeoArkShrineCollision0576CTable, 0, 5000, 4, 3, 4000, 30 },
 };
 
-SVECTOR D_neo_ark_shrine_80182D50[9] = {
+static SVECTOR _gNeoArkShrineCollision05C18Normals[9] = {
 #include "assets/neo_ark_shrine_collision_05C18_normals.inc"
 };
 
-SVECTOR D_neo_ark_shrine_80182D98[48] = {
+static SVECTOR _gNeoArkShrineCollision05C18Verts[48] = {
 #include "assets/neo_ark_shrine_collision_05C18_verts.inc"
 };
 
-WorldCollisionGridFace D_neo_ark_shrine_80182F18[31] = {
+static WorldCollisionGridFace _gNeoArkShrineCollision05C18Faces[31] = {
 #include "assets/neo_ark_shrine_collision_05C18_faces.inc"
 };
 
-s16 D_neo_ark_shrine_8018308C[142] = {
+static s16 _gNeoArkShrineCollision05C18Cells[142] = {
 #include "assets/neo_ark_shrine_collision_05C18_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_neo_ark_shrine_8018308C[i])
-s16* D_neo_ark_shrine_801831A8[12] = {
+#define GRID_CELL(i) (&_gNeoArkShrineCollision05C18Cells[i])
+static s16* _gNeoArkShrineCollision05C18Table[12] = {
 #include "assets/neo_ark_shrine_collision_05C18_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_neo_ark_shrine_801831D8[1] = {
-    { NULL, D_neo_ark_shrine_80182D50, D_neo_ark_shrine_80182D98, D_neo_ark_shrine_80182F18, D_neo_ark_shrine_801831A8, 0, 5000, 4, 3, 4000, 31 },
+    { NULL, _gNeoArkShrineCollision05C18Normals, _gNeoArkShrineCollision05C18Verts, _gNeoArkShrineCollision05C18Faces, _gNeoArkShrineCollision05C18Table, 0, 5000, 4, 3, 4000, 31 },
 };
 
-SVECTOR D_neo_ark_shrine_801831FC[9] = {
+static SVECTOR _gNeoArkShrineCollision060D8Normals[9] = {
 #include "assets/neo_ark_shrine_collision_060D8_normals.inc"
 };
 
-SVECTOR D_neo_ark_shrine_80183244[50] = {
+static SVECTOR _gNeoArkShrineCollision060D8Verts[50] = {
 #include "assets/neo_ark_shrine_collision_060D8_verts.inc"
 };
 
-WorldCollisionGridFace D_neo_ark_shrine_801833D4[31] = {
+static WorldCollisionGridFace _gNeoArkShrineCollision060D8Faces[31] = {
 #include "assets/neo_ark_shrine_collision_060D8_faces.inc"
 };
 
-s16 D_neo_ark_shrine_80183548[144] = {
+static s16 _gNeoArkShrineCollision060D8Cells[144] = {
 #include "assets/neo_ark_shrine_collision_060D8_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_neo_ark_shrine_80183548[i])
-s16* D_neo_ark_shrine_80183668[12] = {
+#define GRID_CELL(i) (&_gNeoArkShrineCollision060D8Cells[i])
+static s16* _gNeoArkShrineCollision060D8Table[12] = {
 #include "assets/neo_ark_shrine_collision_060D8_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_neo_ark_shrine_80183698[1] = {
-    { NULL, D_neo_ark_shrine_801831FC, D_neo_ark_shrine_80183244, D_neo_ark_shrine_801833D4, D_neo_ark_shrine_80183668, 0, 5000, 4, 3, 4000, 31 },
+    { NULL, _gNeoArkShrineCollision060D8Normals, _gNeoArkShrineCollision060D8Verts, _gNeoArkShrineCollision060D8Faces, _gNeoArkShrineCollision060D8Table, 0, 5000, 4, 3, 4000, 31 },
 };
 
 GpViewRec D_neo_ark_shrine_801836BC[18] = {

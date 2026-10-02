@@ -15,11 +15,11 @@
 
 #include "main/task_types.h"
 
-extern SVECTOR D_dryfield_night_main_street_801833F4[23];
+extern SVECTOR gDryfieldNightMainStreetCollision06F80Normals[23];
 
-extern SVECTOR D_dryfield_night_main_street_801834AC[196];
+extern SVECTOR gDryfieldNightMainStreetCollision06F80Verts[196];
 
-extern WorldCollisionGridFace D_dryfield_night_main_street_80183ACC[89];
+extern WorldCollisionGridFace gDryfieldNightMainStreetCollision06F80Faces[89];
 
 extern WorldCollisionTrigger D_dryfield_night_main_street_8018824C[12];
 

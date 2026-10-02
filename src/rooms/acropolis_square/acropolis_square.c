@@ -372,30 +372,30 @@ GpWarpRec D_acropolis_square_80183BBC[7] = {
     { { .words = { 1024, -6510, -2136, 511 } }, { 0, 0, 0, 0 }, { .words = { 1024, -6510, -2136, 511 } }, { 0, 0, 0, 0 }, 0x51010003, 0x51010002, 0x51010004, 15, 0, 503 },
 };
 
-SVECTOR D_acropolis_square_80183D44[82] = {
+static SVECTOR _gAcropolisSquareCollision07BDCNormals[82] = {
 #include "assets/acropolis_square_collision_07BDC_normals.inc"
 };
 
-SVECTOR D_acropolis_square_80183FD4[262] = {
+static SVECTOR _gAcropolisSquareCollision07BDCVerts[262] = {
 #include "assets/acropolis_square_collision_07BDC_verts.inc"
 };
 
-WorldCollisionGridFace D_acropolis_square_80184804[115] = {
+static WorldCollisionGridFace _gAcropolisSquareCollision07BDCFaces[115] = {
 #include "assets/acropolis_square_collision_07BDC_faces.inc"
 };
 
-s16 D_acropolis_square_80184D68[506] = {
+static s16 _gAcropolisSquareCollision07BDCCells[506] = {
 #include "assets/acropolis_square_collision_07BDC_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_acropolis_square_80184D68[i])
-s16* D_acropolis_square_8018515C[16] = {
+#define GRID_CELL(i) (&_gAcropolisSquareCollision07BDCCells[i])
+static s16* _gAcropolisSquareCollision07BDCTable[16] = {
 #include "assets/acropolis_square_collision_07BDC_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_acropolis_square_8018519C[1] = {
-    { NULL, D_acropolis_square_80183D44, D_acropolis_square_80183FD4, D_acropolis_square_80184804, D_acropolis_square_8018515C, 7000, 8000, 4, 4, 4000, 115 },
+    { NULL, _gAcropolisSquareCollision07BDCNormals, _gAcropolisSquareCollision07BDCVerts, _gAcropolisSquareCollision07BDCFaces, _gAcropolisSquareCollision07BDCTable, 7000, 8000, 4, 4, 4000, 115 },
 };
 
 WorldCollisionTrigger D_acropolis_square_801851C0[16] = {

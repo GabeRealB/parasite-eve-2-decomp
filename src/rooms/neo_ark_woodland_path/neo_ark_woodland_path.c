@@ -92,29 +92,29 @@ GpWarpRec D_neo_ark_woodland_path_8018169C[2] = {
     { { .words = { 0, -5000, 0, -6680 } }, { 0, 0, 0, 0 }, { .words = { 0, -5000, 0, -6680 } }, { 0, 0, 0, 0 }, 0x551D0004, 0x551D0003, 0, 10, 0, 0 },
 };
 
-SVECTOR D_neo_ark_woodland_path_8018170C[17] = {
+static SVECTOR _gNeoArkWoodlandPathCollision0479CNormals[17] = {
 #include "assets/neo_ark_woodland_path_collision_0479C_normals.inc"
 };
 
-SVECTOR D_neo_ark_woodland_path_80181794[75] = {
+static SVECTOR _gNeoArkWoodlandPathCollision0479CVerts[75] = {
 #include "assets/neo_ark_woodland_path_collision_0479C_verts.inc"
 };
 
-WorldCollisionGridFace D_neo_ark_woodland_path_801819EC[35] = {
+static WorldCollisionGridFace _gNeoArkWoodlandPathCollision0479CFaces[35] = {
 #include "assets/neo_ark_woodland_path_collision_0479C_faces.inc"
 };
 
-s16 D_neo_ark_woodland_path_80181B90[190] = {
+static s16 _gNeoArkWoodlandPathCollision0479CCells[190] = {
 #include "assets/neo_ark_woodland_path_collision_0479C_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_neo_ark_woodland_path_80181B90[i])
-s16* D_neo_ark_woodland_path_80181D0C[20] = {
+#define GRID_CELL(i) (&_gNeoArkWoodlandPathCollision0479CCells[i])
+static s16* _gNeoArkWoodlandPathCollision0479CTable[20] = {
 #include "assets/neo_ark_woodland_path_collision_0479C_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_neo_ark_woodland_path_80181D5C = { NULL, D_neo_ark_woodland_path_8018170C, D_neo_ark_woodland_path_80181794, D_neo_ark_woodland_path_801819EC, D_neo_ark_woodland_path_80181D0C, 7600, 7000, 4, 5, 4000, 35 };
+WorldCollisionGrid D_neo_ark_woodland_path_80181D5C = { NULL, _gNeoArkWoodlandPathCollision0479CNormals, _gNeoArkWoodlandPathCollision0479CVerts, _gNeoArkWoodlandPathCollision0479CFaces, _gNeoArkWoodlandPathCollision0479CTable, 7600, 7000, 4, 5, 4000, 35 };
 
 GpViewRec D_neo_ark_woodland_path_80181D80[10] = {
     { { { { 4095, 0, 0 }, { 0, 0, -4096 }, { 0, 4095, 0 } }, { 1610, 0x7530, -1510 } }, 329 },

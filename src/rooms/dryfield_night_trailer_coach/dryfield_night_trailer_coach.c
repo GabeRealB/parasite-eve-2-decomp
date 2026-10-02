@@ -162,17 +162,17 @@ s32 func_dryfield_night_trailer_coach_80182808(s32, s32, s32);
 void func_dryfield_night_trailer_coach_8018243C(Task*);
 
 extern AnimationPlayRequest D_dryfield_night_trailer_coach_80187A20;
-extern AnimationSet         D_dryfield_night_trailer_coach_80185398;
-extern AnimationSet         D_dryfield_night_trailer_coach_80185590;
-extern AnimationSet         D_dryfield_night_trailer_coach_801858E4;
-extern AnimationSet         D_dryfield_night_trailer_coach_80185ADC;
-extern AnimationSet         D_dryfield_night_trailer_coach_80185DE0;
-extern AnimationSet         D_dryfield_night_trailer_coach_80186208;
-extern AnimationSet         D_dryfield_night_trailer_coach_80186844;
-extern AnimationSet         D_dryfield_night_trailer_coach_80186B5C;
-extern AnimationSet         D_dryfield_night_trailer_coach_80186E88;
-extern AnimationSet         D_dryfield_night_trailer_coach_801873D0;
-extern AnimationSet         D_dryfield_night_trailer_coach_80187924;
+static AnimationSet         _gDryfieldNightTrailerCoachAnimation07DD8;
+static AnimationSet         _gDryfieldNightTrailerCoachAnimation07FD0;
+static AnimationSet         _gDryfieldNightTrailerCoachAnimation08324;
+static AnimationSet         _gDryfieldNightTrailerCoachAnimation0851C;
+static AnimationSet         _gDryfieldNightTrailerCoachAnimation08820;
+static AnimationSet         _gDryfieldNightTrailerCoachAnimation08C48;
+static AnimationSet         _gDryfieldNightTrailerCoachAnimation09284;
+static AnimationSet         _gDryfieldNightTrailerCoachAnimation0959C;
+static AnimationSet         _gDryfieldNightTrailerCoachAnimation098C8;
+static AnimationSet         _gDryfieldNightTrailerCoachAnimation09E10;
+static AnimationSet         _gDryfieldNightTrailerCoachAnimation0A364;
 
 void func_dryfield_night_trailer_coach_8018283C(void);
 void func_dryfield_night_trailer_coach_80182864(void);
@@ -183,36 +183,36 @@ void func_dryfield_night_trailer_coach_80182864(void);
 
 TaskDesc D_dryfield_night_trailer_coach_801846D0 = { { { TASK_BODY_NONE, 192 } }, Shop_SessionTask, { .value = 0 } };
 
-TmdBone D_dryfield_night_trailer_coach_801846DC[3] = {
+static TmdBone _gDryfieldNightTrailerCoachAcropolisSanctuaryModel090F0Skeleton[3] = {
 #include "assets/acropolis_sanctuary_model_090F0_skeleton.inc"
 };
 
-u32 D_dryfield_night_trailer_coach_80184748[3] = {
+static u32 _gDryfieldNightTrailerCoachAcropolisSanctuaryModel090F0PartVerts[3] = {
 #include "assets/acropolis_sanctuary_model_090F0_partVerts.inc"
 };
 
-SVECTOR D_dryfield_night_trailer_coach_80184754[56] = {
+static SVECTOR _gDryfieldNightTrailerCoachAcropolisSanctuaryModel090F0Verts[56] = {
 #include "assets/acropolis_sanctuary_model_090F0_verts.inc"
 };
 
-SVECTOR D_dryfield_night_trailer_coach_80184914[6] = {
+static SVECTOR _gDryfieldNightTrailerCoachAcropolisSanctuaryModel090F0Normals[6] = {
 #include "assets/acropolis_sanctuary_model_090F0_normals.inc"
 };
 
-u32 D_dryfield_night_trailer_coach_80184944[215] = {
+static u32 _gDryfieldNightTrailerCoachAcropolisSanctuaryModel090F0Stream[215] = {
 #include "assets/acropolis_sanctuary_model_090F0_stream.inc"
 };
 
-TmdSource D_dryfield_night_trailer_coach_80184CA0 = {
+TmdSource gDryfieldNightTrailerCoachAcropolisSanctuaryModel090F0 = {
     0,
     1768,
     0,
     3,
-    D_dryfield_night_trailer_coach_80184748,
-    D_dryfield_night_trailer_coach_80184754,
-    D_dryfield_night_trailer_coach_80184914,
-    D_dryfield_night_trailer_coach_801846DC,
-    D_dryfield_night_trailer_coach_80184944,
+    _gDryfieldNightTrailerCoachAcropolisSanctuaryModel090F0PartVerts,
+    _gDryfieldNightTrailerCoachAcropolisSanctuaryModel090F0Verts,
+    _gDryfieldNightTrailerCoachAcropolisSanctuaryModel090F0Normals,
+    _gDryfieldNightTrailerCoachAcropolisSanctuaryModel090F0Skeleton,
+    _gDryfieldNightTrailerCoachAcropolisSanctuaryModel090F0Stream,
 };
 
 #include "../../shared/telephone_data.inc.c"
@@ -223,246 +223,246 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-AnimationPackedPose D_dryfield_night_trailer_coach_80185008[3] = {
+static AnimationPackedPose _gDryfieldNightTrailerCoachAnimation07DD8Bank1[3] = {
 #include "assets/dryfield_night_trailer_coach_animation_07DD8_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_trailer_coach_8018502C[81] = {
+static AnimationPackedRotation _gDryfieldNightTrailerCoachAnimation07DD8Bank4[81] = {
 #include "assets/dryfield_night_trailer_coach_animation_07DD8_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_trailer_coach_80185170[128] = {
+static AnimationRecord _gDryfieldNightTrailerCoachAnimation07DD8Records[128] = {
 #include "assets/dryfield_night_trailer_coach_animation_07DD8_records.inc"
 };
 
-u16 D_dryfield_night_trailer_coach_80185370[20] = {
+static u16 _gDryfieldNightTrailerCoachAnimation07DD8Indices[20] = {
 #include "assets/dryfield_night_trailer_coach_animation_07DD8_indices.inc"
 };
 
-AnimationSet D_dryfield_night_trailer_coach_80185398 = {
-    D_dryfield_night_trailer_coach_80185170,
-    D_dryfield_night_trailer_coach_80185370,
-    { NULL, D_dryfield_night_trailer_coach_80185008, NULL, NULL, D_dryfield_night_trailer_coach_8018502C, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightTrailerCoachAnimation07DD8 = {
+    _gDryfieldNightTrailerCoachAnimation07DD8Records,
+    _gDryfieldNightTrailerCoachAnimation07DD8Indices,
+    { NULL, _gDryfieldNightTrailerCoachAnimation07DD8Bank1, NULL, NULL, _gDryfieldNightTrailerCoachAnimation07DD8Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_trailer_coach_801853C0[3] = {
+static AnimationPackedPose _gDryfieldNightTrailerCoachAnimation07FD0Bank1[3] = {
 #include "assets/dryfield_night_trailer_coach_animation_07FD0_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_trailer_coach_801853E4[34] = {
+static AnimationPackedRotation _gDryfieldNightTrailerCoachAnimation07FD0Bank4[34] = {
 #include "assets/dryfield_night_trailer_coach_animation_07FD0_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_trailer_coach_8018546C[63] = {
+static AnimationRecord _gDryfieldNightTrailerCoachAnimation07FD0Records[63] = {
 #include "assets/dryfield_night_trailer_coach_animation_07FD0_records.inc"
 };
 
-u16 D_dryfield_night_trailer_coach_80185568[20] = {
+static u16 _gDryfieldNightTrailerCoachAnimation07FD0Indices[20] = {
 #include "assets/dryfield_night_trailer_coach_animation_07FD0_indices.inc"
 };
 
-AnimationSet D_dryfield_night_trailer_coach_80185590 = {
-    D_dryfield_night_trailer_coach_8018546C,
-    D_dryfield_night_trailer_coach_80185568,
-    { NULL, D_dryfield_night_trailer_coach_801853C0, NULL, NULL, D_dryfield_night_trailer_coach_801853E4, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightTrailerCoachAnimation07FD0 = {
+    _gDryfieldNightTrailerCoachAnimation07FD0Records,
+    _gDryfieldNightTrailerCoachAnimation07FD0Indices,
+    { NULL, _gDryfieldNightTrailerCoachAnimation07FD0Bank1, NULL, NULL, _gDryfieldNightTrailerCoachAnimation07FD0Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_trailer_coach_801855B8[5] = {
+static AnimationPackedPose _gDryfieldNightTrailerCoachAnimation08324Bank1[5] = {
 #include "assets/dryfield_night_trailer_coach_animation_08324_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_trailer_coach_801855F4[58] = {
+static AnimationPackedRotation _gDryfieldNightTrailerCoachAnimation08324Bank4[58] = {
 #include "assets/dryfield_night_trailer_coach_animation_08324_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_trailer_coach_801856DC[120] = {
+static AnimationRecord _gDryfieldNightTrailerCoachAnimation08324Records[120] = {
 #include "assets/dryfield_night_trailer_coach_animation_08324_records.inc"
 };
 
-u16 D_dryfield_night_trailer_coach_801858BC[20] = {
+static u16 _gDryfieldNightTrailerCoachAnimation08324Indices[20] = {
 #include "assets/dryfield_night_trailer_coach_animation_08324_indices.inc"
 };
 
-AnimationSet D_dryfield_night_trailer_coach_801858E4 = {
-    D_dryfield_night_trailer_coach_801856DC,
-    D_dryfield_night_trailer_coach_801858BC,
-    { NULL, D_dryfield_night_trailer_coach_801855B8, NULL, NULL, D_dryfield_night_trailer_coach_801855F4, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightTrailerCoachAnimation08324 = {
+    _gDryfieldNightTrailerCoachAnimation08324Records,
+    _gDryfieldNightTrailerCoachAnimation08324Indices,
+    { NULL, _gDryfieldNightTrailerCoachAnimation08324Bank1, NULL, NULL, _gDryfieldNightTrailerCoachAnimation08324Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_trailer_coach_8018590C[3] = {
+static AnimationPackedPose _gDryfieldNightTrailerCoachAnimation0851CBank1[3] = {
 #include "assets/dryfield_night_trailer_coach_animation_0851C_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_trailer_coach_80185930[34] = {
+static AnimationPackedRotation _gDryfieldNightTrailerCoachAnimation0851CBank4[34] = {
 #include "assets/dryfield_night_trailer_coach_animation_0851C_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_trailer_coach_801859B8[63] = {
+static AnimationRecord _gDryfieldNightTrailerCoachAnimation0851CRecords[63] = {
 #include "assets/dryfield_night_trailer_coach_animation_0851C_records.inc"
 };
 
-u16 D_dryfield_night_trailer_coach_80185AB4[20] = {
+static u16 _gDryfieldNightTrailerCoachAnimation0851CIndices[20] = {
 #include "assets/dryfield_night_trailer_coach_animation_0851C_indices.inc"
 };
 
-AnimationSet D_dryfield_night_trailer_coach_80185ADC = {
-    D_dryfield_night_trailer_coach_801859B8,
-    D_dryfield_night_trailer_coach_80185AB4,
-    { NULL, D_dryfield_night_trailer_coach_8018590C, NULL, NULL, D_dryfield_night_trailer_coach_80185930, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightTrailerCoachAnimation0851C = {
+    _gDryfieldNightTrailerCoachAnimation0851CRecords,
+    _gDryfieldNightTrailerCoachAnimation0851CIndices,
+    { NULL, _gDryfieldNightTrailerCoachAnimation0851CBank1, NULL, NULL, _gDryfieldNightTrailerCoachAnimation0851CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_trailer_coach_80185B04[5] = {
+static AnimationPackedPose _gDryfieldNightTrailerCoachAnimation08820Bank1[5] = {
 #include "assets/dryfield_night_trailer_coach_animation_08820_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_trailer_coach_80185B40[55] = {
+static AnimationPackedRotation _gDryfieldNightTrailerCoachAnimation08820Bank4[55] = {
 #include "assets/dryfield_night_trailer_coach_animation_08820_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_trailer_coach_80185C1C[103] = {
+static AnimationRecord _gDryfieldNightTrailerCoachAnimation08820Records[103] = {
 #include "assets/dryfield_night_trailer_coach_animation_08820_records.inc"
 };
 
-u16 D_dryfield_night_trailer_coach_80185DB8[20] = {
+static u16 _gDryfieldNightTrailerCoachAnimation08820Indices[20] = {
 #include "assets/dryfield_night_trailer_coach_animation_08820_indices.inc"
 };
 
-AnimationSet D_dryfield_night_trailer_coach_80185DE0 = {
-    D_dryfield_night_trailer_coach_80185C1C,
-    D_dryfield_night_trailer_coach_80185DB8,
-    { NULL, D_dryfield_night_trailer_coach_80185B04, NULL, NULL, D_dryfield_night_trailer_coach_80185B40, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightTrailerCoachAnimation08820 = {
+    _gDryfieldNightTrailerCoachAnimation08820Records,
+    _gDryfieldNightTrailerCoachAnimation08820Indices,
+    { NULL, _gDryfieldNightTrailerCoachAnimation08820Bank1, NULL, NULL, _gDryfieldNightTrailerCoachAnimation08820Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_trailer_coach_80185E08[5] = {
+static AnimationPackedPose _gDryfieldNightTrailerCoachAnimation08C48Bank1[5] = {
 #include "assets/dryfield_night_trailer_coach_animation_08C48_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_trailer_coach_80185E44[90] = {
+static AnimationPackedRotation _gDryfieldNightTrailerCoachAnimation08C48Bank4[90] = {
 #include "assets/dryfield_night_trailer_coach_animation_08C48_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_trailer_coach_80185FAC[141] = {
+static AnimationRecord _gDryfieldNightTrailerCoachAnimation08C48Records[141] = {
 #include "assets/dryfield_night_trailer_coach_animation_08C48_records.inc"
 };
 
-u16 D_dryfield_night_trailer_coach_801861E0[20] = {
+static u16 _gDryfieldNightTrailerCoachAnimation08C48Indices[20] = {
 #include "assets/dryfield_night_trailer_coach_animation_08C48_indices.inc"
 };
 
-AnimationSet D_dryfield_night_trailer_coach_80186208 = {
-    D_dryfield_night_trailer_coach_80185FAC,
-    D_dryfield_night_trailer_coach_801861E0,
-    { NULL, D_dryfield_night_trailer_coach_80185E08, NULL, NULL, D_dryfield_night_trailer_coach_80185E44, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightTrailerCoachAnimation08C48 = {
+    _gDryfieldNightTrailerCoachAnimation08C48Records,
+    _gDryfieldNightTrailerCoachAnimation08C48Indices,
+    { NULL, _gDryfieldNightTrailerCoachAnimation08C48Bank1, NULL, NULL, _gDryfieldNightTrailerCoachAnimation08C48Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_trailer_coach_80186230[14] = {
+static AnimationPackedPose _gDryfieldNightTrailerCoachAnimation09284Bank1[14] = {
 #include "assets/dryfield_night_trailer_coach_animation_09284_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_trailer_coach_801862D8[135] = {
+static AnimationPackedRotation _gDryfieldNightTrailerCoachAnimation09284Bank4[135] = {
 #include "assets/dryfield_night_trailer_coach_animation_09284_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_trailer_coach_801864F4[202] = {
+static AnimationRecord _gDryfieldNightTrailerCoachAnimation09284Records[202] = {
 #include "assets/dryfield_night_trailer_coach_animation_09284_records.inc"
 };
 
-u16 D_dryfield_night_trailer_coach_8018681C[20] = {
+static u16 _gDryfieldNightTrailerCoachAnimation09284Indices[20] = {
 #include "assets/dryfield_night_trailer_coach_animation_09284_indices.inc"
 };
 
-AnimationSet D_dryfield_night_trailer_coach_80186844 = {
-    D_dryfield_night_trailer_coach_801864F4,
-    D_dryfield_night_trailer_coach_8018681C,
-    { NULL, D_dryfield_night_trailer_coach_80186230, NULL, NULL, D_dryfield_night_trailer_coach_801862D8, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightTrailerCoachAnimation09284 = {
+    _gDryfieldNightTrailerCoachAnimation09284Records,
+    _gDryfieldNightTrailerCoachAnimation09284Indices,
+    { NULL, _gDryfieldNightTrailerCoachAnimation09284Bank1, NULL, NULL, _gDryfieldNightTrailerCoachAnimation09284Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_trailer_coach_8018686C[7] = {
+static AnimationPackedPose _gDryfieldNightTrailerCoachAnimation0959CBank1[7] = {
 #include "assets/dryfield_night_trailer_coach_animation_0959C_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_trailer_coach_801868C0[54] = {
+static AnimationPackedRotation _gDryfieldNightTrailerCoachAnimation0959CBank4[54] = {
 #include "assets/dryfield_night_trailer_coach_animation_0959C_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_trailer_coach_80186998[103] = {
+static AnimationRecord _gDryfieldNightTrailerCoachAnimation0959CRecords[103] = {
 #include "assets/dryfield_night_trailer_coach_animation_0959C_records.inc"
 };
 
-u16 D_dryfield_night_trailer_coach_80186B34[20] = {
+static u16 _gDryfieldNightTrailerCoachAnimation0959CIndices[20] = {
 #include "assets/dryfield_night_trailer_coach_animation_0959C_indices.inc"
 };
 
-AnimationSet D_dryfield_night_trailer_coach_80186B5C = {
-    D_dryfield_night_trailer_coach_80186998,
-    D_dryfield_night_trailer_coach_80186B34,
-    { NULL, D_dryfield_night_trailer_coach_8018686C, NULL, NULL, D_dryfield_night_trailer_coach_801868C0, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightTrailerCoachAnimation0959C = {
+    _gDryfieldNightTrailerCoachAnimation0959CRecords,
+    _gDryfieldNightTrailerCoachAnimation0959CIndices,
+    { NULL, _gDryfieldNightTrailerCoachAnimation0959CBank1, NULL, NULL, _gDryfieldNightTrailerCoachAnimation0959CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_trailer_coach_80186B84[7] = {
+static AnimationPackedPose _gDryfieldNightTrailerCoachAnimation098C8Bank1[7] = {
 #include "assets/dryfield_night_trailer_coach_animation_098C8_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_trailer_coach_80186BD8[56] = {
+static AnimationPackedRotation _gDryfieldNightTrailerCoachAnimation098C8Bank4[56] = {
 #include "assets/dryfield_night_trailer_coach_animation_098C8_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_trailer_coach_80186CB8[106] = {
+static AnimationRecord _gDryfieldNightTrailerCoachAnimation098C8Records[106] = {
 #include "assets/dryfield_night_trailer_coach_animation_098C8_records.inc"
 };
 
-u16 D_dryfield_night_trailer_coach_80186E60[20] = {
+static u16 _gDryfieldNightTrailerCoachAnimation098C8Indices[20] = {
 #include "assets/dryfield_night_trailer_coach_animation_098C8_indices.inc"
 };
 
-AnimationSet D_dryfield_night_trailer_coach_80186E88 = {
-    D_dryfield_night_trailer_coach_80186CB8,
-    D_dryfield_night_trailer_coach_80186E60,
-    { NULL, D_dryfield_night_trailer_coach_80186B84, NULL, NULL, D_dryfield_night_trailer_coach_80186BD8, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightTrailerCoachAnimation098C8 = {
+    _gDryfieldNightTrailerCoachAnimation098C8Records,
+    _gDryfieldNightTrailerCoachAnimation098C8Indices,
+    { NULL, _gDryfieldNightTrailerCoachAnimation098C8Bank1, NULL, NULL, _gDryfieldNightTrailerCoachAnimation098C8Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_trailer_coach_80186EB0[8] = {
+static AnimationPackedPose _gDryfieldNightTrailerCoachAnimation09E10Bank1[8] = {
 #include "assets/dryfield_night_trailer_coach_animation_09E10_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_trailer_coach_80186F10[121] = {
+static AnimationPackedRotation _gDryfieldNightTrailerCoachAnimation09E10Bank4[121] = {
 #include "assets/dryfield_night_trailer_coach_animation_09E10_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_trailer_coach_801870F4[173] = {
+static AnimationRecord _gDryfieldNightTrailerCoachAnimation09E10Records[173] = {
 #include "assets/dryfield_night_trailer_coach_animation_09E10_records.inc"
 };
 
-u16 D_dryfield_night_trailer_coach_801873A8[20] = {
+static u16 _gDryfieldNightTrailerCoachAnimation09E10Indices[20] = {
 #include "assets/dryfield_night_trailer_coach_animation_09E10_indices.inc"
 };
 
-AnimationSet D_dryfield_night_trailer_coach_801873D0 = {
-    D_dryfield_night_trailer_coach_801870F4,
-    D_dryfield_night_trailer_coach_801873A8,
-    { NULL, D_dryfield_night_trailer_coach_80186EB0, NULL, NULL, D_dryfield_night_trailer_coach_80186F10, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightTrailerCoachAnimation09E10 = {
+    _gDryfieldNightTrailerCoachAnimation09E10Records,
+    _gDryfieldNightTrailerCoachAnimation09E10Indices,
+    { NULL, _gDryfieldNightTrailerCoachAnimation09E10Bank1, NULL, NULL, _gDryfieldNightTrailerCoachAnimation09E10Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_night_trailer_coach_801873F8[9] = {
+static AnimationPackedPose _gDryfieldNightTrailerCoachAnimation0A364Bank1[9] = {
 #include "assets/dryfield_night_trailer_coach_animation_0A364_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_night_trailer_coach_80187464[106] = {
+static AnimationPackedRotation _gDryfieldNightTrailerCoachAnimation0A364Bank4[106] = {
 #include "assets/dryfield_night_trailer_coach_animation_0A364_bank4.inc"
 };
 
-AnimationRecord D_dryfield_night_trailer_coach_8018760C[188] = {
+static AnimationRecord _gDryfieldNightTrailerCoachAnimation0A364Records[188] = {
 #include "assets/dryfield_night_trailer_coach_animation_0A364_records.inc"
 };
 
-u16 D_dryfield_night_trailer_coach_801878FC[20] = {
+static u16 _gDryfieldNightTrailerCoachAnimation0A364Indices[20] = {
 #include "assets/dryfield_night_trailer_coach_animation_0A364_indices.inc"
 };
 
-AnimationSet D_dryfield_night_trailer_coach_80187924 = {
-    D_dryfield_night_trailer_coach_8018760C,
-    D_dryfield_night_trailer_coach_801878FC,
-    { NULL, D_dryfield_night_trailer_coach_801873F8, NULL, NULL, D_dryfield_night_trailer_coach_80187464, NULL, NULL, NULL },
+static AnimationSet _gDryfieldNightTrailerCoachAnimation0A364 = {
+    _gDryfieldNightTrailerCoachAnimation0A364Records,
+    _gDryfieldNightTrailerCoachAnimation0A364Indices,
+    { NULL, _gDryfieldNightTrailerCoachAnimation0A364Bank1, NULL, NULL, _gDryfieldNightTrailerCoachAnimation0A364Bank4, NULL, NULL, NULL },
 };
 
 DryfieldNightTrailerCoachMessageEntry D_dryfield_night_trailer_coach_8018794C[6] = {
@@ -558,17 +558,17 @@ AnimationPlayRequest D_dryfield_night_trailer_coach_80187C8C = { { .index = 2 },
 AnimationPlayRequest D_dryfield_night_trailer_coach_80187CA0 = { { .index = 2 }, 3, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 AnimationSet* D_dryfield_night_trailer_coach_80187CB4[12] = {
-    &D_dryfield_night_trailer_coach_801873D0,
-    &D_dryfield_night_trailer_coach_80186208,
-    &D_dryfield_night_trailer_coach_80185590,
-    &D_dryfield_night_trailer_coach_801858E4,
-    &D_dryfield_night_trailer_coach_80185ADC,
-    &D_dryfield_night_trailer_coach_80187924,
-    &D_dryfield_night_trailer_coach_80185DE0,
-    &D_dryfield_night_trailer_coach_80185398,
-    &D_dryfield_night_trailer_coach_80186844,
-    &D_dryfield_night_trailer_coach_80186B5C,
-    &D_dryfield_night_trailer_coach_80186E88,
+    &_gDryfieldNightTrailerCoachAnimation09E10,
+    &_gDryfieldNightTrailerCoachAnimation08C48,
+    &_gDryfieldNightTrailerCoachAnimation07FD0,
+    &_gDryfieldNightTrailerCoachAnimation08324,
+    &_gDryfieldNightTrailerCoachAnimation0851C,
+    &_gDryfieldNightTrailerCoachAnimation0A364,
+    &_gDryfieldNightTrailerCoachAnimation08820,
+    &_gDryfieldNightTrailerCoachAnimation07DD8,
+    &_gDryfieldNightTrailerCoachAnimation09284,
+    &_gDryfieldNightTrailerCoachAnimation0959C,
+    &_gDryfieldNightTrailerCoachAnimation098C8,
     NULL,
 };
 

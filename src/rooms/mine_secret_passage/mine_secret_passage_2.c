@@ -151,30 +151,30 @@ GpWarpRec D_mine_secret_passage_80180FBC[2] = {
     { { .words = { 3072, 0x5014, 0, 3900 } }, { 0, 0, 0, 0 }, { .words = { 3072, 0x5014, 0, 3900 } }, { 0, 0, 0, 0 }, 0x54080004, 0x54080003, 0, 6, 2, 0 },
 };
 
-SVECTOR D_mine_secret_passage_8018102C[21] = {
+static SVECTOR _gMineSecretPassageCollision04020Normals[21] = {
 #include "assets/mine_secret_passage_collision_04020_normals.inc"
 };
 
-SVECTOR D_mine_secret_passage_801810D4[66] = {
+static SVECTOR _gMineSecretPassageCollision04020Verts[66] = {
 #include "assets/mine_secret_passage_collision_04020_verts.inc"
 };
 
-WorldCollisionGridFace D_mine_secret_passage_801812E4[27] = {
+static WorldCollisionGridFace _gMineSecretPassageCollision04020Faces[27] = {
 #include "assets/mine_secret_passage_collision_04020_faces.inc"
 };
 
-s16 D_mine_secret_passage_80181428[172] = {
+static s16 _gMineSecretPassageCollision04020Cells[172] = {
 #include "assets/mine_secret_passage_collision_04020_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_mine_secret_passage_80181428[i])
-s16* D_mine_secret_passage_80181580[24] = {
+#define GRID_CELL(i) (&_gMineSecretPassageCollision04020Cells[i])
+static s16* _gMineSecretPassageCollision04020Table[24] = {
 #include "assets/mine_secret_passage_collision_04020_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_mine_secret_passage_801815E0[1] = {
-    { NULL, D_mine_secret_passage_8018102C, D_mine_secret_passage_801810D4, D_mine_secret_passage_801812E4, D_mine_secret_passage_80181580, 1210, -30, 6, 4, 4000, 27 },
+    { NULL, _gMineSecretPassageCollision04020Normals, _gMineSecretPassageCollision04020Verts, _gMineSecretPassageCollision04020Faces, _gMineSecretPassageCollision04020Table, 1210, -30, 6, 4, 4000, 27 },
 };
 
 GpViewRec D_mine_secret_passage_80181604[9] = {

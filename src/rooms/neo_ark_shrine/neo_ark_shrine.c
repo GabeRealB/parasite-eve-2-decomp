@@ -75,60 +75,60 @@ TaskDesc D_neo_ark_shrine_80181E5C[2] = {
 
 s32 D_neo_ark_shrine_80181E74 = 2;
 
-TmdBone D_neo_ark_shrine_80181E78[1] = {
+static TmdBone _gNeoArkShrineModel049E8Skeleton[1] = {
 #include "assets/neo_ark_shrine_model_049E8_skeleton.inc"
 };
 
-u32 D_neo_ark_shrine_80181E9C[1] = {
+static u32 _gNeoArkShrineModel049E8PartVerts[1] = {
 #include "assets/neo_ark_shrine_model_049E8_partVerts.inc"
 };
 
-SVECTOR D_neo_ark_shrine_80181EA0[33] = {
+static SVECTOR _gNeoArkShrineModel049E8Verts[33] = {
 #include "assets/neo_ark_shrine_model_049E8_verts.inc"
 };
 
-u32 D_neo_ark_shrine_80181FA8[106] = {
+static u32 _gNeoArkShrineModel049E8Stream[106] = {
 #include "assets/neo_ark_shrine_model_049E8_stream.inc"
 };
 
-TmdSource D_neo_ark_shrine_80182150 = {
+static TmdSource _gNeoArkShrineModel049E8 = {
     0,
     800,
     0,
     1,
-    D_neo_ark_shrine_80181E9C,
-    D_neo_ark_shrine_80181EA0,
-    &D_neo_ark_shrine_80181EA0[33],
-    D_neo_ark_shrine_80181E78,
-    D_neo_ark_shrine_80181FA8,
+    _gNeoArkShrineModel049E8PartVerts,
+    _gNeoArkShrineModel049E8Verts,
+    &_gNeoArkShrineModel049E8Verts[33],
+    _gNeoArkShrineModel049E8Skeleton,
+    _gNeoArkShrineModel049E8Stream,
 };
 
-TmdBone D_neo_ark_shrine_80182174[1] = {
+static TmdBone _gNeoArkShrineModel04C6CSkeleton[1] = {
 #include "assets/neo_ark_shrine_model_04C6C_skeleton.inc"
 };
 
-u32 D_neo_ark_shrine_80182198[1] = {
+static u32 _gNeoArkShrineModel04C6CPartVerts[1] = {
 #include "assets/neo_ark_shrine_model_04C6C_partVerts.inc"
 };
 
-SVECTOR D_neo_ark_shrine_8018219C[18] = {
+static SVECTOR _gNeoArkShrineModel04C6CVerts[18] = {
 #include "assets/neo_ark_shrine_model_04C6C_verts.inc"
 };
 
-u32 D_neo_ark_shrine_8018222C[109] = {
+static u32 _gNeoArkShrineModel04C6CStream[109] = {
 #include "assets/neo_ark_shrine_model_04C6C_stream.inc"
 };
 
-TmdSource D_neo_ark_shrine_801823E0 = {
+static TmdSource _gNeoArkShrineModel04C6C = {
     0,
     672,
     0,
     1,
-    D_neo_ark_shrine_80182198,
-    D_neo_ark_shrine_8018219C,
-    &D_neo_ark_shrine_8018219C[18],
-    D_neo_ark_shrine_80182174,
-    D_neo_ark_shrine_8018222C,
+    _gNeoArkShrineModel04C6CPartVerts,
+    _gNeoArkShrineModel04C6CVerts,
+    &_gNeoArkShrineModel04C6CVerts[18],
+    _gNeoArkShrineModel04C6CSkeleton,
+    _gNeoArkShrineModel04C6CStream,
 };
 
 TaskDesc D_neo_ark_shrine_80182404[1] = {
@@ -177,8 +177,8 @@ OverlayHotspot D_neo_ark_shrine_80182430[18] = {
 
 TaskDesc D_neo_ark_shrine_80182508[3] = {
     { { { TASK_BODY_NONE, 192 } }, func_neo_ark_shrine_8017EAE0, { .value = 0 } },
-    { { { TASK_BODY_TMD, 192 } }, func_neo_ark_shrine_8017EB54, { .model = &D_neo_ark_shrine_80182150 } },
-    { { { TASK_BODY_TMD, 192 } }, func_neo_ark_shrine_8017EBB8, { .model = &D_neo_ark_shrine_801823E0 } },
+    { { { TASK_BODY_TMD, 192 } }, func_neo_ark_shrine_8017EB54, { .model = &_gNeoArkShrineModel049E8 } },
+    { { { TASK_BODY_TMD, 192 } }, func_neo_ark_shrine_8017EBB8, { .model = &_gNeoArkShrineModel04C6C } },
 };
 
 NeoArkShrineSlot D_neo_ark_shrine_8018252C[16] = {

@@ -80,26 +80,26 @@ s32                          func_dryfield_driveway_8017DDB8(Task*, s32, s32, s3
 void                         func_dryfield_driveway_8017DC48(s32);
 void                         func_dryfield_driveway_8017DC64(u8);
 
-AnimationPackedPose D_dryfield_driveway_8017DE80[10] = {
+static AnimationPackedPose _gDryfieldDrivewayAnimation00D08Bank1[10] = {
 #include "assets/dryfield_driveway_animation_00D08_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_driveway_8017DEF8[95] = {
+static AnimationPackedRotation _gDryfieldDrivewayAnimation00D08Bank4[95] = {
 #include "assets/dryfield_driveway_animation_00D08_bank4.inc"
 };
 
-AnimationRecord D_dryfield_driveway_8017E074[139] = {
+static AnimationRecord _gDryfieldDrivewayAnimation00D08Records[139] = {
 #include "assets/dryfield_driveway_animation_00D08_records.inc"
 };
 
-u16 D_dryfield_driveway_8017E2A0[20] = {
+static u16 _gDryfieldDrivewayAnimation00D08Indices[20] = {
 #include "assets/dryfield_driveway_animation_00D08_indices.inc"
 };
 
-AnimationSet D_dryfield_driveway_8017E2C8 = {
-    D_dryfield_driveway_8017E074,
-    D_dryfield_driveway_8017E2A0,
-    { NULL, D_dryfield_driveway_8017DE80, NULL, NULL, D_dryfield_driveway_8017DEF8, NULL, NULL, NULL },
+static AnimationSet _gDryfieldDrivewayAnimation00D08 = {
+    _gDryfieldDrivewayAnimation00D08Records,
+    _gDryfieldDrivewayAnimation00D08Indices,
+    { NULL, _gDryfieldDrivewayAnimation00D08Bank1, NULL, NULL, _gDryfieldDrivewayAnimation00D08Bank4, NULL, NULL, NULL },
 };
 
 TaskDesc gRoomEventStagedTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
@@ -111,7 +111,7 @@ TaskDesc gDrivewayCutsceneTasks[3] = {
 };
 
 AnimationSet* D_dryfield_driveway_8017E320[2] = {
-    &D_dryfield_driveway_8017E2C8,
+    &_gDryfieldDrivewayAnimation00D08,
     NULL,
 };
 
@@ -223,30 +223,30 @@ GpWarpRec D_dryfield_driveway_8017E7C8[3] = {
     { { .words = { 1024, -9500, 4, -1418 } }, { 0, 0, 0, 0 }, { .words = { 1024, 200, 0, 1650 } }, { 0, 0, 0, 0 }, 0x52190002, 0x52190001, 0, 2, 0, 482 },
 };
 
-SVECTOR D_dryfield_driveway_8017E870[13] = {
+static SVECTOR _gDryfieldDrivewayCollision017B4Normals[13] = {
 #include "assets/dryfield_driveway_collision_017B4_normals.inc"
 };
 
-SVECTOR D_dryfield_driveway_8017E8D8[64] = {
+static SVECTOR _gDryfieldDrivewayCollision017B4Verts[64] = {
 #include "assets/dryfield_driveway_collision_017B4_verts.inc"
 };
 
-WorldCollisionGridFace D_dryfield_driveway_8017EAD8[23] = {
+static WorldCollisionGridFace _gDryfieldDrivewayCollision017B4Faces[23] = {
 #include "assets/dryfield_driveway_collision_017B4_faces.inc"
 };
 
-s16 D_dryfield_driveway_8017EBEC[154] = {
+static s16 _gDryfieldDrivewayCollision017B4Cells[154] = {
 #include "assets/dryfield_driveway_collision_017B4_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_dryfield_driveway_8017EBEC[i])
-s16* D_dryfield_driveway_8017ED20[21] = {
+#define GRID_CELL(i) (&_gDryfieldDrivewayCollision017B4Cells[i])
+static s16* _gDryfieldDrivewayCollision017B4Table[21] = {
 #include "assets/dryfield_driveway_collision_017B4_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_dryfield_driveway_8017ED74[1] = {
-    { NULL, D_dryfield_driveway_8017E870, D_dryfield_driveway_8017E8D8, D_dryfield_driveway_8017EAD8, D_dryfield_driveway_8017ED20, 0x2B16, 5210, 7, 3, 4000, 23 },
+    { NULL, _gDryfieldDrivewayCollision017B4Normals, _gDryfieldDrivewayCollision017B4Verts, _gDryfieldDrivewayCollision017B4Faces, _gDryfieldDrivewayCollision017B4Table, 0x2B16, 5210, 7, 3, 4000, 23 },
 };
 
 AreaResource D_dryfield_driveway_8017ED98[2] = {

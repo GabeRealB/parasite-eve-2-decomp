@@ -115,99 +115,99 @@ TaskDesc D_dryfield_gas_station_80181E7C[3] = {
     { { { TASK_BODY_NONE, 192 } }, screenFadeInTask, { .value = 0 } },
 };
 
-AnimationPackedPose D_dryfield_gas_station_80181EA0[2] = {
+static AnimationPackedPose _gDryfieldGasStationAnimation04A70Bank1[2] = {
 #include "assets/dryfield_gas_station_animation_04A70_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_gas_station_80181EB8[8] = {
+static AnimationPackedRotation _gDryfieldGasStationAnimation04A70Bank4[8] = {
 #include "assets/dryfield_gas_station_animation_04A70_bank4.inc"
 };
 
-AnimationRecord D_dryfield_gas_station_80181ED8[76] = {
+static AnimationRecord _gDryfieldGasStationAnimation04A70Records[76] = {
 #include "assets/dryfield_gas_station_animation_04A70_records.inc"
 };
 
-u16 D_dryfield_gas_station_80182008[20] = {
+static u16 _gDryfieldGasStationAnimation04A70Indices[20] = {
 #include "assets/dryfield_gas_station_animation_04A70_indices.inc"
 };
 
-AnimationSet D_dryfield_gas_station_80182030 = {
-    D_dryfield_gas_station_80181ED8,
-    D_dryfield_gas_station_80182008,
-    { NULL, D_dryfield_gas_station_80181EA0, NULL, NULL, D_dryfield_gas_station_80181EB8, NULL, NULL, NULL },
+static AnimationSet _gDryfieldGasStationAnimation04A70 = {
+    _gDryfieldGasStationAnimation04A70Records,
+    _gDryfieldGasStationAnimation04A70Indices,
+    { NULL, _gDryfieldGasStationAnimation04A70Bank1, NULL, NULL, _gDryfieldGasStationAnimation04A70Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_gas_station_80182058[13] = {
+static AnimationPackedPose _gDryfieldGasStationAnimation05210Bank1[13] = {
 #include "assets/dryfield_gas_station_animation_05210_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_gas_station_801820F4[179] = {
+static AnimationPackedRotation _gDryfieldGasStationAnimation05210Bank4[179] = {
 #include "assets/dryfield_gas_station_animation_05210_bank4.inc"
 };
 
-AnimationRecord D_dryfield_gas_station_801823C0[250] = {
+static AnimationRecord _gDryfieldGasStationAnimation05210Records[250] = {
 #include "assets/dryfield_gas_station_animation_05210_records.inc"
 };
 
-u16 D_dryfield_gas_station_801827A8[20] = {
+static u16 _gDryfieldGasStationAnimation05210Indices[20] = {
 #include "assets/dryfield_gas_station_animation_05210_indices.inc"
 };
 
-AnimationSet D_dryfield_gas_station_801827D0 = {
-    D_dryfield_gas_station_801823C0,
-    D_dryfield_gas_station_801827A8,
-    { NULL, D_dryfield_gas_station_80182058, NULL, NULL, D_dryfield_gas_station_801820F4, NULL, NULL, NULL },
+static AnimationSet _gDryfieldGasStationAnimation05210 = {
+    _gDryfieldGasStationAnimation05210Records,
+    _gDryfieldGasStationAnimation05210Indices,
+    { NULL, _gDryfieldGasStationAnimation05210Bank1, NULL, NULL, _gDryfieldGasStationAnimation05210Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_gas_station_801827F8[7] = {
+static AnimationPackedPose _gDryfieldGasStationAnimation055A4Bank1[7] = {
 #include "assets/dryfield_gas_station_animation_055A4_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_gas_station_8018284C[65] = {
+static AnimationPackedRotation _gDryfieldGasStationAnimation055A4Bank4[65] = {
 #include "assets/dryfield_gas_station_animation_055A4_bank4.inc"
 };
 
-AnimationRecord D_dryfield_gas_station_80182950[123] = {
+static AnimationRecord _gDryfieldGasStationAnimation055A4Records[123] = {
 #include "assets/dryfield_gas_station_animation_055A4_records.inc"
 };
 
-u16 D_dryfield_gas_station_80182B3C[20] = {
+static u16 _gDryfieldGasStationAnimation055A4Indices[20] = {
 #include "assets/dryfield_gas_station_animation_055A4_indices.inc"
 };
 
-AnimationSet D_dryfield_gas_station_80182B64 = {
-    D_dryfield_gas_station_80182950,
-    D_dryfield_gas_station_80182B3C,
-    { NULL, D_dryfield_gas_station_801827F8, NULL, NULL, D_dryfield_gas_station_8018284C, NULL, NULL, NULL },
+static AnimationSet _gDryfieldGasStationAnimation055A4 = {
+    _gDryfieldGasStationAnimation055A4Records,
+    _gDryfieldGasStationAnimation055A4Indices,
+    { NULL, _gDryfieldGasStationAnimation055A4Bank1, NULL, NULL, _gDryfieldGasStationAnimation055A4Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_gas_station_80182B8C[2] = {
+static AnimationPackedPose _gDryfieldGasStationAnimation05848Bank1[2] = {
 #include "assets/dryfield_gas_station_animation_05848_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_gas_station_80182BA4[48] = {
+static AnimationPackedRotation _gDryfieldGasStationAnimation05848Bank4[48] = {
 #include "assets/dryfield_gas_station_animation_05848_bank4.inc"
 };
 
-AnimationRecord D_dryfield_gas_station_80182C64[95] = {
+static AnimationRecord _gDryfieldGasStationAnimation05848Records[95] = {
 #include "assets/dryfield_gas_station_animation_05848_records.inc"
 };
 
-u16 D_dryfield_gas_station_80182DE0[20] = {
+static u16 _gDryfieldGasStationAnimation05848Indices[20] = {
 #include "assets/dryfield_gas_station_animation_05848_indices.inc"
 };
 
-AnimationSet D_dryfield_gas_station_80182E08 = {
-    D_dryfield_gas_station_80182C64,
-    D_dryfield_gas_station_80182DE0,
-    { NULL, D_dryfield_gas_station_80182B8C, NULL, NULL, D_dryfield_gas_station_80182BA4, NULL, NULL, NULL },
+static AnimationSet _gDryfieldGasStationAnimation05848 = {
+    _gDryfieldGasStationAnimation05848Records,
+    _gDryfieldGasStationAnimation05848Indices,
+    { NULL, _gDryfieldGasStationAnimation05848Bank1, NULL, NULL, _gDryfieldGasStationAnimation05848Bank4, NULL, NULL, NULL },
 };
 
 AnimationSet* D_dryfield_gas_station_80182E30[5] = {
-    &D_dryfield_gas_station_80182030,
-    &D_dryfield_gas_station_80182B64,
-    &D_dryfield_gas_station_80182E08,
-    &D_dryfield_gas_station_801827D0,
+    &_gDryfieldGasStationAnimation04A70,
+    &_gDryfieldGasStationAnimation055A4,
+    &_gDryfieldGasStationAnimation05848,
+    &_gDryfieldGasStationAnimation05210,
     NULL,
 };
 
@@ -280,30 +280,30 @@ GpWarpRec D_dryfield_gas_station_8018316C[3] = {
     { { .words = { 2048, 3039, 0, -433 } }, { 0, 0, 0, 0 }, { .words = { 2048, 4316, 0, -535 } }, { 0, 0, 0, 0 }, 0x52010004, 0x52010003, 0x5201000F, 6, 0, 489 },
 };
 
-SVECTOR D_dryfield_gas_station_80183214[32] = {
+static SVECTOR _gDryfieldGasStationCollision068E4Normals[32] = {
 #include "assets/dryfield_gas_station_collision_068E4_normals.inc"
 };
 
-SVECTOR D_dryfield_gas_station_80183314[126] = {
+static SVECTOR _gDryfieldGasStationCollision068E4Verts[126] = {
 #include "assets/dryfield_gas_station_collision_068E4_verts.inc"
 };
 
-WorldCollisionGridFace D_dryfield_gas_station_80183704[63] = {
+static WorldCollisionGridFace _gDryfieldGasStationCollision068E4Faces[63] = {
 #include "assets/dryfield_gas_station_collision_068E4_faces.inc"
 };
 
-s16 D_dryfield_gas_station_801839F8[502] = {
+static s16 _gDryfieldGasStationCollision068E4Cells[502] = {
 #include "assets/dryfield_gas_station_collision_068E4_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_dryfield_gas_station_801839F8[i])
-s16* D_dryfield_gas_station_80183DE4[48] = {
+#define GRID_CELL(i) (&_gDryfieldGasStationCollision068E4Cells[i])
+static s16* _gDryfieldGasStationCollision068E4Table[48] = {
 #include "assets/dryfield_gas_station_collision_068E4_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_dryfield_gas_station_80183EA4[1] = {
-    { NULL, D_dryfield_gas_station_80183214, D_dryfield_gas_station_80183314, D_dryfield_gas_station_80183704, D_dryfield_gas_station_80183DE4, 5300, 0x3A98, 8, 6, 4000, 63 },
+    { NULL, _gDryfieldGasStationCollision068E4Normals, _gDryfieldGasStationCollision068E4Verts, _gDryfieldGasStationCollision068E4Faces, _gDryfieldGasStationCollision068E4Table, 5300, 0x3A98, 8, 6, 4000, 63 },
 };
 
 GpViewRec D_dryfield_gas_station_80183EC8[14] = {

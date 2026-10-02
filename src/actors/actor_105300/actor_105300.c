@@ -74,10 +74,10 @@ extern GeneratorClip gGeneratorHitPulse[];
 extern s16           gGeneratorPoseStartFrames[];
 extern s16           gGeneratorReleaseIds[];
 
-extern AnimationSet D_actor_105300_8013C9D0;
-extern AnimationSet D_actor_105300_8013CE8C;
-extern AnimationSet D_actor_105300_8013D368;
-extern TmdSource    D_actor_105300_8013C794;
+static AnimationSet _gActor105300Animation0ABB0;
+static AnimationSet _gActor105300Animation0B06C;
+static AnimationSet _gActor105300Animation0B548;
+static TmdSource    _gActor105300BetaGeneratorBody;
 
 GeneratorMsgEntry gGeneratorMessages[3] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = generatorSetReleaseBits } },
@@ -112,102 +112,102 @@ SVECTOR gGeneratorHitEffectOffsets[2] = {
     { 0, -1000, 1600, 0 },
 };
 
-TmdBone D_actor_105300_80133A50[10] = {
+static TmdBone _gActor105300BetaGeneratorBodySkeleton[10] = {
 #include "assets/beta_generator_body_skeleton.inc"
 };
 
-u32 D_actor_105300_80133BB8[10] = {
+static u32 _gActor105300BetaGeneratorBodyPartVerts[10] = {
 #include "assets/beta_generator_body_partVerts.inc"
 };
 
-SVECTOR D_actor_105300_80133BE0[610] = {
+static SVECTOR _gActor105300BetaGeneratorBodyVerts[610] = {
 #include "assets/beta_generator_body_verts.inc"
 };
 
-SVECTOR D_actor_105300_80134EF0[659] = {
+static SVECTOR _gActor105300BetaGeneratorBodyNormals[659] = {
 #include "assets/beta_generator_body_normals.inc"
 };
 
-u32 D_actor_105300_80136388[6403] = {
+static u32 _gActor105300BetaGeneratorBodyStream[6403] = {
 #include "assets/beta_generator_body_stream.inc"
 };
 
-TmdSource D_actor_105300_8013C794 = {
+static TmdSource _gActor105300BetaGeneratorBody = {
     0,
     37792,
     7664,
     10,
-    D_actor_105300_80133BB8,
-    D_actor_105300_80133BE0,
-    D_actor_105300_80134EF0,
-    D_actor_105300_80133A50,
-    D_actor_105300_80136388,
+    _gActor105300BetaGeneratorBodyPartVerts,
+    _gActor105300BetaGeneratorBodyVerts,
+    _gActor105300BetaGeneratorBodyNormals,
+    _gActor105300BetaGeneratorBodySkeleton,
+    _gActor105300BetaGeneratorBodyStream,
 };
 
-AnimationPackedPose D_actor_105300_8013C7B8[5] = {
+static AnimationPackedPose _gActor105300Animation0ABB0Bank1[5] = {
 #include "assets/actor_105300_animation_0ABB0_bank1.inc"
 };
 
-AnimationPackedRotation D_actor_105300_8013C7F4[25] = {
+static AnimationPackedRotation _gActor105300Animation0ABB0Bank4[25] = {
 #include "assets/actor_105300_animation_0ABB0_bank4.inc"
 };
 
-AnimationRecord D_actor_105300_8013C858[89] = {
+static AnimationRecord _gActor105300Animation0ABB0Records[89] = {
 #include "assets/actor_105300_animation_0ABB0_records.inc"
 };
 
-u16 D_actor_105300_8013C9BC[10] = {
+static u16 _gActor105300Animation0ABB0Indices[10] = {
 #include "assets/actor_105300_animation_0ABB0_indices.inc"
 };
 
-AnimationSet D_actor_105300_8013C9D0 = {
-    D_actor_105300_8013C858,
-    D_actor_105300_8013C9BC,
-    { NULL, D_actor_105300_8013C7B8, NULL, NULL, D_actor_105300_8013C7F4, NULL, NULL, NULL },
+static AnimationSet _gActor105300Animation0ABB0 = {
+    _gActor105300Animation0ABB0Records,
+    _gActor105300Animation0ABB0Indices,
+    { NULL, _gActor105300Animation0ABB0Bank1, NULL, NULL, _gActor105300Animation0ABB0Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_actor_105300_8013C9F8[4] = {
+static AnimationPackedPose _gActor105300Animation0B06CBank1[4] = {
 #include "assets/actor_105300_animation_0B06C_bank1.inc"
 };
 
-AnimationPackedRotation D_actor_105300_8013CA28[120] = {
+static AnimationPackedRotation _gActor105300Animation0B06CBank4[120] = {
 #include "assets/actor_105300_animation_0B06C_bank4.inc"
 };
 
-AnimationRecord D_actor_105300_8013CC08[156] = {
+static AnimationRecord _gActor105300Animation0B06CRecords[156] = {
 #include "assets/actor_105300_animation_0B06C_records.inc"
 };
 
-u16 D_actor_105300_8013CE78[10] = {
+static u16 _gActor105300Animation0B06CIndices[10] = {
 #include "assets/actor_105300_animation_0B06C_indices.inc"
 };
 
-AnimationSet D_actor_105300_8013CE8C = {
-    D_actor_105300_8013CC08,
-    D_actor_105300_8013CE78,
-    { NULL, D_actor_105300_8013C9F8, NULL, NULL, D_actor_105300_8013CA28, NULL, NULL, NULL },
+static AnimationSet _gActor105300Animation0B06C = {
+    _gActor105300Animation0B06CRecords,
+    _gActor105300Animation0B06CIndices,
+    { NULL, _gActor105300Animation0B06CBank1, NULL, NULL, _gActor105300Animation0B06CBank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_actor_105300_8013CEB4[4] = {
+static AnimationPackedPose _gActor105300Animation0B548Bank1[4] = {
 #include "assets/actor_105300_animation_0B548_bank1.inc"
 };
 
-AnimationPackedRotation D_actor_105300_8013CEE4[124] = {
+static AnimationPackedRotation _gActor105300Animation0B548Bank4[124] = {
 #include "assets/actor_105300_animation_0B548_bank4.inc"
 };
 
-AnimationRecord D_actor_105300_8013D0D4[160] = {
+static AnimationRecord _gActor105300Animation0B548Records[160] = {
 #include "assets/actor_105300_animation_0B548_records.inc"
 };
 
-u16 D_actor_105300_8013D354[10] = {
+static u16 _gActor105300Animation0B548Indices[10] = {
 #include "assets/actor_105300_animation_0B548_indices.inc"
 };
 
-AnimationSet D_actor_105300_8013D368 = {
-    D_actor_105300_8013D0D4,
-    D_actor_105300_8013D354,
-    { NULL, D_actor_105300_8013CEB4, NULL, NULL, D_actor_105300_8013CEE4, NULL, NULL, NULL },
+static AnimationSet _gActor105300Animation0B548 = {
+    _gActor105300Animation0B548Records,
+    _gActor105300Animation0B548Indices,
+    { NULL, _gActor105300Animation0B548Bank1, NULL, NULL, _gActor105300Animation0B548Bank4, NULL, NULL, NULL },
 };
 
 EnemyParams gGeneratorParams = { NULL, 500, 400, 200, 100, 100, 0, 0, 0 };
@@ -248,15 +248,15 @@ GeneratorClip gGeneratorHitPulse[4] = {
 };
 
 TaskDesc gGeneratorTasks[2] = {
-    { { { TASK_BODY_TMD, 96 } }, generatorTask, { .model = &D_actor_105300_8013C794 } },
+    { { { TASK_BODY_TMD, 96 } }, generatorTask, { .model = &_gActor105300BetaGeneratorBody } },
     { { { TASK_BODY_COORD, 96 } }, generatorLifeSupportTask, { .value = 0 } },
 };
 
 AnimationSet* gGeneratorAnimSets[4] = {
     NULL,
-    &D_actor_105300_8013C9D0,
-    &D_actor_105300_8013CE8C,
-    &D_actor_105300_8013D368,
+    &_gActor105300Animation0ABB0,
+    &_gActor105300Animation0B06C,
+    &_gActor105300Animation0B548,
 };
 
 #include "../../shared/generator_body_hit.inc.c"

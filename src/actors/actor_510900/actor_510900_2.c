@@ -249,15 +249,15 @@ extern Actor510900PatrolBox D_actor_510900_80167BA4[4];
 
 /// The three face normals `func_actor_510900_8013B524` copies into
 /// `Gp_GridParams->normals`, restoring the collision grid this actor edited.
-extern SVECTOR D_actor_510900_80167BC4[3];
+static SVECTOR _gActor510900Collision35DA4[3];
 
 /// The twelve face corners `func_actor_510900_8013B524` copies into
 /// `Gp_GridParams->vertices`.
-extern SVECTOR D_actor_510900_80167BDC[12];
+static SVECTOR _gActor510900Collision35DBC[12];
 
 /// The three `WorldCollisionGridFace` records `func_actor_510900_8013B524` copies into
 /// `Gp_GridParams->faces`.
-extern WorldCollisionGridFace D_actor_510900_80167C3C[3];
+static WorldCollisionGridFace _gActor510900Collision35E1C[3];
 
 /// The extra face normal `func_actor_510900_8013B424` installs as
 /// `Gp_GridParams->normals[3]` while the actor's own face is in the grid.
@@ -398,12 +398,12 @@ s16 D_actor_510900_80167A10[4] = {
 };
 
 TaskDesc D_actor_510900_80167A18[7] = {
-    { { { TASK_BODY_TMD, 96 } }, func_actor_510900_8013B3D0, { .model = &D_actor_510900_80141B64 } },
-    { { { TASK_BODY_TMD, 96 } }, func_actor_510900_8013BE98, { .model = &D_actor_510900_80142124 } },
-    { { { TASK_BODY_TMD, 96 } }, func_actor_510900_8013BF90, { .model = &D_actor_510900_80141E08 } },
-    { { { TASK_BODY_TMD, 96 } }, func_actor_510900_8013C090, { .model = &D_actor_510900_80142480 } },
-    { { { TASK_BODY_TMD, 96 } }, func_actor_510900_8013C190, { .model = &D_actor_510900_801427AC } },
-    { { { TASK_BODY_TMD, 96 } }, func_actor_510900_8013C1EC, { .model = &D_actor_510900_8014313C } },
+    { { { TASK_BODY_TMD, 96 } }, func_actor_510900_8013B3D0, { .model = &gActor510900No9GolemAkropolisBody } },
+    { { { TASK_BODY_TMD, 96 } }, func_actor_510900_8013BE98, { .model = &gActor510900No9GolemAkropolisProp } },
+    { { { TASK_BODY_TMD, 96 } }, func_actor_510900_8013BF90, { .model = &gActor510900Model0FE60 } },
+    { { { TASK_BODY_TMD, 96 } }, func_actor_510900_8013C090, { .model = &gActor510900Model10468 } },
+    { { { TASK_BODY_TMD, 96 } }, func_actor_510900_8013C190, { .model = &gActor510900GolemGrenade } },
+    { { { TASK_BODY_TMD, 96 } }, func_actor_510900_8013C1EC, { .model = &gActor510900Model10C8C } },
     { { { TASK_BODY_COORD, 96 } }, func_actor_510900_8013C3DC, { .value = 0 } },
 };
 
@@ -558,8 +558,8 @@ u8 D_actor_510900_80167AA4[136] = {
 
 AnimationSet* D_actor_510900_80167B2C[3] = {
     NULL,
-    &D_actor_510900_801597B4,
-    &D_actor_510900_80159DFC,
+    &gActor510900Animation27994,
+    &gActor510900Animation27FDC,
 };
 
 s16 D_actor_510900_80167B38[34] = {
@@ -629,15 +629,15 @@ Actor510900PatrolBox D_actor_510900_80167BA4[4] = {
     { -7200, -4608, -6000, 6000 },
 };
 
-SVECTOR D_actor_510900_80167BC4[3] = {
+static SVECTOR _gActor510900Collision35DA4[3] = {
 #include "assets/actor_510900_collision_35DA4.inc"
 };
 
-SVECTOR D_actor_510900_80167BDC[12] = {
+static SVECTOR _gActor510900Collision35DBC[12] = {
 #include "assets/actor_510900_collision_35DBC.inc"
 };
 
-WorldCollisionGridFace D_actor_510900_80167C3C[3] = {
+static WorldCollisionGridFace _gActor510900Collision35E1C[3] = {
 #include "assets/actor_510900_collision_35E1C.inc"
 };
 
@@ -669,8 +669,8 @@ u16 D_actor_510900_80167C94[12] = {
 
 AnimationSet* D_actor_510900_80167CAC[3] = {
     NULL,
-    &D_actor_510900_80167294,
-    &D_actor_510900_80167940,
+    &gActor510900Animation35474,
+    &gActor510900Animation35B20,
 };
 
 SVECTOR D_actor_510900_80167CB8[3] = {
@@ -2411,9 +2411,9 @@ static void func_actor_510900_80138D38(Task* arg0)
 /// Rebuilds the three collision faces this actor occupies in the grid, at the
 /// body's current position and facing. `center` is the fixed local footprint
 /// offset rotated into world space, translated by the coordinate and clamped to
-/// the grid extent; the twelve corners in `D_actor_510900_80167BDC` are rotated
+/// the grid extent; the twelve corners in `_gActor510900Collision35DBC` are rotated
 /// and offset from it into `Gp_GridParams->vertices`, and the three face normals
-/// in `D_actor_510900_80167BC4` are rotated in place into `field_4`.
+/// in `_gActor510900Collision35DA4` are rotated in place into `field_4`.
 static void func_actor_510900_80138F44(Task* arg0)
 {
     Actor510900GridScratch* scratch;
@@ -2453,7 +2453,7 @@ static void func_actor_510900_80138F44(Task* arg0)
 
     for (i = 0; i < 12; i++) {
         gte_SetRotMatrix(&coord->coord);
-        gte_ldv0(&D_actor_510900_80167BDC[i]);
+        gte_ldv0(&_gActor510900Collision35DBC[i]);
         gte_rtv0();
         gte_stsv(&scratch->rotated);
         corners[i].vx = scratch->rotated.vx + scratch->center.vx;
@@ -2463,7 +2463,7 @@ static void func_actor_510900_80138F44(Task* arg0)
 
     for (i = 0; i < 3; i++) {
         gte_SetRotMatrix(&coord->coord);
-        gte_ldv0(&D_actor_510900_80167BC4[i]);
+        gte_ldv0(&_gActor510900Collision35DA4[i]);
         gte_rtv0();
         gte_stsv(&normals[i]);
     }
@@ -2586,11 +2586,11 @@ s32 func_actor_510900_801391B8(Task* arg0, s32 arg1, s32 arg2)
             verts   = Gp_GridParams->vertices;
             faces   = Gp_GridParams->faces;
             for (j = 0; j < 12; j++) {
-                verts[j] = D_actor_510900_80167BDC[j];
+                verts[j] = _gActor510900Collision35DBC[j];
             }
             for (j = 0; j < 3; j++) {
-                normals[j] = D_actor_510900_80167BC4[j];
-                faces[j]   = D_actor_510900_80167C3C[j];
+                normals[j] = _gActor510900Collision35DA4[j];
+                faces[j]   = _gActor510900Collision35E1C[j];
             }
 
             do {
@@ -3664,12 +3664,12 @@ void func_actor_510900_8013B524(Task* arg0)
     WorldCollisionGridFace* faces   = Gp_GridParams->faces;
 
     for (i = 0; i < 12; i++) {
-        verts[i] = D_actor_510900_80167BDC[i];
+        verts[i] = _gActor510900Collision35DBC[i];
     }
 
     for (i = 0; i < 3; i++) {
-        normals[i] = D_actor_510900_80167BC4[i];
-        faces[i]   = D_actor_510900_80167C3C[i];
+        normals[i] = _gActor510900Collision35DA4[i];
+        faces[i]   = _gActor510900Collision35E1C[i];
     }
 }
 

@@ -267,32 +267,32 @@ EvsCommand D_dryfield_junk_yard_8017E658[11] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-TmdBone D_dryfield_junk_yard_8017E760[1] = {
+static TmdBone _gDryfieldJunkYardModel01378Skeleton[1] = {
 #include "assets/dryfield_junk_yard_model_01378_skeleton.inc"
 };
 
-u32 D_dryfield_junk_yard_8017E784[1] = {
+static u32 _gDryfieldJunkYardModel01378PartVerts[1] = {
 #include "assets/dryfield_junk_yard_model_01378_partVerts.inc"
 };
 
-SVECTOR D_dryfield_junk_yard_8017E788[54] = {
+static SVECTOR _gDryfieldJunkYardModel01378Verts[54] = {
 #include "assets/dryfield_junk_yard_model_01378_verts.inc"
 };
 
-u32 D_dryfield_junk_yard_8017E938[234] = {
+static u32 _gDryfieldJunkYardModel01378Stream[234] = {
 #include "assets/dryfield_junk_yard_model_01378_stream.inc"
 };
 
-TmdSource D_dryfield_junk_yard_8017ECE0 = {
+TmdSource gDryfieldJunkYardModel01378 = {
     0,
     1640,
     0,
     1,
-    D_dryfield_junk_yard_8017E784,
-    D_dryfield_junk_yard_8017E788,
-    &D_dryfield_junk_yard_8017E788[54],
-    D_dryfield_junk_yard_8017E760,
-    D_dryfield_junk_yard_8017E938,
+    _gDryfieldJunkYardModel01378PartVerts,
+    _gDryfieldJunkYardModel01378Verts,
+    &_gDryfieldJunkYardModel01378Verts[54],
+    _gDryfieldJunkYardModel01378Skeleton,
+    _gDryfieldJunkYardModel01378Stream,
 };
 
 GpRoomObjRec D_dryfield_junk_yard_8017ED04[1] = {
@@ -317,30 +317,30 @@ GpWarpRec D_dryfield_junk_yard_8017ED24[3] = {
     { { .words = { 0, 1859, 0, 672 } }, { 0, 0, 0, 0 }, { .words = { 0, 1859, 0, 672 } }, { 0, 0, 0, 0 }, 0x521A0006, 0x521A0005, 0, 3, 0, 0 },
 };
 
-SVECTOR D_dryfield_junk_yard_8017EDCC[33] = {
+static SVECTOR _gDryfieldJunkYardCollision01F08Normals[33] = {
 #include "assets/dryfield_junk_yard_collision_01F08_normals.inc"
 };
 
-SVECTOR D_dryfield_junk_yard_8017EED4[88] = {
+static SVECTOR _gDryfieldJunkYardCollision01F08Verts[88] = {
 #include "assets/dryfield_junk_yard_collision_01F08_verts.inc"
 };
 
-WorldCollisionGridFace D_dryfield_junk_yard_8017F194[36] = {
+static WorldCollisionGridFace _gDryfieldJunkYardCollision01F08Faces[36] = {
 #include "assets/dryfield_junk_yard_collision_01F08_faces.inc"
 };
 
-s16 D_dryfield_junk_yard_8017F344[166] = {
+static s16 _gDryfieldJunkYardCollision01F08Cells[166] = {
 #include "assets/dryfield_junk_yard_collision_01F08_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_dryfield_junk_yard_8017F344[i])
-s16* D_dryfield_junk_yard_8017F490[14] = {
+#define GRID_CELL(i) (&_gDryfieldJunkYardCollision01F08Cells[i])
+static s16* _gDryfieldJunkYardCollision01F08Table[14] = {
 #include "assets/dryfield_junk_yard_collision_01F08_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_dryfield_junk_yard_8017F4C8[1] = {
-    { NULL, D_dryfield_junk_yard_8017EDCC, D_dryfield_junk_yard_8017EED4, D_dryfield_junk_yard_8017F194, D_dryfield_junk_yard_8017F490, 2400, 608, 7, 2, 4000, 36 },
+    { NULL, _gDryfieldJunkYardCollision01F08Normals, _gDryfieldJunkYardCollision01F08Verts, _gDryfieldJunkYardCollision01F08Faces, _gDryfieldJunkYardCollision01F08Table, 2400, 608, 7, 2, 4000, 36 },
 };
 
 AreaResource D_dryfield_junk_yard_8017F4EC[1] = {

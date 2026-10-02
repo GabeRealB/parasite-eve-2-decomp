@@ -94,30 +94,30 @@ GpWarpRec D_shelter_1f_guardroom_8017DA98[1] = {
     { { .words = { 2048, -9000, 0, -3620 } }, { 0, 0, 0, 0 }, { .words = { 2048, -9000, 0, -3620 } }, { 0, 0, 0, 0 }, 0x55060002, 0x55060001, 0, 2, 0, 0 },
 };
 
-SVECTOR D_shelter_1f_guardroom_8017DAD0[7] = {
+static SVECTOR _gShelter1fGuardroomCollision00630Normals[7] = {
 #include "assets/shelter_1f_guardroom_collision_00630_normals.inc"
 };
 
-SVECTOR D_shelter_1f_guardroom_8017DB08[14] = {
+static SVECTOR _gShelter1fGuardroomCollision00630Verts[14] = {
 #include "assets/shelter_1f_guardroom_collision_00630_verts.inc"
 };
 
-WorldCollisionGridFace D_shelter_1f_guardroom_8017DB78[8] = {
+static WorldCollisionGridFace _gShelter1fGuardroomCollision00630Faces[8] = {
 #include "assets/shelter_1f_guardroom_collision_00630_faces.inc"
 };
 
-s16 D_shelter_1f_guardroom_8017DBD8[10] = {
+static s16 _gShelter1fGuardroomCollision00630Cells[10] = {
 #include "assets/shelter_1f_guardroom_collision_00630_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_shelter_1f_guardroom_8017DBD8[i])
-s16* D_shelter_1f_guardroom_8017DBEC[1] = {
+#define GRID_CELL(i) (&_gShelter1fGuardroomCollision00630Cells[i])
+static s16* _gShelter1fGuardroomCollision00630Table[1] = {
 #include "assets/shelter_1f_guardroom_collision_00630_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_shelter_1f_guardroom_8017DBF0[1] = {
-    { NULL, D_shelter_1f_guardroom_8017DAD0, D_shelter_1f_guardroom_8017DB08, D_shelter_1f_guardroom_8017DB78, D_shelter_1f_guardroom_8017DBEC, 0x2904, 4500, 1, 1, 4000, 8 },
+    { NULL, _gShelter1fGuardroomCollision00630Normals, _gShelter1fGuardroomCollision00630Verts, _gShelter1fGuardroomCollision00630Faces, _gShelter1fGuardroomCollision00630Table, 0x2904, 4500, 1, 1, 4000, 8 },
 };
 
 GpViewRec D_shelter_1f_guardroom_8017DC14[3] = {

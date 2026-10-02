@@ -220,8 +220,8 @@ extern AnimationPlayRequest                D_dryfield_trailer_coach_80185318;
 extern AnimationPlayRequest                D_dryfield_trailer_coach_8018532C;
 extern AnimationPlayRequest                D_dryfield_trailer_coach_80185340;
 extern AnimationPlayRequest                D_dryfield_trailer_coach_80185354;
-extern AnimationSet                        D_dryfield_trailer_coach_80184C28;
-extern AnimationSet                        D_dryfield_trailer_coach_80184F54;
+static AnimationSet                        _gDryfieldTrailerCoachAnimation07668;
+static AnimationSet                        _gDryfieldTrailerCoachAnimation07994;
 extern ActorCommand                        D_dryfield_trailer_coach_8018518C;
 extern ActorCommand                        D_dryfield_trailer_coach_80185190;
 extern ActorCommand                        D_dryfield_trailer_coach_80185194;
@@ -242,82 +242,82 @@ void                                       func_dryfield_trailer_coach_80182850(
 
 TaskDesc D_dryfield_trailer_coach_80183F84 = { { { TASK_BODY_NONE, 192 } }, Shop_SessionTask, { .value = 0 } };
 
-TmdBone D_dryfield_trailer_coach_80183F90[3] = {
+static TmdBone _gDryfieldTrailerCoachAcropolisSanctuaryModel090F0Skeleton[3] = {
 #include "assets/acropolis_sanctuary_model_090F0_skeleton.inc"
 };
 
-u32 D_dryfield_trailer_coach_80183FFC[3] = {
+static u32 _gDryfieldTrailerCoachAcropolisSanctuaryModel090F0PartVerts[3] = {
 #include "assets/acropolis_sanctuary_model_090F0_partVerts.inc"
 };
 
-SVECTOR D_dryfield_trailer_coach_80184008[56] = {
+static SVECTOR _gDryfieldTrailerCoachAcropolisSanctuaryModel090F0Verts[56] = {
 #include "assets/acropolis_sanctuary_model_090F0_verts.inc"
 };
 
-SVECTOR D_dryfield_trailer_coach_801841C8[6] = {
+static SVECTOR _gDryfieldTrailerCoachAcropolisSanctuaryModel090F0Normals[6] = {
 #include "assets/acropolis_sanctuary_model_090F0_normals.inc"
 };
 
-u32 D_dryfield_trailer_coach_801841F8[215] = {
+static u32 _gDryfieldTrailerCoachAcropolisSanctuaryModel090F0Stream[215] = {
 #include "assets/acropolis_sanctuary_model_090F0_stream.inc"
 };
 
-TmdSource D_dryfield_trailer_coach_80184554 = {
+TmdSource gDryfieldTrailerCoachAcropolisSanctuaryModel090F0 = {
     0,
     1768,
     0,
     3,
-    D_dryfield_trailer_coach_80183FFC,
-    D_dryfield_trailer_coach_80184008,
-    D_dryfield_trailer_coach_801841C8,
-    D_dryfield_trailer_coach_80183F90,
-    D_dryfield_trailer_coach_801841F8,
+    _gDryfieldTrailerCoachAcropolisSanctuaryModel090F0PartVerts,
+    _gDryfieldTrailerCoachAcropolisSanctuaryModel090F0Verts,
+    _gDryfieldTrailerCoachAcropolisSanctuaryModel090F0Normals,
+    _gDryfieldTrailerCoachAcropolisSanctuaryModel090F0Skeleton,
+    _gDryfieldTrailerCoachAcropolisSanctuaryModel090F0Stream,
 };
 
 #include "../../shared/telephone_data.inc.c"
 
-AnimationPackedPose D_dryfield_trailer_coach_80184898[3] = {
+static AnimationPackedPose _gDryfieldTrailerCoachAnimation07668Bank1[3] = {
 #include "assets/dryfield_trailer_coach_animation_07668_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_trailer_coach_801848BC[81] = {
+static AnimationPackedRotation _gDryfieldTrailerCoachAnimation07668Bank4[81] = {
 #include "assets/dryfield_trailer_coach_animation_07668_bank4.inc"
 };
 
-AnimationRecord D_dryfield_trailer_coach_80184A00[128] = {
+static AnimationRecord _gDryfieldTrailerCoachAnimation07668Records[128] = {
 #include "assets/dryfield_trailer_coach_animation_07668_records.inc"
 };
 
-u16 D_dryfield_trailer_coach_80184C00[20] = {
+static u16 _gDryfieldTrailerCoachAnimation07668Indices[20] = {
 #include "assets/dryfield_trailer_coach_animation_07668_indices.inc"
 };
 
-AnimationSet D_dryfield_trailer_coach_80184C28 = {
-    D_dryfield_trailer_coach_80184A00,
-    D_dryfield_trailer_coach_80184C00,
-    { NULL, D_dryfield_trailer_coach_80184898, NULL, NULL, D_dryfield_trailer_coach_801848BC, NULL, NULL, NULL },
+static AnimationSet _gDryfieldTrailerCoachAnimation07668 = {
+    _gDryfieldTrailerCoachAnimation07668Records,
+    _gDryfieldTrailerCoachAnimation07668Indices,
+    { NULL, _gDryfieldTrailerCoachAnimation07668Bank1, NULL, NULL, _gDryfieldTrailerCoachAnimation07668Bank4, NULL, NULL, NULL },
 };
 
-AnimationPackedPose D_dryfield_trailer_coach_80184C50[7] = {
+static AnimationPackedPose _gDryfieldTrailerCoachAnimation07994Bank1[7] = {
 #include "assets/dryfield_trailer_coach_animation_07994_bank1.inc"
 };
 
-AnimationPackedRotation D_dryfield_trailer_coach_80184CA4[56] = {
+static AnimationPackedRotation _gDryfieldTrailerCoachAnimation07994Bank4[56] = {
 #include "assets/dryfield_trailer_coach_animation_07994_bank4.inc"
 };
 
-AnimationRecord D_dryfield_trailer_coach_80184D84[106] = {
+static AnimationRecord _gDryfieldTrailerCoachAnimation07994Records[106] = {
 #include "assets/dryfield_trailer_coach_animation_07994_records.inc"
 };
 
-u16 D_dryfield_trailer_coach_80184F2C[20] = {
+static u16 _gDryfieldTrailerCoachAnimation07994Indices[20] = {
 #include "assets/dryfield_trailer_coach_animation_07994_indices.inc"
 };
 
-AnimationSet D_dryfield_trailer_coach_80184F54 = {
-    D_dryfield_trailer_coach_80184D84,
-    D_dryfield_trailer_coach_80184F2C,
-    { NULL, D_dryfield_trailer_coach_80184C50, NULL, NULL, D_dryfield_trailer_coach_80184CA4, NULL, NULL, NULL },
+static AnimationSet _gDryfieldTrailerCoachAnimation07994 = {
+    _gDryfieldTrailerCoachAnimation07994Records,
+    _gDryfieldTrailerCoachAnimation07994Indices,
+    { NULL, _gDryfieldTrailerCoachAnimation07994Bank1, NULL, NULL, _gDryfieldTrailerCoachAnimation07994Bank4, NULL, NULL, NULL },
 };
 
 TaskDesc gRoomCutsceneTaskDescs[3] = {
@@ -442,7 +442,7 @@ AnimationPlayRequest D_dryfield_trailer_coach_80185340 = { { .index = 1 }, 62, A
 
 AnimationPlayRequest D_dryfield_trailer_coach_80185354 = { { .index = 1 }, 63, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-DryfieldTrailerCoachAnimStorage5368 D_dryfield_trailer_coach_80185368 = { .data = { { &D_actor_420700_80133A7C, &D_actor_420700_80133CDC, &D_actor_420700_80134148, &D_actor_420700_80134D38, &D_actor_420700_80134F8C, &D_actor_420700_80135224, &D_actor_420700_801353F4, &D_actor_420700_80135BF8, NULL, NULL, NULL, &D_actor_420700_80132C00, &D_actor_420700_801331C8, &D_actor_420700_8013346C, &D_actor_420700_80133698, &D_dryfield_trailer_coach_80184F54, &D_dryfield_trailer_coach_80184C28 }, { { .words = D_dryfield_trailer_coach_80185368.words }, 32 }, { 143, 101, 138, 237, 130, 201, 130, 194, 130, 162, 130, 196, 0, 0, 0, 0 }, { 131, 86, 131, 70, 131, 139, 131, 94, 129, 91, 130, 201, 130, 194, 130, 162, 130, 196, 0, 0 }, { 145, 188, 130, 201, 137, 189, 130, 169, 129, 72, 0, 0 }, { D_dryfield_trailer_coach_80185368.data.text0, D_dryfield_trailer_coach_80185368.data.text1, D_dryfield_trailer_coach_80185368.data.text0, D_dryfield_trailer_coach_80185368.data.text2 } } };
+DryfieldTrailerCoachAnimStorage5368 D_dryfield_trailer_coach_80185368 = { .data = { { &gActor420700Animation01C5C, &gActor420700Animation01EBC, &gActor420700Animation02328, &gActor420700Animation02F18, &gActor420700Animation0316C, &gActor420700Animation03404, &gActor420700Animation035D4, &gActor420700Animation03DD8, NULL, NULL, NULL, &gActor420700Animation00DE0, &gActor420700Animation013A8, &gActor420700Animation0164C, &gActor420700Animation01878, &_gDryfieldTrailerCoachAnimation07994, &_gDryfieldTrailerCoachAnimation07668 }, { { .words = D_dryfield_trailer_coach_80185368.words }, 32 }, { 143, 101, 138, 237, 130, 201, 130, 194, 130, 162, 130, 196, 0, 0, 0, 0 }, { 131, 86, 131, 70, 131, 139, 131, 94, 129, 91, 130, 201, 130, 194, 130, 162, 130, 196, 0, 0 }, { 145, 188, 130, 201, 137, 189, 130, 169, 129, 72, 0, 0 }, { D_dryfield_trailer_coach_80185368.data.text0, D_dryfield_trailer_coach_80185368.data.text1, D_dryfield_trailer_coach_80185368.data.text0, D_dryfield_trailer_coach_80185368.data.text2 } } };
 
 EvsCommand D_dryfield_trailer_coach_801853F4[58] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_trailer_coach_80185038 }, { .value = 0 } },
@@ -818,30 +818,30 @@ GpWarpRec D_dryfield_trailer_coach_801871EC[2] = {
     { { .words = { 2048, 1579, 0, -800 } }, { 0, 0, 0, 0 }, { .words = { 2048, 1579, 0, -800 } }, { 0, 0, 0, 0 }, 0x521B0002, 0x521B0001, 0, 5, 0, 471 },
 };
 
-SVECTOR D_dryfield_trailer_coach_8018725C[10] = {
+static SVECTOR _gDryfieldTrailerCoachCollision0A0F4Normals[10] = {
 #include "assets/dryfield_trailer_coach_collision_0A0F4_normals.inc"
 };
 
-SVECTOR D_dryfield_trailer_coach_801872AC[65] = {
+static SVECTOR _gDryfieldTrailerCoachCollision0A0F4Verts[65] = {
 #include "assets/dryfield_trailer_coach_collision_0A0F4_verts.inc"
 };
 
-WorldCollisionGridFace D_dryfield_trailer_coach_801874B4[32] = {
+static WorldCollisionGridFace _gDryfieldTrailerCoachCollision0A0F4Faces[32] = {
 #include "assets/dryfield_trailer_coach_collision_0A0F4_faces.inc"
 };
 
-s16 D_dryfield_trailer_coach_80187634[58] = {
+static s16 _gDryfieldTrailerCoachCollision0A0F4Cells[58] = {
 #include "assets/dryfield_trailer_coach_collision_0A0F4_cells.inc"
 };
 
-#define GRID_CELL(i) (&D_dryfield_trailer_coach_80187634[i])
-s16* D_dryfield_trailer_coach_801876A8[3] = {
+#define GRID_CELL(i) (&_gDryfieldTrailerCoachCollision0A0F4Cells[i])
+static s16* _gDryfieldTrailerCoachCollision0A0F4Table[3] = {
 #include "assets/dryfield_trailer_coach_collision_0A0F4_table.inc"
 };
 #undef GRID_CELL
 
 WorldCollisionGrid D_dryfield_trailer_coach_801876B4[1] = {
-    { NULL, D_dryfield_trailer_coach_8018725C, D_dryfield_trailer_coach_801872AC, D_dryfield_trailer_coach_801874B4, D_dryfield_trailer_coach_801876A8, 200, 3450, 3, 1, 4000, 32 },
+    { NULL, _gDryfieldTrailerCoachCollision0A0F4Normals, _gDryfieldTrailerCoachCollision0A0F4Verts, _gDryfieldTrailerCoachCollision0A0F4Faces, _gDryfieldTrailerCoachCollision0A0F4Table, 200, 3450, 3, 1, 4000, 32 },
 };
 
 AreaResource D_dryfield_trailer_coach_801876D8[2] = {

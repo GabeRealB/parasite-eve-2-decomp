@@ -20,7 +20,7 @@
 
 extern ActorsShared801673f8Spot D_shelter_b3_dumping_hole_8018B74C[12];
 
-extern TmdSource D_shelter_b3_dumping_hole_80187550;
+extern TmdSource gShelterB3DumpingHoleAcropolisSanctuaryModel090F0;
 
 extern TaskDesc D_shelter_b3_dumping_hole_8018B83C[4];
 

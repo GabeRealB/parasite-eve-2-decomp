@@ -4,6 +4,6 @@
 #include "gameplay/animation.h"
 
 // Native animation sets referenced by room script banks.
-extern AnimationSet D_actor_202900_8014FEB8;
+extern AnimationSet gActor202900Animation06098;
 
 #endif // INCLUDE_ACTORS_ACTOR_202900_H
