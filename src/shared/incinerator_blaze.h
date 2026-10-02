@@ -19,11 +19,12 @@
 #include "overlay.h"
 
 /// The head of the work block of the task that spawns the blaze, which each
-/// package extends: the screen-wave context the fade sets to state 2 when its
+/// package extends: the screen-wave context the fade sets to
+/// `SCREEN_WAVE_RAMP_FINISHED` when its
 /// colour ramp reaches 0x100.
 typedef struct BlazeParentWork {
-    /* 0x00 */ byte           pad_0[0x20];
-    /* 0x20 */ OverlayWaveCtx wave;
+    /* 0x00 */ byte          pad_0[0x20];
+    /* 0x20 */ ScreenWaveCtx wave;
 } BlazeParentWork;
 
 void blazeFadeTask(Task* arg0);

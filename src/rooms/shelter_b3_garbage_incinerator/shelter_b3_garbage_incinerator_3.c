@@ -1853,7 +1853,7 @@ RoomEventMsg D_shelter_b3_garbage_incinerator_8018FC2C = { 0 };
 
 Task* D_shelter_b3_garbage_incinerator_8018FC34 = NULL;
 
-OverlayWaveCtx* gScreenWaveCtx = NULL;
+ScreenWaveCtx* gScreenWaveCtx = NULL;
 
 Task* D_shelter_b3_garbage_incinerator_8018FC3C = NULL;
 

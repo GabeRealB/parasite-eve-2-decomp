@@ -4,14 +4,15 @@
 /// context `func_actor_205200_8014AB98` fills. State 0 seeds random phases and
 /// speeds for the 9 column and 30 row waves and builds, for each display
 /// buffer, a grid of textured quads that re-draws the frame buffer. State 1
-/// ramps the amplitude up to the context's peak, back down once its mode turns
-/// to 1, and kills the task at mode 2; each frame it displaces every quad
+/// ramps the amplitude up to the context's peak, back down once its phase is
+/// `SCREEN_WAVE_RAMP_FALLING`, and kills the task at
+/// `SCREEN_WAVE_RAMP_FINISHED`; each frame it displaces every quad
 /// vertex by the sine of its row and column waves.
 void screenWaveGridTask(Task* arg0)
 {
     OverlayWaveScratch* scratch;
     OverlayWaveScratch* head;
-    OverlayWaveCtx*     ctx;
+    ScreenWaveCtx*      ctx;
     OverlayWaveRec*     cols;
     POLY_FT4*           p;
     DR_STP*             stp;
@@ -58,7 +59,7 @@ void screenWaveGridTask(Task* arg0)
             gScreenWaveRamp       = 0;
             gScreenWaveCtx        = arg0->spawnArg2.pointer;
             gScreenWaveCtx->frame = 0;
-            gScreenWaveCtx->state = 0;
+            gScreenWaveCtx->state = SCREEN_WAVE_RAMP_RISING;
             displaySetShakeY(DISPLAY_SHAKE_MIN);
             for (i = 0; i < 2; i++) {
                 tpage0 = getTPage(2, 0, 0, i << 8);
@@ -68,7 +69,7 @@ void screenWaveGridTask(Task* arg0)
                     p = grid[j];
                     for (k = 0; k < 8; p++, k++) {
                         setPolyFT4(p);
-                        if (gScreenWaveCtx->blend == 0) {
+                        if (gScreenWaveCtx->modulateTexture == SCREEN_WAVE_TEXTURE_RAW) {
                             setShadeTex(p, 1);
                         } else {
                             setShadeTex(p, 0);
@@ -113,21 +114,21 @@ void screenWaveGridTask(Task* arg0)
         case 1:
             ctx = gScreenWaveCtx;
             switch (ctx->state) {
-                case 0:
+                case SCREEN_WAVE_RAMP_RISING:
                     if (ctx->frame < ctx->span) {
                         ctx->frame++;
                     }
                     break;
-                case 1:
+                case SCREEN_WAVE_RAMP_FALLING:
                     if (ctx->frame > 0) {
                         if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
                             ctx->frame--;
                         }
                     } else {
-                        ctx->state = 2;
+                        ctx->state = SCREEN_WAVE_RAMP_FINISHED;
                     }
                     break;
-                case 2:
+                case SCREEN_WAVE_RAMP_FINISHED:
                     taskKill(arg0);
                     displaySetShakeY(0);
                     break;

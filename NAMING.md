@@ -364,7 +364,11 @@ per-instance linkage as described above. `water_effects.h` uses the prefix
 drift, distortion and refraction code. Gameplay `roomEffect` remains the
 resident room-effect state. `glow_draw.h` uses the prefix `glow`; its
 configuration macros use `GLOW_`. It is the included projected glow, flare and
-light-beam drawing. Scratch records that several overlays share, such as the
+light-beam drawing. `screen_wave.h` uses the prefix `screenWave`; its
+ramp-phase and texture-modulation constants use `SCREEN_WAVE_`. It redraws the
+captured frame as a grid of textured quads whose corners sine waves displace.
+`ScreenWaveCtx`, the ramp context packages embed and pass as the task's spawn
+argument, is declared in `include/overlay.h`. Scratch records that several overlays share, such as the
 one-centre projection block, are declared in `include/rooms/room_common.h`. If a shared implementation and a gameplay
 subsystem have similar names, distinguish actual ownership and linkage before
 introducing a qualifier; do not assume that they are one API.

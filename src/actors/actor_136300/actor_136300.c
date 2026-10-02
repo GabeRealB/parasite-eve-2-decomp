@@ -86,7 +86,7 @@ extern s32 gScreenWaveRamp;
 
 /// The ramp context the running wave task was spawned with, parked at spawn
 /// so the tick reads the ramp through it.
-extern OverlayWaveCtx* gScreenWaveCtx;
+extern ScreenWaveCtx* gScreenWaveCtx;
 
 /// Per-column and per-row phase records: each is seeded with a random offset
 /// and speed at spawn and advanced by its speed every frame.
@@ -95,7 +95,7 @@ extern OverlayWaveRec6 gScreenWaveRows[32];
 
 /// The ramp context the message handler seeds and hands to the screen-wave
 /// task.
-extern OverlayWaveCtx D_actor_136300_8013C99C;
+extern ScreenWaveCtx D_actor_136300_8013C99C;
 
 /// Spawn table of the screen-wave task.
 extern TaskDesc D_actor_136300_80132AC4[];
@@ -1384,13 +1384,13 @@ EvsCommand D_actor_136300_8013C780[11] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-OverlayWaveCtx* gScreenWaveCtx = NULL;
+ScreenWaveCtx* gScreenWaveCtx = NULL;
 
 OverlayWaveRec6 gScreenWaveColumns[13] = { 0 };
 
 OverlayWaveRec6 gScreenWaveRows[32] = { 0 };
 
-OverlayWaveCtx D_actor_136300_8013C99C = { 0 };
+ScreenWaveCtx D_actor_136300_8013C99C = { 0 };
 
 #include "../../shared/screen_wave.inc.c"
 
@@ -1491,12 +1491,12 @@ void func_actor_136300_801328E0(s32 arg0)
     Task_SpawnFromTable(D_dryfield_night_garage_80183380, 0, arg0, 0);
 }
 
-/// Message handler driving the screen wave. A positive argument is written
-/// into the wave's ramp state (1 ramps the wave back down, after which the
-/// task ends). Otherwise the CD command queue's `field_22A` is set to 2 and,
-/// except for the -2 message, the ramp context is seeded (span 0x64 for 0,
-/// 5 otherwise, scale 0x100) and the screen-wave task
-/// `D_actor_136300_80132AC4` is spawned with it.
+/// Message handler driving the screen wave. A positive argument is stored in
+/// `state`: `SCREEN_WAVE_RAMP_FALLING` counts the ramp back down, and
+/// `SCREEN_WAVE_RAMP_FINISHED` ends the task. Otherwise `imageMdecMode` is set
+/// to `MDEC_IMAGE_MODE_RGB16_MASK_BIT` and, except for the -2 message, the ramp
+/// context is seeded (`span` 0x64 for 0, 5 otherwise, `scale` 0x100) and the
+/// screen-wave task `D_actor_136300_80132AC4` is spawned with it.
 ///
 /// Both halves of the context are written in *each* arm of the span test so
 /// that each arm is a complete two-store address session: jump optimization

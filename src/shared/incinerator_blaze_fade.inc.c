@@ -57,7 +57,7 @@ void blazeFadeTask(Task* arg0)
             work->b += 8;
             if ((s16)work->g >= 0x100) {
                 parent             = (BlazeParentWork*)((Task*)arg0->spawnArg2.pointer)->work;
-                parent->wave.state = 2;
+                parent->wave.state = SCREEN_WAVE_RAMP_FINISHED;
                 Display_SetMode(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
                 memFillBytes(Fs_ImgBuffers, 0xFF, sizeof(*Fs_ImgBuffers));
                 work->b     = 0xFF;

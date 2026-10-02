@@ -160,7 +160,7 @@ extern void func_80724608(void* owner, s32 arg1, s32 arg2, void* name);
 extern s32 gScreenWaveRamp;
 
 /// The ramp and tint the wave task was spawned with.
-extern OverlayWaveCtx* gScreenWaveCtx;
+extern ScreenWaveCtx* gScreenWaveCtx;
 
 /// Phase records of the wave's 11 column edges and 30 row edges.
 extern OverlayWaveRec6 gScreenWaveColumns[13];
@@ -196,8 +196,8 @@ extern DryfieldDilapidatedHouseSpawnState D_dryfield_dilapidated_house_80189B80;
 
 /// Shared in source with actor 136300: the ramp context the message handler
 /// seeds and hands to the screen-wave task it starts, and that task's entry.
-extern OverlayWaveCtx D_dryfield_dilapidated_house_80189C94;
-extern TaskDesc       D_dryfield_dilapidated_house_80183E48[];
+extern ScreenWaveCtx D_dryfield_dilapidated_house_80189C94;
+extern TaskDesc      D_dryfield_dilapidated_house_80183E48[];
 
 extern TaskMessageEntry   D_dryfield_dilapidated_house_80183E8C[];
 extern s32                D_dryfield_dilapidated_house_80186804[16];
@@ -2563,7 +2563,7 @@ s32 D_dryfield_dilapidated_house_80189B6C = 0;
 
 s32 D_dryfield_dilapidated_house_80189B70 = 0;
 
-OverlayWaveCtx* gScreenWaveCtx = NULL;
+ScreenWaveCtx* gScreenWaveCtx = NULL;
 
 Task* D_dryfield_dilapidated_house_80189B78 = NULL;
 
@@ -2575,7 +2575,7 @@ OverlayWaveRec6 gScreenWaveColumns[13] = { 0 };
 
 OverlayWaveRec6 gScreenWaveRows[32] = { 0 };
 
-OverlayWaveCtx D_dryfield_dilapidated_house_80189C94 = { 0 };
+ScreenWaveCtx D_dryfield_dilapidated_house_80189C94 = { 0 };
 
 SVECTOR D_dryfield_dilapidated_house_80189CA0[40];
 
@@ -2940,16 +2940,17 @@ void func_dryfield_dilapidated_house_8017E8C8(void)
 }
 
 /// Message handler for the start-countdown cue; actor 136300 carries the same
-/// body. A positive argument is latched
-/// and nothing else happens; otherwise the CD command queue is dropped into
+/// body. A positive argument is stored in `state`
+/// (`SCREEN_WAVE_RAMP_FALLING` counts the ramp down, `SCREEN_WAVE_RAMP_FINISHED`
+/// ends the task); otherwise the CD command queue is dropped into
 /// Mdec_DecodeToVram mode 2 and -- except for the -2 "already ran" message --
 /// the spawn block is filled and the `D_dryfield_dilapidated_house_80183E48` entry started.
 ///
-/// Both halves of the block are written in *each* arm of the countdown test so
+/// Both halves of the block are written in *each* arm of the `span` test so
 /// that each arm is a complete two-store address session: jump optimization
-/// then merges the identical tails and the countdown collapses to one `li` per
+/// then merges the identical tails and the `span` collapses to one `li` per
 /// arm, which is what puts the block's `lui` in the delay slot of the entry
-/// test. Hoisting `unk2` out of the arms compiles to a different allocation.
+/// test. Hoisting `scale` out of the arms compiles to a different allocation.
 void func_dryfield_dilapidated_house_8017E8E8(s32 arg0)
 {
     CdCmdQueue* queue;
@@ -3024,7 +3025,7 @@ static void func_dryfield_dilapidated_house_8017EAB4(Task* arg0)
         D_dryfield_dilapidated_house_80189B78 =
             Task_SpawnFromTable(D_dryfield_dilapidated_house_80183EB4, 0, 0, 0);
     }
-    D_dryfield_dilapidated_house_80189C94.state = 2;
+    D_dryfield_dilapidated_house_80189C94.state = SCREEN_WAVE_RAMP_FINISHED;
     D_dryfield_dilapidated_house_80189B7C =
         Task_SpawnFromTable(D_dryfield_dilapidated_house_80183EB4, 2, 0, 0);
     gGameSession->flowFlags = (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_SKIP_AREA_MUSIC | GAME_SESSION_FLOW_REEQUIP_WEAPON);

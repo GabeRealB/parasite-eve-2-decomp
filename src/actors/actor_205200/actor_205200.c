@@ -264,7 +264,7 @@ static void func_actor_205200_8014A72C(Enemy* enemy, Task* task)
     }
     task->work                    = work;
     work->field_1E                = kind;
-    D_actor_205200_8015B458.state = 2;
+    D_actor_205200_8015B458.state = SCREEN_WAVE_RAMP_FINISHED;
     for (i = 0; i < D_actor_205200_8014CA1C[work->field_1E]; i++) {
         Gp_SpawnEnemyFromTable(D_actor_205200_8014CA60, 1, 0, enemy);
     }
@@ -308,7 +308,7 @@ static void func_actor_205200_8014A958(Enemy* enemy, Task* task)
 
     if (gGameSession->eventState != 0 || work->field_2E != 0) {
         pulse = work->field_28;
-        if (pulse == 1) {
+        if (pulse == SCREEN_WAVE_RAMP_FALLING) {
             D_actor_205200_8015B458.state = pulse;
             work->field_28                = 0;
         }
@@ -351,7 +351,7 @@ static void func_actor_205200_8014A958(Enemy* enemy, Task* task)
                 break;
             case 2:
                 pulse = work->field_28;
-                if (pulse == 1) {
+                if (pulse == SCREEN_WAVE_RAMP_FALLING) {
                     D_actor_205200_8015B458.state = pulse;
                     work->field_28                = 0;
                 }
@@ -374,12 +374,12 @@ static void func_actor_205200_8014AB98(Task* arg0)
     switch (state) {
         case 0:
             if ((s16)--work->field_22 <= 0) {
-                if (D_actor_205200_8015B458.state == 2) {
+                if (D_actor_205200_8015B458.state == SCREEN_WAVE_RAMP_FINISHED) {
                     D_actor_205200_8015B458.span  = 0xF;
                     D_actor_205200_8015B458.scale = 0xA0;
                     Task_SpawnFromTable(D_actor_205200_8014CA44, 0, 0, &D_actor_205200_8015B458);
                     Gp_ArmStateF0(1);
-                    work->field_28 = 1;
+                    work->field_28 = SCREEN_WAVE_RAMP_FALLING;
                     SndEvt_EnqueueType6(((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40340002, 0, 0);
                 }
                 work->field_22 = 20;

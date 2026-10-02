@@ -78,15 +78,15 @@
 /// fewer, with the child task and the animation fields in other places, so
 /// the two are different types.
 typedef struct Actor342100Work {
-    /* 0x00 */ byte           pad_0[0x20];
-    /* 0x20 */ OverlayWaveCtx wave;
-    /* 0x2C */ Task*          field_2C; // gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)
-    /* 0x30 */ Task*          field_30;
-    /* 0x34 */ Task*          field_34;
-    /* 0x38 */ Task*          field_38;
-    /* 0x3C */ s16            field_3C;
-    /* 0x3E */ s16            field_3E;
-    /* 0x40 */ byte           pad_40[0x4];
+    /* 0x00 */ byte          pad_0[0x20];
+    /* 0x20 */ ScreenWaveCtx wave;
+    /* 0x2C */ Task*         field_2C; // gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)
+    /* 0x30 */ Task*         field_30;
+    /* 0x34 */ Task*         field_34;
+    /* 0x38 */ Task*         field_38;
+    /* 0x3C */ s16           field_3C;
+    /* 0x3E */ s16           field_3E;
+    /* 0x40 */ byte          pad_40[0x4];
 } Actor342100Work;
 STATIC_ASSERT_SIZEOF(Actor342100Work, 0x44);
 
@@ -185,7 +185,7 @@ extern s32 gScreenWaveRamp;
 
 /// The ramp the running wave task was spawned with, parked at spawn so the
 /// tick reads it back every frame.
-extern OverlayWaveCtx* gScreenWaveCtx;
+extern ScreenWaveCtx* gScreenWaveCtx;
 
 /// Per-column and per-row phase records: each is seeded with a random offset
 /// and speed at spawn and advanced by its speed on every frame
@@ -374,7 +374,7 @@ TaskDesc D_actor_342100_80164B78[5] = {
     { { { TASK_BODY_COORD, 192 } }, func_actor_342100_80162AB0, { .value = 0 } },
 };
 
-OverlayWaveCtx* gScreenWaveCtx = NULL;
+ScreenWaveCtx* gScreenWaveCtx = NULL;
 
 Task* D_actor_342100_80164BB8 = NULL;
 

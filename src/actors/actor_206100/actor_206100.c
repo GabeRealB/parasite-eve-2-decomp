@@ -488,7 +488,7 @@ STATIC_ASSERT_SIZEOF(Actor206100ChildWork, 0x68);
 
 /// The wave `func_actor_206100_8014CB68` arms: pale cyan modulation with a
 /// one-frame ramp.
-extern OverlayWaveCtx D_actor_206100_80158CCC;
+extern ScreenWaveCtx D_actor_206100_80158CCC;
 
 /// Child task `func_actor_206100_8014CB68` starts with the tint above as its
 /// spawn arg.  Its callback is `screenWaveTask`.
@@ -573,7 +573,7 @@ static void func_actor_206100_8014CD08(Task* task);
 /// State handler 4 of `D_actor_206100_80149E94`, and the one that hands the
 /// actor to `func_actor_206100_8014CD08` above.  It clears the fixed-address
 /// `D_neo_ark_submarine_gallery_801818B8` flag, ticks the per-state counter `field_51E` and seeds
-/// `D_actor_206100_80158CCC.state` with 2 on the first frame; frame 3 retires the
+/// `D_actor_206100_80158CCC.state` to `SCREEN_WAVE_RAMP_FINISHED` on the first frame; frame 3 retires the
 /// child task `func_actor_206100_8014CB68` spawned into `field_4F8`, and if the
 /// kill left the counter alone, fires sound event 0x551E0003; frame 0xC splats
 /// the 0x01202148 particle ring `func_actor_206100_8014D574` fires, at a radius
@@ -681,7 +681,7 @@ extern s32 gScreenWaveRamp;
 
 /// The spawn argument of the running wave task, parked at spawn so the tick
 /// reads the ramp through it.
-extern OverlayWaveCtx* gScreenWaveCtx;
+extern ScreenWaveCtx* gScreenWaveCtx;
 
 /// Per-column and per-row phase records: each is seeded with a random offset
 /// and speed at spawn and advanced by its speed every frame.
@@ -1217,7 +1217,7 @@ Actor206100RingPos D_actor_206100_80158B68[8] = {
     { -5373, 3000, 5373, 0 },
 };
 
-OverlayWaveCtx* gScreenWaveCtx = NULL;
+ScreenWaveCtx* gScreenWaveCtx = NULL;
 
 OverlayWaveRec6 gScreenWaveColumns[13] = { 0 };
 
@@ -1225,7 +1225,7 @@ OverlayWaveRec6 gScreenWaveRows[32] = { 0 };
 
 Actor206100Slot D_actor_206100_80158CBC[2] = { 0 };
 
-OverlayWaveCtx D_actor_206100_80158CCC = { 0 };
+ScreenWaveCtx D_actor_206100_80158CCC = { 0 };
 
 static void func_actor_206100_8014DA28(Task* task);
 
@@ -2191,14 +2191,15 @@ static void func_actor_206100_8014C458(Task* task)
 /// actor on the far side, spawning the screen tint `D_actor_206100_80158CCC`
 /// describes as it goes.
 ///
-/// The tint's `blend` is written between `r` and `g`, not in declaration
-/// order, and that is load-bearing: the constant 1 and the `%hi` of the
-/// global's own address tie in `local-alloc`'s `QTY_CMP_PRI`
-/// (`floor_log2 (n_refs) * n_refs * size / span`), and the address only wins
+/// `modulateTexture` is written between `r` and `g`, not in declaration
+/// order, and that is load-bearing: it shares the constant 1 with `span`, and
+/// that constant and the `%hi` of the global's own address tie in
+/// `local-alloc`'s `QTY_CMP_PRI`
+/// (`floor_log2 (n_refs) * n_refs * size / span`). The address only wins
 /// that tie while the constant's live range runs the whole store run. Cutting
 /// it short is what puts the constant in `$v1` and the `%hi` in `$t0`; with
-/// `blend` written last the two swap and the tail no longer schedules the same
-/// way.
+/// `modulateTexture` written last the two swap and the tail no longer
+/// schedules the same way.
 static void func_actor_206100_8014CB68(Task* task)
 {
     Actor206100Work* work;
@@ -2245,7 +2246,7 @@ static void func_actor_206100_8014CB68(Task* task)
         D_actor_206100_80158CCC.span                               = 1;
         D_actor_206100_80158CCC.scale                              = 0x60;
         D_actor_206100_80158CCC.r                                  = 0x40;
-        D_actor_206100_80158CCC.blend                              = 1;
+        D_actor_206100_80158CCC.modulateTexture                    = SCREEN_WAVE_MODULATE_TEXTURE;
         D_actor_206100_80158CCC.g                                  = 0x80;
         D_actor_206100_80158CCC.b                                  = 0x80;
         work->field_4F8                                            = Task_SpawnFromTable(D_actor_206100_80158AF0, 0, 0, &D_actor_206100_80158CCC);
@@ -2295,7 +2296,7 @@ static void func_actor_206100_8014CD08(Task* task)
 }
 /// State handler 4 of `D_actor_206100_80149E94`: clears the fixed-address
 /// `D_neo_ark_submarine_gallery_801818B8` flag, ticks the per-state counter `field_51E` and seeds
-/// `D_actor_206100_80158CCC.state` with 2 on its first frame.
+/// `D_actor_206100_80158CCC.state` to `SCREEN_WAVE_RAMP_FINISHED` on its first frame.
 ///
 /// Frame 3 retires the child task `func_actor_206100_8014CB68` spawned into
 /// `field_4F8` and, if the kill left the counter where it was, fires the
@@ -2325,7 +2326,7 @@ static void func_actor_206100_8014CE60(Task* task)
     coord                                = task->extra.tmd->coords;
     work->field_51E                      = work->field_51E + 1;
     if ((s16)work->field_51E == 1) {
-        D_actor_206100_80158CCC.state = 2;
+        D_actor_206100_80158CCC.state = SCREEN_WAVE_RAMP_FINISHED;
     }
     frame = (s16)work->field_51E;
     if (frame == 3) {

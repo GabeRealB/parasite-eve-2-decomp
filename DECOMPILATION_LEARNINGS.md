@@ -116665,7 +116665,7 @@ took the constant from `18` to `8` and the address stayed at `18`.
 
 The store order is visible in the target here only because the six stores all
 reuse `$v0` for their literals, which serializes them: the emitted order *is*
-the RTL order, so a target that stores `span, scale, r, blend, g, b` was written
+the RTL order, so a target that stores `span, scale, r, modulateTexture, g, b` was written
 that way. Verify the chain before trusting that — with independent literals the
 scheduler is free to reorder and the emitted order says nothing.
 

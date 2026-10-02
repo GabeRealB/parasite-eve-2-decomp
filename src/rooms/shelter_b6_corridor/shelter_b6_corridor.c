@@ -74,7 +74,7 @@ extern EvsCommand D_shelter_b6_corridor_8017F684[];
 
 /// The context the wave task was spawned with: its ramp limit, peak, mode and
 /// tint.
-extern OverlayWaveCtx* gScreenWaveCtx;
+extern ScreenWaveCtx* gScreenWaveCtx;
 
 /// Phase records of the wave's 9 column edges and 30 row edges.
 extern OverlayWaveRec gScreenWaveColumns[10];
@@ -508,7 +508,7 @@ WorldCollisionSurfaceProperties* D_shelter_b6_corridor_80180548[8] = {
     D_shelter_b6_corridor_80180530,
 };
 
-OverlayWaveCtx* gScreenWaveCtx = NULL;
+ScreenWaveCtx* gScreenWaveCtx = NULL;
 
 // Nine active columns and one retained zero entry.
 OverlayWaveRec gScreenWaveColumns[10] = { 0 };

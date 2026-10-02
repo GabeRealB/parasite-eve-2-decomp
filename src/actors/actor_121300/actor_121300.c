@@ -73,7 +73,7 @@ typedef struct Actor121300Work {
     /* 0x000 */ ActorAnimRig19 rig;
     /* 0x43C */ MATRIX         field_43C; // light matrix, into TmdObject::lightMtx
     /* 0x45C */ MATRIX         field_45C; // colour matrix, into TmdObject::colorMtx
-    /* 0x47C */ OverlayWaveCtx wave;      // ramp of the screen-wave task `screenWaveTask`
+    /* 0x47C */ ScreenWaveCtx  wave;      // ramp of the screen-wave task `screenWaveTask`
     /* 0x488 */ Task*          field_488; // gameGetTaskSlot(GAME_TASK_SLOT_PLAYER) task, the taskMessageDispatch target
     /* 0x48C */ Task*          field_48C;
     /* 0x490 */ byte           pad_490[0x8];
@@ -177,7 +177,7 @@ extern s32 gScreenWaveRamp;
 
 /// The ramp the running wave task was spawned with, parked at spawn so the
 /// tick reads it back every frame.
-extern OverlayWaveCtx* gScreenWaveCtx;
+extern ScreenWaveCtx* gScreenWaveCtx;
 
 extern TaskDesc      D_actor_121300_8013BBCC[];
 extern u_long        D_actor_121300_8013BBE8[];
@@ -1716,7 +1716,7 @@ TaskDesc D_actor_121300_8013D390[11] = {
     { { { TASK_BODY_NONE, 192 } }, func_actor_121300_8013322C, { .value = 0 } },
 };
 
-OverlayWaveCtx* gScreenWaveCtx = NULL;
+ScreenWaveCtx* gScreenWaveCtx = NULL;
 
 Task* D_actor_121300_8013D418;
 
@@ -2318,7 +2318,7 @@ static void func_actor_121300_80133854(Task* arg0)
             func_actor_121300_80133730(arg0);
             break;
         case 5:
-            work->wave.state        = 2;
+            work->wave.state        = SCREEN_WAVE_RAMP_FINISHED;
             queue->imageMdecMode    = MDEC_IMAGE_MODE_RGB16;
             D_actor_121300_8013D41C = 0;
             work->field_498         = 0;
@@ -2364,7 +2364,7 @@ static void func_actor_121300_80133854(Task* arg0)
                     break;
                 case 1:
                     if (++work->field_49C >= 8) {
-                        work->wave.state = 1;
+                        work->wave.state = SCREEN_WAVE_RAMP_FALLING;
                         work->wave.span  = 8;
                         work->field_498  = 0;
                     }
@@ -2585,7 +2585,7 @@ void func_actor_121300_8013427C(void)
     Actor121300Work* work = (Actor121300Work*)D_actor_121300_8013D418->work;
 
     D_actor_121300_8013D41C   = 0;
-    work->wave.state          = 2;
+    work->wave.state          = SCREEN_WAVE_RAMP_FINISHED;
     gCdCmdQueue.imageMdecMode = MDEC_IMAGE_MODE_RGB16;
     taskMessageDispatch(work->field_488, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
     CdCmd_CancelReplaceAndActivate();

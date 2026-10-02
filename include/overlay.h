@@ -40,24 +40,49 @@ typedef struct OverlayFadeWork {
 } OverlayFadeWork;
 STATIC_ASSERT_SIZEOF(OverlayFadeWork, 0x8);
 
-/// Ramp context of a screen-wave task, handed to the task as its spawn
-/// argument. Whoever spawns the task seeds `span`, `scale` and the tint; the
-/// task clears `frame` and `state`, then counts `frame` up to `span` while
-/// `state` is 0 and back down to zero while it is 1, and ends itself once
-/// `state` is 2.
-/// The wave's amplitude is `frame * scale / span`. A nonzero `blend` shades the
-/// wave mesh with `r`, `g` and `b`; zero draws the raw frame-buffer copy.
-typedef struct OverlayWaveCtx {
-    s16 span;
-    s16 scale;
-    s16 state;
-    s16 frame;
-    u8  blend;
-    u8  r;
-    u8  g;
-    u8  b;
-} OverlayWaveCtx;
-STATIC_ASSERT_SIZEOF(OverlayWaveCtx, 0xC);
+/// How a screen-wave quad treats the captured frame.
+///
+/// Stored in `ScreenWaveCtx.modulateTexture`. Zero copies the frame's own
+/// colours. Any other value multiplies the frame by the context's `r`, `g`
+/// and `b`. Senders that tint store `SCREEN_WAVE_MODULATE_TEXTURE`.
+enum {
+    /// Copy the captured frame without colour modulation.
+    SCREEN_WAVE_TEXTURE_RAW = 0,
+    /// Multiply the captured frame by the context's colour.
+    SCREEN_WAVE_MODULATE_TEXTURE = 1,
+};
+
+/// Phase of a screen-wave ramp, stored in `ScreenWaveCtx.state`.
+///
+/// Rising counts `frame` up to `span` and holds it there. Falling counts
+/// `frame` back toward zero, then stores finished. Finished ends the task.
+/// A context may already be finished when the task is spawned; the task
+/// resets the phase to rising on its first tick.
+enum {
+    /// Count `frame` up to `span`.
+    SCREEN_WAVE_RAMP_RISING = 0,
+    /// Count `frame` down toward zero, then finish.
+    SCREEN_WAVE_RAMP_FALLING = 1,
+    /// End the screen-wave task.
+    SCREEN_WAVE_RAMP_FINISHED = 2,
+};
+
+/// Ramp context of a screen-wave task, handed to the task as its spawn argument.
+///
+/// The spawner seeds `span`, `scale` and the texture colour. The task clears
+/// `frame`, sets `state` to rising, and the displacement amplitude each frame
+/// is `frame * scale / span`.
+typedef struct {
+    s16 span;            // Rise length in frames; amplitude peaks when `frame` reaches it
+    s16 scale;           // Peak displacement strength, reached at the end of the rise
+    s16 state;           // Ramp phase (SCREEN_WAVE_RAMP_RISING, FALLING or FINISHED)
+    s16 frame;           // Position along the ramp, in frames
+    u8  modulateTexture; // (SCREEN_WAVE_TEXTURE_RAW, or nonzero to tint with r, g, b)
+    u8  r;               // Modulation red (0-255), applied while tinting
+    u8  g;               // Modulation green (0-255), applied while tinting
+    u8  b;               // Modulation blue (0-255), applied while tinting
+} ScreenWaveCtx;
+STATIC_ASSERT_SIZEOF(ScreenWaveCtx, 0xC);
 
 /// One row's or column's sine wave in a screen-wave mesh whose phase tables
 /// are padded to eight bytes: `phase` advances by `speed` every frame, and the

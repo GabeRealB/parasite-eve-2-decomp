@@ -41,7 +41,7 @@ extern RoomEventMsg D_shelter_b3_garbage_incinerator_8018FC2C;
 
 extern Task* D_shelter_b3_garbage_incinerator_8018FC34;
 
-extern OverlayWaveCtx* gScreenWaveCtx;
+extern ScreenWaveCtx* gScreenWaveCtx;
 
 extern Task* D_shelter_b3_garbage_incinerator_8018FC3C;
 

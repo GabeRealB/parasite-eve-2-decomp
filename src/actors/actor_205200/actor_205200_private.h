@@ -11,7 +11,7 @@
 
 extern TmdSource gActor205200EveBreaMaskedBody;
 
-extern OverlayWaveCtx* gScreenWaveCtx;
+extern ScreenWaveCtx* gScreenWaveCtx;
 
 extern OverlayWaveRec gScreenWaveColumns[10];
 
@@ -21,6 +21,6 @@ extern OverlayWaveRec gScreenWaveRows[30];
 /// buffer. `screenWaveGridTask` builds them once and moves their corners.
 extern POLY_FT4 gScreenWaveGrid[2][30][8];
 
-extern OverlayWaveCtx D_actor_205200_8015B458;
+extern ScreenWaveCtx D_actor_205200_8015B458;
 
 #endif // SRC_ACTORS_ACTOR_205200_ACTOR_205200_PRIVATE_H

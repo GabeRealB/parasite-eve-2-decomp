@@ -342,7 +342,7 @@ AnimationSet* D_actor_205200_80156800[5] = {
     &_gActor205200Animation0C968,
 };
 
-OverlayWaveCtx* gScreenWaveCtx = NULL;
+ScreenWaveCtx* gScreenWaveCtx = NULL;
 
 OverlayWaveRec gScreenWaveColumns[10];
 
@@ -350,7 +350,7 @@ OverlayWaveRec gScreenWaveRows[30];
 
 POLY_FT4 gScreenWaveGrid[2][30][8];
 
-OverlayWaveCtx D_actor_205200_8015B458;
+ScreenWaveCtx D_actor_205200_8015B458;
 
 /// Spawn handler: allocates the work block, binds the model's matrices to it,
 /// starts animation slots 1..18 and links the two render objects, whose

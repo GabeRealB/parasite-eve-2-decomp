@@ -86,25 +86,25 @@ STATIC_ASSERT_SIZEOF(Actor160900ChildWork, 0x20);
 /// setting an eight-frame ramp; the `field_4C == 5` request ends the wave.
 /// The block is zeroed at allocation and this overlay never sets the tint.
 typedef struct Actor160900Work {
-    /* 0x00 */ OverlayWaveCtx wave;
-    /* 0x0C */ Task*          field_C[10]; // child tasks, killed on death
-    /* 0x34 */ Task*          field_34;    // gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), taskMessageDispatch target
-    /* 0x38 */ Task*          field_38;    // D_actor_160900_8013FB50[3]
-    /* 0x3C */ Task*          field_3C;    // D_actor_160900_8013FB50[5]
-    /* 0x40 */ Task*          field_40;    // D_actor_160900_8013FB50[6]
-    /* 0x44 */ Task*          field_44;    // optional, notified with 0x7D5 alongside 0x3C/0x40
-    /* 0x48 */ byte           pad_48[4];
-    /* 0x4C */ s16            field_4C;
-    /* 0x4E */ s16            field_4E;
-    /* 0x50 */ byte           pad_50[4];
-    /* 0x54 */ s16            field_54;
-    /* 0x56 */ s16            field_56;
-    /* 0x58 */ byte           pad_58[4];
-    /* 0x5C */ s16            field_5C;
-    /* 0x5E */ s16            field_5E;
-    /* 0x60 */ byte           pad_60[4];
-    /* 0x64 */ u16            field_64;
-    /* 0x66 */ u16            field_66;
+    /* 0x00 */ ScreenWaveCtx wave;
+    /* 0x0C */ Task*         field_C[10]; // child tasks, killed on death
+    /* 0x34 */ Task*         field_34;    // gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), taskMessageDispatch target
+    /* 0x38 */ Task*         field_38;    // D_actor_160900_8013FB50[3]
+    /* 0x3C */ Task*         field_3C;    // D_actor_160900_8013FB50[5]
+    /* 0x40 */ Task*         field_40;    // D_actor_160900_8013FB50[6]
+    /* 0x44 */ Task*         field_44;    // optional, notified with 0x7D5 alongside 0x3C/0x40
+    /* 0x48 */ byte          pad_48[4];
+    /* 0x4C */ s16           field_4C;
+    /* 0x4E */ s16           field_4E;
+    /* 0x50 */ byte          pad_50[4];
+    /* 0x54 */ s16           field_54;
+    /* 0x56 */ s16           field_56;
+    /* 0x58 */ byte          pad_58[4];
+    /* 0x5C */ s16           field_5C;
+    /* 0x5E */ s16           field_5E;
+    /* 0x60 */ byte          pad_60[4];
+    /* 0x64 */ u16           field_64;
+    /* 0x66 */ u16           field_66;
 } Actor160900Work;
 STATIC_ASSERT_SIZEOF(Actor160900Work, 0x68);
 
@@ -152,7 +152,7 @@ extern s32 gScreenWaveRamp;
 
 /// The context the running wave task was spawned with, parked at spawn so
 /// the tick reads the ramp through it.
-extern OverlayWaveCtx* gScreenWaveCtx;
+extern ScreenWaveCtx* gScreenWaveCtx;
 
 extern Task* D_actor_160900_8013FBB4;
 
@@ -946,7 +946,7 @@ TaskDesc D_actor_160900_8013FB50[8] = {
     { { { TASK_BODY_COORD, 192 } }, func_actor_160900_80132E80, { .value = 0 } },
 };
 
-OverlayWaveCtx* gScreenWaveCtx;
+ScreenWaveCtx* gScreenWaveCtx;
 
 Task* D_actor_160900_8013FBB4;
 
@@ -1487,7 +1487,7 @@ static void func_actor_160900_80133238(Task* arg0)
             work->field_4C = 0;
             return;
         case 5:
-            work->wave.state = 2;
+            work->wave.state = SCREEN_WAVE_RAMP_FINISHED;
             break;
         case 6:
             func_actor_160900_SetAnimZ(arg0, 2);

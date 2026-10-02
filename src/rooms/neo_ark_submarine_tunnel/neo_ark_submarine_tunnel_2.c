@@ -1262,13 +1262,13 @@ WorldCollisionSurfaceProperties* D_neo_ark_submarine_tunnel_801878EC[8] = {
     D_neo_ark_submarine_tunnel_801878DC,
 };
 
-OverlayWaveCtx* gScreenWaveCtx = NULL;
+ScreenWaveCtx* gScreenWaveCtx = NULL;
 
 OverlayWaveRec6 gScreenWaveColumns[13];
 
 OverlayWaveRec6 gScreenWaveRows[32];
 
-OverlayWaveCtx gScreenWaveSpawnCtx; /// Task that, on its first tick, stores the ids 0x6027F, 0x60280 and 0x60281
+ScreenWaveCtx gScreenWaveSpawnCtx; /// Task that, on its first tick, stores the ids 0x6027F, 0x60280 and 0x60281
 /// into `gRoomEffectGlowDiscId`, `gRoomEffectFlyingSparkId` and `gRoomEffectOrangeBurst2Id` and then idles; the burst
 /// task below spawns its effects from `gRoomEffectFlyingSparkId`.
 void func_neo_ark_submarine_tunnel_8017F48C(Task* arg0)

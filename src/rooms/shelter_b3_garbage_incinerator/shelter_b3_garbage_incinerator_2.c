@@ -139,14 +139,14 @@ void func_shelter_b3_garbage_incinerator_8017F968(void);
 /// one more task and places the child task and the animation fields
 /// differently, so the two stay separate types.
 typedef struct {
-    byte           pad_0[0x20];
-    OverlayWaveCtx wave;
-    Task*          field_2C;
-    Task*          child;
-    Task*          field_34;
-    s16            field_38;
-    s16            field_3A;
-    byte           pad_3C[0x4];
+    byte          pad_0[0x20];
+    ScreenWaveCtx wave;
+    Task*         field_2C;
+    Task*         child;
+    Task*         field_34;
+    s16           field_38;
+    s16           field_3A;
+    byte          pad_3C[0x4];
 } GarbageIncineratorWork;
 STATIC_ASSERT_SIZEOF(GarbageIncineratorWork, 0x40);
 

@@ -4,25 +4,26 @@
 /// 10 by 30 grid of textured quads whose corners are pushed around by sine
 /// waves. The first frame gives every column and row edge a random phase
 /// offset and speed, takes its context from `spawnArg2` and passes -8 to
-/// `displaySetShakeY`. Afterwards the context's mode ramps the strength
-/// up to its limit (mode 0), back down to zero and on to mode 2 (mode 1), or
-/// ends the task and passes 0 back (mode 2); the displacement is the ramp's
-/// share of the context's peak. A non-zero tint flag shades the quads with the
-/// context's colour instead of drawing them unlit. The grid is bracketed by
+/// `displaySetShakeY`. Afterwards the ramp rises toward `span`
+/// (`SCREEN_WAVE_RAMP_RISING`), falls back toward zero
+/// (`SCREEN_WAVE_RAMP_FALLING`), or ends the task
+/// (`SCREEN_WAVE_RAMP_FINISHED`). Displacement is `frame * scale / span`.
+/// A zero `modulateTexture` draws the captured frame unshaded; any other value
+/// tints the quads with `r`, `g` and `b`. The grid is bracketed by
 /// draw-mode packets that switch mask-bit setting on at the back of the order
 /// table and off again at the front.
 void screenWaveTask(Task* arg0)
 {
-    OverlayWaveCtx* ctx;
-    POLY_FT4*       p;
-    DR_STP*         stp;
-    s32             i, j, k;
-    s32             drawY;
-    s32             tpage0, tpage1;
-    s32             u0, u1, v0, v1;
-    s32             waveX0, waveY0, waveX1, waveY1;
-    s32             waveX2, waveY2, waveX3, waveY3;
-    s32*            state;
+    ScreenWaveCtx* ctx;
+    POLY_FT4*      p;
+    DR_STP*        stp;
+    s32            i, j, k;
+    s32            drawY;
+    s32            tpage0, tpage1;
+    s32            u0, u1, v0, v1;
+    s32            waveX0, waveY0, waveX1, waveY1;
+    s32            waveX2, waveY2, waveX3, waveY3;
+    s32*           state;
 
     gCdCmdQueue.imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
     /* Through a pointer rather than as `arg0->state`: a member load is struct
@@ -44,26 +45,26 @@ void screenWaveTask(Task* arg0)
             gScreenWaveRamp       = 0;
             gScreenWaveCtx        = arg0->spawnArg2.pointer;
             gScreenWaveCtx->frame = 0;
-            gScreenWaveCtx->state = 0;
+            gScreenWaveCtx->state = SCREEN_WAVE_RAMP_RISING;
             displaySetShakeY(DISPLAY_SHAKE_MIN);
             arg0->state++;
             break;
         case 1:
             ctx = gScreenWaveCtx;
             switch (ctx->state) {
-                case 0:
+                case SCREEN_WAVE_RAMP_RISING:
                     if (ctx->frame < ctx->span) {
                         ctx->frame++;
                     }
                     break;
-                case 1:
+                case SCREEN_WAVE_RAMP_FALLING:
                     if (ctx->frame > 0) {
                         ctx->frame--;
                     } else {
-                        ctx->state = 2;
+                        ctx->state = SCREEN_WAVE_RAMP_FINISHED;
                     }
                     break;
-                case 2:
+                case SCREEN_WAVE_RAMP_FINISHED:
                     taskKill(arg0);
                     displaySetShakeY(0);
                     break;
@@ -82,7 +83,7 @@ void screenWaveTask(Task* arg0)
                     p              = gGpuPrimCursor;
                     gGpuPrimCursor = p + 1;
                     setPolyFT4(p);
-                    if (gScreenWaveCtx->blend == 0) {
+                    if (gScreenWaveCtx->modulateTexture == SCREEN_WAVE_TEXTURE_RAW) {
                         setShadeTex(p, 1);
                     } else {
                         setShadeTex(p, 0);

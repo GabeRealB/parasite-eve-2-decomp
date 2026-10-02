@@ -13,11 +13,11 @@
  * first-declaration order:
  *
  *   s32              gScreenWaveRamp       the strength's ramp towards the peak
- *   OverlayWaveCtx*  gScreenWaveCtx        the context the task was spawned with
+ *   ScreenWaveCtx*   gScreenWaveCtx        the context the task was spawned with
  *   OverlayWaveRec6  gScreenWaveColumns[]  per-column phase, offset and speed
  *   OverlayWaveRec6  gScreenWaveRows[]     per-row phase, offset and speed
  *   POLY_FT4         gScreenWaveGrid[2][30][8]  the prebuilt grids (grid task)
- *   OverlayWaveCtx   gScreenWaveSpawnCtx   the context screenWaveRun fills
+ *   ScreenWaveCtx    gScreenWaveSpawnCtx   the context screenWaveRun fills
  *   TaskDesc         gScreenWaveTaskDesc[] the wave task screenWaveRun spawns
  *
  * The grid task's records are OverlayWaveRec rather than OverlayWaveRec6.
