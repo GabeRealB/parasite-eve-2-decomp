@@ -69,13 +69,21 @@ typedef struct {
 } _MidiChannel;
 STATIC_ASSERT_SIZEOF(_MidiChannel, 0x8);
 
-/// The initializer writes the complete table as words; event handlers use
-/// individual channel controls. Both views cover exactly the same 0x80 bytes.
+// Every value of the channel selector has its own runtime control record.
+enum { MIDI_CHANNEL_COUNT = MIDI_CHANNEL_STATUS_MASK + 1 };
+
+/// Runtime controls for all sixteen MIDI channels of one song.
+///
+/// Channel indices are the status byte's low nibble (0..15), also retained by
+/// active voice slots. Slot initialization and sequence startup reset the full
+/// table; event handlers then update controls shared by that channel's notes.
+/// The word view covers every record, including its uninterpreted byte, for
+/// initialization with two 32-bit stores per channel.
 typedef union {
-    _MidiChannel entries[16];
-    u32          words[32];
-} MidiChannelTable;
-STATIC_ASSERT_SIZEOF(MidiChannelTable, 0x80);
+    _MidiChannel entries[MIDI_CHANNEL_COUNT];                                   // Per-channel runtime controls, indexed 0..15
+    u32          words[sizeof(_MidiChannel[MIDI_CHANNEL_COUNT]) / sizeof(u32)]; // Complete table representation as 32-bit reset words
+} _MidiChannelTable;
+STATIC_ASSERT_SIZEOF(_MidiChannelTable, 0x80);
 
 /// Track/channel entry inside MidiSong (stride 0x3C). field_5 is a per-entry flag
 /// written by Midi_ResetTrackFlags; absolute offset of first entry's field_5 is 0x51.
@@ -126,29 +134,29 @@ STATIC_ASSERT_SIZEOF(MidiNoteSlot, 0xC);
 /// channels and eighteen SPU voice slots. The sequence buffer is byte data;
 /// sequenceBytes is its aligned length and waveBytes describes its bank data.
 typedef struct _MidiSong {
-    /* 0x00 */ u8                status;
-    /* 0x01 */ u8                sequenceId;
-    /* 0x02 */ u8                format;
-    /* 0x03 */ u8                trackCount;
-    /* 0x04 */ u8                field_4;
-    /* 0x05 */ u8                field_5;
-    /* 0x06 */ u8                field_6;
-    /* 0x07 */ u8                field_7;
-    /* 0x08 */ s16               volumeScale;
-    /* 0x0A */ s16               sequenceBytes;
-    /* 0x0C */ s32               volumeDirtyChannels;
-    /* 0x10 */ u8*               sequenceData;
-    /* 0x14 */ LinInterp         volumeRamp;
-    /* 0x24 */ u8                unknown_24[0x10];
-    /* 0x34 */ s32               ticksPerQuarter;
-    /* 0x38 */ s32               songTicks;
-    /* 0x3C */ s32               waveBytes;
-    /* 0x40 */ SndBank*          bank;
-    /* 0x44 */ SndBankGroup*     groups;
-    /* 0x48 */ SndBankLayer*     notes;
-    /* 0x4C */ MidiTrack         entries[18];
-    /* 0x484 */ MidiChannelTable channels;
-    /* 0x504 */ MidiNoteSlot     voiceSlots[0x12];
+    /* 0x00 */ u8                 status;
+    /* 0x01 */ u8                 sequenceId;
+    /* 0x02 */ u8                 format;
+    /* 0x03 */ u8                 trackCount;
+    /* 0x04 */ u8                 field_4;
+    /* 0x05 */ u8                 field_5;
+    /* 0x06 */ u8                 field_6;
+    /* 0x07 */ u8                 field_7;
+    /* 0x08 */ s16                volumeScale;
+    /* 0x0A */ s16                sequenceBytes;
+    /* 0x0C */ s32                volumeDirtyChannels;
+    /* 0x10 */ u8*                sequenceData;
+    /* 0x14 */ LinInterp          volumeRamp;
+    /* 0x24 */ u8                 unknown_24[0x10];
+    /* 0x34 */ s32                ticksPerQuarter;
+    /* 0x38 */ s32                songTicks;
+    /* 0x3C */ s32                waveBytes;
+    /* 0x40 */ SndBank*           bank;
+    /* 0x44 */ SndBankGroup*      groups;
+    /* 0x48 */ SndBankLayer*      notes;
+    /* 0x4C */ MidiTrack          entries[18];
+    /* 0x484 */ _MidiChannelTable channels;
+    /* 0x504 */ MidiNoteSlot      voiceSlots[0x12];
 } MidiSong;
 STATIC_ASSERT_SIZEOF(MidiSong, 0x5DC);
 
@@ -332,7 +340,7 @@ static u8* Midi_HandleMetaSysex(s32 unused1, u8* arg1, MidiSong* song, MidiTrack
 
 static s32 Midi_ReadVlq(u8* arg0, u8* arg1);
 
-static void Midi_InitChannelTable(MidiChannelTable* channels);
+static void Midi_InitChannelTable(_MidiChannelTable* channels);
 
 static u8* Midi_IncPtr(s32 unused1, u8* arg1, MidiSong* unusedSong, MidiTrack* unusedTrack);
 
@@ -1716,7 +1724,7 @@ static s32 Midi_ReadVlq(u8* arg0, u8* arg1)
     return _midiReadVlq(arg0, arg1);
 }
 
-static void Midi_InitChannelTable(MidiChannelTable* channels)
+static void Midi_InitChannelTable(_MidiChannelTable* channels)
 {
     // Little-endian first word: note events enabled, volume 64, expression
     // 127 and neutral pan. The second word resets program and bend to zero.
