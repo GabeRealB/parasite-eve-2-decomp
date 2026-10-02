@@ -10,10 +10,19 @@
 #include "gfx.h"
 #include "main/scratch.h"
 
+/// Scratch reservation for one flat light's normalized direction.
+///
+/// `direction` is the last eight bytes of a 24-byte reservation, eight bytes
+/// below the scratch cursor from before the reservation. The leading bytes
+/// are never accessed; their extent is what places `direction` there while
+/// the stack moves by the whole reservation. Released before the caller
+/// returns. Normalization borrows a further reservation beneath this one
+/// and leaves the direction's final halfword unchanged.
 typedef struct {
-    u8      pad[0x10];
-    SVECTOR dir;
-} ScratchLightBlock;
+    u8      pad[0x10]; // Unused
+    SVECTOR direction; // Normalized xyz, length about ONE (4096); final halfword unused
+} _GfxFlatLightScratch;
+STATIC_ASSERT_SIZEOF(_GfxFlatLightScratch, 0x18);
 
 MATRIX D_80074080;
 
@@ -25,20 +34,20 @@ static void Gfx_SetLightAmbient(long arg0, long arg1, long arg2);
 
 static __inline__ void setLightToMatrices(s32 id, GsF_LIGHT* light, MATRIX* dirMtx, MATRIX* colorMtx)
 {
-    ScratchLightBlock* block;
+    _GfxFlatLightScratch* scratch;
 
-    block = SCRATCH_STACK_RESERVE_BLOCK(ScratchLightBlock);
-    gfxNormalizeLightDirection(light, &block->dir);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_GfxFlatLightScratch);
+    gfxNormalizeLightDirection(light, &scratch->direction);
 
-    dirMtx->m[id][0] = -block->dir.vx;
-    dirMtx->m[id][1] = -block->dir.vy;
-    dirMtx->m[id][2] = -block->dir.vz;
+    dirMtx->m[id][0] = -scratch->direction.vx;
+    dirMtx->m[id][1] = -scratch->direction.vy;
+    dirMtx->m[id][2] = -scratch->direction.vz;
 
     colorMtx->m[0][id] = light->r << 4;
     colorMtx->m[1][id] = light->g << 4;
     colorMtx->m[2][id] = light->b << 4;
 
-    SCRATCH_STACK_RELEASE_BLOCK(ScratchLightBlock);
+    SCRATCH_STACK_RELEASE_BLOCK(_GfxFlatLightScratch);
 }
 
 void Gpu_InitDefaultLights(void)
@@ -83,20 +92,20 @@ void Gpu_InitDefaultLights(void)
 
 void Gfx_SetFlatLight(s32 id, GsF_LIGHT* light, MATRIX* dirMtx, MATRIX* colorMtx)
 {
-    ScratchLightBlock* block;
+    _GfxFlatLightScratch* scratch;
 
-    block = SCRATCH_STACK_RESERVE_BLOCK(ScratchLightBlock);
-    gfxNormalizeLightDirection(light, &block->dir);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_GfxFlatLightScratch);
+    gfxNormalizeLightDirection(light, &scratch->direction);
 
-    dirMtx->m[id][0] = -block->dir.vx;
-    dirMtx->m[id][1] = -block->dir.vy;
-    dirMtx->m[id][2] = -block->dir.vz;
+    dirMtx->m[id][0] = -scratch->direction.vx;
+    dirMtx->m[id][1] = -scratch->direction.vy;
+    dirMtx->m[id][2] = -scratch->direction.vz;
 
     colorMtx->m[0][id] = light->r << 4;
     colorMtx->m[1][id] = light->g << 4;
     colorMtx->m[2][id] = light->b << 4;
 
-    SCRATCH_STACK_RELEASE_BLOCK(ScratchLightBlock);
+    SCRATCH_STACK_RELEASE_BLOCK(_GfxFlatLightScratch);
 }
 
 static void Gfx_SetDefaultFlatLight(s32 id, GsF_LIGHT* light)

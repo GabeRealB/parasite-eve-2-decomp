@@ -17535,14 +17535,14 @@ Helpers that call `gfxNormalizeLightDirection` to normalize a light direction us
 
 ```c
 head = *scratch;
-block = (ScratchLightBlock*)((u8*)head - 0x18); /* pad[0x10] + SVECTOR */
+block = (_GfxFlatLightScratch*)((u8*)head - 0x18); /* pad[0x10] + SVECTOR */
 *scratch = block;
-gfxNormalizeLightDirection(light, (SVECTOR*)((u8*)head - 8)); /* == &block->dir */
-/* read -block->dir.{vx,vy,vz} into MATRIX row id */
+gfxNormalizeLightDirection(light, (SVECTOR*)((u8*)head - 8)); /* == &block->direction */
+/* read -block->direction.{vx,vy,vz} into MATRIX row id */
 *scratch = (u8*)*scratch + 0x18;                 /* free */
 ```
 
-Keeping a single `block` base (access dir as `block->dir` / `+0x10`) avoids an
+Keeping a single `block` base (access direction as `block->direction` / `+0x10`) avoids an
 extra callee-saved for a separate SVECTOR pointer. Computing the out-arg as
 `head - 8` (not `block + 0x10`) matches the target's `addiu a1, a1, -8` from the
 loaded head. Colors go in MATRIX **columns** (`m[0/1/2][id] = component << 4`);
