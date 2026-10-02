@@ -13,7 +13,6 @@
 #include "main/gameflag.h"
 #include "main/mem.h"
 #include "text.h"
-#include "text_types.h"
 
 /* Define BSS before API headers to preserve first-declaration order. */
 s16 Fs_BootLoadSlot;
@@ -224,7 +223,7 @@ static u8 BootCaptionText_MistEvening[] = {
     0xBB,
     0x8F,
     0x8C,
-    0xFE,
+    TEXT_STREAM_LINE_BREAK,
     0x0C,
     0x42,
     0x08,
@@ -254,7 +253,7 @@ static u8 BootCaptionText_MistEvening[] = {
     0x25,
     0x1E,
     0x2C,
-    0xFF,
+    TEXT_STREAM_END,
 };
 static TextStream BootCaption_MistEvening = { -150, -90, 960, 0, 0, 260, 1, 0, BootCaptionText_MistEvening, Caption_Glyphs, 13, 150, 216, 29 };
 /// Legacy secondary caption; the current draw path ignores its second argument.
@@ -287,7 +286,7 @@ static u8 BootCaptionText_AkropolisEvening[] = {
     0xB9,
     0x8F,
     0x8C,
-    0xFE,
+    TEXT_STREAM_LINE_BREAK,
     0x00,
     0x24,
     0x2B,
@@ -317,7 +316,7 @@ static u8 BootCaptionText_AkropolisEvening[] = {
     0x25,
     0x1E,
     0x2C,
-    0xFF,
+    TEXT_STREAM_END,
 };
 static TextStream BootCaption_AkropolisEvening = { -150, -90, 960, 0, 0, 260, 1, 0, BootCaptionText_AkropolisEvening, Caption_Glyphs, 13, 150, 216, 29 };
 /// Legacy secondary caption; the current draw path ignores its second argument.
@@ -351,7 +350,7 @@ static u8 BootCaptionText_DesertAfternoon[] = {
     0xB6,
     0x8F,
     0x8C,
-    0xFE,
+    TEXT_STREAM_LINE_BREAK,
     0x0C,
     0x28,
     0x23,
@@ -374,7 +373,7 @@ static u8 BootCaptionText_DesertAfternoon[] = {
     0x1A,
     0x1D,
     0x1A,
-    0xFF,
+    TEXT_STREAM_END,
 };
 static TextStream BootCaption_DesertAfternoon = { -150, -90, 960, 0, 0, 260, 1, 0, BootCaptionText_DesertAfternoon, Caption_Glyphs, 13, 150, 216, 29 };
 /// Legacy secondary caption; the current draw path ignores its second argument.
@@ -408,7 +407,7 @@ static u8 BootCaptionText_DryfieldMesaNight[] = {
     0xB9,
     0x80,
     0x8C,
-    0xFE,
+    TEXT_STREAM_LINE_BREAK,
     0x0C,
     0x1E,
     0x2C,
@@ -434,7 +433,7 @@ static u8 BootCaptionText_DryfieldMesaNight[] = {
     0x28,
     0x1F,
     0x45,
-    0xFE,
+    TEXT_STREAM_LINE_BREAK,
     0x03,
     0x2B,
     0x32,
@@ -458,7 +457,7 @@ static u8 BootCaptionText_DryfieldMesaNight[] = {
     0x1E,
     0x2B,
     0x2D,
-    0xFF,
+    TEXT_STREAM_END,
 };
 static TextStream BootCaption_DryfieldMesaNight = { -150, -90, 960, 0, 0, 260, 1, 0, BootCaptionText_DryfieldMesaNight, Caption_Glyphs, 13, 150, 216, 40 };
 /// Legacy secondary caption; the current draw path ignores its second argument.
@@ -491,7 +490,7 @@ static u8 BootCaptionText_WhiteHouseEvening[] = {
     0xBA,
     0x8F,
     0x8C,
-    0xFE,
+    TEXT_STREAM_LINE_BREAK,
     0x16,
     0x21,
     0x22,
@@ -521,7 +520,7 @@ static u8 BootCaptionText_WhiteHouseEvening[] = {
     0x42,
     0x02,
     0x42,
-    0xFF,
+    TEXT_STREAM_END,
 };
 static TextStream BootCaption_WhiteHouseEvening = { -150, -90, 960, 0, 0, 260, 1, 0, BootCaptionText_WhiteHouseEvening, Caption_Glyphs, 13, 150, 216, 29 };
 /// Legacy secondary caption; the current draw path ignores its second argument.
@@ -554,7 +553,7 @@ static u8 BootCaptionText_DesertReturn[] = {
     0xB5,
     0x8F,
     0x8C,
-    0xFE,
+    TEXT_STREAM_LINE_BREAK,
     0x0C,
     0x28,
     0x23,
@@ -577,7 +576,7 @@ static u8 BootCaptionText_DesertReturn[] = {
     0x1A,
     0x1D,
     0x1A,
-    0xFF,
+    TEXT_STREAM_END,
 };
 static TextStream BootCaption_DesertReturn = { -150, -90, 960, 0, 0, 260, 1, 0, BootCaptionText_DesertReturn, Caption_Glyphs, 13, 150, 216, 29 };
 /// Legacy secondary caption; the current draw path ignores its second argument.
@@ -610,7 +609,7 @@ static u8 BootCaptionText_WhiteHouseAftermath[] = {
     0xB8,
     0x8F,
     0x8C,
-    0xFE,
+    TEXT_STREAM_LINE_BREAK,
     0x16,
     0x21,
     0x22,
@@ -640,7 +639,7 @@ static u8 BootCaptionText_WhiteHouseAftermath[] = {
     0x42,
     0x02,
     0x42,
-    0xFF,
+    TEXT_STREAM_END,
 };
 static TextStream BootCaption_WhiteHouseAftermath = { -150, -90, 960, 0, 0, 260, 1, 0, BootCaptionText_WhiteHouseAftermath, Caption_Glyphs, 13, 150, 216, 29 };
 /// Legacy secondary caption; the current draw path ignores its second argument.
@@ -672,7 +671,7 @@ static u8 BootCaptionText_MuseumFlashback[] = {
     0x39,
     0x0F,
     0x0C,
-    0xFE,
+    TEXT_STREAM_LINE_BREAK,
     0x0D,
     0x1A,
     0x2D,
@@ -697,7 +696,7 @@ static u8 BootCaptionText_MuseumFlashback[] = {
     0x28,
     0x2B,
     0x24,
-    0xFF,
+    TEXT_STREAM_END,
 };
 static TextStream BootCaption_MuseumFlashback = { -150, -90, 960, 0, 0, 260, 1, 0, BootCaptionText_MuseumFlashback, Caption_Glyphs, 13, 300, 216, 29 };
 /// Legacy secondary caption; the current draw path ignores its second argument.
@@ -724,7 +723,7 @@ static u8 BootCaptionText_MistArrival[] = {
     0x3D,
     0x45,
     0x45,
-    0xFE,
+    TEXT_STREAM_LINE_BREAK,
     0x0C,
     0x42,
     0x08,
@@ -754,7 +753,7 @@ static u8 BootCaptionText_MistArrival[] = {
     0x25,
     0x1E,
     0x2C,
-    0xFF,
+    TEXT_STREAM_END,
 };
 static TextStream BootCaption_MistArrival = { -150, -90, 960, 0, 0, 260, 1, 0, BootCaptionText_MistArrival, Caption_Glyphs, 13, 107, 216, 29 };
 /// September 3,  1999\nM.I.S.T.  Center, Los Angeles
@@ -777,7 +776,7 @@ static u8 BootCaptionText_MistUnused[] = {
     0x3D,
     0x3D,
     0x3D,
-    0xFE,
+    TEXT_STREAM_LINE_BREAK,
     0x0C,
     0x42,
     0x08,
@@ -807,7 +806,7 @@ static u8 BootCaptionText_MistUnused[] = {
     0x25,
     0x1E,
     0x2C,
-    0xFF,
+    TEXT_STREAM_END,
 };
 /// Retained unused caption variant.
 static TextStream BootCaption_MistUnused = { -150, -90, 960, 0, 0, 260, 3, 0, BootCaptionText_MistUnused, Caption_Glyphs, 13, 300, 216, 29 };
@@ -831,7 +830,7 @@ static u8 BootCaptionText_Akropolis[] = {
     0x3D,
     0x3D,
     0x3D,
-    0xFE,
+    TEXT_STREAM_LINE_BREAK,
     0x00,
     0x24,
     0x2B,
@@ -861,7 +860,7 @@ static u8 BootCaptionText_Akropolis[] = {
     0x25,
     0x1E,
     0x2C,
-    0xFF,
+    TEXT_STREAM_END,
 };
 static TextStream BootCaption_Akropolis = { -150, -90, 960, 0, 0, 260, 3, 0, BootCaptionText_Akropolis, Caption_Glyphs, 13, 300, 216, 29 };
 /// September 4,  1999\nM.I.S.T.  Center, Los Angeles
@@ -884,7 +883,7 @@ static u8 BootCaptionText_MistDeparture[] = {
     0x3D,
     0x3D,
     0x3D,
-    0xFE,
+    TEXT_STREAM_LINE_BREAK,
     0x0C,
     0x42,
     0x08,
@@ -914,7 +913,7 @@ static u8 BootCaptionText_MistDeparture[] = {
     0x25,
     0x1E,
     0x2C,
-    0xFF,
+    TEXT_STREAM_END,
 };
 static TextStream BootCaption_MistDeparture = { -150, -90, 960, 0, 0, 260, 3, 0, BootCaptionText_MistDeparture, Caption_Glyphs, 13, 300, 216, 29 };
 /// September 4,  1999\nDryfield, Mojave Desert
@@ -937,7 +936,7 @@ static u8 BootCaptionText_Dryfield[] = {
     0x3D,
     0x3D,
     0x3D,
-    0xFE,
+    TEXT_STREAM_LINE_BREAK,
     0x03,
     0x2B,
     0x32,
@@ -961,7 +960,7 @@ static u8 BootCaptionText_Dryfield[] = {
     0x1E,
     0x2B,
     0x2D,
-    0xFF,
+    TEXT_STREAM_END,
 };
 static TextStream BootCaption_Dryfield = { -150, -90, 960, 0, 0, 260, 3, 0, BootCaptionText_Dryfield, Caption_Glyphs, 13, 300, 216, 29 };
 /// September 5,  1999\nMine shaft, Mojave Desert
@@ -984,7 +983,7 @@ static u8 BootCaptionText_Mine[] = {
     0x3D,
     0x3D,
     0x3D,
-    0xFE,
+    TEXT_STREAM_LINE_BREAK,
     0x0C,
     0x22,
     0x27,
@@ -1010,7 +1009,7 @@ static u8 BootCaptionText_Mine[] = {
     0x1E,
     0x2B,
     0x2D,
-    0xFF,
+    TEXT_STREAM_END,
 };
 static TextStream BootCaption_Mine = { -150, -90, 960, 0, 0, 260, 3, 0, BootCaptionText_Mine, Caption_Glyphs, 13, 300, 216, 29 };
 /// September 5,  1999\nDwelling level, Shelter
@@ -1033,7 +1032,7 @@ static u8 BootCaptionText_ShelterDwelling[] = {
     0x3D,
     0x3D,
     0x3D,
-    0xFE,
+    TEXT_STREAM_LINE_BREAK,
     0x03,
     0x30,
     0x1E,
@@ -1057,7 +1056,7 @@ static u8 BootCaptionText_ShelterDwelling[] = {
     0x2D,
     0x1E,
     0x2B,
-    0xFF,
+    TEXT_STREAM_END,
 };
 static TextStream BootCaption_ShelterDwelling = { -150, -90, 960, 0, 0, 260, 3, 0, BootCaptionText_ShelterDwelling, Caption_Glyphs, 13, 300, 216, 29 };
 /// September 5,  1999\nWaste level, Shelter
@@ -1080,7 +1079,7 @@ static u8 BootCaptionText_ShelterWaste[] = {
     0x3D,
     0x3D,
     0x3D,
-    0xFE,
+    TEXT_STREAM_LINE_BREAK,
     0x16,
     0x1A,
     0x2C,
@@ -1101,7 +1100,7 @@ static u8 BootCaptionText_ShelterWaste[] = {
     0x2D,
     0x1E,
     0x2B,
-    0xFF,
+    TEXT_STREAM_END,
 };
 static TextStream BootCaption_ShelterWaste = { -150, -90, 960, 0, 0, 260, 3, 0, BootCaptionText_ShelterWaste, Caption_Glyphs, 13, 300, 216, 29 };
 /// September 5,  1999\nDryfield, Mojave Desert
@@ -1124,7 +1123,7 @@ static u8 BootCaptionText_DryfieldReturn[] = {
     0x3D,
     0x3D,
     0x3D,
-    0xFE,
+    TEXT_STREAM_LINE_BREAK,
     0x03,
     0x2B,
     0x32,
@@ -1148,7 +1147,7 @@ static u8 BootCaptionText_DryfieldReturn[] = {
     0x1E,
     0x2B,
     0x2D,
-    0xFF,
+    TEXT_STREAM_END,
 };
 static TextStream BootCaption_DryfieldReturn = { -150, -90, 960, 0, 0, 260, 3, 0, BootCaptionText_DryfieldReturn, Caption_Glyphs, 13, 300, 216, 29 };
 /// September 5,  1999\nLaboratory level, Shelter
@@ -1171,7 +1170,7 @@ static u8 BootCaptionText_ShelterLaboratory[] = {
     0x3D,
     0x3D,
     0x3D,
-    0xFE,
+    TEXT_STREAM_LINE_BREAK,
     0x0B,
     0x1A,
     0x1B,
@@ -1197,7 +1196,7 @@ static u8 BootCaptionText_ShelterLaboratory[] = {
     0x2D,
     0x1E,
     0x2B,
-    0xFF,
+    TEXT_STREAM_END,
 };
 static TextStream BootCaption_ShelterLaboratory = { -150, -90, 960, 0, 0, 260, 3, 0, BootCaptionText_ShelterLaboratory, Caption_Glyphs, 13, 300, 216, 29 };
 /// September 5,  1999\nPod shaft, Shelter
@@ -1220,7 +1219,7 @@ static u8 BootCaptionText_ShelterPod[] = {
     0x3D,
     0x3D,
     0x3D,
-    0xFE,
+    TEXT_STREAM_LINE_BREAK,
     0x0F,
     0x28,
     0x1D,
@@ -1239,7 +1238,7 @@ static u8 BootCaptionText_ShelterPod[] = {
     0x2D,
     0x1E,
     0x2B,
-    0xFF,
+    TEXT_STREAM_END,
 };
 static TextStream BootCaption_ShelterPod = { -150, -90, 960, 0, 0, 260, 3, 0, BootCaptionText_ShelterPod, Caption_Glyphs, 13, 300, 216, 29 };
 /// September 5,  1999\nExperiment level, Shelter
@@ -1262,7 +1261,7 @@ static u8 BootCaptionText_ShelterExperiment[] = {
     0x3D,
     0x3D,
     0x3D,
-    0xFE,
+    TEXT_STREAM_LINE_BREAK,
     0x04,
     0x31,
     0x29,
@@ -1288,7 +1287,7 @@ static u8 BootCaptionText_ShelterExperiment[] = {
     0x2D,
     0x1E,
     0x2B,
-    0xFF,
+    TEXT_STREAM_END,
 };
 static TextStream BootCaption_ShelterExperiment = { -150, -90, 960, 0, 0, 260, 3, 0, BootCaptionText_ShelterExperiment, Caption_Glyphs, 13, 300, 216, 29 };
 /// September 5,  1999\nHeliport, Shelter
@@ -1311,7 +1310,7 @@ static u8 BootCaptionText_ShelterHeliport[] = {
     0x3D,
     0x3D,
     0x3D,
-    0xFE,
+    TEXT_STREAM_LINE_BREAK,
     0x07,
     0x1E,
     0x25,
@@ -1329,7 +1328,7 @@ static u8 BootCaptionText_ShelterHeliport[] = {
     0x2D,
     0x1E,
     0x2B,
-    0xFF,
+    TEXT_STREAM_END,
 };
 static TextStream BootCaption_ShelterHeliport = { -150, -90, 960, 0, 0, 260, 3, 0, BootCaptionText_ShelterHeliport, Caption_Glyphs, 13, 300, 216, 29 };
 

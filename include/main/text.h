@@ -185,6 +185,46 @@ STATIC_ASSERT_SIZEOF(TextGlyphCell, 0x4);
 /// Caption font cells shared with room title sequences.
 extern TextGlyphCell Caption_Glyphs[];
 
+/// Glyph-script encoding for `TextStream::chars`.
+enum {
+    /// Low 7 bits of a glyph byte: the cell index in `glyphs`.
+    TEXT_STREAM_GLYPH_INDEX_MASK = 0x7F,
+    /// Line break. The pen returns to its origin X and advances by the line height.
+    TEXT_STREAM_LINE_BREAK = 0xFE,
+    /// End of the glyph script.
+    TEXT_STREAM_END = 0xFF,
+};
+
+/// Placement, font and timing for one progressively revealed caption.
+///
+/// `charDelay` is the number of frames between glyphs. A negative value reveals
+/// the whole script on the first step. `delayReload` is the hold, in frames,
+/// after the last glyph, and the countdown used for that immediate reveal.
+/// `cursor` counts script bytes already revealed, including line breaks.
+///
+/// The caller keeps the record, the script and the glyph cells for the whole
+/// reveal. Only `cursor` is written while a caption is revealing. Bit 7 of a
+/// glyph byte marks a glyph one drawer can omit when its caller asks to filter;
+/// that drawer indexes cells with the low 7 bits. `boxWidth` and `boxHeight`
+/// are the backing plate in pixels. A drawer may leave the plate unpainted.
+typedef struct {
+    s16            x;           // Pen origin X in draw-environment pixels.
+    s16            y;           // Pen origin Y in draw-environment pixels.
+    s16            tpageX;      // Font texture X in VRAM. The low 6 bits are the sprite U origin.
+    s16            tpageY;      // Font texture Y in VRAM. The low 8 bits are the sprite V origin.
+    s16            clutX;       // Palette X in VRAM.
+    s16            clutY;       // Palette Y in VRAM.
+    s16            charDelay;   // Frames between glyphs. Negative reveals the whole script at once.
+    s16            cursor;      // Script bytes already revealed, including line breaks.
+    u8*            chars;       // Glyph-index script, ended by `TEXT_STREAM_END`.
+    TextGlyphCell* glyphs;      // Cell table indexed by a glyph byte's low 7 bits.
+    s16            lineHeight;  // Pixels added to the pen Y at a line break.
+    s16            delayReload; // Frames to hold the caption after the last glyph.
+    s16            boxWidth;    // Backing plate width in pixels.
+    s16            boxHeight;   // Backing plate height in pixels.
+} TextStream;
+STATIC_ASSERT_SIZEOF(TextStream, 0x20);
+
 /// Applies horizontal alignment to one encoded UI-text line's X anchor.
 ///
 /// Borrows `request` and `text` for this call, retaining neither. Only `x`,

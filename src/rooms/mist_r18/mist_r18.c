@@ -70,35 +70,6 @@ typedef struct MistR18Sprite {
 
 STATIC_ASSERT_SIZEOF(MistR18Sprite, 0x14);
 
-/// Spawn descriptor for the typewriter text task `func_mist_r18_8017D5EC`
-/// drives, hung off `Task::spawnArg2`.
-///
-/// `script` is a run of glyph indices terminated by 0xFF, with 0xFE as a line
-/// break; `index` is how many of them are revealed so far and doubles as the
-/// draw count. `delay` is the per-glyph frame count reloaded into
-/// `Task::killCountdown`, `delayEnd` the one used once the terminator is
-/// reached; a negative `delay` reveals the whole script at once. `x`/`y` is
-/// the pen origin, `u`/`v` the font page origin, `clutX`/`clutY` the palette
-/// position and `boxW`/`boxH` the backing rectangle drawn behind the text.
-typedef struct MistR18TextSpawn {
-    /* 0x00 */ s16            x;
-    /* 0x02 */ s16            y;
-    /* 0x04 */ s16            u;
-    /* 0x06 */ s16            v;
-    /* 0x08 */ s16            clutX;
-    /* 0x0A */ s16            clutY;
-    /* 0x0C */ s16            delay;
-    /* 0x0E */ s16            index;
-    /* 0x10 */ u8*            script;
-    /* 0x14 */ TextGlyphCell* glyphs;
-    /* 0x18 */ s16            lineHeight;
-    /* 0x1A */ s16            delayEnd;
-    /* 0x1C */ s16            boxW;
-    /* 0x1E */ s16            boxH;
-} MistR18TextSpawn;
-
-STATIC_ASSERT_SIZEOF(MistR18TextSpawn, 0x20);
-
 /// Spawn descriptor for the sprite task `func_mist_r18_8017E3A4` drives: the
 /// screen rectangle it redraws every frame, hung off `Task::spawnArg2`.
 typedef struct MistR18SpriteSpawn {
@@ -127,17 +98,17 @@ static void func_mist_r18_8017ECF4(Task* arg0);
 /// room's callbacks.
 extern TaskDesc D_mist_r18_80184F04[];
 /// Spawn descriptor handed to entry 5 of `D_mist_r18_80184F04`.
-extern MistR18TextSpawn D_mist_r18_80184EE4;
-extern EvsCommand       D_mist_r18_8018522C[];
-extern EvsCommand       D_mist_r18_8018576C[];
-extern EvsCommand       D_mist_r18_80185AE4[];
-extern EvsCommand       D_mist_r18_80185EBC[];
-extern EvsCommand       D_mist_r18_8018603C[];
-extern EvsCommand       D_mist_r18_801861BC[];
-extern EvsCommand       D_mist_r18_8018639C[];
-extern EvsCommand       D_mist_r18_8018645C[];
-extern EvsCommand       D_mist_r18_8018651C[];
-extern EvsCommand       D_mist_r18_80186564[];
+extern TextStream D_mist_r18_80184EE4;
+extern EvsCommand D_mist_r18_8018522C[];
+extern EvsCommand D_mist_r18_8018576C[];
+extern EvsCommand D_mist_r18_80185AE4[];
+extern EvsCommand D_mist_r18_80185EBC[];
+extern EvsCommand D_mist_r18_8018603C[];
+extern EvsCommand D_mist_r18_801861BC[];
+extern EvsCommand D_mist_r18_8018639C[];
+extern EvsCommand D_mist_r18_8018645C[];
+extern EvsCommand D_mist_r18_8018651C[];
+extern EvsCommand D_mist_r18_80186564[];
 /// The two prop tasks `func_mist_r18_8017E6D8` spawns and
 /// `func_mist_r18_8017E784` tears down, by index.
 extern Task* D_mist_r18_80186E90;
@@ -516,7 +487,7 @@ u8 D_mist_r18_80184EA8[60] = {
     55,
     0,
     12,
-    254,
+    TEXT_STREAM_LINE_BREAK,
     12,
     66,
     8,
@@ -546,13 +517,13 @@ u8 D_mist_r18_80184EA8[60] = {
     37,
     30,
     44,
-    255,
+    TEXT_STREAM_END,
     0,
     0,
     0,
 };
 
-MistR18TextSpawn D_mist_r18_80184EE4 = { -150, -90, 704, 48, 16, 260, 1, 0, D_mist_r18_80184EA8, Caption_Glyphs, 13, 45, 216, 29 };
+TextStream D_mist_r18_80184EE4 = { -150, -90, 704, 48, 16, 260, 1, 0, D_mist_r18_80184EA8, Caption_Glyphs, 13, 45, 216, 29 };
 
 TaskDesc D_mist_r18_80184F04[8] = {
     { { { TASK_BODY_TMD, 192 } }, func_mist_r18_8017E2C8, { .model = &_gMistR18Actor213000Model072AC } },
@@ -1124,9 +1095,9 @@ s32 D_mist_r18_80186EA0;
 /// session that has left the message, kills the task.
 void func_mist_r18_8017D5EC(Task* task)
 {
-    MistR18Sprite     sprite;
-    MistR18TextSpawn* spawn;
-    s32               i;
+    MistR18Sprite sprite;
+    TextStream*   spawn;
+    s32           i;
 
     spawn = task->spawnArg2.pointer;
     if (gGameSession->eventState == 0) {
@@ -1135,67 +1106,68 @@ void func_mist_r18_8017D5EC(Task* task)
 
     switch (task->state) {
         case 0:
-            spawn->index = 0;
-            if (spawn->delay < 0) {
+            spawn->cursor = 0;
+            if (spawn->charDelay < 0) {
                 i = 0;
-                if (spawn->script[0] != 0xFF) {
+                if (spawn->chars[0] != TEXT_STREAM_END) {
                     do {
                         i++;
-                        spawn->index++;
-                    } while (spawn->script[i] != 0xFF);
+                        spawn->cursor++;
+                    } while (spawn->chars[i] != TEXT_STREAM_END);
                 }
-                task->killCountdown = spawn->delayEnd;
+                task->killCountdown = spawn->delayReload;
             } else {
-                task->killCountdown = spawn->delay;
+                task->killCountdown = spawn->charDelay;
             }
             break;
 
         case 1:
             sprite.x         = spawn->x;
             sprite.y         = spawn->y;
-            sprite.u         = spawn->u;
-            sprite.v         = spawn->v;
+            sprite.u         = spawn->tpageX;
+            sprite.v         = spawn->tpageY;
             sprite.r         = 0x80;
             sprite.g         = 0x80;
             sprite.b         = 0x80;
             sprite.semiTrans = 0;
             sprite.scale     = ONE;
 
-            if (spawn->script[spawn->index - 1] == 0xFF) {
+            if (spawn->chars[spawn->cursor - 1] == TEXT_STREAM_END) {
                 break;
             }
 
-            for (i = 0; i < spawn->index; i++) {
-                if (spawn->script[i] == 0xFE) {
+            for (i = 0; i < spawn->cursor; i++) {
+                if (spawn->chars[i] == TEXT_STREAM_LINE_BREAK) {
                     sprite.x  = spawn->x;
                     sprite.y += spawn->lineHeight;
                 } else {
-                    sprite.u = spawn->glyphs[spawn->script[i]].u + (spawn->u & 0x3F);
-                    sprite.v = spawn->glyphs[spawn->script[i]].v + (u8)spawn->v;
-                    sprite.w = spawn->glyphs[spawn->script[i]].width;
-                    sprite.h = spawn->glyphs[spawn->script[i]].height;
+                    sprite.u = spawn->glyphs[spawn->chars[i]].u + (spawn->tpageX & 0x3F);
+                    sprite.v = spawn->glyphs[spawn->chars[i]].v + (u8)spawn->tpageY;
+                    sprite.w = spawn->glyphs[spawn->chars[i]].width;
+                    sprite.h = spawn->glyphs[spawn->chars[i]].height;
                     if (sprite.h != 0) {
                         func_mist_r18_8017E534(&sprite, spawn->clutX, spawn->clutY);
                     }
-                    sprite.x += spawn->glyphs[spawn->script[i]].width;
+                    sprite.x += spawn->glyphs[spawn->chars[i]].width;
                 }
             }
 
-            func_mist_r18_8017E654(1, spawn->u, spawn->v, 4);
+            func_mist_r18_8017E654(1, spawn->tpageX, spawn->tpageY, 4);
 
             if (--task->killCountdown < 0) {
-                spawn->index++;
-                if (spawn->script[spawn->index] == 0xFF) {
-                    task->killCountdown = spawn->delayEnd;
+                spawn->cursor++;
+                if (spawn->chars[spawn->cursor] == TEXT_STREAM_END) {
+                    task->killCountdown = spawn->delayReload;
                 } else {
-                    task->killCountdown = spawn->delay;
+                    task->killCountdown = spawn->charDelay;
                 }
             }
 
+            // The plate sits three pixels above and left of the pen.
             sprite.x         = spawn->x - 3;
             sprite.y         = spawn->y - 3;
-            sprite.w         = spawn->boxW;
-            sprite.h         = spawn->boxH;
+            sprite.w         = spawn->boxWidth;
+            sprite.h         = spawn->boxHeight;
             sprite.b         = 0;
             sprite.g         = 0;
             sprite.r         = 0;

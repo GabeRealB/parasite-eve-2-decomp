@@ -284,7 +284,7 @@ in a row identify different responsibilities in the same source group.
 | `pad` | Controller state and polling | `pad.c`, `padutil.c` | `include/main/pad.h`, `include/main/pad_types.h`, `src/main/pad.h` |
 | `mc`, `mcMenu` | Save data, memory-card operations and prompts | `mc.c`, `mcmenu.c` | `include/main/mc.h`, `include/main/mc_types.h`, `src/main/mc.h` |
 | `ui` | Generic windows, panels and list controls | `ui.c`, `mcmenu.c` | `include/main/ui.h`, `include/main/ui_types.h`, `src/main/ui.h` |
-| `text`, `font`, `prim` | Text layout, glyphs and basic drawing primitives | `textdraw.c`, `textutil.c`, `caption_draw.c` | `include/main/text.h`, `src/main/text.h`, `src/main/text_types.h` |
+| `text`, `font`, `prim` | Text layout, glyphs and basic drawing primitives | `textdraw.c`, `textutil.c`, `caption_draw.c` | `include/main/text.h`, `src/main/text.h` |
 | `cdAudio` | CD audio playback | `cdaudio.c` | `include/main/cdaudio.h`, `include/main/cdaudio_types.h`, `src/main/cdaudio.h` |
 | `cdStream`, `cdReady` | CD-to-SPU streaming and ready queue | `cdstream.c` | `src/main/cdstream.h` |
 | `sndVolume` | Combined MIDI/script master-volume policies and their request gates | `sndscript.c`, `sndevt.c` | `src/main/sound.h` |

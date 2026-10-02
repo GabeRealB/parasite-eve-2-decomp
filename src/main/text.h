@@ -4,7 +4,6 @@
 #include "types.h"
 
 #include "main/text.h"
-#include "text_types.h"
 
 /// Draws opaque, color-modulated glyphs directly in the active draw environment.
 ///

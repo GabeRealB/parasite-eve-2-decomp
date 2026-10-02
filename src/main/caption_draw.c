@@ -9,7 +9,6 @@
 #include "main/display.h"
 #include "display.h"
 #include "main/text.h"
-#include "text_types.h"
 
 /// Draw params for Prim_DrawSprt (SPRT) / Prim_DrawTile (TILE).
 /// w/h are inclusive and decremented when written to the primitive.
@@ -60,14 +59,16 @@ s32 TextStream_Draw(TextStream* stream, u8* arg1, s16* arg2, s32 arg3)
     ret = 0;
     switch (*arg1) {
         case 0:
+            // Start the reveal. A negative per-glyph delay shows every byte
+            // before the terminator and holds the finished caption.
             stream->cursor = 0;
             if (stream->charDelay < 0) {
                 i = 0;
-                if (*stream->chars != 0xFF) {
+                if (*stream->chars != TEXT_STREAM_END) {
                     do {
                         i++;
                         stream->cursor++;
-                    } while (stream->chars[i] != 0xFF);
+                    } while (stream->chars[i] != TEXT_STREAM_END);
                 }
                 *arg2 = stream->delayReload;
             } else {
@@ -76,6 +77,7 @@ s32 TextStream_Draw(TextStream* stream, u8* arg1, s16* arg2, s32 arg3)
             (*arg1)++;
             break;
         case 1:
+            // Draw the revealed prefix. Step the cursor once the countdown expires.
             sp.x         = stream->x;
             sp.y         = stream->y;
             sp.u.value   = stream->tpageX;
@@ -86,14 +88,14 @@ s32 TextStream_Draw(TextStream* stream, u8* arg1, s16* arg2, s32 arg3)
             sp.shadeMode = 0;
             sp.unused_12 = 0x1000;
             sp.v.value   = tmp6;
-            if (stream->chars[stream->cursor - 1] != 0xFF) {
+            if (stream->chars[stream->cursor - 1] != TEXT_STREAM_END) {
                 for (i = 0; i < stream->cursor; i++) {
                     ch = stream->chars[i];
-                    if (ch == 0xFE) {
+                    if (ch == TEXT_STREAM_LINE_BREAK) {
                         sp.x  = stream->x;
                         sp.y += stream->lineHeight;
-                    } else if (ch != 0xFF) {
-                        glyphIdx = ch & 0x7F;
+                    } else if (ch != TEXT_STREAM_END) {
+                        glyphIdx = ch & TEXT_STREAM_GLYPH_INDEX_MASK;
                         if (((s8)ch >= 0) || (arg3 == 0)) {
                             sp.u.value = stream->glyphs[glyphIdx].u +
                                          (stream->tpageX & 0x3F);
@@ -115,7 +117,7 @@ s32 TextStream_Draw(TextStream* stream, u8* arg1, s16* arg2, s32 arg3)
                 *arg2 = *arg2 - 1;
                 if (*arg2 < 0) {
                     stream->cursor = stream->cursor + 1;
-                    if (stream->chars[stream->cursor] == 0xFF) {
+                    if (stream->chars[stream->cursor] == TEXT_STREAM_END) {
                         ret   = -1;
                         *arg2 = stream->delayReload;
                     } else {
