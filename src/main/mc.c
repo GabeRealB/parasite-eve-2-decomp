@@ -700,27 +700,27 @@ static void Mc_InitDualBankBuffers(void)
     s32                       two;
     s32                       idx;
 
-    Mem_Set(&gPlayerStatus, 0, PLAYER_STATUS_SAVE_RECORD_BYTES);
-    Mem_Set(gPlayerStatus.saveBackup, 0xFF, sizeof(gPlayerStatus.saveBackup));
-    Mem_Set(&gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE], 0, sizeof(gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE]));
-    Mem_Set(&gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_BACKUP], 0xFF, sizeof(gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_BACKUP]));
+    memFillBytes(&gPlayerStatus, 0, PLAYER_STATUS_SAVE_RECORD_BYTES);
+    memFillBytes(gPlayerStatus.saveBackup, 0xFF, sizeof(gPlayerStatus.saveBackup));
+    memFillBytes(&gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE], 0, sizeof(gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE]));
+    memFillBytes(&gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_BACKUP], 0xFF, sizeof(gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_BACKUP]));
 
     a = GameFlag_AcropolisBanks;
-    Mem_Set(a, 0, 0x6C);
+    memFillBytes(a, 0, sizeof(*a));
     do {
         b = GameFlag_DryfieldBanks;
-        Mem_Set(b, 0, 0xB0);
+        memFillBytes(b, 0, sizeof(*b));
         c = GameFlag_DryfieldFullBanks;
-        Mem_Set(c, 0, 0x24);
+        memFillBytes(c, 0, sizeof(*c));
         d = GameFlag_ShelterBanks;
-        Mem_Set(d, 0, 0xE4);
+        memFillBytes(d, 0, sizeof(*d));
         e = GameFlag_NeoArkBanks;
-        Mem_Set(e, 0, 0xA4);
-        Mem_Set(a + 1, 0xFF, 0x6C);
-        Mem_Set(b + 1, 0xFF, 0xB0);
-        Mem_Set(c + 1, 0xFF, 0x24);
-        Mem_Set(d + 1, 0xFF, 0xE4);
-        Mem_Set(e + 1, 0xFF, 0xA4);
+        memFillBytes(e, 0, sizeof(*e));
+        memFillBytes(a + 1, 0xFF, sizeof(*a));
+        memFillBytes(b + 1, 0xFF, sizeof(*b));
+        memFillBytes(c + 1, 0xFF, sizeof(*c));
+        memFillBytes(d + 1, 0xFF, sizeof(*d));
+        memFillBytes(e + 1, 0xFF, sizeof(*e));
         p = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     } while (0);
 
@@ -2696,20 +2696,20 @@ static void Mc_ClearWorkBuffers(void)
     GameFlagNeoArkBank*       e;
 
     a = GameFlag_AcropolisBanks;
-    Mem_Set(a, 0, 0x6C);
+    memFillBytes(a, 0, sizeof(*a));
     b = GameFlag_DryfieldBanks;
-    Mem_Set(b, 0, 0xB0);
+    memFillBytes(b, 0, sizeof(*b));
     c = GameFlag_DryfieldFullBanks;
-    Mem_Set(c, 0, 0x24);
+    memFillBytes(c, 0, sizeof(*c));
     d = GameFlag_ShelterBanks;
-    Mem_Set(d, 0, 0xE4);
+    memFillBytes(d, 0, sizeof(*d));
     e = GameFlag_NeoArkBanks;
-    Mem_Set(e, 0, 0xA4);
-    Mem_Set(a + 1, 0xFF, 0x6C);
-    Mem_Set(b + 1, 0xFF, 0xB0);
-    Mem_Set(c + 1, 0xFF, 0x24);
-    Mem_Set(d + 1, 0xFF, 0xE4);
-    Mem_Set(e + 1, 0xFF, 0xA4);
+    memFillBytes(e, 0, sizeof(*e));
+    memFillBytes(a + 1, 0xFF, sizeof(*a));
+    memFillBytes(b + 1, 0xFF, sizeof(*b));
+    memFillBytes(c + 1, 0xFF, sizeof(*c));
+    memFillBytes(d + 1, 0xFF, sizeof(*d));
+    memFillBytes(e + 1, 0xFF, sizeof(*e));
 }
 
 // TODO

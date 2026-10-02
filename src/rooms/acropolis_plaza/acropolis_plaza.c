@@ -211,7 +211,7 @@ typedef union AcropolisPlazaOpeningBuf {
 /// with `Mem_Malloc(8, 0)` and parks in `Task::work` -- that slot is not a
 /// `TaskIdMap` here. It only caches the slot-3 task every message in the
 /// sequence (0x3F2 place, 0x3EE warp, 0x3F0 poll) is addressed to; the
-/// trailing four bytes are zeroed by `Mem_Set` and never read.
+/// trailing four bytes are zeroed by `memFillBytes` and never read.
 typedef struct AcropolisPlazaWarpWork {
     /* 0x0 */ Task* slot3;
     /* 0x4 */ byte  pad_4[0x4];
@@ -3205,7 +3205,7 @@ L_case0:
         taskKill(task);
         return;
     }
-    Mem_Set(block, 0, sizeof(*block));
+    memFillBytes(block, 0, sizeof(*block));
     arg                   = (AcropolisPlazaSceneArg*)task->spawnArg2.pointer;
     work                  = (AcropolisPlazaSceneWork*)task->work;
     startView             = arg->view;
@@ -3402,7 +3402,7 @@ void func_acropolis_plaza_8017E7E4(Task* task)
                 taskKill(task);
                 return;
             }
-            Mem_Set(newWork, 0, 8);
+            memFillBytes(newWork, 0, sizeof(*newWork));
             ((AcropolisPlazaWarpWork*)task->work)->slot3 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             place.pos.vx                                 = 0x3804;
             place.pos.vy                                 = 0;
@@ -3477,7 +3477,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
                 taskKill(task);
                 return;
             }
-            Mem_Set(newWork, 0, 8);
+            memFillBytes(newWork, 0, sizeof(*newWork));
             ((AcropolisPlazaWarpWork*)task->work)->slot3 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             place.pos.vx                                 = 0xF6E;
             place.pos.vy                                 = 0;
@@ -3613,7 +3613,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
                 taskKill(task);
                 return;
             }
-            Mem_Set(newWork, 0, 8);
+            memFillBytes(newWork, 0, sizeof(*newWork));
             ((AcropolisPlazaOpeningWork*)task->work)->slot3 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             place.pos.vx                                    = 0x3DE;
             place.pos.vy                                    = 0;
@@ -4232,7 +4232,7 @@ void func_acropolis_plaza_80180054(Task* task)
                 taskKill(task);
                 return;
             }
-            Mem_Set(newWork, 0, 0x28);
+            memFillBytes(newWork, 0, sizeof(*newWork));
             ((AcropolisPlazaWork*)task->work)->slot3 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             ((AcropolisPlazaWork*)task->work)->field_C =
                 Task_SpawnFromTable(D_acropolis_plaza_80183824, 5, 0, 0);

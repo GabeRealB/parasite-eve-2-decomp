@@ -84,7 +84,7 @@
 /// block than the enemy's `GluttonWork` above.
 ///
 /// `func_actor_444000_80132358` allocates it with `memCalloc(0x34, 0)`,
-/// `Mem_Set`s 0x34 bytes and parks it in that task's `Task::work` slot, so
+/// `memFillBytes`s 0x34 bytes and parks it in that task's `Task::work` slot, so
 /// the size is anchored; the same function stores the `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`
 /// task in `field_20` and publishes its owning task in
 /// `D_actor_444000_80161860`. `field_20` is the target of every
@@ -2871,7 +2871,7 @@ void func_actor_444000_80132358(Task* task)
             if (alloc == NULL) {
                 taskKill(task);
             } else {
-                Mem_Set(alloc, 0, sizeof(Actor444000EventWork));
+                memFillBytes(alloc, 0, sizeof(Actor444000EventWork));
                 alloc->field_20         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_actor_444000_80161860 = task;
             }

@@ -761,7 +761,7 @@ void func_mist_parking_80182A44(Task* task)
 
     switch (task->state) {
         case 0:
-            Mem_Set(st, 0, 4);
+            memFillBytes(st, 0, sizeof(*st));
             func_800E8614(D_mist_parking_8018F9A4, 1);
             Gp_RunCapCmd(2, 0);
             task->state++;

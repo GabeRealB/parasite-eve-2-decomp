@@ -6,7 +6,7 @@
 #include "types.h"
 
 /// Clears `size` bytes at `dst` one byte at a time, in place rather than
-/// through `Mem_Set`.
+/// through `memFillBytes`.
 #define MEM_CLEAR(dst, size)                             \
     {                                                    \
         u8* _clearPtr = (u8*)(dst);                      \

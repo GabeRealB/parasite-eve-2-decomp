@@ -38,7 +38,7 @@
 /// Work block for the `actor_303600` overlay's cutscene controller.
 ///
 /// `func_actor_303600_8016216C` allocates it with `Mem_Malloc(0x10, 0)`, zeroes
-/// it with `Mem_Set` and parks the pointer in the task's `Task::work` slot
+/// it with `memFillBytes` and parks the pointer in the task's `Task::work` slot
 /// (0x1C) -- that slot is not a `TaskIdMap` here, so reach the block with
 /// `(Actor303600Work*)task->work`.  The same function publishes the task
 /// itself in `D_actor_303600_8016E4C0` and stores the `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` task
@@ -16994,7 +16994,7 @@ void func_actor_303600_8016216C(Task* arg0)
             if (work == NULL) {
                 taskKill(arg0);
             } else {
-                Mem_Set(work, 0, 0x10);
+                memFillBytes(work, 0, sizeof(*work));
                 work->field_0           = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_actor_303600_8016E4C0 = arg0;
                 D_actor_303600_8016E4C4 = NULL;

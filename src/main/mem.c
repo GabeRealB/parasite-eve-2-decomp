@@ -29,59 +29,77 @@ static void Mem_Dummy0();
 // NOLINTNEXTLINE
 extern u8* _freep;
 
-void Mem_Set(void* dest, u32 ch, u32 count)
+void memFillBytes(void* destination, u32 value, size_t sizeBytes)
 {
-    u32 i;
-    u8* ptr;
-    u8  v8;
-    u16 v16;
-    u32 v32;
-    u32 remaining;
-    u32 alignment;
+    u32    tailByteIndex;
+    u8*    fillCursor;
+    u8     fillByte;
+    u16    fillHalfword;
+    u32    fillWord;
+    size_t bytesRemaining;
 
-    ptr       = (u8*)dest;
-    remaining = count;
+    fillCursor     = destination;
+    bytesRemaining = sizeBytes;
 
-    v8  = ch & 0xFF;
-    v16 = (u16)(v8 | (v8 << 8));
-    v32 = (v8 << 24) + (v8 << 16) + (v8 << 8) + v8;
+    // Repeat the byte in every lane of the wider aligned stores.
+    fillByte     = (u8)value;
+    fillHalfword = fillByte | (fillByte << 8);
+    fillWord     = ((u32)fillByte << 24) + (fillByte << 16) + (fillByte << 8) + fillByte;
 
-    while (remaining >= 4) {
-        /* Alignment depends on address bits, not the pointed-to value. */
-        alignment = (uintptr)ptr & 3;
+    /// Fills bytes through the next word boundary using aligned stores.
+    ///
+    /// Consumes four, three, two or one bytes for address residues zero, one,
+    /// two or three modulo four. Advances `cursor` and decreases `remaining`
+    /// by that byte count. Requires `remaining >= sizeof(u32)` and at least
+    /// that many writable bytes at `cursor`; alignment is tested from address
+    /// bits, not the pointed-to value.
+    ///
+    /// `cursor` and `remaining` must be distinct, stable modifiable `u8*` and
+    /// `size_t` lvalues outside the filled storage, without evaluation side
+    /// effects. Both are evaluated repeatedly. `byteValue`, `halfwordValue`
+    /// and `wordValue` must have types `u8`, `u16` and `u32`, with the wider
+    /// values repeating the same byte. Each selected value is evaluated once;
+    /// case one selects both byte and halfword. No surrounding identifiers or
+    /// configuration macros are required. The macro is confined to this function.
+#define MEMORY_FILL_ALIGNED_CHUNK(cursor, remaining, byteValue, halfwordValue, wordValue) \
+    do {                                                                                  \
+        switch ((uintptr)(cursor) & (sizeof(u32) - 1)) {                                  \
+            case 0:                                                                       \
+                *(u32*)(cursor) = (wordValue);                                            \
+                (cursor)       += sizeof(u32);                                            \
+                (remaining)    -= sizeof(u32);                                            \
+                break;                                                                    \
+            case 1:                                                                       \
+                *(cursor)++     = (byteValue);                                            \
+                *(u16*)(cursor) = (halfwordValue);                                        \
+                (cursor)       += sizeof(u16);                                            \
+                (remaining)    -= 1 + sizeof(u16);                                        \
+                break;                                                                    \
+            case 2:                                                                       \
+                *(u16*)(cursor) = (halfwordValue);                                        \
+                (cursor)       += sizeof(u16);                                            \
+                (remaining)    -= sizeof(u16);                                            \
+                break;                                                                    \
+            case 3:                                                                       \
+                *(cursor)    = (byteValue);                                               \
+                (cursor)    += 1;                                                         \
+                (remaining) -= 1;                                                         \
+                break;                                                                    \
+        }                                                                                 \
+    } while (0)
 
-        switch (alignment) {
-            case 0:
-                *(u32*)ptr = v32;
-                ptr       += 4;
-                remaining -= 4;
-                break;
-
-            case 1:
-                *ptr++     = v8;
-                *(u16*)ptr = v16;
-                ptr       += 2;
-                remaining -= 3;
-                break;
-
-            case 2:
-                *(u16*)ptr = v16;
-                ptr       += 2;
-                remaining -= 2;
-                break;
-
-            case 3:
-                *ptr       = v8;
-                ptr       += 1;
-                remaining -= 1;
-                break;
-        }
+    while (bytesRemaining >= sizeof(u32)) {
+        // Reach word alignment with narrower stores within the requested extent.
+        MEMORY_FILL_ALIGNED_CHUNK(fillCursor, bytesRemaining, fillByte, fillHalfword, fillWord);
     }
 
-    i = 0;
-    while ((i & 0xFFFF) < remaining) {
-        *ptr++ = v8;
-        i++;
+#undef MEMORY_FILL_ALIGNED_CHUNK
+
+    // Fewer than four bytes remain; the 16-bit counter view cannot wrap here.
+    tailByteIndex = 0;
+    while ((u16)tailByteIndex < bytesRemaining) {
+        *fillCursor++ = fillByte;
+        tailByteIndex++;
     }
 }
 

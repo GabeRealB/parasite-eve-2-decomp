@@ -684,7 +684,7 @@ L_case5:
     if ((Stream_RestoreAfterLoad(0, 0) & 0xFFFF) == 0) {
         return;
     }
-    Mem_Set(Fs_ImgBuffers, 0, 0x25800);
+    memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
     SetDispMask(1);
     taskKill(task);
     Display_ResetHeapWrapper();

@@ -684,7 +684,7 @@ void func_dryfield_warehouse_8017E090(Task* arg0)
                 if (work == NULL) {
                     taskKill(arg0);
                 } else {
-                    Mem_Set(work, 0, 0x10);
+                    memFillBytes(work, 0, sizeof(*work));
                     work->owner                   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                     D_dryfield_warehouse_801821BC = arg0;
                 }

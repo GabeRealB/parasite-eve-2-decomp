@@ -1789,7 +1789,7 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                 if (work == NULL) {
                     taskKill(arg0);
                 } else {
-                    Mem_Set(work, 0, 0xC);
+                    memFillBytes(work, 0, sizeof(*work));
                     work->target                   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                     D_acropolis_sanctuary_80186C90 = arg0;
                 }

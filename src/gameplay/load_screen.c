@@ -250,7 +250,7 @@ void Gp_LoadWaitBoot(Task* task)
         if (queue->bootLoadActive != 0) {
             Fs_EnsureBootLoadStarted();
         }
-        Mem_Set(Stream_Slots, 0, sizeof(Stream_Slots));
+        memFillBytes(Stream_Slots, 0, sizeof(Stream_Slots));
         session = gGameSession;
         save    = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
         if (session->loadedCharacterId != save->state.characterId || session->loadedConfigSet != gPlayerStatus.resourceVariant) {

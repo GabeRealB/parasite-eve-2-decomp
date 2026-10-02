@@ -1131,7 +1131,7 @@ static void func_dryfield_motel_room_1_8017DC2C(Task* arg0)
         taskKill(arg0);
         return;
     }
-    Mem_Set(work, 0, 0x38);
+    memFillBytes(work, 0, sizeof(*work));
     work->field_0                    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     D_dryfield_motel_room_1_8018159C = arg0;
     id                               = gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8);

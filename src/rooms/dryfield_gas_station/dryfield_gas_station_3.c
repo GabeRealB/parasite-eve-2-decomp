@@ -728,7 +728,7 @@ void func_dryfield_gas_station_801807E0(Task* task)
                 if (work == NULL) {
                     taskKill(task);
                 } else {
-                    Mem_Set(work, 0, 0x10);
+                    memFillBytes(work, 0, sizeof(*work));
                     work->owner                     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                     D_dryfield_gas_station_80184BD4 = task;
                 }

@@ -1386,7 +1386,7 @@ static void func_acropolis_cafeteria_801818DC(Task* task)
     task->work         = work;
     task->exitCallback = func_acropolis_cafeteria_80181E3C;
     task->state        = task->state + 1;
-    Mem_Set(work, 0, 0xD8);
+    memFillBytes(work, 0, sizeof(*work));
     coord->parent       = &gGfxViewCoord;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     obj->flags          = 0;

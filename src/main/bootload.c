@@ -1835,7 +1835,7 @@ void Fs_SetupBootLoad(void)
     RECT* r;
     s32   field2;
 
-    Mem_Set(Fs_ImgBuffers, 0, 0x25800);
+    memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
     rect.y = 0;
     rect.x = 0;
     r      = &rect;

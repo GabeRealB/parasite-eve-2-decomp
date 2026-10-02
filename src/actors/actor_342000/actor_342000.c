@@ -52,7 +52,7 @@
 /// Per-instance work block for the overlay's model actor.
 ///
 /// `func_actor_342000_80162158` allocates it with `Mem_Malloc(0x2AC, 0)`,
-/// `Mem_Set`s it to zero over the same 0x2AC bytes and stores it in the
+/// `memFillBytes`s it to zero over the same 0x2AC bytes and stores it in the
 /// `Task::work` slot (0x1C), so the size below is the allocation, not a
 /// guess: the actor reuses that pointer field for its own work block and it is
 /// *not* a `TaskIdMap` here. Reach it with `(Actor342000Work*)task->work`.
@@ -118,7 +118,7 @@ STATIC_ASSERT_SIZEOF(Actor342000Work, 0x2AC);
 /// `D_actor_342000_80165070` points at.
 ///
 /// `func_actor_342000_8016382C` allocates it with `memCalloc(0x80, 0)`,
-/// `Mem_Set`s 0x80 bytes and stores it in that task's `Task::work` slot, so
+/// `memFillBytes`s 0x80 bytes and stores it in that task's `Task::work` slot, so
 /// the size is anchored. The same function publishes its owning task in
 /// `D_actor_342000_80165070`, which is how the leaf helpers below reach it:
 /// `(Actor342000EventWork*)D_actor_342000_80165070->work`.
@@ -507,7 +507,7 @@ void func_actor_342000_8016201C(Task* arg0)
         if (mtx == NULL) {
             taskKill(arg0);
         } else {
-            Mem_Set(mtx, 0, 0x44);
+            memFillBytes(mtx, 0, sizeof(*mtx));
             mtx->field_40 = (Task*)arg0->spawnArg2.pointer;
             extra->flags  = 0;
             if (arg0->spawnArg1.value != 0) {
@@ -584,7 +584,7 @@ static void func_actor_342000_80162158(Task* arg0)
         return;
     }
     w = work;
-    Mem_Set(w, 0, 0x2AC);
+    memFillBytes(w, 0, sizeof(*w));
     w->field_298    = (Task*)arg0->spawnArg2.pointer;
     extra->lightMtx = &w->light;
     extra->colorMtx = &w->color;
@@ -1144,7 +1144,7 @@ void func_actor_342000_8016382C(Task* arg0)
             if (alloc == NULL) {
                 taskKill(arg0);
             } else {
-                Mem_Set(alloc, 0U, 0x80U);
+                memFillBytes(alloc, 0U, sizeof(*alloc));
                 alloc->field_48         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_actor_342000_80165070 = arg0;
                 alloc->field_4C         = Gp_FindWorkById(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8))->field_0;

@@ -1600,7 +1600,7 @@ static void func_shelter_b1_pod_service_gantry_8017D81C(Task* arg0)
         taskKill(arg0);
         return;
     }
-    Mem_Set(work, 0U, 8U);
+    memFillBytes(work, 0U, sizeof(*work));
     SetDispMask(0);
     arg0->state += 1;
 }

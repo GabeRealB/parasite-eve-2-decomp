@@ -26,14 +26,15 @@ extern void* gMemActiveAuxHeap;
 /// Length in bytes of the heap pointed to by `gMemActiveAuxHeap`.
 extern size_t GActiveAuxHeapSize;
 
-/// Optimized `memset` function.
+/// Fills a writable memory region with the low byte of `value`.
 ///
-/// Copies the value `(u8)ch` into the first `count` bytes of `dest`.
+/// `destination` must provide `sizeBytes` writable bytes and may have any
+/// byte alignment. A zero byte count performs no access. The count is in
+/// bytes, not elements; storage beyond that extent is left intact.
 ///
-/// @param dest Destination buffer to where the value is written.
-/// @param ch Character to write into the destination buffer.
-/// @param count Number of bytes to write into the destination buffer.
-void Mem_Set(void* dest, u32 ch, u32 count);
+/// The fill neither allocates nor releases storage; ownership and lifetime
+/// remain with the caller. All bits of `value` above bit seven are ignored.
+void memFillBytes(void* destination, u32 value, size_t sizeBytes);
 
 /// Initializes the primary and the auxiliary heap.
 void Mem_Init(void);

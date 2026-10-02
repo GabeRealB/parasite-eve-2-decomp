@@ -537,7 +537,7 @@ void func_dryfield_breezeway_8017E010(Task* arg0)
             if (work == NULL) {
                 taskKill(arg0);
             } else {
-                Mem_Set(work, 0, 0x14);
+                memFillBytes(work, 0, sizeof(*work));
                 work->field_0                 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_dryfield_breezeway_801843C0 = arg0;
                 id                            = gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8);
@@ -588,7 +588,7 @@ void func_dryfield_breezeway_8017E114(Task* arg0)
             if (work == NULL) {
                 taskKill(arg0);
             } else {
-                Mem_Set(work, 0, 0x14);
+                memFillBytes(work, 0, sizeof(*work));
                 work->field_0                 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_dryfield_breezeway_801843C0 = arg0;
                 id                            = gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8);

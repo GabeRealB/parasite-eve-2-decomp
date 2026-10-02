@@ -46,7 +46,7 @@
 /// `D_actor_341900_80164208` points at.
 ///
 /// `func_actor_341900_80162EFC` allocates it with `memCalloc(0x70, 0)`,
-/// `Mem_Set`s the same 0x70 bytes over it and stores it in its own task's
+/// `memFillBytes`s the same 0x70 bytes over it and stores it in its own task's
 /// `Task::work` slot (0x1C), which is not a `TaskIdMap` here, then publishes
 /// that task in `D_actor_341900_80164208`. The script callbacks from
 /// `func_actor_341900_80163388` on reach the block that way,
@@ -548,7 +548,7 @@ void func_actor_341900_80162200(Task* arg0)
         if (mtx == NULL) {
             taskKill(arg0);
         } else {
-            Mem_Set(mtx, 0, 0x44);
+            memFillBytes(mtx, 0, sizeof(*mtx));
             mtx->field_40                   = (Task*)arg0->spawnArg2.pointer;
             extra->flags                    = 0;
             arg0->extra.tmd->coords->parent = &gGfxViewCoord;
@@ -590,7 +590,7 @@ static void func_actor_341900_80162330(Task* arg0)
         return;
     }
     w = work;
-    Mem_Set(w, 0, 0x258);
+    memFillBytes(w, 0, sizeof(*w));
     w->field_248    = (Task*)arg0->spawnArg2.pointer;
     extra->lightMtx = &w->light;
     extra->colorMtx = &w->color;
@@ -947,7 +947,7 @@ void func_actor_341900_80162EFC(Task* arg0)
             if (work == NULL) {
                 taskKill(arg0);
             } else {
-                Mem_Set(work, 0U, 0x70U);
+                memFillBytes(work, 0U, sizeof(*work));
                 work->field_0           = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_actor_341900_80164208 = arg0;
                 work->field_4           = Gp_FindWorkById(

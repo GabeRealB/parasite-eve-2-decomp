@@ -53,7 +53,7 @@ extern ActorTransform D_actor_136100_8013F304[2];
 /// Work block for the `actor_136100` overlay's cutscene actor.
 ///
 /// `func_actor_136100_80133A88` allocates it with `Mem_Malloc(0x4F0, 0)`,
-/// zeroes it with `Mem_Set` and parks the pointer in the task's `Task::work`
+/// zeroes it with `memFillBytes` and parks the pointer in the task's `Task::work`
 /// slot (0x1C) -- that slot is not a `TaskIdMap` here, so reach the block with
 /// `(Actor136100Work*)task->work`.  The same function publishes the task
 /// itself in `D_actor_136100_8014078C` and stores the `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`
@@ -1331,7 +1331,7 @@ void func_actor_136100_801320E0(Task* task)
         if (work == NULL) {
             taskKill(task);
         } else {
-            Mem_Set(work, 0, sizeof(*work));
+            memFillBytes(work, 0, sizeof(*work));
             coord->parent          = task->spawnArg2.pointer;
             task->extra.tmd->flags = 0;
             Tmd_AllocBuffers(tmd);
@@ -1377,7 +1377,7 @@ void func_actor_136100_80132284(Task* arg0)
         if (work == NULL) {
             taskKill(arg0);
         } else {
-            Mem_Set(work, 0, 0x4F0);
+            memFillBytes(work, 0, sizeof(*work));
             coord->parent          = arg0->spawnArg2.pointer;
             arg0->extra.tmd->flags = 0;
             Tmd_AllocBuffers(tmd);
@@ -2085,7 +2085,7 @@ static void func_actor_136100_80133A88(Task* task)
         return;
     }
     work = allocatedWork;
-    Mem_Set(work, 0, sizeof(*work));
+    memFillBytes(work, 0, sizeof(*work));
     work->field_4B4         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     D_actor_136100_8014078C = task;
     coord->parent           = &gGfxViewCoord;

@@ -291,7 +291,7 @@ static void func_actor_311500_801629D8(Task* arg0)
     }
     (Gp_IncStateF0Ref)(0);
     work2 = (Actor311500Work*)arg0->work;
-    Mem_Set(work2, 0, 0x4D8);
+    memFillBytes(work2, 0, sizeof(*work2));
     coords->parent = &gGfxViewCoord;
     Tmd_AllocBuffers(tmd);
     tmd->lightMtx = &work2->light;
@@ -691,9 +691,9 @@ case0:
                 goto case1;
             }
             if ((func_actor_311500_80162F28(actor) << 0x10) < 0) {
-                Mem_Set(D_acropolis_fire_escape_80181EC4, 0, 0x20);
-                Mem_Set(D_acropolis_fire_escape_80181E74, 0, 8);
-                Mem_Set(D_acropolis_fire_escape_8018207C, 0, sizeof(*D_acropolis_fire_escape_8018207C));
+                memFillBytes(D_acropolis_fire_escape_80181EC4, 0, 0x20);
+                memFillBytes(D_acropolis_fire_escape_80181E74, 0, 8);
+                memFillBytes(D_acropolis_fire_escape_8018207C, 0, sizeof(*D_acropolis_fire_escape_8018207C));
                 work->field_4D4 = 0;
                 work->field_4C0 = 0;
                 actor->state   += 1;

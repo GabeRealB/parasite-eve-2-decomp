@@ -1373,8 +1373,8 @@ have_actor:
         goto fail;
     }
     Game_SetPtrSlot(task, 0xA);
-    Mem_Set(actor, 0, sizeof(*actor));
-    Mem_Set(companion, 0, sizeof(*companion));
+    memFillBytes(actor, 0, sizeof(*actor));
+    memFillBytes(companion, 0, sizeof(*companion));
     task->work           = actor;
     actor->companionWork = companion;
     Gp_PumpTmdStream(task);

@@ -100,7 +100,7 @@
         if (w == NULL) {                                                                             \
             taskKill(t);                                                                             \
         } else {                                                                                     \
-            Mem_Set(w, 0, 0x24);                                                                     \
+            memFillBytes(w, 0, 0x24);                                                                \
             *w = seed;                                                                               \
         }                                                                                            \
     }
@@ -2297,7 +2297,7 @@ void func_shelter_b3_dumping_hole_8017E440(Task* arg0)
                 return;
             }
             work = (DumpingHoleAnimWork*)arg0->work;
-            Mem_Set(work, 0, 0x24);
+            memFillBytes(work, 0, 0x24);
             work->field_16  = -0xA;
             work->field_14  = 0;
             work->field_18  = 0;
@@ -2387,7 +2387,7 @@ static void func_shelter_b3_dumping_hole_8017E7DC(Task* arg0)
         taskKill(arg0);
         return;
     }
-    Mem_Set(work, 0, 0x5C);
+    memFillBytes(work, 0, sizeof(*work));
     coord->parent          = &gGfxViewCoord;
     arg0->extra.tmd->flags = 0;
     Tmd_AllocBuffers(extra);
@@ -2776,7 +2776,7 @@ void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
             if (work == NULL) {
                 taskKill(arg0);
             } else {
-                Mem_Set(work, 0, 0x50);
+                memFillBytes(work, 0, sizeof(*work));
                 work->field_24                     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_shelter_b3_dumping_hole_8018F4A8 = arg0;
                 work->field_28                     = Gp_FindWorkById(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8))->field_0;
@@ -2915,7 +2915,7 @@ void func_shelter_b3_dumping_hole_8017FCF4(GfxCoord* arg0, SVECTOR* arg1)
         taskKill(task);
         return;
     }
-    Mem_Set(work, 0, 0x24);
+    memFillBytes(work, 0, 0x24);
     work->field_C  = (u16)arg1->vx;
     work->field_E  = (u16)arg1->vy;
     work->field_10 = (u16)arg1->vz;
@@ -3046,7 +3046,7 @@ void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
             }
             work          = (DumpingHoleShard*)arg0->work;
             coord->parent = &gGfxViewCoord;
-            Mem_Set(arg0->work, 0, 0x34);
+            memFillBytes(arg0->work, 0, 0x34);
             Gp_ComposeParentWorld(cfg->parent, &coord->coord, &ofs);
             coord->coord.t[0] = ofs.vx + cfg->pos.vx;
             coord->coord.t[1] = ofs.vy + cfg->pos.vy;
@@ -3463,7 +3463,7 @@ void func_shelter_b3_dumping_hole_80181560(Task* task)
             } else {
                 task->extra.tmd->coords->parent = &gGfxViewCoord;
                 work                            = task->work;
-                Mem_Set(work, 0, 0xA0);
+                memFillBytes(work, 0, sizeof(*work));
                 work->field_80                     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_shelter_b3_dumping_hole_8018F4AC = task;
                 work->field_84                     = Gp_FindWorkById(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8))->field_0;

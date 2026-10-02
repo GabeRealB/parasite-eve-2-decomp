@@ -730,7 +730,7 @@ static void CdCmd_ProcessPhase1(void)
             }
             if (ret != 0) {
                 p->movieFrameAvailable = 0;
-                Mem_Set(&p->activeRequest, 0, sizeof(p->activeRequest));
+                memFillBytes(&p->activeRequest, 0, sizeof(p->activeRequest));
                 q = &gCdCmdQueue;
                 if (q->busy != 0) {
                     q->busy              = 0;
@@ -784,7 +784,7 @@ static void CdCmd_ProcessPhase1(void)
             } else {
             case8_cleanup:
                 p = &gCdCmdQueue;
-                Mem_Set(&p->activeRequest, 0, sizeof(p->activeRequest));
+                memFillBytes(&p->activeRequest, 0, sizeof(p->activeRequest));
                 p->replacementEntry.cmd = CD_COMMAND_EMPTY;
                 p->blockGamePause       = 0;
                 p->sceneAudioMode       = CD_COMMAND_SCENE_INACTIVE;
@@ -915,7 +915,7 @@ static void CdCmd_ProcessPhase2(void)
                     p2->busy             = 0;
                     gDisplayState.cdBusy = DISPLAY_CD_IDLE;
                 }
-                Mem_Set(p2->entries, 0, sizeof(p2->entries));
+                memFillBytes(p2->entries, 0, sizeof(p2->entries));
                 p2->writeIdx          = 0;
                 p2->readIdx           = 0;
                 p2->step              = 0;
@@ -1003,7 +1003,7 @@ u16 CdCmd_EnqueueFollowUp(void)
                     return 0;
                 case 1:
                     if (p->movieReady != 0 || _cdCmdIsIdle()) {
-                        Mem_Set(&p->activeRequest, 0, sizeof(p->activeRequest));
+                        memFillBytes(&p->activeRequest, 0, sizeof(p->activeRequest));
                         p->suspendResumeStep = 0;
                         break;
                     }
@@ -1048,7 +1048,7 @@ void CdCmd_BuildVlcIfStream(void)
 
 void CdCmd_ClearQueue(void)
 {
-    Mem_Set(&gCdCmdQueue, 0, sizeof(gCdCmdQueue));
+    memFillBytes(&gCdCmdQueue, 0, sizeof(gCdCmdQueue));
 }
 
 s32 CdCmd_DropPending(void)
@@ -1309,7 +1309,7 @@ static void CdCmd_ResetRing(void)
     CdCmdQueue* state;
 
     state = &gCdCmdQueue;
-    Mem_Set(state->entries, 0, sizeof(state->entries));
+    memFillBytes(state->entries, 0, sizeof(state->entries));
     state->writeIdx          = 0;
     state->readIdx           = 0;
     state->step              = 0;

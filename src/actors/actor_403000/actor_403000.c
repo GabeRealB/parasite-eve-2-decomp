@@ -4218,7 +4218,7 @@ static void func_actor_403000_80133AF8(Task* arg0)
         }
         work->field_AC0 = 3;
         work->field_AC8 = 0;
-        Mem_Set(work->pad_AEC, 0U, 0x60U);
+        memFillBytes(work->pad_AEC, 0U, 0x60U);
     } else if (state == 2) {
         resetWork  = work;
         resetIndex = 1;
@@ -4233,7 +4233,7 @@ static void func_actor_403000_80133AF8(Task* arg0)
         resetWork->field_AC4 = resetWork->field_AC6;
         work->field_AC0      = 3;
         work->field_AC8      = 0U;
-        Mem_Set(work->pad_AEC, 0U, 0x60U);
+        memFillBytes(work->pad_AEC, 0U, 0x60U);
     }
     if (work->field_ACE == 2) {
         secondaryWork            = (Actor403000AnimWork*)arg0->work;

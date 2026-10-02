@@ -1233,7 +1233,7 @@ void func_dryfield_water_tank_8017DD20(Task* arg0)
             if (mtx == NULL) {
                 taskKill(arg0);
             } else {
-                Mem_Set(mtx, 0, 0x58);
+                memFillBytes(mtx, 0, sizeof(*mtx));
                 mtx->owner    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 coord->parent = &gGfxViewCoord;
                 extra->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -1286,7 +1286,7 @@ void func_dryfield_water_tank_8017DEA4(Task* arg0)
             if (work == NULL) {
                 taskKill(arg0);
             } else {
-                Mem_Set(work, 0, 0x58);
+                memFillBytes(work, 0, sizeof(*work));
                 work->owner                    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_dryfield_water_tank_80188D4C = arg0;
             }

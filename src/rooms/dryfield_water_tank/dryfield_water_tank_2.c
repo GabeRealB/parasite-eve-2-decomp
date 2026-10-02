@@ -993,7 +993,7 @@ void func_dryfield_water_tank_8017E568(Task* task)
                 return;
             }
             SndEvt_EnqueueType6(0x52150009, 0, 0);
-            Mem_Set(Fs_ImgBuffers, 0, 0x25800);
+            memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
             SetDispMask(1);
             taskKill(task);
             Task_SpawnOnDefaultList(D_dryfield_water_tank_80180764, 2, 8, 0);
@@ -1141,7 +1141,7 @@ L_case0:
         if (work == NULL) {
             taskKill(task);
         } else {
-            Mem_Set(work, 0, 0xC);
+            memFillBytes(work, 0, 0xC);
             work->owner                    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             D_dryfield_water_tank_80188D50 = task;
         }

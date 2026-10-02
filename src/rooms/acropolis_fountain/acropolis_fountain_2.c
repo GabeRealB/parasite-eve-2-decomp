@@ -1687,7 +1687,7 @@ void func_acropolis_fountain_8017E3D4(Task* task)
                 taskKill(task);
                 return;
             }
-            Mem_Set(task->work, 0, 4);
+            memFillBytes(task->work, 0, 4);
             task->state = task->state + 1;
             break;
 

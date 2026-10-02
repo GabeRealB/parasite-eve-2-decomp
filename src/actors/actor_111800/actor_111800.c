@@ -366,7 +366,7 @@ static void func_actor_111800_80132390(Task* task)
         return;
     }
     work = (Actor111800Work*)task->work;
-    Mem_Set(work, 0U, 0x498U);
+    memFillBytes(work, 0U, sizeof(*work));
     coord->parent = &gGfxViewCoord;
     Tmd_AllocBuffers(obj);
     obj->lightMtx = &work->field_43C;

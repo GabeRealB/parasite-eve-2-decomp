@@ -2428,7 +2428,7 @@ void func_mist_shooting_gallery_80180B64(Task* arg0)
             if (arg0->killCountdown < 0x100) {
                 return;
             }
-            Mem_Set(Fs_ImgBuffers, 0, 0x25800);
+            memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
             SetDispMask(0);
             arg0->state++;
             return;
@@ -2517,7 +2517,7 @@ L_case5:
         return;
     }
     gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
-    Mem_Set(Fs_ImgBuffers, 0, 0x25800);
+    memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
     taskKill(task);
     Display_ResetHeapWrapper();
 }

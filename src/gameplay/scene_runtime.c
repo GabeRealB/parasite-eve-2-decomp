@@ -577,7 +577,7 @@ s16 Gp_FindStreamSlot(u16 arg0, u16 arg1, u16 arg2, u16 arg3)
         return -1;
     }
 
-    Mem_Set(p->sceneImageHeaders, 0, sizeof(p->sceneImageHeaders));
+    memFillBytes(p->sceneImageHeaders, 0, sizeof(p->sceneImageHeaders));
     p->sceneStream        = slot;
     p->sceneBuffersNeeded = 1;
     decodeBufferBytes     = slot->source.decodeBufferBytes;
@@ -773,7 +773,7 @@ void Gp_StepCdAudioCmd(void)
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0) {
                 SndEvt_EnqueueType6(0, 0, 0);
             }
-            Mem_Set(&p->activeRequest, 0, sizeof(p->activeRequest));
+            memFillBytes(&p->activeRequest, 0, sizeof(p->activeRequest));
             sceneStream             = p->sceneStream;
             p->replacementEntry.cmd = CD_COMMAND_EMPTY;
             if (sceneStream->data.scene.resumeSectorOffset != 0) {

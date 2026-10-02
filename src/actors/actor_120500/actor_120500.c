@@ -46,7 +46,7 @@
 #include "../../shared/actor_messages.h"
 
 /// The actor's work block, hung off `Task::work`. `func_actor_120500_801322A0`
-/// allocates it with `Mem_Malloc(0x4CC, 0)` and zeroes it with `Mem_Set`.
+/// allocates it with `Mem_Malloc(0x4CC, 0)` and zeroes it with `memFillBytes`.
 ///
 /// It opens with the animation state `func_800B3F84` is handed: the
 /// `AnimationContext`, the twenty `AnimationSlot`s the tick walks and the pose buffer.
@@ -393,7 +393,7 @@ void func_actor_120500_80131E58(Task* arg0)
                 return;
             }
             Task_SpawnOnDefaultList(D_actor_120500_80138418, 1, 8, 0);
-            Mem_Set(Fs_ImgBuffers, 0, 0x25800);
+            memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
             SetDispMask(1);
             taskKill(task);
             Display_ResetHeapWrapper();
@@ -533,7 +533,7 @@ static void func_actor_120500_801322A0(Task* task)
         return;
     }
     work = allocatedWork;
-    Mem_Set(work, 0, sizeof(*work));
+    memFillBytes(work, 0, sizeof(*work));
     work->field_4B4         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     D_actor_120500_80138454 = task;
     coord->parent           = &gGfxViewCoord;

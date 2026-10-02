@@ -851,7 +851,7 @@ void Gp_ClearObj3AList(s32 arg0)
 
 void Gp_InitRec18Table(WorldCollisionContact* contacts, s32 count, s32 unused)
 {
-    Mem_Set(contacts, 0, count * sizeof(*contacts));
+    memFillBytes(contacts, 0, count * sizeof(*contacts));
     contacts[count - 1].flags = WORLD_COLLISION_CONTACT_LAST;
 }
 

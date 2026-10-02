@@ -160,7 +160,7 @@ _ASSERT = re.compile(r"STATIC_ASSERT_SIZEOF\(\s*(\w+)\s*,\s*([^)]+)\)")
 # old `Mem_Verb` form to `memVerb`, and a name that is no longer matched here
 # drops out of the size evidence silently.
 _MEMOP = re.compile(
-    r"\b(Mem_Set|memSet|Mem_Malloc|memMalloc|Mem_Calloc|memCalloc"
+    r"\b(memFillBytes|memSet|Mem_Malloc|memMalloc|Mem_Calloc|memCalloc"
     r"|Mem_CopyUnaligned|memCopyUnaligned|memcpy|memset|bcopy)\s*\(([^;]{0,200})\)")
 _NUM = re.compile(r"\b(0x[0-9A-Fa-f]+|\d+)\b")
 

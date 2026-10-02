@@ -113,7 +113,7 @@ STATIC_ASSERT_SIZEOF(Actor560800Work, 0x68);
 
 /// Work block of the sub-task `Actor560800Work::field_8` points at, spawned
 /// from `D_actor_560800_801718F0` index 5 (`func_actor_560800_80132C60`).
-/// That function allocates it with `Mem_Malloc(0x4CC, 0)`, `Mem_Set`s the same
+/// That function allocates it with `Mem_Malloc(0x4CC, 0)`, `memFillBytes`s the same
 /// 0x4CC bytes and stores it in its own `Task::work` (0x1C), so the size below
 /// is the allocation, not a guess. It is a third work block in this overlay,
 /// distinct from `Actor560800Work` and `OverlayFadeWork`.
@@ -200,7 +200,7 @@ STATIC_ASSERT_SIZEOF(Actor560800ModelWork, 0x28C);
 
 /// Work block of the message-handler task whose `Task::msgTable` table is
 /// `D_actor_560800_801756D4`: `func_actor_560800_801386D4` allocates it with
-/// `Mem_Malloc(0x4C, 0)`, `Mem_Set`s the same 0x4C bytes and stores it in that
+/// `Mem_Malloc(0x4C, 0)`, `memFillBytes`s the same 0x4C bytes and stores it in that
 /// task's `Task::work` (0x1C), so the size below is the allocation, not a
 /// guess. A fifth work block in this overlay, distinct from `Actor560800Work`,
 /// `Actor560800AnimWork`, `Actor560800ModelWork` and `OverlayFadeWork`.
@@ -4399,7 +4399,7 @@ void func_actor_560800_801326C4(Task* arg0)
                     failed = 1;
                 } else {
                     coord->parent = &gGfxViewCoord;
-                    Mem_Set(arg0->work, 0, 0x4CC);
+                    memFillBytes(arg0->work, 0, sizeof(Actor560800AnimWork));
                     tmd->lightMtx  = &block->light;
                     tmd->colorMtx  = &block->color;
                     arg0->msgTable = D_actor_560800_8016F34C;
@@ -4513,7 +4513,7 @@ void func_actor_560800_80132A14(Task* arg0)
                 coord->parent = &parent->extra.tmd->coords[8];
                 break;
         }
-        Mem_Set(arg0->work, 0, 0x4CC);
+        memFillBytes(arg0->work, 0, sizeof(Actor560800AnimWork));
         tmd->lightMtx = &work->light;
         tmd->colorMtx = &work->color;
         if (arg0->spawnArg1.value < 2) {
@@ -4576,7 +4576,7 @@ void func_actor_560800_80132C60(Task* arg0)
                 failed = 1;
             } else {
                 coord->parent = &gGfxViewCoord;
-                Mem_Set(arg0->work, 0, 0x4CC);
+                memFillBytes(arg0->work, 0, sizeof(Actor560800AnimWork));
                 tmd->lightMtx  = &block->light;
                 tmd->colorMtx  = &block->color;
                 arg0->msgTable = D_actor_560800_8016F34C;
@@ -4666,7 +4666,7 @@ void func_actor_560800_80132F64(Task* arg0)
                 failed = 1;
             } else {
                 coord->parent = &gGfxViewCoord;
-                Mem_Set(arg0->work, 0, 0x4CC);
+                memFillBytes(arg0->work, 0, sizeof(Actor560800AnimWork));
                 tmd->lightMtx  = &block->light;
                 tmd->colorMtx  = &block->color;
                 arg0->msgTable = D_actor_560800_8016F34C;
@@ -5694,7 +5694,7 @@ static void func_actor_560800_80135BD8(Task* arg0)
         taskKill(arg0);
         return;
     }
-    Mem_Set(work, 0, 0x68);
+    memFillBytes(work, 0, sizeof(*work));
     work->field_0           = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     D_actor_560800_8017578C = arg0;
     work->field_4           = Task_SpawnFromTable(D_actor_560800_801718F0, 4, 0, 0);
@@ -6204,7 +6204,7 @@ static void func_actor_560800_80136AA8(Task* arg0)
     work = (Actor560800ModelWork*)arg0->work;
     s = SCRATCH_STACK_CURSOR(Actor560800ChainScratch) = top - 1;
     target                                            = (Actor560800PartsWork*)work->field_26C->work;
-    Mem_Set(s, 0, sizeof(Actor560800ChainScratch));
+    memFillBytes(s, 0, sizeof(Actor560800ChainScratch));
     Mem_CopyUnaligned(work->rot, s->rot, sizeof(s->rot));
     if (work->field_280 & 1) {
         speed = 2;
@@ -6393,7 +6393,7 @@ static void func_actor_560800_801376E0(Task* arg0)
         taskKill(arg0);
         return;
     }
-    Mem_Set(mem, 0, 0x28C);
+    memFillBytes(mem, 0, sizeof(*mem));
     work            = (Actor560800ModelWork*)arg0->work;
     child           = (Task*)arg0->spawnArg2.pointer;
     work->field_26C = child;
@@ -6872,7 +6872,7 @@ void func_actor_560800_801386D4(Task* task)
                 taskKill(task);
             } else {
                 root->parent = &gGfxViewCoord;
-                Mem_Set(task->work, 0, 0x4C);
+                memFillBytes(task->work, 0, sizeof(*w));
                 i                 = 0;
                 spawned           = w;
                 spawned->field_40 = (Task*)task->spawnArg2.pointer;
@@ -7165,7 +7165,7 @@ void func_actor_560800_80138FC8(Task* task)
             if (task->work == NULL) {
                 taskKill(task);
             } else {
-                Mem_Set(task->work, 0, 0x28C);
+                memFillBytes(task->work, 0, sizeof(*mem));
                 mem            = (Actor560800ModelWork*)task->work;
                 root->parent   = &gGfxViewCoord;
                 mem->field_26C = (Task*)task->spawnArg2.pointer;

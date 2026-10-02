@@ -54,7 +54,7 @@
 /// `D_actor_342100_80164BB8` points at.
 ///
 /// `func_actor_342100_801630A4` allocates it with `Mem_Malloc(0x44, 0)`,
-/// `Mem_Set`s the same 0x44 bytes over it and stores it in that task's
+/// `memFillBytes`s the same 0x44 bytes over it and stores it in that task's
 /// `Task::work` slot (0x1C), which is not a `TaskIdMap` here, then publishes
 /// the task in `D_actor_342100_80164BB8`. Every leaf helper reaches the block
 /// that way, `(Actor342100Work*)D_actor_342100_80164BB8->work`.
@@ -472,7 +472,7 @@ void func_actor_342100_80162AB0(Task* arg0)
                 return;
             }
             eff = (EffectSpawnArg*)arg0->work;
-            Mem_Set(eff, 0, sizeof(EffectSpawnArg));
+            memFillBytes(eff, 0, sizeof(EffectSpawnArg));
             eff->spawnArgLo = 0x100;
             eff->coord      = arg0->extra.coordBody->coord;
             eff->spawnArgHi = 1;
@@ -654,7 +654,7 @@ void func_actor_342100_801630A4(Task* arg0)
             if (newWork == NULL) {
                 taskKill(arg0);
             } else {
-                Mem_Set(newWork, 0, 0x44);
+                memFillBytes(newWork, 0, sizeof(*newWork));
                 newWork->field_2C       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_actor_342100_80164BB8 = arg0;
             }

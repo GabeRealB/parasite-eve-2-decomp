@@ -1987,7 +1987,7 @@ s32 desertChaserAnimCues(Task* arg0, DesertChaserWork* arg1)
             break;
     }
     if (var_a0 == 1) {
-        Mem_Set(arg1->field_848, 0U, 0x48U);
+        memFillBytes(arg1->field_848, 0U, sizeof(arg1->field_848));
     }
     return 0;
 }

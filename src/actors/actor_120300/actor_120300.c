@@ -1385,7 +1385,7 @@ static inline s16 _actor120300InitChild(Task* arg0, s32 part)
     if (work == NULL) {
         return 1;
     }
-    Mem_Set(work, 0, 0x4E4);
+    memFillBytes(work, 0, sizeof(*work));
     coord->parent          = ((Task*)arg0->spawnArg2.pointer)->extra.tmd->coords + part;
     arg0->extra.tmd->flags = 0;
     Tmd_AllocBuffers(tmd);
@@ -1981,7 +1981,7 @@ static void func_actor_120300_801335D8(Task* task)
         return;
     }
     work = allocatedWork;
-    Mem_Set(work, 0, sizeof(*work));
+    memFillBytes(work, 0, sizeof(*work));
     work->field_4B4         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     D_actor_120300_80141BA8 = task;
     coord->parent           = &gGfxViewCoord;

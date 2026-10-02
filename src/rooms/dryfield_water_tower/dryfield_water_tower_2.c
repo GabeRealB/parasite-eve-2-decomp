@@ -1989,7 +1989,7 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
                 if (mem == 0) {
                     taskKill(arg0);
                 } else {
-                    Mem_Set(mem, 0, 0x7C);
+                    memFillBytes(mem, 0, sizeof(DryfieldWaterTowerState));
                     ((DryfieldWaterTowerState*)mem)->field_40 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                     modelCoord->parent                        = &gGfxViewCoord;
                     model->flags                              = 0;
@@ -2226,7 +2226,7 @@ void func_dryfield_water_tower_8017E764(Task* arg0)
             if (state == NULL) {
                 taskKill(arg0);
             } else {
-                Mem_Set(state, 0, 0x7C);
+                memFillBytes(state, 0, sizeof(*state));
                 state->field_40 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 coord->parent   = &gGfxViewCoord;
                 tmp->flags      = 0;
@@ -2633,7 +2633,7 @@ void func_dryfield_water_tower_8017F128(Task* arg0)
             if (work == NULL) {
                 taskKill(arg0);
             } else {
-                Mem_Set(work, 0, 0x7C);
+                memFillBytes(work, 0, sizeof(*work));
                 work->field_40                  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_dryfield_water_tower_801876A4 = arg0;
                 arg0->msgTable                  = D_dryfield_water_tower_80182374;
@@ -3040,7 +3040,7 @@ void func_dryfield_water_tower_8017FD64(Task* task)
             if (work == NULL) {
                 taskKill(task);
             } else {
-                Mem_Set(work, 0, 0x18);
+                memFillBytes(work, 0, sizeof(*work));
                 work->field_0                   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_dryfield_water_tower_801876AC = task;
                 id                              = gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8);

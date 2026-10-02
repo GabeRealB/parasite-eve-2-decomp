@@ -280,7 +280,7 @@ void Fs_BeginBootLoad(u8* arg0, s16 arg1)
     Fs_LoadParams.field_2      = arg0[2];
     D5B498_8006ACC0            = arg1;
 
-    Mem_Set(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
+    memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
     GameMain_SetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
     Fs_BootLoadPhase = 0;
 }

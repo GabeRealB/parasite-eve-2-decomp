@@ -136,7 +136,7 @@ static void func_shelter_b1_pod_service_gantry_8017DF70(GfxCoord* arg0, u16 arg1
     head     = *scratch;
     *scratch = head - 1;
     block    = head - 1;
-    Mem_Set(block, 0, sizeof(*block));
+    memFillBytes(block, 0, sizeof(*block));
     (head - 1)->worldPoint.vx = (u16)arg0->workm.t[0];
     block->worldPoint.vy      = (u16)arg0->workm.t[1];
     block->worldPoint.vz      = (u16)arg0->workm.t[2];
@@ -210,7 +210,7 @@ static void func_shelter_b1_pod_service_gantry_8017E400(GfxCoord* arg0, u16 arg1
     head     = *scratch;
     *scratch = head - 1;
     block    = head - 1;
-    Mem_Set(block, 0, sizeof(*block));
+    memFillBytes(block, 0, sizeof(*block));
     (head - 1)->worldPoint.vx = (u16)arg0->workm.t[0];
     block->worldPoint.vy      = (u16)arg0->workm.t[1];
     block->worldPoint.vz      = (u16)arg0->workm.t[2];
@@ -284,7 +284,7 @@ void waterDrawSpinU16(GfxCoord* coord, u16 textureColumn, s16 radiusScale, s16 s
     head     = *scratch;
     block    = (_ShelterB1PodServiceGantrySpinScratch*)(head - sizeof(*block));
     *scratch = block;
-    Mem_Set(block, 0, sizeof(*block));
+    memFillBytes(block, 0, sizeof(*block));
     block->vec.vx = (u16)coord->workm.t[0];
     block->vec.vy = (u16)coord->workm.t[1];
     block->vec.vz = (u16)coord->workm.t[2];
@@ -330,7 +330,7 @@ void waterDrawSpinU16(GfxCoord* coord, u16 textureColumn, s16 radiusScale, s16 s
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` into a
-/// 0x18-byte scratch block zeroed with `Mem_Set` and, when the GTE flag is
+/// 0x18-byte scratch block zeroed with `memFillBytes` and, when the GTE flag is
 /// non-negative, queues one shade-tex `POLY_FT4` (tpage 0x2B, clut 0x4393)
 /// with a 56-texel UV tile picked by `arg1` and an on-screen radius of
 /// `arg2 * 55 / otz`.
@@ -352,7 +352,7 @@ void waterDrawTileU16(GfxCoord* arg0, u16 arg1, s16 arg2)
     head     = *scratch;
     block    = (GpRingScratch*)(head - 0x18);
     *scratch = block;
-    Mem_Set(block, 0, 0x18);
+    memFillBytes(block, 0, sizeof(*block));
     block->vec.vx = arg0->workm.t[0];
     block->vec.vy = arg0->workm.t[1];
     block->vec.vz = arg0->workm.t[2];
@@ -422,7 +422,7 @@ void func_shelter_b1_pod_service_gantry_8017F450(GfxCoord* arg0, s32 arg1, s32 a
     block                      = SCRATCH_STACK_CURSOR(GpRingScratch);
     color                      = arg3;
     color16                    = color;
-    Mem_Set(block, 0, 0x18);
+    memFillBytes(block, 0, sizeof(*block));
     ((GpRingScratch*)(head - 0x18))->vec.vx = 0;
     block->vec.vy                           = -0xC4;
     block->vec.vz                           = 0;

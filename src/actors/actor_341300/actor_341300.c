@@ -695,7 +695,7 @@ void func_actor_341300_80162878(Task* arg0)
             }
             work          = (Actor341300Shard*)arg0->work;
             coord->parent = &gGfxViewCoord;
-            Mem_Set(arg0->work, 0, 0x30);
+            memFillBytes(arg0->work, 0, sizeof(*work));
             taskReparent(arg0->spawnArg2.pointer, arg0);
             coord->coord.t[0] = D_actor_341300_80165A38[arg0->spawnArg1.value].vx;
             coord->coord.t[1] = D_actor_341300_80165A38[arg0->spawnArg1.value].vy;
@@ -853,7 +853,7 @@ void func_actor_341300_801631D4(Task* arg0)
             }
             work          = (Actor341300Shard*)arg0->work;
             coord->parent = &gGfxViewCoord;
-            Mem_Set(arg0->work, 0, 0x30);
+            memFillBytes(arg0->work, 0, sizeof(*work));
             taskReparent(arg0->spawnArg2.pointer, arg0);
             coord->coord.t[0] = D_actor_341300_80165A58[arg0->spawnArg1.value].vx;
             coord->coord.t[1] = D_actor_341300_80165A58[arg0->spawnArg1.value].vy;

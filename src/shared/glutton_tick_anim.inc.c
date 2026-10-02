@@ -17,7 +17,7 @@ void gluttonTickAnim(Task* arg0)
         gluttonSwitchAnim(arg0);
         work->field_7B0 = 3;
         work->field_7B4 = 0;
-        Mem_Set(work->field_7D0, 0, 0x20);
+        memFillBytes(work->field_7D0, 0, 0x20);
     } else if (work->field_7B0 == 2) {
         w = arg0->work;
         for (i = 1; i < 8; i++) {
@@ -35,7 +35,7 @@ void gluttonTickAnim(Task* arg0)
         w->field_7B2    = w->field_7B3;
         work->field_7B0 = 3;
         work->field_7B4 = 0;
-        Mem_Set(work->field_7D0, 0, 0x20);
+        memFillBytes(work->field_7D0, 0, 0x20);
     }
 
     if (work->field_7BA == 2) {

@@ -69,7 +69,7 @@ void desertChaserAnimTick(Task* task)
         }
         work->field_828 = 3;
         work->field_830 = 0;
-        Mem_Set(work->field_848, 0U, 0x48U);
+        memFillBytes(work->field_848, 0U, sizeof(work->field_848));
     } else if (state == 2) {
         resetWork  = work;
         resetIndex = 1;
@@ -82,7 +82,7 @@ void desertChaserAnimTick(Task* task)
         resetWork->field_82C = resetWork->field_82E;
         work->field_828      = 3;
         work->field_830      = 0U;
-        Mem_Set(work->field_848, 0U, 0x48U);
+        memFillBytes(work->field_848, 0U, sizeof(work->field_848));
     }
     if (work->field_836 == 2) {
         secondaryWork  = (DesertChaserWork*)task->work;

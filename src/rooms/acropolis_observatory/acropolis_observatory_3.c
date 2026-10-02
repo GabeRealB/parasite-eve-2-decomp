@@ -1024,7 +1024,7 @@ void func_acropolis_observatory_8017E19C(Task* task)
             if (temp) {
                 taskKill(task);
             } else {
-                Mem_Set(blk, 0, 8);
+                memFillBytes(blk, 0, sizeof(*blk));
                 blk->target = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             }
             work = (AobSceneWork*)task->work;

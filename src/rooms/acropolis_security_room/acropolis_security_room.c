@@ -3040,7 +3040,7 @@ L_case0:
         taskKill(task);
         return;
     }
-    Mem_Set(alloc, 0, sizeof(AsrAmbienceState));
+    memFillBytes(alloc, 0, sizeof(AsrAmbienceState));
     SndEvt_EnqueueType6(0x51060008, 0, 0);
     goto advance;
 

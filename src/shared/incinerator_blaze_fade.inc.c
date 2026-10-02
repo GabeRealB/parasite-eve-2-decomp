@@ -59,7 +59,7 @@ void blazeFadeTask(Task* arg0)
                 parent             = (BlazeParentWork*)((Task*)arg0->spawnArg2.pointer)->work;
                 parent->wave.state = 2;
                 Display_SetMode(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
-                Mem_Set(Fs_ImgBuffers, 0xFF, 0x25800);
+                memFillBytes(Fs_ImgBuffers, 0xFF, sizeof(*Fs_ImgBuffers));
                 work->b     = 0xFF;
                 work->g     = 0xFF;
                 arg0->state = 5;

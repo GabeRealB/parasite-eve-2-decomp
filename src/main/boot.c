@@ -212,7 +212,7 @@ void Boot_LoadInitialFile(Task* task)
         case 3:
             task->killCountdown += 8;
             if (task->killCountdown >= 0x100) {
-                Mem_Set(Fs_ImgBuffers, 0, 0x25800);
+                memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
                 task->state++;
                 break;
             }

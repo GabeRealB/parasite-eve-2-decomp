@@ -56,7 +56,7 @@
 #include "../../shared/bezier_curve.h"
 
 /// Work block of the enemy whose state-0 init is
-/// `func_actor_503500_801423C8` (`Mem_Set(_, 0x224)`), viewed through its own
+/// `func_actor_503500_801423C8` (`memFillBytes(_, 0, 0x224)`), viewed through its own
 /// type rather than the shared `Actor503500Work`: its three display nodes sit
 /// at 0x60, 0x140 and 0x160, and the node at 0x140 covers 0x15C, where the
 /// shared view already names the 0x160 block's `field_15C`. That collision is
@@ -216,7 +216,7 @@ typedef struct Actor503500WorkB4 {
 STATIC_ASSERT_SIZEOF(Actor503500WorkB4, 0xB4);
 
 /// Work block of the knock-back task `func_actor_503500_801437D0` spawns
-/// (`Mem_Set(_, 0x38)` in `func_actor_503500_80143AC0`). `rot` is a copy of the
+/// (`memFillBytes(_, 0, 0x38)` in `func_actor_503500_80143AC0`). `rot` is a copy of the
 /// rotation handed over in `Task::spawnArg2`; every frame `speed` is pushed
 /// through it by `ApplyMatrixLV` and added onto the 16.16 `pos`, whose integer
 /// halves go to the player as message 0x3FE. `field_34` counts frames spent at
@@ -253,7 +253,7 @@ typedef struct Actor503500WorkF4 {
 STATIC_ASSERT_SIZEOF(Actor503500WorkF4, 0xF4);
 
 /// The second 0xF4 block: the enemy whose state-0 init is
-/// `func_actor_503500_8013CAE4` (`Mem_Set` over slot `spawnArg1 - 7` of
+/// `func_actor_503500_8013CAE4` (`memFillBytes` over slot `spawnArg1 - 7` of
 /// `D_actor_503500_80177794`), viewed through its own type rather than the
 /// shared `Actor503500Work`. It is named after its array because size no
 /// longer tells the two 0xF4 shapes apart: this one keeps its two sub-state
@@ -278,7 +278,7 @@ typedef struct Actor503500Work770E8 {
 STATIC_ASSERT_SIZEOF(Actor503500Work770E8, 0xF4);
 
 /// The first 0xF4 block: the enemy whose state-0 init is
-/// `func_actor_503500_8013BEE4` (`Mem_Set` over `D_actor_503500_801776A0`),
+/// `func_actor_503500_8013BEE4` (`memFillBytes` over `D_actor_503500_801776A0`),
 /// viewed through its own type in the one function that needs it. Its death
 /// sub-state `func_actor_503500_8013C558` keeps three halfwords at 0xEA /
 /// 0xEC / 0xEE -- a frame counter, a scale that shrinks from 0x1000 and the
@@ -494,7 +494,7 @@ static void func_actor_503500_8013AD64(Task* arg0)
     parent = arg0->parent;
     work   = &D_actor_503500_801774C0[idx];
     coord  = arg0->extra.tmd->coords;
-    Mem_Set(work, 0, 0xF0);
+    memFillBytes(work, 0, sizeof(*work));
     arg0->work     = work;
     work->field_EC = idx;
 
@@ -969,7 +969,7 @@ static void func_actor_503500_8013BEE4(Task* arg0)
     coord  = arg0->extra.tmd->coords;
     enemy  = arg0->spawnArg2.pointer;
     parent = arg0->parent;
-    Mem_Set(&D_actor_503500_801776A0, 0, 0xF4);
+    memFillBytes(&D_actor_503500_801776A0, 0, sizeof(D_actor_503500_801776A0));
     arg0->work = &D_actor_503500_801776A0;
 
     parts                            = parent->extra.tmd->coords;
@@ -1312,7 +1312,7 @@ static void func_actor_503500_8013CAE4(Task* arg0)
     pos    = &D_actor_503500_8016F248[idx - 7];
     coord  = arg0->extra.tmd->coords;
     parent = arg0->parent;
-    Mem_Set(work, 0, 0xF4);
+    memFillBytes(work, 0, sizeof(*work));
     arg0->work = work;
 
     parts                            = parent->extra.tmd->coords;
@@ -1841,7 +1841,7 @@ static void func_actor_503500_8013DD10(Task* arg0)
     coord  = arg0->extra.tmd->coords;
     enemy  = arg0->spawnArg2.pointer;
     parent = arg0->parent;
-    Mem_Set(&D_actor_503500_8017797C, 0, 0xF0);
+    memFillBytes(&D_actor_503500_8017797C, 0, sizeof(D_actor_503500_8017797C));
     arg0->work = &D_actor_503500_8017797C;
 
     parts                            = parent->extra.tmd->coords;
@@ -2273,7 +2273,7 @@ static void func_actor_503500_8013ECBC(Task* arg0)
     coord  = arg0->extra.tmd->coords;
     enemy  = arg0->spawnArg2.pointer;
     parent = arg0->parent;
-    Mem_Set(&D_actor_503500_80177A6C, 0, 0xF4);
+    memFillBytes(&D_actor_503500_80177A6C, 0, sizeof(D_actor_503500_80177A6C));
     arg0->work = &D_actor_503500_80177A6C;
 
     parts                            = parent->extra.tmd->coords;
@@ -2691,7 +2691,7 @@ static void func_actor_503500_8013FA74(Task* arg0)
     work  = &D_actor_503500_80177B60[idx];
     coord = arg0->extra.tmd->coords;
     tmd   = arg0->extra.tmd;
-    Mem_Set(work, 0, 0x3D8);
+    memFillBytes(work, 0, sizeof(*work));
     arg0->work = work;
 
     coord->parent     = &arg0->parent->extra.tmd->coords[1];
@@ -3764,7 +3764,7 @@ static void func_actor_503500_801423C8(Task* arg0)
     work      = &D_actor_503500_80178AC0.value[slot];
     coord     = tmd->coords;
     parentTmd = parent->extra.tmd;
-    Mem_Set(work, 0, 0x224);
+    memFillBytes(work, 0, sizeof(*work));
     arg0->work = work;
 
     coord->parent       = &parent->extra.tmd->coords[D_actor_503500_80171464[slot]];
@@ -4380,7 +4380,7 @@ void func_actor_503500_80143AC0(Task* arg0)
                 taskKill(arg0);
                 return;
             }
-            Mem_Set(work, 0, sizeof(Actor503500Work38));
+            memFillBytes(work, 0, sizeof(Actor503500Work38));
             work->speed       = 0x1000000;
             work->pos.vx.word = 0;
             work->pos.vy.word = 0;

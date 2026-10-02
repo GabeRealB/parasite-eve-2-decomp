@@ -285,7 +285,7 @@ static void func_actor_503500_80132F64(Task* arg0)
     tmd   = arg0->extra.tmd;
     enemy = arg0->spawnArg2.pointer;
     coord = tmd->coords;
-    Mem_Set(work, 0, 0x7E8);
+    memFillBytes(work, 0, sizeof(*work));
     arg0->work          = work;
     work->field_7D5     = -1;
     work->field_7D6     = -1;
@@ -2604,7 +2604,7 @@ static void func_actor_503500_801372C8(Task* arg0)
     parent    = arg0->parent;
     coord     = tmd->coords;
     parentTmd = parent->extra.tmd;
-    Mem_Set(&D_actor_503500_80176D88, 0, 0x160);
+    memFillBytes(&D_actor_503500_80176D88, 0, sizeof(D_actor_503500_80176D88));
     arg0->work = &D_actor_503500_80176D88;
 
     coord->parent       = &parent->extra.tmd->coords[8];
@@ -3147,7 +3147,7 @@ static void func_actor_503500_8013852C(Task* arg0)
     work  = &D_actor_503500_80176EE8[idx];
     coord = arg0->extra.tmd->coords;
     tmd   = arg0->extra.tmd;
-    Mem_Set(work, 0, 0x2EC);
+    memFillBytes(work, 0, sizeof(*work));
     arg0->work = work;
 
     coord->parent     = &arg0->parent->extra.tmd->coords[1];

@@ -826,7 +826,7 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
             if (work == NULL) {
                 taskKill(task);
             } else {
-                Mem_Set(work, 0, 0x68);
+                memFillBytes(work, 0, sizeof(*work));
                 coord->parent                             = &gGfxViewCoord;
                 obj->flags                                = 0;
                 obj->otOffset                             = 0x1F;
@@ -1077,7 +1077,7 @@ void func_shelter_b3_garbage_incinerator_8017F6D8(Task* arg0)
             if (work == NULL) {
                 taskKill(arg0);
             } else {
-                Mem_Set(work, 0, 0x40);
+                memFillBytes(work, 0, sizeof(*work));
                 work->field_2C                            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_shelter_b3_garbage_incinerator_8018FC3C = arg0;
             }

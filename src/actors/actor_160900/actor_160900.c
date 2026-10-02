@@ -52,7 +52,7 @@
 /// `memCalloc(0x20, 0)` for each of the two child tasks it spawns from index 7
 /// of `D_actor_160900_8013FB50`, and parks in that child's `Task::work` slot
 /// (0x1C) -- a third work block in this overlay, not a `TaskIdMap`. The size
-/// below is the allocation: the function zeroes all 0x20 bytes with `Mem_Set`.
+/// below is the allocation: the function zeroes all 0x20 bytes with `memFillBytes`.
 ///
 /// The four vectors are the corners of an axis-aligned rectangle in the Y/Z
 /// plane, written as differences from the child's own origin. Child 0 (spawn
@@ -1122,7 +1122,7 @@ void func_actor_160900_80132A14(Task* arg0)
                 coord->parent = &parent->extra.tmd->coords[8];
                 break;
         }
-        Mem_Set(arg0->work, 0, 0x4BC);
+        memFillBytes(arg0->work, 0, sizeof(*work));
         tmd->lightMtx = &work->light;
         tmd->colorMtx = &work->color;
         if (arg0->spawnArg1.value < 2) {
@@ -1193,7 +1193,7 @@ void func_actor_160900_80132C08(Task* task)
             failed = 1;
         } else {
             coord->parent = &gGfxViewCoord;
-            Mem_Set(task->work, 0, 0x4BC);
+            memFillBytes(task->work, 0, sizeof(*work));
             obj->lightMtx  = &work->light;
             obj->colorMtx  = &work->color;
             obj->flags    |= (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
@@ -1602,7 +1602,7 @@ void func_actor_160900_80133880(void)
         return;
     }
     work = alloc;
-    Mem_Set(work, 0, 0x20);
+    memFillBytes(work, 0, sizeof(*work));
     task->extra.tmd->coords->parent     = &gGfxViewCoord;
     task->extra.tmd->coords->coord.t[0] = 0x1770;
     task->extra.tmd->coords->coord.t[1] = 0x3E8;
@@ -1631,7 +1631,7 @@ void func_actor_160900_80133880(void)
         return;
     }
     work = alloc;
-    Mem_Set(work, 0, 0x20);
+    memFillBytes(work, 0, sizeof(*work));
     task->extra.tmd->coords->parent     = &gGfxViewCoord;
     task->extra.tmd->coords->coord.t[0] = 0x1770;
     task->extra.tmd->coords->coord.t[1] = 0x3E8;
@@ -1669,7 +1669,7 @@ void func_actor_160900_80133A84(void)
         return;
     }
     work = alloc;
-    Mem_Set(work, 0, 0x20);
+    memFillBytes(work, 0, sizeof(*work));
     task->extra.tmd->coords->parent     = &gGfxViewCoord;
     task->extra.tmd->coords->coord.t[0] = 0x1770;
     task->extra.tmd->coords->coord.t[1] = 0x1F4;
@@ -1698,7 +1698,7 @@ void func_actor_160900_80133A84(void)
         return;
     }
     work = alloc;
-    Mem_Set(work, 0, 0x20);
+    memFillBytes(work, 0, sizeof(*work));
     task->extra.tmd->coords->parent     = &gGfxViewCoord;
     task->extra.tmd->coords->coord.t[0] = 0x1770;
     task->extra.tmd->coords->coord.t[1] = 0x1F4;
@@ -1727,7 +1727,7 @@ void func_actor_160900_80133A84(void)
         return;
     }
     work = alloc;
-    Mem_Set(work, 0, 0x20);
+    memFillBytes(work, 0, sizeof(*work));
     task->extra.tmd->coords->parent     = &gGfxViewCoord;
     task->extra.tmd->coords->coord.t[0] = 0x1770;
     task->extra.tmd->coords->coord.t[1] = 0x1F4;
@@ -1756,7 +1756,7 @@ void func_actor_160900_80133A84(void)
         return;
     }
     work = alloc;
-    Mem_Set(work, 0, 0x20);
+    memFillBytes(work, 0, sizeof(*work));
     task->extra.tmd->coords->parent     = &gGfxViewCoord;
     task->extra.tmd->coords->coord.t[0] = 0x1770;
     task->extra.tmd->coords->coord.t[1] = -0x1F4;
@@ -1785,7 +1785,7 @@ void func_actor_160900_80133A84(void)
         return;
     }
     work = alloc;
-    Mem_Set(work, 0, 0x20);
+    memFillBytes(work, 0, sizeof(*work));
     task->extra.tmd->coords->parent     = &gGfxViewCoord;
     task->extra.tmd->coords->coord.t[0] = 0x1770;
     task->extra.tmd->coords->coord.t[1] = -0x1F4;
@@ -1814,7 +1814,7 @@ void func_actor_160900_80133A84(void)
         return;
     }
     work = alloc;
-    Mem_Set(work, 0, 0x20);
+    memFillBytes(work, 0, sizeof(*work));
     task->extra.tmd->coords->parent     = &gGfxViewCoord;
     task->extra.tmd->coords->coord.t[0] = 0x1770;
     task->extra.tmd->coords->coord.t[1] = -0x1F4;
@@ -1852,7 +1852,7 @@ void func_actor_160900_80133F90(void)
         return;
     }
     work = alloc;
-    Mem_Set(work, 0, 0x20);
+    memFillBytes(work, 0, sizeof(*work));
     task->extra.tmd->coords->parent     = &gGfxViewCoord;
     task->extra.tmd->coords->coord.t[0] = 0x1770;
     task->extra.tmd->coords->coord.t[1] = 0;
@@ -1881,7 +1881,7 @@ void func_actor_160900_80133F90(void)
         return;
     }
     work = alloc;
-    Mem_Set(work, 0, 0x20);
+    memFillBytes(work, 0, sizeof(*work));
     task->extra.tmd->coords->parent     = &gGfxViewCoord;
     task->extra.tmd->coords->coord.t[0] = 0x1770;
     task->extra.tmd->coords->coord.t[1] = 0;
@@ -1914,7 +1914,7 @@ void func_actor_160900_8013418C(Task* arg0)
             if (work == NULL) {
                 taskKill(arg0);
             } else {
-                Mem_Set(work, 0, 0x68);
+                memFillBytes(work, 0, sizeof(*work));
                 work->field_34          = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_actor_160900_8013FBB4 = arg0;
                 work->field_38          = Task_SpawnFromTable(D_actor_160900_8013FB50, 3, 0, arg0);

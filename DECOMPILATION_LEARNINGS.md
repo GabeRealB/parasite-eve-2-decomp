@@ -15914,9 +15914,9 @@ up as a pure `regs=` penalty with no `insert`/`delete` beside it.
 in allocation order with their final home (`r82 used 4/24 -> $s2`), so you can
 read off which local to move rather than diffing registers.
 
-## Force `Mem_Set` arg order: `move a1,zero` then `lui a2` then dest load
+## Force `memFillBytes` arg order: `move a1,zero` then `lui a2` then dest load
 
-When the target schedules a large-size `Mem_Set(ptr, 0, 0xNNNNN)` after a
+When the target schedules a large-size `memFillBytes(ptr, 0, 0xNNNNN)` after a
 branch as:
 
 ```
@@ -15925,11 +15925,11 @@ bnez  cond, other
 lui   a2, HI(size)
 lui   v0, %hi(ptr)
 lw    a0, %lo(ptr)(v0)
-jal   Mem_Set
+jal   memFillBytes
  ori   a2, a2, LO(size)
 ```
 
-plain `Mem_Set(Fs_ImgBuffers, 0, 0x25800)` usually loads the global first
+plain `memFillBytes(Fs_ImgBuffers, 0, 0x25800)` usually loads the global first
 (`lui v0` in the delay slot), then sets `a1`/`a2`. Score sticks at ~99% with
 only that reorder left.
 
@@ -15945,7 +15945,7 @@ Two pieces together fix it:
    ch = 0;
    size = 0x20000; /* high half only — do not write 0x25800 here */
    asm("" : "+r"(ch), "+r"(size));
-   Mem_Set(Fs_ImgBuffers, ch, size | 0x5800);
+   memFillBytes(Fs_ImgBuffers, ch, size | 0x5800);
    ```
 2. Without the empty `asm`, CSE folds `ch` back to `$zero` / reorders past the
    load. Without splitting `0x25800` into `0x20000 | 0x5800`, the full constant
@@ -19400,7 +19400,7 @@ Force both copies to stay:
 1. End the first cleanup with `return` (not `break` into a shared epilogue
    path that the second arm also falls into).
 2. Use a *fresh* local for the first cleanup's base (`q = &gCdCmdQueue` after
-   `Mem_Set`) while the second arm reassigns the original `p` /
+   `memFillBytes`) while the second arm reassigns the original `p` /
    `$s0` (`p = &gCdCmdQueue` at the cleanup label).
 
 `CdCmd_ProcessPhase1` is the example — cases 3/4/6/7 clean up via `$a0`, case 8 via
@@ -26921,9 +26921,9 @@ Keep the later store of a call result (`index->spawnArg2 = result`) *after*
 those copies so the result can live in `$v1` (`register s32 result asm("v1")`)
 instead of being stored immediately from `$v0`. `Gp_BindDefaultMtx` is the example.
 
-## Store the task pointer before `Mem_Set` so `sw` fills the jal delay slot
+## Store the task pointer before `memFillBytes` so `sw` fills the jal delay slot
 
-`Mem_Set(actor, 0, SIZE); task->work = actor;` puts `li a2, SIZE` in the jal
+`memFillBytes(actor, 0, SIZE); task->work = actor;` puts `li a2, SIZE` in the jal
 delay slot and the `sw` after the call. The target has `li a2` before jal and
 `sw` in the delay slot.
 
@@ -26932,10 +26932,10 @@ scheduler parks it in the delay slot and leaves the size `li` in the setup:
 
 ```c
 task->work = actor;
-Mem_Set(actor, 0, 0x998);
+memFillBytes(actor, 0, 0x998);
 ```
 
-`Gp_SpawnPlayer` is the example. The same `Mem_Set` then assign order used by
+`Gp_SpawnPlayer` is the example. The same `memFillBytes` then assign order used by
 `Gp_SpawnAlly` stuck at 99.1% with only that delay-slot swap.
 
 ## Overlay: still-asm dispatcher tables after expanding `.rodata`
@@ -51110,7 +51110,7 @@ SndEvt_EnqueueType6((s32)task->spawnArg2, zero, zero);
 `func_mist_parking_80182628` is the example (92.75% -> 100%). No register pin is
 needed - `register s32 z asm("a1")` alone still scores 92.75%, because the pin
 does not move the statement; only the `asm` does. This is the unpinned form of
-the `Mem_Set` arg-order trick above.
+the `memFillBytes` arg-order trick above.
 
 ## A first arm laid out *after* the second is an inverted `if/else`, not `else if`
 
@@ -68971,7 +68971,7 @@ base_9 `b370a101d7f595a64bf9ae7708817be640bfea7821d674fa68bbf5330702fdf3`.
 ### A pointer held across one call loses its register to an index-derived pointer; assign it just before the call
 
 `func_actor_503500_8013CAE4` sat at 99.15% with only `s2`/`s3` swapped between
-`parent` (loaded in the prologue, read once after `Mem_Set`) and the
+`parent` (loaded in the prologue, read once after `memFillBytes`) and the
 `idx`→`idx<<3`→`pos = &Table[idx]` chain. That chain is one local quantity:
 each step's input dies in the insn that sets the next, so `combine_regs` ties
 all three (`trace_gcc.py`: `q1 [88, 99, 89] refs=14 span=130 priority=3230`).
@@ -68980,7 +68980,7 @@ all three (`trace_gcc.py`: `q1 [88, 99, 89] refs=14 span=130 priority=3230`).
 ranked below the chain.
 
 Moving `parent = index->parent;` from the top of the prologue to the line
-before `Mem_Set` put its sched1 load one insn later (`span=6`, 3333) and
+before `memFillBytes` put its sched1 load one insn later (`span=6`, 3333) and
 matched. sched2 still hoists the `lw` to third place in the final asm, so the
 target listing shows it *early* even though the source assigns it late.
 
@@ -69303,9 +69303,9 @@ fixed, so which of the two moved the allocation was not isolated.
 
 `func_shelter_b3_dumping_hole_8017E7DC` caches `extra = index->extra` (a saved
 reg `s2`) for `coord = extra->coords` and `Tmd_AllocBuffers(extra)`, but the
-`extra->flags = 0` store *after* an intervening `Mem_Set(work,…)` call comes
+`extra->flags = 0` store *after* an intervening `memFillBytes(work,…)` call comes
 out as a fresh `lw v0,0x2C(s4)` reload, not `sh zero,0xC(s2)`. GCC 2.8.1's CSE
-does not carry a memory load across a call: `index->extra` read before `Mem_Set`
+does not carry a memory load across a call: `index->extra` read before `memFillBytes`
 is invalidated, so a later reference reloads — even though the pointer is still
 sitting in a saved register. Match it by referencing the chain inline at that
 one use, `((TmdObject*)index->extra)->flags = 0;`, and keeping the cached
@@ -72714,13 +72714,13 @@ next to displacements that are "too folded".
 
 ## sched1 sets the cross-jump boundary: call arguments duplicated, stores merged
 
-Two arms of an `if` that end in the same `x->a = 3; x->b = 0; Mem_Set(x->buf, 0,
+Two arms of an `if` that end in the same `x->a = 3; x->b = 0; memFillBytes(x->buf, 0,
 0x20);` do not have to cross-jump the *whole* tail. Cross-jumping (jump2) runs
 after sched1, and it stops at the first instruction that differs walking
 backwards, so anything sched1 has already interleaved into one arm splits the
 merge there. In `func_actor_444000_8013441C` the second arm ends with an
 unrelated `w->field_7B2 = w->field_7B3;`, which sched1 hoists between the
-`Mem_Set` argument moves to cover the `lbu` load delay:
+`memFillBytes` argument moves to cover the `lbu` load delay:
 
 ```
 addiu  a0,s3,0x7d0     addiu  a0,s3,0x7d0
@@ -72729,7 +72729,7 @@ li     a2,0x20         lbu    v0,0x7b3(s1)
                        li     a2,0x20
                        sb     v0,0x7b2(s1)
 --- merged tail from here down ---
-li     v0,3 / sb v0,0x7b0(s3) / jal Mem_Set / sh zero,0x7b4(s3)
+li     v0,3 / sb v0,0x7b0(s3) / jal memFillBytes / sh zero,0x7b4(s3)
 ```
 
 The signature is a shared call whose *argument setup* is written out in each
@@ -81896,7 +81896,7 @@ shape is shared.
 
 **Writing the reload as a second mention does not merge.** The loop's other
 option — `((Actor310100Work*)task->work)->slots[…]` then
-`&((Actor310100Work*)task->work)->anim`, the form the `Mem_Set(task->work, …)`
+`&((Actor310100Work*)task->work)->anim`, the form the `memFillBytes(task->work, …)`
 line above already uses — scored 6 branches and `regs=52`: the `sb` to `slots`
 sits between the two loads, CSE will not carry a memory value across a store it
 cannot prove disjoint, so each iteration loads the pointer twice.
@@ -86793,7 +86793,7 @@ delay slot: the *first-written* store keeps the constant in the register the
 scheduler chose and the *second* is the one parked in the delay slot with its
 address built early. When a target shows that shape, write the two stores in the
 order that gives the early store the register seen in the target - see the
-`Store the task pointer before Mem_Set` entry above for the single-store form.
+`Store the task pointer before memFillBytes` entry above for the single-store form.
 
 ## An s16 field loads `lh` for its compare and `lhu` for its increment
 
@@ -102967,7 +102967,7 @@ u32 prev;
 
 The store is what makes the value a *source-level* one, so cse keeps the
 register the load produced; `field_84C` also sits inside the 0x48-byte block
-the `var_a0 == 1` path hands to `Mem_Set`, which is why every arm re-writes it.
+the `var_a0 == 1` path hands to `memFillBytes`, which is why every arm re-writes it.
 
 Diagnostic: count the store forms in the `.o` (`grep -c 'sw    v0,0x84c'`), not
 the score - a dead store missing from one arm shows up as `regs`/`reorder`
@@ -105141,15 +105141,15 @@ through `j`) lets sched1 hoist it just behind `a2 = 1`, and it matched.
 ### A `sN = sM` copy in a call's delay slot is a second local aliasing the first; place it after the call args (func_actor_560800_801386D4, 2026-09-16)
 
 **Symptom.** A state-0 spawner does `w = Mem_Malloc(...); task->work = w; ...
-Mem_Set(task->work, 0, size);` and the target's `Mem_Set` delay slot holds
+memFillBytes(task->work, 0, size);` and the target's `memFillBytes` delay slot holds
 `move s2,s0`, after which the loop writes through `s2`. `w` itself (`$s0`) is
 also the variable reloaded from `task->work` after the switch.
 
 **Fix.** Write a second local (`spawned = w;`) for the loop, *after* the
-`Mem_Set` call statement, preceded by the counter init: `i = 0; spawned = w;`.
+`memFillBytes` call statement, preceded by the counter init: `i = 0; spawned = w;`.
 Sched1 still pulls both ahead of the call, `i = 0` becomes `move s1,a1`
 (reload_cse against the `a1 = 0` argument) and the copy lands in the delay
-slot. With the copy written before `Mem_Set`, or `i = 0` after it, the two
+slot. With the copy written before `memFillBytes`, or `i = 0` after it, the two
 swap registers. The rest of the allocation was settled by giving each switch
 case its own locals (case-0 coord vs case-3 coord, case-2 counter and work
 alias) while case 0 and case 3 share their loop counter (both `$s1`).
@@ -123570,7 +123570,7 @@ tails.
 ## A function that is a sibling plus one block is matched by splicing, not by decompiling (func_actor_120300_80132004, 2026-09-17)
 
 `func_actor_120300_80132004` is `func_actor_120300_801321C8` - the next function
-in the same TU, same `0x38` frame, same `Mem_Malloc`/`Mem_Set`/
+in the same TU, same `0x38` frame, same `Mem_Malloc`/`memFillBytes`/
 `Tmd_AllocBuffers` prologue, same `func_800D7A9C` + `ScaleMatrix` tail - with one
 constant changed and one block inserted before the state step. m2c's rendering
 of it scored 73.549% (`branch=4 regs=41 reorder=3 insert=6 delete=20`, 113 insns
@@ -140817,7 +140817,7 @@ the end of the ready list while everything else is 2 or `7f000001`.
 
 ## A copy that must cross a call it is emitted after: declare the parameter narrower so sched1 can sink it (func_shelter_b1_pod_service_gantry_8017F450, 2026-09-24)
 
-**Symptom.** Target: `jal Mem_Set; …; move s7,s5` - a copy of a parameter taken
+**Symptom.** Target: `jal memFillBytes; …; move s7,s5` - a copy of a parameter taken
 *after* a call, in a callee-saved register, although it dies before the next call.
 Written after the call, the copy crosses nothing and global-alloc gives it `a2`.
 Written before the call, it crosses the call but stays in front of the `jal`.
@@ -140847,7 +140847,7 @@ void f(GfxCoord* arg0, s32 arg1, s32 arg2, s16 arg3)
     ...
     color   = arg3;      /* s32, then the u16 snapshot, both before the call */
     color16 = color;
-    Mem_Set(block, 0, 0x18);
+    memFillBytes(block, 0, 0x18);
     ...
         c     = color16;              /* the only later read */
         green = blend + (c & 0xF0);   /* a fresh variable, not color reused */
@@ -145644,7 +145644,7 @@ behind.
 
 ## A label right after a call ends its block and changes how sched1 orders the argument setup (Boot_LoadInitialFile, 2026-09-27)
 
-**Symptom.** `Mem_Set(Fs_ImgBuffers, 0, 0x25800)` compiles as `lui/lw a0`
+**Symptom.** `memFillBytes(Fs_ImgBuffers, 0, 0x25800)` compiles as `lui/lw a0`
 then `move a1,zero; lui a2`, while the target sets `a1` and the `a2` high half
 first and loads `a0` last. The tree forced it with `SOFT_TOUCH_REG2` on two
 locals holding the constants.
@@ -145655,7 +145655,7 @@ identical RTL either way, but with the state increment following the call in
 the same block it hoists the constant argument sets ahead of the global load.
 
 **Fix.** Write the case as a structured `switch` with its own tail
-(`Mem_Set(...); task->state++; break;`) and let jump2 cross-jump the shared
+(`memFillBytes(...); task->state++; break;`) and let jump2 cross-jump the shared
 `state++` tails back together. The block layout the goto version produced
 comes out of the inverted test (`if (x >= 0x100) { ...; break; }` then the
 fade path) rather than from labels.

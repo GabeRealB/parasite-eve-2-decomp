@@ -34,7 +34,7 @@
 #include "main/wipsys_types.h"
 
 /// Scratch state of the parking-lot cap script driven by
-/// `func_mist_parking_80183EAC`, cleared with `Mem_Set` when the task starts.
+/// `func_mist_parking_80183EAC`, cleared with `memFillBytes` when the task starts.
 
 void              func_mist_parking_801846A4(s32 arg0);
 extern EvsCommand D_mist_parking_80190C74[];
@@ -439,7 +439,7 @@ void func_mist_parking_80183EAC(Task* task)
 
     switch (task->state) {
         case 0:
-            Mem_Set(st, 0, 8);
+            memFillBytes(st, 0, sizeof(*st));
             func_mist_parking_801846A4(1);
             func_800E8614(D_mist_parking_80191154, 1);
             Gp_RunCapCmd(6, 0);

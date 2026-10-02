@@ -904,7 +904,7 @@ static void func_actor_310100_80162414(Task* task, s32 arg1)
         return;
     }
     work->field_508 = arg1;
-    Mem_Set(task->work, 0U, 0x50CU);
+    memFillBytes(task->work, 0U, sizeof(*work));
     work->field_4E8 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     coord->parent   = &gGfxViewCoord;
     Tmd_AllocBuffers(obj);
@@ -964,7 +964,7 @@ static void func_actor_310100_801625E4(Task* task, s32 arg1)
         return;
     }
     work->field_508 = arg1;
-    Mem_Set(task->work, 0U, 0x50CU);
+    memFillBytes(task->work, 0U, sizeof(*work));
     work->field_4E8 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     coord->parent   = &gGfxViewCoord;
     Tmd_AllocBuffers(obj);

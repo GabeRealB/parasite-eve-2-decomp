@@ -56,7 +56,7 @@ extern TaskDesc D_actor_121300_8013D390[];
 /// Work block for the `actor_121300` overlay's cutscene actor.
 ///
 /// `func_actor_121300_80133BFC` allocates it with `Mem_Malloc(0x4B0, 0)`,
-/// zeroes it with `Mem_Set` and parks the pointer in the task's `Task::work`
+/// zeroes it with `memFillBytes` and parks the pointer in the task's `Task::work`
 /// slot (0x1C) -- that slot is not a `TaskIdMap` here, so reach the block with
 /// `(Actor121300Work*)task->work`.  The same function publishes the task
 /// itself in `D_actor_121300_8013D418` and stores the
@@ -1847,7 +1847,7 @@ void func_actor_121300_8013293C(Task* arg0)
                 return;
             }
             work = alloc;
-            Mem_Set(work, 0, 0x5C);
+            memFillBytes(work, 0, sizeof(*work));
             coord->parent     = &gGfxViewCoord;
             coord->coord.t[0] = D_actor_121300_8013CC20[arg0->spawnArg1.value].x;
             coord->coord.t[1] = D_actor_121300_8013CC20[arg0->spawnArg1.value].y;
@@ -2008,7 +2008,7 @@ void func_actor_121300_80133064(Task* task)
             alloc      = Mem_Malloc(8, 0);
             task->work = alloc;
             if (alloc != NULL) {
-                Mem_Set(alloc, 0, 8);
+                memFillBytes(alloc, 0, 8);
                 task->state += 1;
                 return;
             }
@@ -2409,7 +2409,7 @@ static void func_actor_121300_80133BFC(Task* task)
         return;
     }
     work = allocatedWork;
-    Mem_Set(work, 0, sizeof(*work));
+    memFillBytes(work, 0, sizeof(*work));
     work->field_488         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     D_actor_121300_8013D418 = task;
     coord->parent           = &gGfxViewCoord;
@@ -2500,7 +2500,7 @@ void func_actor_121300_80133D98(Task* arg0)
             ClearImage(&scratch.rect, 0, 0, 0);
             scratch.rect.y = 0x110;
             ClearImage(&scratch.rect, 0, 0, 0);
-            Mem_Set(Fs_ImgBuffers, 0, 0x25800);
+            memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
             SetDispMask(1);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = state;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 9;

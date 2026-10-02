@@ -2674,7 +2674,7 @@ s32 desertChaserAnimCues(Task* arg0, DesertChaserWork* work)
             break;
     }
     if (clear == 1) {
-        Mem_Set(work->field_848, 0, 0x48);
+        memFillBytes(work->field_848, 0, sizeof(work->field_848));
     }
     return 0;
 }

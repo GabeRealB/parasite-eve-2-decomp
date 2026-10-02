@@ -167,7 +167,7 @@ static void GameMain_Init(void)
     Tmd_InitLists();
     Gfx_InitGraph();
 
-    Mem_Set(&gDisplayState, 0, sizeof(gDisplayState));
+    memFillBytes(&gDisplayState, 0, sizeof(gDisplayState));
     gDisplayState.field_120                      = 1;
     gDisplayState.region                         = MODE_NTSC;
     gDisplayState.control.flags.pendingPlayerPos = 0;
@@ -193,7 +193,7 @@ static void GameMain_Init(void)
     flag                     = 1;
     gDisplayState.drawBuffer = flag;
     Display_SetMode(DISPLAY_SETUP_DEFAULT);
-    Mem_Set(Pad_RemapState, 0, 0x1C);
+    memFillBytes(Pad_RemapState, 0, sizeof(*Pad_RemapState));
 }
 
 void Display_FlipDraw(s32 bufferIndex)
@@ -668,7 +668,7 @@ void GameMain(void)
     Mc_InitLib();
     Pad_Init();
     Boot_InitCd();
-    Mem_Set(&Wip_SysFlags, 0, sizeof(Wip_SysFlags));
+    memFillBytes(&Wip_SysFlags, 0, sizeof(Wip_SysFlags));
     D_8005EC64 = 0;
     GameMain_Init();
     GameMain_Loop();

@@ -224,7 +224,7 @@ static void func_m4a1_grenade_8011D654(Task* arg0)
     arg0->work         = work;
     arg0->exitCallback = grenadeShellExit;
     arg0->state++;
-    Mem_Set(work, 0, sizeof(WeaponGrenadeWork));
+    memFillBytes(work, 0, sizeof(WeaponGrenadeWork));
     blk->vx              = 0;
     blk->vy              = 0x220;
     blk->vz              = 0x28;
