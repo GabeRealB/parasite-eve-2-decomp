@@ -503,15 +503,26 @@ static inline void _modelLightingInitGt3TextureWords(POLY_GT3* triangle, const u
     triangle->clut      += workspace->encodedClutOffset;
 }
 
-/// Initializes the stream-relative texture of a pre-transformed triangle's offset layer.
+/// Initializes the blended offset-layer texture of one pre-transformed Gouraud triangle.
 ///
-/// `triangle` is the first writable, four-byte-aligned `POLY_GT3` in a pair.
-/// `elementWords` starts after a `0x4039` record's header and supplies at least
-/// five readable, aligned u32 words. The live object supplies independent
-/// signed page and palette-row displacements; sums wrap in u16 fields.
-/// Setting ABR bit 5 preserves bit 6. The draw command enables transparency.
-/// Tags, colours, commands, screen positions and SDK pad fields are preserved.
-/// All storage is borrowed; no pointer is retained or workspace state changed.
+/// `triangle` must be a writable, four-byte-aligned `POLY_GT3`; the caller
+/// supplies the first packet of an offset-layer/base pair. `elementWords`
+/// starts after an opcode `0x4039` record's three-word header and must provide
+/// at least five readable, four-byte-aligned u32 words. Words 0..1 contain
+/// depth-cache references and are not read here. Words 2 and 3 pack unsigned
+/// U/V texel bytes in their low halves and encoded CLUT and texture-page
+/// settings in their high halves. Only word 4's low half supplies U2/V2;
+/// its high half is ignored. This minimum extent does not establish a stride.
+///
+/// `workspace->obj` must be a live object. Its `layerTexturePageOffset` adds
+/// -128..127 encoded page units; `layerClutRowOffset` adds -128..127 palette
+/// rows, with 64 encoded CLUT units per row. These displacements are independent
+/// of the workspace's base-texture offsets. Address sums wrap modulo 65536 in
+/// the packet's u16 fields. Setting ABR bit 5 after page relocation preserves
+/// bit 6, selecting blend mode 1 or 3; drawing supplies the semitransparent
+/// command separately. Tags, colours/command, positions and SDK pad fields
+/// remain untouched. All storage is borrowed for the call; no pointer is
+/// retained and neither the workspace nor its object is modified.
 static inline void _modelLightingInitGt3PreXformOffsetLayerTexture(POLY_GT3* triangle, const u32* elementWords,
                                                                    const TmdStreamWorkspace* workspace)
 {
@@ -528,14 +539,15 @@ static inline void _modelLightingInitGt3PreXformOffsetLayerTexture(POLY_GT3* tri
     MODEL_LIGHTING_UV0_CLUT_WORD(triangle)  = elementWords[MODEL_LIGHTING_GT3_PRE_XFORM_LAYER_UV0_CLUT_WORD];
     MODEL_LIGHTING_UV1_TPAGE_WORD(triangle) = elementWords[MODEL_LIGHTING_GT3_PRE_XFORM_LAYER_UV1_TPAGE_WORD];
     // Copy U2/V2 together without overwriting the adjacent pad2.
-    *(u16*)&triangle->u2 = (u16)elementWords[MODEL_LIGHTING_GT3_PRE_XFORM_LAYER_UV2_WORD];
-    triangle->tpage     += workspace->obj->layerTexturePageOffset;
-    // Reload the wrapped page after fetching the row byte; restore its sign for the CLUT sum.
+    *(u16*)&triangle->u2 = elementWords[MODEL_LIGHTING_GT3_PRE_XFORM_LAYER_UV2_WORD];
+    // Wrap page relocation before selecting the layer's blend mode.
+    triangle->tpage += workspace->obj->layerTexturePageOffset;
+    // Keep the row byte unsigned until conversion to signed encoded CLUT units.
     layerClutRowByte  = workspace->obj->layerClutRowOffset;
     layerTexturePage  = triangle->tpage;
     layerTexturePage |= MODEL_LIGHTING_OFFSET_LAYER_TPAGE_ABR_LOW_BIT;
     triangle->tpage   = layerTexturePage;
-    triangle->clut   += (s8)layerClutRowByte << MODEL_LIGHTING_OFFSET_LAYER_CLUT_ROW_SHIFT;
+    triangle->clut   += (s8)layerClutRowByte * (1 << MODEL_LIGHTING_OFFSET_LAYER_CLUT_ROW_SHIFT);
 }
 
 u32* func_8009AF90(TmdStreamWorkspace* ws, s32 arg1, u32* arg2)

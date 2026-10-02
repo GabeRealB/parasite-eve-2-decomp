@@ -30842,7 +30842,7 @@ layerClutRowByte  = workspace->obj->layerClutRowOffset;
 layerTexturePage  = triangle->tpage;
 layerTexturePage |= MODEL_LIGHTING_OFFSET_LAYER_TPAGE_ABR_LOW_BIT;
 triangle->tpage   = layerTexturePage;
-triangle->clut   += (s8)layerClutRowByte << MODEL_LIGHTING_OFFSET_LAYER_CLUT_ROW_SHIFT;
+triangle->clut   += (s8)layerClutRowByte * (1 << MODEL_LIGHTING_OFFSET_LAYER_CLUT_ROW_SHIFT);
 ```
 
 `tmdBuildStreamGt3PreXformOffsetLayer` is the example. Same split is needed for the
