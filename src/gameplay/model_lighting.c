@@ -2314,14 +2314,26 @@ u32* gpStreamPrimGt4CornerColors(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 
 u32* tmdBuildStreamGt3OneNormal(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    // Texture suffix follows three vertex references and one face-normal reference.
-    enum { TMD_GT3_ONE_NORMAL_UV0_CLUT_WORD_INDEX = 2 };
+    enum {
+        /// Index of the first packed texture word in a one-face-normal GT3 element.
+        ///
+        /// Counts u32 words from the element base, after the three-word stream
+        /// header for opcodes 0x18/0x1A. Words 0/1 hold three u16 vertex byte
+        /// offsets and one u16 face-normal byte offset. On the little-endian
+        /// target, word 2 packs U0 in bits 0..7, V0 in bits 8..15 and the
+        /// model-relative encoded CLUT address in bits 16..31, copied together
+        /// before palette relocation. The next two words supply U1/V1/tpage
+        /// and U2/V2; only the latter's low half is copied. Each element must
+        /// provide at least five readable words; its complete extent comes
+        /// from the record's word stride rather than this index.
+        MODEL_LIGHTING_GT3_ONE_NORMAL_UV0_CLUT_WORD_INDEX = 2
+    };
     POLY_GT3* triangle;
 
     triangle = (POLY_GT3*)workspace->primWrite;
     // Seed texture data for the draw pass that lights all corners from the face normal.
     while (workspace->elemCount-- > 0) {
-        _modelLightingInitGt3TextureWords(triangle, elements, TMD_GT3_ONE_NORMAL_UV0_CLUT_WORD_INDEX, workspace);
+        _modelLightingInitGt3TextureWords(triangle, elements, MODEL_LIGHTING_GT3_ONE_NORMAL_UV0_CLUT_WORD_INDEX, workspace);
         triangle++;
         elements += workspace->elemStride;
     }
