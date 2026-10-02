@@ -156,9 +156,7 @@ u8* D_neo_ark_substation_8017E408[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_neo_ark_substation_8017E40C[1] = {
-    { { .bytes = { 8, 0 } } },
-};
+ViewCount D_neo_ark_substation_8017E40C[1] = { 8 };
 
 GpWarpRec D_neo_ark_substation_8017E410[2] = {
     { { { .word = 1024 }, 514, 0, -1440 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 514, 0, -1440 }, { 0, 0, 0, 0 }, 0x55210002, 0x55210001, 0, 2, 0, 439 },

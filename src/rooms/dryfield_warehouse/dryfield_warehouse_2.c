@@ -246,11 +246,7 @@ u8* D_dryfield_warehouse_8017FC04[3] = {
     D_dryfield_warehouse_8017FBF8,
 };
 
-GpViewCountRec D_dryfield_warehouse_8017FC10[3] = {
-    { { .bytes = { 9, 0 } } },
-    { { .bytes = { 9, 0 } } },
-    { { .bytes = { 9, 0 } } },
-};
+ViewCount D_dryfield_warehouse_8017FC10[3] = { 9, 9, 9 };
 
 WorldCoordRoomLighting D_dryfield_warehouse_8017FC18[3] = {
     { D_dryfield_warehouse_801820E8, NULL },

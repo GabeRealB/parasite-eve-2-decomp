@@ -294,14 +294,7 @@ u8* D_dryfield_underpass_8017EBBC[6] = {
     D_dryfield_underpass_8017EBB0,
 };
 
-GpViewCountRec D_dryfield_underpass_8017EBD4[6] = {
-    { { .bytes = { 26, 0 } } },
-    { { .bytes = { 11, 0 } } },
-    { { .bytes = { 11, 0 } } },
-    { { .bytes = { 11, 0 } } },
-    { { .bytes = { 11, 0 } } },
-    { { .bytes = { 11, 0 } } },
-};
+ViewCount D_dryfield_underpass_8017EBD4[6] = { 26, 11, 11, 11, 11, 11 };
 
 WorldCoordRoomLighting D_dryfield_underpass_8017EBE0[6] = {
     { D_dryfield_underpass_80180EBC, NULL },

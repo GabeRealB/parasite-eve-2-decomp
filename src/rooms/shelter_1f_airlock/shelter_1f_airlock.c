@@ -110,9 +110,7 @@ u8* D_shelter_1f_airlock_8017E5B4[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_shelter_1f_airlock_8017E5B8[1] = {
-    { { .bytes = { 5, 0 } } },
-};
+ViewCount D_shelter_1f_airlock_8017E5B8[1] = { 5 };
 
 GpWarpRec D_shelter_1f_airlock_8017E5BC[2] = {
     { { { .word = 0 }, 2051, 0, 3070 }, { 0, 0, 0, 0 }, { { .word = 0 }, 2100, 0, 3390 }, { 0, 0, 0, 0 }, 0x55050002, 0x55050001, 0, 2, 0, 0 },

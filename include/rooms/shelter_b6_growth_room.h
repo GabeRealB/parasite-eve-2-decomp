@@ -17,7 +17,7 @@ extern GpAreaVariant D_shelter_b6_growth_room_80180338[13];
 // shelter_b6_growth_room
 extern u8* D_shelter_b6_growth_room_8017F378[];
 
-extern GpViewCountRec D_shelter_b6_growth_room_8017F37C[];
+extern ViewCount D_shelter_b6_growth_room_8017F37C[];
 
 extern GpWarpRec D_shelter_b6_growth_room_8017F380[];
 

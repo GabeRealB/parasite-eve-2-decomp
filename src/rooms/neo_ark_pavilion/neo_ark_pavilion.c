@@ -155,10 +155,7 @@ u8* D_neo_ark_pavilion_801838EC[2] = {
     D_neo_ark_pavilion_801838E4,
 };
 
-GpViewCountRec D_neo_ark_pavilion_801838F4[2] = {
-    { { .bytes = { 7, 0 } } },
-    { { .bytes = { 7, 0 } } },
-};
+ViewCount D_neo_ark_pavilion_801838F4[2] = { 7, 7 };
 
 GpWarpRec D_neo_ark_pavilion_801838F8[3] = {
     { { { .word = 3072 }, 2000, 0, 9504 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 2000, 0, 9504 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },

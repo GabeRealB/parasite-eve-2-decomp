@@ -99,10 +99,7 @@ u8* D_dryfield_night_junk_yard_801807C0[2] = {
     D_dryfield_night_junk_yard_801807B4,
 };
 
-GpViewCountRec D_dryfield_night_junk_yard_801807C8[2] = {
-    { { .bytes = { 10, 0 } } },
-    { { .bytes = { 10, 0 } } },
-};
+ViewCount D_dryfield_night_junk_yard_801807C8[2] = { 10, 10 };
 
 GpWarpRec D_dryfield_night_junk_yard_801807CC[3] = {
     { { { .word = 0 }, 5030, 4, 390 }, { 0, 0, 0, 0 }, { { .word = 0 }, 5030, 4, 390 }, { 0, 0, 0, 0 }, 0x531A0004, 0x531A0003, 0, 2, 0, 472 },

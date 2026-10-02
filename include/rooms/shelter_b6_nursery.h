@@ -20,7 +20,7 @@ extern GpAreaVariant D_shelter_b6_nursery_801874A4[13];
 // shelter_b6_nursery
 extern u8* D_shelter_b6_nursery_80185304[];
 
-extern GpViewCountRec D_shelter_b6_nursery_80185308[];
+extern ViewCount D_shelter_b6_nursery_80185308[];
 
 extern GpWarpRec D_shelter_b6_nursery_8018530C[];
 

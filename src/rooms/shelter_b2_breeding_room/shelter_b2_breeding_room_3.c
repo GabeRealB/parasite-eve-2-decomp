@@ -46,9 +46,7 @@ u8* D_shelter_b2_breeding_room_8018055C[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_shelter_b2_breeding_room_80180560[1] = {
-    { { .bytes = { 10, 0 } } },
-};
+ViewCount D_shelter_b2_breeding_room_80180560[1] = { 10 };
 
 GpWarpRec D_shelter_b2_breeding_room_80180564[2] = {
     { { { .word = 1024 }, 100, 0, -900 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 100, 0, -900 }, { 0, 0, 0, 0 }, 0x54200004, 0x54200003, 0, 2, 0, 0 },

@@ -18,7 +18,7 @@ extern GpRoomObjRec D_dryfield_parking_lot_8017DC44[];
 
 extern u8* D_dryfield_parking_lot_8017DC54[];
 
-extern GpViewCountRec D_dryfield_parking_lot_8017DC58[];
+extern ViewCount D_dryfield_parking_lot_8017DC58[];
 
 extern WorldCoordRoomLighting D_dryfield_parking_lot_8017DC5C[];
 

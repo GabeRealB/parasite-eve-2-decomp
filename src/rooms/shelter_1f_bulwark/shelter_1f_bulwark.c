@@ -137,9 +137,7 @@ u8* D_shelter_1f_bulwark_801803C8[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_shelter_1f_bulwark_801803CC[1] = {
-    { { .bytes = { 3, 0 } } },
-};
+ViewCount D_shelter_1f_bulwark_801803CC[1] = { 3 };
 
 GpWarpRec D_shelter_1f_bulwark_801803D0[2] = {
     { { { .word = 3072 }, 4000, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 3130, 0, 0 }, { 0, 0, 0, 0 }, 0x55030002, 0x55030001, 0, 2, 0, 428 },

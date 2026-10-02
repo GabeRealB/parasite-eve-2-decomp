@@ -1303,12 +1303,7 @@ u8* D_dryfield_night_gas_station_80189E70[4] = {
     D_dryfield_night_gas_station_80189E58,
 };
 
-GpViewCountRec D_dryfield_night_gas_station_80189E80[4] = {
-    { { .bytes = { 21, 0 } } },
-    { { .bytes = { 21, 0 } } },
-    { { .bytes = { 21, 0 } } },
-    { { .bytes = { 21, 0 } } },
-};
+ViewCount D_dryfield_night_gas_station_80189E80[4] = { 21, 21, 21, 21 };
 
 GpWarpRec D_dryfield_night_gas_station_80189E88[3] = {
     { { { .word = 2816 }, 0x3848, 0, -2630 }, { 0, 0, 0, 0 }, { { .word = 2816 }, 0x3848, 0, -1440 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },

@@ -1027,9 +1027,7 @@ u8* D_mine_forked_tunnel_8018364C[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_mine_forked_tunnel_80183650[1] = {
-    { { .bytes = { 7, 0 } } },
-};
+ViewCount D_mine_forked_tunnel_80183650[1] = { 7 };
 
 GpWarpRec D_mine_forked_tunnel_80183654[1] = {
     { { { .word = 2048 }, 2350, 0, 0x2904 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 2350, 0, 0x2904 }, { 0, 0, 0, 0 }, 0x54070002, 0x54070001, 0, 3, 0, 0 },

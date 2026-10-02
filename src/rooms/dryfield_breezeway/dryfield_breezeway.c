@@ -221,10 +221,7 @@ WorldCoordRoomLighting D_dryfield_breezeway_80183180[1] = {
     { D_dryfield_breezeway_80184250, NULL },
 };
 
-GpViewCountRec D_dryfield_breezeway_80183188[2] = {
-    { { .bytes = { 6, 0 } } },
-    { { .bytes = { 0, 0 } } },
-};
+ViewCount D_dryfield_breezeway_80183188[2] = { 6, 0 };
 
 GpWarpRec D_dryfield_breezeway_8018318C[2] = {
     { { { .word = 1024 }, 6656, 1, 1568 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 6656, 1, 1568 }, { 0, 0, 0, 0 }, 0x52160002, 0x52160001, 0, 2, 0, 476 },

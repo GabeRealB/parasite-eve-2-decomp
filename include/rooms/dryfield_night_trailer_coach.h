@@ -25,7 +25,7 @@ extern GpRoomObjRec D_dryfield_night_trailer_coach_80189508[];
 
 extern u8* D_dryfield_night_trailer_coach_80189518[];
 
-extern GpViewCountRec D_dryfield_night_trailer_coach_8018951C[];
+extern ViewCount D_dryfield_night_trailer_coach_8018951C[];
 
 extern GpWarpRec D_dryfield_night_trailer_coach_80189520[];
 

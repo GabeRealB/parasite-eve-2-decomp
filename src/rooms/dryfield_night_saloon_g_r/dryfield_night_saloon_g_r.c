@@ -1081,10 +1081,7 @@ u8* D_dryfield_night_saloon_g_r_801851B0[2] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_dryfield_night_saloon_g_r_801851B8[2] = {
-    { { .bytes = { 13, 0 } } },
-    { { .bytes = { 13, 0 } } },
-};
+ViewCount D_dryfield_night_saloon_g_r_801851B8[2] = { 13, 13 };
 
 GpWarpRec D_dryfield_night_saloon_g_r_801851BC[2] = {
     { { { .word = 0 }, 2386, 0, -4661 }, { 0, 0, 0, 0 }, { { .word = 0 }, 2386, 0, -4661 }, { 0, 0, 0, 0 }, 0x53120002, 0x53120001, 0, 2, 0, 479 },

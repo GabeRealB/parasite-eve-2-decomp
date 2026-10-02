@@ -1064,11 +1064,7 @@ u8* D_mine_cavern_80189060[3] = {
     D_mine_cavern_80189044,
 };
 
-GpViewCountRec D_mine_cavern_8018906C[3] = {
-    { { .bytes = { 25, 0 } } },
-    { { .bytes = { 25, 0 } } },
-    { { .bytes = { 25, 0 } } },
-};
+ViewCount D_mine_cavern_8018906C[3] = { 25, 25, 25 };
 
 GpWarpRec D_mine_cavern_80189074[2] = {
     { { { .word = 3072 }, 0x4524, 0, 2500 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x4524, 0, 2500 }, { 0, 0, 0, 0 }, 0x54020002, 0x54020001, 0, 2, 0, 448 },

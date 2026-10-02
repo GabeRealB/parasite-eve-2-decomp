@@ -21,7 +21,7 @@ extern GpRoomObjRec D_acropolis_security_room_801839D0[];
 
 extern u8* D_acropolis_security_room_801839E0[];
 
-extern GpViewCountRec D_acropolis_security_room_801839E4[];
+extern ViewCount D_acropolis_security_room_801839E4[];
 
 extern WorldCoordRoomLighting D_acropolis_security_room_801839E8[];
 

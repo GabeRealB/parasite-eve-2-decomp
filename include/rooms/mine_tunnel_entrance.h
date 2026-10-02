@@ -20,7 +20,7 @@ extern GpRoomObjRec D_mine_tunnel_entrance_8017DB60[];
 
 extern u8* D_mine_tunnel_entrance_8017DB70[];
 
-extern GpViewCountRec D_mine_tunnel_entrance_8017DB74[];
+extern ViewCount D_mine_tunnel_entrance_8017DB74[];
 
 extern GpWarpRec D_mine_tunnel_entrance_8017DB78[];
 

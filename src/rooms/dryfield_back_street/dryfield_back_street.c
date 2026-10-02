@@ -97,9 +97,7 @@ u8* D_dryfield_back_street_8017F9C4[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_dryfield_back_street_8017F9C8[1] = {
-    { { .bytes = { 5, 0 } } },
-};
+ViewCount D_dryfield_back_street_8017F9C8[1] = { 5 };
 
 WorldCoordRoomLighting D_dryfield_back_street_8017F9CC[1] = {
     { D_dryfield_back_street_80180FF8, NULL },

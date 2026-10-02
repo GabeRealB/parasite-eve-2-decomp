@@ -21,26 +21,25 @@ enum { VIEW_IDENTITY_MAP_LENGTH = 50 };
 /// independently of this array's capacity and its camera/image table extents.
 extern u8 gViewIdentityMap[VIEW_IDENTITY_MAP_LENGTH];
 
-/// 2-byte record in tables pointed to by `Gp_ViewCountTables`. Indexed by
-/// `GameSession.location.loc.room - 1`. Gp_GetViewCountLo reads prefix.bytes.field_0;
-/// Gp_FindViewIndex reads prefix.packed as its search limit. This limit is not
-/// the camera-array extent: mappings also select images, and the shared identity
-/// map can be indexed beyond a room's search limit.
-typedef struct _GpViewCountRec {
-    union {
-        struct {
-            /* 0x0 */ u8 field_0;
-            /* 0x1 */ u8 field_1;
-        } bytes;
-        s16 packed;
-    } prefix;
-} GpViewCountRec;
-STATIC_ASSERT_SIZEOF(GpViewCountRec, 2);
+/// Number of logical view entries searched for a room's reverse lookup.
+///
+/// Counts are signed 16-bit element counts; a nonpositive value searches no
+/// entries. A positive count requires that many readable bytes in the room's
+/// logical-view map. It does not give the map's capacity or the extent of the
+/// camera, image or sprite arrays selected by that map.
+///
+/// Stage directories borrow room-overlay count arrays, indexed by the 1-based
+/// room ID minus one. Arrays have no terminator; zero is an empty room count.
+/// Lookups require valid 1-based stage, area and room IDs within the directories
+/// and count array, with a populated area and the owning room overlay still
+/// loaded. Byte-sized consumers retain only the low byte.
+typedef s16 ViewCount;
+STATIC_ASSERT_SIZEOF(ViewCount, 2);
 
-/// Per-stage wrapper. `field_0` is an array of `GpViewCountRec*`, indexed by
+/// Per-stage wrapper. `field_0` is an array of `ViewCount*`, indexed by
 /// `GameSession.location.loc.area - 1`.
 typedef struct _GpViewCountTbl {
-    /* 0x0 */ GpViewCountRec** field_0;
+    /* 0x0 */ ViewCount** field_0;
 } GpViewCountTbl;
 
 /// A stage's directory mapping room-local logical views to camera/image indices.

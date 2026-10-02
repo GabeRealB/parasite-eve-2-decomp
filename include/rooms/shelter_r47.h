@@ -24,7 +24,7 @@ extern GpAreaVariant D_shelter_r47_80187CB8[12];
 // shelter_r47
 extern u8* D_shelter_r47_80187674[];
 
-extern GpViewCountRec D_shelter_r47_80187678[];
+extern ViewCount D_shelter_r47_80187678[];
 
 extern GpWarpRec D_shelter_r47_8018767C[];
 

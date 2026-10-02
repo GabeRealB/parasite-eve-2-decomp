@@ -122,10 +122,7 @@ u8* D_neo_ark_pyramid_8017FC60[2] = {
     D_neo_ark_pyramid_8017FC58,
 };
 
-GpViewCountRec D_neo_ark_pyramid_8017FC68[2] = {
-    { { .bytes = { 8, 0 } } },
-    { { .bytes = { 8, 0 } } },
-};
+ViewCount D_neo_ark_pyramid_8017FC68[2] = { 8, 8 };
 
 GpWarpRec D_neo_ark_pyramid_8017FC6C[2] = {
     { { { .word = 2048 }, -2944, 0, -2035 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -2944, 0, -2035 }, { 0, 0, 0, 0 }, 0x55200002, 0x55200001, 0, 2, 0, 0 },

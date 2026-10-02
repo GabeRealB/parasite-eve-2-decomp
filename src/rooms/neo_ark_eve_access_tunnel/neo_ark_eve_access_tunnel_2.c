@@ -101,9 +101,7 @@ u8* D_neo_ark_eve_access_tunnel_8017EB90[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_neo_ark_eve_access_tunnel_8017EB94[1] = {
-    { { .bytes = { 7, 0 } } },
-};
+ViewCount D_neo_ark_eve_access_tunnel_8017EB94[1] = { 7 };
 
 GpWarpRec D_neo_ark_eve_access_tunnel_8017EB98[2] = {
     { { { .word = 0 }, -800, 0, 850 }, { 0, 0, 0, 0 }, { { .word = 0 }, -800, 0, 850 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 431 },

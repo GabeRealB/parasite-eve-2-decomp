@@ -209,9 +209,7 @@ u8* D_shelter_b2_operating_room_80180BC8[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_shelter_b2_operating_room_80180BCC[1] = {
-    { { .bytes = { 7, 0 } } },
-};
+ViewCount D_shelter_b2_operating_room_80180BCC[1] = { 7 };
 
 GpWarpRec D_shelter_b2_operating_room_80180BD0[3] = {
     { { { .word = 0 }, 0x27D8, 0, 400 }, { 0, 0, 0, 0 }, { { .word = 0 }, 0x27D8, 0, 400 }, { 0, 0, 0, 0 }, 0x541D0002, 0x541D0001, 0x541D0008, 2, 0, 456 },

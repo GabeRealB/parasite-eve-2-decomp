@@ -20,7 +20,7 @@ extern WorldCoordRoomLighting D_neo_ark_shrine_80182784[];
 
 extern u8* D_neo_ark_shrine_801827F0[];
 
-extern GpViewCountRec D_neo_ark_shrine_80182808[];
+extern ViewCount D_neo_ark_shrine_80182808[];
 
 extern GpWarpRec D_neo_ark_shrine_80182814[];
 

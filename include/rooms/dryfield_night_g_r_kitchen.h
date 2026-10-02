@@ -20,7 +20,7 @@ extern GpRoomObjRec D_dryfield_night_g_r_kitchen_8017E2C4[];
 
 extern u8* D_dryfield_night_g_r_kitchen_8017E2D4[];
 
-extern GpViewCountRec D_dryfield_night_g_r_kitchen_8017E2D8[];
+extern ViewCount D_dryfield_night_g_r_kitchen_8017E2D8[];
 
 extern GpWarpRec D_dryfield_night_g_r_kitchen_8017E2DC[];
 

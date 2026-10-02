@@ -58,10 +58,7 @@ u8* D_shelter_b6_training_room_80184418[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_shelter_b6_training_room_8018441C[2] = {
-    { { .bytes = { 8, 0 } } },
-    { { .bytes = { 0, 0 } } },
-};
+ViewCount D_shelter_b6_training_room_8018441C[2] = { 8, 0 };
 
 GpWarpRec D_shelter_b6_training_room_80184420[2] = {
     { { { .word = 1024 }, 500, 0, 1500 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 500, 0, 1500 }, { 0, 0, 0, 0 }, 0x55190005, 0, 0, 2, 0, 0 },

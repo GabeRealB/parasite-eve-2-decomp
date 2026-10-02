@@ -734,12 +734,7 @@ u8* D_acropolis_cafeteria_801875AC[4] = {
     D_acropolis_cafeteria_80187594,
 };
 
-GpViewCountRec D_acropolis_cafeteria_801875BC[4] = {
-    { { .bytes = { 24, 0 } } },
-    { { .bytes = { 24, 0 } } },
-    { { .bytes = { 24, 0 } } },
-    { { .bytes = { 24, 0 } } },
-};
+ViewCount D_acropolis_cafeteria_801875BC[4] = { 24, 24, 24, 24 };
 
 WorldCoordRoomLighting D_acropolis_cafeteria_801875C4[4] = {
     { D_acropolis_cafeteria_8018AA18, D_acropolis_cafeteria_8018C90C },

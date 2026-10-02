@@ -281,9 +281,7 @@ u8* D_shelter_b4_water_supply_8018273C[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_shelter_b4_water_supply_80182740[1] = {
-    { { .bytes = { 11, 0 } } },
-};
+ViewCount D_shelter_b4_water_supply_80182740[1] = { 11 };
 
 GpWarpRec D_shelter_b4_water_supply_80182744[3] = {
     { { { .word = 1024 }, 640, -4000, -1024 }, { 0, 0, 0, 0 }, { { .word = 768 }, 5350, -2000, -1600 }, { 0, 0, 0, 0 }, 0, 0x542E0005, 0, 7, 0, 0 },

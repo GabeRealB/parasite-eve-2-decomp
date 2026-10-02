@@ -1485,9 +1485,7 @@ u8* D_acropolis_security_room_801839E0[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_acropolis_security_room_801839E4[1] = {
-    { { .bytes = { 16, 0 } } },
-};
+ViewCount D_acropolis_security_room_801839E4[1] = { 16 };
 
 WorldCoordRoomLighting D_acropolis_security_room_801839E8[1] = {
     { D_acropolis_security_room_801841C8, NULL },

@@ -32,7 +32,7 @@ extern GpRoomObjRec D_neo_ark_submarine_tunnel_80181E08[];
 
 extern u8* D_neo_ark_submarine_tunnel_80181E18[];
 
-extern GpViewCountRec D_neo_ark_submarine_tunnel_80181E1C[];
+extern ViewCount D_neo_ark_submarine_tunnel_80181E1C[];
 
 extern GpWarpRec D_neo_ark_submarine_tunnel_80181E20[];
 

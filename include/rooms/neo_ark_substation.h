@@ -17,7 +17,7 @@ extern WorldCoordRoomLighting D_neo_ark_substation_8017E400[];
 
 extern u8* D_neo_ark_substation_8017E408[];
 
-extern GpViewCountRec D_neo_ark_substation_8017E40C[];
+extern ViewCount D_neo_ark_substation_8017E40C[];
 
 extern GpWarpRec D_neo_ark_substation_8017E410[];
 

@@ -24,7 +24,7 @@ GpRoomObjRec D_dryfield_r04_8017D5C4[1] = {
 
 u8* D_dryfield_r04_8017D5D4[1] = { gViewIdentityMap };
 
-GpViewCountRec D_dryfield_r04_8017D5D8[1] = { { { { 2, 0 } } } };
+ViewCount D_dryfield_r04_8017D5D8[1] = { 2 };
 
 /// Nothing points at this record: the stage's room coordinate table has no
 /// entry for this room.

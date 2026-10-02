@@ -106,9 +106,7 @@ u8* D_dryfield_night_r08_80180694[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_dryfield_night_r08_80180698[1] = {
-    { { .bytes = { 9, 0 } } },
-};
+ViewCount D_dryfield_night_r08_80180698[1] = { 9 };
 
 GpWarpRec D_dryfield_night_r08_8018069C[1] = {
     { { { .word = 0 }, 0, 0, -0x4650 }, { 0, 0, 0, 0 }, { { .word = 0 }, 0, 0, -0x4650 }, { 0, 0, 0, 0 }, 0, 0, 0, 1, 0, 0 },

@@ -58,7 +58,7 @@ extern GpRoomObjRec D_mist_shooting_gallery_801853A8[];
 
 extern u8* D_mist_shooting_gallery_801853B8[];
 
-extern GpViewCountRec D_mist_shooting_gallery_801853BC[];
+extern ViewCount D_mist_shooting_gallery_801853BC[];
 
 /// Light collection and per-view ambient minima for the gallery's single room.
 ///

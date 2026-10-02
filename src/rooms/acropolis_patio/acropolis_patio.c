@@ -858,11 +858,7 @@ u8* D_acropolis_patio_80182EC0[3] = {
     D_acropolis_patio_80182EAC,
 };
 
-GpViewCountRec D_acropolis_patio_80182ECC[3] = {
-    { { .bytes = { 19, 0 } } },
-    { { .bytes = { 19, 0 } } },
-    { { .bytes = { 19, 0 } } },
-};
+ViewCount D_acropolis_patio_80182ECC[3] = { 19, 19, 19 };
 
 WorldCoordRoomLighting D_acropolis_patio_80182ED4[3] = {
     { D_acropolis_patio_80186D44, NULL },

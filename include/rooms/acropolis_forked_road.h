@@ -18,7 +18,7 @@ extern GpRoomObjRec D_acropolis_forked_road_80182214[];
 
 extern u8* D_acropolis_forked_road_8018225C[];
 
-extern GpViewCountRec D_acropolis_forked_road_80182268[];
+extern ViewCount D_acropolis_forked_road_80182268[];
 
 extern WorldCoordRoomLighting D_acropolis_forked_road_80182270[];
 

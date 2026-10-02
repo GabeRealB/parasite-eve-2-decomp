@@ -157,10 +157,7 @@ u8* D_dryfield_r08_8017F6FC[2] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_dryfield_r08_8017F704[2] = {
-    { { .bytes = { 6, 0 } } },
-    { { .bytes = { 6, 0 } } },
-};
+ViewCount D_dryfield_r08_8017F704[2] = { 6, 6 };
 
 WorldCoordRoomLighting D_dryfield_r08_8017F708[2] = {
     { &D_dryfield_r08_801809C0, NULL },

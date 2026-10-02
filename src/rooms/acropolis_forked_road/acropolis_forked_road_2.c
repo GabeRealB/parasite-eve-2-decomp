@@ -587,11 +587,7 @@ u8* D_acropolis_forked_road_8018225C[3] = {
     D_acropolis_forked_road_80182250,
 };
 
-GpViewCountRec D_acropolis_forked_road_80182268[3] = {
-    { { .bytes = { 10, 0 } } },
-    { { .bytes = { 9, 0 } } },
-    { { .bytes = { 9, 0 } } },
-};
+ViewCount D_acropolis_forked_road_80182268[3] = { 10, 9, 9 };
 
 WorldCoordRoomLighting D_acropolis_forked_road_80182270[3] = {
     { D_acropolis_forked_road_80184E70, NULL },

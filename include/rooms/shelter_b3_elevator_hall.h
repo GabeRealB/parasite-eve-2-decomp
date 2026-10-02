@@ -17,7 +17,7 @@ extern GpAreaVariant D_shelter_b3_elevator_hall_8018477C[12];
 // shelter_b3_elevator_hall
 extern u8* D_shelter_b3_elevator_hall_80182B54[];
 
-extern GpViewCountRec D_shelter_b3_elevator_hall_80182B58[];
+extern ViewCount D_shelter_b3_elevator_hall_80182B58[];
 
 extern GpWarpRec D_shelter_b3_elevator_hall_80182B5C[];
 

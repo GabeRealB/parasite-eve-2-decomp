@@ -538,11 +538,7 @@ u8* D_dryfield_night_main_street_801822FC[3] = {
     D_dryfield_night_main_street_801822E4,
 };
 
-GpViewCountRec D_dryfield_night_main_street_80182308[3] = {
-    { { .bytes = { 24, 0 } } },
-    { { .bytes = { 24, 0 } } },
-    { { .bytes = { 24, 0 } } },
-};
+ViewCount D_dryfield_night_main_street_80182308[3] = { 24, 24, 24 };
 
 GpWarpRec D_dryfield_night_main_street_80182310[7] = {
     { { { .word = 3072 }, -450, 0, -3435 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -450, 0, -3435 }, { 0, 0, 0, 0 }, 0x53020011, 0x53020010, 0, 21, 0, 488 },

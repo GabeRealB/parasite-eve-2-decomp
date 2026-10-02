@@ -117,9 +117,7 @@ u8* D_dryfield_night_g_r_kitchen_8017E2D4[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_dryfield_night_g_r_kitchen_8017E2D8[1] = {
-    { { .bytes = { 3, 0 } } },
-};
+ViewCount D_dryfield_night_g_r_kitchen_8017E2D8[1] = { 3 };
 
 GpWarpRec D_dryfield_night_g_r_kitchen_8017E2DC[2] = {
     { { { .word = 1024 }, -1168, 0, 2135 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -1168, 0, 2135 }, { 0, 0, 0, 0 }, 0x53130002, 0x53130001, 0, 2, 0, 478 },

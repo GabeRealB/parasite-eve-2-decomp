@@ -20,7 +20,7 @@ extern u8* D_dryfield_breezeway_8018317C[];
 
 extern WorldCoordRoomLighting D_dryfield_breezeway_80183180[];
 
-extern GpViewCountRec D_dryfield_breezeway_80183188[];
+extern ViewCount D_dryfield_breezeway_80183188[];
 
 extern GpWarpRec D_dryfield_breezeway_8018318C[];
 

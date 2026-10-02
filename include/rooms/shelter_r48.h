@@ -25,7 +25,7 @@ extern GpRoomObjRec D_shelter_r48_8018301C[];
 
 extern u8* D_shelter_r48_8018302C[];
 
-extern GpViewCountRec D_shelter_r48_80183030[];
+extern ViewCount D_shelter_r48_80183030[];
 
 extern GpWarpRec D_shelter_r48_80183034[];
 

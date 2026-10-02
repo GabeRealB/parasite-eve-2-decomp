@@ -17,7 +17,7 @@ extern WorldCoordRoomLighting D_neo_ark_eve_elevator_8017D75C[];
 
 extern u8* D_neo_ark_eve_elevator_8017D764[];
 
-extern GpViewCountRec D_neo_ark_eve_elevator_8017D768[];
+extern ViewCount D_neo_ark_eve_elevator_8017D768[];
 
 extern GpWarpRec D_neo_ark_eve_elevator_8017D76C[];
 

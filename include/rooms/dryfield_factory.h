@@ -19,7 +19,7 @@ extern u8* D_dryfield_factory_80186F44[];
 
 extern WorldCoordRoomLighting D_dryfield_factory_80186F4C[];
 
-extern GpViewCountRec D_dryfield_factory_80186F5C[];
+extern ViewCount D_dryfield_factory_80186F5C[];
 
 extern GpWarpRec D_dryfield_factory_80186F60[];
 

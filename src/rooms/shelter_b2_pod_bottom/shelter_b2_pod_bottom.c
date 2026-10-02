@@ -102,9 +102,7 @@ u8* D_shelter_b2_pod_bottom_80181D2C[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_shelter_b2_pod_bottom_80181D30[1] = {
-    { { .bytes = { 16, 0 } } },
-};
+ViewCount D_shelter_b2_pod_bottom_80181D30[1] = { 16 };
 
 GpWarpRec D_shelter_b2_pod_bottom_80181D34[1] = {
     { { { .word = 1024 }, 1542, -1998, 7374 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 1542, -1998, 7374 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 449 },

@@ -17,7 +17,7 @@ extern WorldCoordRoomLighting D_shelter_1f_guardroom_8017DA88[];
 
 extern u8* D_shelter_1f_guardroom_8017DA90[];
 
-extern GpViewCountRec D_shelter_1f_guardroom_8017DA94[];
+extern ViewCount D_shelter_1f_guardroom_8017DA94[];
 
 extern GpWarpRec D_shelter_1f_guardroom_8017DA98[];
 

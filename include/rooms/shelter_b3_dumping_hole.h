@@ -33,7 +33,7 @@ extern GpRoomObjRec D_shelter_b3_dumping_hole_8018B678[];
 
 extern u8* D_shelter_b3_dumping_hole_8018B698[];
 
-extern GpViewCountRec D_shelter_b3_dumping_hole_8018B6A0[];
+extern ViewCount D_shelter_b3_dumping_hole_8018B6A0[];
 
 extern GpWarpRec D_shelter_b3_dumping_hole_8018B6A4[];
 

@@ -315,9 +315,7 @@ u8* D_shelter_b6_nursery_80185304[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_shelter_b6_nursery_80185308[1] = {
-    { { .bytes = { 19, 0 } } },
-};
+ViewCount D_shelter_b6_nursery_80185308[1] = { 19 };
 
 GpWarpRec D_shelter_b6_nursery_8018530C[2] = {
     { { { .word = 1024 }, 680, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 680, 0, 0 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },

@@ -126,9 +126,7 @@ u8* D_shelter_b1_transfer_tunnel_80182954[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_shelter_b1_transfer_tunnel_80182958[1] = {
-    { { .bytes = { 4, 0 } } },
-};
+ViewCount D_shelter_b1_transfer_tunnel_80182958[1] = { 4 };
 
 GpWarpRec D_shelter_b1_transfer_tunnel_8018295C[2] = {
     { { { .word = 3072 }, 6214, 0, 60 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 5570, 0, 20 }, { 0, 0, 0, 0 }, 0x54180002, 0x54180001, 0, 2, 0, 454 },

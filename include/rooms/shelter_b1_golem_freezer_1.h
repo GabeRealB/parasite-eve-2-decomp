@@ -17,7 +17,7 @@ extern GpAreaVariant D_shelter_b1_golem_freezer_1_8017F17C[23];
 // shelter_b1_golem_freezer_1
 extern u8* D_shelter_b1_golem_freezer_1_8017E790[];
 
-extern GpViewCountRec D_shelter_b1_golem_freezer_1_8017E794[];
+extern ViewCount D_shelter_b1_golem_freezer_1_8017E794[];
 
 extern GpWarpRec D_shelter_b1_golem_freezer_1_8017E798[];
 

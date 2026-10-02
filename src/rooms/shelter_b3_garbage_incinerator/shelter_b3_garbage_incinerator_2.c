@@ -634,15 +634,7 @@ u8* D_shelter_b3_garbage_incinerator_801873F0[7] = {
     D_shelter_b3_garbage_incinerator_801873C8,
 };
 
-GpViewCountRec D_shelter_b3_garbage_incinerator_8018740C[7] = {
-    { { .bytes = { 40, 0 } } },
-    { { .bytes = { 40, 0 } } },
-    { { .bytes = { 40, 0 } } },
-    { { .bytes = { 40, 0 } } },
-    { { .bytes = { 40, 0 } } },
-    { { .bytes = { 40, 0 } } },
-    { { .bytes = { 40, 0 } } },
-};
+ViewCount D_shelter_b3_garbage_incinerator_8018740C[7] = { 40, 40, 40, 40, 40, 40, 40 };
 
 GpWarpRec D_shelter_b3_garbage_incinerator_8018741C[3] = {
     { { { .word = 1024 }, 640, 0, -2656 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 640, 0, -2656 }, { 0, 0, 0, 0 }, 0, 0, 0, 8, 0, 0 },

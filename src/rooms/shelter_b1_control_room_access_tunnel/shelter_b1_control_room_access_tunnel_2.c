@@ -48,9 +48,7 @@ u8* D_shelter_b1_control_room_access_tunnel_80181F00[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_shelter_b1_control_room_access_tunnel_80181F04[1] = {
-    { { .bytes = { 3, 0 } } },
-};
+ViewCount D_shelter_b1_control_room_access_tunnel_80181F04[1] = { 3 };
 
 GpWarpRec D_shelter_b1_control_room_access_tunnel_80181F08[2] = {
     { { { .word = 3072 }, 5389, -25, 194 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 5389, -25, 194 }, { 0, 0, 0, 0 }, 0x54190002, 0x54190001, 0, 2, 0, 0 },

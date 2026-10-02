@@ -28,7 +28,7 @@ extern GpRoomObjRec D_acropolis_fire_escape_80181DAC[];
 
 extern u8* D_acropolis_fire_escape_80181DBC[];
 
-extern GpViewCountRec D_acropolis_fire_escape_80181DC0[];
+extern ViewCount D_acropolis_fire_escape_80181DC0[];
 
 extern WorldCoordRoomLighting D_acropolis_fire_escape_80181DC4[];
 

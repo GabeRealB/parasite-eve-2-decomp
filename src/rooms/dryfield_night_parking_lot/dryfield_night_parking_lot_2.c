@@ -184,10 +184,7 @@ u8* D_dryfield_night_parking_lot_8017EE4C[2] = {
     D_dryfield_night_parking_lot_8017EE44,
 };
 
-GpViewCountRec D_dryfield_night_parking_lot_8017EE54[2] = {
-    { { .bytes = { 7, 0 } } },
-    { { .bytes = { 7, 0 } } },
-};
+ViewCount D_dryfield_night_parking_lot_8017EE54[2] = { 7, 7 };
 
 GpWarpRec D_dryfield_night_parking_lot_8017EE58[5] = {
     { { { .word = 3072 }, 0x2995, 0, 3077 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x2995, 0, 3077 }, { 0, 0, 0, 0 }, 0x530F0002, 0x530F0001, 0, 7, 0, 486 },

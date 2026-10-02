@@ -20,7 +20,7 @@ extern WorldCoordRoomLighting D_neo_ark_r26_8017E0DC[];
 
 extern u8* D_neo_ark_r26_8017E0E4[];
 
-extern GpViewCountRec D_neo_ark_r26_8017E0E8[];
+extern ViewCount D_neo_ark_r26_8017E0E8[];
 
 extern GpWarpRec D_neo_ark_r26_8017E0EC[];
 

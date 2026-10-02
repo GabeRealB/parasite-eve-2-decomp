@@ -106,9 +106,7 @@ u8* D_dryfield_night_back_street_801803C4[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_dryfield_night_back_street_801803C8[1] = {
-    { { .bytes = { 5, 0 } } },
-};
+ViewCount D_dryfield_night_back_street_801803C8[1] = { 5 };
 
 GpWarpRec D_dryfield_night_back_street_801803CC[4] = {
     { { { .word = 1024 }, -9597, 0, 4667 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -8696, 0, 5479 }, { 0, 0, 0, 0 }, 0x53050002, 0x53050001, 0, 2, 0, 470 },

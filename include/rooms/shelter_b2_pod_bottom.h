@@ -29,7 +29,7 @@ extern WorldCoordRoomLighting D_shelter_b2_pod_bottom_80181D24[];
 
 extern u8* D_shelter_b2_pod_bottom_80181D2C[];
 
-extern GpViewCountRec D_shelter_b2_pod_bottom_80181D30[];
+extern ViewCount D_shelter_b2_pod_bottom_80181D30[];
 
 extern GpWarpRec D_shelter_b2_pod_bottom_80181D34[];
 

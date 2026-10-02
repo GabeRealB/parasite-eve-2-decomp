@@ -25,7 +25,7 @@ extern GpAreaVariant D_shelter_b2_laboratory_80186360[11];
 // shelter_b2_laboratory
 extern u8* D_shelter_b2_laboratory_80182C08[];
 
-extern GpViewCountRec D_shelter_b2_laboratory_80182C0C[];
+extern ViewCount D_shelter_b2_laboratory_80182C0C[];
 
 extern GpWarpRec D_shelter_b2_laboratory_80182C10[];
 

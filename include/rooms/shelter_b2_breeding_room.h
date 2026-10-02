@@ -18,7 +18,7 @@ extern TmdSource gShelterB2BreedingRoomModel02E04;
 // shelter_b2_breeding_room
 extern u8* D_shelter_b2_breeding_room_8018055C[];
 
-extern GpViewCountRec D_shelter_b2_breeding_room_80180560[];
+extern ViewCount D_shelter_b2_breeding_room_80180560[];
 
 extern GpWarpRec D_shelter_b2_breeding_room_80180564[];
 

@@ -14,7 +14,7 @@
 // shelter_1f_heliport_s4
 extern u8* D_shelter_1f_heliport_s4_8017D6F8[];
 
-extern GpViewCountRec D_shelter_1f_heliport_s4_8017D6FC[];
+extern ViewCount D_shelter_1f_heliport_s4_8017D6FC[];
 
 extern GpWarpRec D_shelter_1f_heliport_s4_8017D700[];
 

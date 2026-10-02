@@ -809,9 +809,7 @@ u8* D_dryfield_trailer_coach_801871E4[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_dryfield_trailer_coach_801871E8[1] = {
-    { { .bytes = { 11, 0 } } },
-};
+ViewCount D_dryfield_trailer_coach_801871E8[1] = { 11 };
 
 GpWarpRec D_dryfield_trailer_coach_801871EC[2] = {
     { { { .word = 2048 }, 1579, 0, -800 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 1579, 0, -800 }, { 0, 0, 0, 0 }, 0x521B0002, 0x521B0001, 0, 2, 0, 471 },

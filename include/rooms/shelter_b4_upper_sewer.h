@@ -27,7 +27,7 @@ extern GpAreaVariant D_shelter_b4_upper_sewer_80188B9C[12];
 // shelter_b4_upper_sewer
 extern u8* D_shelter_b4_upper_sewer_80186590[];
 
-extern GpViewCountRec D_shelter_b4_upper_sewer_80186594[];
+extern ViewCount D_shelter_b4_upper_sewer_80186594[];
 
 extern GpWarpRec D_shelter_b4_upper_sewer_80186598[];
 

@@ -161,10 +161,7 @@ u8* D_acropolis_observatory_8017FEF0[2] = {
     D_acropolis_observatory_8017FEE8,
 };
 
-GpViewCountRec D_acropolis_observatory_8017FEF8[2] = {
-    { { .bytes = { 8, 0 } } },
-    { { .bytes = { 8, 0 } } },
-};
+ViewCount D_acropolis_observatory_8017FEF8[2] = { 8, 8 };
 
 WorldCoordRoomLighting D_acropolis_observatory_8017FEFC[2] = {
     { D_acropolis_observatory_8018177C, NULL },

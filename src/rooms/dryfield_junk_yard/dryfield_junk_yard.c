@@ -307,9 +307,7 @@ u8* D_dryfield_junk_yard_8017ED1C[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_dryfield_junk_yard_8017ED20[1] = {
-    { { .bytes = { 7, 0 } } },
-};
+ViewCount D_dryfield_junk_yard_8017ED20[1] = { 7 };
 
 GpWarpRec D_dryfield_junk_yard_8017ED24[3] = {
     { { { .word = 0 }, 5030, 0, 390 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 4800, 0, 1000 }, { 0, 0, 0, 0 }, 0x521A0004, 0x521A0003, 0, 2, 0, 472 },

@@ -462,10 +462,7 @@ u8* D_shelter_b4_reservoir_80185118[2] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_shelter_b4_reservoir_80185120[2] = {
-    { { .bytes = { 10, 0 } } },
-    { { .bytes = { 10, 0 } } },
-};
+ViewCount D_shelter_b4_reservoir_80185120[2] = { 10, 10 };
 
 GpWarpRec D_shelter_b4_reservoir_80185124[2] = {
     { { { .word = 3072 }, 5500, 0, -3000 }, { 0, 0, 0, 0 }, { { .word = 3584 }, 5000, 0, -3650 }, { 0, 0, 0, 0 }, 0x542D0004, 0x542D0003, 0, 2, 0, 0 },

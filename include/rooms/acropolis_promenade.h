@@ -18,7 +18,7 @@ extern GpRoomObjRec D_acropolis_promenade_80181B90[];
 
 extern u8* D_acropolis_promenade_80181BC0[];
 
-extern GpViewCountRec D_acropolis_promenade_80181BC8[];
+extern ViewCount D_acropolis_promenade_80181BC8[];
 
 extern WorldCoordRoomLighting D_acropolis_promenade_80181BCC[];
 

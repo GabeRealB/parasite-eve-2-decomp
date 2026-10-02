@@ -212,10 +212,7 @@ WorldCoordRoomLighting D_dryfield_driveway_8017E7B4[2] = {
     { D_dryfield_driveway_801802E0, NULL },
 };
 
-GpViewCountRec D_dryfield_driveway_8017E7C4[2] = {
-    { { .bytes = { 7, 0 } } },
-    { { .bytes = { 7, 0 } } },
-};
+ViewCount D_dryfield_driveway_8017E7C4[2] = { 7, 7 };
 
 GpWarpRec D_dryfield_driveway_8017E7C8[3] = {
     { { { .word = 1024 }, -3400, 0, 600 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -3400, 0, 1250 }, { 0, 0, 0, 0 }, 0x52190004, 0x52190003, 0, 4, 0, 474 },

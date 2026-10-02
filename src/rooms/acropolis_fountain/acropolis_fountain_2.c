@@ -163,10 +163,7 @@ u8* D_acropolis_fountain_8017E84C[2] = {
     D_acropolis_fountain_8017E834,
 };
 
-GpViewCountRec D_acropolis_fountain_8017E854[2] = {
-    { { .bytes = { 22, 0 } } },
-    { { .bytes = { 22, 0 } } },
-};
+ViewCount D_acropolis_fountain_8017E854[2] = { 22, 22 };
 
 WorldCoordRoomLighting D_acropolis_fountain_8017E858[2] = {
     { D_acropolis_fountain_8017FF34, NULL },

@@ -133,9 +133,7 @@ u8* D_neo_ark_submarine_gallery_80181A08[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_neo_ark_submarine_gallery_80181A0C[1] = {
-    { { .bytes = { 7, 0 } } },
-};
+ViewCount D_neo_ark_submarine_gallery_80181A0C[1] = { 7 };
 
 GpWarpRec D_neo_ark_submarine_gallery_80181A10[1] = {
     { { { .word = 2304 }, 1300, 5000, 3100 }, { 0, 0, 0, 0 }, { { .word = 2304 }, 1300, 5000, 3100 }, { 0, 0, 0, 0 }, 0x551E0001, 0x551E0001, 0, 2, 2, 0 },

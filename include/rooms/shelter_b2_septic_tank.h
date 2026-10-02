@@ -27,7 +27,7 @@ extern GpAreaVariant D_shelter_b2_septic_tank_80186F40[22];
 // shelter_b2_septic_tank
 extern u8* D_shelter_b2_septic_tank_8018356C[];
 
-extern GpViewCountRec D_shelter_b2_septic_tank_80183570[];
+extern ViewCount D_shelter_b2_septic_tank_80183570[];
 
 extern GpWarpRec D_shelter_b2_septic_tank_80183574[];
 

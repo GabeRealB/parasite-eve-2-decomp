@@ -20,7 +20,7 @@ extern GpRoomObjRec D_dryfield_night_warehouse_8017E900[];
 
 extern u8* D_dryfield_night_warehouse_8017E930[];
 
-extern GpViewCountRec D_dryfield_night_warehouse_8017E93C[];
+extern ViewCount D_dryfield_night_warehouse_8017E93C[];
 
 extern GpWarpRec D_dryfield_night_warehouse_8017E944[];
 

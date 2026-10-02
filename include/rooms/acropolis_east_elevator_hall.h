@@ -18,7 +18,7 @@ extern GpRoomObjRec D_acropolis_east_elevator_hall_80186320[];
 
 extern u8* D_acropolis_east_elevator_hall_80186330[];
 
-extern GpViewCountRec D_acropolis_east_elevator_hall_80186334[];
+extern ViewCount D_acropolis_east_elevator_hall_80186334[];
 
 extern WorldCoordRoomLighting D_acropolis_east_elevator_hall_80186338[];
 

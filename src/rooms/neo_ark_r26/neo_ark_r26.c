@@ -220,9 +220,7 @@ u8* D_neo_ark_r26_8017E0E4[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_neo_ark_r26_8017E0E8[1] = {
-    { { .bytes = { 4, 0 } } },
-};
+ViewCount D_neo_ark_r26_8017E0E8[1] = { 4 };
 
 GpWarpRec D_neo_ark_r26_8017E0EC[1] = {
     { { { .word = 2048 }, 0, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 0, 0, 0 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },

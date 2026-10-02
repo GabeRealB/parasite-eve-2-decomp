@@ -40,9 +40,7 @@ u8* D_shelter_1f_heliport_s4_8017D6F8[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_shelter_1f_heliport_s4_8017D6FC[1] = {
-    { { .bytes = { 5, 0 } } },
-};
+ViewCount D_shelter_1f_heliport_s4_8017D6FC[1] = { 5 };
 
 GpWarpRec D_shelter_1f_heliport_s4_8017D700[1] = {
     { { { .word = 0 }, 8000, 0, 1632 }, { 0, 0, 0, 0 }, { { .word = 0 }, 8000, 0, 1632 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },

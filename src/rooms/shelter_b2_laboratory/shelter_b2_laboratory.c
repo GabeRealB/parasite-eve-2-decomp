@@ -347,9 +347,7 @@ u8* D_shelter_b2_laboratory_80182C08[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_shelter_b2_laboratory_80182C0C[1] = {
-    { { .bytes = { 15, 0 } } },
-};
+ViewCount D_shelter_b2_laboratory_80182C0C[1] = { 15 };
 
 GpWarpRec D_shelter_b2_laboratory_80182C10[2] = {
     { { { .word = 1024 }, 100, 0, 1800 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 100, 0, 1800 }, { 0, 0, 0, 0 }, 0x541F0004, 0x541F0003, 0, 2, 0, 451 },

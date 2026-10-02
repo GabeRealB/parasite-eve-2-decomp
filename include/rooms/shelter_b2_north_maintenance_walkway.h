@@ -17,7 +17,7 @@ extern GpAreaVariant D_shelter_b2_north_maintenance_walkway_80186258[22];
 // shelter_b2_north_maintenance_walkway
 extern u8* D_shelter_b2_north_maintenance_walkway_80183C5C[];
 
-extern GpViewCountRec D_shelter_b2_north_maintenance_walkway_80183C60[];
+extern ViewCount D_shelter_b2_north_maintenance_walkway_80183C60[];
 
 extern GpWarpRec D_shelter_b2_north_maintenance_walkway_80183C64[];
 

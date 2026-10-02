@@ -20,7 +20,7 @@ extern GpRoomObjRec D_dryfield_night_gas_station_80189DD0[];
 
 extern u8* D_dryfield_night_gas_station_80189E70[];
 
-extern GpViewCountRec D_dryfield_night_gas_station_80189E80[];
+extern ViewCount D_dryfield_night_gas_station_80189E80[];
 
 extern GpWarpRec D_dryfield_night_gas_station_80189E88[];
 

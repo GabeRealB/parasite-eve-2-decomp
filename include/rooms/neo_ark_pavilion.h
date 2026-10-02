@@ -34,7 +34,7 @@ extern WorldCoordRoomLighting D_neo_ark_pavilion_801838D4[];
 
 extern u8* D_neo_ark_pavilion_801838EC[];
 
-extern GpViewCountRec D_neo_ark_pavilion_801838F4[];
+extern ViewCount D_neo_ark_pavilion_801838F4[];
 
 extern GpWarpRec D_neo_ark_pavilion_801838F8[];
 

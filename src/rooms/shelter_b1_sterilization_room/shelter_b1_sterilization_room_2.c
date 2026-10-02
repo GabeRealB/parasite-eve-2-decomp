@@ -360,11 +360,7 @@ u8* D_shelter_b1_sterilization_room_801893CC[3] = {
     D_shelter_b1_sterilization_room_801893B4,
 };
 
-GpViewCountRec D_shelter_b1_sterilization_room_801893D8[3] = {
-    { { .bytes = { 24, 0 } } },
-    { { .bytes = { 24, 0 } } },
-    { { .bytes = { 24, 0 } } },
-};
+ViewCount D_shelter_b1_sterilization_room_801893D8[3] = { 24, 24, 24 };
 
 GpWarpRec D_shelter_b1_sterilization_room_801893E0[3] = {
     { { { .word = 0 }, 3456, 0, 960 }, { 0, 0, 0, 0 }, { { .word = 0 }, 3456, 0, 960 }, { 0, 0, 0, 0 }, 0x54100002, 0x54100001, 0, 2, 0, 0 },

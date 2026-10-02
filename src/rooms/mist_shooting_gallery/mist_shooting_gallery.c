@@ -882,10 +882,7 @@ u8* D_mist_shooting_gallery_801853B8[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_mist_shooting_gallery_801853BC[2] = {
-    { { .bytes = { 18, 0 } } },
-    { { .bytes = { 0, 0 } } },
-};
+ViewCount D_mist_shooting_gallery_801853BC[2] = { 18, 0 };
 
 WorldCoordRoomLighting gMistShootingGalleryRoomLightingTable[1] = {
     {

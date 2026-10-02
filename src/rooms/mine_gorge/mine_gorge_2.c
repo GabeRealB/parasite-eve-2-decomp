@@ -115,10 +115,7 @@ u8* D_mine_gorge_8017E7E4[2] = {
     D_mine_gorge_8017E7D8,
 };
 
-GpViewCountRec D_mine_gorge_8017E7EC[2] = {
-    { { .bytes = { 11, 0 } } },
-    { { .bytes = { 11, 0 } } },
-};
+ViewCount D_mine_gorge_8017E7EC[2] = { 11, 11 };
 
 GpWarpRec D_mine_gorge_8017E7F0[3] = {
     { { { .word = 3072 }, 0x4588, 0, 1600 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x4588, 0, 1600 }, { 0, 0, 0, 0 }, 0x54050002, 0x54050001, 0, 2, 0, 0 },

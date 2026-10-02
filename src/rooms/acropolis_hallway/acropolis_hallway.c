@@ -87,9 +87,7 @@ u8* D_acropolis_hallway_8017E268[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_acropolis_hallway_8017E26C[1] = {
-    { { .bytes = { 5, 0 } } },
-};
+ViewCount D_acropolis_hallway_8017E26C[1] = { 5 };
 
 WorldCoordRoomLighting D_acropolis_hallway_8017E270[1] = {
     { D_acropolis_hallway_8017EBC4, NULL },

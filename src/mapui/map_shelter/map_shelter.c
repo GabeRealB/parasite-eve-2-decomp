@@ -834,7 +834,7 @@ GpWarpRec* D_map_shelter_8017AF88[49] = {
     D_shelter_r49_8017DA38,
 };
 
-static GpViewCountRec* D_map_shelter_8017B04C[49] = {
+static ViewCount* D_map_shelter_8017B04C[49] = {
     D_mine_mesa_80186554,
     D_mine_cavern_8018906C,
     D_mine_tunnel_entrance_8017DB74,

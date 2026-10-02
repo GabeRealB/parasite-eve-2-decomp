@@ -246,9 +246,7 @@ u8* D_neo_ark_forest_zone_801820BC[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_neo_ark_forest_zone_801820C0[1] = {
-    { { .bytes = { 6, 0 } } },
-};
+ViewCount D_neo_ark_forest_zone_801820C0[1] = { 6 };
 
 GpWarpRec D_neo_ark_forest_zone_801820C4[3] = {
     { { { .word = 3072 }, 8995, 0, -128 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 8995, 0, -128 }, { 0, 0, 0, 0 }, 0x550B0002, 0x550B0001, 0, 2, 0, 434 },

@@ -550,9 +550,7 @@ u8* D_acropolis_helicopter_landing_pad_80184F3C[1] = {
     D_acropolis_helicopter_landing_pad_80184F20,
 };
 
-GpViewCountRec D_acropolis_helicopter_landing_pad_80184F40[1] = {
-    { { .bytes = { 27, 0 } } },
-};
+ViewCount D_acropolis_helicopter_landing_pad_80184F40[1] = { 27 };
 
 WorldCoordRoomLighting D_acropolis_helicopter_landing_pad_80184F44[1] = {
     { D_acropolis_helicopter_landing_pad_80186AE8, NULL },

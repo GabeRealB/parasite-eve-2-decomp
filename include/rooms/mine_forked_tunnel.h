@@ -23,7 +23,7 @@ extern GpRoomObjRec D_mine_forked_tunnel_8018363C[];
 
 extern u8* D_mine_forked_tunnel_8018364C[];
 
-extern GpViewCountRec D_mine_forked_tunnel_80183650[];
+extern ViewCount D_mine_forked_tunnel_80183650[];
 
 extern GpWarpRec D_mine_forked_tunnel_80183654[];
 

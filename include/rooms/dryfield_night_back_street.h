@@ -20,7 +20,7 @@ extern WorldCoordRoomLighting D_dryfield_night_back_street_801803BC[];
 
 extern u8* D_dryfield_night_back_street_801803C4[];
 
-extern GpViewCountRec D_dryfield_night_back_street_801803C8[];
+extern ViewCount D_dryfield_night_back_street_801803C8[];
 
 extern GpWarpRec D_dryfield_night_back_street_801803CC[];
 

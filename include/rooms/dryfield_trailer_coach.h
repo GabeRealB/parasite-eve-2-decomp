@@ -25,7 +25,7 @@ extern WorldCoordRoomLighting D_dryfield_trailer_coach_801871DC[];
 
 extern u8* D_dryfield_trailer_coach_801871E4[];
 
-extern GpViewCountRec D_dryfield_trailer_coach_801871E8[];
+extern ViewCount D_dryfield_trailer_coach_801871E8[];
 
 extern GpWarpRec D_dryfield_trailer_coach_801871EC[];
 

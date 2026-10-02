@@ -20,7 +20,7 @@ extern GpRoomObjRec D_dryfield_night_driveway_801805F0[];
 
 extern u8* D_dryfield_night_driveway_8018061C[];
 
-extern GpViewCountRec D_dryfield_night_driveway_80180624[];
+extern ViewCount D_dryfield_night_driveway_80180624[];
 
 extern GpWarpRec D_dryfield_night_driveway_80180628[];
 

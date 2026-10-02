@@ -18,7 +18,7 @@ extern GpRoomObjRec D_acropolis_patio_80182E68[];
 
 extern u8* D_acropolis_patio_80182EC0[];
 
-extern GpViewCountRec D_acropolis_patio_80182ECC[];
+extern ViewCount D_acropolis_patio_80182ECC[];
 
 extern WorldCoordRoomLighting D_acropolis_patio_80182ED4[];
 

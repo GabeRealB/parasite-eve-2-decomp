@@ -20,7 +20,7 @@ extern GpRoomObjRec D_dryfield_night_souvenir_shop_8017E0EC[];
 
 extern u8* D_dryfield_night_souvenir_shop_8017E0FC[];
 
-extern GpViewCountRec D_dryfield_night_souvenir_shop_8017E100[];
+extern ViewCount D_dryfield_night_souvenir_shop_8017E100[];
 
 extern GpWarpRec D_dryfield_night_souvenir_shop_8017E104[];
 

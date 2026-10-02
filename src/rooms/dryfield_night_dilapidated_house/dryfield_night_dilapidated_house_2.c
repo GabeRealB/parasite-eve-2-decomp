@@ -1217,9 +1217,7 @@ u8* D_dryfield_night_dilapidated_house_801873A4[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_dryfield_night_dilapidated_house_801873A8[1] = {
-    { { .bytes = { 11, 0 } } },
-};
+ViewCount D_dryfield_night_dilapidated_house_801873A8[1] = { 11 };
 
 GpWarpRec D_dryfield_night_dilapidated_house_801873AC[3] = {
     { { { .word = 0 }, 1596, 0, -2540 }, { 0, 0, 0, 0 }, { { .word = 0 }, 2296, 0, -1578 }, { 0, 0, 0, 0 }, 0x53090002, 0x53090001, 0, 6, 0, 467 },

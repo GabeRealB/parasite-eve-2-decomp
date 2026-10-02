@@ -35,7 +35,7 @@ extern GpRoomObjRec D_shelter_b3_garbage_incinerator_801872B8[];
 
 extern u8* D_shelter_b3_garbage_incinerator_801873F0[];
 
-extern GpViewCountRec D_shelter_b3_garbage_incinerator_8018740C[];
+extern ViewCount D_shelter_b3_garbage_incinerator_8018740C[];
 
 extern GpWarpRec D_shelter_b3_garbage_incinerator_8018741C[];
 

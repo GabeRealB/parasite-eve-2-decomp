@@ -20,7 +20,7 @@ extern WorldCoordRoomLighting D_neo_ark_pyramid_8017FC48[];
 
 extern u8* D_neo_ark_pyramid_8017FC60[];
 
-extern GpViewCountRec D_neo_ark_pyramid_8017FC68[];
+extern ViewCount D_neo_ark_pyramid_8017FC68[];
 
 extern GpWarpRec D_neo_ark_pyramid_8017FC6C[];
 

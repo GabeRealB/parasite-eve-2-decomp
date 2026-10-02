@@ -34,7 +34,7 @@ extern WorldCoordRoomLighting D_neo_ark_island_80181BA4[];
 
 extern u8* D_neo_ark_island_80181BAC[];
 
-extern GpViewCountRec D_neo_ark_island_80181BB0[];
+extern ViewCount D_neo_ark_island_80181BB0[];
 
 extern GpWarpRec D_neo_ark_island_80181BB4[];
 

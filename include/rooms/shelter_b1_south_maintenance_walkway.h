@@ -20,7 +20,7 @@ extern GpRoomObjRec D_shelter_b1_south_maintenance_walkway_801823FC[];
 
 extern u8* D_shelter_b1_south_maintenance_walkway_8018240C[];
 
-extern GpViewCountRec D_shelter_b1_south_maintenance_walkway_80182410[];
+extern ViewCount D_shelter_b1_south_maintenance_walkway_80182410[];
 
 extern GpWarpRec D_shelter_b1_south_maintenance_walkway_80182414[];
 

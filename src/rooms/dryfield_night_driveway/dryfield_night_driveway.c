@@ -517,10 +517,7 @@ u8* D_dryfield_night_driveway_8018061C[2] = {
     D_dryfield_night_driveway_80180610,
 };
 
-GpViewCountRec D_dryfield_night_driveway_80180624[2] = {
-    { { .bytes = { 10, 0 } } },
-    { { .bytes = { 10, 0 } } },
-};
+ViewCount D_dryfield_night_driveway_80180624[2] = { 10, 10 };
 
 GpWarpRec D_dryfield_night_driveway_80180628[4] = {
     { { { .word = 1024 }, -3400, 0, 600 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -3400, 0, 600 }, { 0, 0, 0, 0 }, 0x53190004, 0x53190003, 0, 4, 0, 474 },

@@ -20,7 +20,7 @@ extern GpRoomObjRec D_dryfield_night_dilapidated_house_80187394[];
 
 extern u8* D_dryfield_night_dilapidated_house_801873A4[];
 
-extern GpViewCountRec D_dryfield_night_dilapidated_house_801873A8[];
+extern ViewCount D_dryfield_night_dilapidated_house_801873A8[];
 
 extern GpWarpRec D_dryfield_night_dilapidated_house_801873AC[];
 

@@ -32,7 +32,7 @@ extern WorldCoordRoomLighting D_dryfield_night_main_street_801822B4[];
 
 extern u8* D_dryfield_night_main_street_801822FC[];
 
-extern GpViewCountRec D_dryfield_night_main_street_80182308[];
+extern ViewCount D_dryfield_night_main_street_80182308[];
 
 extern GpWarpRec D_dryfield_night_main_street_80182310[];
 

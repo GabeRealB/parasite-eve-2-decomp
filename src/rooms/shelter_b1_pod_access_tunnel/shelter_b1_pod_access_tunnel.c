@@ -563,9 +563,7 @@ u8* D_shelter_b1_pod_access_tunnel_80183A14[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_shelter_b1_pod_access_tunnel_80183A18[1] = {
-    { { .bytes = { 14, 0 } } },
-};
+ViewCount D_shelter_b1_pod_access_tunnel_80183A18[1] = { 14 };
 
 GpWarpRec D_shelter_b1_pod_access_tunnel_80183A1C[3] = {
     { { { .word = 0 }, 1698, 0, -6028 }, { 0, 0, 0, 0 }, { { .word = 0 }, 1698, 0, -6028 }, { 0, 0, 0, 0 }, 0x54110002, 0x54110001, 0, 2, 0, 0 },

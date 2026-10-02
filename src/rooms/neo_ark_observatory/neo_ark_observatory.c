@@ -366,10 +366,7 @@ u8* D_neo_ark_observatory_801815DC[2] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_neo_ark_observatory_801815E4[2] = {
-    { { .bytes = { 21, 0 } } },
-    { { .bytes = { 21, 0 } } },
-};
+ViewCount D_neo_ark_observatory_801815E4[2] = { 21, 21 };
 
 GpWarpRec D_neo_ark_observatory_801815E8[3] = {
     { { { .word = 3072 }, 0x34BC, 0, 0x2EE0 }, { 0, 0, 0, 0 }, { { .word = 2560 }, 0x2D82, 0, 0x316A }, { 0, 0, 0, 0 }, 0x55070006, 0x55070005, 0, 2, 0, 452 },

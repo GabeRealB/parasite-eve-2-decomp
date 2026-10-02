@@ -34,7 +34,7 @@ extern GpRoomObjRec D_shelter_b4_reservoir_801850F8[];
 
 extern u8* D_shelter_b4_reservoir_80185118[];
 
-extern GpViewCountRec D_shelter_b4_reservoir_80185120[];
+extern ViewCount D_shelter_b4_reservoir_80185120[];
 
 extern GpWarpRec D_shelter_b4_reservoir_80185124[];
 

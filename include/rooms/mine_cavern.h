@@ -20,7 +20,7 @@ extern WorldCoordRoomLighting D_mine_cavern_80189010[];
 
 extern u8* D_mine_cavern_80189060[];
 
-extern GpViewCountRec D_mine_cavern_8018906C[];
+extern ViewCount D_mine_cavern_8018906C[];
 
 extern GpWarpRec D_mine_cavern_80189074[];
 

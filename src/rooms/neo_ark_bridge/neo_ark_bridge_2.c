@@ -67,9 +67,7 @@ u8* D_neo_ark_bridge_80181F80[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_neo_ark_bridge_80181F84[1] = {
-    { { .bytes = { 8, 0 } } },
-};
+ViewCount D_neo_ark_bridge_80181F84[1] = { 8 };
 
 GpWarpRec D_neo_ark_bridge_80181F88[2] = {
     { { { .word = 2048 }, -3160, 0, 6368 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -3160, 0, 6368 }, { 0, 0, 0, 0 }, 0x551B0002, 0x551B0001, 0, 2, 0, 0 },

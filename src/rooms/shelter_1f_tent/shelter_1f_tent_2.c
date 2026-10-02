@@ -74,9 +74,7 @@ u8* D_shelter_1f_tent_80181D44[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_shelter_1f_tent_80181D48[1] = {
-    { { .bytes = { 10, 0 } } },
-};
+ViewCount D_shelter_1f_tent_80181D48[1] = { 10 };
 
 GpWarpRec D_shelter_1f_tent_80181D4C[1] = {
     { { { .word = 3072 }, -638, 0, 4300 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -638, 0, 4300 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },

@@ -147,9 +147,7 @@ u8* D_shelter_b1_access_tunnel_8017E7E4[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_shelter_b1_access_tunnel_8017E7E8[1] = {
-    { { .bytes = { 5, 0 } } },
-};
+ViewCount D_shelter_b1_access_tunnel_8017E7E8[1] = { 5 };
 
 GpWarpRec D_shelter_b1_access_tunnel_8017E7EC[4] = {
     { { { .word = 0 }, 9953, 0, 1474 }, { 0, 0, 0, 0 }, { { .word = 0 }, 0x288C, 0, 6240 }, { 0, 0, 0, 0 }, 0x54130002, 0x54130001, 0, 5, 0, 453 },

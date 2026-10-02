@@ -18,7 +18,7 @@ extern GpRoomObjRec D_dryfield_water_hole_8017FD2C[];
 
 extern u8* D_dryfield_water_hole_8017FD84[];
 
-extern GpViewCountRec D_dryfield_water_hole_8017FD94[];
+extern ViewCount D_dryfield_water_hole_8017FD94[];
 
 extern WorldCoordRoomLighting D_dryfield_water_hole_8017FD9C[];
 

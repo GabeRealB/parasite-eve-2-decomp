@@ -120,9 +120,7 @@ u8* D_shelter_b6_growth_room_8017F378[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_shelter_b6_growth_room_8017F37C[1] = {
-    { { .bytes = { 8, 0 } } },
-};
+ViewCount D_shelter_b6_growth_room_8017F37C[1] = { 8 };
 
 GpWarpRec D_shelter_b6_growth_room_8017F380[1] = {
     { { { .word = 0 }, 4030, 0, -2950 }, { 0, 0, 0, 0 }, { { .word = 0 }, 4030, 0, -2950 }, { 0, 0, 0, 0 }, 0, 0, 0, 4, 0, 437 },

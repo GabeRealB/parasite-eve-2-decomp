@@ -101,10 +101,7 @@ u8* D_dryfield_night_cellar_8017DB28[2] = {
     D_dryfield_night_cellar_8017DB20,
 };
 
-GpViewCountRec D_dryfield_night_cellar_8017DB30[2] = {
-    { { .bytes = { 11, 0 } } },
-    { { .bytes = { 6, 0 } } },
-};
+ViewCount D_dryfield_night_cellar_8017DB30[2] = { 11, 6 };
 
 GpWarpRec D_dryfield_night_cellar_8017DB34[1] = {
     { { { .word = 2048 }, 5611, 3, 3945 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 5611, 3, 3945 }, { 0, 0, 0, 0 }, 0x53220002, 0x53220001, 0, 2, 0, 463 },

@@ -254,9 +254,7 @@ u8* D_shelter_b4_upper_sewer_80186590[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_shelter_b4_upper_sewer_80186594[1] = {
-    { { .bytes = { 14, 0 } } },
-};
+ViewCount D_shelter_b4_upper_sewer_80186594[1] = { 14 };
 
 GpWarpRec D_shelter_b4_upper_sewer_80186598[4] = {
     { { { .word = 1024 }, -9200, 0, 6080 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -9200, 0, 6850 }, { 0, 0, 0, 0 }, 0x542C0002, 0x542C0001, 0, 7, 0, 0 },

@@ -2626,9 +2626,7 @@ u8* D_acropolis_plaza_801988C8[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_acropolis_plaza_801988CC[1] = {
-    { { .bytes = { 8, 0 } } },
-};
+ViewCount D_acropolis_plaza_801988CC[1] = { 8 };
 
 WorldCoordRoomLighting D_acropolis_plaza_801988D0[1] = {
     { D_acropolis_plaza_80199EE8, NULL },

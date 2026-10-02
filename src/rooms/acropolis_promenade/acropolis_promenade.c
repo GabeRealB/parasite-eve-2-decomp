@@ -630,10 +630,7 @@ u8* D_acropolis_promenade_80181BC0[2] = {
     D_acropolis_promenade_80181BB0,
 };
 
-GpViewCountRec D_acropolis_promenade_80181BC8[2] = {
-    { { .bytes = { 13, 0 } } },
-    { { .bytes = { 13, 0 } } },
-};
+ViewCount D_acropolis_promenade_80181BC8[2] = { 13, 13 };
 
 WorldCoordRoomLighting D_acropolis_promenade_80181BCC[2] = {
     { D_acropolis_promenade_80183A08, NULL },

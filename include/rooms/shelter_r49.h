@@ -20,7 +20,7 @@ extern GpRoomObjRec D_shelter_r49_8017DA18[];
 
 extern u8* D_shelter_r49_8017DA28[];
 
-extern GpViewCountRec D_shelter_r49_8017DA2C[];
+extern ViewCount D_shelter_r49_8017DA2C[];
 
 extern WorldCoordRoomLighting D_shelter_r49_8017DA30[];
 

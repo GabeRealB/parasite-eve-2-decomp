@@ -809,9 +809,7 @@ u8* D_acropolis_sanctuary_801827FC[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_acropolis_sanctuary_80182800[1] = {
-    { { .bytes = { 16, 0 } } },
-};
+ViewCount D_acropolis_sanctuary_80182800[1] = { 16 };
 
 WorldCoordRoomLighting D_acropolis_sanctuary_80182804[1] = {
     { D_acropolis_sanctuary_801843EC, NULL },

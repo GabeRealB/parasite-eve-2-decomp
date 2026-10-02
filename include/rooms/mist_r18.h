@@ -18,7 +18,7 @@ extern GpRoomObjRec D_mist_r18_8018660C[];
 
 extern u8* D_mist_r18_8018661C[];
 
-extern GpViewCountRec D_mist_r18_80186620[];
+extern ViewCount D_mist_r18_80186620[];
 
 extern WorldCoordRoomLighting D_mist_r18_80186624[];
 

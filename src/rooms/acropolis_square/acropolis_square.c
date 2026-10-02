@@ -354,9 +354,7 @@ u8* D_acropolis_square_80183BAC[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_acropolis_square_80183BB0[1] = {
-    { { .bytes = { 15, 0 } } },
-};
+ViewCount D_acropolis_square_80183BB0[1] = { 15 };
 
 WorldCoordRoomLighting D_acropolis_square_80183BB4[1] = {
     { D_acropolis_square_80186468, D_acropolis_square_80186480 },

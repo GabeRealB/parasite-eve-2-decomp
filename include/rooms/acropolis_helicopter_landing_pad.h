@@ -29,7 +29,7 @@ extern GpRoomObjRec D_acropolis_helicopter_landing_pad_80184F10[];
 
 extern u8* D_acropolis_helicopter_landing_pad_80184F3C[];
 
-extern GpViewCountRec D_acropolis_helicopter_landing_pad_80184F40[];
+extern ViewCount D_acropolis_helicopter_landing_pad_80184F40[];
 
 extern WorldCoordRoomLighting D_acropolis_helicopter_landing_pad_80184F44[];
 

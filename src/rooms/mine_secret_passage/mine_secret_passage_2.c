@@ -142,9 +142,7 @@ u8* D_mine_secret_passage_80180FB4[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_mine_secret_passage_80180FB8[1] = {
-    { { .bytes = { 8, 0 } } },
-};
+ViewCount D_mine_secret_passage_80180FB8[1] = { 8 };
 
 GpWarpRec D_mine_secret_passage_80180FBC[2] = {
     { { { .word = 2048 }, 1400, 0, 0x36B0 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 1400, 0, 0x36B0 }, { 0, 0, 0, 0 }, 0x54080002, 0x54080001, 0, 2, 0, 441 },

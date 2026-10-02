@@ -18,7 +18,7 @@ extern GpRoomObjRec D_dryfield_general_store_8017E670[];
 
 extern u8* D_dryfield_general_store_8017E680[];
 
-extern GpViewCountRec D_dryfield_general_store_8017E684[];
+extern ViewCount D_dryfield_general_store_8017E684[];
 
 extern WorldCoordRoomLighting D_dryfield_general_store_8017E688[];
 

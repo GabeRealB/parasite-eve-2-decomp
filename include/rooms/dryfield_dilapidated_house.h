@@ -18,7 +18,7 @@ extern GpRoomObjRec D_dryfield_dilapidated_house_80186954[];
 
 extern u8* D_dryfield_dilapidated_house_80186964[];
 
-extern GpViewCountRec D_dryfield_dilapidated_house_80186968[];
+extern ViewCount D_dryfield_dilapidated_house_80186968[];
 
 extern WorldCoordRoomLighting D_dryfield_dilapidated_house_8018696C[];
 

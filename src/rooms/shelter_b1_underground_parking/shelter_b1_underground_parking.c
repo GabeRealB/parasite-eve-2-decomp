@@ -818,16 +818,7 @@ u8* D_shelter_b1_underground_parking_8018791C[8] = {
     D_shelter_b1_underground_parking_80187904,
 };
 
-GpViewCountRec D_shelter_b1_underground_parking_8018793C[8] = {
-    { { .bytes = { 24, 0 } } },
-    { { .bytes = { 24, 0 } } },
-    { { .bytes = { 24, 0 } } },
-    { { .bytes = { 24, 0 } } },
-    { { .bytes = { 24, 0 } } },
-    { { .bytes = { 24, 0 } } },
-    { { .bytes = { 24, 0 } } },
-    { { .bytes = { 24, 0 } } },
-};
+ViewCount D_shelter_b1_underground_parking_8018793C[8] = { 24, 24, 24, 24, 24, 24, 24, 24 };
 
 GpWarpRec D_shelter_b1_underground_parking_8018794C[2] = {
     { { { .word = 0 }, 1913, 0, -7180 }, { 0, 0, 0, 0 }, { { .word = 0 }, 1980, 0, -6660 }, { 0, 0, 0, 0 }, 0x54140002, 0x54140001, 0, 2, 0, 0 },

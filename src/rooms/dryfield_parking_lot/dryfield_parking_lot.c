@@ -105,9 +105,7 @@ u8* D_dryfield_parking_lot_8017DC54[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_dryfield_parking_lot_8017DC58[1] = {
-    { { .bytes = { 7, 0 } } },
-};
+ViewCount D_dryfield_parking_lot_8017DC58[1] = { 7 };
 
 WorldCoordRoomLighting D_dryfield_parking_lot_8017DC5C[1] = {
     { D_dryfield_parking_lot_8017F9FC, NULL },

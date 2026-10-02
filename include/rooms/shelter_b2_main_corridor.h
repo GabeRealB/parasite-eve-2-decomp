@@ -27,7 +27,7 @@ extern GpAreaVariant D_shelter_b2_main_corridor_8018933C[22];
 // shelter_b2_main_corridor
 extern u8* D_shelter_b2_main_corridor_801830CC[];
 
-extern GpViewCountRec D_shelter_b2_main_corridor_801830D0[];
+extern ViewCount D_shelter_b2_main_corridor_801830D0[];
 
 extern GpWarpRec D_shelter_b2_main_corridor_801830D4[];
 

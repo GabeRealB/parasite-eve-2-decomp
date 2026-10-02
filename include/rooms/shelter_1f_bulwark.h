@@ -20,7 +20,7 @@ extern WorldCoordRoomLighting D_shelter_1f_bulwark_801803C0[];
 
 extern u8* D_shelter_1f_bulwark_801803C8[];
 
-extern GpViewCountRec D_shelter_1f_bulwark_801803CC[];
+extern ViewCount D_shelter_1f_bulwark_801803CC[];
 
 extern GpWarpRec D_shelter_1f_bulwark_801803D0[];
 

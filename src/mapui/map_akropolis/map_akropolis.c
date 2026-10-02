@@ -760,7 +760,7 @@ GpWarpRec* D_map_akropolis_8017AB20[20] = {
     D_mist_shooting_gallery_801853C8,
 };
 
-static GpViewCountRec* D_map_akropolis_8017AB70[20] = {
+static ViewCount* D_map_akropolis_8017AB70[20] = {
     D_acropolis_square_80183BB0,
     D_acropolis_east_elevator_hall_80186334,
     D_acropolis_patio_80182ECC,

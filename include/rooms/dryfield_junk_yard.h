@@ -24,7 +24,7 @@ extern WorldCoordRoomLighting D_dryfield_junk_yard_8017ED14[];
 
 extern u8* D_dryfield_junk_yard_8017ED1C[];
 
-extern GpViewCountRec D_dryfield_junk_yard_8017ED20[];
+extern ViewCount D_dryfield_junk_yard_8017ED20[];
 
 extern GpWarpRec D_dryfield_junk_yard_8017ED24[];
 

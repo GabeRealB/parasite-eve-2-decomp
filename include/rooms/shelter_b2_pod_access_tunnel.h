@@ -20,7 +20,7 @@ extern WorldCoordRoomLighting D_shelter_b2_pod_access_tunnel_80183E0C[];
 
 extern u8* D_shelter_b2_pod_access_tunnel_80183E24[];
 
-extern GpViewCountRec D_shelter_b2_pod_access_tunnel_80183E2C[];
+extern ViewCount D_shelter_b2_pod_access_tunnel_80183E2C[];
 
 extern GpWarpRec D_shelter_b2_pod_access_tunnel_80183E30[];
 

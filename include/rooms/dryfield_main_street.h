@@ -18,7 +18,7 @@ extern GpRoomObjRec D_dryfield_main_street_80181BBC[];
 
 extern u8* D_dryfield_main_street_80181BCC[];
 
-extern GpViewCountRec D_dryfield_main_street_80181BD0[];
+extern ViewCount D_dryfield_main_street_80181BD0[];
 
 extern WorldCoordRoomLighting D_dryfield_main_street_80181BD4[];
 

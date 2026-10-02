@@ -20,7 +20,7 @@ extern GpRoomObjRec D_dryfield_night_junk_yard_80180794[];
 
 extern u8* D_dryfield_night_junk_yard_801807C0[];
 
-extern GpViewCountRec D_dryfield_night_junk_yard_801807C8[];
+extern ViewCount D_dryfield_night_junk_yard_801807C8[];
 
 extern GpWarpRec D_dryfield_night_junk_yard_801807CC[];
 

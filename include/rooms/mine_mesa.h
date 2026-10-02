@@ -20,7 +20,7 @@ extern u8* D_mine_mesa_80186548[];
 
 extern WorldCoordRoomLighting D_mine_mesa_8018654C[];
 
-extern GpViewCountRec D_mine_mesa_80186554[];
+extern ViewCount D_mine_mesa_80186554[];
 
 extern GpWarpRec D_mine_mesa_80186558[];
 

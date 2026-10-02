@@ -63,9 +63,7 @@ u8* D_shelter_b1_armory_80182580[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_shelter_b1_armory_80182584[1] = {
-    { { .bytes = { 13, 0 } } },
-};
+ViewCount D_shelter_b1_armory_80182584[1] = { 13 };
 
 GpWarpRec D_shelter_b1_armory_80182588[4] = {
     { { { .word = 1024 }, 0, 0, 2100 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 0, 0, 2100 }, { 0, 0, 0, 0 }, 0x540D0004, 0x540D0003, 0, 2, 0, 0 },

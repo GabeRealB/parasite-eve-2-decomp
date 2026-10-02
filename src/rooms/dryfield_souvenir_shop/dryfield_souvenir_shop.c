@@ -89,9 +89,7 @@ u8* D_dryfield_souvenir_shop_8017E0CC[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_dryfield_souvenir_shop_8017E0D0[1] = {
-    { { .bytes = { 3, 0 } } },
-};
+ViewCount D_dryfield_souvenir_shop_8017E0D0[1] = { 3 };
 
 WorldCoordRoomLighting D_dryfield_souvenir_shop_8017E0D4[1] = {
     { D_dryfield_souvenir_shop_8017F55C, NULL },

@@ -322,20 +322,20 @@ s8 Gp_FindViewIndex(s32 arg0)
 {
     s16              idx;
     GameLocationKey* sess;
-    s16              limit;
+    ViewCount        viewCount;
     u8*              viewMap;
 
-    idx     = 0;
-    sess    = &gGameSession->location.loc;
-    limit   = Gp_ViewCountTables[sess->stage - 1]->field_0[sess->area - 1][sess->room - 1].prefix.packed;
-    viewMap = Gp_ViewIndexTables[sess->stage - 1]->viewMaps[sess->area - 1][sess->room - 1];
-    if (limit > 0) {
+    idx       = 0;
+    sess      = &gGameSession->location.loc;
+    viewCount = Gp_ViewCountTables[sess->stage - 1]->field_0[sess->area - 1][sess->room - 1];
+    viewMap   = Gp_ViewIndexTables[sess->stage - 1]->viewMaps[sess->area - 1][sess->room - 1];
+    if (viewCount > 0) {
         do {
             if (viewMap[idx] == (u8)arg0) {
                 return idx + 1;
             }
             idx++;
-        } while (idx < limit);
+        } while (idx < viewCount);
     }
     return 0;
 }

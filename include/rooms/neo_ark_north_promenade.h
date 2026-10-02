@@ -20,7 +20,7 @@ extern WorldCoordRoomLighting D_neo_ark_north_promenade_80181DC4[];
 
 extern u8* D_neo_ark_north_promenade_80181DCC[];
 
-extern GpViewCountRec D_neo_ark_north_promenade_80181DD0[];
+extern ViewCount D_neo_ark_north_promenade_80181DD0[];
 
 extern GpWarpRec D_neo_ark_north_promenade_80181DD4[];
 

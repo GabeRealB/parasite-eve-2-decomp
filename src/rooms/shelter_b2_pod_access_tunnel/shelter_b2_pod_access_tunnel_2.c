@@ -196,10 +196,7 @@ u8* D_shelter_b2_pod_access_tunnel_80183E24[2] = {
     D_shelter_b2_pod_access_tunnel_80183E1C,
 };
 
-GpViewCountRec D_shelter_b2_pod_access_tunnel_80183E2C[2] = {
-    { { .bytes = { 7, 0 } } },
-    { { .bytes = { 7, 0 } } },
-};
+ViewCount D_shelter_b2_pod_access_tunnel_80183E2C[2] = { 7, 7 };
 
 GpWarpRec D_shelter_b2_pod_access_tunnel_80183E30[3] = {
     { { { .word = 0 }, 1700, 0, -0x28CD }, { 0, 0, 0, 0 }, { { .word = 256 }, 1050, 0, -0x2710 }, { 0, 0, 0, 0 }, 0x54230002, 0x54230001, 0, 2, 0, 0 },

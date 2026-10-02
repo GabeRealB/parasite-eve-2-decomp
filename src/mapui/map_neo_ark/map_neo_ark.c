@@ -620,7 +620,7 @@ GpWarpRec* D_map_neo_ark_8017AA80[33] = {
     D_neo_ark_substation_8017E410,
 };
 
-static GpViewCountRec* D_map_neo_ark_8017AB04[33] = {
+static ViewCount* D_map_neo_ark_8017AB04[33] = {
     D_shelter_1f_parking_garage_80180C80,
     D_shelter_1f_vehicular_airlock_80182118,
     D_shelter_1f_bulwark_801803CC,

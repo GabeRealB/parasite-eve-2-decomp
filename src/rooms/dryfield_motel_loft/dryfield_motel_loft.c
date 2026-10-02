@@ -47,9 +47,7 @@ u8* D_dryfield_motel_loft_8017D6EC[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_dryfield_motel_loft_8017D6F0[1] = {
-    { { .bytes = { 7, 0 } } },
-};
+ViewCount D_dryfield_motel_loft_8017D6F0[1] = { 7 };
 
 WorldCoordRoomLighting D_dryfield_motel_loft_8017D6F4[1] = {
     { D_dryfield_motel_loft_8017E614, NULL },

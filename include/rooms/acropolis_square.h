@@ -22,7 +22,7 @@ extern GpRoomObjRec D_acropolis_square_80183B9C[];
 
 extern u8* D_acropolis_square_80183BAC[];
 
-extern GpViewCountRec D_acropolis_square_80183BB0[];
+extern ViewCount D_acropolis_square_80183BB0[];
 
 extern WorldCoordRoomLighting D_acropolis_square_80183BB4[];
 

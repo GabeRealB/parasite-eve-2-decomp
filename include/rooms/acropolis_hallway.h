@@ -21,7 +21,7 @@ extern GpRoomObjRec D_acropolis_hallway_8017E258[];
 
 extern u8* D_acropolis_hallway_8017E268[];
 
-extern GpViewCountRec D_acropolis_hallway_8017E26C[];
+extern ViewCount D_acropolis_hallway_8017E26C[];
 
 extern WorldCoordRoomLighting D_acropolis_hallway_8017E270[];
 

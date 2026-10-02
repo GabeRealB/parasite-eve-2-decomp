@@ -474,9 +474,7 @@ u8* D_acropolis_roof_garden_80184C9C[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_acropolis_roof_garden_80184CA0[1] = {
-    { { .bytes = { 7, 0 } } },
-};
+ViewCount D_acropolis_roof_garden_80184CA0[1] = { 7 };
 
 WorldCoordRoomLighting D_acropolis_roof_garden_80184CA4[1] = {
     { D_acropolis_roof_garden_80186BDC, NULL },

@@ -78,10 +78,7 @@ u8* D_dryfield_night_motel_room_5_8017DAAC[2] = {
     D_dryfield_night_motel_room_5_8017DAA0,
 };
 
-GpViewCountRec D_dryfield_night_motel_room_5_8017DAB4[2] = {
-    { { .bytes = { 11, 0 } } },
-    { { .bytes = { 11, 0 } } },
-};
+ViewCount D_dryfield_night_motel_room_5_8017DAB4[2] = { 11, 11 };
 
 GpWarpRec D_dryfield_night_motel_room_5_8017DAB8[1] = {
     { { { .word = 3072 }, 4350, 0, 2426 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4350, 0, 2426 }, { 0, 0, 0, 0 }, 0x531C0002, 0x531C0001, 0, 2, 0, 464 },

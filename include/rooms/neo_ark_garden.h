@@ -22,7 +22,7 @@ extern WorldCoordRoomLighting D_neo_ark_garden_8018141C[];
 
 extern u8* D_neo_ark_garden_80181424[];
 
-extern GpViewCountRec D_neo_ark_garden_80181428[];
+extern ViewCount D_neo_ark_garden_80181428[];
 
 extern GpWarpRec D_neo_ark_garden_8018142C[];
 

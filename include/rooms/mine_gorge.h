@@ -20,7 +20,7 @@ extern GpRoomObjRec D_mine_gorge_8017E7B8[];
 
 extern u8* D_mine_gorge_8017E7E4[];
 
-extern GpViewCountRec D_mine_gorge_8017E7EC[];
+extern ViewCount D_mine_gorge_8017E7EC[];
 
 extern GpWarpRec D_mine_gorge_8017E7F0[];
 

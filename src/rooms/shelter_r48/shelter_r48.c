@@ -164,9 +164,7 @@ u8* D_shelter_r48_8018302C[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_shelter_r48_80183030[1] = {
-    { { .bytes = { 18, 0 } } },
-};
+ViewCount D_shelter_r48_80183030[1] = { 18 };
 
 GpWarpRec D_shelter_r48_80183034[1] = {
     { { { .word = 1024 }, 1542, -1998, 7374 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 1542, -1998, 7374 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 449 },

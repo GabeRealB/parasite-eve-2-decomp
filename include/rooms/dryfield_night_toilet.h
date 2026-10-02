@@ -20,7 +20,7 @@ extern GpRoomObjRec D_dryfield_night_toilet_8017DAB8[];
 
 extern u8* D_dryfield_night_toilet_8017DAC8[];
 
-extern GpViewCountRec D_dryfield_night_toilet_8017DACC[];
+extern ViewCount D_dryfield_night_toilet_8017DACC[];
 
 extern GpWarpRec D_dryfield_night_toilet_8017DAD0[];
 

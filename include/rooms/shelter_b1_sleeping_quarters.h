@@ -20,7 +20,7 @@ extern GpAreaVariant D_shelter_b1_sleeping_quarters_80183FDC[22];
 // shelter_b1_sleeping_quarters
 extern u8* D_shelter_b1_sleeping_quarters_80180658[];
 
-extern GpViewCountRec D_shelter_b1_sleeping_quarters_8018065C[];
+extern ViewCount D_shelter_b1_sleeping_quarters_8018065C[];
 
 extern GpWarpRec D_shelter_b1_sleeping_quarters_80180660[];
 

@@ -199,10 +199,7 @@ u8* D_neo_ark_altar_8017F0EC[3] = {
     D_neo_ark_altar_8017F0E4,
 };
 
-GpViewCountRec D_neo_ark_altar_8017F0F8[2] = {
-    { { .bytes = { 8, 0 } } },
-    { { .bytes = { 8, 0 } } },
-};
+ViewCount D_neo_ark_altar_8017F0F8[2] = { 8, 8 };
 
 GpWarpRec D_neo_ark_altar_8017F0FC[1] = {
     { { { .word = 1024 }, 7533, -3600, -7520 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -2944, 0, -2035 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 1, 0 },

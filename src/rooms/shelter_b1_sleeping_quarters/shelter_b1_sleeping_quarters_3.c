@@ -43,9 +43,7 @@ u8* D_shelter_b1_sleeping_quarters_80180658[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_shelter_b1_sleeping_quarters_8018065C[1] = {
-    { { .bytes = { 11, 0 } } },
-};
+ViewCount D_shelter_b1_sleeping_quarters_8018065C[1] = { 11 };
 
 GpWarpRec D_shelter_b1_sleeping_quarters_80180660[2] = {
     { { { .word = 1024 }, 0, 0, -860 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 0, 0, -860 }, { 0, 0, 0, 0 }, 0x540E0004, 0x540E0003, 0, 2, 0, 0 },

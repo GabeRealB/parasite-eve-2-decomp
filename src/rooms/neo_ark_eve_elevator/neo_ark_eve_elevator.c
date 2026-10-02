@@ -66,9 +66,7 @@ u8* D_neo_ark_eve_elevator_8017D764[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_neo_ark_eve_elevator_8017D768[1] = {
-    { { .bytes = { 4, 0 } } },
-};
+ViewCount D_neo_ark_eve_elevator_8017D768[1] = { 4 };
 
 GpWarpRec D_neo_ark_eve_elevator_8017D76C[1] = {
     { { { .word = 3072 }, -960, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -960, 0, 0 }, { 0, 0, 0, 0 }, 0x55090002, 0x55090001, 0, 2, 0, 444 },

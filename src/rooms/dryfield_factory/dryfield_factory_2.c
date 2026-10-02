@@ -304,10 +304,7 @@ WorldCoordRoomLighting D_dryfield_factory_80186F4C[2] = {
     { D_dryfield_factory_8018A28C, D_dryfield_factory_8018A2A4 },
 };
 
-GpViewCountRec D_dryfield_factory_80186F5C[2] = {
-    { { .bytes = { 19, 0 } } },
-    { { .bytes = { 19, 0 } } },
-};
+ViewCount D_dryfield_factory_80186F5C[2] = { 19, 19 };
 
 GpWarpRec D_dryfield_factory_80186F60[3] = {
     { { { .word = 3072 }, 5178, 0, 1454 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 4530, 0, 1200 }, { 0, 0, 0, 0 }, 0x52170002, 0x52170001, 0, 2, 0, 474 },

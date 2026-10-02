@@ -166,12 +166,7 @@ u8* D_mist_parking_801915B0[4] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_mist_parking_801915C0[4] = {
-    { { .bytes = { 20, 0 } } },
-    { { .bytes = { 20, 0 } } },
-    { { .bytes = { 20, 0 } } },
-    { { .bytes = { 20, 0 } } },
-};
+ViewCount D_mist_parking_801915C0[4] = { 20, 20, 20, 20 };
 
 WorldCoordRoomLighting D_mist_parking_801915C8[4] = {
     { D_mist_parking_801950A0, NULL },

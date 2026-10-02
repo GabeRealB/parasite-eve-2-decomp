@@ -477,10 +477,7 @@ u8* D_dryfield_water_tank_801868F0[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_dryfield_water_tank_801868F4[2] = {
-    { { .bytes = { 10, 0 } } },
-    { { .bytes = { 0, 0 } } },
-};
+ViewCount D_dryfield_water_tank_801868F4[2] = { 10, 0 };
 
 WorldCoordRoomLighting D_dryfield_water_tank_801868F8[1] = {
     { D_dryfield_water_tank_80188908, D_dryfield_water_tank_80188C58 },

@@ -20,7 +20,7 @@ extern WorldCoordRoomLighting D_shelter_1f_airlock_8017E5AC[];
 
 extern u8* D_shelter_1f_airlock_8017E5B4[];
 
-extern GpViewCountRec D_shelter_1f_airlock_8017E5B8[];
+extern ViewCount D_shelter_1f_airlock_8017E5B8[];
 
 extern GpWarpRec D_shelter_1f_airlock_8017E5BC[];
 

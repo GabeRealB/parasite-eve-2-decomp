@@ -266,9 +266,7 @@ u8* D_dryfield_night_trailer_coach_80189518[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_dryfield_night_trailer_coach_8018951C[1] = {
-    { { .bytes = { 8, 0 } } },
-};
+ViewCount D_dryfield_night_trailer_coach_8018951C[1] = { 8 };
 
 GpWarpRec D_dryfield_night_trailer_coach_80189520[3] = {
     { { { .word = 2048 }, 1579, 0, -800 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 1579, 0, -800 }, { 0, 0, 0, 0 }, 0x531B0002, 0x531B0001, 0, 2, 0, 471 },

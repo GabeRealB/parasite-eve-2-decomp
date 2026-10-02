@@ -20,7 +20,7 @@ extern WorldCoordRoomLighting D_neo_ark_forest_zone_801820B4[];
 
 extern u8* D_neo_ark_forest_zone_801820BC[];
 
-extern GpViewCountRec D_neo_ark_forest_zone_801820C0[];
+extern ViewCount D_neo_ark_forest_zone_801820C0[];
 
 extern GpWarpRec D_neo_ark_forest_zone_801820C4[];
 

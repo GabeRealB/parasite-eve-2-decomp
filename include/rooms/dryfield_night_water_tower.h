@@ -20,7 +20,7 @@ extern GpRoomObjRec D_dryfield_night_water_tower_8017E754[];
 
 extern u8* D_dryfield_night_water_tower_8017E764[];
 
-extern GpViewCountRec D_dryfield_night_water_tower_8017E768[];
+extern ViewCount D_dryfield_night_water_tower_8017E768[];
 
 extern GpWarpRec D_dryfield_night_water_tower_8017E76C[];
 

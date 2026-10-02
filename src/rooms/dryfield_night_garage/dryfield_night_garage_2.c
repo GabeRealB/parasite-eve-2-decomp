@@ -268,10 +268,7 @@ u8* D_dryfield_night_garage_80183434[2] = {
     D_dryfield_night_garage_80183424,
 };
 
-GpViewCountRec D_dryfield_night_garage_8018343C[2] = {
-    { { .bytes = { 15, 0 } } },
-    { { .bytes = { 15, 0 } } },
-};
+ViewCount D_dryfield_night_garage_8018343C[2] = { 15, 15 };
 
 GpWarpRec D_dryfield_night_garage_80183440[2] = {
     { { { .word = 1024 }, 853, 0, 2741 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 853, 0, 2741 }, { 0, 0, 0, 0 }, 0x53180004, 0x53180003, 0, 2, 2, 473 },

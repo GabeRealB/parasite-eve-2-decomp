@@ -903,10 +903,7 @@ u8* D_mist_r18_8018661C[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_mist_r18_80186620[2] = {
-    { { .bytes = { 10, 0 } } },
-    { { .bytes = { 0, 0 } } },
-};
+ViewCount D_mist_r18_80186620[2] = { 10, 0 };
 
 WorldCoordRoomLighting D_mist_r18_80186624[1] = {
     { D_mist_r18_80186E44, NULL },

@@ -17,7 +17,7 @@ extern GpAreaVariant D_shelter_1f_tent_80184230[13];
 // shelter_1f_tent
 extern u8* D_shelter_1f_tent_80181D44[];
 
-extern GpViewCountRec D_shelter_1f_tent_80181D48[];
+extern ViewCount D_shelter_1f_tent_80181D48[];
 
 extern GpWarpRec D_shelter_1f_tent_80181D4C[];
 

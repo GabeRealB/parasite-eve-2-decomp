@@ -255,9 +255,7 @@ u8* D_acropolis_fire_escape_80181DBC[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_acropolis_fire_escape_80181DC0[1] = {
-    { { .bytes = { 10, 0 } } },
-};
+ViewCount D_acropolis_fire_escape_80181DC0[1] = { 10 };
 
 WorldCoordRoomLighting D_acropolis_fire_escape_80181DC4[1] = {
     { D_acropolis_fire_escape_80182B54, NULL },

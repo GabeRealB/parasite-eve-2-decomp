@@ -83,9 +83,7 @@ u8* D_neo_ark_woodland_path_80181694[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_neo_ark_woodland_path_80181698[1] = {
-    { { .bytes = { 10, 0 } } },
-};
+ViewCount D_neo_ark_woodland_path_80181698[1] = { 10 };
 
 GpWarpRec D_neo_ark_woodland_path_8018169C[2] = {
     { { { .word = 2048 }, -3895, 0, 9510 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -3895, 0, 9510 }, { 0, 0, 0, 0 }, 0x551D0002, 0x551D0001, 0, 2, 0, 0 },

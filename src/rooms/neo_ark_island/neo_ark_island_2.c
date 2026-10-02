@@ -73,9 +73,7 @@ u8* D_neo_ark_island_80181BAC[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_neo_ark_island_80181BB0[1] = {
-    { { .bytes = { 5, 0 } } },
-};
+ViewCount D_neo_ark_island_80181BB0[1] = { 5 };
 
 GpWarpRec D_neo_ark_island_80181BB4[2] = {
     { { { .word = 2048 }, 3100, 0, 6464 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 3100, 0, 6464 }, { 0, 0, 0, 0 }, 0x550E0002, 0x550E0001, 0, 2, 0, 0 },

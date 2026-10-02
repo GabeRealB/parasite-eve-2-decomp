@@ -17,7 +17,7 @@ extern GpAreaVariant D_shelter_b3_incinerator_control_room_80182610[11];
 // shelter_b3_incinerator_control_room
 extern u8* D_shelter_b3_incinerator_control_room_80181920[];
 
-extern GpViewCountRec D_shelter_b3_incinerator_control_room_80181928[];
+extern ViewCount D_shelter_b3_incinerator_control_room_80181928[];
 
 extern GpWarpRec D_shelter_b3_incinerator_control_room_8018192C[];
 

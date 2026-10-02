@@ -20,7 +20,7 @@ extern GpRoomObjRec D_neo_ark_south_promenade_8017F6F4[];
 
 extern u8* D_neo_ark_south_promenade_8017F704[];
 
-extern GpViewCountRec D_neo_ark_south_promenade_8017F708[];
+extern ViewCount D_neo_ark_south_promenade_8017F708[];
 
 extern GpWarpRec D_neo_ark_south_promenade_8017F70C[];
 

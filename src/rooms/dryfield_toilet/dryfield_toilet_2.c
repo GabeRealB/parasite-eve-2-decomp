@@ -179,9 +179,7 @@ u8* D_dryfield_toilet_8018113C[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_dryfield_toilet_80181140[1] = {
-    { { .bytes = { 11, 0 } } },
-};
+ViewCount D_dryfield_toilet_80181140[1] = { 11 };
 
 WorldCoordRoomLighting D_dryfield_toilet_80181144[1] = {
     { D_dryfield_toilet_801828AC, NULL },

@@ -17,7 +17,7 @@ extern GpAreaVariant D_shelter_b2_operating_room_80184124[12];
 // shelter_b2_operating_room
 extern u8* D_shelter_b2_operating_room_80180BC8[];
 
-extern GpViewCountRec D_shelter_b2_operating_room_80180BCC[];
+extern ViewCount D_shelter_b2_operating_room_80180BCC[];
 
 extern GpWarpRec D_shelter_b2_operating_room_80180BD0[];
 

@@ -270,9 +270,7 @@ WorldCoordRoomLighting D_dryfield_gas_station_80183160[1] = {
     { D_dryfield_gas_station_80184B48, NULL },
 };
 
-GpViewCountRec D_dryfield_gas_station_80183168[1] = {
-    { { .bytes = { 14, 0 } } },
-};
+ViewCount D_dryfield_gas_station_80183168[1] = { 14 };
 
 GpWarpRec D_dryfield_gas_station_8018316C[3] = {
     { { { .word = 2816 }, 0x3848, 0, -2630 }, { 0, 0, 0, 0 }, { { .word = 2816 }, 0x3848, 0, -1440 }, { 0, 0, 0, 0 }, 0, 0, 0, 3, 0, 0 },

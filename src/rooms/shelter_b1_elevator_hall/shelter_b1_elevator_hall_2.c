@@ -143,9 +143,7 @@ u8* D_shelter_b1_elevator_hall_80182E10[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_shelter_b1_elevator_hall_80182E14[1] = {
-    { { .bytes = { 9, 0 } } },
-};
+ViewCount D_shelter_b1_elevator_hall_80182E14[1] = { 9 };
 
 GpWarpRec D_shelter_b1_elevator_hall_80182E18[4] = {
     { { { .word = 1024 }, -0x29CC, 0, 520 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -0x29CC, 0, 520 }, { 0, 0, 0, 0 }, 0x54090006, 0x54090007, 0, 2, 2, 0 },

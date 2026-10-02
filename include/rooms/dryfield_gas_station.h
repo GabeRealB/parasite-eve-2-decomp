@@ -20,7 +20,7 @@ extern u8* D_dryfield_gas_station_8018315C[];
 
 extern WorldCoordRoomLighting D_dryfield_gas_station_80183160[];
 
-extern GpViewCountRec D_dryfield_gas_station_80183168[];
+extern ViewCount D_dryfield_gas_station_80183168[];
 
 extern GpWarpRec D_dryfield_gas_station_8018316C[];
 

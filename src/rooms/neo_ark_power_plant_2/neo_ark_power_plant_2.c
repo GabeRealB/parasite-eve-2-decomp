@@ -256,10 +256,7 @@ u8* D_neo_ark_power_plant_2_801806A8[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_neo_ark_power_plant_2_801806AC[2] = {
-    { { .bytes = { 9, 0 } } },
-    { { .bytes = { 0, 0 } } },
-};
+ViewCount D_neo_ark_power_plant_2_801806AC[2] = { 9, 0 };
 
 GpWarpRec D_neo_ark_power_plant_2_801806B0[1] = {
     { { { .word = 3072 }, 4000, -5000, -400 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4000, -5000, -400 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },

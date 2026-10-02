@@ -22,7 +22,7 @@ extern WorldCoordRoomLighting D_shelter_1f_heliport_801812E0[];
 
 extern u8* D_shelter_1f_heliport_801812E8[];
 
-extern GpViewCountRec D_shelter_1f_heliport_801812EC[];
+extern ViewCount D_shelter_1f_heliport_801812EC[];
 
 extern GpWarpRec D_shelter_1f_heliport_801812F0[];
 

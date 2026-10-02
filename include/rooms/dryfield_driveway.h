@@ -20,7 +20,7 @@ extern u8* D_dryfield_driveway_8017E7AC[];
 
 extern WorldCoordRoomLighting D_dryfield_driveway_8017E7B4[];
 
-extern GpViewCountRec D_dryfield_driveway_8017E7C4[];
+extern ViewCount D_dryfield_driveway_8017E7C4[];
 
 extern GpWarpRec D_dryfield_driveway_8017E7C8[];
 

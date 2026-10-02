@@ -20,7 +20,7 @@ extern GpRoomObjRec D_mine_secret_passage_80180FA4[];
 
 extern u8* D_mine_secret_passage_80180FB4[];
 
-extern GpViewCountRec D_mine_secret_passage_80180FB8[];
+extern ViewCount D_mine_secret_passage_80180FB8[];
 
 extern GpWarpRec D_mine_secret_passage_80180FBC[];
 

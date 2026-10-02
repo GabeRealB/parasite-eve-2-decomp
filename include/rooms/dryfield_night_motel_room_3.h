@@ -20,7 +20,7 @@ extern GpRoomObjRec D_dryfield_night_motel_room_3_8017DAA4[];
 
 extern u8* D_dryfield_night_motel_room_3_8017DAB4[];
 
-extern GpViewCountRec D_dryfield_night_motel_room_3_8017DAB8[];
+extern ViewCount D_dryfield_night_motel_room_3_8017DAB8[];
 
 extern GpWarpRec D_dryfield_night_motel_room_3_8017DABC[];
 

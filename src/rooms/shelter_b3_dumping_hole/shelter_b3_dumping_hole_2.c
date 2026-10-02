@@ -1017,10 +1017,7 @@ u8* D_shelter_b3_dumping_hole_8018B698[2] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_shelter_b3_dumping_hole_8018B6A0[2] = {
-    { { .bytes = { 37, 0 } } },
-    { { .bytes = { 37, 0 } } },
-};
+ViewCount D_shelter_b3_dumping_hole_8018B6A0[2] = { 37, 37 };
 
 GpWarpRec D_shelter_b3_dumping_hole_8018B6A4[3] = {
     { { { .word = 3072 }, 0x4C2C, 0, -4450 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x4C2C, 0, -4450 }, { 0, 0, 0, 0 }, 0x54270004, 0x54270003, 0, 30, 0, 0 },

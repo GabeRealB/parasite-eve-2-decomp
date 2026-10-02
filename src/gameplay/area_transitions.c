@@ -545,7 +545,7 @@ static u8 Gp_GetViewCountLo(void)
 
     session = gGameSession;
     tbl     = Gp_ViewCountTables[session->location.loc.stage - 1];
-    return tbl->field_0[session->location.loc.area - 1][session->location.loc.room - 1].prefix.bytes.field_0;
+    return (u8)tbl->field_0[session->location.loc.area - 1][session->location.loc.room - 1];
 }
 
 static void Gp_DirAction0(void)

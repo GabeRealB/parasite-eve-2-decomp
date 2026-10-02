@@ -25,7 +25,7 @@ extern WorldCoordRoomLighting D_dryfield_night_factory_80186F24[];
 
 extern GpRoomObjRec D_dryfield_night_factory_80186F34[];
 
-extern GpViewCountRec D_dryfield_night_factory_80186F54[];
+extern ViewCount D_dryfield_night_factory_80186F54[];
 
 extern GpWarpRec D_dryfield_night_factory_80186F58[];
 

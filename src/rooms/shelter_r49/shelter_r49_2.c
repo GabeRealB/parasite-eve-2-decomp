@@ -51,9 +51,7 @@ u8* D_shelter_r49_8017DA28[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_shelter_r49_8017DA2C[1] = {
-    { { .bytes = { 3, 0 } } },
-};
+ViewCount D_shelter_r49_8017DA2C[1] = { 3 };
 
 WorldCoordRoomLighting D_shelter_r49_8017DA30[1] = {
     { D_shelter_r49_8017DD24, NULL },

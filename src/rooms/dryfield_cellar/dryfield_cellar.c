@@ -102,10 +102,7 @@ u8* D_dryfield_cellar_8017DC04[2] = {
     D_dryfield_cellar_8017DBFC,
 };
 
-GpViewCountRec D_dryfield_cellar_8017DC0C[2] = {
-    { { .bytes = { 11, 0 } } },
-    { { .bytes = { 6, 0 } } },
-};
+ViewCount D_dryfield_cellar_8017DC0C[2] = { 11, 6 };
 
 WorldCoordRoomLighting D_dryfield_cellar_8017DC10[2] = {
     { D_dryfield_cellar_80180898, NULL },

@@ -21,7 +21,7 @@ extern GpRoomObjRec D_acropolis_roof_garden_80184C8C[];
 
 extern u8* D_acropolis_roof_garden_80184C9C[];
 
-extern GpViewCountRec D_acropolis_roof_garden_80184CA0[];
+extern ViewCount D_acropolis_roof_garden_80184CA0[];
 
 extern WorldCoordRoomLighting D_acropolis_roof_garden_80184CA4[];
 

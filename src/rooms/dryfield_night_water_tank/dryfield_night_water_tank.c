@@ -238,9 +238,7 @@ u8* D_dryfield_night_water_tank_8017EE74[1] = {
     D_dryfield_night_water_tank_8017EE68,
 };
 
-GpViewCountRec D_dryfield_night_water_tank_8017EE78[1] = {
-    { { .bytes = { 10, 0 } } },
-};
+ViewCount D_dryfield_night_water_tank_8017EE78[1] = { 10 };
 
 GpWarpRec D_dryfield_night_water_tank_8017EE7C[2] = {
     { { { .word = 512 }, -2327, -0x2EDF, 1143 }, { 0, 0, 0, 0 }, { { .word = 512 }, -2327, -0x2EDF, 1143 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },

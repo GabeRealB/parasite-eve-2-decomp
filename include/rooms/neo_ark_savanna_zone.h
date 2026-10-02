@@ -20,7 +20,7 @@ extern WorldCoordRoomLighting D_neo_ark_savanna_zone_8017F9F4[];
 
 extern u8* D_neo_ark_savanna_zone_8017F9FC[];
 
-extern GpViewCountRec D_neo_ark_savanna_zone_8017FA00[];
+extern ViewCount D_neo_ark_savanna_zone_8017FA00[];
 
 extern GpWarpRec D_neo_ark_savanna_zone_8017FA04[];
 

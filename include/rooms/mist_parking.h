@@ -20,7 +20,7 @@ extern GpRoomObjRec D_mist_parking_8019155C[];
 
 extern u8* D_mist_parking_801915B0[];
 
-extern GpViewCountRec D_mist_parking_801915C0[];
+extern ViewCount D_mist_parking_801915C0[];
 
 extern WorldCoordRoomLighting D_mist_parking_801915C8[];
 

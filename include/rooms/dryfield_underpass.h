@@ -18,7 +18,7 @@ extern GpRoomObjRec D_dryfield_underpass_8017EB20[];
 
 extern u8* D_dryfield_underpass_8017EBBC[];
 
-extern GpViewCountRec D_dryfield_underpass_8017EBD4[];
+extern ViewCount D_dryfield_underpass_8017EBD4[];
 
 extern WorldCoordRoomLighting D_dryfield_underpass_8017EBE0[];
 

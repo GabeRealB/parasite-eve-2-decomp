@@ -150,9 +150,7 @@ u8* D_shelter_b2_south_maintenance_walkway_8018263C[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_shelter_b2_south_maintenance_walkway_80182640[1] = {
-    { { .bytes = { 5, 0 } } },
-};
+ViewCount D_shelter_b2_south_maintenance_walkway_80182640[1] = { 5 };
 
 GpWarpRec D_shelter_b2_south_maintenance_walkway_80182644[2] = {
     { { { .word = 1024 }, -2412, 0, -3946 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -2412, 0, -3946 }, { 0, 0, 0, 0 }, 0x541C0002, 0x541C0001, 0, 2, 0, 457 },

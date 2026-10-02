@@ -37,7 +37,7 @@ extern GpRoomObjRec D_acropolis_cafeteria_8018753C[];
 
 extern u8* D_acropolis_cafeteria_801875AC[];
 
-extern GpViewCountRec D_acropolis_cafeteria_801875BC[];
+extern ViewCount D_acropolis_cafeteria_801875BC[];
 
 extern WorldCoordRoomLighting D_acropolis_cafeteria_801875C4[];
 

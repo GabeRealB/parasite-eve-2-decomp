@@ -289,14 +289,7 @@ u8* D_neo_ark_shrine_801827F0[6] = {
     D_neo_ark_shrine_801827C8,
 };
 
-GpViewCountRec D_neo_ark_shrine_80182808[6] = {
-    { { .bytes = { 18, 0 } } },
-    { { .bytes = { 18, 0 } } },
-    { { .bytes = { 18, 0 } } },
-    { { .bytes = { 18, 0 } } },
-    { { .bytes = { 18, 0 } } },
-    { { .bytes = { 18, 0 } } },
-};
+ViewCount D_neo_ark_shrine_80182808[6] = { 18, 18, 18, 18, 18, 18 };
 
 GpWarpRec D_neo_ark_shrine_80182814[3] = {
     { { { .word = 1024 }, 525, 0, 1200 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 525, 0, 1200 }, { 0, 0, 0, 0 }, 0x55150004, 0x55150003, 0x55150005, 9, 0, 440 },

@@ -23,7 +23,7 @@ extern GpRoomObjRec D_shelter_b1_sterilization_room_8018936C[];
 
 extern u8* D_shelter_b1_sterilization_room_801893CC[];
 
-extern GpViewCountRec D_shelter_b1_sterilization_room_801893D8[];
+extern ViewCount D_shelter_b1_sterilization_room_801893D8[];
 
 extern GpWarpRec D_shelter_b1_sterilization_room_801893E0[];
 

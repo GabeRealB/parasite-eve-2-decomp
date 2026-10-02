@@ -197,12 +197,7 @@ u8* D_dryfield_water_hole_8017FD84[4] = {
     D_dryfield_water_hole_8017FD7C,
 };
 
-GpViewCountRec D_dryfield_water_hole_8017FD94[4] = {
-    { { .bytes = { 8, 0 } } },
-    { { .bytes = { 8, 0 } } },
-    { { .bytes = { 8, 0 } } },
-    { { .bytes = { 8, 0 } } },
-};
+ViewCount D_dryfield_water_hole_8017FD94[4] = { 8, 8, 8, 8 };
 
 WorldCoordRoomLighting D_dryfield_water_hole_8017FD9C[4] = {
     { D_dryfield_water_hole_80182468, D_dryfield_water_hole_80182824 },

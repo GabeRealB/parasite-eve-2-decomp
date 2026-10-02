@@ -18,7 +18,7 @@ extern GpRoomObjRec D_acropolis_fountain_8017E814[];
 
 extern u8* D_acropolis_fountain_8017E84C[];
 
-extern GpViewCountRec D_acropolis_fountain_8017E854[];
+extern ViewCount D_acropolis_fountain_8017E854[];
 
 extern WorldCoordRoomLighting D_acropolis_fountain_8017E858[];
 

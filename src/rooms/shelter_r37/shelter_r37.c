@@ -40,9 +40,7 @@ u8* D_shelter_r37_8017D6F8[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_shelter_r37_8017D6FC[1] = {
-    { { .bytes = { 3, 0 } } },
-};
+ViewCount D_shelter_r37_8017D6FC[1] = { 3 };
 
 GpWarpRec D_shelter_r37_8017D700[1] = {
     { { { .word = 1024 }, 3756, 0, -197 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 3756, 0, -197 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },

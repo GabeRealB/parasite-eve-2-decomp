@@ -278,9 +278,7 @@ u8* D_shelter_b6_corridor_8017F8B4[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_shelter_b6_corridor_8017F8B8[1] = {
-    { { .bytes = { 5, 0 } } },
-};
+ViewCount D_shelter_b6_corridor_8017F8B8[1] = { 5 };
 
 GpWarpRec D_shelter_b6_corridor_8017F8BC[2] = {
     { { { .word = 1024 }, 430, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 430, 0, 0 }, { 0, 0, 0, 0 }, 0x55180001, 0, 0, 4, 0, 0 },

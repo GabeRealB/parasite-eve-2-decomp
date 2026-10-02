@@ -783,10 +783,7 @@ u8* D_acropolis_bridge_80189A80[2] = {
     D_acropolis_bridge_80189A74,
 };
 
-GpViewCountRec D_acropolis_bridge_80189A88[2] = {
-    { { .bytes = { 10, 0 } } },
-    { { .bytes = { 10, 0 } } },
-};
+ViewCount D_acropolis_bridge_80189A88[2] = { 10, 10 };
 
 WorldCoordRoomLighting D_acropolis_bridge_80189A8C[2] = {
     { D_acropolis_bridge_80190A0C, NULL },

@@ -193,14 +193,7 @@ u8* D_dryfield_night_underpass_8017DE3C[6] = {
     D_dryfield_night_underpass_8017DE30,
 };
 
-GpViewCountRec D_dryfield_night_underpass_8017DE54[6] = {
-    { { .bytes = { 26, 0 } } },
-    { { .bytes = { 11, 0 } } },
-    { { .bytes = { 11, 0 } } },
-    { { .bytes = { 11, 0 } } },
-    { { .bytes = { 11, 0 } } },
-    { { .bytes = { 11, 0 } } },
-};
+ViewCount D_dryfield_night_underpass_8017DE54[6] = { 26, 11, 11, 11, 11, 11 };
 
 GpWarpRec D_dryfield_night_underpass_8017DE60[3] = {
     { { { .word = 0 }, 5303, -997, -0x2C94 }, { 0, 0, 0, 0 }, { { .word = 0 }, 5303, -997, -0x2C94 }, { 0, 0, 0, 0 }, 0x53260008, 0x53260007, 0, 6, 0, 463 },

@@ -86,9 +86,7 @@ u8* D_shelter_1f_guardroom_8017DA90[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_shelter_1f_guardroom_8017DA94[1] = {
-    { { .bytes = { 3, 0 } } },
-};
+ViewCount D_shelter_1f_guardroom_8017DA94[1] = { 3 };
 
 GpWarpRec D_shelter_1f_guardroom_8017DA98[1] = {
     { { { .word = 2048 }, -9000, 0, -3620 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -9000, 0, -3620 }, { 0, 0, 0, 0 }, 0x55060002, 0x55060001, 0, 2, 0, 0 },

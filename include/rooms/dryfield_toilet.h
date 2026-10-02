@@ -24,7 +24,7 @@ extern GpRoomObjRec D_dryfield_toilet_8018112C[];
 
 extern u8* D_dryfield_toilet_8018113C[];
 
-extern GpViewCountRec D_dryfield_toilet_80181140[];
+extern ViewCount D_dryfield_toilet_80181140[];
 
 extern WorldCoordRoomLighting D_dryfield_toilet_80181144[];
 

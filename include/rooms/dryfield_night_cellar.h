@@ -20,7 +20,7 @@ extern GpRoomObjRec D_dryfield_night_cellar_8017DB00[];
 
 extern u8* D_dryfield_night_cellar_8017DB28[];
 
-extern GpViewCountRec D_dryfield_night_cellar_8017DB30[];
+extern ViewCount D_dryfield_night_cellar_8017DB30[];
 
 extern GpWarpRec D_dryfield_night_cellar_8017DB34[];
 

@@ -71,9 +71,7 @@ u8* D_neo_ark_submarine_tunnel_80181E18[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_neo_ark_submarine_tunnel_80181E1C[1] = {
-    { { .bytes = { 10, 0 } } },
-};
+ViewCount D_neo_ark_submarine_tunnel_80181E1C[1] = { 10 };
 
 GpWarpRec D_neo_ark_submarine_tunnel_80181E20[2] = {
     { { { .word = 3072 }, 6300, 2330, 0 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4544, 2944, 0 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 1, 0 },

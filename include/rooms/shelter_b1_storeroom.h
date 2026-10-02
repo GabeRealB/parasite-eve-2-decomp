@@ -20,7 +20,7 @@ extern WorldCoordRoomLighting D_shelter_b1_storeroom_80184B60[];
 
 extern u8* D_shelter_b1_storeroom_80184B68[];
 
-extern GpViewCountRec D_shelter_b1_storeroom_80184B6C[];
+extern ViewCount D_shelter_b1_storeroom_80184B6C[];
 
 extern GpWarpRec D_shelter_b1_storeroom_80184B70[];
 

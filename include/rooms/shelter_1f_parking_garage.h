@@ -20,7 +20,7 @@ extern WorldCoordRoomLighting D_shelter_1f_parking_garage_80180C74[];
 
 extern u8* D_shelter_1f_parking_garage_80180C7C[];
 
-extern GpViewCountRec D_shelter_1f_parking_garage_80180C80[];
+extern ViewCount D_shelter_1f_parking_garage_80180C80[];
 
 extern GpWarpRec D_shelter_1f_parking_garage_80180C84[];
 

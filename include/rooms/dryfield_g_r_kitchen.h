@@ -18,7 +18,7 @@ extern GpRoomObjRec D_dryfield_g_r_kitchen_8017EC28[];
 
 extern u8* D_dryfield_g_r_kitchen_8017EC38[];
 
-extern GpViewCountRec D_dryfield_g_r_kitchen_8017EC3C[];
+extern ViewCount D_dryfield_g_r_kitchen_8017EC3C[];
 
 extern WorldCoordRoomLighting D_dryfield_g_r_kitchen_8017EC40[];
 

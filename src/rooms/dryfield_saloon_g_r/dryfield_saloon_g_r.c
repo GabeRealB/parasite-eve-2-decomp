@@ -169,10 +169,7 @@ u8* D_dryfield_saloon_g_r_8017EDD0[2] = {
     D_dryfield_saloon_g_r_8017EDC0,
 };
 
-GpViewCountRec D_dryfield_saloon_g_r_8017EDD8[2] = {
-    { { .bytes = { 13, 0 } } },
-    { { .bytes = { 13, 0 } } },
-};
+ViewCount D_dryfield_saloon_g_r_8017EDD8[2] = { 13, 13 };
 
 WorldCoordRoomLighting D_dryfield_saloon_g_r_8017EDDC[2] = {
     { D_dryfield_saloon_g_r_80181AC8, NULL },

@@ -20,7 +20,7 @@ extern GpRoomObjRec D_shelter_b1_elevator_hall_80182E00[];
 
 extern u8* D_shelter_b1_elevator_hall_80182E10[];
 
-extern GpViewCountRec D_shelter_b1_elevator_hall_80182E14[];
+extern ViewCount D_shelter_b1_elevator_hall_80182E14[];
 
 extern GpWarpRec D_shelter_b1_elevator_hall_80182E18[];
 

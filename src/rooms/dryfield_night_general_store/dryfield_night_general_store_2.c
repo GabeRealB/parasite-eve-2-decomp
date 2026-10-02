@@ -77,9 +77,7 @@ u8* D_dryfield_night_general_store_8017E844[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_dryfield_night_general_store_8017E848[1] = {
-    { { .bytes = { 16, 0 } } },
-};
+ViewCount D_dryfield_night_general_store_8017E848[1] = { 16 };
 
 GpWarpRec D_dryfield_night_general_store_8017E84C[3] = {
     { { { .word = 0 }, 3100, 0, 439 }, { 0, 0, 0, 0 }, { { .word = 1536 }, 2496, 0, 920 }, { 0, 0, 0, 0 }, 0x53030004, 0x53030003, 0, 2, 0, 489 },

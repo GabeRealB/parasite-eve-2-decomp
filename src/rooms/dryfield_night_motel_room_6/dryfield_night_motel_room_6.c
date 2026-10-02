@@ -229,9 +229,7 @@ u8* D_dryfield_night_motel_room_6_80182F18[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_dryfield_night_motel_room_6_80182F1C[1] = {
-    { { .bytes = { 12, 0 } } },
-};
+ViewCount D_dryfield_night_motel_room_6_80182F1C[1] = { 12 };
 
 GpWarpRec D_dryfield_night_motel_room_6_80182F20[2] = {
     { { { .word = 3072 }, 4350, 0, 1500 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4350, 0, 1500 }, { 0, 0, 0, 0 }, 0x531E0002, 0x531E0001, 0, 2, 0, 465 },

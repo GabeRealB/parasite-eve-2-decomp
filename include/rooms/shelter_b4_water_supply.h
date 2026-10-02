@@ -19,7 +19,7 @@ extern GpAreaVariant D_shelter_b4_water_supply_80184CA4[12];
 // shelter_b4_water_supply
 extern u8* D_shelter_b4_water_supply_8018273C[];
 
-extern GpViewCountRec D_shelter_b4_water_supply_80182740[];
+extern ViewCount D_shelter_b4_water_supply_80182740[];
 
 extern GpWarpRec D_shelter_b4_water_supply_80182744[];
 

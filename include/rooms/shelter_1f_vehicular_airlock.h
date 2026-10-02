@@ -24,7 +24,7 @@ extern WorldCoordRoomLighting D_shelter_1f_vehicular_airlock_8018210C[];
 
 extern u8* D_shelter_1f_vehicular_airlock_80182114[];
 
-extern GpViewCountRec D_shelter_1f_vehicular_airlock_80182118[];
+extern ViewCount D_shelter_1f_vehicular_airlock_80182118[];
 
 extern GpWarpRec D_shelter_1f_vehicular_airlock_8018211C[];
 

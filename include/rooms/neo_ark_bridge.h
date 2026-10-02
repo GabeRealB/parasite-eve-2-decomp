@@ -31,7 +31,7 @@ extern GpAreaVariant D_neo_ark_bridge_80184A50[13];
 // neo_ark_bridge
 extern u8* D_neo_ark_bridge_80181F80[];
 
-extern GpViewCountRec D_neo_ark_bridge_80181F84[];
+extern ViewCount D_neo_ark_bridge_80181F84[];
 
 extern GpWarpRec D_neo_ark_bridge_80181F88[];
 

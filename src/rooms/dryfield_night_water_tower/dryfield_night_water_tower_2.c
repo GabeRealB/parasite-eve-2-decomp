@@ -90,9 +90,7 @@ u8* D_dryfield_night_water_tower_8017E764[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_dryfield_night_water_tower_8017E768[1] = {
-    { { .bytes = { 10, 0 } } },
-};
+ViewCount D_dryfield_night_water_tower_8017E768[1] = { 10 };
 
 GpWarpRec D_dryfield_night_water_tower_8017E76C[4] = {
     { { { .word = 0 }, -2437, 0, -5662 }, { 0, 0, 0, 0 }, { { .word = 0 }, -1900, 0, 600 }, { 0, 0, 0, 0 }, 0x53140004, 0x53140003, 0, 3, 0, 477 },

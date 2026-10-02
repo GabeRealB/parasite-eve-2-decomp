@@ -20,7 +20,7 @@ extern GpRoomObjRec D_mine_refuge_801818F8[];
 
 extern u8* D_mine_refuge_80181908[];
 
-extern GpViewCountRec D_mine_refuge_8018190C[];
+extern ViewCount D_mine_refuge_8018190C[];
 
 extern GpWarpRec D_mine_refuge_80181910[];
 

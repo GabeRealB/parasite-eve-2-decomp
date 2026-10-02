@@ -377,12 +377,7 @@ u8* D_dryfield_night_water_hole_80180A94[4] = {
     D_dryfield_night_water_hole_80180A88,
 };
 
-GpViewCountRec D_dryfield_night_water_hole_80180AA4[4] = {
-    { { .bytes = { 11, 0 } } },
-    { { .bytes = { 11, 0 } } },
-    { { .bytes = { 11, 0 } } },
-    { { .bytes = { 11, 0 } } },
-};
+ViewCount D_dryfield_night_water_hole_80180AA4[4] = { 11, 11, 11, 11 };
 
 GpWarpRec D_dryfield_night_water_hole_80180AAC[3] = {
     { { { .word = 0 }, 7400, 0, -1300 }, { 0, 0, 0, 0 }, { { .word = 0 }, 7400, 0, -1300 }, { 0, 0, 0, 0 }, 0x53200003, 0x53200003, 0, 3, 2, 0 },

@@ -130,9 +130,7 @@ u8* D_dryfield_motel_balcony_801822E0[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_dryfield_motel_balcony_801822E4[1] = {
-    { { .bytes = { 22, 0 } } },
-};
+ViewCount D_dryfield_motel_balcony_801822E4[1] = { 22 };
 
 WorldCoordRoomLighting D_dryfield_motel_balcony_801822E8[1] = {
     { D_dryfield_motel_balcony_801865E8, D_dryfield_motel_balcony_80186600 },

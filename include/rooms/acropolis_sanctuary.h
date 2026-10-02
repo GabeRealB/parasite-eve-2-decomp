@@ -23,7 +23,7 @@ extern GpRoomObjRec D_acropolis_sanctuary_801827EC[];
 
 extern u8* D_acropolis_sanctuary_801827FC[];
 
-extern GpViewCountRec D_acropolis_sanctuary_80182800[];
+extern ViewCount D_acropolis_sanctuary_80182800[];
 
 extern WorldCoordRoomLighting D_acropolis_sanctuary_80182804[];
 

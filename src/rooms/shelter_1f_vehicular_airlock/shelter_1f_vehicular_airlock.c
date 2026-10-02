@@ -178,9 +178,7 @@ u8* D_shelter_1f_vehicular_airlock_80182114[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_shelter_1f_vehicular_airlock_80182118[1] = {
-    { { .bytes = { 3, 0 } } },
-};
+ViewCount D_shelter_1f_vehicular_airlock_80182118[1] = { 3 };
 
 GpWarpRec D_shelter_1f_vehicular_airlock_8018211C[3] = {
     { { { .word = 2048 }, -5000, 0, 1570 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -4960, 0, 1380 }, { 0, 0, 0, 0 }, 0x55020002, 0x55020001, 0, 2, 0, 0 },

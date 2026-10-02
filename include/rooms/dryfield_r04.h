@@ -13,7 +13,7 @@ extern GpRoomObjRec D_dryfield_r04_8017D5C4[];
 
 extern u8* D_dryfield_r04_8017D5D4[];
 
-extern GpViewCountRec D_dryfield_r04_8017D5D8[];
+extern ViewCount D_dryfield_r04_8017D5D8[];
 
 extern GpWarpRec D_dryfield_r04_8017D5E4[];
 

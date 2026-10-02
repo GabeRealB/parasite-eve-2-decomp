@@ -18,7 +18,7 @@ extern GpRoomObjRec D_dryfield_saloon_g_r_8017EDA0[];
 
 extern u8* D_dryfield_saloon_g_r_8017EDD0[];
 
-extern GpViewCountRec D_dryfield_saloon_g_r_8017EDD8[];
+extern ViewCount D_dryfield_saloon_g_r_8017EDD8[];
 
 extern WorldCoordRoomLighting D_dryfield_saloon_g_r_8017EDDC[];
 

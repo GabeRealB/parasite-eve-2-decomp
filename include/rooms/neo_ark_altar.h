@@ -17,7 +17,7 @@ extern WorldCoordRoomLighting D_neo_ark_altar_8017F0C4[];
 
 extern u8* D_neo_ark_altar_8017F0EC[];
 
-extern GpViewCountRec D_neo_ark_altar_8017F0F8[];
+extern ViewCount D_neo_ark_altar_8017F0F8[];
 
 extern GpWarpRec D_neo_ark_altar_8017F0FC[];
 

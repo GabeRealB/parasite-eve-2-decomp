@@ -1120,9 +1120,7 @@ WorldCoordRoomLighting D_mine_mesa_8018654C[1] = {
     { D_mine_mesa_80188E28, D_mine_mesa_80189954 },
 };
 
-GpViewCountRec D_mine_mesa_80186554[1] = {
-    { { .bytes = { 11, 0 } } },
-};
+ViewCount D_mine_mesa_80186554[1] = { 11 };
 
 GpWarpRec D_mine_mesa_80186558[2] = {
     { { { .word = 2048 }, 7060, 0, 2570 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 7060, 0, 2570 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },

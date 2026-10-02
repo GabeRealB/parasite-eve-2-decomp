@@ -109,9 +109,7 @@ u8* D_shelter_b4_lower_sewer_80181FA4[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_shelter_b4_lower_sewer_80181FA8[1] = {
-    { { .bytes = { 9, 0 } } },
-};
+ViewCount D_shelter_b4_lower_sewer_80181FA8[1] = { 9 };
 
 GpWarpRec D_shelter_b4_lower_sewer_80181FAC[4] = {
     { { { .word = 1024 }, -7821, 0, 2453 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -7800, 0, 1620 }, { 0, 0, 0, 0 }, 0, 0, 0, 5, 0, 447 },

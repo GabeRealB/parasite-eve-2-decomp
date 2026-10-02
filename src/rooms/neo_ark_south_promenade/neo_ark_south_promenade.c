@@ -92,9 +92,7 @@ u8* D_neo_ark_south_promenade_8017F704[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_neo_ark_south_promenade_8017F708[1] = {
-    { { .bytes = { 5, 0 } } },
-};
+ViewCount D_neo_ark_south_promenade_8017F708[1] = { 5 };
 
 GpWarpRec D_neo_ark_south_promenade_8017F70C[2] = {
     { { { .word = 1024 }, 1137, 0, 2500 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 1137, 0, 2500 }, { 0, 0, 0, 0 }, 0x55130002, 0x55130001, 0, 5, 0, 0 },

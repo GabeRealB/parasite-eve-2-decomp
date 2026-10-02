@@ -20,7 +20,7 @@ extern GpAreaVariant D_neo_ark_r31_8017DBB8[13];
 // neo_ark_r31
 extern u8* D_neo_ark_r31_8017DA1C[];
 
-extern GpViewCountRec D_neo_ark_r31_8017DA20[];
+extern ViewCount D_neo_ark_r31_8017DA20[];
 
 extern GpWarpRec D_neo_ark_r31_8017DA24[];
 

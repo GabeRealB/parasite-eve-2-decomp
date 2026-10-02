@@ -22,7 +22,7 @@ extern GpRoomObjRec D_dryfield_night_parking_lot_8017EE24[];
 
 extern u8* D_dryfield_night_parking_lot_8017EE4C[];
 
-extern GpViewCountRec D_dryfield_night_parking_lot_8017EE54[];
+extern ViewCount D_dryfield_night_parking_lot_8017EE54[];
 
 extern GpWarpRec D_dryfield_night_parking_lot_8017EE58[];
 

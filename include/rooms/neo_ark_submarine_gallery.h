@@ -38,7 +38,7 @@ extern GpAreaVariant D_neo_ark_submarine_gallery_80185860[13];
 // neo_ark_submarine_gallery
 extern u8* D_neo_ark_submarine_gallery_80181A08[];
 
-extern GpViewCountRec D_neo_ark_submarine_gallery_80181A0C[];
+extern ViewCount D_neo_ark_submarine_gallery_80181A0C[];
 
 extern GpWarpRec D_neo_ark_submarine_gallery_80181A10[];
 

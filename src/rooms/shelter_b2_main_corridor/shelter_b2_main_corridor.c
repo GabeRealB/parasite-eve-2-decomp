@@ -384,9 +384,7 @@ u8* D_shelter_b2_main_corridor_801830CC[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_shelter_b2_main_corridor_801830D0[1] = {
-    { { .bytes = { 13, 0 } } },
-};
+ViewCount D_shelter_b2_main_corridor_801830D0[1] = { 13 };
 
 GpWarpRec D_shelter_b2_main_corridor_801830D4[6] = {
     { { { .word = 0 }, -67, -6, -0x4909 }, { 0, 0, 0, 0 }, { { .word = 0 }, -67, -6, -0x4909 }, { 0, 0, 0, 0 }, 0x54210002, 0x54210001, 0x5421000B, 2, 0, 455 },

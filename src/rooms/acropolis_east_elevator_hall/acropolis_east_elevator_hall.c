@@ -331,9 +331,7 @@ u8* D_acropolis_east_elevator_hall_80186330[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_acropolis_east_elevator_hall_80186334[1] = {
-    { { .bytes = { 7, 0 } } },
-};
+ViewCount D_acropolis_east_elevator_hall_80186334[1] = { 7 };
 
 WorldCoordRoomLighting D_acropolis_east_elevator_hall_80186338[1] = {
     { D_acropolis_east_elevator_hall_80187A44, NULL },

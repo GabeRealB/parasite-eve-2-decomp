@@ -117,9 +117,7 @@ u8* D_mine_tunnel_entrance_8017DB70[1] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_mine_tunnel_entrance_8017DB74[1] = {
-    { { .bytes = { 6, 0 } } },
-};
+ViewCount D_mine_tunnel_entrance_8017DB74[1] = { 6 };
 
 GpWarpRec D_mine_tunnel_entrance_8017DB78[3] = {
     { { { .word = 3072 }, 0x44C0, 0, 1750 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x44C0, 0, 1750 }, { 0, 0, 0, 0 }, 0x54030002, 0x54030001, 0, 2, 0, 0 },

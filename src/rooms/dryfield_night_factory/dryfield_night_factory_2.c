@@ -279,10 +279,7 @@ GpRoomObjRec D_dryfield_night_factory_80186F34[2] = {
     { &gFactoryNightGrid, D_dryfield_night_factory_80189CA0, D_dryfield_night_factory_8018A168, NULL },
 };
 
-GpViewCountRec D_dryfield_night_factory_80186F54[2] = {
-    { { .bytes = { 19, 0 } } },
-    { { .bytes = { 19, 0 } } },
-};
+ViewCount D_dryfield_night_factory_80186F54[2] = { 19, 19 };
 
 GpWarpRec D_dryfield_night_factory_80186F58[3] = {
     { { { .word = 3072 }, 5178, 0, 1454 }, { 0, 0, 0, 0 }, { { .word = 768 }, 3952, 0, 1200 }, { 0, 0, 0, 0 }, 0x53170002, 0x53170001, 0, 2, 0, 474 },

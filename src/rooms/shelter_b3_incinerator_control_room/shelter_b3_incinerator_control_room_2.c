@@ -80,10 +80,7 @@ u8* D_shelter_b3_incinerator_control_room_80181920[2] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_shelter_b3_incinerator_control_room_80181928[2] = {
-    { { .bytes = { 8, 0 } } },
-    { { .bytes = { 8, 0 } } },
-};
+ViewCount D_shelter_b3_incinerator_control_room_80181928[2] = { 8, 8 };
 
 GpWarpRec D_shelter_b3_incinerator_control_room_8018192C[4] = {
     { { { .word = 2048 }, -5333, 0, 2984 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -5333, 0, 2984 }, { 0, 0, 0, 0 }, 0x54290008, 0, 0, 5, 0, 0 },

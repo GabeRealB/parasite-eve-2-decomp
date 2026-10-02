@@ -23,7 +23,7 @@ extern WorldCoordRoomLighting D_dryfield_night_water_hole_80180A44[];
 
 extern u8* D_dryfield_night_water_hole_80180A94[];
 
-extern GpViewCountRec D_dryfield_night_water_hole_80180AA4[];
+extern ViewCount D_dryfield_night_water_hole_80180AA4[];
 
 extern GpWarpRec D_dryfield_night_water_hole_80180AAC[];
 

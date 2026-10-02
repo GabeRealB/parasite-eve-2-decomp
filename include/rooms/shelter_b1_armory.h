@@ -19,7 +19,7 @@ extern GpAreaVariant D_shelter_b1_armory_801854E0[11];
 // shelter_b1_armory
 extern u8* D_shelter_b1_armory_80182580[];
 
-extern GpViewCountRec D_shelter_b1_armory_80182584[];
+extern ViewCount D_shelter_b1_armory_80182584[];
 
 extern GpWarpRec D_shelter_b1_armory_80182588[];
 

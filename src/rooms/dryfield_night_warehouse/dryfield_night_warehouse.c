@@ -118,11 +118,7 @@ u8* D_dryfield_night_warehouse_8017E930[3] = {
     gViewIdentityMap,
 };
 
-GpViewCountRec D_dryfield_night_warehouse_8017E93C[3] = {
-    { { .bytes = { 4, 0 } } },
-    { { .bytes = { 4, 0 } } },
-    { { .bytes = { 4, 0 } } },
-};
+ViewCount D_dryfield_night_warehouse_8017E93C[3] = { 4, 4, 4 };
 
 GpWarpRec D_dryfield_night_warehouse_8017E944[2] = {
     { { { .word = 0 }, 2631, 0, -3535 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 1721, 0, -2640 }, { 0, 0, 0, 0 }, 0x53070002, 0x53070001, 0, 2, 0, 468 },

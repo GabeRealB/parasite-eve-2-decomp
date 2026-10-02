@@ -264,11 +264,7 @@ u8* D_dryfield_night_motel_balcony_80182E98[3] = {
     D_dryfield_night_motel_balcony_80182E70,
 };
 
-GpViewCountRec D_dryfield_night_motel_balcony_80182EA4[3] = {
-    { { .bytes = { 39, 0 } } },
-    { { .bytes = { 39, 0 } } },
-    { { .bytes = { 39, 0 } } },
-};
+ViewCount D_dryfield_night_motel_balcony_80182EA4[3] = { 39, 39, 39 };
 
 GpWarpRec D_dryfield_night_motel_balcony_80182EAC[5] = {
     { { { .word = 0 }, -0x315E, -3198, 1396 }, { 0, 0, 0, 0 }, { { .word = 0 }, -0x315E, -3198, 1396 }, { 0, 0, 0, 0 }, 0x531D0006, 0x531D0005, 0x531D0009, 2, 0, 0 },

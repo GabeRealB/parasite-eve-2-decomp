@@ -531,7 +531,7 @@ GpWarpRec* D_map_dryfield_full_8017A80C[38] = {
     D_dryfield_night_underpass_8017DE60,
 };
 
-static GpViewCountRec* D_map_dryfield_full_8017A8A4[38] = {
+static ViewCount* D_map_dryfield_full_8017A8A4[38] = {
     D_dryfield_night_gas_station_80189E80,
     D_dryfield_night_main_street_80182308,
     D_dryfield_night_general_store_8017E848,

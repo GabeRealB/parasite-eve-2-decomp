@@ -17,7 +17,7 @@ extern GpAreaVariant D_shelter_b1_access_tunnel_8017FE50[22];
 // shelter_b1_access_tunnel
 extern u8* D_shelter_b1_access_tunnel_8017E7E4[];
 
-extern GpViewCountRec D_shelter_b1_access_tunnel_8017E7E8[];
+extern ViewCount D_shelter_b1_access_tunnel_8017E7E8[];
 
 extern GpWarpRec D_shelter_b1_access_tunnel_8017E7EC[];
 
