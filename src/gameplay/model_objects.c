@@ -1038,68 +1038,79 @@ u32* gpDrawStreamPrimGt4PreXformLayer(TmdStreamWorkspace* ws, s32 flags, u32* st
     return stream;
 }
 
-u32* gpDrawStreamPrimGt3PreXformOffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+u32* tmdDrawStreamPrimGt3PreXformOffsetLayer(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    POLY_GT3*     poly;
-    POLY_GT3*     xy;
-    s32*          opz;
-    u32           clipMask;
-    s32           len;
-    s32           code;
-    DisplayState* ds;
-    u16*          rec;
-    s32           sz;
-    s32           idx;
-    s32*          szTable;
+    enum {
+        TMD_GT3_OFFSET_LAYER_DEPTH_BYTE_OFFSET_MASK = 0xFFFC, // Clear two unproven low reference bits; does not check cache bounds
+        TMD_GT3_OFFSET_LAYER_BASE_COMMAND           = 0x34,   // Opaque, colour-modulated Gouraud textured triangle
+        TMD_GT3_OFFSET_LAYER_BLEND_COMMAND          = 0x36,   // Same primitive with semitransparency enabled
+        TMD_GT3_OFFSET_LAYER_PACKET_COUNT           = 2,      // Layer first, model-texture base second
+        TMD_GT3_OFFSET_LAYER_OT_INDEX_SHIFT         = 4       // Sixteen scaled OTZ units per four-byte OT tag
+    };
+    /// One element's offset-textured layer followed by its opaque base.
+    typedef POLY_GT3 _TmdOffsetLayerTrianglePair[TMD_GT3_OFFSET_LAYER_PACKET_COUNT];
 
-    poly = (POLY_GT3*)ws->preXformWrite;
-    if (ws->elemCount-- > 0) {
-        opz      = &ws->gteResult;
-        clipMask = TMD_VERTEX_DEPTH_INVALID;
-        len      = 9;
-        code     = 0x34;
-        ds       = &gDisplayState;
+    _TmdOffsetLayerTrianglePair* packetPair;
+    s32*                         gteResultDestination;
+    u32                          invalidDepthMask;
+    s32                          packetWordCount;
+    s32                          baseCommand;
+    const DisplayState*          displayState;
+    const u16*                   depthRefs;
+    s32                          cachedDepth;
+    u32                          depthByteOffset;
+    const s32*                   vertexDepths;
+
+    packetPair = (_TmdOffsetLayerTrianglePair*)workspace->preXformWrite;
+    if (workspace->elemCount-- > 0) {
+        gteResultDestination = &workspace->gteResult;
+        invalidDepthMask     = TMD_VERTEX_DEPTH_INVALID;
+        packetWordCount      = (sizeof((*packetPair)[0]) - sizeof((*packetPair)[0].tag)) / sizeof(u32);
+        baseCommand          = TMD_GT3_OFFSET_LAYER_BASE_COMMAND;
+        displayState         = &gDisplayState;
         do {
-            xy  = poly + 1;
-            rec = (u16*)stream;
-            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(&xy[-1], 0));
-            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(&xy[-1], 1));
-            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(&xy[-1], 2));
-            gte_nclip();
-            gte_stopz(opz);
-            if (ws->gteResult > 0) {
-                szTable = ws->szTable;
-                idx     = rec[0] & 0xFFFC;
-                sz      = szTable[(u32)idx / sizeof(*szTable)];
-                if ((sz & clipMask) == 0) {
-                    gte_ldSZ1(sz);
-                    idx = rec[1] & 0xFFFC;
-                    sz  = szTable[(u32)idx / sizeof(*szTable)];
-                    if ((sz & clipMask) == 0) {
-                        gte_ldSZ2(sz);
-                        idx = rec[2] & 0xFFFC;
-                        sz  = szTable[(u32)idx / sizeof(*szTable)];
-                        if ((sz & clipMask) == 0) {
-                            gte_ldSZ3(sz);
+            depthRefs = (const u16*)elements;
+            // Cull both packets from the layer's projected winding.
+            _tmdStoreTexturedTriangleFacing(&(*packetPair)[0], gteResultDestination);
+            if (workspace->gteResult > 0) {
+                // Only initialized, valid cached depths may contribute to AVSZ3.
+                vertexDepths    = workspace->szTable;
+                depthByteOffset = depthRefs[0] & TMD_GT3_OFFSET_LAYER_DEPTH_BYTE_OFFSET_MASK;
+                cachedDepth     = vertexDepths[depthByteOffset / sizeof(*vertexDepths)];
+                if ((cachedDepth & invalidDepthMask) == 0) {
+                    gte_ldSZ1(cachedDepth);
+                    depthByteOffset = depthRefs[1] & TMD_GT3_OFFSET_LAYER_DEPTH_BYTE_OFFSET_MASK;
+                    cachedDepth     = vertexDepths[depthByteOffset / sizeof(*vertexDepths)];
+                    if ((cachedDepth & invalidDepthMask) == 0) {
+                        gte_ldSZ2(cachedDepth);
+                        depthByteOffset = depthRefs[2] & TMD_GT3_OFFSET_LAYER_DEPTH_BYTE_OFFSET_MASK;
+                        cachedDepth     = vertexDepths[depthByteOffset / sizeof(*vertexDepths)];
+                        if ((cachedDepth & invalidDepthMask) == 0) {
+                            gte_ldSZ3(cachedDepth);
                             gte_avsz3();
-                            setlen(&xy[-1], len);
-                            setcode(&xy[-1], 0x36);
-                            gte_stotz(opz);
-                            setlen(xy, len);
-                            setcode(xy, code);
-                            gte_stotz(opz);
-                            addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
-                            addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], xy);
+                            setlen(&(*packetPair)[0], packetWordCount);
+                            setcode(&(*packetPair)[0], TMD_GT3_OFFSET_LAYER_BLEND_COMMAND);
+                            gte_stotz(gteResultDestination);
+                            setlen(&(*packetPair)[1], packetWordCount);
+                            setcode(&(*packetPair)[1], baseCommand);
+                            gte_stotz(gteResultDestination);
+                            // Head insertion makes the opaque base draw before the blended layer.
+                            addPrim(&workspace->ot[((u32)workspace->gteResult << displayState->otDepthShift) >> TMD_GT3_OFFSET_LAYER_OT_INDEX_SHIFT &
+                                                   (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))],
+                                    &(*packetPair)[0]);
+                            addPrim(&workspace->ot[((u32)workspace->gteResult << displayState->otDepthShift) >> TMD_GT3_OFFSET_LAYER_OT_INDEX_SHIFT &
+                                                   (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))],
+                                    &(*packetPair)[1]);
                         }
                     }
                 }
             }
-            poly   += 2;
-            stream += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+            packetPair++;
+            elements += workspace->elemStride;
+        } while (workspace->elemCount-- > 0);
     }
-    ws->preXformWrite = (u8*)poly;
-    return stream;
+    workspace->preXformWrite = (u8*)packetPair;
+    return elements;
 }
 
 u32* gpDrawStreamPrimGt4PreXformOffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream)

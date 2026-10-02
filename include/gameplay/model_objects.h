@@ -237,33 +237,42 @@ u32* tmdDrawStreamPrimGt3PreXformEnvLayer(TmdStreamWorkspace* workspace, s32 obj
 /// the area the session is in, so the `flags` this one is handed goes unread.
 u32* gpDrawStreamPrimGt4PreXformLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
-/// Draw handler of a stream's layered pre-transformed textured-triangle records
-/// (`0x4039`) whose semi-transparent layer is textured from the drawing object:
-/// each element's two packets are completed and linked into the ordering table at
-/// the depth its three corners average to.
+/// Culls and links pre-transformed textured triangles with an object-offset layer.
 ///
-/// The element is the plain pre-transformed triangle's
-/// (`tmdDrawStreamPrimGt3PreXform`), with the layered draw's second packet: its refs
-/// name the triangle's three corners in the per-vertex screen-Z cache rather than in
-/// the vertex array, because the stream's transform commands have already written
-/// each corner's screen coordinates and lit colour into both packets, and its depth
-/// into that cache. What a frame settles is what a transform cannot: the facing, out
-/// of the corners already in the packets; the slot the corners' average depth files
-/// the pair under; the length and primitive code both packets are drawn with; and
-/// their two links. A corner whose cached depth carries the transform's error mark,
-/// or a triangle that turns away, leaves both packets out of the ordering table,
-/// though their room is stepped over either way, so the primitives stay in step with
-/// the elements that named them.
+/// Resolution selects this draw callback for opcode `0x4039` in stage 2, area
+/// 16; other locations select `tmdDrawStreamPrimGt3PreXformEnvLayer`.
+/// `objectFlags` is ignored, including transparency and reverse-culling bits.
+/// `elements` starts after the three-word record header. The caller supplies
+/// `workspace->elemCount` (0..65535) and `elemStride` in u32 words. The first
+/// three u16 values of each element are depth-cache byte references: clear
+/// bits 0..1 and divide by four to select `szTable` entries. Those low bits'
+/// role is unproven. Each index must be below 1024 and initialized by an earlier
+/// projection in this draw walk. Drawing reads six payload bytes; construction
+/// reads through word 4, requiring at least five words, not a proven full extent.
 ///
-/// The two are one layered draw — the base the model is drawn from, and the
-/// semi-transparent layer blended over it — which is the difference between the two
-/// codes they are stamped with: `0x34` for the base and `0x36` for the layer, the
-/// semi-transparency bit between them. Nothing of the layer's texture is the draw
-/// pass's to settle here: it takes its page and CLUT from the drawing object's
-/// offsets, which the pass that builds the primitives wrote in. The record's other
-/// entry is the same walk with the layer's page settled there instead, and the
-/// session's current place is what picks between them; neither entry reads `flags`.
-u32* gpDrawStreamPrimGt3PreXformOffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// `preXformWrite` supplies two writable, word-aligned `POLY_GT3` slots per
+/// element in the selected buffer half's first region: blended layer first,
+/// opaque base second. Earlier commands supply signed screen XY in pixels
+/// and lit colours. Construction supplies both textures, applying the object's
+/// layer page/CLUT offsets to the first packet and base offsets to the second.
+/// This handler preserves those colours, coordinates, U/V, pages and CLUTs.
+/// Only positive NCLIP area of the layer's corners passes. Zero/negative area
+/// or any `TMD_VERTEX_DEPTH_INVALID` corner rejects both packets.
+///
+/// Loads screen Z into SZ1..SZ3 and runs AVSZ3 with the current ZSF3 scale.
+/// Accepted packets receive nine-word DMA lengths and command bytes `0x36`
+/// (blended layer) and `0x34` (opaque base). Unsigned OTZ is shifted by
+/// `gDisplayState.otDepthShift`, divided by 16 and wrapped to 0..1023 relative
+/// to `workspace->ot`, already displaced by the object's signed tag offset.
+/// The selected OT must contain that entry. Links the layer then the base,
+/// so head insertion draws the opaque base before the blended layer.
+///
+/// Advances `preXformWrite` by one 80-byte pair per element even when culled,
+/// returns `elements + initial elemCount * elemStride`, and leaves `elemCount`
+/// at -1 even for an empty record. Reuses `gteResult` for facing and OTZ.
+/// Workspace, stream and depth cache are borrowed for the draw walk; no pointer
+/// is retained here. Linked packets and OT must live until GPU consumption ends.
+u32* tmdDrawStreamPrimGt3PreXformOffsetLayer(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 /// The draw pass's handler for a stream's layered pre-transformed textured-quad
 /// records (`0x4079`) whose semi-transparent layer is textured from the object:

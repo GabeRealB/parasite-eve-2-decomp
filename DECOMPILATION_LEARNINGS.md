@@ -35706,8 +35706,10 @@ displacement in decimal (`-32`, `-20`, `-8`).
 The paired-GT3 OT linker keeps packet length `9` in `$t6` and GPU code `0x34`
 in `$t7` across the loop, so the SXY fifo load's temporary lands in `$24`
 (`$t8`). This used to be forced with fixed-register asm macros; it is not
-needed. Each corner is `gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(&xy[-1], n))` (a single
-`mtc2 %0, $15`, `include/decomp/gte.h`), and the allocator picks `$t8` itself:
+needed. Each corner is `gte_ldSXYP(*(const u32*)&packet->x0)` (and then `x1` and
+`x2`) inside `_tmdStoreTexturedTriangleFacing`, called with
+`&(*packetPair)[0]` (a single `mtc2 %0, $15`, `include/decomp/gte.h`), and the
+allocator picks `$t8` itself:
 
 ```
 lw     t8, -0x20(a1)
@@ -35718,7 +35720,7 @@ lw     t8, -0x8(a1)
 mtc2   t8, $15
 ```
 
-`gpDrawStreamPrimGt3PreXformOffsetLayer` is the example. The GT4 pair
+`tmdDrawStreamPrimGt3PreXformOffsetLayer` is the example. The GT4 pair
 (`gpDrawStreamPrimGt4PreXformOffsetLayer`) uses the same `$t8` temp; `xy = poly + 1`
 so first-packet `x0`/`x1`/`x2` are `-44`/`-32`/`-20`, and the F4-style fourth SXY
 is `-8` (`x3`).
@@ -35726,7 +35728,7 @@ is `-8` (`x3`).
 ## Dual-packet GT4 = F4 nclip-goto + paired GT3 OT link
 
 `gpDrawStreamPrimGt4PreXformOffsetLayer` stacks `tmdDrawStreamPrimF4PreXform`'s four-vertex
-nclip with `gpDrawStreamPrimGt3PreXformOffsetLayer`'s dual-packet OT insert:
+nclip with `tmdDrawStreamPrimGt3PreXformOffsetLayer`'s dual-packet OT insert:
 
 ```c
 if (ws->gteResult > 0) {
