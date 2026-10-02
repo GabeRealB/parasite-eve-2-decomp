@@ -80,26 +80,22 @@ extern SVECTOR D_dryfield_dilapidated_house_80186944[2];
 
 extern AnimationSet* D_dryfield_dilapidated_house_80183F00[16];
 
-/// Work block of the task family whose state-0 init is
-/// `func_dryfield_dilapidated_house_80180B84`, which allocates it with
-/// `memMalloc(0x6C, 0)` and parks it in the `Task::work` slot (0x1C) -- that
-/// slot is *not* a `TaskIdMap` here. Reach it with
-/// `(DdhCoordWork*)task->work`.
+/// Work block of the morphing model a script command attaches to one of the
+/// player's coordinates, which its child beam and cone effects read through
+/// their parent task.
 ///
-/// `func_dryfield_dilapidated_house_80180F5C` writes the same ramp value (from
-/// `func_dryfield_dilapidated_house_80180FD8`, 0..0x1000) into all three of
-/// `field_0` / `field_4` / `field_8`; `func_dryfield_dilapidated_house_80181028`
-/// rebuilds `mtx` as the identity and then composes it against the parent's
-/// `GfxCoord` chain, and `func_dryfield_dilapidated_house_80180B84` copies
-/// `mtx` verbatim into a spawned child's `GfxCoord::coord`.
-typedef struct DdhCoordWork {
-    /* 0x00 */ s32    field_0;
-    /* 0x04 */ s32    field_4;
-    /* 0x08 */ s32    field_8;
-    /* 0x0C */ MATRIX mtx;
-    /* 0x2C */ byte   pad_2C[0x40];
-} DdhCoordWork;
-STATIC_ASSERT_SIZEOF(DdhCoordWork, 0x6C);
+/// The three levels all hold the task's morph progress, 0..`ONE` in 4.12 fixed
+/// point, rewritten every frame. `attachMtx` is the composed matrix of the
+/// attachment point. The allocation is 0x6C bytes; nothing accesses the bytes
+/// after the matrix.
+typedef struct {
+    s32    morphLevel;     // Morph progress; written every frame but never read
+    s32    beamLevel;      // Brightness and length of the two ring beams
+    s32    coneLevel;      // Inner-edge grey of the two cones, saturating at 0x400
+    MATRIX attachMtx;      // Parent model's coordinate chain composed up to the attachment coordinate
+    byte   field_2C[0x40]; // Allocated but never accessed; role unproven
+} _DryfieldDilapidatedHouseMorphWork;
+STATIC_ASSERT_SIZEOF(_DryfieldDilapidatedHouseMorphWork, 0x6C);
 
 /// Work block of the handler table at `D_dryfield_dilapidated_house_8017D61C`,
 /// whose state 0 is `func_dryfield_dilapidated_house_8018118C`: allocated with
@@ -3045,8 +3041,9 @@ void func_dryfield_dilapidated_house_8017EB60(Task* task)
 
 /// Projects the eight local-space markers at
 /// `D_dryfield_dilapidated_house_801866B4` through the parent task's
-/// `DdhCoordWork` matrix and `gGfxViewCoord.workm`, then queues two red
-/// `LINE_F2`s as an X at each screen point in `gGpuCurrentOt[10]`.
+/// `_DryfieldDilapidatedHouseMorphWork::attachMtx` and `gGfxViewCoord.workm`,
+/// then queues two red `LINE_F2`s as an X at each screen point in
+/// `gGpuCurrentOt[10]`.
 static void func_dryfield_dilapidated_house_8017EBB8(Task* task)
 {
     struct {
@@ -3067,7 +3064,7 @@ static void func_dryfield_dilapidated_house_8017EBB8(Task* task)
     s32      i;
 
     i   = 0;
-    mtx = &((DdhCoordWork*)((Task*)task->spawnArg2.pointer)->work)->mtx;
+    mtx = &((_DryfieldDilapidatedHouseMorphWork*)((Task*)task->spawnArg2.pointer)->work)->attachMtx;
     do {
         sc.vec.vx = D_dryfield_dilapidated_house_801866B4[i].vx;
         sc.vec.vy = D_dryfield_dilapidated_house_801866B4[i].vy;
@@ -3118,9 +3115,9 @@ static void func_dryfield_dilapidated_house_8017EBB8(Task* task)
 
 /// Debug view of the two cubic Bezier segments whose control points start at
 /// `D_dryfield_dilapidated_house_801866B4`: samples each at 21 positions,
-/// projects every point through the parent task's `DdhCoordWork` matrix and
-/// `gGfxViewCoord.workm`, and queues a small `LINE_F2` X at it in
-/// `gGpuCurrentOt[10]` - green for the first segment, blue for the second.
+/// projects every point through the parent task's
+/// `_DryfieldDilapidatedHouseMorphWork::attachMtx` and `gGfxViewCoord.workm`,
+/// and queues a small `LINE_F2` X at it in `gGpuCurrentOt[10]` - green for the first segment, blue for the second.
 static void func_dryfield_dilapidated_house_8017EE58(Task* task)
 {
     SVECTOR  vec;
@@ -3135,7 +3132,7 @@ static void func_dryfield_dilapidated_house_8017EE58(Task* task)
     LINE_F2* line;
     s32      i;
 
-    mtx = &((DdhCoordWork*)((Task*)task->spawnArg2.pointer)->work)->mtx;
+    mtx = &((_DryfieldDilapidatedHouseMorphWork*)((Task*)task->spawnArg2.pointer)->work)->attachMtx;
     for (i = 20; i >= 0; i--) {
         bezierCurveEvaluate(D_dryfield_dilapidated_house_801866B4, D_dryfield_dilapidated_house_801866B4 + 3, 20, i, out);
         vec.vx = out[0];
@@ -3226,7 +3223,7 @@ static void func_dryfield_dilapidated_house_8017EE58(Task* task)
 
 #include "../../shared/bezier_curve_evaluate.inc.c"
 
-#define GLOW_DRAW_RING_BEAM_BRIGHTNESS(t) ((DdhCoordWork*)((Task*)(t)->spawnArg2.pointer)->work)->field_4
+#define GLOW_DRAW_RING_BEAM_BRIGHTNESS(t) ((_DryfieldDilapidatedHouseMorphWork*)((Task*)(t)->spawnArg2.pointer)->work)->beamLevel
 #define GLOW_DRAW_RING_BEAM_PHASE_STEP    0x40
 #define GLOW_DRAW_RING_BEAM_OT_OFFSET     3
 #define GLOW_DRAW_RING_BEAM_HALO_TPAGE    0xE1000465
@@ -3235,40 +3232,40 @@ static void func_dryfield_dilapidated_house_8017EE58(Task* task)
 /// Lays out 24 screen-space points in `verts` as four rings of six around two
 /// ends of a segment. The ends come from `D_dryfield_dilapidated_house_80186794`,
 /// mirrored in x when the task's spawn arg 1 is 1, rotated by the parent task's
-/// `DdhCoordWork` matrix; the far end is pulled toward the near one by the
-/// parent's `field_4` ramp before both are moved by the matrix translation and
-/// projected. Each ring's offsets are rotated to the segment's screen angle and
+/// `_DryfieldDilapidatedHouseMorphWork::attachMtx`. The far end sits a quarter
+/// of the way out at a parent `beamLevel` of 0 and reaches full length at
+/// `ONE`; both ends are then moved by the matrix translation and projected. Each ring's offsets are rotated to the segment's screen angle and
 /// scaled by the projection distance over the last projected depth, which is
 /// left in `*arg2` (`*arg3` gets the GTE flags). Rings 0 and 1 use the tables at
 /// their natural size, rings 2 and 3 scaled by a factor that pulses with
 /// `killCountdown`.
 static void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts, s32* arg2, s32* arg3)
 {
-    SVECTOR           a;
-    SVECTOR           b;
-    GfxMatrix         rot;
-    DdhScreenPoint    proj[2];
-    DdhCoordWork*     work;
-    MATRIX*           mtx;
-    SVECTOR*          src;
-    s16               t;
-    s16               r;
-    s32               scale;
-    GfxRotationWords* words;
-    s32               i;
-    u16               f;
-    s16               x0;
-    s32               y0;
-    s16               x1;
-    s32               y1;
-    s32               dx;
-    s32               dy;
-    s32               side;
+    SVECTOR                             a;
+    SVECTOR                             b;
+    GfxMatrix                           rot;
+    DdhScreenPoint                      proj[2];
+    _DryfieldDilapidatedHouseMorphWork* work;
+    MATRIX*                             mtx;
+    SVECTOR*                            src;
+    s16                                 t;
+    s16                                 r;
+    s32                                 scale;
+    GfxRotationWords*                   words;
+    s32                                 i;
+    u16                                 f;
+    s16                                 x0;
+    s32                                 y0;
+    s16                                 x1;
+    s32                                 y1;
+    s32                                 dx;
+    s32                                 dy;
+    s32                                 side;
 
     side = task->spawnArg1.value;
     work = ((Task*)task->spawnArg2.pointer)->work;
-    mtx  = &work->mtx;
-    f    = work->field_4;
+    mtx  = &work->attachMtx;
+    f    = work->beamLevel;
     a.vx = D_dryfield_dilapidated_house_80186794[0].vx;
     a.vy = D_dryfield_dilapidated_house_80186794[0].vy;
     a.vz = D_dryfield_dilapidated_house_80186794[0].vz;
@@ -3369,8 +3366,8 @@ static void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts,
 /// Projects the two 16-vertex rings in `verts` (inner at 0..15, outer at
 /// 16..31) and joins them with 16 semi-transparent `POLY_G4`s, wrapping the
 /// last quad back to vertex 0. The inner edge is a grey whose level is the
-/// parent task's `DdhCoordWork::field_8` clamped to 0x400 and scaled to 0..0xFF;
-/// the outer edge is black. Each quad goes into the ordering table four entries
+/// parent task's `_DryfieldDilapidatedHouseMorphWork::coneLevel` clamped to
+/// 0x400 and scaled to 0..0xFF; the outer edge is black. Each quad goes into the ordering table four entries
 /// past its average depth, preceded by a `DR_TPAGE` selecting blend mode 3.
 static void func_dryfield_dilapidated_house_801803A4(Task* task, SVECTOR* verts)
 {
@@ -3390,7 +3387,7 @@ static void func_dryfield_dilapidated_house_801803A4(Task* task, SVECTOR* verts)
     v     = verts;
     p     = sxy;
     z     = sz;
-    level = ((DdhCoordWork*)((Task*)task->spawnArg2.pointer)->work)->field_8;
+    level = ((_DryfieldDilapidatedHouseMorphWork*)((Task*)task->spawnArg2.pointer)->work)->coneLevel;
     SetRotMatrix(&gGfxViewCoord.workm);
     SetTransMatrix(&gGfxViewCoord.workm);
     for (i = 0; i < 16; i++) {
@@ -3453,27 +3450,27 @@ static void func_dryfield_dilapidated_house_801803A4(Task* task, SVECTOR* verts)
 
 static void func_dryfield_dilapidated_house_80180738(Task* task, SVECTOR* verts)
 {
-    DdhAngleStep* work;
-    DdhCoordWork* src;
-    MATRIX*       mtx;
-    SVECTOR*      ofs;
-    SVECTOR*      ofs2;
-    SVECTOR       pos[2];
-    SVECTOR*      v0;
-    SVECTOR*      v1;
-    s16           tx;
-    s16           ty;
-    s16           tz;
-    s32           i;
-    s32           ang;
-    s32           c;
-    s32           s;
+    DdhAngleStep*                       work;
+    _DryfieldDilapidatedHouseMorphWork* src;
+    MATRIX*                             mtx;
+    SVECTOR*                            ofs;
+    SVECTOR*                            ofs2;
+    SVECTOR                             pos[2];
+    SVECTOR*                            v0;
+    SVECTOR*                            v1;
+    s16                                 tx;
+    s16                                 ty;
+    s16                                 tz;
+    s32                                 i;
+    s32                                 ang;
+    s32                                 c;
+    s32                                 s;
 
     v0 = verts;
     v1 = &verts[16];
 
     work = (DdhAngleStep*)task->work;
-    src  = (DdhCoordWork*)((Task*)task->spawnArg2.pointer)->work;
+    src  = ((Task*)task->spawnArg2.pointer)->work;
 
     ofs       = D_dryfield_dilapidated_house_80186844;
     ofs2      = D_dryfield_dilapidated_house_80186844 + 1;
@@ -3484,7 +3481,7 @@ static void func_dryfield_dilapidated_house_80180738(Task* task, SVECTOR* verts)
     pos[1].vy = ofs2->vy;
     pos[1].vz = ofs2->vz;
 
-    mtx = &src->mtx;
+    mtx = &src->attachMtx;
 
     tx = mtx->t[0];
     ty = mtx->t[1];
@@ -3531,38 +3528,38 @@ static void func_dryfield_dilapidated_house_80180738(Task* task, SVECTOR* verts)
 
 static void func_dryfield_dilapidated_house_80180B84(Task* task)
 {
-    Task*               parent;
-    TmdObject*          obj;
-    TmdObject*          parentObj;
-    GfxCoord*           coord;
-    GfxCoord*           parentCoord;
-    DdhCoordWork*       work;
-    OverlayMorphTarget* rec;
-    TmdSource*          source;
-    SVECTOR*            dst;
-    SVECTOR*            dst2;
-    SVECTOR*            src2;
-    SVECTOR*            verts;
-    TaskDesc*           table;
-    Task*               spawned;
-    GfxCoord*           childCoord;
-    u16                 flags;
-    s32                 i;
+    Task*                               parent;
+    TmdObject*                          obj;
+    TmdObject*                          parentObj;
+    GfxCoord*                           coord;
+    GfxCoord*                           parentCoord;
+    _DryfieldDilapidatedHouseMorphWork* work;
+    OverlayMorphTarget*                 rec;
+    TmdSource*                          source;
+    SVECTOR*                            dst;
+    SVECTOR*                            dst2;
+    SVECTOR*                            src2;
+    SVECTOR*                            verts;
+    TaskDesc*                           table;
+    Task*                               spawned;
+    GfxCoord*                           childCoord;
+    u16                                 flags;
+    s32                                 i;
 
     parent      = (Task*)task->spawnArg2.pointer;
     obj         = task->extra.tmd;
     parentObj   = parent->extra.tmd;
     coord       = obj->coords;
     parentCoord = parentObj->coords;
-    work        = memMalloc(0x6C, false);
+    work        = memMalloc(sizeof(*work), false);
     if (work == NULL) {
         taskKill(task);
         return;
     }
-    task->work    = work;
-    work->field_0 = 0;
-    flags         = obj->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    obj->flags    = flags;
+    task->work       = work;
+    work->morphLevel = 0;
+    flags            = obj->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    obj->flags       = flags;
     if (!(parentObj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         obj->flags = flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
@@ -3600,22 +3597,22 @@ static void func_dryfield_dilapidated_house_80180B84(Task* task)
     spawned = Task_SpawnFromTable(table, 3, 9, task);
     if (spawned != NULL) {
         childCoord        = spawned->extra.tmd->coords;
-        childCoord->coord = work->mtx;
+        childCoord->coord = work->attachMtx;
     }
     spawned = Task_SpawnFromTable(table, 3, 0x11, task);
     if (spawned != NULL) {
         childCoord        = spawned->extra.tmd->coords;
-        childCoord->coord = work->mtx;
+        childCoord->coord = work->attachMtx;
     }
     spawned = Task_SpawnFromTable(table, 2, 0, task);
     if (spawned != NULL) {
         childCoord        = spawned->extra.tmd->coords;
-        childCoord->coord = work->mtx;
+        childCoord->coord = work->attachMtx;
     }
     spawned = Task_SpawnFromTable(table, 2, 1, task);
     if (spawned != NULL) {
         childCoord        = spawned->extra.tmd->coords;
-        childCoord->coord = work->mtx;
+        childCoord->coord = work->attachMtx;
     }
 
     task->exitCallback = func_dryfield_dilapidated_house_80180FB8;
@@ -3635,17 +3632,17 @@ void func_dryfield_dilapidated_house_80180F04(Task* task)
 
 static void func_dryfield_dilapidated_house_80180F5C(Task* arg0)
 {
-    DdhCoordWork* work;
-    s32           temp_v0;
+    _DryfieldDilapidatedHouseMorphWork* work;
+    s32                                 temp_v0;
 
-    work = (DdhCoordWork*)arg0->work;
+    work = arg0->work;
     func_dryfield_dilapidated_house_801810F8(arg0->extra.tmd,
                                              ((Task*)arg0->spawnArg2.pointer)->extra.tmd);
     func_dryfield_dilapidated_house_80181028(arg0);
-    temp_v0       = func_dryfield_dilapidated_house_80180FD8(arg0);
-    work->field_0 = temp_v0;
-    work->field_8 = temp_v0;
-    work->field_4 = temp_v0;
+    temp_v0          = func_dryfield_dilapidated_house_80180FD8(arg0);
+    work->morphLevel = temp_v0;
+    work->coneLevel  = temp_v0;
+    work->beamLevel  = temp_v0;
 }
 
 /// Exit callback `func_dryfield_dilapidated_house_80180B84` installs on its
@@ -3657,8 +3654,8 @@ static void func_dryfield_dilapidated_house_80180FB8(Task* task)
 
 /// Steps the task's 0..0x1000 ramp by 0x44, saturating at 0x1000, and feeds the
 /// distance still to run (`0x1000 - ramp`) to the room record's matrix/vertex
-/// interpolator. Returns the ramp value, which the caller stores into its
-/// `DdhCoordWork`.
+/// interpolator. Returns the ramp value, which the caller stores into each level
+/// of its `_DryfieldDilapidatedHouseMorphWork`.
 static s32 func_dryfield_dilapidated_house_80180FD8(Task* task)
 {
     s32 ramp;
@@ -3672,31 +3669,32 @@ static s32 func_dryfield_dilapidated_house_80180FD8(Task* task)
     return ramp;
 }
 
-/// Rebuilds the work block's `mtx` as the identity, then composes it against
-/// the parent model's `GfxCoord` chain: each node's `coord` rotation is
+/// Rebuilds the work block's `attachMtx` as the identity, then composes it
+/// against the parent model's `GfxCoord` chain: each node's `coord` rotation is
 /// multiplied in, and its translation is rotated by the accumulated matrix and
-/// added to `mtx.t`. Steps one coordinate record at a time from the head of the
-/// parent's array up to the record this task's own `coord` links with `parent`.
+/// added to `attachMtx.t`. Steps one coordinate record at a time from the head
+/// of the parent's array up to the record this task's own `coord` links with
+/// `parent`.
 static void func_dryfield_dilapidated_house_80181028(Task* task)
 {
-    VECTOR        vec;
-    GfxCoord*     coord;
-    DdhCoordWork* work;
-    GfxCoord*     node;
-    MATRIX*       mtx;
+    VECTOR                              vec;
+    GfxCoord*                           coord;
+    _DryfieldDilapidatedHouseMorphWork* work;
+    GfxCoord*                           node;
+    MATRIX*                             mtx;
 
-    coord                  = task->extra.tmd->coords;
-    work                   = (DdhCoordWork*)task->work;
-    node                   = ((Task*)task->spawnArg2.pointer)->extra.tmd->coords;
-    mtx                    = &work->mtx;
-    *(s32*)&work->mtx      = ONE;
-    MATRIX_PAIR(mtx, 0, 2) = 0;
-    MATRIX_PAIR(mtx, 1, 1) = ONE;
-    MATRIX_PAIR(mtx, 2, 0) = 0;
-    mtx->m[2][2]           = ONE;
-    mtx->t[0]              = 0;
-    mtx->t[1]              = 0;
-    mtx->t[2]              = 0;
+    coord                               = task->extra.tmd->coords;
+    work                                = task->work;
+    node                                = ((Task*)task->spawnArg2.pointer)->extra.tmd->coords;
+    mtx                                 = &work->attachMtx;
+    MATRIX_PAIR(&work->attachMtx, 0, 0) = ONE;
+    MATRIX_PAIR(mtx, 0, 2)              = 0;
+    MATRIX_PAIR(mtx, 1, 1)              = ONE;
+    MATRIX_PAIR(mtx, 2, 0)              = 0;
+    mtx->m[2][2]                        = ONE;
+    mtx->t[0]                           = 0;
+    mtx->t[1]                           = 0;
+    mtx->t[2]                           = 0;
     do {
         ApplyMatrixLV(mtx, (VECTOR*)node->coord.t, &vec);
         mtx->t[0] += vec.vx;
