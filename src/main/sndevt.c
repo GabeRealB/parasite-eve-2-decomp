@@ -1903,8 +1903,8 @@ s32 SndLoad_ProcessSector(u32* arg0)
     s32           spuAddr;
 
     state = &SndLoad_State;
-    switch (state->field_2) {
-        case 0:
+    switch (state->phase) {
+        case SOUND_LOAD_PHASE_HEADER:
             // Retain the hSPK header. Group and layer tables follow it in this sector.
             src = arg0;
             dst = state->payload.words;
@@ -1918,8 +1918,8 @@ s32 SndLoad_ProcessSector(u32* arg0)
 
             nibble = state->payload.header.bankId & SOUND_BANK_TYPE_MASK;
             if ((u32)(nibble - 0x8000) < 0x5001U) {
-                D_800689E8     = 1;
-                state->field_2 = 7;
+                D_800689E8   = 1;
+                state->phase = SOUND_LOAD_PHASE_ERROR;
                 break;
             }
             if (nibble == SOUND_BANK_TYPE_1) {
@@ -1931,7 +1931,7 @@ s32 SndLoad_ProcessSector(u32* arg0)
                 bankId           = state->payload.header.bankId;
                 *&gSndLoadBankId = bankId;
                 if (SndBank_FreeById(state->payload.header.bankId, state->payload.header.imageKind) == -1) {
-                    state->field_2 = 6;
+                    state->phase = SOUND_LOAD_PHASE_WAIT_FAIL;
                     break;
                 }
             }
@@ -1940,10 +1940,10 @@ s32 SndLoad_ProcessSector(u32* arg0)
                 tmp         = Snd_AllocBank(&state->payload.header);
                 state->bank = tmp;
                 if (tmp == 0) {
-                    state->field_2 = 6;
+                    state->phase = SOUND_LOAD_PHASE_WAIT_FAIL;
                     break;
                 }
-                src = arg0 + 5;
+                src = arg0 + ARRAY_SIZE(state->payload.words);
                 dst = tmp->heapBlock;
             }
             count = (state->payload.header.layerCount * (s32)(sizeof(*state->bank->layers) / sizeof(*dst))) + state->payload.header.groupCount * (s32)(sizeof(*state->bank->groups) / sizeof(*dst));
@@ -1960,30 +1960,30 @@ s32 SndLoad_ProcessSector(u32* arg0)
             (state->bank)->layerCount = state->payload.header.layerCount;
             (state->bank)->bankId     = state->payload.header.bankId;
             (state->bank)->waveBytes  = state->payload.header.waveBytes;
-            state->field_2            = 1;
+            state->phase              = SOUND_LOAD_PHASE_ALLOC_IMAGE;
             break;
 
-        case 1:
-            aligned            = (state->payload.header.imageBytes + 3) & 0xFFFC;
-            state->field_C     = aligned;
-            mem                = SndLoad_AllocBuffer(state->payload.header.bankId, state->payload.header.imageKind, aligned);
-            state->imageBuffer = mem;
+        case SOUND_LOAD_PHASE_ALLOC_IMAGE:
+            aligned               = (state->payload.header.imageBytes + 3) & 0xFFFC;
+            state->bytesRemaining = aligned;
+            mem                   = SndLoad_AllocBuffer(state->payload.header.bankId, state->payload.header.imageKind, aligned);
+            state->imageBuffer    = mem;
             if (mem == 0) {
-                state->field_2 = 6;
+                state->phase = SOUND_LOAD_PHASE_WAIT_FAIL;
                 Snd_FreeBank(state->bank);
                 state->bank = 0;
                 break;
             }
             state->writeCursor = mem;
-            state->field_2     = 2;
+            state->phase       = SOUND_LOAD_PHASE_COPY_IMAGE;
             /* fallthrough */
-        case 2:
-            len = (u32)state->field_C >> 2;
-            if ((u32)state->field_C < (u32)state->field_10) {
-                state->field_2 = 3;
+        case SOUND_LOAD_PHASE_COPY_IMAGE:
+            len = (u32)state->bytesRemaining >> 2;
+            if ((u32)state->bytesRemaining < (u32)state->sectorBytes) {
+                state->phase = SOUND_LOAD_PHASE_BEGIN_WAVE;
             } else {
-                len             = (u32)state->field_10 >> 2;
-                state->field_C -= state->field_10;
+                len                    = (u32)state->sectorBytes >> 2;
+                state->bytesRemaining -= state->sectorBytes;
             }
             src = arg0;
             dst = (u32*)state->writeCursor;
@@ -1999,59 +1999,62 @@ s32 SndLoad_ProcessSector(u32* arg0)
             state->writeCursor += len * 4;
             break;
 
-        case 3: {
+        case SOUND_LOAD_PHASE_BEGIN_WAVE: {
             s32 size;
             size                   = state->payload.header.waveBytes;
-            state->field_C         = size;
+            state->bytesRemaining  = size;
             (state->bank)->spuAddr = SndLoad_LookupMode(
                 state->payload.header.imageKind, (state->bank)->bankId, size);
             spuAddr = (state->bank)->spuAddr;
         }
             if (spuAddr == 0) {
-                D_800689E8     = 4;
-                state->field_2 = 6;
+                D_800689E8   = 4;
+                state->phase = SOUND_LOAD_PHASE_WAIT_FAIL;
                 Snd_FreeBank(state->bank);
                 state->bank = 0;
                 break;
             }
             SpuSetTransferStartAddr(spuAddr + (state->payload.header.waveBlockOffset << 6));
-            state->field_2 = 4;
+            state->phase = SOUND_LOAD_PHASE_UPLOAD_WAVE;
             /* fallthrough */
-        case 4: {
+        case SOUND_LOAD_PHASE_UPLOAD_WAVE: {
             s32 rem;
             s32 step;
-            rem  = state->field_C;
-            step = state->field_10;
+            rem  = state->bytesRemaining;
+            step = state->sectorBytes;
             if ((u32)step >= (u32)rem) {
-                len            = rem;
-                state->field_2 = 5;
+                len          = rem;
+                state->phase = SOUND_LOAD_PHASE_DONE;
             } else {
-                len            = step;
-                state->field_C = rem - step;
+                len                   = step;
+                state->bytesRemaining = rem - step;
             }
         }
-            if (state->field_3 == 0) {
-                if (SpuIsTransferCompleted(0) == 0) {
-                    if (state->field_0 != 0x10) {
+            // A polling feed requires the previous DMA to have finished.
+            // CD audio keeps its bank; every other feed releases it.
+            if (state->syncUpload == 0) {
+                if (SpuIsTransferCompleted(SPU_TRANSFER_PEEK) == 0) {
+                    if (state->feedMode != SOUND_LOAD_FEED_CD_AUDIO) {
                         Snd_FreeBank(state->bank);
                         state->bank = 0;
                     }
-                    D_800689E8     = 5;
-                    state->field_2 = 7;
+                    D_800689E8   = 5;
+                    state->phase = SOUND_LOAD_PHASE_ERROR;
                     break;
                 }
                 SpuWritePartly((u8*)arg0, len);
             } else {
                 SpuWritePartly((u8*)arg0, len);
-                SpuIsTransferCompleted(1);
+                SpuIsTransferCompleted(SPU_TRANSFER_WAIT);
             }
             break;
 
-        case 5:
+        case SOUND_LOAD_PHASE_DONE:
             break;
 
-        case 6:
-            if ((state->field_1 + 1) >= (s32)state->payload.header.transferSectors) {
+        case SOUND_LOAD_PHASE_WAIT_FAIL:
+            // The failure stands until `transferSectors` sectors have arrived.
+            if ((state->sectorsArrived + 1) >= (s32)state->payload.header.transferSectors) {
                 D_800689E8 = 6;
                 if ((state->payload.header.bankId & SOUND_BANK_TYPE_MASK) == 0x5000) {
                     if (D_80082128 == 0) {
@@ -2063,13 +2066,13 @@ s32 SndLoad_ProcessSector(u32* arg0)
                 if ((state->payload.header.bankId & SOUND_BANK_TYPE_MASK) == SOUND_BANK_TYPE_1) {
                     D_80082128 = 0x63810 - ((state->payload.header.waveBytes + 0x3F) & ~0x3F);
                 }
-                state->field_2 = 5;
+                state->phase = SOUND_LOAD_PHASE_DONE;
             }
             break;
     }
 
-    state->field_1 += 1;
-    return state->field_2;
+    state->sectorsArrived += 1;
+    return state->phase;
 }
 
 static s32 SndBank_SetupFromLoad(SndLoadState* load)
@@ -2183,69 +2186,71 @@ static s32 SndLoad_Complete(SndLoadState* load)
 
 void SndLoad_FromSectorMode8(void* arg0)
 {
-    SndLoad_Init(8, arg0);
+    SndLoad_Init(SOUND_LOAD_FEED_SECTOR, arg0);
 }
 
 void SndLoad_BeginFromBuffer(u8 arg0, void* arg1)
 {
-    SndLoad_State.field_3 = arg0;
-    D_8008212C            = D_80082122;
-    D_80082121            = D_80082135;
-    SndLoad_Init(0, arg1);
+    SndLoad_State.syncUpload = arg0;
+    D_8008212C               = D_80082122;
+    D_80082121               = D_80082135;
+    SndLoad_Init(SOUND_LOAD_FEED_CHUNK, arg1);
 }
 
 void SndLoad_Teardown(void)
 {
-    SndLoadState* temp;
+    SndLoadState* state;
 
     D_80082122 = D_8008212C;
     D_80082135 = D_80082121;
-    temp       = &SndLoad_State;
-    if (temp->field_2 != 6) {
-        temp->field_2 = 8;
-        SndHeap_Free(temp->imageBuffer);
-        temp->imageBuffer = 0;
-        Snd_FreeBank(temp->bank);
-        temp->bank = 0;
+    state      = &SndLoad_State;
+    if (state->phase != SOUND_LOAD_PHASE_WAIT_FAIL) {
+        state->phase = SOUND_LOAD_PHASE_TORN_DOWN;
+        SndHeap_Free(state->imageBuffer);
+        state->imageBuffer = 0;
+        Snd_FreeBank(state->bank);
+        state->bank = 0;
     }
 }
 
 s32 SndLoad_FeedSector(void* arg0)
 {
-    SndLoadState* temp_s1;
+    SndLoadState* state;
     s32           temp_s0;
 
     if (D_80068A78 != 0) {
         return -1;
     }
-    temp_s1 = &SndLoad_State;
-    if (temp_s1->field_3 != 0) {
-        temp_s1->field_10 = 0x800;
+    state = &SndLoad_State;
+    if (state->syncUpload != 0) {
+        state->sectorBytes = SOUND_LOAD_SECTOR_BYTES;
     } else {
-        switch (temp_s1->field_2) {
-            case 0:
-            case 1:
-            case 3:
-                temp_s1->field_10 = 0x7F0;
-                arg0              = (u8*)arg0 + 0x10;
+        // The header, image and sample regions each open on a sector with a 16-byte prefix.
+        switch (state->phase) {
+            case SOUND_LOAD_PHASE_HEADER:
+            case SOUND_LOAD_PHASE_ALLOC_IMAGE:
+            case SOUND_LOAD_PHASE_BEGIN_WAVE:
+                state->sectorBytes = SOUND_LOAD_SECTION_BYTES;
+                arg0               = (u8*)arg0 + SOUND_LOAD_SECTION_HEADER_BYTES;
                 break;
-            case 2:
-            case 4:
-            case 7:
-                temp_s1->field_10 = 0x800;
+            case SOUND_LOAD_PHASE_COPY_IMAGE:
+            case SOUND_LOAD_PHASE_UPLOAD_WAVE:
+            case SOUND_LOAD_PHASE_ERROR:
+                state->sectorBytes = SOUND_LOAD_SECTOR_BYTES;
                 break;
-            case 5:
-                return 5;
-            case 8:
+            case SOUND_LOAD_PHASE_DONE:
+                return SOUND_LOAD_PHASE_DONE;
+            case SOUND_LOAD_PHASE_TORN_DOWN:
+                // Teardown already released the image and the bank.
                 return 0;
         }
     }
     temp_s0 = SndLoad_ProcessSector(arg0);
-    if (temp_s0 == 7) {
+    if (temp_s0 == SOUND_LOAD_PHASE_ERROR) {
         return -1;
     }
-    if (temp_s0 == 5) {
-        SndLoad_Complete(temp_s1);
+    if (temp_s0 == SOUND_LOAD_PHASE_DONE) {
+        SndLoad_Complete(state);
     }
     return temp_s0;
 }
@@ -2255,7 +2260,7 @@ s32 SndLoad_FeedSectorOrError(void* arg0)
     s32 temp;
 
     temp = SndLoad_ProcessSector(arg0);
-    if (temp == 7) {
+    if (temp == SOUND_LOAD_PHASE_ERROR) {
         return -1;
     }
     return temp;
@@ -2355,26 +2360,26 @@ static s32 SndLoad_LookupMode(s32 arg0, s32 arg1, s32 arg2)
 
 static void SndLoad_Init(s32 arg0, void* arg1)
 {
-    SndLoadState* temp;
+    SndLoadState* state;
     s32           size;
 
     D_800689E8 = 0;
-    temp       = &SndLoad_State;
-    if (arg0 == 8) {
-        size          = 0x800;
-        temp->field_0 = arg0;
+    state      = &SndLoad_State;
+    if (arg0 == SOUND_LOAD_FEED_SECTOR) {
+        size            = SOUND_LOAD_SECTOR_BYTES;
+        state->feedMode = arg0;
     } else {
-        size          = 0x7F0;
-        temp->field_0 = 0;
+        size            = SOUND_LOAD_SECTION_BYTES;
+        state->feedMode = SOUND_LOAD_FEED_CHUNK;
     }
-    temp->field_10     = size;
-    temp->field_2      = 0;
-    temp->field_1      = 0;
-    temp->sectorBuffer = arg1;
-    temp->imageBuffer  = 0;
-    temp->bank         = 0;
-    temp->writeCursor  = 0;
-    temp->field_C      = 0;
+    state->sectorBytes    = size;
+    state->phase          = SOUND_LOAD_PHASE_HEADER;
+    state->sectorsArrived = 0;
+    state->sectorBuffer   = arg1;
+    state->imageBuffer    = 0;
+    state->bank           = 0;
+    state->writeCursor    = 0;
+    state->bytesRemaining = 0;
 }
 
 static s32 SndBank_FreeById(u16 arg0, s32 arg1)

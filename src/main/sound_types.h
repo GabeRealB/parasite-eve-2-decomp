@@ -391,23 +391,60 @@ typedef union {
 } SndLoadPayload;
 STATIC_ASSERT_SIZEOF(SndLoadPayload, 0x14);
 
-/// State block at SndLoad_State.
-/// imageBuffer and bank are cleared by Snd_InitFromStage; SndLoad_Init sets field_10.
-/// The CD-ready callback resets the payload transfer offset and sector count.
-/// SndLoad_ProcessSector copies the complete five-word header into payload.
-/// Named BSS symbols D_80082120+ begin immediately after this 0x30-byte block.
-typedef struct _SndLoadState {
-    /* 0x00 */ u8             field_0;
-    /* 0x01 */ u8             field_1;
-    /* 0x02 */ u8             field_2;
-    /* 0x03 */ u8             field_3;
-    /* 0x04 */ void*          sectorBuffer;
-    /* 0x08 */ u8*            writeCursor;
-    /* 0x0C */ s32            field_C;
-    /* 0x10 */ s32            field_10;
-    /* 0x14 */ void*          imageBuffer;
-    /* 0x18 */ SndBank*       bank;
-    /* 0x1C */ SndLoadPayload payload;
+/// How `SndLoadState::feedMode` records which entry started the load.
+///
+/// Chunk and sector loads differ in the sector byte count chosen then.
+/// Afterwards only the CD-audio value is tested: a sample write that finds
+/// the SPU transfer unfinished frees the bank for the other two and keeps
+/// it for CD audio.
+enum {
+    SOUND_LOAD_FEED_CHUNK    = 0,    // File chunk; the initial count omits a 16-byte header
+    SOUND_LOAD_FEED_SECTOR   = 8,    // Whole CD sectors, read into `sectorBuffer`
+    SOUND_LOAD_FEED_CD_AUDIO = 0x10, // Waveform stream; a busy SPU transfer keeps the bank
+};
+
+/// Step of one sound-bank load, stored in `SndLoadState::phase`.
+enum {
+    SOUND_LOAD_PHASE_HEADER      = 0, // Copy the hSPK header, allocate the bank, copy its tables
+    SOUND_LOAD_PHASE_ALLOC_IMAGE = 1, // Allocate the program image, then fall into the copy
+    SOUND_LOAD_PHASE_COPY_IMAGE  = 2, // Copy program-image words
+    SOUND_LOAD_PHASE_BEGIN_WAVE  = 3, // Place the sample pool and arm the SPU transfer
+    SOUND_LOAD_PHASE_UPLOAD_WAVE = 4, // Write sample bytes to SPU RAM
+    SOUND_LOAD_PHASE_DONE        = 5, // Upload finished
+    SOUND_LOAD_PHASE_WAIT_FAIL   = 6, // Failed before the upload; wait out `transferSectors`
+    SOUND_LOAD_PHASE_ERROR       = 7, // Hard failure; a feeder reports -1
+    SOUND_LOAD_PHASE_TORN_DOWN   = 8  // Image and bank already released
+};
+
+/// Byte counts for one sector of a sound-bank load.
+enum {
+    SOUND_LOAD_SECTION_HEADER_BYTES = 0x10,  // Omitted from a section-start sector when `syncUpload` is 0
+    SOUND_LOAD_SECTION_BYTES        = 0x7F0, // Sector bytes after that header
+    SOUND_LOAD_SECTOR_BYTES         = 0x800, // One whole CD sector
+    SOUND_LOAD_WAVE_LEAD_BYTES      = 0x40,  // Opening bytes of the first CD-audio waveform sector
+    SOUND_LOAD_WAVE_FIRST_BYTES     = 0x7C0  // Sample bytes in that sector, after the lead
+};
+
+/// Working state of the one resident sound-bank load.
+///
+/// The file-chunk feeder, the whole-sector stream and the CD-audio waveform
+/// share this block. `phase` walks the retained `hSPK` header, the program
+/// image and the SPU sample upload. `bank` and `imageBuffer` hold the
+/// descriptor and the image until completion, finalization or teardown
+/// binds or releases them. Starting a stage drops those two pointers and
+/// leaves the rest of the block as it was.
+typedef struct {
+    u8             feedMode;       // `SOUND_LOAD_FEED_CHUNK`, `SOUND_LOAD_FEED_SECTOR`, or `SOUND_LOAD_FEED_CD_AUDIO`
+    u8             sectorsArrived; // Sectors accepted so far; a failed load ends once this reaches `transferSectors`
+    u8             phase;          // `SOUND_LOAD_PHASE_` step of this load
+    u8             syncUpload;     // 0: poll the SPU DMA and skip 16-byte section headers; nonzero: wait for the DMA and take each sector whole
+    void*          sectorBuffer;   // Buffer the whole-sector stream fills before feeding
+    u8*            writeCursor;    // Next free byte of the program image
+    s32            bytesRemaining; // Image or sample bytes left; copies compare it as an unsigned length
+    s32            sectorBytes;    // Payload bytes in the current sector; copies compare it as an unsigned length
+    void*          imageBuffer;    // Program image (MIDI sequence or sound-heap script); NULL when not held here
+    SndBank*       bank;           // Descriptor for this load; NULL after it is bound or released
+    SndLoadPayload payload;        // Retained five-word `hSPK` header
 } SndLoadState;
 STATIC_ASSERT_SIZEOF(SndLoadState, 0x30);
 

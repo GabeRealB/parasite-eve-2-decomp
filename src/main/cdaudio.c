@@ -814,30 +814,32 @@ static void CdAudio_FeedSector(u8 arg0, u8* unusedResult)
     CdGetSector(sector, 0x200);
     audio = &_gCdAudioState.loc;
     if (audio->field_4 == cdState->field_8) {
+        // First waveform sector: skip its lead and upload samples.
+        // A busy SPU transfer keeps the bank.
         state                                 = &SndLoad_State;
-        state->field_0                        = 0x10;
+        state->feedMode                       = SOUND_LOAD_FEED_CD_AUDIO;
         state->payload.header.waveBlockOffset = 0;
-        state->field_1                        = 0;
-        state->field_3                        = 0;
-        state->field_10                       = 0x7C0;
-        state->field_2                        = 4;
-        state->field_C                        = sector->words[1];
+        state->sectorsArrived                 = 0;
+        state->syncUpload                     = 0;
+        state->sectorBytes                    = SOUND_LOAD_WAVE_FIRST_BYTES;
+        state->phase                          = SOUND_LOAD_PHASE_UPLOAD_WAVE;
+        state->bytesRemaining                 = sector->words[1];
         state->payload.header.transferSectors = sector->bytes[0];
         spuIdx                                = sector->words[2];
         if (spuIdx != 0) {
             SpuSetTransferStartAddr(D_80068B2C[spuIdx]);
         }
-        if (SndLoad_ProcessSector(&sector->words[0x40 / sizeof(u32)]) == 7) {
+        if (SndLoad_ProcessSector(&sector->words[SOUND_LOAD_WAVE_LEAD_BYTES / sizeof(u32)]) == SOUND_LOAD_PHASE_ERROR) {
             stream->field_B = 3;
             return;
         }
-        state->field_10 = 0x800;
+        state->sectorBytes = SOUND_LOAD_SECTOR_BYTES;
     } else {
         ret = SndLoad_ProcessSector(sector->words);
-        if (ret == 5) {
+        if (ret == SOUND_LOAD_PHASE_DONE) {
             cdState->field_1 = arg;
             CdReadyCallback(0);
-        } else if (ret == 7) {
+        } else if (ret == SOUND_LOAD_PHASE_ERROR) {
             stream->field_B = 4;
         }
     }

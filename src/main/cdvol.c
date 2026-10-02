@@ -52,8 +52,8 @@ void Fs_StreamReadyCb(u8 status, u8* result)
     s32           ret;
     u8            errCount;
 
-    state          = &SndLoad_State;
-    state->field_3 = 0;
+    state             = &SndLoad_State;
+    state->syncUpload = 0;
     if (status != CdlDiskError) {
         CdGetSector(loc, 3);
         if (CdPosToInt(loc) != Fs_ReqSector) {
@@ -70,7 +70,7 @@ void Fs_StreamReadyCb(u8 status, u8* result)
         CdGetSector(buf, 0x200);
         ret = SndLoad_FeedSectorOrError(buf);
         if (ret != -1) {
-            if (ret != 5) {
+            if (ret != SOUND_LOAD_PHASE_DONE) {
                 return;
             }
             CdControlF(CdlPause, NULL);

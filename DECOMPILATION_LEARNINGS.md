@@ -23008,11 +23008,11 @@ also pinning `$s2/$s1/$s0`: that steals `$a0` from the flag address. Leave the
 
 ## Fail-path `j` / `move v0,s1` vs shared epilogue
 
-When several paths merge on `field_14 = 0; field_18 = 0; return`, the fail path
+When several paths merge on `imageBuffer = 0; bank = 0; return`, the fail path
 needs `j epilogue; move v0,s1` while the free path after `SndHeap_Free` must not
 fall through a `block_ret: v0 = s1` that GCC would merge away. Force the free
 exit with tab-noreorder `j label; move $2,s1`, land with a unique asm label, and
-clear `field_14` via `*(volatile s32*)&p->field_14 = 0` so the store is not
+clear `imageBuffer` via `*(volatile s32*)&p->imageBuffer = 0` so the store is not
 stolen into an earlier delay slot. `SndLoad_Complete` is the pure example.
 
 ## Spu_GetVoiceRef: dual `lhu`/`lh` count + keep `$a0` for `sb`

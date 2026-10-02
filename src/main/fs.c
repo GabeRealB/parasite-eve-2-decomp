@@ -694,7 +694,7 @@ static u8 Fs_ProcessChunkHeader(void)
             }
             SndLoad_BeginFromBuffer(0, Fs_CdSector.bytes);
             status = SndLoad_FeedSector(Fs_CdSector.bytes);
-            if (status == 5) {
+            if (status == SOUND_LOAD_PHASE_DONE) {
                 if (Fs_ChunkEndFlag == FILE_SYSTEM_CHUNK_LAST) {
                     Fs_LoadPhase = 0xFF;
                     return 1;
@@ -864,7 +864,7 @@ static u8 Fs_ProcessChunkData(void)
         case 6:
             CdGetSector(Fs_CdSector.bytes, 0x200);
             status = SndLoad_FeedSector(Fs_CdSector.bytes);
-            if (status == 5) {
+            if (status == SOUND_LOAD_PHASE_DONE) {
                 endFlag = Fs_ChunkEndFlag;
                 if (endFlag == FILE_SYSTEM_CHUNK_LAST) {
                     Fs_LoadPhase = endFlag;
