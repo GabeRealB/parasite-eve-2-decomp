@@ -28,7 +28,7 @@
  * tmdDrawStreamPrimGt4OneNormal/SemiTrans (0x58/0x5A)  one-normal textured quad, fixed colour
  * tmdXformStreamVertsElemColor/tmdXformStreamVerts  transform pre-pass, element colour/fixed
  * tmdDrawStreamPrimGt3CornerColors  textured triangle, normal and material colour per corner
- * tmdDrawStreamPrimGt4CornerColors  extended 0x70-family path
+ * tmdDrawStreamPrimGt4CornerColors  textured quad, normal and material colour per corner
  */
 
 .section .text, "ax"
@@ -2148,47 +2148,82 @@ glabel tmdDrawStreamPrimGt3CornerColors
     /* 2D0C 8001250C */  jr          $ra
     /* 2D10 80012510 */  nop
 .purgem TMD_DRAW_STREAM_GT3_CORNER_COLORS_LINK_PACKET
-  .L80012514:
-    /* 2D14 80012514 */  addiu       $t7, $zero, 0x3E
-  .L80012518:
-    /* 2D18 80012518 */  j           .L80012530
+
+/* Reuse GT4 packet/depth/reuse constants; take only the GPU command byte. */
+.equ TMD_DRAW_STREAM_GT4_CORNER_COLORS_OPAQUE_CODE, (TMD_DRAW_STREAM_GT4_COLOR >> 24)
+.equ TMD_DRAW_STREAM_GT4_CORNER_COLORS_SEMI_TRANS_CODE, (TMD_DRAW_STREAM_GT4_SEMI_TRANS_COLOR >> 24)
+
+/*
+ * Light corner 3 and prepend the completed quad to its wrapped OT bucket.
+ * Inputs: a0 workspace, t8 packet, t1 its 24-bit DMA address, t2 shifted and
+ * masked AVSZ4 depth, t7 GPU command byte; GTE V0/RGB hold normal/material 3.
+ * Clobbers t0..3 and NCCS GTE results; writes the OT head, twelve-word DMA
+ * tag, corner-3 colour and command byte. v0/v1 retain the vertex-0 XY/reuse key.
+ * Fixed registers and GT4 constants belong to this handler. Keep NCCS before
+ * the link arithmetic, which supplies its latency, and the code store after
+ * the colour stores. Expansion emits no call and is purged after its one use.
+ */
+.macro TMD_DRAW_STREAM_GT4_CORNER_COLORS_LINK_PACKET
+    srl         $t2, $t2, TMD_DRAW_STREAM_GT4_DEPTH_SHIFT
+    lw          $t3, 0x14($a0)
+    nccs
+    sll         $t2, $t2, 2
+    addu        $t2, $t3, $t2
+    lw          $t0, 0x0($t2)
+    sw          $t1, 0x0($t2)
+    sll         $t0, $t0, (32 - TMD_DRAW_STREAM_GT4_DMA_ADDRESS_BITS)
+    lui         $t1, (TMD_DRAW_STREAM_GT4_PACKET_WORDS << (TMD_DRAW_STREAM_GT4_DMA_ADDRESS_BITS - 16))
+    srl         $t0, $t0, (32 - TMD_DRAW_STREAM_GT4_DMA_ADDRESS_BITS)
+    or          $t0, $t1, $t0
+    sw          $t0, 0x0($t8)
+    swc2        $22, 0x28($t8)
+    sb          $t7, 0x7($t8)
+.endm
+
+  .LtmdGt4CornerColorsSemiTrans:
+    /* 2D14 80012514 */  addiu       $t7, $zero, TMD_DRAW_STREAM_GT4_CORNER_COLORS_SEMI_TRANS_CODE
+    /* 2D18 80012518 */  j           .LtmdGt4CornerColorsSetup
     /* 2D1C 8001251C */  nop
 glabel tmdDrawStreamPrimGt4CornerColors
-    /* 2D20 80012520 */  andi        $t0, $a1, 0x2
-    /* 2D24 80012524 */  bnez        $t0, .L80012514
+    /* a0 workspace, a1 object flags, a2 first element word. */
+    /* 2D20 80012520 */  andi        $t0, $a1, TMD_OBJECT_SEMI_TRANS
+    /* 2D24 80012524 */  bnez        $t0, .LtmdGt4CornerColorsSemiTrans
     /* 2D28 80012528 */  nop
-    /* 2D2C 8001252C */  addiu       $t7, $zero, 0x3C
-  .L80012530:
+    /* 2D2C 8001252C */  addiu       $t7, $zero, TMD_DRAW_STREAM_GT4_CORNER_COLORS_OPAQUE_CODE
+  .LtmdGt4CornerColorsSetup:
+    /* t9 byte stride, a3 remaining elements, t8 packet, t6/t5 geometry. */
     /* 2D30 80012530 */  lw          $t9, 0x18($a0)
     /* 2D34 80012534 */  lw          $a3, 0x1C($a0)
     /* 2D38 80012538 */  lw          $t8, 0x0($a0)
     /* 2D3C 8001253C */  lw          $t6, 0x8($a0)
     /* 2D40 80012540 */  lw          $t5, 0xC($a0)
     /* 2D44 80012544 */  sll         $t9, $t9, 2
-    /* 2D48 80012548 */  lui         $v1, 0xFFF
+    /* 2D48 80012548 */  lui         $v1, (TMD_DRAW_STREAM_GT4_NO_PREVIOUS_VERTEX >> 16)
     /* 2D4C 8001254C */  lw          $a1, 0x84($a0)
-    /* 2D50 80012550 */  j           .L80012564
+    /* 2D50 80012550 */  j           .LtmdGt4CornerColorsLoop
     /* 2D54 80012554 */  nop
-  .L80012558:
-    /* 2D58 80012558 */  lui         $v1, 0xFFF
-  .L8001255C:
-    /* 2D5C 8001255C */  addiu       $t8, $t8, 0x34
-  .L80012560:
+  .LtmdGt4CornerColorsResetReuse:
+    /* A failed projection invalidates the previous vertex-0 reuse key. */
+    /* 2D58 80012558 */  lui         $v1, (TMD_DRAW_STREAM_GT4_NO_PREVIOUS_VERTEX >> 16)
+  .LtmdGt4CornerColorsAdvance:
+    /* Rejected quads consume the same prebuilt packet slot as accepted ones. */
+    /* 2D5C 8001255C */  addiu       $t8, $t8, TMD_DRAW_STREAM_GT4_PACKET_BYTES
     /* 2D60 80012560 */  addu        $a2, $t9, $a2
-  .L80012564:
-    /* 2D64 80012564 */  beq         $zero, $a3, .L80012740
+  .LtmdGt4CornerColorsLoop:
+    /* 2D64 80012564 */  beq         $zero, $a3, .LtmdGt4CornerColorsDone
     /* 2D68 80012568 */  nop
     /* 2D6C 8001256C */  addiu       $a3, $a3, -0x1
     /* 2D70 80012570 */  lw          $t3, 0x4($a2)
     /* 2D74 80012574 */  lw          $t1, 0x0($a2)
     /* 2D78 80012578 */  srl         $t4, $t3, 16
-    /* 2D7C 8001257C */  beq         $t4, $v1, .L800125D0
+    /* Reuse vertex 3 when it is the preceding element's vertex 0 (v1 key, v0 XY). */
+    /* 2D7C 8001257C */  beq         $t4, $v1, .LtmdGt4CornerColorsReuseVertex3
     /* 2D80 80012580 */  addu        $t4, $t6, $t4
     /* 2D84 80012584 */  lwc2        $0, 0x0($t4)
     /* 2D88 80012588 */  lwc2        $1, 0x4($t4)
     /* 2D8C 8001258C */  sll         $t3, $t3, 16
     /* 2D90 80012590 */  srl         $t3, $t3, 16
-    /* 2D94 80012594 */  .word 0x4A180001
+    /* 2D94 80012594 */  rtps
     /* 2D98 80012598 */  addu        $t3, $t6, $t3
     /* 2D9C 8001259C */  srl         $t2, $t1, 16
     /* 2DA0 800125A0 */  addu        $t2, $t6, $t2
@@ -2198,14 +2233,14 @@ glabel tmdDrawStreamPrimGt4CornerColors
     /* 2DB0 800125B0 */  addu        $t1, $t6, $t1
     /* 2DB4 800125B4 */  cfc2        $t0, $31
     /* 2DB8 800125B8 */  nop
-    /* 2DBC 800125BC */  bltz        $t0, .L80012558
+    /* 2DBC 800125BC */  bltz        $t0, .LtmdGt4CornerColorsResetReuse
     /* 2DC0 800125C0 */  nop
     /* 2DC4 800125C4 */  swc2        $14, 0x2C($t8)
-    /* 2DC8 800125C8 */  j           .L800125F8
+    /* 2DC8 800125C8 */  j           .LtmdGt4CornerColorsProjectFirstThree
     /* 2DCC 800125CC */  nop
-  .L800125D0:
+  .LtmdGt4CornerColorsReuseVertex3:
+    /* Keep the preceding depth in the GTE FIFO; copy its cached XY into this packet. */
     /* 2DD0 800125D0 */  sll         $t3, $t3, 16
-  .L800125D4:
     /* 2DD4 800125D4 */  srl         $t3, $t3, 16
     /* 2DD8 800125D8 */  addu        $t3, $t6, $t3
     /* 2DDC 800125DC */  srl         $t2, $t1, 16
@@ -2215,7 +2250,8 @@ glabel tmdDrawStreamPrimGt4CornerColors
     /* 2DEC 800125EC */  addu        $v1, $t1, $zero
     /* 2DF0 800125F0 */  addu        $t1, $t6, $t1
     /* 2DF4 800125F4 */  sw          $v0, 0x2C($t8)
-  .L800125F8:
+  .LtmdGt4CornerColorsProjectFirstThree:
+    /* Project vertices in 2,1,0 order while resolving four normal byte offsets. */
     /* 2DF8 800125F8 */  lwc2        $0, 0x0($t3)
     /* 2DFC 800125FC */  lwc2        $1, 0x4($t3)
     /* 2E00 80012600 */  lwc2        $2, 0x0($t2)
@@ -2224,7 +2260,7 @@ glabel tmdDrawStreamPrimGt4CornerColors
     /* 2E0C 8001260C */  lwc2        $5, 0x4($t1)
     /* 2E10 80012610 */  nop
     /* 2E14 80012614 */  nop
-    /* 2E18 80012618 */  .word 0x4A280030
+    /* 2E18 80012618 */  rtpt
     /* 2E1C 8001261C */  lw          $t1, 0x8($a2)
     /* 2E20 80012620 */  lw          $t3, 0xC($a2)
     /* 2E24 80012624 */  srl         $t2, $t1, 16
@@ -2234,37 +2270,38 @@ glabel tmdDrawStreamPrimGt4CornerColors
     /* 2E34 80012634 */  addu        $t1, $t5, $t1
     /* 2E38 80012638 */  cfc2        $t0, $31
     /* 2E3C 8001263C */  srl         $t4, $t3, 16
-    /* 2E40 80012640 */  bltz        $t0, .L80012558
+    /* 2E40 80012640 */  bltz        $t0, .LtmdGt4CornerColorsResetReuse
     /* 2E44 80012644 */  nop
     /* 2E48 80012648 */  addu        $t4, $t5, $t4
     /* 2E4C 8001264C */  sll         $t3, $t3, 16
-    /* 2E50 80012650 */  .word 0x4B400006
+    /* Keep NCLIP(2,1,0) < 0 or NCLIP(2,1,3) > 0; reverse-culling is ignored. */
+    /* 2E50 80012650 */  nclip
     /* 2E54 80012654 */  mfc2        $v0, $14
     /* 2E58 80012658 */  swc2        $12, 0x20($t8)
     /* 2E5C 8001265C */  swc2        $13, 0x14($t8)
     /* 2E60 80012660 */  sw          $v0, 0x8($t8)
     /* 2E64 80012664 */  mfc2        $t0, $24
     /* 2E68 80012668 */  nop
-    /* 2E6C 8001266C */  bltz        $t0, .L80012690
+    /* 2E6C 8001266C */  bltz        $t0, .LtmdGt4CornerColorsLight
     /* 2E70 80012670 */  lwc2        $14, 0x2C($t8)
     /* 2E74 80012674 */  nop
     /* 2E78 80012678 */  nop
-    /* 2E7C 8001267C */  .word 0x4B400006
+    /* 2E7C 8001267C */  nclip
     /* 2E80 80012680 */  mfc2        $t0, $24
     /* 2E84 80012684 */  nop
-    /* 2E88 80012688 */  blez        $t0, .L8001255C
+    /* 2E88 80012688 */  blez        $t0, .LtmdGt4CornerColorsAdvance
     /* 2E8C 8001268C */  nop
-  .L80012690:
+  .LtmdGt4CornerColorsLight:
+    /* Light each corner's material with its own normal; texture fields stay prebuilt. */
     /* 2E90 80012690 */  srl         $t3, $t3, 16
-  .L80012694:
     /* 2E94 80012694 */  addu        $t3, $t5, $t3
-    /* 2E98 80012698 */  .word 0x4B68002E
+    /* 2E98 80012698 */  avsz4
     /* 2E9C 8001269C */  lwc2        $6, 0x10($a2)
     /* 2EA0 800126A0 */  lwc2        $0, 0x0($t1)
     /* 2EA4 800126A4 */  lwc2        $1, 0x4($t1)
-    /* 2EA8 800126A8 */  sll         $t1, $t8, 8
-    /* 2EAC 800126AC */  srl         $t1, $t1, 8
-    /* 2EB0 800126B0 */  .word 0x4B08041B
+    /* 2EA8 800126A8 */  sll         $t1, $t8, (32 - TMD_DRAW_STREAM_GT4_DMA_ADDRESS_BITS)
+    /* 2EAC 800126AC */  srl         $t1, $t1, (32 - TMD_DRAW_STREAM_GT4_DMA_ADDRESS_BITS)
+    /* 2EB0 800126B0 */  nccs
     /* 2EB4 800126B4 */  swc2        $22, 0x4($t8)
     /* 2EB8 800126B8 */  lwc2        $6, 0x14($a2)
     /* 2EBC 800126BC */  lwc2        $0, 0x0($t2)
@@ -2272,38 +2309,25 @@ glabel tmdDrawStreamPrimGt4CornerColors
     /* 2EC4 800126C4 */  mfc2        $t2, $7
     /* 2EC8 800126C8 */  nop
     /* 2ECC 800126CC */  nop
-    /* 2ED0 800126D0 */  .word 0x4B08041B
+    /* 2ED0 800126D0 */  nccs
     /* 2ED4 800126D4 */  swc2        $22, 0x10($t8)
     /* 2ED8 800126D8 */  lwc2        $6, 0x18($a2)
     /* 2EDC 800126DC */  lwc2        $0, 0x0($t3)
     /* 2EE0 800126E0 */  lwc2        $1, 0x4($t3)
     /* 2EE4 800126E4 */  sllv        $t2, $t2, $a1
-    /* 2EE8 800126E8 */  andi        $t2, $t2, 0x3FFF
-    /* 2EEC 800126EC */  .word 0x4B08041B
+    /* 2EE8 800126E8 */  andi        $t2, $t2, TMD_DRAW_STREAM_GT4_DEPTH_MASK
+    /* 2EEC 800126EC */  nccs
     /* 2EF0 800126F0 */  swc2        $22, 0x1C($t8)
     /* 2EF4 800126F4 */  lwc2        $6, 0x1C($a2)
     /* 2EF8 800126F8 */  lwc2        $0, 0x0($t4)
     /* 2EFC 800126FC */  lwc2        $1, 0x4($t4)
-    /* 2F00 80012700 */  srl         $t2, $t2, 4
-    /* 2F04 80012704 */  lw          $t3, 0x14($a0)
-    /* 2F08 80012708 */  .word 0x4B08041B
-    /* 2F0C 8001270C */  sll         $t2, $t2, 2
-    /* 2F10 80012710 */  addu        $t2, $t3, $t2
-    /* 2F14 80012714 */  lw          $t0, 0x0($t2)
-    /* 2F18 80012718 */  sw          $t1, 0x0($t2)
-    /* 2F1C 8001271C */  sll         $t0, $t0, 8
-    /* 2F20 80012720 */  lui         $t1, 0xC00
-    /* 2F24 80012724 */  srl         $t0, $t0, 8
-    /* 2F28 80012728 */  or          $t0, $t1, $t0
-    /* 2F2C 8001272C */  sw          $t0, 0x0($t8)
-    /* 2F30 80012730 */  swc2        $22, 0x28($t8)
-    /* 2F34 80012734 */  sb          $t7, 0x7($t8)
-    /* 2F38 80012738 */  j           .L8001255C
+    /* 2F00..2F34 80012700..80012734 */  TMD_DRAW_STREAM_GT4_CORNER_COLORS_LINK_PACKET
+    /* 2F38 80012738 */  j           .LtmdGt4CornerColorsAdvance
     /* 2F3C 8001273C */  nop
-  .L80012740:
+  .LtmdGt4CornerColorsDone:
     /* 2F40 80012740 */  sw          $t8, 0x0($a0)
-  .L80012744:
     /* 2F44 80012744 */  addu        $v0, $zero, $a2
     /* 2F48 80012748 */  jr          $ra
     /* 2F4C 8001274C */  nop
 endlabel tmdDrawStreamPrimGt4CornerColors
+.purgem TMD_DRAW_STREAM_GT4_CORNER_COLORS_LINK_PACKET
