@@ -281,7 +281,7 @@ resumeView:
                     }
                     lookupTask = gameGetTaskSlot(GAME_TASK_SLOT_SCENE);
                     target     = lookupTask;
-                    Gp_DispatchMsgReply(lookupTask, SCENE_MESSAGE_FIND_OTHER_CHILD, D_801155A0.key - CAP_SEQUENCE_CHILD_ACTION_BASE, &target);
+                    TASK_MESSAGE_DISPATCH_SECOND_POINTER(lookupTask, SCENE_MESSAGE_FIND_OTHER_CHILD, D_801155A0.key - CAP_SEQUENCE_CHILD_ACTION_BASE, &target);
                     if (target != NULL) {
                         D_801155A0.done    = 0;
                         D_801155A0.field_3 = 1;

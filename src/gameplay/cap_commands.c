@@ -280,7 +280,7 @@ void Gp_MsgSlot4Chain(s32 arg0, s32 arg1)
     Task* out;
 
     arg0 = (arg0 << ENEMY_PLACE_INDEX_SHIFT) | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | gGameSession->location.loc.area;
-    Gp_DispatchMsgReply(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7D0, arg0, &out);
+    TASK_MESSAGE_DISPATCH_SECOND_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_FIND_PLACED_ACTOR, arg0, &out);
     if (out != 0) {
         taskMessageDispatch(out, ACTOR_MESSAGE_SET_MODEL_DRAW, arg1, 0);
     }

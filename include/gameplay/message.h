@@ -463,13 +463,22 @@ s32 taskMessageDispatch(Task* receiver, s32 messageId, s32 firstArg, s32 secondA
 #define TASK_MESSAGE_DISPATCH_POINTER(receiver, messageId, payload, secondArg) \
     taskMessageDispatch((receiver), (messageId), (s32)(payload), (secondArg))
 
-/// Send an object address in arg3, commonly an output/reply destination.
-static __inline__ s32 Gp_DispatchMsgReply(Task* task, s32 id, s32 arg2, const void* reply)
-{
-    TaskMessageArg payload;
-    payload.pointer = reply;
-    return taskMessageDispatch(task, id, arg2, payload.value);
-}
+/// Dispatches a synchronous task message with an object address as its second payload.
+///
+/// `receiver` must be a live task. Its message table and `messageId` select
+/// the meaning of `firstArg` and of the object addressed by `payload`,
+/// including that object's type, complete extent, alignment, and whether the
+/// handler reads the object, writes it, or both. A null address is valid only
+/// when that message permits it. Storage is borrowed as described by
+/// `TaskMessageArg`. The handler's signed result is returned unchanged, or
+/// zero if the task has no matching handler.
+///
+/// Each argument is evaluated once, with ordinary function-argument ordering.
+/// The cast encodes the complete object address in the PS1's 32-bit integer
+/// message ABI. Keep it in the call expression: an inline parameter or union
+/// temporary can make GCC retain a stack address across successive dispatches.
+#define TASK_MESSAGE_DISPATCH_SECOND_POINTER(receiver, messageId, firstArg, payload) \
+    taskMessageDispatch((receiver), (messageId), (firstArg), (s32)(payload))
 
 /// Send two object addresses through the same word-based message interface.
 static __inline__ s32 Gp_DispatchMsgPtrs(Task* task, s32 id, const void* data, const void* reply)
