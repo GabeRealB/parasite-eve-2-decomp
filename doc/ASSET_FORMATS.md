@@ -373,10 +373,10 @@ Decoded viewable form: `pe2img/<stem>.png` plus
 ### 7.1 On-disk structure
 
 ```text
-FsImageChunk (0x10 bytes) — same layout as runtime struct in fs.h:
-  u16 x, y     VRAM destination of the CLUT
-  u16 h, w     height, width in halfwords (note: h then w in the struct)
-  u8  pad[8]
+FsImageChunk (0x10 bytes) — runtime struct in include/main/fs_types.h:
+  u16 x, y      VRAM destination (x in halfwords, y in rows)
+  u16 h, w      height in rows, then width in halfwords
+  u8  unused[8] unread by the loader; zero in every retail CLUT payload and bundle image
 
 Then: LZSS-compressed ABGR1555 colour data
   decompressed size = w * h * 2 bytes
@@ -389,7 +389,7 @@ Example: `w=256, h=6` → 1536 colours (six 256-colour palettes), common for
 
 `Fs_LoadImageChunk`:
 
-1. Build `RECT` from `x,y,w,h` (with minor Y adjustments in some modes).
+1. Build `RECT` from `x, y, w, h`. Rows 245 through 255 receive the active Y shift, and chunk mode 2 adds one row.
 2. `Fs_DecompressImage` from bytes after the header.
 3. `LoadImage2` the palette into VRAM.
 

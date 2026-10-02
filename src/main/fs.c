@@ -810,6 +810,7 @@ static u8 Fs_ProcessChunkData(void)
             break;
         case 3:
             CdGetSector(D_8006CCD8, 0x200);
+            // The image header is the start of the previous sector's payload, contiguous with this continuation sector.
             status = Fs_LoadImageChunk((FsImageChunk*)(D_8006CCD8 - sizeof(Fs_CdSector.chunk.data.bytes)), 0);
             ff     = 0xFF;
             if (status == ff) {

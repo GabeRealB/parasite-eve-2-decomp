@@ -302,15 +302,18 @@ STATIC_ASSERT_SIZEOF(FsImgBuffers, 0x25800);
 STATIC_ASSERT(sizeof(FsImgBuffers) == FILE_SYSTEM_IMAGE_WIDTH * FILE_SYSTEM_IMAGE_HEIGHT * 2, fs_image_frame_bytes);
 STATIC_ASSERT(FILE_SYSTEM_IMAGE_VLC_OFFSET + STREAM_VLC_TABLE_BYTES <= sizeof(FsImgBuffers), fs_image_vlc_table_fits);
 
-/// On-disk / in-sector image chunk header used by `Fs_LoadImageChunk`.
-/// Fields at +4/+6 are height then width (swapped relative to RECT).
-typedef struct _FsImageChunk {
-    u16 x;
-    u16 y;
-    u16 h;
-    u16 w;
-    u8  pad[8];
-    // pixel data follows at offset 0x10
+/// Header of one compressed VRAM rectangle.
+///
+/// CLUT chunk payloads, image resources in a CDF bundle, and scene-image
+/// records begin with this header. `Fs_LoadImageChunk` copies the rectangle,
+/// decompresses the LZSS bytes that follow the header, and uploads the result.
+/// Height is stored before width.
+typedef struct {
+    u16 x;         // Destination X in VRAM, in halfwords
+    u16 y;         // Destination row. Rows 245..255 receive the active Y shift
+    u16 h;         // Height in rows
+    u16 w;         // Width in halfwords
+    u8  unused[8]; // Unread by the loader. Zero in every retail CLUT payload and bundle image
 } FsImageChunk;
 STATIC_ASSERT_SIZEOF(FsImageChunk, 0x10);
 
