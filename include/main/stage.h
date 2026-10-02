@@ -38,8 +38,9 @@ void Stage_InitPrimBufOnce(void);
 
 s32 Stage_HasTransitionFlags(void);
 
-/// Sets StageCtx::field_1c 0x20000000; Display_TransitionTask services it
-/// with Gfx_StoreImageSlot and clears the bit.
+/// Requests a capture of the current framebuffer.
+///
+/// The transition task stores the room image and clears the request.
 s32 Stage_RequestImageCapture(void);
 
 void Stage_RequestFromAreaTable(s32 arg0);

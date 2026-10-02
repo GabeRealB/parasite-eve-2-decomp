@@ -40,30 +40,92 @@
 #include "gameplay/player_actor.h"
 #include "gameplay/world_collision.h"
 
-/// Stage / flow context (Stage_Ctx → bss Stage_Context, size 0x38).
-typedef struct _StageCtx {
-    /* 0x00 */ TaskDesc*    field_0; // task desc table for spawn
-    /* 0x04 */ s32          field_4; // spawn arg
-    /* 0x08 */ TaskSpawnArg field_8; // second task spawn payload
-    /* 0x0C */ u32          field_C;
-    /* 0x10 */ byte         unknown_10;
-    /* 0x11 */ u8           field_11;
-    /* 0x12 */ u8           field_12; // flow gate
-    /* 0x13 */ u8           field_13;
-    /* 0x14 */ u8           field_14;
-    /* 0x15 */ u8           field_15;
-    /* 0x16 */ byte         unknown_16;
-    /* 0x17 */ u8           field_17; // flow gate
-    /* 0x18 */ u8           field_18;
-    /* 0x19 */ u8           field_19; // flag bits (bit0/1)
-    /* 0x1A */ u8           field_1a;
-    /* 0x1B */ byte         unknown_1b;
-    /* 0x1C */ u32          field_1c;    // flag word
-    /* 0x20 */ s32          field_20;
-    /* 0x24 */ s32          field_24;    // last gDisplayState.frameBuffer
-    /* 0x28 */ s32          field_28;    // step counter
-    /* 0x2C */ u8           field_2C[8]; // CDF load param block
-    /* 0x34 */ u8           field_34[4]; // CDF load param block
+/// Presentation mode stored for a queued mode task.
+///
+/// Modes 1, 3 and 4 keep the room's current resources. Mode 0, mode 2 and every
+/// mode from 5 up reload them. A default request in the Acropolis plaza is
+/// stored as mode 1.
+enum {
+    STAGE_ENTRY_RELOAD       = 0,     // Capture the frame, reset, and reload room resources
+    STAGE_ENTRY_KEEP         = 1,     // Keep resources; full flip and image strips
+    STAGE_ENTRY_HOLD         = 3,     // Keep resources; hold the flip and draw no image
+    STAGE_ENTRY_DRAW_ACTORS  = 4,     // Keep resources, draw active actors, flip during a view transition
+    STAGE_ENTRY_GRAY_CAPTURE = 0x100, // Reload path, then invert the stored framebuffer to grey
+};
+
+/// Ordering-table contents while a mode task owns the frame.
+///
+/// A view transition also uses this byte as its step selector. Zero skips the
+/// intermediate step; any other value takes it. Kind 7 selects no extra draw.
+enum {
+    STAGE_TRANSITION_NONE      = 0,
+    STAGE_TRANSITION_FILTERED  = 1,    // Priority-filtered tasks, view sprites and flagged actors
+    STAGE_TRANSITION_ACTORS    = 2,    // View sprites and active actors
+    STAGE_TRANSITION_TASKS     = 3,    // Full default task list
+    STAGE_TRANSITION_KIND_7    = 7,
+    STAGE_TRANSITION_TASKS_ALT = 0x20, // Same ordering-table contents as the full task list
+};
+
+/// Bits of the fade-overlay flag byte.
+enum {
+    STAGE_FADE_ADDITIVE   = 0x01, // Add the grey tile; otherwise subtract it
+    STAGE_FADE_FRONT      = 0x02, // Link the tile at the front of the ordering table
+    STAGE_FADE_SKIP       = 0x80, // Skip one fade step, then clear this bit
+    STAGE_FADE_SKIP_CLEAR = 0x7F, // Flag byte with the skip bit removed
+};
+
+/// Step stored when a fade is started with a zero step, and the level that fills a channel.
+enum {
+    STAGE_FADE_DEFAULT_STEP = 0x20,
+    STAGE_FADE_OPAQUE       = 0xFF,
+};
+
+/// Work the transition task still has to do. The ending request is the sign bit.
+enum {
+    STAGE_REQUEST_FILE_LOAD  = 0x08000000, // Run the file-load transition
+    STAGE_REQUEST_KEEP_VIEW  = 0x10000000, // View transition reuses the current view
+    STAGE_REQUEST_CAPTURE    = 0x20000000, // Store the current framebuffer
+    STAGE_REQUEST_TRANSITION = 0x40000000, // Change to the pending view
+};
+
+/// Active view-transition or file-load request, and a view change that keeps the current view.
+enum {
+    STAGE_REQUEST_BUSY            = STAGE_REQUEST_TRANSITION | STAGE_REQUEST_FILE_LOAD,
+    STAGE_REQUEST_KEEP_TRANSITION = STAGE_REQUEST_TRANSITION | STAGE_REQUEST_KEEP_VIEW,
+};
+
+/// Ending request, the sign bit of the request word.
+#define STAGE_REQUEST_ENDING 0x80000000u
+
+/// Resident state for a stage transition, the grey fade overlay and one queued mode task.
+///
+/// `Stage_Ctx` addresses the single `Stage_Context` object. A mode request
+/// stores a task descriptor and its two spawn words until the CD queue is idle,
+/// then spawns that descriptor's entry 0. The three unaccessed bytes have no
+/// established role.
+typedef struct {
+    TaskDesc*    taskDesc;           // Descriptor table; the mode task spawns entry 0
+    s32          spawnArg1;          // First payload word, copied to the spawned task
+    TaskSpawnArg spawnArg2;          // Second payload word, copied to the spawned task
+    u32          entryMode;          // Presentation mode (0 reload, 1 keep, 3 hold, 4 draw actors, 0x100 grey capture)
+    byte         unknown_10;         // Role unproven; no direct access
+    u8           transitionKind;     // OT contents and view-transition step (0 none, 1 filtered, 2 actors, 3 tasks, 7 kind 7, 0x20 tasks)
+    u8           loadBuffersCleared; // 1 after the file-load transition clears both framebuffers; 0 after a view transition stores its image
+    u8           fullOtReady;        // 0 small ordering table, 1 after the full table is initialized
+    u8           largePrimBuf;       // 0 static primitive buffer, 1 the 0x10000 heap buffer
+    u8           otFlipArmed;        // 1 after a keep-resources spawn, so a later flip may change the transition kind
+    byte         unknown_16;         // Role unproven; no direct access
+    u8           fadeLevel;          // Current overlay grey, clamped to 0..fadeMax
+    u8           fadeStep;           // Signed per-tick step held in a byte; the stepper sign-extends it and negation zero-extends it
+    u8           fadeFlags;          // Overlay bits (1 additive, 2 front of the OT, 0x80 skip one step)
+    u8           fadeMax;            // Level at which the fade is complete; STAGE_FADE_OPAQUE until lowered
+    byte         unknown_1b;         // Role unproven; no direct access
+    u32          requestFlags;       // Pending work (file load, keep view, capture, view transition, ending)
+    s32          pendingView;        // View slot copied into the session when a view transition starts
+    s32          heldFrameBuffer;    // Framebuffer index captured for the current step; the step waits until presentation leaves it
+    s32          transitionStep;     // Step of the view transition or the file-load transition
+    u8           loadFileKey[8];     // File-load command block; the enqueue reads bytes 0, 2 and 3, and nothing extracted writes it
+    u8           loadFileArgs[4];    // Four argument bytes of that command; nothing extracted writes them
 } StageCtx;
 STATIC_ASSERT_SIZEOF(StageCtx, 0x38);
 
@@ -108,8 +170,6 @@ static void Display_FlipOtAndDispatch(s32 unused);
 
 static void Display_InvertFramebufferGray(void);
 
-/// Transition kinds 3 and 7: same field_1c 0x40000000 handshake as
-/// Stage_BeginTransition, with StageCtx::field_11 fixed to 3 and 7.
 static s32 Stage_BeginTransitionKind3(void);
 
 static void Stage_SetModeAndFlip(u8 arg0);
@@ -161,7 +221,7 @@ static const TaskFuncTable6 Display_TaskStates = { {
 
 static void Display_StepFadeOverlay(void)
 {
-    StageCtx* p;
+    StageCtx* stage;
     s32       temp;
     s32       product;
     s32       otIdx;
@@ -171,39 +231,39 @@ static void Display_StepFadeOverlay(void)
     TILE*     tile;
     DR_TPAGE* dr;
 
-    p = Stage_Ctx;
-    if ((s8)p->field_19 & 0x80) {
-        p->field_19 = p->field_19 & 0x7F;
+    stage = Stage_Ctx;
+    if ((s8)stage->fadeFlags & STAGE_FADE_SKIP) {
+        stage->fadeFlags = stage->fadeFlags & STAGE_FADE_SKIP_CLEAR;
         return;
     }
 
     if (gDisplayState.control.flags.flipMode != DISPLAY_FLIP_HOLD) {
-        temp = (s8)p->field_18;
+        temp = (s8)stage->fadeStep;
         if (temp != 0) {
             product = temp * gDisplayState.frameTicks;
-            temp    = p->field_17;
+            temp    = stage->fadeLevel;
             temp    = temp + product;
             if (temp <= 0) {
-                p->field_17         = 0;
-                Stage_Ctx->field_18 = 0;
+                stage->fadeLevel    = 0;
+                Stage_Ctx->fadeStep = 0;
             } else {
-                max = p->field_1a;
+                max = stage->fadeMax;
                 if (temp >= (s32)max) {
-                    p->field_17         = max;
-                    Stage_Ctx->field_18 = 0;
+                    stage->fadeLevel    = max;
+                    Stage_Ctx->fadeStep = 0;
                 } else {
-                    p->field_17 = (u8)temp;
+                    stage->fadeLevel = (u8)temp;
                 }
             }
         }
     }
 
-    if (Stage_Ctx->field_17 != 0) {
+    if (Stage_Ctx->fadeLevel != 0) {
         otIdx = 0;
-        if (Stage_Ctx->field_19 & 2) {
-            otIdx = 0x3FF;
-            if (Stage_Ctx->field_13 == 0) {
-                otIdx = 0x3F;
+        if (Stage_Ctx->fadeFlags & STAGE_FADE_FRONT) {
+            otIdx = (1 << GPU_ORDERING_TABLE_DEPTH_BITS) - 1;
+            if (Stage_Ctx->fullOtReady == 0) {
+                otIdx = GPU_SMALL_ORDERING_TABLE_ENTRIES - 1;
             }
         }
 
@@ -216,19 +276,19 @@ static void Display_StepFadeOverlay(void)
         tile->y0 = -0x78 - yoff;
         tile->w  = 0x140;
         tile->h  = 0xF0;
-        val      = Stage_Ctx->field_17;
+        val      = Stage_Ctx->fadeLevel;
         tile->b0 = val;
         tile->g0 = val;
         tile->r0 = val;
 
         dr             = gGpuPrimCursor;
         gGpuPrimCursor = dr + 1;
-        if (!(Stage_Ctx->field_19 & 1)) {
+        if (!(Stage_Ctx->fadeFlags & STAGE_FADE_ADDITIVE)) {
             setlen(dr, 1);
-            dr->code[0] = 0xE1000240;
+            dr->code[0] = _get_mode(0, 1, getTPage(0, GPU_BLEND_SUBTRACT, 0, 0));
         } else {
             setlen(dr, 1);
-            dr->code[0] = 0xE1000220;
+            dr->code[0] = _get_mode(0, 1, getTPage(0, GPU_BLEND_ADD, 0, 0));
         }
 
         addPrim(&gGpuCurrentOt[otIdx], tile);
@@ -241,7 +301,7 @@ static s32 Display_TransitionLoad(Task* unused)
     RECT rect;
     s32  temp_v1;
 
-    temp_v1 = Stage_Ctx->field_28;
+    temp_v1 = Stage_Ctx->transitionStep;
     if (temp_v1 == 1) {
         goto case1;
     }
@@ -258,20 +318,20 @@ static s32 Display_TransitionLoad(Task* unused)
 
 case0:
     SetDispMask(0);
-    Stage_Ctx->field_24        = gDisplayState.frameBuffer;
+    Stage_Ctx->heldFrameBuffer = gDisplayState.frameBuffer;
     gDisplayState.keepGraphics = 1;
     Gfx_LoadImageSlot(gGameSession->location.loc.stage, gGameSession->location.loc.area, gDisplayState.frameBuffer);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
-    Stage_Ctx->field_28                  = Stage_Ctx->field_28 + 1;
+    Stage_Ctx->transitionStep            = Stage_Ctx->transitionStep + 1;
     goto end;
 case1:
     if (CdCmd_IsIdle() & 0xFFFF) {
-        CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, Stage_Ctx->field_2C, Stage_Ctx->field_34);
-        Stage_Ctx->field_28 = Stage_Ctx->field_28 + 1;
+        CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, Stage_Ctx->loadFileKey, Stage_Ctx->loadFileArgs);
+        Stage_Ctx->transitionStep = Stage_Ctx->transitionStep + 1;
     }
     goto end;
 case2:
-    if ((CdCmd_IsIdle() & 0xFFFF) && (gDisplayState.frameBuffer != Stage_Ctx->field_24)) {
+    if ((CdCmd_IsIdle() & 0xFFFF) && (gDisplayState.frameBuffer != Stage_Ctx->heldFrameBuffer)) {
         Gfx_StoreImageSlot(gGameSession->location.loc.stage, gGameSession->location.loc.area, gDisplayState.frameBuffer, 0x10000);
         Mem_InitAux();
         rect.x = 0;
@@ -285,17 +345,17 @@ case2:
         rect.y = gDisplayState.frameBuffer * 0x110;
         ClearImage(&rect, 0, 0, 0);
         DrawSync(0);
-        Stage_Ctx->field_12 = 1;
-        Stage_Ctx->field_28 = Stage_Ctx->field_28 + 1;
+        Stage_Ctx->loadBuffersCleared = 1;
+        Stage_Ctx->transitionStep     = Stage_Ctx->transitionStep + 1;
     }
     goto end;
 case3:
     gDisplayState.control.flags.flipMode    = DISPLAY_FLIP_TASK_ONLY;
     gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_TRANSITION_STRIPS;
-    Stage_Ctx->field_28                     = Stage_Ctx->field_28 + 1;
+    Stage_Ctx->transitionStep               = Stage_Ctx->transitionStep + 1;
 default_case:
     SetDispMask(1);
-    Stage_Ctx->field_1c = Stage_Ctx->field_1c & 0xF7FFFFFF;
+    Stage_Ctx->requestFlags = Stage_Ctx->requestFlags & ~STAGE_REQUEST_FILE_LOAD;
 end:
     return 1;
 }
@@ -310,37 +370,37 @@ static Task* Display_SpawnFromMode(void)
     GameLocationKey* ed;
     s32              flag;
 
-    ret = Task_SpawnFromTable(Stage_Ctx->field_0, 0, Stage_Ctx->field_4, Stage_Ctx->field_8);
+    ret = Task_SpawnFromTable(Stage_Ctx->taskDesc, 0, Stage_Ctx->spawnArg1, Stage_Ctx->spawnArg2);
     if (ret != NULL) {
-        mode = Stage_Ctx->field_C;
-        if (mode == 4) {
+        mode = Stage_Ctx->entryMode;
+        if (mode == STAGE_ENTRY_DRAW_ACTORS) {
             goto block_case4;
         }
         if (mode >= 5U) {
             goto block_default;
         }
-        if (mode == 1) {
+        if (mode == STAGE_ENTRY_KEEP) {
             goto block_case13;
         }
-        if (mode == 3) {
+        if (mode == STAGE_ENTRY_HOLD) {
             goto block_case13;
         }
         goto block_default;
 
     block_case4:
-        Stage_Ctx->field_11 = 2;
-        slot                = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-        obj                 = (GameActor*)slot->work;
-        flag                = obj->collisionEnableMask & 1;
-        ptr                 = slot->extra.tmd->coords;
+        Stage_Ctx->transitionKind = STAGE_TRANSITION_ACTORS;
+        slot                      = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+        obj                       = (GameActor*)slot->work;
+        flag                      = obj->collisionEnableMask & 1;
+        ptr                       = slot->extra.tmd->coords;
         if (flag) {
             func_801011D0(ptr, obj->collisionMotionContexts[0].contacts, 6, &obj->surfaceClass);
         }
         Gp_ClearRec18Occupied(obj->collisionContacts);
         ptr->composeStamp = GRAPHICS_COORD_DIRTY;
     block_case13:
-        Stage_Ctx->field_15 = 1;
-        if (Stage_Ctx->field_C == 3) {
+        Stage_Ctx->otFlipArmed = 1;
+        if (Stage_Ctx->entryMode == STAGE_ENTRY_HOLD) {
             gDisplayState.control.flags.flipMode    = DISPLAY_FLIP_HOLD;
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
         } else {
@@ -356,7 +416,7 @@ block_default:
     ed = &gGameSession->location.loc;
     Gpu_ResetGraphAndOt();
     Gfx_StoreImageSlot(ed->stage, ed->area, gDisplayState.drawBuffer, 0x10000);
-    if (Stage_Ctx->field_C == 0x100) {
+    if (Stage_Ctx->entryMode == STAGE_ENTRY_GRAY_CAPTURE) {
         Display_InvertFramebufferGray();
     }
     Mem_InitAux();
@@ -381,24 +441,25 @@ static void Display_TransitionTask(Task* task)
     u32          flags;
     s32          state;
     GameSession* ed;
-    StageCtx*    g;
+    StageCtx*    stage;
     s32          flag;
-    s32          f11;
+    s32          kind;
     s32          disp;
 
-    flags = Stage_Ctx->field_1c;
-    if (flags & 0x40000000) {
+    // View transition, then file load, the ending request, then a capture.
+    flags = Stage_Ctx->requestFlags;
+    if (flags & STAGE_REQUEST_TRANSITION) {
         Pad_SetCooldown(0);
-        Stage_Ctx->field_15 = 0;
-        state               = Stage_Ctx->field_28;
+        Stage_Ctx->otFlipArmed = 0;
+        state                  = Stage_Ctx->transitionStep;
         switch (state) {
             case 0:
-                Stage_Ctx->field_24                  = gDisplayState.frameBuffer;
-                gGameSession->location.loc.view      = Stage_Ctx->field_20;
-                Stage_Ctx->field_C                   = 0;
+                Stage_Ctx->heldFrameBuffer           = gDisplayState.frameBuffer;
+                gGameSession->location.loc.view      = Stage_Ctx->pendingView;
+                Stage_Ctx->entryMode                 = STAGE_ENTRY_RELOAD;
                 gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
                 Mem_ConfigureAuxHeap(gGameSession->location.loc.stage, gGameSession->location.loc.area);
-                if (!(Stage_Ctx->field_1c & 0x10000000)) {
+                if (!(Stage_Ctx->requestFlags & STAGE_REQUEST_KEEP_VIEW)) {
                     (gameGetTaskSlot(GAME_TASK_SLOT_VIEW_GATE))->spawnArg1.value = gGameSession->location.loc.view;
                     ResetGraph(1);
                     Gpu_ClearOTag(0);
@@ -413,22 +474,22 @@ static void Display_TransitionTask(Task* task)
                     Tmd_AllocMissingBuffers();
                     gGameSession->viewReady = 1;
                 }
-                Stage_Ctx->field_28 = Stage_Ctx->field_28 + 1;
+                Stage_Ctx->transitionStep = Stage_Ctx->transitionStep + 1;
                 break;
             case 1:
                 ed   = gGameSession;
                 flag = ed->viewReady;
                 if (flag == 1) {
-                    disp = gDisplayState.frameBuffer;
-                    g    = Stage_Ctx;
-                    if (disp == g->field_24) {
-                        f11           = g->field_11;
+                    disp  = gDisplayState.frameBuffer;
+                    stage = Stage_Ctx;
+                    if (disp == stage->heldFrameBuffer) {
+                        kind          = stage->transitionKind;
                         ed->viewReady = 0;
-                        if (f11 == 0) {
-                            task->killCountdown = flag;
-                            Stage_Ctx->field_28 = Stage_Ctx->field_28 + 2;
+                        if (kind == STAGE_TRANSITION_NONE) {
+                            task->killCountdown       = flag;
+                            Stage_Ctx->transitionStep = Stage_Ctx->transitionStep + 2;
                         } else {
-                            Stage_Ctx->field_28 = Stage_Ctx->field_28 + 1;
+                            Stage_Ctx->transitionStep = Stage_Ctx->transitionStep + 1;
                         }
                     }
                     CdCmd_ActivatePhase2();
@@ -437,10 +498,10 @@ static void Display_TransitionTask(Task* task)
             case 2:
                 gDisplayState.otBuffer = gDisplayState.frameBuffer;
                 Display_FlipOtAndDispatch(0);
-                Stage_Ctx->field_19                  = Stage_Ctx->field_19 | 0x80;
+                Stage_Ctx->fadeFlags                 = Stage_Ctx->fadeFlags | STAGE_FADE_SKIP;
                 gDisplayState.control.flags.flipMode = gDisplayState.control.flags.flipMode | DISPLAY_FLIP_SKIP_TASK_OT;
                 task->killCountdown                  = 3;
-                Stage_Ctx->field_28                  = Stage_Ctx->field_28 + 1;
+                Stage_Ctx->transitionStep            = Stage_Ctx->transitionStep + 1;
                 break;
             case 3:
                 gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
@@ -450,38 +511,39 @@ static void Display_TransitionTask(Task* task)
                     Gfx_StoreImageSlot(gGameSession->location.loc.stage, gGameSession->location.loc.area,
                                        gDisplayState.frameBuffer, 0x10000);
                     Mem_InitAux();
-                    Stage_Ctx->field_12 = 0;
-                    if ((s32)Stage_Ctx->field_1c < 0) {
+                    Stage_Ctx->loadBuffersCleared = 0;
+                    // The ending request is the sign bit.
+                    if ((s32)Stage_Ctx->requestFlags < 0) {
                         Pad_ClearCooldown(0);
                         task->state = task->state + 1;
                         Display_TaskLoadStep(task);
                         return;
                     }
-                    Stage_Ctx->field_28 = Stage_Ctx->field_28 + 1;
+                    Stage_Ctx->transitionStep = Stage_Ctx->transitionStep + 1;
                 }
                 break;
             case 4:
                 gDisplayState.control.flags.flipMode    = DISPLAY_FLIP_TASK_ONLY;
                 gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_ROOM_SLOT;
-                Stage_Ctx->field_28                     = Stage_Ctx->field_28 + 1;
+                Stage_Ctx->transitionStep               = Stage_Ctx->transitionStep + 1;
                 break;
             case 5:
                 Pad_ClearCooldown(0);
-                Stage_Ctx->field_1c = Stage_Ctx->field_1c & 0xBFFFFFFF;
+                Stage_Ctx->requestFlags = Stage_Ctx->requestFlags & ~STAGE_REQUEST_TRANSITION;
                 break;
         }
-    } else if (flags & 0x08000000) {
+    } else if (flags & STAGE_REQUEST_FILE_LOAD) {
         Display_TransitionLoad(task);
     } else if ((s32)flags < 0) {
         task->state = task->state + 1;
         Display_TaskLoadStep(task);
-    } else if (flags & 0x20000000) {
+    } else if (flags & STAGE_REQUEST_CAPTURE) {
         Gfx_StoreImageSlot(gGameSession->location.loc.stage, gGameSession->location.loc.area, gDisplayState.frameBuffer,
                            0x10000);
-        Stage_Ctx->field_1c = Stage_Ctx->field_1c & 0xDFFFFFFF;
+        Stage_Ctx->requestFlags = Stage_Ctx->requestFlags & ~STAGE_REQUEST_CAPTURE;
     }
 
-    if (Stage_Ctx->field_C == 4) {
+    if (Stage_Ctx->entryMode == STAGE_ENTRY_DRAW_ACTORS) {
         Display_FlipOtAndDispatch(0);
     }
 }
@@ -500,17 +562,17 @@ static void Display_FlipOtAndDispatch(s32 unused)
     gpuBeginOt(buf);
     temp->control.flags.flipMode = DISPLAY_FLIP_FULL;
     temp->drawBuffer             = temp->frameBuffer;
-    mode                         = Stage_Ctx->field_11;
+    mode                         = Stage_Ctx->transitionKind;
     switch (mode) {
-        case 3:
-        case 0x20:
+        case STAGE_TRANSITION_TASKS:
+        case STAGE_TRANSITION_TASKS_ALT:
             Task_ExecDefaultList(&gTaskDefaultList);
             break;
-        case 2:
+        case STAGE_TRANSITION_ACTORS:
             Gp_LinkViewSprts();
             Gp_DrawActorTmdActive(&Gpu_OtBuffers[temp->otBuffer]);
             break;
-        case 1:
+        case STAGE_TRANSITION_FILTERED:
             Task_ExecListFiltered(&gTaskDefaultList, 0x62);
             Gp_LinkViewSprts();
             Gp_DrawActorTmdFlagged(&Gpu_OtBuffers[temp->otBuffer]);
@@ -583,87 +645,87 @@ void Stage_InitOtAndSpawn(void)
 
 s32 Stage_SetEndingFlag(void)
 {
-    Stage_Ctx->field_1c |= 0x80000000;
+    Stage_Ctx->requestFlags |= STAGE_REQUEST_ENDING;
     return 0;
 }
 
 s32 Stage_BeginTransition(s32 arg0, s32 arg1)
 {
-    StageCtx* temp;
+    StageCtx* stage;
     s32       mask;
 
-    mask = 0x40000000;
-    if (!(Stage_Ctx->field_1c & mask)) {
+    mask = STAGE_REQUEST_TRANSITION;
+    if (!(Stage_Ctx->requestFlags & mask)) {
         Pad_SetCooldown(0);
-        temp            = Stage_Ctx;
-        temp->field_20  = arg0;
-        temp->field_24  = 0;
-        temp->field_28  = 0;
-        temp->field_11  = arg1;
-        temp->field_1c |= mask;
+        stage                  = Stage_Ctx;
+        stage->pendingView     = arg0;
+        stage->heldFrameBuffer = 0;
+        stage->transitionStep  = 0;
+        stage->transitionKind  = arg1;
+        stage->requestFlags   |= mask;
     }
     return gGameSession->location.loc.view;
 }
 
 s32 Stage_BeginTransitionKind7(s32 arg0)
 {
-    StageCtx* temp;
+    StageCtx* stage;
     s32       mask;
     s32       ret;
 
-    mask = 0x40000000;
+    mask = STAGE_REQUEST_TRANSITION;
     ret  = -1;
-    if (!(Stage_Ctx->field_1c & mask)) {
+    if (!(Stage_Ctx->requestFlags & mask)) {
         Pad_SetCooldown(0);
-        temp                 = Stage_Ctx;
-        temp->field_20       = arg0;
-        temp->field_24       = 0;
-        temp->field_28       = 0;
-        temp->field_11       = 7;
-        temp->field_1c      |= mask;
-        ret                  = gGameSession->location.loc.view;
-        Stage_Ctx->field_1c |= 0x80000000;
+        stage                    = Stage_Ctx;
+        stage->pendingView       = arg0;
+        stage->heldFrameBuffer   = 0;
+        stage->transitionStep    = 0;
+        stage->transitionKind    = STAGE_TRANSITION_KIND_7;
+        stage->requestFlags     |= mask;
+        ret                      = gGameSession->location.loc.view;
+        Stage_Ctx->requestFlags |= STAGE_REQUEST_ENDING;
     }
     return ret;
 }
 
 s32 Stage_RequestImageCapture(void)
 {
-    Stage_Ctx->field_1c |= 0x20000000;
+    Stage_Ctx->requestFlags |= STAGE_REQUEST_CAPTURE;
     return 0;
 }
 
 s32 Stage_SetFadeRate(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 0) {
-        Stage_Ctx->field_18 = 0x20;
+        Stage_Ctx->fadeStep = STAGE_FADE_DEFAULT_STEP;
     } else {
-        Stage_Ctx->field_18 = arg2;
+        Stage_Ctx->fadeStep = arg2;
     }
     if (arg0 != 0) {
-        Stage_Ctx->field_18 = -Stage_Ctx->field_18;
+        Stage_Ctx->fadeStep = -Stage_Ctx->fadeStep;
     }
-    Stage_Ctx->field_19 = 0;
+    Stage_Ctx->fadeFlags = 0;
     if (arg1 != 0) {
-        Stage_Ctx->field_19 |= 1;
+        Stage_Ctx->fadeFlags |= STAGE_FADE_ADDITIVE;
     }
     if (arg3 != 0) {
-        Stage_Ctx->field_19 |= 2;
+        Stage_Ctx->fadeFlags |= STAGE_FADE_FRONT;
     }
     return 0;
 }
 
 s32 Stage_GetFadeStatus(void)
 {
-    StageCtx* temp;
+    StageCtx* stage;
     u8        temp_a0;
 
-    temp    = Stage_Ctx;
-    temp_a0 = temp->field_17;
+    stage   = Stage_Ctx;
+    temp_a0 = stage->fadeLevel;
     if (temp_a0 == 0) {
         return 0;
     }
-    if (temp_a0 >= temp->field_1a) {
+    if (temp_a0 >= stage->fadeMax) {
         return 1;
     }
     return -1;
@@ -671,36 +733,36 @@ s32 Stage_GetFadeStatus(void)
 
 s32 Stage_HasTransitionFlags(void)
 {
-    return (Stage_Ctx->field_1c & 0x48000000) != 0;
+    return (Stage_Ctx->requestFlags & STAGE_REQUEST_BUSY) != 0;
 }
 
 void Stage_InitOtOnce(void)
 {
-    if (Stage_Ctx->field_13 == 0) {
+    if (Stage_Ctx->fullOtReady == 0) {
         Gpu_InitOt();
-        Stage_Ctx->field_13 = 1;
+        Stage_Ctx->fullOtReady = 1;
     }
 }
 
 void Stage_InitPrimBufOnce(void)
 {
-    if (Stage_Ctx->field_14 == 0) {
+    if (Stage_Ctx->largePrimBuf == 0) {
         Display_SetPrimBufLarge();
-        Stage_Ctx->field_14 = 1;
+        Stage_Ctx->largePrimBuf = 1;
     }
 }
 
 void Stage_ReleasePrimBuf(void)
 {
-    if (Stage_Ctx->field_14 == 1) {
+    if (Stage_Ctx->largePrimBuf == 1) {
         Display_SetPrimBufSmall();
-        Stage_Ctx->field_14 = 0;
+        Stage_Ctx->largePrimBuf = 0;
     }
 }
 
 void Stage_SetFadeMax(u8 arg0)
 {
-    Stage_Ctx->field_1a = arg0;
+    Stage_Ctx->fadeMax = arg0;
 }
 
 void Display_SetDrawMode(s32 arg0)
@@ -727,30 +789,29 @@ void Display_SetDrawMode(s32 arg0)
     }
 }
 
-/// Transition kinds 3 and 7: same field_1c 0x40000000 handshake as
-/// Stage_BeginTransition, with StageCtx::field_11 fixed to 3 and 7.
+/// View transition that keeps the current view, with the transition kind fixed to 3.
 static s32 Stage_BeginTransitionKind3(void)
 {
-    StageCtx* temp;
+    StageCtx* stage;
     u32       flags;
     s32       val;
 
-    temp  = Stage_Ctx;
-    flags = temp->field_1c;
-    if (!(flags & 0x40000000)) {
-        temp->field_1c = flags | 0x50000000;
-        val            = gGameSession->location.loc.view;
-        temp->field_24 = 0;
-        temp->field_28 = 0;
-        temp->field_11 = 3;
-        temp->field_20 = val;
+    stage = Stage_Ctx;
+    flags = stage->requestFlags;
+    if (!(flags & STAGE_REQUEST_TRANSITION)) {
+        stage->requestFlags    = flags | STAGE_REQUEST_KEEP_TRANSITION;
+        val                    = gGameSession->location.loc.view;
+        stage->heldFrameBuffer = 0;
+        stage->transitionStep  = 0;
+        stage->transitionKind  = STAGE_TRANSITION_TASKS;
+        stage->pendingView     = val;
     }
     return 0;
 }
 
 Task* Display_InitModeObj(TaskDesc* descriptor, s32 arg1, TaskSpawnArg arg2, s32 arg3)
 {
-    StageCtx* temp;
+    StageCtx* stage;
 
     if (gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
         return 0;
@@ -758,41 +819,43 @@ Task* Display_InitModeObj(TaskDesc* descriptor, s32 arg1, TaskSpawnArg arg2, s32
 
     MEM_CLEAR(Stage_Ctx, sizeof(StageCtx));
 
-    temp          = Stage_Ctx;
-    temp->field_0 = descriptor;
-    temp->field_4 = arg1;
-    temp->field_8 = arg2;
-    temp->field_C = arg3;
-    if (arg3 == 0) {
-        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 5, 0, 0)) {
-            temp->field_C = 1;
+    stage            = Stage_Ctx;
+    stage->taskDesc  = descriptor;
+    stage->spawnArg1 = arg1;
+    stage->spawnArg2 = arg2;
+    stage->entryMode = arg3;
+    // A default request in the Acropolis plaza keeps the current resources.
+    if (arg3 == STAGE_ENTRY_RELOAD) {
+        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) ==
+            GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 0, 0)) {
+            stage->entryMode = STAGE_ENTRY_KEEP;
         }
     }
-    Stage_Ctx->field_1a       = 0xFF;
+    Stage_Ctx->fadeMax        = STAGE_FADE_OPAQUE;
     gDisplayState.pendingMode = DISPLAY_MODE_DESCRIPTOR;
     return 0;
 }
 
 s32 Stage_GetModeByte12(void)
 {
-    return Stage_Ctx->field_12;
+    return Stage_Ctx->loadBuffersCleared;
 }
 
 static void Stage_SetModeAndFlip(u8 arg0)
 {
-    StageCtx* temp;
+    StageCtx* stage;
 
-    temp = Stage_Ctx;
-    if (temp->field_15 == 1) {
-        temp->field_11 = arg0;
+    stage = Stage_Ctx;
+    if (stage->otFlipArmed == 1) {
+        stage->transitionKind = arg0;
         Display_FlipOtAndDispatch(0);
     }
 }
 
 void Stage_ResetFade(void)
 {
-    Stage_Ctx->field_17 = 0;
-    Stage_Ctx->field_1a = 0xFF;
+    Stage_Ctx->fadeLevel = 0;
+    Stage_Ctx->fadeMax   = STAGE_FADE_OPAQUE;
 }
 
 static void Stage_WaitCdActivate(Task* task)
@@ -822,10 +885,11 @@ static void Display_TaskLoadStep(Task* task)
     u32 temp_v1;
 
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
-    temp_v1                              = Stage_Ctx->field_C;
+    temp_v1                              = Stage_Ctx->entryMode;
+    // Modes 1, 3 and 4 keep the room's current resources.
     if (temp_v1 < 5U) {
         if (temp_v1 < 3U) {
-            if (temp_v1 != 1) {
+            if (temp_v1 != STAGE_ENTRY_KEEP) {
                 goto block_3;
             }
         }
