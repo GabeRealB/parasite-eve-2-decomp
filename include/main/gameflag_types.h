@@ -86,11 +86,15 @@ typedef struct {
 } AreaSavedState;
 STATIC_ASSERT_SIZEOF(AreaSavedState, 2);
 
-/// Area records are saved at four-byte intervals. The remaining two bytes
-/// are part of the saved bank; their role has not been established.
+/// Saved record for one area in a stage bank.
+///
+/// Stage area tables address `state`, and placement and map updates go
+/// through that pointer. Records are four bytes apart. The two bytes after
+/// `state` are stored in the bank and covered by its checksum. Nothing reads
+/// or writes those bytes on their own, so their role is unproven.
 typedef struct {
-    AreaSavedState state;
-    u8             unknown_2[2];
+    AreaSavedState state;        // Live placement variant and spawn flags
+    u8             unknown_2[2]; // Stored with the bank and covered by its checksum. No field-level access found; role unproven
 } GameFlagAreaSlot;
 STATIC_ASSERT_SIZEOF(GameFlagAreaSlot, 4);
 
