@@ -376,9 +376,18 @@ typedef struct {
 } SndBankPayload;
 STATIC_ASSERT_SIZEOF(SndBankPayload, 0x14);
 
+/// Five-word `hSPK` header retained for one incremental sound-bank load.
+///
+/// `words` and `header` are the same bytes. The opening sector is copied
+/// through `words`. Later phases read `header` for the bank type, image
+/// kind, table sizes, and the program-image and sample-pool lengths. Those
+/// images follow this header in the stream and are not stored here. A CD
+/// audio read that starts on its target sector clears `waveBlockOffset`
+/// and stores the sector's first byte in `transferSectors`, leaving the
+/// other words as they were.
 typedef union {
-    SndBankPayload header;
-    u32            words[5];
+    SndBankPayload header;                                      // Serialized `hSPK` header fields
+    u32            words[sizeof(SndBankPayload) / sizeof(u32)]; // Same bytes, copied from the opening sector
 } SndLoadPayload;
 STATIC_ASSERT_SIZEOF(SndLoadPayload, 0x14);
 

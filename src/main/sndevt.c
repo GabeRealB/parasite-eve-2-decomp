@@ -1905,6 +1905,7 @@ s32 SndLoad_ProcessSector(u32* arg0)
     state = &SndLoad_State;
     switch (state->field_2) {
         case 0:
+            // Retain the hSPK header. Group and layer tables follow it in this sector.
             src = arg0;
             dst = state->payload.words;
             i   = 0;
@@ -1913,7 +1914,7 @@ s32 SndLoad_ProcessSector(u32* arg0)
                 src++;
                 i++;
                 dst++;
-            } while (i < 5U);
+            } while (i < ARRAY_SIZE(state->payload.words));
 
             nibble = state->payload.header.bankId & SOUND_BANK_TYPE_MASK;
             if ((u32)(nibble - 0x8000) < 0x5001U) {
