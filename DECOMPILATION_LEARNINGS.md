@@ -7451,9 +7451,9 @@ typedef struct {
 ```
 
 `s16 data[9]` is the same size/alignment and also works, but the mixed
-layout matches the existing `GBytes4`/`GameLoc` "unaligned word chunks +
-remainder" pattern. A word-aligned `MATRIX` assignment uses `lw`/`sw`
-instead of `lwl`/`lwr`.
+layout matches the existing "unaligned word chunks + remainder" pattern
+(`GameLoc`; `_SndMusicVolumeTable` is the 4-byte case with no remainder).
+A word-aligned `MATRIX` assignment uses `lw`/`sw` instead of `lwl`/`lwr`.
 
 `Gp_ApplyView` is the example (rotation to `Gfx_ViewRotMtx`, then a separate
 `VECTOR3` assign of `mtx.t` to `D_80070F28`).

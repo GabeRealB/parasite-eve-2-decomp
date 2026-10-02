@@ -27,10 +27,13 @@
 #include "gameplay/effect_tasks.h"
 #include "gameplay/loading.h"
 
-/// 4-byte block assigned via unaligned lwl/lwr (see Snd_ApplyVolumeTable).
-typedef struct _GBytes4 {
-    u8 data[4];
-} GBytes4;
+/// Music volume for each music-volume setting, copied to the stack as a whole.
+///
+/// Wrapping the bytes in a struct makes the copy one unaligned `lwl`/`lwr`
+/// word transfer rather than four byte moves.
+typedef struct {
+    u8 volumes[4]; // Indexed by the saved music-volume setting (0 loudest .. 3 off)
+} _SndMusicVolumeTable;
 
 /* Define BSS before API headers to preserve first-declaration order. */
 static u16 D_8007A390;
@@ -46,11 +49,11 @@ s16 D_8007A396;
 #include "main/loadui.h"
 
 /// Music volume for each of the four volume settings, loudest first.
-static const GBytes4 D_80013F18;
+static const _SndMusicVolumeTable D_80013F18;
 
 static void Prim_DrawLoadingSprt(void);
 
-static const GBytes4 D_80013F18;
+static const _SndMusicVolumeTable D_80013F18;
 
 u8       D_800626E8    = 0;
 TaskDesc D_800626EC[6] = {
@@ -263,8 +266,8 @@ static void Prim_DrawLoadingSprt(void)
 
 void Snd_ApplyVolumeTable(s32 arg0)
 {
-    GBytes4 sp10;
-    u8      temp;
+    _SndMusicVolumeTable sp10;
+    u8                   temp;
 
     sp10 = D_80013F18;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.soundMode == 0) {
@@ -280,7 +283,7 @@ void Snd_ApplyVolumeTable(s32 arg0)
             SndEvt_EnqueueType5(0, (u8)D_8007A396);
         }
     } else {
-        temp       = sp10.data[(u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.musicVolume];
+        temp       = sp10.volumes[(u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.musicVolume];
         D_8007A396 = temp;
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.musicVolume == 3) {
             SndEvt_EnqueueType5Pending();
@@ -290,10 +293,10 @@ void Snd_ApplyVolumeTable(s32 arg0)
         if (gStageRoomSong != 0) {
             SndEvt_EnqueueType5(gStageRoomSong, (u8)D_8007A396);
         } else {
-            SndEvt_EnqueueType5(0, sp10.data[(u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.musicVolume]);
+            SndEvt_EnqueueType5(0, sp10.volumes[(u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.musicVolume]);
         }
     }
 }
 
 /// Music volume for each of the four volume settings, loudest first.
-static const GBytes4 D_80013F18 = { { 100, 64, 32, 0 } };
+static const _SndMusicVolumeTable D_80013F18 = { { 100, 64, 32, 0 } };
