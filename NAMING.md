@@ -376,6 +376,11 @@ textured quad drawers. Its interface is `src/shared/effect_sprite.h`; its
 configuration macros use `EFFECT_SPRITE_` and select declarations matching each
 carrier's drawer signatures.
 
+`spriteQuad` owns the included camera-facing textured quads with carrier-selected
+textures. Its interface is `src/shared/sprite_quad.h`; its configuration macros
+use `SPRITE_QUAD_`. The frame-type binding selects each static instance's 16-bit
+texture-frame argument, including its signedness.
+
 The included Dryfield factory room code shares the lift, hatch, operator panel,
 entry task and scenes between the day and night packages. Its interface is
 `src/shared/factory_lift.h`; configuration macros use `FACTORY_ROOM_` and select

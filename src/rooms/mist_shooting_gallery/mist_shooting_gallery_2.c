@@ -61,6 +61,7 @@ s32 D_mist_shooting_gallery_8018E0C0;
 #include "main/wipsys_types.h"
 
 #include "mapui/map_akropolis.h"
+/// Signed texture-frame counter for the gallery's repeating six-cell sprite strip.
 #define SPRITE_QUAD_FRAME_T s16
 #include "../../shared/sprite_quad.h"
 #include "../../shared/beam_strip.h"

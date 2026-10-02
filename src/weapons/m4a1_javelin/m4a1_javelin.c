@@ -45,7 +45,8 @@
 #include "overlay.h"
 #define SPRITE_QUAD_POS_T     long
 #define SPRITE_QUAD_POS(p, i) ((p)[i])
-#define SPRITE_QUAD_FRAME_T   s16
+/// Signed texture-frame index for the eight-frame launch sprite.
+#define SPRITE_QUAD_FRAME_T s16
 #include "../../shared/sprite_quad.h"
 
 /// Low halves of a `VECTOR3` (typically `GfxCoord.workm.t`).

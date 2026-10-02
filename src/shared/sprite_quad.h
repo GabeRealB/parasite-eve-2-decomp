@@ -23,9 +23,7 @@
  *                           point, 0 at the point itself
  * and SPRITE_QUAD_TPAGE when it is not 0x2A. The fragment clears these, so a
  * unit drawing two textures includes it twice; SPRITE_QUAD_FUNC names the
- * second instance (the first is spriteQuadDraw, declared here). A unit whose
- * callers pass the frame signed defines SPRITE_QUAD_FRAME_T as s16 before
- * including this header.
+ * second instance (the first is spriteQuadDraw, declared here).
  */
 
 #ifndef SRC_SHARED_SPRITE_QUAD_H
@@ -46,6 +44,25 @@
 #endif
 
 #ifndef SPRITE_QUAD_FRAME_T
+/// Integer type of the texture-frame selector for an included sprite-quad drawer.
+///
+/// Define as `s16` or `u16` before including this header to select the first
+/// instance's signature. The unsigned default serves the flare,
+/// shelter_b6_nursery and actor_510900 instances. Signed carriers override it
+/// for their effect counters.
+/// The type narrows the argument to 16 bits and determines its signed or unsigned
+/// interpretation in texture-coordinate arithmetic.
+///
+/// `frame` counts texture frames. A strip uses it as a cell number, optionally
+/// masked or reduced modulo the row width; a grid also derives the row from it.
+/// Computed UV coordinates narrow to the GPU's byte fields. With
+/// `SPRITE_QUAD_UV_TABLE`, the caller must instead supply a nonnegative index
+/// within that table and any frame-indexed `SPRITE_QUAD_CLUT` table.
+///
+/// The binding persists across `sprite_quad_draw.inc.c` inclusions. Undefine and
+/// redefine it when changing an instance's signature, and keep that instance's
+/// forward declaration consistent. Hammer uses `u16` for its charge sprite and
+/// restores `s16` for its six-cell strip. The flicker drawer has a fixed signature.
 #define SPRITE_QUAD_FRAME_T u16
 #endif
 

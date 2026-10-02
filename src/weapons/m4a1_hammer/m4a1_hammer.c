@@ -31,6 +31,7 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+/// Signed texture-frame counter for the six-cell sprite's forward declaration.
 #define SPRITE_QUAD_FRAME_T s16
 #include "../../shared/sprite_quad.h"
 #include "../../shared/beam_strip.h"
@@ -214,6 +215,7 @@ void func_m4a1_hammer_8011D1E0(Task* task)
 #undef SPRITE_QUAD_SIZE_T
 #define SPRITE_QUAD_POS_T     long
 #define SPRITE_QUAD_POS(p, i) ((p)[i])
+/// Unsigned texture-frame counter, masked to the charge sprite's eight cells.
 #define SPRITE_QUAD_FRAME_T   u16
 #define SPRITE_QUAD_SIZE_T    u16
 #define SPRITE_QUAD_FUNC      spriteQuadDrawCharge
@@ -231,8 +233,9 @@ void func_m4a1_hammer_8011D1E0(Task* task)
 #undef SPRITE_QUAD_SIZE_T
 #define SPRITE_QUAD_POS_T     GfxCoord
 #define SPRITE_QUAD_POS(p, i) ((p)->workm.t[i])
-#define SPRITE_QUAD_FRAME_T   s16
-#define SPRITE_QUAD_SIZE_T    s16
+/// Restore the signed counter for the repeating six-cell sprite strip.
+#define SPRITE_QUAD_FRAME_T s16
+#define SPRITE_QUAD_SIZE_T  s16
 
 void func_m4a1_hammer_8011DD08(Task* arg0)
 {

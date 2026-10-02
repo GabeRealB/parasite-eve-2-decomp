@@ -39,6 +39,7 @@
 #include "main/tmd_types.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/pyro_flame.h"
+/// Signed effect-age argument whose low bit selects one of the two flame cells.
 #define SPRITE_QUAD_FRAME_T s16
 #include "../../shared/sprite_quad.h"
 #include "../../shared/jet_cone.h"

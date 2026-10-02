@@ -46,6 +46,7 @@
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/streamed_scene.h"
+/// Signed effect-age argument for the repeating six-cell sprite strip.
 #define SPRITE_QUAD_FRAME_T s16
 #include "../../shared/sprite_quad.h"
 

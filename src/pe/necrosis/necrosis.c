@@ -34,6 +34,7 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+/// Signed texture-frame selector; the caller reduces the effect age modulo six.
 #define SPRITE_QUAD_FRAME_T s16
 #include "../../shared/sprite_quad.h"
 

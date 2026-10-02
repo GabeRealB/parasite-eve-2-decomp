@@ -54,6 +54,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_cutscene.h"
+/// Signed texture-frame index for the drifting effect's five-column sprite grid.
 #define SPRITE_QUAD_FRAME_T s16
 #include "../../shared/sprite_quad.h"
 
