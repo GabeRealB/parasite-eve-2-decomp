@@ -16,8 +16,19 @@
 #define EFFECT_SPRITE_BANKED_DEPTH_BIAS 0
 #endif
 
-/// Computes one corner's pixel displacement from size/depth and a 4096-unit angle.
-static __inline__ void _effectSpriteBankedRotateCorner(EffectShapeScratch* scratch, s16 size, s32 angle)
+/// Computes the signed pixel displacement to one corner of a depth-scaled sprite.
+///
+/// `scratch` borrows a live workspace whose `depth` is initialized and nonzero;
+/// only `extent.corner` is replaced, and no pointer is retained. `sizeFactor`
+/// scales the half-diagonal: `sizeFactor * 47 / depth` truncates toward zero
+/// before rotation. The signed Q12 products are shifted to integer pixels,
+/// rounding negative products down.
+///
+/// `cornerAngle` uses 4096 units per turn. The result's X points right and its
+/// Y points up; for a positive half-diagonal, angle zero is upward and a quarter
+/// turn is rightward. The drawer adds or subtracts these components to place
+/// each pair of opposite corners.
+static __inline__ void _effectSpriteBankedRotateCorner(EffectShapeScratch* scratch, s16 sizeFactor, s32 cornerAngle)
 {
     enum {
         /// Multiplier in the signed half-diagonal numerator, divided by projection depth.
@@ -29,8 +40,15 @@ static __inline__ void _effectSpriteBankedRotateCorner(EffectShapeScratch* scrat
         /// division precedes multiplication by the trigonometric sample.
         EFFECT_SPRITE_BANKED_TRIG_FRACTION_BITS = 12
     };
-    scratch->extent.corner.x = (((size * EFFECT_SPRITE_BANKED_PERSPECTIVE_SCALE) / scratch->depth) * rsin(angle)) >> EFFECT_SPRITE_BANKED_TRIG_FRACTION_BITS;
-    scratch->extent.corner.y = (((size * EFFECT_SPRITE_BANKED_PERSPECTIVE_SCALE) / scratch->depth) * rcos(angle)) >> EFFECT_SPRITE_BANKED_TRIG_FRACTION_BITS;
+    s32 halfDiagonalPixels;
+    s32 trigSample;
+
+    trigSample               = rsin(cornerAngle);
+    halfDiagonalPixels       = (sizeFactor * EFFECT_SPRITE_BANKED_PERSPECTIVE_SCALE) / scratch->depth;
+    scratch->extent.corner.x = (halfDiagonalPixels * trigSample) >> EFFECT_SPRITE_BANKED_TRIG_FRACTION_BITS;
+    trigSample               = rcos(cornerAngle);
+    halfDiagonalPixels       = (sizeFactor * EFFECT_SPRITE_BANKED_PERSPECTIVE_SCALE) / scratch->depth;
+    scratch->extent.corner.y = (halfDiagonalPixels * trigSample) >> EFFECT_SPRITE_BANKED_TRIG_FRACTION_BITS;
 }
 
 /// Draws a palette-selected animation frame as a rotating camera-facing quad.
