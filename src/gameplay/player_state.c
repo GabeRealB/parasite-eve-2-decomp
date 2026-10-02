@@ -1825,8 +1825,8 @@ void Gp_MoveActorByKeep(Task* arg0, s32 arg1, GpMoveArg* arg2)
 s32 Gp_CopyAllyAnim(Task* arg0, s32 arg1, const AnimationBankCopyRequest* request)
 {
     union {
-        GpAnimBlk* block;
-        s32*       words;
+        AnimationBank* block;
+        s32*           words;
     } dest;
     const s32* src;
     s32        i;
@@ -1839,7 +1839,7 @@ s32 Gp_CopyAllyAnim(Task* arg0, s32 arg1, const AnimationBankCopyRequest* reques
         return 1;
     }
     // Transfer raw words: the span can include records after the clip pointers.
-    dest.words = &dest.block->table.addresses[ANIMATION_BANK_BASE_SET_COUNT];
+    dest.words = &dest.block->table.words[ANIMATION_BANK_BASE_SET_COUNT];
     for (i = 0; i < request->wordCount; i++) {
         dest.words[i] = src[i];
     }

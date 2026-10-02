@@ -32,7 +32,7 @@ extern EffectSpawnArg D_80113358;
 
 extern u16 Gp_AllyIdBase[4];
 
-extern GpAnimBlk* Gp_AnimBlkTbl[8];
+extern AnimationBank* Gp_AnimBlkTbl[8];
 
 void Gp_UpdatePlayerMove(void);
 

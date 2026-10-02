@@ -27684,14 +27684,14 @@ count = request->wordCount;
 if (count >= 0x21) {
     return 1;
 }
-dest = &((GpAnimBlk*)dest)->table.addresses[ANIMATION_BANK_BASE_SET_COUNT];
+dest = &((AnimationBank*)dest)->table.words[ANIMATION_BANK_BASE_SET_COUNT];
 for (i = 0; i < request->wordCount; i++) {
     dest[i] = src[i];
 }
 ```
 
-Assign dest from the table as `s32*` (not the block struct). A
-`Blk* dest = table[i]` load goes to `$v1`; `(s32*)table[i]` reuses
+Assign dest from the table as `s32*` (not the bank struct). An
+`AnimationBank* dest = table[i]` load goes to `$v1`; `(s32*)table[i]` reuses
 `$a0` so `dest += 0xBC` is `addiu a0, a0, 0xBC`.
 
 `Gp_CopyPlayerAnim` is the example. The increment form stuck at 93.8%

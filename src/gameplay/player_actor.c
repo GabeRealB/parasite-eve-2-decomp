@@ -556,51 +556,51 @@ static void func_80109A1C(Task* arg0);
 /// for its `state` mode.
 static inline void _gpResumeBaseState(Task* arg0);
 
-extern GpAnimBlk D_8012A85C;
+extern AnimationBank D_8012A85C;
 
-extern GpAnimBlk D_8012ADF8;
+extern AnimationBank D_8012ADF8;
 
-extern GpAnimBlk D_8012BA78;
+extern AnimationBank D_8012BA78;
 
-extern GpAnimBlk D_8012B51C;
+extern AnimationBank D_8012B51C;
 
-extern GpAnimBlk D_8012A474;
+extern AnimationBank D_8012A474;
 
-extern GpAnimBlk D_8012A0D8;
+extern AnimationBank D_8012A0D8;
 
-extern GpAnimBlk D_8012A9C0;
+extern AnimationBank D_8012A9C0;
 
-extern GpAnimBlk D_8012B2E4;
+extern AnimationBank D_8012B2E4;
 
-extern GpAnimBlk D_8012D184;
+extern AnimationBank D_8012D184;
 
-extern GpAnimBlk D_8012C18C;
+extern AnimationBank D_8012C18C;
 
-extern GpAnimBlk D_8012BCC8;
+extern AnimationBank D_8012BCC8;
 
-extern GpAnimBlk D_8012C300;
+extern AnimationBank D_8012C300;
 
-extern GpAnimBlk D_8012B9E4;
+extern AnimationBank D_8012B9E4;
 
-extern GpAnimBlk D_8012CF58;
+extern AnimationBank D_8012CF58;
 
-extern GpAnimBlk D_8012BAB0;
+extern AnimationBank D_8012BAB0;
 
-extern GpAnimBlk D_8012EDD0;
+extern AnimationBank D_8012EDD0;
 
-extern GpAnimBlk D_8012E108;
+extern AnimationBank D_8012E108;
 
-extern GpAnimBlk D_8012D4F4;
+extern AnimationBank D_8012D4F4;
 
-extern GpAnimBlk D_8012D25C;
+extern AnimationBank D_8012D25C;
 
-extern GpAnimBlk D_8012DF50;
+extern AnimationBank D_8012DF50;
 
-extern GpAnimBlk D_8012D500;
+extern AnimationBank D_8012D500;
 
-extern GpAnimBlk D_8012EA20;
+extern AnimationBank D_8012EA20;
 
-extern GpAnimBlk D_8012B3CC;
+extern AnimationBank D_8012B3CC;
 
 extern GpuImageUpload* D_8011CC94[];
 
@@ -650,17 +650,17 @@ extern GpuImageUpload* D_8011D0D4[];
 
 extern GpuImageUpload* D_8011D1A8[];
 
-extern GpAnimBlk D_801756D0;
+extern AnimationBank D_801756D0;
 
-extern GpAnimBlk D_801772E8;
+extern AnimationBank D_801772E8;
 
-extern GpAnimBlk D_8017567C;
+extern AnimationBank D_8017567C;
 
-extern GpAnimBlk D_80176C1C;
+extern AnimationBank D_80176C1C;
 
-extern GpAnimBlk D_8016F208;
+extern AnimationBank D_8016F208;
 
-extern GpAnimBlk D_8016CB98;
+extern AnimationBank D_8016CB98;
 
 /// Weapon overlay entry points, at fixed addresses.
 void func_8011D1C4(Task* arg0);
@@ -969,8 +969,8 @@ u16 Gp_WeaponIdBase[2] = {
     1,
     0,
 };
-GpAnimBlk* Gp_PlayerAnimBlkTbl[34] = { NULL, &D_8012A85C, &D_8012A85C, &D_8012ADF8, &D_8012BA78, &D_8012A85C, &D_8012B51C, &D_8012A474, &D_8012A0D8, &D_8012A0D8, &D_8012A9C0, &D_8012A0D8, &D_8012B2E4, &D_8012D184, &D_8012C18C, &D_8012BCC8, &D_8012C300, &D_8012B9E4, &D_8012CF58, &D_8012A0D8, &D_8012BAB0, &D_8012B9E4, &D_8012B9E4, &D_8012EDD0, &D_8012E108, &D_8012A0D8, &D_8012D4F4, &D_8012D25C, &D_8012DF50, &D_8012D500, &D_8012EA20, &D_8012B3CC, &D_8012B3CC, &D_8012B3CC };
-u16        D_80112DF4[4]           = {
+AnimationBank* Gp_PlayerAnimBlkTbl[34] = { NULL, &D_8012A85C, &D_8012A85C, &D_8012ADF8, &D_8012BA78, &D_8012A85C, &D_8012B51C, &D_8012A474, &D_8012A0D8, &D_8012A0D8, &D_8012A9C0, &D_8012A0D8, &D_8012B2E4, &D_8012D184, &D_8012C18C, &D_8012BCC8, &D_8012C300, &D_8012B9E4, &D_8012CF58, &D_8012A0D8, &D_8012BAB0, &D_8012B9E4, &D_8012B9E4, &D_8012EDD0, &D_8012E108, &D_8012A0D8, &D_8012D4F4, &D_8012D25C, &D_8012DF50, &D_8012D500, &D_8012EA20, &D_8012B3CC, &D_8012B3CC, &D_8012B3CC };
+u16            D_80112DF4[4]           = {
     0,
     64,
     155,
@@ -1278,7 +1278,7 @@ u16            Gp_AllyIdBase[4] = {
     7,
     0,
 };
-GpAnimBlk* Gp_AnimBlkTbl[8] = { NULL, &D_801756D0, &D_801756D0, &D_801772E8, &D_8017567C, &D_80176C1C, &D_8016F208, &D_8016CB98 };
+AnimationBank* Gp_AnimBlkTbl[8] = { NULL, &D_801756D0, &D_801756D0, &D_801772E8, &D_8017567C, &D_80176C1C, &D_8016F208, &D_8016CB98 };
 /// Five observed flag entries; the final F0 EE EF bytes have no known reader.
 /// Their meaning and relationship to the flag array are unconfirmed.
 u8 D_80113388[8] = {
@@ -6799,8 +6799,8 @@ s32 func_801058BC(Task* arg0, s32 arg1, s32 arg2)
 s32 Gp_CopyPlayerAnim(Task* arg0, s32 arg1, const AnimationBankCopyRequest* request)
 {
     union {
-        GpAnimBlk* block;
-        s32*       words;
+        AnimationBank* block;
+        s32*           words;
     } dest;
     const s32* src;
     s32        i;
@@ -6813,7 +6813,7 @@ s32 Gp_CopyPlayerAnim(Task* arg0, s32 arg1, const AnimationBankCopyRequest* requ
         return 1;
     }
     // Transfer raw words: the span can include records after the clip pointers.
-    dest.words = &dest.block->table.addresses[ANIMATION_BANK_BASE_SET_COUNT];
+    dest.words = &dest.block->table.words[ANIMATION_BANK_BASE_SET_COUNT];
     for (i = 0; i < request->wordCount; i++) {
         dest.words[i] = src[i];
     }

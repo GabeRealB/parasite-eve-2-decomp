@@ -35,7 +35,7 @@ extern u16 D_80112F60[];
 
 extern u16 Gp_WeaponIdBase[2];
 
-extern GpAnimBlk* Gp_PlayerAnimBlkTbl[34];
+extern AnimationBank* Gp_PlayerAnimBlkTbl[34];
 
 /// Queues sound event `sfx` from the object's world position, panned and
 /// depth-attenuated by `worldCoordGetOriginAudioPan` / `worldCoordGetOriginAudioDepth`. A third argument of

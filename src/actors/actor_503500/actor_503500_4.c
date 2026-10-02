@@ -4450,7 +4450,7 @@ void func_actor_503500_80143AC0(Task* arg0)
             if (taskMessageDispatch(player, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
                 D_actor_503500_801714DC =
                     Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]
-                        ->table.addresses[7];
+                        ->table.words[7];
                 TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &D_actor_503500_80171530, 0);
                 arg0->state++;
             }
