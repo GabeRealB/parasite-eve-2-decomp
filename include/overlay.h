@@ -608,7 +608,7 @@ STATIC_ASSERT_SIZEOF(OverlayWalkerRouteScratch, 0x1C);
 /// `func_800E0C10` resolves toward the node, then the whole-unit step applied
 /// to the walker's coordinate.
 typedef struct OverlayWalkerMoveScratch {
-    GpDeltaScratch delta;
+    WorldCollisionDelta delta;
     SVECTOR        move;
 } OverlayWalkerMoveScratch;
 STATIC_ASSERT_SIZEOF(OverlayWalkerMoveScratch, 0x18);
@@ -675,7 +675,7 @@ static __inline__ s32 overlayCoordBearingXZ(SVECTOR3* pos, GfxCoord* coord)
 /// 16.16 deltas `func_800E0C10` resolves, then whether the X or Z delta was
 /// nonzero.
 typedef struct OverlayDeltaFlag {
-    GpDeltaScratch delta;
+    WorldCollisionDelta delta;
     s32            moved;
 } OverlayDeltaFlag;
 STATIC_ASSERT_SIZEOF(OverlayDeltaFlag, 0x14);

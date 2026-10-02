@@ -259,11 +259,11 @@ STATIC_ASSERT_SIZEOF(GolemPawnRookPlaceScratch, 0x38);
 /// collision walk resolves, their normal, the push, and the effect offset and
 /// target.
 typedef struct GolemPawnRookHitScratch {
-    GpDeltaScratch delta;
-    VECTOR         normal;
-    VECTOR         push;
-    SVECTOR        effOfs;
-    SVECTOR        target;
+    WorldCollisionDelta delta;
+    VECTOR              normal;
+    VECTOR              push;
+    SVECTOR             effOfs;
+    SVECTOR             target;
 } GolemPawnRookHitScratch;
 STATIC_ASSERT_SIZEOF(GolemPawnRookHitScratch, 0x40);
 

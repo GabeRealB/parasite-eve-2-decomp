@@ -1570,16 +1570,16 @@ static void Actor00400_Fn019B4(Task* arg0)
    position and the actor's coordinate. */
 static void Actor00400_Fn01B90(Task* arg0)
 {
-    Actor100400Work* work;
-    Enemy*           obj;
-    GfxCoord*        coord;
-    GpDeltaScratch   delta;
-    s32              kind;
-    s16              amount;
-    s32              dmg;
-    s32              tmp;
-    s32              tick;
-    s32              i;
+    Actor100400Work*    work;
+    Enemy*              obj;
+    GfxCoord*           coord;
+    WorldCollisionDelta delta;
+    s32                 kind;
+    s16                 amount;
+    s32                 dmg;
+    s32                 tmp;
+    s32                 tick;
+    s32                 i;
 
     kind            = 0;
     coord           = arg0->extra.tmd->coords;
@@ -1695,37 +1695,37 @@ static void Actor00400_Fn01B90(Task* arg0)
         case 0:
             break;
         case 1:
-            tmp              = delta.vx.halves.integer;
+            tmp              = delta.fixed.vx.halves.integer;
             work->field_564 += tmp;
-            tmp              = delta.vz.halves.integer;
+            tmp              = delta.fixed.vz.halves.integer;
             work->field_568 += tmp;
-            if ((delta.vx.word & 0xFFFF) != 0) {
-                if (delta.vx.word > 0) {
+            if ((delta.fixed.vx.word & 0xFFFF) != 0) {
+                if (delta.fixed.vx.word > 0) {
                     work->field_564++;
                 } else {
                     work->field_564--;
                 }
             }
-            if ((delta.vz.word & 0xFFFF) != 0) {
-                if (delta.vz.word > 0) {
+            if ((delta.fixed.vz.word & 0xFFFF) != 0) {
+                if (delta.fixed.vz.word > 0) {
                     work->field_568++;
                 } else {
                     work->field_568--;
                 }
             }
-            tmp                = delta.vx.halves.integer;
+            tmp                = delta.fixed.vx.halves.integer;
             coord->coord.t[0] += tmp;
-            tmp                = delta.vz.halves.integer;
+            tmp                = delta.fixed.vz.halves.integer;
             coord->coord.t[2] += tmp;
-            if ((delta.vx.word & 0xFFFF) != 0) {
-                if (delta.vx.word > 0) {
+            if ((delta.fixed.vx.word & 0xFFFF) != 0) {
+                if (delta.fixed.vx.word > 0) {
                     coord->coord.t[0]++;
                 } else {
                     coord->coord.t[0]--;
                 }
             }
-            if ((delta.vz.word & 0xFFFF) != 0) {
-                if (delta.vz.word > 0) {
+            if ((delta.fixed.vz.word & 0xFFFF) != 0) {
+                if (delta.fixed.vz.word > 0) {
                     coord->coord.t[2]++;
                 } else {
                     coord->coord.t[2]--;
@@ -2166,7 +2166,7 @@ static void Actor00400_Fn02D48(Task* arg0)
     Actor100400MarkerWork* work;
     s32                    hidden;
     GfxCoord*              coord;
-    GpDeltaScratch         delta;
+    WorldCollisionDelta    delta;
     s32                    mask;
     s32                    i;
     s32                    n;

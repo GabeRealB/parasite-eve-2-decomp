@@ -40,13 +40,13 @@
 #include "../../shared/grenade_shell.h"
 
 /// 0x34-byte scratch the flight state takes from the scratch stack. The
-/// `GpDeltaScratch` at 0x20 is handed to `func_800E0FEC` and also holds the
+/// `WorldCollisionDelta` at 0x20 is handed to `func_800E0FEC` and also holds the
 /// per-frame translation the state adds onto the projectile coordinate;
 /// `sfx` is the attachment id the explosion effect and sound are keyed on.
 typedef struct M4a1GrenadeScratch {
-    /* 0x00 */ byte           pad_0[0x20];
-    /* 0x20 */ GpDeltaScratch delta;
-    /* 0x30 */ s32            sfx;
+    /* 0x00 */ byte                pad_0[0x20];
+    /* 0x20 */ WorldCollisionDelta delta;
+    /* 0x30 */ s32                 sfx;
 } M4a1GrenadeScratch;
 STATIC_ASSERT_SIZEOF(M4a1GrenadeScratch, 0x34);
 
@@ -355,12 +355,12 @@ try_rec0:
         goto check;
     }
 move:
-    blk->delta.vx.word     = work->dir.vx / work->field_88.halves.integer;
-    blk->delta.vy.word     = work->dir.vy / work->field_88.halves.integer;
-    blk->delta.vz.word     = work->dir.vz / work->field_88.halves.integer;
-    coord->coord.t[0]     += blk->delta.vx.word;
-    coord->coord.t[1]     += blk->delta.vy.word;
-    coord->coord.t[2]     += blk->delta.vz.word;
+    blk->delta.vector.vx   = work->dir.vx / work->field_88.halves.integer;
+    blk->delta.vector.vy   = work->dir.vy / work->field_88.halves.integer;
+    blk->delta.vector.vz   = work->dir.vz / work->field_88.halves.integer;
+    coord->coord.t[0]     += blk->delta.vector.vx;
+    coord->coord.t[1]     += blk->delta.vector.vy;
+    coord->coord.t[2]     += blk->delta.vector.vz;
     work->d4rec.ends[1].vy = -(work->field_88.word >> 10);
     work->field_88.word   += 0x1800;
     if (work->field_88.word > 0xFFFFF) {

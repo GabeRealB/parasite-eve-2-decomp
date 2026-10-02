@@ -30,7 +30,7 @@ void grenadeShellFly(Task* arg0)
     coord = arg0->extra.tmd->coords;
     head  = SCRATCH_STACK_CURSOR(u8);
     /* Pushed and then re-derived rather than stored from `blk`: the scratch
-       head has to stay live in its own register, because the `GpDeltaScratch`
+       head has to stay live in its own register, because the `WorldCollisionDelta`
        handed to `func_800E0FEC` below is addressed off it and not off `blk`. */
     SCRATCH_STACK_CURSOR(u8) = head - sizeof(WeaponGrenadeScratch);
     blk                      = (WeaponGrenadeScratch*)(head - sizeof(WeaponGrenadeScratch));
@@ -74,7 +74,7 @@ check:
        two scratch pointers apart, and the reference count is what wins `head`
        the lower of the two call-saved registers. */
     SOFT_USE_REG2(head, head);
-    func_800E0FEC(rec, (GpDeltaScratch*)(head - 0x18), 1, &idx);
+    func_800E0FEC(rec, &((WeaponGrenadeScratch*)(head - sizeof(WeaponGrenadeScratch)))->delta, 1, &idx);
     idx = func_800E1ACC((u8*)&idx);
     /* `func_800E1ACC` writes through `&idx` as well as returning it, so the
        index is re-read from the slot instead of kept in the return register. */
@@ -98,12 +98,12 @@ try_rec0:
         goto check;
     }
 move:
-    blk->delta.vx.word     = work->dir.vx / work->field_88.halves.integer;
-    blk->delta.vy.word     = work->dir.vy / work->field_88.halves.integer;
-    blk->delta.vz.word     = work->dir.vz / work->field_88.halves.integer;
-    coord->coord.t[0]     += blk->delta.vx.word;
-    coord->coord.t[1]     += blk->delta.vy.word;
-    coord->coord.t[2]     += blk->delta.vz.word;
+    blk->delta.vector.vx   = work->dir.vx / work->field_88.halves.integer;
+    blk->delta.vector.vy   = work->dir.vy / work->field_88.halves.integer;
+    blk->delta.vector.vz   = work->dir.vz / work->field_88.halves.integer;
+    coord->coord.t[0]     += blk->delta.vector.vx;
+    coord->coord.t[1]     += blk->delta.vector.vy;
+    coord->coord.t[2]     += blk->delta.vector.vz;
     work->d4rec.ends[1].vz = -(work->field_88.word >> 9);
     work->field_88.word   += 0x1800;
     if (work->field_88.word > 0xDFFFF) {

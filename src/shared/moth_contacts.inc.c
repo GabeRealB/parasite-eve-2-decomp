@@ -8,19 +8,19 @@
 /// opponent, rolls damage, and spawns the hit effect.
 void mothContacts(Task* arg0)
 {
-    MothWork*       work;
-    GfxCoord*       coord;
-    s32             movement;
-    s32             dx;
-    s32             dy;
-    s32             dz;
-    s32             amount;
-    s32             damage;
-    s32             z;
-    u16             state;
-    GfxCoord*       target;
-    GpDeltaScratch* head;
-    GpDeltaScratch* delta;
+    MothWork*            work;
+    GfxCoord*            coord;
+    s32                  movement;
+    s32                  dx;
+    s32                  dy;
+    s32                  dz;
+    s32                  amount;
+    s32                  damage;
+    s32                  z;
+    u16                  state;
+    GfxCoord*            target;
+    WorldCollisionDelta* head;
+    WorldCollisionDelta* delta;
 
     work     = arg0->work;
     head     = SCRATCH_STACK_CURSOR(void);
@@ -31,9 +31,9 @@ void mothContacts(Task* arg0)
         case 0:
             break;
         case 1:
-            coord->coord.t[0] += head[-1].vx.halves.integer;
-            coord->coord.t[1] += delta->vy.halves.integer;
-            z                  = coord->coord.t[2] + delta->vz.halves.integer;
+            coord->coord.t[0] += head[-1].fixed.vx.halves.integer;
+            coord->coord.t[1] += delta->fixed.vy.halves.integer;
+            z                  = coord->coord.t[2] + delta->fixed.vz.halves.integer;
             coord->coord.t[2]  = z;
             break;
         case 2:
@@ -53,17 +53,17 @@ void mothContacts(Task* arg0)
             Gp_ArmStateF0(1);
             break;
         case 2:
-            arg0->state    = (s32)state;
-            target         = gPlayerActorTasks[(u8)work->field_154.key.parts.id >> 7]->extra.tmd->coords;
-            dx             = target->coord.t[0] - coord->coord.t[0];
-            delta->vx.word = dx;
-            dy             = target->coord.t[1] - coord->coord.t[1];
-            delta->vy.word = dy;
-            dz             = target->coord.t[2] - coord->coord.t[2];
-            delta->vz.word = dz;
-            damage         = Gp_ComputeDamage((s32)work->field_154.key.value,
-                                              SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
-            amount         = damage;
+            arg0->state      = (s32)state;
+            target           = gPlayerActorTasks[(u8)work->field_154.key.parts.id >> 7]->extra.tmd->coords;
+            dx               = target->coord.t[0] - coord->coord.t[0];
+            delta->vector.vx = dx;
+            dy               = target->coord.t[1] - coord->coord.t[1];
+            delta->vector.vy = dy;
+            dz               = target->coord.t[2] - coord->coord.t[2];
+            delta->vector.vz = dz;
+            damage           = Gp_ComputeDamage((s32)work->field_154.key.value,
+                                                SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
+            amount           = damage;
             if (damage == 0) {
                 damage = 1;
                 amount = 1;
@@ -76,5 +76,5 @@ void mothContacts(Task* arg0)
             break;
     }
     Gp_ClearRec18Occupied(&work->field_154);
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BLOCK(WorldCollisionDelta);
 }

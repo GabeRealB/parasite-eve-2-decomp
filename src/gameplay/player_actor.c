@@ -4650,26 +4650,26 @@ void Gp_AttachActorObj(Task* arg0, s32 id, s32 kind)
 
 s32 func_801011D0(GfxCoord* arg0, WorldCollisionContact* arg1, s32 arg2, s32* arg3)
 {
-    GpDeltaScratch* s;
-    s32             ret;
+    WorldCollisionDelta* delta;
+    s32                  ret;
 
-    s   = SCRATCH_STACK_RESERVE_BLOCK(GpDeltaScratch);
-    ret = func_800E0FEC(arg1, s, arg2, arg3);
+    delta = SCRATCH_STACK_RESERVE_BLOCK(WorldCollisionDelta);
+    ret   = func_800E0FEC(arg1, delta, arg2, arg3);
     if (ret != 0) {
-        GP_ROUND_FIXED_AWAY(s->vx.word);
-        GP_ROUND_FIXED_AWAY(s->vy.word);
-        GP_ROUND_FIXED_AWAY(s->vz.word);
-        arg0->coord.t[0] += s->vx.halves.integer;
-        arg0->coord.t[1] += s->vy.halves.integer;
-        arg0->coord.t[2] += s->vz.halves.integer;
+        GP_ROUND_FIXED_AWAY(delta->fixed.vx.word);
+        GP_ROUND_FIXED_AWAY(delta->fixed.vy.word);
+        GP_ROUND_FIXED_AWAY(delta->fixed.vz.word);
+        arg0->coord.t[0] += delta->fixed.vx.halves.integer;
+        arg0->coord.t[1] += delta->fixed.vy.halves.integer;
+        arg0->coord.t[2] += delta->fixed.vz.halves.integer;
         if (arg3 != NULL) {
             *arg3 = func_800E1ACC((u8*)arg3);
         }
-        if ((s->vx.word | s->vz.word) == 0) {
+        if ((delta->fixed.vx.word | delta->fixed.vz.word) == 0) {
             ret = 0;
         }
     }
-    SCRATCH_STACK_RELEASE_BLOCK(GpDeltaScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(WorldCollisionDelta);
     return ret;
 }
 

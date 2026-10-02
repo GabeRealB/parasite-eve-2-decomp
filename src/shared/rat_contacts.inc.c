@@ -40,9 +40,9 @@ void ratContacts(Task* actor)
         case 0:
             break;
         case 1:
-            coord->coord.t[0] += frame->delta.vx.word >> 16;
-            coord->coord.t[1] += frame->delta.vy.word >> 16;
-            coord->coord.t[2] += frame->delta.vz.word >> 16;
+            coord->coord.t[0] += frame->delta.fixed.vx.word >> 16;
+            coord->coord.t[1] += frame->delta.fixed.vy.word >> 16;
+            coord->coord.t[2] += frame->delta.fixed.vz.word >> 16;
             break;
         case 2:
             coord->coord.t[0] = work->field_360;
@@ -63,12 +63,12 @@ void ratContacts(Task* actor)
                 break;
             case 2:
                 if (work->field_378 == 0) {
-                    slot                 = id >> 7;
-                    sourceCoord          = gPlayerActorTasks[slot & 1]->extra.tmd->coords;
-                    frame->delta.vx.word = sourceCoord->coord.t[0] - coord->coord.t[0];
-                    frame->delta.vy.word = sourceCoord->coord.t[1] - coord->coord.t[1];
-                    frame->delta.vz.word = sourceCoord->coord.t[2] - coord->coord.t[2];
-                    damage               = Gp_ComputeDamage(work->field_22C.contacts.recs[i].key.value, SquareRoot0((frame->delta.vx.word * frame->delta.vx.word) + (frame->delta.vy.word * frame->delta.vy.word) + (frame->delta.vz.word * frame->delta.vz.word)), 0, 0);
+                    slot                   = id >> 7;
+                    sourceCoord            = gPlayerActorTasks[slot & 1]->extra.tmd->coords;
+                    frame->delta.vector.vx = sourceCoord->coord.t[0] - coord->coord.t[0];
+                    frame->delta.vector.vy = sourceCoord->coord.t[1] - coord->coord.t[1];
+                    frame->delta.vector.vz = sourceCoord->coord.t[2] - coord->coord.t[2];
+                    damage                 = Gp_ComputeDamage(work->field_22C.contacts.recs[i].key.value, SquareRoot0((frame->delta.vector.vx * frame->delta.vector.vx) + (frame->delta.vector.vy * frame->delta.vector.vy) + (frame->delta.vector.vz * frame->delta.vector.vz)), 0, 0);
                     if (Gp_RollEnemyChance(actor->spawnArg2.pointer, work->field_22C.contacts.recs[i].key.value, 0) != 0) {
                         damage *= 4;
                         Gp_SpawnEff(EFFECT_CRITICAL_HIT, actor->extra.tmd->coords, 0, NULL);
@@ -116,40 +116,40 @@ void ratContacts(Task* actor)
                 }
                 break;
             case 1:
-                x                    = coord->workm.t[0] - work->field_22C.contacts.recs[i].point.vx;
-                frame->delta.vx.word = x;
-                y                    = coord->workm.t[1] - work->field_22C.contacts.recs[i].point.vy;
-                frame->delta.vy.word = y;
-                z                    = coord->workm.t[2] - work->field_22C.contacts.recs[i].point.vz;
-                frame->delta.vz.word = z;
-                depth                = work->field_22C.contacts.recs[i].distance - SquareRoot0((x * x) + (y * y) + (z * z));
-                boundedDepth         = depth;
+                x                      = coord->workm.t[0] - work->field_22C.contacts.recs[i].point.vx;
+                frame->delta.vector.vx = x;
+                y                      = coord->workm.t[1] - work->field_22C.contacts.recs[i].point.vy;
+                frame->delta.vector.vy = y;
+                z                      = coord->workm.t[2] - work->field_22C.contacts.recs[i].point.vz;
+                frame->delta.vector.vz = z;
+                depth                  = work->field_22C.contacts.recs[i].distance - SquareRoot0((x * x) + (y * y) + (z * z));
+                boundedDepth           = depth;
                 if (depth <= 0) {
                     boundedDepth = 0;
                 }
                 depth = boundedDepth;
                 if (push < depth) {
                     push = depth;
-                    VectorNormal((VECTOR*)&frame->delta, &frame->normal);
+                    VectorNormal(&frame->delta.vector, &frame->normal);
                     ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &frame->normal, &frame->dir);
                 }
                 break;
             case 3:
-                x                    = coord->workm.t[0] - work->field_22C.contacts.recs[i].point.vx;
-                frame->delta.vx.word = x;
-                y                    = coord->workm.t[1] - work->field_22C.contacts.recs[i].point.vy;
-                frame->delta.vy.word = y;
-                z                    = coord->workm.t[2] - work->field_22C.contacts.recs[i].point.vz;
-                frame->delta.vz.word = z;
-                depth                = work->field_22C.contacts.recs[i].distance - SquareRoot0((x * x) + (y * y) + (z * z));
-                boundedDepth         = depth;
+                x                      = coord->workm.t[0] - work->field_22C.contacts.recs[i].point.vx;
+                frame->delta.vector.vx = x;
+                y                      = coord->workm.t[1] - work->field_22C.contacts.recs[i].point.vy;
+                frame->delta.vector.vy = y;
+                z                      = coord->workm.t[2] - work->field_22C.contacts.recs[i].point.vz;
+                frame->delta.vector.vz = z;
+                depth                  = work->field_22C.contacts.recs[i].distance - SquareRoot0((x * x) + (y * y) + (z * z));
+                boundedDepth           = depth;
                 if (depth <= 0) {
                     boundedDepth = 0;
                 }
                 depth = boundedDepth;
                 if (push < depth) {
                     push = depth;
-                    VectorNormal((VECTOR*)&frame->delta, &frame->normal);
+                    VectorNormal(&frame->delta.vector, &frame->normal);
                     ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &frame->normal, &frame->dir);
                 }
                 break;

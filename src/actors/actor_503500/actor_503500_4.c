@@ -4776,7 +4776,7 @@ static void func_actor_503500_8014473C(Task* arg0)
 
 static void func_actor_503500_80144778(Task* arg0)
 {
-    GpDeltaScratch         delta;
+    WorldCollisionDelta    delta;
     Actor503500WorkC0*     work;
     WorldCollisionContact* rec;
     s32                    result;
@@ -4791,9 +4791,9 @@ static void func_actor_503500_80144778(Task* arg0)
             case 0:
                 break;
             case 1:
-                work->field_84.vx.word += delta.vx.word;
-                work->field_84.vy.word += delta.vy.word;
-                work->field_84.vz.word += delta.vz.word;
+                work->field_84.vx.word += delta.fixed.vx.word;
+                work->field_84.vy.word += delta.fixed.vy.word;
+                work->field_84.vz.word += delta.fixed.vz.word;
                 break;
             case 2:
                 work->field_84.vx.word = work->field_94.vx;

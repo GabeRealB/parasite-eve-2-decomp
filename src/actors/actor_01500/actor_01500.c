@@ -912,7 +912,7 @@ static void Actor01500_Fn004EC(Task* actor)
     coord  = actor->extra.tmd->coords;
     result = func_800E0C10(work->field_264, &frame->delta, 5, NULL);
     if (result != 0) {
-        if (work->field_370 == 0 && work->field_35A == 3 && frame->delta.vy.word == 0) {
+        if (work->field_370 == 0 && work->field_35A == 3 && frame->delta.fixed.vy.word == 0) {
             work->field_35A        = 6;
             work->field_358        = 0;
             work->field_244.pos.vy = 0;
@@ -928,7 +928,7 @@ static void Actor01500_Fn004EC(Task* actor)
                 }
             }
         }
-        if (work->field_35A == 4 && frame->delta.vy.word < -0xDDA) {
+        if (work->field_35A == 4 && frame->delta.fixed.vy.word < -0xDDA) {
             work->field_35A = 5;
             work->field_362 = 0;
         }
@@ -936,9 +936,9 @@ static void Actor01500_Fn004EC(Task* actor)
             case 0:
                 break;
             case 1:
-                coord->coord.t[0] += frame->delta.vx.halves.integer;
-                coord->coord.t[1] += frame->delta.vy.halves.integer;
-                coord->coord.t[2] += frame->delta.vz.halves.integer;
+                coord->coord.t[0] += frame->delta.fixed.vx.halves.integer;
+                coord->coord.t[1] += frame->delta.fixed.vy.halves.integer;
+                coord->coord.t[2] += frame->delta.fixed.vz.halves.integer;
                 break;
             case 2:
                 if (work->field_35A != 4) {
@@ -966,14 +966,14 @@ static void Actor01500_Fn004EC(Task* actor)
                 break;
             case 2:
                 if (work->field_350 == 0) {
-                    sourceCoord          = gPlayerActorTasks[(id >> 7) & 1]->extra.tmd->coords;
-                    dx                   = sourceCoord->coord.t[0] - coord->coord.t[0];
-                    frame->delta.vx.word = dx;
-                    dy                   = sourceCoord->coord.t[1] - coord->coord.t[1];
-                    frame->delta.vy.word = dy;
-                    dz                   = sourceCoord->coord.t[2] - coord->coord.t[2];
-                    frame->delta.vz.word = dz;
-                    damage               = Gp_ComputeDamage(work->field_1FC[i].key.value, SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
+                    sourceCoord            = gPlayerActorTasks[(id >> 7) & 1]->extra.tmd->coords;
+                    dx                     = sourceCoord->coord.t[0] - coord->coord.t[0];
+                    frame->delta.vector.vx = dx;
+                    dy                     = sourceCoord->coord.t[1] - coord->coord.t[1];
+                    frame->delta.vector.vy = dy;
+                    dz                     = sourceCoord->coord.t[2] - coord->coord.t[2];
+                    frame->delta.vector.vz = dz;
+                    damage                 = Gp_ComputeDamage(work->field_1FC[i].key.value, SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
                     if (Gp_RollEnemyChance(actor->spawnArg2.pointer, work->field_1FC[i].key.value, 0) != 0) {
                         damage *= 4;
                         Gp_SpawnEff(EFFECT_CRITICAL_HIT, actor->extra.tmd->coords, 0, NULL);
@@ -1016,21 +1016,21 @@ static void Actor01500_Fn004EC(Task* actor)
                 }
                 break;
             case 3:
-                wallDx               = coord->workm.t[0] - work->field_1FC[i].point.vx;
-                frame->delta.vx.word = wallDx;
-                wallDy               = coord->workm.t[1] - work->field_1FC[i].point.vy;
-                frame->delta.vy.word = wallDy;
-                wallDz               = coord->workm.t[2] - work->field_1FC[i].point.vz;
-                frame->delta.vz.word = wallDz;
-                depth                = work->field_1FC[i].distance - SquareRoot0((wallDx * wallDx) + (wallDy * wallDy) + (wallDz * wallDz));
-                boundedDepth         = depth;
+                wallDx                 = coord->workm.t[0] - work->field_1FC[i].point.vx;
+                frame->delta.vector.vx = wallDx;
+                wallDy                 = coord->workm.t[1] - work->field_1FC[i].point.vy;
+                frame->delta.vector.vy = wallDy;
+                wallDz                 = coord->workm.t[2] - work->field_1FC[i].point.vz;
+                frame->delta.vector.vz = wallDz;
+                depth                  = work->field_1FC[i].distance - SquareRoot0((wallDx * wallDx) + (wallDy * wallDy) + (wallDz * wallDz));
+                boundedDepth           = depth;
                 if (depth <= 0) {
                     boundedDepth = 0;
                 }
                 depth = boundedDepth;
                 if (push < depth) {
                     push = depth;
-                    VectorNormal((VECTOR*)&frame->delta, normal);
+                    VectorNormal(&frame->delta.vector, normal);
                     ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, normal, &frame->dir);
                 }
                 break;

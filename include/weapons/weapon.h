@@ -44,10 +44,10 @@ STATIC_ASSERT_SIZEOF(WeaponGrenadeWork, 0xA0);
 /// above the attachment id, which seeds the sound bank, and `sfx` is the
 /// attachment id itself.
 typedef struct WeaponGrenadeScratch {
-    byte           pad_0[0x20];
-    GpDeltaScratch delta;
-    s32            field_30;
-    s32            sfx;
+    byte                pad_0[0x20];
+    WorldCollisionDelta delta;
+    s32                 field_30;
+    s32                 sfx;
 } WeaponGrenadeScratch;
 STATIC_ASSERT_SIZEOF(WeaponGrenadeScratch, 0x38);
 

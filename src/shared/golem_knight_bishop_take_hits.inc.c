@@ -35,9 +35,9 @@ void golemKnightBishopTakeHits(Task* arg0)
         case 0:
             break;
         case 1:
-            coord->coord.t[0] += head[-1].delta.vx.halves.integer;
-            coord->coord.t[1] += sc->delta.vy.halves.integer;
-            coord->coord.t[2] += sc->delta.vz.halves.integer;
+            coord->coord.t[0] += head[-1].delta.fixed.vx.halves.integer;
+            coord->coord.t[1] += sc->delta.fixed.vy.halves.integer;
+            coord->coord.t[2] += sc->delta.fixed.vz.halves.integer;
             break;
         case 2:
             coord->coord.t[0] = work->field_664;
@@ -52,8 +52,8 @@ void golemKnightBishopTakeHits(Task* arg0)
             case 0:
                 break;
             case 1:
-                coord->coord.t[0] += sc->delta.vx.halves.integer;
-                coord->coord.t[2] += sc->delta.vz.halves.integer;
+                coord->coord.t[0] += sc->delta.fixed.vx.halves.integer;
+                coord->coord.t[2] += sc->delta.fixed.vz.halves.integer;
                 break;
             case 2:
                 coord->coord.t[0] = work->field_664;
@@ -89,17 +89,17 @@ void golemKnightBishopTakeHits(Task* arg0)
                     work->field_6E8 = 1;
                     break;
                 }
-                sc->delta.vx.word = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-                sc->delta.vy.word = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
-                sc->delta.vz.word = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-                work->field_6D2   = (u32) ~(sc->delta.vx.word * coord->coord.m[0][2] +
-                                          sc->delta.vy.word * coord->coord.m[1][2] +
-                                          sc->delta.vz.word * coord->coord.m[2][2]) >>
+                sc->delta.vector.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+                sc->delta.vector.vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+                sc->delta.vector.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
+                work->field_6D2     = (u32) ~(sc->delta.vector.vx * coord->coord.m[0][2] +
+                                          sc->delta.vector.vy * coord->coord.m[1][2] +
+                                          sc->delta.vector.vz * coord->coord.m[2][2]) >>
                                   31;
                 damage = Gp_ComputeDamage(work->field_49C[i].key.value,
-                                          SquareRoot0(sc->delta.vx.word * sc->delta.vx.word +
-                                                      sc->delta.vy.word * sc->delta.vy.word +
-                                                      sc->delta.vz.word * sc->delta.vz.word),
+                                          SquareRoot0(sc->delta.vector.vx * sc->delta.vector.vx +
+                                                      sc->delta.vector.vy * sc->delta.vector.vy +
+                                                      sc->delta.vector.vz * sc->delta.vector.vz),
                                           0, 0);
                 kind   = Gp_GetIdParam0(work->field_49C[i].key.value);
                 if ((u16)kind == 5) {

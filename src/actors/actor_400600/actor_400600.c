@@ -3332,23 +3332,23 @@ static const TaskFuncTable3 gStalkerZebraIvorySubStates = { {
 
 static void func_actor_400600_80136968(Task* arg0)
 {
-    SVECTOR          push;
-    SVECTOR          pos;
-    GpDeltaScratch   delta;
-    GfxCoord*        eff;
-    s16              maxX;
-    s16              maxZ;
-    s16              stepX;
-    s16              stepZ;
-    u8               blocked;
-    Actor400600Work* work;
-    Enemy*           enemy;
-    GfxCoord*        coord;
-    s16              amount;
-    s32              dmg;
-    s32              tmp;
-    s16              tick;
-    s32              i;
+    SVECTOR             push;
+    SVECTOR             pos;
+    WorldCollisionDelta delta;
+    GfxCoord*           eff;
+    s16                 maxX;
+    s16                 maxZ;
+    s16                 stepX;
+    s16                 stepZ;
+    u8                  blocked;
+    Actor400600Work*    work;
+    Enemy*              enemy;
+    GfxCoord*           coord;
+    s16                 amount;
+    s32                 dmg;
+    s32                 tmp;
+    s16                 tick;
+    s32                 i;
 
     maxX               = 0;
     maxZ               = 0;
@@ -3473,17 +3473,17 @@ static void func_actor_400600_80136968(Task* arg0)
         case 0:
             break;
         case 1:
-            stepZ = delta.vz.halves.integer;
-            stepX = delta.vx.word >> 16;
-            if (delta.vx.word & 0xFFFF) {
-                if (delta.vx.word > 0) {
+            stepZ = delta.fixed.vz.halves.integer;
+            stepX = delta.fixed.vx.word >> 16;
+            if (delta.fixed.vx.word & 0xFFFF) {
+                if (delta.fixed.vx.word > 0) {
                     stepX++;
                 } else {
                     stepX--;
                 }
             }
-            if (delta.vz.word & 0xFFFF) {
-                if (delta.vz.word > 0) {
+            if (delta.fixed.vz.word & 0xFFFF) {
+                if (delta.fixed.vz.word > 0) {
                     stepZ++;
                 } else {
                     stepZ--;

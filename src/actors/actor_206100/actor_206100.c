@@ -1605,7 +1605,7 @@ static void func_actor_206100_8014B8B4(Task* task)
 {
     Actor206100ChildWork* child;
     GfxCoord*             coord;
-    GpDeltaScratch        delta;
+    WorldCollisionDelta   delta;
     s32                   mask;
     s32                   hit;
     s32                   mode;

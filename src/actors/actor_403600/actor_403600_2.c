@@ -77,9 +77,9 @@ typedef struct Actor403600DamageRow {
 STATIC_ASSERT_SIZEOF(Actor403600DamageRow, 0x8);
 
 typedef struct Actor403600DamageScratch {
-    /* 0x00 */ u8             pad_0[0x20];
-    /* 0x20 */ GpDeltaScratch delta;
-    /* 0x30 */ u8             pad_30[0x18];
+    /* 0x00 */ u8                  pad_0[0x20];
+    /* 0x20 */ WorldCollisionDelta delta;
+    /* 0x30 */ u8                  pad_30[0x18];
 } Actor403600DamageScratch;
 STATIC_ASSERT_SIZEOF(Actor403600DamageScratch, 0x48);
 
@@ -2739,16 +2739,16 @@ static void func_actor_403600_8013D15C(Task* arg0)
             break;
         case 1:
             if ((arg0 == D_actor_403600_801606A8) && (work->field_774 == 0)) {
-                work->field_4B8.coord.t[0] += scratch->delta.vx.halves.integer;
-                work->field_4B8.coord.t[1] += scratch->delta.vy.halves.integer;
-                work->field_4B8.coord.t[2] += scratch->delta.vz.halves.integer;
+                work->field_4B8.coord.t[0] += scratch->delta.fixed.vx.halves.integer;
+                work->field_4B8.coord.t[1] += scratch->delta.fixed.vy.halves.integer;
+                work->field_4B8.coord.t[2] += scratch->delta.fixed.vz.halves.integer;
             }
             break;
         case 2:
             if ((arg0 == D_actor_403600_801606A8) && (work->field_774 == 0)) {
-                work->field_4B8.coord.t[0] += scratch->delta.vx.halves.integer;
-                work->field_4B8.coord.t[1] += scratch->delta.vy.halves.integer;
-                work->field_4B8.coord.t[2] += scratch->delta.vz.halves.integer;
+                work->field_4B8.coord.t[0] += scratch->delta.fixed.vx.halves.integer;
+                work->field_4B8.coord.t[1] += scratch->delta.fixed.vy.halves.integer;
+                work->field_4B8.coord.t[2] += scratch->delta.fixed.vz.halves.integer;
             }
             break;
     }
@@ -2768,17 +2768,17 @@ static void func_actor_403600_8013D15C(Task* arg0)
         if ((s16)work->field_744 != 0) {
             continue;
         }
-        dx                     = gPlayerStatus.coordMtx->t[0] - work->field_4B8.coord.t[0];
-        scratch->delta.vx.word = dx;
-        dy                     = gPlayerStatus.coordMtx->t[1] - 2000;
-        dy                    -= work->field_4B8.coord.t[1];
-        scratch->delta.vy.word = dy;
-        dz                     = gPlayerStatus.coordMtx->t[2] - work->field_4B8.coord.t[2];
-        hitKind                = 0;
-        scratch->delta.vz.word = dz;
-        damage                 = Gp_ComputeDamage(work->field_528[i].key.value,
-                                                  SquareRoot0(scratch->delta.vx.word * scratch->delta.vx.word + scratch->delta.vy.word * scratch->delta.vy.word + scratch->delta.vz.word * scratch->delta.vz.word),
-                                                  0, 0);
+        dx                       = gPlayerStatus.coordMtx->t[0] - work->field_4B8.coord.t[0];
+        scratch->delta.vector.vx = dx;
+        dy                       = gPlayerStatus.coordMtx->t[1] - 2000;
+        dy                      -= work->field_4B8.coord.t[1];
+        scratch->delta.vector.vy = dy;
+        dz                       = gPlayerStatus.coordMtx->t[2] - work->field_4B8.coord.t[2];
+        hitKind                  = 0;
+        scratch->delta.vector.vz = dz;
+        damage                   = Gp_ComputeDamage(work->field_528[i].key.value,
+                                                    SquareRoot0(scratch->delta.vector.vx * scratch->delta.vector.vx + scratch->delta.vector.vy * scratch->delta.vector.vy + scratch->delta.vector.vz * scratch->delta.vector.vz),
+                                                    0, 0);
         if (Gp_RollEnemyChance(arg0->spawnArg2.pointer, work->field_528[i].key.value, 0) != 0) {
             hitKind = 1;
             damage *= 4;

@@ -9,21 +9,21 @@
 /// root by the combined step and push-out.
 void madChaserApplyContacts(Task* arg0, s16 arg1)
 {
-    GpDeltaScratch delta;
-    SVECTOR        push;
-    s16            maxX;
-    s16            maxZ;
-    s16            stepX;
-    s16            stepZ;
-    u8             blocked;
-    MadChaserWork* work;
-    Enemy*         enemy;
-    GfxCoord*      coord;
-    s16            amount;
-    s32            dmg;
-    s32            tmp;
-    s16            tick;
-    s32            i;
+    WorldCollisionDelta delta;
+    SVECTOR             push;
+    s16                 maxX;
+    s16                 maxZ;
+    s16                 stepX;
+    s16                 stepZ;
+    u8                  blocked;
+    MadChaserWork*      work;
+    Enemy*              enemy;
+    GfxCoord*           coord;
+    s16                 amount;
+    s32                 dmg;
+    s32                 tmp;
+    s16                 tick;
+    s32                 i;
 
     stepZ   = 0;
     maxX    = 0;
@@ -141,17 +141,17 @@ void madChaserApplyContacts(Task* arg0, s16 arg1)
         case 0:
             break;
         case 1:
-            stepZ = delta.vz.halves.integer;
-            stepX = delta.vx.word >> 16;
-            if (delta.vx.word & 0xFFFF) {
-                if (delta.vx.word > 0) {
+            stepZ = delta.fixed.vz.halves.integer;
+            stepX = delta.fixed.vx.word >> 16;
+            if (delta.fixed.vx.word & 0xFFFF) {
+                if (delta.fixed.vx.word > 0) {
                     stepX++;
                 } else {
                     stepX--;
                 }
             }
-            if (delta.vz.word & 0xFFFF) {
-                if (delta.vz.word > 0) {
+            if (delta.fixed.vz.word & 0xFFFF) {
+                if (delta.fixed.vz.word > 0) {
                     stepZ++;
                 } else {
                     stepZ--;

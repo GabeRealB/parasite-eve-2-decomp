@@ -115,13 +115,10 @@ STATIC_ASSERT_SIZEOF(_Actor207200LargeWork, 0x4AC);
 /// `d` receives the `func_800E0C10` push-back, then the offset to the player
 /// or to a push record, which `norm` holds normalised.
 typedef struct Actor207200DmgScratch {
-    /* 0x00 */ byte pad_0[0x20];
-    /* 0x20 */ union {
-        GpDeltaScratch delta;
-        VECTOR         vec;
-    } d;
-    /* 0x30 */ byte   pad_30[8];
-    /* 0x38 */ VECTOR norm;
+    /* 0x00 */ byte                pad_0[0x20];
+    /* 0x20 */ WorldCollisionDelta d;
+    /* 0x30 */ byte                pad_30[8];
+    /* 0x38 */ VECTOR              norm;
 } Actor207200DmgScratch;
 STATIC_ASSERT_SIZEOF(Actor207200DmgScratch, 0x48);
 
@@ -1033,13 +1030,13 @@ static void func_actor_207200_8014BEF4(Task* arg0)
     coord                                       = arg0->extra.tmd->coords;
     enemy                                       = arg0->spawnArg2.pointer;
 
-    switch (func_800E0C10(work->rec3, &head[-1].d.delta, 6, NULL)) {
+    switch (func_800E0C10(work->rec3, &head[-1].d, 6, NULL)) {
         case 0:
             break;
         case 1:
-            coord->coord.t[0] += sc->d.delta.vx.halves.integer;
-            coord->coord.t[1] += sc->d.delta.vy.halves.integer;
-            coord->coord.t[2] += sc->d.delta.vz.halves.integer;
+            coord->coord.t[0] += sc->d.fixed.vx.halves.integer;
+            coord->coord.t[1] += sc->d.fixed.vy.halves.integer;
+            coord->coord.t[2] += sc->d.fixed.vz.halves.integer;
             break;
         case 2:
             coord->coord.t[0] = work->field_454;
@@ -1050,13 +1047,13 @@ static void func_actor_207200_8014BEF4(Task* arg0)
             }
             break;
     }
-    switch (func_800E0C10(work->rec2, &sc->d.delta, 6, NULL)) {
+    switch (func_800E0C10(work->rec2, &sc->d, 6, NULL)) {
         case 0:
             break;
         case 1:
-            coord->coord.t[0] += sc->d.delta.vx.halves.integer;
-            coord->coord.t[1] += sc->d.delta.vy.halves.integer;
-            coord->coord.t[2] += sc->d.delta.vz.halves.integer;
+            coord->coord.t[0] += sc->d.fixed.vx.halves.integer;
+            coord->coord.t[1] += sc->d.fixed.vy.halves.integer;
+            coord->coord.t[2] += sc->d.fixed.vz.halves.integer;
             break;
         case 2:
             coord->coord.t[0] = work->field_454;
@@ -1087,12 +1084,12 @@ static void func_actor_207200_8014BEF4(Task* arg0)
                 if (work->field_49E != 0) {
                     break;
                 }
-                sc->d.delta.vx.word = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-                sc->d.delta.vy.word = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
-                sc->d.delta.vz.word = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-                damage              = SquareRoot0(sc->d.delta.vx.word * sc->d.delta.vx.word +
-                                                  sc->d.delta.vy.word * sc->d.delta.vy.word +
-                                                  sc->d.delta.vz.word * sc->d.delta.vz.word);
+                sc->d.vector.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+                sc->d.vector.vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+                sc->d.vector.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
+                damage          = SquareRoot0(sc->d.vector.vx * sc->d.vector.vx +
+                                              sc->d.vector.vy * sc->d.vector.vy +
+                                              sc->d.vector.vz * sc->d.vector.vz);
                 Gp_GetIdParam0(work->rec2[i].key.value);
                 damage = Gp_ComputeDamage(work->rec2[i].key.value, damage, 0, 0);
                 func_800FDB18((u16)Gp_GetIdParam1(work->rec2[i].key.value),
@@ -1123,30 +1120,30 @@ static void func_actor_207200_8014BEF4(Task* arg0)
                 }
                 break;
             case 3:
-                sc->d.delta.vx.word = coord->workm.t[0] - work->rec2[i].point.vx;
-                sc->d.delta.vy.word = 0;
-                sc->d.delta.vz.word = coord->workm.t[2] - work->rec2[i].point.vz;
-                damage              = work->rec2[i].distance -
-                         SquareRoot0(sc->d.delta.vx.word * sc->d.delta.vx.word + sc->d.delta.vz.word * sc->d.delta.vz.word);
+                sc->d.vector.vx = coord->workm.t[0] - work->rec2[i].point.vx;
+                sc->d.vector.vy = 0;
+                sc->d.vector.vz = coord->workm.t[2] - work->rec2[i].point.vz;
+                damage          = work->rec2[i].distance -
+                         SquareRoot0(sc->d.vector.vx * sc->d.vector.vx + sc->d.vector.vz * sc->d.vector.vz);
                 // Clamped through a second variable: clamping `damage` in
                 // place drops the copy the original makes.
                 push = damage;
                 if (damage <= 0) {
                     push = 0;
                 }
-                damage              = push;
-                sc->d.delta.vx.word = coord->workm.t[0] - work->rec2[i].point.vx;
-                sc->d.delta.vy.word = coord->workm.t[1] - work->rec2[i].point.vy;
-                sc->d.delta.vz.word = coord->workm.t[2] - work->rec2[i].point.vz;
-                VectorNormal(&sc->d.vec, &sc->norm);
-                ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &sc->norm, &sc->d.vec);
+                damage          = push;
+                sc->d.vector.vx = coord->workm.t[0] - work->rec2[i].point.vx;
+                sc->d.vector.vy = coord->workm.t[1] - work->rec2[i].point.vy;
+                sc->d.vector.vz = coord->workm.t[2] - work->rec2[i].point.vz;
+                VectorNormal(&sc->d.vector, &sc->norm);
+                ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &sc->norm, &sc->d.vector);
                 if (work->field_48C == 2) {
-                    coord->coord.t[0] += (damage * sc->d.vec.vx) >> 12;
-                    n                  = damage * sc->d.vec.vy;
+                    coord->coord.t[0] += (damage * sc->d.vector.vx) >> 12;
+                    n                  = damage * sc->d.vector.vy;
                     if (n < 0) {
                         coord->coord.t[1] += n >> 12;
                     }
-                    coord->coord.t[2] += (damage * sc->d.vec.vz) >> 12;
+                    coord->coord.t[2] += (damage * sc->d.vector.vz) >> 12;
                 }
                 break;
         }
@@ -1160,13 +1157,13 @@ static void func_actor_207200_8014BEF4(Task* arg0)
             if (work->field_49E != 0) {
                 break;
             }
-            sc->d.delta.vx.word = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-            sc->d.delta.vy.word = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
-            sc->d.delta.vz.word = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-            damage              = SquareRoot0(sc->d.delta.vx.word * sc->d.delta.vx.word + sc->d.delta.vy.word * sc->d.delta.vy.word +
-                                              sc->d.delta.vz.word * sc->d.delta.vz.word);
-            param               = Gp_GetIdParam0(work->rec3[i].key.value);
-            damage              = Gp_ComputeDamage(work->rec3[i].key.value, damage, 0, 0);
+            sc->d.vector.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+            sc->d.vector.vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+            sc->d.vector.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
+            damage          = SquareRoot0(sc->d.vector.vx * sc->d.vector.vx + sc->d.vector.vy * sc->d.vector.vy +
+                                          sc->d.vector.vz * sc->d.vector.vz);
+            param           = Gp_GetIdParam0(work->rec3[i].key.value);
+            damage          = Gp_ComputeDamage(work->rec3[i].key.value, damage, 0, 0);
             switch ((u16)param) {
                 case 1:
                 case 4:

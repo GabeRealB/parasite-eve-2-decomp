@@ -32,9 +32,9 @@ void skullStalkerHits(Task* arg0)
         case 0:
             break;
         case 1:
-            coord->coord.t[0] += sc->delta.vx.halves.integer;
-            coord->coord.t[1] += sc->delta.vy.halves.integer;
-            coord->coord.t[2] += sc->delta.vz.halves.integer;
+            coord->coord.t[0] += sc->delta.fixed.vx.halves.integer;
+            coord->coord.t[1] += sc->delta.fixed.vy.halves.integer;
+            coord->coord.t[2] += sc->delta.fixed.vz.halves.integer;
             break;
         case 2:
             coord->coord.t[0] = work->field_254;
@@ -68,14 +68,14 @@ void skullStalkerHits(Task* arg0)
                 arg0->state         = 2;
                 break;
             case 0x20000:
-                sc->delta.vx.word = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-                sc->delta.vy.word = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
-                sc->delta.vz.word = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-                damage            = Gp_ComputeDamage(work->field_1A4[i].key.value,
-                                                     SquareRoot0(sc->delta.vx.word * sc->delta.vx.word +
-                                                                 sc->delta.vy.word * sc->delta.vy.word +
-                                                                 sc->delta.vz.word * sc->delta.vz.word),
-                                                     0, 0);
+                sc->delta.vector.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+                sc->delta.vector.vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+                sc->delta.vector.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
+                damage              = Gp_ComputeDamage(work->field_1A4[i].key.value,
+                                                       SquareRoot0(sc->delta.vector.vx * sc->delta.vector.vx +
+                                                                   sc->delta.vector.vy * sc->delta.vector.vy +
+                                                                   sc->delta.vector.vz * sc->delta.vector.vz),
+                                                       0, 0);
                 if (Gp_RollEnemyChance(arg0->spawnArg2.pointer, work->field_1A4[i].key.value, 0) != 0) {
                     damage *= 4;
                 }

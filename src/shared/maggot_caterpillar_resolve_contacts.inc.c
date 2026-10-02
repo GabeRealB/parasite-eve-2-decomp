@@ -43,9 +43,9 @@ void maggotCaterpillarResolveContacts(Task* arg0)
             case 0:
                 break;
             case 1:
-                coord->coord.t[0] += head[-1].delta.vx.halves.integer;
-                coord->coord.t[1] += scratch->delta.vy.halves.integer;
-                coord->coord.t[2] += scratch->delta.vz.halves.integer;
+                coord->coord.t[0] += head[-1].delta.fixed.vx.halves.integer;
+                coord->coord.t[1] += scratch->delta.fixed.vy.halves.integer;
+                coord->coord.t[2] += scratch->delta.fixed.vz.halves.integer;
                 break;
             case 2:
                 coord->coord.t[0] = work->field_35C.vx;
@@ -87,15 +87,15 @@ void maggotCaterpillarResolveContacts(Task* arg0)
                 }
             }
             if ((result != one) || (work->field_3B2 == 0)) {
-                src                    = gPlayerActorTasks[((u32)work->field_2B4[i].key.value >> 7) & 1]->extra.tmd->coords;
-                dx                     = src->coord.t[0] - coord->coord.t[0];
-                scratch->delta.vx.word = dx;
-                dy                     = src->coord.t[1] - coord->coord.t[1];
-                scratch->delta.vy.word = dy;
-                dz                     = src->coord.t[2] - coord->coord.t[2];
-                scratch->delta.vz.word = dz;
-                damage                 = Gp_ComputeDamage((u32)work->field_2B4[i].key.value, SquareRoot0(dx * dx + dy * dy + dz * dz), 0, 0);
-                amount                 = damage;
+                src                      = gPlayerActorTasks[((u32)work->field_2B4[i].key.value >> 7) & 1]->extra.tmd->coords;
+                dx                       = src->coord.t[0] - coord->coord.t[0];
+                scratch->delta.vector.vx = dx;
+                dy                       = src->coord.t[1] - coord->coord.t[1];
+                scratch->delta.vector.vy = dy;
+                dz                       = src->coord.t[2] - coord->coord.t[2];
+                scratch->delta.vector.vz = dz;
+                damage                   = Gp_ComputeDamage((u32)work->field_2B4[i].key.value, SquareRoot0(dx * dx + dy * dy + dz * dz), 0, 0);
+                amount                   = damage;
                 if (result == 0) {
                     if (work->field_3CA != 0) {
                         amount = (damage << 16) >> 15;

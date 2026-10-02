@@ -207,18 +207,10 @@ STATIC_ASSERT(OFFSET_OF(Actor01600Work, collision.contacts) == 0x30C, actor01600
 STATIC_ASSERT(OFFSET_OF(Actor01600Work, contact_3EC) == 0x3EC, actor01600_single_contact_offset);
 STATIC_ASSERT(OFFSET_OF(Actor01600Work, hitEffect) == 0x404, actor01600_effect_offset);
 
-typedef union Actor01600HitVector {
-    VECTOR v;
-    struct {
-        s16 lowx, highx, lowy, highy, lowz, highz;
-        s32 pad;
-    } half;
-} Actor01600HitVector;
-
 /// Collision displacement and normalized push vectors in the scratch arena.
 typedef struct Actor01600HitScratch {
     /* 0x00 */ byte                pad[0x20];
-    /* 0x20 */ Actor01600HitVector delta;
+    /* 0x20 */ WorldCollisionDelta delta;
     /* 0x30 */ VECTOR              normal;
     /* 0x40 */ byte                tail[0xC];
 } Actor01600HitScratch;
@@ -1693,7 +1685,7 @@ static void Actor01600_Fn00BAC(Task* actor)
     scratch = (SCRATCH_STACK_CURSOR(void) = old - 0x4C);
     ctx     = actor->spawnArg2.pointer;
     coord   = actor->extra.tmd->coords;
-    mode    = func_800E0C10(work->collision.contacts, old - 0x2C, 8, old - 4);
+    mode    = func_800E0C10(work->collision.contacts, &((Actor01600HitScratch*)(old - sizeof(Actor01600HitScratch)))->delta, 8, old - 4);
     world   = coord + 1;
     if (mode == 1)
         goto mode1;
@@ -1704,9 +1696,9 @@ static void Actor01600_Fn00BAC(Task* actor)
     goto mode_end;
     {
     mode1:
-        coord->coord.t[0] += scratch->delta.half.highx;
-        coord->coord.t[1] += scratch->delta.half.highy;
-        coord->coord.t[2] += scratch->delta.half.highz;
+        coord->coord.t[0] += scratch->delta.fixed.vx.halves.integer;
+        coord->coord.t[1] += scratch->delta.fixed.vy.halves.integer;
+        coord->coord.t[2] += scratch->delta.fixed.vz.halves.integer;
         goto mode_end;
     mode2:
         coord->coord.t[0] = work->field_4BC;
@@ -1724,14 +1716,14 @@ mode_end:
         switch (work->collision.contacts[contactIndex].key.parts.kind) {
             case 2:
                 if (work->field_51C == 0) {
-                    other               = slots[(u8)work->collision.contacts[contactIndex].key.parts.id >> 7]->extra.tmd->coords;
-                    x                   = other->coord.t[0] - coord->coord.t[0];
-                    scratch->delta.v.vx = x;
-                    y                   = other->coord.t[1] - coord->coord.t[1];
-                    scratch->delta.v.vy = y;
-                    z                   = other->coord.t[2] - coord->coord.t[2];
-                    scratch->delta.v.vz = z;
-                    damage              = Gp_ComputeDamage(work->collision.contacts[contactIndex].key.value, SquareRoot0(x * x + y * y + z * z), 0, 0);
+                    other                    = slots[(u8)work->collision.contacts[contactIndex].key.parts.id >> 7]->extra.tmd->coords;
+                    x                        = other->coord.t[0] - coord->coord.t[0];
+                    scratch->delta.vector.vx = x;
+                    y                        = other->coord.t[1] - coord->coord.t[1];
+                    scratch->delta.vector.vy = y;
+                    z                        = other->coord.t[2] - coord->coord.t[2];
+                    scratch->delta.vector.vz = z;
+                    damage                   = Gp_ComputeDamage(work->collision.contacts[contactIndex].key.value, SquareRoot0(x * x + y * y + z * z), 0, 0);
                     if (Gp_RollEnemyChance(actor->spawnArg2.pointer, work->collision.contacts[contactIndex].key.value, 0)) {
                         damage *= 4;
                         Gp_SpawnEff(EFFECT_CRITICAL_HIT, actor->extra.tmd->coords + 1, 0, 0);
@@ -1819,30 +1811,30 @@ mode_end:
                 }
                 break;
             case 3:
-                cx                  = coord->workm.t[0] - work->collision.contacts[contactIndex].point.vx;
-                scratch->delta.v.vy = 0;
-                scratch->delta.v.vx = cx;
-                cz                  = coord->workm.t[2] - work->collision.contacts[contactIndex].point.vz;
-                scratch->delta.v.vz = cz;
-                push                = cx * cx + cz * cz;
-                push                = SquareRoot0(push);
-                push                = -push;
-                push               += work->collision.contacts[contactIndex].distance;
-                clamped             = push;
+                cx                       = coord->workm.t[0] - work->collision.contacts[contactIndex].point.vx;
+                scratch->delta.vector.vy = 0;
+                scratch->delta.vector.vx = cx;
+                cz                       = coord->workm.t[2] - work->collision.contacts[contactIndex].point.vz;
+                scratch->delta.vector.vz = cz;
+                push                     = cx * cx + cz * cz;
+                push                     = SquareRoot0(push);
+                push                     = -push;
+                push                    += work->collision.contacts[contactIndex].distance;
+                clamped                  = push;
                 if (push <= 0)
                     clamped = 0;
-                push                = clamped;
-                scratch->delta.v.vx = coord->workm.t[0] - work->collision.contacts[contactIndex].point.vx;
-                scratch->delta.v.vy = coord->workm.t[1] - work->collision.contacts[contactIndex].point.vy;
-                scratch->delta.v.vz = coord->workm.t[2] - work->collision.contacts[contactIndex].point.vz;
-                VectorNormal(&scratch->delta.v, &scratch->normal);
-                ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &scratch->normal, &scratch->delta.v);
+                push                     = clamped;
+                scratch->delta.vector.vx = coord->workm.t[0] - work->collision.contacts[contactIndex].point.vx;
+                scratch->delta.vector.vy = coord->workm.t[1] - work->collision.contacts[contactIndex].point.vy;
+                scratch->delta.vector.vz = coord->workm.t[2] - work->collision.contacts[contactIndex].point.vz;
+                VectorNormal(&scratch->delta.vector, &scratch->normal);
+                ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &scratch->normal, &scratch->delta.vector);
                 if (work->field_506 == 23 || work->field_506 == 5 || work->field_506 == 6) {
-                    coord->coord.t[0] += (push * scratch->delta.v.vx) >> 12;
-                    product            = push * scratch->delta.v.vy;
+                    coord->coord.t[0] += (push * scratch->delta.vector.vx) >> 12;
+                    product            = push * scratch->delta.vector.vy;
                     if (product < 0)
                         coord->coord.t[1] += product >> 12;
-                    coord->coord.t[2] += (push * scratch->delta.v.vz) >> 12;
+                    coord->coord.t[2] += (push * scratch->delta.vector.vz) >> 12;
                 }
                 break;
             case 0:

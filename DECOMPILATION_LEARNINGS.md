@@ -48686,7 +48686,7 @@ add one.
 obvious union field
 
 ```c
-D_8018D6AC.vx = s->delta.vx.halves.integer;
+D_8018D6AC.vx = s->delta.fixed.vx.halves.integer;
 ```
 
 is a plain HImode memory-to-memory move, and GCC 2.8.1 loads it with `lhu`.
@@ -48695,7 +48695,7 @@ the high half arithmetically, so the load carries a `sign_extend` that combine
 folds back into a `lh` of the `+2` half:
 
 ```c
-D_8018D6AC.vx = s->delta.vx.word >> 16;   /* lh -0x12(head) */
+D_8018D6AC.vx = s->delta.fixed.vx.word >> 16;   /* lh -0x12(head) */
 ```
 
 The same expression *added into* an `s32` (`coord->coord.t[0] += ...halves.integer`)
@@ -48709,7 +48709,7 @@ replaces the bare `s` with its equivalent `head - K`, so combine emits
 `lh -K+2(head)`; `.halves.integer` is `(mem (plus s 2))`, which CSE leaves alone, giving
 `lh 2(s)`. Only offset 0 is reached through `head` this way. When the target
 reads `-0x12(head)` in the add too (`Actor00100_Fn00A54`), write
-`coord->coord.t[0] += s->delta.vx.word >> 16`. The extra reference to `head` also
+`coord->coord.t[0] += s->delta.fixed.vx.word >> 16`. The extra reference to `head` also
 changes its ref count, which is enough to swap its `$sN` home with a neighbour
 such as `coord`. That is what the old `register ... asm("v1")` pin plus
 `(head - 0x14)` casts were imitating.
@@ -56381,7 +56381,7 @@ pointer in the opposite order from its sibling: 4 refs across 22 insns
 
 ```c
 SOFT_USE_REG2(head, head);
-func_800E0FEC(rec, (GpDeltaScratch*)(head - 0x18), 1, &idx);
+func_800E0FEC(rec, &((WeaponGrenadeScratch*)(head - sizeof(WeaponGrenadeScratch)))->delta, 1, &idx);
 ```
 
 Two things that do *not* work here. `SOFT_TOUCH_REG(head)` (`"+r"`) also adds
@@ -58477,7 +58477,7 @@ Assigning one `s16` field straight to another stays in `HImode`, and GCC 2.8.1's
 `movhi` loads the source with `lhu`:
 
 ```c
-s->move.vx = s->delta.vx.halves.integer;   /* lhu $v0, 2($s0) ; sh $v0, 0x10($s0) */
+s->move.vx = s->delta.fixed.vx.halves.integer;   /* lhu $v0, 2($s0) ; sh $v0, 0x10($s0) */
 ```
 
 The target's `lh` for the same store is not a signedness quirk of the source
@@ -58485,11 +58485,11 @@ field — both fields are already `s16`. It means the value passed through an
 `int`-typed local, so the load became `extendhisi2` and the store a truncation:
 
 ```c
-dx         = s->delta.vx.halves.integer;   /* s32 dx: lh $v0, 2($s0) */
+dx         = s->delta.fixed.vx.halves.integer;   /* s32 dx: lh $v0, 2($s0) */
 s->move.vx = dx;                 /*         sh $v0, 0x10($s0) */
 ```
 
-A cast alone (`(s32)s->delta.vx.halves.integer`) does not do it — the C front end converts
+A cast alone (`(s32)s->delta.fixed.vx.halves.integer`) does not do it — the C front end converts
 the RHS back to the LHS type and folds the pair away. The temp has to be a real
 local. This is also what fixes a mixed pair such as the target's `lh $v1, 6($s0)`
 next to `lhu $v0, 0x12($s0)` in one `addu`: the operand that came from an `s32`
@@ -114919,8 +114919,8 @@ has, with each arm's own value in `$v0`:
 
 ```c
 case 1:
-    coord->coord.t[0] += scratch->delta.vx.halves.integer;
-    coord->coord.t[2] += scratch->delta.vz.halves.integer;   /* store, not z = ... */
+    coord->coord.t[0] += scratch->delta.fixed.vx.halves.integer;
+    coord->coord.t[2] += scratch->delta.fixed.vz.halves.integer;   /* store, not z = ... */
     break;
 case 2:
     coord->coord.t[0] = work->field_33C.vx;
@@ -117710,7 +117710,7 @@ word goes in C").
 
 A collision loop stores three differences into a scratch stack block and
 passes their squared length to `SquareRoot0`. Written with locals
-(`dx = ...; scratch->delta.vx.word = dx; ... SquareRoot0(dx * dx + ...)`), every
+(`dx = ...; scratch->delta.vector.vx = dx; ... SquareRoot0(dx * dx + ...)`), every
 instruction matched except that the scratch pointer and `coord` had swapped
 callee-saved registers (99.39%). In `.lreg` the scratch pseudo had 23 weighted
 refs over 203 insns and `coord` 27 over 207, so global alloc ranked `coord`
@@ -117723,9 +117723,9 @@ emits. Store the differences straight into the struct and read them back
 through it:
 
 ```c
-scratch->delta.vx.word = coord->workm.t[0] - rec->field_8;
+scratch->delta.vector.vx = coord->workm.t[0] - rec->field_8;
 ...
-reach = rec->field_2 - SquareRoot0(scratch->delta.vx.word * scratch->delta.vx.word + ...);
+reach = rec->field_2 - SquareRoot0(scratch->delta.vector.vx * scratch->delta.vector.vx + ...);
 ```
 
 The emitted instructions are the same (`subu`, `mult v0,v0`, `sw` into the
@@ -142234,10 +142234,10 @@ read through `oldHead[-3]`, and ten `USE_REG`s on the frame pointer. Written
 as a plain `for` loop over `recs[i]` with a `switch`, the frame lost the
 callee-saved register it has in the ROM (`s2`) to `work`.
 
-- The first delta read at `-0x2E(oldHead)` is `frame->delta.vx.word >> 16`, a
+- The first delta read at `-0x2E(oldHead)` is `frame->delta.fixed.vx.word >> 16`, a
   16.16 integer part. The word load's address is the bare frame register,
   `find_best_addr` prefers the dearer `(plus old -48)` on the tie, and combine
-  narrows word-plus-shift to `lh +2`. `.vx.halves.integer` addresses offset 2 and never
+  narrows word-plus-shift to `lh +2`. `.fixed.vx.halves.integer` addresses offset 2 and never
   folds, which is why the tree needed the explicit old-head read.
 - The pumps imitated references that global-alloc counts and later passes
   delete. Reading the offsets back from the frame in the `SquareRoot0`

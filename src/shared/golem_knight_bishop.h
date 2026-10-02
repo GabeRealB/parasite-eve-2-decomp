@@ -400,10 +400,10 @@ STATIC_ASSERT_SIZEOF(GolemKnightBishopFrameStep, 4);
 /// offset to the player, and `ofs` is the spark offset handed to
 /// `func_800FDB18`.
 typedef struct GolemKnightBishopHitScratch {
-    GpDeltaScratch delta;
-    byte           pad_10[0x10];
-    SVECTOR        ofs;
-    byte           pad_28[8];
+    WorldCollisionDelta delta;
+    byte                pad_10[0x10];
+    SVECTOR             ofs;
+    byte                pad_28[8];
 } GolemKnightBishopHitScratch;
 STATIC_ASSERT_SIZEOF(GolemKnightBishopHitScratch, 0x30);
 

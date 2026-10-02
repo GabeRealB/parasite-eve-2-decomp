@@ -80,9 +80,9 @@ STATIC_ASSERT_SIZEOF(GpApproachScratch, 0x14);
 /// is the node the pick effect is spawned on, and `offset` a small random
 /// jitter added to that position.
 typedef struct _GpPickScratch {
-    GpDeltaScratch delta;
-    GfxCoord       coord;
-    SVECTOR        offset;
+    WorldCollisionDelta delta;
+    GfxCoord            coord;
+    SVECTOR             offset;
 } GpPickScratch;
 STATIC_ASSERT_SIZEOF(GpPickScratch, 0x68);
 

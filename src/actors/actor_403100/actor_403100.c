@@ -4464,18 +4464,18 @@ static __inline__ void _actor403100SetObjFlags(WorldCollisionBody* obj, s32 mask
 
 static void func_actor_403100_8013480C(Task* arg0, s32 arg1)
 {
-    SVECTOR           pos;
-    GpDeltaScratch    delta;
-    s32               screen;
-    s32               flag;
-    s32               depth;
-    s16               size;
-    s32               growth;
-    s32               baseSize = arg1;
-    s32               collision;
-    s32               i;
-    s32               j;
-    Actor403100Entry* entry;
+    SVECTOR             pos;
+    WorldCollisionDelta delta;
+    s32                 screen;
+    s32                 flag;
+    s32                 depth;
+    s16                 size;
+    s32                 growth;
+    s32                 baseSize = arg1;
+    s32                 collision;
+    s32                 i;
+    s32                 j;
+    Actor403100Entry*   entry;
 
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(&gGfxViewCoord);

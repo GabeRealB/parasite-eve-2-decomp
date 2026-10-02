@@ -410,7 +410,7 @@ static void Gp_WorldToGrid(VECTOR3* arg0, SVECTOR3* arg1)
     }
 }
 
-s32 func_800E0C10(WorldCollisionContact* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3)
+s32 func_800E0C10(WorldCollisionContact* arg0, WorldCollisionDelta* delta, s32 arg2, s32* arg3)
 {
     u8*                    head;
     GpSlideScratch*        s;
@@ -480,13 +480,13 @@ s32 func_800E0C10(WorldCollisionContact* arg0, GpDeltaScratch* arg1, s32 arg2, s
             }
         }
 
-        arg1->vx.word = s->acc[0].vx << 4;
-        arg1->vy.word = s->acc[0].vy << 4;
-        arg1->vz.word = s->acc[0].vz << 4;
+        delta->fixed.vx.word = s->acc[0].vx << 4;
+        delta->fixed.vy.word = s->acc[0].vy << 4;
+        delta->fixed.vz.word = s->acc[0].vz << 4;
         if (s->count != 0) {
-            arg1->vx.word += (s->acc[1].vx / s->count) << 4;
-            arg1->vy.word += (s->acc[1].vy / s->count) << 4;
-            arg1->vz.word += (s->acc[1].vz / s->count) << 4;
+            delta->fixed.vx.word += (s->acc[1].vx / s->count) << 4;
+            delta->fixed.vy.word += (s->acc[1].vy / s->count) << 4;
+            delta->fixed.vz.word += (s->acc[1].vz / s->count) << 4;
         }
 
         SCRATCH_STACK_RELEASE_BYTES(0x34);
@@ -494,7 +494,7 @@ s32 func_800E0C10(WorldCollisionContact* arg0, GpDeltaScratch* arg1, s32 arg2, s
     }
 }
 
-s32 func_800E0FEC(WorldCollisionContact* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3)
+s32 func_800E0FEC(WorldCollisionContact* arg0, WorldCollisionDelta* delta, s32 arg2, s32* arg3)
 {
     u8*                    head;
     GpPushScratch*         s;
@@ -571,13 +571,13 @@ s32 func_800E0FEC(WorldCollisionContact* arg0, GpDeltaScratch* arg1, s32 arg2, s
     }
 
     if (count != 0) {
-        arg1->vx.word = (s->acc[0].vx + s->acc[1].vx) << 4;
-        arg1->vy.word = (s->acc[0].vy + s->acc[1].vy) << 4;
-        arg1->vz.word = (s->acc[0].vz + s->acc[1].vz) << 4;
+        delta->fixed.vx.word = (s->acc[0].vx + s->acc[1].vx) << 4;
+        delta->fixed.vy.word = (s->acc[0].vy + s->acc[1].vy) << 4;
+        delta->fixed.vz.word = (s->acc[0].vz + s->acc[1].vz) << 4;
     } else {
-        arg1->vx.word = (s->acc[1].vx + s->acc[2].vx) << 4;
-        arg1->vy.word = (s->acc[1].vy + s->acc[2].vy) << 4;
-        arg1->vz.word = (s->acc[1].vz + s->acc[2].vz) << 4;
+        delta->fixed.vx.word = (s->acc[1].vx + s->acc[2].vx) << 4;
+        delta->fixed.vy.word = (s->acc[1].vy + s->acc[2].vy) << 4;
+        delta->fixed.vz.word = (s->acc[1].vz + s->acc[2].vz) << 4;
     }
 
     SCRATCH_STACK_RELEASE_BYTES(0x40);

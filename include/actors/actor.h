@@ -61,10 +61,10 @@ STATIC_ASSERT_SIZEOF(ActorRepelScratch, 0x88);
 /// `func_800E0C10` resolves, their integer part (its XZ part capped in
 /// length), that part's XZ length, and whether the X or Z delta was nonzero.
 typedef struct ActorStepDelta {
-    GpDeltaScratch delta;
-    SVECTOR        step;
-    s32            len;
-    s32            moved;
+    WorldCollisionDelta delta;
+    SVECTOR             step;
+    s32                 len;
+    s32                 moved;
 } ActorStepDelta;
 STATIC_ASSERT_SIZEOF(ActorStepDelta, 0x20);
 
@@ -282,17 +282,17 @@ STATIC_ASSERT_SIZEOF(ActorMoveScratch, 0x38);
 /// caller's own scratch, taken below the head, stays clear of it; nothing
 /// else in it is read.
 typedef struct ActorDeltaFrame38 {
-    byte           pad_0[0x20];
-    GpDeltaScratch delta;
-    byte           pad_30[0x8];
+    byte                pad_0[0x20];
+    WorldCollisionDelta delta;
+    byte                pad_30[0x8];
 } ActorDeltaFrame38;
 STATIC_ASSERT_SIZEOF(ActorDeltaFrame38, 0x38);
 
 /// The same frame at 0x48 bytes, for the steps that take the larger block.
 typedef struct ActorDeltaFrame48 {
-    byte           pad_0[0x20];
-    GpDeltaScratch delta;
-    byte           pad_30[0x18];
+    byte                pad_0[0x20];
+    WorldCollisionDelta delta;
+    byte                pad_30[0x18];
 } ActorDeltaFrame48;
 STATIC_ASSERT_SIZEOF(ActorDeltaFrame48, 0x48);
 
@@ -301,11 +301,11 @@ STATIC_ASSERT_SIZEOF(ActorDeltaFrame48, 0x48);
 /// normalised wall offset, and `result` the word `func_800E0C10` reports
 /// through its last argument.
 typedef struct ActorContactFrame {
-    byte           pad_0[0x20];
-    GpDeltaScratch delta;
-    byte           pad_30[0x8];
-    VECTOR         normal;
-    s32            result;
+    byte                pad_0[0x20];
+    WorldCollisionDelta delta;
+    byte                pad_30[0x8];
+    VECTOR              normal;
+    s32                 result;
 } ActorContactFrame;
 STATIC_ASSERT_SIZEOF(ActorContactFrame, 0x4C);
 
@@ -315,14 +315,14 @@ STATIC_ASSERT_SIZEOF(ActorContactFrame, 0x4C);
 /// brought into the grid's frame. `dx` and `dz` are the contact record's
 /// normal, staged for the bearing some actors take from it.
 typedef struct ActorPushFrame {
-    byte           pad_0[0x20];
-    GpDeltaScratch delta;
-    VECTOR         normal;
-    VECTOR         dir;
-    s16            dx;
-    byte           pad_52[0x2];
-    s16            dz;
-    byte           pad_56[0x2];
+    byte                pad_0[0x20];
+    WorldCollisionDelta delta;
+    VECTOR              normal;
+    VECTOR              dir;
+    s16                 dx;
+    byte                pad_52[0x2];
+    s16                 dz;
+    byte                pad_56[0x2];
 } ActorPushFrame;
 STATIC_ASSERT_SIZEOF(ActorPushFrame, 0x58);
 
@@ -331,9 +331,9 @@ STATIC_ASSERT_SIZEOF(ActorPushFrame, 0x58);
 /// `normal` is that offset normalised, and `dir` the normal carried into the
 /// collision grid's frame, along which the deepest contact pushes.
 typedef struct ActorWallPushFrame {
-    GpDeltaScratch delta;
-    VECTOR         normal;
-    VECTOR         dir;
+    WorldCollisionDelta delta;
+    VECTOR              normal;
+    VECTOR              dir;
 } ActorWallPushFrame;
 STATIC_ASSERT_SIZEOF(ActorWallPushFrame, 0x30);
 

@@ -13,7 +13,7 @@ void golemPawnRookTakeHits(Task* arg0)
     s32                      hit;
     u32                      lastId;
     GolemPawnRookWork*       work;
-    GpDeltaScratch*          head;
+    GolemPawnRookHitScratch* head;
     GolemPawnRookHitScratch* scratch;
     Enemy*                   enemy;
     GfxCoord*                self;
@@ -38,19 +38,19 @@ void golemPawnRookTakeHits(Task* arg0)
     hit     = 0;
     lastId  = 0;
     work    = arg0->work;
-    head    = SCRATCH_STACK_CURSOR(GpDeltaScratch);
+    head    = SCRATCH_STACK_CURSOR(GolemPawnRookHitScratch);
     self    = arg0->extra.tmd->coords;
     SCRATCH_STACK_RESERVE_BLOCK(GolemPawnRookHitScratch);
     scratch = SCRATCH_STACK_CURSOR(GolemPawnRookHitScratch);
     enemy   = arg0->spawnArg2.pointer;
 
-    switch (func_800E0C10(work->field_584, head - 4, 4, NULL)) {
+    switch (func_800E0C10(work->field_584, &head[-1].delta, 4, NULL)) {
         case 0:
             break;
         case 1:
-            self->coord.t[0] += head[-4].vx.halves.integer;
-            self->coord.t[1] += scratch->delta.vy.halves.integer;
-            self->coord.t[2] += scratch->delta.vz.halves.integer;
+            self->coord.t[0] += head[-1].delta.fixed.vx.halves.integer;
+            self->coord.t[1] += scratch->delta.fixed.vy.halves.integer;
+            self->coord.t[2] += scratch->delta.fixed.vz.halves.integer;
             break;
         case 2:
             self->coord.t[0] = work->field_678;
@@ -65,8 +65,8 @@ void golemPawnRookTakeHits(Task* arg0)
             case 0:
                 break;
             case 1:
-                self->coord.t[0] += scratch->delta.vx.halves.integer;
-                self->coord.t[2] += scratch->delta.vz.halves.integer;
+                self->coord.t[0] += scratch->delta.fixed.vx.halves.integer;
+                self->coord.t[2] += scratch->delta.fixed.vz.halves.integer;
                 break;
             case 2:
                 self->coord.t[0] = work->field_678;
@@ -90,17 +90,17 @@ void golemPawnRookTakeHits(Task* arg0)
                 if (work->field_69A != 0) {
                     break;
                 }
-                other                  = gPlayerActorTasks[((u32)work->field_4EC[i].key.value >> 7) & 1]->extra.tmd->coords;
-                scratch->delta.vx.word = other->coord.t[0] - self->coord.t[0];
-                scratch->delta.vy.word = other->coord.t[1] - self->coord.t[1];
-                dz                     = other->coord.t[2] - self->coord.t[2];
-                scratch->delta.vz.word = dz;
-                val                    = (scratch->delta.vx.word * self->coord.m[0][2]) + (scratch->delta.vy.word * self->coord.m[1][2]) + (dz * self->coord.m[2][2]);
-                work->field_6AA        = val >= 0;
-                damage                 = Gp_ComputeDamage(work->field_4EC[i].key.value,
-                                                          SquareRoot0((scratch->delta.vx.word * scratch->delta.vx.word) + (scratch->delta.vy.word * scratch->delta.vy.word) + (scratch->delta.vz.word * scratch->delta.vz.word)),
-                                                          0, 0);
-                kind                   = Gp_GetIdParam0(work->field_4EC[i].key.value);
+                other                    = gPlayerActorTasks[((u32)work->field_4EC[i].key.value >> 7) & 1]->extra.tmd->coords;
+                scratch->delta.vector.vx = other->coord.t[0] - self->coord.t[0];
+                scratch->delta.vector.vy = other->coord.t[1] - self->coord.t[1];
+                dz                       = other->coord.t[2] - self->coord.t[2];
+                scratch->delta.vector.vz = dz;
+                val                      = (scratch->delta.vector.vx * self->coord.m[0][2]) + (scratch->delta.vector.vy * self->coord.m[1][2]) + (dz * self->coord.m[2][2]);
+                work->field_6AA          = val >= 0;
+                damage                   = Gp_ComputeDamage(work->field_4EC[i].key.value,
+                                                            SquareRoot0((scratch->delta.vector.vx * scratch->delta.vector.vx) + (scratch->delta.vector.vy * scratch->delta.vector.vy) + (scratch->delta.vector.vz * scratch->delta.vector.vz)),
+                                                            0, 0);
+                kind                     = Gp_GetIdParam0(work->field_4EC[i].key.value);
                 if (work->field_6CE != 0 && work->field_6AA == 1 && work->field_6B8 == 0) {
                     if (work->field_4EC[i].key.value & 0x8000) {
                         if (gGolemPawnRookWeakSpotHitsFlagged[work->field_4EC[i].key.value & 0x7F] != 0) {
@@ -263,22 +263,22 @@ void golemPawnRookTakeHits(Task* arg0)
                 }
                 break;
             case 3:
-                part                   = &arg0->extra.tmd->coords[3];
-                x                      = part->workm.t[0] - work->field_4EC[i].point.vx;
-                scratch->delta.vx.word = x;
-                y                      = part->workm.t[1] - work->field_4EC[i].point.vy;
-                scratch->delta.vy.word = y;
-                z                      = part->workm.t[2] - work->field_4EC[i].point.vz;
-                scratch->delta.vz.word = z;
-                push                   = work->field_4EC[i].distance - SquareRoot0((x * x) + (y * y) + (z * z));
-                clamped                = push;
+                part                     = &arg0->extra.tmd->coords[3];
+                x                        = part->workm.t[0] - work->field_4EC[i].point.vx;
+                scratch->delta.vector.vx = x;
+                y                        = part->workm.t[1] - work->field_4EC[i].point.vy;
+                scratch->delta.vector.vy = y;
+                z                        = part->workm.t[2] - work->field_4EC[i].point.vz;
+                scratch->delta.vector.vz = z;
+                push                     = work->field_4EC[i].distance - SquareRoot0((x * x) + (y * y) + (z * z));
+                clamped                  = push;
                 if (push <= 0) {
                     clamped = 0;
                 }
                 push = clamped;
                 if (maxPush < push) {
                     maxPush = push;
-                    VectorNormal((VECTOR*)&scratch->delta, &scratch->normal);
+                    VectorNormal(&scratch->delta.vector, &scratch->normal);
                     ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &scratch->normal, &scratch->push);
                 }
                 break;

@@ -1778,9 +1778,9 @@ static void Actor07000_Fn03E08(Task* arg0)
         case 0:
             break;
         case 1:
-            coord->coord.t[0]  = (s32)(coord->coord.t[0] + scratch->delta.vx.halves.integer);
-            coord->coord.t[1]  = (s32)(coord->coord.t[1] + scratch->delta.vy.halves.integer);
-            coord->coord.t[2] += scratch->delta.vz.halves.integer;
+            coord->coord.t[0]  = (s32)(coord->coord.t[0] + scratch->delta.fixed.vx.halves.integer);
+            coord->coord.t[1]  = (s32)(coord->coord.t[1] + scratch->delta.fixed.vy.halves.integer);
+            coord->coord.t[2] += scratch->delta.fixed.vz.halves.integer;
             break;
         case 2:
             coord->coord.t[0] = (s32)work->field_33C.vx;
@@ -1798,13 +1798,13 @@ static void Actor07000_Fn03E08(Task* arg0)
         switch (kind) {
             case 0x20000:
                 if (work->field_38A == 0) {
-                    dx                     = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-                    scratch->delta.vx.word = dx;
-                    dy                     = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
-                    scratch->delta.vy.word = dy;
-                    dz                     = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-                    scratch->delta.vz.word = dz;
-                    damage                 = Gp_ComputeDamage(work->field_24C[i].key.value, SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
+                    dx                       = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+                    scratch->delta.vector.vx = dx;
+                    dy                       = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+                    scratch->delta.vector.vy = dy;
+                    dz                       = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
+                    scratch->delta.vector.vz = dz;
+                    damage                   = Gp_ComputeDamage(work->field_24C[i].key.value, SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
                     if (Gp_RollEnemyChance(arg0->spawnArg2.pointer, work->field_24C[i].key.value, 0) != 0) {
                         Gp_SpawnEff(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords, 0, 0);
                         damage *= 4;
@@ -2582,13 +2582,13 @@ static void Actor07000_Fn0595C(Task* arg0)
             if (work->field_39A == 0) {
                 work->field_38C    = movement;
                 work->field_2E4    = 0x400;
-                coord->coord.t[1] += scratch->delta.vy.halves.integer;
+                coord->coord.t[1] += scratch->delta.fixed.vy.halves.integer;
                 work->field_398    = -0x50;
                 work->field_378    = work->field_378 - (s16)work->field_378 / 4;
                 work->field_39A    = movement;
             }
-            coord->coord.t[0] += scratch->delta.vx.halves.integer;
-            coord->coord.t[2] += scratch->delta.vz.halves.integer;
+            coord->coord.t[0] += scratch->delta.fixed.vx.halves.integer;
+            coord->coord.t[2] += scratch->delta.fixed.vz.halves.integer;
             break;
         case 2:
             coord->coord.t[0] = work->field_33C.vx;

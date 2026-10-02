@@ -32,20 +32,20 @@ extern WorldCollisionTrigger* Gp_PendingObj4C;
 
 s32 func_800E0308(SVECTOR* arg0, SVECTOR* arg1);
 
-/// Averages the first `arg2` `WorldCollisionContact` records of `arg0` into `arg1`
-/// (a 16.16 delta scaled by 16) and, when `arg3` is non-NULL, stores the
+/// Averages the first `arg2` `WorldCollisionContact` records of `arg0` into `delta`
+/// (a signed 16.16 world-space correction) and, when `arg3` is non-NULL, stores the
 /// `1 << key` bitmask of the contributing records there. Records
 /// below the floor cutoff are averaged separately and added on top.
 /// Returns 0 when nothing contributed, 2 when two records push in
 /// opposing directions, and 1 otherwise.
-s32 func_800E0C10(WorldCollisionContact* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3);
+s32 func_800E0C10(WorldCollisionContact* arg0, WorldCollisionDelta* delta, s32 arg2, s32* arg3);
 
 /// Accumulates the push-back of the first `arg2` `WorldCollisionContact` records of
-/// `arg0` into `arg1` (a 16.16 delta scaled by 16) and, when `arg3` is
+/// `arg0` into `delta` (a signed 16.16 world-space correction) and, when `arg3` is
 /// non-NULL, stores the `1 << key` bitmask of the contributing
 /// records there. Returns 0 when nothing contributed, 2 when two kind-0
 /// records push in opposing directions, and 1 otherwise.
-s32 func_800E0FEC(WorldCollisionContact* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3);
+s32 func_800E0FEC(WorldCollisionContact* arg0, WorldCollisionDelta* delta, s32 arg2, s32* arg3);
 
 void Gp_LinkObj(s32 arg0, WorldCollisionBody* arg1);
 

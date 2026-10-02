@@ -125,10 +125,10 @@ STATIC_ASSERT_SIZEOF(MaggotCaterpillarLineScratch, 0x20);
 /// resolves, their normal and its image in grid space, and the rotation the
 /// actor is re-aimed with.
 typedef struct MaggotCaterpillarHitScratch {
-    GpDeltaScratch delta;
-    VECTOR         normal;
-    VECTOR         local;
-    SVECTOR        rot;
+    WorldCollisionDelta delta;
+    VECTOR              normal;
+    VECTOR              local;
+    SVECTOR             rot;
 } MaggotCaterpillarHitScratch;
 STATIC_ASSERT_SIZEOF(MaggotCaterpillarHitScratch, 0x38);
 
@@ -181,31 +181,31 @@ static inline void maggotCaterpillarTickAnimInline(Task* task);
 /// How far the origin of `coord`'s frame lies inside contact `rec`, clamped at
 /// zero, into `out`. `delta` receives the offset from the contact point to
 /// the origin.
-#define MAGGOT_CATERPILLAR_CONTACT_OVERLAP(out, coord, rec, delta)                               \
-    do {                                                                                         \
-        s32 offX;                                                                                \
-        s32 offY;                                                                                \
-        s32 offZ;                                                                                \
-        s32 clamped;                                                                             \
-        offX            = (coord)->workm.t[0] - (rec).point.vx;                                  \
-        (delta).vx.word = offX;                                                                  \
-        offY            = (coord)->workm.t[1] - (rec).point.vy;                                  \
-        (delta).vy.word = offY;                                                                  \
-        offZ            = (coord)->workm.t[2] - (rec).point.vz;                                  \
-        (delta).vz.word = offZ;                                                                  \
-        (out)           = (rec).distance - SquareRoot0(offX * offX + offY * offY + offZ * offZ); \
-        clamped         = (out);                                                                 \
-        if ((out) <= 0) {                                                                        \
-            clamped = 0;                                                                         \
-        }                                                                                        \
-        (out) = clamped;                                                                         \
+#define MAGGOT_CATERPILLAR_CONTACT_OVERLAP(out, coord, rec, delta)                                 \
+    do {                                                                                           \
+        s32 offX;                                                                                  \
+        s32 offY;                                                                                  \
+        s32 offZ;                                                                                  \
+        s32 clamped;                                                                               \
+        offX              = (coord)->workm.t[0] - (rec).point.vx;                                  \
+        (delta).vector.vx = offX;                                                                  \
+        offY              = (coord)->workm.t[1] - (rec).point.vy;                                  \
+        (delta).vector.vy = offY;                                                                  \
+        offZ              = (coord)->workm.t[2] - (rec).point.vz;                                  \
+        (delta).vector.vz = offZ;                                                                  \
+        (out)             = (rec).distance - SquareRoot0(offX * offX + offY * offY + offZ * offZ); \
+        clamped           = (out);                                                                 \
+        if ((out) <= 0) {                                                                          \
+            clamped = 0;                                                                           \
+        }                                                                                          \
+        (out) = clamped;                                                                           \
     } while (0)
 
 /// Normalises `delta` into `unit` and expresses the direction in the frame of
 /// the collision grid, into `out`.
 #define MAGGOT_CATERPILLAR_GRID_DIRECTION(delta, unit, out)                      \
     do {                                                                         \
-        VectorNormal((VECTOR*)(delta), (unit));                                  \
+        VectorNormal(&(delta)->vector, (unit));                                  \
         ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, (unit), (out)); \
     } while (0)
 
