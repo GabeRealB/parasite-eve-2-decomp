@@ -16,7 +16,7 @@
 extern InventoryItemRow Gp_ItemTable2[];
 
 // Shared HUD/replay work.
-extern GpStateBE8 Gp_HpMpWork;
+extern HudHpMp Gp_HpMpWork;
 
 /// Current replay buttons and remaining frame count.
 extern u16 Gp_ReplayButtons;

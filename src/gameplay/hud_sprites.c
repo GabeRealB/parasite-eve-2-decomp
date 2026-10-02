@@ -707,13 +707,13 @@ s32 func_800A7550(void)
 void Gp_ResetHudFx(GpIdMapC* arg0)
 {
     PlayerStatus*    cfg;
-    GpStateBE8*      be8;
+    HudHpMp*         hudHpMp;
     AttachmentState* attachment;
 
     cfg                                   = &gPlayerStatus;
-    be8                                   = &Gp_HpMpWork;
-    be8->field_0                          = cfg->hp;
-    be8->field_4                          = cfg->mp;
+    hudHpMp                               = &Gp_HpMpWork;
+    hudHpMp->hp                           = cfg->hp;
+    hudHpMp->mp                           = cfg->mp;
     arg0->field_16                        = -1;
     arg0->field_18                        = 0;
     attachment                            = &Gp_StateC08;

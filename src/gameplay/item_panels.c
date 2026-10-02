@@ -561,7 +561,7 @@ void Gp_ItemCmdMenuTask(Task* arg0)
 void Gp_UseHealItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
 {
     PlayerStatus* cfg;
-    GpStateBE8*   be8;
+    HudHpMp*      hudHpMp;
     McSaveData*   save;
     s32           hp;
     s32           mp;
@@ -578,10 +578,10 @@ void Gp_UseHealItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
         arg0->panel.bounds.unsignedRect.x = -(w >> 1);
         arg0->panel.bounds.unsignedRect.y = -(h >> 1) - 0x10;
         hp                                = cfg->hp;
-        be8                               = &Gp_HpMpWork;
-        be8->field_0                      = hp;
+        hudHpMp                           = &Gp_HpMpWork;
+        hudHpMp->hp                       = hp;
         mp                                = cfg->mp;
-        be8->field_4                      = mp;
+        hudHpMp->mp                       = mp;
         if (arg2 < 0x100) {
             if (arg2 < 4) {
                 if (hp < cfg->hpMax) {
@@ -617,10 +617,10 @@ void Gp_UseHealItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
                 cfg->hp = cfg->hpMax;
             }
         } else if (hp < cfg->hpMax) {
-            cfg->mp      = cfg->mp - func_800D50D4(arg2, ATTACHMENT_LEVEL_CAST_COST);
-            be8->field_4 = cfg->mp;
-            cfg->hp      = cfg->hp + func_800D50D4(arg2, ATTACHMENT_LEVEL_AMOUNT);
-            save         = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+            cfg->mp     = cfg->mp - func_800D50D4(arg2, ATTACHMENT_LEVEL_CAST_COST);
+            hudHpMp->mp = cfg->mp;
+            cfg->hp     = cfg->hp + func_800D50D4(arg2, ATTACHMENT_LEVEL_AMOUNT);
+            save        = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
             if ((s16)save->state.attachUseCounts[7] < 0x270F) {
                 save->state.attachUseCounts[7] = save->state.attachUseCounts[7] + 1;
             }
@@ -636,14 +636,14 @@ void Gp_UseHealItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
     }
     Gp_DrawHpMpStats(&(arg0)->panel, 0);
     if (arg0->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (Gp_HpMpWork.field_0 == cfg->hp) {
-            if (Gp_HpMpWork.field_4 == cfg->mp) {
+        if (Gp_HpMpWork.hp == cfg->hp) {
+            if (Gp_HpMpWork.mp == cfg->mp) {
                 arg1->killCountdown = arg1->killCountdown - 1;
             }
         }
         if ((Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) || (arg1->killCountdown < 0)) {
-            Gp_HpMpWork.field_0 = cfg->hp;
-            Gp_HpMpWork.field_4 = cfg->mp;
+            Gp_HpMpWork.hp      = cfg->hp;
+            Gp_HpMpWork.mp      = cfg->mp;
             arg0->result        = USER_INTERFACE_RESULT_DISMISS;
             arg1->killCountdown = 0x7FFF;
         }
@@ -975,7 +975,7 @@ void Gp_InvokePeItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
         }
         Gp_RecalcMaxMp();
         cfg->mp             = cfg->mpMax;
-        Gp_HpMpWork.field_4 = cfg->mp;
+        Gp_HpMpWork.mp      = cfg->mp;
         arg1->killCountdown = 0xBC;
         arg1->state         = arg1->state + 1;
     }

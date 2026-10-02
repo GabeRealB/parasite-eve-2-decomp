@@ -583,8 +583,8 @@ void Gp_EquipMod(s32 arg0)
     } else {
         return;
     }
-    Gp_HpMpWork.field_0 = cfg->hp;
-    Gp_HpMpWork.field_4 = cfg->mp;
+    Gp_HpMpWork.hp = cfg->hp;
+    Gp_HpMpWork.mp = cfg->mp;
 }
 
 const char Gp_StrNotice2[8] = "Notice\0F";

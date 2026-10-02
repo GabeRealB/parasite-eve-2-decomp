@@ -5,15 +5,6 @@
 
 #include "hud.h"
 
-/// Pair of s32 working copies at `Gp_HpMpWork`. `Gp_ResetHudFx` (and
-/// `Gp_UiBoostMp` / `Gp_UiBoostHp`) sign-extend `gPlayerStatus.hp` /
-/// `field_1c` into `field_0` / `field_4`.
-typedef struct _GpStateBE8 {
-    /* 0x0 */ s32 field_0;
-    /* 0x4 */ s32 field_4;
-} GpStateBE8;
-STATIC_ASSERT_SIZEOF(GpStateBE8, 0x8);
-
 /// +0xC overlay of the 0x30-byte record `Gp_InitPlayClock` allocates with
 /// `memCalloc(0x30, 0)` and stores at `Task::work`. `Gp_ResetHudFx` is
 /// called with that pointer + 0xC; it writes `field_16 = -1` and clears

@@ -394,10 +394,10 @@ void Gp_UiBoostMp(UiObject* arg0, Task* arg1)
     s32           saved;
 
     if (arg1->state == 0) {
-        cfg                 = &gPlayerStatus;
-        Gp_HpMpWork.field_0 = cfg->hp;
-        save                = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-        Gp_HpMpWork.field_4 = cfg->mp;
+        cfg            = &gPlayerStatus;
+        Gp_HpMpWork.hp = cfg->hp;
+        save           = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+        Gp_HpMpWork.mp = cfg->mp;
         if (save->state.mpBonus < 0xFA) {
             save->state.mpBonus = save->state.mpBonus + 1;
         }
@@ -421,11 +421,11 @@ void Gp_UiBoostHp(UiObject* arg0, Task* arg1)
     u16           val;
 
     if (arg1->state == 0) {
-        cfg                 = &gPlayerStatus;
-        hp                  = cfg->hp;
-        Gp_HpMpWork.field_0 = hp;
-        save                = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-        Gp_HpMpWork.field_4 = cfg->mp;
+        cfg            = &gPlayerStatus;
+        hp             = cfg->hp;
+        Gp_HpMpWork.hp = hp;
+        save           = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+        Gp_HpMpWork.mp = cfg->mp;
         if (save->state.hpBonus < 0xFA) {
             save->state.hpBonus = save->state.hpBonus + 5;
         }

@@ -534,11 +534,11 @@ void Gp_DrawHpMpStats(UiPanel* arg0, s32 arg1)
     arg1 = arg1 + 8;
     x    = xOff + 6;
     y    = arg0->contentTop.signedValue + arg1;
-    if (Gp_HpMpWork.field_0 < cfg->hp) {
-        Gp_HpMpWork.field_0 = Gp_HpMpWork.field_0 + 1;
+    if (Gp_HpMpWork.hp < cfg->hp) {
+        Gp_HpMpWork.hp = Gp_HpMpWork.hp + 1;
     }
-    if (Gp_HpMpWork.field_4 < cfg->mp) {
-        Gp_HpMpWork.field_4 = Gp_HpMpWork.field_4 + 1;
+    if (Gp_HpMpWork.mp < cfg->mp) {
+        Gp_HpMpWork.mp = Gp_HpMpWork.mp + 1;
     }
     color = 0x606060;
 
@@ -549,7 +549,7 @@ void Gp_DrawHpMpStats(UiPanel* arg0, s32 arg1)
     req1.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req1.alignment  = TEXT_ALIGNMENT_LEFT;
     req1.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    Text_DrawString(&req1, Text_ItoaUnsigned(buf, Gp_HpMpWork.field_0));
+    Text_DrawString(&req1, Text_ItoaUnsigned(buf, Gp_HpMpWork.hp));
 
     req2.x          = arg0->contentOriginX.unsignedValue + 0x32 + x;
     req2.y          = arg0->contentOriginY.unsignedValue + y;
@@ -571,7 +571,7 @@ void Gp_DrawHpMpStats(UiPanel* arg0, s32 arg1)
 
     max  = cfg->hpMax;
     barX = xOff + 7;
-    func_800C0E20(arg0, x, barX + ((max - 1) * 0x25) / 64, y + 5, max, Gp_HpMpWork.field_0, 0x1741F);
+    func_800C0E20(arg0, x, barX + ((max - 1) * 0x25) / 64, y + 5, max, Gp_HpMpWork.hp, 0x1741F);
 
     y2              = y + 0x12;
     req4.x          = arg0->contentOriginX.unsignedValue + 0x17 + x;
@@ -581,7 +581,7 @@ void Gp_DrawHpMpStats(UiPanel* arg0, s32 arg1)
     req4.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req4.alignment  = TEXT_ALIGNMENT_LEFT;
     req4.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    Text_DrawString(&req4, Text_ItoaUnsigned(buf, Gp_HpMpWork.field_4));
+    Text_DrawString(&req4, Text_ItoaUnsigned(buf, Gp_HpMpWork.mp));
 
     req5.x          = arg0->contentOriginX.unsignedValue + 0x32 + x;
     req5.y          = arg0->contentOriginY.unsignedValue + y2;
@@ -602,7 +602,7 @@ void Gp_DrawHpMpStats(UiPanel* arg0, s32 arg1)
     Text_DrawString(&req6, Text_ItoaUnsigned(buf, cfg->mpMax));
 
     max = cfg->mpMax;
-    func_800C0E20(arg0, x, barX + ((max - 1) * 0x25) / 64, y + 0x17, max, Gp_HpMpWork.field_4, 0x1741F);
+    func_800C0E20(arg0, x, barX + ((max - 1) * 0x25) / 64, y + 0x17, max, Gp_HpMpWork.mp, 0x1741F);
 
     y2              = y + 0x24;
     req7.x          = arg0->contentOriginX.unsignedValue + 0x17 + x;
@@ -674,10 +674,10 @@ void Gp_HpMpBarTask(Task* arg0)
     obj = arg0->spawnArg2.pointer;
     if (arg0->state == 0) {
         Ui_SpawnFromDesc(&D_8010EB24, 0, 0, 0, obj);
-        cfg                 = &gPlayerStatus;
-        Gp_HpMpWork.field_0 = cfg->hp;
-        Gp_HpMpWork.field_4 = cfg->mp;
-        arg0->state         = arg0->state + 1;
+        cfg            = &gPlayerStatus;
+        Gp_HpMpWork.hp = cfg->hp;
+        Gp_HpMpWork.mp = cfg->mp;
+        arg0->state    = arg0->state + 1;
     }
     color          = 0x606060;
     p              = gGpuPrimCursor;

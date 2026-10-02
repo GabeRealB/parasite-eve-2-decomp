@@ -9,7 +9,7 @@
 #include "main/wipsys.h"
 
 /* Define BSS before API headers to preserve first-declaration order. */
-GpStateBE8 Gp_HpMpWork;
+HudHpMp Gp_HpMpWork;
 
 u8 Gp_DebugAttachLevels[18];
 

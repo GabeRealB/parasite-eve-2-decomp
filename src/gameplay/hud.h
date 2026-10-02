@@ -23,4 +23,21 @@ typedef struct GpHudStatusBits {
 } GpHudStatusBits;
 STATIC_ASSERT_SIZEOF(GpHudStatusBits, 0xE);
 
+/// Displayed player HP and MP.
+///
+/// Signed widened copies of `PlayerStatus.hp` and `PlayerStatus.mp`, so a
+/// negative hit-point total stays negative. While the in-game HUD is drawn,
+/// each copy steps one point toward the live stat, either way. Menu drawings
+/// of the HP/MP block step a copy upward only. The live stat is copied in
+/// whole on a HUD reset, after equipment recalculates the maxima, when a
+/// heal or boost panel or the menu HP/MP display opens, when an attachment
+/// heal spends MP, when a Parasite Energy level fills MP, and when the heal
+/// panel closes. HUD bars and the menu numbers and bars read the copies; the
+/// HUD's numeric labels read the live stats.
+typedef struct {
+    s32 hp; // Displayed hit points, in the same points as `PlayerStatus.hp`
+    s32 mp; // Displayed Parasite Energy, in the same points as `PlayerStatus.mp`
+} HudHpMp;
+STATIC_ASSERT_SIZEOF(HudHpMp, 0x8);
+
 #endif // GAMEPLAY_PRIVATE_HUD_H

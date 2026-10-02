@@ -458,7 +458,7 @@ void func_800A57B0(GpIdMapC* arg0)
     s32             w1;
     s32             w2;
     s32             i;
-    GpStateBE8*     be8;
+    HudHpMp*        hudHpMp;
 
     cfg        = &gPlayerStatus;
     debugState = Pad_RemapState;
@@ -468,16 +468,16 @@ void func_800A57B0(GpIdMapC* arg0)
         return;
     }
 
-    if (cfg->hp < Gp_HpMpWork.field_0) {
-        Gp_HpMpWork.field_0 = Gp_HpMpWork.field_0 - 1;
-    } else if (Gp_HpMpWork.field_0 < cfg->hp) {
-        Gp_HpMpWork.field_0 = Gp_HpMpWork.field_0 + 1;
+    if (cfg->hp < Gp_HpMpWork.hp) {
+        Gp_HpMpWork.hp = Gp_HpMpWork.hp - 1;
+    } else if (Gp_HpMpWork.hp < cfg->hp) {
+        Gp_HpMpWork.hp = Gp_HpMpWork.hp + 1;
     }
-    be8 = &Gp_HpMpWork;
-    if (cfg->mp < be8->field_4) {
-        be8->field_4 = be8->field_4 - 1;
-    } else if (be8->field_4 < cfg->mp) {
-        be8->field_4 = be8->field_4 + 1;
+    hudHpMp = &Gp_HpMpWork;
+    if (cfg->mp < hudHpMp->mp) {
+        hudHpMp->mp = hudHpMp->mp - 1;
+    } else if (hudHpMp->mp < cfg->mp) {
+        hudHpMp->mp = hudHpMp->mp + 1;
     }
 
     x  = -0x98;
@@ -494,8 +494,8 @@ void func_800A57B0(GpIdMapC* arg0)
     }
 
     color = 0x606060;
-    hp    = Gp_HpMpWork.field_0;
-    mp    = Gp_HpMpWork.field_4;
+    hp    = Gp_HpMpWork.hp;
+    mp    = Gp_HpMpWork.mp;
 
     _gpDrawHudValue(x + 0x2B, y + 0xA, color, cfg->hp);
     _gpDrawHudValue(x + 0x56, y + 0xA, color, cfg->mp);
