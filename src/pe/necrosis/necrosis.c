@@ -258,11 +258,12 @@ void func_necrosis_8012F52C(Task* arg0)
     }
 }
 
-#define SPRITE_QUAD_CLUT   0x428F
-#define SPRITE_QUAD_CELL_W 0x28
-#define SPRITE_QUAD_V0     0x38
-#define SPRITE_QUAD_V1     0x5F
-#define SPRITE_QUAD_SCALE  39
+#define SPRITE_QUAD_CLUT 0x428F
+/// Texel width and horizontal stride of each of the six frames selected by the caller.
+#define SPRITE_QUAD_CELL_WIDTH 40
+#define SPRITE_QUAD_V0         0x38
+#define SPRITE_QUAD_V1         0x5F
+#define SPRITE_QUAD_SCALE      39
 #include "../../shared/sprite_quad_draw.inc.c"
 
 void func_necrosis_8012FAF8(Task* arg0)

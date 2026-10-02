@@ -676,11 +676,12 @@ static void func_m4a1_javelin_8011EE78(SVECTOR* p0, SVECTOR* p1, u16 brightness)
     SCRATCH_STACK_RELEASE_BYTES(sizeof(M4a1JavelinLineScratch));
 }
 
-#define SPRITE_QUAD_CLUT   0x42C3
-#define SPRITE_QUAD_CELL_W 0x20
-#define SPRITE_QUAD_V0     0x18
-#define SPRITE_QUAD_V1     0x37
-#define SPRITE_QUAD_SCALE  31
+#define SPRITE_QUAD_CLUT 0x42C3
+/// Texel width and horizontal stride of each of the launch flash's eight texture frames.
+#define SPRITE_QUAD_CELL_WIDTH 32
+#define SPRITE_QUAD_V0         0x18
+#define SPRITE_QUAD_V1         0x37
+#define SPRITE_QUAD_SCALE      31
 #include "../../shared/sprite_quad_draw.inc.c"
 
 static void func_m4a1_javelin_8011F4A4(M4a1JavelinVecLo* arg0)

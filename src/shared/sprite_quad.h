@@ -7,7 +7,7 @@
  *
  * The including unit sets the texture before including the fragment:
  *   SPRITE_QUAD_CLUT        CLUT word
- *   SPRITE_QUAD_CELL_W      cell width in texels (cells sit side by side)
+ *   SPRITE_QUAD_CELL_WIDTH  cell width in texels, including both endpoints
  *   SPRITE_QUAD_V0/_V1      top and bottom texel rows
  *   SPRITE_QUAD_SCALE       size multiplier (the cell's half-width in texels)
  *   SPRITE_QUAD_CELLS_PER_ROW  optional: number of cell columns, not texels
@@ -24,6 +24,17 @@
  * and SPRITE_QUAD_TPAGE when it is not 0x2A. The fragment clears these, so a
  * unit drawing two textures includes it twice; SPRITE_QUAD_FUNC names the
  * second instance (the first is spriteQuadDraw, declared here).
+ *
+ * SPRITE_QUAD_CELL_WIDTH must be a signed integer constant from 1 to 256,
+ * bound before each sprite_quad_draw.inc.c inclusion. A C enum constant is
+ * valid, as in actor_510900's shared atlas binding. Arithmetic UV modes use
+ * this width as the horizontal origin stride and place the inclusive right
+ * edge width - 1 texels past the origin. With SPRITE_QUAD_UV_TABLE it sets
+ * both dimensions of each square cell; the table supplies the origins.
+ * It does not set the frame count or the screen-space size. Texture
+ * coordinates narrow to GPU bytes, preserving wraparound. The fragment
+ * undefines the width after each instance, including both instances in
+ * antibody and m4a1_hammer; each inclusion needs its own binding.
  *
  * SPRITE_QUAD_CELLS_PER_ROW must be a positive signed integer preprocessor
  * constant, bound before each sprite_quad_draw.inc.c inclusion. In arithmetic

@@ -1,5 +1,9 @@
 /* Part of the sprite quad library; see sprite_quad.h. */
 
+#ifndef SPRITE_QUAD_CELL_WIDTH
+#error Define SPRITE_QUAD_CELL_WIDTH before including the sprite quad drawer
+#endif
+
 #if !defined(SPRITE_QUAD_UV_TABLE)
 #if defined(SPRITE_QUAD_CELLS_PER_ROW)
 #if (SPRITE_QUAD_CELLS_PER_ROW) <= 0
@@ -38,6 +42,9 @@ static void SPRITE_QUAD_FUNC(SPRITE_QUAD_POSITION_SOURCE_TYPE* pos, SPRITE_QUAD_
     s32 ang2;
     u16 vz;
 
+    // Check in C so bindings may refer to enum constants as well as literals.
+    STATIC_ASSERT(SPRITE_QUAD_CELL_WIDTH >= 1 && SPRITE_QUAD_CELL_WIDTH <= 256, sprite_quad_cell_width_fits_uv_byte);
+
     // Project the source translation's low 16 bits without changing its coordinate cache.
     head                                     = SCRATCH_STACK_CURSOR(EffectShapeScratch);
     (head - 1)->worldPoint.vx                = (u16)SPRITE_QUAD_POS(pos, 0);
@@ -71,36 +78,36 @@ static void SPRITE_QUAD_FUNC(SPRITE_QUAD_POSITION_SOURCE_TYPE* pos, SPRITE_QUAD_
             prim->tpage = SPRITE_QUAD_TPAGE;
             prim->clut  = SPRITE_QUAD_CLUT;
 #if defined(SPRITE_QUAD_UV_TABLE)
-            /* each frame names its own square cell */
+            // Cell widths count texels; both square-cell endpoints are inclusive.
             textureFrame = &SPRITE_QUAD_UV_TABLE[frame];
-            setUV4(prim, textureFrame->u, textureFrame->v, textureFrame->u + (SPRITE_QUAD_CELL_W - 1), textureFrame->v,
-                   textureFrame->u, textureFrame->v + (SPRITE_QUAD_CELL_W - 1),
-                   textureFrame->u + (SPRITE_QUAD_CELL_W - 1), textureFrame->v + (SPRITE_QUAD_CELL_W - 1));
+            setUV4(prim, textureFrame->u, textureFrame->v, textureFrame->u + (SPRITE_QUAD_CELL_WIDTH - 1), textureFrame->v,
+                   textureFrame->u, textureFrame->v + (SPRITE_QUAD_CELL_WIDTH - 1),
+                   textureFrame->u + (SPRITE_QUAD_CELL_WIDTH - 1), textureFrame->v + (SPRITE_QUAD_CELL_WIDTH - 1));
 #else
 #if defined(SPRITE_QUAD_CELLS_PER_ROW)
 #ifdef SPRITE_QUAD_CELL_H
-            u0 = (s16)(frame % (SPRITE_QUAD_CELLS_PER_ROW)) * SPRITE_QUAD_CELL_W;
+            u0 = (s16)(frame % (SPRITE_QUAD_CELLS_PER_ROW)) * SPRITE_QUAD_CELL_WIDTH;
 #else
             // Repeat the strip's column while keeping its texel rows fixed.
-            u0 = (frame % (SPRITE_QUAD_CELLS_PER_ROW)) * SPRITE_QUAD_CELL_W;
+            u0 = (frame % (SPRITE_QUAD_CELLS_PER_ROW)) * SPRITE_QUAD_CELL_WIDTH;
 #endif
 #elif defined(SPRITE_QUAD_CELL_MASK)
-            u0 = (frame & SPRITE_QUAD_CELL_MASK) * SPRITE_QUAD_CELL_W;
+            u0 = (frame & SPRITE_QUAD_CELL_MASK) * SPRITE_QUAD_CELL_WIDTH;
 #else
-            u0 = frame * SPRITE_QUAD_CELL_W;
+            u0 = frame * SPRITE_QUAD_CELL_WIDTH;
 #endif
 #ifdef SPRITE_QUAD_U_BASE
             // Sign-extend the first cell's right endpoint; GPU U fields retain its low byte.
-            u1 = u0 + (s8)(SPRITE_QUAD_U_BASE + SPRITE_QUAD_CELL_W - 1);
+            u1 = u0 + (s8)(SPRITE_QUAD_U_BASE + SPRITE_QUAD_CELL_WIDTH - 1);
             u0 = u0 + SPRITE_QUAD_U_BASE;
 #else
-            u1 = u0 + (SPRITE_QUAD_CELL_W - 1);
+            u1 = u0 + (SPRITE_QUAD_CELL_WIDTH - 1);
 #endif
 #ifdef SPRITE_QUAD_CELL_H
             // Advance through grid rows; the column count is not a frame limit.
             v0 = (s16)(frame / (SPRITE_QUAD_CELLS_PER_ROW)) * SPRITE_QUAD_CELL_H;
-            setUV4(prim, u0, v0 + SPRITE_QUAD_V0, u0 + (SPRITE_QUAD_CELL_W - 1), v0 + SPRITE_QUAD_V0, u0, v0 + SPRITE_QUAD_V1,
-                   u0 + (SPRITE_QUAD_CELL_W - 1), v0 + SPRITE_QUAD_V1);
+            setUV4(prim, u0, v0 + SPRITE_QUAD_V0, u0 + (SPRITE_QUAD_CELL_WIDTH - 1), v0 + SPRITE_QUAD_V0, u0, v0 + SPRITE_QUAD_V1,
+                   u0 + (SPRITE_QUAD_CELL_WIDTH - 1), v0 + SPRITE_QUAD_V1);
 #else
             setUV4(prim, u0, SPRITE_QUAD_V0, u1, SPRITE_QUAD_V0, u0, SPRITE_QUAD_V1, u1, SPRITE_QUAD_V1);
 #endif
@@ -128,7 +135,7 @@ static void SPRITE_QUAD_FUNC(SPRITE_QUAD_POSITION_SOURCE_TYPE* pos, SPRITE_QUAD_
 #undef SPRITE_QUAD_FUNC
 #undef SPRITE_QUAD_TPAGE
 #undef SPRITE_QUAD_CLUT
-#undef SPRITE_QUAD_CELL_W
+#undef SPRITE_QUAD_CELL_WIDTH
 #undef SPRITE_QUAD_CELLS_PER_ROW
 #undef SPRITE_QUAD_V0
 #undef SPRITE_QUAD_V1

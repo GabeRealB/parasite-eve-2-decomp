@@ -1416,9 +1416,10 @@ void func_shelter_b1_sterilization_room_801823D8(Task* task)
     }
 }
 
-#define SPRITE_QUAD_TPAGE  0x2B
-#define SPRITE_QUAD_CLUT   0x43D0
-#define SPRITE_QUAD_CELL_W 0x30
+#define SPRITE_QUAD_TPAGE 0x2B
+#define SPRITE_QUAD_CLUT  0x43D0
+/// Texel width and horizontal stride of each cell in the drifting sprite's five-column grid.
+#define SPRITE_QUAD_CELL_WIDTH 48
 /// Number of columns in the drifting sprite's grid of ten frames in two rows.
 #define SPRITE_QUAD_CELLS_PER_ROW 5
 #define SPRITE_QUAD_CELL_H        0x30

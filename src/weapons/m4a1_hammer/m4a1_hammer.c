@@ -218,15 +218,16 @@ void func_m4a1_hammer_8011D1E0(Task* task)
 /// Unsigned texture-frame counter, masked to the charge sprite's eight cells.
 #define SPRITE_QUAD_FRAME_T u16
 /// Unsigned 16-bit perspective size for the charge flare, matching its forward declaration.
-#define SPRITE_QUAD_SIZE_T    u16
-#define SPRITE_QUAD_FUNC      spriteQuadDrawCharge
-#define SPRITE_QUAD_TPAGE     0x28
-#define SPRITE_QUAD_CLUT      0x430C
-#define SPRITE_QUAD_CELL_W    24
-#define SPRITE_QUAD_CELL_MASK 7
-#define SPRITE_QUAD_V0        0x88
-#define SPRITE_QUAD_V1        0x9F
-#define SPRITE_QUAD_SCALE     23
+#define SPRITE_QUAD_SIZE_T u16
+#define SPRITE_QUAD_FUNC   spriteQuadDrawCharge
+#define SPRITE_QUAD_TPAGE  0x28
+#define SPRITE_QUAD_CLUT   0x430C
+/// Texel width and horizontal stride of each cell in the charge flare's eight-cell strip.
+#define SPRITE_QUAD_CELL_WIDTH 24
+#define SPRITE_QUAD_CELL_MASK  7
+#define SPRITE_QUAD_V0         0x88
+#define SPRITE_QUAD_V1         0x9F
+#define SPRITE_QUAD_SCALE      23
 #include "../../shared/sprite_quad_draw.inc.c"
 #undef SPRITE_QUAD_POSITION_SOURCE_TYPE
 #undef SPRITE_QUAD_POS
@@ -280,7 +281,8 @@ void func_m4a1_hammer_8011DD08(Task* arg0)
     }
 }
 
-#define SPRITE_QUAD_CELL_W 0x28
+/// Texel width and horizontal stride of each cell in Hammer's repeating six-cell strip.
+#define SPRITE_QUAD_CELL_WIDTH 40
 /// Number of cells in Hammer's repeating sprite row, separate from its masked charge strip.
 #define SPRITE_QUAD_CELLS_PER_ROW 6
 #define SPRITE_QUAD_V0            0x38
