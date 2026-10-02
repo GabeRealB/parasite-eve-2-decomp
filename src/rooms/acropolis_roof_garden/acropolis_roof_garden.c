@@ -794,25 +794,227 @@ SpriteView D_acropolis_roof_garden_80186648[7] = {
     { { .empty = D_acropolis_roof_garden_80186638 }, D_acropolis_roof_garden_80186638, NULL },
 };
 
-WorldCoordPointLight D_acropolis_roof_garden_8018669C[14] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5884, -700, -9680 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3686, 3276 }, { 0, 0 } }, 500, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -6210, -700, -2566 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3686, 3276 }, { 0, 0 } }, 500, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4984, -100, -5134 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 3276, 4096 }, { 0, 0 } }, 100, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4153, -100, -5134 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 3276, 4096 }, { 0, 0 } }, 100, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4153, -1500, -4622 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 3276, 4096 }, { 0, 0 } }, 100, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5007, -1500, -4622 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 3276, 4096 }, { 0, 0 } }, 100, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4654, -200, -3856 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 2457, 2867 }, { 0, 0 } }, 100, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4654, -2000, -2126 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 819, 1638 }, { 0, 0 } }, 100, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -8188, -1800, -0x2864 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 3686, 4096 }, { 0, 0 } }, 200, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -6846, -1800, -0x2864 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 3686, 4096 }, { 0, 0 } }, 200, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -8931, -700, -9680 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3686, 3276 }, { 0, 0 } }, 500, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -6248, -700, -6705 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3686, 3276 }, { 0, 0 } }, 500, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3472, -700, -7111 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3686, 3276 }, { 0, 0 } }, 500, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3202, -700, -2566 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3686, 3276 }, { 0, 0 } }, 500, 4000 },
+/// Authored point lights for model shading throughout the roof garden.
+///
+/// Positions and inner/outer radii use integer world units; RGB intensities
+/// have 12 fractional bits (ONE is full intensity). Every light accepts every view.
+/// Gameplay updates the transform caches and attenuation, so these records stay
+/// writable and must remain live while the room overlay is in use.
+static WorldCoordPointLight _gAcropolisRoofGardenPointLights[] = {
+    {
+        .head = {
+            .transform = {
+                .lighting = {
+                    .composeStamp = GRAPHICS_COORD_DIRTY,
+                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -5884, -700, -9680 } },
+                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } } },
+                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                },
+            },
+            .color = { ONE, 3686, 3276 },
+        },
+        .inner = 500,
+        .outer = 4000,
+    },
+    {
+        .head = {
+            .transform = {
+                .lighting = {
+                    .composeStamp = GRAPHICS_COORD_DIRTY,
+                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -6210, -700, -2566 } },
+                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } } },
+                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                },
+            },
+            .color = { ONE, 3686, 3276 },
+        },
+        .inner = 500,
+        .outer = 4000,
+    },
+    {
+        .head = {
+            .transform = {
+                .lighting = {
+                    .composeStamp = GRAPHICS_COORD_DIRTY,
+                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -4984, -100, -5134 } },
+                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } } },
+                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                },
+            },
+            .color = { 2457, 3276, ONE },
+        },
+        .inner = 100,
+        .outer = 1500,
+    },
+    {
+        .head = {
+            .transform = {
+                .lighting = {
+                    .composeStamp = GRAPHICS_COORD_DIRTY,
+                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -4153, -100, -5134 } },
+                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } } },
+                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                },
+            },
+            .color = { 2457, 3276, ONE },
+        },
+        .inner = 100,
+        .outer = 1500,
+    },
+    {
+        .head = {
+            .transform = {
+                .lighting = {
+                    .composeStamp = GRAPHICS_COORD_DIRTY,
+                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -4153, -1500, -4622 } },
+                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } } },
+                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                },
+            },
+            .color = { 2457, 3276, ONE },
+        },
+        .inner = 100,
+        .outer = 1500,
+    },
+    {
+        .head = {
+            .transform = {
+                .lighting = {
+                    .composeStamp = GRAPHICS_COORD_DIRTY,
+                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -5007, -1500, -4622 } },
+                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } } },
+                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                },
+            },
+            .color = { 2457, 3276, ONE },
+        },
+        .inner = 100,
+        .outer = 1500,
+    },
+    {
+        .head = {
+            .transform = {
+                .lighting = {
+                    .composeStamp = GRAPHICS_COORD_DIRTY,
+                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -4654, -200, -3856 } },
+                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } } },
+                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                },
+            },
+            .color = { ONE, 2457, 2867 },
+        },
+        .inner = 100,
+        .outer = 2000,
+    },
+    {
+        .head = {
+            .transform = {
+                .lighting = {
+                    .composeStamp = GRAPHICS_COORD_DIRTY,
+                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -4654, -2000, -2126 } },
+                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } } },
+                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                },
+            },
+            .color = { ONE, 819, 1638 },
+        },
+        .inner = 100,
+        .outer = 2000,
+    },
+    {
+        .head = {
+            .transform = {
+                .lighting = {
+                    .composeStamp = GRAPHICS_COORD_DIRTY,
+                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -8188, -1800, -0x2864 } },
+                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } } },
+                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                },
+            },
+            .color = { 2867, 3686, ONE },
+        },
+        .inner = 200,
+        .outer = 2000,
+    },
+    {
+        .head = {
+            .transform = {
+                .lighting = {
+                    .composeStamp = GRAPHICS_COORD_DIRTY,
+                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -6846, -1800, -0x2864 } },
+                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } } },
+                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                },
+            },
+            .color = { 2867, 3686, ONE },
+        },
+        .inner = 200,
+        .outer = 2000,
+    },
+    {
+        .head = {
+            .transform = {
+                .lighting = {
+                    .composeStamp = GRAPHICS_COORD_DIRTY,
+                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -8931, -700, -9680 } },
+                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } } },
+                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                },
+            },
+            .color = { ONE, 3686, 3276 },
+        },
+        .inner = 500,
+        .outer = 4000,
+    },
+    {
+        .head = {
+            .transform = {
+                .lighting = {
+                    .composeStamp = GRAPHICS_COORD_DIRTY,
+                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -6248, -700, -6705 } },
+                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } } },
+                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                },
+            },
+            .color = { ONE, 3686, 3276 },
+        },
+        .inner = 500,
+        .outer = 4000,
+    },
+    {
+        .head = {
+            .transform = {
+                .lighting = {
+                    .composeStamp = GRAPHICS_COORD_DIRTY,
+                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -3472, -700, -7111 } },
+                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } } },
+                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                },
+            },
+            .color = { ONE, 3686, 3276 },
+        },
+        .inner = 500,
+        .outer = 4000,
+    },
+    {
+        .head = {
+            .transform = {
+                .lighting = {
+                    .composeStamp = GRAPHICS_COORD_DIRTY,
+                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -3202, -700, -2566 } },
+                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } } },
+                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                },
+            },
+            .color = { ONE, 3686, 3276 },
+        },
+        .inner = 500,
+        .outer = 4000,
+    },
 };
 
 WorldCoordRoomLights D_acropolis_roof_garden_80186BDC[1] = {
-    { 0, NULL, ARRAY_SIZE(D_acropolis_roof_garden_8018669C), D_acropolis_roof_garden_8018669C, 0, NULL },
+    { 0, NULL, ARRAY_SIZE(_gAcropolisRoofGardenPointLights), _gAcropolisRoofGardenPointLights, 0, NULL },
 };
 
 GpViewRec D_acropolis_roof_garden_80186BF4[8] = {
