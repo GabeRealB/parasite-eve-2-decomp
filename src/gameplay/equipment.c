@@ -63,35 +63,36 @@ static inline s16 _gpScanHeldQty(InventoryItemRow* table, InventoryItemRange* sc
     return found;
 }
 
-EquipmentWeaponLoadOptionsTable Gp_RelatedQty1 = { { { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 50, { 181, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 40, { 187, 0, 0 } }, { 0, { 0, 0, 0 } }, { 1, { 169, 170, 171 } }, { 30, { 189, 0, 0 } }, { 60, { 190, 0, 0 } }, { 50, { 181, 0, 0 } }, { 50, { 181, 0, 0 } }, { 50, { 181, 0, 0 } } } };
-GpItemMap                       Gp_ItemMaps[8] = {
-    { 1, 132, 181, 0 },
-    { 0, 149, 185, 0 },
-    { 1, 152, 187, 0 },
-    { 1, 155, 189, 0 },
-    { 1, 156, 190, 0 },
-    { 1, 157, 181, 0 },
-    { 1, 158, 181, 0 },
-    { 1, 159, 181, 0 },
+EquipmentWeaponLoadOptionsTable Gp_RelatedQty1                             = { { { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 50, { 181, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 40, { 187, 0, 0 } }, { 0, { 0, 0, 0 } }, { 1, { 169, 170, 171 } }, { 30, { 189, 0, 0 } }, { 60, { 190, 0, 0 } }, { 50, { 181, 0, 0 } }, { 50, { 181, 0, 0 } }, { 50, { 181, 0, 0 } } } };
+EquipmentWeaponSupply           Gp_ItemMaps[EQUIPMENT_WEAPON_SUPPLY_COUNT] = {
+    { EQUIPMENT_WEAPON_SUPPLY_SECONDARY, 0x84, 0xB5, 0 }, // P229, Battery
+    { EQUIPMENT_WEAPON_SUPPLY_PRIMARY, 0x95, 0xB9, 0 },   // Hypervelocity, Battery
+    { EQUIPMENT_WEAPON_SUPPLY_SECONDARY, 0x98, 0xBB, 0 }, // M4A1 Hammer, Battery
+    { EQUIPMENT_WEAPON_SUPPLY_SECONDARY, 0x9B, 0xBD, 0 }, // M4A1 Pyke, Fuel
+    { EQUIPMENT_WEAPON_SUPPLY_SECONDARY, 0x9C, 0xBE, 0 }, // M4A1 Javelin, Battery
+    { EQUIPMENT_WEAPON_SUPPLY_SECONDARY, 0x9D, 0xB5, 0 }, // MP5A5, Battery
+    { EQUIPMENT_WEAPON_SUPPLY_SECONDARY, 0x9E, 0xB5, 0 }, // MP5A5(+1), Battery
+    { EQUIPMENT_WEAPON_SUPPLY_SECONDARY, 0x9F, 0xB5, 0 }, // MP5A5(+2), Battery
 };
 
 void Gp_ApplyItemMap(void)
 {
-    s32                  i;
-    GpItemMap*           map;
-    EquipmentWeaponLoad* slot;
-    s32                  id;
+    s32                    i;
+    EquipmentWeaponSupply* supply;
+    EquipmentWeaponLoad*   slot;
+    s32                    weaponItemId;
 
-    for (i = 0; i < 8; i++) {
-        map  = &Gp_ItemMaps[i];
-        id   = map->field_1;
-        slot = gpItemSlot(id);
-        if (map->field_0 == 0) {
-            slot->primaryItemId = map->field_2;
-            slot->primaryQty    = _gpRelatedQty(id, 0);
+    // Install each built-in supply at its load's capacity.
+    for (i = 0; i < EQUIPMENT_WEAPON_SUPPLY_COUNT; i++) {
+        supply       = &Gp_ItemMaps[i];
+        weaponItemId = supply->weaponItemId;
+        slot         = gpItemSlot(weaponItemId);
+        if (supply->supplyLoad == EQUIPMENT_WEAPON_SUPPLY_PRIMARY) {
+            slot->primaryItemId = supply->supplyItemId;
+            slot->primaryQty    = _gpRelatedQty(weaponItemId, EQUIPMENT_WEAPON_SUPPLY_PRIMARY);
         } else {
-            slot->secondaryItemId = map->field_2;
-            slot->secondaryQty    = _gpRelatedQty(id, 1);
+            slot->secondaryItemId = supply->supplyItemId;
+            slot->secondaryQty    = _gpRelatedQty(weaponItemId, EQUIPMENT_WEAPON_SUPPLY_SECONDARY);
         }
     }
 }

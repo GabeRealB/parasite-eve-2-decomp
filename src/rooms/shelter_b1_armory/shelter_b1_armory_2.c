@@ -526,7 +526,7 @@ WorldCollisionSurfaceProperties* D_shelter_b1_armory_80185554[8] = {
 
 s32 Shop_Data_80187628 = 0;
 
-GpItemMap* Shop_Data_8018762C = NULL;
+EquipmentWeaponSupply* Shop_Data_8018762C = NULL;
 
 ShelterB1ArmoryStorage557C D_shelter_b1_armory_8018557C = { 0 };
 

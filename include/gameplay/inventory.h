@@ -5,16 +5,29 @@
 
 #include "gameplay/starter_inventory.h"
 
-/// 4-byte table entry in `Gp_ItemMaps` (8 entries). field_1 is an item id
-/// used to index `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems`; field_0 selects which (id, count) pair;
-/// field_2 is the mapped item id (`Gp_ApplyItemMap`).
-typedef struct _GpItemMap {
-    /* 0x00 */ u8 field_0;
-    /* 0x01 */ u8 field_1;
-    /* 0x02 */ u8 field_2;
-    /* 0x03 */ u8 field_3;
-} GpItemMap;
-STATIC_ASSERT_SIZEOF(GpItemMap, 0x4);
+/// Which load of `EquipmentWeaponLoad` holds a weapon's built-in supply.
+enum {
+    EQUIPMENT_WEAPON_SUPPLY_PRIMARY   = 0, // `primaryItemId` and `primaryQty`
+    EQUIPMENT_WEAPON_SUPPLY_SECONDARY = 1  // `secondaryItemId` and `secondaryQty`
+};
+
+/// Number of `Gp_ItemMaps` rows, one per weapon with a built-in supply.
+enum { EQUIPMENT_WEAPON_SUPPLY_COUNT = 8 };
+
+/// Built-in rechargeable supply for one weapon.
+///
+/// `Gp_ItemMaps` has one row per weapon that keeps this charge in
+/// `EquipmentWeaponLoad`. The catalogue names the supplies Battery or Fuel.
+/// Shops refill the load `supplyLoad` selects up to that load's capacity.
+/// Clearing removable ammunition leaves the supply loaded. `supplyItemId` is
+/// the item id stored in the load and drawn while the shop charges it.
+typedef struct {
+    u8 supplyLoad;   // Load holding the supply (0 primary, 1 secondary).
+    u8 weaponItemId; // Weapon item id (0x80..0x9F).
+    u8 supplyItemId; // Supply item id (Battery or Fuel, in 0xA0..0xBF).
+    u8 field_3;      // Unread. Zero in every row; role unproven.
+} EquipmentWeaponSupply;
+STATIC_ASSERT_SIZEOF(EquipmentWeaponSupply, 0x4);
 
 /// Capacity and consumable choices for one weapon's primary or secondary load.
 ///

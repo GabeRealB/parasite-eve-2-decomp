@@ -145,7 +145,7 @@ extern WorldCollisionGrid D_mist_parking_80192204;
 
 extern s32 Shop_Data_80187628;
 
-extern GpItemMap* Shop_Data_8018762C;
+extern EquipmentWeaponSupply* Shop_Data_8018762C;
 
 extern s32 D_mist_parking_8019531C;
 

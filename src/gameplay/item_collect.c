@@ -478,43 +478,43 @@ s32 Gp_FindScanQty(InventoryItemRow* arg0, InventoryItemRange* arg1, s32* arg2, 
 
 s32 Gp_NextMappedSlot(s32 arg0)
 {
-    InventoryItemRange* scan;
-    s32                 i;
-    GpItemMap*          p;
+    InventoryItemRange*    scan;
+    s32                    i;
+    EquipmentWeaponSupply* supply;
 
     scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-    if ((u32)arg0 >= 8) {
+    if ((u32)arg0 >= EQUIPMENT_WEAPON_SUPPLY_COUNT) {
         return -1;
     }
-    for (i = arg0; i < 8; i++) {
-        p = &Gp_ItemMaps[i];
-        if (Gp_SumScanQty(scan, p->field_1)) {
+    for (i = arg0; i < EQUIPMENT_WEAPON_SUPPLY_COUNT; i++) {
+        supply = &Gp_ItemMaps[i];
+        if (Gp_SumScanQty(scan, supply->weaponItemId)) {
             return i;
         }
     }
     return -1;
 }
 
-GpItemMap* Gp_GetItemMap(s32 arg0)
+EquipmentWeaponSupply* Gp_GetItemMap(s32 arg0)
 {
     return &Gp_ItemMaps[arg0];
 }
 
 s32 Gp_HasMappedItem(void)
 {
-    s32                 found;
-    InventoryItemRange* scan;
-    s32                 i;
-    GpItemMap*          p;
+    s32                    found;
+    InventoryItemRange*    scan;
+    s32                    i;
+    EquipmentWeaponSupply* supply;
 
     found = 0;
     scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-    for (i = 0, p = Gp_ItemMaps; i < 8; i++) {
-        if (Gp_SumScanQty(scan, p->field_1)) {
+    for (i = 0, supply = Gp_ItemMaps; i < EQUIPMENT_WEAPON_SUPPLY_COUNT; i++) {
+        if (Gp_SumScanQty(scan, supply->weaponItemId)) {
             found = 1;
             break;
         }
-        p++;
+        supply++;
     }
     return found;
 }

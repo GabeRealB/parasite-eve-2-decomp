@@ -902,25 +902,25 @@ static void Shop_NoticeTask(Task* task)
     }
 }
 
-/// The charge panel: steps through the mapped item slots, refilling each
-/// slot's primary or secondary supply to its capacity and animating a
-/// bar from the old value up to the new one for at most 0xBC frames. Confirm
-/// or cancel (or the timer running out) moves to the next slot; running out of
-/// slots reports 6 to the parent.
+/// The charge panel: steps through the built-in supplies of carried weapons,
+/// refilling each supply's load to its capacity and animating a bar from the
+/// old value up to the new one for at most 0xBC frames. Confirm or cancel (or
+/// the timer running out) moves to the next supply; running out of supplies
+/// reports 6 to the parent.
 static void Shop_ChargeTask(Task* task)
 {
-    UiObject*            obj;
-    GpItemMap*           map;
-    EquipmentWeaponLoad* slot;
-    s32                  slotId;
-    s32                  itemId;
-    s32                  curItem;
-    s32                  relItem;
-    s32                  qty;
-    s32                  y;
-    s32                  h;
-    s32                  status;
-    s16                  countdown;
+    UiObject*              obj;
+    EquipmentWeaponSupply* supply;
+    EquipmentWeaponLoad*   slot;
+    s32                    slotId;
+    s32                    itemId;
+    s32                    weaponItemId;
+    s32                    supplyItemId;
+    s32                    qty;
+    s32                    y;
+    s32                    h;
+    s32                    status;
+    s16                    countdown;
 
     obj         = task->spawnArg2.pointer;
     obj->result = USER_INTERFACE_RESULT_NONE;
@@ -936,16 +936,16 @@ static void Shop_ChargeTask(Task* task)
         if (slotId < 0) {
             obj->result = USER_INTERFACE_RESULT_CONFIRM;
         } else {
-            map                = Gp_GetItemMap(slotId);
-            Shop_Data_8018762C = map;
-            itemId             = map->field_1;
+            supply             = Gp_GetItemMap(slotId);
+            Shop_Data_8018762C = supply;
+            itemId             = supply->weaponItemId;
             slot               = Gp_GetItemSlot(itemId);
-            if (Shop_Data_8018762C->field_0 == 0) {
+            if (Shop_Data_8018762C->supplyLoad == EQUIPMENT_WEAPON_SUPPLY_PRIMARY) {
                 Shop_Data_80187628 = slot->primaryQty;
-                slot->primaryQty   = Gp_GetRelatedQty(itemId, 0);
+                slot->primaryQty   = Gp_GetRelatedQty(itemId, EQUIPMENT_WEAPON_SUPPLY_PRIMARY);
             } else {
                 Shop_Data_80187628 = slot->secondaryQty;
-                slot->secondaryQty = Gp_GetRelatedQty(itemId, 1);
+                slot->secondaryQty = Gp_GetRelatedQty(itemId, EQUIPMENT_WEAPON_SUPPLY_SECONDARY);
             }
             task->killCountdown  = 0xBC;
             Shop_Data_80187628 <<= 8;
@@ -953,12 +953,12 @@ static void Shop_ChargeTask(Task* task)
         }
     }
 
-    curItem = Shop_Data_8018762C->field_1;
-    relItem = Shop_Data_8018762C->field_2;
-    if (Shop_Data_8018762C->field_0 == 0) {
-        qty = Gp_GetRelatedQty(curItem, 0);
+    weaponItemId = Shop_Data_8018762C->weaponItemId;
+    supplyItemId = Shop_Data_8018762C->supplyItemId;
+    if (Shop_Data_8018762C->supplyLoad == EQUIPMENT_WEAPON_SUPPLY_PRIMARY) {
+        qty = Gp_GetRelatedQty(weaponItemId, EQUIPMENT_WEAPON_SUPPLY_PRIMARY);
     } else {
-        qty = Gp_GetRelatedQty(curItem, 1);
+        qty = Gp_GetRelatedQty(weaponItemId, EQUIPMENT_WEAPON_SUPPLY_SECONDARY);
     }
     qty               <<= 8;
     Shop_Data_80187628 += 0x40;
@@ -967,9 +967,9 @@ static void Shop_ChargeTask(Task* task)
     }
 
     y = obj->panel.contentTop.signedValue;
-    Gp_DrawItemLabel(obj, obj->panel.contentLeft.signedValue + 2, y + 0xF, curItem, 0x606060, 0);
+    Gp_DrawItemLabel(obj, obj->panel.contentLeft.signedValue + 2, y + 0xF, weaponItemId, 0x606060, 0);
     uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, y + 0x12);
-    Gp_DrawItemLabel(obj, obj->panel.contentLeft.signedValue + 2, y + 0x23, relItem, 0x606060, 0);
+    Gp_DrawItemLabel(obj, obj->panel.contentLeft.signedValue + 2, y + 0x23, supplyItemId, 0x606060, 0);
     Gp_DrawQty(obj, obj->panel.contentLeft.signedValue + 2, y + 0x23, Shop_Data_80187628 >> 8, 0x606060);
     h = obj->panel.contentBottom.signedValue;
     func_800C0E20(&(obj)->panel, obj->panel.contentLeft.signedValue + 2, obj->panel.contentRight.signedValue - 2, h - 6, qty,

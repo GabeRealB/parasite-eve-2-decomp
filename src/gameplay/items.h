@@ -15,7 +15,7 @@
 /// at +0x200 (`Gp_EquipRelatedBank`).
 extern EquipmentWeaponLoadOptionsTable Gp_RelatedQty1;
 
-extern GpItemMap Gp_ItemMaps[];
+extern EquipmentWeaponSupply Gp_ItemMaps[];
 
 extern InventoryItemRow* Gp_ItemTable1;
 

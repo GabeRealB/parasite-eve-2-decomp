@@ -82,7 +82,7 @@ void Gp_SetBit2Flag(s32 arg0, u8 arg1, s32 arg2);
 
 s32 Gp_NextMappedSlot(s32 arg0);
 
-GpItemMap* Gp_GetItemMap(s32 arg0);
+EquipmentWeaponSupply* Gp_GetItemMap(s32 arg0);
 
 s32 Gp_HasMappedItem(void);
 

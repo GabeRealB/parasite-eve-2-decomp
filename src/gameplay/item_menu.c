@@ -1212,12 +1212,14 @@ static inline void _gpDropOrphanedWeaponLoads(void)
             if ((u8)(rec->itemId + 0x80) < 0x20) {
                 slot         = Gp_GetItemSlot(rec->itemId);
                 loadedItemId = slot->primaryItemId;
+                // Battery 0xB9 is a built-in primary supply and has no carried stack.
                 if ((loadedItemId != INVENTORY_ITEM_NONE) && (loadedItemId != 0xB9)) {
                     if (Gp_SumScanQty(scan, loadedItemId) == 0) {
                         slot->primaryQty = 0;
                     }
                 }
                 loadedItemId = slot->secondaryItemId;
+                // Built-in secondary supplies (Battery 0xB5/0xBB/0xBE, Fuel 0xBD) have no carried stack.
                 if ((loadedItemId != INVENTORY_ITEM_NONE) && (loadedItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) && (loadedItemId != 0xB5) && (loadedItemId != 0xBB) &&
                     (loadedItemId != 0xBD) && (loadedItemId != 0xBE)) {
                     if (Gp_SumScanQty(scan, loadedItemId) == 0) {

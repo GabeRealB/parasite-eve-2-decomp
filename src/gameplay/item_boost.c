@@ -115,19 +115,19 @@ static inline void _gpClearEquipSlot(s32 item)
     }
 
     slot = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[item - EQUIPMENT_WEAPON_ITEM_FIRST];
-    for (i = 0; i < 8; i++) {
-        if (item == Gp_ItemMaps[i].field_1) {
+    for (i = 0; i < EQUIPMENT_WEAPON_SUPPLY_COUNT; i++) {
+        if (item == Gp_ItemMaps[i].weaponItemId) {
             found = 1;
             break;
         }
     }
 
-    if ((found == 0) || (Gp_ItemMaps[i].field_0 != 0)) {
+    if ((found == 0) || (Gp_ItemMaps[i].supplyLoad != EQUIPMENT_WEAPON_SUPPLY_PRIMARY)) {
         slot->primaryItemId = INVENTORY_ITEM_NONE;
         slot->primaryQty    = 0;
     }
 
-    if ((found == 0) || (Gp_ItemMaps[i].field_0 != 1)) {
+    if ((found == 0) || (Gp_ItemMaps[i].supplyLoad != EQUIPMENT_WEAPON_SUPPLY_SECONDARY)) {
         if (slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
             slot->secondaryItemId = INVENTORY_ITEM_NONE;
         }
@@ -930,19 +930,19 @@ void Gp_ClearEquipSlot(s32 arg0)
     }
 
     slot = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[arg0 - EQUIPMENT_WEAPON_ITEM_FIRST];
-    for (i = 0; i < 8; i++) {
-        if (arg0 == Gp_ItemMaps[i].field_1) {
+    for (i = 0; i < EQUIPMENT_WEAPON_SUPPLY_COUNT; i++) {
+        if (arg0 == Gp_ItemMaps[i].weaponItemId) {
             found = 1;
             break;
         }
     }
 
-    if ((found == 0) || (Gp_ItemMaps[i].field_0 != 0)) {
+    if ((found == 0) || (Gp_ItemMaps[i].supplyLoad != EQUIPMENT_WEAPON_SUPPLY_PRIMARY)) {
         slot->primaryItemId = INVENTORY_ITEM_NONE;
         slot->primaryQty    = 0;
     }
 
-    if ((found == 0) || (Gp_ItemMaps[i].field_0 != 1)) {
+    if ((found == 0) || (Gp_ItemMaps[i].supplyLoad != EQUIPMENT_WEAPON_SUPPLY_SECONDARY)) {
         if (slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
             slot->secondaryItemId = INVENTORY_ITEM_NONE;
         }
@@ -961,22 +961,22 @@ void Gp_ClearEquipSlotSel(s32 arg0, s32 arg1)
     }
 
     slot = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[arg0 - EQUIPMENT_WEAPON_ITEM_FIRST];
-    for (i = 0; i < 8; i++) {
-        if (arg0 == Gp_ItemMaps[i].field_1) {
+    for (i = 0; i < EQUIPMENT_WEAPON_SUPPLY_COUNT; i++) {
+        if (arg0 == Gp_ItemMaps[i].weaponItemId) {
             found = 1;
             break;
         }
     }
 
     if (arg1 != 2) {
-        if ((found == 0) || (Gp_ItemMaps[i].field_0 != 0)) {
+        if ((found == 0) || (Gp_ItemMaps[i].supplyLoad != EQUIPMENT_WEAPON_SUPPLY_PRIMARY)) {
             slot->primaryItemId = INVENTORY_ITEM_NONE;
             slot->primaryQty    = 0;
         }
     }
 
     if (arg1 != 1) {
-        if ((found == 0) || (Gp_ItemMaps[i].field_0 != 1)) {
+        if ((found == 0) || (Gp_ItemMaps[i].supplyLoad != EQUIPMENT_WEAPON_SUPPLY_SECONDARY)) {
             if (slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
                 slot->secondaryItemId = INVENTORY_ITEM_NONE;
             }

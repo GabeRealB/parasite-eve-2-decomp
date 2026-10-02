@@ -82,8 +82,6 @@ static s32 Gp_CanAddItemQty(InventoryItemRange* arg0, s32 arg1, s32 arg2);
 
 static inline bool _itemIsIdentified(s32 itemId);
 
-/// Empties the removable consumable loads of weapon item `item`, the same clear
-/// `Gp_ClearEquipSlot` performs.
 static inline void _gpClearEquipSlot(s32 item);
 
 u8 Gp_ItemSortKey0[72] = {
@@ -868,7 +866,8 @@ s32 Gp_NthRelatedId(InventoryItemRange* arg0, s32 arg1, s32 arg2)
 }
 
 /// Empties the removable consumable loads of weapon item `item`, the same clear
-/// `Gp_ClearEquipSlot` performs.
+/// `Gp_ClearEquipSlot` performs. A built-in supply, when this weapon has one,
+/// stays in its load.
 static inline void _gpClearEquipSlot(s32 item)
 {
     EquipmentWeaponLoad* slot;
@@ -880,19 +879,19 @@ static inline void _gpClearEquipSlot(s32 item)
     }
 
     slot = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[item - EQUIPMENT_WEAPON_ITEM_FIRST];
-    for (i = 0; i < 8; i++) {
-        if (item == Gp_ItemMaps[i].field_1) {
+    for (i = 0; i < EQUIPMENT_WEAPON_SUPPLY_COUNT; i++) {
+        if (item == Gp_ItemMaps[i].weaponItemId) {
             found = 1;
             break;
         }
     }
 
-    if ((found == 0) || (Gp_ItemMaps[i].field_0 != 0)) {
+    if ((found == 0) || (Gp_ItemMaps[i].supplyLoad != EQUIPMENT_WEAPON_SUPPLY_PRIMARY)) {
         slot->primaryItemId = INVENTORY_ITEM_NONE;
         slot->primaryQty    = 0;
     }
 
-    if ((found == 0) || (Gp_ItemMaps[i].field_0 != 1)) {
+    if ((found == 0) || (Gp_ItemMaps[i].supplyLoad != EQUIPMENT_WEAPON_SUPPLY_SECONDARY)) {
         if (slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
             slot->secondaryItemId = INVENTORY_ITEM_NONE;
         }
