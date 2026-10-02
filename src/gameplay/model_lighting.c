@@ -297,33 +297,43 @@ static inline void _tmdInitGt3Texture(POLY_GT3* triangle, const u32* elementWord
     triangle->clut      += workspace->encodedClutOffset;
 }
 
-/// Initializes one Gouraud textured quad's persistent texture coordinates and GPU addresses.
+/// Seeds one Gouraud textured quad's persistent texture data for the draw pass.
 ///
-/// `quad` is a writable, four-byte-aligned `POLY_GT4`. `elementWords` addresses
-/// a four-byte-aligned `0x78`-family element, after the three-word record header,
-/// with at least seven readable u32 words. Words 0..3 hold geometry references;
-/// words 4/5 pack unsigned byte U/V texel coordinates in their low halves and
-/// encoded CLUT/texture-page settings in their high halves. Word 6 packs U2/V2
-/// in its low half and U3/V3 in its high half.
+/// `quad` must address a writable, four-byte-aligned `POLY_GT4` packet.
+/// `elementWords` starts at a four-byte-aligned element payload, after the
+/// record's three-word header, with at least seven readable u32 words. This
+/// minimum does not establish the full element stride. Words 0..3 pack four
+/// vertex and four normal byte offsets; this helper does not read geometry.
+/// On the little-endian target, words 4 and 5 pack unsigned byte U/V texel
+/// coordinates in bits 0..15 and encoded CLUT/page settings in bits 16..31.
+/// Word 6 packs U2/V2 in its low half and U3/V3 in its high half.
 ///
-/// The workspace supplies signed encoded-address displacements; each sum wraps
-/// in its u16 packet field. The tag, colours/command, positions and SDK pad fields
-/// remain untouched for drawing. All storage is borrowed; no pointer is retained
-/// and neither the workspace's count nor its cursors are changed.
-static inline void _tmdInitGt4Texture(POLY_GT4* quad, const u32* elementWords, const TmdStreamWorkspace* workspace)
+/// `workspace` supplies construction-time signed encoded-address displacements:
+/// `texturePageOffset` (-128..127) and `encodedClutOffset` (-8192..8128, 64 per
+/// palette row). Both sums wrap modulo 65536 in their u16 packet fields without
+/// changing U/V. The packet's tag, colours/command, screen positions and SDK
+/// pad fields are preserved for drawing. All three objects are borrowed for
+/// this call; no pointer is retained and the workspace is unchanged.
+static inline void _modelLightingInitGt4Texture(POLY_GT4* quad, const u32* elementWords, const TmdStreamWorkspace* workspace)
 {
     // Word indices within the element, excluding the record header.
     enum {
-        TMD_GT4_UV0_CLUT_WORD  = 4, // U0/V0 in low half, CLUT address in high half
-        TMD_GT4_UV1_TPAGE_WORD = 5, // U1/V1 in low half, texture-page settings in high half
-        TMD_GT4_UV2_UV3_WORD   = 6  // U2/V2 in low half, U3/V3 in high half
+        MODEL_LIGHTING_GT4_UV0_CLUT_WORD  = 4, // U0/V0 in low half, CLUT address in high half
+        MODEL_LIGHTING_GT4_UV1_TPAGE_WORD = 5, // U1/V1 in low half, texture-page settings in high half
+        MODEL_LIGHTING_GT4_UV2_UV3_WORD   = 6  // U2/V2 in low half, U3/V3 in high half
     };
 
-    MODEL_LIGHTING_UV0_CLUT_WORD(quad)  = elementWords[TMD_GT4_UV0_CLUT_WORD];
-    MODEL_LIGHTING_UV1_TPAGE_WORD(quad) = elementWords[TMD_GT4_UV1_TPAGE_WORD];
-    // Halfword stores preserve the SDK pad fields beside the U/V pairs.
-    *(u16*)&quad->u2 = (u16)elementWords[TMD_GT4_UV2_UV3_WORD];
-    *(u16*)&quad->u3 = (u16)(elementWords[TMD_GT4_UV2_UV3_WORD] >> 16);
+    STATIC_ASSERT(OFFSET_OF(POLY_GT4, v2) == OFFSET_OF(POLY_GT4, u2) + sizeof(u8) &&
+                      OFFSET_OF(POLY_GT4, pad2) == OFFSET_OF(POLY_GT4, u2) + sizeof(u16) &&
+                      OFFSET_OF(POLY_GT4, v3) == OFFSET_OF(POLY_GT4, u3) + sizeof(u8) &&
+                      OFFSET_OF(POLY_GT4, pad3) == OFFSET_OF(POLY_GT4, u3) + sizeof(u16),
+                  model_lighting_gt4_uv_pair_layout);
+
+    MODEL_LIGHTING_UV0_CLUT_WORD(quad)  = elementWords[MODEL_LIGHTING_GT4_UV0_CLUT_WORD];
+    MODEL_LIGHTING_UV1_TPAGE_WORD(quad) = elementWords[MODEL_LIGHTING_GT4_UV1_TPAGE_WORD];
+    // Split the packed U/V pairs without overwriting the adjacent pad2/pad3.
+    *(u16*)&quad->u2 = (u16)elementWords[MODEL_LIGHTING_GT4_UV2_UV3_WORD];
+    *(u16*)&quad->u3 = (u16)(elementWords[MODEL_LIGHTING_GT4_UV2_UV3_WORD] >> 16);
     quad->tpage     += workspace->texturePageOffset;
     quad->clut      += workspace->encodedClutOffset;
 }
@@ -2292,7 +2302,7 @@ u32* tmdBuildStreamGt4(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elem
     quad = (POLY_GT4*)workspace->primWrite;
     // Seed texture data that persists while drawing updates geometry and lighting.
     while (workspace->elemCount-- > 0) {
-        _tmdInitGt4Texture(quad, elements, workspace);
+        _modelLightingInitGt4Texture(quad, elements, workspace);
         quad++;
         elements += workspace->elemStride;
     }
