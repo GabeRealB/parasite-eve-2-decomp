@@ -91,9 +91,9 @@ void Fs_ScanIsoDirectory(s32 mode);
 /// `retryNonzero` disables timeout aborts when non-zero.
 u8 Fs_LoadImageStrip(s32 arg0);
 
-/// Copy a terminated FsWorkEntry list into Fs_WorkEntries and set up
+/// Copy a terminated FsImageColumn list into Fs_WorkEntries and set up
 /// Fs_ImageRect / load state for the following image transfer.
-void Fs_CopyWorkEntries(FsWorkEntry* arg0);
+void Fs_CopyWorkEntries(FsImageColumn* arg0);
 
 /// Look up a packed file id and start a CD load.
 /// Returns the resolved absolute sector (low 16 bits), or 0 on failure.

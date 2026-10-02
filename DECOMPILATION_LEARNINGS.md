@@ -19732,7 +19732,7 @@ Fix: form the address with non-volatile asm so `$a3` holds hi and `$t0` holds
 the full pointer, then load fields via the same hi:
 
 ```c
-register FsWorkEntry* base asm("t0");
+register FsImageColumn* base asm("t0");
 register u32 ace_hi asm("a3");
 
 __asm__(

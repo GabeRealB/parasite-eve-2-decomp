@@ -229,7 +229,7 @@ After sector unpack, the clean bytes are:
 | Type | Clean payload contents |
 |------|------------------------|
 | Room package | One LZSS stream (entire body) |
-| Image | Work-entry table + sequential independent LZSS strips |
+| Image | Column table + sequential independent LZSS strips |
 | CLUT | 16-byte image-chunk header + one LZSS colour stream |
 | Others | Opaque bytes (music, text, `.bs`, …) as stored |
 
@@ -289,7 +289,7 @@ Examples:
 ### 6.1 On-disk structure
 
 ```text
-Work-entry table (8 bytes each), until x == 0xFFFF:
+Column table (`FsImageColumn`, 8 bytes each), until x == 0xFFFF:
   u16 x          VRAM X (column origin, in halfwords)
   u16 y          VRAM Y
   u32 offset     only the *first* entry’s offset is used as stream start;
@@ -315,7 +315,7 @@ Then: sequential LZSS strips (see below)
    - `LoadImage2` that strip to VRAM.
    - `y += 0x20`, `ACD4 -= 0x20`.
    - Re-init decompress state (`ADE1`) for the next strip.
-   - When a column is finished, advance to the next work entry for a new
+   - When a column is finished, advance to the next column record for a new
      VRAM `x` / `y`, **without** seeking; the compressed stream continues.
 
 So: **columns are sequential in the compressed stream**, not stored as
@@ -343,7 +343,7 @@ VRAM transfer is always halfword-oriented. Texture depth is separate:
 
 BPP is **not stored** on disc. Extract and the viewer default to `guess_bpp()`
 (halfword chroma + unique-count). Override on the unique blob in `ASSETS`
-(one depth, or one per work-entry column):
+(one depth, or one per column record):
 
 ```python
 ASSETS["pe2img_2"]["bpp"] = 8
@@ -400,8 +400,8 @@ Do **not** treat the bytes after the header as raw colours without LZSS.
 Image and CLUT chunks are **independent**. There is no on-disk “this texture
 uses that palette” link. The runtime:
 
-1. Loads the texture into a VRAM region (from the pe2img work-entry `x,y`
-   columns / strip path).
+1. Loads the texture into a VRAM region (from the pe2img column records' `x,y`
+   and the strip path).
 2. Loads the CLUT into another VRAM region (`FsImageChunk.x/y`, often
    `(0, 255)` for UI).
 3. When building a primitive (`SPRT`, `POLY_FT4`, …), sets:
@@ -1046,7 +1046,7 @@ Rules of thumb:
 - Type-store stems are asset ids: sha1 lookup in `ASSETS`, else `{type}_{n}`.
   Duplicates share the same store path in `stages.json`.
 - pe2img `bpp` lives on the unique blob (`ASSETS[id]["bpp"]`): an int, or a
-  list of 4/8/16 — one per work-entry column (VRAM page). Not the CDF slot.
+  list of 4/8/16 — one per column record (VRAM page). Not the CDF slot.
 
 ---
 

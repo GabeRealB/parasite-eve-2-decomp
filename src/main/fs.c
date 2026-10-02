@@ -93,7 +93,7 @@ static RECT Fs_ImageRect;
 /// Unreferenced.
 static u8 D_8006ACE0[8];
 
-static FsWorkEntry Fs_WorkEntries[0x1F];
+static FsImageColumn Fs_WorkEntries[0x1F];
 
 static u8 D5B498_8006ADE0;
 
@@ -589,7 +589,7 @@ static u8 Fs_ProcessChunkHeader(void)
             break;
 
         case FILE_SYSTEM_CHUNK_IMAGE:
-            Fs_CopyWorkEntries((FsWorkEntry*)Fs_CdSector.chunk.data.bytes);
+            Fs_CopyWorkEntries((FsImageColumn*)Fs_CdSector.chunk.data.bytes);
             status = Fs_LoadImageStrip(0);
             if (status == 0xFF || status == 0x7F) {
                 Fs_OnCdError(0);
@@ -1499,47 +1499,48 @@ u8 Fs_LoadImageChunk(FsImageChunk* chunk, u8 arg1)
     return 0;
 }
 
-void Fs_CopyWorkEntries(FsWorkEntry* arg0)
+void Fs_CopyWorkEntries(FsImageColumn* arg0)
 {
-    FsWorkEntry* src;
-    s32          i;
+    FsImageColumn* src;
+    s32            i;
 
     src = arg0;
     i   = 0;
     while (1) {
-        Fs_WorkEntries[i].field_0 = src->field_0;
-        Fs_WorkEntries[i].field_2 = src->field_2;
-        Fs_WorkEntries[i].field_4 = src->field_4;
-        if (Fs_WorkEntries[i].field_0 == 0xFFFF) {
+        Fs_WorkEntries[i].x          = src->x;
+        Fs_WorkEntries[i].y          = src->y;
+        Fs_WorkEntries[i].dataOffset = src->dataOffset;
+        if (Fs_WorkEntries[i].x == FILE_SYSTEM_IMAGE_COLUMN_END) {
             break;
         }
         src++;
         i++;
     }
 
-    if ((Fs_WorkEntries[0].field_2 >= 0x100U) || (Fs_ChunkMode == 2)) {
-        Fs_ImageRect.x = Fs_WorkEntries[0].field_0 + D5B498_8006C233 * 64;
+    if ((Fs_WorkEntries[0].y >= 0x100U) || (Fs_ChunkMode == 2)) {
+        Fs_ImageRect.x = Fs_WorkEntries[0].x + D5B498_8006C233 * 64;
     } else {
-        Fs_ImageRect.x = Fs_WorkEntries[0].field_0;
+        Fs_ImageRect.x = Fs_WorkEntries[0].x;
     }
 
     if (Fs_ChunkMode == 2) {
-        Fs_ImageRect.y = Fs_WorkEntries[0].field_2 + 0x80;
+        Fs_ImageRect.y = Fs_WorkEntries[0].y + 0x80;
     } else {
-        Fs_ImageRect.y = Fs_WorkEntries[0].field_2;
+        Fs_ImageRect.y = Fs_WorkEntries[0].y;
     }
 
     Fs_ImageRect.w  = 0x40;
     Fs_ImageRect.h  = 0x20;
-    D5B498_8006ACD4 = 0x100;
+    D5B498_8006ACD4 = FILE_SYSTEM_IMAGE_COLUMN_ROWS;
 
-    Fs_ChunkReadPtr = (u8*)arg0 + Fs_WorkEntries[0].field_4;
+    Fs_ChunkReadPtr = (u8*)arg0 + Fs_WorkEntries[0].dataOffset;
 
-    if (Fs_WorkEntries[1].field_0 == 0xFFFF) {
-        if (Fs_WorkEntries[1].field_2 == Fs_WorkEntries[1].field_0) {
-            D5B498_8006ACD4 = 0x40;
-        } else if (Fs_WorkEntries[1].field_2 & 0x8000) {
-            D5B498_8006ACD4 = Fs_WorkEntries[1].field_2 & 0x7FFF;
+    // A terminator in the second record may set the single column's height.
+    if (Fs_WorkEntries[1].x == FILE_SYSTEM_IMAGE_COLUMN_END) {
+        if (Fs_WorkEntries[1].y == Fs_WorkEntries[1].x) {
+            D5B498_8006ACD4 = FILE_SYSTEM_IMAGE_COLUMN_SHORT_ROWS;
+        } else if (Fs_WorkEntries[1].y & FILE_SYSTEM_IMAGE_COLUMN_ROWS_GIVEN) {
+            D5B498_8006ACD4 = Fs_WorkEntries[1].y & 0x7FFF;
         }
     }
 
@@ -1550,13 +1551,13 @@ void Fs_CopyWorkEntries(FsWorkEntry* arg0)
 
 u8 Fs_LoadImageStrip(s32 mode)
 {
-    u_long*      ot;
-    u_long*      none;
-    s32          retry;
-    u8           count;
-    u8*          scan;
-    FsWorkEntry* entry;
-    RECT*        rect;
+    u_long*        ot;
+    u_long*        none;
+    s32            retry;
+    u8             count;
+    u8*            scan;
+    FsImageColumn* entry;
+    RECT*          rect;
 
     if (ResetRCnt(RCntCNT2) == 0) {
         return 0xFF;
@@ -1621,7 +1622,7 @@ u8 Fs_LoadImageStrip(s32 mode)
         Fs_ImageRect.y  += 0x20;
         D5B498_8006ACD4 -= 0x20;
         if ((s16)D5B498_8006ACD4 <= 0) {
-            if (Fs_WorkEntries[D5B498_8006ADE0].field_0 == 0xFFFF) {
+            if (Fs_WorkEntries[D5B498_8006ADE0].x == FILE_SYSTEM_IMAGE_COLUMN_END) {
                 Fs_ContinueDrawing(ot);
                 if ((u8)mode == 0) {
                     Fs_ChunkReadPtr = Fs_CdSector.bytes;
@@ -1633,14 +1634,14 @@ u8 Fs_LoadImageStrip(s32 mode)
             }
             D5B498_8006D4E0[D5B498_8006ADF4]++;
             entry = &Fs_WorkEntries[D5B498_8006ADE0];
-            if (entry->field_2 >= 0x100U || Fs_ChunkMode == 2) {
-                Fs_ImageRect.x = entry->field_0 + D5B498_8006C233 * 64;
+            if (entry->y >= 0x100U || Fs_ChunkMode == 2) {
+                Fs_ImageRect.x = entry->x + D5B498_8006C233 * 64;
             } else {
-                Fs_ImageRect.x = entry->field_0;
+                Fs_ImageRect.x = entry->x;
             }
-            D5B498_8006ACD4 = 0x100;
+            D5B498_8006ACD4 = FILE_SYSTEM_IMAGE_COLUMN_ROWS;
             rect            = &Fs_ImageRect;
-            rect->y         = Fs_WorkEntries[D5B498_8006ADE0].field_2;
+            rect->y         = Fs_WorkEntries[D5B498_8006ADE0].y;
             rect->w         = 0x40;
             rect->h         = 0x20;
             D5B498_8006ADE0++;

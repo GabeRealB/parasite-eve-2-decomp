@@ -114,13 +114,35 @@ typedef union {
 } FsSector;
 STATIC_ASSERT_SIZEOF(FsSector, FS_SECTOR_BYTE_SIZE);
 
-/// 8-byte work entry used by the FS load path (`Fs_WorkEntries`).
-typedef struct _FsWorkEntry {
-    u16 field_0;
-    u16 field_2;
-    u32 field_4;
-} FsWorkEntry;
-STATIC_ASSERT_SIZEOF(FsWorkEntry, 0x8);
+/// One VRAM column of a strip-coded image.
+///
+/// A type-1 image chunk, and each strip list a scene stream carries, opens with
+/// a table of these records ending at one whose `x` is
+/// `FILE_SYSTEM_IMAGE_COLUMN_END`. Each record names the top-left corner of a
+/// column 64 halfwords wide, filled downward in 32-row LZSS strips. The strips
+/// of every column follow one another in a single compressed stream that
+/// starts `dataOffset` bytes after the table's first record; later records'
+/// offsets are not read.
+///
+/// Columns are `FILE_SYSTEM_IMAGE_COLUMN_ROWS` tall. When the terminator is
+/// the second record, its `y` selects the height of the single column instead:
+/// `FILE_SYSTEM_IMAGE_COLUMN_END` selects `FILE_SYSTEM_IMAGE_COLUMN_SHORT_ROWS`,
+/// and a value with `FILE_SYSTEM_IMAGE_COLUMN_ROWS_GIVEN` set gives the row
+/// count in its low 15 bits.
+typedef struct {
+    u16 x;          // Destination X in VRAM, in halfwords (FILE_SYSTEM_IMAGE_COLUMN_END ends the table)
+    u16 y;          // Destination row of the column's top; a terminator's height selector
+    u32 dataOffset; // Byte offset of the strip stream from the table's start; read from the first record only
+} FsImageColumn;
+STATIC_ASSERT_SIZEOF(FsImageColumn, 0x8);
+
+/// Markers and heights of an `FsImageColumn` table.
+enum {
+    FILE_SYSTEM_IMAGE_COLUMN_END        = 0xFFFF, // `x` of the record ending the table
+    FILE_SYSTEM_IMAGE_COLUMN_ROWS       = 0x100,  // Default column height in rows
+    FILE_SYSTEM_IMAGE_COLUMN_SHORT_ROWS = 0x40,   // Single-column height selected by a terminator `y` of 0xFFFF
+    FILE_SYSTEM_IMAGE_COLUMN_ROWS_GIVEN = 0x8000, // Terminator `y` flag: the low 15 bits are the row count
+};
 
 /// Compact image/load params stored during FS setup (`Fs_LoadParams`).
 typedef struct _FsLoadParams {
