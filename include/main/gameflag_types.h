@@ -105,11 +105,28 @@ typedef struct {
 } GameFlagAcropolisBank;
 STATIC_ASSERT_SIZEOF(GameFlagAcropolisBank, 0x6C);
 
+/// Bytes in one Dryfield day-bank copy, checksum prefix included.
+///
+/// `GameFlag_DryfieldBanks` stores the live copy followed by its memory-card
+/// backup. The pair occupies three 128-byte card sectors.
+enum { GAME_FLAG_DRYFIELD_BANK_BYTES = 0xB0 };
+
+/// Checksummed save bank for Dryfield by day (`GAME_STAGE_DRYFIELD`).
+///
+/// The live header is the `Gp_FlagBanks` entry for that stage. Dryfield by
+/// night (`GAME_STAGE_DRYFIELD_NIGHT`) keeps its own stage header in
+/// `GameFlagDryfieldFullBank`. Night area tables and night object-state words
+/// address this live bank. Where the day and night tables both have a record
+/// for one area id, both records address the same slot. The slot index is
+/// independent of the area id. Slot 29 is the MIST shooting gallery record
+/// from the Akropolis stage table. Slots 30..32 have no table entry; they are
+/// stored with the bank and covered by its checksum. The highest addressed
+/// slot is 35.
 typedef struct {
-    GameFlagStageHeader header;
-    GameFlagAreaSlot    areas[36];
+    GameFlagStageHeader header;    // Visited-area bits and object states for Dryfield by day. Night reads these object states
+    GameFlagAreaSlot    areas[36]; // Day and night placement records. Slot 29 is the MIST shooting gallery; slots 30..32 have no table entry
 } GameFlagDryfieldBank;
-STATIC_ASSERT_SIZEOF(GameFlagDryfieldBank, 0xB0);
+STATIC_ASSERT_SIZEOF(GameFlagDryfieldBank, GAME_FLAG_DRYFIELD_BANK_BYTES);
 
 typedef struct {
     GameFlagStageHeader header;

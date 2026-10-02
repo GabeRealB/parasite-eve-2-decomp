@@ -122,6 +122,9 @@ static s32 Mc_LastRandomValue;
 /// Number of 128-byte card sectors holding the complete game-flag bank pair.
 enum { GAME_FLAG_NIBBLE_BANK_CARD_SECTORS = 4 };
 
+/// 128-byte card sectors holding both `GameFlagDryfieldBank` copies.
+enum { GAME_FLAG_DRYFIELD_BANK_CARD_SECTORS = 3 };
+
 extern McBufferSlot Mc_BufferSlots[9];
 
 static const char Mc_StrMemoryCard[];
@@ -642,7 +645,7 @@ McBufferSlot Mc_BufferSlots[9] = {
     { (McChecksumBlock*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE], sizeof(McSaveData), MEMORY_CARD_SAVE_CARD_SECTORS },
     { (McChecksumBlock*)&gPlayerStatus, PLAYER_STATUS_SAVE_RECORD_BYTES, 1 },
     { (McChecksumBlock*)GameFlag_AcropolisBanks, 0x6C, 2 },
-    { (McChecksumBlock*)GameFlag_DryfieldBanks, 0xB0, 3 },
+    { (McChecksumBlock*)GameFlag_DryfieldBanks, GAME_FLAG_DRYFIELD_BANK_BYTES, GAME_FLAG_DRYFIELD_BANK_CARD_SECTORS },
     { (McChecksumBlock*)GameFlag_DryfieldFullBanks, 0x24, 1 },
     { (McChecksumBlock*)GameFlag_ShelterBanks, 0xE4, 4 },
     { (McChecksumBlock*)GameFlag_NeoArkBanks, 0xA4, 3 },
