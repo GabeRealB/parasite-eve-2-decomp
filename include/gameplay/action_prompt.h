@@ -29,19 +29,33 @@ typedef union {
 } ActionPromptScreen;
 STATIC_ASSERT_SIZEOF(ActionPromptScreen, 4);
 
-/// One of the two button slots at the tail of `ActionPrompt`. `state` is the
-/// press classification the cursor task writes each frame (0 none, 1 held,
-/// 2 pressed, 3 released, 4 double-press), `heldFrames` counts the frames since
-/// the slot was last armed and `lastPos` latches the cursor position of the
-/// previous press so a double-press only registers when the cursor has not
-/// moved. Slot 0 watches the confirm mask (0x40) and slot 1 the cancel mask
-/// (0xA0).
-typedef struct RoomActionPromptButton {
-    /* 0x0 */ u16 state;
-    /* 0x2 */ u16 heldFrames;
-    /* 0x4 */ s32 lastPos;
-} RoomActionPromptButton;
-STATIC_ASSERT_SIZEOF(RoomActionPromptButton, 0x8);
+/// Confirm or cancel slot of one action prompt.
+///
+/// `state` classifies the button this frame. `framesSinceArm` counts frames
+/// since the slot last latched a press. A second press while that count is
+/// still inside `doublePressWindow`, and while the cursor is still at
+/// `lastPos`, is a double-press; the count is then set to the window so the
+/// following press latches again. `lastPos` is that latched cursor position,
+/// compared as one word. Slot 0 watches confirm (0x40) and slot 1 watches
+/// cancel (0xA0).
+typedef struct {
+    u16                state;          // Press this frame (0 none, 1 held, 2 pressed, 3 released, 4 double-press)
+    u16                framesSinceArm; // Frames since this slot last latched a press
+    ActionPromptScreen lastPos;        // Cursor position latched with that press
+} ActionPromptButton;
+STATIC_ASSERT_SIZEOF(ActionPromptButton, 0x8);
+
+/// Press classification stored in `ActionPromptButton::state`.
+///
+/// None means the button is up. Held means it is down and was already down.
+/// Pressed is the frame it went down. Released is the frame it went up.
+/// Double-press is a second press within `ActionPrompt::doublePressWindow`
+/// frames of the latched one, at the same cursor position.
+#define ACTION_PROMPT_BUTTON_NONE         0
+#define ACTION_PROMPT_BUTTON_HELD         1
+#define ACTION_PROMPT_BUTTON_PRESSED      2
+#define ACTION_PROMPT_BUTTON_RELEASED     3
+#define ACTION_PROMPT_BUTTON_DOUBLE_PRESS 4
 
 /// Motion multiplier stored in `ActionPrompt::cursorSpeed`.
 ///
@@ -85,16 +99,16 @@ STATIC_ASSERT_SIZEOF(RoomActionPromptButton, 0x8);
 /// the cursor has not moved. `mode` selects the cursor sprite. `buttons` holds
 /// the confirm slot and the cancel slot.
 typedef struct {
-    s32                fixedX;               // Horizontal 1/512-pixel units from the screen center
-    s32                fixedY;               // Vertical 1/512-pixel units from the screen center, increasing downward
-    ActionPromptScreen screen;               // Pixel position derived from fixedX and fixedY
-    s16                cursorSpeed;          // Motion multiplier (0 stopped, 0x80 aiming, 0x100 after reset)
-    u16                doublePressWindow;    // Frames in which a second press at the same position is a double-press
-    u8                 mode;                 // Cursor sprite (0 hidden, 1 idle, 2 over a hotspot)
-    byte               pad[3];               // Aligns the button slots; nothing reads or writes these bytes
+    s32                fixedX;            // Horizontal 1/512-pixel units from the screen center
+    s32                fixedY;            // Vertical 1/512-pixel units from the screen center, increasing downward
+    ActionPromptScreen screen;            // Pixel position derived from fixedX and fixedY
+    s16                cursorSpeed;       // Motion multiplier (0 stopped, 0x80 aiming, 0x100 after reset)
+    u16                doublePressWindow; // Frames in which a second press at the same position is a double-press
+    u8                 mode;              // Cursor sprite (0 hidden, 1 idle, 2 over a hotspot)
+    byte               pad[3];            // Aligns the button slots; nothing reads or writes these bytes
     union {
-        RoomActionPromptButton slots[2];     // [0] confirm, [1] cancel
-        u16                    halfwords[8]; // Same bytes; the cursor task walks four halfwords per slot
+        ActionPromptButton slots[2];      // [0] confirm, [1] cancel
+        u16                halfwords[8];  // Same bytes; the cursor task walks four halfwords per slot
     } buttons;
 } ActionPrompt;
 STATIC_ASSERT_SIZEOF(ActionPrompt, 0x24);

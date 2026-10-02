@@ -324,7 +324,7 @@ void func_dryfield_night_motel_lobby_8017FE90(Task* task)
         prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
         if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
             prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
-            if (prompt->buttons.slots[0].state == 2) {
+            if (prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) {
                 while (hs->id != -1) {
                     if (hs->hit != 0) {
                         if (work->promptBusy == 0) {
@@ -359,7 +359,7 @@ void func_dryfield_night_motel_lobby_8017FE90(Task* task)
         } else {
             prompt->mode = ACTION_PROMPT_MODE_IDLE;
         }
-        if (prompt->buttons.slots[1].state == 2) {
+        if (prompt->buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED) {
             task->state = 5;
         }
     }

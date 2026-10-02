@@ -9,7 +9,8 @@
 /// move the prompt's 1/512-pixel position, which is clamped to the screen. The
 /// confirm (0x40) and cancel (0xA0) buttons are classified into the prompt's
 /// two button slots. A second press within `doublePressWindow` frames at an
-/// unmoved cursor reports state 4 instead of 2. `cursorSpeed` scales every step.
+/// unmoved cursor reports `ACTION_PROMPT_BUTTON_DOUBLE_PRESS` instead of
+/// `ACTION_PROMPT_BUTTON_PRESSED`. `cursorSpeed` scales every step.
 void actionPromptMoveCursors(Task* task)
 {
     ActionPrompt* prompt;
@@ -116,24 +117,28 @@ void actionPromptMoveCursors(Task* task)
         statep = &prompt->buttons.halfwords[0];
         heldp  = &prompt->buttons.halfwords[1];
         idx    = 0;
+        // Four halfwords per slot. Indexing the frame counter makes the latched
+        // position a displacement off that register.
         for (i = 0; i < 2; i++, statep += 4, idx += 4) {
             mask = (i == 0) ? 0x40 : 0xA0;
             if (Pad_CheckButtons(port, 1, mask) != 0) {
                 if (heldp[idx] < prompt->doublePressWindow &&
-                    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos == prompt->screen.packed) {
-                    *statep    = 4;
+                    PARENT_OF(heldp + idx, ActionPromptButton, framesSinceArm)->lastPos.packed ==
+                        prompt->screen.packed) {
+                    *statep    = ACTION_PROMPT_BUTTON_DOUBLE_PRESS;
                     heldp[idx] = prompt->doublePressWindow;
                 } else {
-                    heldp[idx]                                                          = 0;
-                    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos = prompt->screen.packed;
-                    *statep                                                             = 2;
+                    heldp[idx] = 0;
+                    PARENT_OF(heldp + idx, ActionPromptButton, framesSinceArm)->lastPos.packed =
+                        prompt->screen.packed;
+                    *statep = ACTION_PROMPT_BUTTON_PRESSED;
                 }
             } else if (Pad_CheckButtons(port, 3, mask) != 0) {
-                *statep = 3;
+                *statep = ACTION_PROMPT_BUTTON_RELEASED;
             } else if (Pad_CheckButtons(port, 0, mask) != 0) {
-                *statep = 1;
+                *statep = ACTION_PROMPT_BUTTON_HELD;
             } else {
-                *statep = 0;
+                *statep = ACTION_PROMPT_BUTTON_NONE;
             }
             heldp[idx] += gDisplayState.frameTicks;
         }

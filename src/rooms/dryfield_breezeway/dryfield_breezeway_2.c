@@ -816,7 +816,7 @@ static void func_dryfield_breezeway_8017E464(Task* arg0)
 /// raised. The entry's `id` and `promptKind` go to the event work block
 /// (`DbwEventWork.field_4C` / `promptKind`), which
 /// `func_dryfield_breezeway_8017FD9C` re-spawns the prompt from, and the task
-/// advances to state 3. A cancel press (`buttons[1].state` 2) ends the script
+/// advances to state 3. A cancel press (`buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED`) ends the script
 /// in state 5, and a busy cap abandons the scan with the prompt cleared.
 static void func_dryfield_breezeway_8017E65C(Task* task)
 {
@@ -857,7 +857,7 @@ static void func_dryfield_breezeway_8017E65C(Task* task)
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
-        if ((prompt->buttons.slots[0].state == 2) && (hs->id != -1)) {
+        if ((prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) && (hs->id != -1)) {
             do {
                 if (hs->hit != 0) {
                     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
@@ -873,7 +873,7 @@ static void func_dryfield_breezeway_8017E65C(Task* task)
     } else {
         prompt->mode = ACTION_PROMPT_MODE_IDLE;
     }
-    if (prompt->buttons.slots[1].state == 2) {
+    if (prompt->buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED) {
         task->state = 5;
     }
 }
@@ -889,7 +889,7 @@ static void func_dryfield_breezeway_8017E65C(Task* task)
 /// an entry shows the hotspot cursor and walks `D_dryfield_breezeway_80182DDC`
 /// for the entry that was hit, which is the prop the player is looking at --
 /// pressing confirm against it runs cap slot 3 and ends the script in state 5.
-/// A cancel press (`buttons[1].state` 2) ends it in state 5 as well.
+/// A cancel press (`buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED`) ends it in state 5 as well.
 static void func_dryfield_breezeway_8017E81C(Task* task)
 {
     ActionPrompt*   prompt = D_80114D28;
@@ -923,7 +923,7 @@ static void func_dryfield_breezeway_8017E81C(Task* task)
         }
     }
 
-    if (prompt->buttons.slots[1].state == 2) {
+    if (prompt->buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED) {
         task->state = 5;
     }
 }

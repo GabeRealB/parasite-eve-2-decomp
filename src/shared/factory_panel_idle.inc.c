@@ -6,9 +6,10 @@
 /// first and bailing out while it is still non-zero or while a cap is playing
 /// -- and otherwise hit-tests the room's hotspot table.
 ///
-/// A confirmed hit (`buttons[0].state == 2`) copies the hotspot's `id` and
-/// `promptKind` into the work block and advances to state 3; with nothing under
-/// the cursor the prompt keeps the idle cursor. `buttons[1].state == 2`
+/// A confirmed hit (`buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED`)
+/// copies the hotspot's `id` and `promptKind` into the work block and advances
+/// to state 3; with nothing under the cursor the prompt keeps the idle cursor.
+/// `buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED`
 /// leaves the scan by advancing to state 5.
 void factoryPanelIdle(Task* task)
 {
@@ -29,7 +30,7 @@ void factoryPanelIdle(Task* task)
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
-        if (prompt->buttons.slots[0].state == 2) {
+        if (prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) {
             for (; hs->id != -1; hs++) {
                 if (hs->hit != 0) {
                     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
@@ -44,7 +45,7 @@ void factoryPanelIdle(Task* task)
     } else {
         prompt->mode = ACTION_PROMPT_MODE_IDLE;
     }
-    if (prompt->buttons.slots[1].state == 2) {
+    if (prompt->buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED) {
         task->state = 5;
     }
 }

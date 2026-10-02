@@ -369,11 +369,11 @@ void func_neo_ark_shrine_8017D948(Task* task)
 }
 
 /// Idle state of the shrine's cap script: the hotspot the cursor sits on is
-/// confirm-tested (`buttons[0].state == 2`) and its `id` / `promptKind` are
+/// confirm-tested (`buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED`) and its `id` / `promptKind` are
 /// latched into the script state, with the 3-vs-6 split decided by hotspot id
 /// 0x10 and the script's own `field_F`. The scan walks the hotspot table the
 /// hit test `actionPromptHitTest` just marked, and
-/// `buttons[1].state == 2` leaves the scan by advancing the task to state 5.
+/// `buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED` leaves the scan by advancing the task to state 5.
 ///
 /// Both oddities below are allocator levers, not logic. The `do { } while (0)`
 /// around the last state store folds away, but flow counts the reference at
@@ -401,7 +401,7 @@ void func_neo_ark_shrine_8017D9A0(Task* task)
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
-        if (prompt->buttons.slots[0].state == 2) {
+        if (prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) {
             id = hs->id;
             if (hs->id != -1) {
                 do {
@@ -427,7 +427,7 @@ void func_neo_ark_shrine_8017D9A0(Task* task)
     } else {
         prompt->mode = ACTION_PROMPT_MODE_IDLE;
     }
-    if (prompt->buttons.slots[1].state == 2) {
+    if (prompt->buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED) {
         do {
             task->state = 5;
         } while (0);

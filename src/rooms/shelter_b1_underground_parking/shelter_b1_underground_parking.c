@@ -2337,7 +2337,7 @@ static void func_shelter_b1_underground_parking_80184468(Task* task)
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
-        if (prompt->buttons.slots[0].state == 2) {
+        if (prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) {
             for (; hs->id != -1; hs++) {
                 if (hs->hit != 0) {
                     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
@@ -2352,7 +2352,7 @@ static void func_shelter_b1_underground_parking_80184468(Task* task)
     } else {
         prompt->mode = ACTION_PROMPT_MODE_IDLE;
     }
-    if (prompt->buttons.slots[1].state == 2) {
+    if (prompt->buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED) {
         task->state = 5;
     }
 }

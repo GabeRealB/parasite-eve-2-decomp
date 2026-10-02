@@ -342,7 +342,7 @@ static void func_actor_143000_801325F0(Task* arg0)
     work->field_2 = 0;
     if (func_actor_143000_80133AE8(p, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
-        if (prompt->buttons.slots[0].state == 2) {
+        if (prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) {
             for (; p->field_8 != -1; p++) {
                 if (p->field_B != 0) {
                     if (work->field_7 != 0 && p->field_8 == 5) {
@@ -408,7 +408,7 @@ static void func_actor_143000_801325F0(Task* arg0)
     } else {
         prompt->mode = ACTION_PROMPT_MODE_IDLE;
     }
-    if (prompt->buttons.slots[1].state == 2) {
+    if (prompt->buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED) {
         arg0->state = 5;
     }
 }

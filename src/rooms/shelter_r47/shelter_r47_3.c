@@ -1723,8 +1723,8 @@ static void func_shelter_r47_8018431C(Task* task)
 /// Idle state of the second cap script. It counts `field_2C` down (with a
 /// sound on reaching zero), runs `func_shelter_r47_801851B8`, and while no cap
 /// is running and `field_2B` is clear, hit-tests the cursor against `hotspots`.
-/// A confirmed hit (`buttons[0].state == 2`) latches the hotspot's `id` and
-/// `promptKind` and advances to state 3; `buttons[1].state == 2` advances to
+/// A confirmed hit (`buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED`) latches the hotspot's `id` and
+/// `promptKind` and advances to state 3; `buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED` advances to
 /// state 5 when `field_2A` is 0 and otherwise starts cap slot 0x25. `field_2A`
 /// of 3 moves straight to state 9.
 static void func_shelter_r47_801844A0(Task* task)
@@ -1753,7 +1753,7 @@ static void func_shelter_r47_801844A0(Task* task)
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     if (func_shelter_r47_801852A0(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
-        if (prompt->buttons.slots[0].state == 2) {
+        if (prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) {
             for (; hs->id != -1; hs++) {
                 if (hs->hit != 0) {
                     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
@@ -1768,7 +1768,7 @@ static void func_shelter_r47_801844A0(Task* task)
     } else {
         prompt->mode = ACTION_PROMPT_MODE_IDLE;
     }
-    if (prompt->buttons.slots[1].state == 2) {
+    if (prompt->buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED) {
         if (st->field_2A == 0) {
             task->state = 5;
             return;

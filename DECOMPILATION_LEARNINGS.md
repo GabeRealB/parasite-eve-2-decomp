@@ -52029,13 +52029,13 @@ move  s4, zero            # i = 0
 addiu s2, s1, 0x16        # after it
 ...
 sh    v0, 0(s3)           # slot->state
-lhu   v0, 0(s2)           # slot->heldFrames
+lhu   v0, 0(s2)           # slot->framesSinceArm
 lw    v1, 2(s2)           # slot->lastPos   <- +2, not its own register
 ...
 addiu s4, s4, 1 ; addiu s3, s3, 8 ; addiu s2, s2, 8
 ```
 
-**Symptom.** The obvious `prompt->buttons[i].field` spelling gives *one* address
+**Symptom.** The obvious `prompt->buttons.slots[i].field` spelling gives *one* address
 register holding `prompt + 8*i` with `0x14`/`0x16`/`0x18` displacements, and
 GCC then eliminates `i` against it (`bne s0, s2` instead of `slti v0, s4, 2`),
 which costs a register and spills an outer-loop value. Three explicit walking
@@ -52052,13 +52052,13 @@ says which optimiser produced it:
 So the shape above is one source pointer and one *indexed* pointer:
 
 ```c
-statep = &prompt->buttons[0].state;        /* biv: the C increments it */
-heldp  = &prompt->buttons[0].heldFrames;   /* invariant; indexed below */
+statep = &prompt->buttons.halfwords[0]; /* biv: the C increments it */
+heldp  = &prompt->buttons.halfwords[1]; /* invariant; indexed below */
 idx    = 0;
 for (i = 0; i < 2; i++, statep += 4, idx += 4) {
     ...
     heldp[idx]                                        /* giv, add = prompt+0x16 */
-    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos  /* giv, add = prompt+0x18 */
+    PARENT_OF(heldp + idx, ActionPromptButton, framesSinceArm)->lastPos.packed  /* giv, add = prompt+0x18 */
     ...
     *statep = ...;
 }
@@ -52070,7 +52070,7 @@ comes from. A source pointer is a separate biv class and never merges with
 them, which is what keeps `0(s3)` in its own register.
 
 `idx` is the trick from "A separate index biv puts the giv init in the loop
-preheader" applied for a different reason: indexing off `prompt->buttons[i]`
+preheader" applied for a different reason: indexing off `prompt->buttons.slots[i]`
 creates a bare `i*8` giv, and `maybe_eliminate_biv` then rewrites both `i < 2`
 and `i == 0` against it and deletes `i`. Indexing a pointer with its own
 counter leaves `i` with no giv to be eliminated through, so it survives as the

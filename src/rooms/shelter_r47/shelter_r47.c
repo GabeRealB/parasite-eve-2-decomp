@@ -1182,7 +1182,7 @@ void func_shelter_r47_8018138C(Task* task)
 /// Hotspot state of the room's first cap script: redraws the scene, then
 /// hit-tests the action cursor against the room's hotspot table. A miss
 /// leaves the idle cursor; a hit with the prompt confirmed
-/// (`buttons[0].state` 2) hands the raised entry's `id` / `promptKind` to the
+/// (`buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED`) hands the raised entry's `id` / `promptKind` to the
 /// work block and advances to state 4. `field_51` value 4 jumps to state 0xC,
 /// and with `field_51` clear a dismissed prompt advances to state 6.
 void func_shelter_r47_80181568(Task* task)
@@ -1209,7 +1209,7 @@ void func_shelter_r47_80181568(Task* task)
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     if (func_shelter_r47_80182B9C(task, hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
-        if ((prompt->buttons.slots[0].state == 2) && (hs->id != -1)) {
+        if ((prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) && (hs->id != -1)) {
             do {
                 if (hs->hit != 0) {
                     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
@@ -1225,7 +1225,7 @@ void func_shelter_r47_80181568(Task* task)
     } else {
         prompt->mode = ACTION_PROMPT_MODE_IDLE;
     }
-    if (work->field_51 == 0 && prompt->buttons.slots[1].state == 2) {
+    if (work->field_51 == 0 && prompt->buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED) {
         task->state = 6;
     }
 }

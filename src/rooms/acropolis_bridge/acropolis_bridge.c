@@ -3033,7 +3033,7 @@ static void func_acropolis_bridge_8017E1D0(Task* task)
         prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
         if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
             prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
-            if (prompt->buttons.slots[0].state == 2) {
+            if (prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) {
                 while (hs->id != -1) {
                     if (hs->hit != 0) {
                         if (work->promptBusy == 0) {
@@ -3065,7 +3065,7 @@ static void func_acropolis_bridge_8017E1D0(Task* task)
             task->state   = 5;
             work->field_A = 0;
         }
-        if (prompt->buttons.slots[1].state == 2) {
+        if (prompt->buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED) {
             task->state                 = 8;
             D_acropolis_bridge_801917A8 = 0;
         }

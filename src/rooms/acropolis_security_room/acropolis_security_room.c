@@ -2142,7 +2142,7 @@ static void func_acropolis_security_room_8017D9DC(Task* task)
 /// Runs the hotspot-hit state of the security monitor: redraws the panel and
 /// cursor, then hit-tests the action cursor against the room's hotspot table.
 /// A miss leaves the prompt's idle cursor; a hit with the prompt
-/// confirmed (`buttons[0].state` 2) scans the table for the raised entry and hands its
+/// confirmed (`buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED`) scans the table for the raised entry and hands its
 /// `id` / `promptKind` to the work block, advancing to state 3. Otherwise the
 /// task advances to state 5 once the prompt has been dismissed.
 static void func_acropolis_security_room_8017DB30(Task* task)
@@ -2166,7 +2166,7 @@ static void func_acropolis_security_room_8017DB30(Task* task)
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
-        if ((prompt->buttons.slots[0].state == 2) && (hs->id != -1)) {
+        if ((prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) && (hs->id != -1)) {
             do {
                 if (hs->hit != 0) {
                     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
@@ -2182,7 +2182,7 @@ static void func_acropolis_security_room_8017DB30(Task* task)
     } else {
         prompt->mode = ACTION_PROMPT_MODE_IDLE;
     }
-    if (prompt->buttons.slots[1].state == 2) {
+    if (prompt->buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED) {
         task->state = 5;
     }
 }
@@ -2514,8 +2514,8 @@ done:
 
 /// Idle state of the security monitor: hit-tests the action cursor against the
 /// monitor's hotspot table and mirrors the result into the room's action
-/// prompt. A hit that the player confirms (`buttons[0].state == 2`) on a raised hotspot
-/// clears the prompt and runs cap command 0xE; `buttons[1].state == 2` leaves the
+/// prompt. A hit that the player confirms (`buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED`) on a raised hotspot
+/// clears the prompt and runs cap command 0xE; `buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED` leaves the
 /// monitor by advancing to state 5.
 static void func_acropolis_security_room_8017EB9C(Task* task)
 {
@@ -2532,7 +2532,7 @@ static void func_acropolis_security_room_8017EB9C(Task* task)
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     if (actionPromptHitTest(hotspot, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
-        if (prompt->buttons.slots[0].state == 2) {
+        if (prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) {
             for (; hotspot->id != -1; hotspot++) {
                 if (hotspot->hit != 0) {
                     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
@@ -2545,7 +2545,7 @@ static void func_acropolis_security_room_8017EB9C(Task* task)
     } else {
         prompt->mode = ACTION_PROMPT_MODE_IDLE;
     }
-    if (prompt->buttons.slots[1].state == 2) {
+    if (prompt->buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED) {
         task->state = 5;
     }
 }
@@ -2589,10 +2589,10 @@ void func_acropolis_security_room_8017ED68(Task* task)
 /// `func_acropolis_security_room_8017EB9C` runs for the monitor, but against
 /// the script's own table and with the hit recorded in the script's state
 /// block instead of dispatched as a cap command. A confirmed
-/// (`buttons[0].state == 2`) hit copies the hotspot's `id` and `promptKind` into the
+/// (`buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED`) hit copies the hotspot's `id` and `promptKind` into the
 /// state block and advances to state 3; with nothing under the cursor the
 /// pending sub-step is cleared and the prompt keeps its idle cursor.
-/// `buttons[1].state == 2` leaves the scan by advancing to state 5.
+/// `buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED` leaves the scan by advancing to state 5.
 static void func_acropolis_security_room_8017EE44(Task* task)
 {
     ActionPrompt*               prompt = D_80114D28;
@@ -2609,7 +2609,7 @@ static void func_acropolis_security_room_8017EE44(Task* task)
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     if (func_acropolis_security_room_8017FCB0(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
-        if (prompt->buttons.slots[0].state == 2) {
+        if (prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) {
             for (; hs->id != -1; hs++) {
                 if (hs->hit != 0) {
                     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
@@ -2625,7 +2625,7 @@ static void func_acropolis_security_room_8017EE44(Task* task)
         st->field_0  = 0;
         prompt->mode = ACTION_PROMPT_MODE_IDLE;
     }
-    if (prompt->buttons.slots[1].state == 2) {
+    if (prompt->buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED) {
         task->state = 5;
     }
 }

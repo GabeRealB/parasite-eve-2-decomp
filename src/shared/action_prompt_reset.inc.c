@@ -11,13 +11,13 @@ void actionPromptReset(Task* task)
     s32           i;
 
     for (i = 0; i < 2; i++, prompt++) {
-        prompt->fixedX                      = 0;
-        prompt->fixedY                      = 0;
-        prompt->cursorSpeed                 = ACTION_PROMPT_SPEED_RESET;
-        prompt->doublePressWindow           = ACTION_PROMPT_DOUBLE_PRESS_FRAMES;
-        prompt->buttons.slots[0].heldFrames = 0;
-        prompt->buttons.slots[1].heldFrames = 0;
-        prompt->mode                        = ACTION_PROMPT_MODE_IDLE;
+        prompt->fixedX                          = 0;
+        prompt->fixedY                          = 0;
+        prompt->cursorSpeed                     = ACTION_PROMPT_SPEED_RESET;
+        prompt->doublePressWindow               = ACTION_PROMPT_DOUBLE_PRESS_FRAMES;
+        prompt->buttons.slots[0].framesSinceArm = 0;
+        prompt->buttons.slots[1].framesSinceArm = 0;
+        prompt->mode                            = ACTION_PROMPT_MODE_IDLE;
     }
     task->state = task->state + 1;
 }
