@@ -36,17 +36,18 @@ typedef struct _GpGridPairScratch {
 } GpGridPairScratch;
 STATIC_ASSERT_SIZEOF(GpGridPairScratch, 0x40);
 
-/// 0x28-byte scratch from the scratch stack used by `func_800DE2C0`.
-/// `vec` is the XZ endpoint difference, normalised into `nrm`. `cell`
-/// holds a grid-cell centre; `d` holds the endpoint extension or the
-/// distance from the cell centre to the point or segment being marked.
-typedef struct _GpMarkScratch {
-    /* 0x00 */ VECTOR  vec;
-    /* 0x10 */ SVECTOR nrm;
-    /* 0x18 */ SVECTOR cell;
-    /* 0x20 */ SVECTOR d;
-} GpMarkScratch;
-STATIC_ASSERT_SIZEOF(GpMarkScratch, 0x28);
+/// Temporary XZ geometry for selecting collision-grid face candidates.
+///
+/// Positions and displacements use game units relative to the biased grid
+/// origin. Only X and Z of `cellCenter` and `displacement` are initialized or
+/// read. The block lives on the scratch stack for one grid scan.
+typedef struct {
+    VECTOR  segmentDelta;     // First endpoint minus second, with Y zero
+    SVECTOR segmentDirection; // Direction from second endpoint toward first; 4096 per unit
+    SVECTOR cellCenter;       // Biased-grid XZ cell centre, truncated to signed 16-bit coordinates
+    SVECTOR displacement;     // XZ endpoint extension or cell/query offset, truncated to signed 16 bits
+} _WorldCollisionGridCandidateScratch;
+STATIC_ASSERT_SIZEOF(_WorldCollisionGridCandidateScratch, 0x28);
 
 /// 0x40-byte scratch from the scratch stack used by `func_800DE7CC`.
 /// `from` / `to` are the two probe endpoints promoted to VECTOR; `delta`
@@ -363,46 +364,54 @@ static void func_800DE150(WorldCollisionBody* arg0)
 
 static void func_800DE2C0(VECTOR* arg0, s32 arg1)
 {
-    u8*                 head;
-    GpMarkScratch*      block;
-    WorldCollisionGrid* pointGrid;
-    WorldCollisionGrid* segmentGrid;
-    s32                 thresh2;
-    u32                 cellSize;
-    s32                 half;
-    s32                 range;
-    s32                 thresh;
-    s32                 i;
-    s32                 j;
-    s32                 dot;
-    s32                 proj;
-    s32                 vz0;
-    s32                 vz1;
-    s16*                ids;
-    s16                 id;
+    enum {
+        WORLD_COLLISION_GRID_DIAGONAL_SCALE_Q7       = 0xB5,
+        WORLD_COLLISION_GRID_DIAGONAL_FRACTION_BITS  = 7,
+        WORLD_COLLISION_GRID_DIRECTION_FRACTION_BITS = 12
+    };
+    u8*                                  scratchCursor;
+    _WorldCollisionGridCandidateScratch* scratch;
+    WorldCollisionGrid*                  pointGrid;
+    WorldCollisionGrid*                  segmentGrid;
+    s32                                  thresh2;
+    u32                                  cellSize;
+    s32                                  half;
+    s32                                  range;
+    s32                                  thresh;
+    s32                                  i;
+    s32                                  j;
+    s32                                  dot;
+    s32                                  proj;
+    s32                                  vz0;
+    s32                                  vz1;
+    s16*                                 ids;
+    s16                                  id;
 
-    head          = SCRATCH_STACK_CURSOR(u8);
-    cellSize      = Gp_GridParams->cellSize;
-    block         = (GpMarkScratch*)(SCRATCH_STACK_CURSOR(void) = head - 0x28);
-    block->vec.vx = arg0[0].vx - arg0[1].vx;
-    block->vec.vy = 0;
-    vz0           = arg0[0].vz;
-    vz1           = arg0[1].vz;
-    block->vec.vz = vz0 - vz1;
-    half          = cellSize >> 1;
-    range         = ((half * 0xB5) >> 7) + 1;
-    VectorNormalS(&block->vec, &block->nrm);
+    scratchCursor            = SCRATCH_STACK_CURSOR(u8);
+    cellSize                 = Gp_GridParams->cellSize;
+    scratch                  = (_WorldCollisionGridCandidateScratch*)(SCRATCH_STACK_CURSOR(void) = scratchCursor - sizeof(*scratch));
+    scratch->segmentDelta.vx = arg0[0].vx - arg0[1].vx;
+    scratch->segmentDelta.vy = 0;
+    vz0                      = arg0[0].vz;
+    vz1                      = arg0[1].vz;
+    scratch->segmentDelta.vz = vz0 - vz1;
+    half                     = cellSize >> 1;
+    // Expand the query footprint by the cell's approximate half diagonal.
+    range = ((half * WORLD_COLLISION_GRID_DIAGONAL_SCALE_Q7) >> WORLD_COLLISION_GRID_DIAGONAL_FRACTION_BITS) + 1;
+    VectorNormalS(&scratch->segmentDelta, &scratch->segmentDirection);
 
-    if ((block->nrm.vx == 0) && (block->nrm.vz == 0)) {
+    if ((scratch->segmentDirection.vx == 0) && (scratch->segmentDirection.vz == 0)) {
         for (i = 0; i < Gp_GridParams->cellCountX; i++) {
             thresh = range * range;
             for (j = 0; j < Gp_GridParams->cellCountZ; j++) {
-                pointGrid      = Gp_GridParams;
-                block->cell.vx = i * pointGrid->cellSize + (pointGrid->cellSize >> 1);
-                block->cell.vz = j * pointGrid->cellSize + (pointGrid->cellSize >> 1);
-                block->d.vx    = (u16)block->cell.vx - (u16)arg0[0].vx;
-                block->d.vz    = (u16)block->cell.vz - (u16)arg0[0].vz;
-                if ((block->d.vx * block->d.vx) + (block->d.vz * block->d.vz) < thresh) {
+                pointGrid                = Gp_GridParams;
+                scratch->cellCenter.vx   = i * pointGrid->cellSize + (pointGrid->cellSize >> 1);
+                scratch->cellCenter.vz   = j * pointGrid->cellSize + (pointGrid->cellSize >> 1);
+                scratch->displacement.vx = (u16)scratch->cellCenter.vx - (u16)arg0[0].vx;
+                scratch->displacement.vz = (u16)scratch->cellCenter.vz - (u16)arg0[0].vz;
+                if ((scratch->displacement.vx * scratch->displacement.vx) +
+                        (scratch->displacement.vz * scratch->displacement.vz) <
+                    thresh) {
                     ids = pointGrid->cellFaceIds[i * pointGrid->cellCountZ + j];
                     if (ids != NULL) {
                         // Cell lists select face candidates; their indices are signed.
@@ -416,25 +425,33 @@ static void func_800DE2C0(VECTOR* arg0, s32 arg1)
             }
         }
     } else {
-        block->d.vx = (block->nrm.vx * range) >> 12;
-        block->d.vz = (block->nrm.vz * range) >> 12;
-        arg0[0].vx += block->d.vx;
-        arg0[0].vz += block->d.vz;
-        arg0[1].vx -= block->d.vx;
-        arg0[1].vz -= block->d.vz;
+        // Extend both endpoints before reusing the displacement for cell-distance tests.
+        scratch->displacement.vx = (scratch->segmentDirection.vx * range) >> WORLD_COLLISION_GRID_DIRECTION_FRACTION_BITS;
+        scratch->displacement.vz = (scratch->segmentDirection.vz * range) >> WORLD_COLLISION_GRID_DIRECTION_FRACTION_BITS;
+        arg0[0].vx              += scratch->displacement.vx;
+        arg0[0].vz              += scratch->displacement.vz;
+        arg0[1].vx              -= scratch->displacement.vx;
+        arg0[1].vz              -= scratch->displacement.vz;
         for (i = 0; i < Gp_GridParams->cellCountX; i++) {
             thresh2 = range * range;
             for (j = 0; j < Gp_GridParams->cellCountZ; j++) {
-                segmentGrid    = Gp_GridParams;
-                block->cell.vx = i * segmentGrid->cellSize + (segmentGrid->cellSize >> 1);
-                block->cell.vz = j * segmentGrid->cellSize + (segmentGrid->cellSize >> 1);
-                dot            = ((block->cell.vx - arg0[0].vx) * block->nrm.vx) + ((block->cell.vz - arg0[0].vz) * block->nrm.vz);
+                segmentGrid            = Gp_GridParams;
+                scratch->cellCenter.vx = i * segmentGrid->cellSize + (segmentGrid->cellSize >> 1);
+                scratch->cellCenter.vz = j * segmentGrid->cellSize + (segmentGrid->cellSize >> 1);
+                dot                    = ((scratch->cellCenter.vx - arg0[0].vx) * scratch->segmentDirection.vx) +
+                      ((scratch->cellCenter.vz - arg0[0].vz) * scratch->segmentDirection.vz);
                 if (dot <= 0) {
-                    proj = (((block->cell.vx - arg0[1].vx) * block->nrm.vx) + ((block->cell.vz - arg0[1].vz) * block->nrm.vz)) >> 12;
+                    proj = (((scratch->cellCenter.vx - arg0[1].vx) * scratch->segmentDirection.vx) +
+                            ((scratch->cellCenter.vz - arg0[1].vz) * scratch->segmentDirection.vz)) >>
+                           WORLD_COLLISION_GRID_DIRECTION_FRACTION_BITS;
                     if (proj > 0) {
-                        block->d.vx = ((u16)arg0[1].vx + ((block->nrm.vx * proj) >> 12)) - (u16)block->cell.vx;
-                        block->d.vz = ((u16)arg0[1].vz + ((block->nrm.vz * proj) >> 12)) - (u16)block->cell.vz;
-                        if ((block->d.vx * block->d.vx) + (block->d.vz * block->d.vz) < thresh2) {
+                        scratch->displacement.vx = ((u16)arg0[1].vx + ((scratch->segmentDirection.vx * proj) >> WORLD_COLLISION_GRID_DIRECTION_FRACTION_BITS)) -
+                                                   (u16)scratch->cellCenter.vx;
+                        scratch->displacement.vz = ((u16)arg0[1].vz + ((scratch->segmentDirection.vz * proj) >> WORLD_COLLISION_GRID_DIRECTION_FRACTION_BITS)) -
+                                                   (u16)scratch->cellCenter.vz;
+                        if ((scratch->displacement.vx * scratch->displacement.vx) +
+                                (scratch->displacement.vz * scratch->displacement.vz) <
+                            thresh2) {
                             ids = segmentGrid->cellFaceIds[i * segmentGrid->cellCountZ + j];
                             if (ids != NULL) {
                                 while (*ids != WORLD_COLLISION_GRID_CELL_END) {
@@ -449,7 +466,7 @@ static void func_800DE2C0(VECTOR* arg0, s32 arg1)
         }
     }
 
-    SCRATCH_STACK_RELEASE_BYTES(0x28);
+    SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionGridCandidateScratch);
 }
 
 s32 func_800DE7CC(SVECTOR* arg0, SVECTOR* arg1, SVECTOR* arg2, SVECTOR* arg3)

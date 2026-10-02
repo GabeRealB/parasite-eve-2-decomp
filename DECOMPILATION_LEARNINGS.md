@@ -66358,9 +66358,9 @@ locals, together with reading the normal fields directly instead of keeping
 `nx` / `nz` locals, reached 99.118%. The remaining `branch=20, delete=1`
 penalties came from one missing entry instruction shifting every later label;
 the loop bodies already matched. The scratch allocation must be expressed as
-`block = (GpMarkScratch*)(*scratch = head - 0x28)` before filling the vector.
+`scratch = (_WorldCollisionGridCandidateScratch*)(SCRATCH_STACK_CURSOR(void) = scratchCursor - sizeof(*scratch))` before filling the vector.
 That restored `addiu v0,a1,-0x28; move s0,v0` and the earlier grid-parameter
-load, reaching 100% without pins or asm helpers. Delaying `*scratch = block`
+load, reaching 100% without pins or asm helpers. Delaying `SCRATCH_STACK_CURSOR(void) = scratch`
 until after the input loads had folded the pointer calculation directly into
 `s0` and changed entry scheduling.
 
