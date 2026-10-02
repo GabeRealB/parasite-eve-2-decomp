@@ -33,7 +33,15 @@ static u_long Text_OutlineClutPixels[];
 /// Unreferenced.
 static _TextClutRecord Text_OutlineClut;
 
-static s32 Text_ParseLine(u8** arg0, u8* arg1);
+/// How `_textParseLine` finished the line it copied.
+enum {
+    /// A line break was consumed. The cursor is at the next line, which may be empty.
+    TEXT_LINE_BREAK = 1,
+    /// NUL or a \\z command ended the text. No further line follows.
+    TEXT_LINE_END = -1,
+};
+
+static s32 _textParseLine(u8** cursor, u8* line);
 
 /// One line of Text_DrawMultiLine or Text_DrawMultiLineScroll: relative to obj's origin, or at an absolute
 /// position when obj is NULL; skipped when `obj->panel.state` is `USER_INTERFACE_PANEL_HIDDEN`.
@@ -67,79 +75,108 @@ GpFlagBank* Gp_FlagBanks[] = {
     &GameFlag_NeoArkBanks[0].header,
 };
 
-static s32 Text_ParseLine(u8** arg0, u8* arg1)
+/// Copies one encoded UI-text line and advances the source cursor past it.
+///
+/// `cursor` addresses the caller's position in a readable encoded string and is
+/// left on the first unconsumed byte. `line` receives a NUL-terminated copy and
+/// is not retained. There is no capacity argument. Every caller supplies 64
+/// bytes, so a line of 64 or more content bytes before its terminator overruns
+/// that buffer.
+///
+/// Raw LF, CR, CR+LF, and a case-insensitive \\n command each store one NUL,
+/// consume the break, and return `TEXT_LINE_BREAK`. For \\n and raw LF that
+/// value is also the one-byte skip. NUL and a case-insensitive \\z command
+/// store one NUL, consume the marker (both bytes of \\z), and return
+/// `TEXT_LINE_END`. That negative result is not the skip distance: the NUL and
+/// the \\z letter are each consumed by a separate one-byte advance. The cursor
+/// is left just after the marker; callers stop, so bytes after \\z are not copied.
+///
+/// A doubled backslash stores one backslash and continues, so the next source
+/// byte is read on a later iteration. Every other backslash command stores the
+/// backslash and its letter; a later iteration copies any operand. Those bytes
+/// stay encoded for drawing and measurement, which still read the line one byte
+/// at a time.
+///
+/// A byte in 0x81..0x9F or 0xE0..0xFC, the Shift-JIS lead windows, is stored
+/// with the immediately following byte. That byte is not tested as a terminator
+/// or escape, need not be a valid trail byte, and must be readable. Every other
+/// byte, including 0xA1..0xDF, is copied alone.
+static s32 _textParseLine(u8** cursor, u8* line)
 {
-    s32 ret;
-    u8* src;
-    u8* p;
-    u8  c;
-    u8  next;
+    s32 lineEnd;
+    u8* source;
+    u8* atByte;
+    u8  byte;
+    u8  following;
 
-    ret = 0;
+    lineEnd = 0;
     do {
-        src = *arg0;
-        c   = *src;
-        if (c == 0x5C) {
-            *arg0 = src + 1;
-            switch (src[1]) {
+        source = *cursor;
+        byte   = *source;
+        if (byte == '\\') {
+            *cursor = source + 1;
+            switch (source[1]) {
                 case 'Z':
                 case 'z':
-                    *arg1++ = 0;
-                    ret     = -1;
-                    (*arg0)++;
+                    *line++ = '\0';
+                    lineEnd = TEXT_LINE_END;
+                    (*cursor)++;
                     break;
                 case 'N':
                 case 'n':
-                    *arg1++ = 0;
-                    ret     = 1;
-                    *arg0  += ret;
+                    *line++  = '\0';
+                    lineEnd  = TEXT_LINE_BREAK;
+                    *cursor += lineEnd;
                     break;
-                case 0x5C:
-                    *arg1 = **arg0;
-                    arg1 += 1;
-                    (*arg0)++;
+                case '\\':
+                    *line = **cursor;
+                    line += 1;
+                    (*cursor)++;
                     break;
                 default:
-                    *arg1++ = 0x5C;
-                    *arg1   = **arg0;
-                    arg1   += 1;
-                    (*arg0)++;
+                    *line++ = '\\';
+                    *line   = **cursor;
+                    line   += 1;
+                    (*cursor)++;
                     break;
             }
-        } else if (c == 0) {
-            *arg1++ = 0;
-            ret     = -1;
-            (*arg0)++;
-        } else if (c == 0xA) {
-            *arg1++ = 0;
-            ret     = 1;
-            *arg0  += ret;
-        } else if (c == 0xD) {
-            *arg1 = 0;
-            p     = *arg0;
-            *arg0 = p + 1;
-            next  = p[1];
-            arg1 += 1;
-            if (next == 0xA) {
-                arg1 += 1;
-                *arg0 = p + 2;
+        } else if (byte == '\0') {
+            *line++ = '\0';
+            lineEnd = TEXT_LINE_END;
+            (*cursor)++;
+        } else if (byte == '\n') {
+            *line++  = '\0';
+            lineEnd  = TEXT_LINE_BREAK;
+            *cursor += lineEnd;
+        } else if (byte == '\r') {
+            // CR ends the line. A following LF is the same break.
+            // The output pointer moves before that test; the extra step stores nothing.
+            *line     = '\0';
+            atByte    = *cursor;
+            *cursor   = atByte + 1;
+            following = atByte[1];
+            line     += 1;
+            if (following == '\n') {
+                line   += 1;
+                *cursor = atByte + 2;
             }
-            ret = 1;
-        } else if (((u8)(c + 0x7F) < 0x1FU) || ((u8)(c + 0x20) < 0x1DU)) {
-            *arg1 = c;
-            p     = *arg0;
-            *arg0 = p + 1;
-            arg1 += 1;
-            *arg1 = p[1];
-            arg1 += 1;
-            (*arg0)++;
+            lineEnd = TEXT_LINE_BREAK;
+        } else if (((u8)(byte + 0x7F) < 0x1FU) || ((u8)(byte + 0x20) < 0x1DU)) {
+            // Shift-JIS lead (0x81..0x9F or 0xE0..0xFC): copy the next byte untested.
+            *line   = byte;
+            atByte  = *cursor;
+            *cursor = atByte + 1;
+            line   += 1;
+            *line   = atByte[1];
+            line   += 1;
+            (*cursor)++;
         } else {
-            *arg1 = c;
-            arg1 += 1;
-            (*arg0)++;
+            *line = byte;
+            line += 1;
+            (*cursor)++;
         }
-    } while (ret == 0);
-    return ret;
+    } while (lineEnd == 0);
+    return lineEnd;
 }
 
 /// One line of Text_DrawMultiLine or Text_DrawMultiLineScroll: relative to obj's origin, or at an absolute
@@ -186,11 +223,11 @@ s32 Text_DrawMultiLine(UiObject* object, s32 arg1, s32 arg2, u8* arg3, s32 arg4,
     y   = arg2;
     cur = arg3;
     do {
-        ret = Text_ParseLine(&cur, buf);
+        ret = _textParseLine(&cur, buf);
         _textDrawLine(object, x, y, buf, arg4, arg5, arg6);
         x  = arg1;
         y += 0xF;
-    } while (ret != -1);
+    } while (ret != TEXT_LINE_END);
 
     return 0;
 }
@@ -230,7 +267,7 @@ s32 Text_MeasureMultiLine(u8* arg0)
     buf        = sp10;
 
     do {
-        ret = Text_ParseLine(&cur, sp10);
+        ret = _textParseLine(&cur, sp10);
 
         c                      = TEXT_GLYPH_TABLE_LARGE;
         request.x              = 0;
@@ -251,7 +288,7 @@ s32 Text_MeasureMultiLine(u8* arg0)
         }
         height += 0xF;
         cur     = buf;
-    } while (ret != -1);
+    } while (ret != TEXT_LINE_END);
 
     return (height << 16) | maxWidth;
 }
@@ -317,7 +354,7 @@ static s32 Text_DrawMultiLineScroll(UiObject* object, s32 arg1, s32 arg2, u8* ar
         cur = Text_SkipLines(arg3, arg8);
     }
     do {
-        ret = Text_ParseLine(&cur, buf);
+        ret = _textParseLine(&cur, buf);
         _textDrawLine(object, x, y, buf, arg4, arg5, arg6);
         arg7 -= 1;
         if (arg7 <= 0) {
@@ -326,7 +363,7 @@ static s32 Text_DrawMultiLineScroll(UiObject* object, s32 arg1, s32 arg2, u8* ar
         }
         x  = arg1;
         y += 0xF;
-    } while (ret != -1);
+    } while (ret != TEXT_LINE_END);
 
     return result;
 }

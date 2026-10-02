@@ -18710,7 +18710,7 @@ Two separate `TextDrawReq sp50, sp60` locals usually emit only absolute
 addressing for the second slot. Writing everything through `p` alone emits
 only relative `off(s0)`. The split is required.
 
-Also for multi-line loops over text (`Text_ParseLine` + `func_8002E53C`):
+Also for multi-line loops over text (`_textParseLine` + `func_8002E53C`):
 
 - Pin long-lived args/temps into `$s0`–`$s7` so the remaining stack arg
   (`arg4`) stays on the stack and is reloaded with `lw t0, 0xB0(sp)` each
@@ -18989,7 +18989,7 @@ if (next == K) {
 }
 ```
 
-`Text_ParseLine` needs this for the `\r` / `\r\n` line-break arm.
+`_textParseLine` needs this for the `\r` / `\r\n` line-break arm.
 
 ## Separate mask temp vs. in-place `&=` for flag bit clears
 

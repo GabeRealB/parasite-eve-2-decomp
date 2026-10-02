@@ -121,7 +121,7 @@ segments:
       - [0x3cbc, .rodata, gameflow] # GameFlow_States5 / GameFlow_States3, then the controller state and mode jump tables
       - [0x3d20, .rodata, mem] # TODO
       - [0x3d44, .rodata, "textdraw"] # glyph measurement and text draw jump tables, then the number strings
-      - [0x40d8, .rodata, "textutil"] # jtbl from Text_ParseLine
+      - [0x40d8, .rodata, "textutil"] # jtbl from _textParseLine
 
       - [0x418C, .rodata, mc] # the prompt titles, Mc_PromptStates and the "*" wildcard, then the state-machine jump tables
 
