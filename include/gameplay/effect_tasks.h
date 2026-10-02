@@ -10,7 +10,22 @@
 
 // Effect task entry points and shared drawing data.
 
-extern EffectSpriteTextureFrame D_80111E48[];
+/// Texture layout shared by the twelve-frame effect sprite atlas.
+enum {
+    EFFECT_SPRITE_ATLAS_CELL_SIZE    = 40,                                // Width and height in texels.
+    EFFECT_SPRITE_ATLAS_UV_SPAN      = EFFECT_SPRITE_ATLAS_CELL_SIZE - 1, // Inclusive texel distance between edges.
+    EFFECT_SPRITE_ATLAS_TEXTURE_PAGE = 0x29,                              // 4-bit VRAM (576, 0); additive blending.
+};
+
+/// UV origins and palettes for the shared twelve-frame effect sprite atlas.
+///
+/// Frames 0..11 occupy six columns and two rows of 40-by-40 texel cells on
+/// `EFFECT_SPRITE_ATLAS_TEXTURE_PAGE`. Gameplay effects, flying Pyke flames and
+/// room panels use the stored palettes; other drawers may supply their own.
+/// The read-only metadata belongs to the gameplay image and may be borrowed
+/// by loaded overlays while that image is loaded. Indices must be in range;
+/// the table does not wrap them.
+extern const EffectSpriteTextureFrame gEffectSpriteAtlasFrames[12];
 
 /// Unit quad corners `(-1, 1)`, `(1, 1)`, `(-1, -1)`, `(1, -1)`.
 extern GpQuadCorner D_80111E38[4];

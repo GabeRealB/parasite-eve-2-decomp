@@ -2,7 +2,7 @@
 
 /// Draws one frame of the flying dart: a single semi-transparent, textured
 /// `POLY_FT4` billboarded on the world point `pos`. `frame` walks the twelve
-/// sprite frames of `D_80111E48`, `width` is the dart's flare width (divided
+/// sprite frames of `gEffectSpriteAtlasFrames`, `width` is the dart's flare width (divided
 /// down by the projected depth) and `ang` its spin, so the quad is a square
 /// rotated by `ang` rather than an axis-aligned sprite. `otz` is biased by one
 /// before it is used as the divisor so a point on the near plane cannot divide
@@ -14,7 +14,7 @@ void pykeFlameDrawBlob(VECTOR3* pos, u16 frame, u16 width, s16 ang)
     EffectShapeScratch*             projectionScratch;
     POLY_FT4*                       prim;
     const EffectSpriteTextureFrame* textureFrame;
-    u16                             idx;
+    u16                             textureFrameIndex;
     s32                             a;
     u16                             vz;
 
@@ -30,7 +30,7 @@ void pykeFlameDrawBlob(VECTOR3* pos, u16 frame, u16 width, s16 ang)
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&projectionScratch->worldPoint);
     gte_rtps();
-    idx = frame % 12;
+    textureFrameIndex = frame % ARRAY_SIZE(gEffectSpriteAtlasFrames);
     gte_stsxy(&(head - 1)->screenX);
     gte_stflg(&(head - 1)->projectionFlags);
     if (block->projectionFlags >= 0) {
@@ -40,27 +40,27 @@ void pykeFlameDrawBlob(VECTOR3* pos, u16 frame, u16 width, s16 ang)
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
-        prim->tpage            = 0x29;
-        textureFrame           = &D_80111E48[idx];
+        prim->tpage            = EFFECT_SPRITE_ATLAS_TEXTURE_PAGE;
+        textureFrame           = &gEffectSpriteAtlasFrames[textureFrameIndex];
         prim->clut             = getClut(textureFrame->clutX, textureFrame->clutY);
         prim->u0               = textureFrame->u;
         prim->v0               = textureFrame->v;
-        prim->u1               = textureFrame->u + 0x27;
+        prim->u1               = textureFrame->u + EFFECT_SPRITE_ATLAS_UV_SPAN;
         prim->v1               = textureFrame->v;
         prim->u2               = textureFrame->u;
-        prim->v2               = textureFrame->v + 0x27;
-        prim->u3               = textureFrame->u + 0x27;
-        prim->v3               = textureFrame->v + 0x27;
+        prim->v2               = textureFrame->v + EFFECT_SPRITE_ATLAS_UV_SPAN;
+        prim->u3               = textureFrame->u + EFFECT_SPRITE_ATLAS_UV_SPAN;
+        prim->v3               = textureFrame->v + EFFECT_SPRITE_ATLAS_UV_SPAN;
         a                      = ang;
-        block->extent.corner.x = (((width * 0x27) / block->depth) * rsin(a)) >> 12;
-        block->extent.corner.y = (((width * 0x27) / block->depth) * rcos(a)) >> 12;
+        block->extent.corner.x = (((width * EFFECT_SPRITE_ATLAS_UV_SPAN) / block->depth) * rsin(a)) >> 12;
+        block->extent.corner.y = (((width * EFFECT_SPRITE_ATLAS_UV_SPAN) / block->depth) * rcos(a)) >> 12;
         prim->x0               = block->screenX + (u16)block->extent.corner.x;
         prim->x3               = block->screenX - (u16)block->extent.corner.x;
         prim->y0               = block->screenY - (u16)block->extent.corner.y;
         a                      = a + 0x400;
         prim->y3               = block->screenY + (u16)block->extent.corner.y;
-        block->extent.corner.x = (((width * 0x27) / block->depth) * rsin(a)) >> 12;
-        block->extent.corner.y = (((width * 0x27) / block->depth) * rcos(a)) >> 12;
+        block->extent.corner.x = (((width * EFFECT_SPRITE_ATLAS_UV_SPAN) / block->depth) * rsin(a)) >> 12;
+        block->extent.corner.y = (((width * EFFECT_SPRITE_ATLAS_UV_SPAN) / block->depth) * rcos(a)) >> 12;
         prim->x1               = block->screenX + (u16)block->extent.corner.x;
         prim->x2               = block->screenX - (u16)block->extent.corner.x;
         prim->y1               = block->screenY - (u16)block->extent.corner.y;

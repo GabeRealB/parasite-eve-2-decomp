@@ -2133,7 +2133,7 @@ D_80111CF0 = 0x80111CF0; // size:0xC4 defined:True
 D_80111DB4 = 0x80111DB4; // size:0x84 defined:True
 
 D_80111E38 = 0x80111E38; // size:0x10 defined:True
-D_80111E48 = 0x80111E48; // size:0x60 defined:True
+gEffectSpriteAtlasFrames = 0x80111E48; // size:0x60 defined:True
 D_80111EB4 = 0x80111EB4; // size:0xC defined:True
 
 D_8010CAC8 = 0x8010CAC8; // size:0x8 defined:True

@@ -69,7 +69,7 @@ STATIC_ASSERT_SIZEOF(Actor510900TrailScratch, 0x24);
 
 /// One VRAM CLUT coordinate per frame of the muzzle-flash sprite, packed the
 /// way `getClut` takes them. `D_actor_510900_8013C48C` holds twelve, one for
-/// each frame `D_80111E48` supplies the texture window for.
+/// each frame `gEffectSpriteAtlasFrames` supplies the texture window for.
 typedef struct Actor510900SprClut {
     /* 0x0 */ u16 clutX;
     /* 0x2 */ u16 clutY;
@@ -2109,16 +2109,16 @@ void func_actor_510900_8013482C(Task* arg0)
     coord->coord.t[2]  += eff->move.vz;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     eff->scale         += eff->step;
-    if (eff->age > eff->period * 11 - 1) {
+    if (eff->age > eff->period * (ARRAY_SIZE(gEffectSpriteAtlasFrames) - 1) - 1) {
         effectKillTask(eff, arg0);
     }
 }
 
-#define SPRITE_QUAD_TPAGE    0x29
+#define SPRITE_QUAD_TPAGE    EFFECT_SPRITE_ATLAS_TEXTURE_PAGE
 #define SPRITE_QUAD_CLUT     ((D_actor_510900_8013C48C[frame].clutY << 6) | ((D_actor_510900_8013C48C[frame].clutX >> 4) & 0x3F))
-#define SPRITE_QUAD_UV_TABLE D_80111E48
-#define SPRITE_QUAD_CELL_W   0x28
-#define SPRITE_QUAD_SCALE    39
+#define SPRITE_QUAD_UV_TABLE gEffectSpriteAtlasFrames
+#define SPRITE_QUAD_CELL_W   EFFECT_SPRITE_ATLAS_CELL_SIZE
+#define SPRITE_QUAD_SCALE    EFFECT_SPRITE_ATLAS_UV_SPAN
 #include "../../shared/sprite_quad_draw.inc.c"
 
 /// Spawn/setup handler. It allocates the 0x5C8-byte work block and hangs it off

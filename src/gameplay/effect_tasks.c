@@ -148,19 +148,20 @@ GpQuadCorner D_80111E38[4] = {
     { 0xFFFF, 0xFFFF },
     { 1, 0xFFFF },
 };
-EffectSpriteTextureFrame D_80111E48[12] = {
+// Preserve the initialized-data placement of this shared read-only table.
+const EffectSpriteTextureFrame gEffectSpriteAtlasFrames[12] __attribute__((section(".data"))) = {
     { 0, 0, 0, 0, 112, 265 },
-    { 40, 0, 0, 0, 128, 265 },
-    { 80, 0, 0, 0, 144, 265 },
-    { 120, 0, 0, 0, 160, 265 },
-    { 160, 0, 0, 0, 176, 265 },
-    { 200, 0, 0, 0, 192, 265 },
-    { 0, 0, 40, 0, 208, 265 },
-    { 40, 0, 40, 0, 224, 265 },
-    { 80, 0, 40, 0, 240, 265 },
-    { 120, 0, 40, 0, 256, 265 },
-    { 160, 0, 40, 0, 272, 265 },
-    { 200, 0, 40, 0, 288, 265 },
+    { EFFECT_SPRITE_ATLAS_CELL_SIZE, 0, 0, 0, 128, 265 },
+    { 2 * EFFECT_SPRITE_ATLAS_CELL_SIZE, 0, 0, 0, 144, 265 },
+    { 3 * EFFECT_SPRITE_ATLAS_CELL_SIZE, 0, 0, 0, 160, 265 },
+    { 4 * EFFECT_SPRITE_ATLAS_CELL_SIZE, 0, 0, 0, 176, 265 },
+    { 5 * EFFECT_SPRITE_ATLAS_CELL_SIZE, 0, 0, 0, 192, 265 },
+    { 0, 0, EFFECT_SPRITE_ATLAS_CELL_SIZE, 0, 208, 265 },
+    { EFFECT_SPRITE_ATLAS_CELL_SIZE, 0, EFFECT_SPRITE_ATLAS_CELL_SIZE, 0, 224, 265 },
+    { 2 * EFFECT_SPRITE_ATLAS_CELL_SIZE, 0, EFFECT_SPRITE_ATLAS_CELL_SIZE, 0, 240, 265 },
+    { 3 * EFFECT_SPRITE_ATLAS_CELL_SIZE, 0, EFFECT_SPRITE_ATLAS_CELL_SIZE, 0, 256, 265 },
+    { 4 * EFFECT_SPRITE_ATLAS_CELL_SIZE, 0, EFFECT_SPRITE_ATLAS_CELL_SIZE, 0, 272, 265 },
+    { 5 * EFFECT_SPRITE_ATLAS_CELL_SIZE, 0, EFFECT_SPRITE_ATLAS_CELL_SIZE, 0, 288, 265 },
 };
 u16 Gp_QuadClutX[6] = {
     32,
@@ -1914,26 +1915,26 @@ void Gp_EffSprTask5C(Task* arg0)
             gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
             setcode(prim, 0x2C);
-            textureFrame           = &D_80111E48[mem->age / mem->period];
+            textureFrame           = &gEffectSpriteAtlasFrames[mem->age / mem->period];
             prim->code            |= 3;
-            prim->tpage            = 0x29;
+            prim->tpage            = EFFECT_SPRITE_ATLAS_TEXTURE_PAGE;
             prim->clut             = getClut(textureFrame->clutX, textureFrame->clutY);
             prim->u0               = textureFrame->u;
             prim->v0               = textureFrame->v;
-            prim->u1               = textureFrame->u + 0x27;
+            prim->u1               = textureFrame->u + EFFECT_SPRITE_ATLAS_UV_SPAN;
             prim->v1               = textureFrame->v;
             prim->u2               = textureFrame->u;
-            prim->v2               = textureFrame->v + 0x27;
-            prim->u3               = textureFrame->u + 0x27;
-            prim->v3               = textureFrame->v + 0x27;
-            block->extent.corner.x = (((mem->scale * 0x27) / block->depth) * rsin(mem->angle)) >> 12;
-            block->extent.corner.y = (((mem->scale * 0x27) / block->depth) * rcos(mem->angle)) >> 12;
+            prim->v2               = textureFrame->v + EFFECT_SPRITE_ATLAS_UV_SPAN;
+            prim->u3               = textureFrame->u + EFFECT_SPRITE_ATLAS_UV_SPAN;
+            prim->v3               = textureFrame->v + EFFECT_SPRITE_ATLAS_UV_SPAN;
+            block->extent.corner.x = (((mem->scale * EFFECT_SPRITE_ATLAS_UV_SPAN) / block->depth) * rsin(mem->angle)) >> 12;
+            block->extent.corner.y = (((mem->scale * EFFECT_SPRITE_ATLAS_UV_SPAN) / block->depth) * rcos(mem->angle)) >> 12;
             prim->x0               = block->screenX + (u16)block->extent.corner.x;
             prim->x3               = block->screenX - (u16)block->extent.corner.x;
             prim->y0               = block->screenY - (u16)block->extent.corner.y;
             prim->y3               = block->screenY + (u16)block->extent.corner.y;
-            block->extent.corner.x = (((mem->scale * 0x27) / block->depth) * rsin(mem->angle + 0x400)) >> 12;
-            block->extent.corner.y = (((mem->scale * 0x27) / block->depth) * rcos(mem->angle + 0x400)) >> 12;
+            block->extent.corner.x = (((mem->scale * EFFECT_SPRITE_ATLAS_UV_SPAN) / block->depth) * rsin(mem->angle + 0x400)) >> 12;
+            block->extent.corner.y = (((mem->scale * EFFECT_SPRITE_ATLAS_UV_SPAN) / block->depth) * rcos(mem->angle + 0x400)) >> 12;
             prim->x1               = block->screenX + (u16)block->extent.corner.x;
             prim->x2               = block->screenX - (u16)block->extent.corner.x;
             prim->y1               = block->screenY - (u16)block->extent.corner.y;
@@ -1952,7 +1953,7 @@ void Gp_EffSprTask5C(Task* arg0)
         coord->coord.t[2]   = t2;
         mem->scale         += mem->step;
         mem->age++;
-        if (mem->age <= mem->period * 12 - 1) {
+        if (mem->age <= mem->period * ARRAY_SIZE(gEffectSpriteAtlasFrames) - 1) {
             return;
         }
     }

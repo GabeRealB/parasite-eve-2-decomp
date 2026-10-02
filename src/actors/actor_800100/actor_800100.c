@@ -171,7 +171,7 @@ extern s16                     D_actor_800100_80167224[];
 extern u8                      D_actor_800100_80167230[];
 
 /// Draws one frame of the launched projectile's spinning sprite at `pos`:
-/// `frame` walks the twelve windows of `D_80111E48`, `width` is the flare's
+/// `frame` walks the twelve windows of `gEffectSpriteAtlasFrames`, `width` is the flare's
 /// half-width (divided down by the projected depth) and `ang` its spin, so the
 /// quad is a square rotated by `ang` rather than an axis-aligned sprite.
 static void func_actor_800100_80163214(Task* arg0);

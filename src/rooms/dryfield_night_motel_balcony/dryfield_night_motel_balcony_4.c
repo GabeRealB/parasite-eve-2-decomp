@@ -3021,14 +3021,15 @@ void func_dryfield_night_motel_balcony_8017E554(Task* task)
 /// Draws one axis-aligned `POLY_FT4` panel of a 0x28-pixel sprite at the packed
 /// screen position `arg0` (x in the low half, y in the high half). `arg1` is
 /// the ordering-table index, `arg2` the panel width and `arg3` the animation
-/// step, which walks frames 2..11 of `D_80111E48`. The quad is `2 * d` wide and
+/// step, which walks frames 2..11 of `gEffectSpriteAtlasFrames`. The quad is `2 * d` wide and
 /// `4 * d` tall, anchored three quarters of the way down, and both `d` and the
 /// rounded weight `3 * d` are the one reused local the ROM keeps for them.
 void func_dryfield_night_motel_balcony_8017F6C8(s32 arg0, s16 arg1, s16 arg2, s16 arg3)
 {
+    enum { FIRST_TEXTURE_FRAME = 2 };
     POLY_FT4*                       prim;
     const EffectSpriteTextureFrame* textureFrame;
-    s16                             idx;
+    s16                             textureFrameIndex;
     const EffectSpriteTextureFrame* textureFrames;
     s32                             d;
     s32                             y;
@@ -3037,20 +3038,21 @@ void func_dryfield_night_motel_balcony_8017F6C8(s32 arg0, s16 arg1, s16 arg2, s1
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2F);
-    prim->tpage = 0x29;
+    prim->tpage = EFFECT_SPRITE_ATLAS_TEXTURE_PAGE;
 
-    idx           = arg3 % 10 + 2;
-    textureFrames = D_80111E48;
-    textureFrame  = &textureFrames[idx];
-    prim->clut    = getClut(textureFrame->clutX, textureFrame->clutY);
-    prim->u0      = textureFrame->u;
-    prim->v0      = textureFrame->v;
-    prim->u1      = textureFrame->u + 0x27;
-    prim->v1      = textureFrame->v;
-    prim->u2      = textureFrame->u;
-    prim->v2      = textureFrame->v + 0x27;
-    prim->u3      = textureFrame->u + 0x27;
-    prim->v3      = textureFrame->v + 0x27;
+    // Repeat the atlas tail, skipping the two opening frames.
+    textureFrameIndex = arg3 % (ARRAY_SIZE(gEffectSpriteAtlasFrames) - FIRST_TEXTURE_FRAME) + FIRST_TEXTURE_FRAME;
+    textureFrames     = gEffectSpriteAtlasFrames;
+    textureFrame      = &textureFrames[textureFrameIndex];
+    prim->clut        = getClut(textureFrame->clutX, textureFrame->clutY);
+    prim->u0          = textureFrame->u;
+    prim->v0          = textureFrame->v;
+    prim->u1          = textureFrame->u + EFFECT_SPRITE_ATLAS_UV_SPAN;
+    prim->v1          = textureFrame->v;
+    prim->u2          = textureFrame->u;
+    prim->v2          = textureFrame->v + EFFECT_SPRITE_ATLAS_UV_SPAN;
+    prim->u3          = textureFrame->u + EFFECT_SPRITE_ATLAS_UV_SPAN;
+    prim->v3          = textureFrame->v + EFFECT_SPRITE_ATLAS_UV_SPAN;
 
     d        = (arg2 * 0x1F) >> 12;
     prim->x2 = arg0 - d;

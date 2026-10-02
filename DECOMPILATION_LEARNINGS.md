@@ -824,12 +824,12 @@ the later address legitimization emits. Giving the table address a local of its
 own
 
 ```c
-    s16       idx;
+    s16       textureFrameIndex;
     const EffectSpriteTextureFrame* textureFrames;
     ...
-    idx        = arg3 % 10 + 2;
-    textureFrames = D_80111E48;         /* the base is materialized here ... */
-    textureFrame  = &textureFrames[idx]; /* ... and the scale follows it */
+    textureFrameIndex = arg3 % 10 + 2;
+    textureFrames = gEffectSpriteAtlasFrames;         /* the base is materialized here ... */
+    textureFrame  = &textureFrames[textureFrameIndex]; /* ... and the scale follows it */
 ```
 
 reorders the RTL to `[lui][addiu][sll 16][sra 13][addu]`, which is the target's
@@ -837,7 +837,7 @@ order. `sched2` breaks ties between equal-priority insns by `INSN_LUID` (the
 RTL order), so nothing else is needed: 98.76% → 100%.
 
 The statement has to sit *after* the index is computed and immediately before
-the use. Ahead of `idx = ...` it scores 95.57%: the base is materialized at the
+the use. Ahead of `textureFrameIndex = ...` it scores 95.57%: the base is materialized at the
 top, gets a different home (`$t2`), and the division chain loses the
 anti-dependency on `$v0` that pins the address in the target — the magic-
 constant division holds `$v0` and the address's `lui` writes it, so it cannot
@@ -56851,7 +56851,7 @@ type. Two things fall out of that, and both show up in the object dump:
 - the *result* is `unsigned short`, so using it as an array subscript costs a
   second `andi 0xFFFF` that looks redundant next to the first one.
 
-So plain `D_80111E48[frame % 12]` with a `u16 frame` parameter reproduces the
+So plain `gEffectSpriteAtlasFrames[frame % 12]` with a `u16 frame` parameter reproduces the
 whole sequence. Do not reach for `(u32)frame % 12` to explain the `multu`, and
 do not chase the trailing `andi` with an extra local — the shortening produces
 both on its own. The same rule covers `/`, and it is why a `u16` numerator can
@@ -110245,7 +110245,7 @@ family-scoped, and so is the manifest. A `shared` span's `unit` resolves to
 `src/<family>/lib/<unit>.c` and links only into that family's overlays - no
 `unit` in `configs/USA/overlays.toml` appears under two `[family]` sections.
 The refusal here is not the `localref` one either: the copies reference only
-shared globals (`D_80111E48`, `GsWSMATRIX`, `gDisplayState`, `gGpuPrimCursor`,
+shared globals (`gEffectSpriteAtlasFrames`, `GsWSMATRIX`, `gDisplayState`, `gGpuPrimCursor`,
 `gGpuCurrentOt`, `rsin`, `rcos`), so they would share cleanly if there were
 anywhere to put them. There is not, and the two overlays keep their own
 copies.
