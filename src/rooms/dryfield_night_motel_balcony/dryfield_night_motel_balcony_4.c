@@ -3239,26 +3239,26 @@ void func_dryfield_night_motel_balcony_8017F84C(Task* task)
 /// unused.
 static void func_dryfield_night_motel_balcony_8017FF78(Task* task, u8* color, s32 arg)
 {
-    EffectWork*      work  = task->spawnArg2.pointer;
-    GfxCoord*        coord = task->extra.coordBody->coord;
-    GpFxQuadScratch* block;
-    POLY_FT4*        prim;
-    s16              size;
+    EffectWork*         work  = task->spawnArg2.pointer;
+    GfxCoord*           coord = task->extra.coordBody->coord;
+    EffectShapeScratch* block;
+    POLY_FT4*           prim;
+    s16                 size;
 
     size = D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].w - 1;
-    SCRATCH_STACK_RESERVE_BLOCK(GpFxQuadScratch);
-    block         = SCRATCH_STACK_CURSOR(GpFxQuadScratch);
-    block->vec.vx = coord->workm.t[0];
-    block->vec.vy = coord->workm.t[1];
-    block->vec.vz = coord->workm.t[2];
+    SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
+    block                = SCRATCH_STACK_CURSOR(EffectShapeScratch);
+    block->worldPoint.vx = coord->workm.t[0];
+    block->worldPoint.vy = coord->workm.t[1];
+    block->worldPoint.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec);
+    gte_ldv0(&block->worldPoint);
     gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
+    gte_stsxy(&block->screenX);
+    gte_stflg(&block->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&block->depth);
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -3271,31 +3271,31 @@ static void func_dryfield_night_motel_balcony_8017FF78(Task* task, u8* color, s3
         } else {
             setcode(prim, 0x2D);
         }
-        prim->tpage = ((D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].tpageX & 0x3FF) >> 6) | 0x20;
-        prim->clut  = getClut(task->spawnArg1.value * 16, 0x10F);
-        prim->u0    = (work->index & 7) * D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].w;
-        prim->v0    = D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].v;
-        prim->u1    = (work->index & 7) * D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].w + size;
-        prim->v1    = D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].v;
-        prim->u2    = (work->index & 7) * D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].w;
-        prim->v2    = D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].v + size;
-        prim->u3    = (work->index & 7) * D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].w + size;
-        prim->v3    = D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].v + size;
-        block->dx   = (((size * work->pos.vx) / block->otz) * rsin(work->pos.vz)) >> 12;
-        block->dy   = (((size * work->pos.vx) / block->otz) * rcos(work->pos.vz)) >> 12;
-        prim->x0    = block->sx + block->dx;
-        prim->x3    = block->sx - block->dx;
-        prim->y0    = block->sy - block->dy;
-        prim->y3    = block->sy + block->dy;
-        block->dx   = (((size * work->pos.vx) / block->otz) * rsin(work->pos.vz + 0x400)) >> 12;
-        block->dy   = (((size * work->pos.vx) / block->otz) * rcos(work->pos.vz + 0x400)) >> 12;
-        prim->x1    = block->sx + block->dx;
-        prim->x2    = block->sx - block->dx;
-        prim->y1    = block->sy - block->dy;
-        prim->y2    = block->sy + block->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
+        prim->tpage            = ((D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].tpageX & 0x3FF) >> 6) | 0x20;
+        prim->clut             = getClut(task->spawnArg1.value * 16, 0x10F);
+        prim->u0               = (work->index & 7) * D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].w;
+        prim->v0               = D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].v;
+        prim->u1               = (work->index & 7) * D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].w + size;
+        prim->v1               = D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].v;
+        prim->u2               = (work->index & 7) * D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].w;
+        prim->v2               = D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].v + size;
+        prim->u3               = (work->index & 7) * D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].w + size;
+        prim->v3               = D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].v + size;
+        block->extent.corner.x = (((size * work->pos.vx) / block->depth) * rsin(work->pos.vz)) >> 12;
+        block->extent.corner.y = (((size * work->pos.vx) / block->depth) * rcos(work->pos.vz)) >> 12;
+        prim->x0               = block->screenX + block->extent.corner.x;
+        prim->x3               = block->screenX - block->extent.corner.x;
+        prim->y0               = block->screenY - block->extent.corner.y;
+        prim->y3               = block->screenY + block->extent.corner.y;
+        block->extent.corner.x = (((size * work->pos.vx) / block->depth) * rsin(work->pos.vz + 0x400)) >> 12;
+        block->extent.corner.y = (((size * work->pos.vx) / block->depth) * rcos(work->pos.vz + 0x400)) >> 12;
+        prim->x1               = block->screenX + block->extent.corner.x;
+        prim->x2               = block->screenX - block->extent.corner.x;
+        prim->y1               = block->screenY - block->extent.corner.y;
+        prim->y2               = block->screenY + block->extent.corner.y;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
     }
-    SCRATCH_STACK_RELEASE_BLOCK(GpFxQuadScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }
 
 void func_dryfield_night_motel_balcony_80180580(Task* task)

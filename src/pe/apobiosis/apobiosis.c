@@ -409,29 +409,29 @@ void func_apobiosis_8012FE10(Task* arg0)
 /// frames.
 static void func_apobiosis_8013017C(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
-    u8*              head;
-    GpFxQuadScratch* block;
-    POLY_FT4*        prim;
-    s16              frame;
-    s32              u0;
-    s32              u1;
-    s32              ang2;
+    EffectShapeScratch* head;
+    EffectShapeScratch* block;
+    POLY_FT4*           prim;
+    s16                 frame;
+    s32                 u0;
+    s32                 u1;
+    s32                 ang2;
 
-    head                                      = SCRATCH_STACK_CURSOR(u8);
-    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = arg0->workm.t[0];
-    SCRATCH_STACK_CURSOR(void)                = head - 0x1C;
-    block                                     = SCRATCH_STACK_CURSOR(GpFxQuadScratch);
-    block->vec.vy                             = arg0->workm.t[1];
-    block->vec.vz                             = arg0->workm.t[2];
+    head                       = SCRATCH_STACK_CURSOR(EffectShapeScratch);
+    (head - 1)->worldPoint.vx  = arg0->workm.t[0];
+    SCRATCH_STACK_CURSOR(void) = head - 1;
+    block                      = SCRATCH_STACK_CURSOR(EffectShapeScratch);
+    block->worldPoint.vy       = arg0->workm.t[1];
+    block->worldPoint.vz       = arg0->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec);
+    gte_ldv0(&block->worldPoint);
     gte_rtps();
-    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-        block->otz++;
+    gte_stsxy(&(head - 1)->screenX);
+    gte_stflg(&(head - 1)->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&(head - 1)->depth);
+        block->depth++;
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setPolyFT4(prim);
@@ -452,23 +452,23 @@ static void func_apobiosis_8013017C(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3
         u0    = frame * 0x28;
         u1    = u0 + 0x27;
         setUV4(prim, u0, 0x38, u1, 0x38, u0, 0x5F, u1, 0x5F);
-        block->dx = (((arg2 * 0x27) / block->otz) * rsin(arg3)) >> 12;
-        block->dy = (((arg2 * 0x27) / block->otz) * rcos(arg3)) >> 12;
-        prim->x0  = block->sx + (u16)block->dx;
-        prim->x3  = block->sx - (u16)block->dx;
-        prim->y0  = block->sy - (u16)block->dy;
-        prim->y3  = block->sy + (u16)block->dy;
-        ang2      = arg3 + 0x400;
-        block->dx = (((arg2 * 0x27) / block->otz) * rsin(ang2)) >> 12;
-        block->dy = (((arg2 * 0x27) / block->otz) * rcos(ang2)) >> 12;
-        prim->x1  = block->sx + (u16)block->dx;
-        prim->x2  = block->sx - (u16)block->dx;
-        prim->y1  = block->sy - (u16)block->dy;
-        prim->y2  = block->sy + (u16)block->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        block->extent.corner.x = (((arg2 * 0x27) / block->depth) * rsin(arg3)) >> 12;
+        block->extent.corner.y = (((arg2 * 0x27) / block->depth) * rcos(arg3)) >> 12;
+        prim->x0               = block->screenX + (u16)block->extent.corner.x;
+        prim->x3               = block->screenX - (u16)block->extent.corner.x;
+        prim->y0               = block->screenY - (u16)block->extent.corner.y;
+        prim->y3               = block->screenY + (u16)block->extent.corner.y;
+        ang2                   = arg3 + 0x400;
+        block->extent.corner.x = (((arg2 * 0x27) / block->depth) * rsin(ang2)) >> 12;
+        block->extent.corner.y = (((arg2 * 0x27) / block->depth) * rcos(ang2)) >> 12;
+        prim->x1               = block->screenX + (u16)block->extent.corner.x;
+        prim->x2               = block->screenX - (u16)block->extent.corner.x;
+        prim->y1               = block->screenY - (u16)block->extent.corner.y;
+        prim->y2               = block->screenY + (u16)block->extent.corner.y;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }
 
 /// Draws one apobiosis burst shard as a semi-transparent raw-tex `POLY_FT4`

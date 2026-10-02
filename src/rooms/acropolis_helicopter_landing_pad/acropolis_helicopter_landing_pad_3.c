@@ -87,22 +87,6 @@ typedef struct AhlpSparkScratch {
 } AhlpSparkScratch;
 STATIC_ASSERT_SIZEOF(AhlpSparkScratch, 0x20);
 
-/// 0x1C scratch block `func_acropolis_helicopter_landing_pad_80181064` takes
-/// from the scratch stack for one lens-flare sprite. `pos` is the coord's
-/// world translation, `otz` is `SZ3 >> 2` of the `RTPS`, `flag` the GTE flag
-/// word (bit 31 rejects the sprite), `sx` / `sy` the projected centre and
-/// `dx` / `dy` the rotated half-extents of the quad's two diagonals.
-typedef struct AhlpFlareScratch {
-    /* 0x00 */ SVECTOR pos;
-    /* 0x08 */ s32     otz;
-    /* 0x0C */ s32     flag;
-    /* 0x10 */ s32     dx;
-    /* 0x14 */ s32     dy;
-    /* 0x18 */ u16     sx;
-    /* 0x1A */ u16     sy;
-} AhlpFlareScratch;
-STATIC_ASSERT_SIZEOF(AhlpFlareScratch, 0x1C);
-
 extern SVECTOR D_acropolis_helicopter_landing_pad_80184E80[12];
 extern s32     D_acropolis_helicopter_landing_pad_80184EE0[12];
 
@@ -974,14 +958,14 @@ static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 ind
 /// once and 2..3 idles.
 void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
 {
-    EffectWork*       mem;
-    GfxCoord*         coord;
-    void**            scratch;
-    u8*               head;
-    AhlpFlareScratch* blk;
-    POLY_FT4*         prim;
-    u32               tmp;
-    s16               n;
+    EffectWork*         mem;
+    GfxCoord*           coord;
+    void**              scratch;
+    EffectShapeScratch* head;
+    EffectShapeScratch* blk;
+    POLY_FT4*           prim;
+    u32                 tmp;
+    s16                 n;
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
@@ -1024,21 +1008,21 @@ void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
             }
             arg0->state++;
         }
-        scratch     = SCRATCH_STACK_CURSOR_SLOT;
-        head        = *scratch;
-        *scratch    = head - 0x1C;
-        blk         = (AhlpFlareScratch*)(head - 0x1C);
-        blk->pos.vx = coord->workm.t[0];
-        blk->pos.vy = coord->workm.t[1];
-        blk->pos.vz = coord->workm.t[2];
+        scratch            = SCRATCH_STACK_CURSOR_SLOT;
+        head               = *scratch;
+        *scratch           = head - 1;
+        blk                = head - 1;
+        blk->worldPoint.vx = coord->workm.t[0];
+        blk->worldPoint.vy = coord->workm.t[1];
+        blk->worldPoint.vz = coord->workm.t[2];
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&blk->pos);
+        gte_ldv0(&blk->worldPoint);
         gte_rtps();
-        gte_stsxy(&((AhlpFlareScratch*)(head - 0x1C))->sx);
-        gte_stflg(&((AhlpFlareScratch*)(head - 0x1C))->flag);
-        if (blk->flag >= 0) {
-            gte_stszotz(&((AhlpFlareScratch*)(head - 0x1C))->otz);
+        gte_stsxy(&(head - 1)->screenX);
+        gte_stflg(&(head - 1)->projectionFlags);
+        if (blk->projectionFlags >= 0) {
+            gte_stszotz(&(head - 1)->depth);
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyFT4(prim);
@@ -1060,32 +1044,32 @@ void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
             } else {
                 prim->code = 0x2D;
             }
-            prim->tpage = 0x2B;
-            prim->clut  = 0x4383;
-            prim->code |= 2;
-            prim->u0    = (mem->age / mem->step + 1) * 0x20;
-            prim->v0    = 0x28;
-            prim->u1    = (mem->age / mem->step + 1) * 0x20 + 0x1F;
-            prim->v1    = 0x28;
-            prim->u2    = (mem->age / mem->step + 1) * 0x20;
-            prim->v2    = 0x47;
-            prim->u3    = (mem->age / mem->step + 1) * 0x20 + 0x1F;
-            prim->v3    = 0x47;
-            blk->dx     = ((mem->scale * 0x1F / blk->otz) * rsin(mem->angle)) >> 12;
-            blk->dy     = ((mem->scale * 0x1F / blk->otz) * rcos(mem->angle)) >> 12;
-            prim->x0    = blk->sx + (u16)blk->dx;
-            prim->x3    = blk->sx - (u16)blk->dx;
-            prim->y0    = blk->sy - (u16)blk->dy;
-            prim->y3    = blk->sy + (u16)blk->dy;
-            blk->dx     = ((mem->scale * 0x1F / blk->otz) * rsin(mem->angle + 0x400)) >> 12;
-            blk->dy     = ((mem->scale * 0x1F / blk->otz) * rcos(mem->angle + 0x400)) >> 12;
-            prim->x1    = blk->sx + (u16)blk->dx;
-            prim->x2    = blk->sx - (u16)blk->dx;
-            prim->y1    = blk->sy - (u16)blk->dy;
-            prim->y2    = blk->sy + (u16)blk->dy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
+            prim->tpage          = 0x2B;
+            prim->clut           = 0x4383;
+            prim->code          |= 2;
+            prim->u0             = (mem->age / mem->step + 1) * 0x20;
+            prim->v0             = 0x28;
+            prim->u1             = (mem->age / mem->step + 1) * 0x20 + 0x1F;
+            prim->v1             = 0x28;
+            prim->u2             = (mem->age / mem->step + 1) * 0x20;
+            prim->v2             = 0x47;
+            prim->u3             = (mem->age / mem->step + 1) * 0x20 + 0x1F;
+            prim->v3             = 0x47;
+            blk->extent.corner.x = ((mem->scale * 0x1F / blk->depth) * rsin(mem->angle)) >> 12;
+            blk->extent.corner.y = ((mem->scale * 0x1F / blk->depth) * rcos(mem->angle)) >> 12;
+            prim->x0             = blk->screenX + (u16)blk->extent.corner.x;
+            prim->x3             = blk->screenX - (u16)blk->extent.corner.x;
+            prim->y0             = blk->screenY - (u16)blk->extent.corner.y;
+            prim->y3             = blk->screenY + (u16)blk->extent.corner.y;
+            blk->extent.corner.x = ((mem->scale * 0x1F / blk->depth) * rsin(mem->angle + 0x400)) >> 12;
+            blk->extent.corner.y = ((mem->scale * 0x1F / blk->depth) * rcos(mem->angle + 0x400)) >> 12;
+            prim->x1             = blk->screenX + (u16)blk->extent.corner.x;
+            prim->x2             = blk->screenX - (u16)blk->extent.corner.x;
+            prim->y1             = blk->screenY - (u16)blk->extent.corner.y;
+            prim->y2             = blk->screenY + (u16)blk->extent.corner.y;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
         }
-        SCRATCH_STACK_RELEASE_BYTES(0x1C);
+        SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
         if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
             coord->coord.t[0]  += mem->move.vx;
             coord->coord.t[1]  += mem->move.vy;
@@ -1432,16 +1416,16 @@ void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
 /// `field_4 >= 4` releases it at once and 2..3 idles.
 void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
 {
-    EffectWork*       mem;
-    GfxCoord*         coord;
-    void**            scratch;
-    u8*               head;
-    AhlpFlareScratch* blk;
-    POLY_FT4*         prim;
-    s32               span;
-    s32               n;
-    s32               lvl;
-    u8                tmp;
+    EffectWork*         mem;
+    GfxCoord*           coord;
+    void**              scratch;
+    EffectShapeScratch* head;
+    EffectShapeScratch* blk;
+    POLY_FT4*           prim;
+    s32                 span;
+    s32                 n;
+    s32                 lvl;
+    u8                  tmp;
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
@@ -1468,21 +1452,21 @@ void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
             mem->move.vz    = ((gRandomLcgState >> 16) & 0xF) - 8;
             arg0->state++;
         }
-        scratch     = SCRATCH_STACK_CURSOR_SLOT;
-        head        = *scratch;
-        *scratch    = head - 0x1C;
-        blk         = (AhlpFlareScratch*)(head - 0x1C);
-        blk->pos.vx = coord->workm.t[0];
-        blk->pos.vy = coord->workm.t[1];
-        blk->pos.vz = coord->workm.t[2];
+        scratch            = SCRATCH_STACK_CURSOR_SLOT;
+        head               = *scratch;
+        *scratch           = head - 1;
+        blk                = head - 1;
+        blk->worldPoint.vx = coord->workm.t[0];
+        blk->worldPoint.vy = coord->workm.t[1];
+        blk->worldPoint.vz = coord->workm.t[2];
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&blk->pos);
+        gte_ldv0(&blk->worldPoint);
         gte_rtps();
-        gte_stsxy(&((AhlpFlareScratch*)(head - 0x1C))->sx);
-        gte_stflg(&((AhlpFlareScratch*)(head - 0x1C))->flag);
-        if (blk->flag >= 0) {
-            gte_stszotz(&((AhlpFlareScratch*)(head - 0x1C))->otz);
+        gte_stsxy(&(head - 1)->screenX);
+        gte_stflg(&(head - 1)->projectionFlags);
+        if (blk->projectionFlags >= 0) {
+            gte_stszotz(&(head - 1)->depth);
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyFT4(prim);
@@ -1513,32 +1497,32 @@ void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
                     Gp_SpawnEff(0x6005A, coord, 2 - arg0->spawnArg1.value, NULL);
                 }
             }
-            prim->tpage = 0x2B;
-            prim->code |= 2;
-            prim->clut  = 0x4384;
-            prim->u0    = (mem->age / mem->step) * 0x28;
-            prim->v0    = 0x48;
-            prim->u1    = (mem->age / mem->step) * 0x28 + 0x27;
-            prim->v1    = 0x48;
-            prim->u2    = (mem->age / mem->step) * 0x28;
-            prim->v2    = 0x6F;
-            prim->u3    = (mem->age / mem->step) * 0x28 + 0x27;
-            prim->v3    = 0x6F;
-            blk->dx     = ((mem->scale * 0x27 / blk->otz) * rsin(mem->angle)) >> 12;
-            blk->dy     = ((mem->scale * 0x27 / blk->otz) * rcos(mem->angle)) >> 12;
-            prim->x0    = blk->sx + (u16)blk->dx;
-            prim->x3    = blk->sx - (u16)blk->dx;
-            prim->y0    = blk->sy - (u16)blk->dy;
-            prim->y3    = blk->sy + (u16)blk->dy;
-            blk->dx     = ((mem->scale * 0x27 / blk->otz) * rsin(mem->angle + 0x400)) >> 12;
-            blk->dy     = ((mem->scale * 0x27 / blk->otz) * rcos(mem->angle + 0x400)) >> 12;
-            prim->x1    = blk->sx + (u16)blk->dx;
-            prim->x2    = blk->sx - (u16)blk->dx;
-            prim->y1    = blk->sy - (u16)blk->dy;
-            prim->y2    = blk->sy + (u16)blk->dy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
+            prim->tpage          = 0x2B;
+            prim->code          |= 2;
+            prim->clut           = 0x4384;
+            prim->u0             = (mem->age / mem->step) * 0x28;
+            prim->v0             = 0x48;
+            prim->u1             = (mem->age / mem->step) * 0x28 + 0x27;
+            prim->v1             = 0x48;
+            prim->u2             = (mem->age / mem->step) * 0x28;
+            prim->v2             = 0x6F;
+            prim->u3             = (mem->age / mem->step) * 0x28 + 0x27;
+            prim->v3             = 0x6F;
+            blk->extent.corner.x = ((mem->scale * 0x27 / blk->depth) * rsin(mem->angle)) >> 12;
+            blk->extent.corner.y = ((mem->scale * 0x27 / blk->depth) * rcos(mem->angle)) >> 12;
+            prim->x0             = blk->screenX + (u16)blk->extent.corner.x;
+            prim->x3             = blk->screenX - (u16)blk->extent.corner.x;
+            prim->y0             = blk->screenY - (u16)blk->extent.corner.y;
+            prim->y3             = blk->screenY + (u16)blk->extent.corner.y;
+            blk->extent.corner.x = ((mem->scale * 0x27 / blk->depth) * rsin(mem->angle + 0x400)) >> 12;
+            blk->extent.corner.y = ((mem->scale * 0x27 / blk->depth) * rcos(mem->angle + 0x400)) >> 12;
+            prim->x1             = blk->screenX + (u16)blk->extent.corner.x;
+            prim->x2             = blk->screenX - (u16)blk->extent.corner.x;
+            prim->y1             = blk->screenY - (u16)blk->extent.corner.y;
+            prim->y2             = blk->screenY + (u16)blk->extent.corner.y;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
         }
-        SCRATCH_STACK_RELEASE_BYTES(0x1C);
+        SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
         if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
             coord->coord.t[0]  += mem->move.vx;
             coord->coord.t[1]  += mem->move.vy;

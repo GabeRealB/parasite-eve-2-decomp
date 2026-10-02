@@ -13,18 +13,18 @@
 
 static void spriteQuadDrawFlicker(GfxCoord* coord, s16 frame, s16 size, s16 angle)
 {
-    GpFxQuadScratch* block;
-    POLY_FT4*        prim;
-    s32              ang;
+    EffectShapeScratch* block;
+    POLY_FT4*           prim;
+    s32                 ang;
 
-    block         = SCRATCH_STACK_RESERVE_BLOCK(GpFxQuadScratch);
-    block->vec.vx = coord->workm.t[0];
-    block->vec.vy = coord->workm.t[1];
-    block->vec.vz = coord->workm.t[2];
+    block                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
+    block->worldPoint.vx = coord->workm.t[0];
+    block->worldPoint.vy = coord->workm.t[1];
+    block->worldPoint.vz = coord->workm.t[2];
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec);
+    gte_ldv0(&block->worldPoint);
     gte_rtps();
 #if SPRITE_QUAD_PRIM_FIRST
     /* taken while the GTE projects, before its flag is read: a dropped sprite still uses its slot */
@@ -32,11 +32,11 @@ static void spriteQuadDrawFlicker(GfxCoord* coord, s16 frame, s16 size, s16 angl
     gGpuPrimCursor = prim + 1;
     setPolyFT4(prim);
 #endif
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        block->otz++;
+    gte_stsxy(&block->screenX);
+    gte_stflg(&block->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&block->depth);
+        block->depth++;
 #if !SPRITE_QUAD_PRIM_FIRST
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
@@ -47,24 +47,24 @@ static void spriteQuadDrawFlicker(GfxCoord* coord, s16 frame, s16 size, s16 angl
         } else {
             SPRITE_QUAD_EVEN_LOOK(prim);
         }
-        ang       = angle;
-        block->dx = (((size * SPRITE_QUAD_SCALE) / block->otz) * rsin(ang)) >> 12;
-        block->dy = (((size * SPRITE_QUAD_SCALE) / block->otz) * rcos(ang)) >> 12;
-        prim->x0  = block->sx + (u16)block->dx;
-        prim->x3  = block->sx - (u16)block->dx;
-        prim->y0  = block->sy - (u16)block->dy;
-        prim->y3  = block->sy + (u16)block->dy;
-        ang       = ang + 0x400;
-        block->dx = (((size * SPRITE_QUAD_SCALE) / block->otz) * rsin(ang)) >> 12;
-        block->dy = (((size * SPRITE_QUAD_SCALE) / block->otz) * rcos(ang)) >> 12;
-        prim->x1  = block->sx + (u16)block->dx;
-        prim->x2  = block->sx - (u16)block->dx;
-        prim->y1  = block->sy - (u16)block->dy;
-        prim->y2  = block->sy + (u16)block->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        ang                    = angle;
+        block->extent.corner.x = (((size * SPRITE_QUAD_SCALE) / block->depth) * rsin(ang)) >> 12;
+        block->extent.corner.y = (((size * SPRITE_QUAD_SCALE) / block->depth) * rcos(ang)) >> 12;
+        prim->x0               = block->screenX + (u16)block->extent.corner.x;
+        prim->x3               = block->screenX - (u16)block->extent.corner.x;
+        prim->y0               = block->screenY - (u16)block->extent.corner.y;
+        prim->y3               = block->screenY + (u16)block->extent.corner.y;
+        ang                    = ang + 0x400;
+        block->extent.corner.x = (((size * SPRITE_QUAD_SCALE) / block->depth) * rsin(ang)) >> 12;
+        block->extent.corner.y = (((size * SPRITE_QUAD_SCALE) / block->depth) * rcos(ang)) >> 12;
+        prim->x1               = block->screenX + (u16)block->extent.corner.x;
+        prim->x2               = block->screenX - (u16)block->extent.corner.x;
+        prim->y1               = block->screenY - (u16)block->extent.corner.y;
+        prim->y2               = block->screenY + (u16)block->extent.corner.y;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_STACK_RELEASE_BLOCK(GpFxQuadScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }
 
 #undef SPRITE_QUAD_ODD_LOOK

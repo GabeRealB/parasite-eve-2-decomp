@@ -491,10 +491,9 @@ proves nothing about:
   field or several, are unconstrained — any layout-compatible declaration
   matches. A run of unknown bytes may be one word, two halves or a bitmask.
 - **Type identity.** Two separately named structs may be one type, invented
-  twice. `GpArcScratch` and `RoomDraw07Scratch` have byte-identical layouts and
-  contradict each other about their own fields — `inner` / `outer` against
-  `rOuter` / `rInner`, in the opposite order. One of them is wrong, and nothing
-  in the build can say which.
+  twice. Layout-compatible scratch records can disagree about whether their
+  sizing words are corner offsets or radii, and about the order of those radii.
+  Only their writers and consumers establish the meaning; matching cannot.
 - **The size of a type only ever reached through a pointer.** If the code just
   reads fields at offsets from a `T*`, nothing fixes where `T` ends. The
   declaration may be a window onto a larger object, or a sub-struct embedded in

@@ -31833,11 +31833,11 @@ while writing it after the last field store leaves it for the second load's
 delay:
 
 ```c
-block->vec.vy = *(u16*)&arg0->workm.t[1];
+block->worldPoint.vy = *(u16*)&arg0->workm.t[1];
 vz            = *(u16*)&arg0->workm.t[2];
-block->vec.vz = vz;
-*scratch      = block;        /* after the last vec store, not before */
-vec           = &block->vec;
+block->worldPoint.vz = vz;
+*scratch      = block;        /* after the last worldPoint store, not before */
+vec           = &block->worldPoint;
 ```
 
 ```
@@ -38660,11 +38660,11 @@ the named local at the first two call sites and cast in place, keeping the local
 only for the value that is actually different:
 
 ```c
-block->dx = ((((s16)arg1 * 55) / block->otz) * rsin((s16)arg2)) >> 12;
-block->dy = ((((s16)arg1 * 55) / block->otz) * rcos((s16)arg2)) >> 12;
+block->extent.corner.x = ((((s16)arg1 * 55) / block->depth) * rsin((s16)arg2)) >> 12;
+block->extent.corner.y = ((((s16)arg1 * 55) / block->depth) * rcos((s16)arg2)) >> 12;
 …
 ang = (s16)arg2 + 0x400;       /* addiu s2, s2, 0x400 — CSEs onto the same reg */
-block->dx = ((((s16)arg1 * 55) / block->otz) * rsin(ang)) >> 12;
+block->extent.corner.x = ((((s16)arg1 * 55) / block->depth) * rsin(ang)) >> 12;
 ```
 
 CSE still keeps one `sll`/`sra` pair in `$s2` and the later angle is a plain
@@ -38680,7 +38680,7 @@ the `gte_ldv0` pointer had to be a separate copy (`move v0, s3`), and pinning it
 to `$v0` looked right — but the pin made the copy schedulable early enough that
 it stole the `lhu v0, 0x40(a0)` load-delay slot and pushed
 `lui t0, %hi(GsWSMATRIX)` all the way up into the prologue. Leaving it as a
-plain local (`vecp = block; … gte_ldv0(&vecp->vec);`) fixed twelve instructions
+plain local (`projectionScratch = block; … gte_ldv0(&projectionScratch->worldPoint);`) fixed twelve instructions
 at once. After each improvement, re-test the function with each existing pin
 removed one at a time; only `register s32 u70 asm("a1")` (so `li a1, 0x70` is
 free to fill a `lw` load-delay slot instead of being CSE'd into two adjacent
@@ -39692,7 +39692,7 @@ live across the whole body. cse then rewrites *every* later SImode use of the
 constant 1 as that register:
 
 ```
-addu  v0,v0,t0        /* block->otz + 1        */
+addu  v0,v0,t0        /* block->depth + 1        */
 bne   t2,t0,...       /* if (arg1 == 1)        */
 ```
 
@@ -40256,10 +40256,10 @@ Copying `TaskSpawnArg::halves.high` (s16) straight into `EffectWork.step`
 
 ## Hoist the `gte_ldv0` alias above the init block to get a callee-saved register
 
-The `vecp = block; … gte_ldv0(&vecp->vec);` alias only earns its own register
+The `projectionScratch = block; … gte_ldv0(&projectionScratch->worldPoint);` alias only earns its own register
 if it is live across a branch. When the scratch alloc is followed by a
 one-shot init block (`if (task->state == 0) { rng / spawn-arg copy }`) and only
-then by `Gp_UpdateCoord` + the GTE sequence, writing `vecp = block;` next to
+then by `Gp_UpdateCoord` + the GTE sequence, writing `projectionScratch = block;` next to
 the `gte_ldv0` emits a throwaway `move v0, s1` at the use site. Assign it
 immediately after `*scratch = block;`, before the init block, and GCC 2.8.1
 keeps it in `$s5` (filling the init-block `bnez` delay slot with
@@ -40268,9 +40268,9 @@ keeps it in `$s5` (filling the init-block `bnez` delay slot with
 ```c
 scratch  = SCRATCH_STACK_CURSOR_SLOT;
 head     = *scratch;
-block    = (GpEffBeamScratch*)(head - 0x1C);
+block    = (EffectShapeScratch*)(head - 0x1C);
 *scratch = block;
-vecp     = block;          /* not down by the gte_ldv0 */
+projectionScratch     = block;          /* not down by the gte_ldv0 */
 if (arg0->state == 0) {
     /* rng + spawn-arg init */
 }
@@ -40518,12 +40518,12 @@ has to emit the `lui` a second time.
 *two* instructions:
 
 ```
-sh    $v0, -0x1C($a2)      # ((GpEffBeamScratch*)(head - 0x1C))->vec.vx = ...
+sh    $v0, -0x1C($a2)      # ((EffectShapeScratch*)(head - 0x1C))->worldPoint.vx = ...
 addiu $v0, $a2, -0x1C
 addu  $s4, $v0, $zero      # <-- the copy
 ```
 
-The ordinary idiom (`block = (GpEffBeamScratch*)(head - 0x1C);`, as in
+The ordinary idiom (`block = (EffectShapeScratch*)(head - 0x1C);`, as in
 `Gp_DrawEffSprite6C` / `Gp_EffSprTaskE0`) collapses to a single `addiu $s4, $a2, -0x1C`,
 and no amount of extra temporaries, chained assignments or store/reload tricks
 brings the copy back: cse propagates the temp into `block`'s uses and combine
@@ -40534,9 +40534,9 @@ not rewritten. That is the same construct `Gp_EffSprTask9E` already uses in this
 file:
 
 ```c
-register GpEffBeamScratch* vecp asm("v0");
-vecp  = (GpEffBeamScratch*)(head - 0x1C);
-block = vecp;
+register EffectShapeScratch* projectionScratch asm("v0");
+projectionScratch  = (EffectShapeScratch*)(head - 0x1C);
+block = projectionScratch;
 ```
 
 Two further consequences of pinning:
@@ -40544,13 +40544,13 @@ Two further consequences of pinning:
 * A pinned `v0` temp makes the pre-RA scheduler slot its `addiu` into the load
   delay of the preceding `lhu`, which pushes that load into `$v1`. Give the same
   `v0` variable an *earlier* life (here the `workm.t[0]` value that is stored to
-  `vec.vx`) so the register is already busy at that point and the schedule lines
+  `worldPoint.vx`) so the register is already busy at that point and the schedule lines
   up. Several distinct `register ... asm("v0")` variables with disjoint lives are
   fine.
 * Pinning the surviving pointer (`register u8* head asm("a2")`) makes GCC reuse
   `a2` in place for the last `gte_st*` operand (`addiu $a2, $a2, -0x14`) because
   `head` is dead there. Route that one operand through another `v0`-pinned
-  variable (`register s32* otzp asm("v0"); otzp = &...->otz; gte_stszotz(otzp);`)
+  variable (`register s32* otzp asm("v0"); otzp = &...->depth; gte_stszotz(otzp);`)
   to get the target's `addiu $v0, $a2, -0x14`.
 
 ## Store the `r`/`g`/`b` fields of a POLY_* in the order the spill is reloaded
@@ -56615,12 +56615,12 @@ grep `include/` as well as `src/`. Porting the twin took one attempt against a
 
 Corollary: the scratch-struct docs in `include/gameplay/3CD8.h` and
 `include/gameplay/3FB8.h` are a catalogue of `SCRATCH_STACK_CURSOR_SLOT` layouts
-(`GpRingScratch`, `GpFxQuadScratch`, `GpEffBeamScratch`, `GpEffFlareScratch`,
+(`GpRingScratch`, `EffectShapeScratch`, `GpEffFlareScratch`,
 `GpEffTileScratch`, …). Any overlay function whose prologue is `lw` from
 `0x1F8003FC` / `addiu -N` / `sw` back is very likely one of them; match the size
-and field offsets against that list first. Define the overlay's own copy of the
-type in its own header rather than including the gameplay one — the layouts are
-identical but the ownership is not.
+and field offsets against that list first. Use the canonical shared record when its layout and meaning agree, as with
+`EffectShapeScratch` in `include/gameplay/effects.h`; a distinct layout needs its
+own declaration.
 
 ## `setUV4` is not the same RTL as eight `prim->uN =` statements
 
@@ -62329,7 +62329,7 @@ The block layout is the fingerprint. Read it straight off the store offsets — 
 grep -n "STATIC_ASSERT_SIZEOF(Gp.*Scratch, 0x1C)" include/gameplay/3CD8.h
 ```
 
-That named `GpFxQuadScratch`, whose doc comment names `Gp_DrawFxQuad`, whose
+That named `EffectShapeScratch`, also used by `Gp_DrawFxQuad`, whose
 already-matched near-twin `func_combustion_8012FB14` differed only in the CLUT (0x428F vs
 0x42C2), the texture cell width (`value * 0x28` / `+0x27` vs `arg1 << 5` / `+0x1F`),
 the V rows and the radius scale (`arg2 * 39` vs `arg2 * 31`). Copying that body
@@ -62394,8 +62394,8 @@ register s32 sinArg asm("a0");
 ang    = arg3;
 sinArg = ang;                 /* the ROM's addu $a0, $s1, $zero, right here */
 ...
-block->dx = (((arg2 * 31) / block->otz) * rsin(sinArg)) >> 12;
-block->dy = (((arg2 * 31) / block->otz) * rcos(ang)) >> 12;   /* copies again */
+block->extent.corner.x = (((arg2 * 31) / block->depth) * rsin(sinArg)) >> 12;
+block->extent.corner.y = (((arg2 * 31) / block->depth) * rcos(ang)) >> 12;   /* copies again */
 ```
 
 Only the *first* call takes the pinned name; the later `rsin`/`rcos` calls take
@@ -110234,10 +110234,8 @@ layout is what the compiler sees.
 `func_actor_800100_80162A14` is the third of that overlay's drawers to come
 from `m4a1_pyke`: `find` reported it against `func_m4a1_pyke_8011DCEC` as
 `identical bytes: 2`, so the `=` case above applied again and the port needed
-only the scratch type name (then `Actor800100SpinScratch`, since folded into
-gameplay's `GpFxQuadScratch`) against the sibling's
-`M4a1PykeQuadScratch` - both are the 0x1C `vec / otz / flag / dx / dy / sxy`
-block, and `actor_510900.h` carries a fourth copy of it. 100.000% on the first
+only the shared `EffectShapeScratch` - the 0x1C `worldPoint / depth / projectionFlags / extent / screenX / screenY`
+block, and the actor_510900 copy also uses that shared record. 100.000% on the first
 build.
 
 What `identical bytes: 2` does *not* buy is a promotion. `promote` answers
@@ -133520,8 +133518,8 @@ Instead keep the pointer expression as an input while touching a **u32** vy:
 carve = head - 0x1C;
 vy = *(u16*)&coord->workm.t[1];
 SOFT_TOUCH_REG_USE2(vy, carve, carve);
-block = (GpEffBeamScratch*)carve;
-block->vec.vy = vy;
+block = (EffectShapeScratch*)carve;
+block->worldPoint.vy = vy;
 ```
 
 The second use of carve keeps `block=carve` as a real C copy through combine;
@@ -142386,25 +142384,25 @@ is a pseudo holding `sp+0x10`, CSE keeps it in `$s0` and every channel is
 addressed `n($s0)`.
 ## `sh -K(head)` then `addiu v0,head,-K` / `move sN,v0` in a GTE sprite is just `block = SCRATCH_STACK_RESERVE_BLOCK(T)` (func_necrosis_8012FE64, 2026-09-26)
 
-Symptom: the `GpFxQuadScratch` quad drawers (necrosis, apobiosis, energyball)
-store `vec.vx` at `-0x1C(head)` before the block pointer exists, carve it into
+Symptom: the `EffectShapeScratch` quad drawers (necrosis, apobiosis, energyball)
+store `worldPoint.vx` at `-0x1C(head)` before the block pointer exists, carve it into
 `$v0`, copy it to a callee-saved register, and store the *copy* to the head
-after `vec.vy`. The tree reproduced it with a `$v0` pin on the carve, a
+after `worldPoint.vy`. The tree reproduced it with a `$v0` pin on the carve, a
 `volatile` head load, a pinned `vx` and `(T*)(head - 0x1C)` casts at every GTE
 store, plus `$a1` pins on the scratch address and a copy of `value`.
 
 Fix: the compound push, written the obvious way:
 
 ```c
-block         = SCRATCH_STACK_RESERVE_BLOCK(GpFxQuadScratch);
-block->vec.vx = arg0->workm.t[0];
+block         = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
+block->worldPoint.vx = arg0->workm.t[0];
 ...
-gte_stsxy(&block->sx);
+gte_stsxy(&block->screenX);
 ```
 
 The value of `*G -= 1` is a short-lived pseudo that local-alloc colours `$v0`
 and joins to `block` by a copy (see the `Actor01900_Fn06F40` entry); CSE still
-knows it equals `head - 0x1C`, so the first store and the `sx`/`flag`/`otz`
+knows it equals `head - 0x1C`, so the first store and the `screenX`/`projectionFlags`/`depth`
 addresses come out `-K(head)` without any cast. With `$v0` taken the field
 loads move to `$v1`, the scratch address to `$a1`, and `value` to `$t1` with a
 second copy in `$a1` - every other pin in the old body followed from the one
@@ -142923,8 +142921,8 @@ Same shape as the `Gp_DrawRing` push, where a loop does the splitting.
 **Carve.** Target carves the block into `v0` and copies it to a callee-saved
 register (`addiu v0,a1,-0x1C; lhu v1,..; move s0,v0`), with the head in `a1`
 and the head's address in `a0`. It was held by `v0` pins on the carve and the
-first field's value plus `USE_REG(head)`. Pin-free, `p = head - 0x1C; p->vec.vx = ..;
-block = p; ... gte_ldv0(&p->vec);` reproduces it: cse never substitutes into an
+first field's value plus `USE_REG(head)`. Pin-free, `p = head - 0x1C; p->worldPoint.vx = ..;
+block = p; ... gte_ldv0(&p->worldPoint);` reproduces it: cse never substitutes into an
 asm operand, so the `gte_ldv0` read keeps `p` live past the copy and combine
 cannot fold the carve into `block`; local-alloc's `optimize_reg_copy_1` then
 rewrites the asm to read `block` and `p` dies at the copy, in `v0`. A statement

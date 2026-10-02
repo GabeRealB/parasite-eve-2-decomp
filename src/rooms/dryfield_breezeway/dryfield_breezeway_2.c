@@ -1702,23 +1702,23 @@ static void func_dryfield_breezeway_80181938(Task* task, u8* color)
     EffectWork*           work = task->spawnArg2.pointer;
     void**                scratch;
     GfxCoord*             coord;
-    GpFxQuadScratch*      block;
+    EffectShapeScratch*   block;
     POLY_FT4*             prim;
 
-    scratch       = SCRATCH_HEAD_ADDR;
-    coord         = body->coord;
-    block         = SCRATCH_PUSH_AT(scratch, GpFxQuadScratch);
-    block->vec.vx = coord->workm.t[0];
-    block->vec.vy = coord->workm.t[1];
-    block->vec.vz = coord->workm.t[2];
+    scratch              = SCRATCH_HEAD_ADDR;
+    coord                = body->coord;
+    block                = SCRATCH_PUSH_AT(scratch, EffectShapeScratch);
+    block->worldPoint.vx = coord->workm.t[0];
+    block->worldPoint.vy = coord->workm.t[1];
+    block->worldPoint.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec);
+    gte_ldv0(&block->worldPoint);
     gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
+    gte_stsxy(&block->screenX);
+    gte_stflg(&block->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&block->depth);
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -1731,29 +1731,29 @@ static void func_dryfield_breezeway_80181938(Task* task, u8* color)
         } else {
             setcode(prim, 0x2D);
         }
-        prim->tpage = 0x2B;
-        prim->clut  = 0x43C0;
-        prim->u0    = (work->index & 7) * 16;
-        prim->v0    = 0xF0;
-        prim->u1    = (work->index & 7) * 16 + 0xF;
-        prim->v1    = 0xF0;
-        prim->u2    = (work->index & 7) * 16;
-        prim->v2    = 0xFF;
-        prim->u3    = (work->index & 7) * 16 + 0xF;
-        prim->v3    = 0xFF;
-        block->dx   = (((work->pos.vx * 0x17) / block->otz) * rsin(work->pos.vz)) >> 12;
-        block->dy   = (((work->pos.vx * 0x17) / block->otz) * rcos(work->pos.vz)) >> 12;
-        prim->x0    = block->sx + block->dx;
-        prim->x3    = block->sx - block->dx;
-        prim->y0    = block->sy - block->dy;
-        prim->y3    = block->sy + block->dy;
-        block->dx   = (((work->pos.vx * 0x17) / block->otz) * rsin(work->pos.vz + 0x400)) >> 12;
-        block->dy   = (((work->pos.vx * 0x17) / block->otz) * rcos(work->pos.vz + 0x400)) >> 12;
-        prim->x1    = block->sx + block->dx;
-        prim->x2    = block->sx - block->dx;
-        prim->y1    = block->sy - block->dy;
-        prim->y2    = block->sy + block->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
+        prim->tpage            = 0x2B;
+        prim->clut             = 0x43C0;
+        prim->u0               = (work->index & 7) * 16;
+        prim->v0               = 0xF0;
+        prim->u1               = (work->index & 7) * 16 + 0xF;
+        prim->v1               = 0xF0;
+        prim->u2               = (work->index & 7) * 16;
+        prim->v2               = 0xFF;
+        prim->u3               = (work->index & 7) * 16 + 0xF;
+        prim->v3               = 0xFF;
+        block->extent.corner.x = (((work->pos.vx * 0x17) / block->depth) * rsin(work->pos.vz)) >> 12;
+        block->extent.corner.y = (((work->pos.vx * 0x17) / block->depth) * rcos(work->pos.vz)) >> 12;
+        prim->x0               = block->screenX + block->extent.corner.x;
+        prim->x3               = block->screenX - block->extent.corner.x;
+        prim->y0               = block->screenY - block->extent.corner.y;
+        prim->y3               = block->screenY + block->extent.corner.y;
+        block->extent.corner.x = (((work->pos.vx * 0x17) / block->depth) * rsin(work->pos.vz + 0x400)) >> 12;
+        block->extent.corner.y = (((work->pos.vx * 0x17) / block->depth) * rcos(work->pos.vz + 0x400)) >> 12;
+        prim->x1               = block->screenX + block->extent.corner.x;
+        prim->x2               = block->screenX - block->extent.corner.x;
+        prim->y1               = block->screenY - block->extent.corner.y;
+        prim->y2               = block->screenY + block->extent.corner.y;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }

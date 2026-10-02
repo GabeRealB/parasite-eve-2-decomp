@@ -13,12 +13,12 @@
 /// Draws one cell of the overlay's sprite texture at `coord`'s world position.
 static void SPRITE_QUAD_FUNC(SPRITE_QUAD_POS_T* pos, SPRITE_QUAD_FRAME_T frame, SPRITE_QUAD_SIZE_T size, s16 angle)
 {
-    u8*              head;
-    GpFxQuadScratch* block;
-    POLY_FT4*        prim;
-    SVECTOR*         vec;
-    s32              u0;
-    s32              u1;
+    EffectShapeScratch* head;
+    EffectShapeScratch* block;
+    POLY_FT4*           prim;
+    SVECTOR*            vec;
+    s32                 u0;
+    s32                 u1;
 #ifdef SPRITE_QUAD_UV_TABLE
     GpEffUv8* rec;
 #endif
@@ -28,28 +28,28 @@ static void SPRITE_QUAD_FUNC(SPRITE_QUAD_POS_T* pos, SPRITE_QUAD_FRAME_T frame, 
     s32 ang2;
     u16 vz;
 
-    head                                      = SCRATCH_STACK_CURSOR(u8);
-    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)SPRITE_QUAD_POS(pos, 0);
-    block                                     = (GpFxQuadScratch*)(head - 0x1C);
-    block->vec.vy                             = (u16)SPRITE_QUAD_POS(pos, 1);
-    vz                                        = (u16)SPRITE_QUAD_POS(pos, 2);
-    block->vec.vz                             = vz;
-    SCRATCH_STACK_CURSOR(GpFxQuadScratch)     = block;
-    vec                                       = &block->vec;
+    head                                     = SCRATCH_STACK_CURSOR(EffectShapeScratch);
+    (head - 1)->worldPoint.vx                = (u16)SPRITE_QUAD_POS(pos, 0);
+    block                                    = head - 1;
+    block->worldPoint.vy                     = (u16)SPRITE_QUAD_POS(pos, 1);
+    vz                                       = (u16)SPRITE_QUAD_POS(pos, 2);
+    block->worldPoint.vz                     = vz;
+    SCRATCH_STACK_CURSOR(EffectShapeScratch) = block;
+    vec                                      = &block->worldPoint;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
     gte_rtps();
-    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
+    gte_stsxy(&(head - 1)->screenX);
+    gte_stflg(&(head - 1)->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&(head - 1)->depth);
 #if SPRITE_QUAD_OTZ_BIAS
-        block->otz++;
+        block->depth++;
 #endif
 #ifdef SPRITE_QUAD_MIN_OTZ
         /* nearer than this the sprite is not drawn */
-        if (block->otz >= SPRITE_QUAD_MIN_OTZ)
+        if (block->depth >= SPRITE_QUAD_MIN_OTZ)
 #endif
         {
             prim           = gGpuPrimCursor;
@@ -92,24 +92,24 @@ static void SPRITE_QUAD_FUNC(SPRITE_QUAD_POS_T* pos, SPRITE_QUAD_FRAME_T frame, 
             setUV4(prim, u0, SPRITE_QUAD_V0, u1, SPRITE_QUAD_V0, u0, SPRITE_QUAD_V1, u1, SPRITE_QUAD_V1);
 #endif
 #endif
-            block->dx = (((size * SPRITE_QUAD_SCALE) / block->otz) * rsin(angle)) >> 12;
-            block->dy = (((size * SPRITE_QUAD_SCALE) / block->otz) * rcos(angle)) >> 12;
-            prim->x0  = block->sx + (u16)block->dx;
-            prim->x3  = block->sx - (u16)block->dx;
-            prim->y0  = block->sy - (u16)block->dy;
-            prim->y3  = block->sy + (u16)block->dy;
-            ang2      = angle + 0x400;
-            block->dx = (((size * SPRITE_QUAD_SCALE) / block->otz) * rsin(ang2)) >> 12;
-            block->dy = (((size * SPRITE_QUAD_SCALE) / block->otz) * rcos(ang2)) >> 12;
-            prim->x1  = block->sx + (u16)block->dx;
-            prim->x2  = block->sx - (u16)block->dx;
-            prim->y1  = block->sy - (u16)block->dy;
-            prim->y2  = block->sy + (u16)block->dy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            block->extent.corner.x = (((size * SPRITE_QUAD_SCALE) / block->depth) * rsin(angle)) >> 12;
+            block->extent.corner.y = (((size * SPRITE_QUAD_SCALE) / block->depth) * rcos(angle)) >> 12;
+            prim->x0               = block->screenX + (u16)block->extent.corner.x;
+            prim->x3               = block->screenX - (u16)block->extent.corner.x;
+            prim->y0               = block->screenY - (u16)block->extent.corner.y;
+            prim->y3               = block->screenY + (u16)block->extent.corner.y;
+            ang2                   = angle + 0x400;
+            block->extent.corner.x = (((size * SPRITE_QUAD_SCALE) / block->depth) * rsin(ang2)) >> 12;
+            block->extent.corner.y = (((size * SPRITE_QUAD_SCALE) / block->depth) * rcos(ang2)) >> 12;
+            prim->x1               = block->screenX + (u16)block->extent.corner.x;
+            prim->x2               = block->screenX - (u16)block->extent.corner.x;
+            prim->y1               = block->screenY - (u16)block->extent.corner.y;
+            prim->y2               = block->screenY + (u16)block->extent.corner.y;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }
 
 #undef SPRITE_QUAD_FUNC

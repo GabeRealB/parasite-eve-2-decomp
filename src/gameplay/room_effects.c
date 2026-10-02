@@ -1740,27 +1740,27 @@ void Gp_DrawFadeQuad(u8* arg0, s32 arg1)
 
 void Gp_DrawArc(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
-    GpArcScratch* block;
-    POLY_G4*      prim;
-    DR_TPAGE*     dr;
-    s32           ang;
-    s32           otz;
+    EffectShapeScratch* block;
+    POLY_G4*            prim;
+    DR_TPAGE*           dr;
+    s32                 ang;
+    s32                 otz;
 
-    block         = SCRATCH_STACK_RESERVE_BLOCK(GpArcScratch);
-    block->vec.vx = arg0->workm.t[0];
-    block->vec.vy = arg0->workm.t[1];
-    block->vec.vz = arg0->workm.t[2];
+    block                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
+    block->worldPoint.vx = arg0->workm.t[0];
+    block->worldPoint.vy = arg0->workm.t[1];
+    block->worldPoint.vz = arg0->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec);
+    gte_ldv0(&block->worldPoint);
     gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        block->otz++;
-        block->inner = ((s16)arg1 * 64) / block->otz;
-        block->outer = (((s16)arg1 + (s16)arg2) * 64) / block->otz;
+    gte_stsxy(&block->screenX);
+    gte_stflg(&block->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&block->depth);
+        block->depth++;
+        block->extent.ring.inner = ((s16)arg1 * 64) / block->depth;
+        block->extent.ring.outer = (((s16)arg1 + (s16)arg2) * 64) / block->depth;
         for (ang = 0; ang < 0x1000; ang += 0x100) {
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
@@ -1769,17 +1769,17 @@ void Gp_DrawArc(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, rgb[0], rgb[1], rgb[2]);
             setRGB3(prim, rgb[0], rgb[1], rgb[2]);
-            prim->x0 = block->sx + ((block->inner * rsin(ang)) >> 12);
-            prim->y0 = block->sy + ((block->inner * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->inner * rsin(ang + 0x100)) >> 12);
-            prim->y1 = block->sy + ((block->inner * rcos(ang + 0x100)) >> 12);
-            prim->x2 = block->sx + ((block->outer * rsin(ang)) >> 12);
-            prim->y2 = block->sy + ((block->outer * rcos(ang)) >> 12);
-            prim->x3 = block->sx + ((block->outer * rsin(ang + 0x100)) >> 12);
-            prim->y3 = block->sy + ((block->outer * rcos(ang + 0x100)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            prim->x0 = block->screenX + ((block->extent.ring.inner * rsin(ang)) >> 12);
+            prim->y0 = block->screenY + ((block->extent.ring.inner * rcos(ang)) >> 12);
+            prim->x1 = block->screenX + ((block->extent.ring.inner * rsin(ang + 0x100)) >> 12);
+            prim->y1 = block->screenY + ((block->extent.ring.inner * rcos(ang + 0x100)) >> 12);
+            prim->x2 = block->screenX + ((block->extent.ring.outer * rsin(ang)) >> 12);
+            prim->y2 = block->screenY + ((block->extent.ring.outer * rcos(ang)) >> 12);
+            prim->x3 = block->screenX + ((block->extent.ring.outer * rsin(ang + 0x100)) >> 12);
+            prim->y3 = block->screenY + ((block->extent.ring.outer * rcos(ang + 0x100)) >> 12);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            otz = block->otz;
+            otz = block->depth;
             setSemiTrans(prim, 1);
             dr             = gGpuPrimCursor;
             gGpuPrimCursor = dr + 1;
@@ -1788,7 +1788,7 @@ void Gp_DrawArc(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
                     dr);
         }
     }
-    SCRATCH_STACK_RELEASE_BLOCK(GpArcScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }
 
 void Gp_DrawRing(GfxCoord* arg0, s32 arg1, u8* rgb)
@@ -1845,28 +1845,28 @@ void Gp_DrawRing(GfxCoord* arg0, s32 arg1, u8* rgb)
 
 void Gp_DrawFxQuad(GfxCoord* arg0, u16 arg1, s16 arg2, u16 arg3)
 {
-    GpFxQuadScratch* block;
-    POLY_FT4*        prim;
-    u16              clutIdx;
-    s32              u0;
-    s32              u1;
-    s32              ang2;
+    EffectShapeScratch* block;
+    POLY_FT4*           prim;
+    u16                 clutIdx;
+    s32                 u0;
+    s32                 u1;
+    s32                 ang2;
 
-    block         = SCRATCH_STACK_RESERVE_BLOCK(GpFxQuadScratch);
-    block->vec.vx = arg0->workm.t[0];
-    block->vec.vy = arg0->workm.t[1];
-    block->vec.vz = arg0->workm.t[2];
+    block                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
+    block->worldPoint.vx = arg0->workm.t[0];
+    block->worldPoint.vy = arg0->workm.t[1];
+    block->worldPoint.vz = arg0->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec);
+    gte_ldv0(&block->worldPoint);
     gte_rtps();
     clutIdx = arg3 >> 12;
     arg3   &= 0xFFF;
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        block->otz++;
+    gte_stsxy(&block->screenX);
+    gte_stflg(&block->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&block->depth);
+        block->depth++;
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setPolyFT4(prim);
@@ -1877,23 +1877,23 @@ void Gp_DrawFxQuad(GfxCoord* arg0, u16 arg1, s16 arg2, u16 arg3)
         u0 = arg1 << 5;
         u1 = u0 + 0x1F;
         setUV4(prim, u0, 0x18, u1, 0x18, u0, 0x37, u1, 0x37);
-        block->dx = (((arg2 * 31) / block->otz) * rsin(arg3)) >> 12;
-        block->dy = (((arg2 * 31) / block->otz) * rcos(arg3)) >> 12;
-        prim->x0  = block->sx + (u16)block->dx;
-        prim->x3  = block->sx - (u16)block->dx;
-        prim->y0  = block->sy - (u16)block->dy;
-        prim->y3  = block->sy + (u16)block->dy;
-        ang2      = arg3 + 0x400;
-        block->dx = (((arg2 * 31) / block->otz) * rsin(ang2)) >> 12;
-        block->dy = (((arg2 * 31) / block->otz) * rcos(ang2)) >> 12;
-        prim->x1  = block->sx + (u16)block->dx;
-        prim->x2  = block->sx - (u16)block->dx;
-        prim->y1  = block->sy - (u16)block->dy;
-        prim->y2  = block->sy + (u16)block->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        block->extent.corner.x = (((arg2 * 31) / block->depth) * rsin(arg3)) >> 12;
+        block->extent.corner.y = (((arg2 * 31) / block->depth) * rcos(arg3)) >> 12;
+        prim->x0               = block->screenX + (u16)block->extent.corner.x;
+        prim->x3               = block->screenX - (u16)block->extent.corner.x;
+        prim->y0               = block->screenY - (u16)block->extent.corner.y;
+        prim->y3               = block->screenY + (u16)block->extent.corner.y;
+        ang2                   = arg3 + 0x400;
+        block->extent.corner.x = (((arg2 * 31) / block->depth) * rsin(ang2)) >> 12;
+        block->extent.corner.y = (((arg2 * 31) / block->depth) * rcos(ang2)) >> 12;
+        prim->x1               = block->screenX + (u16)block->extent.corner.x;
+        prim->x2               = block->screenX - (u16)block->extent.corner.x;
+        prim->y1               = block->screenY - (u16)block->extent.corner.y;
+        prim->y2               = block->screenY + (u16)block->extent.corner.y;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_STACK_RELEASE_BLOCK(GpFxQuadScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }
 
 void func_800EB6E8(GfxCoord* arg0, u16 arg1, u16 arg2, u16 arg3)

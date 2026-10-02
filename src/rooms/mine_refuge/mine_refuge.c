@@ -63,22 +63,6 @@
 // No separate references identify them; their role (including padding) is unresolved.
 extern u8 D_mine_refuge_80182ADC[4];
 
-/// Scratch block `func_mine_refuge_80180710` takes from the scratch stack.
-/// `otz`, `flag` and `sx`/`sy` receive the projection of the glow's centre;
-/// `rOuter` and `rInner` are its two on-screen radii, derived from that `otz`.
-/// Nothing in the function touches the leading bytes.
-typedef struct {
-    u8  _pad0[8];
-    s32 otz;
-    s32 flag;
-    s32 rOuter;
-    s32 rInner;
-    u16 sx;
-    u16 sy;
-} MineRefugeGlowScratch;
-
-STATIC_ASSERT_SIZEOF(MineRefugeGlowScratch, 0x1C);
-
 extern UiObjectDesc D_800611E4;
 
 extern TaskDesc D_801358D8;
@@ -879,37 +863,37 @@ static void func_mine_refuge_8018029C(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// the scratch stack on exit.
 static void func_mine_refuge_80180710(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
-    void**                 scratch;
-    u8*                    head;
-    MineRefugeGlowScratch* block;
-    POLY_G4*               prim;
-    s32                    pulse;
-    s32                    color;
-    s32                    half;
-    s32                    size;
-    s32                    ang;
-    s32                    t;
-    s32                    t2;
-    s32                    u;
+    void**              scratch;
+    EffectShapeScratch* head;
+    EffectShapeScratch* block;
+    POLY_G4*            prim;
+    s32                 pulse;
+    s32                 color;
+    s32                 half;
+    s32                 size;
+    s32                 ang;
+    s32                 t;
+    s32                 t2;
+    s32                 u;
 
     scratch = SCRATCH_STACK_CURSOR_SLOT;
     head    = *scratch;
-    block   = (MineRefugeGlowScratch*)(*scratch = head - 0x1C);
+    block   = (*scratch = head - 1);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
-    gte_stsxy(&((MineRefugeGlowScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((MineRefugeGlowScratch*)(head - 0x1C))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&((MineRefugeGlowScratch*)(head - 0x1C))->otz);
-        pulse         = rsin(gDisplayState.animFrame * (s16)arg1);
-        ang           = 0;
-        size          = (s16)arg2;
-        block->rOuter = (size * 64) / block->otz;
-        block->rInner = (size * 8) / block->otz;
-        color         = pulse / 34 + 0x78;
+    gte_stsxy(&(head - 1)->screenX);
+    gte_stflg(&(head - 1)->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&(head - 1)->depth);
+        pulse                     = rsin(gDisplayState.animFrame * (s16)arg1);
+        ang                       = 0;
+        size                      = (s16)arg2;
+        block->extent.burst.outer = (size * 64) / block->depth;
+        block->extent.burst.inner = (size * 8) / block->depth;
+        color                     = pulse / 34 + 0x78;
         do {
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
@@ -919,19 +903,19 @@ static void func_mine_refuge_80180710(SVECTOR* arg0, s32 arg1, s32 arg2)
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, 0, half, half);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->rOuter * rsin(ang)) >> 12);
+            prim->x0 = block->screenX + ((block->extent.burst.outer * rsin(ang)) >> 12);
             t        = ang + 0x100;
-            prim->y0 = block->sy + ((block->rOuter * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->rOuter * rsin(t)) >> 12);
-            prim->y1 = block->sy + ((block->rOuter * rcos(t)) >> 12);
+            prim->y0 = block->screenY + ((block->extent.burst.outer * rcos(ang)) >> 12);
+            prim->x1 = block->screenX + ((block->extent.burst.outer * rsin(t)) >> 12);
+            prim->y1 = block->screenY + ((block->extent.burst.outer * rcos(t)) >> 12);
             t2       = ang + 0x200;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 12);
-            prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            prim->x2 = block->screenX;
+            prim->y2 = block->screenY;
+            prim->x3 = block->screenX + ((block->extent.burst.outer * rsin(t2)) >> 12);
+            prim->y3 = block->screenY + ((block->extent.burst.outer * rcos(t2)) >> 12);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->depth);
 
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
@@ -940,18 +924,18 @@ static void func_mine_refuge_80180710(SVECTOR* arg0, s32 arg1, s32 arg2)
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, 0, color, color);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->rOuter * rsin(ang)) >> 13);
-            prim->y0 = block->sy + ((block->rOuter * rcos(ang)) >> 13);
-            prim->x1 = block->sx + ((block->rOuter * rsin(t)) >> 13);
-            prim->y1 = block->sy + ((block->rOuter * rcos(t)) >> 13);
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 13);
-            prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 13);
+            prim->x0 = block->screenX + ((block->extent.burst.outer * rsin(ang)) >> 13);
+            prim->y0 = block->screenY + ((block->extent.burst.outer * rcos(ang)) >> 13);
+            prim->x1 = block->screenX + ((block->extent.burst.outer * rsin(t)) >> 13);
+            prim->y1 = block->screenY + ((block->extent.burst.outer * rcos(t)) >> 13);
+            prim->x2 = block->screenX;
+            prim->y2 = block->screenY;
+            prim->x3 = block->screenX + ((block->extent.burst.outer * rsin(t2)) >> 13);
+            prim->y3 = block->screenY + ((block->extent.burst.outer * rcos(t2)) >> 13);
             ang      = t2;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->depth);
         } while (ang < 0x1000);
 
         color = half;
@@ -965,18 +949,18 @@ static void func_mine_refuge_80180710(SVECTOR* arg0, s32 arg1, s32 arg2)
             setRGB2(prim, 0, color, color);
             setRGB3(prim, 0, 0, 0);
             u        = ang - 0x400;
-            prim->x0 = block->sx + ((block->rInner * rsin(u)) >> 13);
-            prim->y0 = block->sy + ((block->rInner * rcos(u)) >> 13);
-            prim->x1 = block->sx + ((block->rOuter * rsin(ang)) >> 12);
-            prim->y1 = block->sy + ((block->rOuter * rcos(ang)) >> 12);
+            prim->x0 = block->screenX + ((block->extent.burst.inner * rsin(u)) >> 13);
+            prim->y0 = block->screenY + ((block->extent.burst.inner * rcos(u)) >> 13);
+            prim->x1 = block->screenX + ((block->extent.burst.outer * rsin(ang)) >> 12);
+            prim->y1 = block->screenY + ((block->extent.burst.outer * rcos(ang)) >> 12);
             u        = ang + 0x400;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rInner * rsin(u)) >> 13);
-            prim->y3 = block->sy + ((block->rInner * rcos(u)) >> 13);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            prim->x2 = block->screenX;
+            prim->y2 = block->screenY;
+            prim->x3 = block->screenX + ((block->extent.burst.inner * rsin(u)) >> 13);
+            prim->y3 = block->screenY + ((block->extent.burst.inner * rcos(u)) >> 13);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->depth);
 
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
@@ -985,22 +969,22 @@ static void func_mine_refuge_80180710(SVECTOR* arg0, s32 arg1, s32 arg2)
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, 0, color, color);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->rInner * rsin(ang)) >> 12);
-            prim->y0 = block->sy + ((block->rInner * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->rOuter * rsin(u)) >> 11);
-            prim->y1 = block->sy + ((block->rOuter * rcos(u)) >> 11);
+            prim->x0 = block->screenX + ((block->extent.burst.inner * rsin(ang)) >> 12);
+            prim->y0 = block->screenY + ((block->extent.burst.inner * rcos(ang)) >> 12);
+            prim->x1 = block->screenX + ((block->extent.burst.outer * rsin(u)) >> 11);
+            prim->y1 = block->screenY + ((block->extent.burst.outer * rcos(u)) >> 11);
             u        = ang + 0x800;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rInner * rsin(u)) >> 12);
-            prim->y3 = block->sy + ((block->rInner * rcos(u)) >> 12);
+            prim->x2 = block->screenX;
+            prim->y2 = block->screenY;
+            prim->x3 = block->screenX + ((block->extent.burst.inner * rsin(u)) >> 12);
+            prim->y3 = block->screenY + ((block->extent.burst.inner * rcos(u)) >> 12);
             ang      = u;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->depth);
         } while (ang < 0x1000);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }
 
 /// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when

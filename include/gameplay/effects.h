@@ -25,37 +25,48 @@ typedef struct _GpRingScratch {
 } GpRingScratch;
 STATIC_ASSERT_SIZEOF(GpRingScratch, 0x18);
 
-/// The scratch-pad block of a billboard quad spun about one projected point:
-/// `vec` is the point, taken from a coordinate's world translation, and one
-/// RTPS fills `sx`, `sy`, `flag` and `otz`. `dx` and `dy` are the rotated half
-/// extents scaled by the depth; they are added to and subtracted from the
-/// projected point to place the four corners of the quad, and only their low
-/// halves are read back.
-typedef struct _GpFxQuadScratch {
-    /* 0x00 */ SVECTOR vec;
-    /* 0x08 */ s32     otz;
-    /* 0x0C */ s32     flag;
-    /* 0x10 */ s32     dx;
-    /* 0x14 */ s32     dy;
-    /* 0x18 */ u16     sx;
-    /* 0x1A */ u16     sy;
-} GpFxQuadScratch;
-STATIC_ASSERT_SIZEOF(GpFxQuadScratch, 0x1C);
-
-/// The scratch-pad block of an annulus drawn about one projected point: `vec`
-/// is the point, and one RTPS fills `sx`, `sy`, `flag` and `otz`. `inner` and
-/// `outer` are the two radii the annulus is swept between, each scaled by the
-/// depth.
-typedef struct _GpArcScratch {
-    /* 0x00 */ SVECTOR vec;
-    /* 0x08 */ s32     otz;
-    /* 0x0C */ s32     flag;
-    /* 0x10 */ s32     inner;
-    /* 0x14 */ s32     outer;
-    /* 0x18 */ u16     sx;
-    /* 0x1A */ u16     sy;
-} GpArcScratch;
-STATIC_ASSERT_SIZEOF(GpArcScratch, 0x1C);
+/// Scratch-stack workspace for a screen-space effect centred on one world point.
+///
+/// A drawer stages the signed 16-bit world position in `worldPoint`, or projects
+/// a caller's vector directly, then constructs sprites, rings or radial spikes
+/// around the projected centre. `extent` holds the interpretation needed by
+/// that construction; every component is a signed integer pixel distance.
+/// Spinning sprites reuse the corner offsets for each pair of opposite corners.
+///
+/// `depth` starts as SZ3 divided by four and may be biased or clamped before
+/// sizing and ordering the primitives. `screenX` and `screenY` retain the raw
+/// 16-bit encodings of the signed GTE coordinates for GPU packet arithmetic;
+/// one GTE word store fills both, starting at `screenX`.
+///
+/// Reserve one complete block on the scratch stack and release it in reverse
+/// order after drawing. Fields are initialized as needed; pointers into the
+/// block must not survive its release.
+typedef struct {
+    SVECTOR worldPoint;      // Optional staging point in world-coordinate units, narrowed to s16
+    s32     depth;           // Projection depth used for screen sizing and ordering-table placement
+    s32     projectionFlags; // GTE FLAG word; bit 31 makes it negative and rejects the projection
+    union {
+        struct {
+            s32 x; // Horizontal corner displacement or half-width, in pixels
+            s32 y; // Vertical corner displacement or half-height, in pixels
+        } corner;
+        struct {
+            s32 inner; // Inner ring radius, in pixels
+            s32 outer; // Outer ring radius, in pixels
+        } ring;
+        struct {
+            s32 outer; // Outer burst radius, in pixels
+            s32 inner; // Inner burst radius, in pixels
+        } burst;
+        struct {
+            s32 radius;    // Distance from the centre to a spike's base, in pixels
+            s32 halfWidth; // Transverse half-width of a spike, in pixels
+        } spike;
+    } extent;              // Sizing workspace reused for the current screen-space construction
+    u16 screenX;           // Raw projected centre X; adjacent to screenY for the GTE word store
+    u16 screenY;           // Raw projected centre Y
+} EffectShapeScratch;
+STATIC_ASSERT_SIZEOF(EffectShapeScratch, 0x1C);
 
 /// 0x118-byte scratch from the scratch stack used by `Gp_DrawBandEx`. Holds
 /// the two 16-vertex rings of a shaded band: `inner[i]` is the ring of
@@ -179,7 +190,7 @@ typedef struct _GpQuadScratch {
 STATIC_ASSERT_SIZEOF(GpQuadScratch, 0x38);
 
 /// The scratch-pad block of a billboard quad spun about one projected point,
-/// holding what `GpFxQuadScratch` holds in a different order: `vec` is the
+/// holding the corner form of `EffectShapeScratch` in a different order: `vec` is the
 /// point, and one RTPS fills `sx`, `sy`, `flag` and `otz`. `dx` and `dy` are
 /// the rotated half extents scaled by the depth, added to and subtracted from
 /// the projected point to place the corners of the quad; only their low

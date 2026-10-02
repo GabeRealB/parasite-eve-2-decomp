@@ -117,37 +117,37 @@ s8 D_shelter_b1_pod_service_gantry_8018256C[8] = { 0 };
 /// anything higher the fixed CLUT 0x428F.
 static void func_shelter_b1_pod_service_gantry_8017DF70(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
-    void**           scratch;
-    u8*              head;
-    GpFxQuadScratch* block;
-    POLY_FT4*        prim;
-    u16              bank;
-    u32              idx;
-    u16              col;
-    u16              row;
-    s32              u0;
-    s32              v0;
-    s32              ang;
+    void**              scratch;
+    EffectShapeScratch* head;
+    EffectShapeScratch* block;
+    POLY_FT4*           prim;
+    u16                 bank;
+    u32                 idx;
+    u16                 col;
+    u16                 row;
+    s32                 u0;
+    s32                 v0;
+    s32                 ang;
 
     idx      = arg1;
     idx     &= 0xFFF;
     bank     = arg1 >> 12;
     scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
-    *scratch = head - 0x1C;
-    block    = (GpFxQuadScratch*)(head - 0x1C);
-    Mem_Set(block, 0, 0x1C);
-    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)arg0->workm.t[0];
-    block->vec.vy                             = (u16)arg0->workm.t[1];
-    block->vec.vz                             = (u16)arg0->workm.t[2];
+    *scratch = head - 1;
+    block    = head - 1;
+    Mem_Set(block, 0, sizeof(*block));
+    (head - 1)->worldPoint.vx = (u16)arg0->workm.t[0];
+    block->worldPoint.vy      = (u16)arg0->workm.t[1];
+    block->worldPoint.vz      = (u16)arg0->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec);
+    gte_ldv0(&block->worldPoint);
     gte_rtps();
-    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
+    gte_stsxy(&(head - 1)->screenX);
+    gte_stflg(&(head - 1)->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&(head - 1)->depth);
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -164,23 +164,23 @@ static void func_shelter_b1_pod_service_gantry_8017DF70(GfxCoord* arg0, u16 arg1
         u0  = col * 0x30;
         v0  = row * 0x30;
         setUV4(prim, u0, v0 + 0x70, u0 + 0x2F, v0 + 0x70, u0, v0 + 0x9F, u0 + 0x2F, v0 + 0x9F);
-        block->dx = (((arg2 * 47) / block->otz) * rsin(ang)) >> 12;
-        block->dy = (((arg2 * 47) / block->otz) * rcos(ang)) >> 12;
-        prim->x0  = block->sx + (u16)block->dx;
-        prim->x3  = block->sx - (u16)block->dx;
-        prim->y0  = block->sy - (u16)block->dy;
-        idx       = ang + 0x400;
-        prim->y3  = block->sy + (u16)block->dy;
-        block->dx = (((arg2 * 47) / block->otz) * rsin(idx)) >> 12;
-        block->dy = (((arg2 * 47) / block->otz) * rcos(idx)) >> 12;
-        prim->x1  = block->sx + (u16)block->dx;
-        prim->x2  = block->sx - (u16)block->dx;
-        prim->y1  = block->sy - (u16)block->dy;
-        prim->y2  = block->sy + (u16)block->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        block->extent.corner.x = (((arg2 * 47) / block->depth) * rsin(ang)) >> 12;
+        block->extent.corner.y = (((arg2 * 47) / block->depth) * rcos(ang)) >> 12;
+        prim->x0               = block->screenX + (u16)block->extent.corner.x;
+        prim->x3               = block->screenX - (u16)block->extent.corner.x;
+        prim->y0               = block->screenY - (u16)block->extent.corner.y;
+        idx                    = ang + 0x400;
+        prim->y3               = block->screenY + (u16)block->extent.corner.y;
+        block->extent.corner.x = (((arg2 * 47) / block->depth) * rsin(idx)) >> 12;
+        block->extent.corner.y = (((arg2 * 47) / block->depth) * rcos(idx)) >> 12;
+        prim->x1               = block->screenX + (u16)block->extent.corner.x;
+        prim->x2               = block->screenX - (u16)block->extent.corner.x;
+        prim->y1               = block->screenY - (u16)block->extent.corner.y;
+        prim->y2               = block->screenY + (u16)block->extent.corner.y;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }
 
 /// Draws a camera-facing sprite at `arg0`'s world position: the point is
@@ -192,36 +192,36 @@ static void func_shelter_b1_pod_service_gantry_8017DF70(GfxCoord* arg0, u16 arg1
 /// texture grid, and any bit above them selects CLUT 0x428F instead of 0x43D0.
 static void func_shelter_b1_pod_service_gantry_8017E400(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
-    void**           scratch;
-    u8*              head;
-    GpFxQuadScratch* block;
-    POLY_FT4*        prim;
-    u16              bank;
-    u16              col;
-    u16              row;
-    s32              u0;
-    s32              v0;
-    s32              ang;
-    s32              ang2;
+    void**              scratch;
+    EffectShapeScratch* head;
+    EffectShapeScratch* block;
+    POLY_FT4*           prim;
+    u16                 bank;
+    u16                 col;
+    u16                 row;
+    s32                 u0;
+    s32                 v0;
+    s32                 ang;
+    s32                 ang2;
 
     bank     = arg1 >> 12;
     arg1    &= 0xFFF;
     scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
-    *scratch = head - 0x1C;
-    block    = (GpFxQuadScratch*)(head - 0x1C);
-    Mem_Set(block, 0, 0x1C);
-    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)arg0->workm.t[0];
-    block->vec.vy                             = (u16)arg0->workm.t[1];
-    block->vec.vz                             = (u16)arg0->workm.t[2];
+    *scratch = head - 1;
+    block    = head - 1;
+    Mem_Set(block, 0, sizeof(*block));
+    (head - 1)->worldPoint.vx = (u16)arg0->workm.t[0];
+    block->worldPoint.vy      = (u16)arg0->workm.t[1];
+    block->worldPoint.vz      = (u16)arg0->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec);
+    gte_ldv0(&block->worldPoint);
     gte_rtps();
-    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
+    gte_stsxy(&(head - 1)->screenX);
+    gte_stflg(&(head - 1)->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&(head - 1)->depth);
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -234,23 +234,23 @@ static void func_shelter_b1_pod_service_gantry_8017E400(GfxCoord* arg0, u16 arg1
         u0          = col * 0x30;
         v0          = row * 0x30;
         setUV4(prim, u0, v0 - 0x80, u0 + 0x2F, v0 - 0x80, u0, v0 - 0x51, u0 + 0x2F, v0 - 0x51);
-        block->dx = (((arg2 * 47) / block->otz) * rsin(ang)) >> 12;
-        block->dy = (((arg2 * 47) / block->otz) * rcos(ang)) >> 12;
-        prim->x0  = block->sx + (u16)block->dx;
-        prim->x3  = block->sx - (u16)block->dx;
-        prim->y0  = block->sy - (u16)block->dy;
-        ang2      = ang + 0x400;
-        prim->y3  = block->sy + (u16)block->dy;
-        block->dx = (((arg2 * 47) / block->otz) * rsin(ang2)) >> 12;
-        block->dy = (((arg2 * 47) / block->otz) * rcos(ang2)) >> 12;
-        prim->x1  = block->sx + (u16)block->dx;
-        prim->x2  = block->sx - (u16)block->dx;
-        prim->y1  = block->sy - (u16)block->dy;
-        prim->y2  = block->sy + (u16)block->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        block->extent.corner.x = (((arg2 * 47) / block->depth) * rsin(ang)) >> 12;
+        block->extent.corner.y = (((arg2 * 47) / block->depth) * rcos(ang)) >> 12;
+        prim->x0               = block->screenX + (u16)block->extent.corner.x;
+        prim->x3               = block->screenX - (u16)block->extent.corner.x;
+        prim->y0               = block->screenY - (u16)block->extent.corner.y;
+        ang2                   = ang + 0x400;
+        prim->y3               = block->screenY + (u16)block->extent.corner.y;
+        block->extent.corner.x = (((arg2 * 47) / block->depth) * rsin(ang2)) >> 12;
+        block->extent.corner.y = (((arg2 * 47) / block->depth) * rcos(ang2)) >> 12;
+        prim->x1               = block->screenX + (u16)block->extent.corner.x;
+        prim->x2               = block->screenX - (u16)block->extent.corner.x;
+        prim->y1               = block->screenY - (u16)block->extent.corner.y;
+        prim->y2               = block->screenY + (u16)block->extent.corner.y;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }
 
 #include "../../shared/water_drift_task_u16.inc.c"

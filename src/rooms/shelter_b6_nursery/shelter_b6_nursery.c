@@ -1408,28 +1408,28 @@ void func_shelter_b6_nursery_80181820(Task* task)
 
 static void func_shelter_b6_nursery_80181EDC(GfxCoord* coord, u16 arg1, s16 arg2, s16 arg3)
 {
-    void**           scratch;
-    u8*              head;
-    GpFxQuadScratch* block;
-    POLY_FT4*        prim;
-    SVECTOR*         vec;
-    s32              u0;
-    s32              v0;
-    s32              ang;
-    s32              ang2;
-    u16              vz;
-    u16              col;
-    u16              row;
+    void**              scratch;
+    EffectShapeScratch* head;
+    EffectShapeScratch* block;
+    POLY_FT4*           prim;
+    SVECTOR*            vec;
+    s32                 u0;
+    s32                 v0;
+    s32                 ang;
+    s32                 ang2;
+    u16                 vz;
+    u16                 col;
+    u16                 row;
 
-    scratch                                   = SCRATCH_STACK_CURSOR_SLOT;
-    head                                      = *scratch;
-    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)coord->workm.t[0];
-    block                                     = (GpFxQuadScratch*)(head - 0x1C);
-    block->vec.vy                             = (u16)coord->workm.t[1];
-    vz                                        = (u16)coord->workm.t[2];
-    *scratch                                  = block;
-    block->vec.vz                             = vz;
-    vec                                       = &block->vec;
+    scratch                   = SCRATCH_STACK_CURSOR_SLOT;
+    head                      = *scratch;
+    (head - 1)->worldPoint.vx = (u16)coord->workm.t[0];
+    block                     = head - 1;
+    block->worldPoint.vy      = (u16)coord->workm.t[1];
+    vz                        = (u16)coord->workm.t[2];
+    *scratch                  = block;
+    block->worldPoint.vz      = vz;
+    vec                       = &block->worldPoint;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
@@ -1438,11 +1438,11 @@ static void func_shelter_b6_nursery_80181EDC(GfxCoord* coord, u16 arg1, s16 arg2
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
-    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-        if (block->otz >= 0x41) {
+    gte_stsxy(&(head - 1)->screenX);
+    gte_stflg(&(head - 1)->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&(head - 1)->depth);
+        if (block->depth >= 0x41) {
             prim->tpage = 0x2B;
             prim->clut  = 0x4384;
             prim->code |= 3;
@@ -1451,25 +1451,25 @@ static void func_shelter_b6_nursery_80181EDC(GfxCoord* coord, u16 arg1, s16 arg2
             u0          = col * 48;
             v0          = row * 48;
             setUV4(prim, u0, v0 + 0x28, u0 + 0x2F, v0 + 0x28, u0, v0 + 0x57, u0 + 0x2F, v0 + 0x57);
-            ang       = arg3;
-            block->dx = (((arg2 * 47) / block->otz) * rsin(ang)) >> 12;
-            block->dy = (((arg2 * 47) / block->otz) * rcos(ang)) >> 12;
-            prim->x0  = block->sx + (u16)block->dx;
-            prim->x3  = block->sx - (u16)block->dx;
-            prim->y0  = block->sy - (u16)block->dy;
-            ang2      = ang + 0x400;
-            prim->y3  = block->sy + (u16)block->dy;
-            block->dx = (((arg2 * 47) / block->otz) * rsin(ang2)) >> 12;
-            block->dy = (((arg2 * 47) / block->otz) * rcos(ang2)) >> 12;
-            prim->x1  = block->sx + (u16)block->dx;
-            prim->x2  = block->sx - (u16)block->dx;
-            prim->y1  = block->sy - (u16)block->dy;
-            prim->y2  = block->sy + (u16)block->dy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            ang                    = arg3;
+            block->extent.corner.x = (((arg2 * 47) / block->depth) * rsin(ang)) >> 12;
+            block->extent.corner.y = (((arg2 * 47) / block->depth) * rcos(ang)) >> 12;
+            prim->x0               = block->screenX + (u16)block->extent.corner.x;
+            prim->x3               = block->screenX - (u16)block->extent.corner.x;
+            prim->y0               = block->screenY - (u16)block->extent.corner.y;
+            ang2                   = ang + 0x400;
+            prim->y3               = block->screenY + (u16)block->extent.corner.y;
+            block->extent.corner.x = (((arg2 * 47) / block->depth) * rsin(ang2)) >> 12;
+            block->extent.corner.y = (((arg2 * 47) / block->depth) * rcos(ang2)) >> 12;
+            prim->x1               = block->screenX + (u16)block->extent.corner.x;
+            prim->x2               = block->screenX - (u16)block->extent.corner.x;
+            prim->y1               = block->screenY - (u16)block->extent.corner.y;
+            prim->y2               = block->screenY + (u16)block->extent.corner.y;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }
 
 #define SPRITE_QUAD_TPAGE     0x2B

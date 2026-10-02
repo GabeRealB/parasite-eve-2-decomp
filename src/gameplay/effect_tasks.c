@@ -731,15 +731,15 @@ void Gp_EffCtlTask6C(Task* arg0)
 
 void Gp_EffSprTask34(Task* arg0)
 {
-    EffectWork*      mem;
-    GfxCoord*        coord;
-    u8*              head;
-    GpFxQuadScratch* block;
-    GpFxQuadScratch* vecp;
-    POLY_FT4*        prim;
-    s16              flag;
-    s32              rng;
-    u16              vz;
+    EffectWork*         mem;
+    GfxCoord*           coord;
+    EffectShapeScratch* head;
+    EffectShapeScratch* block;
+    EffectShapeScratch* projectionScratch;
+    POLY_FT4*           prim;
+    s16                 flag;
+    s32                 rng;
+    u16                 vz;
 
     mem   = arg0->spawnArg2.pointer;
     flag  = gRoomEffectState->effectControl;
@@ -752,53 +752,53 @@ void Gp_EffSprTask34(Task* arg0)
             gRandomLcgState = rng;
             mem->angle      = arg0->spawnArg1.halves.low;
         }
-        head                                      = SCRATCH_STACK_CURSOR(u8);
-        ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)coord->workm.t[0];
-        block                                     = (GpFxQuadScratch*)(head - 0x1C);
-        block->vec.vy                             = (u16)coord->workm.t[1];
-        vz                                        = (u16)coord->workm.t[2];
-        SCRATCH_STACK_CURSOR(GpFxQuadScratch)     = block;
-        block->vec.vz                             = vz;
-        vecp                                      = block;
+        head                                     = SCRATCH_STACK_CURSOR(EffectShapeScratch);
+        (head - 1)->worldPoint.vx                = (u16)coord->workm.t[0];
+        block                                    = head - 1;
+        block->worldPoint.vy                     = (u16)coord->workm.t[1];
+        vz                                       = (u16)coord->workm.t[2];
+        SCRATCH_STACK_CURSOR(EffectShapeScratch) = block;
+        block->worldPoint.vz                     = vz;
+        projectionScratch                        = block;
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&vecp->vec);
+        gte_ldv0(&projectionScratch->worldPoint);
         gte_rtps();
-        gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
-        gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
-        if (block->flag >= ROOM_EFFECT_CONTROL_RUNNING) {
-            gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-            block->otz     = block->otz + 1;
+        gte_stsxy(&(head - 1)->screenX);
+        gte_stflg(&(head - 1)->projectionFlags);
+        if (block->projectionFlags >= 0) {
+            gte_stszotz(&(head - 1)->depth);
+            block->depth   = block->depth + 1;
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
             setcode(prim, 0x2F);
-            prim->tpage = 0x2A;
-            prim->clut  = 0x4340;
-            prim->u0    = mem->age * 40;
-            prim->v0    = 0xD8;
-            prim->u1    = mem->age * 40 + 0x27;
-            prim->v1    = 0xD8;
-            prim->u2    = mem->age * 40;
-            prim->v2    = 0xFF;
-            prim->u3    = mem->age * 40 + 0x27;
-            prim->v3    = 0xFF;
-            block->dx   = (((mem->angle * 23) / block->otz) * rsin(mem->scale)) >> 12;
-            block->dy   = (((mem->angle * 23) / block->otz) * rcos(mem->scale)) >> 12;
-            prim->x0    = block->sx + (u16)block->dx;
-            prim->x3    = block->sx - (u16)block->dx;
-            prim->y0    = block->sy - (u16)block->dy;
-            prim->y3    = block->sy + (u16)block->dy;
-            block->dx   = (((mem->angle * 23) / block->otz) * rsin(mem->scale + 0x400)) >> 12;
-            block->dy   = (((mem->angle * 23) / block->otz) * rcos(mem->scale + 0x400)) >> 12;
-            prim->x1    = block->sx + (u16)block->dx;
-            prim->x2    = block->sx - (u16)block->dx;
-            prim->y1    = block->sy - (u16)block->dy;
-            prim->y2    = block->sy + (u16)block->dy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            prim->tpage            = 0x2A;
+            prim->clut             = 0x4340;
+            prim->u0               = mem->age * 40;
+            prim->v0               = 0xD8;
+            prim->u1               = mem->age * 40 + 0x27;
+            prim->v1               = 0xD8;
+            prim->u2               = mem->age * 40;
+            prim->v2               = 0xFF;
+            prim->u3               = mem->age * 40 + 0x27;
+            prim->v3               = 0xFF;
+            block->extent.corner.x = (((mem->angle * 23) / block->depth) * rsin(mem->scale)) >> 12;
+            block->extent.corner.y = (((mem->angle * 23) / block->depth) * rcos(mem->scale)) >> 12;
+            prim->x0               = block->screenX + (u16)block->extent.corner.x;
+            prim->x3               = block->screenX - (u16)block->extent.corner.x;
+            prim->y0               = block->screenY - (u16)block->extent.corner.y;
+            prim->y3               = block->screenY + (u16)block->extent.corner.y;
+            block->extent.corner.x = (((mem->angle * 23) / block->depth) * rsin(mem->scale + 0x400)) >> 12;
+            block->extent.corner.y = (((mem->angle * 23) / block->depth) * rcos(mem->scale + 0x400)) >> 12;
+            prim->x1               = block->screenX + (u16)block->extent.corner.x;
+            prim->x2               = block->screenX - (u16)block->extent.corner.x;
+            prim->y1               = block->screenY - (u16)block->extent.corner.y;
+            prim->y2               = block->screenY + (u16)block->extent.corner.y;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
         }
-        SCRATCH_STACK_RELEASE_BYTES(0x1C);
+        SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
         if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
@@ -814,15 +814,15 @@ void Gp_EffSprTask34(Task* arg0)
 
 void Gp_EffSprTask72(Task* arg0)
 {
-    EffectWork*      mem;
-    GfxCoord*        coord;
-    u8*              head;
-    GpFxQuadScratch* block;
-    GpFxQuadScratch* vecp;
-    POLY_FT4*        prim;
-    s16              flag;
-    s32              rng;
-    u16              vz;
+    EffectWork*         mem;
+    GfxCoord*           coord;
+    EffectShapeScratch* head;
+    EffectShapeScratch* block;
+    EffectShapeScratch* projectionScratch;
+    POLY_FT4*           prim;
+    s16                 flag;
+    s32                 rng;
+    u16                 vz;
 
     mem   = arg0->spawnArg2.pointer;
     flag  = gRoomEffectState->effectControl;
@@ -836,53 +836,53 @@ void Gp_EffSprTask72(Task* arg0)
             mem->angle      = arg0->spawnArg1.halves.low;
             arg0->state     = 1;
         }
-        head                                      = SCRATCH_STACK_CURSOR(u8);
-        ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)coord->workm.t[0];
-        block                                     = (GpFxQuadScratch*)(head - 0x1C);
-        block->vec.vy                             = (u16)coord->workm.t[1];
-        vz                                        = (u16)coord->workm.t[2];
-        SCRATCH_STACK_CURSOR(GpFxQuadScratch)     = block;
-        block->vec.vz                             = vz;
-        vecp                                      = block;
+        head                                     = SCRATCH_STACK_CURSOR(EffectShapeScratch);
+        (head - 1)->worldPoint.vx                = (u16)coord->workm.t[0];
+        block                                    = head - 1;
+        block->worldPoint.vy                     = (u16)coord->workm.t[1];
+        vz                                       = (u16)coord->workm.t[2];
+        SCRATCH_STACK_CURSOR(EffectShapeScratch) = block;
+        block->worldPoint.vz                     = vz;
+        projectionScratch                        = block;
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&vecp->vec);
+        gte_ldv0(&projectionScratch->worldPoint);
         gte_rtps();
-        gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
-        gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
-        if (block->flag >= ROOM_EFFECT_CONTROL_RUNNING) {
-            gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-            block->otz     = block->otz + 1;
+        gte_stsxy(&(head - 1)->screenX);
+        gte_stflg(&(head - 1)->projectionFlags);
+        if (block->projectionFlags >= 0) {
+            gte_stszotz(&(head - 1)->depth);
+            block->depth   = block->depth + 1;
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
             setcode(prim, 0x2F);
-            prim->tpage = 0x28;
-            prim->clut  = 0x4288;
-            prim->u0    = mem->age * 32;
-            prim->v0    = 0x38;
-            prim->u1    = mem->age * 32 + 0x1F;
-            prim->v1    = 0x38;
-            prim->u2    = mem->age * 32;
-            prim->v2    = 0x57;
-            prim->u3    = mem->age * 32 + 0x1F;
-            prim->v3    = 0x57;
-            block->dx   = (((mem->angle * 31) / block->otz) * rsin(mem->scale)) >> 12;
-            block->dy   = (((mem->angle * 31) / block->otz) * rcos(mem->scale)) >> 12;
-            prim->x0    = block->sx + (u16)block->dx;
-            prim->x3    = block->sx - (u16)block->dx;
-            prim->y0    = block->sy - (u16)block->dy;
-            prim->y3    = block->sy + (u16)block->dy;
-            block->dx   = (((mem->angle * 31) / block->otz) * rsin(mem->scale + 0x400)) >> 12;
-            block->dy   = (((mem->angle * 31) / block->otz) * rcos(mem->scale + 0x400)) >> 12;
-            prim->x1    = block->sx + (u16)block->dx;
-            prim->x2    = block->sx - (u16)block->dx;
-            prim->y1    = block->sy - (u16)block->dy;
-            prim->y2    = block->sy + (u16)block->dy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            prim->tpage            = 0x28;
+            prim->clut             = 0x4288;
+            prim->u0               = mem->age * 32;
+            prim->v0               = 0x38;
+            prim->u1               = mem->age * 32 + 0x1F;
+            prim->v1               = 0x38;
+            prim->u2               = mem->age * 32;
+            prim->v2               = 0x57;
+            prim->u3               = mem->age * 32 + 0x1F;
+            prim->v3               = 0x57;
+            block->extent.corner.x = (((mem->angle * 31) / block->depth) * rsin(mem->scale)) >> 12;
+            block->extent.corner.y = (((mem->angle * 31) / block->depth) * rcos(mem->scale)) >> 12;
+            prim->x0               = block->screenX + (u16)block->extent.corner.x;
+            prim->x3               = block->screenX - (u16)block->extent.corner.x;
+            prim->y0               = block->screenY - (u16)block->extent.corner.y;
+            prim->y3               = block->screenY + (u16)block->extent.corner.y;
+            block->extent.corner.x = (((mem->angle * 31) / block->depth) * rsin(mem->scale + 0x400)) >> 12;
+            block->extent.corner.y = (((mem->angle * 31) / block->depth) * rcos(mem->scale + 0x400)) >> 12;
+            prim->x1               = block->screenX + (u16)block->extent.corner.x;
+            prim->x2               = block->screenX - (u16)block->extent.corner.x;
+            prim->y1               = block->screenY - (u16)block->extent.corner.y;
+            prim->y2               = block->screenY + (u16)block->extent.corner.y;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
         }
-        SCRATCH_STACK_RELEASE_BYTES(0x1C);
+        SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
         if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
@@ -997,29 +997,29 @@ void Gp_EffLineTaskA3(Task* arg0)
 
 static void Gp_DrawEffSprite6C(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    u8*              head;
-    GpFxQuadScratch* block;
-    GpFxQuadScratch* vecp;
-    POLY_FT4*        prim;
-    s32              ang;
-    u16              vz;
+    EffectShapeScratch* head;
+    EffectShapeScratch* block;
+    EffectShapeScratch* projectionScratch;
+    POLY_FT4*           prim;
+    s32                 ang;
+    u16                 vz;
 
-    head                                      = SCRATCH_STACK_CURSOR(u8);
-    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)arg0->workm.t[0];
-    block                                     = (GpFxQuadScratch*)(head - 0x1C);
-    block->vec.vy                             = (u16)arg0->workm.t[1];
-    vz                                        = (u16)arg0->workm.t[2];
-    SCRATCH_STACK_CURSOR(GpFxQuadScratch)     = block;
-    block->vec.vz                             = vz;
-    vecp                                      = block;
+    head                                     = SCRATCH_STACK_CURSOR(EffectShapeScratch);
+    (head - 1)->worldPoint.vx                = (u16)arg0->workm.t[0];
+    block                                    = head - 1;
+    block->worldPoint.vy                     = (u16)arg0->workm.t[1];
+    vz                                       = (u16)arg0->workm.t[2];
+    SCRATCH_STACK_CURSOR(EffectShapeScratch) = block;
+    block->worldPoint.vz                     = vz;
+    projectionScratch                        = block;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&vecp->vec);
+    gte_ldv0(&projectionScratch->worldPoint);
     gte_rtps();
-    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
+    gte_stsxy(&(head - 1)->screenX);
+    gte_stflg(&(head - 1)->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&(head - 1)->depth);
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -1027,39 +1027,39 @@ static void Gp_DrawEffSprite6C(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
         prim->tpage = 0x29;
         prim->clut  = 0x428B;
         setUVWH(prim, 0x70, 0xC8, 0x37, 0x37);
-        block->dx = ((((s16)arg1 * 55) / block->otz) * rsin((s16)arg2)) >> 12;
-        block->dy = ((((s16)arg1 * 55) / block->otz) * rcos((s16)arg2)) >> 12;
-        prim->x0  = block->sx + (u16)block->dx;
-        prim->x3  = block->sx - (u16)block->dx;
-        prim->y0  = block->sy - (u16)block->dy;
-        prim->y3  = block->sy + (u16)block->dy;
-        ang       = (s16)arg2 + 0x400;
-        block->dx = ((((s16)arg1 * 55) / block->otz) * rsin(ang)) >> 12;
-        block->dy = ((((s16)arg1 * 55) / block->otz) * rcos(ang)) >> 12;
-        prim->x1  = block->sx + (u16)block->dx;
-        prim->x2  = block->sx - (u16)block->dx;
-        prim->y1  = block->sy - (u16)block->dy;
-        prim->y2  = block->sy + (u16)block->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        block->extent.corner.x = ((((s16)arg1 * 55) / block->depth) * rsin((s16)arg2)) >> 12;
+        block->extent.corner.y = ((((s16)arg1 * 55) / block->depth) * rcos((s16)arg2)) >> 12;
+        prim->x0               = block->screenX + (u16)block->extent.corner.x;
+        prim->x3               = block->screenX - (u16)block->extent.corner.x;
+        prim->y0               = block->screenY - (u16)block->extent.corner.y;
+        prim->y3               = block->screenY + (u16)block->extent.corner.y;
+        ang                    = (s16)arg2 + 0x400;
+        block->extent.corner.x = ((((s16)arg1 * 55) / block->depth) * rsin(ang)) >> 12;
+        block->extent.corner.y = ((((s16)arg1 * 55) / block->depth) * rcos(ang)) >> 12;
+        prim->x1               = block->screenX + (u16)block->extent.corner.x;
+        prim->x2               = block->screenX - (u16)block->extent.corner.x;
+        prim->y1               = block->screenY - (u16)block->extent.corner.y;
+        prim->y2               = block->screenY + (u16)block->extent.corner.y;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }
 
 void Gp_EffSprTask35(Task* arg0)
 {
-    EffectWork*      mem;
-    GfxCoord*        coord;
-    u8*              head;
-    GpFxQuadScratch* block;
-    GpFxQuadScratch* vecp;
-    POLY_FT4*        prim;
-    s16              flag;
-    s16              val;
-    s32              rng;
-    s32              t2;
-    s32              quot;
-    u16              vz;
+    EffectWork*         mem;
+    GfxCoord*           coord;
+    EffectShapeScratch* head;
+    EffectShapeScratch* block;
+    EffectShapeScratch* projectionScratch;
+    POLY_FT4*           prim;
+    s16                 flag;
+    s16                 val;
+    s32                 rng;
+    s32                 t2;
+    s32                 quot;
+    u16                 vz;
 
     mem   = arg0->spawnArg2.pointer;
     flag  = gRoomEffectState->effectControl;
@@ -1091,56 +1091,56 @@ void Gp_EffSprTask35(Task* arg0)
             arg0->state = 1;
         }
         Gp_UpdateCoord(coord);
-        head                                      = SCRATCH_STACK_CURSOR(u8);
-        ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)coord->workm.t[0];
-        block                                     = (GpFxQuadScratch*)(head - 0x1C);
-        block->vec.vy                             = (u16)coord->workm.t[1];
-        vz                                        = (u16)coord->workm.t[2];
-        SCRATCH_STACK_CURSOR(GpFxQuadScratch)     = block;
-        block->vec.vz                             = vz;
-        vecp                                      = block;
+        head                                     = SCRATCH_STACK_CURSOR(EffectShapeScratch);
+        (head - 1)->worldPoint.vx                = (u16)coord->workm.t[0];
+        block                                    = head - 1;
+        block->worldPoint.vy                     = (u16)coord->workm.t[1];
+        vz                                       = (u16)coord->workm.t[2];
+        SCRATCH_STACK_CURSOR(EffectShapeScratch) = block;
+        block->worldPoint.vz                     = vz;
+        projectionScratch                        = block;
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&vecp->vec);
+        gte_ldv0(&projectionScratch->worldPoint);
         gte_rtps();
-        gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
-        gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
-        if (block->flag >= ROOM_EFFECT_CONTROL_RUNNING) {
-            gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
+        gte_stsxy(&(head - 1)->screenX);
+        gte_stflg(&(head - 1)->projectionFlags);
+        if (block->projectionFlags >= 0) {
+            gte_stszotz(&(head - 1)->depth);
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
             setcode(prim, 0x2F);
-            prim->tpage = 0x28;
-            prim->clut  = 0x4242;
-            quot        = mem->age / mem->period;
-            prim->v0    = 0;
-            prim->u0    = quot * 24 + 0x30;
-            quot        = mem->age / mem->period;
-            prim->v1    = 0;
-            prim->u1    = quot * 24 + 0x47;
-            quot        = mem->age / mem->period;
-            prim->v2    = 0x17;
-            prim->u2    = quot * 24 + 0x30;
-            quot        = mem->age / mem->period;
-            prim->v3    = 0x17;
-            prim->u3    = quot * 24 + 0x47;
-            block->dx   = (((mem->angle * 23) / block->otz) * rsin(mem->scale)) >> 12;
-            block->dy   = (((mem->angle * 23) / block->otz) * rcos(mem->scale)) >> 12;
-            prim->x0    = block->sx + (u16)block->dx;
-            prim->x3    = block->sx - (u16)block->dx;
-            prim->y0    = block->sy - (u16)block->dy;
-            prim->y3    = block->sy + (u16)block->dy;
-            block->dx   = (((mem->angle * 23) / block->otz) * rsin(mem->scale + 0x400)) >> 12;
-            block->dy   = (((mem->angle * 23) / block->otz) * rcos(mem->scale + 0x400)) >> 12;
-            prim->x1    = block->sx + (u16)block->dx;
-            prim->x2    = block->sx - (u16)block->dx;
-            prim->y1    = block->sy - (u16)block->dy;
-            prim->y2    = block->sy + (u16)block->dy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            prim->tpage            = 0x28;
+            prim->clut             = 0x4242;
+            quot                   = mem->age / mem->period;
+            prim->v0               = 0;
+            prim->u0               = quot * 24 + 0x30;
+            quot                   = mem->age / mem->period;
+            prim->v1               = 0;
+            prim->u1               = quot * 24 + 0x47;
+            quot                   = mem->age / mem->period;
+            prim->v2               = 0x17;
+            prim->u2               = quot * 24 + 0x30;
+            quot                   = mem->age / mem->period;
+            prim->v3               = 0x17;
+            prim->u3               = quot * 24 + 0x47;
+            block->extent.corner.x = (((mem->angle * 23) / block->depth) * rsin(mem->scale)) >> 12;
+            block->extent.corner.y = (((mem->angle * 23) / block->depth) * rcos(mem->scale)) >> 12;
+            prim->x0               = block->screenX + (u16)block->extent.corner.x;
+            prim->x3               = block->screenX - (u16)block->extent.corner.x;
+            prim->y0               = block->screenY - (u16)block->extent.corner.y;
+            prim->y3               = block->screenY + (u16)block->extent.corner.y;
+            block->extent.corner.x = (((mem->angle * 23) / block->depth) * rsin(mem->scale + 0x400)) >> 12;
+            block->extent.corner.y = (((mem->angle * 23) / block->depth) * rcos(mem->scale + 0x400)) >> 12;
+            prim->x1               = block->screenX + (u16)block->extent.corner.x;
+            prim->x2               = block->screenX - (u16)block->extent.corner.x;
+            prim->y1               = block->screenY - (u16)block->extent.corner.y;
+            prim->y2               = block->screenY + (u16)block->extent.corner.y;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
         }
-        SCRATCH_STACK_RELEASE_BYTES(0x1C);
+        SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
         if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
@@ -1159,16 +1159,16 @@ void Gp_EffSprTask35(Task* arg0)
 
 void Gp_EffSprTask6F(Task* arg0)
 {
-    EffectWork*      mem;
-    GfxCoord*        coord;
-    u8*              head;
-    GpFxQuadScratch* block;
-    GpFxQuadScratch* vecp;
-    POLY_FT4*        prim;
-    s16              flag;
-    s32              t2;
-    s32              quot;
-    u16              vz;
+    EffectWork*         mem;
+    GfxCoord*           coord;
+    EffectShapeScratch* head;
+    EffectShapeScratch* block;
+    EffectShapeScratch* projectionScratch;
+    POLY_FT4*           prim;
+    s16                 flag;
+    s32                 t2;
+    s32                 quot;
+    u16                 vz;
 
     mem   = arg0->spawnArg2.pointer;
     flag  = gRoomEffectState->effectControl;
@@ -1197,56 +1197,56 @@ void Gp_EffSprTask6F(Task* arg0)
             gte_stsv(&mem->move);
             arg0->state = 1;
         }
-        head                                      = SCRATCH_STACK_CURSOR(u8);
-        ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)coord->workm.t[0];
-        block                                     = (GpFxQuadScratch*)(head - 0x1C);
-        block->vec.vy                             = (u16)coord->workm.t[1];
-        vz                                        = (u16)coord->workm.t[2];
-        SCRATCH_STACK_CURSOR(GpFxQuadScratch)     = block;
-        block->vec.vz                             = vz;
-        vecp                                      = block;
+        head                                     = SCRATCH_STACK_CURSOR(EffectShapeScratch);
+        (head - 1)->worldPoint.vx                = (u16)coord->workm.t[0];
+        block                                    = head - 1;
+        block->worldPoint.vy                     = (u16)coord->workm.t[1];
+        vz                                       = (u16)coord->workm.t[2];
+        SCRATCH_STACK_CURSOR(EffectShapeScratch) = block;
+        block->worldPoint.vz                     = vz;
+        projectionScratch                        = block;
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&vecp->vec);
+        gte_ldv0(&projectionScratch->worldPoint);
         gte_rtps();
-        gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
-        gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
-        if (block->flag >= ROOM_EFFECT_CONTROL_RUNNING) {
-            gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
+        gte_stsxy(&(head - 1)->screenX);
+        gte_stflg(&(head - 1)->projectionFlags);
+        if (block->projectionFlags >= 0) {
+            gte_stszotz(&(head - 1)->depth);
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
             setcode(prim, 0x2F);
-            prim->tpage = 0x28;
-            prim->clut  = 0x4253;
-            quot        = mem->age / mem->period;
-            prim->v0    = 0x18;
-            prim->u0    = quot * 32;
-            quot        = mem->age / mem->period;
-            prim->v1    = 0x18;
-            prim->u1    = quot * 32 + 0x1F;
-            quot        = mem->age / mem->period;
-            prim->v2    = 0x37;
-            prim->u2    = quot * 32;
-            quot        = mem->age / mem->period;
-            prim->v3    = 0x37;
-            prim->u3    = quot * 32 + 0x1F;
-            block->dx   = (((mem->angle * 31) / block->otz) * rsin(mem->scale)) >> 12;
-            block->dy   = (((mem->angle * 31) / block->otz) * rcos(mem->scale)) >> 12;
-            prim->x0    = block->sx + (u16)block->dx;
-            prim->x3    = block->sx - (u16)block->dx;
-            prim->y0    = block->sy - (u16)block->dy;
-            prim->y3    = block->sy + (u16)block->dy;
-            block->dx   = (((mem->angle * 31) / block->otz) * rsin(mem->scale + 0x400)) >> 12;
-            block->dy   = (((mem->angle * 31) / block->otz) * rcos(mem->scale + 0x400)) >> 12;
-            prim->x1    = block->sx + (u16)block->dx;
-            prim->x2    = block->sx - (u16)block->dx;
-            prim->y1    = block->sy - (u16)block->dy;
-            prim->y2    = block->sy + (u16)block->dy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            prim->tpage            = 0x28;
+            prim->clut             = 0x4253;
+            quot                   = mem->age / mem->period;
+            prim->v0               = 0x18;
+            prim->u0               = quot * 32;
+            quot                   = mem->age / mem->period;
+            prim->v1               = 0x18;
+            prim->u1               = quot * 32 + 0x1F;
+            quot                   = mem->age / mem->period;
+            prim->v2               = 0x37;
+            prim->u2               = quot * 32;
+            quot                   = mem->age / mem->period;
+            prim->v3               = 0x37;
+            prim->u3               = quot * 32 + 0x1F;
+            block->extent.corner.x = (((mem->angle * 31) / block->depth) * rsin(mem->scale)) >> 12;
+            block->extent.corner.y = (((mem->angle * 31) / block->depth) * rcos(mem->scale)) >> 12;
+            prim->x0               = block->screenX + (u16)block->extent.corner.x;
+            prim->x3               = block->screenX - (u16)block->extent.corner.x;
+            prim->y0               = block->screenY - (u16)block->extent.corner.y;
+            prim->y3               = block->screenY + (u16)block->extent.corner.y;
+            block->extent.corner.x = (((mem->angle * 31) / block->depth) * rsin(mem->scale + 0x400)) >> 12;
+            block->extent.corner.y = (((mem->angle * 31) / block->depth) * rcos(mem->scale + 0x400)) >> 12;
+            prim->x1               = block->screenX + (u16)block->extent.corner.x;
+            prim->x2               = block->screenX - (u16)block->extent.corner.x;
+            prim->y1               = block->screenY - (u16)block->extent.corner.y;
+            prim->y2               = block->screenY + (u16)block->extent.corner.y;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
         }
-        SCRATCH_STACK_RELEASE_BYTES(0x1C);
+        SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
         if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
@@ -1749,83 +1749,83 @@ void Gp_EffCtlTask3B(Task* arg0)
 
 static void Gp_DrawEffSprite3B(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
-    u8*              head;
-    GpFxQuadScratch* block;
-    GpFxQuadScratch* vecp;
-    POLY_FT4*        prim;
-    s32              uv;
-    s32              ang;
-    u16              vz;
+    EffectShapeScratch* head;
+    EffectShapeScratch* block;
+    EffectShapeScratch* projectionScratch;
+    POLY_FT4*           prim;
+    s32                 uv;
+    s32                 ang;
+    u16                 vz;
 
-    head                                      = SCRATCH_STACK_CURSOR(u8);
-    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)arg0->workm.t[0];
-    block                                     = (GpFxQuadScratch*)(head - 0x1C);
-    block->vec.vy                             = (u16)arg0->workm.t[1];
-    vz                                        = (u16)arg0->workm.t[2];
-    SCRATCH_STACK_CURSOR(GpFxQuadScratch)     = block;
-    block->vec.vz                             = vz;
-    vecp                                      = block;
+    head                                     = SCRATCH_STACK_CURSOR(EffectShapeScratch);
+    (head - 1)->worldPoint.vx                = (u16)arg0->workm.t[0];
+    block                                    = head - 1;
+    block->worldPoint.vy                     = (u16)arg0->workm.t[1];
+    vz                                       = (u16)arg0->workm.t[2];
+    SCRATCH_STACK_CURSOR(EffectShapeScratch) = block;
+    block->worldPoint.vz                     = vz;
+    projectionScratch                        = block;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&vecp->vec);
+    gte_ldv0(&projectionScratch->worldPoint);
     gte_rtps();
-    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-        block->otz     = block->otz + 1;
+    gte_stsxy(&(head - 1)->screenX);
+    gte_stflg(&(head - 1)->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&(head - 1)->depth);
+        block->depth   = block->depth + 1;
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
-        prim->tpage = 0x28;
-        prim->clut  = 0x4241;
-        uv          = arg1 * 0x18;
-        prim->u0    = uv - 0x70;
-        prim->u2    = uv - 0x70;
-        prim->v0    = 0;
-        prim->u1    = uv - 0x59;
-        prim->v1    = 0;
-        prim->v2    = 0x17;
-        prim->u3    = uv - 0x59;
-        prim->v3    = 0x17;
-        block->dx   = ((((s16)arg2 * 23) / block->otz) * rsin((s16)arg3)) >> 12;
-        block->dy   = ((((s16)arg2 * 23) / block->otz) * rcos((s16)arg3)) >> 12;
-        prim->x0    = block->sx + (u16)block->dx;
-        prim->x3    = block->sx - (u16)block->dx;
-        prim->y0    = block->sy - (u16)block->dy;
-        prim->y3    = block->sy + (u16)block->dy;
-        ang         = (s16)arg3 + 0x400;
-        block->dx   = ((((s16)arg2 * 23) / block->otz) * rsin(ang)) >> 12;
-        block->dy   = ((((s16)arg2 * 23) / block->otz) * rcos(ang)) >> 12;
-        prim->x1    = block->sx + (u16)block->dx;
-        prim->x2    = block->sx - (u16)block->dx;
-        prim->y1    = block->sy - (u16)block->dy;
-        prim->y2    = block->sy + (u16)block->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        prim->tpage            = 0x28;
+        prim->clut             = 0x4241;
+        uv                     = arg1 * 0x18;
+        prim->u0               = uv - 0x70;
+        prim->u2               = uv - 0x70;
+        prim->v0               = 0;
+        prim->u1               = uv - 0x59;
+        prim->v1               = 0;
+        prim->v2               = 0x17;
+        prim->u3               = uv - 0x59;
+        prim->v3               = 0x17;
+        block->extent.corner.x = ((((s16)arg2 * 23) / block->depth) * rsin((s16)arg3)) >> 12;
+        block->extent.corner.y = ((((s16)arg2 * 23) / block->depth) * rcos((s16)arg3)) >> 12;
+        prim->x0               = block->screenX + (u16)block->extent.corner.x;
+        prim->x3               = block->screenX - (u16)block->extent.corner.x;
+        prim->y0               = block->screenY - (u16)block->extent.corner.y;
+        prim->y3               = block->screenY + (u16)block->extent.corner.y;
+        ang                    = (s16)arg3 + 0x400;
+        block->extent.corner.x = ((((s16)arg2 * 23) / block->depth) * rsin(ang)) >> 12;
+        block->extent.corner.y = ((((s16)arg2 * 23) / block->depth) * rcos(ang)) >> 12;
+        prim->x1               = block->screenX + (u16)block->extent.corner.x;
+        prim->x2               = block->screenX - (u16)block->extent.corner.x;
+        prim->y1               = block->screenY - (u16)block->extent.corner.y;
+        prim->y2               = block->screenY + (u16)block->extent.corner.y;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }
 
 void Gp_EffSprTask5C(Task* arg0)
 {
-    u8*              head;
-    GpFxQuadScratch* block;
-    GpFxQuadScratch* vecp;
-    GfxCoord*        coord;
-    EffectWork*      mem;
-    POLY_FT4*        prim;
-    GpEffUv8*        rec;
-    s16              flag;
-    s16              scale;
-    s16              step;
-    s32              rng;
-    s32              i;
-    s32              n;
-    s32              t2;
-    s32              tmp;
-    u16              vz;
+    EffectShapeScratch* head;
+    EffectShapeScratch* block;
+    EffectShapeScratch* projectionScratch;
+    GfxCoord*           coord;
+    EffectWork*         mem;
+    POLY_FT4*           prim;
+    GpEffUv8*           rec;
+    s16                 flag;
+    s16                 scale;
+    s16                 step;
+    s32                 rng;
+    s32                 i;
+    s32                 n;
+    s32                 t2;
+    s32                 tmp;
+    u16                 vz;
 
     mem   = arg0->spawnArg2.pointer;
     flag  = gRoomEffectState->effectControl;
@@ -1893,55 +1893,55 @@ void Gp_EffSprTask5C(Task* arg0)
             }
             arg0->state = 1;
         }
-        head                                      = SCRATCH_STACK_CURSOR(u8);
-        ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)coord->workm.t[0];
-        block                                     = (GpFxQuadScratch*)(head - 0x1C);
-        block->vec.vy                             = (u16)coord->workm.t[1];
-        vz                                        = (u16)coord->workm.t[2];
-        SCRATCH_STACK_CURSOR(GpFxQuadScratch)     = block;
-        block->vec.vz                             = vz;
-        vecp                                      = block;
+        head                                     = SCRATCH_STACK_CURSOR(EffectShapeScratch);
+        (head - 1)->worldPoint.vx                = (u16)coord->workm.t[0];
+        block                                    = head - 1;
+        block->worldPoint.vy                     = (u16)coord->workm.t[1];
+        vz                                       = (u16)coord->workm.t[2];
+        SCRATCH_STACK_CURSOR(EffectShapeScratch) = block;
+        block->worldPoint.vz                     = vz;
+        projectionScratch                        = block;
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&vecp->vec);
+        gte_ldv0(&projectionScratch->worldPoint);
         gte_rtps();
-        gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
-        gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
-        if (block->flag >= ROOM_EFFECT_CONTROL_RUNNING) {
-            gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-            block->otz     = block->otz + 1;
+        gte_stsxy(&(head - 1)->screenX);
+        gte_stflg(&(head - 1)->projectionFlags);
+        if (block->projectionFlags >= 0) {
+            gte_stszotz(&(head - 1)->depth);
+            block->depth   = block->depth + 1;
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
             setcode(prim, 0x2C);
-            rec         = &D_80111E48[mem->age / mem->period];
-            prim->code |= 3;
-            prim->tpage = 0x29;
-            prim->clut  = (rec->clutY << 6) | ((rec->clutX >> 4) & 0x3F);
-            prim->u0    = rec->u;
-            prim->v0    = rec->v;
-            prim->u1    = rec->u + 0x27;
-            prim->v1    = rec->v;
-            prim->u2    = rec->u;
-            prim->v2    = rec->v + 0x27;
-            prim->u3    = rec->u + 0x27;
-            prim->v3    = rec->v + 0x27;
-            block->dx   = (((mem->scale * 0x27) / block->otz) * rsin(mem->angle)) >> 12;
-            block->dy   = (((mem->scale * 0x27) / block->otz) * rcos(mem->angle)) >> 12;
-            prim->x0    = block->sx + (u16)block->dx;
-            prim->x3    = block->sx - (u16)block->dx;
-            prim->y0    = block->sy - (u16)block->dy;
-            prim->y3    = block->sy + (u16)block->dy;
-            block->dx   = (((mem->scale * 0x27) / block->otz) * rsin(mem->angle + 0x400)) >> 12;
-            block->dy   = (((mem->scale * 0x27) / block->otz) * rcos(mem->angle + 0x400)) >> 12;
-            prim->x1    = block->sx + (u16)block->dx;
-            prim->x2    = block->sx - (u16)block->dx;
-            prim->y1    = block->sy - (u16)block->dy;
-            prim->y2    = block->sy + (u16)block->dy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            rec                    = &D_80111E48[mem->age / mem->period];
+            prim->code            |= 3;
+            prim->tpage            = 0x29;
+            prim->clut             = (rec->clutY << 6) | ((rec->clutX >> 4) & 0x3F);
+            prim->u0               = rec->u;
+            prim->v0               = rec->v;
+            prim->u1               = rec->u + 0x27;
+            prim->v1               = rec->v;
+            prim->u2               = rec->u;
+            prim->v2               = rec->v + 0x27;
+            prim->u3               = rec->u + 0x27;
+            prim->v3               = rec->v + 0x27;
+            block->extent.corner.x = (((mem->scale * 0x27) / block->depth) * rsin(mem->angle)) >> 12;
+            block->extent.corner.y = (((mem->scale * 0x27) / block->depth) * rcos(mem->angle)) >> 12;
+            prim->x0               = block->screenX + (u16)block->extent.corner.x;
+            prim->x3               = block->screenX - (u16)block->extent.corner.x;
+            prim->y0               = block->screenY - (u16)block->extent.corner.y;
+            prim->y3               = block->screenY + (u16)block->extent.corner.y;
+            block->extent.corner.x = (((mem->scale * 0x27) / block->depth) * rsin(mem->angle + 0x400)) >> 12;
+            block->extent.corner.y = (((mem->scale * 0x27) / block->depth) * rcos(mem->angle + 0x400)) >> 12;
+            prim->x1               = block->screenX + (u16)block->extent.corner.x;
+            prim->x2               = block->screenX - (u16)block->extent.corner.x;
+            prim->y1               = block->screenY - (u16)block->extent.corner.y;
+            prim->y2               = block->screenY + (u16)block->extent.corner.y;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
         }
-        SCRATCH_STACK_RELEASE_BYTES(0x1C);
+        SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
         if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
@@ -1961,20 +1961,20 @@ void Gp_EffSprTask5C(Task* arg0)
 
 void func_800F289C(Task* arg0)
 {
-    GpFxQuadScratch* block;
-    EffectWork*      mem;
-    GfxCoord*        coord;
-    POLY_FT4*        prim;
-    s16              flag;
-    s16              scale;
-    s16              mode;
-    s32              tmp;
-    s32              i;
-    s32              n;
-    s32              mask;
-    s32              step;
-    s32              step2;
-    s32              mask2;
+    EffectShapeScratch* block;
+    EffectWork*         mem;
+    GfxCoord*           coord;
+    POLY_FT4*           prim;
+    s16                 flag;
+    s16                 scale;
+    s16                 mode;
+    s32                 tmp;
+    s32                 i;
+    s32                 n;
+    s32                 mask;
+    s32                 step;
+    s32                 step2;
+    s32                 mask2;
 
     mem   = arg0->spawnArg2.pointer;
     flag  = gRoomEffectState->effectControl;
@@ -2080,19 +2080,19 @@ void func_800F289C(Task* arg0)
             }
             arg0->state = 1;
         }
-        block         = SCRATCH_STACK_RESERVE_BLOCK(GpFxQuadScratch);
-        block->vec.vx = coord->workm.t[0];
-        block->vec.vy = coord->workm.t[1];
-        block->vec.vz = coord->workm.t[2];
+        block                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
+        block->worldPoint.vx = coord->workm.t[0];
+        block->worldPoint.vy = coord->workm.t[1];
+        block->worldPoint.vz = coord->workm.t[2];
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&block->vec);
+        gte_ldv0(&block->worldPoint);
         gte_rtps();
-        gte_stsxy(&block->sx);
-        gte_stflg(&block->flag);
-        if (block->flag >= ROOM_EFFECT_CONTROL_RUNNING) {
-            gte_stszotz(&block->otz);
-            block->otz++;
+        gte_stsxy(&block->screenX);
+        gte_stflg(&block->projectionFlags);
+        if (block->projectionFlags >= 0) {
+            gte_stszotz(&block->depth);
+            block->depth++;
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
@@ -2102,31 +2102,31 @@ void func_800F289C(Task* arg0)
             } else {
                 prim->tpage = 0x28;
             }
-            prim->clut = 0x4253;
-            prim->u0   = (mem->age / mem->period) << 5;
-            prim->v0   = 0x18;
-            prim->u1   = ((mem->age / mem->period) << 5) + 0x1F;
-            prim->v1   = 0x18;
-            prim->u2   = (mem->age / mem->period) << 5;
-            prim->v2   = 0x37;
-            prim->u3   = ((mem->age / mem->period) << 5) + 0x1F;
-            prim->v3   = 0x37;
-            block->dx  = (((mem->scale * 0x1F) / block->otz) * rsin(mem->angle)) >> 12;
-            block->dy  = (((mem->scale * 0x1F) / block->otz) * rcos(mem->angle)) >> 12;
-            prim->x0   = block->sx + block->dx;
-            prim->x3   = block->sx - block->dx;
-            prim->y0   = block->sy - block->dy;
-            prim->y3   = block->sy + block->dy;
-            block->dx  = (((mem->scale * 0x1F) / block->otz) * rsin(mem->angle + 0x400)) >> 12;
-            block->dy  = (((mem->scale * 0x1F) / block->otz) * rcos(mem->angle + 0x400)) >> 12;
-            prim->x1   = block->sx + block->dx;
-            prim->x2   = block->sx - block->dx;
-            prim->y1   = block->sy - block->dy;
-            prim->y2   = block->sy + block->dy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            prim->clut             = 0x4253;
+            prim->u0               = (mem->age / mem->period) << 5;
+            prim->v0               = 0x18;
+            prim->u1               = ((mem->age / mem->period) << 5) + 0x1F;
+            prim->v1               = 0x18;
+            prim->u2               = (mem->age / mem->period) << 5;
+            prim->v2               = 0x37;
+            prim->u3               = ((mem->age / mem->period) << 5) + 0x1F;
+            prim->v3               = 0x37;
+            block->extent.corner.x = (((mem->scale * 0x1F) / block->depth) * rsin(mem->angle)) >> 12;
+            block->extent.corner.y = (((mem->scale * 0x1F) / block->depth) * rcos(mem->angle)) >> 12;
+            prim->x0               = block->screenX + block->extent.corner.x;
+            prim->x3               = block->screenX - block->extent.corner.x;
+            prim->y0               = block->screenY - block->extent.corner.y;
+            prim->y3               = block->screenY + block->extent.corner.y;
+            block->extent.corner.x = (((mem->scale * 0x1F) / block->depth) * rsin(mem->angle + 0x400)) >> 12;
+            block->extent.corner.y = (((mem->scale * 0x1F) / block->depth) * rcos(mem->angle + 0x400)) >> 12;
+            prim->x1               = block->screenX + block->extent.corner.x;
+            prim->x2               = block->screenX - block->extent.corner.x;
+            prim->y1               = block->screenY - block->extent.corner.y;
+            prim->y2               = block->screenY + block->extent.corner.y;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
         }
-        SCRATCH_STACK_RELEASE_BLOCK(GpFxQuadScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
         if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
@@ -2144,30 +2144,30 @@ void func_800F289C(Task* arg0)
 
 void Gp_EffSprTask76(Task* arg0)
 {
-    GpFxQuadScratch* block;
-    GfxCoord*        coord;
-    EffectWork*      mem;
-    POLY_FT4*        prim;
-    u16              size;
-    s16              scale;
-    s32              rng;
+    EffectShapeScratch* block;
+    GfxCoord*           coord;
+    EffectWork*         mem;
+    POLY_FT4*           prim;
+    u16                 size;
+    s16                 scale;
+    s32                 rng;
 
     coord = arg0->extra.coordBody->coord;
-    block = SCRATCH_STACK_RESERVE_BLOCK(GpFxQuadScratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
     mem   = arg0->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
-    block->vec.vx = coord->workm.t[0];
-    block->vec.vy = coord->workm.t[1];
-    block->vec.vz = coord->workm.t[2];
+    block->worldPoint.vx = coord->workm.t[0];
+    block->worldPoint.vy = coord->workm.t[1];
+    block->worldPoint.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec);
+    gte_ldv0(&block->worldPoint);
     gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        block->otz     = block->otz + 1;
+    gte_stsxy(&block->screenX);
+    gte_stflg(&block->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&block->depth);
+        block->depth   = block->depth + 1;
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -2185,33 +2185,33 @@ void Gp_EffSprTask76(Task* arg0)
             mem->angle      = ((u32)rng >> 16) & 0xFFF;
             arg0->state     = 1;
         }
-        prim->code |= 3;
-        prim->tpage = ((Gp_EffSprRecs[mem->age].tpageX & 0x3FF) >> 6) | 0x20;
-        prim->clut  = (Gp_EffSprRecs[mem->age].clutY << 6) | ((Gp_EffSprRecs[mem->age].clutX >> 4) & 0x3F);
-        prim->u0    = Gp_EffSprRecs[mem->age].u;
-        prim->v0    = Gp_EffSprRecs[mem->age].v;
-        prim->u1    = Gp_EffSprRecs[mem->age].u + size;
-        prim->v1    = Gp_EffSprRecs[mem->age].v;
-        prim->u2    = Gp_EffSprRecs[mem->age].u;
-        prim->v2    = Gp_EffSprRecs[mem->age].v + size;
-        prim->u3    = Gp_EffSprRecs[mem->age].u + size;
-        prim->v3    = Gp_EffSprRecs[mem->age].v + size;
-        block->dx   = ((((s16)size * mem->scale) / block->otz) * rsin(mem->angle)) >> 12;
-        block->dy   = ((((s16)size * mem->scale) / block->otz) * rcos(mem->angle)) >> 12;
-        prim->x0    = block->sx + (u16)block->dx;
-        prim->x3    = block->sx - (u16)block->dx;
-        prim->y0    = block->sy - (u16)block->dy;
-        prim->y3    = block->sy + (u16)block->dy;
-        block->dx   = ((((s16)size * mem->scale) / block->otz) * rsin(mem->angle + 0x400)) >> 12;
-        block->dy   = ((((s16)size * mem->scale) / block->otz) * rcos(mem->angle + 0x400)) >> 12;
-        prim->x1    = block->sx + (u16)block->dx;
-        prim->x2    = block->sx - (u16)block->dx;
-        prim->y1    = block->sy - (u16)block->dy;
-        prim->y2    = block->sy + (u16)block->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        prim->code            |= 3;
+        prim->tpage            = ((Gp_EffSprRecs[mem->age].tpageX & 0x3FF) >> 6) | 0x20;
+        prim->clut             = (Gp_EffSprRecs[mem->age].clutY << 6) | ((Gp_EffSprRecs[mem->age].clutX >> 4) & 0x3F);
+        prim->u0               = Gp_EffSprRecs[mem->age].u;
+        prim->v0               = Gp_EffSprRecs[mem->age].v;
+        prim->u1               = Gp_EffSprRecs[mem->age].u + size;
+        prim->v1               = Gp_EffSprRecs[mem->age].v;
+        prim->u2               = Gp_EffSprRecs[mem->age].u;
+        prim->v2               = Gp_EffSprRecs[mem->age].v + size;
+        prim->u3               = Gp_EffSprRecs[mem->age].u + size;
+        prim->v3               = Gp_EffSprRecs[mem->age].v + size;
+        block->extent.corner.x = ((((s16)size * mem->scale) / block->depth) * rsin(mem->angle)) >> 12;
+        block->extent.corner.y = ((((s16)size * mem->scale) / block->depth) * rcos(mem->angle)) >> 12;
+        prim->x0               = block->screenX + (u16)block->extent.corner.x;
+        prim->x3               = block->screenX - (u16)block->extent.corner.x;
+        prim->y0               = block->screenY - (u16)block->extent.corner.y;
+        prim->y3               = block->screenY + (u16)block->extent.corner.y;
+        block->extent.corner.x = ((((s16)size * mem->scale) / block->depth) * rsin(mem->angle + 0x400)) >> 12;
+        block->extent.corner.y = ((((s16)size * mem->scale) / block->depth) * rcos(mem->angle + 0x400)) >> 12;
+        prim->x1               = block->screenX + (u16)block->extent.corner.x;
+        prim->x2               = block->screenX - (u16)block->extent.corner.x;
+        prim->y1               = block->screenY - (u16)block->extent.corner.y;
+        prim->y2               = block->screenY + (u16)block->extent.corner.y;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
     mem->age++;
     if (mem->age >= 4) {
         effectKillTask(mem, arg0);
@@ -2220,21 +2220,21 @@ void Gp_EffSprTask76(Task* arg0)
 
 void Gp_EffSprTask7C(Task* arg0)
 {
-    GfxCoord         hit;
-    EffectWork*      mem;
-    GfxCoord*        coord;
-    u8*              head;
-    GpFxQuadScratch* vecp;
-    GpFxQuadScratch* block;
-    POLY_FT4*        prim;
-    s16              flag;
-    s32              rng;
-    s16              scale;
-    s16              step;
-    s32              col;
-    s32              tmp;
-    u32              param;
-    u16              vz;
+    GfxCoord            hit;
+    EffectWork*         mem;
+    GfxCoord*           coord;
+    EffectShapeScratch* head;
+    EffectShapeScratch* projectionScratch;
+    EffectShapeScratch* block;
+    POLY_FT4*           prim;
+    s16                 flag;
+    s32                 rng;
+    s16                 scale;
+    s16                 step;
+    s32                 col;
+    s32                 tmp;
+    u32                 param;
+    u16                 vz;
 
     mem   = arg0->spawnArg2.pointer;
     flag  = gRoomEffectState->effectControl;
@@ -2272,23 +2272,23 @@ void Gp_EffSprTask7C(Task* arg0)
         mem->index++;
     }
     Gp_UpdateCoord(coord);
-    head                                  = SCRATCH_STACK_CURSOR(u8);
-    vecp                                  = (GpFxQuadScratch*)(head - 0x1C);
-    vecp->vec.vx                          = (u16)coord->workm.t[0];
-    block                                 = vecp;
-    block->vec.vy                         = (u16)coord->workm.t[1];
-    vz                                    = (u16)coord->workm.t[2];
-    SCRATCH_STACK_CURSOR(GpFxQuadScratch) = block;
-    block->vec.vz                         = vz;
+    head                                     = SCRATCH_STACK_CURSOR(EffectShapeScratch);
+    projectionScratch                        = head - 1;
+    projectionScratch->worldPoint.vx         = (u16)coord->workm.t[0];
+    block                                    = projectionScratch;
+    block->worldPoint.vy                     = (u16)coord->workm.t[1];
+    vz                                       = (u16)coord->workm.t[2];
+    SCRATCH_STACK_CURSOR(EffectShapeScratch) = block;
+    block->worldPoint.vz                     = vz;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&vecp->vec);
+    gte_ldv0(&projectionScratch->worldPoint);
     gte_rtps();
-    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
-    if (block->flag >= ROOM_EFFECT_CONTROL_RUNNING) {
-        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-        block->otz     = block->otz + 1;
+    gte_stsxy(&(head - 1)->screenX);
+    gte_stflg(&(head - 1)->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&(head - 1)->depth);
+        block->depth   = block->depth + 1;
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -2303,33 +2303,33 @@ void Gp_EffSprTask7C(Task* arg0)
         } else {
             setcode(prim, 0x2D);
         }
-        prim->tpage = 0x28;
-        prim->code |= 2;
-        prim->clut  = 0x428A;
-        prim->u0    = ((mem->age / mem->period) % 6) * 16;
-        prim->v0    = 0x58;
-        prim->u1    = ((mem->age / mem->period) % 6) * 16 + 0xF;
-        prim->v1    = 0x58;
-        prim->u2    = ((mem->age / mem->period) % 6) * 16;
-        prim->v2    = 0x67;
-        prim->u3    = ((mem->age / mem->period) % 6) * 16 + 0xF;
-        prim->v3    = 0x67;
-        block->dx   = (((mem->scale * 15) / block->otz) * rsin(mem->angle)) >> 12;
-        block->dy   = (((mem->scale * 15) / block->otz) * rcos(mem->angle)) >> 12;
-        prim->x0    = block->sx + (u16)block->dx;
-        prim->x3    = block->sx - (u16)block->dx;
-        prim->y0    = block->sy - (u16)block->dy;
-        prim->y3    = block->sy + (u16)block->dy;
-        block->dx   = (((mem->scale * 15) / block->otz) * rsin(mem->angle + 0x400)) >> 12;
-        block->dy   = (((mem->scale * 15) / block->otz) * rcos(mem->angle + 0x400)) >> 12;
-        prim->x1    = block->sx + (u16)block->dx;
-        prim->x2    = block->sx - (u16)block->dx;
-        prim->y1    = block->sy - (u16)block->dy;
-        prim->y2    = block->sy + (u16)block->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        prim->tpage            = 0x28;
+        prim->code            |= 2;
+        prim->clut             = 0x428A;
+        prim->u0               = ((mem->age / mem->period) % 6) * 16;
+        prim->v0               = 0x58;
+        prim->u1               = ((mem->age / mem->period) % 6) * 16 + 0xF;
+        prim->v1               = 0x58;
+        prim->u2               = ((mem->age / mem->period) % 6) * 16;
+        prim->v2               = 0x67;
+        prim->u3               = ((mem->age / mem->period) % 6) * 16 + 0xF;
+        prim->v3               = 0x67;
+        block->extent.corner.x = (((mem->scale * 15) / block->depth) * rsin(mem->angle)) >> 12;
+        block->extent.corner.y = (((mem->scale * 15) / block->depth) * rcos(mem->angle)) >> 12;
+        prim->x0               = block->screenX + (u16)block->extent.corner.x;
+        prim->x3               = block->screenX - (u16)block->extent.corner.x;
+        prim->y0               = block->screenY - (u16)block->extent.corner.y;
+        prim->y3               = block->screenY + (u16)block->extent.corner.y;
+        block->extent.corner.x = (((mem->scale * 15) / block->depth) * rsin(mem->angle + 0x400)) >> 12;
+        block->extent.corner.y = (((mem->scale * 15) / block->depth) * rcos(mem->angle + 0x400)) >> 12;
+        prim->x1               = block->screenX + (u16)block->extent.corner.x;
+        prim->x2               = block->screenX - (u16)block->extent.corner.x;
+        prim->y1               = block->screenY - (u16)block->extent.corner.y;
+        prim->y2               = block->screenY + (u16)block->extent.corner.y;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         return;
     }
@@ -2741,36 +2741,37 @@ void Gp_EffPolyTask9C(Task* arg0)
 
 static void Gp_DrawEffShard(GfxCoord* arg0, s16 arg1, s16 arg2, u16 arg3)
 {
-    GpFxQuadScratch* block;
-    POLY_G4*         quad;
-    POLY_G3*         tri;
-    s32              ang;
-    s32              ang2;
-    s32              rng;
-    s32              base;
-    u8               r;
-    u8               g;
-    u8               b;
+    EffectShapeScratch* block;
+    POLY_G4*            quad;
+    POLY_G3*            tri;
+    s32                 ang;
+    s32                 ang2;
+    s32                 rng;
+    s32                 base;
+    u8                  r;
+    u8                  g;
+    u8                  b;
 
-    block         = SCRATCH_STACK_RESERVE_BLOCK(GpFxQuadScratch);
-    block->vec.vx = arg0->workm.t[0];
-    block->vec.vy = arg0->workm.t[1];
-    block->vec.vz = arg0->workm.t[2];
+    block                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
+    block->worldPoint.vx = arg0->workm.t[0];
+    block->worldPoint.vy = arg0->workm.t[1];
+    block->worldPoint.vz = arg0->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec);
+    gte_ldv0(&block->worldPoint);
     gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        block->otz++;
-        block->dx = (arg1 << 8) / block->otz;
-        block->dy = (arg1 << 7) / block->otz;
-        r         = arg2 * ((arg3 >> 8) & 0xF);
-        g         = arg2 * ((arg3 >> 4) & 0xF);
-        b         = arg2 * (arg3 & 0xF);
-        ang       = 0;
+    gte_stsxy(&block->screenX);
+    gte_stflg(&block->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&block->depth);
+        block->depth++;
+        // Sweep the outer and inner radii into a shaded ring.
+        block->extent.burst.outer = (arg1 << 8) / block->depth;
+        block->extent.burst.inner = (arg1 << 7) / block->depth;
+        r                         = arg2 * ((arg3 >> 8) & 0xF);
+        g                         = arg2 * ((arg3 >> 4) & 0xF);
+        b                         = arg2 * (arg3 & 0xF);
+        ang                       = 0;
         do {
             quad           = gGpuPrimCursor;
             gGpuPrimCursor = quad + 1;
@@ -2788,24 +2789,25 @@ static void Gp_DrawEffShard(GfxCoord* arg0, s16 arg1, s16 arg2, u16 arg3)
             quad->r3 = 0;
             quad->g3 = 0;
             quad->b3 = 0;
-            quad->x0 = block->sx + ((block->dx * rsin(ang)) >> 12);
+            quad->x0 = block->screenX + ((block->extent.burst.outer * rsin(ang)) >> 12);
             ang2     = ang + 0x100;
-            quad->y0 = block->sy + ((block->dx * rcos(ang)) >> 12);
-            quad->x1 = block->sx + ((block->dx * rsin(ang2)) >> 12);
-            quad->y1 = block->sy + ((block->dx * rcos(ang2)) >> 12);
-            quad->x2 = block->sx + ((block->dy * rsin(ang)) >> 12);
-            quad->y2 = block->sy + ((block->dy * rcos(ang)) >> 12);
-            quad->x3 = block->sx + ((block->dy * rsin(ang2)) >> 12);
-            quad->y3 = block->sy + ((block->dy * rcos(ang2)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            quad->y0 = block->screenY + ((block->extent.burst.outer * rcos(ang)) >> 12);
+            quad->x1 = block->screenX + ((block->extent.burst.outer * rsin(ang2)) >> 12);
+            quad->y1 = block->screenY + ((block->extent.burst.outer * rcos(ang2)) >> 12);
+            quad->x2 = block->screenX + ((block->extent.burst.inner * rsin(ang)) >> 12);
+            quad->y2 = block->screenY + ((block->extent.burst.inner * rcos(ang)) >> 12);
+            quad->x3 = block->screenX + ((block->extent.burst.inner * rsin(ang2)) >> 12);
+            quad->y3 = block->screenY + ((block->extent.burst.inner * rcos(ang2)) >> 12);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     quad);
             ang = ang2;
-            gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, block->otz);
+            gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, block->depth);
         } while (ang < 0x1000);
         if (arg3 & 0x1000) {
-            block->dx = 0x12000 / block->otz;
-            block->dy = 0x2400 / block->otz;
-            ang       = 0;
+            // Reuse the sizing words for the optional radial spikes.
+            block->extent.spike.radius    = 0x12000 / block->depth;
+            block->extent.spike.halfWidth = 0x2400 / block->depth;
+            ang                           = 0;
             do {
                 rng = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 tri                   = gGpuPrimCursor;
@@ -2822,24 +2824,24 @@ static void Gp_DrawEffShard(GfxCoord* arg0, s16 arg1, s16 arg2, u16 arg3)
                 tri->g2 = 0;
                 tri->b2 = 0;
                 base    = ang + (((u32)rng >> 16) & 0x300);
-                tri->x0 = block->sx;
-                tri->y0 = block->sy;
-                tri->x1 = block->sx + ((block->dx * rsin(base)) >> 12) +
-                          ((block->dy * rsin(base + 0xC00)) >> 12);
-                tri->y1 = block->sy + ((block->dx * rcos(base)) >> 12) +
-                          ((block->dy * rcos(base + 0xC00)) >> 12);
-                tri->x2 = block->sx + ((block->dx * rsin(base)) >> 12) +
-                          ((block->dy * rsin(base + 0x400)) >> 12);
-                tri->y2 = block->sy + ((block->dx * rcos(base)) >> 12) +
-                          ((block->dy * rcos(base + 0x400)) >> 12);
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                tri->x0 = block->screenX;
+                tri->y0 = block->screenY;
+                tri->x1 = block->screenX + ((block->extent.spike.radius * rsin(base)) >> 12) +
+                          ((block->extent.spike.halfWidth * rsin(base + 0xC00)) >> 12);
+                tri->y1 = block->screenY + ((block->extent.spike.radius * rcos(base)) >> 12) +
+                          ((block->extent.spike.halfWidth * rcos(base + 0xC00)) >> 12);
+                tri->x2 = block->screenX + ((block->extent.spike.radius * rsin(base)) >> 12) +
+                          ((block->extent.spike.halfWidth * rsin(base + 0x400)) >> 12);
+                tri->y2 = block->screenY + ((block->extent.spike.radius * rcos(base)) >> 12) +
+                          ((block->extent.spike.halfWidth * rcos(base + 0x400)) >> 12);
+                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                         tri);
                 ang += 0x400;
-                gpuSetPrimitiveBlendMode(tri, GPU_BLEND_ADD, block->otz);
+                gpuSetPrimitiveBlendMode(tri, GPU_BLEND_ADD, block->depth);
             } while (ang < 0x1000);
         }
     }
-    SCRATCH_STACK_RELEASE_BLOCK(GpFxQuadScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }
 
 void Gp_EffSprTask9E(Task* arg0)
@@ -2935,15 +2937,15 @@ void Gp_EffSprTask9E(Task* arg0)
 
 void Gp_EffSprTask54(Task* arg0)
 {
-    u8*              head;
-    GpFxQuadScratch* block;
-    GpFxQuadScratch* vecp;
-    s16              count;
-    s16              step;
-    u16              vz;
-    EffectWork*      mem;
-    GfxCoord*        coord;
-    POLY_FT4*        prim;
+    EffectShapeScratch* head;
+    EffectShapeScratch* block;
+    EffectShapeScratch* projectionScratch;
+    s16                 count;
+    s16                 step;
+    u16                 vz;
+    EffectWork*         mem;
+    GfxCoord*           coord;
+    POLY_FT4*           prim;
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
@@ -2982,22 +2984,22 @@ void Gp_EffSprTask54(Task* arg0)
         arg0->state = 1;
     }
 
-    head                                      = SCRATCH_STACK_CURSOR(u8);
-    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)coord->workm.t[0];
-    block                                     = (GpFxQuadScratch*)(head - 0x1C);
-    block->vec.vy                             = (u16)coord->workm.t[1];
-    vz                                        = (u16)coord->workm.t[2];
-    SCRATCH_STACK_CURSOR(GpFxQuadScratch)     = block;
-    block->vec.vz                             = vz;
-    vecp                                      = block;
+    head                                     = SCRATCH_STACK_CURSOR(EffectShapeScratch);
+    (head - 1)->worldPoint.vx                = (u16)coord->workm.t[0];
+    block                                    = head - 1;
+    block->worldPoint.vy                     = (u16)coord->workm.t[1];
+    vz                                       = (u16)coord->workm.t[2];
+    SCRATCH_STACK_CURSOR(EffectShapeScratch) = block;
+    block->worldPoint.vz                     = vz;
+    projectionScratch                        = block;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&vecp->vec);
+    gte_ldv0(&projectionScratch->worldPoint);
     gte_rtps();
-    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
+    gte_stsxy(&(head - 1)->screenX);
+    gte_stflg(&(head - 1)->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&(head - 1)->depth);
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -3017,22 +3019,22 @@ void Gp_EffSprTask54(Task* arg0)
         prim->u3   = ((mem->age / mem->period) << 5) + 0x1F;
         prim->v3   = 0x37;
 
-        block->dx = ((((s32)mem->scale * 31) / block->otz) * rsin(mem->angle)) >> 12;
-        block->dy = ((((s32)mem->scale * 31) / block->otz) * rcos(mem->angle)) >> 12;
-        prim->x0  = block->sx + (u16)block->dx;
-        prim->x3  = block->sx - (u16)block->dx;
-        prim->y0  = block->sy - (u16)block->dy;
-        prim->y3  = block->sy + (u16)block->dy;
-        block->dx = ((((s32)mem->scale * 31) / block->otz) * rsin(mem->angle + 0x400)) >> 12;
-        block->dy = ((((s32)mem->scale * 31) / block->otz) * rcos(mem->angle + 0x400)) >> 12;
-        prim->x1  = block->sx + (u16)block->dx;
-        prim->x2  = block->sx - (u16)block->dx;
-        prim->y1  = block->sy - (u16)block->dy;
-        prim->y2  = block->sy + (u16)block->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        block->extent.corner.x = ((((s32)mem->scale * 31) / block->depth) * rsin(mem->angle)) >> 12;
+        block->extent.corner.y = ((((s32)mem->scale * 31) / block->depth) * rcos(mem->angle)) >> 12;
+        prim->x0               = block->screenX + (u16)block->extent.corner.x;
+        prim->x3               = block->screenX - (u16)block->extent.corner.x;
+        prim->y0               = block->screenY - (u16)block->extent.corner.y;
+        prim->y3               = block->screenY + (u16)block->extent.corner.y;
+        block->extent.corner.x = ((((s32)mem->scale * 31) / block->depth) * rsin(mem->angle + 0x400)) >> 12;
+        block->extent.corner.y = ((((s32)mem->scale * 31) / block->depth) * rcos(mem->angle + 0x400)) >> 12;
+        prim->x1               = block->screenX + (u16)block->extent.corner.x;
+        prim->x2               = block->screenX - (u16)block->extent.corner.x;
+        prim->y1               = block->screenY - (u16)block->extent.corner.y;
+        prim->y2               = block->screenY + (u16)block->extent.corner.y;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
         coord->coord.t[0]  += mem->move.vx;
         coord->coord.t[1]  += mem->move.vy;
