@@ -3022,26 +3022,26 @@ static void func_acropolis_bridge_8017E1D0(Task* task)
 {
     AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->work;
     OverlayHotspot*            hs     = D_acropolis_bridge_8018983C;
-    RoomActionPrompt*          prompt = D_80114D28;
+    ActionPrompt*              prompt = D_80114D28;
 
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
     if (Gp_CapBusy() != 0) {
-        prompt->mode     = 0;
-        prompt->targetId = 0;
+        prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+        prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     } else {
-        prompt->targetId = 0x80;
+        prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
         if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
-            prompt->mode = 2;
+            prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
             if (prompt->buttons.slots[0].state == 2) {
                 while (hs->id != -1) {
                     if (hs->hit != 0) {
                         if (work->promptBusy == 0) {
-                            prompt->mode     = 0;
-                            prompt->targetId = 0;
-                            work->field_C    = hs->id;
-                            work->promptKind = hs->promptKind;
-                            task->state      = 3;
+                            prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+                            prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
+                            work->field_C       = hs->id;
+                            work->promptKind    = hs->promptKind;
+                            task->state         = 3;
                             return;
                         }
                         if (hs->id == 0xA) {
@@ -3059,7 +3059,7 @@ static void func_acropolis_bridge_8017E1D0(Task* task)
                 }
             }
         } else {
-            prompt->mode = 1;
+            prompt->mode = ACTION_PROMPT_MODE_IDLE;
         }
         if (work->field_6 == 3) {
             task->state   = 5;
@@ -3084,7 +3084,7 @@ static void func_acropolis_bridge_8017E1D0(Task* task)
 /// in state 8 with `D_acropolis_bridge_801917A8` raised.
 static void func_acropolis_bridge_8017E3A0(Task* task)
 {
-    RoomActionPrompt*          prompt = D_80114D28;
+    ActionPrompt*              prompt = D_80114D28;
     OverlayHotspot*            hs     = D_acropolis_bridge_8018983C;
     AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->work;
     GameLocationKey*           sess   = &gGameSession->location.loc;
@@ -3115,9 +3115,9 @@ reset:
 
 after:
     if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
-        prompt->mode = 2;
+        prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
     } else {
-        prompt->mode = 1;
+        prompt->mode = ACTION_PROMPT_MODE_IDLE;
     }
 
     if (work->field_8 == 3) {
@@ -3135,7 +3135,7 @@ after:
 /// attempts have been spent it gives up into state 8.
 static void func_acropolis_bridge_8017E4FC(Task* task)
 {
-    RoomActionPrompt*          prompt = D_80114D28;
+    ActionPrompt*              prompt = D_80114D28;
     OverlayHotspot*            hs     = D_acropolis_bridge_8018983C;
     AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->work;
     s16                        tick;
@@ -3155,9 +3155,9 @@ static void func_acropolis_bridge_8017E4FC(Task* task)
     }
 
     if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
-        prompt->mode = 2;
+        prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
     } else {
-        prompt->mode = 1;
+        prompt->mode = ACTION_PROMPT_MODE_IDLE;
     }
 
     if (work->field_8 == 3) {
@@ -3421,10 +3421,10 @@ void func_acropolis_bridge_8017F358(s32 state)
 /// prompt still up, then advances the task to its next state.
 static void func_acropolis_bridge_8017F404(Task* task)
 {
-    RoomActionPrompt* prompt = D_80114D28;
+    ActionPrompt* prompt = D_80114D28;
 
-    prompt->targetId    = 0x80;
-    prompt->mode        = 1;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
+    prompt->mode        = ACTION_PROMPT_MODE_IDLE;
     prompt->screen.xy.x = 0;
     prompt->screen.xy.y = 0;
     func_acropolis_bridge_8017E60C(0xFFF, 0);
@@ -3437,12 +3437,12 @@ static void func_acropolis_bridge_8017F404(Task* task)
 /// mode, and advances the task to state 4.
 static void func_acropolis_bridge_8017F460(Task* task)
 {
-    RoomActionPrompt*          prompt = D_80114D28;
+    ActionPrompt*              prompt = D_80114D28;
     AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->work;
 
     func_acropolis_bridge_8017E60C(work->field_4, 0);
-    prompt->mode     = 0;
-    prompt->targetId = 0;
+    prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
     task->state = 4;
 }
@@ -3454,12 +3454,12 @@ static void func_acropolis_bridge_8017F460(Task* task)
 /// started.
 static void func_acropolis_bridge_8017F4CC(Task* task)
 {
-    RoomActionPrompt*          prompt = D_80114D28;
+    ActionPrompt*              prompt = D_80114D28;
     AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->work;
 
     func_acropolis_bridge_8017E60C(work->field_4, 0);
-    prompt->mode     = 0;
-    prompt->targetId = 0;
+    prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if (func_800D4EC0() != 0) {
         work->promptBusy = 1;
         Gp_StartCapSlot(9, 0, 0);
@@ -3475,7 +3475,7 @@ static void func_acropolis_bridge_8017F4CC(Task* task)
 /// table, so `mode` reports whether it ended up over one.
 static void func_acropolis_bridge_8017F544(Task* task)
 {
-    RoomActionPrompt*          prompt = D_80114D28;
+    ActionPrompt*              prompt = D_80114D28;
     AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->work;
     OverlayHotspot*            hs     = D_acropolis_bridge_8018983C;
 
@@ -3498,9 +3498,9 @@ static void func_acropolis_bridge_8017F544(Task* task)
     }
     func_acropolis_bridge_8017E60C(work->field_4, 0);
     if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
-        prompt->mode = 2;
+        prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
     } else {
-        prompt->mode = 1;
+        prompt->mode = ACTION_PROMPT_MODE_IDLE;
     }
 }
 

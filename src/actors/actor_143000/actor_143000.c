@@ -309,20 +309,20 @@ static void func_actor_143000_801324C8(Task* arg0)
 
 static void func_actor_143000_801325F0(Task* arg0)
 {
-    Actor143000Work*  work;
-    u8                u;
-    Actor143000Rect*  p;
-    POLY_FT4*         prim;
-    RoomActionPrompt* prompt;
-    s16               dx;
-    s16               dy;
-    s16               x;
-    s16               y;
-    s16               w;
-    s16               h;
-    u8                v;
-    u8                uw;
-    u8                vh;
+    Actor143000Work* work;
+    u8               u;
+    Actor143000Rect* p;
+    POLY_FT4*        prim;
+    ActionPrompt*    prompt;
+    s16              dx;
+    s16              dy;
+    s16              x;
+    s16              y;
+    s16              w;
+    s16              h;
+    u8               v;
+    u8               uw;
+    u8               vh;
 
     work                           = arg0->work;
     gGameSession->hideHud          = 1;
@@ -331,34 +331,34 @@ static void func_actor_143000_801325F0(Task* arg0)
     gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_HIDDEN;
     prompt                         = D_80114D28;
     if (Gp_CapBusy() != 0) {
-        prompt->mode     = 0;
-        prompt->targetId = 0;
+        prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+        prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
         return;
     }
-    prompt->targetId = 0x80;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 9) {
         func_actor_143000_80133C2C();
     }
     work->field_2 = 0;
     if (func_actor_143000_80133AE8(p, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
-        prompt->mode = 2;
+        prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
         if (prompt->buttons.slots[0].state == 2) {
             for (; p->field_8 != -1; p++) {
                 if (p->field_B != 0) {
                     if (work->field_7 != 0 && p->field_8 == 5) {
                         SndEvt_EnqueueType6(SOUND_SHELTER_B2_LAB_KEYPAD_KEY, 0, 0);
-                        prompt->mode     = 0;
-                        prompt->targetId = 0;
-                        work->field_8    = prompt->screen.xy.x;
-                        work->field_A    = prompt->screen.xy.y;
-                        arg0->state      = 8;
+                        prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+                        prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
+                        work->field_8       = prompt->screen.xy.x;
+                        work->field_A       = prompt->screen.xy.y;
+                        arg0->state         = 8;
                         return;
                     }
-                    prompt->mode     = 0;
-                    prompt->targetId = 0;
-                    work->field_2    = p->field_8;
-                    work->promptKind = p->field_A;
-                    arg0->state      = 3;
+                    prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+                    prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
+                    work->field_2       = p->field_8;
+                    work->promptKind    = p->field_A;
+                    arg0->state         = 3;
                     return;
                 }
             }
@@ -406,7 +406,7 @@ static void func_actor_143000_801325F0(Task* arg0)
             }
         }
     } else {
-        prompt->mode = 1;
+        prompt->mode = ACTION_PROMPT_MODE_IDLE;
     }
     if (prompt->buttons.slots[1].state == 2) {
         arg0->state = 5;
@@ -694,15 +694,15 @@ void func_actor_143000_801335C8(Task* arg0)
     func_actor_143000_80132D10(arg0);
 }
 
-/// State 1 of the actor's callback: arms the first action-prompt slot with
-/// target id 0x80, marks it highlighted (`mode` 1), clears its screen position
+/// State 1 of the actor's callback: arms the first action-prompt slot at
+/// `ACTION_PROMPT_SPEED_AIM` with the idle cursor, clears its screen position
 /// and steps the task on to state 2.
 static void func_actor_143000_80133664(Task* task)
 {
-    RoomActionPrompt* prompt = D_80114D28;
+    ActionPrompt* prompt = D_80114D28;
 
-    prompt->targetId    = 0x80;
-    prompt->mode        = 1;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
+    prompt->mode        = ACTION_PROMPT_MODE_IDLE;
     prompt->screen.xy.x = 0;
     prompt->screen.xy.y = 0;
     task->state         = task->state + 1;
@@ -714,23 +714,23 @@ static void func_actor_143000_80133664(Task* task)
 /// to state 4.
 static void func_actor_143000_80133698(Task* task)
 {
-    RoomActionPrompt* prompt = D_80114D28;
-    Actor143000Work*  work   = (Actor143000Work*)task->work;
+    ActionPrompt*    prompt = D_80114D28;
+    Actor143000Work* work   = (Actor143000Work*)task->work;
 
-    prompt->mode     = 0;
-    prompt->targetId = 0;
+    prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
     task->state = 4;
 }
 
 static void func_actor_143000_801336E8(Task* arg0)
 {
-    Actor143000Work*  work   = arg0->work;
-    RoomActionPrompt* prompt = D_80114D28;
-    s32               cmd;
+    Actor143000Work* work   = arg0->work;
+    ActionPrompt*    prompt = D_80114D28;
+    s32              cmd;
 
-    prompt->mode     = 0;
-    prompt->targetId = 0;
+    prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if (func_800D4EC0() != 0) {
         switch ((s16)(work->field_2 - 1)) {
             case 0:

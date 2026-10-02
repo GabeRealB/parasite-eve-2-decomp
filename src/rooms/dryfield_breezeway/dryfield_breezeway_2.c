@@ -809,10 +809,10 @@ static void func_dryfield_breezeway_8017E464(Task* arg0)
 /// frames -- and re-seeds `func_dryfield_breezeway_8017EB8C` at the reset
 /// position (0, 0x20) rather than at the cursor the prop's scan passes.
 ///
-/// Highlighting the cursor (`mode` 1) is the state the scan runs in; landing on
+/// The idle cursor is the state the scan runs in; landing on
 /// `D_dryfield_breezeway_80182E00` -- the key-item prompt's own one-entry table,
 /// where `func_dryfield_breezeway_8017E81C` reaches the two-entry prop table --
-/// confirms it (`mode` 2) and walks that table for the entry whose `hit` is
+/// shows the hotspot cursor and walks that table for the entry whose `hit` is
 /// raised. The entry's `id` and `promptKind` go to the event work block
 /// (`DbwEventWork.field_4C` / `promptKind`), which
 /// `func_dryfield_breezeway_8017FD9C` re-spawns the prompt from, and the task
@@ -820,11 +820,11 @@ static void func_dryfield_breezeway_8017E464(Task* arg0)
 /// in state 5, and a busy cap abandons the scan with the prompt cleared.
 static void func_dryfield_breezeway_8017E65C(Task* task)
 {
-    DbwEventWork*     work;
-    OverlayHotspot*   hs;
-    RoomActionPrompt* prompt;
-    GfxCoord*         coord;
-    MATRIX*           m;
+    DbwEventWork*   work;
+    OverlayHotspot* hs;
+    ActionPrompt*   prompt;
+    GfxCoord*       coord;
+    MATRIX*         m;
 
     coord  = task->extra.tmd->coords;
     work   = (DbwEventWork*)task->work;
@@ -850,28 +850,28 @@ static void func_dryfield_breezeway_8017E65C(Task* task)
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
     if (Gp_CapBusy() != 0) {
-        prompt->mode     = 0;
-        prompt->targetId = 0;
+        prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+        prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
         return;
     }
-    prompt->targetId = 0x80;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
-        prompt->mode = 2;
+        prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
         if ((prompt->buttons.slots[0].state == 2) && (hs->id != -1)) {
             do {
                 if (hs->hit != 0) {
-                    prompt->mode     = 0;
-                    prompt->targetId = 0;
-                    work->field_4C   = hs->id;
-                    work->promptKind = hs->promptKind;
-                    task->state      = 3;
+                    prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+                    prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
+                    work->field_4C      = hs->id;
+                    work->promptKind    = hs->promptKind;
+                    task->state         = 3;
                     return;
                 }
                 hs++;
             } while (hs->id != -1);
         }
     } else {
-        prompt->mode = 1;
+        prompt->mode = ACTION_PROMPT_MODE_IDLE;
     }
     if (prompt->buttons.slots[1].state == 2) {
         task->state = 5;
@@ -885,21 +885,21 @@ static void func_dryfield_breezeway_8017E65C(Task* task)
 /// re-seeds the hotspot scan `func_dryfield_breezeway_8017EB8C` at the
 /// prompt's own screen position and hit-tests it against the room's table.
 ///
-/// Highlighting the cursor (`mode` 1) is the state the scan runs in; landing on
-/// an entry confirms it (`mode` 2) and walks `D_dryfield_breezeway_80182DDC`
+/// The idle cursor is the state the scan runs in; landing on
+/// an entry shows the hotspot cursor and walks `D_dryfield_breezeway_80182DDC`
 /// for the entry that was hit, which is the prop the player is looking at --
 /// pressing confirm against it runs cap slot 3 and ends the script in state 5.
 /// A cancel press (`buttons[1].state` 2) ends it in state 5 as well.
 static void func_dryfield_breezeway_8017E81C(Task* task)
 {
-    RoomActionPrompt* prompt = D_80114D28;
-    GfxCoord*         coord  = task->extra.tmd->coords;
-    DbwEventWork*     work   = (DbwEventWork*)task->work;
-    OverlayHotspot*   hs     = D_dryfield_breezeway_80182DDC;
-    MATRIX*           m;
+    ActionPrompt*   prompt = D_80114D28;
+    GfxCoord*       coord  = task->extra.tmd->coords;
+    DbwEventWork*   work   = (DbwEventWork*)task->work;
+    OverlayHotspot* hs     = D_dryfield_breezeway_80182DDC;
+    MATRIX*         m;
 
-    prompt->mode     = 1;
-    prompt->targetId = 0x80;
+    prompt->mode        = ACTION_PROMPT_MODE_IDLE;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
 
     m                                = &coord->coord;
     MATRIX_PAIR(&coord->coord, 0, 0) = 0x1000;
@@ -912,7 +912,7 @@ static void func_dryfield_breezeway_8017E81C(Task* task)
     func_dryfield_breezeway_8017EB8C(task, prompt->screen.xy.x, prompt->screen.xy.y);
 
     if (actionPromptHitTest(hs, work->cursorX, work->cursorY) != 0) {
-        prompt->mode = 2;
+        prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
         while (hs->id != -1) {
             if (hs->hit != 0) {
                 Gp_RunCapCmd1(3);
@@ -963,7 +963,7 @@ static void func_dryfield_breezeway_8017EB8C(Task* task, s16 arg1, s16 arg2)
     s16           angle;
     s16           t;
 
-    RoomActionPrompt* prompt;
+    ActionPrompt* prompt;
 
     x      = arg1;
     ay     = arg2;
@@ -977,7 +977,7 @@ static void func_dryfield_breezeway_8017EB8C(Task* task, s16 arg1, s16 arg2)
     dy     = sy - prompt->screen.xy.y;
     cdist  = SquareRoot0(dx * dx + dy * dy);
     if (dist >= 0x70 || ay < -0x4F || cdist > 0x20) {
-        prompt->mode   = 1;
+        prompt->mode   = ACTION_PROMPT_MODE_IDLE;
         work->cursorY += work->field_52;
         dist           = 0x70;
         if (work->cursorY >= 0x20) {
@@ -1000,7 +1000,7 @@ static void func_dryfield_breezeway_8017EB8C(Task* task, s16 arg1, s16 arg2)
             }
         }
     } else {
-        prompt->mode   = 2;
+        prompt->mode   = ACTION_PROMPT_MODE_HOTSPOT;
         work->field_56 = 3;
         work->field_54 = 0;
         work->field_52 = 0;
@@ -1303,16 +1303,15 @@ void func_dryfield_breezeway_8017FC38(Task* task)
 #include "../../shared/action_prompt_hit_test.inc.c"
 
 /// State 1 of the room's key-item event task: arms the action prompt and
-/// resets the caller's kill countdown. It highlights the prompt for the fixed
-/// target id 0x80, clears the on-screen position `func_800D4E78` fills in
-/// again when the prompt is spawned, and steps the caller's script on one
-/// state.
+/// resets the caller's kill countdown. It sets the aiming speed and the idle
+/// cursor, clears the on-screen position the prompt display fills in again
+/// when the prompt is spawned, and steps the caller's script on one state.
 static void func_dryfield_breezeway_8017FD68(Task* task)
 {
-    RoomActionPrompt* prompt = D_80114D28;
+    ActionPrompt* prompt = D_80114D28;
 
-    prompt->targetId    = 0x80;
-    prompt->mode        = 1;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
+    prompt->mode        = ACTION_PROMPT_MODE_IDLE;
     prompt->screen.xy.x = 0;
     prompt->screen.xy.y = 0;
     task->killCountdown = 0;
@@ -1327,12 +1326,12 @@ static void func_dryfield_breezeway_8017FD68(Task* task)
 /// `DbwEventWork::promptKind`, and steps the caller's script on one state.
 static void func_dryfield_breezeway_8017FD9C(Task* task)
 {
-    RoomActionPrompt* prompt = D_80114D28;
-    DbwEventWork*     work   = (DbwEventWork*)task->work;
+    ActionPrompt* prompt = D_80114D28;
+    DbwEventWork* work   = (DbwEventWork*)task->work;
 
     func_dryfield_breezeway_8017EB8C(task, 0, 0x20);
-    prompt->mode     = 0;
-    prompt->targetId = 0;
+    prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
     task->state = 4;
 }
@@ -1347,13 +1346,13 @@ static void func_dryfield_breezeway_8017FD9C(Task* task)
 /// state 6 (the key item was accepted here) and state 2.
 static void func_dryfield_breezeway_8017FE08(Task* task)
 {
-    RoomActionPrompt* prompt = D_80114D28;
-    DbwEventWork*     work   = (DbwEventWork*)task->work;
-    s32               state;
+    ActionPrompt* prompt = D_80114D28;
+    DbwEventWork* work   = (DbwEventWork*)task->work;
+    s32           state;
 
     func_dryfield_breezeway_8017EB8C(task, 0, 0x20);
-    prompt->mode     = 0;
-    prompt->targetId = 0;
+    prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if (func_800D4EC0() != 0) {
         Gp_StartCapSlot(7, 0, 0);
         state = 2;

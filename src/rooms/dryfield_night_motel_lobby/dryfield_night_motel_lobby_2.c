@@ -891,14 +891,14 @@ static void func_dryfield_night_motel_lobby_80180E98(Task* task)
     gGameSession->eventState   = 1;
 }
 
-/// Sets the first action prompt to mode 1 with target id 0x80, clears its
-/// screen position, and steps the task on one state.
+/// Arms the first action prompt at `ACTION_PROMPT_SPEED_AIM` with the idle
+/// cursor, clears its screen position, and steps the task on one state.
 static void func_dryfield_night_motel_lobby_80180FA4(Task* task)
 {
-    RoomActionPrompt* prompt = D_80114D28;
+    ActionPrompt* prompt = D_80114D28;
 
-    prompt->targetId    = 0x80;
-    prompt->mode        = 1;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
+    prompt->mode        = ACTION_PROMPT_MODE_IDLE;
     prompt->screen.xy.x = 0;
     prompt->screen.xy.y = 0;
     task->state         = task->state + 1;
@@ -910,12 +910,12 @@ static void func_dryfield_night_motel_lobby_80180FA4(Task* task)
 /// gameplay-side globals the prompt's display task reads.
 static void func_dryfield_night_motel_lobby_80180FD8(Task* task)
 {
-    RoomActionPrompt* prompt = D_80114D28;
-    DnmlExamineWork*  work   = (DnmlExamineWork*)task->work;
+    ActionPrompt*    prompt = D_80114D28;
+    DnmlExamineWork* work   = (DnmlExamineWork*)task->work;
 
     func_dryfield_night_motel_lobby_801802A8(task);
-    prompt->mode     = 0;
-    prompt->targetId = 0;
+    prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
     task->state = 4;
 }
@@ -927,12 +927,12 @@ static void func_dryfield_night_motel_lobby_80180FD8(Task* task)
 /// cap slot 9. Advances the task to state 2 either way.
 static void func_dryfield_night_motel_lobby_8018103C(Task* task)
 {
-    RoomActionPrompt* prompt = D_80114D28;
-    DnmlExamineWork*  work   = (DnmlExamineWork*)task->work;
+    ActionPrompt*    prompt = D_80114D28;
+    DnmlExamineWork* work   = (DnmlExamineWork*)task->work;
 
     func_dryfield_night_motel_lobby_801802A8(task);
-    prompt->mode     = 0;
-    prompt->targetId = 0;
+    prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if (func_800D4EC0() != 0) {
         work->promptBusy = 1;
         Gp_StartCapSlot(9, 0, 0);

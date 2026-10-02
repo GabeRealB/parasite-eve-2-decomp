@@ -5,13 +5,13 @@
 /// back to the idle state.
 void factoryPanelWaitMove(Task* task)
 {
-    RoomActionPrompt* prompt;
+    ActionPrompt*     prompt;
     FactoryPanelWork* work;
 
-    prompt           = D_80114D28;
-    work             = (FactoryPanelWork*)task->work;
-    prompt->targetId = 0;
-    prompt->mode     = 0;
+    prompt              = D_80114D28;
+    work                = (FactoryPanelWork*)task->work;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
+    prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     if (work->field_A != 0) {
         if (GameFlag_GetNibble(GAME_FLAG_FACTORY_POWER_ON) == 0) {
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xC;

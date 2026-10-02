@@ -106,7 +106,7 @@ typedef struct _GpMapCursorPos {
 } GpMapCursorPos;
 STATIC_ASSERT_SIZEOF(GpMapCursorPos, 0x1C);
 
-RoomActionPrompt D_80114D28[2];
+ActionPrompt D_80114D28[2];
 
 #define D_8010EBCC D_8010EAB4[10]
 

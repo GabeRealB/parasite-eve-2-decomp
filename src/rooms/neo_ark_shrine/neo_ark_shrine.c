@@ -387,31 +387,31 @@ void func_neo_ark_shrine_8017D948(Task* task)
 void func_neo_ark_shrine_8017D9A0(Task* task)
 {
     OverlayHotspot*     hs     = D_neo_ark_shrine_80182430;
-    RoomActionPrompt*   prompt = D_80114D28;
+    ActionPrompt*       prompt = D_80114D28;
     NeoArkShrineScript* st     = (NeoArkShrineScript*)task->work;
     u16                 id;
 
     func_neo_ark_shrine_8017EAC0(task);
     gGameSession->hideHud = 1;
     if (Gp_CapBusy() != 0) {
-        prompt->mode     = 0;
-        prompt->targetId = 0;
+        prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+        prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
         return;
     }
-    prompt->targetId = 0x80;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
-        prompt->mode = 2;
+        prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
         if (prompt->buttons.slots[0].state == 2) {
             id = hs->id;
             if (hs->id != -1) {
                 do {
                     if (hs->hit != 0) {
                         if ((s16)id == 0x10 || st->field_F == 0) {
-                            prompt->mode     = 0;
-                            prompt->targetId = 0;
-                            st->field_C      = hs->id;
-                            st->field_E      = hs->promptKind;
-                            task->state      = 3;
+                            prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+                            prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
+                            st->field_C         = hs->id;
+                            st->field_E         = hs->promptKind;
+                            task->state         = 3;
                             return;
                         }
                         st->field_C = id;
@@ -425,7 +425,7 @@ void func_neo_ark_shrine_8017D9A0(Task* task)
             }
         }
     } else {
-        prompt->mode = 1;
+        prompt->mode = ACTION_PROMPT_MODE_IDLE;
     }
     if (prompt->buttons.slots[1].state == 2) {
         do {

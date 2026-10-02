@@ -2310,11 +2310,11 @@ static void func_shelter_b1_underground_parking_80184304(Task* task)
 
 static void func_shelter_b1_underground_parking_801843F0(Task* task)
 {
-    RoomActionPrompt* prompt = D_80114D28;
+    ActionPrompt* prompt = D_80114D28;
 
     func_shelter_b1_underground_parking_80183B9C();
-    prompt->targetId    = 0x80;
-    prompt->mode        = 1;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
+    prompt->mode        = ACTION_PROMPT_MODE_IDLE;
     prompt->screen.xy.x = 0;
     prompt->screen.xy.y = 0;
     Gp_RunCapCmd(GameFlag_GetNibble(GAME_FLAG_SHELTER_B1_UNDERGROUND_PARKING_0E7) == 0 ? 2 : 3, 0);
@@ -2323,34 +2323,34 @@ static void func_shelter_b1_underground_parking_801843F0(Task* task)
 
 static void func_shelter_b1_underground_parking_80184468(Task* task)
 {
-    RoomActionPrompt* prompt = D_80114D28;
-    OverlayHotspot*   hs     = D_shelter_b1_underground_parking_8018767C;
-    SbupExamineWork*  work   = (SbupExamineWork*)task->work;
+    ActionPrompt*    prompt = D_80114D28;
+    OverlayHotspot*  hs     = D_shelter_b1_underground_parking_8018767C;
+    SbupExamineWork* work   = (SbupExamineWork*)task->work;
 
     func_shelter_b1_underground_parking_80183B9C();
     gGameSession->hideHud = 1;
     if (Gp_CapBusy() != 0) {
-        prompt->mode     = 0;
-        prompt->targetId = 0;
+        prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+        prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
         return;
     }
-    prompt->targetId = 0x80;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
-        prompt->mode = 2;
+        prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
         if (prompt->buttons.slots[0].state == 2) {
             for (; hs->id != -1; hs++) {
                 if (hs->hit != 0) {
-                    prompt->mode     = 0;
-                    prompt->targetId = 0;
-                    work->field_C    = hs->id;
-                    work->promptKind = hs->promptKind;
-                    task->state      = 3;
+                    prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+                    prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
+                    work->field_C       = hs->id;
+                    work->promptKind    = hs->promptKind;
+                    task->state         = 3;
                     return;
                 }
             }
         }
     } else {
-        prompt->mode = 1;
+        prompt->mode = ACTION_PROMPT_MODE_IDLE;
     }
     if (prompt->buttons.slots[1].state == 2) {
         task->state = 5;
@@ -2359,24 +2359,24 @@ static void func_shelter_b1_underground_parking_80184468(Task* task)
 
 static void func_shelter_b1_underground_parking_80184594(Task* task)
 {
-    RoomActionPrompt* prompt = D_80114D28;
-    SbupExamineWork*  work   = (SbupExamineWork*)task->work;
+    ActionPrompt*    prompt = D_80114D28;
+    SbupExamineWork* work   = (SbupExamineWork*)task->work;
 
     func_shelter_b1_underground_parking_80183B9C();
-    prompt->mode     = 0;
-    prompt->targetId = 0;
+    prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
     task->state = 4;
 }
 
 static void func_shelter_b1_underground_parking_801845F8(Task* task)
 {
-    RoomActionPrompt* prompt = D_80114D28;
-    SbupExamineWork*  work   = (SbupExamineWork*)task->work;
+    ActionPrompt*    prompt = D_80114D28;
+    SbupExamineWork* work   = (SbupExamineWork*)task->work;
 
     func_shelter_b1_underground_parking_80183B9C();
-    prompt->mode     = 0;
-    prompt->targetId = 0;
+    prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if (func_800D4EC0() != 0) {
         if (work->field_C == 0x10) {
             SndEvt_EnqueueType6(SOUND_SHELTER_B1_PARKING_PANEL_BUTTON, 0, 0);

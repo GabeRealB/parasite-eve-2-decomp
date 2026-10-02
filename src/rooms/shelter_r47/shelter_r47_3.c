@@ -1729,7 +1729,7 @@ static void func_shelter_r47_8018431C(Task* task)
 /// of 3 moves straight to state 9.
 static void func_shelter_r47_801844A0(Task* task)
 {
-    RoomActionPrompt* prompt = D_80114D28;
+    ActionPrompt*     prompt = D_80114D28;
     ShelterR47State2* st     = (ShelterR47State2*)task->work;
     OverlayHotspot*   hs     = st->hotspots;
 
@@ -1742,31 +1742,31 @@ static void func_shelter_r47_801844A0(Task* task)
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
     if ((Gp_CapBusy() != 0) || (st->field_2B != 0)) {
-        prompt->mode     = 0;
-        prompt->targetId = 0;
+        prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+        prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
         return;
     }
     if (st->field_2A == 3) {
         task->state = 9;
         return;
     }
-    prompt->targetId = 0x80;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     if (func_shelter_r47_801852A0(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
-        prompt->mode = 2;
+        prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
         if (prompt->buttons.slots[0].state == 2) {
             for (; hs->id != -1; hs++) {
                 if (hs->hit != 0) {
-                    prompt->mode     = 0;
-                    prompt->targetId = 0;
-                    st->field_1A     = hs->id;
-                    st->promptKind   = hs->promptKind;
-                    task->state      = 3;
+                    prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+                    prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
+                    st->field_1A        = hs->id;
+                    st->promptKind      = hs->promptKind;
+                    task->state         = 3;
                     return;
                 }
             }
         }
     } else {
-        prompt->mode = 1;
+        prompt->mode = ACTION_PROMPT_MODE_IDLE;
     }
     if (prompt->buttons.slots[1].state == 2) {
         if (st->field_2A == 0) {
@@ -1787,12 +1787,12 @@ static void func_shelter_r47_801844A0(Task* task)
 /// hotspot id, which leaves the state unchanged.
 static void func_shelter_r47_80184658(Task* task)
 {
-    RoomActionPrompt* prompt = D_80114D28;
+    ActionPrompt*     prompt = D_80114D28;
     ShelterR47State2* st     = (ShelterR47State2*)task->work;
 
     func_shelter_r47_801851B8(task);
-    prompt->mode     = 0;
-    prompt->targetId = 0;
+    prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if (func_800D4EC0() != 0) {
         switch (st->field_1A) {
             case 1:
@@ -1965,19 +1965,19 @@ static void func_shelter_r47_80185214(Task* task)
 static void func_shelter_r47_80185354(Task* task)
 {
     ShelterR47State2* state;
-    RoomActionPrompt* prompt = D_80114D28;
+    ActionPrompt*     prompt = D_80114D28;
     u8                level;
 
     state = (ShelterR47State2*)task->work;
     if (state->field_2A == 1) {
         level = state->fade;
         Fade_DrawOverlay(level, level, level, GPU_BLEND_SUBTRACT);
-        task->state      = 8;
-        prompt->targetId = 0;
-        prompt->mode     = 0;
+        task->state         = 8;
+        prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
+        prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     } else if (state->field_2A == 2) {
-        prompt->targetId = 0;
-        prompt->mode     = 0;
+        prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
+        prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
         if ((s16)state->fade > 0) {
             state->fade -= 8;
             if ((s16)state->fade < 0) {
@@ -1990,9 +1990,9 @@ static void func_shelter_r47_80185354(Task* task)
             }
         }
     } else {
-        state->field_2C  = 6;
-        prompt->targetId = 0x80;
-        prompt->mode     = 1;
+        state->field_2C     = 6;
+        prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
+        prompt->mode        = ACTION_PROMPT_MODE_IDLE;
         task->state++;
     }
     prompt->screen.xy.x = 0;
@@ -2002,12 +2002,12 @@ static void func_shelter_r47_80185354(Task* task)
 static void func_shelter_r47_80185450(Task* task)
 {
     ShelterR47State2* state;
-    RoomActionPrompt* prompt = D_80114D28;
+    ActionPrompt*     prompt = D_80114D28;
 
     state = (ShelterR47State2*)task->work;
     func_shelter_r47_801851B8(task);
-    prompt->mode     = 0;
-    prompt->targetId = 0;
+    prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if (state->field_2A == 0) {
         if (state->field_1A == 2 && D_shelter_r47_8018A696 == 0) {
             state->promptKind = 0;
@@ -2085,7 +2085,7 @@ static void func_shelter_r47_801856AC(Task* task)
 static void func_shelter_r47_8018571C(Task* task)
 {
     ShelterR47State2* state;
-    RoomActionPrompt* prompt = D_80114D28;
+    ActionPrompt*     prompt = D_80114D28;
     u8                level;
 
     state = (ShelterR47State2*)task->work;
@@ -2106,8 +2106,8 @@ static void func_shelter_r47_8018571C(Task* task)
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
     if (Gp_CapBusy() != 0) {
-        prompt->mode     = 0;
-        prompt->targetId = 0;
+        prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+        prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     }
 }
 

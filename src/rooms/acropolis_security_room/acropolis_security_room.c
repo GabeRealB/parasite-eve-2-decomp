@@ -2141,15 +2141,15 @@ static void func_acropolis_security_room_8017D9DC(Task* task)
 
 /// Runs the hotspot-hit state of the security monitor: redraws the panel and
 /// cursor, then hit-tests the action cursor against the room's hotspot table.
-/// A miss leaves the prompt highlighted (`mode` 1); a hit with the prompt
+/// A miss leaves the prompt's idle cursor; a hit with the prompt
 /// confirmed (`buttons[0].state` 2) scans the table for the raised entry and hands its
 /// `id` / `promptKind` to the work block, advancing to state 3. Otherwise the
 /// task advances to state 5 once the prompt has been dismissed.
 static void func_acropolis_security_room_8017DB30(Task* task)
 {
-    AsrMonitorWork*   work;
-    OverlayHotspot*   hs;
-    RoomActionPrompt* prompt;
+    AsrMonitorWork* work;
+    OverlayHotspot* hs;
+    ActionPrompt*   prompt;
 
     hs     = D_acropolis_security_room_80182648;
     prompt = D_80114D28;
@@ -2159,28 +2159,28 @@ static void func_acropolis_security_room_8017DB30(Task* task)
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
     if (Gp_CapBusy() != 0) {
-        prompt->mode     = 0;
-        prompt->targetId = 0;
+        prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+        prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
         return;
     }
-    prompt->targetId = 0x80;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
-        prompt->mode = 2;
+        prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
         if ((prompt->buttons.slots[0].state == 2) && (hs->id != -1)) {
             do {
                 if (hs->hit != 0) {
-                    prompt->mode     = 0;
-                    prompt->targetId = 0;
-                    work->selection  = hs->id;
-                    work->promptKind = hs->promptKind;
-                    task->state      = 3;
+                    prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+                    prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
+                    work->selection     = hs->id;
+                    work->promptKind    = hs->promptKind;
+                    task->state         = 3;
                     return;
                 }
                 hs++;
             } while (hs->id != -1);
         }
     } else {
-        prompt->mode = 1;
+        prompt->mode = ACTION_PROMPT_MODE_IDLE;
     }
     if (prompt->buttons.slots[1].state == 2) {
         task->state = 5;
@@ -2200,9 +2200,9 @@ static void func_acropolis_security_room_8017DC7C(Task* task)
     s16             sel;
     u16             usel;
 
-    work                   = (AsrMonitorWork*)task->work;
-    D_80114D28[0].mode     = 0;
-    D_80114D28[0].targetId = 0;
+    work                      = (AsrMonitorWork*)task->work;
+    D_80114D28[0].mode        = ACTION_PROMPT_MODE_HIDDEN;
+    D_80114D28[0].cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if (func_800D4EC0() != 0) {
         sel = work->selection;
         if (sel >= 0) {
@@ -2444,16 +2444,16 @@ void func_acropolis_security_room_8017E9D8(Task* task)
 }
 
 /// Arms the action prompt for the monitor's hotspot and steps the caller on one
-/// state: highlights (`mode` 1) the fixed target id 0x80 and clears the
-/// prompt's on-screen position, which `func_800D4E78` fills in again when the
-/// prompt is actually spawned. The room carries a second copy of this body at
+/// state: sets the aiming speed and the idle cursor, and clears the prompt's
+/// on-screen position, which the prompt display fills in again when the prompt
+/// is actually spawned. The room carries a second copy of this body at
 /// `func_acropolis_security_room_8017FB20`.
 static void func_acropolis_security_room_8017EA28(Task* task)
 {
-    RoomActionPrompt* prompt = D_80114D28;
+    ActionPrompt* prompt = D_80114D28;
 
-    prompt->targetId    = 0x80;
-    prompt->mode        = 1;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
+    prompt->mode        = ACTION_PROMPT_MODE_IDLE;
     prompt->screen.xy.x = 0;
     prompt->screen.xy.y = 0;
     task->state         = task->state + 1;
@@ -2464,11 +2464,11 @@ static void func_acropolis_security_room_8017EA28(Task* task)
 /// overlay, spawns the prompt at the panel's coordinates and advances the task.
 static void func_acropolis_security_room_8017EA5C(Task* task)
 {
-    RoomActionPrompt* prompt = D_80114D28;
-    AsrMonitorWork*   work   = (AsrMonitorWork*)task->work;
+    ActionPrompt*   prompt = D_80114D28;
+    AsrMonitorWork* work   = (AsrMonitorWork*)task->work;
 
-    prompt->mode     = 0;
-    prompt->targetId = 0;
+    prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     func_acropolis_security_room_8017E0C4(work->cameraId - 0x7F);
     func_acropolis_security_room_8017E37C(task);
     func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
@@ -2519,31 +2519,31 @@ done:
 /// monitor by advancing to state 5.
 static void func_acropolis_security_room_8017EB9C(Task* task)
 {
-    RoomActionPrompt* prompt  = D_80114D28;
-    OverlayHotspot*   hotspot = D_acropolis_security_room_80182648;
+    ActionPrompt*   prompt  = D_80114D28;
+    OverlayHotspot* hotspot = D_acropolis_security_room_80182648;
 
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
     if (Gp_CapBusy() != 0) {
-        prompt->mode     = 0;
-        prompt->targetId = 0;
+        prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+        prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
         return;
     }
-    prompt->targetId = 0x80;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     if (actionPromptHitTest(hotspot, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
-        prompt->mode = 2;
+        prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
         if (prompt->buttons.slots[0].state == 2) {
             for (; hotspot->id != -1; hotspot++) {
                 if (hotspot->hit != 0) {
-                    prompt->mode     = 0;
-                    prompt->targetId = 0;
+                    prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+                    prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
                     Gp_RunCapCmd(0xE, 0);
                     return;
                 }
             }
         }
     } else {
-        prompt->mode = 1;
+        prompt->mode = ACTION_PROMPT_MODE_IDLE;
     }
     if (prompt->buttons.slots[1].state == 2) {
         task->state = 5;
@@ -2591,39 +2591,39 @@ void func_acropolis_security_room_8017ED68(Task* task)
 /// block instead of dispatched as a cap command. A confirmed
 /// (`buttons[0].state == 2`) hit copies the hotspot's `id` and `promptKind` into the
 /// state block and advances to state 3; with nothing under the cursor the
-/// pending sub-step is cleared and the prompt merely highlights (`mode` 1).
+/// pending sub-step is cleared and the prompt keeps its idle cursor.
 /// `buttons[1].state == 2` leaves the scan by advancing to state 5.
 static void func_acropolis_security_room_8017EE44(Task* task)
 {
-    RoomActionPrompt*           prompt = D_80114D28;
+    ActionPrompt*               prompt = D_80114D28;
     OverlayHotspot*             hs     = D_acropolis_security_room_801826DC;
     AcropolisSecurityRoomState* st     = (AcropolisSecurityRoomState*)task->work;
 
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
     if (Gp_CapBusy() != 0) {
-        prompt->mode     = 0;
-        prompt->targetId = 0;
+        prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+        prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
         return;
     }
-    prompt->targetId = 0x80;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     if (func_acropolis_security_room_8017FCB0(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
-        prompt->mode = 2;
+        prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
         if (prompt->buttons.slots[0].state == 2) {
             for (; hs->id != -1; hs++) {
                 if (hs->hit != 0) {
-                    prompt->mode     = 0;
-                    prompt->targetId = 0;
-                    st->variant      = hs->id;
-                    st->promptKind   = hs->promptKind;
-                    task->state      = 3;
+                    prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+                    prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
+                    st->variant         = hs->id;
+                    st->promptKind      = hs->promptKind;
+                    task->state         = 3;
                     return;
                 }
             }
         }
     } else {
         st->field_0  = 0;
-        prompt->mode = 1;
+        prompt->mode = ACTION_PROMPT_MODE_IDLE;
     }
     if (prompt->buttons.slots[1].state == 2) {
         task->state = 5;
@@ -2775,16 +2775,16 @@ static void func_acropolis_security_room_8017FA18(Task* task)
 }
 
 /// Arms the action prompt for the script's hotspot and steps the caller on one
-/// state: highlights (`mode` 1) the fixed target id 0x80 and clears the prompt's
-/// on-screen position, which `func_800D4E78` fills in again when the prompt is
-/// actually spawned. The room carries a second copy of this body at
+/// state: sets the aiming speed and the idle cursor, and clears the prompt's
+/// on-screen position, which the prompt display fills in again when the prompt
+/// is actually spawned. The room carries a second copy of this body at
 /// `func_acropolis_security_room_8017EA28`.
 static void func_acropolis_security_room_8017FB20(Task* task)
 {
-    RoomActionPrompt* prompt = D_80114D28;
+    ActionPrompt* prompt = D_80114D28;
 
-    prompt->targetId    = 0x80;
-    prompt->mode        = 1;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
+    prompt->mode        = ACTION_PROMPT_MODE_IDLE;
     prompt->screen.xy.x = 0;
     prompt->screen.xy.y = 0;
     task->state         = task->state + 1;
@@ -2795,11 +2795,11 @@ static void func_acropolis_security_room_8017FB20(Task* task)
 /// in `D_80114D28` with the display mode this state picked.
 static void func_acropolis_security_room_8017FB54(Task* task)
 {
-    RoomActionPrompt*           prompt = D_80114D28;
+    ActionPrompt*               prompt = D_80114D28;
     AcropolisSecurityRoomState* st     = (AcropolisSecurityRoomState*)task->work;
 
-    prompt->mode     = 0;
-    prompt->targetId = 0;
+    prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, st->promptKind);
     task->state = 4;
 }
@@ -2814,11 +2814,11 @@ static void func_acropolis_security_room_8017FB54(Task* task)
 /// arm is the one this room actually takes.
 static void func_acropolis_security_room_8017FBA4(Task* task)
 {
-    RoomActionPrompt*           prompt = D_80114D28;
+    ActionPrompt*               prompt = D_80114D28;
     AcropolisSecurityRoomState* st     = (AcropolisSecurityRoomState*)task->work;
 
-    prompt->mode     = 0;
-    prompt->targetId = 0;
+    prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if ((func_800D4EC0() != 0) || (st->field_0 != 0)) {
         if (st->variant == 1) {
             func_acropolis_security_room_8017F1BC(task);

@@ -310,29 +310,29 @@ void func_dryfield_night_motel_lobby_8017FE38(Task* task)
 /// landing past it. Writing a `goto` there compiles to a different tail.
 void func_dryfield_night_motel_lobby_8017FE90(Task* task)
 {
-    DnmlExamineWork*  work   = (DnmlExamineWork*)task->work;
-    OverlayHotspot*   hs     = D_dryfield_night_motel_lobby_80182820;
-    RoomActionPrompt* prompt = D_80114D28;
+    DnmlExamineWork* work   = (DnmlExamineWork*)task->work;
+    OverlayHotspot*  hs     = D_dryfield_night_motel_lobby_80182820;
+    ActionPrompt*    prompt = D_80114D28;
 
     work->field_7            = 0;
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
     if (Gp_CapBusy() != 0) {
-        prompt->mode     = 0;
-        prompt->targetId = 0;
+        prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+        prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     } else {
-        prompt->targetId = 0x80;
+        prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
         if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
-            prompt->mode = 2;
+            prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
             if (prompt->buttons.slots[0].state == 2) {
                 while (hs->id != -1) {
                     if (hs->hit != 0) {
                         if (work->promptBusy == 0) {
-                            prompt->mode     = 0;
-                            prompt->targetId = 0;
-                            work->field_0    = hs->id;
-                            work->promptKind = hs->promptKind;
-                            task->state      = 3;
+                            prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+                            prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
+                            work->field_0       = hs->id;
+                            work->promptKind    = hs->promptKind;
+                            task->state         = 3;
                             func_dryfield_night_motel_lobby_801802A8(task);
                             return;
                         }
@@ -357,7 +357,7 @@ void func_dryfield_night_motel_lobby_8017FE90(Task* task)
                 }
             }
         } else {
-            prompt->mode = 1;
+            prompt->mode = ACTION_PROMPT_MODE_IDLE;
         }
         if (prompt->buttons.slots[1].state == 2) {
             task->state = 5;

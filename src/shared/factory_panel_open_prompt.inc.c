@@ -5,11 +5,11 @@
 /// moves the script to state 4.
 void factoryPanelOpenPrompt(Task* task)
 {
-    RoomActionPrompt* prompt = D_80114D28;
+    ActionPrompt*     prompt = D_80114D28;
     FactoryPanelWork* work   = (FactoryPanelWork*)task->work;
 
-    prompt->mode     = 0;
-    prompt->targetId = 0;
+    prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, work->field_E);
     task->state = 4;
 }

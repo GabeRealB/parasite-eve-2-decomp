@@ -52018,7 +52018,7 @@ following them, or the scheduler fills the wrong load-delay slot with it.
 ## Two loop address registers, one at `+0` and one at `+2`: a source pointer *plus* an indexed pointer
 
 **Problem.** `func_acropolis_security_room_8017F480` walks the two button slots
-of a `RoomActionPrompt` (element size 8, first field at `+0x14`). The target
+of a `ActionPrompt` (element size 8, first field at `+0x14`). The target
 keeps *three* induction variables in the inner loop — the counter, a pointer at
 `prompt+0x14` and a pointer at `prompt+0x16` — and reaches the third field at
 `prompt+0x18` as a **displacement** off the second:
@@ -77678,8 +77678,8 @@ the seed — the extra `addiu` is the whole miss:
 
 ```c
 /* m2c */  M2C_FIELD(&D_80114D28, s16 *, 0xC) = 0x80;
-/* ours */ RoomActionPrompt* prompt = &D_80114D28;
-           prompt->targetId = 0x80;
+/* ours */ ActionPrompt* prompt = &D_80114D28;
+           prompt->cursorSpeed = 0x80;
 ```
 
 83.077% (`regs=4 insert=1 delete=1`) → 100.000%, all penalties zero, in one
@@ -87186,7 +87186,7 @@ only form that lets one TU call a symbol both ways.
 **The argument is not cosmetic - it also repairs the schedule.** The m2c seed
 (73.667%, `regs=18 reorder=0 insert=2 delete=5`) only needed the *pointer* half
 of the source rebuilt first: writing the prompt as a local
-`RoomActionPrompt* prompt = &D_80114D28;` (see "Hold a global's address in a
+`ActionPrompt* prompt = &D_80114D28;` (see "Hold a global's address in a
 local pointer" - its two stores sit after the first `jal`, and local-alloc still
 puts the address in `$s0` because the scheduler hoisted the `lui`/`addiu` into
 the prologue) took it to 94.667% with `regs=0` and left exactly two leftovers:
@@ -88076,7 +88076,7 @@ directly, exactly as m2c renders it:
     temp_s1 = arg0->work;
     func_dryfield_night_motel_lobby_801802A8(arg0);
     D_80114D28.mode     = 0;
-    D_80114D28.targetId = 0;
+    D_80114D28.cursorSpeed = 0;
 ```
 
 It scored 79.3% (`regs=16 insert=2 delete=3`). The object recomputes the
@@ -88098,12 +88098,12 @@ Writing the same stores through a **local pointer declared before the call**
 takes it to 100.0% with every penalty zero:
 
 ```c
-    RoomActionPrompt* prompt = &D_80114D28;
+    ActionPrompt* prompt = &D_80114D28;
     DnmlExamineWork*  work   = (DnmlExamineWork*)task->work;
 
     func_dryfield_night_motel_lobby_801802A8(task);
     prompt->mode     = 0;
-    prompt->targetId = 0;
+    prompt->cursorSpeed = 0;
 ```
 
 The mechanism is the *birth* of the address, and the `.lreg` header states it

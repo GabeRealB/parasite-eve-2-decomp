@@ -1128,46 +1128,46 @@ static void func_neo_ark_shrine_8017ECC4(Task* task)
     gGameSession->eventState   = 1;
 }
 
-/// Cap script state 1: sets the first action prompt's `targetId` to 0x80 and its
-/// `mode` to 1, zeroes its on-screen position, and steps the script on.
+/// Cap script state 1: arms the first action prompt at `ACTION_PROMPT_SPEED_AIM`
+/// with the idle cursor, zeroes its on-screen position, and steps the script on.
 static void func_neo_ark_shrine_8017EDAC(Task* task)
 {
-    RoomActionPrompt* prompt = D_80114D28;
+    ActionPrompt* prompt = D_80114D28;
 
-    prompt->targetId    = 0x80;
-    prompt->mode        = 1;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
+    prompt->mode        = ACTION_PROMPT_MODE_IDLE;
     prompt->screen.xy.x = 0;
     prompt->screen.xy.y = 0;
     task->state         = task->state + 1;
 }
 
 /// Spawns the action prompt for the script's current step: runs the shrine's
-/// per-step helper, clears the prompt's highlight state, then re-spawns the
+/// per-step helper, hides the cursor and stops it, then re-spawns the
 /// prompt at the coordinates the gameplay side left in `D_80114D28` with the
 /// display mode this step picked, and advances the task to state 4.
 static void func_neo_ark_shrine_8017EDE0(Task* task)
 {
-    RoomActionPrompt*   prompt = D_80114D28;
+    ActionPrompt*       prompt = D_80114D28;
     NeoArkShrineScript* work   = (NeoArkShrineScript*)task->work;
 
     func_neo_ark_shrine_8017EAC0(task);
-    prompt->mode     = 0;
-    prompt->targetId = 0;
+    prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, work->field_E);
     task->state = 4;
 }
 
-/// Clears the action prompt's highlight state and runs the shrine's per-step
+/// Hides the action prompt's cursor, stops it, and runs the shrine's per-step
 /// helper. When `func_800D4EC0` reports success, starts cap slot 2 if the
 /// script's `field_C` is 0x10, and otherwise sets `field_F` and starts cap
 /// slot 1. The task advances to state 2 on every path.
 static void func_neo_ark_shrine_8017EE44(Task* task)
 {
-    RoomActionPrompt*   prompt = D_80114D28;
+    ActionPrompt*       prompt = D_80114D28;
     NeoArkShrineScript* work   = (NeoArkShrineScript*)task->work;
 
-    prompt->mode     = 0;
-    prompt->targetId = 0;
+    prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     func_neo_ark_shrine_8017EAC0(task);
     if (func_800D4EC0() == 0) {
         task->state = 2;
@@ -1203,13 +1203,13 @@ static void func_neo_ark_shrine_8017EED4(Task* task)
 /// mode on rather than off.
 static void func_neo_ark_shrine_8017EF68(Task* task)
 {
-    RoomActionPrompt*   prompt = D_80114D28;
+    ActionPrompt*       prompt = D_80114D28;
     NeoArkShrineScript* st     = (NeoArkShrineScript*)task->work;
 
     Gp_SpawnPadLerp(0x12, 0x30, 0x90);
     D_neo_ark_shrine_80186868 = 1;
-    prompt->mode              = 0;
-    prompt->targetId          = 0;
+    prompt->mode              = ACTION_PROMPT_MODE_HIDDEN;
+    prompt->cursorSpeed       = ACTION_PROMPT_SPEED_STOPPED;
     func_neo_ark_shrine_8017EAC0(task);
     st->timer = 0;
     task->state++;
@@ -1228,12 +1228,12 @@ static void func_neo_ark_shrine_8017EF68(Task* task)
 /// four insns short.
 static void func_neo_ark_shrine_8017EFE4(Task* task)
 {
-    RoomActionPrompt*   prompt = D_80114D28;
+    ActionPrompt*       prompt = D_80114D28;
     NeoArkShrineScript* st     = (NeoArkShrineScript*)task->work;
 
-    prompt->mode     = 0;
-    prompt->targetId = 0;
-    st->timer        = st->timer + 1;
+    prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
+    st->timer           = st->timer + 1;
     func_neo_ark_shrine_8017EAC0(task);
     if (st->timer >= 0x1E) {
         if (GameFlag_GetNibble(GAME_FLAG_0E9) == 0) {
@@ -1335,17 +1335,17 @@ static void func_neo_ark_shrine_8017F274(Task* task)
 }
 
 /// Runs the shrine's per-step helper and restarts the script's step timer:
-/// raises a pad lerp, clears the prompt's highlight state and advances the
+/// raises a pad lerp, hides the cursor and stops it, and advances the
 /// task to the next state.
 static void func_neo_ark_shrine_8017F320(Task* task)
 {
-    RoomActionPrompt*   prompt = D_80114D28;
+    ActionPrompt*       prompt = D_80114D28;
     NeoArkShrineScript* st     = (NeoArkShrineScript*)task->work;
 
     Gp_SpawnPadLerp(0x12, 0x30, 0x90);
     D_neo_ark_shrine_80186868 = 0;
-    prompt->mode              = 0;
-    prompt->targetId          = 0;
+    prompt->mode              = ACTION_PROMPT_MODE_HIDDEN;
+    prompt->cursorSpeed       = ACTION_PROMPT_SPEED_STOPPED;
     func_neo_ark_shrine_8017EAC0(task);
     st->timer = 0;
     task->state++;
@@ -1355,12 +1355,12 @@ static void func_neo_ark_shrine_8017F320(Task* task)
 /// when flag 0xE9 is set.
 static void func_neo_ark_shrine_8017F398(Task* task)
 {
-    RoomActionPrompt*   prompt = D_80114D28;
+    ActionPrompt*       prompt = D_80114D28;
     NeoArkShrineScript* st     = (NeoArkShrineScript*)task->work;
 
-    prompt->mode     = 0;
-    prompt->targetId = 0;
-    st->timer        = st->timer + 1;
+    prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
+    st->timer           = st->timer + 1;
     func_neo_ark_shrine_8017EAC0(task);
     if (st->timer >= 0x1E) {
         if (GameFlag_GetNibble(GAME_FLAG_0E9) == 0) {

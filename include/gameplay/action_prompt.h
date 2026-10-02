@@ -29,7 +29,7 @@ typedef union {
 } ActionPromptScreen;
 STATIC_ASSERT_SIZEOF(ActionPromptScreen, 4);
 
-/// One of the two button slots at the tail of `RoomActionPrompt`. `state` is the
+/// One of the two button slots at the tail of `ActionPrompt`. `state` is the
 /// press classification the cursor task writes each frame (0 none, 1 held,
 /// 2 pressed, 3 released, 4 double-press), `heldFrames` counts the frames since
 /// the slot was last armed and `lastPos` latches the cursor position of the
@@ -43,33 +43,60 @@ typedef struct RoomActionPromptButton {
 } RoomActionPromptButton;
 STATIC_ASSERT_SIZEOF(RoomActionPromptButton, 0x8);
 
-/// Gameplay-resident action-prompt state shared by room and actor overlays.
-/// There are two of them, one per pad port.
+/// Motion multiplier stored in `ActionPrompt::cursorSpeed`.
 ///
-/// A room's hotspot scan stores the id of the thing under the cursor in
-/// `targetId` and a mode in `mode` (0 = nothing under the cursor, 1 = a hotspot
-/// is highlighted, 2 = the hotspot is confirmed). `screen` holds the
-/// coordinates handed to `func_800D4E78`, which parks them in the gameplay
-/// globals the prompt's display task reads; `field_0` / `field_4` are the same
-/// position in 1/512-pixel fixed point, which is what the analog stick and the
-/// d-pad actually integrate into. `targetId` doubles as the cursor speed and
-/// `field_E` as the double-press window. The three bytes at offset 0x11 have
-/// no identified use; their original role is unresolved.
-typedef struct RoomActionPrompt {
-    /* 0x00 */ s32                field_0;
-    /* 0x04 */ s32                field_4;
-    /* 0x08 */ ActionPromptScreen screen;
-    /* 0x0C */ s16                targetId;
-    /* 0x0E */ u16                field_E;
-    /* 0x10 */ u8                 mode;
-    /* 0x11 */ byte               pad_11[0x3];
-    /// Whole button storage: the cursor loops walk halfwords across both slots.
-    /// Recover a slot from its heldFrames address with PARENT_OF for lastPos.
-    /* 0x14 */ union {
-        RoomActionPromptButton slots[2];
-        u16                    halfwords[8];
+/// Stopped holds the cursor. Aiming is the speed a hotspot scan stores while
+/// the player can move the cursor. Reset is the speed stored when the prompt
+/// is reset, before a scan slows it.
+#define ACTION_PROMPT_SPEED_STOPPED 0
+#define ACTION_PROMPT_SPEED_AIM     0x80
+#define ACTION_PROMPT_SPEED_RESET   0x100
+
+/// Cursor sprite stored in `ActionPrompt::mode`.
+///
+/// Hidden draws nothing. Idle is the cursor while it is not on a hotspot.
+/// Hotspot is the cursor while the point is inside a hotspot. Accepting a
+/// hotspot or leaving the scan stores hidden.
+#define ACTION_PROMPT_MODE_HIDDEN  0
+#define ACTION_PROMPT_MODE_IDLE    1
+#define ACTION_PROMPT_MODE_HOTSPOT 2
+
+/// Frames stored in `doublePressWindow` when the prompt is reset.
+#define ACTION_PROMPT_DOUBLE_PRESS_FRAMES 0xF
+
+/// Right shift from the 1/512-pixel position to pixels.
+#define ACTION_PROMPT_SUBPIXEL_SHIFT 9
+
+/// Clamp limits for the 1/512-pixel position. After the shift, X stays in
+/// [-160, 159] and Y in [-110, 110], in pixels from the screen center.
+#define ACTION_PROMPT_FIXED_X_MIN (-0x14000)
+#define ACTION_PROMPT_FIXED_X_MAX 0x13E00
+#define ACTION_PROMPT_FIXED_Y_MIN (-0xDC00)
+#define ACTION_PROMPT_FIXED_Y_MAX 0xDC00
+
+/// One pad port's point-and-click action prompt.
+///
+/// Gameplay keeps two, one per port. Room and actor overlays share them.
+/// `fixedX` and `fixedY` are the cursor in 1/512-pixel units. Each move clamps
+/// them and stores the pixel position in `screen`. Seeding `screen` alone does
+/// not move the cursor: the next move replaces it from the fixed-point
+/// position. `cursorSpeed` scales stick and d-pad motion. `doublePressWindow`
+/// is how many frames a second press may follow the first and still count when
+/// the cursor has not moved. `mode` selects the cursor sprite. `buttons` holds
+/// the confirm slot and the cancel slot.
+typedef struct {
+    s32                fixedX;               // Horizontal 1/512-pixel units from the screen center
+    s32                fixedY;               // Vertical 1/512-pixel units from the screen center, increasing downward
+    ActionPromptScreen screen;               // Pixel position derived from fixedX and fixedY
+    s16                cursorSpeed;          // Motion multiplier (0 stopped, 0x80 aiming, 0x100 after reset)
+    u16                doublePressWindow;    // Frames in which a second press at the same position is a double-press
+    u8                 mode;                 // Cursor sprite (0 hidden, 1 idle, 2 over a hotspot)
+    byte               pad[3];               // Aligns the button slots; nothing reads or writes these bytes
+    union {
+        RoomActionPromptButton slots[2];     // [0] confirm, [1] cancel
+        u16                    halfwords[8]; // Same bytes; the cursor task walks four halfwords per slot
     } buttons;
-} RoomActionPrompt;
-STATIC_ASSERT_SIZEOF(RoomActionPrompt, 0x24);
+} ActionPrompt;
+STATIC_ASSERT_SIZEOF(ActionPrompt, 0x24);
 
 #endif // GAMEPLAY_ACTION_PROMPT_H

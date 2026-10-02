@@ -44,7 +44,7 @@ void func_800C5F70(Task* arg0);
 
 void func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
 
-extern RoomActionPrompt D_80114D28[2];
+extern ActionPrompt D_80114D28[2];
 
 void Gp_SetHolderItemText(s32 arg0);
 

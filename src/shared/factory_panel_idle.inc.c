@@ -8,11 +8,11 @@
 ///
 /// A confirmed hit (`buttons[0].state == 2`) copies the hotspot's `id` and
 /// `promptKind` into the work block and advances to state 3; with nothing under
-/// the cursor the prompt merely highlights (`mode` 1). `buttons[1].state == 2`
+/// the cursor the prompt keeps the idle cursor. `buttons[1].state == 2`
 /// leaves the scan by advancing to state 5.
 void factoryPanelIdle(Task* task)
 {
-    RoomActionPrompt* prompt = D_80114D28;
+    ActionPrompt*     prompt = D_80114D28;
     OverlayHotspot*   hs     = gFactoryPanelHotspots;
     FactoryPanelWork* st     = (FactoryPanelWork*)task->work;
 
@@ -22,27 +22,27 @@ void factoryPanelIdle(Task* task)
         st->field_8 = st->field_8 - 1;
     }
     if ((Gp_CapBusy() != 0) || (st->field_8 != 0)) {
-        prompt->mode     = 0;
-        prompt->targetId = 0;
+        prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+        prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
         return;
     }
-    prompt->targetId = 0x80;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
-        prompt->mode = 2;
+        prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
         if (prompt->buttons.slots[0].state == 2) {
             for (; hs->id != -1; hs++) {
                 if (hs->hit != 0) {
-                    prompt->mode     = 0;
-                    prompt->targetId = 0;
-                    st->field_C      = hs->id;
-                    st->field_E      = hs->promptKind;
-                    task->state      = 3;
+                    prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+                    prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
+                    st->field_C         = hs->id;
+                    st->field_E         = hs->promptKind;
+                    task->state         = 3;
                     return;
                 }
             }
         }
     } else {
-        prompt->mode = 1;
+        prompt->mode = ACTION_PROMPT_MODE_IDLE;
     }
     if (prompt->buttons.slots[1].state == 2) {
         task->state = 5;

@@ -214,16 +214,16 @@ static inline s16 _shelterR47IsAreaMarked(s32 stage, s32 area);
 /// own events. Every other outcome returns to state 3.
 static void func_shelter_r47_801816CC(Task* task)
 {
-    ShelterR47State*  work;
-    ShelterR47State*  w;
-    RoomActionPrompt* prompt;
-    u32               kind;
+    ShelterR47State* work;
+    ShelterR47State* w;
+    ActionPrompt*    prompt;
+    u32              kind;
 
     prompt = D_80114D28;
     work   = (ShelterR47State*)task->work;
     func_shelter_r47_80181914(task, 0);
-    prompt->mode     = 0;
-    prompt->targetId = 0;
+    prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if (func_800D4EC0() != 0) {
         kind = (u16)work->selection.id >> 8;
         if (kind == 0) {
@@ -741,14 +741,14 @@ s32 func_shelter_r47_80182B9C(Task* task, OverlayHotspot* table, s16 x, s16 y)
     return hit;
 }
 
-/// Zeroes the action prompt's target id, mode and screen position, and steps
-/// the caller's script on one state.
+/// Stops the action prompt, hides its cursor, clears its screen position, and
+/// steps the caller's script on one state.
 static void func_shelter_r47_80182C78(Task* task)
 {
-    RoomActionPrompt* prompt = D_80114D28;
+    ActionPrompt* prompt = D_80114D28;
 
-    prompt->targetId    = 0;
-    prompt->mode        = 0;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
+    prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->screen.xy.x = 0;
     prompt->screen.xy.y = 0;
     task->state         = task->state + 1;
@@ -799,13 +799,13 @@ static void func_shelter_r47_80182CA4(Task* task)
 /// its gating flags are clear, shows the prompt, and moves the script to state 5.
 static void func_shelter_r47_80182DAC(Task* task)
 {
-    ShelterR47State*  state;
-    RoomActionPrompt* prompt = D_80114D28;
+    ShelterR47State* state;
+    ActionPrompt*    prompt = D_80114D28;
 
     state = (ShelterR47State*)task->work;
     func_shelter_r47_80181914(task, 0);
-    prompt->mode     = 0;
-    prompt->targetId = 0;
+    prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if (state->field_51 == 0 && (state->selection.raw >> 8) == 0 && D_shelter_r47_8018A695 == 0) {
         state->promptKind = 0;
     }
