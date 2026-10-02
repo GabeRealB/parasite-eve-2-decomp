@@ -1006,40 +1006,40 @@ s32 func_shelter_b1_pod_access_tunnel_8017D7B4(Task* task, s32 msgId, RoomEventM
     *out = *in;
     func_map_shelter_80179A04(in, out);
     if (in->areaId == GAME_AREA_SHELTER_R47) {
-        if (GameFlag_GetNibble(0x118) == 2) {
+        if (GameFlag_GetNibble(GAME_FLAG_118) == 2) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_RunCapCmd1(8);
             }
             return 2;
         }
-        if (GameFlag_GetNibble(0x7A) >= 6) {
+        if (GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER) >= 6) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_MsgPlayerWeapon(0);
                 Task_SpawnFromTable(D_shelter_b1_pod_access_tunnel_80181108, 1, 0, 0);
             }
             return 2;
         }
-        if (GameFlag_GetNibble(0xB3) == 0) {
+        if (GameFlag_GetNibble(GAME_FLAG_B1_POD_TUNNEL_R47_DOOR_UNLOCKED) == 0) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_SetNibbleIf(in->flagId, 2);
                 Gp_RunCapCmd1(3);
             }
             return 0;
         }
-        if (in->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(0xD1) == 0 && GameFlag_GetNibble(0x83) == 0) {
+        if (in->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(GAME_FLAG_0D1) == 0 && GameFlag_GetNibble(GAME_FLAG_083) == 0) {
             Gp_FillAllyHp();
-            GameFlag_SetNibble(0xD1, 1);
-            GameFlag_SetNibble(0x4C, 7);
+            GameFlag_SetNibble(GAME_FLAG_0D1, 1);
+            GameFlag_SetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 7);
         }
     }
     if (in->areaId == GAME_AREA_SHELTER_B1_STERILIZATION_ROOM) {
-        if (GameFlag_GetNibble(0x118) == 2) {
+        if (GameFlag_GetNibble(GAME_FLAG_118) == 2) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_RunCapCmd1(8);
             }
             return 2;
         }
-        if (GameFlag_GetNibble(0xD1) == 2) {
+        if (GameFlag_GetNibble(GAME_FLAG_0D1) == 2) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_RunCapCmd1(4);
             }
@@ -1047,7 +1047,7 @@ s32 func_shelter_b1_pod_access_tunnel_8017D7B4(Task* task, s32 msgId, RoomEventM
         }
         event.capCmd   = 6;
         event.stageSnd = 0x54110001;
-        event.flagId   = 0x130;
+        event.flagId   = GAME_FLAG_B1_POD_TUNNEL_TO_STERILIZE_SCENE;
         event.fade     = 0;
         return _shelterB1PodAccessTunnelStartEvent(out, &event);
     }
@@ -1066,7 +1066,7 @@ void func_shelter_b1_pod_access_tunnel_8017DA74(Task* task)
 
     switch (task->state) {
         case 0:
-            Gp_RunCapCmd1(GameFlag_GetNibble(0xFC) != 0 ? 5 : 1);
+            Gp_RunCapCmd1(GameFlag_GetNibble(GAME_FLAG_0FC) != 0 ? 5 : 1);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             goto L_advance;
         case 1:
@@ -1075,18 +1075,18 @@ void func_shelter_b1_pod_access_tunnel_8017DA74(Task* task)
         case 2:
             if (Gp_GetCapEventKey() != 0xA) {
                 if (Gp_GetCapEventKey() == 1) {
-                    GameFlag_SetNibble(0x1B6, 2);
+                    GameFlag_SetNibble(GAME_FLAG_MAP_MARK_POD, 2);
                 }
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 taskKill(task);
                 Gp_MsgPlayerWeapon(1);
                 return;
             }
-            GameFlag_SetNibble(0x1B6, 0);
-            SndEvt_EnqueueType6(0x54110006, 0, 0);
+            GameFlag_SetNibble(GAME_FLAG_MAP_MARK_POD, 0);
+            SndEvt_EnqueueType6(SOUND_SHELTER_B1_POD_TUNNEL_RIDE_TO_B2, 0, 0);
             goto L_advance;
         case 3:
-            var_v0 = SndVoice_HasActiveId(0x54110006);
+            var_v0 = SndVoice_HasActiveId(SOUND_SHELTER_B1_POD_TUNNEL_RIDE_TO_B2);
         L_idle:
             if (var_v0 != 0) {
                 return;
@@ -1095,11 +1095,11 @@ void func_shelter_b1_pod_access_tunnel_8017DA74(Task* task)
             task->state++;
             return;
         case 4:
-            SndEvt_EnqueueType7(0x80000000, 0);
+            SndEvt_EnqueueType7(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 3;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
-            room                                                       = GameFlag_GetNibble(0x118);
+            room                                                       = GameFlag_GetNibble(GAME_FLAG_118);
             if (room == 2) {
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = room;
             }
@@ -1129,10 +1129,10 @@ void func_shelter_b1_pod_access_tunnel_8017DC18(Task* task)
                 Gp_MsgPlayerWeapon(1);
                 return;
             }
-            SndEvt_EnqueueType6(0x54110004, 0, 0);
+            SndEvt_EnqueueType6(SOUND_SHELTER_B1_POD_TUNNEL_GANTRY_TRANSIT, 0, 0);
             goto L_advance;
         case 3:
-            var_v0 = SndVoice_HasActiveId(0x54110004);
+            var_v0 = SndVoice_HasActiveId(SOUND_SHELTER_B1_POD_TUNNEL_GANTRY_TRANSIT);
         L_idle:
             if (var_v0 != 0) {
                 return;
@@ -1141,8 +1141,8 @@ void func_shelter_b1_pod_access_tunnel_8017DC18(Task* task)
             task->state++;
             return;
         case 4:
-            GameFlag_SetNibble(0xB4, 1);
-            GameFlag_SetNibble(0x1C1, 0);
+            GameFlag_SetNibble(GAME_FLAG_B2_POD_TUNNEL_R48_DOOR_UNLOCKED, 1);
+            GameFlag_SetNibble(GAME_FLAG_MAP_MARK_POD_SERVICE_GANTRY, 0);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent        = 0x1C;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B1_POD_SERVICE_GANTRY;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1;
@@ -1162,11 +1162,11 @@ s32 func_shelter_b1_pod_access_tunnel_8017DD68(void)
 s32 func_shelter_b1_pod_access_tunnel_8017DD70(s32 arg0, s32 arg1, s32 arg2)
 {
     if (arg2 == 1) {
-        if (GameFlag_GetNibble(0x12F) != 0) {
+        if (GameFlag_GetNibble(GAME_FLAG_B1_POD_ACCESS_TUNNEL_FIRST_USE) != 0) {
             Gp_MsgPlayerWeapon(0);
             Task_SpawnFromTable(D_shelter_b1_pod_access_tunnel_80181108, 0, 0, 0);
         } else {
-            GameFlag_SetNibble(0x12F, 1);
+            GameFlag_SetNibble(GAME_FLAG_B1_POD_ACCESS_TUNNEL_FIRST_USE, 1);
             Gp_RunCapCmd1(0xA);
         }
     }
@@ -1181,7 +1181,7 @@ s32 func_shelter_b1_pod_access_tunnel_8017DDD8(void)
 s32 func_shelter_b1_pod_access_tunnel_8017DDE0(s32 arg0, s32 arg1, s32 arg2)
 {
     if (arg2 == 6) {
-        SndEvt_EnqueueType6(0x16, 0, 0);
+        SndEvt_EnqueueType6(SOUND_SYSTEM_CONFIRM, 0, 0);
     }
     return 0;
 }
@@ -1190,14 +1190,14 @@ static void func_shelter_b1_pod_access_tunnel_8017DE10(Task* arg0)
 {
     arg0->msgTable = D_shelter_b1_pod_access_tunnel_801810D8;
     Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if (GameFlag_GetNibble(0x118) == 1) {
+    if (GameFlag_GetNibble(GAME_FLAG_118) == 1) {
         Task_SpawnFromTable(&D_shelter_b1_pod_access_tunnel_801811C8, 0, 0, 0);
-        GameFlag_SetNibble(0x118, 2);
+        GameFlag_SetNibble(GAME_FLAG_118, 2);
         func_800E3FAC(0xA2, 0x37);
-    } else if (GameFlag_GetNibble(0x7E) == 0) {
+    } else if (GameFlag_GetNibble(GAME_FLAG_POD_ACCESS_TUNNEL_SCENE_SEEN) == 0) {
         func_800E8634(D_shelter_b1_pod_access_tunnel_80182FFC, 0, D_shelter_b1_pod_access_tunnel_8018380C);
         func_800E3FAC(0xA2, 0x1E);
-        GameFlag_SetNibble(0x7E, 1);
+        GameFlag_SetNibble(GAME_FLAG_POD_ACCESS_TUNNEL_SCENE_SEEN, 1);
     }
     arg0->state = (s32)(arg0->state + 1);
 }

@@ -51,7 +51,7 @@ void shelterElevatorTask(Task* task)
             task->state++;
             break;
         case 4:
-            SndEvt_EnqueueType7(0x80000000, 0);
+            SndEvt_EnqueueType7(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0);
             msg.room      = 1;
             msg.queryOnly = ROOM_EVENT_EXECUTE;
             msg.areaId    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area;

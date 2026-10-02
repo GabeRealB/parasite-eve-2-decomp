@@ -423,8 +423,8 @@ void func_shelter_1f_parking_garage_8017DAF0(Task* task)
             break;
         case 2:
             if (task->killCountdown == 0) {
-                if (GameFlag_GetNibble(0x4B) == 9) {
-                    GameFlag_SetNibble(0x4B, 0xA);
+                if (GameFlag_GetNibble(GAME_FLAG_COMPANION_2_SCHEDULE) == 9) {
+                    GameFlag_SetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 0xA);
                 }
                 handler      = roomVariantResolveShelter;
                 rec.stage    = GAME_STAGE_MINE_SHELTER;
@@ -471,7 +471,7 @@ s32 func_shelter_1f_parking_garage_8017DCF4(Task* arg0, s32 arg1, RoomEventMsg* 
     }
     event.capCmd   = 3;
     event.stageSnd = 0x55010001;
-    event.flagId   = 0x159;
+    event.flagId   = GAME_FLAG_1F_GARAGE_TO_AIRLOCK_SCENE;
     event.fade     = 0;
     return _shelter1fParkingGarageStartEvent(out, &event);
 }

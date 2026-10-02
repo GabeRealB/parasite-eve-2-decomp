@@ -1137,11 +1137,11 @@ void func_acropolis_roof_garden_8017D5D4(Task* task)
         return;
     }
     if (prev == 0) {
-        SndEvt_EnqueueType6(0x510D0005, 0, (s8)(((0x64 - vol) * 127) / 100));
+        SndEvt_EnqueueType6(SOUND_ACROPOLIS_ROOF_GARDEN_AMBIENCE, 0, (s8)(((0x64 - vol) * 127) / 100));
     } else if (vol == 0) {
-        SndEvt_EnqueueType7(0x510D0005, 0x1E);
+        SndEvt_EnqueueType7(SOUND_ACROPOLIS_ROOF_GARDEN_AMBIENCE, 0x1E);
     } else {
-        SndEvt_EnqueueTypeA(0x510D0005, 0, (s8)(((0x64 - vol) * 127) / 100));
+        SndEvt_EnqueueTypeA(SOUND_ACROPOLIS_ROOF_GARDEN_AMBIENCE, 0, (s8)(((0x64 - vol) * 127) / 100));
     }
     D_acropolis_roof_garden_80186E94 = vol;
 }
@@ -1155,8 +1155,8 @@ void func_acropolis_roof_garden_8017D5D4(Task* task)
 s32 func_acropolis_roof_garden_8017D71C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    if (in->areaId == GAME_AREA_ACROPOLIS_SANCTUARY && in->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(7) == 0) {
-        GameFlag_SetNibble(7, 2);
+    if (in->areaId == GAME_AREA_ACROPOLIS_SANCTUARY && in->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(GAME_FLAG_SANCTUARY_EVENT_LATCH) == 0) {
+        GameFlag_SetNibble(GAME_FLAG_SANCTUARY_EVENT_LATCH, 2);
         Gp_SetCurBit2Flag(0x13, 2);
     }
     return 1;
@@ -1172,14 +1172,14 @@ s32 func_acropolis_roof_garden_8017D7A0(Task* arg0, s32 arg1, RoomEventMsg* in, 
 {
     switch (in->warp) {
         case 1:
-            if (((gGameSession->location.loc.variant == 1) || (gGameSession->location.loc.variant == 7)) && (GameFlag_GetNibble(0xCB) == 0)) {
-                GameFlag_SetNibble(0xCB, 1);
+            if (((gGameSession->location.loc.variant == 1) || (gGameSession->location.loc.variant == 7)) && (GameFlag_GetNibble(GAME_FLAG_ROOF_GARDEN_PROGRESS) == 0)) {
+                GameFlag_SetNibble(GAME_FLAG_ROOF_GARDEN_PROGRESS, 1);
             }
             break;
         case 2:
-            if (((gGameSession->location.loc.variant == 1) || (gGameSession->location.loc.variant == 7)) && (GameFlag_GetNibble(0xCB) == 1)) {
+            if (((gGameSession->location.loc.variant == 1) || (gGameSession->location.loc.variant == 7)) && (GameFlag_GetNibble(GAME_FLAG_ROOF_GARDEN_PROGRESS) == 1)) {
                 func_800E8614(D_acropolis_roof_garden_80184B08, 1);
-                GameFlag_SetNibble(0xCB, 2);
+                GameFlag_SetNibble(GAME_FLAG_ROOF_GARDEN_PROGRESS, 2);
             }
             break;
     }
@@ -1190,7 +1190,7 @@ s32 func_acropolis_roof_garden_8017D868(Task* task, s32 msgId, s32 arg2, s32 arg
 {
     switch (arg2) {
         case 3:
-            SndEvt_EnqueueType6(0x510D0003, 0, 0);
+            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 3), 0, 0);
             break;
         case 5:
             break;
@@ -1210,9 +1210,9 @@ s32 func_acropolis_roof_garden_8017D8AC(Task* arg0, s32 arg1, s32 arg2, TaskMess
         }
     }
     if (arg2 == 4) {
-        if (GameFlag_GetNibble(0x155) < 6) {
-            GameFlag_SetNibble(3, 0);
-            GameFlag_SetNibble(0x155, 6);
+        if (GameFlag_GetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) < 6) {
+            GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
+            GameFlag_SetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 6);
         }
         gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
         Gp_RunCapCmd(4, 0);
@@ -1228,19 +1228,19 @@ void func_acropolis_roof_garden_8017D970(Task* arg0)
     temp_v1 = arg0->state;
     switch (temp_v1) { /* irregular */
         case 0x14:
-            SndEvt_EnqueueType6(0x510D0006, 0, 0);
+            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 6), 0, 0);
             break;
         case 0x27:
-            SndEvt_EnqueueType6(0x510D0007, 0, 0);
+            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 7), 0, 0);
             break;
         case 0x39:
-            SndEvt_EnqueueType6(0x510D0008, 0, 0);
+            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 8), 0, 0);
             break;
         case 0x63:
-            SndEvt_EnqueueType6(0x510D0009, 0, 0);
+            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 9), 0, 0);
             break;
         case 0x72:
-            SndEvt_EnqueueType6(0x510D000A, 0, 0);
+            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x0A), 0, 0);
             D_acropolis_roof_garden_80183C0C = NULL;
             taskKill(arg0);
             break;
@@ -1255,10 +1255,10 @@ void func_acropolis_roof_garden_8017DA48(Task* arg0)
     temp_v1 = arg0->state;
     switch (temp_v1) { /* irregular */
         case 0x4C:
-            SndEvt_EnqueueType6(0x510D000F, 0, 0);
+            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x0F), 0, 0);
             break;
         case 0x64:
-            SndEvt_EnqueueType6(0x510D0010, 0, 0);
+            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x10), 0, 0);
             D_acropolis_roof_garden_80183C0C = NULL;
             taskKill(arg0);
             break;
@@ -1302,7 +1302,7 @@ static void func_acropolis_roof_garden_8017DBEC(Task* task)
     if ((gGameSession->location.loc.warp == 2) && (D_acropolis_roof_garden_8018432C == 0)) {
         D_acropolis_roof_garden_8018432C = 1;
         func_800E8634(D_acropolis_roof_garden_80183D74, 0, D_acropolis_roof_garden_80184194);
-        GameFlag_SetNibble(6, 1);
+        GameFlag_SetNibble(GAME_FLAG_SANCTUARY_BLOCKER_CLEARED, 1);
         key.stage = GAME_STAGE_ACROPOLIS;
         key.area  = GAME_AREA_ACROPOLIS_SANCTUARY;
         areaSetPlacementVariant(&key, 3, AREA_VARIANT_RESET_ALWAYS);

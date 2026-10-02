@@ -1148,11 +1148,11 @@ Task* func_dryfield_night_garage_80180A64(s32 arg0)
 void func_dryfield_night_garage_80180AB0(void)
 {
     Gp_ApplyAreaRecs(D_dryfield_night_garage_801875D8);
-    GameFlag_SetNibble(0x59, 0);
-    GameFlag_SetNibble(0x5A, 0);
-    GameFlag_SetNibble(0x4B, 5);
-    GameFlag_SetNibble(0x35, 1);
-    if (GameFlag_GetNibble(0xCE) != 0) {
+    GameFlag_SetNibble(GAME_FLAG_NIGHT_SALOON_CUTSCENE_SEEN, 0);
+    GameFlag_SetNibble(GAME_FLAG_NIGHT_SALOON_TALK_PROGRESS, 0);
+    GameFlag_SetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 5);
+    GameFlag_SetNibble(GAME_FLAG_SALOON_PARKING_LOT_DOOR_UNLOCKED, 1);
+    if (GameFlag_GetNibble(GAME_FLAG_GRAY_STALKER_DEFEATED) != 0) {
         Gp_ApplyAreaRecs(D_dryfield_night_garage_80187620);
     }
 }

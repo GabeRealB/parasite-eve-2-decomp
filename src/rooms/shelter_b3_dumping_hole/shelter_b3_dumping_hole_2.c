@@ -3492,7 +3492,7 @@ void func_shelter_b3_dumping_hole_80181560(Task* task)
             break;
         case 2:
             if (gGameSession->eventState == 0) {
-                GameFlag_SetNibble(0x11D, 1);
+                GameFlag_SetNibble(GAME_FLAG_11D, 1);
                 taskKill(task);
             } else {
                 func_shelter_b3_dumping_hole_8018098C(task);

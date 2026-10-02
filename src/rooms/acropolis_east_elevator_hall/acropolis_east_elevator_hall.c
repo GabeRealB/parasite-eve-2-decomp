@@ -755,9 +755,9 @@ s32 func_acropolis_east_elevator_hall_8017F378(Task* task, s32 msgId, TaskMessag
         func_800E8634(D_acropolis_east_elevator_hall_80185D54, 0, D_acropolis_east_elevator_hall_801860B4);
         D_acropolis_east_elevator_hall_8018631C = 1;
         GameFlag_SetNibble(0, 1);
-        GameFlag_SetNibble(3, 0);
-        GameFlag_SetNibble(0x155, 3);
-        GameFlag_SetNibble(8, 2);
+        GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
+        GameFlag_SetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 3);
+        GameFlag_SetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE, 2);
         func_800E3FAC(0xA2, 2);
     }
     return 0;

@@ -2403,7 +2403,7 @@ static void func_mist_shooting_gallery_80182C58(Task* arg0)
                 work->field_0A = 0xF;
                 work->field_04++;
                 Task_SpawnFromTable(D_mist_shooting_gallery_801856B8, 1, 0, 0);
-                SndEvt_EnqueueType6(0x5114000F, 0, 0);
+                SndEvt_EnqueueType6(SOUND_MIST_SHOOTING_GALLERY_ROUND_START, 0, 0);
             }
             break;
         case 6:
@@ -2597,7 +2597,7 @@ static void func_mist_shooting_gallery_801831B0(Task* arg0)
                 work->field_0A = 0xA;
                 work->field_04++;
                 Task_SpawnFromTable(D_mist_shooting_gallery_801856B8, 1, 0, 0);
-                SndEvt_EnqueueType6(0x5114000F, 0, 0);
+                SndEvt_EnqueueType6(SOUND_MIST_SHOOTING_GALLERY_ROUND_START, 0, 0);
                 Gp_ArmStateF0(1);
                 return;
             }
@@ -2778,7 +2778,7 @@ static void func_mist_shooting_gallery_8018341C(Task* arg0)
                 work->field_0A = 0xA;
                 work->field_04++;
                 Task_SpawnFromTable(D_mist_shooting_gallery_801856B8, 1, 0, 0);
-                SndEvt_EnqueueType6(0x5114000F, 0, 0);
+                SndEvt_EnqueueType6(SOUND_MIST_SHOOTING_GALLERY_ROUND_START, 0, 0);
             }
             break;
         case 10:
@@ -2875,7 +2875,7 @@ static void func_mist_shooting_gallery_801838FC(Task* arg0)
                 work->field_0A = 0x1E;
                 work->field_04++;
                 Task_SpawnFromTable(D_mist_shooting_gallery_801856B8, 1, 0, 0);
-                SndEvt_EnqueueType6(0x5114000F, 0, 0);
+                SndEvt_EnqueueType6(SOUND_MIST_SHOOTING_GALLERY_ROUND_START, 0, 0);
                 Gp_ArmStateF0(1);
             }
             break;
@@ -3084,7 +3084,7 @@ static void func_mist_shooting_gallery_80183E78(Task* arg0)
                 work->field_0A = 0xF;
                 work->field_04++;
                 Task_SpawnFromTable(D_mist_shooting_gallery_801856B8, 1, 0, 0);
-                SndEvt_EnqueueType6(0x5114000F, 0, 0);
+                SndEvt_EnqueueType6(SOUND_MIST_SHOOTING_GALLERY_ROUND_START, 0, 0);
                 Gp_StateC08.field_6 &= 0xFD;
                 Gp_ArmStateF0(1);
             }
@@ -3185,7 +3185,7 @@ static void func_mist_shooting_gallery_801842D0(Task* arg0)
             work->field_0A = 0x5A;
             work->field_04++;
             Task_SpawnFromTable(D_mist_shooting_gallery_801856B8, 1, 0, 0);
-            SndEvt_EnqueueType6(0x5114000F, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MIST_SHOOTING_GALLERY_ROUND_START, 0, 0);
             return;
         case 2:
             if ((s16)--work->field_0A > 0) {

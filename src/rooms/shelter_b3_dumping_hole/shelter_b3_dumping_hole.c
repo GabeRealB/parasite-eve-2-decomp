@@ -253,7 +253,7 @@ s32 func_shelter_b3_dumping_hole_8017D760(s32 arg0, s32 arg1, RoomEventMsg* in, 
 s32 func_shelter_b3_dumping_hole_8017D82C(s32 arg0, s32 arg1, s32 arg2)
 {
     if (arg2 == 0x12) {
-        Gp_SpawnIfCapIdle(GameFlag_GetNibble(0x11D) != 0 ? 0x12 : 0x17, 1);
+        Gp_SpawnIfCapIdle(GameFlag_GetNibble(GAME_FLAG_11D) != 0 ? 0x12 : 0x17, 1);
     }
     return 0;
 }
@@ -275,14 +275,14 @@ static void func_shelter_b3_dumping_hole_8017D8A0(Task* arg0)
     arg0->msgTable = D_shelter_b3_dumping_hole_80187574;
     Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     func_shelter_b3_dumping_hole_80183198(0x180, 0, 0);
-    if (GameFlag_GetNibble(0x78) == 0) {
+    if (GameFlag_GetNibble(GAME_FLAG_DUMPING_HOLE_ARRIVAL_SEEN) == 0) {
         if (gGameSession->location.loc.variant == 1) {
             if (gGameSession->location.loc.warp == 3) {
                 func_800E8634(D_shelter_b3_dumping_hole_8018B080, 0,
                               D_shelter_b3_dumping_hole_8018B428);
             }
             func_800E3FAC(0xA2, 0x21);
-            GameFlag_SetNibble(0x78, 1);
+            GameFlag_SetNibble(GAME_FLAG_DUMPING_HOLE_ARRIVAL_SEEN, 1);
         }
     }
     if (gGameSession->location.loc.room >= 2) {

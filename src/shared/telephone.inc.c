@@ -212,7 +212,7 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             req.drawMode   = TEXT_DRAW_OUTLINED;
             Text_DrawString(&req, Telephone_Data_80181A40);
             cnt   = 326;
-            total = total + (GameFlag_GetNibble(0x167) + GameFlag_GetNibble(0x168));
+            total = total + (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_ROAMER_KILLS_POOL_B) + GameFlag_GetNibble(GAME_FLAG_NEO_ARK_ROAMER_KILLS_POOL_A));
             if (total == 0) {
                 pct = 0;
             } else {
@@ -431,7 +431,7 @@ static void Telephone_DrawUsageRow(UiList* arg0, UiObject* arg1)
     }
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, 0x10) != 0) {
-            SndEvt_EnqueueType6(3, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             Ui_SpawnFromDesc(&D_8010EFA0, item, 1, 1, arg1);
             arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
@@ -736,7 +736,7 @@ static inline void Telephone_MenuTask(Task* task)
     }
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE && Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
         if (task->state != 0) {
-            SndEvt_EnqueueType6(0x3B, 0, 0);
+            SndEvt_EnqueueType6(SOUND_SYSTEM_CANCEL, 0, 0);
         }
         gGameSession->uiOpen = 0;
         obj->result          = USER_INTERFACE_RESULT_CANCEL;
@@ -766,7 +766,7 @@ static inline void Telephone_MenuTask(Task* task)
                     obj->resultValue = 0x34;
                 } else {
                     Ui_TeardownTree(childObj, childObj->owner);
-                    SndEvt_EnqueueType6(0x3B, 0, 0);
+                    SndEvt_EnqueueType6(SOUND_SYSTEM_CANCEL, 0, 0);
                     Ui_StartCloseAnim(&(obj)->panel, task);
                     obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                 }

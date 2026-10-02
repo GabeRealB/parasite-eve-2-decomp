@@ -479,7 +479,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
                     arg0->killCountdown = 0xBC;
                     arg0->state         = arg0->state + 1;
                 } else {
-                    SndEvt_EnqueueType6(2, 0, 0);
+                    SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
                     list->field_16 = -1;
                     list->field_14 = (s8)(u8)list->field_7;
                 }

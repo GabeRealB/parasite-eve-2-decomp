@@ -1705,7 +1705,7 @@ void func_actor_503500_80132778(Task* task)
                         (work->field_4 & 0xF000) | 0x03800000 | (work->field_0 & 0xFFF), NULL);
         }
     }
-    switch (GameFlag_GetNibble(0x12A)) {
+    switch (GameFlag_GetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE)) {
         case 0:
         case 1:
             if (gGameSession->eventState == 0) {
@@ -1870,7 +1870,7 @@ void func_actor_503500_80132D7C(void)
 
 void func_actor_503500_80132D90(s32 arg0)
 {
-    GameFlag_SetNibble(0x100, arg0);
+    GameFlag_SetNibble(GAME_FLAG_100, arg0);
 }
 
 void func_actor_503500_80132DB4(s32 arg0)

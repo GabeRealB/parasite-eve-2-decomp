@@ -716,9 +716,9 @@ void func_actor_450900_80131E38(Task* task)
                     pan   = (s8)worldCoordGetOriginAudioPan(coord);
                     depth = (s8)worldCoordGetOriginAudioDepth(coord);
                     if (rand() & 1) {
-                        SndEvt_EnqueueType6(0x55170005, pan, depth);
+                        SndEvt_EnqueueType6(SOUND_SHELTER_B6_GROWTH_ALLY_VOICE_1, pan, depth);
                     } else {
-                        SndEvt_EnqueueType6(0x55170006, pan, depth);
+                        SndEvt_EnqueueType6(SOUND_SHELTER_B6_GROWTH_ALLY_VOICE_2, pan, depth);
                     }
                     Gp_AllyAnimId(&Actor450900AllyAnim.source.index);
                     TASK_MESSAGE_DISPATCH_POINTER(companionTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &D_actor_450900_80135EC0.data.copies[0], 0);
@@ -755,9 +755,9 @@ void func_actor_450900_8013207C(Task* task)
                     pan   = (s8)worldCoordGetOriginAudioPan(coord);
                     depth = (s8)worldCoordGetOriginAudioDepth(coord);
                     if (rand() & 1) {
-                        SndEvt_EnqueueType6(0x55170003, pan, depth);
+                        SndEvt_EnqueueType6(SOUND_SHELTER_B6_GROWTH_PLAYER_VOICE_1, pan, depth);
                     } else {
-                        SndEvt_EnqueueType6(0x55170004, pan, depth);
+                        SndEvt_EnqueueType6(SOUND_SHELTER_B6_GROWTH_PLAYER_VOICE_2, pan, depth);
                     }
                     TASK_MESSAGE_DISPATCH_POINTER(slot, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &D_actor_450900_80135EC0.data.copies[1], 0);
                     Gp_PlayerWeaponId(&D_actor_450900_80135FEC.source.index);
@@ -791,7 +791,7 @@ void func_actor_450900_8013223C(Task* task)
             if (Gp_GetCapEventKey() != 0xB) {
                 goto kill;
             }
-            GameFlag_SetNibble(0xD8, 1);
+            GameFlag_SetNibble(GAME_FLAG_0D8, 1);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             Gp_RunCapCmd(2, 0);
             func_800E8614(D_actor_450900_80136B00, 0);
@@ -835,16 +835,16 @@ void func_actor_450900_8013235C(Task* task)
             }
             break;
         case 4:
-            GameFlag_SetNibble(0x4D, 0);
-            GameFlag_SetNibble(0xFC, 1);
-            GameFlag_SetNibble(0xA5, 0);
-            GameFlag_SetNibble(0xD9, 0);
-            GameFlag_SetNibble(0xAB, 1);
-            GameFlag_SetNibble(0x1C7, 0);
-            GameFlag_SetNibble(0xD2, 0);
-            GameFlag_SetNibble(3, 0);
-            GameFlag_SetNibble(0x155, 8);
-            SndEvt_EnqueueType7(0x80000000, 0);
+            GameFlag_SetNibble(GAME_FLAG_COMPANION_3_SCHEDULE, 0);
+            GameFlag_SetNibble(GAME_FLAG_0FC, 1);
+            GameFlag_SetNibble(GAME_FLAG_B1_CORRIDOR_ELEVATOR_HALL_UNLOCKED, 0);
+            GameFlag_SetNibble(GAME_FLAG_NEO_ARK_ALTAR_SWITCH_STATE, 0);
+            GameFlag_SetNibble(GAME_FLAG_B2_CORRIDOR_ELEVATOR_HALL_UNLOCKED, 1);
+            GameFlag_SetNibble(GAME_FLAG_MAP_MARK_SHELTER_1C7, 0);
+            GameFlag_SetNibble(GAME_FLAG_SHELTER_WATCHERS_DISABLED, 0);
+            GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
+            GameFlag_SetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 8);
+            SndEvt_EnqueueType7(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 0xF;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 3;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType     = 0;
@@ -938,11 +938,11 @@ void func_actor_450900_80132684(s32 arg0)
     pan   = (s8)worldCoordGetOriginAudioPan(coord);
     depth = (s8)worldCoordGetOriginAudioDepth(coord);
     if (arg0 != 0) {
-        SndEvt_EnqueueType6(0x55170007, pan, depth);
+        SndEvt_EnqueueType6(SOUND_SHELTER_B6_GROWTH_ALLY_VOICE_3, pan, depth);
     } else if (rand() & 1) {
-        SndEvt_EnqueueType6(0x55170005, pan, depth);
+        SndEvt_EnqueueType6(SOUND_SHELTER_B6_GROWTH_ALLY_VOICE_1, pan, depth);
     } else {
-        SndEvt_EnqueueType6(0x55170006, pan, depth);
+        SndEvt_EnqueueType6(SOUND_SHELTER_B6_GROWTH_ALLY_VOICE_2, pan, depth);
     }
 }
 
@@ -974,7 +974,7 @@ void func_actor_450900_80132724(void)
 /// because `jump.c` cross-jumps the identical tails.
 static void func_actor_450900_801327A8(void)
 {
-    if (GameFlag_GetNibble(0xD8) != 0) {
+    if (GameFlag_GetNibble(GAME_FLAG_0D8) != 0) {
         if (D_actor_450900_80135E74 == 0) {
             D_actor_450900_80135E74 = 1;
             func_800E8614(D_actor_450900_80136890, 0);

@@ -1556,7 +1556,7 @@ static void Actor01900_Fn02A50(Task* arg0)
                 Gp_SpawnEff(0x6009C, &arg0->extra.tmd->coords[2], (s32)(effect), NULL);
             }
             if (work->field_0 == 0x17) {
-                SndEvt_EnqueueType7(0x51030008, 1);
+                SndEvt_EnqueueType7(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, 1);
             }
             if ((work->field_0 == 0xC || work->field_0 == 0xD) && config->hp > 0 && work->field_C44 == 1) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
@@ -2664,7 +2664,7 @@ static void Actor01900_Fn06B4C(Task* arg0)
     d->vy           = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
     d->vz           = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     if (!overlayOutOfRange(d, work->field_C32)) {
-        SndEvt_EnqueueType7(0x51030008, 1);
+        SndEvt_EnqueueType7(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, 1);
         if (Actor01900_ArmIfPlayerLevel(arg0) == 1) {
             work->field_0 = 6;
         }

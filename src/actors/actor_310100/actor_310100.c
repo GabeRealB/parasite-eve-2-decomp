@@ -686,10 +686,10 @@ static s32 func_actor_310100_80161E24(Task* task)
                 }
             } else {
                 if (rec->flags & ANIMATION_RECORD_CUE_2) {
-                    SndEvt_EnqueueType6(0x51050006, worldCoordGetOriginAudioPan(obj), 0);
+                    SndEvt_EnqueueType6(SOUND_ACROPOLIS_PLAZA_POLICE_STEP_1, worldCoordGetOriginAudioPan(obj), 0);
                 }
                 if (rec->flags & ANIMATION_RECORD_CUE_1) {
-                    SndEvt_EnqueueType6(0x51050007, worldCoordGetOriginAudioPan(obj), 0);
+                    SndEvt_EnqueueType6(SOUND_ACROPOLIS_PLAZA_POLICE_STEP_2, worldCoordGetOriginAudioPan(obj), 0);
                 }
             }
         }

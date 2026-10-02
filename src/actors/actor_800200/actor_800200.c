@@ -2993,7 +2993,7 @@ static void func_actor_800200_80165B84(Task* arg0)
         if ((u16)actor->hitRegion != 0) {
             func_8010B9A4(arg0);
             pan = (s8)worldCoordGetOriginAudioPan(coord);
-            SndEvt_EnqueueType6(0x4072000A, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+            SndEvt_EnqueueType6(SOUND_ACTOR_800200_HURT, pan, (s8)worldCoordGetOriginAudioDepth(coord));
         }
     }
     Gp_TickActorAnimState(arg0);

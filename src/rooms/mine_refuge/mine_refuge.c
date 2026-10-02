@@ -559,14 +559,14 @@ void func_mine_refuge_8017FA08(Task* task)
 
     switch (task->state) {
         case 0:
-            if (GameFlag_GetNibble(0x166) == 1) {
-                GameFlag_SetNibble(0x166, 2);
+            if (GameFlag_GetNibble(GAME_FLAG_MINE_REFUGE_SCENE_STATE) == 1) {
+                GameFlag_SetNibble(GAME_FLAG_MINE_REFUGE_SCENE_STATE, 2);
                 Gp_RunCapCmd1(0xF);
             }
             task->state = task->state + 1;
             return;
         case 2:
-            SndEvt_EnqueueType6(0x54060007, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MINE_REFUGE_CIRCUIT_PANEL_OPEN, 0, 0);
             D_mine_refuge_80182AD8 = Task_SpawnFromTable(&D_801358D8, 0, 0, 0);
             task->state            = task->state + 1;
             return;
@@ -581,7 +581,7 @@ void func_mine_refuge_8017FA08(Task* task)
             task->state = task->state + 1;
             return;
         case 5:
-            SndEvt_EnqueueType6(0x54060008, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MINE_REFUGE_CIRCUIT_PANEL_CLOSE, 0, 0);
             taskKill(task);
             break;
     }
@@ -618,7 +618,7 @@ s32 func_mine_refuge_8017FC2C(Task* task, s32 msgId, s32 arg2, TaskMessageArg ar
     u8 temp_a3;
 
     if (arg2 == 1) {
-        if (GameFlag_GetNibble(0x12B) != 0) {
+        if (GameFlag_GetNibble(GAME_FLAG_MINE_REFUGE_PROMPT_ACCEPTED) != 0) {
             func_mine_refuge_8017FE78(0U);
         } else {
             Gp_MsgPlayerWeapon(0);
@@ -626,7 +626,7 @@ s32 func_mine_refuge_8017FC2C(Task* task, s32 msgId, s32 arg2, TaskMessageArg ar
             temp_a3                                                    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 6U;
             D_mine_refuge_80182ADC[0]                                  = temp_a3;
-            SndEvt_EnqueueType6(0x54060003, 0, 0);
+            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 3), 0, 0);
             Gp_RunCapCmd(0xD, 0);
             Task_SpawnFromTable(D_mine_refuge_801818B4, 1, 0, 0);
         }
@@ -641,8 +641,8 @@ s32 func_mine_refuge_8017FCD0(Task* task, s32 msgId, TaskMessageArg firstArg, Ta
     u8 actionId = request->actionId;
 
     if (actionId == 1) {
-        if (GameFlag_GetNibble(0xBB) != actionId) {
-            GameFlag_SetNibble(0xC4, 0);
+        if (GameFlag_GetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE) != actionId) {
+            GameFlag_SetNibble(GAME_FLAG_0C4, 0);
             Gp_MsgPlayerWeapon(0);
             Task_SpawnFromTable(D_mine_refuge_801818B4, 0, 0, 0);
         } else {
@@ -659,13 +659,13 @@ s32 func_mine_refuge_8017FD48(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     switch (arg2) {
         case 0xC:
-            SndEvt_EnqueueType6(0x5406000C, 0, 0);
+            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 0x0C), 0, 0);
             break;
         case 0x63:
-            SndEvt_EnqueueType6(0x5406000F, 0, 0);
+            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 0x0F), 0, 0);
             break;
         case 0x67:
-            SndEvt_EnqueueType6(0x5406000D, 0, 0);
+            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 0x0D), 0, 0);
             break;
     }
     return 0;
@@ -687,7 +687,7 @@ void func_mine_refuge_8017FDBC(Task* arg0)
             Gp_MsgPlayer3F3(1);
             break;
         case 1:
-            GameFlag_SetNibble(0x12B, 1);
+            GameFlag_SetNibble(GAME_FLAG_MINE_REFUGE_PROMPT_ACCEPTED, 1);
             func_mine_refuge_8017FE78(D_mine_refuge_80182ADC[0]);
             break;
         default:
@@ -713,7 +713,7 @@ static void func_mine_refuge_8017FE78(s32 arg0)
         D_mine_refuge_80182AE0.field_0 = 6;
         D_mine_refuge_80182AE0.field_4 = 0x54060003;
     }
-    if (GameFlag_GetNibble(0x155) == 0xF) {
+    if (GameFlag_GetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) == 0xF) {
         slot                           = 1;
         D_mine_refuge_80182AE0.field_1 = 0xE;
         D_mine_refuge_80182AE0.field_3 = 0;
@@ -1079,13 +1079,13 @@ void func_mine_refuge_80181454(Task* unused)
             func_mine_refuge_8018029C(&D_mine_refuge_801818D8[1], 0x60, 0x40);
             break;
         case 3:
-            if (GameFlag_GetNibble(0xC3) == 1) {
+            if (GameFlag_GetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON) == 1) {
                 func_mine_refuge_80181094(&D_mine_refuge_801818E8, 0x30, 0xF0);
             }
             break;
         case 4:
         case 5:
-            if (GameFlag_GetNibble(0xC3) == 1) {
+            if (GameFlag_GetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON) == 1) {
                 func_mine_refuge_80181094(&D_mine_refuge_801818E8, 0x60, 0xD0);
             }
             break;

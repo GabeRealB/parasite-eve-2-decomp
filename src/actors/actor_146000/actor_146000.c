@@ -567,9 +567,9 @@ void func_actor_146000_80131E24(Task* arg0)
     state = arg0->state;
     switch (state) {
         case 0:
-            if (GameFlag_GetNibble(0x73) != 0) {
+            if (GameFlag_GetNibble(GAME_FLAG_BURNER_DEFEATED) != 0) {
                 func_800E8634(D_actor_146000_80135980, 0, D_actor_146000_80135BD8);
-                GameFlag_SetNibble(0x4B, 7);
+                GameFlag_SetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 7);
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 4;
             } else {
                 func_800E8634(D_actor_146000_80135428, 1, D_actor_146000_80135BD8);
@@ -584,8 +584,8 @@ void func_actor_146000_80131E24(Task* arg0)
             }
             return;
         case 2:
-            SndEvt_EnqueueType7(0x80000000, 0);
-            GameFlag_SetNibble(0x4C, 0);
+            SndEvt_EnqueueType7(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0);
+            GameFlag_SetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 0);
             Gp_ApplyAreaRecs(D_dryfield_night_water_hole_80183618);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 0x19;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = state;

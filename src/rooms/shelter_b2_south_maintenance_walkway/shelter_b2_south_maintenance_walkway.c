@@ -514,7 +514,7 @@ s32 func_shelter_b2_south_maintenance_walkway_8017DA7C(Task* arg0, s32 arg1, Roo
         req.missingCapCmd = 1;
         req.firstSnd      = 0x541C0005;
         req.secondSnd     = 0x541C0001;
-        req.flagId        = 0xAA;
+        req.flagId        = GAME_FLAG_OPERATING_ROOM_SOUTH_DOOR_UNLOCKED;
         req.collectedBit  = 0;
         return roomEventGate(&req, out);
     }
@@ -523,7 +523,7 @@ s32 func_shelter_b2_south_maintenance_walkway_8017DA7C(Task* arg0, s32 arg1, Roo
     }
     event.capCmd   = 2;
     event.stageSnd = 0x541C0001;
-    event.flagId   = 0x13C;
+    event.flagId   = GAME_FLAG_B2_SOUTH_WALKWAY_TO_ELEVATOR_SCENE;
     event.fade     = 0;
     return _walkwayStartEvent(out, &event);
 }

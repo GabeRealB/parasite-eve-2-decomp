@@ -1295,7 +1295,7 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             break;
     }
     if (task->spawnArg1.value == 0x5A) {
-        SndEvt_EnqueueType6(0x51100003, 0, 0);
+        SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_HELICOPTER_LANDING_PAD, 3), 0, 0);
     }
 }
 
@@ -1343,8 +1343,8 @@ void func_acropolis_helicopter_landing_pad_8017DFCC(Task* arg0)
             Gp_ClearCollectedBit(0x101);
             Gp_ClearCollectedBit(0x102);
             Gp_SetItemSeenBit(0x102, 1);
-            GameFlag_SetNibble(3, 0);
-            GameFlag_SetNibble(0x155, 7);
+            GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
+            GameFlag_SetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 7);
             Task_SpawnFromTable(D_acropolis_helicopter_landing_pad_80184E68, 0, 0, 0);
             arg0->state = (s32)(arg0->state + 1);
             return;
@@ -1352,7 +1352,7 @@ void func_acropolis_helicopter_landing_pad_8017DFCC(Task* arg0)
             arg0->state = 2;
             return;
         case 2:
-            SndEvt_EnqueueType7(0x80000000, 0);
+            SndEvt_EnqueueType7(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent         = 1;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_ACROPOLIS;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_MIST_R18;

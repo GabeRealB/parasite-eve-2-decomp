@@ -747,15 +747,15 @@ static void func_neo_ark_altar_8017DF0C(Task* task)
     }
     switch (func_neo_ark_altar_8017E260(task)) {
         case 1:
-            GameFlag_SetNibble(0xDC, 1);
-            GameFlag_SetNibble(0x1B7, 0);
-            SndEvt_EnqueueType7(0x55140003, 0);
-            SndEvt_EnqueueType6(0x55140007, 0, 0);
+            GameFlag_SetNibble(GAME_FLAG_NEO_ARK_ALTAR_SEQUENCE_1_SOLVED, 1);
+            GameFlag_SetNibble(GAME_FLAG_MAP_MARK_ALTAR, 0);
+            SndEvt_EnqueueType7(SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_ALTAR, 3), 0);
+            SndEvt_EnqueueType6(SOUND_NEO_ARK_ALTAR_SEQUENCE_1_SOLVED, 0, 0);
             Gp_RunCapCmd1(1);
             Gp_ApplyAreaRecs(D_neo_ark_altar_8018007C);
             break;
         case 2:
-            GameFlag_SetNibble(0xDD, 1);
+            GameFlag_SetNibble(GAME_FLAG_NEO_ARK_ALTAR_SEQUENCE_2_SOLVED, 1);
             task->state = 3;
             break;
         case 3:
@@ -803,7 +803,7 @@ static void func_neo_ark_altar_8017E148(void)
 
     sess = &gGameSession->location.loc;
     rec  = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1];
-    if (GameFlag_GetNibble(0xD9) == 0) {
+    if (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_ALTAR_SWITCH_STATE) == 0) {
         batches                  = rec[3].batches;
         batches[1].hidden        = 1;
         batches                  = rec[6].batches;
@@ -849,7 +849,7 @@ static s16 func_neo_ark_altar_8017E260(Task* task)
     if (D_neo_ark_altar_801800AC == 0) {
         return 0;
     }
-    if (GameFlag_GetNibble(0xDC) == 0) {
+    if (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_ALTAR_SEQUENCE_1_SOLVED) == 0) {
         for (i = 0; i < D_neo_ark_altar_801800AC; i++) {
             if (D_neo_ark_altar_8017F050[i] != D_neo_ark_altar_801800B0[i]) {
                 goto fail1;
@@ -865,20 +865,20 @@ static s16 func_neo_ark_altar_8017E260(Task* task)
     if (work->field_E != 0) {
         if (D_neo_ark_altar_8017F050[D_neo_ark_altar_801800AC - 1] != D_neo_ark_altar_801800B0[D_neo_ark_altar_801800AC - 1] || bad1 == 1) {
             if (work->field_E == 1) {
-                SndEvt_EnqueueType6(0x55140008, 0, 0);
+                SndEvt_EnqueueType6(SOUND_NEO_ARK_ALTAR_TILE_1_WRONG, 0, 0);
             }
             if (work->field_E == 2) {
-                SndEvt_EnqueueType6(0x55140009, 0, 0);
+                SndEvt_EnqueueType6(SOUND_NEO_ARK_ALTAR_TILE_2_WRONG, 0, 0);
             }
             if (work->field_E == 3) {
-                SndEvt_EnqueueType6(0x5514000A, 0, 0);
+                SndEvt_EnqueueType6(SOUND_NEO_ARK_ALTAR_TILE_3_WRONG, 0, 0);
             }
             if (work->field_E == 4) {
-                SndEvt_EnqueueType6(0x5514000B, 0, 0);
+                SndEvt_EnqueueType6(SOUND_NEO_ARK_ALTAR_TILE_4_WRONG, 0, 0);
             }
         } else {
             if (work->field_E == 1) {
-                SndEvt_EnqueueType6(0x55140001, 0, 0);
+                SndEvt_EnqueueType6(SOUND_NEO_ARK_ALTAR_TILE_1_CORRECT, 0, 0);
             }
             if (work->field_E == 2) {
                 SndEvt_EnqueueType6(0x55140000 | work->field_E, 0, 0);
@@ -891,13 +891,13 @@ static s16 func_neo_ark_altar_8017E260(Task* task)
             }
         }
     }
-    if (GameFlag_GetNibble(0xDD) == 0) {
+    if (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_ALTAR_SEQUENCE_2_SOLVED) == 0) {
         for (i = 0; i < D_neo_ark_altar_801800AC; i++) {
             if (D_neo_ark_altar_8017F068[i] != D_neo_ark_altar_801800B0[i]) {
                 goto fail2;
             }
             if (i == 15) {
-                SndEvt_EnqueueType6(0x5514000C, 0, 0);
+                SndEvt_EnqueueType6(SOUND_NEO_ARK_ALTAR_SEQUENCE_2_SOLVED, 0, 0);
                 return 2;
             }
         }
@@ -908,20 +908,20 @@ static s16 func_neo_ark_altar_8017E260(Task* task)
     if (work->field_E != 0) {
         if (D_neo_ark_altar_8017F068[D_neo_ark_altar_801800AC - 1] != D_neo_ark_altar_801800B0[D_neo_ark_altar_801800AC - 1] || bad2 == 1) {
             if (work->field_E == 1) {
-                SndEvt_EnqueueType6(0x55140008, 0, 0);
+                SndEvt_EnqueueType6(SOUND_NEO_ARK_ALTAR_TILE_1_WRONG, 0, 0);
             }
             if (work->field_E == 2) {
-                SndEvt_EnqueueType6(0x55140009, 0, 0);
+                SndEvt_EnqueueType6(SOUND_NEO_ARK_ALTAR_TILE_2_WRONG, 0, 0);
             }
             if (work->field_E == 3) {
-                SndEvt_EnqueueType6(0x5514000A, 0, 0);
+                SndEvt_EnqueueType6(SOUND_NEO_ARK_ALTAR_TILE_3_WRONG, 0, 0);
             }
             if (work->field_E == 4) {
-                SndEvt_EnqueueType6(0x5514000B, 0, 0);
+                SndEvt_EnqueueType6(SOUND_NEO_ARK_ALTAR_TILE_4_WRONG, 0, 0);
             }
         } else {
             if (work->field_E == 1) {
-                SndEvt_EnqueueType6(0x55140001, 0, 0);
+                SndEvt_EnqueueType6(SOUND_NEO_ARK_ALTAR_TILE_1_CORRECT, 0, 0);
             }
             if (work->field_E == 2) {
                 SndEvt_EnqueueType6(0x55140000 | work->field_E, 0, 0);

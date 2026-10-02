@@ -567,12 +567,12 @@ s32 func_shelter_b1_access_tunnel_8017DA68(Task* arg0, s32 arg1, RoomEventMsg* i
     *out = *in;
     func_map_shelter_80179A04(in, out);
     if (in->areaId == GAME_AREA_SHELTER_B1_CONTROL_ROOM || in->areaId == GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL) {
-        if (in->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(0x113) > 0 && GameFlag_GetNibble(0x113) < 4) {
+        if (in->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS) > 0 && GameFlag_GetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS) < 4) {
             Gp_ApplyAreaRecs(D_shelter_b1_access_tunnel_8017FF44);
-            GameFlag_SetNibble(0x113, 4);
+            GameFlag_SetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS, 4);
         }
     }
-    if (in->areaId == GAME_AREA_SHELTER_B1_GOLEM_FREEZER_1 && GameFlag_GetNibble(0xE5) == 0) {
+    if (in->areaId == GAME_AREA_SHELTER_B1_GOLEM_FREEZER_1 && GameFlag_GetNibble(GAME_FLAG_GOLEM_FREEZER_UNLOCKED) == 0) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_SetNibbleIf(in->flagId, 2);
             Gp_RunCapCmd1(1);
@@ -584,14 +584,14 @@ s32 func_shelter_b1_access_tunnel_8017DA68(Task* arg0, s32 arg1, RoomEventMsg* i
         req.missingCapCmd = 1;
         req.firstSnd      = 0x54130009;
         req.secondSnd     = 0x54130001;
-        req.flagId        = 0xAD;
+        req.flagId        = GAME_FLAG_B1_CONTROL_ROOM_TUNNEL_DOOR_UNLOCKED;
         req.collectedBit  = 0;
         return roomEventGate(&req, out);
     }
     if (in->areaId == GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING) {
         event.capCmd   = 4;
         event.stageSnd = 0x54130005;
-        event.flagId   = 0x13F;
+        event.flagId   = GAME_FLAG_B1_ACCESS_TUNNEL_TO_PARKING_SCENE;
         event.fade     = 0;
         return _accessTunnelStartEvent(out, &event);
     }

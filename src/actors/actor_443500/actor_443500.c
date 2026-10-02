@@ -2428,7 +2428,7 @@ void func_actor_443500_80131E3C(s32 arg0)
 
 void func_actor_443500_80131E84(s32 arg0)
 {
-    if (GameFlag_GetNibble(0xDF) > 0) {
+    if (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) > 0) {
         if (arg0 != 0) {
             Gp_CapFile = 0;
             Gp_LoadCapFile(1);
@@ -2441,7 +2441,7 @@ void func_actor_443500_80131E84(s32 arg0)
 
 void func_actor_443500_80131EE4(void)
 {
-    Gp_RunCapCmd(GameFlag_GetNibble(0xDF) == 0 ? 6 : 9, 0);
+    Gp_RunCapCmd(GameFlag_GetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0 ? 6 : 9, 0);
 }
 
 void func_actor_443500_80131F18(void)
@@ -2573,7 +2573,7 @@ static void func_actor_443500_801321F0(Task* task)
             work->field_4C0 = extra->flags;
             extra->flags    = extra->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
         } else if (view < 6) {
-            if (GameFlag_GetNibble(0x83) > 0) {
+            if (GameFlag_GetNibble(GAME_FLAG_083) > 0) {
                 func_actor_443500_80132A68(0);
                 func_actor_443500_8013297C(task, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             }
@@ -2593,25 +2593,25 @@ static void func_actor_443500_801321F0(Task* task)
         if (work->field_4BA == 0xF) {
             switch (gGameSession->location.loc.view) {
                 case 5:
-                    SndEvt_EnqueueType6(0x542F0001, 9, 0);
+                    SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 1), 9, 0);
                     break;
                 case 4:
-                    SndEvt_EnqueueType6(0x542F0001, -0xA, 0x40);
+                    SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 1), -0xA, 0x40);
                     break;
                 case 3:
-                    SndEvt_EnqueueType7(0x542F0001, 0x1E);
+                    SndEvt_EnqueueType7(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 1), 0x1E);
                     break;
             }
         } else if (gGameSession->viewReady != 0) {
             switch (gGameSession->location.loc.view) {
                 case 5:
-                    SndEvt_EnqueueTypeA(0x542F0001, 9, 0);
+                    SndEvt_EnqueueTypeA(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 1), 9, 0);
                     break;
                 case 4:
-                    SndEvt_EnqueueTypeA(0x542F0001, -0xA, 0x40);
+                    SndEvt_EnqueueTypeA(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 1), -0xA, 0x40);
                     break;
                 case 3:
-                    SndEvt_EnqueueType7(0x542F0001, 0x1E);
+                    SndEvt_EnqueueType7(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 1), 0x1E);
                     break;
             }
         }

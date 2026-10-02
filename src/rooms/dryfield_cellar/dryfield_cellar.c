@@ -950,7 +950,7 @@ void func_dryfield_cellar_8017DAEC(Task* arg0)
     GfxCoord* coord;
 
     coord = arg0->extra.coordBody->coord;
-    if (GameFlag_GetNibble(0x52) == 1) {
+    if (GameFlag_GetNibble(GAME_FLAG_UNDERPASS_SWITCH_2) == 1) {
         if (gGameSession->location.loc.view == 2) {
             glowDrawFlareLocal(coord, D_dryfield_cellar_8017DBBC, 1, 0x280);
             glowDrawFlareLocal(coord, D_dryfield_cellar_8017DBBC + 1, 1, 0x280);

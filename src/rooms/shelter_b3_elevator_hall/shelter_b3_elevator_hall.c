@@ -177,7 +177,7 @@ void func_shelter_b3_elevator_hall_8017DAF0(Task* task)
             }
             break;
         case 2:
-            if (GameFlag_GetNibble(0xCF) != 0) {
+            if (GameFlag_GetNibble(GAME_FLAG_0CF) != 0) {
                 Gp_RunCapCmd(4, 0);
                 Task_SpawnFromTable(D_shelter_b3_elevator_hall_80182A2C, 0, 0x542A0001, 0);
                 taskKill(task);
@@ -204,12 +204,12 @@ void func_shelter_b3_elevator_hall_8017DAF0(Task* task)
             task->state++;
             break;
         case 5:
-            if (SndVoice_HasActiveId(0x542A0001) == 0) {
+            if (SndVoice_HasActiveId(SOUND_SHELTER_B3_ELEVATOR_RIDE) == 0) {
                 task->state++;
             }
             break;
         case 6:
-            SndEvt_EnqueueType7(0x80000000, 0);
+            SndEvt_EnqueueType7(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0);
             gDisplayState.spriteVariant = 1;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
@@ -233,7 +233,7 @@ s32 func_shelter_b3_elevator_hall_8017DC80(Task* arg0, s32 arg1, RoomEventMsg* i
         req.missingCapCmd = 1;
         req.firstSnd      = 0x542A0005;
         req.secondSnd     = 0x542A0003;
-        req.flagId        = 0xA7;
+        req.flagId        = GAME_FLAG_B3_INCINERATOR_CONTROL_DOOR_UNLOCKED;
         req.collectedBit  = 0;
         return roomEventGate(&req, out);
     }
@@ -241,9 +241,9 @@ s32 func_shelter_b3_elevator_hall_8017DC80(Task* arg0, s32 arg1, RoomEventMsg* i
         return 1;
     }
     if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (GameFlag_GetNibble(0xBA) == 0) {
+        if (GameFlag_GetNibble(GAME_FLAG_SHELTER_ELEVATOR_ENABLED) == 0) {
             Gp_RunCapCmd1(2);
-            GameFlag_SetNibble(0xBA, 1);
+            GameFlag_SetNibble(GAME_FLAG_SHELTER_ELEVATOR_ENABLED, 1);
         }
         Task_SpawnFromTable(D_shelter_b3_elevator_hall_80182A68, 0, 0x542A0001, 0);
     }

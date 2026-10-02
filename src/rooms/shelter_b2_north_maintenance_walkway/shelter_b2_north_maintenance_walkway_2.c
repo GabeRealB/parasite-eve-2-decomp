@@ -144,7 +144,7 @@ void func_shelter_b2_north_maintenance_walkway_8017DDE8(Task* arg0)
     switch (Gp_GetViewIndex() & 0xFF) {
         case 2: {
             SVECTOR* p;
-            if (GameFlag_GetNibble(0xA8) != 0) {
+            if (GameFlag_GetNibble(GAME_FLAG_OPERATING_ROOM_NORTH_DOOR_UNLOCKED) != 0) {
                 glowDrawTintedDisc(D_shelter_b2_north_maintenance_walkway_80183C28, 0x100, 0x504C);
             } else {
                 glowDrawTintedDisc(D_shelter_b2_north_maintenance_walkway_80183C30, 0x100, 0x5C40);
@@ -196,7 +196,7 @@ void func_shelter_b2_north_maintenance_walkway_8017DDE8(Task* arg0)
             break;
         }
         case 7:
-            if (GameFlag_GetNibble(0xA8) != 0) {
+            if (GameFlag_GetNibble(GAME_FLAG_OPERATING_ROOM_NORTH_DOOR_UNLOCKED) != 0) {
                 glowDrawTintedDisc(D_shelter_b2_north_maintenance_walkway_80183C28, 0x100, 0x504C);
             } else {
                 glowDrawTintedDisc(D_shelter_b2_north_maintenance_walkway_80183C30, 0x100, 0x5C40);

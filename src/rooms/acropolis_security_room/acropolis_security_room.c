@@ -2118,13 +2118,13 @@ static void func_acropolis_security_room_8017D9DC(Task* task)
     task->work              = work;
     work->blinkTimer        = 0;
     stateElse               = 6;
-    flag                    = GameFlag_GetNibble(0x2A);
+    flag                    = GameFlag_GetNibble(GAME_FLAG_SECURITY_MONITOR_LAST_CAMERA);
     if ((u16)flag < 5) {
         work->cameraId = D_acropolis_security_room_801826B4[flag];
     } else {
         work->cameraId = D_acropolis_security_room_801826B4[0];
     }
-    if (GameFlag_GetNibble(1) < 3) {
+    if (GameFlag_GetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS) < 3) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 8;
         /* Without this the scheduler hoists the `task->state` load above the
            `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` byte store to fill its load-delay slot. */
@@ -2218,8 +2218,8 @@ static void func_acropolis_security_room_8017DC7C(Task* task)
             save = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
             if (save->state.location.loc.view != sel) {
                 save->state.location.loc.view = work->selection;
-                SndEvt_EnqueueType6(0x51060003, 0, 0);
-                if ((work->selection == 0xA) && !(GameFlag_GetNibble(0xA) & 2)) {
+                SndEvt_EnqueueType6(SOUND_ACROPOLIS_SECURITY_ROOM_MONITOR_SELECT, 0, 0);
+                if ((work->selection == 0xA) && !(GameFlag_GetNibble(GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN) & 2)) {
                     work->field_7 = 1;
                 }
             }
@@ -2239,12 +2239,12 @@ static void func_acropolis_security_room_8017DC7C(Task* task)
                 SndEvt_EnqueueType6(sfx, 0, 0);
             }
         }
-        if (((u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == 0xB) && ((s16)work->cameraId != 4) && !(GameFlag_GetNibble(0xA) & 1)) {
+        if (((u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == 0xB) && ((s16)work->cameraId != 4) && !(GameFlag_GetNibble(GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN) & 1)) {
             Gp_StartCapSlot(0xD, 0, 0);
-            GameFlag_SetNibble(0xA, GameFlag_GetNibble(0xA) | 1);
+            GameFlag_SetNibble(GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN, GameFlag_GetNibble(GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN) | 1);
         }
         if (((u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == 0xA) && ((s16)work->cameraId != 4) && (work->field_7 != 0) &&
-            (work->field_8 == 0) && (GameFlag_GetNibble(0x102) == 0)) {
+            (work->field_8 == 0) && (GameFlag_GetNibble(GAME_FLAG_SECURITY_MONITOR_CAM_A_SCENE_DONE) == 0)) {
             Gp_StartCapSlot(0xC, 0, 0);
             work->field_8 = 1;
         }
@@ -2505,12 +2505,12 @@ loop:
         index  += 1;
         camera += 1;
         if (index >= 5) {
-            GameFlag_SetNibble(0x2A, 0);
+            GameFlag_SetNibble(GAME_FLAG_SECURITY_MONITOR_LAST_CAMERA, 0);
             goto done;
         }
         goto loop;
     }
-    GameFlag_SetNibble(0x2A, index);
+    GameFlag_SetNibble(GAME_FLAG_SECURITY_MONITOR_LAST_CAMERA, index);
 done:
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 4;
     Display_ReleaseRef();
@@ -2647,17 +2647,17 @@ static void func_acropolis_security_room_8017F1BC(Task* task)
     s32                         flag;
     s32                         step;
 
-    flag = GameFlag_GetNibble(9);
+    flag = GameFlag_GetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED);
     if ((flag == 0) || (flag == 2)) {
         step = st->field_0;
         if (step == 0) {
             Gp_StartCapSlot(3, 1, 0);
         } else if (step == 1) {
             Gp_ClearCollectedBit(0x104);
-            SndEvt_EnqueueType6(0x51060001, 0, 0);
-            GameFlag_SetNibble(9, GameFlag_GetNibble(9) | 1);
-            GameFlag_SetNibble(1, 2);
-            func_acropolis_security_room_8017FD64(GameFlag_GetNibble(9) & 0xFF);
+            SndEvt_EnqueueType6(SOUND_ACROPOLIS_SECURITY_ROOM_SHUTTER_UNLOCK, 0, 0);
+            GameFlag_SetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED, GameFlag_GetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) | 1);
+            GameFlag_SetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS, 2);
+            func_acropolis_security_room_8017FD64(GameFlag_GetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 0xFF);
             st->field_0 = 0;
             task->state = 6;
             func_800E9BDC(1, 0xF9FF);
@@ -2685,22 +2685,22 @@ static void func_acropolis_security_room_8017F300(Task* task)
     s32                         flag;
     s32                         step;
 
-    flag = GameFlag_GetNibble(9);
+    flag = GameFlag_GetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED);
     if ((flag == 0) || (flag == 1)) {
         step = st->field_0;
         if (step == 0) {
             Gp_StartCapSlot(4, 1, 0);
         } else if (step == 2) {
             Gp_ClearCollectedBit(0x103);
-            SndEvt_EnqueueType6(0x51060001, 0, 0);
-            GameFlag_SetNibble(9, GameFlag_GetNibble(9) | 2);
-            func_acropolis_security_room_8017FD64(GameFlag_GetNibble(9) & 0xFF);
+            SndEvt_EnqueueType6(SOUND_ACROPOLIS_SECURITY_ROOM_SHUTTER_UNLOCK, 0, 0);
+            GameFlag_SetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED, GameFlag_GetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) | 2);
+            func_acropolis_security_room_8017FD64(GameFlag_GetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 0xFF);
             st->field_0              = 0;
             task->state              = 0xA;
             gGameSession->eventState = 1;
             func_800E9BDC(1, 0xF9FF);
             Gp_ApplyAreaRecs(D_acropolis_security_room_80184F50);
-            if (GameFlag_GetNibble(3) < 3) {
+            if (GameFlag_GetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE) < 3) {
                 Gp_ApplyAreaRecs(D_acropolis_security_room_80184F78);
             } else {
                 Gp_ApplyAreaRecs(D_acropolis_security_room_80184F7C);
@@ -2773,7 +2773,7 @@ static void func_acropolis_security_room_8017FA18(Task* task)
     task->state++;
     st->field_0 = 0;
     st->frames  = 0;
-    func_acropolis_security_room_8017FD64(GameFlag_GetNibble(9) & 0xFF);
+    func_acropolis_security_room_8017FD64(GameFlag_GetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 0xFF);
     gGameSession->cutsceneHold = 1;
     gGameSession->hideHud      = 1;
     gGameSession->eventState   = 1;
@@ -2931,7 +2931,7 @@ static void func_acropolis_security_room_8017FE6C(Task* task)
     Fade_DrawOverlay(level, level, level, GPU_BLEND_SUBTRACT);
     st->frames = st->frames + 4;
     if (st->frames == 0x80) {
-        SndEvt_EnqueueType6(0x51060002, 0, 0);
+        SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SECURITY_ROOM, 2), 0, 0);
     }
     if (st->frames >= 0x100) {
         st->frames                                                 = 0;
@@ -2996,13 +2996,13 @@ static void func_acropolis_security_room_801800A4(Task* task)
     s32                         level;
     s16                         frames;
 
-    GameFlag_SetNibble(0x1EE, 0);
+    GameFlag_SetNibble(GAME_FLAG_MAP_MARK_SECURITY_ROOM, 0);
     level = (u8)st->frames;
     Fade_DrawOverlay(level, level, level, GPU_BLEND_SUBTRACT);
     frames     = st->frames + 4;
     st->frames = frames;
     if ((u16)frames == 0x80) {
-        SndEvt_EnqueueType6(0x51060002, 0, 0);
+        SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SECURITY_ROOM, 2), 0, 0);
     }
     if (st->frames >= 0x100) {
         st->frames                                                 = 0;
@@ -3097,12 +3097,12 @@ L_case0:
         return;
     }
     memFillBytes(alloc, 0, sizeof(AsrAmbienceState));
-    SndEvt_EnqueueType6(0x51060008, 0, 0);
+    SndEvt_EnqueueType6(SOUND_ACROPOLIS_SECURITY_ROOM_MOVIE_LOOP, 0, 0);
     goto advance;
 
 L_case1:
     if (queue->movieFrame >= 0x46 && st->fadeStarted == 0) {
-        SndEvt_EnqueueType7(0x51060008, 0x14);
+        SndEvt_EnqueueType7(SOUND_ACROPOLIS_SECURITY_ROOM_MOVIE_LOOP, 0x14);
         st->fadeStarted = state;
     }
     if (CdCmd_IsIdle() & 0xFFFF) {
@@ -3112,7 +3112,7 @@ L_case1:
         return;
     }
     if (st->fadeStarted == 0) {
-        SndEvt_EnqueueType7(0x51060008, 0x14);
+        SndEvt_EnqueueType7(SOUND_ACROPOLIS_SECURITY_ROOM_MOVIE_LOOP, 0x14);
     }
 advance:
     task->state = task->state + 1;
@@ -3209,7 +3209,7 @@ void func_acropolis_security_room_801805A4(Task* task)
         }
 
         case 1:
-            work->index = D_acropolis_security_room_80183968[GameFlag_GetNibble(9)];
+            work->index = D_acropolis_security_room_80183968[GameFlag_GetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED)];
             if ((Gp_GetViewIndex() & 0xFF) == 6) {
                 u16* pal  = D_acropolis_security_room_80182918;
                 u16* base = D_acropolis_security_room_80182718;
@@ -3257,7 +3257,7 @@ void func_acropolis_security_room_801805A4(Task* task)
             break;
     }
 
-    if (GameFlag_GetNibble(1) < 3) {
+    if (GameFlag_GetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS) < 3) {
         func_acropolis_security_room_80180A78(task);
     }
 }

@@ -829,8 +829,8 @@ void func_shelter_b4_upper_sewer_8017D660(Task* task)
                 break;
             }
             func_800E8614(D_shelter_b4_upper_sewer_80186318, 0);
-            GameFlag_SetNibble(0xB8, 1);
-            GameFlag_SetNibble(0x1BD, 0);
+            GameFlag_SetNibble(GAME_FLAG_WATER_HOLE_SHELTER_ROUTE_OPEN, 1);
+            GameFlag_SetNibble(GAME_FLAG_MAP_MARK_WATER, 0);
             task->state++;
             break;
         case 4:
@@ -876,12 +876,12 @@ void func_shelter_b4_upper_sewer_8017D80C(Task* arg0)
             break;
         case 3:
             if (--arg0->killCountdown == 0) {
-                SndEvt_EnqueueType6(0x542C0003, 0, 0);
+                SndEvt_EnqueueType6(SOUND_SHELTER_B4_UPPER_SEWER_EXIT_TRANSIT, 0, 0);
                 arg0->state++;
             }
             break;
         case 4:
-            if (SndVoice_HasActiveId(0x542C0003) == 0) {
+            if (SndVoice_HasActiveId(SOUND_SHELTER_B4_UPPER_SEWER_EXIT_TRANSIT) == 0) {
                 arg0->state++;
             }
             break;
@@ -931,7 +931,7 @@ s32 func_shelter_b4_upper_sewer_8017DAB0(Task* task, s32 msgId, s32 arg2, TaskMe
     u8 temp_a1;
 
     if (arg2 == 1) {
-        if (GameFlag_GetNibble(0xB8) == 0) {
+        if (GameFlag_GetNibble(GAME_FLAG_WATER_HOLE_SHELTER_ROUTE_OPEN) == 0) {
             Gp_MsgPlayer3F3(0);
             Gp_MsgAlly3F3(0);
             Gp_MsgPlayerWeapon(0);
@@ -957,7 +957,7 @@ s32 func_shelter_b4_upper_sewer_8017DB58(Task* arg0, s32 arg1, s32 arg2, TaskMes
 {
     if (arg2 == 4) {
         func_shelter_b4_upper_sewer_8017E59C(1);
-        SndEvt_EnqueueType6(0x542C0004, 0, 0);
+        SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_UPPER_SEWER, 4), 0, 0);
     }
     return 0;
 }
@@ -971,7 +971,7 @@ static void func_shelter_b4_upper_sewer_8017DBA8(Task* task)
 {
     task->msgTable = D_shelter_b4_upper_sewer_801862D0;
     Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
-    if (GameFlag_GetNibble(0xB7) != 0) {
+    if (GameFlag_GetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) != 0) {
         D_shelter_b4_upper_sewer_80186438 = -0x708;
         Task_SpawnFromTable(D_shelter_b4_upper_sewer_8018643C, 0, 0, 0);
     } else {
@@ -1190,7 +1190,7 @@ static void func_shelter_b4_upper_sewer_8017E59C(s32 arg0)
 void func_shelter_b4_upper_sewer_8017E5F8(Task* arg0)
 {
     if (arg0->state == 0) {
-        if (GameFlag_GetNibble(0xB7) == 1) {
+        if (GameFlag_GetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) == 1) {
             D_8011574C = 0x60170;
             D_80115738 = 0x60171;
         }

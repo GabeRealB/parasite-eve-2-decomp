@@ -526,7 +526,7 @@ void Gp_DrawAmmoRow(UiList* arg0, UiObject* obj)
         obj->resultValue = item;
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             if (obj->owner->spawnArg1.value == 0) {
-                SndEvt_EnqueueType6(0xA, 0, 0);
+                SndEvt_EnqueueType6(SOUND_WEAPON_EQUIP, 0, 0);
                 Gp_EquipHeld(item);
                 Gp_ReloadMode = 0;
                 spawned       = Ui_SpawnFromDesc(&D_8010EF14, item | 0x10000, 1, 1, obj);
@@ -535,12 +535,12 @@ void Gp_DrawAmmoRow(UiList* arg0, UiObject* obj)
                 }
                 obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             } else {
-                SndEvt_EnqueueType6(3, 0, 0);
+                SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
                 Ui_SpawnFromDesc(&D_8010EEF8, (item << 8) | spawnArg, 1, 1, obj);
                 obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             }
         } else if (Pad_CheckButtons(0, 1, 0x10) != 0) {
-            SndEvt_EnqueueType6(3, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             if (spawnArg != 0) {
                 Ui_SpawnFromDesc(&D_8010EFA0, item, 1, 1, obj);
             } else {
@@ -604,7 +604,7 @@ void Gp_AmmoListTask(Task* arg0)
             if (Pad_CheckButtons(0, one, Pad_MaskMenu) != 0) {
                 obj->result = USER_INTERFACE_RESULT_CANCEL;
             } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
-                SndEvt_EnqueueType6(4, 0, 0);
+                SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
                 obj->result = USER_INTERFACE_RESULT_CONFIRM;
             }
         }
@@ -815,7 +815,7 @@ void Gp_DrawRemoveAmmoRow(UiList* prompt, UiObject* obj)
             Ui_SpawnFromDesc(&D_8010EEF8, (spawnArg << 8) | item, 1, 1, obj);
             obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         } else if ((Pad_CheckButtons(0, 1, 0x10) != 0) && (item != 0)) {
-            SndEvt_EnqueueType6(3, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             // Both arms open the same prompt; the ammo row's handler, which
             // this one follows, passes a different argument in each.
             if (spawnArg != 0) {

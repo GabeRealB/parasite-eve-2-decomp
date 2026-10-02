@@ -367,8 +367,8 @@ static void func_shelter_b2_elevator_8017D5E8(Task* task)
     D_shelter_b2_elevator_8017EA00[0] = ShelterElevator_SpawnTask(0, -1);
     D_shelter_b2_elevator_8017EA00[1] = ShelterElevator_SpawnTask(1, 1);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
-        if (GameFlag_GetNibble(0xCF) == 0) {
-            GameFlag_SetNibble(0xCF, 1);
+        if (GameFlag_GetNibble(GAME_FLAG_0CF) == 0) {
+            GameFlag_SetNibble(GAME_FLAG_0CF, 1);
             func_800E8634(&D_801378D0, 0, &D_801380F8);
             func_800E3FAC(0xA2, 0x24);
         } else {
@@ -485,7 +485,7 @@ void func_shelter_b2_elevator_8017D888(Task* task)
             task->state++;
             break;
         case 4:
-            SndEvt_EnqueueType7(0x80000000, 0);
+            SndEvt_EnqueueType7(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0);
             msg.queryOnly = ROOM_EVENT_EXECUTE;
             msg.areaId    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area;
             msg.warp      = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp;

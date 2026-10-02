@@ -2394,7 +2394,7 @@ static void func_actor_356100_80167818(Task* arg0)
     d               = &delta;
     Actor356100_PositionDelta(coord, d);
     if (!overlayOutOfRange(d, 3000)) {
-        SndEvt_EnqueueType7(0x51030008, 1);
+        SndEvt_EnqueueType7(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, 1);
         work->field_0 = 6;
     }
 }
@@ -2855,7 +2855,7 @@ static void func_actor_356100_80169180(Task* arg0)
         Gp_UpdateCoord(arg0->extra.tmd->coords);
         work->field_6 = 0;
         pan           = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
-        SndEvt_EnqueueType6(0x550B0007, pan, (s8)worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]));
+        SndEvt_EnqueueType6(SOUND_NEO_ARK_FOREST_STRANGER_DEATH_START, pan, (s8)worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]));
     }
     work->field_6 = (s16)((u16)work->field_6 + 1);
     func_actor_356100_80163508(arg0);
@@ -2867,28 +2867,28 @@ static void func_actor_356100_80169180(Task* arg0)
         s32 pan;
 
         pan = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
-        SndEvt_EnqueueType6(0x550B0008, pan, (s8)worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]));
+        SndEvt_EnqueueType6(SOUND_NEO_ARK_FOREST_STRANGER_DEATH_IMPACT, pan, (s8)worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]));
         Gp_SpawnPadLerp(6, 0xFF, 0x80);
     }
     if (work->field_6 == 0x4D) {
         s32 pan;
 
         pan = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
-        SndEvt_EnqueueType6(0x400D0002, pan, (s8)worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]));
+        SndEvt_EnqueueType6(SOUND_CHARACTER(SOUND_BANK_ACTOR_356100, 2), pan, (s8)worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]));
         Gp_SpawnPadLerp(8, 0x7F, 0x30);
     }
     if (work->field_6 == 0x58) {
         s32 pan;
 
         pan = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
-        SndEvt_EnqueueType6(0x400D0001, pan, (s8)worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]));
+        SndEvt_EnqueueType6(SOUND_CHARACTER(SOUND_BANK_ACTOR_356100, 1), pan, (s8)worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]));
         Gp_SpawnPadLerp(6, 0x7F, 0x30);
     }
     if (work->field_6 == 0xCE) {
         s32 pan;
 
         pan = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
-        SndEvt_EnqueueType6(0x550B0009, pan, (s8)worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]));
+        SndEvt_EnqueueType6(SOUND_NEO_ARK_FOREST_STRANGER_DEATH_END, pan, (s8)worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]));
     }
     if ((u32)((u16)work->field_6 - 0x29) < 5U) {
         Gp_SpawnEff(0x600FB, &arg0->extra.tmd->coords[3], 0, 0);

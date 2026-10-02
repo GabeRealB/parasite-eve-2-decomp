@@ -1617,15 +1617,15 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, TaskMessageArg first
     s32               temp;
 
     if (request->actionId == 0xA) {
-        if (GameFlag_GetNibble(0xD1) == 2) {
-            GameFlag_SetNibble(0x4C, 8);
+        if (GameFlag_GetNibble(GAME_FLAG_0D1) == 2) {
+            GameFlag_SetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 8);
         }
-        if (GameFlag_GetNibble(0xF7) == 0) {
-            temp = GameFlag_GetNibble(0xDF);
+        if (GameFlag_GetNibble(GAME_FLAG_CONTROL_ROOM_RETURN_TAKEN) == 0) {
+            temp = GameFlag_GetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED);
             if (temp == 1) {
                 _MapMarkerResolve resolve;
 
-                GameFlag_SetNibble(0xF7, 1);
+                GameFlag_SetNibble(GAME_FLAG_CONTROL_ROOM_RETURN_TAKEN, 1);
                 desc.stage    = GAME_STAGE_MINE_SHELTER;
                 desc.area     = GAME_AREA_SHELTER_B1_CONTROL_ROOM;
                 desc.warp     = 3;
@@ -1652,22 +1652,22 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, TaskMessageArg first
         gRoomDeparture = desc;
         Task_SpawnFromTable(&D_neo_ark_observatory_80180DD4, 0, 0, 0);
     }
-    if (request->actionId == 1 && GameFlag_GetNibble(0xD7) == 0) {
-        GameFlag_SetNibble(0xD7, 1);
-        if (GameFlag_GetNibble(0x83) != 0) {
+    if (request->actionId == 1 && GameFlag_GetNibble(GAME_FLAG_0D7) == 0) {
+        GameFlag_SetNibble(GAME_FLAG_0D7, 1);
+        if (GameFlag_GetNibble(GAME_FLAG_083) != 0) {
             func_800E3FAC(0xA2, 0x2C);
             func_800E8634(&D_8013C72C, 0, &D_8013CAEC);
         } else {
             func_800E3FAC(0xA2, 0x2D);
-            GameFlag_SetNibble(0xD1, 3);
+            GameFlag_SetNibble(GAME_FLAG_0D1, 3);
             func_800E8634(&D_80137EE4, 0, &D_80138694);
         }
     }
     if (request->actionId == 2) {
-        if (GameFlag_GetNibble(0xE1) == 0) {
-            GameFlag_SetNibble(3, 0);
-            GameFlag_SetNibble(0x155, 6);
-            GameFlag_SetNibble(0xE1, 1);
+        if (GameFlag_GetNibble(GAME_FLAG_0E1) == 0) {
+            GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
+            GameFlag_SetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 6);
+            GameFlag_SetNibble(GAME_FLAG_0E1, 1);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0x15;
             func_800E8634(&D_8013FC58, 0, &D_80140078);
         }
@@ -1675,8 +1675,8 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, TaskMessageArg first
     if (request->actionId == 3 && gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL && gGameSession->location.loc.view == 2) {
         func_80132220();
     }
-    if (request->actionId == 4 && GameFlag_GetNibble(0xDE) != 0 && GameFlag_GetNibble(0x16E) == 0) {
-        GameFlag_SetNibble(0x16E, 1);
+    if (request->actionId == 4 && GameFlag_GetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_CLEARED) != 0 && GameFlag_GetNibble(GAME_FLAG_OBSERVATORY_EVENT_SEEN) == 0) {
+        GameFlag_SetNibble(GAME_FLAG_OBSERVATORY_EVENT_SEEN, 1);
         func_800E8634(D_neo_ark_observatory_801811E0.data.commands, 0, D_neo_ark_observatory_801812C0);
     }
     return 0;
@@ -1696,7 +1696,7 @@ void func_neo_ark_observatory_8017FA98(s32 arg0)
     if (task == NULL) {
         task = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     }
-    if (slotA != NULL && GameFlag_GetNibble(0xD7) != 0) {
+    if (slotA != NULL && GameFlag_GetNibble(GAME_FLAG_0D7) != 0) {
         D_neo_ark_observatory_80181368.vy = 0;
     } else {
         D_neo_ark_observatory_80181368.vy = 0x2710;
@@ -1742,9 +1742,9 @@ s32 func_neo_ark_observatory_8017FBE8(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);
-    if ((GameFlag_GetNibble(0xD1) == 3) && (GameFlag_GetNibble(0x4C) == 9) &&
+    if ((GameFlag_GetNibble(GAME_FLAG_0D1) == 3) && (GameFlag_GetNibble(GAME_FLAG_COMPANION_1_SCHEDULE) == 9) &&
         ((in->areaId == GAME_AREA_NEO_ARK_NORTH_PROMENADE) || (in->areaId == GAME_AREA_NEO_ARK_SOUTH_PROMENADE)) && (in->queryOnly == ROOM_EVENT_EXECUTE)) {
-        GameFlag_SetNibble(0x4C, 0);
+        GameFlag_SetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 0);
         Gp_ApplyAreaRecs(D_neo_ark_observatory_80187A28);
     }
     return 1;
@@ -1770,7 +1770,7 @@ static void func_neo_ark_observatory_8017FCE0(Task* arg0)
     } else {
         func_neo_ark_observatory_8017FA98(0);
     }
-    if (GameFlag_GetNibble(0xE1) != 0) {
+    if (GameFlag_GetNibble(GAME_FLAG_0E1) != 0) {
         func_neo_ark_observatory_80180DAC(0xA0);
     }
     arg0->state = arg0->state + 1;

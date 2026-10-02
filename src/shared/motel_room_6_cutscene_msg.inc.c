@@ -13,7 +13,7 @@ s32 motelRoom6CutsceneMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     if (arg2 == 0x16) {
         gMotelRoom6CutsceneRec.field_0 = 0xC;
         gMotelRoom6CutsceneRec.field_1 = 1;
-        switch (GameFlag_GetNibble(0x7A)) {
+        switch (GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER)) {
             case 0 ... 3:
                 if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                     count                           = 4;
@@ -32,10 +32,10 @@ s32 motelRoom6CutsceneMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
                 break;
         }
         gMotelRoom6CutsceneRec.field_2  = 0;
-        gMotelRoom6CutsceneRec.field_4  = Gp_PackStageSndId(0x521E0008);
-        gMotelRoom6CutsceneRec.field_8  = Gp_PackStageSndId(0x521E000B);
-        gMotelRoom6CutsceneRec.field_10 = Gp_PackStageSndId(0x521E0009);
-        gMotelRoom6CutsceneRec.field_C  = Gp_PackStageSndId(0x521E000A);
+        gMotelRoom6CutsceneRec.field_4  = Gp_PackStageSndId(SOUND_MOTEL_ROOM_6_SCENE_START);
+        gMotelRoom6CutsceneRec.field_8  = Gp_PackStageSndId(SOUND_MOTEL_ROOM_6_SCENE_END);
+        gMotelRoom6CutsceneRec.field_10 = Gp_PackStageSndId(SOUND_MOTEL_ROOM_6_SCENE_TRACK);
+        gMotelRoom6CutsceneRec.field_C  = Gp_PackStageSndId(SOUND_MOTEL_ROOM_6_SCENE_COMPLETE);
         Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, count, &gMotelRoom6CutsceneRec);
     } else {
         motelRoom6ActionMsg(arg0, arg1, arg2, arg3);

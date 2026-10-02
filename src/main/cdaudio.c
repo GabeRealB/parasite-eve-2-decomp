@@ -964,7 +964,7 @@ s32 CdAudio_StartTrack(s32 sector, s32 volumeIndex)
     }
     CdAudio_ResetKeepBuffer(sector);
     _gCdAudioState.loc.volume = CdAudio_VolumeTable[volumeIndex & 0xFF] << 7;
-    SndEvt_EnqueueType7(0x80000000, 0);
+    SndEvt_EnqueueType7(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0);
     return CdAudio_StoreIfNonNull(sector);
 }
 

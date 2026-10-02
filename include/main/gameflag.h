@@ -3,6 +3,7 @@
 
 #include "types.h"
 
+#include "main/gameflag_ids.h"
 #include "main/gameflag_types.h"
 
 /// Live packed game flags followed by their memory-card comparison copy.

@@ -1221,7 +1221,7 @@ s32 func_shelter_b2_septic_tank_8017D7B4(Task* arg0, s32 arg1, RoomEventMsg* in,
     }
     event.capCmd   = 3;
     event.stageSnd = 0x54220001;
-    event.flagId   = 0x131;
+    event.flagId   = GAME_FLAG_B2_SEPTIC_TANK_TO_CORRIDOR_SCENE;
     event.fade     = 0;
     return _shelterB2SepticTankStartEvent(out, &event);
 }
@@ -1238,7 +1238,7 @@ s32 func_shelter_b2_septic_tank_8017D90C(Task* arg0, s32 arg1, RoomEventMsg* arg
 
     kind = arg2->warp;
     if (kind == 2) {
-        flag = GameFlag_GetNibble(0xEB);
+        flag = GameFlag_GetNibble(GAME_FLAG_0EB);
         if (flag == 1 && D_shelter_b2_septic_tank_80187045 == flag) {
             func_800E8614(D_shelter_b2_septic_tank_8018310C, 0);
             D_shelter_b2_septic_tank_80187045 = kind;
@@ -1249,7 +1249,7 @@ s32 func_shelter_b2_septic_tank_8017D90C(Task* arg0, s32 arg1, RoomEventMsg* arg
 
 void func_shelter_b2_septic_tank_8017D97C(s32 arg0)
 {
-    GameFlag_SetNibble(0xEB, arg0);
+    GameFlag_SetNibble(GAME_FLAG_0EB, arg0);
 }
 
 void func_shelter_b2_septic_tank_8017D9A0(void)
@@ -1282,7 +1282,7 @@ static void func_shelter_b2_septic_tank_8017DA74(Task* task)
     if (gGameSession->location.loc.view == 4) {
         place = gGameSession->location.loc.variant;
         if (place == 1 && Gp_StateC08.field_A != place && gDisplayState.pendingMode == DISPLAY_MODE_NONE && D_shelter_b2_septic_tank_80187045 == 0) {
-            if (GameFlag_GetNibble(0xEB) == 0) {
+            if (GameFlag_GetNibble(GAME_FLAG_0EB) == 0) {
                 func_800E8614(D_shelter_b2_septic_tank_80183004, 0);
             }
             D_shelter_b2_septic_tank_80187045 = place;

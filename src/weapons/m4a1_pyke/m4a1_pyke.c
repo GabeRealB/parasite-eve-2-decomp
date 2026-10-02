@@ -308,7 +308,7 @@ static void func_m4a1_pyke_8011E4F8(Task* arg0)
                     if (beam != NULL) {
                         beam->spawnArg1.value = spent != 0 ? 3 : 4;
                     }
-                    SndEvt_EnqueueType7(0x201C0005, 1);
+                    SndEvt_EnqueueType7(SOUND_PYKE_FIRE_TAIL, 1);
                     Gp_AnimPlayChildSlotsEx(arg0, 0xF, 0, 2);
                 }
             } else {

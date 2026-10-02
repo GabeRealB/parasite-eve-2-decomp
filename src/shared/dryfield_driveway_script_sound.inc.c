@@ -6,10 +6,10 @@ s32 drivewayScriptSound(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     switch (arg2) {
         case 8:
-            Gp_EnqueueStageSnd6(0x52190008, 0, 0);
+            Gp_EnqueueStageSnd6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_DRIVEWAY, 8), 0, 0);
             break;
         case 10:
-            Gp_EnqueueStageSnd6(0x5219000A, 0, 0);
+            Gp_EnqueueStageSnd6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_DRIVEWAY, 0x0A), 0, 0);
             break;
     }
     return 0;

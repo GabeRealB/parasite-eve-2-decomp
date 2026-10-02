@@ -796,7 +796,7 @@ static void func_actor_317000_80162950(Task* arg0)
     preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
     actorMotionPlayAnim19(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &preset, 0);
     pan = (s8)worldCoordGetOriginAudioPan(coord);
-    SndEvt_EnqueueType6(0x400A000B, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+    SndEvt_EnqueueType6(SOUND_CHARACTER(SOUND_BANK_ACTOR_311500, 0x0B), pan, (s8)worldCoordGetOriginAudioDepth(coord));
 
     work->walk.step.vx = 0;
     work->walk.step.vy = 0;

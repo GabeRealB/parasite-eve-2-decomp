@@ -353,11 +353,11 @@ void Snd_InitFromStage(s32 arg0, s32 arg1)
     SndVoice_ClearActive();
     arg0 = arg0 & 0xFF;
     SndEvt_EnqueueTypeF();
-    SndEvt_EnqueueType7(0x50000000, 1);
+    SndEvt_EnqueueType7(SOUND_AREA_BANK_ALL, 1);
     SndEvt_EnqueueType7(SOUND_SCRIPT_REQUEST_TYPE_1, 1);
     SndEvt_EnqueueType7(0xFF0D, 1);
-    SndEvt_EnqueueType7(0x20000000, 1);
-    SndEvt_EnqueueType7(0xE0000000, 1);
+    SndEvt_EnqueueType7(SOUND_BANK_TYPE_WEAPON_ALL, 1);
+    SndEvt_EnqueueType7(SOUND_BANK_TYPE_PE_ALL, 1);
     arg1       = arg1 & 0xFF;
     D_80082120 = arg0;
     D_80082136 = arg1;

@@ -2690,11 +2690,11 @@ s32 func_acropolis_bridge_8017D6F4(Task* task, s32 msgId, RoomEventMsg* in, Room
 
     *out = *in;
     if (in->areaId == GAME_AREA_ACROPOLIS_FIRE_ESCAPE) {
-        if (GameFlag_GetNibble(0x10) == 0) {
+        if (GameFlag_GetNibble(GAME_FLAG_BRIDGE_ARRIVAL_SCENE_SEEN) == 0) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                GameFlag_SetNibble(0x10, 1);
+                GameFlag_SetNibble(GAME_FLAG_BRIDGE_ARRIVAL_SCENE_SEEN, 1);
                 func_800E8634(D_acropolis_bridge_80188EBC, 0, D_acropolis_bridge_8018912C);
-                GameFlag_SetNibble(6, 1);
+                GameFlag_SetNibble(GAME_FLAG_SANCTUARY_BLOCKER_CLEARED, 1);
                 key.stage = GAME_STAGE_ACROPOLIS;
                 key.area  = GAME_AREA_ACROPOLIS_SANCTUARY;
                 areaSetPlacementVariant(&key, 3, AREA_VARIANT_RESET_ALWAYS);
@@ -2719,7 +2719,7 @@ s32 func_acropolis_bridge_8017D7F0(Task* task, s32 msgId, TaskMessageArg arg2, T
 s32 func_acropolis_bridge_8017D7F8(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     if (arg2 == 7) {
-        if (GameFlag_GetNibble(2) == 3) {
+        if (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == 3) {
             Gp_StartCapSlot(7, 1, 2);
             return 0;
         }
@@ -2797,7 +2797,7 @@ static void func_acropolis_bridge_8017D98C(Task* arg0)
     Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     D_acropolis_bridge_80191794 = Task_SpawnFromTable(D_acropolis_bridge_80188E7C, 0, 0, 0);
     arg0->state                 = (s32)(arg0->state + 1);
-    func_acropolis_bridge_8017F2D0(GameFlag_GetNibble(0x10) & 0xFF);
+    func_acropolis_bridge_8017F2D0(GameFlag_GetNibble(GAME_FLAG_BRIDGE_ARRIVAL_SCENE_SEEN) & 0xFF);
 }
 
 static void func_acropolis_bridge_8017D9FC(Task* task)
@@ -2915,7 +2915,7 @@ static void func_acropolis_bridge_8017DDEC(Task* arg0)
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
         gGameSession->location.loc.room                            = 2;
         gGameSession->roomObjsDirty                                = 1;
-        GameFlag_SetNibble(2, 3);
+        GameFlag_SetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS, 3);
         Gp_MsgPlayerWeapon(1);
         arg0->state = arg0->state + 1;
     }
@@ -2923,7 +2923,7 @@ static void func_acropolis_bridge_8017DDEC(Task* arg0)
 
 static void func_acropolis_bridge_8017DE94(Task* arg0)
 {
-    func_acropolis_bridge_8017F2D0(GameFlag_GetNibble(0x10) & 0xFF);
+    func_acropolis_bridge_8017F2D0(GameFlag_GetNibble(GAME_FLAG_BRIDGE_ARRIVAL_SCENE_SEEN) & 0xFF);
     gGameSession->hideHud = 0;
     arg0->state           = (s32)(arg0->state + 1);
 }
@@ -3066,7 +3066,7 @@ static void func_acropolis_bridge_8017E1D0(Task* task)
                             work->field_4   = (work->field_4 & 0xFF0) | hs->id;
                             work->field_6++;
                         }
-                        SndEvt_EnqueueType6(0x510E0003, 0, 0);
+                        SndEvt_EnqueueType6(SOUND_ACROPOLIS_BRIDGE_KEYPAD_BEEP, 0, 0);
                         break;
                     }
                     hs++;
@@ -3499,7 +3499,7 @@ static void func_acropolis_bridge_8017F544(Task* task)
     }
 
     if (work->field_4 != 0x561) {
-        SndEvt_EnqueueType6(0x510E0004, 0, 0);
+        SndEvt_EnqueueType6(SOUND_ACROPOLIS_BRIDGE_CODE_REJECTED, 0, 0);
         work->field_8 = 0;
         work->field_A = 0;
         task->state   = 7;
@@ -3507,7 +3507,7 @@ static void func_acropolis_bridge_8017F544(Task* task)
         ActorCommand msg = { { { 1, 0xE } }, 2 };
 
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
-        SndEvt_EnqueueType6(0x510E0009, 0, 0);
+        SndEvt_EnqueueType6(SOUND_ACROPOLIS_BRIDGE_CODE_ACCEPTED, 0, 0);
         task->state = 6;
     }
     func_acropolis_bridge_8017E60C(work->field_4, 0);

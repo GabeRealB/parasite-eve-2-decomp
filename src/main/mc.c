@@ -2377,11 +2377,11 @@ static void Mc_StateSaveSlotUi(UiList* list, UiObject* object)
     Mc_DrawSlotDetails(object, base, list->field_8, 0, list->field_1A + 7);
     if (list->field_C == 1) {
         if (enabled && Pad_CheckButtons(0, 1, Pad_MaskConfirm)) {
-            SndEvt_EnqueueType6(0x16, 0, 0);
+            SndEvt_EnqueueType6(SOUND_SYSTEM_CONFIRM, 0, 0);
             object->result      = USER_INTERFACE_RESULT_CONFIRM;
             object->resultValue = list->field_8;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel)) {
-            SndEvt_EnqueueType6(0x3B, 0, 0);
+            SndEvt_EnqueueType6(SOUND_SYSTEM_CANCEL, 0, 0);
             object->result      = USER_INTERFACE_RESULT_CONFIRM;
             object->resultValue = -1;
         }

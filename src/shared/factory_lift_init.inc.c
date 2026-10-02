@@ -23,7 +23,7 @@ void factoryLiftInit(Task* task)
         return;
     }
     task->work     = work;
-    work->field_0  = GameFlag_GetNibble(0x49);
+    work->field_0  = GameFlag_GetNibble(GAME_FLAG_FACTORY_LIFT_POSITION);
     work->field_16 = -1;
     work->field_17 = -1;
     obj->flags    &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;

@@ -14,11 +14,11 @@ s32 roomVariantGasStationMsg(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg*
 
     *out = *in;
     if (in->areaId == 2 && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        n = GameFlag_GetNibble(0x7A);
+        n = GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER);
         if (n >= 4) {
             val = 3;
         } else {
-            val = GameFlag_GetNibble(0x61) + 1;
+            val = GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
         }
         out->room = val;
     }
@@ -30,7 +30,7 @@ s32 roomVariantGasStationMsg(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg*
             }
             return 2;
         }
-        if (GameFlag_GetNibble(0x3B) == 0) {
+        if (GameFlag_GetNibble(GAME_FLAG_GENERAL_STORE_DOOR_UNLOCKED) == 0) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_RunCapCmd1(7);
                 Gp_SetNibbleIf(in->flagId, 2);
@@ -39,7 +39,7 @@ s32 roomVariantGasStationMsg(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg*
         }
     }
     if (in->areaId == 2) {
-        if (GameFlag_GetNibble(0x45) == 1) {
+        if (GameFlag_GetNibble(GAME_FLAG_GAS_STATION_MAIN_STREET_BLOCKED) == 1) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_RunCapCmd1(8);
             }

@@ -933,9 +933,9 @@ static void func_actor_548100_80132420(Task* task)
     task->work                                                 = work;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 4;
     task->state                                               += 1;
-    if (GameFlag_GetNibble(0xBE) == 0) {
-        GameFlag_SetNibble(0xBE, 1);
-        GameFlag_SetNibble(0xC2, 1);
+    if (GameFlag_GetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE) == 0) {
+        GameFlag_SetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE, 1);
+        GameFlag_SetNibble(GAME_FLAG_MINE_POWER_PANEL_SOCKET_4, 1);
     }
     work->collectBitId = 0;
     Display_AcquireRef();
@@ -1007,7 +1007,7 @@ static void func_actor_548100_80132684(Task* task)
                 if (GameFlag_GetNibble(work->step + 0xBE) == 0) {
                     Gp_StartCapSlot(6, 0, 0);
                     state = 2;
-                } else if (GameFlag_GetNibble(0xC3) != 0) {
+                } else if (GameFlag_GetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON) != 0) {
                     Gp_StartCapSlot(6, 1, 3);
                     state = 2;
                 } else {
@@ -1068,13 +1068,13 @@ static void func_actor_548100_80132808(Task* arg0)
 
     if (Gp_CapBusy() == 0) {
         if (Gp_GetCapEventKey() == 0xB) {
-            if (GameFlag_GetNibble(0x110) != 0) {
+            if (GameFlag_GetNibble(GAME_FLAG_110) != 0) {
                 Gp_SetItemSeenBit(0x120, 1);
                 Gp_SetItemSeenBit(0x12C, 1);
             }
-            SndEvt_EnqueueType6(0x54060009, 0, 0);
-            SndEvt_EnqueueType6(0x5406000A, 0, 0);
-            GameFlag_SetNibble(0xC3, 1);
+            SndEvt_EnqueueType6(SOUND_MINE_REFUGE_CIRCUIT_SWITCH, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MINE_REFUGE_CIRCUIT_CURRENT_LOOP, 0, 0);
+            GameFlag_SetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON, 1);
             arg0->state = 9;
             func_actor_548100_801330EC();
             work->field_10 = func_actor_548100_80134CB8(D_actor_548100_80135B4C->leg[2].nodeA, D_actor_548100_80135B4C->leg[2].nodeB);
@@ -1101,8 +1101,8 @@ static void func_actor_548100_80132808(Task* arg0)
             return;
         }
         if (Gp_GetCapEventKey() == 0x15) {
-            SndEvt_EnqueueType6(0x54060009, 0, 0);
-            GameFlag_SetNibble(0xC3, 0);
+            SndEvt_EnqueueType6(SOUND_MINE_REFUGE_CIRCUIT_SWITCH, 0, 0);
+            GameFlag_SetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON, 0);
         }
         arg0->state = 2;
     }
@@ -1137,10 +1137,10 @@ static void func_actor_548100_80132A14(Task* task)
     func_actor_548100_801349E0(D_actor_548100_80135B50, &D_actor_548100_80135B56, &D_actor_548100_80135B57, &D_actor_548100_80135B58);
     func_actor_548100_80134A60(D_actor_548100_80135B50, &D_actor_548100_80135B59, &D_actor_548100_80135B5A, &D_actor_548100_80135B5B);
     func_actor_548100_80134BF0();
-    GameFlag_SetNibble(0xBB, 0);
-    GameFlag_SetNibble(0xB5, 0);
+    GameFlag_SetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE, 0);
+    GameFlag_SetNibble(GAME_FLAG_MINE_GORGE_CAVERN_DOOR_POWERED, 0);
 
-    if (GameFlag_GetNibble(0xC3) != 0) {
+    if (GameFlag_GetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON) != 0) {
         if (task->state != 9) {
             route = D_actor_548100_80135B4C;
             if (route->leg[0].nodeA != 0) {
@@ -1156,14 +1156,14 @@ static void func_actor_548100_80132A14(Task* task)
             }
             if (D_actor_548100_80135B4C->flag_8 != 0) {
                 func_actor_548100_80133BBC(1);
-                GameFlag_SetNibble(0xB5, 1);
+                GameFlag_SetNibble(GAME_FLAG_MINE_GORGE_CAVERN_DOOR_POWERED, 1);
             }
             if (D_actor_548100_80135B4C->flag_9 != 0) {
                 func_actor_548100_80133BBC(2);
-                if (GameFlag_GetNibble(0xBE) == 2) {
-                    GameFlag_SetNibble(0xBB, 3);
+                if (GameFlag_GetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE) == 2) {
+                    GameFlag_SetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE, 3);
                 } else {
-                    GameFlag_SetNibble(0xBB, 2);
+                    GameFlag_SetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE, 2);
                 }
             }
         } else {
@@ -1202,9 +1202,9 @@ static void func_actor_548100_80132A14(Task* task)
     }
 
     func_actor_548100_80134BA8();
-    if (GameFlag_GetNibble(0xC3) == 0) {
-        GameFlag_SetNibble(0xBB, 0);
-        GameFlag_SetNibble(0xB5, 0);
+    if (GameFlag_GetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON) == 0) {
+        GameFlag_SetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE, 0);
+        GameFlag_SetNibble(GAME_FLAG_MINE_GORGE_CAVERN_DOOR_POWERED, 0);
     } else {
         func_actor_548100_8013461C(&D_actor_548100_801357C0[4]);
     }
@@ -1236,7 +1236,7 @@ static void func_actor_548100_801330EC(void)
     s32 have;
     s32 i;
 
-    if (GameFlag_GetNibble(0xBE) == 1) {
+    if (GameFlag_GetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE) == 1) {
         D_actor_548100_80135B4C = D_actor_548100_801356D8;
     } else {
         D_actor_548100_80135B4C = D_actor_548100_80135750;
@@ -1955,7 +1955,7 @@ static void func_actor_548100_80134400(OverlayHotspot* unused)
             edge->field_6 = by;
         }
     }
-    if (GameFlag_GetNibble(0xBE) == 2) {
+    if (GameFlag_GetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE) == 2) {
         for (cell = D_actor_548100_801351D0; cell->nodeA != 0; cell++) {
             if (cell->field_2 == 2) {
                 cell->state = 0;
@@ -2042,7 +2042,7 @@ s32 func_actor_548100_80134778(Task* arg0, s16 arg1, s32 arg2)
 
     if ((arg2 == 0x120 || arg2 == 0x12C) && ((u16)work->step - 1) < 4U) {
         work->collectBitId = arg2;
-        if (GameFlag_GetNibble(work->step + 0xBE) != 0 || GameFlag_GetNibble(0xC3) != 0) {
+        if (GameFlag_GetNibble(work->step + 0xBE) != 0 || GameFlag_GetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON) != 0) {
             return 2;
         }
         return 1;
@@ -2197,7 +2197,7 @@ static void func_actor_548100_80134BF0(void)
 {
     Actor548100Edge* edge;
 
-    if (GameFlag_GetNibble(0xBE) == 2) {
+    if (GameFlag_GetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE) == 2) {
         for (edge = D_actor_548100_801351D0; edge->nodeA != 0; edge++) {
             if (edge->field_2 == 2) {
                 edge->state = 0;
@@ -2295,14 +2295,14 @@ static void func_actor_548100_80134E94(Task* arg0)
     s32              value;
 
     if (GameFlag_GetNibble(work->step + 0xBE) == 0) {
-        if (GameFlag_GetNibble(0xC3) != 0) {
+        if (GameFlag_GetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON) != 0) {
             Gp_StartCapSlot(6, 0, 1);
         } else {
             value = 2;
             if (work->collectBitId == 0x120) {
                 value = 1;
             }
-            SndEvt_EnqueueType6(0x5406000B, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MINE_REFUGE_BATTERY_SOCKET, 0, 0);
             GameFlag_SetNibble(work->step + 0xBE, value);
             Gp_ClearCollectedBit(work->collectBitId);
         }
@@ -2321,8 +2321,8 @@ static void func_actor_548100_80134F64(Task* arg0)
         if (Gp_GetCurBit2Flag(work->bit2Slot) == 2) {
             /* The nibble at 0xBE + step is this actor's per-step progress flag. */
             GameFlag_SetNibble(work->step + 0xBE, 0);
-            GameFlag_SetNibble(0x110, 1);
-            SndEvt_EnqueueType6(0x5406000B, 0, 0);
+            GameFlag_SetNibble(GAME_FLAG_110, 1);
+            SndEvt_EnqueueType6(SOUND_MINE_REFUGE_BATTERY_SOCKET, 0, 0);
         }
         arg0->state = 2;
     }
@@ -2340,9 +2340,9 @@ static void func_actor_548100_80134FEC(Task* arg0)
     if (work->field_A > work->field_8) {
         work->field_A = work->field_8;
         if (work->field_12 == work->field_10) {
-            SndEvt_EnqueueType7(0x5406000A, 1);
+            SndEvt_EnqueueType7(SOUND_MINE_REFUGE_CIRCUIT_CURRENT_LOOP, 1);
             if (D_actor_548100_80135B4C->flag_8 != 0) {
-                SndEvt_EnqueueType6(0x5406000E, 0, 0);
+                SndEvt_EnqueueType6(SOUND_MINE_REFUGE_CIRCUIT_COMPLETE, 0, 0);
                 Gp_RunCapCmd(0xC, 0);
                 arg0->state = 0xA;
             } else {

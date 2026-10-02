@@ -478,14 +478,14 @@ s32 func_shelter_b1_south_maintenance_walkway_8017D790(Task* arg0, s32 arg1, Roo
     if (in->areaId == GAME_AREA_SHELTER_B1_ELEVATOR_HALL) {
         event.capCmd   = 1;
         event.stageSnd = 0x540A0001;
-        event.flagId   = 0x14B;
+        event.flagId   = GAME_FLAG_B1_SOUTH_WALKWAY_TO_ELEVATOR_SCENE;
         event.fade     = 0;
         return _shelterB1SouthMaintenanceWalkwayStartEvent(out, &event);
     }
     if (in->areaId == GAME_AREA_SHELTER_B1_STOREROOM) {
         event.capCmd   = 2;
         event.stageSnd = 0x540A0003;
-        event.flagId   = 0x14C;
+        event.flagId   = GAME_FLAG_B1_SOUTH_WALKWAY_TO_STOREROOM_SCENE;
         event.fade     = 0;
         return _shelterB1SouthMaintenanceWalkwayStartEvent(out, &event);
     }

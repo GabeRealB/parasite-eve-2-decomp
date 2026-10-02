@@ -1916,7 +1916,7 @@ static void func_actor_510900_80137868(Task* arg0)
                 case 2:
                     if (CdCmd_IsIdle() == 1) {
                         coord = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
-                        SndEvt_EnqueueType6(0x70010001, (s8)worldCoordGetOriginAudioPan(coord),
+                        SndEvt_EnqueueType6(SOUND_PLAYER_DEATH, (s8)worldCoordGetOriginAudioPan(coord),
                                             (s8)worldCoordGetOriginAudioDepth(coord));
                         work->field_5B6 = 0;
                     }
@@ -3483,7 +3483,7 @@ case2:
     return;
 body:
     func_actor_510900_8013B0D8(arg1);
-    GameFlag_SetNibble(0xD, D_actor_510900_80167CEC[work->field_74][parent->field_5C2]);
+    GameFlag_SetNibble(GAME_FLAG_00D, D_actor_510900_80167CEC[work->field_74][parent->field_5C2]);
     random          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     gRandomLcgState = random;
     if ((u16)((random >> 16) % 3) == 0) {

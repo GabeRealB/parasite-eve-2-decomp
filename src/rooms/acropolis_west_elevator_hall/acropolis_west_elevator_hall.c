@@ -1211,9 +1211,9 @@ static void func_acropolis_west_elevator_hall_8017F354(Task* task)
         if (sessionState == 1) {
             D_acropolis_west_elevator_hall_801849C8 = sessionState;
             func_800E8634(D_acropolis_west_elevator_hall_80184620, 0, D_acropolis_west_elevator_hall_80184890);
-            GameFlag_SetNibble(3, 0);
-            GameFlag_SetNibble(0x155, 1);
-            GameFlag_SetNibble(0x7A, 1);
+            GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
+            GameFlag_SetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 1);
+            GameFlag_SetNibble(GAME_FLAG_STORY_CHAPTER, 1);
             func_800E3FAC(0xA2, 1);
         }
     }
@@ -1254,8 +1254,8 @@ s32 func_acropolis_west_elevator_hall_8017F498(Task* task, s32 msgId, TaskMessag
 s32 func_acropolis_west_elevator_hall_8017F4C0(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
 {
     *dst = *src;
-    if (src->areaId == GAME_AREA_ACROPOLIS_SQUARE && GameFlag_GetNibble(0x21) == 0 && src->queryOnly == ROOM_EVENT_EXECUTE) {
-        GameFlag_SetNibble(0x21, 1);
+    if (src->areaId == GAME_AREA_ACROPOLIS_SQUARE && GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) == 0 && src->queryOnly == ROOM_EVENT_EXECUTE) {
+        GameFlag_SetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS, 1);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 1;
         dst->warp                                           = 7;
     }

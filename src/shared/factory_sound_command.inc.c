@@ -6,11 +6,11 @@ s32 factorySoundCommand(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     switch (arg2) {
         case 7:
-            Gp_EnqueueStageSnd6(0x52170007, 0, 0);
+            Gp_EnqueueStageSnd6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 7), 0, 0);
             break;
         case 21:
-            Gp_EnqueueStageSnd6(0x52170015, 0, 0);
-            GameFlag_SetNibble(0x4A, 2);
+            Gp_EnqueueStageSnd6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 0x15), 0, 0);
+            GameFlag_SetNibble(GAME_FLAG_FACTORY_LAMP_PROGRESS, 2);
             break;
     }
     return 0;

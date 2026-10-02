@@ -648,11 +648,11 @@ s32 func_shelter_1f_heliport_801800A0(Task* task, s32 msgId, RoomEventMsg* src, 
     *dst = *src;
     func_map_neo_ark_80179B14(src, dst);
     if (src->areaId == GAME_AREA_SHELTER_1F_TENT && src->queryOnly == ROOM_EVENT_EXECUTE) {
-        SndEvt_EnqueueType7(0x55040006, 1);
-        SndEvt_EnqueueType7(0x55040007, 1);
+        SndEvt_EnqueueType7(SOUND_SHELTER_1F_HELIPORT_AMBIENCE_1, 1);
+        SndEvt_EnqueueType7(SOUND_SHELTER_1F_HELIPORT_AMBIENCE_2, 1);
     }
     if (src->areaId == GAME_AREA_SHELTER_1F_BULWARK) {
-        if (GameFlag_GetNibble(0xE3) == 0 && gGameSession->location.loc.variant == 1) {
+        if (GameFlag_GetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS) == 0 && gGameSession->location.loc.variant == 1) {
             if (src->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_RunCapCmd1(0x2B);
             }
@@ -663,8 +663,8 @@ s32 func_shelter_1f_heliport_801800A0(Task* task, s32 msgId, RoomEventMsg* src, 
         event.flagId   = 0;
         event.fade     = 1;
         if (src->queryOnly == ROOM_EVENT_EXECUTE) {
-            SndEvt_EnqueueType7(0x55040006, 1);
-            SndEvt_EnqueueType7(0x55040007, 1);
+            SndEvt_EnqueueType7(SOUND_SHELTER_1F_HELIPORT_AMBIENCE_1, 1);
+            SndEvt_EnqueueType7(SOUND_SHELTER_1F_HELIPORT_AMBIENCE_2, 1);
         }
         return _shelter1fHeliportStartEvent(dst, &event);
     }
@@ -681,7 +681,7 @@ void func_shelter_1f_heliport_801802AC(s32 arg0)
     if (task == NULL) {
         task = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     }
-    if (slotA != NULL && GameFlag_GetNibble(0xE4) == 1) {
+    if (slotA != NULL && GameFlag_GetNibble(GAME_FLAG_HELIPORT_SOLDIER_REQUEST_STATE) == 1) {
         D_shelter_1f_heliport_80181204.vy = 0;
     } else {
         D_shelter_1f_heliport_80181204.vy = 0x2710;
@@ -694,7 +694,7 @@ s32 func_shelter_1f_heliport_80180334(Task* arg0, s32 arg1, s32 arg2, TaskMessag
     WorldCollisionTrigger* node;
     s32                    found;
 
-    if (arg2 == 0x124 && GameFlag_GetNibble(0xE4) == 1 && gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
+    if (arg2 == 0x124 && GameFlag_GetNibble(GAME_FLAG_HELIPORT_SOLDIER_REQUEST_STATE) == 1 && gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
         found = 0;
         node  = Gp_PendingObj4C;
         while (node != NULL) {
@@ -709,7 +709,7 @@ s32 func_shelter_1f_heliport_80180334(Task* arg0, s32 arg1, s32 arg2, TaskMessag
         if (found != 0) {
             gGameSession->hideHud    = 1;
             gGameSession->eventState = 1;
-            GameFlag_SetNibble(0x4B, 9);
+            GameFlag_SetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 9);
             Task_SpawnOnDefaultList(&D_80136CDC, 0, 0, 0);
             return 1;
         }
@@ -731,7 +731,7 @@ s32 func_shelter_1f_heliport_8018041C(Task* arg0, s32 arg1, s32 arg2, TaskMessag
             if (gGameSession->location.loc.variant == 1) {
                 need = 2;
             }
-            Gp_SpawnIfCapIdle(GameFlag_GetNibble(0x104) >= need ? 0x22 : 0x25, 0);
+            Gp_SpawnIfCapIdle(GameFlag_GetNibble(GAME_FLAG_SOLDIER_B_TALK_COUNT_B) >= need ? 0x22 : 0x25, 0);
             break;
     }
     return 0;
@@ -783,8 +783,8 @@ static void func_shelter_1f_heliport_80180658(Task* arg0)
     func_shelter_1f_heliport_801807C0();
     Gpu_ResetGraphAndOt();
     Tmd_AllocMissingBuffers();
-    SndEvt_EnqueueType6(0x55040006, 0, 0);
-    SndEvt_EnqueueType6(0x55040007, 0, 0);
+    SndEvt_EnqueueType6(SOUND_SHELTER_1F_HELIPORT_AMBIENCE_1, 0, 0);
+    SndEvt_EnqueueType6(SOUND_SHELTER_1F_HELIPORT_AMBIENCE_2, 0, 0);
     arg0->state = arg0->state + 1;
 }
 

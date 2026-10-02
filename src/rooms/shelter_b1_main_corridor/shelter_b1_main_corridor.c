@@ -737,26 +737,26 @@ s32 func_shelter_b1_main_corridor_8017DA8C(Task* task, s32 msgId, RoomEventMsg* 
     if (in->areaId == GAME_AREA_SHELTER_B1_ARMORY) {
         event.capCmd   = 3;
         event.stageSnd = 0x540F0001;
-        event.flagId   = 0xEE;
+        event.flagId   = GAME_FLAG_B1_CORRIDOR_TO_ARMORY_SCENE;
         event.fade     = 0;
         return _corridorStartEvent(out, &event);
     }
     if (in->areaId == GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS) {
         event.capCmd   = 4;
         event.stageSnd = 0x540F0001;
-        event.flagId   = 0xEF;
+        event.flagId   = GAME_FLAG_B1_CORRIDOR_TO_QUARTERS_SCENE;
         event.fade     = 0;
         return _corridorStartEvent(out, &event);
     }
     if (in->areaId == GAME_AREA_SHELTER_B1_STERILIZATION_ROOM) {
         event.capCmd   = 6;
         event.stageSnd = 0x540F0001;
-        event.flagId   = 0x12C;
+        event.flagId   = GAME_FLAG_B1_CORRIDOR_TO_STERILIZATION_SCENE;
         event.fade     = 0;
         return _corridorStartEvent(out, &event);
     }
     if (in->areaId == GAME_AREA_SHELTER_B1_ELEVATOR_HALL) {
-        if (GameFlag_GetNibble(0x7A) >= 6) {
+        if (GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER) >= 6) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_RunCapCmd1(5);
             }
@@ -766,12 +766,12 @@ s32 func_shelter_b1_main_corridor_8017DA8C(Task* task, s32 msgId, RoomEventMsg* 
         req.missingCapCmd = 1;
         req.firstSnd      = 0;
         req.secondSnd     = 0x540F0001;
-        req.flagId        = 0xA5;
+        req.flagId        = GAME_FLAG_B1_CORRIDOR_ELEVATOR_HALL_UNLOCKED;
         req.collectedBit  = 0;
         return roomEventGate(&req, out);
     }
     if (in->areaId == GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL) {
-        if (GameFlag_GetNibble(0xAC) == 0) {
+        if (GameFlag_GetNibble(GAME_FLAG_B1_TRANSFER_TUNNEL_DOOR_UNLOCKED) == 0) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_SetNibbleIf(in->flagId, 2);
                 Gp_RunCapCmd1(1);
@@ -780,14 +780,14 @@ s32 func_shelter_b1_main_corridor_8017DA8C(Task* task, s32 msgId, RoomEventMsg* 
         }
         event.capCmd   = 8;
         event.stageSnd = 0x540F0001;
-        event.flagId   = 0x12E;
+        event.flagId   = GAME_FLAG_B1_CORRIDOR_TO_TRANSFER_SCENE;
         event.fade     = 0;
         return _corridorStartEvent(out, &event);
     }
     if (in->areaId == GAME_AREA_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL) {
         event.capCmd   = 7;
         event.stageSnd = 0x540F0001;
-        event.flagId   = 0x12D;
+        event.flagId   = GAME_FLAG_B1_CORRIDOR_TO_CONTROL_TUNNEL_SCENE;
         event.fade     = 0;
         return _corridorStartEvent(out, &event);
     }

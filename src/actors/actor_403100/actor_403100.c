@@ -4093,7 +4093,7 @@ static s32 func_actor_403100_80133928(void)
             return 0;
         }
         if (state == 2) {
-            SndEvt_EnqueueType7(0x401F0004, 0xA);
+            SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
             func_actor_403100_8013D24C();
             D_actor_403100_80155808->field_62A = 0;
             D_actor_403100_80155808->field_5F8 = 8;
@@ -4101,7 +4101,7 @@ static s32 func_actor_403100_80133928(void)
             return 1;
         }
         if (state == 3) {
-            SndEvt_EnqueueType7(0x401F0004, 0xA);
+            SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
             func_actor_403100_8013D24C();
             D_actor_403100_80155808->field_62A = 0;
             D_actor_403100_80155808->field_5F8 = 0xA;
@@ -4221,7 +4221,7 @@ static void func_actor_403100_80133C94(Task* task)
 {
     s32 i;
 
-    SndEvt_EnqueueType7(0x401F0004, 0xA);
+    SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     Gp_UnlinkNode(&D_actor_403100_8015580C->node);
     D_actor_403100_80155810 = 0;
     for (i = 0; i < 28; i++) {
@@ -4230,7 +4230,7 @@ static void func_actor_403100_80133C94(Task* task)
             Gp_UnlinkObj(&D_actor_403100_80155814[i].obj);
         }
     }
-    SndEvt_EnqueueType7(0x401F0004, 1);
+    SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 1);
     D_actor_403100_80155808->field_5FC  = 0x20;
     D_actor_403100_80155808->field_5E2  = 0x10;
     D_actor_403100_80155808->field_5DE  = 0x11;
@@ -4362,7 +4362,7 @@ static void func_actor_403100_80133E88(Task* arg0)
     frame                              = D_actor_403100_80155808->field_5EC + 1;
     D_actor_403100_80155808->field_5EC = frame;
     if (frame == 0xBE) {
-        GameFlag_SetNibble(0x73, 1);
+        GameFlag_SetNibble(GAME_FLAG_BURNER_DEFEATED, 1);
         D_actor_403100_80155808->field_5F8++;
     }
 }
@@ -4710,7 +4710,7 @@ static void func_actor_403100_8013539C(Task* arg0)
             Gp_UnlinkObj(&D_actor_403100_80155814[i].obj);
         }
     }
-    SndEvt_EnqueueType7(0x401F0004, 1);
+    SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 1);
     coord->coord.t[0]                  = -0x74E;
     coord->coord.t[2]                  = -0x1C51;
     coord->coord.t[1]                  = 0;
@@ -4762,7 +4762,7 @@ static void func_actor_403100_801355D4(Task* arg0)
             Gp_UnlinkObj(&D_actor_403100_80155814[i].obj);
         }
     }
-    SndEvt_EnqueueType7(0x401F0004, 1);
+    SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 1);
     coord->coord.t[0]                  = -0x74E;
     coord->coord.t[2]                  = -0x1770;
     coord->coord.t[1]                  = 0;
@@ -4793,7 +4793,7 @@ static void func_actor_403100_801356F4(Task* arg0)
         SndEvt_EnqueueType6(sound, pan, (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[4]) / 2));
     }
     if ((s16)D_actor_403100_80155808->field_5EC == 0x32) {
-        SndEvt_EnqueueType7(0x401F0004, 0xA);
+        SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     }
     if (D_actor_403100_80155808->field_5EC < 0x33U) {
         first.vy  = -0x1F0;
@@ -4849,7 +4849,7 @@ static void func_actor_403100_801359DC(Task* arg0)
             Gp_UnlinkObj(&D_actor_403100_80155814[i].obj);
         }
     }
-    SndEvt_EnqueueType7(0x401F0004, 1);
+    SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 1);
     joint->coord.t[0] = -0x807;
     coord->coord.t[0] = -0x384;
     work              = D_actor_403100_80155808;
@@ -4910,7 +4910,7 @@ static void func_actor_403100_80135C00(Task* arg0)
         SndEvt_EnqueueType6(sound, (s32)pan, (s8)(depth / 2));
     }
     if ((s16)D_actor_403100_80155808->field_5EC == 0x22) {
-        SndEvt_EnqueueType7(0x401F0004, 0xA);
+        SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     }
     if ((s16)D_actor_403100_80155808->field_5EC == 0x28) {
         func_dryfield_night_motel_balcony_8018257C();
@@ -4920,7 +4920,7 @@ static void func_actor_403100_80135C00(Task* arg0)
         SndEvt_EnqueueType6(sound_2, (s32)pan_2, (s8)(depth_2 / 2));
     }
     if ((s16)D_actor_403100_80155808->field_5EC == 0x30) {
-        SndEvt_EnqueueType7(0x401F0004, 0xA);
+        SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     }
     if ((s16)D_actor_403100_80155808->field_5EC == 0x3C) {
         func_dryfield_night_motel_balcony_8018257C();
@@ -4930,7 +4930,7 @@ static void func_actor_403100_80135C00(Task* arg0)
         SndEvt_EnqueueType6(sound_3, (s32)pan_3, (s8)(depth_3 / 2));
     }
     if ((s16)D_actor_403100_80155808->field_5EC == 0x3F) {
-        SndEvt_EnqueueType7(0x401F0004, 0xA);
+        SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     }
     if ((s16)D_actor_403100_80155808->field_5EC == 0x5A) {
         func_dryfield_night_motel_balcony_8018257C();
@@ -4940,7 +4940,7 @@ static void func_actor_403100_80135C00(Task* arg0)
         SndEvt_EnqueueType6(sound_4, (s32)pan_4, (s8)(depth_4 / 2));
     }
     if ((s16)D_actor_403100_80155808->field_5EC == 0x5E) {
-        SndEvt_EnqueueType7(0x401F0004, 0xA);
+        SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     }
     if (Actor403100_TestFlags12C()) {
         D_actor_403100_80155808->field_5E2  = 0x10;
@@ -4972,7 +4972,7 @@ static void func_actor_403100_80135F30(Task* arg0)
         SndEvt_EnqueueType6(sound, (s32)pan, (s8)(depth / 2));
     }
     if ((s16)D_actor_403100_80155808->field_5EC == 0xE) {
-        SndEvt_EnqueueType7(0x401F0004, 0xA);
+        SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     }
     if ((s16)D_actor_403100_80155808->field_5EC == 0x26) {
         sound2 = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0002;
@@ -5525,7 +5525,7 @@ static void func_actor_403100_8013712C(Task* arg0)
            and the ROM keeps the two apart. */
         obj = &(PARENT_OF(obj, Actor403100Entry, obj) + 1)->obj;
     }
-    SndEvt_EnqueueType7(0x401F0004, 1);
+    SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 1);
     D_actor_403100_80155808->field_5FA += 1;
 }
 /// Steps of the behaviour mode `func_actor_403100_8013DAC4`, indexed by `field_5FA`.
@@ -5878,7 +5878,7 @@ static void func_actor_403100_80137F4C(Task* task)
         obj = &(PARENT_OF(obj, Actor403100Entry, obj) + 1)->obj;
         entry++;
     }
-    SndEvt_EnqueueType7(0x401F0004, 1);
+    SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 1);
     D_actor_403100_80155808->field_5E2  = 0x10;
     D_actor_403100_80155808->field_5DE  = 7;
     D_actor_403100_80155808->field_5DA  = 2;
@@ -5945,7 +5945,7 @@ static void func_actor_403100_80138048(Task* arg0)
         SndEvt_EnqueueType6(sound, (s32)pan, (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[4]) / 2));
     }
     if ((s16)D_actor_403100_80155808->field_5EC == 0x7C) {
-        SndEvt_EnqueueType7(0x401F0004, 0xA);
+        SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     }
     if ((u32)(D_actor_403100_80155808->field_5EC - 0x34) < 0x48U) {
         offset.vy   = -0x1F0;
@@ -6487,7 +6487,7 @@ static void func_actor_403100_801395EC(Task* arg0)
             i  += 1;
             entry++;
         } while (i < 0x1C);
-        SndEvt_EnqueueType7(0x401F0004, 1);
+        SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 1);
     }
 }
 static void func_actor_403100_80139818(Task* arg0)
@@ -6548,7 +6548,7 @@ static void func_actor_403100_80139818(Task* arg0)
         SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
     }
     if ((s16)D_actor_403100_80155808->field_5EC == 0x7C) {
-        SndEvt_EnqueueType7(0x401F0004, 0xA);
+        SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     }
     if ((u32)(D_actor_403100_80155808->field_5EC - 0x34) < 0x48U) {
         position.vy = -0x1F0;
@@ -6823,7 +6823,7 @@ static void func_actor_403100_8013A4C8(Task* arg0)
         }
         obj = &(PARENT_OF(obj, Actor403100Entry, obj) + 1)->obj;
     }
-    SndEvt_EnqueueType7(0x401F0004, 1);
+    SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 1);
     D_actor_403100_80155808->field_5E2  = 0x10;
     D_actor_403100_80155808->field_5DE  = 7;
     D_actor_403100_80155808->field_5DA  = 2;
@@ -6860,7 +6860,7 @@ static void func_actor_403100_8013A5AC(Task* arg0)
         SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
     }
     if ((s16)D_actor_403100_80155808->field_5EC == 0x7C) {
-        SndEvt_EnqueueType7(0x401F0004, 0xA);
+        SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     }
     if ((u32)(D_actor_403100_80155808->field_5EC - 0x34) < 0x48U) {
         offset.vy   = -0x1F0;
@@ -7113,7 +7113,7 @@ static void func_actor_403100_8013B128(Task* arg0)
         }
         obj = &(PARENT_OF(obj, Actor403100Entry, obj) + 1)->obj;
     }
-    SndEvt_EnqueueType7(0x401F0004, 1);
+    SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 1);
     D_actor_403100_80155808->field_622                         = (s16)gGameSession->location.loc.view;
     D_actor_403100_80155808->field_0.matrices.coord            = coords->coord;
     D_actor_403100_80155808->savedRotation                     = *(SVECTOR*)&D_actor_403100_80155808->field_80;
@@ -8185,7 +8185,7 @@ static void func_actor_403100_8013D8F4(Task* arg0)
     gGameSession->suppressViewTriggers     = 0;
     D_actor_403100_8015580C->reactionFlags = 0;
     Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
-    SndEvt_EnqueueType7(0x401F0004, 0xA);
+    SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     Gp_UnlinkNode(&D_actor_403100_8015580C->node);
     func_800E8614(&D_80165FC0, 0);
     arg0->state                        = 1;
@@ -8834,7 +8834,7 @@ static void func_actor_403100_8013F230(Task* task)
 static void func_actor_403100_8013F270(Task* task)
 {
     D_actor_403100_80155808->field_5EC = 0;
-    SndEvt_EnqueueType7(0x401F0004, 0xA);
+    SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     D_actor_403100_80155808->field_5FC = 0x14;
     D_actor_403100_80155808->field_5E2 = 0x1C;
     D_actor_403100_80155808->field_5DE = 3;
@@ -8921,7 +8921,7 @@ static void func_actor_403100_8013F4E0(Task* task)
 static void func_actor_403100_8013F520(Task* task)
 {
     D_actor_403100_80155808->field_5EC = 0;
-    SndEvt_EnqueueType7(0x401F0004, 0xA);
+    SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     D_actor_403100_80155808->field_5FC  = 0x14;
     D_actor_403100_80155808->field_5E2  = 0x1C;
     D_actor_403100_80155808->field_5DE  = 3;

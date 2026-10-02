@@ -15,14 +15,14 @@ s32 roomVariantSaloonMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* o
     msgId = in->areaId;
     if (msgId == 0xF) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            out->room = GameFlag_GetNibble(0x61) + 1;
+            out->room = GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
         }
         if (in->areaId == msgId) {
             req.capCmd        = 2;
             req.missingCapCmd = 2;
-            req.firstSnd      = Gp_PackStageSndId(0x52120005);
-            req.secondSnd     = Gp_PackStageSndId(0x52120003);
-            req.flagId        = 0x35;
+            req.firstSnd      = Gp_PackStageSndId(SOUND_SALOON_G_R_DOOR_UNLOCK);
+            req.secondSnd     = Gp_PackStageSndId(SOUND_SALOON_G_R_DOOR_OPEN);
+            req.flagId        = GAME_FLAG_SALOON_PARKING_LOT_DOOR_UNLOCKED;
             req.collectedBit  = 0;
             return roomEventGate(&req, in);
         }

@@ -1867,7 +1867,7 @@ static void Actor02100_Fn032E4(Task* arg0)
         case 1:
             Actor02100_Fn00ADC(arg0);
         case 0:
-            if (GameFlag_GetNibble(0xD2) == 0) {
+            if (GameFlag_GetNibble(GAME_FLAG_SHELTER_WATCHERS_DISABLED) == 0) {
                 Actor02100_Fn00DCC(arg0);
             }
             break;

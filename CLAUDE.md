@@ -326,7 +326,7 @@ overlay.
   naming pass's verifier, while the checksum still matches. The unscoped
   `build-and-verify.sh` runs it; when it fails, add `name = 0xADDR; // type:func`.
 - `python3 tools/gen_area_ids.py [--check]` rewrite `include/main/areas.h`,
-  the `GAME_AREA_*` constants, from the extractor's room folders. An area ID is
+  the `GAME_STAGE_*` and `GAME_AREA_*` constants, from the extractor's room folders. An area ID is
   a folder's disc id / 100 within its stage, so the same value names another
   room in another stage; pair each constant with its `GAME_STAGE_*`. The
   unscoped `build-and-verify.sh` fails when the header is stale.

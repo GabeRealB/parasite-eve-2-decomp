@@ -949,11 +949,11 @@ s32 func_shelter_b2_operating_room_8017DA94(Task* arg0, s32 arg1, RoomEventMsg* 
         req.missingCapCmd = 1;
         req.firstSnd      = 0x541D0007;
         req.secondSnd     = 0x541D0003;
-        req.flagId        = 0xA8;
+        req.flagId        = GAME_FLAG_OPERATING_ROOM_NORTH_DOOR_UNLOCKED;
         req.collectedBit  = 0;
         return roomEventGate(&req, out);
     }
-    if (in->areaId == GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY && GameFlag_GetNibble(0xAA) == 0) {
+    if (in->areaId == GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY && GameFlag_GetNibble(GAME_FLAG_OPERATING_ROOM_SOUTH_DOOR_UNLOCKED) == 0) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_SetNibbleIf(in->flagId, 2);
             Gp_RunCapCmd1(3);
@@ -963,14 +963,14 @@ s32 func_shelter_b2_operating_room_8017DA94(Task* arg0, s32 arg1, RoomEventMsg* 
     if (in->areaId == GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY) {
         event.capCmd   = 0xE;
         event.stageSnd = 0x541D0001;
-        event.flagId   = 0x13A;
+        event.flagId   = GAME_FLAG_B2_OPERATING_TO_SOUTH_WALKWAY_SCENE;
         event.fade     = 0;
         return _operatingRoomStartEvent(out, &event);
     }
     if (in->areaId == GAME_AREA_SHELTER_B2_LABORATORY) {
         event.capCmd   = 0xD;
         event.stageSnd = 0x541D0005;
-        event.flagId   = 0x13B;
+        event.flagId   = GAME_FLAG_B2_OPERATING_TO_LAB_SCENE;
         event.fade     = 0;
         return _operatingRoomStartEvent(out, &event);
     }
@@ -986,10 +986,10 @@ s32 func_shelter_b2_operating_room_8017DCA4(Task* arg0, s32 arg1, s32 arg2, Task
 {
     switch (arg2) {
         case 4:
-            Gp_SpawnIfCapIdle(GameFlag_GetNibble(0xC7) == 0 ? 4 : 0x10, 0);
+            Gp_SpawnIfCapIdle(GameFlag_GetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) == 0 ? 4 : 0x10, 0);
             break;
         case 5:
-            Gp_SpawnIfCapIdle(GameFlag_GetNibble(0xC7) != 0 ? 0xF : 5, 0);
+            Gp_SpawnIfCapIdle(GameFlag_GetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) != 0 ? 0xF : 5, 0);
             break;
     }
     return 0;

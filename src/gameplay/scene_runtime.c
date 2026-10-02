@@ -1089,7 +1089,7 @@ void Gp_EnqueueSndCd(u8 arg0)
     s32 flag;
 
     if (gGameSession->loadedSndId != arg0) {
-        SndEvt_EnqueueType7(0xE0000000, 8);
+        SndEvt_EnqueueType7(SOUND_BANK_TYPE_PE_ALL, 8);
         flag      = 1;
         param1[3] = 0;
         param1[2] = 5;

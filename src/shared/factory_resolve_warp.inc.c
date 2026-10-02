@@ -16,26 +16,26 @@ s32 factoryResolveWarp(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out
         variant = gGameSession->location.loc.stage;
         if (variant == 2) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                if (GameFlag_GetNibble(0x3A) >= 2) {
+                if (GameFlag_GetNibble(GAME_FLAG_DRIVEWAY_PROGRESS) >= 2) {
                     out->room = variant;
                 } else {
                     out->room = 1;
                 }
             }
         } else if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            out->room = GameFlag_GetNibble(0x61) + 1;
+            out->room = GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
         }
     }
     if (in->areaId == 0x18) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            if (GameFlag_GetNibble(0x7A) < 4) {
+            if (GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER) < 4) {
                 out->room = 1;
             } else {
                 out->room = 2;
             }
         }
         if (in->areaId == 0x18) {
-            if (GameFlag_GetNibble(0x4A) != 2) {
+            if (GameFlag_GetNibble(GAME_FLAG_FACTORY_LAMP_PROGRESS) != 2) {
                 if (in->queryOnly != ROOM_EVENT_EXECUTE) {
                     return 0;
                 }
@@ -46,7 +46,7 @@ s32 factoryResolveWarp(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out
         }
     }
     if (in->areaId == 0x16) {
-        if (GameFlag_GetNibble(0x37) == 0) {
+        if (GameFlag_GetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_UNLOCKED) == 0) {
             if (in->queryOnly != ROOM_EVENT_EXECUTE) {
                 return 0;
             }
@@ -60,7 +60,7 @@ s32 factoryResolveWarp(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out
         req.missingCapCmd = 0xE;
         req.firstSnd      = 0x52170013;
         req.secondSnd     = 0x52170003;
-        req.flagId        = -0x30;
+        req.flagId        = -GAME_FLAG_030;
         req.collectedBit  = 0;
         return roomEventGate(&req, in);
     }

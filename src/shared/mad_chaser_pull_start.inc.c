@@ -15,7 +15,7 @@ void madChaserPullStart(Task* arg0)
 
     work   = (MadChaserWork*)arg0->work;
     coords = arg0->extra.tmd->coords;
-    SndEvt_EnqueueType7(0x402C0002, 1);
+    SndEvt_EnqueueType7(SOUND_MAD_CHASER_ALERT_CRY, 1);
     work->field_90  = coords->coord.t[0];
     work->field_92  = coords->coord.t[1];
     work->field_94  = coords->coord.t[2];

@@ -430,11 +430,11 @@ void func_neo_ark_garden_8017EA9C(Task* task)
             if (work->soundDelay == 0) {
                 if (task->state == 1) {
                     task->state = 2;
-                    SndEvt_EnqueueType6(0x550F0003, -8, 0x32);
-                    SndEvt_EnqueueType6(0x550F0004, 0, 0x32);
+                    SndEvt_EnqueueType6(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -8, 0x32);
+                    SndEvt_EnqueueType6(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, 0, 0x32);
                 }
-                SndEvt_EnqueueTypeA(0x550F0003, -8, 0x32);
-                SndEvt_EnqueueTypeA(0x550F0004, 0, 0x32);
+                SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -8, 0x32);
+                SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, 0, 0x32);
             } else {
                 work->soundDelay--;
             }
@@ -457,8 +457,8 @@ void func_neo_ark_garden_8017EA9C(Task* task)
             break;
         case 3:
             if (work->soundDelay == 0) {
-                SndEvt_EnqueueTypeA(0x550F0003, -0xF, 0x4C);
-                SndEvt_EnqueueTypeA(0x550F0004, -0xE, 0x4C);
+                SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -0xF, 0x4C);
+                SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, -0xE, 0x4C);
             } else {
                 work->soundDelay--;
             }
@@ -468,11 +468,11 @@ void func_neo_ark_garden_8017EA9C(Task* task)
             if (work->soundDelay == 0) {
                 if (task->state == 1) {
                     task->state = 2;
-                    SndEvt_EnqueueType6(0x550F0003, -0xC, 0);
-                    SndEvt_EnqueueType6(0x550F0004, 0xC, 0);
+                    SndEvt_EnqueueType6(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -0xC, 0);
+                    SndEvt_EnqueueType6(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, 0xC, 0);
                 }
-                SndEvt_EnqueueTypeA(0x550F0003, -0xC, 0);
-                SndEvt_EnqueueTypeA(0x550F0004, 0xC, 0);
+                SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -0xC, 0);
+                SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, 0xC, 0);
             } else {
                 work->soundDelay--;
             }
@@ -499,27 +499,27 @@ void func_neo_ark_garden_8017EA9C(Task* task)
             if (work->soundDelay == 0) {
                 if (task->state == 1) {
                     task->state = 2;
-                    SndEvt_EnqueueType6(0x550F0003, -0xE, 0x40);
-                    SndEvt_EnqueueType6(0x550F0004, -0xD, 0x40);
+                    SndEvt_EnqueueType6(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -0xE, 0x40);
+                    SndEvt_EnqueueType6(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, -0xD, 0x40);
                 }
-                SndEvt_EnqueueTypeA(0x550F0003, -0xE, 0x40);
-                SndEvt_EnqueueTypeA(0x550F0004, -0xD, 0x40);
+                SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -0xE, 0x40);
+                SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, -0xD, 0x40);
             } else {
                 work->soundDelay--;
             }
             break;
         case 6:
             if (work->soundDelay == 0) {
-                SndEvt_EnqueueTypeA(0x550F0003, 0xD, 0x4C);
-                SndEvt_EnqueueTypeA(0x550F0004, 0xF, 0x4C);
+                SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, 0xD, 0x4C);
+                SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, 0xF, 0x4C);
             } else {
                 work->soundDelay--;
             }
             break;
         case 7:
             if (work->soundDelay == 0) {
-                SndEvt_EnqueueTypeA(0x550F0003, -0xC, 0);
-                SndEvt_EnqueueTypeA(0x550F0004, -0xC, 0);
+                SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -0xC, 0);
+                SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, -0xC, 0);
             } else {
                 work->soundDelay--;
             }

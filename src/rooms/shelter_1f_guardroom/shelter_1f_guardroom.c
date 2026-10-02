@@ -247,7 +247,7 @@ void func_shelter_1f_guardroom_8017D5E8(Task* task)
         case 4:
             gGameSession->hideHud = 0;
             func_shelter_1f_guardroom_8017D9CC(1);
-            GameFlag_SetNibble(0xB2, 1);
+            GameFlag_SetNibble(GAME_FLAG_SHELTER_1F_BULWARK_UNLOCKED, 1);
             Gp_MsgPlayerWeapon(1);
             taskKill(task);
             break;
@@ -276,7 +276,7 @@ s32 func_shelter_1f_guardroom_8017D744(Task* arg0, s32 arg1, RoomEventMsg* in, R
 s32 func_shelter_1f_guardroom_8017D788(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if (arg2 == 2) {
-        if (GameFlag_GetNibble(0xB2) == 0) {
+        if (GameFlag_GetNibble(GAME_FLAG_SHELTER_1F_BULWARK_UNLOCKED) == 0) {
             Gp_MsgPlayerWeapon(0);
             Task_SpawnFromTable(&D_shelter_1f_guardroom_8017DA60, 0, 0, 0);
         } else {
@@ -297,7 +297,7 @@ s32 func_shelter_1f_guardroom_8017D7E8(Task* task, s32 msgId, TaskMessageArg arg
 s32 func_shelter_1f_guardroom_8017D7F0(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if (arg2 == 3) {
-        SndEvt_EnqueueType6(0x55060003, 0, 0);
+        SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_GUARDROOM, 3), 0, 0);
     }
     return 0;
 }
@@ -309,7 +309,7 @@ static void func_shelter_1f_guardroom_8017D824(Task* arg0)
 {
     arg0->msgTable = D_shelter_1f_guardroom_8017DA30;
     Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
-    func_shelter_1f_guardroom_8017D9CC(GameFlag_GetNibble(0xB2) & 0xFF);
+    func_shelter_1f_guardroom_8017D9CC(GameFlag_GetNibble(GAME_FLAG_SHELTER_1F_BULWARK_UNLOCKED) & 0xFF);
     arg0->state = (s32)(arg0->state + 1);
 }
 

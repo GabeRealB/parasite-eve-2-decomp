@@ -366,7 +366,7 @@ void func_actor_120500_80131E58(Task* arg0)
             if (queue->movieReady == 0) {
                 return;
             }
-            SndEvt_EnqueueType6(0x521E0007, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MOTEL_ROOM_6_MOVIE_SFX, 0, 0);
             SetDispMask(1);
             goto advance;
         case 3:
@@ -732,7 +732,7 @@ void func_actor_120500_80132920(void)
 
     actor = D_actor_120500_80138454;
     work  = actor->work;
-    SndEvt_EnqueueType7(0x521E0007, 0xA);
+    SndEvt_EnqueueType7(SOUND_MOTEL_ROOM_6_MOVIE_SFX, 0xA);
     taskMessageDispatch(actor, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
     work->field_4B8 = 0;
     work->field_4C0 = 0;

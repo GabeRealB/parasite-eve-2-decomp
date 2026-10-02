@@ -16,7 +16,7 @@ s32 grKitchenDoorMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
         req.missingCapCmd = 3;
         req.firstSnd      = DRYFIELD_STAGE_SOUND(0x130001);
         req.secondSnd     = DRYFIELD_STAGE_SOUND(0x130004);
-        req.flagId        = 0x34;
+        req.flagId        = GAME_FLAG_KITCHEN_WATER_TOWER_DOOR_UNLOCKED;
         req.collectedBit  = 0;
         ret               = roomEventGate(&req, in);
     } else {

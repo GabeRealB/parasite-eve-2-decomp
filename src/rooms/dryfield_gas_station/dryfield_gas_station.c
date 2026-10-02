@@ -185,8 +185,8 @@ s32 func_dryfield_gas_station_8017FD4C(void)
 s32 func_dryfield_gas_station_8017FD54(s32 arg0, s32 arg1, s32 arg2)
 {
     if (arg2 == 1) {
-        if (GameFlag_GetNibble(0x16B) == 0) {
-            GameFlag_SetNibble(0x16B, 1);
+        if (GameFlag_GetNibble(GAME_FLAG_GAS_STATION_FIRST_SCENE) == 0) {
+            GameFlag_SetNibble(GAME_FLAG_GAS_STATION_FIRST_SCENE, 1);
             Gp_RunCapCmd1(0xB);
             return 0;
         }
@@ -239,9 +239,9 @@ static void func_dryfield_gas_station_8017FEDC(Task* arg0)
     Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == 1) {
         Task_SpawnFromTable(D_dryfield_gas_station_80181E3C, 0, 0, 0);
-        GameFlag_SetNibble(0x7A, 2);
-        GameFlag_SetNibble(3, 0);
-        GameFlag_SetNibble(0x155, 0);
+        GameFlag_SetNibble(GAME_FLAG_STORY_CHAPTER, 2);
+        GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
+        GameFlag_SetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 0);
     } else {
         Stage_RequestFromAreaTable(1);
     }

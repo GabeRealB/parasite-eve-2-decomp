@@ -23,16 +23,16 @@ s32 parkingLotEventMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* o
 
     *out = *msg;
     if ((msg->areaId == 2) && (msg->queryOnly == ROOM_EVENT_EXECUTE)) {
-        n = GameFlag_GetNibble(0x7A);
+        n = GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER);
         if (n >= 4) {
             val = 3;
         } else {
-            val = GameFlag_GetNibble(0x61) + 1;
+            val = GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
         }
         out->room = val;
     }
     if ((msg->areaId == 0x1D) && (msg->queryOnly == ROOM_EVENT_EXECUTE)) {
-        n = GameFlag_GetNibble(0x61);
+        n = GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN);
         if (n == 0) {
             n = 1;
         } else {
@@ -43,9 +43,9 @@ s32 parkingLotEventMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* o
     if (msg->areaId == 0x11) {
         req.capCmd        = 6;
         req.missingCapCmd = 1;
-        req.firstSnd      = Gp_PackStageSndId(0x520F000B);
-        req.secondSnd     = Gp_PackStageSndId(0x520F0007);
-        req.flagId        = 0x40;
+        req.firstSnd      = Gp_PackStageSndId(SOUND_PARKING_LOT_DOOR_UNLOCK);
+        req.secondSnd     = Gp_PackStageSndId(SOUND_PARKING_LOT_DOOR_OPEN);
+        req.flagId        = GAME_FLAG_PARKING_LOT_LOBBY_DOOR_UNLOCKED;
         req.collectedBit  = 0x12;
         ret               = roomEventGate(&req, out);
         if (ret == 0) {
@@ -53,15 +53,15 @@ s32 parkingLotEventMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* o
         }
         if (ROOM_EVENT_ACTIVE != 0) {
             Gp_ApplyAreaRecs(gParkingLotAreaRecs);
-            GameFlag_SetNibble(0x46, 1);
-            GameFlag_SetNibble(0x97, 1);
+            GameFlag_SetNibble(GAME_FLAG_046, 1);
+            GameFlag_SetNibble(GAME_FLAG_097, 1);
         }
     } else if (msg->areaId == 0x12) {
         req.capCmd        = 3;
         req.missingCapCmd = 2;
-        req.firstSnd      = Gp_PackStageSndId(0x520F000B);
-        req.secondSnd     = Gp_PackStageSndId(0x520F0007);
-        req.flagId        = 0x35;
+        req.firstSnd      = Gp_PackStageSndId(SOUND_PARKING_LOT_DOOR_UNLOCK);
+        req.secondSnd     = Gp_PackStageSndId(SOUND_PARKING_LOT_DOOR_OPEN);
+        req.flagId        = GAME_FLAG_SALOON_PARKING_LOT_DOOR_UNLOCKED;
         req.collectedBit  = 0x10;
         ret               = roomEventGate(&req, out);
         if (ROOM_EVENT_ACTIVE != 0) {

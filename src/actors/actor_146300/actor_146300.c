@@ -1345,7 +1345,7 @@ void func_actor_146300_80131ECC(Task* task)
     switch (task->state) {
         case 0:
             Gp_AgeFlag119();
-            switch (GameFlag_GetNibble(0x7B)) {
+            switch (GameFlag_GetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS)) {
                 case 2:
                     if (Gp_HasCollectedBit(0x119) == 0) {
                         Gp_RunCapCmd1(0x12);
@@ -1353,7 +1353,7 @@ void func_actor_146300_80131ECC(Task* task)
                     } else {
                         Gp_ClearCollectedBit(0x119);
                         D_actor_146300_80142824 = 0x13;
-                        GameFlag_SetNibble(0x7B, 3);
+                        GameFlag_SetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS, 3);
                         task->state = 0xA;
                     }
                     break;
@@ -1370,7 +1370,7 @@ void func_actor_146300_80131ECC(Task* task)
                     } else {
                         Gp_ClearCollectedBit(0x119);
                         D_actor_146300_80142824 = 0x14;
-                        GameFlag_SetNibble(0x7B, 4);
+                        GameFlag_SetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS, 4);
                         task->state = 0xA;
                     }
                     break;
@@ -1386,7 +1386,7 @@ void func_actor_146300_80131ECC(Task* task)
                         }
                     } else {
                         Gp_ClearCollectedBit(0x119);
-                        GameFlag_SetNibble(0x7B, 5);
+                        GameFlag_SetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS, 5);
                         task->state = 0x1E;
                     }
                     break;
@@ -1448,7 +1448,7 @@ void func_actor_146300_80131ECC(Task* task)
 
 static void func_actor_146300_8013224C(void)
 {
-    switch (GameFlag_GetNibble(0x7B)) {
+    switch (GameFlag_GetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS)) {
         case 2:
             TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137B38, 0);
             break;

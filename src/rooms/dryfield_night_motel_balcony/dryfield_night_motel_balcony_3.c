@@ -1077,7 +1077,7 @@ void func_dryfield_night_motel_balcony_8017E0C8(Task* arg0)
     Display_SpawnWithOt(D_dryfield_night_motel_balcony_80182834, 1, 0, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     Gp_SpawnViewTasks();
-    SndEvt_EnqueueType7(0x60010001, 1);
+    SndEvt_EnqueueType7(SOUND_STAGE_AMBIENT, 1);
     taskKill(arg0);
 }
 
@@ -1153,46 +1153,46 @@ void func_dryfield_night_motel_balcony_8017E250(s16 arg0, s16 arg1)
     }
     switch (arg0) {
         case 0:
-            GameFlag_SetNibble(0x85, arg1);
+            GameFlag_SetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_0_STATE, arg1);
             break;
         case 1:
-            GameFlag_SetNibble(0x86, arg1);
+            GameFlag_SetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_1_STATE, arg1);
             break;
         case 2:
-            GameFlag_SetNibble(0x87, arg1);
+            GameFlag_SetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_2_STATE, arg1);
             break;
         case 3:
-            GameFlag_SetNibble(0x88, arg1);
+            GameFlag_SetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_3_STATE, arg1);
             break;
         case 4:
-            GameFlag_SetNibble(0x89, arg1);
+            GameFlag_SetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_4_STATE, arg1);
             break;
         case 5:
-            GameFlag_SetNibble(0x8A, arg1);
+            GameFlag_SetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_5_STATE, arg1);
             break;
         case 6:
-            GameFlag_SetNibble(0x8B, arg1);
+            GameFlag_SetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_6_STATE, arg1);
             break;
         case 7:
-            GameFlag_SetNibble(0x8C, arg1);
+            GameFlag_SetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_7_STATE, arg1);
             break;
         case 8:
-            GameFlag_SetNibble(0x8D, arg1);
+            GameFlag_SetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_8_STATE, arg1);
             break;
     }
 }
 
 void func_dryfield_night_motel_balcony_8017E3C8(void)
 {
-    func_dryfield_night_motel_balcony_8017E250(0, GameFlag_GetNibble(0x85));
-    func_dryfield_night_motel_balcony_8017E250(1, GameFlag_GetNibble(0x86));
-    func_dryfield_night_motel_balcony_8017E250(2, GameFlag_GetNibble(0x87));
-    func_dryfield_night_motel_balcony_8017E250(3, GameFlag_GetNibble(0x88));
-    func_dryfield_night_motel_balcony_8017E250(4, GameFlag_GetNibble(0x89));
-    func_dryfield_night_motel_balcony_8017E250(5, GameFlag_GetNibble(0x8A));
-    func_dryfield_night_motel_balcony_8017E250(6, GameFlag_GetNibble(0x8B));
-    func_dryfield_night_motel_balcony_8017E250(7, GameFlag_GetNibble(0x8C));
-    func_dryfield_night_motel_balcony_8017E250(8, GameFlag_GetNibble(0x8D));
+    func_dryfield_night_motel_balcony_8017E250(0, GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_0_STATE));
+    func_dryfield_night_motel_balcony_8017E250(1, GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_1_STATE));
+    func_dryfield_night_motel_balcony_8017E250(2, GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_2_STATE));
+    func_dryfield_night_motel_balcony_8017E250(3, GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_3_STATE));
+    func_dryfield_night_motel_balcony_8017E250(4, GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_4_STATE));
+    func_dryfield_night_motel_balcony_8017E250(5, GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_5_STATE));
+    func_dryfield_night_motel_balcony_8017E250(6, GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_6_STATE));
+    func_dryfield_night_motel_balcony_8017E250(7, GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_7_STATE));
+    func_dryfield_night_motel_balcony_8017E250(8, GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_8_STATE));
 }
 
 void func_dryfield_night_motel_balcony_8017E4B8(void)

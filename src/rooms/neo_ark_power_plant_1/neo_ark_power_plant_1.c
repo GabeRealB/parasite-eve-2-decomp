@@ -100,15 +100,15 @@ static void func_neo_ark_power_plant_1_8017D5EC(Task* task)
 {
     Task* slot;
 
-    if (GameFlag_GetNibble(0xDE) == 0) {
+    if (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_CLEARED) == 0) {
         slot = Gp_LookupSlot4(0);
         if (slot != 0) {
             if (taskMessageDispatch(slot, ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0) {
                 if (Gp_StateC08.field_A != 1) {
                     if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
-                        GameFlag_SetNibble(0xDE, 1);
-                        GameFlag_SetNibble(0xF6, 1);
-                        GameFlag_SetNibble(0x1B2, 0);
+                        GameFlag_SetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_CLEARED, 1);
+                        GameFlag_SetNibble(GAME_FLAG_NEO_ARK_FOREST_ZONE_UNLOCKED, 1);
+                        GameFlag_SetNibble(GAME_FLAG_MAP_MARK_POWER_PLANT_1, 0);
                         Gp_ApplyAreaRecs(D_neo_ark_power_plant_1_80181C00);
                         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0x16;
                         func_800E8634(D_neo_ark_power_plant_1_8017EB7C, 0, D_neo_ark_power_plant_1_8017EDBC);
@@ -117,23 +117,23 @@ static void func_neo_ark_power_plant_1_8017D5EC(Task* task)
             }
         }
     }
-    if ((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == 3) && (GameFlag_GetNibble(0xFB) == 0)) {
-        GameFlag_SetNibble(0xFB, 1);
+    if ((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == 3) && (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_0FB) == 0)) {
+        GameFlag_SetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_0FB, 1);
         gGameSession->battleResetPending            = 0;
         gSceneCombatState.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_IDLE;
         func_800E8614(D_neo_ark_power_plant_1_8017EEE4, 0);
     }
-    if ((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != gGameSession->location.loc.view) && (GameFlag_GetNibble(0xDE) != 0) && (GameFlag_GetNibble(0xDF) == 0)) {
+    if ((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != gGameSession->location.loc.view) && (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_CLEARED) != 0) && (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0)) {
         D_neo_ark_power_plant_1_8017F01C = 4;
         return;
     }
     if (D_neo_ark_power_plant_1_8017F01C != 0) {
         if (--D_neo_ark_power_plant_1_8017F01C == 0) {
             if (gGameSession->location.loc.view == 7) {
-                SndEvt_EnqueueType6(0x5511000A, 0, 0);
+                SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_1, 0x0A), 0, 0);
                 return;
             }
-            SndEvt_EnqueueType7(0x5511000A, 1);
+            SndEvt_EnqueueType7(SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_1, 0x0A), 1);
         }
     }
 }
@@ -164,7 +164,7 @@ s32 func_neo_ark_power_plant_1_8017D7F8(Task* task, s32 msgId, s32 arg2, s32 arg
 
     switch (arg2) {
         case 2:
-            if (GameFlag_GetNibble(0xDE) == 0) {
+            if (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_CLEARED) == 0) {
                 cmd = 2;
             } else {
                 cmd = 5;
@@ -174,7 +174,7 @@ s32 func_neo_ark_power_plant_1_8017D7F8(Task* task, s32 msgId, s32 arg2, s32 arg
         case 3:
             if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_FINISHED) {
                 cmd = 7;
-            } else if (GameFlag_GetNibble(0x148) != 0) {
+            } else if (GameFlag_GetNibble(GAME_FLAG_POWER_PLANT_1_GENERATOR_PART_DOWN) != 0) {
                 cmd = 6;
             } else {
                 cmd = 3;
@@ -182,7 +182,7 @@ s32 func_neo_ark_power_plant_1_8017D7F8(Task* task, s32 msgId, s32 arg2, s32 arg
             Gp_RunCapCmd1(cmd);
             break;
         case 9:
-            if (GameFlag_GetNibble(0xDF) == 0) {
+            if (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0) {
                 cmd = 9;
             } else {
                 cmd = 0xB;
@@ -190,7 +190,7 @@ s32 func_neo_ark_power_plant_1_8017D7F8(Task* task, s32 msgId, s32 arg2, s32 arg
             Gp_RunCapCmd1(cmd);
             break;
         case 12:
-            if (GameFlag_GetNibble(0xDF) != 0) {
+            if (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) != 0) {
                 cmd = 0xA;
             } else {
                 cmd = 0xC;
@@ -233,7 +233,7 @@ static void func_neo_ark_power_plant_1_8017D928(Task* task)
     if (gGameSession->location.loc.variant == 1) {
         gGameSession->flowFlags = GAME_SESSION_FLOW_SKIP_ENDING_MUSIC;
     }
-    if (GameFlag_GetNibble(0xFB) == 0) {
+    if (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_0FB) == 0) {
         gGameSession->battleResetPending            = 1;
         gSceneCombatState.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_FINISHED;
     }

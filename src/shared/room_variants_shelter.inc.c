@@ -9,24 +9,24 @@ s32 roomVariantResolveShelter(RoomEventMsg* arg0, RoomEventMsg* arg1)
 {
     if (arg0->queryOnly == ROOM_EVENT_EXECUTE) {
         switch (arg0->areaId) {
-            case 2:
-                if (GameFlag_GetNibble(0x10F) != 0) {
+            case GAME_AREA_MINE_CAVERN:
+                if (GameFlag_GetNibble(GAME_FLAG_MINE_CAVERN_INTRO_SEEN) != 0) {
                     arg1->room = 2;
                 }
-                if (GameFlag_GetNibble(0x11A) >= 2) {
+                if (GameFlag_GetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_PROGRESS) >= 2) {
                     arg1->room = 3;
                 }
                 break;
-            case 5:
-                arg1->room = GameFlag_GetNibble(0xA4) + 1;
+            case GAME_AREA_MINE_GORGE:
+                arg1->room = GameFlag_GetNibble(GAME_FLAG_MINE_GORGE_TRIGGER_EVENT_DONE) + 1;
                 break;
-            case 16:
-                if (GameFlag_GetNibble(0x7A) >= 6) {
+            case GAME_AREA_SHELTER_B1_STERILIZATION_ROOM:
+                if (GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER) >= 6) {
                     arg1->room = 3;
                 }
                 break;
-            case 20:
-                switch (GameFlag_GetNibble(0xF4)) {
+            case GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING:
+                switch (GameFlag_GetNibble(GAME_FLAG_UNDERGROUND_PARKING_STATE)) {
                     case 0:
                         arg1->room = 1;
                         break;
@@ -44,50 +44,50 @@ s32 roomVariantResolveShelter(RoomEventMsg* arg0, RoomEventMsg* arg1)
                         break;
                 }
                 break;
-            case 45:
-                arg1->room = GameFlag_GetNibble(0xB7) + 1;
+            case GAME_AREA_SHELTER_B4_RESERVOIR:
+                arg1->room = GameFlag_GetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) + 1;
                 break;
-            case 41:
-                arg1->room = GameFlag_GetNibble(0xB6) + 1;
+            case GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM:
+                arg1->room = GameFlag_GetNibble(GAME_FLAG_INCINERATOR_CONTROL_ROOM_STATE) + 1;
                 break;
-            case 3:
-            case 4:
-            case 6:
-            case 7:
-            case 8:
-            case 9:
-            case 10:
-            case 11:
-            case 12:
-            case 13:
-            case 14:
-            case 15:
-            case 17:
-            case 18:
-            case 19:
-            case 21:
-            case 22:
-            case 23:
-            case 24:
-            case 25:
-            case 26:
-            case 27:
-            case 28:
-            case 29:
-            case 30:
-            case 31:
-            case 32:
-            case 33:
-            case 34:
-            case 35:
-            case 36:
-            case 37:
-            case 38:
-            case 39:
-            case 40:
-            case 42:
-            case 43:
-            case 44:
+            case GAME_AREA_MINE_TUNNEL_ENTRANCE:
+            case GAME_AREA_MINE_TUNNEL:
+            case GAME_AREA_MINE_REFUGE:
+            case GAME_AREA_MINE_FORKED_TUNNEL:
+            case GAME_AREA_MINE_SECRET_PASSAGE:
+            case GAME_AREA_SHELTER_B1_ELEVATOR_HALL:
+            case GAME_AREA_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY:
+            case GAME_AREA_SHELTER_B1_STOREROOM:
+            case GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY:
+            case GAME_AREA_SHELTER_B1_ARMORY:
+            case GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS:
+            case GAME_AREA_SHELTER_B1_MAIN_CORRIDOR:
+            case GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL:
+            case GAME_AREA_SHELTER_B1_CONTROL_ROOM:
+            case GAME_AREA_SHELTER_B1_ACCESS_TUNNEL:
+            case GAME_AREA_SHELTER_B1_GOLEM_FREEZER_1:
+            case GAME_AREA_SHELTER_B2_POD_BOTTOM:
+            case GAME_AREA_SHELTER_B1_POD_SERVICE_GANTRY:
+            case GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL:
+            case GAME_AREA_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL:
+            case GAME_AREA_SHELTER_B2_ELEVATOR:
+            case GAME_AREA_SHELTER_B2_ELEVATOR_HALL:
+            case GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY:
+            case GAME_AREA_SHELTER_B2_OPERATING_ROOM:
+            case GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY:
+            case GAME_AREA_SHELTER_B2_LABORATORY:
+            case GAME_AREA_SHELTER_B2_BREEDING_ROOM:
+            case GAME_AREA_SHELTER_B2_MAIN_CORRIDOR:
+            case GAME_AREA_SHELTER_B2_SEPTIC_TANK:
+            case GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL:
+            case GAME_AREA_SHELTER_R36:
+            case GAME_AREA_SHELTER_R37:
+            case GAME_AREA_SHELTER_1F_HELIPORT_S4:
+            case GAME_AREA_SHELTER_B3_DUMPING_HOLE:
+            case GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR:
+            case GAME_AREA_SHELTER_B3_ELEVATOR_HALL:
+            case GAME_AREA_SHELTER_B4_LOWER_SEWER:
+            case GAME_AREA_SHELTER_B4_UPPER_SEWER:
             default:
                 break;
         }

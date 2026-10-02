@@ -763,7 +763,7 @@ void func_dryfield_night_underpass_8017DC3C(Task* unused)
     s16*     flags;
 
     mask = 1 << gGameSession->location.loc.view;
-    if (GameFlag_GetNibble(0x53) == 0) {
+    if (GameFlag_GetNibble(GAME_FLAG_053) == 0) {
         i     = 0;
         vec   = D_dryfield_night_underpass_8017DD20;
         flags = D_dryfield_night_underpass_8017DD60;

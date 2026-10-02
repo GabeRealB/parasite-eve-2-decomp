@@ -277,21 +277,21 @@ static void func_actor_205200_8014A72C(Enemy* enemy, Task* task)
         case 1:
             func_neo_ark_eve_access_tunnel_8017E090(0, 0);
             func_neo_ark_eve_access_tunnel_8017E090(1, 0);
-            GameFlag_SetNibble(0x142, 0);
-            GameFlag_SetNibble(0x143, 0);
+            GameFlag_SetNibble(GAME_FLAG_EVE_ACCESS_TUNNEL_PART_0_DOWN, 0);
+            GameFlag_SetNibble(GAME_FLAG_EVE_ACCESS_TUNNEL_PART_1_DOWN, 0);
             break;
         case 2:
             func_shelter_b6_corridor_8017EE08(0, 0);
             func_shelter_b6_corridor_8017EE08(1, 0);
             func_shelter_b6_corridor_8017EE08(2, 0);
-            GameFlag_SetNibble(0x144, 0);
-            GameFlag_SetNibble(0x145, 0);
+            GameFlag_SetNibble(GAME_FLAG_B6_CORRIDOR_EVE_PART_0_DOWN, 0);
+            GameFlag_SetNibble(GAME_FLAG_B6_CORRIDOR_EVE_PART_1_DOWN, 0);
             break;
         case 3:
             func_shelter_b6_training_room_80182A14(0, 0);
             func_shelter_b6_training_room_80182A14(1, 0);
-            GameFlag_SetNibble(0x153, 0);
-            GameFlag_SetNibble(0x154, 0);
+            GameFlag_SetNibble(GAME_FLAG_153, 0);
+            GameFlag_SetNibble(GAME_FLAG_154, 0);
             break;
         case 0:
             break;

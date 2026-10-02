@@ -1760,16 +1760,16 @@ static void func_acropolis_sanctuary_8017D5E0(Task* task)
     WorldCollisionTrigger* p9;
     WorldCollisionTrigger* p10;
 
-    if (GameFlag_GetNibble(2) == 0 && gGameSession->location.loc.warp == 3) {
-        GameFlag_SetNibble(2, 2);
+    if (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == 0 && gGameSession->location.loc.warp == 3) {
+        GameFlag_SetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS, 2);
         func_800E8634(D_acropolis_sanctuary_80180B0C, 0, D_acropolis_sanctuary_80181664);
         Gp_ApplyAreaRecs(D_acropolis_sanctuary_80186418);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 6;
-        GameFlag_SetNibble(1, 5);
-        GameFlag_SetNibble(0x25, 1);
+        GameFlag_SetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS, 5);
+        GameFlag_SetNibble(GAME_FLAG_OBSERVATORY_EXIT_USED, 1);
         func_800E3FAC(0xA2, 6);
-        GameFlag_SetNibble(3, 0);
-        GameFlag_SetNibble(0x155, 5);
+        GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
+        GameFlag_SetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 5);
     }
     if (Gp_GetCurBit2Flag(0x1C) == 2) {
         mask = ~WORLD_COLLISION_TRIGGER_ENABLED;
@@ -1807,13 +1807,13 @@ s32 func_acropolis_sanctuary_8017D73C(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
     *out = *in;
     if (in->areaId == GAME_AREA_ACROPOLIS_PROMENADE) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            if (GameFlag_GetNibble(7) == 0) {
-                GameFlag_SetNibble(7, 2);
+            if (GameFlag_GetNibble(GAME_FLAG_SANCTUARY_EVENT_LATCH) == 0) {
+                GameFlag_SetNibble(GAME_FLAG_SANCTUARY_EVENT_LATCH, 2);
                 Gp_SetCurBit2Flag(0x13, 2);
             }
         }
         if (in->areaId == GAME_AREA_ACROPOLIS_PROMENADE && in->queryOnly == ROOM_EVENT_EXECUTE) {
-            nib = GameFlag_GetNibble(2);
+            nib = GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS);
             if (nib == 0) {
                 nib = 1;
             } else {
@@ -1833,7 +1833,7 @@ s32 func_acropolis_sanctuary_8017D808(Task* task, s32 msgId, TaskMessageArg arg2
 
 s32 func_acropolis_sanctuary_8017D810(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
-    if (arg2 == 0 && GameFlag_GetNibble(6) == 0) {
+    if (arg2 == 0 && GameFlag_GetNibble(GAME_FLAG_SANCTUARY_BLOCKER_CLEARED) == 0) {
         func_800E8614(D_acropolis_sanctuary_80181814, 0);
     }
     return 0;
@@ -1845,8 +1845,8 @@ s32 func_acropolis_sanctuary_8017D810(Task* arg0, s32 arg1, s32 arg2, TaskMessag
 /// this handler only ever consumes the message (returns 0).
 s32 func_acropolis_sanctuary_8017D848(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
-    if (in->warp == 1 && GameFlag_GetNibble(7) == 0) {
-        GameFlag_SetNibble(7, 1);
+    if (in->warp == 1 && GameFlag_GetNibble(GAME_FLAG_SANCTUARY_EVENT_LATCH) == 0) {
+        GameFlag_SetNibble(GAME_FLAG_SANCTUARY_EVENT_LATCH, 1);
         Task_SpawnFromTable(&D_acropolis_sanctuary_80182240, 0, 0, 0);
     }
     return 0;
@@ -1883,10 +1883,10 @@ static void func_acropolis_sanctuary_8017D930(Task* arg0)
     arg0->msgTable = D_acropolis_sanctuary_8018081C;
     Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     arg0->state = arg0->state + 1;
-    if (GameFlag_GetNibble(6) != 1) {
+    if (GameFlag_GetNibble(GAME_FLAG_SANCTUARY_BLOCKER_CLEARED) != 1) {
         slot = Gp_LookupSlot4(1);
         Gp_MsgSlot4Chain(1, 1);
-        if (GameFlag_GetNibble(2) != 0 && slot != NULL) {
+        if (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) != 0 && slot != NULL) {
             TASK_MESSAGE_DISPATCH_POINTER(slot, 0x7D3, &D_acropolis_sanctuary_80180AE8, 0);
             TASK_MESSAGE_DISPATCH_POINTER(slot, 0x7D4, &D_acropolis_sanctuary_801808BC, 0);
         }
@@ -1953,7 +1953,7 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                 weapon.rec.blendFrames          = 0xF;
                 weapon.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
                 TASK_MESSAGE_DISPATCH_POINTER(slot->target, ANIMATION_MESSAGE_PLAY, &weapon, 0);
-                SndEvt_EnqueueType6(0x510C0007, 0, 0);
+                SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SANCTUARY, 7), 0, 0);
                 func_800E8634(D_acropolis_sanctuary_801820F0, 0, D_acropolis_sanctuary_801821C8);
                 arg0->state = arg0->state + 1;
             }
@@ -1961,7 +1961,7 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
 
         case 1:
             if (gGameSession->eventState == 0) {
-                SndEvt_EnqueueType7(0x80000000, 0);
+                SndEvt_EnqueueType7(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0);
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_ACROPOLIS_ROOF_GARDEN;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_ACROPOLIS;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 2;
@@ -2023,8 +2023,8 @@ void func_acropolis_sanctuary_8017DCE0(s32 arg0)
             work->step  = 0;
             return;
         case 2:
-            SndEvt_EnqueueType7(0x510C0007, 0);
-            SndEvt_EnqueueType6(0x510C0008, 0, 0);
+            SndEvt_EnqueueType7(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SANCTUARY, 7), 0);
+            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SANCTUARY, 8), 0, 0);
             return;
     }
 }
@@ -2056,7 +2056,7 @@ static void func_acropolis_sanctuary_8017DD78(void)
         dst->faces[i].surfaceClass    = 1;
     }
 
-    if (GameFlag_GetNibble(6) == 0) {
+    if (GameFlag_GetNibble(GAME_FLAG_SANCTUARY_BLOCKER_CLEARED) == 0) {
         shift.vx = 200;
         shift.vy = 0;
         shift.vz = 380;

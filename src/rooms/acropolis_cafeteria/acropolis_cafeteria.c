@@ -1000,7 +1000,7 @@ static inline s32 _acropolisCafeteriaAnswer(RoomEventMsg* in, RoomEventMsg* out)
 
     if (msgId == 3 && in->queryOnly == ROOM_EVENT_EXECUTE) {
         if (GameFlag_GetNibble(0) < 2) {
-            if (GameFlag_GetNibble(0x21) < 2) {
+            if (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < 2) {
                 out->room = 1;
             } else {
                 out->room = 2;
@@ -1042,8 +1042,8 @@ s32 func_acropolis_cafeteria_8017D700(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
             }
             return 0;
         }
-        if (GameFlag_GetNibble(0xE) == msgId && in->queryOnly == ROOM_EVENT_EXECUTE) {
-            GameFlag_SetNibble(0xE, 2);
+        if (GameFlag_GetNibble(GAME_FLAG_00E) == msgId && in->queryOnly == ROOM_EVENT_EXECUTE) {
+            GameFlag_SetNibble(GAME_FLAG_00E, 2);
         }
         return _acropolisCafeteriaAnswer(in, out);
     }
@@ -1241,15 +1241,15 @@ void func_acropolis_cafeteria_8017DD1C(Task* task)
 
         case 8:
             GameFlag_SetNibble(0, 2);
-            GameFlag_SetNibble(3, 0);
-            GameFlag_SetNibble(0x155, 4);
-            GameFlag_SetNibble(0xE, 1);
+            GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
+            GameFlag_SetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 4);
+            GameFlag_SetNibble(GAME_FLAG_00E, 1);
             Gp_ApplyAreaRecs(D_acropolis_cafeteria_8018C9D4);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 4;
             func_800E3FAC(0xA2, 4);
             func_800ABFF8();
             func_800AC000();
-            SndEvt_EnqueueType7(0x80000000, 0);
+            SndEvt_EnqueueType7(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_ACROPOLIS;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_ACROPOLIS_PATIO;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 3;
@@ -1340,10 +1340,10 @@ s32 func_acropolis_cafeteria_8017E22C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     switch (arg2) {
         case 0xA:
-            SndEvt_EnqueueType6(0x5104000A, 0, 0);
+            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_CAFETERIA, 0x0A), 0, 0);
             break;
         case 0xB:
-            SndEvt_EnqueueType6(0x5104000B, 0, 0);
+            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_CAFETERIA, 0x0B), 0, 0);
             break;
     }
     return 0;

@@ -1073,14 +1073,14 @@ s32 func_shelter_b2_laboratory_8017FD18(Task* arg0, s32 arg1, s32 arg2, TaskMess
 {
     if (arg2 == 4) {
         D_shelter_b2_laboratory_801864B8 = 0;
-        if (GameFlag_GetNibble(0xD0) == 2) {
+        if (GameFlag_GetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS) == 2) {
             func_shelter_b2_laboratory_801820F4(0);
-            GameFlag_SetNibble(0xD0, 3);
-            GameFlag_SetNibble(0xB3, 1);
-            GameFlag_SetNibble(0x1C2, 0);
-            GameFlag_SetNibble(0x17, 1);
-            GameFlag_SetNibble(0x18, 1);
-            if (GameFlag_GetNibble(0x83) != 0) {
+            GameFlag_SetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS, 3);
+            GameFlag_SetNibble(GAME_FLAG_B1_POD_TUNNEL_R47_DOOR_UNLOCKED, 1);
+            GameFlag_SetNibble(GAME_FLAG_MAP_MARK_B2_LABORATORY, 0);
+            GameFlag_SetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_017, 1);
+            GameFlag_SetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_018, 1);
+            if (GameFlag_GetNibble(GAME_FLAG_083) != 0) {
                 func_800E3FAC(0xA2, 0x28);
             } else {
                 func_800E3FAC(0xA2, 0x29);
@@ -1139,12 +1139,12 @@ void func_shelter_b2_laboratory_8017FEB8(Task* arg0)
     depth = worldCoordGetOriginAudioDepth(&D_shelter_b2_laboratory_801864DC);
     switch (arg0->state) {
         case 0:
-            SndEvt_EnqueueType6(0x541F000E, pan, depth);
+            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_LABORATORY, 0x0E), pan, depth);
             arg0->state++;
             break;
         case 1:
             if (D_shelter_b2_laboratory_801864B8 == 0) {
-                SndEvt_EnqueueType7(0x541F000E, 1);
+                SndEvt_EnqueueType7(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_LABORATORY, 0x0E), 1);
                 taskKill(arg0);
                 return;
             }
@@ -1162,7 +1162,7 @@ void func_shelter_b2_laboratory_8017FEB8(Task* arg0)
             if (vol >= 0x80) {
                 vol = 0x7F;
             }
-            SndEvt_EnqueueTypeA(0x541F000E, pan, (s8)vol);
+            SndEvt_EnqueueTypeA(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_LABORATORY, 0x0E), pan, (s8)vol);
             arg0->state = 1;
             break;
     }
@@ -1181,7 +1181,7 @@ s32 func_shelter_b2_laboratory_801800FC(Task* arg0, s32 arg1, RoomEventMsg* in, 
 
     *out = *in;
     func_map_shelter_80179A04(in, out);
-    if (GameFlag_GetNibble(0xD0) == 2) {
+    if (GameFlag_GetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS) == 2) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_RunCapCmd1(5);
         }
@@ -1194,7 +1194,7 @@ s32 func_shelter_b2_laboratory_801800FC(Task* arg0, s32 arg1, RoomEventMsg* in, 
     req.missingCapCmd = 1;
     req.firstSnd      = 0x541F0014;
     req.secondSnd     = 0x541F0003;
-    req.flagId        = 0xB1;
+    req.flagId        = GAME_FLAG_B2_LABORATORY_DOOR_UNLOCKED;
     req.collectedBit  = 0;
     return roomEventGate(&req, out);
 }
@@ -1207,15 +1207,15 @@ s32 func_shelter_b2_laboratory_801801D0(Task* task, s32 msgId, TaskMessageArg fi
     const DirectionActionRequest* request = firstArg.pointer;
 
     if (request->actionId == 1) {
-        if (GameFlag_GetNibble(0x13D) != 0) {
-            if (GameFlag_GetNibble(0xD0) < 2) {
+        if (GameFlag_GetNibble(GAME_FLAG_LABORATORY_CONSOLE_FIRST_USE) != 0) {
+            if (GameFlag_GetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS) < 2) {
                 Task_SpawnFromTable(D_shelter_b2_laboratory_80182A6C, 0, 0, 0);
             } else {
                 Gp_RunCapCmd1(6);
             }
         } else {
             Gp_RunCapCmd1(0x1E);
-            GameFlag_SetNibble(0x13D, 1);
+            GameFlag_SetNibble(GAME_FLAG_LABORATORY_CONSOLE_FIRST_USE, 1);
         }
     }
     return 0;
@@ -1224,7 +1224,7 @@ s32 func_shelter_b2_laboratory_801801D0(Task* task, s32 msgId, TaskMessageArg fi
 s32 func_shelter_b2_laboratory_8018025C(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if (arg2 == 0x63) {
-        SndEvt_EnqueueType6(0x541F0017, 0, 0);
+        SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_LABORATORY, 0x17), 0, 0);
     }
     return 0;
 }
@@ -1242,7 +1242,7 @@ void func_shelter_b2_laboratory_80180290(Task* task)
             if (Task_PollKill(D_shelter_b2_laboratory_80182A68, &result) != 0) {
                 D_shelter_b2_laboratory_80182A68 = NULL;
                 if (result != 0) {
-                    GameFlag_SetNibble(0xD0, 1);
+                    GameFlag_SetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS, 1);
                 } else {
                     Gp_MsgPlayerWeapon(1);
                 }
@@ -1272,7 +1272,7 @@ void func_shelter_b2_laboratory_80180350(Task* task)
             return;
         case 2:
             if (gGameSession->eventState == 0) {
-                Gp_RunCapCmd1(GameFlag_GetNibble(0x83) != 0 ? 0x24 : 0x23);
+                Gp_RunCapCmd1(GameFlag_GetNibble(GAME_FLAG_083) != 0 ? 0x24 : 0x23);
                 taskKill(task);
             }
             return;

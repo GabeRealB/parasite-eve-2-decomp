@@ -2264,7 +2264,7 @@ static void func_actor_206100_8014CD08(Task* task)
     coord           = tmd->coords;
     work->field_51E = work->field_51E + 1;
     if ((s16)work->field_51E == 3) {
-        SndEvt_EnqueueType6(0x551E0004, 0, 0);
+        SndEvt_EnqueueType6(SOUND_NEO_ARK_SUB_GALLERY_DIVER_DEPART, 0, 0);
     }
     if ((s16)work->field_51E == 0x22) {
         coord->coord.t[0]                                          = 0;
@@ -2333,7 +2333,7 @@ static void func_actor_206100_8014CE60(Task* task)
             taskKill(work->field_4F8);
         }
         if ((s16)work->field_51E == frame) {
-            SndEvt_EnqueueType6(0x551E0003, 0, 0);
+            SndEvt_EnqueueType6(SOUND_NEO_ARK_SUB_GALLERY_DIVER_REAPPEAR, 0, 0);
         }
     }
     if ((s16)work->field_51E == 0xC) {
@@ -2400,12 +2400,12 @@ static __inline__ s16 take_request(Task* task)
                 func_actor_206100_8014EB48(task, 0x3A0);
                 break;
             case 3:
-                SndEvt_EnqueueType7(0x551E0002, 1);
+                SndEvt_EnqueueType7(SOUND_NEO_ARK_SUB_GALLERY_DIVER_ATTACK_LOOP, 1);
                 work->field_52C = 0;
                 set_state(task, 8);
                 return 1;
             case 4:
-                SndEvt_EnqueueType7(0x551E0002, 1);
+                SndEvt_EnqueueType7(SOUND_NEO_ARK_SUB_GALLERY_DIVER_ATTACK_LOOP, 1);
                 work->field_52C = 0;
                 func_actor_206100_8014EB48(task, 0x3A0);
                 set_state(task, 7);
@@ -2489,11 +2489,11 @@ static void func_actor_206100_8014D14C(Task* task)
     }
     if ((s16)sub->field_51E == 0x54) {
         pan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
-        SndEvt_EnqueueType6(0x551E0002, pan,
+        SndEvt_EnqueueType6(SOUND_NEO_ARK_SUB_GALLERY_DIVER_ATTACK_LOOP, pan,
                             (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
     }
     if ((s16)sub->field_51E == 0x77) {
-        SndEvt_EnqueueType7(0x551E0002, 1);
+        SndEvt_EnqueueType7(SOUND_NEO_ARK_SUB_GALLERY_DIVER_ATTACK_LOOP, 1);
     }
     if ((s16)sub->field_51E == 0x54 || (s16)sub->field_51E == 0x5B || (s16)sub->field_51E == 0x62 ||
         (s16)sub->field_51E == 0x69 || (s16)sub->field_51E == 0x70 || (s16)sub->field_51E == 0x77) {
@@ -2507,7 +2507,7 @@ static void func_actor_206100_8014D14C(Task* task)
         cond = 0;
     }
     if (cond != 0) {
-        SndEvt_EnqueueType7(0x551E0002, 1);
+        SndEvt_EnqueueType7(SOUND_NEO_ARK_SUB_GALLERY_DIVER_ATTACK_LOOP, 1);
         set_state(task, 2);
     }
     work                = (Actor206100Work*)task->work;
@@ -3896,12 +3896,12 @@ static void func_actor_206100_8014FBE4(Task* task, void* unusedTable)
 
     work  = (Actor206100Work*)task->work;
     enemy = (Enemy*)task->spawnArg2.pointer;
-    SndEvt_EnqueueType7(0x551E0002, 1);
+    SndEvt_EnqueueType7(SOUND_NEO_ARK_SUB_GALLERY_DIVER_ATTACK_LOOP, 1);
     Gp_ApplyAreaRecs(D_neo_ark_submarine_gallery_8018590C);
     work->field_526 = work->field_536;
     Gp_UnlinkNode(&enemy->node);
     Gp_ReleaseStateF0Add(task, 0);
-    GameFlag_SetNibble(0xF3, 1);
+    GameFlag_SetNibble(GAME_FLAG_0F3, 1);
     enemy->recs = 0;
     Gp_UnlinkObj(&work->obj_364);
     Gp_UnlinkObj(&work->obj_414);

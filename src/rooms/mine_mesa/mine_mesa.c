@@ -2578,15 +2578,15 @@ static void func_mine_mesa_8017D808(Task* task)
     s32 nibble;
 
     if ((gGameSession->eventState == 0) && (Gp_StateC08.field_A != 1) && (field9 = gGameSession->location.loc.variant, field9 == 1)) {
-        if (GameFlag_GetNibble(0x90) == 0) {
+        if (GameFlag_GetNibble(GAME_FLAG_MINE_MESA_ARRIVAL_SEEN) == 0) {
             if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
                 func_800E8634(D_mine_mesa_8018578C, 0, D_mine_mesa_801861DC);
             }
             func_800E3FAC(0xA2, 0x1B);
-            GameFlag_SetNibble(0x90, 1);
+            GameFlag_SetNibble(GAME_FLAG_MINE_MESA_ARRIVAL_SEEN, 1);
             return;
         }
-        nibble = GameFlag_GetNibble(0xCD);
+        nibble = GameFlag_GetNibble(GAME_FLAG_MINE_MESA_0CD);
         if ((nibble == field9) && (D_mine_mesa_80189B50 == nibble)) {
             func_800E8634(D_mine_mesa_80184664, 0, D_mine_mesa_80184BA4);
             D_mine_mesa_80189B50 = 2;
@@ -2641,7 +2641,7 @@ s32 func_mine_mesa_8017D8F8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg
     }
     event.capCmd   = 0xE;
     event.stageSnd = 0x54010001;
-    event.flagId   = 0x171;
+    event.flagId   = GAME_FLAG_MESA_TO_TUNNEL_ENTRANCE_SCENE;
     event.fade     = 0;
     return MineMesa_StartEvent(out, &event);
 }
@@ -2649,7 +2649,7 @@ s32 func_mine_mesa_8017D8F8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg
 s32 func_mine_mesa_8017DA7C(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if (arg2 == 0xD) {
-        Gp_RunCapCmd1(GameFlag_GetNibble(0x11A) >= 2 ? 0xD : 0xC);
+        Gp_RunCapCmd1(GameFlag_GetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_PROGRESS) >= 2 ? 0xD : 0xC);
     }
     return 0;
 }
@@ -2660,22 +2660,22 @@ s32 func_mine_mesa_8017DABC(Task* task, s32 msgId, TaskMessageArg firstArg, s32 
 
     switch (msg->actionId) {
         case 1:
-            if (GameFlag_GetNibble(0x71) == 0) {
+            if (GameFlag_GetNibble(GAME_FLAG_MINE_MESA_TRIGGER_1_SEEN) == 0) {
                 if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
                     func_800E8614(D_mine_mesa_801850E4, 0);
                 }
                 func_800E3FAC(0xA2, 0x1C);
-                GameFlag_SetNibble(0x71, 1);
+                GameFlag_SetNibble(GAME_FLAG_MINE_MESA_TRIGGER_1_SEEN, 1);
                 func_mine_mesa_8017DD44();
             }
             break;
         case 2:
-            if (GameFlag_GetNibble(0x71) <= 0) {
-                if (GameFlag_GetNibble(0x91) == 0) {
+            if (GameFlag_GetNibble(GAME_FLAG_MINE_MESA_TRIGGER_1_SEEN) <= 0) {
+                if (GameFlag_GetNibble(GAME_FLAG_MINE_MESA_COMPANION_TALK_SEEN) == 0) {
                     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
                         func_800E8634(D_mine_mesa_80184D9C, 1, D_mine_mesa_80184FF4);
                     }
-                    GameFlag_SetNibble(0x91, 1);
+                    GameFlag_SetNibble(GAME_FLAG_MINE_MESA_COMPANION_TALK_SEEN, 1);
                 } else if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
                     func_800E8634(D_mine_mesa_801854BC, 1, D_mine_mesa_801856B4);
                 }
@@ -2691,12 +2691,12 @@ s32 func_mine_mesa_8017DBC4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 
     field9 = gGameSession->location.loc.variant;
     if (field9 == 1) {
-        if (GameFlag_GetNibble(0xCD) == 0) {
+        if (GameFlag_GetNibble(GAME_FLAG_MINE_MESA_0CD) == 0) {
             if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
                 Gp_StateC08.field_6 |= 1;
                 Gp_PulseState1C();
                 D_mine_mesa_80189B50 = field9;
-                GameFlag_SetNibble(0xCD, 1);
+                GameFlag_SetNibble(GAME_FLAG_MINE_MESA_0CD, 1);
             }
         } else if (D_mine_mesa_80189B4C != NULL) {
             taskMessageDispatch(D_mine_mesa_80189B4C, ROOM_MESSAGE_ACTOR_EVENT, arg2, arg3);
@@ -2709,12 +2709,12 @@ static void func_mine_mesa_8017DC80(Task* arg0)
 {
     arg0->msgTable = D_mine_mesa_80181904;
     Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if (GameFlag_GetNibble(0x90) == 0) {
+    if (GameFlag_GetNibble(GAME_FLAG_MINE_MESA_ARRIVAL_SEEN) == 0) {
         if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp = 5;
             Task_SpawnFromTable(D_mine_mesa_80181990, 0, 0, 0);
         }
-        GameFlag_SetNibble(0x1BD, 0);
+        GameFlag_SetNibble(GAME_FLAG_MAP_MARK_WATER, 0);
     } else {
         func_mine_mesa_8017DD44();
     }
@@ -3146,8 +3146,8 @@ void func_mine_mesa_8017E978(Task* arg0)
 
 void func_mine_mesa_8017EA24(void)
 {
-    if (GameFlag_GetNibble(0x4C) != 0) {
-        GameFlag_SetNibble(0x4C, 0);
+    if (GameFlag_GetNibble(GAME_FLAG_COMPANION_1_SCHEDULE) != 0) {
+        GameFlag_SetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 0);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType = 0;
         Task_CallExit(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION));
         Game_SetPtrSlot(NULL, GAME_TASK_SLOT_COMPANION);
@@ -3173,7 +3173,7 @@ void func_mine_mesa_8017EAC0(void)
     slot = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
     if (slot != NULL) {
         Gp_SpawnEff(0x6002B, &slot->extra.tmd->coords[8], 0x21, NULL);
-        SndEvt_EnqueueType6(0x40650001, 0, 0);
+        SndEvt_EnqueueType6(SOUND_ACTOR_800100_ATTACK, 0, 0);
     }
 }
 

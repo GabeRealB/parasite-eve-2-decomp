@@ -17,7 +17,7 @@ void madChaserRecoilHeavy(Task* arg0)
         work2->field_41C = 0x10;
         work2->field_418 = 0xC;
         work2->field_414 = 1;
-        SndEvt_EnqueueType7(0x402C0002, 1);
+        SndEvt_EnqueueType7(SOUND_MAD_CHASER_ALERT_CRY, 1);
     } else {
         work2            = (MadChaserWork*)arg0->work;
         work2->field_426 = 8;

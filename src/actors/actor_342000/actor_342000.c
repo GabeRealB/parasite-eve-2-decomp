@@ -855,7 +855,7 @@ static void func_actor_342000_80162BBC(Task* arg0)
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
             ev = (Actor342000EventWork*)D_actor_342000_80165070->work;
             if (ev->field_7A == 0) {
-                SndEvt_EnqueueType6(0x54280005, 0, 0);
+                SndEvt_EnqueueType6(SOUND_SHELTER_B3_INCINERATOR_ALERT, 0, 0);
                 ev->field_7A = 1;
             }
             break;
@@ -1007,7 +1007,7 @@ static void func_actor_342000_80162F28(Task* arg0)
             break;
         case 6:
             if ((u16)work->field_72 == 0) {
-                SndEvt_EnqueueType6(0x5428000B, 0, 0);
+                SndEvt_EnqueueType6(SOUND_SHELTER_B3_INCINERATOR_DOORS_CLOSING, 0, 0);
                 work->field_7E = 1;
                 work->field_72++;
             }
@@ -1050,8 +1050,8 @@ static void func_actor_342000_80162F28(Task* arg0)
             }
             return;
         case 9:
-            SndEvt_EnqueueType7(0x5428000B, 1);
-            SndEvt_EnqueueType6(0x5428000C, 0, 0);
+            SndEvt_EnqueueType7(SOUND_SHELTER_B3_INCINERATOR_DOORS_CLOSING, 1);
+            SndEvt_EnqueueType6(SOUND_SHELTER_B3_INCINERATOR_DOORS_SHUT, 0, 0);
             taskReparent(arg0, Gp_SpawnScript18(&D_80144A74, D_80144A7C));
             func_80143490(3);
             break;
@@ -1132,7 +1132,7 @@ void func_actor_342000_8016382C(Task* arg0)
     }
     if (gGameSession->enemyCullZone != 0) {
         if (work->field_7E != 0) {
-            SndEvt_EnqueueType7(0x5428000B, 0xA);
+            SndEvt_EnqueueType7(SOUND_SHELTER_B3_INCINERATOR_DOORS_CLOSING, 0xA);
             work->field_7E = 0;
         }
         return;
@@ -1387,7 +1387,7 @@ void func_actor_342000_80164260(void)
 
     work = (Actor342000EventWork*)D_actor_342000_80165070->work;
     if (work->field_7A == 0) {
-        SndEvt_EnqueueType6(0x54280005, 0, 0);
+        SndEvt_EnqueueType6(SOUND_SHELTER_B3_INCINERATOR_ALERT, 0, 0);
         work->field_7A = 1;
     }
 }

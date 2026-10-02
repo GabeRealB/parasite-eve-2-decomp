@@ -222,12 +222,12 @@ static void func_shelter_b1_north_maintenance_walkway_8017DA4C(Task* arg0)
     Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 2) {
         Task_SpawnFromTable(D_shelter_b1_north_maintenance_walkway_80184AAC, 0, 0, 0);
-        if (GameFlag_GetNibble(0x157) == 0) {
-            GameFlag_SetNibble(0x157, 1);
+        if (GameFlag_GetNibble(GAME_FLAG_NORTH_MAINTENANCE_WALKWAY_SCENE) == 0) {
+            GameFlag_SetNibble(GAME_FLAG_NORTH_MAINTENANCE_WALKWAY_SCENE, 1);
             Gp_SpawnIfCapIdle(4, 0);
         }
     }
-    func_shelter_b1_north_maintenance_walkway_8017DB54(GameFlag_GetNibble(0x84));
+    func_shelter_b1_north_maintenance_walkway_8017DB54(GameFlag_GetNibble(GAME_FLAG_B2_NORTH_WALKWAY_SCENE_SEEN));
     arg0->state = (s32)(arg0->state + 1);
 }
 

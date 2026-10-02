@@ -654,7 +654,7 @@ void func_mist_parking_80184468(s32 arg0)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = arg0;
     gDisplayState.spriteVariant                                 = 1;
-    SndEvt_EnqueueType7(0x80000000, 0);
+    SndEvt_EnqueueType7(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0);
     Task_Spawn(0, 0x11, 0, 0);
     if (arg0 == 5) {
         Fs_BeginBootLoad((u8*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, 0);
@@ -676,7 +676,7 @@ void func_mist_parking_8018451C(Task* task)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
     gDisplayState.spriteVariant                                 = 1;
-    SndEvt_EnqueueType7(0x80000000, 0);
+    SndEvt_EnqueueType7(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0);
     Task_Spawn(0, 0x11, 0, 0);
     Fs_BeginBootLoad((u8*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, 0);
 }

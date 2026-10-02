@@ -88,17 +88,17 @@ void func_shelter_b3_garbage_incinerator_8017D6EC(Task* arg0)
                 Gp_MsgPlayerWeapon(1);
                 taskKill(arg0);
             } else {
-                Gp_EnqueueStageSnd6(0x54280006, 0, 0);
+                Gp_EnqueueStageSnd6(SOUND_SHELTER_B3_INCINERATOR_EXIT_TRANSIT, 0, 0);
                 arg0->state++;
             }
             break;
         case 3:
-            if (SndVoice_HasActiveId(0x54280006) == 0) {
+            if (SndVoice_HasActiveId(SOUND_SHELTER_B3_INCINERATOR_EXIT_TRANSIT) == 0) {
                 arg0->state++;
             }
             break;
         case 4:
-            SndEvt_EnqueueType7(0x80000000, 0);
+            SndEvt_EnqueueType7(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0);
             gDisplayState.spriteVariant                                = 1;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_shelter_b3_garbage_incinerator_8018FC2C.areaId;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_shelter_b3_garbage_incinerator_8018FC2C.warp;
@@ -127,15 +127,15 @@ s32 func_shelter_b3_garbage_incinerator_8017D840(Task* arg0, s32 arg1, RoomEvent
             Gp_SpawnIfCapIdle(3, 1);
             return 0;
         }
-        if (GameFlag_GetNibble(0x73) != 0) {
-            GameFlag_SetNibble(0x4C, 10);
+        if (GameFlag_GetNibble(GAME_FLAG_BURNER_DEFEATED) != 0) {
+            GameFlag_SetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 10);
         } else {
-            GameFlag_SetNibble(0x4C, 5);
+            GameFlag_SetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 5);
         }
         out->warp                                 = 4;
         D_shelter_b3_garbage_incinerator_8018FC2C = *out;
-        GameFlag_SetNibble(3, 0);
-        GameFlag_SetNibble(0x155, 1);
+        GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
+        GameFlag_SetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 1);
         Task_SpawnFromTable(&D_shelter_b3_garbage_incinerator_801855CC, 0, 0, 0);
         return 2;
     }
@@ -157,7 +157,7 @@ s32 func_shelter_b3_garbage_incinerator_8017D9BC(Task* arg0, s32 arg1, RoomEvent
             Task_SpawnFromTable(&D_shelter_b3_garbage_incinerator_801855E0, 0, 0, 0);
             gGameSession->incineratorExitPhase = GAME_SESSION_INCINERATOR_EXIT_WARP;
         } else if (D_shelter_b3_garbage_incinerator_801855DC >= 0x3D) {
-            SndEvt_EnqueueType6(0x5428000D, 0, 0);
+            SndEvt_EnqueueType6(SOUND_SHELTER_B3_INCINERATOR_SWITCH_PRESS, 0, 0);
             func_shelter_b3_garbage_incinerator_80180FE4(0x16, 0, 0x3C);
             D_shelter_b3_garbage_incinerator_801855DC = 0;
         }
@@ -188,10 +188,10 @@ s32 func_shelter_b3_garbage_incinerator_8017DB2C(Task* arg0, s32 arg1, s32 arg2,
 {
     switch (arg2) {
         case 9:
-            SndEvt_EnqueueType6(0x54280009, 0, 0);
+            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR, 9), 0, 0);
             break;
         case 10:
-            SndEvt_EnqueueType6(0x5428000A, 0, 0);
+            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR, 0x0A), 0, 0);
             break;
     }
     return 0;

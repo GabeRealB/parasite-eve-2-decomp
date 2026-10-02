@@ -1697,13 +1697,13 @@ static void func_dryfield_junk_yard_8017D708(Task* arg0)
     arg0->msgTable = D_dryfield_junk_yard_8017DD20;
     Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) {
-        if (GameFlag_GetNibble(0x38) == 0) {
+        if (GameFlag_GetNibble(GAME_FLAG_JUNK_YARD_PROGRESS) == 0) {
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3E9, &D_dryfield_junk_yard_8017DE00, 0);
             Gp_AllyAnimId(&D_dryfield_junk_yard_8017DD88.source.index);
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), ANIMATION_MESSAGE_PLAY, &D_dryfield_junk_yard_8017DD88, 0);
         }
-        if ((GameFlag_GetNibble(0x39) == 0) && (GameFlag_GetNibble(0x28) >= 2)) {
-            GameFlag_SetNibble(0x39, 1);
+        if ((GameFlag_GetNibble(GAME_FLAG_JUNK_YARD_RETURN_SCENE_SEEN) == 0) && (GameFlag_GetNibble(GAME_FLAG_TRAILER_COACH_PROGRESS) >= 2)) {
+            GameFlag_SetNibble(GAME_FLAG_JUNK_YARD_RETURN_SCENE_SEEN, 1);
             func_800E8634(D_dryfield_junk_yard_8017E490, 0, D_dryfield_junk_yard_8017E658);
         } else if (gGameSession->location.loc.warp == 2) {
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3E9, &D_dryfield_junk_yard_8017DE30, 0);
@@ -1785,24 +1785,24 @@ s32 func_dryfield_junk_yard_8017DA4C(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
 {
     *out = *in;
     if (in->areaId == GAME_AREA_DRYFIELD_GARAGE && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (GameFlag_GetNibble(0x7A) >= 4) {
+        if (GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER) >= 4) {
             out->room = 2;
         } else {
             out->room = 1;
         }
     }
     if (in->areaId == GAME_AREA_DRYFIELD_TRAILER_COACH) {
-        if (GameFlag_GetNibble(0x38) == 1) {
+        if (GameFlag_GetNibble(GAME_FLAG_JUNK_YARD_PROGRESS) == 1) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                GameFlag_SetNibble(0x38, 2);
+                GameFlag_SetNibble(GAME_FLAG_JUNK_YARD_PROGRESS, 2);
                 func_800E8634(D_dryfield_junk_yard_8017E3D0, 0, D_dryfield_junk_yard_8017E2B0);
             }
             return 2;
         }
-        if (GameFlag_GetNibble(0x28) == 0 && in->queryOnly == ROOM_EVENT_EXECUTE) {
+        if (GameFlag_GetNibble(GAME_FLAG_TRAILER_COACH_PROGRESS) == 0 && in->queryOnly == ROOM_EVENT_EXECUTE) {
             out->warp = 2;
-            GameFlag_SetNibble(0x28, 1);
-            GameFlag_SetNibble(0x4B, 4);
+            GameFlag_SetNibble(GAME_FLAG_TRAILER_COACH_PROGRESS, 1);
+            GameFlag_SetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 4);
         }
     }
     return 1;
@@ -1820,16 +1820,16 @@ s32 func_dryfield_junk_yard_8017DB78(Task* task, s32 msgId, TaskMessageArg first
     Task* player;
 
     if (msg->actionId == 1) {
-        if (GameFlag_GetNibble(0x38) == 0) {
-            GameFlag_SetNibble(0x38, 1);
+        if (GameFlag_GetNibble(GAME_FLAG_JUNK_YARD_PROGRESS) == 0) {
+            GameFlag_SetNibble(GAME_FLAG_JUNK_YARD_PROGRESS, 1);
             Task_SpawnFromTable(D_dryfield_junk_yard_8017DD48, 0, 0, 0);
         }
     }
     if (msg->actionId == 2) {
         player = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
         if ((player != NULL) && (player->extra.tmd->coords->coord.t[0] >= 0x5209) &&
-            (GameFlag_GetNibble(0x38) == 1)) {
-            GameFlag_SetNibble(0x38, 2);
+            (GameFlag_GetNibble(GAME_FLAG_JUNK_YARD_PROGRESS) == 1)) {
+            GameFlag_SetNibble(GAME_FLAG_JUNK_YARD_PROGRESS, 2);
             func_800E8634(D_dryfield_junk_yard_8017E160, 0, D_dryfield_junk_yard_8017E2B0);
         }
     }

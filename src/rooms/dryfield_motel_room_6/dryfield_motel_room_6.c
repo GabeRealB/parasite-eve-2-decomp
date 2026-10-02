@@ -2042,13 +2042,13 @@ s32 func_dryfield_motel_room_6_80181920(Task* arg0, s32 arg1, RoomEventMsg* in, 
     if (in->areaId != GAME_AREA_DRYFIELD_WATER_TOWER) {
         return 1;
     }
-    if (GameFlag_GetNibble(0x54) != 0) {
+    if (GameFlag_GetNibble(GAME_FLAG_MOTEL_ROOM_6_WATER_TOWER_EXIT_SEEN) != 0) {
         return 1;
     }
     if (in->queryOnly != ROOM_EVENT_EXECUTE) {
         return 0;
     }
-    GameFlag_SetNibble(0x54, 1);
+    GameFlag_SetNibble(GAME_FLAG_MOTEL_ROOM_6_WATER_TOWER_EXIT_SEEN, 1);
     Gp_RunCapCmd1(7);
     return 0;
 }
@@ -2062,8 +2062,8 @@ s32 func_dryfield_motel_room_6_801819A8(Task* arg0, s32 arg1, TaskMessageArg fir
 {
     const DirectionActionRequest* request = firstArg.pointer;
 
-    if (request->actionId == 0 && GameFlag_GetNibble(0x31) == 0) {
-        GameFlag_SetNibble(0x31, 1);
+    if (request->actionId == 0 && GameFlag_GetNibble(GAME_FLAG_DRYFIELD_MOTEL_ROOM_6_031) == 0) {
+        GameFlag_SetNibble(GAME_FLAG_DRYFIELD_MOTEL_ROOM_6_031, 1);
         Task_SpawnFromTable(D_dryfield_motel_room_6_80182D78, 0, 0, 0);
     }
     return 1;

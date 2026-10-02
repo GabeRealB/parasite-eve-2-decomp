@@ -1736,7 +1736,7 @@ static void func_shelter_r47_801844A0(Task* task)
 
     if (st->field_2C != 0) {
         if (--st->field_2C == 0) {
-            SndEvt_EnqueueType6(0x542F0003, 0, 0);
+            SndEvt_EnqueueType6(SOUND_SHELTER_R47_MAP_TERMINAL_SCREEN_ON, 0, 0);
         }
     }
     func_shelter_r47_801851B8(task);
@@ -1842,8 +1842,8 @@ static void func_shelter_r47_80184658(Task* task)
                 st->field_16 = 0;
                 st->field_18 = 0;
                 task->state  = 6;
-                SndEvt_EnqueueType6(0x542F0004, 0, 0);
-                SndEvt_EnqueueType7(0x542F0005, 1);
+                SndEvt_EnqueueType6(SOUND_SHELTER_R47_MAP_TERMINAL_PAGE_SWITCH, 0, 0);
+                SndEvt_EnqueueType7(SOUND_SHELTER_R47_MAP_TERMINAL_LOOP, 1);
                 return;
             case 4:
                 switch (st->field_1C) {
@@ -1930,7 +1930,7 @@ static void func_shelter_r47_80185098(Task* task)
         taskKill(task->spawnArg2.pointer);
         Task_RequestKill(task, 0);
     }
-    SndEvt_EnqueueType7(0x542F0005, 1);
+    SndEvt_EnqueueType7(SOUND_SHELTER_R47_MAP_TERMINAL_LOOP, 1);
     level = (u8)state->fade;
     Fade_DrawOverlay(level, level, level, GPU_BLEND_SUBTRACT);
 }
@@ -2029,7 +2029,7 @@ static void func_shelter_r47_80185510(Task* task)
     D_80114D08 = 0xA;
     Gp_MsgPlayerWeapon(1);
     Gp_MsgPlayer3F3(1);
-    SndEvt_EnqueueType7(0x542F0005, 1);
+    SndEvt_EnqueueType7(SOUND_SHELTER_R47_MAP_TERMINAL_LOOP, 1);
     Display_ReleaseRef();
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = state->field_29;
     gGameSession->eventState                                   = 0;
@@ -2076,7 +2076,7 @@ static void func_shelter_r47_801856AC(Task* task)
     state = (ShelterR47State2*)task->work;
     func_shelter_r47_801851B8(task);
     if (state->field_A >= 0xB5) {
-        SndEvt_EnqueueType6(0x542F0003, 0, 0);
+        SndEvt_EnqueueType6(SOUND_SHELTER_R47_MAP_TERMINAL_SCREEN_ON, 0, 0);
         state->field_16 = 0x50;
         state->field_18 = 0x60;
         task->state     = 2;

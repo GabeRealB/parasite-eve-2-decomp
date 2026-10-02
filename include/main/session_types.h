@@ -18,17 +18,6 @@ struct AnimationSet;
 struct WorldTargetNode;
 struct Task;
 
-/// Stage IDs, stored in `GameLocationKey.stage`: the disc's stage folders, each
-/// loaded as a unit with its own area tables. An area is a folder within one.
-enum {
-    GAME_STAGE_NONE            = 0, // No active stage
-    GAME_STAGE_ACROPOLIS       = 1, // Akropolis Tower and the MIST
-    GAME_STAGE_DRYFIELD        = 2, // Dryfield by day
-    GAME_STAGE_DRYFIELD_NIGHT  = 3, // Dryfield by night
-    GAME_STAGE_MINE_SHELTER    = 4, // The mine, and the Shelter from 1F to B4
-    GAME_STAGE_SHELTER_NEO_ARK = 5, // The Shelter's 1F and B6, and the Neo Ark
-};
-
 /// Location selector shared by the live session, saved state and world lookups.
 ///
 /// The six unsigned bytes select parts of the location. `view` is

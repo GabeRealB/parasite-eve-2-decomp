@@ -518,7 +518,7 @@ void func_shelter_b4_lower_sewer_8017E400(Task* arg0)
         D_80115758 = 0x600ED;
         D_8011572C = 0x600EE;
         D_80115750 = 0x600EF;
-        if (GameFlag_GetNibble(0xB7) == 1) {
+        if (GameFlag_GetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) == 1) {
             D_8011574C = 0x6016E;
             D_80115738 = 0x6016F;
         }

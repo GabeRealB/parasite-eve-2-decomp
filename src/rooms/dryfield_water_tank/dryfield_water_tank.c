@@ -968,7 +968,7 @@ void func_dryfield_water_tank_8017D618(Task* arg0)
     task = arg0;
     switch (task->state) {
         case 0:
-            if (GameFlag_GetNibble(0x55) == 3) {
+            if (GameFlag_GetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE) == 3) {
                 Gp_StartCapSlot(0xE, 1, 1);
                 break;
             }
@@ -988,8 +988,8 @@ void func_dryfield_water_tank_8017D618(Task* arg0)
         case 2:
             if (Gp_GetCapEventKey() == 0xA) {
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-                GameFlag_SetNibble(0x55, 3);
-                SndEvt_EnqueueType6(0x52150004, 0, 0);
+                GameFlag_SetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE, 3);
+                SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TANK, 4), 0, 0);
                 Task_SpawnFromTable(D_dryfield_water_tank_8017FF88, 0, 0, 0);
                 func_dryfield_water_tank_8017DB48();
             } else {
@@ -1027,17 +1027,17 @@ s32 func_dryfield_water_tank_8017D7EC(Task* task, s32 msgId, TaskMessageArg firs
     const DirectionActionRequest* request = firstArg.pointer;
 
     if (request->actionId == 1) {
-        if (GameFlag_GetNibble(0x36) == 0) {
-            GameFlag_SetNibble(0x36, 1);
+        if (GameFlag_GetNibble(GAME_FLAG_DRYFIELD_WATER_TANK_036) == 0) {
+            GameFlag_SetNibble(GAME_FLAG_DRYFIELD_WATER_TANK_036, 1);
             Task_SpawnFromTable(D_dryfield_water_tank_8017F34C, 0, 0, 0);
-            GameFlag_SetNibble(0x56, 1);
+            GameFlag_SetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS, 1);
         }
     }
-    if ((request->actionId == 2) && (GameFlag_GetNibble(0x33) == 0)) {
-        GameFlag_SetNibble(0x33, 1);
+    if ((request->actionId == 2) && (GameFlag_GetNibble(GAME_FLAG_WATER_TANK_SCENE_SEEN) == 0)) {
+        GameFlag_SetNibble(GAME_FLAG_WATER_TANK_SCENE_SEEN, 1);
         func_800E3FAC(0xA2, 0xE);
-        GameFlag_SetNibble(3, 0);
-        GameFlag_SetNibble(0x155, 3);
+        GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
+        GameFlag_SetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 3);
         Gp_ApplyAreaRecs(D_dryfield_water_tank_80188D1C);
         Gp_MsgPlayerWeapon(0);
         func_800E8634(D_dryfield_water_tank_80184E0C, 0, D_dryfield_water_tank_801859DC);
@@ -1092,7 +1092,7 @@ static void func_dryfield_water_tank_8017D9D4(Task* task)
     task->msgTable = D_dryfield_water_tank_8017F324;
     Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     Task_SpawnFromTable(D_dryfield_water_tank_801868A4, 0, 0, 0);
-    SndEvt_EnqueueType6(0x52150009, 0, 0);
+    SndEvt_EnqueueType6(SOUND_WATER_TANK_AMBIENCE, 0, 0);
     func_dryfield_water_tank_8017DB48();
     task->state = (s32)(task->state + 1);
 }
@@ -1106,15 +1106,15 @@ static void func_dryfield_water_tank_8017DA4C(Task* task)
 {
     if (gGameSession->viewReady != 0) {
         if (gGameSession->location.loc.view == 4) {
-            Gp_EnqueueStageSnd6(0x52150011, 0, 0);
+            Gp_EnqueueStageSnd6(SOUND_WATER_TANK_VIEW4_AMBIENCE, 0, 0);
         } else {
-            Gp_EnqueueStageSnd7(0x52150011, 0x2D);
+            Gp_EnqueueStageSnd7(SOUND_WATER_TANK_VIEW4_AMBIENCE, 0x2D);
         }
         if (gGameSession->location.loc.view == 0xA) {
-            Gp_EnqueueStageSnd6(0x52150012, 0, 0);
+            Gp_EnqueueStageSnd6(SOUND_WATER_TANK_VIEW10_AMBIENCE, 0, 0);
             return;
         }
-        Gp_EnqueueStageSnd7(0x52150012, 0x3C);
+        Gp_EnqueueStageSnd7(SOUND_WATER_TANK_VIEW10_AMBIENCE, 0x3C);
     }
 }
 
@@ -1137,7 +1137,7 @@ void func_dryfield_water_tank_8017DAF0(Task* task)
 
 static void func_dryfield_water_tank_8017DB48(void)
 {
-    switch (GameFlag_GetNibble(0x55)) {
+    switch (GameFlag_GetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE)) {
         case 0:
         case 1:
         case 2:
@@ -1330,8 +1330,8 @@ void func_dryfield_water_tank_8017DEA4(Task* arg0)
             taskMessageDispatch(*owner, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             break;
         case 3:
-            SndEvt_EnqueueType6(0x52150002, 0, 0);
-            SndEvt_EnqueueType6(0x52150008, 0, 0);
+            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TANK, 2), 0, 0);
+            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TANK, 8), 0, 0);
             break;
     }
     work->field_50 = 0;
@@ -1402,7 +1402,7 @@ void func_dryfield_water_tank_8017E1B4(void)
     owner = &work->owner;
     taskMessageDispatch(*owner, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
     gGameSession->viewDirty = 1;
-    SndEvt_EnqueueType7(0x52150002, 0xA);
+    SndEvt_EnqueueType7(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TANK, 2), 0xA);
 }
 
 #include "../../shared/screen_fade_in_tile.inc.c"

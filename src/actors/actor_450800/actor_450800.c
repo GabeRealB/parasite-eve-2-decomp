@@ -2627,7 +2627,7 @@ static void func_actor_450800_80131E2C(void)
     s32 n;
 
     if (gGameSession->location.loc.view == 4) {
-        if (GameFlag_GetNibble(0xC7) == 1) {
+        if (GameFlag_GetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) == 1) {
             temp_v0                 = D_actor_450800_8013930C + 1;
             D_actor_450800_8013930C = temp_v0;
             if (temp_v0 >= 3) {
@@ -2637,13 +2637,13 @@ static void func_actor_450800_80131E2C(void)
                 func_800E8614(D_actor_450800_8013A684, 0);
             }
         } else {
-            n = GameFlag_GetNibble(0xC8) + 1;
+            n = GameFlag_GetNibble(GAME_FLAG_B6_NURSERY_SCENE_COUNT) + 1;
             if (n >= 4) {
                 n = 3;
             }
-            GameFlag_SetNibble(0xC8, n);
+            GameFlag_SetNibble(GAME_FLAG_B6_NURSERY_SCENE_COUNT, n);
             if (n == 1) {
-                if (GameFlag_GetNibble(0x83) == n) {
+                if (GameFlag_GetNibble(GAME_FLAG_083) == n) {
                     func_800E8614(D_actor_450800_8013A984, 0);
                 } else {
                     func_800E8614(D_actor_450800_8013AB7C, 0);
@@ -2691,7 +2691,7 @@ void func_actor_450800_80131F98(s32 arg0)
         var_a0 = (u16)D_actor_450800_8013930C + 2;
         Gp_StartCapSlot(var_a0, 0, 0);
     } else {
-        if (GameFlag_GetNibble(0xC8) == 2) {
+        if (GameFlag_GetNibble(GAME_FLAG_B6_NURSERY_SCENE_COUNT) == 2) {
             var_a0 = 8;
         } else {
             var_a0 = 9;

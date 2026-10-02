@@ -1884,8 +1884,8 @@ static s32 func_dryfield_water_tower_8017DFAC(Task* arg0)
         case 1:
             coord->coord.t[1] += 0x12C;
             if (D_dryfield_water_tower_80181A70[2].pos.vy < coord->coord.t[1]) {
-                SndEvt_EnqueueType7(0x5214000B, 0);
-                SndEvt_EnqueueType6(0x52140010, 0, 0);
+                SndEvt_EnqueueType7(SOUND_WATER_TOWER_CAP_DROP, 0);
+                SndEvt_EnqueueType6(SOUND_WATER_TOWER_CAP_LAND, 0, 0);
                 effCoord = arg0->extra.tmd->coords;
                 pos.vz   = 0;
                 pos.vy   = 0;
@@ -2141,14 +2141,14 @@ static s32 func_dryfield_water_tower_8017E5B0(Task* arg0)
 
     switch (state->field_58) {
         case 0:
-            SndEvt_EnqueueTypeB(0x5214000C, 0x7F);
+            SndEvt_EnqueueTypeB(SOUND_WATER_TOWER_CAP_RUNNING, 0x7F);
             coord->coord.t[2] -= 0x14;
             coord->coord.t[1]  = D_dryfield_water_tower_80181A40[0].pos.vy;
             if (gDisplayState.gameTick & 4) {
                 coord->coord.t[1] += 5;
             }
             if (coord->coord.t[2] < D_dryfield_water_tower_80181A40[0].pos.vz) {
-                SndEvt_EnqueueType7(0x5214000C, 0xA);
+                SndEvt_EnqueueType7(SOUND_WATER_TOWER_CAP_RUNNING, 0xA);
                 state->field_58++;
             }
             effCoord = arg0->extra.tmd->coords;
@@ -2350,20 +2350,20 @@ static void func_dryfield_water_tower_8017E93C(Task* arg0)
             state->field_78 = 1;
             state->field_50 = Gp_SpawnScript18(D_dryfield_water_tower_80187628,
                                                D_dryfield_water_tower_8018763C);
-            SndEvt_EnqueueType6(0x52140006, 0, 0);
-            SndEvt_EnqueueType6(0x5214000C, 0, 0);
+            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TOWER, 6), 0, 0);
+            SndEvt_EnqueueType6(SOUND_WATER_TOWER_CAP_RUNNING, 0, 0);
             break;
 
         case 9:
             state->field_50 = Gp_SpawnScript18(D_dryfield_water_tower_8018764C,
                                                D_dryfield_water_tower_80187660);
-            SndEvt_EnqueueType6(0x52140007, 0, 0);
+            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TOWER, 7), 0, 0);
             break;
 
         case 10:
             state->field_50 = Gp_SpawnScript18(D_dryfield_water_tower_80187670,
                                                &D_dryfield_water_tower_80187678);
-            SndEvt_EnqueueType6(0x5214000B, 0, 0);
+            SndEvt_EnqueueType6(SOUND_WATER_TOWER_CAP_DROP, 0, 0);
             break;
     }
     state->field_5C = 0;
@@ -2441,8 +2441,8 @@ static u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
                 session->viewDirty                                         = 1;
                 session->hideHud                                           = 0;
                 session->eventState                                        = 0;
-                SndEvt_EnqueueType6(0x52140006, 0, 0x20);
-                SndEvt_EnqueueType6(0x5214000C, 0, 0);
+                SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TOWER, 6), 0, 0x20);
+                SndEvt_EnqueueType6(SOUND_WATER_TOWER_CAP_RUNNING, 0, 0);
                 state->field_58 = 2;
             }
             {
@@ -2469,7 +2469,7 @@ static u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg2, ACTOR_COMMAND_MESSAGE_APPLY);
             D_dryfield_water_tower_801876A8 = 0;
             state->field_64                 = 2;
-            GameFlag_SetNibble(0x55, 2);
+            GameFlag_SetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE, 2);
             state->field_58++;
 
         case 3:
@@ -2502,7 +2502,7 @@ static u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
             }
             volume = 0x7F;
         play:
-            SndEvt_EnqueueTypeB(0x5214000C, volume & 0xFF);
+            SndEvt_EnqueueTypeB(SOUND_WATER_TOWER_CAP_RUNNING, volume & 0xFF);
             return 0;
 
         case 4:
@@ -2518,7 +2518,7 @@ static u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
             Mem_CopyUnaligned(_gDryfieldWaterTowerCollision04648, _gDryfieldWaterTowerCollision06004Verts, 0x40);
             Mem_CopyUnaligned(_gDryfieldWaterTowerCollision045F8, _gDryfieldWaterTowerCollision06004Normals, 0x10);
             Mem_CopyUnaligned(_gDryfieldWaterTowerCollision04688, _gDryfieldWaterTowerCollision06004Faces, sizeof(_gDryfieldWaterTowerCollision04688));
-            GameFlag_SetNibble(0x55, 1);
+            GameFlag_SetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE, 1);
             return state->field_66;
     }
     return 0;
@@ -2577,7 +2577,7 @@ static inline u16 _dryfieldWaterTowerState8Step(Task* arg0)
             if (gGameSession->eventState != 0) {
                 return 0;
             }
-            GameFlag_SetNibble(0x32, 2);
+            GameFlag_SetNibble(GAME_FLAG_WATER_TOWER_PROGRESS, 2);
             return 1;
         default:
             return 0;
@@ -2657,12 +2657,12 @@ void func_dryfield_water_tower_8017F128(Task* arg0)
         case 2:
             TASK_MESSAGE_DISPATCH_POINTER(state->field_44, 0x7D4, D_dryfield_water_tower_80181A40, 0);
             TASK_MESSAGE_DISPATCH_POINTER(state->field_48, 0x7D4, D_dryfield_water_tower_80181A70, 0);
-            state->field_64 = GameFlag_GetNibble(0x55);
-            if (GameFlag_GetNibble(0x32) == 0) {
+            state->field_64 = GameFlag_GetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE);
+            if (GameFlag_GetNibble(GAME_FLAG_WATER_TOWER_PROGRESS) == 0) {
                 arg0->state++;
-            } else if (GameFlag_GetNibble(0x32) == 1) {
+            } else if (GameFlag_GetNibble(GAME_FLAG_WATER_TOWER_PROGRESS) == 1) {
                 arg0->state = 5;
-            } else if (GameFlag_GetNibble(0x32) == 2) {
+            } else if (GameFlag_GetNibble(GAME_FLAG_WATER_TOWER_PROGRESS) == 2) {
                 mask        = ~WORLD_COLLISION_TRIGGER_ENABLED;
                 p0          = &(D_dryfield_water_tower_80186A84 + 6)[0];
                 p0->flags  &= mask;
@@ -2688,7 +2688,7 @@ void func_dryfield_water_tower_8017F128(Task* arg0)
         case 3:
             if (Gp_TakePendingObj4C(&objId, &objA, &objB) != 0 && (objId & (0xFFFF ^ WORLD_COLLISION_TRIGGER_AUTOMATIC)) == WORLD_COLLISION_TRIGGER_ACTION_ROOM && (s8)objA == 1) {
                 state->field_4C = Task_SpawnFromTable(D_dryfield_water_tower_8018277C, 0, 0, 0);
-                GameFlag_SetNibble(0x32, 1);
+                GameFlag_SetNibble(GAME_FLAG_WATER_TOWER_PROGRESS, 1);
                 arg0->state++;
             }
             break;
@@ -2850,14 +2850,14 @@ void func_dryfield_water_tower_8017F908(void)
     DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)D_dryfield_water_tower_801876A4->work;
 
     if (state->field_78 == 0) {
-        SndEvt_EnqueueType6(0x5214000C, 0, 0);
+        SndEvt_EnqueueType6(SOUND_WATER_TOWER_CAP_RUNNING, 0, 0);
     }
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(7);
     gGameSession->viewDirty                                    = 1;
     TASK_MESSAGE_DISPATCH_POINTER(state->field_44, 0x7D4, &D_dryfield_water_tower_80181A40[1], 0);
     state->field_44->state = 1;
     Gp_HaltPadScripts();
-    SndEvt_EnqueueType7(0x52140006, 0x1E);
+    SndEvt_EnqueueType7(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TOWER, 6), 0x1E);
 }
 
 /// The third of the room's 0x0D script handlers in this run, between
@@ -2882,8 +2882,8 @@ void func_dryfield_water_tower_8017F9AC(void)
     TASK_MESSAGE_DISPATCH_POINTER(state->field_44, 0x7D4, &D_dryfield_water_tower_80181A40, 0);
     state->field_44->state = 1;
     Gp_HaltPadScripts();
-    SndEvt_EnqueueType7(0x52140007, 0xA);
-    SndEvt_EnqueueType7(0x5214000C, 0xA);
+    SndEvt_EnqueueType7(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TOWER, 7), 0xA);
+    SndEvt_EnqueueType7(SOUND_WATER_TOWER_CAP_RUNNING, 0xA);
     if (state->field_66 == 2) {
         TASK_MESSAGE_DISPATCH_POINTER(state->field_40, 0x3E9, &D_dryfield_water_tower_80181AD0[0], 0);
     }
@@ -2902,7 +2902,7 @@ void func_dryfield_water_tower_8017FA5C(void)
     state->field_48->state = 1;
     TASK_MESSAGE_DISPATCH_POINTER(state->field_40, 0x3E9, &D_dryfield_water_tower_80181AD0[0], 0);
     Gp_HaltPadScripts();
-    SndEvt_EnqueueType7(0x5214000B, 0xA);
+    SndEvt_EnqueueType7(SOUND_WATER_TOWER_CAP_DROP, 0xA);
     Mem_CopyUnaligned(_gDryfieldWaterTowerCollision04550, (_gDryfieldWaterTowerCollision06004Normals + 2), 0x10);
     Mem_CopyUnaligned(_gDryfieldWaterTowerCollision045E0, (_gDryfieldWaterTowerCollision06004Faces + 2), sizeof(_gDryfieldWaterTowerCollision045E0));
     Mem_CopyUnaligned(_gDryfieldWaterTowerCollision04560, (_gDryfieldWaterTowerCollision06004Verts + 8), 0x40);

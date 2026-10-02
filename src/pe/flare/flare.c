@@ -57,14 +57,14 @@ void flareEffectTask(Task* arg0)
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
     if ((state->field_3 == -2) || (gRoomEffectState->peEffectControl != ROOM_EFFECT_CONTROL_RUNNING)) {
-        SndEvt_EnqueueType7(0xE03E0001, 1);
+        SndEvt_EnqueueType7(SOUND_FLARE_USE, 1);
         effectKillTask(mem, arg0);
         return;
     }
     mem->age = mem->age + 1;
     if (arg0->state == 0) {
         pan = (s8)worldCoordGetOriginAudioPan(coord);
-        SndEvt_EnqueueType6(0xE03E0001, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+        SndEvt_EnqueueType6(SOUND_FLARE_USE, pan, (s8)worldCoordGetOriginAudioDepth(coord));
         arg0->state = 1;
     }
     tick = mem->age;

@@ -1127,7 +1127,7 @@ s32 func_neo_ark_pavilion_8017E9F4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomE
     }
     event.capCmd   = 4;
     event.stageSnd = 0;
-    event.flagId   = 0x17E;
+    event.flagId   = GAME_FLAG_PAVILION_TO_SUB_TUNNEL_SCENE;
     event.fade     = 0;
     return NeoArkPavilion_StartEvent(out, &event);
 }
@@ -1137,7 +1137,7 @@ s32 func_neo_ark_pavilion_8017E9F4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomE
 s32 func_neo_ark_pavilion_8017EB3C(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if (arg2 == 1) {
-        Gp_SpawnIfCapIdle(GameFlag_GetNibble(0x141) != 0 ? 5 : 1, 1);
+        Gp_SpawnIfCapIdle(GameFlag_GetNibble(GAME_FLAG_141) != 0 ? 5 : 1, 1);
     }
     return 0;
 }
@@ -1154,8 +1154,8 @@ static void func_neo_ark_pavilion_8017EB80(Task* arg0)
 {
     arg0->msgTable = D_neo_ark_pavilion_80183870;
     Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
-    SndEvt_EnqueueType6(0x550D0005, 0, 0);
-    SndEvt_EnqueueType6(0x550D0006, 0, 0);
+    SndEvt_EnqueueType6(SOUND_NEO_ARK_PAVILION_AMBIENCE_1, 0, 0);
+    SndEvt_EnqueueType6(SOUND_NEO_ARK_PAVILION_AMBIENCE_2, 0, 0);
     arg0->state = (s32)(arg0->state + 1);
 }
 

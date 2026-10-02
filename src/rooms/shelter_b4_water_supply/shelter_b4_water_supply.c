@@ -823,12 +823,12 @@ void func_shelter_b4_water_supply_8017D7C0(Task* arg0)
             break;
         case 3:
             if (--arg0->killCountdown == 0) {
-                SndEvt_EnqueueType6(0x542E0005, 0, 0);
+                SndEvt_EnqueueType6(SOUND_SHELTER_B4_WATER_SUPPLY_EXIT_TRANSIT, 0, 0);
                 arg0->state++;
             }
             break;
         case 4:
-            if (SndVoice_HasActiveId(0x542E0005) == 0) {
+            if (SndVoice_HasActiveId(SOUND_SHELTER_B4_WATER_SUPPLY_EXIT_TRANSIT) == 0) {
                 arg0->state++;
             }
             break;
@@ -882,18 +882,18 @@ s32 func_shelter_b4_water_supply_8017DA30(Task* task, s32 msgId, TaskMessageArg 
 
     if (request->actionId == 0xA) {
         if (request->argument == 0x20) {
-            if (GameFlag_GetNibble(0xB8) != 0) {
-                if (GameFlag_GetNibble(0x139) != 0) {
+            if (GameFlag_GetNibble(GAME_FLAG_WATER_HOLE_SHELTER_ROUTE_OPEN) != 0) {
+                if (GameFlag_GetNibble(GAME_FLAG_WATER_SUPPLY_VALVE_FIRST_USE) != 0) {
                     func_shelter_b4_water_supply_8017DB18();
                 } else {
-                    GameFlag_SetNibble(0x139, 1);
+                    GameFlag_SetNibble(GAME_FLAG_WATER_SUPPLY_VALVE_FIRST_USE, 1);
                     Gp_MsgPlayerWeapon(0);
                     Gp_RunCapCmd1(3);
                     Task_SpawnFromTable(D_shelter_b4_water_supply_80182620, 0, 0, 0);
                 }
             } else {
                 Gp_RunCapCmd1(1);
-                GameFlag_SetNibble(0x1BD, 2);
+                GameFlag_SetNibble(GAME_FLAG_MAP_MARK_WATER, 2);
             }
         }
     }
@@ -933,8 +933,8 @@ static void func_shelter_b4_water_supply_8017DB18(void)
     wp->room       = param.room;
     gRoomDeparture = work;
     Task_SpawnFromTable(&D_shelter_b4_water_supply_801825E4, 0, 0, 0);
-    if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL && GameFlag_GetNibble(0xCF) == 0) {
-        GameFlag_SetNibble(0x4C, 6);
+    if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL && GameFlag_GetNibble(GAME_FLAG_0CF) == 0) {
+        GameFlag_SetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 6);
     }
 }
 
@@ -963,8 +963,8 @@ void func_shelter_b4_water_supply_8017DC28(Task* arg0)
         work.room      = param.room;
         gRoomDeparture = work;
         Task_SpawnFromTable(&D_shelter_b4_water_supply_801825E4, 0, 0, 0);
-        if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL && GameFlag_GetNibble(0xCF) == 0) {
-            GameFlag_SetNibble(0x4C, 6);
+        if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL && GameFlag_GetNibble(GAME_FLAG_0CF) == 0) {
+            GameFlag_SetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 6);
         }
         taskKill(arg0);
     }
@@ -1002,12 +1002,12 @@ void func_shelter_b4_water_supply_8017DDA4(Task* task)
 static s32 func_shelter_b4_water_supply_8017DDFC(RoomEventMsg* in, RoomEventMsg* out)
 {
     if (in->areaId == GAME_AREA_SHELTER_B2_BREEDING_ROOM && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (GameFlag_GetNibble(0x51) == 0) {
+        if (GameFlag_GetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 0) {
             out->room = 2;
         } else {
             out->room = 1;
         }
-        if (GameFlag_GetNibble(0x53) != 0) {
+        if (GameFlag_GetNibble(GAME_FLAG_053) != 0) {
             out->room = (u8)out->room + 2;
         }
     }

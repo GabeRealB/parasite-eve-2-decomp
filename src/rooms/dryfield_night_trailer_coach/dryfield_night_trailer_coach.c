@@ -923,13 +923,13 @@ void func_dryfield_night_trailer_coach_8018243C(Task* task)
     switch (task->state) {
         case 0:
             Gp_MsgPlayerWeapon(0);
-            if (GameFlag_GetNibble(0x61) == 0) {
+            if (GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) == 0) {
                 func_800E8614(D_dryfield_night_trailer_coach_801880A8, 1);
                 task->state++;
                 break;
             }
-            if (GameFlag_GetNibble(0xE0) == 0 && GameFlag_GetNibble(0x7A) >= 4) {
-                GameFlag_SetNibble(0xE0, 1);
+            if (GameFlag_GetNibble(GAME_FLAG_NIGHT_TRAILER_COACH_CHAPTER4_SCENE_SEEN) == 0 && GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER) >= 4) {
+                GameFlag_SetNibble(GAME_FLAG_NIGHT_TRAILER_COACH_CHAPTER4_SCENE_SEEN, 1);
                 func_800E8614(D_dryfield_night_trailer_coach_80188510, 0);
             } else {
                 func_800E8614(D_dryfield_night_trailer_coach_80188348, 0);
@@ -942,9 +942,9 @@ void func_dryfield_night_trailer_coach_8018243C(Task* task)
             } else if (Gp_GetCapEventKey() == 0xC) {
                 func_800E8614(D_dryfield_night_trailer_coach_80188708, 1);
             } else if (Gp_GetCapEventKey() == 0xD) {
-                if (GameFlag_GetNibble(0x5B) == 0) {
-                    GameFlag_SetNibble(0x5B, 1);
-                    GameFlag_SetNibble(0x4C, 0);
+                if (GameFlag_GetNibble(GAME_FLAG_NIGHT_TRAILER_COACH_STORY_SCENE_SEEN) == 0) {
+                    GameFlag_SetNibble(GAME_FLAG_NIGHT_TRAILER_COACH_STORY_SCENE_SEEN, 1);
+                    GameFlag_SetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 0);
                     Gp_ApplyAreaRecs(D_dryfield_night_trailer_coach_8018C208);
                     func_800E8634(D_dryfield_night_trailer_coach_801889A8, 1,
                                   D_dryfield_night_trailer_coach_80188F00);
@@ -990,7 +990,7 @@ s32 func_dryfield_night_trailer_coach_801826EC(s32 arg0, s32 arg1, s32 arg2)
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1;
         D_dryfield_night_trailer_coach_8018C21C.field_0            = 8;
         D_dryfield_night_trailer_coach_8018C21C.field_1            = 1;
-        if (GameFlag_GetNibble(0x7A) < 4) {
+        if (GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER) < 4) {
             D_dryfield_night_trailer_coach_8018C21C.field_14 = 0x380;
             D_dryfield_night_trailer_coach_8018C21C.field_3  = 1;
         } else {
@@ -1021,7 +1021,7 @@ s32 func_dryfield_night_trailer_coach_80182800(void)
 s32 func_dryfield_night_trailer_coach_80182808(s32 arg0, s32 arg1, s32 arg2)
 {
     if (arg2 == 0x63) {
-        Gp_EnqueueStageSnd6(0x531B000D, 0, 0);
+        Gp_EnqueueStageSnd6(SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_TRAILER_COACH, 0x0D), 0, 0);
     }
     return 0;
 }
@@ -1033,7 +1033,7 @@ void func_dryfield_night_trailer_coach_8018283C(void)
 
 void func_dryfield_night_trailer_coach_80182864(void)
 {
-    func_800D4D2C((GameFlag_GetNibble(0xE0) == 0) ? 0x20 : 0x21);
+    func_800D4D2C((GameFlag_GetNibble(GAME_FLAG_NIGHT_TRAILER_COACH_CHAPTER4_SCENE_SEEN) == 0) ? 0x20 : 0x21);
 }
 
 #include "../../shared/trailer_coach_set_depth_shift.inc.c"

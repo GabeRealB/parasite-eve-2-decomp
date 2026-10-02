@@ -107,10 +107,10 @@ s32 func_shelter_b2_breeding_room_8017D660(Task* arg0, s32 arg1, RoomEventMsg* i
 s32 func_shelter_b2_breeding_room_8017D6A4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     if (arg2 == 0x16) {
-        if (GameFlag_GetNibble(0x120) != 0) {
+        if (GameFlag_GetNibble(GAME_FLAG_BREEDING_ROOM_FIRST_SCENE_SEEN) != 0) {
             Gp_RunCapCmd1(0x16);
         } else {
-            GameFlag_SetNibble(0x120, 1);
+            GameFlag_SetNibble(GAME_FLAG_BREEDING_ROOM_FIRST_SCENE_SEEN, 1);
             if (func_800E3FCC(0xA2) == 0x1E) {
                 func_800E3FAC(0xA2, 0x1F);
             }
@@ -134,10 +134,10 @@ s32 func_shelter_b2_breeding_room_8017D758(Task* arg0, s32 arg1, s32 arg2, TaskM
 {
     switch (arg2) {
         case 7:
-            SndEvt_EnqueueType6(0x54200007, 0, 0);
+            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_BREEDING_ROOM, 7), 0, 0);
             break;
         case 0x68:
-            SndEvt_EnqueueType6(0x54200008, 0, 0);
+            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_BREEDING_ROOM, 8), 0, 0);
             break;
     }
     return 0;

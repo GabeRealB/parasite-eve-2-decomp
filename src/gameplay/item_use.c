@@ -585,25 +585,25 @@ void func_800D6334(Task* task)
                     useTable++;
                 }
                 if (Gp_ApplyItemUse(useRec)) {
-                    SndEvt_EnqueueType6(3, 0, 0);
+                    SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
                     panel->result = USER_INTERFACE_RESULT_CANCEL;
                     task->state   = 2;
                 }
             }
         } else if (Pad_CheckButtons(0, 1, 0x8000)) {
-            SndEvt_EnqueueType6(2, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
             D_8010F884--;
             if (D_8010F884 < 0) {
                 D_8010F884 += Gp_GetModLevel(armor);
             }
         } else if (Pad_CheckButtons(0, 1, 0x2000)) {
-            SndEvt_EnqueueType6(2, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
             D_8010F884++;
             if (D_8010F884 >= Gp_GetModLevel(armor)) {
                 D_8010F884 = 0;
             }
         } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu)) {
-            SndEvt_EnqueueType6(4, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
             panel->result = USER_INTERFACE_RESULT_CANCEL;
             task->state   = 2;
         }

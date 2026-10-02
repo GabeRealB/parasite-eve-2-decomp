@@ -1481,7 +1481,7 @@ default_body:
                 work->field_36E  = 0;
                 work->field_392 += 1;
                 if ((u32)work->field_392 >= 5U) {
-                    SndEvt_EnqueueType7(0x40460003, 0);
+                    SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_SUCKLERCEPH, 3), 0);
                     soundId = ((((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40460005;
                     SndEvt_EnqueueType6(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                     work->field_2CA &= 0x7FFF;
@@ -1906,7 +1906,7 @@ static void Actor07000_Fn04274(Task* arg0, s32 arg1)
     enemy->hp -= arg1;
     func_800DA6E8(&enemy->node, arg1, 0);
     if (enemy->hp <= 0) {
-        SndEvt_EnqueueType7(0x40460003, 0);
+        SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_SUCKLERCEPH, 3), 0);
         soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40460005;
         SndEvt_EnqueueType6(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
         work->field_2CA &= 0x7FFF;
@@ -1914,7 +1914,7 @@ static void Actor07000_Fn04274(Task* arg0, s32 arg1)
         work->field_36C  = 0;
         return;
     }
-    SndEvt_EnqueueType7(0x40460003, 0);
+    SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_SUCKLERCEPH, 3), 0);
     soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40460004;
     SndEvt_EnqueueType6(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
     state = work->field_36A;
@@ -2004,7 +2004,7 @@ static void Actor07000_Fn04468(Enemy* arg0, Task* arg1)
             switch (work->field_36C) {
                 case 0:
                     if (work->field_394 == 0) {
-                        SndEvt_EnqueueType6(0xD, 0, 0);
+                        SndEvt_EnqueueType6(SOUND_COMMON(0x0D), 0, 0);
                         obj->flags = TMD_OBJECT_SEMI_TRANS;
                         Actor07000_Fn05FF8(arg1);
                     }
@@ -2030,7 +2030,7 @@ static void Actor07000_Fn04468(Enemy* arg0, Task* arg1)
                     }
                     break;
                 case 2:
-                    SndEvt_EnqueueType7(0xD, 1);
+                    SndEvt_EnqueueType7(SOUND_COMMON(0x0D), 1);
                     obj->flags   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     part->parent = coord;
                     arg1->state  = 3;
@@ -2216,7 +2216,7 @@ static void Actor07000_Fn04B18(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
     arg0->state += 1;
     pan          = (s8)worldCoordGetOriginAudioPan(coord);
-    SndEvt_EnqueueType6(0x40460002, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+    SndEvt_EnqueueType6(SOUND_SUCKLERCEPH_PROJECTILE_LAUNCH, pan, (s8)worldCoordGetOriginAudioDepth(coord));
     Actor07000_Fn04E60(arg0);
 }
 
@@ -2290,7 +2290,7 @@ default_body:
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     work->field_2       = work->field_2 + 0xA;
     if (Gp_CountRec18Hi(recs, 0x10000) != 0) {
-        SndEvt_EnqueueType6(0x40460007, (s8)worldCoordGetOriginAudioPan(coord),
+        SndEvt_EnqueueType6(SOUND_SUCKLERCEPH_PROJECTILE_IMPACT, (s8)worldCoordGetOriginAudioPan(coord),
                             (s8)worldCoordGetOriginAudioDepth(coord));
         if (child != NULL) {
             child->spawnArg1.value = 3;
@@ -2298,7 +2298,7 @@ default_body:
         goto block_16;
     }
     if (Gp_FindRec18(recs, 0) != 0) {
-        SndEvt_EnqueueType6(0x40460007, (s8)worldCoordGetOriginAudioPan(coord),
+        SndEvt_EnqueueType6(SOUND_SUCKLERCEPH_PROJECTILE_IMPACT, (s8)worldCoordGetOriginAudioPan(coord),
                             (s8)worldCoordGetOriginAudioDepth(coord));
         if (child != NULL) {
             if (hit->response.normal.vy >= -0xC00) {

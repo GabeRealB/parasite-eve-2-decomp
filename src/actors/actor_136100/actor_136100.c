@@ -1581,7 +1581,7 @@ static void func_actor_136100_80132748(Task* arg0)
                     return;
                 case 1:
                     if (++work->field_4D0 == 0x11) {
-                        SndEvt_EnqueueType6(0x5302000E, 0, 0);
+                        SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MAIN_STREET, 0x0E), 0, 0);
                     }
                     if (work->field_4D0 < 0x15) {
                         return;
@@ -1702,7 +1702,7 @@ static void func_actor_136100_80132BC0(Task* arg0)
                         func_actor_136100_PlayAnim(arg0, 1, 1, 0xA);
                         break;
                     }
-                    SndEvt_EnqueueType6(0x40720009, 0, 0);
+                    SndEvt_EnqueueType6(SOUND_CHARACTER(SOUND_BANK_ACTOR_800200, 9), 0, 0);
                     func_actor_136100_PlayAnim(arg0, 2, 1, 0xA);
                     work->field_4DA = 0xF;
                     work->field_4D8++;
@@ -1815,7 +1815,7 @@ static void func_actor_136100_80133238(Task* arg0)
                     return;
                 case 1:
                     if (++work->field_4D0 == 0xF) {
-                        SndEvt_EnqueueType6(0x5302000F, 0, 0);
+                        SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MAIN_STREET, 0x0F), 0, 0);
                         work->field_4CC = 0;
                     }
                     return;
@@ -2210,13 +2210,13 @@ void func_actor_136100_80133BC8(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            if (GameFlag_GetNibble(0x7C) != 0) {
+            if (GameFlag_GetNibble(GAME_FLAG_NIGHT_MAIN_STREET_CUTSCENE_SEEN) != 0) {
                 taskKill(arg0);
                 return;
             }
             func_actor_136100_80133A88(arg0);
             work            = (Actor136100Work*)arg0->work;
-            work->field_4E4 = GameFlag_GetNibble(0x73) == 0;
+            work->field_4E4 = GameFlag_GetNibble(GAME_FLAG_BURNER_DEFEATED) == 0;
             work->field_4B8 = Task_SpawnFromTable(D_actor_136100_80140744, 2, 0,
                                                   arg0->extra.tmd->coords + 4);
             if (work->field_4E4 == 0) {
@@ -2273,7 +2273,7 @@ void func_actor_136100_80133BC8(Task* arg0)
                 func_800E8634(D_actor_136100_8013F46C, 0, D_actor_136100_8013F784);
                 Gp_UnlinkObj4A(0, &D_dryfield_night_main_street_8018824C[8]);
                 ACTOR_136100_COPY_PLAYER_ANIMATION_SETS(arg0, message.copy);
-                GameFlag_SetNibble(0x7C, 1);
+                GameFlag_SetNibble(GAME_FLAG_NIGHT_MAIN_STREET_CUTSCENE_SEEN, 1);
                 arg0->state++;
                 break;
             }
@@ -2288,7 +2288,7 @@ void func_actor_136100_80133BC8(Task* arg0)
                 func_800E8634(D_actor_136100_8013FD84, 0, D_actor_136100_80140114);
                 Gp_UnlinkObj4A(0, &D_dryfield_night_main_street_8018824C[9]);
                 ACTOR_136100_COPY_PLAYER_ANIMATION_SETS(arg0, message.copy);
-                GameFlag_SetNibble(0x7C, 1);
+                GameFlag_SetNibble(GAME_FLAG_NIGHT_MAIN_STREET_CUTSCENE_SEEN, 1);
                 arg0->state++;
             }
             break;
@@ -2480,13 +2480,13 @@ void func_actor_136100_80134964(void)
 
 void func_actor_136100_801349B4(s32 arg0)
 {
-    GameFlag_SetNibble(0x46, 0);
-    GameFlag_SetNibble(0x4C, 3);
+    GameFlag_SetNibble(GAME_FLAG_046, 0);
+    GameFlag_SetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 3);
     if (arg0 == 0) {
-        GameFlag_SetNibble(0x4B, 6);
+        GameFlag_SetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 6);
     } else {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 8;
-        GameFlag_SetNibble(0x4B, 0);
+        GameFlag_SetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 0);
     }
 }
 

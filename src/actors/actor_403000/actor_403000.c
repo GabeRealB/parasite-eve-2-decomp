@@ -4650,7 +4650,7 @@ static void func_actor_403000_801343B8(Enemy* arg0, Task* arg1)
     work->objBE8.obj.pos.vy = 0;
     work->objBE8.obj.pos.vz = -0x100;
     work->field_FC0         = 0;
-    work->field_F88         = GameFlag_GetNibble(0xE2);
+    work->field_F88         = GameFlag_GetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
     Gfx_MatrixCol2(&arg1->extra.tmd->coords->coord, &dir);
     dir.vy = 0;
     dirp   = &dir;
@@ -4753,7 +4753,7 @@ static s32 func_actor_403000_80134E00(Task* arg0)
     VECTOR           d;
 
     work  = arg0->work;
-    flags = GameFlag_GetNibble(0xE2);
+    flags = GameFlag_GetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
     if (flags == work->field_F88) {
         return 0;
     }

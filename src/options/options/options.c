@@ -171,13 +171,13 @@ static void func_options_801D404C(UiList* arg0, UiObject* arg1)
     } while (i < 2);
     if (arg0->field_C == one) {
         if (Pad_CheckButtons(0, one, 0x2000) != 0) {
-            SndEvt_EnqueueType6(2, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
             selected += one;
             if (selected >= 2) {
                 selected = 0;
             }
         } else if (Pad_CheckButtons(0, 1, 0x8000) != 0) {
-            SndEvt_EnqueueType6(2, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
             selected -= 1;
             if (selected < 0) {
                 selected += 2;
@@ -251,13 +251,13 @@ static void func_options_801D42A8(UiList* arg0, UiObject* arg1)
     } while (i < 4);
     if (arg0->field_C == one) {
         if (Pad_CheckButtons(0, one, 0x2000) != 0) {
-            SndEvt_EnqueueType6(2, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
             selected += one;
             if (selected >= count) {
                 selected = 0;
             }
         } else if (Pad_CheckButtons(0, 1, 0x8000) != 0) {
-            SndEvt_EnqueueType6(2, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
             selected -= 1;
             if (selected < 0) {
                 selected += count;
@@ -310,13 +310,13 @@ static void func_options_801D4504(UiList* arg0, UiObject* arg1)
     } while (i < 2);
     if (arg0->field_C == one) {
         if (Pad_CheckButtons(0, one, 0x2000) != 0) {
-            SndEvt_EnqueueType6(2, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
             selected += one;
             if (selected >= n2) {
                 selected = 0;
             }
         } else if (Pad_CheckButtons(0, 1, 0x8000) != 0) {
-            SndEvt_EnqueueType6(2, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
             selected -= 1;
             if (selected < 0) {
                 selected += n2;
@@ -368,13 +368,13 @@ static void func_options_801D4724(UiList* arg0, UiObject* arg1)
     } while (i < 2);
     if (arg0->field_C == one) {
         if (Pad_CheckButtons(0, one, 0x2000) != 0) {
-            SndEvt_EnqueueType6(2, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
             selected += one;
             if (selected >= n2) {
                 selected = 0;
             }
         } else if (Pad_CheckButtons(0, 1, 0x8000) != 0) {
-            SndEvt_EnqueueType6(2, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
             selected -= 1;
             if (selected < 0) {
                 selected += n2;
@@ -426,13 +426,13 @@ static void func_options_801D4944(UiList* arg0, UiObject* arg1)
     } while (i < 2);
     if (arg0->field_C == one) {
         if (Pad_CheckButtons(0, one, 0x2000) != 0) {
-            SndEvt_EnqueueType6(2, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
             selected += one;
             if (selected >= columnCount) {
                 selected = 0;
             }
         } else if (Pad_CheckButtons(0, 1, 0x8000) != 0) {
-            SndEvt_EnqueueType6(2, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
             selected -= 1;
             if (selected < 0) {
                 selected += columnCount;
@@ -474,7 +474,7 @@ static void func_options_801D4B64(Task* task)
     status = obj->panel.control.word;
     if (status == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
-            SndEvt_EnqueueType6(4, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
             obj->resultValue = status;
             obj->result      = USER_INTERFACE_RESULT_CONFIRM;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
@@ -876,13 +876,13 @@ static void func_options_801D4D0C(Task* task)
     Ui_InsertDrawTPage(obj->panel.otIndex.signedValue + 1, 0);
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (Pad_CheckButtons(0, 1, 0x6000) != 0) {
-            SndEvt_EnqueueType6(2, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout = ((s8)(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout + 1)) % 3;
         } else if (Pad_CheckButtons(0, 1, 0x9000) != 0) {
-            SndEvt_EnqueueType6(2, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout = ((s8)(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout + 2)) % 3;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
-            SndEvt_EnqueueType6(3, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             obj->result = USER_INTERFACE_RESULT_CONFIRM;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
             obj->result = USER_INTERFACE_RESULT_CANCEL;
@@ -913,7 +913,7 @@ static void func_options_801D5954(UiList* arg0, UiObject* arg1)
         Ui_SetHolderParam(D_options_801D5DA4, 0, 0);
     }
     if ((arg0->field_C == 1) && (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0)) {
-        SndEvt_EnqueueType6(3, 0, 0);
+        SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
         Ui_SpawnFromDesc(&D_options_801D5EFC, 0, 1, 1, arg1);
         arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
     }
@@ -929,7 +929,7 @@ static void func_options_801D5A4C(UiList* arg0, UiObject* arg1)
         Ui_SetHolderParam(D_options_801D5DDC, 0, 0);
     }
     if ((arg0->field_C == 1) && (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0)) {
-        SndEvt_EnqueueType6(3, 0, 0);
+        SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
         Mc_ResetSaveFlags();
     }
 }

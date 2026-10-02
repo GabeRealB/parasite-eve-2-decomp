@@ -19,9 +19,9 @@ s32 waterTowerEventMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* o
     if (msg->areaId == 0x13) {
         req.capCmd        = 0xA;
         req.missingCapCmd = 6;
-        req.firstSnd      = Gp_PackStageSndId(0x5214000E);
-        req.secondSnd     = Gp_PackStageSndId(0x52140003);
-        req.flagId        = 0x34;
+        req.firstSnd      = Gp_PackStageSndId(SOUND_WATER_TOWER_KITCHEN_DOOR_UNLOCK);
+        req.secondSnd     = Gp_PackStageSndId(SOUND_WATER_TOWER_KITCHEN_DOOR_OPEN);
+        req.flagId        = GAME_FLAG_KITCHEN_WATER_TOWER_DOOR_UNLOCKED;
         req.collectedBit  = 0x10;
         ret               = roomEventGate(&req, msg);
         if (ret == 0) {
@@ -32,17 +32,17 @@ s32 waterTowerEventMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* o
         }
         return ret;
     }
-    if (msg->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(0x55) == 2) {
-        GameFlag_SetNibble(0x55, 1);
+    if (msg->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE) == 2) {
+        GameFlag_SetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE, 1);
     }
     if (msg->areaId == 0x15) {
-        if (msg->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(0x4B) == 7) {
-            GameFlag_SetNibble(0x4B, 0);
+        if (msg->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(GAME_FLAG_COMPANION_2_SCHEDULE) == 7) {
+            GameFlag_SetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 0);
         }
         if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD_NIGHT) {
             return 1;
         }
-        if (GameFlag_GetNibble(0x32) != 2) {
+        if (GameFlag_GetNibble(GAME_FLAG_WATER_TOWER_PROGRESS) != 2) {
             return 0;
         }
     }

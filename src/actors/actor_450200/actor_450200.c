@@ -1317,18 +1317,18 @@ void func_actor_450200_8013219C(void)
 
 static void func_actor_450200_80132220(void)
 {
-    switch (GameFlag_GetNibble(0x101)) {
+    switch (GameFlag_GetNibble(GAME_FLAG_OBSERVATORY_COMPANION_TALK_COUNT)) {
         case 0:
             func_800E8614(D_actor_450200_80138870, 0);
-            GameFlag_SetNibble(0x101, 1);
+            GameFlag_SetNibble(GAME_FLAG_OBSERVATORY_COMPANION_TALK_COUNT, 1);
             break;
         case 1:
             func_800E8614(D_actor_450200_80138A68, 0);
-            GameFlag_SetNibble(0x101, 2);
+            GameFlag_SetNibble(GAME_FLAG_OBSERVATORY_COMPANION_TALK_COUNT, 2);
             break;
         case 2:
             func_800E8614(D_actor_450200_80138C60, 0);
-            GameFlag_SetNibble(0x101, 3);
+            GameFlag_SetNibble(GAME_FLAG_OBSERVATORY_COMPANION_TALK_COUNT, 3);
             break;
         case 3:
             func_800E8614(D_actor_450200_80138E88, 0);
@@ -1338,7 +1338,7 @@ static void func_actor_450200_80132220(void)
 
 static void func_actor_450200_801322F8(void)
 {
-    if (GameFlag_GetNibble(0xD7) != 0) {
+    if (GameFlag_GetNibble(GAME_FLAG_0D7) != 0) {
         func_800E8614(D_actor_450200_80139098, 1);
     } else {
         func_neo_ark_observatory_8017FA98(0);

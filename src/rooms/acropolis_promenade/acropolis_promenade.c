@@ -1886,13 +1886,13 @@ s32 func_acropolis_promenade_8017D70C(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
         if (gDisplayState.debugMode < 0 || D_8006AC30.sector == 0) {
             out->warp = 1;
         }
-        if (GameFlag_GetNibble(1) == 4) {
-            GameFlag_SetNibble(1, 5);
+        if (GameFlag_GetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS) == 4) {
+            GameFlag_SetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS, 5);
         } else {
             out->warp = 1;
         }
     }
-    if (in->areaId == GAME_AREA_ACROPOLIS_SANCTUARY && GameFlag_GetNibble(2) == 0) {
+    if (in->areaId == GAME_AREA_ACROPOLIS_SANCTUARY && GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == 0) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
             out->warp                                           = 3;
             D_acropolis_promenade_801862D0                      = *out;
@@ -1902,7 +1902,7 @@ s32 func_acropolis_promenade_8017D70C(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
     }
     msgId = in->areaId;
     if (msgId == 0xE) {
-        if (GameFlag_GetNibble(2) == 0) {
+        if (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == 0) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_SpawnIfCapIdle(2, 1);
                 Gp_SetNibbleIf(in->flagId, 2);
@@ -1911,7 +1911,7 @@ s32 func_acropolis_promenade_8017D70C(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
         }
         if (in->areaId == msgId) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                if (GameFlag_GetNibble(2) == 3) {
+                if (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == 3) {
                     out->room = 2;
                 } else {
                     out->room = 1;
@@ -1949,10 +1949,10 @@ s32 func_acropolis_promenade_8017D938(Task* arg0, s32 arg1, s32 arg2, TaskMessag
 {
     switch (arg2) {
         case 0xA:
-            SndEvt_EnqueueType6(0x510B0009, 0, 0);
+            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PROMENADE, 9), 0, 0);
             break;
         case 0x67:
-            SndEvt_EnqueueType6(0x510B000A, 0, 0);
+            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PROMENADE, 0x0A), 0, 0);
             break;
     }
     return 0;

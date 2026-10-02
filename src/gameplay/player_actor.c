@@ -2930,7 +2930,7 @@ void Gp_EffCtlTaskAC(Task* arg0)
         goto continue_fx;
     }
 kill:
-    SndEvt_EnqueueType7(0x23, 1);
+    SndEvt_EnqueueType7(SOUND_ANTIBODY_AURA_LOOP, 1);
     effectKillTask(mem, arg0);
     return;
 continue_fx:
@@ -2948,7 +2948,7 @@ continue_fx:
                 }
             }
             temp = (s8)worldCoordGetOriginAudioPan(coord);
-            SndEvt_EnqueueType6(0xE, temp, (s8)worldCoordGetOriginAudioDepth(coord));
+            SndEvt_EnqueueType6(SOUND_ANTIBODY_AURA_HIT, temp, (s8)worldCoordGetOriginAudioDepth(coord));
         } else if (mem->angle < 0x80) {
             mem->angle = 0x80;
         }
@@ -3082,7 +3082,7 @@ void Gp_EffCtlTaskA5(Task* arg0)
         case 0:
             if (gRoomEffectState->rumbleCount == 0) {
                 temp = (s8)worldCoordGetOriginAudioPan(coord);
-                SndEvt_EnqueueType6(0xD, temp, (s8)worldCoordGetOriginAudioDepth(coord));
+                SndEvt_EnqueueType6(SOUND_COMMON(0x0D), temp, (s8)worldCoordGetOriginAudioDepth(coord));
             }
             gRoomEffectState->rumbleCount++;
             arg0->state = 1;
@@ -7178,9 +7178,9 @@ void func_80106350(Task* arg0, s32 arg1, s32 arg2)
         if (actor->weaponEffectTask != NULL) {
             actor->weaponEffectTask->spawnArg1.value = -1;
         }
-        SndEvt_EnqueueType7(0x20160003, 0);
-        SndEvt_EnqueueType7(0x20160004, 0);
-        SndEvt_EnqueueType7(0x20160005, 0);
+        SndEvt_EnqueueType7(SOUND_HYPERVELOCITY_CHARGE_START, 0);
+        SndEvt_EnqueueType7(SOUND_HYPERVELOCITY_CHARGE_CANCEL, 0);
+        SndEvt_EnqueueType7(SOUND_HYPERVELOCITY_CHARGE_LOOP, 0);
     } else if (arg1 == 0x19) {
         if (actor->weaponEffectTask != NULL) {
             if (Gp_ConsumeSlotQty(0x98, 0x100) != 0) {
@@ -7201,9 +7201,9 @@ void func_80106350(Task* arg0, s32 arg1, s32 arg2)
                 actor->weaponEffectTask->spawnArg1.value = (actor->weaponEffectTask->spawnArg1.value == 2) << 2;
             }
             if (actor->companionWork == NULL) {
-                SndEvt_EnqueueType7(0x201C0005, 0);
+                SndEvt_EnqueueType7(SOUND_PYKE_FIRE_TAIL, 0);
             } else {
-                SndEvt_EnqueueType7(0x40680002, 0);
+                SndEvt_EnqueueType7(SOUND_COMPANION_PYKE_FIRE_TAIL, 0);
             }
         }
     }

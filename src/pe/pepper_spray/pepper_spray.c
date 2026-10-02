@@ -67,7 +67,7 @@ void func_pepper_spray_8012EF34(Task* arg0)
     mem       = arg0->spawnArg2.pointer;
     coord     = arg0->extra.coordBody->coord;
     if ((Gp_StateC08.field_3 == -2) || (gRoomEffectState->peEffectControl != ROOM_EFFECT_CONTROL_RUNNING)) {
-        SndEvt_EnqueueType7(0xE03F0001, 1);
+        SndEvt_EnqueueType7(SOUND_PEPPER_SPRAY_USE, 1);
         effectKillTask(mem, arg0);
         return;
     }
@@ -100,7 +100,7 @@ void func_pepper_spray_8012EF34(Task* arg0)
             }
             Gp_StateC08.field_6 |= 8;
             pan                  = (s8)worldCoordGetOriginAudioPan(coord);
-            SndEvt_EnqueueType6(0xE03F0001, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+            SndEvt_EnqueueType6(SOUND_PEPPER_SPRAY_USE, pan, (s8)worldCoordGetOriginAudioDepth(coord));
             break;
         case 1:
             mem->scale  = mem->scale - age * (mem->scale >> 4);

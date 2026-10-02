@@ -19,7 +19,7 @@ s32 backStreetEventMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out
     if (s1 == 2) {
         if (in->areaId == 7) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                if (GameFlag_GetNibble(0x3C) == 0) {
+                if (GameFlag_GetNibble(GAME_FLAG_WAREHOUSE_EVENT_SEEN) == 0) {
                     out->room = 1;
                 } else {
                     out->room = s1;
@@ -27,7 +27,7 @@ s32 backStreetEventMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out
             }
         }
     }
-    if ((in->areaId == 9) && (GameFlag_GetNibble(0x3F) == 0)) {
+    if ((in->areaId == 9) && (GameFlag_GetNibble(GAME_FLAG_DILAPIDATED_HOUSE_DOOR_UNLOCKED) == 0)) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
             s32 cmd = 9;
 
@@ -41,7 +41,7 @@ s32 backStreetEventMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out
     }
     if (in->queryOnly == ROOM_EVENT_EXECUTE) {
         if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
-            SndEvt_EnqueueType7(0x52050006, 0xF);
+            SndEvt_EnqueueType7(SOUND_BACK_STREET_AMBIENCE, 0xF);
         }
     }
     return 1;

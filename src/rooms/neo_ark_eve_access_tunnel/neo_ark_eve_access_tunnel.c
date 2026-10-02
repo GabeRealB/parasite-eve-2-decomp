@@ -518,10 +518,10 @@ void func_neo_ark_eve_access_tunnel_8017DB18(Task* task)
             }
             Gp_MsgPlayerWeapon(0);
             task->state++;
-            SndEvt_EnqueueType6(0x55080003, 0, 0);
+            SndEvt_EnqueueType6(SOUND_NEO_ARK_EVE_TUNNEL_TO_ELEVATOR, 0, 0);
             return;
         case 3:
-            var_v0 = SndVoice_HasActiveId(0x55080003);
+            var_v0 = SndVoice_HasActiveId(SOUND_NEO_ARK_EVE_TUNNEL_TO_ELEVATOR);
         L_idle:
             if (var_v0 != 0) {
                 return;
@@ -559,7 +559,7 @@ s32 func_neo_ark_eve_access_tunnel_8017DC6C(Task* task, s32 msgId, RoomEventMsg*
     func_map_neo_ark_80179B14(src, dst);
     switch (src->areaId) {
         case GAME_AREA_NEO_ARK_EVE_ELEVATOR:
-            switch (GameFlag_GetNibble(0xB9)) {
+            switch (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_EVE_ELEVATOR_UNLOCKED)) {
                 case 0:
                     if (src->queryOnly == ROOM_EVENT_EXECUTE) {
                         Gp_SetNibbleIf(src->flagId, 2);
@@ -587,7 +587,7 @@ s32 func_neo_ark_eve_access_tunnel_8017DD70(Task* arg0, s32 arg1, s32 arg2, Task
     if (gGameSession->location.loc.variant == 0xB) {
         switch (arg2) {
             case 6:
-                if (GameFlag_GetNibble(0x142) == 0) {
+                if (GameFlag_GetNibble(GAME_FLAG_EVE_ACCESS_TUNNEL_PART_0_DOWN) == 0) {
                     if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
                         Gp_RunCapCmd1(6);
                     }
@@ -596,7 +596,7 @@ s32 func_neo_ark_eve_access_tunnel_8017DD70(Task* arg0, s32 arg1, s32 arg2, Task
                 }
                 break;
             case 7:
-                if (GameFlag_GetNibble(0x143) == 0) {
+                if (GameFlag_GetNibble(GAME_FLAG_EVE_ACCESS_TUNNEL_PART_1_DOWN) == 0) {
                     if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
                         Gp_RunCapCmd1(7);
                     }
@@ -614,7 +614,7 @@ s32 func_neo_ark_eve_access_tunnel_8017DE1C(Task* task, s32 msgId, TaskMessageAr
     const DirectionActionRequest* request = firstArg.pointer;
 
     if (request->actionId == 0xA) {
-        if (GameFlag_GetNibble(0xF8) != 0) {
+        if (GameFlag_GetNibble(GAME_FLAG_0F8) != 0) {
             Gp_RunCapCmd1(5);
             Task_SpawnFromTable(D_neo_ark_eve_access_tunnel_8017EAC4, 2, 0x1AF, 0);
         } else {

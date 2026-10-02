@@ -2553,7 +2553,7 @@ static void func_actor_401300_80134F90(Task* arg0)
             enemy->hp -= s->damage;
             func_800DA6E8(&enemy->node, s->damage, 0);
             if (work->field_0 == 0x17) {
-                SndEvt_EnqueueType7(0x51030008, 1);
+                SndEvt_EnqueueType7(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, 1);
             }
             if ((work->field_0 == 0xC || work->field_0 == 0xD || work->field_0 == 0xE) && config->hp > 0 && work->field_D20 == 1) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
@@ -3165,7 +3165,7 @@ static void func_actor_401300_80136CE8(Task* arg0)
             } else if ((s->dist < 0x898 && Actor401300_Abs(actorNormalizeYaw(ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]) - work->home.pad)) < 0x200) || work->field_6 > 0xB4) {
                 work->field_8A2 = 0x20;
                 work->field_89C = 1;
-                SndEvt_EnqueueType6(0x551D0008, (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords), (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+                SndEvt_EnqueueType6(SOUND_NEO_ARK_WOODLAND_STRANGER_WITHDRAW, (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords), (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
                 work->field_AB0.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
             s->angle += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
@@ -3841,7 +3841,7 @@ static void func_actor_401300_801397F8(Task* arg0)
     d->vy           = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
     d->vz           = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     if (!overlayOutOfRange(d, 3000)) {
-        SndEvt_EnqueueType7(0x51030008, 1);
+        SndEvt_EnqueueType7(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, 1);
         Gp_ArmStateF0(1);
         work->field_0 = 6;
     }
@@ -5011,7 +5011,7 @@ static void func_actor_401300_8013E930(Task* arg0)
                 work->field_D00 = 0x7F;
                 if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, &work->field_CEC, 0) == 0) {
                     Gp_SpawnPadLerp(0x10, 8, 0xFF);
-                    SndEvt_EnqueueType6(6, (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords),
+                    SndEvt_EnqueueType6(SOUND_PLAYER_STRUCK, (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords),
                                         (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
                     work->field_D20             = 1;
                     work->field_CAC.source.sets = D_actor_401300_801588F0;
@@ -5600,10 +5600,10 @@ static void func_actor_401300_801405DC(Enemy* enemy, Task* actor)
             case 4:
                 if ((s16)work->field_D22 == 0xF) {
                     if (Actor401300_InRangeFlag(player) == 1) {
-                        SndEvt_EnqueueType6(0x551D0005, (s8)worldCoordGetOriginAudioPan(player->extra.tmd->coords),
+                        SndEvt_EnqueueType6(SOUND_NEO_ARK_WOODLAND_STRANGER_HIT, (s8)worldCoordGetOriginAudioPan(player->extra.tmd->coords),
                                             (s8)worldCoordGetOriginAudioDepth(player->extra.tmd->coords));
                     } else {
-                        SndEvt_EnqueueType6(0x400D0013, (s8)worldCoordGetOriginAudioPan(player->extra.tmd->coords),
+                        SndEvt_EnqueueType6(SOUND_CHARACTER(SOUND_BANK_ACTOR_356100, 0x13), (s8)worldCoordGetOriginAudioPan(player->extra.tmd->coords),
                                             (s8)worldCoordGetOriginAudioDepth(player->extra.tmd->coords));
                     }
                     if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
@@ -5624,10 +5624,10 @@ static void func_actor_401300_801405DC(Enemy* enemy, Task* actor)
             case 5:
                 if ((s16)work->field_D22 == 0xD) {
                     if (Actor401300_InRangeFlag(player) == 1) {
-                        SndEvt_EnqueueType6(0x551D0005, (s8)worldCoordGetOriginAudioPan(player->extra.tmd->coords),
+                        SndEvt_EnqueueType6(SOUND_NEO_ARK_WOODLAND_STRANGER_HIT, (s8)worldCoordGetOriginAudioPan(player->extra.tmd->coords),
                                             (s8)worldCoordGetOriginAudioDepth(player->extra.tmd->coords));
                     } else {
-                        SndEvt_EnqueueType6(0x400D0013, (s8)worldCoordGetOriginAudioPan(player->extra.tmd->coords),
+                        SndEvt_EnqueueType6(SOUND_CHARACTER(SOUND_BANK_ACTOR_356100, 0x13), (s8)worldCoordGetOriginAudioPan(player->extra.tmd->coords),
                                             (s8)worldCoordGetOriginAudioDepth(player->extra.tmd->coords));
                     }
                     if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {

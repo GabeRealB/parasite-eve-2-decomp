@@ -597,7 +597,7 @@ void func_neo_ark_island_8017E844(Task* arg0)
             arg0->state++;
             return;
         case 4:
-            SndEvt_EnqueueType7(0x80000000, 0);
+            SndEvt_EnqueueType7(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0);
             gDisplayState.spriteVariant                                = 1;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_neo_ark_island_80184008.warp;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_neo_ark_island_80184008.field_4;
@@ -675,8 +675,8 @@ static void func_neo_ark_island_8017EA94(Task* arg0)
 {
     arg0->msgTable = D_neo_ark_island_80181B48;
     Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
-    SndEvt_EnqueueType6(0x550E0005, 0, 0);
-    SndEvt_EnqueueType6(0x550E0006, 0, 0);
+    SndEvt_EnqueueType6(SOUND_NEO_ARK_ISLAND_AMBIENCE_1, 0, 0);
+    SndEvt_EnqueueType6(SOUND_NEO_ARK_ISLAND_AMBIENCE_2, 0, 0);
     arg0->state = (s32)(arg0->state + 1);
     D_80115598  = 1;
 }

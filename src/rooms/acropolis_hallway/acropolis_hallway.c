@@ -385,7 +385,7 @@ s32 func_acropolis_hallway_8017D5D0(Task* arg0, s32 arg1, RoomEventMsg* in, Room
 
     *out = *in;
     if (in->areaId == GAME_AREA_ACROPOLIS_FOUNTAIN) {
-        if ((GameFlag_GetNibble(9) & 2) && in->queryOnly == ROOM_EVENT_EXECUTE) {
+        if ((GameFlag_GetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 2) && in->queryOnly == ROOM_EVENT_EXECUTE) {
             out->room = 2;
         }
     }
@@ -420,10 +420,10 @@ s32 func_acropolis_hallway_8017D734(Task* arg0, s32 arg1, s32 arg2, TaskMessageA
 {
     switch (arg2) { /* irregular */
         case 6:
-            SndEvt_EnqueueType6(0x51070006, 0, 0);
+            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_HALLWAY, 6), 0, 0);
             break;
         case 7:
-            SndEvt_EnqueueType6(0x51070007, 0, 0);
+            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_HALLWAY, 7), 0, 0);
             break;
     }
     return 0;

@@ -38,7 +38,7 @@ void storeCutsceneTask(Task* arg0)
             arg0->state += 1;
             return;
         case 2:
-            Gp_EnqueueStageSnd6(0x5203000D, 0, 0);
+            Gp_EnqueueStageSnd6(SOUND_GENERAL_STORE_UNDERPASS_PROMPT, 0, 0);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             Gp_RunCapCmd1(0xF);
             D_80115690   = 1;
@@ -54,13 +54,13 @@ void storeCutsceneTask(Task* arg0)
                 return;
             }
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-            Gp_EnqueueStageSnd6(0x5203000E, 0, 0);
+            Gp_EnqueueStageSnd6(SOUND_GENERAL_STORE_UNDERPASS_CANCEL, 0, 0);
             gMcSaveData[0].state.location.loc.view = gStoreSavedView;
             Gp_MsgPlayerWeapon(1);
             Gp_MsgPlayer3F3(1);
             break;
         case 5:
-            SndEvt_EnqueueType7(0x80000000, 0);
+            SndEvt_EnqueueType7(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 0x26;
             gMcSaveData[0].state.location.loc.warp                     = gStoreWarp;
             gMcSaveData[0].state.location.loc.room                     = gStoreRoom;

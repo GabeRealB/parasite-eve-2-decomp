@@ -393,7 +393,7 @@ resumeView:
                         D_801155C0 = (s16)oldChoice;
                     }
                     if ((D_801155C0 != (s16)oldChoice) && (D_801155BE != 0)) {
-                        SndEvt_EnqueueType6(0x15, 0, 0);
+                        SndEvt_EnqueueType6(SOUND_SYSTEM_CURSOR, 0, 0);
                     }
                     func_800E62C0();
                     confirmMask = Pad_MaskConfirm;

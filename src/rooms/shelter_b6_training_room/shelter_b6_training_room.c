@@ -372,7 +372,7 @@ s32 func_shelter_b6_training_room_8017D684(Task* arg0, s32 arg1, s32 arg2, TaskM
 {
     switch (arg2) {
         case 5:
-            if (GameFlag_GetNibble(0x153) != 0) {
+            if (GameFlag_GetNibble(GAME_FLAG_153) != 0) {
                 Gp_RunCapCmd1(7);
             } else if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
                 Gp_RunCapCmd1(5);
@@ -381,7 +381,7 @@ s32 func_shelter_b6_training_room_8017D684(Task* arg0, s32 arg1, s32 arg2, TaskM
             }
             break;
         case 6:
-            if (GameFlag_GetNibble(0x154) != 0) {
+            if (GameFlag_GetNibble(GAME_FLAG_154) != 0) {
                 Gp_RunCapCmd1(8);
             } else if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
                 Gp_RunCapCmd1(6);
@@ -390,7 +390,7 @@ s32 func_shelter_b6_training_room_8017D684(Task* arg0, s32 arg1, s32 arg2, TaskM
             }
             break;
         case 4:
-            if (GameFlag_GetNibble(0x146) != 0) {
+            if (GameFlag_GetNibble(GAME_FLAG_B6_CORRIDOR_EVE_PART_2_DOWN) != 0) {
                 Gp_RunCapCmd1(7);
             } else if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED) {
                 Gp_RunCapCmd1(0xA);
@@ -431,7 +431,7 @@ static void func_shelter_b6_training_room_8017D7D4(Task* arg0)
         i   += 1;
         ptr += 1;
     } while (i <= 0x12BFF);
-    GameFlag_SetNibble(0x4D, 1);
+    GameFlag_SetNibble(GAME_FLAG_COMPANION_3_SCHEDULE, 1);
     gStageSceneMusicEntry = 0xA;
     func_shelter_b6_training_room_8017DBB0(0);
     arg0->state                         = (s32)(arg0->state + 1);
@@ -548,7 +548,7 @@ void func_shelter_b6_training_room_8017DB70(void)
 {
     Gp_StateC08.field_6 |= 1;
     Gp_PulseState1C();
-    SndEvt_EnqueueType7(0x80000000, 1);
+    SndEvt_EnqueueType7(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 1);
 }
 
 static void func_shelter_b6_training_room_8017DBB0(s32 arg0)

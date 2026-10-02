@@ -3,6 +3,8 @@
 
 #include "types.h"
 
+#include "main/sound_ids.h"
+
 #include "main/sound_types.h"
 
 extern s32 D_800820E0;

@@ -710,7 +710,7 @@ void func_dryfield_night_motel_lobby_80180440(Task* task, s16 key)
 
     switch (key) {
         case 0:
-            SndEvt_EnqueueType6(0x53110007, 0, 0);
+            SndEvt_EnqueueType6(SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_PRESS, 0, 0);
             if (work->field_2 < 7) {
                 if (D_dryfield_night_motel_lobby_801844D8[0] != 0 || D_dryfield_night_motel_lobby_801844D8[1] != 0xA) {
                     D_dryfield_night_motel_lobby_801844D8[6] = D_dryfield_night_motel_lobby_801844D8[5];
@@ -733,7 +733,7 @@ void func_dryfield_night_motel_lobby_80180440(Task* task, s16 key)
         case 7:
         case 8:
         case 9:
-            SndEvt_EnqueueType6(0x53110007, 0, 0);
+            SndEvt_EnqueueType6(SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_PRESS, 0, 0);
             if (work->field_2 < 7) {
                 D_dryfield_night_motel_lobby_801844D8[work->field_2] = 0xA;
                 D_dryfield_night_motel_lobby_801844D8[6]             = D_dryfield_night_motel_lobby_801844D8[5];
@@ -747,7 +747,7 @@ void func_dryfield_night_motel_lobby_80180440(Task* task, s16 key)
             }
             break;
         case 10:
-            SndEvt_EnqueueType6(0x53110007, 0, 0);
+            SndEvt_EnqueueType6(SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_PRESS, 0, 0);
             if (work->field_2 < 7) {
                 if (D_dryfield_night_motel_lobby_801844D8[0] != 0 || D_dryfield_night_motel_lobby_801844D8[1] != 0xA) {
                     D_dryfield_night_motel_lobby_801844D8[6] = D_dryfield_night_motel_lobby_801844D8[5];
@@ -772,7 +772,7 @@ void func_dryfield_night_motel_lobby_80180440(Task* task, s16 key)
             }
             break;
         case 11:
-            SndEvt_EnqueueType6(0x53110007, 0, 0);
+            SndEvt_EnqueueType6(SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_PRESS, 0, 0);
             work->field_2 = 0;
             work->field_7 = 1;
             for (i = 0; i < 7; i++) {
@@ -780,7 +780,7 @@ void func_dryfield_night_motel_lobby_80180440(Task* task, s16 key)
             }
             break;
         case 12:
-            SndEvt_EnqueueType6(0x53110007, 0, 0);
+            SndEvt_EnqueueType6(SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_PRESS, 0, 0);
             work->field_2 = 0;
             work->field_7 = 1;
             for (i = 0; i < 7; i++) {
@@ -791,7 +791,7 @@ void func_dryfield_night_motel_lobby_80180440(Task* task, s16 key)
             if (func_dryfield_night_motel_lobby_80180734() != 0) {
                 work->field_8 = 1;
             } else {
-                SndEvt_EnqueueType6(0x53110009, 0, 0);
+                SndEvt_EnqueueType6(SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_ERROR, 0, 0);
             }
             break;
     }
@@ -949,13 +949,13 @@ static void func_dryfield_night_motel_lobby_80181138(Task* arg0)
     Gp_ApplyAreaRecs(D_dryfield_night_motel_lobby_801844AC);
     gGameSession->eventState = 1;
     taskKill(arg0->spawnArg2.pointer);
-    GameFlag_SetNibble(0x74, 1);
+    GameFlag_SetNibble(GAME_FLAG_NIGHT_MOTEL_LOBBY_EVENT_SEEN, 1);
     arg0->state = (s32)(arg0->state + 1);
 }
 
 static void func_dryfield_night_motel_lobby_8018119C(Task* arg0)
 {
-    SndEvt_EnqueueType6(0x53110008, 0, 0);
+    SndEvt_EnqueueType6(SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_ACCEPT, 0, 0);
     arg0->state = (s32)(arg0->state + 1);
 }
 

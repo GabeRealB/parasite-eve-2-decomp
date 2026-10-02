@@ -273,7 +273,7 @@ s32 func_neo_ark_shrine_8017D6AC(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEve
     if (in->areaId != GAME_AREA_NEO_ARK_POWER_PLANT_1) {
         return 1;
     }
-    if (GameFlag_GetNibble(0xDB) != 0) {
+    if (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_SHRINE_PUZZLE_SOLVED) != 0) {
         return 1;
     }
     if (in->queryOnly != ROOM_EVENT_EXECUTE) {
@@ -300,7 +300,7 @@ s32 func_neo_ark_shrine_8017D740(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg 
         }
     }
     if (arg2 == 5) {
-        Gp_RunCapCmd1(GameFlag_GetNibble(0xDE) == 0 ? 5 : 0xC);
+        Gp_RunCapCmd1(GameFlag_GetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_CLEARED) == 0 ? 5 : 0xC);
     }
     return 0;
 }
@@ -310,7 +310,7 @@ s32 func_neo_ark_shrine_8017D7F0(Task* task, s32 msgId, TaskMessageArg firstArg,
     const DirectionActionRequest* request = firstArg.pointer;
 
     if (request->actionId == 1) {
-        if (GameFlag_GetNibble(0xDF) == 0) {
+        if (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0) {
             Task_SpawnFromTable(D_neo_ark_shrine_80181E5C, 0, 0, 0);
         } else {
             Gp_RunCapCmd1(9);
@@ -480,7 +480,7 @@ void func_neo_ark_shrine_8017DB10(Task* arg0)
             break;
         }
         if (D_neo_ark_shrine_8018686C[state] == 0) {
-            SndEvt_EnqueueType6(0x55150006, 0, 0);
+            SndEvt_EnqueueType6(SOUND_NEO_ARK_SHRINE_TILE_SLIDE, 0, 0);
             slot                                                                 = st->field_C;
             ord                                                                  = (u16*)&D_neo_ark_shrine_8018686C[slot];
             prev                                                                 = *ord;
@@ -494,10 +494,10 @@ void func_neo_ark_shrine_8017DB10(Task* arg0)
         temp_v0 = func_neo_ark_shrine_8017E254();
         switch (temp_v0) {
             case 1:
-                if (GameFlag_GetNibble(0xDB) == 0) {
-                    SndEvt_EnqueueType6(0x55150008, 0, 0);
-                    GameFlag_SetNibble(0xDB, 1);
-                    GameFlag_SetNibble(0x1B8, 0);
+                if (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_SHRINE_PUZZLE_SOLVED) == 0) {
+                    SndEvt_EnqueueType6(SOUND_NEO_ARK_SHRINE_PUZZLE_SOLVED, 0, 0);
+                    GameFlag_SetNibble(GAME_FLAG_NEO_ARK_SHRINE_PUZZLE_SOLVED, 1);
+                    GameFlag_SetNibble(GAME_FLAG_MAP_MARK_SHRINE, 0);
                     Gp_StartCapSlot(3, 0, 0);
                     return;
                 }
@@ -506,11 +506,11 @@ void func_neo_ark_shrine_8017DB10(Task* arg0)
                 arg0->state = 9;
                 break;
             case 3:
-                SndEvt_EnqueueType6(0x55150007, 0, 0);
+                SndEvt_EnqueueType6(SOUND_NEO_ARK_SHRINE_MECHANISM_ACTIVATE, 0, 0);
                 arg0->state = 7;
                 break;
             case 4:
-                SndEvt_EnqueueType6(0x55150007, 0, 0);
+                SndEvt_EnqueueType6(SOUND_NEO_ARK_SHRINE_MECHANISM_ACTIVATE, 0, 0);
                 arg0->state = 0xE;
                 break;
         }
@@ -593,7 +593,7 @@ static s16 func_neo_ark_shrine_8017E254(void)
     flag = D_neo_ark_shrine_8018686A;
     if (flag == 1) {
         D_neo_ark_shrine_8018686A = 0;
-        if (GameFlag_GetNibble(0xE9) == 0) {
+        if (GameFlag_GetNibble(GAME_FLAG_0E9) == 0) {
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = flag;
             gGameSession->location.loc.room                            = flag;
         } else {
@@ -601,7 +601,7 @@ static s16 func_neo_ark_shrine_8017E254(void)
             gGameSession->location.loc.room                            = 4;
         }
         gGameSession->roomObjsDirty = 1;
-        SndEvt_EnqueueType6(0x5515000A, 0, 0);
+        SndEvt_EnqueueType6(SOUND_NEO_ARK_SHRINE_MECHANISM_REVERT, 0, 0);
         Gp_SpawnPadLerp(0x28, 0x30, 0x60);
     }
     if (D_neo_ark_shrine_8018686C[0] == 5 && D_neo_ark_shrine_8018686C[4] == 6 &&

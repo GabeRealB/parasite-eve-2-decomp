@@ -549,7 +549,7 @@ static void func_dryfield_warehouse_8017DBB0(Task* arg0)
                     break;
                 case 1:
                     if ((work->field_E % 60) == 0) {
-                        SndEvt_EnqueueType6(0x52070003, 0, 0);
+                        SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WAREHOUSE, 3), 0, 0);
                     }
                     break;
             }
@@ -631,7 +631,7 @@ static void func_dryfield_warehouse_8017DBB0(Task* arg0)
                     break;
             }
             if (work->field_8 == 10) {
-                SndEvt_EnqueueType6(0x52070004, 0, 0);
+                SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WAREHOUSE, 4), 0, 0);
             }
             work->field_8++;
             return;
@@ -645,7 +645,7 @@ static void func_dryfield_warehouse_8017DBB0(Task* arg0)
                     break;
                 case 1:
                     if ((work->field_E % 60) == 0) {
-                        SndEvt_EnqueueType6(0x52070003, 0, 0);
+                        SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WAREHOUSE, 3), 0, 0);
                     }
                     break;
             }

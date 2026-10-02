@@ -346,7 +346,7 @@ static void func_actor_143000_801325F0(Task* arg0)
             for (; p->field_8 != -1; p++) {
                 if (p->field_B != 0) {
                     if (work->field_7 != 0 && p->field_8 == 5) {
-                        SndEvt_EnqueueType6(0x541F0013, 0, 0);
+                        SndEvt_EnqueueType6(SOUND_SHELTER_B2_LAB_KEYPAD_KEY, 0, 0);
                         prompt->mode     = 0;
                         prompt->targetId = 0;
                         work->field_8    = prompt->screen.xy.x;
@@ -472,7 +472,7 @@ static void func_actor_143000_80132A04(Task* arg0)
                 temp_s0->field_14 = 0;
                 break;
             case 0x78:
-                SndEvt_EnqueueType6(0x541F0011, 0, 0);
+                SndEvt_EnqueueType6(SOUND_SHELTER_B2_LAB_KEYPAD_CODE_ACCEPTED, 0, 0);
                 temp_s0->field_13 = 1;
                 break;
             case 0x96:
@@ -510,7 +510,7 @@ static void func_actor_143000_80132A04(Task* arg0)
                 temp_s0->field_14 = 0;
                 break;
             case 0x78:
-                SndEvt_EnqueueType6(0x541F0012, 0, 0);
+                SndEvt_EnqueueType6(SOUND_SHELTER_B2_LAB_KEYPAD_CODE_REJECTED, 0, 0);
                 temp_s0->field_13 = 2;
                 break;
             case 0x96:
@@ -746,14 +746,14 @@ static void func_actor_143000_801336E8(Task* arg0)
                 arg0->state = 2;
                 break;
             case 2:
-                SndEvt_EnqueueType6(0x541F0010, 0, 0);
+                SndEvt_EnqueueType6(SOUND_SHELTER_B2_LAB_KEYPAD_ENTER, 0, 0);
                 arg0->state         = 7;
                 arg0->killCountdown = 0;
                 break;
             case 4:
                 work->field_7 = 1;
                 Gp_RunCapCmd(0xA, 0);
-                if (GameFlag_GetNibble(0xD0) == 1) {
+                if (GameFlag_GetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS) == 1) {
                     arg0->killCountdown = 0xA;
                     arg0->state         = 9;
                 } else {
@@ -836,7 +836,7 @@ static void func_actor_143000_801339CC(Task* arg0)
         if ((s16)count <= 0) {
             arg0->killCountdown = (rand() * 8 >> 15) + 8;
             work->field_10++;
-            SndEvt_EnqueueType6(0x541F0013, 0, 0);
+            SndEvt_EnqueueType6(SOUND_SHELTER_B2_LAB_KEYPAD_KEY, 0, 0);
             memcpy(D_actor_143000_80135C20, D_actor_143000_80131EB0, 11);
             count = work->field_10;
             if (count >= 0xA) {

@@ -1338,8 +1338,8 @@ s32 func_dryfield_water_hole_8017D73C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     if (arg2 == 2) {
         Gp_RunCapCmd1(2);
-        GameFlag_SetNibble(0x1BD, 2);
-        SndEvt_EnqueueType6(0x52200004, 0, 0);
+        GameFlag_SetNibble(GAME_FLAG_MAP_MARK_WATER, 2);
+        SndEvt_EnqueueType6(SOUND_WATER_HOLE_LOCKED, 0, 0);
     }
     return 0;
 }
@@ -1358,10 +1358,10 @@ s32 func_dryfield_water_hole_8017D78C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     switch (arg2) {
         case 4:
-            SndEvt_EnqueueType6(0x52200004, 0, 0);
+            SndEvt_EnqueueType6(SOUND_WATER_HOLE_LOCKED, 0, 0);
             break;
         case 5:
-            SndEvt_EnqueueType6(0x52200005, 0, 0);
+            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_HOLE, 5), 0, 0);
             break;
     }
     return 0;
@@ -1484,7 +1484,7 @@ void func_dryfield_water_hole_8017E040(Task* arg0)
                     D_dryfield_water_hole_8017FD1C[i].vz = part->workm.t[2];
                 }
             }
-            if (GameFlag_GetNibble(0x51) == 1) {
+            if (GameFlag_GetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 1) {
                 if (mask & 0x18) {
                     glowDrawTaperedBeam(coord, &D_dryfield_water_hole_8017FCC4[0], &D_dryfield_water_hole_8017FCC4[-1], 0x100);
                     glowDrawTaperedBeam(coord, &D_dryfield_water_hole_8017FCC4[2], &D_dryfield_water_hole_8017FCC4[1], 0x100);

@@ -1469,7 +1469,7 @@ static void Fs_SelectLoadHandlers0(u8* arg0)
             *arg0             = 6;
             break;
         case 19:
-            if (GameFlag_GetNibble(0x7A) == 0) {
+            if (GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER) == 0) {
                 Fs_BootTimPrimary = &BootCaption_MistArrival;
                 *arg0             = 7;
             } else {
@@ -1557,7 +1557,7 @@ static void Fs_SelectLoadHandlers2(u8* arg0)
     s32 field2;
     s32 val;
 
-    temp_v1 = GameFlag_GetNibble(0x7A);
+    temp_v1 = GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER);
     field2  = Fs_LoadParams.field_2;
 
     if (field2 == 0x1B) {
@@ -1647,7 +1647,7 @@ static void Fs_SelectLoadHandlers3(u8* arg0)
     s32 temp_v1;
     s32 val;
 
-    temp_v1 = GameFlag_GetNibble(0x7A);
+    temp_v1 = GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER);
     switch (Fs_LoadParams.field_2) {
         case 1:
             Fs_BootTimPrimary   = &BootCaption_DryfieldMesaNight;
@@ -1864,7 +1864,7 @@ void Fs_SetupBootLoad(void)
             break;
         case 5:
         default:
-            GameFlag_GetNibble(0x7A);
+            GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER);
             field2 = Fs_LoadParams.field_2;
             if (field2 == 0x16) {
                 goto case_16;

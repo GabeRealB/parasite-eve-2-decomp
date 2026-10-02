@@ -1437,14 +1437,14 @@ void func_actor_136300_8013267C(Task* arg0)
             return;
         case 6:
             SetDispMask(1);
-            SndEvt_EnqueueType7(0x80000000, 0);
-            GameFlag_SetNibble(0x7A, 4);
-            GameFlag_SetNibble(0x97, 0);
-            GameFlag_SetNibble(0x98, 1);
-            GameFlag_SetNibble(0x9A, 1);
-            GameFlag_SetNibble(3, 0);
-            GameFlag_SetNibble(0x155, 0xF);
-            GameFlag_SetNibble(0x4C, 4);
+            SndEvt_EnqueueType7(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0);
+            GameFlag_SetNibble(GAME_FLAG_STORY_CHAPTER, 4);
+            GameFlag_SetNibble(GAME_FLAG_097, 0);
+            GameFlag_SetNibble(GAME_FLAG_098, 1);
+            GameFlag_SetNibble(GAME_FLAG_09A, 1);
+            GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
+            GameFlag_SetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 0xF);
+            GameFlag_SetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 4);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent         = 9;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_MINE_SHELTER;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_MINE_MESA;
@@ -1530,10 +1530,10 @@ void func_actor_136300_80132998(void)
 {
     s32 temp_v0;
 
-    temp_v0 = GameFlag_GetNibble(0x72);
+    temp_v0 = GameFlag_GetNibble(GAME_FLAG_072);
     Gp_StartCapSlot((s16)(temp_v0 + 0x10), 0, 0);
     if (temp_v0 < 2) {
-        GameFlag_SetNibble(0x72, temp_v0 + 1);
+        GameFlag_SetNibble(GAME_FLAG_072, temp_v0 + 1);
     }
 }
 

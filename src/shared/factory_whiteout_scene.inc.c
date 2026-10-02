@@ -19,7 +19,7 @@ void factoryWhiteoutScene(Task* task)
 
     switch (task->state) {
         case 0:
-            if (GameFlag_GetNibble(0x47) != 0) {
+            if (GameFlag_GetNibble(GAME_FLAG_FACTORY_BARRIER_CLEARED) != 0) {
                 goto kill;
             }
             Gp_MsgPlayerWeapon(0);
@@ -30,7 +30,7 @@ void factoryWhiteoutScene(Task* task)
             if (Gp_GetCapEventKey() == 1) {
                 task->killCountdown = 0;
                 if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
-                    Gp_EnqueueStageSnd6(0x5217000C, 0, 0);
+                    Gp_EnqueueStageSnd6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 0x0C), 0, 0);
                 }
                 goto advance;
             }
@@ -44,10 +44,10 @@ void factoryWhiteoutScene(Task* task)
             goto bump;
         case 4:
             gGameSession->viewDirty = 1;
-            GameFlag_SetNibble(0x47, 1);
+            GameFlag_SetNibble(GAME_FLAG_FACTORY_BARRIER_CLEARED, 1);
             fade = gGameSession->location.loc.stage;
             if (fade == 2) {
-                Gp_EnqueueStageSnd6(0x5217000B, 0, 0);
+                Gp_EnqueueStageSnd6(SOUND_FACTORY_WHITEOUT, 0, 0);
             }
             Fade_DrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
             goto advance;

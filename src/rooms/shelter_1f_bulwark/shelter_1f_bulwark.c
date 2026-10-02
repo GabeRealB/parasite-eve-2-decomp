@@ -336,13 +336,13 @@ s32 func_shelter_1f_bulwark_8017D7B4(Task* task, s32 msgId, RoomEventMsg* src, R
     *dst = *src;
     func_map_neo_ark_80179B14(src, dst);
     if (src->areaId == GAME_AREA_SHELTER_1F_HELIPORT) {
-        if (GameFlag_GetNibble(0x15D) == 0) {
+        if (GameFlag_GetNibble(GAME_FLAG_BULWARK_HELIPORT_UNBLOCKED) == 0) {
             Gp_SpawnIfCapIdle(1, 0);
             return 2;
         }
-        if (GameFlag_GetNibble(0x7A) < 6) {
+        if (GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER) < 6) {
             if (src->queryOnly == ROOM_EVENT_EXECUTE) {
-                GameFlag_SetNibble(0x7A, 6);
+                GameFlag_SetNibble(GAME_FLAG_STORY_CHAPTER, 6);
                 Gp_MsgPlayerWeapon(0);
                 Task_SpawnFromTable(&D_shelter_1f_bulwark_80180354, 0, 0, 0);
             }
@@ -357,7 +357,7 @@ s32 func_shelter_1f_bulwark_8017D7B4(Task* task, s32 msgId, RoomEventMsg* src, R
     if (src->areaId == GAME_AREA_SHELTER_1F_VEHICULAR_AIRLOCK) {
         event.capCmd   = 6;
         event.stageSnd = 0x55030001;
-        event.flagId   = 0x15C;
+        event.flagId   = GAME_FLAG_BULWARK_TO_VEHICULAR_AIRLOCK_SCENE;
         event.fade     = 0;
         return Bulwark_StartEvent(dst, &event);
     }
@@ -395,7 +395,7 @@ void func_shelter_1f_bulwark_8017DA60(Task* arg0)
             D_shelter_1f_bulwark_80180EC0.rampFrames = 0x1E;
             Task_Spawn(1, 0x31, 0, &D_shelter_1f_bulwark_80180EC0);
             arg0->killCountdown = 0;
-            SndEvt_EnqueueType6(0x55030003, 0, 0);
+            SndEvt_EnqueueType6(SOUND_SHELTER_1F_BULWARK_TO_HELIPORT, 0, 0);
             goto advance;
         case 3:
             arg0->killCountdown++;
@@ -404,7 +404,7 @@ void func_shelter_1f_bulwark_8017DA60(Task* arg0)
             }
             goto advance;
         case 5:
-            GameFlag_SetNibble(0x7A, 6);
+            GameFlag_SetNibble(GAME_FLAG_STORY_CHAPTER, 6);
             Task_SpawnFromTable(D_shelter_1f_bulwark_80180360, 0, 0, 0);
         case 4:
         case 6:

@@ -25,10 +25,10 @@ void generatorLifeSupportTeardown(Enemy* arg0, Task* arg1)
             SndEvt_EnqueueType7(parentWork->field_31C, 1);
             if (part->field_46 == 0) {
                 func_neo_ark_power_plant_2_8017FD88(0);
-                GameFlag_SetNibble(0x147, 1);
+                GameFlag_SetNibble(GAME_FLAG_POWER_PLANT_2_GENERATOR_PART_DOWN, 1);
             } else {
                 func_neo_ark_power_plant_1_8017E524(0);
-                GameFlag_SetNibble(0x148, 1);
+                GameFlag_SetNibble(GAME_FLAG_POWER_PLANT_1_GENERATOR_PART_DOWN, 1);
             }
         }
         if ((s16)part->field_42 >= 0x3D) {

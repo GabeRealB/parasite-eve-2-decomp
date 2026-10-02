@@ -72,7 +72,7 @@ s32 func_acropolis_fountain_8017D604(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
         }
         if (in->areaId == msgId && in->queryOnly == ROOM_EVENT_EXECUTE) {
             if (GameFlag_GetNibble(0) < 2) {
-                if (GameFlag_GetNibble(0x21) < 2) {
+                if (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < 2) {
                     out->room = 1;
                 } else {
                     out->room = 2;
@@ -82,11 +82,11 @@ s32 func_acropolis_fountain_8017D604(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
             }
         }
     } else if (msgId == 9) {
-        if (GameFlag_GetNibble(9) & 1) {
+        if (GameFlag_GetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 1) {
             out->room = 2;
         }
-        if (in->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(0x13) == 0) {
-            GameFlag_SetNibble(0x13, 1);
+        if (in->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(GAME_FLAG_FOUNTAIN_FORKED_ROAD_PATH_USED) == 0) {
+            GameFlag_SetNibble(GAME_FLAG_FOUNTAIN_FORKED_ROAD_PATH_USED, 1);
         }
     }
     return 1;
@@ -104,12 +104,12 @@ s32 func_acropolis_fountain_8017D77C(Task* task, s32 msgId, s32 arg2, s32 arg3)
     s32 args[2];
 
     if (arg2 == 3) {
-        Gp_RunCapCmd1(((GameFlag_GetNibble(9) & 2) == 0) ? 3 : 6);
+        Gp_RunCapCmd1(((GameFlag_GetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 2) == 0) ? 3 : 6);
     }
     if (arg2 == 4) {
         Gp_StartCapSlot(4, 1, 0);
         func_acropolis_fountain_8017DA1C();
-        GameFlag_SetNibble(0x12, 1);
+        GameFlag_SetNibble(GAME_FLAG_ACROPOLIS_FOUNTAIN_012, 1);
     }
     return 0;
 }
@@ -118,13 +118,13 @@ s32 func_acropolis_fountain_8017D7F4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     switch (arg2) {
         case 3:
-            SndEvt_EnqueueType6(0x51080003, 0, 0);
+            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_FOUNTAIN, 3), 0, 0);
             break;
         case 4:
-            SndEvt_EnqueueType6(0x51080004, 0, 0);
+            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_FOUNTAIN, 4), 0, 0);
             break;
         case 9:
-            SndEvt_EnqueueType6(0x51080009, 0, 0);
+            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_FOUNTAIN, 9), 0, 0);
             break;
     }
     return 0;
@@ -145,7 +145,7 @@ void func_acropolis_fountain_8017D868(Task* task)
             /* fallthrough */
 
         case 2:
-            SndEvt_EnqueueType7(0x80000000, 0);
+            SndEvt_EnqueueType7(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_ACROPOLIS_PATIO;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 3;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_acropolis_fountain_80183BB0;
@@ -161,7 +161,7 @@ static void func_acropolis_fountain_8017D960(Task* arg0)
 {
     arg0->msgTable = D_acropolis_fountain_8017E764;
     Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if (GameFlag_GetNibble(0x12) != 0) {
+    if (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_FOUNTAIN_012) != 0) {
         func_acropolis_fountain_8017DA1C();
     }
     arg0->state = (s32)(arg0->state + 1);

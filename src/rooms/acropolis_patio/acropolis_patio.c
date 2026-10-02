@@ -1773,13 +1773,13 @@ static void func_acropolis_patio_8017D5EC(Task* arg0)
             TASK_MESSAGE_DISPATCH_POINTER(temp, 0x7D4, &D_acropolis_patio_8018046C, 0);
         }
     }
-    if ((gGameSession->location.loc.variant == 1) && (GameFlag_GetNibble(0x21) < 2) && (GameFlag_GetNibble(0x21) < 2)) {
+    if ((gGameSession->location.loc.variant == 1) && (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < 2) && (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < 2)) {
         temp = Gp_LookupSlot4(1);
         if (temp != 0) {
             TASK_MESSAGE_DISPATCH_POINTER(temp, ACTOR_COMMAND_MESSAGE_APPLY, &D_acropolis_patio_80180440, 0);
         }
     }
-    if ((gGameSession->location.loc.variant == 2) && (GameFlag_GetNibble(0x26) == 0)) {
+    if ((gGameSession->location.loc.variant == 2) && (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_PATIO_026) == 0)) {
         msg.context.loc.stage = 1;
         msg.context.loc.area  = 3;
         msg.command           = 0;
@@ -1796,16 +1796,16 @@ s32 func_acropolis_patio_8017D7D0(s32 arg0, s32 arg1, AcropolisPatioMsg8* arg2, 
 
     *arg3 = *arg2;
     if (arg2->field_0 == 8) {
-        if ((GameFlag_GetNibble(9) & 2) && (arg2->field_5 == 0)) {
+        if ((GameFlag_GetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 2) && (arg2->field_5 == 0)) {
             arg3->field_3 = 2;
         }
     }
     if (arg2->field_0 == 4) {
-        if (GameFlag_GetNibble(8) < 2) {
+        if (GameFlag_GetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE) < 2) {
             var_v0 = 0;
             if (arg2->field_5 == 0) {
                 Gp_RunCapCmd1(3);
-                GameFlag_SetNibble(8, 1);
+                GameFlag_SetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE, 1);
                 Gp_SetNibbleIf(arg2->field_6, 2);
                 return 0;
             }
@@ -1814,9 +1814,9 @@ s32 func_acropolis_patio_8017D7D0(s32 arg0, s32 arg1, AcropolisPatioMsg8* arg2, 
         if (GameFlag_GetNibble(0) == 2) {
             var_v0 = 2;
             if (arg2->field_5 == 0) {
-                if (GameFlag_GetNibble(0x23) == 0) {
+                if (GameFlag_GetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_SCENE_SEEN) == 0) {
                     func_800E8634(D_acropolis_patio_80180DEC, 0, D_acropolis_patio_80180EDC);
-                    GameFlag_SetNibble(0x23, 1);
+                    GameFlag_SetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_SCENE_SEEN, 1);
                     return 2;
                 }
                 Gp_RunCapCmd1(8);
@@ -1824,7 +1824,7 @@ s32 func_acropolis_patio_8017D7D0(s32 arg0, s32 arg1, AcropolisPatioMsg8* arg2, 
             }
             return var_v0;
         }
-        if (GameFlag_GetNibble(8) == 2) {
+        if (GameFlag_GetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE) == 2) {
             var_v0 = 2;
             if (arg2->field_5 == 0) {
                 Task_SpawnFromTable(D_acropolis_patio_801802BC, 1, 0, 0);
@@ -1847,8 +1847,8 @@ block_17:
         }
         return var_v0;
     }
-    if ((arg2->field_5 == 0) && (GameFlag_GetNibble(0x21) == 3)) {
-        GameFlag_SetNibble(0x21, 4);
+    if ((arg2->field_5 == 0) && (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) == 3)) {
+        GameFlag_SetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS, 4);
     }
     temp_s1 = arg2->field_0;
     var_v0  = 1;
@@ -1883,8 +1883,8 @@ void func_acropolis_patio_8017DA5C(Task* task)
             return;
         case 2:
             if (Gp_GetCapEventKey() == state) {
-                GameFlag_SetNibble(8, 3);
-                SndEvt_EnqueueType6(0x51030004, 0, 0);
+                GameFlag_SetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE, 3);
+                SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 4), 0, 0);
             advance:
                 task->state = task->state + 1;
                 return;
@@ -1892,10 +1892,10 @@ void func_acropolis_patio_8017DA5C(Task* task)
             Gp_MsgPlayerWeapon(1);
             goto kill;
         case 3:
-            if (SndVoice_HasActiveId(0x51030004) != 0) {
+            if (SndVoice_HasActiveId(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 4)) != 0) {
                 return;
             }
-            SndEvt_EnqueueType7(0x80000000, 0);
+            SndEvt_EnqueueType7(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_ACROPOLIS_CAFETERIA;
             gDisplayState.spriteVariant                                = 1;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_acropolis_patio_80187064;
@@ -1911,20 +1911,20 @@ void func_acropolis_patio_8017DBAC(s32 arg0, s32 arg1, AcropolisPatioMsg8* arg2)
 {
     u8 state;
 
-    if ((arg2->field_2 == 0) && (GameFlag_GetNibble(0x21) < 2)) {
-        GameFlag_SetNibble(0x21, 3);
+    if ((arg2->field_2 == 0) && (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < 2)) {
+        GameFlag_SetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS, 3);
         func_800E8634(D_acropolis_patio_80180484, 0, D_acropolis_patio_801806AC);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 3;
         gGameSession->flowFlags                             = (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_HIDE_REEQUIPPED_WEAPON | GAME_SESSION_FLOW_REEQUIP_WEAPON);
     }
-    if ((arg2->field_2 == 1) && (GameFlag_GetNibble(0x21) == 3) &&
+    if ((arg2->field_2 == 1) && (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) == 3) &&
         (taskMessageDispatch(Gp_LookupSlot4(1), ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0)) {
-        GameFlag_SetNibble(0x21, 4);
+        GameFlag_SetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS, 4);
         func_800E8634(D_acropolis_patio_8018082C, 0, D_acropolis_patio_80180C64);
     }
     state = arg2->field_2;
-    if ((state == 2) && (GameFlag_GetNibble(0x26) == 0) && (GameFlag_GetNibble(0) == state)) {
-        GameFlag_SetNibble(0x26, 1);
+    if ((state == 2) && (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_PATIO_026) == 0) && (GameFlag_GetNibble(0) == state)) {
+        GameFlag_SetNibble(GAME_FLAG_ACROPOLIS_PATIO_026, 1);
         func_800E8634(D_acropolis_patio_8018280C, 0, D_acropolis_patio_80182BE4);
     }
 }
@@ -1973,7 +1973,7 @@ void func_acropolis_patio_8017DD80(Task* task)
             return;
         case 2:
             if (Gp_GetCapEventKey() == 1) {
-                GameFlag_SetNibble(0x15, 1);
+                GameFlag_SetNibble(GAME_FLAG_015, 1);
             }
             taskKill(task);
             return;

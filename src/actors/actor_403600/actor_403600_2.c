@@ -712,14 +712,14 @@ ge2:
 case0:
     if (work->field_7AC != 0) {
         work->field_7AC = 0;
-        SndEvt_EnqueueType9(0x50000000);
+        SndEvt_EnqueueType9(SOUND_AREA_BANK_ALL);
     }
     goto default_body;
 case1:
     func_actor_403600_801412D0(arg0, arg1);
     if (work->field_7AC == 0) {
         work->field_7AC = state;
-        SndEvt_EnqueueType8(0x50000000);
+        SndEvt_EnqueueType8(SOUND_AREA_BANK_ALL);
     }
     return;
 case2:
@@ -729,7 +729,7 @@ case2:
 default_body:
     if (((gDisplayState.pendingMode & DISPLAY_MODE_MENU_GROUP_MASK) == DISPLAY_MODE_GAME_MENU_GROUP) && (work->field_7AC == 0)) {
         work->field_7AC = 1;
-        SndEvt_EnqueueType8(0x50000000);
+        SndEvt_EnqueueType8(SOUND_AREA_BANK_ALL);
     }
     func_actor_403600_801396F8(arg1);
     temp_v0 = work->field_730;
@@ -1054,7 +1054,7 @@ static void func_actor_403600_801396F8(Task* arg0)
                 temp_s1->field_74A = 0;
                 temp_s1->field_736 = 4;
                 if (temp_s1->field_73A >= 0x46) {
-                    SndEvt_EnqueueType7(0x54160013, 0x14);
+                    SndEvt_EnqueueType7(SOUND_SHELTER_B2_POD_BTM_ENEMY_CHARGE, 0x14);
                     temp_v0_12            = arg0->work;
                     temp_v0_12->field_756 = 8;
                     temp_v0_12->field_778 = 0x10;
@@ -1087,7 +1087,7 @@ static void func_actor_403600_801396F8(Task* arg0)
                 }
                 temp_v0_14 = temp_s1->field_73A;
                 if (temp_v0_14 == 0xA) {
-                    SndEvt_EnqueueType7(0x54160013, 0x14);
+                    SndEvt_EnqueueType7(SOUND_SHELTER_B2_POD_BTM_ENEMY_CHARGE, 0x14);
                     temp_v0_14 = temp_s1->field_73A;
                 }
                 if (temp_v0_14 >= 0x1E) {
@@ -1509,7 +1509,7 @@ static void func_actor_403600_8013A444(Task* arg0)
             temp_s3->field_736 = 5U;
             temp_v0_3          = temp_s3->field_73A;
             if (temp_v0_3 == 0xA) {
-                SndEvt_EnqueueType7(0x54160013, 0x14);
+                SndEvt_EnqueueType7(SOUND_SHELTER_B2_POD_BTM_ENEMY_CHARGE, 0x14);
             }
             if (temp_s3->field_73A >= 0x1E) {
                 temp_v0_4            = ((Actor403600Work*)arg0->work);
@@ -1832,7 +1832,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                         Task_SpawnFromTable(D_actor_403600_801421A0, 1, (s32)(temp_s3->field_75A), arg0);
                     }
                     if (temp_s3->field_73A >= temp_s3->field_734) {
-                        SndEvt_EnqueueType7(0x54160008, 1);
+                        SndEvt_EnqueueType7(SOUND_SHELTER_B2_POD_BTM_ENEMY_VOLLEY, 1);
                         var_v0_6 = 7;
                     block_189:
                         temp_s3->field_73A = 0;
@@ -2183,7 +2183,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                         temp_s3->field_73C = 0U;
                     }
                     if (temp_s3->field_776 == (s16)temp_s3->field_794) {
-                        SndEvt_EnqueueType6(0x5416000F, 0, 0);
+                        SndEvt_EnqueueType6(SOUND_SHELTER_B2_POD_BTM_ENEMY_RUMBLE_LOOP, 0, 0);
                         func_actor_403600_8013C864(arg0);
                         temp_s3->field_746 = 3;
                         func_actor_403600_8013DFE0(arg0);
@@ -2206,8 +2206,8 @@ static void func_actor_403600_8013A444(Task* arg0)
                         }
                     }
                     if (temp_s3->field_776 >= ((s16)temp_s3->field_794 + 0x1E)) {
-                        SndEvt_EnqueueType7(0x5416000F, 1);
-                        SndEvt_EnqueueType6(0x54160010, 0, 0);
+                        SndEvt_EnqueueType7(SOUND_SHELTER_B2_POD_BTM_ENEMY_RUMBLE_LOOP, 1);
+                        SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM, 0x10), 0, 0);
                         temp_s3->field_73C = 0x320U;
                         temp_s3->field_76E = 0xA0;
                         temp_s3->field_732 = 4;
@@ -2337,7 +2337,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                         temp_s3->field_708 = (u16)(temp_s3->field_708 + (0xC00 / (s16)temp_s3->field_734));
                         if (temp_s3->field_73A == 0x30) {
                             Gp_SpawnPadLerp((s16)(((u16)temp_s3->field_734 - temp_a3) + 0x23), 0x40, 0xFF);
-                            SndEvt_EnqueueType6(0x54160001, 0, 0);
+                            SndEvt_EnqueueType6(SOUND_SHELTER_B2_POD_BTM_ENEMY_DRAIN_WINDUP, 0, 0);
                         }
                     }
                     func_actor_403600_8013F608(arg0);
@@ -2375,7 +2375,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                         temp_s0_28         = (s8)worldCoordGetOriginAudioPan(temp_s0_27);
                         temp_v0_33         = worldCoordGetOriginAudioDepth(temp_s0_27);
                         SndEvt_EnqueueType6(temp_s4, temp_s0_28, (s32)(((temp_v0_33 >> 0x1F) + temp_v0_33) << 0x17) >> 0x18);
-                        SndEvt_EnqueueType7(0x54160001, 1);
+                        SndEvt_EnqueueType7(SOUND_SHELTER_B2_POD_BTM_ENEMY_DRAIN_WINDUP, 1);
                     } else if (temp_v1_11 < 0x23) {
                         func_actor_403600_80141B60(arg0);
                     }
@@ -3013,7 +3013,7 @@ static void func_actor_403600_8013DAF4(Task* arg0, s32 arg1)
         temp_s1->field_732 = 0;
         temp_s1->field_7A2 = 0;
         Gp_HaltPadScripts();
-        SndEvt_EnqueueType7(0x54160001, 1);
+        SndEvt_EnqueueType7(SOUND_SHELTER_B2_POD_BTM_ENEMY_DRAIN_WINDUP, 1);
     }
 }
 
@@ -4918,7 +4918,7 @@ static void func_actor_403600_80141B24(Task* arg0)
     Actor403600Work* work = arg0->work;
 
     Gp_HaltPadScripts();
-    SndEvt_EnqueueType7(0x54160001, 1);
+    SndEvt_EnqueueType7(SOUND_SHELTER_B2_POD_BTM_ENEMY_DRAIN_WINDUP, 1);
     work->field_708 = 0;
 }
 

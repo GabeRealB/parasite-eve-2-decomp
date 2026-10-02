@@ -204,11 +204,11 @@ void func_dryfield_warehouse_8017D5E8(Task* task)
         return;
     }
     if (D_dryfield_warehouse_801821B8 == 0) {
-        SndEvt_EnqueueType6(0x52070005, 0, (s8)(((0x64 - vol) * 0x7F) / 100));
+        SndEvt_EnqueueType6(SOUND_WAREHOUSE_AMBIENCE, 0, (s8)(((0x64 - vol) * 0x7F) / 100));
     } else if (vol == 0) {
-        SndEvt_EnqueueType7(0x52070005, 0x1E);
+        SndEvt_EnqueueType7(SOUND_WAREHOUSE_AMBIENCE, 0x1E);
     } else {
-        SndEvt_EnqueueTypeA(0x52070005, 0, (s8)(((0x64 - vol) * 0x7F) / 100));
+        SndEvt_EnqueueTypeA(SOUND_WAREHOUSE_AMBIENCE, 0, (s8)(((0x64 - vol) * 0x7F) / 100));
     }
     D_dryfield_warehouse_801821B8 = vol;
 }
@@ -235,7 +235,7 @@ s32 func_dryfield_warehouse_8017D764(Task* arg0, s32 arg1, s32 arg2, TaskMessage
         }
 
         if (found != 0) {
-            GameFlag_SetNibble(0x3C, 1);
+            GameFlag_SetNibble(GAME_FLAG_WAREHOUSE_EVENT_SEEN, 1);
             gGameSession->eventState = 1;
             Task_SpawnOnDefaultList(D_dryfield_warehouse_8017F56C, 0, 0, 0);
             return 1;
@@ -252,7 +252,7 @@ s32 func_dryfield_warehouse_8017D824(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
 {
     *out = *in;
     if (in->areaId == GAME_AREA_DRYFIELD_DILAPIDATED_HOUSE) {
-        if (GameFlag_GetNibble(0x3C) != 0) {
+        if (GameFlag_GetNibble(GAME_FLAG_WAREHOUSE_EVENT_SEEN) != 0) {
             return 1;
         }
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
@@ -262,7 +262,7 @@ s32 func_dryfield_warehouse_8017D824(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
         return 0;
     }
     if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-        SndEvt_EnqueueType7(0x52070005, 0xF);
+        SndEvt_EnqueueType7(SOUND_WAREHOUSE_AMBIENCE, 0xF);
     }
     return 1;
 }

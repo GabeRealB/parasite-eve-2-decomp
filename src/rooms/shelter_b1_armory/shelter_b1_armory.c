@@ -227,10 +227,10 @@ void func_shelter_b1_armory_80180214(Task* task)
             D_80115768 = 0;
             Gp_MsgPlayerWeapon(0);
             if ((u16)task->spawnArg1.value == 1) {
-                SndEvt_EnqueueType6(0x540D0008, 0, 0);
+                SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ARMORY, 8), 0, 0);
             }
             if ((u16)task->spawnArg1.value == 2) {
-                SndEvt_EnqueueType6(0x540D0009, 0, 0);
+                SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ARMORY, 9), 0, 0);
             }
             Gp_StartCapSlot(task->spawnArg1.value >> 16, 0, 0);
             task->state++;
@@ -309,17 +309,17 @@ check:
     if (found != 0) {
         if (arg2 == 0x105) {
             gGameSession->eventState = 1;
-            if (GameFlag_GetNibble(0xF0) != 0) {
+            if (GameFlag_GetNibble(GAME_FLAG_SHELTER_B1_ARMORY_UNLOCKED) != 0) {
                 Task_SpawnOnDefaultList(D_shelter_b1_armory_801824E8, 0, 0x170003, 0);
             } else {
                 Task_SpawnOnDefaultList(D_shelter_b1_armory_801824E8, 0, 0x180002, 0);
-                GameFlag_SetNibble(0xF0, 1);
+                GameFlag_SetNibble(GAME_FLAG_SHELTER_B1_ARMORY_UNLOCKED, 1);
             }
             return 1;
         }
         if (arg2 == 0x121 || arg2 == 0x122) {
             gGameSession->eventState = 1;
-            if (GameFlag_GetNibble(0xF0) != 0) {
+            if (GameFlag_GetNibble(GAME_FLAG_SHELTER_B1_ARMORY_UNLOCKED) != 0) {
                 Task_SpawnOnDefaultList(D_shelter_b1_armory_801824E8, 0, 0x170003, 0);
             } else {
                 Task_SpawnOnDefaultList(D_shelter_b1_armory_801824E8, 0, 0x190001, 0);
@@ -341,14 +341,14 @@ s32 func_shelter_b1_armory_801805A8(Task* arg0, s32 arg1, RoomEventMsg* in, Room
         req.missingCapCmd = 1;
         req.firstSnd      = 0x540D0005;
         req.secondSnd     = 0x540D0001;
-        req.flagId        = 0xA6;
+        req.flagId        = GAME_FLAG_B1_ARMORY_STOREROOM_DOOR_UNLOCKED;
         req.collectedBit  = 0;
         return roomEventGate(&req, out);
     }
     if (in->areaId != GAME_AREA_SHELTER_B1_ARMORY) {
         return 1;
     }
-    if (GameFlag_GetNibble(0xF0) != 0) {
+    if (GameFlag_GetNibble(GAME_FLAG_SHELTER_B1_ARMORY_UNLOCKED) != 0) {
         return 1;
     }
     if (in->queryOnly == ROOM_EVENT_EXECUTE) {
@@ -362,10 +362,10 @@ s32 func_shelter_b1_armory_80180698(Task* arg0, s32 arg1, s32 arg2, TaskMessageA
 {
     switch (arg2) {
         case 12:
-            Gp_SpawnIfCapIdle(GameFlag_GetNibble(0xF0) == 0 ? 0xC : 0x17, 1);
+            Gp_SpawnIfCapIdle(GameFlag_GetNibble(GAME_FLAG_SHELTER_B1_ARMORY_UNLOCKED) == 0 ? 0xC : 0x17, 1);
             break;
         case 10:
-            Gp_SpawnIfCapIdle(GameFlag_GetNibble(0xF7) != 0 ? 0x10 : 0xA, 1);
+            Gp_SpawnIfCapIdle(GameFlag_GetNibble(GAME_FLAG_CONTROL_ROOM_RETURN_TAKEN) != 0 ? 0x10 : 0xA, 1);
             break;
     }
     return 0;

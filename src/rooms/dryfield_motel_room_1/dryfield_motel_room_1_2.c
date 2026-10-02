@@ -1061,10 +1061,10 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
             break;
         case 3:
         case 5:
-            SndEvt_EnqueueType6(0x400C0005, 0, 0);
+            SndEvt_EnqueueType6(SOUND_ID(SOUND_BANK_TYPE_CHARACTER, 0xC, 5), 0, 0);
             break;
         case 4:
-            SndEvt_EnqueueType6(0x400C0002, 0, 0);
+            SndEvt_EnqueueType6(SOUND_ID(SOUND_BANK_TYPE_CHARACTER, 0xC, 2), 0, 0);
             break;
         case 6:
             switch (work->field_2E) {

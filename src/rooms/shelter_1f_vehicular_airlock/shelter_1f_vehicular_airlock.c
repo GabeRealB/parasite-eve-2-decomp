@@ -378,7 +378,7 @@ s32 func_shelter_1f_vehicular_airlock_8017D7DC(Task* task, s32 msgId, RoomEventM
     *out = *in;
     func_map_neo_ark_80179B14(in, out);
     if (in->areaId == GAME_AREA_SHELTER_1F_BULWARK) {
-        if (GameFlag_GetNibble(0xB2) == 0) {
+        if (GameFlag_GetNibble(GAME_FLAG_SHELTER_1F_BULWARK_UNLOCKED) == 0) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_SetNibbleIf(in->flagId, 2);
                 Gp_RunCapCmd1(2);
@@ -387,14 +387,14 @@ s32 func_shelter_1f_vehicular_airlock_8017D7DC(Task* task, s32 msgId, RoomEventM
         }
         event.capCmd   = 4;
         event.stageSnd = 0x55020003;
-        event.flagId   = 0x15B;
+        event.flagId   = GAME_FLAG_VEHICULAR_AIRLOCK_TO_BULWARK_SCENE;
         event.fade     = 0;
         return _shelter1fVehicularAirlockStartEvent(out, &event);
     }
     if (in->areaId == GAME_AREA_SHELTER_1F_AIRLOCK) {
         event.capCmd   = 6;
         event.stageSnd = 0x55020001;
-        event.flagId   = 0x15A;
+        event.flagId   = GAME_FLAG_VEHICULAR_AIRLOCK_TO_AIRLOCK_SCENE;
         event.fade     = 0;
         return _shelter1fVehicularAirlockStartEvent(out, &event);
     }
@@ -409,7 +409,7 @@ s32 func_shelter_1f_vehicular_airlock_8017D988(Task* task, s32 msgId, TaskMessag
 s32 func_shelter_1f_vehicular_airlock_8017D990(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if (arg2 == 3) {
-        if (Gp_GetCurBit2Flag(6) == 2 && GameFlag_GetNibble(0x7A) >= 6) {
+        if (Gp_GetCurBit2Flag(6) == 2 && GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER) >= 6) {
             arg2 = 5;
         }
         Gp_SpawnIfCapIdle(arg2, 0);
@@ -487,7 +487,7 @@ void func_shelter_1f_vehicular_airlock_8017DAA0(Task* task)
             glowDrawAngledCapsule(&p[6], 0x200, 0, 0x210);
             glowDrawAngledCapsule(&p[8], 0x200, 0, 0x210);
             glowDrawAngledCapsule(&p[12], 0x200, 0, 0x111);
-            if (GameFlag_GetNibble(0xB2) == 1) {
+            if (GameFlag_GetNibble(GAME_FLAG_SHELTER_1F_BULWARK_UNLOCKED) == 1) {
                 func_shelter_1f_vehicular_airlock_8017E80C(&p[15], 0x804, 0x140, 0x21);
                 func_shelter_1f_vehicular_airlock_8017E80C(&p[16], 0xC0, 0x120, 0x210);
                 func_shelter_1f_vehicular_airlock_8017E80C(&p[17], -0xC0, 0x120, 0x210);

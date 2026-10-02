@@ -1009,7 +1009,7 @@ static void func_dryfield_breezeway_8017EB8C(Task* task, s16 arg1, s16 arg2)
         work->cursorX += (prompt->screen.xy.x - work->cursorX) >> 2;
         work->cursorY += (prompt->screen.xy.y - work->cursorY) >> 2;
         if (work->cursorX != work->field_58 || work->cursorY != work->field_5A) {
-            SndEvt_EnqueueType6(0x5216000D, 0, 0);
+            SndEvt_EnqueueType6(SOUND_BREEZEWAY_CURSOR_MOVE, 0, 0);
         }
     }
 
@@ -1396,7 +1396,7 @@ void func_dryfield_breezeway_8017FF7C(Task* task)
         return;
     }
     gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
-    if (GameFlag_GetNibble(0x5D) == 0) {
+    if (GameFlag_GetNibble(GAME_FLAG_BREEZEWAY_FIRST_EVENT_SEEN) == 0) {
         if (gGameSession->location.loc.view == 2) {
             limit           = (player->coord.t[0] - 5856) >> 7;
             eff->move.vx    = 12000;
@@ -1408,7 +1408,7 @@ void func_dryfield_breezeway_8017FF7C(Task* task)
                 Gp_SpawnEff(0x6003C, coord, (s32)(gRandomLcgState >> 16) % limit + 0x40, &eff->move);
             }
             if (eff->step == 0) {
-                SndEvt_EnqueueType6(0x5216000A, 0, 0);
+                SndEvt_EnqueueType6(SOUND_BREEZEWAY_EFFECT_LOOP, 0, 0);
                 eff->step = 1;
             }
         } else if (gGameSession->location.loc.view == 3) {
@@ -1422,14 +1422,14 @@ void func_dryfield_breezeway_8017FF7C(Task* task)
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 if (!((gRandomLcgState >> 16) & 3)) {
                     pan = (s8)worldCoordGetOriginAudioPan(coord);
-                    SndEvt_EnqueueType6(0x5216000B, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+                    SndEvt_EnqueueType6(SOUND_BREEZEWAY_EFFECT_BURST, pan, (s8)worldCoordGetOriginAudioDepth(coord));
                     eff->step = 2;
                 }
             }
         }
-    } else if (GameFlag_GetNibble(0x5D) == 1) {
+    } else if (GameFlag_GetNibble(GAME_FLAG_BREEZEWAY_FIRST_EVENT_SEEN) == 1) {
         if (eff->step != 0) {
-            SndEvt_EnqueueType7(0x5216000A, 0);
+            SndEvt_EnqueueType7(SOUND_BREEZEWAY_EFFECT_LOOP, 0);
             eff->step = 0;
         }
         if (eff->scale != 0) {

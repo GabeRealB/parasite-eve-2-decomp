@@ -668,8 +668,8 @@ void func_shelter_b3_garbage_incinerator_8017DCD4(Task* arg0)
             if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 break;
             }
-            SndEvt_EnqueueType6(0x5428000D, 0, 0);
-            SndEvt_EnqueueType6(0x54280010, 0, 0);
+            SndEvt_EnqueueType6(SOUND_SHELTER_B3_INCINERATOR_SWITCH_PRESS, 0, 0);
+            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR, 0x10), 0, 0);
             param1[2]             = 0x22;
             param1[3]             = 0;
             param1[0]             = 0;
@@ -747,7 +747,7 @@ static s16 func_shelter_b3_garbage_incinerator_8017DF24(Task* arg0)
 
     switch (work->state) {
         case 0:
-            SndEvt_EnqueueType6(0x5428000E, 0, 0);
+            SndEvt_EnqueueType6(SOUND_SHELTER_B3_INCINERATOR_LIFT_MOVE_2, 0, 0);
             work->startX = ref->coord.t[0];
             work->startY = ref->coord.t[1];
             work->startZ = ref->coord.t[2];
@@ -757,8 +757,8 @@ static s16 func_shelter_b3_garbage_incinerator_8017DF24(Task* arg0)
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             coord->coord.t[1]  += 15;
             if (D_shelter_b3_garbage_incinerator_80185B58[1].pos.vy < coord->coord.t[1] || (gGameSession->location.loc.view == 0x28 && gGameSession->skipEventIntro != 0)) {
-                SndEvt_EnqueueType7(0x5428000E, 1);
-                SndEvt_EnqueueType6(0x5428000F, 0, 0);
+                SndEvt_EnqueueType7(SOUND_SHELTER_B3_INCINERATOR_LIFT_MOVE_2, 1);
+                SndEvt_EnqueueType6(SOUND_SHELTER_B3_INCINERATOR_LIFT_JOLT, 0, 0);
                 coord->coord.t[1] = D_shelter_b3_garbage_incinerator_80185B58[1].pos.vy;
                 work->state++;
                 work->timer = 0;
@@ -872,8 +872,8 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
             DEF_REG(t);
             DEF_REG(want);
             if (kind == 1) {
-                SndEvt_EnqueueType6(0x5428000D, 0, 0);
-                SndEvt_EnqueueType6(0x54280003, 0, 0);
+                SndEvt_EnqueueType6(SOUND_SHELTER_B3_INCINERATOR_SWITCH_PRESS, 0, 0);
+                SndEvt_EnqueueType6(SOUND_SHELTER_B3_INCINERATOR_LIFT_MOVE, 0, 0);
                 if (gGameSession->location.loc.room < 4) {
                     gGameSession->location.loc.room                            = 2;
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
@@ -899,8 +899,8 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
             lift->composeStamp = GRAPHICS_COORD_DIRTY;
             lift->coord.t[1]  -= 3;
             if (lift->coord.t[1] < D_shelter_b3_garbage_incinerator_80185B58[0].pos.vy) {
-                SndEvt_EnqueueType7(0x54280003, 1);
-                SndEvt_EnqueueType6(0x54280004, 0, 0);
+                SndEvt_EnqueueType7(SOUND_SHELTER_B3_INCINERATOR_LIFT_MOVE, 1);
+                SndEvt_EnqueueType6(SOUND_SHELTER_B3_INCINERATOR_LIFT_STOP, 0, 0);
                 lift->coord.t[1] = D_shelter_b3_garbage_incinerator_80185B58[0].pos.vy;
                 landed           = 1;
             } else {
@@ -1083,7 +1083,7 @@ void func_shelter_b3_garbage_incinerator_8017F6D8(Task* arg0)
             }
             Task_SpawnFromTable(D_shelter_b3_garbage_incinerator_80187184, 0, 0xD0, 0);
             if (arg0->spawnArg1.value == 0) {
-                SndEvt_EnqueueType6(0x54280005, 0, 0);
+                SndEvt_EnqueueType6(SOUND_SHELTER_B3_INCINERATOR_ALERT, 0, 0);
             }
             break;
         case 1:
@@ -1164,7 +1164,7 @@ void func_shelter_b3_garbage_incinerator_8017F9B4(s32 arg0)
     GarbageIncineratorWork* work = D_shelter_b3_garbage_incinerator_8018FC3C->work;
 
     if (arg0 == 0) {
-        SndEvt_EnqueueType6(0x54280008, 0, 0);
+        SndEvt_EnqueueType6(SOUND_SHELTER_B3_INCINERATOR_BLAZE, 0, 0);
         Gp_PulseState1C();
         gGameSession->enemyCullZone = 0x10;
         work->child                 = Task_SpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 3, 0, 0);

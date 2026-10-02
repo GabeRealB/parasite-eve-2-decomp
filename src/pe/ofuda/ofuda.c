@@ -45,7 +45,7 @@ void ofudaEffectTask(Task* arg0)
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
     if ((state->field_3 == -2) || (gRoomEffectState->peEffectControl != ROOM_EFFECT_CONTROL_RUNNING)) {
-        SndEvt_EnqueueType7(0xE03D0001, 1);
+        SndEvt_EnqueueType7(SOUND_OFUDA_USE, 1);
         goto kill;
     }
 
@@ -58,7 +58,7 @@ void ofudaEffectTask(Task* arg0)
             mem->step             = 0x100 / arg0->spawnArg1.value;
             arg0->state           = 1;
             pan                   = (s8)worldCoordGetOriginAudioPan(coord);
-            SndEvt_EnqueueType6(0xE03D0001, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+            SndEvt_EnqueueType6(SOUND_OFUDA_USE, pan, (s8)worldCoordGetOriginAudioDepth(coord));
             return;
         case 1:
             mem->scale += mem->step;

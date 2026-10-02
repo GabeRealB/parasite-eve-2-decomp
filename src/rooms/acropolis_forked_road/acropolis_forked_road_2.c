@@ -1288,7 +1288,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
         case 5:
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
             func_800E9BDC(2, 0x9FF);
-            SndEvt_EnqueueType7(0x80000000, 0);
+            SndEvt_EnqueueType7(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_ACROPOLIS;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_ACROPOLIS_OBSERVATORY;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 4;

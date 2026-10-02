@@ -535,7 +535,7 @@ void func_neo_ark_substation_8017D608(Task* task)
 
     switch (task->state) {
         case 0:
-            SndEvt_EnqueueType6(0x55210003, (s8)pan, (s8)vol);
+            SndEvt_EnqueueType6(SOUND_NEO_ARK_SUBSTATION_AMBIENCE, (s8)pan, (s8)vol);
             task->state = task->state + 1;
             break;
         case 1:
@@ -549,7 +549,7 @@ void func_neo_ark_substation_8017D608(Task* task)
             task->state = task->state + 1;
             break;
         case 5:
-            SndEvt_EnqueueTypeA(0x55210003, (s8)pan, (s8)vol);
+            SndEvt_EnqueueTypeA(SOUND_NEO_ARK_SUBSTATION_AMBIENCE, (s8)pan, (s8)vol);
             task->state = 1;
             break;
     }
@@ -573,7 +573,7 @@ s32 func_neo_ark_substation_8017D724(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
 s32 func_neo_ark_substation_8017D768(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if (arg2 == 3) {
-        Gp_RunCapCmd1(GameFlag_GetNibble(0xDF) != 0 ? 3 : 5);
+        Gp_RunCapCmd1(GameFlag_GetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) != 0 ? 3 : 5);
     }
     return 0;
 }
@@ -591,7 +591,7 @@ static void func_neo_ark_substation_8017D7AC(Task* task)
 {
     task->msgTable = D_neo_ark_substation_8017E294;
     Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
-    if (GameFlag_GetNibble(0xDF) == 0) {
+    if (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0) {
         Task_SpawnFromTable(D_neo_ark_substation_8017E2BC, 0, 0, 0);
     }
     task->state = (s32)(task->state + 1);

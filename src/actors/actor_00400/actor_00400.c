@@ -2562,7 +2562,7 @@ static void Actor00400_Fn03920(Task* arg0)
             break;
         case 4:
             work->field_666 = 1;
-            nibble          = GameFlag_GetNibble(0xEB);
+            nibble          = GameFlag_GetNibble(GAME_FLAG_0EB);
             if (nibble != 2) {
                 obj->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
                 w                           = arg0->work;
@@ -2589,7 +2589,7 @@ static void Actor00400_Fn03920(Task* arg0)
             break;
         case 5:
             work->field_666 = 1;
-            nibble          = GameFlag_GetNibble(0xEB);
+            nibble          = GameFlag_GetNibble(GAME_FLAG_0EB);
             if (nibble != 2) {
                 obj->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
                 work->field_666             = 1;
@@ -2617,7 +2617,7 @@ static void Actor00400_Fn03920(Task* arg0)
             break;
         case 1:
             if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 45, 0, 0)) {
-                if (GameFlag_GetNibble(0xB7) == 0) {
+                if (GameFlag_GetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) == 0) {
                     work->field_666 = 1;
                     w               = arg0->work;
                     w->animStep     = 0x10;
@@ -4461,7 +4461,7 @@ static void Actor00400_Fn07C04(Task* arg0)
     obj  = arg0->spawnArg2.pointer;
     work = arg0->work;
     fns  = Actor00400_D00168;
-    if (GameFlag_GetNibble(0xBC) != 0) {
+    if (GameFlag_GetNibble(GAME_FLAG_SUBMARINE_TUNNEL_EVENT_SEEN) != 0) {
         work2            = arg0->work;
         work2->field_638 = 0xB;
         work2->subState  = 0;
@@ -5528,7 +5528,7 @@ static void Actor00400_Fn09A8C(Task* arg0)
     Actor100400Work* work;
 
     work = arg0->work;
-    if (work->field_65E == 2 || GameFlag_GetNibble(0xBC) != 0) {
+    if (work->field_65E == 2 || GameFlag_GetNibble(GAME_FLAG_SUBMARINE_TUNNEL_EVENT_SEEN) != 0) {
         work->subState = work->subState + 1;
     }
 }
@@ -5638,7 +5638,7 @@ static void Actor00400_Fn09D3C(Task* arg0)
     Actor100400Work* work;
 
     work = arg0->work;
-    if (GameFlag_GetNibble(0xEB) == 1) {
+    if (GameFlag_GetNibble(GAME_FLAG_0EB) == 1) {
         work->subState = 3;
     } else if (work->field_65E == 3) {
         work->subState = work->subState + 1;

@@ -41,17 +41,17 @@ void underpassSwitchTask(Task* task)
                     src.areaId    = 0x26;
                     src.queryOnly = ROOM_EVENT_EXECUTE;
                     if (s->queryOnly == ROOM_EVENT_EXECUTE) {
-                        if (GameFlag_GetNibble(0xC9) != 0) {
-                            if (GameFlag_GetNibble(0x53) != 0) {
+                        if (GameFlag_GetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN) != 0) {
+                            if (GameFlag_GetNibble(GAME_FLAG_053) != 0) {
                                 d->room = 2;
                             } else {
                                 d->room = 1;
                             }
-                            if (GameFlag_GetNibble(0x51) == 0) {
+                            if (GameFlag_GetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 0) {
                                 dst.room = dst.room + 2;
                             }
                         } else {
-                            if (GameFlag_GetNibble(0x51) != 0) {
+                            if (GameFlag_GetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) != 0) {
                                 d->room = 5;
                             } else {
                                 d->room = 6;

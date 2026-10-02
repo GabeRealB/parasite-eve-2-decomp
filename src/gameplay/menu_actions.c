@@ -242,7 +242,7 @@ void Gp_DrawPeEnergyCmd(UiList* arg0, UiObject* arg1)
         if (Gp_IsDebugAttachRoom() != 0) {
             arg0->field_22 = 0x41;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            SndEvt_EnqueueType6(3, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             arg1->resultValue = 0xC;
             arg1->result      = USER_INTERFACE_RESULT_CONFIRM;
         }
@@ -284,7 +284,7 @@ void Gp_DrawOptionCmd(UiList* arg0, UiObject* arg1)
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             obj = (UiObject*)arg1->owner->spawnArg2.pointer;
-            SndEvt_EnqueueType6(3, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             obj->resultValue = 0x24;
             obj->result      = USER_INTERFACE_RESULT_CONFIRM;
         }
@@ -445,7 +445,7 @@ static UiObject* Gp_OpenItemCmdMenu(UiList* arg0, UiObject* arg1, InventoryItemR
     obj           = NULL;
     Gp_SelItemRec = arg2;
     if (Pad_CheckButtons(0, 1, Pad_MaskConfirm)) {
-        SndEvt_EnqueueType6(3, 0, 0);
+        SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
         one = 1;
         obj = Ui_SpawnFromDesc(&D_8010EE6C, arg3, one, one, arg1);
         if (obj != NULL) {
@@ -527,7 +527,7 @@ void Gp_DrawSortCmd(UiList* arg0, UiObject* arg1)
     }
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            SndEvt_EnqueueType6(3, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             Gp_SortItems(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, 1);
         }
     }
@@ -651,7 +651,7 @@ void Gp_DrawUseCmd(UiList* arg0, UiObject* arg1)
     Text_DrawString(&req, Gp_StrUse);
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            SndEvt_EnqueueType6(3, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             Ui_SpawnFromDesc(&D_8010EF84, 0, 1, 1, arg1);
             arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
@@ -783,7 +783,7 @@ void Gp_DrawUsePrompt(UiList* arg0, UiObject* arg1)
     Text_DrawString(&req, Gp_StrUse);
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            SndEvt_EnqueueType6(3, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             Gp_SpawnItemUsePrompt(arg0, arg1);
             arg0->field_22 = 0x20;
         }
@@ -804,7 +804,7 @@ void Gp_DrawMovePrompt(UiList* arg0, UiObject* arg1)
     Text_DrawString(&req, Gp_StrMove);
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            SndEvt_EnqueueType6(3, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             arg0->field_22 = 0x23;
         }
     }
@@ -828,7 +828,7 @@ void Gp_DrawExchangeSlotCmd(UiList* arg0, UiObject* arg1)
     Text_DrawString(&req, Gp_StrExchange);
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            SndEvt_EnqueueType6(3, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             one = 1;
             obj = Ui_SpawnFromDesc(&D_8010ED00, one, one, 0x10, arg1);
             if (obj != NULL) {
@@ -870,7 +870,7 @@ void Gp_DrawOkCmd(UiList* arg0, UiObject* arg1)
     Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, Gp_StrOk, arg0->field_1C, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            SndEvt_EnqueueType6(3, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             arg0->field_22             = 6;
             arg0->field_20.signedValue = 0x36;
         }
@@ -882,7 +882,7 @@ void Gp_DrawCancelCmd(UiList* arg0, UiObject* arg1)
     Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, Gp_StrCancel, arg0->field_1C, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            SndEvt_EnqueueType6(3, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             arg0->field_22             = 6;
             arg0->field_20.signedValue = 0x35;
         }
@@ -897,11 +897,11 @@ void Gp_DrawYesCmd(UiList* arg0, UiObject* arg1)
     temp = arg0->field_C;
     if (temp == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            SndEvt_EnqueueType6(3, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             arg0->field_22             = 6;
             arg0->field_20.signedValue = 0x33;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
-            SndEvt_EnqueueType6(2, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
             arg0->field_B  = temp;
             arg0->field_22 = 0x41;
         }
@@ -913,7 +913,7 @@ void Gp_DrawNoCmd(UiList* arg0, UiObject* arg1)
     Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, Gp_StrNo, arg0->field_1C, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
-            SndEvt_EnqueueType6(4, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
             arg0->field_22             = 6;
             arg0->field_20.signedValue = 0x34;
         }
@@ -1015,7 +1015,7 @@ void Gp_MapTaskState2(Task* arg0)
                     if ((s8)Gp_MapRoomId != room) {
                         Gp_MapRoomId = room;
                         Display_SetDrawMode(3);
-                        SndEvt_EnqueueType6(0x15, 0, 0);
+                        SndEvt_EnqueueType6(SOUND_SYSTEM_CURSOR, 0, 0);
                         Gp_EnqueueMapRoomCd();
                         arg0->state = 1;
                     }
@@ -1032,7 +1032,7 @@ void Gp_MapTaskState2(Task* arg0)
                     if ((s8)Gp_MapRoomId != room) {
                         Gp_MapRoomId = room;
                         Display_SetDrawMode(3);
-                        SndEvt_EnqueueType6(0x15, 0, 0);
+                        SndEvt_EnqueueType6(SOUND_SYSTEM_CURSOR, 0, 0);
                         Gp_EnqueueMapRoomCd();
                         arg0->state = 1;
                     }
@@ -1042,7 +1042,7 @@ void Gp_MapTaskState2(Task* arg0)
         }
         if (Pad_CheckButtons(0, 1, 0x10) != 0) {
             D_8010F13D = func_800E3FCC(0xA2);
-            SndEvt_EnqueueType6(3, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             Ui_SpawnFromDesc(&D_8010F15C, 0, 1, 1, obj);
             obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
@@ -1489,12 +1489,12 @@ static void Gp_EnqueueMapRoomCd(void)
 
     Gp_MapRoomOff             = 0;
     gGameSession->loadedSndId = 0;
-    if ((gGameSession->location.loc.stage == GAME_STAGE_MINE_SHELTER) && ((s8)Gp_MapRoomId == 6) && (GameFlag_GetNibble(0xB7) == 0)) {
+    if ((gGameSession->location.loc.stage == GAME_STAGE_MINE_SHELTER) && ((s8)Gp_MapRoomId == 6) && (GameFlag_GetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) == 0)) {
         Gp_MapRoomOff = 1;
     }
     if (gGameSession->location.loc.stage == GAME_STAGE_SHELTER_NEO_ARK) {
         room = (s8)Gp_MapRoomId;
-        if ((room == 1) && (GameFlag_GetNibble(0xD9) == room)) {
+        if ((room == 1) && (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_ALTAR_SWITCH_STATE) == room)) {
             Gp_MapRoomOff = 3;
         }
     }
@@ -1688,10 +1688,10 @@ void Gp_HelpPanelTask(Task* arg0)
                 if (Pad_CheckButtons(0, 1, Pad_MaskCancel | 0x10) != 0) {
                     obj->resultValue = status;
                     obj->result      = USER_INTERFACE_RESULT_CONFIRM;
-                    SndEvt_EnqueueType6(4, 0, 0);
+                    SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
                 } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
                     obj->result = USER_INTERFACE_RESULT_CANCEL;
-                    SndEvt_EnqueueType6(4, 0, 0);
+                    SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
                 }
             }
             break;
@@ -1894,7 +1894,7 @@ void Gp_PeMenuListTask(Task* arg0)
     Ui_UpdateListNoAnim(menu, obj);
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
-            SndEvt_EnqueueType6(4, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
             obj->result = USER_INTERFACE_RESULT_CONFIRM;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
             obj->result = USER_INTERFACE_RESULT_CANCEL;
@@ -1953,7 +1953,7 @@ void Gp_DrawReviveCmd(UiList* arg0, UiObject* arg1)
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             item = -1;
-            SndEvt_EnqueueType6(3, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             if ((flags & 3) == 3) {
                 item = 0xD;
             }
@@ -2003,7 +2003,7 @@ void Gp_PeCommandMenuTask(Task* arg0)
     Ui_UpdateListNoAnim(menu, obj);
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
-            SndEvt_EnqueueType6(4, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
             obj->result = USER_INTERFACE_RESULT_CONFIRM;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
             obj->result = USER_INTERFACE_RESULT_CANCEL;
@@ -2162,13 +2162,13 @@ void Gp_DrawPeSlotRow(UiList* arg0, UiObject* arg1)
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             one = 1;
             obj = Ui_SpawnFromDesc(&D_8010F670, item, one, one, arg1);
-            SndEvt_EnqueueType6(3, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             if (obj != NULL) {
                 Ui_ClampDialogRect(&(obj)->panel, arg0, &(arg1)->panel);
                 arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             }
         } else if (Pad_CheckButtons(0, 1, 0x10) != 0) {
-            SndEvt_EnqueueType6(3, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             one = 1;
             Ui_SpawnFromDesc(&D_8010F7F8, item, one, one, arg1);
             arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -2224,7 +2224,7 @@ void func_800D29B0(Task* arg0)
     Ui_UpdateListNoAnim(menu, obj);
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
-            SndEvt_EnqueueType6(4, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
             obj->result = USER_INTERFACE_RESULT_CONFIRM;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
             obj->result = USER_INTERFACE_RESULT_CANCEL;
@@ -2234,7 +2234,7 @@ void func_800D29B0(Task* arg0)
 
             verticalObj  = arg0->nextSibling->spawnArg2.pointer;
             verticalMenu = &D_80114DF8[arg0->spawnArg1.value] + 1;
-            SndEvt_EnqueueType6(2, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
             verticalObj->panel.control.word = USER_INTERFACE_PANEL_FOCUS_TRANSFER;
             verticalMenu->field_10          = 0;
             obj->panel.control.word         = USER_INTERFACE_PANEL_INACTIVE;
@@ -2244,7 +2244,7 @@ void func_800D29B0(Task* arg0)
 
             verticalObj  = arg0->nextSibling->nextSibling->nextSibling->spawnArg2.pointer;
             verticalMenu = &D_80114DF8[arg0->spawnArg1.value] - 1;
-            SndEvt_EnqueueType6(2, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
             verticalObj->panel.control.word = USER_INTERFACE_PANEL_FOCUS_TRANSFER;
             verticalMenu->field_10          = verticalMenu->field_4 - 1;
             obj->panel.control.word         = USER_INTERFACE_PANEL_INACTIVE;
@@ -2256,7 +2256,7 @@ void func_800D29B0(Task* arg0)
 
                     nextObj  = arg0->nextSibling->nextSibling->spawnArg2.pointer;
                     nextMenu = &D_80114DF8[arg0->spawnArg1.value] + 2;
-                    SndEvt_EnqueueType6(2, 0, 0);
+                    SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
                     nextObj->panel.control.word = USER_INTERFACE_PANEL_FOCUS_TRANSFER;
                     last                        = nextMenu->field_4 - 1;
                     nextMenu->field_10          = menu->field_10;
@@ -2271,7 +2271,7 @@ void func_800D29B0(Task* arg0)
 
                 nextObj  = arg0->nextSibling->nextSibling->spawnArg2.pointer;
                 nextMenu = &D_80114DF8[arg0->spawnArg1.value] - 2;
-                SndEvt_EnqueueType6(2, 0, 0);
+                SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
                 nextObj->panel.control.word = USER_INTERFACE_PANEL_FOCUS_TRANSFER;
                 last                        = nextMenu->field_4 - 1;
                 nextMenu->field_10          = menu->field_10;
@@ -2798,7 +2798,7 @@ void Gp_MapMenuListTask(Task* arg0)
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
             obj->result = USER_INTERFACE_RESULT_CANCEL;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
-            SndEvt_EnqueueType6(4, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
             obj->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
@@ -3176,7 +3176,7 @@ void Gp_DrawUseAttachCmd(UiList* arg0, UiObject* arg1)
 
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            SndEvt_EnqueueType6(3, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             arg1->resultValue = 6;
             arg1->result      = USER_INTERFACE_RESULT_CONFIRM;
         }
@@ -3208,7 +3208,7 @@ void Gp_DrawKeyItemCmd(UiList* arg0, UiObject* arg1)
 
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            SndEvt_EnqueueType6(3, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             arg1->resultValue = 8;
             arg1->result      = USER_INTERFACE_RESULT_CONFIRM;
         }
@@ -3250,7 +3250,7 @@ void Gp_DrawPeSlotCmd(UiList* arg0, UiObject* arg1)
     Text_DrawString(&req, Gp_StrCancel2);
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            SndEvt_EnqueueType6(3, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             arg1->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
@@ -3281,7 +3281,7 @@ void Gp_DrawMapCmd(UiList* arg0, UiObject* arg1)
 
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            SndEvt_EnqueueType6(3, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             arg1->resultValue = 0x100;
             arg1->result      = USER_INTERFACE_RESULT_CONFIRM;
         }
@@ -3302,7 +3302,7 @@ void Gp_DrawDiscardCmd(UiList* arg0, UiObject* arg1)
     Text_DrawString(&req, Gp_StrDiscard2);
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            SndEvt_EnqueueType6(3, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             Ui_SpawnFromDesc(&D_8010F6FC, 0, 1, 1, arg1);
             arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
@@ -3444,7 +3444,7 @@ void Gp_DrawExaminePushCmd(UiList* arg0, UiObject* arg1)
     confirm = arg0->field_C;
     if (confirm == one) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            SndEvt_EnqueueType6(3, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             D_80114E88   = confirm;
             arg1->result = USER_INTERFACE_RESULT_CONFIRM;
         }
@@ -3466,7 +3466,7 @@ void Gp_DrawItemCmd(UiList* arg0, UiObject* arg1)
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             Ui_SpawnFromDesc(&D_8010EFBC, 0, 1, 1, arg1);
-            SndEvt_EnqueueType6(3, 0, 0);
+            SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             Ui_SetState4(arg1, arg1->owner);
             arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }

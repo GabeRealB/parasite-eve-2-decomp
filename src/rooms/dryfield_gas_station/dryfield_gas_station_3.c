@@ -627,8 +627,8 @@ static void func_dryfield_gas_station_801803C0(Task* task)
             break;
         case 1:
             TASK_MESSAGE_DISPATCH_POINTER((Task*)work->owner, 0x3E9, &D_dryfield_gas_station_80182E44[0], 0);
-            SndEvt_EnqueueType6(0x52010011, 0, 0);
-            SndEvt_EnqueueType6(0x52010012, 0, 0);
+            SndEvt_EnqueueType6(SOUND_GAS_STATION_CUTSCENE_LOOP, 0, 0);
+            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GAS_STATION, 0x12), 0, 0);
             break;
         case 2:
             cur = (DgsWork*)task->work;
@@ -643,7 +643,7 @@ static void func_dryfield_gas_station_801803C0(Task* task)
             taskMessageDispatch((Task*)work->owner, ANIMATION_MESSAGE_SET_RATE, 8, 0);
             break;
         case 3:
-            SndEvt_EnqueueType6(0x52010013, 0, 0);
+            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GAS_STATION, 0x13), 0, 0);
             TASK_MESSAGE_DISPATCH_POINTER((Task*)work->owner, 0x3E9, &D_dryfield_gas_station_80182E5C, 0);
             cur = (DgsWork*)task->work;
             if (cur->owner != NULL) {
@@ -719,7 +719,7 @@ static void func_dryfield_gas_station_801803C0(Task* task)
                 msg.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
                 TASK_MESSAGE_DISPATCH_POINTER((Task*)cur->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
             }
-            SndEvt_EnqueueType7(0x52010011, 0x3C);
+            SndEvt_EnqueueType7(SOUND_GAS_STATION_CUTSCENE_LOOP, 0x3C);
             SetDispMask(1);
             break;
         case 6:
@@ -839,7 +839,7 @@ void func_dryfield_gas_station_80180A60(void)
         script.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
         TASK_MESSAGE_DISPATCH_POINTER((Task*)work2->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &script, 0);
     }
-    SndEvt_EnqueueType7(0x52010011, 0x3C);
+    SndEvt_EnqueueType7(SOUND_GAS_STATION_CUTSCENE_LOOP, 0x3C);
     SetDispMask(1);
 }
 

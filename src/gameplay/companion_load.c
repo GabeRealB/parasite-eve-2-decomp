@@ -151,8 +151,8 @@ s32 Gp_PickCompanion(void)
 
     save  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     stage = save->state.location.loc.stage;
-    bytes = D_80114198[GameFlag_GetNibble(0x4B)].field_0;
-    if (bytes != NULL && D_80114198[GameFlag_GetNibble(0x4B)].field_4 == stage && bytes[save->state.location.loc.area - 1] != 0) {
+    bytes = D_80114198[GameFlag_GetNibble(GAME_FLAG_COMPANION_2_SCHEDULE)].field_0;
+    if (bytes != NULL && D_80114198[GameFlag_GetNibble(GAME_FLAG_COMPANION_2_SCHEDULE)].field_4 == stage && bytes[save->state.location.loc.area - 1] != 0) {
         GameSession* sess = gGameSession;
 
         save->state.companionType    = 2;
@@ -160,8 +160,8 @@ s32 Gp_PickCompanion(void)
         return (sess->companionType != 2) * 2;
     }
 
-    bytes = D_801141F0[GameFlag_GetNibble(0x4C)].field_0;
-    if (bytes != NULL && D_801141F0[GameFlag_GetNibble(0x4C)].field_4 == stage && (bytes[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] & 0xF)) {
+    bytes = D_801141F0[GameFlag_GetNibble(GAME_FLAG_COMPANION_1_SCHEDULE)].field_0;
+    if (bytes != NULL && D_801141F0[GameFlag_GetNibble(GAME_FLAG_COMPANION_1_SCHEDULE)].field_4 == stage && (bytes[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] & 0xF)) {
         GameSession* sess = gGameSession;
 
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType = 1;
@@ -177,8 +177,8 @@ s32 Gp_PickCompanion(void)
         return 1;
     }
 
-    bytes = D_80114248[GameFlag_GetNibble(0x4D)].field_0;
-    if (bytes != NULL && D_80114248[GameFlag_GetNibble(0x4D)].field_4 == stage && bytes[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] != 0) {
+    bytes = D_80114248[GameFlag_GetNibble(GAME_FLAG_COMPANION_3_SCHEDULE)].field_0;
+    if (bytes != NULL && D_80114248[GameFlag_GetNibble(GAME_FLAG_COMPANION_3_SCHEDULE)].field_4 == stage && bytes[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] != 0) {
         GameSession* sess = gGameSession;
 
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType    = 3;
@@ -206,27 +206,27 @@ void Gp_ApplyNpcRoomSnd(void)
     save  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     stage = save->state.location.loc.stage;
     if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(3, 32, 0, 0)) {
-        bytes = D_80114198[GameFlag_GetNibble(0x4B)].field_0;
+        bytes = D_80114198[GameFlag_GetNibble(GAME_FLAG_COMPANION_2_SCHEDULE)].field_0;
         if (bytes != NULL) {
-            if (D_80114198[GameFlag_GetNibble(0x4B)].field_4 == stage) {
+            if (D_80114198[GameFlag_GetNibble(GAME_FLAG_COMPANION_2_SCHEDULE)].field_4 == stage) {
                 if (bytes[save->state.location.loc.area - 1] != 0) {
                     flag = 1;
                     goto done;
                 }
             }
         }
-        bytes = D_801141F0[GameFlag_GetNibble(0x4C)].field_0;
+        bytes = D_801141F0[GameFlag_GetNibble(GAME_FLAG_COMPANION_1_SCHEDULE)].field_0;
         if (bytes != NULL) {
-            if (D_801141F0[GameFlag_GetNibble(0x4C)].field_4 == stage) {
+            if (D_801141F0[GameFlag_GetNibble(GAME_FLAG_COMPANION_1_SCHEDULE)].field_4 == stage) {
                 if (bytes[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] & 0xF) {
                     flag = 1;
                     goto done;
                 }
             }
         }
-        bytes = D_80114248[GameFlag_GetNibble(0x4D)].field_0;
+        bytes = D_80114248[GameFlag_GetNibble(GAME_FLAG_COMPANION_3_SCHEDULE)].field_0;
         if (bytes != NULL) {
-            if (D_80114248[GameFlag_GetNibble(0x4D)].field_4 == stage) {
+            if (D_80114248[GameFlag_GetNibble(GAME_FLAG_COMPANION_3_SCHEDULE)].field_4 == stage) {
                 if (bytes[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] != 0) {
                     flag = 1;
                     goto done;
@@ -248,7 +248,7 @@ void Gp_SetupCompanionActor(GpActorArg* arg0, u16* arg1)
     field = save->state.companionType;
     if (field != 0) {
         if (field == 2) {
-            Gp_SpawnAlly(arg0, save->state.companionType, GameFlag_GetNibble(0x4B), arg1);
+            Gp_SpawnAlly(arg0, save->state.companionType, GameFlag_GetNibble(GAME_FLAG_COMPANION_2_SCHEDULE), arg1);
         } else {
             Gp_SpawnAlly(arg0, field, 0, arg1);
         }

@@ -4152,7 +4152,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             return;
         case 7:
             if (work->timer == 0x1E) {
-                SndEvt_EnqueueType6(0x51050003, 0, 0);
+                SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 3), 0, 0);
             }
             work->timer = work->timer + 1;
             if (work->timer >= 0x3D) {
@@ -4194,7 +4194,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
                 Mem_ConfigureAuxHeap(gGameSession->location.loc.stage, gGameSession->location.loc.area);
                 Mem_SetActiveAuxHeap(1);
                 Tmd_AllocMissingBuffers();
-                SndEvt_EnqueueTypeB(0x51050005, 0x26);
+                SndEvt_EnqueueTypeB(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 5), 0x26);
                 task->state = task->state + 1;
                 return;
             }
@@ -4222,7 +4222,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
         case 11:
             work->timer = work->timer + 1;
             if (work->timer >= 0xB) {
-                SndEvt_EnqueueType6(0x5105000B, 0, 0);
+                SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 0x0B), 0, 0);
                 Task_SpawnFromTable(D_acropolis_plaza_80183824, 8, 8, 0);
                 work->timer = 0;
                 task->state = task->state + 1;
@@ -4263,7 +4263,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             return;
         case 15:
             if (CdCmd_IsIdle() != 0) {
-                SndEvt_EnqueueType7(0x51050002, 0xB4);
+                SndEvt_EnqueueType7(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 2), 0xB4);
                 taskMessageDispatch(work->slot3, GAME_ACTOR_MESSAGE_END_SCRIPTED, 1, 0);
                 Task_RequestKill(task, 0);
             }
@@ -4449,7 +4449,7 @@ static void func_acropolis_plaza_8017F9EC(Task* task)
             } else {
                 vol = (((0x73 - *frame) * 0x7F) / 120) + 0x5F;
             }
-            SndEvt_EnqueueTypeB(0x51050001, vol & 0xFF);
+            SndEvt_EnqueueTypeB(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 1), vol & 0xFF);
             break;
     }
 }
@@ -4698,7 +4698,7 @@ void func_acropolis_plaza_80180054(Task* task)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
             gDisplayState.spriteVariant                                 = 1;
             Gp_EnqueueHeldWeaponCd();
-            SndEvt_EnqueueType7(0x80000000, 0);
+            SndEvt_EnqueueType7(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0);
             Task_Spawn(0, 0x11, 0, 0);
             q->blockGamePause = 0;
             taskKill(task);

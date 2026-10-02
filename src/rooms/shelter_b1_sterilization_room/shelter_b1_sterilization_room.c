@@ -520,18 +520,18 @@ static void func_shelter_b1_sterilization_room_8017FABC(Task* task)
 
     task->msgTable = D_shelter_b1_sterilization_room_80184E40;
     Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
-    if (gGameSession->location.loc.variant == 5 && GameFlag_GetNibble(0xEA) == 0) {
-        GameFlag_SetNibble(0xF4, 3);
+    if (gGameSession->location.loc.variant == 5 && GameFlag_GetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE) == 0) {
+        GameFlag_SetNibble(GAME_FLAG_UNDERGROUND_PARKING_STATE, 3);
         Gp_ApplyAreaRecs(D_shelter_b1_sterilization_room_8018C334);
         if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
-            GameFlag_SetNibble(0x116, 1);
-            GameFlag_SetNibble(0xEA, 2);
-            GameFlag_SetNibble(0x4B, 8);
+            GameFlag_SetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE, 1);
+            GameFlag_SetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE, 2);
+            GameFlag_SetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 8);
             func_800E8634(&D_80135D78, 0, &D_80136258);
             areaSetPlacementVariant(&gGameSession->location.loc, 6, AREA_VARIANT_RESET_ALWAYS);
         } else {
-            GameFlag_SetNibble(0x116, 2);
-            GameFlag_SetNibble(0xEA, 1);
+            GameFlag_SetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE, 2);
+            GameFlag_SetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE, 1);
             func_800E8634(&D_80135AC0, 0, &D_80136258);
         }
     }
@@ -542,7 +542,7 @@ static void func_shelter_b1_sterilization_room_8017FABC(Task* task)
             TASK_MESSAGE_DISPATCH_POINTER(target, ACTOR_COMMAND_MESSAGE_APPLY, &D_shelter_b1_sterilization_room_80184E7C, 0);
         }
     }
-    if (GameFlag_GetNibble(0xEA) != 1) {
+    if (GameFlag_GetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE) != 1) {
         (D_shelter_b1_sterilization_room_8018B8A8 + 22)[0].flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
     }
     if (gGameSession->location.loc.variant == 1) {
@@ -559,17 +559,17 @@ s32 func_shelter_b1_sterilization_room_8017FC78(Task* task, s32 msgId, Direction
 
     switch (msg->actionId) {
         case 1:
-            if (GameFlag_GetNibble(0x76) == 0) {
-                if (GameFlag_GetNibble(0x84) != 0) {
+            if (GameFlag_GetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_TRIGGERED) == 0) {
+                if (GameFlag_GetNibble(GAME_FLAG_B2_NORTH_WALKWAY_SCENE_SEEN) != 0) {
                     func_800E8634(D_shelter_b1_sterilization_room_8018873C, 0,
                                   D_shelter_b1_sterilization_room_80188AB4);
-                    GameFlag_SetNibble(0x76, 1);
+                    GameFlag_SetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_TRIGGERED, 1);
                 }
             }
             break;
         case 2:
-            if (GameFlag_GetNibble(0x76) == 1) {
-                if (GameFlag_GetNibble(0x77) == 0) {
+            if (GameFlag_GetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_TRIGGERED) == 1) {
+                if (GameFlag_GetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED) == 0) {
                     Task_SpawnFromTable(D_shelter_b1_sterilization_room_80188504, 1, 0, 0);
                 } else {
                     Gp_RunCapCmd1(0x17);
@@ -594,11 +594,11 @@ s32 func_shelter_b1_sterilization_room_8017FC78(Task* task, s32 msgId, Direction
                     mask = 0xFF;
                     break;
             }
-            if (GameFlag_GetNibble(0x76) == 0 || GameFlag_GetNibble(0x77) == 1) {
-                flags = GameFlag_GetNibble(0xF2);
+            if (GameFlag_GetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_TRIGGERED) == 0 || GameFlag_GetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED) == 1) {
+                flags = GameFlag_GetNibble(GAME_FLAG_STERILIZATION_ROOM_NOTES_SHOWN);
                 if (cmd != 0 && !(flags & mask)) {
                     Gp_RunCapCmd1(cmd);
-                    GameFlag_SetNibble(0xF2, flags | mask);
+                    GameFlag_SetNibble(GAME_FLAG_STERILIZATION_ROOM_NOTES_SHOWN, flags | mask);
                 }
                 Task_SpawnFromTable(D_shelter_b1_sterilization_room_80188504, 2, msg->actionId - 3, 0);
             } else {
@@ -609,38 +609,38 @@ s32 func_shelter_b1_sterilization_room_8017FC78(Task* task, s32 msgId, Direction
         case 6:
         case 7:
         case 10:
-            if (GameFlag_GetNibble(0x76) == 0 || GameFlag_GetNibble(0x77) == 1) {
+            if (GameFlag_GetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_TRIGGERED) == 0 || GameFlag_GetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED) == 1) {
                 Task_SpawnFromTable(D_shelter_b1_sterilization_room_80188504, 4, msg->actionId - 3, 0);
             } else {
                 Gp_RunCapCmd1(0xA);
             }
             break;
         case 9:
-            if (GameFlag_GetNibble(0x76) == 0 || GameFlag_GetNibble(0x77) == 1) {
-                if (GameFlag_GetNibble(0x149) == 0) {
+            if (GameFlag_GetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_TRIGGERED) == 0 || GameFlag_GetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED) == 1) {
+                if (GameFlag_GetNibble(GAME_FLAG_SHELTER_B1_STERILIZATION_ROOM_149) == 0) {
                     Task_SpawnFromTable(D_shelter_b1_sterilization_room_80188504, 8, 1, 0);
                 } else {
-                    if (GameFlag_GetNibble(0x150) == 0) {
+                    if (GameFlag_GetNibble(GAME_FLAG_STERILIZATION_ROOM_ACTION9_SCENE) == 0) {
                         Task_SpawnFromTable(D_shelter_b1_sterilization_room_80188504, 8, 2, 0);
-                        GameFlag_SetNibble(0x150, 1);
+                        GameFlag_SetNibble(GAME_FLAG_STERILIZATION_ROOM_ACTION9_SCENE, 1);
                     }
                     Task_SpawnFromTable(D_shelter_b1_sterilization_room_80188504, 2, msg->actionId - 3, 0);
                 }
             }
             break;
         case 4:
-            if (GameFlag_GetNibble(0x77) == 0) {
-                if (GameFlag_GetNibble(0x151) == 0) {
+            if (GameFlag_GetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED) == 0) {
+                if (GameFlag_GetNibble(GAME_FLAG_STERILIZATION_ROOM_ACTION4_SCENE) == 0) {
                     Task_SpawnFromTable(D_shelter_b1_sterilization_room_80188504, 8, 3, 0);
-                    GameFlag_SetNibble(0x151, 1);
+                    GameFlag_SetNibble(GAME_FLAG_STERILIZATION_ROOM_ACTION4_SCENE, 1);
                 }
-            } else if (GameFlag_GetNibble(0x151) < 2) {
-                if (GameFlag_GetNibble(0x14A) == 0) {
+            } else if (GameFlag_GetNibble(GAME_FLAG_STERILIZATION_ROOM_ACTION4_SCENE) < 2) {
+                if (GameFlag_GetNibble(GAME_FLAG_SHELTER_B1_STERILIZATION_ROOM_14A) == 0) {
                     Task_SpawnFromTable(D_shelter_b1_sterilization_room_80188504, 8, 4, 0);
                 } else {
                     Task_SpawnFromTable(D_shelter_b1_sterilization_room_80188504, 8, 5, 0);
                 }
-                GameFlag_SetNibble(0x151, 2);
+                GameFlag_SetNibble(GAME_FLAG_STERILIZATION_ROOM_ACTION4_SCENE, 2);
             }
             Task_SpawnFromTable(D_shelter_b1_sterilization_room_80188504, 2, msg->actionId - 3, 0);
             break;
@@ -651,8 +651,8 @@ s32 func_shelter_b1_sterilization_room_8017FC78(Task* task, s32 msgId, Direction
 s32 func_shelter_b1_sterilization_room_8017FF80(s32 arg0, s32 arg1, s32 arg2)
 {
     if (arg2 == 0x11) {
-        if (GameFlag_GetNibble(0x161) == 0) {
-            GameFlag_SetNibble(0x161, 1);
+        if (GameFlag_GetNibble(GAME_FLAG_STERILIZATION_ROOM_FIRST_SCENE) == 0) {
+            GameFlag_SetNibble(GAME_FLAG_STERILIZATION_ROOM_FIRST_SCENE, 1);
             Gp_SpawnIfCapIdle(0x18, 1);
             return;
         }
@@ -676,14 +676,14 @@ s32 func_shelter_b1_sterilization_room_8017FF80(s32 arg0, s32 arg1, s32 arg2)
         Task_SpawnFromTable(D_shelter_b1_sterilization_room_80188504, 7, 1, 0);
     }
     if (arg2 == 0xE) {
-        if (GameFlag_GetNibble(0x76) == 1 && GameFlag_GetNibble(0x77) == 0) {
-            if (GameFlag_GetNibble(0x14F) == 0) {
+        if (GameFlag_GetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_TRIGGERED) == 1 && GameFlag_GetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED) == 0) {
+            if (GameFlag_GetNibble(GAME_FLAG_SHELTER_B1_STERILIZATION_ROOM_14F) == 0) {
                 Gp_MsgPlayerWeapon(0);
                 func_800E8634(D_shelter_b1_sterilization_room_80188ED4, 0, D_shelter_b1_sterilization_room_80188FDC);
-                GameFlag_SetNibble(0x14F, 1);
+                GameFlag_SetNibble(GAME_FLAG_SHELTER_B1_STERILIZATION_ROOM_14F, 1);
             } else {
                 Task_SpawnFromTable(D_shelter_b1_sterilization_room_80188504, 8, 0xB, 0);
-                GameFlag_SetNibble(0x14F, 2);
+                GameFlag_SetNibble(GAME_FLAG_SHELTER_B1_STERILIZATION_ROOM_14F, 2);
             }
         } else {
             Gp_RunCapCmd1(arg2);
@@ -757,7 +757,7 @@ static void func_shelter_b1_sterilization_room_80180340(s32 arg0)
         task = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     }
     if (slot != NULL) {
-        if (gGameSession->location.loc.variant == 5 && GameFlag_GetNibble(0xEA) == 1) {
+        if (gGameSession->location.loc.variant == 5 && GameFlag_GetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE) == 1) {
             D_shelter_b1_sterilization_room_80184E80[1] = 0;
         } else {
             D_shelter_b1_sterilization_room_80184E80[1] = 0x2710;
@@ -785,7 +785,7 @@ s32 func_shelter_b1_sterilization_room_801803EC(s32 arg0, s32 arg1, RoomEventMsg
 s32 func_shelter_b1_sterilization_room_80180430(s32 arg0, s32 arg1, s32 arg2)
 {
     if (arg2 == 0x63) {
-        SndEvt_EnqueueType6(0x54100016, 0, 0);
+        SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, 0x16), 0, 0);
     }
     return 0;
 }
@@ -802,7 +802,7 @@ static void func_shelter_b1_sterilization_room_8018049C(void)
     s32 view;
 
     view = gGameSession->location.loc.view;
-    if ((GameFlag_GetNibble(0xEA) == 1) && (gGameSession->eventState == 0)) {
+    if ((GameFlag_GetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE) == 1) && (gGameSession->eventState == 0)) {
         if (view == 2 || view == 3) {
             Gp_MsgSlot4Chain(0, 1);
         } else {
@@ -977,7 +977,7 @@ void func_shelter_b1_sterilization_room_80180D74(Task* task)
     switch (task->state) {
         case 0:
             Gp_MsgPlayerWeapon(0);
-            SndEvt_EnqueueType6(0x5410000A, 0, 0);
+            SndEvt_EnqueueType6(SOUND_SHELTER_B1_STERILIZATION_DOOR_OPEN, 0, 0);
             task->state++;
             break;
         case 1:
@@ -994,7 +994,7 @@ void func_shelter_b1_sterilization_room_80180D74(Task* task)
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9,
                                           &D_shelter_b1_sterilization_room_80188668[D_shelter_b1_sterilization_room_80188728[task->spawnArg1.value].msg],
                                           0);
-            SndEvt_EnqueueType6(0x5410000B, 0, 0);
+            SndEvt_EnqueueType6(SOUND_SHELTER_B1_STERILIZATION_DOOR_CLOSE, 0, 0);
             Fade_DrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
             task->state++;
             break;
@@ -1025,7 +1025,7 @@ void func_shelter_b1_sterilization_room_80180F74(Task* task)
             task->state++;
             return;
         case 1:
-            if (GameFlag_GetNibble(0x77) == 0) {
+            if (GameFlag_GetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED) == 0) {
                 if (gGameSession->eventState == 0 && gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
                     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                     task->killCountdown++;
@@ -1038,7 +1038,7 @@ void func_shelter_b1_sterilization_room_80180F74(Task* task)
                             Gp_PlayerWeaponId(&D_shelter_b1_sterilization_room_80188624.source.index);
                             TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_PLAY, &D_shelter_b1_sterilization_room_80188624, 0);
                             pan = (s8)worldCoordGetOriginAudioPan(coord);
-                            SndEvt_EnqueueType6(0x54100011, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+                            SndEvt_EnqueueType6(SOUND_SHELTER_B1_STERILIZATION_PLAYER_HURT, pan, (s8)worldCoordGetOriginAudioDepth(coord));
                             task->killCountdown = 0;
                         }
                         st           = &Gp_StateC08;
@@ -1050,12 +1050,12 @@ void func_shelter_b1_sterilization_room_80180F74(Task* task)
                     return;
                 }
                 if (task->spawnArg1.value == 0) {
-                    SndEvt_EnqueueType7(0x54100011, 1);
+                    SndEvt_EnqueueType7(SOUND_SHELTER_B1_STERILIZATION_PLAYER_HURT, 1);
                     task->spawnArg1.value = 1;
                 }
                 return;
             }
-            SndEvt_EnqueueType7(0x54100011, 1);
+            SndEvt_EnqueueType7(SOUND_SHELTER_B1_STERILIZATION_PLAYER_HURT, 1);
         default:
             taskKill(task);
             break;

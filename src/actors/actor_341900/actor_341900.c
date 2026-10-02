@@ -978,7 +978,7 @@ void func_actor_341900_80162EFC(Task* arg0)
             return;
         case 2:
             if (gGameSession->eventState == 0) {
-                GameFlag_SetNibble(0x11D, 2);
+                GameFlag_SetNibble(GAME_FLAG_11D, 2);
                 Task_RequestKill(arg0, 0);
                 return;
             }

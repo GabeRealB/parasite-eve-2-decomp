@@ -1479,7 +1479,7 @@ static void func_mine_forked_tunnel_8017D5E8(Task* arg0)
     arg0->work     = work;
     work->field_44 = -1;
 
-    if (GameFlag_GetNibble(0x75) == 0) {
+    if (GameFlag_GetNibble(GAME_FLAG_MINE_FORKED_TUNNEL_SWITCH_USED) == 0) {
         placement.pos.vx = D_mine_forked_tunnel_80181244[0].vx;
         placement.pos.vy = D_mine_forked_tunnel_80181244[0].vy;
         placement.pos.vz = D_mine_forked_tunnel_80181244[0].vz;
@@ -1495,7 +1495,7 @@ static void func_mine_forked_tunnel_8017D5E8(Task* arg0)
     func_mine_forked_tunnel_8017DC70(arg0);
     work->field_40 = Task_SpawnFromTable(D_mine_forked_tunnel_80181B74, 1, 0, arg0);
     arg0->msgTable = D_mine_forked_tunnel_80181B8C;
-    func_mine_forked_tunnel_8017DF34(GameFlag_GetNibble(0x75));
+    func_mine_forked_tunnel_8017DF34(GameFlag_GetNibble(GAME_FLAG_MINE_FORKED_TUNNEL_SWITCH_USED));
     arg0->exitCallback = func_mine_forked_tunnel_8017DC50;
     arg0->state++;
 }
@@ -1610,7 +1610,7 @@ s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 arg1, ActorCommand* msg)
                     RotMatrixZYX(&coord->param.rot, &coord->coord);
                     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 
-                    func_mine_forked_tunnel_8017DF34(GameFlag_GetNibble(0x75));
+                    func_mine_forked_tunnel_8017DF34(GameFlag_GetNibble(GAME_FLAG_MINE_FORKED_TUNNEL_SWITCH_USED));
                     task->spawnArg1.value = 0;
                     break;
             } while (0);
@@ -1834,7 +1834,7 @@ s32 func_mine_forked_tunnel_8017E0F0(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
 s32 func_mine_forked_tunnel_8017E134(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if ((arg2 == 2) && (Gp_GetCurBit2Flag(1) == 1)) {
-        if (GameFlag_GetNibble(0x152) == 0) {
+        if (GameFlag_GetNibble(GAME_FLAG_MINE_FORKED_TUNNEL_152) == 0) {
             Gp_RunCapCmd1(5);
         } else {
             Task_SpawnFromTable(D_mine_forked_tunnel_80183104, 1, 0, 0);
@@ -1849,7 +1849,7 @@ s32 func_mine_forked_tunnel_8017E19C(Task* task, s32 msgId, TaskMessageArg first
 {
     const DirectionActionRequest* request = firstArg.pointer;
 
-    if ((request->actionId == 1) && (GameFlag_GetNibble(0x75) == 0)) {
+    if ((request->actionId == 1) && (GameFlag_GetNibble(GAME_FLAG_MINE_FORKED_TUNNEL_SWITCH_USED) == 0)) {
         Task_SpawnFromTable(D_mine_forked_tunnel_80183104, 0, 0, 0);
     }
     return 0;
@@ -1885,7 +1885,7 @@ void func_mine_forked_tunnel_8017E25C(Task* task)
 
 void func_mine_forked_tunnel_8017E2B4(void)
 {
-    SndEvt_EnqueueTypeA(0x54070005, 0, 0);
+    SndEvt_EnqueueTypeA(SOUND_MINE_FORKED_TUNNEL_OBJECT_MOVE, 0, 0);
 }
 
 void func_mine_forked_tunnel_8017E2E0(Task* arg0)
@@ -1902,7 +1902,7 @@ void func_mine_forked_tunnel_8017E2E0(Task* arg0)
             if (Gp_CapBusy() == 0) {
                 if (Gp_GetCapEventKey() == state) {
                     func_800E8634(D_mine_forked_tunnel_801831AC, 0, D_mine_forked_tunnel_801834F4);
-                    GameFlag_SetNibble(0x75, 1);
+                    GameFlag_SetNibble(GAME_FLAG_MINE_FORKED_TUNNEL_SWITCH_USED, 1);
                 }
                 taskKill(arg0);
             }

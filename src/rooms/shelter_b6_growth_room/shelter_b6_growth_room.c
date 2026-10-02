@@ -61,7 +61,7 @@ s32 func_shelter_b6_growth_room_8017D5F0(Task* arg0, s32 arg1, RoomEventMsg* in,
 s32 func_shelter_b6_growth_room_8017D634(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if (arg2 == 1) {
-        if (GameFlag_GetNibble(0xD8) == 0) {
+        if (GameFlag_GetNibble(GAME_FLAG_0D8) == 0) {
             Gp_MsgPlayerWeapon(0);
             Task_SpawnFromTable(&D_80135E78, 3, 0, 0);
         } else {
@@ -69,7 +69,7 @@ s32 func_shelter_b6_growth_room_8017D634(Task* arg0, s32 arg1, s32 arg2, TaskMes
         }
     }
     if (arg2 == 0x10) {
-        Gp_SpawnIfCapIdle(GameFlag_GetNibble(0xD8) == 0 ? 0x10 : 0x11, 0);
+        Gp_SpawnIfCapIdle(GameFlag_GetNibble(GAME_FLAG_0D8) == 0 ? 0x10 : 0x11, 0);
     }
     return 0;
 }

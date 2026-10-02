@@ -445,7 +445,7 @@ static void func_actor_323300_80161E78(Task* arg0)
     TmdObject*          extra;
     WorldCollisionBody* obj;
 
-    if (GameFlag_GetNibble(0x60) != 0 || (work = memCalloc(0x504, 0)) == NULL) {
+    if (GameFlag_GetNibble(GAME_FLAG_TOILET_EVENT_SEEN) != 0 || (work = memCalloc(0x504, 0)) == NULL) {
         Gp_EnemyTaskExit(arg0);
         return;
     }
@@ -472,7 +472,7 @@ static void func_actor_323300_80161E78(Task* arg0)
     func_actor_323300_80162208(arg0, ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
     actorMsgPlaceEuler(arg0, 0x7D3, &D_actor_323300_8017259C, 0);
     actorMotionPlayAnim19(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_323300_801725B4, 0);
-    SndEvt_EnqueueType6(0x52100006, 0, 0x28);
+    SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET, 6), 0, 0x28);
     arg0->exitCallback = func_actor_323300_8016269C;
     arg0->state       += 1;
 }
@@ -505,15 +505,15 @@ static void func_actor_323300_80161FE8(Task* arg0)
         if (work->field_500 != 0) {
             if (work->rig.slots[1].flags & ANIMATION_SLOT_FOLLOWED_JUMP) {
                 if (gGameSession->location.loc.view == 2) {
-                    SndEvt_EnqueueType6(0x52100006, 0, 0x28);
+                    SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET, 6), 0, 0x28);
                 } else {
-                    SndEvt_EnqueueType6(0x52100006, 0, 0);
+                    SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET, 6), 0, 0);
                 }
             } else if (gGameSession->viewReady != 0) {
                 if (gGameSession->location.loc.view == 2) {
-                    SndEvt_EnqueueTypeA(0x52100006, 0, 0x28);
+                    SndEvt_EnqueueTypeA(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET, 6), 0, 0x28);
                 } else {
-                    SndEvt_EnqueueTypeA(0x52100006, 0, 0);
+                    SndEvt_EnqueueTypeA(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET, 6), 0, 0);
                 }
             }
         }
@@ -647,7 +647,7 @@ s32 func_actor_323300_80162360(Task* arg0, s32 arg1, ActorCommand* msg, ActorTra
                 taskKill(w->field_4B8);
             }
             w->field_500 = 0;
-            SndEvt_EnqueueType7(0x52100006, 1);
+            SndEvt_EnqueueType7(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET, 6), 1);
             break;
         case 12:
             w->walk.motion      = 1;

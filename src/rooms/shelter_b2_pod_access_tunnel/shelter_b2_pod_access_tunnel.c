@@ -123,16 +123,16 @@ s32 func_shelter_b2_pod_access_tunnel_8017D7C4(Task* task, s32 msgId, RoomEventM
     *out = *in;
     func_map_shelter_80179A04(in, out);
     if (in->areaId == GAME_AREA_SHELTER_R48) {
-        if (GameFlag_GetNibble(0xB4) == 0) {
+        if (GameFlag_GetNibble(GAME_FLAG_B2_POD_TUNNEL_R48_DOOR_UNLOCKED) == 0) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_SetNibbleIf(in->flagId, 2);
-                Gp_RunCapCmd1(GameFlag_GetNibble(0x7A) < 6 ? 2 : 6);
+                Gp_RunCapCmd1(GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER) < 6 ? 2 : 6);
             }
             return 0;
         }
     }
     if (in->areaId == GAME_AREA_SHELTER_B2_SEPTIC_TANK) {
-        if (GameFlag_GetNibble(0x118) == 2) {
+        if (GameFlag_GetNibble(GAME_FLAG_118) == 2) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_RunCapCmd1(4);
             }
@@ -140,7 +140,7 @@ s32 func_shelter_b2_pod_access_tunnel_8017D7C4(Task* task, s32 msgId, RoomEventM
         }
         event.capCmd   = 5;
         event.stageSnd = 0x54230001;
-        event.flagId   = 0x132;
+        event.flagId   = GAME_FLAG_B2_POD_TUNNEL_TO_SEPTIC_SCENE;
         event.fade     = 0;
         return _shelterB2PodAccessTunnelStartEvent(out, &event);
     }
@@ -159,7 +159,7 @@ void func_shelter_b2_pod_access_tunnel_8017D9A8(Task* task)
 
     switch (task->state) {
         case 0:
-            Gp_RunCapCmd1(GameFlag_GetNibble(0xFC) != 0 ? 3 : 1);
+            Gp_RunCapCmd1(GameFlag_GetNibble(GAME_FLAG_0FC) != 0 ? 3 : 1);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             goto L_advance;
         case 1:
@@ -168,18 +168,18 @@ void func_shelter_b2_pod_access_tunnel_8017D9A8(Task* task)
         case 2:
             if (Gp_GetCapEventKey() != 0xA) {
                 if (Gp_GetCapEventKey() == 1) {
-                    GameFlag_SetNibble(0x1B6, 2);
+                    GameFlag_SetNibble(GAME_FLAG_MAP_MARK_POD, 2);
                 }
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 taskKill(task);
                 Gp_MsgPlayerWeapon(1);
                 return;
             }
-            SndEvt_EnqueueType6(0x54230004, 0, 0);
-            GameFlag_SetNibble(0x1B6, 0);
+            SndEvt_EnqueueType6(SOUND_SHELTER_B2_POD_TUNNEL_RIDE_TO_B1, 0, 0);
+            GameFlag_SetNibble(GAME_FLAG_MAP_MARK_POD, 0);
             goto L_advance;
         case 3:
-            var_v0 = SndVoice_HasActiveId(0x54230004);
+            var_v0 = SndVoice_HasActiveId(SOUND_SHELTER_B2_POD_TUNNEL_RIDE_TO_B1);
         L_idle:
             if (var_v0 != 0) {
                 return;
@@ -188,7 +188,7 @@ void func_shelter_b2_pod_access_tunnel_8017D9A8(Task* task)
             task->state++;
             return;
         case 4:
-            SndEvt_EnqueueType7(0x80000000, 0);
+            SndEvt_EnqueueType7(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 3;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
@@ -221,7 +221,7 @@ s32 func_shelter_b2_pod_access_tunnel_8017DB70(Task* task, s32 msgId, TaskMessag
 s32 func_shelter_b2_pod_access_tunnel_8017DB78(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if (arg2 == 4) {
-        SndEvt_EnqueueType6(0x16, 0, 0);
+        SndEvt_EnqueueType6(SOUND_SYSTEM_CONFIRM, 0, 0);
     }
     return 0;
 }

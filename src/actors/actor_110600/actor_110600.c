@@ -2261,7 +2261,7 @@ static void func_actor_110600_80135B84(Task* arg0)
         work->field_0 = 3;
     }
     if (Actor110600_HasRec10000(work->recs)) {
-        SndEvt_EnqueueType6(0x401D000D, (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords),
+        SndEvt_EnqueueType6(SOUND_STRANGER_ATTACK_HIT, (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords),
                             (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         work->field_A90.flags = (u16)(work->field_A90.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
     }
@@ -2435,7 +2435,7 @@ static void func_actor_110600_80136210(Task* arg0)
             displaySetShakeY(0);
         } else {
             pan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-            SndEvt_EnqueueType6(0x401D0007, (s32)pan, (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+            SndEvt_EnqueueType6(SOUND_STRANGER_HURT, (s32)pan, (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         }
         work->field_8AA = Gp_GetIdParam2(sc->key);
         kind            = Gp_GetIdParam0(sc->key) & 0xFFFF;

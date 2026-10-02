@@ -746,7 +746,7 @@ s32 func_shelter_b2_north_maintenance_walkway_8017DA88(Task* arg0, s32 arg1, Roo
         req.missingCapCmd = 1;
         req.firstSnd      = 0x541E0003;
         req.secondSnd     = 0x541E0001;
-        req.flagId        = 0xA8;
+        req.flagId        = GAME_FLAG_OPERATING_ROOM_NORTH_DOOR_UNLOCKED;
         req.collectedBit  = 0x22;
         result            = roomEventGate(&req, out);
         if (result == 0) {
@@ -762,7 +762,7 @@ s32 func_shelter_b2_north_maintenance_walkway_8017DA88(Task* arg0, s32 arg1, Roo
     }
     event.capCmd   = 4;
     event.stageSnd = 0x541E0004;
-    event.flagId   = 0x137;
+    event.flagId   = GAME_FLAG_B2_NORTH_WALKWAY_TO_BREEDING_SCENE;
     event.fade     = 0;
     return _walkwayStartEvent(out, &event);
 }
@@ -785,10 +785,10 @@ s32 func_shelter_b2_north_maintenance_walkway_8017DC54(Task* arg0, s32 arg1, Roo
 {
     u8 subId = in->warp;
 
-    if (subId == 1 && GameFlag_GetNibble(0x84) == 0 && gGameSession->location.loc.variant == subId) {
+    if (subId == 1 && GameFlag_GetNibble(GAME_FLAG_B2_NORTH_WALKWAY_SCENE_SEEN) == 0 && gGameSession->location.loc.variant == subId) {
         func_800E8634(&D_80165354, 0, &D_80165834);
         func_800E3FAC(0xA2, 0x20);
-        GameFlag_SetNibble(0x84, 1);
+        GameFlag_SetNibble(GAME_FLAG_B2_NORTH_WALKWAY_SCENE_SEEN, 1);
         Gp_ApplyAreaRecs(D_shelter_b2_north_maintenance_walkway_80186380);
     }
     return 0;

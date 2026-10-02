@@ -199,7 +199,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
         if (D_801156CC != 0) {
             return;
         }
-        SndEvt_EnqueueType7(0x80000000, 0x10);
+        SndEvt_EnqueueType7(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0x10);
         return;
     }
     if (D_801156F0 != 0) {

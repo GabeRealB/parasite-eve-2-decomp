@@ -1160,7 +1160,7 @@ void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
             }
             if (mem->scale != 0) {
                 pan = (s8)worldCoordGetOriginAudioPan(coord);
-                SndEvt_EnqueueType6(0x51100001, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+                SndEvt_EnqueueType6(SOUND_HELICOPTER_LANDING_PAD_LIGHT_SPARK, pan, (s8)worldCoordGetOriginAudioDepth(coord));
                 mem->scale = 0;
                 eff        = Gp_SpawnEff(0x6003B, coord, 0x200, NULL);
                 if (eff != NULL) {

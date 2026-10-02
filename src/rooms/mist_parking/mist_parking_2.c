@@ -819,9 +819,9 @@ void func_mist_parking_80182A44(Task* task)
                             Gp_SetCurBit2Flag(i + 0x20, 2);
                         }
                     }
-                    if (GameFlag_GetNibble(0x129) == 2 && func_800B7420(0x6C) == 0) {
+                    if (GameFlag_GetNibble(GAME_FLAG_SHOOTING_GALLERY_PRIZE_4_STATE) == 2 && func_800B7420(0x6C) == 0) {
                         if (Gp_GiveItem(D_8010D55C, 0x6C, 1) != 0) {
-                            GameFlag_SetNibble(0x129, 3);
+                            GameFlag_SetNibble(GAME_FLAG_SHOOTING_GALLERY_PRIZE_4_STATE, 3);
                             Gp_SetCurBit2Flag(0x24, 2);
                         }
                     }
@@ -978,7 +978,7 @@ void func_mist_parking_8018316C(s32 arg0)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = arg0;
     gDisplayState.spriteVariant                                 = 1;
-    SndEvt_EnqueueType7(0x80000000, 0);
+    SndEvt_EnqueueType7(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0);
     Task_Spawn(0, 0x11, 0, 0);
     if (arg0 == 5) {
         Fs_BeginBootLoad((u8*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, 0);
@@ -1137,7 +1137,7 @@ void func_mist_parking_8018357C(Task* arg0)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
     gDisplayState.spriteVariant                                 = 1;
     Fs_BeginBootLoad((u8*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, 1);
-    SndEvt_EnqueueType7(0x80000000, 0);
+    SndEvt_EnqueueType7(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0);
     Task_Spawn(0, 0x11, 0, 0);
     taskKill(arg0);
 }

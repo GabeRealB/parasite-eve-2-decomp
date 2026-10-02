@@ -2762,7 +2762,7 @@ static void func_actor_444000_80132054(Task* task)
             /* Same one-shot cue as func_actor_444000_80132608. */
             other = (Actor444000EventWork*)D_actor_444000_80161860->work;
             if (other->field_2A == 0) {
-                SndEvt_EnqueueType6(0x54280005, 0, 0);
+                SndEvt_EnqueueType6(SOUND_SHELTER_B3_INCINERATOR_ALERT, 0, 0);
                 other->field_2A = 1;
             }
             break;
@@ -2933,7 +2933,7 @@ void func_actor_444000_80132608(void)
     Actor444000EventWork* work = (Actor444000EventWork*)D_actor_444000_80161860->work;
 
     if (work->field_2A == 0) {
-        SndEvt_EnqueueType6(0x54280005, 0, 0);
+        SndEvt_EnqueueType6(SOUND_SHELTER_B3_INCINERATOR_ALERT, 0, 0);
         work->field_2A = 1;
     }
 }

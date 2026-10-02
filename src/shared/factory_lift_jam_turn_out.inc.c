@@ -18,9 +18,9 @@ s32 factoryLiftJamTurnOut(Task* task)
             break;
         case 1:
             if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
-                Gp_EnqueueStageSnd6(0x5217000F, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                Gp_EnqueueStageSnd6(SOUND_FACTORY_LIFT_TURN, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             } else {
-                Gp_EnqueueStageSnd6(0x5317000F, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                Gp_EnqueueStageSnd6(SOUND_NIGHT_FACTORY_LIFT_TURN, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
             work->field_16++;
             break;
@@ -32,10 +32,10 @@ s32 factoryLiftJamTurnOut(Task* task)
             work->field_10.word += work->field_8;
             if (work->field_10.word > 0x800000) {
                 if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
-                    Gp_EnqueueStageSnd6(0x52170012, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                    Gp_EnqueueStageSnd6(SOUND_FACTORY_LIFT_JAM, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                     Gp_SpawnScript18(gFactoryDayJoltCmds, gFactoryDayJoltRecs);
                 } else {
-                    Gp_EnqueueStageSnd6(0x53170012, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                    Gp_EnqueueStageSnd6(SOUND_NIGHT_FACTORY_LIFT_JAM, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                     Gp_SpawnScript18(gFactoryNightJoltCmds, gFactoryNightJoltRecs);
                 }
                 work->field_16++;
@@ -48,16 +48,16 @@ s32 factoryLiftJamTurnOut(Task* task)
             }
             work->field_10.word += work->field_8;
             if (work->field_10.word <= 0) {
-                work->field_0 = GameFlag_GetNibble(0x49) & 0xFE;
-                GameFlag_SetNibble(0x49, work->field_0);
+                work->field_0 = GameFlag_GetNibble(GAME_FLAG_FACTORY_LIFT_POSITION) & 0xFE;
+                GameFlag_SetNibble(GAME_FLAG_FACTORY_LIFT_POSITION, work->field_0);
                 work->field_10.word = 0;
                 factoryLiftNotifyPanel(*(Task**)task->spawnArg2.pointer);
                 if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
-                    Gp_EnqueueStageSnd7(0x5217000F, 1);
-                    Gp_EnqueueStageSnd6(0x52170011, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                    Gp_EnqueueStageSnd7(SOUND_FACTORY_LIFT_TURN, 1);
+                    Gp_EnqueueStageSnd6(SOUND_FACTORY_LIFT_TURN_STOP, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                 } else {
-                    Gp_EnqueueStageSnd7(0x5317000F, 1);
-                    Gp_EnqueueStageSnd6(0x53170011, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                    Gp_EnqueueStageSnd7(SOUND_NIGHT_FACTORY_LIFT_TURN, 1);
+                    Gp_EnqueueStageSnd6(SOUND_NIGHT_FACTORY_LIFT_TURN_STOP, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                 }
                 work->field_16++;
             }
@@ -68,16 +68,16 @@ s32 factoryLiftJamTurnOut(Task* task)
     }
 
     if ((u8)(work->field_16 - 1) < 3 && Pad_CheckButtons(0, 1, 0x800) != 0 && (s16)work->field_14 >= 0xB) {
-        work->field_0 = GameFlag_GetNibble(0x49) & 0xFE;
-        GameFlag_SetNibble(0x49, work->field_0);
+        work->field_0 = GameFlag_GetNibble(GAME_FLAG_FACTORY_LIFT_POSITION) & 0xFE;
+        GameFlag_SetNibble(GAME_FLAG_FACTORY_LIFT_POSITION, work->field_0);
         work->field_10.word = 0;
         factoryLiftNotifyPanel(*(Task**)task->spawnArg2.pointer);
         if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
-            Gp_EnqueueStageSnd7(0x5217000F, 1);
-            Gp_EnqueueStageSnd6(0x52170011, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+            Gp_EnqueueStageSnd7(SOUND_FACTORY_LIFT_TURN, 1);
+            Gp_EnqueueStageSnd6(SOUND_FACTORY_LIFT_TURN_STOP, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
         } else {
-            Gp_EnqueueStageSnd7(0x5317000F, 1);
-            Gp_EnqueueStageSnd6(0x53170011, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+            Gp_EnqueueStageSnd7(SOUND_NIGHT_FACTORY_LIFT_TURN, 1);
+            Gp_EnqueueStageSnd6(SOUND_NIGHT_FACTORY_LIFT_TURN_STOP, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
         }
         work->field_16 = 4;
         done           = 1;

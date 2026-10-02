@@ -14,7 +14,7 @@ void madChaserVanish(Task* arg0)
     enemy           = (Enemy*)arg0->spawnArg2.pointer;
     model           = arg0->extra.tmd;
     work->field_412 = 0;
-    SndEvt_EnqueueType7(0x402C0002, 1);
+    SndEvt_EnqueueType7(SOUND_MAD_CHASER_ALERT_CRY, 1);
     if ((gSceneCombatState.madChaserAlertOwner & SCENE_COMBAT_MAD_CHASER_OWNER_MASK) == (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
         gSceneCombatState.madChaserAlertOwner = 0;
     }

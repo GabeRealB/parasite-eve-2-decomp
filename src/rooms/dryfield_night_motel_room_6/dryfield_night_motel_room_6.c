@@ -933,7 +933,7 @@ L_case2:
     goto advance;
 
 L_case3:
-    GameFlag_SetNibble(0x70, 2);
+    GameFlag_SetNibble(GAME_FLAG_NIGHT_MOTEL_ROOM_6_REST_TAKEN, 2);
     goto advance;
 
 L_case4:
@@ -946,14 +946,14 @@ advance:
 
 L_case5:
     Gp_FillPlayerHpMp();
-    SndEvt_EnqueueType7(0x80000000, 0);
+    SndEvt_EnqueueType7(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0);
     Gp_ApplyAreaRecs(D_dryfield_night_motel_room_6_80186270);
-    if (GameFlag_GetNibble(0xCE) != 0) {
+    if (GameFlag_GetNibble(GAME_FLAG_GRAY_STALKER_DEFEATED) != 0) {
         Gp_ApplyAreaRecs(D_dryfield_night_motel_room_6_801862B0);
     }
-    GameFlag_SetNibble(0x59, 1);
-    GameFlag_SetNibble(0x5A, 2);
-    GameFlag_SetNibble(0x30, 0);
+    GameFlag_SetNibble(GAME_FLAG_NIGHT_SALOON_CUTSCENE_SEEN, 1);
+    GameFlag_SetNibble(GAME_FLAG_NIGHT_SALOON_TALK_PROGRESS, 2);
+    GameFlag_SetNibble(GAME_FLAG_030, 0);
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_DRYFIELD_NIGHT_R08;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
@@ -970,23 +970,23 @@ L_case5:
 s32 motelRoom6ActionMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 6) {
-        if (GameFlag_GetNibble(0x61) != 0) {
+        if (GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) != 0) {
             Gp_RunCapCmd1(0x14);
-        } else if (GameFlag_GetNibble(0x6C) > 0 && GameFlag_GetNibble(0x70) < 2) {
+        } else if (GameFlag_GetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS) > 0 && GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_ROOM_6_REST_TAKEN) < 2) {
             Task_SpawnFromTable(&D_dryfield_night_motel_room_6_80182EE0, 0, 0x11, 0);
         } else {
             Gp_RunCapCmd1(arg2);
         }
     }
     if (arg2 == 0xD) {
-        if (GameFlag_GetNibble(0x61) != 0) {
+        if (GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) != 0) {
             Gp_RunCapCmd1(0x13);
         } else {
             Gp_RunCapCmd1(0xD);
         }
     }
     if (arg2 == 0xB) {
-        if (GameFlag_GetNibble(0x61) != 0) {
+        if (GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) != 0) {
             Gp_RunCapCmd1(0x15);
         } else {
             Gp_RunCapCmd1(0xB);
@@ -1014,7 +1014,7 @@ s32 func_dryfield_night_motel_room_6_80181BF8(Task* task, s32 msgId, TaskMessage
 s32 func_dryfield_night_motel_room_6_80181C00(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if (arg2 == 0x63) {
-        SndEvt_EnqueueType6(0x531E000C, 0, 0);
+        SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_ROOM_6, 0x0C), 0, 0);
     }
     return 0;
 }

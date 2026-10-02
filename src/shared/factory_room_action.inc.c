@@ -6,11 +6,11 @@ s32 factoryRoomAction(Task* task, s32 msgId, TaskMessageArg firstArg, TaskMessag
 {
     const DirectionActionRequest* request = firstArg.pointer;
 
-    if ((request->actionId == 1) && (GameFlag_GetNibble(0x2C) == 0)) {
+    if ((request->actionId == 1) && (GameFlag_GetNibble(GAME_FLAG_02C) == 0)) {
         Gp_SpawnIfCapIdle(0xB, 1);
-        GameFlag_SetNibble(0x2C, 1);
+        GameFlag_SetNibble(GAME_FLAG_02C, 1);
         func_800E3FAC(0xA2, 0xA);
-        SndEvt_EnqueueType6(0x5217000A, 0, 0);
+        SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 0x0A), 0, 0);
     }
     return 0;
 }

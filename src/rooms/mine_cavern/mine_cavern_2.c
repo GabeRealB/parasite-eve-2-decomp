@@ -2236,7 +2236,7 @@ void func_mine_cavern_8017E474(Task* arg0)
         arg0->state                      = 1;
     }
 
-    if (GameFlag_GetNibble(0xC4) == 1) {
+    if (GameFlag_GetNibble(GAME_FLAG_0C4) == 1) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if (((gRandomLcgState >> 16) & 7) == 0) {
             gRandomLcgState           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -2382,7 +2382,7 @@ static void func_mine_cavern_80181864(void)
     u16       x;
     u16       y;
 
-    flags = GameFlag_GetNibble(0xE2);
+    flags = GameFlag_GetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
     view  = Gp_GetViewIndex() & 0xFF;
     count = 0;
     for (j = 0; j < 4; j++) {
@@ -2505,7 +2505,7 @@ static void func_mine_cavern_80181D80(s16 point)
     u16       x;
     u16       y;
 
-    flags = GameFlag_GetNibble(0xE2);
+    flags = GameFlag_GetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
     count = 0;
     for (j = 0; j < 4; j++) {
         if ((flags >> j) & 1) {
@@ -2597,8 +2597,8 @@ static void func_mine_cavern_80182184(void)
     s16      k;
 
     view  = Gp_GetViewIndex() & 0xFF;
-    flags = GameFlag_GetNibble(0xE2);
-    for (i = 0; i < 4 && GameFlag_GetNibble(0x7A) < 5; i++) {
+    flags = GameFlag_GetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
+    for (i = 0; i < 4 && GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER) < 5; i++) {
         if (!((flags >> i) & 1)) {
             continue;
         }
@@ -2653,7 +2653,7 @@ static void func_mine_cavern_80182454(void)
     s16      i;
     s16      count;
 
-    flags = GameFlag_GetNibble(0xE2);
+    flags = GameFlag_GetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
     count = 0;
 
     poly           = gGpuPrimCursor;
@@ -2726,65 +2726,65 @@ static void func_mine_cavern_801825C8(s16 arg0)
                 case 16:
                 case 17:
                 case 20:
-                    SndEvt_EnqueueType7(0x5402000F, 1);
+                    SndEvt_EnqueueType7(SOUND_MINE_CAVERN_GLOW_POINT_0, 1);
                     break;
                 case 3:
-                    SndEvt_EnqueueType6(0x5402000F, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
-                    SndEvt_EnqueueTypeA(0x5402000F, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
+                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
+                    SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
                     break;
                 case 4:
-                    SndEvt_EnqueueType6(0x5402000F, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
-                    SndEvt_EnqueueTypeA(0x5402000F, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
+                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
+                    SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
                     break;
                 case 5:
                 case 25:
-                    SndEvt_EnqueueType6(0x5402000F, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
-                    SndEvt_EnqueueTypeA(0x5402000F, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
+                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
+                    SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
                     break;
                 case 18:
-                    SndEvt_EnqueueType6(0x5402000F, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
-                    SndEvt_EnqueueTypeA(0x5402000F, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
+                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
+                    SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
                     break;
                 case 19:
-                    SndEvt_EnqueueType6(0x5402000F, (s8)worldCoordGetOriginAudioPan(&coord), 0xD);
-                    SndEvt_EnqueueTypeA(0x5402000F, (s8)worldCoordGetOriginAudioPan(&coord), 0xD);
+                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0xD);
+                    SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0xD);
                     break;
                 case 21:
-                    SndEvt_EnqueueType6(0x5402000F, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
-                    SndEvt_EnqueueTypeA(0x5402000F, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
+                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
+                    SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
                     break;
                 case 22:
-                    SndEvt_EnqueueType6(0x5402000F, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
-                    SndEvt_EnqueueTypeA(0x5402000F, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
+                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
+                    SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
                     break;
                 case 23:
                 case 24:
-                    SndEvt_EnqueueType6(0x5402000F, (s8)worldCoordGetOriginAudioPan(&coord), 0x40);
-                    SndEvt_EnqueueTypeA(0x5402000F, (s8)worldCoordGetOriginAudioPan(&coord), 0x40);
+                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x40);
+                    SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x40);
                     break;
             }
             break;
         case 1:
             switch (view) {
                 case 2:
-                    SndEvt_EnqueueType6(0x5402000E, (s8)worldCoordGetOriginAudioPan(&coord), 0x40);
-                    SndEvt_EnqueueTypeA(0x5402000E, (s8)worldCoordGetOriginAudioPan(&coord), 0x40);
+                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_1, (s8)worldCoordGetOriginAudioPan(&coord), 0x40);
+                    SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_1, (s8)worldCoordGetOriginAudioPan(&coord), 0x40);
                     break;
                 case 3:
-                    SndEvt_EnqueueType6(0x5402000E, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
-                    SndEvt_EnqueueTypeA(0x5402000E, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
+                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_1, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
+                    SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_1, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
                     break;
                 case 4:
-                    SndEvt_EnqueueType6(0x5402000E, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
-                    SndEvt_EnqueueTypeA(0x5402000E, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
+                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_1, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
+                    SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_1, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
                     break;
                 case 20:
-                    SndEvt_EnqueueType6(0x5402000E, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
-                    SndEvt_EnqueueTypeA(0x5402000E, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
+                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_1, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
+                    SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_1, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
                     break;
                 case 22:
-                    SndEvt_EnqueueType6(0x5402000E, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
-                    SndEvt_EnqueueTypeA(0x5402000E, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
+                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_1, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
+                    SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_1, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
                     break;
                 case 5:
                 case 6:
@@ -2805,7 +2805,7 @@ static void func_mine_cavern_801825C8(s16 arg0)
                 case 23:
                 case 24:
                 case 25:
-                    SndEvt_EnqueueType7(0x5402000E, 1);
+                    SndEvt_EnqueueType7(SOUND_MINE_CAVERN_GLOW_POINT_1, 1);
                     break;
             }
             break;
@@ -2813,39 +2813,39 @@ static void func_mine_cavern_801825C8(s16 arg0)
             switch (view) {
                 case 5:
                 case 25:
-                    SndEvt_EnqueueType6(0x54020010, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
-                    SndEvt_EnqueueTypeA(0x54020010, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
+                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
+                    SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
                     break;
                 case 6:
-                    SndEvt_EnqueueType6(0x54020010, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
-                    SndEvt_EnqueueTypeA(0x54020010, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
+                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
+                    SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
                     break;
                 case 7:
-                    SndEvt_EnqueueType6(0x54020010, (s8)worldCoordGetOriginAudioPan(&coord), 0x46);
-                    SndEvt_EnqueueTypeA(0x54020010, (s8)worldCoordGetOriginAudioPan(&coord), 0x46);
+                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x46);
+                    SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x46);
                     break;
                 case 14:
                 case 15:
-                    SndEvt_EnqueueType6(0x54020010, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
-                    SndEvt_EnqueueTypeA(0x54020010, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
+                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
+                    SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
                     break;
                 case 16:
-                    SndEvt_EnqueueType6(0x54020010, (s8)worldCoordGetOriginAudioPan(&coord), 0x46);
-                    SndEvt_EnqueueTypeA(0x54020010, (s8)worldCoordGetOriginAudioPan(&coord), 0x46);
+                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x46);
+                    SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x46);
                     break;
                 case 17:
-                    SndEvt_EnqueueType6(0x54020010, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
-                    SndEvt_EnqueueTypeA(0x54020010, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
+                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
+                    SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
                     break;
                 case 8:
                 case 21:
-                    SndEvt_EnqueueType6(0x54020010, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
-                    SndEvt_EnqueueTypeA(0x54020010, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
+                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
+                    SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
                     break;
                 case 23:
                 case 24:
-                    SndEvt_EnqueueType6(0x54020010, (s8)worldCoordGetOriginAudioPan(&coord), 0x40);
-                    SndEvt_EnqueueTypeA(0x54020010, (s8)worldCoordGetOriginAudioPan(&coord), 0x40);
+                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x40);
+                    SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x40);
                     break;
                 case 2:
                 case 3:
@@ -2860,28 +2860,28 @@ static void func_mine_cavern_801825C8(s16 arg0)
                 case 20:
                 case 22:
                 default:
-                    SndEvt_EnqueueType7(0x54020010, 1);
+                    SndEvt_EnqueueType7(SOUND_MINE_CAVERN_GLOW_POINT_2, 1);
                     break;
             }
             break;
         case 3:
             switch (view) {
                 case 2:
-                    SndEvt_EnqueueType6(0x54020011, (s8)worldCoordGetOriginAudioPan(&coord), 0x40);
-                    SndEvt_EnqueueTypeA(0x54020011, (s8)worldCoordGetOriginAudioPan(&coord), 0x40);
+                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_3, (s8)worldCoordGetOriginAudioPan(&coord), 0x40);
+                    SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_3, (s8)worldCoordGetOriginAudioPan(&coord), 0x40);
                     break;
                 case 7:
-                    SndEvt_EnqueueType6(0x54020011, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
-                    SndEvt_EnqueueTypeA(0x54020011, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
+                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_3, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
+                    SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_3, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
                     break;
                 case 8:
-                    SndEvt_EnqueueType6(0x54020011, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
-                    SndEvt_EnqueueTypeA(0x54020011, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
+                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_3, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
+                    SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_3, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
                     break;
                 case 6:
                 case 20:
-                    SndEvt_EnqueueType6(0x54020011, (s8)worldCoordGetOriginAudioPan(&coord), 0x46);
-                    SndEvt_EnqueueTypeA(0x54020011, (s8)worldCoordGetOriginAudioPan(&coord), 0x46);
+                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_3, (s8)worldCoordGetOriginAudioPan(&coord), 0x46);
+                    SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_3, (s8)worldCoordGetOriginAudioPan(&coord), 0x46);
                     break;
                 case 3:
                 case 4:
@@ -2903,7 +2903,7 @@ static void func_mine_cavern_801825C8(s16 arg0)
                 case 24:
                 case 25:
                 default:
-                    SndEvt_EnqueueType7(0x54020011, 1);
+                    SndEvt_EnqueueType7(SOUND_MINE_CAVERN_GLOW_POINT_3, 1);
                     break;
             }
             break;
@@ -2915,7 +2915,7 @@ static void func_mine_cavern_80182CEC(Task* arg0)
     s16 i;
     s32 flags;
 
-    flags = GameFlag_GetNibble(0xE2);
+    flags = GameFlag_GetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
     for (i = 0; i < 4; i++) {
         if (!((flags >> i) & 1)) {
             Gp_SpawnEnemyFromTable(D_mine_cavern_8018EB38, 0, i, NULL);
@@ -3139,10 +3139,10 @@ found:
         arg0->hp   -= blk->damage;
         func_800DA6E8(&arg0->node, blk->damage, 0);
         if (arg0->hp <= 0) {
-            blk->bits = GameFlag_GetNibble(0xE2);
+            blk->bits = GameFlag_GetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
             if (!((blk->bits >> (u16)arg1->spawnArg1.value) & 1)) {
                 blk->bits |= 1 << (u16)arg1->spawnArg1.value;
-                GameFlag_SetNibble(0xE2, blk->bits);
+                GameFlag_SetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED, blk->bits);
                 arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
             id  = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x54020014;
@@ -3335,7 +3335,7 @@ static void func_mine_cavern_80183AD4(Enemy* enemy, Task* task)
     vec.vz = task->extra.tmd->coords->workm.t[2];
     func_800D7A9C(task->extra.tmd, &vec, 0, 3);
 
-    if (!((GameFlag_GetNibble(0xE2) >> (u16)task->spawnArg1.value) & 1)) {
+    if (!((GameFlag_GetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED) >> (u16)task->spawnArg1.value) & 1)) {
         task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
         m                         = &work->coord.coord;

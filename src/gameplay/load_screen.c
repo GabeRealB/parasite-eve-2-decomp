@@ -376,7 +376,7 @@ void Gp_LoadState2(Task* task)
         Mem_InitAux();
         Gp_ApplyNpcRoomSnd();
         Snd_InitFromStage(gGameSession->location.loc.stage, gGameSession->location.loc.area);
-        if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD_NIGHT && GameFlag_GetNibble(0x7A) >= 4) {
+        if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD_NIGHT && GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER) >= 4) {
             gStageSceneMusicEntry = 1;
         } else {
             gStageSceneMusicEntry = 0;

@@ -39,7 +39,7 @@ s32 func_shelter_b1_elevator_hall_8017D810(Task* task, s32 msgId, RoomEventMsg* 
 {
     *dst = *src;
     func_map_shelter_80179A04(src, dst);
-    if (src->areaId == GAME_AREA_SHELTER_B1_MAIN_CORRIDOR && GameFlag_GetNibble(0xA5) == 0) {
+    if (src->areaId == GAME_AREA_SHELTER_B1_MAIN_CORRIDOR && GameFlag_GetNibble(GAME_FLAG_B1_CORRIDOR_ELEVATOR_HALL_UNLOCKED) == 0) {
         if (src->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_SetNibbleIf(src->flagId, 2);
             Gp_RunCapCmd1(2);
@@ -47,7 +47,7 @@ s32 func_shelter_b1_elevator_hall_8017D810(Task* task, s32 msgId, RoomEventMsg* 
         return 0;
     }
     if (src->areaId == GAME_AREA_SHELTER_B2_ELEVATOR) {
-        if (GameFlag_GetNibble(0xBA) == 0) {
+        if (GameFlag_GetNibble(GAME_FLAG_SHELTER_ELEVATOR_ENABLED) == 0) {
             if (src->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_SetNibbleIf(src->flagId, 2);
                 Gp_RunCapCmd1(1);
@@ -121,17 +121,17 @@ void func_shelter_b1_elevator_hall_8017D99C(Task* arg0)
             D_shelter_b1_elevator_hall_801849F0.fade.phase      = SCREEN_FADE_RUNNING;
             D_shelter_b1_elevator_hall_801849F0.fade.rampFrames = 0x1E;
             Task_Spawn(1, 0x31, 0, &D_shelter_b1_elevator_hall_801849F0.fade);
-            SndEvt_EnqueueType6(0x54090007, 0, 0);
+            SndEvt_EnqueueType6(SOUND_SHELTER_B1_ELEV_HALL_MINE_TRANSIT, 0, 0);
             goto advance;
         case 5:
-            if (SndVoice_HasActiveId(0x54090007) != 0) {
+            if (SndVoice_HasActiveId(SOUND_SHELTER_B1_ELEV_HALL_MINE_TRANSIT) != 0) {
                 break;
             }
         advance:
             arg0->state++;
             break;
         case 6:
-            SndEvt_EnqueueType7(0x80000000, 0);
+            SndEvt_EnqueueType7(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0);
             gDisplayState.spriteVariant                                = 1;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_shelter_b1_elevator_hall_801849F8.warp;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_shelter_b1_elevator_hall_801849F8.field_4;
@@ -161,10 +161,10 @@ s32 func_shelter_b1_elevator_hall_8017DB6C(Task* arg0, s32 arg1, s32 arg2, TaskM
 {
     switch (arg2) {
         case 6:
-            SndEvt_EnqueueType6(0x16, 0, 0);
+            SndEvt_EnqueueType6(SOUND_SYSTEM_CONFIRM, 0, 0);
             break;
         case 8:
-            SndEvt_EnqueueType6(0x54090008, 0, 0);
+            SndEvt_EnqueueType6(SOUND_SHELTER_B1_ELEVATOR_RIDE, 0, 0);
             break;
     }
     return 0;
@@ -174,8 +174,8 @@ static void func_shelter_b1_elevator_hall_8017DBB8(Task* arg0)
 {
     arg0->msgTable = D_shelter_b1_elevator_hall_80182CB8;
     Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if (GameFlag_GetNibble(0x122) == 0) {
-        GameFlag_SetNibble(0x122, 1);
+    if (GameFlag_GetNibble(GAME_FLAG_SHELTER_B1_ELEVATOR_HALL_VISITED) == 0) {
+        GameFlag_SetNibble(GAME_FLAG_SHELTER_B1_ELEVATOR_HALL_VISITED, 1);
         func_800E3FAC(0xA2, 0x1D);
     }
     arg0->state++;

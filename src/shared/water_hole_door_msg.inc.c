@@ -19,28 +19,28 @@ s32 waterHoleDoorMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
         temp = gGameSession->location.loc.stage;
         if (temp == 2) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                if (GameFlag_GetNibble(0x3A) >= 2) {
+                if (GameFlag_GetNibble(GAME_FLAG_DRIVEWAY_PROGRESS) >= 2) {
                     out->room = temp;
                 } else {
                     out->room = 1;
                 }
             }
         } else if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            out->room = GameFlag_GetNibble(0x61) + 1;
+            out->room = GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
         }
     }
     if (in->areaId == 0x26 && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (GameFlag_GetNibble(0xC9) != 0) {
-            if (GameFlag_GetNibble(0x53) != 0) {
+        if (GameFlag_GetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN) != 0) {
+            if (GameFlag_GetNibble(GAME_FLAG_053) != 0) {
                 out->room = 2;
             } else {
                 out->room = 1;
             }
-            if (GameFlag_GetNibble(0x51) == 0) {
+            if (GameFlag_GetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 0) {
                 out->room += 2;
             }
         } else {
-            if (GameFlag_GetNibble(0x51) != 0) {
+            if (GameFlag_GetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) != 0) {
                 out->room = 5;
             } else {
                 out->room = 6;

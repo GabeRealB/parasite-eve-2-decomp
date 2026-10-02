@@ -634,8 +634,8 @@ s32 func_acropolis_fire_escape_8017F9F8(Task* task, s32 msgId, s32 event, s32 ar
     s32   result;
 
     if (event == 4) {
-        if (GameFlag_GetNibble(0x16A) == 0) {
-            GameFlag_SetNibble(0x16A, 1);
+        if (GameFlag_GetNibble(GAME_FLAG_FIRE_ESCAPE_FIRST_SCENE) == 0) {
+            GameFlag_SetNibble(GAME_FLAG_FIRE_ESCAPE_FIRST_SCENE, 1);
             Gp_RunCapCmd1(0xB);
             return 0;
         }
@@ -650,9 +650,9 @@ s32 func_acropolis_fire_escape_8017F9F8(Task* task, s32 msgId, s32 event, s32 ar
         Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 3, &D_acropolis_fire_escape_80183048);
     }
     if (event == 3) {
-        if (GameFlag_GetNibble(0x155) < 6) {
-            GameFlag_SetNibble(3, 0);
-            GameFlag_SetNibble(0x155, 6);
+        if (GameFlag_GetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) < 6) {
+            GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
+            GameFlag_SetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 6);
         }
         Gp_SpawnIfCapIdle(3, 1);
         func_800E3FAC(0xA2, 7);
@@ -724,11 +724,11 @@ void func_acropolis_fire_escape_8017FB40(Task* task)
         return;
     }
     if (prev == 0) {
-        SndEvt_EnqueueType6(0x510F0005, 0, (s8)(((0x64 - vol) * 127) / 100));
+        SndEvt_EnqueueType6(SOUND_ACROPOLIS_FIRE_ESCAPE_AMBIENCE, 0, (s8)(((0x64 - vol) * 127) / 100));
     } else if (vol == 0) {
-        SndEvt_EnqueueType7(0x510F0005, 0x1E);
+        SndEvt_EnqueueType7(SOUND_ACROPOLIS_FIRE_ESCAPE_AMBIENCE, 0x1E);
     } else {
-        SndEvt_EnqueueTypeA(0x510F0005, 0, (s8)(((0x64 - vol) * 127) / 100));
+        SndEvt_EnqueueTypeA(SOUND_ACROPOLIS_FIRE_ESCAPE_AMBIENCE, 0, (s8)(((0x64 - vol) * 127) / 100));
     }
     D_acropolis_fire_escape_80183040 = vol;
 }
@@ -743,10 +743,10 @@ s32 func_acropolis_fire_escape_8017FD98(Task* task, s32 msgId, RoomEventMsg* src
 {
     *dst = *src;
     if (src->queryOnly == ROOM_EVENT_EXECUTE) {
-        SndEvt_EnqueueType7(0x510F0005, 0xF);
+        SndEvt_EnqueueType7(SOUND_ACROPOLIS_FIRE_ESCAPE_AMBIENCE, 0xF);
     }
     if (src->areaId == GAME_AREA_ACROPOLIS_BRIDGE && src->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (GameFlag_GetNibble(2) == 3) {
+        if (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == 3) {
             dst->room = 2;
         } else {
             dst->room = 1;
@@ -928,7 +928,7 @@ void func_acropolis_fire_escape_80180154(Task* task)
                     break;
             }
             if (play && work->scale >= 0x20) {
-                SndEvt_EnqueueType6(0x510F0006, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                SndEvt_EnqueueType6(SOUND_ACROPOLIS_FIRE_ESCAPE_LIGHT_FLICKER, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
             block->radius  = (((task->spawnArg1.value >> 8) & 0xFF) * 0x600) / block->otz;
             block->radius2 = (((task->spawnArg1.value >> 8) & 0xFF) * 0xC0) / block->otz;

@@ -17,29 +17,29 @@ s32 mainStreetResolveMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg*
     if (msg->areaId == 0x19) {
         if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
             if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-                if (GameFlag_GetNibble(0x3A) >= 2) {
+                if (GameFlag_GetNibble(GAME_FLAG_DRIVEWAY_PROGRESS) >= 2) {
                     out->room = 2;
                 } else {
                     out->room = 1;
                 }
             }
         } else if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-            out->room = GameFlag_GetNibble(0x61) + 1;
+            out->room = GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
         }
     }
     if (msg->areaId == 1 && msg->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (GameFlag_GetNibble(0x63) == 0) {
+        if (GameFlag_GetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS) == 0) {
             out->room = 1;
-        } else if (GameFlag_GetNibble(0x7A) >= 4) {
+        } else if (GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER) >= 4) {
             out->room = 4;
         } else {
-            out->room = GameFlag_GetNibble(0x61) + 2;
+            out->room = GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 2;
         }
     }
     if (msg->areaId == 0xF && msg->queryOnly == ROOM_EVENT_EXECUTE) {
-        out->room = GameFlag_GetNibble(0x61) + 1;
+        out->room = GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
     }
-    if (msg->areaId == 0x19 && GameFlag_GetNibble(0x61) != 0) {
+    if (msg->areaId == 0x19 && GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) != 0) {
         if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_SetNibbleIf(msg->flagId, 2);
             Gp_RunCapCmd1(0x13);
@@ -50,7 +50,7 @@ s32 mainStreetResolveMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg*
     if (msg->areaId == 0xB) {
         ev.capCmd                     = 3;
         ev.stageSnd                   = 0x52020005;
-        ev.flagId                     = 0x57;
+        ev.flagId                     = GAME_FLAG_MAIN_STREET_TO_MOTEL_ROOM_1_SCENE;
         ev.fade                       = 0;
         gMainStreetEventSpawned.value = 0;
         if (GameFlag_GetNibble(ev.flagId) == 0 || ev.flagId == 0) {
@@ -70,7 +70,7 @@ s32 mainStreetResolveMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg*
     } else if (msg->areaId == 0xC) {
         ev.capCmd                     = 4;
         ev.stageSnd                   = 0x52020005;
-        ev.flagId                     = 0x58;
+        ev.flagId                     = GAME_FLAG_MAIN_STREET_TO_MOTEL_ROOM_2_SCENE;
         ev.fade                       = 0;
         gMainStreetEventSpawned.value = 0;
         if (GameFlag_GetNibble(ev.flagId) == 0 || ev.flagId == 0) {
@@ -90,9 +90,9 @@ s32 mainStreetResolveMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg*
     } else if (msg->areaId == 0xD) {
         req.capCmd        = 0xA;
         req.missingCapCmd = 5;
-        req.firstSnd      = Gp_PackStageSndId(0x5202000A);
-        req.secondSnd     = Gp_PackStageSndId(0x52020005);
-        req.flagId        = 0x41;
+        req.firstSnd      = Gp_PackStageSndId(SOUND_MAIN_STREET_MOTEL_DOOR_UNLOCK);
+        req.secondSnd     = Gp_PackStageSndId(SOUND_MAIN_STREET_MOTEL_DOOR_OPEN);
+        req.flagId        = GAME_FLAG_MOTEL_ROOM_3_DOOR_UNLOCKED;
         req.collectedBit  = 0x13;
         ret               = roomEventGate(&req, out);
         if (ret == 0) {
@@ -103,16 +103,16 @@ s32 mainStreetResolveMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg*
             Gp_ClearCollectedBit(0x112);
             Gp_SetItemSeenBit(0x113, 1);
         }
-        if (msg->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(0x93) == 0) {
+        if (msg->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(GAME_FLAG_093) == 0) {
             Gp_SetNibbleIf(msg->flagId, 0);
         }
         return ret;
     } else if (msg->areaId == 0xE) {
         req.capCmd        = 0xB;
         req.missingCapCmd = 6;
-        req.firstSnd      = Gp_PackStageSndId(0x5202000A);
-        req.secondSnd     = Gp_PackStageSndId(0x52020005);
-        req.flagId        = 0x42;
+        req.firstSnd      = Gp_PackStageSndId(SOUND_MAIN_STREET_MOTEL_DOOR_UNLOCK);
+        req.secondSnd     = Gp_PackStageSndId(SOUND_MAIN_STREET_MOTEL_DOOR_OPEN);
+        req.flagId        = GAME_FLAG_MOTEL_ROOM_4_DOOR_UNLOCKED;
         req.collectedBit  = 0x13;
         ret               = roomEventGate(&req, out);
         if (ret == 0) {
@@ -123,7 +123,7 @@ s32 mainStreetResolveMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg*
             Gp_ClearCollectedBit(0x112);
             Gp_SetItemSeenBit(0x113, 1);
         }
-        if (msg->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(0x94) == 0) {
+        if (msg->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(GAME_FLAG_094) == 0) {
             Gp_SetNibbleIf(msg->flagId, 0);
         }
         return ret;

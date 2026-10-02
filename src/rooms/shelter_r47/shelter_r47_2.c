@@ -634,11 +634,11 @@ static void func_shelter_r47_80182348(Task* task)
     if ((s16)fade >= 0x100) {
         state->fade = 0xFF;
         done        = (ShelterR47State*)task->work;
-        GameFlag_SetNibble(0xAC, done->toggles[0]);
-        GameFlag_SetNibble(0xD5, done->toggles[1]);
-        GameFlag_SetNibble(0xAE, done->toggles[2]);
-        GameFlag_SetNibble(0xD6, done->toggles[3]);
-        GameFlag_SetNibble(0xD2, done->toggles[4]);
+        GameFlag_SetNibble(GAME_FLAG_B1_TRANSFER_TUNNEL_DOOR_UNLOCKED, done->toggles[0]);
+        GameFlag_SetNibble(GAME_FLAG_SHELTER_R47_CONSOLE_SWITCH_2, done->toggles[1]);
+        GameFlag_SetNibble(GAME_FLAG_B2_CORRIDOR_OBSERVATORY_ACCESS, done->toggles[2]);
+        GameFlag_SetNibble(GAME_FLAG_SHELTER_R47_CONSOLE_SWITCH_4, done->toggles[3]);
+        GameFlag_SetNibble(GAME_FLAG_SHELTER_WATCHERS_DISABLED, done->toggles[4]);
         Gp_MsgPlayerWeapon(1);
         Gp_MsgPlayer3F3(1);
         Gp_MenuLockDelay = 8;
@@ -697,16 +697,16 @@ void func_shelter_r47_80182AA0(Task* task)
 {
     ShelterR47State* state = (ShelterR47State*)task->work;
 
-    state->toggles[0] = GameFlag_GetNibble(0xAC);
-    state->toggles[1] = GameFlag_GetNibble(0xD5);
+    state->toggles[0] = GameFlag_GetNibble(GAME_FLAG_B1_TRANSFER_TUNNEL_DOOR_UNLOCKED);
+    state->toggles[1] = GameFlag_GetNibble(GAME_FLAG_SHELTER_R47_CONSOLE_SWITCH_2);
     if (!(state->toggles[1] & 1)) {
         D_shelter_r47_80186FAC[1] = 0x12;
     } else {
         D_shelter_r47_80186FAC[1] = 0x24;
     }
-    state->toggles[2] = GameFlag_GetNibble(0xAE);
-    state->toggles[3] = GameFlag_GetNibble(0xD6);
-    state->toggles[4] = GameFlag_GetNibble(0xD2);
+    state->toggles[2] = GameFlag_GetNibble(GAME_FLAG_B2_CORRIDOR_OBSERVATORY_ACCESS);
+    state->toggles[3] = GameFlag_GetNibble(GAME_FLAG_SHELTER_R47_CONSOLE_SWITCH_4);
+    state->toggles[4] = GameFlag_GetNibble(GAME_FLAG_SHELTER_WATCHERS_DISABLED);
 }
 
 void func_shelter_r47_80182B18(Task* task)
@@ -911,16 +911,16 @@ static void func_shelter_r47_801830B8(Task* task)
     func_shelter_r47_80181914(task, 0);
     switch (state->step) {
         case 0:
-            GameFlag_SetNibble(0x1C6, 2);
+            GameFlag_SetNibble(GAME_FLAG_MAP_MARK_SHELTER_R47_1C6, 2);
             break;
         case 1:
-            GameFlag_SetNibble(0x1C6, 0);
+            GameFlag_SetNibble(GAME_FLAG_MAP_MARK_SHELTER_R47_1C6, 0);
             break;
         case 4:
-            GameFlag_SetNibble(0x1C4, 2);
+            GameFlag_SetNibble(GAME_FLAG_MAP_MARK_B2_MAIN_CORRIDOR, 2);
             break;
         case 5:
-            GameFlag_SetNibble(0x1C4, 0);
+            GameFlag_SetNibble(GAME_FLAG_MAP_MARK_B2_MAIN_CORRIDOR, 0);
             break;
         case 2:
         case 3:
@@ -1006,11 +1006,11 @@ static void func_shelter_r47_8018337C(Task* task)
     ShelterR47State* state;
 
     state = (ShelterR47State*)task->work;
-    GameFlag_SetNibble(0xAC, state->toggles[0]);
-    GameFlag_SetNibble(0xD5, state->toggles[1]);
-    GameFlag_SetNibble(0xAE, state->toggles[2]);
-    GameFlag_SetNibble(0xD6, state->toggles[3]);
-    GameFlag_SetNibble(0xD2, state->toggles[4]);
+    GameFlag_SetNibble(GAME_FLAG_B1_TRANSFER_TUNNEL_DOOR_UNLOCKED, state->toggles[0]);
+    GameFlag_SetNibble(GAME_FLAG_SHELTER_R47_CONSOLE_SWITCH_2, state->toggles[1]);
+    GameFlag_SetNibble(GAME_FLAG_B2_CORRIDOR_OBSERVATORY_ACCESS, state->toggles[2]);
+    GameFlag_SetNibble(GAME_FLAG_SHELTER_R47_CONSOLE_SWITCH_4, state->toggles[3]);
+    GameFlag_SetNibble(GAME_FLAG_SHELTER_WATCHERS_DISABLED, state->toggles[4]);
 }
 
 /// Flips toggle `arg1`. Toggle 1 also publishes the area view
@@ -1101,7 +1101,7 @@ static void func_shelter_r47_80183484(Task* task)
 
     state = (ShelterR47State2*)task->work;
     shade = (u8)state->field_26 * 4;
-    if (GameFlag_GetNibble(0xDF) == 1) {
+    if (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 1) {
         mark = D_shelter_r47_801875D8[state->field_1C];
     } else {
         mark = D_shelter_r47_801875C4[state->field_1C];
@@ -1142,7 +1142,7 @@ static void func_shelter_r47_80183484(Task* task)
             state->field_2A = 3;
             Gp_StartCapSlot(0x13, 0, 0);
         }
-        if (GameFlag_GetNibble(0xDF) == 1) {
+        if (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 1) {
             while (mark->stage != 0xFF) {
                 if (_shelterR47IsAreaMarked(mark->stage, mark->area)) {
                     p              = gGpuPrimCursor;
@@ -1162,7 +1162,7 @@ static void func_shelter_r47_80183484(Task* task)
             }
         } else {
             if (shade == 0) {
-                SndEvt_EnqueueType6(0x542F0005, 0, 0);
+                SndEvt_EnqueueType6(SOUND_SHELTER_R47_MAP_TERMINAL_LOOP, 0, 0);
             }
             p              = gGpuPrimCursor;
             gGpuPrimCursor = p + 1;

@@ -66,7 +66,7 @@ void madChaserPulledLimp(Task* arg0)
         return;
     }
     if (enemy->hp <= 0) {
-        SndEvt_EnqueueType7(0x402C0002, 1);
+        SndEvt_EnqueueType7(SOUND_MAD_CHASER_ALERT_CRY, 1);
         if (work->field_448 != 4) {
             work->field_438 = 1;
             if (work->field_418 == 8) {

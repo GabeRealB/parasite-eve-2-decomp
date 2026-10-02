@@ -1243,7 +1243,7 @@ static void func_neo_ark_shrine_8017EFE4(Task* task)
     st->timer        = st->timer + 1;
     func_neo_ark_shrine_8017EAC0(task);
     if (st->timer >= 0x1E) {
-        if (GameFlag_GetNibble(0xE9) == 0) {
+        if (GameFlag_GetNibble(GAME_FLAG_0E9) == 0) {
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
             gGameSession->location.loc.room                            = 2;
         } else {
@@ -1297,10 +1297,10 @@ static void func_neo_ark_shrine_8017F178(Task* task)
     st->timer = timer;
     if (timer >= 0x5AU) {
         st->timer = 0;
-        if (GameFlag_GetNibble(0xE9) == 0) {
+        if (GameFlag_GetNibble(GAME_FLAG_0E9) == 0) {
             Task_SpawnFromTable(D_neo_ark_shrine_80182508, 2, 0, 0);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xD;
-            GameFlag_SetNibble(0xE9, 1);
+            GameFlag_SetNibble(GAME_FLAG_0E9, 1);
             next = task->state + 1;
         } else {
             next = task->state + 2;
@@ -1370,7 +1370,7 @@ static void func_neo_ark_shrine_8017F398(Task* task)
     st->timer        = st->timer + 1;
     func_neo_ark_shrine_8017EAC0(task);
     if (st->timer >= 0x1E) {
-        if (GameFlag_GetNibble(0xE9) == 0) {
+        if (GameFlag_GetNibble(GAME_FLAG_0E9) == 0) {
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
             gGameSession->location.loc.room                            = 1;
         } else {
@@ -1466,7 +1466,7 @@ static void func_neo_ark_shrine_8017F578(Task* task)
     st->ticks = ticks;
     if ((s16)ticks == 4) {
         Gp_SpawnPadLerp(0x18, 0x40, 0xFF);
-        SndEvt_EnqueueType6(0x55150009, 0, 0);
+        SndEvt_EnqueueType6(SOUND_NEO_ARK_SHRINE_PROP_1_FALL, 0, 0);
     }
     speed             = st->speed + 1;
     delta             = st->delta + speed;
@@ -1530,7 +1530,7 @@ static void func_neo_ark_shrine_8017F738(Task* task)
     ticks     = st->ticks + 1;
     st->ticks = ticks;
     if ((s16)ticks == 2) {
-        SndEvt_EnqueueType6(0x5515000B, 0, 0);
+        SndEvt_EnqueueType6(SOUND_NEO_ARK_SHRINE_PROP_2_FALL, 0, 0);
     }
     if ((s16)st->ticks == 0x12) {
         Gp_SpawnPadLerp(0xA, 0xA0, 0xFF);

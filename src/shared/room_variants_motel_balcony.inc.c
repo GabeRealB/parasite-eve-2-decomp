@@ -9,7 +9,7 @@ s32 roomVariantMotelBalconyMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEvent
 
     *out = *in;
     if (in->areaId == GAME_AREA_DRYFIELD_NIGHT_MOTEL_BALCONY && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        nib = GameFlag_GetNibble(0x61);
+        nib = GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN);
         if (nib == 0) {
             nib = 1;
         } else {

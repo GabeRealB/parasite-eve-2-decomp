@@ -659,7 +659,7 @@ void func_actor_342100_801630A4(Task* arg0)
                 D_actor_342100_80164BB8 = arg0;
             }
             Task_SpawnFromTable(D_shelter_b3_dumping_hole_8018B57C, 0, 0xD0, 0);
-            SndEvt_EnqueueType6(0x54270007, 0, 0);
+            SndEvt_EnqueueType6(SOUND_SHELTER_B3_DUMPING_HOLE_ALERT, 0, 0);
             switch (gGameSession->spawnPhase[0]) {
                 case GAME_SESSION_SPAWN_IDLE:
                     arg0->state++;
@@ -672,7 +672,7 @@ void func_actor_342100_801630A4(Task* arg0)
             }
             break;
         case 1:
-            if (GameFlag_GetNibble(0x11E) != 0) {
+            if (GameFlag_GetNibble(GAME_FLAG_11E) != 0) {
                 if (Gp_TakePendingObj4C(&id, (u8*)&kind, &extra) != 0 && (id & (0xFFFF ^ WORLD_COLLISION_TRIGGER_AUTOMATIC)) == WORLD_COLLISION_TRIGGER_ACTION_ROOM && kind == 1) {
                     work->field_30 = Task_SpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 0, 0, 0);
                     arg0->state++;
@@ -769,7 +769,7 @@ void func_actor_342100_80163454(s32 arg0)
     ActorCommand     msg;
 
     if (arg0 == 0) {
-        SndEvt_EnqueueType6(0x54270005, 0, 0);
+        SndEvt_EnqueueType6(SOUND_SHELTER_B3_DUMPING_HOLE_BLAZE, 0, 0);
         Gp_PulseState1C();
         msg.context.loc.area  = 0x2C;
         msg.context.loc.stage = 0;

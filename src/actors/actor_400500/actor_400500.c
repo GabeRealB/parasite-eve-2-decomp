@@ -5732,7 +5732,7 @@ static void func_actor_400500_8013A8E4(Task* arg0)
     Gp_UnlinkObj(&work->obj3);
     Gp_UnlinkObj(&work->obj2);
     Gp_UnlinkObj(&work->obj4);
-    GameFlag_SetNibble(0xCE, 1);
+    GameFlag_SetNibble(GAME_FLAG_GRAY_STALKER_DEFEATED, 1);
     if (work->field_A40 == 4) {
         work3            = (Actor400500Work*)arg0->work;
         work3->field_A06 = 6;

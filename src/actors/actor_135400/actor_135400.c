@@ -680,7 +680,7 @@ static void func_actor_135400_80132064(Task* arg0)
     func_actor_135400_80132634(arg0);
     arg0->msgTable = D_actor_135400_8013A4D0;
     func_actor_135400_801327E8(arg0, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-    if (GameFlag_GetNibble(0x6C) <= 0) {
+    if (GameFlag_GetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS) <= 0) {
         actorMsgPlaceEuler(arg0, ACTOR_MESSAGE_PLACE, &places.field_0, 0);
         actorMotionPlayAnim(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &anim[0], 0);
         func_dryfield_night_garage_80180414(0);
@@ -983,7 +983,7 @@ static void func_actor_135400_80132B60(Task* arg0)
     memset(&params, 0, sizeof(params));
     params.animationId = 1;
     spawn              = D_actor_135400_80131EA0;
-    if ((GameFlag_GetNibble(0x6C) > 0) || ((work = memCalloc(0x498, 0)) == NULL)) {
+    if ((GameFlag_GetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS) > 0) || ((work = memCalloc(0x498, 0)) == NULL)) {
         Gp_EnemyTaskExit(arg0);
         return;
     }

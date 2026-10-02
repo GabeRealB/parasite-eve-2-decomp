@@ -1702,7 +1702,7 @@ void func_dryfield_night_main_street_8017E484(Task* task)
         D_80115720  = 0x60289;
         task->state = 1;
     }
-    if (GameFlag_GetNibble(0x7F) != 0) {
+    if (GameFlag_GetNibble(GAME_FLAG_07F) != 0) {
         D_dryfield_night_main_street_80182230[3] = 0;
         D_dryfield_night_main_street_80182230[2] = 0;
     }

@@ -946,7 +946,7 @@ void func_dryfield_water_tank_8017E568(Task* task)
         case 0:
             SetDispMask(0);
             Mem_AllocAuxWithImages(1);
-            SndEvt_EnqueueType7(0x52150009, 0x3C);
+            SndEvt_EnqueueType7(SOUND_WATER_TANK_AMBIENCE, 0x3C);
             task->state = task->state + 1;
             return;
         case 1:
@@ -961,8 +961,8 @@ void func_dryfield_water_tank_8017E568(Task* task)
             if (queue->movieReady == 0) {
                 return;
             }
-            SndEvt_EnqueueType6(0x52150006, 0, 0);
-            SndEvt_EnqueueType6(0x52150007, 0, 0);
+            SndEvt_EnqueueType6(SOUND_WATER_TANK_MOVIE_SFX_A, 0, 0);
+            SndEvt_EnqueueType6(SOUND_WATER_TANK_MOVIE_SFX_B, 0, 0);
             SetDispMask(1);
             task->state = task->state + 1;
             return;
@@ -975,8 +975,8 @@ void func_dryfield_water_tank_8017E568(Task* task)
             if (Pad_CheckFlag800() == 0) {
                 return;
             }
-            SndEvt_EnqueueType7(0x52150006, 0x1E);
-            SndEvt_EnqueueType7(0x52150007, 0x1E);
+            SndEvt_EnqueueType7(SOUND_WATER_TANK_MOVIE_SFX_A, 0x1E);
+            SndEvt_EnqueueType7(SOUND_WATER_TANK_MOVIE_SFX_B, 0x1E);
             SetDispMask(0);
             CdCmd_ActivatePhase1();
             task->state = task->state + 1;
@@ -992,7 +992,7 @@ void func_dryfield_water_tank_8017E568(Task* task)
             if ((Stream_RestoreAfterLoad(0, 1) & 0xFFFF) == 0) {
                 return;
             }
-            SndEvt_EnqueueType6(0x52150009, 0, 0);
+            SndEvt_EnqueueType6(SOUND_WATER_TANK_AMBIENCE, 0, 0);
             memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
             SetDispMask(1);
             taskKill(task);

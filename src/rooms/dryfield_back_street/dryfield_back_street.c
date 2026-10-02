@@ -589,11 +589,11 @@ void func_dryfield_back_street_8017D5D0(Task* task)
         return;
     }
     if (D_dryfield_back_street_80181054 == 0) {
-        SndEvt_EnqueueType6(0x52050006, pan, (s8)(((0x64 - vol) * 0x7F) / 100));
+        SndEvt_EnqueueType6(SOUND_BACK_STREET_AMBIENCE, pan, (s8)(((0x64 - vol) * 0x7F) / 100));
     } else if (vol == 0) {
-        SndEvt_EnqueueType7(0x52050006, 0x1E);
+        SndEvt_EnqueueType7(SOUND_BACK_STREET_AMBIENCE, 0x1E);
     } else {
-        SndEvt_EnqueueTypeA(0x52050006, pan, (s8)(((0x64 - vol) * 0x7F) / 100));
+        SndEvt_EnqueueTypeA(SOUND_BACK_STREET_AMBIENCE, pan, (s8)(((0x64 - vol) * 0x7F) / 100));
     }
     D_dryfield_back_street_80181054 = vol;
 }

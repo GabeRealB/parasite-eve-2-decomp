@@ -1541,7 +1541,7 @@ static void func_shelter_b1_pod_service_gantry_8017D628(Task* task)
             }
             work->child = Task_SpawnFromTable(&D_8013FB50, 0, 0, 0);
             Gp_ApplyAreaRecs(D_shelter_b1_pod_service_gantry_80182540);
-            GameFlag_SetNibble(0x118, 1);
+            GameFlag_SetNibble(GAME_FLAG_118, 1);
             work->state++;
             break;
         case 5:

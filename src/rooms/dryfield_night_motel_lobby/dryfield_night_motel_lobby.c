@@ -195,14 +195,14 @@ s32 func_dryfield_night_motel_lobby_8017FB00(void)
 s32 func_dryfield_night_motel_lobby_8017FB7C(s32 arg0, s32 arg1, s32 arg2)
 {
     if (arg2 == 3) {
-        if (GameFlag_GetNibble(0x16D) == 0) {
-            GameFlag_SetNibble(0x16D, 1);
+        if (GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_LOBBY_FIRST_SCENE) == 0) {
+            GameFlag_SetNibble(GAME_FLAG_NIGHT_MOTEL_LOBBY_FIRST_SCENE, 1);
             Gp_RunCapCmd1(0xA);
             return 0;
         }
         D_dryfield_night_motel_lobby_801844E0.field_0 = 5;
         D_dryfield_night_motel_lobby_801844E0.field_1 = 1;
-        if (GameFlag_GetNibble(0x7A) < 4) {
+        if (GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER) < 4) {
             D_dryfield_night_motel_lobby_801844E0.field_14 = 0x380;
             D_dryfield_night_motel_lobby_801844E0.field_3  = 1;
         } else {
@@ -222,7 +222,7 @@ s32 func_dryfield_night_motel_lobby_8017FB7C(s32 arg0, s32 arg1, s32 arg2)
 s32 func_dryfield_night_motel_lobby_8017FC6C(Task* task, s32 msgId, DirectionActionRequest* request)
 {
     if (request->actionId == 1) {
-        if (GameFlag_GetNibble(0x74) == 0) {
+        if (GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_LOBBY_EVENT_SEEN) == 0) {
             Gp_MsgPlayerWeapon(0);
             Gp_MsgPlayer3F3(0);
             Task_SpawnFromTable(D_dryfield_night_motel_lobby_801827FC, 0, 0, 0);
@@ -236,7 +236,7 @@ s32 func_dryfield_night_motel_lobby_8017FC6C(Task* task, s32 msgId, DirectionAct
 s32 func_dryfield_night_motel_lobby_8017FCDC(s32 arg0, s32 arg1, s32 arg2)
 {
     if (arg2 == 0x63) {
-        Gp_EnqueueStageSnd6(0x5311000A, 0, 0);
+        Gp_EnqueueStageSnd6(SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOBBY, 0x0A), 0, 0);
     }
     return 0;
 }
@@ -340,7 +340,7 @@ void func_dryfield_night_motel_lobby_8017FE90(Task* task)
                             if (hs->id == 0xB) {
                                 work->field_6 = 1;
                                 work->field_7 = 1;
-                                SndEvt_EnqueueType6(0x53110007, 0, 0);
+                                SndEvt_EnqueueType6(SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_PRESS, 0, 0);
                             }
                             break;
                         }

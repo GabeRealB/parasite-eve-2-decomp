@@ -1803,7 +1803,7 @@ void func_shelter_r48_8017D660(Task* arg0)
     tmd   = arg0->extra.tmd;
     otBuf = gDisplayState.otBuffer;
     view  = gGameSession->location.loc.view;
-    if (GameFlag_GetNibble(0x100) == 0) {
+    if (GameFlag_GetNibble(GAME_FLAG_100) == 0) {
         return;
     }
     shift = 0;
@@ -2113,7 +2113,7 @@ s32 func_shelter_r48_8017DF50(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg
 
     ret = 0;
     if (arg2 == 0x121 || arg2 == 0x122) {
-        if (GameFlag_GetNibble(0x100) == 1) {
+        if (GameFlag_GetNibble(GAME_FLAG_100) == 1) {
             node  = Gp_PendingObj4C;
             found = 1;
             while (node != NULL) {
@@ -2128,8 +2128,8 @@ s32 func_shelter_r48_8017DF50(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg
                 gGameSession->eventState = 1;
                 D_80115768               = 1;
                 Task_SpawnOnDefaultList(&D_8014B958, 0, 0, 0);
-                GameFlag_SetNibble(0x100, 2);
-                GameFlag_SetNibble(0x12A, 4);
+                GameFlag_SetNibble(GAME_FLAG_100, 2);
+                GameFlag_SetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE, 4);
                 ret = 1;
             }
         }
@@ -2161,7 +2161,7 @@ s32 func_shelter_r48_8017E088(Task* task, s32 msgId, TaskMessageArg arg2, TaskMe
 s32 func_shelter_r48_8017E090(Task* task, s32 msgId, RoomEventMsg* in, TaskMessageArg arg3)
 {
     if (in->warp == 1) {
-        switch (GameFlag_GetNibble(0x100)) {
+        switch (GameFlag_GetNibble(GAME_FLAG_100)) {
             case 0:
                 Gp_RunCapCmd1(6);
                 break;
@@ -2175,15 +2175,15 @@ s32 func_shelter_r48_8017E090(Task* task, s32 msgId, RoomEventMsg* in, TaskMessa
 
 s32 func_shelter_r48_8017E0EC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
-    if (GameFlag_GetNibble(0x12A) == 1) {
+    if (GameFlag_GetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE) == 1) {
         func_800E8614(&D_8014D158, 0);
-        GameFlag_SetNibble(0x12A, 2);
+        GameFlag_SetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE, 2);
     } else {
         func_800E8634(&D_8014C540, 0, &D_8014CAF8);
         Task_SpawnFromTable(&D_8014B964, 0, 0, 0);
         Task_SpawnFromTable(&D_8014B964, 0, 1, 0);
         Task_SpawnFromTable(&D_8014B964, 0, 3, 0);
-        GameFlag_SetNibble(0x12A, 3);
+        GameFlag_SetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE, 3);
     }
     return 0;
 }
@@ -2194,7 +2194,7 @@ static void func_shelter_r48_8017E1A4(Task* arg0)
     Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     func_80132F58(0);
     func_800E8634(&D_8014BD48, 0, &D_8014C288);
-    GameFlag_SetNibble(0x12A, 1);
+    GameFlag_SetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE, 1);
     arg0->state = (s32)(arg0->state + 1);
 }
 
@@ -2285,9 +2285,9 @@ void func_shelter_r48_8017E3B8(Task* task)
         task->state = 1;
     }
     if (viewMask & 0x401D8) {
-        if (GameFlag_GetNibble(0x100) == 1) {
+        if (GameFlag_GetNibble(GAME_FLAG_100) == 1) {
             func_shelter_r48_8018258C(&D_shelter_r48_8018300C, 0x100, 0x5C40);
-        } else if (GameFlag_GetNibble(0x100) == 2) {
+        } else if (GameFlag_GetNibble(GAME_FLAG_100) == 2) {
             func_shelter_r48_8018258C(&D_shelter_r48_8018300C, 0x100, 0x504C);
         }
     }

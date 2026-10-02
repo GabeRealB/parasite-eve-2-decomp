@@ -5,6 +5,7 @@
 
 #include "gameplay/cap.h"
 
+#include "main/sound_ids.h"
 #include "main/task_types.h"
 #include "main/text.h"
 

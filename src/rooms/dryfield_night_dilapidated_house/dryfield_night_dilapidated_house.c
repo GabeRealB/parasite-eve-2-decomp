@@ -193,7 +193,7 @@ s32 func_dryfield_night_dilapidated_house_8017D8DC(Task* task, s32 msgId, RoomEv
         req.missingCapCmd = 0xC;
         req.firstSnd      = 0x53090005;
         req.secondSnd     = 0x53090001;
-        req.flagId        = 0x3F;
+        req.flagId        = GAME_FLAG_DILAPIDATED_HOUSE_DOOR_UNLOCKED;
         req.collectedBit  = 0;
         return roomEventGate(&req, in);
     }
@@ -220,13 +220,13 @@ static void func_dryfield_night_dilapidated_house_8017D970(Task* arg0)
     arg0->msgTable = D_dryfield_night_dilapidated_house_8017E700;
     Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     arg0->state = (s32)(arg0->state + 1);
-    if (GameFlag_GetNibble(0x92) == 0) {
+    if (GameFlag_GetNibble(GAME_FLAG_NIGHT_DILAPIDATED_HOUSE_EVENT_SEEN) == 0) {
         if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) {
             func_800E8634(D_dryfield_night_dilapidated_house_801868F4, 0,
                           D_dryfield_night_dilapidated_house_80187134);
         }
-        GameFlag_SetNibble(0x92, 1);
-        GameFlag_SetNibble(0x7A, 3);
+        GameFlag_SetNibble(GAME_FLAG_NIGHT_DILAPIDATED_HOUSE_EVENT_SEEN, 1);
+        GameFlag_SetNibble(GAME_FLAG_STORY_CHAPTER, 3);
         func_800E3FAC(0xA2, 0x11);
     }
 }

@@ -61,7 +61,7 @@ void desertChaserSpawnAim(Task* arg0)
         work->poseBlend   = 1;
         work->routePos.vz = z;
         pan               = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(7, (s32)pan, (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        SndEvt_EnqueueType6(SOUND_COMMON(7), (s32)pan, (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
 #if !DESERT_CHASER_RUN_SEQUENCE
         Gp_SpawnPadLerp(8, 0xFF, 8);
 #endif

@@ -509,7 +509,7 @@ static void func_actor_312200_80163370(Enemy* enemy, Task* task)
             task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
             if ((Gp_GetViewIndex() == 0x10) && (work->field_8B8 == 1)) {
                 pan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
-                SndEvt_EnqueueType6(0x51030008, pan,
+                SndEvt_EnqueueType6(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, pan,
                                     (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
             }
         }

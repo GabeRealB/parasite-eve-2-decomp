@@ -1593,16 +1593,16 @@ s32 func_dryfield_general_store_8017DDFC(Task* task, s32 msgId, RoomEventMsg* ar
 {
     switch (arg2->warp) {
         case 1:
-            if (GameFlag_GetNibble(0x5E) == 0) {
+            if (GameFlag_GetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE) == 0) {
                 Task_SpawnFromTable(&D_dryfield_general_store_8017E4C0, 0, 0, 0);
-                GameFlag_SetNibble(0x5E, 1);
+                GameFlag_SetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE, 1);
             }
             break;
         case 2:
-            if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED && GameFlag_GetNibble(0x5E) == 1) {
+            if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED && GameFlag_GetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE) == 1) {
                 func_800E8614(D_dryfield_general_store_8017E568, 1);
             }
-            GameFlag_SetNibble(0x5E, 2);
+            GameFlag_SetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE, 2);
             break;
     }
     return 0;
@@ -1612,10 +1612,10 @@ static void func_dryfield_general_store_8017DEAC(Task* arg0)
 {
     arg0->msgTable = D_dryfield_general_store_8017E188;
     Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if (GameFlag_GetNibble(0x5E) == 0) {
+    if (GameFlag_GetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE) == 0) {
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_dryfield_general_store_8017E1B8, ACTOR_COMMAND_MESSAGE_APPLY);
-    } else if (GameFlag_GetNibble(0x5E) == 1) {
-        GameFlag_SetNibble(0x5E, 2);
+    } else if (GameFlag_GetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE) == 1) {
+        GameFlag_SetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE, 2);
     }
     arg0->state = arg0->state + 1;
     D_80115598  = 1;
@@ -1645,7 +1645,7 @@ void func_dryfield_general_store_8017DFB4(Task* arg0)
     switch (arg0->state) {
         case 0:
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_dryfield_general_store_8017E55C, ACTOR_COMMAND_MESSAGE_APPLY);
-            SndEvt_EnqueueType6(0x5203000F, 0, 0);
+            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GENERAL_STORE, 0x0F), 0, 0);
             arg0->killCountdown = 0x5A;
             arg0->state++;
             return;

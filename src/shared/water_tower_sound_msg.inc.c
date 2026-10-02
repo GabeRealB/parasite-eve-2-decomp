@@ -6,10 +6,10 @@ s32 waterTowerSoundMsg(s32 arg0, s32 arg1, s32 arg2)
 {
     switch (arg2) {
         case 8:
-            Gp_EnqueueStageSnd6(0x52140008, 0, 0);
+            Gp_EnqueueStageSnd6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TOWER, 8), 0, 0);
             break;
         case 13:
-            Gp_EnqueueStageSnd6(0x5214000D, 0, 0);
+            Gp_EnqueueStageSnd6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TOWER, 0x0D), 0, 0);
             break;
     }
     return 0;
