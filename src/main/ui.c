@@ -68,13 +68,25 @@ enum {
 /// Animated list displacement per nominal 60-Hz tick, in pixels.
 enum { USER_INTERFACE_LIST_SCROLL_PIXELS_PER_TICK = 2 };
 
-/// Callback for UiPanel state handlers (e.g. entries in Ui_ObjectStates).
-typedef void (*UiPanelFunc)(UiPanel* arg0, Task* arg1);
+/// Handler for one panel lifecycle index.
+///
+/// The owning task's update selects the handler with `UiPanel.state` and calls
+/// it with the panel and that task. `panel` is the panel embedded at the start
+/// of the `UiObject` stored in `Task::spawnArg2`, so the pointer addresses that
+/// object. `task` is the object's owner and the argument passed to the panel's
+/// content callback.
+///
+/// The index runs from 0 through 5 (initial, opening, open, closing, hiding,
+/// hidden). Dispatch does not check it, and the selected handler is live. The
+/// handler may change the panel's lifecycle, animation counter and input
+/// control, or run its content callback. Both pointers are live on entry.
+/// Exiting the owning task can release them before the handler returns.
+typedef void (*_UiPanelLifecycleFunc)(UiPanel* panel, Task* task);
 
-/// Fixed-size table of UiPanelFunc callbacks. Copied onto the stack by
+/// Fixed-size table of _UiPanelLifecycleFunc callbacks. Copied onto the stack by
 /// Ui_DispatchObjectState so the call uses a local jump table.
 typedef struct {
-    UiPanelFunc funcs[6];
+    _UiPanelLifecycleFunc funcs[6];
 } UiPanelFuncTable6;
 
 /// Linked text option node walked by Ui_DrawDialogLine (index via UiList::currentItemIndex).
