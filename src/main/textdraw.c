@@ -1283,41 +1283,45 @@ static void Text_DrawGlyphQueued(TextDrawReq* request, const _FontGlyph* glyph, 
     addPrim(gGpuCurrentOt + request->otIndex, p);
 }
 
-/// Initializes a raw, semitransparent outline sprite at the current text pen.
+/// Initializes a raw, semitransparent UI-glyph outline at the current text pen.
 ///
-/// Sets the command, length, rectangle and palette, leaving RGB untouched.
-/// Allocation and DMA linking belong to the caller. Borrows the read-only
-/// request and glyph without advancing the pen.
+/// `outline` is one writable, word-aligned `SPRT`, separate from `request` and
+/// `glyph`. Sets its four-word GPU payload length, command, rectangle and CLUT;
+/// RGB and the tag's DMA address remain untouched. The caller owns the packet's
+/// allocation and linking. All three objects are borrowed only for this call;
+/// the request and glyph are read-only, and the pen is not advanced.
+///
+/// Pen coordinates and glyph offsets are draw-environment pixels. Screen X/Y
+/// narrow to signed 16-bit fields; the last row is at pen Y plus the Y offset.
+/// U/V are page-local texels, with V wrapping modulo 256 after the signed bias.
+/// Byte-sized minus-one dimensions decode to 1..256 pixels and texels.
+/// Drawing requires the font texture and outline palette to be resident, with
+/// the 4bpp font page selecting `GPU_BLEND_SUBTRACT` before the sprite executes.
 static inline void _textInitOutlineGlyphSprite(SPRT* outline, const TextDrawReq* request, const _FontGlyph* glyph)
 {
-    /// Palette selector for the standalone subtractive glyph outline.
+    /// Palette used by the raw outline-only glyph pass.
     enum {
-        /// GPU CLUT selector for the subtractive outline-only glyph pass.
+        /// 4bpp outline CLUT at VRAM word X=1008, Y=511.
         ///
-        /// Encodes VRAM word X=1008, row Y=511 as 0x7FFF for `SPRT::clut`:
-        /// bits 0..5 store X / 16 and bits 6..14 store Y. The 16-color palette
-        /// uploaded there by `Text_LoadClutImages` must already be resident.
-        /// Indices 0..5 are transparent; 6..9 have RGB5 gray levels 1, 3, 6
-        /// and 9; 10..15 are white. Every nonzero color sets bit 15.
-        /// Raw, semitransparent sprites use these colors without RGB modulation.
-        /// The 4bpp font page must select `GPU_BLEND_SUBTRACT` to darken the
-        /// background; the CLUT selector itself carries no blend mode.
+        /// `getClut` packs X / 16 and Y into selector 0x7FFF. This is the final
+        /// 16-color block uploaded by `Text_LoadClutImages`: indices 0..5 are
+        /// transparent, 6..9 have RGB5 gray levels 1, 3, 6 and 9, and 10..15
+        /// are white. Nonzero colors enable blending; the raw sprite subtracts
+        /// their coverage from the background when the font page selects
+        /// `GPU_BLEND_SUBTRACT`. The selector itself carries no blend mode.
         TEXT_OUTLINE_ONLY_GLYPH_CLUT = getClut(0x3F0, 0x1FF),
     };
-
-    s32 heightMinusOne;
 
     setSprt(outline);
     setSemiTrans(outline, true);
     setShadeTex(outline, true);
-    outline->x0    = request->x + glyph->xOffset;
-    outline->y0    = (request->y - glyph->heightMinusOne) + glyph->yOffset;
-    outline->u0    = glyph->u;
-    outline->v0    = glyph->v + request->vBias;
-    outline->w     = glyph->widthMinusOne + 1;
-    heightMinusOne = glyph->heightMinusOne;
-    outline->clut  = TEXT_OUTLINE_ONLY_GLYPH_CLUT;
-    outline->h     = heightMinusOne + 1;
+    outline->x0   = request->x + glyph->xOffset;
+    outline->y0   = (request->y - glyph->heightMinusOne) + glyph->yOffset;
+    outline->u0   = glyph->u;
+    outline->v0   = glyph->v + request->vBias;
+    outline->w    = glyph->widthMinusOne + 1;
+    outline->h    = glyph->heightMinusOne + 1;
+    outline->clut = TEXT_OUTLINE_ONLY_GLYPH_CLUT;
 }
 
 /// Queues one subtractive glyph outline without a fill or RGB modulation.
