@@ -91,17 +91,27 @@ typedef struct _GpQuadHitScratch {
 } GpQuadHitScratch;
 STATIC_ASSERT_SIZEOF(GpQuadHitScratch, 0x98);
 
-/// 0x80-byte scratch from the scratch stack used by `func_800DFCCC`.
-/// `origin` holds the transformed quad origin, then the segment-plane hit.
-/// `edge` and `cross` hold each edge's separating-plane calculation.
-typedef struct _GpFaceHitScratch {
-    /* 0x00 */ VECTOR verts[4];
-    /* 0x40 */ VECTOR origin;
-    /* 0x50 */ VECTOR normal;
-    /* 0x60 */ VECTOR edge;
-    /* 0x70 */ VECTOR cross;
-} GpFaceHitScratch;
-STATIC_ASSERT_SIZEOF(GpFaceHitScratch, 0x80);
+/// Query-space geometry for testing one segment against an occluder quad.
+///
+/// The scratch stack reserves this block for the test and releases it on
+/// every exit. The current view transform maps the occluder's room-space
+/// origin, corner offsets and normal into the segment's query space.
+/// Positions use game units. The face normal uses 4096 per unit. Corner 0
+/// is placed before the plane test; the other corners are placed only after
+/// the segment meets the plane. `position` holds the transformed origin
+/// until then, and the plane intersection afterwards. Each vector's fourth
+/// component is unused and left uninitialized.
+typedef struct {
+    VECTOR corners[4];       // Query-space corners in strip order, game units
+    union {
+        VECTOR origin;       // Transformed quad origin, used to place the corners
+        VECTOR intersection; // Segment-plane hit, written after the corners are placed
+    } position;
+    VECTOR faceNormal;       // Query-space plane normal, 4096 per unit
+    VECTOR edgeDisplacement; // End corner minus start corner, game units
+    VECTOR edgePlaneNormal;  // Separating normal of the current edge; length follows the edge
+} _WorldCollisionOccluderSegmentScratch;
+STATIC_ASSERT_SIZEOF(_WorldCollisionOccluderSegmentScratch, 0x80);
 
 /// 0x50-byte scratch from the scratch stack used by `func_800DDC2C` and
 /// `func_800DE150`. `src[0]` / `src[1]` are the local XZ endpoints of
@@ -909,52 +919,53 @@ void func_800DF6AC(WorldCollisionBody* node, WorldCollisionTrigger* other, VECTO
 
 s32 func_800DFCCC(WorldCollisionOccluder* occluder, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3)
 {
-    GpFaceHitScratch* block;
-    VECTOR*           va;
-    VECTOR*           vb;
-    s32               dirDot;
-    s32               t;
-    s32               hitDot;
-    s32               i;
-    s16               planeDot;
-    s16               edgeDot;
+    _WorldCollisionOccluderSegmentScratch* block;
+    VECTOR*                                va;
+    VECTOR*                                vb;
+    s32                                    dirDot;
+    s32                                    t;
+    s32                                    hitDot;
+    s32                                    i;
+    s16                                    planeDot;
+    s16                                    edgeDot;
 
-    block = SCRATCH_STACK_RESERVE_BLOCK(GpFaceHitScratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(_WorldCollisionOccluderSegmentScratch);
 
-    // Transform the room quad into the segment's query space.
+    // Transform the occluder quad into the segment's query space.
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(&occluder->origin);
     gte_rtv0();
-    gte_stlvnl(&block->origin);
-    block->origin.vx += gGfxViewCoord.workm.t[0];
-    block->origin.vy += gGfxViewCoord.workm.t[1];
-    block->origin.vz += gGfxViewCoord.workm.t[2];
+    gte_stlvnl(&block->position.origin);
+    block->position.origin.vx += gGfxViewCoord.workm.t[0];
+    block->position.origin.vy += gGfxViewCoord.workm.t[1];
+    block->position.origin.vz += gGfxViewCoord.workm.t[2];
 
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(&occluder->vertices[0]);
     gte_rtv0();
-    gte_stlvnl(&block->verts[0]);
-    block->verts[0].vx += block->origin.vx;
-    block->verts[0].vy += block->origin.vy;
-    block->verts[0].vz += block->origin.vz;
+    gte_stlvnl(&block->corners[0]);
+    block->corners[0].vx += block->position.origin.vx;
+    block->corners[0].vy += block->position.origin.vy;
+    block->corners[0].vz += block->position.origin.vz;
 
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(&occluder->normal);
     gte_rtv0();
-    gte_stlvnl(&block->normal);
+    gte_stlvnl(&block->faceNormal);
 
-    planeDot = (block->normal.vx * block->verts[0].vx + block->normal.vy * block->verts[0].vy +
-                block->normal.vz * block->verts[0].vz) >>
+    planeDot = (block->faceNormal.vx * block->corners[0].vx + block->faceNormal.vy * block->corners[0].vy +
+                block->faceNormal.vz * block->corners[0].vz) >>
                12;
-    dirDot = (block->normal.vx * arg3->vx + block->normal.vy * arg3->vy + block->normal.vz * arg3->vz) >> 12;
+    dirDot = (block->faceNormal.vx * arg3->vx + block->faceNormal.vy * arg3->vy + block->faceNormal.vz * arg3->vz) >> 12;
     if (dirDot == 0) {
-        SCRATCH_STACK_RELEASE_BLOCK(GpFaceHitScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionOccluderSegmentScratch);
         return 0;
     }
-    t = ((block->normal.vx * arg1->vx + block->normal.vy * arg1->vy + block->normal.vz * arg1->vz) >> 12) - planeDot;
+    t = ((block->faceNormal.vx * arg1->vx + block->faceNormal.vy * arg1->vy + block->faceNormal.vz * arg1->vz) >> 12) -
+        planeDot;
     t = -(t << 12) / dirDot;
     if (t == 0) {
-        SCRATCH_STACK_RELEASE_BLOCK(GpFaceHitScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionOccluderSegmentScratch);
         return 0;
     }
 
@@ -962,44 +973,47 @@ s32 func_800DFCCC(WorldCollisionOccluder* occluder, SVECTOR* arg1, SVECTOR* arg2
     for (i = 1; i < (s32)ARRAY_SIZE(occluder->vertices); i++) {
         gte_ldv0(&occluder->vertices[i]);
         gte_rtv0();
-        gte_stlvnl(&block->verts[i]);
-        block->verts[i].vx += block->origin.vx;
-        block->verts[i].vy += block->origin.vy;
-        block->verts[i].vz += block->origin.vz;
+        gte_stlvnl(&block->corners[i]);
+        block->corners[i].vx += block->position.origin.vx;
+        block->corners[i].vy += block->position.origin.vy;
+        block->corners[i].vz += block->position.origin.vz;
     }
 
-    block->origin.vx = arg1->vx + ((arg3->vx * t) >> 12);
-    block->origin.vy = arg1->vy + ((arg3->vy * t) >> 12);
-    block->origin.vz = arg1->vz + ((arg3->vz * t) >> 12);
+    block->position.intersection.vx = arg1->vx + ((arg3->vx * t) >> 12);
+    block->position.intersection.vy = arg1->vy + ((arg3->vy * t) >> 12);
+    block->position.intersection.vz = arg1->vz + ((arg3->vz * t) >> 12);
 
     // An intersection at either endpoint does not block the segment.
-    if ((block->origin.vx - arg1->vx) * (block->origin.vx - arg2->vx) +
-            (block->origin.vy - arg1->vy) * (block->origin.vy - arg2->vy) +
-            (block->origin.vz - arg1->vz) * (block->origin.vz - arg2->vz) >=
+    if ((block->position.intersection.vx - arg1->vx) * (block->position.intersection.vx - arg2->vx) +
+            (block->position.intersection.vy - arg1->vy) * (block->position.intersection.vy - arg2->vy) +
+            (block->position.intersection.vz - arg1->vz) * (block->position.intersection.vz - arg2->vz) >=
         0) {
-        SCRATCH_STACK_RELEASE_BLOCK(GpFaceHitScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionOccluderSegmentScratch);
         return 0;
     }
 
     for (i = 1; i < (s32)ARRAY_SIZE(occluder->vertices) + 1; i++) {
-        va             = &block->verts[(u16)Gp_FaceEdgePairs[i].endCornerIndex];
-        vb             = &block->verts[(u16)Gp_FaceEdgePairs[i].startCornerIndex];
-        block->edge.vx = va->vx - vb->vx;
-        block->edge.vy = va->vy - vb->vy;
-        block->edge.vz = va->vz - vb->vz;
-        gte_ldopv1(&block->normal);
-        gte_ldopv2(&block->edge);
+        va                         = &block->corners[(u16)Gp_FaceEdgePairs[i].endCornerIndex];
+        vb                         = &block->corners[(u16)Gp_FaceEdgePairs[i].startCornerIndex];
+        block->edgeDisplacement.vx = va->vx - vb->vx;
+        block->edgeDisplacement.vy = va->vy - vb->vy;
+        block->edgeDisplacement.vz = va->vz - vb->vz;
+        gte_ldopv1(&block->faceNormal);
+        gte_ldopv2(&block->edgeDisplacement);
         gte_op12();
-        gte_stlvnl(&block->cross);
-        edgeDot = (block->cross.vx * va->vx + block->cross.vy * va->vy + block->cross.vz * va->vz) >> 12;
-        hitDot  = (block->cross.vx * block->origin.vx + block->cross.vy * block->origin.vy +
-                  block->cross.vz * block->origin.vz) >>
+        gte_stlvnl(&block->edgePlaneNormal);
+        edgeDot = (block->edgePlaneNormal.vx * va->vx + block->edgePlaneNormal.vy * va->vy +
+                   block->edgePlaneNormal.vz * va->vz) >>
+                  12;
+        hitDot = (block->edgePlaneNormal.vx * block->position.intersection.vx +
+                  block->edgePlaneNormal.vy * block->position.intersection.vy +
+                  block->edgePlaneNormal.vz * block->position.intersection.vz) >>
                  12;
         if (hitDot - edgeDot > 0) {
-            SCRATCH_STACK_RELEASE_BLOCK(GpFaceHitScratch);
+            SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionOccluderSegmentScratch);
             return 0;
         }
     }
-    SCRATCH_STACK_RELEASE_BLOCK(GpFaceHitScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionOccluderSegmentScratch);
     return 1;
 }

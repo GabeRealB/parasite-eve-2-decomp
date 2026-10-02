@@ -66318,7 +66318,7 @@ failure uses the ordinary `SCRATCH_STACK_CURSOR_SLOT` constant. Explicit release
 statements allow only the final add/store tail to cross-jump; a shared C label
 for the entire failure path loses five target instructions.
 
-For `tmp = head - 0x80; block = (GpFaceHitScratch*)tmp;`
+For `tmp = head - 0x80; block = (_WorldCollisionOccluderSegmentScratch*)tmp;`
 `SOFT_TOUCH_REG_USE(block, tmp); *scratch = tmp;`, a dead `tmp = 0` before the
 final success return preserves tmp as the CSE canonical name. Without it,
 `cse.c`'s register-copy special handling around line 7610 reverses the copy:
