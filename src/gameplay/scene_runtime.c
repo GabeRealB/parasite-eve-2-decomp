@@ -963,19 +963,22 @@ Enemy* Gp_SpawnEnemyFromTable(TaskDesc* table, s32 idx, s32 arg2, Enemy* parent)
     return ret;
 }
 
-void enemyDestroy(Enemy* enemy, Task* task)
-{
-    // Detach target references while the enemy allocation is still live.
-    worldTargetUnlinkNode(&enemy->node);
-    memFree(enemy);
-    taskKill(task);
-}
-
-/// Detaches target references before releasing a live primary-heap enemy work object.
+/// Detaches target tracking and frees a live primary-heap enemy work object.
+///
+/// `enemy` must be non-NULL. Its target entry may already be off the list.
+/// Actor locks are released and the entry is removed before the allocation is
+/// freed, so the node is read only while the object is still live. The owning
+/// task keeps running; the caller starts teardown. `enemy` is invalid on return.
 static inline void _enemyReleaseWork(Enemy* enemy)
 {
     worldTargetUnlinkNode(&enemy->node);
     memFree(enemy);
+}
+
+void enemyDestroy(Enemy* enemy, Task* task)
+{
+    _enemyReleaseWork(enemy);
+    taskKill(task);
 }
 
 void enemyTaskExit(Task* task)
