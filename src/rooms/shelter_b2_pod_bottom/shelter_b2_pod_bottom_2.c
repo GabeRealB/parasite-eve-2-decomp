@@ -1192,7 +1192,7 @@ void func_shelter_b2_pod_bottom_80181B48(Task* arg0)
     work->age++;
     switch (arg0->state) {
         case 0:
-            Gfx_RotMatrixX(&coord->coord, arg0->spawnArg1.value, 0);
+            gfxRotMatrixX(&coord->coord, arg0->spawnArg1.value, GRAPHICS_ROTATION_COMPOSE);
             work->scale = 0xC0;
             work->angle = 0x180;
             arg0->state = 1;

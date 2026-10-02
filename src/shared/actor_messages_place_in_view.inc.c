@@ -16,7 +16,7 @@ void actorMsgPlaceInView(Task* task, s32 arg1, ActorTransform* placement)
     mtx               = &coord->coord;
     coord->coord.t[2] = placement->pos.vz;
     gfxRotMatrixY(mtx, placement->rot.vy, 1);
-    Gfx_RotMatrixX(mtx, placement->rot.vx, 0);
+    gfxRotMatrixX(mtx, placement->rot.vx, GRAPHICS_ROTATION_COMPOSE);
     Gfx_RotMatrixZ(mtx, placement->rot.vz, 0);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }

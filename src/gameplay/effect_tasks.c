@@ -569,7 +569,7 @@ void func_800ED42C(Task* arg0)
                             gte_stsv(vec);
                             Gp_SpawnEff(EFFECT_MUZZLE_FLARE, coord, mem->scale + 0x200, vec);
                             i = 0;
-                            Gfx_RotMatrixX(&coord->coord, 0x400, i);
+                            gfxRotMatrixX(&coord->coord, 0x400, i);
                             coord->composeStamp = GRAPHICS_COORD_DIRTY;
                             for (; i < 0xC; i++) {
                                 Gp_SpawnEff(EFFECT_PIXEL_SPARK, coord, 0, 0);
@@ -595,7 +595,7 @@ void func_800ED42C(Task* arg0)
                                 Gp_DrawEffSprite6C(coord, (s16)(mem->scale + 0x280),
                                                    (gRandomLcgState >> 16) & 0xFFF);
                             }
-                            Gfx_RotMatrixX(&coord->coord, 0x400, 0);
+                            gfxRotMatrixX(&coord->coord, 0x400, GRAPHICS_ROTATION_COMPOSE);
                             coord->composeStamp = GRAPHICS_COORD_DIRTY;
                         }
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -1502,7 +1502,7 @@ void Gp_EffModelTask(Task* arg0)
         mem->pos.vz         = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         arg0->state         = 1;
-        Gfx_RotMatrixX(&coord->coord, 0x800, 0);
+        gfxRotMatrixX(&coord->coord, 0x800, GRAPHICS_ROTATION_COMPOSE);
         return;
     }
     Gfx_RotMatrixXYZ(&coord->coord, &mem->pos, 0);

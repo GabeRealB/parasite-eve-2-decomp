@@ -242,7 +242,7 @@ static void func_m4a1_grenade_8011D654(Task* arg0)
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     extra->flags        = 0;
     *mtx                = coord->coord;
-    Gfx_RotMatrixX(mtx, -0x400, 0);
+    gfxRotMatrixX(mtx, -0x400, GRAPHICS_ROTATION_COMPOSE);
     Gfx_MatrixCol2(mtx, &work->dir);
     VectorNormalSS(&work->dir, &work->dir);
     work->field_88.word        = 0xA0000;

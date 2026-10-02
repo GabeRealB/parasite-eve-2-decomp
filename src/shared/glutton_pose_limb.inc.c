@@ -245,7 +245,7 @@ void gluttonPoseLimb(Task* task)
         } else {
             work->field_794[i] = work->field_794[i] - work->field_7A6;
         }
-        Gfx_RotMatrixX(&work->field_ECC[4]->task->extra.tmd->coords[i].coord, work->field_794[i], 1);
+        gfxRotMatrixX(&work->field_ECC[4]->task->extra.tmd->coords[i].coord, work->field_794[i], GRAPHICS_ROTATION_REPLACE);
         work->field_ECC[4]->task->extra.tmd->coords[i].composeStamp = GRAPHICS_COORD_DIRTY;
     }
 }

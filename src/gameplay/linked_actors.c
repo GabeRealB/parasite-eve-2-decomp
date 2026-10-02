@@ -210,7 +210,7 @@ void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 
     if (arg3 & 4) {
         sc->mat = coord->workm;
-        Gfx_RotMatrixX(&sc->mat, -0x400, 0);
+        gfxRotMatrixX(&sc->mat, -0x400, GRAPHICS_ROTATION_COMPOSE);
         arg3 &= ~4;
     } else {
         sc->mat = gGfxViewCoord.workm;

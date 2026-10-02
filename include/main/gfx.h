@@ -45,7 +45,29 @@ void Gfx_RotMatrixXYZ(MATRIX* out, SVECTOR* angles, s32 flag);
 
 void Gfx_RotMatrixYXZ(MATRIX* out, SVECTOR* angles, s32 flag);
 
-void Gfx_RotMatrixX(MATRIX* matrix, s32 angle, s32 flag);
+/// Canonical values for replacing a rotation or composing it on the right.
+///
+/// The axis-rotation routines accept any nonzero value as replacement.
+enum {
+    GRAPHICS_ROTATION_COMPOSE = 0,
+    GRAPHICS_ROTATION_REPLACE = 1,
+};
+
+/// Rotates `matrix` about X and preserves its translation.
+///
+/// `matrix` must be a live, writable, word-aligned `MATRIX`. `angle` is signed,
+/// with 4096 units per turn; `rsin` and `rcos` supply signed matrix elements
+/// scaled by `ONE` (4096). The pure Rx has the identity along X, cosine at
+/// `m[1][1]` and `m[2][2]`, negative sine at `m[1][2]`, and sine at `m[2][1]`.
+///
+/// Nonzero `replace` (`GRAPHICS_ROTATION_REPLACE`) installs Rx in the nine
+/// rotation elements. Zero (`GRAPHICS_ROTATION_COMPOSE`) right-multiplies the
+/// current rotation by Rx. For a local-to-parent matrix, replacement sets the
+/// orientation in the parent frame; composition turns about the current local X.
+/// Composition requires initialized rotation elements and overwrites GTE
+/// rotation, product and flag registers. The initialized scratch stack must have
+/// room for 0x24 bytes, reserved only until this call returns.
+void gfxRotMatrixX(MATRIX* matrix, s32 angle, s32 replace);
 
 /// Rotates `matrix` about Y and leaves its translation unchanged.
 ///

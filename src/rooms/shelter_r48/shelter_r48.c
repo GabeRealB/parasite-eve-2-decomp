@@ -3058,7 +3058,7 @@ void func_shelter_r48_801810B0(Task* task)
         switch (task->state) {
             case 0:
                 coord->parent = work->parent;
-                Gfx_RotMatrixX(&coord->coord, -0x400, 1);
+                gfxRotMatrixX(&coord->coord, -0x400, GRAPHICS_ROTATION_REPLACE);
                 coord->coord.t[2]   = 0;
                 coord->coord.t[1]   = 0;
                 coord->coord.t[0]   = 0;

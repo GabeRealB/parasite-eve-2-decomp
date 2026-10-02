@@ -150,7 +150,7 @@ void desertChaserAnimTick(Task* task)
     }
 #if DESERT_CHASER_STATE26_TILT
     if ((work->field_82E == 0) && (work->field_0 == 0x26)) {
-        Gfx_RotMatrixX(&task->extra.tmd->coords[4].coord, 0x280, 0);
+        gfxRotMatrixX(&task->extra.tmd->coords[4].coord, 0x280, GRAPHICS_ROTATION_COMPOSE);
         task->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(&task->extra.tmd->coords[4]);
     }

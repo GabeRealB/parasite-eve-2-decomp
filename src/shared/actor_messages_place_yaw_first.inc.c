@@ -16,7 +16,7 @@ s32 actorMsgPlaceYawFirst(Task* task, s32 arg1, ActorTransform* placement)
     task->extra.tmd->coords->coord.t[1] = placement->pos.vy;
     task->extra.tmd->coords->coord.t[2] = placement->pos.vz;
     gfxRotMatrixY(&task->extra.tmd->coords->coord, placement->rot.vy, 1);
-    Gfx_RotMatrixX(&task->extra.tmd->coords->coord, placement->rot.vx, 0);
+    gfxRotMatrixX(&task->extra.tmd->coords->coord, placement->rot.vx, GRAPHICS_ROTATION_COMPOSE);
     Gfx_RotMatrixZ(&task->extra.tmd->coords->coord, placement->rot.vz, 0);
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     work->yaw                             = ratan2(-task->extra.tmd->coords->coord.m[2][0],

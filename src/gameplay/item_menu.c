@@ -1404,7 +1404,7 @@ void Gp_ItemPickupTilt(Task* arg0)
         }
     } else if (arg0->state == 2) {
         arg0->killCountdown++;
-        Gfx_RotMatrixX(&rot->coord, arg0->killCountdown << 5, 1);
+        gfxRotMatrixX(&rot->coord, arg0->killCountdown << 5, GRAPHICS_ROTATION_REPLACE);
         rot->composeStamp = GRAPHICS_COORD_DIRTY;
         if (arg0->killCountdown >= 0x14) {
             /* Unique items and stackables open the same pickup result task. */
@@ -1469,7 +1469,7 @@ void Gp_ItemPickupTilt(Task* arg0)
         if (arg0->killCountdown <= 0) {
             arg0->killCountdown = 0;
         }
-        Gfx_RotMatrixX(&rot->coord, arg0->killCountdown << 5, 1);
+        gfxRotMatrixX(&rot->coord, arg0->killCountdown << 5, GRAPHICS_ROTATION_REPLACE);
         rot->composeStamp = GRAPHICS_COORD_DIRTY;
         if (arg0->killCountdown == 0) {
             arg0->status = 0;

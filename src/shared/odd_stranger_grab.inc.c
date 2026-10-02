@@ -46,10 +46,10 @@ void oddStrangerGrab(Task* arg0)
         Gp_SpawnPadLerp(0xC, 8, 0x8F);
     }
     oddStrangerDrive(arg0);
-    Gfx_RotMatrixX(&arg0->extra.tmd->coords[2].coord, -0x80, 0);
+    gfxRotMatrixX(&arg0->extra.tmd->coords[2].coord, -0x80, GRAPHICS_ROTATION_COMPOSE);
     arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(&arg0->extra.tmd->coords[2]);
-    Gfx_RotMatrixX(&arg0->extra.tmd->coords[3].coord, -0x80, 0);
+    gfxRotMatrixX(&arg0->extra.tmd->coords[3].coord, -0x80, GRAPHICS_ROTATION_COMPOSE);
     arg0->extra.tmd->coords[5].composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(&arg0->extra.tmd->coords[3]);
     if (work->field_89E == 5 && (work->flags_68.half & ANIMATION_SLOT_REACHED_BOUNDARY)) {

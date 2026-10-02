@@ -532,7 +532,7 @@ void func_neo_ark_garden_8017EA9C(Task* task)
 
 /// Queues one textured quad (tpage 0xAC, clut 0x43C0, 64x64 texels). The
 /// unit corners are scaled by 250 in the y/z plane, rotated by the matrix
-/// `Gfx_RotMatrixX` builds from `gDisplayState.animFrame << 7`, moved to `arg0`, and
+/// `gfxRotMatrixX` builds from `gDisplayState.animFrame << 7`, moved to `arg0`, and
 /// projected through `gGfxViewCoord.workm`. Nothing is queued when the GTE flag
 /// word is negative.
 static void func_neo_ark_garden_8017F42C(SVECTOR* arg0)
@@ -542,7 +542,7 @@ static void func_neo_ark_garden_8017F42C(SVECTOR* arg0)
     s32                i;
     POLY_FT4*          prim;
 
-    Gfx_RotMatrixX(&m, gDisplayState.animFrame << 7, 1);
+    gfxRotMatrixX(&m, gDisplayState.animFrame << 7, GRAPHICS_ROTATION_REPLACE);
     quadScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectQuadScratch);
     for (i = 0; i < ARRAY_SIZE(D_80111E38); i++) {
         quadScratch->vertices[i].vx = 0;

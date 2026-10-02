@@ -50,7 +50,7 @@ void gluttonSpinnerSpawn(Enemy* enemy, Task* task)
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     Gfx_RotMatrixZ(&task->extra.tmd->coords->coord, (gRandomLcgState >> 16) & 0x4FF, 0);
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    Gfx_RotMatrixX(&task->extra.tmd->coords->coord, (gRandomLcgState >> 16) & 0x4FF, 0);
+    gfxRotMatrixX(&task->extra.tmd->coords->coord, (gRandomLcgState >> 16) & 0x4FF, GRAPHICS_ROTATION_COMPOSE);
 
     task->extra.tmd->lightMtx             = &work->lightMtx;
     task->extra.tmd->colorMtx             = &work->colorMtx;

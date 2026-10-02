@@ -3457,7 +3457,7 @@ void func_acropolis_security_room_80181108(Task* arg0)
         coord->coord.t[0] += mem->move.vx;
         coord->coord.t[1] += mem->move.vy;
         coord->coord.t[2] += mem->move.vz;
-        Gfx_RotMatrixX(&coord->coord, mem->period, 0);
+        gfxRotMatrixX(&coord->coord, mem->period, GRAPHICS_ROTATION_COMPOSE);
         Gfx_RotMatrixZ(&coord->coord, mem->step, 0);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
 

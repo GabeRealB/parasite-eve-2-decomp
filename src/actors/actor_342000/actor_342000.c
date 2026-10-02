@@ -723,7 +723,7 @@ void func_actor_342000_801628C8(Task* arg0)
             mtx->rotationWords.m22    = ONE;
             ang                       = &work->field_274;
             gfxRotMatrixY(&mtx->mat, ang[1], 1);
-            Gfx_RotMatrixX(&mtx->mat, ang[0], 0);
+            gfxRotMatrixX(&mtx->mat, ang[0], GRAPHICS_ROTATION_COMPOSE);
             Gfx_RotMatrixZ(&mtx->mat, ang[2], 0);
             gfxScaleMatrixColumns(&mtx->mat, &work->field_264);
             work->coord.composeStamp = GRAPHICS_COORD_DIRTY;

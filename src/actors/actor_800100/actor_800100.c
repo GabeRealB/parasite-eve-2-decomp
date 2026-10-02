@@ -1335,7 +1335,7 @@ static void func_actor_800100_801635F4(Task* arg0)
     task = actor->equipmentTasks[1];
     if (task != NULL) {
         actor->weaponCollisionCoord = *task->extra.tmd->coords;
-        Gfx_RotMatrixX(&actor->weaponCollisionCoord.workm, -0x400, 0);
+        gfxRotMatrixX(&actor->weaponCollisionCoord.workm, -0x400, GRAPHICS_ROTATION_COMPOSE);
     }
 
     companion->probe.coord = *arg0->extra.tmd->coords;
@@ -3069,7 +3069,7 @@ static void func_actor_800100_80166514(Task* arg0)
     SCRATCH_HEAD_AT(scratch, Actor800100PlaceScratch) = blk;
 
     Gp_FindRec18(obj->context.capsule->contacts, 0);
-    Gfx_RotMatrixX(&sp10.workm, 0x400, 0);
+    gfxRotMatrixX(&sp10.workm, 0x400, GRAPHICS_ROTATION_COMPOSE);
     blk->rot.vx = 0;
     blk->rot.vy = 0x120;
     blk->rot.vz = 0x20;
@@ -3371,7 +3371,7 @@ static void func_actor_800100_80166F50(Task* arg0)
         rec                         = &actor->aimShape;
         src                         = task->extra.tmd->coords;
         actor->weaponCollisionCoord = *src;
-        Gfx_RotMatrixX(&actor->weaponCollisionCoord.workm, 0x400, 0);
+        gfxRotMatrixX(&actor->weaponCollisionCoord.workm, 0x400, GRAPHICS_ROTATION_COMPOSE);
         obj->coord           = &actor->weaponCollisionCoord;
         obj->context.capsule = &actor->aimShape;
         obj->key             = 0x60000;

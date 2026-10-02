@@ -1462,7 +1462,7 @@ void func_acropolis_helicopter_landing_pad_8017E270(Task* task)
             D_acropolis_helicopter_landing_pad_80187F7C = 0;
             break;
         case 1:
-            Gfx_RotMatrixX(&coord->coord, -(D_acropolis_helicopter_landing_pad_80187F7C * 0x60) / 0x1000, 0);
+            gfxRotMatrixX(&coord->coord, -(D_acropolis_helicopter_landing_pad_80187F7C * 0x60) / 0x1000, GRAPHICS_ROTATION_COMPOSE);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             D_acropolis_helicopter_landing_pad_80187F7C += 0x190;
@@ -1472,7 +1472,7 @@ void func_acropolis_helicopter_landing_pad_8017E270(Task* task)
             }
             break;
         case 2:
-            Gfx_RotMatrixX(&coord->coord, -(D_acropolis_helicopter_landing_pad_80187F7C * 0x60) / 0x1000, 0);
+            gfxRotMatrixX(&coord->coord, -(D_acropolis_helicopter_landing_pad_80187F7C * 0x60) / 0x1000, GRAPHICS_ROTATION_COMPOSE);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             D_acropolis_helicopter_landing_pad_80187F7C -= 0x190;

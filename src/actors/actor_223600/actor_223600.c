@@ -1265,8 +1265,8 @@ static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
                 task->extra.tmd->coords->coord.t[0] += head[-1].dx;
                 task->extra.tmd->coords->coord.t[1] += vec->vy;
                 task->extra.tmd->coords->coord.t[2] += vec->vz;
-                Gfx_RotMatrixX(&task->extra.tmd->coords[1].coord,
-                               -((work->field_6 - 4) * 0xCC), 0);
+                gfxRotMatrixX(&task->extra.tmd->coords[1].coord,
+                              -((work->field_6 - 4) * 0xCC), GRAPHICS_ROTATION_COMPOSE);
             }
             if ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) == 0) {
                 if ((u32)((u16)work->field_6 - 0xE) < 0x17) {
@@ -1296,7 +1296,7 @@ static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
                             task->extra.tmd->coords->coord.t[0] -= gte->vx;
                             task->extra.tmd->coords->coord.t[1] -= gte->vy;
                             task->extra.tmd->coords->coord.t[2] -= gte->vz;
-                            Gfx_RotMatrixX(&task->extra.tmd->coords[1].coord, -0x800, 0);
+                            gfxRotMatrixX(&task->extra.tmd->coords[1].coord, -0x800, GRAPHICS_ROTATION_COMPOSE);
                             Gfx_RotMatrixZ(&task->extra.tmd->coords[1].coord,
                                            (work->field_6 - 0xD) * 0x55 - 0x6E, 0);
                             break;
@@ -1304,14 +1304,14 @@ static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
                             task->extra.tmd->coords->coord.t[0] += gte->vx;
                             task->extra.tmd->coords->coord.t[1] += gte->vy;
                             task->extra.tmd->coords->coord.t[2] += gte->vz;
-                            Gfx_RotMatrixX(&task->extra.tmd->coords[1].coord, -0x800, 0);
+                            gfxRotMatrixX(&task->extra.tmd->coords[1].coord, -0x800, GRAPHICS_ROTATION_COMPOSE);
                             Gfx_RotMatrixZ(&task->extra.tmd->coords[1].coord,
                                            (work->field_6 - 0xD) * 0x55, 0);
                             break;
                     }
                 }
                 if (work->field_6 >= 0x25) {
-                    Gfx_RotMatrixX(&task->extra.tmd->coords[1].coord, -0x800, 0);
+                    gfxRotMatrixX(&task->extra.tmd->coords[1].coord, -0x800, GRAPHICS_ROTATION_COMPOSE);
                     Gfx_RotMatrixZ(&task->extra.tmd->coords[1].coord, 0x800, 0);
                 }
             } else {
@@ -1334,12 +1334,12 @@ static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
                     task->extra.tmd->coords->coord.t[0] += head[-1].dx;
                     task->extra.tmd->coords->coord.t[1] += vec->vy;
                     task->extra.tmd->coords->coord.t[2] += vec->vz;
-                    Gfx_RotMatrixX(&task->extra.tmd->coords[1].coord, -0x800, 0);
+                    gfxRotMatrixX(&task->extra.tmd->coords[1].coord, -0x800, GRAPHICS_ROTATION_COMPOSE);
                     Gfx_RotMatrixZ(&task->extra.tmd->coords[1].coord,
                                    (work->field_6 - 0xD) * 0x78, 0);
                 }
                 if (work->field_6 >= 0x1E) {
-                    Gfx_RotMatrixX(&task->extra.tmd->coords[1].coord, -0x800, 0);
+                    gfxRotMatrixX(&task->extra.tmd->coords[1].coord, -0x800, GRAPHICS_ROTATION_COMPOSE);
                     Gfx_RotMatrixZ(&task->extra.tmd->coords[1].coord, 0x800, 0);
                 }
             }

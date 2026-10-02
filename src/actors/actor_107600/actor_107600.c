@@ -57,7 +57,8 @@
 /// angles at +0x40 are what `func_actor_107600_80132B7C` rebuilds the model
 /// root's rotation from.
 /// The trio at +0x50 is a second rotation set: `func_actor_107600_80134A50`
-/// wraps each to 12 bits and feeds them to `Gfx_RotMatrixX/Y/Z` in turn.
+/// wraps each to 12 bits and feeds them to `gfxRotMatrixX`, `gfxRotMatrixY`
+/// and `Gfx_RotMatrixZ` in turn.
 ///
 /// `rec18` is the collision table `obj.context.contacts` points at and
 /// `func_actor_107600_80134958` hands to `Gp_InitRec18Table` with count 8, so
@@ -81,7 +82,7 @@ typedef struct Actor107600Work {
     /* 0x04A */ u16                   field_4A;  // spawn position y
     /* 0x04C */ u16                   field_4C;  // spawn position z
     /* 0x04E */ byte                  pad_4E[0x2];
-    /* 0x050 */ u16                   field_50;  // fed to Gfx_RotMatrixX
+    /* 0x050 */ u16                   field_50;  // fed to gfxRotMatrixX
     /* 0x052 */ u16                   field_52;  // fed to gfxRotMatrixY
     /* 0x054 */ u16                   field_54;  // fed to Gfx_RotMatrixZ
     /* 0x056 */ byte                  pad_56[0x2];
@@ -2117,7 +2118,7 @@ static void func_actor_107600_80134A50(Task* arg0)
     m->m[2][2]                   = 0x1000;
     SCRATCH_STACK_CURSOR(MATRIX) = m;
     Gfx_RotMatrixZ(m, (s16)work->field_54, 0);
-    Gfx_RotMatrixX(m, (s16)work->field_50, 0);
+    gfxRotMatrixX(m, (s16)work->field_50, GRAPHICS_ROTATION_COMPOSE);
     gfxRotMatrixY(m, (s16)work->field_52, 0);
     func_actor_107600_80134B2C(m, &coord->coord);
     SCRATCH_STACK_RELEASE_BYTES(0x20);

@@ -1284,7 +1284,7 @@ static __inline__ void Actor110600_ScaleRotation(Task* task, s16 scale)
 
 /// Placement opcode: drops the model's root coordinate onto `placement` (the
 /// three longs become its translation, the Euler angles go through
-/// `Gfx_RotMatrixX` / `Y` / `Z`), then rebuilds and rescales that coordinate
+/// `gfxRotMatrixX`, `gfxRotMatrixY` and `Gfx_RotMatrixZ`), then rebuilds and rescales that coordinate
 /// from the actor's own heading and caches the resulting yaw in the work
 /// block's `field_8`. The rescale `coordSetYawScale` performs is
 /// inlined behind the placement.
@@ -1297,7 +1297,7 @@ s32 func_actor_110600_80133E48(Task* task, s32 arg1, ActorTransform* placement)
     task->extra.tmd->coords->coord.t[0] = placement->pos.vx;
     task->extra.tmd->coords->coord.t[1] = placement->pos.vy;
     task->extra.tmd->coords->coord.t[2] = placement->pos.vz;
-    Gfx_RotMatrixX(&task->extra.tmd->coords->coord, placement->rot.vx, 1);
+    gfxRotMatrixX(&task->extra.tmd->coords->coord, placement->rot.vx, GRAPHICS_ROTATION_REPLACE);
     gfxRotMatrixY(&task->extra.tmd->coords->coord, placement->rot.vy, 0);
     Gfx_RotMatrixZ(&task->extra.tmd->coords->coord, placement->rot.vz, 0);
     Actor110600_ScaleRotation(task, (s16)work->walker.scale);

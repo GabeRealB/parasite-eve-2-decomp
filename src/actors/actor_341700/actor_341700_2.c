@@ -838,25 +838,25 @@ static void func_actor_341700_8016C0F4(Enemy* arg0, Task* arg1)
                 arg1->extra.tmd->coords->coord.t[1] -= 100;
             }
             if (work->field_6 % 6 < 3) {
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[1].coord, 12, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[2].coord, 24, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[3].coord, -24, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[4].coord, 12, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[5].coord, -6, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[6].coord, 18, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[8].coord, -6, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[9].coord, -3, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[10].coord, -27, 0);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[1].coord, 12, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[2].coord, 24, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[3].coord, -24, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[4].coord, 12, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[5].coord, -6, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[6].coord, 18, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[8].coord, -6, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[9].coord, -3, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[10].coord, -27, GRAPHICS_ROTATION_COMPOSE);
             } else {
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[1].coord, -12, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[2].coord, -24, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[3].coord, 24, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[4].coord, -12, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[5].coord, 6, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[6].coord, -18, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[8].coord, 6, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[9].coord, 3, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[10].coord, 27, 0);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[1].coord, -12, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[2].coord, -24, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[3].coord, 24, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[4].coord, -12, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[5].coord, 6, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[6].coord, -18, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[8].coord, 6, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[9].coord, 3, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[10].coord, 27, GRAPHICS_ROTATION_COMPOSE);
             }
         } else if (work->field_6 >= 0x79) {
             if (work->field_6 % 4 < 2) {
@@ -865,25 +865,25 @@ static void func_actor_341700_8016C0F4(Enemy* arg0, Task* arg1)
                 arg1->extra.tmd->coords->coord.t[1] -= 58;
             }
             if (work->field_6 % 6 < 3) {
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[1].coord, 8, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[2].coord, 16, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[3].coord, -16, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[4].coord, 8, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[5].coord, -4, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[6].coord, 12, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[8].coord, -4, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[9].coord, -2, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[10].coord, -18, 0);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[1].coord, 8, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[2].coord, 16, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[3].coord, -16, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[4].coord, 8, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[5].coord, -4, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[6].coord, 12, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[8].coord, -4, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[9].coord, -2, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[10].coord, -18, GRAPHICS_ROTATION_COMPOSE);
             } else {
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[1].coord, -8, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[2].coord, -16, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[3].coord, 16, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[4].coord, -8, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[5].coord, 4, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[6].coord, -12, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[8].coord, 4, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[9].coord, 2, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[10].coord, 18, 0);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[1].coord, -8, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[2].coord, -16, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[3].coord, 16, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[4].coord, -8, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[5].coord, 4, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[6].coord, -12, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[8].coord, 4, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[9].coord, 2, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[10].coord, 18, GRAPHICS_ROTATION_COMPOSE);
             }
         } else if (work->field_6 >= 11 && work->field_6 < 18) {
             if (work->field_6 % 4 < 2) {
@@ -892,25 +892,25 @@ static void func_actor_341700_8016C0F4(Enemy* arg0, Task* arg1)
                 arg1->extra.tmd->coords->coord.t[1] -= 33;
             }
             if (work->field_6 % 6 < 3) {
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[1].coord, 4, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[2].coord, 8, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[3].coord, -8, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[4].coord, 4, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[5].coord, -2, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[6].coord, 6, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[8].coord, -2, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[9].coord, -1, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[10].coord, -9, 0);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[1].coord, 4, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[2].coord, 8, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[3].coord, -8, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[4].coord, 4, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[5].coord, -2, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[6].coord, 6, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[8].coord, -2, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[9].coord, -1, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[10].coord, -9, GRAPHICS_ROTATION_COMPOSE);
             } else {
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[1].coord, -4, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[2].coord, -8, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[3].coord, 8, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[4].coord, -4, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[5].coord, 2, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[6].coord, -6, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[8].coord, 2, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[9].coord, 1, 0);
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords[10].coord, 9, 0);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[1].coord, -4, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[2].coord, -8, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[3].coord, 8, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[4].coord, -4, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[5].coord, 2, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[6].coord, -6, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[8].coord, 2, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[9].coord, 1, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixX(&arg1->extra.tmd->coords[10].coord, 9, GRAPHICS_ROTATION_COMPOSE);
             }
             switch ((work->field_6 - 11) % 8) {
                 case 0:
@@ -942,25 +942,25 @@ static void func_actor_341700_8016C0F4(Enemy* arg0, Task* arg1)
             arg1->extra.tmd->coords->coord.t[1] -= 100;
         }
         if (work->field_6 % 6 < 3) {
-            Gfx_RotMatrixX(&arg1->extra.tmd->coords[1].coord, 12, 0);
-            Gfx_RotMatrixX(&arg1->extra.tmd->coords[2].coord, 24, 0);
-            Gfx_RotMatrixX(&arg1->extra.tmd->coords[3].coord, -24, 0);
-            Gfx_RotMatrixX(&arg1->extra.tmd->coords[4].coord, 12, 0);
-            Gfx_RotMatrixX(&arg1->extra.tmd->coords[5].coord, -6, 0);
-            Gfx_RotMatrixX(&arg1->extra.tmd->coords[6].coord, 18, 0);
-            Gfx_RotMatrixX(&arg1->extra.tmd->coords[8].coord, -6, 0);
-            Gfx_RotMatrixX(&arg1->extra.tmd->coords[9].coord, -3, 0);
-            Gfx_RotMatrixX(&arg1->extra.tmd->coords[10].coord, -27, 0);
+            gfxRotMatrixX(&arg1->extra.tmd->coords[1].coord, 12, GRAPHICS_ROTATION_COMPOSE);
+            gfxRotMatrixX(&arg1->extra.tmd->coords[2].coord, 24, GRAPHICS_ROTATION_COMPOSE);
+            gfxRotMatrixX(&arg1->extra.tmd->coords[3].coord, -24, GRAPHICS_ROTATION_COMPOSE);
+            gfxRotMatrixX(&arg1->extra.tmd->coords[4].coord, 12, GRAPHICS_ROTATION_COMPOSE);
+            gfxRotMatrixX(&arg1->extra.tmd->coords[5].coord, -6, GRAPHICS_ROTATION_COMPOSE);
+            gfxRotMatrixX(&arg1->extra.tmd->coords[6].coord, 18, GRAPHICS_ROTATION_COMPOSE);
+            gfxRotMatrixX(&arg1->extra.tmd->coords[8].coord, -6, GRAPHICS_ROTATION_COMPOSE);
+            gfxRotMatrixX(&arg1->extra.tmd->coords[9].coord, -3, GRAPHICS_ROTATION_COMPOSE);
+            gfxRotMatrixX(&arg1->extra.tmd->coords[10].coord, -27, GRAPHICS_ROTATION_COMPOSE);
         } else {
-            Gfx_RotMatrixX(&arg1->extra.tmd->coords[1].coord, -12, 0);
-            Gfx_RotMatrixX(&arg1->extra.tmd->coords[2].coord, -24, 0);
-            Gfx_RotMatrixX(&arg1->extra.tmd->coords[3].coord, 24, 0);
-            Gfx_RotMatrixX(&arg1->extra.tmd->coords[4].coord, -12, 0);
-            Gfx_RotMatrixX(&arg1->extra.tmd->coords[5].coord, 6, 0);
-            Gfx_RotMatrixX(&arg1->extra.tmd->coords[6].coord, -18, 0);
-            Gfx_RotMatrixX(&arg1->extra.tmd->coords[8].coord, 6, 0);
-            Gfx_RotMatrixX(&arg1->extra.tmd->coords[9].coord, 3, 0);
-            Gfx_RotMatrixX(&arg1->extra.tmd->coords[10].coord, 27, 0);
+            gfxRotMatrixX(&arg1->extra.tmd->coords[1].coord, -12, GRAPHICS_ROTATION_COMPOSE);
+            gfxRotMatrixX(&arg1->extra.tmd->coords[2].coord, -24, GRAPHICS_ROTATION_COMPOSE);
+            gfxRotMatrixX(&arg1->extra.tmd->coords[3].coord, 24, GRAPHICS_ROTATION_COMPOSE);
+            gfxRotMatrixX(&arg1->extra.tmd->coords[4].coord, -12, GRAPHICS_ROTATION_COMPOSE);
+            gfxRotMatrixX(&arg1->extra.tmd->coords[5].coord, 6, GRAPHICS_ROTATION_COMPOSE);
+            gfxRotMatrixX(&arg1->extra.tmd->coords[6].coord, -18, GRAPHICS_ROTATION_COMPOSE);
+            gfxRotMatrixX(&arg1->extra.tmd->coords[8].coord, 6, GRAPHICS_ROTATION_COMPOSE);
+            gfxRotMatrixX(&arg1->extra.tmd->coords[9].coord, 3, GRAPHICS_ROTATION_COMPOSE);
+            gfxRotMatrixX(&arg1->extra.tmd->coords[10].coord, 27, GRAPHICS_ROTATION_COMPOSE);
         }
     }
     arg1->extra.tmd->coords[0].composeStamp  = GRAPHICS_COORD_DIRTY;

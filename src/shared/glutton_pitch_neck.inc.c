@@ -37,8 +37,8 @@ void gluttonPitchNeck(Task* task, s16 arg1)
     pitch3 = -ratan2(task->extra.tmd->coords[3].coord.m[1][2],
                      task->extra.tmd->coords[3].coord.m[2][2]);
 
-    Gfx_RotMatrixX(&task->extra.tmd->coords[3].coord, work->field_F00 / 2 - pitch3, 0);
+    gfxRotMatrixX(&task->extra.tmd->coords[3].coord, work->field_F00 / 2 - pitch3, GRAPHICS_ROTATION_COMPOSE);
     task->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gfx_RotMatrixX(&task->extra.tmd->coords[4].coord, -work->field_F00 - pitch4, 0);
+    gfxRotMatrixX(&task->extra.tmd->coords[4].coord, -work->field_F00 - pitch4, GRAPHICS_ROTATION_COMPOSE);
     task->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
 }

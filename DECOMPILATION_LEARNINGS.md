@@ -21380,11 +21380,11 @@ vmat->m[1][0] = copy;
 vmat->m[1][1] = cos2;
 ```
 
-`Gfx_RotMatrixZ` is the pure example (Z-axis; X sibling is `Gfx_RotMatrixX`).
+`Gfx_RotMatrixZ` is the pure example (Z-axis; X sibling is `gfxRotMatrixX`).
 
 ## RotMatrixX: dual cos loads via `volatile _GfxAxisRotationScratch*`
 
-X-axis else path (flag==0) needs two back-to-back `lhu` of the same
+X-axis else path (replace==0) needs two back-to-back `lhu` of the same
 `angleCos` into `$v0` and `$a0` before storing `m[1][1]`:
 
 ```
@@ -21393,20 +21393,20 @@ lhu  a0, cos(s2)
 sh   v0, m[1][1](s2)
 ```
 
-Plain `cos_u = block->angleCos; cos2 = block->angleCos;` CSEs the second load
+Plain `cos_u = scratch->angleCos; cos2 = scratch->angleCos;` CSEs the second load
 into `move a0,v0` (+nop) and breaks the match. Force both loads with a
 volatile view of the scratch block:
 
 ```c
-volatile _GfxAxisRotationScratch* vblock = block;
+volatile _GfxAxisRotationScratch* vblock = scratch;
 cos_u = vblock->angleCos; /* asm("v0") */
 cos2  = vblock->angleCos; /* asm("a0") */
 vmat->m[1][1] = cos_u;
 /* zeros + m[2][2] = cos2; then sin move/negu as on Z-axis */
 ```
 
-Flag≠0 path is non-volatile and uses load-then-zero before `-sin` into
-`m[1][2]` (same delay-fill as Y-axis `m[2][0]`). `Gfx_RotMatrixX` is the pure
+Replace≠0 path is non-volatile and uses load-then-zero before `-sin` into
+`m[1][2]` (same delay-fill as Y-axis `m[2][0]`). `gfxRotMatrixX` is the pure
 example (X-axis; siblings `gfxRotMatrixY` Y / `Gfx_RotMatrixZ` Z).
 
 ## Duplicate `setlen` in both branches for delayed-slot tpage if/else
@@ -65980,7 +65980,7 @@ setup, leaving the vector address to fill the halfword load delay. Putting
 `i = 0` after the call, naturally as the following `for` initializer, let GCC
 schedule the zero into that delay and move the vector address earlier. This
 reached 100% without pins. The analogous rotated-vector arm initializes `i`
-between `Gp_SpawnEff` and `Gfx_RotMatrixX`, which also consumes that zero.
+between `Gp_SpawnEff` and `gfxRotMatrixX`, which also consumes that zero.
 
 This caller supplies only three arguments to `Gp_DrawEffSprite6C`; its fourth
 formal is unused. An unprototyped forward declaration preserves these calls
@@ -134816,7 +134816,7 @@ member the real type does declare is the one place to stop.
 Routines that carve a block off `SCRATCH_STACK_CURSOR_SLOT` each write their own byte
 count, and one can reserve more than the block uses: `gfxMatrixToEuler`
 reserves 0x30 for the same `MATRIX`-plus-sine-and-cosine block that
-`Gfx_RotMatrixX`/`Y`/`Z` reserve 0x24 for. Sizing the type to the larger reserve
+`gfxRotMatrixX`, `gfxRotMatrixY` and `Gfx_RotMatrixZ` reserve 0x24 for. Sizing the type to the larger reserve
 - a trailing `pad` - asserts a boundary nothing pins, because the arithmetic is
 on the `u8*` head and no `sizeof` depends on it. It also leaves the smaller
 callers reserving less than the type claims, which reads as a bug and invites

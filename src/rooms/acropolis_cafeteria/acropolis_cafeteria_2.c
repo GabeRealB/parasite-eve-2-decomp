@@ -1561,7 +1561,7 @@ void func_acropolis_cafeteria_8018286C(Task* task)
         return;
     }
     if (obj->field_8 == 0xA) {
-        Gfx_RotMatrixX(&task->extra.tmd->coords->coord, 0x400, 1);
+        gfxRotMatrixX(&task->extra.tmd->coords->coord, 0x400, GRAPHICS_ROTATION_REPLACE);
     }
     tmd->lightMtx = &D_acropolis_cafeteria_8018D600;
     tmd->colorMtx = &D_acropolis_cafeteria_8018D5E0;
@@ -1592,7 +1592,7 @@ static void func_acropolis_cafeteria_80182954(Task* task)
         tmd->otOffset = 0;
         Tmd_AllocBuffers(tmd);
     }
-    Gfx_RotMatrixX(&task->extra.tmd->coords->coord, 0x400, 1);
+    gfxRotMatrixX(&task->extra.tmd->coords->coord, 0x400, GRAPHICS_ROTATION_REPLACE);
 }
 static void func_acropolis_cafeteria_80182A08(Task* task)
 {

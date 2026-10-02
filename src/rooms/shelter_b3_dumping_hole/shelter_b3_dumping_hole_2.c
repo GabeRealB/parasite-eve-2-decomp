@@ -2400,7 +2400,7 @@ static void func_shelter_b3_dumping_hole_8017E7DC(Task* arg0)
     coord->coord.t[1] = placement->pos.vy;
     coord->coord.t[2] = placement->pos.vz;
     gfxRotMatrixY(&coord->coord, placement->rot.vy, 1);
-    Gfx_RotMatrixX(&coord->coord, placement->rot.vx, 0);
+    gfxRotMatrixX(&coord->coord, placement->rot.vx, GRAPHICS_ROTATION_COMPOSE);
     Gfx_RotMatrixZ(&coord->coord, placement->rot.vz, 0);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     taskReparent(D_shelter_b3_dumping_hole_8018F4A8, arg0);
@@ -2519,7 +2519,7 @@ void func_shelter_b3_dumping_hole_8017E94C(Task* arg0)
             c2->coord.t[1] += work->velY + work->fall;
             c2->coord.t[2] += work->velZ;
             gfxRotMatrixY(&c2->coord, (s16)work->rotY, 1);
-            Gfx_RotMatrixX(&c2->coord, (s16)work->rotX, 0);
+            gfxRotMatrixX(&c2->coord, (s16)work->rotX, GRAPHICS_ROTATION_COMPOSE);
             c2->composeStamp = GRAPHICS_COORD_DIRTY;
             return;
     }
@@ -3137,7 +3137,7 @@ void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
             work->rot.vy += work->rotSpeed.vy;
             work->rot.vz += work->rotSpeed.vz;
             gfxRotMatrixY(&coord->coord, work->rot.vy, 1);
-            Gfx_RotMatrixX(&coord->coord, work->rot.vx, 0);
+            gfxRotMatrixX(&coord->coord, work->rot.vx, GRAPHICS_ROTATION_COMPOSE);
             Gfx_RotMatrixZ(&coord->coord, work->rot.vz, 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             break;
@@ -3317,7 +3317,7 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
                         } else {
                             work->field_98 -= 8;
                         }
-                        Gfx_RotMatrixX(&task->extra.tmd->coords[1].coord, work->field_98, 1);
+                        gfxRotMatrixX(&task->extra.tmd->coords[1].coord, work->field_98, GRAPHICS_ROTATION_REPLACE);
                     }
                     task->extra.tmd->coords[2].coord.t[1] += 0x190;
                     TASK_MESSAGE_DISPATCH_POINTER(task, 0x7D4, &work->pose, 0);

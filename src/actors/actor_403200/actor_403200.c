@@ -5666,7 +5666,7 @@ static void func_actor_403200_8013DC3C(Task* arg0)
             D_actor_403200_8015F920.coord.t[1] = pos.vy;
             D_actor_403200_8015F920.coord.t[2] = pos.vz;
             gfxRotMatrixY(&D_actor_403200_8015F920.coord, 0x80, 0);
-            Gfx_RotMatrixX(&D_actor_403200_8015F920.coord, -0x80, 0);
+            gfxRotMatrixX(&D_actor_403200_8015F920.coord, -0x80, GRAPHICS_ROTATION_COMPOSE);
             Gfx_MatrixCol2(&D_actor_403200_8015F920.coord, &pos);
 
             posp   = &pos;

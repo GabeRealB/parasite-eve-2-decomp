@@ -152,7 +152,7 @@ STATIC_ASSERT_SIZEOF(GpYawScratch, 0x6C);
 
 /// 0x2C-byte scratch from the scratch stack used by `Gp_PlayerMode2State3`.
 /// `mtx` receives a copy of the actor coordinate's `coord` matrix, pitched by
-/// `Gfx_RotMatrixX`; `dir` (at `head - 0xC`) is that matrix's third column
+/// `gfxRotMatrixX`; `dir` (at `head - 0xC`) is that matrix's third column
 /// normalized by `VectorNormalSS`, and `div` is the frame count the direction
 /// is divided by to produce `GameActor.velocity`.
 typedef struct _GpDashScratch {
@@ -4604,7 +4604,7 @@ void Gp_AttachActorObj(Task* arg0, s32 id, s32 kind)
     task = actor->equipmentTasks[1];
     if (task != NULL) {
         actor->weaponCollisionCoord = *task->extra.tmd->coords;
-        Gfx_RotMatrixX(&actor->weaponCollisionCoord.workm, 0x400, 0);
+        gfxRotMatrixX(&actor->weaponCollisionCoord.workm, 0x400, GRAPHICS_ROTATION_COMPOSE);
         obj->coord                                         = &actor->weaponCollisionCoord;
         actor->weaponCollisionCoord.param.rot.vx           = 0;
         actor->weaponCollisionCoord.param.rot.vy           = 0;
@@ -4828,7 +4828,7 @@ void Gp_UpdatePlayerMove(void)
         actor->weaponCollisionCoord = *task->extra.tmd->coords;
         mat                         = &actor->weaponCollisionCoord.workm;
         if (gPlayerStatus.weapon != 0x17) {
-            Gfx_RotMatrixX(mat, -0x400, 0);
+            gfxRotMatrixX(mat, -0x400, GRAPHICS_ROTATION_COMPOSE);
             gfxRotMatrixY(mat, -0x20, 0);
         }
     }
@@ -5049,7 +5049,7 @@ void Gp_TurnPlayer(Task* arg0)
     gfxRotMatrixY(m, actor->aimYaw, 0);
     MatrixNormal(m, m);
     m = _gpRebuildCoordMatrix(arg0, 6);
-    Gfx_RotMatrixX(m, actor->part6Pitch, 0);
+    gfxRotMatrixX(m, actor->part6Pitch, GRAPHICS_ROTATION_COMPOSE);
     MatrixNormal(m, m);
 }
 
@@ -7952,7 +7952,7 @@ static void Gp_PlayerMode2State3(Task* arg0)
             if (actor->jumpVariant == 0) {
                 angle = 0x180;
             }
-            Gfx_RotMatrixX(&blk->mtx, angle, 0);
+            gfxRotMatrixX(&blk->mtx, angle, GRAPHICS_ROTATION_COMPOSE);
             Gfx_MatrixCol2(&blk->mtx, (SVECTOR*)(head - 0xC));
             VectorNormalSS((SVECTOR*)(head - 0xC), (SVECTOR*)(head - 0xC));
             if (actor->jumpVariant == 0) {

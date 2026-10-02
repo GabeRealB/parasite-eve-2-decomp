@@ -366,37 +366,39 @@ void Gfx_MatrixCol2(MATRIX* matrix, SVECTOR* vector)
     gte_ReadMatrixColumn(matrix, 2, vector);
 }
 
-void Gfx_RotMatrixX(MATRIX* matrix, s32 angle, s32 flag)
+/// Installs a pure X rotation using the scratch block's initialized sine and cosine.
+///
+/// Only the nine rotation elements are written; translation remains untouched.
+/// `rotation` may be the matrix embedded in `scratch`.
+static __inline__ void _gfxBuildXRotation(MATRIX* rotation, _GfxAxisRotationScratch* scratch)
 {
-    _GfxAxisRotationScratch* block;
+    rotation->m[0][0] = ONE;
+    rotation->m[0][1] = 0;
+    rotation->m[0][2] = 0;
+    rotation->m[1][0] = 0;
+    rotation->m[1][1] = scratch->angleCos;
+    rotation->m[1][2] = -scratch->angleSin;
+    rotation->m[2][0] = 0;
+    rotation->m[2][1] = scratch->angleSin;
+    rotation->m[2][2] = scratch->angleCos;
+}
 
-    block = SCRATCH_STACK_RESERVE_BLOCK(_GfxAxisRotationScratch);
+void gfxRotMatrixX(MATRIX* matrix, s32 angle, s32 replace)
+{
+    _GfxAxisRotationScratch* scratch;
 
-    block->angleSin = rsin(angle);
-    block->angleCos = rcos(angle);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_GfxAxisRotationScratch);
 
-    if (flag != 0) {
-        matrix->m[0][0] = ONE;
-        matrix->m[0][1] = 0;
-        matrix->m[0][2] = 0;
-        matrix->m[1][0] = 0;
-        matrix->m[1][1] = block->angleCos;
-        matrix->m[1][2] = -block->angleSin;
-        matrix->m[2][0] = 0;
-        matrix->m[2][1] = block->angleSin;
-        matrix->m[2][2] = block->angleCos;
+    scratch->angleSin = rsin(angle);
+    scratch->angleCos = rcos(angle);
+
+    // Build Rx directly for replacement, or in scratch for matrix * Rx.
+    // Composition uses only the 3x3, so scratch translation stays unset.
+    if (replace != 0) {
+        _gfxBuildXRotation(matrix, scratch);
     } else {
-        block->rotation.m[0][0] = ONE;
-        block->rotation.m[0][1] = 0;
-        block->rotation.m[0][2] = 0;
-        block->rotation.m[1][0] = 0;
-        block->rotation.m[1][1] = block->angleCos;
-        block->rotation.m[1][2] = -block->angleSin;
-        block->rotation.m[2][0] = 0;
-        block->rotation.m[2][1] = block->angleSin;
-        block->rotation.m[2][2] = block->angleCos;
-
-        gte_MulMatrix0(matrix, &block->rotation, matrix);
+        _gfxBuildXRotation(&scratch->rotation, scratch);
+        gte_MulMatrix0(matrix, &scratch->rotation, matrix);
     }
 
     SCRATCH_STACK_RELEASE_BLOCK(_GfxAxisRotationScratch);

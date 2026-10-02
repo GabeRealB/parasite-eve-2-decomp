@@ -52,7 +52,7 @@ void grenadeShellSpawn(Task* arg0)
     coord->parent       = &gGfxViewCoord;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     extra->flags        = 0;
-    Gfx_RotMatrixX(mtx, -0x400, 0);
+    gfxRotMatrixX(mtx, -0x400, GRAPHICS_ROTATION_COMPOSE);
     Gfx_MatrixCol2(mtx, &work->dir);
     VectorNormalSS(&work->dir, &work->dir);
     speed                      = gGrenadeShellSpeeds[idx];

@@ -5789,7 +5789,7 @@ static void func_actor_444000_801404C0(Task* arg0)
             D_actor_444000_80161948.value[D_actor_444000_80161850].coord.t[1] = pos.vy;
             D_actor_444000_80161948.value[D_actor_444000_80161850].coord.t[2] = pos.vz;
             gfxRotMatrixY(&D_actor_444000_80161948.value[D_actor_444000_80161850].coord, 0x80, 0);
-            Gfx_RotMatrixX(&D_actor_444000_80161948.value[D_actor_444000_80161850].coord, -0x80, 0);
+            gfxRotMatrixX(&D_actor_444000_80161948.value[D_actor_444000_80161850].coord, -0x80, GRAPHICS_ROTATION_COMPOSE);
             Gfx_MatrixCol2(&D_actor_444000_80161948.value[D_actor_444000_80161850].coord, &pos);
 
             posp   = &pos;
@@ -7080,7 +7080,7 @@ s32 func_actor_444000_80143D7C(Task* arg0, s32 arg1, ActorTransform* placement)
     arg0->extra.tmd->coords->coord.t[1] = placement->pos.vy;
     arg0->extra.tmd->coords->coord.t[2] = placement->pos.vz;
     if ((u32)((u16)work->field_0 - 0x12) >= 2U) {
-        Gfx_RotMatrixX(&arg0->extra.tmd->coords->coord, placement->rot.vx, 1);
+        gfxRotMatrixX(&arg0->extra.tmd->coords->coord, placement->rot.vx, GRAPHICS_ROTATION_REPLACE);
         gfxRotMatrixY(&arg0->extra.tmd->coords->coord, placement->rot.vy, 0);
         Gfx_RotMatrixZ(&arg0->extra.tmd->coords->coord, placement->rot.vz, 0);
     }

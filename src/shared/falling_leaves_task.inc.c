@@ -40,7 +40,7 @@ static inline void leafFallTask(Task* task)
             coord->coord.t[0] += work->move.vx;
             coord->coord.t[1] += work->move.vy;
             coord->coord.t[2] += work->move.vz;
-            Gfx_RotMatrixX(&coord->coord, work->period, 0);
+            gfxRotMatrixX(&coord->coord, work->period, GRAPHICS_ROTATION_COMPOSE);
             Gfx_RotMatrixZ(&coord->coord, work->step, 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
 

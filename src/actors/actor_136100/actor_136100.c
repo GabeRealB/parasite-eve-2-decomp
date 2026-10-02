@@ -1390,7 +1390,7 @@ void func_actor_136100_80132284(Task* arg0)
         if (arg0->spawnArg1.value != 0) {
             GfxCoord* reset = arg0->extra.tmd->coords;
 
-            Gfx_RotMatrixX(&reset->coord, 0x400, 1);
+            gfxRotMatrixX(&reset->coord, 0x400, GRAPHICS_ROTATION_REPLACE);
             reset->coord.t[1]   = 0xC8;
             reset->composeStamp = GRAPHICS_COORD_DIRTY;
         }

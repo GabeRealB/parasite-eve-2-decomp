@@ -2548,7 +2548,7 @@ static void Actor04000_Fn0522C(Enemy* arg0, Task* arg1)
         work->field_170              = 2;
         work->field_178              = 0;
         animDriverTick(arg1);
-        Gfx_RotMatrixX(&arg1->extra.tmd->coords->coord, 0x400, 0);
+        gfxRotMatrixX(&arg1->extra.tmd->coords->coord, 0x400, GRAPHICS_ROTATION_COMPOSE);
         arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         work->field_479                       = 1;
         work->obj350.coord                    = &gGfxViewCoord;
@@ -2586,7 +2586,7 @@ static void Actor04000_Fn0522C(Enemy* arg0, Task* arg1)
             break;
     }
     gfxRotMatrixY(&arg1->extra.tmd->coords->coord, 0x44C, 1);
-    Gfx_RotMatrixX(&arg1->extra.tmd->coords->coord, 0x190, 0);
+    gfxRotMatrixX(&arg1->extra.tmd->coords->coord, 0x190, GRAPHICS_ROTATION_COMPOSE);
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     animDriverTick(arg1);
     if ((u8)Gp_GetViewIndex() == 5) {
@@ -2663,7 +2663,7 @@ static void Actor04000_Fn055C8(Enemy* arg0, Task* arg1)
             if ((u32)(work->field_6 - 4) < 8) {
                 arg1->extra.tmd->coords->coord.t[1]  -= 0xB;
                 arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gfx_RotMatrixX(&arg1->extra.tmd->coords->coord, -0x100, 0);
+                gfxRotMatrixX(&arg1->extra.tmd->coords->coord, -0x100, GRAPHICS_ROTATION_COMPOSE);
             }
             if ((s16)work->field_6 == 0xC) {
                 work->field_170 = 2;
