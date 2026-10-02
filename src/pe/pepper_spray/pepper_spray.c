@@ -124,59 +124,59 @@ void func_pepper_spray_8012EF34(Task* arg0)
 /// Links the pepper-spray nozzle quad at `arg0`'s world position. The position
 /// is projected through `GsWSMATRIX` by a single `RTPS` and the quad is
 /// dropped when that sets a negative `gte_stflg`. `arg1` sizes it and `arg2`
-/// spins it: the corners sit `arg1 * 0x37 / otz` from the projected centre
+/// spins it: the corners sit `arg1 * 0x37 / depth` from the projected centre
 /// along `arg2` and `arg2 + 0x400`, so the nozzle shrinks with depth. The
 /// texture is the fixed 0x37 x 0x37 patch at (0x70, 0xC8) on tpage 0x29, drawn
 /// semi-transparent and unshaded.
 static void func_pepper_spray_8012F21C(GfxCoord* arg0, s16 arg1, s16 arg2)
 {
-    u8*                head;
-    GpEffFlareScratch* blk;
-    GpEffFlareScratch* copy;
-    POLY_FT4*          prim;
-    s32                ang;
+    EffectBillboardScratch* scratchHead;
+    EffectBillboardScratch* block;
+    s32*                    depthOutput;
+    POLY_FT4*               prim;
+    s32                     ang;
 
-    head                                    = SCRATCH_STACK_CURSOR(u8);
-    blk                                     = (GpEffFlareScratch*)(head - 0x1C);
-    copy                                    = blk;
-    blk->vec.vx                             = (u16)arg0->workm.t[0];
-    blk->vec.vy                             = (u16)arg0->workm.t[1];
-    blk->vec.vz                             = (u16)arg0->workm.t[2];
-    SCRATCH_STACK_CURSOR(GpEffFlareScratch) = blk;
+    scratchHead                                  = SCRATCH_STACK_CURSOR(EffectBillboardScratch);
+    block                                        = scratchHead - 1;
+    depthOutput                                  = &block->depth;
+    block->worldPoint.vx                         = (u16)arg0->workm.t[0];
+    block->worldPoint.vy                         = (u16)arg0->workm.t[1];
+    block->worldPoint.vz                         = (u16)arg0->workm.t[2];
+    SCRATCH_STACK_CURSOR(EffectBillboardScratch) = block;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((GpEffFlareScratch*)(head - 0x1C))->vec);
+    gte_ldv0(&block->worldPoint);
     gte_rtps();
     prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setPolyFT4(prim);
-    gte_stsxy(&((GpEffFlareScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((GpEffFlareScratch*)(head - 0x1C))->flag);
-    if (blk->flag >= 0) {
-        gte_stszotz(copy);
-        ((GpEffFlareScratch*)(head - 0x1C))->otz++;
+    gte_stsxy(&block->screenX);
+    gte_stflg(&block->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(depthOutput);
+        block->depth++;
         prim->tpage = 0x29;
         prim->clut  = 0x428B;
         setUV4(prim, 0x70, 0xC8, 0xA7, 0xC8, 0x70, 0xFF, 0xA7, 0xFF);
-        prim->code |= 3;
-        ang         = arg2;
-        blk->dx     = (((arg1 * 0x37) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rsin(ang)) >> 12;
-        blk->dy     = (((arg1 * 0x37) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rcos(ang)) >> 12;
-        prim->x0    = blk->sx + (u16)blk->dx;
-        prim->x3    = blk->sx - (u16)blk->dx;
-        prim->y0    = blk->sy - (u16)blk->dy;
-        prim->y3    = blk->sy + (u16)blk->dy;
-        ang         = ang + 0x400;
-        blk->dx     = (((arg1 * 0x37) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rsin(ang)) >> 12;
-        blk->dy     = (((arg1 * 0x37) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rcos(ang)) >> 12;
-        prim->x1    = blk->sx + (u16)blk->dx;
-        prim->x2    = blk->sx - (u16)blk->dx;
-        prim->y1    = blk->sy - (u16)blk->dy;
-        prim->y2    = blk->sy + (u16)blk->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((GpEffFlareScratch*)(head - 0x1C))->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        prim->code          |= 3;
+        ang                  = arg2;
+        block->cornerOffsetX = (((arg1 * 0x37) / block->depth) * rsin(ang)) >> 12;
+        block->cornerOffsetY = (((arg1 * 0x37) / block->depth) * rcos(ang)) >> 12;
+        prim->x0             = block->screenX + (u16)block->cornerOffsetX;
+        prim->x3             = block->screenX - (u16)block->cornerOffsetX;
+        prim->y0             = block->screenY - (u16)block->cornerOffsetY;
+        prim->y3             = block->screenY + (u16)block->cornerOffsetY;
+        ang                  = ang + 0x400;
+        block->cornerOffsetX = (((arg1 * 0x37) / block->depth) * rsin(ang)) >> 12;
+        block->cornerOffsetY = (((arg1 * 0x37) / block->depth) * rcos(ang)) >> 12;
+        prim->x1             = block->screenX + (u16)block->cornerOffsetX;
+        prim->x2             = block->screenX - (u16)block->cornerOffsetX;
+        prim->y1             = block->screenY - (u16)block->cornerOffsetY;
+        prim->y2             = block->screenY + (u16)block->cornerOffsetY;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectBillboardScratch);
 }
 
 /* Every scratch vector address is computed off `head`, not off `blk`, so the

@@ -191,21 +191,29 @@ typedef struct _GpQuadScratch {
 } GpQuadScratch;
 STATIC_ASSERT_SIZEOF(GpQuadScratch, 0x38);
 
-/// The scratch-pad block of a billboard quad spun about one projected point,
-/// holding the corner form of `EffectShapeScratch` in a different order: `vec` is the
-/// point, and one RTPS fills `sx`, `sy`, `flag` and `otz`. `dx` and `dy` are
-/// the rotated half extents scaled by the depth, added to and subtracted from
-/// the projected point to place the corners of the quad; only their low
-/// halves are read back.
-typedef struct _GpEffFlareScratch {
-    /* 0x00 */ s32     otz;
-    /* 0x04 */ s32     dx;
-    /* 0x08 */ s32     dy;
-    /* 0x0C */ s32     flag;
-    /* 0x10 */ SVECTOR vec;
-    /* 0x18 */ u16     sx;
-    /* 0x1A */ u16     sy;
-} GpEffFlareScratch;
-STATIC_ASSERT_SIZEOF(GpEffFlareScratch, 0x1C);
+/// Scratch-stack workspace for a spinning textured billboard about one world point.
+///
+/// One perspective transform supplies the centre, GTE status and SZ3 / 4
+/// depth. Drawers may increment `depth` before using it for both screen sizing
+/// and ordering-table placement. `cornerOffsetX` and `cornerOffsetY` hold the
+/// signed pixel displacement to one pair of opposite corners, then are reused
+/// at a quarter turn for the other pair. Some drawers narrow these offsets
+/// before addition; others retain their full words until the GPU halfword store.
+///
+/// `screenX` and `screenY` retain the raw 16-bit encodings of signed GTE pixel
+/// coordinates. They are adjacent so a single GTE word store fills both.
+/// Reserve a complete, word-aligned block and initialize fields as needed;
+/// release it in scratch-stack order after drawing. No pointer into it survives
+/// release. This layout differs from the corner form of `EffectShapeScratch`.
+typedef struct {
+    s32     depth;           // SZ3 / 4, optionally biased; divisor for sizing and depth for sorting
+    s32     cornerOffsetX;   // Signed horizontal displacement from the centre to a corner, in pixels
+    s32     cornerOffsetY;   // Signed vertical displacement from the centre to a corner, in pixels
+    s32     projectionFlags; // GTE FLAG word; a negative value rejects the projection
+    SVECTOR worldPoint;      // World position, with each translation component narrowed to s16
+    u16     screenX;         // Raw projected centre X; first half of the GTE screen-position word
+    u16     screenY;         // Raw projected centre Y; second half of the GTE screen-position word
+} EffectBillboardScratch;
+STATIC_ASSERT_SIZEOF(EffectBillboardScratch, 0x1C);
 
 #endif // GAMEPLAY_EFFECTS_H

@@ -40611,8 +40611,8 @@ keep it live past the shift so the shift result still lands in `$v0`:
 ```c
 {
     register s32 prod asm("v1");
-    prod      = ((mem->field_26 * 31) / block->otz) * rsin(mem->field_24);
-    block->dx = prod >> 12;
+    prod      = ((mem->field_26 * 31) / block->depth) * rsin(mem->field_24);
+    block->cornerOffsetX = prod >> 12;
     __asm__ volatile("" ::"r"(prod)); /* else GCC emits sra $v1, $v1, 12 */
 }
 ```
@@ -56615,7 +56615,7 @@ grep `include/` as well as `src/`. Porting the twin took one attempt against a
 
 Corollary: the scratch-struct docs in `include/gameplay/3CD8.h` and
 `include/gameplay/3FB8.h` are a catalogue of `SCRATCH_STACK_CURSOR_SLOT` layouts
-(`GpRingScratch`, `EffectShapeScratch`, `GpEffFlareScratch`,
+(`GpRingScratch`, `EffectShapeScratch`, `EffectBillboardScratch`,
 `GpEffTileScratch`, …). Any overlay function whose prologue is `lw` from
 `0x1F8003FC` / `addiu -N` / `sw` back is very likely one of them; match the size
 and field offsets against that list first. Use the canonical shared record when its layout and meaning agree, as with

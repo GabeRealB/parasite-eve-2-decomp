@@ -655,37 +655,37 @@ void func_dryfield_r08_8017D5F8(Task* task)
 /// for 0 and 1, the fixed clut 0x428F otherwise.
 static void func_dryfield_r08_8017DEFC(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
-    GpEffFlareScratch* block;
-    POLY_FT4*          prim;
-    s32                ang;
-    s32                ang2;
-    s32                span;
-    s32                u0;
-    s32                v0;
-    s32                u1;
-    s32                v1;
-    s32                tex;
-    u16                sel;
-    s32                sine;
+    EffectBillboardScratch* block;
+    POLY_FT4*               prim;
+    s32                     ang;
+    s32                     ang2;
+    s32                     span;
+    s32                     u0;
+    s32                     v0;
+    s32                     u1;
+    s32                     v1;
+    s32                     tex;
+    u16                     sel;
+    s32                     sine;
 
-    block         = SCRATCH_STACK_RESERVE_BLOCK(GpEffFlareScratch);
-    block->vec.vx = arg0->workm.t[0];
-    block->vec.vy = arg0->workm.t[1];
-    block->vec.vz = arg0->workm.t[2];
-    tex           = arg1 & 0xFFF;
-    sel           = arg1 >> 12;
+    block                = SCRATCH_STACK_RESERVE_BLOCK(EffectBillboardScratch);
+    block->worldPoint.vx = arg0->workm.t[0];
+    block->worldPoint.vy = arg0->workm.t[1];
+    block->worldPoint.vz = arg0->workm.t[2];
+    tex                  = arg1 & 0xFFF;
+    sel                  = arg1 >> 12;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec);
+    gte_ldv0(&block->worldPoint);
     gte_rtps();
     prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
+    gte_stsxy(&block->screenX);
+    gte_stflg(&block->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&block->depth);
         prim->tpage = 0x2B;
         prim->code |= 3;
         if (sel >= 2) {
@@ -700,25 +700,25 @@ static void func_dryfield_r08_8017DEFC(GfxCoord* arg0, u16 arg1, s16 arg2, s16 a
         v1  = v0 - 0x69;
         v0  = v0 + 0x68;
         setUV4(prim, u0, v0, u1, v0, u0, v1, u1, v1);
-        sine      = rsin(ang);
-        span      = arg2 * 0x2F;
-        block->dx = ((span / block->otz) * sine) >> 12;
-        block->dy = ((span / block->otz) * rcos(ang)) >> 12;
-        prim->x0  = block->sx + (u16)block->dx;
-        prim->x3  = block->sx - (u16)block->dx;
-        prim->y0  = block->sy - (u16)block->dy;
-        prim->y3  = block->sy + (u16)block->dy;
-        ang2      = ang + 0x400;
-        block->dx = ((span / block->otz) * rsin(ang2)) >> 12;
-        block->dy = ((span / block->otz) * rcos(ang2)) >> 12;
-        prim->x1  = block->sx + (u16)block->dx;
-        prim->x2  = block->sx - (u16)block->dx;
-        prim->y1  = block->sy - (u16)block->dy;
-        prim->y2  = block->sy + (u16)block->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        sine                 = rsin(ang);
+        span                 = arg2 * 0x2F;
+        block->cornerOffsetX = ((span / block->depth) * sine) >> 12;
+        block->cornerOffsetY = ((span / block->depth) * rcos(ang)) >> 12;
+        prim->x0             = block->screenX + (u16)block->cornerOffsetX;
+        prim->x3             = block->screenX - (u16)block->cornerOffsetX;
+        prim->y0             = block->screenY - (u16)block->cornerOffsetY;
+        prim->y3             = block->screenY + (u16)block->cornerOffsetY;
+        ang2                 = ang + 0x400;
+        block->cornerOffsetX = ((span / block->depth) * rsin(ang2)) >> 12;
+        block->cornerOffsetY = ((span / block->depth) * rcos(ang2)) >> 12;
+        prim->x1             = block->screenX + (u16)block->cornerOffsetX;
+        prim->x2             = block->screenX - (u16)block->cornerOffsetX;
+        prim->y1             = block->screenY - (u16)block->cornerOffsetY;
+        prim->y2             = block->screenY + (u16)block->cornerOffsetY;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_STACK_RELEASE_BLOCK(GpEffFlareScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectBillboardScratch);
 }
 
 /// Projects `arg0`'s world translation through `GsWSMATRIX` and, unless the
@@ -726,41 +726,41 @@ static void func_dryfield_r08_8017DEFC(GfxCoord* arg0, u16 arg1, s16 arg2, s16 a
 /// the projected point. The low 12 bits of `arg1` pick a 48x48 cell from a
 /// five-column grid (u = `cell % 5 * 48`, v = `cell / 5 * 48 - 0x80`); any of
 /// its top four bits set selects clut 0x428F instead of 0x43D0. The quad's
-/// diagonals are `arg2 * 47 / otz` long, turned by `arg3` and
+/// diagonals are `arg2 * 47 / depth` long, turned by `arg3` and
 /// `arg3 + 0x400`, so it shrinks with distance and spins with the angle.
 static void func_dryfield_r08_8017E36C(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
-    GpEffFlareScratch* block;
-    POLY_FT4*          prim;
-    s32                ang;
-    s32                ang2;
-    s32                span;
-    s32                u0;
-    s32                v0;
-    s32                u1;
-    s32                v1;
-    u16                tex;
-    u16                sel;
-    s32                sine;
+    EffectBillboardScratch* block;
+    POLY_FT4*               prim;
+    s32                     ang;
+    s32                     ang2;
+    s32                     span;
+    s32                     u0;
+    s32                     v0;
+    s32                     u1;
+    s32                     v1;
+    u16                     tex;
+    u16                     sel;
+    s32                     sine;
 
-    block         = SCRATCH_STACK_RESERVE_BLOCK(GpEffFlareScratch);
-    block->vec.vx = arg0->workm.t[0];
-    sel           = arg1 >> 12;
-    block->vec.vy = arg0->workm.t[1];
-    block->vec.vz = arg0->workm.t[2];
-    tex           = arg1 & 0xFFF;
+    block                = SCRATCH_STACK_RESERVE_BLOCK(EffectBillboardScratch);
+    block->worldPoint.vx = arg0->workm.t[0];
+    sel                  = arg1 >> 12;
+    block->worldPoint.vy = arg0->workm.t[1];
+    block->worldPoint.vz = arg0->workm.t[2];
+    tex                  = arg1 & 0xFFF;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec);
+    gte_ldv0(&block->worldPoint);
     gte_rtps();
     prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
+    gte_stsxy(&block->screenX);
+    gte_stflg(&block->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&block->depth);
         prim->tpage = 0x2C;
         prim->code |= 3;
         if (sel) {
@@ -775,25 +775,25 @@ static void func_dryfield_r08_8017E36C(GfxCoord* arg0, u16 arg1, s16 arg2, s16 a
         v1  = v0 - 0x51;
         v0  = v0 - 0x80;
         setUV4(prim, u0, v0, u1, v0, u0, v1, u1, v1);
-        sine      = rsin(ang);
-        span      = arg2 * 0x2F;
-        block->dx = ((span / block->otz) * sine) >> 12;
-        block->dy = ((span / block->otz) * rcos(ang)) >> 12;
-        prim->x0  = block->sx + block->dx;
-        prim->x3  = block->sx - block->dx;
-        prim->y0  = block->sy - block->dy;
-        prim->y3  = block->sy + block->dy;
-        ang2      = ang + 0x400;
-        block->dx = ((span / block->otz) * rsin(ang2)) >> 12;
-        block->dy = ((span / block->otz) * rcos(ang2)) >> 12;
-        prim->x1  = block->sx + block->dx;
-        prim->x2  = block->sx - block->dx;
-        prim->y1  = block->sy - block->dy;
-        prim->y2  = block->sy + block->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        sine                 = rsin(ang);
+        span                 = arg2 * 0x2F;
+        block->cornerOffsetX = ((span / block->depth) * sine) >> 12;
+        block->cornerOffsetY = ((span / block->depth) * rcos(ang)) >> 12;
+        prim->x0             = block->screenX + block->cornerOffsetX;
+        prim->x3             = block->screenX - block->cornerOffsetX;
+        prim->y0             = block->screenY - block->cornerOffsetY;
+        prim->y3             = block->screenY + block->cornerOffsetY;
+        ang2                 = ang + 0x400;
+        block->cornerOffsetX = ((span / block->depth) * rsin(ang2)) >> 12;
+        block->cornerOffsetY = ((span / block->depth) * rcos(ang2)) >> 12;
+        prim->x1             = block->screenX + block->cornerOffsetX;
+        prim->x2             = block->screenX - block->cornerOffsetX;
+        prim->y1             = block->screenY - block->cornerOffsetY;
+        prim->y2             = block->screenY + block->cornerOffsetY;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_STACK_RELEASE_BLOCK(GpEffFlareScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectBillboardScratch);
 }
 
 #include "../../shared/glow_draw_disc.inc.c"
