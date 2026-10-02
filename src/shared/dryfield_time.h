@@ -7,7 +7,14 @@
 /// `DRYFIELD_TIME` as this before including their shared header and retain that
 /// binding for its implementation fragments. The value 1 is a preprocessor
 /// discriminator; daytime Dryfield's runtime stage number is 2.
-#define DRYFIELD_DAY   1
+#define DRYFIELD_DAY 1
+
+/// Selects the nighttime Dryfield instance of included room code.
+///
+/// Factory, G & R kitchen, motel room 6 and trailer coach carriers bind
+/// `DRYFIELD_TIME` to this before including their shared header and keep that
+/// binding through the implementation fragments. The value 2 is a preprocessor
+/// discriminator, independent of the runtime stage number.
 #define DRYFIELD_NIGHT 2
 
 #ifndef DRYFIELD_TIME
