@@ -10,8 +10,8 @@
 #define SPRITE_QUAD_OTZ_BIAS 1
 #endif
 
-/// Draws one cell of the overlay's sprite texture at `coord`'s world position.
-static void SPRITE_QUAD_FUNC(SPRITE_QUAD_POS_T* pos, SPRITE_QUAD_FRAME_T frame, SPRITE_QUAD_SIZE_T size, s16 angle)
+/// Draws one cell of the overlay's sprite texture at the translation supplied by `pos`.
+static void SPRITE_QUAD_FUNC(SPRITE_QUAD_POSITION_SOURCE_TYPE* pos, SPRITE_QUAD_FRAME_T frame, SPRITE_QUAD_SIZE_T size, s16 angle)
 {
     EffectShapeScratch* head;
     EffectShapeScratch* block;
@@ -28,6 +28,7 @@ static void SPRITE_QUAD_FUNC(SPRITE_QUAD_POS_T* pos, SPRITE_QUAD_FRAME_T frame, 
     s32 ang2;
     u16 vz;
 
+    // Project the source translation's low 16 bits without changing its coordinate cache.
     head                                     = SCRATCH_STACK_CURSOR(EffectShapeScratch);
     (head - 1)->worldPoint.vx                = (u16)SPRITE_QUAD_POS(pos, 0);
     block                                    = head - 1;

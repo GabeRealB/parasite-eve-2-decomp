@@ -33,11 +33,27 @@
 
 #include "gameplay/effects.h"
 
-/* Where the position comes from: a coordinate's world matrix by default, or a
- * bare translation (`long[3]`, SPRITE_QUAD_POS_T long). Set before including. */
-#ifndef SPRITE_QUAD_POS_T
-#define SPRITE_QUAD_POS_T     GfxCoord
-#define SPRITE_QUAD_POS(p, i) ((p)->workm.t[i])
+#ifndef SPRITE_QUAD_POSITION_SOURCE_TYPE
+/// Read-only source type for an included sprite-quad drawer's translation.
+///
+/// The signature adds a pointer to this type. The default `const GfxCoord`
+/// reads `workm.t[0..2]`; `const long` reads three consecutive signed 32-bit
+/// translation words, as supplied by Hammer's charge sprite and Javelin.
+/// A custom binding must also define `SPRITE_QUAD_POS` to read components
+/// 0, 1 and 2 from a pointer to that type.
+///
+/// Supply components in the input space of `GsWSMATRIX`, in game-coordinate
+/// units. Only their low 16 bits reach the signed `SVECTOR` used for projection.
+/// The source is borrowed for the call, never modified or retained; coordinate
+/// caches must already contain the intended translation because the drawer
+/// performs no composition.
+///
+/// Bind before this header for the first instance's declaration. The binding
+/// persists across `sprite_quad_draw.inc.c` inclusions; changing an instance
+/// requires undefining and redefining both the type and `SPRITE_QUAD_POS`,
+/// with a consistent forward declaration. The flicker drawer has a fixed type.
+#define SPRITE_QUAD_POSITION_SOURCE_TYPE const GfxCoord
+#define SPRITE_QUAD_POS(p, i)            ((p)->workm.t[i])
 #endif
 #ifndef SPRITE_QUAD_SIZE_T
 #define SPRITE_QUAD_SIZE_T s16
@@ -66,7 +82,7 @@
 #define SPRITE_QUAD_FRAME_T u16
 #endif
 
-static void spriteQuadDraw(SPRITE_QUAD_POS_T* pos, SPRITE_QUAD_FRAME_T frame, SPRITE_QUAD_SIZE_T size, s16 angle);
+static void spriteQuadDraw(SPRITE_QUAD_POSITION_SOURCE_TYPE* pos, SPRITE_QUAD_FRAME_T frame, SPRITE_QUAD_SIZE_T size, s16 angle);
 
 /* The flicker form (sprite_quad_draw_flicker.inc.c) alternates two looks of
  * the flame strip; these are its two cells. */

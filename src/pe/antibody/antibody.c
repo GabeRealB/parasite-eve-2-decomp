@@ -87,7 +87,7 @@ static AntibodyStep D_antibody_80130BD4[] = {
 /// once when `func_antibody_8012EF34` seeds the cast.
 static s32 D_antibody_80130C00[] = { 0xE0290001, 0xE02C0001, 0xE02F0001 };
 
-static void spriteQuadDrawMote(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
+static void spriteQuadDrawMote(const GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
 static void func_antibody_80130428(GfxCoord* arg0, s16 arg1, s16 arg2);
 
 /// Sixteen wedge yaws, refilled once per cast by `func_antibody_8012EF34`.

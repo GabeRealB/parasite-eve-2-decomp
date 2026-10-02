@@ -43,8 +43,9 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
-#define SPRITE_QUAD_POS_T     long
-#define SPRITE_QUAD_POS(p, i) ((p)[i])
+/// Read-only XYZ translation words from the launch sprite's `GfxCoord::workm.t`.
+#define SPRITE_QUAD_POSITION_SOURCE_TYPE const long
+#define SPRITE_QUAD_POS(p, i)            ((p)[i])
 /// Signed texture-frame index for the eight-frame launch sprite.
 #define SPRITE_QUAD_FRAME_T s16
 #include "../../shared/sprite_quad.h"
