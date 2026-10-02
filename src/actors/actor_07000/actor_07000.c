@@ -3010,7 +3010,7 @@ static void Actor07000_Fn06750(Task* task)
     Gp_UnlinkObj(&work->field_1DC);
     Gp_UnlinkObj(&work->field_22C);
     Gp_UnlinkObj(&work->field_2AC);
-    Gp_EnemyTaskExit(task);
+    enemyTaskExit(task);
 }
 
 /// Task handler of the specimen's second form: runs the entry of

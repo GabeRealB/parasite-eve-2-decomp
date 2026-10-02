@@ -112,7 +112,7 @@ STATIC_ASSERT_SIZEOF(Actor503500WorkAC, 0xAC);
 /// (`memCalloc(0x4CC)`) and parked in that task's `Task::work` slot -- that
 /// slot is not a `TaskIdMap` here. Unlike the tasks covered by
 /// `Actor503500ObjWork` this one exits through `func_actor_503500_801464E8`, which
-/// only calls `Gp_EnemyTaskExit`, so the block does not open with a `WorldCollisionBody`.
+/// only calls `enemyTaskExit`, so the block does not open with a `WorldCollisionBody`.
 /// `func_actor_503500_80146508` republishes the two matrices onto
 /// `TmdObject::lightMtx` / `colorMtx`, the light/colour pair
 /// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`,
@@ -1849,7 +1849,7 @@ static void func_actor_503500_8014642C(Task* arg0)
 
     work = memCalloc(sizeof(Actor503500Effect4CC), false);
     if (work == NULL) {
-        Gp_EnemyTaskExit(arg0);
+        enemyTaskExit(arg0);
         return;
     }
 
@@ -1873,10 +1873,10 @@ static void func_actor_503500_8014642C(Task* arg0)
 }
 /// `Task::exitCallback` of the effect task `func_actor_503500_8014642C`
 /// initialises, and the third entry of its state table: hands the task to
-/// `Gp_EnemyTaskExit`.
+/// `enemyTaskExit`.
 static void func_actor_503500_801464E8(Task* arg0)
 {
-    Gp_EnemyTaskExit(arg0);
+    enemyTaskExit(arg0);
 }
 
 static void func_actor_503500_80146508(Task* arg0)

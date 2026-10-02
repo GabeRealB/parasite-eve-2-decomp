@@ -12,7 +12,7 @@ void reverseWalkSpawn(Task* arg0)
 
     work = memCalloc(sizeof(Actor350500Work), false);
     if (work == NULL) {
-        Gp_EnemyTaskExit(arg0);
+        enemyTaskExit(arg0);
         return;
     }
 

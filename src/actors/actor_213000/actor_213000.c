@@ -515,7 +515,7 @@ static void func_actor_213000_8014A488(Task* task);
 /// the current area selected by the model id the parent's `spawnArg2` carries
 /// at `Enemy::placeKey >> ENEMY_PLACE_INDEX_SHIFT`, and has its texture stream processed twice
 /// when it has a buffer. It then publishes the work block's matrices on the
-/// model, installs the message table and `Gp_EnemyTaskExit` as the exit
+/// model, installs the message table and `enemyTaskExit` as the exit
 /// callback, and advances to the tick. A failed allocation exits the task
 /// instead.
 static void func_actor_213000_80149E54(Task* task)
@@ -529,7 +529,7 @@ static void func_actor_213000_80149E54(Task* task)
     obj  = task->extra.tmd;
     work = memCalloc(0x4C4, 0);
     if (work == NULL) {
-        Gp_EnemyTaskExit(task);
+        enemyTaskExit(task);
         return;
     }
     task->work      = work;
@@ -592,7 +592,7 @@ static void func_actor_213000_80149E54(Task* task)
     }
     func_actor_213000_8014A6AC(task);
     task->msgTable     = D_actor_213000_80157E1C;
-    task->exitCallback = Gp_EnemyTaskExit;
+    task->exitCallback = enemyTaskExit;
     task->state++;
 }
 
@@ -725,7 +725,7 @@ static const TaskFuncTable3 D_actor_213000_80149E48 = {
     {
         func_actor_213000_80149E54,
         func_actor_213000_8014A5D0,
-        Gp_EnemyTaskExit,
+        enemyTaskExit,
     },
 };
 

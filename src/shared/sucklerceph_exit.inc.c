@@ -17,5 +17,5 @@ void sucklercephExit(Task* task)
     Gp_UnlinkObj(&work->obj134);
     Gp_UnlinkObj(&work->obj1B4);
     Gp_UnlinkObj(&work->obj1EC);
-    Gp_EnemyTaskExit(task);
+    enemyTaskExit(task);
 }

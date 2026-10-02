@@ -159,7 +159,7 @@ static const TaskFuncTable3 D_actor_511000_80131E30 = {
 static const TaskFuncTable3 D_actor_511000_80131E3C = {
     func_actor_511000_80132480,
     func_actor_511000_80131E78,
-    Gp_EnemyTaskExit,
+    enemyTaskExit,
 };
 
 /// State table of the task that owns the `Actor511000Work` block: its spawn
@@ -2250,7 +2250,7 @@ static void func_actor_511000_80132480(Task* task)
     extra = task->extra.tmd;
     work  = memCalloc(0x4D4, 0);
     if (work == NULL) {
-        Gp_EnemyTaskExit(task);
+        enemyTaskExit(task);
         return;
     }
     task->work           = work;
@@ -2269,7 +2269,7 @@ static void func_actor_511000_80132480(Task* task)
     work->field_4C8 = Task_SpawnFromTable(D_actor_511000_801472E8, 2, 0xC, task);
     func_actor_511000_801325A4(task);
     task->msgTable     = D_actor_511000_8014730C;
-    task->exitCallback = Gp_EnemyTaskExit;
+    task->exitCallback = enemyTaskExit;
     task->state++;
 }
 

@@ -1839,5 +1839,5 @@ static void func_actor_207200_8014DB4C(Task* arg0)
     Gp_UnlinkObj(&work->obj3);
     Gp_UnlinkObj(&work->obj4);
     Gp_UnlinkObj(&work->obj5);
-    Gp_EnemyTaskExit(arg0);
+    enemyTaskExit(arg0);
 }

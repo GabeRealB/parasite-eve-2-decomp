@@ -11,6 +11,7 @@
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/enemy.h"
 #include "gameplay/gpu_image_upload.h"
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
@@ -1152,7 +1153,7 @@ void func_actor_210700_80149F38(Task* task)
 }
 
 /// Spawn state: allocates the zeroed work block into `Task::work` (handing
-/// the task to `Gp_EnemyTaskExit` if that fails), marks no animation loaded,
+/// the task to `enemyTaskExit` if that fails), marks no animation loaded,
 /// hides the model with `TmdObject::flags` bit 0x80, then runs its own 0x7D4
 /// and 0x7D3 message handlers directly to place the actor at the origin -
 /// which shows it again - and start animation 1 of source 0. It draws the
@@ -1170,7 +1171,7 @@ static void func_actor_210700_80149F90(Task* task)
     extra = task->extra.tmd;
     work  = memCalloc(0x540, 0);
     if (work == NULL) {
-        Gp_EnemyTaskExit(task);
+        enemyTaskExit(task);
         return;
     }
     task->work      = work;
@@ -1237,10 +1238,10 @@ static void func_actor_210700_8014A0AC(Task* task)
 }
 
 /// The actor's teardown state and `Task::exitCallback`: hands the task to
-/// `Gp_EnemyTaskExit`.
+/// `enemyTaskExit`.
 static void func_actor_210700_8014A1E8(Task* task)
 {
-    Gp_EnemyTaskExit(task);
+    enemyTaskExit(task);
 }
 
 /// Points the model at the work block's light and colour matrices, so the

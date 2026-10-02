@@ -10,7 +10,6 @@
 #include "gameplay/message.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/scene_combat.h"
-#include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 
 #include "main/coord.h"
@@ -947,7 +946,7 @@ static void func_actor_503500_80132430(Task* arg0)
     ext  = arg0->extra.tmd;
     work = memCalloc(sizeof(Actor503500ColorMtx), false);
     if (work == NULL) {
-        Gp_EnemyTaskExit(arg0);
+        enemyTaskExit(arg0);
         return;
     }
 

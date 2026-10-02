@@ -662,7 +662,7 @@ static void func_actor_135400_80132064(Task* arg0)
     anim[1].animationId = 4;
     work                = memCalloc(0x4C8, 0);
     if (work == NULL) {
-        Gp_EnemyTaskExit(arg0);
+        enemyTaskExit(arg0);
         return;
     }
     arg0->work         = work;
@@ -784,7 +784,7 @@ void func_actor_135400_801325A8(Task* task)
 /// The main task's exit callback, also its state 2: runs the enemy teardown.
 static void func_actor_135400_80132614(Task* arg0)
 {
-    Gp_EnemyTaskExit(arg0);
+    enemyTaskExit(arg0);
 }
 
 /// Points the main task's model at the work block's own light and colour
@@ -984,7 +984,7 @@ static void func_actor_135400_80132B60(Task* arg0)
     params.animationId = 1;
     spawn              = D_actor_135400_80131EA0;
     if ((GameFlag_GetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS) > 0) || ((work = memCalloc(0x498, 0)) == NULL)) {
-        Gp_EnemyTaskExit(arg0);
+        enemyTaskExit(arg0);
         return;
     }
     arg0->work         = work;
@@ -1003,7 +1003,7 @@ static void func_actor_135400_80132B60(Task* arg0)
 /// The second task's exit callback, also its state 2: runs the enemy teardown.
 static void func_actor_135400_80132C90(Task* arg0)
 {
-    Gp_EnemyTaskExit(arg0);
+    enemyTaskExit(arg0);
 }
 
 /// Points the second task's model at the work block's light and colour

@@ -12,10 +12,10 @@
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
+#include "gameplay/enemy.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
-#include "gameplay/scene_runtime.h"
 
 #include "main/coord.h"
 #include "main/display.h"
@@ -176,7 +176,7 @@ static void func_acropolis_helicopter_landing_pad_8017D658(Task* task)
 
     mem = memCalloc(0x54, false);
     if (mem == NULL) {
-        Gp_EnemyTaskExit(task);
+        enemyTaskExit(task);
         return;
     }
     task->work    = mem;
@@ -270,9 +270,9 @@ s32 func_acropolis_helicopter_landing_pad_8017D824(Task* task, s32 msgId, Animat
 
 /// State handlers of the enemy task `func_acropolis_helicopter_landing_pad_8017D964`,
 /// indexed by `Task::state`: set-up, the per-frame model update and
-/// `Gp_EnemyTaskExit`.
+/// `enemyTaskExit`.
 static const TaskFuncTable3 D_acropolis_helicopter_landing_pad_8017D5C4 = {
-    { func_acropolis_helicopter_landing_pad_8017D658, func_acropolis_helicopter_landing_pad_8017D6E0, Gp_EnemyTaskExit },
+    { func_acropolis_helicopter_landing_pad_8017D658, func_acropolis_helicopter_landing_pad_8017D6E0, enemyTaskExit },
 };
 
 /// The enemy task: runs the state handler

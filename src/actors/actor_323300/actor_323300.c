@@ -14,6 +14,7 @@
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/enemy.h"
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
@@ -437,7 +438,7 @@ static void func_actor_323300_80163188(GfxCoord* coord, s16 angle);
 /// Allocates the 0x504 `Actor323300Work` this actor's whole lifetime runs on,
 /// seeds the `WorldCollisionContact` collision table and the display node at +0x480, then
 /// binds the three message handlers and the animation presets the state
-/// functions drive. Bails out through `Gp_EnemyTaskExit` when the room flag
+/// functions drive. Bails out through `enemyTaskExit` when the room flag
 /// 0x60 is already set (the actor already spawned) or the allocation fails.
 static void func_actor_323300_80161E78(Task* arg0)
 {
@@ -446,7 +447,7 @@ static void func_actor_323300_80161E78(Task* arg0)
     WorldCollisionBody* obj;
 
     if (GameFlag_GetNibble(GAME_FLAG_TOILET_EVENT_SEEN) != 0 || (work = memCalloc(0x504, 0)) == NULL) {
-        Gp_EnemyTaskExit(arg0);
+        enemyTaskExit(arg0);
         return;
     }
     arg0->work         = work;
@@ -712,7 +713,7 @@ void func_actor_323300_80162630(Task* task)
 static void func_actor_323300_8016269C(Task* arg0)
 {
     Gp_UnlinkObj(&((Actor323300Work*)arg0->work)->obj);
-    Gp_EnemyTaskExit(arg0);
+    enemyTaskExit(arg0);
 }
 
 static void func_actor_323300_801626D0(Task* arg0)

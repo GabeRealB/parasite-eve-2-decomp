@@ -9,6 +9,7 @@
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/enemy.h"
 #include "gameplay/gpu_image_upload.h"
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
@@ -87,7 +88,7 @@ static void func_actor_113000_801321A8(Task* task);
 static const TaskFuncTable3 D_actor_113000_80131E24 = { {
     func_actor_113000_80131F90,
     func_actor_113000_80132070,
-    Gp_EnemyTaskExit,
+    enemyTaskExit,
 } };
 
 static AnimationSet _gActor113000Animation05D94;
@@ -1177,7 +1178,7 @@ static void func_actor_113000_80131E30(Task* arg0)
 
 /// Task callback of the actor: copies the three-handler table
 /// `D_actor_113000_80131E24` (spawn `func_actor_113000_80131F90`, per-frame
-/// tick `func_actor_113000_80132070`, exit `Gp_EnemyTaskExit`) onto the stack
+/// tick `func_actor_113000_80132070`, exit `enemyTaskExit`) onto the stack
 /// and runs the entry `Task::state` selects.
 void func_actor_113000_80131F38(Task* task)
 {
@@ -1200,7 +1201,7 @@ static void func_actor_113000_80131F90(Task* task)
     extra = task->extra.tmd;
     work  = memCalloc(0x4CC, 0);
     if (work == NULL) {
-        Gp_EnemyTaskExit(task);
+        enemyTaskExit(task);
         return;
     }
     task->work      = work;
@@ -1217,7 +1218,7 @@ static void func_actor_113000_80131F90(Task* task)
     }
     func_actor_113000_801321A8(task);
     task->msgTable     = D_actor_113000_8013ABC0;
-    task->exitCallback = Gp_EnemyTaskExit;
+    task->exitCallback = enemyTaskExit;
     task->state++;
 }
 

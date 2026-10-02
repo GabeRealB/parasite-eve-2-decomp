@@ -971,13 +971,19 @@ void enemyDestroy(Enemy* enemy, Task* task)
     taskKill(task);
 }
 
-void Gp_EnemyTaskExit(Task* task)
+/// Detaches target references before releasing a live primary-heap enemy work object.
+static inline void _enemyReleaseWork(Enemy* enemy)
 {
-    Enemy* enemy;
-
-    enemy = task->spawnArg2.pointer;
     worldTargetUnlinkNode(&enemy->node);
     memFree(enemy);
+}
+
+void enemyTaskExit(Task* task)
+{
+    Enemy* enemy = task->spawnArg2.pointer;
+
+    // Release the enemy before task teardown dispatches child exit handlers.
+    _enemyReleaseWork(enemy);
     taskKill(task);
 }
 
@@ -1029,7 +1035,7 @@ static Enemy* Gp_AllocEnemy(Task* task, Enemy* parent)
         return NULL;
     }
 
-    task->exitCallback      = Gp_EnemyTaskExit;
+    task->exitCallback      = enemyTaskExit;
     task->spawnArg2.pointer = enemy;
     enemy->task             = task;
     enemy->coord            = &gGfxViewCoord;

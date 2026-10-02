@@ -9,6 +9,7 @@
 
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
+#include "gameplay/enemy.h"
 #include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
@@ -637,7 +638,7 @@ static void func_actor_317000_8016267C(Task* arg0)
 
     work = memCalloc(sizeof(Actor317000Work), false);
     if (work == NULL) {
-        Gp_EnemyTaskExit(arg0);
+        enemyTaskExit(arg0);
         return;
     }
 
@@ -659,10 +660,10 @@ static void func_actor_317000_8016267C(Task* arg0)
 
 /// Exit handler, both the third entry of `D_actor_317000_80161E24` and the
 /// `Task::exitCallback` `func_actor_317000_8016267C` installs: ends the task
-/// through `Gp_EnemyTaskExit`.
+/// through `enemyTaskExit`.
 static void func_actor_317000_80162724(Task* arg0)
 {
-    Gp_EnemyTaskExit(arg0);
+    enemyTaskExit(arg0);
 }
 
 /// Points the display object's light and colour matrices at the work block's

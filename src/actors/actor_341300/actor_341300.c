@@ -223,7 +223,7 @@ TaskDesc D_actor_341300_80165208[2] = {
     { { { TASK_BODY_NONE, 192 } }, func_actor_341300_80162278, { .value = 0 } },
 };
 
-TaskDesc D_actor_341300_80165220 = { { { TASK_BODY_NONE, 192 } }, Gp_EnemyTaskExit, { .value = 0 } };
+TaskDesc D_actor_341300_80165220 = { { { TASK_BODY_NONE, 192 } }, enemyTaskExit, { .value = 0 } };
 
 AnimationSet* D_actor_341300_8016522C[6] = {
     NULL,

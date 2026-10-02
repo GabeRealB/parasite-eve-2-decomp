@@ -11,6 +11,7 @@
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/enemy.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
@@ -427,7 +428,7 @@ static void func_actor_310600_80161E64(Task* task)
 
     work = memCalloc(0x538, 0);
     if (work == NULL) {
-        Gp_EnemyTaskExit(task);
+        enemyTaskExit(task);
         return;
     }
     task->work      = work;
@@ -768,7 +769,7 @@ void func_actor_310600_801629CC(Task* task)
 static void func_actor_310600_80162A24(Task* arg0)
 {
     Gp_UnlinkObj(&((Actor310600Work*)arg0->work)->obj);
-    Gp_EnemyTaskExit(arg0);
+    enemyTaskExit(arg0);
 }
 
 static void func_actor_310600_80162A58(Task* arg0)

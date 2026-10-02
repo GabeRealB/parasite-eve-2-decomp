@@ -1203,7 +1203,7 @@ static void func_actor_113100_80131E58(Task* task)
 
     work = memCalloc(0x540, 0);
     if (work == NULL) {
-        Gp_EnemyTaskExit(task);
+        enemyTaskExit(task);
         return;
     }
     task->work             = work;
@@ -1743,7 +1743,7 @@ void func_actor_113100_80132E98(Task* task)
 static void func_actor_113100_80132EF0(Task* arg0)
 {
     Gp_UnlinkObj(&((Actor113100Work*)arg0->work)->obj);
-    Gp_EnemyTaskExit(arg0);
+    enemyTaskExit(arg0);
 }
 
 /// Points the model's light and colour matrices at the work block's own

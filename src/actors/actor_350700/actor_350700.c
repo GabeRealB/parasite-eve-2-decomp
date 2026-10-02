@@ -573,7 +573,7 @@ void func_actor_350700_80162398(Task* task)
 /// Exit callback `reverseWalkSpawn` installs; tears the task down.
 void reverseWalkExit(Task* arg0)
 {
-    Gp_EnemyTaskExit(arg0);
+    enemyTaskExit(arg0);
 }
 
 /// Republishes the enemy work block's two matrices onto
@@ -659,7 +659,7 @@ static void func_actor_350700_80162B30(Task* arg0)
 
     work = memCalloc(0x50C, false);
     if (work == NULL) {
-        Gp_EnemyTaskExit(arg0);
+        enemyTaskExit(arg0);
         return;
     }
     arg0->work             = work;
@@ -824,10 +824,10 @@ void func_actor_350700_80163350(Task* task)
 }
 
 /// Exit callback `func_actor_350700_80162B30` installs, the same
-/// `Gp_EnemyTaskExit` teardown `reverseWalkExit` performs.
+/// `enemyTaskExit` teardown `reverseWalkExit` performs.
 static void func_actor_350700_801633BC(Task* arg0)
 {
-    Gp_EnemyTaskExit(arg0);
+    enemyTaskExit(arg0);
 }
 
 /// Republishes the parent work block's two matrices onto

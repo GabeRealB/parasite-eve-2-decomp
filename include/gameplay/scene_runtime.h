@@ -29,8 +29,6 @@ s32 func_800B0118(s32 arg0, s32 arg1);
 
 Enemy* Gp_SpawnEnemyFromTable(TaskDesc* table, s32 idx, s32 arg2, Enemy* parent);
 
-void Gp_EnemyTaskExit(Task* task);
-
 /// Copies `arg1`'s matrix onto the coordinate at `Task::extra.coordBody->coord`,
 /// adding `arg2` in that space. If `arg1->parent` is world (`gGfxViewCoord`),
 /// copies `coord` and transforms in place; otherwise computes `workm`

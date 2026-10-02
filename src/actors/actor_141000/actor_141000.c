@@ -13,6 +13,7 @@
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/enemy.h"
 #include "gameplay/gpu_image_upload.h"
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
@@ -2453,7 +2454,7 @@ static void func_actor_141000_8013392C(Task* arg0)
 
     work = memCalloc(sizeof(Actor141000Work), false);
     if (work == NULL) {
-        Gp_EnemyTaskExit(arg0);
+        enemyTaskExit(arg0);
         return;
     }
 
@@ -2473,10 +2474,10 @@ static void func_actor_141000_8013392C(Task* arg0)
 }
 
 /// `Task::exitCallback` the model actor's spawn state installs: it only hands
-/// the task to `Gp_EnemyTaskExit`.
+/// the task to `enemyTaskExit`.
 static void func_actor_141000_801339BC(Task* arg0)
 {
-    Gp_EnemyTaskExit(arg0);
+    enemyTaskExit(arg0);
 }
 
 static void func_actor_141000_801339DC(Task* arg0)

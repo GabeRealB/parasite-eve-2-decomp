@@ -18,6 +18,7 @@
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/enemy.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/items.h"
@@ -28,7 +29,6 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
 #include "gameplay/scene_combat.h"
-#include "gameplay/scene_runtime.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 #include "gameplay/world_coords.h"
@@ -1470,7 +1470,7 @@ static void func_mine_forked_tunnel_8017D5E8(Task* arg0)
 
     work = memCalloc(0x48, 0);
     if (work == NULL) {
-        Gp_EnemyTaskExit(arg0);
+        enemyTaskExit(arg0);
         return;
     }
 
@@ -1660,7 +1660,7 @@ void func_mine_forked_tunnel_8017DBE4(Task* task)
 
 static void func_mine_forked_tunnel_8017DC50(Task* arg0)
 {
-    Gp_EnemyTaskExit(arg0);
+    enemyTaskExit(arg0);
 }
 
 static void func_mine_forked_tunnel_8017DC70(Task* arg0)

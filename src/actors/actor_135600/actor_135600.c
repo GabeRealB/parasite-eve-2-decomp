@@ -782,7 +782,7 @@ static void func_actor_135600_80132234(Task* task)
 
     work = memCalloc(0x50C, false);
     if (work == NULL) {
-        Gp_EnemyTaskExit(task);
+        enemyTaskExit(task);
         return;
     }
     task->work             = work;
@@ -1025,10 +1025,10 @@ void func_actor_135600_80132D64(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Exit state and exit callback of the actor: the `Gp_EnemyTaskExit` teardown.
+/// Exit state and exit callback of the actor: the `enemyTaskExit` teardown.
 static void func_actor_135600_80132DBC(Task* task)
 {
-    Gp_EnemyTaskExit(task);
+    enemyTaskExit(task);
 }
 
 /// Points the model's light and colour matrices at the work block's own pair.

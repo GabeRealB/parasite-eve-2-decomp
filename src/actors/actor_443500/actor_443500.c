@@ -2507,7 +2507,7 @@ static void func_actor_443500_80132078(Task* task)
 
     work = memCalloc(0x4C4, 0);
     if (work == NULL) {
-        Gp_EnemyTaskExit(task);
+        enemyTaskExit(task);
         return;
     }
     task->work         = work;
@@ -2664,10 +2664,10 @@ void func_actor_443500_80132738(Task* task)
 }
 
 /// Exit callback the spawn handler installs, and the third state of the main
-/// task: hands the task to `Gp_EnemyTaskExit`.
+/// task: hands the task to `enemyTaskExit`.
 static void func_actor_443500_801327A4(Task* arg0)
 {
-    Gp_EnemyTaskExit(arg0);
+    enemyTaskExit(arg0);
 }
 
 /// Points the model's `TmdObject::lightMtx` / `colorMtx` at the work block's

@@ -339,8 +339,9 @@ Named / matched: `Gp_EnemyDispatch` (`0xB`), `Gp_UpdateRoomCoords` (`0xF`),
 `Gp_FadeTileTask` (`0x27`). The rest is `taskKill`, `func_*`, or
 `0x807xxxxx` (many type-1 with `data.model = 0x8075BED4`).
 
-`Gp_SpawnEnemy(bank, type, arg, parent)` is `Task_Spawn` plus a `Enemy*`
-hung off `spawnArg2` (`Gp_AllocEnemy`). Exit path is `Gp_EnemyTaskExit`.
+`Gp_SpawnEnemy(bank, type, arg, parent)` is `Task_Spawn` plus a primary-heap
+`Enemy` allocation in `spawnArg2.pointer` (`Gp_AllocEnemy`). `enemyTaskExit`
+releases that allocation before default task teardown.
 
 ### Bank 6 — 667 room actors
 

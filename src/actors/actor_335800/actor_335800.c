@@ -1226,7 +1226,7 @@ static void func_actor_335800_80162640(Task* arg0)
 
     work = memCalloc(0x50C, false);
     if (work == NULL) {
-        Gp_EnemyTaskExit(arg0);
+        enemyTaskExit(arg0);
         return;
     }
     arg0->work             = work;
@@ -1393,7 +1393,7 @@ void func_actor_335800_80162F10(Task* task)
 
 static void func_actor_335800_80162F7C(Task* arg0)
 {
-    Gp_EnemyTaskExit(arg0);
+    enemyTaskExit(arg0);
 }
 
 static void func_actor_335800_80162F9C(Task* arg0)
@@ -1637,7 +1637,7 @@ static void func_actor_335800_80163AA0(Task* arg0)
 
     work = memCalloc(sizeof(Actor335800Work), false);
     if (work == NULL) {
-        Gp_EnemyTaskExit(arg0);
+        enemyTaskExit(arg0);
         return;
     }
 
@@ -1658,7 +1658,7 @@ static void func_actor_335800_80163AA0(Task* arg0)
 
 static void func_actor_335800_80163B34(Task* arg0)
 {
-    Gp_EnemyTaskExit(arg0);
+    enemyTaskExit(arg0);
 }
 
 static void func_actor_335800_80163B54(Task* arg0)

@@ -16,5 +16,5 @@ void skullStalkerExit(Task* task)
     Gp_UnlinkObj(&work->field_14C);
     Gp_UnlinkObj(&work->field_FC);
     Gp_UnlinkObj(&work->field_184);
-    Gp_EnemyTaskExit(task);
+    enemyTaskExit(task);
 }

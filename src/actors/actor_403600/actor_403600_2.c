@@ -4314,7 +4314,7 @@ static void func_actor_403600_80140488(Enemy* arg0, Task* arg1)
             if (arg1 == D_actor_403600_801606A8) {
                 Gp_UnlinkObj(&cleanupWork->field_5C0);
             }
-            Gp_EnemyTaskExit(arg1);
+            enemyTaskExit(arg1);
             return;
     }
     _actor403600UpdateAnimation(arg1, 20);
@@ -4719,7 +4719,7 @@ static void func_actor_403600_80141598(Task* task)
     if (task == D_actor_403600_801606A8) {
         Gp_UnlinkObj(&work->field_5C0);
     }
-    Gp_EnemyTaskExit(task);
+    enemyTaskExit(task);
 }
 
 static void func_actor_403600_8014161C(Task* arg0)
@@ -5081,7 +5081,7 @@ static void func_actor_403600_80141E78(Enemy* arg0, Task* arg1)
 static void func_actor_403600_80141F28(Task* arg0)
 {
     arg0->extra.tmd->coords->parent = &gGfxViewCoord;
-    Gp_EnemyTaskExit(arg0);
+    enemyTaskExit(arg0);
 }
 
 static void func_actor_403600_80141F58(GfxCoord* arg0, s32 arg1)

@@ -906,7 +906,7 @@ static void func_actor_120400_80131E5C(Task* arg0)
 
     work = memCalloc(0x504, false);
     if (work == NULL) {
-        Gp_EnemyTaskExit(arg0);
+        enemyTaskExit(arg0);
         return;
     }
     arg0->work             = work;
@@ -1128,7 +1128,7 @@ void func_actor_120400_80132748(Task* task)
 /// common enemy teardown.
 static void func_actor_120400_801327B4(Task* task)
 {
-    Gp_EnemyTaskExit(task);
+    enemyTaskExit(task);
 }
 
 /// Points the parent's model at the light and colour matrices held in its own

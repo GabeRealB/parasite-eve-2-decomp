@@ -9,6 +9,7 @@
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/enemy.h"
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
@@ -245,7 +246,7 @@ void func_actor_350500_80162360(Task* task)
 /// Exit callback `reverseWalkSpawn` installs; tears the task down.
 void reverseWalkExit(Task* arg0)
 {
-    Gp_EnemyTaskExit(arg0);
+    enemyTaskExit(arg0);
 }
 
 /// Republishes the work block's two matrices onto `TmdObject::lightMtx` /

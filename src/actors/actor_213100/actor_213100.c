@@ -8,6 +8,7 @@
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/enemy.h"
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
@@ -522,7 +523,7 @@ static void func_actor_213100_8014A118(Task* arg0)
 
     work = memCalloc(0x488, 0);
     if (work == NULL) {
-        Gp_EnemyTaskExit(arg0);
+        enemyTaskExit(arg0);
         return;
     }
     arg0->work      = work;
@@ -532,7 +533,7 @@ static void func_actor_213100_8014A118(Task* arg0)
     child           = Task_SpawnFromTable(D_actor_213100_801521A8, 1, 8, arg0);
     work->field_480 = child;
     if (child == NULL) {
-        Gp_EnemyTaskExit(arg0);
+        enemyTaskExit(arg0);
         return;
     }
     func_actor_213100_8014A23C(arg0);
@@ -552,10 +553,10 @@ static void func_actor_213100_8014A118(Task* arg0)
 }
 
 /// The actor's teardown state and its `Task::exitCallback`: hands the task to
-/// `Gp_EnemyTaskExit`.
+/// `enemyTaskExit`.
 static void func_actor_213100_8014A21C(Task* arg0)
 {
-    Gp_EnemyTaskExit(arg0);
+    enemyTaskExit(arg0);
 }
 
 /// Points the model's light and colour matrices at the work block's own pair.

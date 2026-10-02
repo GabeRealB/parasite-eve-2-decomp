@@ -4856,7 +4856,7 @@ static s32 Actor01600_Fn06D74(Task* arg0, s32 arg1, s32 arg2)
 
 /// Tears the actor down: flags its context node dead (`field_4` = 1), clears
 /// `field_54`, unlinks the node from its list and releases the four display
-/// objects held in the work block, then hands the task to `Gp_EnemyTaskExit`.
+/// objects held in the work block, then hands the task to `enemyTaskExit`.
 static void Actor01600_Fn06EA4(Task* arg0)
 {
     Enemy*          ctx;
@@ -4872,7 +4872,7 @@ static void Actor01600_Fn06EA4(Task* arg0)
     Gp_UnlinkObj((WorldCollisionBody*)work->field_29C);
     Gp_UnlinkObj(&work->collision.obj);
     Gp_UnlinkObj((WorldCollisionBody*)work->field_3CC);
-    Gp_EnemyTaskExit(arg0);
+    enemyTaskExit(arg0);
 }
 
 static void Actor01600_Fn06F10(Task* arg0)

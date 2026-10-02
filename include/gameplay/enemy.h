@@ -138,6 +138,19 @@ STATIC_ASSERT_SIZEOF(Enemy, 0x60);
 /// Callers must not access the enemy or task again after this call.
 void enemyDestroy(Enemy* enemy, Task* task);
 
+/// Releases a task's enemy work object and begins default task teardown.
+///
+/// The one-argument `TaskFunc` form of `enemyDestroy`. `task` must be non-NULL,
+/// live and not already torn down, with a live primary-heap `Enemy` allocation
+/// in `spawnArg2.pointer`. A failed spawn's not-yet-linked enemy is valid.
+/// Release actor-specific links and nested resources before calling.
+///
+/// Target tracking and actor locks are detached before the enemy is freed,
+/// then `taskKill` handles children, work and immediate/deferred body release.
+/// Calling directly bypasses a replacement exit callback. `spawnArg2.pointer`
+/// is left dangling; callers must not access the task or enemy afterwards.
+void enemyTaskExit(Task* task);
+
 /// Callback for Enemy + Task state handlers (entries in `Gp_EnemyWaitFuncs`).
 typedef void (*GpEnemyTaskFunc)(Enemy* enemy, Task* task);
 
