@@ -1213,8 +1213,8 @@ void Gp_EndPlayerActorTask(Task* arg0)
         inner                     = arg0->work;
         inner->animationBankIndex = Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
         inner->animationSets      = Gp_AnimBlkTbl[inner->animationBankIndex]->table.sets;
-        func_800B3F84(&inner->animationContext, inner->animationSets, extra, inner->poseBuffer,
-                      inner->animationSlots);
+        animationInitContext(&inner->animationContext, inner->animationSets, extra, inner->poseBuffer,
+                             inner->animationSlots);
         Gp_AnimResetChildSlots(arg0, 1);
         next                 = arg0->work;
         next->mode           = GAME_ACTOR_MODE_NORMAL;
@@ -1283,8 +1283,8 @@ Task* Gp_SetupAllyWeapon(void)
     extra                     = work->extra.tmd;
     inner->animationBankIndex = Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
     inner->animationSets      = Gp_AnimBlkTbl[inner->animationBankIndex]->table.sets;
-    func_800B3F84(&inner->animationContext, inner->animationSets, extra, inner->poseBuffer,
-                  inner->animationSlots);
+    animationInitContext(&inner->animationContext, inner->animationSets, extra, inner->poseBuffer,
+                         inner->animationSlots);
     next                 = work->work;
     next->mode           = GAME_ACTOR_MODE_NORMAL;
     next->state          = 0;
@@ -1523,8 +1523,8 @@ void func_8010BFCC(Task* arg0)
     extra                     = arg0->extra.tmd;
     actor->animationBankIndex = Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
     actor->animationSets      = Gp_AnimBlkTbl[actor->animationBankIndex]->table.sets;
-    func_800B3F84(&actor->animationContext, actor->animationSets, extra, actor->poseBuffer,
-                  actor->animationSlots);
+    animationInitContext(&actor->animationContext, actor->animationSets, extra, actor->poseBuffer,
+                         actor->animationSlots);
 }
 
 s32 func_8010C058(void)
@@ -1658,8 +1658,8 @@ s32 func_8010C30C(Task* arg0)
     anim                       = Gp_AnimBlkTbl[actor->animationBankIndex]->table.sets;
     changed                    = prev != anim;
     actor->animationSets       = anim;
-    func_800B3F84(&actor->animationContext, actor->animationSets, extra, actor->poseBuffer,
-                  actor->animationSlots);
+    animationInitContext(&actor->animationContext, actor->animationSets, extra, actor->poseBuffer,
+                         actor->animationSlots);
     actor->animationRate           = ANIMATION_RATE_ONE;
     actor->pendingCollisionUpdates = GAME_ACTOR_COLLISION_REQUEST_MASK;
     actor->statePhase              = 0;
@@ -1714,8 +1714,8 @@ s32 func_8010C4F0(Task* task, s32 msgId, AnimationPlayRequest* request)
     actor->state = 1;
     if (actor->animationSets != Gp_AnimBlkTbl[request->source.index]->table.sets) {
         actor->animationSets = Gp_AnimBlkTbl[request->source.index]->table.sets;
-        func_800B3F84(&actor->animationContext, actor->animationSets, extra, actor->poseBuffer,
-                      actor->animationSlots);
+        animationInitContext(&actor->animationContext, actor->animationSets, extra, actor->poseBuffer,
+                             actor->animationSlots);
         actor->animationBankIndex = (u16)request->source.index;
     }
     actor->animationRate = ANIMATION_RATE_ONE;

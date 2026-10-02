@@ -1492,8 +1492,8 @@ static void func_actor_451100_80131E24(Enemy* enemy, Task* task)
     D_actor_451100_8014E748          = task;
     vec.vz                           = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
-    func_800B3F84(&gFootstepWalkWork->rig.anim, D_actor_451100_8013F740, obj,
-                  gFootstepWalkWork->rig.poses, gFootstepWalkWork->rig.slots);
+    animationInitContext(&gFootstepWalkWork->rig.anim, D_actor_451100_8013F740, obj,
+                         gFootstepWalkWork->rig.poses, gFootstepWalkWork->rig.slots);
     gFootstepWalkWork->st.animId  = 0x14;
     gFootstepWalkWork->st.state   = 2;
     gFootstepWalkWork->st.travel  = 0;
@@ -1648,8 +1648,8 @@ static void func_actor_451100_801328A8(Enemy* enemy, Task* task)
     vec.vy         = coord->workm.t[1] - 0x320;
     vec.vz         = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
-    func_800B3F84(&work->rig.anim, D_actor_451100_8014E6FC, obj, work->rig.poses,
-                  work->rig.slots);
+    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_451100_8014E6FC, obj, work->rig.poses,
+                         work->rig.slots);
     work->st.animId = 1;
     work->st.state  = 2;
     task->msgTable  = D_actor_451100_8014E6B4;

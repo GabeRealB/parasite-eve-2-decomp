@@ -69,13 +69,13 @@ typedef struct Actor01200Work {
     /* 0x008 */ s16                   field_8;
     /* 0x00A */ byte                  pad_A[2];
     /* 0x00C */ AnimationContext      anim;
-    /* 0x020 */ AnimationSlot         slots[1]; // `func_800B3F84` arg4; later slots overlap the fields below
+    /* 0x020 */ AnimationSlot         slots[1]; // `animationInitContext` slots; later slots overlap the fields below
     /* 0x048 */ byte                  pad_48[0x2];
     /* 0x04A */ u16                   field_4A; // low ten bits: slot 1's animation id
     /* 0x04C */ byte                  pad_4C[0xC];
     /* 0x058 */ u16                   field_58;
     /* 0x05A */ byte                  pad_5A[0xB6];
-    /* 0x110 */ byte                  poses[0x60]; // `func_800B3F84` arg3
+    /* 0x110 */ byte                  poses[0x60]; // `animationInitContext` poseBuffer
     /* 0x170 */ s16                   field_170;
     /* 0x172 */ s16                   field_172;
     /* 0x174 */ s16                   field_174;
@@ -126,7 +126,7 @@ typedef struct Actor01200StateTable {
 extern EnemyParams               Actor01200_D04034;
 extern PadScriptCmd              Actor01200_D04044[3];
 extern PadScriptVibrationSegment Actor01200_D04050[3];
-extern AnimationSet*             Actor01200_D06F98[19]; // animation bank handed to `func_800B3F84`
+extern AnimationSet*             Actor01200_D06F98[19]; // animation bank handed to `animationInitContext`
 // Typed callback views for the task message dispatcher.
 typedef struct {
     s32 id;
@@ -677,7 +677,7 @@ static void Actor01200_Fn00A6C(Enemy* arg0, Task* arg1)
     arg1->msgTable = Actor01200_D07058;
     coord->parent  = &gGfxViewCoord;
     obj->flags     = 0;
-    func_800B3F84(&work->anim, Actor01200_D06F98, obj, work->poses, work->slots);
+    animationInitContext(&work->anim, Actor01200_D06F98, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->poses, work->slots);
 
     o1                   = &work->obj230;
     o1->context.contacts = work->rootContacts;

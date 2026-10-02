@@ -106,7 +106,7 @@ typedef struct MothWork {
 typedef struct MothSpawnWork {
     /* 0x000 */ AnimationContext      anim;
     /* 0x014 */ AnimationSlot         slots[4];
-    /* 0x0B4 */ byte                  field_B4[0x40]; // pose buffer, `func_800B3F84` arg3
+    /* 0x0B4 */ byte                  field_B4[0x40]; // pose buffer, `animationInitContext` poseBuffer
     /* 0x0F4 */ MATRIX                field_F4;       // color matrix handed to the stream
     /* 0x114 */ MATRIX                field_114;      // light matrix handed to the stream
     /* 0x134 */ WorldCollisionBody    obj134;

@@ -47,7 +47,7 @@ void skullStalkerSpawnState(Enemy* arg0, Task* arg1)
     arg0->param                  = &gSkullStalkerParams;
     arg0->recs                   = work->field_1A4;
     arg0->hp                     = gSkullStalkerParams.hpMax;
-    func_800B3F84(&work->context, gSkullStalkerAnimSets, obj, work->field_8C, work->slots);
+    animationInitContext(&work->context, (AnimationSet**)gSkullStalkerAnimSets, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->field_8C, work->slots);
     i = 1;
     do {
         animationResetSlot(&work->context, i, 1);

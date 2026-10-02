@@ -1621,8 +1621,8 @@ s32 func_actor_503500_80135950(Task* arg0, s32 arg1, AnimationPlayRequest* arg2,
     ext  = arg0->extra.tmd;
     if (arg2->source.index != work->field_7D6) {
         work->field_7D6 = arg2->source.index;
-        func_800B3F84((AnimationContext*)work, D_actor_503500_8016EAB8[work->field_7D6], ext,
-                      work->field_334, (AnimationSlot*)&work->obj.pos.vz);
+        animationInitContext((AnimationContext*)work, D_actor_503500_8016EAB8[work->field_7D6], ext,
+                             (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->field_334, (AnimationSlot*)&work->obj.pos.vz);
         work->field_7D4 = 0;
     }
     work->field_7D5 = arg2->animationId;

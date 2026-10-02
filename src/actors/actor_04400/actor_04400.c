@@ -60,7 +60,7 @@
 extern u8            gMadChaserAnimStance[];  // per animation id (1-based): the value to put in `field_44F`
 extern u8            gMadChaserSettleAnims[]; // per animation id (1-based): the animation to follow it
 extern EnemyParams   gMadChaserEnemyParams;   // the main enemy's `Enemy::param` record
-extern AnimationSet* gMadChaserAnimBank[21];  // animation bank handed to `func_800B3F84`
+extern AnimationSet* gMadChaserAnimBank[21];  // animation bank handed to `animationInitContext`
 // Typed callback views for the task message dispatcher.
 typedef struct {
     s32 id;

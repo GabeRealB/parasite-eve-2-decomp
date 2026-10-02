@@ -75,10 +75,6 @@ void Gp_AnimInitSlot(AnimationContext* context, AnimationSlot* arg1, s32 arg2, s
 
 void Gp_AnimTickSlot(AnimationContext* context, AnimationSlot* arg1);
 
-/// Forwards to `animationBindContext`, which most callers reach by this name
-/// rather than its own.
-void func_800B3F84(AnimationContext* context, void* arg1, TmdObject* arg2, void* arg3, AnimationSlot* arg4);
-
 void Gp_AnimResetSlotEx(AnimationContext* context, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 void Gp_AnimWritePoseBlend(AnimationContext* context, s32 arg1, AnimationPose* arg2, AnimationPose* arg3, s32 arg4,

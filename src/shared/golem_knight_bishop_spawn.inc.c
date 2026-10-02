@@ -39,7 +39,7 @@ void golemKnightBishopSpawn(Enemy* arg0, Task* arg1)
     work->field_65C.coord      = &arg1->extra.tmd->coords[3];
     work->field_65C.spawnArgLo = 0x500;
     work->field_65C.spawnArgHi = 2;
-    func_800B3F84(&work->rig.anim, gGolemKnightBishopAnimSets, obj, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, gGolemKnightBishopAnimSets, obj, work->rig.poses, work->rig.slots);
     work->field_6C0 = 0xB;
     work->field_6C2 = 0xB;
     for (i = 1; i < 0x13; i++) {

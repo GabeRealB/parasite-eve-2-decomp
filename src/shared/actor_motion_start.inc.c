@@ -40,7 +40,7 @@ s32 actorMotionStartWalk(Task* task, s32 arg1, ActorTransform* place, GpSpawnAni
     ext  = task->extra.tmd;
     if (msg->source.index != work->model.bank) {
         work->model.bank = msg->source.index;
-        func_800B3F84(&work->rig.anim, gActorMotionAnimBanks[work->model.bank], ext, work->rig.poses, work->rig.slots);
+        animationInitContext(&work->rig.anim, gActorMotionAnimBanks[work->model.bank], ext, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->rig.poses, work->rig.slots);
     }
     work->model.animId = msg->animationId;
     if (msg->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {

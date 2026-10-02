@@ -135,7 +135,7 @@ void maggotCaterpillarSpawn(Enemy* ctx, Task* actor)
                 coord->coord.t[1] += 0x3E8;
         }
     }
-    func_800B3F84(&work->anim, gMaggotCaterpillarAnimSets, obj, work->field_154, work->slots);
+    animationInitContext(&work->anim, gMaggotCaterpillarAnimSets, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->field_154, work->slots);
     for (i = 1; i < 8; i++) {
         animationResetSlot(&work->anim, i, 1);
     }

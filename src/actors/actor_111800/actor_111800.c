@@ -36,8 +36,8 @@
 
 /// Work block `func_actor_111800_80132390` allocates with `memCalloc(0x498)`
 /// and parks in `Task::work` (0x1C). The prefix is the shared actor anim
-/// layout: a `AnimationContext` and the nineteen `AnimationSlot`s `func_800B3F84` seeds
-/// from the animation bank and the frame handler ticks. `field_43C` /
+/// layout: an `AnimationContext` and nineteen `AnimationSlot`s bound by
+/// `animationInitContext` and ticked by the frame handler. `field_43C` /
 /// `field_45C` are the light and colour matrices handed to the model
 /// `TmdObject`.
 typedef struct Actor111800Work {
@@ -57,7 +57,7 @@ typedef struct Actor111800Work {
 } Actor111800Work;
 STATIC_ASSERT_SIZEOF(Actor111800Work, 0x498);
 
-/// Animation bank `func_800B3F84` builds the work block's clip context from;
+/// Animation bank `animationInitContext` builds the work block's clip context from;
 /// the actor hands it over whole, so it is only ever a byte address here.
 extern AnimationSet* D_actor_111800_8013A448[8];
 
@@ -372,8 +372,8 @@ static void func_actor_111800_80132390(Task* task)
     obj->lightMtx = &work->field_43C;
     obj->colorMtx = &work->field_45C;
     obj->flags    = 0;
-    func_800B3F84(&work->rig.anim, D_actor_111800_8013A448, obj, work->rig.poses,
-                  &work->rig.slots[0]);
+    animationInitContext(&work->rig.anim, D_actor_111800_8013A448, obj, work->rig.poses,
+                         &work->rig.slots[0]);
     work->field_47C  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     work->field_480  = gPlayerStatus.coordMtx;
     i                = 1;

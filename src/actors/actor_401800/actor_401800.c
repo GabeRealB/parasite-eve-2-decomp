@@ -73,7 +73,7 @@ extern AnimationSet* D_actor_401800_801559F0[];
 /// `Actor00100_D1B9F4` plays for `Actor00100_Fn03340`.
 extern SVECTOR gOddStrangerHitOffsets[12];
 
-/// Animation bank both `func_800B3F84` contexts are initialised from. Same
+/// Animation bank both `animationInitContext` contexts are initialised from. Same
 /// role `Actor01900_D17174` plays for actor 01900.
 extern AnimationSet* gOddStrangerAnimSets[46];
 
@@ -1195,10 +1195,10 @@ static void func_actor_401800_8013423C(Enemy* enemy, Task* actor)
     enemy->hp                     = (s16)D_actor_401800_8013E6F0.hpMax;
     enemy->param                  = &D_actor_401800_8013E6F0;
     enemy->recs                   = work->field_8F0;
-    func_800B3F84(&((OddStrangerAnimWork*)work)->rig.anim, gOddStrangerAnimSets, obj,
-                  ((OddStrangerAnimWork*)work)->rig.poses, ((OddStrangerAnimWork*)work)->rig.slots);
-    func_800B3F84(&((OddStrangerAnimWork*)work)->blend.anim, gOddStrangerAnimSets, obj,
-                  ((OddStrangerAnimWork*)work)->blend.poses, ((OddStrangerAnimWork*)work)->blend.slots);
+    animationInitContext(&((OddStrangerAnimWork*)work)->rig.anim, gOddStrangerAnimSets, obj,
+                         ((OddStrangerAnimWork*)work)->rig.poses, ((OddStrangerAnimWork*)work)->rig.slots);
+    animationInitContext(&((OddStrangerAnimWork*)work)->blend.anim, gOddStrangerAnimSets, obj,
+                         ((OddStrangerAnimWork*)work)->blend.poses, ((OddStrangerAnimWork*)work)->blend.slots);
     work->field_898 = 2;
     work->field_89E = 2;
     work->field_89A = 0;

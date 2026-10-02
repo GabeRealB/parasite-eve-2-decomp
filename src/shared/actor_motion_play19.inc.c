@@ -16,7 +16,7 @@ s32 actorMotionPlayAnim19(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 a
     if (msg->source.index != work->model.bank) {
         work->model.bank   = msg->source.index;
         work->model.animId = -1;
-        func_800B3F84(&work->rig.anim, gActorMotionAnimBanks19[work->model.bank], ext, work->rig.poses, work->rig.slots);
+        animationInitContext(&work->rig.anim, gActorMotionAnimBanks19[work->model.bank], ext, work->rig.poses, work->rig.slots);
     }
     if (msg->animationId != work->model.animId) {
         work->model.animId = msg->animationId;

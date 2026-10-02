@@ -912,11 +912,11 @@ static void func_actor_310100_80162414(Task* task, s32 arg1)
     obj->colorMtx = &work->field_45C;
     obj->flags    = 0;
     if (mode == 0x6C) {
-        func_800B3F84(&work->rig.anim, D_actor_310100_80179754, obj, work->rig.poses,
-                      &work->rig.slots[0]);
+        animationInitContext(&work->rig.anim, D_actor_310100_80179754, obj, work->rig.poses,
+                             &work->rig.slots[0]);
     } else {
-        func_800B3F84(&work->rig.anim, D_actor_310100_80179794, obj, work->rig.poses,
-                      &work->rig.slots[0]);
+        animationInitContext(&work->rig.anim, D_actor_310100_80179794, obj, work->rig.poses,
+                             &work->rig.slots[0]);
     }
     i      = 1;
     active = task->spawnArg1.value;
@@ -972,11 +972,11 @@ static void func_actor_310100_801625E4(Task* task, s32 arg1)
     obj->colorMtx = &work->field_45C;
     obj->flags    = 0;
     if (mode == 0x6C) {
-        func_800B3F84(&work->rig.anim, D_actor_310100_80179754, obj, work->rig.poses,
-                      &work->rig.slots[0]);
+        animationInitContext(&work->rig.anim, D_actor_310100_80179754, obj, work->rig.poses,
+                             &work->rig.slots[0]);
     } else {
-        func_800B3F84(&work->rig.anim, D_actor_310100_80179794, obj, work->rig.poses,
-                      &work->rig.slots[0]);
+        animationInitContext(&work->rig.anim, D_actor_310100_80179794, obj, work->rig.poses,
+                             &work->rig.slots[0]);
     }
     i               = 1;
     work->field_504 = task->spawnArg1.value;

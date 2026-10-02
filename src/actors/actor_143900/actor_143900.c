@@ -103,7 +103,7 @@ STATIC_ASSERT_SIZEOF(Actor143900MsgEntry, 8);
 extern Actor143900MsgEntry D_actor_143900_801413BC[];
 
 /// Animation stream the first variant's spawn routine binds into its work
-/// block's animation context with `func_800B3F84`.
+/// block's animation context with `animationInitContext`.
 extern u8 D_actor_143900_801413F8[];
 
 /// The second variant's work block, published by its dispatcher
@@ -132,7 +132,7 @@ extern Actor143900MsgEntry D_actor_143900_80149634[];
 extern TaskDesc D_actor_143900_80149664[];
 
 /// Animation stream the second variant's spawn routine binds into its work
-/// block's animation context with `func_800B3F84`.
+/// block's animation context with `animationInitContext`.
 extern u8 D_actor_143900_80149688[];
 
 static void func_actor_143900_80132380(Enemy* enemy, Task* task);
@@ -1248,8 +1248,8 @@ static void func_actor_143900_80131E70(Enemy* enemy, Task* task)
     D_actor_143900_801496BC          = task;
     vec.vz                           = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
-    func_800B3F84(&gScriptedWalkWork->rig.anim, D_actor_143900_801413F8, obj,
-                  &gScriptedWalkWork->rig.poses, gScriptedWalkWork->rig.slots);
+    animationInitContext(&gScriptedWalkWork->rig.anim, (AnimationSet**)D_actor_143900_801413F8, obj,
+                         (u8(*)[ANIMATION_POSE_BUFFER_BYTES])gScriptedWalkWork->rig.poses, gScriptedWalkWork->rig.slots);
     gScriptedWalkWork->st.animId  = 1;
     gScriptedWalkWork->st.state   = 2;
     gScriptedWalkWork->st.travel  = 0;
@@ -1394,8 +1394,8 @@ static void func_actor_143900_801328D4(Enemy* enemy, Task* task)
     vec.vz                           = coord->workm.t[2];
     D_actor_143900_801496C8          = task;
     func_800D7A9C(obj, &vec, 0, 3);
-    func_800B3F84(&D_actor_143900_801496C4->rig.anim, D_actor_143900_80149688, obj,
-                  &D_actor_143900_801496C4->rig.poses, D_actor_143900_801496C4->rig.slots);
+    animationInitContext(&D_actor_143900_801496C4->rig.anim, (AnimationSet**)D_actor_143900_80149688, obj,
+                         (u8(*)[ANIMATION_POSE_BUFFER_BYTES])D_actor_143900_801496C4->rig.poses, D_actor_143900_801496C4->rig.slots);
     D_actor_143900_801496C4->st.animId = 1;
     D_actor_143900_801496C4->st.state  = 2;
     helper                             = Task_SpawnFromTable(D_actor_143900_80149664, 1, 1, 0);

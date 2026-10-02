@@ -47,7 +47,7 @@ void sucklercephDropSpawnState(Enemy* arg0, Task* arg1)
     arg0->param                  = &gSucklercephParams;
     arg0->recs                   = &work->rec154[0];
     arg0->hp                     = gSucklercephParams.hpMax;
-    func_800B3F84(&work->context, gSucklercephAnimSets, obj, work->field_8C, work->slots);
+    animationInitContext(&work->context, gSucklercephAnimSets, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->field_8C, work->slots);
     i = 1;
     do {
         animationResetSlot(&work->context, i, 1);

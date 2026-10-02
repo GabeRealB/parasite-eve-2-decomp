@@ -1427,7 +1427,7 @@ static void Actor01600_Fn001F4(Enemy* ctx, Task* actor)
     work->hitEffect.spawnArgLo  = 0x280;
     work->hitEffect.spawnArgHi  = 2;
     work->hitEffect.coord       = next_coord;
-    func_800B3F84(&work->anim, Actor01600_D127EC, obj, work->pad_17C, work->slots);
+    animationInitContext(&work->anim, Actor01600_D127EC, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->pad_17C, work->slots);
     for (i = 1; i < 9; i++) {
         animationResetSlot(&work->anim, i, 1);
     }

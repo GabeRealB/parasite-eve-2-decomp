@@ -7681,7 +7681,7 @@ task  = Task_Spawn(7, table[arg2 + type] + arg3 * 2 + arg1, 0, 0);
 ## Split two `index->actor` reloads so they take `$a3` then `$v0`
 
 Reusing one local for both `actor = index->actor` reloads (across
-`func_800B3F84` / `Gp_AnimResetChildSlots`) merges the live range. GCC then
+`animationInitContext` / `Gp_AnimResetChildSlots`) merges the live range. GCC then
 parks it in `$t0` because the same name is still live after the first
 call. Overwriting the original saved `actor` puts the second reload in
 `$s0` instead.
@@ -7694,14 +7694,14 @@ scratch before `Gp_AnimPlayChildSlotsEx`):
 lw    a3,0x1c(s1)
 ...
 addiu a3,a3,0x7a8
-jal   func_800B3F84
+jal   animationInitContext
 ...
 lw    v0,0x1c(a0)
 sh    zero,0x954(v0)
 ```
 
 Use three distinct locals: keep the original actor in a saved register
-for the later `weaponEffectTask` kill, one local that dies at `func_800B3F84`,
+for the later `weaponEffectTask` kill, one local that dies at `animationInitContext`,
 and a third that exists only for the post-`Gp_AnimResetChildSlots` stores:
 
 ```c
@@ -7710,7 +7710,7 @@ actor = arg0->actor;
 inner            = arg0->actor;
 inner->animationBankIndex = table[idx] + addend;
 inner->animationSets = ptrs[inner->animationBankIndex]->table.sets;
-func_800B3F84(..., inner->poseBuffer, ...);
+animationInitContext(..., inner->poseBuffer, ...);
 Gp_AnimResetChildSlots(arg0, 1);
 next            = arg0->actor;
 next->mode = 0;
@@ -78272,7 +78272,7 @@ function is the twin of the already-matched `func_actor_460200_801338C0` in
 `actor_460200_4`, so `obj = task->extra; coord = obj->field_8; work =
 (Actor460200Work*)workMem;` with `Actor460200Work*`/`TmdObject*`/`GfxCoord*`
 locals scored 100.000% with every penalty zero. The remaining differences from
-the twin are only the exit callback, the animation bank in `func_800B3F84`, and
+the twin are only the exit callback, the animation bank in `animationInitContext`, and
 the initial clip (`work->animId = 0xA` where the twin sets 2), and those
 constants also fix the store order: write `field_E` before `field_C`, and
 `animId` (0x4B8) before `enemy` (0x4F4).
@@ -82270,7 +82270,7 @@ example (`Actor503500Effect4CC` / `Actor503500WorkBoss` are the same shape
 already written this way). Input `base_1.i`
 `8080b9c2b7f7099aa79305af544c7edb78587a6b3e880f99af0e2b1363f1bd62`.
 
-**Sizing the array.** Such a block hands `func_800B3F84` the block itself as its
+**Sizing the array.** Such a block hands `animationInitContext` the block itself as its
 `AnimationContext`, the slot array as its `AnimationSlot*`, and a pose buffer
 directly after it; those last two addresses bound the array, since
 `0x14 + N*0x28` is the buffer's address. actor_323300 passes `+0x14` and `+0x30C`,
@@ -100880,7 +100880,7 @@ brief's leftover table sends you to `.lreg` / `.greg` for an allocation story
 that is not there.
 
 Here the m2c seed typed the `memCalloc(0x4CC, 0)` result as `AnimationContext*`
-(propagated back from `func_800B3F84`'s first parameter), so the two offsets
+(propagated back from `animationInitContext`'s first parameter), so the two offsets
 into that block which the assembly writes as plain byte offsets scaled by
 `sizeof(AnimationContext) == 0x14`:
 
@@ -100910,8 +100910,8 @@ typedef struct Actor311900Anim {
 STATIC_ASSERT_SIZEOF(Actor311900Anim, 0x474);
 ```
 
-so the spawn hands `func_800B3F84` the block as `(AnimationContext*)work`,
-`work->anim.slots` as arg4 and `work->anim.poses` as arg3. **Derive a slot
+so the spawn hands `animationInitContext` the block as `(AnimationContext*)work`,
+`work->anim.slots` as `slots` and `work->anim.poses` as `poseBuffer`. **Derive a slot
 count by filling the gap, and re-check it against the assert:** `0x334 - 0x14
 = 0x320` is 20 slots of 0x28, not 32 - the same 20 `actor_160600` and
 `actor_503500` carry. Getting that wrong fails `STATIC_ASSERT_SIZEOF` on both
@@ -102164,7 +102164,7 @@ temp_v0 = memCalloc(0x8D8, 0);
 M2C_FIELD(arg1, void **, 0x1C) = temp_v0;
 if (temp_v0 == NULL) { Gp_DestroyEnemy(arg0, arg1); return; }
 ...
-func_800B3F84(temp_v0, ...);
+animationInitContext(temp_v0, ...);
 ```
 
 **Symptom:** `regs=2` and nothing else, 99.892%, on a body whose instruction
@@ -125463,7 +125463,7 @@ The shape is the starting preset every actor family writes:
 if (msg->field_0 != work->field_440) {
     work->field_440 = msg->field_0;
     work->field_444 = -1;
-    func_800B3F84(&work->anim, D_actor_323300_80174A70[work->field_440], ext, work->pad_30C, work->slots);
+    animationInitContext(&work->anim, D_actor_323300_80174A70[work->field_440], ext, work->pad_30C, work->slots);
 }
 ```
 

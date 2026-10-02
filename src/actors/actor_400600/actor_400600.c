@@ -229,7 +229,7 @@ extern void* D_800678F0[1];
 extern DamageAttack D_actor_400600_80144EA8[2];
 extern EnemyParams  D_actor_400600_80144EB0;      // the enemy's parameter record
 
-extern AnimationSet* D_actor_400600_80151A54[35]; // animation bank handed to func_800B3F84
+extern AnimationSet* D_actor_400600_80151A54[35]; // animation bank handed to animationInitContext
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {
     s32 id;
@@ -2170,7 +2170,7 @@ static void func_actor_400600_80133434(Task* arg0)
     work->eff_6FC.spawnArgLo      = 0x300;
     work->eff_6FC.spawnArgHi      = 2;
     enemy->hp = enemy->hpMax = D_actor_400600_80144EB0.hpMax;
-    func_800B3F84(&work->anim, D_actor_400600_80151A54, model, work->pad_394, work->slots);
+    animationInitContext(&work->anim, D_actor_400600_80151A54, model, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->pad_394, work->slots);
 
     w2              = (Actor400600Work*)arg0->work;
     w2->animStep    = 0x10;

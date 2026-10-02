@@ -40,8 +40,8 @@ void generatorSpawn(Enemy* arg0, Task* arg1)
     work->field_2F4.coord      = coord;
     work->field_2F4.spawnArgLo = 0x500;
     work->field_2F4.spawnArgHi = 3;
-    func_800B3F84(&work->anim, gGeneratorAnimSets, obj,
-                  work->poses, work->slots);
+    animationInitContext(&work->anim, gGeneratorAnimSets, obj,
+                         (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->poses, work->slots);
     for (i = 1; i < 0xA; i++) {
         animationResetSlot(&work->anim, i, 1);
     }

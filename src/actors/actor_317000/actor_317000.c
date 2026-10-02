@@ -45,7 +45,7 @@ STATIC_ASSERT_SIZEOF(Actor317000Work, 0x4CC);
 /// the `model.nextAnimId` byte. Absent, the defaults are anim 2 and 1.
 typedef GpSpawnAnimArg Actor317000SpawnAnim;
 
-/// Indexed by `Actor317000Work::model.bank` for `func_800B3F84`'s second
+/// Indexed by `Actor317000Work::model.bank` for `animationInitContext`'s second
 /// argument by `func_actor_317000_80162458` and `actorMotionPlayAnim19`.
 /// Every preset the actor builds has `field_0` 0, so only the first word is
 /// ever read; the words after it (among them the address of
@@ -549,7 +549,7 @@ static void func_actor_317000_801621F4(Task* task, Task* targetTask, s32 arg2, s
 ///
 /// The preset is then installed the way `actorMotionPlayAnim19` installs
 /// one, written out in-line: a changed `field_0` resets the bank in
-/// `gActorMotionAnimBanks19` through `func_800B3F84` (`model.bank` latches it,
+/// `gActorMotionAnimBanks19` through `animationInitContext` (`model.bank` latches it,
 /// `model.animId` goes back to -1), and a changed `field_4` -- or a preset asking
 /// for slots when `model.ticking` says the slots are already ticking -- is pushed
 /// onto `animationSeekSlotWithBlend`'s per-slot loop instead of the `animationResetSlot`
@@ -590,8 +590,8 @@ s32 func_actor_317000_80162458(Task* task, s32 arg1, ActorTransform* place, Acto
     if (msg->source.index != work->model.bank) {
         work->model.bank   = msg->source.index;
         work->model.animId = -1;
-        func_800B3F84(&work->rig.anim, gActorMotionAnimBanks19[work->model.bank], ext, work->rig.poses,
-                      work->rig.slots);
+        animationInitContext(&work->rig.anim, gActorMotionAnimBanks19[work->model.bank], ext, work->rig.poses,
+                             work->rig.slots);
     }
     if (msg->animationId != work->model.animId) {
         work->model.animId = msg->animationId;

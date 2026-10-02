@@ -98,7 +98,7 @@ typedef struct Actor312200Work {
     /* 0x006 */ byte pad_6[0x2];
     /* 0x008 */ s16  yaw;
     /* 0x00A */ byte pad_A[0x6];
-    /// Animation context the spawn body hands `func_800B3F84` first, with its
+    /// Animation context the spawn body hands `animationInitContext` first, with its
     /// 19 slots directly behind it: the pose buffer that function is handed
     /// fourth starts directly after the 19 slots.
     /* 0x010 */ ActorAnimRig19 rig;
@@ -433,7 +433,7 @@ static void func_actor_312200_80163178(Enemy* enemy, Task* task)
     enemy->field_4D               = 0;
     enemy->reactionFlags          = 0;
     enemy->field_4D               = 0;
-    func_800B3F84(&work->rig.anim, D_actor_312200_80169F44, obj, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_312200_80169F44, obj, work->rig.poses, work->rig.slots);
     work->field_88C      = 2;
     work->field_892      = 1;
     work->field_896.half = 0x10;

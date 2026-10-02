@@ -45,7 +45,7 @@ STATIC_ASSERT_SIZEOF(Actor110700MsgEntry, 8);
 
 extern Actor110700MsgEntry D_actor_110700_8013BFA0[];
 
-/// Animation source `func_800B3F84` seeds the work block's slots from.
+/// Animation-set table bound to the work block's context by `animationInitContext`.
 extern u8 D_actor_110700_8013BFC0[];
 
 static void func_actor_110700_80131E78(Enemy* enemy, Task* task);
@@ -269,7 +269,7 @@ static void func_actor_110700_80131E78(Enemy* enemy, Task* task)
     obj->lightMtx = &work->lightMtx;
     obj->colorMtx = &work->colorMtx;
     obj->flags    = 0;
-    func_800B3F84(&work->rig.anim, D_actor_110700_8013BFC0, obj, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_110700_8013BFC0, obj, work->rig.poses, work->rig.slots);
     work->animId        = 0;
     task->msgTable      = D_actor_110700_8013BFA0;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;

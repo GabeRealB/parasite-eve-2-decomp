@@ -84,7 +84,7 @@
 /// handler's second payload.
 ///
 /// The block opens with the actor's animation context -- `ctx` and the eight
-/// `AnimationSlot`s `func_800B3F84` initialises from this overlay's banks -- so the
+/// `AnimationSlot`s `animationInitContext` binds with this overlay's banks -- so the
 /// block pointer is also the `AnimationContext*` the animation helpers take:
 /// `func_actor_342000_80161EA4` ticks it and passes the id bank
 /// `field_288` indexes. Slot 0 is the child slot that function skips. `light` /
@@ -600,7 +600,7 @@ static void func_actor_342000_80162158(Task* arg0)
         case 0:
             w->field_2A4 = &gGfxViewCoord;
             Actor342000_InitCoord(arg0, w);
-            func_800B3F84(&w->ctx, D_actor_342000_801647F8, extra, &w->pad_154, w->slots);
+            animationInitContext(&w->ctx, D_actor_342000_801647F8, extra, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])w->pad_154, w->slots);
             ctx = (Actor342000Work*)arg0->work;
             for (i = 1; i < 8; i++) {
                 ctx->slots[i].rate = ANIMATION_RATE_ONE;
@@ -613,7 +613,7 @@ static void func_actor_342000_80162158(Task* arg0)
             w->field_2A4 = w->field_298->extra.tmd->coords;
             Actor342000_InitCoord(arg0, w);
             ((Actor342000Work*)w->field_298->work)->field_29C = arg0;
-            func_800B3F84(&w->ctx, D_actor_342000_80164800, extra, &w->pad_154, w->slots);
+            animationInitContext(&w->ctx, D_actor_342000_80164800, extra, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])w->pad_154, w->slots);
             ctx2 = (Actor342000Work*)arg0->work;
             for (i = 0; i < 4; i++) {
                 ctx2->slots[i].rate = ANIMATION_RATE_ONE;
@@ -626,7 +626,7 @@ static void func_actor_342000_80162158(Task* arg0)
             w->field_2A4 = w->field_298->extra.tmd->coords;
             Actor342000_InitCoord(arg0, w);
             ((Actor342000Work*)w->field_298->work)->field_2A0 = arg0;
-            func_800B3F84(&w->ctx, D_actor_342000_80164808, extra, &w->pad_154, w->slots);
+            animationInitContext(&w->ctx, D_actor_342000_80164808, extra, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])w->pad_154, w->slots);
             ctx3 = (Actor342000Work*)arg0->work;
             for (i = 0; i < 4; i++) {
                 ctx3->slots[i].rate = ANIMATION_RATE_ONE;

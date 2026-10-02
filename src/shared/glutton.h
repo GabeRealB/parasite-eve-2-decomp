@@ -278,7 +278,7 @@ typedef struct GluttonWork {
     /* 0x008 */ byte pad_8[0x4];
     /// Six back-to-back animation blocks, each an `AnimationContext` followed by its
     /// own `AnimationSlot[N]` and an N-entry 0x10-byte pose table -- the three
-    /// argument groups the spawn state hands `func_800B3F84`. They pair up
+    /// argument groups the spawn state hands `animationInitContext`. They pair up
     /// (0/1, 2/3, 4/5), eight slots in the first pair and four in the others;
     /// the even member drives the model and the odd one is the pose blended
     /// into it. The states latch their one-shot cues on `slots0[n].currentPose.indices.recordIndex`.

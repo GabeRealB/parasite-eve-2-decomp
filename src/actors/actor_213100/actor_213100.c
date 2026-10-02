@@ -34,7 +34,7 @@
 /// It opens with the animation context the 0x7D3 handler
 /// `actorMotionPlayAnim19` drives: the `AnimationContext` at the block's own
 /// address, the 0x13 slots above it and the table at 0x30C, the three
-/// arguments that handler hands `func_800B3F84`. `field_43C` latches once the
+/// arguments that handler hands `animationInitContext`. `field_43C` latches once the
 /// slots have been started, and gates the per-frame tick; `field_43E` and
 /// `field_43D` hold the current bank index and animation id, seeded to -1 so
 /// the first preset always installs. `light` / `color` are the matrices

@@ -4981,8 +4981,8 @@ static void func_acropolis_bridge_80185988(Enemy* enemy, Task* task)
     work->field_10E = 1;
     enemy->hpMax    = work->field_10C;
     enemy->hp       = enemy->hpMax;
-    func_800B3F84(&work->anim, D_acropolis_bridge_801915C8, obj, work->pad_C0,
-                  work->slots);
+    animationInitContext(&work->anim, D_acropolis_bridge_801915C8, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->pad_C0,
+                         work->slots);
     work->field_108        = 0x10;
     link                   = &work->body;
     link->coord            = &task->extra.tmd->coords[3];

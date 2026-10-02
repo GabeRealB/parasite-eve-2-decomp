@@ -1737,8 +1737,12 @@ static void func_actor_110600_80134AB4(Enemy* enemy, Task* task)
     enemy->hpMax = enemy->hp = D_actor_110600_80138F14.hpMax;
     contactRecs              = work->recs_8D8;
     enemy->recs              = contactRecs;
-    func_800B3F84(&((Actor110600AnimWork*)work)->anim, D_actor_110600_8014850C, model, &((Actor110600AnimWork*)work)->slots[19], ((Actor110600AnimWork*)work)->slots);
-    func_800B3F84(&((Actor110600AnimWork*)work)->blendAnim, D_actor_110600_8014850C, model, &((Actor110600AnimWork*)work)->blendSlots[19], ((Actor110600AnimWork*)work)->blendSlots);
+    animationInitContext(&((Actor110600AnimWork*)work)->anim, D_actor_110600_8014850C, model,
+                         (u8(*)[ANIMATION_POSE_BUFFER_BYTES]) & ((Actor110600AnimWork*)work)->slots[19],
+                         ((Actor110600AnimWork*)work)->slots);
+    animationInitContext(&((Actor110600AnimWork*)work)->blendAnim, D_actor_110600_8014850C, model,
+                         (u8(*)[ANIMATION_POSE_BUFFER_BYTES]) & ((Actor110600AnimWork*)work)->blendSlots[19],
+                         ((Actor110600AnimWork*)work)->blendSlots);
     work->field_88C = 2;
     work->field_88E = 0;
     work->field_892 = 2;

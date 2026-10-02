@@ -57,7 +57,7 @@
 typedef struct Actor103700Work {
     /* 0x000 */ AnimationContext      anim;
     /* 0x014 */ AnimationSlot         slots[6];
-    /* 0x104 */ byte                  poses[0x60]; // pose buffer, `func_800B3F84` arg3
+    /* 0x104 */ byte                  poses[0x60]; // pose buffer, `animationInitContext` poseBuffer
     /* 0x164 */ MATRIX                colorMtx;
     /* 0x184 */ MATRIX                lightMtx;
     /* 0x1A4 */ WorldCollisionBody    obj;
@@ -135,7 +135,7 @@ extern Actor103700Rise Actor03700_D0802C[];
 /// seeds hit points from `hpMax`, which retail addresses as its own label.
 extern EnemyParams Actor03700_D07F0C;
 
-/// Animation data `func_800B3F84` loads, and the task's `field_24` table.
+/// Animation-set table bound by `animationInitContext`, and the task's `field_24` table.
 extern AnimationSet*    Actor03700_D080E4[6];
 extern TaskMessageEntry Actor03700_D08108[2];
 
@@ -804,7 +804,7 @@ static void Actor03700_Fn000A4(Enemy* arg0, Task* task)
     arg0->hp        = Actor03700_D07F0C.hpMax;
     work->field_24A = work->field_248;
     task->msgTable  = Actor03700_D08108;
-    func_800B3F84(&work->anim, Actor03700_D080E4, obj, work->poses, work->slots);
+    animationInitContext(&work->anim, Actor03700_D080E4, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->poses, work->slots);
     for (i = 1; i < 6; i++) {
         animationResetSlot(&work->anim, i, work->field_248);
     }

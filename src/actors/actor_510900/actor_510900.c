@@ -2126,7 +2126,7 @@ void func_actor_510900_8013482C(Task* arg0)
 /// light matrix, 0x43C the colour one) and fills the context's coordinate, pair
 /// source and HP (`field_40`, seeded from the record's `hpMax`).
 ///
-/// The block's rig is bound with `func_800B3F84` over its nineteen slots, and
+/// The block's rig is bound with `animationInitContext` over its nineteen slots, and
 /// slots 1..18 are reset. Six enemies are spawned from `D_actor_510900_80167A18`; entries 2
 /// and 3 are the two whose models get the current room's texture page and CLUT
 /// row (`Gp_GetNestedAreaRec`, indexed by the context id's top nibble) and whose
@@ -2188,8 +2188,8 @@ void func_actor_510900_801350F8(Enemy* arg0, Task* arg1)
     work->field_53C.coord      = &arg1->extra.tmd->coords[3];
     work->field_53C.spawnArgLo = 0x400;
     work->field_53C.spawnArgHi = 2;
-    func_800B3F84(&work->rig.anim, D_actor_510900_80167AA4, obj,
-                  work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_510900_80167AA4, obj,
+                         work->rig.poses, work->rig.slots);
     for (i = 1; i < 0x13; i++) {
         animationResetSlot(&work->rig.anim, i, 1);
     }

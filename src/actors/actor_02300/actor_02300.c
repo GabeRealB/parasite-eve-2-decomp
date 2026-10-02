@@ -73,7 +73,7 @@ extern u16* Actor02300_D15C80[];
 /// The overlay's own spawn table: entry 0 is this enemy, 1 and 2 the two
 /// companions the setup state spawns.
 extern TaskDesc Actor02300_D15C98[];
-/// Animation bank `func_800B3F84` binds to the work block.
+/// Animation bank `animationInitContext` binds to the work block.
 extern AnimationSet* Actor02300_D15CBC[31];
 
 /// Per-weapon-id weak-point flags (`id & 0x7F`) for the two hit families,
@@ -1274,7 +1274,7 @@ static void Actor02300_Fn028AC(Enemy* enemy, Task* actor)
     work->field_670.coord      = &actor->extra.tmd->coords[3];
     work->field_670.spawnArgLo = 0x500;
     work->field_670.spawnArgHi = 2;
-    func_800B3F84(&work->rig.anim, Actor02300_D15CBC, obj, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, Actor02300_D15CBC, obj, work->rig.poses, work->rig.slots);
     for (i = 1; i < 0x13; i++) {
         animationResetSlot(&work->rig.anim, i, 1);
     }

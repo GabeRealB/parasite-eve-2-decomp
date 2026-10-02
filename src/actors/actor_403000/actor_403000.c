@@ -4543,10 +4543,10 @@ static void func_actor_403000_801343B8(Enemy* arg0, Task* arg1)
     arg0->hp            = D_actor_403000_8013DA00.hpMax;
     arg0->param         = &D_actor_403000_8013DA00;
     arg0->recs          = (firstRec = work->objB50.rec);
-    func_800B3F84(&((Actor403000AnimWork*)work)->anim, animSrc, obj,
-                  ((Actor403000AnimWork*)work)->pad_3E8, ((Actor403000AnimWork*)work)->slots);
-    func_800B3F84(&((Actor403000AnimWork*)work)->blendAnim, animSrc, obj,
-                  ((Actor403000AnimWork*)work)->pad_93C, ((Actor403000AnimWork*)work)->blendSlots);
+    animationInitContext(&((Actor403000AnimWork*)work)->anim, animSrc, obj,
+                         (u8(*)[ANIMATION_POSE_BUFFER_BYTES])((Actor403000AnimWork*)work)->pad_3E8, ((Actor403000AnimWork*)work)->slots);
+    animationInitContext(&((Actor403000AnimWork*)work)->blendAnim, animSrc, obj,
+                         (u8(*)[ANIMATION_POSE_BUFFER_BYTES])((Actor403000AnimWork*)work)->pad_93C, ((Actor403000AnimWork*)work)->blendSlots);
     work->field_AC0 = 2;
     work->field_AC2 = 0;
     work->field_AC6 = 0;

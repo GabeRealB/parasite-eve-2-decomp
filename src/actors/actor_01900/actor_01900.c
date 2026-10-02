@@ -1229,10 +1229,10 @@ static void Actor01900_Fn02018(Enemy* enemy, Task* actor)
     enemy->hp                     = (s16)Actor01900_D0AC54.hpMax;
     enemy->param                  = &Actor01900_D0AC54;
     enemy->recs                   = &work->field_8E8;
-    func_800B3F84(&((Actor01900AnimWork*)work)->rig.anim, Actor01900_D17174, obj,
-                  ((Actor01900AnimWork*)work)->rig.poses, ((Actor01900AnimWork*)work)->rig.slots);
-    func_800B3F84(&((Actor01900AnimWork*)work)->blend.anim, Actor01900_D17174, obj,
-                  ((Actor01900AnimWork*)work)->blend.poses, ((Actor01900AnimWork*)work)->blend.slots);
+    animationInitContext(&((Actor01900AnimWork*)work)->rig.anim, Actor01900_D17174, obj,
+                         ((Actor01900AnimWork*)work)->rig.poses, ((Actor01900AnimWork*)work)->rig.slots);
+    animationInitContext(&((Actor01900AnimWork*)work)->blend.anim, Actor01900_D17174, obj,
+                         ((Actor01900AnimWork*)work)->blend.poses, ((Actor01900AnimWork*)work)->blend.slots);
     work->field_898 = 2;
     work->field_89A = 0;
     work->field_89E = 2;

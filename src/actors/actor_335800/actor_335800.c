@@ -1592,8 +1592,8 @@ s32 func_actor_335800_80163880(Task* task, s32 arg1, ActorTransform* place, Acto
     ext  = task->extra.tmd;
     if (msg->source.index != work->model.bank) {
         work->model.bank = msg->source.index;
-        func_800B3F84(&work->rig.anim, D_actor_335800_80172E98[work->model.bank], ext, work->rig.poses,
-                      work->rig.slots);
+        animationInitContext(&work->rig.anim, D_actor_335800_80172E98[work->model.bank], ext, work->rig.poses,
+                             work->rig.slots);
     }
     work->model.animId = msg->animationId;
     if (msg->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
@@ -1810,8 +1810,8 @@ s32 actorMotionPlayAnim19(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 a
     ext  = task->extra.tmd;
     if (msg->source.index != work->model.bank) {
         work->model.bank = msg->source.index;
-        func_800B3F84(&work->rig.anim, D_actor_335800_80172E98[work->model.bank], ext, work->rig.poses,
-                      work->rig.slots);
+        animationInitContext(&work->rig.anim, D_actor_335800_80172E98[work->model.bank], ext, work->rig.poses,
+                             work->rig.slots);
     }
     work->model.animId = msg->animationId;
     if (msg->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {

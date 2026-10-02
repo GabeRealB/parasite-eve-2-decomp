@@ -2041,8 +2041,8 @@ static void Actor00100_Fn02C54(Enemy* arg0, Task* arg1)
     arg0->hp                     = Actor00100_D0BDA4.hpMax;
     arg0->param                  = &Actor00100_D0BDA4;
     arg0->recs                   = work->objs[0].contacts;
-    func_800B3F84(&work->anim, Actor00100_D1B944, tmd, work->poses, work->slots);
-    func_800B3F84(&work->blendAnim, Actor00100_D1B944, tmd, work->blendPoses, work->blendSlots);
+    animationInitContext(&work->anim, Actor00100_D1B944, tmd, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->poses, work->slots);
+    animationInitContext(&work->blendAnim, Actor00100_D1B944, tmd, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->blendPoses, work->blendSlots);
     work->field_828 = 2;
     work->field_82A = 0;
     work->field_82E = 0;

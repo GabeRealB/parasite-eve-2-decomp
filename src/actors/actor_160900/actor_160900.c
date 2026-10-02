@@ -956,7 +956,7 @@ OverlayWaveRec6 gScreenWaveRows[30];
 
 extern u8 D_actor_160900_8013F240[];
 
-/// Animation source `func_800B3F84` seeds the child's slots from, the table
+/// Animation-set table `animationInitContext` binds to the child's context, the table
 /// published as `Actor160900Child3Work::field_4B4`, and the message table
 /// published as `Task::msgTable`.
 extern u8 D_actor_160900_8013F1C4[];
@@ -1161,7 +1161,7 @@ static inline void func_actor_160900_InitAnim(Task* task, TmdObject* obj)
     s32                    i;
 
     work = (Actor160900Child3Work*)task->work;
-    func_800B3F84(&work->rig.anim, D_actor_160900_8013F1C4, obj, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_160900_8013F1C4, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->rig.poses, work->rig.slots);
     work->field_4B4 = D_actor_160900_8013F1F8;
     work            = (Actor160900Child3Work*)task->work;
     i               = 1;

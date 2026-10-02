@@ -1037,7 +1037,7 @@ s32 func_actor_135400_80132D24(Task* task, s32 anim, AnimationPlayRequest* param
     ext  = task->extra.tmd;
     if (params->source.index != work->model.bank) {
         work->model.bank = params->source.index;
-        func_800B3F84(&work->rig.anim, D_actor_135400_8013F8D4[work->model.bank], ext, work->rig.poses, work->rig.slots);
+        animationInitContext(&work->rig.anim, D_actor_135400_8013F8D4[work->model.bank], ext, work->rig.poses, work->rig.slots);
     }
     work->model.animId = params->animationId;
     if (params->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {

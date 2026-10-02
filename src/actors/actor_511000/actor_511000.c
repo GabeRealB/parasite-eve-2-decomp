@@ -49,7 +49,7 @@ extern GpImgRec D_actor_511000_801472B4[2];
 /// Work block of the enemy task, reached by its model-attach children through
 /// the parent task's `Task::work`. The spawn handler
 /// `func_actor_511000_80133958` allocates it (`memCalloc(0x488, 0)`), hands
-/// the rig to `func_800B3F84`, and points its own model
+/// the rig to `animationInitContext`, and points its own model
 /// at the two matrices; the three children it spawns do the same.
 typedef struct Actor511000ParentWork {
     /* 0x000 */ ActorAnimRig19 rig;
@@ -88,7 +88,7 @@ STATIC_ASSERT_SIZEOF(Actor511000Work, 0x70);
 /// Work block `func_actor_511000_80132480` allocates (`memCalloc(0x4D4, 0)`)
 /// and parks in that task's `Task::work`. Its front is the animation state the
 /// animation message handler drives: the context, 20 slots and the pose
-/// buffer handed to `func_800B3F84`. Its light/color pair is republished onto
+/// buffer handed to `animationInitContext`. Its light/color pair is republished onto
 /// model part 1, not the root coordinate.
 typedef struct Actor511000Work2 {
     /* 0x000 */ ActorAnimRig20 rig;
@@ -2309,8 +2309,8 @@ s32 func_actor_511000_80132604(Task* task, s32 arg1, AnimationPlayRequest* msg, 
     if (msg->source.index != work->field_47C) {
         work->field_47C = msg->source.index;
         work->field_478 = -1;
-        func_800B3F84(&work->rig.anim, D_actor_511000_801472E4[work->field_47C], ext, work->rig.poses,
-                      work->rig.slots);
+        animationInitContext(&work->rig.anim, D_actor_511000_801472E4[work->field_47C], ext, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->rig.poses,
+                             work->rig.slots);
     }
     if (msg->animationId != work->field_478) {
         work->field_478 = msg->animationId;
@@ -3043,7 +3043,7 @@ static void func_actor_511000_80133958(Enemy* enemy, Task* task)
     model->flags    = MODEL_HIDDEN;
     model->lightMtx = &work->field_45C;
     model->colorMtx = &work->field_43C;
-    func_800B3F84(&work->rig.anim, D_actor_511000_801550C0, model, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, D_actor_511000_801550C0, model, work->rig.poses, work->rig.slots);
     work->field_47C     = 0;
     task->msgTable      = D_actor_511000_801550A0;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;

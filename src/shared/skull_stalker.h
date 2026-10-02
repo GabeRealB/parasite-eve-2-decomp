@@ -32,7 +32,7 @@
 typedef struct SkullStalkerWork {
     /* 0x000 */ AnimationContext      context;
     /* 0x014 */ AnimationSlot         slots[3];
-    /* 0x08C */ byte                  field_8C[0x30]; // pose buffer handed to func_800B3F84
+    /* 0x08C */ byte                  field_8C[0x30]; // pose buffer handed to animationInitContext
     /* 0x0BC */ MATRIX                field_BC;       // colour matrix, TmdObject::colorMtx
     /* 0x0DC */ MATRIX                field_DC;       // light matrix, TmdObject::lightMtx
     /* 0x0FC */ WorldCollisionBody    field_FC;

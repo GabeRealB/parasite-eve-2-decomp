@@ -139,7 +139,7 @@ extern TaskDesc D_actor_510900_80167A18[];
 /// the enemy's hit points.
 extern EnemyParams D_actor_510900_80167980;
 
-/// The animation data `func_800B3F84` builds the work block's clip context
+/// The animation data `animationInitContext` builds the work block's clip context
 /// from; the spawn hands it over whole, so it is only ever a byte address here.
 extern u8 D_actor_510900_80167AA4[];
 

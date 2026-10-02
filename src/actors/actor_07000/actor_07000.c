@@ -889,7 +889,7 @@ TaskDesc Actor07000_D0D7E8 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BU
 typedef struct Actor107000Spawn2Work {
     /* 0x000 */ AnimationContext      context;
     /* 0x014 */ AnimationSlot         slots[7];        // six helper slots + slot 0
-    /* 0x12C */ byte                  field_12C[0x70]; // pose buffer, func_800B3F84 arg3
+    /* 0x12C */ byte                  field_12C[0x70]; // pose buffer, animationInitContext poseBuffer
     /* 0x19C */ MATRIX                field_19C;       // colour matrix, TmdObject::colorMtx
     /* 0x1BC */ MATRIX                field_1BC;       // light matrix, TmdObject::lightMtx
     /* 0x1DC */ WorldCollisionBody    obj1;
@@ -948,7 +948,7 @@ extern PadScriptVibrationSegment Actor07000_D06944[];
 
 extern Actor07000RecoveredMsgEntry gSucklercephDropMsgTable[2];
 
-/// The animation data `func_800B3F84` seeds the caged specimen's slots from.
+/// Animation-set table bound to the caged specimen's context by `animationInitContext`.
 extern AnimationSet* gSucklercephAnimSets[4];
 
 extern SVECTOR Actor07000_D08068;
@@ -971,7 +971,7 @@ extern TmdSource Actor07000_D0B194;
 
 extern TmdSource Actor07000_D0B730;
 
-/// The animation data `func_800B3F84` seeds the second form's slots from.
+/// Animation-set table bound to the second form's context by `animationInitContext`.
 extern AnimationSet* Actor07000_D0D77C[13];
 
 extern SVECTOR Actor07000_D0D7B0;
@@ -1332,8 +1332,8 @@ static void Actor07000_Fn02E0C(Enemy* arg0, Task* arg1)
     work->hitEffect.coord        = &arg1->extra.tmd->coords[1];
     work->hitEffect.spawnArgLo   = 0x280;
     work->hitEffect.spawnArgHi   = 2;
-    func_800B3F84(&work->context, Actor07000_D0D77C, obj,
-                  work->field_12C, work->slots);
+    animationInitContext(&work->context, Actor07000_D0D77C, obj,
+                         (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->field_12C, work->slots);
     for (i = 1; i < 7; i++) {
         animationResetSlot(&work->context, i, 1);
     }
@@ -2375,8 +2375,8 @@ static void Actor07000_Fn05068(Enemy* arg0, Task* arg1)
     work->hitEffect.coord        = &arg1->extra.tmd->coords[1];
     work->hitEffect.spawnArgLo   = 0x100;
     work->hitEffect.spawnArgHi   = one;
-    func_800B3F84(&work->context, Actor07000_D0D77C, obj, work->field_12C,
-                  &work->slots[0]);
+    animationInitContext(&work->context, Actor07000_D0D77C, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->field_12C,
+                         &work->slots[0]);
     i = 1;
     do {
         animationResetSlot(&work->context, i, 1);

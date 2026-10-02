@@ -1148,8 +1148,8 @@ static void Actor01100_Fn0097C(Enemy* enemy, Task* task, ActorsShared80138efcWor
     *(s32*)&Actor01100_D15670 = actorId;
     extra->lightMtx           = &work->lightMtx;
     extra->colorMtx           = &work->colorMtx;
-    func_800B3F84(&work->anim, Actor01100_D15604, extra, work->poses, work->slots);
-    func_800B3F84(&work->anim2, Actor01100_D15604, extra, work->poses2, work->slots2);
+    animationInitContext(&work->anim, Actor01100_D15604, extra, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->poses, work->slots);
+    animationInitContext(&work->anim2, Actor01100_D15604, extra, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->poses2, work->slots2);
     work->field_BA5 = 1;
     work->field_BA4 = 1;
 

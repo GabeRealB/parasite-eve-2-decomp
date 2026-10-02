@@ -1319,8 +1319,8 @@ static void Actor00300_Fn00970(Enemy* enemy, Task* task)
     work->field_5F0   = (void*)(task->extra.tmd->coords + 3);
     work->field_5F4   = 0x300;
     work->field_5F6   = 2;
-    func_800B3F84(&work->rig.anim, Actor00300_D1633C, obj,
-                  work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, Actor00300_D1633C, obj,
+                         work->rig.poses, work->rig.slots);
     do {
         animationResetSlot(&work->rig.anim, slot, 1);
         slot += 1;

@@ -34,7 +34,7 @@ extern GpImgRec D_actor_210700_8015858C[2];
 /// allocates it zeroed with `memCalloc(0x540, 0)` and keeps it in
 /// `Task::work`. The front is the animation state the 0x7D3 message handler
 /// drives - the context, its slots and the pose buffer handed to
-/// `func_800B3F84` - followed by the light / colour matrices
+/// `animationInitContext` - followed by the light / colour matrices
 /// `func_actor_210700_8014A208` points the model at, and the texture-upload
 /// state the upload handler runs.
 typedef struct Actor210700Work {
@@ -1273,8 +1273,8 @@ s32 func_actor_210700_8014A224(Task* task, s32 arg1, Actor210700Anim* msg, s32 a
     if (msg->field_0 != work->field_47C) {
         work->field_47C = msg->field_0;
         work->field_478 = -1;
-        func_800B3F84(&work->rig.anim, D_actor_210700_801585C8[work->field_47C], ext, work->rig.poses,
-                      work->rig.slots);
+        animationInitContext(&work->rig.anim, D_actor_210700_801585C8[work->field_47C], ext, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->rig.poses,
+                             work->rig.slots);
     }
     if (msg->field_4 != work->field_478) {
         work->field_478 = msg->field_4;

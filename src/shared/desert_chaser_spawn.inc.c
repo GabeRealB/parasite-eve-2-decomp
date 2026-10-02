@@ -44,8 +44,8 @@ void desertChaserSpawn(Enemy* enemy, Task* task)
     enemy->reactionFlags          = 0;
     enemy->hp                     = 0;
     enemy->recs                   = 0;
-    func_800B3F84(&work->anim, gRigAnimSource, obj, work->poses, work->slots);
-    func_800B3F84(&work->blendAnim, gRigAnimSource, obj, work->blendPoses, work->blendSlots);
+    animationInitContext(&work->anim, (AnimationSet**)gRigAnimSource, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->poses, work->slots);
+    animationInitContext(&work->blendAnim, (AnimationSet**)gRigAnimSource, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->blendPoses, work->blendSlots);
     work->field_828 = 2;
     work->field_82E = 1;
     work->field_82A = 0;

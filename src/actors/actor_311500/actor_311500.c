@@ -297,8 +297,8 @@ static void func_actor_311500_801629D8(Task* arg0)
     tmd->lightMtx = &work2->light;
     tmd->colorMtx = &work2->color;
     tmd->flags    = 0;
-    func_800B3F84(&work2->rig.anim, D_actor_311500_801692F4, tmd, work2->rig.poses,
-                  &work2->rig.slots[0]);
+    animationInitContext(&work2->rig.anim, D_actor_311500_801692F4, tmd, work2->rig.poses,
+                         &work2->rig.slots[0]);
     work2->field_4B4 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     work2->field_4B8 = gPlayerStatus.coordMtx;
     rate             = 0x10;

@@ -2725,8 +2725,8 @@ static void func_actor_421600_80134AD4(Enemy* enemy, Task* actor)
     enemy->hp                     = (s16)D_actor_421600_8013EF38.hpMax;
     enemy->param                  = &D_actor_421600_8013EF38;
     enemy->recs                   = work->objs[0].contacts;
-    func_800B3F84(&work->anim, D_actor_421600_80151028, obj, work->poses, work->slots);
-    func_800B3F84(&work->blendAnim, D_actor_421600_80151028, obj, work->blendPoses, work->blendSlots);
+    animationInitContext(&work->anim, (AnimationSet**)D_actor_421600_80151028, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->poses, work->slots);
+    animationInitContext(&work->blendAnim, (AnimationSet**)D_actor_421600_80151028, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->blendPoses, work->blendSlots);
     work->field_828 = 2;
     work->field_82A = 0;
     work->field_82E = 1;

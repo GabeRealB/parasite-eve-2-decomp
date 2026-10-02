@@ -1663,7 +1663,7 @@ static void func_actor_521100_80131E8C(Enemy* enemy, Task* task)
     work->eff.coord      = &task->extra.tmd->coords[3];
     work->eff.spawnArgLo = 0x400;
     work->eff.spawnArgHi = 3;
-    func_800B3F84(&work->rig.anim, D_actor_521100_8015F73C, obj, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, D_actor_521100_8015F73C, obj, work->rig.poses, work->rig.slots);
     work->field_686 = 0x15;
     work->field_688 = 0x15;
     i               = 1;

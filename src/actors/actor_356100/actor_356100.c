@@ -820,8 +820,8 @@ static SVECTOR ActorContact_ScratchPosition;
 /// roles as `Actor401300Work.field_910`.
 extern EffectSpawnArg D_actor_356100_801732A8;
 
-/// Animation bank `func_800B3F84` seeds both of the work block's slot arrays
-/// from. Same role as `Actor01900_D17174`.
+/// Animation-set table bound to both work-block contexts by `animationInitContext`.
+/// Same role as `Actor01900_D17174`.
 extern u8 D_actor_356100_801730B8[];
 
 /// Enemy descriptor `func_actor_356100_8016382C` publishes in the enemy's
@@ -1196,10 +1196,12 @@ static void func_actor_356100_8016382C(Enemy* enemy, Task* actor)
     enemy->hp                     = (s16)D_actor_356100_8016A984.hpMax;
     enemy->param                  = &D_actor_356100_8016A984;
     enemy->recs                   = &work->field_9C0;
-    func_800B3F84(&((Actor356100AnimWork*)work)->anim, D_actor_356100_801730B8, obj,
-                  &((Actor356100AnimWork*)work)->slots[21], ((Actor356100AnimWork*)work)->slots);
-    func_800B3F84(&((Actor356100AnimWork*)work)->blendAnim, D_actor_356100_801730B8, obj,
-                  &((Actor356100AnimWork*)work)->blendSlots[21], ((Actor356100AnimWork*)work)->blendSlots);
+    animationInitContext(&((Actor356100AnimWork*)work)->anim, (AnimationSet**)D_actor_356100_801730B8, obj,
+                         (u8(*)[ANIMATION_POSE_BUFFER_BYTES]) & ((Actor356100AnimWork*)work)->slots[21],
+                         ((Actor356100AnimWork*)work)->slots);
+    animationInitContext(&((Actor356100AnimWork*)work)->blendAnim, (AnimationSet**)D_actor_356100_801730B8, obj,
+                         (u8(*)[ANIMATION_POSE_BUFFER_BYTES]) & ((Actor356100AnimWork*)work)->blendSlots[21],
+                         ((Actor356100AnimWork*)work)->blendSlots);
     work->field_978 = 2;
     work->field_97E = 1;
     work->field_97A = 0;

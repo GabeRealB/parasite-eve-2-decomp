@@ -2764,9 +2764,10 @@ void animationBindContext(AnimationContext* context, AnimationSet** setTable, Tm
     context->slots      = slots;
 }
 
-void func_800B3F84(AnimationContext* context, void* arg1, TmdObject* arg2, void* arg3, AnimationSlot* arg4)
+void animationInitContext(AnimationContext* context, AnimationSet** setTable, TmdObject* model,
+                          u8 (*poseBuffer)[ANIMATION_POSE_BUFFER_BYTES], AnimationSlot* slots)
 {
-    animationBindContext(context, arg1, arg2, arg3, arg4);
+    animationBindContext(context, setTable, model, poseBuffer, slots);
 }
 
 /// Primes a slot's rate, time and endpoint sets for a model-part track restart.

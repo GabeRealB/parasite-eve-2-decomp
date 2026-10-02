@@ -122,7 +122,7 @@ extern TaskDesc D_actor_141000_801348D8[];
 /// each a `GpImgRec` whose own `rect` carries the upload size and whose `data`
 /// points at the pixel blob.
 
-/// Animation bank table `func_800B3F84` re-seeds the slots from, indexed by
+/// Animation-set tables bound to the context by `animationInitContext`, indexed by
 /// the preset's bank index.
 extern AnimationSet*  D_actor_141000_8013D74C[11];
 extern AnimationSet** gActorMotionAnimBanks19[1];
@@ -2406,8 +2406,8 @@ s32 func_actor_141000_801336DC(Task* task, s32 arg1, ActorTransform* place, Acto
     if (msg->source.index != work->model.bank) {
         work->model.bank   = msg->source.index;
         work->model.animId = -1;
-        func_800B3F84(&work->rig.anim, gActorMotionAnimBanks19[work->model.bank], ext, work->rig.poses,
-                      work->rig.slots);
+        animationInitContext(&work->rig.anim, gActorMotionAnimBanks19[work->model.bank], ext, work->rig.poses,
+                             work->rig.slots);
     }
     if (msg->animationId != work->model.animId) {
         work->model.animId = msg->animationId;

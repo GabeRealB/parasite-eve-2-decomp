@@ -65,7 +65,7 @@ extern s16 gMothSpeeds[];
 
 /// The records `ratSpawn` binds the first body to: the pair it packs
 /// into the fourth collision node's key, the context's parameter source (whose
-/// `hpMax` seeds the health), and the second argument of `func_800B3F84`.
+/// `hpMax` seeds the health), and the second argument of `animationInitContext`.
 extern struct DamageAttack gRatAttack;
 extern EnemyParams         gRatParams;
 extern AnimationSet*       gRatAnimSets[11];

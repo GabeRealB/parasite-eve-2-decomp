@@ -388,7 +388,7 @@ static void func_actor_205200_8014BAE8(Enemy* enemy, Task* task)
     work->field_554.coord         = &task->extra.tmd->coords[3];
     work->field_554.spawnArgLo    = 0x200;
     work->field_554.spawnArgHi    = 1;
-    func_800B3F84(&work->rig.anim, D_actor_205200_801567E8, tmd, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, D_actor_205200_801567E8, tmd, work->rig.poses, work->rig.slots);
     i = 1;
     do {
         animationResetSlot(&work->rig.anim, i, 1);

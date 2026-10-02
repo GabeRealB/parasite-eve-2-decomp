@@ -38,7 +38,7 @@ void ratSpawn(Enemy* ctx, Task* actor)
     work->field_338             = 0x100;
     work->field_33A             = 1;
     work->field_334             = coord;
-    func_800B3F84(&work->anim, gRatAnimSets, obj, &work->field_12C, work->slots);
+    animationInitContext(&work->anim, gRatAnimSets, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->field_12C, work->slots);
     for (i = 1; i < 7; i++) {
         animationResetSlot(&work->anim, i, 1);
     }

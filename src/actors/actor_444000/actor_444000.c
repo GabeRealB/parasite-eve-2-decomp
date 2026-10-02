@@ -4225,8 +4225,8 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
     enemy->param         = &D_actor_444000_80144A28;
     enemy->recs          = work->hits[0].recs;
 
-    func_800B3F84(&work->anim0, D_actor_444000_80161448, tmd, work->aux0, work->slots0);
-    func_800B3F84(&work->anim1, D_actor_444000_80161448, tmd, work->aux1, work->slots1);
+    animationInitContext(&work->anim0, D_actor_444000_80161448, tmd, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->aux0, work->slots0);
+    animationInitContext(&work->anim1, D_actor_444000_80161448, tmd, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->aux1, work->slots1);
 
     work->field_7B0 = 2;
     work->field_7B3 = 2;
@@ -4294,10 +4294,10 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
     work->field_ECC[0]->task->extra.tmd->coords->coord.t[1] = 0;
     work->field_ECC[0]->task->extra.tmd->coords->coord.t[2] = 0;
     work->field_ECC[0]->task->extra.tmd->flags              = 0;
-    func_800B3F84(&work->anim2, D_actor_444000_80161500, work->field_ECC[0]->task->extra.tmd, work->aux2,
-                  work->slots2);
-    func_800B3F84(&work->anim3, D_actor_444000_80161500, work->field_ECC[0]->task->extra.tmd, work->aux3,
-                  work->slots3);
+    animationInitContext(&work->anim2, D_actor_444000_80161500, work->field_ECC[0]->task->extra.tmd, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->aux2,
+                         work->slots2);
+    animationInitContext(&work->anim3, D_actor_444000_80161500, work->field_ECC[0]->task->extra.tmd, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->aux3,
+                         work->slots3);
     work->field_ECC[0]->field_4    = &task->extra.tmd->coords->coord;
     work->field_ECC[0]->field_48   = 0;
     work->field_ECC[0]->bodyPos.vx = 0xC8;
@@ -4324,10 +4324,10 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
     work->field_ECC[1]->task->extra.tmd->coords->coord.t[1] = 0;
     work->field_ECC[1]->task->extra.tmd->coords->coord.t[2] = 0;
     work->field_ECC[1]->task->extra.tmd->flags              = 0;
-    func_800B3F84(&work->anim4, D_actor_444000_801615B8, work->field_ECC[1]->task->extra.tmd, work->aux4,
-                  work->slots4);
-    func_800B3F84(&work->anim5, D_actor_444000_801615B8, work->field_ECC[1]->task->extra.tmd, work->aux5,
-                  work->slots5);
+    animationInitContext(&work->anim4, D_actor_444000_801615B8, work->field_ECC[1]->task->extra.tmd, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->aux4,
+                         work->slots4);
+    animationInitContext(&work->anim5, D_actor_444000_801615B8, work->field_ECC[1]->task->extra.tmd, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->aux5,
+                         work->slots5);
     work->field_ECC[1]->field_4    = &task->extra.tmd->coords->coord;
     work->field_ECC[1]->field_48   = 0;
     work->field_ECC[1]->bodyPos.vx = -0xC8;

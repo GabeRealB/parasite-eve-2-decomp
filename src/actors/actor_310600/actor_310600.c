@@ -45,9 +45,9 @@
 /// `Gp_BindDefaultMtx` installs.
 ///
 /// The block is fronted by the animation context `func_actor_310600_8016246C`
-/// drives: the `AnimationContext` (`func_800B3F84` takes the block address), the
+/// drives: the `AnimationContext` (`animationInitContext` takes the block address), the
 /// twenty `AnimationSlot`s immediately above it, and the 0x140-byte table
-/// `func_800B3F84` also takes at 0x334. `field_474` is the once-only latch the
+/// `animationInitContext` also takes at 0x334. `field_474` is the once-only latch the
 /// slots are started through, and `field_476` / `field_475` are the animation
 /// bank index and the animation id, latched on change and re-read from the
 /// block by the loops below them.
@@ -635,8 +635,8 @@ s32 func_actor_310600_8016246C(Task* task, s32 arg1, AnimationPlayRequest* cmd, 
     if (cmd->source.index != work->field_476) {
         work->field_476 = cmd->source.index;
         work->field_475 = -1;
-        func_800B3F84(&work->rig.anim, D_actor_310600_80179640[work->field_476], ext, work->rig.poses,
-                      work->rig.slots);
+        animationInitContext(&work->rig.anim, D_actor_310600_80179640[work->field_476], ext, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->rig.poses,
+                             work->rig.slots);
     }
     if (cmd->animationId != work->field_475) {
         work->field_475 = cmd->animationId;

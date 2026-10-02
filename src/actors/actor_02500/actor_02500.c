@@ -46,7 +46,7 @@
 #include "overlay.h"
 
 /// 0x348-byte work block `Actor02500_Fn00078` allocates and hangs off
-/// `Task::work`. It opens with the animation context (`func_800B3F84`
+/// `Task::work`. It opens with the animation context (`animationInitContext`
 /// arg0) and its five slots, and carries the four list nodes plus their
 /// `WorldCollisionContact` tables.
 typedef struct Actor02500Work {
@@ -623,7 +623,7 @@ static void Actor02500_Fn00078(Enemy* ctx, Task* actor)
     work->field_2DC.spawnArgLo  = 0x200;
     work->field_2DC.coord       = coord;
     work->field_2DC.spawnArgHi  = 1;
-    func_800B3F84(&work->anim, Actor02500_D05BA0, obj, work->field_DC, work->field_14);
+    animationInitContext(&work->anim, Actor02500_D05BA0, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->field_DC, work->field_14);
     work->field_31C = 1;
     work->field_31E = 1;
     for (i = 1; i < 5; i++) {

@@ -131,7 +131,7 @@ extern DamageAttack D_actor_206100_80155194;
 /// maximum hit points (2000), seeded into `field_40` / `field_42` at spawn.
 extern EnemyParams D_actor_206100_80155198;
 
-/// Animation bank handed to `func_800B3F84` by `func_actor_206100_8014AF74`.
+/// Animation bank handed to `animationInitContext` by `func_actor_206100_8014AF74`.
 extern AnimationSet* D_actor_206100_80158B24[];
 
 /// Placement records `func_actor_206100_8014EE2C` parks at `Enemy::place`
@@ -230,7 +230,7 @@ STATIC_ASSERT_SIZEOF(Actor206100DistScratch, 0xC);
 typedef struct Actor206100Work {
     /* 0x000 */ AnimationContext anim;
     /* 0x014 */ AnimationSlot    slots[0xF];
-    /// `func_800B3F84`'s arg3 buffer, the 0x90-byte scratch every animation
+    /// `animationInitContext`'s poseBuffer buffer, the 0x90-byte scratch every animation
     /// context carries alongside its slot array.
     /* 0x26C */ byte animAux[0x90];
     /* 0x2FC */ byte pad_2FC[0x60];
@@ -1304,7 +1304,7 @@ static void func_actor_206100_8014AF74(Task* task)
     enemy->hpMax                  = hp;
     enemy->hp                     = hp;
     coord->parent                 = &gGfxViewCoord;
-    func_800B3F84(&work->anim, D_actor_206100_80158B24, tmd, work->animAux, work->slots);
+    animationInitContext(&work->anim, D_actor_206100_80158B24, tmd, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->animAux, work->slots);
     func_actor_206100_8014F18C(task);
     work->field_43E = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     work->field_557 = 4;

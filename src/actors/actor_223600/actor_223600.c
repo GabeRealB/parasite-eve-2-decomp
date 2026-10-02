@@ -54,14 +54,14 @@ typedef struct Actor223600Work {
     /* 0x006 */ s16              field_6; ///< frames spent in the approach state
     /* 0x008 */ s16              field_8;
     /* 0x00A */ byte             pad_A[0x2];
-    /* 0x00C */ AnimationContext anim;     ///< `func_800B3F84` arg0
+    /* 0x00C */ AnimationContext anim;     ///< `animationInitContext` context
     /* 0x020 */ AnimationSlot    slots[1]; ///< slots 1.. continue past here, overlapping the fields below
     /* 0x048 */ byte             pad_48[0x2];
     /* 0x04A */ u16              field_4A; ///< low ten bits: current animation id
     /* 0x04C */ byte             pad_4C[0xC];
     /* 0x058 */ u16              field_58;
     /* 0x05A */ byte             pad_5A[0xB6];
-    /* 0x110 */ byte             poses[0x60]; ///< `func_800B3F84` arg3
+    /* 0x110 */ byte             poses[0x60]; ///< `animationInitContext` poseBuffer
     /* 0x170 */ s16              field_170;
     /* 0x172 */ s16              field_172;
     /* 0x174 */ s16              field_174; ///< motion state
@@ -121,7 +121,7 @@ extern EffectSpawnArg D_actor_223600_80150B5C;
 /// Enemy parameters the spawn handler installs at `Enemy::param`.
 extern EnemyParams D_actor_223600_8014CFCC;
 
-/// Animation source `func_800B3F84` seeds the work block's slots from.
+/// Animation-set table bound to the work block's context by `animationInitContext`.
 extern AnimationSet* D_actor_223600_801509C0[26];
 
 /// Event packet handed to this actor's message handlers. Its first three bytes
@@ -980,7 +980,7 @@ static void func_actor_223600_8014B540(Enemy* enemy, Task* task)
     coord->parent  = &gGfxViewCoord;
     task->msgTable = D_actor_223600_80150B28;
     obj->flags     = 0;
-    func_800B3F84(&work->anim, D_actor_223600_801509C0, obj, work->poses, work->slots);
+    animationInitContext(&work->anim, D_actor_223600_801509C0, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->poses, work->slots);
 
     enemy->field_4    = &coord->coord;
     enemy->field_48   = 0;

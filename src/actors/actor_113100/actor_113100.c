@@ -100,7 +100,7 @@ extern Actor113100MsgEntry D_actor_113100_80144338[];
 
 /// Animation bank table the 0x7D3 handler `func_actor_113100_801331E8` indexes
 /// by the animation id it has latched into `Actor113100Work::model.bank`; the
-/// entry is the `void*` its `func_800B3F84` call passes on.
+/// entry is the `AnimationSet**` passed to `animationInitContext`.
 extern AnimationSet*  D_actor_113100_80144250[36];
 extern AnimationSet** D_actor_113100_801442E0[1];
 
@@ -1630,8 +1630,8 @@ s32 func_actor_113100_801328EC(Task* task, s32 msgId, ActorTransform* place, Act
     if (msg->source.index != work->model.bank) {
         work->model.bank   = msg->source.index;
         work->model.animId = -1;
-        func_800B3F84(&work->rig.anim, D_actor_113100_801442E0[work->model.bank], ext, work->rig.poses,
-                      work->rig.slots);
+        animationInitContext(&work->rig.anim, D_actor_113100_801442E0[work->model.bank], ext, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->rig.poses,
+                             work->rig.slots);
     }
     if (msg->animationId != work->model.animId) {
         work->model.animId = msg->animationId;
@@ -1879,8 +1879,8 @@ s32 func_actor_113100_801331E8(Task* task, s32 msgId, AnimationPlayRequest* pres
     if (preset->source.index != work->model.bank) {
         work->model.bank   = preset->source.index;
         work->model.animId = -1;
-        func_800B3F84(&work->rig.anim, D_actor_113100_801442E0[work->model.bank], ext, work->rig.poses,
-                      work->rig.slots);
+        animationInitContext(&work->rig.anim, D_actor_113100_801442E0[work->model.bank], ext, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->rig.poses,
+                             work->rig.slots);
     }
     if (preset->animationId != work->model.animId) {
         work->model.animId = preset->animationId;

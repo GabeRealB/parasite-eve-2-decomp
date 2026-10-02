@@ -726,7 +726,7 @@ static void Actor03800_Fn000B8(Enemy* arg0, Task* arg1)
     work->field_2C4.coord        = &arg1->extra.tmd->coords[3];
     work->field_2C4.spawnArgLo   = 0x200;
     work->field_2C4.spawnArgHi   = 1;
-    func_800B3F84(&work->anim, Actor03800_D05F60, extra, work->field_104, work->slots);
+    animationInitContext(&work->anim, Actor03800_D05F60, extra, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->field_104, work->slots);
     for (i = 1; i < 6; i++) {
         animationResetSlot(&work->anim, i, 1);
     }

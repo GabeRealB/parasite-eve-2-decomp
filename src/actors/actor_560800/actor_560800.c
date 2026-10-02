@@ -151,7 +151,7 @@ STATIC_ASSERT_SIZEOF(Actor560800AnimWork, 0x4CC);
 /// one `func_actor_560800_80137820` and `func_actor_560800_80136AA8` drive.
 ///
 /// It opens with the animation context - the context at 0, its slots at +0x14 -
-/// the way every actor carries it, then the pose buffer `func_800B3F84` takes as
+/// the way every actor carries it, then the pose buffer `animationInitContext` takes as
 /// its `arg3` at +0x12C. Seven slots is what fits between the two: 0x12C - 0x14
 /// is 7 * 0x28, and `D_actor_560800_801752F0` carries seven animation sets after
 /// its leading null. `light` / `color` go to the object's `field_1C` / `field_20`
@@ -265,7 +265,7 @@ extern AnimationSet* D_actor_560800_8016EA40[13];
 extern ActorAnimStep  D_actor_560800_8016EBE8[];
 extern ActorTransform D_actor_560800_8016F1CC[6];
 
-/// Animation bank `func_actor_560800_801376E0` hands `func_800B3F84` as its
+/// Animation bank `func_actor_560800_801376E0` hands `animationInitContext` as its
 /// second argument: a null entry then one animation set per slot of
 /// `Actor560800ModelWork`, indexed by the animation id.
 extern AnimationSet* D_actor_560800_801752F0[];
@@ -4425,7 +4425,7 @@ void func_actor_560800_801326C4(Task* arg0)
             work                    = (Actor560800AnimWork*)arg0->work;
             {
                 TmdObject* obj = arg0->extra.tmd;
-                func_800B3F84(&work->rig.anim, D_actor_560800_8016EB04, obj, work->rig.poses, work->rig.slots);
+                animationInitContext(&work->rig.anim, D_actor_560800_8016EB04, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->rig.poses, work->rig.slots);
             }
             work->field_4BA = 0x13;
             work->field_4B4 = D_actor_560800_8016ECAC;
@@ -4601,7 +4601,7 @@ void func_actor_560800_80132C60(Task* arg0)
         work = (Actor560800AnimWork*)arg0->work;
         {
             TmdObject* obj = arg0->extra.tmd;
-            func_800B3F84(&work->rig.anim, D_actor_560800_8016EA74, obj, work->rig.poses, work->rig.slots);
+            animationInitContext(&work->rig.anim, D_actor_560800_8016EA74, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->rig.poses, work->rig.slots);
         }
         work->field_4BA = 0x14;
         work->field_4B4 = D_actor_560800_8016EC1C;
@@ -4691,7 +4691,7 @@ void func_actor_560800_80132F64(Task* arg0)
         work = (Actor560800AnimWork*)arg0->work;
         {
             TmdObject* obj = arg0->extra.tmd;
-            func_800B3F84(&work->rig.anim, D_actor_560800_8016EB30, obj, work->rig.poses, work->rig.slots);
+            animationInitContext(&work->rig.anim, D_actor_560800_8016EB30, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->rig.poses, work->rig.slots);
         }
         work->field_4BA = 0x13;
         work->field_4B4 = D_actor_560800_8016ECC4;
@@ -6374,7 +6374,7 @@ static void func_actor_560800_80136AA8(Task* arg0)
 /// Sets up the animated model part the spawn argument names: allocates its
 /// `Actor560800ModelWork`, hangs it off `Task::work`, points the object's light
 /// and colour matrices into it, makes the named task this one's parent and hands
-/// the part to `func_800B3F84` with the overlay's animation bank. The three
+/// the part to `animationInitContext` with the overlay's animation bank. The three
 /// `gRandomLcgState` draws taken along the way seed the handlers' random headings,
 /// and the slot count comes from the spawner's `spawnArg1`.
 static void func_actor_560800_801376E0(Task* arg0)
@@ -6407,8 +6407,8 @@ static void func_actor_560800_801376E0(Task* arg0)
     work->field_274 = gRandomLcgState >> 16;
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     work->field_278 = (gRandomLcgState >> 16) & 0x3FF;
-    func_800B3F84(&work->anim, D_actor_560800_801752F0, obj, work->poseBuf,
-                  work->slots);
+    animationInitContext(&work->anim, D_actor_560800_801752F0, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->poseBuf,
+                         work->slots);
     work->field_280 = arg0->spawnArg1.value;
 }
 

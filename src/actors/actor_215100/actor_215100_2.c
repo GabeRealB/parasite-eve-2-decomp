@@ -2228,8 +2228,8 @@ static void func_actor_215100_8014C660(Enemy* enemy, Task* task)
     vec.vy          = coord->workm.t[1] - 0x320;
     vec.vz          = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
-    func_800B3F84(&work->rig.anim, D_actor_215100_8015E5E8, obj,
-                  work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, D_actor_215100_8015E5E8, obj,
+                         (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->rig.poses, work->rig.slots);
     work->st.state = 2;
     task->msgTable = D_actor_215100_8015E5A0;
     pacedWalkUpdate(task);

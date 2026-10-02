@@ -2431,7 +2431,7 @@ static void func_actor_460200_801338C0(Enemy* enemy, Task* task)
     vec.vy                           = coord->workm.t[1] - 0x320;
     vec.vz                           = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
-    func_800B3F84(&work->rig.anim, &D_actor_460200_80151538, obj, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, (AnimationSet**)&D_actor_460200_80151538, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->rig.poses, work->rig.slots);
     work->st.state = 2;
     task->msgTable = D_actor_460200_801514FC;
     func_actor_460200_801336B4(task);

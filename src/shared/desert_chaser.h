@@ -167,7 +167,7 @@ typedef struct DesertChaserWork {
     byte             pad_18[4];
     AnimationContext anim;
     AnimationSlot    slots[18];
-    /// Pose buffer `func_800B3F84` takes as its arg3, `AnimationContext.poseBuffer`.
+    /// Encoded pose storage borrowed as `animationInitContext`'s `poseBuffer`.
     byte             poses[0x120];
     AnimationContext blendAnim;
     AnimationSlot    blendSlots[18];

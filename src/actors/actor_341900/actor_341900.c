@@ -143,7 +143,7 @@ STATIC_ASSERT_SIZEOF(Actor341900TaskWork, 0x258);
 
 /// The same 0x258-byte block as `Actor341900TaskWork`, seen from
 /// `func_actor_341900_80162330`, which fills it: an animation context over
-/// eight slots (`func_800B3F84` gets `pad_154` as its scratch area) and the
+/// eight slots (`animationInitContext` gets `pad_154` as its scratch area) and the
 /// light/colour matrix pair the model draws with.
 typedef struct Actor341900AnimWork {
     /* 0x000 */ AnimationContext ctx;
@@ -604,7 +604,7 @@ static void func_actor_341900_80162330(Task* arg0)
     Gp_SetTmdBytes(extra, rec->texturePageOffset, rec->clutRowOffset);
     switch (arg0->spawnArg1.value) {
         case 0:
-            func_800B3F84(&w->ctx, D_actor_341900_801639AC, extra, &w->pad_154, w->slots);
+            animationInitContext(&w->ctx, D_actor_341900_801639AC, extra, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])w->pad_154, w->slots);
             ctx = (Actor341900AnimWork*)arg0->work;
             for (i = 1; i < 8; i++) {
                 ctx->slots[i].rate = ANIMATION_RATE_ONE;
@@ -617,7 +617,7 @@ static void func_actor_341900_80162330(Task* arg0)
             } while (0);
         case 1:
             ((Actor341900AnimWork*)w->field_248->work)->field_24C = arg0;
-            func_800B3F84(&w->ctx, D_actor_341900_801639B8, extra, &w->pad_154, w->slots);
+            animationInitContext(&w->ctx, D_actor_341900_801639B8, extra, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])w->pad_154, w->slots);
             ctx = (Actor341900AnimWork*)arg0->work;
             for (i = 0; i < 4; i++) {
                 ctx->slots[i].rate = ANIMATION_RATE_ONE;
@@ -626,7 +626,7 @@ static void func_actor_341900_80162330(Task* arg0)
             break;
         case 2:
             ((Actor341900AnimWork*)w->field_248->work)->field_250 = arg0;
-            func_800B3F84(&w->ctx, D_actor_341900_801639C4, extra, &w->pad_154, w->slots);
+            animationInitContext(&w->ctx, D_actor_341900_801639C4, extra, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])w->pad_154, w->slots);
             ctx = (Actor341900AnimWork*)arg0->work;
             for (i = 0; i < 4; i++) {
                 ctx->slots[i].rate = ANIMATION_RATE_ONE;

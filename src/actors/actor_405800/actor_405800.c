@@ -1761,7 +1761,7 @@ static void func_actor_405800_801334B8(Task* arg0)
     work->eff_81C.spawnArgLo      = 0x100;
     work->eff_81C.spawnArgHi      = 2;
     enemy->hp = enemy->hpMax = D_actor_405800_801418FC.hpMax;
-    func_800B3F84(&work->anim, D_actor_405800_80151410, model, work->pad_394, work->slots);
+    animationInitContext(&work->anim, D_actor_405800_80151410, model, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->pad_394, work->slots);
 
     w2              = (Actor405800Work*)arg0->work;
     w2->animStep    = 0x10;

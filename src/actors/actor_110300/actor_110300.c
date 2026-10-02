@@ -40,7 +40,7 @@ extern Task* gActorHelperTask;
 /// index 0 is the actor's own dispatcher, index 1 the helper.
 extern TaskDesc gViewFigureTasks[];
 
-/// Animation source `func_800B3F84` seeds the work block's slots from.
+/// Animation-set table bound to the work block's context by `animationInitContext`.
 extern u8 gViewFigureAnimSets[];
 
 /// Message table published as `Task::msgTable`: the 0x7D3 and 0x7D5 handlers

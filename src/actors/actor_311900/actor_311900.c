@@ -59,7 +59,7 @@ typedef struct Actor311900Work {
 } Actor311900Work;
 STATIC_ASSERT_SIZEOF(Actor311900Work, 0x4CC);
 
-/// The animation data `func_800B3F84` builds the first setup path's clip
+/// The animation data `animationInitContext` builds the first setup path's clip
 /// context from; the spawn hands it over whole, so it is only ever a byte
 /// address here.
 extern u8 D_actor_311900_8016EBE8[];
@@ -410,7 +410,7 @@ void func_actor_311900_8016222C(Task* task)
 /// Otherwise it splats the light / colour pair `func_actor_311900_8016278C`
 /// writes onto the model root's `field_1C` / `field_20` slots, points
 /// `Enemy::field_4` at the root coordinate's matrix, re-parents that root to
-/// `gGfxViewCoord`, builds the animation context `func_800B3F84` over the
+/// `gGfxViewCoord`, builds the animation context `animationInitContext` over the
 /// block's slot array and packed-pose run, seeds the tick's two work halfwords
 /// 0x474 / 0x478 and zeroes the 0x4C4 / 0x4C6 pair it counts in, and publishes
 /// the view-dependent light level exactly as the tick does.
@@ -431,8 +431,8 @@ static void func_actor_311900_8016228C(Enemy* enemy, Task* task)
     enemy->field_4  = &coord->coord;
     enemy->field_48 = 0;
     obj->flags      = 0;
-    func_800B3F84(&work->rig.anim, D_actor_311900_8016EBE8, obj, work->rig.poses,
-                  work->rig.slots);
+    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_311900_8016EBE8, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->rig.poses,
+                         work->rig.slots);
     coord->parent   = &gGfxViewCoord;
     work->field_474 = 2;
     work->field_478 = 1;
@@ -525,8 +525,8 @@ static void func_actor_311900_801624F8(Enemy* enemy, Task* task)
     enemy->field_4  = &coord->coord;
     enemy->field_48 = 0;
     obj->flags      = 0;
-    func_800B3F84(&work->rig.anim, D_actor_311900_8016EBF4, obj, work->rig.poses,
-                  work->rig.slots);
+    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_311900_8016EBF4, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->rig.poses,
+                         work->rig.slots);
     coord->parent   = &gGfxViewCoord;
     work->field_474 = 2;
     work->field_478 = 1;

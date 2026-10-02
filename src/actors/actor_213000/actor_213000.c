@@ -27,7 +27,7 @@
 
 /// Work block the spawn handler allocates (`memCalloc(0x4C4)`) and parks in
 /// `Task::work`. It opens with the animation context the preset handler hands
-/// `func_800B3F84` at the block's own address, the 0x14 0x28-byte slots
+/// `animationInitContext` at the block's own address, the 0x14 0x28-byte slots
 /// immediately above it and the 0x140-byte table at 0x334 that call also
 /// takes; the slot walkers run to 0x14, the slot count. `field_474` latches
 /// once a preset has started the slots and gates the per-frame tick;
@@ -805,8 +805,8 @@ s32 func_actor_213000_8014A70C(Task* task, s32 arg1, AnimationPlayRequest* msg)
     if (msg->source.index != work->field_476) {
         work->field_476 = msg->source.index;
         work->field_475 = -1;
-        func_800B3F84(&work->rig.anim, D_actor_213000_80157DDC[work->field_476], ext, work->rig.poses,
-                      work->rig.slots);
+        animationInitContext(&work->rig.anim, D_actor_213000_80157DDC[work->field_476], ext, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->rig.poses,
+                             work->rig.slots);
     }
     work->field_475 = msg->animationId;
     if (msg->blend != ANIMATION_BLEND_RESET) {

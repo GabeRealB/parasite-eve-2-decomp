@@ -129,6 +129,25 @@ STATIC_ASSERT_SIZEOF(AnimationSet, 0x28);
 void animationBindContext(AnimationContext* context, AnimationSet** setTable, TmdObject* model,
                           u8 (*poseBuffer)[ANIMATION_POSE_BUFFER_BYTES], AnimationSlot* slots);
 
+/// Initializes a context's borrowed model and playback-storage bindings.
+///
+/// `model` must be a live, non-NULL object returned by `Tmd_Create`.
+/// `setTable` is a word-aligned native pointer table with a loaded set for every
+/// set index playback uses. `slots` must provide every playback index used.
+/// `poseBuffer` must provide a writable, word-aligned entry for every index whose
+/// transition pose is captured or reused. Both arrays retain positions for
+/// unused lower indices; a reset-only track need not access its buffer entry.
+/// Each buffer entry reserves `ANIMATION_POSE_BUFFER_BYTES` bytes for an encoded
+/// transition pose, rather than an unpacked `AnimationPose`. Their capacities
+/// need not equal the model's coordinate count and are not stored or checked.
+///
+/// The context borrows all supplied storage and the model allocation's coordinate
+/// tail. Keep them and the clip data live while playback uses them. This forwards
+/// to `animationBindContext`; it neither clears the buffer nor initializes slots.
+/// Initialize slots separately before ticking.
+void animationInitContext(AnimationContext* context, AnimationSet** setTable, TmdObject* model,
+                          u8 (*poseBuffer)[ANIMATION_POSE_BUFFER_BYTES], AnimationSlot* slots);
+
 /// Restarts a slot on the same-numbered model-part track and coordinate.
 ///
 /// Rebinds the slot to the context's borrowed set table, selects the track's

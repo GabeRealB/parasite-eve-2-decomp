@@ -48,7 +48,7 @@
 /// The actor's work block, hung off `Task::work`. `func_actor_120500_801322A0`
 /// allocates it with `Mem_Malloc(0x4CC, 0)` and zeroes it with `memFillBytes`.
 ///
-/// It opens with the animation state `func_800B3F84` is handed: the
+/// It opens with the animation state `animationInitContext` is handed: the
 /// `AnimationContext`, the twenty `AnimationSlot`s the tick walks and the pose buffer.
 /// The two `MATRIX`es are the model's light and colour matrices, published
 /// through `TmdObject::lightMtx` / `colorMtx`. The three code/phase pairs at
@@ -87,7 +87,7 @@ extern Task* D_actor_120500_80138454;
 /// 3 `taskKill`, 4 the actor itself.
 extern TaskDesc D_actor_120500_80138418[];
 
-/// Animation banks `func_800B3F84` seeds the work block from.
+/// Animation-set tables bound to the work block's context by `animationInitContext`.
 extern AnimationSet* D_actor_120500_80138088[2];
 
 /// Message table the actor answers with: 0x7D5 shows or hides the model, 0x7D4
@@ -550,7 +550,7 @@ static void func_actor_120500_801322A0(Task* task)
         entryId = place->entryId;
     }
     Gp_SetTmdBytes(tmd, place->texturePageOffset, place->clutRowOffset);
-    func_800B3F84(&work->rig.anim, D_actor_120500_80138088, tmd, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, D_actor_120500_80138088, tmd, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->rig.poses, work->rig.slots);
     slotsWork      = (Actor120500Work*)task->work;
     task->msgTable = D_actor_120500_80138408;
     slotIndex      = 1;

@@ -39,8 +39,8 @@ void footstepWalkSpawn(Enemy* enemy, Task* task)
     gFootstepWalkTask                = task;
     vec.vz                           = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
-    func_800B3F84(&gFootstepWalkWork->rig.anim, gFootstepWalkAnims, obj,
-                  &gFootstepWalkWork->rig.poses, gFootstepWalkWork->rig.slots);
+    animationInitContext(&gFootstepWalkWork->rig.anim, (AnimationSet**)gFootstepWalkAnims, obj,
+                         gFootstepWalkWork->rig.poses, gFootstepWalkWork->rig.slots);
     gFootstepWalkWork->st.animId  = 1;
     gFootstepWalkWork->st.state   = 2;
     gFootstepWalkWork->st.travel  = 0;

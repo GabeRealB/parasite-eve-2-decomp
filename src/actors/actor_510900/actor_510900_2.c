@@ -89,8 +89,8 @@ STATIC_ASSERT_SIZEOF(Actor510900GridScratch, 0x10);
 /// `field_5C2`.
 typedef struct Actor510900ChildAnim {
     /* 0x000 */ AnimationContext      anim;
-    /* 0x014 */ AnimationSlot         slots[11];   ///< `func_800B3F84` arg4, reset 1..10
-    /* 0x1CC */ byte                  poses[0xB0]; ///< `func_800B3F84` arg3
+    /* 0x014 */ AnimationSlot         slots[11];   ///< `animationInitContext` slots, reset 1..10
+    /* 0x1CC */ byte                  poses[0xB0]; ///< `animationInitContext` poseBuffer
     /* 0x27C */ MATRIX                colorMtx;    ///< handed to `TmdObject::colorMtx`
     /* 0x29C */ MATRIX                lightMtx;    ///< handed to `TmdObject::lightMtx`
     /* 0x2BC */ WorldCollisionBody    obj2BC;
@@ -163,7 +163,7 @@ extern AnimationSet* D_actor_510900_80167B2C[];
 extern SVECTOR D_actor_510900_80167CB8[];
 /// Spawn rotation about Y, indexed the same way.
 extern u16 D_actor_510900_80167CD0[];
-/// Animation set table `func_800B3F84` installs in the context above.
+/// Animation set table `animationInitContext` installs in the context above.
 extern AnimationSet* D_actor_510900_80167CAC[];
 
 /// `Actor510900ChildFx::field_CE` per 1000 units of distance between the child
@@ -3124,7 +3124,7 @@ static void func_actor_510900_8013A5B8(Enemy* enemy, Task* task)
     coords->coord.t[1] = D_actor_510900_80167CB8[work->field_334].vy;
     coords->coord.t[2] = D_actor_510900_80167CB8[work->field_334].vz;
     coords->parent     = &gGfxViewCoord;
-    func_800B3F84(&work->anim, D_actor_510900_80167CAC, tmd, work->poses, work->slots);
+    animationInitContext(&work->anim, D_actor_510900_80167CAC, tmd, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->poses, work->slots);
     do {
         animationResetSlot(&work->anim, i, 1);
         i++;

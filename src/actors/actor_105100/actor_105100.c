@@ -263,7 +263,7 @@ extern s16 D_actor_105100_801414C8[];
 extern DamageAttack D_actor_105100_80141380[6];
 extern EnemyParams  D_actor_105100_80141398;
 
-/// The animation data `func_800B3F84` builds the work block's clip context
+/// The animation data `animationInitContext` builds the work block's clip context
 /// from; the spawn hands it over whole, so it is only ever a byte address here.
 extern u8 D_actor_105100_80141488[];
 
@@ -847,9 +847,9 @@ static inline void _actor105100AnimUpdate(Task* task);
 /// light matrix, 0x43C the colour one) and fills the context's coordinate,
 /// enemy parameters and hit points (`hp`, seeded from the record's `hpMax`).
 ///
-/// The block's 0x14-prefix then becomes the `AnimationContext`: `func_800B3F84` loads
-/// the animation data into it over the nineteen `AnimationSlot`s, and slots 1..18
-/// are reset. The three list nodes at 0x47C / 0x4E4 / 0x51C are linked into the
+/// The block's 0x14-prefix is the `AnimationContext`: `animationInitContext` binds
+/// the set table, nineteen-slot storage and pose buffer; slots 1..18 are then
+/// reset. The three list nodes at 0x47C / 0x4E4 / 0x51C are linked into the
 /// global object lists with their collision tables (`Gp_InitRec18Table`), which
 /// also sets each node's 0x8000 "last element" flag -- then the second node's is
 /// cleared again. `&coord[3]` -- the actor's fourth coordinate -- is what the
@@ -892,8 +892,8 @@ static void func_actor_105100_801327B4(Enemy* arg0, Task* arg1)
     work->field_554.coord      = &arg1->extra.tmd->coords[3];
     work->field_554.spawnArgLo = 0x500;
     work->field_554.spawnArgHi = 3;
-    func_800B3F84(&work->rig.anim, D_actor_105100_80141488, obj, work->rig.poses,
-                  work->rig.slots);
+    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_105100_80141488, obj, work->rig.poses,
+                         work->rig.slots);
     for (i = 1; i < 0x13; i++) {
         animationResetSlot(&work->rig.anim, i, 1);
     }

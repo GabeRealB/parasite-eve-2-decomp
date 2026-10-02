@@ -55,7 +55,7 @@ STATIC_ASSERT_SIZEOF(Actor210600Rate, 0x2);
 /// animation context and slots at the front, the animation request state, and
 /// the light / colour matrices the task's `TmdObject` is pointed at.
 typedef struct Actor210600Work {
-    /// Animation context the spawn body starts through `func_800B3F84`, with
+    /// Animation context the spawn body starts through `animationInitContext`, with
     /// its 19 slots directly behind it and the pose buffer after them.
     /* 0x000 */ ActorAnimRig19 rig;
     /* 0x43C */ byte           pad_43C[0x440];
@@ -617,7 +617,7 @@ static void func_actor_210600_8014B8C8(Enemy* enemy, Task* task)
     enemy->field_4D               = 0;
     enemy->reactionFlags          = 0;
     enemy->field_4D               = 0;
-    func_800B3F84(&work->rig.anim, D_actor_210600_8015A4B4, obj, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_210600_8015A4B4, obj, work->rig.poses, work->rig.slots);
     work->field_87C = 2;
     work->field_882 = 1;
     func_actor_210600_8014B2C0(task);

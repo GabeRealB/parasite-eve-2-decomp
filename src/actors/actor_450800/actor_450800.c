@@ -117,7 +117,7 @@ STATIC_ASSERT_SIZEOF(Actor450800MsgEntry, 8);
 extern Actor450800MsgEntry D_actor_450800_8014AC58[];
 extern TaskDesc            D_actor_450800_8014AC88[];
 
-/// Animation data `func_800B3F84` seeds the work block's slots from.
+/// Animation-set table bound to the work block's context by `animationInitContext`.
 extern u8 D_actor_450800_8014ACC4[];
 
 /// The enemy's message table, the `TaskDesc` table its model tasks come from,
@@ -2803,8 +2803,8 @@ static void func_actor_450800_80132160(Enemy* enemy, Task* task)
     vec.vy        = coord->workm.t[1] - 0x320;
     vec.vz        = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
-    func_800B3F84(&work->rig.anim, D_actor_450800_8014ACC4, obj, work->rig.poses,
-                  work->rig.slots);
+    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_450800_8014ACC4, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->rig.poses,
+                         work->rig.slots);
     work->st.animId = 1;
     work->st.state  = 2;
 

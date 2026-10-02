@@ -92,7 +92,7 @@ typedef struct Actor104000Work {
     /* 0x04C */ byte                  pad_4C[0xC];
     /* 0x058 */ u16                   field_58;
     /* 0x05A */ byte                  pad_5A[0xB6];
-    /* 0x110 */ byte                  poses[0x60]; // `func_800B3F84` arg3
+    /* 0x110 */ byte                  poses[0x60]; // `animationInitContext` poseBuffer
     /* 0x170 */ s16                   field_170;
     /* 0x172 */ s16                   field_172;
     /* 0x174 */ s16                   field_174;
@@ -1359,7 +1359,7 @@ static s32 Actor04000_Fn00FDC(Actor104000Work* arg0)
     return 0;
 }
 
-// animation bank handed to `func_800B3F84`
+// animation bank handed to `animationInitContext`
 
 /// Spawn state: allocates the work block, links the four collision objects and
 /// the enemy node, seeds the size and HP from the enemy's level nibble, records
@@ -1396,7 +1396,7 @@ static void Actor04000_Fn010B8(Enemy* arg0, Task* arg1)
     work->field_188 = 0;
     work->field_190 = 1;
     obj->flags      = 0;
-    func_800B3F84(&work->anim, Actor04000_D0C4C4, obj, work->poses, work->slots);
+    animationInitContext(&work->anim, Actor04000_D0C4C4, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->poses, work->slots);
 
     o1                   = &work->obj270;
     o1->coord            = arg1->extra.tmd->coords + 1;

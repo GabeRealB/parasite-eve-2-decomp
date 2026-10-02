@@ -55,7 +55,7 @@
 #define ODD_STRANGER_VARIANT 1
 #include "../../shared/odd_stranger.h"
 
-/// Animation view of `OddStrangerWork`'s prefix. `func_800B3F84` is handed the
+/// Animation view of `OddStrangerWork`'s prefix. `animationInitContext` is handed the
 /// context, the pose buffer just past its slot array, and the array itself;
 /// the work block's own fields at 0x898 and up are not repeated here. Same
 /// shape as `Actor401300AnimWork`, 4 bytes earlier.
@@ -67,7 +67,7 @@ typedef struct Actor401000AnimWork {
 } Actor401000AnimWork;
 STATIC_ASSERT_SIZEOF(Actor401000AnimWork, 0x898);
 
-/// Animation bank `func_actor_401000_80133274` hands to both `func_800B3F84`
+/// Animation bank `func_actor_401000_80133274` hands to both `animationInitContext`
 /// calls; the same `s32` the 401300 sibling keeps in `D_actor_401300_80158838`.
 extern AnimationSet* gOddStrangerAnimSets[46];
 
@@ -1185,11 +1185,11 @@ static void func_actor_401000_80133274(Enemy* enemy, Task* actor)
     enemy->hp                     = (s16)D_actor_401000_8013E09C.hpMax;
     enemy->param                  = &D_actor_401000_8013E09C;
     enemy->recs                   = work->field_8F0;
-    func_800B3F84(&((Actor401000AnimWork*)work)->rig.anim, gOddStrangerAnimSets, obj,
-                  ((Actor401000AnimWork*)work)->rig.poses, ((Actor401000AnimWork*)work)->rig.slots);
-    func_800B3F84(&((Actor401000AnimWork*)work)->blend.anim, gOddStrangerAnimSets,
-                  obj, ((Actor401000AnimWork*)work)->blend.poses,
-                  ((Actor401000AnimWork*)work)->blend.slots);
+    animationInitContext(&((Actor401000AnimWork*)work)->rig.anim, gOddStrangerAnimSets, obj,
+                         ((Actor401000AnimWork*)work)->rig.poses, ((Actor401000AnimWork*)work)->rig.slots);
+    animationInitContext(&((Actor401000AnimWork*)work)->blend.anim, gOddStrangerAnimSets,
+                         obj, ((Actor401000AnimWork*)work)->blend.poses,
+                         ((Actor401000AnimWork*)work)->blend.slots);
     work->field_898 = 2;
     work->field_89E = 2;
     work->field_89A = 0;

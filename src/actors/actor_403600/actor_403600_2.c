@@ -602,7 +602,7 @@ static void func_actor_403600_80138EF8(Enemy* enemy, Task* task)
     var_s0                        = 1;
     temp_v0->field_798            = (s16)((temp_a0_2 * 0x3C) / 100);
     temp_v0->field_79A            = (s16)(((s16)temp_v0->field_78A * 0x23) / 100);
-    func_800B3F84(&temp_v0->rig.anim, D_actor_403600_8016057C, temp_s2, temp_v0->rig.poses, temp_v0->rig.slots);
+    animationInitContext(&temp_v0->rig.anim, D_actor_403600_8016057C, temp_s2, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])temp_v0->rig.poses, temp_v0->rig.slots);
     do {
         animationResetSlot(&temp_v0->rig.anim, var_s0, 1);
         var_s0 += 1;
@@ -3941,7 +3941,7 @@ static void func_actor_403600_8013F7B8(Enemy* enemy, Task* task)
     enemy->param                  = &D_actor_403600_80150ED8;
     enemy->recs                   = work->field_528;
     enemy->hp                     = (s16)D_actor_403600_80150ED8.hpMax;
-    func_800B3F84(&work->rig.anim, D_actor_403600_8016057C, model, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, D_actor_403600_8016057C, model, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->rig.poses, work->rig.slots);
     i = 1;
     do {
         animationResetSlot(&work->rig.anim, i, 1);

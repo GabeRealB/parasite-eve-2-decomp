@@ -1261,7 +1261,7 @@ static void Actor00400_Fn00B48(Task* arg0)
     obj->hpMax                  = hp;
     obj->hp                     = hp;
     coord->parent               = &gGfxViewCoord;
-    func_800B3F84(&work->anim, Actor00400_D1604C, ctx, work->poses, work->slots);
+    animationInitContext(&work->anim, Actor00400_D1604C, ctx, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->poses, work->slots);
     Actor00400_Fn019B4(arg0);
     work->field_556 = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
 }

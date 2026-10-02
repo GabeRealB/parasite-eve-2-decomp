@@ -64,7 +64,7 @@ extern TaskDesc D_actor_121300_8013D390[];
 /// `taskMessageDispatch` the overlay sends.
 ///
 /// The block opens with the animation prefix `actor_105100` and `actor_136100`
-/// also carry: the 0x14-byte `AnimationContext` `func_800B3F84` is handed as its
+/// also carry: the 0x14-byte `AnimationContext` `animationInitContext` is handed as its
 /// `arg0`, the nineteen 0x28-byte `AnimationSlot`s `animationResetSlot` walks, and
 /// the pose buffer at 0x30C.  The two `MATRIX`es at 0x43C / 0x45C are the
 /// model's light and colour matrices, published through `TmdObject::lightMtx`
@@ -2428,8 +2428,8 @@ static void func_actor_121300_80133BFC(Task* task)
     Gp_SetTmdBytes(tmd, place->texturePageOffset, place->clutRowOffset);
     // Keep the image-column offset for later streamed texture uploads.
     work->texturePageOffset = place->texturePageOffset;
-    func_800B3F84(&work->rig.anim, &D_actor_121300_8013CC08, tmd, work->rig.poses,
-                  work->rig.slots);
+    animationInitContext(&work->rig.anim, D_actor_121300_8013CC08, tmd, work->rig.poses,
+                         work->rig.slots);
     slotsWork            = (Actor121300Work*)task->work;
     slotsWork->field_4A0 = 1;
     slotIndex            = 1;

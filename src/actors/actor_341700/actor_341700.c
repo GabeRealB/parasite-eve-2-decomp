@@ -62,7 +62,7 @@
 /// Psy-Q `RotMatrixY`, taking the angle as a `long`.
 
 extern EnemyParams   gMadChaserEnemyParams;  // the main enemy's `Enemy::param` record
-extern AnimationSet* gMadChaserAnimBank[21]; // animation bank handed to `func_800B3F84`
+extern AnimationSet* gMadChaserAnimBank[21]; // animation bank handed to `animationInitContext`
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {
     s32 id;

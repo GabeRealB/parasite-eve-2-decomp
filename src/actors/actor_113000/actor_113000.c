@@ -30,14 +30,14 @@
 extern GpImgRec D_actor_113000_8013AB6C[2];
 
 /// Animation source table `func_actor_113000_80132208` indexes by the preset's
-/// bank index and hands `func_800B3F84` as its data argument.
+/// bank index and hands `animationInitContext` as its data argument.
 extern AnimationSet*  D_actor_113000_8013AB8C[9];
 extern AnimationSet** D_actor_113000_8013ABB0[1];
 
 /// Work block this actor allocates in its spawn handler and parks in
 /// `Task::work`. It is fronted by an `AnimationContext`: the start-preset handler
 /// passes the block itself, its `slots` array and the pose buffer after them
-/// to `func_800B3F84`, and the per-frame tick walks slots 1..0x13. `light` /
+/// to `animationInitContext`, and the per-frame tick walks slots 1..0x13. `light` /
 /// `color` are the matrices the TMD object's `lightMtx` / `colorMtx` are
 /// pointed at.
 typedef struct Actor113000Work {
@@ -1284,7 +1284,7 @@ static void func_actor_113000_801321A8(Task* task)
 
 /// Start-preset handler: a preset bank the work block is not already on
 /// re-seeds it -- the animation id is reset to -1, the bank is stored and the
-/// bank's animation source goes to `func_800B3F84` with the block's context,
+/// bank's animation source goes to `animationInitContext` with the block's context,
 /// its pose buffer and its slots. The preset's
 /// animation id is then latched, every slot 1..0x13 restarted -- through
 /// `animationSeekSlotWithBlend` when the preset asks for it, through `animationResetSlot`
@@ -1300,8 +1300,8 @@ s32 func_actor_113000_80132208(Task* task, s32 msgId, AnimationPlayRequest* msg,
     if (msg->source.index != work->field_47C) {
         work->field_47C = msg->source.index;
         work->field_478 = -1;
-        func_800B3F84(&work->rig.anim, D_actor_113000_8013ABB0[work->field_47C], ext, work->rig.poses,
-                      work->rig.slots);
+        animationInitContext(&work->rig.anim, D_actor_113000_8013ABB0[work->field_47C], ext, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->rig.poses,
+                             work->rig.slots);
     }
     work->field_478 = msg->animationId;
     if (msg->blend != ANIMATION_BLEND_RESET) {

@@ -76,7 +76,7 @@ STATIC_ASSERT_SIZEOF(Actor04600RecoveredMsgEntry, 8);
 
 extern Actor04600RecoveredMsgEntry gSucklercephDropMsgTable[2];
 
-/// The animation data `func_800B3F84` seeds the first enemy's slots from.
+/// Animation-set table bound to the first enemy's context by `animationInitContext`.
 extern AnimationSet* gSucklercephAnimSets[4];
 
 /// Offset of the 0x60030 effect the first enemy's death spawns.
@@ -88,7 +88,7 @@ extern SVECTOR gSucklercephCollapseFxOffset;
 /// The second enemy's record; `hpMax` seeds its HP.
 extern EnemyParams gSkullStalkerParams;
 
-/// The animation data `func_800B3F84` seeds the second enemy's slots from.
+/// Animation-set table bound to the second enemy's context by `animationInitContext`.
 extern AnimationSet* gSkullStalkerAnimSets[3];
 
 /// Offsets of the spark and hit effects the second enemy's hit handler spawns.

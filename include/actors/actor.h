@@ -455,7 +455,7 @@ typedef struct ActorHeightClamp {
 } ActorHeightClamp;
 STATIC_ASSERT_SIZEOF(ActorHeightClamp, 0x10);
 
-/// The animation rig of a twenty-part model: the context `func_800B3F84`
+/// The animation rig of a twenty-part model: the context `animationInitContext`
 /// builds, and the playback slots and pose buffer that context points at. The
 /// slots and the poses are the owner's storage, one of each per model part;
 /// each pose record is in the encoding its slot's `AnimationSlot.poseEncoding` names,

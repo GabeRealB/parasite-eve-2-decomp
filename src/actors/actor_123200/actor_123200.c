@@ -57,14 +57,14 @@ typedef struct Actor123200Work {
     /* 0x006 */ u16              field_6; // frames since the restart branch last ran
     /* 0x008 */ s16              field_8;
     /* 0x00A */ byte             pad_A[0x2];
-    /* 0x00C */ AnimationContext anim;     // `func_800B3F84` arg0
+    /* 0x00C */ AnimationContext anim;     // `animationInitContext` context
     /* 0x020 */ AnimationSlot    slots[1]; // slots 1..5 continue past here, overlapping the fields below
     /* 0x048 */ byte             pad_48[0x2];
     /* 0x04A */ u16              field_4A; // low ten bits: animation id (`slots[1].field_2`)
     /* 0x04C */ byte             pad_4C[0xC];
     /* 0x058 */ u16              field_58;
     /* 0x05A */ byte             pad_5A[0xB6];
-    /* 0x110 */ byte             poses[0x60]; // `func_800B3F84` arg3
+    /* 0x110 */ byte             poses[0x60]; // `animationInitContext` poseBuffer
     /* 0x170 */ s16              field_170;   // motion state `animDriverTick` switches on
     /* 0x172 */ s16              field_172;
     /* 0x174 */ s16              field_174;
@@ -107,7 +107,7 @@ STATIC_ASSERT_SIZEOF(Actor123200Work, 0x22C);
 /// Enemy parameters the spawn handler installs at `Enemy::param`.
 extern EnemyParams D_actor_123200_80134208;
 
-/// Animation source `func_800B3F84` seeds the work block's slots from.
+/// Resource whose animation-set table is bound by `animationInitContext`.
 extern u8 D_actor_123200_80137154[];
 
 /// Message table the spawn handler publishes as `Task::msgTable`.
@@ -720,7 +720,7 @@ static void func_actor_123200_8013352C(Enemy* enemy, Task* task)
     task->msgTable = D_actor_123200_80137214;
     coord->parent  = &gGfxViewCoord;
     obj->flags     = 0;
-    func_800B3F84(&work->anim, D_actor_123200_80137154, obj, work->poses, work->slots);
+    animationInitContext(&work->anim, (AnimationSet**)D_actor_123200_80137154, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->poses, work->slots);
 
     enemy->field_4    = &coord->coord;
     enemy->field_48   = 0;

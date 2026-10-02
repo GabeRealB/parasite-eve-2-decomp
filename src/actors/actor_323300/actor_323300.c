@@ -74,7 +74,7 @@ STATIC_ASSERT_SIZEOF(Actor323300Work, 0x504);
 /// The prefix is the same animation shape the 0x504 block opens with: the
 /// `AnimationContext` at 0, the `AnimationSlot` array inline at 0x14 and the
 /// pose buffer at 0x30C -- the three addresses
-/// `func_actor_323300_80163718` hands `func_800B3F84`. Its animation state
+/// `func_actor_323300_80163718` hands `animationInitContext`. Its animation state
 /// sits in the four `s32` words past that buffer rather than in the byte fields
 /// `Actor323300Work` uses: `field_440` is the preset bank index, `field_444`
 /// the preset animation id (`func_actor_323300_80162BE4` seeds both to -1) and
@@ -666,8 +666,8 @@ s32 func_actor_323300_80162360(Task* arg0, s32 arg1, ActorCommand* msg, ActorTra
             if (preset->source.index != work->model.bank) {
                 work->model.bank   = preset->source.index;
                 work->model.animId = -1;
-                func_800B3F84(&work->rig.anim, gActorMotionAnimBanks19[work->model.bank], extra,
-                              work->rig.poses, work->rig.slots);
+                animationInitContext(&work->rig.anim, gActorMotionAnimBanks19[work->model.bank], extra,
+                                     work->rig.poses, work->rig.slots);
             }
             if (preset->animationId != work->model.animId) {
                 work->model.animId = preset->animationId;
@@ -1086,7 +1086,7 @@ static void func_actor_323300_8016359C(Task* arg0, s16 arg1)
 /// `actorMotionPlayAnim19` (which drives the 0x504 block the same way).
 /// A preset bank the block is not already on re-seeds it: the animation id is
 /// reset to -1, the bank is stored and the bank's animation source goes to
-/// `func_800B3F84` with the block's context, slots and matrix table. A
+/// `animationInitContext` with the block's context, slots and matrix table. A
 /// different animation id then restarts every slot 1..0x12 -- through
 /// `animationSeekSlotWithBlend` when the preset asks for it and the block has been started
 /// before, through `animationResetSlot` otherwise -- ticks them once and latches
@@ -1102,8 +1102,8 @@ static s32 func_actor_323300_80163718(Task* arg0, s32 arg1, AnimationPlayRequest
     if (arg2->source.index != work->field_440) {
         work->field_440 = arg2->source.index;
         work->field_444 = -1;
-        func_800B3F84(&work->rig.anim, D_actor_323300_80174A70[work->field_440], ext,
-                      work->rig.poses, work->rig.slots);
+        animationInitContext(&work->rig.anim, D_actor_323300_80174A70[work->field_440], ext,
+                             work->rig.poses, work->rig.slots);
     }
     if (arg2->animationId != work->field_444) {
         work->field_444 = arg2->animationId;

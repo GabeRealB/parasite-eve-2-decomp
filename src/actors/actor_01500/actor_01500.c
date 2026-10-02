@@ -54,7 +54,7 @@
 typedef struct Actor101500Work {
     /* 0x000 */ AnimationContext      anim;
     /* 0x014 */ AnimationSlot         slots[7];
-    /* 0x12C */ byte                  field_12C[0x70]; // pose buffer, handed to `func_800B3F84`
+    /* 0x12C */ byte                  field_12C[0x70]; // pose buffer, handed to `animationInitContext`
     /* 0x19C */ MATRIX                field_19C;       // model colour matrix
     /* 0x1BC */ MATRIX                field_1BC;       // model light matrix
     /* 0x1DC */ WorldCollisionBody    field_1DC;
@@ -121,7 +121,7 @@ MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 extern DamageAttack Actor01500_D09FB4;
 /// The enemy's parameter record; `hpMax` seeds the hit points.
 extern EnemyParams Actor01500_D09FB8;
-/// Animation bank handed to `func_800B3F84`.
+/// Animation bank handed to `animationInitContext`.
 extern AnimationSet* Actor01500_D0A014[15];
 
 /// The four model streams `Actor01500_Fn01AB0` spawns effects from.
@@ -823,8 +823,8 @@ static void Actor01500_Fn00094(Enemy* arg0, Task* arg1)
             break;
     }
     (Gp_IncStateF0Ref)(0);
-    func_800B3F84(&work->anim, Actor01500_D0A014, obj, work->field_12C,
-                  work->slots);
+    animationInitContext(&work->anim, Actor01500_D0A014, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->field_12C,
+                         work->slots);
     for (i = 1; i < 7; i++) {
         animationResetSlot(&work->anim, i, (s16)work->field_352);
     }

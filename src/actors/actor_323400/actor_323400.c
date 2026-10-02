@@ -61,7 +61,7 @@ static Actor323400Storage1218 ActorContact_ScratchPosition;
 /// re-seeds the slots: 0x2D bytes per `field_82C`, indexed by `field_82E`.
 extern s8 gDesertChaserClipStartFrames[];
 
-/// Animation source `func_800B3F84` is handed for both of the work block's
+/// Animation source `animationInitContext` is handed for both of the work block's
 /// contexts.
 extern u8 gRigAnimSource[];
 

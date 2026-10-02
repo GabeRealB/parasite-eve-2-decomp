@@ -33,8 +33,8 @@ void viewFigureSpawnState(Enemy* enemy, Task* task)
     coord->composeStamp              = GRAPHICS_COORD_DIRTY;
     gActorSelfTask                   = task;
     gActorHelperTask                 = Task_SpawnFromTable(gViewFigureTasks, 1, 0, 0);
-    func_800B3F84(&gViewFigureWork->rig.anim, gViewFigureAnimSets, obj,
-                  gViewFigureWork->rig.poses, gViewFigureWork->rig.slots);
+    animationInitContext(&gViewFigureWork->rig.anim, (AnimationSet**)gViewFigureAnimSets, obj,
+                         (u8(*)[ANIMATION_POSE_BUFFER_BYTES])gViewFigureWork->rig.poses, gViewFigureWork->rig.slots);
     gViewFigureWork->st.animId = 1;
     gViewFigureWork->st.state  = 2;
     viewFigureStepAnim(task);

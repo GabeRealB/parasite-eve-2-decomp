@@ -1594,8 +1594,8 @@ static void func_actor_260500_80149FB0(Enemy* enemy, Task* task)
     D_actor_260500_80159E50          = task;
     vec.vz                           = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
-    func_800B3F84(&gFootstepWalkWork->rig.anim, D_actor_260500_80159DBC, obj,
-                  gFootstepWalkWork->rig.poses, gFootstepWalkWork->rig.slots);
+    animationInitContext(&gFootstepWalkWork->rig.anim, (AnimationSet**)D_actor_260500_80159DBC, obj,
+                         gFootstepWalkWork->rig.poses, gFootstepWalkWork->rig.slots);
     gFootstepWalkWork->st.animId  = 4;
     gFootstepWalkWork->st.state   = 2;
     gFootstepWalkWork->st.travel  = 0;

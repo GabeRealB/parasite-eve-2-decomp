@@ -49,7 +49,7 @@ STATIC_ASSERT_SIZEOF(Actor120400MainWork, 0x504);
 
 /// Animation source indexed by the bank id the presets latch:
 /// `gActorMotionAnimBanks[work->model.bank]` is the bank handed to
-/// `func_800B3F84`.
+/// `animationInitContext`.
 extern AnimationSet*  D_actor_120400_8013E6D0[29];
 extern AnimationSet** gActorMotionAnimBanks[1];
 
@@ -1036,7 +1036,7 @@ static void func_actor_120400_80132050(Task* arg0)
 /// it, and a start preset is built on the stack -- bank id 0, the optional start
 /// animation's id and companion byte (0x10 and 1 when absent), 1, 5 and 1 --
 /// and then applied in-line. A changed bank id latches `model.bank` and reseeds
-/// the animation through `func_800B3F84` with the bank this overlay's
+/// the animation through `animationInitContext` with the bank this overlay's
 /// `gActorMotionAnimBanks` selects; `model.animId` takes the preset's animation
 /// id, and a preset asking for slots while `model.ticking` says the slots are
 /// already ticking is pushed onto `animationSeekSlotWithBlend`'s per-slot loop instead of
@@ -1077,8 +1077,8 @@ s32 func_actor_120400_80132398(Task* task, s32 arg1, ActorTransform* place, Acto
     ext  = task->extra.tmd;
     if (msg->source.index != work->model.bank) {
         work->model.bank = msg->source.index;
-        func_800B3F84(&work->rig.anim, gActorMotionAnimBanks[work->model.bank], ext, work->rig.poses,
-                      work->rig.slots);
+        animationInitContext(&work->rig.anim, gActorMotionAnimBanks[work->model.bank], ext, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->rig.poses,
+                             work->rig.slots);
     }
     work->model.animId = msg->animationId;
     if (msg->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {

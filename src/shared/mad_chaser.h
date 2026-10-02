@@ -56,13 +56,13 @@ typedef struct MadChaserWork {
     byte             pad_96[0x2];
     SVECTOR          field_98;     // translation of coords[6] relative to the view
     AnimationContext anim;
-    /// First of the nine `AnimationSlot`s handed to `func_800B3F84`; the second
+    /// First of the nine `AnimationSlot`s handed to `animationInitContext`; the second
     /// overlaps `flags_EC`, so only the first is spelled out.
     AnimationSlot         slot_B4;
     byte                  pad_DC[0x10];
     MadChaserSlotFlags    flags_EC;
     byte                  pad_F0[0x12C];
-    byte                  field_21C[0x90]; // `func_800B3F84`'s arg3 buffer
+    byte                  field_21C[0x90]; // `animationInitContext`'s poseBuffer buffer
     WorldCollisionBody    obj_2AC;
     WorldCollisionBody    obj_2CC;
     WorldCollisionContact rec_2EC[8];
