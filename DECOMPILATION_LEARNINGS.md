@@ -105782,7 +105782,7 @@ sibling `func_actor_800200_8016337C` and `func_actor_800200_80163584` are still
 The landed body itself is the family shape already described here: the m2c seed
 scored 81.273% because it typed the path table as 4-byte elements (an `sll 0x5`
 where the target has `sll 0x3`) and scaled `coord + 0x18` by `sizeof(*coord)`
-into `0x780`. Declaring `GpActorPathStep D_actor_800200_8016A058[]` and writing
+into `0x780`. Declaring `_Actor800200Waypoint D_actor_800200_8016A058[]` and writing
 `D_actor_800200_8016A058[1]` / `[companion->waypointIndex]` with the sibling idiom matched
 100.00% with all-zero penalties on the first typed attempt; the `$s3 = 1` held
 across calls that the seed lacked came out of the source by itself, with no pin.
@@ -105840,7 +105840,7 @@ build's silence.
 
 `func_actor_800200_80162BFC` itself then matched on the first typed attempt after
 the two mechanical edits, following the `D_actor_800200_8016A020[3]` /
-`[companion->waypointIndex]` `GpActorPathStep` idiom of its siblings; the seed had typed the
+`[companion->waypointIndex]` `_Actor800200Waypoint` idiom of its siblings; the seed had typed the
 table as an untyped scalar and scaled `coord + 0x18` by `sizeof(GfxCoord)`.
 
 ## A stored literal the arm also compares against needs no `SC` local (func_actor_800200_8016337C, 2026-09-16)
@@ -106102,7 +106102,7 @@ trailing, 100% with the `u16` flag. Inputs: `base_2.i`
 Reading a fixed-index table access out of a target is ambiguous unless you know
 that this compiler does *not* fold `8*index` into the address constant. The
 symbol keeps its own address in the `lui`/`addiu` pair and the index becomes the
-load displacement, so `Tab[3].field_0` compiles to
+load displacement, so `Tab[3].x` compiles to
 
 ```
 lui   v1,%hi(Tab)
@@ -106111,7 +106111,7 @@ lw    v0,0x18(v1)         /* 8*3 here, not 0 */
 ```
 
 The sibling `func_actor_800200_80162BFC` is the control: its matched
-`D_actor_800200_8016A020[3].field_0` is `addiu $v1,$v1,0xA020` (`%lo(0x8016A020)`)
+`D_actor_800200_8016A020[3].x` is `addiu $v1,$v1,0xA020` (`%lo(0x8016A020)`)
 plus `lw $v0,0x18($v1)`. So a target word pair of `%lo(SYM)` + `lw 0x18(reg)` is
 `SYM[3]`, and rewriting it as a second symbol at `SYM+0x18` indexed from zero is
 *not* equivalent - that emits `%lo(SYM+0x18)` (`0xA010` for a `0x9FF8` base) with
@@ -106122,7 +106122,7 @@ symbol: case 0 is `D_actor_800200_80169FF8[3]` (`%lo(...9FF8)` + `0x18`) and cas
 1 is `D_actor_800200_80169FF8[companion->waypointIndex]` (same base, `sll 3` folded into the
 register, displacement 0). Splat printed that base as an auto-named
 `D_actor_800200_80169FF8`; it links as declared, needing nothing beyond the
-`extern GpActorPathStep D_actor_800200_80169FF8[];` the neighbouring tables in
+`extern _Actor800200Waypoint D_actor_800200_80169FF8[];` the neighbouring tables in
 the same `.c` already use.
 
 ## A sub-word constant store captures the *next* store's constant — read an `int` value to make both stores share one register

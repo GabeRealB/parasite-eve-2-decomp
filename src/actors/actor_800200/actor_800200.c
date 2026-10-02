@@ -42,13 +42,18 @@
 
 enum { COMPANION_ROUTE_COMPLETE = 1 };
 
-/// 8-byte fixed-point X/Z entry of a path table (`D_actor_800200_8016A128`
-/// and its neighbours). `CompanionWork.waypointIndex` selects the entry; the Y
-/// component of a destination comes from the actor's own `GfxCoord`.
+/// One X/Z stop on a scripted route for this companion.
+///
+/// A route is a table of these stops. Handlers select an entry with
+/// `CompanionWork.waypointIndex`, copy `x` and `z` into
+/// `GameActor.destination`, and take Y from the actor's current translation.
+/// Both components are signed game coordinates in the root coordinate's
+/// parent space.
 typedef struct {
-    /* 0x0 */ s32 field_0;
-    /* 0x4 */ s32 field_4;
-} GpActorPathStep;
+    s32 x; // Signed game X of this stop
+    s32 z; // Signed game Z of this stop
+} _Actor800200Waypoint;
+STATIC_ASSERT_SIZEOF(_Actor800200Waypoint, 8);
 
 /// 0x18-byte scratch stack block `func_actor_800200_801622B0` takes for the
 /// ground-quad heading it copies into the three `GameActor.collisionMotionContexts` records.
@@ -77,23 +82,23 @@ STATIC_ASSERT_SIZEOF(Actor800200MessageEntry, 8);
 
 extern Actor800200MessageEntry D_actor_800200_80169EF0[20];
 extern u8*                     D_actor_800200_80169FD0[4];
-extern GpActorPathStep         D_actor_800200_80169FE0[];
-extern GpActorPathStep         D_actor_800200_80169FF8[];
-extern GpActorPathStep         D_actor_800200_8016A018[];
-extern GpActorPathStep         D_actor_800200_8016A020[];
-extern GpActorPathStep         D_actor_800200_8016A040[];
-extern GpActorPathStep         D_actor_800200_8016A048[];
-extern GpActorPathStep         D_actor_800200_8016A058[];
-extern GpActorPathStep         D_actor_800200_8016A068[];
-extern GpActorPathStep         D_actor_800200_8016A080[];
-extern GpActorPathStep         D_actor_800200_8016A090[];
-extern GpActorPathStep         D_actor_800200_8016A098[];
-extern GpActorPathStep         D_actor_800200_8016A0B0[];
-extern GpActorPathStep         D_actor_800200_8016A0C8[];
-extern GpActorPathStep         D_actor_800200_8016A0E0[];
-extern GpActorPathStep         D_actor_800200_8016A108[];
-extern GpActorPathStep         D_actor_800200_8016A128[];
-extern GpActorPathStep         D_actor_800200_8016A130[];
+extern _Actor800200Waypoint    D_actor_800200_80169FE0[];
+extern _Actor800200Waypoint    D_actor_800200_80169FF8[];
+extern _Actor800200Waypoint    D_actor_800200_8016A018[];
+extern _Actor800200Waypoint    D_actor_800200_8016A020[];
+extern _Actor800200Waypoint    D_actor_800200_8016A040[];
+extern _Actor800200Waypoint    D_actor_800200_8016A048[];
+extern _Actor800200Waypoint    D_actor_800200_8016A058[];
+extern _Actor800200Waypoint    D_actor_800200_8016A068[];
+extern _Actor800200Waypoint    D_actor_800200_8016A080[];
+extern _Actor800200Waypoint    D_actor_800200_8016A090[];
+extern _Actor800200Waypoint    D_actor_800200_8016A098[];
+extern _Actor800200Waypoint    D_actor_800200_8016A0B0[];
+extern _Actor800200Waypoint    D_actor_800200_8016A0C8[];
+extern _Actor800200Waypoint    D_actor_800200_8016A0E0[];
+extern _Actor800200Waypoint    D_actor_800200_8016A108[];
+extern _Actor800200Waypoint    D_actor_800200_8016A128[];
+extern _Actor800200Waypoint    D_actor_800200_8016A130[];
 
 static void func_actor_800200_801626A0(Task* task);
 static void func_actor_800200_801652EC(Task* arg0);
@@ -282,78 +287,78 @@ u8* D_actor_800200_80169FD0[4] = {
     D_actor_800200_80169FC0,
 };
 
-GpActorPathStep D_actor_800200_80169FE0[3] = {
+_Actor800200Waypoint D_actor_800200_80169FE0[3] = {
     { 0x3C28, 3850 },
     { 0x52DA, 3390 },
     { 0x5488, 3000 },
 };
 
-GpActorPathStep D_actor_800200_80169FF8[4] = {
+_Actor800200Waypoint D_actor_800200_80169FF8[4] = {
     { 0x32C8, 3740 },
     { 7530, 2720 },
     { 1720, 1480 },
     { 5100, 1250 },
 };
 
-GpActorPathStep D_actor_800200_8016A018[1] = {
+_Actor800200Waypoint D_actor_800200_8016A018[1] = {
     { 940, 2320 },
 };
 
-GpActorPathStep D_actor_800200_8016A020[4] = {
+_Actor800200Waypoint D_actor_800200_8016A020[4] = {
     { 5000, 3760 },
     { 2970, 3020 },
     { 3400, 1640 },
     { 4530, 1500 },
 };
 
-GpActorPathStep D_actor_800200_8016A040[1] = {
+_Actor800200Waypoint D_actor_800200_8016A040[1] = {
     { 200, 1650 },
 };
 
-GpActorPathStep D_actor_800200_8016A048[2] = {
+_Actor800200Waypoint D_actor_800200_8016A048[2] = {
     { 1530, 2560 },
     { 1100, 7060 },
 };
 
-GpActorPathStep D_actor_800200_8016A058[2] = {
+_Actor800200Waypoint D_actor_800200_8016A058[2] = {
     { 0x2C4C, 1450 },
     { 7940, 1590 },
 };
 
-GpActorPathStep D_actor_800200_8016A068[3] = {
+_Actor800200Waypoint D_actor_800200_8016A068[3] = {
     { 4100, -350 },
     { 200, -1050 },
     { -1900, 600 },
 };
 
-GpActorPathStep D_actor_800200_8016A080[2] = {
+_Actor800200Waypoint D_actor_800200_8016A080[2] = {
     { 8512, 2880 },
     { 0x2792, 2880 },
 };
 
-GpActorPathStep D_actor_800200_8016A090[1] = {
+_Actor800200Waypoint D_actor_800200_8016A090[1] = {
     { 3130, 0 },
 };
 
-GpActorPathStep D_actor_800200_8016A098[3] = {
+_Actor800200Waypoint D_actor_800200_8016A098[3] = {
     { -9350, -1248 },
     { -5070, 230 },
     { -4960, 1380 },
 };
 
-GpActorPathStep D_actor_800200_8016A0B0[3] = {
+_Actor800200Waypoint D_actor_800200_8016A0B0[3] = {
     { -4740, 4740 },
     { 2170, 4660 },
     { 2100, 3390 },
 };
 
-GpActorPathStep D_actor_800200_8016A0C8[3] = {
+_Actor800200Waypoint D_actor_800200_8016A0C8[3] = {
     { 4600, -320 },
     { 5200, -1540 },
     { 9100, -1560 },
 };
 
-GpActorPathStep D_actor_800200_8016A0E0[5] = {
+_Actor800200Waypoint D_actor_800200_8016A0E0[5] = {
     { -480, -3700 },
     { 1940, -3640 },
     { 3000, -320 },
@@ -361,18 +366,18 @@ GpActorPathStep D_actor_800200_8016A0E0[5] = {
     { 1980, -6660 },
 };
 
-GpActorPathStep D_actor_800200_8016A108[4] = {
+_Actor800200Waypoint D_actor_800200_8016A108[4] = {
     { 1780, 7950 },
     { 9850, 7980 },
     { 9710, 6210 },
     { 0x288C, 6240 },
 };
 
-GpActorPathStep D_actor_800200_8016A128[1] = {
+_Actor800200Waypoint D_actor_800200_8016A128[1] = {
     { 5570, 18 },
 };
 
-GpActorPathStep D_actor_800200_8016A130[5] = {
+_Actor800200Waypoint D_actor_800200_8016A130[5] = {
     { -800, -2050 },
     { 10, -2950 },
     { 10, -6900 },
@@ -1218,16 +1223,16 @@ static void func_actor_800200_80162990(Task* arg0)
     switch (state) {
         case 0:
             actor->stateAux       = 1;
-            actor->destination.vx = D_actor_800200_80169FF8[3].field_0;
+            actor->destination.vx = D_actor_800200_80169FF8[3].x;
             actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_80169FF8[3].field_4;
+            actor->destination.vz = D_actor_800200_80169FF8[3].z;
             if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
                 goto arrived;
             }
         case 1:
-            actor->destination.vx = D_actor_800200_80169FF8[companion->waypointIndex].field_0;
+            actor->destination.vx = D_actor_800200_80169FF8[companion->waypointIndex].x;
             actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_80169FF8[companion->waypointIndex].field_4;
+            actor->destination.vz = D_actor_800200_80169FF8[companion->waypointIndex].z;
             if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 3) {
                 arrived:
@@ -1283,16 +1288,16 @@ static void func_actor_800200_80162BFC(Task* arg0)
     switch (state) {
         case 0:
             actor->stateAux       = 1;
-            actor->destination.vx = D_actor_800200_8016A020[3].field_0;
+            actor->destination.vx = D_actor_800200_8016A020[3].x;
             actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A020[3].field_4;
+            actor->destination.vz = D_actor_800200_8016A020[3].z;
             if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
                 goto arrived;
             }
         case 1:
-            actor->destination.vx = D_actor_800200_8016A020[companion->waypointIndex].field_0;
+            actor->destination.vx = D_actor_800200_8016A020[companion->waypointIndex].x;
             actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A020[companion->waypointIndex].field_4;
+            actor->destination.vz = D_actor_800200_8016A020[companion->waypointIndex].z;
             if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 3) {
                 arrived:
@@ -1346,9 +1351,9 @@ static void func_actor_800200_80162E0C(Task* arg0)
     companion = actor->companionWork;
     switch (actor->stateAux) {
         case 0:
-            actor->destination.vx = D_actor_800200_80169FE0[companion->waypointIndex].field_0;
+            actor->destination.vx = D_actor_800200_80169FE0[companion->waypointIndex].x;
             actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_80169FE0[companion->waypointIndex].field_4;
+            actor->destination.vz = D_actor_800200_80169FE0[companion->waypointIndex].z;
             if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 2) {
                     actor->stateAux       = 3;
@@ -1416,16 +1421,16 @@ static void func_actor_800200_80163044(Task* arg0)
         case 0:
             flag                  = 1;
             actor->stateAux       = flag;
-            actor->destination.vx = D_actor_800200_8016A048[1].field_0;
+            actor->destination.vx = D_actor_800200_8016A048[1].x;
             actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A048[1].field_4;
+            actor->destination.vz = D_actor_800200_8016A048[1].z;
             if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
                 goto arrived;
             }
         case 1:
-            actor->destination.vx = D_actor_800200_8016A048[companion->waypointIndex].field_0;
+            actor->destination.vx = D_actor_800200_8016A048[companion->waypointIndex].x;
             actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A048[companion->waypointIndex].field_4;
+            actor->destination.vz = D_actor_800200_8016A048[companion->waypointIndex].z;
             if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 1) {
                 arrived:
@@ -1458,16 +1463,16 @@ static void func_actor_800200_80163180(Task* arg0)
     switch (state) {
         case 0:
             actor->stateAux       = 1;
-            actor->destination.vx = D_actor_800200_8016A058[1].field_0;
+            actor->destination.vx = D_actor_800200_8016A058[1].x;
             actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A058[1].field_4;
+            actor->destination.vz = D_actor_800200_8016A058[1].z;
             if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
                 goto arrived;
             }
         case 1:
-            actor->destination.vx = D_actor_800200_8016A058[companion->waypointIndex].field_0;
+            actor->destination.vx = D_actor_800200_8016A058[companion->waypointIndex].x;
             actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A058[companion->waypointIndex].field_4;
+            actor->destination.vz = D_actor_800200_8016A058[companion->waypointIndex].z;
             if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 1) {
                 arrived:
@@ -1519,16 +1524,16 @@ static void func_actor_800200_8016337C(Task* arg0)
     switch (state) {
         case 0:
             actor->stateAux       = 1;
-            actor->destination.vx = D_actor_800200_8016A068[2].field_0;
+            actor->destination.vx = D_actor_800200_8016A068[2].x;
             actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A068[2].field_4;
+            actor->destination.vz = D_actor_800200_8016A068[2].z;
             if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
                 goto arrived;
             }
         case 1:
-            actor->destination.vx = D_actor_800200_8016A068[companion->waypointIndex].field_0;
+            actor->destination.vx = D_actor_800200_8016A068[companion->waypointIndex].x;
             actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A068[companion->waypointIndex].field_4;
+            actor->destination.vz = D_actor_800200_8016A068[companion->waypointIndex].z;
             if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 2) {
                 arrived:
@@ -1584,9 +1589,9 @@ static void func_actor_800200_80163584(Task* arg0)
     switch (state) {
         case 0:
             actor->stateAux       = 1;
-            actor->destination.vx = D_actor_800200_8016A080[1].field_0;
+            actor->destination.vx = D_actor_800200_8016A080[1].x;
             actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A080[1].field_4;
+            actor->destination.vz = D_actor_800200_8016A080[1].z;
             if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
                 goto arrived;
             }
@@ -1595,9 +1600,9 @@ static void func_actor_800200_80163584(Task* arg0)
             func_actor_800200_80165534(arg0);
             return;
         case 2:
-            actor->destination.vx = D_actor_800200_8016A080[companion->waypointIndex].field_0;
+            actor->destination.vx = D_actor_800200_8016A080[companion->waypointIndex].x;
             actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A080[companion->waypointIndex].field_4;
+            actor->destination.vz = D_actor_800200_8016A080[companion->waypointIndex].z;
             if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 1) {
                 arrived:
@@ -1654,16 +1659,16 @@ static void func_actor_800200_801637B4(Task* arg0)
         case 0:
             flag                  = 1;
             actor->stateAux       = flag;
-            actor->destination.vx = D_actor_800200_8016A098[2].field_0;
+            actor->destination.vx = D_actor_800200_8016A098[2].x;
             actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A098[2].field_4;
+            actor->destination.vz = D_actor_800200_8016A098[2].z;
             if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
                 goto arrived;
             }
         case 1:
-            actor->destination.vx = D_actor_800200_8016A098[companion->waypointIndex].field_0;
+            actor->destination.vx = D_actor_800200_8016A098[companion->waypointIndex].x;
             actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A098[companion->waypointIndex].field_4;
+            actor->destination.vz = D_actor_800200_8016A098[companion->waypointIndex].z;
             if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 2) {
                 arrived:
@@ -1702,16 +1707,16 @@ static void func_actor_800200_8016390C(Task* arg0)
         case 0:
             flag                  = 1;
             actor->stateAux       = flag;
-            actor->destination.vx = D_actor_800200_8016A0B0[2].field_0;
+            actor->destination.vx = D_actor_800200_8016A0B0[2].x;
             actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A0B0[2].field_4;
+            actor->destination.vz = D_actor_800200_8016A0B0[2].z;
             if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
                 goto arrived;
             }
         case 1:
-            actor->destination.vx = D_actor_800200_8016A0B0[companion->waypointIndex].field_0;
+            actor->destination.vx = D_actor_800200_8016A0B0[companion->waypointIndex].x;
             actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A0B0[companion->waypointIndex].field_4;
+            actor->destination.vz = D_actor_800200_8016A0B0[companion->waypointIndex].z;
             if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 2) {
                 arrived:
@@ -1744,18 +1749,18 @@ static void func_actor_800200_80163A54(Task* arg0)
         case 0:
             flag                  = 1;
             actor->stateAux       = flag;
-            actor->destination.vx = D_actor_800200_8016A0C8[2].field_0;
+            actor->destination.vx = D_actor_800200_8016A0C8[2].x;
             actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A0C8[2].field_4;
+            actor->destination.vz = D_actor_800200_8016A0C8[2].z;
             if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
                 goto arrived;
             }
             func_actor_800200_80165534(arg0);
             break;
         case 1:
-            actor->destination.vx = D_actor_800200_8016A0C8[companion->waypointIndex].field_0;
+            actor->destination.vx = D_actor_800200_8016A0C8[companion->waypointIndex].x;
             actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A0C8[companion->waypointIndex].field_4;
+            actor->destination.vz = D_actor_800200_8016A0C8[companion->waypointIndex].z;
             if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 2) {
                 arrived:
@@ -1788,18 +1793,18 @@ static void func_actor_800200_80163B90(Task* arg0)
         case 0:
             flag                  = 1;
             actor->stateAux       = flag;
-            actor->destination.vx = D_actor_800200_8016A0E0[4].field_0;
+            actor->destination.vx = D_actor_800200_8016A0E0[4].x;
             actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A0E0[4].field_4;
+            actor->destination.vz = D_actor_800200_8016A0E0[4].z;
             if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
                 goto arrived;
             }
             func_actor_800200_80165534(arg0);
             return;
         case 1:
-            actor->destination.vx = D_actor_800200_8016A0E0[companion->waypointIndex].field_0;
+            actor->destination.vx = D_actor_800200_8016A0E0[companion->waypointIndex].x;
             actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A0E0[companion->waypointIndex].field_4;
+            actor->destination.vz = D_actor_800200_8016A0E0[companion->waypointIndex].z;
             if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 4) {
                 arrived:
@@ -1834,16 +1839,16 @@ static void func_actor_800200_80163CCC(Task* arg0)
         case 0:
             flag                  = 1;
             actor->stateAux       = flag;
-            actor->destination.vx = D_actor_800200_8016A108[3].field_0;
+            actor->destination.vx = D_actor_800200_8016A108[3].x;
             actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A108[3].field_4;
+            actor->destination.vz = D_actor_800200_8016A108[3].z;
             if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
                 goto arrived;
             }
         case 1:
-            actor->destination.vx = D_actor_800200_8016A108[companion->waypointIndex].field_0;
+            actor->destination.vx = D_actor_800200_8016A108[companion->waypointIndex].x;
             actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A108[companion->waypointIndex].field_4;
+            actor->destination.vz = D_actor_800200_8016A108[companion->waypointIndex].z;
             if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 3) {
                 arrived:
@@ -1879,16 +1884,16 @@ static void func_actor_800200_80163E14(Task* arg0)
         case 0:
             flag                  = 1;
             actor->stateAux       = flag;
-            actor->destination.vx = D_actor_800200_8016A130[4].field_0;
+            actor->destination.vx = D_actor_800200_8016A130[4].x;
             actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A130[4].field_4;
+            actor->destination.vz = D_actor_800200_8016A130[4].z;
             if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
                 goto arrived;
             }
         case 1:
-            actor->destination.vx = D_actor_800200_8016A130[companion->waypointIndex].field_0;
+            actor->destination.vx = D_actor_800200_8016A130[companion->waypointIndex].x;
             actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A130[companion->waypointIndex].field_4;
+            actor->destination.vz = D_actor_800200_8016A130[companion->waypointIndex].z;
             if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 4) {
                 arrived:
@@ -2874,9 +2879,9 @@ static void func_actor_800200_80165814(Task* arg0)
     coord     = arg0->extra.tmd->coords;
     companion = actor->companionWork;
     if (actor->stateAux == 0) {
-        actor->destination.vx = D_actor_800200_8016A018[companion->waypointIndex].field_0;
+        actor->destination.vx = D_actor_800200_8016A018[companion->waypointIndex].x;
         actor->destination.vy = coord->coord.t[1];
-        actor->destination.vz = D_actor_800200_8016A018[companion->waypointIndex].field_4;
+        actor->destination.vz = D_actor_800200_8016A018[companion->waypointIndex].z;
         if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
             companion->routeComplete = COMPANION_ROUTE_COMPLETE;
             func_actor_800200_801654EC(arg0, 0);
@@ -2900,9 +2905,9 @@ static void func_actor_800200_801658E0(Task* arg0)
     coord     = arg0->extra.tmd->coords;
     companion = actor->companionWork;
     if (actor->stateAux == 0) {
-        actor->destination.vx = D_actor_800200_8016A040[companion->waypointIndex].field_0;
+        actor->destination.vx = D_actor_800200_8016A040[companion->waypointIndex].x;
         actor->destination.vy = coord->coord.t[1];
-        actor->destination.vz = D_actor_800200_8016A040[companion->waypointIndex].field_4;
+        actor->destination.vz = D_actor_800200_8016A040[companion->waypointIndex].z;
         if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
             companion->routeComplete = COMPANION_ROUTE_COMPLETE;
             func_actor_800200_801654EC(arg0, 0);
@@ -2931,9 +2936,9 @@ static void func_actor_800200_801659CC(Task* arg0)
     companion = actor->companionWork;
     switch (state) {
         case 0:
-            actor->destination.vx = D_actor_800200_8016A090[companion->waypointIndex].field_0;
+            actor->destination.vx = D_actor_800200_8016A090[companion->waypointIndex].x;
             actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A090[companion->waypointIndex].field_4;
+            actor->destination.vz = D_actor_800200_8016A090[companion->waypointIndex].z;
             if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
                 actor->stateAux++;
                 if (companion->routeComplete != COMPANION_ROUTE_COMPLETE) {
@@ -2960,9 +2965,9 @@ static void func_actor_800200_80165ACC(Task* arg0)
     coord     = arg0->extra.tmd->coords;
     companion = actor->companionWork;
     if (actor->stateAux == 0) {
-        actor->destination.vx = D_actor_800200_8016A128[companion->waypointIndex].field_0;
+        actor->destination.vx = D_actor_800200_8016A128[companion->waypointIndex].x;
         actor->destination.vy = coord->coord.t[1];
-        actor->destination.vz = D_actor_800200_8016A128[companion->waypointIndex].field_4;
+        actor->destination.vz = D_actor_800200_8016A128[companion->waypointIndex].z;
         if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
             companion->routeComplete = COMPANION_ROUTE_COMPLETE;
             func_actor_800200_80165534(arg0);
