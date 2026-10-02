@@ -342,20 +342,22 @@ static inline void _modelLightingInitGt4Texture(POLY_GT4* quad, const u32* eleme
 ///
 /// `quad` must address a writable, four-byte-aligned `POLY_GT4` packet.
 /// `elementWords` starts at a four-byte-aligned element payload, after an
-/// opcode `0x170` record's three-word header, with at least eleven readable
-/// u32 words. This minimum does not establish the full element stride. Words
-/// 0..3 pack four vertex and four normal byte offsets, and words 4..7 hold the
-/// corners' material RGB and command bytes; this helper reads neither. On the
-/// little-endian target, words 8 and 9 pack unsigned byte U/V texel coordinates in bits
-/// 0..15 and encoded CLUT/page settings in bits 16..31. Word 10 packs U2/V2
-/// in its low half and U3/V3 in its high half.
+/// opcode `0x170` record's three-word header, and must provide at least eleven
+/// readable u32 words. Eleven words is the readable minimum, not the element's
+/// stride. Words 0..3 pack eight u16 byte offsets, vertices 0..3 then normals
+/// 0..3. Words 4..7 are the corners' material RGB and command bytes, lit when
+/// the quad is drawn. This helper copies only the texture suffix. On the
+/// little-endian target, word 8 packs U0/V0 in bits 0..15 and the encoded CLUT
+/// in bits 16..31, and word 9 packs U1/V1 in bits 0..15 and the encoded
+/// texture-page settings in bits 16..31. Word 10 packs U2/V2 in its low half
+/// and U3/V3 in its high half.
 ///
 /// `workspace` supplies construction-time signed encoded-address displacements:
 /// `texturePageOffset` (-128..127) and `encodedClutOffset` (-8192..8128, 64 per
-/// palette row). Both sums wrap modulo 65536 in their u16 packet fields without
-/// changing U/V. The packet's tag, colours/command, screen positions and SDK
-/// pad fields are preserved for drawing. All three objects are borrowed for
-/// this call; no pointer is retained and the workspace is unchanged.
+/// palette row). Both sums wrap modulo 65536 in their u16 packet fields and
+/// leave U/V unchanged. The packet's tag, colours/command, screen positions and
+/// SDK pad fields stay as they are for drawing. All three objects are borrowed
+/// for this call; no pointer is retained and the workspace is not modified.
 static inline void _modelLightingInitGt4CornerColorsTexture(POLY_GT4* quad, const u32* elementWords,
                                                             const TmdStreamWorkspace* workspace)
 {
