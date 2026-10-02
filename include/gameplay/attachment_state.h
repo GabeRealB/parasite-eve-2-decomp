@@ -16,12 +16,8 @@
 #define ATTACHMENT_LEVEL_HIT_COOLDOWN 7
 #define ATTACHMENT_LEVEL_COLUMN_COUNT 8
 
-/// Parameters of one attachment ability at one level.
-///
-/// `GpIdParamTable` holds 55 rows. Row 0 is empty, and each of the eighteen
-/// abilities occupies the next three rows, level 1 then 2 then 3. An attack
-/// id with bit 0x8000 set selects the same row by its low 7 bits, so a spell
-/// level and that spell's hit record are one row.
+/// Parameters of one attachment ability at one level, one row of
+/// `AttachmentLevelTable`.
 ///
 /// The ability menu labels the first four halfwords EXP cost, bonus MP,
 /// casting cost and ATP loss.
@@ -43,15 +39,23 @@ typedef union {
 } AttachmentLevelRow;
 STATIC_ASSERT_SIZEOF(AttachmentLevelRow, 0x10);
 
-/// Attachment level table.
+/// Rows in `AttachmentLevelTable`. Row 0 is empty; each of the eighteen
+/// abilities then takes three rows, level 1 then 2 then 3.
+#define ATTACHMENT_LEVEL_ROW_COUNT 55
+
+/// Parameters of every attachment ability at every level.
 ///
-/// `rows` addresses each level. `bytes` is the same storage by byte offset.
-/// Both views cover the whole table.
-typedef union GpIdParamTable {
-    AttachmentLevelRow rows[55];
-    u8                 bytes[55 * sizeof(AttachmentLevelRow)];
-} GpIdParamTable;
-STATIC_ASSERT_SIZEOF(GpIdParamTable, 0x370);
+/// Ability `slot` at level `lvl` (1, 2 or 3) is `rows[slot * 3 + lvl]`.
+/// An attack id with bit 0x8000 set selects that same row by its low 7 bits,
+/// so a spell's level and that spell's hit record are one row.
+///
+/// `rows` is the row view. `bytes` is the same storage addressed by byte,
+/// so a column is a byte offset from the table base.
+typedef union {
+    AttachmentLevelRow rows[ATTACHMENT_LEVEL_ROW_COUNT];                               // One ability level
+    u8                 bytes[ATTACHMENT_LEVEL_ROW_COUNT * sizeof(AttachmentLevelRow)]; // Same rows, addressed by byte
+} AttachmentLevelTable;
+STATIC_ASSERT_SIZEOF(AttachmentLevelTable, 0x370);
 
 /// Bits of `AttachmentState.flags`.
 #define ATTACHMENT_FLAG_EVENT_LOCK  1

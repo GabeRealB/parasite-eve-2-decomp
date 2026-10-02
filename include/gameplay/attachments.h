@@ -7,7 +7,7 @@
 
 // Attachment parameters, combination state and menu support.
 
-extern GpIdParamTable Gp_IdParamHi;
+extern AttachmentLevelTable Gp_IdParamHi;
 
 extern u8 Gp_DebugAttachLevels[18];
 
