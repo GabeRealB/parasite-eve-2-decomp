@@ -14,8 +14,23 @@
 /// accessor must evaluate its pointer argument once and preserve signedness.
 #define WATER_WAVE_STRIPS_SEGMENT_COUNT(surface) ((surface)->segmentCount)
 #endif
-#ifndef WATER_WAVE_STRIPS_OWN_CURSOR
-#define WATER_WAVE_STRIPS_OWN_CURSOR 0
+#ifndef WATER_WAVE_STRIPS_RESET_ACTOR_LOAD_CURSOR
+/// Selects whether the strip drawer resets its actor-load packet cursor.
+///
+/// Define to the integer literal 0 or 1 before including this file. With 0
+/// (the default), packets append to the caller-initialized cursor; the septic
+/// tank and water supply reset it once before drawing both surface lists.
+/// With 1, the main corridor drawer selects actor-load buffer 2 when the live
+/// save's companion type is zero, otherwise buffer 1, and resets the cursor to
+/// that buffer's current 0xC000-byte half on each drawing call. This prologue
+/// also skips stage 4, area 0x21, views 10 and 11, returning before any cursor
+/// reset or scratch reservation.
+///
+/// `WATER_WAVE_STRIPS_PRIM_CURSOR` must bind a writable `u8*` lvalue. The caller
+/// must reserve the selected packet area, with word alignment and enough space
+/// for the surface lists, until the GPU has consumed it. This configuration
+/// binding is tested only by the preprocessor and undefined after each include.
+#define WATER_WAVE_STRIPS_RESET_ACTOR_LOAD_CURSOR 0
 #endif
 #ifndef WATER_WAVE_STRIPS_NEAR_COLOURS
 /* red outer edge, grey seam */
@@ -55,8 +70,8 @@
 /// matrix. The seam between them is lifted by a sine wave along Z, scrolling
 /// with the display frame (amplitude `rsin >> WATER_WAVE_STRIPS_WAVE_SHIFT`);
 /// each quad is followed by a draw-mode packet selecting blend mode 2. The
-/// quads come from the room's own cursor WATER_WAVE_STRIPS_PRIM_CURSOR, which
-/// WATER_WAVE_STRIPS_OWN_CURSOR 1 resets each frame (the B2 main corridor).
+/// packets append to `WATER_WAVE_STRIPS_PRIM_CURSOR`, with initialization
+/// selected by `WATER_WAVE_STRIPS_RESET_ACTOR_LOAD_CURSOR`.
 /// The strips' vertex colours are WATER_WAVE_STRIPS_NEAR_COLOURS(poly) and
 /// WATER_WAVE_STRIPS_FAR_COLOURS(poly).
 static void WATER_WAVE_STRIPS_FUNC(Task* task)
@@ -72,11 +87,11 @@ static void WATER_WAVE_STRIPS_FUNC(Task* task)
     DR_MODE*                     dr;
     s32                          otz;
     s32                          i;
-#if WATER_WAVE_STRIPS_OWN_CURSOR
+#if WATER_WAVE_STRIPS_RESET_ACTOR_LOAD_CURSOR
     GameLocationKey* k;
 #endif
 
-#if WATER_WAVE_STRIPS_OWN_CURSOR
+#if WATER_WAVE_STRIPS_RESET_ACTOR_LOAD_CURSOR
     surface = WATER_WAVE_STRIPS_SURFACES;
     phase   = -(gDisplayState.animFrame * 16);
     k       = &gGameSession->location.loc;
@@ -197,6 +212,6 @@ static void WATER_WAVE_STRIPS_FUNC(Task* task)
 #undef WATER_WAVE_STRIPS_FAR_COLOURS
 #undef WATER_WAVE_STRIPS_SURFACE_T
 #undef WATER_WAVE_STRIPS_SEGMENT_COUNT
-#undef WATER_WAVE_STRIPS_OWN_CURSOR
+#undef WATER_WAVE_STRIPS_RESET_ACTOR_LOAD_CURSOR
 #undef WATER_WAVE_STRIPS_WAVE_SHIFT
 #undef WATER_WAVE_STRIPS_PRIM_CURSOR

@@ -1873,11 +1873,12 @@ void func_shelter_b2_main_corridor_8017E338(Task* task)
     sp.funcs[task->state](task);
 }
 
-#define WATER_WAVE_STRIPS_OWN_CURSOR  1
-#define WATER_WAVE_STRIPS_SURFACES    D_shelter_b2_main_corridor_80182DEC
-#define WATER_WAVE_STRIPS_HEIGHT      D_shelter_b2_main_corridor_80182E28
-#define WATER_WAVE_STRIPS_PRIM_CURSOR D_shelter_b2_main_corridor_80189660
-#define WATER_WAVE_STRIPS_WAVE_SHIFT  6
+/// Selects the drawer's actor-load cursor reset and corridor view exclusions.
+#define WATER_WAVE_STRIPS_RESET_ACTOR_LOAD_CURSOR 1
+#define WATER_WAVE_STRIPS_SURFACES                D_shelter_b2_main_corridor_80182DEC
+#define WATER_WAVE_STRIPS_HEIGHT                  D_shelter_b2_main_corridor_80182E28
+#define WATER_WAVE_STRIPS_PRIM_CURSOR             D_shelter_b2_main_corridor_80189660
+#define WATER_WAVE_STRIPS_WAVE_SHIFT              6
 #include "../../shared/water_wave_strips.inc.c"
 
 /// The water task: runs its state, first
