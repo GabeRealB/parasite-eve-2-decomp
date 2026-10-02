@@ -841,16 +841,88 @@ WorldCollisionOccluder D_dryfield_motel_room_1_801811BC[1] = {
     { NULL, NULL, { 1760, -1408, 4512, 0 }, { { -1632, -2432, 0, 0 }, { 1632, -2432, 0, 0 }, { -1632, 2432, 0, 0 }, { 1632, 2432, 0, 0 } }, { 0, 0, -4098, 0 }, 2918, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-WorldCoordPointLight D_dryfield_motel_room_1_801811F8[5] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1234, -1685, 5738 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3300, 3300, 3300 }, { 0, 0 } }, 1222, 4450 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3463, -1645, 1027 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4250, 4250, 4250 }, { 0, 0 } }, 2300, 4100 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 926, -1645, 83 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3800, 3800, 3800 }, { 0, 0 } }, 2153, 4701 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4433, -1645, 1308 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2800, 2800, 2800 }, { 0, 0 } }, 852, 3970 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4671, -1479, 4462 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4000, 4000, 4000 }, { 0, 0 } }, 1487, 3789 },
+/// Five white point lights contributing in every view of Dryfield motel room 1.
+///
+/// Positions and falloff radii use integer world units; RGB intensities have
+/// 12 fractional bits (`ONE` is full intensity). The loaded room overlay owns
+/// these writable records: coordinate updates parent and compose their
+/// transforms, and lighting queries overwrite attenuation. Borrowed pointers
+/// must not survive unloading the overlay.
+static WorldCoordPointLight _gDryfieldMotelRoom1PointLights[] = {
+    {
+        .head = {
+            .transform = { .lighting = {
+                               .composeStamp = GRAPHICS_COORD_DIRTY,
+                               .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1234, -1685, 5738 } },
+                               .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                               .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                               .parent       = NULL,
+                           } },
+            .color     = { 3300, 3300, 3300 },
+        },
+        .inner = 1222,
+        .outer = 4450,
+    },
+    {
+        .head = {
+            .transform = { .lighting = {
+                               .composeStamp = GRAPHICS_COORD_DIRTY,
+                               .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3463, -1645, 1027 } },
+                               .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                               .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                               .parent       = NULL,
+                           } },
+            .color     = { 4250, 4250, 4250 },
+        },
+        .inner = 2300,
+        .outer = 4100,
+    },
+    {
+        .head = {
+            .transform = { .lighting = {
+                               .composeStamp = GRAPHICS_COORD_DIRTY,
+                               .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 926, -1645, 83 } },
+                               .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                               .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                               .parent       = NULL,
+                           } },
+            .color     = { 3800, 3800, 3800 },
+        },
+        .inner = 2153,
+        .outer = 4701,
+    },
+    {
+        .head = {
+            .transform = { .lighting = {
+                               .composeStamp = GRAPHICS_COORD_DIRTY,
+                               .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4433, -1645, 1308 } },
+                               .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                               .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                               .parent       = NULL,
+                           } },
+            .color     = { 2800, 2800, 2800 },
+        },
+        .inner = 852,
+        .outer = 3970,
+    },
+    {
+        .head = {
+            .transform = { .lighting = {
+                               .composeStamp = GRAPHICS_COORD_DIRTY,
+                               .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4671, -1479, 4462 } },
+                               .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                               .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                               .parent       = NULL,
+                           } },
+            .color     = { 4000, 4000, 4000 },
+        },
+        .inner = 1487,
+        .outer = 3789,
+    },
 };
 
 WorldCoordRoomLights D_dryfield_motel_room_1_801813D8[1] = {
-    { 0, NULL, ARRAY_SIZE(D_dryfield_motel_room_1_801811F8), D_dryfield_motel_room_1_801811F8, 0, NULL },
+    { 0, NULL, ARRAY_SIZE(_gDryfieldMotelRoom1PointLights), _gDryfieldMotelRoom1PointLights, 0, NULL },
 };
 
 AreaResource D_dryfield_motel_room_1_801813F0[1] = {
