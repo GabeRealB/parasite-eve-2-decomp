@@ -20,54 +20,76 @@
 
 #include "gameplay/scene_runtime.h"
 
-/// Sector payload pointed to by CdStreamState::sector (MTS audio stream sector).
-typedef struct _MtsSector {
-    /* 0x00 */ s32 field_0;
-    /* 0x04 */ s32 field_4;
-    /* 0x08 */ u32 magic; // high 3 bytes = "MTS", low byte = channel count
-    /* 0x0C */ s8  field_C;
-    /* 0x0D */ u8  field_D;
-    /* 0x0E */ u8  field_E;
-    /* 0x0F */ s8  field_F;
-} MtsSector;
+/// High three bytes of `_MtsHeader::magic` (`'M'`, `'T'`, `'S'`). The low byte is the channel count.
+#define CD_STREAM_MTS_SIGNATURE 0x4D545300
+
+/// `_MtsHeader::flags` bit 7: `gapSectors` is the disc gap after this chunk.
+#define CD_STREAM_MTS_FLAG_GAP 0x80
+
+/// `_MtsHeader::flags` bits 5 and 6, selecting where the final chunk stops.
+#define CD_STREAM_MTS_FLAG_END_MASK 0x60
+
+/// `_MtsHeader::flags` bit 6: stop halfway through the final chunk. Wins over bit 5.
+#define CD_STREAM_MTS_FLAG_END_HALF 0x40
+
+/// Header in the first 16 bytes of an MTS audio sector.
+///
+/// `CdStreamState::sector` addresses the whole sector buffer. Header sectors
+/// recur every `period` sectors; the bytes after this header, and the sectors
+/// between headers, are SPU-ADPCM for `channelIndex`. `chunkIndex` numbers
+/// chunks from zero and is shared by every channel of the chunk. `chunkCount`
+/// is the stream length in chunks. `gapSectors` is the unused disc gap after
+/// the chunk.
+typedef struct {
+    s32 chunkIndex;   // chunk number, shared by every channel of the chunk
+    s32 chunkCount;   // total chunks in the stream
+    u32 magic;        // high 3 bytes are 'M','T','S'; low byte is the channel count
+    s8  channelIndex; // which channel this header's audio belongs to (0, 1)
+    u8  period;       // sectors until the next header
+    u8  gapSectors;   // disc sectors skipped after this chunk
+    s8  flags;        // bit7 apply gapSectors; bit6 stop halfway through the final chunk;
+                      // bit5 stop on entering it (bit6 wins if both are set); neither plays it through.
+                      // Other bits are unread.
+} _MtsHeader;
+STATIC_ASSERT_SIZEOF(_MtsHeader, 0x10);
 
 /// CD/SPU streaming control block, followed by its two voice channels.
 typedef struct _CdStreamState {
-    /* 0x00 */ u8         flags0; // bit0 busy, bit1 voice-on, bit3 IRQ, bit4 voices alloc, bit6 stop
-    /* 0x01 */ u8         flags1; // bit0 voices started, bit1 ending, bit3 param pending, bit7 enable param
-    /* 0x02 */ u8         flags2; // bit0 continue-arm, bit1/2 stream phase, bit3 XA pause
-    /* 0x03 */ u8         phase;  // 1 = completing, 2 = streaming
-    /* 0x04 */ u8         field_4;
-    /* 0x05 */ u8         pad_5;
-    /* 0x06 */ s16        readySlot; // 1-based CdReady_Queue index, 0 = none
-    /* 0x08 */ void       (*doneCb)(s32);
-    /* 0x0C */ void       (*startCb)(s32);
-    /* 0x10 */ void       (*voiceFreeCb)(s32);
-    /* 0x14 */ s32        field_14;
-    /* 0x18 */ s32        field_18;
-    /* 0x1C */ s32        field_1C;
-    /* 0x20 */ s32        field_20;
-    /* 0x24 */ s32        spuAddr;
-    /* 0x28 */ s32        startSector;
-    /* 0x2C */ s32        field_2C;
-    /* 0x30 */ s32        field_30;
-    /* 0x34 */ s32        field_34;
-    /* 0x38 */ s32        field_38;
-    /* 0x3C */ s32        spuBase;
-    /* 0x40 */ s16        sectorsPerChunk; // 0x18 (NTSC) or 0x14 (PAL)
-    /* 0x42 */ s16        ringHalf;        // 0x2770; half ring used in SPU addr math
-    /* 0x44 */ s16        countdown;
-    /* 0x46 */ s8         mtsPeriod;       // divisor for remaining % period SpuWrite cadence
-    /* 0x47 */ u8         mtsParam;
-    /* 0x48 */ MtsSector* sector;
-    /* 0x4C */ s16        field_4C;
-    /* 0x4E */ s16        remaining;
-    /* 0x50 */ u8         voiceL;
-    /* 0x51 */ u8         voiceR;
-    /* 0x52 */ s8         mode;
-    /* 0x53 */ u8         flags;         // bit1 = mono mix
-    /* 0x54 */ u16        pending;
-    /* 0x56 */ u16        settleCounter; // disc init settle ticks
+    /* 0x00 */ u8          flags0; // bit0 busy, bit1 voice-on, bit3 IRQ, bit4 voices alloc, bit6 stop
+    /* 0x01 */ u8          flags1; // bit0 voices started, bit1 ending, bit3 param pending, bit7 enable param
+    /* 0x02 */ u8          flags2; // bit0 continue-arm, bit1/2 stream phase, bit3 XA pause
+    /* 0x03 */ u8          phase;  // 1 = completing, 2 = streaming
+    /* 0x04 */ u8          field_4;
+    /* 0x05 */ u8          pad_5;
+    /* 0x06 */ s16         readySlot; // 1-based CdReady_Queue index, 0 = none
+    /* 0x08 */ void        (*doneCb)(s32);
+    /* 0x0C */ void        (*startCb)(s32);
+    /* 0x10 */ void        (*voiceFreeCb)(s32);
+    /* 0x14 */ s32         field_14;
+    /* 0x18 */ s32         field_18;
+    /* 0x1C */ s32         field_1C;
+    /* 0x20 */ s32         field_20;
+    /* 0x24 */ s32         spuAddr;
+    /* 0x28 */ s32         startSector;
+    /* 0x2C */ s32         field_2C;
+    /* 0x30 */ s32         field_30;
+    /* 0x34 */ s32         field_34;
+    /* 0x38 */ s32         field_38;
+    /* 0x3C */ s32         spuBase;
+    /* 0x40 */ s16         sectorsPerChunk; // 0x18 (NTSC) or 0x14 (PAL)
+    /* 0x42 */ s16         ringHalf;        // 0x2770; half ring used in SPU addr math
+    /* 0x44 */ s16         countdown;
+    /* 0x46 */ s8          mtsPeriod;       // divisor for remaining % period SpuWrite cadence
+    /* 0x47 */ u8          mtsParam;
+    /* 0x48 */ _MtsHeader* sector;
+    /* 0x4C */ s16         field_4C;
+    /* 0x4E */ s16         remaining;
+    /* 0x50 */ u8          voiceL;
+    /* 0x51 */ u8          voiceR;
+    /* 0x52 */ s8          mode;
+    /* 0x53 */ u8          flags;         // bit1 = mono mix
+    /* 0x54 */ u16         pending;
+    /* 0x56 */ u16         settleCounter; // disc init settle ticks
 } CdStreamState;
 STATIC_ASSERT_SIZEOF(CdStreamState, 0x58);
 
@@ -950,7 +972,7 @@ void CdStream_Start(CdStreamParams* arg0)
     a3.state->sectorsPerChunk = sectors;
     a3.state->ringHalf        = 0x2770;
     t0                        = PARENT_OF(a3.state, CdStreamRuntime, state)->channels.ch;
-    a3.state->sector          = (MtsSector*)arg0->sectorBuf;
+    a3.state->sector          = (_MtsHeader*)arg0->sectorBuf;
     a3.state->voiceL          = arg0->voiceL;
     vff                       = 0xFF;
     a3.state->voiceR          = arg0->voiceR;
@@ -2037,16 +2059,17 @@ static void CdStream_ReadyMts(u8 interrupt, u8* result)
                         goto check_status;
                     }
                     if ((u16)CdStream_Runtime.state.remaining == 0) {
-                        if ((CdStream_Runtime.state.sector->magic & ~0xFF) != 0x4D545300) {
+                        if ((CdStream_Runtime.state.sector->magic & ~0xFF) != CD_STREAM_MTS_SIGNATURE) {
                             CdStream_ErrorCode     = 8;
                             CdStream_LastErrorCode = CdStream_ErrorCode;
                             goto check_status;
                         }
-                        if (CdStream_Runtime.state.sector->field_0 == 0) {
-                            CdStream_Runtime.state.mtsPeriod = (s8)CdStream_Runtime.state.sector->field_D;
+                        if (CdStream_Runtime.state.sector->chunkIndex == 0) {
+                            CdStream_Runtime.state.mtsPeriod = (s8)CdStream_Runtime.state.sector->period;
                             CdStream_Runtime.state.remaining = (s16)(s8)(u8)CdStream_Runtime.state.mtsPeriod;
-                            CdStream_Runtime.state.mtsParam  = CdStream_Runtime.state.sector->field_E;
-                            if (CdStream_Runtime.state.sector->field_F & 0x80) {
+                            CdStream_Runtime.state.mtsParam  = CdStream_Runtime.state.sector->gapSectors;
+                            /* Bit 7 applies gapSectors as the disc gap after the chunk. */
+                            if (CdStream_Runtime.state.sector->flags & CD_STREAM_MTS_FLAG_GAP) {
                                 CdStream_Runtime.state.flags1 |= 4;
                             } else {
                                 CdStream_Runtime.state.flags1 &= 0xFB;
@@ -2075,19 +2098,20 @@ static void CdStream_ReadyMts(u8 interrupt, u8* result)
                             channelState->flags1  |= 1;
                             channels->ch[0].mask  |= 0x80;
                             channels->ch[1].mask   = channels->ch[0].mask;
-                            channelState->field_1C = (s32)channelState->sector->field_0;
-                            channelState->field_38 = (s32)channelState->sector->field_4;
-                            if (!((u8)channelState->sector->field_F & 0x60)) {
+                            channelState->field_1C = channelState->sector->chunkIndex;
+                            channelState->field_38 = channelState->sector->chunkCount;
+                            /* Bits 5 and 6 choose where playback of the final chunk stops. */
+                            if (!((u8)channelState->sector->flags & CD_STREAM_MTS_FLAG_END_MASK)) {
                                 channelState->flags1 = (u8)(channelState->flags1 | 0x40);
-                            } else if ((u8)channelState->sector->field_F & 0x40) {
+                            } else if ((u8)channelState->sector->flags & CD_STREAM_MTS_FLAG_END_HALF) {
                                 channelState->flags1 = (u8)(channelState->flags1 | 0x20);
                             } else {
                                 channelState->flags1 = (u8)(channelState->flags1 | 0x10);
                             }
                             goto start_chunk;
                         }
-                        if (CdStream_Runtime.state.sector->field_F & 0x80) {
-                            CdStream_Runtime.state.mtsParam = CdStream_Runtime.state.sector->field_E;
+                        if (CdStream_Runtime.state.sector->flags & CD_STREAM_MTS_FLAG_GAP) {
+                            CdStream_Runtime.state.mtsParam = CdStream_Runtime.state.sector->gapSectors;
                             if (CdStream_Runtime.state.mtsParam != 0) {
                                 CdStream_Runtime.state.flags1 |= 4;
                             } else {
@@ -2100,14 +2124,14 @@ static void CdStream_ReadyMts(u8 interrupt, u8* result)
                         CdStream_Runtime.state.remaining = (s16)(s8)(u8)CdStream_Runtime.state.mtsPeriod;
                     }
                     if (((s16)(u16)CdStream_Runtime.state.remaining % (s8)(u8)CdStream_Runtime.state.mtsPeriod) == 0) {
-                        CdStream_Runtime.state.field_1C = CdStream_Runtime.state.sector->field_0;
+                        CdStream_Runtime.state.field_1C = CdStream_Runtime.state.sector->chunkIndex;
                         if (CdStream_Runtime.state.field_1C == 0) {
-                            CdStream_Runtime.state.field_38 = CdStream_Runtime.state.sector->field_4;
+                            CdStream_Runtime.state.field_38 = CdStream_Runtime.state.sector->chunkCount;
                         }
                     start_chunk:
                         channelCount = (u8)CdStream_Runtime.state.sector->magic;
                         /* Preserve the signed comparison of the channel count. */
-                        if ((channelCount >= 2) && (CdStream_Runtime.state.sector->field_C == 0)) {
+                        if ((channelCount >= 2) && (CdStream_Runtime.state.sector->channelIndex == 0)) {
                             CdStream_Runtime.state.mode      = (s8)(u8)CdStream_Runtime.state.sector->magic;
                             CdStream_Runtime.state.remaining = (s8)(u8)CdStream_Runtime.state.mtsPeriod * (s8)(u8)CdStream_Runtime.state.mode;
                         }
@@ -2116,10 +2140,10 @@ static void CdStream_ReadyMts(u8 interrupt, u8* result)
                         } else {
                             CdStream_Runtime.state.spuAddr = CdStream_Runtime.state.spuBase;
                         }
-                        CdStream_Runtime.state.spuAddr += CdStream_Runtime.state.sector->field_C * (CdStream_Runtime.state.ringHalf * 2 + 0x40);
+                        CdStream_Runtime.state.spuAddr += CdStream_Runtime.state.sector->channelIndex * (CdStream_Runtime.state.ringHalf * 2 + 0x40);
                         SpuSetTransferStartAddr((u32)CdStream_Runtime.state.spuAddr);
                         *(volatile s32*)&CdStream_LastTransferSpuAddress = CdStream_Runtime.state.spuAddr;
-                        /* The audio in a header sector starts after the MtsSector header. */
+                        /* ADPCM in a header sector starts immediately after this header. */
                         SpuWrite((u8*)(CdStream_Runtime.state.sector + 1), 0x800U);
                         *(void* volatile*)&CdStream_LastTransferBuffer = CdStream_Runtime.state.sector + 1;
                         CdStream_Runtime.state.spuAddr                += 0x7F0;

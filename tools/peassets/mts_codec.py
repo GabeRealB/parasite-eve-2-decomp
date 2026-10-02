@@ -11,14 +11,15 @@ sector. Payload is a run of CD sectors (``0x800`` bytes each):
 
 Every *period* sectors an **MTS header sector** appears::
 
-    0x00  s32   field_0      chunk index (increments every stereo pair)
-    0x04  s32   field_4      total chunk count
+    0x00  s32   chunkIndex   chunk number, shared by every channel of the chunk
+    0x04  s32   chunkCount   total chunks in the stream
     0x08  u32   magic        LE ``0x4D5453cc`` → bytes ``cc 'S' 'T' 'M'``
-                             (``cc`` = channel count, almost always 2)
-    0x0C  s8    field_C      channel index within the period group (0/1)
-    0x0D  u8    period       sectors between successive MTS headers
-    0x0E  u8    field_E
-    0x0F  s8    field_F
+                             (``cc`` = channel count; retail streams are 2)
+    0x0C  s8    channelIndex which channel this header's audio belongs to (0/1)
+    0x0D  u8    period       sectors until the next header
+    0x0E  u8    gapSectors   disc sectors skipped after this chunk
+    0x0F  s8    flags        bit7 apply gapSectors; bit6 end halfway through the
+                             final chunk; bit5 end at the final chunk
     0x10  …     SPU-ADPCM (game ``SpuWrite(sec+0x10, …)``; see sizes below)
 
 Intervening sectors are raw SPU-ADPCM continuation.
@@ -63,7 +64,7 @@ from spk_codec import _ADPCM_COEFFS
 
 SECTOR_SIZE = 0x800
 MTS_HEADER_SIZE = 0x10
-# Usable ADPCM after MtsSector on a header sector (SPU ring advance).
+# Usable ADPCM after the 16-byte MTS header on a header sector (SPU ring advance).
 MTS_HEADER_ADPCM = SECTOR_SIZE - MTS_HEADER_SIZE  # 0x7F0
 # Last sector of each period window (ReadyMts rem%period==1 path).
 MTS_LAST_SECTOR_ADPCM = 0x780
@@ -109,13 +110,13 @@ def decode_spu_adpcm_stream(data: bytes) -> list[int]:
 @dataclass
 class MtsHeader:
     sector_index: int
-    field_0: int
+    chunk_index: int
     chunk_count: int
     channels: int
     channel_index: int
     period: int
-    field_e: int
-    field_f: int
+    gap_sectors: int
+    flags: int
 
 
 @dataclass
@@ -142,17 +143,17 @@ def is_mts_header_sector(sec: bytes) -> bool:
 def parse_mts_header(sec: bytes, sector_index: int = 0) -> MtsHeader:
     if not is_mts_header_sector(sec):
         raise ValueError("not an MTS header sector")
-    field_0, chunk_count, magic = struct.unpack_from("<3I", sec, 0)
+    chunk_index, chunk_count, magic = struct.unpack_from("<3I", sec, 0)
     channels = sec[0x08]
     return MtsHeader(
         sector_index=sector_index,
-        field_0=field_0,
+        chunk_index=chunk_index,
         chunk_count=chunk_count,
         channels=channels,
         channel_index=struct.unpack_from("<b", sec, 0x0C)[0],
         period=sec[0x0D],
-        field_e=sec[0x0E],
-        field_f=struct.unpack_from("<b", sec, 0x0F)[0],
+        gap_sectors=sec[0x0E],
+        flags=struct.unpack_from("<b", sec, 0x0F)[0],
     )
 
 
@@ -209,7 +210,7 @@ def probe_mts_stream(
             continue
         h = parse_mts_header(sec, i - pre)
         headers.append(h)
-        if len(headers) >= expected and h.field_0 >= hdr.chunk_count - 1:
+        if len(headers) >= expected and h.chunk_index >= hdr.chunk_count - 1:
             # Include this header's period window, then stop.
             # (Last expected header may be ch1 of final chunk.)
             if len(headers) >= expected:
@@ -315,7 +316,7 @@ def demux_adpcm_channels(body: bytes, info: MtsStreamInfo) -> list[bytes]:
             period = 1
 
         window = bytearray()
-        # Header sector: skip MtsSector, take 0x7F0 ADPCM bytes.
+        # Header sector: skip the 16-byte header, take 0x7F0 ADPCM bytes.
         window += sec[MTS_HEADER_SIZE : MTS_HEADER_SIZE + MTS_HEADER_ADPCM]
 
         if period > 1:

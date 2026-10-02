@@ -14,7 +14,7 @@ and **seeks the CD** to feed hardware (SPU or MDEC) in real time.
 | Descriptor struct | `include/main/stream_types.h` (`StreamSlot`), `tools/peassets/format.py` |
 | Runtime load of descriptors | `src/main/fs.c` (`Fs_BuildFolderTables`, `Fs_InitStage0TablesCb`) |
 | Movie play | `src/main/stream.c` (`Stream_*`, `Mdec_*`), `cdcmd.c` (cmd `0x61`) |
-| Audio play | `src/main/cdaudio.c`, `cdstream.c` (`CdStream_*`, `MtsSector`) |
+| Audio play | `src/main/cdaudio.c`, `cdstream.c` (`CdStream_*`, `_MtsHeader`) |
 | MTS codec / extract | `mts_codec.py`, `extract.py` (also `extract_streams.py`) |
 | STR codec / extract | `str_codec.py`, `extract.py` (also `extract_movies.py`) |
 | BS/MDEC frame decode | `bs_codec.py` (v2 + v3 DC) |
@@ -122,14 +122,17 @@ Payload is a contiguous run of **2048-byte** ISO sectors in the stage CDF
 Every **period** sectors an **MTS header sector** appears:
 
 ```text
-0x00  s32   field_0     chunk index (steps every stereo pair)
-0x04  s32   field_4     total chunk count for the stream
-0x08  u32   magic       LE 0x4D5453cc → bytes: cc 'S' 'T' 'M'
-                        cc = channel count (almost always 2)
-0x0C  s8    field_C     channel index (0 / 1 for L/R)
-0x0D  u8    period      sectors between successive MTS headers (often 5 or 10)
-0x0E  u8    field_E
-0x0F  s8    field_F
+0x00  s32   chunkIndex    chunk number, shared by every channel of the chunk
+0x04  s32   chunkCount    total chunks in the stream (read from the first header)
+0x08  u32   magic         LE 0x4D5453cc → bytes: cc 'S' 'T' 'M'
+                          cc = channel count (retail streams are 2)
+0x0C  s8    channelIndex  which channel this header's audio belongs to (0, 1)
+0x0D  u8    period        sectors until the next header (retail: 5 or 10)
+0x0E  u8    gapSectors    disc sectors skipped after this chunk
+0x0F  s8    flags         bit7 apply gapSectors; bit6 stop halfway through the
+                          final chunk; bit5 stop at the final chunk.
+                          Bit6 wins when both are set. Neither plays it through.
+                          Retail headers are 0xC0 or 0xA0 (bit7 plus bit6 or bit5)
 0x10  …     SPU-ADPCM (see write sizes below)
 ```
 
@@ -146,8 +149,10 @@ sec 2P:      MTS ch0 next chunk
 …
 ```
 
-Headers are **not** always a perfect grid: padding gaps between chunk pairs
-are common. Demux must **scan** for MTS magics, not assume stride = period.
+Headers are **not** always a perfect grid. `gapSectors` on a chunk's channel-0
+header is the number of disc sectors between the end of that chunk and the next
+chunk's first header; intra-chunk channel headers stay `period` apart. Demux
+must **scan** for MTS magics, not assume stride = period.
 
 Some streams have a short **preamble** (TOC-like table) before the first MTS
 header; skip until magic.
@@ -211,6 +216,9 @@ python3 tools/peassets/extract_streams.py --rom rom/USA --out assets/USA
 | `control.scene.timingBufferKind`, `data.scene.vlcBufferKind` | High (allocation/reuse selectors) |
 | `data.scene.timingBytes`, `data.scene.timingBufferBytes` | High (prefix and reservation byte counts) |
 | `data.scene.unknown_20` | Role unproven |
+| `_MtsHeader.chunkIndex`, `chunkCount`, `magic`, `channelIndex`, `period` | High |
+| `_MtsHeader.gapSectors` | High: sector gap after the chunk, applied when `flags` bit 7 is set |
+| `_MtsHeader.flags` bits 7, 6 and 5 | High: gap enable and final-chunk end point. Other bits are unread |
 | Interleaved **XA** speech on movie STR | Separate; MTS path is SPU-ADPCM only |
 | Pack / re-encode MTS | Not implemented (raw preferred) |
 
@@ -586,5 +594,5 @@ Content at INTER0@75977 == INTER1@18620 (hash match)
 
 - [`ASSET_FORMATS.md`](ASSET_FORMATS.md) — stage chunks, BS stills, SPK, stages.json
 - jPSXdec *PlayStation1_STR_format* — general STR/MDEC reference
-- `include/main/cdstream.h` — `MtsSector`, `CdStreamState`
+- `src/main/cdstream.c` — `_MtsHeader`, `CdStreamState`
 - `include/main/stream_types.h` — `StreamSlot`; `include/main/stream.h` — MDEC helpers

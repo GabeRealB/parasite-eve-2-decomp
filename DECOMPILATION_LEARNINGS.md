@@ -22830,9 +22830,9 @@ the next attempt:
    cross-jumps them into one block. A slight asymmetry (e.g. `u8* buf = …` on
    only one arm) can force two `jal SpuWrite`s; then re-converge the codegen.
 
-3. **CdStreamState field map** (in `cdstream.h`): `spuAddr`, `countdown`,
+3. **CdStreamState field map** (in `cdstream.c`): `spuAddr`, `countdown`,
    `mtsPeriod`/`mtsParam`, `remaining`, `voiceL`/`voiceR`/`mode`, `sector` as
-   `MtsSector*`.
+   `_MtsHeader*`.
 
 4. **Error counters** at `D_80068B5C+1` / `+3` and `D_80068B64+1` want
    `%lo(sym+N)` form (`lbu`/`sb` with folded reloc). Separate byte symbols or
