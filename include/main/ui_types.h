@@ -31,7 +31,14 @@ typedef union {
 enum {
     USER_INTERFACE_PANEL_INITIAL = 0,
     USER_INTERFACE_PANEL_OPENING = 1,
-    USER_INTERFACE_PANEL_OPEN    = 2,
+    /// Fully open panel, independent of its input control mode.
+    ///
+    /// Drawing uses the full panel bounds. Task dispatch draws and calls the
+    /// content handler without advancing `UiPanel.animationTicks` or suspending
+    /// `UiPanel.control`. Opening selects this state after its content callback
+    /// when ticks reach zero, if the callback kept the opening state. The first
+    /// full-size dispatch is on the next update.
+    USER_INTERFACE_PANEL_OPEN = 2,
     /// Panel shrinking before its owning task exits and releases the UI object.
     ///
     /// Entering this state preserves `animationTicks`. Nonnegative counters

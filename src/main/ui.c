@@ -520,7 +520,7 @@ UiObject*             Wip_UiHolder             = NULL;
 static const UiPanelFuncTable6 Ui_ObjectStates = { {
     Ui_AnimOpenStep,
     Ui_DrawAndCallback,
-    Ui_LayoutDrawAndCallback,
+    [USER_INTERFACE_PANEL_OPEN]    = Ui_LayoutDrawAndCallback,
     [USER_INTERFACE_PANEL_CLOSING] = Ui_TickAnimCounter,
     Ui_AnimCloseStep,
     Ui_ClipAndCallback,
