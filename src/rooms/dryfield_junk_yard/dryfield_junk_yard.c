@@ -114,8 +114,6 @@ extern ActorTransform             D_dryfield_junk_yard_8017DE00;
 extern TaskDesc                   D_8014D8A4;
 void                              func_dryfield_junk_yard_8017DC54(s8);
 
-extern WorldCoordSpotLight D_dryfield_junk_yard_80181854[2];
-
 TaskMessageEntry D_dryfield_junk_yard_8017DD20[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_junk_yard_8017DA4C },
     { 5105, func_dryfield_junk_yard_8017DA44 },
@@ -904,9 +902,49 @@ static WorldCoordPointLight _gDryfieldJunkYardPointLights[] = {
     },
 };
 
-WorldCoordSpotLight D_dryfield_junk_yard_80181854[2] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { -2140, 0, 3502 }, { 1222, -3850, 746 }, { 3285, 1432, 2002 } }, { -8050, -2992, 2469 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2043, 2050, 2050 }, { 0, 0 } }, { 3496, 745, 1999, 0 }, 0x783C, 0x783D, 671 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { -1983, 0, -3594 }, { -1114, -3902, 614 }, { -3417, 1271, 1884 } }, { 0x7CCE, -3078, 2935 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3320, 3320, 3320 }, { 0, 0 } }, { -3586, 613, 1881, 0 }, 0x4A38, 0x55F0, 671 },
+/// The junk yard's two cone lights, contributing in every room view.
+///
+/// Positions and falloff radii use integer world units; RGB intensities and
+/// axes use 12 fractional bits (`ONE` is full strength or unit length).
+/// Each cone's full opening is in 0x1000 units per turn.
+/// The loaded room overlay owns these mutable records: coordinate updates
+/// parent them to the view and rebuild transforms; shading queries overwrite
+/// attenuation. References must not outlive the loaded overlay.
+static WorldCoordSpotLight _gDryfieldJunkYardSpotLights[] = {
+    {
+        .head = {
+            .transform = { .lighting = {
+                               .composeStamp = GRAPHICS_COORD_DIRTY,
+                               .local        = { { { -2140, 0, 3502 }, { 1222, -3850, 746 }, { 3285, 1432, 2002 } }, { -8050, -2992, 2469 } },
+                               .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                               .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                               .attenuation  = 0,
+                               .parent       = NULL,
+                           } },
+            .color     = { 2043, 2050, 2050 },
+        },
+        .axis  = { 3496, 745, 1999, 0 },
+        .inner = 0x783C,
+        .outer = 0x783D,
+        .angle = 671,
+    },
+    {
+        .head = {
+            .transform = { .lighting = {
+                               .composeStamp = GRAPHICS_COORD_DIRTY,
+                               .local        = { { { -1983, 0, -3594 }, { -1114, -3902, 614 }, { -3417, 1271, 1884 } }, { 0x7CCE, -3078, 2935 } },
+                               .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                               .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                               .attenuation  = 0,
+                               .parent       = NULL,
+                           } },
+            .color     = { 3320, 3320, 3320 },
+        },
+        .axis  = { -3586, 613, 1881, 0 },
+        .inner = 0x4A38,
+        .outer = 0x55F0,
+        .angle = 671,
+    },
 };
 
 /// Uninterpreted bytes between the room's cone lights and light descriptor.
@@ -1565,7 +1603,7 @@ static u8 _gDryfieldJunkYardUnknownData[648] = {
 };
 
 WorldCoordRoomLights D_dryfield_junk_yard_80181BB4[1] = {
-    { 0, NULL, ARRAY_SIZE(_gDryfieldJunkYardPointLights), _gDryfieldJunkYardPointLights, ARRAY_SIZE(D_dryfield_junk_yard_80181854), D_dryfield_junk_yard_80181854 },
+    { 0, NULL, ARRAY_SIZE(_gDryfieldJunkYardPointLights), _gDryfieldJunkYardPointLights, ARRAY_SIZE(_gDryfieldJunkYardSpotLights), _gDryfieldJunkYardSpotLights },
 };
 
 WorldCoordRoomAmbientEntry D_dryfield_junk_yard_80181BCC[8] = {
