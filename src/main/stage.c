@@ -81,7 +81,11 @@ static u8* Mdec_DecodeBase;
 
 static StreamSceneImageHeader* Stage_CdEntry;
 
-static GameDebugState Pad_DefaultRemapState;
+/// Resident storage for diagnostic controls, input overrides and loading status.
+///
+/// Shared through `Pad_RemapState` and cleared at main-loop initialization;
+/// its lifetime spans gameplay and room overlay loads.
+static GameDebugState _gGameDebugStateStorage;
 
 /// Active stage/flow context pointer.
 static StageCtx* Stage_Ctx;
@@ -137,7 +141,7 @@ static void Mdec_StripCallback(void);
 /// Active stage/flow context pointer.
 static StageCtx* Stage_Ctx            = &Stage_Context;
 static TaskDesc  Display_ModeTaskDesc = { { { TASK_BODY_NONE, 0 } }, Display_DispatchTaskTable };
-GameDebugState*  Pad_RemapState       = &Pad_DefaultRemapState;
+GameDebugState*  Pad_RemapState       = &_gGameDebugStateStorage;
 TaskDesc         D_800626AC[]         = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, Task_KillMaybeSpawn },
