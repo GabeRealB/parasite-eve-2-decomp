@@ -23,9 +23,16 @@ STATIC_ASSERT_SIZEOF(FsCdfFolderListEntry, 0x8);
 /// Number of bytes in a CD sector.
 #define FS_SECTOR_BYTE_SIZE 0x800
 
-/// A list of folders found in the header section of a .CDF file.
-typedef struct _FsCdfFolderList {
-    FsCdfFolderListEntry entries[0x100]; // List of folders. Zero padded.
+/// How many folder records fit in one CD sector.
+#define FILE_SYSTEM_CDF_FOLDER_LIST_CAPACITY (FS_SECTOR_BYTE_SIZE / sizeof(FsCdfFolderListEntry))
+
+/// Folder table that fills the first sector of a stage CDF (stages 1-5).
+///
+/// The first folder starts at sector 1. Each record's `sectorCount` is that
+/// folder's length in CD sectors and the step to the next folder. A
+/// `sectorCount` of zero ends the table; the rest of the sector is zero.
+typedef struct {
+    FsCdfFolderListEntry entries[FILE_SYSTEM_CDF_FOLDER_LIST_CAPACITY]; // On-disc order; a zero sectorCount ends the table
 } FsCdfFolderList;
 STATIC_ASSERT_SIZEOF(FsCdfFolderList, FS_SECTOR_BYTE_SIZE);
 
