@@ -75,8 +75,12 @@ static void Gp_ClearLockSlots(void);
 
 static s32 Gp_ProjectToSxy(WorldTargetNode* arg0, s32* sxy);
 
-/// Releases both actor slots' borrowed references to a target entry.
-static __inline__ void _worldTargetReleaseActorLocks(WorldTargetNode* node)
+/// Clears the player and companion actors' borrowed lock-on references to `node`.
+///
+/// Call before ending the target entry's lifetime. Each occupied actor task must
+/// have a live `GameActor` work block. Only pointer identity is compared; the
+/// caller manages the target entry's tracking state and storage.
+static __inline__ void _worldTargetReleaseActorLocks(const WorldTargetNode* node)
 {
     s32        actorSlot;
     Task**     taskSlot;
