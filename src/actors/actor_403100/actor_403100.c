@@ -5451,7 +5451,7 @@ static void func_actor_403100_80136830(Task* arg0)
                     D_actor_403100_80155808->field_658     = -1;
                     D_actor_403100_80155808->field_618     = 0x1400;
                     gGameSession->suppressDeathChecks      = 0;
-                    Gp_StateC08.field_6                    = (u8)(Gp_StateC08.field_6 | 1);
+                    Gp_StateC08.flags                      = (u8)(Gp_StateC08.flags | ATTACHMENT_FLAG_EVENT_LOCK);
                     gGameSession->suppressViewTriggers     = 0;
                     D_actor_403100_8015580C->reactionFlags = 0;
                     Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
@@ -5686,7 +5686,7 @@ static void func_actor_403100_801376D8(Task* arg0)
     if (D_actor_403100_80155808->field_668.flags != 0) {
         D_actor_403100_80155808->field_5F6 = 4;
         if (D_actor_403100_80155808->field_5F2 == 0) {
-            Gp_StateC08.field_6 |= 1;
+            Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
             func_actor_403100_8013D1B8(5, 0x3F4);
             D_actor_403100_80155808->field_5F4 = 0x17;
             D_actor_403100_80155808->field_5F2 = 1;
@@ -5750,7 +5750,7 @@ static void func_actor_403100_801379B4(Task* arg0)
     if (D_actor_403100_80155808->field_668.flags != 0) {
         D_actor_403100_80155808->field_5F6 = 4;
         if (D_actor_403100_80155808->field_5F2 == 0) {
-            Gp_StateC08.field_6 |= 1;
+            Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
             func_actor_403100_8013D1B8(5, 0x3F4);
             D_actor_403100_80155808->field_5F4 = 0x17;
             D_actor_403100_80155808->field_5F2 = 1;
@@ -6098,7 +6098,7 @@ static void func_actor_403100_80138844(Task* arg0)
     coord = arg0->extra.tmd->coords;
     func_actor_403100_8013D24C();
     if ((D_actor_403100_80155808->field_668.flags != 0) && (D_actor_403100_80155808->field_5F2 == 0)) {
-        Gp_StateC08.field_6 |= 1;
+        Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
         func_actor_403100_8013D1B8(5, 0x3F4);
         D_actor_403100_80155808->field_5F4 = 0x17;
         D_actor_403100_80155808->field_5F2 = 1;
@@ -6144,7 +6144,7 @@ static void func_actor_403100_80138AB4(Task* task)
     frame                              = D_actor_403100_80155808->field_5EC + 1;
     D_actor_403100_80155808->field_5EC = frame;
     if (((s16)frame < 0x20) && ((u8)D_actor_403100_80155808->field_668.b.field_668 != 0) && (D_actor_403100_80155808->field_5F2 == 0)) {
-        Gp_StateC08.field_6 |= 1;
+        Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
         func_actor_403100_8013D1B8(5, 0x3F4);
         D_actor_403100_80155808->field_5F4 = 0x17;
         D_actor_403100_80155808->field_5F2 = 1;
@@ -6228,7 +6228,7 @@ static void func_actor_403100_80138DB0(Task* arg0)
             if ((u8)work->field_668.b.field_668 != 0) {
                 work->pad_670[3]                    = 1;
                 D_actor_403100_80155808->pad_670[1] = 1;
-                Gp_StateC08.field_6                 = (u8)(Gp_StateC08.field_6 | 1);
+                Gp_StateC08.flags                   = (u8)(Gp_StateC08.flags | ATTACHMENT_FLAG_EVENT_LOCK);
                 sound                               = (((u16)((Enemy*)player->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 7;
                 pan                                 = (s8)worldCoordGetOriginAudioPan(&player->extra.tmd->coords[1]);
                 depth                               = worldCoordGetOriginAudioDepth(&player->extra.tmd->coords[1]);
@@ -6944,7 +6944,7 @@ static void func_actor_403100_8013AA04(Task* arg0)
     if (D_actor_403100_80155808->field_668.flags != 0) {
         D_actor_403100_80155808->pad_670[3] = 1;
         D_actor_403100_80155808->pad_670[1] = 1;
-        Gp_StateC08.field_6                |= 1;
+        Gp_StateC08.flags                  |= ATTACHMENT_FLAG_EVENT_LOCK;
         func_actor_403100_8013D1B8(3, 0x3F4);
         func_actor_403100_8013D0B8(D_actor_403100_80155808->field_90, D_actor_403100_80155808->field_92, (s16)((u16)D_actor_403100_80155808->field_94 + 0xBB8), 0x800);
         D_actor_403100_80155808->field_668.b.field_668 = 0;
@@ -8181,7 +8181,7 @@ static void func_actor_403100_8013D8F4(Task* arg0)
 {
     D_actor_403100_80155808->field_658     = -1;
     D_actor_403100_80155808->field_618     = 0x1400;
-    Gp_StateC08.field_6                    = Gp_StateC08.field_6 | 1;
+    Gp_StateC08.flags                      = Gp_StateC08.flags | ATTACHMENT_FLAG_EVENT_LOCK;
     gGameSession->suppressViewTriggers     = 0;
     D_actor_403100_8015580C->reactionFlags = 0;
     Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);

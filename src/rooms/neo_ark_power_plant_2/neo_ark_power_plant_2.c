@@ -825,7 +825,7 @@ s32 func_neo_ark_power_plant_2_8017D694(Task* task, s32 msgId, TaskMessageArg ar
 void func_neo_ark_power_plant_2_8017D69C(void)
 {
     Gp_PulseState1C();
-    Gp_StateC08.field_6 |= 1;
+    Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
 }
 
 void func_neo_ark_power_plant_2_8017D6D4(void)
@@ -852,7 +852,7 @@ static void func_neo_ark_power_plant_2_8017D758(Task* task)
 
     if (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0) {
         temp_v0 = Gp_LookupSlot4(0);
-        if ((temp_v0 != 0) && (taskMessageDispatch(temp_v0, ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0) && (Gp_StateC08.field_A != 1) &&
+        if ((temp_v0 != 0) && (taskMessageDispatch(temp_v0, ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) &&
             (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
             GameFlag_SetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED, 1);
             GameFlag_SetNibble(GAME_FLAG_NEO_ARK_EVE_ELEVATOR_UNLOCKED, 1);

@@ -2809,7 +2809,7 @@ void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
             if (Gp_CapBusy() != 0) {
                 break;
             }
-            if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != DISPLAY_MODE_NONE || gPlayerStatus.coordMtx->t[0] < 0x36B1) {
+            if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE || gPlayerStatus.coordMtx->t[0] < 0x36B1) {
                 break;
             }
             w2 = (DumpingHoleEntity*)arg0->work;
@@ -3190,12 +3190,12 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
     switch (work->state) {
         case 1:
             Gp_PulseState1C();
-            Gp_StateC08.field_6 |= 1;
-            buf.words[0]         = gPlayerStatus.weapon + (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1 ? 1 : 0x22);
-            buf.words[1]         = 9;
-            buf.words[2]         = 1;
-            buf.words[3]         = 0xA;
-            buf.words[4]         = 0;
+            Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
+            buf.words[0]       = gPlayerStatus.weapon + (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1 ? 1 : 0x22);
+            buf.words[1]       = 9;
+            buf.words[2]       = 1;
+            buf.words[3]       = 0xA;
+            buf.words[4]       = 0;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, buf.words, 0);
             buf.loc.context.loc.stage = gGameSession->location.loc.stage;
             buf.loc.context.loc.area  = gGameSession->location.loc.area;
@@ -3456,7 +3456,7 @@ void func_shelter_b3_dumping_hole_80181560(Task* task)
 
     switch (task->state) {
         case 0:
-            if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
+            if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 return;
             }
             obj        = task->extra.tmd;

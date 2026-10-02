@@ -89,7 +89,7 @@ static s16 D_pyrokinesis_80131DFC[16] = { 0 };
 /// wall, which drops to state 2 and fades the cone out. States 3 and 4 grow
 /// the two rings until they pass the combo radius, state 4 first stepping the
 /// brightness down by 8 a frame. Any state releases if the player is dying
-/// (`Gp_StateC08.field_3` / `Gp_StateC08.field_3`) or parasite-energy effects are
+/// (`Gp_StateC08.effectPhase` / `Gp_StateC08.effectPhase`) or parasite-energy effects are
 /// cancelled (`gRoomEffectState->peEffectControl`).
 void func_pyrokinesis_8012EF48(Task* arg0)
 {
@@ -124,7 +124,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
     slot       = &lightSlot->light;
     switch (arg0->state) {
         case 0:
-            if ((Gp_StateC08.field_3 == -2) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+            if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
                 effectKillTask(mem, arg0);
                 return;
             }
@@ -149,7 +149,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             Gp_UpdateCoord(coord);
             mem->move.vx = 0;
             mem->move.vy = 0;
-            mem->move.vz = (Gp_StateC08.field_0 % 10) * 64 + 0x1C0;
+            mem->move.vz = (Gp_StateC08.attachId % 10) * 64 + 0x1C0;
             gte_SetRotMatrix(&player->coord);
             gte_ldv0(&mem->move);
             gte_rtv0();
@@ -162,7 +162,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             mem->angle      = 0x500;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             mem->period     = (gRandomLcgState >> 16) & 0xFFF;
-            mem->index      = (Gp_StateC08.field_0 % 10) - 1;
+            mem->index      = (Gp_StateC08.attachId % 10) - 1;
             pan             = (s8)worldCoordGetOriginAudioPan(coord);
             SndEvt_EnqueueType6(D_pyrokinesis_80131DD8[mem->index * 3 + arg0->spawnArg1.value], pan,
                                 (s8)worldCoordGetOriginAudioDepth(coord));
@@ -175,9 +175,9 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             arg0->work                 = work;
             work->obj.coord            = coord;
             work->obj.context.contacts = &work->rec;
-            work->obj.key              = ((u16)(Gp_StateC08.field_0 / 100) - 1) * 9 +
-                            ((u16)((u16)(Gp_StateC08.field_0 % 100) / 10) - 1) * 3 +
-                            (u16)(Gp_StateC08.field_0 % 10) + 0x28000;
+            work->obj.key              = ((u16)(Gp_StateC08.attachId / 100) - 1) * 9 +
+                            ((u16)((u16)(Gp_StateC08.attachId % 100) / 10) - 1) * 3 +
+                            (u16)(Gp_StateC08.attachId % 10) + 0x28000;
             work->obj.radius = mem->angle;
             work->obj.flags  = WORLD_COLLISION_BODY_SPHERE;
             Gp_LinkObj(1, &work->obj);
@@ -223,7 +223,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             Gp_ClearRec18Occupied(&work->rec);
             return;
         case 1:
-            if ((Gp_StateC08.field_3 == -2) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+            if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
                 Gp_UnlinkObj(&work->obj);
                 Gp_UnlinkObj(&work->obj2);
                 effectKillTask(mem, arg0);
@@ -306,7 +306,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             effectKillTask(mem, arg0);
             return;
         case 2:
-            if ((Gp_StateC08.field_3 == -2) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+            if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
                 Gp_UnlinkObj(&work->obj);
                 effectKillTask(mem, arg0);
                 return;
@@ -350,7 +350,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             Gp_ClearRec18Occupied(&work->rec);
             return;
         case 3:
-            if ((Gp_StateC08.field_3 == -2) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+            if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
                 Gp_UnlinkObj(&work->obj2);
                 effectKillTask(mem, arg0);
                 return;
@@ -372,7 +372,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             }
             return;
         case 4:
-            if ((Gp_StateC08.field_3 == -2) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+            if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
                 Gp_UnlinkObj(&work->obj2);
                 effectKillTask(mem, arg0);
                 return;
@@ -409,7 +409,7 @@ void func_pyrokinesis_8012FAC8(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if (Gp_StateC08.field_3 != -2) {
+    if (Gp_StateC08.effectPhase != ATTACHMENT_EFFECT_HELD) {
         scene = gRoomEffectState->battleState;
         if (scene == ROOM_EFFECT_BATTLE_ENGAGED) {
             flag = gRoomEffectState->peEffectControl;
@@ -570,7 +570,7 @@ void func_pyrokinesis_80130C54(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if (Gp_StateC08.field_3 != -2) {
+    if (Gp_StateC08.effectPhase != ATTACHMENT_EFFECT_HELD) {
         flag = gRoomEffectState->peEffectControl;
         if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
@@ -615,7 +615,7 @@ void func_pyrokinesis_801311B8(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if (Gp_StateC08.field_3 != -2) {
+    if (Gp_StateC08.effectPhase != ATTACHMENT_EFFECT_HELD) {
         flag = gRoomEffectState->peEffectControl;
         if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
@@ -662,7 +662,7 @@ void func_pyrokinesis_80131CE4(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if (Gp_StateC08.field_3 != -2) {
+    if (Gp_StateC08.effectPhase != ATTACHMENT_EFFECT_HELD) {
         flag = gRoomEffectState->peEffectControl;
         if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             if (flag != ROOM_EFFECT_CONTROL_RUNNING) {

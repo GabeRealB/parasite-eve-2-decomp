@@ -1786,7 +1786,7 @@ static void func_actor_215100_8014C660(Enemy* enemy, Task* task);
 /// `D_actor_215100_8014D038` is up and the story step has reached 3. A session
 /// leave (`gGameSession->location.loc.view == 0x12`) drops the `func_mist_shooting_gallery_80180390` hold and
 /// `D_actor_215100_8014D03C` with it, sub-states 2 and 3 of
-/// `Gp_StateC08.field_A` start the 0x3C-frame cooldown in
+/// `Gp_StateC08.mode` start the 0x3C-frame cooldown in
 /// `D_actor_215100_8014D044`, and while that cooldown runs the function only
 /// ticks it down.
 ///
@@ -1814,7 +1814,7 @@ static void func_actor_215100_8014A398(void)
                 func_mist_shooting_gallery_80180390(0);
                 D_actor_215100_8014D03C = 0;
             }
-            if ((u32)((u8)Gp_StateC08.field_A - 2) < 2U) {
+            if ((u32)((u8)Gp_StateC08.mode - ATTACHMENT_MODE_ARMED) < 2U) {
                 D_actor_215100_8014D044 = 0x3C;
             }
             if (D_actor_215100_8014D044 != 0) {
@@ -1825,7 +1825,7 @@ static void func_actor_215100_8014A398(void)
                 (D_80115768 == 0) && (coord->coord.t[0] < -0x1806)) {
                 z = coord->coord.t[2];
                 if (z < 0x1644) {
-                    if ((z >= 0x10CD) && (Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
+                    if ((z >= 0x10CD) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                         facing = (u16)actor->rotation.vy & 0xFFF;
                         if (Pad_CheckButtons(0, 0, 0x1000) != 0) {
                             if ((u32)(facing - 0xA01) < 0x3FFU) {
@@ -1893,7 +1893,7 @@ void func_actor_215100_8014A5C0(Task* arg0)
                 break;
             }
             if (D_actor_215100_8015E670.value == 3) {
-                Gp_StateC08.field_6 &= 0xFD;
+                Gp_StateC08.flags &= ATTACHMENT_FLAG_CLEAR_SWAP_LOCK;
             }
             D_actor_215100_8014D038 = 0;
             func_mist_shooting_gallery_80180390(1);
@@ -1961,7 +1961,7 @@ void func_actor_215100_8014A7C4(Task* arg0)
             actor->movementInputDisabled = 0;
             D_actor_215100_8014D038      = 0;
             Gp_MsgPlayerWeapon(1);
-            Gp_StateC08.field_6 &= 0xFD;
+            Gp_StateC08.flags &= ATTACHMENT_FLAG_CLEAR_SWAP_LOCK;
             if (gDisplayState.holdCount != 0) {
                 Display_ReleaseRef();
             }
@@ -1981,7 +1981,7 @@ static void func_actor_215100_8014A908(void)
         D_actor_215100_8014D03C = 1;
     }
     if (D_actor_215100_8015E670.value < 4) {
-        Gp_StateC08.field_6 &= 0xFD;
+        Gp_StateC08.flags &= ATTACHMENT_FLAG_CLEAR_SWAP_LOCK;
     }
     SndEvt_EnqueueType2(0, 0x1E);
 }

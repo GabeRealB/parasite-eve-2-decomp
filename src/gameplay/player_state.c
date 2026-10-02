@@ -393,7 +393,7 @@ void func_80109FC4(Task* arg0)
             }
         }
         if (flags & PLAYER_STATUS_BERSERKER) {
-            if ((u32)((u8)Gp_StateC08.field_A - 2) >= 2U) {
+            if ((u32)((u8)Gp_StateC08.mode - ATTACHMENT_MODE_ARMED) >= 2U) {
                 temp                  = (u16)actor->berserkerTicks - 1;
                 actor->berserkerTicks = temp;
                 if ((s16)temp <= 0) {
@@ -738,9 +738,9 @@ static void func_8010AAB4(Task* arg0)
     GameActor*    inner;
     PlayerStatus* p;
 
-    p                    = &gPlayerStatus;
-    inner                = arg0->work;
-    Gp_StateC08.field_6 |= 1;
+    p                  = &gPlayerStatus;
+    inner              = arg0->work;
+    Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
     func_80106350(arg0, p->weapon, 0);
     if (p->hp > 0) {
         inner->mode           = GAME_ACTOR_MODE_DAMAGE;

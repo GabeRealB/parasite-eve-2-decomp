@@ -32,7 +32,7 @@
 #include "main/tmd_types.h"
 
 /// One 8-byte row of `D_metabolism_8012FB54`, indexed by `EffectWork.index`
-/// (`Gp_StateC08.field_0 % 10 - 1`, so the cast scales with the combo
+/// (`Gp_StateC08.attachId % 10 - 1`, so the cast scales with the combo
 /// counter). `field_0` is how many fan wedges the cast lays out - the number
 /// of `D_metabolism_8012FB78` angles it seeds and then draws through
 /// `func_metabolism_8012F840`. `field_2` is the brightness cap state 1 grows
@@ -65,7 +65,7 @@ static s16 D_metabolism_8012FB78[16];
 
 static void func_metabolism_8012F840(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
 
-/// Runs one frame of the metabolism cast. Cancel (`Gp_StateC08.field_3 == -2`
+/// Runs one frame of the metabolism cast. Cancel (`Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD`
 /// or `gRoomEffectState->peEffectControl >= 4`) releases the work block. State 0 parents the
 /// coordinate to the player with an identity rotation lifted 0x400 above it,
 /// picks the intensity row from the combo counter, seeds one random angle per
@@ -92,7 +92,7 @@ void func_metabolism_8012EF34(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if ((Gp_StateC08.field_3 == -2) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+    if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
         effectKillTask(mem, arg0);
         return;
     }
@@ -113,7 +113,7 @@ void func_metabolism_8012EF34(Task* arg0)
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             arg0->state = 1;
-            mem->index  = (Gp_StateC08.field_0 % 10) - 1;
+            mem->index  = (Gp_StateC08.attachId % 10) - 1;
             mem->angle  = 0x80;
             {
                 s32 rng;
@@ -124,8 +124,8 @@ void func_metabolism_8012EF34(Task* arg0)
                     gRandomLcgState          = rng;
                 }
             }
-            Gp_StateC08.field_6 |= 8;
-            pan                  = (s8)worldCoordGetOriginAudioPan(coord);
+            Gp_StateC08.flags |= ATTACHMENT_FLAG_APPLY_STATS;
+            pan                = (s8)worldCoordGetOriginAudioPan(coord);
             SndEvt_EnqueueType6(D_metabolism_8012FB6C[mem->index], pan,
                                 (s8)worldCoordGetOriginAudioDepth(coord));
             /* fallthrough */
@@ -234,7 +234,7 @@ void func_metabolism_8012F5A0(Task* arg0)
             mem->move.vy = 8;
             mem->move.vz = 0;
             mem->angle   = arg0->spawnArg1.value & 0xFFF;
-            kind         = Gp_StateC08.field_0 % 10U;
+            kind         = Gp_StateC08.attachId % 10U;
             if (kind - 1 < 2 ||
                 (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT,
                  roll            = (gRandomLcgState >> 16) % 3U, roll != 0)) {

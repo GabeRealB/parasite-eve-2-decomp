@@ -470,8 +470,8 @@ end:
     Gp_ClearRec18Occupied(work->field_49C);
     if (work->field_504.flags & 1) {
         if ((work->field_504.key.value & 0xFFFF0000) == 0x10000 && gPlayerStatus.hp > 0) {
-            work->field_588      = 1;
-            Gp_StateC08.field_6 |= 1;
+            work->field_588    = 1;
+            Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
         }
         Gp_ClearRec18Occupied(&work->field_504);
     }

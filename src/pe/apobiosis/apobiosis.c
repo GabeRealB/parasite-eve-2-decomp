@@ -57,7 +57,7 @@ typedef struct ApobiosisShardScratch {
 STATIC_ASSERT_SIZEOF(ApobiosisShardScratch, 0x28);
 
 /// One 8-byte row of `D_apobiosis_80130B5C`, indexed by the effect's
-/// `EffectWork.index` / `step` (`Gp_StateC08.field_0 % 10 - 1`, so the
+/// `EffectWork.index` / `step` (`Gp_StateC08.attachId % 10 - 1`, so the
 /// burst scales with the combo counter). `field_0` is half the number of ring
 /// points the cast lays out, `field_2` the ring radius it draws them at and
 /// `field_4` the per-frame growth added to the cast's `EffectWork.scale`.
@@ -101,7 +101,7 @@ static s16 D_apobiosis_80130B80[16];
 static Task* D_apobiosis_80130BA0;
 
 /// The apobiosis cast. Six states drive one screen flash plus a growing ring
-/// of shards, scaled by `D_apobiosis_80130B5C[Gp_StateC08.field_0 % 10 - 1]`
+/// of shards, scaled by `D_apobiosis_80130B5C[Gp_StateC08.attachId % 10 - 1]`
 /// so a longer combo casts a wider burst. State 0 parents the effect
 /// coordinate on `EffectWork.parent` at the origin, publishes the task in
 /// `D_apobiosis_80130BA0` so every shard can reparent onto it, plays the row's
@@ -127,7 +127,7 @@ void func_apobiosis_8012EF4C(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if ((Gp_StateC08.field_3 != -2) && (gRoomEffectState->peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+    if ((Gp_StateC08.effectPhase != ATTACHMENT_EFFECT_HELD) && (gRoomEffectState->peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
         mem->age = mem->age + 1;
         switch (arg0->state) {
             case 0:
@@ -145,10 +145,10 @@ void func_apobiosis_8012EF4C(Task* arg0)
                 coord->composeStamp  = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 pan = (s8)worldCoordGetOriginAudioPan(coord);
-                SndEvt_EnqueueType6(D_apobiosis_80130B74[(u16)(Gp_StateC08.field_0 % 10) - 1], pan,
+                SndEvt_EnqueueType6(D_apobiosis_80130B74[(u16)(Gp_StateC08.attachId % 10) - 1], pan,
                                     (s8)worldCoordGetOriginAudioDepth(coord));
                 arg0->state = 1;
-                mem->index  = Gp_StateC08.field_0 % 10 - 1;
+                mem->index  = Gp_StateC08.attachId % 10 - 1;
                 mem->scale  = 0x200;
                 mem->period = 0x80;
                 mem->step   = 0xF0;
@@ -161,7 +161,7 @@ void func_apobiosis_8012EF4C(Task* arg0)
             case 1:
                 Gp_UpdateCoord(coord);
                 if (mem->age == 4) {
-                    Gp_StateC08.field_6 |= 8;
+                    Gp_StateC08.flags |= ATTACHMENT_FLAG_APPLY_STATS;
                 }
                 func_apobiosis_8012F808(mem->step);
                 rgb[0] = rgb[1]    = mem->step >> 2;
@@ -280,7 +280,7 @@ void func_apobiosis_8012EF4C(Task* arg0)
 /// Flashes a screen-filling `POLY_F4` over the whole 320x240 frame, offset by
 /// `gDisplayState.vramYOffset` so it tracks the active draw buffer. `bright`
 /// is the flash level: normally the quad is blue-tinted (red and green
-/// halved), but on stage `Gp_StateC08.field_0 % 10 == 3` one draw in four
+/// halved), but on stage `Gp_StateC08.attachId % 10 == 3` one draw in four
 /// comes out yellow instead (blue halved). The prim is linked at a fixed
 /// `otz` of 0x30, in front of the scene.
 static void func_apobiosis_8012F808(s16 bright)
@@ -290,7 +290,7 @@ static void func_apobiosis_8012F808(s16 bright)
     prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setPolyF4(prim);
-    if ((u16)(Gp_StateC08.field_0 % 10U) - 1 == 2 && (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3) == 0) {
+    if ((u16)(Gp_StateC08.attachId % 10U) - 1 == 2 && (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3) == 0) {
         setRGB0(prim, bright, bright, bright >> 1);
     } else {
         setRGB0(prim, bright >> 1, bright >> 1, bright);
@@ -308,7 +308,7 @@ static void func_apobiosis_8012F808(s16 bright)
 
 /// One shard of the apobiosis burst. Every frame it ticks the shard's life
 /// counter `EffectWork.age` and bails out - handing the work block back -
-/// once the player is dying (`Gp_StateC08.field_3`), parasite-energy effects are
+/// once the player is dying (`Gp_StateC08.effectPhase`), parasite-energy effects are
 /// cancelled (`gRoomEffectState->peEffectControl`)
 /// or the shard has outlived its state. State 0 reparents the shard onto the
 /// cast task and splits on `spawnArg1`: a non-zero arg pins the shard to the
@@ -325,7 +325,7 @@ void func_apobiosis_8012FE10(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if ((Gp_StateC08.field_3 != -2) && (gRoomEffectState->peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+    if ((Gp_StateC08.effectPhase != ATTACHMENT_EFFECT_HELD) && (gRoomEffectState->peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
         mem->age = mem->age + 1;
         switch (arg0->state) {
             case 0:
@@ -354,7 +354,7 @@ void func_apobiosis_8012FE10(Task* arg0)
                 mem->pos.vz     = 0x800 - ((gRandomLcgState >> 16) & 0xFFF);
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 mem->angle      = (gRandomLcgState >> 16) & 0xFFF;
-                mem->step       = Gp_StateC08.field_0 % 10 - 1;
+                mem->step       = Gp_StateC08.attachId % 10 - 1;
                 return;
             case 1:
                 Gp_UpdateCoord(coord);
@@ -403,7 +403,7 @@ void func_apobiosis_8012FE10(Task* arg0)
 /// sizes it: the corners sit `arg2 * 0x27 / otz` from the centre along `arg3`
 /// and `arg3 + 0x400`, so the shard shrinks with depth and spins with `arg3`.
 /// The CLUT is 0x4293 except on the widest combo row
-/// (`Gp_StateC08.field_0 % 10 - 1 == 2`), where one draw in four rolls the
+/// (`Gp_StateC08.attachId % 10 - 1 == 2`), where one draw in four rolls the
 /// brighter 0x42C9 palette. Same shape as Combustion's and Pyrokinesis's flame
 /// quad (`func_combustion_8012FB14`), which uses a fixed CLUT and 0x20-wide
 /// frames.
@@ -438,7 +438,7 @@ static void func_apobiosis_8013017C(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3
         setSemiTrans(prim, 1);
         setShadeTex(prim, 1);
         prim->tpage = 0x2A;
-        if ((u16)(Gp_StateC08.field_0 % 10) - 1 == 2) {
+        if ((u16)(Gp_StateC08.attachId % 10) - 1 == 2) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if (((gRandomLcgState >> 16) & 3) == 0) {
                 prim->clut = 0x42C9;
@@ -518,7 +518,7 @@ static void func_apobiosis_80130630(GfxCoord* arg0, SVECTOR* arg1, s16 arg2, s16
             setlen(prim, 9);
             setcode(prim, 0x2F);
             prim->tpage = 0x28;
-            if ((u16)(Gp_StateC08.field_0 % 10U) - 1 == 2 &&
+            if ((u16)(Gp_StateC08.attachId % 10U) - 1 == 2 &&
                 (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3) == 0) {
                 prim->clut = 0x42C8;
             } else {

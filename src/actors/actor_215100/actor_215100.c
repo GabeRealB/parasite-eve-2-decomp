@@ -327,7 +327,7 @@ void func_actor_215100_80149F2C(Task* task)
             break;
         case 0x32:
             D_actor_215100_8014D040++;
-            Gp_StateC08.field_6 |= 2;
+            Gp_StateC08.flags |= ATTACHMENT_FLAG_SWAP_LOCK;
             if (D_actor_215100_8015E670.value < 3) {
                 func_800E8614(D_actor_215100_8014EFA0, 1);
             } else {

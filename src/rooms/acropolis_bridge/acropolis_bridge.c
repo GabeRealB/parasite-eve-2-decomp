@@ -2774,7 +2774,7 @@ void func_acropolis_bridge_8017D8D0(Task* task)
 void func_acropolis_bridge_8017D954(void)
 {
     Gp_PulseState1C();
-    Gp_StateC08.field_6 |= 1;
+    Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
 }
 
 static void func_acropolis_bridge_8017D98C(Task* arg0)

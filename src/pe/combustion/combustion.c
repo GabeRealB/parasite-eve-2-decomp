@@ -35,7 +35,7 @@
 #include "../../shared/sprite_quad.h"
 
 /// One 8-byte row of `D_combustion_80130980`, indexed by `EffectWork.index`
-/// (`Gp_StateC08.field_0 % 10 - 1`, so the burn scales with the combo counter).
+/// (`Gp_StateC08.attachId % 10 - 1`, so the burn scales with the combo counter).
 /// `field_0` / `field_2` are the per-frame Y / Z drift added to the flame
 /// overlay `EffectWork.move`. `field_4` is the last
 /// `EffectWork.age` tick that still spawns flames, and `field_6` is the
@@ -73,7 +73,7 @@ static s32 D_combustion_801309A4 = 0;
 /// while drifting the flame overlay by the `D_combustion_80130980` row for the
 /// current intensity. State 1 spawns, state 2 (past `field_4`) only unwinds
 /// the yaw the ignition applied, and either state ends as soon as the player
-/// is dying (`Gp_StateC08.field_3`), parasite-energy effects are cancelled
+/// is dying (`Gp_StateC08.effectPhase`), parasite-energy effects are cancelled
 /// (`gRoomEffectState->peEffectControl`) or the
 /// row's `field_6` tick is reached.
 void func_combustion_8012EF34(Task* arg0)
@@ -109,19 +109,19 @@ void func_combustion_8012EF34(Task* arg0)
             Gp_UpdateCoord(coord);
             mem->move.vz = 0x200;
             pan          = (s8)worldCoordGetOriginAudioPan(coord);
-            SndEvt_EnqueueType6(D_combustion_80130998[(u16)(Gp_StateC08.field_0 % 10) - 1], pan,
+            SndEvt_EnqueueType6(D_combustion_80130998[(u16)(Gp_StateC08.attachId % 10) - 1], pan,
                                 (s8)worldCoordGetOriginAudioDepth(coord));
             rgb[0] = 0xFF;
             rgb[1] = 0x7F;
             rgb[2] = 0x3F;
             Gp_DrawFadeQuad(rgb, 1);
             arg0->state = 1;
-            mem->index  = Gp_StateC08.field_0 % 10 - 1;
+            mem->index  = Gp_StateC08.attachId % 10 - 1;
             Gp_SpawnPadLerp(D_combustion_80130980[mem->index].field_6, 0xFF, 8);
             /* fallthrough */
         case 1:
             Gp_UpdateCoord(coord);
-            if ((Gp_StateC08.field_3 == -2) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+            if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
                 goto release;
             }
             mem->move.vy = mem->move.vy + D_combustion_80130980[mem->index].field_0;
@@ -131,14 +131,14 @@ void func_combustion_8012EF34(Task* arg0)
                 taskReparent(arg0, spawned->task);
             }
             if (D_combustion_80130980[mem->index].field_4 < mem->age) {
-                Gp_StateC08.field_6 |= 8;
-                arg0->state          = 2;
+                Gp_StateC08.flags |= ATTACHMENT_FLAG_APPLY_STATS;
+                arg0->state        = 2;
                 return;
             }
             return;
         case 2:
             Gp_UpdateCoord(coord);
-            if ((Gp_StateC08.field_3 == -2) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) ||
+            if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) ||
                 (mem->age > D_combustion_80130980[mem->index].field_6)) {
             release:
                 effectKillTask(mem, arg0);
@@ -154,13 +154,13 @@ void func_combustion_8012EF34(Task* arg0)
 /// the `EffectWork.parent` parent with an identity rotation and the work
 /// block's `pos` offset, seeds the phase `age` from
 /// `gRandomLcgState`, the radius `scale` from `spawnArg1` and the intensity
-/// `index` from `Gp_StateC08.field_0 % 10 - 1`, then splits: `spawnArg1`
+/// `index` from `Gp_StateC08.attachId % 10 - 1`, then splits: `spawnArg1`
 /// past the `D_combustion_80130980` row's `field_4` runs the wide state 2,
 /// anything smaller the narrow state 1. Both states redraw every frame -
 /// `index < 2` picks the small draw helper, otherwise the large one - and
 /// one frame in four spawn a trailing ember that adopts this task as its
 /// parent. Either state releases the effect once the player is dying
-/// (`Gp_StateC08.field_3`), parasite-energy effects are cancelled
+/// (`Gp_StateC08.effectPhase`), parasite-energy effects are cancelled
 /// (`gRoomEffectState->peEffectControl`) or the flame has lived
 /// 0x21 frames.
 void func_combustion_8012F2BC(Task* arg0)
@@ -198,7 +198,7 @@ void func_combustion_8012F2BC(Task* arg0)
             rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             mem->age        = ((u32)rng >> 16) & 0xF;
             mem->scale      = arg0->spawnArg1.value * 32 + 512;
-            mem->index      = Gp_StateC08.field_0 % 10 - 1;
+            mem->index      = Gp_StateC08.attachId % 10 - 1;
             last            = D_combustion_80130980[mem->index].field_4;
             gRandomLcgState = rng;
             if (last < arg0->spawnArg1.value) {
@@ -214,7 +214,7 @@ void func_combustion_8012F2BC(Task* arg0)
             } else {
                 func_combustion_801305F8(coord, mem->age, mem->scale);
             }
-            if ((Gp_StateC08.field_3 == -2) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) || (mem->age >= 0x21)) {
+            if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) || (mem->age >= 0x21)) {
                 effectKillTask(mem, arg0);
                 return;
             }
@@ -236,7 +236,7 @@ void func_combustion_8012F2BC(Task* arg0)
             } else {
                 spriteQuadDrawFlicker(coord, mem->age, mem->scale * 4, 0);
             }
-            if ((Gp_StateC08.field_3 == -2) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) || (mem->age >= 0x21)) {
+            if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) || (mem->age >= 0x21)) {
                 effectKillTask(mem, arg0);
                 return;
             }
@@ -325,7 +325,7 @@ static void func_combustion_8012F5EC(GfxCoord* arg0, s16 arg1, s16 arg2)
 }
 
 /// One trailing ember shed by a `func_combustion_8012F2BC` flame. State 0 rolls
-/// the kind from `Gp_StateC08.field_0 % 10 - 1` into `step`, two
+/// the kind from `Gp_StateC08.attachId % 10 - 1` into `step`, two
 /// `gRandomLcgState` draws into the spin `scale` and the per-frame rise
 /// `move.vy` (`-(rand & 0xFF) - kind * 64`, so bigger embers climb faster),
 /// sizes the sprite as `kind * 0x100 + 0x300` in `angle`, and enters
@@ -356,7 +356,7 @@ void func_combustion_8012F888(Task* arg0)
     state    = arg0->state;
     switch (state) {
         case 0:
-            kind       = (Gp_StateC08.field_0 % 10U) - 1;
+            kind       = (Gp_StateC08.attachId % 10U) - 1;
             rng        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             rng2       = rng * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             mem->scale = ((u32)rng2 >> 16) & 0xFFF;

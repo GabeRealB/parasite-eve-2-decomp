@@ -145,7 +145,7 @@ extern Actor5035003Storage6574 D_actor_503500_80176574;
 extern u16 D_actor_503500_80176D64[];
 /// Main-executable globals with no module header yet: `gDisplayState.pendingMode` gates the
 /// "everything is dead" message, `gPlayerStatus.hp` is the player's current HP and
-/// `Gp_StateC08.field_A` the cutscene/among-us mode flag.
+/// `Gp_StateC08.mode` is 1 while the attachment wheel is open.
 /// Main-executable flag byte cleared when the boss enters state 2; also written
 /// by `mist_r18`, which has no module header for it either. Declared as an
 /// array: `func_actor_503500_801345F4` needs the in-struct store, which keeps
@@ -534,7 +534,7 @@ static s32 func_actor_503500_80133684(Task* arg0)
          (slots[11] == NULL) || ((slots[9] == NULL) && (slot1 == NULL)) ||
          ((slots[4]->hp == 0) && (slots[5]->hp == 0)))) {
         if ((((GameActor*)(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->work)->mode != GAME_ACTOR_MODE_SCRIPTED) &&
-            (gPlayerStatus.hp > 0) && (Gp_StateC08.field_A != 1)) {
+            (gPlayerStatus.hp > 0) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL)) {
             ret = 1;
             if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
@@ -990,7 +990,7 @@ static void func_actor_503500_80134408(Task* arg0)
         case 1:
             if (++work->field_7BC >= 0x1F &&
                 ((GameActor*)(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->work)->mode != GAME_ACTOR_MODE_SCRIPTED &&
-                gPlayerStatus.hp > 0 && Gp_StateC08.field_A != 1 && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
+                gPlayerStatus.hp > 0 && Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
                 SndEvt_EnqueueType7(SOUND_BRAHMAN_DEATH_LOOP, 0x2D);
                 work->field_7DA = work->field_7DA + 1;

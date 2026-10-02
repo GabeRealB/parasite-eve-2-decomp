@@ -1135,7 +1135,7 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
             }
             break;
         case 18:
-            if (taskMessageDispatch(Gp_LookupSlot4(0), ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0 && gPlayerStatus.hp > 0 && Gp_StateC08.field_A != 1 &&
+            if (taskMessageDispatch(Gp_LookupSlot4(0), ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0 && gPlayerStatus.hp > 0 && Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL &&
                 gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                 Gp_MsgPlayerWeapon(0);
                 task->state += 1;
@@ -1362,7 +1362,7 @@ void func_acropolis_cafeteria_8017E2D0(void)
 void func_acropolis_cafeteria_8017E310(void)
 {
     Gp_PulseState1C();
-    Gp_StateC08.field_6 |= 1;
+    Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
 }
 
 static void func_acropolis_cafeteria_8017E348(Task* task)

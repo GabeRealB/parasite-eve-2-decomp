@@ -45,18 +45,18 @@
 /// A cancelled or interrupted cast stops the cue and releases immediately.
 void flareEffectTask(Task* arg0)
 {
-    EffectWork* mem;
-    GfxCoord*   coord;
-    GpStateC08* state;
-    s32         pan;
-    s16         tick;
-    EffectWork* spawned;
-    s32         rng;
+    EffectWork*      mem;
+    GfxCoord*        coord;
+    AttachmentState* state;
+    s32              pan;
+    s16              tick;
+    EffectWork*      spawned;
+    s32              rng;
 
     state = &Gp_StateC08;
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if ((state->field_3 == -2) || (gRoomEffectState->peEffectControl != ROOM_EFFECT_CONTROL_RUNNING)) {
+    if ((state->effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl != ROOM_EFFECT_CONTROL_RUNNING)) {
         SndEvt_EnqueueType7(SOUND_FLARE_USE, 1);
         effectKillTask(mem, arg0);
         return;
@@ -70,7 +70,7 @@ void flareEffectTask(Task* arg0)
     tick = mem->age;
     if (tick < 0x14) {
         if (tick == 8) {
-            state->field_6 |= 8;
+            state->flags |= ATTACHMENT_FLAG_APPLY_STATS;
         }
         rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         gRandomLcgState = rng;

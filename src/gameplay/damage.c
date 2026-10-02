@@ -207,7 +207,7 @@ u32 Gp_ComputeDamage(u32 arg0, u32 arg1, s32 arg2, s32 arg3)
         dmg = tmp * mult >> 16;
 
         if (flag != 0) {
-            extra = Gp_StateC08.field_D;
+            extra = Gp_StateC08.energyShotCombo;
             if (extra != 0) {
                 dmg = dmg * D_80113D0C[(extra / 16 - 1) * 2 + (s8)(extra % 16)][0] / 100;
             }
@@ -271,7 +271,7 @@ s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3)
         hp    = gPlayerStatus.hp;
         col   = D_80113F54[hp / 10];
         val   = Gp_DmgRows[gSceneCombatState.difficulty].field_A[col] << 8;
-        extra = Gp_StateC08.field_C;
+        extra = Gp_StateC08.antibodyCombo;
         if (extra != 0) {
             val = val * D_80113CFC[(extra / 16 - 1) * 2 + (s8)(extra % 16)] / 100;
         }
@@ -367,7 +367,7 @@ s32 Gp_RollEnemyChance(Enemy* arg0, u32 arg1, s32 arg2)
         chance <<= 1;
     }
 
-    extra = Gp_StateC08.field_D;
+    extra = Gp_StateC08.energyShotCombo;
     if (extra != 0) {
         chance = chance * D_80113D0C[(extra / 16 - 1) * 2 + (s8)(extra % 16)][1] / 100;
     }
@@ -405,7 +405,7 @@ static void Gp_ApplyObjKind(Enemy* arg0, s32 arg1)
                 arg0->buildupGrade = 0;
                 return;
             }
-            arg0->buildupGrade = Gp_StateC08.field_0 % 10U;
+            arg0->buildupGrade = Gp_StateC08.attachId % 10U;
             break;
         case 3:
             val             = arg0->param->damageOverTimeChance;
@@ -421,7 +421,7 @@ static void Gp_ApplyObjKind(Enemy* arg0, s32 arg1)
                     arg0->damageOverTimeGrade = 0;
                     return;
                 }
-                arg0->damageOverTimeGrade = Gp_StateC08.field_0 % 10U;
+                arg0->damageOverTimeGrade = Gp_StateC08.attachId % 10U;
             }
             break;
     }

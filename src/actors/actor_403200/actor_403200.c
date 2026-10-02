@@ -4986,7 +4986,7 @@ static void func_actor_403200_8013B8C4(Task* arg0)
 /// the fourth model part's position carried into view space, made relative to
 /// the player's root coordinate with y zeroed, `ratan2` of that pair less the
 /// enemy's own facing, wrapped to +/-0x800 into `field_7C4`. It tells the scene
-/// a second time, arms `field_E96`, raises bit 0 of `Gp_StateC08.field_6`,
+/// a second time, arms `field_E96`, raises bit 0 of `Gp_StateC08.flags`,
 /// pulses the state and clears the node slot of the host and of escorts 3, 0
 /// and 1.
 ///
@@ -5091,7 +5091,7 @@ static void func_actor_403200_8013C84C(Task* arg0)
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_403200_8015F8F4, ACTOR_COMMAND_MESSAGE_APPLY);
         work->field_E96          = 0x9C4;
         gGluttonSpinnersReleased = 0;
-        Gp_StateC08.field_6     |= 1;
+        Gp_StateC08.flags       |= ATTACHMENT_FLAG_EVENT_LOCK;
         Gp_PulseState1C();
         Gp_ClearNodeSlots(&enemy->node);
         Gp_ClearNodeSlots(&work->field_ECC[3]->node);

@@ -1175,11 +1175,11 @@ static void Gp_DebugPanTask(Task* arg0)
             _worldCoordFillLightColorMatrix(mtx, 0x200, val, 0x200);
             D_80114F28 = 0;
         } else if ((gDisplayState.animFrame % 3) == 0 && cfg->hp > 0 && gGameSession->eventState == 0) {
-            if (Gp_StateC08.field_14 > 0 || (Gp_StateC08.field_16 != 0 && Gp_StateC08.field_17 != 0)) {
+            if (Gp_StateC08.metabolismTicks > 0 || (Gp_StateC08.mindWard != 0 && Gp_StateC08.bodyWard != 0)) {
                 _worldCoordFillLightColorMatrix(extra->colorMtx, 0x400, 0x2000, 0x2000);
-            } else if (Gp_StateC08.field_16 != 0) {
+            } else if (Gp_StateC08.mindWard != 0) {
                 _worldCoordFillLightColorMatrix(extra->colorMtx, 0x400, 0x400, 0x2000);
-            } else if (Gp_StateC08.field_17 != 0) {
+            } else if (Gp_StateC08.bodyWard != 0) {
                 _worldCoordFillLightColorMatrix(extra->colorMtx, 0x2000, 0x2000, 0x400);
             }
             if (cfg->statusFlags & PLAYER_STATUS_BERSERKER) {

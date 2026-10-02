@@ -50,7 +50,7 @@ typedef struct AhlpEnemyWork {
 STATIC_ASSERT_SIZEOF(AhlpEnemyWork, 0x54);
 
 /// Main-executable globals with no module header yet, both of which hold the
-/// phase tick back from phase 2: `Gp_StateC08.field_A` while it equals 1, `gDisplayState.pendingMode`
+/// phase tick back from phase 2: `Gp_StateC08.mode` while it equals 1, `gDisplayState.pendingMode`
 /// while it is non-zero.
 
 /// Message entries with the payload signature selected by each message id.
@@ -287,7 +287,7 @@ void func_acropolis_helicopter_landing_pad_8017D964(Task* task)
 }
 
 /// Per-frame phase tick of the room's script task. In phase 1 it posts msg
-/// 0x7D6 to slot-4 entry 0; once that returns 0 and neither `Gp_StateC08.field_A` nor
+/// 0x7D6 to slot-4 entry 0; once that returns 0 and neither `Gp_StateC08.mode` nor
 /// `gDisplayState.pendingMode` holds it back, it moves to phase 2, starts the script pair
 /// and queues sound 0xA2. Camera view 5 of the session raises
 /// `D_acropolis_helicopter_landing_pad_80184E0C`; a cleared
@@ -298,7 +298,7 @@ void func_acropolis_helicopter_landing_pad_8017D9BC(Task* task)
 
     if (phase == 1) {
         if (taskMessageDispatch(Gp_LookupSlot4(0), ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0) {
-            if ((Gp_StateC08.field_A != phase) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
+            if ((Gp_StateC08.mode != phase) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 D_acropolis_helicopter_landing_pad_80184D9C = 2;
                 func_800E8634(D_acropolis_helicopter_landing_pad_80184124, 0,
                               D_acropolis_helicopter_landing_pad_801844B4);

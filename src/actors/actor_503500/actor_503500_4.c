@@ -4339,8 +4339,8 @@ static void func_actor_503500_801437D0(Task* arg0, WorldCollisionContact* rec, s
                 taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 0), 0);
                 TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &D_actor_503500_801714E0[side], 0);
                 Task_SpawnFromTable(&D_actor_503500_8017146C, 0, side, &work->field_40);
-                Gp_StateC08.field_6 |= 1;
-                pan                  = (s8)worldCoordGetOriginAudioPan(pcoord);
+                Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
+                pan                = (s8)worldCoordGetOriginAudioPan(pcoord);
                 SndEvt_EnqueueType6(SOUND_COMMON(7), pan, (s8)(worldCoordGetOriginAudioDepth(pcoord) / 2));
             }
         }

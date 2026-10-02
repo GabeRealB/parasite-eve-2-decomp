@@ -3123,7 +3123,7 @@ void Gp_TickPlayClock(Task* task)
             cfg->hp = 1;
             return;
         }
-        Gp_StateC08.field_3 = 0;
+        Gp_StateC08.effectPhase = ATTACHMENT_EFFECT_IDLE;
         func_800A7DE0();
         Gp_PulseState1C80();
         session = gGameSession;
@@ -3143,7 +3143,7 @@ void Gp_TickPlayClock(Task* task)
                 p->state.companionHp = 1;
                 return;
             }
-            Gp_StateC08.field_3 = 0;
+            Gp_StateC08.effectPhase = ATTACHMENT_EFFECT_IDLE;
             func_800A7DE0();
             Gp_PulseState1C80();
             companion = p->state.companionType;

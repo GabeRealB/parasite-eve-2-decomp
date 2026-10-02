@@ -2017,7 +2017,7 @@ static void func_actor_120300_801335D8(Task* task)
 }
 
 /// Main tick of the cutscene actor. State 0 waits until no other cutscene is
-/// up (`Gp_StateC08.field_A` / `gDisplayState.pendingMode`), builds the work block, then either arms
+/// up (`Gp_StateC08.mode` / `gDisplayState.pendingMode`), builds the work block, then either arms
 /// play (`func_actor_120300_80133330`) once flag nibble 0x2D is set or sends
 /// the slot-3 weapon record and starts the script. States 1-4 step the area
 /// records, the pending `Gp_TakePendingObj4C` cue, and the overlay-load
@@ -2049,7 +2049,7 @@ void func_actor_120300_801337C4(Task* arg0)
     work  = (Actor120300Work*)arg0->work;
     switch (state) {
         case 0:
-            if ((Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
+            if ((Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 func_actor_120300_801335D8(arg0);
                 work = (Actor120300Work*)arg0->work;
                 if (GameFlag_GetNibble(GAME_FLAG_GARAGE_GARY_SCENE_SEEN) != 0) {

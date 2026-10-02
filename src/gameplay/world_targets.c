@@ -144,10 +144,10 @@ void Gp_DrawTargetCursor(void)
     if (sess->sceneUpdatesPaused == 1) {
         return;
     }
-    if (Gp_StateC08.field_A == 2 || Gp_StateC08.field_A == 3) {
+    if (Gp_StateC08.mode == ATTACHMENT_MODE_ARMED || Gp_StateC08.mode == ATTACHMENT_MODE_CAST) {
         return;
     }
-    if (Gp_StateC08.field_A == 1) {
+    if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL) {
         return;
     }
     if (sess->eventState != 0) {

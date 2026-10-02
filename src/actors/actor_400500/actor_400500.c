@@ -4338,9 +4338,9 @@ static void func_actor_400500_8013771C(Task* arg0)
                 msg.blendFrames          = 0;
                 msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
                 TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
-                work->field_A48      = 1;
-                Gp_StateC08.field_6 |= 1;
-                work->field_A18      = 1;
+                work->field_A48    = 1;
+                Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
+                work->field_A18    = 1;
             }
         }
     }

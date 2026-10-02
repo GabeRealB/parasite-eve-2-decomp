@@ -39,7 +39,7 @@
 #include "../../shared/sprite_quad.h"
 
 /// One 4-byte row of `D_necrosis_801306BC`, indexed by `EffectWork.index`
-/// (`Gp_StateC08.field_0 % 10 - 1`). `field_0` is the `Gp_SpawnEff` draw
+/// (`Gp_StateC08.attachId % 10 - 1`). `field_0` is the `Gp_SpawnEff` draw
 /// parameter (plus `field_22 * 0x60` each frame) and is copied into the
 /// first `WorldCollisionBody.radius`. `field_2` is the last `EffectWork.age` tick
 /// of the spawn loop; state 2 waits an extra 0x10 ticks past it. `field_2 +
@@ -83,7 +83,7 @@ static void func_necrosis_80130288(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 /// each frame, walks the coordinate, and spawns `0x80060019`; a `0x100000` hit
 /// on `obj2` zeros the offset and unlinks the list-7 object. State 2 waits
 /// `field_2 + 0x10` ticks. Any state releases if the player is dying
-/// (`Gp_StateC08.field_3` / `Gp_StateC08.field_3`) or parasite-energy effects are
+/// (`Gp_StateC08.effectPhase` / `Gp_StateC08.effectPhase`) or parasite-energy effects are
 /// cancelled (`gRoomEffectState->peEffectControl`).
 void func_necrosis_8012EF34(Task* arg0)
 {
@@ -108,7 +108,7 @@ void func_necrosis_8012EF34(Task* arg0)
     mem->age = tick;
     switch (arg0->state) {
         case 0:
-            if (Gp_StateC08.field_3 == -2) {
+            if (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) {
                 goto release;
             }
             peEffectControl = gRoomEffectState->peEffectControl;
@@ -142,12 +142,12 @@ void func_necrosis_8012EF34(Task* arg0)
             gte_rtv0();
             gte_stsv(&mem->move);
             rec                        = &work->rec;
-            mem->index                 = (Gp_StateC08.field_0 % 10) - 1;
+            mem->index                 = (Gp_StateC08.attachId % 10) - 1;
             arg0->work                 = work;
             work->obj.coord            = coord;
             work->obj.context.contacts = rec;
             work->obj.key =
-                ((u16)(Gp_StateC08.field_0 / 100) - 1) * 9 + ((u16)((u16)(Gp_StateC08.field_0 % 100) / 10) - 1) * 3 + (u16)(Gp_StateC08.field_0 % 10) + 0x28000;
+                ((u16)(Gp_StateC08.attachId / 100) - 1) * 9 + ((u16)((u16)(Gp_StateC08.attachId % 100) / 10) - 1) * 3 + (u16)(Gp_StateC08.attachId % 10) + 0x28000;
             work->obj.radius = D_necrosis_801306BC[mem->index].field_0;
             work->obj.flags  = WORLD_COLLISION_BODY_SPHERE;
             Gp_LinkObj(1, &work->obj);
@@ -161,7 +161,7 @@ void func_necrosis_8012EF34(Task* arg0)
             Gp_LinkObj(7, &work->obj2);
             work->obj2.flags = (work->obj2.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED)) | (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
             pan              = (s8)worldCoordGetOriginAudioPan(coord);
-            SndEvt_EnqueueType6(D_necrosis_801306C8[(u16)(Gp_StateC08.field_0 % 10) - 1], pan,
+            SndEvt_EnqueueType6(D_necrosis_801306C8[(u16)(Gp_StateC08.attachId % 10) - 1], pan,
                                 (s8)worldCoordGetOriginAudioDepth(coord));
             Gp_SpawnPadLerp((s16)((u16)D_necrosis_801306BC[mem->index].field_2 + 0xC), 0xFF, 8);
             arg0->state = 1;
@@ -187,7 +187,7 @@ void func_necrosis_8012EF34(Task* arg0)
             } else {
                 mem->age = mem->age - 1;
             }
-            if ((Gp_StateC08.field_3 == -2) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+            if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
                 Gp_UnlinkObj(&work->obj);
                 Gp_UnlinkObj(&work->obj2);
                 goto release;
@@ -207,7 +207,7 @@ void func_necrosis_8012EF34(Task* arg0)
             Gp_ClearRec18Occupied(&work->rec);
             return;
         case 2:
-            if (Gp_StateC08.field_3 == -2) {
+            if (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) {
                 goto release;
             }
             if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
@@ -309,10 +309,10 @@ void func_necrosis_8012FAF8(Task* arg0)
             mem->move.vz    = (rsin(((u32)rng2 >> 16) & 0xFFF) * mem->move.vx) >> 12;
             rng3            = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
             gRandomLcgState = rng3;
-            if ((s32)(((u32)rng3 >> 16) & 3) < ((u16)(Gp_StateC08.field_0 % 10U) - 1)) {
+            if ((s32)(((u32)rng3 >> 16) & 3) < ((u16)(Gp_StateC08.attachId % 10U) - 1)) {
                 mem->step = 0x1000;
             }
-            if ((u16)(Gp_StateC08.field_0 % 10U) - 1 < 2) {
+            if ((u16)(Gp_StateC08.attachId % 10U) - 1 < 2) {
                 arg0->state = 1;
                 return;
             }

@@ -559,7 +559,7 @@ void func_dryfield_breezeway_8017E010(Task* arg0)
 /// stays resident to run `func_dryfield_breezeway_8017DEC0` every frame.
 ///
 /// State 0 arms the room, but only while no cutscene is running
-/// (`Gp_StateC08.field_A != 1`) and the area is not cleared (`gDisplayState.pendingMode == DISPLAY_MODE_NONE`) --
+/// (`Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL`) and the area is not cleared (`gDisplayState.pendingMode == DISPLAY_MODE_NONE`) --
 /// otherwise it returns having done nothing, which retires the task on the
 /// next frame. It allocates the 0x14 `DbwWork` block, publishes the room task
 /// in `D_dryfield_breezeway_801843C0`, republishes the player's weapon as
@@ -580,7 +580,7 @@ void func_dryfield_breezeway_8017E114(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
+            if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 return;
             }
             work       = memMalloc(sizeof(*work), false);

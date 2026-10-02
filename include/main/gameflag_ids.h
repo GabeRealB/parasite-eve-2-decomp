@@ -669,7 +669,7 @@ enum {
     /// placement.
     GAME_FLAG_FORKED_ROAD_EVENT_SEEN = 0x0CC,
     /// Unidentified. One-shot mine mesa event on variant 1 with the companion present:
-    /// the actor-event handler sets it to 1 (and raises bit 0 of Gp_StateC08.field_6),
+    /// the actor-event handler sets it to 1 (and raises the attachment event lock in `Gp_StateC08.flags`),
     /// and the room tick then plays a scripted scene once the fight state clears.
     GAME_FLAG_MINE_MESA_0CD = 0x0CD,
     /// Set to 1 when the actor_400500 enemy (Gray Stalker models) is removed in its
@@ -767,7 +767,7 @@ enum {
     /// Set to 1 at the end of actor_150400's control-room scene; while clear the B1
     /// access tunnel refuses the transition to Golem Freezer 1 (cap 1).
     GAME_FLAG_GOLEM_FREEZER_UNLOCKED = 0x0E5,
-    /// Mine cavern event sequence: 0->1 raises bit 0 of Gp_StateC08.field_6, 1->2 plays
+    /// Mine cavern event sequence: 0->1 raises the attachment event lock in `Gp_StateC08.flags`, 1->2 plays
     /// the quake shake and camera pan scene; the room tick and the release helper act
     /// on each stage.
     GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS = 0x0E6,

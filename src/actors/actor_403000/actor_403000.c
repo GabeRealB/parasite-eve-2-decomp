@@ -5142,7 +5142,7 @@ static void func_actor_403000_8013603C(Task* arg0)
         work->field_6 = 0;
         Gp_SetLightMode(enemy, ENEMY_COLOR_DEFAULT);
     }
-    if (work->field_F8C == 1 && Gp_StateC08.field_A != work->field_F8C && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
+    if (work->field_F8C == 1 && Gp_StateC08.mode != work->field_F8C && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
         work->field_F8C = 0;
     }

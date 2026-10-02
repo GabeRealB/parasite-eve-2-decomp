@@ -2515,7 +2515,7 @@ static void Actor00100_Fn04270(Task* arg0)
         Gp_UnlinkObj(&work->objs[2].obj);
         ctx->recs = 0;
     }
-    if (work->field_6 >= 0x3D && work->reported == 0 && Gp_StateC08.field_A != 1 && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
+    if (work->field_6 >= 0x3D && work->reported == 0 && Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
         if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) {
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT, 0);
         }
@@ -3083,7 +3083,7 @@ static void Actor00100_Fn09310(Task* arg0)
         Gp_UnlinkObj(&work->objs[2].obj);
         ctx->recs = 0;
     }
-    if ((work->field_6 >= 0x1F) && (work->reported == 0) && (Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
+    if ((work->field_6 >= 0x1F) && (work->reported == 0) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
         if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) {
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, (s32)(ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT), 0);
         }
@@ -3240,7 +3240,7 @@ static void Actor00100_Fn09CCC(Task* arg0)
                 finishedObj         = arg0->extra.tmd;
                 finishedObj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             }
-            if ((work->field_6 >= 0x79) && (work->reported != 1) && (Gp_StateC08.field_A != 1) && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
+            if ((work->field_6 >= 0x79) && (work->reported != 1) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, (s32)(ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT), 0);
                 work->field_C2A = 1;
                 arg0->state++;
@@ -3452,8 +3452,8 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
                     } else if (((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) && (work->routePos.vx != 0) && (work->routePos.vz != 0) && (work->field_C28 < 6)) {
                         if (Actor00100_InRegion(player)) {
                             if (Actor00100_InDirection(player, (VECTOR*)&work->routePos.vx)) {
-                                work->poseId        = 0x38;
-                                Gp_StateC08.field_6 = (u8)(Gp_StateC08.field_6 | 1);
+                                work->poseId      = 0x38;
+                                Gp_StateC08.flags = (u8)(Gp_StateC08.flags | ATTACHMENT_FLAG_EVENT_LOCK);
                                 Gp_PulseState1C();
                                 scratch->vx = (u16)work->routePos.vx;
                                 scratch->vy = 0;

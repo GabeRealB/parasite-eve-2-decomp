@@ -33,7 +33,7 @@
 #include "../../shared/rising_spark.h"
 
 /// One 8-byte row of `D_healing_8012FC1C`, indexed by `EffectWork.index`
-/// (`Gp_StateC08.field_0 % 10 - 1`). `field_2` is the brightness cap state 1
+/// (`Gp_StateC08.attachId % 10 - 1`). `field_2` is the brightness cap state 1
 /// grows `EffectWork.scale` toward (and the starting radius in
 /// `func_healing_8012F5E4`). `field_4` is the per-frame radius step and the
 /// yaw passed to `gfxRotMatrixY` as `-(field_4 * 2)`. `field_6` is both the
@@ -60,7 +60,7 @@ static s32 D_healing_8012FC34[] = { 0xE0200001, 0xE0230001, 0xE0260001 };
 
 static void func_healing_8012F7FC(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
 
-/// Healing PE ring. Cancel (`Gp_StateC08.field_3 == -2` or
+/// Healing PE ring. Cancel (`Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD` or
 /// `gRoomEffectState->peEffectControl >= 4`) releases the work block, and if the effect has
 /// not started yet also sets `field_6` bit 3. State 0 parents the coordinate
 /// to the player, plays the combo-indexed cue from `D_healing_8012FC34`, and
@@ -72,7 +72,7 @@ void func_healing_8012EF34(Task* arg0)
 {
     EffectWork*       mem;
     GfxCoord*         coord;
-    GpStateC08*       state;
+    AttachmentState*  state;
     GfxRotationWords* rot;
     EffectWork*       spawned;
     s32               pan;
@@ -85,9 +85,9 @@ void func_healing_8012EF34(Task* arg0)
     state = &Gp_StateC08;
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if ((state->field_3 == -2) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+    if ((state->effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
         if (arg0->state == 0) {
-            state->field_6 |= 8;
+            state->flags |= ATTACHMENT_FLAG_APPLY_STATS;
         }
         effectKillTask(mem, arg0);
         return;
@@ -108,11 +108,11 @@ void func_healing_8012EF34(Task* arg0)
             coord->coord.t[2]   = 0;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
-            arg0->state     = 1;
-            mem->index      = (Gp_StateC08.field_0 % 10) - 1;
-            mem->angle      = 0x80;
-            state->field_6 |= 8;
-            pan             = (s8)worldCoordGetOriginAudioPan(coord);
+            arg0->state   = 1;
+            mem->index    = (Gp_StateC08.attachId % 10) - 1;
+            mem->angle    = 0x80;
+            state->flags |= ATTACHMENT_FLAG_APPLY_STATS;
+            pan           = (s8)worldCoordGetOriginAudioPan(coord);
             SndEvt_EnqueueType6(D_healing_8012FC34[mem->index], pan,
                                 (s8)worldCoordGetOriginAudioDepth(coord));
             /* fallthrough */
@@ -221,7 +221,7 @@ void func_healing_8012F5E4(Task* arg0)
         mem->move.vx = 0;
         mem->move.vz = 0;
         arg0->state  = 1;
-        kind         = (Gp_StateC08.field_0 % 10U) - 1;
+        kind         = (Gp_StateC08.attachId % 10U) - 1;
         mem->step    = kind;
         mem->scale   = D_healing_8012FC1C[kind].field_2;
         mem->angle   = (u16)arg0->spawnArg1.value & 0xFFF;

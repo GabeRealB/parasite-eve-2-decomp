@@ -73,71 +73,71 @@ void Gp_UpdateAttachCombo(s32 arg0)
     }
 
     cfg = &gPlayerStatus;
-    switch (Gp_StateC08.field_0) {
-        case 411:
-        case 412:
-        case 413: {
+    switch (Gp_StateC08.attachId) {
+        case ATTACHMENT_ID_ANTIBODY_1:
+        case ATTACHMENT_ID_ANTIBODY_2:
+        case ATTACHMENT_ID_ANTIBODY_3: {
             GpItemRec8* rec;
             s32         lvl;
             s32         count;
             s32         time;
 
-            lvl                  = Gp_StateC08.field_0 % 10;
-            rec                  = &Gp_AttachParams[27 + lvl].combo;
-            count                = Gp_StateC08.field_C & 0xF;
-            time                 = rec->field_6;
-            Gp_StateC08.field_C  = count;
-            Gp_StateC08.field_10 = time;
-            if (Gp_StateC08.field_C < 2) {
-                Gp_StateC08.field_C++;
+            lvl                       = Gp_StateC08.attachId % 10;
+            rec                       = &Gp_AttachParams[27 + lvl].combo;
+            count                     = Gp_StateC08.antibodyCombo & ATTACHMENT_COMBO_STACK_MASK;
+            time                      = rec->field_6;
+            Gp_StateC08.antibodyCombo = count;
+            Gp_StateC08.antibodyTicks = time;
+            if (Gp_StateC08.antibodyCombo < ATTACHMENT_COMBO_STACK_CAP) {
+                Gp_StateC08.antibodyCombo++;
             }
-            Gp_StateC08.field_C |= lvl << 4;
+            Gp_StateC08.antibodyCombo |= lvl << ATTACHMENT_COMBO_LEVEL_SHIFT;
             break;
         }
-        case 421:
-        case 422:
-        case 423: {
+        case ATTACHMENT_ID_ENERGY_SHOT_1:
+        case ATTACHMENT_ID_ENERGY_SHOT_2:
+        case ATTACHMENT_ID_ENERGY_SHOT_3: {
             GpItemRec8* rec;
             s32         lvl;
             s32         count;
             s32         time;
 
-            lvl                  = Gp_StateC08.field_0 % 10;
-            rec                  = &Gp_AttachParams[30 + lvl].combo;
-            count                = Gp_StateC08.field_D & 0xF;
-            time                 = rec->field_6;
-            Gp_StateC08.field_D  = count;
-            Gp_StateC08.field_12 = time;
-            if (Gp_StateC08.field_D < 2) {
-                Gp_StateC08.field_D++;
+            lvl                         = Gp_StateC08.attachId % 10;
+            rec                         = &Gp_AttachParams[30 + lvl].combo;
+            count                       = Gp_StateC08.energyShotCombo & ATTACHMENT_COMBO_STACK_MASK;
+            time                        = rec->field_6;
+            Gp_StateC08.energyShotCombo = count;
+            Gp_StateC08.energyShotTicks = time;
+            if (Gp_StateC08.energyShotCombo < ATTACHMENT_COMBO_STACK_CAP) {
+                Gp_StateC08.energyShotCombo++;
             }
-            Gp_StateC08.field_D |= lvl << 4;
+            Gp_StateC08.energyShotCombo |= lvl << ATTACHMENT_COMBO_LEVEL_SHIFT;
             break;
         }
-        case 311:
-        case 312:
-        case 313: {
+        case ATTACHMENT_ID_METABOLISM_1:
+        case ATTACHMENT_ID_METABOLISM_2:
+        case ATTACHMENT_ID_METABOLISM_3: {
             GpItemRec8* rec;
             s32         lvl;
             s32         count;
             s32         time;
 
-            lvl                  = Gp_StateC08.field_0 % 10;
-            rec                  = &Gp_AttachParams[18 + lvl].combo;
-            count                = Gp_StateC08.field_F & 0xF;
-            time                 = rec->field_6;
-            Gp_StateC08.field_F  = count;
-            Gp_StateC08.field_14 = time;
-            if (Gp_StateC08.field_F == 0) {
-                Gp_StateC08.field_F++;
+            lvl                         = Gp_StateC08.attachId % 10;
+            rec                         = &Gp_AttachParams[18 + lvl].combo;
+            count                       = Gp_StateC08.metabolismCombo & ATTACHMENT_COMBO_STACK_MASK;
+            time                        = rec->field_6;
+            Gp_StateC08.metabolismCombo = count;
+            Gp_StateC08.metabolismTicks = time;
+            if (Gp_StateC08.metabolismCombo == 0) {
+                Gp_StateC08.metabolismCombo++;
             }
-            Gp_StateC08.field_F |= lvl << 4;
+            Gp_StateC08.metabolismCombo |= lvl << ATTACHMENT_COMBO_LEVEL_SHIFT;
             Gp_TriggerPeState(1, PLAYER_STATUS_ALL_EFFECTS);
             break;
         }
-        case 321:
-        case 322:
-        case 323: {
+        case ATTACHMENT_ID_HEALING_1:
+        case ATTACHMENT_ID_HEALING_2:
+        case ATTACHMENT_ID_HEALING_3: {
             GpRec16* params;
             s32      row;
             s32      min;
@@ -146,7 +146,7 @@ void Gp_UpdateAttachCombo(s32 arg0)
 
             /* The parameter rows attach 7 uses at levels 1 to 3. */
             params = Gp_IdParamHi.rows;
-            row    = 7 * 3 + 1 + Gp_StateC08.field_0 % 3;
+            row    = ATTACHMENT_INDEX_HEALING * 3 + 1 + Gp_StateC08.attachId % 3;
             max    = params[row].field[5];
             min    = params[row].field[4];
             if (min >= max || !isStateF0Active_()) {

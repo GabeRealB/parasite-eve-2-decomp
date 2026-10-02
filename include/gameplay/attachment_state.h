@@ -14,57 +14,117 @@ typedef union GpIdParamTable {
 } GpIdParamTable;
 STATIC_ASSERT_SIZEOF(GpIdParamTable, 0x370);
 
-/// Global at `Gp_StateC08`. `field_0` is a u16 loaded by many helpers.
-/// `field_2` is a signed byte (`lb` as splat `D_80114C0A`); `Gp_SetAttachState`
-/// writes the low byte of `Gp_GetAttachParam(3)`, replacing it with 1 when
-/// that value is <= 0. `field_3` is a signed state byte (`lb`);
-/// `func_80109290` compares it to -2 and `func_80109374` requires 0.
-/// `field_5` is a signed category index (`lb` as splat `D_80114C0D`);
-/// `Gp_GetAttachParam` uses it to pick a `Gp_IdParamHi` row when it is `< 0xC`.
-/// `field_B` is the same kind of signed index (`lb`); `Gp_ApplyAttachStats`
-/// uses `field_5` when its first arg is 1 and `field_B` otherwise.
-/// `field_6` is a flags byte (bit 0 gates `func_800A7DB8` writing
-/// `field_E`; bit 1 is cleared by `Gp_ResetHudFx` and forces
-/// `func_800A7E5C` to 0 when that function's arg is 0). `field_9` is
-/// cleared by `Gp_SetAttachState`. `field_A` is a signed byte (`lb`, splat
-/// `Gp_StateC08.field_A`); `func_800A7DE0` sets `field_3 = 2` when it is >= 2,
-/// then clears it. `func_80109FC4` loads it unsigned (`lbu`) and skips
-/// the `field_25` bit `0x80` timer when the value is 2 or 3.
-/// `Gp_ResetHudFx` also zeros `field_A`, `field_C`..`field_F`,
-/// `field_10`/`field_12`/`field_14`, and `field_16`/`field_17`. Those
-/// two bytes are also the item 4 / item 8 gates in `Gp_ItemIsUnusable`
-/// (`lb`). `Gp_UpdateAttachCombo` packs a nibble plus `field_0 % 10` into
-/// `field_C` / `field_D` / `field_F` and stores a table duration in
-/// `field_10` / `field_12` / `field_14`. `field_7` and `field_8` are signed
-/// bytes (`lb`): `Gp_UseItemTask` treats `field_7` as a positive-only sound id
-/// (`blez` clears it) and steps `field_8` 1 -> 2 -> 0 as the attach sound is
-/// queued and the category is committed. `field_E` is a signed pending
-/// category (`lb`), copied into `field_5` / `field_B` once the pad is idle,
-/// and `field_10` / `field_12` / `field_14` are `s16` countdowns that clear
-/// `field_C` / `field_D` / `field_F` when they reach 0.
-typedef struct _GpStateC08 {
-    /* 0x00 */ u16  field_0;
-    /* 0x02 */ s8   field_2;
-    /* 0x03 */ s8   field_3;
-    /* 0x04 */ byte pad_4;
-    /* 0x05 */ s8   field_5;
-    /* 0x06 */ u8   field_6;
-    /* 0x07 */ s8   field_7;
-    /* 0x08 */ s8   field_8;
-    /* 0x09 */ s8   field_9;
-    /* 0x0A */ s8   field_A;
-    /* 0x0B */ s8   field_B;
-    /* 0x0C */ s8   field_C;
-    /* 0x0D */ s8   field_D;
-    /* 0x0E */ s8   field_E;
-    /* 0x0F */ u8   field_F;
-    /* 0x10 */ s16  field_10;
-    /* 0x12 */ s16  field_12;
-    /* 0x14 */ s16  field_14;
-    /* 0x16 */ s8   field_16;
-    /* 0x17 */ s8   field_17;
-} GpStateC08;
-STATIC_ASSERT_SIZEOF(GpStateC08, 0x18);
+/// Bits of `AttachmentState.flags`.
+#define ATTACHMENT_FLAG_EVENT_LOCK  1
+#define ATTACHMENT_FLAG_SWAP_LOCK   2
+#define ATTACHMENT_FLAG_RELEASE     4
+#define ATTACHMENT_FLAG_APPLY_STATS 8
+#define ATTACHMENT_FLAG_OPEN_WHEEL  0x10
+
+/// Clears one flag and leaves the rest of the byte. Each value is the mask
+/// the clear sites store.
+#define ATTACHMENT_FLAG_CLEAR_EVENT_LOCK  0xFE
+#define ATTACHMENT_FLAG_CLEAR_SWAP_LOCK   0xFD
+#define ATTACHMENT_FLAG_CLEAR_RELEASE     0xFB
+#define ATTACHMENT_FLAG_CLEAR_APPLY_STATS 0xF7
+#define ATTACHMENT_FLAG_CLEAR_OPEN_WHEEL  0xEF
+
+/// `AttachmentState.mode`.
+#define ATTACHMENT_MODE_IDLE  0
+#define ATTACHMENT_MODE_WHEEL 1
+#define ATTACHMENT_MODE_ARMED 2
+#define ATTACHMENT_MODE_CAST  3
+
+/// `AttachmentState.effectPhase`.
+#define ATTACHMENT_EFFECT_HELD      -2
+#define ATTACHMENT_EFFECT_CHARGE    -1
+#define ATTACHMENT_EFFECT_IDLE      0
+#define ATTACHMENT_EFFECT_RELEASED  1
+#define ATTACHMENT_EFFECT_CANCELLED 2
+
+/// `AttachmentState.soundStep`.
+#define ATTACHMENT_SOUND_IDLE   0
+#define ATTACHMENT_SOUND_QUEUED 1
+#define ATTACHMENT_SOUND_PLAYED 2
+
+/// `AttachmentState.menuOpen`.
+#define ATTACHMENT_MENU_CLOSED 0
+#define ATTACHMENT_MENU_OPEN   1
+
+/// Wheel slots. The twelve spells are `0 .. ATTACHMENT_SPELL_COUNT - 1`.
+#define ATTACHMENT_SPELL_COUNT       0xC
+#define ATTACHMENT_INDEX_METABOLISM  6
+#define ATTACHMENT_INDEX_HEALING     7
+#define ATTACHMENT_INDEX_ENERGY_BALL 0xB
+
+/// Shortest cast `duration`, in frames.
+#define ATTACHMENT_DURATION_MIN 1
+
+/// Low nibble of a combo byte is the stack; the high nibble is the level.
+#define ATTACHMENT_COMBO_STACK_MASK  0xF
+#define ATTACHMENT_COMBO_LEVEL_SHIFT 4
+#define ATTACHMENT_COMBO_STACK_CAP   2
+
+/// Packed attachment ids. The opening six spells are below 300, the twelve
+/// spells end at 600, and item attachments start at 601.
+#define ATTACHMENT_ID_EARLY_SPELL_LIMIT   300
+#define ATTACHMENT_ID_EARLY_SPELL_LIMIT_U 0x12CU
+#define ATTACHMENT_ID_LAST_SPELL          600
+#define ATTACHMENT_ID_ITEM                0x259U
+
+/// `attachId / 10` for the healing family (321–323) and energy ball (431–433).
+#define ATTACHMENT_ID_HEALING_FAMILY     0x20
+#define ATTACHMENT_ID_ENERGY_BALL_FAMILY 0x2B
+
+#define ATTACHMENT_ID_METABOLISM_1  311
+#define ATTACHMENT_ID_METABOLISM_2  312
+#define ATTACHMENT_ID_METABOLISM_3  313
+#define ATTACHMENT_ID_HEALING_1     321
+#define ATTACHMENT_ID_HEALING_2     322
+#define ATTACHMENT_ID_HEALING_3     323
+#define ATTACHMENT_ID_ANTIBODY_1    411
+#define ATTACHMENT_ID_ANTIBODY_2    412
+#define ATTACHMENT_ID_ANTIBODY_3    413
+#define ATTACHMENT_ID_ENERGY_SHOT_1 421
+#define ATTACHMENT_ID_ENERGY_SHOT_2 422
+#define ATTACHMENT_ID_ENERGY_SHOT_3 423
+
+/// Parasite Energy attachment being aimed, cast, or still applying.
+///
+/// `attachId` packs the family in the tens and the level in the ones.
+/// `activeIndex` is the spell in use and `wheelIndex` the spell highlighted
+/// on the wheel. `queuedIndex` becomes both once the pad is idle, unless an
+/// event lock or a scripted actor is holding the queue. Outside combat the
+/// wheel highlights healing when that spell is learned.
+///
+/// Antibody and energy shot stacks saturate at 2; metabolism steps from 0 to
+/// 1. Their tick counters freeze while the wheel is open and clear the combo
+/// byte at 0. A running metabolism timer blocks the same statuses as both
+/// wards together. `mindWard` blocks silence, confusion and berserker;
+/// `bodyWard` blocks darkness, paralysis and poison.
+typedef struct {
+    u16  attachId;        // Packed spell id: tens are the family, ones the level
+    s8   duration;        // Cast length in frames; also the gauge width
+    s8   effectPhase;     // -2 held, -1 charging, 0 idle, 1 released, 2 cancelled
+    byte field_4;         // Unread. Role unproven
+    s8   activeIndex;     // Spell in use. Below 12 is a spell; 12 still draws the gauge and consumes an item
+    u8   flags;           // Bit 0 event lock, 1 swap lock, 2 release, 3 apply stats, 4 force the wheel open
+    s8   previewSound;    // Wheel preview sound; cleared once that play returns
+    s8   soundStep;       // 0 idle, 1 queued, 2 played
+    s8   menuOpen;        // 1 while the wheel is open
+    s8   mode;            // 0 idle, 1 wheel open, 2 armed, 3 counting `duration` down
+    s8   wheelIndex;      // Spell highlighted on the wheel
+    s8   antibodyCombo;   // High nibble level, low nibble stack, saturating at 2
+    s8   energyShotCombo; // High nibble level, low nibble stack, saturating at 2
+    s8   queuedIndex;     // Spell or item slot waiting to become the active spell
+    u8   metabolismCombo; // High nibble level, low nibble stack, stepping from 0 to 1
+    s16  antibodyTicks;   // Frames left before the antibody combo clears
+    s16  energyShotTicks; // Frames left before the energy shot combo clears
+    s16  metabolismTicks; // Frames of both immunities; clears the metabolism combo at 0
+    s8   mindWard;        // Set while silence, confusion and berserker are blocked
+    s8   bodyWard;        // Set while darkness, paralysis and poison are blocked
+} AttachmentState;
+STATIC_ASSERT_SIZEOF(AttachmentState, 0x18);
 
 /// 8-byte dispatch record selected by `Gp_ApplyAttachStats` as
 /// `Gp_AttachParams[idx * 3 + ret].dispatch`. `field_0` is the switch key
@@ -80,8 +140,8 @@ typedef struct _GpRec8 {
 STATIC_ASSERT_SIZEOF(GpRec8, 8);
 
 /// 8-byte item-effect row used by `Gp_UpdateAttachCombo`. Indexed by
-/// `Gp_StateC08.field_0 % 10`. `field_6` is loaded `lhu` into
-/// `GpStateC08.field_10` / `field_12` / `field_14`.
+/// `Gp_StateC08.attachId % 10`. `field_6` is the duration copied into
+/// `antibodyTicks`, `energyShotTicks` or `metabolismTicks`.
 typedef struct _GpItemRec8 {
     /* 0x0 */ u16 pad_0[3];
     /* 0x6 */ u16 field_6;

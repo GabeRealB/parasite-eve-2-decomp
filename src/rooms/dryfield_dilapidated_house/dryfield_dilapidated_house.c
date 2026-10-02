@@ -2623,7 +2623,7 @@ static void func_dryfield_dilapidated_house_8017E014(Task* task)
             D_dryfield_dilapidated_house_80183EFC = 2;
         } else if ((D_dryfield_dilapidated_house_80183EFC == 2) &&
                    (taskMessageDispatch(Gp_LookupSlot4(0), ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0)) {
-            if (Gp_StateC08.field_A != 1) {
+            if (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) {
                 if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                     D_dryfield_dilapidated_house_80183EFC += 1;
                     Task_SpawnFromTable(D_dryfield_dilapidated_house_80183EB4, 3, 0, 0);
@@ -3009,11 +3009,11 @@ void func_dryfield_dilapidated_house_8017EA10(s32 arg0)
 }
 
 /// Script command that calls `Gp_PulseState1C` and sets bit 0 of
-/// `Gp_StateC08.field_6`.
+/// `Gp_StateC08.flags`.
 void func_dryfield_dilapidated_house_8017EA7C(void)
 {
     Gp_PulseState1C();
-    Gp_StateC08.field_6 |= 1;
+    Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
 }
 
 static void func_dryfield_dilapidated_house_8017EAB4(Task* arg0)

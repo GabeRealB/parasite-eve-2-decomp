@@ -2693,7 +2693,7 @@ static void func_dryfield_night_gas_station_8017FAEC(Task* task)
 
     if (gGameSession->eventState == 0) {
         temp_v0 = GameFlag_GetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS);
-        if ((temp_v0 == 1) && (Gp_StateC08.field_A != temp_v0)) {
+        if ((temp_v0 == 1) && (Gp_StateC08.mode != temp_v0)) {
             GameFlag_SetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS, 2);
             func_800E8634(D_dryfield_night_gas_station_80188BF4, 0, D_dryfield_night_gas_station_80189014);
         }
@@ -3226,10 +3226,10 @@ void func_dryfield_night_gas_station_80180B5C(Task* arg0)
     }
 }
 
-/// Sets bit 0 of `Gp_StateC08.field_6` and requests all-effect cancellation on `gRoomEffectState`.
+/// Sets bit 0 of `Gp_StateC08.flags` and requests all-effect cancellation on `gRoomEffectState`.
 void func_dryfield_night_gas_station_80180BEC(void)
 {
-    Gp_StateC08.field_6 |= 1;
+    Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
     Gp_PulseState1C();
 }
 

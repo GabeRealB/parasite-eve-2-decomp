@@ -1432,7 +1432,7 @@ static void Gp_TickState1C(Task* unused)
 {
     RoomEffectState*  effectState;
     SceneCombatState* combat;
-    GpStateC08*       r;
+    AttachmentState*  attachment;
     s16               previousBattleState;
 
     if (gRoomEffectState->effectCount <= 0) {
@@ -1457,15 +1457,15 @@ static void Gp_TickState1C(Task* unused)
         Gp_DecRoomCoordRefs();
     }
     if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-        r           = &Gp_StateC08;
-        r->field_10 = 0;
-        r->field_C  = 0;
-        r->field_12 = 0;
-        r->field_D  = 0;
-        r->field_14 = 0;
-        r->field_F  = 0;
-        r->field_16 = 0;
-        r->field_17 = 0;
+        attachment                  = &Gp_StateC08;
+        attachment->antibodyTicks   = 0;
+        attachment->antibodyCombo   = 0;
+        attachment->energyShotTicks = 0;
+        attachment->energyShotCombo = 0;
+        attachment->metabolismTicks = 0;
+        attachment->metabolismCombo = 0;
+        attachment->mindWard        = 0;
+        attachment->bodyWard        = 0;
         Gp_TriggerPeState(1, PLAYER_STATUS_BERSERKER);
     }
 }

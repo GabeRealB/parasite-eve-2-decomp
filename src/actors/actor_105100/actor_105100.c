@@ -237,9 +237,9 @@ static void func_actor_105100_80136788(Enemy* arg0, Task* arg1);
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
-/// Main-executable globals with no module header yet: a `Gp_StateC08.field_A` of 1 or a
-/// live `gDisplayState.pendingMode` means a cutscene is already up, so the death handler skips
-/// message 0x13F4.
+/// Main-executable globals with no module header yet. The death handler withholds
+/// message 0x13F4 while the attachment wheel is open (`Gp_StateC08.mode`) or
+/// `gDisplayState.pendingMode` is live.
 
 /// Main-executable global with no module header yet: the remaining-enemy count
 /// `func_actor_105100_80136318` tests to decide whether the fight is over.
@@ -1138,8 +1138,8 @@ static void func_actor_105100_80132C2C(Task* arg0)
     }
     if (work->field_53C[0].flags & 1) {
         if ((work->field_53C[0].key.value & 0xFFFF0000) == 0x10000 && gPlayerStatus.hp > 0) {
-            work->field_5A2      = 1;
-            Gp_StateC08.field_6 |= 1;
+            work->field_5A2    = 1;
+            Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
         }
         Gp_ClearRec18Occupied(work->field_53C);
     }
@@ -1815,7 +1815,7 @@ static void func_actor_105100_80134284(Enemy* arg0, Task* arg1)
             goto color_update;
         case 2:
             flag = work->field_5BA;
-            if ((flag == 1) && (((GameActor*)player->work)->mode != GAME_ACTOR_MODE_SCRIPTED) && (Gp_StateC08.field_A != flag) &&
+            if ((flag == 1) && (((GameActor*)player->work)->mode != GAME_ACTOR_MODE_SCRIPTED) && (Gp_StateC08.mode != flag) &&
                 (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
                 work->field_5BA = 0;

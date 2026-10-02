@@ -3361,7 +3361,7 @@ static void Actor01600_Fn04054(Enemy* arg0, Task* arg1)
     GfxCoord*         body;
     Actor01600Work*   w;
     SceneCombatState* state;
-    GpStateC08*       pad;
+    AttachmentState*  attachment;
     SVECTOR           aim;
     s32               dist;
     s32               anim;
@@ -3457,14 +3457,14 @@ static void Actor01600_Fn04054(Enemy* arg0, Task* arg1)
         case 2:
             if (gSceneCombatState.actor01600Wave >= 3) {
                 if (Actor01600_D12874 == 1) {
-                    pad = &Gp_StateC08;
-                    if (pad->field_A == 1) {
+                    attachment = &Gp_StateC08;
+                    if (attachment->mode == ATTACHMENT_MODE_WHEEL) {
                         break;
                     }
                     if (gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                         break;
                     }
-                    pad->field_6 |= 1;
+                    attachment->flags |= ATTACHMENT_FLAG_EVENT_LOCK;
                     Gp_PulseState1C();
                     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, arg1, 0);
                     work->field_502         = 0xFF;

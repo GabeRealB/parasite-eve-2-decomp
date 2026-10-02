@@ -1860,7 +1860,7 @@ void func_actor_503500_80132D20(Task* arg0)
 
 void func_actor_503500_80132D60(void)
 {
-    Gp_StateC08.field_6 |= 1;
+    Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
 }
 
 void func_actor_503500_80132D7C(void)

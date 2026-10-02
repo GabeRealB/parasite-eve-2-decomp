@@ -75,7 +75,7 @@ static InfernoFanParam D_inferno_801304E4[] = {
 };
 
 /// The `SndEvt_EnqueueType6` id the inferno cast plays, indexed by
-/// the cast's level, `Gp_StateC08.field_0 % 10 - 1`.
+/// the cast's level, `Gp_StateC08.attachId % 10 - 1`.
 /// The same index also picks the state `func_inferno_8012EF88` advances to,
 /// which is why the three ids and the three state chains run in step.
 static s32 D_inferno_801304F0[] = { 0xE0100001, 0xE0130001, 0xE00D0001 };
@@ -86,14 +86,14 @@ static void func_inferno_8012FF34(EffectWork* mem, GfxCoord* coord, s32 kind, In
 
 /// Runs one frame of the inferno cast: a state machine driven by
 /// `Task::state`, with the chain it takes chosen in state 0 from
-/// `Gp_StateC08.field_0 % 10 - 1` (the combo counter), which also picks the
+/// `Gp_StateC08.attachId % 10 - 1` (the combo counter), which also picks the
 /// roar from `D_inferno_801304F0` and lands the task on state 1, 5 or 9.
 /// State 1 spawns the two ignition effects, state 5 fans six flames around a
 /// 0x400 step, state 9 the ground burst; states 10 and 11 fade the effect
 /// brightness scalar (`EffectWork::angle`) down and back up and each fire one ring of
 /// flames on their own tick, and state 12 fades out and releases. Every state
 /// updates the effect coordinate first, and any state releases immediately if
-/// the player is dying (`Gp_StateC08.field_3`) or parasite-energy effects are
+/// the player is dying (`Gp_StateC08.effectPhase`) or parasite-energy effects are
 /// cancelled (`gRoomEffectState->peEffectControl`).
 void func_inferno_8012EF88(Task* arg0)
 {
@@ -104,7 +104,7 @@ void func_inferno_8012EF88(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if ((Gp_StateC08.field_3 == -2) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+    if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
         goto release;
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -115,14 +115,14 @@ void func_inferno_8012EF88(Task* arg0)
             mem->scale = 0x200;
             mem->angle = 0xFF;
             pan        = (s8)worldCoordGetOriginAudioPan(coord);
-            SndEvt_EnqueueType6(D_inferno_801304F0[(u16)(Gp_StateC08.field_0 % 10) - 1], pan,
+            SndEvt_EnqueueType6(D_inferno_801304F0[(u16)(Gp_StateC08.attachId % 10) - 1], pan,
                                 (s8)worldCoordGetOriginAudioDepth(coord));
-            arg0->state = ((u16)(Gp_StateC08.field_0 % 10) - 1) * 4 + 1;
+            arg0->state = ((u16)(Gp_StateC08.attachId % 10) - 1) * 4 + 1;
             return;
         case 1:
             Gp_SpawnEff((EFFECT_INFERNO_FLAME | EFFECT_SPAWN_UNLIMITED), coord, 3, NULL);
             Gp_SpawnEff((EFFECT_INFERNO_FLAME | EFFECT_SPAWN_UNLIMITED), coord, 5, NULL);
-            Gp_StateC08.field_6 |= 8;
+            Gp_StateC08.flags |= ATTACHMENT_FLAG_APPLY_STATS;
             Gp_SpawnPadLerp(0x10, 0xFF, 8);
             arg0->state = 0xC;
             return;
@@ -137,7 +137,7 @@ void func_inferno_8012EF88(Task* arg0)
                 i           += 0x400;
                 Gp_SpawnEff((EFFECT_INFERNO_FLAME | EFFECT_SPAWN_UNLIMITED), coord, 4, &mem->move);
             } while (i < 0x1200);
-            Gp_StateC08.field_6 |= 8;
+            Gp_StateC08.flags |= ATTACHMENT_FLAG_APPLY_STATS;
             Gp_SpawnPadLerp(0x14, 0xFF, 8);
             arg0->state = 0xC;
             return;
@@ -179,7 +179,7 @@ void func_inferno_8012EF88(Task* arg0)
                 i           += 0x2AA;
                 Gp_SpawnEff((EFFECT_INFERNO_FLAME | EFFECT_SPAWN_UNLIMITED), coord, 2, &mem->move);
             } while (i < 0xFFC);
-            Gp_StateC08.field_6 |= 8;
+            Gp_StateC08.flags |= ATTACHMENT_FLAG_APPLY_STATS;
             Gp_SpawnPadLerp(0x18, 0xFF, 8);
             arg0->state = 0xC;
             mem->angle  = 0xFF;
@@ -255,7 +255,7 @@ void func_inferno_8012F530(Task* arg0)
     map   = (InfernoIdMap*)arg0->work;
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if ((Gp_StateC08.field_3 == -2) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+    if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
         goto release;
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;

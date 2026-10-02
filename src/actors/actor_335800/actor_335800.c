@@ -1166,7 +1166,7 @@ void func_actor_335800_80162460(void)
 
 void func_actor_335800_80162484(void)
 {
-    Gp_StateC08.field_6 |= 1;
+    Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
     Gp_PulseState1C();
 }
 

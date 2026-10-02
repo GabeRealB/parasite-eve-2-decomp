@@ -127,8 +127,8 @@ extern GsF_LIGHT D_actor_303600_8016E490[3];
 extern EvsCommand D_actor_303600_80162AF0[];
 extern EvsCommand D_actor_303600_80162DD8[];
 
-/// Main-executable globals with no module header yet: a `Gp_StateC08.field_A` of 1 or a
-/// live `gDisplayState.pendingMode` both mean a cutscene is already up, and `gDisplayState.spriteVariant` is the
+/// Main-executable globals with no module header yet: the attachment wheel being open
+/// (`Gp_StateC08.mode`) or a live `gDisplayState.pendingMode` holds the scene, and `gDisplayState.spriteVariant` is the
 /// latch state 2 below sets alongside `gMcSaveData`.
 
 static void func_actor_303600_80162850(Task* task);
@@ -16968,8 +16968,8 @@ static void func_actor_303600_80161F40(Task* arg0)
     work->command = 0;
 }
 
-/// Cutscene controller for the overlay. State 0 arms it once: a `Gp_StateC08.field_A` of
-/// 1 or a live `gDisplayState.pendingMode` both mean a cutscene is already up, so the state is
+/// Cutscene controller for the overlay. State 0 arms it once: it waits while the
+/// attachment wheel is open (`Gp_StateC08.mode`) or `gDisplayState.pendingMode` is live, so the state is
 /// left where it is and the task returns; otherwise it allocates the
 /// `Actor303600Work` block, zeroes it, parks the `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` task in
 /// `field_0` and publishes itself in `D_actor_303600_8016E4C0` with
@@ -16986,7 +16986,7 @@ void func_actor_303600_8016216C(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
+            if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 return;
             }
             work       = memMalloc(sizeof(*work), false);
@@ -17159,7 +17159,7 @@ void func_actor_303600_80162600(s16 arg0)
 void func_actor_303600_80162620(void)
 {
     Gp_PulseState1C80();
-    Gp_StateC08.field_6 |= 1;
+    Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
 }
 
 /// Opcode-0x0D callback in the actor's cutscene script: queues CD command 0x82

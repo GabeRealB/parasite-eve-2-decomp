@@ -132,7 +132,7 @@ void Gp_SetObjFlag4(Enemy* arg0, s32 arg1, s32 arg2)
             arg0->damageOverTimeGrade = 0;
             return;
         }
-        arg0->damageOverTimeGrade = Gp_StateC08.field_0 % 10U;
+        arg0->damageOverTimeGrade = Gp_StateC08.attachId % 10U;
     }
 }
 
@@ -196,7 +196,7 @@ void Gp_SetObjFlag2(Enemy* arg0, s32 arg1, s32 arg2)
         arg0->buildupGrade = 0;
         return;
     }
-    arg0->buildupGrade = Gp_StateC08.field_0 % 10U;
+    arg0->buildupGrade = Gp_StateC08.attachId % 10U;
 }
 
 s32 Gp_TickObjFlag2(Enemy* arg0)

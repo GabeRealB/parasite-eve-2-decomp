@@ -654,10 +654,10 @@ void func_shelter_b6_corridor_8017E19C(s32 arg0)
     }
 }
 
-/// Sets bit 0 of `Gp_StateC08.field_6` and requests all-effect cancellation on `gRoomEffectState`.
+/// Sets bit 0 of `Gp_StateC08.flags` and requests all-effect cancellation on `gRoomEffectState`.
 void func_shelter_b6_corridor_8017E204(void)
 {
-    Gp_StateC08.field_6 |= 1;
+    Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
     Gp_PulseState1C();
 }
 

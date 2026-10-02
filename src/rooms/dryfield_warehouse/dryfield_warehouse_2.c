@@ -652,8 +652,8 @@ static void func_dryfield_warehouse_8017DBB0(Task* arg0)
 }
 
 /// Main loop of the warehouse's cutscene task, the owner of the 0x10-byte
-/// `DwhWork` block. State 0 arms the script once: a `Gp_StateC08.field_A` of 1 or a live
-/// `gDisplayState.pendingMode` both mean the cutscene is already up, so it does nothing.
+/// `DwhWork` block. State 0 arms the script once: it waits while the attachment wheel
+/// is open (`Gp_StateC08.mode`) or `gDisplayState.pendingMode` is live, so it does nothing.
 /// Otherwise it parks the zeroed work block in `Task::work` -- a failed
 /// `memMalloc` kills the task, but the record below is dispatched either way --
 /// fills `owner` from pointer slot 3 and republishes this task as
@@ -674,7 +674,7 @@ void func_dryfield_warehouse_8017E090(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            if ((Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
+            if ((Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 work       = memMalloc(sizeof(*work), false);
                 arg0->work = work;
                 if (work == NULL) {

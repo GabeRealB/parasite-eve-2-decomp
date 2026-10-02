@@ -64,7 +64,7 @@ static s16 D_plasma_8012FF54[3][16] = { 0 };
 
 /// Plasma PE ring. `Task::spawnArg2` is the `EffectWork` block (`scale`
 /// brightness, `index` combo index, `age` tick / inner radius);
-/// `Task::extra` reaches the coordinate. Cancel (`Gp_StateC08.field_3 == -2`
+/// `Task::extra` reaches the coordinate. Cancel (`Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD`
 /// or `gRoomEffectState->peEffectControl >= 4`) releases the pool block.
 ///
 /// State 0 seeds brightness, the combo index, and three 16-entry LCG columns
@@ -76,21 +76,21 @@ static s16 D_plasma_8012FF54[3][16] = { 0 };
 /// drops below 9.
 void func_plasma_8012EF34(Task* arg0)
 {
-    EffectWork* mem;
-    GfxCoord*   coord;
-    GpStateC08* state;
-    s32         pan;
-    s32         i;
-    s32         st;
-    u16         prev;
-    u16         next;
-    u8          rgb[3];
-    s16         span;
+    EffectWork*      mem;
+    GfxCoord*        coord;
+    AttachmentState* state;
+    s32              pan;
+    s32              i;
+    s32              st;
+    u16              prev;
+    u16              next;
+    u8               rgb[3];
+    s16              span;
 
     state = &Gp_StateC08;
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if ((state->field_3 == -2) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+    if ((state->effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
         goto release;
     }
 
@@ -102,7 +102,7 @@ void func_plasma_8012EF34(Task* arg0)
     switch (arg0->state) {
         case 0:
             mem->scale = 0xA0;
-            mem->index = (Gp_StateC08.field_0 % 10) - 1;
+            mem->index = (Gp_StateC08.attachId % 10) - 1;
             i          = 0;
             do {
                 gRandomLcgState         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -119,7 +119,7 @@ void func_plasma_8012EF34(Task* arg0)
             }
             arg0->state = st;
             pan         = (s8)worldCoordGetOriginAudioPan(coord);
-            SndEvt_EnqueueType6(D_plasma_8012FF48[(u16)(Gp_StateC08.field_0 % 10) - 1], pan,
+            SndEvt_EnqueueType6(D_plasma_8012FF48[(u16)(Gp_StateC08.attachId % 10) - 1], pan,
                                 (s8)worldCoordGetOriginAudioDepth(coord));
             Gp_SpawnPadLerp((s16)(mem->index * 4 + 0x10), 0xFF, 8);
             return;
@@ -130,7 +130,7 @@ void func_plasma_8012EF34(Task* arg0)
             }
             if (gRoomEffectState->peEffectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                 if ((s16)next == 8) {
-                    state->field_6 |= 8;
+                    state->flags |= ATTACHMENT_FLAG_APPLY_STATS;
                 }
                 mem->scale  -= 8;
                 mem->angle  += 0x60 + mem->index * 0x30;
@@ -166,7 +166,7 @@ void func_plasma_8012EF34(Task* arg0)
             }
             if (gRoomEffectState->peEffectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                 if ((s16)next == 8) {
-                    state->field_6 |= 8;
+                    state->flags |= ATTACHMENT_FLAG_APPLY_STATS;
                 }
                 mem->scale  -= 8;
                 mem->angle  += 0xC0;

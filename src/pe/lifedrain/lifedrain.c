@@ -39,7 +39,7 @@
 /// Per-level band row. `field_2` is the starting inner radius (also the per-frame
 /// inner/outer step); `field_4` is the starting outer radius; `unk6` is the wedge
 /// radius `func_lifedrain_8012FAF8` copies into `EffectWork.angle`. Indexed by
-/// `(Gp_StateC08.field_0 % 10) - 1`.
+/// `(Gp_StateC08.attachId % 10) - 1`.
 typedef struct LifeDrainScale {
     /* 0x0 */ s16 unk0;
     /* 0x2 */ u16 field_2;
@@ -81,12 +81,12 @@ static struct Task* D_lifedrain_80130B0C = NULL;
 
 /// Runs one frame of the life-drain cast: a five-state machine driven by
 /// `Task::state`, published in `D_lifedrain_80130B0C` so every mote can find
-/// it. Cancelling (`Gp_StateC08.field_3 == -2` or `gRoomEffectState->peEffectControl >= 4`) releases
+/// it. Cancelling (`Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD` or `gRoomEffectState->peEffectControl >= 4`) releases
 /// the work block, and states 0 and 1 first cash the banked `gSceneCombatState.lifeDrainHp` into
 /// `gPlayerStatus.hp`, clamped to the max in `field_1a`.
 ///
 /// State 0 parents the effect coordinate at the origin with an identity
-/// rotation, seeds the combo level `index` from `Gp_StateC08.field_0`, takes
+/// rotation, seeds the combo level `index` from `Gp_StateC08.attachId`, takes
 /// the funnel radii `scale` / `period` from that row of
 /// `D_lifedrain_80130AB4`, rolls one yaw per wedge into `D_lifedrain_80130AEC`
 /// and spawns the three `0x600EA` motes 0x2AA apart around the circle. State 1
@@ -109,7 +109,7 @@ void func_lifedrain_8012EF48(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if ((Gp_StateC08.field_3 == -2) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+    if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
         if ((arg0->state < 2) && (arg0->spawnArg1.value != 0)) {
             gPlayerStatus.hp = (u16)gPlayerStatus.hp + gSceneCombatState.lifeDrainHp;
             if (gPlayerStatus.hp > gPlayerStatus.hpMax) {
@@ -139,7 +139,7 @@ void func_lifedrain_8012EF48(Task* arg0)
             coord->composeStamp  = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             arg0->state = 1;
-            mem->index  = (Gp_StateC08.field_0 % 10) - 1;
+            mem->index  = (Gp_StateC08.attachId % 10) - 1;
             mem->scale  = D_lifedrain_80130AB4[mem->index].field_2;
             mem->angle  = 0x80;
             mem->period = D_lifedrain_80130AB4[mem->index].field_2;
@@ -161,7 +161,7 @@ void func_lifedrain_8012EF48(Task* arg0)
                 }
                 i += 0x2AA;
             } while (i < 0x556);
-            Gp_StateC08.field_6 |= 8;
+            Gp_StateC08.flags |= ATTACHMENT_FLAG_APPLY_STATS;
             return;
         }
         case 1:
@@ -339,7 +339,7 @@ void func_lifedrain_8012F9A8(Task* task)
 }
 
 /// Runs one frame of a life-drain mote. Any state releases the work block once
-/// the player is dying (`Gp_StateC08.field_3 == -2`) or the room is fading
+/// the player is dying (`Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD`) or the room is fading
 /// (`gRoomEffectState->peEffectControl >= 4`).
 ///
 /// State 0 reparents the mote onto the cast's collector task
@@ -369,7 +369,7 @@ void func_lifedrain_8012FAF8(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if ((Gp_StateC08.field_3 != -2) && (gRoomEffectState->peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+    if ((Gp_StateC08.effectPhase != ATTACHMENT_EFFECT_HELD) && (gRoomEffectState->peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
         mem->age = mem->age + 1;
         switch (arg0->state) {
             case 0:
@@ -382,7 +382,7 @@ void func_lifedrain_8012FAF8(Task* arg0)
                 gRandomLcgState                        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 mem->move.vz                           = 0x40 - ((gRandomLcgState >> 16) & 0x7F);
                 arg0->state                            = 1;
-                mem->scale                             = (Gp_StateC08.field_0 % 10) - 1;
+                mem->scale                             = (Gp_StateC08.attachId % 10) - 1;
                 val                                    = D_lifedrain_80130AB4[mem->step].unk6;
                 mem->angle                             = val;
                 mem->period                            = val - 0x100;
@@ -600,7 +600,7 @@ void func_lifedrain_801308C0(Task* arg0)
     if (arg0->state == 0) {
         gfxRotMatrixZ(&coord->coord, arg0->spawnArg1.value & 0xFFF, GRAPHICS_ROTATION_COMPOSE);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        kind                = (Gp_StateC08.field_0 % 10U) - 1;
+        kind                = (Gp_StateC08.attachId % 10U) - 1;
         mem->index          = kind;
         val                 = D_lifedrain_80130AB4[kind].field_2;
         mem->angle          = 0x80;

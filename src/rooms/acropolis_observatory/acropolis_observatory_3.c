@@ -70,8 +70,7 @@ STATIC_ASSERT_SIZEOF(AobSceneWork, 8);
 /// `gPlayerStatus.weapon` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on,
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` picks which of the two weapon-id bases that record uses, and
-/// `gDisplayState.pendingMode` / `Gp_StateC08.field_A` gate the scene's setup (the latter is the
-/// cutscene/among-us mode flag). `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room` is the field-actor mode byte the
+/// `gDisplayState.pendingMode` / `Gp_StateC08.mode` gate the scene's setup (the latter is 1 while the attachment wheel is open). `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room` is the field-actor mode byte the
 /// scene switches to 1 when it hands control back.
 
 extern s16 D_acropolis_observatory_8017FE68[];
@@ -970,7 +969,7 @@ WorldCollisionSurfaceProperties* D_acropolis_observatory_801834DC[8] = {
 /// The observatory's scene task. State 0 allocates the `AobSceneWork` block,
 /// captures slot 3 in it and cues the scene with the 0x3F4 record at
 /// `gAcropolisObservatoryPlayerAnimationSets`; it does nothing at all while the
-/// cutscene flag `Gp_StateC08.field_A` or `gDisplayState.pendingMode` is set. States 1, 2 and 4 just
+/// attachment wheel is open (`Gp_StateC08.mode`) or `gDisplayState.pendingMode` is set. States 1, 2 and 4 just
 /// tick, state 3 waits for the shared field-actor byte to reach 2 and arms
 /// `Gp_ArmStateF0`, state 5 republishes the player's weapon to slot 3 and puts
 /// the session back into field mode, and state 6 releases slot 3 (msg 0x3F1)
@@ -997,7 +996,7 @@ void func_acropolis_observatory_8017E19C(Task* task)
     work = (AobSceneWork*)task->work;
     switch (task->state) {
         case 0:
-            if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
+            if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 return;
             }
             blk        = memCalloc(8, 0);

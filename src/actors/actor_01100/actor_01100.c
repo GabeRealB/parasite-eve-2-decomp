@@ -3269,7 +3269,7 @@ static void Actor01100_Fn05678(
     if (((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 24, 0, 0)) && (work->field_BC8 == 0)) {
         actor  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
         status = &gPlayerStatus;
-        if ((actor->mode != GAME_ACTOR_MODE_SCRIPTED) && (Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE) && (status->hp > 0)) {
+        if ((actor->mode != GAME_ACTOR_MODE_SCRIPTED) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE) && (status->hp > 0)) {
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
             work->field_BC8 = 1;
         }

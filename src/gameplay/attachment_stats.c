@@ -275,9 +275,9 @@ void Gp_ApplyAttachStats(s32 arg0, GpIdMapC* arg1)
     s32               temp4;
     u8                kind;
 
-    idx = Gp_StateC08.field_B;
+    idx = Gp_StateC08.wheelIndex;
     if (arg0 == 1) {
-        idx = Gp_StateC08.field_5;
+        idx = Gp_StateC08.activeIndex;
     }
     if (idx >= 0xC) {
         ret = 1;
@@ -557,11 +557,11 @@ static s32 Gp_CheckAttachThreshold(s32 arg0)
     n      = getAttachLevel(arg0);
 
     if (!isStateF0Active_()) {
-        if (cfg->mp < _gpAttachParam(arg0, n, 2) || arg0 != 7 || cfg->hpMax == cfg->hp) {
+        if (cfg->mp < _gpAttachParam(arg0, n, 2) || arg0 != ATTACHMENT_INDEX_HEALING || cfg->hpMax == cfg->hp) {
             result = 1;
         }
-    } else if (arg0 < 0xC) {
-        if ((cfg->statusFlags & PLAYER_STATUS_SILENCE) || (!(cfg->statusFlags & PLAYER_STATUS_BERSERKER) && cfg->mp < _gpAttachParam(arg0, n, 2) && gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cheatMode == 0) || (arg0 == 6 && Gp_StateC08.field_16 != 0 && Gp_StateC08.field_17 != 0) || (arg0 == 7 && cfg->hpMax == cfg->hp && gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cheatMode == 0) || (arg0 == 0xB && gEnergyBallInFlightCount >= 3) || ((cfg->statusFlags & PLAYER_STATUS_BERSERKER) && (arg0 >= 6 || _gpAttachParam(arg0, n, 2) * 2 >= cfg->hp))) {
+    } else if (arg0 < ATTACHMENT_SPELL_COUNT) {
+        if ((cfg->statusFlags & PLAYER_STATUS_SILENCE) || (!(cfg->statusFlags & PLAYER_STATUS_BERSERKER) && cfg->mp < _gpAttachParam(arg0, n, 2) && gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cheatMode == 0) || (arg0 == ATTACHMENT_INDEX_METABOLISM && Gp_StateC08.mindWard != 0 && Gp_StateC08.bodyWard != 0) || (arg0 == ATTACHMENT_INDEX_HEALING && cfg->hpMax == cfg->hp && gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cheatMode == 0) || (arg0 == ATTACHMENT_INDEX_ENERGY_BALL && gEnergyBallInFlightCount >= 3) || ((cfg->statusFlags & PLAYER_STATUS_BERSERKER) && (arg0 >= ATTACHMENT_INDEX_METABOLISM || _gpAttachParam(arg0, n, 2) * 2 >= cfg->hp))) {
             result = 1;
         }
     }
@@ -570,44 +570,44 @@ static s32 Gp_CheckAttachThreshold(s32 arg0)
 
 static void Gp_SetAttachState(s32 arg0)
 {
-    GpStateC08* p;
-    s32         level;
-    s32         idx;
-    s32         attachId;
-    s32         rowPrefix;
-    s8          row;
-    s8          column;
-    s8          duration;
+    AttachmentState* attachment;
+    s32              level;
+    s32              idx;
+    s32              attachId;
+    s32              rowPrefix;
+    s8               row;
+    s8               column;
+    s8               duration;
 
-    Gp_StateC08.field_E = 0;
-    if (Gp_StateC08.field_6 & 1) {
+    Gp_StateC08.queuedIndex = 0;
+    if (Gp_StateC08.flags & ATTACHMENT_FLAG_EVENT_LOCK) {
         return;
     }
-    idx                 = (s8)arg0;
-    Gp_StateC08.field_5 = arg0;
-    row                 = idx / 3;
-    rowPrefix           = (row + 1) * 10 + 1;
-    column              = idx % 3;
-    attachId            = rowPrefix + column;
-    attachId           *= 10;
-    level               = getAttachLevel(idx);
-    attachId           += level;
+    idx                     = (s8)arg0;
+    Gp_StateC08.activeIndex = arg0;
+    row                     = idx / 3;
+    rowPrefix               = (row + 1) * 10 + 1;
+    column                  = idx % 3;
+    attachId                = rowPrefix + column;
+    attachId               *= 10;
+    level                   = getAttachLevel(idx);
+    attachId               += level;
 
-    p          = &Gp_StateC08;
-    p->field_0 = attachId;
-    p->field_3 = -2;
-    duration   = Gp_GetAttachParam(3);
-    p->field_2 = duration;
+    attachment              = &Gp_StateC08;
+    attachment->attachId    = attachId;
+    attachment->effectPhase = ATTACHMENT_EFFECT_HELD;
+    duration                = Gp_GetAttachParam(3);
+    attachment->duration    = duration;
     if (duration <= 0) {
-        p->field_2 = 1;
+        attachment->duration = ATTACHMENT_DURATION_MIN;
     }
-    p->field_A                     = 2;
+    attachment->mode               = ATTACHMENT_MODE_ARMED;
     D_80115768                     = 0;
     gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-    p->field_8                     = 1;
-    p->field_9                     = 0;
+    attachment->soundStep          = ATTACHMENT_SOUND_QUEUED;
+    attachment->menuOpen           = ATTACHMENT_MENU_CLOSED;
     D_80114C34                     = 0;
-    p->field_6                    &= 0xFE;
+    attachment->flags             &= ATTACHMENT_FLAG_CLEAR_EVENT_LOCK;
 }
 
 static __inline__ s32 stepAttachWheelSaved(s32 arg0, s32 arg1, McSaveData* save)
@@ -796,24 +796,24 @@ static s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
     if (arg0->field_15 == 0) {
         if (Pad_CheckButtons(0, 0, 0x5000) == 0) {
             if (Pad_CheckButtons(0, 1, 0x2000) != 0) {
-                Gp_StateC08.field_B = stepAttachWheel(Gp_StateC08.field_B, 1);
-                changed             = 1;
-                arg0->field_15     += 4;
+                Gp_StateC08.wheelIndex = stepAttachWheel(Gp_StateC08.wheelIndex, 1);
+                changed                = 1;
+                arg0->field_15        += 4;
             } else if (Pad_CheckButtons(0, 1, 0x8000) != 0) {
-                Gp_StateC08.field_B = stepAttachWheel(Gp_StateC08.field_B, -1);
-                changed             = 1;
-                arg0->field_15     -= 4;
+                Gp_StateC08.wheelIndex = stepAttachWheel(Gp_StateC08.wheelIndex, -1);
+                changed                = 1;
+                arg0->field_15        -= 4;
             }
         }
     }
 
-    if (Gp_StateC08.field_E == 0) {
+    if (Gp_StateC08.queuedIndex == 0) {
         xOff           = arg1 + 2;
         yOff           = arg2 + 2;
-        arg0->field_10 = getAttachWheelParam(Gp_StateC08.field_B, 2);
+        arg0->field_10 = getAttachWheelParam(Gp_StateC08.wheelIndex, 2);
 
-        item  = ((Gp_StateC08.field_B / 3) << 4) + ((Gp_StateC08.field_B % 3) << 2) + 0x300;
-        param = getAttachWheelParam(Gp_StateC08.field_B, 2);
+        item  = ((Gp_StateC08.wheelIndex / 3) << 4) + ((Gp_StateC08.wheelIndex % 3) << 2) + 0x300;
+        param = getAttachWheelParam(Gp_StateC08.wheelIndex, 2);
         if (cfg->statusFlags & PLAYER_STATUS_BERSERKER) {
             param <<= 1;
         }
@@ -831,7 +831,7 @@ static s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
         s.u.text.req.drawMode                    = TEXT_DRAW_OUTLINED;
         Text_DrawString(&s.u.text.req, Gp_GetItemText(item, 0, 0));
 
-        ret   = getAttachWheelLevel(Gp_StateC08.field_B);
+        ret   = getAttachWheelLevel(Gp_StateC08.wheelIndex);
         color = 0x606060;
         func_800C2538(&s.obj, -0xB, 0x28, ret, color);
         Text_DrawPrompt(&s.obj, 0x8E, 0x28, Text_ItoaSigned(s.u.text.buf, param), color, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
@@ -896,7 +896,7 @@ static s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
                 }
                 chosen->y = -0x7FFF;
 
-                slot = stepAttachWheelSaved(Gp_StateC08.field_B, best, save);
+                slot = stepAttachWheelSaved(Gp_StateC08.wheelIndex, best, save);
 
                 if (Gp_CheckAttachThreshold(slot) != 0) {
                     flags = 4;
@@ -930,13 +930,13 @@ static void Gp_DrawPeGauge(GpIdMapC* arg0, s32 arg1, s32 arg2)
     s32       order;
 
     n = Gp_GetAttachParam(3);
-    if (Gp_StateC08.field_5 < 0xD) {
-        if (Gp_StateC08.field_2 > 0) {
+    if (Gp_StateC08.activeIndex < 0xD) {
+        if (Gp_StateC08.duration > 0) {
             tile           = gGpuPrimCursor;
             gGpuPrimCursor = tile + 1;
             tile->x0       = arg1 + 0x18;
             tile->y0       = arg2 + 0x21;
-            tile->w        = Gp_StateC08.field_2;
+            tile->w        = Gp_StateC08.duration;
             tile->h        = 1;
             setlen(tile, 3);
             GPU_PRIMITIVE_COLOR_WORD(tile, 0) = GPU_PACK_COLOR_WORD(0, 0xc0, 0xff, 0);
@@ -992,7 +992,7 @@ static void Gp_DrawPeGauge(GpIdMapC* arg0, s32 arg1, s32 arg2)
         poly->y2 = poly->y3 = poly->y0 + 8;
         addPrim(gGpuCurrentOt - 2, poly);
 
-        cat                                    = Gp_StateC08.field_5;
+        cat                                    = Gp_StateC08.activeIndex;
         order                                  = -3;
         obj.panel.contentOriginX.unsignedValue = 0;
         obj.panel.contentOriginY.unsignedValue = 0;
@@ -1051,7 +1051,7 @@ static __inline__ s32 hudSwapReady(void)
             }
         }
     }
-    if (Gp_StateC08.field_6 & 2) {
+    if (Gp_StateC08.flags & ATTACHMENT_FLAG_SWAP_LOCK) {
         flag = 0;
     }
     if (flag != 0) {
@@ -1127,16 +1127,16 @@ static void Gp_UseItemTask(GpIdMapC* arg0)
     cfg            = &gPlayerStatus;
     flag           = 0;
     arg0->field_10 = 0;
-    if (Gp_StateC08.field_8 == 1) {
+    if (Gp_StateC08.soundStep == ATTACHMENT_SOUND_QUEUED) {
         if (++D_80114C34 > 0) {
-            lvl   = getAttachLevel(Gp_StateC08.field_5);
-            sndId = Gp_StateC08.field_5 * 3 + lvl;
+            lvl   = getAttachLevel(Gp_StateC08.activeIndex);
+            sndId = Gp_StateC08.activeIndex * 3 + lvl;
             if (isStateF0Active_()) {
                 Gp_EnqueueSndCd(sndId);
             }
-            Gp_StateC08.field_8 = 2;
-            Gp_StateC08.field_7 = 0;
-            D_80114C34          = 0;
+            Gp_StateC08.soundStep    = ATTACHMENT_SOUND_PLAYED;
+            Gp_StateC08.previewSound = 0;
+            D_80114C34               = 0;
         }
     }
 
@@ -1145,32 +1145,32 @@ static void Gp_UseItemTask(GpIdMapC* arg0)
     y                   -= gDisplayState.vramYOffset;
     arg0->field_E        = 0;
     gGameSession->uiOpen = 0;
-    if (Gp_StateC08.field_6 & 8) {
+    if (Gp_StateC08.flags & ATTACHMENT_FLAG_APPLY_STATS) {
         func_800A7550();
-        Gp_StateC08.field_6 &= 0xF7;
+        Gp_StateC08.flags &= ATTACHMENT_FLAG_CLEAR_APPLY_STATS;
     }
 
-    if (Gp_StateC08.field_A != 1) {
-        if (Gp_StateC08.field_10 <= 0 || --Gp_StateC08.field_10 <= 0) {
-            Gp_StateC08.field_C = 0;
+    if (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) {
+        if (Gp_StateC08.antibodyTicks <= 0 || --Gp_StateC08.antibodyTicks <= 0) {
+            Gp_StateC08.antibodyCombo = 0;
         }
-        if (Gp_StateC08.field_12 <= 0 || --Gp_StateC08.field_12 <= 0) {
-            Gp_StateC08.field_D = 0;
+        if (Gp_StateC08.energyShotTicks <= 0 || --Gp_StateC08.energyShotTicks <= 0) {
+            Gp_StateC08.energyShotCombo = 0;
         }
-        if (Gp_StateC08.field_14 <= 0 || --Gp_StateC08.field_14 <= 0) {
-            Gp_StateC08.field_F = 0;
+        if (Gp_StateC08.metabolismTicks <= 0 || --Gp_StateC08.metabolismTicks <= 0) {
+            Gp_StateC08.metabolismCombo = 0;
         }
     }
-    if (Gp_StateC08.field_A == 1) {
+    if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL) {
         if (gGameSession->padPressed & 0x50) {
             work = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             if (work != NULL) {
                 ((GameActor*)work->work)->padHeld |= 0x40;
             }
-            Gp_StateC08.field_A            = 0;
+            Gp_StateC08.mode               = ATTACHMENT_MODE_IDLE;
             D_80115768                     = 0;
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-            Gp_StateC08.field_9            = 0;
+            Gp_StateC08.menuOpen           = ATTACHMENT_MENU_CLOSED;
             if (isStateF0Active_()) {
                 Gp_DrawItemPrompt(x, y);
             }
@@ -1178,26 +1178,27 @@ static void Gp_UseItemTask(GpIdMapC* arg0)
         }
     }
 
-    if (Gp_StateC08.field_A == 0 && Gp_StateC08.field_E == 0) {
+    // Open the wheel from idle when the pad asks, or when a script forces it.
+    if (Gp_StateC08.mode == ATTACHMENT_MODE_IDLE && Gp_StateC08.queuedIndex == 0) {
         ok = hudSwapReady();
         if ((ok != 0 && (gGameSession->padPressed & 0x10) && gDisplayState.pendingMode == DISPLAY_MODE_NONE &&
-             !(Gp_StateC08.field_6 & 1)) ||
-            (Gp_StateC08.field_6 & 0x10)) {
-            Gp_StateC08.field_9            = 1;
-            Gp_StateC08.field_6           &= 0xEF;
-            side                           = Gp_StateC08.field_A ^ 1;
-            Gp_StateC08.field_A            = side;
+             !(Gp_StateC08.flags & ATTACHMENT_FLAG_EVENT_LOCK)) ||
+            (Gp_StateC08.flags & ATTACHMENT_FLAG_OPEN_WHEEL)) {
+            Gp_StateC08.menuOpen           = ATTACHMENT_MENU_OPEN;
+            Gp_StateC08.flags             &= ATTACHMENT_FLAG_CLEAR_OPEN_WHEEL;
+            side                           = Gp_StateC08.mode ^ ATTACHMENT_MODE_WHEEL;
+            Gp_StateC08.mode               = side;
             D_80115768                     = side;
             gSceneCombatState.actorControl = side;
-            if (Gp_StateC08.field_B >= 0xC) {
-                Gp_StateC08.field_B = 0;
+            if (Gp_StateC08.wheelIndex >= ATTACHMENT_SPELL_COUNT) {
+                Gp_StateC08.wheelIndex = 0;
             }
-            if (Gp_StateC08.field_B < 0) {
-                Gp_StateC08.field_B = 0;
+            if (Gp_StateC08.wheelIndex < 0) {
+                Gp_StateC08.wheelIndex = 0;
             }
             if (!isStateF0Active_()) {
-                if (getAttachLevels()[7] != 0) {
-                    Gp_StateC08.field_B = 7;
+                if (getAttachLevels()[ATTACHMENT_INDEX_HEALING] != 0) {
+                    Gp_StateC08.wheelIndex = ATTACHMENT_INDEX_HEALING;
                 }
             }
             flag = 1;
@@ -1209,24 +1210,25 @@ static void Gp_UseItemTask(GpIdMapC* arg0)
         }
     }
 
-    mode = Gp_StateC08.field_A;
-    if (mode == 2 || mode == 3) {
-        if (Gp_StateC08.field_6 & 4) {
-            Gp_StateC08.field_6 &= 0xFB;
-            Gp_StateC08.field_3  = -1;
-            Gp_StateC08.field_A  = 3;
+    // Armed and casting. Release starts the countdown; expiry publishes the effect.
+    mode = Gp_StateC08.mode;
+    if (mode == ATTACHMENT_MODE_ARMED || mode == ATTACHMENT_MODE_CAST) {
+        if (Gp_StateC08.flags & ATTACHMENT_FLAG_RELEASE) {
+            Gp_StateC08.flags      &= ATTACHMENT_FLAG_CLEAR_RELEASE;
+            Gp_StateC08.effectPhase = ATTACHMENT_EFFECT_CHARGE;
+            Gp_StateC08.mode        = ATTACHMENT_MODE_CAST;
         }
         Gp_DrawPeGauge(arg0, x, y);
-        if (Gp_StateC08.field_A == 3) {
-            Gp_StateC08.field_2--;
+        if (Gp_StateC08.mode == ATTACHMENT_MODE_CAST) {
+            Gp_StateC08.duration--;
         }
-        if (Gp_StateC08.field_2 <= 0) {
+        if (Gp_StateC08.duration <= 0) {
             if (cdIdleIfF0Active_()) {
-                Gp_StateC08.field_A            = 0;
+                Gp_StateC08.mode               = ATTACHMENT_MODE_IDLE;
                 D_80115768                     = 0;
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-                Gp_StateC08.field_9            = 0;
-                Gp_StateC08.field_3            = 1;
+                Gp_StateC08.menuOpen           = ATTACHMENT_MENU_CLOSED;
+                Gp_StateC08.effectPhase        = ATTACHMENT_EFFECT_RELEASED;
                 Gp_ItemGrantCooldown           = 0x14;
                 CdCmd_EnqueueLoadFile(0, 0, 4);
                 if (cfg->statusFlags & PLAYER_STATUS_BERSERKER) {
@@ -1240,35 +1242,35 @@ static void Gp_UseItemTask(GpIdMapC* arg0)
                         cfg->mp = 0;
                     }
                 }
-                if (Gp_StateC08.field_5 >= 0xC) {
+                if (Gp_StateC08.activeIndex >= ATTACHMENT_SPELL_COUNT) {
                     Gp_SetItemSeenBit(Gp_SelItemRec->itemId, 1);
                     Gp_RemoveItem(NULL, Gp_SelItemRec, 0);
                 }
-                if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachUseCounts[Gp_StateC08.field_5] < 0x270F) {
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachUseCounts[Gp_StateC08.field_5]++;
+                if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachUseCounts[Gp_StateC08.activeIndex] < 0x270F) {
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachUseCounts[Gp_StateC08.activeIndex]++;
                 }
-                Gp_StateC08.field_8 = 0;
+                Gp_StateC08.soundStep = ATTACHMENT_SOUND_IDLE;
             } else {
-                Gp_StateC08.field_2 = 1;
+                Gp_StateC08.duration = ATTACHMENT_DURATION_MIN;
             }
-            if (Gp_StateC08.field_2 <= 0) {
+            if (Gp_StateC08.duration <= 0) {
                 return;
             }
         }
 
-        if ((Gp_StateC08.field_6 & 1) ||
-            (Gp_StateC08.field_5 < 0xC && (gGameSession->padPressed & 0x40))) {
+        if ((Gp_StateC08.flags & ATTACHMENT_FLAG_EVENT_LOCK) ||
+            (Gp_StateC08.activeIndex < ATTACHMENT_SPELL_COUNT && (gGameSession->padPressed & 0x40))) {
             gGameSession->loadedSndId = 0;
             CdCmd_EnqueueLoadFile(0, 0, 4);
-            if (Gp_StateC08.field_A >= 2) {
-                Gp_StateC08.field_3 = 2;
+            if (Gp_StateC08.mode >= ATTACHMENT_MODE_ARMED) {
+                Gp_StateC08.effectPhase = ATTACHMENT_EFFECT_CANCELLED;
             }
-            Gp_StateC08.field_E            = 0;
-            Gp_StateC08.field_A            = 0;
+            Gp_StateC08.queuedIndex        = 0;
+            Gp_StateC08.mode               = ATTACHMENT_MODE_IDLE;
             D_80115768                     = 0;
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-            Gp_StateC08.field_7            = 0;
-            Gp_StateC08.field_8            = 0;
+            Gp_StateC08.previewSound       = 0;
+            Gp_StateC08.soundStep          = ATTACHMENT_SOUND_IDLE;
         }
         return;
     }
@@ -1277,11 +1279,11 @@ static void Gp_UseItemTask(GpIdMapC* arg0)
         flag = 1;
     }
     actor = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
-    if ((Gp_StateC08.field_E != 0 && actor->mode == GAME_ACTOR_MODE_SCRIPTED) || (Gp_StateC08.field_6 & 1)) {
-        Gp_StateC08.field_E = 0;
+    if ((Gp_StateC08.queuedIndex != 0 && actor->mode == GAME_ACTOR_MODE_SCRIPTED) || (Gp_StateC08.flags & ATTACHMENT_FLAG_EVENT_LOCK)) {
+        Gp_StateC08.queuedIndex = 0;
     }
     if ((arg0->field_15 == 0 && Pad_CheckButtons(0, 0, Pad_MaskConfirm) != 0) ||
-        Gp_StateC08.field_E != 0) {
+        Gp_StateC08.queuedIndex != 0) {
         if (cdIdleIfF0Active_()) {
             pad                        = &gPadStates[0];
             mask                       = Pad_MaskConfirm;
@@ -1289,28 +1291,28 @@ static void Gp_UseItemTask(GpIdMapC* arg0)
             gGameSession->padPressed  &= ~mask;
             gGameSession->padHeld     &= ~mask;
             gGameSession->padReleased &= ~mask;
-            if (Gp_StateC08.field_E != 0) {
-                Gp_StateC08.field_5 = Gp_StateC08.field_E;
-                Gp_StateC08.field_B = Gp_StateC08.field_E;
+            if (Gp_StateC08.queuedIndex != 0) {
+                Gp_StateC08.activeIndex = Gp_StateC08.queuedIndex;
+                Gp_StateC08.wheelIndex  = Gp_StateC08.queuedIndex;
             } else {
-                Gp_StateC08.field_5 = Gp_StateC08.field_B;
+                Gp_StateC08.activeIndex = Gp_StateC08.wheelIndex;
             }
-            if (Gp_CheckAttachThreshold(Gp_StateC08.field_5) == 0) {
-                Gp_SetAttachState(Gp_StateC08.field_5);
+            if (Gp_CheckAttachThreshold(Gp_StateC08.activeIndex) == 0) {
+                Gp_SetAttachState(Gp_StateC08.activeIndex);
             }
         }
     }
 
-    if (Gp_StateC08.field_A != 0) {
+    if (Gp_StateC08.mode != ATTACHMENT_MODE_IDLE) {
         Gp_ApplyAttachStats(0, arg0);
     }
     if (flag) {
-        idx                 = getAttachLevel(Gp_StateC08.field_B);
-        Gp_StateC08.field_7 = Gp_StateC08.field_B * 3 + idx;
+        idx                      = getAttachLevel(Gp_StateC08.wheelIndex);
+        Gp_StateC08.previewSound = Gp_StateC08.wheelIndex * 3 + idx;
     }
-    if (Gp_StateC08.field_7 > 0) {
+    if (Gp_StateC08.previewSound > 0) {
         if (stateF0Gate_() == 0) {
-            Gp_StateC08.field_7 = 0;
+            Gp_StateC08.previewSound = 0;
         }
     }
 }
@@ -1319,7 +1321,7 @@ void Gp_HudTask(GpIdMapC* arg0)
 {
     DisplayState*     ds;
     PlayerStatus*     cfg;
-    GpStateC08*       c08;
+    AttachmentState*  attachment;
     SceneCombatState* combat;
     Task*             slot;
     Task*             work;
@@ -1414,7 +1416,7 @@ void Gp_HudTask(GpIdMapC* arg0)
         if (d2->holdState < 0) {
             goto after;
         }
-        if (Gp_StateC08.field_A != 0) {
+        if (Gp_StateC08.mode != ATTACHMENT_MODE_IDLE) {
             if (d2->demoScene == DISPLAY_DEMO_NONE) {
                 goto after;
             }
@@ -1512,9 +1514,9 @@ after:
     {
         DisplayState* d3;
 
-        c08                         = &Gp_StateC08;
+        attachment                  = &Gp_StateC08;
         d3                          = &gDisplayState;
-        c08->field_3                = 0;
+        attachment->effectPhase     = ATTACHMENT_EFFECT_IDLE;
         d3->suppressDisconnectPause = 1;
         state                       = arg0->field_0;
         if (state != 1) {
@@ -1535,7 +1537,7 @@ after:
             } else {
                 arg0->field_4 = arg0->field_4 + 1;
             }
-            Gp_StateC08.field_A = 0;
+            Gp_StateC08.mode = ATTACHMENT_MODE_IDLE;
             goto tail;
         }
         if (sub == state) {
@@ -1552,15 +1554,15 @@ after:
                 }
                 Gp_TriggerPeState(1, PLAYER_STATUS_ALL_EFFECTS);
                 CdCmd_EnqueueLoadFile(0, 0, 4);
-                if (c08->field_A >= 2) {
-                    c08->field_3 = n;
+                if (attachment->mode >= ATTACHMENT_MODE_ARMED) {
+                    attachment->effectPhase = n;
                 }
-                c08->field_E         = 0;
-                c08->field_A         = 0;
-                D_80115768           = 0;
-                combat->actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-                c08->field_7         = 0;
-                c08->field_8         = 0;
+                attachment->queuedIndex  = 0;
+                attachment->mode         = ATTACHMENT_MODE_IDLE;
+                D_80115768               = 0;
+                combat->actorControl     = SCENE_COMBAT_ACTORS_RUNNING;
+                attachment->previewSound = 0;
+                attachment->soundStep    = ATTACHMENT_SOUND_IDLE;
                 Gp_PulseState1C80();
                 Gp_ClearSlotNodeFlags();
                 if ((gGameSession->flowFlags & GAME_SESSION_FLOW_REEQUIP_WEAPON) == 0) {
@@ -1586,16 +1588,16 @@ after:
                 combat->signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_IDLE;
                 combat->battleRefs                = 0;
                 session->battleResetPending       = 0;
-                if (c08->field_A >= 2) {
-                    c08->field_3 = 2;
+                if (attachment->mode >= ATTACHMENT_MODE_ARMED) {
+                    attachment->effectPhase = ATTACHMENT_EFFECT_CANCELLED;
                 }
-                c08->field_E         = 0;
-                c08->field_A         = 0;
-                D_80115768           = 0;
-                combat->actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-                c08->field_9         = 0;
-                arg0->field_4        = 0;
-                arg0->field_0        = 0;
+                attachment->queuedIndex = 0;
+                attachment->mode        = ATTACHMENT_MODE_IDLE;
+                D_80115768              = 0;
+                combat->actorControl    = SCENE_COMBAT_ACTORS_RUNNING;
+                attachment->menuOpen    = ATTACHMENT_MENU_CLOSED;
+                arg0->field_4           = 0;
+                arg0->field_0           = 0;
                 goto tail;
             }
         }
@@ -1676,10 +1678,10 @@ after:
             goto tail;
         }
         if (sub == 4 && bad == 0) {
-            PlayerStatus* p;
-            s32           cond;
-            DisplayState* d4;
-            GpStateC08*   q;
+            PlayerStatus*    p;
+            s32              cond;
+            DisplayState*    d4;
+            AttachmentState* attachment;
 
             p = &gPlayerStatus;
             if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
@@ -1701,15 +1703,15 @@ after:
             } else {
                 Display_InitModeObj(&D_8010CABC, 0, arg0, 0);
             }
-            q = &Gp_StateC08;
-            if (q->field_A >= 2) {
-                q->field_3 = 2;
+            attachment = &Gp_StateC08;
+            if (attachment->mode >= ATTACHMENT_MODE_ARMED) {
+                attachment->effectPhase = ATTACHMENT_EFFECT_CANCELLED;
             }
-            q->field_E                     = 0;
-            q->field_A                     = 0;
+            attachment->queuedIndex        = 0;
+            attachment->mode               = ATTACHMENT_MODE_IDLE;
             D_80115768                     = 0;
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-            q->field_9                     = 0;
+            attachment->menuOpen           = ATTACHMENT_MENU_CLOSED;
         }
     }
 
@@ -1728,7 +1730,7 @@ tail:
 
 other: {
     SceneCombatState* combat;
-    GpStateC08*       q;
+    AttachmentState*  attachment;
     s32               m;
 
     if (gSceneCombatState.signals.bytes.endDelayFrames != 0) {
@@ -1742,17 +1744,17 @@ other: {
         arg0->field_4 = 0;
         arg0->field_0 = m;
         CdCmd_EnqueueLoadFile(0, 0, 4);
-        q = &Gp_StateC08;
-        if (q->field_A >= 2) {
-            q->field_3 = 2;
+        attachment = &Gp_StateC08;
+        if (attachment->mode >= ATTACHMENT_MODE_ARMED) {
+            attachment->effectPhase = ATTACHMENT_EFFECT_CANCELLED;
         }
-        q->field_E           = 0;
-        q->field_A           = 0;
-        D_80115768           = 0;
-        combat->actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-        q->field_7           = 0;
-        q->field_8           = 0;
-        arg0->field_D        = 0x20;
+        attachment->queuedIndex  = 0;
+        attachment->mode         = ATTACHMENT_MODE_IDLE;
+        D_80115768               = 0;
+        combat->actorControl     = SCENE_COMBAT_ACTORS_RUNNING;
+        attachment->previewSound = 0;
+        attachment->soundStep    = ATTACHMENT_SOUND_IDLE;
+        arg0->field_D            = 0x20;
     } else {
         if (arg0->field_D < 0x11) {
             if (gGameSession->hideHud == 0) {
@@ -1778,7 +1780,7 @@ end:
                 }
             }
             Gp_UseItemTask(arg0);
-            Gp_StateC08.field_6 &= 0xFE;
+            Gp_StateC08.flags &= ATTACHMENT_FLAG_CLEAR_EVENT_LOCK;
             if (Gp_ItemGrantCooldown > 0) {
                 Gp_ItemGrantCooldown = Gp_ItemGrantCooldown - 1;
             }

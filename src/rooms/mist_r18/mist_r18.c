@@ -1223,7 +1223,7 @@ static void func_mist_r18_8017D960(Task* task)
 {
     s32 state;
 
-    if ((gGameSession->eventState == 0) && (Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
+    if ((gGameSession->eventState == 0) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
         state = D_mist_r18_80186E9C;
         if (state == 1) {
             func_800E8634(D_mist_r18_80185EBC, 0, D_mist_r18_80186564);

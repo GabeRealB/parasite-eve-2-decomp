@@ -657,7 +657,7 @@ void func_shelter_b3_garbage_incinerator_8017DCD4(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
+            if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 break;
             }
             SndEvt_EnqueueType6(SOUND_SHELTER_B3_INCINERATOR_SWITCH_PRESS, 0, 0);
@@ -806,7 +806,7 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
     s32           want;
     s32           t;
 
-    if (gGameSession->sceneUpdatesPaused != 0 || (s8)Gp_StateC08.field_9 != 0 || gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING || Gp_StateC08.field_A == 1) {
+    if (gGameSession->sceneUpdatesPaused != 0 || (s8)Gp_StateC08.menuOpen != ATTACHMENT_MENU_CLOSED || gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING || Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL) {
         return;
     }
     switch (task->state) {
@@ -1002,7 +1002,7 @@ static s32 func_shelter_b3_garbage_incinerator_8017F318(Task* arg0)
 #include "../../shared/incinerator_blaze_body_fire.inc.c"
 
 /// Arms the encounter on state 0: sends `field_2C` message 0x3F7 with the
-/// table and its live-entry count, raises `Gp_StateC08.field_6` bit 0,
+/// table and its live-entry count, raises `Gp_StateC08.flags` bit 0,
 /// installs the model set, hands slot 6 message 0xFA4, starts spawn entry 2
 /// with the task itself and steps to state 1. State 1 returns 1 while
 /// `gGameSession->eventState` is clear; every other path calls
@@ -1025,7 +1025,7 @@ static s32 func_shelter_b3_garbage_incinerator_8017F588(Task* arg0)
             msg.wordCount   = n & 0xFFFF;
             TASK_MESSAGE_DISPATCH_POINTER(msgWork->field_2C, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &msg, 0);
             Gp_MsgPlayerWeapon(0);
-            Gp_StateC08.field_6 |= 1;
+            Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
             func_800E8614(D_shelter_b3_garbage_incinerator_80186FB8, 0);
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
             work->field_34 = Task_SpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 2, 0, arg0);
@@ -1041,7 +1041,7 @@ static s32 func_shelter_b3_garbage_incinerator_8017F588(Task* arg0)
     return 0;
 }
 
-/// Does nothing while `gGameSession->sceneUpdatesPaused`, `Gp_StateC08.field_9`,
+/// Does nothing while `gGameSession->sceneUpdatesPaused`, `Gp_StateC08.menuOpen`,
 /// `gSceneCombatState.actorControl` or `D_80114CF8` is set. State 0 allocates and clears the work block (killing the task if that
 /// fails), records `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` in `field_2C` and the task in
 /// `D_shelter_b3_garbage_incinerator_8018FC3C`, spawns the table entry and,
@@ -1056,12 +1056,12 @@ void func_shelter_b3_garbage_incinerator_8017F6D8(Task* arg0)
     s32                     ok;
     PlayerStatus*           ps;
 
-    if (session->sceneUpdatesPaused != 0 || (s8)Gp_StateC08.field_9 != 0 || gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING || D_80114CF8 != 0) {
+    if (session->sceneUpdatesPaused != 0 || (s8)Gp_StateC08.menuOpen != ATTACHMENT_MENU_CLOSED || gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING || D_80114CF8 != 0) {
         return;
     }
     switch (arg0->state) {
         case 0:
-            if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
+            if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 return;
             }
             work       = memMalloc(sizeof(*work), false);

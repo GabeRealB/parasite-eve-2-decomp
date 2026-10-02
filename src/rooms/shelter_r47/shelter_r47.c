@@ -552,7 +552,7 @@ static void func_shelter_r47_8017FCC0(Task* task)
 {
     u8 place = gGameSession->location.loc.variant;
 
-    if (place != 1 || Gp_StateC08.field_A == place) {
+    if (place != 1 || Gp_StateC08.mode == place) {
         return;
     }
     switch (GameFlag_GetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS)) {

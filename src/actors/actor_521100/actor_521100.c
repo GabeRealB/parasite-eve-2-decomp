@@ -2178,7 +2178,7 @@ static void func_actor_521100_80132DE8(Task* arg0)
 
     switch (work->field_6A0) {
         case 0:
-            if (((u32)((u8)Gp_StateC08.field_A - 2) >= 2U) && (gGameSession->location.loc.view != 2)) {
+            if (((u32)((u8)Gp_StateC08.mode - ATTACHMENT_MODE_ARMED) >= 2U) && (gGameSession->location.loc.view != 2)) {
                 if (work->field_6AA < 0x8FC) {
                     if (work->field_6B8 == work->field_6B6) {
                         pairNear        = D_actor_521100_8015F59C;

@@ -24,7 +24,7 @@ u32 Gp_ComputeDamage(u32 arg0, u32 arg1, s32 arg2, s32 arg3);
 /// `D_80113568` row for `(arg1 >> 8) & 0x3F`, and column 6 (or 7 with bit
 /// 0x4000) of that same row scales `critChance`. Buildup
 /// (`ENEMY_REACTION_BUILDUP` in `Enemy.reactionFlags`) doubles the chance,
-/// `Gp_StateC08.field_D` applies a `D_80113D0C` percent,
+/// `Gp_StateC08.energyShotCombo` applies a `D_80113D0C` percent,
 /// and `arg2` multiplies it when non-zero. The result is compared against a
 /// 12-bit `gRandomLcgState` draw.
 s32 Gp_RollEnemyChance(struct Enemy* arg0, u32 arg1, s32 arg2);

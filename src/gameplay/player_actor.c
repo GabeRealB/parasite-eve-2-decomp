@@ -204,7 +204,7 @@ extern s32 D_80112C7C[];
 /// drawing function fixes the row and its caller picks the column.
 extern u16 D_80112964[5][2];
 
-/// Spawn-id words indexed by the 3-digit packing of `Gp_StateC08.field_0`
+/// Spawn-id words indexed by the 3-digit packing of `Gp_StateC08.attachId`
 /// `(hundreds-1)*9 + (tens-1)*3 + ones - 1`. `Gp_EffTask07State1` uses this
 /// when `field_3 == 1`, and `D_80112A50` when `field_3 == -1`.
 extern s32 D_80112978[];
@@ -212,7 +212,7 @@ extern s32 D_80112978[];
 extern s32 D_80112A50[];
 
 /// Spawn-id words for `Gp_EffCtlTaskAE`, indexed with the same 3-digit packing
-/// of `Gp_StateC08.field_0` as `D_80112978`; the value becomes the task's
+/// of `Gp_StateC08.attachId` as `D_80112978`; the value becomes the task's
 /// `Task::spawnArg1` sound id.
 extern s32 D_80112B94[];
 
@@ -2307,26 +2307,26 @@ static void Gp_EffTask07State1(Task* arg0)
     if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         return;
     }
-    kind = Gp_StateC08.field_3;
+    kind = Gp_StateC08.effectPhase;
     if (kind == 2) {
         return;
     }
-    if ((gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED) && ((Gp_StateC08.field_0 / 10U) != 0x20)) {
+    if ((gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED) && ((Gp_StateC08.attachId / 10U) != ATTACHMENT_ID_HEALING_FAMILY)) {
         return;
     }
     if (kind == -1) {
-        spawnId = D_80112A50[((u16)(Gp_StateC08.field_0 / 100U) - 1) * 9 +
-                             ((u16)((u16)(Gp_StateC08.field_0 / 10U) % 10U) - 1) * 3 + kind +
-                             (u16)(Gp_StateC08.field_0 % 10U)];
+        spawnId = D_80112A50[((u16)(Gp_StateC08.attachId / 100U) - 1) * 9 +
+                             ((u16)((u16)(Gp_StateC08.attachId / 10U) % 10U) - 1) * 3 + kind +
+                             (u16)(Gp_StateC08.attachId % 10U)];
         if (spawnId == 0) {
             return;
         }
         Gp_SpawnEff(spawnId, slot->extra.tmd->coords,
-                    (s32)(Gp_StateC08.field_2), 0);
+                    (s32)(Gp_StateC08.duration), 0);
     } else if (kind == 1) {
-        idx = ((u16)(Gp_StateC08.field_0 / 100U) - 1) * 9 +
-              ((u16)((u16)(Gp_StateC08.field_0 / 10U) % 10U) - 1) * 3 - 1;
-        idx    += (u16)(Gp_StateC08.field_0 % 10U);
+        idx = ((u16)(Gp_StateC08.attachId / 100U) - 1) * 9 +
+              ((u16)((u16)(Gp_StateC08.attachId / 10U) % 10U) - 1) * 3 - 1;
+        idx    += (u16)(Gp_StateC08.attachId % 10U);
         spawnId = D_80112978[idx];
         if (spawnId == 0) {
             return;
@@ -2346,21 +2346,21 @@ void func_800FAA14(Task* arg0)
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
     if (arg0->state == 0) {
-        arg0->spawnArg1.value = D_80112B94[((u16)(Gp_StateC08.field_0 / 100U) - 1) * 9 +
-                                           ((u16)((u16)(Gp_StateC08.field_0 / 10U) % 10U) - 1) * 3 +
-                                           ((u16)(Gp_StateC08.field_0 % 10U) - 1U)];
+        arg0->spawnArg1.value = D_80112B94[((u16)(Gp_StateC08.attachId / 100U) - 1) * 9 +
+                                           ((u16)((u16)(Gp_StateC08.attachId / 10U) % 10U) - 1) * 3 +
+                                           ((u16)(Gp_StateC08.attachId % 10U) - 1U)];
     }
     Gp_UpdateCoord(coord);
     if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         goto kill;
     }
-    if (Gp_StateC08.field_2 == 0) {
+    if (Gp_StateC08.duration == 0) {
         goto kill;
     }
-    if (Gp_StateC08.field_3 == 2) {
+    if (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_CANCELLED) {
         goto kill;
     }
-    if (gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED && (u16)(Gp_StateC08.field_0 / 10U) != 0x20) {
+    if (gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED && (u16)(Gp_StateC08.attachId / 10U) != ATTACHMENT_ID_HEALING_FAMILY) {
     kill:
         if (arg0->spawnArg1.value != 0) {
             SndEvt_EnqueueType7(arg0->spawnArg1.value, 1);
@@ -2368,7 +2368,7 @@ void func_800FAA14(Task* arg0)
         effectKillTask(mem, arg0);
         return;
     }
-    if (Gp_StateC08.field_2 >= 9) {
+    if (Gp_StateC08.duration >= 9) {
         if (mem->scale < 0x20) {
             if (mem->scale == 0) {
                 pan = (s8)worldCoordGetOriginAudioPan(coord);
@@ -2436,7 +2436,7 @@ void Gp_EffCtlTask32(Task* arg0)
             if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
                 goto set_state_4;
             }
-            if (Gp_StateC08.field_3 == 2) {
+            if (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_CANCELLED) {
                 newState = 4;
                 goto set_state;
             }
@@ -2450,11 +2450,11 @@ void Gp_EffCtlTask32(Task* arg0)
             coord->coord.t[2]   = (rsin(angle) * mem->move.vx) >> 0xC;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
-            if ((gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) || (Gp_StateC08.field_3 == 2)) {
+            if ((gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) || (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_CANCELLED)) {
                 newState = 3;
                 goto set_state;
             }
-            if (Gp_StateC08.field_2 < 8) {
+            if (Gp_StateC08.duration < 8) {
                 arg0->state = 2;
             }
             break;
@@ -2478,7 +2478,7 @@ void Gp_EffCtlTask32(Task* arg0)
                 newState = 4;
                 goto set_state;
             }
-            if (Gp_StateC08.field_3 == state) {
+            if (Gp_StateC08.effectPhase == state) {
                 newState = 4;
                 goto set_state;
             }
@@ -2546,15 +2546,15 @@ void Gp_EffCtlTaskAE(Task* arg0)
             if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
                 goto kill;
             }
-            if (Gp_StateC08.field_3 == 2) {
+            if (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_CANCELLED) {
                 goto kill;
             }
             if (gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED) {
                 goto kill;
             }
-            arg0->spawnArg1.value = D_80112B94[((u16)(Gp_StateC08.field_0 / 100U) - 1) * 9 +
-                                               ((u16)((u16)(Gp_StateC08.field_0 / 10U) % 10U) - 1) * 3 +
-                                               ((u16)(Gp_StateC08.field_0 % 10U) - 1U)];
+            arg0->spawnArg1.value = D_80112B94[((u16)(Gp_StateC08.attachId / 100U) - 1) * 9 +
+                                               ((u16)((u16)(Gp_StateC08.attachId / 10U) % 10U) - 1) * 3 +
+                                               ((u16)(Gp_StateC08.attachId % 10U) - 1U)];
             pan                   = (s8)worldCoordGetOriginAudioPan(coord);
             SndEvt_EnqueueType6(arg0->spawnArg1.value, pan, (s8)worldCoordGetOriginAudioDepth(coord));
             return;
@@ -2584,18 +2584,18 @@ void Gp_EffCtlTaskAE(Task* arg0)
                 rgb[0] = mem->period;
                 rgb[1] = mem->period >> 1;
                 rgb[2] = mem->period >> 2;
-                Gp_DrawArc(coord, ((u8)Gp_StateC08.field_2 << 24) >> 17, 0x60, rgb);
+                Gp_DrawArc(coord, ((u8)Gp_StateC08.duration << 24) >> 17, 0x60, rgb);
             }
             if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
                 goto snd7;
             }
-            if (Gp_StateC08.field_3 == 2) {
+            if (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_CANCELLED) {
                 goto snd7;
             }
             if (gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED) {
                 goto snd7;
             }
-            if (Gp_StateC08.field_2 != 0) {
+            if (Gp_StateC08.duration != 0) {
                 return;
             }
             mem->scale  = 0xFF;
@@ -2615,7 +2615,7 @@ void Gp_EffCtlTaskAE(Task* arg0)
             if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
                 goto snd7;
             }
-            if (Gp_StateC08.field_3 == state) {
+            if (Gp_StateC08.effectPhase == state) {
                 goto snd7;
             }
             if (gRoomEffectState->battleState == ROOM_EFFECT_BATTLE_ENGAGED) {
@@ -2723,7 +2723,7 @@ void Gp_EffCtlTaskF3(Task* arg0)
         coord->composeStamp          = GRAPHICS_COORD_DIRTY;
         coord->parent                = parent + 8;
         arg0->state                  = 1;
-        mem->index                   = (Gp_StateC08.field_0 % 10U) - 1;
+        mem->index                   = (Gp_StateC08.attachId % 10U) - 1;
         mem->angle                   = 0x20;
         mem->period                  = mem->index * 128 + 0x180;
         mem->step                    = mem->index * 256 + 0x400;
@@ -2740,7 +2740,7 @@ void Gp_EffCtlTaskF3(Task* arg0)
         gRoomEffectState->burstRequest = false;
     }
 
-    if (Gp_StateC08.field_12 == 0 || !(gRoomEffectState->peFxFlags & ROOM_EFFECT_PE_ENERGY_SHOT_AURA) ||
+    if (Gp_StateC08.energyShotTicks == 0 || !(gRoomEffectState->peFxFlags & ROOM_EFFECT_PE_ENERGY_SHOT_AURA) ||
         gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED) {
         effectKillTask(mem, arg0);
         return;
@@ -2903,7 +2903,7 @@ void Gp_EffCtlTaskAC(Task* arg0)
         coord->composeStamp          = GRAPHICS_COORD_DIRTY;
         coord->parent                = parent + 1;
         arg0->state                  = 1;
-        mem->index                   = (Gp_StateC08.field_0 % 10U) - 1;
+        mem->index                   = (Gp_StateC08.attachId % 10U) - 1;
         mem->angle                   = 0x20;
         mem->period                  = ((mem->index + 1) * 3) << 7;
         mem->step                    = gPlayerStatus.hp;
@@ -2918,7 +2918,7 @@ void Gp_EffCtlTaskAC(Task* arg0)
     Gp_DrawRing(coord, mem->period, rgb);
     Gp_DrawRing(coord, (s16)(mem->period << 1), rgb);
 
-    if (Gp_StateC08.field_10 == 0) {
+    if (Gp_StateC08.antibodyTicks == 0) {
         goto kill;
     }
     if (!(gRoomEffectState->peFxFlags & ROOM_EFFECT_PE_ANTIBODY_AURA)) {
@@ -3536,7 +3536,7 @@ void func_800FDB18(s32 arg0, GfxCoord* arg1, SVECTOR* arg2, EffectSpawnArg* arg3
         case 11:
             Gp_SpawnEff(EFFECT_HIT_BLAST, arg3->coord, arg3->spawnArgLo | (arg3->spawnArgHi << 16), NULL);
             pan = (s8)worldCoordGetOriginAudioPan(arg1);
-            SndEvt_EnqueueType6(D_80112C7C[(u16)(Gp_StateC08.field_0 % 10U) - 1], pan,
+            SndEvt_EnqueueType6(D_80112C7C[(u16)(Gp_StateC08.attachId % 10U) - 1], pan,
                                 (s8)worldCoordGetOriginAudioDepth(arg1));
             break;
         case 12:
@@ -6637,10 +6637,10 @@ s32 func_801054D8(Task* arg0, s32 arg1, GpDelayArg* arg2)
     if (gGameSession->eventState != 0) {
         actor->collisionBodies[GAME_ACTOR_BODY_ROOT].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
     }
-    actor->state         = 6;
-    Gp_StateC08.field_6 |= 1;
-    actor->stateTimer    = arg2->field_14;
-    actor->actionValue   = 0;
+    actor->state       = 6;
+    Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
+    actor->stateTimer  = arg2->field_14;
+    actor->actionValue = 0;
     return 0;
 }
 
@@ -7386,7 +7386,7 @@ static void Gp_TickPlayerNormal(Task* arg0)
                 inner->stateAux       = prev;
                 Gp_DetachLinkNode(arg0);
                 inner->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-                Gp_StateC08.field_6                                  |= 1;
+                Gp_StateC08.flags                                    |= ATTACHMENT_FLAG_EVENT_LOCK;
                 func_80106350(arg0, p->weapon, 0);
                 playerActorPlayChildSlotsWithBlend(arg0, 0x19, 3, 6);
             }
@@ -7796,14 +7796,14 @@ static void Gp_PlayerNormalState6(Task* arg0)
 
     actor               = arg0->work;
     actor->movementSign = 0;
-    if (Gp_StateC08.field_3 == 2) {
+    if (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_CANCELLED) {
         actor->statePhase = 5;
     }
     switch (actor->statePhase) {
         case 0:
             actor->animationState = 9;
             actor->statePhase    += 1;
-            Gp_StateC08.field_6  |= 4;
+            Gp_StateC08.flags    |= ATTACHMENT_FLAG_RELEASE;
             if (actor->actionArgument == 0) {
                 mode = 0x1A;
             } else if (actor->actionArgument == 1) {
@@ -7826,11 +7826,11 @@ static void Gp_PlayerNormalState6(Task* arg0)
             }
             Gp_AnimResetChildSlots(arg0, mode);
         case 3:
-            if (Gp_StateC08.field_2 == 0) {
+            if (Gp_StateC08.duration == 0) {
                 actor->animationState = 9;
                 actor->statePhase    += 1;
                 snd                   = 4;
-                if (Gp_StateC08.field_0 < 300 || Gp_StateC08.field_0 > 600) {
+                if (Gp_StateC08.attachId < ATTACHMENT_ID_EARLY_SPELL_LIMIT || Gp_StateC08.attachId > ATTACHMENT_ID_LAST_SPELL) {
                     snd = 3;
                 }
                 Gp_SetStateF0Bit(snd);
@@ -8486,8 +8486,8 @@ static void func_80108A0C(Task* arg0)
     inner->statePhase       = 0;
     inner->movementSign     = 0;
     inner->stateAux         = prev;
-    tens                    = Gp_StateC08.field_0 % 100 / 10;
-    if (Gp_StateC08.field_0 >= 0x259U) {
+    tens                    = Gp_StateC08.attachId % 100 / 10;
+    if (Gp_StateC08.attachId >= ATTACHMENT_ID_ITEM) {
         if (tens == 1) {
             inner->actionArgument = 0;
         } else {
@@ -8495,7 +8495,7 @@ static void func_80108A0C(Task* arg0)
         }
     } else if (tens == 3) {
         inner->actionArgument = 2;
-    } else if (Gp_StateC08.field_0 < 0x12CU) {
+    } else if (Gp_StateC08.attachId < ATTACHMENT_ID_EARLY_SPELL_LIMIT_U) {
         inner->actionArgument = 1;
     } else {
         inner->actionArgument = 0;
@@ -8521,7 +8521,7 @@ static void func_80108AD4(Task* arg0)
     inner->stateAux       = prev;
     Gp_DetachLinkNode(arg0);
     inner->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-    Gp_StateC08.field_6                                  |= 1;
+    Gp_StateC08.flags                                    |= ATTACHMENT_FLAG_EVENT_LOCK;
     func_80106350(arg0, gPlayerStatus.weapon, 0);
     playerActorPlayChildSlotsWithBlend(arg0, 0x19, 3, 6);
 }
@@ -8830,7 +8830,7 @@ static s32 func_80109290(Task* arg0)
     s32        ret;
 
     ret = 0;
-    if (Gp_StateC08.field_3 == -2) {
+    if (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) {
         inner                   = arg0->work;
         prev                    = inner->state;
         inner->state            = 6;
@@ -8842,8 +8842,8 @@ static s32 func_80109290(Task* arg0)
         inner->movementSign     = 0;
         inner->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
         inner->stateAux         = prev;
-        tens                    = (u16)(Gp_StateC08.field_0 % 100 / 10);
-        if (Gp_StateC08.field_0 >= 0x259U) {
+        tens                    = (u16)(Gp_StateC08.attachId % 100 / 10);
+        if (Gp_StateC08.attachId >= ATTACHMENT_ID_ITEM) {
             if (tens == 1) {
                 inner->actionArgument = 0;
             } else {
@@ -8851,7 +8851,7 @@ static s32 func_80109290(Task* arg0)
             }
         } else if (tens == 3) {
             inner->actionArgument = 2;
-        } else if (Gp_StateC08.field_0 < 0x12CU) {
+        } else if (Gp_StateC08.attachId < ATTACHMENT_ID_EARLY_SPELL_LIMIT_U) {
             inner->actionArgument = 1;
         } else {
             inner->actionArgument = 0;
@@ -8866,7 +8866,7 @@ static void func_80109374(Task* arg0)
     GameActor* inner;
 
     inner = arg0->work;
-    if ((inner->padHeld & 0x80) && (Gp_StateC08.field_3 == 0) && (gPlayerStatus.weapon != PLAYER_STATUS_EQUIPMENT_NONE) &&
+    if ((inner->padHeld & 0x80) && (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_IDLE) && (gPlayerStatus.weapon != PLAYER_STATUS_EQUIPMENT_NONE) &&
         (inner->restrictRunAndAim == 0)) {
         inner->aimControl = GAME_ACTOR_AIM_REQUEST_ENTER;
     } else {

@@ -2575,7 +2575,7 @@ static void func_mine_mesa_8017D808(Task* task)
     u8  field9;
     s32 nibble;
 
-    if ((gGameSession->eventState == 0) && (Gp_StateC08.field_A != 1) && (field9 = gGameSession->location.loc.variant, field9 == 1)) {
+    if ((gGameSession->eventState == 0) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (field9 = gGameSession->location.loc.variant, field9 == 1)) {
         if (GameFlag_GetNibble(GAME_FLAG_MINE_MESA_ARRIVAL_SEEN) == 0) {
             if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
                 func_800E8634(D_mine_mesa_8018578C, 0, D_mine_mesa_801861DC);
@@ -2691,7 +2691,7 @@ s32 func_mine_mesa_8017DBC4(Task* task, s32 msgId, s32 arg2, s32 arg3)
     if (field9 == 1) {
         if (GameFlag_GetNibble(GAME_FLAG_MINE_MESA_0CD) == 0) {
             if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
-                Gp_StateC08.field_6 |= 1;
+                Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
                 Gp_PulseState1C();
                 D_mine_mesa_80189B50 = field9;
                 GameFlag_SetNibble(GAME_FLAG_MINE_MESA_0CD, 1);
@@ -3152,10 +3152,10 @@ void func_mine_mesa_8017EA24(void)
     }
 }
 
-/// Sets bit 0 of `Gp_StateC08.field_6` and requests all-effect cancellation on `gRoomEffectState`.
+/// Sets bit 0 of `Gp_StateC08.flags` and requests all-effect cancellation on `gRoomEffectState`.
 void func_mine_mesa_8017EA78(void)
 {
-    Gp_StateC08.field_6 |= 1;
+    Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
     Gp_PulseState1C();
 }
 

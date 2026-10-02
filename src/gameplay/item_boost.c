@@ -471,10 +471,10 @@ s32 func_800B9D80(s32 arg0)
         attr  = &Gp_ModStatAttrs[(cfg->armor + 0x5F) - 0x60];
         flags = attr->flags;
     }
-    if ((Gp_StateC08.field_14 > 0) || (Gp_StateC08.field_17 != 0)) {
+    if ((Gp_StateC08.metabolismTicks > 0) || (Gp_StateC08.bodyWard != 0)) {
         stateA = 1;
     }
-    if ((Gp_StateC08.field_14 > 0) || (Gp_StateC08.field_16 != 0)) {
+    if ((Gp_StateC08.metabolismTicks > 0) || (Gp_StateC08.mindWard != 0)) {
         stateB = 1;
     }
 
@@ -597,8 +597,8 @@ void Gp_ResetInventory(void)
     }
     Gp_DebugAttachLevels[0] = 1;
 
-    Gp_StateC08.field_5 = 0;
-    Gp_StateC08.field_B = 0;
+    Gp_StateC08.activeIndex = 0;
+    Gp_StateC08.wheelIndex  = 0;
 }
 
 void Gp_ClearInventory(void)
@@ -628,10 +628,10 @@ void Gp_ClearInventory(void)
         }
     }
 
-    Gp_StateC08.field_B = 0;
-    Gp_StateC08.field_5 = 0;
-    gPlayerStatus.hp    = gPlayerStatus.hpMax;
-    gPlayerStatus.mp    = gPlayerStatus.mpMax;
+    Gp_StateC08.wheelIndex  = 0;
+    Gp_StateC08.activeIndex = 0;
+    gPlayerStatus.hp        = gPlayerStatus.hpMax;
+    gPlayerStatus.mp        = gPlayerStatus.mpMax;
     Gp_ApplyItemMap();
 }
 

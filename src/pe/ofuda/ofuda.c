@@ -35,16 +35,16 @@
 /// A cancelled or interrupted cast stops the cue and releases immediately.
 void ofudaEffectTask(Task* arg0)
 {
-    EffectWork* mem;
-    GfxCoord*   coord;
-    GpStateC08* state;
-    s32         pan;
-    u8          rgb[3];
+    EffectWork*      mem;
+    GfxCoord*        coord;
+    AttachmentState* state;
+    s32              pan;
+    u8               rgb[3];
 
     state = &Gp_StateC08;
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if ((state->field_3 == -2) || (gRoomEffectState->peEffectControl != ROOM_EFFECT_CONTROL_RUNNING)) {
+    if ((state->effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl != ROOM_EFFECT_CONTROL_RUNNING)) {
         SndEvt_EnqueueType7(SOUND_OFUDA_USE, 1);
         goto kill;
     }
@@ -75,11 +75,11 @@ void ofudaEffectTask(Task* arg0)
             rgb[2] >>= 1;
             Gp_DrawArc(coord, (s16)((arg0->spawnArg1.value << 5) + 0xC00), 0xC0, rgb);
             if (arg0->spawnArg1.value == 0) {
-                mem->scale      = 0xFF;
-                arg0->state     = 2;
-                mem->period     = 0x600;
-                mem->step       = 0;
-                state->field_6 |= 8;
+                mem->scale    = 0xFF;
+                arg0->state   = 2;
+                mem->period   = 0x600;
+                mem->step     = 0;
+                state->flags |= ATTACHMENT_FLAG_APPLY_STATS;
             }
             return;
         case 2:

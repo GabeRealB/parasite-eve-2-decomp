@@ -604,7 +604,7 @@ static s32 func_actor_342100_80162F54(Task* arg0)
             msg.wordCount   = n & 0xFFFF;
             TASK_MESSAGE_DISPATCH_POINTER(msgWork->field_2C, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &msg, 0);
             Gp_MsgPlayerWeapon(0);
-            Gp_StateC08.field_6 |= 1;
+            Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
             func_800E8614(D_actor_342100_801649C8, 0);
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
             work->field_34 = Task_SpawnFromTable(D_actor_342100_80164B78, 2, 0, arg0);
@@ -641,12 +641,12 @@ void func_actor_342100_801630A4(Task* arg0)
     PlayerStatus*    cfg;
 
     work = (Actor342100Work*)arg0->work;
-    if (gGameSession->sceneUpdatesPaused != 0 || Gp_StateC08.field_9 != 0 || gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING || D_80114CF8 != 0) {
+    if (gGameSession->sceneUpdatesPaused != 0 || Gp_StateC08.menuOpen != ATTACHMENT_MENU_CLOSED || gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING || D_80114CF8 != 0) {
         return;
     }
     switch (arg0->state) {
         case 0:
-            if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
+            if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 break;
             }
             newWork    = memMalloc(sizeof(*newWork), false);

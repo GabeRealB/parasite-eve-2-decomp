@@ -2152,7 +2152,7 @@ static void func_actor_405800_801340E0(Task* arg0)
     work->field_86A = work->field_92;
     stalkerZebraIvoryDropCapsuleGrid(arg0);
     work->onCeiling          = 0;
-    Gp_StateC08.field_6     |= 1;
+    Gp_StateC08.flags       |= ATTACHMENT_FLAG_EVENT_LOCK;
     work->holding            = 1;
     work->field_9A           = work->field_92;
     msg.source.sets          = D_actor_405800_801513F8;

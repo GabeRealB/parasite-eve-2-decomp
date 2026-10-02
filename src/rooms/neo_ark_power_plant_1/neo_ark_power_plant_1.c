@@ -87,7 +87,7 @@ GpAreaApplyRec D_neo_ark_power_plant_1_80181C00[2] = {
 
 /// Second state of the room task, run every frame. While nibble 0xDE is clear
 /// it sends message 0x7D6 to the slot-4 task, and when that returns 0 with
-/// `Gp_StateC08.field_A` not 1 and `gDisplayState.pendingMode` clear, it sets nibbles 0xDE and 0xF6,
+/// `Gp_StateC08.mode` not 1 and `gDisplayState.pendingMode` clear, it sets nibbles 0xDE and 0xF6,
 /// clears 0x1B2, applies `D_neo_ark_power_plant_1_80181C00`, sets
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent` to 0x16 and starts the event script at
 /// `D_neo_ark_power_plant_1_8017EB7C`. When `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` is 3 and nibble 0xFB
@@ -104,7 +104,7 @@ static void func_neo_ark_power_plant_1_8017D5EC(Task* task)
         slot = Gp_LookupSlot4(0);
         if (slot != 0) {
             if (taskMessageDispatch(slot, ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0) {
-                if (Gp_StateC08.field_A != 1) {
+                if (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) {
                     if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                         GameFlag_SetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_CLEARED, 1);
                         GameFlag_SetNibble(GAME_FLAG_NEO_ARK_FOREST_ZONE_UNLOCKED, 1);
@@ -209,11 +209,11 @@ s32 func_neo_ark_power_plant_1_8017D8C8(Task* task, s32 msgId, TaskMessageArg ar
 }
 
 /// Native call in the power-on event script: requests all-effect cancellation on
-/// `gRoomEffectState` and sets bit 0 of `Gp_StateC08.field_6`.
+/// `gRoomEffectState` and sets bit 0 of `Gp_StateC08.flags`.
 void func_neo_ark_power_plant_1_8017D8D0(void)
 {
     Gp_PulseState1C();
-    Gp_StateC08.field_6 |= 1;
+    Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
 }
 
 /// Native call in the power-on event script: halts the pad scripts.

@@ -18,7 +18,7 @@ u16 Gp_ReplayButtons;
 
 u16 Gp_ReplayFramesLeft;
 
-GpStateC08 Gp_StateC08;
+AttachmentState Gp_StateC08;
 
 InventoryItemRow Gp_ItemTable2[5];
 
@@ -99,7 +99,7 @@ u16 Gp_GetAttachParam(s32 arg0)
     s32           off;
 
     recs = Gp_IdParamHi.bytes;
-    idx  = Gp_StateC08.field_5;
+    idx  = Gp_StateC08.activeIndex;
     if (idx >= 0xC) {
         ret = 1;
     } else {
@@ -125,7 +125,7 @@ u16 Gp_GetAttachParam(s32 arg0)
         }
     }
     off  = arg0 * sizeof(u16);
-    off += (Gp_StateC08.field_5 * 3 + ret) * sizeof(GpRec16);
+    off += (Gp_StateC08.activeIndex * 3 + ret) * sizeof(GpRec16);
     {
         union {
             u8*  bytes;

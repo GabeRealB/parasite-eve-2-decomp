@@ -1483,7 +1483,7 @@ static void func_actor_146300_8013224C(void)
 void func_actor_146300_801323E0(void)
 {
     Gp_PulseState1C();
-    Gp_StateC08.field_6 |= 1;
+    Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
 }
 
 void func_actor_146300_80132418(s32 arg0)

@@ -737,8 +737,8 @@ static void func_dryfield_gas_station_801803C0(Task* task)
 }
 
 /// Spawns the gas station's cutscene owner. State 0 refuses to run twice (a
-/// `Gp_StateC08.field_A` of 1 and a live `gDisplayState.pendingMode` both mean the cutscene is already
-/// up), otherwise it parks the freshly zeroed 0x10-byte `DgsWork` block in
+/// the attachment wheel is open (`Gp_StateC08.mode`) or `gDisplayState.pendingMode` is
+/// live), otherwise it parks the freshly zeroed 0x10-byte `DgsWork` block in
 /// `Task::work`, fills `owner` from pointer slot 3 and republishes this task as
 /// `D_dryfield_gas_station_80184BD4` so the room's script helpers can reach that block.
 /// Two kills: a failed `memMalloc` kills the task outright, and state 1 kills
@@ -754,7 +754,7 @@ void func_dryfield_gas_station_801807E0(Task* task)
 
     switch (task->state) {
         case 0:
-            if ((Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
+            if ((Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 work       = memMalloc(sizeof(*work), false);
                 task->work = work;
                 if (work == NULL) {

@@ -284,11 +284,11 @@ static s32 Gp_ApplyItemUse(InventoryItemRow* arg0)
                         break;
                     case 4:
                         Gp_TriggerPeState(1, (PLAYER_STATUS_SILENCE | PLAYER_STATUS_CONFUSION | PLAYER_STATUS_BERSERKER));
-                        ret = Gp_HealPending = Gp_StateC08.field_16 = 1;
+                        ret = Gp_HealPending = Gp_StateC08.mindWard = 1;
                         break;
                     case 8:
                         Gp_TriggerPeState(1, (PLAYER_STATUS_DARKNESS | PLAYER_STATUS_PARALYSIS | PLAYER_STATUS_POISON));
-                        ret = Gp_HealPending = Gp_StateC08.field_17 = 1;
+                        ret = Gp_HealPending = Gp_StateC08.bodyWard = 1;
                         break;
                     case 5:
                         if (cfg->mp < cfg->mpMax || cfg->hp < cfg->hpMax) {
@@ -393,12 +393,12 @@ static s32 Gp_ItemIsUnusable(s32 arg0, InventoryItemRow* arg1)
                     }
                     break;
                 case 4:
-                    if (Gp_StateC08.field_16 == 0) {
+                    if (Gp_StateC08.mindWard == 0) {
                         ret = 0;
                     }
                     break;
                 case 8:
-                    if ((s8)Gp_StateC08.field_17 == 0) {
+                    if ((s8)Gp_StateC08.bodyWard == 0) {
                         ret = 0;
                     }
                     break;

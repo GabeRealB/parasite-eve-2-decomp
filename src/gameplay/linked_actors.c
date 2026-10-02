@@ -118,7 +118,7 @@ void func_800A4904(s32 arg0)
             if (arg0 == 0) {
                 enemy->colorMode |= ENEMY_COLOR_HIT_FLASH;
             } else {
-                val  = Gp_StateC08.field_0;
+                val  = Gp_StateC08.attachId;
                 idx  = (val / 100U - 1) * 9;
                 idx += ((val % 100U) / 10U - 1) * 3;
                 idx += val % 10U;
@@ -316,7 +316,7 @@ void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
                         if (arg0 == 0) {
                             enemy->colorMode |= ENEMY_COLOR_HIT_FLASH;
                         } else {
-                            val  = Gp_StateC08.field_0;
+                            val  = Gp_StateC08.attachId;
                             idx  = (val / 100U - 1) * 9;
                             idx += ((val % 100U) / 10U - 1) * 3;
                             idx += val % 10U;
@@ -376,7 +376,7 @@ void func_800A5574(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
                         if (arg0 == 0) {
                             enemy->colorMode |= ENEMY_COLOR_HIT_FLASH;
                         } else {
-                            val  = Gp_StateC08.field_0;
+                            val  = Gp_StateC08.attachId;
                             idx  = (val / 100U - 1) * 9;
                             idx += ((val % 100U) / 10U - 1) * 3;
                             idx += val % 10U;

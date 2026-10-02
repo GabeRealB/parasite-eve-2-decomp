@@ -2321,7 +2321,7 @@ static void func_mist_shooting_gallery_80182B1C(Task* arg0)
     func_801066DC(slot, 1);
 
     if (work->difficulty < 3) {
-        Gp_StateC08.field_6 |= 2;
+        Gp_StateC08.flags |= ATTACHMENT_FLAG_SWAP_LOCK;
         if (work->difficulty < 2) {
             actor->movementInputDisabled = 1;
             Display_AcquireRef();
@@ -2819,7 +2819,7 @@ static void func_mist_shooting_gallery_8018341C(Task* arg0)
 /// "ready" banner and the hand-off wait on `gGameSession::location.loc.view`, state 4
 /// seeds the first two records of `D_mist_shooting_gallery_8018690C`, states
 /// 5-7 hand the player over to actor mode 2 while the banner counts up through
-/// `field_20`, and state 8 is the wave loop proper. `Gp_StateC08.field_3` is the abort
+/// `field_20`, and state 8 is the wave loop proper. `Gp_StateC08.effectPhase` is the abort
 /// request: once it is raised the machine saves its place in `field_06` /
 /// `field_21` and jumps to the state-9 shutdown banner, which restores them.
 static void func_mist_shooting_gallery_801838FC(Task* arg0)
@@ -2916,10 +2916,10 @@ static void func_mist_shooting_gallery_801838FC(Task* arg0)
                 Gp_EnterActorMode2(
                     gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0, 2, 0);
                 work->field_04++;
-                mode                 = 0x10;
-                Gp_StateC08.field_6 |= 0x10;
-                work->field_0A       = 4;
-                work->field_20       = 0xE;
+                mode               = 0x10;
+                Gp_StateC08.flags |= ATTACHMENT_FLAG_OPEN_WHEEL;
+                work->field_0A     = 4;
+                work->field_20     = 0xE;
                 if (bonus == 2) {
                     mode = 2;
                 }
@@ -2929,12 +2929,12 @@ static void func_mist_shooting_gallery_801838FC(Task* arg0)
         case 7:
             func_800E9BDC(5, 0xA);
             if (work->field_0A <= 0) {
-                if ((u32)((u8)Gp_StateC08.field_A - 2) >= 2) {
+                if ((u32)((u8)Gp_StateC08.mode - ATTACHMENT_MODE_ARMED) >= 2) {
                     func_mist_shooting_gallery_80184BB8(0x14, work->field_20, 0x8E0);
                     if (work->field_20 == 0x12) {
                         work->field_04++;
                         func_800E9BDC(0, 0xA);
-                        Gp_StateC08.field_6 &= 0xFD;
+                        Gp_StateC08.flags &= ATTACHMENT_FLAG_CLEAR_SWAP_LOCK;
                     }
                     work->field_20++;
                 }
@@ -2991,7 +2991,7 @@ static void func_mist_shooting_gallery_801838FC(Task* arg0)
     }
 
     if (work->field_1E == 0 && work->field_20 >= 0x13) {
-        abort = Gp_StateC08.field_3;
+        abort = Gp_StateC08.effectPhase;
         if (abort == 1) {
             prev           = work->field_04;
             work->field_1E = abort;
@@ -3086,7 +3086,7 @@ static void func_mist_shooting_gallery_80183E78(Task* arg0)
                 work->field_04++;
                 Task_SpawnFromTable(D_mist_shooting_gallery_801856B8, 1, 0, 0);
                 SndEvt_EnqueueType6(SOUND_MIST_SHOOTING_GALLERY_ROUND_START, 0, 0);
-                Gp_StateC08.field_6 &= 0xFD;
+                Gp_StateC08.flags &= ATTACHMENT_FLAG_CLEAR_SWAP_LOCK;
                 Gp_ArmStateF0(1);
             }
             break;

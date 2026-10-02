@@ -1014,10 +1014,10 @@ void func_shelter_b1_sterilization_room_80180D74(Task* task)
 
 void func_shelter_b1_sterilization_room_80180F74(Task* task)
 {
-    Task*       player;
-    GfxCoord*   coord;
-    s32         pan;
-    GpStateC08* st;
+    Task*            player;
+    GfxCoord*        coord;
+    s32              pan;
+    AttachmentState* attachment;
 
     switch (task->state) {
         case 0:
@@ -1041,8 +1041,8 @@ void func_shelter_b1_sterilization_room_80180F74(Task* task)
                             SndEvt_EnqueueType6(SOUND_SHELTER_B1_STERILIZATION_PLAYER_HURT, pan, (s8)worldCoordGetOriginAudioDepth(coord));
                             task->killCountdown = 0;
                         }
-                        st           = &Gp_StateC08;
-                        st->field_6 |= 1;
+                        attachment         = &Gp_StateC08;
+                        attachment->flags |= ATTACHMENT_FLAG_EVENT_LOCK;
                     } else if (task->killCountdown == 0x49) {
                         Gp_MsgPlayerWeapon(1);
                     }

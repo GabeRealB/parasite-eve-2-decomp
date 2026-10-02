@@ -51,13 +51,13 @@ extern GpDmgRow Gp_DmgRows[];
 /// Column index table for `Gp_DmgRows`, indexed by signed HP / 10.
 extern u16 D_80113F54[];
 
-/// Percent scale table used by `Gp_ScaleDamage` when `Gp_StateC08.field_C`
-/// is non-zero. Indexed by `((field_C / 16) - 1) * 2 + (s8)(field_C % 16)`.
+/// Percent scale table used by `Gp_ScaleDamage` when `Gp_StateC08.antibodyCombo`
+/// is non-zero. Indexed by `((antibodyCombo / 16) - 1) * 2 + (s8)(antibodyCombo % 16)`.
 extern u16 D_80113CFC[];
 
 /// Percent scale table used by `Gp_ComputeDamage` / `Gp_RollEnemyChance` when
-/// `Gp_StateC08.field_D` is non-zero. Indexed by
-/// `((field_D / 16) - 1) * 2 + (s8)(field_D % 16)`; `Gp_ComputeDamage` reads
+/// `Gp_StateC08.energyShotCombo` is non-zero. Indexed by
+/// `((energyShotCombo / 16) - 1) * 2 + (s8)(energyShotCombo % 16)`; `Gp_ComputeDamage` reads
 /// `field_0` and `Gp_RollEnemyChance` reads `field_2` of each 4-byte slot.
 extern u16 D_80113D0C[][2];
 

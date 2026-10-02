@@ -765,7 +765,7 @@ static void func_actor_342000_80162BBC(Task* arg0)
             break;
         case 1:
             Gp_PulseState1C();
-            Gp_StateC08.field_6 |= 1;
+            Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
             TASK_MESSAGE_DISPATCH_POINTER(work->field_48, 0x3E9, &D_actor_342000_80164930, 0);
             break;
         case 2:
@@ -1127,7 +1127,7 @@ void func_actor_342000_8016382C(Task* arg0)
     s16                   timer;
 
     work = (Actor342000EventWork*)arg0->work;
-    if (D_shelter_b3_garbage_incinerator_801855DE != 0 || gGameSession->sceneUpdatesPaused != 0 || Gp_StateC08.field_9 != 0 || gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING) {
+    if (D_shelter_b3_garbage_incinerator_801855DE != 0 || gGameSession->sceneUpdatesPaused != 0 || Gp_StateC08.menuOpen != ATTACHMENT_MENU_CLOSED || gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING) {
         return;
     }
     if (gGameSession->enemyCullZone != 0) {

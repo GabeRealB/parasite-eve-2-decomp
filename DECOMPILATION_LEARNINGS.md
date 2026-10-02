@@ -8215,7 +8215,7 @@ if ((id & 0x3F) == 0x31) {
     p->field_5D = 0;
     return;
 }
-p->field_5D = Gp_StateC08.field_0 % 10U;
+p->field_5D = Gp_StateC08.attachId % 10U;
 ```
 
 `Gp_SetObjFlag2` is the example. The `&&` / else-zero form stuck at 87% with
@@ -28426,12 +28426,12 @@ stream.
 
 ```c
 case 4:
-    if (Gp_StateC08.field_16 == 0) {
+    if (Gp_StateC08.mindWard == 0) {
         ret = 0;
     }
     break;
 case 8: /* body is next in the target, even though 5-7 come later */
-    if ((s8)Gp_StateC08.field_17 == 0) {
+    if ((s8)Gp_StateC08.bodyWard == 0) {
         ret = 0;
     }
     break;
@@ -34761,7 +34761,7 @@ Clobber the field memory, then snapshot it into two block-scoped s32
 locals around the neighboring store:
 
 ```c
-mem->field_20 = (Gp_StateC08.field_0 % 10U) - 1;
+mem->field_20 = (Gp_StateC08.attachId % 10U) - 1;
 __asm__ volatile("" : "+m"(mem->field_20));
 x             = mem->field_20; /* lh */
 mem->field_26 = 0x20;
@@ -34791,10 +34791,10 @@ tmp.vz = *(u16*)&arg0->coord.t[2];
 
 ## Repeat a global load so `%hi` stays in `$a1`; don't stash it in a local
 
-`u16 val = Gp_StateC08.field_0` then `val / 10U` / `val / 100U` reuses the
+`u16 val = Gp_StateC08.attachId` then `val / 10U` / `val / 100U` reuses the
 `%hi` register as the load dest (`lhu a1, %lo(a1)`). The target keeps
 `$a1` as `%hi` for every `field_0` access (`lhu a2, %lo(Gp_StateC08)(a1)`).
-Write `Gp_StateC08.field_0` at each use so the CSE temp is `$a2`.
+Write `Gp_StateC08.attachId` at each use so the CSE temp is `$a2`.
 
 ## `x - 1 + y` reassociates onto `y`; a live `-1` variable or a split add does not
 
@@ -37518,7 +37518,7 @@ the narrower store forces a separate QImode quantity that cse cannot unify with
 the SImode one:
 
 ```c
-ret = Gp_HealPending = Gp_StateC08.field_16 = 1; /* sb then sw, each via `move v0,s5` */
+ret = Gp_HealPending = Gp_StateC08.mindWard = 1; /* sb then sw, each via `move v0,s5` */
 ```
 
 `Gp_ApplyItemUse` needed both spellings (cases 4/8 chained, case 0x3C reordered);
@@ -37606,11 +37606,11 @@ double cast never survives to RTL. Spell the sign-extension out as shifts on
 the zero-extended load instead:
 
 ```c
-Gp_DrawArc(coord, ((u8)Gp_StateC08.field_2 << 24) >> 17, 0x60, rgb);
+Gp_DrawArc(coord, ((u8)Gp_StateC08.duration << 24) >> 17, 0x60, rgb);
 ```
 
 That emits `lbu; sll 24; sra 17` (i.e. `(s8)field << 7`) while a plain
-`Gp_StateC08.field_2 != 0` elsewhere in the same function still uses `lb`, which
+`Gp_StateC08.duration != 0` elsewhere in the same function still uses `lb`, which
 is what the target does.
 
 ## `(s16)(u16)` on an `s16` field *does* survive, unlike the `s8` case
@@ -53775,7 +53775,7 @@ second bound:
 
 ```c
 if (z < 0x1644) {
-    if ((z >= 0x10CD) && (Gp_StateC08.field_A != 1) && (D_80071075 == 0)) {
+    if ((z >= 0x10CD) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (D_80071075 == 0)) {
 ```
 
 Every failing term still branches to the shared exit, so the topology is
@@ -61565,7 +61565,7 @@ reading two different compilations. Check the filenames before the codegen.
 just stored:
 
 ```c
-mem->field_20 = Gp_StateC08.field_0 % 10 - 1;
+mem->field_20 = Gp_StateC08.attachId % 10 - 1;
 mem->field_26 = (mem->field_20 << 8) + 0x300;   /* sll 8 */
 ```
 
@@ -61962,12 +61962,12 @@ GCC keep two of them in `$s5` / `$s1` across the loop and spill only the
 
 ## A `&Global` pointer local pins the whole address; plain member access shares only the `%hi`
 
-`func_metabolism_8012EF34` touches `Gp_StateC08` three times: `field_3` in the
-cancel test, `field_0` in `case 0`, and `field_6` a few statements later.
+`func_metabolism_8012EF34` touches `Gp_StateC08` three times: `effectPhase` in the
+cancel test, `attachId` in `case 0`, and `flags` a few statements later.
 Copying its sibling `func_healing_8012EF34` and opening with
 
 ```c
-GpStateC08* state = &Gp_StateC08;
+AttachmentState* state = &Gp_StateC08;
 ```
 
 scored 95.2%. The pointer is one pseudo with a live range covering the whole
@@ -61975,14 +61975,14 @@ prologue-to-`case 0` span, so `global_alloc` parked the *complete* address
 (`lui` + `addiu`) in `$s2` and the bare `%hi` in `$s4`, and both stayed live
 across the LCG loop.
 
-Writing `Gp_StateC08.field_3` / `Gp_StateC08.field_6` directly took it to
+Writing `Gp_StateC08.effectPhase` / `Gp_StateC08.flags` directly took it to
 98.0%. Each reference is then its own address rtx: CSE keeps only the shared
 `%hi` in `$s2` — which is what feeds the `lhu $a0, %lo(Gp_StateC08)($s2)` for
-`field_0` — and rematerialises `lui` + `addiu` at the `field_6` read, which is
+`attachId` — and rematerialises `lui` + `addiu` at the `flags` read, which is
 exactly the ROM's two "extra" instructions.
 
 The trap is that the sibling is not wrong: `func_healing_8012EF34` matches
-*with* the pointer local, because there the `field_6` use sits close enough
+*with* the pointer local, because there the `flags` use sits close enough
 that keeping the address costs nothing. So when a copied state-machine body
 leaves `regs` spread over the prologue plus a couple of stray `lui`/`addiu`
 insert/delete penalties around a global's later field, try both spellings
@@ -85913,15 +85913,15 @@ search (bind mount, see [[pe2-windows-toolchain-gotchas]] 3e), confirmed by port
 
 ## An overlay import named by address must keep its `D_<vram>` form, not the struct field it denotes (func_dryfield_night_motel_balcony_8017DD0C, 2026-09-15)
 
-A room or actor overlay touching `Gp_StateC08.field_A` can write it two ways.
+A room or actor overlay touching `Gp_StateC08.mode` can write it two ways.
 `extern s8 D_80114C12;` is the name splat generates and the one
 `configs/USA/sym/rooms.imports.txt` carries; `#include "gameplay/gameplay.h"`
-plus `Gp_StateC08.field_A` is the same address spelled through its owner.
+plus `Gp_StateC08.mode` is the same address spelled through its owner.
 `sym.gameplay.txt` names only the struct base (0x80114C08), so
 `gen_overlay_imports.py` has no entry for +0xA and keeps the address-derived
 `D_80114C12` in the family's imports file; both spellings reach the linker with
 symbol+addend summing to the same word, which is why the gameplay map's own
-`Gp_StateC08.field_A` accesses link everywhere.
+`Gp_StateC08.mode` accesses link everywhere.
 
 The scratch scorer compares disassembly *including the relocation expression*,
 so the struct spelling prints `lui v0,%hi(Gp_StateC08)` /
@@ -122059,24 +122059,24 @@ Two traps in doing the move by hand:
 
 ## A shared struct's `u8` field that the target reads with `lb`: cast `(s8)` at the use site (func_dryfield_water_tower_8017FD64, 2026-09-17)
 
-The target loads `Gp_StateC08.field_9` with `lb`; the struct declares the field
-`u8`, so the seed emits `lbu`. That single instruction was the entire
+The target loads `Gp_StateC08.menuOpen` with `lb`. While the field was declared
+`u8`, an uncast read emitted `lbu`. That single instruction was the entire
 `insert=1 delete=1` penalty and 98.41% against 100%.
 
 Casting at the use site flips the load with no edit to the shared header:
 
 ```c
-if ((s8)Gp_StateC08.field_9 != 0) {   /* lb  */
-if (Gp_StateC08.field_9 != 0) {       /* lbu */
+if ((s8)Gp_StateC08.menuOpen != ATTACHMENT_MENU_CLOSED) {   /* lb  */
+if (Gp_StateC08.menuOpen != ATTACHMENT_MENU_CLOSED) {       /* lbu, while the field was u8 */
 ```
 
-Prefer this to retyping the field. The struct is included by every overlay that
-uses it, and a field whose other uses are all *stores* carries no signedness
-evidence of its own, so the declaration is not what is wrong — the source read
-it through a signed lvalue. Grep the field's name across `src/` first: a matched
+The field is `s8` now, so an uncast read is already `lb`. The `(s8)` casts that
+matched under the unsigned declaration are still at the use sites; leave them
+until a rebuild shows the uncast form still matches. The struct is included by
+every overlay that uses it. Grep the field's name across `src/` first: a matched
 sibling usually settles the spelling, and here
 `src/actors/actor_444000/actor_444000.c` already writes exactly
-`(s8)Gp_StateC08.field_9`. When a match stalls one instruction short with
+`(s8)Gp_StateC08.menuOpen`. When a match stalls one instruction short with
 `insert=1 delete=1`, diff the object dumps — `lb` vs `lbu` is a load *type*, not
 a register or scheduling leftover, so no penalty other than those two counts
 points at it.
@@ -143043,7 +143043,7 @@ add into `ori` because the shifted index has no low bits set.
 **Two args swapped (`n` in `a1`, level in `a2`).** `n = field; ... helper(n)`
 maps the helper's parameter straight onto `n`, whose long live range loses the
 global-alloc priority race to the helper's short-lived level pseudo. Passing
-the field itself (`helper(Gp_StateC08.field_B, 2)`, and the same field in the
+the field itself (`helper(Gp_StateC08.wheelIndex, 2)`, and the same field in the
 item-id expression) gives the parameter its own pseudo and the ROM's
 allocation, with no local at all.
 

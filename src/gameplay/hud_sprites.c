@@ -706,9 +706,9 @@ s32 func_800A7550(void)
 
 void Gp_ResetHudFx(GpIdMapC* arg0)
 {
-    PlayerStatus* cfg;
-    GpStateBE8*   be8;
-    GpStateC08*   p;
+    PlayerStatus*    cfg;
+    GpStateBE8*      be8;
+    AttachmentState* attachment;
 
     cfg                                   = &gPlayerStatus;
     be8                                   = &Gp_HpMpWork;
@@ -716,21 +716,21 @@ void Gp_ResetHudFx(GpIdMapC* arg0)
     be8->field_4                          = cfg->mp;
     arg0->field_16                        = -1;
     arg0->field_18                        = 0;
-    p                                     = &Gp_StateC08;
-    p->field_10                           = 0;
-    p->field_C                            = 0;
-    p->field_12                           = 0;
-    p->field_D                            = 0;
-    p->field_E                            = 0;
-    p->field_14                           = 0;
-    p->field_F                            = 0;
-    p->field_16                           = 0;
-    p->field_17                           = 0;
-    p->field_A                            = 0;
+    attachment                            = &Gp_StateC08;
+    attachment->antibodyTicks             = 0;
+    attachment->antibodyCombo             = 0;
+    attachment->energyShotTicks           = 0;
+    attachment->energyShotCombo           = 0;
+    attachment->queuedIndex               = 0;
+    attachment->metabolismTicks           = 0;
+    attachment->metabolismCombo           = 0;
+    attachment->mindWard                  = 0;
+    attachment->bodyWard                  = 0;
+    attachment->mode                      = ATTACHMENT_MODE_IDLE;
     gGameSession->battleResetPending      = 0;
     Gp_ItemGrantCooldown                  = 0;
     gDisplayState.suppressDisconnectPause = 1;
-    p->field_6                           &= ~2;
+    attachment->flags                    &= ~ATTACHMENT_FLAG_SWAP_LOCK;
 }
 
 static void Gp_StartPadReplay(void)
@@ -765,8 +765,8 @@ void Gp_PlayClockState2(Task* arg0)
     if (arg0->killCountdown <= 0) {
         arg0->killCountdown = 0;
         Gp_StartAreaBgm(&arg0->killCountdown);
-        session             = gGameSession;
-        Gp_StateC08.field_3 = 0;
+        session                 = gGameSession;
+        Gp_StateC08.effectPhase = ATTACHMENT_EFFECT_IDLE;
         if (session->restartMode != GAME_SESSION_RESTART_PRESERVE_DISPLAY) {
             fade             = &D_80114BD8;
             fade->blend      = SCREEN_FADE_SUBTRACT;
@@ -1026,26 +1026,26 @@ static s32 Gp_CdIdleIfF0Active(void)
 
 void func_800A7DB8(s32 arg0)
 {
-    if (!(Gp_StateC08.field_6 & 1)) {
-        Gp_StateC08.field_E = arg0;
+    if (!(Gp_StateC08.flags & ATTACHMENT_FLAG_EVENT_LOCK)) {
+        Gp_StateC08.queuedIndex = arg0;
     }
 }
 
 void func_800A7DE0(void)
 {
-    GpStateC08* p;
+    AttachmentState* attachment;
 
     CdCmd_EnqueueLoadFile(0, 0, 4);
-    p = &Gp_StateC08;
-    if (p->field_A >= 2) {
-        p->field_3 = 2;
+    attachment = &Gp_StateC08;
+    if (attachment->mode >= ATTACHMENT_MODE_ARMED) {
+        attachment->effectPhase = ATTACHMENT_EFFECT_CANCELLED;
     }
-    p->field_E                     = 0;
-    p->field_A                     = 0;
+    attachment->queuedIndex        = 0;
+    attachment->mode               = ATTACHMENT_MODE_IDLE;
     D_80115768                     = 0;
     gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-    p->field_7                     = 0;
-    p->field_8                     = 0;
+    attachment->previewSound       = 0;
+    attachment->soundStep          = ATTACHMENT_SOUND_IDLE;
 }
 
 void func_800A7E4C(void)
@@ -1076,7 +1076,7 @@ static s32 func_800A7E5C(s32 arg0)
         }
     }
     if (arg0 == 0) {
-        if (Gp_StateC08.field_6 & 2) {
+        if (Gp_StateC08.flags & ATTACHMENT_FLAG_SWAP_LOCK) {
             flag = 0;
         }
     }

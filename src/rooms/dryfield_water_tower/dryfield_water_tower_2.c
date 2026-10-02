@@ -306,7 +306,7 @@ extern DryfieldWaterTower2MessageEntry D_dryfield_water_tower_80181B00[2];
 
 /// Main-executable gates the cap script checks, with no module header yet:
 /// the script only runs while `gPlayerStatus.hp` is non-zero, and its state 8 holds
-/// back on `Gp_StateC08.field_A` == 1 or a non-zero `gDisplayState.pendingMode`.
+/// back while the attachment wheel is open (`Gp_StateC08.mode`) or `gDisplayState.pendingMode` is set.
 
 /// Collision patches for the raised and lowered cap positions.
 ///
@@ -1975,7 +1975,7 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
     }
     new_var     = 0;
     obj->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    if (Gp_StateC08.field_9 == 0) {
+    if (Gp_StateC08.menuOpen == ATTACHMENT_MENU_CLOSED) {
         switch (arg0->state) {
             case 0: {
                 TmdObject* model;
@@ -2181,7 +2181,7 @@ static s32 func_dryfield_water_tower_8017E5B0(Task* arg0)
 /// The other cap prop's task, entry 1 of the room's task table and the
 /// counterpart of `func_dryfield_water_tower_8017E1DC`. It shares that prop's
 /// gating -- while `gGameSession->sceneUpdatesPaused` is set it only raises the model's
-/// skip-draw bit 0x80, and while `Gp_StateC08.field_9` is non-zero it clears
+/// skip-draw bit 0x80, and while `Gp_StateC08.menuOpen` is non-zero it clears
 /// the bit and does nothing else -- and its spawn tick is the same: allocate
 /// the 0x7C-byte `DryfieldWaterTowerState` into `Task::work`, park the slot-3
 /// game task at `field_40`, parent the model to `gGfxViewCoord`, rebuild its
@@ -2213,7 +2213,7 @@ void func_dryfield_water_tower_8017E764(Task* arg0)
         return;
     }
     obj->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    if ((s8)Gp_StateC08.field_9 != 0) {
+    if ((s8)Gp_StateC08.menuOpen != ATTACHMENT_MENU_CLOSED) {
         return;
     }
     switch (arg0->state) {
@@ -2472,7 +2472,7 @@ static u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
             state->field_58++;
 
         case 3:
-            if (Gp_TakePendingObj4C(&objId, &objA, &objB) != 0 && Gp_StateC08.field_A != 1 && gDisplayState.pendingMode == DISPLAY_MODE_NONE &&
+            if (Gp_TakePendingObj4C(&objId, &objA, &objB) != 0 && Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL && gDisplayState.pendingMode == DISPLAY_MODE_NONE &&
                 (objId & (0xFFFF ^ WORLD_COLLISION_TRIGGER_AUTOMATIC)) == WORLD_COLLISION_TRIGGER_ACTION_ROOM && (reason = (s8)objA) == 2) {
                 Gp_UnlinkObj4A(0, (D_dryfield_water_tower_80186A84 + 6));
                 state->field_68 = Gp_FindViewIndex(9);
@@ -2555,7 +2555,7 @@ static inline u16 _dryfieldWaterTowerState7Step(Task* arg0)
 /// State 8 of the cap script, one call per frame, returning non-zero once the
 /// step is complete. On its first frame (`field_58` 0) it hands the room's two
 /// blocks at 0x801820B0 / 0x80182248 to `func_800E8634`, retrying on later
-/// frames while `Gp_StateC08.field_A` is 1 or `gDisplayState.pendingMode` is set; after that it waits
+/// frames while `Gp_StateC08.mode` is 1 or `gDisplayState.pendingMode` is set; after that it waits
 /// for the session's `eventState` to go idle and sets nibble 0x32 to 2.
 static inline u16 _dryfieldWaterTowerState8Step(Task* arg0)
 {
@@ -2563,7 +2563,7 @@ static inline u16 _dryfieldWaterTowerState8Step(Task* arg0)
 
     switch (work->field_58) {
         case 0:
-            if (Gp_StateC08.field_A == 1) {
+            if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL) {
                 break;
             }
             if (gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
@@ -2585,7 +2585,7 @@ static inline u16 _dryfieldWaterTowerState8Step(Task* arg0)
 }
 
 /// The cap script, the task entry 0 of `D_dryfield_water_tower_80182384`
-/// runs. It does nothing while the session's `sceneUpdatesPaused` or `Gp_StateC08.field_9` is set
+/// runs. It does nothing while the session's `sceneUpdatesPaused` or `Gp_StateC08.menuOpen` is set
 /// or `gPlayerStatus.hp` is zero. State 0 allocates the 0x7C-byte
 /// `DryfieldWaterTowerState`, publishes the task and its message table, and
 /// restores two collision patches in the room's grid; state 1 spawns
@@ -2621,7 +2621,7 @@ void func_dryfield_water_tower_8017F128(Task* arg0)
     WorldCollisionTrigger*   p3;
     WorldCollisionTrigger*   p14;
 
-    if (gGameSession->sceneUpdatesPaused != 0 || Gp_StateC08.field_9 != 0 || gPlayerStatus.hp == 0) {
+    if (gGameSession->sceneUpdatesPaused != 0 || Gp_StateC08.menuOpen != ATTACHMENT_MENU_CLOSED || gPlayerStatus.hp == 0) {
         return;
     }
 
@@ -2815,11 +2815,11 @@ void func_dryfield_water_tower_8017F82C(void)
 }
 
 /// Record handler (opcode 0x0D) of two of the room's script tables: calls
-/// `Gp_PulseState1C` and raises bit 0 of `Gp_StateC08.field_6`.
+/// `Gp_PulseState1C` and raises bit 0 of `Gp_StateC08.flags`.
 void func_dryfield_water_tower_8017F8B0(void)
 {
     Gp_PulseState1C();
-    Gp_StateC08.field_6 |= 1;
+    Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
 }
 
 void func_dryfield_water_tower_8017F8E8(s16 arg0)
@@ -2993,7 +2993,7 @@ static void func_dryfield_water_tower_8017FBE8(Task* task)
 }
 
 /// Room entry point: install the player's weapon animation set on slot 3
-/// (message 0x3E8) unless `Gp_StateC08.field_A` says a battle is running or
+/// (message 0x3E8) unless the attachment wheel is open (`Gp_StateC08.mode`) or
 /// `gDisplayState.pendingMode` says one has just ended, then allocate the `DwtwWork` the room
 /// task hangs off `Task::work` (killing the task if the allocation fails),
 /// zero it, park the slot-3 task in `field_0` and the room task itself in
@@ -3004,8 +3004,7 @@ static void func_dryfield_water_tower_8017FBE8(Task* task)
 /// State 1 starts the room's cutscene pair and state 2 kills the task once the
 /// scene is over, exactly as the actors' `func_actor_560800_80135D54` pairs
 /// them; the task runs only while the session is not paused
-/// (`GameSession::sceneUpdatesPaused`) and no cutscene is active (`Gp_StateC08.field_9`,
-/// a signed byte), and every path that is not a kill ends in the room's
+/// (`GameSession::sceneUpdatesPaused`) and the attachment wheel is closed (`Gp_StateC08.menuOpen`), and every path that is not a kill ends in the room's
 /// per-frame body `func_dryfield_water_tower_8017FBE8`.
 void func_dryfield_water_tower_8017FD64(Task* task)
 {
@@ -3018,12 +3017,12 @@ void func_dryfield_water_tower_8017FD64(Task* task)
     if (gGameSession->sceneUpdatesPaused != 0) {
         return;
     }
-    if ((s8)Gp_StateC08.field_9 != 0) {
+    if ((s8)Gp_StateC08.menuOpen != ATTACHMENT_MENU_CLOSED) {
         return;
     }
     switch (task->state) {
         case 0:
-            if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
+            if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 return;
             }
             weaponId                 = gPlayerStatus.weapon;

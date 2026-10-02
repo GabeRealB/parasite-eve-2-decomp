@@ -2164,8 +2164,8 @@ static void func_actor_510900_801384C4(Task* arg0)
         pan = (s8)worldCoordGetOriginAudioPan(coord);
         SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
     }
-    Gp_StateC08.field_6 &= 1;
-    work->field_592      = 0;
+    Gp_StateC08.flags &= ATTACHMENT_FLAG_EVENT_LOCK;
+    work->field_592    = 0;
 }
 
 /// Latches which of the four `D_actor_510900_80167BA4` boxes the player stands

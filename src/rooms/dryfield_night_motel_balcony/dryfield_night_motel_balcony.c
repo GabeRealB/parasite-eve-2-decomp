@@ -109,11 +109,11 @@ static void func_dryfield_night_motel_balcony_8017DC30(Task* task)
     task->state = task->state + 1;
 }
 
-/// Room task state 1: once the event state is idle, `Gp_StateC08.field_A` is not 1 and
+/// Room task state 1: once the event state is idle, `Gp_StateC08.mode` is not 1 and
 /// flag nibble 0x10E is 1, runs the one-shot script and moves the nibble to 2.
 static void func_dryfield_night_motel_balcony_8017DD0C(Task* task)
 {
-    if (gGameSession->eventState == 0 && Gp_StateC08.field_A != 1 && GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCRIPT_STATE) == 1) {
+    if (gGameSession->eventState == 0 && Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL && GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCRIPT_STATE) == 1) {
         func_800E8614(&D_80165720, 0);
         GameFlag_SetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCRIPT_STATE, 2);
     }

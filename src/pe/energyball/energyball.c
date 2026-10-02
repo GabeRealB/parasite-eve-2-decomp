@@ -41,7 +41,7 @@
 #include "../../shared/ground_glow.h"
 
 /// One 4-byte row of `D_energyball_80131194`, indexed by `EffectWork.index`
-/// (`Gp_StateC08.field_0 % 10 - 1`). `field_0` is the full size the ball grows
+/// (`Gp_StateC08.attachId % 10 - 1`). `field_0` is the full size the ball grows
 /// to before it is launched (`EffectWork.angle`; half of it is the linked
 /// `WorldCollisionBody.radius`, twice it the burst's final size) and `field_2` the
 /// per-frame growth step, also the initial upward speed while charging.
@@ -107,7 +107,7 @@ void func_energyball_8012EF48(Task* arg0)
     mem->age = mem->age + 1;
     switch (arg0->state) {
         case 0:
-            mem->index = Gp_StateC08.field_0 % 10 - 1;
+            mem->index = Gp_StateC08.attachId % 10 - 1;
             level      = mem->index;
             mem->angle = (level << 8) + 0x300;
             if (gEnergyBallInFlightCount < 0) {
@@ -151,7 +151,7 @@ void func_energyball_8012EF48(Task* arg0)
 /// velocity component by 0x10 on odd frames, bursting into three 0x600F9
 /// effects on a hit (`Gp_CountRec18Hi`) or unlinking when the room's
 /// `field_16` drops; 3 and 4 fade the burst out, growing to twice the row's
-/// size or shrinking below one step. Cancel (`Gp_StateC08.field_3 == -2` or
+/// size or shrinking below one step. Cancel (`Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD` or
 /// PE effect control at 4 or more) anywhere but combo 0x2B lets the ball go: the last
 /// ball in flight (`gEnergyBallInFlightCount`) queues the row's stop sound.
 void func_energyball_8012F180(Task* arg0)
@@ -211,7 +211,7 @@ void func_energyball_8012F180(Task* arg0)
                 return;
             }
             arg0->work                = work;
-            mem->index                = (Gp_StateC08.field_0 % 10) - 1;
+            mem->index                = (Gp_StateC08.attachId % 10) - 1;
             mem->move.vx              = 0;
             gRandomLcgState           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             mem->move.vy              = -(u16)D_energyball_80131194[mem->index].field_2;
@@ -236,9 +236,9 @@ void func_energyball_8012F180(Task* arg0)
                 arg0->work                 = work;
                 work->obj.context.contacts = &work->rec;
                 work->obj.coord            = coord;
-                work->obj.key              = ((u16)(Gp_StateC08.field_0 / 100) - 1) * 9 +
-                                ((u16)((u16)(Gp_StateC08.field_0 % 100) / 10) - 1) * 3 +
-                                (u16)(Gp_StateC08.field_0 % 10) + 0x28000;
+                work->obj.key              = ((u16)(Gp_StateC08.attachId / 100) - 1) * 9 +
+                                ((u16)((u16)(Gp_StateC08.attachId % 100) / 10) - 1) * 3 +
+                                (u16)(Gp_StateC08.attachId % 10) + 0x28000;
                 work->obj.radius = mem->angle >> 1;
                 work->obj.flags  = WORLD_COLLISION_BODY_SPHERE;
                 Gp_LinkObj(1, &work->obj);
@@ -282,8 +282,8 @@ void func_energyball_8012F180(Task* arg0)
             func_energyball_80130B54(coord, mem->angle,
                                      (D_energyball_80131194[mem->index].field_0 - mem->angle) / 5);
             coord->workm.t[1] -= D_energyball_80131194[mem->index].field_2 * mem->age;
-            if ((u16)(Gp_StateC08.field_0 / 10) != 0x2B) {
-                if ((Gp_StateC08.field_3 == -2) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+            if ((u16)(Gp_StateC08.attachId / 10) != ATTACHMENT_ID_ENERGY_BALL_FAMILY) {
+                if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
                     if (gEnergyBallInFlightCount > 0) {
                         gEnergyBallInFlightCount -= 1;
                         if (gEnergyBallInFlightCount == 0) {
@@ -347,8 +347,8 @@ void func_energyball_8012F180(Task* arg0)
                     groundGlowDraw(&ground, mem->angle);
                 }
             }
-            if ((u16)(Gp_StateC08.field_0 / 10) != 0x2B) {
-                if ((Gp_StateC08.field_3 == -2) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+            if ((u16)(Gp_StateC08.attachId / 10) != ATTACHMENT_ID_ENERGY_BALL_FAMILY) {
+                if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
                     if (gEnergyBallInFlightCount > 0) {
                         gEnergyBallInFlightCount -= 1;
                         if (gEnergyBallInFlightCount == 0) {
@@ -393,8 +393,8 @@ void func_energyball_8012F180(Task* arg0)
             func_energyball_8012FFD0(coord, mem->angle, mem->scale >> 2);
             func_energyball_8012FFD0(coord, (u16)mem->angle * 2, mem->scale >> 2);
             mem->angle = mem->angle + (u16)D_energyball_80131194[mem->index].field_2;
-            if (((u16)(Gp_StateC08.field_0 / 10) != 0x2B) &&
-                ((Gp_StateC08.field_3 == -2) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN))) {
+            if (((u16)(Gp_StateC08.attachId / 10) != ATTACHMENT_ID_ENERGY_BALL_FAMILY) &&
+                ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN))) {
                 if (gEnergyBallInFlightCount > 0) {
                     gEnergyBallInFlightCount -= 1;
                     if (gEnergyBallInFlightCount == 0) {
@@ -421,8 +421,8 @@ void func_energyball_8012F180(Task* arg0)
             func_energyball_8012FFD0(coord, mem->angle, mem->scale >> 2);
             func_energyball_8012FFD0(coord, (u16)mem->angle * 2, mem->scale >> 2);
             mem->angle = mem->angle - (u16)D_energyball_80131194[mem->index].field_2;
-            if (((u16)(Gp_StateC08.field_0 / 10) != 0x2B) &&
-                ((Gp_StateC08.field_3 == -2) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN))) {
+            if (((u16)(Gp_StateC08.attachId / 10) != ATTACHMENT_ID_ENERGY_BALL_FAMILY) &&
+                ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN))) {
                 if (gEnergyBallInFlightCount > 0) {
                     gEnergyBallInFlightCount -= 1;
                     if (gEnergyBallInFlightCount == 0) {

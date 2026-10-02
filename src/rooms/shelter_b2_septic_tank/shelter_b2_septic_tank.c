@@ -1279,7 +1279,7 @@ static void func_shelter_b2_septic_tank_8017DA74(Task* task)
 
     if (gGameSession->location.loc.view == 4) {
         place = gGameSession->location.loc.variant;
-        if (place == 1 && Gp_StateC08.field_A != place && gDisplayState.pendingMode == DISPLAY_MODE_NONE && D_shelter_b2_septic_tank_80187045 == 0) {
+        if (place == 1 && Gp_StateC08.mode != place && gDisplayState.pendingMode == DISPLAY_MODE_NONE && D_shelter_b2_septic_tank_80187045 == 0) {
             if (GameFlag_GetNibble(GAME_FLAG_0EB) == 0) {
                 func_800E8614(D_shelter_b2_septic_tank_80183004, 0);
             }

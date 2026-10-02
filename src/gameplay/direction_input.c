@@ -155,7 +155,7 @@ void func_800AD6BC(void)
         D_80114D08 = 0xA;
     }
     if (D_80114CF8 == 0) {
-        if (Gp_StateC08.field_A == 0) {
+        if (Gp_StateC08.mode == ATTACHMENT_MODE_IDLE) {
             gGameSession->dirActionBusy = 0;
             if (D_80114D08 != 0) {
                 D_80114D08 = (u16)D_80114D08 - 1;

@@ -3683,7 +3683,7 @@ static void func_actor_403600_8013F0C0(Task* arg0)
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 3;
                 }
                 D_actor_403600_80160568.animationId = 2;
-                Gp_StateC08.field_6                |= 1;
+                Gp_StateC08.flags                  |= ATTACHMENT_FLAG_EVENT_LOCK;
                 TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
                 return;
             }
@@ -3738,7 +3738,7 @@ static void func_actor_403600_8013F0C0(Task* arg0)
                                     (s8)worldCoordGetOriginAudioDepth(temp_s4));
             }
             if ((s16)temp_s3->field_760 >= 0x24) {
-                Gp_StateC08.field_6                |= 1;
+                Gp_StateC08.flags                  |= ATTACHMENT_FLAG_EVENT_LOCK;
                 temp_s3->field_760                  = 0;
                 D_actor_403600_80160568.animationId = 5;
                 TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
@@ -3769,7 +3769,7 @@ static void func_actor_403600_8013F0C0(Task* arg0)
                                     (s8)worldCoordGetOriginAudioDepth(temp_s4));
             }
             if ((s16)temp_s3->field_760 >= 0x24) {
-                Gp_StateC08.field_6                |= 1;
+                Gp_StateC08.flags                  |= ATTACHMENT_FLAG_EVENT_LOCK;
                 temp_s3->field_760                  = 0;
                 D_actor_403600_80160568.animationId = 6;
                 TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);

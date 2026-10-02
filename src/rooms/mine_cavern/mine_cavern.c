@@ -335,12 +335,12 @@ s32 func_mine_cavern_8017DC58(Task* task, s32 msgId, DirectionActionRequest* req
 }
 
 /// Advances the cavern's collapse sequence one step: flag 0xE6 goes 0 -> 1
-/// (bit 0 of `Gp_StateC08.field_6` set) and 1 -> 2 (quake shake, then camera
+/// (bit 0 of `Gp_StateC08.flags` set) and 1 -> 2 (quake shake, then camera
 /// pan), each step writing `D_mine_cavern_8018EB50` to the step number.
 s32 func_mine_cavern_8017DC9C(void)
 {
     if (GameFlag_GetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS) == 0) {
-        Gp_StateC08.field_6 |= 1;
+        Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
         Gp_PulseState1C();
         GameFlag_SetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS, 1);
         D_mine_cavern_8018EB50 = 1;
@@ -402,7 +402,7 @@ static void func_mine_cavern_8017DEE4(Task* task)
     s32 flag;
 
     flag = GameFlag_GetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS);
-    if ((flag == 1) && (D_mine_cavern_8018EB50 == flag) && (Gp_StateC08.field_A != D_mine_cavern_8018EB50)) {
+    if ((flag == 1) && (D_mine_cavern_8018EB50 == flag) && (Gp_StateC08.mode != D_mine_cavern_8018EB50)) {
         func_800E8634(D_mine_cavern_80188214, 0, D_mine_cavern_801887B4);
         D_mine_cavern_8018EB50 = 2;
     }
@@ -511,9 +511,9 @@ void func_mine_cavern_8017E2D8(void)
     SndEvt_EnqueueType2(0, 0x64);
 }
 
-/// Sets bit 0 of `Gp_StateC08.field_6` and requests all-effect cancellation on `gRoomEffectState`.
+/// Sets bit 0 of `Gp_StateC08.flags` and requests all-effect cancellation on `gRoomEffectState`.
 void func_mine_cavern_8017E2FC(void)
 {
-    Gp_StateC08.field_6 |= 1;
+    Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
     Gp_PulseState1C();
 }

@@ -124,8 +124,8 @@ extern ActorTransform D_dryfield_motel_room_1_8017E0D0[2];
 
 extern ActorTransform D_dryfield_motel_room_1_8017E100[2];
 
-/// Main loop of the room's cutscene task. State 0 arms it once -- a `Gp_StateC08.field_A`
-/// of 1 or a live `gDisplayState.pendingMode` both mean a cutscene is already up, so the task
+/// Main loop of the room's cutscene task. State 0 arms it once -- it waits while
+/// the attachment wheel is open (`Gp_StateC08.mode`) or `gDisplayState.pendingMode` is live, so the task
 /// only steps the script. Otherwise it builds the work block, sends the slot-3
 /// weapon record as message 0x3E8 and hands the cutscene's two script blocks to
 /// `func_800E8634`. States 0 and 1 then advance the state and step the driver;
@@ -151,7 +151,7 @@ void func_dryfield_motel_room_1_8017DF08(void);
 
 /// `gPlayerStatus.weapon` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on,
-/// `gDisplayState.pendingMode` and `Gp_StateC08.field_A` (the cutscene mode flag) gate the room task's
+/// `gDisplayState.pendingMode` and `Gp_StateC08.mode` (1 while the attachment wheel is open) gate the room task's
 /// setup, and `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` picks which of the two weapon-id bases that record
 /// uses.
 
@@ -1220,7 +1220,7 @@ void func_dryfield_motel_room_1_8017DD3C(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            if ((Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
+            if ((Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 func_dryfield_motel_room_1_8017DC2C(arg0);
                 weaponId                     = gPlayerStatus.weapon;
                 anim                         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;

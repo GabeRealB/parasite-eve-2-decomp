@@ -40,8 +40,8 @@ InventoryItemRow* Gp_GiveItem(InventoryItemRange* arg0, s32 arg1, s32 arg2);
 /// Unequips `gPlayerStatus.weapon` (ids 1..32 use the same slot clear as
 /// `Gp_ClearEquipSlot`), resets the `Gp_DefaultScan` item table, copies that scan
 /// into `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems`, adds one of item 0x6C, heals current HP/MP
-/// to max, zeros the 4x3 `Gp_DebugAttachLevels` table, and clears `Gp_StateC08.field_5`
-/// / `field_B`.
+/// to max, zeros the 4x3 `Gp_DebugAttachLevels` table, and clears `Gp_StateC08.activeIndex`
+/// / `wheelIndex`.
 void Gp_ResetInventory(void);
 
 /// Unequips `gPlayerStatus.weapon` (same slot clear as `Gp_ResetInventory`),
@@ -49,7 +49,7 @@ void Gp_ResetInventory(void);
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems`, and if that table has an equipped 0x60–0x7F
 /// item (`field_1 == -1`) sets `field_23` and recomputes max HP/MP
 /// (`Gp_RecalcMaxHp` / `Gp_RecalcMaxMp`). Heals current HP/MP to max, then
-/// clears `Gp_StateC08.field_5` / `field_B`.
+/// clears `Gp_StateC08.activeIndex` / `wheelIndex`.
 void Gp_ClearInventory(void);
 
 void Gp_SetCurBit2Flag(s32 arg0, u8 arg1);

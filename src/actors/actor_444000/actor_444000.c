@@ -2768,8 +2768,8 @@ static void func_actor_444000_80132054(Task* task)
             break;
         case 3:
             Gp_PulseState1C();
-            Gp_StateC08.field_6 |= 1;
-            target               = (Actor444000EventWork*)task->work;
+            Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
+            target             = (Actor444000EventWork*)task->work;
             if (target->field_20 != NULL) {
                 msg.source.sets          = D_actor_444000_8014430C;
                 msg.animationId          = 0;
@@ -2828,8 +2828,8 @@ void func_actor_444000_801321FC(s32 arg0)
 }
 
 /// Task body of the overlay's event/controller task, run once per frame while
-/// the session is not paused (`GameSession::sceneUpdatesPaused`), no cutscene is active
-/// (`Gp_StateC08.field_9`) and the battle state is not frozen
+/// the session is not paused (`GameSession::sceneUpdatesPaused`), the attachment wheel is closed
+/// (`Gp_StateC08.menuOpen`) and the battle state is not frozen
 /// (`gSceneCombatState.actorControl`).
 ///
 /// State 0 allocates the `Actor444000EventWork` block and publishes the task in
@@ -2850,7 +2850,7 @@ void func_actor_444000_80132358(Task* task)
     if (gGameSession->sceneUpdatesPaused != 0) {
         return;
     }
-    if (Gp_StateC08.field_9 != 0) {
+    if (Gp_StateC08.menuOpen != ATTACHMENT_MENU_CLOSED) {
         return;
     }
     if (gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING) {
@@ -2860,7 +2860,7 @@ void func_actor_444000_80132358(Task* task)
     state = task->state;
     switch (state) {
         case 0:
-            if (Gp_StateC08.field_A == 1) {
+            if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL) {
                 return;
             }
             if (gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
@@ -5327,7 +5327,7 @@ static void func_actor_444000_8013EC84(Task* arg0)
         Actor444000_PlacePlayerAhead(arg0, work, player, sc, cfg);
 
         D_actor_444000_80161868.value = 0;
-        Gp_StateC08.field_6          |= 1;
+        Gp_StateC08.flags            |= ATTACHMENT_FLAG_EVENT_LOCK;
         Gp_PulseState1C();
         Gp_ClearNodeSlots(&enemy->node);
         Gp_ClearNodeSlots(&work->field_ECC[3]->node);

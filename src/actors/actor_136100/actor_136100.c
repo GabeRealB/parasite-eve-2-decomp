@@ -2032,7 +2032,7 @@ static s32 func_actor_136100_80133904(Task* task)
             }
         }
     }
-    if (ready == 0 || Gp_StateC08.field_A == 1) {
+    if (ready == 0 || Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL) {
         return 0;
     }
     if (gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
@@ -2263,7 +2263,7 @@ void func_actor_136100_80133BC8(Task* arg0)
         case 2:
             cue = func_actor_136100_TakeStartCue(&evtId, &evtKind, &evtSub);
             if (cue == 1 && work->field_4E4 == 0) {
-                if (Gp_StateC08.field_A == 1) {
+                if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL) {
                     return;
                 }
                 if (gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
@@ -2278,7 +2278,7 @@ void func_actor_136100_80133BC8(Task* arg0)
                 break;
             }
             if (func_actor_136100_TakeStartCue(&evtId2, &evtKind2, &evtSub2) == 2 && work->field_4E4 == 1) {
-                if (Gp_StateC08.field_A == 1) {
+                if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL) {
                     return;
                 }
                 if (gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
