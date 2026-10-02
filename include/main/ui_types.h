@@ -64,7 +64,17 @@ enum {
     USER_INTERFACE_PANEL_SCREEN_BRIGHTEN = 0x20000
 };
 
-/// Opening and closing counters span nine frame ticks; hidden delays add this bias.
+/// Panel transition span and hidden-delay bias, in nominal 60-Hz ticks.
+///
+/// Counters advance by `gDisplayState.frameTicks` per update. A full opening
+/// counts from this value down to zero; closing and hiding use it as their
+/// completion threshold. A positive hidden delay stores its ticks plus this
+/// bias and counts down to this value before reopening.
+///
+/// Drawing subtracts `animationTicks` from this value to obtain a scale in
+/// eighths, where eight is full size. Opening raises nonpositive scales to one;
+/// closing and hiding replace scales outside 1..8 with one. The ninth tick
+/// marks the lifecycle boundary beyond those eight scale steps.
 enum { USER_INTERFACE_PANEL_ANIMATION_TICKS = 9 };
 
 /// Unsigned sign-bit mask suppressing frame drawing while content still runs.
