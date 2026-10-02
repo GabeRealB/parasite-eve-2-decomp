@@ -141,11 +141,29 @@ typedef struct {
 } GameFlagShelterBank;
 STATIC_ASSERT_SIZEOF(GameFlagShelterBank, 0xE4);
 
+/// Bytes in one Shelter and Neo Ark stage-bank copy, checksum prefix included.
+///
+/// `GameFlag_NeoArkBanks` stores the live copy followed by its memory-card
+/// backup. The pair occupies three 128-byte card sectors.
+enum { GAME_FLAG_NEO_ARK_BANK_BYTES = 0xA4 };
+
+/// Checksummed save bank for `GAME_STAGE_SHELTER_NEO_ARK`.
+///
+/// That stage is the Shelter's 1F and B6 together with the Neo Ark. The live
+/// header is the `Gp_FlagBanks` entry for the stage, and the Neo Ark map reads
+/// this bank's object-state words. The stage area table addresses `areas`. A
+/// slot's index is the area id minus one, except
+/// `GAME_AREA_SHELTER_B6_GROWTH_ROOM`, which shares the nursery's slot. Slots
+/// 5, 8 and 19 are the unused indexes of the empty guardroom, Eve-elevator and
+/// altar rows. Slot 22 is the growth room's unused index. Those four slots are
+/// stored with the bank and covered by its checksum. The highest addressed
+/// slot is 31. `GAME_AREA_NEO_ARK_SUBSTATION` has an empty table row and no
+/// slot.
 typedef struct {
-    GameFlagStageHeader header;
-    GameFlagAreaSlot    areas[32];
-    u8                  unknown_A0[4];
+    GameFlagStageHeader header;        // Visited-area bits and object states for the Shelter's 1F and B6 and the Neo Ark
+    GameFlagAreaSlot    areas[32];     // Placement records. Slots 5, 8, 19 and 22 have no table entry; slot 21 is shared by the nursery and the growth room
+    u8                  unknown_A0[4]; // Stored with the bank and covered by its checksum. No field-level access found; role unproven
 } GameFlagNeoArkBank;
-STATIC_ASSERT_SIZEOF(GameFlagNeoArkBank, 0xA4);
+STATIC_ASSERT_SIZEOF(GameFlagNeoArkBank, GAME_FLAG_NEO_ARK_BANK_BYTES);
 
 #endif // MAIN_GAMEFLAG_TYPES_H

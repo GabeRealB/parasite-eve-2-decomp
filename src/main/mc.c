@@ -125,6 +125,9 @@ enum { GAME_FLAG_NIBBLE_BANK_CARD_SECTORS = 4 };
 /// 128-byte card sectors holding both `GameFlagDryfieldBank` copies.
 enum { GAME_FLAG_DRYFIELD_BANK_CARD_SECTORS = 3 };
 
+/// 128-byte card sectors holding both `GameFlagNeoArkBank` copies.
+enum { GAME_FLAG_NEO_ARK_BANK_CARD_SECTORS = 3 };
+
 extern McBufferSlot Mc_BufferSlots[9];
 
 static const char Mc_StrMemoryCard[];
@@ -648,7 +651,7 @@ McBufferSlot Mc_BufferSlots[9] = {
     { (McChecksumBlock*)GameFlag_DryfieldBanks, GAME_FLAG_DRYFIELD_BANK_BYTES, GAME_FLAG_DRYFIELD_BANK_CARD_SECTORS },
     { (McChecksumBlock*)GameFlag_DryfieldFullBanks, 0x24, 1 },
     { (McChecksumBlock*)GameFlag_ShelterBanks, 0xE4, 4 },
-    { (McChecksumBlock*)GameFlag_NeoArkBanks, 0xA4, 3 },
+    { (McChecksumBlock*)GameFlag_NeoArkBanks, GAME_FLAG_NEO_ARK_BANK_BYTES, GAME_FLAG_NEO_ARK_BANK_CARD_SECTORS },
     { (McChecksumBlock*)&gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE], sizeof(gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE]), GAME_FLAG_NIBBLE_BANK_CARD_SECTORS },
 };
 
@@ -699,7 +702,7 @@ static void Mc_InitDualBankBuffers(void)
     GameFlagDryfieldBank*     b;
     GameFlagDryfieldFullBank* c;
     GameFlagShelterBank*      d;
-    GameFlagNeoArkBank*       e;
+    GameFlagNeoArkBank*       neoArkBanks;
     McSaveData*               p;
     s32                       one;
     s32                       two;
@@ -719,13 +722,13 @@ static void Mc_InitDualBankBuffers(void)
         memFillBytes(c, 0, sizeof(*c));
         d = GameFlag_ShelterBanks;
         memFillBytes(d, 0, sizeof(*d));
-        e = GameFlag_NeoArkBanks;
-        memFillBytes(e, 0, sizeof(*e));
+        neoArkBanks = GameFlag_NeoArkBanks;
+        memFillBytes(neoArkBanks, 0, sizeof(*neoArkBanks));
         memFillBytes(a + 1, 0xFF, sizeof(*a));
         memFillBytes(b + 1, 0xFF, sizeof(*b));
         memFillBytes(c + 1, 0xFF, sizeof(*c));
         memFillBytes(d + 1, 0xFF, sizeof(*d));
-        memFillBytes(e + 1, 0xFF, sizeof(*e));
+        memFillBytes(neoArkBanks + 1, 0xFF, sizeof(*neoArkBanks));
         p = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     } while (0);
 
@@ -2703,7 +2706,7 @@ static void Mc_ClearWorkBuffers(void)
     GameFlagDryfieldBank*     b;
     GameFlagDryfieldFullBank* c;
     GameFlagShelterBank*      d;
-    GameFlagNeoArkBank*       e;
+    GameFlagNeoArkBank*       neoArkBanks;
 
     a = GameFlag_AcropolisBanks;
     memFillBytes(a, 0, sizeof(*a));
@@ -2713,13 +2716,13 @@ static void Mc_ClearWorkBuffers(void)
     memFillBytes(c, 0, sizeof(*c));
     d = GameFlag_ShelterBanks;
     memFillBytes(d, 0, sizeof(*d));
-    e = GameFlag_NeoArkBanks;
-    memFillBytes(e, 0, sizeof(*e));
+    neoArkBanks = GameFlag_NeoArkBanks;
+    memFillBytes(neoArkBanks, 0, sizeof(*neoArkBanks));
     memFillBytes(a + 1, 0xFF, sizeof(*a));
     memFillBytes(b + 1, 0xFF, sizeof(*b));
     memFillBytes(c + 1, 0xFF, sizeof(*c));
     memFillBytes(d + 1, 0xFF, sizeof(*d));
-    memFillBytes(e + 1, 0xFF, sizeof(*e));
+    memFillBytes(neoArkBanks + 1, 0xFF, sizeof(*neoArkBanks));
 }
 
 // TODO

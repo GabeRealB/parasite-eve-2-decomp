@@ -374,8 +374,8 @@ void Title_RestoreDemoCard(void)
     memcpy(base + ((t - bank) * 8 + bank) * 4, src, 0xE4);
     src += 0xE4;
 
-    memcpy(GameFlag_NeoArkBanks, src, 0xA4);
-    src += 0xA4;
+    memcpy(GameFlag_NeoArkBanks, src, GAME_FLAG_NEO_ARK_BANK_BYTES);
+    src += GAME_FLAG_NEO_ARK_BANK_BYTES;
 
     memcpy(&gGameFlagNibbleBanks[bank], src, sizeof(gGameFlagNibbleBanks[bank]));
 
