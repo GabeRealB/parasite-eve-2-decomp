@@ -1318,11 +1318,24 @@ void func_shelter_b2_septic_tank_8017DB10(Task* task)
 /// Integer shift count for `water_wave_strips.inc.c`; see its configuration
 /// contract. The include consumes and undefines this binding.
 #define WATER_WAVE_STRIPS_AMPLITUDE_SHIFT 5
-#define WATER_WAVE_STRIPS_NEAR_COLOURS(p) \
-    setRGB0(p, 0, 0x40, 0x80);            \
-    setRGB1(p, 0, 0x40, 0x80);            \
-    setRGB2(p, 0, 0x10, 0x20);            \
-    setRGB3(p, 0, 0x10, 0x20)
+/// Sets the first X strip's blue vertex colours for subtractive blending.
+static inline void _shelterB2SepticTankSetFirstWaterStripColours(POLY_G4* quad)
+{
+    setRGB0(quad, 0, 0x40, 0x80);
+    setRGB1(quad, 0, 0x40, 0x80);
+    setRGB2(quad, 0, 0x10, 0x20);
+    setRGB3(quad, 0, 0x10, 0x20);
+}
+
+/// Binds the first X strip's blue vertex colours for subtractive blending.
+///
+/// A writable `POLY_G4*` is evaluated once. The flat outer edge (vertices
+/// 0/1) is (0, 0x40, 0x80); the waving seam (vertices 2/3) is (0, 0x10, 0x20),
+/// in unsigned RGB bytes. Other packet fields are preserved; no caller locals
+/// are captured and no packet pointer is retained. Psy-Q's `POLY_G4` and
+/// `setRGB0` through `setRGB3` must be visible. `water_wave_strips.inc.c`
+/// consumes and undefines this override.
+#define WATER_WAVE_STRIPS_SET_FIRST_STRIP_COLOURS(quad) _shelterB2SepticTankSetFirstWaterStripColours(quad)
 /// Sets the second X strip's blue vertex colours for subtractive blending.
 static inline void _shelterB2SepticTankSetSecondWaterStripColours(POLY_G4* quad)
 {
@@ -1348,11 +1361,11 @@ static inline void _shelterB2SepticTankSetSecondWaterStripColours(POLY_G4* quad)
 #define WATER_WAVE_STRIPS_PRIM_CURSOR D_shelter_b2_septic_tank_80187054
 /// Rebinds the second surface list's seam displacement to -128..128 Y units.
 #define WATER_WAVE_STRIPS_AMPLITUDE_SHIFT 5
-#define WATER_WAVE_STRIPS_NEAR_COLOURS(p) \
-    setRGB0(p, 0, 0x40, 0x80);            \
-    setRGB1(p, 0, 0x40, 0x80);            \
-    setRGB2(p, 0, 0x10, 0x20);            \
-    setRGB3(p, 0, 0x10, 0x20)
+/// Rebinds the second surface list to the same outer-edge-to-seam blue palette.
+///
+/// Has the same `POLY_G4*`, single-evaluation and packet-preservation contract
+/// as the first instance; the preceding include has undefined that binding.
+#define WATER_WAVE_STRIPS_SET_FIRST_STRIP_COLOURS(quad) _shelterB2SepticTankSetFirstWaterStripColours(quad)
 /// Rebinds the second surface list to the same seam-to-edge blue palette.
 ///
 /// Has the same `POLY_G4*`, single-evaluation and packet-preservation contract

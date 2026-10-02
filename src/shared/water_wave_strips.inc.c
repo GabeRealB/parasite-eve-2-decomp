@@ -46,21 +46,41 @@
 /// binding is tested only by the preprocessor and undefined after each include.
 #define WATER_WAVE_STRIPS_RESET_ACTOR_LOAD_CURSOR 0
 #endif
-#ifndef WATER_WAVE_STRIPS_NEAR_COLOURS
-/* red outer edge, grey seam */
-#define WATER_WAVE_STRIPS_NEAR_COLOURS(p) \
-    (p)->r0 = 0x80;                       \
-    (p)->r1 = 0x80;                       \
-    (p)->g0 = 0;                          \
-    (p)->b0 = 0;                          \
-    (p)->g1 = 0;                          \
-    (p)->b1 = 0;                          \
-    (p)->r2 = 0x20;                       \
-    (p)->g2 = 0x20;                       \
-    (p)->b2 = 0x20;                       \
-    (p)->r3 = 0x20;                       \
-    (p)->g3 = 0x20;                       \
-    (p)->b3 = 0x20
+#ifndef WATER_WAVE_STRIPS_SET_FIRST_STRIP_COLOURS
+#ifndef SRC_SHARED_WATER_WAVE_STRIPS_FIRST_COLOURS
+#define SRC_SHARED_WATER_WAVE_STRIPS_FIRST_COLOURS
+/// Sets the first X strip's default vertex colours for subtractive blending.
+static inline void _waterSetFirstWaveStripColours(POLY_G4* quad)
+{
+    quad->r0 = 0x80;
+    quad->r1 = 0x80;
+    quad->g0 = 0;
+    quad->b0 = 0;
+    quad->g1 = 0;
+    quad->b1 = 0;
+    quad->r2 = 0x20;
+    quad->g2 = 0x20;
+    quad->b2 = 0x20;
+    quad->r3 = 0x20;
+    quad->g3 = 0x20;
+    quad->b3 = 0x20;
+}
+#endif
+
+/// Sets the first X strip's vertex colours for subtractive blending.
+///
+/// Vertices 0/1 lie on the flat outer edge at x; 2/3 lie on the waving seam
+/// at x + width / 2. RGB components are unsigned bytes. The default uses
+/// (0x80, 0, 0) at the outer edge and (0x20, 0x20, 0x20) at the seam; the
+/// main corridor and water supply use it. The septic tank binds its blue
+/// palette before each include instead. Overrides must be statement macros
+/// accepting a writable `POLY_G4*`, setting all twelve RGB bytes and
+/// preserving the rest of the packet. The supplied definitions evaluate the
+/// argument once, capture no caller locals and retain no packet pointer.
+/// The include undefines the binding, so a second instance must supply any
+/// override again. The guarded default helper can serve several included
+/// instances. Psy-Q's `POLY_G4` must be visible.
+#define WATER_WAVE_STRIPS_SET_FIRST_STRIP_COLOURS(quad) _waterSetFirstWaveStripColours(quad)
 #endif
 #ifndef WATER_WAVE_STRIPS_SET_SECOND_STRIP_COLOURS
 #ifndef SRC_SHARED_WATER_WAVE_STRIPS_SECOND_COLOURS
@@ -106,7 +126,7 @@ static inline void _waterSetSecondWaveStripColours(POLY_G4* quad)
 /// each quad is followed by a draw-mode packet selecting blend mode 2. The
 /// packets append to `WATER_WAVE_STRIPS_PRIM_CURSOR`, with initialization
 /// selected by `WATER_WAVE_STRIPS_RESET_ACTOR_LOAD_CURSOR`.
-/// The strips' vertex colours are WATER_WAVE_STRIPS_NEAR_COLOURS(poly) and
+/// The strips' vertex colours are WATER_WAVE_STRIPS_SET_FIRST_STRIP_COLOURS(poly) and
 /// WATER_WAVE_STRIPS_SET_SECOND_STRIP_COLOURS(poly).
 static void WATER_WAVE_STRIPS_FUNC(Task* task)
 {
@@ -188,7 +208,7 @@ static void WATER_WAVE_STRIPS_FUNC(Task* task)
                 GPU_PRIMITIVE_XY_WORD(poly, 1) = sxy1;
                 GPU_PRIMITIVE_XY_WORD(poly, 2) = sxy2;
                 GPU_PRIMITIVE_XY_WORD(poly, 3) = sxy3;
-                WATER_WAVE_STRIPS_NEAR_COLOURS(poly);
+                WATER_WAVE_STRIPS_SET_FIRST_STRIP_COLOURS(poly);
                 addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                         poly);
                 dr                            = (DR_MODE*)WATER_WAVE_STRIPS_PRIM_CURSOR;
@@ -242,7 +262,7 @@ static void WATER_WAVE_STRIPS_FUNC(Task* task)
 #undef WATER_WAVE_STRIPS_FUNC
 #undef WATER_WAVE_STRIPS_SURFACES
 #undef WATER_WAVE_STRIPS_HEIGHT
-#undef WATER_WAVE_STRIPS_NEAR_COLOURS
+#undef WATER_WAVE_STRIPS_SET_FIRST_STRIP_COLOURS
 #undef WATER_WAVE_STRIPS_SET_SECOND_STRIP_COLOURS
 #undef WATER_WAVE_STRIPS_SURFACE_T
 #undef WATER_WAVE_STRIPS_SEGMENT_COUNT
