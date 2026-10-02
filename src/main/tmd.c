@@ -464,7 +464,7 @@ void tmdProcessStream(TmdObject* obj)
             case 0x4039:
                 handler = tmdBuildStreamGt3PreXformEnvLayer;
                 if (flag != 0) {
-                    handler = gpStreamPrimGt3PreXformOffsetLayer;
+                    handler = tmdBuildStreamGt3PreXformOffsetLayer;
                 }
                 break;
             case 0x4079:

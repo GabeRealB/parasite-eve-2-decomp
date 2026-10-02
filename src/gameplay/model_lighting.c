@@ -472,6 +472,41 @@ static inline void _modelLightingInitGt3TextureWords(POLY_GT3* triangle, const u
     triangle->clut      += workspace->encodedClutOffset;
 }
 
+/// Initializes the stream-relative texture of a pre-transformed triangle's offset layer.
+///
+/// `triangle` is the first writable, four-byte-aligned `POLY_GT3` in a pair.
+/// `elementWords` starts after a `0x4039` record's header and supplies at least
+/// five readable, aligned u32 words. The live object supplies independent
+/// signed page and palette-row displacements; sums wrap in u16 fields.
+/// Setting ABR bit 5 preserves bit 6. The draw command enables transparency.
+/// Tags, colours, commands, screen positions and SDK pad fields are preserved.
+/// All storage is borrowed; no pointer is retained or workspace state changed.
+static inline void _modelLightingInitGt3PreXformOffsetLayerTexture(POLY_GT3* triangle, const u32* elementWords,
+                                                                   const TmdStreamWorkspace* workspace)
+{
+    enum {
+        MODEL_LIGHTING_GT3_PRE_XFORM_LAYER_UV0_CLUT_WORD  = 2,      // Packed U0/V0 bytes and encoded CLUT
+        MODEL_LIGHTING_GT3_PRE_XFORM_LAYER_UV1_TPAGE_WORD = 3,      // Packed U1/V1 bytes and encoded page settings
+        MODEL_LIGHTING_GT3_PRE_XFORM_LAYER_UV2_WORD       = 4,      // Low half is U2/V2; high half is ignored
+        MODEL_LIGHTING_OFFSET_LAYER_TPAGE_ABR_LOW_BIT     = 1 << 5, // OR after relocation; retains ABR bit 6 (mode 1 or 3)
+        MODEL_LIGHTING_OFFSET_LAYER_CLUT_ROW_SHIFT        = 6       // Signed palette rows to encoded CLUT units (64 per row)
+    };
+    u32 layerTexturePage;
+    u8  layerClutRowByte;
+
+    MODEL_LIGHTING_UV0_CLUT_WORD(triangle)  = elementWords[MODEL_LIGHTING_GT3_PRE_XFORM_LAYER_UV0_CLUT_WORD];
+    MODEL_LIGHTING_UV1_TPAGE_WORD(triangle) = elementWords[MODEL_LIGHTING_GT3_PRE_XFORM_LAYER_UV1_TPAGE_WORD];
+    // Copy U2/V2 together without overwriting the adjacent pad2.
+    *(u16*)&triangle->u2 = (u16)elementWords[MODEL_LIGHTING_GT3_PRE_XFORM_LAYER_UV2_WORD];
+    triangle->tpage     += workspace->obj->layerTexturePageOffset;
+    // Reload the wrapped page after fetching the row byte; restore its sign for the CLUT sum.
+    layerClutRowByte  = workspace->obj->layerClutRowOffset;
+    layerTexturePage  = triangle->tpage;
+    layerTexturePage |= MODEL_LIGHTING_OFFSET_LAYER_TPAGE_ABR_LOW_BIT;
+    triangle->tpage   = layerTexturePage;
+    triangle->clut   += (s8)layerClutRowByte << MODEL_LIGHTING_OFFSET_LAYER_CLUT_ROW_SHIFT;
+}
+
 u32* func_8009AF90(TmdStreamWorkspace* ws, s32 arg1, u32* arg2)
 {
     s32      prev;
@@ -2604,36 +2639,22 @@ u32* gpStreamPrimGt4PreXformLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream
     return stream;
 }
 
-u32* gpStreamPrimGt3PreXformOffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+u32* tmdBuildStreamGt3PreXformOffsetLayer(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    POLY_GT3* poly;
-    s32       tpage;
-    s32       tmp;
+    enum { TMD_GT3_PRE_XFORM_OFFSET_LAYER_BASE_UV0_CLUT_WORD = 2 };
+    POLY_GT3* triangle;
 
-    poly = (POLY_GT3*)ws->preXformWrite;
-    if (ws->elemCount-- > 0) {
-        do {
-            MODEL_LIGHTING_UV0_CLUT_WORD(poly)  = stream[2];
-            MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[3];
-            *(u16*)&poly->u2                    = (u16)stream[4];
-            poly->tpage                        += ws->obj->layerTexturePageOffset;
-            tmp                                 = (u8)ws->obj->layerClutRowOffset;
-            tpage                               = poly->tpage;
-            tpage                              |= 0x20;
-            poly->tpage                         = tpage;
-            poly->clut                         += (s8)tmp << 6;
-            poly++;
-            MODEL_LIGHTING_UV0_CLUT_WORD(poly)  = stream[2];
-            MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[3];
-            *(u16*)&poly->u2                    = (u16)stream[4];
-            poly->tpage                        += ws->texturePageOffset;
-            poly->clut                         += ws->encodedClutOffset;
-            poly++;
-            stream += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+    triangle = (POLY_GT3*)workspace->preXformWrite;
+    while (workspace->elemCount-- > 0) {
+        // Layer and base share UVs, with independent stream-relative GPU addresses.
+        _modelLightingInitGt3PreXformOffsetLayerTexture(triangle, elements, workspace);
+        triangle++;
+        _modelLightingInitGt3TextureWords(triangle, elements, TMD_GT3_PRE_XFORM_OFFSET_LAYER_BASE_UV0_CLUT_WORD, workspace);
+        triangle++;
+        elements += workspace->elemStride;
     }
-    ws->preXformWrite = (u8*)poly;
-    return stream;
+    workspace->preXformWrite = (u8*)triangle;
+    return elements;
 }
 
 u32* gpStreamPrimGt4PreXformOffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream)

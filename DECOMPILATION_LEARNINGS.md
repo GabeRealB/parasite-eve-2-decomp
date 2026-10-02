@@ -30834,21 +30834,21 @@ sra   v1, v1, 0x12
 `poly->tpage += obj->layerTexturePageOffset; poly->tpage |= 0x20;` CSE's the add
 into the OR (`addu` / `ori` / one `sh`). A `TmdObject*` for the second
 load puts `obj` in `$v0` and keeps the prior `tpage` in `$v1`.
-Assign the clut addend first, then reload `tpage` into its own `s32`:
+Assign the row byte first, then reload `tpage` into its own promoted integer:
 
 ```c
-poly->tpage += ws->obj->layerTexturePageOffset;
-tmp          = (u8)ws->obj->layerClutRowOffset;
-tpage        = poly->tpage;
-tpage       |= 0x20;
-poly->tpage  = tpage;
-poly->clut  += (s8)tmp << 6;
+triangle->tpage += workspace->obj->layerTexturePageOffset;
+layerClutRowByte  = workspace->obj->layerClutRowOffset;
+layerTexturePage  = triangle->tpage;
+layerTexturePage |= MODEL_LIGHTING_OFFSET_LAYER_TPAGE_ABR_LOW_BIT;
+triangle->tpage   = layerTexturePage;
+triangle->clut   += (s8)layerClutRowByte << MODEL_LIGHTING_OFFSET_LAYER_CLUT_ROW_SHIFT;
 ```
 
-`gpStreamPrimGt3PreXformOffsetLayer` is the example. Same split is needed for the
+`tmdBuildStreamGt3PreXformOffsetLayer` is the example. Same split is needed for the
 `primWrite` / `POLY_GT4` siblings (`tmdBuildStreamGt3OffsetLayer`,
 `gpStreamPrimGt4OffsetLayer`, `gpStreamPrimGt4PreXformOffsetLayer`).
-`gpStreamPrimGt3PreXformOffsetLayer` is the example. Same split is needed for the
+`tmdBuildStreamGt3PreXformOffsetLayer` is the example. Same split is needed for the
 `primWrite` / `POLY_GT4` siblings (`tmdBuildStreamGt3OffsetLayer`, `gpStreamPrimGt4OffsetLayer`,
 `gpStreamPrimGt4PreXformOffsetLayer`).
 
