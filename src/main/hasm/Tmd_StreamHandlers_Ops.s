@@ -952,17 +952,21 @@ glabel tmdDrawStreamPrimGt3PreXform
     /* 1CF0 800114F0 */  addu        $v0, $zero, $a2
     /* 1CF4 800114F4 */  jr          $ra
     /* 1CF8 800114F8 */  nop
+/* Take only the semi-transparent command byte; keep the packet's pre-pass RGB. */
+.equ TMD_DRAW_STREAM_GT4_PRE_XFORM_SEMI_TRANS_CODE, (TMD_DRAW_STREAM_GT4_SEMI_TRANS_COLOR >> 24)
+
 alabel tmdDrawStreamPrimGt4PreXformSemiTrans
+    /* a0 workspace, a1 object flags, a2 first element word; a3 counts locally. */
+    /* Force semi-transparency, then select the shared walk's facing rule. */
     /* 1CFC 800114FC */  lw          $t9, 0x18($a0)
-  .L80011500:
     /* 1D00 80011500 */  lw          $a3, 0x1C($a0)
     /* 1D04 80011504 */  lw          $t8, 0x4($a0)
     /* 1D08 80011508 */  lw          $t7, 0x14($a0)
     /* 1D0C 8001150C */  lw          $t6, 0x10($a0)
     /* 1D10 80011510 */  sll         $t9, $t9, 2
-    /* 1D14 80011514 */  lui         $v0, 0xC00
-    /* 1D18 80011518 */  addiu       $v1, $zero, 0x3E
-    /* 1D1C 8001151C */  andi        $t1, $a1, 0x10
+    /* 1D14 80011514 */  lui         $v0, (TMD_DRAW_STREAM_GT4_PACKET_WORDS << 8)
+    /* 1D18 80011518 */  addiu       $v1, $zero, TMD_DRAW_STREAM_GT4_PRE_XFORM_SEMI_TRANS_CODE
+    /* 1D1C 8001151C */  andi        $t1, $a1, TMD_OBJECT_REVERSE_CULLING
     /* 1D20 80011520 */  bnez        $t1, .LtmdGt4PreXformReverseLoop
     /* 1D24 80011524 */  lw          $a1, 0x84($a0)
     /* 1D28 80011528 */  j           .LtmdGt4PreXformLoop
