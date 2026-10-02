@@ -3,27 +3,27 @@
 Retail music chunks (CDF type ``0x6``) are **SPK** programs fed to
 ``SndLoad_*`` / ``SpuWritePartly``. Layout of the clean payload::
 
-    0x00  char[4]  magic ``hSPK``
-    0x04  u16      bank_id  (high nibble = bank type for Snd_AllocBank)
-    0x06  u8       field_22
-    0x07  u8       group_count
-    0x08  u8       note_count
-    0x09  u8       field_25
-    0x0A  u16      field_26  (SPU transfer start page; usually 0)
-    0x0C  u8       field_28
-    0x0D  u8       field_29
-    0x0E  u16      prog_size   (MIDI / hONE program bytes)
-    0x10  s32      spu_size    (bytes of SPU-ADPCM sample pool)
-    0x14  …        group table (4 B × group_count)
-                   note table  (0x14 B × note_count)
+    0x00  u32      tag            hSPK FourCC 0x4B505368; the loader does not validate it
+    0x04  u16      bankId         high nibble is the bank type (attribute ``bank_id``)
+    0x06  u8       imageKind      0 MIDI sequence, 2 sound-script bank (attribute ``field_22``)
+    0x07  u8       groupCount     (attribute ``group_count``)
+    0x08  u8       layerCount     sample-layer records (attribute ``note_count``)
+    0x09  u8       unknown_9      no loader reader (attribute ``field_25``)
+    0x0A  u16      waveBlockOffset  upload start in 64-byte blocks (attribute ``field_26``)
+    0x0C  u8       transferSectors  failed-load sector count (attribute ``field_28``)
+    0x0D  u8       unknown_D     no loader reader (attribute ``field_29``)
+    0x0E  u16      imageBytes     program-image bytes (attribute ``prog_size``)
+    0x10  s32      waveBytes      SPU-ADPCM pool bytes (attribute ``spu_size``)
+    0x14  …        group table (4 B × groupCount)
+                   layer table (0x14 B × layerCount)
     0x800 …        program (``hONE`` / ``oneV`` / ``oneC`` / ``endC`` …)
-    spu_base …     SPU-ADPCM pool (note.waveAddr is offset into this pool)
+    spu_base …     SPU-ADPCM pool (a layer's wave address is an offset into this pool)
 
-``spu_base = align16(0x800 + align4(prog_size))``.
+``spu_base = align16(0x800 + align4(imageBytes))``.
 
-Each note's ``waveAddr`` is a byte offset into the SPU pool (16-byte ADPCM
+Each layer's wave address is a byte offset into the SPU pool (16-byte ADPCM
 frames). Samples run until an ADPCM frame with the end flag, or the next
-note's wave offset / pool end.
+layer's wave offset / pool end.
 
 Encode is not implemented: pack prefers ``raw/spk/`` for bit-identity.
 """

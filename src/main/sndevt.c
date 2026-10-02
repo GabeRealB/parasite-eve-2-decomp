@@ -1929,7 +1929,7 @@ s32 SndLoad_ProcessSector(u32* arg0)
                 s32 bankId;
                 bankId           = state->payload.header.bankId;
                 *&gSndLoadBankId = bankId;
-                if (SndBank_FreeById(state->payload.header.bankId, state->payload.header.variant) == -1) {
+                if (SndBank_FreeById(state->payload.header.bankId, state->payload.header.imageKind) == -1) {
                     state->field_2 = 6;
                     break;
                 }
@@ -1945,7 +1945,7 @@ s32 SndLoad_ProcessSector(u32* arg0)
                 src = arg0 + 5;
                 dst = tmp->heapBlock;
             }
-            count = (state->payload.header.noteCount * (s32)(sizeof(*state->bank->layers) / sizeof(*dst))) + state->payload.header.groupCount * (s32)(sizeof(*state->bank->groups) / sizeof(*dst));
+            count = (state->payload.header.layerCount * (s32)(sizeof(*state->bank->layers) / sizeof(*dst))) + state->payload.header.groupCount * (s32)(sizeof(*state->bank->groups) / sizeof(*dst));
             i     = 0;
             if (count != 0) {
                 do {
@@ -1956,7 +1956,7 @@ s32 SndLoad_ProcessSector(u32* arg0)
                 } while ((s32)i < count);
             }
             (state->bank)->groupCount = state->payload.header.groupCount;
-            (state->bank)->layerCount = state->payload.header.noteCount;
+            (state->bank)->layerCount = state->payload.header.layerCount;
             (state->bank)->bankId     = state->payload.header.bankId;
             (state->bank)->waveBytes  = state->payload.header.waveBytes;
             state->field_2            = 1;
@@ -1965,7 +1965,7 @@ s32 SndLoad_ProcessSector(u32* arg0)
         case 1:
             aligned            = (state->payload.header.imageBytes + 3) & 0xFFFC;
             state->field_C     = aligned;
-            mem                = SndLoad_AllocBuffer(state->payload.header.bankId, state->payload.header.variant, aligned);
+            mem                = SndLoad_AllocBuffer(state->payload.header.bankId, state->payload.header.imageKind, aligned);
             state->imageBuffer = mem;
             if (mem == 0) {
                 state->field_2 = 6;
@@ -2003,7 +2003,7 @@ s32 SndLoad_ProcessSector(u32* arg0)
             size                   = state->payload.header.waveBytes;
             state->field_C         = size;
             (state->bank)->spuAddr = SndLoad_LookupMode(
-                state->payload.header.variant, (state->bank)->bankId, size);
+                state->payload.header.imageKind, (state->bank)->bankId, size);
             spuAddr = (state->bank)->spuAddr;
         }
             if (spuAddr == 0) {
@@ -2102,7 +2102,7 @@ static s32 SndBank_SetupFromLoad(SndLoadState* load)
     bankSlot->bank    = bank;
     bankSlot->image   = load->imageBuffer;
     bankSlot->spuAddr = bank->spuAddr;
-    i                 = load->payload.header.noteCount;
+    i                 = load->payload.header.layerCount;
     spuAddr           = bank->spuAddr;
     bankLayer         = bank->layers;
     for (i--; i != -1; i--) {
@@ -2143,8 +2143,8 @@ static s32 SndLoad_Complete(SndLoadState* load)
         ret            = 0;
     } else {
         ret = -1;
-        switch (load->payload.header.variant) {
-            case 0:
+        switch (load->payload.header.imageKind) {
+            case SOUND_BANK_IMAGE_SEQUENCE:
                 bank = load->bank;
                 if (D_800689E8 != 0 || (id = bank->bankId) == SOUND_BANK_ID_FREE) {
                     gSndLoadBankId = SOUND_LOAD_BANK_NONE;
@@ -2156,7 +2156,7 @@ static s32 SndLoad_Complete(SndLoadState* load)
                     song->sequenceData  = load->imageBuffer;
                     song->bank          = bank;
                     song->waveBytes     = load->payload.header.waveBytes;
-                    _sndBankRebaseNotes(bank, load->payload.header.noteCount);
+                    _sndBankRebaseNotes(bank, load->payload.header.layerCount);
                     Snd_BuildGroupIndex(song->bank);
                     ret               = 0;
                     gSndLoadBankId    = SOUND_LOAD_BANK_NONE;
@@ -2164,7 +2164,7 @@ static s32 SndLoad_Complete(SndLoadState* load)
                     load->imageBuffer = 0;
                 }
                 break;
-            case 2:
+            case SOUND_BANK_IMAGE_SCRIPT:
                 ret = SndBank_SetupFromLoad(load);
                 if (ret == -1) {
                     SndHeap_Free(load->imageBuffer);
@@ -2290,7 +2290,7 @@ success:
     song->bank          = bank;
     song->sequenceData  = temp;
     song->waveBytes     = load->payload.header.waveBytes;
-    i                   = load->payload.header.noteCount;
+    i                   = load->payload.header.layerCount;
     base                = ((volatile SndBank*)bank)->spuAddr;
     bankLayer           = ((volatile SndBank*)bank)->layers;
     i                   = i - 1;
@@ -2314,7 +2314,7 @@ static void* SndLoad_AllocBuffer(s32 arg0, s32 arg1, u32 arg2)
     u16 x;
 
     x = arg0;
-    if ((arg1 & 0xFF) == 0) {
+    if ((arg1 & 0xFF) == SOUND_BANK_IMAGE_SEQUENCE) {
         return Midi_GetFixedBuffer(0, arg2 & 0xFFFF);
     }
     if (Snd_BankSlotsByType[x >> 12] == -1) {
@@ -2339,13 +2339,13 @@ static s32 SndLoad_LookupMode(s32 arg0, s32 arg1, s32 arg2)
 {
     s32 result;
 
-    arg0  &= 3;
+    arg0  &= SOUND_BANK_IMAGE_KIND_MASK;
     result = 0;
     switch (arg0) {
-        case 0:
+        case SOUND_BANK_IMAGE_SEQUENCE:
             result = 0x1010;
             break;
-        case 2:
+        case SOUND_BANK_IMAGE_SCRIPT:
             result = SndLoad_ResolveSpuAddr(arg2, arg1 & 0xFFFF);
             break;
     }
@@ -2385,7 +2385,7 @@ static s32 SndBank_FreeById(u16 arg0, s32 arg1)
     SndBank* ptr;
 
     x = arg0;
-    if ((arg1 & 0xFF) == 0) {
+    if ((arg1 & 0xFF) == SOUND_BANK_IMAGE_SEQUENCE) {
         return 0;
     }
     slot = Snd_BankSlotsByType[x >> 12];

@@ -341,21 +341,38 @@ typedef struct SndEvt {
 } SndEvt;
 STATIC_ASSERT_SIZEOF(SndEvt, 0x1C);
 
-/// Five-word sound-bank sector header, retained throughout an incremental load.
-/// The bank id's high nibble selects the bank type; groups and notes determine
-/// the descriptor allocation, while the final fields size the streamed data.
-typedef struct _SndBankPayload {
-    /* 0x00 */ u32 tag;
-    /* 0x04 */ u16 bankId;
-    /* 0x06 */ u8  variant;
-    /* 0x07 */ u8  groupCount;
-    /* 0x08 */ u8  noteCount;
-    /* 0x09 */ u8  unknown_9;
-    /* 0x0A */ u16 waveBlockOffset; // SPU upload offset, in 64-byte blocks
-    /* 0x0C */ u8  transferSectors;
-    /* 0x0D */ u8  unknown_D;
-    /* 0x0E */ u16 imageBytes;
-    /* 0x10 */ s32 waveBytes;
+/// How `SndBankPayload::imageKind` allocates, places and binds a bank image.
+///
+/// `SOUND_BANK_IMAGE_KIND_MASK` keeps the low two bits, which select the
+/// sample-pool SPU address. A sequence uses the fixed address 0x1010. A
+/// script bank resolves one from `waveBytes` and the bank id. Any other
+/// value fails completion.
+enum {
+    SOUND_BANK_IMAGE_SEQUENCE  = 0, // Fixed MIDI buffer and SPU address; no bank-slot release
+    SOUND_BANK_IMAGE_SCRIPT    = 2, // Sound-heap script image, resolved SPU address, bank slot
+    SOUND_BANK_IMAGE_KIND_MASK = 3  // Low two bits of imageKind; the SPU-placement selector
+};
+
+/// Serialized `hSPK` header retained for an incremental sound-bank load.
+///
+/// The loader copies these five words from the first sector and does not
+/// validate the FourCC. `groupCount` and `layerCount` size the program and
+/// sample-layer tables copied from that sector and are stored on the
+/// descriptor. `imageBytes` and `waveBytes` size the program image and the
+/// SPU sample pool that follow. A load that fails before the sample upload
+/// waits until `transferSectors` sectors have arrived.
+typedef struct {
+    u32 tag;             // Serialized hSPK FourCC (0x4B505368); not validated
+    u16 bankId;          // High nibble selects the bank type; copied to the descriptor
+    u8  imageKind;       // SOUND_BANK_IMAGE_SEQUENCE or SOUND_BANK_IMAGE_SCRIPT
+    u8  groupCount;      // Program count; sizes the group table and first-layer index
+    u8  layerCount;      // Sample-layer count; sizes the layer table and the rebase
+    u8  unknown_9;       // Serialized byte with no individual reader; role unproven
+    u16 waveBlockOffset; // Upload start added to the sample-pool SPU base, in 64-byte blocks
+    u8  transferSectors; // Sector count at which a failed load finishes waiting
+    u8  unknown_D;       // Serialized byte with no individual reader; role unproven
+    u16 imageBytes;      // Program-image byte length; copy and allocation round it up to 4
+    s32 waveBytes;       // Sample-pool byte length; sizes the upload and the next placement
 } SndBankPayload;
 STATIC_ASSERT_SIZEOF(SndBankPayload, 0x14);
 

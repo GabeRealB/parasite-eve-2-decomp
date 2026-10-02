@@ -452,7 +452,7 @@ SndBank* Snd_AllocBank(SndBankPayload* payload)
         bank = &Snd_Banks[slot];
         Snd_FreeBank(bank);
 
-        size = (payload->noteCount * (s32)(sizeof(*bank->layers) / sizeof(u32)) + payload->groupCount * (s32)(sizeof(*bank->groups) / sizeof(u32))) * (s32)sizeof(u32) + payload->groupCount * (s32)sizeof(*bank->groupFirstLayer);
+        size = (payload->layerCount * (s32)(sizeof(*bank->layers) / sizeof(u32)) + payload->groupCount * (s32)(sizeof(*bank->groups) / sizeof(u32))) * (s32)sizeof(u32) + payload->groupCount * (s32)sizeof(*bank->groupFirstLayer);
 
         switch (payload->bankId & SOUND_BANK_TYPE_MASK) {
             case 0x2000:
@@ -482,7 +482,7 @@ SndBank* Snd_AllocBank(SndBankPayload* payload)
     bank->groups          = bank->heapBlock;
     heap                 += payload->groupCount * (s32)sizeof(*bank->groups);
     bank->layers          = (SndBankLayer*)heap;
-    bank->groupFirstLayer = (u16*)(heap + payload->noteCount * (s32)sizeof(*bank->layers));
+    bank->groupFirstLayer = (u16*)(heap + payload->layerCount * (s32)sizeof(*bank->layers));
     return bank;
 }
 

@@ -924,19 +924,20 @@ descending, because `SZ3` grows with distance and negating Y does not touch Z.
 
   | Offset | Field |
   |--------|--------|
-  | 0 | `char[4]` magic `hSPK` |
-  | 4 | `u16` bank_id (high nibble = bank type for `Snd_AllocBank`) |
-  | 6 | `u8` field_22 |
-  | 7 | `u8` group_count |
-  | 8 | `u8` note_count |
-  | 9 | `u8` field_25 |
-  | 0xA | `u16` field_26 (SPU page; usually 0) |
-  | 0xC | `u8` field_28 / field_29 |
-  | 0xE | `u16` prog_size (bytes of program / `hONE` stream) |
-  | 0x10 | `s32` spu_size (SPU-ADPCM pool size) |
-  | 0x14 | group table (`4 × group_count`) + note table (`0x14 × note_count`) |
+  | 0 | `u32` `tag`, the `hSPK` FourCC `0x4B505368`; the loader copies it and does not validate it |
+  | 4 | `u16` `bankId` (high nibble = bank type for `Snd_AllocBank`) |
+  | 6 | `u8` `imageKind` (`SOUND_BANK_IMAGE_SEQUENCE` 0, `SOUND_BANK_IMAGE_SCRIPT` 2) |
+  | 7 | `u8` `groupCount` |
+  | 8 | `u8` `layerCount` (sample-layer records; copied to `SndBank::layerCount`) |
+  | 9 | `u8` `unknown_9` (no loader reader) |
+  | 0xA | `u16` `waveBlockOffset` (sample upload start, in 64-byte blocks, added to the SPU base) |
+  | 0xC | `u8` `transferSectors` (sector count at which a failed load finishes waiting) |
+  | 0xD | `u8` `unknown_D` (no loader reader) |
+  | 0xE | `u16` `imageBytes` (program-image bytes; the loader rounds the copy up to 4) |
+  | 0x10 | `s32` `waveBytes` (SPU-ADPCM pool size) |
+  | 0x14 | group table (`4 × groupCount`) + layer table (`0x14 × layerCount`) |
   | 0x800 | program: the `hONE` header, its entry-offset table, then each entry's script (`oneC` + `oneV` … + `endC`) |
-  | `align16(0x800+align4(prog_size))` | SPU-ADPCM sample pool |
+  | `align16(0x800+align4(imageBytes))` | SPU-ADPCM sample pool |
 
 - Each serialized `SndBankLayer.waveAddr` is a byte offset into the sample pool
   (16-byte ADPCM frames, ~22050 Hz mono). The game rebases it to an absolute SPU
@@ -948,7 +949,7 @@ descending, because `SZ3` grows with distance and negating Y does not touch Z.
 
 | Piece | Status |
 |--------|--------|
-| `hSPK` header + group/note tables | Parsed (`spk_codec.parse_spk`) |
+| `hSPK` header + group/layer tables | Parsed (`spk_codec.parse_spk`) |
 | SPU-ADPCM sample pool → WAV | Working (~22 050 Hz mono) |
 | Extract materialize + viewer meta/waveform | Working |
 | Pack bit-identity | Via `raw/spk/` only |
