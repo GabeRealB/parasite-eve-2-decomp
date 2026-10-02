@@ -302,7 +302,7 @@ static void func_800D9A30(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObje
 
 void Gp_InsertRankedSlot(_WorldCoordRankedLight* arg0, s32 arg1, s32 arg2, WorldCoordLight* arg3, s32 arg4);
 
-static void Gp_FillSVec3x3(MATRIX* arg0, s16 arg1, s16 arg2, s16 arg3);
+static void _worldCoordFillLightColorMatrixOutOfLine(MATRIX* colorMtx, s16 r, s16 g, s16 b);
 
 static WorldCoordRoomLighting* Gp_GetRoomCoordRec(GameLocationKey* arg0);
 
@@ -841,7 +841,7 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
         return;
     }
 
-    Gp_FillSVec3x3(colorMtx, 0, 0, 0);
+    _worldCoordFillLightColorMatrixOutOfLine(colorMtx, 0, 0, 0);
 
     if ((u32)(sum - 1) >= (u32)n) {
         func_800D7A9C(extra, pos, startr, count - 1);
@@ -1789,10 +1789,18 @@ void Gp_InsertRankedSlot(_WorldCoordRankedLight* arg0, s32 arg1, s32 arg2, World
     }
 }
 
-static void Gp_FillSVec3x3(MATRIX* arg0, s16 arg1, s16 arg2, s16 arg3)
+/// Writes one colour into every column of a light-colour matrix.
+///
+/// `r`, `g` and `b` are signed channel intensities with 12 fractional bits
+/// (`ONE` is full strength). Each value is stored in all three columns of its
+/// row, so the three lights contribute the same colour. The translation, which
+/// holds the ambient colour, is left unchanged.
+///
+/// The room-light query calls this function so the nine coefficient stores
+/// stay behind a jump.
+static void _worldCoordFillLightColorMatrixOutOfLine(MATRIX* colorMtx, s16 r, s16 g, s16 b)
 {
-    // Called, rather than expanded, by the room-light query.
-    _worldCoordFillLightColorMatrix(arg0, arg1, arg2, arg3);
+    _worldCoordFillLightColorMatrix(colorMtx, r, g, b);
 }
 
 static WorldCoordRoomLighting* Gp_GetRoomCoordRec(GameLocationKey* arg0)
