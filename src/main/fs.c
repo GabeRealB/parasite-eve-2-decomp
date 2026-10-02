@@ -632,10 +632,10 @@ static u8 Fs_ProcessChunkHeader(void)
             }
             src = (u32*)&Fs_CdSector.chunk.data.bytes[i];
             dst = (u32*)Fs_ChunkWritePtr;
-            for (i = 0; i < 0x1FC; i++) {
+            for (i = 0; i < ARRAY_SIZE(Fs_CdSector.chunk.data.words); i++) {
                 dst[i] = src[i];
             }
-            Fs_ChunkWritePtr += 0x7F0;
+            Fs_ChunkWritePtr += sizeof(Fs_CdSector.chunk.data.bytes);
             if ((u32)Fs_ReqSector >= (u32)Fs_ChunkEndSector) {
                 if (Fs_ChunkEndFlag == FILE_SYSTEM_CHUNK_LAST) {
                     Fs_LoadPhase = 0xFF;
@@ -677,7 +677,7 @@ static u8 Fs_ProcessChunkHeader(void)
             if (Fs_ChunkMode != 3) {
                 CdCmd_RequestVlcRebuild();
                 buf = (u8*)Fs_ImgBuffers;
-                for (D_8006ADF8 = 0; (u32)D_8006ADF8 < 0x7F0; D_8006ADF8++) {
+                for (D_8006ADF8 = 0; (u32)D_8006ADF8 < sizeof(Fs_CdSector.chunk.data.bytes); D_8006ADF8++) {
                     buf[D_8006ADF8] = Fs_CdSector.chunk.data.bytes[D_8006ADF8];
                 }
             }
@@ -810,7 +810,7 @@ static u8 Fs_ProcessChunkData(void)
             break;
         case 3:
             CdGetSector(D_8006CCD8, 0x200);
-            status = Fs_LoadImageChunk((FsImageChunk*)(D_8006CCD8 - 0x7F0), 0);
+            status = Fs_LoadImageChunk((FsImageChunk*)(D_8006CCD8 - sizeof(Fs_CdSector.chunk.data.bytes)), 0);
             ff     = 0xFF;
             if (status == ff) {
                 Fs_ReqSector--;
@@ -1999,7 +1999,7 @@ static void Fs_ContinueDrawing(u_long* ot)
 
 u8* Fs_GetChunkPayload(void)
 {
-    return &Fs_CdSector.bytes[0x10];
+    return Fs_CdSector.chunk.data.bytes;
 }
 
 void Fs_CheckReadTimeout(void)

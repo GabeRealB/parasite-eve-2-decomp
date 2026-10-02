@@ -73,18 +73,23 @@ STATIC_ASSERT_SIZEOF(FsCdfChunkHeader, 0x10);
 /// Number of words in a CD sector.
 #define FS_SECTOR_WORD_SIZE 0x200
 
-/// Start of a file chunk in a CDF file.
+/// Opening CD sector of one chunk in a CDF file.
 ///
-/// All chunks start with a header, followed with the actual chunk data.
-/// A chunk is always padded to the next multiple of a cd sector size.
-typedef struct _FsCdfChunk {
-    FsCdfChunkHeader header;
+/// The header is stored only in this first sector. `data` is the rest of
+/// the sector. The payload starts immediately after the header; bytes at
+/// and beyond `header.sectorLen` are pad. Raw and background opcodes copy
+/// all of `data`. Decompressors stop at `header.sectorLen`. A later sector
+/// of the same chunk is ordinary sector data and is not this type.
+/// `bytes` and `words` are that whole remainder.
+typedef struct {
+    FsCdfChunkHeader header; // Opcode, end flag, valid-byte end and load address
     union {
         u8  bytes[FS_SECTOR_BYTE_SIZE - sizeof(FsCdfChunkHeader)];
         u32 words[FS_SECTOR_WORD_SIZE - (sizeof(FsCdfChunkHeader) / 4)];
-    } data;
+    } data; // Remainder of this sector, including pad past header.sectorLen
 } FsCdfChunk;
 STATIC_ASSERT_SIZEOF(FsCdfChunk, FS_SECTOR_BYTE_SIZE);
+STATIC_ASSERT(sizeof(((FsCdfChunk*)0)->data.bytes) == sizeof(((FsCdfChunk*)0)->data.words), fs_cdf_chunk_data_widths);
 
 /// Contents of a CD sector.
 typedef union _FsSector {
