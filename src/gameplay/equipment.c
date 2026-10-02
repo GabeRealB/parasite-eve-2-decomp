@@ -315,7 +315,7 @@ u8 D_8010D320[2] = { 0x80, 0x83 };
 
 u8 D_8010D324[3] = { 0x9D, 0x9E, 0x9F };
 
-GpStatRow Gp_StatRows[4] = {
+PlayerModeBaseStats Gp_StatRows[4] = {
     { { 100 }, 30 },
     { { 100 }, 30 },
     { { 100 }, 10 },
@@ -437,13 +437,13 @@ s32 func_800B7420(s32 arg0)
 
 void Gp_RecalcMaxMp(void)
 {
-    PlayerStatus* cfg;
-    McSaveData*   save;
-    GpStatRow*    rows;
-    s8*           levels;
-    s32           acc;
-    s32           i;
-    s32           j;
+    PlayerStatus*        cfg;
+    McSaveData*          save;
+    PlayerModeBaseStats* rows;
+    s8*                  levels;
+    s32                  acc;
+    s32                  i;
+    s32                  j;
 
     cfg    = &gPlayerStatus;
     acc    = 0;
@@ -461,7 +461,7 @@ void Gp_RecalcMaxMp(void)
     }
     rows       = Gp_StatRows;
     save       = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    acc       += rows[save->state.gameMode].field_4;
+    acc       += rows[save->state.gameMode].baseMp;
     acc       += save->state.mpBonus;
     cfg->mpMax = acc;
     if ((s16)acc >= PLAYER_STATUS_STAT_MAX + 1) {
@@ -497,15 +497,15 @@ void Gp_EquipMod(s32 arg0)
                 cfg->armor = arg0 - 0x5F;
 
                 {
-                    PlayerStatus* p;
-                    McSaveData*   save;
-                    GpStatRow*    table;
-                    u16           val;
+                    PlayerStatus*        p;
+                    McSaveData*          save;
+                    PlayerModeBaseStats* table;
+                    u16                  val;
 
                     p        = &gPlayerStatus;
                     table    = Gp_StatRows;
                     save     = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-                    val      = table[save->state.gameMode].base.hp;
+                    val      = table[save->state.gameMode].baseHp.hp;
                     p->hpMax = val;
                     val     += save->state.hpBonus;
                     p->hpMax = val;
@@ -559,13 +559,13 @@ void Gp_EquipMod(s32 arg0)
             }
         }
     } else if (arg0 == 0) {
-        McSaveData* save;
-        GpStatRow*  table;
-        u16         val;
+        McSaveData*          save;
+        PlayerModeBaseStats* table;
+        u16                  val;
 
         table      = Gp_StatRows;
         save       = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-        val        = table[save->state.gameMode].base.hp;
+        val        = table[save->state.gameMode].baseHp.hp;
         cfg->hpMax = val;
         val       += save->state.hpBonus;
         cfg->hpMax = val;

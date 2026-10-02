@@ -265,15 +265,15 @@ static inline void _gpClearScanItems(InventoryItemRange* scan)
 }
 static inline void _gpRecalcMaxHp(void)
 {
-    PlayerStatus* cfg;
-    McSaveData*   save;
-    GpStatRow*    table;
-    u16           val;
+    PlayerStatus*        cfg;
+    McSaveData*          save;
+    PlayerModeBaseStats* table;
+    u16                  val;
 
     cfg        = &gPlayerStatus;
     table      = Gp_StatRows;
     save       = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    val        = table[save->state.gameMode].base.hp;
+    val        = table[save->state.gameMode].baseHp.hp;
     cfg->hpMax = val;
     val       += save->state.hpBonus;
     cfg->hpMax = val;
@@ -429,7 +429,7 @@ void Gp_UiBoostHp(UiObject* arg0, Task* arg1)
         if (save->state.hpBonus < 0xFA) {
             save->state.hpBonus = save->state.hpBonus + 5;
         }
-        val        = Gp_StatRows[save->state.gameMode].base.hp;
+        val        = Gp_StatRows[save->state.gameMode].baseHp.hp;
         cfg->hpMax = val;
         val       += save->state.hpBonus;
         cfg->hpMax = val;

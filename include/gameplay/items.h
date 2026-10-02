@@ -10,7 +10,7 @@
 
 // Inventory contents, collection flags, quantities, sorting and equipment.
 
-extern GpStatRow Gp_StatRows[];
+extern PlayerModeBaseStats Gp_StatRows[];
 
 void Gp_ApplyItemMap(void);
 

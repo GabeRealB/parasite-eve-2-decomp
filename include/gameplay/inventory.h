@@ -52,7 +52,7 @@ STATIC_ASSERT_SIZEOF(GpItemA0, 0x4);
 
 /// Starting maximum HP for one game mode.
 ///
-/// Each `GpStatRow` carries one in `base`. The count occupies the low half, and
+/// Each `PlayerModeBaseStats` carries one in `baseHp`. The count occupies the low half, and
 /// the mode table stores zero in the high half, so the word view is the same
 /// count. Maximum-HP recalculation reads `hp` and copies it into
 /// `PlayerStatus.hpMax` before the saved HP bonus and armour. The
@@ -64,14 +64,18 @@ typedef union {
 } PlayerModeBaseHp;
 STATIC_ASSERT_SIZEOF(PlayerModeBaseHp, 0x4);
 
-/// 8-byte row in `Gp_StatRows` (4 entries), indexed by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode`.
-/// base is the starting max HP (see `PlayerModeBaseHp`). field_4 is the word added
-/// into `gPlayerStatus.mpMax` (`Gp_RecalcMaxMp`).
-typedef struct _GpStatRow {
-    /* 0x00 */ PlayerModeBaseHp base;
-    /* 0x04 */ s32              field_4;
-} GpStatRow;
-STATIC_ASSERT_SIZEOF(GpStatRow, 0x8);
+/// Starting maximum HP and starting MP for one game mode.
+///
+/// `Gp_StatRows` holds one row for each save game mode (0 normal/replay, 1 Bounty,
+/// 2 Scavenger, 3 Nightmare). Maximum HP begins at `baseHp`, before the saved HP
+/// bonus and armour. Maximum MP adds `baseMp` after Parasite Energy levels and
+/// armour, and before the saved MP bonus. The shooting-gallery status panel
+/// prints both figures.
+typedef struct {
+    PlayerModeBaseHp baseHp; // Starting maximum HP.
+    s32              baseMp; // Starting MP.
+} PlayerModeBaseStats;
+STATIC_ASSERT_SIZEOF(PlayerModeBaseStats, 0x8);
 
 /// Object at `Task::spawnArg2` for `Gp_BindItemObj2` / `Gp_PublishItemObj` /
 /// `Gp_PickupResultTask` / `Gp_WaitItemFlag2`. `field_8` is the packed item id passed

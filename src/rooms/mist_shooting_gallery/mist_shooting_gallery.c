@@ -1482,7 +1482,7 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
     color = 0x606060;
     top   = obj->panel.contentTop.signedValue;
     y     = top + 0xF;
-    val   = Gp_StatRows[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode].base.hpWord;
+    val   = Gp_StatRows[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode].baseHp.hpWord;
     xOff  = obj->panel.contentLeft.signedValue + 6;
     if (val < 100) {
         color = 0xD287F;
@@ -1499,7 +1499,7 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
     Text_DrawPrompt(obj, -xOff, y, Text_ItoaSigned(buf, val), color, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
     y     = top + 0x1E;
-    val   = Gp_StatRows[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode].field_4;
+    val   = Gp_StatRows[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode].baseMp;
     color = 0x606060;
     if (val < 30) {
         color = 0xD287F;

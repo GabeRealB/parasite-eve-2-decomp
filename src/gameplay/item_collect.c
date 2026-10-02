@@ -635,15 +635,15 @@ s32 Gp_HasItemSeenBit(s32 arg0)
 
 void Gp_RecalcMaxHp(void)
 {
-    PlayerStatus* cfg;
-    McSaveData*   save;
-    GpStatRow*    table;
-    u16           val;
+    PlayerStatus*        cfg;
+    McSaveData*          save;
+    PlayerModeBaseStats* table;
+    u16                  val;
 
     cfg        = &gPlayerStatus;
     table      = Gp_StatRows;
     save       = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    val        = table[save->state.gameMode].base.hp;
+    val        = table[save->state.gameMode].baseHp.hp;
     cfg->hpMax = val;
     val       += save->state.hpBonus;
     cfg->hpMax = val;

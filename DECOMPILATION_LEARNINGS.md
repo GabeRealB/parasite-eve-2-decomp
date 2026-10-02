@@ -50404,10 +50404,10 @@ typedef union {
     s32 hpWord; /* shooting gallery STATUS: lw */
 } PlayerModeBaseHp;
 
-typedef struct _GpStatRow {
-    /* 0x00 */ PlayerModeBaseHp base;
-    /* 0x04 */ s32        field_4;
-} GpStatRow;
+typedef struct {
+    PlayerModeBaseHp baseHp;
+    s32              baseMp;
+} PlayerModeBaseStats;
 ```
 
 A cast does not work: `(u16)row.hpWord` is `lw` + `andi`, and widening the field
