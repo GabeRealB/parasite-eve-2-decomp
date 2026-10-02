@@ -189,8 +189,7 @@ s32                               func_dryfield_motel_room_6_801819A8(Task*, s32
 s32                               func_dryfield_motel_room_6_80181A00(Task*, s32, TaskMessageArg, TaskMessageArg);
 void                              func_dryfield_motel_room_6_80181A08(Task*);
 
-extern WorldCoordSpotLight  D_dryfield_motel_room_6_80186288[2];
-extern WorldCoordPointLight D_dryfield_motel_room_6_80185EC8[10];
+extern WorldCoordSpotLight D_dryfield_motel_room_6_80186288[2];
 
 #include "../../shared/telephone_data.inc.c"
 
@@ -792,17 +791,182 @@ WorldCollisionTrigger D_dryfield_motel_room_6_80185A54[15] = {
     { NULL, NULL, NULL, { 2976, -64, 6528, 0 }, { { -176, 0, -1024, 0 }, { 816, 0, -1024, 0 }, { -176, 0, 960, 0 }, { 816, 0, 960, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1305, WORLD_COLLISION_TRIGGER_ACTION_CAP, 15, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCoordPointLight D_dryfield_motel_room_6_80185EC8[10] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -960, -2980, 6704 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1417, 1342, 1305 }, { 0, 0 } }, 2700, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 492, -1614, 7495 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1228, 1155, 1060 }, { 0, 0 } }, 0, 1 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 323, -2069, 2730 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3648, 3632, 3614 }, { 0, 0 } }, 1219, 2336 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3645, 2488, 6984 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1256, 1242, 1246 }, { 0, 0 } }, 1260, 8000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -382, -2019, 5379 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4069, 4089, 4068 }, { 0, 0 } }, 1155, 2458 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -158, -1405, 3957 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4091, 4040, 4045 }, { 0, 0 } }, 835, 2420 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -696, -719, 7670 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3320, 3315, 3292 }, { 0, 0 } }, 0, 0x2D19 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4237, -1600, 3654 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4086, 3968, 4024 }, { 0, 0 } }, 1024, 1204 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4568, -1365, 6576 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3578, 3580, 3541 }, { 0, 0 } }, 690, 2169 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 164, -1302, 8133 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2546, 2546, 2579 }, { 0, 0 } }, 701, 1538 },
+/// Authored point lights for daytime Dryfield motel room 6, contributing in every view.
+///
+/// Positions and falloff radii use integer world units; RGB intensity uses `ONE` as 1.0.
+/// The room light collection borrows the full array while this overlay is loaded.
+/// Entries remain writable for view parenting, transform composition and attenuation queries.
+static WorldCoordPointLight _gDryfieldMotelRoom6PointLights[] = {
+    {
+        .head = {
+            .transform  = { .lighting = {
+                                .composeStamp = GRAPHICS_COORD_DIRTY,
+                                .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -960, -2980, 6704 } },
+                                .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                                .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                                .unknown_46   = { 0, 0, 0, 0 },
+                                .attenuation  = 0,
+                                .parent       = NULL,
+                           } },
+            .color      = { 1417, 1342, 1305 },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 2700,
+        .outer = 4000,
+    },
+    {
+        .head = {
+            .transform  = { .lighting = {
+                                .composeStamp = GRAPHICS_COORD_DIRTY,
+                                .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 492, -1614, 7495 } },
+                                .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                                .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                                .unknown_46   = { 0, 0, 0, 0 },
+                                .attenuation  = 0,
+                                .parent       = NULL,
+                           } },
+            .color      = { 1228, 1155, 1060 },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 0,
+        .outer = 1,
+    },
+    {
+        .head = {
+            .transform  = { .lighting = {
+                                .composeStamp = GRAPHICS_COORD_DIRTY,
+                                .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 323, -2069, 2730 } },
+                                .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                                .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                                .unknown_46   = { 0, 0, 0, 0 },
+                                .attenuation  = 0,
+                                .parent       = NULL,
+                           } },
+            .color      = { 3648, 3632, 3614 },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 1219,
+        .outer = 2336,
+    },
+    {
+        .head = {
+            .transform  = { .lighting = {
+                                .composeStamp = GRAPHICS_COORD_DIRTY,
+                                .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -3645, 2488, 6984 } },
+                                .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                                .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                                .unknown_46   = { 0, 0, 0, 0 },
+                                .attenuation  = 0,
+                                .parent       = NULL,
+                           } },
+            .color      = { 1256, 1242, 1246 },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 1260,
+        .outer = 8000,
+    },
+    {
+        .head = {
+            .transform  = { .lighting = {
+                                .composeStamp = GRAPHICS_COORD_DIRTY,
+                                .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -382, -2019, 5379 } },
+                                .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                                .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                                .unknown_46   = { 0, 0, 0, 0 },
+                                .attenuation  = 0,
+                                .parent       = NULL,
+                           } },
+            .color      = { 4069, 4089, 4068 },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 1155,
+        .outer = 2458,
+    },
+    {
+        .head = {
+            .transform  = { .lighting = {
+                                .composeStamp = GRAPHICS_COORD_DIRTY,
+                                .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -158, -1405, 3957 } },
+                                .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                                .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                                .unknown_46   = { 0, 0, 0, 0 },
+                                .attenuation  = 0,
+                                .parent       = NULL,
+                           } },
+            .color      = { 4091, 4040, 4045 },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 835,
+        .outer = 2420,
+    },
+    {
+        .head = {
+            .transform  = { .lighting = {
+                                .composeStamp = GRAPHICS_COORD_DIRTY,
+                                .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -696, -719, 7670 } },
+                                .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                                .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                                .unknown_46   = { 0, 0, 0, 0 },
+                                .attenuation  = 0,
+                                .parent       = NULL,
+                           } },
+            .color      = { 3320, 3315, 3292 },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 0,
+        .outer = 0x2D19,
+    },
+    {
+        .head = {
+            .transform  = { .lighting = {
+                                .composeStamp = GRAPHICS_COORD_DIRTY,
+                                .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4237, -1600, 3654 } },
+                                .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                                .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                                .unknown_46   = { 0, 0, 0, 0 },
+                                .attenuation  = 0,
+                                .parent       = NULL,
+                           } },
+            .color      = { 4086, 3968, 4024 },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 1024,
+        .outer = 1204,
+    },
+    {
+        .head = {
+            .transform  = { .lighting = {
+                                .composeStamp = GRAPHICS_COORD_DIRTY,
+                                .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4568, -1365, 6576 } },
+                                .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                                .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                                .unknown_46   = { 0, 0, 0, 0 },
+                                .attenuation  = 0,
+                                .parent       = NULL,
+                           } },
+            .color      = { 3578, 3580, 3541 },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 690,
+        .outer = 2169,
+    },
+    {
+        .head = {
+            .transform  = { .lighting = {
+                                .composeStamp = GRAPHICS_COORD_DIRTY,
+                                .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 164, -1302, 8133 } },
+                                .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                                .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                                .unknown_46   = { 0, 0, 0, 0 },
+                                .attenuation  = 0,
+                                .parent       = NULL,
+                           } },
+            .color      = { 2546, 2546, 2579 },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 701,
+        .outer = 1538,
+    },
 };
 
 WorldCoordSpotLight D_dryfield_motel_room_6_80186288[2] = {
@@ -1679,7 +1843,7 @@ static u8 _gDryfieldMotelRoom6UnreferencedData[] = {
 };
 
 WorldCoordRoomLights D_dryfield_motel_room_6_801866C0[1] = {
-    { 0, NULL, ARRAY_SIZE(D_dryfield_motel_room_6_80185EC8), D_dryfield_motel_room_6_80185EC8, ARRAY_SIZE(D_dryfield_motel_room_6_80186288), D_dryfield_motel_room_6_80186288 },
+    { 0, NULL, ARRAY_SIZE(_gDryfieldMotelRoom6PointLights), _gDryfieldMotelRoom6PointLights, ARRAY_SIZE(D_dryfield_motel_room_6_80186288), D_dryfield_motel_room_6_80186288 },
 };
 
 WorldCoordRoomAmbientEntry D_dryfield_motel_room_6_801866D8[13] = {
