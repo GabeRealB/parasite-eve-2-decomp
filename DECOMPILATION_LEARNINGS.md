@@ -15594,7 +15594,7 @@ s16       val;
 arg0->field_30 = K;
 flag = arg0->field_20;
 if (flag != NULL) {
-    val            = arg1->field_A18; /* s32→s16 emits lhu */
+    val            = arg1->closeAnswer; /* s32→s16 emits lhu */
     flag->result = -1;
     flag->resultValue = val;
 }
@@ -16645,11 +16645,11 @@ Assigning through a register pinned to `$v0` forces the extra move:
 ```c
 register s32 val asm("v0");
 /* ... */
-val            = i;   /* move v0, t2 */
-arg1->field_2C = val; /* sw v0, 0x2c(a1) */
+val                    = i;   /* move v0, t2 */
+arg1->confirmOverwrite = val; /* sw v0, 0x2c(a1) */
 ```
 
-Plain `value->field_2C = i` (or `= 1` CSEd with `i`) collapses to `sw tN`.
+Plain `value->confirmOverwrite = i` (or `= 1` CSEd with `i`) collapses to `sw tN`.
 `Mc_WriteSlotChecksumsEx` is the pure example.
 
 Same function also shows that a void-arg checksum sibling using
@@ -18047,14 +18047,14 @@ copies.
 Match by writing the m2c shape with a single shared tail:
 
 ```c
-status = work->field_14;
+status = work->syncResult;
 if (status < 4U) {
     ptr = Mc_FileName; /* also fills the bnez delay slot on the case-0 path */
     if (status == 0) {
         /* case 0 */
-        work->field_24 = 9;
-        work->field_28 = -1;
-        work->field_2C = 0;
+        work->slotsRemaining = 9;
+        work->slotWriteMask = -1;
+        work->confirmOverwrite = 0;
         task->field_30 = 5; /* leave value in $v0 for the join store */
     } else {
         goto shared;
@@ -18064,7 +18064,7 @@ if (status < 4U) {
 shared:
     /* one pad / work block; ends with task->field_30 = 0x2A */
 }
-work->field_18 = 0;
+work->buffer = 0;
 /* common prompt draw */
 ```
 
@@ -18225,10 +18225,10 @@ Fix: after the pin-copy, assign over the formal so `$a1` is dead:
 register McWork* work asm("s2");
 
 work = arg1;
-arg1 = 0; /* kills a1; CSE can put K in a1 and load field_0 from s2 */
-if (work->field_2C == 1) {
-    work->field_8 = 0x11;
-    status = Mc_PromptDialogSpawn(arg0, 0x11, work->field_0);
+arg1 = 0; /* kills a1; CSE can put K in a1 and load promptTimer from s2 */
+if (work->confirmOverwrite == 1) {
+    work->promptId = 0x11;
+    status = Mc_PromptDialogSpawn(arg0, 0x11, work->promptTimer);
     ...
 }
 ```
@@ -19193,7 +19193,7 @@ the `bgez` delay, `addiu v0,v0,0x3f; sra v0,v0,0x6`) or keeps the shift in
 }
 ```
 
-`Mc_StateListDirectory` is the pure example (DIRENTRY.head / 64 → block map at 0xA23).
+`Mc_StateListDirectory` is the pure example (DIRENTRY.head / 64 → `blockOwners`, stored at 0xA23 + head/64).
 
 ## Indexed multiply form can SR and still leave `$a1` free for a later `li a1,1`
 
@@ -19337,7 +19337,7 @@ Fix: scope the pin to only the early path via a nested block so the later
 reload can still use `$a0`:
 
 ```c
-if (work->field_14 != 0) {
+if (work->syncResult != 0) {
     register Task* ch asm("v1");
     ch = task->field_c;
     task->field_30 = 7;
@@ -20266,7 +20266,7 @@ lw    a0, 0x50(t0)    /* DIRENTRY.head */
 addiu t0, t0, 0x28
 ```
 
-do **not** start a `struct DIRENTRY*` at `field_30` (that emits `lw …,0x18/0x20`).
+do **not** start a `struct DIRENTRY*` at `directory` (that emits `lw …,0x18/0x20`).
 Use an overlay whose fields sit at the McWork-relative offsets and advance by
 `sizeof(struct DIRENTRY)`:
 
@@ -20285,7 +20285,7 @@ head = walk->head;
 walk = (McDirWalk*)((u8*)walk + sizeof(struct DIRENTRY));
 ```
 
-## field_A24 fill: `p = (u8*)work + i; p[0xA24] = val`
+## blockOwners fill: `p = (u8*)work + i; p[0xA24] = val`
 
 Target init of the block map wants:
 
@@ -20299,7 +20299,7 @@ bgez  a3, loop
  addiu v0, v0, -1
 ```
 
-`&work->field_A24[i]` folds the base (`addiu v0, s1, 0xa32; sb v1, 0(v0)`). Use:
+`&work->blockOwners[i]` folds the base (`addiu v0, s1, 0xa32; sb v1, 0(v0)`). Use:
 
 ```c
 register s32 i asm("a3");
@@ -20358,7 +20358,7 @@ if (head < 0) headAdj = head + 0x3F;
 start = (headAdj >> 6) - 1;
 ```
 
-## Loop epilogue: `new28c`/`n` temps put `sw field_28C` in the branch delay
+## Loop epilogue: `new28c`/`n` temps put the `foreignBlockCount` store in the branch delay
 
 Target end-of-iteration:
 
@@ -20373,7 +20373,7 @@ bnez  v1, loop
  sw   v0, 0x28c(s1)
 ```
 
-A plain `field_28C += blocks; } while (i < field_288)` stores early and leaves
+A plain `foreignBlockCount += blocks; } while (i < entryCount)` stores early and leaves
 `walk++` in the delay. Force the store last via temps pinned to `$v0`/`$v1`:
 
 ```c
@@ -20381,9 +20381,9 @@ register s32 new28c asm("v0");
 register s32 n asm("v1");
 walk = (McDirWalk*)((u8*)walk + sizeof(struct DIRENTRY));
 i += 1;
-new28c = arg1->field_28C + blocks;
-n = arg1->field_288;
-arg1->field_28C = new28c;
+new28c = arg1->foreignBlockCount + blocks;
+n = arg1->entryCount;
+arg1->foreignBlockCount = new28c;
 } while (i < n);
 ```
 
@@ -21915,33 +21915,33 @@ if (step > 0) {
 When the target does:
 
 ```
-lw   v1, field_28(s0)
+lw   v1, slotWriteMask(s0)
 addiu v0, v0, -1
 srl  v1, v1, 1
-sw   v0, field_24(s0)
-sw   v1, field_28(s0)
+sw   v0, slotsRemaining(s0)
+sw   v1, slotWriteMask(s0)
 ```
 
 writing the natural
 
 ```c
-work->field_24 = f24 - 1;
-work->field_28 = (u32)work->field_28 >> 1;
+work->slotsRemaining = f24 - 1;
+work->slotWriteMask = (u32)work->slotWriteMask >> 1;
 ```
 
-often schedules `sw field_24` between `addiu` and `srl`. Keep both values in
+often schedules the `slotsRemaining` store between `addiu` and `srl`. Keep both values in
 registers, finish both ALU ops, then barrier before either store
 (`Mc_StateBackupBuffers`):
 
 ```c
 register s32 f24 asm("v0");
 register s32 f28 asm("v1");
-f28 = work->field_28;
+f28 = work->slotWriteMask;
 f24 = f24 - 1;
 f28 = (u32)f28 >> 1;
 asm volatile("" : "+r"(f24), "+r"(f28));
-work->field_24 = f24;
-work->field_28 = f28;
+work->slotsRemaining = f24;
+work->slotWriteMask = f28;
 ```
 
 ## Shared join with value loaded on both predecessors into `$v0`

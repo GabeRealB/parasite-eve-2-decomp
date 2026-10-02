@@ -101,12 +101,12 @@ void McMenu_SelectList(Task* task)
 void McMenu_ConfirmWithRender(UiList* list, UiObject* object)
 {
     s16     var_v0;
-    McWork* temp;
-    s8      temp2;
+    McWork* work;
+    s8      slot;
 
-    temp2 = list->currentItemIndex;
-    temp  = object->owner->spawnArg1.pointer;
-    Mc_DrawSlotDetails(object, temp, temp2, 0, list->rowTextY.signedValue + 7);
+    slot = list->currentItemIndex;
+    work = object->owner->spawnArg1.pointer;
+    Mc_DrawSlotDetails(object, work, slot, 0, list->rowTextY.signedValue + 7);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(SOUND_SYSTEM_CONFIRM, 0, 0);
@@ -128,17 +128,17 @@ void McMenu_SelectListAlt(Task* task)
 {
     UiPanel* obj;
     UiList*  menu;
-    McWork*  ctx;
+    McWork*  work;
     s32      temp;
 
     obj  = task->spawnArg2.pointer;
-    ctx  = task->spawnArg1.pointer;
+    work = task->spawnArg1.pointer;
     menu = &Mc_LoadSlotList;
     Ui_DrawText(obj, McText_Select);
     if (task->state == 0) {
         Ui_InitList(menu, obj);
         menu->flags                               = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
-        menu->selectedItemIndex                   = ctx->selectedSlot;
+        menu->selectedItemIndex                   = work->selectedSlot;
         temp                                      = (u8)menu->selectedItemIndex - menu->visibleRowCount.unsignedValue + 1;
         menu->firstVisibleItemIndex.unsignedValue = temp;
         if ((s8)temp < 0) {
@@ -157,26 +157,26 @@ void McMenu_SelectListAlt(Task* task)
 void McMenu_FileInformation(Task* task)
 {
     void*   obj;
-    McWork* data;
+    McWork* work;
     UiList* menu;
-    s32     val;
+    s32     slot;
 
     obj = task->spawnArg2.pointer;
     if (task->state == 0) {
         task->killCountdown     = (u16)task->spawnArg1.value;
-        data                    = task->parent->spawnArg1.pointer;
+        work                    = task->parent->spawnArg1.pointer;
         task->state            += 1;
-        task->spawnArg1.pointer = data;
+        task->spawnArg1.pointer = work;
     }
-    data = task->spawnArg1.pointer;
+    work = task->spawnArg1.pointer;
     Ui_DrawTitle(obj, "File Information");
     if (task->killCountdown == 1) {
         menu = &Mc_LoadSlotList;
     } else {
         menu = &Mc_SaveSlotList;
     }
-    val = menu->selectedItemIndex;
-    Mc_DrawSlotDetails(obj, data, val, 0, 0);
+    slot = menu->selectedItemIndex;
+    Mc_DrawSlotDetails(obj, work, slot, 0, 0);
 }
 
 static void McMenu_ConfirmDialog(UiList* list, UiObject* object)

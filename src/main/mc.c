@@ -1193,29 +1193,30 @@ static void Mc_StateScanDirFlags(Task* task, McWork* work)
     s32       head;
     s32       idx;
 
-    work->field_4 -= 1;
-    if (work->field_4 == 0) {
+    work->cardTimer -= 1;
+    if (work->cardTimer == 0) {
         work->entryCount = 0;
-        /* Mark every block free, then claim the 8KB blocks each file spans. */
-        for (i = 0; i < 15; i++) {
-            work->blockOwners[i] = -1;
+        // Mark the fifteen usable blocks free, then claim each file's blocks.
+        for (i = 0; i < MEMORY_CARD_BLOCK_COUNT; i++) {
+            work->blockOwners[i] = MEMORY_CARD_BLOCK_FREE;
         }
         MemCardGetDirentry(
-            work->field_C, "*", work->directory, &work->entryCount, 0,
-            0xF);
+            work->channel, "*", work->directory, &work->entryCount, 0,
+            MEMORY_CARD_DIRECTORY_CAPACITY);
 
-        work->freeBlockCount = 0;
+        work->foreignBlockCount = 0;
         if (work->entryCount != 0) {
             for (i = 0; i < work->entryCount; i++) {
                 size   = work->directory[i].size;
                 head   = work->directory[i].head;
-                blocks = size / 0x2000 + ((size % 0x2000) != 0);
-                head  /= 64;
-                head  -= 1;
+                blocks = size / MEMORY_CARD_BLOCK_BYTES + ((size % MEMORY_CARD_BLOCK_BYTES) != 0);
+                // `head` counts 128-byte sectors. Block 0 is the card directory.
+                head /= MEMORY_CARD_SECTORS_PER_BLOCK;
+                head -= 1;
                 for (j = 0; j < blocks; j++) {
-                    work->blockOwners[head + j] = -2;
+                    work->blockOwners[head + j] = MEMORY_CARD_BLOCK_FOREIGN;
                 }
-                work->freeBlockCount += blocks;
+                work->foreignBlockCount += blocks;
             }
         }
         task->state += 1;
@@ -1245,14 +1246,15 @@ static void Mc_StateListDirectory(Task* task, McWork* work)
 
     work->entryCount = 0;
     MemCardGetDirentry(
-        work->field_C, (char*)Mc_SaveFilePattern, work->directory, &work->entryCount, 0,
-        0xF);
-    temp_v0              = work->freeBlockCount - work->entryCount;
-    work->freeBlockCount = temp_v0;
-    if (temp_v0 == 0xF) {
+        work->channel, (char*)Mc_SaveFilePattern, work->directory, &work->entryCount, 0,
+        MEMORY_CARD_DIRECTORY_CAPACITY);
+    // This game's files count as one block each, so what remains belongs to other products.
+    temp_v0                 = work->foreignBlockCount - work->entryCount;
+    work->foreignBlockCount = temp_v0;
+    if (temp_v0 == MEMORY_CARD_BLOCK_COUNT) {
         var_v0 = 0x19;
     } else {
-        if (work->field_28 == -1) {
+        if (work->slotWriteMask == MEMORY_CARD_SLOT_WRITE_ALL) {
             work->selectedSlot = 0;
         } else {
             temp_v0_2          = work->entryCount;
@@ -1286,7 +1288,7 @@ static void Mc_StateListDirectory(Task* task, McWork* work)
 
         for (i = 0; i < work->entryCount; i++) {
             s32 head                = work->directory[i].head;
-            head                   /= 64;
+            head                   /= MEMORY_CARD_SECTORS_PER_BLOCK;
             head                   -= 1;
             work->blockOwners[head] = i;
         }
@@ -1368,14 +1370,14 @@ static void Mc_StateFileSelect(Task* task, McWork* work)
     s32       i;
 
     obj            = task->spawnArg2.pointer;
-    work->promptId = 0x16;
-    _mcDrawPrompt(task, 0x16);
+    work->promptId = MEMORY_CARD_PROMPT_SELECT;
+    _mcDrawPrompt(task, MEMORY_CARD_PROMPT_SELECT);
 
     child = task->firstChild;
     if (child == NULL) {
         if (Ui_SpawnFromDesc(Mc_LoadListDescriptors, work, 1, 2, obj) != 0) {
             Mc_LoadSlotList.itemCount = work->entryCount;
-            if (work->entryCount < 0xF - work->freeBlockCount) {
+            if (work->entryCount < MEMORY_CARD_BLOCK_COUNT - work->foreignBlockCount) {
                 Mc_LoadSlotList.itemCount++;
             }
             Mc_LoadSlotList.selectedItemIndex = work->selectedSlot;
@@ -1409,14 +1411,15 @@ static void Mc_StateFileSelect(Task* task, McWork* work)
                     }
                     *name = 0;
                     if (matchCount != 0) {
-                        work->field_28 = -1;
+                        // A different file transfers every slot, and the next listing starts at slot 0.
+                        work->slotWriteMask = MEMORY_CARD_SLOT_WRITE_ALL;
                     }
-                    work->promptId = 1;
+                    work->promptId = MEMORY_CARD_PROMPT_CHECKING;
                     task->state    = 5;
                 } else {
                     _mcCopyFileName(0);
                     Mc_BuildFileName(Mc_FileName, obj->resultValue);
-                    work->promptId = 1;
+                    work->promptId = MEMORY_CARD_PROMPT_CHECKING;
                     task->state    = 5;
                 }
             } else {
@@ -1433,7 +1436,7 @@ static void Mc_StateFileSelect(Task* task, McWork* work)
             _mcCloseChild(task, syncResult);
         }
     } else {
-        MemCardExist(work->field_C);
+        MemCardExist(work->channel);
     }
 }
 
@@ -1491,11 +1494,11 @@ static void Mc_StateCompareBuffers(Task* task, McWork* work)
     status = work->syncResult;
     switch (status) {
         case 0:
-            work->field_24 = 9;
-            flags          = _mcCompareBufferHalves();
-            work->field_2C = 1;
-            work->field_28 = flags;
-            task->state    = 0x1F;
+            work->slotsRemaining   = MEMORY_CARD_BUFFER_SLOT_COUNT;
+            flags                  = _mcCompareBufferHalves();
+            work->confirmOverwrite = MEMORY_CARD_OVERWRITE_CONFIRM;
+            work->slotWriteMask    = flags;
+            task->state            = 0x1F;
             break;
         case 3:
             ptr1 = Mc_FileName;
@@ -1511,12 +1514,12 @@ static void Mc_StateCompareBuffers(Task* task, McWork* work)
                 i++;
                 ptr0++;
             } while (i < 0x14);
-            *ptr0          = 0;
-            *ptr1          = 0;
-            work->field_24 = 9;
-            work->field_28 = -1;
-            work->field_2C = 1;
-            task->state    = 0x1F;
+            *ptr0                  = 0;
+            *ptr1                  = 0;
+            work->slotsRemaining   = MEMORY_CARD_BUFFER_SLOT_COUNT;
+            work->slotWriteMask    = MEMORY_CARD_SLOT_WRITE_ALL;
+            work->confirmOverwrite = MEMORY_CARD_OVERWRITE_CONFIRM;
+            task->state            = 0x1F;
             break;
         case 1:
             task->state = 0x14;
@@ -1551,10 +1554,10 @@ static void Mc_StateOpenRead(Task* task, McWork* work)
     McPromptPair* entry;
     McPromptPair* base;
 
-    work->field_4 -= 1;
-    if (work->field_4 == 0) {
+    work->cardTimer -= 1;
+    if (work->cardTimer == 0) {
         MemCardClose();
-        status           = MemCardOpen(work->field_C, Mc_FileName, 2);
+        status           = MemCardOpen(work->channel, Mc_FileName, 2);
         work->syncResult = status;
         switch (status) {
             case 0:
@@ -1601,9 +1604,9 @@ static void Mc_StateCreateFile(Task* task, McWork* work)
     McPromptPair* entry;
     McPromptPair* base;
 
-    work->field_4 -= 1;
-    if (work->field_4 == 0) {
-        status           = MemCardCreateFile(work->field_C, Mc_FileName, 1);
+    work->cardTimer -= 1;
+    if (work->cardTimer == 0) {
+        status           = MemCardCreateFile(work->channel, Mc_FileName, 1);
         work->syncResult = status;
         switch (status) {
             case 0:
@@ -1656,10 +1659,10 @@ static void Mc_StatePadFileName(Task* task, McWork* work)
     if (status < 4U) {
         ptr1 = Mc_FileName;
         if (status == 0) {
-            work->field_24 = 9;
-            work->field_28 = -1;
-            work->field_2C = 0;
-            task->state    = 5;
+            work->slotsRemaining   = MEMORY_CARD_BUFFER_SLOT_COUNT;
+            work->slotWriteMask    = MEMORY_CARD_SLOT_WRITE_ALL;
+            work->confirmOverwrite = MEMORY_CARD_OVERWRITE_PROCEED;
+            task->state            = 5;
         } else {
             goto pad;
         }
@@ -1702,13 +1705,13 @@ static void Mc_StateNameEntry(Task* task, McWork* work)
     u8* dst;
     s32 i;
 
-    if (work->field_2C == 1) {
-        work->promptId = 0x11;
-        switch (Mc_PromptDialogSpawn(task, 0x11, work->field_0)) {
+    if (work->confirmOverwrite == MEMORY_CARD_OVERWRITE_CONFIRM) {
+        work->promptId = MEMORY_CARD_PROMPT_OVERWRITE;
+        switch (Mc_PromptDialogSpawn(task, MEMORY_CARD_PROMPT_OVERWRITE, work->promptTimer)) {
             case 0:
                 break;
             case 1:
-                work->field_4      = 0xE;
+                work->cardTimer    = MEMORY_CARD_IO_SETTLE_FRAMES;
                 work->sectorOffset = 0;
                 task->state        = 0x28;
                 break;
@@ -1729,11 +1732,11 @@ static void Mc_StateNameEntry(Task* task, McWork* work)
                 _mcCloseChild(task, syncResult);
             }
         } else {
-            MemCardExist(work->field_C);
+            MemCardExist(work->channel);
         }
     } else {
         work->sectorOffset = 0;
-        work->promptId     = 4;
+        work->promptId     = MEMORY_CARD_PROMPT_SAVING;
         task->state        = 0xF;
         _mcDrawPrompt(task, work->promptId);
     }
@@ -1798,43 +1801,44 @@ static void Mc_StateBackupBuffers(Task* task, McWork* work)
     s32              size;
     void*            mem;
 
-    if (work->field_24 == 0) {
+    if (work->slotsRemaining == 0) {
         _mcCopyBufferHalves();
-        work->field_A18 = 0x33;
-        task->state     = 0x13;
-    } else if (work->field_28 & 1) {
-        size                = Mc_BufferSlots[9 - work->field_24].bytesPerCopy;
-        buf                 = Mc_BufferSlots[9 - work->field_24].buffer;
+        work->closeAnswer = USER_INTERFACE_LIST_COMMAND_YES;
+        task->state       = 0x13;
+    } else if (work->slotWriteMask & 1) {
+        size                = Mc_BufferSlots[MEMORY_CARD_BUFFER_SLOT_COUNT - work->slotsRemaining].bytesPerCopy;
+        buf                 = Mc_BufferSlots[MEMORY_CARD_BUFFER_SLOT_COUNT - work->slotsRemaining].buffer;
         work->transferBytes = (((u32)(size * 2 - 1) >> 7) + 1) << 7;
         mem                 = memCalloc(work->transferBytes, 0);
         if (mem != 0) {
             work->buffer = mem;
-            if (work->field_24 == 9) {
+            if (work->slotsRemaining == MEMORY_CARD_BUFFER_SLOT_COUNT) {
+                // Slot 0 is the card title. The next slot is the save image.
                 Mc_BuildSaveTitle(work);
                 memcpy(mem, buf, size * 2);
             } else {
                 _mcWriteBlockChecksum((u8*)buf, size);
-                if (work->field_24 == 8) {
+                if (work->slotsRemaining == MEMORY_CARD_BUFFER_SLOT_COUNT - 1) {
                     _mcWriteFirstByteChecksum();
                 }
                 memcpy(mem, buf, size);
                 memcpy((u8*)mem + size, buf, size);
             }
-            work->field_4  = 0;
-            task->state    = task->state + 1;
-            work->field_24 = work->field_24 - 1;
-            work->field_28 = (u32)work->field_28 >> 1;
+            work->cardTimer      = 0;
+            task->state          = task->state + 1;
+            work->slotsRemaining = work->slotsRemaining - 1;
+            work->slotWriteMask  = (u32)work->slotWriteMask >> 1;
         } else {
-            work->field_4 = work->field_4 + 1;
+            work->cardTimer = work->cardTimer + 1;
         }
     } else {
-        work->sectorOffset = work->sectorOffset + Mc_BufferSlots[9 - work->field_24].cardSectors;
-        work->field_24     = work->field_24 - 1;
-        work->field_28     = (u32)work->field_28 >> 1;
+        work->sectorOffset   = work->sectorOffset + Mc_BufferSlots[MEMORY_CARD_BUFFER_SLOT_COUNT - work->slotsRemaining].cardSectors;
+        work->slotsRemaining = work->slotsRemaining - 1;
+        work->slotWriteMask  = (u32)work->slotWriteMask >> 1;
     }
 
-    work->promptId = 4;
-    _mcDrawPrompt(task, 4);
+    work->promptId = MEMORY_CARD_PROMPT_SAVING;
+    _mcDrawPrompt(task, MEMORY_CARD_PROMPT_SAVING);
 }
 
 static void Mc_StateFreeBuffer(Task* task, McWork* work)
@@ -1853,7 +1857,7 @@ static void Mc_StateFreeBuffer(Task* task, McWork* work)
     status = work->syncResult;
     switch (status) {
         case 0:
-            work->sectorOffset += Mc_BufferSlots[8 - work->field_24].cardSectors;
+            work->sectorOffset += Mc_BufferSlots[MEMORY_CARD_BUFFER_SLOT_COUNT - 1 - work->slotsRemaining].cardSectors;
             task->state         = 0xF;
             break;
         case 1:
@@ -1910,9 +1914,9 @@ static void Mc_StateFormat(Task* task, McWork* work)
     McPromptPair* entry;
     McPromptPair* base;
 
-    work->field_4 -= 1;
-    if (work->field_4 == 0) {
-        status           = MemCardFormat(work->field_C);
+    work->cardTimer -= 1;
+    if (work->cardTimer == 0) {
+        status           = MemCardFormat(work->channel);
         work->syncResult = status;
         if (status != 1) {
             if (status != 0) {
@@ -1950,12 +1954,12 @@ static void Mc_StateSyncFileSelect(Task* task, McWork* work)
     u8*       dst;
 
     obj            = task->spawnArg2.pointer;
-    work->promptId = 0x16;
-    _mcDrawPrompt(task, 0x16);
+    work->promptId = MEMORY_CARD_PROMPT_SELECT;
+    _mcDrawPrompt(task, MEMORY_CARD_PROMPT_SELECT);
 
     syncResult = MemCardSync(1, &work->syncCommand, &work->syncResult);
     if (syncResult == -1) {
-        MemCardExist(work->field_C);
+        MemCardExist(work->channel);
     } else if (syncResult == 1 && work->syncResult != 0) {
         task->state = 7;
         _mcCloseChild(task, syncResult);
@@ -2093,11 +2097,11 @@ static void Mc_StateSyncOpen(Task* task, McWork* work)
                     task->state = 6;
                 }
             }
-            work->field_4 -= 1;
-            if (work->field_4 == 0) {
+            work->cardTimer -= 1;
+            if (work->cardTimer == 0) {
                 fileName = Mc_FileName;
                 MemCardClose();
-                status           = MemCardOpen(work->field_C, fileName, 1);
+                status           = MemCardOpen(work->channel, fileName, 1);
                 work->syncResult = status;
                 switch (status) {
                     case 0:
@@ -2120,7 +2124,7 @@ static void Mc_StateSyncOpen(Task* task, McWork* work)
             }
         }
     } else {
-        MemCardExist(work->field_C);
+        MemCardExist(work->channel);
     }
 }
 
@@ -2222,7 +2226,7 @@ static void Mc_StateVerifyFinish(Task* task, McWork* work)
     s32   size;
     void* mem;
 
-    if (work->field_24 == 0) {
+    if (work->slotsRemaining == 0) {
         if (_mcVerifySlotChecksums() && _mcVerifyFirstByteChecksum()) {
             Game_ClearEd68();
             gDisplayState.control.flags.pendingPlayerPos = 1;
@@ -2231,8 +2235,8 @@ static void Mc_StateVerifyFinish(Task* task, McWork* work)
             Mc_InitBufferSlots();
             task->state = 0x19;
         }
-    } else if (work->field_28 & 1) {
-        size                = Mc_BufferSlots[9 - work->field_24].bytesPerCopy;
+    } else if (work->slotWriteMask & 1) {
+        size                = Mc_BufferSlots[MEMORY_CARD_BUFFER_SLOT_COUNT - work->slotsRemaining].bytesPerCopy;
         size              <<= 1;
         size               -= 1;
         size                = (u32)size >> 7;
@@ -2242,20 +2246,20 @@ static void Mc_StateVerifyFinish(Task* task, McWork* work)
         mem                 = memMalloc(size, false);
         work->buffer        = mem;
         if (mem != 0) {
-            work->field_4  = 0;
-            task->state    = task->state + 1;
-            work->field_24 = work->field_24 - 1;
-            work->field_28 = (u32)work->field_28 >> 1;
+            work->cardTimer      = 0;
+            task->state          = task->state + 1;
+            work->slotsRemaining = work->slotsRemaining - 1;
+            work->slotWriteMask  = (u32)work->slotWriteMask >> 1;
         } else {
-            work->field_4 = work->field_4 + 1;
+            work->cardTimer = work->cardTimer + 1;
         }
     } else {
-        work->sectorOffset = work->sectorOffset + Mc_BufferSlots[9 - work->field_24].cardSectors;
-        work->field_24     = work->field_24 - 1;
-        work->field_28     = (u32)work->field_28 >> 1;
+        work->sectorOffset   = work->sectorOffset + Mc_BufferSlots[MEMORY_CARD_BUFFER_SLOT_COUNT - work->slotsRemaining].cardSectors;
+        work->slotsRemaining = work->slotsRemaining - 1;
+        work->slotWriteMask  = (u32)work->slotWriteMask >> 1;
     }
 
-    work->promptId = 5;
+    work->promptId = MEMORY_CARD_PROMPT_LOADING;
     _mcDrawPrompt(task, 5);
 }
 
@@ -2298,7 +2302,7 @@ static void Mc_StateFinishWrite(Task* task, McWork* work)
     status = work->syncResult;
     if (status < 4U) {
         if (status == 0) {
-            slotIdx = 8 - work->field_24;
+            slotIdx = MEMORY_CARD_BUFFER_SLOT_COUNT - 1 - work->slotsRemaining;
             if (slotIdx == 0) {
                 _mcWriteWorkChecksum(work);
             } else {
@@ -2306,7 +2310,7 @@ static void Mc_StateFinishWrite(Task* task, McWork* work)
                 size <<= 1;
                 memcpy(Mc_BufferSlots[slotIdx].buffer, work->buffer, size);
             }
-            work->sectorOffset += Mc_BufferSlots[8 - work->field_24].cardSectors;
+            work->sectorOffset += Mc_BufferSlots[MEMORY_CARD_BUFFER_SLOT_COUNT - 1 - work->slotsRemaining].cardSectors;
             task->state         = 0xE;
         } else {
             goto pad;
@@ -2363,18 +2367,19 @@ static inline s32 _mcVerifySaveHdrChecksum(McSavePreview* save)
 
 static void Mc_StateSaveSlotUi(UiList* list, UiObject* object)
 {
-    McWork* base;
+    McWork* work;
     s32     previewByteOffset;
     s32     enabled;
 
-    enabled           = 1;
+    enabled = 1;
+    // Scale the index and add the preview offset before the work base.
     previewByteOffset = list->currentItemIndex * sizeof(McSavePreview) + OFFSET_OF(McWork, previews);
-    base              = object->owner->spawnArg1.pointer;
-    if (!_mcVerifySaveHdrChecksum((McSavePreview*)((u8*)base + previewByteOffset))) {
+    work              = object->owner->spawnArg1.pointer;
+    if (!_mcVerifySaveHdrChecksum((McSavePreview*)((u8*)work + previewByteOffset))) {
         enabled = 0;
         Ui_LookupTable(object, 2);
     }
-    Mc_DrawSlotDetails(object, base, list->currentItemIndex, 0, list->rowTextY.signedValue + 7);
+    Mc_DrawSlotDetails(object, work, list->currentItemIndex, 0, list->rowTextY.signedValue + 7);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (enabled && Pad_CheckButtons(0, 1, Pad_MaskConfirm)) {
             SndEvt_EnqueueType6(SOUND_SYSTEM_CONFIRM, 0, 0);
@@ -2415,7 +2420,7 @@ void Mc_DrawSlotDetails(UiObject* object, McWork* work, s32 slot, s32 arg3, s32 
         if (!_mcVerifySaveHdrChecksum(save)) {
             x = arg3 + object->panel.contentLeft.signedValue + 8;
             y = arg4 + object->panel.contentTop.signedValue + 0x11;
-            if (work->field_A20 == 0) {
+            if (work->corruptNoticeStyle == MEMORY_CARD_CORRUPT_NOTICE_PROMPT) {
                 Text_DrawPrompt(object, x, y, McText_LoadAbortedCorrupted, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
                 return;
             }
@@ -2866,20 +2871,20 @@ static s32 Mc_CompareSaveChecksum(McSaveData* save, McWork* work)
 
 static void Mc_ResetWork(Task* task, McWork* work)
 {
-    work->field_0   = 0x10;
-    work->field_4   = 0;
-    work->buffer    = 0;
-    work->field_C   = 0;
-    work->field_A18 = 0x34;
-    work->field_A20 = 0;
+    work->promptTimer        = MEMORY_CARD_PROMPT_LEAD_FRAMES;
+    work->cardTimer          = 0;
+    work->buffer             = 0;
+    work->channel            = 0;
+    work->closeAnswer        = USER_INTERFACE_LIST_COMMAND_NO;
+    work->corruptNoticeStyle = MEMORY_CARD_CORRUPT_NOTICE_PROMPT;
     task->state++;
 }
 
 static void Mc_WriteSlotChecksumsEx(Task* task, McWork* work)
 {
-    work->field_24 = 9;
-    work->field_28 = -1;
-    work->field_2C = 1;
+    work->slotsRemaining   = MEMORY_CARD_BUFFER_SLOT_COUNT;
+    work->slotWriteMask    = MEMORY_CARD_SLOT_WRITE_ALL;
+    work->confirmOverwrite = MEMORY_CARD_OVERWRITE_CONFIRM;
     _mcWriteSlotChecksums();
 
     if (task->spawnArg1.value != 0) {
@@ -2898,28 +2903,28 @@ static void Mc_StateAcceptMode1(Task* task, McWork* work)
     McPromptPair* entry;
     McPromptPair* base;
 
-    work->promptId = 1;
-    if (MemCardAccept(work->field_C) != 0) {
-        work->field_4 = 0;
-        task->state   = task->state + 1;
+    work->promptId = MEMORY_CARD_PROMPT_CHECKING;
+    if (MemCardAccept(work->channel) != 0) {
+        work->cardTimer = 0;
+        task->state     = task->state + 1;
     } else {
-        work->field_4 = work->field_4 + 1;
+        work->cardTimer = work->cardTimer + 1;
     }
-    work->field_4 = work->field_4 + 1;
-    idx           = work->promptId;
-    obj           = task->spawnArg2.pointer;
-    ret           = Ui_LookupTable(obj, 1);
-    obj->result   = USER_INTERFACE_RESULT_NONE;
+    work->cardTimer = work->cardTimer + 1;
+    idx             = work->promptId;
+    obj             = task->spawnArg2.pointer;
+    ret             = Ui_LookupTable(obj, 1);
+    obj->result     = USER_INTERFACE_RESULT_NONE;
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
     Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->field_0, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->field_4, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    if (work->field_0 > 0) {
-        work->field_0 -= 2;
+    if (work->promptTimer > 0) {
+        work->promptTimer -= 2;
     }
-    if (work->field_0 < 0) {
-        work->field_0 += 2;
+    if (work->promptTimer < 0) {
+        work->promptTimer += 2;
     }
 }
 
@@ -2932,10 +2937,10 @@ static void Mc_StateSyncAdvance(Task* task, McWork* work)
     McPromptPair* base;
 
     if (MemCardSync(1, &work->syncCommand, &work->syncResult) != 0) {
-        work->field_4 = 0;
-        task->state   = task->state + 1;
+        work->cardTimer = 0;
+        task->state     = task->state + 1;
     } else {
-        work->field_4 = work->field_4 + 1;
+        work->cardTimer = work->cardTimer + 1;
     }
     idx         = work->promptId;
     obj         = task->spawnArg2.pointer;
@@ -2946,11 +2951,11 @@ static void Mc_StateSyncAdvance(Task* task, McWork* work)
     entry = &base[idx];
     Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->field_0, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->field_4, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    if (work->field_0 > 0) {
-        work->field_0 -= 2;
+    if (work->promptTimer > 0) {
+        work->promptTimer -= 2;
     }
-    if (work->field_0 < 0) {
-        work->field_0 += 2;
+    if (work->promptTimer < 0) {
+        work->promptTimer += 2;
     }
 }
 
@@ -2962,11 +2967,11 @@ static void Mc_StateDrawPromptAdvance(Task* task, McWork* work)
     McPromptPair* entry;
     McPromptPair* base;
 
-    work->field_4 = 0xE;
-    obj           = task->spawnArg2.pointer;
-    idx           = work->promptId;
-    ret           = Ui_LookupTable(obj, 1);
-    obj->result   = USER_INTERFACE_RESULT_NONE;
+    work->cardTimer = MEMORY_CARD_IO_SETTLE_FRAMES;
+    obj             = task->spawnArg2.pointer;
+    idx             = work->promptId;
+    ret             = Ui_LookupTable(obj, 1);
+    obj->result     = USER_INTERFACE_RESULT_NONE;
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
@@ -2986,8 +2991,8 @@ static void Mc_StatePromptChoiceB(Task* task, McWork* work)
     u8*       dst;
     s32       i;
 
-    work->promptId = 0xB;
-    ret            = Mc_PromptDialogChoice(task, 0xB, work->field_0);
+    work->promptId = MEMORY_CARD_PROMPT_CREATE;
+    ret            = Mc_PromptDialogChoice(task, MEMORY_CARD_PROMPT_CREATE, work->promptTimer);
     if (ret != -1) {
         if (ret == 1) {
             task->state = 8;
@@ -3017,7 +3022,7 @@ static void Mc_StatePromptChoiceB(Task* task, McWork* work)
             }
         }
     } else {
-        MemCardExist(work->field_C);
+        MemCardExist(work->channel);
     }
 }
 
@@ -3028,14 +3033,14 @@ static void Mc_StateDrawPrompt4(Task* task, McWork* work)
     McPromptPair* entry;
     McPromptPair* base;
 
-    work->field_4  = 0xE;
-    work->promptId = 4;
-    obj            = task->spawnArg2.pointer;
-    ret            = Ui_LookupTable(obj, 1);
-    obj->result    = USER_INTERFACE_RESULT_NONE;
+    work->cardTimer = MEMORY_CARD_IO_SETTLE_FRAMES;
+    work->promptId  = MEMORY_CARD_PROMPT_SAVING;
+    obj             = task->spawnArg2.pointer;
+    ret             = Ui_LookupTable(obj, 1);
+    obj->result     = USER_INTERFACE_RESULT_NONE;
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
-    entry = &base[4];
+    entry = &base[MEMORY_CARD_PROMPT_SAVING];
     Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->field_0, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->field_4, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     task->state = task->state + 1;
@@ -3048,15 +3053,15 @@ static void Mc_StateEnterDialog4(Task* task, McWork* work)
     McPromptPair* entry;
     McPromptPair* base;
 
-    work->field_4 = 0;
+    work->cardTimer = 0;
     task->state++;
-    work->promptId = 4;
+    work->promptId = MEMORY_CARD_PROMPT_SAVING;
     obj            = task->spawnArg2.pointer;
     ret            = Ui_LookupTable(obj, 1);
     obj->result    = USER_INTERFACE_RESULT_NONE;
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
-    entry = &base[4];
+    entry = &base[MEMORY_CARD_PROMPT_SAVING];
     Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->field_0, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->field_4, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
@@ -3069,12 +3074,12 @@ static void Mc_StateWriteFile(Task* task, McWork* work)
     McPromptPair* base;
     s32           idx;
 
-    if (MemCardWriteFile(work->field_C, Mc_FileName, (unsigned long*)Mc_DefaultChecksumSrc, 0,
+    if (MemCardWriteFile(work->channel, Mc_FileName, (unsigned long*)Mc_DefaultChecksumSrc, 0,
                          0x200) != 0) {
-        work->field_4 = 0;
-        task->state   = task->state + 1;
+        work->cardTimer = 0;
+        task->state     = task->state + 1;
     } else {
-        work->field_4 = work->field_4 + 1;
+        work->cardTimer = work->cardTimer + 1;
     }
     idx         = work->promptId;
     obj         = task->spawnArg2.pointer;
@@ -3091,8 +3096,8 @@ static void Mc_StatePromptChoiceGeneric(Task* task, McWork* work)
 {
     s32 ret;
 
-    work->promptId = 7;
-    ret            = Mc_PromptDialogChoice(task, 7, work->field_0);
+    work->promptId = MEMORY_CARD_PROMPT_SAVE;
+    ret            = Mc_PromptDialogChoice(task, MEMORY_CARD_PROMPT_SAVE, work->promptTimer);
     switch (ret) {
         case 0:
             break;
@@ -3104,11 +3109,11 @@ static void Mc_StatePromptChoiceGeneric(Task* task, McWork* work)
             task->state = 0x13;
             break;
     }
-    if (work->field_0 > 0) {
-        work->field_0 -= 2;
+    if (work->promptTimer > 0) {
+        work->promptTimer -= 2;
     }
-    if (work->field_0 < 0) {
-        work->field_0 += 2;
+    if (work->promptTimer < 0) {
+        work->promptTimer += 2;
     }
 }
 
@@ -3121,10 +3126,10 @@ static void Mc_StateWriteData(Task* task, McWork* work)
     s32           idx;
 
     if (MemCardWriteData(work->buffer, work->sectorOffset << 7, work->transferBytes) != 0) {
-        work->field_4 = 0;
-        task->state   = task->state + 1;
+        work->cardTimer = 0;
+        task->state     = task->state + 1;
     } else {
-        work->field_4 = work->field_4 + 1;
+        work->cardTimer = work->cardTimer + 1;
     }
     idx         = work->promptId;
     obj         = task->spawnArg2.pointer;
@@ -3160,7 +3165,7 @@ static void Mc_StateClosePrompt(Task* task, McWork* work)
     task->state = 0x1B;
     flag        = task->spawnArg2.pointer;
     if (flag != NULL) {
-        val               = work->field_A18;
+        val               = work->closeAnswer; // s32 to s16: resultValue is a halfword
         flag->result      = USER_INTERFACE_RESULT_CANCEL;
         flag->resultValue = val;
     }
@@ -3180,15 +3185,15 @@ static void Mc_StateSyncPromptFile3(Task* task, McWork* work)
     UiObject* obj;
     UiObject* flag;
 
-    work->promptId = 3;
-    if (Mc_PromptDialogFile(task, 3, work->field_0) != 0) {
+    work->promptId = MEMORY_CARD_PROMPT_NO_CARD;
+    if (Mc_PromptDialogFile(task, MEMORY_CARD_PROMPT_NO_CARD, work->promptTimer) != 0) {
         task->state = 0x13;
         return;
     }
     syncResult = MemCardSync(1, &work->syncCommand, &work->syncResult);
     switch (syncResult) {
         case -1:
-            MemCardExist(work->field_C);
+            MemCardExist(work->channel);
             return;
         case 1:
             if (work->syncResult != syncResult) {
@@ -3216,8 +3221,8 @@ static void Mc_StatePromptChoice9(Task* task, McWork* work)
     UiObject* obj;
     UiObject* flag;
 
-    work->promptId = 9;
-    ret            = Mc_PromptDialogSpawn(task, 9, work->field_0);
+    work->promptId = MEMORY_CARD_PROMPT_UNFORMATTED;
+    ret            = Mc_PromptDialogSpawn(task, MEMORY_CARD_PROMPT_UNFORMATTED, work->promptTimer);
     switch (ret) {
         case 0:
             break;
@@ -3245,7 +3250,7 @@ static void Mc_StatePromptChoice9(Task* task, McWork* work)
             }
         }
     } else {
-        MemCardExist(work->field_C);
+        MemCardExist(work->channel);
     }
 }
 
@@ -3256,17 +3261,17 @@ static void Mc_StateColdBoot(Task* task, McWork* work)
     McPromptPair* entry;
     McPromptPair* base;
 
-    work->promptId = 6;
+    work->promptId = MEMORY_CARD_PROMPT_FORMATTING;
     obj            = task->spawnArg2.pointer;
     ret            = Ui_LookupTable(obj, 1);
     obj->result    = USER_INTERFACE_RESULT_NONE;
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
-    entry = &base[6];
+    entry = &base[MEMORY_CARD_PROMPT_FORMATTING];
     Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->field_0, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->field_4, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    work->field_4 = 0xE;
-    task->state   = task->state + 1;
+    work->cardTimer = MEMORY_CARD_IO_SETTLE_FRAMES;
+    task->state     = task->state + 1;
 }
 
 static void Mc_StateSyncPrompt13(Task* task, McWork* work)
@@ -3277,15 +3282,15 @@ static void Mc_StateSyncPrompt13(Task* task, McWork* work)
     UiObject* obj;
     UiObject* flag;
 
-    work->promptId = 0x13;
-    if (Mc_PromptDialogFile(task, 0x13, work->field_0) != 0) {
+    work->promptId = MEMORY_CARD_PROMPT_CARD_FULL;
+    if (Mc_PromptDialogFile(task, MEMORY_CARD_PROMPT_CARD_FULL, work->promptTimer) != 0) {
         task->state = 0x13;
         return;
     }
     syncResult = MemCardSync(1, &work->syncCommand, &work->syncResult);
     switch (syncResult) {
         case -1:
-            MemCardExist(work->field_C);
+            MemCardExist(work->channel);
             return;
         case 1:
             rslt = work->syncResult;
@@ -3313,8 +3318,8 @@ static void Mc_StateEnterPrompt0(Task* task, McWork* work)
     s32 i;
     s32 ch;
 
-    work->promptId = 0;
-    work->field_4  = 0;
+    work->promptId  = MEMORY_CARD_PROMPT_ACCESS_FAILED;
+    work->cardTimer = 0;
     if (Mc_PromptDialog(task, work->promptId, 0) != 0) {
         ptr1 = Mc_FileName;
         ptr0 = Mc_FileNameBuf;
@@ -3343,17 +3348,17 @@ static void Mc_StatePromptCountdown(Task* task, McWork* work)
     McPromptPair* base;
     s32           idx;
 
-    work->field_0 -= 1;
-    obj            = task->spawnArg2.pointer;
-    idx            = work->promptId;
-    ret            = Ui_LookupTable(obj, 1);
-    obj->result    = USER_INTERFACE_RESULT_NONE;
+    work->promptTimer -= 1;
+    obj                = task->spawnArg2.pointer;
+    idx                = work->promptId;
+    ret                = Ui_LookupTable(obj, 1);
+    obj->result        = USER_INTERFACE_RESULT_NONE;
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
     Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->field_0, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->field_4, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    if (work->field_0 < -0x10) {
+    if (work->promptTimer < MEMORY_CARD_PROMPT_DISMISS_LIMIT) {
         task->killCountdown = 0;
         task->state         = -1;
     }
@@ -3386,18 +3391,18 @@ static void Mc_StateCountdownPrompt4(Task* task, McWork* work)
     McPromptPair* entry;
     McPromptPair* base;
 
-    work->promptId = 4;
+    work->promptId = MEMORY_CARD_PROMPT_SAVING;
     obj            = task->spawnArg2.pointer;
     ret            = Ui_LookupTable(obj, 1);
     obj->result    = USER_INTERFACE_RESULT_NONE;
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
-    entry = &base[4];
+    entry = &base[MEMORY_CARD_PROMPT_SAVING];
     Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->field_0, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->field_4, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    if (work->field_4-- <= 0) {
-        work->field_A18 = 0x33;
-        task->state     = 0x13;
+    if (work->cardTimer-- <= 0) {
+        work->closeAnswer = USER_INTERFACE_LIST_COMMAND_YES;
+        task->state       = 0x13;
     }
 }
 
@@ -3408,14 +3413,14 @@ static void Mc_StateDrawPrompt1Advance(Task* task, McWork* work)
     McPromptPair* entry;
     McPromptPair* base;
 
-    work->field_4  = 4;
-    work->promptId = 1;
-    obj            = task->spawnArg2.pointer;
-    ret            = Ui_LookupTable(obj, 1);
-    obj->result    = USER_INTERFACE_RESULT_NONE;
+    work->cardTimer = MEMORY_CARD_IO_BRIEF_FRAMES;
+    work->promptId  = MEMORY_CARD_PROMPT_CHECKING;
+    obj             = task->spawnArg2.pointer;
+    ret             = Ui_LookupTable(obj, 1);
+    obj->result     = USER_INTERFACE_RESULT_NONE;
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
-    entry = &base[1];
+    entry = &base[MEMORY_CARD_PROMPT_CHECKING];
     Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->field_0, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->field_4, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     task->state = task->state + 1;
@@ -3428,11 +3433,11 @@ static void Mc_StateOpenSelected(Task* task, McWork* work)
 
     openIdx = work->currentSlot;
     MemCardClose();
-    openResult       = MemCardOpen(work->field_C, work->directory[openIdx].name, 1);
+    openResult       = MemCardOpen(work->channel, work->directory[openIdx].name, 1);
     work->syncResult = openResult;
     if (openResult == 0) {
-        work->field_4 = 0;
-        task->state   = task->state + 1;
+        work->cardTimer = 0;
+        task->state     = task->state + 1;
     } else {
         task->state = 0x18;
     }
@@ -3449,10 +3454,10 @@ static void Mc_StateReadHeader(Task* task, McWork* work)
 
     if (MemCardReadData((u_long*)&work->previews[work->currentSlot], MEMORY_CARD_SAVE_PREVIEW_FILE_OFFSET,
                         sizeof(work->previews[work->currentSlot])) != 0) {
-        work->field_4 = 0;
-        task->state   = task->state + 1;
+        work->cardTimer = 0;
+        task->state     = task->state + 1;
     } else {
-        work->field_4 = work->field_4 + 1;
+        work->cardTimer = work->cardTimer + 1;
     }
     obj         = task->spawnArg2.pointer;
     idx         = work->promptId;
@@ -3554,35 +3559,35 @@ static void Mc_StateUiCountdownF(Task* task, McWork* work)
     McPromptPair* entry;
     McPromptPair* base;
 
-    work->field_4 -= 1;
-    if (work->field_4 <= 0) {
+    work->cardTimer -= 1;
+    if (work->cardTimer <= 0) {
         task->state = 0xF;
     }
-    work->promptId = 4;
+    work->promptId = MEMORY_CARD_PROMPT_SAVING;
     obj            = task->spawnArg2.pointer;
     ret            = Ui_LookupTable(obj, 1);
     obj->result    = USER_INTERFACE_RESULT_NONE;
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
-    entry = &base[4];
+    entry = &base[MEMORY_CARD_PROMPT_SAVING];
     Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->field_0, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->field_4, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StateEnterPromptE(Task* task, McWork* work)
 {
-    work->promptId = 0xE;
-    work->field_4  = 0;
-    if (Mc_PromptDialog(task, 0xE, 0) != 0) {
+    work->promptId  = MEMORY_CARD_PROMPT_SAVE_FAILED;
+    work->cardTimer = 0;
+    if (Mc_PromptDialog(task, MEMORY_CARD_PROMPT_SAVE_FAILED, 0) != 0) {
         task->state = 0x13;
     }
 }
 
 static void Mc_StateEnterPromptD(Task* task, McWork* work)
 {
-    work->promptId = 0xD;
-    work->field_4  = 0;
-    if (Mc_PromptDialog(task, 0xD, 0) != 0) {
+    work->promptId  = MEMORY_CARD_PROMPT_FORMAT_FAILED;
+    work->cardTimer = 0;
+    if (Mc_PromptDialog(task, MEMORY_CARD_PROMPT_FORMAT_FAILED, 0) != 0) {
         task->state = 0x13;
     }
 }
@@ -3601,7 +3606,7 @@ void Mc_DispatchStateTable(Task* task)
         return;
     }
     sp.funcs[state](task, work);
-    if (work->field_4 >= 0xB5) {
+    if (work->cardTimer >= MEMORY_CARD_IO_ABORT_FRAMES) {
         if (work->buffer != 0) {
             memFree(work->buffer);
             work->buffer = 0;
@@ -3613,21 +3618,21 @@ void Mc_DispatchStateTable(Task* task)
 
 static void Mc_StateInitWorkDefaults(Task* task, McWork* work)
 {
-    work->field_0                                = 0x10;
-    work->promptId                               = 0x8;
-    work->field_A20                              = 1;
-    work->field_4                                = 0;
+    work->promptTimer                            = MEMORY_CARD_PROMPT_LEAD_FRAMES;
+    work->promptId                               = MEMORY_CARD_PROMPT_LOAD;
+    work->corruptNoticeStyle                     = MEMORY_CARD_CORRUPT_NOTICE_MULTILINE;
+    work->cardTimer                              = 0;
     work->buffer                                 = 0;
-    work->field_C                                = 0;
+    work->channel                                = 0;
     gDisplayState.control.flags.pendingPlayerPos = 0;
     task->state                                 += 1;
 }
 
 static void Mc_StateSetOpenDefaults(Task* task, McWork* work)
 {
-    work->field_24 = 9;
-    work->field_28 = -1;
-    task->state    = 7;
+    work->slotsRemaining = MEMORY_CARD_BUFFER_SLOT_COUNT;
+    work->slotWriteMask  = MEMORY_CARD_SLOT_WRITE_ALL;
+    task->state          = 7;
 }
 
 static void Mc_StateCountdownPrompt(Task* task, McWork* work)
@@ -3639,12 +3644,12 @@ static void Mc_StateCountdownPrompt(Task* task, McWork* work)
     McPromptPair* entry;
     McPromptPair* base;
 
-    if (work->field_0 > 0) {
-        work->field_0 -= 2;
+    if (work->promptTimer > 0) {
+        work->promptTimer -= 2;
     }
-    if (work->field_0 == 0) {
-        work->promptId = 8;
-        status         = Mc_PromptDialogChoice(task, 8, work->field_0);
+    if (work->promptTimer == 0) {
+        work->promptId = MEMORY_CARD_PROMPT_LOAD;
+        status         = Mc_PromptDialogChoice(task, MEMORY_CARD_PROMPT_LOAD, work->promptTimer);
         switch (status) {
             case 0:
                 break;
@@ -3700,17 +3705,17 @@ static void Mc_StatePromptTimeout(Task* task, McWork* work)
     McPromptPair* base;
     s32           idx;
 
-    work->field_0 -= 1;
-    obj            = task->spawnArg2.pointer;
-    idx            = work->promptId;
-    ret            = Ui_LookupTable(obj, 1);
-    obj->result    = USER_INTERFACE_RESULT_NONE;
+    work->promptTimer -= 1;
+    obj                = task->spawnArg2.pointer;
+    idx                = work->promptId;
+    ret                = Ui_LookupTable(obj, 1);
+    obj->result        = USER_INTERFACE_RESULT_NONE;
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
     Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->field_0, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->field_4, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    if (work->field_0 < -0x10) {
+    if (work->promptTimer < MEMORY_CARD_PROMPT_DISMISS_LIMIT) {
         task->killCountdown = 0;
         task->state         = task->state + 1;
     }
@@ -3730,9 +3735,9 @@ static void Mc_StateEnterPromptF(Task* task, McWork* work)
     s32 i;
     s32 ch;
 
-    work->promptId = 0xF;
-    work->field_4  = 0;
-    if (Mc_PromptDialog(task, 0xF, 0) != 0) {
+    work->promptId  = MEMORY_CARD_PROMPT_LOAD_FAILED;
+    work->cardTimer = 0;
+    if (Mc_PromptDialog(task, MEMORY_CARD_PROMPT_LOAD_FAILED, 0) != 0) {
         ptr1 = Mc_FileName;
         ptr0 = Mc_FileNameBuf;
         i    = 0;
@@ -3754,12 +3759,12 @@ static void Mc_StateEnterPromptF(Task* task, McWork* work)
 
 static void Mc_StateAccept(Task* task, McWork* work)
 {
-    work->promptId = 1;
-    if (MemCardAccept(work->field_C) != 0) {
-        work->field_4 = 0;
-        task->state   = task->state + 1;
+    work->promptId = MEMORY_CARD_PROMPT_CHECKING;
+    if (MemCardAccept(work->channel) != 0) {
+        work->cardTimer = 0;
+        task->state     = task->state + 1;
     } else {
-        work->field_4 = work->field_4 + 1;
+        work->cardTimer = work->cardTimer + 1;
     }
     _mcDrawPrompt(task, work->promptId);
 }
@@ -3771,15 +3776,15 @@ static void Mc_StateSyncPrompt3(Task* task, McWork* work)
     UiObject* obj;
     UiObject* flag;
 
-    work->promptId = 3;
-    if (Mc_PromptDialogFile(task, 3, work->field_0) != 0) {
+    work->promptId = MEMORY_CARD_PROMPT_NO_CARD;
+    if (Mc_PromptDialogFile(task, MEMORY_CARD_PROMPT_NO_CARD, work->promptTimer) != 0) {
         task->state = 3;
         return;
     }
     syncResult = MemCardSync(1, &work->syncCommand, &work->syncResult);
     switch (syncResult) {
         case -1:
-            MemCardExist(work->field_C);
+            MemCardExist(work->channel);
             return;
         case 1:
             if (work->syncResult != syncResult) {
@@ -3807,15 +3812,15 @@ static void Mc_StateSyncPromptA(Task* task, McWork* work)
     UiObject* obj;
     UiObject* flag;
 
-    work->promptId = 0xA;
-    if (Mc_PromptDialogFile(task, 0xA, work->field_0) != 0) {
+    work->promptId = MEMORY_CARD_PROMPT_NO_DATA;
+    if (Mc_PromptDialogFile(task, MEMORY_CARD_PROMPT_NO_DATA, work->promptTimer) != 0) {
         task->state = 3;
         return;
     }
     syncResult = MemCardSync(1, &work->syncCommand, &work->syncResult);
     switch (syncResult) {
         case -1:
-            MemCardExist(work->field_C);
+            MemCardExist(work->channel);
             return;
         case 1:
             rslt = work->syncResult;
@@ -3844,11 +3849,11 @@ static void Mc_StateDrawCurrentPrompt(Task* task, McWork* work)
     McPromptPair* base;
     s32           idx;
 
-    work->field_4 = 4;
-    obj           = task->spawnArg2.pointer;
-    idx           = work->promptId;
-    ret           = Ui_LookupTable(obj, 1);
-    obj->result   = USER_INTERFACE_RESULT_NONE;
+    work->cardTimer = MEMORY_CARD_IO_BRIEF_FRAMES;
+    obj             = task->spawnArg2.pointer;
+    idx             = work->promptId;
+    ret             = Ui_LookupTable(obj, 1);
+    obj->result     = USER_INTERFACE_RESULT_NONE;
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
@@ -3866,10 +3871,10 @@ static void Mc_StateReadData(Task* task, McWork* work)
     s32           idx;
 
     if (MemCardReadData(work->buffer, work->sectorOffset << 7, work->transferBytes) != 0) {
-        work->field_4 = 0;
-        task->state   = task->state + 1;
+        work->cardTimer = 0;
+        task->state     = task->state + 1;
     } else {
-        work->field_4 = work->field_4 + 1;
+        work->cardTimer = work->cardTimer + 1;
     }
     obj         = task->spawnArg2.pointer;
     idx         = work->promptId;
@@ -3889,14 +3894,14 @@ static void Mc_StateDrawPrompt1(Task* task, McWork* work)
     McPromptPair* entry;
     McPromptPair* base;
 
-    work->field_4  = 4;
-    work->promptId = 1;
-    obj            = task->spawnArg2.pointer;
-    ret            = Ui_LookupTable(obj, 1);
-    obj->result    = USER_INTERFACE_RESULT_NONE;
+    work->cardTimer = MEMORY_CARD_IO_BRIEF_FRAMES;
+    work->promptId  = MEMORY_CARD_PROMPT_CHECKING;
+    obj             = task->spawnArg2.pointer;
+    ret             = Ui_LookupTable(obj, 1);
+    obj->result     = USER_INTERFACE_RESULT_NONE;
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
-    entry = &base[1];
+    entry = &base[MEMORY_CARD_PROMPT_CHECKING];
     Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->field_0, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->field_4, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     task->state = task->state + 1;
@@ -3910,12 +3915,12 @@ static void Mc_StateGetDirentry(Task* task, McWork* work)
     McPromptPair* entry;
     McPromptPair* base;
 
-    work->field_4 -= 1;
-    if (work->field_4 == 0) {
+    work->cardTimer -= 1;
+    if (work->cardTimer == 0) {
         work->entryCount = 0;
         MemCardGetDirentry(
-            work->field_C, (char*)Mc_SaveFilePattern, work->directory, &work->entryCount, 0,
-            0xF);
+            work->channel, (char*)Mc_SaveFilePattern, work->directory, &work->entryCount, 0,
+            MEMORY_CARD_DIRECTORY_CAPACITY);
         if (work->entryCount != 0) {
             work->selectedSlot = 0;
             work->currentSlot  = 0;
@@ -3943,11 +3948,11 @@ static void Mc_StateOpenDirEntry(Task* task, McWork* work)
 
     idx = work->currentSlot;
     MemCardClose();
-    openResult       = MemCardOpen(work->field_C, work->directory[idx].name, 1);
+    openResult       = MemCardOpen(work->channel, work->directory[idx].name, 1);
     work->syncResult = openResult;
     if (openResult == 0) {
-        work->field_4 = 0;
-        task->state   = task->state + 1;
+        work->cardTimer = 0;
+        task->state     = task->state + 1;
     } else {
         task->state = 6;
     }
@@ -3964,10 +3969,10 @@ static void Mc_StateReadSlot(Task* task, McWork* work)
 
     if (MemCardReadData((u_long*)&work->previews[work->currentSlot], MEMORY_CARD_SAVE_PREVIEW_FILE_OFFSET,
                         sizeof(work->previews[work->currentSlot])) != 0) {
-        work->field_4 = 0;
-        task->state   = task->state + 1;
+        work->cardTimer = 0;
+        task->state     = task->state + 1;
     } else {
-        work->field_4 = work->field_4 + 1;
+        work->cardTimer = work->cardTimer + 1;
     }
     obj         = task->spawnArg2.pointer;
     idx         = work->promptId;
@@ -4023,9 +4028,9 @@ static void Mc_StateEnterPrompt17(Task* task, McWork* work)
     s32 i;
     s32 ch;
 
-    work->promptId = 0x17;
-    work->field_4  = 0;
-    if (Mc_PromptDialog(task, 0x17, 0) != 0) {
+    work->promptId  = MEMORY_CARD_PROMPT_CORRUPTED;
+    work->cardTimer = 0;
+    if (Mc_PromptDialog(task, MEMORY_CARD_PROMPT_CORRUPTED, 0) != 0) {
         ptr1 = Mc_FileName;
         ptr0 = Mc_FileNameBuf;
         i    = 0;
@@ -4053,7 +4058,7 @@ void Mc_DispatchStateTable26(Task* task)
     sp   = Mc_FileSelectStates;
     work = &Mc_MenuWork;
     sp.funcs[task->state](task, work);
-    if (work->field_4 >= 0xB5) {
+    if (work->cardTimer >= MEMORY_CARD_IO_ABORT_FRAMES) {
         task->state = 6;
     }
 }
