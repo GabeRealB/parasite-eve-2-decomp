@@ -596,26 +596,45 @@ u32* tmdDrawStreamPrimGt3OneNormalSemiTrans(TmdStreamWorkspace* workspace, s32 o
 /// GPU code 0x36 through its own entry; this entry always supplies opaque 0x34.
 u32* tmdDrawStreamPrimGt3OneNormal(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
-/// Draw handler of a stream's one-normal textured-quad records (`0x58`, `0x5A`):
-/// each element's quad is transformed and culled, its four corners' screen
-/// coordinates and the one colour they are lit from are written into the
-/// `POLY_GT4` the record's texture words were laid in, and that packet is linked
-/// into the ordering table.
+/// Projects, lights and links opaque textured quads with one face normal.
 ///
-/// `tmdProcessStream` fills the polygon's texture words as it builds the record
-/// into the buffer half, so what is left here is the half that changes per frame.
-/// The element names one normal for the whole quad rather than one per corner, so
-/// a single lighting step colours all four corners, and the depth it is filed
-/// under is an average of the corners' depths, out of the same transform. The GTE
-/// projects three vertices at a time, so the element's fourth corner is projected
-/// on its own, ahead of the other three. A corner the GTE reports off screen, or
-/// a quad the facing tests reject, is not drawn, though the packet's room is
-/// passed over either way, so the primitives stay in step with the elements.
+/// Draw resolution selects this callback for opcode `0x58`. `elements` starts
+/// after the three-word record header; `workspace->elemCount` supplies 0..65535
+/// elements and `elemStride` their stride in u32 words. Words 0..1 pack four
+/// u16 byte offsets into `verts`, in corner order. Word 2 is added whole as a
+/// byte offset into `normals`; its upper half must be zero for this record
+/// format. Each reference must address a complete eight-byte SVECTOR entry.
+/// The draw body reads three words, while construction uses words 3..5 for
+/// UV/CLUT/tpage data, so each complete element occupies at least six words.
 ///
-/// This entry is the opaque one; the `0x5A` record's entry shares this body and
-/// asks for the blended form by its opcode alone, so `flags` selects nothing
-/// here either.
-u32* tmdDrawStreamPrimGt4OneNormal(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// `primWrite` addresses prebuilt 52-byte POLY_GT4 slots. Every element consumes
+/// one slot, including rejected quads. Corner 3 is projected first, followed
+/// by corners (2,1,0); it reuses the preceding element's corner-0 screen XY
+/// and depth when their vertex offsets agree. Either projection reporting
+/// `TMD_GTE_ERROR_FLAG` rejects the quad and invalidates that reuse key.
+/// Facing independently accepts `NCLIP(2,1,0) < 0` or `NCLIP(2,1,3) > 0`.
+/// Facing rejection retains the key. Rejected slots can receive screen XY,
+/// but their tags and colours are not completed and they are not linked.
+/// Accepted slots receive one NCCS result at all four corners, lighting fixed
+/// RGB (128,128,128) with GPU code 0x3C. Texture words remain unchanged.
+///
+/// The caller supplies the part's GTE transform, lighting and four-depth
+/// averaging scale. AVSZ4 selects OT bucket
+/// `(((u32)OTZ << (workspace->otDepthShift & 31)) & 0x3FFF) >> 4`.
+/// Normal drawing supplies shifts 0..3. The OT base already includes the
+/// object's signed entry displacement; every bucket (0..1023) must fit the
+/// selected table. Packets prepend with 24-bit DMA links and twelve payload
+/// words. Capacities are unchecked; stream and geometry storage are borrowed
+/// for the call, and packet/OT storage must stay GPU-visible until consumed.
+///
+/// Returns `elements + elemCount * elemStride`, leaving the next record or
+/// marker unconsumed, and updates only `workspace->primWrite` among workspace
+/// fields. Counts, saved GTE results and the first-region cursor are unchanged.
+/// An empty record reads no payload and advances neither cursor. `objectFlags`
+/// is ignored, including blend and reverse-culling bits. Opcode `0x5A` selects
+/// `tmdDrawStreamPrimGt4OneNormalSemiTrans`, whose entry shares the body and
+/// supplies GPU code 0x3E; this entry always supplies opaque 0x3C.
+u32* tmdDrawStreamPrimGt4OneNormal(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 /// The draw pass's handler for a stream's one-normal textured-quad records that
 /// ask for the semi-transparent primitive (`0x5A`): each element's quad is taken to
