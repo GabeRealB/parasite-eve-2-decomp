@@ -9,7 +9,7 @@
  *   SPRITE_QUAD_CLUT        CLUT word
  *   SPRITE_QUAD_CELL_WIDTH  cell width in texels, including both endpoints
  *   SPRITE_QUAD_V0/_V1      top and bottom texel rows
- *   SPRITE_QUAD_SCALE       size multiplier (the cell's half-width in texels)
+ *   SPRITE_QUAD_SCALE       signed perspective-sizing multiplier
  *   SPRITE_QUAD_CELLS_PER_ROW  optional: number of cell columns, not texels
  *   SPRITE_QUAD_CELL_H      optional, with CELLS_PER_ROW: a grid of cells this
  *                           tall, the rows offset from V0/V1
@@ -27,6 +27,24 @@
  * The fragment clears these bindings, so a unit drawing two textures includes
  * it twice; SPRITE_QUAD_FUNC names the second instance (the first is
  * spriteQuadDraw, declared here).
+ *
+ * SPRITE_QUAD_SCALE must be a positive signed integer constant, bound before
+ * each sprite_quad_draw.inc.c inclusion. A C enum constant is valid. It
+ * multiplies the 16-bit size argument after promotion to signed 32-bit
+ * arithmetic: size * scale / depth is the screen-space half-diagonal in
+ * pixels before rotation. Integer division truncates toward zero before the
+ * Q12 sine/cosine multiplication and right shift. The depth is SZ3 / 4,
+ * with SPRITE_QUAD_OTZ_BIAS already applied, and must be nonzero when sizing.
+ *
+ * Current carriers choose the inclusive horizontal UV span, cell width - 1:
+ * 23, 31, 39, 47 or 55 for cells 24, 32, 40, 48 or 56 texels wide. The atlas
+ * instance uses EFFECT_SPRITE_ATLAS_UV_SPAN. This binding sets geometry;
+ * texture addressing still uses SPRITE_QUAD_CELL_WIDTH independently.
+ * The fragment undefines the scale after each instance, including both
+ * instances in antibody and m4a1_hammer; each inclusion needs its own binding.
+ * The flicker drawer uses the same sizing formula with a fixed signed size
+ * argument and depth bias of one; its three carriers bind 55 for the flame
+ * cells spanning 56 texels, and its fragment also undefines the scale.
  *
  * SPRITE_QUAD_CELL_WIDTH must be a signed integer constant from 1 to 256,
  * bound before each sprite_quad_draw.inc.c inclusion. A C enum constant is

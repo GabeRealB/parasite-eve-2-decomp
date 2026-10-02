@@ -681,7 +681,10 @@ static void func_m4a1_javelin_8011EE78(SVECTOR* p0, SVECTOR* p1, u16 brightness)
 #define SPRITE_QUAD_CELL_WIDTH 32
 #define SPRITE_QUAD_V0         0x18
 #define SPRITE_QUAD_V1         0x37
-#define SPRITE_QUAD_SCALE      31
+/// Perspective-sizing multiplier for Javelin's launch flash.
+///
+/// Uses the cell's inclusive 31-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.
+#define SPRITE_QUAD_SCALE (SPRITE_QUAD_CELL_WIDTH - 1)
 #include "../../shared/sprite_quad_draw.inc.c"
 
 static void func_m4a1_javelin_8011F4A4(M4a1JavelinVecLo* arg0)

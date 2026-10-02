@@ -153,5 +153,8 @@ void flareSparkTask(Task* arg0)
 #define SPRITE_QUAD_CELL_WIDTH 32
 #define SPRITE_QUAD_V0         0x18
 #define SPRITE_QUAD_V1         0x37
-#define SPRITE_QUAD_SCALE      31
+/// Perspective-sizing multiplier for the flare spark.
+///
+/// Uses the cell's inclusive 31-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.
+#define SPRITE_QUAD_SCALE (SPRITE_QUAD_CELL_WIDTH - 1)
 #include "../../shared/sprite_quad_draw.inc.c"

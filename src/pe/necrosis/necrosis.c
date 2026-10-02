@@ -263,7 +263,10 @@ void func_necrosis_8012F52C(Task* arg0)
 #define SPRITE_QUAD_CELL_WIDTH 40
 #define SPRITE_QUAD_V0         0x38
 #define SPRITE_QUAD_V1         0x5F
-#define SPRITE_QUAD_SCALE      39
+/// Perspective-sizing multiplier for the necrosis sprite.
+///
+/// Uses the cell's inclusive 39-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.
+#define SPRITE_QUAD_SCALE (SPRITE_QUAD_CELL_WIDTH - 1)
 #include "../../shared/sprite_quad_draw.inc.c"
 
 void func_necrosis_8012FAF8(Task* arg0)

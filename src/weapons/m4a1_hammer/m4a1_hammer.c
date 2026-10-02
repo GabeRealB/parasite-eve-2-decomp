@@ -228,7 +228,10 @@ void func_m4a1_hammer_8011D1E0(Task* task)
 #define SPRITE_QUAD_CELL_MASK  7
 #define SPRITE_QUAD_V0         0x88
 #define SPRITE_QUAD_V1         0x9F
-#define SPRITE_QUAD_SCALE      23
+/// Perspective-sizing multiplier for Hammer's charge flare.
+///
+/// Uses the cell's inclusive 23-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.
+#define SPRITE_QUAD_SCALE (SPRITE_QUAD_CELL_WIDTH - 1)
 #include "../../shared/sprite_quad_draw.inc.c"
 #undef SPRITE_QUAD_POSITION_SOURCE_TYPE
 #undef SPRITE_QUAD_POS
@@ -288,8 +291,11 @@ void func_m4a1_hammer_8011DD08(Task* arg0)
 #define SPRITE_QUAD_CELLS_PER_ROW 6
 #define SPRITE_QUAD_V0            0x38
 #define SPRITE_QUAD_V1            0x5F
-#define SPRITE_QUAD_SCALE         39
-#define SPRITE_QUAD_CLUT          0x4293
+/// Perspective-sizing multiplier for Hammer's repeating sprite strip.
+///
+/// Uses the cell's inclusive 39-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.
+#define SPRITE_QUAD_SCALE (SPRITE_QUAD_CELL_WIDTH - 1)
+#define SPRITE_QUAD_CLUT  0x4293
 #include "../../shared/sprite_quad_draw.inc.c"
 
 #include "../../shared/beam_strip_draw.inc.c"

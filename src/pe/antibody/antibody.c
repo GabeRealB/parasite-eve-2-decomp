@@ -427,7 +427,10 @@ void func_antibody_8012F734(Task* arg0)
 #define SPRITE_QUAD_CELLS_PER_ROW 6
 #define SPRITE_QUAD_V0            0x50
 #define SPRITE_QUAD_V1            0x77
-#define SPRITE_QUAD_SCALE         39
+/// Perspective-sizing multiplier for the antibody mote.
+///
+/// Uses the cell's inclusive 39-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.
+#define SPRITE_QUAD_SCALE (SPRITE_QUAD_CELL_WIDTH - 1)
 #include "../../shared/sprite_quad_draw.inc.c"
 
 #define SPRITE_QUAD_CLUT 0x42C9
@@ -437,7 +440,10 @@ void func_antibody_8012F734(Task* arg0)
 #define SPRITE_QUAD_CELLS_PER_ROW 6
 #define SPRITE_QUAD_V0            0x38
 #define SPRITE_QUAD_V1            0x5F
-#define SPRITE_QUAD_SCALE         39
+/// Perspective-sizing multiplier for the larger antibody sprite.
+///
+/// Uses the cell's inclusive 39-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.
+#define SPRITE_QUAD_SCALE (SPRITE_QUAD_CELL_WIDTH - 1)
 #include "../../shared/sprite_quad_draw.inc.c"
 
 /// Draws the antibody arc between the effect and the player as one

@@ -1425,9 +1425,12 @@ void func_shelter_b1_sterilization_room_801823D8(Task* task)
 #define SPRITE_QUAD_CELLS_PER_ROW 5
 #define SPRITE_QUAD_CELL_H        0x30
 /* rows start at texel 0x80: the offsets wrap through the u8 V coordinate */
-#define SPRITE_QUAD_V0       -0x80
-#define SPRITE_QUAD_V1       -0x51
-#define SPRITE_QUAD_SCALE    47
+#define SPRITE_QUAD_V0 -0x80
+#define SPRITE_QUAD_V1 -0x51
+/// Perspective-sizing multiplier for the sterilization room's drifting sprite.
+///
+/// Uses the cell's inclusive 47-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.
+#define SPRITE_QUAD_SCALE    (SPRITE_QUAD_CELL_WIDTH - 1)
 #define SPRITE_QUAD_OTZ_BIAS 0
 #include "../../shared/sprite_quad_draw.inc.c"
 

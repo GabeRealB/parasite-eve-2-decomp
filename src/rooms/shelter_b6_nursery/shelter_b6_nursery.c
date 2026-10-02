@@ -1480,9 +1480,12 @@ static void func_shelter_b6_nursery_80181EDC(GfxCoord* coord, u16 arg1, s16 arg2
 #define SPRITE_QUAD_CELL_MASK  7
 #define SPRITE_QUAD_V0         0x88
 #define SPRITE_QUAD_V1         0xA7
-#define SPRITE_QUAD_SCALE      31
-#define SPRITE_QUAD_OTZ_BIAS   0
-#define SPRITE_QUAD_MIN_OTZ    0x41
+/// Perspective-sizing multiplier for the nursery particle sprite.
+///
+/// Uses the cell's inclusive 31-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.
+#define SPRITE_QUAD_SCALE    (SPRITE_QUAD_CELL_WIDTH - 1)
+#define SPRITE_QUAD_OTZ_BIAS 0
+#define SPRITE_QUAD_MIN_OTZ  0x41
 #include "../../shared/sprite_quad_draw.inc.c"
 
 void func_shelter_b6_nursery_80182730(Task* task)

@@ -4,6 +4,10 @@
 #error Define SPRITE_QUAD_CELL_WIDTH before including the sprite quad drawer
 #endif
 
+#ifndef SPRITE_QUAD_SCALE
+#error Define SPRITE_QUAD_SCALE before including the sprite quad drawer
+#endif
+
 #if !defined(SPRITE_QUAD_UV_TABLE)
 #if defined(SPRITE_QUAD_CELLS_PER_ROW)
 #if (SPRITE_QUAD_CELLS_PER_ROW) <= 0
@@ -60,6 +64,7 @@ static void SPRITE_QUAD_FUNC(SPRITE_QUAD_POSITION_SOURCE_TYPE* pos, SPRITE_QUAD_
     // Check in C so bindings may refer to enum constants as well as literals.
     STATIC_ASSERT(SPRITE_QUAD_CELL_WIDTH >= 1 && SPRITE_QUAD_CELL_WIDTH <= 256, sprite_quad_cell_width_fits_uv_byte);
     STATIC_ASSERT(SPRITE_QUAD_TEXTURE_PAGE >= 0 && SPRITE_QUAD_TEXTURE_PAGE <= 0xFFFF, sprite_quad_texture_page_fits_packet);
+    STATIC_ASSERT((SPRITE_QUAD_SCALE) > 0, sprite_quad_scale_is_positive);
 
     // Project the source translation's low 16 bits without changing its coordinate cache.
     head                                     = SCRATCH_STACK_CURSOR(EffectShapeScratch);
@@ -128,15 +133,16 @@ static void SPRITE_QUAD_FUNC(SPRITE_QUAD_POSITION_SOURCE_TYPE* pos, SPRITE_QUAD_
             setUV4(prim, u0, SPRITE_QUAD_V0, u1, SPRITE_QUAD_V0, u0, SPRITE_QUAD_V1, u1, SPRITE_QUAD_V1);
 #endif
 #endif
-            block->extent.corner.x = (((size * SPRITE_QUAD_SCALE) / block->depth) * rsin(angle)) >> 12;
-            block->extent.corner.y = (((size * SPRITE_QUAD_SCALE) / block->depth) * rcos(angle)) >> 12;
+            // Rotate the perspective-scaled half-diagonal into two pairs of opposite corners.
+            block->extent.corner.x = (((size * (SPRITE_QUAD_SCALE)) / block->depth) * rsin(angle)) >> 12;
+            block->extent.corner.y = (((size * (SPRITE_QUAD_SCALE)) / block->depth) * rcos(angle)) >> 12;
             prim->x0               = block->screenX + (u16)block->extent.corner.x;
             prim->x3               = block->screenX - (u16)block->extent.corner.x;
             prim->y0               = block->screenY - (u16)block->extent.corner.y;
             prim->y3               = block->screenY + (u16)block->extent.corner.y;
             ang2                   = angle + 0x400;
-            block->extent.corner.x = (((size * SPRITE_QUAD_SCALE) / block->depth) * rsin(ang2)) >> 12;
-            block->extent.corner.y = (((size * SPRITE_QUAD_SCALE) / block->depth) * rcos(ang2)) >> 12;
+            block->extent.corner.x = (((size * (SPRITE_QUAD_SCALE)) / block->depth) * rsin(ang2)) >> 12;
+            block->extent.corner.y = (((size * (SPRITE_QUAD_SCALE)) / block->depth) * rcos(ang2)) >> 12;
             prim->x1               = block->screenX + (u16)block->extent.corner.x;
             prim->x2               = block->screenX - (u16)block->extent.corner.x;
             prim->y1               = block->screenY - (u16)block->extent.corner.y;

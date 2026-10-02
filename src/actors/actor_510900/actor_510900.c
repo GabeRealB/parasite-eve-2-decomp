@@ -2120,7 +2120,9 @@ void func_actor_510900_8013482C(Task* arg0)
 #define SPRITE_QUAD_UV_TABLE     gEffectSpriteAtlasFrames
 /// Texel width and height of the shared atlas cells used with this actor's palettes.
 #define SPRITE_QUAD_CELL_WIDTH EFFECT_SPRITE_ATLAS_CELL_SIZE
-// Reuse the atlas's inclusive texel span for the projected half-diagonal.
+/// Perspective-sizing multiplier for the shared atlas sprite.
+///
+/// Uses the atlas's inclusive 39-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.
 #define SPRITE_QUAD_SCALE EFFECT_SPRITE_ATLAS_UV_SPAN
 #include "../../shared/sprite_quad_draw.inc.c"
 

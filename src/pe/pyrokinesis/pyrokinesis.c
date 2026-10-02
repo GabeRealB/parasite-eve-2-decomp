@@ -550,7 +550,10 @@ static void func_pyrokinesis_801304C4(GfxCoord* arg0, s32 arg1)
 #define SPRITE_QUAD_U_BASE 0x70
 #define SPRITE_QUAD_V0     0xC8
 #define SPRITE_QUAD_V1     0xFF
-#define SPRITE_QUAD_SCALE  55
+/// Perspective-sizing multiplier for the pyrokinesis flame sprite.
+///
+/// Uses the cell's inclusive 55-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.
+#define SPRITE_QUAD_SCALE (SPRITE_QUAD_CELL_WIDTH - 1)
 #include "../../shared/sprite_quad_draw.inc.c"
 
 void func_pyrokinesis_80130C54(Task* arg0)

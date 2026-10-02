@@ -1203,9 +1203,12 @@ void func_shelter_b6_training_room_80181A3C(Task* task)
 #define SPRITE_QUAD_CELLS_PER_ROW 6
 #define SPRITE_QUAD_V0            0x38
 #define SPRITE_QUAD_V1            0x5F
-#define SPRITE_QUAD_SCALE         39
-#define SPRITE_QUAD_CLUT          0x42C9
-#define SPRITE_QUAD_OTZ_BIAS      0
+/// Perspective-sizing multiplier for the training effect sprite.
+///
+/// Uses the cell's inclusive 39-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.
+#define SPRITE_QUAD_SCALE    (SPRITE_QUAD_CELL_WIDTH - 1)
+#define SPRITE_QUAD_CLUT     0x42C9
+#define SPRITE_QUAD_OTZ_BIAS 0
 #include "../../shared/sprite_quad_draw.inc.c"
 
 /// Draws a textured `POLY_FT4` strip between the world positions of two
