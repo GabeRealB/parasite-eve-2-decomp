@@ -314,10 +314,14 @@ element. Each pair has an alternate handler. For transform-region triangles,
 16: both packets copy the element's texture words, with independent layer and
 base page/CLUT displacements. The layer sets only ABR bit 5 after relocation,
 preserving bit 6 (modes 1 or 3); it does not add the base offsets. The default
-handlers differ by region: the
-transform-region ones fill the base alone and leave the layer to the transform
-pass, while the pre-transformed ones write a fixed page and CLUT into it
-(`gpStreamPrimGt3PreXformFixedLayer`).
+handlers differ by region: the transform-region ones fill the base alone and
+leave the layer to the transform pass. The pre-transformed triangle builder
+`tmdBuildStreamGt3PreXformEnvLayer` seeds the first slot's page with
+`getTPage(0, GPU_BLEND_ADD, 960, 256)` and its CLUT with `getClut(256, 240)`.
+It copies words 2..4 into the base's texture fields and adds only the base
+displacements. Projection supplies the layer's U/V; its environment draw
+handler replaces the seeded page with a direct-colour page, leaving the CLUT
+stored but unused by that texture format.
 
 The pre-transformed pair (`0x39`, `0x79`) is the exception to *only* the second:
 those handlers fill the first slot's page and CLUT as well, with the fixed pair
