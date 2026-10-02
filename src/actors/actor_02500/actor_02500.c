@@ -1885,7 +1885,7 @@ static void Actor02500_Fn025D0(Enemy* ctx, Task* task)
     Gp_LinkObj(3, &work->obj);
     Gp_InitRec18Table(rec, 1, 0);
     work->obj.flags = (u16)(work->obj.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
-    Task_DetachFromParent(task);
+    taskDetachFromParent(task);
     task->state = 1;
 }
 

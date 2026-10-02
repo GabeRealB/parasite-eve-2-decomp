@@ -1331,7 +1331,7 @@ static void Actor02400_Fn02790(Enemy* arg0, Task* arg1)
     Gp_InitRec18Table(&work->field_90, 1, 0);
     work->field_B0      = 0x5A;
     work->obj_58.flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
-    Task_DetachFromParent(arg1);
+    taskDetachFromParent(arg1);
     arg1->state = 1;
     SCRATCH_STACK_RELEASE_BLOCK(ActorOffsetScratch);
 }

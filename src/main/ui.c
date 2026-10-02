@@ -2254,7 +2254,7 @@ void Ui_TeardownTree(UiObject* object, Task* unused2)
         } while (child != NULL);
     }
     if (object->panel.state != USER_INTERFACE_PANEL_CLOSING) {
-        Task_DetachFromParent(temp_s0);
+        taskDetachFromParent(temp_s0);
         object->panel.state = USER_INTERFACE_PANEL_CLOSING;
     }
 }
@@ -2945,7 +2945,7 @@ static void Ui_ListTaskCallback(Task* task)
                 } while (child != NULL);
             }
             if (obj->panel.state != USER_INTERFACE_PANEL_CLOSING) {
-                Task_DetachFromParent(parent);
+                taskDetachFromParent(parent);
                 obj->panel.state = USER_INTERFACE_PANEL_CLOSING;
             }
         }

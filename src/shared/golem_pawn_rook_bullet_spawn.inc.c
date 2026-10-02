@@ -114,7 +114,7 @@ void golemPawnRookBulletSpawn(Enemy* arg0, Task* arg1)
     work->obj98.flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
 
     arg1->state = 1;
-    Task_DetachFromParent(arg1);
+    taskDetachFromParent(arg1);
 
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);

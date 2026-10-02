@@ -16702,7 +16702,7 @@ lastChild->nextSibling = task;
 ```
 
 `taskReparent` is the pure example (reparent: detach then insert into parent's
-circular child list — same unlink shape as `Task_DetachFromParent`).
+circular child list — same unlink shape as `taskDetachFromParent`).
 
 ## Force a second `(s8)` cast into the same reg (`sll v1; sra v1,v1`)
 

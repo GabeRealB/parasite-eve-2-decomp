@@ -410,36 +410,6 @@ void Task_CallExit(Task* task)
     task->exitCallback(task);
 }
 
-void Task_DetachFromParent(Task* task)
-{
-    Task* parent;
-    Task* next;
-    Task* cur;
-
-    parent = task->parent;
-    if (parent == NULL) {
-        return;
-    }
-
-    next = task->nextSibling;
-    if (next == task) {
-        parent->firstChild = NULL;
-    } else {
-        if (parent->firstChild == task) {
-            parent->firstChild = next;
-        }
-        cur = task;
-        if (task->nextSibling != task) {
-            do {
-                cur = cur->nextSibling;
-            } while (cur->nextSibling != task);
-        }
-        cur->nextSibling  = task->nextSibling;
-        task->nextSibling = task;
-    }
-    task->parent = NULL;
-}
-
 /// Detaches a task from its parent's circular child ring while keeping it live.
 ///
 /// `task` must be non-NULL and live throughout the call. If it has a parent,
@@ -476,6 +446,11 @@ static inline void _taskDetachForReparent(Task* task)
         }
         task->parent = NULL;
     }
+}
+
+void taskDetachFromParent(Task* task)
+{
+    _taskDetachForReparent(task);
 }
 
 void taskReparent(Task* newParent, Task* task)

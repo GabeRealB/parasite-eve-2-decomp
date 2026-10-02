@@ -80,7 +80,21 @@ void Task_KillChildren(Task* task);
 
 void Task_CallExit(Task* task);
 
-void Task_DetachFromParent(Task* task);
+/// Removes a live task from its parent's circular child ring.
+///
+/// `task` must be non-NULL and remain live. When it has a parent, that parent
+/// must be live and its `firstChild` must head a closed ring containing this
+/// task. Each sibling is live and names that same parent. An only child is the
+/// task whose `nextSibling` points at itself; removing it clears the parent's
+/// child head. Removing any other child keeps the remaining order and advances
+/// the head only when this task is the head. The task then has no parent, and
+/// its `nextSibling` points at itself.
+///
+/// A parentless task is left unchanged, including its sibling link. The task
+/// keeps its own children, execution-list membership and resources, so a later
+/// teardown of the former parent does not dispatch this task. Nothing is
+/// allocated or released, and no handler runs.
+void taskDetachFromParent(Task* task);
 
 /// Moves a live task to the end of a parent's circular child ring for teardown.
 ///
