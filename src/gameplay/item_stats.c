@@ -253,16 +253,16 @@ void func_800C5F70(Task* arg0)
                     lines = 2;
                 }
             }
-            menu->field_10              = 0;
-            menu->field_9.unsignedValue = 0;
-            menu->field_5.unsignedValue = lines;
-            menu->field_4               = lines;
+            menu->selectedItemIndex                   = 0;
+            menu->firstVisibleItemIndex.unsignedValue = 0;
+            menu->visibleRowCount.unsignedValue       = lines;
+            menu->itemCount                           = lines;
             Ui_InitList(menu, &(obj)->panel);
-            if (menu->field_5.signedValue >= 7) {
-                menu->field_5.unsignedValue = 6;
+            if (menu->visibleRowCount.signedValue >= 7) {
+                menu->visibleRowCount.unsignedValue = 6;
             }
-            menu->field_A  = 1;
-            menu->field_17 = -(u8)obj->panel.contentTop.unsignedValue + 7;
+            menu->flags    = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
+            menu->topInset = -(u8)obj->panel.contentTop.unsignedValue + 7;
             arg0->state    = 3;
         }
         goto hbar_setup;
@@ -302,39 +302,39 @@ void func_800C5F70(Task* arg0)
                 obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                 Ui_UpdateListNoAnim(menu, obj);
                 obj->panel.control.word = saved;
-                if ((saved == 1) && ((s32)menu->field_4 > menu->field_5.signedValue)) {
+                if ((saved == 1) && (menu->itemCount > menu->visibleRowCount.signedValue)) {
                     if (Pad_CheckButtons(0, 1, 0x1000) != 0) {
-                        menu->field_9.unsignedValue = menu->field_9.unsignedValue - 1;
-                        if (menu->field_9.signedValue < 0) {
-                            menu->field_9.unsignedValue = 0;
+                        menu->firstVisibleItemIndex.unsignedValue = menu->firstVisibleItemIndex.unsignedValue - 1;
+                        if (menu->firstVisibleItemIndex.signedValue < 0) {
+                            menu->firstVisibleItemIndex.unsignedValue = 0;
                         } else {
-                            menu->field_16 = -1;
-                            menu->field_14 = (s8)menu->field_7;
+                            menu->scrollDirection       = USER_INTERFACE_LIST_STEP_PREVIOUS;
+                            menu->scrollPixelsRemaining = menu->rowHeight;
                         }
-                        menu->field_10 = menu->field_9.signedValue;
+                        menu->selectedItemIndex = menu->firstVisibleItemIndex.signedValue;
                     } else if (Pad_CheckButtons(0, 1, 0x4000) != 0) {
-                        menu->field_10 = menu->field_9.signedValue + menu->field_5.signedValue;
-                        if (menu->field_10 < (s32)menu->field_4) {
-                            menu->field_16 = saved;
-                            menu->field_14 = (s8)menu->field_7;
+                        menu->selectedItemIndex = menu->firstVisibleItemIndex.signedValue + menu->visibleRowCount.signedValue;
+                        if (menu->selectedItemIndex < menu->itemCount) {
+                            menu->scrollDirection       = saved;
+                            menu->scrollPixelsRemaining = menu->rowHeight;
                         } else {
-                            menu->field_10 = menu->field_4 - 1;
+                            menu->selectedItemIndex = menu->itemCount - 1;
                         }
                     } else if (Pad_CheckButtons(0, 1, 4) != 0) {
-                        if (menu->field_9.signedValue > 0) {
-                            menu->field_9.unsignedValue = menu->field_9.unsignedValue - menu->field_5.unsignedValue;
-                            if (menu->field_9.signedValue < 0) {
-                                menu->field_9.unsignedValue = 0;
+                        if (menu->firstVisibleItemIndex.signedValue > 0) {
+                            menu->firstVisibleItemIndex.unsignedValue = menu->firstVisibleItemIndex.unsignedValue - menu->visibleRowCount.unsignedValue;
+                            if (menu->firstVisibleItemIndex.signedValue < 0) {
+                                menu->firstVisibleItemIndex.unsignedValue = 0;
                             }
-                            menu->field_10 = menu->field_9.signedValue;
+                            menu->selectedItemIndex = menu->firstVisibleItemIndex.signedValue;
                         }
                     } else if (Pad_CheckButtons(0, 1, 8) != 0) {
-                        if (menu->field_9.signedValue < (menu->field_4 - menu->field_5.signedValue)) {
-                            menu->field_9.unsignedValue += menu->field_5.unsignedValue;
-                            if (menu->field_9.signedValue > (menu->field_4 - menu->field_5.signedValue)) {
-                                menu->field_9.unsignedValue = menu->field_4 - menu->field_5.unsignedValue;
+                        if (menu->firstVisibleItemIndex.signedValue < (menu->itemCount - menu->visibleRowCount.signedValue)) {
+                            menu->firstVisibleItemIndex.unsignedValue += menu->visibleRowCount.unsignedValue;
+                            if (menu->firstVisibleItemIndex.signedValue > (menu->itemCount - menu->visibleRowCount.signedValue)) {
+                                menu->firstVisibleItemIndex.unsignedValue = menu->itemCount - menu->visibleRowCount.unsignedValue;
                             }
-                            menu->field_10 = (menu->field_9.signedValue + menu->field_5.signedValue) - 1;
+                            menu->selectedItemIndex = (menu->firstVisibleItemIndex.signedValue + menu->visibleRowCount.signedValue) - 1;
                         }
                     }
                 }
@@ -645,7 +645,7 @@ void Gp_UseKeyItemRow(Task* arg0)
     if (arg0->state == 0) {
         menu     = &D_8010E960;
         roomTask = gameGetTaskSlot(GAME_TASK_SLOT_ROOM);
-        item     = Gp_NthCollectedId(menu->field_10, 0);
+        item     = Gp_NthCollectedId(menu->selectedItemIndex, 0);
         ret      = taskMessageDispatch(roomTask, 0x13F1, item, 0);
         if (ret == 1) {
             arg0->spawnArg1.value = item;
@@ -764,10 +764,10 @@ void Gp_DrawCollectedRow(UiList* arg0, UiObject* arg1)
     UiObject*   obj;
     s32         baseY;
 
-    item  = Gp_NthCollectedId(arg0->field_8, 0);
-    x     = arg0->field_18;
-    y     = arg0->field_1A;
-    color = arg0->field_1C;
+    item  = Gp_NthCollectedId(arg0->currentItemIndex, 0);
+    x     = arg0->rowTextX.signedValue;
+    y     = arg0->rowTextY.signedValue;
+    color = arg0->colorRgb;
     if (arg1->panel.state != USER_INTERFACE_PANEL_HIDDEN) {
         req.x          = arg1->panel.contentOriginX.unsignedValue + 0x11 + x;
         baseY          = arg1->panel.contentOriginY.unsignedValue - 6;
@@ -788,7 +788,7 @@ void Gp_DrawCollectedRow(UiList* arg0, UiObject* arg1)
     status = arg1->panel.control.word;
     one    = 1;
     if (((status >> 16) == one) || (status == one)) {
-        if (arg0->field_10 == arg0->field_8) {
+        if (arg0->selectedItemIndex == arg0->currentItemIndex) {
             if (item != Gp_PreviewItems[0]) {
                 i        = 0;
                 minusOne = -1;
@@ -809,7 +809,7 @@ void Gp_DrawCollectedRow(UiList* arg0, UiObject* arg1)
         }
     }
 
-    flag = arg0->field_C;
+    flag = arg0->rowInputEnabled;
     if (flag == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
@@ -846,28 +846,28 @@ void Gp_KeyItemMenuTask(Task* arg0)
     obj->result = USER_INTERFACE_RESULT_NONE;
     Ui_DrawText(&(obj)->panel, Gp_StrKeyItem);
     if (arg0->state == 0) {
-        menu->field_5.unsignedValue = menu->field_4 = Gp_CountCollectedBits();
-        if (menu->field_4 < menu->field_10) {
-            menu->field_10 = menu->field_4;
+        menu->visibleRowCount.unsignedValue = menu->itemCount = Gp_CountCollectedBits();
+        if (menu->itemCount < menu->selectedItemIndex) {
+            menu->selectedItemIndex = menu->itemCount;
         }
         Ui_InitList(menu, &(obj)->panel);
-        menu->field_A = 1;
+        menu->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
         if (arg0->spawnArg1.value == 0) {
             Ui_UpdateLayoutSize(&(obj)->panel, 0, Ui_Scale15(0xA) + 1);
             Ui_SpawnFromDesc(&D_8010F868, 0, 0, 1, obj);
         }
-        menu->field_10              = 0;
-        menu->field_9.unsignedValue = 0;
-        arg0->state                 = arg0->state + 1;
+        menu->selectedItemIndex                   = 0;
+        menu->firstVisibleItemIndex.unsignedValue = 0;
+        arg0->state                               = arg0->state + 1;
     } else {
-        menu->field_5.unsignedValue = menu->field_4 = Gp_CountCollectedBits();
-        if (menu->field_4 < menu->field_10) {
-            menu->field_10 = menu->field_4;
+        menu->visibleRowCount.unsignedValue = menu->itemCount = Gp_CountCollectedBits();
+        if (menu->itemCount < menu->selectedItemIndex) {
+            menu->selectedItemIndex = menu->itemCount;
         }
         Ui_ComputeVisibleRows(menu, &(obj)->panel);
-        menu->field_A = 1;
-        if (menu->field_10 >= menu->field_4) {
-            menu->field_10 = menu->field_4 - 1;
+        menu->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
+        if (menu->selectedItemIndex >= menu->itemCount) {
+            menu->selectedItemIndex = menu->itemCount - 1;
         }
         Ui_UpdateListNoAnim(menu, obj);
         if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {

@@ -1374,13 +1374,13 @@ static void Mc_StateFileSelect(Task* task, McWork* work)
     child = task->firstChild;
     if (child == NULL) {
         if (Ui_SpawnFromDesc(Mc_LoadListDescriptors, work, 1, 2, obj) != 0) {
-            Mc_LoadSlotList.field_4 = work->entryCount;
+            Mc_LoadSlotList.itemCount = work->entryCount;
             if (work->entryCount < 0xF - work->freeBlockCount) {
-                Mc_LoadSlotList.field_4++;
+                Mc_LoadSlotList.itemCount++;
             }
-            Mc_LoadSlotList.field_10 = work->selectedSlot;
-            obj->resultValue         = 0;
-            obj->panel.control.word  = USER_INTERFACE_PANEL_INACTIVE;
+            Mc_LoadSlotList.selectedItemIndex = work->selectedSlot;
+            obj->resultValue                  = 0;
+            obj->panel.control.word           = USER_INTERFACE_PANEL_INACTIVE;
         }
     } else {
         childObj = child->spawnArg2.pointer;
@@ -1964,9 +1964,9 @@ static void Mc_StateSyncFileSelect(Task* task, McWork* work)
     child = task->firstChild;
     if (child == NULL) {
         if (Ui_SpawnFromDesc(Mc_SaveListDesc, work, 1, 2, obj) != 0) {
-            Mc_SaveSlotList.field_4 = work->entryCount;
-            obj->resultValue        = 0;
-            obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+            Mc_SaveSlotList.itemCount = work->entryCount;
+            obj->resultValue          = 0;
+            obj->panel.control.word   = USER_INTERFACE_PANEL_INACTIVE;
         }
     } else {
         childObj = child->spawnArg2.pointer;
@@ -2368,18 +2368,18 @@ static void Mc_StateSaveSlotUi(UiList* list, UiObject* object)
     s32     enabled;
 
     enabled           = 1;
-    previewByteOffset = list->field_8 * sizeof(McSavePreview) + OFFSET_OF(McWork, previews);
+    previewByteOffset = list->currentItemIndex * sizeof(McSavePreview) + OFFSET_OF(McWork, previews);
     base              = object->owner->spawnArg1.pointer;
     if (!_mcVerifySaveHdrChecksum((McSavePreview*)((u8*)base + previewByteOffset))) {
         enabled = 0;
         Ui_LookupTable(object, 2);
     }
-    Mc_DrawSlotDetails(object, base, list->field_8, 0, list->field_1A + 7);
-    if (list->field_C == 1) {
+    Mc_DrawSlotDetails(object, base, list->currentItemIndex, 0, list->rowTextY.signedValue + 7);
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (enabled && Pad_CheckButtons(0, 1, Pad_MaskConfirm)) {
             SndEvt_EnqueueType6(SOUND_SYSTEM_CONFIRM, 0, 0);
             object->result      = USER_INTERFACE_RESULT_CONFIRM;
-            object->resultValue = list->field_8;
+            object->resultValue = list->currentItemIndex;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel)) {
             SndEvt_EnqueueType6(SOUND_SYSTEM_CANCEL, 0, 0);
             object->result      = USER_INTERFACE_RESULT_CONFIRM;

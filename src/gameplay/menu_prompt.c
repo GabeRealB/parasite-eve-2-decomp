@@ -351,9 +351,9 @@ static void func_800C0B98(UiList* arg0, UiObject* arg1, u32 arg2)
 
     p              = gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
-    p->x0          = (u16)arg0->field_18 + arg1->panel.contentOriginX.unsignedValue;
-    p->y0          = (u16)arg0->field_1A + arg1->panel.contentOriginY.unsignedValue - 0xF;
-    if (arg0->field_C == 1) {
+    p->x0          = arg0->rowTextX.unsignedValue + arg1->panel.contentOriginX.unsignedValue;
+    p->y0          = arg0->rowTextY.unsignedValue + arg1->panel.contentOriginY.unsignedValue - 0xF;
+    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         p->clut = 0x3C09;
     } else {
         p->clut = 0x3C01;
@@ -1131,7 +1131,7 @@ static inline void _gpDrawItemNameAt(UiObject* obj, s32 x, s32 y, s32 color, s32
 /// in its colour.
 static inline void _gpDrawItemName(UiList* prompt, UiObject* obj, s32 item, s32 mode)
 {
-    _gpDrawItemNameAt(obj, prompt->field_18, prompt->field_1A, prompt->field_1C, item, mode);
+    _gpDrawItemNameAt(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, prompt->colorRgb, item, mode);
 }
 
 /// Returns the `index`-th row (from 0) of `scan` that is free to reorder -
@@ -1201,7 +1201,7 @@ void Gp_DrawItemOrderRow(UiList* arg0, UiObject* arg1)
     s32               idx2;
     UiObject*         obj;
 
-    sel = _gpNthLooseRec(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, arg0->field_8);
+    sel = _gpNthLooseRec(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, arg0->currentItemIndex);
     if (sel == NULL) {
         Gp_DrawSortCmd(arg0, arg1);
         return;
@@ -1210,7 +1210,7 @@ void Gp_DrawItemOrderRow(UiList* arg0, UiObject* arg1)
     item   = sel->itemId;
     status = arg1->panel.control.word;
     if (((status >> 16) == 1) || (status == 1)) {
-        if (arg0->field_10 == arg0->field_8) {
+        if (arg0->selectedItemIndex == arg0->currentItemIndex) {
             if (Gp_ItemOrderMode == 0) {
                 GP_SHOW_ITEM_IN_HOLDER(item);
             } else {
@@ -1220,9 +1220,9 @@ void Gp_DrawItemOrderRow(UiList* arg0, UiObject* arg1)
     }
 
     if (Gp_ItemOrderMode == 1) {
-        if (arg0->field_C != 1) {
+        if (arg0->rowInputEnabled != USER_INTERFACE_LIST_ROW_ACTIVE) {
             if (sel == Gp_SelItemRec) {
-                arg0->field_1C = 0x37A78;
+                arg0->colorRgb = 0x37A78;
             }
         }
     }
@@ -1236,9 +1236,9 @@ void Gp_DrawItemOrderRow(UiList* arg0, UiObject* arg1)
         s32         qty;
         s32         baseY;
 
-        x     = arg0->field_18;
-        y     = arg0->field_1A;
-        color = arg0->field_1C;
+        x     = arg0->rowTextX.signedValue;
+        y     = arg0->rowTextY.signedValue;
+        color = arg0->colorRgb;
         if (sel != NULL) {
             if ((u32)(sel->itemId - 0xA0) < 0x20U) {
                 qty            = sel->qty - Gp_CountEquippedRelated(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, sel->itemId);
@@ -1259,7 +1259,7 @@ void Gp_DrawItemOrderRow(UiList* arg0, UiObject* arg1)
 
     _gpDrawItemName(arg0, arg1, item, 1);
 
-    if (arg0->field_C == 1) {
+    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (Gp_ItemOrderMode == 0) {
             Gp_SelItemRec = sel;
             if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
@@ -1374,13 +1374,13 @@ void Gp_CountAmmoRows(UiList* arg0, s32 arg1)
         } while (i < scan->rowCount);
     }
 
-    arg0->field_4               = count;
-    arg0->field_5.unsignedValue = count;
+    arg0->itemCount                     = count;
+    arg0->visibleRowCount.unsignedValue = count;
     if (arg1 == 0) {
-        arg0->field_7               = 0xF;
-        arg0->field_5.unsignedValue = 4;
+        arg0->rowHeight                     = 0xF;
+        arg0->visibleRowCount.unsignedValue = 4;
     } else {
-        arg0->field_7 = 0xF;
+        arg0->rowHeight = 0xF;
     }
 }
 
@@ -1393,11 +1393,11 @@ static __inline__ void countItemRows(UiList* menu)
     s32                 ok;
     s32                 id;
 
-    scan          = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-    table         = Gp_GetItemTable(scan);
-    table         = &table[scan->firstRow];
-    menu->field_4 = scan->rowCount;
-    count         = scan->rowCount;
+    scan            = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
+    table           = Gp_GetItemTable(scan);
+    table           = &table[scan->firstRow];
+    menu->itemCount = scan->rowCount;
+    count           = scan->rowCount;
     for (i = 0; i < count; i++, table++) {
         id = table->itemId;
         ok = 1;
@@ -1407,13 +1407,13 @@ static __inline__ void countItemRows(UiList* menu)
             ok = 0;
         }
         if (ok == 0) {
-            menu->field_4--;
+            menu->itemCount--;
         }
     }
-    menu->field_4               = menu->field_4 + 1;
-    menu->field_5.unsignedValue = menu->field_4;
-    if (menu->field_5.signedValue >= 0xA) {
-        menu->field_5.unsignedValue = 9;
+    menu->itemCount                     = menu->itemCount + 1;
+    menu->visibleRowCount.unsignedValue = menu->itemCount;
+    if (menu->visibleRowCount.signedValue >= 0xA) {
+        menu->visibleRowCount.unsignedValue = 9;
     }
 }
 
@@ -1443,17 +1443,17 @@ static void Gp_ItemListTask(Task* arg0)
             Ui_TeardownTree(obj, arg0);
             return;
         }
-        arg0->work    = workAllocation;
-        menu->field_6 = 0;
+        arg0->work           = workAllocation;
+        menu->wrapNavigation = 0;
         countItemRows(menu);
-        menu->field_5.unsignedValue = 9;
-        menu->field_4               = 9;
+        menu->visibleRowCount.unsignedValue = 9;
+        menu->itemCount                     = 9;
         Ui_LayoutListPanel(menu, &(obj)->panel);
         countItemRows(menu);
-        menu->field_A               = 1;
-        menu->field_10              = 0;
-        menu->field_9.unsignedValue = 0;
-        child                       = Ui_SpawnFromDesc(&D_8010EB40, 0, 0, 1, obj);
+        menu->flags                               = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
+        menu->selectedItemIndex                   = 0;
+        menu->firstVisibleItemIndex.unsignedValue = 0;
+        child                                     = Ui_SpawnFromDesc(&D_8010EB40, 0, 0, 1, obj);
         if (child != NULL) {
             child->panel.bounds.unsignedRect.y = obj->panel.bounds.unsignedRect.y + obj->panel.bounds.unsignedRect.h;
         }
@@ -1462,12 +1462,12 @@ static void Gp_ItemListTask(Task* arg0)
     Ui_DrawText(&(obj)->panel, Gp_StrItemHdr);
     countItemRows(menu);
     Ui_ComputeVisibleRows(menu, &(obj)->panel);
-    menu->field_A = 1;
-    if (menu->field_10 >= (s32)menu->field_4) {
-        menu->field_10 = menu->field_4 - 1;
+    menu->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
+    if (menu->selectedItemIndex >= menu->itemCount) {
+        menu->selectedItemIndex = menu->itemCount - 1;
     }
-    if ((menu->field_4 - menu->field_5.signedValue) < menu->field_9.signedValue) {
-        menu->field_9.unsignedValue = menu->field_4 - menu->field_5.unsignedValue;
+    if ((menu->itemCount - menu->visibleRowCount.signedValue) < menu->firstVisibleItemIndex.signedValue) {
+        menu->firstVisibleItemIndex.unsignedValue = menu->itemCount - menu->visibleRowCount.unsignedValue;
     }
     Ui_UpdateListNoAnim(menu, obj);
     status = obj->panel.control.word;
@@ -1595,7 +1595,7 @@ void Gp_DrawWeaponSlotRow(UiList* prompt, UiObject* obj)
     }
 
     status = obj->panel.control.word;
-    if (((status >> 16) == 1 || status == 1) && prompt->field_10 == prompt->field_8) {
+    if (((status >> 16) == 1 || status == 1) && prompt->selectedItemIndex == prompt->currentItemIndex) {
         if (Gp_ItemOrderMode == 0) {
             if (item == 0) {
                 Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
@@ -1608,7 +1608,7 @@ void Gp_DrawWeaponSlotRow(UiList* prompt, UiObject* obj)
         }
     }
 
-    status = prompt->field_C;
+    status = prompt->rowInputEnabled;
     if (status == 1) {
         mode = Gp_ItemOrderMode;
         if (mode == 0) {
@@ -1633,7 +1633,7 @@ void Gp_DrawWeaponSlotRow(UiList* prompt, UiObject* obj)
             }
             if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
                 Gp_CountAmmoRows(&D_8010E9A4, 0);
-                if (D_8010E9A4.field_4 >= 2U || (D_8010E9A4.field_4 == 1 && player->weapon == PLAYER_STATUS_EQUIPMENT_NONE)) {
+                if (D_8010E9A4.itemCount >= 2U || (D_8010E9A4.itemCount == 1 && player->weapon == PLAYER_STATUS_EQUIPMENT_NONE)) {
                     UiObject* spawned;
                     SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
                     spawned = Ui_SpawnFromDesc(&D_8010ECE4, 0, 1, 0x10, obj);
@@ -1675,9 +1675,9 @@ void Gp_DrawWeaponSlotRow(UiList* prompt, UiObject* obj)
         }
     }
 
-    x     = prompt->field_18;
-    y     = prompt->field_1A;
-    color = prompt->field_1C;
+    x     = prompt->rowTextX.signedValue;
+    y     = prompt->rowTextY.signedValue;
+    color = prompt->colorRgb;
     if (obj->panel.state != USER_INTERFACE_PANEL_HIDDEN) {
         req.x          = obj->panel.contentOriginX.unsignedValue + 0x11 + x;
         req.y          = obj->panel.contentOriginY.unsignedValue + (y - 6);
@@ -1696,15 +1696,15 @@ void Gp_DrawWeaponSlotRow(UiList* prompt, UiObject* obj)
 
     uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 0x11);
 
-    req.x          = obj->panel.contentOriginX.unsignedValue + prompt->field_18;
-    req.y          = prompt->field_1A + (obj->panel.contentOriginY.unsignedValue + 9);
+    req.x          = obj->panel.contentOriginX.unsignedValue + prompt->rowTextX.signedValue;
+    req.y          = prompt->rowTextY.signedValue + (obj->panel.contentOriginY.unsignedValue + 9);
     req.otIndex    = obj->panel.otIndex.signedValue + 1;
     req.colorRgb   = 0x606060;
     req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req, Gp_StrAmmoCaps);
-    prompt->field_1A += 0xA;
+    prompt->rowTextY.signedValue += 0xA;
 }
 
 void Gp_DrawWeaponSlotRow2(UiList* prompt, UiObject* obj)
@@ -1733,7 +1733,7 @@ void Gp_DrawWeaponSlotRow2(UiList* prompt, UiObject* obj)
     weapon = gPlayerStatus.weapon + 0x7F;
     if (weapon >= 0x80) {
         slot = Gp_GetItemSlot(weapon);
-        if (prompt->field_8 == 1) {
+        if (prompt->currentItemIndex == 1) {
             item  = slot->primaryItemId;
             count = slot->primaryQty;
         } else {
@@ -1742,7 +1742,7 @@ void Gp_DrawWeaponSlotRow2(UiList* prompt, UiObject* obj)
         }
     }
     status = obj->panel.control.word;
-    if (((status >> 16) == 1 || status == 1) && prompt->field_10 == prompt->field_8) {
+    if (((status >> 16) == 1 || status == 1) && prompt->selectedItemIndex == prompt->currentItemIndex) {
         if (Gp_ItemOrderMode == 0) {
             if (item != 0) {
                 Ui_SetHolderParam(Gp_GetItemText(item, 1, 0), 0, 0);
@@ -1759,9 +1759,9 @@ void Gp_DrawWeaponSlotRow2(UiList* prompt, UiObject* obj)
         s32 y;
         s32 color;
         s32 off;
-        x                       = prompt->field_18;
-        y                       = prompt->field_1A;
-        color                   = prompt->field_1C;
+        x                       = prompt->rowTextX.signedValue;
+        y                       = prompt->rowTextY.signedValue;
+        color                   = prompt->colorRgb;
         draw.qty.req.x          = obj->panel.contentOriginX.unsignedValue + 0x84 + x;
         off                     = obj->panel.contentOriginY.unsignedValue - 3;
         draw.qty.req.y          = off + y;
@@ -1779,9 +1779,9 @@ void Gp_DrawWeaponSlotRow2(UiList* prompt, UiObject* obj)
         s32 color;
         s32 off;
         s32 temp;
-        x     = prompt->field_18;
-        y     = prompt->field_1A;
-        color = prompt->field_1C;
+        x     = prompt->rowTextX.signedValue;
+        y     = prompt->rowTextY.signedValue;
+        color = prompt->colorRgb;
         if (item == 0) {
             Ui_LayoutWithMode0(obj, x, y - 0xE, 0xE, 0xE, 0x102010);
         } else {
@@ -1804,9 +1804,9 @@ void Gp_DrawWeaponSlotRow2(UiList* prompt, UiObject* obj)
             Ui_LayoutWithMode0(obj, x, y - 0xE, 0xE, 0xE, 0);
         }
     }
-    rowState = prompt->field_C;
+    rowState = prompt->rowInputEnabled;
     if (rowState == 1) {
-        Gp_ReloadMode = prompt->field_8;
+        Gp_ReloadMode = prompt->currentItemIndex;
         mode          = Gp_ItemOrderMode;
         if (mode == 0) {
             rec = NULL;
@@ -1864,11 +1864,11 @@ static inline void _gpWeaponMenuSetRows(UiList* menu)
     id   = gPlayerStatus.weapon + 0x7F;
     slot = Gp_GetItemSlot(id);
     if (id < 0x80 || id == 0x92) {
-        menu->field_4 = 1;
+        menu->itemCount = 1;
     } else if (slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
-        menu->field_4 = 3;
+        menu->itemCount = 3;
     } else {
-        menu->field_4 = 2;
+        menu->itemCount = 2;
     }
 }
 
@@ -1896,7 +1896,7 @@ void Gp_WeaponMenuTask(Task* arg0)
     Ui_DrawText(&(obj)->panel, Gp_StrWeaponTitle);
     if (arg0->state == 0) {
         _gpWeaponMenuSetRows(menu);
-        menu->field_10 = 0;
+        menu->selectedItemIndex = 0;
         Ui_InitList(menu, &(obj)->panel);
         arg0->state = arg0->state + 1;
     }
@@ -1910,7 +1910,7 @@ void Gp_WeaponMenuTask(Task* arg0)
     }
     status = obj->panel.control.word;
     if (status == 1) {
-        if (menu->field_22 == 3) {
+        if (menu->actionResult == USER_INTERFACE_LIST_ACTION_AT_END) {
             SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
             D_80114D98[1]->resultValue        = -0xA0;
             D_80114D98[1]->panel.control.word = USER_INTERFACE_PANEL_FOCUS_TRANSFER;
@@ -1929,19 +1929,19 @@ void Gp_WeaponMenuTask(Task* arg0)
 
                 parentObj = parent->spawnArg2.pointer;
                 SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
-                *(s32*)&cursor  = Ui_GetCursorFixed();
-                other           = &D_8010E854;
-                row             = cursor.unk2 - (parentObj->panel.contentOriginY.unsignedValue + parentObj->panel.contentTop.unsignedValue);
-                row             = row / other->field_7;
-                vis             = other->field_5.signedValue;
-                row9            = other->field_9.signedValue;
-                sel             = row + row9;
-                other->field_10 = sel;
+                *(s32*)&cursor           = Ui_GetCursorFixed();
+                other                    = &D_8010E854;
+                row                      = cursor.unk2 - (parentObj->panel.contentOriginY.unsignedValue + parentObj->panel.contentTop.unsignedValue);
+                row                      = row / other->rowHeight;
+                vis                      = other->visibleRowCount.signedValue;
+                row9                     = other->firstVisibleItemIndex.signedValue;
+                sel                      = row + row9;
+                other->selectedItemIndex = sel;
                 if (sel >= row9 + vis) {
-                    other->field_10 = row9 + vis - 1;
+                    other->selectedItemIndex = row9 + vis - 1;
                 }
-                if (other->field_10 >= other->field_4) {
-                    other->field_10 = other->field_4 - 1;
+                if (other->selectedItemIndex >= other->itemCount) {
+                    other->selectedItemIndex = other->itemCount - 1;
                 }
                 parentObj->panel.control.word = status;
                 obj->panel.control.word       = USER_INTERFACE_PANEL_INACTIVE;
@@ -2006,14 +2006,14 @@ void Gp_WeaponMenuTask(Task* arg0)
         t  = obj->panel.contentOriginY.signedValue;
         t += obj->panel.contentTop.signedValue;
         t  = obj->resultValue - t;
-        if (t < menu->field_7) {
-            menu->field_10 = 0;
-        } else if ((menu->field_7 * 2 + 0xA) >= t) {
-            menu->field_10 = 1;
-        } else if (menu->field_4 < 2) {
-            menu->field_10 = 1;
+        if (t < menu->rowHeight) {
+            menu->selectedItemIndex = 0;
+        } else if ((menu->rowHeight * 2 + 0xA) >= t) {
+            menu->selectedItemIndex = 1;
+        } else if (menu->itemCount < 2) {
+            menu->selectedItemIndex = 1;
         } else {
-            menu->field_10 = 2;
+            menu->selectedItemIndex = 2;
         }
         obj->resultValue        = 0;
         obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
@@ -2044,7 +2044,7 @@ void func_800C41A4(UiList* prompt, UiObject* obj)
         InventoryItemRow*   found;
         s32                 row;
         s32                 i;
-        row   = prompt->field_8;
+        row   = prompt->currentItemIndex;
         scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
         table = Gp_GetItemTable(scan);
         found = NULL;
@@ -2063,7 +2063,7 @@ void func_800C41A4(UiList* prompt, UiObject* obj)
         item = rec->itemId;
     }
     status = obj->panel.control.word;
-    if (((status >> 16) == 1 || status == 1) && prompt->field_10 == prompt->field_8) {
+    if (((status >> 16) == 1 || status == 1) && prompt->selectedItemIndex == prompt->currentItemIndex) {
         if (Gp_ItemOrderMode == 0) {
             if (item != 0) {
                 Ui_SetHolderParam(Gp_GetItemText(item, 1, 0), 0, 0);
@@ -2083,9 +2083,9 @@ void func_800C41A4(UiList* prompt, UiObject* obj)
         s32 id;
         s32 count;
         id    = rec->itemId;
-        x     = prompt->field_18;
-        y     = prompt->field_1A;
-        color = prompt->field_1C;
+        x     = prompt->rowTextX.signedValue;
+        y     = prompt->rowTextY.signedValue;
+        color = prompt->colorRgb;
         if ((u32)(id - 0xA0) < 0x20U) {
             count                   = rec->qty - Gp_CountEquippedRelated(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, id);
             draw.qty.req.x          = obj->panel.contentOriginX.unsignedValue + 0x84 + x;
@@ -2108,9 +2108,9 @@ void func_800C41A4(UiList* prompt, UiObject* obj)
         s32 temp;
         s32 one;
         one   = 1;
-        x     = prompt->field_18;
-        y     = prompt->field_1A;
-        color = prompt->field_1C;
+        x     = prompt->rowTextX.signedValue;
+        y     = prompt->rowTextY.signedValue;
+        color = prompt->colorRgb;
         if (item == 0) {
             Ui_LayoutWithMode0(obj, x, y - 0xE, 0xE, 0xE, 0x102010);
         } else {
@@ -2134,7 +2134,7 @@ void func_800C41A4(UiList* prompt, UiObject* obj)
             Ui_LayoutWithMode0(obj, x, y - 0xE, 0xE, 0xE, 0);
         }
     }
-    rowState = prompt->field_C;
+    rowState = prompt->rowInputEnabled;
     if (rowState == 1) {
         mode = Gp_ItemOrderMode;
         if (mode == rowState) {
@@ -2144,7 +2144,7 @@ void func_800C41A4(UiList* prompt, UiObject* obj)
                 if (!(desc->flags & ITEM_FLAG_NO_ATTACHMENT)) {
                     SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
                     if (Gp_SelItemRec->itemId != INVENTORY_ITEM_NONE) {
-                        Gp_SelItemRec->attachSlot = prompt->field_8 + 1;
+                        Gp_SelItemRec->attachSlot = prompt->currentItemIndex + 1;
                     }
                     if (item != 0) {
                         Gp_RefreshItemRow(rec);
@@ -2196,11 +2196,11 @@ void func_800C41A4(UiList* prompt, UiObject* obj)
 /// Keeps the armor attachment selection within the visible rows and item count.
 static inline void _gpClampArmorRow(UiList* menu, s32 end)
 {
-    if (menu->field_10 >= end) {
-        menu->field_10 = end - 1;
+    if (menu->selectedItemIndex >= end) {
+        menu->selectedItemIndex = end - 1;
     }
-    if (menu->field_10 >= menu->field_4) {
-        menu->field_10 = menu->field_4 - 1;
+    if (menu->selectedItemIndex >= menu->itemCount) {
+        menu->selectedItemIndex = menu->itemCount - 1;
     }
 }
 
@@ -2238,24 +2238,24 @@ void Gp_ArmorMenuTask(Task* arg0)
 
         id = cfg->armor + 0x5F;
         if (id != 0) {
-            menu->field_4 = Gp_GetModLevel(id);
+            menu->itemCount = Gp_GetModLevel(id);
         }
-        menu->field_5.unsignedValue = menu->field_4;
-        if ((s8)menu->field_4 >= 4) {
-            menu->field_5.unsignedValue = 3;
+        menu->visibleRowCount.unsignedValue = menu->itemCount;
+        if ((s8)menu->itemCount >= 4) {
+            menu->visibleRowCount.unsignedValue = 3;
         }
-        if ((menu->field_4 - menu->field_5.signedValue) < menu->field_9.signedValue) {
-            menu->field_9.unsignedValue = 0;
+        if ((menu->itemCount - menu->visibleRowCount.signedValue) < menu->firstVisibleItemIndex.signedValue) {
+            menu->firstVisibleItemIndex.unsignedValue = 0;
         }
-        if (menu->field_14 == 0) {
-            temp = menu->field_9.signedValue + menu->field_5.signedValue;
-            if (menu->field_10 >= temp) {
-                menu->field_10 = temp - 1;
+        if (menu->scrollPixelsRemaining == 0) {
+            temp = menu->firstVisibleItemIndex.signedValue + menu->visibleRowCount.signedValue;
+            if (menu->selectedItemIndex >= temp) {
+                menu->selectedItemIndex = temp - 1;
             }
         }
         Ui_InitList(menu, &(obj)->panel);
-        menu->field_17 = 0x1A;
-        menu->field_A  = 1;
+        menu->topInset = 0x1A;
+        menu->flags    = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
         arg0->state    = arg0->state + 2;
     }
 
@@ -2269,28 +2269,28 @@ void Gp_ArmorMenuTask(Task* arg0)
 
         id = gPlayerStatus.armor + 0x5F;
         if (id != 0) {
-            menu->field_4 = Gp_GetModLevel(id);
+            menu->itemCount = Gp_GetModLevel(id);
         }
         {
             u8 n;
-            n                           = menu->field_4;
-            menu->field_5.unsignedValue = n;
+            n                                   = menu->itemCount;
+            menu->visibleRowCount.unsignedValue = n;
             if ((s8)n >= 4) {
-                menu->field_5.unsignedValue = 3;
+                menu->visibleRowCount.unsignedValue = 3;
             }
         }
-        if ((menu->field_4 - menu->field_5.signedValue) < menu->field_9.signedValue) {
-            menu->field_9.unsignedValue = 0;
+        if ((menu->itemCount - menu->visibleRowCount.signedValue) < menu->firstVisibleItemIndex.signedValue) {
+            menu->firstVisibleItemIndex.unsignedValue = 0;
         }
-        if (menu->field_14 == 0) {
-            temp = menu->field_9.signedValue + menu->field_5.signedValue;
-            if (menu->field_10 >= temp) {
-                menu->field_10 = temp - 1;
+        if (menu->scrollPixelsRemaining == 0) {
+            temp = menu->firstVisibleItemIndex.signedValue + menu->visibleRowCount.signedValue;
+            if (menu->selectedItemIndex >= temp) {
+                menu->selectedItemIndex = temp - 1;
             }
         }
         Ui_ComputeVisibleRows(menu, &(obj)->panel);
-        menu->field_17 = 0x1A;
-        menu->field_A  = 1;
+        menu->topInset = 0x1A;
+        menu->flags    = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
     }
 
     if ((Gp_ItemCountShow == 1) && (Ui_IsStateDone(obj) == 0)) {
@@ -2328,12 +2328,12 @@ void Gp_ArmorMenuTask(Task* arg0)
             Ui_SmoothCursor(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentTop.signedValue + 7);
             if (Pad_CheckButtons(0, 1, 0x4000) != 0) {
                 SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
-                arg0->state    = status;
-                menu->field_10 = menu->field_9.signedValue;
+                arg0->state             = status;
+                menu->selectedItemIndex = menu->firstVisibleItemIndex.signedValue;
             } else if (Pad_CheckButtons(0, 1, 0x1000) != 0) {
                 SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
                 D_80114D98[0]->panel.control.word = status;
-                D_8010E884.field_10               = D_8010E884.field_4 - 1;
+                D_8010E884.selectedItemIndex      = D_8010E884.itemCount - 1;
                 obj->panel.control.word           = USER_INTERFACE_PANEL_INACTIVE;
             } else {
                 s32 flag;
@@ -2354,7 +2354,7 @@ void Gp_ArmorMenuTask(Task* arg0)
                             if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
                                 SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
                                 func_800CF090(&D_8010E9F4, obj);
-                                if (D_8010E9F4.field_4 != 0) {
+                                if (D_8010E9F4.itemCount != 0) {
                                     UiObject* spawned;
                                     SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
                                     spawned = Ui_SpawnFromDesc(&D_8010ECAC, 0, 1, 0x10, obj);
@@ -2400,8 +2400,8 @@ void Gp_ArmorMenuTask(Task* arg0)
     } else {
         s32 val;
         Ui_UpdateListNoAnim(menu, obj);
-        val = menu->field_22;
-        if (val == 2) {
+        val = menu->actionResult;
+        if (val == USER_INTERFACE_LIST_ACTION_AT_START) {
             SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
             arg0->state = val;
         }
@@ -2486,18 +2486,18 @@ void Gp_ArmorMenuTask(Task* arg0)
                     parentObj             = parent->spawnArg2.pointer;
                     *(s32*)&locals.cursor = Ui_GetCursorFixed();
                     SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
-                    other           = &D_8010E854;
-                    row             = locals.cursor.unk2 - (parentObj->panel.contentOriginY.unsignedValue + parentObj->panel.contentTop.unsignedValue);
-                    row             = row / other->field_7;
-                    vis             = other->field_5.signedValue;
-                    row9            = other->field_9.signedValue;
-                    sel             = row + row9;
-                    other->field_10 = sel;
+                    other                    = &D_8010E854;
+                    row                      = locals.cursor.unk2 - (parentObj->panel.contentOriginY.unsignedValue + parentObj->panel.contentTop.unsignedValue);
+                    row                      = row / other->rowHeight;
+                    vis                      = other->visibleRowCount.signedValue;
+                    row9                     = other->firstVisibleItemIndex.signedValue;
+                    sel                      = row + row9;
+                    other->selectedItemIndex = sel;
                     if (sel >= row9 + vis) {
-                        other->field_10 = row9 + vis - 1;
+                        other->selectedItemIndex = row9 + vis - 1;
                     }
-                    if (other->field_10 >= other->field_4) {
-                        other->field_10 = other->field_4 - 1;
+                    if (other->selectedItemIndex >= other->itemCount) {
+                        other->selectedItemIndex = other->itemCount - 1;
                     }
                     parentObj->panel.control.word = st;
                     obj->panel.control.word       = USER_INTERFACE_PANEL_INACTIVE;
@@ -2516,22 +2516,22 @@ void Gp_ArmorMenuTask(Task* arg0)
             s32 h;
 
             arg0->state = 1;
-            h           = menu->field_7;
+            h           = menu->rowHeight;
             t          -= h * 2 + 0xA;
             if (t < 0) {
-                menu->field_10 = menu->field_9.signedValue;
+                menu->selectedItemIndex = menu->firstVisibleItemIndex.signedValue;
             } else {
                 s32          row9;
                 s32          f5;
                 register s32 vis asm("a0");
                 t    = t / h;
-                row9 = menu->field_9.signedValue;
-                f5   = menu->field_5.signedValue;
+                row9 = menu->firstVisibleItemIndex.signedValue;
+                f5   = menu->visibleRowCount.signedValue;
                 vis  = row9;
                 TOUCH_REG(vis);
-                vis            = vis + f5;
-                t              = t + 1;
-                menu->field_10 = t + row9;
+                vis                     = vis + f5;
+                t                       = t + 1;
+                menu->selectedItemIndex = t + row9;
                 _gpClampArmorRow(menu, vis);
             }
         }

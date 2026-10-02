@@ -42,7 +42,7 @@ static void Telephone_DrawGauge(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32
 static void Telephone_ClosePrompt(Task* task);
 
 /// Draws one row of the play-data panel, the row picked by
-/// `UiList::field_8`: a caption followed by a value - play time, one of
+/// `UiList::currentItemIndex`: a caption followed by a value - play time, one of
 /// several counters with a unit suffix, or a percentage kept in hundredths
 /// whose decimal point is inserted by hand (row 5 also draws a gauge and takes
 /// an extra line). While the cursor is on the row its help string is shown.
@@ -53,7 +53,7 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
 
     p = buf;
     if (((arg1->panel.control.word >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (arg1->panel.control.word == USER_INTERFACE_PANEL_ACTIVE)) {
-        if (arg0->field_10 == arg0->field_8) {
+        if (arg0->selectedItemIndex == arg0->currentItemIndex) {
             u8* tbl[9] = {
                 Telephone_Data_80181A7C,
                 Telephone_Data_80181AA8,
@@ -66,80 +66,80 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
                 Telephone_Data_80181C08,
             };
 
-            Ui_SetHolderParam(tbl[arg0->field_8], 0, 0);
+            Ui_SetHolderParam(tbl[arg0->currentItemIndex], 0, 0);
         }
     }
 
-    switch (arg0->field_8) {
+    switch (arg0->currentItemIndex) {
         case 0: {
             TextDrawReq req;
             s32         y;
 
-            req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
+            req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
             y              = arg1->panel.contentOriginY.unsignedValue - 6;
-            req.y          = (u16)arg0->field_1A + y;
+            req.y          = arg0->rowTextY.unsignedValue + y;
             req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-            req.colorRgb   = arg0->field_1C;
+            req.colorRgb   = arg0->colorRgb;
             req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
             req.alignment  = TEXT_ALIGNMENT_LEFT;
             req.drawMode   = TEXT_DRAW_OUTLINED;
             Text_DrawString(&req, Telephone_Data_80181A20);
             Text_FormatTime(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+            Text_DrawPrompt(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, buf, arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
             break;
         }
         case 1: {
             TextDrawReq req;
             s32         y;
 
-            req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
+            req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
             y              = arg1->panel.contentOriginY.unsignedValue - 6;
-            req.y          = (u16)arg0->field_1A + y;
+            req.y          = arg0->rowTextY.unsignedValue + y;
             req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-            req.colorRgb   = arg0->field_1C;
+            req.colorRgb   = arg0->colorRgb;
             req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
             req.alignment  = TEXT_ALIGNMENT_LEFT;
             req.drawMode   = TEXT_DRAW_OUTLINED;
             Text_DrawString(&req, Telephone_Data_80181A50);
             Text_ItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.saveCount);
             Text_Strcat(p, Telephone_Data_80181A70);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+            Text_DrawPrompt(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, buf, arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
             break;
         }
         case 2: {
             TextDrawReq req;
             s32         y;
 
-            req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
+            req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
             y              = arg1->panel.contentOriginY.unsignedValue - 6;
-            req.y          = (u16)arg0->field_1A + y;
+            req.y          = arg0->rowTextY.unsignedValue + y;
             req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-            req.colorRgb   = arg0->field_1C;
+            req.colorRgb   = arg0->colorRgb;
             req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
             req.alignment  = TEXT_ALIGNMENT_LEFT;
             req.drawMode   = TEXT_DRAW_OUTLINED;
             Text_DrawString(&req, Telephone_Data_80181A28);
             Text_ItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.battlesWon);
             Text_Strcat(p, Telephone_Data_80181A70);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+            Text_DrawPrompt(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, buf, arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
             break;
         }
         case 3: {
             TextDrawReq req;
             s32         y;
 
-            req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
+            req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
             y              = arg1->panel.contentOriginY.unsignedValue - 6;
-            req.y          = (u16)arg0->field_1A + y;
+            req.y          = arg0->rowTextY.unsignedValue + y;
             req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-            req.colorRgb   = arg0->field_1C;
+            req.colorRgb   = arg0->colorRgb;
             req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
             req.alignment  = TEXT_ALIGNMENT_LEFT;
             req.drawMode   = TEXT_DRAW_OUTLINED;
             Text_DrawString(&req, Telephone_Data_80181A2C);
             Text_ItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.battlesEscaped);
             Text_Strcat(p, Telephone_Data_80181A70);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+            Text_DrawPrompt(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, buf, arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
             break;
         }
         case 4: {
@@ -151,11 +151,11 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             s32         i;
             u8*         q;
 
-            req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
+            req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
             y              = arg1->panel.contentOriginY.unsignedValue - 6;
-            req.y          = (u16)arg0->field_1A + y;
+            req.y          = arg0->rowTextY.unsignedValue + y;
             req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-            req.colorRgb   = arg0->field_1C;
+            req.colorRgb   = arg0->colorRgb;
             req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
             req.alignment  = TEXT_ALIGNMENT_LEFT;
             req.drawMode   = TEXT_DRAW_OUTLINED;
@@ -187,7 +187,7 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             }
             q[1] = 0x2E;
             Text_Strcat(p, Telephone_Data_80181A78);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+            Text_DrawPrompt(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, buf, arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
             break;
         }
         case 5: {
@@ -202,11 +202,11 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             u8*         q;
 
             total          = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.battlesWon;
-            req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
+            req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
             y              = arg1->panel.contentOriginY.unsignedValue - 6;
-            req.y          = (u16)arg0->field_1A + y;
+            req.y          = arg0->rowTextY.unsignedValue + y;
             req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-            req.colorRgb   = arg0->field_1C;
+            req.colorRgb   = arg0->colorRgb;
             req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
             req.alignment  = TEXT_ALIGNMENT_LEFT;
             req.drawMode   = TEXT_DRAW_OUTLINED;
@@ -240,61 +240,61 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             }
             q[1] = 0x2E;
             Text_Strcat(p, Telephone_Data_80181A78);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
-            uiDrawHorizontalSeparator(&(arg1)->panel, arg1->panel.contentLeft.signedValue, arg1->panel.contentRight.signedValue, arg0->field_1A + 3);
-            arg0->field_1A = (u16)arg0->field_1A + 5;
+            Text_DrawPrompt(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, buf, arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+            uiDrawHorizontalSeparator(&(arg1)->panel, arg1->panel.contentLeft.signedValue, arg1->panel.contentRight.signedValue, arg0->rowTextY.signedValue + 3);
+            arg0->rowTextY.signedValue = arg0->rowTextY.unsignedValue + 5;
             break;
         }
         case 6: {
             TextDrawReq req;
             s32         y;
 
-            req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
+            req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
             y              = arg1->panel.contentOriginY.unsignedValue - 6;
-            req.y          = (u16)arg0->field_1A + y;
+            req.y          = arg0->rowTextY.unsignedValue + y;
             req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-            req.colorRgb   = arg0->field_1C;
+            req.colorRgb   = arg0->colorRgb;
             req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
             req.alignment  = TEXT_ALIGNMENT_LEFT;
             req.drawMode   = TEXT_DRAW_OUTLINED;
             Text_DrawString(&req, Telephone_Data_80181A58);
             Text_ItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount);
             Text_Strcat(p, Telephone_Data_80181A70);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+            Text_DrawPrompt(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, buf, arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
             break;
         }
         case 7: {
             TextDrawReq req;
             s32         y;
 
-            req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
+            req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
             y              = arg1->panel.contentOriginY.unsignedValue - 6;
-            req.y          = (u16)arg0->field_1A + y;
+            req.y          = arg0->rowTextY.unsignedValue + y;
             req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-            req.colorRgb   = arg0->field_1C;
+            req.colorRgb   = arg0->colorRgb;
             req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
             req.alignment  = TEXT_ALIGNMENT_LEFT;
             req.drawMode   = TEXT_DRAW_OUTLINED;
             Text_DrawString(&req, Telephone_Data_80181A60);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.maxExp),
-                            arg0->field_1C, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+            Text_DrawPrompt(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, Text_ItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.maxExp),
+                            arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
             break;
         }
         case 8: {
             TextDrawReq req;
             s32         y;
 
-            req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
+            req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
             y              = arg1->panel.contentOriginY.unsignedValue - 6;
-            req.y          = (u16)arg0->field_1A + y;
+            req.y          = arg0->rowTextY.unsignedValue + y;
             req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-            req.colorRgb   = arg0->field_1C;
+            req.colorRgb   = arg0->colorRgb;
             req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
             req.alignment  = TEXT_ALIGNMENT_LEFT;
             req.drawMode   = TEXT_DRAW_OUTLINED;
             Text_DrawString(&req, Telephone_Data_80181A68);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.maxBp),
-                            arg0->field_1C, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+            Text_DrawPrompt(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, Text_ItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.maxBp),
+                            arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
             break;
         }
     }
@@ -339,12 +339,12 @@ static void Telephone_DrawUsageRow(UiList* arg0, UiObject* arg1)
 
     p       = buf;
     request = &req;
-    x       = arg0->field_18;
-    y       = arg0->field_1A;
+    x       = arg0->rowTextX.signedValue;
+    y       = arg0->rowTextY.signedValue;
     work    = (RoomItemUsage*)arg1->owner->work;
-    item    = work->itemIds[arg0->field_8];
-    value   = work->percents[arg0->field_8];
-    color   = arg0->field_1C;
+    item    = work->itemIds[arg0->currentItemIndex];
+    value   = work->percents[arg0->currentItemIndex];
+    color   = arg0->colorRgb;
     if (arg1->panel.state != USER_INTERFACE_PANEL_HIDDEN) {
         req.x             = arg1->panel.contentOriginX.unsignedValue + 0x11 + x;
         textY             = arg1->panel.contentOriginY.unsignedValue - 6;
@@ -359,7 +359,7 @@ static void Telephone_DrawUsageRow(UiList* arg0, UiObject* arg1)
     }
     limit = 1;
     if (value >= 10000) {
-        Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Telephone_Data_8017D61C, arg0->field_1C, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+        Text_DrawPrompt(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, Telephone_Data_8017D61C, arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
     } else {
         for (i = 2; i > 0; i--) {
             limit *= 10;
@@ -386,14 +386,14 @@ static void Telephone_DrawUsageRow(UiList* arg0, UiObject* arg1)
         }
         q[1] = '.';
         Text_Strcat(p, Telephone_Data_80181A78);
-        Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+        Text_DrawPrompt(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, buf, arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
     }
 
     base  = arg1->panel.contentLeft.signedValue + 0x80;
     avail = arg1->panel.contentRight.signedValue - 0x4A;
     barW  = avail - base;
-    barW  = (barW * work->barWidths[arg0->field_8]) >> 12;
-    rowY  = arg0->field_1A - 0xC;
+    barW  = (barW * work->barWidths[arg0->currentItemIndex]) >> 12;
+    rowY  = arg0->rowTextY.signedValue - 0xC;
     barW  = barW + 2;
     barX  = avail - barW;
     if (barW >= 2) {
@@ -422,14 +422,14 @@ static void Telephone_DrawUsageRow(UiList* arg0, UiObject* arg1)
         addPrim(gGpuCurrentOt + arg1->panel.otIndex.signedValue + 1, prim);
     }
     one = 1;
-    Ui_DrawBeveledRect(&(arg1)->panel, barX, arg0->field_1A - 0xC, barW, 9, 0, one);
+    Ui_DrawBeveledRect(&(arg1)->panel, barX, arg0->rowTextY.signedValue - 0xC, barW, 9, 0, one);
     if (((arg1->panel.control.word >> 16) == one) || (arg1->panel.control.word == one)) {
-        if (arg0->field_10 == arg0->field_8) {
+        if (arg0->selectedItemIndex == arg0->currentItemIndex) {
             Gp_SetPreviewItem(item, 0);
             Gp_SetHolderItemText(item);
         }
     }
-    if (arg0->field_C == 1) {
+    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (Pad_CheckButtons(0, 1, 0x10) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             Ui_SpawnFromDesc(&D_8010EFA0, item, 1, 1, arg1);
@@ -516,9 +516,9 @@ static void Telephone_BuildWeaponUsage(UiList* list, UiObject* obj)
         }
     }
 
-    list->field_4               = count;
-    list->field_9.unsignedValue = 0;
-    list->field_10              = 0;
+    list->itemCount                           = count;
+    list->firstVisibleItemIndex.unsignedValue = 0;
+    list->selectedItemIndex                   = 0;
 }
 
 /// Parasite Energy counterpart of `Telephone_BuildWeaponUsage`: fills
@@ -617,9 +617,9 @@ static void Telephone_BuildPeUsage(UiList* list, UiObject* obj)
         }
     }
 
-    list->field_4               = count;
-    list->field_9.unsignedValue = 0;
-    list->field_10              = 0;
+    list->itemCount                           = count;
+    list->firstVisibleItemIndex.unsignedValue = 0;
+    list->selectedItemIndex                   = 0;
 }
 
 static const char Telephone_Data_8017D624[] = "Weapon Data";
@@ -660,7 +660,7 @@ static void Telephone_UsageTask(Task* task)
             Telephone_BuildPeUsage(list, obj);
         }
         Ui_InitList(list, &(obj)->panel);
-        list->field_A = 1;
+        list->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
         Ui_SetListScrollFlag(list, 1);
         task->state += 1;
     }

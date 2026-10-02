@@ -50,7 +50,7 @@ STATIC_ASSERT_SIZEOF(RoomTextBlock, 0x20);
 /// 0xA4 work block a shop / vending-machine panel task allocates and parks in
 /// `Task::work`: the `UiList` the panel is drawn from, followed by the ids of
 /// the items the room currently offers. The overlay's list builder fills
-/// `items` while counting them into `list.field_4`, then sorts that prefix in
+/// `items` while counting them into `list.itemCount`, then sorts that prefix in
 /// place, so one allocation carries both the list state and its contents.
 typedef struct RoomShopList {
     /* 0x00 */ UiList list;

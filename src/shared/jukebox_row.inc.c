@@ -12,7 +12,7 @@ void jukeboxDrawRow(UiList* prompt, UiObject* obj)
     s32                        list;
     s32                        mode;
 
-    row  = prompt->field_8;
+    row  = prompt->currentItemIndex;
     menu = _gJukeboxTrackLists;
 
     list = 4;
@@ -24,19 +24,19 @@ void jukeboxDrawRow(UiList* prompt, UiObject* obj)
     }
 
     course              = &menu.lists[list][row];
-    menu.req.x          = obj->panel.contentOriginX.unsignedValue + (u16)prompt->field_18;
-    menu.req.y          = (prompt->field_1A - 3) + obj->panel.contentOriginY.unsignedValue;
+    menu.req.x          = obj->panel.contentOriginX.unsignedValue + prompt->rowTextX.unsignedValue;
+    menu.req.y          = (prompt->rowTextY.signedValue - 3) + obj->panel.contentOriginY.unsignedValue;
     menu.req.otIndex    = obj->panel.otIndex.signedValue + 1;
-    menu.req.colorRgb   = prompt->field_1C;
+    menu.req.colorRgb   = prompt->colorRgb;
     menu.req.glyphTable = TEXT_GLYPH_TABLE_LARGE;
     menu.req.drawMode   = TEXT_DRAW_OUTLINED;
     menu.req.alignment  = TEXT_ALIGNMENT_LEFT;
     Text_DrawString(&menu.req, course->name);
 
-    mode = prompt->field_C;
+    mode = prompt->rowInputEnabled;
     if (mode == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            if (obj->owner->spawnArg1.value != prompt->field_8) {
+            if (obj->owner->spawnArg1.value != prompt->currentItemIndex) {
                 SndEvt_EnqueueType6(SOUND_SYSTEM_CONFIRM, 0, 0);
                 if (obj->owner->status != course->id) {
                     SndEvt_EnqueueType2(0, 0x3C);
@@ -44,7 +44,7 @@ void jukeboxDrawRow(UiList* prompt, UiObject* obj)
                     obj->owner->status = course->id;
                     CdCmd_DropPending();
                 }
-                obj->owner->spawnArg1.value = prompt->field_8;
+                obj->owner->spawnArg1.value = prompt->currentItemIndex;
             }
         }
     }

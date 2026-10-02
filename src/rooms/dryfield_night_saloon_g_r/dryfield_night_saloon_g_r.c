@@ -2082,19 +2082,19 @@ void func_dryfield_night_saloon_g_r_8017E28C(Task* task)
     if (task->state == 0) {
         task->spawnArg1.value = -1;
         if (Gp_IsDebugAttachRoom() == 0) {
-            menu->field_4 = 4;
+            menu->itemCount = 4;
         } else {
-            menu->field_4 = 3;
+            menu->itemCount = 3;
         }
-        if (menu->field_4 >= 0xB) {
-            menu->field_5.unsignedValue = 0xA;
+        if (menu->itemCount >= 0xB) {
+            menu->visibleRowCount.unsignedValue = 0xA;
         } else {
-            menu->field_5.unsignedValue = menu->field_4;
+            menu->visibleRowCount.unsignedValue = menu->itemCount;
         }
-        menu->field_10              = 0;
-        menu->field_9.unsignedValue = 0;
+        menu->selectedItemIndex                   = 0;
+        menu->firstVisibleItemIndex.unsignedValue = 0;
         Ui_LayoutListPanel(menu, &(obj)->panel);
-        menu->field_A = 1;
+        menu->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
         Ui_SetListScrollFlag(menu, 1);
         obj->panel.bounds.unsignedRect.x = -((s16)obj->panel.bounds.unsignedRect.w / 2);
         obj->panel.bounds.unsignedRect.y = -((s16)obj->panel.bounds.unsignedRect.h / 2);

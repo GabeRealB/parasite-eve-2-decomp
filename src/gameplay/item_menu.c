@@ -34,8 +34,11 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
+/// Prevents a cancel press from also activating the discard row it selected.
+enum { ITEM_MENU_LIST_ACTION_CANCEL_HANDLED = 0x21 };
+
 /// 4 prompt strings copied onto the stack by `Gp_ItemMenuPrompt` and indexed
-/// by `UiList::field_8`: All / Select / Discard / End
+/// by `UiList::currentItemIndex`: All / Select / Discard / End
 /// (`Gp_StrAll` / `Gp_StrSelect` / `Gp_StrDiscard` / `Gp_StrEnd`).
 typedef struct {
     u8* texts[4];
@@ -289,7 +292,7 @@ static void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
             break;
         case 0x23:
             mem->field_10                               = mem->field_8;
-            mem->field_14                               = Gp_InvLists[mem->field_8].field_10;
+            mem->field_14                               = Gp_InvLists[mem->field_8].selectedItemIndex;
             mem->objs[mem->field_8]->owner->state       = 2;
             mem->objs[mem->field_8 ^ 1]->owner->state   = 2;
             mem->objs[mem->field_8]->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -459,32 +462,32 @@ void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1)
     s32               idx;
     UiObject*         spawned;
 
-    rec  = Gp_GetScanSlot(&Gp_MoveScanSrc + arg1->owner->spawnArg1.value, arg0->field_8, 0);
+    rec  = Gp_GetScanSlot(&Gp_MoveScanSrc + arg1->owner->spawnArg1.value, arg0->currentItemIndex, 0);
     item = rec->itemId;
-    if (arg0->field_C != 1) {
-        if ((arg1->owner->state != 1) && (arg0->field_8 == Gp_ItemMoveWork->field_14) &&
+    if (arg0->rowInputEnabled != USER_INTERFACE_LIST_ROW_ACTIVE) {
+        if ((arg1->owner->state != 1) && (arg0->currentItemIndex == Gp_ItemMoveWork->field_14) &&
             (arg1->owner->spawnArg1.value == Gp_ItemMoveWork->field_10)) {
-            arg0->field_1C = 0x37A78;
+            arg0->colorRgb = 0x37A78;
         }
     }
     status = arg1->panel.control.word;
     if (((status >> 16) == 1) || (status == 1)) {
-        if (arg0->field_10 == arg0->field_8) {
+        if (arg0->selectedItemIndex == arg0->currentItemIndex) {
             Gp_SetPreviewItem(item, 0);
             Gp_SetHolderItemText(item);
         }
     }
     if (arg1->owner->spawnArg1.value == 0) {
-        Gp_DrawItemLabel(arg1, arg0->field_18, arg0->field_1A, item, arg0->field_1C, 0);
+        Gp_DrawItemLabel(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, item, arg0->colorRgb, 0);
     } else if (rec->attachSlot <= INVENTORY_ATTACHMENT_NONE) {
-        Gp_DrawItemLabel(arg1, arg0->field_18, arg0->field_1A, item, arg0->field_1C, 1);
+        Gp_DrawItemLabel(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, item, arg0->colorRgb, 1);
     } else {
-        Gp_DrawItemLabel(arg1, arg0->field_18, arg0->field_1A, item, arg0->field_1C, 2);
+        Gp_DrawItemLabel(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, item, arg0->colorRgb, 2);
     }
     if (item >= 0xA0 && item < 0xC0) {
-        Gp_DrawQty(arg1, arg0->field_18, arg0->field_1A, rec->qty, arg0->field_1C);
+        Gp_DrawQty(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, rec->qty, arg0->colorRgb);
     }
-    if (arg0->field_C == 1) {
+    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         Gp_SelItemRec = rec;
         if (arg1->owner->state == 1) {
             if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
@@ -492,7 +495,7 @@ void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1)
                 spawned = Ui_SpawnFromDesc(&D_8010D764, arg1->owner->spawnArg1, 1, 1, arg1);
                 if (spawned != NULL) {
                     spawned->panel.bounds.unsignedRect.x = arg1->panel.contentOriginX.unsignedValue + arg1->panel.contentLeft.unsignedValue + 0x14;
-                    spawned->panel.bounds.unsignedRect.y = (arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A) - 0x14;
+                    spawned->panel.bounds.unsignedRect.y = (arg1->panel.contentOriginY.unsignedValue + arg0->rowTextY.unsignedValue) - 0x14;
                     arg1->panel.control.word             = USER_INTERFACE_PANEL_INACTIVE;
                 }
             } else if ((Pad_CheckButtons(0, 1, 0x10) != 0) && (item != 0)) {
@@ -502,7 +505,7 @@ void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1)
             }
         } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             idx   = arg1->owner->spawnArg1.value;
-            item2 = Gp_GetScanSlot(&Gp_MoveScanSrc + idx, Gp_InvLists[idx].field_10, 0)->itemId;
+            item2 = Gp_GetScanSlot(&Gp_MoveScanSrc + idx, Gp_InvLists[idx].selectedItemIndex, 0)->itemId;
             SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             item = -1;
             if (Gp_ItemMoveWork->field_10 != arg1->owner->spawnArg1.value) {
@@ -528,7 +531,7 @@ void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1)
                 Gp_SpawnItemPrompt(arg1, item, 0, 1);
                 arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             } else {
-                Gp_ItemMoveWork->field_18 = arg0->field_8;
+                Gp_ItemMoveWork->field_18 = arg0->currentItemIndex;
                 arg1->result              = 0x25;
             }
         }
@@ -569,18 +572,18 @@ void Gp_ItemPaneTask(Task* arg0)
         {
             s32 val;
 
-            val                         = _gpItemPaneScan(arg0)->rowCount;
-            menu->field_4               = val;
-            menu->field_5.unsignedValue = val;
+            val                                 = _gpItemPaneScan(arg0)->rowCount;
+            menu->itemCount                     = val;
+            menu->visibleRowCount.unsignedValue = val;
             if ((s8)val >= 0xB) {
-                menu->field_5.unsignedValue = 0xA;
+                menu->visibleRowCount.unsignedValue = 0xA;
             }
         }
-        menu->field_10              = 0;
-        menu->field_9.unsignedValue = 0;
+        menu->selectedItemIndex                   = 0;
+        menu->firstVisibleItemIndex.unsignedValue = 0;
         Ui_LayoutListPanel(menu, &(obj)->panel);
-        menu->field_A = 1;
-        arg0->state   = arg0->state + 1;
+        menu->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
+        arg0->state = arg0->state + 1;
     }
 
     if (arg0->spawnArg1.value == 0) {
@@ -593,15 +596,15 @@ void Gp_ItemPaneTask(Task* arg0)
         Ui_DrawText(&(obj)->panel, Gp_StrPlayerItem);
     }
     Ui_ComputeVisibleRows(menu, &(obj)->panel);
-    menu->field_A = 1;
-    if (menu->field_10 >= menu->field_4) {
-        menu->field_10 = menu->field_4 - 1;
+    menu->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
+    if (menu->selectedItemIndex >= menu->itemCount) {
+        menu->selectedItemIndex = menu->itemCount - 1;
     }
-    n = menu->field_4;
-    if (menu->field_5.signedValue >= n) {
-        menu->field_9.unsignedValue = 0;
+    n = menu->itemCount;
+    if (menu->visibleRowCount.signedValue >= n) {
+        menu->firstVisibleItemIndex.unsignedValue = 0;
     }
-    if (menu->field_4 != 0) {
+    if (menu->itemCount != 0) {
         Ui_UpdateListNoAnim(menu, obj);
     }
 
@@ -616,7 +619,7 @@ void Gp_ItemPaneTask(Task* arg0)
 
     status = obj->panel.control.word;
     if (status == 1) {
-        if (menu->field_4 == 0) {
+        if (menu->itemCount == 0) {
             Ui_SmoothCursor(&(obj)->panel, obj->panel.contentLeft.signedValue + 4, obj->panel.contentTop.signedValue + 0xA);
         }
         if (arg0->state == status) {
@@ -697,20 +700,20 @@ void func_800BD6DC(UiList* arg0, UiObject* arg1)
     s32               qty;
     s32               item;
 
-    req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
-    req.y          = arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A;
+    req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
+    req.y          = arg1->panel.contentOriginY.unsignedValue + arg0->rowTextY.unsignedValue;
     req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.colorRgb   = arg0->field_1C;
+    req.colorRgb   = arg0->colorRgb;
     req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req, Gp_StrMove2);
-    selected = arg0->field_C;
+    selected = arg0->rowInputEnabled;
     if ((selected == 1) && (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0)) {
         prompt    = -1;
         chooseQty = 0;
         idx       = arg1->owner->spawnArg1.value;
-        rec       = Gp_GetScanSlot((&Gp_MoveScanSrc + (idx)), Gp_InvLists[idx].field_10, 0);
+        rec       = Gp_GetScanSlot((&Gp_MoveScanSrc + (idx)), Gp_InvLists[idx].selectedItemIndex, 0);
         item      = rec->itemId;
         qty       = rec->qty;
         SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
@@ -780,20 +783,20 @@ void Gp_ItemActionConfirm(UiList* arg0, UiObject* arg1)
     Task*             owner;
     PlayerStatus*     cfg;
 
-    req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
-    req.y          = arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A;
+    req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
+    req.y          = arg1->panel.contentOriginY.unsignedValue + arg0->rowTextY.unsignedValue;
     req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.colorRgb   = arg0->field_1C;
+    req.colorRgb   = arg0->colorRgb;
     req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req, Gp_StrSwitch);
 
-    selected = arg0->field_C;
+    selected = arg0->rowInputEnabled;
     if (selected == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             idx  = arg1->owner->spawnArg1.value;
-            rec  = Gp_GetScanSlot(&Gp_MoveScanSrc + idx, Gp_InvLists[idx].field_10, 0);
+            rec  = Gp_GetScanSlot(&Gp_MoveScanSrc + idx, Gp_InvLists[idx].selectedItemIndex, 0);
             item = rec->itemId;
             SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
 
@@ -839,7 +842,7 @@ static void Gp_FillItemActions(UiList* arg0, UiObject* arg1)
     owner = arg1->owner;
     idx   = owner->spawnArg1.value;
     scan  = &Gp_MoveScanSrc + idx;
-    rec   = Gp_GetScanSlot(scan, Gp_InvLists[idx].field_10, 0);
+    rec   = Gp_GetScanSlot(scan, Gp_InvLists[idx].selectedItemIndex, 0);
     item  = 0;
     if (rec != NULL) {
         item = rec->itemId;
@@ -860,8 +863,8 @@ static void Gp_FillItemActions(UiList* arg0, UiObject* arg1)
             count                   = count + 1;
         }
     }
-    arg0->field_5.unsignedValue = count;
-    arg0->field_4               = count;
+    arg0->visibleRowCount.unsignedValue = count;
+    arg0->itemCount                     = count;
 }
 
 void Gp_ItemActionListTask(Task* arg0)
@@ -1234,28 +1237,28 @@ void Gp_ItemMenuPrompt(UiList* arg0, UiObject* arg1)
     s32           mode;
 
     texts = Gp_ItemPromptTexts;
-    if (arg0->field_8 == 0) {
+    if (arg0->currentItemIndex == 0) {
         if (arg1->owner->spawnArg1.value == 0) {
-            arg0->field_1C = Ui_LookupTable(arg1, 2);
-            if (arg0->field_C == 1) {
-                arg0->field_B  = 1;
-                arg0->field_22 = 0x41;
-                arg0->field_C  = 0;
+            arg0->colorRgb = Ui_LookupTable(arg1, 2);
+            if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
+                arg0->navigationStep  = USER_INTERFACE_LIST_STEP_NEXT;
+                arg0->actionResult    = USER_INTERFACE_LIST_ACTION_SKIP_ROW;
+                arg0->rowInputEnabled = USER_INTERFACE_LIST_ROW_INACTIVE;
             }
         }
     }
-    mode = arg0->field_8;
-    Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, texts.texts[mode], arg0->field_1C, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    mode = arg0->currentItemIndex;
+    Text_DrawPrompt(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, texts.texts[mode], arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 
-    if (arg0->field_C == 1) {
-        if (arg0->field_8 == 2) {
-            if (arg0->field_22 == 0x21) {
-                arg0->field_22 = 0;
+    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
+        if (arg0->currentItemIndex == 2) {
+            if (arg0->actionResult == ITEM_MENU_LIST_ACTION_CANCEL_HANDLED) {
+                arg0->actionResult = USER_INTERFACE_RESULT_NONE;
                 return;
             }
         }
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            switch (arg0->field_8) {
+            switch (arg0->currentItemIndex) {
                 case 0:
                     SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
                     arg1->result = 0x26;
@@ -1272,12 +1275,12 @@ void Gp_ItemMenuPrompt(UiList* arg0, UiObject* arg1)
             }
         } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
-            if (arg0->field_10 == 2) {
+            if (arg0->selectedItemIndex == 2) {
                 _gpDropOrphanedWeaponLoads();
                 arg1->result = 0x27;
             } else {
-                arg0->field_22 = 0x21;
-                arg0->field_10 = 2;
+                arg0->actionResult      = ITEM_MENU_LIST_ACTION_CANCEL_HANDLED;
+                arg0->selectedItemIndex = 2;
             }
         }
     }
@@ -1568,12 +1571,12 @@ void Gp_ItemMenuListTask(Task* arg0)
     if (arg0->state == 0) {
         Ui_LayoutListPanel(menu, &(obj)->panel);
         if (arg0->spawnArg1.value == 0) {
-            menu->field_10 = 1;
+            menu->selectedItemIndex = 1;
         } else {
-            menu->field_10 = 0;
+            menu->selectedItemIndex = 0;
         }
-        menu->field_A = 1;
-        arg0->state  += 1;
+        menu->flags  = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
+        arg0->state += 1;
     }
     Ui_UpdateListNoAnim(menu, obj);
 }

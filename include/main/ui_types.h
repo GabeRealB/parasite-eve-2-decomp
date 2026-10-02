@@ -9,7 +9,7 @@
 
 #include "main/task_types.h"
 
-struct _UiList;
+struct UiList;
 
 /// A UI halfword with signed and unsigned numeric views of the same 16 bits.
 ///
@@ -213,55 +213,100 @@ STATIC_ASSERT_SIZEOF(TextBlockDesc, 0xC);
 
 /// Draws one visible list row and handles its permitted input.
 ///
-/// `list` supplies the current row in `field_8`, panel-relative pixel coordinates
-/// in `field_18` / `field_1A`, and a packed RGB text color in `field_1C`.
-/// Handlers gate row input on `field_C == 1`; they may change the list state,
+/// `list` supplies the current row in `currentItemIndex`, panel-relative pixel
+/// coordinates in `rowTextX` / `rowTextY`, and a packed RGB text color in `colorRgb`.
+/// Handlers gate row input on `rowInputEnabled == 1`; they may change the list state,
 /// publish `object` results, or open child panels through `object->owner`.
 /// Both arguments are borrowed mutable objects that remain live throughout the
 /// call; `object` is the task-owned UI node whose panel displays the list.
 ///
-/// `UiList.funcs` must remain live while the list is dispatched. When
-/// `field_A & 1` is set, entry zero handles every row; otherwise the table must
-/// contain a non-null callback for every reachable row index below `field_4`.
-typedef void (*UiListRowCallback)(struct _UiList* list, UiObject* object);
+/// `UiList.rowCallbacks` must remain live while the list is dispatched. When
+/// `flags & USER_INTERFACE_LIST_SHARED_ROW_CALLBACK` is set, entry zero handles
+/// every row; otherwise the table must contain a non-null callback for every
+/// reachable row index below `itemCount`.
+typedef void (*UiListRowCallback)(struct UiList* list, UiObject* object);
 
-/// UI list/menu object (data symbols Mc_SaveSlotList, Mc_LoadSlotList, Mc_YesNoList,
-/// Mc_OkList, Mc_YesList, Ui_DialogLineList; size 0x24).
-/// funcs is a function-table pointer (`Gp_PeCommandMenuTask` writes draw/confirm
-/// handlers into the two slots); field_4 / field_5 are base indices
-/// (Ui_ListTaskCallback seeds both from context); field_5 is also subtracted when
-/// computing field_9; field_6 / field_7 are signed layout sizes (Ui_DrawListHighlight
-/// uses field_7 as TILE height); field_9 / field_A / field_10 are list cursor /
-/// flag / selection index used by McMenu_SelectList / McMenu_SelectListAlt / McMenu_InitByMode /
-/// Ui_InitList / Ui_SetListScrollFlag; field_C / field_14 / field_16 are cleared by
-/// Ui_InitList; field_17 is a signed layout adjust subtracted from the child
-/// height when computing visible rows (Ui_ComputeVisibleRows / Ui_ComputeVisibleRowsEx; the latter
-/// also writes field_17 from its third argument). field_20 is the selected
-/// item id (`lhu`; copied to `UiObject::resultValue` by `Gp_YesNoMenuTask`). field_22
-/// is a selected action code polled by list-task handlers (`Gp_ItemCmdMenuTask`:
-/// 0x20 skips pad input, 0x23 is copied to `UiObject::result`; 6 is confirm
-/// in `Gp_YesNoMenuTask`; same values UiList handlers write to
-/// UiList::field_22).
-typedef struct _UiList {
-    /* 0x00 */ UiListRowCallback* funcs;    // function-table pointer
-    /* 0x04 */ u8                 field_4;  // base index
-    /* 0x05 */ UiByte             field_5;  // base index (also used vs field_9)
-    /* 0x06 */ s8                 field_6;  // layout size
-    /* 0x07 */ s8                 field_7;  // TILE height / row height
-    /* 0x08 */ s8                 field_8;
-    /* 0x09 */ UiByte             field_9;  // list cursor (visible offset)
-    /* 0x0A */ u8                 field_A;  // flag
-    /* 0x0B */ s8                 field_B;
-    /* 0x0C */ s32                field_C;  // cleared by list reset
-    /* 0x10 */ s32                field_10; // selection index
-    /* 0x14 */ s16                field_14; // cleared by list reset
-    /* 0x16 */ s8                 field_16; // cleared by list reset
-    /* 0x17 */ s8                 field_17; // layout adjust for visible rows
-    /* 0x18 */ s16                field_18;
-    /* 0x1A */ s16                field_1A;
-    /* 0x1C */ s32                field_1C;
-    /* 0x20 */ UiHalf             field_20; // selected item id
-    /* 0x22 */ s16                field_22; // selected action (0x20 skip pad, 0x23 confirm)
+/// Dispatch and sound flags in `UiList.flags`; storage remains an unsigned byte.
+enum {
+    USER_INTERFACE_LIST_SHARED_ROW_CALLBACK = 1, // Entry zero draws every item
+    USER_INTERFACE_LIST_SYSTEM_CURSOR_SOUND = 2  // System cursor sound instead of menu cursor sound
+};
+
+/// Row input permission in `UiList.rowInputEnabled`; storage remains s32.
+enum {
+    USER_INTERFACE_LIST_ROW_INACTIVE = 0,
+    USER_INTERFACE_LIST_ROW_ACTIVE   = 1
+};
+
+/// Signed item steps used by list navigation and animated scrolling.
+enum {
+    USER_INTERFACE_LIST_STEP_PREVIOUS = -1,
+    USER_INTERFACE_LIST_STEP_NONE     = 0,
+    USER_INTERFACE_LIST_STEP_NEXT     = 1
+};
+
+/// Transient list actions; zero and confirm reuse `USER_INTERFACE_RESULT_*`.
+///
+/// The row walker clears `actionResult` before dispatch. Skip-row is consumed by
+/// navigation in the same update, using `navigationStep` (defaulting to next).
+enum {
+    USER_INTERFACE_LIST_ACTION_AT_START       = 2,
+    USER_INTERFACE_LIST_ACTION_AT_END         = 3,
+    USER_INTERFACE_LIST_ACTION_INPUT_CONSUMED = 0x20,
+    USER_INTERFACE_LIST_ACTION_MOVE           = 0x23,
+    USER_INTERFACE_LIST_ACTION_SKIP_ROW       = 0x41
+};
+
+/// Dialog answers in `UiList.commandResult`, returned with a confirm action.
+enum {
+    USER_INTERFACE_LIST_COMMAND_NONE   = 0,
+    USER_INTERFACE_LIST_COMMAND_YES    = 0x33,
+    USER_INTERFACE_LIST_COMMAND_NO     = 0x34,
+    USER_INTERFACE_LIST_COMMAND_CANCEL = 0x35,
+    USER_INTERFACE_LIST_COMMAND_OK     = 0x36
+};
+
+/// Row heights in pixels; preview rows suppress the generic highlight and cursor.
+enum {
+    USER_INTERFACE_LIST_DEFAULT_ROW_HEIGHT = 10,
+    USER_INTERFACE_LIST_PREVIEW_ROW_HEIGHT = 46
+};
+
+/// A panel's list control: row dispatch, selection, scrolling and drawing state.
+///
+/// Item contents belong to the row callbacks' context. The callback table is
+/// borrowed and mutable; it must remain live for every dispatch. Empty lists
+/// dispatch no rows. Reachable item indices must fit a nonnegative signed byte
+/// (0..127), and visible row counts must fit 0..127 when drawing. During scrolling
+/// the walker can dispatch one extra row and wrap its index through `itemCount`.
+/// Byte stores retain eight bits; the signed views also detect negative scroll
+/// intermediates. Callers must keep those intermediates representable.
+///
+/// Row coordinates are pixels relative to the panel's content origin. Their
+/// halfword views preserve signed offsets and unsigned sums before promotion;
+/// stores retain sixteen bits. Callbacks may adjust the row Y pen and text color.
+/// The walker enables row input for the selected row of an active panel when
+/// scrolling is idle; callbacks may suppress it. Results last one list update.
+typedef struct UiList {
+    UiListRowCallback* rowCallbacks;          // Per-item callbacks, or entry zero with the shared-callback flag
+    u8                 itemCount;             // Number of items, including zero for an empty list
+    UiByte             visibleRowCount;       // Rows fitting the panel; signed view used by the row walker
+    s8                 wrapNavigation;        // Navigation policy (0 clamp and page, nonzero wrap)
+    s8                 rowHeight;             // Row spacing in pixels; zero requests the default height
+    s8                 currentItemIndex;      // Absolute item index supplied to the current row callback
+    UiByte             firstVisibleItemIndex; // Absolute item index at the top of the scrolling window
+    u8                 flags;                 // Shared callback (bit 0) and system cursor sound (bit 1)
+    s8                 navigationStep;        // Direction used for row skipping (-1 previous, 0 unset, 1 next)
+    s32                rowInputEnabled;       // Current row input permission (0 inactive, 1 active)
+    s32                selectedItemIndex;     // Selection index; may be -1 when empty or pass either end during navigation
+    s16                scrollPixelsRemaining; // Remaining animated displacement in pixels; positive values count down
+    s8                 scrollDirection;       // Animated item step (-1 previous, 0 idle, 1 next)
+    s8                 topInset;              // Pixels reserved above the rows, deducted from available height
+    UiHalf             rowTextX;              // Current row text X relative to the panel's content origin, in pixels
+    UiHalf             rowTextY;              // Current row text Y pen relative to the content origin, in pixels
+    u32                colorRgb;              // Row text modulation RGB in bits 0..23, red in the low byte
+    UiHalf             commandResult;         // Dialog answer (0 none, 0x33 yes, 0x34 no, 0x35 cancel, 0x36 OK)
+    s16                actionResult;          // Transient list action, including 0 none and 6 confirm
 } UiList;
 STATIC_ASSERT_SIZEOF(UiList, 0x24);
 

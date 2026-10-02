@@ -277,13 +277,13 @@ static void func_replay_bonus_80115D60(UiList* list, UiObject* ctx)
         i += 1;
     } while (i < 0x200);
 
-    list->field_5.unsignedValue = 9;
-    list->field_4               = count;
-    list->field_9.unsignedValue = list->field_4 - list->field_5.unsignedValue;
-    if (list->field_9.signedValue < 0) {
-        list->field_9.unsignedValue = 0;
+    list->visibleRowCount.unsignedValue       = 9;
+    list->itemCount                           = count;
+    list->firstVisibleItemIndex.unsignedValue = list->itemCount - list->visibleRowCount.unsignedValue;
+    if (list->firstVisibleItemIndex.signedValue < 0) {
+        list->firstVisibleItemIndex.unsignedValue = 0;
     }
-    list->field_10 = list->field_9.signedValue;
+    list->selectedItemIndex = list->firstVisibleItemIndex.signedValue;
 }
 static const char D_replay_bonus_80115774[] = "Complete Bonus";
 static const char D_replay_bonus_80115784[] = "GET ITEM";
@@ -298,7 +298,7 @@ static inline s32 _replayBonusTotalBp(UiList* list, UiObject* ctx)
 
     cfg = &gPlayerStatus;
     sum = 0;
-    for (i = list->field_9.signedValue; i < list->field_4; i++) {
+    for (i = list->firstVisibleItemIndex.signedValue; i < list->itemCount; i++) {
         sum += replayBonusItemBp(((s16*)ctx->owner->work)[i]);
     }
     sum += cfg->bp;
@@ -363,21 +363,21 @@ void func_replay_bonus_80115ED0(Task* arg0)
         D_80067634 = 0;
         func_replay_bonus_80115D60(list, obj);
         Ui_LayoutListPanel(list, &(obj)->panel);
-        list->field_A                    = 1;
-        list->field_17                   = 0xF;
-        obj->panel.bounds.unsignedRect.h = obj->panel.bounds.unsignedRect.h + 0x22;
-        arg0->killCountdown              = 0x3C;
-        arg0->state                      = arg0->state + 1;
-        list->field_9.unsignedValue      = 0;
-        acc                              = _replayBonusTotalBp(list, obj);
-        totals                           = &D_replay_bonus_80119274;
-        totals->field_4                  = acc;
-        totals->field_C                  = acc;
-        list->field_9.unsignedValue      = list->field_4 - list->field_5.unsignedValue;
-        tmp                              = func_replay_bonus_80115CA4();
-        exp                              = cfg->exp;
-        D_replay_bonus_80119274.unk0     = tmp;
-        totals->field_8                  = exp;
+        list->flags                               = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
+        list->topInset                            = 0xF;
+        obj->panel.bounds.unsignedRect.h          = obj->panel.bounds.unsignedRect.h + 0x22;
+        arg0->killCountdown                       = 0x3C;
+        arg0->state                               = arg0->state + 1;
+        list->firstVisibleItemIndex.unsignedValue = 0;
+        acc                                       = _replayBonusTotalBp(list, obj);
+        totals                                    = &D_replay_bonus_80119274;
+        totals->field_4                           = acc;
+        totals->field_C                           = acc;
+        list->firstVisibleItemIndex.unsignedValue = list->itemCount - list->visibleRowCount.unsignedValue;
+        tmp                                       = func_replay_bonus_80115CA4();
+        exp                                       = cfg->exp;
+        D_replay_bonus_80119274.unk0              = tmp;
+        totals->field_8                           = exp;
         switch (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode) {
             case 3:
                 totals->field_8 = exp * 10;
@@ -469,23 +469,23 @@ void func_replay_bonus_80115ED0(Task* arg0)
             arg0->state         = arg0->state + 1;
         }
     } else if (state == 2) {
-        n = list->field_4;
-        if (list->field_5.signedValue < n) {
-            if (list->field_14 <= 0) {
-                nxt                         = list->field_9.unsignedValue - 1;
-                list->field_9.unsignedValue = nxt;
+        n = list->itemCount;
+        if (list->visibleRowCount.signedValue < n) {
+            if (list->scrollPixelsRemaining <= 0) {
+                nxt                                       = list->firstVisibleItemIndex.unsignedValue - 1;
+                list->firstVisibleItemIndex.unsignedValue = nxt;
                 if ((s8)nxt < 0) {
-                    list->field_9.unsignedValue = 0;
-                    arg0->killCountdown         = 0xBC;
-                    arg0->state                 = arg0->state + 1;
+                    list->firstVisibleItemIndex.unsignedValue = 0;
+                    arg0->killCountdown                       = 0xBC;
+                    arg0->state                               = arg0->state + 1;
                 } else {
                     SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
-                    list->field_16 = -1;
-                    list->field_14 = (s8)(u8)list->field_7;
+                    list->scrollDirection       = USER_INTERFACE_LIST_STEP_PREVIOUS;
+                    list->scrollPixelsRemaining = (s8)(u8)list->rowHeight;
                 }
-                list->field_10 = list->field_9.signedValue;
+                list->selectedItemIndex = list->firstVisibleItemIndex.signedValue;
             }
-            list->field_14 = (u16)list->field_14 - 1;
+            list->scrollPixelsRemaining = (u16)list->scrollPixelsRemaining - 1;
         } else {
             arg0->killCountdown = 0xBC;
             arg0->state         = arg0->state + 1;

@@ -501,10 +501,10 @@ void Gp_DrawAmmoRow(UiList* arg0, UiObject* obj)
     USE_REG(spawnArg);
     prompt = arg0;
     USE_REG(arg0);
-    item   = Gp_NthRelatedId(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, prompt->field_8, spawnArg);
+    item   = Gp_NthRelatedId(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, prompt->currentItemIndex, spawnArg);
     status = obj->panel.control.word;
     if (((status >> 16) == 1) || (status == 1)) {
-        if (prompt->field_10 == prompt->field_8) {
+        if (prompt->selectedItemIndex == prompt->currentItemIndex) {
             if (item == 0) {
                 Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
             } else {
@@ -517,12 +517,12 @@ void Gp_DrawAmmoRow(UiList* arg0, UiObject* obj)
     }
 
     if (spawnArg == 0) {
-        _gpDrawItemNameAt(obj, prompt->field_18, prompt->field_1A, prompt->field_1C, item, 1);
+        _gpDrawItemNameAt(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, prompt->colorRgb, item, 1);
     } else {
-        _gpDrawItemNameUnmarkedAt(obj, prompt->field_18, prompt->field_1A, prompt->field_1C, item);
+        _gpDrawItemNameUnmarkedAt(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, prompt->colorRgb, item);
     }
 
-    if (prompt->field_C == 1) {
+    if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         obj->resultValue = item;
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             if (obj->owner->spawnArg1.value == 0) {
@@ -549,7 +549,7 @@ void Gp_DrawAmmoRow(UiList* arg0, UiObject* obj)
             obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     } else if (obj->panel.control.word != USER_INTERFACE_PANEL_ACTIVE) {
-        if (prompt->field_8 == 0) {
+        if (prompt->currentItemIndex == 0) {
             if (obj->resultValue == 0) {
                 obj->resultValue = item;
             }
@@ -577,14 +577,14 @@ void Gp_AmmoListTask(Task* arg0)
         Gp_CountAmmoRows(menu, spawnArg);
         Ui_LayoutListPanel(menu, &(obj)->panel);
         if (spawnArg == 0) {
-            menu->field_17                   += 0x4C;
+            menu->topInset                   += 0x4C;
             obj->panel.bounds.unsignedRect.h += 0x4C;
         }
-        menu->field_A               = 1;
-        menu->field_10              = 0;
-        menu->field_9.unsignedValue = 0;
-        arg0->state                 = arg0->state + 1;
-        if (menu->field_4 == 0) {
+        menu->flags                               = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
+        menu->selectedItemIndex                   = 0;
+        menu->firstVisibleItemIndex.unsignedValue = 0;
+        arg0->state                               = arg0->state + 1;
+        if (menu->itemCount == 0) {
             arg0->state         = arg0->state + 1;
             arg0->killCountdown = 0xBC;
             obj->panel.style   |= USER_INTERFACE_PANEL_TITLE_STYLE;
@@ -681,7 +681,7 @@ void Gp_SelectWeaponMenuTask(Task* arg0)
         Ui_SetState4(parent->spawnArg2.pointer, parent);
         Ui_SpawnFromDesc(&D_8010EC3C, 0, 0, 0x10, obj);
     }
-    val = Gp_NthRelatedId(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, menu->field_10, 0);
+    val = Gp_NthRelatedId(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, menu->selectedItemIndex, 0);
     if (((obj->panel.control.word >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) || (val != cfg->weapon + 0x7F)) {
         flags = 0x12;
         if (val == 0) {
@@ -725,11 +725,11 @@ void Gp_DrawRemoveAmmoRow(UiList* prompt, UiObject* obj)
         TextDrawReq req;
     } draw;
 
-    item     = Gp_AttachListIds[prompt->field_8];
+    item     = Gp_AttachListIds[prompt->currentItemIndex];
     spawnArg = (u16)obj->owner->spawnArg1.value;
     status   = obj->panel.control.word;
     if (((status >> 16) == 1) || (status == 1)) {
-        if (prompt->field_10 == prompt->field_8) {
+        if (prompt->selectedItemIndex == prompt->currentItemIndex) {
             if (item == 0) {
                 Ui_SetHolderParam(Gp_StrRemoveAmmoHelp, 0, 0);
             } else {
@@ -757,9 +757,9 @@ void Gp_DrawRemoveAmmoRow(UiList* prompt, UiObject* obj)
             s32 y;
             s32 color;
 
-            x                         = prompt->field_18;
-            y                         = prompt->field_1A;
-            color                     = prompt->field_1C;
+            x                         = prompt->rowTextX.signedValue;
+            y                         = prompt->rowTextY.signedValue;
+            color                     = prompt->colorRgb;
             draw.count.req.x          = obj->panel.contentOriginX.unsignedValue + 0x84 + x;
             draw.count.req.y          = obj->panel.contentOriginY.unsignedValue + (y - 3);
             draw.count.req.otIndex    = obj->panel.otIndex.signedValue + 1;
@@ -777,9 +777,9 @@ void Gp_DrawRemoveAmmoRow(UiList* prompt, UiObject* obj)
             s32 color;
             s32 temp;
 
-            x     = prompt->field_18;
-            y     = prompt->field_1A;
-            color = prompt->field_1C;
+            x     = prompt->rowTextX.signedValue;
+            y     = prompt->rowTextY.signedValue;
+            color = prompt->colorRgb;
             if (obj->panel.state != USER_INTERFACE_PANEL_HIDDEN) {
                 draw.req.x          = obj->panel.contentOriginX.unsignedValue + 0x11 + x;
                 draw.req.y          = obj->panel.contentOriginY.unsignedValue + (y - 6);
@@ -799,18 +799,18 @@ void Gp_DrawRemoveAmmoRow(UiList* prompt, UiObject* obj)
     } else {
         s32 baseY;
 
-        draw.req.x          = obj->panel.contentOriginX.unsignedValue + (u16)prompt->field_18;
+        draw.req.x          = obj->panel.contentOriginX.unsignedValue + prompt->rowTextX.unsignedValue;
         baseY               = obj->panel.contentOriginY.unsignedValue - 6;
-        draw.req.y          = baseY + (u16)prompt->field_1A;
+        draw.req.y          = baseY + prompt->rowTextY.unsignedValue;
         draw.req.otIndex    = obj->panel.otIndex.signedValue + 1;
-        draw.req.colorRgb   = prompt->field_1C;
+        draw.req.colorRgb   = prompt->colorRgb;
         draw.req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         draw.req.alignment  = TEXT_ALIGNMENT_LEFT;
         draw.req.drawMode   = TEXT_DRAW_OUTLINED;
         Text_DrawString(&draw.req, Gp_StrRemoveAmmo);
     }
 
-    if (prompt->field_C == 1) {
+    if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             Ui_SpawnFromDesc(&D_8010EEF8, (spawnArg << 8) | item, 1, 1, obj);
             obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -883,6 +883,6 @@ void Gp_BuildAttachList(UiList* arg0, s32 arg1)
         Gp_AttachListIds[count] = 0;
         n++;
     }
-    arg0->field_4               = n;
-    arg0->field_5.unsignedValue = n;
+    arg0->itemCount                     = n;
+    arg0->visibleRowCount.unsignedValue = n;
 }

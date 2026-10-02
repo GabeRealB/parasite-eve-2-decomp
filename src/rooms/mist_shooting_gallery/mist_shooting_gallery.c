@@ -184,7 +184,7 @@ extern s32      D_80153D6C;
 
 /// The ten weapons the gallery's weapon picker offers, in row order. Rows whose
 /// item is not unlocked yet (`func_800B7420` returns 0) are skipped, so
-/// `UiList::field_8` counts *drawn* rows, not table slots.
+/// `UiList::currentItemIndex` indexes the drawn rows rather than table slots.
 extern s16 D_mist_shooting_gallery_80184F34[];
 
 extern UiList D_mist_shooting_gallery_80184F4C;
@@ -1017,7 +1017,7 @@ void func_mist_shooting_gallery_8017DE7C(UiList* arg0, UiObject* arg1)
     InventoryItemRange* scan;
 
     item = 0;
-    skip = arg0->field_8;
+    skip = arg0->currentItemIndex;
     i    = 0;
     do {
         if (func_800B7420(D_mist_shooting_gallery_80184F34[i]) != 0) {
@@ -1030,14 +1030,14 @@ void func_mist_shooting_gallery_8017DE7C(UiList* arg0, UiObject* arg1)
         i++;
     } while (i < 10);
 
-    Gp_DrawItemLabel(arg1, arg0->field_18, arg0->field_1A, item, arg0->field_1C, 0);
+    Gp_DrawItemLabel(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, item, arg0->colorRgb, 0);
     status = arg1->panel.control.word;
     if (((status >> 16) == 1) || (status == 1)) {
-        if (arg0->field_10 == arg0->field_8) {
+        if (arg0->selectedItemIndex == arg0->currentItemIndex) {
             Gp_SetPreviewItem(item, 0);
         }
     }
-    selected = arg0->field_C;
+    selected = arg0->rowInputEnabled;
     if (selected == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             scan       = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
@@ -1104,16 +1104,16 @@ void func_mist_shooting_gallery_8017E090(Task* task)
             weapon++;
         } while (i < 10);
 
-        list->field_4 = count;
+        list->itemCount = count;
         if ((u8)count >= 0xB) {
-            list->field_5.unsignedValue = 0xA;
+            list->visibleRowCount.unsignedValue = 0xA;
         } else {
-            list->field_5.unsignedValue = count;
+            list->visibleRowCount.unsignedValue = count;
         }
-        list->field_10              = 0;
-        list->field_9.unsignedValue = 0;
+        list->selectedItemIndex                   = 0;
+        list->firstVisibleItemIndex.unsignedValue = 0;
         Ui_LayoutListPanel(list, &(obj)->panel);
-        list->field_A = 1;
+        list->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
         Ui_SetListScrollFlag(list, 1);
         obj->panel.bounds.unsignedRect.x = -((s16)obj->panel.bounds.unsignedRect.w / 2);
         obj->panel.bounds.unsignedRect.y = -((s16)obj->panel.bounds.unsignedRect.h / 2);
@@ -1430,22 +1430,22 @@ void func_mist_shooting_gallery_8017EAE0(Task* task)
     Ui_DrawText(&(obj)->panel, "SELECT");
     if (task->state == 0) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.replayRank == 0) {
-            list->field_4               = 2;
-            list->field_5.unsignedValue = 2;
+            list->itemCount                     = 2;
+            list->visibleRowCount.unsignedValue = 2;
         } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.replayRank < 2) {
-            list->field_4               = 3;
-            list->field_5.unsignedValue = 3;
+            list->itemCount                     = 3;
+            list->visibleRowCount.unsignedValue = 3;
         } else {
-            list->field_4               = 4;
-            list->field_5.unsignedValue = 4;
+            list->itemCount                     = 4;
+            list->visibleRowCount.unsignedValue = 4;
         }
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 1) {
-            list->field_4               = 4;
-            list->field_5.unsignedValue = 4;
+            list->itemCount                     = 4;
+            list->visibleRowCount.unsignedValue = 4;
         }
-        list->field_10 = 0;
+        list->selectedItemIndex = 0;
         Ui_LayoutListPanel(list, &(obj)->panel);
-        list->field_A = 1;
+        list->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
         Ui_SpawnFromDesc(&D_mist_shooting_gallery_8018507C[0], 0, 0, 1, obj);
         Ui_SpawnFromDesc(&D_mist_shooting_gallery_8018507C[1], 0, 0, 1, obj);
         Ui_SpawnFromDesc(&D_mist_shooting_gallery_8018507C[2], 0, 0, 1, obj);
@@ -1814,9 +1814,9 @@ void func_mist_shooting_gallery_8017F98C(UiList* arg0, UiObject* arg1)
 
     texts = D_mist_shooting_gallery_8017D6D8;
     one   = 1;
-    Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A - 1, texts.text[arg0->field_8], arg0->field_1C, one, TEXT_ALIGNMENT_LEFT);
-    if (arg0->field_C == one) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode = (u8)arg0->field_8;
+    Text_DrawPrompt(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue - 1, texts.text[arg0->currentItemIndex], arg0->colorRgb, one, TEXT_ALIGNMENT_LEFT);
+    if (arg0->rowInputEnabled == one) {
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode = (u8)arg0->currentItemIndex;
     }
 }
 static s32 func_mist_shooting_gallery_8017FA38(s32 score)
@@ -2225,19 +2225,19 @@ void func_mist_shooting_gallery_80180728(Task* task)
     if (task->state == 0) {
         task->spawnArg1.value = -1;
         if (Gp_IsDebugAttachRoom() == 0) {
-            menu->field_4 = 4;
+            menu->itemCount = 4;
         } else {
-            menu->field_4 = 3;
+            menu->itemCount = 3;
         }
-        if (menu->field_4 >= 0xB) {
-            menu->field_5.unsignedValue = 0xA;
+        if (menu->itemCount >= 0xB) {
+            menu->visibleRowCount.unsignedValue = 0xA;
         } else {
-            menu->field_5.unsignedValue = menu->field_4;
+            menu->visibleRowCount.unsignedValue = menu->itemCount;
         }
-        menu->field_10              = 0;
-        menu->field_9.unsignedValue = 0;
+        menu->selectedItemIndex                   = 0;
+        menu->firstVisibleItemIndex.unsignedValue = 0;
         Ui_LayoutListPanel(menu, &(obj)->panel);
-        menu->field_A = 1;
+        menu->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
         Ui_SetListScrollFlag(menu, 1);
         obj->panel.bounds.unsignedRect.x = -((s16)obj->panel.bounds.unsignedRect.w / 2);
         obj->panel.bounds.unsignedRect.y = -((s16)obj->panel.bounds.unsignedRect.h / 2);

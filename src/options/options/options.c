@@ -149,7 +149,7 @@ static void func_options_801D404C(UiList* arg0, UiObject* arg1)
 
     columnCount = 2;
     title       = D_options_801D5B60;
-    Text_DrawPrompt(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->field_1A, title, arg0->field_1C, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    Text_DrawPrompt(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->rowTextY.signedValue, title, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     i        = 0;
     p        = labels;
     saved    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.soundMode;
@@ -164,12 +164,12 @@ static void func_options_801D404C(UiList* arg0, UiObject* arg1)
             look = Ui_LookupTable(arg1, 1);
         }
         one = 1;
-        Text_DrawPrompt(arg1, x + y / columnCount, arg0->field_1A, *p, look, one, TEXT_ALIGNMENT_LEFT);
+        Text_DrawPrompt(arg1, x + y / columnCount, arg0->rowTextY.signedValue, *p, look, one, TEXT_ALIGNMENT_LEFT);
         p++;
         y += span;
         i += one;
     } while (i < 2);
-    if (arg0->field_C == one) {
+    if (arg0->rowInputEnabled == one) {
         if (Pad_CheckButtons(0, one, 0x2000) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
             selected += one;
@@ -199,7 +199,7 @@ static void func_options_801D404C(UiList* arg0, UiObject* arg1)
     }
     SOFT_BARRIER();
     status = arg1->panel.control.word;
-    if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->field_10 == arg0->field_8)) {
+    if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->selectedItemIndex == arg0->currentItemIndex)) {
         Ui_SetHolderParam(D_options_801D5C7C, 0, 0);
     }
 }
@@ -229,7 +229,7 @@ static void func_options_801D42A8(UiList* arg0, UiObject* arg1)
     count = 4;
     a0tmp = arg1;
     title = D_options_801D5B78;
-    Text_DrawPrompt(a0tmp, arg1->panel.contentLeft.signedValue + 6, arg0->field_1A, title, arg0->field_1C, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    Text_DrawPrompt(a0tmp, arg1->panel.contentLeft.signedValue + 6, arg0->rowTextY.signedValue, title, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     i        = 0;
     p        = labels;
     saved    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.musicVolume;
@@ -244,12 +244,12 @@ static void func_options_801D42A8(UiList* arg0, UiObject* arg1)
             look = Ui_LookupTable(arg1, 1);
         }
         one = 1;
-        Text_DrawPrompt(arg1, x + y / count, arg0->field_1A, *p, look, one, TEXT_ALIGNMENT_LEFT);
+        Text_DrawPrompt(arg1, x + y / count, arg0->rowTextY.signedValue, *p, look, one, TEXT_ALIGNMENT_LEFT);
         p++;
         y += span;
         i += one;
     } while (i < 4);
-    if (arg0->field_C == one) {
+    if (arg0->rowInputEnabled == one) {
         if (Pad_CheckButtons(0, one, 0x2000) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
             selected += one;
@@ -269,7 +269,7 @@ static void func_options_801D42A8(UiList* arg0, UiObject* arg1)
         Snd_ApplyVolumeTable(0);
     }
     status = arg1->panel.control.word;
-    if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->field_10 == arg0->field_8)) {
+    if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->selectedItemIndex == arg0->currentItemIndex)) {
         Ui_SetHolderParam(D_options_801D5CA8, 0, 0);
     }
 }
@@ -288,7 +288,7 @@ static void func_options_801D4504(UiList* arg0, UiObject* arg1)
     s32  n2;
     s32  status;
 
-    Text_DrawPrompt(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->field_1A, D_options_801D5B90, arg0->field_1C, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    Text_DrawPrompt(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->rowTextY.signedValue, D_options_801D5B90, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     i        = 0;
     p        = labels;
     y        = i;
@@ -303,12 +303,12 @@ static void func_options_801D4504(UiList* arg0, UiObject* arg1)
             look = Ui_LookupTable(arg1, 1);
         }
         one = 1;
-        Text_DrawPrompt(arg1, x + y / n2, arg0->field_1A, *p, look, one, TEXT_ALIGNMENT_LEFT);
+        Text_DrawPrompt(arg1, x + y / n2, arg0->rowTextY.signedValue, *p, look, one, TEXT_ALIGNMENT_LEFT);
         p++;
         y += span;
         i += one;
     } while (i < 2);
-    if (arg0->field_C == one) {
+    if (arg0->rowInputEnabled == one) {
         if (Pad_CheckButtons(0, one, 0x2000) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
             selected += one;
@@ -325,7 +325,7 @@ static void func_options_801D4504(UiList* arg0, UiObject* arg1)
     }
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cursorMode = selected;
     status                                              = arg1->panel.control.word;
-    if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->field_10 == arg0->field_8)) {
+    if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->selectedItemIndex == arg0->currentItemIndex)) {
         Ui_SetHolderParam(D_options_801D5CE4, 0, 0);
     }
 }
@@ -346,7 +346,7 @@ static void func_options_801D4724(UiList* arg0, UiObject* arg1)
     s32  status;
 
     title = D_options_801D5B4C;
-    Text_DrawPrompt(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->field_1A, title, arg0->field_1C, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    Text_DrawPrompt(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->rowTextY.signedValue, title, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     i        = 0;
     p        = labels;
     y        = i;
@@ -361,12 +361,12 @@ static void func_options_801D4724(UiList* arg0, UiObject* arg1)
             look = Ui_LookupTable(arg1, 1);
         }
         one = 1;
-        Text_DrawPrompt(arg1, x + y / n2, arg0->field_1A, *p, look, one, TEXT_ALIGNMENT_LEFT);
+        Text_DrawPrompt(arg1, x + y / n2, arg0->rowTextY.signedValue, *p, look, one, TEXT_ALIGNMENT_LEFT);
         p++;
         y += span;
         i += one;
     } while (i < 2);
-    if (arg0->field_C == one) {
+    if (arg0->rowInputEnabled == one) {
         if (Pad_CheckButtons(0, one, 0x2000) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
             selected += one;
@@ -383,7 +383,7 @@ static void func_options_801D4724(UiList* arg0, UiObject* arg1)
     }
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration = selected;
     status                                             = arg1->panel.control.word;
-    if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->field_10 == arg0->field_8)) {
+    if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->selectedItemIndex == arg0->currentItemIndex)) {
         Ui_SetHolderParam(D_options_801D5D28, 0, 0);
     }
 }
@@ -404,7 +404,7 @@ static void func_options_801D4944(UiList* arg0, UiObject* arg1)
     s32  status;
 
     title = D_options_801D5BB8;
-    Text_DrawPrompt(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->field_1A, title, arg0->field_1C, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    Text_DrawPrompt(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->rowTextY.signedValue, title, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     i           = 0;
     p           = labels;
     y           = i;
@@ -419,12 +419,12 @@ static void func_options_801D4944(UiList* arg0, UiObject* arg1)
             look = Ui_LookupTable(arg1, 1);
         }
         one = 1;
-        Text_DrawPrompt(arg1, x + y / columnCount, arg0->field_1A, *p, look, one, TEXT_ALIGNMENT_LEFT);
+        Text_DrawPrompt(arg1, x + y / columnCount, arg0->rowTextY.signedValue, *p, look, one, TEXT_ALIGNMENT_LEFT);
         p++;
         y += span;
         i += one;
     } while (i < 2);
-    if (arg0->field_C == one) {
+    if (arg0->rowInputEnabled == one) {
         if (Pad_CheckButtons(0, one, 0x2000) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
             selected += one;
@@ -441,7 +441,7 @@ static void func_options_801D4944(UiList* arg0, UiObject* arg1)
     }
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.moveMode = selected;
     status                                            = arg1->panel.control.word;
-    if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->field_10 == arg0->field_8)) {
+    if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->selectedItemIndex == arg0->currentItemIndex)) {
         Ui_SetHolderParam(D_options_801D5D68, 0, 0);
     }
 }
@@ -907,12 +907,12 @@ static void func_options_801D5954(UiList* arg0, UiObject* arg1)
 {
     s32 status;
 
-    Text_DrawPrompt(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->field_1A, D_options_801D5BAC, arg0->field_1C, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    Text_DrawPrompt(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->rowTextY.signedValue, D_options_801D5BAC, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     status = arg1->panel.control.word;
-    if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->field_10 == arg0->field_8)) {
+    if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->selectedItemIndex == arg0->currentItemIndex)) {
         Ui_SetHolderParam(D_options_801D5DA4, 0, 0);
     }
-    if ((arg0->field_C == 1) && (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0)) {
+    if ((arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) && (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0)) {
         SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
         Ui_SpawnFromDesc(&D_options_801D5EFC, 0, 1, 1, arg1);
         arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -923,12 +923,12 @@ static void func_options_801D5A4C(UiList* arg0, UiObject* arg1)
 {
     s32 status;
 
-    Text_DrawPrompt(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->field_1A, D_options_801D5B2C, arg0->field_1C, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    Text_DrawPrompt(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->rowTextY.signedValue, D_options_801D5B2C, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     status = arg1->panel.control.word;
-    if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->field_10 == arg0->field_8)) {
+    if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->selectedItemIndex == arg0->currentItemIndex)) {
         Ui_SetHolderParam(D_options_801D5DDC, 0, 0);
     }
-    if ((arg0->field_C == 1) && (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0)) {
+    if ((arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) && (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0)) {
         SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
         Mc_ResetSaveFlags();
     }

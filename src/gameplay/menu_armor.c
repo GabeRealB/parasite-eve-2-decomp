@@ -152,7 +152,7 @@ static inline void _gpDrawItemNameAt(UiObject* obj, s32 x, s32 y, s32 color, s32
 /// in its colour.
 static inline void _gpDrawItemName(UiList* prompt, UiObject* obj, s32 item, s32 mode)
 {
-    _gpDrawItemNameAt(obj, prompt->field_18, prompt->field_1A, prompt->field_1C, item, mode);
+    _gpDrawItemNameAt(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, prompt->colorRgb, item, mode);
 }
 
 /// Shows `item`'s name in the holder (the empty-slot text for item 0) and
@@ -193,7 +193,7 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
     s32                 item;
 
     scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-    rec  = Gp_NthEquippableRec(scan, prompt->field_8, 0);
+    rec  = Gp_NthEquippableRec(scan, prompt->currentItemIndex, 0);
     if (rec != NULL) {
         item = rec->itemId;
         {
@@ -204,9 +204,9 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
             s32         color;
             s32         qty;
 
-            x     = prompt->field_18;
-            y     = prompt->field_1A;
-            color = prompt->field_1C;
+            x     = prompt->rowTextX.signedValue;
+            y     = prompt->rowTextY.signedValue;
+            color = prompt->colorRgb;
             if ((u32)(item - 0xA0) < 0x20U) {
                 qty            = rec->qty - Gp_CountEquippedRelated(scan, item);
                 req.x          = obj->panel.contentOriginX.unsignedValue + 0x84 + x;
@@ -227,7 +227,7 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
             _gpDrawItemName(prompt, obj, item, 1);
         }
 
-        if (((obj->panel.control.word >> 16) == USER_INTERFACE_PANEL_ACTIVE || obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && prompt->field_10 == prompt->field_8) {
+        if (((obj->panel.control.word >> 16) == USER_INTERFACE_PANEL_ACTIVE || obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && prompt->selectedItemIndex == prompt->currentItemIndex) {
             if (item == 0) {
                 Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
             } else {
@@ -235,7 +235,7 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
             }
         }
 
-        if (prompt->field_C == 1) {
+        if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
             if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
                 UiList*           menu;
                 InventoryItemRow* table;
@@ -248,12 +248,12 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
                 count = scan->rowCount;
                 table = &table[scan->firstRow];
                 for (i = 0; i < count; i++) {
-                    if (table[i].attachSlot == menu->field_10 + 1) {
+                    if (table[i].attachSlot == menu->selectedItemIndex + 1) {
                         Gp_RefreshItemRow(&table[i]);
                         break;
                     }
                 }
-                rec->attachSlot = menu->field_10 + 1;
+                rec->attachSlot = menu->selectedItemIndex + 1;
                 obj->result     = USER_INTERFACE_RESULT_DISMISS;
             } else if (Pad_CheckButtons(0, 1, 0x10) != 0) {
                 SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
@@ -262,30 +262,30 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
             }
         }
     } else {
-        if (((obj->panel.control.word >> 16) == USER_INTERFACE_PANEL_ACTIVE || obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && prompt->field_10 == prompt->field_8) {
+        if (((obj->panel.control.word >> 16) == USER_INTERFACE_PANEL_ACTIVE || obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && prompt->selectedItemIndex == prompt->currentItemIndex) {
             Ui_SetHolderParam(Gp_StrDetachArmorHelp, 0, 0);
         }
         {
             TextDrawReq req;
             s32         off;
 
-            req.x          = obj->panel.contentOriginX.unsignedValue + prompt->field_18;
+            req.x          = obj->panel.contentOriginX.unsignedValue + prompt->rowTextX.signedValue;
             off            = obj->panel.contentOriginY.unsignedValue - 6;
-            req.y          = prompt->field_1A + off;
+            req.y          = prompt->rowTextY.signedValue + off;
             req.otIndex    = obj->panel.otIndex.signedValue + 1;
-            req.colorRgb   = prompt->field_1C;
+            req.colorRgb   = prompt->colorRgb;
             req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
             req.alignment  = TEXT_ALIGNMENT_LEFT;
             req.drawMode   = TEXT_DRAW_OUTLINED;
             Text_DrawString(&req, Gp_StrRemoveArmor);
         }
-        if (prompt->field_C == 1) {
+        if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
             if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
                 s32 slot;
                 s32 i;
                 s32 count;
 
-                slot = D_8010E8AC.field_10 + 1;
+                slot = D_8010E8AC.selectedItemIndex + 1;
                 SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
                 rec   = Gp_GetItemTable(scan);
                 count = scan->rowCount;
@@ -322,8 +322,8 @@ static void Gp_CountEquippableRows(UiList* arg0, UiObject* arg1)
         }
         count++;
     }
-    arg0->field_4               = count + 1;
-    arg0->field_5.unsignedValue = 4;
+    arg0->itemCount                     = count + 1;
+    arg0->visibleRowCount.unsignedValue = 4;
 }
 
 void Gp_EquipSelectMenuTask(Task* arg0)
@@ -342,19 +342,19 @@ void Gp_EquipSelectMenuTask(Task* arg0)
     if (arg0->state == 0) {
         Gp_CountEquippableRows(menu, obj);
         Ui_LayoutListPanel(menu, &(obj)->panel);
-        menu->field_17                   += 0x4C;
-        obj->panel.bounds.unsignedRect.h += 0x4C;
-        menu->field_A                     = 1;
-        menu->field_10                    = 0;
-        menu->field_9.unsignedValue       = 0;
-        parent                            = arg0->parent;
+        menu->topInset                           += 0x4C;
+        obj->panel.bounds.unsignedRect.h         += 0x4C;
+        menu->flags                               = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
+        menu->selectedItemIndex                   = 0;
+        menu->firstVisibleItemIndex.unsignedValue = 0;
+        parent                                    = arg0->parent;
         Ui_SetState4(parent->spawnArg2.pointer, parent);
         Ui_SpawnFromDesc(&D_8010EC3C, 3, val, 0x10, obj);
         arg0->state = arg0->state + 1;
     }
     uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 0x4A);
     Ui_UpdateListNoAnim(menu, obj);
-    rec = Gp_NthEquippableRec(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, menu->field_10, 0);
+    rec = Gp_NthEquippableRec(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, menu->selectedItemIndex, 0);
     if (rec != NULL) {
         val = rec->itemId;
     }

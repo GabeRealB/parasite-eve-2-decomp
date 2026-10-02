@@ -65,6 +65,9 @@ enum {
     USER_INTERFACE_PANEL_OT_GROUP_MASK        = 0xFFFC
 };
 
+/// Animated list displacement per nominal 60-Hz tick, in pixels.
+enum { USER_INTERFACE_LIST_SCROLL_PIXELS_PER_TICK = 2 };
+
 /// Callback for UiPanel state handlers (e.g. entries in Ui_ObjectStates).
 typedef void (*UiPanelFunc)(UiPanel* arg0, Task* arg1);
 
@@ -74,7 +77,7 @@ typedef struct {
     UiPanelFunc funcs[6];
 } UiPanelFuncTable6;
 
-/// Linked text option node walked by Ui_DrawDialogLine (index via UiList::field_8).
+/// Linked text option node walked by Ui_DrawDialogLine (index via UiList::currentItemIndex).
 /// field_0 is the string passed to Text_DrawPrompt; field_4 is the next node.
 typedef struct _DialogOption {
     /* 0x0 */ u8*                   text;
@@ -92,7 +95,7 @@ typedef struct _DialogListCtx {
 } DialogListCtx;
 
 /// Context at Task::spawnArg1 for the Ui_ListTaskCallback UI path.
-/// field_0 is a base index copied into UiList field_4/field_5; field_2 receives
+/// field_0 supplies `UiList.itemCount` and `UiList.visibleRowCount`; field_2 receives
 /// the selected index from `UiObject::resultValue` on confirm/cancel; field_8 is an
 /// optional string passed to Ui_DrawText.
 typedef struct _SelectMenuCtx {
@@ -1203,11 +1206,11 @@ static void Ui_SetListClip(UiList* list, UiPanel* panel, s32 arg2)
             sp10.x         = panel->contentOriginX.unsignedValue + (panel->contentLeft.unsignedValue + 0xA0);
             temp           = panel->contentOriginY.unsignedValue + (panel->contentTop.unsignedValue + 0x78) + (gDisplayState.drawBuffer * 0x110);
             sp10.y         = temp;
-            sp10.y         = temp + list->field_17;
+            sp10.y         = temp + list->topInset;
             sp10.w         = panel->contentRight.unsignedValue - panel->contentLeft.unsignedValue;
-            temp           = (panel->contentBottom.signedValue - panel->contentTop.signedValue - list->field_17) / list->field_7;
+            temp           = (panel->contentBottom.signedValue - panel->contentTop.signedValue - list->topInset) / list->rowHeight;
             sp10.h         = temp;
-            sp10.h         = temp * list->field_7;
+            sp10.h         = temp * list->rowHeight;
             SetDrawArea(p, &sp10);
             addPrim(gGpuCurrentOt + (i + panel->otIndex.signedValue) + 1, p);
         }
@@ -1290,7 +1293,7 @@ static void Ui_DrawCaret(UiList* list, UiPanel* panel, s32 arg2)
         if (panel->control.word == USER_INTERFACE_PANEL_ACTIVE) {
             p->y0 -= (((u32)gDisplayState.vsyncCount >> 3) & 3) - 3;
         }
-        p->y0 += list->field_17;
+        p->y0 += list->topInset;
         p->x1 -= 4;
         t      = p->y0 + 5;
         p->x2 += 5;
@@ -1363,13 +1366,13 @@ void Ui_LayoutListPanel(UiList* arg0_, UiPanel* arg1_)
     arg0 = arg0_;
     arg1 = arg1_;
 
-    if (arg0->field_5.signedValue == 0) {
-        arg0->field_5.signedValue = arg0->field_4;
-    } else if (arg0->field_4 < arg0->field_5.signedValue) {
-        arg0->field_5.signedValue = arg0->field_4;
+    if (arg0->visibleRowCount.signedValue == 0) {
+        arg0->visibleRowCount.signedValue = arg0->itemCount;
+    } else if (arg0->itemCount < arg0->visibleRowCount.signedValue) {
+        arg0->visibleRowCount.signedValue = arg0->itemCount;
     }
 
-    growth               = arg0->field_5.signedValue * arg0->field_7;
+    growth               = arg0->visibleRowCount.signedValue * arg0->rowHeight;
     growth              -= arg1->contentBottom.signedValue - arg1->contentTop.signedValue;
     arg1->bounds.rect.h += growth;
     overflow             = 0x98 - (arg1->bounds.rect.x + arg1->bounds.rect.w);
@@ -1400,37 +1403,37 @@ void Ui_LayoutListPanel(UiList* arg0_, UiPanel* arg1_)
     arg1->contentOriginX.unsignedValue = sp10.x - arg1->contentLeft.signedValue;
     arg1->contentOriginY.unsignedValue = sp10.y - arg1->contentTop.signedValue;
 
-    arg0->field_17 = 0;
+    arg0->topInset = 0;
     sp10.x         = arg1->contentOriginX.unsignedValue + arg1->contentLeft.signedValue;
     sp10.y         = arg1->contentOriginY.unsignedValue + arg1->contentTop.signedValue;
     sp10.w         = arg1->contentRight.signedValue - arg1->contentLeft.signedValue;
     sp10.h         = arg1->contentBottom.signedValue - arg1->contentTop.signedValue;
     height         = sp10.h;
-    height        -= arg0->field_17;
-    if (arg0->field_7 == 0) {
-        arg0->field_7 = 0xA;
+    height        -= arg0->topInset;
+    if (arg0->rowHeight == 0) {
+        arg0->rowHeight = USER_INTERFACE_LIST_DEFAULT_ROW_HEIGHT;
     }
-    if (height >= arg0->field_4 * arg0->field_7) {
-        arg0->field_5.signedValue = arg0->field_4;
+    if (height >= arg0->itemCount * arg0->rowHeight) {
+        arg0->visibleRowCount.signedValue = arg0->itemCount;
     } else {
-        arg0->field_5.signedValue = height / arg0->field_7;
-        if (arg0->field_5.signedValue <= 0) {
-            arg0->field_5.signedValue = 1;
+        arg0->visibleRowCount.signedValue = height / arg0->rowHeight;
+        if (arg0->visibleRowCount.signedValue <= 0) {
+            arg0->visibleRowCount.signedValue = 1;
         }
     }
-    if (arg0->field_10 >= arg0->field_4) {
-        arg0->field_10 = arg0->field_4 - 1;
+    if (arg0->selectedItemIndex >= arg0->itemCount) {
+        arg0->selectedItemIndex = arg0->itemCount - 1;
     }
-    if (arg0->field_4 <= arg0->field_5.signedValue) {
-        arg0->field_9.unsignedValue = 0;
+    if (arg0->itemCount <= arg0->visibleRowCount.signedValue) {
+        arg0->firstVisibleItemIndex.unsignedValue = 0;
     }
-    arg0->field_A  = 0;
-    arg0->field_14 = 0;
-    arg0->field_16 = 0;
-    arg0->field_C  = 0;
+    arg0->flags                 = 0;
+    arg0->scrollPixelsRemaining = 0;
+    arg0->scrollDirection       = USER_INTERFACE_LIST_STEP_NONE;
+    arg0->rowInputEnabled       = USER_INTERFACE_LIST_ROW_INACTIVE;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cursorMode != 0) {
-        arg0->field_10              = 0;
-        arg0->field_9.unsignedValue = 0;
+        arg0->selectedItemIndex                   = 0;
+        arg0->firstVisibleItemIndex.unsignedValue = 0;
     }
 }
 
@@ -1500,7 +1503,7 @@ static void Ui_DrawListHighlight(UiList* list, UiPanel* panel, s32 arg2, s32 unu
     s32      x1;
 
     a1 = panel;
-    h  = list->field_7;
+    h  = list->rowHeight;
     x1 = a1->contentLeft.signedValue;
     a1->otIndex.unsignedValue++;
     _uiFillTile(panel, x1, arg2 - h, a1->contentRight.signedValue - x1 - 1, h, 0x1741F);
@@ -1563,105 +1566,106 @@ static void Ui_UpdateListRows(UiList* list, UiPanel* panel, s32 animate)
     step      = 0;
     playSound = 0;
     highlight = 0;
-    margin    = list->field_5.signedValue >> 2;
+    margin    = list->visibleRowCount.signedValue >> 2;
     itemData  = D_80067640;
     if (margin < 2) {
         margin = 0;
     }
-    list->field_20.signedValue = 0;
-    list->field_22             = 0;
-    list->field_18             = panel->contentLeft.unsignedValue + 2;
-    state                      = panel->control.word;
+    // Each dispatch publishes fresh results and panel-local row coordinates.
+    list->commandResult.signedValue = USER_INTERFACE_LIST_COMMAND_NONE;
+    list->actionResult              = USER_INTERFACE_RESULT_NONE;
+    list->rowTextX.signedValue      = panel->contentLeft.unsignedValue + 2;
+    state                           = panel->control.word;
     if (state >= USER_INTERFACE_PANEL_REQUEST_MIN) {
         switch (state) {
             case USER_INTERFACE_PANEL_SELECT_FIRST_VISIBLE:
-                list->field_10 = list->field_9.signedValue;
+                list->selectedItemIndex = list->firstVisibleItemIndex.signedValue;
                 break;
             case USER_INTERFACE_PANEL_SELECT_LAST_VISIBLE:
-                list->field_10 = list->field_9.signedValue + list->field_5.signedValue - 1;
+                list->selectedItemIndex = list->firstVisibleItemIndex.signedValue + list->visibleRowCount.signedValue - 1;
                 break;
         }
     }
-    if (list->field_10 < 0) {
-        list->field_10 += list->field_4;
+    if (list->selectedItemIndex < 0) {
+        list->selectedItemIndex += list->itemCount;
     }
-    rows = list->field_5.signedValue;
-    if (rows < list->field_4) {
-        if (list->field_6 != 0 || list->field_9.signedValue > 0) {
+    rows = list->visibleRowCount.signedValue;
+    if (rows < list->itemCount) {
+        if (list->wrapNavigation != 0 || list->firstVisibleItemIndex.signedValue > 0) {
             Ui_DrawCaret(list, panel, 0);
         }
-        if (list->field_6 != 0 || list->field_9.signedValue + list->field_5.signedValue < list->field_4) {
+        if (list->wrapNavigation != 0 || list->firstVisibleItemIndex.signedValue + list->visibleRowCount.signedValue < list->itemCount) {
             Ui_DrawCaret(list, panel, 1);
         }
-        list->field_1A = panel->contentTop.unsignedValue + list->field_7;
-        if (list->field_14 > 0) {
-            list->field_14 -= gDisplayState.frameTicks * 2;
-            if (list->field_14 <= 0) {
-                list->field_14 = 0;
-                if (list->field_16 == 1) {
-                    list->field_9.signedValue++;
-                    if (list->field_9.signedValue >= list->field_4) {
-                        list->field_9.signedValue -= list->field_4;
+        list->rowTextY.signedValue = panel->contentTop.unsignedValue + list->rowHeight;
+        if (list->scrollPixelsRemaining > 0) {
+            list->scrollPixelsRemaining -= gDisplayState.frameTicks * USER_INTERFACE_LIST_SCROLL_PIXELS_PER_TICK;
+            if (list->scrollPixelsRemaining <= 0) {
+                list->scrollPixelsRemaining = 0;
+                if (list->scrollDirection == USER_INTERFACE_LIST_STEP_NEXT) {
+                    list->firstVisibleItemIndex.signedValue++;
+                    if (list->firstVisibleItemIndex.signedValue >= list->itemCount) {
+                        list->firstVisibleItemIndex.signedValue -= list->itemCount;
                     }
                 }
-                list->field_16 = 0;
+                list->scrollDirection = USER_INTERFACE_LIST_STEP_NONE;
             } else {
-                if (list->field_16 == 1) {
-                    s32 top         = list->field_1A + 7;
-                    cursorY         = top - list->field_7 + (list->field_5.signedValue - 1) * list->field_7;
-                    list->field_1A -= list->field_7 - list->field_14;
+                if (list->scrollDirection == USER_INTERFACE_LIST_STEP_NEXT) {
+                    s32 top                     = list->rowTextY.signedValue + 7;
+                    cursorY                     = top - list->rowHeight + (list->visibleRowCount.signedValue - 1) * list->rowHeight;
+                    list->rowTextY.signedValue -= list->rowHeight - list->scrollPixelsRemaining;
                 } else {
-                    s32 top         = list->field_1A + 7;
-                    cursorY         = top - list->field_7;
-                    list->field_1A -= list->field_14;
+                    s32 top                     = list->rowTextY.signedValue + 7;
+                    cursorY                     = top - list->rowHeight;
+                    list->rowTextY.signedValue -= list->scrollPixelsRemaining;
                 }
                 rows++;
             }
         }
     } else {
-        list->field_1A = panel->contentTop.unsignedValue + list->field_7;
+        list->rowTextY.signedValue = panel->contentTop.unsignedValue + list->rowHeight;
     }
-    list->field_1A += list->field_17;
-    highlightY      = list->field_1A;
-    rowY            = highlightY;
-    if (list->field_4 == 0) {
+    list->rowTextY.signedValue += list->topInset;
+    highlightY                  = list->rowTextY.signedValue;
+    rowY                        = highlightY;
+    if (list->itemCount == 0) {
         s32 top = highlightY + 7;
 
-        cursorX = list->field_18 - 2;
-        cursorY = top - list->field_7;
+        cursorX = list->rowTextX.signedValue - 2;
+        cursorY = top - list->rowHeight;
         _uiListMoveCursor(panel, cursorX, cursorY);
         return;
     }
-    if (list->field_14 != 0) {
+    if (list->scrollPixelsRemaining != 0) {
         Ui_SetListClip(list, panel, 1);
     }
-    item = list->field_9.signedValue;
+    item = list->firstVisibleItemIndex.signedValue;
     for (i = 0; i < rows; i++) {
-        if (item == list->field_10) {
-            if (list->field_16 == 0) {
+        if (item == list->selectedItemIndex) {
+            if (list->scrollDirection == USER_INTERFACE_LIST_STEP_NONE) {
                 if (panel->control.word == USER_INTERFACE_PANEL_ACTIVE) {
-                    list->field_C  = 1;
-                    highlight      = 1;
-                    list->field_1C = itemData;
-                    highlightY     = rowY;
+                    list->rowInputEnabled = USER_INTERFACE_LIST_ROW_ACTIVE;
+                    highlight             = 1;
+                    list->colorRgb        = itemData;
+                    highlightY            = rowY;
                 } else {
-                    list->field_C  = 0;
-                    list->field_1C = itemData;
+                    list->rowInputEnabled = USER_INTERFACE_LIST_ROW_INACTIVE;
+                    list->colorRgb        = itemData;
                 }
             }
-            h       = list->field_7;
+            h       = list->rowHeight;
             center  = rowY - (h - 1) / 2;
             cursorY = center - 1;
             if (h == 8) {
                 cursorY = center - 2;
             }
         } else {
-            list->field_C  = 0;
-            list->field_1C = itemData;
+            list->rowInputEnabled = USER_INTERFACE_LIST_ROW_INACTIVE;
+            list->colorRgb        = itemData;
         }
-        inset         = 0;
-        rowH          = list->field_7;
-        list->field_8 = item;
+        inset                  = 0;
+        rowH                   = list->rowHeight;
+        list->currentItemIndex = item;
         if (rowH == 10) {
             inset = 3;
         } else if (rowH < 10) {
@@ -1669,147 +1673,147 @@ static void Ui_UpdateListRows(UiList* list, UiPanel* panel, s32 animate)
         } else if (rowH >= 16) {
             inset = rowH - 15;
         }
-        list->field_1A = rowY - inset;
-        if (list->field_A & 1) {
-            list->funcs[0](list, PARENT_OF(panel, UiObject, panel));
+        list->rowTextY.signedValue = rowY - inset;
+        if (list->flags & USER_INTERFACE_LIST_SHARED_ROW_CALLBACK) {
+            list->rowCallbacks[0](list, PARENT_OF(panel, UiObject, panel));
         } else {
-            list->funcs[item](list, PARENT_OF(panel, UiObject, panel));
+            list->rowCallbacks[item](list, PARENT_OF(panel, UiObject, panel));
         }
-        if (item == list->field_10 && list->field_22 == 0x41) {
+        if (item == list->selectedItemIndex && list->actionResult == USER_INTERFACE_LIST_ACTION_SKIP_ROW) {
             highlight = 0;
         }
         item++;
-        rowY  = list->field_1A + inset;
-        rowY += list->field_7;
-        if (item >= list->field_4) {
-            item -= list->field_4;
+        rowY  = list->rowTextY.signedValue + inset;
+        rowY += list->rowHeight;
+        if (item >= list->itemCount) {
+            item -= list->itemCount;
         }
     }
-    if (highlight == 1 && list->field_7 != 0x2E) {
+    if (highlight == 1 && list->rowHeight != USER_INTERFACE_LIST_PREVIEW_ROW_HEIGHT) {
         Ui_DrawListHighlight(list, panel, highlightY, 0);
     }
-    cursorX = list->field_18 - 2;
-    if (list->field_14 != 0) {
+    cursorX = list->rowTextX.signedValue - 2;
+    if (list->scrollPixelsRemaining != 0) {
         Ui_SetListClip(list, panel, 0);
     } else if (panel->control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (list->field_22 == 0 && Pad_CheckButtons(animate, 0, 0xA000) == 0) {
+        if (list->actionResult == USER_INTERFACE_RESULT_NONE && Pad_CheckButtons(animate, 0, 0xA000) == 0) {
             if (Pad_CheckButtons(animate, 1, 0x1000) != 0) {
-                playSound       = 1;
-                list->field_B   = -1;
-                step            = -1;
-                list->field_10 -= 1;
+                playSound                = 1;
+                list->navigationStep     = USER_INTERFACE_LIST_STEP_PREVIOUS;
+                step                     = -1;
+                list->selectedItemIndex -= 1;
             } else if (Pad_CheckButtons(animate, 1, 0x4000) != 0) {
-                playSound       = 1;
-                step            = 1;
-                list->field_10 += 1;
-                list->field_B   = 1;
-            } else if (list->field_5.signedValue < list->field_4 && list->field_6 == 0) {
+                playSound                = 1;
+                step                     = 1;
+                list->selectedItemIndex += 1;
+                list->navigationStep     = USER_INTERFACE_LIST_STEP_NEXT;
+            } else if (list->visibleRowCount.signedValue < list->itemCount && list->wrapNavigation == 0) {
                 if (Pad_CheckButtons(0, 1, 4) != 0) {
-                    if (list->field_10 != 0) {
+                    if (list->selectedItemIndex != 0) {
                         playSound = 1;
                     }
-                    list->field_B   = -1;
-                    step            = -1;
-                    list->field_10 -= 1;
-                    if (list->field_9.signedValue > 0) {
-                        list->field_9.signedValue -= list->field_5.signedValue;
-                        if (list->field_9.signedValue < 0) {
-                            list->field_9.signedValue = 0;
+                    list->navigationStep     = USER_INTERFACE_LIST_STEP_PREVIOUS;
+                    step                     = -1;
+                    list->selectedItemIndex -= 1;
+                    if (list->firstVisibleItemIndex.signedValue > 0) {
+                        list->firstVisibleItemIndex.signedValue -= list->visibleRowCount.signedValue;
+                        if (list->firstVisibleItemIndex.signedValue < 0) {
+                            list->firstVisibleItemIndex.signedValue = 0;
                         }
-                        if (list->field_9.signedValue + list->field_5.signedValue - 1 < list->field_10) {
-                            list->field_10 = list->field_9.signedValue + list->field_5.signedValue - 1;
+                        if (list->firstVisibleItemIndex.signedValue + list->visibleRowCount.signedValue - 1 < list->selectedItemIndex) {
+                            list->selectedItemIndex = list->firstVisibleItemIndex.signedValue + list->visibleRowCount.signedValue - 1;
                         }
                     } else {
-                        list->field_10 = 0;
+                        list->selectedItemIndex = 0;
                     }
                 } else if (Pad_CheckButtons(0, 1, 8) != 0) {
-                    if (list->field_10 != list->field_4 - 1) {
+                    if (list->selectedItemIndex != list->itemCount - 1) {
                         playSound = 1;
                     }
-                    list->field_B   = 1;
-                    step            = 1;
-                    list->field_10 += 1;
-                    if (list->field_9.signedValue + list->field_5.signedValue < list->field_4) {
-                        list->field_9.signedValue += list->field_5.signedValue;
-                        if (list->field_9.signedValue > list->field_4 - list->field_5.signedValue) {
-                            list->field_9.signedValue = list->field_4 - list->field_5.signedValue;
+                    list->navigationStep     = USER_INTERFACE_LIST_STEP_NEXT;
+                    step                     = 1;
+                    list->selectedItemIndex += 1;
+                    if (list->firstVisibleItemIndex.signedValue + list->visibleRowCount.signedValue < list->itemCount) {
+                        list->firstVisibleItemIndex.signedValue += list->visibleRowCount.signedValue;
+                        if (list->firstVisibleItemIndex.signedValue > list->itemCount - list->visibleRowCount.signedValue) {
+                            list->firstVisibleItemIndex.signedValue = list->itemCount - list->visibleRowCount.signedValue;
                         }
-                        if (list->field_10 < list->field_9.signedValue) {
-                            list->field_10 = list->field_9.signedValue;
+                        if (list->selectedItemIndex < list->firstVisibleItemIndex.signedValue) {
+                            list->selectedItemIndex = list->firstVisibleItemIndex.signedValue;
                         }
                     } else {
-                        list->field_10 = list->field_4 - 1;
+                        list->selectedItemIndex = list->itemCount - 1;
                     }
                 }
             }
         }
-        if (list->field_22 == 0x41) {
-            list->field_22 = 0;
-            if (list->field_B == 0) {
-                list->field_B = 1;
+        if (list->actionResult == USER_INTERFACE_LIST_ACTION_SKIP_ROW) {
+            list->actionResult = USER_INTERFACE_RESULT_NONE;
+            if (list->navigationStep == USER_INTERFACE_LIST_STEP_NONE) {
+                list->navigationStep = USER_INTERFACE_LIST_STEP_NEXT;
             }
-            list->field_10 += list->field_B;
-            step            = list->field_B;
+            list->selectedItemIndex += list->navigationStep;
+            step                     = list->navigationStep;
         }
     }
-    if ((panel->control.word == USER_INTERFACE_PANEL_ACTIVE || panel->control.modes.suspended == USER_INTERFACE_PANEL_ACTIVE) && list->field_7 != 0x2E) {
+    if ((panel->control.word == USER_INTERFACE_PANEL_ACTIVE || panel->control.modes.suspended == USER_INTERFACE_PANEL_ACTIVE) && list->rowHeight != USER_INTERFACE_LIST_PREVIEW_ROW_HEIGHT) {
         _uiListMoveCursor(panel, cursorX, cursorY);
     }
     if (step == -1) {
-        if (list->field_10 < 0) {
-            if (list->field_6 != 0) {
-                list->field_10 += list->field_4;
+        if (list->selectedItemIndex < 0) {
+            if (list->wrapNavigation != 0) {
+                list->selectedItemIndex += list->itemCount;
             } else {
-                playSound      = 0;
-                list->field_22 = 2;
-                list->field_10 = 0;
-                list->field_B  = 1;
+                playSound               = 0;
+                list->actionResult      = USER_INTERFACE_LIST_ACTION_AT_START;
+                list->selectedItemIndex = 0;
+                list->navigationStep    = USER_INTERFACE_LIST_STEP_NEXT;
             }
         }
-        if (list->field_4 != list->field_5.signedValue) {
+        if (list->itemCount != list->visibleRowCount.signedValue) {
             s32 edge = margin - 1;
 
-            if (list->field_9.signedValue + edge >= list->field_10 % list->field_4) {
-                if (list->field_6 != 0) {
-                    list->field_9.signedValue -= 1;
-                    if (list->field_9.signedValue < 0) {
-                        list->field_9.signedValue += list->field_4;
+            if (list->firstVisibleItemIndex.signedValue + edge >= list->selectedItemIndex % list->itemCount) {
+                if (list->wrapNavigation != 0) {
+                    list->firstVisibleItemIndex.signedValue -= 1;
+                    if (list->firstVisibleItemIndex.signedValue < 0) {
+                        list->firstVisibleItemIndex.signedValue += list->itemCount;
                     }
-                    list->field_16 = -1;
-                    list->field_14 = list->field_7;
+                    list->scrollDirection       = USER_INTERFACE_LIST_STEP_PREVIOUS;
+                    list->scrollPixelsRemaining = list->rowHeight;
                 } else {
-                    list->field_9.signedValue -= 1;
-                    if (list->field_9.signedValue < 0) {
-                        list->field_9.signedValue = 0;
+                    list->firstVisibleItemIndex.signedValue -= 1;
+                    if (list->firstVisibleItemIndex.signedValue < 0) {
+                        list->firstVisibleItemIndex.signedValue = 0;
                     } else {
-                        list->field_16 = -1;
-                        list->field_14 = list->field_7;
+                        list->scrollDirection       = USER_INTERFACE_LIST_STEP_PREVIOUS;
+                        list->scrollPixelsRemaining = list->rowHeight;
                     }
                 }
             }
         }
     } else if (step == 1) {
-        if (list->field_10 >= list->field_4) {
-            if (list->field_6 != 0) {
-                list->field_10 -= list->field_4;
+        if (list->selectedItemIndex >= list->itemCount) {
+            if (list->wrapNavigation != 0) {
+                list->selectedItemIndex -= list->itemCount;
             } else {
-                playSound      = 0;
-                list->field_10 = list->field_4 - 1;
-                list->field_22 = 3;
-                list->field_B  = -1;
+                playSound               = 0;
+                list->selectedItemIndex = list->itemCount - 1;
+                list->actionResult      = USER_INTERFACE_LIST_ACTION_AT_END;
+                list->navigationStep    = USER_INTERFACE_LIST_STEP_PREVIOUS;
             }
         }
-        if (list->field_4 != list->field_5.signedValue) {
-            if (list->field_10 % list->field_4 >= (list->field_9.signedValue + list->field_5.signedValue - margin) % list->field_4 && (list->field_6 != 0 || list->field_9.signedValue < list->field_4 - list->field_5.signedValue)) {
-                list->field_16 = 1;
-                list->field_14 = list->field_7;
+        if (list->itemCount != list->visibleRowCount.signedValue) {
+            if (list->selectedItemIndex % list->itemCount >= (list->firstVisibleItemIndex.signedValue + list->visibleRowCount.signedValue - margin) % list->itemCount && (list->wrapNavigation != 0 || list->firstVisibleItemIndex.signedValue < list->itemCount - list->visibleRowCount.signedValue)) {
+                list->scrollDirection       = USER_INTERFACE_LIST_STEP_NEXT;
+                list->scrollPixelsRemaining = list->rowHeight;
             }
         }
     }
     if (playSound != 0) {
-        sound = 0x15;
-        if (!(list->field_A & 2)) {
-            sound = 2;
+        sound = SOUND_SYSTEM_CURSOR;
+        if (!(list->flags & USER_INTERFACE_LIST_SYSTEM_CURSOR_SOUND)) {
+            sound = SOUND_MENU_CURSOR;
         }
         SndEvt_EnqueueType6(sound, 0, 0);
     }
@@ -2289,40 +2293,40 @@ void Ui_InitList(UiList* list, UiPanel* panel)
     s32      height;
 
     a1             = panel;
-    list->field_17 = 0;
+    list->topInset = 0;
     sp.x           = a1->contentOriginX.unsignedValue + a1->contentLeft.unsignedValue;
     sp.y           = a1->contentOriginY.unsignedValue + a1->contentTop.unsignedValue;
     sp.w           = a1->contentRight.unsignedValue - a1->contentLeft.unsignedValue;
     temp_v0        = a1->contentBottom.unsignedValue - a1->contentTop.unsignedValue;
     height         = temp_v0;
     sp.h           = temp_v0;
-    height         = height - list->field_17;
-    if (list->field_7 == 0) {
-        list->field_7 = 0xA;
+    height         = height - list->topInset;
+    if (list->rowHeight == 0) {
+        list->rowHeight = USER_INTERFACE_LIST_DEFAULT_ROW_HEIGHT;
     }
-    temp_a2 = list->field_4;
-    temp_v1 = list->field_7;
+    temp_a2 = list->itemCount;
+    temp_v1 = list->rowHeight;
     if (height >= (temp_a2 * temp_v1)) {
-        list->field_5.unsignedValue = temp_a2;
+        list->visibleRowCount.unsignedValue = temp_a2;
     } else {
-        list->field_5.unsignedValue = height / temp_v1;
-        if (list->field_5.signedValue <= 0) {
-            list->field_5.unsignedValue = 1;
+        list->visibleRowCount.unsignedValue = height / temp_v1;
+        if (list->visibleRowCount.signedValue <= 0) {
+            list->visibleRowCount.unsignedValue = 1;
         }
     }
-    if (list->field_10 >= list->field_4) {
-        list->field_10 = list->field_4 - 1;
+    if (list->selectedItemIndex >= list->itemCount) {
+        list->selectedItemIndex = list->itemCount - 1;
     }
-    if (list->field_4 <= list->field_5.signedValue) {
-        list->field_9.unsignedValue = 0;
+    if (list->itemCount <= list->visibleRowCount.signedValue) {
+        list->firstVisibleItemIndex.unsignedValue = 0;
     }
-    list->field_A  = 0;
-    list->field_14 = 0;
-    list->field_16 = 0;
-    list->field_C  = 0;
+    list->flags                 = 0;
+    list->scrollPixelsRemaining = 0;
+    list->scrollDirection       = USER_INTERFACE_LIST_STEP_NONE;
+    list->rowInputEnabled       = USER_INTERFACE_LIST_ROW_INACTIVE;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cursorMode != 0) {
-        list->field_10              = 0;
-        list->field_9.unsignedValue = 0;
+        list->selectedItemIndex                   = 0;
+        list->firstVisibleItemIndex.unsignedValue = 0;
     }
 }
 
@@ -2336,25 +2340,25 @@ void Ui_ComputeVisibleRows(UiList* list, UiPanel* panel)
     sp.w    = panel->contentRight.unsignedValue - panel->contentLeft.unsignedValue;
     sp.h    = panel->contentBottom.unsignedValue - panel->contentTop.unsignedValue;
     height  = sp.h;
-    height -= list->field_17;
-    if (list->field_7 == 0) {
-        list->field_7 = 0xA;
+    height -= list->topInset;
+    if (list->rowHeight == 0) {
+        list->rowHeight = USER_INTERFACE_LIST_DEFAULT_ROW_HEIGHT;
     }
-    if (height >= list->field_4 * list->field_7) {
-        list->field_5.unsignedValue = list->field_4;
+    if (height >= list->itemCount * list->rowHeight) {
+        list->visibleRowCount.unsignedValue = list->itemCount;
     } else {
-        list->field_5.unsignedValue = height / list->field_7;
-        if (list->field_5.signedValue <= 0) {
-            list->field_5.unsignedValue = 1;
+        list->visibleRowCount.unsignedValue = height / list->rowHeight;
+        if (list->visibleRowCount.signedValue <= 0) {
+            list->visibleRowCount.unsignedValue = 1;
         }
     }
-    if (list->field_10 >= list->field_4) {
-        list->field_10 = list->field_4 - 1;
+    if (list->selectedItemIndex >= list->itemCount) {
+        list->selectedItemIndex = list->itemCount - 1;
     }
-    if (list->field_4 <= list->field_5.signedValue) {
-        list->field_9.unsignedValue = 0;
+    if (list->itemCount <= list->visibleRowCount.signedValue) {
+        list->firstVisibleItemIndex.unsignedValue = 0;
     }
-    list->field_A = 0;
+    list->flags = 0;
 }
 
 void Ui_UpdateListNoAnim(void* arg0, void* arg1)
@@ -2370,34 +2374,34 @@ static void Ui_ComputeVisibleRowsEx(UiList* list, UiPanel* panel, s32 arg2)
     s8   temp_v1;
     s32  height;
 
-    list->field_17 = arg2;
+    list->topInset = arg2;
     sp.x           = panel->contentOriginX.unsignedValue + panel->contentLeft.unsignedValue;
     sp.y           = panel->contentOriginY.unsignedValue + panel->contentTop.unsignedValue;
     sp.w           = panel->contentRight.unsignedValue - panel->contentLeft.unsignedValue;
     temp_v0        = panel->contentBottom.unsignedValue - panel->contentTop.unsignedValue;
     height         = temp_v0;
     sp.h           = temp_v0;
-    height         = height - list->field_17;
-    if (list->field_7 == 0) {
-        list->field_7 = 0xA;
+    height         = height - list->topInset;
+    if (list->rowHeight == 0) {
+        list->rowHeight = USER_INTERFACE_LIST_DEFAULT_ROW_HEIGHT;
     }
-    temp_a2 = list->field_4;
-    temp_v1 = list->field_7;
+    temp_a2 = list->itemCount;
+    temp_v1 = list->rowHeight;
     if (height >= (temp_a2 * temp_v1)) {
-        list->field_5.unsignedValue = temp_a2;
+        list->visibleRowCount.unsignedValue = temp_a2;
     } else {
-        list->field_5.unsignedValue = height / temp_v1;
-        if (list->field_5.signedValue <= 0) {
-            list->field_5.unsignedValue = 1;
+        list->visibleRowCount.unsignedValue = height / temp_v1;
+        if (list->visibleRowCount.signedValue <= 0) {
+            list->visibleRowCount.unsignedValue = 1;
         }
     }
-    if (list->field_10 >= list->field_4) {
-        list->field_10 = list->field_4 - 1;
+    if (list->selectedItemIndex >= list->itemCount) {
+        list->selectedItemIndex = list->itemCount - 1;
     }
-    if (list->field_4 <= list->field_5.signedValue) {
-        list->field_9.unsignedValue = 0;
+    if (list->itemCount <= list->visibleRowCount.signedValue) {
+        list->firstVisibleItemIndex.unsignedValue = 0;
     }
-    list->field_A = 0;
+    list->flags = 0;
 }
 
 void Ui_SmoothCursor(UiPanel* panel, s32 arg1, s32 arg2)
@@ -2512,8 +2516,8 @@ void Ui_ClampDialogRect(UiPanel* arg0, UiList* list, UiPanel* arg2)
     s16 new_var;
 
     limit               = 0x96;
-    arg0->bounds.rect.x = ((u16)list->field_18 + arg2->contentOriginX.unsignedValue) + 8;
-    arg0->bounds.rect.y = ((u16)list->field_1A + arg2->contentOriginY.unsignedValue) - 2;
+    arg0->bounds.rect.x = (list->rowTextX.unsignedValue + arg2->contentOriginX.unsignedValue) + 8;
+    arg0->bounds.rect.y = (list->rowTextY.unsignedValue + arg2->contentOriginY.unsignedValue) - 2;
     new_var             = arg0->bounds.rect.x;
     temp                = limit - (new_var + arg0->bounds.rect.w);
     if (temp < 0) {
@@ -2553,10 +2557,10 @@ void Ui_InsertDrawTPage(s32 arg0, s32 arg1)
 void Ui_SetListScrollFlag(UiList* list, s32 arg1)
 {
     if (arg1 == 0) {
-        list->field_A &= 0xFD;
+        list->flags &= (u8)~USER_INTERFACE_LIST_SYSTEM_CURSOR_SOUND;
         return;
     }
-    list->field_A |= 2;
+    list->flags |= USER_INTERFACE_LIST_SYSTEM_CURSOR_SOUND;
 }
 
 void Ui_AllocTile(UiPanel* panel, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5)
@@ -2849,7 +2853,7 @@ static void Ui_DrawDialogLine(UiList* list, UiObject* object)
     s16            temp;
 
     temp_s3 = object->owner->spawnArg1.pointer;
-    var_v0  = list->field_8;
+    var_v0  = list->currentItemIndex;
     var_a3  = temp_s3->field_4;
     if (var_v0 > 0) {
         do {
@@ -2857,11 +2861,11 @@ static void Ui_DrawDialogLine(UiList* list, UiObject* object)
             var_v0 -= 1;
         } while (var_v0 > 0);
     }
-    Text_DrawPrompt(object, list->field_18, list->field_1A, var_a3->text, list->field_1C, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    if (list->field_C == 1) {
+    Text_DrawPrompt(object, list->rowTextX.signedValue, list->rowTextY.signedValue, var_a3->text, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             temp                = USER_INTERFACE_RESULT_CONFIRM;
-            object->resultValue = (s8)(u8)list->field_8 + 1;
+            object->resultValue = (s8)(u8)list->currentItemIndex + 1;
             object->result      = temp;
             return;
         }
@@ -2888,12 +2892,12 @@ static void Ui_ListTaskCallback(Task* task)
     menu        = &Ui_DialogLineList;
     obj->result = USER_INTERFACE_RESULT_NONE;
     if (task->state == 0) {
-        base                        = ctx->field_0;
-        menu->field_5.unsignedValue = base;
-        menu->field_4               = base;
+        base                                = ctx->field_0;
+        menu->visibleRowCount.unsignedValue = base;
+        menu->itemCount                     = base;
         Ui_LayoutListPanel(menu, &(obj)->panel);
-        menu->field_A = 1;
-        task->state  += 1;
+        menu->flags  = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
+        task->state += 1;
     }
     text = ctx->field_8;
     if (text != NULL) {

@@ -273,8 +273,8 @@ void Gp_BuildItemCmdList(UiList* arg0, UiObject* arg1, s32 arg2, InventoryItemRo
             }
             break;
     }
-    arg0->field_4               = n;
-    arg0->field_5.unsignedValue = n;
+    arg0->itemCount                     = n;
+    arg0->visibleRowCount.unsignedValue = n;
 }
 
 UiObjectDesc D_8010F02C[3] = {
@@ -525,9 +525,9 @@ void Gp_ItemCmdMenuTask(Task* arg0)
     } else {
         Ui_UpdateListNoAnim(menu, obj);
         if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-            sel = menu->field_22;
-            if (sel != 0x20) {
-                if (sel == 0x23) {
+            sel = menu->actionResult;
+            if (sel != USER_INTERFACE_LIST_ACTION_INPUT_CONSUMED) {
+                if (sel == USER_INTERFACE_LIST_ACTION_MOVE) {
                     obj->result = sel;
                 } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
                     obj->result = USER_INTERFACE_RESULT_CANCEL;
@@ -1039,24 +1039,24 @@ void Gp_YesNoMenuTask(Task* arg0)
         switch (mode) {
             case 1:
                 Gp_DialogCmdFns[0] = Gp_DrawOkCmd;
-                menu->field_4      = mode;
+                menu->itemCount    = mode;
                 break;
             case 2:
                 Gp_DialogCmdFns[0] = Gp_DrawCancelCmd;
-                menu->field_4      = 1;
+                menu->itemCount    = 1;
                 break;
             case 3:
                 Gp_DialogCmdFns[0] = Gp_DrawYesCmd;
                 Gp_DialogCmdFns[1] = Gp_DrawNoCmd;
-                menu->field_4      = 2;
+                menu->itemCount    = 2;
                 break;
             default:
                 Gp_DialogCmdFns[0] = Gp_DrawYesCmd;
                 Gp_DialogCmdFns[1] = Gp_DrawNoCmd;
-                menu->field_4      = 2;
+                menu->itemCount    = 2;
                 break;
         }
-        menu->field_5.unsignedValue = menu->field_4;
+        menu->visibleRowCount.unsignedValue = menu->itemCount;
         Ui_LayoutListPanel(menu, &(obj)->panel);
         obj->panel.bounds.unsignedRect.y -= (s16)obj->panel.bounds.unsignedRect.h / 2;
         if (arg0->spawnArg1.value & 0x10) {
@@ -1065,18 +1065,18 @@ void Gp_YesNoMenuTask(Task* arg0)
             Ui_SetListScrollFlag(menu, 0);
         }
         if ((arg0->spawnArg1.value & 0xF) == 3) {
-            menu->field_10 = 1;
+            menu->selectedItemIndex = 1;
         } else {
-            menu->field_10 = 0;
+            menu->selectedItemIndex = 0;
         }
         arg0->state = arg0->state + 1;
     }
     Ui_UpdateListNoAnim(menu, obj);
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        sel = menu->field_22;
-        if (sel == 6) {
+        sel = menu->actionResult;
+        if (sel == USER_INTERFACE_RESULT_CONFIRM) {
             obj->result      = sel;
-            obj->resultValue = menu->field_20.unsignedValue;
+            obj->resultValue = menu->commandResult.unsignedValue;
         }
     }
 }

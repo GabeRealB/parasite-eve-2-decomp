@@ -196,14 +196,14 @@ static void func_map_akropolis_80179C50(UiList* arg0, UiObject* arg1)
     s32 item;
     s32 sel;
 
-    item = D_map_akropolis_8017A9AC[arg0->field_8];
-    Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, (u8*)Gp_GetItemText(item, 0, 0), arg0->field_1C, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    item = D_map_akropolis_8017A9AC[arg0->currentItemIndex];
+    Text_DrawPrompt(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, (u8*)Gp_GetItemText(item, 0, 0), arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (((arg1->panel.control.word >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (arg1->panel.control.word == USER_INTERFACE_PANEL_ACTIVE)) {
-        if (arg0->field_10 == arg0->field_8) {
+        if (arg0->selectedItemIndex == arg0->currentItemIndex) {
             Gp_SetPreviewItem(item, 0);
         }
     }
-    sel = arg0->field_C;
+    sel = arg0->rowInputEnabled;
     if (sel == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
@@ -234,7 +234,7 @@ static void func_map_akropolis_80179D78(Task* task)
     Ui_DrawText(&(obj)->panel, D_map_akropolis_8017997C);
     if (task->state == 0) {
         Ui_LayoutListPanel(list, &(obj)->panel);
-        list->field_A         = 1;
+        list->flags           = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
         task->spawnArg1.value = -1;
         task->state          += 1;
     }
@@ -603,7 +603,7 @@ static s32 D_map_akropolis_8017A9A8 = 0;
 /// The four text ids the key-item rows draw, in row order.
 static s32 D_map_akropolis_8017A9AC[4] = { 0x109, 0x10A, 0x10B, 0x10C };
 
-/// One-entry row-draw table for the list below; `UiList.funcs` points here.
+/// One-entry row-draw table for the list below; `UiList.rowCallbacks` points here.
 static UiListRowCallback D_map_akropolis_8017A9BC[1] = { func_map_akropolis_80179C50 };
 
 /// The key-item list: four rows of one line each, 0x0F tall, everything else

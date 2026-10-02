@@ -216,21 +216,21 @@ void Gp_DrawPeEnergyCmd(UiList* arg0, UiObject* arg1)
     s32         status;
     s32         one;
 
-    color = arg0->field_1C;
+    color = arg0->colorRgb;
     if (Gp_IsDebugAttachRoom() != 0) {
         color = Ui_LookupTable(arg1, 2);
     } else {
         status = arg1->panel.control.word;
         one    = 1;
         if (((status >> 16) == one) || (status == one)) {
-            if (arg0->field_10 == arg0->field_8) {
+            if (arg0->selectedItemIndex == arg0->currentItemIndex) {
                 Ui_SetHolderParam(Gp_StrReleasePe, 0, 0);
             }
         }
     }
 
-    req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
-    req.y          = arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A;
+    req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
+    req.y          = arg1->panel.contentOriginY.unsignedValue + arg0->rowTextY.unsignedValue;
     req.otIndex    = arg1->panel.otIndex.signedValue + 1;
     req.colorRgb   = color;
     req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
@@ -238,9 +238,9 @@ void Gp_DrawPeEnergyCmd(UiList* arg0, UiObject* arg1)
     req.drawMode   = TEXT_DRAW_FILL_ONLY;
     Text_DrawString(&req, Gp_StrPEnergy);
 
-    if (arg0->field_C == 1) {
+    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (Gp_IsDebugAttachRoom() != 0) {
-            arg0->field_22 = 0x41;
+            arg0->actionResult = USER_INTERFACE_LIST_ACTION_SKIP_ROW;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             arg1->resultValue = 0xC;
@@ -257,10 +257,10 @@ void Gp_DrawOptionCmd(UiList* arg0, UiObject* arg1)
     s32         two;
     UiObject*   obj;
 
-    req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
-    req.y          = arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A;
+    req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
+    req.y          = arg1->panel.contentOriginY.unsignedValue + arg0->rowTextY.unsignedValue;
     req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.colorRgb   = arg0->field_1C;
+    req.colorRgb   = arg0->colorRgb;
     req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_FILL_ONLY;
@@ -269,7 +269,7 @@ void Gp_DrawOptionCmd(UiList* arg0, UiObject* arg1)
     status = arg1->panel.control.word;
     one    = 1;
     if (((status >> 16) == one) || (status == one)) {
-        if (arg0->field_10 == arg0->field_8) {
+        if (arg0->selectedItemIndex == arg0->currentItemIndex) {
             Ui_SetHolderParam(Gp_StrCustomizeHelp, 0, 0);
             two = 2;
             if (arg1->owner->spawnArg1.value != two) {
@@ -281,7 +281,7 @@ void Gp_DrawOptionCmd(UiList* arg0, UiObject* arg1)
         }
     }
 
-    if (arg0->field_C == 1) {
+    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             obj = (UiObject*)arg1->owner->spawnArg2.pointer;
             SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
@@ -297,10 +297,10 @@ void Gp_DrawExitCmd(UiList* arg0, UiObject* arg1)
     s32         status;
     s32         one;
 
-    req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
-    req.y          = arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A;
+    req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
+    req.y          = arg1->panel.contentOriginY.unsignedValue + arg0->rowTextY.unsignedValue;
     req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.colorRgb   = arg0->field_1C;
+    req.colorRgb   = arg0->colorRgb;
     req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_FILL_ONLY;
@@ -309,12 +309,12 @@ void Gp_DrawExitCmd(UiList* arg0, UiObject* arg1)
     status = arg1->panel.control.word;
     one    = 1;
     if (((status >> 16) == one) || (status == one)) {
-        if (arg0->field_10 == arg0->field_8) {
+        if (arg0->selectedItemIndex == arg0->currentItemIndex) {
             Ui_SetHolderParam(Gp_StrReturnGame, 0, 0);
         }
     }
 
-    if (arg0->field_C == 1) {
+    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             arg1->result = USER_INTERFACE_RESULT_CANCEL;
         }
@@ -511,21 +511,21 @@ void Gp_DrawSortCmd(UiList* arg0, UiObject* arg1)
 
     one = 1;
     if (Gp_ItemOrderMode == one) {
-        arg0->field_1C = Ui_LookupTable(arg1, 2);
+        arg0->colorRgb = Ui_LookupTable(arg1, 2);
     }
-    Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, Gp_StrSort, arg0->field_1C, one, TEXT_ALIGNMENT_LEFT);
+    Text_DrawPrompt(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, Gp_StrSort, arg0->colorRgb, one, TEXT_ALIGNMENT_LEFT);
     status = arg1->panel.control.word;
     if (((status >> 16) == one) || (status == one)) {
-        if (arg0->field_10 == arg0->field_8) {
+        if (arg0->selectedItemIndex == arg0->currentItemIndex) {
             if (Gp_ItemOrderMode == one) {
-                arg0->field_22 = 0x41;
-                arg0->field_C  = 0;
+                arg0->actionResult    = USER_INTERFACE_LIST_ACTION_SKIP_ROW;
+                arg0->rowInputEnabled = USER_INTERFACE_LIST_ROW_INACTIVE;
             } else {
                 Ui_SetHolderParam(Gp_StrChangeOrderHelp, 0, 0);
             }
         }
     }
-    if (arg0->field_C == 1) {
+    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             Gp_SortItems(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, 1);
@@ -553,8 +553,8 @@ void func_800CF090(UiList* arg0, UiObject* arg1)
         }
         table++;
     }
-    arg0->field_4               = count;
-    arg0->field_5.unsignedValue = 4;
+    arg0->itemCount                     = count;
+    arg0->visibleRowCount.unsignedValue = 4;
 }
 
 void func_800CF148(UiObject* arg0, Task* arg1)
@@ -613,14 +613,14 @@ void Gp_DrawItemDescLine(UiList* arg0, UiObject* arg1)
     s8  idx;
     s32 id;
 
-    idx = arg0->field_8;
+    idx = arg0->currentItemIndex;
     id  = (u16)arg1->owner->spawnArg1.value;
     if ((idx < 2) && (id < 0x100)) {
         text = Gp_GetItemText(id, idx + 1, 1);
-        Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, text, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
+        Text_DrawPrompt(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, text, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
     } else {
-        text = Text_SkipLines(Fs_GetChunkPayload(), arg0->field_8 + 5);
-        Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, text, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
+        text = Text_SkipLines(Fs_GetChunkPayload(), arg0->currentItemIndex + 5);
+        Text_DrawPrompt(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, text, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
     }
 }
 
@@ -641,15 +641,15 @@ void Gp_DrawUseCmd(UiList* arg0, UiObject* arg1)
 {
     TextDrawReq req;
 
-    req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
-    req.y          = arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A;
+    req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
+    req.y          = arg1->panel.contentOriginY.unsignedValue + arg0->rowTextY.unsignedValue;
     req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.colorRgb   = arg0->field_1C;
+    req.colorRgb   = arg0->colorRgb;
     req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req, Gp_StrUse);
-    if (arg0->field_C == 1) {
+    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             Ui_SpawnFromDesc(&D_8010EF84, 0, 1, 1, arg1);
@@ -773,19 +773,19 @@ void Gp_DrawUsePrompt(UiList* arg0, UiObject* arg1)
 {
     TextDrawReq req;
 
-    req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
-    req.y          = arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A;
+    req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
+    req.y          = arg1->panel.contentOriginY.unsignedValue + arg0->rowTextY.unsignedValue;
     req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.colorRgb   = arg0->field_1C;
+    req.colorRgb   = arg0->colorRgb;
     req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req, Gp_StrUse);
-    if (arg0->field_C == 1) {
+    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             Gp_SpawnItemUsePrompt(arg0, arg1);
-            arg0->field_22 = 0x20;
+            arg0->actionResult = USER_INTERFACE_LIST_ACTION_INPUT_CONSUMED;
         }
     }
 }
@@ -794,18 +794,18 @@ void Gp_DrawMovePrompt(UiList* arg0, UiObject* arg1)
 {
     TextDrawReq req;
 
-    req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
-    req.y          = arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A;
+    req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
+    req.y          = arg1->panel.contentOriginY.unsignedValue + arg0->rowTextY.unsignedValue;
     req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.colorRgb   = arg0->field_1C;
+    req.colorRgb   = arg0->colorRgb;
     req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req, Gp_StrMove);
-    if (arg0->field_C == 1) {
+    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
-            arg0->field_22 = 0x23;
+            arg0->actionResult = USER_INTERFACE_LIST_ACTION_MOVE;
         }
     }
 }
@@ -818,15 +818,15 @@ void Gp_DrawExchangeSlotCmd(UiList* arg0, UiObject* arg1)
     s32         x;
     s32         y;
 
-    req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
-    req.y          = arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A;
+    req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
+    req.y          = arg1->panel.contentOriginY.unsignedValue + arg0->rowTextY.unsignedValue;
     req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.colorRgb   = arg0->field_1C;
+    req.colorRgb   = arg0->colorRgb;
     req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req, Gp_StrExchange);
-    if (arg0->field_C == 1) {
+    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             one = 1;
@@ -838,7 +838,7 @@ void Gp_DrawExchangeSlotCmd(UiList* arg0, UiObject* arg1)
                 obj->panel.bounds.unsignedRect.x = x;
             }
             arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-            arg0->field_22           = 0x20;
+            arg0->actionResult       = USER_INTERFACE_LIST_ACTION_INPUT_CONSUMED;
         }
     }
 }
@@ -867,24 +867,24 @@ void func_800CFAA8(UiObject* arg0, Task* arg1)
 
 void Gp_DrawOkCmd(UiList* arg0, UiObject* arg1)
 {
-    Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, Gp_StrOk, arg0->field_1C, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    if (arg0->field_C == 1) {
+    Text_DrawPrompt(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, Gp_StrOk, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
-            arg0->field_22             = 6;
-            arg0->field_20.signedValue = 0x36;
+            arg0->actionResult              = USER_INTERFACE_RESULT_CONFIRM;
+            arg0->commandResult.signedValue = USER_INTERFACE_LIST_COMMAND_OK;
         }
     }
 }
 
 void Gp_DrawCancelCmd(UiList* arg0, UiObject* arg1)
 {
-    Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, Gp_StrCancel, arg0->field_1C, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    if (arg0->field_C == 1) {
+    Text_DrawPrompt(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, Gp_StrCancel, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
-            arg0->field_22             = 6;
-            arg0->field_20.signedValue = 0x35;
+            arg0->actionResult              = USER_INTERFACE_RESULT_CONFIRM;
+            arg0->commandResult.signedValue = USER_INTERFACE_LIST_COMMAND_CANCEL;
         }
     }
 }
@@ -893,29 +893,29 @@ void Gp_DrawYesCmd(UiList* arg0, UiObject* arg1)
 {
     s32 temp;
 
-    Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, Gp_StrYes, arg0->field_1C, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    temp = arg0->field_C;
+    Text_DrawPrompt(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, Gp_StrYes, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    temp = arg0->rowInputEnabled;
     if (temp == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
-            arg0->field_22             = 6;
-            arg0->field_20.signedValue = 0x33;
+            arg0->actionResult              = USER_INTERFACE_RESULT_CONFIRM;
+            arg0->commandResult.signedValue = USER_INTERFACE_LIST_COMMAND_YES;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
-            arg0->field_B  = temp;
-            arg0->field_22 = 0x41;
+            arg0->navigationStep = temp;
+            arg0->actionResult   = USER_INTERFACE_LIST_ACTION_SKIP_ROW;
         }
     }
 }
 
 void Gp_DrawNoCmd(UiList* arg0, UiObject* arg1)
 {
-    Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, Gp_StrNo, arg0->field_1C, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    if (arg0->field_C == 1) {
+    Text_DrawPrompt(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, Gp_StrNo, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
-            arg0->field_22             = 6;
-            arg0->field_20.signedValue = 0x34;
+            arg0->actionResult              = USER_INTERFACE_RESULT_CONFIRM;
+            arg0->commandResult.signedValue = USER_INTERFACE_LIST_COMMAND_NO;
         }
     }
 }
@@ -1932,25 +1932,25 @@ void Gp_DrawReviveCmd(UiList* arg0, UiObject* arg1)
 
     flags = arg1->owner->spawnArg1.value;
     if (flags & 3) {
-        req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
-        req.y          = arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A;
+        req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
+        req.y          = arg1->panel.contentOriginY.unsignedValue + arg0->rowTextY.unsignedValue;
         req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-        req.colorRgb   = arg0->field_1C;
+        req.colorRgb   = arg0->colorRgb;
         req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         req.alignment  = TEXT_ALIGNMENT_LEFT;
         req.drawMode   = TEXT_DRAW_OUTLINED;
         Text_DrawString(&req, Gp_StrStrengthen);
     } else {
-        req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
-        req.y          = arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A;
+        req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
+        req.y          = arg1->panel.contentOriginY.unsignedValue + arg0->rowTextY.unsignedValue;
         req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-        req.colorRgb   = arg0->field_1C;
+        req.colorRgb   = arg0->colorRgb;
         req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         req.alignment  = TEXT_ALIGNMENT_LEFT;
         req.drawMode   = TEXT_DRAW_OUTLINED;
         Text_DrawString(&req, Gp_StrRevive);
     }
-    if (arg0->field_C == 1) {
+    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             item = -1;
             SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
@@ -1984,12 +1984,12 @@ void Gp_PeCommandMenuTask(Task* arg0)
     menu = &D_8010F5FC;
     obj  = arg0->spawnArg2.pointer;
     if (arg0->state == 0) {
-        table                       = menu->funcs;
-        table[0]                    = Gp_DrawReviveCmd;
-        table[1]                    = Gp_DrawPeSlotCmd;
-        two                         = 2;
-        menu->field_5.unsignedValue = two;
-        menu->field_4               = two;
+        table                               = menu->rowCallbacks;
+        table[0]                            = Gp_DrawReviveCmd;
+        table[1]                            = Gp_DrawPeSlotCmd;
+        two                                 = 2;
+        menu->visibleRowCount.unsignedValue = two;
+        menu->itemCount                     = two;
         if ((arg0->spawnArg1.value & 3) != 3) {
             Gp_SetPreviewItem(arg0->spawnArg1.value + 1, 0);
         }
@@ -2138,26 +2138,26 @@ void Gp_DrawPeSlotRow(UiList* arg0, UiObject* arg1)
     UiObject* obj;
 
     idx   = arg1->owner->spawnArg1.value;
-    slot  = arg0->field_8;
+    slot  = arg0->currentItemIndex;
     count = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels[slot + idx * 3];
     off   = idx * 16;
     base  = slot * 4 + 0x300;
     item  = off + base + count;
     if (count == 0) {
-        arg0->field_1C = Ui_LookupTable(arg1, 2);
+        arg0->colorRgb = Ui_LookupTable(arg1, 2);
     }
-    Gp_DrawItemLabel(arg1, arg0->field_18, arg0->field_1A, item, arg0->field_1C, 0);
+    Gp_DrawItemLabel(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, item, arg0->colorRgb, 0);
     if (count != 0) {
-        func_800C2538(arg1, arg0->field_18, arg0->field_1A, count, arg0->field_1C);
+        func_800C2538(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, count, arg0->colorRgb);
     }
     status = arg1->panel.control.word;
     one    = 1;
     if (((status >> 16) == one) || (status == one)) {
-        if (arg0->field_10 == arg0->field_8) {
+        if (arg0->selectedItemIndex == arg0->currentItemIndex) {
             Ui_SetHolderParamAlt(item, 0, 0);
         }
     }
-    if (arg0->field_C == 1) {
+    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         Gp_SetPreviewItem(item, 0);
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             one = 1;
@@ -2193,23 +2193,23 @@ void func_800D29B0(Task* arg0)
     menu         = &D_80114DF8[arg0->spawnArg1.value];
     Ui_DrawText(&(obj)->panel, D_8010F644[textIndex]);
     if (arg0->state == 0) {
-        menu->funcs                 = D_8010F620;
-        menu->field_4               = 3;
-        menu->field_5.unsignedValue = 3;
-        menu->field_6               = 0;
-        menu->field_7               = 0xF;
-        menu->field_8               = 0;
-        menu->field_9.unsignedValue = 0;
+        menu->rowCallbacks                        = D_8010F620;
+        menu->itemCount                           = 3;
+        menu->visibleRowCount.unsignedValue       = 3;
+        menu->wrapNavigation                      = 0;
+        menu->rowHeight                           = 0xF;
+        menu->currentItemIndex                    = 0;
+        menu->firstVisibleItemIndex.unsignedValue = 0;
         Ui_LayoutListPanel(menu, &(obj)->panel);
         levels = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels[arg0->spawnArg1.value * 3];
         if (levels[2] != 0 || (levels[0] == 3 && levels[1] == levels[0])) {
-            menu->field_4 = menu->field_5.unsignedValue = 3;
+            menu->itemCount = menu->visibleRowCount.unsignedValue = 3;
         } else {
-            menu->field_4 = menu->field_5.unsignedValue = 2;
+            menu->itemCount = menu->visibleRowCount.unsignedValue = 2;
         }
-        menu->field_9.unsignedValue = 0;
-        menu->field_10              = 0;
-        menu->field_A               = 1;
+        menu->firstVisibleItemIndex.unsignedValue = 0;
+        menu->selectedItemIndex                   = 0;
+        menu->flags                               = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
         if (arg0->spawnArg1.value & 1) {
             obj->panel.bounds.unsignedRect.y = obj->panel.bounds.unsignedRect.h - 0x50;
         }
@@ -2217,9 +2217,9 @@ void func_800D29B0(Task* arg0)
     }
     levels = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels[arg0->spawnArg1.value * 3];
     if (levels[2] != 0 || (levels[0] == 3 && levels[1] == levels[0])) {
-        menu->field_4 = menu->field_5.unsignedValue = 3;
+        menu->itemCount = menu->visibleRowCount.unsignedValue = 3;
     } else {
-        menu->field_4 = menu->field_5.unsignedValue = 2;
+        menu->itemCount = menu->visibleRowCount.unsignedValue = 2;
     }
     Ui_UpdateListNoAnim(menu, obj);
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
@@ -2228,7 +2228,7 @@ void func_800D29B0(Task* arg0)
             obj->result = USER_INTERFACE_RESULT_CONFIRM;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
             obj->result = USER_INTERFACE_RESULT_CANCEL;
-        } else if (menu->field_22 == 3 && !(arg0->spawnArg1.value & 1)) {
+        } else if (menu->actionResult == USER_INTERFACE_LIST_ACTION_AT_END && !(arg0->spawnArg1.value & 1)) {
             UiObject* verticalObj;
             UiList*   verticalMenu;
 
@@ -2236,9 +2236,9 @@ void func_800D29B0(Task* arg0)
             verticalMenu = &D_80114DF8[arg0->spawnArg1.value] + 1;
             SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
             verticalObj->panel.control.word = USER_INTERFACE_PANEL_FOCUS_TRANSFER;
-            verticalMenu->field_10          = 0;
+            verticalMenu->selectedItemIndex = 0;
             obj->panel.control.word         = USER_INTERFACE_PANEL_INACTIVE;
-        } else if (menu->field_22 == 2 && (arg0->spawnArg1.value & 1)) {
+        } else if (menu->actionResult == USER_INTERFACE_LIST_ACTION_AT_START && (arg0->spawnArg1.value & 1)) {
             UiObject* verticalObj;
             UiList*   verticalMenu;
 
@@ -2246,7 +2246,7 @@ void func_800D29B0(Task* arg0)
             verticalMenu = &D_80114DF8[arg0->spawnArg1.value] - 1;
             SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
             verticalObj->panel.control.word = USER_INTERFACE_PANEL_FOCUS_TRANSFER;
-            verticalMenu->field_10          = verticalMenu->field_4 - 1;
+            verticalMenu->selectedItemIndex = verticalMenu->itemCount - 1;
             obj->panel.control.word         = USER_INTERFACE_PANEL_INACTIVE;
         } else if (Pad_CheckButtons(0, 1, 0x5000) == 0) {
             if (!(arg0->spawnArg1.value & 2)) {
@@ -2258,10 +2258,10 @@ void func_800D29B0(Task* arg0)
                     nextMenu = &D_80114DF8[arg0->spawnArg1.value] + 2;
                     SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
                     nextObj->panel.control.word = USER_INTERFACE_PANEL_FOCUS_TRANSFER;
-                    last                        = nextMenu->field_4 - 1;
-                    nextMenu->field_10          = menu->field_10;
-                    if (last < nextMenu->field_10) {
-                        nextMenu->field_10 = last;
+                    last                        = nextMenu->itemCount - 1;
+                    nextMenu->selectedItemIndex = menu->selectedItemIndex;
+                    if (last < nextMenu->selectedItemIndex) {
+                        nextMenu->selectedItemIndex = last;
                     }
                     obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                 }
@@ -2273,10 +2273,10 @@ void func_800D29B0(Task* arg0)
                 nextMenu = &D_80114DF8[arg0->spawnArg1.value] - 2;
                 SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
                 nextObj->panel.control.word = USER_INTERFACE_PANEL_FOCUS_TRANSFER;
-                last                        = nextMenu->field_4 - 1;
-                nextMenu->field_10          = menu->field_10;
-                if (last < nextMenu->field_10) {
-                    nextMenu->field_10 = last;
+                last                        = nextMenu->itemCount - 1;
+                nextMenu->selectedItemIndex = menu->selectedItemIndex;
+                if (last < nextMenu->selectedItemIndex) {
+                    nextMenu->selectedItemIndex = last;
                 }
                 obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             }
@@ -3157,10 +3157,10 @@ void Gp_DrawUseAttachCmd(UiList* arg0, UiObject* arg1)
     s32         status;
     s32         one;
 
-    req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
-    req.y          = arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A;
+    req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
+    req.y          = arg1->panel.contentOriginY.unsignedValue + arg0->rowTextY.unsignedValue;
     req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.colorRgb   = arg0->field_1C;
+    req.colorRgb   = arg0->colorRgb;
     req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_FILL_ONLY;
@@ -3169,12 +3169,12 @@ void Gp_DrawUseAttachCmd(UiList* arg0, UiObject* arg1)
     status = arg1->panel.control.word;
     one    = 1;
     if (((status >> 16) == one) || (status == one)) {
-        if (arg0->field_10 == arg0->field_8) {
+        if (arg0->selectedItemIndex == arg0->currentItemIndex) {
             Ui_SetHolderParam(Gp_StrUseAttachHelp, 0, 0);
         }
     }
 
-    if (arg0->field_C == 1) {
+    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             arg1->resultValue = 6;
@@ -3189,10 +3189,10 @@ void Gp_DrawKeyItemCmd(UiList* arg0, UiObject* arg1)
     s32         status;
     s32         one;
 
-    req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
-    req.y          = arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A;
+    req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
+    req.y          = arg1->panel.contentOriginY.unsignedValue + arg0->rowTextY.unsignedValue;
     req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.colorRgb   = arg0->field_1C;
+    req.colorRgb   = arg0->colorRgb;
     req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_FILL_ONLY;
@@ -3201,12 +3201,12 @@ void Gp_DrawKeyItemCmd(UiList* arg0, UiObject* arg1)
     status = arg1->panel.control.word;
     one    = 1;
     if (((status >> 16) == one) || (status == one)) {
-        if (arg0->field_10 == arg0->field_8) {
+        if (arg0->selectedItemIndex == arg0->currentItemIndex) {
             Ui_SetHolderParam(Gp_StrUseKeyHelp, 0, 0);
         }
     }
 
-    if (arg0->field_C == 1) {
+    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             arg1->resultValue = 8;
@@ -3240,15 +3240,15 @@ void Gp_DrawPeSlotCmd(UiList* arg0, UiObject* arg1)
 {
     TextDrawReq req;
 
-    req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
-    req.y          = arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A;
+    req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
+    req.y          = arg1->panel.contentOriginY.unsignedValue + arg0->rowTextY.unsignedValue;
     req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.colorRgb   = arg0->field_1C;
+    req.colorRgb   = arg0->colorRgb;
     req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req, Gp_StrCancel2);
-    if (arg0->field_C == 1) {
+    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             arg1->result = USER_INTERFACE_RESULT_CONFIRM;
@@ -3262,10 +3262,10 @@ void Gp_DrawMapCmd(UiList* arg0, UiObject* arg1)
     s32         status;
     s32         one;
 
-    req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
-    req.y          = arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A;
+    req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
+    req.y          = arg1->panel.contentOriginY.unsignedValue + arg0->rowTextY.unsignedValue;
     req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.colorRgb   = arg0->field_1C;
+    req.colorRgb   = arg0->colorRgb;
     req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_FILL_ONLY;
@@ -3274,12 +3274,12 @@ void Gp_DrawMapCmd(UiList* arg0, UiObject* arg1)
     status = arg1->panel.control.word;
     one    = 1;
     if (((status >> 16) == one) || (status == one)) {
-        if (arg0->field_10 == arg0->field_8) {
+        if (arg0->selectedItemIndex == arg0->currentItemIndex) {
             Ui_SetHolderParam(Gp_StrCheckMap, 0, 0);
         }
     }
 
-    if (arg0->field_C == 1) {
+    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             arg1->resultValue = 0x100;
@@ -3292,15 +3292,15 @@ void Gp_DrawDiscardCmd(UiList* arg0, UiObject* arg1)
 {
     TextDrawReq req;
 
-    req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
-    req.y          = arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A;
+    req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
+    req.y          = arg1->panel.contentOriginY.unsignedValue + arg0->rowTextY.unsignedValue;
     req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.colorRgb   = arg0->field_1C;
+    req.colorRgb   = arg0->colorRgb;
     req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req, Gp_StrDiscard2);
-    if (arg0->field_C == 1) {
+    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             Ui_SpawnFromDesc(&D_8010F6FC, 0, 1, 1, arg1);
@@ -3433,15 +3433,15 @@ void Gp_DrawExaminePushCmd(UiList* arg0, UiObject* arg1)
     if (arg1->owner->spawnArg1.value == one) {
         text = Gp_StrPush;
     }
-    req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
-    req.y          = arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A;
+    req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
+    req.y          = arg1->panel.contentOriginY.unsignedValue + arg0->rowTextY.unsignedValue;
     req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.colorRgb   = arg0->field_1C;
+    req.colorRgb   = arg0->colorRgb;
     req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = one;
     Text_DrawString(&req, text);
-    confirm = arg0->field_C;
+    confirm = arg0->rowInputEnabled;
     if (confirm == one) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
@@ -3455,15 +3455,15 @@ void Gp_DrawItemCmd(UiList* arg0, UiObject* arg1)
 {
     TextDrawReq req;
 
-    req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
-    req.y          = arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A;
+    req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
+    req.y          = arg1->panel.contentOriginY.unsignedValue + arg0->rowTextY.unsignedValue;
     req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.colorRgb   = arg0->field_1C;
+    req.colorRgb   = arg0->colorRgb;
     req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req, Gp_StrItem2);
-    if (arg0->field_C == 1) {
+    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             Ui_SpawnFromDesc(&D_8010EFBC, 0, 1, 1, arg1);
             SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);

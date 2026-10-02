@@ -5854,7 +5854,7 @@ TOUCH_REG(title);
 i = 0;
 p = labels;
 y = i;
-Text_DrawPrompt((UiObject*)a0tmp, arg1->field_1C + 6, arg0->field_1A, title, ...);
+Text_DrawPrompt((UiObject*)a0tmp, arg1->field_1C + 6, arg0->rowTextY.signedValue, title, ...);
 ```
 
 Field loads stay through `value` (`lh 0x1C(s6)`), not the `$a0` copy. Without
@@ -7262,7 +7262,7 @@ same phi to `$v1` once extra callee-saved regs are live (`s3` for
 field recovers `$v0`.
 
 ```c
-if (arg0->field_C == 1) {
+if (arg0->rowInputEnabled == 1) {
     p->clut = 0x3C09;
 } else {
     p->clut = 0x3C01;
@@ -7722,9 +7722,9 @@ Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 4);
 `Gp_EndPlayerActorTask` is the example. One reused reload stuck at 98.8%
 (`$t0`); overwriting `actor` stuck at 99.3% (`$s0` for the stores).
 
-## Capture `list->funcs` before writing both vtable slots
+## Capture `list->rowCallbacks` before writing both callback slots
 
-`menu->funcs[0] = A; menu->funcs[1] = B;` reloads the function-table
+`menu->rowCallbacks[0] = A; menu->rowCallbacks[1] = B;` reloads the function-table
 pointer for the second store (`lw v1, %lo(list)(a1)` twice) and parks
 `%hi(list)` in `$a1`. The target loads the pointer once:
 
@@ -7740,12 +7740,12 @@ Assign the table to a local first so the second store reuses `$v1` and
 the `lui` stays in `$v1`:
 
 ```c
-table    = menu->funcs;
+table    = menu->rowCallbacks;
 table[0] = func_A;
 table[1] = func_B;
 ```
 
-`Gp_PeCommandMenuTask` is the example. Direct `menu->funcs[i]` stuck at 98.8%
+`Gp_PeCommandMenuTask` is the example. Direct `menu->rowCallbacks[i]` stuck at 98.8%
 with an extra load and the wrong `lui` register.
 
 ## Retain the coordinate pointer in v0 so `lw v0,8(v0)` feeds the `+ N` delay slot
@@ -13705,7 +13705,7 @@ s16 val;
 
 if (check_a()) {
     ...
-    val = (s8)(u8)arg0->field_8;  /* lbu; nop; sll 24; j; sra 24 */
+    val = (s8)(u8)arg0->currentItemIndex;  /* lbu; nop; sll 24; j; sra 24 */
     goto store;
 }
 if (check_b()) {
@@ -13719,7 +13719,7 @@ store:
 - `s8 val` re-extends `-1` with `sll/sra 24` after the join.
 - `s32 val` lets CSE sink each `sh` into its arm (and often drop the `lbu` path
   back to a plain `lb`).
-- Plain `val = index->field_8` with an `s8` field emits `lb`, not the target's
+- Plain `val = index->currentItemIndex` with an `s8` field emits `lb`, not the target's
   `lbu` + sign-extend. The `(s8)(u8)` cast (or `*(u8*)&`, see above) forces it.
 
 Temps for the call that precedes this block may also be required so `a3 = 0`
@@ -14384,7 +14384,7 @@ but your build emits `lb`/`lh`/`lhu`, the callee's prototype is almost always
 too narrow. GCC loads only as much as the parameter type requires.
 
 ```c
-/* Wrong — third param is s8, so menu->field_10 (s32) becomes lb a2,0x10(v0) */
+/* Wrong — third param is s8, so menu->selectedItemIndex (s32) becomes lb a2,0x10(v0) */
 extern void func_800330D8(void* a0, s32 a1, s8 a2, s32 a3, s32 a4);
 
 /* Right — s32 third param yields lw a2,0x10(v0) */
@@ -14392,7 +14392,7 @@ extern void func_800330D8(void* a0, s32 a1, s32 a2, s32 a3, s32 a4);
 ```
 
 `McMenu_FileInformation` is the pure example: the header had `s8` for arg2, but the
-target always used `lw` of `UiList::field_10`. Callers that pass an `s8`
+target always used `lw` of `UiList::selectedItemIndex`. Callers that pass an `s8`
 local still match after the widen (default argument promotion).
 
 ## Pull a call arg into a local so the stack-arg store fills the `jal` delay
@@ -14408,12 +14408,12 @@ jal   func
  sw   zero, 0x10(sp)  /* 5th arg in delay slot */
 ```
 
-Writing `func(obj, data, menu->field_10, 0, 0)` can schedule the stack store
+Writing `func(obj, data, menu->selectedItemIndex, 0, 0)` can schedule the stack store
 *before* the field load and put `move a3,zero` in the delay slot instead.
 Forcing the field into a local first restores the target order:
 
 ```c
-val = menu->field_10;
+val = menu->selectedItemIndex;
 func_800330D8(obj, data, val, 0, 0);
 ```
 
@@ -16434,7 +16434,7 @@ s16 temp;
 
 if (Pad_CheckButtons(0, 1, mask) != 0) {
     temp           = 6;
-    arg1->resultValue = (s8)(u8)arg0->field_8 + 1;
+    arg1->resultValue = (s8)(u8)arg0->currentItemIndex + 1;
     arg1->result = temp;
     return;
 }
@@ -17686,7 +17686,7 @@ addu   a2, s2, v0
 compute the scaled offset first:
 
 ```c
-previewByteOffset = (arg0->field_8 << 7) + 0x294;
+previewByteOffset = (arg0->currentItemIndex << 7) + 0x294;
 save = (McSavePreview*)((u8*)work + previewByteOffset);
 ```
 
@@ -18616,7 +18616,7 @@ void func(UiList* arg0, UiPanel* arg1)
     /* all loads from a1… */
     temp = a1->contentBottom.unsignedValue - a1->contentTop.unsignedValue;
     height = temp;         /* sra a1, … — overwrites the pointer reg */
-    height = height - arg0->field_17;
+    height = height - arg0->topInset;
     /* further uses of height */
 }
 ```
@@ -18656,10 +18656,10 @@ Without the clobber, a reload written in the arm is hoisted by sched1 above the
 a self-copy. Instead read the field in the join, *first*:
 
 ```c
-if (list->field_10 >= list->field_4) {
-    list->field_10 = list->field_4 - 1;
+if (list->selectedItemIndex >= list->itemCount) {
+    list->selectedItemIndex = list->itemCount - 1;
 }
-if (list->field_4 <= (s8)list->field_5) { /* not field_5 >= field_4 */
+if (list->itemCount <= list->visibleRowCount.signedValue) { /* not visibleRowCount >= itemCount */
     …
 }
 ```
@@ -18669,7 +18669,7 @@ The join starts a new cse block, so its `lbu` survives. reorg, filling the
 on the taken path (`redundant_insn`); since it cannot delete it from a shared
 thread, it retargets the branch past it. The load is then left executing only
 on the fall-through, which is the target's shape. Written
-`(s8)field_5 >= field_4`, the join's first insn is the `lb` and nothing is
+`visibleRowCount.signedValue >= itemCount`, the join's first insn is the `lb` and nothing is
 skipped. (`Ui_ComputeVisibleRowsEx`.)
 
 ## `--expand-div` for TUs with signed division traps
@@ -19566,10 +19566,10 @@ needs the load-delay `nop` after `lw` of the head.
 When the target zeros several struct fields then loads a BSS flag:
 
 ```
-sb   zero, field_A(a0)
-sh   zero, field_14(a0)
-sb   zero, field_16(a0)
-sw   zero, field_C(a0)
+sb   zero, flags(a0)
+sh   zero, scrollPixelsRemaining(a0)
+sb   zero, scrollDirection(a0)
+sw   zero, rowInputEnabled(a0)
 lb   v0, %lo(D_flag)(v0)   /* lui %hi was in prior bnez delay */
 nop
 beqz v0, ...
@@ -19583,10 +19583,10 @@ leaving a `nop` in the `bnez` delay (~98%).
 Fix: mark only the stores that were being delayed as volatile:
 
 ```c
-arg0->field_A = 0;
-*(volatile s16*)&arg0->field_14 = 0;
-arg0->field_16 = 0;
-*(volatile s32*)&arg0->field_C = 0;
+arg0->flags = 0;
+*(volatile s16*)&arg0->scrollPixelsRemaining = 0;
+arg0->scrollDirection = 0;
+*(volatile s32*)&arg0->rowInputEnabled = 0;
 if (D_flag != 0) {
     /* ... */
 }
@@ -27620,7 +27620,7 @@ in case 9), and the switch value in `$v1`.
 Use a *new* temp for the first compare so the switch variable is free:
 
 ```c
-sel = menu->field_22; /* lh a0 — dies before the child walk */
+sel = menu->actionResult; /* lh a0 — dies before the child walk */
 if (sel != 0x20) {
     ...
 }
@@ -29694,7 +29694,7 @@ if (flags & 3) {
     req.x = ...;
     req.y = ...;
     req.otIndex = (s16)obj->drawOrder + 1;
-    req.colorRgb = prompt->field_1C;
+    req.colorRgb = prompt->colorRgb;
     req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req.alignment = TEXT_ALIGNMENT_LEFT;
     req.drawMode = TEXT_DRAW_OUTLINED;
@@ -29703,7 +29703,7 @@ if (flags & 3) {
     req.x = ...;
     req.y = ...;
     req.otIndex = (s16)obj->drawOrder + 1;
-    req.colorRgb = prompt->field_1C;
+    req.colorRgb = prompt->colorRgb;
     req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req.alignment = TEXT_ALIGNMENT_LEFT;
     req.drawMode = TEXT_DRAW_OUTLINED;
@@ -30406,18 +30406,18 @@ A clamp that the target writes as:
 ```
 jal    foo
 nop
-lw     v1, field_10(list)
-sb     v0, field_4(list)
+lw     v1, selectedItemIndex(list)
+sb     v0, itemCount(list)
 andi   a0, v0, 0xff
 slt    v1, a0, v1
 beqz   v1, skip
- sb    v0, field_5(list)
-sw     a0, field_10(list)
+ sb    v0, visibleRowCount(list)
+sw     a0, selectedItemIndex(list)
 ```
 
 needs the raw return to stay in `$v0`, the loaded compare operand in `$v1`,
 and the zero-extend in `$a0`. A plain `s32 count = foo()` copies out of
-`$v0` (`move v1, v0`) and then loads `field_10` into `$v0`. Pin the three
+`$v0` (`move v1, v0`) and then loads `selectedItemIndex` into `$v0`. Pin the three
 temps:
 
 ```c
@@ -30426,21 +30426,21 @@ register s32 count8 asm("a0");
 register s32 sel asm("v1");
 
 count         = foo();
-sel           = list->field_10;
-list->field_4 = count;
+sel           = list->selectedItemIndex;
+list->itemCount = count;
 asm("");
-list->field_5 = count;
+list->visibleRowCount.unsignedValue = count;
 count8        = count & 0xFF;
 if (count8 < sel) {
-    list->field_10 = count8;
+    list->selectedItemIndex = count8;
 }
 ```
 
-`asm("")` (no memory clobber) keeps `field_4` before the `andi`. Storing
-`field_5` before the compare lets GCC sink it into the `beqz` delay slot
+`asm("")` (no memory clobber) keeps `itemCount` before the `andi`. Storing
+`visibleRowCount` before the compare lets GCC sink it into the `beqz` delay slot
 and leaves the next `jal`'s delay for `move a1, s1`. A `::: "memory"`
-barrier or a volatile `field_4` store empties that delay (`nop`) and
-parks `field_5` in the following `jal` delay instead.
+barrier or a volatile `itemCount` store empties that delay (`nop`) and
+parks `visibleRowCount` in the following `jal` delay instead.
 
 `Gp_KeyItemMenuTask` is the example.
 
@@ -31570,9 +31570,9 @@ if (arg0->spawnArg1 & 0x10) {
 
 `Gp_YesNoMenuTask` is the example.
 
-## Reuse the `field_22` temp so confirm copies `lh` / `sh` without a reload
+## Reuse the `actionResult` temp so confirm copies `lh` / `sh` without a reload
 
-`if (menu->field_22 == 6) { obj->result = menu->field_22; }` reloads
+`if (menu->actionResult == 6) { obj->result = menu->actionResult; }` reloads
 the halfword for the store (`lhu a0` plus `li v1, 6`). The target
 hoists `6` into the status `bne` delay as `li v0, 6`, loads once, and
 stores that register:
@@ -31590,15 +31590,15 @@ sh    v1, 0x2e(obj)
 Keep the load in a temp and assign that temp:
 
 ```c
-sel = menu->field_22;
+sel = menu->actionResult;
 if (sel == 6) {
     obj->result = sel;
-    obj->resultValue = menu->field_20;
+    obj->resultValue = menu->commandResult.unsignedValue;
 }
 ```
 
 `Gp_YesNoMenuTask` is the example. `Gp_ItemCmdMenuTask` already uses this
-`sel = menu->field_22` form.
+`sel = menu->actionResult` form.
 
 ## s32 copies of s16 fields keep `lh` for compare-and-step
 
@@ -32553,12 +32553,12 @@ nested pin *after* the `if` CSEs with the skip path and only emits the
 then-path `lb`:
 
 ```c
-if (arg0->field_8 == 0) {
+if (arg0->currentItemIndex == 0) {
     /* ... stores that clobber $v0 ... */
 }
 {
     register s32 mode asm("v0");
-    mode = arg0->field_8;
+    mode = arg0->currentItemIndex;
     Text_DrawPrompt(..., texts.texts[mode], ...);
 }
 ```
@@ -34227,7 +34227,7 @@ a2, 0x14` in the second subtract's load delay).
 
 ## Pin array base and the loaded byte both to `$v0` so stores beat `sll 24` / `slti`
 
-`n = arr[i].field_1; menu->field_4 = n; menu->field_5 = n; if ((s8)n >= 0xB)`
+`n = arr[i].field_1; menu->itemCount = n; menu->visibleRowCount.unsignedValue = n; if ((s8)n >= 0xB)`
 with `n` in `$v1` sign-extends first (`sll` / `sra` / `slti`) and parks the
 two `sb`s in the `slti` delay. The target wants the address in `$v0`, the
 index in `$v1`, `lbu v0, 1(v1)`, then both stores, then the sign-extend.
@@ -34241,10 +34241,10 @@ clobbers the base and the stores must happen before `sll` reuses `$v0`:
 
     s             = &Gp_MoveScanSrc;
     val           = s[arg0->spawnArg1].rowCount;
-    menu->field_4 = val;
-    menu->field_5 = val;
+    menu->itemCount = val;
+    menu->visibleRowCount.unsignedValue = val;
     if ((s8)val >= 0xB) {
-        menu->field_5 = 0xA;
+        menu->visibleRowCount.unsignedValue = 0xA;
     }
 }
 ```
@@ -35175,7 +35175,7 @@ if (slot->field_2 != n) {
 }
 n = 2;
 store:
-menu->field_4 = n;
+menu->itemCount = n;
 ```
 
 `if (id < 0x80) { n = 1; }` without `n = id < 0x80` puts `slti` in `$a0`
@@ -35186,7 +35186,7 @@ A later copy of the same chain whose next call is `Ui_ComputeVisibleRows`
 (no extra store after `sb`) inverts `bnez` to `beqz` and fills the delay
 with `li v0, 0x92`. An empty `asm("")` between the `if (n) goto` and
 `n = 0x92` keeps `bnez` / `li v0, 1`. The `Ui_InitList` copy did not need
-it because `menu->field_10 = 0` already sat after the store.
+it because `menu->selectedItemIndex = 0` already sat after the store.
 
 `Gp_WeaponMenuTask` is the example.
 
@@ -35788,7 +35788,7 @@ into the pinned dest first:
 
 ```c
 vx    = obj->baseY;
-vy    = (u16)prompt->field_1A;
+vy    = prompt->rowTextY.unsignedValue;
 vx    = vx + 9;
 vy    = vy + vx;
 req.y = vy;
@@ -35819,7 +35819,7 @@ asm("a0")` at the second site:
 
 ```c
 one = 1;
-if (arg0->field_C != one) {
+if (arg0->rowInputEnabled != one) {
     /* ... */
 }
 status = arg1->status;
@@ -38255,7 +38255,7 @@ lbu   a0, 1(s0)          /* scan->rowCount */
 andi  a3, a0, 0xff
 addu  a1, v0, v1
 beqz  a3, ...
-sb    a0, 4(s2)          /* menu->field_4 = scan->rowCount (delay slot) */
+sb    a0, 4(s2)          /* menu->itemCount = scan->rowCount (delay slot) */
 ```
 
 i.e. the raw load stays live in `$a0` for the `sb` while the widened copy lives
@@ -38263,7 +38263,7 @@ in `$a3`. Writing the natural order
 
 ```c
 n = scan->rowCount;               /* s32 n */
-menu->field_4 = scan->rowCount;
+menu->itemCount = scan->rowCount;
 if (n != 0) { ... }
 ```
 
@@ -38272,7 +38272,7 @@ so GCC reuses `$a0`, and having the `andi` write `$a0` in turn pins it after the
 `sb`. Swapping the two statements:
 
 ```c
-menu->field_4 = scan->rowCount;   /* sb from the raw lbu */
+menu->itemCount = scan->rowCount;   /* sb from the raw lbu */
 n = scan->rowCount;               /* s32; widened into a fresh reg */
 ```
 
@@ -49686,8 +49686,8 @@ stored value is an `s32`:
 ```c
 count = 3;
 if (Gp_IsDebugAttachRoom() == 0) { count = 4; }
-list->field_4 = count;
-if (list->field_4 >= 0xB) { ... }   /* sltiu on the count register, no load */
+list->itemCount = count;
+if (list->itemCount >= 0xB) { ... }   /* sltiu on the count register, no load */
 ```
 
 Putting the store inside both arms leaves the read in a join block, where cse's
@@ -49696,8 +49696,8 @@ survives — and the constant lands in `$v0` instead of a callee-saved register
 because its live range no longer starts before the call:
 
 ```c
-if (Gp_IsDebugAttachRoom() == 0) { list->field_4 = 4; } else { list->field_4 = 3; }
-if (list->field_4 >= 0xB) { list->field_5 = 0xA; } else { list->field_5 = list->field_4; }
+if (Gp_IsDebugAttachRoom() == 0) { list->itemCount = 4; } else { list->itemCount = 3; }
+if (list->itemCount >= 0xB) { list->visibleRowCount.unsignedValue = 0xA; } else { list->visibleRowCount.unsignedValue = list->itemCount; }
 ```
 
 `func_mist_shooting_gallery_80180728` is the example; the neighbouring
@@ -49828,8 +49828,8 @@ does **not** come from a shared local:
 if (x == 0)     rows = 2;
 else if (x < 2) rows = 3;
 else            rows = 4;
-list->field_4 = rows;
-list->field_5 = rows;
+list->itemCount = rows;
+list->visibleRowCount.unsignedValue = rows;
 ```
 
 With one `rows` pseudo, `jump_optimize` folds the first arm into the branch
@@ -49844,14 +49844,14 @@ Writing the stores inside each arm gets it exactly:
 
 ```c
 if (x == 0) {
-    list->field_4 = 2;
-    list->field_5 = 2;
+    list->itemCount = 2;
+    list->visibleRowCount.unsignedValue = 2;
 } else if (x < 2) {
-    list->field_4 = 3;
-    list->field_5 = 3;
+    list->itemCount = 3;
+    list->visibleRowCount.unsignedValue = 3;
 } else {
-    list->field_4 = 4;
-    list->field_5 = 4;
+    list->itemCount = 4;
+    list->visibleRowCount.unsignedValue = 4;
 }
 ```
 
@@ -50173,7 +50173,7 @@ s32 count;
 count = 0;
 i     = count;      /* move s1,zero / move s2,s1 */
 ...
-list->field_4 = count;          /* sb, no mask needed */
+list->itemCount = count;          /* sb, no mask needed */
 if ((u8)count >= 0xB) { ... }   /* andi 0xff / sltiu */
 ```
 
@@ -50184,9 +50184,9 @@ The `(s16)(obj->baseY - K) + y` recipe above assumes the second addend is an
 is shortened to HImode, and every spelling that biases `baseY` fails:
 
 ```c
-req.y = (obj->baseY - 3) + (u16)p->field_1A;       /* li a1,0xfffd — u16 narrowing */
-req.y = (s16)(obj->baseY - 3) + (u16)p->field_1A;  /* li a1,0xfffd — same          */
-req.y = (s16)obj->baseY - 3 + (u16)p->field_1A;    /* addiu -3, but on field_1A    */
+req.y = (obj->baseY - 3) + p->rowTextY.unsignedValue;       /* li a1,0xfffd — u16 narrowing */
+req.y = (s16)(obj->baseY - 3) + p->rowTextY.unsignedValue;  /* li a1,0xfffd — same          */
+req.y = (s16)obj->baseY - 3 + p->rowTextY.unsignedValue;    /* addiu -3, but on rowTextY    */
 ```
 
 GCC narrows the add, then binds the constant to whichever operand it evaluates
@@ -50194,11 +50194,11 @@ first, which is *not* the one it was written on. So write the subtraction on
 the field the assembly does *not* bias, and the constant lands on the other:
 
 ```c
-req.y = (p->field_1A - 3) + obj->baseY;
+req.y = (p->rowTextY.signedValue - 3) + obj->baseY;
 /* lhu v0,0x22(obj) ; lhu v1,0x1a(p) ; addiu v0,v0,-3 ; addu v1,v1,v0 */
 ```
 
-Signedness still has to work out — here `field_1A` is `s16` and `baseY` `u16`,
+Signedness still has to work out — here `rowTextY.signedValue` is `s16` and `baseY` `u16`,
 so the mix keeps the narrowed type signed and `-3` fits the `addiu`.
 `func_mist_shooting_gallery_8018055C` is the example.
 
@@ -63357,7 +63357,7 @@ stride = 4;
 ...
 do {
     ...
-    Text_DrawPrompt(arg1, x + y / count, arg0->field_1A, *p, look, one, 0);
+    Text_DrawPrompt(arg1, x + y / count, arg0->rowTextY.signedValue, *p, look, one, 0);
     p = (u8**)((u8*)p + stride);
     ...
 } while (i < 4);
@@ -141879,7 +141879,7 @@ what `register T x asm("s5")` becomes - is always copied through
 variable is substituted and costs nothing.
 
 **Fix.** While a variable has to stay pinned, call the helper's variant that
-takes the loaded fields (`_gpDrawItemNameAt(obj, p->field_18, ...)`) rather than
+takes the loaded fields (`_gpDrawItemNameAt(obj, p->rowTextX.signedValue, ...)`) rather than
 the pointer, so the reads happen in the caller against the pinned register.
 ### A call whose 5th-argument `sw` comes first, then jumps into a shared `jal`: an if/else with identical arms (Gp_DrawRemoveAmmoRow, 2026-09-26)
 
@@ -142705,13 +142705,13 @@ declaration: the store emitted `li 0xfffd` without it. Every reader cast the
 field to `s16`, and declaring it `s16` matched the whole tree.
 ## `a < b` and `b > a` are different code: the operands expand in written order (func_800C5F70, 2026-09-26)
 
-A page-down clamp ran `menu->field_9 += menu->field_5;` and then tested
-`(menu->field_4 - (s8)menu->field_5) < (s8)menu->field_9`. Everything matched
-except the registers around it, until a `SOFT_USE_REG` kept `field_5` alive
-across the add. Writing the test as `(s8)menu->field_9 > (menu->field_4 -
-(s8)menu->field_5)` matched with no hack. A comparison's operands are expanded
-left to right. That order decides where the fresh loads of `field_4` and
-`field_5` sit relative to the sign-extension of the stored sum, so sched1
+A page-down clamp ran `menu->firstVisibleItemIndex.unsignedValue += menu->visibleRowCount.unsignedValue;` and then tested
+`(menu->itemCount - menu->visibleRowCount.signedValue) < menu->firstVisibleItemIndex.signedValue`. Everything matched
+except the registers around it, until a `SOFT_USE_REG` kept `visibleRowCount` alive
+across the add. Writing the test as `menu->firstVisibleItemIndex.signedValue > (menu->itemCount -
+menu->visibleRowCount.signedValue)` matched with no hack. A comparison's operands are expanded
+left to right. That order decides where the fresh loads of `itemCount` and
+`visibleRowCount` sit relative to the sign-extension of the stored sum, so sched1
 builds different lifetimes and local-alloc hands out different registers.
 When a hack only fixes the registers next to a comparison, try flipping the
 comparison before anything else.
@@ -145799,8 +145799,8 @@ if/else both invert the branch.
 
 ## A forward branch landing one insn past a reload at the join: put the reloaded field first in the comparison (Ui_InitList, 2026-09-27)
 
-**Shape.** `if (l->sel >= l->count) l->sel = l->count - 1;` followed by a
-second test against `l->count`. The target's guard branch skips the join's
+**Shape.** `if (l->selectedItemIndex >= l->itemCount) l->selectedItemIndex = l->itemCount - 1;` followed by a
+second test against `l->itemCount`. The target's guard branch skips the join's
 `lbu count` (the value is still in `$v1` from its own compare), so the reload
 looks like it sits inside the then-block. The tree faked that with a local
 reassigned after a `SOFT_COMPILER_BARRIER()`; a plain reassignment is folded by
@@ -145809,10 +145809,10 @@ CSE, because the `sw` to `sel` provably does not alias `count`.
 **Cause.** reorg's `redundant_insn` lets `fill_slots_from_thread` step over the
 first insn of the branch target when that value is already in the register on
 the taken path - but only the *first* insn. Written as
-`(s8)l->field_5 >= l->count`, sched1 emits the `field_5` load first at the join
+`l->visibleRowCount.signedValue >= l->itemCount`, sched1 emits the `visibleRowCount` load first at the join
 and nothing is skipped.
 
-**Fix.** Swap the operands, `l->count <= (s8)l->field_5`: the `count` load
+**Fix.** Swap the operands, `l->itemCount <= l->visibleRowCount.signedValue`: the `itemCount` load
 leads the join block and reorg retargets the branch past it. No local, no
 barrier.
 ## A temp that reads a stack field ahead of stores is sched1 reordering disjoint-offset stores (Ui_SpawnTextBlock, 2026-09-27)

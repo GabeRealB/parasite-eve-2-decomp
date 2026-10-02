@@ -272,35 +272,35 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
 
     shop    = (RoomShopList*)obj->owner->work;
     blocked = 0;
-    itemId  = shop->items[prompt->field_8];
+    itemId  = shop->items[prompt->currentItemIndex];
     /* &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems hoisted into a saved register here, as the original does,
        instead of being rematerialised at the Gp_SumScanQty call. */
     scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-    if (prompt->field_C == 1) {
+    if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         Shop_Data_801819EC = itemId;
     }
 
     if (itemId == 0xFFFE) {
         status = obj->panel.control.word;
         if (((status >> 16) == 1) || (status == 1)) {
-            if (prompt->field_10 == prompt->field_8) {
+            if (prompt->selectedItemIndex == prompt->currentItemIndex) {
                 Ui_SetHolderParam(Shop_Data_80181A20, 0, 0);
             }
         }
         if (Gp_HasMappedItem() == 0) {
-            prompt->field_1C = Ui_LookupTable(obj, 2);
-            prompt->field_C  = 0;
+            prompt->colorRgb        = Ui_LookupTable(obj, 2);
+            prompt->rowInputEnabled = USER_INTERFACE_LIST_ROW_INACTIVE;
         }
-        req.x          = obj->panel.contentOriginX.unsignedValue + prompt->field_18;
+        req.x          = obj->panel.contentOriginX.unsignedValue + prompt->rowTextX.signedValue;
         y              = obj->panel.contentOriginY.unsignedValue - 4;
-        req.y          = prompt->field_1A + y;
+        req.y          = prompt->rowTextY.signedValue + y;
         req.otIndex    = obj->panel.otIndex.signedValue + 1;
-        req.colorRgb   = prompt->field_1C;
+        req.colorRgb   = prompt->colorRgb;
         req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         req.alignment  = TEXT_ALIGNMENT_LEFT;
         req.drawMode   = TEXT_DRAW_OUTLINED;
         Text_DrawString(&req, Shop_Data_80181A0C);
-        if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+        if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(SOUND_SYSTEM_CONFIRM, 0, 0);
             Ui_SpawnFromDesc(&Shop_Data_80181BD8, 0, 1, 1, obj);
             obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -311,16 +311,16 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
     if (itemId == 0xFFFC) {
         status = obj->panel.control.word;
         if (((status >> 16) == 1) || (status == 1)) {
-            if (prompt->field_10 == prompt->field_8) {
+            if (prompt->selectedItemIndex == prompt->currentItemIndex) {
                 Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
             }
         }
         if (Gp_SumScanQty(scan, 0x8F) != 0) {
             blocked          = 1;
-            prompt->field_1C = Ui_LookupTable(obj, 2);
+            prompt->colorRgb = Ui_LookupTable(obj, 2);
         }
-        Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, Shop_Data_80181A1C, prompt->field_1C, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-        if (prompt->field_C == 1 && blocked == 0 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+        Text_DrawPrompt(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, Shop_Data_80181A1C, prompt->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+        if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && blocked == 0 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(SOUND_SYSTEM_CONFIRM, 0, 0);
             child = Ui_SpawnFromDesc(&Shop_Data_80181B84, itemId, 1, 1, obj);
             if (child != NULL) {
@@ -334,18 +334,18 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
     price = Gp_ItemDescs[itemId].price;
     if (func_800B7420(itemId) != 0) {
         blocked          = 1;
-        prompt->field_1C = Ui_LookupTable(obj, 2);
+        prompt->colorRgb = Ui_LookupTable(obj, 2);
     }
-    if (prompt->field_22 != 0x41) {
+    if (prompt->actionResult != USER_INTERFACE_LIST_ACTION_SKIP_ROW) {
         status = obj->panel.control.word;
         if (((status >> 16) == 1) || (status == 1)) {
-            if (prompt->field_10 == prompt->field_8) {
+            if (prompt->selectedItemIndex == prompt->currentItemIndex) {
                 Gp_SetHolderItemText(itemId);
                 Gp_SetPreviewItem(itemId, 0);
             }
         }
     }
-    if (prompt->field_C == 1) {
+    if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (blocked == 0 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             child2 = Ui_SpawnFromDesc(&Shop_Data_80181B84, itemId, 1, 1, obj);
             if (child2 != NULL) {
@@ -359,15 +359,15 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
             obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     }
-    Gp_DrawItemLabel(obj, prompt->field_18, prompt->field_1A, itemId, prompt->field_1C, 0);
+    Gp_DrawItemLabel(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, itemId, prompt->colorRgb, 0);
     if ((u32)(itemId - 0xA0) < 0x20) {
         /* Dead: emits the scaled index before the table base so the
            `addu` is index-first, matching the original. */
         scaled = itemId * 4;
-        Gp_DrawQty(obj, prompt->field_18, prompt->field_1A, gpItemStock(itemId)->perBuy, prompt->field_1C);
+        Gp_DrawQty(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, gpItemStock(itemId)->perBuy, prompt->colorRgb);
     }
     Text_ItoaUnsigned(buf, price);
-    Text_DrawPrompt(obj, -prompt->field_18, prompt->field_1A, buf, prompt->field_1C, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    Text_DrawPrompt(obj, -prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, buf, prompt->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 }
 
 /// Adds an item id to the room's shop list, keeping one entry per item kind:
@@ -381,7 +381,7 @@ static void Shop_AddItem(RoomShopList* shop, UiObject* obj, s32 item)
     RoomShopList* list = (RoomShopList*)task->work;
     s32           i;
 
-    for (i = 0; i < shop->list.field_4; i++) {
+    for (i = 0; i < shop->list.itemCount; i++) {
         s32 cur = list->items[i];
         s32 q;
 
@@ -402,8 +402,8 @@ static void Shop_AddItem(RoomShopList* shop, UiObject* obj, s32 item)
     }
 
     Gp_SetItemSeenBit(item, 1);
-    list->items[shop->list.field_4] = item;
-    shop->list.field_4++;
+    list->items[shop->list.itemCount] = item;
+    shop->list.itemCount++;
 }
 
 /// Fills `shop` with the ids the shop currently offers, then sorts them by
@@ -440,7 +440,7 @@ static void Shop_BuildItemList(RoomShopList* shop, UiObject* obj)
     mode = obj->owner->spawnArg1.value;
     ids  = Shop_SelectStock(mode);
 
-    shop->list.field_4 = 0;
+    shop->list.itemCount = 0;
     while (*ids != 0xFFFF) {
         Shop_AddItem(shop, obj, *ids);
         ids++;
@@ -503,9 +503,9 @@ static void Shop_BuildItemList(RoomShopList* shop, UiObject* obj)
     }
 
     list = (RoomShopList*)obj->owner->work;
-    for (i = 0; i < shop->list.field_4 - 1; i++) {
+    for (i = 0; i < shop->list.itemCount - 1; i++) {
         key = Gp_ItemSortKey(list->items[i]);
-        for (k = i + 1; k < shop->list.field_4; k++) {
+        for (k = i + 1; k < shop->list.itemCount; k++) {
             otherKey = Gp_ItemSortKey(list->items[k]);
             if (otherKey < key) {
                 tmp            = list->items[i];
@@ -516,10 +516,10 @@ static void Shop_BuildItemList(RoomShopList* shop, UiObject* obj)
         }
     }
 
-    count                            = shop->list.field_4;
-    shop->list.field_5.unsignedValue = count;
+    count                                    = shop->list.itemCount;
+    shop->list.visibleRowCount.unsignedValue = count;
     if ((s8)count >= 0xA) {
-        shop->list.field_5.unsignedValue = 9;
+        shop->list.visibleRowCount.unsignedValue = 9;
     }
     Shop_Data_801819EC = -1;
 }
@@ -563,17 +563,17 @@ static void Shop_ItemListTask(Task* task)
     if (task->state == 0) {
         mem = memCalloc(sizeof(RoomShopList), 0);
         if (mem != NULL) {
-            shop               = mem;
-            task->work         = shop;
-            shop->list.funcs   = Shop_Data_80181AD8;
-            shop->list.field_6 = 0;
-            shop->list.field_7 = 0xF;
+            shop                      = mem;
+            task->work                = shop;
+            shop->list.rowCallbacks   = Shop_Data_80181AD8;
+            shop->list.wrapNavigation = 0;
+            shop->list.rowHeight      = 0xF;
             Shop_BuildItemList(shop, obj);
             Ui_LayoutListPanel(&shop->list, &(obj)->panel);
-            shop->list.field_A = 1;
+            shop->list.flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
             Ui_SetListScrollFlag(&shop->list, 1);
             obj->panel.bounds.unsignedRect.h += 8;
-            shop->list.field_17               = 8;
+            shop->list.topInset               = 8;
             Ui_SpawnFromDesc(&Shop_Data_80181BF4, 0, 0, 0, obj);
             task->state += 1;
         }
@@ -634,10 +634,10 @@ static void Shop_CategoryRow(UiList* prompt, UiObject* obj)
     s32 one;
     s32 one2;
 
-    if ((prompt->field_4 - 1) == prompt->field_8) {
+    if ((prompt->itemCount - 1) == prompt->currentItemIndex) {
         one = 1;
-        Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, Shop_Data_80181A04, prompt->field_1C, one, TEXT_ALIGNMENT_LEFT);
-        if (prompt->field_C == one && Pad_CheckButtons(0, one, Pad_MaskConfirm) != 0) {
+        Text_DrawPrompt(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, Shop_Data_80181A04, prompt->colorRgb, one, TEXT_ALIGNMENT_LEFT);
+        if (prompt->rowInputEnabled == one && Pad_CheckButtons(0, one, Pad_MaskConfirm) != 0) {
             obj->result = USER_INTERFACE_RESULT_CONFIRM;
         }
         return;
@@ -645,7 +645,7 @@ static void Shop_CategoryRow(UiList* prompt, UiObject* obj)
 
     text                        = Shop_Data_80181A5C;
     obj->owner->spawnArg1.value = (u16)obj->owner->spawnArg1.value;
-    switch (prompt->field_8) {
+    switch (prompt->currentItemIndex) {
         case 0:
             break;
         case 1:
@@ -663,21 +663,21 @@ static void Shop_CategoryRow(UiList* prompt, UiObject* obj)
     }
 
     if (*Shop_SelectStock(obj->owner->spawnArg1.value) == 0xFFFF) {
-        prompt->field_1C = Ui_LookupTable(obj, 2);
-        prompt->field_C  = 0;
+        prompt->colorRgb        = Ui_LookupTable(obj, 2);
+        prompt->rowInputEnabled = USER_INTERFACE_LIST_ROW_INACTIVE;
     }
 
     one2 = 1;
-    Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, text, prompt->field_1C, one2, TEXT_ALIGNMENT_LEFT);
+    Text_DrawPrompt(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, text, prompt->colorRgb, one2, TEXT_ALIGNMENT_LEFT);
 
     status = obj->panel.control.word;
     if (((status >> 16) == one2) || (status == one2)) {
-        if (prompt->field_10 == prompt->field_8) {
+        if (prompt->selectedItemIndex == prompt->currentItemIndex) {
             Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
         }
     }
 
-    if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+    if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
         SndEvt_EnqueueType6(SOUND_SYSTEM_CONFIRM, 0, 0);
         Ui_SpawnFromDesc(&Shop_Data_80181B4C, obj->owner->spawnArg1, 1, 1, obj);
         obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -707,10 +707,10 @@ static void Shop_CategoryListTask(Task* task)
         D_80067634 = NULL;
         Ui_SpawnFromDesc(&Shop_Data_80181B68, task->spawnArg1, 0, 1, obj);
         Ui_SpawnFromDesc(&D_8010D80C, 0, 0, 0, obj);
-        list->field_4               = 5;
-        list->field_5.unsignedValue = 5;
+        list->itemCount                     = 5;
+        list->visibleRowCount.unsignedValue = 5;
         Ui_LayoutListPanel(list, &(obj)->panel);
-        list->field_A = 1;
+        list->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
         Ui_SetListScrollFlag(list, 1);
         task->state += 1;
     }
@@ -817,16 +817,16 @@ static void Shop_BuyRow(UiList* prompt, UiObject* obj)
 
     itemId = obj->owner->spawnArg1.value;
 
-    req.x          = obj->panel.contentOriginX.unsignedValue + (u16)prompt->field_18;
-    req.y          = obj->panel.contentOriginY.unsignedValue + (u16)prompt->field_1A;
+    req.x          = obj->panel.contentOriginX.unsignedValue + prompt->rowTextX.unsignedValue;
+    req.y          = obj->panel.contentOriginY.unsignedValue + prompt->rowTextY.unsignedValue;
     req.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req.colorRgb   = prompt->field_1C;
+    req.colorRgb   = prompt->colorRgb;
     req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req, Shop_Data_801819F0);
 
-    mode = prompt->field_C;
+    mode = prompt->rowInputEnabled;
     if (mode == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
         cfg   = &gPlayerStatus;
         price = Gp_ItemDescs[itemId].price;
@@ -1166,16 +1166,16 @@ static void Shop_MessageRow(UiList* prompt, UiObject* obj)
 {
     TextDrawReq req;
 
-    req.x          = obj->panel.contentOriginX.unsignedValue + (u16)prompt->field_18;
-    req.y          = obj->panel.contentOriginY.unsignedValue + (u16)prompt->field_1A;
+    req.x          = obj->panel.contentOriginX.unsignedValue + prompt->rowTextX.unsignedValue;
+    req.y          = obj->panel.contentOriginY.unsignedValue + prompt->rowTextY.unsignedValue;
     req.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req.colorRgb   = prompt->field_1C;
+    req.colorRgb   = prompt->colorRgb;
     req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req, Shop_Data_80181A04);
 
-    if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+    if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
         SndEvt_EnqueueType6(SOUND_SYSTEM_CONFIRM, 0, 0);
         obj->result = USER_INTERFACE_RESULT_CONFIRM;
     }

@@ -286,7 +286,7 @@ static s32 func_replay_bonus_801175F0(UiList* list, UiObject* ctx)
 
     cfg = &gPlayerStatus;
     sum = 0;
-    for (i = list->field_9.signedValue; i < list->field_4; i++) {
+    for (i = list->firstVisibleItemIndex.signedValue; i < list->itemCount; i++) {
         sum += replayBonusItemBp(((s16*)ctx->owner->work)[i]);
     }
     sum += cfg->bp;
@@ -303,8 +303,8 @@ static inline void _replayBonusDrawItemRow(UiList* prompt, UiObject* obj, s32 id
     u8 buf[0x20];
 
     Gp_SetItemSeenBit(id, 1);
-    Gp_DrawItemLabel(obj, prompt->field_18, prompt->field_1A, id, 0x606060, 0);
-    Text_DrawPrompt(obj, -prompt->field_18, prompt->field_1A, Text_ItoaSigned(buf, replayBonusItemBp(id)), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED,
+    Gp_DrawItemLabel(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, id, 0x606060, 0);
+    Text_DrawPrompt(obj, -prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, Text_ItoaSigned(buf, replayBonusItemBp(id)), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED,
                     TEXT_ALIGNMENT_RIGHT);
 }
 
@@ -312,7 +312,7 @@ void func_replay_bonus_801176A8(UiList* prompt, UiObject* obj)
 {
     s16* p;
 
-    p = &((s16*)obj->owner->work)[prompt->field_8];
+    p = &((s16*)obj->owner->work)[prompt->currentItemIndex];
     _replayBonusDrawItemRow(prompt, obj, *p);
 }
 

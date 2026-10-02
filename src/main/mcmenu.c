@@ -85,9 +85,9 @@ void McMenu_SelectList(Task* task)
     Ui_DrawText(obj, McText_Select);
     if (task->state == 0) {
         Ui_InitList(menu, obj);
-        menu->field_A               = 1;
-        menu->field_10              = 0;
-        menu->field_9.unsignedValue = 0;
+        menu->flags                               = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
+        menu->selectedItemIndex                   = 0;
+        menu->firstVisibleItemIndex.unsignedValue = 0;
         Ui_SetListScrollFlag(menu, 1);
         task->state += 1;
     } else {
@@ -104,14 +104,14 @@ void McMenu_ConfirmWithRender(UiList* list, UiObject* object)
     McWork* temp;
     s8      temp2;
 
-    temp2 = list->field_8;
+    temp2 = list->currentItemIndex;
     temp  = object->owner->spawnArg1.pointer;
-    Mc_DrawSlotDetails(object, temp, temp2, 0, list->field_1A + 7);
-    if (list->field_C == 1) {
+    Mc_DrawSlotDetails(object, temp, temp2, 0, list->rowTextY.signedValue + 7);
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(SOUND_SYSTEM_CONFIRM, 0, 0);
             object->result = USER_INTERFACE_RESULT_CONFIRM;
-            var_v0         = (s8)(u8)list->field_8;
+            var_v0         = (s8)(u8)list->currentItemIndex;
             goto block_5;
         }
         if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
@@ -137,12 +137,12 @@ void McMenu_SelectListAlt(Task* task)
     Ui_DrawText(obj, McText_Select);
     if (task->state == 0) {
         Ui_InitList(menu, obj);
-        menu->field_A               = 1;
-        menu->field_10              = ctx->selectedSlot;
-        temp                        = (u8)menu->field_10 - menu->field_5.unsignedValue + 1;
-        menu->field_9.unsignedValue = temp;
+        menu->flags                               = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
+        menu->selectedItemIndex                   = ctx->selectedSlot;
+        temp                                      = (u8)menu->selectedItemIndex - menu->visibleRowCount.unsignedValue + 1;
+        menu->firstVisibleItemIndex.unsignedValue = temp;
         if ((s8)temp < 0) {
-            menu->field_9.unsignedValue = 0;
+            menu->firstVisibleItemIndex.unsignedValue = 0;
         }
         Ui_SetListScrollFlag(menu, 1);
         task->state += 1;
@@ -175,7 +175,7 @@ void McMenu_FileInformation(Task* task)
     } else {
         menu = &Mc_SaveSlotList;
     }
-    val = menu->field_10;
+    val = menu->selectedItemIndex;
     Mc_DrawSlotDetails(obj, data, val, 0, 0);
 }
 
@@ -183,8 +183,8 @@ static void McMenu_ConfirmDialog(UiList* list, UiObject* object)
 {
     s32 temp;
 
-    Text_DrawPrompt(object, list->field_18, list->field_1A, McText_Yes, list->field_1C, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    temp = list->field_C;
+    Text_DrawPrompt(object, list->rowTextX.signedValue, list->rowTextY.signedValue, McText_Yes, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    temp = list->rowInputEnabled;
     if (temp == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(SOUND_SYSTEM_CONFIRM, 0, 0);
@@ -192,8 +192,8 @@ static void McMenu_ConfirmDialog(UiList* list, UiObject* object)
             object->resultValue = temp;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(SOUND_SYSTEM_CURSOR, 0, 0);
-            list->field_B  = temp;
-            list->field_22 = 0x41;
+            list->navigationStep = temp;
+            list->actionResult   = USER_INTERFACE_LIST_ACTION_SKIP_ROW;
         }
     }
 }
@@ -202,8 +202,8 @@ static void McMenu_ConfirmDialogAlt(UiList* list, UiObject* object)
 {
     s32 temp;
 
-    Text_DrawPrompt(object, list->field_18, list->field_1A, McText_Ok, list->field_1C, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    temp = list->field_C;
+    Text_DrawPrompt(object, list->rowTextX.signedValue, list->rowTextY.signedValue, McText_Ok, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    temp = list->rowInputEnabled;
     if (temp == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(SOUND_SYSTEM_CONFIRM, 0, 0);
@@ -217,8 +217,8 @@ static void McMenu_ConfirmYes(UiList* list, UiObject* object)
 {
     s32 temp;
 
-    Text_DrawPrompt(object, list->field_18, list->field_1A, McText_Cancel, list->field_1C, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    temp = list->field_C;
+    Text_DrawPrompt(object, list->rowTextX.signedValue, list->rowTextY.signedValue, McText_Cancel, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    temp = list->rowInputEnabled;
     if (temp == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(SOUND_SYSTEM_CANCEL, 0, 0);
@@ -230,8 +230,8 @@ static void McMenu_ConfirmYes(UiList* list, UiObject* object)
 
 static void McMenu_ConfirmNo(UiList* list, UiObject* object)
 {
-    Text_DrawPrompt(object, list->field_18, list->field_1A, McText_No, list->field_1C, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    if (list->field_C == 1) {
+    Text_DrawPrompt(object, list->rowTextX.signedValue, list->rowTextY.signedValue, McText_No, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(SOUND_SYSTEM_CANCEL, 0, 0);
             object->result      = USER_INTERFACE_RESULT_CONFIRM;
@@ -269,11 +269,11 @@ block_done:
         Ui_LayoutListPanel(menu, obj);
         obj->bounds.rect.y -= obj->bounds.rect.h / 2;
         if (task->spawnArg1.value != 3) {
-            menu->field_10 = 0;
+            menu->selectedItemIndex = 0;
         } else {
-            menu->field_10 = 1;
+            menu->selectedItemIndex = 1;
         }
-        menu->field_9.unsignedValue = 0;
+        menu->firstVisibleItemIndex.unsignedValue = 0;
         Ui_SetListScrollFlag(menu, 1);
         task->state += 1;
     } else {
