@@ -399,22 +399,35 @@ u32* tmdBuildStreamGt3ElemColor(TmdStreamWorkspace* workspace, s32 objectFlags, 
 /// no pointer is retained.
 u32* tmdBuildStreamGt3CornerColors(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
-/// Handler of a stream's textured-quad records whose elements carry a colour
-/// (`0x70`): each element contributes one quad to the buffer half's second
-/// region, with the element's texture words written into it.
+/// Initializes persistent texture fields for Gouraud textured quads with one material colour per element.
 ///
-/// The record is not pre-transformed, so its quad is built in the region the
-/// draw pass transforms; this command writes only the polygon's `u`/`v` fields,
-/// and adds the model's texture page and CLUT to the primitive's own, which are
-/// stored relative to the model.
+/// Construction selects this callback for opcode `0x70`. `elements` begins
+/// after the three-word record header; `workspace->elemCount` supplies 0..65535
+/// elements and `elemStride` their stride in u32 words, at least eight. Words
+/// 0..3 pack four vertex then four normal u16 byte offsets. Word 4 supplies
+/// the draw pass's material colour. Words 5 and 6 pack unsigned byte U/V texel
+/// coordinates with encoded CLUT and texture-page settings; word 7 packs U2/V2
+/// in its low half and U3/V3 in its high half. Eight words is a minimum readable
+/// extent, not a fixed element size. Construction does not access geometry or
+/// the colour word.
 ///
-/// This is `tmdBuildStreamGt4`'s family with the opcode's colour bit clear, which
-/// is the whole of the difference between them: the element carries an RGB word
-/// between its refs and its texture words that the draw pass lights the quad
-/// with, where the other family's records carry none and are lit against a fixed
-/// colour. That is why the texture words are one word further into the element
-/// here.
-u32* gpStreamPrimGt4ElemColor(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// `primWrite` must address one writable, four-byte-aligned `POLY_GT4` slot per
+/// element in the selected buffer half's second region. The workspace supplies
+/// signed encoded-address displacements: `texturePageOffset` (-128..127) and
+/// `encodedClutOffset` (-8192..8128, 64 per palette row). Sums wrap modulo
+/// 65536 in the u16 packet fields. Drawing supplies positions, lit colours,
+/// length/code and links later; construction preserves those fields and all
+/// packet pad fields.
+///
+/// Advances `primWrite` by one 52-byte packet per element and returns `elements`
+/// advanced by the original count times the word stride, leaving the next
+/// record or marker unconsumed. Consumes `elemCount` to -1 even for an empty
+/// record, which reads no payload and advances neither cursor. Other workspace
+/// fields remain unchanged. `objectFlags` is the shared callback argument,
+/// passed as zero during construction and ignored here. Stream and packet
+/// capacities are unchecked caller obligations. All storage is borrowed for
+/// this call; no pointer is retained by this callback.
+u32* tmdBuildStreamGt4ElemColor(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 /// Initializes persistent texture fields for Gouraud textured quads with one material colour per corner.
 ///

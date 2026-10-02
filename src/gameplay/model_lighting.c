@@ -383,6 +383,65 @@ static inline void _modelLightingInitGt4CornerColorsTexture(POLY_GT4* quad, cons
     quad->clut      += workspace->encodedClutOffset;
 }
 
+/// Initializes one Gouraud textured quad's persistent texture fields from packed element words.
+///
+/// `elementWords` is a four-byte-aligned element base, after the stream record's
+/// three-word header. `uv0ClutWordIndex` counts u32 words from that base and
+/// selects three consecutive readable words in the same element. It must be
+/// nonnegative, with index + 2 representable in s32; bounds are not checked.
+/// The first two words pack unsigned byte U/V texel coordinates in their low
+/// halves and encoded CLUT and texture-page settings in their high halves.
+/// The third word packs U2/V2 in its low half and U3/V3 in its high half.
+/// This readable extent does not establish the element's complete size.
+///
+/// `quad` must be a writable, four-byte-aligned `POLY_GT4`. A construction
+/// workspace supplies signed encoded-address displacements: `texturePageOffset`
+/// (-128..127) and `encodedClutOffset` (-8192..8128, 64 per palette row). Sums
+/// wrap modulo 65536 in the u16 packet fields without changing U/V. The tag,
+/// colours/command, screen positions and SDK pad fields remain untouched.
+/// All storage is borrowed for the call; no pointer is retained and no workspace
+/// cursor or count is changed.
+static inline void _modelLightingInitGt4TextureWords(POLY_GT4* quad, const u32* elementWords, s32 uv0ClutWordIndex,
+                                                     const TmdStreamWorkspace* workspace)
+{
+    // Relative word positions in the packed texture suffix, independent of its element prefix.
+    enum {
+        /// Offset in u32 stream words from a GT4 element's U0/V0/CLUT word to its U1/V1/texture-page word.
+        ///
+        /// The next four-byte word packs U1 in bits 0..7, V1 in bits 8..15 and
+        /// encoded texture-page settings in bits 16..31 on the little-endian
+        /// target. This is independent of the element prefix and of the byte
+        /// spacing between the destination packet's texture fields. Adding it
+        /// to `uv0ClutWordIndex` must fit in s32 and select a readable word in
+        /// the same element. The full word is copied before page relocation.
+        MODEL_LIGHTING_GT4_UV1_TPAGE_WORD_OFFSET = 1,
+        /// Offset in u32 stream words from a GT4 element's U0/V0/CLUT word to its U2/V2/U3/V3 word.
+        ///
+        /// The word two positions later packs U2/V2 in bits 0..15 and U3/V3 in
+        /// bits 16..31 on the little-endian target. Each half is copied into
+        /// the packet's adjacent u/v bytes, preserving pad2 and pad3. This
+        /// offset is independent of the element prefix and the destination
+        /// packet's byte layout. Adding it to `uv0ClutWordIndex` must fit in
+        /// s32 and select a readable u32 word in the same element; it does not
+        /// establish the element's size.
+        MODEL_LIGHTING_GT4_UV2_UV3_WORD_OFFSET = 2
+    };
+
+    STATIC_ASSERT(OFFSET_OF(POLY_GT4, v2) == OFFSET_OF(POLY_GT4, u2) + sizeof(u8) &&
+                      OFFSET_OF(POLY_GT4, pad2) == OFFSET_OF(POLY_GT4, u2) + sizeof(u16) &&
+                      OFFSET_OF(POLY_GT4, v3) == OFFSET_OF(POLY_GT4, u3) + sizeof(u8) &&
+                      OFFSET_OF(POLY_GT4, pad3) == OFFSET_OF(POLY_GT4, u3) + sizeof(u16),
+                  model_lighting_gt4_texture_words_uv_pair_layout);
+
+    MODEL_LIGHTING_UV0_CLUT_WORD(quad)  = elementWords[uv0ClutWordIndex];
+    MODEL_LIGHTING_UV1_TPAGE_WORD(quad) = elementWords[uv0ClutWordIndex + MODEL_LIGHTING_GT4_UV1_TPAGE_WORD_OFFSET];
+    // Split the packed U/V pairs without overwriting the adjacent pad2/pad3.
+    *(u16*)&quad->u2 = (u16)elementWords[uv0ClutWordIndex + MODEL_LIGHTING_GT4_UV2_UV3_WORD_OFFSET];
+    *(u16*)&quad->u3 = (u16)(elementWords[uv0ClutWordIndex + MODEL_LIGHTING_GT4_UV2_UV3_WORD_OFFSET] >> 16);
+    quad->tpage     += workspace->texturePageOffset;
+    quad->clut      += workspace->encodedClutOffset;
+}
+
 /// Initializes the offset-layer texture of one layered Gouraud triangle.
 ///
 /// `triangle` must be a writable, four-byte-aligned `POLY_GT3` for the first
@@ -2394,25 +2453,29 @@ u32* tmdBuildStreamGt3CornerColors(TmdStreamWorkspace* workspace, s32 objectFlag
     return elements;
 }
 
-u32* gpStreamPrimGt4ElemColor(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+u32* tmdBuildStreamGt4ElemColor(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    POLY_GT4* poly;
+    /// Index of the first texture word in a GT4 element with one material colour.
+    ///
+    /// Counts u32 words from the element base, after the three-word record
+    /// header. Opcode `0x70` stores four geometry-reference words, then one
+    /// material-colour word, then this word. It packs U0/V0 in bits 0..15 and
+    /// the encoded CLUT in bits 16..31. The next word supplies U1/V1 and the
+    /// encoded texture-page settings, and the word after that packs U2/V2 in
+    /// its low half and U3/V3 in its high half. Eight readable words are
+    /// needed, without establishing the element's full extent.
+    enum { MODEL_LIGHTING_GT4_ELEMENT_COLOR_UV0_CLUT_WORD = 5 };
+    POLY_GT4* quad;
 
-    poly = (POLY_GT4*)ws->primWrite;
-    if (ws->elemCount-- > 0) {
-        do {
-            MODEL_LIGHTING_UV0_CLUT_WORD(poly)  = stream[5];
-            MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[6];
-            *(u16*)&poly->u2                    = (u16)stream[7];
-            *(u16*)&poly->u3                    = ((u16*)&stream[7])[1];
-            poly->tpage                        += ws->texturePageOffset;
-            poly->clut                         += ws->encodedClutOffset;
-            poly++;
-            stream += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+    quad = (POLY_GT4*)workspace->primWrite;
+    // Seed texture data for the draw pass that lights the element's material colour.
+    while (workspace->elemCount-- > 0) {
+        _modelLightingInitGt4TextureWords(quad, elements, MODEL_LIGHTING_GT4_ELEMENT_COLOR_UV0_CLUT_WORD, workspace);
+        quad++;
+        elements += workspace->elemStride;
     }
-    ws->primWrite = (u8*)poly;
-    return stream;
+    workspace->primWrite = (u8*)quad;
+    return elements;
 }
 
 u32* tmdBuildStreamGt4CornerColors(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)

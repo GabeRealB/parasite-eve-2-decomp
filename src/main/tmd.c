@@ -496,7 +496,7 @@ void tmdProcessStream(TmdObject* obj)
                 handler = tmdBuildStreamGt3CornerColors;
                 break;
             case 0x70:
-                handler = gpStreamPrimGt4ElemColor;
+                handler = tmdBuildStreamGt4ElemColor;
                 break;
             case 0x170:
                 handler = tmdBuildStreamGt4CornerColors;
