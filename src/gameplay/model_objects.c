@@ -751,8 +751,16 @@ u32* tmdDrawStreamPrimGt3PreXformEnvLayer(TmdStreamWorkspace* workspace, s32 obj
         /// `POLY_GT3.tpage`, with semitransparency enabled by the layer command.
         /// Any marked corner instead selects `TMD_GT3_ENV_SECOND_TEXTURE_PAGE`,
         /// whose origin is 128 texels to the right, overlapping this page.
-        TMD_GT3_ENV_FIRST_TEXTURE_PAGE  = getTPage(TMD_GT3_ENV_TEXTURE_DEPTH_DIRECT, GPU_BLEND_ADD, 448, 256),
-        TMD_GT3_ENV_SECOND_TEXTURE_PAGE = getTPage(2, 1, 576, 256),
+        TMD_GT3_ENV_FIRST_TEXTURE_PAGE = getTPage(TMD_GT3_ENV_TEXTURE_DEPTH_DIRECT, GPU_BLEND_ADD, 448, 256),
+        /// Packed GPU texture-page settings for environment triangles with any second-page marker.
+        ///
+        /// Encodes `0x139`: direct colour and additive semitransparency at
+        /// VRAM word coordinates (576,256), 128 texels right of the overlapping
+        /// first page. Projection has already rebased marked corners' U;
+        /// unmarked corners subtract `TMD_GT3_ENV_PAGE_U_DISPLACEMENT` when
+        /// U >= 128 and clamp smaller U to zero. Written to the layer's unsigned
+        /// 16-bit `POLY_GT3.tpage`, with semitransparency enabled by its command.
+        TMD_GT3_ENV_SECOND_TEXTURE_PAGE = getTPage(TMD_GT3_ENV_TEXTURE_DEPTH_DIRECT, GPU_BLEND_ADD, 576, 256),
         /// Horizontal origin displacement between the environment texture pages, in texels.
         ///
         /// The direct-colour pages start at VRAM X=448 and X=576. Selecting the
