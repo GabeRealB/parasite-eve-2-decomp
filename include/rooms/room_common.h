@@ -323,21 +323,42 @@ typedef struct {
 } RoomFanScratch;
 STATIC_ASSERT_SIZEOF(RoomFanScratch, 0x18);
 
-/// The scratch block a room's billboard drawer takes from the scratch stack:
-/// `vec` is the billboard's world position, pushed through `GsWSMATRIX` with
-/// one `RTPS` into `sx` / `sy`, `otz` and `flag`. `rOuter` and `rInner` are
-/// sizes divided by `otz + 1`, the on-screen radii of the outer and inner
-/// rings of `POLY_G4` wedges it is drawn with.
+/// Scratch-stack workspace for a radial room effect about one world point.
+///
+/// The drawer copies a coordinate's world translation into `worldPoint`,
+/// narrowed to signed 16-bit coordinate units, and projects that point through
+/// `GsWSMATRIX`. One perspective transform supplies the screen centre, the GTE
+/// flag word and the SZ3 / 4 depth. A negative flag word rejects the
+/// projection. Otherwise the depth is incremented by one and used both as the
+/// divisor that scales the two radii onto the screen and as the ordering-table
+/// depth of every primitive.
+///
+/// `screenX` and `screenY` keep the raw 16-bit encodings of the signed GTE
+/// pixel coordinates. They are adjacent so one screen-XY store fills both.
+///
+/// The two radii are signed pixel distances from the centre. A star reads them
+/// as the disc radius (`size * 64 / depth`) and the spike-shoulder radius
+/// (`size * 8 / depth`). A ring reads the same words as the black edge and the
+/// tinted edge, each `size * 64 / depth`. Reserve one complete block and
+/// release it before any pointer into it is used again.
 typedef struct {
-    /* 0x00 */ SVECTOR vec;
-    /* 0x08 */ s32     otz;
-    /* 0x0C */ s32     rOuter;
-    /* 0x10 */ s32     rInner;
-    /* 0x14 */ s32     flag;
-    /* 0x18 */ u16     sx;
-    /* 0x1A */ u16     sy;
-} RoomBillboardScratch;
-STATIC_ASSERT_SIZEOF(RoomBillboardScratch, 0x1C);
+    SVECTOR worldPoint; // World position at projection, each component narrowed to s16
+    s32     depth;      // SZ3 / 4 plus one; divisor for the radii and ordering-table depth
+    union {
+        struct {
+            s32 disc;  // Disc radius in pixels; spikes also reach half and twice this
+            s32 spike; // Spike-shoulder radius in pixels, one eighth of the disc scale
+        } star;
+        struct {
+            s32 black; // Black edge radius in pixels
+            s32 tint;  // Tinted edge radius in pixels
+        } ring;
+    } radii;
+    s32 projectionFlags; // GTE FLAG word; bit 31 set rejects the projection
+    u16 screenX;         // Raw projected centre X; first half of the GTE screen-position word
+    u16 screenY;         // Raw projected centre Y; second half of the same GTE word
+} RoomFxRadialScratch;
+STATIC_ASSERT_SIZEOF(RoomFxRadialScratch, 0x1C);
 
 /// 0x28-byte scratch block `Room_Draw24` takes from the scratch stack. `vec0`
 /// and `vec1` are the beam's two endpoints, rotated out of the caller's local
@@ -361,7 +382,7 @@ typedef struct _RoomDraw24Scratch {
 STATIC_ASSERT_SIZEOF(RoomDraw24Scratch, 0x28);
 
 /// 0x1C-byte scratch block `Room_Draw02` takes from the scratch stack. Same
-/// projection and two-radius ring as `RoomBillboardScratch`, but `otz` sits at
+/// projected centre and two screen radii as `RoomFxRadialScratch`, but `otz` sits at
 /// 0x0 with `rOuter` at 0x4, `rInner` at 0x8, `flag` at 0xC and `vec` at 0x10.
 /// `rOuter` is `(s16)arg1 * 64 / (otz + 1)` and `rInner` is
 /// `(s16)(arg1 + arg2) * 64 / (otz + 1)`.

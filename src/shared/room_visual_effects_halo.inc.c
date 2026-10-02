@@ -73,29 +73,29 @@ static void RoomFx_DrawMote(GfxCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
 /// both scaled by depth. Nothing is drawn when the projection overflows.
 static void RoomFx_DrawHaloRing(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
-    RoomBillboardScratch* block;
-    POLY_G4*              prim;
-    s32                   ang;
-    s32                   next;
-    s32                   outer;
+    RoomFxRadialScratch* block;
+    POLY_G4*             prim;
+    s32                  ang;
+    s32                  next;
+    s32                  outer;
 
-    block         = SCRATCH_STACK_RESERVE_BLOCK(RoomBillboardScratch);
-    block->vec.vx = arg0->workm.t[0];
-    block->vec.vy = arg0->workm.t[1];
-    block->vec.vz = arg0->workm.t[2];
-    outer         = arg1 + arg2;
+    block                = SCRATCH_STACK_RESERVE_BLOCK(RoomFxRadialScratch);
+    block->worldPoint.vx = arg0->workm.t[0];
+    block->worldPoint.vy = arg0->workm.t[1];
+    block->worldPoint.vz = arg0->workm.t[2];
+    outer                = arg1 + arg2;
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec);
+    gte_ldv0(&block->worldPoint);
     gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        block->otz++;
-        block->rOuter = ((s16)arg1 * 64) / block->otz;
-        block->rInner = ((s16)outer * 64) / block->otz;
+    gte_stsxy(&block->screenX);
+    gte_stflg(&block->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&block->depth);
+        block->depth++;
+        block->radii.ring.black = ((s16)arg1 * 64) / block->depth;
+        block->radii.ring.tint  = ((s16)outer * 64) / block->depth;
         for (ang = 0; ang < 0x1000; ang = next) {
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
@@ -104,21 +104,21 @@ static void RoomFx_DrawHaloRing(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, rgb[0], rgb[1], rgb[2]);
             setRGB3(prim, rgb[0], rgb[1], rgb[2]);
-            prim->x0 = block->sx + ((block->rOuter * rsin(ang)) >> 12);
-            prim->y0 = block->sy + ((block->rOuter * rcos(ang)) >> 12);
+            prim->x0 = block->screenX + ((block->radii.ring.black * rsin(ang)) >> 12);
+            prim->y0 = block->screenY + ((block->radii.ring.black * rcos(ang)) >> 12);
             next     = ang + 0x100;
-            prim->x1 = block->sx + ((block->rOuter * rsin(next)) >> 12);
-            prim->y1 = block->sy + ((block->rOuter * rcos(next)) >> 12);
-            prim->x2 = block->sx + ((block->rInner * rsin(ang)) >> 12);
-            prim->y2 = block->sy + ((block->rInner * rcos(ang)) >> 12);
-            prim->x3 = block->sx + ((block->rInner * rsin(next)) >> 12);
-            prim->y3 = block->sy + ((block->rInner * rcos(next)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            prim->x1 = block->screenX + ((block->radii.ring.black * rsin(next)) >> 12);
+            prim->y1 = block->screenY + ((block->radii.ring.black * rcos(next)) >> 12);
+            prim->x2 = block->screenX + ((block->radii.ring.tint * rsin(ang)) >> 12);
+            prim->y2 = block->screenY + ((block->radii.ring.tint * rcos(ang)) >> 12);
+            prim->x3 = block->screenX + ((block->radii.ring.tint * rsin(next)) >> 12);
+            prim->y3 = block->screenY + ((block->radii.ring.tint * rcos(next)) >> 12);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->depth);
         }
     }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomFxRadialScratch);
 }
 
 /// Queues a gouraud disc of eight wedges around the projected world position
