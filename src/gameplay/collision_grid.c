@@ -769,8 +769,8 @@ void func_800DEF80(WorldCollisionBody* node, WorldCollisionTrigger* other)
     }
 
     for (i = 1; i < (s32)ARRAY_SIZE(other->vertices) + 1; i++) {
-        va              = &block->verts[(u16)Gp_FaceEdgePairs[i].field_0];
-        vb              = &block->verts[(u16)Gp_FaceEdgePairs[i].field_2];
+        va              = &block->verts[(u16)Gp_FaceEdgePairs[i].endCornerIndex];
+        vb              = &block->verts[(u16)Gp_FaceEdgePairs[i].startCornerIndex];
         block->delta.vx = va->vx - vb->vx;
         block->delta.vy = va->vy - vb->vy;
         block->delta.vz = va->vz - vb->vz;
@@ -867,8 +867,8 @@ void func_800DF6AC(WorldCollisionBody* node, WorldCollisionTrigger* other, VECTO
     }
 
     for (i = 1; i < (s32)ARRAY_SIZE(other->vertices) + 1; i++) {
-        va                   = &block->quad.verts[(u16)Gp_FaceEdgePairs[i].field_0];
-        vb                   = &block->quad.verts[(u16)Gp_FaceEdgePairs[i].field_2];
+        va                   = &block->quad.verts[(u16)Gp_FaceEdgePairs[i].endCornerIndex];
+        vb                   = &block->quad.verts[(u16)Gp_FaceEdgePairs[i].startCornerIndex];
         block->quad.delta.vx = va->vx - vb->vx;
         block->quad.delta.vy = va->vy - vb->vy;
         block->quad.delta.vz = va->vz - vb->vz;
@@ -965,8 +965,8 @@ s32 func_800DFCCC(WorldCollisionOccluder* occluder, SVECTOR* arg1, SVECTOR* arg2
     }
 
     for (i = 1; i < (s32)ARRAY_SIZE(occluder->vertices) + 1; i++) {
-        va             = &block->verts[(u16)Gp_FaceEdgePairs[i].field_0];
-        vb             = &block->verts[(u16)Gp_FaceEdgePairs[i].field_2];
+        va             = &block->verts[(u16)Gp_FaceEdgePairs[i].endCornerIndex];
+        vb             = &block->verts[(u16)Gp_FaceEdgePairs[i].startCornerIndex];
         block->edge.vx = va->vx - vb->vx;
         block->edge.vy = va->vy - vb->vy;
         block->edge.vz = va->vz - vb->vz;

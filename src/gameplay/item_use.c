@@ -90,7 +90,7 @@ GpGiveRec* D_8010FA0C[6] = {
     D_map_neo_ark_8017CB0C,
 };
 
-GpEdgePair Gp_FaceEdgePairs[5] = {
+WorldCollisionFaceEdge Gp_FaceEdgePairs[5] = {
     { 2, 1 },
     { 1, 0 },
     { 0, 2 },

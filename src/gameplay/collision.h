@@ -5,15 +5,18 @@
 
 #include "gameplay/actor.h"
 
-/// Edge endpoint pair at `Gp_FaceEdgePairs`, indexing the transformed corners of a
-/// `WorldCollisionGridFace`. Entries 0..2 are the edges of a triangle; entries 1..4 are the
-/// edges of a quad, so a face with `n` corners walks entries `n - 3` up to
-/// `n * 2 - 3`.
-typedef struct _GpEdgePair {
-    /* 0x0 */ s16 field_0;
-    /* 0x2 */ s16 field_2;
-} GpEdgePair;
-STATIC_ASSERT_SIZEOF(GpEdgePair, 0x4);
+/// Ordered local corner indices defining an edge of a collision polygon.
+///
+/// Indices address the polygon's transformed corners, not the grid's vertex
+/// pool. The edge vector is the end corner minus the start corner. Crossing
+/// the face normal with that vector gives the edge's separating-plane normal.
+/// `Gp_FaceEdgePairs` entries 0..2 form a triangle's edges (0..2 corners), and
+/// entries 1..4 form a quad's edges (0..3 corners). No index is a sentinel.
+typedef struct {
+    s16 endCornerIndex;   // End index in the transformed corner array (0..2 triangle, 0..3 quad)
+    s16 startCornerIndex; // Start index in the same array; subtracted from the end corner
+} WorldCollisionFaceEdge;
+STATIC_ASSERT_SIZEOF(WorldCollisionFaceEdge, 0x4);
 
 /// Pair-dispatch callback from `Gp_PairHandlers`. `kind` is the `handler` of
 /// the `GpPairRule` that selected it.

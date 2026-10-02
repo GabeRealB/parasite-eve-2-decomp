@@ -598,20 +598,20 @@ void Gp_CollideObjGrid(WorldCollisionBody* arg0)
                 outside = 0;
                 for (i = n - 3; i < n * 2 - 3; i++) {
                     block->delta.vx =
-                        block->verts[Gp_FaceEdgePairs[i].field_0].vx - block->verts[Gp_FaceEdgePairs[i].field_2].vx;
+                        block->verts[Gp_FaceEdgePairs[i].endCornerIndex].vx - block->verts[Gp_FaceEdgePairs[i].startCornerIndex].vx;
                     block->delta.vy =
-                        block->verts[Gp_FaceEdgePairs[i].field_0].vy - block->verts[Gp_FaceEdgePairs[i].field_2].vy;
+                        block->verts[Gp_FaceEdgePairs[i].endCornerIndex].vy - block->verts[Gp_FaceEdgePairs[i].startCornerIndex].vy;
                     block->delta.vz =
-                        block->verts[Gp_FaceEdgePairs[i].field_0].vz - block->verts[Gp_FaceEdgePairs[i].field_2].vz;
+                        block->verts[Gp_FaceEdgePairs[i].endCornerIndex].vz - block->verts[Gp_FaceEdgePairs[i].startCornerIndex].vz;
                     VectorNormal(&block->delta, &block->unit);
                     gte_ldopv1(&block->normal);
                     gte_ldopv2(&block->unit);
                     gte_op12();
                     gte_stlvnl(&block->delta);
 
-                    edgeDot = (block->delta.vx * block->verts[Gp_FaceEdgePairs[i].field_0].vx +
-                               block->delta.vy * block->verts[Gp_FaceEdgePairs[i].field_0].vy +
-                               block->delta.vz * block->verts[Gp_FaceEdgePairs[i].field_0].vz) >>
+                    edgeDot = (block->delta.vx * block->verts[Gp_FaceEdgePairs[i].endCornerIndex].vx +
+                               block->delta.vy * block->verts[Gp_FaceEdgePairs[i].endCornerIndex].vy +
+                               block->delta.vz * block->verts[Gp_FaceEdgePairs[i].endCornerIndex].vz) >>
                               12;
                     val = (s16)(((block->delta.vx * block->pos.vx + block->delta.vy * block->pos.vy +
                                   block->delta.vz * block->pos.vz) >>
@@ -746,20 +746,20 @@ void Gp_CollideObjGridDir(WorldCollisionBody* arg0)
                 outside = 0;
                 for (i = n - 3; i < n * 2 - 3; i++) {
                     block->delta.vx =
-                        block->verts[Gp_FaceEdgePairs[i].field_0].vx - block->verts[Gp_FaceEdgePairs[i].field_2].vx;
+                        block->verts[Gp_FaceEdgePairs[i].endCornerIndex].vx - block->verts[Gp_FaceEdgePairs[i].startCornerIndex].vx;
                     block->delta.vy =
-                        block->verts[Gp_FaceEdgePairs[i].field_0].vy - block->verts[Gp_FaceEdgePairs[i].field_2].vy;
+                        block->verts[Gp_FaceEdgePairs[i].endCornerIndex].vy - block->verts[Gp_FaceEdgePairs[i].startCornerIndex].vy;
                     block->delta.vz =
-                        block->verts[Gp_FaceEdgePairs[i].field_0].vz - block->verts[Gp_FaceEdgePairs[i].field_2].vz;
+                        block->verts[Gp_FaceEdgePairs[i].endCornerIndex].vz - block->verts[Gp_FaceEdgePairs[i].startCornerIndex].vz;
                     VectorNormal(&block->delta, &block->unit);
                     gte_ldopv1(&block->normal);
                     gte_ldopv2(&block->unit);
                     gte_op12();
                     gte_stlvnl(&block->delta);
 
-                    edgeDot = (block->delta.vx * block->verts[Gp_FaceEdgePairs[i].field_0].vx +
-                               block->delta.vy * block->verts[Gp_FaceEdgePairs[i].field_0].vy +
-                               block->delta.vz * block->verts[Gp_FaceEdgePairs[i].field_0].vz) >>
+                    edgeDot = (block->delta.vx * block->verts[Gp_FaceEdgePairs[i].endCornerIndex].vx +
+                               block->delta.vy * block->verts[Gp_FaceEdgePairs[i].endCornerIndex].vy +
+                               block->delta.vz * block->verts[Gp_FaceEdgePairs[i].endCornerIndex].vz) >>
                               12;
                     val = (s16)(((block->delta.vx * block->pos.vx + block->delta.vy * block->pos.vy +
                                   block->delta.vz * block->pos.vz) >>
@@ -894,18 +894,18 @@ s32 func_800DD324(s32 faceId, VECTOR* seg, SVECTOR* ray, WorldCollisionBody* arg
     }
 
     for (i = n - 3; i < n * 2 - 3; i++) {
-        block->delta.vx = block->verts[Gp_FaceEdgePairs[i].field_0].vx - block->verts[Gp_FaceEdgePairs[i].field_2].vx;
-        block->delta.vy = block->verts[Gp_FaceEdgePairs[i].field_0].vy - block->verts[Gp_FaceEdgePairs[i].field_2].vy;
-        block->delta.vz = block->verts[Gp_FaceEdgePairs[i].field_0].vz - block->verts[Gp_FaceEdgePairs[i].field_2].vz;
+        block->delta.vx = block->verts[Gp_FaceEdgePairs[i].endCornerIndex].vx - block->verts[Gp_FaceEdgePairs[i].startCornerIndex].vx;
+        block->delta.vy = block->verts[Gp_FaceEdgePairs[i].endCornerIndex].vy - block->verts[Gp_FaceEdgePairs[i].startCornerIndex].vy;
+        block->delta.vz = block->verts[Gp_FaceEdgePairs[i].endCornerIndex].vz - block->verts[Gp_FaceEdgePairs[i].startCornerIndex].vz;
         VectorNormal(&block->delta, &block->unit);
         gte_ldopv1(&block->normal);
         gte_ldopv2(&block->unit);
         gte_op12();
         gte_stlvnl(&block->delta);
 
-        edgeDot = (block->delta.vx * block->verts[Gp_FaceEdgePairs[i].field_0].vx +
-                   block->delta.vy * block->verts[Gp_FaceEdgePairs[i].field_0].vy +
-                   block->delta.vz * block->verts[Gp_FaceEdgePairs[i].field_0].vz) >>
+        edgeDot = (block->delta.vx * block->verts[Gp_FaceEdgePairs[i].endCornerIndex].vx +
+                   block->delta.vy * block->verts[Gp_FaceEdgePairs[i].endCornerIndex].vy +
+                   block->delta.vz * block->verts[Gp_FaceEdgePairs[i].endCornerIndex].vz) >>
                   12;
         limit = 5;
         val   = ((block->delta.vx * ray[1].vx + block->delta.vy * ray[1].vy + block->delta.vz * ray[1].vz) >> 12) -

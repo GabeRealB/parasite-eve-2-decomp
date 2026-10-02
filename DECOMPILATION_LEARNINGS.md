@@ -133943,25 +133943,24 @@ operand is a per-actor view of the same object rather than the type the paramete
 now takes; the rest were the redundant casts that simply went away. Run it after
 any change that relies on the compiler noticing a type, since the default build
 will not.
-## One table can need two same-layout types, because the load width is in the code
+## One table can need signed and unsigned halfword reads, because the load opcode is in the code
 
-Two types over the same bytes are usually one type invented twice, but not when
-the readers disagree about signedness: the field's declared type is what picks
-the load, and both opcodes can be in the target. A table of two halfwords read
-as `s16` by one group of functions and `u16` by another is declared twice,
+A field's declared type picks the load, and both signed and unsigned opcodes can
+be in the target for the same table. A table of two halfwords read as `s16` by
+one group of functions and `u16` by another can use one declaration, with scalar
+casts where the readers need the other opcode:
 
 ```c
-typedef struct { s16 field_0; s16 field_2; } GpEdgePair; /* lh */
-typedef struct { u16 field_0; u16 field_2; } U16Pair;    /* lhu; illustrative */
+typedef struct { s16 endCornerIndex; s16 startCornerIndex; } WorldCollisionFaceEdge; /* lh */
+/* (u16)entry.endCornerIndex and (u16)entry.startCornerIndex compile lhu. */
 ```
 
-and each declaration says which width its own readers use. The corner-index
-table is the case: `Gp_CollideObjGrid`, `Gp_CollideObjGridDir` and
+The corner-index table is the case: `Gp_CollideObjGrid`, `Gp_CollideObjGridDir` and
 `func_800DD324` index it through the signed type and compile `lh`, while
 `func_800DEF80`, `func_800DF6AC` and `func_800DFCCC` reach the same table
-through the unsigned one and compile `lhu`. `DamageAttack` only shares this
+through unsigned scalar casts and compile `lhu`. `DamageAttack` only shares this
 layout; it is an attack record, not the corner-index table. The unsigned
-readers currently cast `GpEdgePair` fields to `u16`.
+readers cast `WorldCollisionFaceEdge` fields to `u16`.
 
 Rebuilding the unit with the table declared the other way flips exactly those
 loads and nothing else in the function, so check each reader's load opcode
@@ -141951,7 +141950,7 @@ came out with its loads swapped.
   address local. CSE holds `0x1F8003FC` in `s1` for the early exits by
   itself and drops it once dead, so the late pops each build a fresh
   `lui/ori` and cross-jump to one shared `lw/addiu/sw`.
-- `&block->verts[i]` (entry [58]) and `Gp_FaceEdgePairs[i].field_0` indexed by
+- `&block->verts[i]` (entry [58]) and `Gp_FaceEdgePairs[i].endCornerIndex` indexed by
   the loop counter, not a walked pointer. The table's giv is what keeps the
   member addresses in the loop body; the start comes out as `addiu t3,v0,4`
   off the symbol.
