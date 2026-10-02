@@ -1,72 +1,141 @@
 /* Part of the effect sprite library; see effect_sprite.h. */
 
-/// Draws one cell of a 5-column, 48-texel sprite sheet (tpage 0x2B) as a
-/// semi-transparent `POLY_FT4` centred on the coordinate's projected position.
-/// `arg1`'s low 12 bits are the cell index and its top nibble the palette
-/// bank, `arg2` the half-extent (scaled by 47 over depth) and `arg3` the
-/// quad's rotation. Nothing is drawn when the projection fails.
-void effectSpriteDrawBanked(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
-{
-    EffectShapeScratch* head;
-    EffectShapeScratch* block;
-    POLY_FT4*           prim;
-    u16                 col;
-    u16                 row;
-    s32                 u0;
-    s32                 v0;
-    s32                 ang;
-    s32                 ang2;
-    u16                 bank;
-    u32                 idx;
+#ifndef EFFECT_SPRITE_BANKED_FIRST_TEXEL_ROW
+/// First cell's V origin, as a signed integer texel row before GPU byte narrowing.
+///
+/// Bind before this fragment: pod bottom and garbage incinerator use 112;
+/// pod access tunnel and dumping hole use the default 104. Cleared after use.
+#define EFFECT_SPRITE_BANKED_FIRST_TEXEL_ROW 104
+#endif
 
-    head                       = SCRATCH_STACK_CURSOR(EffectShapeScratch);
-    (head - 1)->worldPoint.vx  = arg0->workm.t[0];
-    SCRATCH_STACK_CURSOR(void) = head - 1;
-    block                      = SCRATCH_STACK_CURSOR(EffectShapeScratch);
-    block->worldPoint.vy       = arg0->workm.t[1];
-    block->worldPoint.vz       = arg0->workm.t[2];
-    idx                        = arg1;
-    idx                       &= 0xFFF;
-    bank                       = arg1 >> 12;
+#ifndef EFFECT_SPRITE_BANKED_DEPTH_BIAS
+/// Compile-time depth bias: 1 adds one SZ3/4 unit before sizing and sorting.
+///
+/// Pod bottom binds 1 before this fragment; the other carriers use 0.
+/// Supply the integer preprocessor constant 0 or 1. Cleared after use.
+#define EFFECT_SPRITE_BANKED_DEPTH_BIAS 0
+#endif
+
+/// Computes one corner's pixel displacement from size/depth and a 4096-unit angle.
+static __inline__ void _effectSpriteBankedRotateCorner(EffectShapeScratch* scratch, s16 size, s32 angle)
+{
+    enum {
+        EFFECT_SPRITE_BANKED_UV_SPAN    = 47,
+        EFFECT_SPRITE_BANKED_TRIG_SHIFT = 12
+    };
+    scratch->extent.corner.x = (((size * EFFECT_SPRITE_BANKED_UV_SPAN) / scratch->depth) * rsin(angle)) >> EFFECT_SPRITE_BANKED_TRIG_SHIFT;
+    scratch->extent.corner.y = (((size * EFFECT_SPRITE_BANKED_UV_SPAN) / scratch->depth) * rcos(angle)) >> EFFECT_SPRITE_BANKED_TRIG_SHIFT;
+}
+
+/// Draws a palette-selected animation frame as a rotating camera-facing quad.
+///
+/// `coord` is borrowed and must have its world transform composed. Its translation
+/// is narrowed to signed 16-bit world units; its orientation does not turn the quad.
+/// `frameAndPalette` packs the cell in bits 0..11 and the palette bank in bits
+/// 12..15. Callers animate cells 0..11 of a five-column, 48-texel grid; the drawer
+/// does not check that range. Banks 0 and 1 select per-cell palettes on VRAM rows
+/// 270 and 271 (X = cell * 16 for these frames); banks 2..15 select X=240, Y=266.
+/// The carrier selects the sheet's first texel row and optional depth bias above.
+///
+/// `size` is a signed perspective-sizing numerator, not a pixel half-extent:
+/// `size * 47 / depth` is the screen-space half-diagonal in pixels, with integer
+/// division before Q12 rotation. `depth` is SZ3/4 plus the carrier's bias and must
+/// be nonzero for an accepted projection. `angle` uses 4096 units per turn.
+///
+/// A nonnegative GTE FLAG emits one raw-texture, semi-transparent `POLY_FT4`
+/// using additive blending on the 4-bit texture page at VRAM X=704, Y=0.
+/// The shared primitive cursor must have room for that packet; no capacity check
+/// occurs. One complete `EffectShapeScratch` block is borrowed from the initialized
+/// scratch stack and released on every path; no coordinate or scratch pointer is
+/// retained. Projection updates the GTE matrices and result registers.
+static void _effectSpriteDrawBanked(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle)
+{
+    enum {
+        EFFECT_SPRITE_BANKED_FRAME_MASK        = 0xFFF,
+        EFFECT_SPRITE_BANKED_PALETTE_SHIFT     = 12,
+        EFFECT_SPRITE_BANKED_PALETTE_ROW_COUNT = 2,
+        EFFECT_SPRITE_BANKED_FIRST_PALETTE_ROW = 270,
+        EFFECT_SPRITE_BANKED_CLUT_ROW_SHIFT    = 6,
+        EFFECT_SPRITE_BANKED_CLUT_COLUMN_MASK  = 0x3F,
+        EFFECT_SPRITE_BANKED_CELLS_PER_ROW     = 5,
+        EFFECT_SPRITE_BANKED_CELL_TEXELS       = 48,
+        EFFECT_SPRITE_BANKED_UV_SPAN           = EFFECT_SPRITE_BANKED_CELL_TEXELS - 1,
+        EFFECT_SPRITE_BANKED_QUARTER_TURN      = 0x400,
+        EFFECT_SPRITE_BANKED_PACKET_CODE       = 0x2F // Textured quad, raw texture, semi-transparency
+    };
+    EffectShapeScratch* scratchTop;
+    EffectShapeScratch* scratch;
+    POLY_FT4*           quad;
+    u16                 cellColumn;
+    u16                 cellRow;
+    s32                 cellU;
+    s32                 cellV;
+    s32                 cornerAngle;
+    s32                 perpendicularAngle;
+    u16                 paletteBank;
+    u32                 frameIndex;
+
+    // Stage only the world centre; both pairs of corners are built in screen space.
+    scratchTop                      = SCRATCH_STACK_CURSOR(EffectShapeScratch);
+    (scratchTop - 1)->worldPoint.vx = coord->workm.t[0];
+    SCRATCH_STACK_CURSOR(void)      = scratchTop - 1;
+    scratch                         = SCRATCH_STACK_CURSOR(EffectShapeScratch);
+    scratch->worldPoint.vy          = coord->workm.t[1];
+    scratch->worldPoint.vz          = coord->workm.t[2];
+    frameIndex                      = frameAndPalette;
+    frameIndex                     &= EFFECT_SPRITE_BANKED_FRAME_MASK;
+    paletteBank                     = frameAndPalette >> EFFECT_SPRITE_BANKED_PALETTE_SHIFT;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->worldPoint);
+    gte_ldv0(&scratch->worldPoint);
     gte_rtps();
-    gte_stsxy(&(head - 1)->screenX);
-    gte_stflg(&(head - 1)->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&(head - 1)->depth);
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2F);
-        prim->tpage = 0x2B;
-        if (bank >= 2) {
-            prim->clut = 0x428F;
+    gte_stsxy(&(scratchTop - 1)->screenX);
+    gte_stflg(&(scratchTop - 1)->projectionFlags);
+    if (scratch->projectionFlags >= 0) {
+        gte_stszotz(&(scratchTop - 1)->depth);
+#if EFFECT_SPRITE_BANKED_DEPTH_BIAS
+        scratch->depth++;
+#endif
+        quad           = gGpuPrimCursor;
+        gGpuPrimCursor = quad + 1;
+        setlen(quad, sizeof(*quad) / sizeof(u32) - 1);
+        setcode(quad, EFFECT_SPRITE_BANKED_PACKET_CODE);
+        quad->tpage = getTPage(0, GPU_BLEND_ADD, 704, 0);
+        if (paletteBank >= EFFECT_SPRITE_BANKED_PALETTE_ROW_COUNT) {
+            quad->clut = getClut(240, 266);
         } else {
-            prim->clut = ((bank + 0x10E) << 6) | (idx & 0x3F);
+            quad->clut = ((paletteBank + EFFECT_SPRITE_BANKED_FIRST_PALETTE_ROW) << EFFECT_SPRITE_BANKED_CLUT_ROW_SHIFT) |
+                         (frameIndex & EFFECT_SPRITE_BANKED_CLUT_COLUMN_MASK);
         }
-        col = (u16)idx % 5;
-        row = (u16)idx / 5;
-        ang = arg3;
-        u0  = col * 0x30;
-        v0  = row * 0x30;
-        setUV4(prim, u0, v0 + 0x68, u0 + 0x2F, v0 + 0x68, u0, v0 - 0x69, u0 + 0x2F, v0 - 0x69);
-        block->extent.corner.x = (((arg2 * 47) / block->depth) * rsin(ang)) >> 12;
-        block->extent.corner.y = (((arg2 * 47) / block->depth) * rcos(ang)) >> 12;
-        prim->x0               = block->screenX + (u16)block->extent.corner.x;
-        prim->x3               = block->screenX - (u16)block->extent.corner.x;
-        prim->y0               = block->screenY - (u16)block->extent.corner.y;
-        prim->y3               = block->screenY + (u16)block->extent.corner.y;
-        ang2                   = ang + 0x400;
-        block->extent.corner.x = (((arg2 * 47) / block->depth) * rsin(ang2)) >> 12;
-        block->extent.corner.y = (((arg2 * 47) / block->depth) * rcos(ang2)) >> 12;
-        prim->x1               = block->screenX + (u16)block->extent.corner.x;
-        prim->x2               = block->screenX - (u16)block->extent.corner.x;
-        prim->y1               = block->screenY - (u16)block->extent.corner.y;
-        prim->y2               = block->screenY + (u16)block->extent.corner.y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+        cellColumn  = (u16)frameIndex % EFFECT_SPRITE_BANKED_CELLS_PER_ROW;
+        cellRow     = (u16)frameIndex / EFFECT_SPRITE_BANKED_CELLS_PER_ROW;
+        cornerAngle = angle;
+        cellU       = cellColumn * EFFECT_SPRITE_BANKED_CELL_TEXELS;
+        cellV       = cellRow * EFFECT_SPRITE_BANKED_CELL_TEXELS;
+        // UV fields wrap to bytes, so bottom rows can use their signed byte encodings.
+        setUV4(quad,
+               cellU, cellV + EFFECT_SPRITE_BANKED_FIRST_TEXEL_ROW,
+               cellU + EFFECT_SPRITE_BANKED_UV_SPAN, cellV + EFFECT_SPRITE_BANKED_FIRST_TEXEL_ROW,
+               cellU, cellV + (EFFECT_SPRITE_BANKED_FIRST_TEXEL_ROW + EFFECT_SPRITE_BANKED_UV_SPAN - 256),
+               cellU + EFFECT_SPRITE_BANKED_UV_SPAN, cellV + (EFFECT_SPRITE_BANKED_FIRST_TEXEL_ROW + EFFECT_SPRITE_BANKED_UV_SPAN - 256));
+
+        // Opposite corners share a radius; GPU halfword stores retain wrapped coordinates.
+        _effectSpriteBankedRotateCorner(scratch, size, cornerAngle);
+        quad->x0           = scratch->screenX + (u16)scratch->extent.corner.x;
+        quad->x3           = scratch->screenX - (u16)scratch->extent.corner.x;
+        quad->y0           = scratch->screenY - (u16)scratch->extent.corner.y;
+        quad->y3           = scratch->screenY + (u16)scratch->extent.corner.y;
+        perpendicularAngle = cornerAngle + EFFECT_SPRITE_BANKED_QUARTER_TURN;
+        _effectSpriteBankedRotateCorner(scratch, size, perpendicularAngle);
+        quad->x1 = scratch->screenX + (u16)scratch->extent.corner.x;
+        quad->x2 = scratch->screenX - (u16)scratch->extent.corner.x;
+        quad->y1 = scratch->screenY - (u16)scratch->extent.corner.y;
+        quad->y2 = scratch->screenY + (u16)scratch->extent.corner.y;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }
+
+#undef EFFECT_SPRITE_BANKED_FIRST_TEXEL_ROW
+#undef EFFECT_SPRITE_BANKED_DEPTH_BIAS

@@ -139827,16 +139827,16 @@ sibling `Room_Draw13` carries. It closed unpinned with the compound scratch push
 the address straight into `$s5` (99.0%). Inputs: `base_1.i` `ac83f1a6…fa2c`
 (96.6%), `base_2.i` `db3f17d4…4a80` (98.5%) and `base_10.i` `fb5aa854…4b21` (100%).
 
-### Splitting `x = a & K` into `x = a; x &= K;` buys a ref in global-alloc's priority race (func_shelter_b3_garbage_incinerator_80182AB8, 2026-09-23)
+### Splitting `x = a & K` into `x = a; x &= K;` buys a ref in global-alloc's priority race (_effectSpriteDrawBanked, 2026-09-23)
 
-**Symptom.** 98.8%, `regs=4`: two cross-block pseudos (a `u32 idx = value & 0xFFF`
-and the HI copy made by `u16 bank = value >> 12`) took `$a2`/`$a0` the wrong way
+**Symptom.** 98.8%, `regs=4`: two cross-block pseudos (a `u32 frameIndex = frameAndPalette & 0xFFF`
+and the HI copy made by `u16 paletteBank = frameAndPalette >> 12`) took `$a2`/`$a0` the wrong way
 round. `.greg` showed them adjacent in the allocation order, with the copy first:
 2 refs / 24 insns = 833 against 3 refs / 37 insns = 810 (`allocno_compare`,
 `global.c:594`). No statement reordering helped, because moving the computation
 across the GTE `asm volatile` barriers changed the schedule instead.
 
-**Fix.** `idx = value; idx &= 0xFFF;`. Flow counts the extra set, so `idx` has 4
+**Fix.** `frameIndex = frameAndPalette; frameIndex &= 0xFFF;`. Flow counts the extra set, so `frameIndex` has 4
 refs and `floor_log2` doubles (2*4/37), putting it ahead of the copy; combine
 then folds the two insns into the same single `andi`, so no instruction changes.
 This is the same lever as entry "Global-alloc's allocno race is decided by

@@ -3,7 +3,7 @@
 /* Part of the effect sprite library; see effect_sprite.h. */
 
 /// Room-effect task for one drifting animated sprite, drawn by
-/// effectSpriteDrawBanked or effectSpriteDrawRotated by the sign of spawnArg1.
+/// _effectSpriteDrawBanked or effectSpriteDrawRotated by the sign of spawnArg1.
 /// It rolls a velocity kind from bits 24..27 and scales it to bits 16..23 (0x40
 /// when zero). Kind 7 turns the velocity through the parent coordinate and
 /// accelerates it downward by age/10. Otherwise it rises by 2 or 1 a frame, and
@@ -22,7 +22,7 @@ void effectSpriteDriftTaskAimed(Task* task)
         if (task->spawnArg1.value < 0) {
             effectSpriteDrawRotated(coord, work->index | work->pos.vx, work->scale, work->angle);
         } else {
-            effectSpriteDrawBanked(coord, work->index | work->pos.vx, work->scale, work->angle);
+            _effectSpriteDrawBanked(coord, work->index | work->pos.vx, work->scale, work->angle);
         }
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             effectKillTask(work, task);
@@ -116,7 +116,7 @@ void effectSpriteDriftTaskAimed(Task* task)
             }
             break;
         case 1:
-            effectSpriteDrawBanked(coord, work->index | work->pos.vx, work->scale, work->angle);
+            _effectSpriteDrawBanked(coord, work->index | work->pos.vx, work->scale, work->angle);
             if (work->step != 0) {
                 coord->coord.t[0]  += work->move.vx;
                 coord->coord.t[1]  += work->move.vy;

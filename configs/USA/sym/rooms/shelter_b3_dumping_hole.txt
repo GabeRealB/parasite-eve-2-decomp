@@ -240,6 +240,6 @@ glowDrawDisc = 0x80184E7C; // type:func
 effectSpriteDrawRotated = 0x80185DCC; // type:func
 actorMsgPlaceYawPitchRoll = 0x80181854; // type:func
 actorMsgSetDrawMode = 0x801817D8; // type:func
-effectSpriteDrawBanked = 0x8018596C; // type:func
+_effectSpriteDrawBanked = 0x8018596C; // type:func
 effectSpriteDrawChip = 0x801866CC; // type:func
 effectSpriteDrawBillboard = 0x80186AB8; // type:func

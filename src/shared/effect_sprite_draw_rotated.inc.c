@@ -1,6 +1,6 @@
 /* Part of the effect sprite library; see effect_sprite.h. */
 
-/// The same sprite drawer as `func_shelter_b2_pod_access_tunnel_8017ED5C` for
+/// The same sprite drawer as `_effectSpriteDrawBanked` for
 /// the sheet on tpage 0x2C, with one of two fixed palettes chosen by the top
 /// nibble of `arg1`.
 void effectSpriteDrawRotated(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)

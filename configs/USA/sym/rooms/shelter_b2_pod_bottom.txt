@@ -107,5 +107,5 @@ func_shelter_b2_pod_bottom_8017D760 = 0x8017D760; // type:func
 func_shelter_b2_pod_bottom_8017EC78 = 0x8017EC78; // type:func
 
 func_shelter_b2_pod_bottom_8017F448 = 0x8017F448; // type:func
-effectSpriteDrawBanked = 0x8017DECC; // type:func
+_effectSpriteDrawBanked = 0x8017DECC; // type:func
 effectSpriteDrawRotated = 0x8017E334; // type:func

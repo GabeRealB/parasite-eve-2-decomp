@@ -1,6 +1,5 @@
-/* Drawing of the Shelter rooms' animated effect sprites: one frame of a ten-
- * cell 48x48 sprite sheet, drawn as a textured quad at a coordinate's world
- * position, rotated and scaled by depth.
+/* Drawing of the Shelter rooms' animated effect sprites as camera-facing
+ * textured quads at a coordinate's world position, rotated and scaled by depth.
  * effectSpriteRiseTask is the plainer rising sprite of the pod rooms: eight
  * cells drawn through gameplay's Gp_DrawFxQuad in one of six random CLUTs.
  *
@@ -16,8 +15,6 @@
 #include "main/coord.h"
 
 void effectSpriteDrawRotated(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-
-void effectSpriteDrawBanked(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 
 void effectSpriteDrawChip(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 
