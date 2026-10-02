@@ -31276,26 +31276,27 @@ straight into a pinned `$a2` drops the copy. Keep two registers:
 register s32 val asm("v0");
 register s32 scale asm("a2");
 
-val          = light->field_4A;
+val          = light->transform.lighting.attenuation;
 scale        = val;
-block->scale = val;
+lightScratch->attenuation = val;
 gte_lddp(scale);
 ```
 
-The 0x1C scratch is the 0x18 light block plus `s32 scale` at +0x18.
-`gfxNormalizeLightDirection` and `gte_stsv` take `head - 0xC`; MATRIX row/column
-stores read `block->dir` (`lhu 0x10(s0)`). Pin `block` to `$s0` so it does
+The 0x1C scratch is the 0x18 light block plus `s32 attenuation` at +0x18.
+`gfxNormalizeLightDirection` and `gte_stsv` take `head - 0xC`; MATRIX row
+stores read `lightScratch->result.direction`, and column stores read
+`lightScratch->result.color` (`lhu 0x10(s0)`). Pin `lightScratch` to `$s0` so it does
 not swap with the dir-matrix pointer.
 
-When `arg2` is live (world position subtracted from `field_24.t` into
-`block->in` before the normalize), `$a2` is taken and the IR0 copy must
+When `arg2` is live (world position minus `transform.coord.workm.t` stored in
+`lightScratch->lightToObject` before the normalize), `$a2` is taken and the IR0 copy must
 be pinned to `$t0` instead:
 
 ```c
 register s32 scale asm("t0");
 ```
 
-`func_800D9A30` is the example. It also writes `-block->dir` into the
+`func_800D9A30` is the example. It also writes `-lightScratch->result.direction` into the
 direction-matrix row (same as `Gfx_SetFlatLight`).
 
 ## Local `s32` prototype so `Display_SetFadeMax(0xFF)` can fill a delay slot
@@ -143741,15 +143742,15 @@ Target: `lh v0,0x4A(s4); nop; move a2,v0; sw v0,0x18(s0); mtc2 a2,$8`, with
 That register is reload's first spill choice, which identifies the copy as a
 reload, not as an allocated local. It had been pinned as `val asm("v0")` and
 `scale asm("a2")`. The source stores the field and hands the macro the field:
-`block->scale = light->scale; gte_lddp(block->scale);`. The asm input stays a
+`lightScratch->attenuation = light->transform.lighting.attenuation; gte_lddp(lightScratch->attenuation);`. The asm input stays a
 MEM until reload, reload loads it into its spill register, and post-reload CSE
 turns the load into a copy of the value just stored.
 
 With `head - 0x1C` / `head - 0xC` pointers computed by hand, the scratch block
 also lost `s0` to a matrix pointer at an allocation-priority tie, which a
-third pin (`block asm("s0")`) fixed. The typed scratch macros fixed it without
-a pin: `SCRATCH_STACK_RESERVE_BLOCK(T); block = SCRATCH_STACK_CURSOR(T); ... SCRATCH_STACK_RELEASE_BLOCK(T);`, with
-`&block->dir` in place of a separate `dir` pointer. When a scratch-block
+third pin (`lightScratch asm("s0")`) fixed. The typed scratch macros fixed it without
+a pin: `SCRATCH_STACK_RESERVE_BLOCK(T); lightScratch = SCRATCH_STACK_CURSOR(T); ... SCRATCH_STACK_RELEASE_BLOCK(T);`, with
+`&lightScratch->result.direction` in place of a separate `dir` pointer. When a scratch-block
 function pins the block pointer, try the typed push/read/pop form first.
 ## Repeated decay blocks share one function-scope step; a per-node helper returns the member pointer (Gp_TurnPlayer, 2026-09-26)
 
@@ -144244,32 +144245,32 @@ body matched with `break`. The same function's `goto next` / `goto linkPrims`
 were cross-jumping: an `i++; continue;` at each skip site plus a trailing
 `i++` after an `if (visible) { draw }` all merge into the first site's block,
 and per-case `p->u0 = K; p->v0 = 0;` merge into one tail with `K` in `$v0`.
-## The reload copy into an asm input needs the `block = SCRATCH_STACK_CURSOR` copy between store and asm (func_800D9A30, 2026-09-26)
+## The reload copy into an asm input needs the `lightScratch = SCRATCH_STACK_CURSOR` copy between store and asm (func_800D9A30, 2026-09-26)
 
 Same `move t0,v0; sw v0,0x18(s0); mtc2 t0,$8` shape as func_800D9794, but the
-target also stores `block->in` before the head is written back, which invites
-`block = SCRATCH_STACK_CURSOR(T) - 1; ...; SCRATCH_STACK_CURSOR(T) = block;`. That form scores
+target also stores `lightScratch->lightToObject` before the head is written back, which invites
+`lightScratch = SCRATCH_STACK_CURSOR(T) - 1; ...; SCRATCH_STACK_CURSOR(T) = lightScratch;`. That form scores
 one instruction short: `mtc2 v0,$8` with no copy. Reload's `find_equiv_reg`
 walks back from the asm, finds `(set (mem s0+24) v0)` with nothing setting
 `s0` in between, and hands the asm `v0` directly. Written as
-`SCRATCH_STACK_RESERVE_BLOCK(T); block = SCRATCH_STACK_CURSOR(T);`, CSE rewrites the stores to use the
-push's pseudo, and sched1 places the leftover `block = <push pseudo>` copy
+`SCRATCH_STACK_RESERVE_BLOCK(T); lightScratch = SCRATCH_STACK_CURSOR(T);`, CSE rewrites the stores to use the
+push's pseudo, and sched1 places the leftover `lightScratch = <push pseudo>` copy
 between the store and the asm. That breaks the equivalence, reload loads into
 its spill register, and post-reload CSE turns the load into the copy. sched1
-also moves the `block->in` stores ahead of the head store, because a constant
+also moves the `lightScratch->lightToObject` stores ahead of the head store, because a constant
 scratch address does not alias the block, so push-first reproduces the
 target's store order too.
 ## A scratch head store scheduled between the block's own stores is still `SCRATCH_STACK_RESERVE_BLOCK` first (func_800D98C4, 2026-09-26)
 
 Target: `lw s4,head; addiu s0,s4,-0x1C; sw v0,-0x1C(s4); ... sw v0,4(s0); sw s0,head; sw v0,8(s0)`
 - the head store sits between the second and third field stores, so it had
-been written by hand at that position with `block = head - 0x1C` and a
+been written by hand at that position with `lightScratch = head - 0x1C` and a
 separate `dir = head - 0xC`. That spelling also lost the reloaded
-`move t0,v0; mtc2 t0,$8` of `gte_lddp(block->scale)`: reload found the stored
+`move t0,v0; mtc2 t0,$8` of `gte_lddp(lightScratch->attenuation)`: reload found the stored
 value through the load's REG_EQUIV note and used `v0` directly. The typed idiom
-`SCRATCH_STACK_RESERVE_BLOCK(T); block = SCRATCH_STACK_CURSOR(T); ... SCRATCH_STACK_RELEASE_BLOCK(T);` with
-`&block->dir` matched outright: sched1 moves the head store down among the
-field stores, and the `block` copy it leaves between the field store and the
+`SCRATCH_STACK_RESERVE_BLOCK(T); lightScratch = SCRATCH_STACK_CURSOR(T); ... SCRATCH_STACK_RELEASE_BLOCK(T);` with
+`&lightScratch->result.direction` matched outright: sched1 moves the head store down among the
+field stores, and the `lightScratch` copy it leaves between the field store and the
 asm stops reload's equivalence search, as in `func_800D9794`. A head store in
 the middle of the block's initialisation is not evidence for hand-computed
 offsets.

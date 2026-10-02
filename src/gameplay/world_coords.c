@@ -141,17 +141,25 @@ typedef struct {
 } GpSolveSlotView;
 STATIC_ASSERT_SIZEOF(GpSolveSlotView, 0x58);
 
-/// 0x1C-byte scratch from the scratch stack used by `func_800D9794` /
-/// `func_800D98C4` / `func_800D9A30`. `in` is the direction
-/// `func_800D98C4` / `func_800D9A30` feed to `gfxNormalizeLightDirection`.
-/// `dir` is that output (then overwritten by the GPF-scaled color).
-/// `scale` holds the light's attenuation loaded into IR0.
-typedef struct _GpLightScratch {
-    /* 0x00 */ VECTOR  in;
-    /* 0x10 */ SVECTOR dir;
-    /* 0x18 */ s32     scale;
-} GpLightScratch;
-STATIC_ASSERT_SIZEOF(GpLightScratch, 0x1C);
+/// Temporary workspace for one model light-direction row and RGB column.
+///
+/// Borrowed from the scratch stack until that pair is written. Direction and
+/// colour share output storage and are consumed in that order. Normalization
+/// needs another 24 scratch bytes below this block. The SDK vectors' final
+/// components are unused and left uninitialized.
+typedef struct {
+    VECTOR lightToObject;  // Object minus light position in world units; unused for directional lights
+    union {
+        SVECTOR direction; // Normalized input direction, length approximately ONE
+        struct {
+            s16 r;         // Attenuated red intensity, 12 fractional bits
+            s16 g;         // Attenuated green intensity, 12 fractional bits
+            s16 b;         // Attenuated blue intensity, 12 fractional bits
+        } color;           // Replaces the direction after its matrix row has been written
+    } result;              // Shared direction and colour output storage
+    s32 attenuation;       // Sign-extended light contribution scale (0 dark, ONE full strength), 12 fractional bits
+} _WorldCoordLightMatrixScratch;
+STATIC_ASSERT_SIZEOF(_WorldCoordLightMatrixScratch, 0x1C);
 
 /// 0x3C-byte scratch from the scratch stack used by `func_800D759C`.
 /// `in` is the light's negated local position fed to `gfxNormalizeLightDirection`. `dir` is
@@ -624,95 +632,98 @@ static void func_800D78A4(VECTOR* arg0, GpNearestLight* arg1)
 
 static __inline__ void solve_func_800D9794(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObject* arg3)
 {
-    GpLightScratch* block;
-    MATRIX*         dirMtx;
-    MATRIX*         colorMtx;
+    _WorldCoordLightMatrixScratch* lightScratch;
+    MATRIX*                        dirMtx;
+    MATRIX*                        colorMtx;
 
-    SCRATCH_STACK_RESERVE_BLOCK(GpLightScratch);
-    block    = SCRATCH_STACK_CURSOR(GpLightScratch);
-    dirMtx   = arg3->lightMtx;
-    colorMtx = arg3->colorMtx;
-    gfxNormalizeLightDirection(arg1->transform.coord.workm.t, &block->dir);
+    SCRATCH_STACK_RESERVE_BLOCK(_WorldCoordLightMatrixScratch);
+    lightScratch = SCRATCH_STACK_CURSOR(_WorldCoordLightMatrixScratch);
+    dirMtx       = arg3->lightMtx;
+    colorMtx     = arg3->colorMtx;
+    gfxNormalizeLightDirection(arg1->transform.coord.workm.t, &lightScratch->result.direction);
 
-    dirMtx->m[arg0][0] = block->dir.vx;
-    dirMtx->m[arg0][1] = block->dir.vy;
-    dirMtx->m[arg0][2] = block->dir.vz;
+    dirMtx->m[arg0][0] = lightScratch->result.direction.vx;
+    dirMtx->m[arg0][1] = lightScratch->result.direction.vy;
+    dirMtx->m[arg0][2] = lightScratch->result.direction.vz;
 
-    block->scale = arg1->transform.lighting.attenuation;
-    gte_lddp(block->scale);
+    // Reuse the direction storage for the attenuated RGB column.
+    lightScratch->attenuation = arg1->transform.lighting.attenuation;
+    gte_lddp(lightScratch->attenuation);
     gte_ldsv(&arg1->color);
     gte_gpf12();
-    gte_stsv(&block->dir);
+    gte_stsv(&lightScratch->result.color);
 
-    colorMtx->m[0][arg0] = block->dir.vx;
-    colorMtx->m[1][arg0] = block->dir.vy;
-    colorMtx->m[2][arg0] = block->dir.vz;
+    colorMtx->m[0][arg0] = lightScratch->result.color.r;
+    colorMtx->m[1][arg0] = lightScratch->result.color.g;
+    colorMtx->m[2][arg0] = lightScratch->result.color.b;
 
-    SCRATCH_STACK_RELEASE_BLOCK(GpLightScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_WorldCoordLightMatrixScratch);
 }
 
 static __inline__ void solve_func_800D98C4(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObject* arg3)
 {
-    GpLightScratch* block;
-    MATRIX*         dirMtx;
-    MATRIX*         colorMtx;
+    _WorldCoordLightMatrixScratch* lightScratch;
+    MATRIX*                        dirMtx;
+    MATRIX*                        colorMtx;
 
-    SCRATCH_STACK_RESERVE_BLOCK(GpLightScratch);
-    block        = SCRATCH_STACK_CURSOR(GpLightScratch);
-    dirMtx       = arg3->lightMtx;
-    colorMtx     = arg3->colorMtx;
-    block->in.vx = arg2->vx - arg1->transform.coord.workm.t[0];
-    block->in.vy = arg2->vy - arg1->transform.coord.workm.t[1];
-    block->in.vz = arg2->vz - arg1->transform.coord.workm.t[2];
-    gfxNormalizeLightDirection(&block->in, &block->dir);
+    SCRATCH_STACK_RESERVE_BLOCK(_WorldCoordLightMatrixScratch);
+    lightScratch                   = SCRATCH_STACK_CURSOR(_WorldCoordLightMatrixScratch);
+    dirMtx                         = arg3->lightMtx;
+    colorMtx                       = arg3->colorMtx;
+    lightScratch->lightToObject.vx = arg2->vx - arg1->transform.coord.workm.t[0];
+    lightScratch->lightToObject.vy = arg2->vy - arg1->transform.coord.workm.t[1];
+    lightScratch->lightToObject.vz = arg2->vz - arg1->transform.coord.workm.t[2];
+    gfxNormalizeLightDirection(&lightScratch->lightToObject, &lightScratch->result.direction);
 
-    dirMtx->m[arg0][0] = -block->dir.vx;
-    dirMtx->m[arg0][1] = -block->dir.vy;
-    dirMtx->m[arg0][2] = -block->dir.vz;
+    dirMtx->m[arg0][0] = -lightScratch->result.direction.vx;
+    dirMtx->m[arg0][1] = -lightScratch->result.direction.vy;
+    dirMtx->m[arg0][2] = -lightScratch->result.direction.vz;
 
-    block->scale = arg1->transform.lighting.attenuation;
-    gte_lddp(block->scale);
+    // Reuse the direction storage for the attenuated RGB column.
+    lightScratch->attenuation = arg1->transform.lighting.attenuation;
+    gte_lddp(lightScratch->attenuation);
     gte_ldsv(&arg1->color);
     gte_gpf12();
-    gte_stsv(&block->dir);
+    gte_stsv(&lightScratch->result.color);
 
-    colorMtx->m[0][arg0] = block->dir.vx;
-    colorMtx->m[1][arg0] = block->dir.vy;
-    colorMtx->m[2][arg0] = block->dir.vz;
+    colorMtx->m[0][arg0] = lightScratch->result.color.r;
+    colorMtx->m[1][arg0] = lightScratch->result.color.g;
+    colorMtx->m[2][arg0] = lightScratch->result.color.b;
 
-    SCRATCH_STACK_RELEASE_BLOCK(GpLightScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_WorldCoordLightMatrixScratch);
 }
 
 static __inline__ void solve_func_800D9A30(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObject* arg3)
 {
-    GpLightScratch* block;
-    MATRIX*         dirMtx;
-    MATRIX*         colorMtx;
+    _WorldCoordLightMatrixScratch* lightScratch;
+    MATRIX*                        dirMtx;
+    MATRIX*                        colorMtx;
 
-    SCRATCH_STACK_RESERVE_BLOCK(GpLightScratch);
-    block        = SCRATCH_STACK_CURSOR(GpLightScratch);
-    dirMtx       = arg3->lightMtx;
-    colorMtx     = arg3->colorMtx;
-    block->in.vx = arg2->vx - arg1->transform.coord.workm.t[0];
-    block->in.vy = arg2->vy - arg1->transform.coord.workm.t[1];
-    block->in.vz = arg2->vz - arg1->transform.coord.workm.t[2];
-    gfxNormalizeLightDirection(&block->in, &block->dir);
+    SCRATCH_STACK_RESERVE_BLOCK(_WorldCoordLightMatrixScratch);
+    lightScratch                   = SCRATCH_STACK_CURSOR(_WorldCoordLightMatrixScratch);
+    dirMtx                         = arg3->lightMtx;
+    colorMtx                       = arg3->colorMtx;
+    lightScratch->lightToObject.vx = arg2->vx - arg1->transform.coord.workm.t[0];
+    lightScratch->lightToObject.vy = arg2->vy - arg1->transform.coord.workm.t[1];
+    lightScratch->lightToObject.vz = arg2->vz - arg1->transform.coord.workm.t[2];
+    gfxNormalizeLightDirection(&lightScratch->lightToObject, &lightScratch->result.direction);
 
-    dirMtx->m[arg0][0] = -block->dir.vx;
-    dirMtx->m[arg0][1] = -block->dir.vy;
-    dirMtx->m[arg0][2] = -block->dir.vz;
+    dirMtx->m[arg0][0] = -lightScratch->result.direction.vx;
+    dirMtx->m[arg0][1] = -lightScratch->result.direction.vy;
+    dirMtx->m[arg0][2] = -lightScratch->result.direction.vz;
 
-    block->scale = arg1->transform.lighting.attenuation;
-    gte_lddp(block->scale);
+    // Reuse the direction storage for the attenuated RGB column.
+    lightScratch->attenuation = arg1->transform.lighting.attenuation;
+    gte_lddp(lightScratch->attenuation);
     gte_ldsv(&arg1->color);
     gte_gpf12();
-    gte_stsv(&block->dir);
+    gte_stsv(&lightScratch->result.color);
 
-    colorMtx->m[0][arg0] = block->dir.vx;
-    colorMtx->m[1][arg0] = block->dir.vy;
-    colorMtx->m[2][arg0] = block->dir.vz;
+    colorMtx->m[0][arg0] = lightScratch->result.color.r;
+    colorMtx->m[1][arg0] = lightScratch->result.color.g;
+    colorMtx->m[2][arg0] = lightScratch->result.color.b;
 
-    SCRATCH_STACK_RELEASE_BLOCK(GpLightScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_WorldCoordLightMatrixScratch);
 }
 
 static __inline__ s32 solve_luma(WorldCoordLight* arg0)
@@ -1610,95 +1621,98 @@ static s32 Gp_GetObjTransX(GfxCoord* coord)
 
 static void func_800D9794(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObject* arg3)
 {
-    GpLightScratch* block;
-    MATRIX*         dirMtx;
-    MATRIX*         colorMtx;
+    _WorldCoordLightMatrixScratch* lightScratch;
+    MATRIX*                        dirMtx;
+    MATRIX*                        colorMtx;
 
-    SCRATCH_STACK_RESERVE_BLOCK(GpLightScratch);
-    block    = SCRATCH_STACK_CURSOR(GpLightScratch);
-    dirMtx   = arg3->lightMtx;
-    colorMtx = arg3->colorMtx;
-    gfxNormalizeLightDirection(arg1->transform.coord.workm.t, &block->dir);
+    SCRATCH_STACK_RESERVE_BLOCK(_WorldCoordLightMatrixScratch);
+    lightScratch = SCRATCH_STACK_CURSOR(_WorldCoordLightMatrixScratch);
+    dirMtx       = arg3->lightMtx;
+    colorMtx     = arg3->colorMtx;
+    gfxNormalizeLightDirection(arg1->transform.coord.workm.t, &lightScratch->result.direction);
 
-    dirMtx->m[arg0][0] = block->dir.vx;
-    dirMtx->m[arg0][1] = block->dir.vy;
-    dirMtx->m[arg0][2] = block->dir.vz;
+    dirMtx->m[arg0][0] = lightScratch->result.direction.vx;
+    dirMtx->m[arg0][1] = lightScratch->result.direction.vy;
+    dirMtx->m[arg0][2] = lightScratch->result.direction.vz;
 
-    block->scale = arg1->transform.lighting.attenuation;
-    gte_lddp(block->scale);
+    // Reuse the direction storage for the attenuated RGB column.
+    lightScratch->attenuation = arg1->transform.lighting.attenuation;
+    gte_lddp(lightScratch->attenuation);
     gte_ldsv(&arg1->color);
     gte_gpf12();
-    gte_stsv(&block->dir);
+    gte_stsv(&lightScratch->result.color);
 
-    colorMtx->m[0][arg0] = block->dir.vx;
-    colorMtx->m[1][arg0] = block->dir.vy;
-    colorMtx->m[2][arg0] = block->dir.vz;
+    colorMtx->m[0][arg0] = lightScratch->result.color.r;
+    colorMtx->m[1][arg0] = lightScratch->result.color.g;
+    colorMtx->m[2][arg0] = lightScratch->result.color.b;
 
-    SCRATCH_STACK_RELEASE_BLOCK(GpLightScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_WorldCoordLightMatrixScratch);
 }
 
 static void func_800D98C4(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObject* arg3)
 {
-    GpLightScratch* block;
-    MATRIX*         dirMtx;
-    MATRIX*         colorMtx;
+    _WorldCoordLightMatrixScratch* lightScratch;
+    MATRIX*                        dirMtx;
+    MATRIX*                        colorMtx;
 
-    SCRATCH_STACK_RESERVE_BLOCK(GpLightScratch);
-    block        = SCRATCH_STACK_CURSOR(GpLightScratch);
-    dirMtx       = arg3->lightMtx;
-    colorMtx     = arg3->colorMtx;
-    block->in.vx = arg2->vx - arg1->transform.coord.workm.t[0];
-    block->in.vy = arg2->vy - arg1->transform.coord.workm.t[1];
-    block->in.vz = arg2->vz - arg1->transform.coord.workm.t[2];
-    gfxNormalizeLightDirection(&block->in, &block->dir);
+    SCRATCH_STACK_RESERVE_BLOCK(_WorldCoordLightMatrixScratch);
+    lightScratch                   = SCRATCH_STACK_CURSOR(_WorldCoordLightMatrixScratch);
+    dirMtx                         = arg3->lightMtx;
+    colorMtx                       = arg3->colorMtx;
+    lightScratch->lightToObject.vx = arg2->vx - arg1->transform.coord.workm.t[0];
+    lightScratch->lightToObject.vy = arg2->vy - arg1->transform.coord.workm.t[1];
+    lightScratch->lightToObject.vz = arg2->vz - arg1->transform.coord.workm.t[2];
+    gfxNormalizeLightDirection(&lightScratch->lightToObject, &lightScratch->result.direction);
 
-    dirMtx->m[arg0][0] = -block->dir.vx;
-    dirMtx->m[arg0][1] = -block->dir.vy;
-    dirMtx->m[arg0][2] = -block->dir.vz;
+    dirMtx->m[arg0][0] = -lightScratch->result.direction.vx;
+    dirMtx->m[arg0][1] = -lightScratch->result.direction.vy;
+    dirMtx->m[arg0][2] = -lightScratch->result.direction.vz;
 
-    block->scale = arg1->transform.lighting.attenuation;
-    gte_lddp(block->scale);
+    // Reuse the direction storage for the attenuated RGB column.
+    lightScratch->attenuation = arg1->transform.lighting.attenuation;
+    gte_lddp(lightScratch->attenuation);
     gte_ldsv(&arg1->color);
     gte_gpf12();
-    gte_stsv(&block->dir);
+    gte_stsv(&lightScratch->result.color);
 
-    colorMtx->m[0][arg0] = block->dir.vx;
-    colorMtx->m[1][arg0] = block->dir.vy;
-    colorMtx->m[2][arg0] = block->dir.vz;
+    colorMtx->m[0][arg0] = lightScratch->result.color.r;
+    colorMtx->m[1][arg0] = lightScratch->result.color.g;
+    colorMtx->m[2][arg0] = lightScratch->result.color.b;
 
-    SCRATCH_STACK_RELEASE_BLOCK(GpLightScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_WorldCoordLightMatrixScratch);
 }
 
 static void func_800D9A30(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObject* arg3)
 {
-    GpLightScratch* block;
-    MATRIX*         dirMtx;
-    MATRIX*         colorMtx;
+    _WorldCoordLightMatrixScratch* lightScratch;
+    MATRIX*                        dirMtx;
+    MATRIX*                        colorMtx;
 
-    SCRATCH_STACK_RESERVE_BLOCK(GpLightScratch);
-    block        = SCRATCH_STACK_CURSOR(GpLightScratch);
-    dirMtx       = arg3->lightMtx;
-    colorMtx     = arg3->colorMtx;
-    block->in.vx = arg2->vx - arg1->transform.coord.workm.t[0];
-    block->in.vy = arg2->vy - arg1->transform.coord.workm.t[1];
-    block->in.vz = arg2->vz - arg1->transform.coord.workm.t[2];
-    gfxNormalizeLightDirection(&block->in, &block->dir);
+    SCRATCH_STACK_RESERVE_BLOCK(_WorldCoordLightMatrixScratch);
+    lightScratch                   = SCRATCH_STACK_CURSOR(_WorldCoordLightMatrixScratch);
+    dirMtx                         = arg3->lightMtx;
+    colorMtx                       = arg3->colorMtx;
+    lightScratch->lightToObject.vx = arg2->vx - arg1->transform.coord.workm.t[0];
+    lightScratch->lightToObject.vy = arg2->vy - arg1->transform.coord.workm.t[1];
+    lightScratch->lightToObject.vz = arg2->vz - arg1->transform.coord.workm.t[2];
+    gfxNormalizeLightDirection(&lightScratch->lightToObject, &lightScratch->result.direction);
 
-    dirMtx->m[arg0][0] = -block->dir.vx;
-    dirMtx->m[arg0][1] = -block->dir.vy;
-    dirMtx->m[arg0][2] = -block->dir.vz;
+    dirMtx->m[arg0][0] = -lightScratch->result.direction.vx;
+    dirMtx->m[arg0][1] = -lightScratch->result.direction.vy;
+    dirMtx->m[arg0][2] = -lightScratch->result.direction.vz;
 
-    block->scale = arg1->transform.lighting.attenuation;
-    gte_lddp(block->scale);
+    // Reuse the direction storage for the attenuated RGB column.
+    lightScratch->attenuation = arg1->transform.lighting.attenuation;
+    gte_lddp(lightScratch->attenuation);
     gte_ldsv(&arg1->color);
     gte_gpf12();
-    gte_stsv(&block->dir);
+    gte_stsv(&lightScratch->result.color);
 
-    colorMtx->m[0][arg0] = block->dir.vx;
-    colorMtx->m[1][arg0] = block->dir.vy;
-    colorMtx->m[2][arg0] = block->dir.vz;
+    colorMtx->m[0][arg0] = lightScratch->result.color.r;
+    colorMtx->m[1][arg0] = lightScratch->result.color.g;
+    colorMtx->m[2][arg0] = lightScratch->result.color.b;
 
-    SCRATCH_STACK_RELEASE_BLOCK(GpLightScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_WorldCoordLightMatrixScratch);
 }
 
 void Gp_InsertRankedSlot(GpRec12* arg0, s32 arg1, s32 arg2, void* arg3, s32 arg4)
