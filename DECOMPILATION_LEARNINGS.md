@@ -52058,7 +52058,7 @@ idx    = 0;
 for (i = 0; i < 2; i++, statep += 4, idx += 4) {
     ...
     heldp[idx]                                        /* giv, add = prompt+0x16 */
-    ((RoomActionPromptScreen*)(heldp + idx + 1))->packed  /* giv, add = prompt+0x18 */
+    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos  /* giv, add = prompt+0x18 */
     ...
     *statep = ...;
 }

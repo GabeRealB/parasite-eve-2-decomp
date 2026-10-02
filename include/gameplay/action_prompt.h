@@ -17,10 +17,17 @@ typedef struct {
 } ActionPromptCursorPos;
 STATIC_ASSERT_SIZEOF(ActionPromptCursorPos, 4);
 
-typedef union RoomActionPromptScreen {
-    /* 0x0 */ ActionPromptCursorPos xy;
-    /* 0x0 */ s32                   packed;
-} RoomActionPromptScreen;
+/// Screen position of an action-prompt cursor, as pixels or as one word.
+///
+/// `xy` is the pixel position in the same center-origin space as
+/// `ActionPromptCursorPos`. `packed` is those two shorts in one word. A button
+/// slot copies that word and compares it on the next press to tell whether the
+/// cursor has moved. Storing either member replaces the other.
+typedef union {
+    ActionPromptCursorPos xy;     // Horizontal and vertical pixels from the screen center
+    s32                   packed; // Both pixels in one word
+} ActionPromptScreen;
+STATIC_ASSERT_SIZEOF(ActionPromptScreen, 4);
 
 /// One of the two button slots at the tail of `RoomActionPrompt`. `state` is the
 /// press classification the cursor task writes each frame (0 none, 1 held,
@@ -49,13 +56,13 @@ STATIC_ASSERT_SIZEOF(RoomActionPromptButton, 0x8);
 /// `field_E` as the double-press window. The three bytes at offset 0x11 have
 /// no identified use; their original role is unresolved.
 typedef struct RoomActionPrompt {
-    /* 0x00 */ s32                    field_0;
-    /* 0x04 */ s32                    field_4;
-    /* 0x08 */ RoomActionPromptScreen screen;
-    /* 0x0C */ s16                    targetId;
-    /* 0x0E */ u16                    field_E;
-    /* 0x10 */ u8                     mode;
-    /* 0x11 */ byte                   pad_11[0x3];
+    /* 0x00 */ s32                field_0;
+    /* 0x04 */ s32                field_4;
+    /* 0x08 */ ActionPromptScreen screen;
+    /* 0x0C */ s16                targetId;
+    /* 0x0E */ u16                field_E;
+    /* 0x10 */ u8                 mode;
+    /* 0x11 */ byte               pad_11[0x3];
     /// Whole button storage: the cursor loops walk halfwords across both slots.
     /// Recover a slot from its heldFrames address with PARENT_OF for lastPos.
     /* 0x14 */ union {
