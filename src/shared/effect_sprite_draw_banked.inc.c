@@ -63,8 +63,12 @@ static void _effectSpriteDrawBanked(const GfxCoord* coord, u16 frameAndPalette, 
         EFFECT_SPRITE_BANKED_FIRST_PALETTE_ROW = 270,
         EFFECT_SPRITE_BANKED_CLUT_ROW_SHIFT    = 6,
         EFFECT_SPRITE_BANKED_CLUT_COLUMN_MASK  = 0x3F,
-        EFFECT_SPRITE_BANKED_CELLS_PER_ROW     = 5,
-        EFFECT_SPRITE_BANKED_CELL_TEXELS       = 48,
+        /// Number of 48-texel animation cells across each texture-sheet row.
+        ///
+        /// The zero-based frame index advances across columns before rows.
+        /// Palette selection and total animation length are independent.
+        EFFECT_SPRITE_BANKED_CELLS_PER_ROW = 5,
+        EFFECT_SPRITE_BANKED_CELL_TEXELS   = 48,
         /// First-to-last texel distance across one inclusive square animation cell.
         EFFECT_SPRITE_BANKED_UV_SPAN_TEXELS = EFFECT_SPRITE_BANKED_CELL_TEXELS - 1,
         EFFECT_SPRITE_BANKED_QUARTER_TURN   = 0x400,
