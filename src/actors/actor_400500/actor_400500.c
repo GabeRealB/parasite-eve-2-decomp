@@ -2033,11 +2033,11 @@ static void func_actor_400500_80132E94(Task* arg0)
                         enemy->node.state.parts.flags = WORLD_TARGET_KEEP_SCANNED;
                     }
                     extra->flags   &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-                    work->field_A24 = (u16)work->field_A24 + ((s16)(0x1000 - (u16)work->field_A24) >> 2);
+                    work->field_A24 = (u16)work->field_A24 + ((s16)(TMD_OBJECT_COLOR_BLEND_ONE - (u16)work->field_A24) >> 2);
                     work->field_A28 = (u16)work->field_A28 + ((0xFF - work->field_A28) >> 2);
-                    if (work->field_A24 >= 0xFF0) {
+                    if (work->field_A24 >= TMD_OBJECT_COLOR_BLEND_ONE - 16) {
                         work->field_A28 = 0xFF;
-                        work->field_A24 = 0x1000;
+                        work->field_A24 = TMD_OBJECT_COLOR_BLEND_ONE;
                         work->field_A2A = 0;
                         work->field_A47 = (u8)work->field_A47 + 1;
                     }
@@ -2906,7 +2906,7 @@ static void func_actor_400500_80135414(Task* arg0)
         work5->field_A28 = 0;
         work5->field_A2C = 0x10;
     } else {
-        work5->field_A24 = 0x1000;
+        work5->field_A24 = TMD_OBJECT_COLOR_BLEND_ONE;
         work5->field_A28 = 0xFF;
         work5->field_A20 = 0;
         work5->field_A2C = 0x2000;
@@ -7522,7 +7522,7 @@ static void func_actor_400500_8013D958(Task* arg0)
     work->field_A04 = frame;
     if ((s16)frame >= 0x18) {
         work->field_A20 = 0;
-        work->field_A24 = 0x1000;
+        work->field_A24 = TMD_OBJECT_COLOR_BLEND_ONE;
         work->field_A28 = 0xFF;
         func_8009EA50(work->field_A20);
         model->shading.colorBlend = work->field_A24;

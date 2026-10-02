@@ -1641,11 +1641,11 @@ static void func_actor_405800_8013315C(Task* arg0)
                     if (work->field_897 == 0) {
                         enemy->node.state.parts.flags = WORLD_TARGET_KEEP_SCANNED;
                     }
-                    work->field_834 = (u16)work->field_834 + ((s16)(0x1000 - (u16)work->field_834) >> 2);
+                    work->field_834 = (u16)work->field_834 + ((s16)(TMD_OBJECT_COLOR_BLEND_ONE - (u16)work->field_834) >> 2);
                     work->field_866 = (u16)work->field_866 + ((0xFF - work->field_866) >> 2);
-                    if (work->field_834 >= 0xFF0) {
+                    if (work->field_834 >= TMD_OBJECT_COLOR_BLEND_ONE - 16) {
                         work->field_866 = 0xFF;
-                        work->field_834 = 0x1000;
+                        work->field_834 = TMD_OBJECT_COLOR_BLEND_ONE;
                         work->field_830 = 0;
                         work->field_896++;
                     }
@@ -3819,7 +3819,7 @@ static void func_actor_405800_80138B50(Task* task)
     work->field_842 = count;
     if ((s16)count >= 0x18) {
         work->field_832 = 0;
-        work->field_834 = 0x1000;
+        work->field_834 = TMD_OBJECT_COLOR_BLEND_ONE;
         work->field_866 = 0xFF;
         func_8009EA50(work->field_832);
         ext->shading.colorBlend = work->field_834;

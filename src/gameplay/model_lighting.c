@@ -499,8 +499,8 @@ u32* func_8009AF90(TmdStreamWorkspace* ws, s32 arg1, u32* arg2)
             gte_rtv0();
             gte_stsv(&ws->elemNormal);
             arg2 += ws->elemStride;
-            // Blend the primitive colour towards the grey reference by the
-            // object's blend value when it is below one.
+            // Weight the lit layer colour by the object's blend and the grey
+            // reference by its complement below the full-colour endpoint.
             dp = ws->obj->shading.colorBlend;
             if (dp < TMD_OBJECT_COLOR_BLEND_ONE) {
                 gte_lddp(dp);
@@ -567,7 +567,7 @@ u32* gpXformStreamVertsOffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* strea
     col    = gGpColorWhite;
     col2   = gGpColorGrey;
     val    = ws->obj->shading.colorBlend >> 5;
-    inv    = 0x80 - val;
+    inv    = (TMD_OBJECT_COLOR_BLEND_ONE >> 5) - val;
     col.b  = val;
     col.g  = val;
     col.r  = val;
@@ -857,7 +857,7 @@ u32* gpDrawStreamPrimGt3OffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stre
     col    = gGpColorGrey;
     col2   = gGpColorGrey;
     val    = ws->obj->shading.colorBlend >> 5;
-    inv    = 0x80 - val;
+    inv    = (TMD_OBJECT_COLOR_BLEND_ONE >> 5) - val;
     col.b  = val;
     col.g  = val;
     col.r  = val;
@@ -937,7 +937,7 @@ u32* gpDrawStreamPrimGt4OffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stre
     col    = gGpColorGrey;
     col2   = gGpColorGrey;
     val    = ws->obj->shading.colorBlend >> 5;
-    inv    = 0x80 - val;
+    inv    = (TMD_OBJECT_COLOR_BLEND_ONE >> 5) - val;
     col.b  = val;
     col.g  = val;
     col.r  = val;

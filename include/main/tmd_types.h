@@ -176,7 +176,20 @@ enum { TMD_OBJECT_SKIP_AUTO_BUFFER = 0x04 };
 /// model also has a primitive buffer; it does not allocate that buffer.
 enum { TMD_OBJECT_SKIP_ACTIVE_DRAW = 0x80 };
 
-/// Unit blend value for `TmdObject.shading.colorBlend` (12 fractional bits).
+/// Full lit-colour weight for `TmdObject.shading.colorBlend`, with 12 fractional bits.
+///
+/// Colour-blending callers supply 0..4096. In interpolation handlers, zero
+/// selects the grey reference and this value selects the lit layer colour.
+/// Intermediate values weight that colour by `colorBlend` and the reference
+/// by this value minus
+/// `colorBlend`, with GTE products shifted right by 12. Interpolation handlers
+/// bypass the blend at or above this value. Inputs below zero are unclamped.
+///
+/// Offset-layer handlers convert the same blend to complementary colour
+/// weights with `colorBlend >> 5` and `(TMD_OBJECT_COLOR_BLEND_ONE >> 5)`
+/// minus that weight. Environment-map handlers also use the blend to scale
+/// the normal-derived texture-coordinate displacement. Fade steps divide
+/// this integer unit by their frame count, truncating the step toward zero.
 enum { TMD_OBJECT_COLOR_BLEND_ONE = 0x1000 };
 
 /// Primary-heap model allocation containing a runtime object and its part coordinates.

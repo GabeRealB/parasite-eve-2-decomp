@@ -887,7 +887,7 @@ static void func_actor_323300_80162BE4(Task* arg0)
 /// `field_44C` -- the 0x3000 countdown `func_actor_323300_80162BE4` seeds, 0x40
 /// per frame -- into the 0..0xFFF ramp `modelMorphBlend` blends the
 /// model's vertices with, and republishes that ramp onto `TmdObject::shading.colorBlend`,
-/// the intensity the shading path scales its RGB by. While the countdown is
+/// the colour weight with 12 fractional bits used by the shading handlers. While the countdown is
 /// still above 0x1000 the turn angle handed to `func_actor_323300_8016359C` is
 /// `(0x1000 - field_44C) / 4`, i.e. the ramp read the other way round.
 ///
@@ -919,10 +919,10 @@ static void func_actor_323300_80162DF0(Task* arg0)
     }
 
     blend = work->field_44C;
-    if (blend >= 0x2000) {
-        blend = 0xFFF;
-    } else if (blend > 0x1000) {
-        blend -= 0x1000;
+    if (blend >= TMD_OBJECT_COLOR_BLEND_ONE * 2) {
+        blend = TMD_OBJECT_COLOR_BLEND_ONE - 1;
+    } else if (blend > TMD_OBJECT_COLOR_BLEND_ONE) {
+        blend -= TMD_OBJECT_COLOR_BLEND_ONE;
     } else {
         blend = 0;
     }

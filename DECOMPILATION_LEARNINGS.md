@@ -37730,13 +37730,13 @@ temp makes it take `$v1`:
 ```c
 /* $v0 for the ws->obj temp */
 val = ws->obj->shading.colorBlend;
-if (val < 0x1000) { gte_lddp(val); … gte_lddp(0x1000 - val); }
+if (val < TMD_OBJECT_COLOR_BLEND_ONE) { gte_lddp(val); … gte_lddp(TMD_OBJECT_COLOR_BLEND_ONE - val); }
 
 /* $v1 for the ws->obj temp — matched the target */
-if (ws->obj->shading.colorBlend < 0x1000) {
+if (ws->obj->shading.colorBlend < TMD_OBJECT_COLOR_BLEND_ONE) {
     gte_lddp(ws->obj->shading.colorBlend);
     …
-    gte_lddp(0x1000 - ws->obj->shading.colorBlend);
+    gte_lddp(TMD_OBJECT_COLOR_BLEND_ONE - ws->obj->shading.colorBlend);
 }
 ```
 

@@ -3,10 +3,11 @@
 /* Part of the Knight and Bishop GOLEM library; see golem_knight_bishop.h. */
 
 /// Runs the actor's fade sequence off `field_6DA`. States 1 / 3 fade the
-/// display object's `field_2C` and the `field_6D8` / `field_6E2` shades up and
-/// down, releasing the queued cues as they finish; state 4 fades to 0xB00 and
-/// snapshots the root matrix into `field_674`, and state 6 winds `scale.vx` /
-/// `scale.vy` down before resetting the root matrix to identity. States 7-9
+/// display object's `shading.colorBlend` and the `field_6D8` / `field_6E2`
+/// shades up and down, releasing the queued cues as they finish; state 4
+/// fades to 11/16 colour weight and snapshots the root matrix into `field_674`,
+/// and state 6 winds `scale.vx` / `scale.vy` down before resetting the root
+/// matrix to identity. States 7-9
 /// flicker between two LCG-rolled timings, spawning effect 0x600E0 at the
 /// fourth part on odd animation frames.
 void golemKnightBishopTranslucencyFade(Task* arg0)
@@ -100,9 +101,9 @@ void golemKnightBishopTranslucencyFade(Task* arg0)
             }
             break;
         case 4:
-            obj->shading.colorBlend += 0xB00 / work->field_6DE;
-            if (obj->shading.colorBlend >= 0xB00) {
-                obj->shading.colorBlend = 0xB00;
+            obj->shading.colorBlend += (TMD_OBJECT_COLOR_BLEND_ONE * 11 / 16) / work->field_6DE;
+            if (obj->shading.colorBlend >= TMD_OBJECT_COLOR_BLEND_ONE * 11 / 16) {
+                obj->shading.colorBlend = TMD_OBJECT_COLOR_BLEND_ONE * 11 / 16;
                 t                       = work->field_6D8 - 0xFF / work->field_6DC;
                 work->field_6D8         = t;
                 if (t <= 0) {
@@ -185,8 +186,8 @@ void golemKnightBishopTranslucencyFade(Task* arg0)
             if (t >= 0x80) {
                 work->field_6D8          = 0x80;
                 obj->shading.colorBlend -= TMD_OBJECT_COLOR_BLEND_ONE / work->field_6DE;
-                if (obj->shading.colorBlend <= 0x800) {
-                    obj->shading.colorBlend = 0x800;
+                if (obj->shading.colorBlend <= TMD_OBJECT_COLOR_BLEND_ONE / 2) {
+                    obj->shading.colorBlend = TMD_OBJECT_COLOR_BLEND_ONE / 2;
                 }
             }
             t               = work->field_6E2 - 0x80 / work->field_6DC;
