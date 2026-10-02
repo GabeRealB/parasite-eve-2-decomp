@@ -376,11 +376,11 @@ static AnimationSet _gActor521100Animation38510 = {
 };
 
 Actor5211002MessageEntry D_actor_521100_8016A358[6] = {
-    { 2003, { .call0 = func_actor_521100_801369B8 } },
-    { 2005, { .call3 = func_actor_521100_80136A1C } },
-    { 2004, { .call2 = func_actor_521100_80136A64 } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = func_actor_521100_801369B8 } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = func_actor_521100_80136A1C } },
+    { ACTOR_MESSAGE_PLACE, { .call2 = func_actor_521100_80136A64 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_521100_80136AE0 } },
-    { 2013, { .call2 = func_actor_521100_80136BE8 } },
+    { ACTOR_MESSAGE_WALK_TO, { .call2 = func_actor_521100_80136BE8 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 

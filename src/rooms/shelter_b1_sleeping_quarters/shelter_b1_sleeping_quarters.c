@@ -70,7 +70,7 @@ TaskMessageEntry D_shelter_b1_sleeping_quarters_80180518[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_sleeping_quarters_8017D670 },
     { 5105, func_shelter_b1_sleeping_quarters_8017D668 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_sleeping_quarters_8017D770 },
-    { 5104, func_shelter_b1_sleeping_quarters_8017D6FC },
+    { ROOM_MESSAGE_COMMAND, func_shelter_b1_sleeping_quarters_8017D6FC },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -101,7 +101,7 @@ s32 func_shelter_b1_sleeping_quarters_8017D670(Task* arg0, s32 arg1, RoomEventMs
 {
     *out = *in;
     func_map_shelter_80179A04(in, out);
-    if (in->areaId != 0xC) {
+    if (in->areaId != GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY) {
         return 1;
     }
     if (GameFlag_GetNibble(0x7A) < 6) {
@@ -159,7 +159,7 @@ void func_shelter_b1_sleeping_quarters_8017D778(Task* task)
 static void func_shelter_b1_sleeping_quarters_8017D83C(Task* task)
 {
     task->msgTable = D_shelter_b1_sleeping_quarters_80180518;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

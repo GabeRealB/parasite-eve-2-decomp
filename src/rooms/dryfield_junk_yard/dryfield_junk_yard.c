@@ -117,7 +117,7 @@ void                              func_dryfield_junk_yard_8017DC54(s8);
 TaskMessageEntry D_dryfield_junk_yard_8017DD20[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_junk_yard_8017DA4C },
     { 5105, func_dryfield_junk_yard_8017DA44 },
-    { 5104, junkYardCapMsg },
+    { ROOM_MESSAGE_COMMAND, junkYardCapMsg },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_junk_yard_8017DB78 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -1695,7 +1695,7 @@ static void func_dryfield_junk_yard_8017D658(Task* task)
 static void func_dryfield_junk_yard_8017D708(Task* arg0)
 {
     arg0->msgTable = D_dryfield_junk_yard_8017DD20;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) {
         if (GameFlag_GetNibble(0x38) == 0) {
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3E9, &D_dryfield_junk_yard_8017DE00, 0);
@@ -1740,7 +1740,7 @@ void func_dryfield_junk_yard_8017D848(Task* task)
             task->state = task->state + 1;
             return;
         case 4:
-            if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3F0, 0, 0) != 0) {
+            if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) != 0) {
                 return;
             }
             task->state = task->state + 1;
@@ -1750,7 +1750,7 @@ void func_dryfield_junk_yard_8017D848(Task* task)
             task->state = task->state + 1;
             return;
         case 6:
-            if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3ED, 0, 0) != 0) {
+            if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) != 0) {
                 return;
             }
             task->state = task->state + 1;
@@ -1784,14 +1784,14 @@ s32 func_dryfield_junk_yard_8017DA44(Task* task, s32 msgId, TaskMessageArg arg2,
 s32 func_dryfield_junk_yard_8017DA4C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    if (in->areaId == 0x18 && in->queryOnly == ROOM_EVENT_EXECUTE) {
+    if (in->areaId == GAME_AREA_DRYFIELD_GARAGE && in->queryOnly == ROOM_EVENT_EXECUTE) {
         if (GameFlag_GetNibble(0x7A) >= 4) {
             out->room = 2;
         } else {
             out->room = 1;
         }
     }
-    if (in->areaId == 0x1B) {
+    if (in->areaId == GAME_AREA_DRYFIELD_TRAILER_COACH) {
         if (GameFlag_GetNibble(0x38) == 1) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 GameFlag_SetNibble(0x38, 2);

@@ -240,8 +240,8 @@ static AnimationSet _gActor110300Animation0820C = {
 };
 
 Actor110300MsgEntry gViewFigureMessages[3] = {
-    { 2003, { .call0 = viewFigurePlayMessage } },
-    { 2005, { .call1 = actorMsgSetPairVisibility } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = viewFigurePlayMessage } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call1 = actorMsgSetPairVisibility } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 

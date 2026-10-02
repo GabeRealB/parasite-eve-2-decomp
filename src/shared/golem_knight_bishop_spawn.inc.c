@@ -83,7 +83,7 @@ void golemKnightBishopSpawn(Enemy* arg0, Task* arg1)
                 param2[3] = 0;
                 param2[2] = 0;
                 param2[1] = 0;
-                CdCmd_Enqueue(0x21, param1, param2);
+                CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
             }
             work->field_484 = &arg1->extra.tmd->coords[3];
             records1        = work->field_49C;

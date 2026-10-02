@@ -154,8 +154,8 @@ DryfieldNightMotelLobbyMessageEntry D_dryfield_night_motel_lobby_801827CC[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, { .call2 = roomVariantParkingLotMsg } },
     { 5105, { .call0 = func_dryfield_night_motel_lobby_8017FB00 } },
     { DIRECTION_MESSAGE_ROOM_ACTION, { .call1 = func_dryfield_night_motel_lobby_8017FC6C } },
-    { 5104, { .call3 = func_dryfield_night_motel_lobby_8017FB7C } },
-    { 5106, { .call3 = func_dryfield_night_motel_lobby_8017FCDC } },
+    { ROOM_MESSAGE_COMMAND, { .call3 = func_dryfield_night_motel_lobby_8017FB7C } },
+    { ROOM_MESSAGE_SOUND, { .call3 = func_dryfield_night_motel_lobby_8017FCDC } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
@@ -261,7 +261,7 @@ void func_dryfield_night_motel_lobby_8017FD10(Task* task)
 static void func_dryfield_night_motel_lobby_8017FD9C(Task* task)
 {
     task->msgTable = D_dryfield_night_motel_lobby_801827CC;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     D_dryfield_night_motel_lobby_801844D4 = 1;
     task->state                           = (s32)(task->state + 1);
 }

@@ -86,7 +86,7 @@ TaskMessageEntry D_neo_ark_savanna_zone_8017F9AC[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_savanna_zone_8017D77C },
     { 5105, func_neo_ark_savanna_zone_8017D8F0 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_savanna_zone_8017D900 },
-    { 5104, func_neo_ark_savanna_zone_8017D8F8 },
+    { ROOM_MESSAGE_COMMAND, func_neo_ark_savanna_zone_8017D8F8 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -456,7 +456,7 @@ s32 func_neo_ark_savanna_zone_8017D77C(Task* arg0, s32 arg1, RoomEventMsg* in, R
 
     *out = *in;
     func_map_neo_ark_80179B14(in, out);
-    if (in->areaId != 0x13) {
+    if (in->areaId != GAME_AREA_NEO_ARK_SOUTH_PROMENADE) {
         goto message15;
     }
     snd            = 0x55120003;
@@ -469,7 +469,7 @@ start_event:
     event.fade   = 0;
     return NeoArkSavannaZone_StartEvent(out, &event);
 message15:
-    if (in->areaId == 0x15) {
+    if (in->areaId == GAME_AREA_NEO_ARK_SHRINE) {
         snd            = 0x55120001;
         cmd            = 2;
         event.stageSnd = snd;
@@ -499,7 +499,7 @@ s32 func_neo_ark_savanna_zone_8017D900(Task* task, s32 msgId, TaskMessageArg arg
 static void func_neo_ark_savanna_zone_8017D908(Task* task)
 {
     task->msgTable = D_neo_ark_savanna_zone_8017F9AC;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

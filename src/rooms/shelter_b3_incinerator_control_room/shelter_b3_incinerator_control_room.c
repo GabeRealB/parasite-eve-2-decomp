@@ -131,8 +131,8 @@ TaskMessageEntry D_shelter_b3_incinerator_control_room_80181838[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b3_incinerator_control_room_8017FA8C },
     { 5105, func_shelter_b3_incinerator_control_room_8017FA84 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b3_incinerator_control_room_8017FBE0 },
-    { 5104, func_shelter_b3_incinerator_control_room_8017FB20 },
-    { 5106, func_shelter_b3_incinerator_control_room_8017FBE8 },
+    { ROOM_MESSAGE_COMMAND, func_shelter_b3_incinerator_control_room_8017FB20 },
+    { ROOM_MESSAGE_SOUND, func_shelter_b3_incinerator_control_room_8017FBE8 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -163,7 +163,7 @@ s32 func_shelter_b3_incinerator_control_room_8017FA8C(Task* arg0, s32 arg1, Room
 {
     *out = *in;
     func_map_shelter_80179A04(in, out);
-    if (in->areaId != 0x2A) {
+    if (in->areaId != GAME_AREA_SHELTER_B3_ELEVATOR_HALL) {
         return 1;
     }
     if (GameFlag_GetNibble(0xA7) != 0) {
@@ -215,7 +215,7 @@ s32 func_shelter_b3_incinerator_control_room_8017FBE8(Task* arg0, s32 arg1, s32 
 static void func_shelter_b3_incinerator_control_room_8017FC1C(Task* task)
 {
     task->msgTable = D_shelter_b3_incinerator_control_room_80181838;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     task->state++;
     if (gGameSession->location.loc.warp == 4) {
         func_800E3FAC(0xA2, 0x23);

@@ -423,7 +423,7 @@ static void func_shelter_b6_training_room_8017D7D4(Task* arg0)
     s32  i;
 
     arg0->msgTable = D_shelter_b6_training_room_80182AF4;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     ptr = (u16*)Fs_ImgBuffers;
     i   = 0;
     do {
@@ -538,7 +538,7 @@ void func_shelter_b6_training_room_8017DAF8(s32 arg0)
 /// Sets the saved location to area 0x16, warp 1, room 1 and spawns task 0x11.
 void func_shelter_b6_training_room_8017DB28(void)
 {
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 0x16;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B6_NURSERY;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
     Task_Spawn(0, 0x11, 0, 0);

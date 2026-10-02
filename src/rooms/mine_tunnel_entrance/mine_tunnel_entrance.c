@@ -81,7 +81,7 @@ TaskMessageEntry D_mine_tunnel_entrance_8017DAF0[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_mine_tunnel_entrance_8017D5F0 },
     { 5105, func_mine_tunnel_entrance_8017D5E8 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_mine_tunnel_entrance_8017D63C },
-    { 5104, func_mine_tunnel_entrance_8017D634 },
+    { ROOM_MESSAGE_COMMAND, func_mine_tunnel_entrance_8017D634 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -512,7 +512,7 @@ s32 func_mine_tunnel_entrance_8017D63C(Task* task, s32 msgId, TaskMessageArg arg
 static void func_mine_tunnel_entrance_8017D644(Task* arg0)
 {
     arg0->msgTable = D_mine_tunnel_entrance_8017DAF0;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     arg0->state           = (s32)(arg0->state + 1);
     gStageSceneMusicEntry = 1;
 }

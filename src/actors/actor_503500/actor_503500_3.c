@@ -359,7 +359,7 @@ static void func_actor_503500_80132F64(Task* arg0)
     for (i = 17; i >= 0; i--) {
         D_actor_503500_80176D64[i] = 0;
     }
-    func_actor_503500_80135950(arg0, 0x7D3, D_actor_503500_8016EAC0, 0);
+    func_actor_503500_80135950(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, D_actor_503500_8016EAC0, 0);
     arg0->exitCallback = func_actor_503500_80136228;
     arg0->msgTable     = D_actor_503500_8016EA2C;
     arg0->state       += 1;
@@ -537,7 +537,7 @@ static s32 func_actor_503500_80133684(Task* arg0)
             (gPlayerStatus.hp > 0) && (Gp_StateC08.field_A != 1)) {
             ret = 1;
             if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
-                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
                 work->field_774 |= 8;
                 /* `ret` has to be dead across the call for GCC to keep it in
                  * $a1: it is re-set on the way out of both arms. */
@@ -991,7 +991,7 @@ static void func_actor_503500_80134408(Task* arg0)
             if (++work->field_7BC >= 0x1F &&
                 ((GameActor*)(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->work)->mode != GAME_ACTOR_MODE_SCRIPTED &&
                 gPlayerStatus.hp > 0 && Gp_StateC08.field_A != 1 && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
-                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
                 SndEvt_EnqueueType7(0x40230010, 0x2D);
                 work->field_7DA = work->field_7DA + 1;
             }
@@ -1828,7 +1828,7 @@ void func_actor_503500_80135FB4(Task* arg0, s32 arg1, s32 rate)
         slot->rate = rate;
         slot++;
     }
-    func_actor_503500_80135950(arg0, 0x7D3, &D_actor_503500_8016EAC0[arg1], 0);
+    func_actor_503500_80135950(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_503500_8016EAC0[arg1], 0);
 }
 
 /// Reports whether the boss is in sub-state `arg1` and, if so, whether either
@@ -2361,7 +2361,7 @@ static void func_actor_503500_80136D30(Task* arg0)
         if (work->slot40.boss.flags_4C & 0x100) {
             if (work->field_7B0 == 0) {
                 func_actor_503500_80137048(arg0, 0);
-                func_actor_503500_80135950(arg0, 0x7D3, &D_actor_503500_8016EAD4, 0);
+                func_actor_503500_80135950(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_503500_8016EAD4, 0);
             }
         } else {
             for (i = 1; i < 0x14; i++) {

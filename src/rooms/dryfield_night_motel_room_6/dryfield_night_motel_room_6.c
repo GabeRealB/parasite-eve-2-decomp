@@ -204,8 +204,8 @@ TaskMessageEntry D_dryfield_night_motel_room_6_80182EB0[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantMotelBalconyMsg },
     { 5105, func_dryfield_night_motel_room_6_80181B74 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_motel_room_6_80181BF8 },
-    { 5104, motelRoom6CutsceneMsg },
-    { 5106, func_dryfield_night_motel_room_6_80181C00 },
+    { ROOM_MESSAGE_COMMAND, motelRoom6CutsceneMsg },
+    { ROOM_MESSAGE_SOUND, func_dryfield_night_motel_room_6_80181C00 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -954,7 +954,7 @@ L_case5:
     GameFlag_SetNibble(0x59, 1);
     GameFlag_SetNibble(0x5A, 2);
     GameFlag_SetNibble(0x30, 0);
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 8;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_DRYFIELD_NIGHT_R08;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
     gDisplayState.spriteVariant                                = 1;
@@ -1024,7 +1024,7 @@ s32 func_dryfield_night_motel_room_6_80181C00(Task* arg0, s32 arg1, s32 arg2, Ta
 static void func_dryfield_night_motel_room_6_80181C34(Task* task)
 {
     task->msgTable = D_dryfield_night_motel_room_6_80182EB0;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

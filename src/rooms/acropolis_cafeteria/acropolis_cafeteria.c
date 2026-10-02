@@ -115,9 +115,9 @@ void                func_acropolis_cafeteria_8017E310(void);
 TaskMessageEntry D_acropolis_cafeteria_80182AA8[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_cafeteria_8017D700 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_cafeteria_8017E154 },
-    { 5104, func_acropolis_cafeteria_8017E0DC },
+    { ROOM_MESSAGE_COMMAND, func_acropolis_cafeteria_8017E0DC },
     { 5105, func_acropolis_cafeteria_8017E0D4 },
-    { 5106, func_acropolis_cafeteria_8017E22C },
+    { ROOM_MESSAGE_SOUND, func_acropolis_cafeteria_8017E22C },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1019,7 +1019,7 @@ s32 func_acropolis_cafeteria_8017D700(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
     s32 msgId;
 
     *out = *in;
-    if (in->areaId == 7 && in->warp == 4) {
+    if (in->areaId == GAME_AREA_ACROPOLIS_HALLWAY && in->warp == 4) {
         if (GameFlag_GetNibble(0) >= 3) {
             return 1;
         }
@@ -1082,7 +1082,7 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
             break;
         case 3:
             blackout = 1;
-            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7D9, 0, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_EXIT_PLACED_ACTORS, 0, 0);
             task->state += 1;
             break;
         case 4:
@@ -1103,7 +1103,7 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
             param2[1] = 0;
             param2[2] = 4;
             param2[3] = 6;
-            CdCmd_Enqueue(0x21, param1, param2);
+            CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
             task->state += 1;
             break;
         case 7:
@@ -1140,7 +1140,7 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
             }
             break;
         case 18:
-            if (taskMessageDispatch(Gp_LookupSlot4(0), 0x7D6, 0, 0) == 0 && gPlayerStatus.hp > 0 && Gp_StateC08.field_A != 1 &&
+            if (taskMessageDispatch(Gp_LookupSlot4(0), ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0 && gPlayerStatus.hp > 0 && Gp_StateC08.field_A != 1 &&
                 gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                 Gp_MsgPlayerWeapon(0);
                 task->state += 1;
@@ -1167,7 +1167,7 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
             task->state += 1;
             break;
         case 27:
-            if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
+            if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
                 func_800E3FAC(0xA2, 3);
                 Gp_MsgPlayerWeapon(1);
                 taskKill(task);
@@ -1204,7 +1204,7 @@ void func_acropolis_cafeteria_8017DD1C(Task* task)
             break;
 
         case 1:
-            if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
+            if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
                 Gp_RunCapCmd1(3);
                 task->state = task->state + 1;
             }
@@ -1222,7 +1222,7 @@ void func_acropolis_cafeteria_8017DD1C(Task* task)
             break;
 
         case 3:
-            if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
+            if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
                 Gp_MsgPlayerWeapon(1);
                 taskKill(task);
             }
@@ -1250,8 +1250,8 @@ void func_acropolis_cafeteria_8017DD1C(Task* task)
             func_800ABFF8();
             func_800AC000();
             SndEvt_EnqueueType7(0x80000000, 0);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 1;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 3;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_ACROPOLIS;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_ACROPOLIS_PATIO;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 3;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 3;
             gDisplayState.spriteVariant                                 = 1;
@@ -1373,7 +1373,7 @@ void func_acropolis_cafeteria_8017E310(void)
 static void func_acropolis_cafeteria_8017E348(Task* task)
 {
     task->msgTable = D_acropolis_cafeteria_80182AA8;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     if (GameFlag_GetNibble(0) == 1) {
         Gp_MsgSlot4Chain(0, 0);
         Gp_MsgSlot4Chain(1, 1);

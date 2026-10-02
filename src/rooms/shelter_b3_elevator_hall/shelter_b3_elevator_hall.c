@@ -92,8 +92,8 @@ TaskMessageEntry D_shelter_b3_elevator_hall_80182A38[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b3_elevator_hall_8017DC80 },
     { 5105, func_shelter_b3_elevator_hall_8017DC78 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b3_elevator_hall_8017DD90 },
-    { 5104, func_shelter_b3_elevator_hall_8017DD88 },
-    { 5106, func_shelter_b3_elevator_hall_8017DD98 },
+    { ROOM_MESSAGE_COMMAND, func_shelter_b3_elevator_hall_8017DD88 },
+    { ROOM_MESSAGE_SOUND, func_shelter_b3_elevator_hall_8017DD98 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -193,7 +193,7 @@ void func_shelter_b3_elevator_hall_8017DAF0(Task* task)
             break;
         case 4:
             if (Gp_GetCapEventKey() == 0x15) {
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 0x1A;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B2_ELEVATOR;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
             } else {
@@ -228,7 +228,7 @@ s32 func_shelter_b3_elevator_hall_8017DC80(Task* arg0, s32 arg1, RoomEventMsg* i
 
     *out = *in;
     func_map_shelter_80179A04(in, out);
-    if (in->areaId == 0x29) {
+    if (in->areaId == GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM) {
         req.capCmd        = 1;
         req.missingCapCmd = 1;
         req.firstSnd      = 0x542A0005;
@@ -237,7 +237,7 @@ s32 func_shelter_b3_elevator_hall_8017DC80(Task* arg0, s32 arg1, RoomEventMsg* i
         req.collectedBit  = 0;
         return roomEventGate(&req, out);
     }
-    if (in->areaId != 0x1A) {
+    if (in->areaId != GAME_AREA_SHELTER_B2_ELEVATOR) {
         return 1;
     }
     if (in->queryOnly == ROOM_EVENT_EXECUTE) {
@@ -273,7 +273,7 @@ s32 func_shelter_b3_elevator_hall_8017DD98(Task* task, s32 msgId, s32 arg2, Task
 static void func_shelter_b3_elevator_hall_8017DDCC(Task* task)
 {
     task->msgTable = D_shelter_b3_elevator_hall_80182A38;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

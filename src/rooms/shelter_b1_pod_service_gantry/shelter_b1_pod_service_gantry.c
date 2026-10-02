@@ -70,7 +70,7 @@ TaskMessageEntry D_shelter_b1_pod_service_gantry_8017FAF4[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_pod_service_gantry_8017D7C8 },
     { 5105, func_shelter_b1_pod_service_gantry_8017D7C0 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_pod_service_gantry_8017D814 },
-    { 5104, func_shelter_b1_pod_service_gantry_8017D80C },
+    { ROOM_MESSAGE_COMMAND, func_shelter_b1_pod_service_gantry_8017D80C },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1533,7 +1533,7 @@ static void func_shelter_b1_pod_service_gantry_8017D628(Task* task)
             param2[1] = 0;
             param2[2] = 0;
             param2[3] = 0;
-            CdCmd_Enqueue(0x21, param1, param2);
+            CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
             goto next;
         case 4:
             if (CdCmd_IsIdle() == 0) {
@@ -1549,8 +1549,8 @@ static void func_shelter_b1_pod_service_gantry_8017D628(Task* task)
                 break;
             }
             gGameSession->unknown_138                                   = 1;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 4;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 0x11;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_MINE_SHELTER;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 2;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
             gDisplayState.spriteVariant                                 = 1;
@@ -1593,7 +1593,7 @@ static void func_shelter_b1_pod_service_gantry_8017D81C(Task* arg0)
     _GantryWork* work;
 
     arg0->msgTable = D_shelter_b1_pod_service_gantry_8017FAF4;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     work       = Mem_Malloc(8U, false);
     arg0->work = work;
     if (work == NULL) {

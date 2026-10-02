@@ -86,5 +86,5 @@ void blazeFadeTask(Task* arg0)
             addPrim(gGpuCurrentOt - 16, dr);
             return;
     }
-    Fade_DrawOverlay((u8)work->r, (u8)work->g, (u8)work->b, 1);
+    Fade_DrawOverlay((u8)work->r, (u8)work->g, (u8)work->b, GPU_BLEND_ADD);
 }

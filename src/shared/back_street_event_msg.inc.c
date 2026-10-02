@@ -31,7 +31,7 @@ s32 backStreetEventMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
             s32 cmd = 9;
 
-            if (gGameSession->location.loc.stage == 2) {
+            if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                 cmd = 2;
             }
             Gp_RunCapCmd1(cmd);
@@ -40,7 +40,7 @@ s32 backStreetEventMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out
         return 0;
     }
     if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (gGameSession->location.loc.stage == 2) {
+        if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
             SndEvt_EnqueueType7(0x52050006, 0xF);
         }
     }

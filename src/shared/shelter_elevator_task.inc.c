@@ -25,15 +25,15 @@ void shelterElevatorTask(Task* task)
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             switch (Gp_GetCapEventKey()) {
                 case 0xB:
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 9;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B1_ELEVATOR_HALL;
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 3;
                     break;
                 case 0xC:
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 0x1B;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B2_ELEVATOR_HALL;
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 2;
                     break;
                 case 0xD:
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 0x2A;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B3_ELEVATOR_HALL;
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 3;
                     break;
                 default:

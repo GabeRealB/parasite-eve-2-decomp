@@ -163,6 +163,12 @@ if [[ $ninja_failed -eq 0 ]]; then
             echo "BUILD HAS FAILED. C function names are missing from their symbol maps - add them before committing."
             exit 1
         fi
+        # Area constants name the extractor's room folders; a renamed folder leaves
+        # the generated header behind without anything failing.
+        if ! "$PYTHON" tools/gen_area_ids.py --check; then
+            echo "BUILD HAS FAILED. include/main/areas.h is stale - run python3 tools/gen_area_ids.py."
+            exit 1
+        fi
     fi
     echo "$SUCCESS"
 else

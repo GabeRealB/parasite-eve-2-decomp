@@ -69,7 +69,7 @@ TaskMessageEntry D_shelter_b1_golem_freezer_1_8017E6A8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_golem_freezer_1_8017D5D8 },
     { 5105, func_shelter_b1_golem_freezer_1_8017D5D0 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_golem_freezer_1_8017D624 },
-    { 5104, func_shelter_b1_golem_freezer_1_8017D61C },
+    { ROOM_MESSAGE_COMMAND, func_shelter_b1_golem_freezer_1_8017D61C },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -388,7 +388,7 @@ s32 func_shelter_b1_golem_freezer_1_8017D624(Task* arg0, s32 arg1, RoomEventMsg*
 static void func_shelter_b1_golem_freezer_1_8017D66C(Task* arg0)
 {
     arg0->msgTable = D_shelter_b1_golem_freezer_1_8017E6A8;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 0x15) {
         func_80131E24();
     }

@@ -1372,7 +1372,7 @@ have_actor:
     if (companion == NULL) {
         goto fail;
     }
-    Game_SetPtrSlot(task, 0xA);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_COMPANION);
     memFillBytes(actor, 0, sizeof(*actor));
     memFillBytes(companion, 0, sizeof(*companion));
     task->work           = actor;

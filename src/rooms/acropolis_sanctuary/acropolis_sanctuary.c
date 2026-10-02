@@ -324,7 +324,7 @@ static AnimationSet _gAcropolisSanctuaryAnimation03234 = {
 
 TaskMessageEntry D_acropolis_sanctuary_8018081C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_sanctuary_8017D73C },
-    { 5104, func_acropolis_sanctuary_8017D810 },
+    { ROOM_MESSAGE_COMMAND, func_acropolis_sanctuary_8017D810 },
     { 5105, func_acropolis_sanctuary_8017D808 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_sanctuary_8017D848 },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -1805,14 +1805,14 @@ s32 func_acropolis_sanctuary_8017D73C(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
     s32 nib;
 
     *out = *in;
-    if (in->areaId == 0xB) {
+    if (in->areaId == GAME_AREA_ACROPOLIS_PROMENADE) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
             if (GameFlag_GetNibble(7) == 0) {
                 GameFlag_SetNibble(7, 2);
                 Gp_SetCurBit2Flag(0x13, 2);
             }
         }
-        if (in->areaId == 0xB && in->queryOnly == ROOM_EVENT_EXECUTE) {
+        if (in->areaId == GAME_AREA_ACROPOLIS_PROMENADE && in->queryOnly == ROOM_EVENT_EXECUTE) {
             nib = GameFlag_GetNibble(2);
             if (nib == 0) {
                 nib = 1;
@@ -1881,7 +1881,7 @@ static void func_acropolis_sanctuary_8017D930(Task* arg0)
     Task* slot;
 
     arg0->msgTable = D_acropolis_sanctuary_8018081C;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     arg0->state = arg0->state + 1;
     if (GameFlag_GetNibble(6) != 1) {
         slot = Gp_LookupSlot4(1);
@@ -1962,8 +1962,8 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
         case 1:
             if (gGameSession->eventState == 0) {
                 SndEvt_EnqueueType7(0x80000000, 0);
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 0xD;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 1;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_ACROPOLIS_ROOF_GARDEN;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_ACROPOLIS;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 2;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
                 gDisplayState.spriteVariant                                 = 1;
@@ -2116,7 +2116,7 @@ void func_acropolis_sanctuary_8017E00C(Task* task)
             Gp_SpawnEff(0x6008B, coord, i + 0xA00000, &D_acropolis_sanctuary_80182774[i]);
         }
         task->msgTable = D_acropolis_sanctuary_80182310;
-        Game_SetPtrSlot(task, 5);
+        Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM_EFFECT);
         D_acropolis_sanctuary_80182770 = 0;
         task->state                    = task->state + 1;
     }

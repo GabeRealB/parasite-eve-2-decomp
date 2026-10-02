@@ -89,8 +89,8 @@ TaskMessageEntry D_mine_gorge_8017E280[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_mine_gorge_8017D6E8 },
     { 5105, func_mine_gorge_8017D5F8 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_mine_gorge_8017D784 },
-    { 5104, func_mine_gorge_8017D77C },
-    { 5106, func_mine_gorge_8017D7F4 },
+    { ROOM_MESSAGE_COMMAND, func_mine_gorge_8017D77C },
+    { ROOM_MESSAGE_SOUND, func_mine_gorge_8017D7F4 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -214,7 +214,7 @@ s32 func_mine_gorge_8017D6E8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMs
 {
     *out = *in;
     func_map_shelter_80179A04(in, out);
-    if (in->areaId != 2) {
+    if (in->areaId != GAME_AREA_MINE_CAVERN) {
         return 1;
     }
     if (GameFlag_GetNibble(0xB5) != 0) {
@@ -298,7 +298,7 @@ void func_mine_gorge_8017D8C8(s32 arg0)
 static void func_mine_gorge_8017D8D4(Task* arg0)
 {
     arg0->msgTable = D_mine_gorge_8017E280;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     if ((gGameSession->location.loc.variant == 1) && (GameFlag_GetNibble(0xC5) != 0)) {
         gSceneCombatState.actor03700Wave = 0x15;
     }

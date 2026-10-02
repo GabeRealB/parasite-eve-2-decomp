@@ -51,7 +51,7 @@ TaskMessageEntry D_neo_ark_bridge_80181F30[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_bridge_8017E834 },
     { 5105, func_neo_ark_bridge_8017E82C },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_bridge_8017E880 },
-    { 5104, func_neo_ark_bridge_8017E878 },
+    { ROOM_MESSAGE_COMMAND, func_neo_ark_bridge_8017E878 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -93,7 +93,7 @@ s32 func_neo_ark_bridge_8017E880(Task* task, s32 msgId, TaskMessageArg arg2, Tas
 static void func_neo_ark_bridge_8017E888(Task* arg0)
 {
     arg0->msgTable = D_neo_ark_bridge_80181F30;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     SndEvt_EnqueueType6(0x551B0003, 0, 0);
     SndEvt_EnqueueType6(0x551B0004, 0, 0);
     arg0->state = (s32)(arg0->state + 1);

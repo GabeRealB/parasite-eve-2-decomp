@@ -56,7 +56,7 @@ s32 func_acropolis_observatory_8017D618(Task* arg0, s32 arg1, RoomEventMsg* in, 
     s32 answer;
 
     *out = *in;
-    if (in->areaId == 9 && in->queryOnly == ROOM_EVENT_EXECUTE) {
+    if (in->areaId == GAME_AREA_ACROPOLIS_FORKED_ROAD && in->queryOnly == ROOM_EVENT_EXECUTE) {
         if (gDisplayState.debugMode < 0 || D_8006AC30.sector == 0) {
             out->warp = 5;
         }
@@ -65,13 +65,13 @@ s32 func_acropolis_observatory_8017D618(Task* arg0, s32 arg1, RoomEventMsg* in, 
         } else {
             out->warp = 5;
         }
-        if (in->areaId == 9) {
+        if (in->areaId == GAME_AREA_ACROPOLIS_FORKED_ROAD) {
             if (GameFlag_GetNibble(9) & 1) {
                 out->room = 2;
             }
         }
     }
-    if (in->areaId == 0xB) {
+    if (in->areaId == GAME_AREA_ACROPOLIS_PROMENADE) {
         if (gDisplayState.debugMode < 0 || D_8006AC30.sector == 0) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 out->warp = 1;
@@ -84,7 +84,7 @@ s32 func_acropolis_observatory_8017D618(Task* arg0, s32 arg1, RoomEventMsg* in, 
                 out->warp = 1;
             }
         }
-        if (in->areaId == 0xB && in->queryOnly == ROOM_EVENT_EXECUTE) {
+        if (in->areaId == GAME_AREA_ACROPOLIS_PROMENADE && in->queryOnly == ROOM_EVENT_EXECUTE) {
             answer = GameFlag_GetNibble(2);
             if (answer == 0) {
                 answer = 1;
@@ -123,7 +123,7 @@ s32 func_acropolis_observatory_8017D7C4(Task* arg0, s32 arg1, RoomEventMsg* in, 
 static void func_acropolis_observatory_8017D834(Task* task)
 {
     task->msgTable = D_acropolis_observatory_8017E7B8;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     if ((gGameSession->location.loc.room == 2) && (GameFlag_GetNibble(0xCA) == 0)) {
         gSceneCombatState.actor03700Wave = 1;
     }

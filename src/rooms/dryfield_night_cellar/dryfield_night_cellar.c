@@ -61,7 +61,7 @@ TaskMessageEntry D_dryfield_night_cellar_8017DAA8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, cellarDoorMsg },
     { 5105, func_dryfield_night_cellar_8017D62C },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_cellar_8017D6F4 },
-    { 5104, cellarCapMsg },
+    { ROOM_MESSAGE_COMMAND, cellarCapMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -877,7 +877,7 @@ s32 func_dryfield_night_cellar_8017D6F4(Task* task, s32 msgId, TaskMessageArg ar
 static void func_dryfield_night_cellar_8017D6FC(Task* task)
 {
     task->msgTable = D_dryfield_night_cellar_8017DAA8;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

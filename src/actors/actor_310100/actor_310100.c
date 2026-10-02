@@ -633,10 +633,10 @@ void func_actor_310100_80162EC8(Task*, s32, ActorTransform* placement);
 void func_actor_310100_80162F34(Task*);
 
 Actor310100MessageEntry D_actor_310100_801798B4[6] = {
-    { 2003, { .call1 = func_actor_310100_80162D50 } },
-    { 2004, { .call1 = func_actor_310100_80162EC8 } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = func_actor_310100_80162D50 } },
+    { ACTOR_MESSAGE_PLACE, { .call1 = func_actor_310100_80162EC8 } },
     { 2007, { .call2 = func_actor_310100_80162CDC } },
-    { 2005, { .call3 = func_actor_310100_80162C64 } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = func_actor_310100_80162C64 } },
     { 2002, { .call0 = func_actor_310100_80162F34 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
@@ -728,7 +728,7 @@ static void func_actor_310100_80161F80(Task* task)
         }
     }
     player = ((Actor310100Work*)task->work)->field_4E8;
-    if (player == NULL || taskMessageDispatch(player, 0x3ED, 0, 0) == 0) {
+    if (player == NULL || taskMessageDispatch(player, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
         ok = 1;
     } else {
         ok = 0;

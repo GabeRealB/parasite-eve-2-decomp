@@ -78,7 +78,7 @@ s32 func_dryfield_night_water_tower_8017DAD4(Task* task, s32 msgId, TaskMessageA
 static void func_dryfield_night_water_tower_8017DADC(Task* task)
 {
     task->msgTable = D_dryfield_night_water_tower_8017E6EC;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

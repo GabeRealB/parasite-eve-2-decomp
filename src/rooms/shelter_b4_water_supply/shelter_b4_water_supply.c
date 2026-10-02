@@ -155,8 +155,8 @@ TaskMessageEntry D_shelter_b4_water_supply_801825F0[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b4_water_supply_8017D978 },
     { 5105, func_shelter_b4_water_supply_8017D970 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b4_water_supply_8017DA30 },
-    { 5104, func_shelter_b4_water_supply_8017DA28 },
-    { 5106, func_shelter_b4_water_supply_8017DAE4 },
+    { ROOM_MESSAGE_COMMAND, func_shelter_b4_water_supply_8017DA28 },
+    { ROOM_MESSAGE_SOUND, func_shelter_b4_water_supply_8017DAE4 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -856,7 +856,7 @@ s32 func_shelter_b4_water_supply_8017D978(Task* task, s32 msgId, RoomEventMsg* s
 {
     *dst = *src;
     func_map_shelter_80179A04(src, dst);
-    if (src->areaId == 0x2C) {
+    if (src->areaId == GAME_AREA_SHELTER_B4_UPPER_SEWER) {
         if (src->queryOnly == ROOM_EVENT_EXECUTE) {
             D_shelter_b4_water_supply_80184E3C.warp              = (u8)dst->areaId;
             D_shelter_b4_water_supply_80184E3C.field_4           = dst->warp;
@@ -915,8 +915,8 @@ static void func_shelter_b4_water_supply_8017DB18(void)
     RoomDeparture* wp;
     s32            (*resolve)(RoomEventMsg*, RoomEventMsg*) = func_shelter_b4_water_supply_8017DDFC;
 
-    work.stage    = 3;
-    work.area     = 0x20;
+    work.stage    = GAME_STAGE_DRYFIELD_NIGHT;
+    work.area     = GAME_AREA_DRYFIELD_NIGHT_WATER_HOLE;
     work.warp     = 3;
     work.room     = 1;
     work.sndEvent = 0x542E0003;
@@ -946,8 +946,8 @@ void func_shelter_b4_water_supply_8017DC28(Task* arg0)
 
     if (Gp_CapBusy() == 0) {
         resolve       = func_shelter_b4_water_supply_8017DDFC;
-        work.stage    = 3;
-        work.area     = 0x20;
+        work.stage    = GAME_STAGE_DRYFIELD_NIGHT;
+        work.area     = GAME_AREA_DRYFIELD_NIGHT_WATER_HOLE;
         work.warp     = 3;
         work.room     = 1;
         work.sndEvent = 0x542E0003;
@@ -975,7 +975,7 @@ void func_shelter_b4_water_supply_8017DC28(Task* arg0)
 static void func_shelter_b4_water_supply_8017DD40(Task* arg0)
 {
     arg0->msgTable = D_shelter_b4_water_supply_801825F0;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     Task_SpawnFromTable(D_shelter_b4_water_supply_8018263C, 0, 0, 0);
     arg0->state = (s32)(arg0->state + 1);
 }
@@ -1001,7 +1001,7 @@ void func_shelter_b4_water_supply_8017DDA4(Task* task)
 /// Always returns 1 (not consumed).
 static s32 func_shelter_b4_water_supply_8017DDFC(RoomEventMsg* in, RoomEventMsg* out)
 {
-    if (in->areaId == 0x20 && in->queryOnly == ROOM_EVENT_EXECUTE) {
+    if (in->areaId == GAME_AREA_SHELTER_B2_BREEDING_ROOM && in->queryOnly == ROOM_EVENT_EXECUTE) {
         if (GameFlag_GetNibble(0x51) == 0) {
             out->room = 2;
         } else {

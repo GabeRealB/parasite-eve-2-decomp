@@ -17,6 +17,7 @@
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/area.h"
+#include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/effect_tasks.h"
@@ -1237,7 +1238,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
             gSceneCombatState.actorControl        = SCENE_COMBAT_ACTORS_HIDDEN;
             ((RoomStreamWork*)task->work)->mtx    = gPlayerStatus.coordMtx;
             ((RoomStreamWork*)task->work)->target = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
             place.rot.vy = 0x400;
             place.rot.vx = 0;
             place.rot.vz = 0;
@@ -1258,9 +1259,9 @@ void func_acropolis_forked_road_8017DA24(Task* task)
             break;
 
         case 2:
-            if (taskMessageDispatch(work->target, 0x3F0, 0, 0) == 0) {
+            if (taskMessageDispatch(work->target, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
                 slot = Stream_FindSlot((u8*)&gGameSession->location.loc, 0, 0);
-                CdCmd_Enqueue(0x61, 0, &slot);
+                CdCmd_Enqueue(CD_COMMAND_PLAY_STREAM, 0, &slot);
                 task->state = task->state + 1;
             }
             break;
@@ -1288,8 +1289,8 @@ void func_acropolis_forked_road_8017DA24(Task* task)
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
             func_800E9BDC(2, 0x9FF);
             SndEvt_EnqueueType7(0x80000000, 0);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 1;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 0xA;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_ACROPOLIS;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_ACROPOLIS_OBSERVATORY;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 4;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
             gDisplayState.spriteVariant                                 = 1;
@@ -1339,7 +1340,7 @@ void func_acropolis_forked_road_8017DD60(Task* task)
             }
             ((RoomStreamWork*)task->work)->target = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             ((RoomStreamWork*)task->work)->mtx    = gPlayerStatus.coordMtx;
-            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
             weaponId                 = gPlayerStatus.weapon;
             rec.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.animationId          = 1;
@@ -1402,10 +1403,10 @@ void func_acropolis_forked_road_8017DD60(Task* task)
             break;
 
         case 3:
-            if (taskMessageDispatch(work->target, 0x3F0, 0, 0) == 0) {
-                taskMessageDispatch(work->target, 0x3F1, 0, 0);
+            if (taskMessageDispatch(work->target, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
+                taskMessageDispatch(work->target, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(5);
-                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA5, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_SHOW_HUD, 0, 0);
                 func_800E9BDC(2, 0x9FF);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 gGameSession->padScriptFlags  &= (0xFF ^ GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE);
@@ -1424,7 +1425,7 @@ void func_acropolis_forked_road_8017E1C0(Task* arg0)
     s16 temp_v0;
 
     fade = (u8)arg0->killCountdown;
-    Fade_DrawOverlay(fade, fade, fade, 2);
+    Fade_DrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
     temp_v0             = (u16)arg0->killCountdown + 0x20;
     arg0->killCountdown = temp_v0;
     if (temp_v0 >= 0x100) {
@@ -1441,7 +1442,7 @@ void func_acropolis_forked_road_8017E220(Task* arg0)
     s16 temp_v0;
 
     fade = ~(u8)arg0->killCountdown;
-    Fade_DrawOverlay(fade, fade, fade, 2);
+    Fade_DrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
     temp_v0             = (u16)arg0->killCountdown + 0x20;
     arg0->killCountdown = temp_v0;
     if (temp_v0 >= 0x100) {

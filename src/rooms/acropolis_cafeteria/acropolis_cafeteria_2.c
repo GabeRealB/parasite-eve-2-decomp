@@ -978,7 +978,7 @@ void func_acropolis_cafeteria_8017E658(Task* arg0)
 {
     u16 temp_v0;
 
-    Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
+    Fade_DrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
     temp_v0             = arg0->killCountdown + 4;
     arg0->killCountdown = temp_v0;
     if ((s16)temp_v0 >= 0x100) {
@@ -1006,7 +1006,7 @@ void func_acropolis_cafeteria_8017E708(Task* task)
         return;
     }
     task->msgTable = D_acropolis_cafeteria_80184CEC;
-    Game_SetPtrSlot(task, 5);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM_EFFECT);
     vec                            = &work->move;
     D_acropolis_cafeteria_80184CFC = 0;
     work->move.vx                  = 0x220;

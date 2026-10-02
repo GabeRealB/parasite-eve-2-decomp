@@ -304,9 +304,9 @@ DryfieldNightGasStationMessageEntry D_dryfield_night_gas_station_80184034[7] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, { .call2 = roomVariantGasStationMsg } },
     { 5105, { .call3 = func_dryfield_night_gas_station_8017F7E0 } },
     { DIRECTION_MESSAGE_ROOM_ACTION, { .call1 = func_dryfield_night_gas_station_8017F990 } },
-    { 5104, { .call3 = func_dryfield_night_gas_station_8017F89C } },
-    { 5106, { .call3 = gasStationCueSoundMsg } },
-    { 5108, { .call0 = func_dryfield_night_gas_station_8017F9E8 } },
+    { ROOM_MESSAGE_COMMAND, { .call3 = func_dryfield_night_gas_station_8017F89C } },
+    { ROOM_MESSAGE_SOUND, { .call3 = gasStationCueSoundMsg } },
+    { ROOM_MESSAGE_ACTOR_EVENT, { .call0 = func_dryfield_night_gas_station_8017F9E8 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
@@ -2558,7 +2558,7 @@ void func_dryfield_night_gas_station_8017E9F8(Task* task)
 static void func_dryfield_night_gas_station_8017F41C(Task* arg0)
 {
     arg0->msgTable = D_dryfield_night_gas_station_80184034;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     if ((GameFlag_GetNibble(0x63) >= 2) && (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0)) {
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3E9, &D_dryfield_night_gas_station_80188B0C, 0);
         Gp_AllyAnimId(&D_dryfield_night_gas_station_80184098.source.index);

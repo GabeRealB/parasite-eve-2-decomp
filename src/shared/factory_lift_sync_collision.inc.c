@@ -24,7 +24,7 @@ void factoryLiftSyncCollision(Task* task, s32 remapFaces, s32 useAltTemplate)
     s32                     j;
 
     coord = task->extra.tmd->coords;
-    if (gGameSession->location.loc.stage == 2) {
+    if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
         geom = &gFactoryDayGrid;
     } else {
         geom = &gFactoryNightGrid;

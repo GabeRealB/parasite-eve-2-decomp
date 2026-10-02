@@ -741,7 +741,7 @@ TaskMessageEntry D_mist_shooting_gallery_801850E8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_mist_shooting_gallery_8017FEB8 },
     { 5105, func_mist_shooting_gallery_8017FEB0 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_mist_shooting_gallery_8018008C },
-    { 5104, func_mist_shooting_gallery_80180000 },
+    { ROOM_MESSAGE_COMMAND, func_mist_shooting_gallery_80180000 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1865,7 +1865,7 @@ static void func_mist_shooting_gallery_8017FC2C(Task* arg0)
     s32 var_a0;
 
     arg0->msgTable = D_mist_shooting_gallery_801850E8;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     func_8014C5E0(0x340, 0, 2);
     if (GameFlag_GetNibble(0xED) != 0) {
         Gp_MsgSlot4Chain(1, 0);
@@ -1976,12 +1976,12 @@ s32 func_mist_shooting_gallery_8017FEB0(Task* task, s32 msgId, s32 arg2, s32 arg
 s32 func_mist_shooting_gallery_8017FEB8(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
 {
     *dst = *src;
-    if (src->areaId == 0x13 && src->queryOnly == ROOM_EVENT_EXECUTE) {
+    if (src->areaId == GAME_AREA_MIST_PARKING && src->queryOnly == ROOM_EVENT_EXECUTE) {
         if (GameFlag_GetNibble(0x7A) != 0) {
             dst->room += 2;
         }
     }
-    if (src->areaId == 0x14) {
+    if (src->areaId == GAME_AREA_MIST_SHOOTING_GALLERY) {
         if (dst->warp == 5 && func_8014AA54(src) == 2) {
             return 2;
         }
@@ -2261,7 +2261,7 @@ void func_mist_shooting_gallery_80180728(Task* task)
                 param2[3] = 0;
                 param2[2] = 0;
                 param2[1] = 0;
-                CdCmd_Enqueue(0x21, param1, param2);
+                CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
                 sent = 1;
             } else {
                 sent = 0;
@@ -2340,7 +2340,7 @@ void func_mist_shooting_gallery_80180B64(Task* arg0)
                     param1[0] = 0x2C;
                     break;
             }
-            CdCmd_Enqueue(0x21, param1, param2);
+            CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
             arg0->state++;
             return;
 

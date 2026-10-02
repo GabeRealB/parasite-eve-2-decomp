@@ -64,7 +64,7 @@ TaskMessageEntry D_dryfield_night_dilapidated_house_8017E700[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_dilapidated_house_8017D8DC },
     { 5105, func_dryfield_night_dilapidated_house_8017D8D4 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_dilapidated_house_8017D968 },
-    { 5104, func_dryfield_night_dilapidated_house_8017D960 },
+    { ROOM_MESSAGE_COMMAND, func_dryfield_night_dilapidated_house_8017D960 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

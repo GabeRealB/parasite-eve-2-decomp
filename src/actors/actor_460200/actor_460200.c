@@ -1291,11 +1291,11 @@ static AnimationSet _gActor460200Animation0DE08 = {
 };
 
 Actor460200MessageEntry gPacedWalkMsgTable[6] = {
-    { 2003, { .call1 = pacedWalkPlayAnim } },
-    { 2005, { .call4 = pacedWalkShowPair } },
-    { 2004, { .call3 = pacedWalkPlace } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = pacedWalkPlayAnim } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = pacedWalkShowPair } },
+    { ACTOR_MESSAGE_PLACE, { .call3 = pacedWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_460200_80132C8C } },
-    { 2013, { .call3 = pacedWalkTo } },
+    { ACTOR_MESSAGE_WALK_TO, { .call3 = pacedWalkTo } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
@@ -1642,11 +1642,11 @@ static AnimationSet _gActor460200Animation162A0 = {
 };
 
 Actor460200MessageEntry gStrideWalkMessages[6] = {
-    { 2003, { .call1 = strideWalkPlay } },
-    { 2005, { .call4 = strideWalkSetVisibility } },
-    { 2004, { .call3 = func_actor_460200_801334F0 } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = strideWalkPlay } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = strideWalkSetVisibility } },
+    { ACTOR_MESSAGE_PLACE, { .call3 = func_actor_460200_801334F0 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_460200_80133568 } },
-    { 2013, { .call3 = strideWalkTo } },
+    { ACTOR_MESSAGE_WALK_TO, { .call3 = strideWalkTo } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
@@ -2113,11 +2113,11 @@ static AnimationSet _gActor460200Animation1F6B4 = {
 };
 
 Actor460200MessageEntry D_actor_460200_801514FC[6] = {
-    { 2003, { .call1 = func_actor_460200_80133C64 } },
-    { 2005, { .call4 = func_actor_460200_80133CD0 } },
-    { 2004, { .call3 = func_actor_460200_80133D4C } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = func_actor_460200_80133C64 } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = func_actor_460200_80133CD0 } },
+    { ACTOR_MESSAGE_PLACE, { .call3 = func_actor_460200_80133D4C } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_460200_80133DC4 } },
-    { 2013, { .call3 = func_actor_460200_80133DCC } },
+    { ACTOR_MESSAGE_WALK_TO, { .call3 = func_actor_460200_80133DCC } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 

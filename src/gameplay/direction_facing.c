@@ -99,8 +99,8 @@ void Gp_MsgPlayerDirFacing(void)
     }
 
     slot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    if (taskMessageDispatch(slot, 0x3F0, 0, 0) == 0) {
-        taskMessageDispatch(slot, 0x3F1, 0, 0);
+    if (taskMessageDispatch(slot, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
+        taskMessageDispatch(slot, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
         D_80114CF8      = 0;
         Gp_DirNibble    = 0;
         Gp_DirByte      = 0;
@@ -155,7 +155,7 @@ void Gp_PostDirIfCapIdle(void)
     if (gGameSession->eventState == 0) {
         if (Gp_CapBusy() == 0) {
             if (Gp_DirNibble == WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE) {
-                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F0, Gp_DirByte, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_COMMAND, Gp_DirByte, 0);
             } else {
                 Gp_SpawnIfCapIdle(Gp_DirByte, Gp_DirNibble);
             }

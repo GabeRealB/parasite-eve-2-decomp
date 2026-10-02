@@ -11,7 +11,7 @@ void factoryPanelRunStep(Task* task, s16 step)
         switch (step) {
             case 0:
                 id = 0x53170000;
-                if (gGameSession->location.loc.stage == 2) {
+                if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                     id = 0x52170000;
                 }
                 SndEvt_EnqueueType6(id | 9, 0, 0);
@@ -31,7 +31,7 @@ void factoryPanelRunStep(Task* task, s16 step)
                 break;
             case 1:
                 id = 0x53170000;
-                if (gGameSession->location.loc.stage == 2) {
+                if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                     id = 0x52170000;
                 }
                 SndEvt_EnqueueType6(id | 9, 0, 0);
@@ -51,7 +51,7 @@ void factoryPanelRunStep(Task* task, s16 step)
                 break;
             case 2:
                 id = 0x53170000;
-                if (gGameSession->location.loc.stage == 2) {
+                if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                     id = 0x52170000;
                 }
                 SndEvt_EnqueueType6(id | 9, 0, 0);
@@ -79,7 +79,7 @@ void factoryPanelRunStep(Task* task, s16 step)
         switch (step) {
             case 0:
                 id = 0x53170000;
-                if (gGameSession->location.loc.stage == 2) {
+                if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                     id = 0x52170000;
                 }
                 SndEvt_EnqueueType6(id | 9, 0, 0);
@@ -87,7 +87,7 @@ void factoryPanelRunStep(Task* task, s16 step)
                 break;
             case 1:
                 id = 0x53170000;
-                if (gGameSession->location.loc.stage == 2) {
+                if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                     id = 0x52170000;
                 }
                 SndEvt_EnqueueType6(id | 9, 0, 0);
@@ -95,7 +95,7 @@ void factoryPanelRunStep(Task* task, s16 step)
                 break;
             case 2:
                 id = 0x53170000;
-                if (gGameSession->location.loc.stage == 2) {
+                if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                     id = 0x52170000;
                 }
                 SndEvt_EnqueueType6(id | 9, 0, 0);

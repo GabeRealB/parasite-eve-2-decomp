@@ -1856,12 +1856,12 @@ Actor421600ContactStorage D_actor_421600_80151090 = { .data = { { NULL, &_gActor
 
 Actor421600MessageEntry D_actor_421600_80151118[8] = {
     { 2015, { .call5 = func_actor_421600_8013E424 } },
-    { 2005, { .call4 = actorMsgSetVisibility } },
-    { 2006, { .call0 = func_actor_421600_8013E4EC } },
-    { 2004, { .call3 = actorMsgPlaceYawFirst } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = actorMsgSetVisibility } },
+    { ACTOR_MESSAGE_IS_PRESENT, { .call0 = func_actor_421600_8013E4EC } },
+    { ACTOR_MESSAGE_PLACE, { .call3 = actorMsgPlaceYawFirst } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_421600_80132A00 } },
-    { 2003, { .call1 = desertChaserMsgPlayAnim } },
-    { 5108, { .call0 = func_actor_421600_8013E654 } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = desertChaserMsgPlayAnim } },
+    { ROOM_MESSAGE_ACTOR_EVENT, { .call0 = func_actor_421600_8013E654 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
@@ -2109,14 +2109,14 @@ s32 func_actor_421600_80132A00(Task* arg0, s32 arg1, ActorCommand* request)
             }
         blockDE0:
             if (D_actor_421600_80151268 == 0) {
-                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
             }
             return 1;
 
         case 3:
             if (work->reported == 1) {
                 work->reported = 0;
-                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 2, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 2, 0);
             }
             if (work->field_0 != 0x14 && work->field_0 != 0x11 && work->field_0 != 0x15 &&
                 work->field_0 != 0x16 && work->field_0 != 0 && work->field_0 != 8) {
@@ -3519,7 +3519,7 @@ static void func_actor_421600_801369A0(Task* arg0)
             Gp_ReleaseStateF0Add(arg0, 1);
         }
         if (D_actor_421600_80151268 <= 0) {
-            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, 0, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
             work->field_8A0 = 1;
             work->field_0   = 0;
             return;
@@ -3991,9 +3991,9 @@ static void func_actor_421600_8013A554(Task* arg0)
                     closeDistance = scratch->yaw - scratch->playerYaw;
                     closeDistance = abs(closeDistance);
                     if (closeDistance < 0x400) {
-                        scratch->reply = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F9, Gp_PackObjPair(enemy, 2), 0);
+                        scratch->reply = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 2), 0);
                     } else {
-                        scratch->reply = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F9, Gp_PackObjPair(enemy, 3), 0);
+                        scratch->reply = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 3), 0);
                     }
                 }
                 if (scratch->reply != 1) {
@@ -4015,9 +4015,9 @@ static void func_actor_421600_8013A554(Task* arg0)
                     farDistance = scratch->yaw - scratch->playerYaw;
                     farDistance = abs(farDistance);
                     if (farDistance < 0x400) {
-                        scratch->reply = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F9, Gp_PackObjPair(enemy, 0), 0);
+                        scratch->reply = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 0), 0);
                     } else {
-                        scratch->reply = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F9, Gp_PackObjPair(enemy, 1), 0);
+                        scratch->reply = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 1), 0);
                     }
                 }
                 if (scratch->reply == 1) {
@@ -5020,7 +5020,7 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
         work->actorId.bytes[3] = (u8)(work->actorId.bytes[3] + 1);
         if (contactKind == 1) {
             if (D_dryfield_water_tower_801876AA == (D_dryfield_water_tower_801876A8 + 1)) {
-                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, NULL, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, NULL, 0);
                 work->reported = 0;
             }
             if ((work->actorId.bytes[2] == contactKind) && ((s32)D_dryfield_water_tower_801876AA < (D_dryfield_water_tower_801876A8 + 3))) {
@@ -5081,12 +5081,12 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
                 break;
             case 5:
                 if ((config->hp > 0) && ((u8)work->actorId.bytes[3] >= 7U)) {
-                    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 2, 0);
+                    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 2, 0);
                     work->reported = 0;
                 }
                 break;
         }
-        if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, NULL, 0) == 0) {
+        if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, NULL, 0) == 0) {
             nextAction = work->params[0];
             switch (nextAction) {
                 case 1:
@@ -5119,7 +5119,7 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
                 case 4:
                 case 7:
                     if (config->hp > 0) {
-                        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 2, 0);
+                        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 2, 0);
                         work->reported = 0;
                     }
                     break;

@@ -237,8 +237,8 @@ TaskMessageEntry D_acropolis_square_801837C4[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_square_80181794 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_square_801820D8 },
     { 5105, func_acropolis_square_80182108 },
-    { 5104, func_acropolis_square_801819BC },
-    { 5106, func_acropolis_square_80182110 },
+    { ROOM_MESSAGE_COMMAND, func_acropolis_square_801819BC },
+    { ROOM_MESSAGE_SOUND, func_acropolis_square_80182110 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1415,22 +1415,22 @@ s32 func_acropolis_square_80181794(Task* task, s32 msgId, RoomEventMsg* arg2, Ro
                          // sibling rooms make with it is absent here
     u16 temp_s1;
 
-    key.stage = 1;
-    key.area  = 4;
+    key.stage = GAME_STAGE_ACROPOLIS;
+    key.area  = GAME_AREA_ACROPOLIS_CAFETERIA;
     *arg3     = *arg2;
-    if (arg2->areaId == 9) {
+    if (arg2->areaId == GAME_AREA_ACROPOLIS_FORKED_ROAD) {
         if ((D_acropolis_square_8018382C != 0) && (arg2->queryOnly == ROOM_EVENT_EXECUTE)) {
             GameFlag_SetNibble(3, 0);
             GameFlag_SetNibble(0x155, 2);
         }
-        if (arg2->areaId == 9) {
+        if (arg2->areaId == GAME_AREA_ACROPOLIS_FORKED_ROAD) {
             if (GameFlag_GetNibble(9) & 1) {
                 arg3->room = 2;
             }
         }
         return 1;
     }
-    if (arg2->areaId == 2) {
+    if (arg2->areaId == GAME_AREA_ACROPOLIS_EAST_ELEVATOR_HALL) {
         if ((D_acropolis_square_8018382C != 0) && (arg2->queryOnly == ROOM_EVENT_EXECUTE)) {
             GameFlag_SetNibble(3, 0);
             GameFlag_SetNibble(0x155, 2);
@@ -1448,7 +1448,7 @@ s32 func_acropolis_square_80181794(Task* task, s32 msgId, RoomEventMsg* arg2, Ro
             return 0;
         }
     }
-    if (arg2->areaId == 0x11) {
+    if (arg2->areaId == GAME_AREA_ACROPOLIS_WEST_ELEVATOR_HALL) {
         if (GameFlag_GetNibble(0) < 2) {
             return 1;
         }
@@ -1762,7 +1762,7 @@ void func_acropolis_square_80182200(s32 arg0)
 static void func_acropolis_square_80182260(Task* task)
 {
     task->msgTable = D_acropolis_square_801837C4;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 
@@ -1793,8 +1793,8 @@ s32 func_acropolis_square_80182360(s32 unused)
 
     if (GameFlag_GetNibble(0x1F) == 0) {
         GameFlag_SetNibble(0x1F, 1);
-        key.stage = 1;
-        key.area  = 1;
+        key.stage = GAME_STAGE_ACROPOLIS;
+        key.area  = GAME_AREA_ACROPOLIS_SQUARE;
         areaSetPlacementVariant(&key, 2, AREA_VARIANT_RESET_ALWAYS);
         gGameSession->eventState = 1;
         Task_SpawnFromTable(D_acropolis_square_80183808, 0, 0, 0);
@@ -1813,7 +1813,7 @@ void func_acropolis_square_801823DC(Task* task)
     switch (task->state) { /* irregular */
         case 0:
             task->msgTable = D_acropolis_square_80183B58;
-            Game_SetPtrSlot(task, 5);
+            Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM_EFFECT);
             D_acropolis_square_80183B98 = 0;
             Task_Spawn(1, 0x25, 0, 0);
             Task_Spawn(1, 0x25, 1, 0);

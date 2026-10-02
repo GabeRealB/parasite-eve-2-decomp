@@ -50,7 +50,7 @@ TaskMessageEntry D_neo_ark_eve_elevator_8017D724[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_eve_elevator_8017D5D8 },
     { 5105, func_neo_ark_eve_elevator_8017D5D0 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_eve_elevator_8017D670 },
-    { 5104, func_neo_ark_eve_elevator_8017D668 },
+    { ROOM_MESSAGE_COMMAND, func_neo_ark_eve_elevator_8017D668 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -186,7 +186,7 @@ s32 func_neo_ark_eve_elevator_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in, R
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);
-    if (in->areaId != 0x18) {
+    if (in->areaId != GAME_AREA_SHELTER_B6_CORRIDOR) {
         return 1;
     }
     if (CdCmd_IsIdle() != 0) {
@@ -216,7 +216,7 @@ s32 func_neo_ark_eve_elevator_8017D670(Task* task, s32 msgId, TaskMessageArg arg
 static void func_neo_ark_eve_elevator_8017D678(Task* task)
 {
     task->msgTable = D_neo_ark_eve_elevator_8017D724;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

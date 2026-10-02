@@ -63,7 +63,7 @@ TaskMessageEntry D_shelter_1f_airlock_8017E494[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_airlock_8017D5D8 },
     { 5105, func_shelter_1f_airlock_8017D5D0 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_1f_airlock_8017D624 },
-    { 5104, func_shelter_1f_airlock_8017D61C },
+    { ROOM_MESSAGE_COMMAND, func_shelter_1f_airlock_8017D61C },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -420,7 +420,7 @@ s32 func_shelter_1f_airlock_8017D624(Task* task, s32 msgId, TaskMessageArg arg2,
 static void func_shelter_1f_airlock_8017D62C(Task* task)
 {
     task->msgTable = D_shelter_1f_airlock_8017E494;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

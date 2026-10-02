@@ -248,7 +248,7 @@ s16 gRoamerReleasePending = 0;
 
 NeoArkWoodlandPath2MsgEntry gRoamerMsgTableA[4] = {
     { 5103, { .call0 = roamerLatchRequest } },
-    { 5108, { .call2 = roamerBankRetreat } },
+    { ROOM_MESSAGE_ACTOR_EVENT, { .call2 = roamerBankRetreat } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_neo_ark_woodland_path_80181474 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
@@ -267,7 +267,7 @@ s16 gRoamerPrevBattleRefs = 0;
 
 TaskMessageEntry gRoamerMsgTableB[4] = {
     { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_woodland_path_80181568 },
-    { 5108, func_neo_ark_woodland_path_8018154C },
+    { ROOM_MESSAGE_ACTOR_EVENT, func_neo_ark_woodland_path_8018154C },
     { ACTOR_COMMAND_MESSAGE_APPLY, roamerAmbushMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };

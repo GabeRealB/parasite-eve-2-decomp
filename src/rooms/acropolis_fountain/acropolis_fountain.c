@@ -38,9 +38,9 @@ void func_acropolis_fountain_8017D868(Task*);
 
 TaskMessageEntry D_acropolis_fountain_8017E764[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_fountain_8017D604 },
-    { 5104, func_acropolis_fountain_8017D77C },
+    { ROOM_MESSAGE_COMMAND, func_acropolis_fountain_8017D77C },
     { 5105, func_acropolis_fountain_8017D774 },
-    { 5106, func_acropolis_fountain_8017D7F4 },
+    { ROOM_MESSAGE_SOUND, func_acropolis_fountain_8017D7F4 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -146,7 +146,7 @@ void func_acropolis_fountain_8017D868(Task* task)
 
         case 2:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 3;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_ACROPOLIS_PATIO;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 3;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_acropolis_fountain_80183BB0;
             gDisplayState.spriteVariant                                = 1;
@@ -160,7 +160,7 @@ void func_acropolis_fountain_8017D868(Task* task)
 static void func_acropolis_fountain_8017D960(Task* arg0)
 {
     arg0->msgTable = D_acropolis_fountain_8017E764;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (GameFlag_GetNibble(0x12) != 0) {
         func_acropolis_fountain_8017DA1C();
     }

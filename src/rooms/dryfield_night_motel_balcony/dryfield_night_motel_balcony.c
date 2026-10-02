@@ -95,7 +95,7 @@ static void func_dryfield_night_motel_balcony_8017DC30(Task* task)
     u8 field9;
 
     task->msgTable = D_dryfield_night_motel_balcony_80182804;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     func_dryfield_night_motel_balcony_8017E3C8();
     field9 = gGameSession->location.loc.variant;
     if (field9 == 2 && gGameSession->location.loc.room == field9 && GameFlag_GetNibble(0x61) == 0) {

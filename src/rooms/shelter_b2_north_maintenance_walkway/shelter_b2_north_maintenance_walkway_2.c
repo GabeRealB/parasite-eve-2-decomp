@@ -68,8 +68,8 @@ TaskMessageEntry D_shelter_b2_north_maintenance_walkway_80183B60[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_north_maintenance_walkway_8017DA88 },
     { 5105, func_shelter_b2_north_maintenance_walkway_8017DC44 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b2_north_maintenance_walkway_8017DC54 },
-    { 5104, func_shelter_b2_north_maintenance_walkway_8017DC4C },
-    { 5106, func_shelter_b2_north_maintenance_walkway_8017DCE4 },
+    { ROOM_MESSAGE_COMMAND, func_shelter_b2_north_maintenance_walkway_8017DC4C },
+    { ROOM_MESSAGE_SOUND, func_shelter_b2_north_maintenance_walkway_8017DCE4 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

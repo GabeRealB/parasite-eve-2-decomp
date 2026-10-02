@@ -265,7 +265,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 D_801156F4.sceneKey      = NULL;
                 gGameSession->eventState = 0;
                 if (arg0->spawnArg1.value == 0) {
-                    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA5, 0, 0);
+                    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_SHOW_HUD, 0, 0);
                 }
                 arg0->state++;
                 Display_ReleaseRef();
@@ -302,7 +302,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case EVENT_SCRIPT_OPCODE_RESTORE_HUD:
-                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA8, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_SHOW_HUD_ABORT, 0, 0);
                 break;
 
             case EVENT_SCRIPT_OPCODE_SET_EVENT_STATE:
@@ -316,13 +316,13 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 return;
 
             case EVENT_SCRIPT_OPCODE_WAIT_ANIMATION:
-                if (taskMessageDispatch(gameGetTaskSlot(st->pc->operand0.value), 0x3ED, 0, 0) == 0) {
+                if (taskMessageDispatch(gameGetTaskSlot(st->pc->operand0.value), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
                     break;
                 }
                 return;
 
             case EVENT_SCRIPT_OPCODE_WAIT_ACTOR_ACTION:
-                if (taskMessageDispatch(gameGetTaskSlot(st->pc->operand0.value), 0x3F0, 0, 0) == 0) {
+                if (taskMessageDispatch(gameGetTaskSlot(st->pc->operand0.value), GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
                     break;
                 }
                 return;
@@ -415,12 +415,12 @@ static void Gp_ScriptTaskState1(Task* arg0)
 
             case EVENT_SCRIPT_OPCODE_CLEANUP_SCENE:
                 if (arg0->spawnArg1.value == 0) {
-                    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA5, 0, 0);
+                    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_SHOW_HUD, 0, 0);
                 }
                 arg0->spawnArg1.value = 1;
                 Gp_AbortCap();
                 Gp_MsgPlayer3F3(1);
-                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x401, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_SET_TEXTURE_SEQUENCE, 0, 0);
                 if (D_8010FBE0 != NULL) {
                     Task_CallExit(D_8010FBE0);
                     D_8010FBE0 = NULL;
@@ -732,7 +732,7 @@ static void Gp_ScriptInit(Task* arg0)
     mem->script.field_0 = script;
     D_801156CA          = 0;
     if (arg0->spawnArg1.value == 0) {
-        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
+        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
     }
     D_801156CB    = 1;
     mem->field_2C = 0;

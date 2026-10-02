@@ -135,7 +135,7 @@ TaskMessageEntry D_shelter_b2_elevator_8017DFA0[7] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_elevator_8017DA64 },
     { 5105, func_shelter_b2_elevator_8017DA5C },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b2_elevator_8017DAB0 },
-    { 5104, func_shelter_b2_elevator_8017DAA8 },
+    { ROOM_MESSAGE_COMMAND, func_shelter_b2_elevator_8017DAA8 },
     { 5100, func_shelter_b2_elevator_8017DAB8 },
     { 5101, func_shelter_b2_elevator_8017DAE0 },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -363,7 +363,7 @@ static __inline__ Task* ShelterElevator_SpawnTask(s32 index, s32 direction)
 static void func_shelter_b2_elevator_8017D5E8(Task* task)
 {
     task->msgTable = D_shelter_b2_elevator_8017DFA0;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     D_shelter_b2_elevator_8017EA00[0] = ShelterElevator_SpawnTask(0, -1);
     D_shelter_b2_elevator_8017EA00[1] = ShelterElevator_SpawnTask(1, 1);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
@@ -467,15 +467,15 @@ void func_shelter_b2_elevator_8017D888(Task* task)
         case 2:
             switch (Gp_GetCapEventKey()) {
                 case 0xB:
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 9;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B1_ELEVATOR_HALL;
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 3;
                     break;
                 case 0xC:
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 0x1B;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B2_ELEVATOR_HALL;
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 2;
                     break;
                 case 0xD:
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 0x2A;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B3_ELEVATOR_HALL;
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 3;
                     break;
             }

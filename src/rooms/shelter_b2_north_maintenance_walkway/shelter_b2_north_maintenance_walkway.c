@@ -741,7 +741,7 @@ s32 func_shelter_b2_north_maintenance_walkway_8017DA88(Task* arg0, s32 arg1, Roo
 
     *out = *in;
     func_map_shelter_80179A04(in, out);
-    if (in->areaId == 0x1D) {
+    if (in->areaId == GAME_AREA_SHELTER_B2_OPERATING_ROOM) {
         req.capCmd        = 3;
         req.missingCapCmd = 1;
         req.firstSnd      = 0x541E0003;
@@ -757,7 +757,7 @@ s32 func_shelter_b2_north_maintenance_walkway_8017DA88(Task* arg0, s32 arg1, Roo
         }
         return result;
     }
-    if (in->areaId != 0x20) {
+    if (in->areaId != GAME_AREA_SHELTER_B2_BREEDING_ROOM) {
         return 1;
     }
     event.capCmd   = 4;
@@ -805,7 +805,7 @@ s32 func_shelter_b2_north_maintenance_walkway_8017DCE4(Task* arg0, s32 arg1, s32
 static void func_shelter_b2_north_maintenance_walkway_8017DD18(Task* task)
 {
     task->msgTable = D_shelter_b2_north_maintenance_walkway_80183B60;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 1) {
         func_8016268C();
     }

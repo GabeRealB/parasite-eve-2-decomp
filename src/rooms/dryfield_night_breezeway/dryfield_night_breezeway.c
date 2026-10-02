@@ -76,7 +76,7 @@ TaskMessageEntry D_dryfield_night_breezeway_8017E67C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_breezeway_8017D5D8 },
     { 5105, func_dryfield_night_breezeway_8017D5D0 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_breezeway_8017D62C },
-    { 5104, func_dryfield_night_breezeway_8017D600 },
+    { ROOM_MESSAGE_COMMAND, func_dryfield_night_breezeway_8017D600 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -675,7 +675,7 @@ s32 func_dryfield_night_breezeway_8017D62C(Task* task, s32 msgId, TaskMessageArg
 static void func_dryfield_night_breezeway_8017D634(Task* task)
 {
     task->msgTable = D_dryfield_night_breezeway_8017E67C;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

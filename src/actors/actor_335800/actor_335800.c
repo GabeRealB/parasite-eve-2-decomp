@@ -851,10 +851,10 @@ TaskDesc D_actor_335800_8016EADC[3] = {
 };
 
 Actor335800MsgEntry D_actor_335800_8016EB00[6] = {
-    { 2003, { .call1 = actorMotionPlayAnim } },
-    { 2004, { .call3 = actorMsgPlaceEuler } },
-    { 2005, { .call5 = func_actor_335800_8016343C } },
-    { 2013, { .call4 = actorMotionStartWalk } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = actorMotionPlayAnim } },
+    { ACTOR_MESSAGE_PLACE, { .call3 = actorMsgPlaceEuler } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call5 = func_actor_335800_8016343C } },
+    { ACTOR_MESSAGE_WALK_TO, { .call4 = actorMotionStartWalk } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_335800_8016354C } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
@@ -925,10 +925,10 @@ AnimationSet** D_actor_335800_80172E98[1] = {
 TaskDesc D_actor_335800_80172E9C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_335800_80163A34, { .model = &_gActor335800FlintBody } };
 
 Actor335800MsgEntry D_actor_335800_80172EA8[6] = {
-    { 2003, { .call1 = actorMotionPlayAnim19 } },
-    { 2004, { .call3 = func_actor_335800_80163F3C } },
-    { 2005, { .call5 = func_actor_335800_80163FB8 } },
-    { 2013, { .call4 = func_actor_335800_80163880 } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = actorMotionPlayAnim19 } },
+    { ACTOR_MESSAGE_PLACE, { .call3 = func_actor_335800_80163F3C } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call5 = func_actor_335800_80163FB8 } },
+    { ACTOR_MESSAGE_WALK_TO, { .call4 = func_actor_335800_80163880 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_335800_80164098 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
@@ -1781,7 +1781,7 @@ static void func_actor_335800_80163D20(Task* arg0)
         preset.blend                = ANIMATION_BLEND_INTERPOLATE;
         preset.blendFrames          = 5;
         preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-        actorMotionPlayAnim19(arg0, 0x7D3, &preset, 0);
+        actorMotionPlayAnim19(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &preset, 0);
         work->walk.motion     = 0;
         work->walk.motionStep = 0;
     }

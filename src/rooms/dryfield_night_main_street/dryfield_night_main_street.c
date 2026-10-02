@@ -225,8 +225,8 @@ TaskMessageEntry D_dryfield_night_main_street_801820B0[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, mainStreetResolveMsg },
     { 5105, func_dryfield_night_main_street_8017E054 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_main_street_8017E05C },
-    { 5104, mainStreetTalkMsg },
-    { 5106, mainStreetCapSoundCue },
+    { ROOM_MESSAGE_COMMAND, mainStreetTalkMsg },
+    { ROOM_MESSAGE_SOUND, mainStreetCapSoundCue },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1651,7 +1651,7 @@ s32 func_dryfield_night_main_street_8017E05C(Task* task, s32 msgId, TaskMessageA
 static void func_dryfield_night_main_street_8017E064(Task* arg0)
 {
     arg0->msgTable = D_dryfield_night_main_street_801820B0;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     func_dryfield_night_main_street_8017E118();
     arg0->state = (s32)(arg0->state + 1);
     D_80115598  = 1;

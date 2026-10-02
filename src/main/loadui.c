@@ -111,7 +111,7 @@ void CdCmd_EnqueueLoadFile(s32 arg0, s32 arg1, s32 arg2)
             return;
     }
 
-    CdCmd_Enqueue(0x21, param1, (u8*)param2);
+    CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, (u8*)param2);
     D_800626E8 = 1;
     SCRATCH_STACK_RELEASE_BYTES(8);
 }

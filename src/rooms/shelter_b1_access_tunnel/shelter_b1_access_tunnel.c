@@ -110,7 +110,7 @@ TaskMessageEntry D_shelter_b1_access_tunnel_8017E71C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_access_tunnel_8017DA68 },
     { 5105, func_shelter_b1_access_tunnel_8017DCA4 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_access_tunnel_8017DCB4 },
-    { 5104, func_shelter_b1_access_tunnel_8017DCAC },
+    { ROOM_MESSAGE_COMMAND, func_shelter_b1_access_tunnel_8017DCAC },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -566,20 +566,20 @@ s32 func_shelter_b1_access_tunnel_8017DA68(Task* arg0, s32 arg1, RoomEventMsg* i
 
     *out = *in;
     func_map_shelter_80179A04(in, out);
-    if (in->areaId == 0x12 || in->areaId == 0x18) {
+    if (in->areaId == GAME_AREA_SHELTER_B1_CONTROL_ROOM || in->areaId == GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(0x113) > 0 && GameFlag_GetNibble(0x113) < 4) {
             Gp_ApplyAreaRecs(D_shelter_b1_access_tunnel_8017FF44);
             GameFlag_SetNibble(0x113, 4);
         }
     }
-    if (in->areaId == 0x15 && GameFlag_GetNibble(0xE5) == 0) {
+    if (in->areaId == GAME_AREA_SHELTER_B1_GOLEM_FREEZER_1 && GameFlag_GetNibble(0xE5) == 0) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_SetNibbleIf(in->flagId, 2);
             Gp_RunCapCmd1(1);
         }
         return 0;
     }
-    if (in->areaId == 0x12) {
+    if (in->areaId == GAME_AREA_SHELTER_B1_CONTROL_ROOM) {
         req.capCmd        = 3;
         req.missingCapCmd = 1;
         req.firstSnd      = 0x54130009;
@@ -588,7 +588,7 @@ s32 func_shelter_b1_access_tunnel_8017DA68(Task* arg0, s32 arg1, RoomEventMsg* i
         req.collectedBit  = 0;
         return roomEventGate(&req, out);
     }
-    if (in->areaId == 0x14) {
+    if (in->areaId == GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING) {
         event.capCmd   = 4;
         event.stageSnd = 0x54130005;
         event.flagId   = 0x13F;
@@ -627,7 +627,7 @@ static const TaskFuncTable3 D_shelter_b1_access_tunnel_8017D5F0 = {
 static void func_shelter_b1_access_tunnel_8017DCBC(Task* task)
 {
     task->msgTable = D_shelter_b1_access_tunnel_8017E71C;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

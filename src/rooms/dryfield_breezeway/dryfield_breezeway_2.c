@@ -274,8 +274,8 @@ TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .va
 TaskMessageEntry D_dryfield_breezeway_80181DE0[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_breezeway_8017D940 },
     { 5105, func_dryfield_breezeway_8017D90C },
-    { 5104, func_dryfield_breezeway_8017DA48 },
-    { 5106, func_dryfield_breezeway_8017DBA4 },
+    { ROOM_MESSAGE_COMMAND, func_dryfield_breezeway_8017DA48 },
+    { ROOM_MESSAGE_SOUND, func_dryfield_breezeway_8017DBA4 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_breezeway_8017DBD8 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };

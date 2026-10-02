@@ -64,7 +64,7 @@ TaskMessageEntry D_neo_ark_shrine_80181E34[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_shrine_8017D6AC },
     { 5105, func_neo_ark_shrine_8017D6A4 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_shrine_8017D7F0 },
-    { 5104, func_neo_ark_shrine_8017D740 },
+    { ROOM_MESSAGE_COMMAND, func_neo_ark_shrine_8017D740 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -270,7 +270,7 @@ s32 func_neo_ark_shrine_8017D6AC(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEve
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);
-    if (in->areaId != 0x11) {
+    if (in->areaId != GAME_AREA_NEO_ARK_POWER_PLANT_1) {
         return 1;
     }
     if (GameFlag_GetNibble(0xDB) != 0) {
@@ -342,7 +342,7 @@ void func_neo_ark_shrine_8017D84C(Task* task)
 static void func_neo_ark_shrine_8017D8F4(Task* task)
 {
     task->msgTable = D_neo_ark_shrine_80181E34;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     func_neo_ark_shrine_8017F448();
     task->state++;
 }

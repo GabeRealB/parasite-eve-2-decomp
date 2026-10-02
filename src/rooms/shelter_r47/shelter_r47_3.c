@@ -1716,7 +1716,7 @@ static void func_shelter_r47_8018431C(Task* task)
         state->field_12 = quad2W;
         state->field_14 = quad2H;
         state->field_20 = spriteX;
-        Fade_DrawOverlay(level, level, level, 2);
+        Fade_DrawOverlay(level, level, level, GPU_BLEND_SUBTRACT);
         state->field_2A = arg;
     }
 }
@@ -1932,7 +1932,7 @@ static void func_shelter_r47_80185098(Task* task)
     }
     SndEvt_EnqueueType7(0x542F0005, 1);
     level = (u8)state->fade;
-    Fade_DrawOverlay(level, level, level, 2);
+    Fade_DrawOverlay(level, level, level, GPU_BLEND_SUBTRACT);
 }
 
 static void func_shelter_r47_801851B8(Task* task)
@@ -1972,7 +1972,7 @@ static void func_shelter_r47_80185354(Task* task)
     state = (ShelterR47State2*)task->work;
     if (state->field_2A == 1) {
         level = state->fade;
-        Fade_DrawOverlay(level, level, level, 2);
+        Fade_DrawOverlay(level, level, level, GPU_BLEND_SUBTRACT);
         task->state      = 8;
         prompt->targetId = 0;
         prompt->mode     = 0;
@@ -1987,7 +1987,7 @@ static void func_shelter_r47_80185354(Task* task)
                 task->state++;
             } else {
                 level = state->fade;
-                Fade_DrawOverlay(level, level, level, 2);
+                Fade_DrawOverlay(level, level, level, GPU_BLEND_SUBTRACT);
             }
         }
     } else {
@@ -2096,7 +2096,7 @@ static void func_shelter_r47_8018571C(Task* task)
             state->fade = 0;
         } else {
             level = state->fade;
-            Fade_DrawOverlay(level, level, level, 2);
+            Fade_DrawOverlay(level, level, level, GPU_BLEND_SUBTRACT);
         }
     }
     state->field_24++;

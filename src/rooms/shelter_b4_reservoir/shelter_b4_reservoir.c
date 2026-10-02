@@ -237,8 +237,8 @@ TaskMessageEntry D_shelter_b4_reservoir_801848BC[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b4_reservoir_8017E264 },
     { 5105, func_shelter_b4_reservoir_8017E25C },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b4_reservoir_8017E3C4 },
-    { 5104, func_shelter_b4_reservoir_8017E354 },
-    { 5106, func_shelter_b4_reservoir_8017E3CC },
+    { ROOM_MESSAGE_COMMAND, func_shelter_b4_reservoir_8017E354 },
+    { ROOM_MESSAGE_SOUND, func_shelter_b4_reservoir_8017E3CC },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1100,7 +1100,7 @@ s32 func_shelter_b4_reservoir_8017E264(Task* task, s32 msgId, RoomEventMsg* src,
 {
     *dst = *src;
     func_map_shelter_80179A04(src, dst);
-    if (src->areaId == 0x2C) {
+    if (src->areaId == GAME_AREA_SHELTER_B4_UPPER_SEWER) {
         if (GameFlag_GetNibble(0xB7) == 1) {
             if (src->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_SetNibbleIf(src->flagId, 2);
@@ -1255,7 +1255,7 @@ void func_shelter_b4_reservoir_8017E7A8(void)
 static void func_shelter_b4_reservoir_8017E7C8(Task* arg0)
 {
     arg0->msgTable = D_shelter_b4_reservoir_801848BC;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     Task_SpawnFromTable(D_shelter_b4_reservoir_80184F84, 0, 0, 0);
     if (GameFlag_GetNibble(0xB7) != 0) {
         D_shelter_b4_reservoir_80184F80 = -0x1F4;

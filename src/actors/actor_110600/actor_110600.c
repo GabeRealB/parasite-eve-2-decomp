@@ -1092,10 +1092,10 @@ SVECTOR D_actor_110600_801485C4[12] = {
 
 Actor110600MessageEntry D_actor_110600_80148624[7] = {
     { 2015, { .call5 = func_actor_110600_80138394 } },
-    { 2003, { .call2 = func_actor_110600_8013839C } },
-    { 2005, { .call4 = func_actor_110600_80138448 } },
-    { 2006, { .call0 = func_actor_110600_80138538 } },
-    { 2004, { .call3 = func_actor_110600_80133E48 } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call2 = func_actor_110600_8013839C } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = func_actor_110600_80138448 } },
+    { ACTOR_MESSAGE_IS_PRESENT, { .call0 = func_actor_110600_80138538 } },
+    { ACTOR_MESSAGE_PLACE, { .call3 = func_actor_110600_80133E48 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_110600_80134040 } },
     { 2007, { .call0 = func_actor_110600_801387C0 } },
 };

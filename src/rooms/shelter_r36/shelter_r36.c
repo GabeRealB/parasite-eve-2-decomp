@@ -279,7 +279,7 @@ TaskMessageEntry D_shelter_r36_8017E97C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_r36_8017D8D0 },
     { 5105, func_shelter_r36_8017D8C8 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_r36_8017D91C },
-    { 5104, func_shelter_r36_8017D914 },
+    { ROOM_MESSAGE_COMMAND, func_shelter_r36_8017D914 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -652,8 +652,8 @@ void func_shelter_r36_8017D5E8(Task* task)
 void func_shelter_r36_8017D738(void)
 {
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 4;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 0x24;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_MINE_SHELTER;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_SHELTER_R36;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 2;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
         gDisplayState.spriteVariant                                 = 1;
@@ -738,7 +738,7 @@ s32 func_shelter_r36_8017D91C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMe
 static void func_shelter_r36_8017D924(Task* task)
 {
     task->msgTable = D_shelter_r36_8017E97C;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.warp == 1) {
         Task_SpawnFromTable(D_shelter_r36_8017DF14, 0, 0, 0);
     }

@@ -309,9 +309,9 @@ u8 D_actor_312200_80169F44[24] = {
 };
 
 Actor312200MessageEntry D_actor_312200_80169F5C[4] = {
-    { 2005, { .call2 = func_actor_312200_80163510 } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call2 = func_actor_312200_80163510 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_312200_801636CC } },
-    { 2004, { .call1 = func_actor_312200_801635CC } },
+    { ACTOR_MESSAGE_PLACE, { .call1 = func_actor_312200_801635CC } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 

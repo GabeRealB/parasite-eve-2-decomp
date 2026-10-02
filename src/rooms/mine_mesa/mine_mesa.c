@@ -287,8 +287,8 @@ TaskMessageEntry D_mine_mesa_80181904[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_mine_mesa_8017D8F8 },
     { 5105, func_mine_mesa_8017D8F0 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_mine_mesa_8017DABC },
-    { 5104, func_mine_mesa_8017DA7C },
-    { 5108, func_mine_mesa_8017DBC4 },
+    { ROOM_MESSAGE_COMMAND, func_mine_mesa_8017DA7C },
+    { ROOM_MESSAGE_ACTOR_EVENT, func_mine_mesa_8017DBC4 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -2532,7 +2532,7 @@ _MineMesaSpawnPoint D_mine_mesa_80189AFC[4] = {
 };
 
 TaskMessageEntry D_mine_mesa_80189B1C[2] = {
-    { 5108, func_mine_mesa_80181800 },
+    { ROOM_MESSAGE_ACTOR_EVENT, func_mine_mesa_80181800 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -2632,7 +2632,7 @@ s32 func_mine_mesa_8017D8F8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg
 
     *out = *in;
     func_map_shelter_80179A04(in, out);
-    if (in->areaId != 3) {
+    if (in->areaId != GAME_AREA_MINE_TUNNEL_ENTRANCE) {
         return 1;
     }
     field9 = gGameSession->location.loc.variant;
@@ -2699,7 +2699,7 @@ s32 func_mine_mesa_8017DBC4(Task* task, s32 msgId, s32 arg2, s32 arg3)
                 GameFlag_SetNibble(0xCD, 1);
             }
         } else if (D_mine_mesa_80189B4C != NULL) {
-            taskMessageDispatch(D_mine_mesa_80189B4C, 0x13F4, arg2, arg3);
+            taskMessageDispatch(D_mine_mesa_80189B4C, ROOM_MESSAGE_ACTOR_EVENT, arg2, arg3);
         }
     }
     return 0;
@@ -2708,7 +2708,7 @@ s32 func_mine_mesa_8017DBC4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 static void func_mine_mesa_8017DC80(Task* arg0)
 {
     arg0->msgTable = D_mine_mesa_80181904;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (GameFlag_GetNibble(0x90) == 0) {
         if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp = 5;
@@ -2761,7 +2761,7 @@ void func_mine_mesa_8017DFC4(Task* arg0)
 {
     u16 temp_v0;
 
-    Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
+    Fade_DrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
     temp_v0             = arg0->killCountdown + 4;
     arg0->killCountdown = temp_v0;
     if ((s16)temp_v0 >= 0x100) {
@@ -3100,7 +3100,7 @@ void func_mine_mesa_8017E7B0(Task* task)
 void func_mine_mesa_8017E8B0(s32 arg0)
 {
     D_mine_mesa_80189B5C = Task_SpawnFromTable(D_mine_mesa_801842F4, 4, arg0, 0);
-    Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
+    Fade_DrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
 }
 
 void func_mine_mesa_8017E8FC(s32 arg0)
@@ -3150,7 +3150,7 @@ void func_mine_mesa_8017EA24(void)
         GameFlag_SetNibble(0x4C, 0);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType = 0;
         Task_CallExit(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION));
-        Game_SetPtrSlot(NULL, 0xA);
+        Game_SetPtrSlot(NULL, GAME_TASK_SLOT_COMPANION);
     }
 }
 

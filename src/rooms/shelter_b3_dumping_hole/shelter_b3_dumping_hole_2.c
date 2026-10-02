@@ -771,8 +771,8 @@ static TmdSource _gShelterB3DumpingHoleModel0BAC8 = {
 };
 
 ShelterB3DumpingHole2MessageEntry D_shelter_b3_dumping_hole_8018965C[2] = {
-    { 2005, { .call2 = actorMsgSetDrawMode } },
-    { 2004, { .call1 = actorMsgPlaceYawPitchRoll } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call2 = actorMsgSetDrawMode } },
+    { ACTOR_MESSAGE_PLACE, { .call1 = actorMsgPlaceYawPitchRoll } },
 };
 
 ActorTransform D_shelter_b3_dumping_hole_8018966C = { { 4500, -0x2CEC, -5450, 0 }, { 341, 0, 0, 0 } };
@@ -2534,7 +2534,7 @@ static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
     u8 area;
 
     if (work->field_24 != NULL) {
-        taskMessageDispatch(work->field_24, 0x3ED, 0, 0);
+        taskMessageDispatch(work->field_24, ANIMATION_MESSAGE_IS_PLAYING, 0, 0);
     }
     switch (work->field_30) {
         case 0:
@@ -2547,7 +2547,7 @@ static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
                     work->field_32++;
                     return;
                 case 1:
-                    if (taskMessageDispatch(work->field_24, 0x3F0, 0, 0) == 0) {
+                    if (taskMessageDispatch(work->field_24, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
                         work->field_34 = 0;
                         work->field_32++;
                     }
@@ -2582,10 +2582,10 @@ static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
             TASK_MESSAGE_DISPATCH_POINTER(w2->field_24, ANIMATION_MESSAGE_PLAY, &msg, 0);
         } break;
         case 3:
-            taskMessageDispatch(work->field_24, 0x3F3, 2, 0);
+            taskMessageDispatch(work->field_24, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
             break;
         case 4:
-            taskMessageDispatch(work->field_24, 0x3F3, 1, 0);
+            taskMessageDispatch(work->field_24, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             TASK_MESSAGE_DISPATCH_POINTER(work->field_24, 0x3E9, &D_shelter_b3_dumping_hole_801881CC, 0);
             {
                 DumpingHoleEntity* w2         = (DumpingHoleEntity*)arg0->work;
@@ -2638,7 +2638,7 @@ static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
             msg.anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
             TASK_MESSAGE_DISPATCH_POINTER(w2->field_24, ANIMATION_MESSAGE_PLAY, &msg, 0);
         }
-            taskMessageDispatch(work->field_24, 0x3FD, 0x20, 0);
+            taskMessageDispatch(work->field_24, ANIMATION_MESSAGE_SET_RATE, 0x20, 0);
             break;
         case 7: {
             DumpingHoleEntity* w2         = (DumpingHoleEntity*)arg0->work;
@@ -2679,7 +2679,7 @@ static void func_shelter_b3_dumping_hole_8017F1B0(Task* arg0)
                     if (++work->field_3C < 3) {
                         return;
                     }
-                    taskMessageDispatch(((DumpingHoleEntity*)D_shelter_b3_dumping_hole_8018F4A8->work)->field_28, 0x7D5, 1, 0);
+                    taskMessageDispatch(((DumpingHoleEntity*)D_shelter_b3_dumping_hole_8018F4A8->work)->field_28, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
                     msg.context.loc.stage = gGameSession->location.loc.stage;
                     area                  = gGameSession->location.loc.area;
                     msg.command           = 2;
@@ -2881,7 +2881,7 @@ void func_shelter_b3_dumping_hole_8017FBA0(Task* arg0)
             arg0->state += 1;
             /* fallthrough */
         case 1:
-            Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->r, 2);
+            Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->r, GPU_BLEND_SUBTRACT);
             fade->r -= (u16)arg0->spawnArg1.value;
             fade->g -= (u16)arg0->spawnArg1.value;
             fade->b -= (u16)arg0->spawnArg1.value;
@@ -2948,13 +2948,13 @@ void func_shelter_b3_dumping_hole_8017FE34(void)
 void func_shelter_b3_dumping_hole_8017FE64(s32 arg0)
 {
     DumpingHoleEntity* p = D_shelter_b3_dumping_hole_8018F4A8->work;
-    taskMessageDispatch(p->field_28, 0x7D5, arg0, 0);
+    taskMessageDispatch(p->field_28, ACTOR_MESSAGE_SET_MODEL_DRAW, arg0, 0);
 }
 
 void func_shelter_b3_dumping_hole_8017FE9C(s32 arg0)
 {
     DumpingHoleEntity* p = D_shelter_b3_dumping_hole_8018F4A8->work;
-    taskMessageDispatch(p->field_2C, 0x7D5, arg0, 0);
+    taskMessageDispatch(p->field_2C, ACTOR_MESSAGE_SET_MODEL_DRAW, arg0, 0);
 }
 
 void func_shelter_b3_dumping_hole_8017FED4(s16 arg0)
@@ -2978,8 +2978,8 @@ void func_shelter_b3_dumping_hole_8017FF14(void)
     DumpingHoleEntity* ent2;
     s32                desc[5];
 
-    taskMessageDispatch(ent->field_2C, 0x7D5, 2, 0);
-    taskMessageDispatch(ent->field_24, 0x3F3, 1, 0);
+    taskMessageDispatch(ent->field_2C, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
+    taskMessageDispatch(ent->field_24, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
     TASK_MESSAGE_DISPATCH_POINTER(ent->field_24, 0x3E9, &D_shelter_b3_dumping_hole_801881CC, 0);
     ent2    = st->work;
     desc[0] = gPlayerStatus.weapon + (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1 ? 1 : 0x22);
@@ -3205,13 +3205,13 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
         case 2:
             switch (work->step) {
                 case 0:
-                    taskMessageDispatch(work->field_80, 0x3F3, 2, 0);
+                    taskMessageDispatch(work->field_80, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
                     buf.vec[0].vx = 0x800;
                     buf.vec[0].vy = 0x800;
                     buf.vec[0].vz = 0x800;
                     Gp_SetOverrideVec(&buf.vec[0]);
-                    taskMessageDispatch(work->field_84, 0x7D5, 2, 0);
-                    taskMessageDispatch(task, 0x7D5, 1, 0);
+                    taskMessageDispatch(work->field_84, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
+                    taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
                     work->pose.pos.vx = D_shelter_b3_dumping_hole_8018966C.pos.vx;
                     work->pose.pos.vy = D_shelter_b3_dumping_hole_8018966C.pos.vy;
                     work->pose.pos.vz = D_shelter_b3_dumping_hole_8018966C.pos.vz;
@@ -3330,9 +3330,9 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
             return;
         case 3:
             Gp_SetOverrideVec(NULL);
-            taskMessageDispatch(work->field_80, 0x3F3, 1, 0);
-            taskMessageDispatch(work->field_84, 0x7D5, 1, 0);
-            taskMessageDispatch(task, 0x7D5, 2, 0);
+            taskMessageDispatch(work->field_80, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+            taskMessageDispatch(work->field_84, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+            taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
             D_shelter_b3_dumping_hole_8018F4B0_value = 0;
             work->field_96                           = 1;
             Gp_PulseState1C();
@@ -3345,12 +3345,12 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
             work->state = 0;
             return;
         case 4:
-            taskMessageDispatch(work->field_84, 0x7D5, 2, 0);
+            taskMessageDispatch(work->field_84, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
             break;
         case 5:
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = work->field_94;
-            taskMessageDispatch(work->field_80, 0x3F3, 1, 0);
-            taskMessageDispatch(work->field_84, 0x7D5, 1, 0);
+            taskMessageDispatch(work->field_80, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+            taskMessageDispatch(work->field_84, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             work->field_96 = 1;
             Gp_PulseState1C();
             buf2.loc.context.loc.stage = gGameSession->location.loc.stage;
@@ -3433,8 +3433,8 @@ void func_shelter_b3_dumping_hole_80181430(void)
     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &request, ACTOR_COMMAND_MESSAGE_APPLY);
 
     displaySetShakeY(0);
-    taskMessageDispatch(ent->field_84, 0x7D5, 1, 0);
-    taskMessageDispatch(ent->field_80, 0x3F3, 1, 0);
+    taskMessageDispatch(ent->field_84, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+    taskMessageDispatch(ent->field_80, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
 
     p3       = desc3;
     desc3[0] = gPlayerStatus.weapon + (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1 ? 1 : 0x22);
@@ -3524,7 +3524,7 @@ void func_shelter_b3_dumping_hole_801818E0(void)
 void func_shelter_b3_dumping_hole_80181958(s32 arg0)
 {
     DumpingHoleEntity4* p = D_shelter_b3_dumping_hole_8018F4AC->work;
-    taskMessageDispatch(p->field_80, 0x3F3, arg0, 0);
+    taskMessageDispatch(p->field_80, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, arg0, 0);
 }
 
 void func_shelter_b3_dumping_hole_80181990(s16 arg0)

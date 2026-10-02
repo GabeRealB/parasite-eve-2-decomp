@@ -1075,7 +1075,7 @@ static s32 Gp_TryEnqueueSndCd(s32 arg0)
         param2[1] = 1;
         param2[3] = 0;
         param2[2] = 0;
-        CdCmd_Enqueue(0x21, param1, param2);
+        CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
         D_800626E8 = 1;
         return 0;
     }
@@ -1098,7 +1098,7 @@ void Gp_EnqueueSndCd(u8 arg0)
         param2[3] = 0;
         param2[2] = 0;
         param2[1] = 0;
-        CdCmd_Enqueue(0x21, param1, param2);
+        CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
         D_800626E8                = flag;
         gGameSession->loadedSndId = arg0;
     }
@@ -1138,7 +1138,7 @@ static void Gp_StartStageLoad(Task* task)
             param2[3] = 0;
             param2[2] = 0;
             param2[1] = 0;
-            CdCmd_Enqueue(0x21, param1, param2);
+            CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
             fileId = 9;
         }
         CdCmd_EnqueueLoadFile(fileId, 0, 3);
@@ -4098,7 +4098,7 @@ static const TaskFuncTable3 D_80093A5C = { {
 GpSlot4MessageEntry Gp_Slot4MsgTable[5] = {
     { 2000, { .find = Gp_FindChildType9 } },
     { 2008, { .find = Gp_FindChildExceptType9 } },
-    { 2009, { .exit = Gp_ExitChildrenType9 } },
+    { SCENE_MESSAGE_EXIT_PLACED_ACTORS, { .exit = Gp_ExitChildrenType9 } },
     { 2010, { .send = Gp_SendMsgType9 } },
     { TASK_MESSAGE_TABLE_END, { .exit = NULL } },
 };

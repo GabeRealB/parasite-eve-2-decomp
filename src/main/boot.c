@@ -165,7 +165,7 @@ void Boot_LoadInitialFile(Task* task)
             SetDispMask(0);
             Fs_ScanIsoDirectory(1);
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
-            CdCmd_Enqueue(0x55, NULL, NULL);
+            CdCmd_Enqueue(CD_COMMAND_READ_STAGE_HEADER, NULL, NULL);
             Mem_ConfigureAuxHeap(0, 0);
             while (queue->imageLoadStatus != CD_COMMAND_IMAGE_COMPLETE) {
                 CdCmd_StepVlcRebuild();
@@ -177,10 +177,10 @@ void Boot_LoadInitialFile(Task* task)
             param2[1] = 0;
             param2[2] = 0;
             param2[3] = 0;
-            CdCmd_Enqueue(0x21, param1, param2);
+            CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
             task->killCountdown = 0xFF;
             fade                = task->killCountdown;
-            Fade_DrawOverlay(fade, fade, fade, 2);
+            Fade_DrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
             task->state++;
             break;
 
@@ -192,7 +192,7 @@ void Boot_LoadInitialFile(Task* task)
                 task->state++;
             }
             fade = task->killCountdown;
-            Fade_DrawOverlay(fade, fade, fade, 2);
+            Fade_DrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
             break;
 
         case 2:
@@ -217,7 +217,7 @@ void Boot_LoadInitialFile(Task* task)
                 break;
             }
             fade = task->killCountdown;
-            Fade_DrawOverlay(fade, fade, fade, 2);
+            Fade_DrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
             break;
 
         case 4:
@@ -346,7 +346,7 @@ void Boot_LoadTask(Task* task)
             param2[1] = 0;
             param2[2] = 0;
             param2[3] = 0;
-            CdCmd_Enqueue(0x21, param1, param2);
+            CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
             task->state = task->state + 1;
             return;
         case 1:

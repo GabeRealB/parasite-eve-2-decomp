@@ -437,17 +437,17 @@ static inline s16 _gpStageFlagNibble(u16* table, s16 idx)
 s16 Gp_LookupStageFlag(s16 idx)
 {
     switch (gGameSession->location.loc.stage) {
-        case 1:
+        case GAME_STAGE_ACROPOLIS:
             if (idx >= 0xE) {
                 break;
             }
             return _gpStageFlagNibble(D_map_akropolis_8017AA0C, idx);
-        case 2:
+        case GAME_STAGE_DRYFIELD:
             if (idx >= 0x1D) {
                 break;
             }
             return _gpStageFlagNibble(D_map_dryfield_8017A824, idx);
-        case 3:
+        case GAME_STAGE_DRYFIELD_NIGHT:
             if (idx >= 0x1E) {
                 break;
             }
@@ -458,7 +458,7 @@ s16 Gp_LookupStageFlag(s16 idx)
                 return 0x802;
             }
             return _gpStageFlagNibble(D_map_dryfield_full_8017A738, idx);
-        case 4:
+        case GAME_STAGE_MINE_SHELTER:
             if (idx >= 0x1E) {
                 break;
             }
@@ -466,7 +466,7 @@ s16 Gp_LookupStageFlag(s16 idx)
                 return GameFlag_GetNibble(D_map_shelter_8017AD88[0] & 0x7FF) + 0x800;
             }
             return _gpStageFlagNibble(D_map_shelter_8017AD88, idx);
-        case 5:
+        case GAME_STAGE_SHELTER_NEO_ARK:
             if (idx >= 9) {
                 break;
             }
@@ -631,7 +631,7 @@ static void Gp_FadeDirAdvance(void)
 
     if (*(s16*)&Gp_DirFadeLevel != 0) {
         fade = *(u8*)&Gp_DirFadeLevel;
-        Fade_DrawOverlay(fade, fade, fade, 2);
+        Fade_DrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
         Gp_DirFadeLevel += 0x1E;
         if ((s16)Gp_DirFadeLevel >= 0x100) {
             Gp_DirFadeLevel = 0xFF;
@@ -646,7 +646,7 @@ static void Gp_CommitSaveLoc(void)
 
     if (*(s16*)&Gp_DirFadeLevel != 0) {
         fade = *(u8*)&Gp_DirFadeLevel;
-        Fade_DrawOverlay(fade, fade, fade, 2);
+        Fade_DrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
     }
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = (u8)Gp_WarpLoc.areaId;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = Gp_WarpLoc.warp;
@@ -684,7 +684,7 @@ static void Gp_MsgPlayer3EE(void)
 
 static void Gp_MsgPlayer3F0(void)
 {
-    if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F0, 0, 0) == 0) {
+    if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
         Gp_DirPhase++;
     }
 }

@@ -649,7 +649,7 @@ void func_mist_parking_80184428(s32 arg0)
 
 void func_mist_parking_80184468(s32 arg0)
 {
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_ACROPOLIS;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = arg0;
@@ -671,8 +671,8 @@ void func_mist_parking_8018451C(Task* task)
 {
     func_800BC4BC();
     gPlayerStatus.resourceVariant                               = 1;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 5;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_ACROPOLIS_PLAZA;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_ACROPOLIS;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
     gDisplayState.spriteVariant                                 = 1;

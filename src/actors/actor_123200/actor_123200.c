@@ -602,9 +602,9 @@ u8 D_actor_123200_80137154[192] = {
 };
 
 Actor123200MessageEntry D_actor_123200_80137214[4] = {
-    { 2005, { .call2 = func_actor_123200_80133E30 } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call2 = func_actor_123200_80133E30 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_123200_80133EDC } },
-    { 2004, { .call1 = actorMsgPlace } },
+    { ACTOR_MESSAGE_PLACE, { .call1 = actorMsgPlace } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 

@@ -211,8 +211,8 @@ static AnimationSet _gActor202900Animation0CFC4 = {
 };
 
 Actor202900MessageEntry D_actor_202900_80156E0C[3] = {
-    { 2003, { .call0 = func_actor_202900_8014A3E0 } },
-    { 2005, { .call1 = actorMsgSetPairVisibility } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = func_actor_202900_8014A3E0 } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call1 = actorMsgSetPairVisibility } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 

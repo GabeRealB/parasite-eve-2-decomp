@@ -1601,12 +1601,12 @@ TaskDesc D_actor_521100_8015F6E4[2] = {
 
 Actor521100MessageEntry D_actor_521100_8015F6FC[8] = {
     { 2014, { .call1 = func_actor_521100_80135BEC } },
-    { 2003, { .call2 = func_actor_521100_80135C14 } },
-    { 2004, { .call4 = actorMsgPlaceRotMatrix } },
-    { 2005, { .call5 = func_actor_521100_80135D10 } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call2 = func_actor_521100_80135C14 } },
+    { ACTOR_MESSAGE_PLACE, { .call4 = actorMsgPlaceRotMatrix } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call5 = func_actor_521100_80135D10 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call3 = func_actor_521100_80135D58 } },
     { 2007, { .call1 = func_actor_521100_80135D9C } },
-    { 2006, { .call0 = func_actor_521100_80135DC8 } },
+    { ACTOR_MESSAGE_IS_PRESENT, { .call0 = func_actor_521100_80135DC8 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
@@ -2690,7 +2690,7 @@ static void func_actor_521100_801339B0(Task* arg0)
                     flag = 1;
                 } else {
                     work->field_68E = 0x20;
-                    taskMessageDispatch(player, 0x3F9, Gp_PackPair(D_actor_521100_8015F550, 3), 0);
+                    taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackPair(D_actor_521100_8015F550, 3), 0);
                 }
             }
             if (flag != 1) {
@@ -2787,8 +2787,8 @@ static void func_actor_521100_801339B0(Task* arg0)
                 sc->aim.rot.vz = 0;
                 TASK_MESSAGE_DISPATCH_POINTER(player, 0x3E9, &sc->aim, 0);
             }
-            if (((s16)work->field_68A >= 0x6F) && (taskMessageDispatch(player, 0x3ED, 0, 0) == 0)) {
-                taskMessageDispatch(player, 0x3F1, 0, 0);
+            if (((s16)work->field_68A >= 0x6F) && (taskMessageDispatch(player, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0)) {
+                taskMessageDispatch(player, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
             }
             if ((s16)work->field_68A >= 0xA4) {
                 tbl             = D_actor_521100_8015F5F4;

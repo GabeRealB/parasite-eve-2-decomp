@@ -17007,8 +17007,8 @@ void func_actor_303600_8016216C(Task* arg0)
             break;
         case 2:
             if (gGameSession->eventState == 0) {
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 5;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 0x1F;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_SHELTER_NEO_ARK;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_NEO_ARK_R31;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
                 gDisplayState.spriteVariant                                 = 1;
@@ -17048,7 +17048,7 @@ void func_actor_303600_801622E8(Task* arg0)
             arg0->state += 1;
             /* fallthrough */
         case 1:
-            Fade_DrawOverlay((u8)work->r, (u8)work->g, (u8)work->r, 1);
+            Fade_DrawOverlay((u8)work->r, (u8)work->g, (u8)work->r, GPU_BLEND_ADD);
             work->r -= (u16)arg0->spawnArg1.value;
             work->g -= (u16)arg0->spawnArg1.value;
             work->b -= (u16)arg0->spawnArg1.value;
@@ -17088,7 +17088,7 @@ void func_actor_303600_801623CC(Task* arg0)
             arg0->state += 1;
             /* fallthrough */
         case 1:
-            Fade_DrawOverlay((u8)work->r, (u8)work->g, (u8)work->r, 1);
+            Fade_DrawOverlay((u8)work->r, (u8)work->g, (u8)work->r, GPU_BLEND_ADD);
             work->r += (u16)arg0->spawnArg1.value;
             work->g += (u16)arg0->spawnArg1.value;
             work->b += (u16)arg0->spawnArg1.value;

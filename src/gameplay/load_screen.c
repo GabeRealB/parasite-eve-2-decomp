@@ -123,7 +123,7 @@ void func_800AA548(s32 arg0)
     Game_SetPtrSlot(Task_Spawn(4, 5, 0, 0), 9);
     Task_Spawn(0, 0x14, 0, 0);
     if ((arg0 & 0xFFFF) != 1) {
-        Game_SetPtrSlot(Task_Spawn(0, 0x16, 0, 0), 1);
+        Game_SetPtrSlot(Task_Spawn(0, 0x16, 0, 0), GAME_TASK_SLOT_VIEW_GATE);
     }
     Game_SetPtrSlot(Task_Spawn(0, 0x10, 0, 0), 2);
     stage = sess->stage;
@@ -165,7 +165,7 @@ void func_800AA548(s32 arg0)
     tmdProcessStream(model);
     Gp_LoadStageView();
     Game_SetPtrSlot(Task_Spawn(1, 0x23, 0, 0), GAME_TASK_SLOT_SCENE);
-    Game_SetPtrSlot(Task_Spawn(6, 4, 0, 0), 5);
+    Game_SetPtrSlot(Task_Spawn(6, 4, 0, 0), GAME_TASK_SLOT_ROOM_EFFECT);
     Task_Spawn(9, 6, 0, 0);
     Task_Spawn(9, 0x11, 0, 0);
     if ((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0) && (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0xB)) {
@@ -376,7 +376,7 @@ void Gp_LoadState2(Task* task)
         Mem_InitAux();
         Gp_ApplyNpcRoomSnd();
         Snd_InitFromStage(gGameSession->location.loc.stage, gGameSession->location.loc.area);
-        if (gGameSession->location.loc.stage == 3 && GameFlag_GetNibble(0x7A) >= 4) {
+        if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD_NIGHT && GameFlag_GetNibble(0x7A) >= 4) {
             gStageSceneMusicEntry = 1;
         } else {
             gStageSceneMusicEntry = 0;
@@ -437,7 +437,7 @@ void Gp_LoadWaitCompanion(Task* task)
         param2[1] = 0;
         param2[2] = 0;
         param2[3] = 0;
-        CdCmd_Enqueue(0x21, param1, param2);
+        CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
         flag = Gp_PickCompanion();
         if (flag != 0) {
             gGameSession->companionType = flag;
@@ -497,7 +497,7 @@ void Gp_LoadWaitSave(Task* task)
                 param2[1] = 0;
                 param2[2] = 0;
                 param2[3] = 0;
-                CdCmd_Enqueue(0x21, param1, param2);
+                CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
             }
         }
         sess = gGameSession;

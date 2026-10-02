@@ -121,7 +121,7 @@ TaskMessageEntry D_neo_ark_pavilion_80183870[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_pavilion_8017E9F4 },
     { 5105, func_neo_ark_pavilion_8017E9EC },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_pavilion_8017EB78 },
-    { 5104, func_neo_ark_pavilion_8017EB3C },
+    { ROOM_MESSAGE_COMMAND, func_neo_ark_pavilion_8017EB3C },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1122,7 +1122,7 @@ s32 func_neo_ark_pavilion_8017E9F4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomE
 
     *out = *in;
     func_map_neo_ark_80179B14(in, out);
-    if (in->areaId != 0xC) {
+    if (in->areaId != GAME_AREA_NEO_ARK_SUBMARINE_TUNNEL) {
         return 1;
     }
     event.capCmd   = 4;
@@ -1153,7 +1153,7 @@ s32 func_neo_ark_pavilion_8017EB78(Task* task, s32 msgId, TaskMessageArg arg2, T
 static void func_neo_ark_pavilion_8017EB80(Task* arg0)
 {
     arg0->msgTable = D_neo_ark_pavilion_80183870;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     SndEvt_EnqueueType6(0x550D0005, 0, 0);
     SndEvt_EnqueueType6(0x550D0006, 0, 0);
     arg0->state = (s32)(arg0->state + 1);

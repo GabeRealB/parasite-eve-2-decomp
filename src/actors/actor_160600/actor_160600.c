@@ -1096,11 +1096,11 @@ static AnimationSet _gActor160600Animation0C128 = {
 };
 
 Actor160600MessageEntry gPacedWalkMsgTable[6] = {
-    { 2003, { .call0 = pacedWalkPlayAnim } },
-    { 2005, { .call3 = pacedWalkShowPair } },
-    { 2004, { .call2 = pacedWalkPlace } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = pacedWalkPlayAnim } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = pacedWalkShowPair } },
+    { ACTOR_MESSAGE_PLACE, { .call2 = pacedWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_160600_8013268C } },
-    { 2013, { .call2 = pacedWalkTo } },
+    { ACTOR_MESSAGE_WALK_TO, { .call2 = pacedWalkTo } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
@@ -1181,7 +1181,7 @@ void func_actor_160600_80131E24(void)
 {
     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
         Task_CallExit(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION));
-        Game_SetPtrSlot(NULL, 0xA);
+        Game_SetPtrSlot(NULL, GAME_TASK_SLOT_COMPANION);
     }
 }
 

@@ -1677,8 +1677,8 @@ void func_mist_r18_8017EA98(Task* task)
 void func_mist_r18_8017EB48(void)
 {
     Gp_InitStarterInv();
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 1;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 0x13;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_ACROPOLIS;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_MIST_PARKING;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 3;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 3;
     gDisplayState.spriteVariant                                 = 1;
@@ -1738,7 +1738,7 @@ static void func_mist_r18_8017ECF4(Task* arg0)
     D_mist_r18_80186E90 = 0;
     D_mist_r18_80186E94 = 0;
     D_mist_r18_80186E98 = 0;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     func_800E8634(D_mist_r18_8018522C, 0, D_mist_r18_8018639C);
     arg0->state         = (s32)(arg0->state + 1);
     D_mist_r18_80186E9C = 1;

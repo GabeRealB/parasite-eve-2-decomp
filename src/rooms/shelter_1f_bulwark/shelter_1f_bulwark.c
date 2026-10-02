@@ -101,7 +101,7 @@ TaskMessageEntry D_shelter_1f_bulwark_8018032C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_bulwark_8017D7B4 },
     { 5105, func_shelter_1f_bulwark_8017DBBC },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_1f_bulwark_8017DBCC },
-    { 5104, func_shelter_1f_bulwark_8017DBC4 },
+    { ROOM_MESSAGE_COMMAND, func_shelter_1f_bulwark_8017DBC4 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -335,7 +335,7 @@ s32 func_shelter_1f_bulwark_8017D7B4(Task* task, s32 msgId, RoomEventMsg* src, R
 
     *dst = *src;
     func_map_neo_ark_80179B14(src, dst);
-    if (src->areaId == 4) {
+    if (src->areaId == GAME_AREA_SHELTER_1F_HELIPORT) {
         if (GameFlag_GetNibble(0x15D) == 0) {
             Gp_SpawnIfCapIdle(1, 0);
             return 2;
@@ -354,7 +354,7 @@ s32 func_shelter_1f_bulwark_8017D7B4(Task* task, s32 msgId, RoomEventMsg* src, R
         event.fade     = 1;
         return Bulwark_StartEvent(dst, &event);
     }
-    if (src->areaId == 2) {
+    if (src->areaId == GAME_AREA_SHELTER_1F_VEHICULAR_AIRLOCK) {
         event.capCmd   = 6;
         event.stageSnd = 0x55030001;
         event.flagId   = 0x15C;
@@ -437,7 +437,7 @@ s32 func_shelter_1f_bulwark_8017DBCC(Task* task, s32 msgId, TaskMessageArg arg2,
 static void func_shelter_1f_bulwark_8017DBD4(Task* task)
 {
     task->msgTable = D_shelter_1f_bulwark_8018032C;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 
@@ -542,8 +542,8 @@ void func_shelter_1f_bulwark_8017DE04(Task* arg0)
             arg0->state = arg0->state + 1;
             break;
         case 3:
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 5;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 0x1A;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_SHELTER_NEO_ARK;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_NEO_ARK_R26;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
             gDisplayState.spriteVariant                                 = 1;

@@ -23,8 +23,8 @@ void golemKnightBishopHoldCueTimer(Task* arg0)
         }
         timer           = (u16)work->field_71A + 1;
         work->field_71A = timer;
-        if ((timer >= 0x5F) && (taskMessageDispatch(slot, 0x3ED, 0, 0) == 0)) {
-            taskMessageDispatch(slot, 0x3F1, 0, 0);
+        if ((timer >= 0x5F) && (taskMessageDispatch(slot, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0)) {
+            taskMessageDispatch(slot, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
             work->field_718 = 0;
         }
     }

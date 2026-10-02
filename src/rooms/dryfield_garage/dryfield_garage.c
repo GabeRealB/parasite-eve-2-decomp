@@ -94,8 +94,8 @@ TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .va
 TaskMessageEntry D_dryfield_garage_8017DC7C[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_garage_8017D91C },
     { 5105, func_dryfield_garage_8017D914 },
-    { 5106, garageSoundMsg },
-    { 5104, func_dryfield_garage_8017DA18 },
+    { ROOM_MESSAGE_SOUND, garageSoundMsg },
+    { ROOM_MESSAGE_COMMAND, func_dryfield_garage_8017DA18 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_garage_8017DA54 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -639,7 +639,7 @@ s32 func_dryfield_garage_8017D91C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEv
     s32          nib;
 
     *out = *in;
-    if (in->areaId == 0x1A) {
+    if (in->areaId == GAME_AREA_DRYFIELD_JUNK_YARD) {
         if (GameFlag_GetNibble(0x33) == 0) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Task_SpawnFromTable(D_dryfield_garage_8017DCAC, 0, 0, 0);
@@ -651,7 +651,7 @@ s32 func_dryfield_garage_8017D91C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEv
             GameFlag_SetNibble(0x4B, 3);
         }
     }
-    if (in->areaId == 0x17) {
+    if (in->areaId == GAME_AREA_DRYFIELD_FACTORY) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
             nib = GameFlag_GetNibble(0x47);
             if (nib == 0) {
@@ -714,7 +714,7 @@ void func_dryfield_garage_8017DAA0(Task* arg0)
 static void func_dryfield_garage_8017DB18(Task* arg0)
 {
     arg0->msgTable = D_dryfield_garage_8017DC7C;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     if ((gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) && (gGameSession->location.loc.warp == 2)) {
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3E9, &D_dryfield_garage_8017DCC4, 0);
     }

@@ -135,9 +135,9 @@ static TmdSource _gActor341700Model13558 = {
 };
 
 Actor3417002MessageEntry D_actor_341700_80175F5C[4] = {
-    { 2005, { .call2 = func_actor_341700_8016CE28 } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call2 = func_actor_341700_8016CE28 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_341700_8016CEB4 } },
-    { 2004, { .call1 = actorMsgPlace } },
+    { ACTOR_MESSAGE_PLACE, { .call1 = actorMsgPlace } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 

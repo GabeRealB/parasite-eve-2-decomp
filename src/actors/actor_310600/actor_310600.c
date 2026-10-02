@@ -413,10 +413,10 @@ TaskDesc D_actor_310600_801796A4[2] = {
 };
 
 Actor310600MsgEntry D_actor_310600_801796BC[5] = {
-    { 2003, { .call0 = func_actor_310600_8016246C } },
-    { 2004, { .call1 = actorMsgPlaceEuler } },
-    { 2005, { .call2 = func_actor_310600_801625F0 } },
-    { 2013, { .call3 = func_actor_310600_80162C94 } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = func_actor_310600_8016246C } },
+    { ACTOR_MESSAGE_PLACE, { .call1 = actorMsgPlaceEuler } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call2 = func_actor_310600_801625F0 } },
+    { ACTOR_MESSAGE_WALK_TO, { .call3 = func_actor_310600_80162C94 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
@@ -454,7 +454,7 @@ static void func_actor_310600_80161E64(Task* task)
     obj->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     Gp_InitRec18Table(obj->context.contacts, 1, 0);
     task->msgTable = D_actor_310600_801796BC;
-    func_actor_310600_801625F0(task, 0x7D5, 0, 0);
+    func_actor_310600_801625F0(task, ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
     task->exitCallback = func_actor_310600_80162A24;
     task->state++;
 }
@@ -599,7 +599,7 @@ static void func_actor_310600_8016231C(Task* arg0)
             cmd.blend                = ANIMATION_BLEND_INTERPOLATE;
             cmd.blendFrames          = 0xA;
             cmd.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            func_actor_310600_8016246C(arg0, 0x7D3, &cmd, 0);
+            func_actor_310600_8016246C(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &cmd, 0);
         }
         work->step.vx   = 0;
         work->step.vy   = 0;
@@ -883,5 +883,5 @@ void func_actor_310600_80162C94(Task* arg0, s32 arg1, VECTOR* arg2)
     cmd.blendFrames          = 0;
     cmd.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
 
-    func_actor_310600_8016246C(arg0, 0x7D3, &cmd, 0);
+    func_actor_310600_8016246C(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &cmd, 0);
 }

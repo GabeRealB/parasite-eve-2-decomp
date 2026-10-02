@@ -190,7 +190,7 @@ TaskMessageEntry D_shelter_b1_armory_80182500[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_armory_801805A8 },
     { 5105, func_shelter_b1_armory_80180468 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_armory_801806F8 },
-    { 5104, func_shelter_b1_armory_80180698 },
+    { ROOM_MESSAGE_COMMAND, func_shelter_b1_armory_80180698 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -336,7 +336,7 @@ s32 func_shelter_b1_armory_801805A8(Task* arg0, s32 arg1, RoomEventMsg* in, Room
 
     *out = *in;
     func_map_shelter_80179A04(in, out);
-    if (in->areaId == 0xB) {
+    if (in->areaId == GAME_AREA_SHELTER_B1_STOREROOM) {
         req.capCmd        = 4;
         req.missingCapCmd = 1;
         req.firstSnd      = 0x540D0005;
@@ -345,7 +345,7 @@ s32 func_shelter_b1_armory_801805A8(Task* arg0, s32 arg1, RoomEventMsg* in, Room
         req.collectedBit  = 0;
         return roomEventGate(&req, out);
     }
-    if (in->areaId != 0xD) {
+    if (in->areaId != GAME_AREA_SHELTER_B1_ARMORY) {
         return 1;
     }
     if (GameFlag_GetNibble(0xF0) != 0) {
@@ -388,7 +388,7 @@ s32 func_shelter_b1_armory_801806F8(Task* task, s32 msgId, TaskMessageArg firstA
 static void func_shelter_b1_armory_80180740(Task* task)
 {
     task->msgTable = D_shelter_b1_armory_80182500;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

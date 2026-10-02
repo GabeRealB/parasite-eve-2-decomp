@@ -703,10 +703,10 @@ SVECTOR Actor01900_D1722C[12] = {
 
 Actor01900RecoveredMsgEntry Actor01900_D1728C[8] = {
     { 2015, { .call6 = Actor01900_Fn0A314 } },
-    { 2003, { .call2 = Actor01900_Fn0A31C } },
-    { 2005, { .call4 = actorMsgSetVisibility } },
-    { 2006, { .call1 = actorMsgIsPresent } },
-    { 2004, { .call3 = actorMsgPlaceRecordYaw } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call2 = Actor01900_Fn0A31C } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = actorMsgSetVisibility } },
+    { ACTOR_MESSAGE_IS_PRESENT, { .call1 = actorMsgIsPresent } },
+    { ACTOR_MESSAGE_PLACE, { .call3 = actorMsgPlaceRecordYaw } },
     { 2014, { .call0 = Actor01900_Fn0A59C } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call5 = Actor01900_Fn0A5A4 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
@@ -1559,7 +1559,7 @@ static void Actor01900_Fn02A50(Task* arg0)
                 SndEvt_EnqueueType7(0x51030008, 1);
             }
             if ((work->field_0 == 0xC || work->field_0 == 0xD) && config->hp > 0 && work->field_C44 == 1) {
-                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
             }
             if (enemy->hp <= 0) {
                 deathSound = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x400A0008;

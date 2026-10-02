@@ -196,7 +196,7 @@ MistParkingMessageEntry D_mist_parking_80186BB8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, { .call2 = func_mist_parking_801826C0 } },
     { DIRECTION_MESSAGE_ROOM_ACTION, { .call1 = func_mist_parking_801826E8 } },
     { 5105, { .call0 = func_mist_parking_801826B8 } },
-    { 5104, { .call3 = func_mist_parking_801823F8 } },
+    { ROOM_MESSAGE_COMMAND, { .call3 = func_mist_parking_801823F8 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
@@ -1088,7 +1088,7 @@ void func_mist_parking_801827A0(s32 arg0)
 static void func_mist_parking_801827C0(Task* arg0)
 {
     arg0->msgTable = D_mist_parking_80186BB8;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     if ((gGameSession->location.loc.variant == 2) && (GameFlag_GetNibble(0xF1) == 0)) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == 3) {
             func_800E3FAC(0xA2, 0x3C);

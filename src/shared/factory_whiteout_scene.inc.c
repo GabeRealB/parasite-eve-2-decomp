@@ -29,7 +29,7 @@ void factoryWhiteoutScene(Task* task)
         case 2:
             if (Gp_GetCapEventKey() == 1) {
                 task->killCountdown = 0;
-                if (gGameSession->location.loc.stage == 2) {
+                if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                     Gp_EnqueueStageSnd6(0x5217000C, 0, 0);
                 }
                 goto advance;
@@ -49,13 +49,13 @@ void factoryWhiteoutScene(Task* task)
             if (fade == 2) {
                 Gp_EnqueueStageSnd6(0x5217000B, 0, 0);
             }
-            Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
+            Fade_DrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
             goto advance;
         case 5:
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
             gGameSession->location.loc.room                            = 2;
             gGameSession->roomObjsDirty                                = 1;
-            Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
+            Fade_DrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
             goto advance;
         case 1:
         advance:
@@ -70,7 +70,7 @@ void factoryWhiteoutScene(Task* task)
             task->state = task->state + 1;
         draw:
             fade = (task->killCountdown * 255) / 30;
-            Fade_DrawOverlay(fade, fade, fade, 2);
+            Fade_DrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
             return;
         default:
             Gp_MsgPlayerWeapon(1);

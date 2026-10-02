@@ -671,8 +671,8 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(Actor160900MessageEntry, 8);
 
 Actor160900MessageEntry D_actor_160900_8013F200[2] = {
-    { 2005, { .call1 = func_actor_160900_801345D0 } },
-    { 2004, { .call0 = actorMsgPlaceYawPitchRoll } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call1 = func_actor_160900_801345D0 } },
+    { ACTOR_MESSAGE_PLACE, { .call0 = actorMsgPlaceYawPitchRoll } },
 };
 
 u8 D_actor_160900_8013F210[24] = {
@@ -1011,7 +1011,7 @@ static s32 func_actor_160900_801326EC(Task* arg0)
             work->field_66 += 1;
         }
     } else {
-        if (taskMessageDispatch(work->field_34, 0x3ED, 0, 0) != 0) {
+        if (taskMessageDispatch(work->field_34, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) != 0) {
             return 0;
         }
         entry2 = &D_actor_160900_8013F1CC[work->field_64];
@@ -1521,16 +1521,16 @@ static void func_actor_160900_8013358C(Task* arg0)
         case 0:
             break;
         case 1:
-            taskMessageDispatch(work->field_38, 0x7D5, 2, 0);
+            taskMessageDispatch(work->field_38, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
             TASK_MESSAGE_DISPATCH_POINTER(work->field_38, 0x7D4, D_actor_160900_8013F240, 0);
             break;
         case 2:
-            taskMessageDispatch(work->field_3C, 0x7D5, 1, 0);
-            taskMessageDispatch(work->field_40, 0x7D5, 1, 0);
+            taskMessageDispatch(work->field_3C, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+            taskMessageDispatch(work->field_40, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             if (work->field_44 != NULL) {
-                taskMessageDispatch(work->field_44, 0x7D5, 1, 0);
+                taskMessageDispatch(work->field_44, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             }
-            taskMessageDispatch(work->field_38, 0x7D5, 1, 0);
+            taskMessageDispatch(work->field_38, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             ofs.vx = -100;
             ofs.vy = 100;
             ofs.vz = -1200;
@@ -1984,7 +1984,7 @@ void func_actor_160900_801343E4(Task* arg0)
             arg0->state += 1;
             /* fallthrough */
         case 1:
-            Fade_DrawOverlay((u8)work->r, (u8)work->g, (u8)work->r, 2);
+            Fade_DrawOverlay((u8)work->r, (u8)work->g, (u8)work->r, GPU_BLEND_SUBTRACT);
             work->r += (u16)arg0->spawnArg1.value;
             work->g += (u16)arg0->spawnArg1.value;
             work->b += (u16)arg0->spawnArg1.value;
@@ -2023,7 +2023,7 @@ void func_actor_160900_801344D8(Task* arg0)
             arg0->state += 1;
             /* fallthrough */
         case 4:
-            Fade_DrawOverlay((u8)work->r, (u8)work->g, (u8)work->r, 2);
+            Fade_DrawOverlay((u8)work->r, (u8)work->g, (u8)work->r, GPU_BLEND_SUBTRACT);
             work->r -= (u16)arg0->spawnArg1.value;
             work->g -= (u16)arg0->spawnArg1.value;
             work->b -= (u16)arg0->spawnArg1.value;

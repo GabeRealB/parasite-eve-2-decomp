@@ -247,7 +247,7 @@ s32 D_actor_311500_80169324[3] = {
 };
 
 Actor311500MessageEntry D_actor_311500_80169330[1] = {
-    { 2006, { .call0 = func_actor_311500_801636A0 } },
+    { ACTOR_MESSAGE_IS_PRESENT, { .call0 = func_actor_311500_801636A0 } },
 };
 
 TaskDesc D_actor_311500_80169338 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_311500_80163334, { .model = &_gActor311500StrangerBody } }; /// Walks the first `count` contact records (stopping at a zero key) and keeps,

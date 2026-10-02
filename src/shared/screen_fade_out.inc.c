@@ -28,7 +28,7 @@ void screenFadeOutTask(Task* arg0)
             arg0->state += 1;
             /* fallthrough */
         case 1:
-            Fade_DrawOverlay((u8)work->r, (u8)work->g, (u8)work->r, 2);
+            Fade_DrawOverlay((u8)work->r, (u8)work->g, (u8)work->r, GPU_BLEND_SUBTRACT);
             work->r += (u16)arg0->spawnArg1.value;
             work->g += (u16)arg0->spawnArg1.value;
             work->b += (u16)arg0->spawnArg1.value;

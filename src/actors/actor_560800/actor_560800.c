@@ -3128,8 +3128,8 @@ ActorTransform D_actor_560800_8016F31C = { { 8450, 0, 2850, 0 }, { 0, -512, 0, 0
 ActorTransform D_actor_560800_8016F334 = { { 10800, 0, 3200, 0 }, { 0, -1024, 0, 0 } };
 
 Actor560800MessageEntry D_actor_560800_8016F34C[2] = {
-    { 2005, { .call3 = func_actor_560800_801361A0 } },
-    { 2004, { .call1 = actorMsgPlaceYawPitchRoll } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = func_actor_560800_801361A0 } },
+    { ACTOR_MESSAGE_PLACE, { .call1 = actorMsgPlaceYawPitchRoll } },
 };
 
 ActorTransform* D_actor_560800_8016F35C[34] = {
@@ -4049,8 +4049,8 @@ ActorTransform D_actor_560800_80175614[8] = {
 };
 
 Actor560800MessageEntry D_actor_560800_801756D4[3] = {
-    { 2005, { .call3 = func_actor_560800_80139360 } },
-    { 2004, { .call2 = func_actor_560800_80137F58 } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = func_actor_560800_80139360 } },
+    { ACTOR_MESSAGE_PLACE, { .call2 = func_actor_560800_80137F58 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_560800_801384EC } },
 };
 
@@ -4093,8 +4093,8 @@ s32 D_actor_560800_8017572C[6] = {
 };
 
 Actor560800MessageEntry D_actor_560800_80175744[3] = {
-    { 2005, { .call3 = func_actor_560800_801393EC } },
-    { 2004, { .call1 = func_actor_560800_80139440 } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = func_actor_560800_801393EC } },
+    { ACTOR_MESSAGE_PLACE, { .call1 = func_actor_560800_80139440 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_560800_80138A4C } },
 };
 
@@ -4259,7 +4259,7 @@ static s32 func_actor_560800_80132340(Task* arg0)
             work->field_62 += 1;
         }
     } else {
-        if (taskMessageDispatch(work->field_0, 0x3ED, 0, 0) != 0) {
+        if (taskMessageDispatch(work->field_0, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) != 0) {
             return 0;
         }
         entry2 = &D_actor_560800_8016EBE8[(u16)work->field_60];
@@ -4810,30 +4810,30 @@ static void func_actor_560800_80133540(u32 arg0)
 
     switch (arg0) {
         case 0:
-            taskMessageDispatch(work->field_0, 0x3F3, 1, 0);
+            taskMessageDispatch(work->field_0, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             break;
         case 1:
-            taskMessageDispatch(work->field_4, 0x7D5, 1, 0);
+            taskMessageDispatch(work->field_4, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             break;
         case 2:
-            taskMessageDispatch(work->field_8, 0x7D5, 1, 0);
-            taskMessageDispatch(work->field_10, 0x7D5, 1, 0);
-            taskMessageDispatch(work->field_14, 0x7D5, 1, 0);
+            taskMessageDispatch(work->field_8, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+            taskMessageDispatch(work->field_10, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+            taskMessageDispatch(work->field_14, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             if (work->field_18 != NULL) {
-                taskMessageDispatch(work->field_18, 0x7D5, 1, 0);
+                taskMessageDispatch(work->field_18, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             }
             break;
         case 3:
-            taskMessageDispatch(work->field_C, 0x7D5, 1, 0);
+            taskMessageDispatch(work->field_C, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             if (work->field_1C != NULL) {
-                taskMessageDispatch(work->field_1C, 0x7D5, 1, 0);
+                taskMessageDispatch(work->field_1C, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             }
             break;
         case 4:
-            taskMessageDispatch(work->field_20, 0x7D5, 1, 0);
+            taskMessageDispatch(work->field_20, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             break;
         case 5:
-            taskMessageDispatch(work->field_24, 0x7D5, 1, 0);
+            taskMessageDispatch(work->field_24, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             break;
     }
 }
@@ -4844,30 +4844,30 @@ void func_actor_560800_80133648(u32 arg0)
 
     switch (arg0) {
         case 0:
-            taskMessageDispatch(work->field_0, 0x3F3, 2, 0);
+            taskMessageDispatch(work->field_0, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
             break;
         case 1:
-            taskMessageDispatch(work->field_4, 0x7D5, 2, 0);
+            taskMessageDispatch(work->field_4, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
             break;
         case 2:
-            taskMessageDispatch(work->field_8, 0x7D5, 2, 0);
-            taskMessageDispatch(work->field_10, 0x7D5, 2, 0);
-            taskMessageDispatch(work->field_14, 0x7D5, 2, 0);
+            taskMessageDispatch(work->field_8, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
+            taskMessageDispatch(work->field_10, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
+            taskMessageDispatch(work->field_14, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
             if (work->field_18 != NULL) {
-                taskMessageDispatch(work->field_18, 0x7D5, 2, 0);
+                taskMessageDispatch(work->field_18, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
             }
             break;
         case 3:
-            taskMessageDispatch(work->field_C, 0x7D5, 2, 0);
+            taskMessageDispatch(work->field_C, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
             if (work->field_1C != NULL) {
-                taskMessageDispatch(work->field_1C, 0x7D5, 2, 0);
+                taskMessageDispatch(work->field_1C, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
             }
             break;
         case 4:
-            taskMessageDispatch(work->field_20, 0x7D5, 2, 0);
+            taskMessageDispatch(work->field_20, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
             break;
         case 5:
-            taskMessageDispatch(work->field_24, 0x7D5, 2, 0);
+            taskMessageDispatch(work->field_24, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
             break;
     }
 }
@@ -5075,7 +5075,7 @@ static void func_actor_560800_80133970(Task* arg0)
             switch ((u16)work->field_2A) {
                 case 0:
                     Actor560800_PlaySe(3);
-                    taskMessageDispatch(work->field_0, 0x3FD, 8, 0);
+                    taskMessageDispatch(work->field_0, ANIMATION_MESSAGE_SET_RATE, 8, 0);
                     work->field_2C = 0;
                     work->field_2A++;
                     return;
@@ -5123,7 +5123,7 @@ static void func_actor_560800_80133970(Task* arg0)
             switch ((u16)work->field_2A) {
                 case 0:
                     Actor560800_PlaySeB(8);
-                    taskMessageDispatch(work->field_0, 0x3FD, 8, 0);
+                    taskMessageDispatch(work->field_0, ANIMATION_MESSAGE_SET_RATE, 8, 0);
                     work->field_2C = 0;
                     work->field_2A++;
                     return;
@@ -5167,7 +5167,7 @@ static void func_actor_560800_80134258(Task* task)
             break;
         case 22:
         case 24:
-            taskMessageDispatch(work->field_20, 0x7D5, 2, 0);
+            taskMessageDispatch(work->field_20, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
             break;
         case 28:
             ctx2            = (Actor560800AnimWork*)work->field_4->work;
@@ -5460,7 +5460,7 @@ static void func_actor_560800_80134BFC(Task* arg0)
                 case 0:
                     ((Actor560800AnimWork*)work->field_8->work)->field_4BC = 1;
                     Actor560800_PlaySeB(3);
-                    taskMessageDispatch(work->field_0, 0x3FD, 8, 0);
+                    taskMessageDispatch(work->field_0, ANIMATION_MESSAGE_SET_RATE, 8, 0);
                     work->field_44 = 0;
                     work->field_42++;
                     return;
@@ -5501,19 +5501,19 @@ static void func_actor_560800_80134BFC(Task* arg0)
             Actor560800_ResetSlots(work->field_8, 0xB, 0x10);
             break;
         case 23:
-            taskMessageDispatch(work->field_8, 0x7D5, 2, 0);
-            taskMessageDispatch(work->field_10, 0x7D5, 2, 0);
-            taskMessageDispatch(work->field_14, 0x7D5, 2, 0);
+            taskMessageDispatch(work->field_8, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
+            taskMessageDispatch(work->field_10, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
+            taskMessageDispatch(work->field_14, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
             if (work->field_18 != NULL) {
-                taskMessageDispatch(work->field_18, 0x7D5, 2, 0);
+                taskMessageDispatch(work->field_18, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
             }
             break;
         case 24:
-            taskMessageDispatch(work->field_8, 0x7D5, 1, 0);
-            taskMessageDispatch(work->field_10, 0x7D5, 1, 0);
-            taskMessageDispatch(work->field_14, 0x7D5, 1, 0);
+            taskMessageDispatch(work->field_8, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+            taskMessageDispatch(work->field_10, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+            taskMessageDispatch(work->field_14, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             if (work->field_18 != NULL) {
-                taskMessageDispatch(work->field_18, 0x7D5, 1, 0);
+                taskMessageDispatch(work->field_18, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             }
             ctx2            = (Actor560800AnimWork*)work->field_8->work;
             ctx2->field_4C0 = 0x155;
@@ -5731,7 +5731,7 @@ void func_actor_560800_80135D54(Task* arg0)
             func_800E6D4C(0x180, 0);
             arg0->state++;
         case 1:
-            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
             func_800E8634(D_actor_560800_8016F5E0, 1, D_actor_560800_80171800);
             arg0->state++;
             break;
@@ -5799,7 +5799,7 @@ void func_actor_560800_80135FA0(Task* arg0)
             arg0->state += 1;
             /* fallthrough */
         case 1:
-            Fade_DrawOverlay((u8)work->r, (u8)work->g, (u8)work->r, 2);
+            Fade_DrawOverlay((u8)work->r, (u8)work->g, (u8)work->r, GPU_BLEND_SUBTRACT);
             work->r += (u16)arg0->spawnArg1.value;
             work->g += (u16)arg0->spawnArg1.value;
             work->b += (u16)arg0->spawnArg1.value;
@@ -5842,7 +5842,7 @@ void func_actor_560800_80136094(Task* arg0)
             arg0->state += 1;
             /* fallthrough */
         case 7:
-            Fade_DrawOverlay((u8)work->r, (u8)work->g, (u8)work->r, 2);
+            Fade_DrawOverlay((u8)work->r, (u8)work->g, (u8)work->r, GPU_BLEND_SUBTRACT);
             work->r -= (u16)arg0->spawnArg1.value;
             work->g -= (u16)arg0->spawnArg1.value;
             work->b -= (u16)arg0->spawnArg1.value;
@@ -6959,7 +6959,7 @@ void func_actor_560800_80138A4C(Task* task, s32 msgId, ActorCommand* msg)
             task->state = 1;
             break;
         case 2:
-            taskMessageDispatch(task, 0x7D5, 1, 0);
+            taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             TASK_MESSAGE_DISPATCH_POINTER(task, 0x7D4, D_actor_560800_801756FC, 0);
             work->field_278 = 0x1000;
             task->state     = 2;
@@ -6971,13 +6971,13 @@ void func_actor_560800_80138A4C(Task* task, s32 msgId, ActorCommand* msg)
             task->state = 4;
             break;
         case 5:
-            taskMessageDispatch(task, 0x7D5, 1, 0);
+            taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             TASK_MESSAGE_DISPATCH_POINTER(task, 0x7D4, D_actor_560800_80175714, 0);
             work->field_278 = 0x1000;
             task->state     = 5;
             break;
         case 6:
-            taskMessageDispatch(task, 0x7D5, 1, 0);
+            taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             TASK_MESSAGE_DISPATCH_POINTER(task, 0x7D4, D_actor_560800_8017572C, 0);
             work->field_282 = 0;
             task->state     = 6;

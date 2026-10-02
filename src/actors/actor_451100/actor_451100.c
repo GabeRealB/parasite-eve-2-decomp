@@ -890,11 +890,11 @@ static AnimationSet _gActor451100Animation0D8B8 = {
 s16 gFootstepWalkBlendFrames = 8;
 
 Actor451100MsgEntry D_actor_451100_8013F704[6] = {
-    { 2003, { .call1 = func_actor_451100_80132538 } },
-    { 2005, { .call6 = func_actor_451100_801325C8 } },
-    { 2004, { .call3 = footstepWalkPlace } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = func_actor_451100_80132538 } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call6 = func_actor_451100_801325C8 } },
+    { ACTOR_MESSAGE_PLACE, { .call3 = footstepWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_451100_8013268C } },
-    { 2013, { .call5 = footstepWalkTo } },
+    { ACTOR_MESSAGE_WALK_TO, { .call5 = footstepWalkTo } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
@@ -1357,11 +1357,11 @@ static AnimationSet _gActor451100Animation1C86C = {
 };
 
 Actor451100MsgEntry D_actor_451100_8014E6B4[6] = {
-    { 2003, { .call1 = func_actor_451100_80132E98 } },
-    { 2005, { .call6 = pairWalkSetVisibility } },
-    { 2004, { .call3 = pairWalkPlace } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = func_actor_451100_80132E98 } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call6 = pairWalkSetVisibility } },
+    { ACTOR_MESSAGE_PLACE, { .call3 = pairWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_451100_80132FE0 } },
-    { 2013, { .call4 = func_actor_451100_80132FE8 } },
+    { ACTOR_MESSAGE_WALK_TO, { .call4 = func_actor_451100_80132FE8 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 

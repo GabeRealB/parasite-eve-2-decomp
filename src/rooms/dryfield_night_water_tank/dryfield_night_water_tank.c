@@ -133,7 +133,7 @@ TaskMessageEntry D_dryfield_night_water_tank_8017DFE8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_water_tank_8017D714 },
     { 5105, func_dryfield_night_water_tank_8017D70C },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_water_tank_8017D76C },
-    { 5104, func_dryfield_night_water_tank_8017D73C },
+    { ROOM_MESSAGE_COMMAND, func_dryfield_night_water_tank_8017D73C },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -712,7 +712,7 @@ s32 func_dryfield_night_water_tank_8017D76C(Task* arg0, s32 arg1, RoomEventMsg* 
 static void func_dryfield_night_water_tank_8017D870(Task* task)
 {
     task->msgTable = D_dryfield_night_water_tank_8017DFE8;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     Task_SpawnFromTable(D_dryfield_night_water_tank_8017EE28, 0, 0, 0);
     if ((u32)(gGameSession->location.loc.variant - 0xA) < 2U) {
         func_dryfield_night_water_tank_8017D9DC(0);

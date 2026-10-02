@@ -75,7 +75,7 @@ void func_800E31E8(Task* arg0)
     flag                     = GameFlag_GetNibble(0x11F);
     switch (flag) {
         case 1:
-            if (gGameSession->location.loc.stage == 3) {
+            if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD_NIGHT) {
                 gStageSceneMusicEntry = 1;
             } else {
                 gGameSession->flowFlags = (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_SKIP_AREA_MUSIC);
@@ -104,7 +104,7 @@ loop:
         goto loop;
     }
     arg0->msgTable = D_8010FAD4;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     arg0->state++;
 }
 
@@ -151,7 +151,7 @@ void Gp_EvtCapTask(Task* arg0)
                 Gp_MsgPlayer3F3(1);
             }
             if (D_80115598 != 0) {
-                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F2, arg0->spawnArg2.value + 0x64, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_SOUND, arg0->spawnArg2.value + 0x64, 0);
             }
             taskKill(arg0);
             break;

@@ -125,8 +125,8 @@ TaskMessageEntry D_dryfield_underpass_8017E830[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantUnderpassMsg },
     { 5105, func_dryfield_underpass_8017D900 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_underpass_8017D908 },
-    { 5104, underpassSwitchMsg },
-    { 5106, underpassSoundMsg },
+    { ROOM_MESSAGE_COMMAND, underpassSwitchMsg },
+    { ROOM_MESSAGE_SOUND, underpassSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -831,7 +831,7 @@ s32 func_dryfield_underpass_8017D908(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
 static void func_dryfield_underpass_8017D970(Task* arg0)
 {
     arg0->msgTable = D_dryfield_underpass_8017E830;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     if ((gGameSession->location.loc.variant == 1) && (GameFlag_GetNibble(0xC9) == 0)) {
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_dryfield_underpass_8017E89C, ACTOR_COMMAND_MESSAGE_APPLY);
     }
@@ -859,7 +859,7 @@ void func_dryfield_underpass_8017DA08(void)
 
     d             = &dst;
     s             = &src;
-    src.areaId    = 0x26;
+    src.areaId    = GAME_AREA_DRYFIELD_UNDERPASS;
     src.queryOnly = ROOM_EVENT_EXECUTE;
     if (s->queryOnly == ROOM_EVENT_EXECUTE) {
         if (GameFlag_GetNibble(0xC9) != 0) {

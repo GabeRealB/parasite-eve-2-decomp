@@ -207,7 +207,7 @@ TaskMessageEntry D_neo_ark_observatory_801811B8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_observatory_8017FBE8 },
     { 5105, func_neo_ark_observatory_8017FBE0 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_observatory_8017F6F8 },
-    { 5104, func_neo_ark_observatory_8017FCA0 },
+    { ROOM_MESSAGE_COMMAND, func_neo_ark_observatory_8017FCA0 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1626,8 +1626,8 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, TaskMessageArg first
                 _MapMarkerResolve resolve;
 
                 GameFlag_SetNibble(0xF7, 1);
-                desc.stage    = 4;
-                desc.area     = 0x12;
+                desc.stage    = GAME_STAGE_MINE_SHELTER;
+                desc.area     = GAME_AREA_SHELTER_B1_CONTROL_ROOM;
                 desc.warp     = 3;
                 desc.room     = temp;
                 desc.sndEvent = 0x55070005;
@@ -1640,7 +1640,7 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, TaskMessageArg first
                 return 0;
             }
         }
-        desc.stage    = 4;
+        desc.stage    = GAME_STAGE_MINE_SHELTER;
         desc.area     = request->argument;
         desc.room     = 1;
         desc.warp     = 4;
@@ -1743,7 +1743,7 @@ s32 func_neo_ark_observatory_8017FBE8(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
     *out = *in;
     func_map_neo_ark_80179B14(in, out);
     if ((GameFlag_GetNibble(0xD1) == 3) && (GameFlag_GetNibble(0x4C) == 9) &&
-        ((in->areaId == 0xA) || (in->areaId == 0x13)) && (in->queryOnly == ROOM_EVENT_EXECUTE)) {
+        ((in->areaId == GAME_AREA_NEO_ARK_NORTH_PROMENADE) || (in->areaId == GAME_AREA_NEO_ARK_SOUTH_PROMENADE)) && (in->queryOnly == ROOM_EVENT_EXECUTE)) {
         GameFlag_SetNibble(0x4C, 0);
         Gp_ApplyAreaRecs(D_neo_ark_observatory_80187A28);
     }
@@ -1764,7 +1764,7 @@ s32 func_neo_ark_observatory_8017FCA0(Task* arg0, s32 arg1, s32 arg2, TaskMessag
 static void func_neo_ark_observatory_8017FCE0(Task* arg0)
 {
     arg0->msgTable = D_neo_ark_observatory_801811B8;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     if ((gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) && (gGameSession->location.loc.variant == 1)) {
         func_801322F8();
     } else {

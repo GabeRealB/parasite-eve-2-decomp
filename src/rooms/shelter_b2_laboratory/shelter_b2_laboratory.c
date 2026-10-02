@@ -263,8 +263,8 @@ TaskMessageEntry D_shelter_b2_laboratory_80182A38[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_laboratory_801800FC },
     { 5105, func_shelter_b2_laboratory_801800F4 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b2_laboratory_801801D0 },
-    { 5104, func_shelter_b2_laboratory_8017FD18 },
-    { 5106, func_shelter_b2_laboratory_8018025C },
+    { ROOM_MESSAGE_COMMAND, func_shelter_b2_laboratory_8017FD18 },
+    { ROOM_MESSAGE_SOUND, func_shelter_b2_laboratory_8018025C },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1187,7 +1187,7 @@ s32 func_shelter_b2_laboratory_801800FC(Task* arg0, s32 arg1, RoomEventMsg* in, 
         }
         return 2;
     }
-    if (in->areaId != 0x21) {
+    if (in->areaId != GAME_AREA_SHELTER_B2_MAIN_CORRIDOR) {
         return 1;
     }
     req.capCmd        = 1;
@@ -1284,7 +1284,7 @@ void func_shelter_b2_laboratory_80180350(Task* task)
 static void func_shelter_b2_laboratory_80180450(Task* task)
 {
     task->msgTable = D_shelter_b2_laboratory_80182A38;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

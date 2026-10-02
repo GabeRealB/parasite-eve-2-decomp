@@ -82,8 +82,8 @@ TaskMessageEntry D_shelter_b2_pod_access_tunnel_80183BCC[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_pod_access_tunnel_8017D7C4 },
     { 5105, func_shelter_b2_pod_access_tunnel_8017DB28 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b2_pod_access_tunnel_8017DB70 },
-    { 5104, func_shelter_b2_pod_access_tunnel_8017DB30 },
-    { 5106, func_shelter_b2_pod_access_tunnel_8017DB78 },
+    { ROOM_MESSAGE_COMMAND, func_shelter_b2_pod_access_tunnel_8017DB30 },
+    { ROOM_MESSAGE_SOUND, func_shelter_b2_pod_access_tunnel_8017DB78 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

@@ -46,7 +46,7 @@ TaskMessageEntry D_neo_ark_r31_8017D9F4[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_r31_8017D8B8 },
     { 5105, func_neo_ark_r31_8017D8B0 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_r31_8017D904 },
-    { 5104, func_neo_ark_r31_8017D8FC },
+    { ROOM_MESSAGE_COMMAND, func_neo_ark_r31_8017D8FC },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -241,7 +241,7 @@ static void func_neo_ark_r31_8017D90C(Task* arg0)
 
     queue          = &gCdCmdQueue;
     arg0->msgTable = D_neo_ark_r31_8017D9F4;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     queue->imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
     func_800E8634(&D_80133F90, 0, &D_80134470);
     arg0->state = (s32)(arg0->state + 1);

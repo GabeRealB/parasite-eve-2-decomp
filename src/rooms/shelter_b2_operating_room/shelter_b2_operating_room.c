@@ -114,7 +114,7 @@ TaskMessageEntry D_shelter_b2_operating_room_8018091C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_operating_room_8017DA94 },
     { 5105, func_shelter_b2_operating_room_8017DC9C },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b2_operating_room_8017DD0C },
-    { 5104, func_shelter_b2_operating_room_8017DCA4 },
+    { ROOM_MESSAGE_COMMAND, func_shelter_b2_operating_room_8017DCA4 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -944,7 +944,7 @@ s32 func_shelter_b2_operating_room_8017DA94(Task* arg0, s32 arg1, RoomEventMsg* 
 
     *out = *in;
     func_map_shelter_80179A04(in, out);
-    if (in->areaId == 0x1E) {
+    if (in->areaId == GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY) {
         req.capCmd        = 2;
         req.missingCapCmd = 1;
         req.firstSnd      = 0x541D0007;
@@ -953,21 +953,21 @@ s32 func_shelter_b2_operating_room_8017DA94(Task* arg0, s32 arg1, RoomEventMsg* 
         req.collectedBit  = 0;
         return roomEventGate(&req, out);
     }
-    if (in->areaId == 0x1C && GameFlag_GetNibble(0xAA) == 0) {
+    if (in->areaId == GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY && GameFlag_GetNibble(0xAA) == 0) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_SetNibbleIf(in->flagId, 2);
             Gp_RunCapCmd1(3);
         }
         return 0;
     }
-    if (in->areaId == 0x1C) {
+    if (in->areaId == GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY) {
         event.capCmd   = 0xE;
         event.stageSnd = 0x541D0001;
         event.flagId   = 0x13A;
         event.fade     = 0;
         return _operatingRoomStartEvent(out, &event);
     }
-    if (in->areaId == 0x1F) {
+    if (in->areaId == GAME_AREA_SHELTER_B2_LABORATORY) {
         event.capCmd   = 0xD;
         event.stageSnd = 0x541D0005;
         event.flagId   = 0x13B;
@@ -1005,7 +1005,7 @@ s32 func_shelter_b2_operating_room_8017DD0C(Task* task, s32 msgId, TaskMessageAr
 static void func_shelter_b2_operating_room_8017DD14(Task* task)
 {
     task->msgTable = D_shelter_b2_operating_room_8018091C;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

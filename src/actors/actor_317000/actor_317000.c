@@ -338,10 +338,10 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
 TaskDesc D_actor_317000_8016CF44 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_317000_80162624, { .model = &_gActor317000GrinningStrangerBody } };
 
 Actor317000MsgEntry D_actor_317000_8016CF50[6] = {
-    { 2003, { .call0 = actorMotionPlayAnim19 } },
-    { 2004, { .call2 = actorMsgPlaceEuler } },
-    { 2005, { .call4 = func_actor_317000_80162BC4 } },
-    { 2013, { .call3 = func_actor_317000_80162458 } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = actorMotionPlayAnim19 } },
+    { ACTOR_MESSAGE_PLACE, { .call2 = actorMsgPlaceEuler } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = func_actor_317000_80162BC4 } },
+    { ACTOR_MESSAGE_WALK_TO, { .call3 = func_actor_317000_80162458 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_317000_80162CA0 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 }; /// Per-frame tick. Runs the state body `Actor317000Work::walk.motion` selects
@@ -650,7 +650,7 @@ static void func_actor_317000_8016267C(Task* arg0)
     work->walk.acc[2].word = 0;
 
     func_actor_317000_80162744(arg0);
-    func_actor_317000_80162BC4(arg0, 0x7D5, 0, 0);
+    func_actor_317000_80162BC4(arg0, ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
 
     arg0->msgTable     = D_actor_317000_8016CF50;
     arg0->exitCallback = func_actor_317000_80162724;
@@ -735,7 +735,7 @@ static void func_actor_317000_801627D0(Task* arg0)
         preset.blend                = ANIMATION_BLEND_INTERPOLATE;
         preset.blendFrames          = 5;
         preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-        actorMotionPlayAnim19(arg0, 0x7D3, &preset, 0);
+        actorMotionPlayAnim19(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &preset, 0);
         work->field_4C4 = 0;
         work->walk.motionStep++;
     }
@@ -794,7 +794,7 @@ static void func_actor_317000_80162950(Task* arg0)
     preset.blend                = ANIMATION_BLEND_INTERPOLATE;
     preset.blendFrames          = 5;
     preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    actorMotionPlayAnim19(arg0, 0x7D3, &preset, 0);
+    actorMotionPlayAnim19(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &preset, 0);
     pan = (s8)worldCoordGetOriginAudioPan(coord);
     SndEvt_EnqueueType6(0x400A000B, pan, (s8)worldCoordGetOriginAudioDepth(coord));
 

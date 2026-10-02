@@ -10,22 +10,22 @@ void factoryRoomInit(Task* arg0)
     Task** slot;
 
     arg0->msgTable = gFactoryMsgTable;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     slot       = (gFactoryPanelSlot = memCalloc(4, 0));
     arg0->work = slot;
-    if (gGameSession->location.loc.stage == 2) {
+    if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
         gFactorySpawnTable = gFactoryDaySpawnTable;
     } else {
         gFactorySpawnTable = gFactoryNightSpawnTable;
     }
-    if (gGameSession->location.loc.stage == 2) {
+    if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
         gFactoryPanelDesc = gFactoryDayPanelDesc;
     } else {
         gFactoryPanelDesc = gFactoryNightPanelDesc;
     }
     Task_SpawnFromTable(gFactorySpawnTable, 4, 0, gFactoryPanelSlot);
     Task_SpawnFromTable(gFactorySpawnTable, 5, 0, 0);
-    if (gGameSession->location.loc.stage == 2) {
+    if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
         factoryDayShowView9Sprite(GameFlag_GetNibble(0x48) & 0xFF);
     } else {
         factoryNightShowView9Sprite(GameFlag_GetNibble(0x48) & 0xFF);

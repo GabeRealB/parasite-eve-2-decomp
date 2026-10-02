@@ -138,7 +138,7 @@ s32 func_neo_ark_garden_8017E848(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEve
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);
-    if (in->areaId != 0x21) {
+    if (in->areaId != GAME_AREA_NEO_ARK_SUBSTATION) {
         return 1;
     }
     if (GameFlag_GetNibble(0xDC) != 0) {
@@ -178,7 +178,7 @@ s32 func_neo_ark_garden_8017E9AC(Task* task, s32 msgId, TaskMessageArg arg2, Tas
 static void func_neo_ark_garden_8017E9B4(Task* arg0)
 {
     arg0->msgTable = D_neo_ark_garden_801813B0;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     // Match arrival warp 3 and placement variant 2 as one halfword.
     if (*(u16*)&gGameSession->location.loc.warp == ((2 << 8) | 3)) {
         func_800E8634(&D_801334EC, 0, &D_80133954);

@@ -335,9 +335,9 @@ static AnimationSet _gAcropolisPatioAnimation02CA4 = {
 
 AcropolisPatioMessageEntry D_acropolis_patio_8018028C[6] = {
     { 5102, { .call1 = func_acropolis_patio_8017D7D0 } },
-    { 5104, { .call2 = func_acropolis_patio_8017DCE4 } },
+    { ROOM_MESSAGE_COMMAND, { .call2 = func_acropolis_patio_8017DCE4 } },
     { 5105, { .call0 = func_acropolis_patio_8017DD44 } },
-    { 5106, { .call2 = func_acropolis_patio_8017DD4C } },
+    { ROOM_MESSAGE_SOUND, { .call2 = func_acropolis_patio_8017DD4C } },
     { 5103, { .call3 = func_acropolis_patio_8017DBAC } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
@@ -1760,12 +1760,12 @@ static void func_acropolis_patio_8017D5EC(Task* arg0)
     Task*        temp;
 
     arg0->msgTable = D_acropolis_patio_8018028C;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (GameFlag_GetNibble(0) < 2) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room == 1) {
             TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D4, &D_acropolis_patio_80180428, 0);
             TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_acropolis_patio_8018044C, 0);
-            taskMessageDispatch(Gp_LookupSlot4(0), 0x7D5, 1, 0);
+            taskMessageDispatch(Gp_LookupSlot4(0), ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             D_acropolis_patio_80187060 = Task_SpawnFromTable(D_acropolis_patio_801802BC, 2, 0, 0);
         }
         temp = Gp_LookupSlot4(1);
@@ -1896,7 +1896,7 @@ void func_acropolis_patio_8017DA5C(Task* task)
                 return;
             }
             SndEvt_EnqueueType7(0x80000000, 0);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 4;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_ACROPOLIS_CAFETERIA;
             gDisplayState.spriteVariant                                = 1;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_acropolis_patio_80187064;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = D_acropolis_patio_80187065;
@@ -1918,7 +1918,7 @@ void func_acropolis_patio_8017DBAC(s32 arg0, s32 arg1, AcropolisPatioMsg8* arg2)
         gGameSession->flowFlags                             = (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_HIDE_REEQUIPPED_WEAPON | GAME_SESSION_FLOW_REEQUIP_WEAPON);
     }
     if ((arg2->field_2 == 1) && (GameFlag_GetNibble(0x21) == 3) &&
-        (taskMessageDispatch(Gp_LookupSlot4(1), 0x7D6, 0, 0) == 0)) {
+        (taskMessageDispatch(Gp_LookupSlot4(1), ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0)) {
         GameFlag_SetNibble(0x21, 4);
         func_800E8634(D_acropolis_patio_8018082C, 0, D_acropolis_patio_80180C64);
     }

@@ -38,8 +38,8 @@ TaskMessageEntry D_shelter_b1_storeroom_80184968[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_storeroom_8017D604 },
     { 5105, func_shelter_b1_storeroom_8017D5FC },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_storeroom_8017D6E8 },
-    { 5104, func_shelter_b1_storeroom_8017D6E0 },
-    { 5106, func_shelter_b1_storeroom_8017D6F0 },
+    { ROOM_MESSAGE_COMMAND, func_shelter_b1_storeroom_8017D6E0 },
+    { ROOM_MESSAGE_SOUND, func_shelter_b1_storeroom_8017D6F0 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -52,7 +52,7 @@ s32 func_shelter_b1_storeroom_8017D604(Task* arg0, s32 arg1, RoomEventMsg* in, R
 {
     *out = *in;
     func_map_shelter_80179A04(in, out);
-    if (in->areaId == 0xD && GameFlag_GetNibble(0xA6) == 0) {
+    if (in->areaId == GAME_AREA_SHELTER_B1_ARMORY && GameFlag_GetNibble(0xA6) == 0) {
         if (in->queryOnly != ROOM_EVENT_EXECUTE) {
             return 0;
         }
@@ -60,7 +60,7 @@ s32 func_shelter_b1_storeroom_8017D604(Task* arg0, s32 arg1, RoomEventMsg* in, R
         Gp_RunCapCmd1(1);
         return 0;
     }
-    if (in->areaId != 0xC && in->areaId != 0xA) {
+    if (in->areaId != GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY && in->areaId != GAME_AREA_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY) {
         return 1;
     }
     if (GameFlag_GetNibble(0x7A) < 6) {
@@ -101,7 +101,7 @@ s32 func_shelter_b1_storeroom_8017D6F0(Task* arg0, s32 arg1, s32 arg2, TaskMessa
 static void func_shelter_b1_storeroom_8017D740(Task* task)
 {
     task->msgTable = D_shelter_b1_storeroom_80184968;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
     D_80115598  = 1;
 }

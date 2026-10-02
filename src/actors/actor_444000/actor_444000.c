@@ -2656,12 +2656,12 @@ TaskDesc gGluttonEscortTasks[4] = {
 TaskDesc D_actor_444000_8016180C = { { { TASK_BODY_TMD, 96 } }, gluttonSpinnerTask, { .model = &_gActor444000Actor403200Model19284 } };
 
 Actor444000MessageEntry D_actor_444000_80161818[7] = {
-    { 2005, { .call3 = func_actor_444000_8013A958 } },
-    { 2006, { .call0 = func_actor_444000_80143D68 } },
-    { 2004, { .call2 = func_actor_444000_80143D7C } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = func_actor_444000_8013A958 } },
+    { ACTOR_MESSAGE_IS_PRESENT, { .call0 = func_actor_444000_80143D68 } },
+    { ACTOR_MESSAGE_PLACE, { .call2 = func_actor_444000_80143D7C } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_444000_8013ACD0 } },
-    { 5108, { .call3 = func_actor_444000_80143E68 } },
-    { 2009, { .call0 = func_actor_444000_80143F38 } },
+    { ROOM_MESSAGE_ACTOR_EVENT, { .call3 = func_actor_444000_80143E68 } },
+    { SCENE_MESSAGE_EXIT_PLACED_ACTORS, { .call0 = func_actor_444000_80143F38 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
@@ -2943,7 +2943,7 @@ void func_actor_444000_8013265C(s32 arg0)
 {
     Actor444000EventWork* work = (Actor444000EventWork*)D_actor_444000_80161860->work;
 
-    taskMessageDispatch(work->field_20, 0x3F3, arg0, 0);
+    taskMessageDispatch(work->field_20, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, arg0, 0);
 }
 
 /// Kill the subordinate task the event work block carries, if it is still alive.
@@ -3281,7 +3281,7 @@ static void func_actor_444000_8013482C(Task* task)
             if (task->extra.tmd->coords->coord.t[2] < -0x4203) {
                 work->field_0 = 0x10;
                 work->field_F08++;
-                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
             }
             break;
     }
@@ -5351,7 +5351,7 @@ static void func_actor_444000_8013EC84(Task* arg0)
         if (work->field_7B3 == 0xF) {
             if (cfg->hp > 0) {
                 target = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                taskMessageDispatch(target, 0x3F9, Gp_PackObjPair(enemy, 3), 0);
+                taskMessageDispatch(target, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 3), 0);
                 if (cfg->hp <= 0) {
                     ((GameActor*)player->work)->state = 0xA;
                     gGameSession->deathSoundCountdown = 0x1E;
@@ -5393,7 +5393,7 @@ static void func_actor_444000_8013EC84(Task* arg0)
             work->field_7A8 = work->slots0[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
         }
 
-        if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
+        if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
             D_actor_444000_80161908.value.pos.vx = arg0->extra.tmd->coords->coord.t[0];
             D_actor_444000_80161908.value.pos.vy = arg0->extra.tmd->coords->coord.t[1];
             D_actor_444000_80161908.value.pos.vz = arg0->extra.tmd->coords->coord.t[2];
@@ -5621,7 +5621,7 @@ missed:
 scanned:
     if (found != 0 && TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, &D_actor_444000_80161928.value, 0) == 0) {
         target          = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-        work->field_ECA = taskMessageDispatch(target, 0x3F9, Gp_PackObjPair(enemy, 4), 0);
+        work->field_ECA = taskMessageDispatch(target, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 4), 0);
         if (work->field_ECA == 1) {
             ((GameActor*)player->work)->state = 0xA;
         }
@@ -5653,7 +5653,7 @@ scanned:
             TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->anim, 0);
         }
 
-        if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
+        if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
             switch (work->anim.animationId) {
                 case 2:
                     if (work->field_ECA != 1 && (s16)work->field_7CA >= 0x17) {
@@ -5670,7 +5670,7 @@ scanned:
                     break;
                 case 4:
                     if (work->field_ECA != 1) {
-                        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 2, 0);
+                        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 2, 0);
                         work->field_EC8 = 0;
                     }
                     break;
@@ -6687,9 +6687,9 @@ static void func_actor_444000_801423C4(Enemy* enemy, Task* task)
                 case 3:
                     if (cfg->hp > 0) {
                         if (work->field_F08 == 6) {
-                            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, 2, 0);
+                            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, 2, 0);
                         } else {
-                            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, 1, 0);
+                            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, 1, 0);
                         }
                         work->field_0 = 0x12;
                         SndEvt_EnqueueType7(((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000A, 1);

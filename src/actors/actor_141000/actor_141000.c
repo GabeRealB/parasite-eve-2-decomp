@@ -1875,10 +1875,10 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
 TaskDesc D_actor_141000_8013D77C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_141000_801338C0, { .model = &_gActor141000AyaBreaBody } };
 
 Actor141000MsgEntry D_actor_141000_8013D788[7] = {
-    { 2003, { .call0 = actorMotionPlayAnim19 } },
-    { 2004, { .call2 = actorMsgPlaceEuler } },
-    { 2005, { .call4 = func_actor_141000_80133E8C } },
-    { 2013, { .call3 = func_actor_141000_801336DC } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = actorMotionPlayAnim19 } },
+    { ACTOR_MESSAGE_PLACE, { .call2 = actorMsgPlaceEuler } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = func_actor_141000_80133E8C } },
+    { ACTOR_MESSAGE_WALK_TO, { .call3 = func_actor_141000_801336DC } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_141000_80133F6C } },
     { 2016, { .call4 = func_actor_141000_80133FA8 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
@@ -2604,7 +2604,7 @@ static void func_actor_141000_80133BD8(Task* arg0)
         preset.blend                = ANIMATION_BLEND_INTERPOLATE;
         preset.blendFrames          = 5;
         preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-        actorMotionPlayAnim19(arg0, 0x7D3, &preset, 0);
+        actorMotionPlayAnim19(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &preset, 0);
         work->walk.motion     = 0;
         work->walk.motionStep = 0;
     }

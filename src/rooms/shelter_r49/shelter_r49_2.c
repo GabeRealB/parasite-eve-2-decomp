@@ -293,8 +293,8 @@ void func_shelter_r49_8017D8D8(Task* arg0)
             break;
         case 3:
             SetDispMask(1);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 5;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 7;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_SHELTER_NEO_ARK;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_NEO_ARK_OBSERVATORY;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
             gDisplayState.spriteVariant                                 = 1;

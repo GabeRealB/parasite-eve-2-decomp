@@ -1246,9 +1246,9 @@ static AnimationSet _gActor146300Animation10954 = {
 s16 gScriptedWalkBlendFrames = 8;
 
 Actor146300MsgEntry D_actor_146300_801427A0[5] = {
-    { 2003, { .call1 = func_actor_146300_8013299C } },
-    { 2005, { .call3 = actorMsgSetPairVisibility } },
-    { 2004, { .call2 = scriptedWalkPlace } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = func_actor_146300_8013299C } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = actorMsgSetPairVisibility } },
+    { ACTOR_MESSAGE_PLACE, { .call2 = scriptedWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_146300_80132B14 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
@@ -1360,7 +1360,7 @@ void func_actor_146300_80131ECC(Task* task)
                 case 3:
                     if (Gp_HasCollectedBit(0x119) == 0) {
                         if (Gp_GetCurBit2Flag(0x1F) == 1) {
-                            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
+                            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
                             D_actor_146300_80142824 = 0x13;
                             task->state             = 0x14;
                         } else {
@@ -1377,7 +1377,7 @@ void func_actor_146300_80131ECC(Task* task)
                 case 4:
                     if (Gp_HasCollectedBit(0x119) == 0) {
                         if (Gp_GetCurBit2Flag(0x20) == 1) {
-                            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
+                            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
                             D_actor_146300_80142824 = 0x14;
                             task->state             = 0x14;
                         } else {
@@ -1392,7 +1392,7 @@ void func_actor_146300_80131ECC(Task* task)
                     break;
                 case 5:
                     if (Gp_GetCurBit2Flag(0x21) == 1) {
-                        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
+                        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
                         task->state = 0x28;
                     } else {
                         func_800E8614(D_actor_146300_80138AC8, 0);

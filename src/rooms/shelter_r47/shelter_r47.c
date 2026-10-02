@@ -128,8 +128,8 @@ static TaskMessageEntry D_shelter_r47_80186F2C[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_r47_801805D8 },
     { 5105, func_shelter_r47_801805D0 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_r47_8017FE84 },
-    { 5104, func_shelter_r47_801801DC },
-    { 5106, func_shelter_r47_8018061C },
+    { ROOM_MESSAGE_COMMAND, func_shelter_r47_801801DC },
+    { ROOM_MESSAGE_SOUND, func_shelter_r47_8018061C },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -527,10 +527,10 @@ static void func_shelter_r47_8017FB94(Task* task)
     Task* player;
 
     task->msgTable = D_shelter_r47_80186F2C;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     player = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
     if (player != NULL && GameFlag_GetNibble(0x80) == 0 && GameFlag_GetNibble(0xD1) == 1) {
-        taskMessageDispatch(player, 0x3F3, 0, 0);
+        taskMessageDispatch(player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
         Gp_AllyAnimId(&D_shelter_r47_80186F5C.source.index);
         TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_PLAY, &D_shelter_r47_80186F5C, 0);
     }

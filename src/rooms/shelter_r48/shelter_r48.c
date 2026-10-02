@@ -136,8 +136,8 @@ TaskMessageEntry D_shelter_r48_80182FB8[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_r48_8017E044 },
     { 5105, func_shelter_r48_8017DF50 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_r48_8017E090 },
-    { 5104, func_shelter_r48_8017E088 },
-    { 5108, func_shelter_r48_8017E0EC },
+    { ROOM_MESSAGE_COMMAND, func_shelter_r48_8017E088 },
+    { ROOM_MESSAGE_ACTOR_EVENT, func_shelter_r48_8017E0EC },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -2191,7 +2191,7 @@ s32 func_shelter_r48_8017E0EC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMe
 static void func_shelter_r48_8017E1A4(Task* arg0)
 {
     arg0->msgTable = D_shelter_r48_80182FB8;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     func_80132F58(0);
     func_800E8634(&D_8014BD48, 0, &D_8014C288);
     GameFlag_SetNibble(0x12A, 1);

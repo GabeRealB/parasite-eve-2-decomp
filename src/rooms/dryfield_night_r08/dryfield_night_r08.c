@@ -30,7 +30,7 @@ TaskMessageEntry D_dryfield_night_r08_80180544[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_r08_8017D5F8 },
     { 5105, func_dryfield_night_r08_8017D5F0 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_r08_8017D628 },
-    { 5104, func_dryfield_night_r08_8017D620 },
+    { ROOM_MESSAGE_COMMAND, func_dryfield_night_r08_8017D620 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -73,7 +73,7 @@ s32 func_dryfield_night_r08_8017D628(Task* task, s32 msgId, TaskMessageArg arg2,
 static void func_dryfield_night_r08_8017D630(Task* arg0)
 {
     arg0->msgTable = D_dryfield_night_r08_80180544;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     Gp_SetStreamBuf((u8*)Fs_ActorLoadBase1 + 0x20000);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
         func_800E8634(&D_80133898, 0, &D_801341E0);

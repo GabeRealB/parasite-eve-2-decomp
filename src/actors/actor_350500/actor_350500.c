@@ -214,10 +214,10 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
 TaskDesc D_actor_350500_80168EA4 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_350500_80162360, { .model = &_gActor350500EveBreaMaskedBody } };
 
 Actor350500MsgEntry gReverseWalkMessages[6] = {
-    { 2003, { .call0 = actorMotionPlayAnim19 } },
-    { 2004, { .call2 = actorMsgPlaceEuler } },
-    { 2005, { .call4 = reverseWalkVisibilityMsg } },
-    { 2013, { .call3 = reverseWalkStartMsg } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = actorMotionPlayAnim19 } },
+    { ACTOR_MESSAGE_PLACE, { .call2 = actorMsgPlaceEuler } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = reverseWalkVisibilityMsg } },
+    { ACTOR_MESSAGE_WALK_TO, { .call3 = reverseWalkStartMsg } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_350500_80162ABC } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 }; /// Per-frame tick: runs the idle or the walk handler `walk.motion` selects,

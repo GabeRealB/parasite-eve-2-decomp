@@ -8,13 +8,13 @@ s32 roomVariantResolveNeoArk(RoomEventMsg* arg0, RoomEventMsg* arg1)
 {
     if (arg0->queryOnly == ROOM_EVENT_EXECUTE) {
         switch (arg0->areaId) {
-            case 7:
+            case GAME_AREA_MINE_FORKED_TUNNEL:
                 arg1->room = GameFlag_GetNibble(0xE1) + 1;
                 break;
-            case 13:
+            case GAME_AREA_SHELTER_B1_ARMORY:
                 arg1->room = GameFlag_GetNibble(0xD9) + 1;
                 break;
-            case 20:
+            case GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING:
                 arg1->room = 1;
                 if (GameFlag_GetNibble(0xDD) != 0) {
                     if (GameFlag_GetNibble(0xDC) != 0) {
@@ -24,37 +24,37 @@ s32 roomVariantResolveNeoArk(RoomEventMsg* arg0, RoomEventMsg* arg1)
                     }
                 }
                 break;
-            case 21:
+            case GAME_AREA_SHELTER_B1_GOLEM_FREEZER_1:
                 if (GameFlag_GetNibble(0xE9) != 0) {
                     arg1->room = 4;
                 } else {
                     arg1->room = 1;
                 }
                 break;
-            case 32:
+            case GAME_AREA_SHELTER_B2_BREEDING_ROOM:
                 arg1->room = GameFlag_GetNibble(0xDD) + 1;
                 break;
-            case 8:
-            case 9:
-            case 10:
-            case 11:
-            case 12:
-            case 14:
-            case 15:
-            case 16:
-            case 17:
-            case 18:
-            case 19:
-            case 22:
-            case 23:
-            case 24:
-            case 25:
-            case 26:
-            case 27:
-            case 28:
-            case 29:
-            case 30:
-            case 31:
+            case GAME_AREA_MINE_SECRET_PASSAGE:
+            case GAME_AREA_SHELTER_B1_ELEVATOR_HALL:
+            case GAME_AREA_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY:
+            case GAME_AREA_SHELTER_B1_STOREROOM:
+            case GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY:
+            case GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS:
+            case GAME_AREA_SHELTER_B1_MAIN_CORRIDOR:
+            case GAME_AREA_SHELTER_B1_STERILIZATION_ROOM:
+            case GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL:
+            case GAME_AREA_SHELTER_B1_CONTROL_ROOM:
+            case GAME_AREA_SHELTER_B1_ACCESS_TUNNEL:
+            case GAME_AREA_SHELTER_B2_POD_BOTTOM:
+            case GAME_AREA_SHELTER_B1_POD_SERVICE_GANTRY:
+            case GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL:
+            case GAME_AREA_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL:
+            case GAME_AREA_SHELTER_B2_ELEVATOR:
+            case GAME_AREA_SHELTER_B2_ELEVATOR_HALL:
+            case GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY:
+            case GAME_AREA_SHELTER_B2_OPERATING_ROOM:
+            case GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY:
+            case GAME_AREA_SHELTER_B2_LABORATORY:
             default:
                 break;
         }

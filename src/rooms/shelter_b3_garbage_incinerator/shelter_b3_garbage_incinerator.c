@@ -58,9 +58,9 @@ TaskMessageEntry D_shelter_b3_garbage_incinerator_80185594[7] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b3_garbage_incinerator_8017D840 },
     { 5105, func_shelter_b3_garbage_incinerator_8017D838 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b3_garbage_incinerator_8017D9BC },
-    { 5104, func_shelter_b3_garbage_incinerator_8017D9B4 },
-    { 5108, func_shelter_b3_garbage_incinerator_8017DA74 },
-    { 5106, func_shelter_b3_garbage_incinerator_8017DB2C },
+    { ROOM_MESSAGE_COMMAND, func_shelter_b3_garbage_incinerator_8017D9B4 },
+    { ROOM_MESSAGE_ACTOR_EVENT, func_shelter_b3_garbage_incinerator_8017DA74 },
+    { ROOM_MESSAGE_SOUND, func_shelter_b3_garbage_incinerator_8017DB2C },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -118,7 +118,7 @@ s32 func_shelter_b3_garbage_incinerator_8017D840(Task* arg0, s32 arg1, RoomEvent
 {
     *out = *in;
     func_map_shelter_80179A04(in, out);
-    if (in->areaId == 0x29) {
+    if (in->areaId == GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM) {
         if (in->queryOnly != ROOM_EVENT_EXECUTE) {
             return 0;
         }
@@ -139,7 +139,7 @@ s32 func_shelter_b3_garbage_incinerator_8017D840(Task* arg0, s32 arg1, RoomEvent
         Task_SpawnFromTable(&D_shelter_b3_garbage_incinerator_801855CC, 0, 0, 0);
         return 2;
     }
-    if (in->areaId == 0x27 && in->queryOnly == ROOM_EVENT_EXECUTE) {
+    if (in->areaId == GAME_AREA_SHELTER_B3_DUMPING_HOLE && in->queryOnly == ROOM_EVENT_EXECUTE) {
         out->room = gGameSession->incineratorRoomGroup + 1;
     }
     return 1;
@@ -169,7 +169,7 @@ s32 func_shelter_b3_garbage_incinerator_8017DA74(Task* arg0, s32 arg1, s32 arg2,
 {
     switch (arg2) {
         case 0:
-            taskMessageDispatch(D_shelter_b3_garbage_incinerator_801855D8, 0x13F4, 0, 0);
+            taskMessageDispatch(D_shelter_b3_garbage_incinerator_801855D8, ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
             break;
         case 1:
             gGameSession->skipEventIntro = 1;
@@ -200,7 +200,7 @@ s32 func_shelter_b3_garbage_incinerator_8017DB2C(Task* arg0, s32 arg1, s32 arg2,
 static void func_shelter_b3_garbage_incinerator_8017DB7C(Task* task)
 {
     task->msgTable = D_shelter_b3_garbage_incinerator_80185594;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     func_shelter_b3_garbage_incinerator_8018108C(0x180, 0, 0);
     D_shelter_b3_garbage_incinerator_801855D8 = Task_SpawnFromTable(&D_shelter_b3_garbage_incinerator_80185BA0, 0, 0, 0);
     if (gGameSession->location.loc.room >= 4) {

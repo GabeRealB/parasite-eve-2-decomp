@@ -77,8 +77,8 @@ static void func_acropolis_helicopter_landing_pad_8017D7B0(Task* task);
 s32 func_acropolis_helicopter_landing_pad_8017D824(Task*, s32, AnimationPlayRequest*, TaskMessageArg);
 
 _AcropolisHelicopterLandingPadMessageEntry D_acropolis_helicopter_landing_pad_80182328[3] = {
-    { 2003, { .animation = func_acropolis_helicopter_landing_pad_8017D824 } },
-    { 2004, { .placement = actorMsgPlaceEuler } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .animation = func_acropolis_helicopter_landing_pad_8017D824 } },
+    { ACTOR_MESSAGE_PLACE, { .placement = actorMsgPlaceEuler } },
     { TASK_MESSAGE_TABLE_END, { .animation = NULL } },
 };
 
@@ -297,7 +297,7 @@ void func_acropolis_helicopter_landing_pad_8017D9BC(Task* task)
     s32 phase = D_acropolis_helicopter_landing_pad_80184D9C;
 
     if (phase == 1) {
-        if (taskMessageDispatch(Gp_LookupSlot4(0), 0x7D6, 0, 0) == 0) {
+        if (taskMessageDispatch(Gp_LookupSlot4(0), ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0) {
             if ((Gp_StateC08.field_A != phase) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 D_acropolis_helicopter_landing_pad_80184D9C = 2;
                 func_800E8634(D_acropolis_helicopter_landing_pad_80184124, 0,

@@ -62,8 +62,8 @@ DryfieldToiletMessageEntry D_dryfield_toilet_801802A4[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, { .call2 = roomVariantParkingLotMsg } },
     { 5105, { .call0 = func_dryfield_toilet_8017D8B8 } },
     { 5103, { .call2 = func_dryfield_toilet_8017D8C8 } },
-    { 5104, { .call0 = func_dryfield_toilet_8017D8C0 } },
-    { 5106, { .call1 = toiletSoundMsg } },
+    { ROOM_MESSAGE_COMMAND, { .call0 = func_dryfield_toilet_8017D8C0 } },
+    { ROOM_MESSAGE_SOUND, { .call1 = toiletSoundMsg } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
@@ -212,7 +212,7 @@ s32 func_dryfield_toilet_8017D8C8(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEven
 static void func_dryfield_toilet_8017D940(Task* arg0)
 {
     arg0->msgTable = D_dryfield_toilet_801802A4;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (GameFlag_GetNibble(0x60) == 0 && gGameSession->location.loc.variant == 1) {
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_dryfield_toilet_801802D4, ACTOR_COMMAND_MESSAGE_APPLY);
         func_dryfield_toilet_8017D5E4();

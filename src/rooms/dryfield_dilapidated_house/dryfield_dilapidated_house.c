@@ -287,7 +287,7 @@ TaskMessageEntry D_dryfield_dilapidated_house_80183E8C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_dilapidated_house_8017E574 },
     { 5105, func_dryfield_dilapidated_house_8017E56C },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_dilapidated_house_8017E68C },
-    { 5104, func_dryfield_dilapidated_house_8017E684 },
+    { ROOM_MESSAGE_COMMAND, func_dryfield_dilapidated_house_8017E684 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -2623,7 +2623,7 @@ static void func_dryfield_dilapidated_house_8017E014(Task* task)
         if (D_dryfield_dilapidated_house_80183EFC == 1) {
             D_dryfield_dilapidated_house_80183EFC = 2;
         } else if ((D_dryfield_dilapidated_house_80183EFC == 2) &&
-                   (taskMessageDispatch(Gp_LookupSlot4(0), 0x7D6, 0, 0) == 0)) {
+                   (taskMessageDispatch(Gp_LookupSlot4(0), ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0)) {
             if (Gp_StateC08.field_A != 1) {
                 if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                     D_dryfield_dilapidated_house_80183EFC += 1;
@@ -2759,10 +2759,10 @@ void func_dryfield_dilapidated_house_8017E2B0(Task* task)
                 Gp_FillPlayerHpMp();
                 Gp_FillAllyHp();
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent         = 1;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 2;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_DRYFIELD;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 8;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_DRYFIELD_R08;
                 gDisplayState.spriteVariant                                 = 1;
                 Task_Spawn(0, 0x11, 0, 0);
             }
@@ -2795,7 +2795,7 @@ s32 func_dryfield_dilapidated_house_8017E574(Task* arg0, s32 arg1, RoomEventMsg*
     *out = *in;
     s1   = gGameSession->location.loc.stage;
     if (s1 == 2) {
-        if (in->areaId == 7) {
+        if (in->areaId == GAME_AREA_DRYFIELD_WAREHOUSE) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 if (GameFlag_GetNibble(0x3C) == 0) {
                     out->room = 1;
@@ -2805,13 +2805,13 @@ s32 func_dryfield_dilapidated_house_8017E574(Task* arg0, s32 arg1, RoomEventMsg*
             }
         }
     }
-    if ((in->areaId == 7) && (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED)) {
+    if ((in->areaId == GAME_AREA_DRYFIELD_WAREHOUSE) && (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED)) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_SpawnIfCapIdle(0x14, 0);
         }
         return 0;
     }
-    if (in->areaId == 5) {
+    if (in->areaId == GAME_AREA_DRYFIELD_BACK_STREET) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_SpawnIfCapIdle(0x13, 0);
         }
@@ -3020,7 +3020,7 @@ void func_dryfield_dilapidated_house_8017EA7C(void)
 static void func_dryfield_dilapidated_house_8017EAB4(Task* arg0)
 {
     arg0->msgTable = D_dryfield_dilapidated_house_80183E8C;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (Gp_LookupSlot4(1) != 0) {
         D_dryfield_dilapidated_house_80189B78 =
             Task_SpawnFromTable(D_dryfield_dilapidated_house_80183EB4, 0, 0, 0);

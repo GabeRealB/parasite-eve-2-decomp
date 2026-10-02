@@ -141,8 +141,8 @@ s32 func_dryfield_gas_station_8017FD54(s32, s32, s32);
 DryfieldGasStationMessageEntry D_dryfield_gas_station_80181E54[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, { .call1 = roomVariantGasStationMsg } },
     { 5105, { .call0 = func_dryfield_gas_station_8017FD4C } },
-    { 5104, { .call2 = func_dryfield_gas_station_8017FD54 } },
-    { 5106, { .call2 = gasStationCueSoundMsg } },
+    { ROOM_MESSAGE_COMMAND, { .call2 = func_dryfield_gas_station_8017FD54 } },
+    { ROOM_MESSAGE_SOUND, { .call2 = gasStationCueSoundMsg } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
@@ -236,7 +236,7 @@ void func_dryfield_gas_station_8017FE20(Task* arg0)
 static void func_dryfield_gas_station_8017FEDC(Task* arg0)
 {
     arg0->msgTable = D_dryfield_gas_station_80181E54;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == 1) {
         Task_SpawnFromTable(D_dryfield_gas_station_80181E3C, 0, 0, 0);
         GameFlag_SetNibble(0x7A, 2);

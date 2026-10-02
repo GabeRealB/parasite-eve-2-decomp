@@ -70,8 +70,8 @@ TaskMessageEntry D_neo_ark_woodland_path_80181650[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_woodland_path_8017E890 },
     { 5105, func_neo_ark_woodland_path_8017E888 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_woodland_path_8017E8DC },
-    { 5104, func_neo_ark_woodland_path_8017E8D4 },
-    { 5108, func_neo_ark_woodland_path_8017E910 },
+    { ROOM_MESSAGE_COMMAND, func_neo_ark_woodland_path_8017E8D4 },
+    { ROOM_MESSAGE_ACTOR_EVENT, func_neo_ark_woodland_path_8017E910 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -821,7 +821,7 @@ s32 func_neo_ark_woodland_path_8017E910(Task* task, s32 msgId, s32 arg2, s32 arg
 static void func_neo_ark_woodland_path_8017E944(Task* arg0)
 {
     arg0->msgTable = D_neo_ark_woodland_path_80181650;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     D_neo_ark_woodland_path_80181680 = Task_SpawnFromTable(D_neo_ark_woodland_path_80184A44, 1, 0, 0);
     arg0->state                      = (s32)(arg0->state + 1);
 }

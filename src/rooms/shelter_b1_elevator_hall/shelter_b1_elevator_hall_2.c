@@ -78,8 +78,8 @@ TaskMessageEntry D_shelter_b1_elevator_hall_80182CB8[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_elevator_hall_8017D810 },
     { 5105, func_shelter_b1_elevator_hall_8017DB54 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_elevator_hall_8017DB64 },
-    { 5104, func_shelter_b1_elevator_hall_8017DB5C },
-    { 5106, func_shelter_b1_elevator_hall_8017DB6C },
+    { ROOM_MESSAGE_COMMAND, func_shelter_b1_elevator_hall_8017DB5C },
+    { ROOM_MESSAGE_SOUND, func_shelter_b1_elevator_hall_8017DB6C },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

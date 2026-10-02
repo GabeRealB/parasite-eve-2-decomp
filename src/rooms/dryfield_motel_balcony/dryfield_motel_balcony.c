@@ -102,8 +102,8 @@ TaskMessageEntry D_dryfield_motel_balcony_8018227C[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantMotelBalconyDoorsMsg },
     { 5105, func_dryfield_motel_balcony_8017DB6C },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_motel_balcony_8017DB7C },
-    { 5104, func_dryfield_motel_balcony_8017DB74 },
-    { 5106, roomVariantMotelBalconySoundMsg },
+    { ROOM_MESSAGE_COMMAND, func_dryfield_motel_balcony_8017DB74 },
+    { ROOM_MESSAGE_SOUND, roomVariantMotelBalconySoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1159,7 +1159,7 @@ s32 func_dryfield_motel_balcony_8017DB7C(Task* task, s32 msgId, TaskMessageArg a
 static void func_dryfield_motel_balcony_8017DB84(Task* task)
 {
     task->msgTable = D_dryfield_motel_balcony_8018227C;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

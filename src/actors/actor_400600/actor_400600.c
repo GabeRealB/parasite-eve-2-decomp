@@ -1619,7 +1619,7 @@ static void func_actor_400600_8013203C(Task* arg0)
     work->obj_4B4.pos.vy           = 0x96;
     work->obj_4B4.pos.vz           = 0x110;
     work->obj_4B4.key              = 0x30006;
-    if (gGameSession->location.loc.stage == 3 && (gGameSession->location.loc.area == 0x1F || gGameSession->location.loc.area == 0x1D)) {
+    if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD_NIGHT && (gGameSession->location.loc.area == 0x1F || gGameSession->location.loc.area == 0x1D)) {
         work->obj_4B4.radius = 0x260;
     } else {
         work->obj_4B4.radius = 0x200;
@@ -2430,7 +2430,7 @@ static void func_actor_400600_80133FC0(Task* arg0)
     }
     query.field_14 = 8;
     if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, &query, 0) != 0) {
-        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
+        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
         if (work->onCeiling == 0) {
             work3           = (Actor400600Work*)arg0->work;
             work3->state    = 2;
@@ -2539,7 +2539,7 @@ static void func_actor_400600_80134218(Task* arg0)
         sound2 = id | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
         pan2   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(sound2, pan2, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-        if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F9, Gp_PackObjPair(enemy, 1), 0) != 0) {
+        if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 1), 0) != 0) {
             work->holdTaken = 1;
         }
         vec.vx = 0;
@@ -5206,7 +5206,7 @@ static void func_actor_400600_8013B640(void)
             param2[3] = 0;
             param2[2] = 0;
             param2[1] = 0;
-            CdCmd_Enqueue(0x21, param1, param2);
+            CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
         } else {
             param1[2] = 0x28;
             param1[0] = 1;
@@ -5215,7 +5215,7 @@ static void func_actor_400600_8013B640(void)
             param2[3] = 0;
             param2[2] = 0;
             param2[1] = 0;
-            CdCmd_Enqueue(0x21, param1, param2);
+            CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
         }
         gSceneCombatState.enemySoundBankQueued = 1;
     }

@@ -183,8 +183,8 @@ TaskMessageEntry D_mine_refuge_80181884[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_mine_refuge_8017FBE8 },
     { 5105, func_mine_refuge_8017FBB4 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_mine_refuge_8017FCD0 },
-    { 5104, func_mine_refuge_8017FC2C },
-    { 5106, func_mine_refuge_8017FD48 },
+    { ROOM_MESSAGE_COMMAND, func_mine_refuge_8017FC2C },
+    { ROOM_MESSAGE_SOUND, func_mine_refuge_8017FD48 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -732,7 +732,7 @@ static void func_mine_refuge_8017FE78(s32 arg0)
 static void func_mine_refuge_8017FF4C(Task* arg0)
 {
     arg0->msgTable = D_mine_refuge_80181884;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     D_mine_refuge_80182AD8 = NULL;
     gStageSceneMusicEntry  = 1;
     arg0->state            = arg0->state + 1;

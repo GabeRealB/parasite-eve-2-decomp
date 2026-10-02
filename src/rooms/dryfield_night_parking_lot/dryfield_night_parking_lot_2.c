@@ -95,8 +95,8 @@ TaskMessageEntry D_dryfield_night_parking_lot_8017EC60[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, parkingLotEventMsg },
     { 5105, func_dryfield_night_parking_lot_8017DB04 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_parking_lot_8017DB34 },
-    { 5104, func_dryfield_night_parking_lot_8017DB0C },
-    { 5106, parkingLotSoundMsg },
+    { ROOM_MESSAGE_COMMAND, func_dryfield_night_parking_lot_8017DB0C },
+    { ROOM_MESSAGE_SOUND, parkingLotSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

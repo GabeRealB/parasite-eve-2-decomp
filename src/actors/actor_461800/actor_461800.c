@@ -411,11 +411,11 @@ static AnimationSet _gActor461800Animation08110 = {
 s16 gScriptedWalkBlendFrames = 8;
 
 Actor461800MessageEntry D_actor_461800_80139F5C[6] = {
-    { 2003, { .call0 = func_actor_461800_80132D84 } },
-    { 2005, { .call4 = func_actor_461800_80132E14 } },
-    { 2004, { .call2 = scriptedWalkPlace } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = func_actor_461800_80132D84 } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = func_actor_461800_80132E14 } },
+    { ACTOR_MESSAGE_PLACE, { .call2 = scriptedWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_461800_80132F20 } },
-    { 2013, { .call3 = scriptedWalkTo } },
+    { ACTOR_MESSAGE_WALK_TO, { .call3 = scriptedWalkTo } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
@@ -821,11 +821,11 @@ static AnimationSet _gActor461800Animation11970 = {
 s16 gFootstepWalkBlendFrames = 8;
 
 Actor461800MessageEntry gFootstepWalkMsgTable[6] = {
-    { 2003, { .call0 = footstepWalkPlay } },
-    { 2005, { .call4 = func_actor_461800_80133928 } },
-    { 2004, { .call2 = footstepWalkPlace } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = footstepWalkPlay } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = func_actor_461800_80133928 } },
+    { ACTOR_MESSAGE_PLACE, { .call2 = footstepWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_461800_801339EC } },
-    { 2013, { .call3 = footstepWalkTo } },
+    { ACTOR_MESSAGE_WALK_TO, { .call3 = footstepWalkTo } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
@@ -1045,8 +1045,8 @@ void func_actor_461800_8013229C(void)
             gGameSession->deathFadeFrames = 0xF;
             return;
         }
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 4;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 0x24;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_MINE_SHELTER;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_SHELTER_R36;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
         gDisplayState.spriteVariant                                 = 1;

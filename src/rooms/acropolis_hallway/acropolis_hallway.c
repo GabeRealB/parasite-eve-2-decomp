@@ -75,7 +75,7 @@ s32                          func_acropolis_hallway_8017D734(Task*, s32, s32, Ta
 TaskMessageEntry D_acropolis_hallway_8017E238[4] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_hallway_8017D5D0 },
     { 5105, func_acropolis_hallway_8017D72C },
-    { 5106, func_acropolis_hallway_8017D734 },
+    { ROOM_MESSAGE_SOUND, func_acropolis_hallway_8017D734 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -384,18 +384,18 @@ s32 func_acropolis_hallway_8017D5D0(Task* arg0, s32 arg1, RoomEventMsg* in, Room
     u16 msgId;
 
     *out = *in;
-    if (in->areaId == 8) {
+    if (in->areaId == GAME_AREA_ACROPOLIS_FOUNTAIN) {
         if ((GameFlag_GetNibble(9) & 2) && in->queryOnly == ROOM_EVENT_EXECUTE) {
             out->room = 2;
         }
     }
-    if (in->areaId == 4 && in->warp == 3 && GameFlag_GetNibble(0) < 3) {
+    if (in->areaId == GAME_AREA_ACROPOLIS_CAFETERIA && in->warp == 3 && GameFlag_GetNibble(0) < 3) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_RunCapCmd1(1);
         }
         return 0;
     }
-    if (in->areaId == 8 && GameFlag_GetNibble(0) == 3) {
+    if (in->areaId == GAME_AREA_ACROPOLIS_FOUNTAIN && GameFlag_GetNibble(0) == 3) {
         return 1;
     }
     msgId = in->areaId;
@@ -434,7 +434,7 @@ s32 func_acropolis_hallway_8017D734(Task* arg0, s32 arg1, s32 arg2, TaskMessageA
 static void func_acropolis_hallway_8017D784(Task* task)
 {
     task->msgTable = D_acropolis_hallway_8017E238;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

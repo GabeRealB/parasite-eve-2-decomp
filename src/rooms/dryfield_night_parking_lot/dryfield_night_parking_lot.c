@@ -109,7 +109,7 @@ void func_dryfield_night_parking_lot_8017DBA4(s32 arg0)
 static void func_dryfield_night_parking_lot_8017DBB0(Task* task)
 {
     task->msgTable = D_dryfield_night_parking_lot_8017EC60;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     if ((gGameSession->location.loc.variant == 3) && (GameFlag_GetNibble(0x79) != 0)) {
         gSceneCombatState.actor01600Wave = 2;
     }

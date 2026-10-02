@@ -2803,11 +2803,11 @@ AnimationSet gActor403200Animation2D928 = {
 
 Actor403200MessageEntry D_actor_403200_8015F770[8] = {
     { 2015, { .call5 = func_actor_403200_8014196C } },
-    { 2005, { .call4 = func_actor_403200_80138468 } },
-    { 2006, { .call1 = actorMsgIsPresent } },
-    { 2004, { .call3 = actorMsgPlace } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = func_actor_403200_80138468 } },
+    { ACTOR_MESSAGE_IS_PRESENT, { .call1 = actorMsgIsPresent } },
+    { ACTOR_MESSAGE_PLACE, { .call3 = actorMsgPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_403200_80138748 } },
-    { 5108, { .call4 = func_actor_403200_80141A94 } },
+    { ROOM_MESSAGE_ACTOR_EVENT, { .call4 = func_actor_403200_80141A94 } },
     { 2014, { .call0 = func_actor_403200_80141B30 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
@@ -5108,7 +5108,7 @@ static void func_actor_403200_8013C84C(Task* arg0)
     }
     if (work->field_7B3 == 0xF) {
         if (cfg->hp > 0) {
-            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F9, Gp_PackObjPair(enemy, 3), 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 3), 0);
             if (cfg->hp <= 0) {
                 ((GameActor*)task->work)->state   = 0xA;
                 gGameSession->deathSoundCountdown = 0x1E;
@@ -5154,7 +5154,7 @@ static void func_actor_403200_8013C84C(Task* arg0)
         }
         work->field_7A8 = work->slots0[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     }
-    if ((taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) && (cfg->hp > 0)) {
+    if ((taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) && (cfg->hp > 0)) {
         D_actor_403200_8015F9C0.value.pos.vx = arg0->extra.tmd->coords[0].coord.t[0];
         D_actor_403200_8015F9C0.value.pos.vy = arg0->extra.tmd->coords[0].coord.t[1];
         D_actor_403200_8015F9C0.value.pos.vz = arg0->extra.tmd->coords[0].coord.t[2];
@@ -5372,7 +5372,7 @@ scanned:
     if (found != 0 && enemy->hp > 0 &&
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, &D_actor_403200_8015FA00, 0) == 0) {
         target          = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-        reply           = taskMessageDispatch(target, 0x3F9, Gp_PackObjPair(enemy, 4), 0);
+        reply           = taskMessageDispatch(target, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 4), 0);
         work->field_ECA = reply;
         if (reply == 1) {
             ((GameActor*)task->work)->state = 0xA;
@@ -6686,7 +6686,7 @@ after_mode:
             TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->anim, 0);
         }
 
-        if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
+        if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
             switch (work->anim.animationId) {
                 case 2:
                     if (work->field_ECA != 1 && (s16)work->field_7CA >= 0x17) {
@@ -6704,7 +6704,7 @@ after_mode:
                     break;
                 case 4:
                     if (work->field_ECA != 1) {
-                        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 2, 0);
+                        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 2, 0);
                         work->field_EC8 = 0;
                     }
                     break;
@@ -6714,7 +6714,7 @@ after_mode:
 
     if (gGluttonEnded == 1) {
         if (work->field_EC8 == gGluttonEnded) {
-            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 2, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 2, 0);
             work->field_EC8 = 0;
         }
     }
@@ -6945,7 +6945,7 @@ static void func_actor_403200_8014123C(Task* arg0)
     }
     gluttonTickAnim(arg0);
     if (work->field_6 == 8) {
-        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, 0, 0);
+        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
         SndEvt_EnqueueType7(((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000A, 1);
     }
 }

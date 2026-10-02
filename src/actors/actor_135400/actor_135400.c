@@ -401,9 +401,9 @@ TaskDesc D_actor_135400_8013A4AC[3] = {
 };
 
 _Actor135400MessageEntry D_actor_135400_8013A4D0[5] = {
-    { 2003, { .animation = actorMotionPlayAnim } },
-    { 2004, { .placement = actorMsgPlaceEuler } },
-    { 2005, { .mode = func_actor_135400_801327E8 } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .animation = actorMotionPlayAnim } },
+    { ACTOR_MESSAGE_PLACE, { .placement = actorMsgPlaceEuler } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .mode = func_actor_135400_801327E8 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .command = func_actor_135400_801328DC } },
     { TASK_MESSAGE_TABLE_END, { .animation = NULL } },
 };
@@ -578,9 +578,9 @@ AnimationSet** D_actor_135400_8013F8D4[1] = {
 TaskDesc D_actor_135400_8013F8D8 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_135400_80132AF4, { .model = &_gActor135400FlintBody } };
 
 _Actor135400MessageEntry D_actor_135400_8013F8E4[4] = {
-    { 2003, { .animation = func_actor_135400_80132D24 } },
-    { 2004, { .placement = func_actor_135400_80132E40 } },
-    { 2005, { .mode = func_actor_135400_80132EBC } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .animation = func_actor_135400_80132D24 } },
+    { ACTOR_MESSAGE_PLACE, { .placement = func_actor_135400_80132E40 } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .mode = func_actor_135400_80132EBC } },
     { TASK_MESSAGE_TABLE_END, { .animation = NULL } },
 };
 
@@ -679,14 +679,14 @@ static void func_actor_135400_80132064(Task* arg0)
     }
     func_actor_135400_80132634(arg0);
     arg0->msgTable = D_actor_135400_8013A4D0;
-    func_actor_135400_801327E8(arg0, 0x7D5, 1, 0);
+    func_actor_135400_801327E8(arg0, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
     if (GameFlag_GetNibble(0x6C) <= 0) {
-        actorMsgPlaceEuler(arg0, 0x7D4, &places.field_0, 0);
-        actorMotionPlayAnim(arg0, 0x7D3, &anim[0], 0);
+        actorMsgPlaceEuler(arg0, ACTOR_MESSAGE_PLACE, &places.field_0, 0);
+        actorMotionPlayAnim(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &anim[0], 0);
         func_dryfield_night_garage_80180414(0);
     } else {
-        actorMsgPlaceEuler(arg0, 0x7D4, &places.field_18, 0);
-        actorMotionPlayAnim(arg0, 0x7D3, &anim[1], 0);
+        actorMsgPlaceEuler(arg0, ACTOR_MESSAGE_PLACE, &places.field_18, 0);
+        actorMotionPlayAnim(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &anim[1], 0);
     }
     arg0->exitCallback = func_actor_135400_80132614;
     arg0->state       += 1;
@@ -930,7 +930,7 @@ static void func_actor_135400_801329B0(Task* task)
         if (work->params.animationId >= 7) {
             work->params.animationId = 1;
         }
-        func_actor_135400_80132D24(task, 0x7D3, &work->params, 0);
+        func_actor_135400_80132D24(task, ACTOR_MESSAGE_PLAY_ANIMATION, &work->params, 0);
         task->killCountdown = 0;
     }
     step = work->field_494;
@@ -992,8 +992,8 @@ static void func_actor_135400_80132B60(Task* arg0)
     work->model.bank   = -1;
     work->field_494    = -1;
     work->params       = spawn;
-    func_actor_135400_80132D24(arg0, 0x7D3, &params, 0);
-    func_actor_135400_80132EBC(arg0, 0x7D5, 1, 0);
+    func_actor_135400_80132D24(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &params, 0);
+    func_actor_135400_80132EBC(arg0, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
     func_actor_135400_80132CB0(arg0);
     arg0->msgTable     = D_actor_135400_8013F8E4;
     arg0->exitCallback = func_actor_135400_80132C90;

@@ -52,8 +52,8 @@ TaskMessageEntry D_neo_ark_island_80181B48[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_island_8017E968 },
     { 5105, func_neo_ark_island_8017E960 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_island_8017EA2C },
-    { 5104, func_neo_ark_island_8017EA24 },
-    { 5106, func_neo_ark_island_8017EA34 },
+    { ROOM_MESSAGE_COMMAND, func_neo_ark_island_8017EA24 },
+    { ROOM_MESSAGE_SOUND, func_neo_ark_island_8017EA34 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

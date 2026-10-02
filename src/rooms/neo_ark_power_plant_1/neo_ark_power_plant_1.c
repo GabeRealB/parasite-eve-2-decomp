@@ -103,7 +103,7 @@ static void func_neo_ark_power_plant_1_8017D5EC(Task* task)
     if (GameFlag_GetNibble(0xDE) == 0) {
         slot = Gp_LookupSlot4(0);
         if (slot != 0) {
-            if (taskMessageDispatch(slot, 0x7D6, 0, 0) == 0) {
+            if (taskMessageDispatch(slot, ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0) {
                 if (Gp_StateC08.field_A != 1) {
                     if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                         GameFlag_SetNibble(0xDE, 1);
@@ -229,7 +229,7 @@ void func_neo_ark_power_plant_1_8017D908(void)
 static void func_neo_ark_power_plant_1_8017D928(Task* task)
 {
     task->msgTable = D_neo_ark_power_plant_1_8017EB18;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 1) {
         gGameSession->flowFlags = GAME_SESSION_FLOW_SKIP_ENDING_MUSIC;
     }

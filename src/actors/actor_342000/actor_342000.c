@@ -272,8 +272,8 @@ ActorTransform D_actor_342000_80164878[2] = {
 };
 
 Actor342000MessageEntry D_actor_342000_801648A8[2] = {
-    { 2005, { .call2 = actorMsgSetDrawMode } },
-    { 2004, { .call1 = actorMsgPlaceYawPitchRoll } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call2 = actorMsgSetDrawMode } },
+    { ACTOR_MESSAGE_PLACE, { .call1 = actorMsgPlaceYawPitchRoll } },
 };
 
 ActorTransform D_actor_342000_801648B8 = { { 0x36B0, 2000, -0x40D8, 0 }, { 0, 2048, 0, 0 } };
@@ -281,8 +281,8 @@ ActorTransform D_actor_342000_801648B8 = { { 0x36B0, 2000, -0x40D8, 0 }, { 0, 20
 ActorTransform D_actor_342000_801648D0 = { { 0x36B0, 2000, -0x3E80, 0 }, { 0, 2048, 0, 0 } };
 
 Actor342000MessageEntry D_actor_342000_801648E8[3] = {
-    { 2005, { .call2 = actorMsgSetDrawMode } },
-    { 2004, { .call1 = func_actor_342000_801640C0 } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call2 = actorMsgSetDrawMode } },
+    { ACTOR_MESSAGE_PLACE, { .call1 = func_actor_342000_801640C0 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_342000_80164110 } },
 };
 
@@ -758,7 +758,7 @@ static void func_actor_342000_80162BBC(Task* arg0)
 
     work = (Actor342000EventWork*)arg0->work;
     if (work->field_48 != NULL) {
-        taskMessageDispatch(work->field_48, 0x3ED, 0, 0);
+        taskMessageDispatch(work->field_48, ANIMATION_MESSAGE_IS_PLAYING, 0, 0);
     }
     switch (work->field_68) {
         case 0:
@@ -775,7 +775,7 @@ static void func_actor_342000_80162BBC(Task* arg0)
                     work->field_6A++;
                     return;
                 case 1:
-                    if (taskMessageDispatch(work->field_48, 0x3F0, 0, 0) == 0) {
+                    if (taskMessageDispatch(work->field_48, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
                         work->field_6C = 0;
                         work->field_6A++;
                     }
@@ -924,9 +924,9 @@ static void func_actor_342000_80162F28(Task* arg0)
         case 1:
             switch ((u16)work->field_72) {
                 case 0:
-                    taskMessageDispatch(work->field_50, 0x7D5, 1, 0);
-                    taskMessageDispatch(work->field_5C, 0x7D5, 1, 0);
-                    taskMessageDispatch(work->field_60, 0x7D5, 1, 0);
+                    taskMessageDispatch(work->field_50, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+                    taskMessageDispatch(work->field_5C, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+                    taskMessageDispatch(work->field_60, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
                     Actor342000_CopyMove(&work->field_0[0], &D_actor_342000_80164818[0]);
                     Actor342000_CopyMove(&work->field_0[1], &D_actor_342000_80164818[1]);
                     actor->field_264.vx   = 0x1000;
@@ -960,8 +960,8 @@ static void func_actor_342000_80162F28(Task* arg0)
         case 2:
             switch ((u16)work->field_72) {
                 case 0:
-                    taskMessageDispatch(work->field_5C, 0x7D5, 0, 0);
-                    taskMessageDispatch(work->field_60, 0x7D5, 0, 0);
+                    taskMessageDispatch(work->field_5C, ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
+                    taskMessageDispatch(work->field_60, ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
                     TASK_MESSAGE_DISPATCH_POINTER(work->field_50, 0x7D4, &D_actor_342000_801648D0, 0);
                     Actor342000_SetAnim(work->field_50, 0, 0, 8);
                     Actor342000_SetAnim(work->field_54, 0, 0, 4);
@@ -975,8 +975,8 @@ static void func_actor_342000_80162F28(Task* arg0)
         case 3:
             switch ((u16)work->field_72) {
                 case 0:
-                    taskMessageDispatch(work->field_5C, 0x7D5, 1, 0);
-                    taskMessageDispatch(work->field_60, 0x7D5, 1, 0);
+                    taskMessageDispatch(work->field_5C, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+                    taskMessageDispatch(work->field_60, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
                     TASK_MESSAGE_DISPATCH_POINTER(work->field_50, 0x7D4, &D_actor_342000_801648B8, 0);
                     Actor342000_CopyMove(&work->field_0[0], &D_actor_342000_80164848[0]);
                     Actor342000_CopyMove(&work->field_0[1], &D_actor_342000_80164848[1]);
@@ -1012,11 +1012,11 @@ static void func_actor_342000_80162F28(Task* arg0)
                 work->field_72++;
             }
             if (gGameSession->location.loc.view == 0xF) {
-                taskMessageDispatch(work->field_5C, 0x7D5, 0, 0);
-                taskMessageDispatch(work->field_60, 0x7D5, 0, 0);
+                taskMessageDispatch(work->field_5C, ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
+                taskMessageDispatch(work->field_60, ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
             } else {
-                taskMessageDispatch(work->field_5C, 0x7D5, 1, 0);
-                taskMessageDispatch(work->field_60, 0x7D5, 1, 0);
+                taskMessageDispatch(work->field_5C, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+                taskMessageDispatch(work->field_60, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             }
             work->field_0[0].pos.vx += 5;
             work->field_0[1].pos.vx -= 5;
@@ -1029,8 +1029,8 @@ static void func_actor_342000_80162F28(Task* arg0)
         case 8:
             switch ((u16)work->field_72) {
                 case 0:
-                    taskMessageDispatch(work->field_5C, 0x7D5, 1, 0);
-                    taskMessageDispatch(work->field_60, 0x7D5, 1, 0);
+                    taskMessageDispatch(work->field_5C, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+                    taskMessageDispatch(work->field_60, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
                     Actor342000_CopyMove(&work->field_0[0], &D_actor_342000_80164878[0]);
                     Actor342000_CopyMove(&work->field_0[1], &D_actor_342000_80164878[1]);
                     work->field_72++;
@@ -1245,7 +1245,7 @@ void func_actor_342000_8016382C(Task* arg0)
             if (timer >= 2) {
                 Actor342000_SetMode(9);
                 func_shelter_b3_garbage_incinerator_8018507C();
-                taskMessageDispatch(work->field_48, 0x3F1, 0, 0);
+                taskMessageDispatch(work->field_48, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
                 gGameSession->incineratorExitPhase = GAME_SESSION_INCINERATOR_EXIT_ENCOUNTER;
                 goto next;
             }
@@ -1289,7 +1289,7 @@ void func_actor_342000_80163EAC(Task* arg0)
             arg0->state += 1;
             /* fallthrough */
         case 1:
-            Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->r, 2);
+            Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->r, GPU_BLEND_SUBTRACT);
             fade->r -= (u16)arg0->spawnArg1.value;
             fade->g -= (u16)arg0->spawnArg1.value;
             fade->b -= (u16)arg0->spawnArg1.value;
@@ -1432,7 +1432,7 @@ void func_actor_342000_80164364(s32 arg0)
     Actor342000EventWork* work;
 
     work = (Actor342000EventWork*)D_actor_342000_80165070->work;
-    taskMessageDispatch(work->field_48, 0x3F3, arg0, 0);
+    taskMessageDispatch(work->field_48, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, arg0, 0);
 }
 
 /// Warps the slot-3 task to the overlay's fixed placement (0x3E9), installs
@@ -1458,7 +1458,7 @@ void func_actor_342000_8016439C(void)
     msg.blendFrames          = 0;
     msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &msg, 0);
-    taskMessageDispatch(((Actor342000EventWork*)D_actor_342000_80165070->work)->field_48, 0x3F3, 1, 0);
+    taskMessageDispatch(((Actor342000EventWork*)D_actor_342000_80165070->work)->field_48, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
     if (work->field_64 != NULL) {
         taskKill(work->field_64);
         work->field_64 = NULL;

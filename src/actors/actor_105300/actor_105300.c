@@ -81,7 +81,7 @@ static TmdSource    _gActor105300BetaGeneratorBody;
 
 GeneratorMsgEntry gGeneratorMessages[3] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = generatorSetReleaseBits } },
-    { 2006, { .call0 = generatorIsAlive } },
+    { ACTOR_MESSAGE_IS_PRESENT, { .call0 = generatorIsAlive } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 

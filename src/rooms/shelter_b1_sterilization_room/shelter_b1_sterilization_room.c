@@ -234,8 +234,8 @@ ShelterB1SterilizationRoomMessageEntry D_shelter_b1_sterilization_room_80184E40[
     { ROOM_EVENT_MESSAGE_RESOLVE, { .call2 = func_shelter_b1_sterilization_room_801803EC } },
     { 5105, { .call0 = func_shelter_b1_sterilization_room_801803E4 } },
     { DIRECTION_MESSAGE_ROOM_ACTION, { .call1 = func_shelter_b1_sterilization_room_8017FC78 } },
-    { 5104, { .call3 = func_shelter_b1_sterilization_room_8017FF80 } },
-    { 5106, { .call3 = func_shelter_b1_sterilization_room_80180430 } },
+    { ROOM_MESSAGE_COMMAND, { .call3 = func_shelter_b1_sterilization_room_8017FF80 } },
+    { ROOM_MESSAGE_SOUND, { .call3 = func_shelter_b1_sterilization_room_80180430 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
@@ -519,7 +519,7 @@ static void func_shelter_b1_sterilization_room_8017FABC(Task* task)
     Task* target;
 
     task->msgTable = D_shelter_b1_sterilization_room_80184E40;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 5 && GameFlag_GetNibble(0xEA) == 0) {
         GameFlag_SetNibble(0xF4, 3);
         Gp_ApplyAreaRecs(D_shelter_b1_sterilization_room_8018C334);
@@ -712,7 +712,7 @@ void func_shelter_b1_sterilization_room_80180188(Task* task)
             task->state++;
             break;
         case 2:
-            if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
+            if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
                 task->state++;
             }
             break;
@@ -733,7 +733,7 @@ void func_shelter_b1_sterilization_room_80180188(Task* task)
             task->state++;
             break;
         case 7:
-            if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
+            if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
                 task->state++;
             }
             break;
@@ -985,7 +985,7 @@ void func_shelter_b1_sterilization_room_80180D74(Task* task)
                 task->state++;
             }
             c = (task->killCountdown * 0xFF / 30) & 0xFF;
-            Fade_DrawOverlay(c, c, c, 2);
+            Fade_DrawOverlay(c, c, c, GPU_BLEND_SUBTRACT);
             break;
         case 2:
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_shelter_b1_sterilization_room_80188728[task->spawnArg1.value].view;
@@ -995,7 +995,7 @@ void func_shelter_b1_sterilization_room_80180D74(Task* task)
                                           &D_shelter_b1_sterilization_room_80188668[D_shelter_b1_sterilization_room_80188728[task->spawnArg1.value].msg],
                                           0);
             SndEvt_EnqueueType6(0x5410000B, 0, 0);
-            Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
+            Fade_DrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
             task->state++;
             break;
         case 3:
@@ -1003,7 +1003,7 @@ void func_shelter_b1_sterilization_room_80180D74(Task* task)
                 task->state++;
             }
             c = (task->killCountdown * 0xFF / 30) & 0xFF;
-            Fade_DrawOverlay(c, c, c, 2);
+            Fade_DrawOverlay(c, c, c, GPU_BLEND_SUBTRACT);
             break;
         default:
             Gp_MsgPlayerWeapon(1);
@@ -1030,7 +1030,7 @@ void func_shelter_b1_sterilization_room_80180F74(Task* task)
                     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                     task->killCountdown++;
                     if (task->killCountdown == 0x78) {
-                        taskMessageDispatch(player, 0x3F9, Gp_PackPair(&D_shelter_b1_sterilization_room_80188738, 0), 0);
+                        taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackPair(&D_shelter_b1_sterilization_room_80188738, 0), 0);
                     } else if (task->killCountdown >= 0x79) {
                         if (gPlayerStatus.hp > 0) {
                             coord = player->extra.tmd->coords;

@@ -59,7 +59,7 @@ TaskMessageEntry D_shelter_b2_pod_bottom_80181C6C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_pod_bottom_8017D5F4 },
     { 5105, func_shelter_b2_pod_bottom_8017D5EC },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b2_pod_bottom_8017D640 },
-    { 5104, func_shelter_b2_pod_bottom_8017D638 },
+    { ROOM_MESSAGE_COMMAND, func_shelter_b2_pod_bottom_8017D638 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1029,7 +1029,7 @@ static void func_shelter_b2_pod_bottom_8017D648(Task* arg0)
     ActorCommand msg;
 
     arg0->msgTable = D_shelter_b2_pod_bottom_80181C6C;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 1) {
         func_80162B0C(0);
         func_800E8634(&D_80165F48, 0, &D_80166848);

@@ -41,7 +41,7 @@ void factoryLiftInit(Task* task)
     coord->coord.t[2] = 0x1AAE;
     factoryLiftBindLighting(task);
     factoryLiftSyncCollision(task, 1, 0);
-    if (gGameSession->location.loc.stage == 2) {
+    if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
         Task_SpawnFromTable(gFactoryDaySpawnTable, 7, 0, task);
     } else {
         Task_SpawnFromTable(gFactoryNightSpawnTable, 7, 0, task);

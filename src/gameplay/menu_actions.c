@@ -1233,7 +1233,7 @@ static void Gp_DrawMapMarks(Task* arg0)
     }
     flags[0] = bank->visitedAreas[0];
     flags[1] = bank->visitedAreas[1];
-    if (session->location.loc.stage == 3) {
+    if (session->location.loc.stage == GAME_STAGE_DRYFIELD_NIGHT) {
         bank      = banks[2];
         flags[0] |= bank->visitedAreas[0];
         flags[1] |= bank->visitedAreas[1];
@@ -1489,10 +1489,10 @@ static void Gp_EnqueueMapRoomCd(void)
 
     Gp_MapRoomOff             = 0;
     gGameSession->loadedSndId = 0;
-    if ((gGameSession->location.loc.stage == 4) && ((s8)Gp_MapRoomId == 6) && (GameFlag_GetNibble(0xB7) == 0)) {
+    if ((gGameSession->location.loc.stage == GAME_STAGE_MINE_SHELTER) && ((s8)Gp_MapRoomId == 6) && (GameFlag_GetNibble(0xB7) == 0)) {
         Gp_MapRoomOff = 1;
     }
-    if (gGameSession->location.loc.stage == 5) {
+    if (gGameSession->location.loc.stage == GAME_STAGE_SHELTER_NEO_ARK) {
         room = (s8)Gp_MapRoomId;
         if ((room == 1) && (GameFlag_GetNibble(0xD9) == room)) {
             Gp_MapRoomOff = 3;
@@ -1506,7 +1506,7 @@ static void Gp_EnqueueMapRoomCd(void)
     param2[3] = 0;
     param2[2] = 0;
     param2[0] = stage;
-    CdCmd_Enqueue(0x21, param1, param2);
+    CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
     D_800626E8 = 1;
 }
 
@@ -1522,7 +1522,7 @@ static s8 func_800D1434(u32 roomId, u8 flagId)
     s32         skip;
 
     bank = Gp_FlagBanks[gGameSession->location.loc.stage];
-    if (gGameSession->location.loc.stage != 5) {
+    if (gGameSession->location.loc.stage != GAME_STAGE_SHELTER_NEO_ARK) {
         if (flagId != 0xFF) {
             if (flagId == 0x80) {
                 return 0;
@@ -1535,7 +1535,7 @@ static s8 func_800D1434(u32 roomId, u8 flagId)
             flags[0] = bank->visitedAreas[0];
             flags[1] = bank->visitedAreas[1];
             i        = 0;
-            if (gGameSession->location.loc.stage == 3) {
+            if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD_NIGHT) {
                 bank      = Gp_FlagBanks[2];
                 flags[0] |= bank->visitedAreas[0];
                 flags[1] |= bank->visitedAreas[1];

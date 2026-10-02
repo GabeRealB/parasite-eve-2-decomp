@@ -325,6 +325,11 @@ overlay.
   function renamed in C but not in the map cannot be paired by objdiff or the
   naming pass's verifier, while the checksum still matches. The unscoped
   `build-and-verify.sh` runs it; when it fails, add `name = 0xADDR; // type:func`.
+- `python3 tools/gen_area_ids.py [--check]` rewrite `include/main/areas.h`,
+  the `GAME_AREA_*` constants, from the extractor's room folders. An area ID is
+  a folder's disc id / 100 within its stage, so the same value names another
+  room in another stage; pair each constant with its `GAME_STAGE_*`. The
+  unscoped `build-and-verify.sh` fails when the header is stale.
 - `diff.py` you can view the difference between the compiled and target assembly code of a given function by running `python3 tools/asm-differ/diff.py --no-pager <function name>`
 - `./tools/claude [--bootstrap-only] [--no-bootstrap] [--id ID] <function>` spin up a scratch matching env. Resolves **any** overlay; always m2c-bootstraps unless `--no-bootstrap`. It builds the environment and nothing else - the agent is launched by whatever called it. Matching loop: `tools/claude-decomp-env/MATCH_LOOP.md` (Grok also loads it from `.grok/rules/match-loop.md`).
 - `python3 tools/decomp_overlay.py find|pack|list-nonmatchings|list-overlays <function>` overlay-agnostic path lookup and vacuum brief.

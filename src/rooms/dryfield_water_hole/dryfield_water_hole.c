@@ -118,8 +118,8 @@ TaskMessageEntry D_dryfield_water_hole_8017FC5C[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, waterHoleDoorMsg },
     { 5105, func_dryfield_water_hole_8017D5E8 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_water_hole_8017D784 },
-    { 5104, func_dryfield_water_hole_8017D73C },
-    { 5106, func_dryfield_water_hole_8017D78C },
+    { ROOM_MESSAGE_COMMAND, func_dryfield_water_hole_8017D73C },
+    { ROOM_MESSAGE_SOUND, func_dryfield_water_hole_8017D78C },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1373,7 +1373,7 @@ s32 func_dryfield_water_hole_8017D78C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 static void func_dryfield_water_hole_8017D7DC(Task* arg0)
 {
     arg0->msgTable = D_dryfield_water_hole_8017FC5C;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     Task_SpawnFromTable(D_dryfield_water_hole_8017FC8C, 0, 0, 0);
     arg0->state = (s32)(arg0->state + 1);
 }

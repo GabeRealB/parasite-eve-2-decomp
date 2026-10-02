@@ -181,8 +181,8 @@ TaskMessageEntry D_dryfield_driveway_8017E754[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, drivewayResolveEvent },
     { 5105, func_dryfield_driveway_8017DCC0 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_driveway_8017DDB8 },
-    { 5104, func_dryfield_driveway_8017DDB0 },
-    { 5106, drivewayScriptSound },
+    { ROOM_MESSAGE_COMMAND, func_dryfield_driveway_8017DDB0 },
+    { ROOM_MESSAGE_SOUND, drivewayScriptSound },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -698,7 +698,7 @@ s32 func_dryfield_driveway_8017DDB8(Task* task, s32 msgId, s32 arg2, s32 arg3)
 static void func_dryfield_driveway_8017DDC0(Task* task)
 {
     task->msgTable = D_dryfield_driveway_8017E754;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

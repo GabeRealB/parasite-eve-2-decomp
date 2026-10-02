@@ -1578,8 +1578,8 @@ Actor121300Waypoint D_actor_121300_8013CC20[13] = {
 };
 
 Actor121300MessageEntry D_actor_121300_8013CC88[3] = {
-    { 2004, { .call0 = actorMsgPlaceYawPitchRoll } },
-    { 2005, { .call1 = actorMsgSetDrawMode } },
+    { ACTOR_MESSAGE_PLACE, { .call0 = actorMsgPlaceYawPitchRoll } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call1 = actorMsgSetDrawMode } },
     { 2016, { .call2 = func_actor_121300_80134224 } },
 };
 
@@ -1755,17 +1755,17 @@ void func_actor_121300_801326EC(Task* arg0)
             fade->r = 0xFF;
             fade->g = 0xFF;
             fade->b = 0xFF;
-            Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->b, 2);
+            Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->b, GPU_BLEND_SUBTRACT);
             goto state_inc;
         case 2:
             SetDispMask(1);
         case 1:
-            Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->b, 2);
+            Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->b, GPU_BLEND_SUBTRACT);
         state_inc:
             arg0->state += 1;
             break;
         case 3:
-            Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->b, 2);
+            Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->b, GPU_BLEND_SUBTRACT);
             fade->r = (s16)((u16)fade->r - (u16)arg0->spawnArg1.value);
             fade->g = (s16)((u16)fade->g - (u16)arg0->spawnArg1.value);
             fade->b = (s16)((u16)fade->b - (u16)arg0->spawnArg1.value);
@@ -2282,7 +2282,7 @@ static void func_actor_121300_80133854(Task* arg0)
     func_actor_121300_80132818(arg0);
     switch ((u16)work->field_498) {
         case 1:
-            taskMessageDispatch(work->field_488, 0x3F3, 2, 0);
+            taskMessageDispatch(work->field_488, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
             TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_actor_121300_8013CCA0, 0);
             gGameSession->viewDirty = 1;
             {
@@ -2540,7 +2540,7 @@ void func_actor_121300_8013400C(Task* arg0)
             arg0->state += 1;
             /* fallthrough */
         case 1:
-            Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->r, 2);
+            Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->r, GPU_BLEND_SUBTRACT);
             fade->r = (s16)((u16)fade->r + (u16)arg0->spawnArg1.value);
             fade->g = (s16)((u16)fade->g + (u16)arg0->spawnArg1.value);
             fade->b = (s16)((u16)fade->b + (u16)arg0->spawnArg1.value);
@@ -2555,7 +2555,7 @@ void func_actor_121300_8013400C(Task* arg0)
 
 void func_actor_121300_801340F0(Task* task)
 {
-    Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
+    Fade_DrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
 }
 
 #include "../../shared/actor_messages_place_ypr.inc.c"
@@ -2587,7 +2587,7 @@ void func_actor_121300_8013427C(void)
     D_actor_121300_8013D41C   = 0;
     work->wave.state          = 2;
     gCdCmdQueue.imageMdecMode = MDEC_IMAGE_MODE_RGB16;
-    taskMessageDispatch(work->field_488, 0x3F3, 1, 0);
+    taskMessageDispatch(work->field_488, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
     CdCmd_CancelReplaceAndActivate();
 }
 
@@ -2605,7 +2605,7 @@ void func_actor_121300_80134304(s32 arg0)
 
 void func_actor_121300_80134334(s32 arg0)
 {
-    taskMessageDispatch(D_actor_121300_8013D418, 0x7D5, arg0, 0);
+    taskMessageDispatch(D_actor_121300_8013D418, ACTOR_MESSAGE_SET_MODEL_DRAW, arg0, 0);
 }
 
 void func_actor_121300_80134364(void)

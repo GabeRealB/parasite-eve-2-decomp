@@ -204,7 +204,7 @@ TaskMessageEntry D_neo_ark_r26_8017E0A4[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_r26_8017D650 },
     { 5105, func_neo_ark_r26_8017D648 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_r26_8017D69C },
-    { 5104, func_neo_ark_r26_8017D694 },
+    { ROOM_MESSAGE_COMMAND, func_neo_ark_r26_8017D694 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -449,8 +449,8 @@ static void func_neo_ark_r26_8017D710(Task* task);
 void func_neo_ark_r26_8017D5D0(void)
 {
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 5;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 0x1C;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_SHELTER_NEO_ARK;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_SHELTER_1F_TENT;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
         gDisplayState.spriteVariant                                 = 1;
@@ -489,7 +489,7 @@ s32 func_neo_ark_r26_8017D69C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMe
 static void func_neo_ark_r26_8017D6A4(Task* arg0)
 {
     arg0->msgTable = D_neo_ark_r26_8017E0A4;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
         func_800E8634(D_neo_ark_r26_8017DA74, 0, D_neo_ark_r26_8017DFCC);
     }

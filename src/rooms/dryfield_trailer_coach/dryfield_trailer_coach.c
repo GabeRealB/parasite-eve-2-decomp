@@ -329,7 +329,7 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
 TaskMessageEntry D_dryfield_trailer_coach_80184FA0[4] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_trailer_coach_80182580 },
     { 5105, func_dryfield_trailer_coach_80182578 },
-    { 5104, func_dryfield_trailer_coach_801825A8 },
+    { ROOM_MESSAGE_COMMAND, func_dryfield_trailer_coach_801825A8 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1801,7 +1801,7 @@ void func_dryfield_trailer_coach_80182850(void)
 static void func_dryfield_trailer_coach_80182888(Task* arg0)
 {
     arg0->msgTable = D_dryfield_trailer_coach_80184FA0;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == 2) {
         func_800E8634(D_dryfield_trailer_coach_801853F4, 0, D_dryfield_trailer_coach_80185964);
         GameFlag_SetNibble(3, 0);

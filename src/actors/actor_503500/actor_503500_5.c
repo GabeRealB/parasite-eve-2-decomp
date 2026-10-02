@@ -222,9 +222,9 @@ static AnimationSet _gActor503500Animation3EE08;
 static AnimationSet _gActor503500Animation3F61C;
 
 Actor5035003MsgEntry D_actor_503500_8016EA2C[5] = {
-    { 2003, { .call0 = func_actor_503500_80135950 } },
-    { 2004, { .call2 = func_actor_503500_80137088 } },
-    { 2005, { .call3 = func_actor_503500_80137158 } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = func_actor_503500_80135950 } },
+    { ACTOR_MESSAGE_PLACE, { .call2 = func_actor_503500_80137088 } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = func_actor_503500_80137158 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_503500_80135B74 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
@@ -1119,9 +1119,9 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
 TaskDesc D_actor_503500_80176524 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_503500_801463C0, { .model = &_gActor503500Actor361100Model06038 } };
 
 Actor5035005MsgEntry D_actor_503500_80176530[5] = {
-    { 2003, { .call0 = actorMotionPlayAnim19 } },
-    { 2004, { .call2 = func_actor_503500_80146664 } },
-    { 2005, { .call3 = func_actor_503500_801466E0 } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = actorMotionPlayAnim19 } },
+    { ACTOR_MESSAGE_PLACE, { .call2 = func_actor_503500_80146664 } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = func_actor_503500_801466E0 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_503500_801467C0 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };

@@ -149,8 +149,8 @@ TaskMessageEntry D_shelter_b4_upper_sewer_801862D0[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b4_upper_sewer_8017D9C4 },
     { 5105, func_shelter_b4_upper_sewer_8017D9BC },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b4_upper_sewer_8017DB50 },
-    { 5104, func_shelter_b4_upper_sewer_8017DAB0 },
-    { 5106, func_shelter_b4_upper_sewer_8017DB58 },
+    { ROOM_MESSAGE_COMMAND, func_shelter_b4_upper_sewer_8017DAB0 },
+    { ROOM_MESSAGE_SOUND, func_shelter_b4_upper_sewer_8017DB58 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -905,7 +905,7 @@ s32 func_shelter_b4_upper_sewer_8017D9C4(Task* task, s32 msgId, RoomEventMsg* sr
 {
     *dst = *src;
     func_map_shelter_80179A04(src, dst);
-    if (src->areaId == 0x2D) {
+    if (src->areaId == GAME_AREA_SHELTER_B4_RESERVOIR) {
         if (src->queryOnly == ROOM_EVENT_EXECUTE) {
             D_shelter_b4_upper_sewer_80188D24.warp              = (u8)dst->areaId;
             D_shelter_b4_upper_sewer_80188D24.field_4           = dst->warp;
@@ -914,7 +914,7 @@ s32 func_shelter_b4_upper_sewer_8017D9C4(Task* task, s32 msgId, RoomEventMsg* sr
         }
         return 0;
     }
-    if (src->areaId == 0x2E) {
+    if (src->areaId == GAME_AREA_SHELTER_B4_WATER_SUPPLY) {
         if (src->queryOnly == ROOM_EVENT_EXECUTE) {
             D_shelter_b4_upper_sewer_80188D24.warp              = (u8)dst->areaId;
             D_shelter_b4_upper_sewer_80188D24.field_4           = dst->warp;
@@ -970,7 +970,7 @@ void func_shelter_b4_upper_sewer_8017DB94(void)
 static void func_shelter_b4_upper_sewer_8017DBA8(Task* task)
 {
     task->msgTable = D_shelter_b4_upper_sewer_801862D0;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     if (GameFlag_GetNibble(0xB7) != 0) {
         D_shelter_b4_upper_sewer_80186438 = -0x708;
         Task_SpawnFromTable(D_shelter_b4_upper_sewer_8018643C, 0, 0, 0);

@@ -377,9 +377,9 @@ TaskDesc D_actor_213100_801521A8[2] = {
 };
 
 Actor213100MessageEntry D_actor_213100_801521C0[4] = {
-    { 2003, { .call0 = actorMotionPlayAnim19 } },
-    { 2004, { .call1 = actorMsgPlaceEuler } },
-    { 2005, { .call2 = func_actor_213100_8014A40C } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = actorMotionPlayAnim19 } },
+    { ACTOR_MESSAGE_PLACE, { .call1 = actorMsgPlaceEuler } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call2 = func_actor_213100_8014A40C } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 

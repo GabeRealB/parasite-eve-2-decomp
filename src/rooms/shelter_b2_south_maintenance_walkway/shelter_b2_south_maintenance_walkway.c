@@ -114,7 +114,7 @@ TaskMessageEntry D_shelter_b2_south_maintenance_walkway_80182550[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_south_maintenance_walkway_8017DA7C },
     { 5105, func_shelter_b2_south_maintenance_walkway_8017DC08 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b2_south_maintenance_walkway_8017DC18 },
-    { 5104, func_shelter_b2_south_maintenance_walkway_8017DC10 },
+    { ROOM_MESSAGE_COMMAND, func_shelter_b2_south_maintenance_walkway_8017DC10 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -509,7 +509,7 @@ s32 func_shelter_b2_south_maintenance_walkway_8017DA7C(Task* arg0, s32 arg1, Roo
 
     *out = *in;
     func_map_shelter_80179A04(in, out);
-    if (in->areaId == 0x1D) {
+    if (in->areaId == GAME_AREA_SHELTER_B2_OPERATING_ROOM) {
         req.capCmd        = 1;
         req.missingCapCmd = 1;
         req.firstSnd      = 0x541C0005;
@@ -518,7 +518,7 @@ s32 func_shelter_b2_south_maintenance_walkway_8017DA7C(Task* arg0, s32 arg1, Roo
         req.collectedBit  = 0;
         return roomEventGate(&req, out);
     }
-    if (in->areaId != 0x1B) {
+    if (in->areaId != GAME_AREA_SHELTER_B2_ELEVATOR_HALL) {
         return 1;
     }
     event.capCmd   = 2;
@@ -548,7 +548,7 @@ s32 func_shelter_b2_south_maintenance_walkway_8017DC18(Task* task, s32 msgId, Ta
 static void func_shelter_b2_south_maintenance_walkway_8017DC20(Task* task)
 {
     task->msgTable = D_shelter_b2_south_maintenance_walkway_80182550;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

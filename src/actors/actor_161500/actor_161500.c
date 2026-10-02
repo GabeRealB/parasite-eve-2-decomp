@@ -1344,11 +1344,11 @@ static AnimationSet _gActor161500Animation0E338 = {
 };
 
 Actor161500MessageEntry gStrideWalkMessages[6] = {
-    { 2003, { .call0 = strideWalkPlay } },
-    { 2005, { .call3 = strideWalkSetVisibility } },
-    { 2004, { .call2 = pacedWalkPlace } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = strideWalkPlay } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = strideWalkSetVisibility } },
+    { ACTOR_MESSAGE_PLACE, { .call2 = pacedWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_161500_80132B88 } },
-    { 2013, { .call2 = strideWalkTo } },
+    { ACTOR_MESSAGE_WALK_TO, { .call2 = strideWalkTo } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 

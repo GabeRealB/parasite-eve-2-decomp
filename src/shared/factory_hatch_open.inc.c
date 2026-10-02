@@ -13,7 +13,7 @@ s32 factoryHatchOpen(Task* task)
     switch (work->step) {
         case 0:
             work->field_0 = 0;
-            if (gGameSession->location.loc.stage == 2) {
+            if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                 Gp_EnqueueStageSnd6(0x5217000D, (s8)worldCoordGetOriginAudioPan(coord),
                                     (s8)worldCoordGetOriginAudioDepth(coord));
             } else {

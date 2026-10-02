@@ -532,7 +532,7 @@ s32 func_dryfield_breezeway_8017D940(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
     s32          ret;
 
     *out = *in;
-    if (in->areaId == 0x17) {
+    if (in->areaId == GAME_AREA_DRYFIELD_FACTORY) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
             if (GameFlag_GetNibble(0x47) == 0) {
                 out->room = 1;
@@ -540,7 +540,7 @@ s32 func_dryfield_breezeway_8017D940(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
                 out->room = 2;
             }
         }
-        if (in->areaId == 0x17) {
+        if (in->areaId == GAME_AREA_DRYFIELD_FACTORY) {
             req.capCmd        = 4;
             req.missingCapCmd = 2;
             req.firstSnd      = 0x52160006;
@@ -675,7 +675,7 @@ static void func_dryfield_breezeway_8017DDB0(Task* task)
     ActorCommand msg;
 
     task->msgTable = D_dryfield_breezeway_80181DE0;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     if (GameFlag_GetNibble(0x5D) == 0) {
         msg.context.loc.stage = gGameSession->location.loc.stage;
         msg.context.loc.area  = gGameSession->location.loc.area;

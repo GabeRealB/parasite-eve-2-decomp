@@ -892,8 +892,8 @@ static AnimationSet _gActor420700Animation0D100 = {
 };
 
 Actor420700MessageEntry D_actor_420700_8013EF48[4] = {
-    { 2003, { .call0 = func_actor_420700_80132644 } },
-    { 2005, { .call2 = func_actor_420700_801326F4 } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = func_actor_420700_80132644 } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call2 = func_actor_420700_801326F4 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_420700_80132784 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };

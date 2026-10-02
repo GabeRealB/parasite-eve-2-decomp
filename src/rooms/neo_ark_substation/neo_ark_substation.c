@@ -81,7 +81,7 @@ TaskMessageEntry D_neo_ark_substation_8017E294[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_substation_8017D724 },
     { 5105, func_neo_ark_substation_8017D71C },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_substation_8017D7A4 },
-    { 5104, func_neo_ark_substation_8017D768 },
+    { ROOM_MESSAGE_COMMAND, func_neo_ark_substation_8017D768 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -590,7 +590,7 @@ s32 func_neo_ark_substation_8017D7A4(Task* task, s32 msgId, TaskMessageArg arg2,
 static void func_neo_ark_substation_8017D7AC(Task* task)
 {
     task->msgTable = D_neo_ark_substation_8017E294;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     if (GameFlag_GetNibble(0xDF) == 0) {
         Task_SpawnFromTable(D_neo_ark_substation_8017E2BC, 0, 0, 0);
     }

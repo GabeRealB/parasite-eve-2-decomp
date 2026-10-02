@@ -572,9 +572,9 @@ u8 Actor01200_D06FE4[116] = {
 };
 
 Actor01200RecoveredMsgEntry Actor01200_D07058[4] = {
-    { 2005, { .call2 = Actor01200_Fn03A00 } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call2 = Actor01200_Fn03A00 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = Actor01200_Fn03ABC } },
-    { 2004, { .call1 = actorMsgPlace } },
+    { ACTOR_MESSAGE_PLACE, { .call1 = actorMsgPlace } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 

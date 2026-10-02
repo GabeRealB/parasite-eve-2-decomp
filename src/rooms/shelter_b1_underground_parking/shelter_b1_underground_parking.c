@@ -432,8 +432,8 @@ TaskMessageEntry D_shelter_b1_underground_parking_80187230[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_underground_parking_80183360 },
     { 5105, func_shelter_b1_underground_parking_80183284 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_underground_parking_80182830 },
-    { 5104, func_shelter_b1_underground_parking_80182A60 },
-    { 5106, func_shelter_b1_underground_parking_801833DC },
+    { ROOM_MESSAGE_COMMAND, func_shelter_b1_underground_parking_80182A60 },
+    { ROOM_MESSAGE_SOUND, func_shelter_b1_underground_parking_801833DC },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1950,8 +1950,8 @@ void func_shelter_b1_underground_parking_80182DB4(Task* task)
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0x1B;
                 }
                 handler      = roomVariantResolveNeoArk;
-                rec.stage    = 5;
-                rec.area     = 1;
+                rec.stage    = GAME_STAGE_SHELTER_NEO_ARK;
+                rec.area     = GAME_AREA_SHELTER_1F_PARKING_GARAGE;
                 rec.room     = 1;
                 rec.warp     = 1;
                 rec.sndEvent = 0x54140008;
@@ -2204,7 +2204,7 @@ void func_shelter_b1_underground_parking_80183804(u8 arg0)
 static void func_shelter_b1_underground_parking_80183810(Task* arg0)
 {
     arg0->msgTable = D_shelter_b1_underground_parking_80187230;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     func_shelter_b1_underground_parking_801848A4();
     if (gGameSession->location.loc.variant == 0x15) {
         Gp_MsgSlot4Chain(0, 1);
@@ -2446,7 +2446,7 @@ static void func_shelter_b1_underground_parking_801847D0(Task* task)
     if (work->fadeLevel >= 0x100) {
         work->fadeLevel = 0xFF;
     }
-    Fade_DrawOverlay((u8)work->fadeLevel, (u8)work->fadeLevel, (u8)work->fadeLevel, 2);
+    Fade_DrawOverlay((u8)work->fadeLevel, (u8)work->fadeLevel, (u8)work->fadeLevel, GPU_BLEND_SUBTRACT);
     if (work->fadeLevel == 0xFF) {
         D_80114D08 = 0xA;
         Gp_MsgPlayerWeapon(1);

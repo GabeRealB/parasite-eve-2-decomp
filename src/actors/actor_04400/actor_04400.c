@@ -700,7 +700,7 @@ AnimationSet* gMadChaserAnimBank[21] = {
 };
 
 Actor04400RecoveredMsgEntry gMadChaserMsgTable[3] = {
-    { 2004, { .call0 = madChaserMsgPlace } },
+    { ACTOR_MESSAGE_PLACE, { .call0 = madChaserMsgPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = Actor04400_Fn0648C } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };

@@ -3001,11 +3001,11 @@ u8 gRigAnimSource[340] = {
 
 Actor323400MessageEntry gRigMessages[7] = {
     { 2015, { .call5 = func_actor_323400_8016475C } },
-    { 2005, { .call4 = desertChaserSetVisibility } },
-    { 2006, { .call0 = actorMsgIsPresent } },
-    { 2004, { .call3 = actorMsgPlaceYawFirst } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = desertChaserSetVisibility } },
+    { ACTOR_MESSAGE_IS_PRESENT, { .call0 = actorMsgIsPresent } },
+    { ACTOR_MESSAGE_PLACE, { .call3 = actorMsgPlaceYawFirst } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_323400_80164974 } },
-    { 2003, { .call1 = desertChaserMsgPlayAnim } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = desertChaserMsgPlayAnim } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 

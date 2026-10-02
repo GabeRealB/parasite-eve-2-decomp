@@ -135,8 +135,8 @@ TaskMessageEntry D_shelter_b6_corridor_8017EF24[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b6_corridor_8017DEB0 },
     { 5105, func_shelter_b6_corridor_8017DEA8 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b6_corridor_8017E020 },
-    { 5104, func_shelter_b6_corridor_8017DF48 },
-    { 5108, func_shelter_b6_corridor_8017E028 },
+    { ROOM_MESSAGE_COMMAND, func_shelter_b6_corridor_8017DF48 },
+    { ROOM_MESSAGE_ACTOR_EVENT, func_shelter_b6_corridor_8017E028 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -607,7 +607,7 @@ static void func_shelter_b6_corridor_8017E064(Task* arg0)
     s32  i;
 
     arg0->msgTable = D_shelter_b6_corridor_8017EF24;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     ptr = (u16*)Fs_ImgBuffers;
     i   = 0;
     do {

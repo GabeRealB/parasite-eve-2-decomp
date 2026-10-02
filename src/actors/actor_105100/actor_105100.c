@@ -1686,8 +1686,8 @@ static void func_actor_105100_80133CE4(Task* arg0)
             break;
         case 2:
             if ((s16)++work->field_5A6 >= 0x25) {
-                if (taskMessageDispatch(player, 0x3ED, 0, 0) == 0) {
-                    taskMessageDispatch(player, 0x3F1, 0, 0);
+                if (taskMessageDispatch(player, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
+                    taskMessageDispatch(player, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
                     work->field_5A4 = 0;
                     work->field_5A6 = 0;
                     work->field_5A2 = 0;
@@ -1817,7 +1817,7 @@ static void func_actor_105100_80134284(Enemy* arg0, Task* arg1)
             flag = work->field_5BA;
             if ((flag == 1) && (((GameActor*)player->work)->mode != GAME_ACTOR_MODE_SCRIPTED) && (Gp_StateC08.field_A != flag) &&
                 (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
-                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
                 work->field_5BA = 0;
             }
             if ((s16)work->field_592 == 0xB) {

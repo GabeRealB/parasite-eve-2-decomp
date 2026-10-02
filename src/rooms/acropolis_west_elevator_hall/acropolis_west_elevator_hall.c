@@ -1254,7 +1254,7 @@ s32 func_acropolis_west_elevator_hall_8017F498(Task* task, s32 msgId, TaskMessag
 s32 func_acropolis_west_elevator_hall_8017F4C0(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
 {
     *dst = *src;
-    if (src->areaId == 1 && GameFlag_GetNibble(0x21) == 0 && src->queryOnly == ROOM_EVENT_EXECUTE) {
+    if (src->areaId == GAME_AREA_ACROPOLIS_SQUARE && GameFlag_GetNibble(0x21) == 0 && src->queryOnly == ROOM_EVENT_EXECUTE) {
         GameFlag_SetNibble(0x21, 1);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 1;
         dst->warp                                           = 7;
@@ -1270,7 +1270,7 @@ s32 func_acropolis_west_elevator_hall_8017F560(Task* task, s32 msgId, TaskMessag
 static void func_acropolis_west_elevator_hall_8017F568(Task* arg0)
 {
     arg0->msgTable = D_acropolis_west_elevator_hall_801849CC;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     D_acropolis_west_elevator_hall_80186AE4[0] =
         Task_SpawnFromTable(D_acropolis_west_elevator_hall_80184568, 0, 0, -1);
     D_acropolis_west_elevator_hall_80186AE4[1] =
@@ -1363,7 +1363,7 @@ void func_acropolis_west_elevator_hall_8017F7D4(Task* task)
     switch (task->state) {
         case 0:
             task->msgTable = D_acropolis_west_elevator_hall_801849F4;
-            Game_SetPtrSlot(task, 5);
+            Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM_EFFECT);
             Task_Spawn(1, 0x25, 0, 0);
             Task_Spawn(1, 0x25, 1, 0);
             task->state = task->state + 1;

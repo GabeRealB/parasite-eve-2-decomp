@@ -320,7 +320,7 @@ SVECTOR D_actor_205200_801567B4[2] = {
 TaskDesc D_actor_205200_801567C4 = { { { TASK_BODY_TMD, 96 } }, func_actor_205200_8014C540, { .model = &gActor205200EveBreaMaskedBody } };
 
 Actor2052002MessageEntry D_actor_205200_801567D0[3] = {
-    { 2005, { .call1 = func_actor_205200_8014C980 } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call1 = func_actor_205200_8014C980 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_205200_8014C9A0 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
@@ -633,8 +633,8 @@ static void func_actor_205200_8014C0C0(Task* arg0)
             break;
         case 2:
             if ((s16)++work->field_58C >= 0x25) {
-                if (taskMessageDispatch(player, 0x3ED, 0, 0) == 0) {
-                    taskMessageDispatch(player, 0x3F1, 0, 0);
+                if (taskMessageDispatch(player, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
+                    taskMessageDispatch(player, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
                     work->field_58A = 0;
                     work->field_58C = 0;
                     work->field_588 = 0;

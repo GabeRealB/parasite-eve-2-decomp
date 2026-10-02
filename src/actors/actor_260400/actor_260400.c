@@ -883,11 +883,11 @@ static TmdSource _gActor260400RupertBroderickHurtBody = {
 s16 gScriptedWalkBlendFrames = 8;
 
 Actor260400MessageEntry D_actor_260400_80154BE8[6] = {
-    { 2003, { .call0 = func_actor_260400_8014A908 } },
-    { 2005, { .call4 = func_actor_260400_8014A998 } },
-    { 2004, { .call2 = scriptedWalkPlace } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = func_actor_260400_8014A908 } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = func_actor_260400_8014A998 } },
+    { ACTOR_MESSAGE_PLACE, { .call2 = scriptedWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_260400_8014AAA4 } },
-    { 2013, { .call3 = scriptedWalkTo } },
+    { ACTOR_MESSAGE_WALK_TO, { .call3 = scriptedWalkTo } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 

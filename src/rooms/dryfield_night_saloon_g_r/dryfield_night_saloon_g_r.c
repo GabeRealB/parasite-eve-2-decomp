@@ -234,7 +234,7 @@ TaskMessageEntry D_dryfield_night_saloon_g_r_8017F918[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantSaloonMsg },
     { 5105, func_dryfield_night_saloon_g_r_8017DD7C },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_saloon_g_r_8017DE68 },
-    { 5104, func_dryfield_night_saloon_g_r_8017DD84 },
+    { ROOM_MESSAGE_COMMAND, func_dryfield_night_saloon_g_r_8017DD84 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -2018,7 +2018,7 @@ static void func_dryfield_night_saloon_g_r_8017DF90(Task* task)
     ActorCommand msg;
 
     task->msgTable = D_dryfield_night_saloon_g_r_8017F918;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 2 && GameFlag_GetNibble(0xB0) == 0) {
         msg.context.loc.stage = gGameSession->location.loc.stage;
         msg.context.loc.area  = gGameSession->location.loc.area;
@@ -2118,7 +2118,7 @@ void func_dryfield_night_saloon_g_r_8017E28C(Task* task)
                 param2[3] = 0;
                 param2[2] = 0;
                 param2[1] = 0;
-                CdCmd_Enqueue(0x21, param1, param2);
+                CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
                 sent = 1;
             } else {
                 sent = 0;

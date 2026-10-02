@@ -37,6 +37,22 @@ enum {
     ROOM_EVENT_QUERY_ONLY      = 1,
 };
 
+/// Messages a room's task receives from the CAP interpreter and from actors.
+///
+/// The room task registered in `GAME_TASK_SLOT_ROOM` owns the table; each room
+/// gives the arguments and result their meaning, and a room may forward the
+/// message to a task of its own (answering -1 while that task is absent).
+/// Some controlling actors carry these ids in their own tables.
+enum {
+    /// A room command routed from a CAP command; the first argument selects it.
+    ROOM_MESSAGE_COMMAND = 0x13F0,
+    /// A room sound command routed from a CAP command or a scene object.
+    ROOM_MESSAGE_SOUND = 0x13F2,
+    /// An actor reports an event to the room, such as an enemy being pulled in
+    /// or despawning. The first argument selects the event.
+    ROOM_MESSAGE_ACTOR_EVENT = 0x13F4,
+};
+
 /// Angular scale and wrapping used by actor placement and facing records.
 enum {
     ACTOR_TRANSFORM_ANGLE_TURN      = 4096,
@@ -187,10 +203,53 @@ enum {
 
 /// Animation message ids for playback, borrowed tables and writable bank extensions.
 enum {
-    ANIMATION_MESSAGE_PLAY                = 0x3E8,
+    ANIMATION_MESSAGE_PLAY = 0x3E8,
+    /// Returns 1 while any animation slot after the root has not settled on its
+    /// boundary pose, otherwise 0. Takes no payload.
+    ANIMATION_MESSAGE_IS_PLAYING          = 0x3ED,
     ANIMATION_MESSAGE_INSTALL_AND_PLAY    = 0x3F4,
     ANIMATION_MESSAGE_COPY_BANK_EXTENSION = 0x3F7,
-    ANIMATION_MESSAGE_REPLACE_AND_PLAY    = 0x3FF,
+    /// Sets the playback rate of every animation slot from the first argument,
+    /// clamped to 1..0x7F. Returns 0.
+    ANIMATION_MESSAGE_SET_RATE         = 0x3FD,
+    ANIMATION_MESSAGE_REPLACE_AND_PLAY = 0x3FF,
+};
+
+/// Scripted-control messages of the player and companion tasks.
+///
+/// The player's `Gp_PlayerMsgTable` and the companion actors' tables share this
+/// protocol. A companion that does not support an id maps it to its generic
+/// animation handler instead, so check the receiver's table before relying on
+/// a result. Messages that take scripted control leave the receiver in
+/// `GAME_ACTOR_MODE_SCRIPTED` until `GAME_ACTOR_MESSAGE_END_SCRIPTED`.
+enum {
+    /// Places the receiver at a borrowed `ActorTransform`: its position and all
+    /// three angles. Returns 0.
+    GAME_ACTOR_MESSAGE_PLACE = 0x3E9,
+    /// Takes scripted control and turns the receiver to the yaw of a borrowed
+    /// `ActorTransform`, playing the turn animation for that direction. Returns 0.
+    GAME_ACTOR_MESSAGE_TURN_TO_YAW = 0x3EE,
+    /// Returns nonzero while a scripted turn, walk or timed state is still pending.
+    GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING = 0x3F0,
+    /// Ends scripted control and restores the equipped weapon's animation bank
+    /// and collision. The first argument selects how play resumes. Returns 1,
+    /// changing nothing, when the receiver is not under scripted control.
+    GAME_ACTOR_MESSAGE_END_SCRIPTED = 0x3F1,
+    /// Takes scripted control and walks the receiver to a borrowed
+    /// `ActorTransform` position, with an optional `GpOverrideArg`. Returns 0.
+    GAME_ACTOR_MESSAGE_MOVE_TO = 0x3F2,
+    /// Sets the model's draw and buffer state from the mode in the first
+    /// argument (0-4), allocating or freeing its buffers where the mode needs.
+    GAME_ACTOR_MESSAGE_SET_MODEL_DRAW = 0x3F3,
+    /// Reparents the receiver's model to a borrowed `GfxCoord`. Returns 0.
+    GAME_ACTOR_MESSAGE_ATTACH_TO_COORD = 0x3F5,
+    /// Applies damage to the receiver (`Gp_ApplyPlayerDamage`, `Gp_HurtAlly`).
+    GAME_ACTOR_MESSAGE_APPLY_DAMAGE = 0x3F9,
+    /// Moves the receiver by a borrowed `GpMoveArg` displacement.
+    GAME_ACTOR_MESSAGE_MOVE_BY = 0x3FE,
+    /// Restarts the model's texture animation sequences: 0 resets both, 1-3
+    /// select the first sequence and higher values the second. Returns 0.
+    GAME_ACTOR_MESSAGE_SET_TEXTURE_SEQUENCE = 0x401,
 };
 
 /// Requests animation playback on a player, companion or scripted actor.
@@ -252,6 +311,12 @@ enum {
     SCENE_MESSAGE_FIND_OTHER_CHILD  = 0x7D8,
 };
 
+/// Makes the scene manager run the exit routine of every placed (type-9)
+/// actor among its children. Takes no payload and returns 0.
+enum {
+    SCENE_MESSAGE_EXIT_PLACED_ACTORS = 0x7D9,
+};
+
 /// Actor-command delivery and the scene manager's general actor-message broadcast.
 enum {
     /// Applies a borrowed `ActorCommand` in the receiver's command namespace.
@@ -269,6 +334,25 @@ enum {
     /// returns zero, discarding their results.
     ACTOR_COMMAND_MESSAGE_APPLY       = 0x7DB,
     SCENE_MESSAGE_BROADCAST_TO_ACTORS = 0x7DA,
+};
+
+/// Messages of placed actors, the tasks the scene manager spawns from a
+/// room's placement records. Each actor's table selects the handler; most use
+/// the shared handlers of the actor message and motion libraries.
+enum {
+    /// Plays an animation from a borrowed `AnimationPlayRequest`, in the
+    /// receiver's own banks.
+    ACTOR_MESSAGE_PLAY_ANIMATION = 0x7D3,
+    /// Places the receiver's model from a borrowed `ActorTransform`. Receivers
+    /// differ in which angles they apply and in their order.
+    ACTOR_MESSAGE_PLACE = 0x7D4,
+    /// Sets the model's draw or visibility mode from the first argument. 0 hides
+    /// the model and 1 shows it; the receiver defines any further modes.
+    ACTOR_MESSAGE_SET_MODEL_DRAW = 0x7D5,
+    /// Returns nonzero while the actor is still present in the scene.
+    ACTOR_MESSAGE_IS_PRESENT = 0x7D6,
+    /// Walks the receiver to a borrowed target position.
+    ACTOR_MESSAGE_WALK_TO = 0x7DD,
 };
 
 /// A borrowed command interpreted in an actor's stage/area command namespace.
@@ -297,7 +381,7 @@ typedef struct ActorCommand {
 } ActorCommand;
 STATIC_ASSERT_SIZEOF(ActorCommand, 4);
 
-/// The payload of message 0x3FE, which moves the receiver by a displacement:
+/// The payload of `GAME_ACTOR_MESSAGE_MOVE_BY`, which moves the receiver by a displacement:
 /// `x`, `y` and `z` are added onto its coordinate. With `field_10` 7 the move
 /// also decides whether the receiver faces along it or away from it, from
 /// `x` / `z`; the receiver keeps `field_10` in its own state either way.
@@ -323,7 +407,7 @@ typedef struct GpFacingArg {
 } GpFacingArg;
 STATIC_ASSERT_SIZEOF(GpFacingArg, 8);
 
-/// The optional second payload of message 0x3F2, which sends the receiver to a
+/// The optional second payload of `GAME_ACTOR_MESSAGE_MOVE_TO`, which sends the receiver to a
 /// `ActorTransform` destination: two values the receiver keeps in its own state
 /// while it gets there. Without one it clears both.
 typedef struct GpOverrideArg {

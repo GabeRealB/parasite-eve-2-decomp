@@ -1446,8 +1446,8 @@ void func_actor_136300_8013267C(Task* arg0)
             GameFlag_SetNibble(0x155, 0xF);
             GameFlag_SetNibble(0x4C, 4);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent         = 9;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 4;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_MINE_SHELTER;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_MINE_MESA;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
             Fs_BeginBootLoad((u8*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, 0);

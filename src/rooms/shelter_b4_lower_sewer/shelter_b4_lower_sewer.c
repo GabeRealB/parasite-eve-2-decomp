@@ -61,7 +61,7 @@ TaskMessageEntry D_shelter_b4_lower_sewer_80181E44[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b4_lower_sewer_8017D610 },
     { 5105, func_shelter_b4_lower_sewer_8017D608 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b4_lower_sewer_8017D65C },
-    { 5104, func_shelter_b4_lower_sewer_8017D654 },
+    { ROOM_MESSAGE_COMMAND, func_shelter_b4_lower_sewer_8017D654 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -122,7 +122,7 @@ s32 func_shelter_b4_lower_sewer_8017D65C(Task* task, s32 msgId, TaskMessageArg a
 static void func_shelter_b4_lower_sewer_8017D664(Task* task)
 {
     task->msgTable = D_shelter_b4_lower_sewer_80181E44;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     if (GameFlag_GetNibble(0xB7) != 0) {
         Task_SpawnFromTable(D_shelter_b4_lower_sewer_80181E70, 0, 0, 0);
     }

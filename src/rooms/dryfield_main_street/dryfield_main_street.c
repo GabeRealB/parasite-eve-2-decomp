@@ -187,8 +187,8 @@ TaskMessageEntry D_dryfield_main_street_80180EA0[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, mainStreetResolveMsg },
     { 5105, func_dryfield_main_street_8017E054 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_main_street_8017E05C },
-    { 5104, mainStreetTalkMsg },
-    { 5106, mainStreetCapSoundCue },
+    { ROOM_MESSAGE_COMMAND, mainStreetTalkMsg },
+    { ROOM_MESSAGE_SOUND, mainStreetCapSoundCue },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1009,7 +1009,7 @@ s32 func_dryfield_main_street_8017E05C(Task* task, s32 msgId, TaskMessageArg fir
 static void func_dryfield_main_street_8017E0D8(Task* task)
 {
     task->msgTable = D_dryfield_main_street_80180EA0;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     D_80115598 = 1;
     if (GameFlag_GetNibble(0x5F) == 0) {
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_dryfield_main_street_80180ED0, ACTOR_COMMAND_MESSAGE_APPLY);

@@ -210,8 +210,8 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
 TaskMessageEntry D_acropolis_fire_escape_80181D3C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_fire_escape_8017FD98 },
     { 5105, func_acropolis_fire_escape_8017FE40 },
-    { 5104, func_acropolis_fire_escape_8017F9F8 },
-    { 5106, func_acropolis_fire_escape_8017FE48 },
+    { ROOM_MESSAGE_COMMAND, func_acropolis_fire_escape_8017F9F8 },
+    { ROOM_MESSAGE_SOUND, func_acropolis_fire_escape_8017FE48 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -661,7 +661,7 @@ s32 func_acropolis_fire_escape_8017F9F8(Task* task, s32 msgId, s32 event, s32 ar
         slot = Gp_LookupSlot4(0);
         cap  = 1;
         if (slot != NULL) {
-            result = taskMessageDispatch(slot, 0x7D6, 0, 0);
+            result = taskMessageDispatch(slot, ACTOR_MESSAGE_IS_PRESENT, 0, 0);
             cap    = 9;
             if (result == 0) {
                 cap = 1;
@@ -745,7 +745,7 @@ s32 func_acropolis_fire_escape_8017FD98(Task* task, s32 msgId, RoomEventMsg* src
     if (src->queryOnly == ROOM_EVENT_EXECUTE) {
         SndEvt_EnqueueType7(0x510F0005, 0xF);
     }
-    if (src->areaId == 0xE && src->queryOnly == ROOM_EVENT_EXECUTE) {
+    if (src->areaId == GAME_AREA_ACROPOLIS_BRIDGE && src->queryOnly == ROOM_EVENT_EXECUTE) {
         if (GameFlag_GetNibble(2) == 3) {
             dst->room = 2;
         } else {
@@ -775,7 +775,7 @@ s32 func_acropolis_fire_escape_8017FE48(Task* task, s32 msgId, s32 arg2, s32 arg
 static void func_acropolis_fire_escape_8017FE50(Task* task)
 {
     task->msgTable = D_acropolis_fire_escape_80181D3C;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     Task_SpawnFromTable(D_acropolis_fire_escape_80181D64, 0, 0, 0);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent == 5) {
         gGameSession->flowFlags = GAME_SESSION_FLOW_LOAD_AREA_MUSIC_ONLY;
@@ -791,7 +791,7 @@ static void func_acropolis_fire_escape_8017FECC(Task* task)
     Task* slot;
 
     slot = Gp_LookupSlot4(0);
-    if (slot == NULL || taskMessageDispatch(slot, 0x7D6, 0, 0) == 0) {
+    if (slot == NULL || taskMessageDispatch(slot, ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0) {
         {
             WorldCollisionTrigger* object = &D_acropolis_fire_escape_8018252C[5];
             object->flags                &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);

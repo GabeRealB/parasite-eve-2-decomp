@@ -74,8 +74,8 @@ s32 func_actor_503500_80132584(Task*, s32, s32);
 s32 func_actor_503500_80132664(Task*, s32, ActorCommand* msg);
 
 Actor503500MsgEntry D_actor_503500_80146888[4] = {
-    { 2004, { .call1 = actorMsgPlaceEuler } },
-    { 2005, { .call2 = func_actor_503500_80132584 } },
+    { ACTOR_MESSAGE_PLACE, { .call1 = actorMsgPlaceEuler } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call2 = func_actor_503500_80132584 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_503500_80132664 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };

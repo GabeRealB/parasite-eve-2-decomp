@@ -10,7 +10,7 @@ s32 roomVariantMainStreetMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMs
     s32 n;
 
     *out = *in;
-    if (in->areaId == 2 && in->queryOnly == ROOM_EVENT_EXECUTE) {
+    if (in->areaId == GAME_AREA_DRYFIELD_NIGHT_MAIN_STREET && in->queryOnly == ROOM_EVENT_EXECUTE) {
         n = GameFlag_GetNibble(0x7A);
         if (n >= 4) {
             val = 3;

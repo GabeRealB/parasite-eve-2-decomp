@@ -25,7 +25,7 @@ TaskMessageEntry D_mist_r21_8017D770[] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_mist_r21_8017D5E4 },
     { 0x13F1, func_mist_r21_8017D5DC },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_mist_r21_8017D614 },
-    { 0x13F0, func_mist_r21_8017D60C },
+    { ROOM_MESSAGE_COMMAND, func_mist_r21_8017D60C },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -73,7 +73,7 @@ s32 func_mist_r21_8017D614(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessa
 static void func_mist_r21_8017D61C(Task* task)
 {
     task->msgTable = D_mist_r21_8017D770;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     Task_SpawnFromTable(D_mist_r21_8017D798, 0, 0, 0);
     task->state = (s32)(task->state + 1);
 }
@@ -84,7 +84,7 @@ static void func_mist_r21_8017D61C(Task* task)
 static void func_mist_r21_8017D678(Task* task)
 {
     if ((Pad_CheckButtons(0, 0, 0x200) != 0) && (Pad_CheckButtons(0, 1, 0x40) != 0)) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 5;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_ACROPOLIS_PLAZA;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 2;
         Fs_BeginBootLoad((u8*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, 0);

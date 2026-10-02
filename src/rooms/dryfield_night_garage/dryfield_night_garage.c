@@ -200,8 +200,8 @@ TaskMessageEntry D_dryfield_night_garage_80181C38[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_garage_80180360 },
     { 5105, func_dryfield_night_garage_80180358 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_garage_801800C8 },
-    { 5104, func_dryfield_night_garage_801803A4 },
-    { 5106, garageSoundMsg },
+    { ROOM_MESSAGE_COMMAND, func_dryfield_night_garage_801803A4 },
+    { ROOM_MESSAGE_SOUND, garageSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -369,7 +369,7 @@ static void func_dryfield_night_garage_8017FF2C(Task* task)
     Task*                  player;
 
     task->msgTable = D_dryfield_night_garage_80181C38;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     (D_dryfield_night_garage_80186D7C + 3)->flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
     player                                         = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
     if (gGameSession->location.loc.variant == 3 && player != NULL) {

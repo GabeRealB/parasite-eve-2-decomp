@@ -810,7 +810,7 @@ s32 func_mine_forked_tunnel_8017D8EC(Task*, s32, ActorCommand* msg);
 s32 func_mine_forked_tunnel_8017DD08(Task*, s32, s32, s32);
 
 MineForkedTunnelMessageEntry D_mine_forked_tunnel_80181B8C[3] = {
-    { 2005, { .call1 = func_mine_forked_tunnel_8017DD08 } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call1 = func_mine_forked_tunnel_8017DD08 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_mine_forked_tunnel_8017D8EC } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
@@ -847,7 +847,7 @@ TaskMessageEntry D_mine_forked_tunnel_80181C80[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_mine_forked_tunnel_8017E0F0 },
     { 5105, func_mine_forked_tunnel_8017E0E8 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_mine_forked_tunnel_8017E19C },
-    { 5104, func_mine_forked_tunnel_8017E134 },
+    { ROOM_MESSAGE_COMMAND, func_mine_forked_tunnel_8017E134 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1491,7 +1491,7 @@ static void func_mine_forked_tunnel_8017D5E8(Task* arg0)
         actorMsgPlaceEulerZyx(arg0, 0x7D4, &D_mine_forked_tunnel_80181BBC, 0);
     }
 
-    func_mine_forked_tunnel_8017DD08(arg0, 0x7D5, 1, 0);
+    func_mine_forked_tunnel_8017DD08(arg0, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
     func_mine_forked_tunnel_8017DC70(arg0);
     work->field_40 = Task_SpawnFromTable(D_mine_forked_tunnel_80181B74, 1, 0, arg0);
     arg0->msgTable = D_mine_forked_tunnel_80181B8C;
@@ -1861,7 +1861,7 @@ s32 func_mine_forked_tunnel_8017E19C(Task* task, s32 msgId, TaskMessageArg first
 static void func_mine_forked_tunnel_8017E1E8(Task* arg0)
 {
     arg0->msgTable = D_mine_forked_tunnel_80181C80;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     gStageSceneMusicEntry = 1;
     func_mine_forked_tunnel_8017E48C(Gp_GetCurBit2Flag(1) == 2);
     arg0->state = (s32)(arg0->state + 1);

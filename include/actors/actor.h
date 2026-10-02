@@ -1310,7 +1310,7 @@ static __inline__ s32 actorOutsideRadius(SVECTOR* pos, s16 radius)
 static __inline__ s32 actorPlayerContactMessage(Enemy* ctx, s32 mode)
 {
     Task* player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    return taskMessageDispatch(player, 0x3F9, Gp_PackObjPair(ctx, mode), 0);
+    return taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(ctx, mode), 0);
 }
 
 /// Relights `enemy` for the world position of `coord`.

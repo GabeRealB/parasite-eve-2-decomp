@@ -144,7 +144,7 @@ TaskMessageEntry D_dryfield_water_tank_8017F324[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_water_tank_8017D7C4 },
     { 5105, func_dryfield_water_tank_8017D7BC },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_water_tank_8017D7EC },
-    { 5104, func_dryfield_water_tank_8017D910 },
+    { ROOM_MESSAGE_COMMAND, func_dryfield_water_tank_8017D910 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -187,9 +187,9 @@ ActorTransform D_dryfield_water_tank_8017FD60[2] = {
 };
 
 DryfieldWaterTankMessageEntry D_dryfield_water_tank_8017FD90[3] = {
-    { 2004, { .call1 = actorMsgPlaceYawPitchRoll } },
+    { ACTOR_MESSAGE_PLACE, { .call1 = actorMsgPlaceYawPitchRoll } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_dryfield_water_tank_8017E174 } },
-    { 2005, { .call2 = func_dryfield_water_tank_8017E0B4 } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call2 = func_dryfield_water_tank_8017E0B4 } },
 };
 
 u16 D_dryfield_water_tank_8017FDA8[12] = {
@@ -1054,7 +1054,7 @@ static void func_dryfield_water_tank_8017E78C(Task* task)
                         msg.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
                         TASK_MESSAGE_DISPATCH_POINTER((Task*)cur->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
                     }
-                    taskMessageDispatch((Task*)work->owner, 0x3FD, 8, 0);
+                    taskMessageDispatch((Task*)work->owner, ANIMATION_MESSAGE_SET_RATE, 8, 0);
                     break;
             }
             break;
@@ -1269,7 +1269,7 @@ void func_dryfield_water_tank_8017EFF4(s32 arg0)
     SpriteBatch*     batches;
 
     sess = &gGameSession->location.loc;
-    if (sess->stage == 2) {
+    if (sess->stage == GAME_STAGE_DRYFIELD) {
         rec = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
         if (!(arg0 & 0xFF)) {
             batches           = rec[2].batches;

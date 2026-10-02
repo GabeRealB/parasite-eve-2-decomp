@@ -201,9 +201,9 @@ static AnimationSet _gActor110700Animation0A14C = {
 TaskDesc D_actor_110700_8013BF94 = { { { TASK_BODY_TMD, 96 } }, func_actor_110700_80131E24, { .model = &_gActor110700No9GolemAkropolisBody } };
 
 Actor110700MsgEntry D_actor_110700_8013BFA0[4] = {
-    { 2003, { .call0 = func_actor_110700_8013201C } },
-    { 2004, { .call1 = actorMsgPlaceRotMatrix } },
-    { 2005, { .call2 = func_actor_110700_801320D8 } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = func_actor_110700_8013201C } },
+    { ACTOR_MESSAGE_PLACE, { .call1 = actorMsgPlaceRotMatrix } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call2 = func_actor_110700_801320D8 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 

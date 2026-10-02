@@ -469,7 +469,7 @@ void func_neo_ark_eve_access_tunnel_8017D980(Task* task)
             RoomDeparture* wp;
             s32            (*resolve)(NaetUtilParam*, NaetUtilParam*) = roomVariantResolveShelter;
 
-            work.stage    = 4;
+            work.stage    = GAME_STAGE_MINE_SHELTER;
             work.area     = (u8)task->spawnArg1.value;
             work.room     = 1;
             work.warp     = 2;
@@ -558,7 +558,7 @@ s32 func_neo_ark_eve_access_tunnel_8017DC6C(Task* task, s32 msgId, RoomEventMsg*
     *dst = *src;
     func_map_neo_ark_80179B14(src, dst);
     switch (src->areaId) {
-        case 9:
+        case GAME_AREA_NEO_ARK_EVE_ELEVATOR:
             switch (GameFlag_GetNibble(0xB9)) {
                 case 0:
                     if (src->queryOnly == ROOM_EVENT_EXECUTE) {
@@ -656,7 +656,7 @@ void func_neo_ark_eve_access_tunnel_8017DED0(Task* arg0)
 static void func_neo_ark_eve_access_tunnel_8017DF24(Task* arg0)
 {
     arg0->msgTable = D_neo_ark_eve_access_tunnel_8017EA94;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 0xB) {
         u16* ptr = (u16*)Fs_ImgBuffers;
         s32  i   = 0;

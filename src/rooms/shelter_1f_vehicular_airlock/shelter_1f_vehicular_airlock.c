@@ -136,7 +136,7 @@ TaskMessageEntry D_shelter_1f_vehicular_airlock_80182034[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_vehicular_airlock_8017D7DC },
     { 5105, func_shelter_1f_vehicular_airlock_8017D988 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_1f_vehicular_airlock_8017D9F4 },
-    { 5104, func_shelter_1f_vehicular_airlock_8017D990 },
+    { ROOM_MESSAGE_COMMAND, func_shelter_1f_vehicular_airlock_8017D990 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -377,7 +377,7 @@ s32 func_shelter_1f_vehicular_airlock_8017D7DC(Task* task, s32 msgId, RoomEventM
 
     *out = *in;
     func_map_neo_ark_80179B14(in, out);
-    if (in->areaId == 3) {
+    if (in->areaId == GAME_AREA_SHELTER_1F_BULWARK) {
         if (GameFlag_GetNibble(0xB2) == 0) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_SetNibbleIf(in->flagId, 2);
@@ -391,7 +391,7 @@ s32 func_shelter_1f_vehicular_airlock_8017D7DC(Task* task, s32 msgId, RoomEventM
         event.fade     = 0;
         return _shelter1fVehicularAirlockStartEvent(out, &event);
     }
-    if (in->areaId == 5) {
+    if (in->areaId == GAME_AREA_SHELTER_1F_AIRLOCK) {
         event.capCmd   = 6;
         event.stageSnd = 0x55020001;
         event.flagId   = 0x15A;
@@ -428,7 +428,7 @@ s32 func_shelter_1f_vehicular_airlock_8017D9F4(Task* task, s32 msgId, TaskMessag
 static void func_shelter_1f_vehicular_airlock_8017D9FC(Task* task)
 {
     task->msgTable = D_shelter_1f_vehicular_airlock_80182034;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

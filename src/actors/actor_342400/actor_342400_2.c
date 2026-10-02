@@ -687,7 +687,7 @@ u8 gMadChaserAnimBank[84] = {
 };
 
 Actor3424002MessageEntry gMadChaserMsgTable[3] = {
-    { 2004, { .call0 = madChaserMsgPlace } },
+    { ACTOR_MESSAGE_PLACE, { .call0 = madChaserMsgPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = madChaserCommandMsg } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };

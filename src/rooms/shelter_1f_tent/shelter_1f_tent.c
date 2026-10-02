@@ -134,7 +134,7 @@ TaskMessageEntry D_shelter_1f_tent_80181CDC[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_tent_8017FC5C },
     { 5105, func_shelter_1f_tent_8017FC54 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_1f_tent_8017FD54 },
-    { 5104, func_shelter_1f_tent_8017FCA0 },
+    { ROOM_MESSAGE_COMMAND, func_shelter_1f_tent_8017FCA0 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -160,7 +160,7 @@ static void func_shelter_1f_tent_8017F9F0(Task* task)
     s32 val;
 
     task->msgTable = D_shelter_1f_tent_80181CDC;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 1) {
         func_80132210();
     }

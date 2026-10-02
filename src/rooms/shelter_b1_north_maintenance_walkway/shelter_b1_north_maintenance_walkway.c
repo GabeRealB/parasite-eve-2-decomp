@@ -65,7 +65,7 @@ TaskMessageEntry D_shelter_b1_north_maintenance_walkway_80184A84[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_north_maintenance_walkway_8017D7A4 },
     { 5105, func_shelter_b1_north_maintenance_walkway_8017DA34 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_north_maintenance_walkway_8017DA44 },
-    { 5104, func_shelter_b1_north_maintenance_walkway_8017DA3C },
+    { ROOM_MESSAGE_COMMAND, func_shelter_b1_north_maintenance_walkway_8017DA3C },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -146,7 +146,7 @@ s32 func_shelter_b1_north_maintenance_walkway_8017D7A4(Task* arg0, s32 arg1, Roo
 
     *out = *in;
     func_map_shelter_80179A04(in, out);
-    if (in->areaId != 0xB) {
+    if (in->areaId != GAME_AREA_SHELTER_B1_STOREROOM) {
         goto message0E;
     }
     snd            = 0x540C0001;
@@ -159,7 +159,7 @@ start_event:
     event.fade   = 0;
     return _shelterB1NorthMaintenanceWalkwayStartEvent(out, &event);
 message0E:
-    if (in->areaId == 0xE) {
+    if (in->areaId == GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS) {
         snd            = 0x540C0003;
         cmd            = 2;
         event.stageSnd = snd;
@@ -219,7 +219,7 @@ s32 func_shelter_b1_north_maintenance_walkway_8017DA44(Task* task, s32 msgId, Ta
 static void func_shelter_b1_north_maintenance_walkway_8017DA4C(Task* arg0)
 {
     arg0->msgTable = D_shelter_b1_north_maintenance_walkway_80184A84;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 2) {
         Task_SpawnFromTable(D_shelter_b1_north_maintenance_walkway_80184AAC, 0, 0, 0);
         if (GameFlag_GetNibble(0x157) == 0) {

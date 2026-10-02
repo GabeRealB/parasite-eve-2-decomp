@@ -196,10 +196,10 @@ static TmdSource _gAcropolisPromenadeAcropolisBridgeModel0AD9C = {
 
 AcropolisPromenadeMsgEntry D_acropolis_promenade_80180E74[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, { .call0 = func_acropolis_promenade_8017D70C } },
-    { 5104, { .call0 = func_acropolis_promenade_8017D8E0 } },
+    { ROOM_MESSAGE_COMMAND, { .call0 = func_acropolis_promenade_8017D8E0 } },
     { 5103, { .call3 = func_acropolis_promenade_8017D930 } },
     { 5105, { .call0 = func_acropolis_promenade_8017D8D8 } },
-    { 5106, { .call0 = func_acropolis_promenade_8017D938 } },
+    { ROOM_MESSAGE_SOUND, { .call0 = func_acropolis_promenade_8017D938 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
@@ -1882,7 +1882,7 @@ s32 func_acropolis_promenade_8017D70C(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
     u16          msgId;
 
     *out = *in;
-    if (in->areaId == 0xA && in->queryOnly == ROOM_EVENT_EXECUTE) {
+    if (in->areaId == GAME_AREA_ACROPOLIS_OBSERVATORY && in->queryOnly == ROOM_EVENT_EXECUTE) {
         if (gDisplayState.debugMode < 0 || D_8006AC30.sector == 0) {
             out->warp = 1;
         }
@@ -1892,7 +1892,7 @@ s32 func_acropolis_promenade_8017D70C(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
             out->warp = 1;
         }
     }
-    if (in->areaId == 0xC && GameFlag_GetNibble(2) == 0) {
+    if (in->areaId == GAME_AREA_ACROPOLIS_SANCTUARY && GameFlag_GetNibble(2) == 0) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
             out->warp                                           = 3;
             D_acropolis_promenade_801862D0                      = *out;
@@ -1982,7 +1982,7 @@ void func_acropolis_promenade_8017D988(Task* task)
 static void func_acropolis_promenade_8017D9E0(Task* arg0)
 {
     arg0->msgTable = D_acropolis_promenade_80180E74;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     D_acropolis_promenade_801862D8 = Task_SpawnFromTable(D_acropolis_promenade_80180EA4, 0, 0, 0);
     arg0->state                    = (s32)(arg0->state + 1);
     D_80115598                     = 1;
@@ -2050,7 +2050,7 @@ void func_acropolis_promenade_8017DB9C(Task* task)
                 taskKill(task);
                 break;
             }
-            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
             ((RoomStreamWork*)task->work)->target = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             ((RoomStreamWork*)task->work)->mtx    = gPlayerStatus.coordMtx;
             weaponId                              = gPlayerStatus.weapon;
@@ -2108,9 +2108,9 @@ void func_acropolis_promenade_8017DB9C(Task* task)
             break;
 
         case 3:
-            if (taskMessageDispatch(work->target, 0x3F0, 0, 0) == 0) {
-                taskMessageDispatch(work->target, 0x3F1, 0, 0);
-                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA5, 0, 0);
+            if (taskMessageDispatch(work->target, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
+                taskMessageDispatch(work->target, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_SHOW_HUD, 0, 0);
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 2;
                 func_800E9BDC(2, 0x9FF);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
@@ -2131,7 +2131,7 @@ void func_acropolis_promenade_8017DF74(Task* arg0)
     s16 temp_v0;
 
     fade = (u8)arg0->killCountdown;
-    Fade_DrawOverlay(fade, fade, fade, 2);
+    Fade_DrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
     temp_v0             = (u16)arg0->killCountdown + 0x20;
     arg0->killCountdown = temp_v0;
     if (temp_v0 >= 0x100) {
@@ -2147,7 +2147,7 @@ void func_acropolis_promenade_8017DFD4(Task* arg0)
     s16 temp_v0;
 
     fade = ~(u8)arg0->killCountdown;
-    Fade_DrawOverlay(fade, fade, fade, 2);
+    Fade_DrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
     temp_v0             = (u16)arg0->killCountdown + 0x20;
     arg0->killCountdown = temp_v0;
     if (temp_v0 >= 0x100) {

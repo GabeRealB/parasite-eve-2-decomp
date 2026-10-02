@@ -85,8 +85,8 @@ TaskDesc gFactoryPanelSessionDesc[2] = {
 TaskMessageEntry gFactoryMsgTable[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, factoryResolveWarp },
     { 5105, factoryIgnoreMessage },
-    { 5104, factoryCommand },
-    { 5106, factorySoundCommand },
+    { ROOM_MESSAGE_COMMAND, factoryCommand },
+    { ROOM_MESSAGE_SOUND, factorySoundCommand },
     { DIRECTION_MESSAGE_ROOM_ACTION, factoryRoomAction },
     { TASK_MESSAGE_TABLE_END, NULL },
 };

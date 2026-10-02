@@ -51,7 +51,7 @@ void oddStrangerTakeHit(Task* arg0)
                 s->hitPos.vz = player->extra.tmd->coords->workm.t[2];
             }
             if (work->field_C28 == 1) {
-                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
                 work->field_C28 = 0;
                 if (work->field_0 == 0xB || work->field_0 == 0xC || work->field_0 == 0xD || work->field_0 == 0xE) {
                     work->field_0 = 0x13;
@@ -142,7 +142,7 @@ void oddStrangerTakeHit(Task* arg0)
                 SndEvt_EnqueueType7(0x51030008, 1);
             }
             if ((work->field_0 == 0xC || work->field_0 == 0xD || work->field_0 == 0xE) && config->hp > 0 && work->field_C28 == 1) {
-                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
             }
             if (enemy->hp <= 0) {
                 deathSound = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x400A0008;
@@ -397,7 +397,7 @@ void oddStrangerTakeHit(Task* arg0)
                 }
             } else {
                 if (work->field_C28 == 1) {
-                    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, ODD_STRANGER_DEATH_RELEASE_ARG, 0);
+                    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, ODD_STRANGER_DEATH_RELEASE_ARG, 0);
                     work->field_C28 = 0;
                 }
                 state = work->field_0;

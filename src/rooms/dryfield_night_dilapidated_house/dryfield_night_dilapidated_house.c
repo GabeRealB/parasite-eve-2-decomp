@@ -188,7 +188,7 @@ s32 func_dryfield_night_dilapidated_house_8017D8DC(Task* task, s32 msgId, RoomEv
     RoomEventReq req;
 
     *out = *in;
-    if (in->areaId == 5) {
+    if (in->areaId == GAME_AREA_DRYFIELD_NIGHT_BACK_STREET) {
         req.capCmd        = 0xC;
         req.missingCapCmd = 0xC;
         req.firstSnd      = 0x53090005;
@@ -218,7 +218,7 @@ s32 func_dryfield_night_dilapidated_house_8017D968(Task* task, s32 msgId, TaskMe
 static void func_dryfield_night_dilapidated_house_8017D970(Task* arg0)
 {
     arg0->msgTable = D_dryfield_night_dilapidated_house_8017E700;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     arg0->state = (s32)(arg0->state + 1);
     if (GameFlag_GetNibble(0x92) == 0) {
         if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) {

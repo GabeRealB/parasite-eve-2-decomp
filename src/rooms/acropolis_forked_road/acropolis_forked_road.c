@@ -53,7 +53,7 @@ s32 func_acropolis_forked_road_8017D8A8(Task*, s32, TaskMessageArg firstArg, Tas
 TaskMessageEntry D_acropolis_forked_road_80180F14[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_forked_road_8017D5EC },
     { 5105, func_acropolis_forked_road_8017D850 },
-    { 5104, func_acropolis_forked_road_8017D858 },
+    { ROOM_MESSAGE_COMMAND, func_acropolis_forked_road_8017D858 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_forked_road_8017D8A8 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -77,11 +77,11 @@ AcropolisForkedRoadStorage0F3C D_acropolis_forked_road_80180F3C = { 0, { 0 } };
 s32 func_acropolis_forked_road_8017D5EC(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    if (in->areaId == 8) {
+    if (in->areaId == GAME_AREA_ACROPOLIS_FOUNTAIN) {
         if ((GameFlag_GetNibble(9) & 2) && (in->queryOnly == ROOM_EVENT_EXECUTE)) {
             out->room = 2;
         }
-        if (in->areaId == 8) {
+        if (in->areaId == GAME_AREA_ACROPOLIS_FOUNTAIN) {
             if (GameFlag_GetNibble(0) < 3) {
                 if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                     Gp_SetNibbleIf(in->flagId, 2);
@@ -100,7 +100,7 @@ s32 func_acropolis_forked_road_8017D5EC(Task* arg0, s32 arg1, RoomEventMsg* in, 
             }
         }
     }
-    if (in->areaId == 0xA) {
+    if (in->areaId == GAME_AREA_ACROPOLIS_OBSERVATORY) {
         if (GameFlag_GetNibble(1) < 2) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_SetNibbleIf(in->flagId, 2);
@@ -181,7 +181,7 @@ s32 func_acropolis_forked_road_8017D8A8(Task* task, s32 msgId, TaskMessageArg fi
 static void func_acropolis_forked_road_8017D92C(Task* task)
 {
     task->msgTable = D_acropolis_forked_road_80180F14;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

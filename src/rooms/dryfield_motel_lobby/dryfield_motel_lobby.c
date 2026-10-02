@@ -120,7 +120,7 @@ TaskMessageEntry D_dryfield_motel_lobby_8017F810[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_motel_lobby_8017F414 },
     { 5105, func_dryfield_motel_lobby_8017F40C },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_motel_lobby_8017F444 },
-    { 5104, func_dryfield_motel_lobby_8017F43C },
+    { ROOM_MESSAGE_COMMAND, func_dryfield_motel_lobby_8017F43C },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -576,7 +576,7 @@ s32 func_dryfield_motel_lobby_8017F444(Task* task, s32 msgId, TaskMessageArg arg
 static void func_dryfield_motel_lobby_8017F44C(Task* task)
 {
     task->msgTable = D_dryfield_motel_lobby_8017F810;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

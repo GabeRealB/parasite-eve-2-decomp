@@ -105,8 +105,8 @@ TaskMessageEntry D_dryfield_night_motel_loft_8017EB1C[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantMotelBalconyMsg },
     { 5105, func_dryfield_night_motel_loft_8017D5F8 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_motel_loft_8017D6BC },
-    { 5104, func_dryfield_night_motel_loft_8017D67C },
-    { 5106, func_dryfield_night_motel_loft_8017D6C4 },
+    { ROOM_MESSAGE_COMMAND, func_dryfield_night_motel_loft_8017D67C },
+    { ROOM_MESSAGE_SOUND, func_dryfield_night_motel_loft_8017D6C4 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

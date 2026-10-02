@@ -956,7 +956,7 @@ void func_shelter_b1_sterilization_room_801813A0(Task* arg0)
 
 void func_shelter_b1_sterilization_room_801814B0(void)
 {
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 0x27;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B3_DUMPING_HOLE;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 3;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
     Task_Spawn(0, 0x11, 0, 0);

@@ -621,7 +621,7 @@ s32 func_neo_ark_island_8017E968(Task* task, s32 msgId, RoomEventMsg* src, RoomE
 {
     *dst = *src;
     func_map_neo_ark_80179B14(src, dst);
-    if (src->areaId == 0x1E) {
+    if (src->areaId == GAME_AREA_NEO_ARK_SUBMARINE_GALLERY) {
         if (src->queryOnly == ROOM_EVENT_EXECUTE) {
             D_neo_ark_island_80184008.warp              = (u8)dst->areaId;
             D_neo_ark_island_80184008.field_4           = dst->warp;
@@ -674,7 +674,7 @@ s32 func_neo_ark_island_8017EA34(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg 
 static void func_neo_ark_island_8017EA94(Task* arg0)
 {
     arg0->msgTable = D_neo_ark_island_80181B48;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     SndEvt_EnqueueType6(0x550E0005, 0, 0);
     SndEvt_EnqueueType6(0x550E0006, 0, 0);
     arg0->state = (s32)(arg0->state + 1);

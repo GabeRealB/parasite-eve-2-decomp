@@ -317,8 +317,8 @@ ActorTransform D_actor_341900_80163A08[2] = {
 };
 
 Actor341900MessageEntry D_actor_341900_80163A38[2] = {
-    { 2005, { .call3 = actorMsgSetDrawMode } },
-    { 2004, { .call2 = actorMsgPlaceYawPitchRoll } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = actorMsgSetDrawMode } },
+    { ACTOR_MESSAGE_PLACE, { .call2 = actorMsgPlaceYawPitchRoll } },
 };
 
 ActorTransform D_actor_341900_80163A48 = { { -5000, 0, -2450, 0 }, { 0, 1024, 0, 0 } };
@@ -326,10 +326,10 @@ ActorTransform D_actor_341900_80163A48 = { { -5000, 0, -2450, 0 }, { 0, 1024, 0,
 ActorTransform D_actor_341900_80163A60 = { { -3000, 0, -2450, 0 }, { 0, 1024, 0, 0 } };
 
 Actor341900MessageEntry D_actor_341900_80163A78[4] = {
-    { 2005, { .call3 = actorMsgSetDrawMode } },
-    { 2004, { .call2 = actorMsgPlaceYawPitchRoll } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = actorMsgSetDrawMode } },
+    { ACTOR_MESSAGE_PLACE, { .call2 = actorMsgPlaceYawPitchRoll } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_341900_8016332C } },
-    { 2003, { .call1 = func_actor_341900_80161FD0 } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = func_actor_341900_80161FD0 } },
 };
 
 Actor341900SpawnPos D_actor_341900_80163A98[6] = {
@@ -735,7 +735,7 @@ static void func_actor_341900_801628B8(Task* arg0)
 
     work = (Actor341900Work*)arg0->work;
     if (work->field_0 != NULL) {
-        taskMessageDispatch(work->field_0, 0x3ED, 0, 0);
+        taskMessageDispatch(work->field_0, ANIMATION_MESSAGE_IS_PLAYING, 0, 0);
     }
     switch ((u16)work->field_5C) {
         case 0:
@@ -886,7 +886,7 @@ static void func_actor_341900_80162AD4(Task* arg0)
         case 3:
             TASK_MESSAGE_DISPATCH_POINTER(work->field_C, 0x7D4, &D_actor_341900_801639D8[0], 0);
             TASK_MESSAGE_DISPATCH_POINTER(work->field_10, 0x7D4, &D_actor_341900_801639D8[1], 0);
-            taskMessageDispatch(work->field_4, 0x7D5, 2, 0);
+            taskMessageDispatch(work->field_4, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
             work->field_64 = 0;
             break;
         case 4:
@@ -1013,7 +1013,7 @@ void func_actor_341900_80163148(Task* arg0)
             arg0->state += 1;
             /* fallthrough */
         case 1:
-            Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->r, 2);
+            Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->r, GPU_BLEND_SUBTRACT);
             fade->r -= (u16)arg0->spawnArg1.value;
             fade->g -= (u16)arg0->spawnArg1.value;
             fade->b -= (u16)arg0->spawnArg1.value;
@@ -1050,14 +1050,14 @@ void func_actor_341900_80163388(s32 arg0)
 {
     Actor341900Work* work = (Actor341900Work*)D_actor_341900_80164208->work;
 
-    taskMessageDispatch(work->field_8, 0x7D5, arg0, 0);
+    taskMessageDispatch(work->field_8, ACTOR_MESSAGE_SET_MODEL_DRAW, arg0, 0);
 }
 
 void func_actor_341900_801633C0(s32 arg0)
 {
     Actor341900Work* work = (Actor341900Work*)D_actor_341900_80164208->work;
 
-    taskMessageDispatch(work->field_0, 0x3F3, arg0, 0);
+    taskMessageDispatch(work->field_0, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, arg0, 0);
 }
 
 void func_actor_341900_801633F8(void)

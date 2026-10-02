@@ -15,7 +15,7 @@ void factoryLampScene(Task* task)
             goto advance;
         case 1:
             if (GameFlag_GetNibble(0x4A) < 2) {
-                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F3, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
             }
             task->state++;
             /* fallthrough */
@@ -32,7 +32,7 @@ void factoryLampScene(Task* task)
             }
             Gp_MsgPlayerWeapon(1);
             Gp_MsgAllyWeapon(1);
-            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F3, 1, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             taskKill(task);
             break;
     }

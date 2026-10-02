@@ -39,7 +39,7 @@ s32 waterTowerEventMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* o
         if (msg->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(0x4B) == 7) {
             GameFlag_SetNibble(0x4B, 0);
         }
-        if (gGameSession->location.loc.stage == 3) {
+        if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD_NIGHT) {
             return 1;
         }
         if (GameFlag_GetNibble(0x32) != 2) {

@@ -65,8 +65,8 @@ TaskMessageEntry D_shelter_1f_guardroom_8017DA30[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_guardroom_8017D744 },
     { 5105, func_shelter_1f_guardroom_8017D73C },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_1f_guardroom_8017D7E8 },
-    { 5104, func_shelter_1f_guardroom_8017D788 },
-    { 5106, func_shelter_1f_guardroom_8017D7F0 },
+    { ROOM_MESSAGE_COMMAND, func_shelter_1f_guardroom_8017D788 },
+    { ROOM_MESSAGE_SOUND, func_shelter_1f_guardroom_8017D7F0 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -308,7 +308,7 @@ s32 func_shelter_1f_guardroom_8017D7F0(Task* arg0, s32 arg1, s32 arg2, TaskMessa
 static void func_shelter_1f_guardroom_8017D824(Task* arg0)
 {
     arg0->msgTable = D_shelter_1f_guardroom_8017DA30;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     func_shelter_1f_guardroom_8017D9CC(GameFlag_GetNibble(0xB2) & 0xFF);
     arg0->state = (s32)(arg0->state + 1);
 }

@@ -7,6 +7,25 @@
 
 #include "common.h"
 
+/// GPU semitransparency modes, with B the background and F the primitive colour.
+enum {
+    GPU_BLEND_AVERAGE = 0, // B/2 + F/2
+    /// GPU semitransparency selector for full-strength foreground + framebuffer colour.
+    ///
+    /// RGB channels saturate at their maximum. Pass this unshifted ABR value
+    /// to `gpuSetPrimitiveBlendMode` or `getTPage`; the packet stores it in
+    /// bits 5..6. The primitive must also have semitransparency enabled.
+    GPU_BLEND_ADD = 1,
+    /// GPU semitransparency selector subtracting primitive colour from framebuffer colour.
+    ///
+    /// Both colours contribute at full strength. Pass this unshifted ABR value
+    /// to `gpuSetPrimitiveBlendMode` or `getTPage`; it occupies packet bits
+    /// 5..6. The primitive must also have semitransparency enabled. Textured
+    /// primitives blend only texels whose texture colour has bit 15 set.
+    GPU_BLEND_SUBTRACT    = 2,
+    GPU_BLEND_ADD_QUARTER = 3, // B + F/4
+};
+
 /// Presentation path selected by `DisplayState::displayOwner`.
 enum {
     DISPLAY_OWNER_GAME_LOOP  = 0,

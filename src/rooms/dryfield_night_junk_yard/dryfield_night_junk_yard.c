@@ -41,7 +41,7 @@ TaskMessageEntry D_dryfield_night_junk_yard_8018055C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_junk_yard_8017D6AC },
     { 5105, func_dryfield_night_junk_yard_8017D6A4 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_junk_yard_8017D82C },
-    { 5104, junkYardCapMsg },
+    { ROOM_MESSAGE_COMMAND, junkYardCapMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -104,7 +104,7 @@ s32 func_dryfield_night_junk_yard_8017D6AC(Task* arg0, s32 arg1, RoomEventMsg* i
     s32          state;
     s32          value;
 
-    if (in->areaId == 0x18 && in->queryOnly == ROOM_EVENT_EXECUTE) {
+    if (in->areaId == GAME_AREA_DRYFIELD_NIGHT_GARAGE && in->queryOnly == ROOM_EVENT_EXECUTE) {
         if (GameFlag_GetNibble(0x7A) >= 4) {
             out->room = 2;
         } else {
@@ -112,7 +112,7 @@ s32 func_dryfield_night_junk_yard_8017D6AC(Task* arg0, s32 arg1, RoomEventMsg* i
         }
     }
     *out = *in;
-    if (in->areaId != 0x1B) {
+    if (in->areaId != GAME_AREA_DRYFIELD_NIGHT_TRAILER_COACH) {
         return 1;
     }
     if (GameFlag_GetNibble(0x46) == 1) {
@@ -180,7 +180,7 @@ static void func_dryfield_night_junk_yard_8017D8B0(Task* task)
     u8 subId;
 
     task->msgTable = D_dryfield_night_junk_yard_8018055C;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     subId = gGameSession->location.loc.variant;
     if (subId == 1 && GameFlag_GetNibble(0x9F) == subId) {
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_dryfield_night_junk_yard_801805A0, ACTOR_COMMAND_MESSAGE_APPLY);

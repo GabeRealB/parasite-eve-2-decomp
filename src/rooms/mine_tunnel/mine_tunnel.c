@@ -66,7 +66,7 @@ TaskMessageEntry D_mine_tunnel_8017DFC4[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_mine_tunnel_8017D5EC },
     { 5105, func_mine_tunnel_8017D5E4 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_mine_tunnel_8017D670 },
-    { 5104, func_mine_tunnel_8017D630 },
+    { ROOM_MESSAGE_COMMAND, func_mine_tunnel_8017D630 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -149,7 +149,7 @@ void func_mine_tunnel_8017D6E0(s32 arg0)
 static void func_mine_tunnel_8017D6EC(Task* arg0)
 {
     arg0->msgTable = D_mine_tunnel_8017DFC4;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     if ((gGameSession->location.loc.variant == 1) && (GameFlag_GetNibble(0xA1) == 1)) {
         func_mine_tunnel_8017D6E0(2);
     }

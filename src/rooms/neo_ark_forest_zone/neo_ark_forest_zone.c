@@ -144,7 +144,7 @@ s32 func_neo_ark_forest_zone_8017D7E4(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
     if (in->queryOnly == ROOM_EVENT_EXECUTE) {
         SndEvt_EnqueueType7(0x550B0006, 0x3C);
     }
-    if (in->areaId != 0x1D) {
+    if (in->areaId != GAME_AREA_NEO_ARK_WOODLAND_PATH) {
         return 1;
     }
     event.capCmd   = 2;
@@ -212,7 +212,7 @@ void func_neo_ark_forest_zone_8017DA48(void)
 static void func_neo_ark_forest_zone_8017DA80(Task* arg0)
 {
     arg0->msgTable = D_neo_ark_forest_zone_80181DC8;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     SndEvt_EnqueueType6(0x550B0006, 0, 0);
     D_neo_ark_forest_zone_80181E68 = Task_SpawnFromTable(&D_neo_ark_forest_zone_80182E18, 0, 0, 0);
     if (gGameSession->location.loc.variant == 1 && GameFlag_GetNibble(0xBD) == 0) {

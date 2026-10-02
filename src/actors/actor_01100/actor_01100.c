@@ -1039,7 +1039,7 @@ AnimationSet* Actor01100_D15604[23] = {
 };
 
 Actor01100RecoveredMsgEntry Actor01100_D15660[2] = {
-    { 2005, { .call0 = Actor01100_Fn0670C } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call0 = Actor01100_Fn0670C } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
@@ -1130,7 +1130,7 @@ static void Actor01100_Fn0097C(Enemy* enemy, Task* task, ActorsShared80138efcWor
 
     combat = &gSceneCombatState;
     if (combat->enemySoundBankQueued == 0) {
-        CdCmd_Enqueue(0x21, param1, param2);
+        CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
         combat->enemySoundBankQueued = 1;
     }
 
@@ -3270,7 +3270,7 @@ static void Actor01100_Fn05678(
         actor  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
         status = &gPlayerStatus;
         if ((actor->mode != GAME_ACTOR_MODE_SCRIPTED) && (Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE) && (status->hp > 0)) {
-            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, 0, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
             work->field_BC8 = 1;
         }
     }

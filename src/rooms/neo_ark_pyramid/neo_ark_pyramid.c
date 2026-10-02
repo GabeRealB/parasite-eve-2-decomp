@@ -88,7 +88,7 @@ TaskMessageEntry D_neo_ark_pyramid_8017FBE4[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_pyramid_8017D9F8 },
     { 5105, func_neo_ark_pyramid_8017D9F0 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_pyramid_8017DA44 },
-    { 5104, func_neo_ark_pyramid_8017DA3C },
+    { ROOM_MESSAGE_COMMAND, func_neo_ark_pyramid_8017DA3C },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -666,7 +666,7 @@ static void func_neo_ark_pyramid_8017DAC0(s32 arg0)
 static void func_neo_ark_pyramid_8017DB18(Task* task)
 {
     task->msgTable = D_neo_ark_pyramid_8017FBE4;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

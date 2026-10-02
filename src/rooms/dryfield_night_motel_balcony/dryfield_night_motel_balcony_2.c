@@ -39,8 +39,8 @@ TaskMessageEntry D_dryfield_night_motel_balcony_80182804[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantMotelBalconyDoorsMsg },
     { 5105, func_dryfield_night_motel_balcony_8017DC18 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_motel_balcony_8017DC28 },
-    { 5104, func_dryfield_night_motel_balcony_8017DC20 },
-    { 5106, roomVariantMotelBalconySoundMsg },
+    { ROOM_MESSAGE_COMMAND, func_dryfield_night_motel_balcony_8017DC20 },
+    { ROOM_MESSAGE_SOUND, roomVariantMotelBalconySoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -158,7 +158,7 @@ void func_dryfield_night_motel_balcony_8017E068(Task* arg0)
 {
     u16 temp_v0;
 
-    Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
+    Fade_DrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
     temp_v0             = arg0->killCountdown + 4;
     arg0->killCountdown = temp_v0;
     if ((s16)temp_v0 >= 0x100) {

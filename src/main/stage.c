@@ -266,7 +266,7 @@ case0:
     goto end;
 case1:
     if (CdCmd_IsIdle() & 0xFFFF) {
-        CdCmd_Enqueue(0x21, Stage_Ctx->field_2C, Stage_Ctx->field_34);
+        CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, Stage_Ctx->field_2C, Stage_Ctx->field_34);
         Stage_Ctx->field_28 = Stage_Ctx->field_28 + 1;
     }
     goto end;

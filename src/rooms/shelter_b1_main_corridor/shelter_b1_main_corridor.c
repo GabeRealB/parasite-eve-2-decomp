@@ -120,8 +120,8 @@ TaskMessageEntry D_shelter_b1_main_corridor_801830A4[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_main_corridor_8017DA8C },
     { 5105, func_shelter_b1_main_corridor_8017DCEC },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_main_corridor_8017DCFC },
-    { 5104, func_shelter_b1_main_corridor_8017DCF4 },
-    { 5106, func_shelter_b1_main_corridor_8017DD04 },
+    { ROOM_MESSAGE_COMMAND, func_shelter_b1_main_corridor_8017DCF4 },
+    { ROOM_MESSAGE_SOUND, func_shelter_b1_main_corridor_8017DD04 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -734,28 +734,28 @@ s32 func_shelter_b1_main_corridor_8017DA8C(Task* task, s32 msgId, RoomEventMsg* 
 
     *out = *in;
     func_map_shelter_80179A04(in, out);
-    if (in->areaId == 0xD) {
+    if (in->areaId == GAME_AREA_SHELTER_B1_ARMORY) {
         event.capCmd   = 3;
         event.stageSnd = 0x540F0001;
         event.flagId   = 0xEE;
         event.fade     = 0;
         return _corridorStartEvent(out, &event);
     }
-    if (in->areaId == 0xE) {
+    if (in->areaId == GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS) {
         event.capCmd   = 4;
         event.stageSnd = 0x540F0001;
         event.flagId   = 0xEF;
         event.fade     = 0;
         return _corridorStartEvent(out, &event);
     }
-    if (in->areaId == 0x10) {
+    if (in->areaId == GAME_AREA_SHELTER_B1_STERILIZATION_ROOM) {
         event.capCmd   = 6;
         event.stageSnd = 0x540F0001;
         event.flagId   = 0x12C;
         event.fade     = 0;
         return _corridorStartEvent(out, &event);
     }
-    if (in->areaId == 9) {
+    if (in->areaId == GAME_AREA_SHELTER_B1_ELEVATOR_HALL) {
         if (GameFlag_GetNibble(0x7A) >= 6) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_RunCapCmd1(5);
@@ -770,7 +770,7 @@ s32 func_shelter_b1_main_corridor_8017DA8C(Task* task, s32 msgId, RoomEventMsg* 
         req.collectedBit  = 0;
         return roomEventGate(&req, out);
     }
-    if (in->areaId == 0x18) {
+    if (in->areaId == GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL) {
         if (GameFlag_GetNibble(0xAC) == 0) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_SetNibbleIf(in->flagId, 2);
@@ -784,7 +784,7 @@ s32 func_shelter_b1_main_corridor_8017DA8C(Task* task, s32 msgId, RoomEventMsg* 
         event.fade     = 0;
         return _corridorStartEvent(out, &event);
     }
-    if (in->areaId == 0x19) {
+    if (in->areaId == GAME_AREA_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL) {
         event.capCmd   = 7;
         event.stageSnd = 0x540F0001;
         event.flagId   = 0x12D;
@@ -831,7 +831,7 @@ s32 func_shelter_b1_main_corridor_8017DD04(Task* task, s32 msgId, s32 arg2, s32 
 static void func_shelter_b1_main_corridor_8017DD4C(Task* task)
 {
     task->msgTable = D_shelter_b1_main_corridor_801830A4;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

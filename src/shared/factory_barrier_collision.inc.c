@@ -11,7 +11,7 @@ void factoryBarrierCollision(Task* task)
     WorldCollisionGrid* geom;
     s32                 i;
 
-    if (gGameSession->location.loc.stage == 2) {
+    if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
         geom = &gFactoryDayGrid;
     } else {
         geom = &gFactoryNightGrid;

@@ -2257,11 +2257,11 @@ static TmdSource _gActor450800KyleMadiganGun = {
 };
 
 Actor450800MsgEntry D_actor_450800_8014AC58[6] = {
-    { 2003, { .call1 = func_actor_450800_80132B44 } },
-    { 2005, { .call6 = func_actor_450800_80132BB0 } },
-    { 2004, { .call3 = pacedWalkPlace } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = func_actor_450800_80132B44 } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call6 = func_actor_450800_80132BB0 } },
+    { ACTOR_MESSAGE_PLACE, { .call3 = pacedWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_450800_80132CE0 } },
-    { 2013, { .call5 = func_actor_450800_80132D74 } },
+    { ACTOR_MESSAGE_WALK_TO, { .call5 = func_actor_450800_80132D74 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
@@ -2575,11 +2575,11 @@ static AnimationSet _gActor450800Animation21B64 = {
 };
 
 Actor450800MsgEntry gPairWalkMessages[6] = {
-    { 2003, { .call1 = pairWalkPlay } },
-    { 2005, { .call6 = pairWalkSetVisibility } },
-    { 2004, { .call3 = pairWalkPlace } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = pairWalkPlay } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call6 = pairWalkSetVisibility } },
+    { ACTOR_MESSAGE_PLACE, { .call3 = pairWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_450800_80133670 } },
-    { 2013, { .call4 = pairWalkTo } },
+    { ACTOR_MESSAGE_WALK_TO, { .call4 = pairWalkTo } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
@@ -2714,8 +2714,8 @@ static void func_actor_450800_80132028(void)
 void func_actor_450800_80132080(void)
 {
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 5;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 0x17;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_SHELTER_NEO_ARK;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_SHELTER_B6_GROWTH_ROOM;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
         gDisplayState.spriteVariant                                 = 1;

@@ -101,7 +101,7 @@ TaskMessageEntry D_shelter_1f_parking_garage_80180BB8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_parking_garage_8017DCF4 },
     { 5105, func_shelter_1f_parking_garage_8017DCEC },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_1f_parking_garage_8017DE4C },
-    { 5104, func_shelter_1f_parking_garage_8017DE44 },
+    { ROOM_MESSAGE_COMMAND, func_shelter_1f_parking_garage_8017DE44 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -427,8 +427,8 @@ void func_shelter_1f_parking_garage_8017DAF0(Task* task)
                     GameFlag_SetNibble(0x4B, 0xA);
                 }
                 handler      = roomVariantResolveShelter;
-                rec.stage    = 4;
-                rec.area     = 0x14;
+                rec.stage    = GAME_STAGE_MINE_SHELTER;
+                rec.area     = GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING;
                 rec.room     = 1;
                 rec.warp     = 2;
                 rec.sndEvent = 0x55010004;
@@ -466,7 +466,7 @@ s32 func_shelter_1f_parking_garage_8017DCF4(Task* arg0, s32 arg1, RoomEventMsg* 
 
     *out = *in;
     func_map_neo_ark_80179B14(in, out);
-    if (in->areaId != 5) {
+    if (in->areaId != GAME_AREA_SHELTER_1F_AIRLOCK) {
         return 1;
     }
     event.capCmd   = 3;
@@ -496,7 +496,7 @@ s32 func_shelter_1f_parking_garage_8017DE4C(Task* task, s32 msgId, TaskMessageAr
 static void func_shelter_1f_parking_garage_8017DE9C(Task* task)
 {
     task->msgTable = D_shelter_1f_parking_garage_80180BB8;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.warp == 1) {
         Gp_RunCapCmd1(5);
     }

@@ -2385,9 +2385,9 @@ s32 func_actor_443500_801327E0(Task*, s32, AnimationPlayRequest*, s32);
 s32 func_actor_443500_8013297C(Task*, s32, s32, s32);
 
 Actor443500MessageEntry D_actor_443500_80158754[4] = {
-    { 2003, { .call0 = func_actor_443500_801327E0 } },
-    { 2004, { .call1 = actorMsgPlaceEuler } },
-    { 2005, { .call2 = func_actor_443500_8013297C } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = func_actor_443500_801327E0 } },
+    { ACTOR_MESSAGE_PLACE, { .call1 = actorMsgPlaceEuler } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call2 = func_actor_443500_8013297C } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
@@ -2462,7 +2462,7 @@ void func_actor_443500_80131F88(Task* arg0)
     s32 temp_a0;
 
     temp_a0 = (((0x1E - arg0->killCountdown) * 0xFF) / 30) & 0xFF;
-    Fade_DrawOverlay(temp_a0, temp_a0, temp_a0, 2);
+    Fade_DrawOverlay(temp_a0, temp_a0, temp_a0, GPU_BLEND_SUBTRACT);
     temp_v0             = (u16)arg0->killCountdown + 1;
     arg0->killCountdown = temp_v0;
     if (temp_v0 >= 0x1E) {
@@ -2538,8 +2538,8 @@ static void func_actor_443500_80132078(Task* task)
             tmdProcessStream(model);
         }
     }
-    func_actor_443500_8013297C(task, 0x7D5, 0, 0);
-    func_actor_443500_801327E0(task, 0x7D3, &D_actor_443500_80158728, 0);
+    func_actor_443500_8013297C(task, ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
+    func_actor_443500_801327E0(task, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_443500_80158728, 0);
     func_actor_443500_801327C4(task);
     task->msgTable     = D_actor_443500_80158754;
     task->exitCallback = func_actor_443500_801327A4;
@@ -2575,7 +2575,7 @@ static void func_actor_443500_801321F0(Task* task)
         } else if (view < 6) {
             if (GameFlag_GetNibble(0x83) > 0) {
                 func_actor_443500_80132A68(0);
-                func_actor_443500_8013297C(task, 0x7D5, 1, 0);
+                func_actor_443500_8013297C(task, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             }
             extra->flags = work->field_4C0;
         }
@@ -2585,7 +2585,7 @@ static void func_actor_443500_801321F0(Task* task)
             animationTickSlot(&work->rig.anim, i);
         }
         if (gGameSession->eventState == 0 && (work->rig.slots[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
-            func_actor_443500_801327E0(task, 0x7D3, &D_actor_443500_80158728, 0);
+            func_actor_443500_801327E0(task, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_443500_80158728, 0);
         }
     }
     if (work->model.animId == 0x1C) {

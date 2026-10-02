@@ -153,7 +153,7 @@ TaskMessageEntry D_neo_ark_power_plant_2_801801F8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_power_plant_2_8017D5D8 },
     { 5105, func_neo_ark_power_plant_2_8017D5D0 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_power_plant_2_8017D694 },
-    { 5104, func_neo_ark_power_plant_2_8017D61C },
+    { ROOM_MESSAGE_COMMAND, func_neo_ark_power_plant_2_8017D61C },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -841,7 +841,7 @@ static void func_neo_ark_power_plant_2_8017D6F4(Task* arg0)
     u8 temp_v1;
 
     arg0->msgTable = D_neo_ark_power_plant_2_801801F8;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     temp_v1 = gGameSession->location.loc.variant;
     if (temp_v1 == 1) {
         gGameSession->flowFlags = temp_v1;
@@ -855,7 +855,7 @@ static void func_neo_ark_power_plant_2_8017D758(Task* task)
 
     if (GameFlag_GetNibble(0xDF) == 0) {
         temp_v0 = Gp_LookupSlot4(0);
-        if ((temp_v0 != 0) && (taskMessageDispatch(temp_v0, 0x7D6, 0, 0) == 0) && (Gp_StateC08.field_A != 1) &&
+        if ((temp_v0 != 0) && (taskMessageDispatch(temp_v0, ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0) && (Gp_StateC08.field_A != 1) &&
             (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
             GameFlag_SetNibble(0xDF, 1);
             GameFlag_SetNibble(0xB9, 1);

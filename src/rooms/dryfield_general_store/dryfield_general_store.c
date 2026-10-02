@@ -112,8 +112,8 @@ TaskDesc gStoreTaskDescs[3] = {
 TaskMessageEntry D_dryfield_general_store_8017E188[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, storeDoorMsg },
     { 5105, func_dryfield_general_store_8017DDF4 },
-    { 5104, storeActionMsg },
-    { 5106, storeSoundMsg },
+    { ROOM_MESSAGE_COMMAND, storeActionMsg },
+    { ROOM_MESSAGE_SOUND, storeSoundMsg },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_general_store_8017DDFC },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -1611,7 +1611,7 @@ s32 func_dryfield_general_store_8017DDFC(Task* task, s32 msgId, RoomEventMsg* ar
 static void func_dryfield_general_store_8017DEAC(Task* arg0)
 {
     arg0->msgTable = D_dryfield_general_store_8017E188;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (GameFlag_GetNibble(0x5E) == 0) {
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_dryfield_general_store_8017E1B8, ACTOR_COMMAND_MESSAGE_APPLY);
     } else if (GameFlag_GetNibble(0x5E) == 1) {

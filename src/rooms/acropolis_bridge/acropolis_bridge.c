@@ -393,10 +393,10 @@ TmdSource D_acropolis_bridge_80188E28[1] = {
 
 TaskMessageEntry D_acropolis_bridge_80188E4C[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_bridge_8017D6F4 },
-    { 5104, func_acropolis_bridge_8017D7F8 },
+    { ROOM_MESSAGE_COMMAND, func_acropolis_bridge_8017D7F8 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_bridge_8017D868 },
     { 5105, func_acropolis_bridge_8017D7F0 },
-    { 5106, func_acropolis_bridge_8017D870 },
+    { ROOM_MESSAGE_SOUND, func_acropolis_bridge_8017D870 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -2621,7 +2621,7 @@ u8* D_acropolis_bridge_80191720[9] = {
 
 AcropolisBridgeMessageEntry D_acropolis_bridge_80191744[3] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_acropolis_bridge_801856E0 } },
-    { 2005, { .call1 = func_acropolis_bridge_80187BD0 } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call1 = func_acropolis_bridge_80187BD0 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
@@ -2689,20 +2689,20 @@ s32 func_acropolis_bridge_8017D6F4(Task* task, s32 msgId, RoomEventMsg* in, Room
     GameLocationKey key;
 
     *out = *in;
-    if (in->areaId == 0xF) {
+    if (in->areaId == GAME_AREA_ACROPOLIS_FIRE_ESCAPE) {
         if (GameFlag_GetNibble(0x10) == 0) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 GameFlag_SetNibble(0x10, 1);
                 func_800E8634(D_acropolis_bridge_80188EBC, 0, D_acropolis_bridge_8018912C);
                 GameFlag_SetNibble(6, 1);
-                key.stage = 1;
-                key.area  = 0xC;
+                key.stage = GAME_STAGE_ACROPOLIS;
+                key.area  = GAME_AREA_ACROPOLIS_SANCTUARY;
                 areaSetPlacementVariant(&key, 3, AREA_VARIANT_RESET_ALWAYS);
             }
             return 2;
         }
     }
-    if ((in->areaId == 0xB) && (in->queryOnly == ROOM_EVENT_EXECUTE)) {
+    if ((in->areaId == GAME_AREA_ACROPOLIS_PROMENADE) && (in->queryOnly == ROOM_EVENT_EXECUTE)) {
         out->room = 2;
     }
     return 1;
@@ -2794,7 +2794,7 @@ void func_acropolis_bridge_8017D954(void)
 static void func_acropolis_bridge_8017D98C(Task* arg0)
 {
     arg0->msgTable = D_acropolis_bridge_80188E4C;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     D_acropolis_bridge_80191794 = Task_SpawnFromTable(D_acropolis_bridge_80188E7C, 0, 0, 0);
     arg0->state                 = (s32)(arg0->state + 1);
     func_acropolis_bridge_8017F2D0(GameFlag_GetNibble(0x10) & 0xFF);
@@ -2843,7 +2843,7 @@ static void func_acropolis_bridge_8017DB60(Task* arg0)
 
 static void func_acropolis_bridge_8017DBA0(Task* arg0)
 {
-    if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA3, 0, 0) == 0) {
+    if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_IS_BUSY, 0, 0) == 0) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 8;
         gGameSession->hideHud                                      = 1;
         Gp_MsgPlayer3F3(0);
@@ -2952,7 +2952,7 @@ void func_acropolis_bridge_8017DEE4(Task* arg0)
 L_case0:
     queue->movieFrame = 1;
     slotParam[0]      = Stream_FindSlot((u8*)&gGameSession->location.loc, 0, 0);
-    CdCmd_Enqueue(0x61, 0, slotParam);
+    CdCmd_Enqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
     goto advance;
 
 L_case1:
@@ -3598,7 +3598,7 @@ void func_acropolis_bridge_8017F868(Task* task)
     if (task->state == 0) {
         gGameSession->field_80 = 0;
         task->msgTable         = D_acropolis_bridge_801898FC;
-        Game_SetPtrSlot(task, 5);
+        Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM_EFFECT);
         D_8011574C  = 0x600B9;
         D_80115738  = 0x600BA;
         task->state = task->state + 1;

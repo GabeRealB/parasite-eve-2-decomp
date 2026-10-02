@@ -275,10 +275,10 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
 TaskDesc D_actor_350700_80169D10 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_350700_80162398, { .model = &_gActor350700EveBreaMaskedBody } };
 
 Actor350700MsgEntry gReverseWalkMessages[6] = {
-    { 2003, { .call1 = actorMotionPlayAnim19 } },
-    { 2004, { .call3 = actorMsgPlaceEuler } },
-    { 2005, { .call5 = reverseWalkVisibilityMsg } },
-    { 2013, { .call4 = reverseWalkStartMsg } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = actorMotionPlayAnim19 } },
+    { ACTOR_MESSAGE_PLACE, { .call3 = actorMsgPlaceEuler } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call5 = reverseWalkVisibilityMsg } },
+    { ACTOR_MESSAGE_WALK_TO, { .call4 = reverseWalkStartMsg } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_350700_80162AF4 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
@@ -542,10 +542,10 @@ TaskDesc D_actor_350700_801708DC[4] = {
 };
 
 Actor350700MsgEntry D_actor_350700_8017090C[6] = {
-    { 2003, { .call1 = actorMotionPlayAnim } },
-    { 2004, { .call3 = func_actor_350700_801637C4 } },
-    { 2005, { .call5 = func_actor_350700_80163840 } },
-    { 2013, { .call4 = actorMotionStartWalk } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = actorMotionPlayAnim } },
+    { ACTOR_MESSAGE_PLACE, { .call3 = func_actor_350700_801637C4 } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call5 = func_actor_350700_80163840 } },
+    { ACTOR_MESSAGE_WALK_TO, { .call4 = actorMotionStartWalk } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_350700_8016395C } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 }; /// Per-frame tick of the enemy actor: dispatches through the local two-entry table

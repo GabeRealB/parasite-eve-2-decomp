@@ -1363,11 +1363,11 @@ static AnimationSet _gActor160700Animation0F830 = {
 };
 
 Actor160700MessageEntry D_actor_160700_80141678[6] = {
-    { 2003, { .call1 = func_actor_160700_801325F0 } },
-    { 2005, { .call3 = func_actor_160700_8013265C } },
-    { 2004, { .call2 = pacedWalkPlace } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = func_actor_160700_801325F0 } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = func_actor_160700_8013265C } },
+    { ACTOR_MESSAGE_PLACE, { .call2 = pacedWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_160700_80132738 } },
-    { 2013, { .call2 = pacedWalkTo } },
+    { ACTOR_MESSAGE_WALK_TO, { .call2 = pacedWalkTo } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 

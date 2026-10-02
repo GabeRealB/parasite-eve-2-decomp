@@ -1089,9 +1089,9 @@ AnimationSet** D_actor_210700_801585C8[1] = {
 TaskDesc D_actor_210700_801585CC = { { { TASK_BODY_TMD, 192 } }, func_actor_210700_80149F38, { .model = &_gActor210700RupertBroderickBody1 } };
 
 Actor210700MsgEntry D_actor_210700_801585D8[5] = {
-    { 2003, { .call0 = func_actor_210700_8014A224 } },
-    { 2004, { .call1 = func_actor_210700_8014A344 } },
-    { 2005, { .call2 = func_actor_210700_8014A3D4 } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = func_actor_210700_8014A224 } },
+    { ACTOR_MESSAGE_PLACE, { .call1 = func_actor_210700_8014A344 } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call2 = func_actor_210700_8014A3D4 } },
     { 2016, { .call2 = func_actor_210700_8014A4B0 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 }; /// Texture-upload step, run by the tick state: while `field_53C` names an
@@ -1184,11 +1184,11 @@ static void func_actor_210700_80149F90(Task* task)
     args.rot.vx     = 0;
     args.rot.vy     = 0;
     args.rot.vz     = 0;
-    func_actor_210700_8014A344(task, 0x7D4, &args, 0);
+    func_actor_210700_8014A344(task, ACTOR_MESSAGE_PLACE, &args, 0);
     anim.field_0 = 0;
     anim.field_4 = 1;
     anim.field_8 = 0;
-    func_actor_210700_8014A224(task, 0x7D3, &anim, 0);
+    func_actor_210700_8014A224(task, ACTOR_MESSAGE_PLAY_ANIMATION, &anim, 0);
     if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
         Gp_DrawEffGroundQuad(&pos, 0x400, gRoomEffectState->groundShadowShade);
     }

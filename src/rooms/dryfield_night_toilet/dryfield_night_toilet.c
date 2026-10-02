@@ -63,8 +63,8 @@ TaskMessageEntry D_dryfield_night_toilet_8017DA70[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantParkingLotMsg },
     { 5105, func_dryfield_night_toilet_8017D678 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_toilet_8017D688 },
-    { 5104, func_dryfield_night_toilet_8017D680 },
-    { 5106, toiletSoundMsg },
+    { ROOM_MESSAGE_COMMAND, func_dryfield_night_toilet_8017D680 },
+    { ROOM_MESSAGE_SOUND, toiletSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -506,7 +506,7 @@ s32 func_dryfield_night_toilet_8017D688(Task* task, s32 msgId, TaskMessageArg ar
 static void func_dryfield_night_toilet_8017D690(Task* task)
 {
     task->msgTable = D_dryfield_night_toilet_8017DA70;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     if (GameFlag_GetNibble(0xAF) == 0 && gGameSession->location.loc.variant == 1) {
         GameFlag_SetNibble(0xAF, 1);
         Task_SpawnFromTable(D_8013E51C, 0, 0, 0);

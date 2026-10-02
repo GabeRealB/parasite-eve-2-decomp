@@ -408,7 +408,7 @@ void func_dryfield_night_motel_loft_8017D7EC(u8 arg0)
 static void func_dryfield_night_motel_loft_8017D808(Task* arg0)
 {
     arg0->msgTable = D_dryfield_night_motel_loft_8017EB1C;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (Gp_LookupSlot4(0) != 0 && GameFlag_GetNibble(0x96) != 0) {
         D_dryfield_night_motel_loft_8018092C.command = 1;
         TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_motel_loft_8018092C, 0);

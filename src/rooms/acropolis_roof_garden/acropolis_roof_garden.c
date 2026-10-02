@@ -217,9 +217,9 @@ static AnimationSet _gAcropolisRoofGardenAnimation065F4 = {
 TaskMessageEntry D_acropolis_roof_garden_80183BDC[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_roof_garden_8017D71C },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_roof_garden_8017D7A0 },
-    { 5104, func_acropolis_roof_garden_8017D8AC },
+    { ROOM_MESSAGE_COMMAND, func_acropolis_roof_garden_8017D8AC },
     { 5105, func_acropolis_roof_garden_8017D798 },
-    { 5106, func_acropolis_roof_garden_8017D868 },
+    { ROOM_MESSAGE_SOUND, func_acropolis_roof_garden_8017D868 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1155,7 +1155,7 @@ void func_acropolis_roof_garden_8017D5D4(Task* task)
 s32 func_acropolis_roof_garden_8017D71C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    if (in->areaId == 0xC && in->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(7) == 0) {
+    if (in->areaId == GAME_AREA_ACROPOLIS_SANCTUARY && in->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(7) == 0) {
         GameFlag_SetNibble(7, 2);
         Gp_SetCurBit2Flag(0x13, 2);
     }
@@ -1287,7 +1287,7 @@ void func_acropolis_roof_garden_8017DAD4(s32 arg0)
 static void func_acropolis_roof_garden_8017DB74(Task* arg0)
 {
     arg0->msgTable = D_acropolis_roof_garden_80183BDC;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent == 6) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 5;
     }
@@ -1303,8 +1303,8 @@ static void func_acropolis_roof_garden_8017DBEC(Task* task)
         D_acropolis_roof_garden_8018432C = 1;
         func_800E8634(D_acropolis_roof_garden_80183D74, 0, D_acropolis_roof_garden_80184194);
         GameFlag_SetNibble(6, 1);
-        key.stage = 1;
-        key.area  = 0xC;
+        key.stage = GAME_STAGE_ACROPOLIS;
+        key.area  = GAME_AREA_ACROPOLIS_SANCTUARY;
         areaSetPlacementVariant(&key, 3, AREA_VARIANT_RESET_ALWAYS);
     }
 }

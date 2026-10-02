@@ -339,7 +339,7 @@ void func_acropolis_security_room_8017D740(Task*, s32, DirectionActionRequest* r
 AcropolisSecurityRoomMsgEntry D_acropolis_security_room_801825DC[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, { .call0 = func_acropolis_security_room_8017D6AC } },
     { DIRECTION_MESSAGE_ROOM_ACTION, { .call2 = func_acropolis_security_room_8017D740 } },
-    { 5104, { .call1 = func_acropolis_security_room_8017D708 } },
+    { ROOM_MESSAGE_COMMAND, { .call1 = func_acropolis_security_room_8017D708 } },
     { 5105, { .call1 = func_acropolis_security_room_8017D6D4 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
@@ -2049,8 +2049,8 @@ void func_acropolis_security_room_8017D834(Task* arg0)
             return;
         case 1:
             if (Task_PollKill(D_acropolis_security_room_801855AC, &sp10) != 0) {
-                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
-                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F3, 1, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
                 Gp_MsgPlayerWeapon(1);
                 Gp_MsgPlayer3F3(1);
                 D_acropolis_security_room_801855AC = NULL;
@@ -2063,7 +2063,7 @@ void func_acropolis_security_room_8017D834(Task* arg0)
 static void func_acropolis_security_room_8017D930(Task* arg0)
 {
     arg0->msgTable = D_acropolis_security_room_801825DC;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     arg0->state                        = arg0->state + 1;
     D_acropolis_security_room_801855AC = NULL;
 }
@@ -2928,7 +2928,7 @@ static void func_acropolis_security_room_8017FE6C(Task* task)
     u8                          level;
 
     level = st->frames;
-    Fade_DrawOverlay(level, level, level, 2);
+    Fade_DrawOverlay(level, level, level, GPU_BLEND_SUBTRACT);
     st->frames = st->frames + 4;
     if (st->frames == 0x80) {
         SndEvt_EnqueueType6(0x51060002, 0, 0);
@@ -2998,7 +2998,7 @@ static void func_acropolis_security_room_801800A4(Task* task)
 
     GameFlag_SetNibble(0x1EE, 0);
     level = (u8)st->frames;
-    Fade_DrawOverlay(level, level, level, 2);
+    Fade_DrawOverlay(level, level, level, GPU_BLEND_SUBTRACT);
     frames     = st->frames + 4;
     st->frames = frames;
     if ((u16)frames == 0x80) {
@@ -3146,7 +3146,7 @@ void func_acropolis_security_room_801804CC(Task* arg0)
 L_case0:
     queue->movieFrame = 1;
     slotParam[0]      = Stream_FindSlot((u8*)&gGameSession->location.loc, 0, 0);
-    CdCmd_Enqueue(0x61, 0, slotParam);
+    CdCmd_Enqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
     goto advance;
 
 L_case1:

@@ -14,12 +14,12 @@ void factoryPowerScene(Task* task)
             goto advance;
         case 1:
             if (GameFlag_GetNibble(0x48) <= 0) {
-                if (gGameSession->location.loc.stage == 2) {
+                if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                     factoryDayShowView11Sprite(0);
                 } else {
                     factoryNightShowView11Sprite(0);
                 }
-                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F3, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
             }
             task->state++;
             /* fallthrough */
@@ -32,7 +32,7 @@ void factoryPowerScene(Task* task)
             if (Gp_GetCapEventKey() == 3) {
                 GameFlag_SetNibble(0x48, 1);
                 GameFlag_SetNibble(0x4A, 1);
-                if (gGameSession->location.loc.stage == 2) {
+                if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                     factoryDayShowView11Sprite(1);
                     factoryDayShowView9Sprite(1);
                 } else {
@@ -52,7 +52,7 @@ void factoryPowerScene(Task* task)
         default:
             Gp_MsgPlayerWeapon(1);
             Gp_MsgAllyWeapon(1);
-            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F3, 1, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             taskKill(task);
             break;
     }

@@ -122,7 +122,7 @@ s32 func_shelter_b2_pod_access_tunnel_8017D7C4(Task* task, s32 msgId, RoomEventM
 
     *out = *in;
     func_map_shelter_80179A04(in, out);
-    if (in->areaId == 0x30) {
+    if (in->areaId == GAME_AREA_SHELTER_R48) {
         if (GameFlag_GetNibble(0xB4) == 0) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_SetNibbleIf(in->flagId, 2);
@@ -131,7 +131,7 @@ s32 func_shelter_b2_pod_access_tunnel_8017D7C4(Task* task, s32 msgId, RoomEventM
             return 0;
         }
     }
-    if (in->areaId == 0x22) {
+    if (in->areaId == GAME_AREA_SHELTER_B2_SEPTIC_TANK) {
         if (GameFlag_GetNibble(0x118) == 2) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_RunCapCmd1(4);
@@ -189,7 +189,7 @@ void func_shelter_b2_pod_access_tunnel_8017D9A8(Task* task)
             return;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 0x11;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 3;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
             gDisplayState.spriteVariant                                = 1;
@@ -229,7 +229,7 @@ s32 func_shelter_b2_pod_access_tunnel_8017DB78(Task* arg0, s32 arg1, s32 arg2, T
 static void func_shelter_b2_pod_access_tunnel_8017DBA8(Task* arg0)
 {
     arg0->msgTable = D_shelter_b2_pod_access_tunnel_80183BCC;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 0x16) {
         gGameSession->flowFlags = (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_SKIP_AREA_MUSIC);
     }

@@ -409,11 +409,11 @@ TaskDesc D_actor_510900_80167A18[7] = {
 
 Actor510900MessageEntry D_actor_510900_80167A6C[7] = {
     { 2014, { .call1 = func_actor_510900_8013BD5C } },
-    { 2003, { .call2 = func_actor_510900_8013BD84 } },
-    { 2004, { .call3 = actorMsgPlaceRotMatrix } },
-    { 2005, { .call4 = func_actor_510900_8013BE64 } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call2 = func_actor_510900_8013BD84 } },
+    { ACTOR_MESSAGE_PLACE, { .call3 = actorMsgPlaceRotMatrix } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = func_actor_510900_8013BE64 } },
     { 2007, { .call4 = func_actor_510900_801391B8 } },
-    { 2006, { .call0 = func_actor_510900_8013BE84 } },
+    { ACTOR_MESSAGE_IS_PRESENT, { .call0 = func_actor_510900_8013BE84 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
@@ -3032,7 +3032,7 @@ static void func_actor_510900_8013A310(Task* task)
                     work->field_CA = 3;
                     break;
                 }
-                taskMessageDispatch(player, 0x3F9, Gp_PackPair(&D_actor_510900_80167968, 4), 0);
+                taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackPair(&D_actor_510900_80167968, 4), 0);
                 scratch->anim.source.sets          = D_actor_510900_80167B2C;
                 scratch->anim.animationId          = 1;
                 scratch->anim.blend                = ANIMATION_BLEND_RESET;
@@ -3067,8 +3067,8 @@ static void func_actor_510900_8013A310(Task* task)
             tick           = work->field_CE + 1;
             work->field_CE = tick;
             if ((s16)tick >= 0x15) {
-                if (taskMessageDispatch(player, 0x3ED, 0, 0) == 0) {
-                    taskMessageDispatch(player, 0x3F1, 0, 0);
+                if (taskMessageDispatch(player, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
+                    taskMessageDispatch(player, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
                     work->field_CA = 3;
                 }
             }

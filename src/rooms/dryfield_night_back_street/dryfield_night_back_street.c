@@ -75,7 +75,7 @@ TaskMessageEntry D_dryfield_night_back_street_80180324[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, backStreetEventMsg },
     { 5105, func_dryfield_night_back_street_8017D724 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_back_street_8017D734 },
-    { 5104, func_dryfield_night_back_street_8017D72C },
+    { ROOM_MESSAGE_COMMAND, func_dryfield_night_back_street_8017D72C },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -456,7 +456,7 @@ s32 func_dryfield_night_back_street_8017D734(Task* task, s32 msgId, TaskMessageA
 static void func_dryfield_night_back_street_8017D73C(Task* task)
 {
     task->msgTable = D_dryfield_night_back_street_80180324;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

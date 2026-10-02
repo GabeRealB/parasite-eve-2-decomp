@@ -656,11 +656,11 @@ static AnimationSet _gActor151000Animation0B464 = {
 s16 gFootstepWalkBlendFrames = 8;
 
 Actor151000MsgEntry gFootstepWalkMsgTable[6] = {
-    { 2003, { .call0 = footstepWalkPlay } },
-    { 2005, { .call4 = func_actor_151000_801327C8 } },
-    { 2004, { .call2 = footstepWalkPlace } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = footstepWalkPlay } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = func_actor_151000_801327C8 } },
+    { ACTOR_MESSAGE_PLACE, { .call2 = footstepWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_151000_8013288C } },
-    { 2013, { .call3 = footstepWalkTo } },
+    { ACTOR_MESSAGE_WALK_TO, { .call3 = footstepWalkTo } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 

@@ -497,9 +497,9 @@ TaskDesc D_actor_213000_80157DE0[5] = {
 };
 
 Actor213000MsgEntry D_actor_213000_80157E1C[5] = {
-    { 2003, { .call0 = func_actor_213000_8014A70C } },
-    { 2004, { .call2 = actorMsgPlaceEuler } },
-    { 2005, { .call3 = func_actor_213000_8014A8A4 } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = func_actor_213000_8014A70C } },
+    { ACTOR_MESSAGE_PLACE, { .call2 = actorMsgPlaceEuler } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = func_actor_213000_8014A8A4 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_213000_8014A980 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 }; /// Spawn handler: allocates the work block, seeds its animation bytes and

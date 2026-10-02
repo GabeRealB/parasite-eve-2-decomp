@@ -236,7 +236,7 @@ ShelterB6NurseryMessageEntry D_shelter_b6_nursery_8018500C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, { .call2 = func_shelter_b6_nursery_8017FDD4 } },
     { 5105, { .call0 = func_shelter_b6_nursery_8017FDCC } },
     { DIRECTION_MESSAGE_ROOM_ACTION, { .call1 = func_shelter_b6_nursery_8017FE3C } },
-    { 5104, { .call3 = func_shelter_b6_nursery_8017FA54 } },
+    { ROOM_MESSAGE_COMMAND, { .call3 = func_shelter_b6_nursery_8017FA54 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
@@ -1019,7 +1019,7 @@ s32 func_shelter_b6_nursery_8017FE3C(Task* task, s32 msgId, DirectionActionReque
 static void func_shelter_b6_nursery_8017FEC4(Task* arg0)
 {
     arg0->msgTable = D_shelter_b6_nursery_8018500C;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     Gp_FillAllyHp();
     if (GameFlag_GetNibble(0xC7) == 0) {
         GameFlag_SetNibble(0xC7, 1);

@@ -87,7 +87,7 @@ TaskMessageEntry D_dryfield_night_g_r_kitchen_8017E254[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, grKitchenDoorMsg },
     { 5105, func_dryfield_night_g_r_kitchen_8017D8BC },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_g_r_kitchen_8017D950 },
-    { 5104, func_dryfield_night_g_r_kitchen_8017D948 },
+    { ROOM_MESSAGE_COMMAND, func_dryfield_night_g_r_kitchen_8017D948 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -313,7 +313,7 @@ s32 func_dryfield_night_g_r_kitchen_8017D950(Task* task, s32 msgId, TaskMessageA
 static void func_dryfield_night_g_r_kitchen_8017D958(Task* task)
 {
     task->msgTable = D_dryfield_night_g_r_kitchen_8017E254;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

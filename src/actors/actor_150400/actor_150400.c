@@ -330,11 +330,11 @@ static TmdSource _gActor150400GolemBeamSword = {
 };
 
 Actor150400MsgEntry D_actor_150400_8013C8C4[6] = {
-    { 2003, { .call1 = pairWalkPlay } },
-    { 2005, { .call3 = pairWalkSetVisibility } },
-    { 2004, { .call2 = pairWalkPlace } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = pairWalkPlay } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = pairWalkSetVisibility } },
+    { ACTOR_MESSAGE_PLACE, { .call2 = pairWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_150400_801327EC } },
-    { 2013, { .call2 = func_actor_150400_801327F4 } },
+    { ACTOR_MESSAGE_WALK_TO, { .call2 = func_actor_150400_801327F4 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
@@ -422,8 +422,8 @@ void func_actor_150400_80131ECC(void)
         GameFlag_SetNibble(0xE5, 1);
         Gp_EnqueueConfigCd(1);
         Gp_ApplyAreaRecs(D_shelter_b1_control_room_80183BE0);
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 4;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 0x21;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_MINE_SHELTER;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_SHELTER_B2_MAIN_CORRIDOR;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 4;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
         gDisplayState.spriteVariant                                 = 1;

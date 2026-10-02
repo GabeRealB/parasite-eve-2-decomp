@@ -329,9 +329,9 @@ TaskDesc D_actor_323300_8017255C[2] = {
 };
 
 _Actor323300MessageEntry D_actor_323300_80172574[5] = {
-    { 2003, { .animation = actorMotionPlayAnim19 } },
-    { 2004, { .placement = actorMsgPlaceEuler } },
-    { 2005, { .mode = func_actor_323300_80162208 } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .animation = actorMotionPlayAnim19 } },
+    { ACTOR_MESSAGE_PLACE, { .placement = actorMsgPlaceEuler } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .mode = func_actor_323300_80162208 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .command = func_actor_323300_80162360 } },
     { TASK_MESSAGE_TABLE_END, { .animation = NULL } },
 };
@@ -469,9 +469,9 @@ static void func_actor_323300_80161E78(Task* arg0)
     obj->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     Gp_InitRec18Table(obj->context.contacts, 1, 0);
     arg0->msgTable = &D_actor_323300_80172574;
-    func_actor_323300_80162208(arg0, 0x7D5, 0, 0);
+    func_actor_323300_80162208(arg0, ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
     actorMsgPlaceEuler(arg0, 0x7D3, &D_actor_323300_8017259C, 0);
-    actorMotionPlayAnim19(arg0, 0x7D3, &D_actor_323300_801725B4, 0);
+    actorMotionPlayAnim19(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_323300_801725B4, 0);
     SndEvt_EnqueueType6(0x52100006, 0, 0x28);
     arg0->exitCallback = func_actor_323300_8016269C;
     arg0->state       += 1;
@@ -630,7 +630,7 @@ s32 func_actor_323300_80162360(Task* arg0, s32 arg1, ActorCommand* msg, ActorTra
     w = (Actor323300Work*)arg0->work;
     switch (msg->command) {
         case 0:
-            func_actor_323300_80162208(arg0, 0x7D5, 1, 0);
+            func_actor_323300_80162208(arg0, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             break;
         case 10:
             spawned      = Task_SpawnFromTable(D_actor_323300_8017255C, 1, 0, 0);
@@ -751,7 +751,7 @@ static void func_actor_323300_80162748(Task* arg0)
     s32              i;
 
     work = (Actor323300Work*)arg0->work;
-    actorMotionPlayAnim19(arg0, 0x7D3, &D_actor_323300_801725C8, 0);
+    actorMotionPlayAnim19(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_323300_801725C8, 0);
     for (i = 1; i < 0x13; i++) {
         work->rig.slots[i].rate = 8;
     }
@@ -794,7 +794,7 @@ static void func_actor_323300_801627B4(Task* arg0)
         }
     } else {
         vec.vy = work->walk.rotY;
-        actorMotionPlayAnim19(arg0, 0x7D3, &D_actor_323300_801725DC, 0);
+        actorMotionPlayAnim19(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_323300_801725DC, 0);
         for (i = 1; i < 0x13; i++) {
             work->rig.slots[i].rate = 0x16;
         }

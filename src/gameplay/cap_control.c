@@ -61,13 +61,13 @@ void func_80724120(void);
 void func_80724324(void);
 
 GpCapControlEntry D_8010FB90[10] = {
-    { 0xFA0, { .start = Gp_StartCapAndClear } },
+    { CAP_CONTROL_MESSAGE_START, { .start = Gp_StartCapAndClear } },
     { 0xFA1, { .empty = func_800E731C } },
-    { 0xFA2, { .empty = Gp_AbortCapClear } },
-    { 0xFA3, { .empty = func_800E7358 } },
-    { 0xFA4, { .empty = func_800E7378 } },
-    { 0xFA5, { .empty = func_800E73E8 } },
-    { 0xFA8, { .empty = func_800E7434 } },
+    { CAP_CONTROL_MESSAGE_ABORT, { .empty = Gp_AbortCapClear } },
+    { CAP_CONTROL_MESSAGE_IS_BUSY, { .empty = func_800E7358 } },
+    { CAP_CONTROL_MESSAGE_HIDE_HUD, { .empty = func_800E7378 } },
+    { CAP_CONTROL_MESSAGE_SHOW_HUD, { .empty = func_800E73E8 } },
+    { CAP_CONTROL_MESSAGE_SHOW_HUD_ABORT, { .empty = func_800E7434 } },
     { 0xFA6, { .overlay = func_800E7498 } },
     { 0xFA7, { .value = func_800E74EC } },
     { -1, { .empty = NULL } },
@@ -85,7 +85,7 @@ void Gp_InitCapTask(Task* task)
     Gp_ResetCap();
     D_801156B8     = NULL;
     task->msgTable = D_8010FB90;
-    Game_SetPtrSlot(task, 6);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_CAP_CONTROL);
     task->work = mem;
     D_801156B0 = 0;
     task->state++;

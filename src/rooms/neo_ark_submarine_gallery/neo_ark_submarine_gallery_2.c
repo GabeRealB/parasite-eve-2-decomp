@@ -74,7 +74,7 @@ TaskMessageEntry D_neo_ark_submarine_gallery_80181884[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_submarine_gallery_8017EA0C },
     { 5105, func_neo_ark_submarine_gallery_8017EA04 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_submarine_gallery_8017EB48 },
-    { 5104, func_neo_ark_submarine_gallery_8017EABC },
+    { ROOM_MESSAGE_COMMAND, func_neo_ark_submarine_gallery_8017EABC },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

@@ -201,7 +201,7 @@ STATIC_ASSERT_SIZEOF(AcropolisPlazaOpeningWork, 0x8);
 /// lookup and its last stream request. `key` is the location key states 6 and 8
 /// build from `gGameSession` before walking the nested area records for the
 /// 0x6C room, and `slot` is the CD stream-slot triple state 13 hands to
-/// `CdCmd_Enqueue(0x71, ...)`; the task only ever has one of them in flight.
+/// `CdCmd_Enqueue(CD_COMMAND_PLAY_STREAM_AT_OFFSET, ...)`; the task only ever has one of them in flight.
 typedef union AcropolisPlazaOpeningBuf {
     /* 0x0 */ GameLocationKey key;
     /* 0x0 */ u8              slot[4];
@@ -247,7 +247,7 @@ STATIC_ASSERT_SIZEOF(AcropolisPlazaWeaponMsg, 0x1C);
 /// payloads in. The task only ever has one of them in flight, so all three
 /// views share a single frame slot, and the union is what makes that sharing
 /// explicit: `slot` is the CD stream-slot triple handed to
-/// `CdCmd_Enqueue(0x72, ...)` in state 3, `weapon.rec` the record msg 0x3E8
+/// `CdCmd_Enqueue(CD_COMMAND_RESET_STREAM_AT_OFFSET, ...)` in state 3, `weapon.rec` the record msg 0x3E8
 /// takes in state 5, and `place` the position + Euler rotation the 0x3E9
 /// placement that follows it takes.
 typedef union AcropolisPlazaTailMsg {
@@ -3648,7 +3648,7 @@ L_case0:
         openFrame = frameOfs & 0xFFFF;
         slot[1]   = openFrame >> 8;
         slot[2]   = openFrame & loMask;
-        CdCmd_Enqueue(0x72, 0, slot);
+        CdCmd_Enqueue(CD_COMMAND_RESET_STREAM_AT_OFFSET, 0, slot);
     } else {
         q->movieAtEnd = 0;
     }
@@ -3743,7 +3743,7 @@ L_enqueue:
     seekFrame = frameOfs & 0xFFFF;
     slot[1]   = seekFrame >> 8;
     slot[2]   = seekFrame;
-    CdCmd_Enqueue(0x71, 0, slot);
+    CdCmd_Enqueue(CD_COMMAND_PLAY_STREAM_AT_OFFSET, 0, slot);
     q->movieReady = 0;
     task->state   = task->state + 1;
     goto L_tail;
@@ -3837,7 +3837,7 @@ void func_acropolis_plaza_8017E7E4(Task* task)
             task->state = task->state + 1;
             return;
         case 1:
-            if (taskMessageDispatch(work->slot3, 0x3F0, 0, 0) != 0) {
+            if (taskMessageDispatch(work->slot3, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) != 0) {
                 return;
             }
             warp.rot.vy = 0xD55;
@@ -3845,7 +3845,7 @@ void func_acropolis_plaza_8017E7E4(Task* task)
             task->state = task->state + 1;
             return;
         case 2:
-            if (taskMessageDispatch(work->slot3, 0x3F0, 0, 0) != 0) {
+            if (taskMessageDispatch(work->slot3, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) != 0) {
                 return;
             }
             task->state = task->state + 1;
@@ -3874,7 +3874,7 @@ void func_acropolis_plaza_8017E7E4(Task* task)
 /// (msg 0x3F0), following up with the 0xD55 warp (msg 0x3EE) and then the
 /// `D_actor_310100_801797FC` script (msg 0x3F4). State 3 waits for the CD queue, latches
 /// `gCdCmdQueue.sceneFrame` into the cutscene work block, kills the task it
-/// names and starts the scene's stream (`CdCmd_Enqueue(0x72, ...)`); state 4
+/// names and starts the scene's stream (`CdCmd_Enqueue(CD_COMMAND_RESET_STREAM_AT_OFFSET, ...)`); state 4
 /// waits for the stream to report in and runs `D_acropolis_plaza_80182B24`.
 /// State 5 waits out 0x60 frames, republishes the player's weapon to slot 3
 /// (msg 0x3E8) and warps the player onto the slot-3 model's own coordinate
@@ -3912,7 +3912,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
             task->state = task->state + 1;
             return;
         case 1:
-            if (taskMessageDispatch(work->slot3, 0x3F0, 0, 0) != 0) {
+            if (taskMessageDispatch(work->slot3, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) != 0) {
                 return;
             }
             warp.rot.vy = 0xD55;
@@ -3920,7 +3920,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
             task->state = task->state + 1;
             return;
         case 2:
-            if (taskMessageDispatch(work->slot3, 0x3F0, 0, 0) != 0) {
+            if (taskMessageDispatch(work->slot3, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) != 0) {
                 return;
             }
             script.source.sets          = D_actor_310100_801797FC;
@@ -3943,7 +3943,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
             buf.slot[0]         = Stream_FindSlot((u8*)&gGameSession->location.loc, 2, 0);
             buf.slot[1]         = 0;
             buf.slot[2]         = 0;
-            CdCmd_Enqueue(0x72, 0, buf.slot);
+            CdCmd_Enqueue(CD_COMMAND_RESET_STREAM_AT_OFFSET, 0, buf.slot);
             q->continueMovie = 1;
             task->state      = task->state + 1;
             return;
@@ -3979,7 +3979,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
             break;
         case 6:
             if (CdCmd_IsIdle() != 0) {
-                taskMessageDispatch(work->slot3, 0x3F1, 0, 0);
+                taskMessageDispatch(work->slot3, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
                 Task_RequestKill(task, 0);
             }
             break;
@@ -4048,7 +4048,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             task->state = task->state + 1;
             return;
         case 1:
-            if (taskMessageDispatch(work->slot3, 0x3F0, 0, 0) != 0) {
+            if (taskMessageDispatch(work->slot3, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) != 0) {
                 return;
             }
             warp.rot.vy = 0x1000;
@@ -4056,7 +4056,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             task->state = task->state + 1;
             return;
         case 2:
-            if (taskMessageDispatch(work->slot3, 0x3F0, 0, 0) != 0) {
+            if (taskMessageDispatch(work->slot3, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) != 0) {
                 return;
             }
             task->state = task->state + 1;
@@ -4072,7 +4072,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             slot[0]             = Stream_FindSlot((u8*)&gGameSession->location.loc, 4, 0);
             slot[1]             = 0;
             slot[2]             = 0;
-            CdCmd_Enqueue(0x72, 0, slot);
+            CdCmd_Enqueue(CD_COMMAND_RESET_STREAM_AT_OFFSET, 0, slot);
             q->continueMovie = 1;
             task->state      = task->state + 1;
             return;
@@ -4099,7 +4099,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             slot[0]             = Stream_FindSlot((u8*)&gGameSession->location.loc, 5, 0);
             slot[1]             = 0;
             slot[2]             = 0;
-            CdCmd_Enqueue(0x72, 0, slot);
+            CdCmd_Enqueue(CD_COMMAND_RESET_STREAM_AT_OFFSET, 0, slot);
             q->continueMovie = 1;
             task->state      = task->state + 1;
             return;
@@ -4107,7 +4107,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             if (q->movieReady == 0) {
                 return;
             }
-            taskMessageDispatch(work->slot3, 0x3F1, 1, 0);
+            taskMessageDispatch(work->slot3, GAME_ACTOR_MESSAGE_END_SCRIPTED, 1, 0);
             placeBack.pos.vx = 0x3DE;
             placeBack.pos.vy = 0;
             placeBack.pos.vz = 0x439E;
@@ -4189,7 +4189,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
                                     sessionKey->area)
                         ->field_0,
                     0x7D7, 1, 0);
-                taskMessageDispatch(work->slot3, 0x3F3, 2, 0);
+                taskMessageDispatch(work->slot3, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
                 Gpu_ResetGraphAndOt();
                 Mem_ConfigureAuxHeap(gGameSession->location.loc.stage, gGameSession->location.loc.area);
                 Mem_SetActiveAuxHeap(1);
@@ -4207,7 +4207,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             slot[0]             = Stream_FindSlot((u8*)&gGameSession->location.loc, 3, 0);
             slot[1]             = 0;
             slot[2]             = 0;
-            CdCmd_Enqueue(0x72, 0, slot);
+            CdCmd_Enqueue(CD_COMMAND_RESET_STREAM_AT_OFFSET, 0, slot);
             q->continueMovie = 0;
             task->state      = task->state + 1;
             /* fallthrough */
@@ -4248,7 +4248,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
                 buf.slot[0]         = Stream_FindSlot((u8*)&gGameSession->location.loc, 3, 0);
                 buf.slot[1]         = 0;
                 buf.slot[2]         = 0;
-                CdCmd_Enqueue(0x71, 0, buf.slot);
+                CdCmd_Enqueue(CD_COMMAND_PLAY_STREAM_AT_OFFSET, 0, buf.slot);
                 q->continueMovie = 1;
                 task->state      = task->state + 1;
             }
@@ -4264,7 +4264,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
         case 15:
             if (CdCmd_IsIdle() != 0) {
                 SndEvt_EnqueueType7(0x51050002, 0xB4);
-                taskMessageDispatch(work->slot3, 0x3F1, 1, 0);
+                taskMessageDispatch(work->slot3, GAME_ACTOR_MESSAGE_END_SCRIPTED, 1, 0);
                 Task_RequestKill(task, 0);
             }
             func_acropolis_plaza_8017DE24(5);
@@ -4359,7 +4359,7 @@ void func_acropolis_plaza_8017F620(Task* task)
             }
             break;
         case 2:
-            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 1, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 1, 0);
             Task_RequestKill(task, 0);
             break;
     }
@@ -4675,7 +4675,7 @@ void func_acropolis_plaza_80180054(Task* task)
             vec.vy = 0x370;
             vec.vz = 0x370;
             Gp_SetOverrideVec(&vec);
-            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
             work->field_12 = 0;
             work->field_10 = 0;
             work->field_8  = Task_SpawnFromTable(D_acropolis_plaza_80183824, 1, 0, &work->field_10);
@@ -4692,9 +4692,9 @@ void func_acropolis_plaza_80180054(Task* task)
             task->state = task->state + 1;
             return;
         case 5:
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_ACROPOLIS;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 0x11;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_ACROPOLIS_WEST_ELEVATOR_HALL;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
             gDisplayState.spriteVariant                                 = 1;
             Gp_EnqueueHeldWeaponCd();

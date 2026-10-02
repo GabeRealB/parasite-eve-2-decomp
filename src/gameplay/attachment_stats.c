@@ -1653,7 +1653,7 @@ after:
                 func_80108874(w);
             } else {
                 if (flags & GAME_SESSION_FLOW_HIDE_REEQUIPPED_WEAPON) {
-                    taskMessageDispatch(w, 0x3F1, 2, 0);
+                    taskMessageDispatch(w, GAME_ACTOR_MESSAGE_END_SCRIPTED, 2, 0);
                 }
             }
             p    = &gPlayerStatus;

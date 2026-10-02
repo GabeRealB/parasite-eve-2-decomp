@@ -36,7 +36,7 @@ TaskMessageEntry D_shelter_b6_growth_room_8017F16C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b6_growth_room_8017D5F0 },
     { 5105, func_shelter_b6_growth_room_8017D5E8 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b6_growth_room_8017D6C8 },
-    { 5104, func_shelter_b6_growth_room_8017D634 },
+    { ROOM_MESSAGE_COMMAND, func_shelter_b6_growth_room_8017D634 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -88,7 +88,7 @@ s32 func_shelter_b6_growth_room_8017D6C8(Task* arg0, s32 arg1, RoomEventMsg* arg
 static void func_shelter_b6_growth_room_8017D71C(Task* arg0)
 {
     arg0->msgTable = D_shelter_b6_growth_room_8017F16C;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     Gp_FillAllyHp();
     Gp_ApplyAreaRecs(D_shelter_b6_growth_room_801807C8);
     func_800E8634(D_80136110, 0, D_80136308);

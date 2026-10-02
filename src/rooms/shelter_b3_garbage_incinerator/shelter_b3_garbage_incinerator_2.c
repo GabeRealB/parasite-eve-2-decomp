@@ -226,9 +226,9 @@ static TmdSource _gShelterB3GarbageIncineratorModel081E4 = {
 };
 
 ShelterB3GarbageIncinerator2ExtendedMessageEntry D_shelter_b3_garbage_incinerator_80185B40[3] = {
-    { 2005, { .call2 = actorMsgSetDrawMode } },
-    { 2004, { .call1 = actorMsgPlaceInView } },
-    { 5108, { .call0 = func_shelter_b3_garbage_incinerator_8017E7A4 } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call2 = actorMsgSetDrawMode } },
+    { ACTOR_MESSAGE_PLACE, { .call1 = actorMsgPlaceInView } },
+    { ROOM_MESSAGE_ACTOR_EVENT, { .call0 = func_shelter_b3_garbage_incinerator_8017E7A4 } },
 };
 
 ActorTransform D_shelter_b3_garbage_incinerator_80185B58[2] = {
@@ -677,7 +677,7 @@ void func_shelter_b3_garbage_incinerator_8017DCD4(Task* arg0)
             param2[1]             = 0;
             param2[2]             = 0;
             param2[3]             = 0;
-            arg0->spawnArg1.value = (u16)CdCmd_Enqueue(0x21, param1, param2);
+            arg0->spawnArg1.value = (u16)CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
             if (gGameSession->skipEventIntro == 0) {
                 if (gPlayerStatus.weapon == 0x17) {
                     p = msg;
@@ -855,7 +855,7 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
                 case GAME_SESSION_INCINERATOR_DESCENT_COMPLETE:
                     goto kill;
             }
-            taskMessageDispatch(task, 0x7D5, 1, 0);
+            taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             break;
         case 1:
             if (Gp_TakePendingObj4C(&id, (u8*)&kind, &arg) == 0) {
@@ -984,7 +984,7 @@ static s32 func_shelter_b3_garbage_incinerator_8017F318(Task* arg0)
     ret1:
         return 1;
     }
-    if (taskMessageDispatch(work->field_2C, 0x3ED, 0, 0) != 0) {
+    if (taskMessageDispatch(work->field_2C, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) != 0) {
         return 0;
     }
     if (work->field_38 < 0x2F) {
@@ -1035,7 +1035,7 @@ static s32 func_shelter_b3_garbage_incinerator_8017F588(Task* arg0)
             Gp_MsgPlayerWeapon(0);
             Gp_StateC08.field_6 |= 1;
             func_800E8614(D_shelter_b3_garbage_incinerator_80186FB8, 0);
-            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
             work->field_34 = Task_SpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 2, 0, arg0);
             work->field_3A = work->field_3A + 1;
             break;

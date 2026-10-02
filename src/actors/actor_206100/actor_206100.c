@@ -2215,7 +2215,7 @@ static void func_actor_206100_8014CB68(Task* task)
     if ((s16)work->field_51E >= 0x100) {
         work->field_51E = 0xFF;
     }
-    Fade_DrawOverlay((u8)work->field_51E, (u8)work->field_51E, (u8)work->field_51E, 2);
+    Fade_DrawOverlay((u8)work->field_51E, (u8)work->field_51E, (u8)work->field_51E, GPU_BLEND_SUBTRACT);
     if ((s16)work->field_51E == 0xFF) {
         work->obj_364.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         work->obj_414.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;

@@ -173,8 +173,8 @@ static void WATER_WAVE_STRIPS_FUNC(Task* task)
     phase   = -(gDisplayState.animFrame * 16);
     k       = &gGameSession->location.loc;
     /* not drawn in views 10 and 11 of stage 4, area 0x21 */
-    if (k->stage == 4) {
-        if (k->area == 0x21) {
+    if (k->stage == GAME_STAGE_MINE_SHELTER) {
+        if (k->area == GAME_AREA_SHELTER_B2_MAIN_CORRIDOR) {
             if ((u32)(gGameSession->location.loc.view - 0xA) < 2) {
                 return;
             }

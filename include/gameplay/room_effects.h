@@ -11,6 +11,7 @@
 #include "gameplay/scene.h"
 
 #include "main/coord.h"
+#include "main/display_types.h"
 #include "main/task_types.h"
 
 /// Shared State1C work.
@@ -118,25 +119,6 @@ void Gp_DrawBandEx(GfxCoord* arg0, s16 arg1, s32 arg2, u8* arg3);
 void effectKillTask(void* effectWork, Task* task);
 
 void Gp_PulseState1C(void);
-
-/// GPU semitransparency modes, with B the background and F the primitive colour.
-enum {
-    GPU_BLEND_AVERAGE = 0, // B/2 + F/2
-    /// GPU semitransparency selector for full-strength foreground + framebuffer colour.
-    ///
-    /// RGB channels saturate at their maximum. Pass this unshifted ABR value
-    /// to `gpuSetPrimitiveBlendMode` or `getTPage`; the packet stores it in
-    /// bits 5..6. The primitive must also have semitransparency enabled.
-    GPU_BLEND_ADD = 1,
-    /// GPU semitransparency selector subtracting primitive colour from framebuffer colour.
-    ///
-    /// Both colours contribute at full strength. Pass this unshifted ABR value
-    /// to `gpuSetPrimitiveBlendMode` or `getTPage`; it occupies packet bits
-    /// 5..6. The primitive must also have semitransparency enabled. Textured
-    /// primitives blend only texels whose texture colour has bit 15 set.
-    GPU_BLEND_SUBTRACT    = 2,
-    GPU_BLEND_ADD_QUARTER = 3, // B + F/4
-};
 
 /// Enables semitransparency and queues the blend mode for an untextured primitive.
 ///

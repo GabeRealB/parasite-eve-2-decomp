@@ -178,8 +178,8 @@ TaskMessageEntry D_neo_ark_forest_zone_80181DC8[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_forest_zone_8017D7E4 },
     { 5105, func_neo_ark_forest_zone_8017D7DC },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_forest_zone_8017D958 },
-    { 5104, func_neo_ark_forest_zone_8017D950 },
-    { 5108, func_neo_ark_forest_zone_8017DA14 },
+    { ROOM_MESSAGE_COMMAND, func_neo_ark_forest_zone_8017D950 },
+    { ROOM_MESSAGE_ACTOR_EVENT, func_neo_ark_forest_zone_8017DA14 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -548,7 +548,7 @@ s16 gRoamerReleasePending = 0;
 
 NeoArkForestZone2MsgEntry gRoamerMsgTableA[4] = {
     { 5103, { .call0 = roamerLatchRequest } },
-    { 5108, { .call2 = roamerBankRetreat } },
+    { ROOM_MESSAGE_ACTOR_EVENT, { .call2 = roamerBankRetreat } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_neo_ark_forest_zone_801813BC } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
@@ -567,7 +567,7 @@ s16 gRoamerPrevBattleRefs = 0;
 
 TaskMessageEntry gRoamerMsgTableB[4] = {
     { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_forest_zone_801814B0 },
-    { 5108, func_neo_ark_forest_zone_80181494 },
+    { ROOM_MESSAGE_ACTOR_EVENT, func_neo_ark_forest_zone_80181494 },
     { ACTOR_COMMAND_MESSAGE_APPLY, roamerAmbushMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };

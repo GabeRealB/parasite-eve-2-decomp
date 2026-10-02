@@ -34,7 +34,7 @@ void actorMotionArrive19(Task* arg0)
         preset.blend                = ANIMATION_BLEND_INTERPOLATE;
         preset.blendFrames          = 5;
         preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-        actorMotionPlayAnim19(arg0, 0x7D3, &preset, 0);
+        actorMotionPlayAnim19(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &preset, 0);
         work->walk.step.vx = 0;
         work->walk.step.vy = 0;
         work->walk.step.vz = 0;

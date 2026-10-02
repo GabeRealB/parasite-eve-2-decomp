@@ -643,10 +643,10 @@ TaskDesc D_actor_135600_8013B0C4[4] = {
 };
 
 Actor135600MsgEntry D_actor_135600_8013B0F4[6] = {
-    { 2003, { .call1 = actorMotionPlayAnim } },
-    { 2004, { .call3 = actorMsgPlaceEuler } },
-    { 2005, { .call4 = func_actor_135600_80133240 } },
-    { 2013, { .call2 = actorMotionStartWalk } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = actorMotionPlayAnim } },
+    { ACTOR_MESSAGE_PLACE, { .call3 = actorMsgPlaceEuler } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = func_actor_135600_80133240 } },
+    { ACTOR_MESSAGE_WALK_TO, { .call2 = actorMotionStartWalk } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_135600_8013336C } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
@@ -818,14 +818,14 @@ static void func_actor_135600_80132234(Task* task)
     args.rot.vx = 0;
     args.rot.vy = 0x400;
     args.rot.vz = 0;
-    actorMsgPlaceEuler(task, 0x7D4, &args, 0);
+    actorMsgPlaceEuler(task, ACTOR_MESSAGE_PLACE, &args, 0);
 
     preset.source.index = 0;
     preset.animationId  = 2;
     preset.blend        = ANIMATION_BLEND_RESET;
-    actorMotionPlayAnim(task, 0x7D3, &preset, 0);
+    actorMotionPlayAnim(task, ACTOR_MESSAGE_PLAY_ANIMATION, &preset, 0);
 
-    func_actor_135600_80133240(task, 0x7D5, 1, 0);
+    func_actor_135600_80133240(task, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
 
     task->msgTable     = D_actor_135600_8013B0F4;
     task->exitCallback = func_actor_135600_80132DBC;

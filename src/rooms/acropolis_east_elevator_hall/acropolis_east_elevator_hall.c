@@ -315,7 +315,7 @@ EvsCommand D_acropolis_east_elevator_hall_8018621C[9] = {
 
 TaskMessageEntry D_acropolis_east_elevator_hall_801862F4[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_east_elevator_hall_8017F348 },
-    { 5104, func_acropolis_east_elevator_hall_8017F420 },
+    { ROOM_MESSAGE_COMMAND, func_acropolis_east_elevator_hall_8017F420 },
     { 5105, func_acropolis_east_elevator_hall_8017F370 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_east_elevator_hall_8017F378 },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -779,7 +779,7 @@ void func_acropolis_east_elevator_hall_8017F450(void)
 static void func_acropolis_east_elevator_hall_8017F478(Task* task)
 {
     task->msgTable = D_acropolis_east_elevator_hall_801862F4;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     Gp_MsgSlot4Chain(0, 1);
     TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D3, &D_acropolis_east_elevator_hall_80185C8C, 0);
     task->state++;

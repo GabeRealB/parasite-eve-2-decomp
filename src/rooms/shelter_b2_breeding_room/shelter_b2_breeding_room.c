@@ -63,8 +63,8 @@ TaskMessageEntry D_shelter_b2_breeding_room_80180414[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_breeding_room_8017D660 },
     { 5105, func_shelter_b2_breeding_room_8017D658 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b2_breeding_room_8017D750 },
-    { 5104, func_shelter_b2_breeding_room_8017D6A4 },
-    { 5106, func_shelter_b2_breeding_room_8017D758 },
+    { ROOM_MESSAGE_COMMAND, func_shelter_b2_breeding_room_8017D6A4 },
+    { ROOM_MESSAGE_SOUND, func_shelter_b2_breeding_room_8017D758 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -157,7 +157,7 @@ void func_shelter_b2_breeding_room_8017D7A8(Task* arg0)
 static void func_shelter_b2_breeding_room_8017D7EC(Task* arg0)
 {
     arg0->msgTable = D_shelter_b2_breeding_room_80180414;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     arg0->state = (s32)(arg0->state + 1);
     D_80115598  = 1;
 }

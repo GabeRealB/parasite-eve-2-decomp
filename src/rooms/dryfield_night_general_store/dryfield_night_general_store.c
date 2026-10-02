@@ -56,8 +56,8 @@ TaskMessageEntry D_dryfield_night_general_store_8017E7BC[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, storeDoorMsg },
     { 5105, func_dryfield_night_general_store_8017DE24 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_general_store_8017DE2C },
-    { 5104, storeActionMsg },
-    { 5106, storeSoundMsg },
+    { ROOM_MESSAGE_COMMAND, storeActionMsg },
+    { ROOM_MESSAGE_SOUND, storeSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -103,7 +103,7 @@ s32 func_dryfield_night_general_store_8017DE2C(Task* task, s32 msgId, TaskMessag
 static void func_dryfield_night_general_store_8017DE34(Task* arg0)
 {
     arg0->msgTable = D_dryfield_night_general_store_8017E7BC;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     arg0->state = (s32)(arg0->state + 1);
     D_80115598  = 1;
 }

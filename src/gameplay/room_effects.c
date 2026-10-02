@@ -1399,19 +1399,19 @@ static void Gp_InitState1C(Task* arg0)
     Gp_InitRoomCoords();
 
     switch (gGameSession->location.loc.stage) {
-        case 1:
+        case GAME_STAGE_ACROPOLIS:
             val = D_80111B70[gGameSession->location.loc.area - 1];
             break;
-        case 2:
+        case GAME_STAGE_DRYFIELD:
             val = D_80111BC0[gGameSession->location.loc.area - 1];
             break;
-        case 3:
+        case GAME_STAGE_DRYFIELD_NIGHT:
             val = D_80111C58[gGameSession->location.loc.area - 1];
             break;
-        case 4:
+        case GAME_STAGE_MINE_SHELTER:
             val = D_80111CF0[gGameSession->location.loc.area - 1];
             break;
-        case 5:
+        case GAME_STAGE_SHELTER_NEO_ARK:
             val = D_80111DB4[gGameSession->location.loc.area - 1];
             break;
     }

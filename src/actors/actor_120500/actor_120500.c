@@ -315,8 +315,8 @@ EvsCommand D_actor_120500_80138318[10] = {
 };
 
 Actor120500MessageEntry D_actor_120500_80138408[2] = {
-    { 2005, { .call1 = func_actor_120500_80132A04 } },
-    { 2004, { .call0 = actorMsgPlaceInView } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call1 = func_actor_120500_80132A04 } },
+    { ACTOR_MESSAGE_PLACE, { .call0 = actorMsgPlaceInView } },
 };
 
 TaskDesc D_actor_120500_80138418[3] = {
@@ -426,7 +426,7 @@ static void func_actor_120500_80132028(Task* arg0)
 
     work = (Actor120500Work*)arg0->work;
     if (work->field_4B4 != NULL) {
-        taskMessageDispatch(work->field_4B4, 0x3ED, 0, 0);
+        taskMessageDispatch(work->field_4B4, ANIMATION_MESSAGE_IS_PLAYING, 0, 0);
     }
     switch ((u16)work->field_4B8) {
         case 0:
@@ -461,7 +461,7 @@ static void func_actor_120500_80132028(Task* arg0)
             Task_SpawnFromTable(D_actor_120500_80138418, 1, 8, 0);
             w = (Actor120500Work*)arg0->work;
             Gp_SetOverrideVec(NULL);
-            taskMessageDispatch(w->field_4B4, 0x3F3, 1, 0);
+            taskMessageDispatch(w->field_4B4, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             TASK_MESSAGE_DISPATCH_POINTER(w->field_4B4, 0x3E9, &D_actor_120500_801380A8, 0);
             w2 = (Actor120500Work*)arg0->work;
             p  = &msg;
@@ -487,7 +487,7 @@ static void func_actor_120500_80132028(Task* arg0)
             }
             break;
         case 5:
-            taskMessageDispatch(arg0, 0x7D5, 2, 0);
+            taskMessageDispatch(arg0, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
             break;
         case 6:
             base = gPlayerStatus.weapon;
@@ -670,7 +670,7 @@ do_4C8_case1:
     w->field_4C8 = 0;
     goto done_4C8;
 do_4C8_case2:
-    taskMessageDispatch(w->field_4B4, 0x3F3, 2, 0);
+    taskMessageDispatch(w->field_4B4, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
     Display_SpawnWithOt(D_actor_120500_80138418, 0, 0, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     Gp_SpawnViewTasks();
@@ -733,7 +733,7 @@ void func_actor_120500_80132920(void)
     actor = D_actor_120500_80138454;
     work  = actor->work;
     SndEvt_EnqueueType7(0x521E0007, 0xA);
-    taskMessageDispatch(actor, 0x7D5, 2, 0);
+    taskMessageDispatch(actor, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
     work->field_4B8 = 0;
     work->field_4C0 = 0;
     work->field_4C8 = 0;
@@ -748,7 +748,7 @@ void func_actor_120500_80132920(void)
     }
     work = actor->work;
     Gp_SetOverrideVec(NULL);
-    taskMessageDispatch(work->field_4B4, 0x3F3, 1, 0);
+    taskMessageDispatch(work->field_4B4, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
     TASK_MESSAGE_DISPATCH_POINTER(work->field_4B4, 0x3E9, &D_actor_120500_801380A8, 0);
 }
 

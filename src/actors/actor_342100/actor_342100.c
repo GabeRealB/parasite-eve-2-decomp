@@ -413,7 +413,7 @@ static s32 func_actor_342100_801629B8(Task* arg0)
     ret1:
         return 1;
     }
-    if (taskMessageDispatch(work->field_2C, 0x3ED, 0, 0) != 0) {
+    if (taskMessageDispatch(work->field_2C, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) != 0) {
         return 0;
     }
     if (work->field_3C < 0x2F) {
@@ -606,7 +606,7 @@ static s32 func_actor_342100_80162F54(Task* arg0)
             Gp_MsgPlayerWeapon(0);
             Gp_StateC08.field_6 |= 1;
             func_800E8614(D_actor_342100_801649C8, 0);
-            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
             work->field_34 = Task_SpawnFromTable(D_actor_342100_80164B78, 2, 0, arg0);
             work->field_3E = work->field_3E + 1;
             break;

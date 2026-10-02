@@ -155,7 +155,7 @@ void* CdCmd_SetupMdecBuffers(void)
     }
 
     D_8006AC00 = NULL;
-    if (gGameSession->location.loc.stage == 0) {
+    if (gGameSession->location.loc.stage == GAME_STAGE_NONE) {
         D_8006AC00 = Mem_Malloc(0x4B000, 1);
     } else if (Stream_FindSlot((u8*)&gGameSession->location.loc, 0, 0) < 0) {
         return NULL;

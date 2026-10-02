@@ -358,13 +358,13 @@ void Gp_FadeDirWaitMsg(void)
     playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if (*(s16*)&Gp_DirFadeLevel != 0) {
         fade = *(u8*)&Gp_DirFadeLevel;
-        Fade_DrawOverlay(fade, fade, fade, 2);
+        Fade_DrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
         Gp_DirFadeLevel += 0x1E;
         if ((s16)Gp_DirFadeLevel >= 0x100) {
             Gp_DirFadeLevel = 0xFF;
         }
     }
-    if (taskMessageDispatch(playerTask, 0x3F0, 0, 0) == 0) {
+    if (taskMessageDispatch(playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
         if (D_80114CF4 != 0) {
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
         }
@@ -391,7 +391,7 @@ void Gp_CommitWarp(void)
 
     if (*(s16*)&Gp_DirFadeLevel != 0) {
         fade = *(u8*)&Gp_DirFadeLevel;
-        Fade_DrawOverlay(fade, fade, fade, 2);
+        Fade_DrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
         Gp_DirFadeLevel += 0x1E;
         if ((s16)Gp_DirFadeLevel >= 0x100) {
             Gp_DirFadeLevel = 0xFF;
@@ -414,7 +414,7 @@ void Gp_CommitWarp(void)
     }
 
     if (D_80114CF4 == 0) {
-        taskMessageDispatch(slot3, 0x3F1, 0, 0);
+        taskMessageDispatch(slot3, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
         D_80114CF8              = 0;
         Gp_DirNibble            = 0;
         Gp_DirByte              = 0;
@@ -431,7 +431,7 @@ void Gp_WarpPhase4(void)
 
     if (*(s16*)&Gp_DirFadeLevel != 0) {
         fade = *(u8*)&Gp_DirFadeLevel;
-        Fade_DrawOverlay(fade, fade, fade, 2);
+        Fade_DrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
         Gp_DirFadeLevel += 0x1E;
         if ((s16)Gp_DirFadeLevel >= 0x100) {
             Gp_DirFadeLevel = 0xFF;

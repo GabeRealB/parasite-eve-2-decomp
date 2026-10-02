@@ -15,7 +15,7 @@ s32 mainStreetResolveMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg*
 
     *out = *msg;
     if (msg->areaId == 0x19) {
-        if (gGameSession->location.loc.stage == 2) {
+        if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
             if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
                 if (GameFlag_GetNibble(0x3A) >= 2) {
                     out->room = 2;

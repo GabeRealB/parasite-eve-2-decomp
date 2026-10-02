@@ -106,7 +106,7 @@ TaskMessageEntry D_acropolis_helicopter_landing_pad_80183710[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_helicopter_landing_pad_8017E3F0 },
     { 5105, func_acropolis_helicopter_landing_pad_8017E49C },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_helicopter_landing_pad_8017E4A4 },
-    { 5104, func_acropolis_helicopter_landing_pad_8017E570 },
+    { ROOM_MESSAGE_COMMAND, func_acropolis_helicopter_landing_pad_8017E570 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -706,7 +706,7 @@ static void func_acropolis_helicopter_landing_pad_8017ED50(Task* arg0)
 
     D_acropolis_helicopter_landing_pad_80187F90.field_4   = 1;
     D_acropolis_helicopter_landing_pad_80187F90.room      = 1;
-    D_acropolis_helicopter_landing_pad_80187F90.areaId    = 0xF;
+    D_acropolis_helicopter_landing_pad_80187F90.areaId    = GAME_AREA_ACROPOLIS_FIRE_ESCAPE;
     D_acropolis_helicopter_landing_pad_80187F90.warp      = 3;
     D_acropolis_helicopter_landing_pad_80187F90.queryOnly = ROOM_EVENT_EXECUTE;
     if (Gp_DispatchMsgPtrs(slot, ROOM_EVENT_MESSAGE_RESOLVE, &D_acropolis_helicopter_landing_pad_80187F90,
@@ -733,7 +733,7 @@ static void func_acropolis_helicopter_landing_pad_8017EDD4(Task* arg0)
 /// Task state step: advances the state once msg 0x3F0 to slot 3 returns 0.
 static void func_acropolis_helicopter_landing_pad_8017EE2C(Task* arg0)
 {
-    if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F0, 0, 0) == 0) {
+    if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
         arg0->state = (s32)(arg0->state + 1);
     }
 }
@@ -752,7 +752,7 @@ static void func_acropolis_helicopter_landing_pad_8017EE80(Task* arg0)
 
 static void func_acropolis_helicopter_landing_pad_8017EEDC(Task* arg0)
 {
-    if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F0, 0, 0) == 0) {
+    if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = (u8)D_acropolis_helicopter_landing_pad_80187F90.areaId;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_acropolis_helicopter_landing_pad_80187F90.warp;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = D_acropolis_helicopter_landing_pad_80187F90.room;

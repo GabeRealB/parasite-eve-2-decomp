@@ -82,7 +82,7 @@ TaskMessageEntry D_neo_ark_north_promenade_80181D68[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_north_promenade_8017D5D8 },
     { 5105, func_neo_ark_north_promenade_8017D5D0 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_north_promenade_8017D674 },
-    { 5104, func_neo_ark_north_promenade_8017D66C },
+    { ROOM_MESSAGE_COMMAND, func_neo_ark_north_promenade_8017D66C },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -408,7 +408,7 @@ s32 func_neo_ark_north_promenade_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);
-    if (in->areaId != 0xB) {
+    if (in->areaId != GAME_AREA_NEO_ARK_FOREST_ZONE) {
         return 1;
     }
     if (GameFlag_GetNibble(0xF6) != 0) {
@@ -438,7 +438,7 @@ s32 func_neo_ark_north_promenade_8017D674(Task* task, s32 msgId, TaskMessageArg 
 static void func_neo_ark_north_promenade_8017D67C(Task* task)
 {
     task->msgTable = D_neo_ark_north_promenade_80181D68;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

@@ -1340,11 +1340,11 @@ static TmdSource _gActor260500JodieBouquetBody2 = {
 s16 gFootstepWalkBlendFrames = 8;
 
 Actor260500MsgEntry D_actor_260500_80159D80[6] = {
-    { 2003, { .call0 = func_actor_260500_8014A6C4 } },
-    { 2005, { .call4 = func_actor_260500_8014A754 } },
-    { 2004, { .call2 = footstepWalkPlace } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = func_actor_260500_8014A6C4 } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = func_actor_260500_8014A754 } },
+    { ACTOR_MESSAGE_PLACE, { .call2 = footstepWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_260500_8014A818 } },
-    { 2013, { .call3 = func_actor_260500_8014A83C } },
+    { ACTOR_MESSAGE_WALK_TO, { .call3 = func_actor_260500_8014A83C } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 

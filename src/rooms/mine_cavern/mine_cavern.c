@@ -223,7 +223,7 @@ s32 func_mine_cavern_8017D908(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg
     *out = *in;
     func_map_shelter_80179A04(in, out);
 
-    if (in->areaId == 8) {
+    if (in->areaId == GAME_AREA_MINE_SECRET_PASSAGE) {
         if (GameFlag_GetNibble(0xBB) != 1) {
             if (in->queryOnly != ROOM_EVENT_EXECUTE) {
                 return 0;
@@ -247,7 +247,7 @@ s32 func_mine_cavern_8017D908(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg
         }
     }
 
-    if (in->areaId == 5) {
+    if (in->areaId == GAME_AREA_MINE_GORGE) {
         if (gGameSession->location.loc.variant == 1 || gGameSession->location.loc.variant == 4) {
             if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
                 if (in->queryOnly == ROOM_EVENT_EXECUTE) {
@@ -379,7 +379,7 @@ void func_mine_cavern_8017DD6C(Task* task)
 static void func_mine_cavern_8017DDFC(Task* arg0)
 {
     arg0->msgTable = D_mine_cavern_80183C6C;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     if ((gGameSession->location.loc.variant == 1) && (GameFlag_GetNibble(0x10F) == 0)) {
         func_800E8634(D_mine_cavern_80187C74, 0, D_mine_cavern_8018804C);
         func_mine_cavern_8017E394();

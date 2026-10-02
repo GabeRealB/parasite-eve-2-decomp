@@ -144,7 +144,7 @@ TaskMessageEntry D_neo_ark_submarine_tunnel_80181A50[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_submarine_tunnel_8017F284 },
     { 5105, func_neo_ark_submarine_tunnel_8017F27C },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_submarine_tunnel_8017F064 },
-    { 5104, func_neo_ark_submarine_tunnel_8017F2C8 },
+    { ROOM_MESSAGE_COMMAND, func_neo_ark_submarine_tunnel_8017F2C8 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -303,7 +303,7 @@ void func_neo_ark_submarine_tunnel_8017F398(s32 arg0)
 static void func_neo_ark_submarine_tunnel_8017F3BC(Task* arg0)
 {
     arg0->msgTable = D_neo_ark_submarine_tunnel_80181A50;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     SndEvt_EnqueueType6(0x550C0003, 0, 0);
     arg0->state = arg0->state + 1;
 }

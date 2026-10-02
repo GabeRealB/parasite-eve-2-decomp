@@ -128,7 +128,7 @@ s32 func_mine_secret_passage_8017D7CC(Task* task, s32 msgId, RoomEventMsg* src, 
 {
     *dst = *src;
     func_map_shelter_80179A04(src, dst);
-    if (src->areaId == 9) {
+    if (src->areaId == GAME_AREA_SHELTER_B1_ELEVATOR_HALL) {
         if (src->queryOnly == ROOM_EVENT_EXECUTE) {
             D_mine_secret_passage_80183448.warp              = (u8)dst->areaId;
             D_mine_secret_passage_80183448.field_4           = dst->warp;
@@ -169,7 +169,7 @@ s32 func_mine_secret_passage_8017D898(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 static void func_mine_secret_passage_8017D8C8(Task* arg0)
 {
     arg0->msgTable = &D_mine_secret_passage_80180E8C;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     arg0->state           = (s32)(arg0->state + 1);
     gStageSceneMusicEntry = 1;
 }

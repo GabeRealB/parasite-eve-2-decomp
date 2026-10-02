@@ -63,8 +63,8 @@ TaskMessageEntry D_dryfield_night_water_tower_8017E6EC[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, waterTowerEventMsg },
     { 5105, func_dryfield_night_water_tower_8017DA9C },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_water_tower_8017DAD4 },
-    { 5106, waterTowerSoundMsg },
-    { 5104, func_dryfield_night_water_tower_8017DAA4 },
+    { ROOM_MESSAGE_SOUND, waterTowerSoundMsg },
+    { ROOM_MESSAGE_COMMAND, func_dryfield_night_water_tower_8017DAA4 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

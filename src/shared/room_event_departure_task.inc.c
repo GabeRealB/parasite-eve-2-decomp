@@ -25,7 +25,7 @@ void roomDepartureTask(Task* arg0)
             arg0->state = (s32)(arg0->state + 1);
             break;
         case 1:
-            if (taskMessageDispatch(playerTask, 0x3F0, 0, 0) == 0) {
+            if (taskMessageDispatch(playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
                 arg0->state = (s32)(arg0->state + 1);
             }
             break;

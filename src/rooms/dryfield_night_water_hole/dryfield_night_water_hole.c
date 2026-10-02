@@ -202,7 +202,7 @@ TaskMessageEntry D_dryfield_night_water_hole_801805F8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, waterHoleDoorMsg },
     { 5105, func_dryfield_night_water_hole_8017DAD4 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_water_hole_8017DD5C },
-    { 5104, func_dryfield_night_water_hole_8017DC28 },
+    { ROOM_MESSAGE_COMMAND, func_dryfield_night_water_hole_8017DC28 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1076,7 +1076,7 @@ static void func_dryfield_night_water_hole_8017D958(Task* arg0);
 static void func_dryfield_night_water_hole_8017D958(Task* arg0)
 {
     arg0->msgTable = D_dryfield_night_water_hole_801805F8;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (GameFlag_GetNibble(0xB8) == 0) {
         Task_SpawnFromTable(D_dryfield_night_water_hole_80180964, 0, 0, 0);
     } else {
@@ -1136,8 +1136,8 @@ s32 func_dryfield_night_water_hole_8017DC28(Task* task, s32 msgId, s32 arg2, s32
             s32            (*resolve)(DnwhUtilParam*, DnwhUtilParam*) =
                 (s32 (*)(DnwhUtilParam*, DnwhUtilParam*))roomVariantResolveShelter;
 
-            work.stage    = 4;
-            work.area     = 0x2E;
+            work.stage    = GAME_STAGE_MINE_SHELTER;
+            work.area     = GAME_AREA_SHELTER_B4_WATER_SUPPLY;
             work.room     = 1;
             work.warp     = 3;
             work.sndEvent = 0x53200007;

@@ -89,8 +89,8 @@ ShelterB3DumpingHoleMessageEntry D_shelter_b3_dumping_hole_80187574[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, { .call1 = func_shelter_b3_dumping_hole_8017D760 } },
     { 5105, { .call0 = func_shelter_b3_dumping_hole_8017D758 } },
     { 5103, { .call0 = func_shelter_b3_dumping_hole_8017D868 } },
-    { 5104, { .call2 = func_shelter_b3_dumping_hole_8017D82C } },
-    { 5108, { .call0 = func_shelter_b3_dumping_hole_8017D870 } },
+    { ROOM_MESSAGE_COMMAND, { .call2 = func_shelter_b3_dumping_hole_8017D82C } },
+    { ROOM_MESSAGE_ACTOR_EVENT, { .call0 = func_shelter_b3_dumping_hole_8017D870 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
@@ -235,7 +235,7 @@ s32 func_shelter_b3_dumping_hole_8017D760(s32 arg0, s32 arg1, RoomEventMsg* in, 
 {
     *out = *in;
     func_map_shelter_80179A04(in, out);
-    if (in->areaId == 0x28) {
+    if (in->areaId == GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR) {
         if (func_shelter_b3_dumping_hole_8017FB70() != 0) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_RunCapCmd1(0x16);
@@ -273,7 +273,7 @@ s32 func_shelter_b3_dumping_hole_8017D870(void)
 static void func_shelter_b3_dumping_hole_8017D8A0(Task* arg0)
 {
     arg0->msgTable = D_shelter_b3_dumping_hole_80187574;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     func_shelter_b3_dumping_hole_80183198(0x180, 0, 0);
     if (GameFlag_GetNibble(0x78) == 0) {
         if (gGameSession->location.loc.variant == 1) {

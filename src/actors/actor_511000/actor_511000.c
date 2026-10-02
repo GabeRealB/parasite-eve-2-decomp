@@ -1264,9 +1264,9 @@ TaskDesc D_actor_511000_801472E8[3] = {
 };
 
 Actor511000MessageEntry D_actor_511000_8014730C[6] = {
-    { 2003, { .call1 = func_actor_511000_80132604 } },
-    { 2004, { .call3 = actorMsgPlaceEuler } },
-    { 2005, { .call4 = func_actor_511000_801327A0 } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = func_actor_511000_80132604 } },
+    { ACTOR_MESSAGE_PLACE, { .call3 = actorMsgPlaceEuler } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = func_actor_511000_801327A0 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_511000_8013287C } },
     { 2016, { .call4 = func_actor_511000_80132904 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
@@ -1842,9 +1842,9 @@ GpViewRec D_actor_511000_80147EE4[120] = {
 };
 
 Actor511000MsgEntry D_actor_511000_80148FC4[4] = {
-    { 2003, { .call0 = func_actor_511000_801334B8 } },
-    { 2004, { .call1 = func_actor_511000_801334C4 } },
-    { 2005, { .call2 = func_actor_511000_80133554 } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = func_actor_511000_801334B8 } },
+    { ACTOR_MESSAGE_PLACE, { .call1 = func_actor_511000_801334C4 } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call2 = func_actor_511000_80133554 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
@@ -2089,9 +2089,9 @@ TaskDesc D_actor_511000_80155070[4] = {
 };
 
 Actor511000MessageEntry D_actor_511000_801550A0[4] = {
-    { 2003, { .call0 = func_actor_511000_80133DEC } },
-    { 2004, { .call3 = actorMsgPlaceRotMatrix } },
-    { 2005, { .call4 = func_actor_511000_80133EAC } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = func_actor_511000_80133DEC } },
+    { ACTOR_MESSAGE_PLACE, { .call3 = actorMsgPlaceRotMatrix } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = func_actor_511000_80133EAC } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 

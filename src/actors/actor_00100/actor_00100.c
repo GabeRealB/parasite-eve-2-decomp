@@ -1253,9 +1253,9 @@ SVECTOR gDesertChaserHitOffsets[12] = {
 Actor00100MessageEntry Actor00100_D1BA54[6] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, { .command = Actor00100_Fn00E58 } },
     { 2015, { .reset = Actor00100_Fn0B134 } },
-    { 2005, { .value = actorMsgSetVisibility } },
-    { 2006, { .task = actorMsgIsPresent } },
-    { 2004, { .placement = actorMsgPlaceRecordYaw } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .value = actorMsgSetVisibility } },
+    { ACTOR_MESSAGE_IS_PRESENT, { .task = actorMsgIsPresent } },
+    { ACTOR_MESSAGE_PLACE, { .placement = actorMsgPlaceRecordYaw } },
     { TASK_MESSAGE_TABLE_END, { .command = NULL } },
 };
 
@@ -2215,7 +2215,7 @@ poseEnd:
             cmd30[3] = 0;
             cmd30[2] = 0;
             cmd30[1] = 0;
-            CdCmd_Enqueue(0x21, cmd38, cmd30);
+            CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, cmd38, cmd30);
         }
     }
     if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) {
@@ -2517,7 +2517,7 @@ static void Actor00100_Fn04270(Task* arg0)
     }
     if (work->field_6 >= 0x3D && work->reported == 0 && Gp_StateC08.field_A != 1 && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
         if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) {
-            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT, 0);
         }
         arg0->state++;
         return;
@@ -3085,7 +3085,7 @@ static void Actor00100_Fn09310(Task* arg0)
     }
     if ((work->field_6 >= 0x1F) && (work->reported == 0) && (Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
         if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) {
-            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, (s32)(ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT), 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, (s32)(ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT), 0);
         }
         arg0->state++;
     }
@@ -3241,7 +3241,7 @@ static void Actor00100_Fn09CCC(Task* arg0)
                 finishedObj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             }
             if ((work->field_6 >= 0x79) && (work->reported != 1) && (Gp_StateC08.field_A != 1) && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
-                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, (s32)(ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT), 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, (s32)(ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT), 0);
                 work->field_C2A = 1;
                 arg0->state++;
             }
@@ -3432,7 +3432,7 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
                             for (i = 0; i < 10; i++) {
                                 gGameSession->deathSoundCountdown = GAME_SESSION_DEATH_SOUND_HOLD;
                                 playerSlot                        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                                if (taskMessageDispatch(playerSlot, 0x3F9, Gp_PackObjPair(enemy, 4), 0) == 1)
+                                if (taskMessageDispatch(playerSlot, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 4), 0) == 1)
                                     break;
                             }
                         }
@@ -3515,12 +3515,12 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
                 break;
             case 5:
                 if ((config->hp > 0) && (work->field_C28 >= 7)) {
-                    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 2, 0);
+                    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 2, 0);
                     work->reported = 0;
                 }
                 break;
         }
-        if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
+        if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
             nextAction = work->params[0];
             switch (nextAction) {
                 case 1:
@@ -3552,7 +3552,7 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
                 case 4:
                 case 7:
                     if (config->hp > 0) {
-                        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 2, 0);
+                        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 2, 0);
                         work->reported = 0;
                     }
                     break;

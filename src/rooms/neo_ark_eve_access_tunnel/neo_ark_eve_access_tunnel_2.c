@@ -48,8 +48,8 @@ TaskMessageEntry D_neo_ark_eve_access_tunnel_8017EA94[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_eve_access_tunnel_8017DC6C },
     { 5105, func_neo_ark_eve_access_tunnel_8017DC64 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_eve_access_tunnel_8017DE1C },
-    { 5104, func_neo_ark_eve_access_tunnel_8017DD70 },
-    { 5106, func_neo_ark_eve_access_tunnel_8017DE9C },
+    { ROOM_MESSAGE_COMMAND, func_neo_ark_eve_access_tunnel_8017DD70 },
+    { ROOM_MESSAGE_SOUND, func_neo_ark_eve_access_tunnel_8017DE9C },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

@@ -1068,10 +1068,10 @@ s32  oddStrangerApplyCommand(Task*, s32, u16*);
 
 Actor401000MessageEntry D_actor_401000_80154F90[8] = {
     { 2015, { .call5 = func_actor_401000_8013D68C } },
-    { 2003, { .call1 = oddStrangerPlayMessage } },
-    { 2005, { .call3 = actorMsgSetVisibility } },
-    { 2006, { .call0 = actorMsgIsPresent } },
-    { 2004, { .call2 = actorMsgPlaceRecordYaw } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = oddStrangerPlayMessage } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = actorMsgSetVisibility } },
+    { ACTOR_MESSAGE_IS_PRESENT, { .call0 = actorMsgIsPresent } },
+    { ACTOR_MESSAGE_PLACE, { .call2 = actorMsgPlaceRecordYaw } },
     { 2014, { .call0 = actorMsgReleaseHold } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call4 = oddStrangerApplyCommand } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },

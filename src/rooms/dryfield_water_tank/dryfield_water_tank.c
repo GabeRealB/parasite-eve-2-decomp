@@ -1090,7 +1090,7 @@ void func_dryfield_water_tank_8017D948(Task* task)
 static void func_dryfield_water_tank_8017D9D4(Task* task)
 {
     task->msgTable = D_dryfield_water_tank_8017F324;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     Task_SpawnFromTable(D_dryfield_water_tank_801868A4, 0, 0, 0);
     SndEvt_EnqueueType6(0x52150009, 0, 0);
     func_dryfield_water_tank_8017DB48();
@@ -1314,8 +1314,8 @@ void func_dryfield_water_tank_8017DEA4(Task* arg0)
         case 0:
             break;
         case 1:
-            taskMessageDispatch(work->owner, 0x3F3, 0, 0);
-            taskMessageDispatch(work->child, 0x7D5, 1, 0);
+            taskMessageDispatch(work->owner, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
+            taskMessageDispatch(work->child, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             msg.command = 2;
             TASK_MESSAGE_DISPATCH_POINTER(work->child, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
             break;
@@ -1327,7 +1327,7 @@ void func_dryfield_water_tank_8017DEA4(Task* arg0)
              * the call's delay slot; the two request tails then no longer
              * cross-jump as the original's do. */
             owner = &work->owner;
-            taskMessageDispatch(*owner, 0x3F3, 1, 0);
+            taskMessageDispatch(*owner, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             break;
         case 3:
             SndEvt_EnqueueType6(0x52150002, 0, 0);
@@ -1400,7 +1400,7 @@ void func_dryfield_water_tank_8017E1B4(void)
      * memory, which lets the store to the view index sink into the call's
      * delay slot, and the original keeps it ahead of the load. */
     owner = &work->owner;
-    taskMessageDispatch(*owner, 0x3F3, 1, 0);
+    taskMessageDispatch(*owner, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
     gGameSession->viewDirty = 1;
     SndEvt_EnqueueType7(0x52150002, 0xA);
 }

@@ -24,7 +24,7 @@ TaskMessageEntry D_dryfield_motel_room_1_8017E0A8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_motel_room_1_8017D5F4 },
     { 5105, func_dryfield_motel_room_1_8017D5EC },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_motel_room_1_8017D624 },
-    { 5104, func_dryfield_motel_room_1_8017D61C },
+    { ROOM_MESSAGE_COMMAND, func_dryfield_motel_room_1_8017D61C },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -78,7 +78,7 @@ static void func_dryfield_motel_room_1_8017D69C(Task* arg0)
     ActorCommand msg;
 
     arg0->msgTable = D_dryfield_motel_room_1_8017E0A8;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 3 && GameFlag_GetNibble(0x5C) == 0) {
         msg.context.loc.stage = gGameSession->location.loc.stage;
         msg.context.loc.area  = gGameSession->location.loc.area;

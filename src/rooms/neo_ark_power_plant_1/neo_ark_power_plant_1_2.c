@@ -100,7 +100,7 @@ TaskMessageEntry D_neo_ark_power_plant_1_8017EB18[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_power_plant_1_8017D7B4 },
     { 5105, func_neo_ark_power_plant_1_8017D7AC },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_power_plant_1_8017D8C8 },
-    { 5104, func_neo_ark_power_plant_1_8017D7F8 },
+    { ROOM_MESSAGE_COMMAND, func_neo_ark_power_plant_1_8017D7F8 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

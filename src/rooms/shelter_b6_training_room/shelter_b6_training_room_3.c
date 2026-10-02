@@ -102,8 +102,8 @@ TaskMessageEntry D_shelter_b6_training_room_80182AF4[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b6_training_room_8017D640 },
     { 5105, func_shelter_b6_training_room_8017D638 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b6_training_room_8017D75C },
-    { 5104, func_shelter_b6_training_room_8017D684 },
-    { 5108, func_shelter_b6_training_room_8017D764 },
+    { ROOM_MESSAGE_COMMAND, func_shelter_b6_training_room_8017D684 },
+    { ROOM_MESSAGE_ACTOR_EVENT, func_shelter_b6_training_room_8017D764 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

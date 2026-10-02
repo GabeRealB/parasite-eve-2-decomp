@@ -239,7 +239,7 @@ TaskMessageEntry D_shelter_1f_heliport_801811A0[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_heliport_801800A0 },
     { 5105, func_shelter_1f_heliport_80180334 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_1f_heliport_801804BC },
-    { 5104, func_shelter_1f_heliport_8018041C },
+    { ROOM_MESSAGE_COMMAND, func_shelter_1f_heliport_8018041C },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -647,11 +647,11 @@ s32 func_shelter_1f_heliport_801800A0(Task* task, s32 msgId, RoomEventMsg* src, 
 
     *dst = *src;
     func_map_neo_ark_80179B14(src, dst);
-    if (src->areaId == 0x1C && src->queryOnly == ROOM_EVENT_EXECUTE) {
+    if (src->areaId == GAME_AREA_SHELTER_1F_TENT && src->queryOnly == ROOM_EVENT_EXECUTE) {
         SndEvt_EnqueueType7(0x55040006, 1);
         SndEvt_EnqueueType7(0x55040007, 1);
     }
-    if (src->areaId == 3) {
+    if (src->areaId == GAME_AREA_SHELTER_1F_BULWARK) {
         if (GameFlag_GetNibble(0xE3) == 0 && gGameSession->location.loc.variant == 1) {
             if (src->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_RunCapCmd1(0x2B);
@@ -769,7 +769,7 @@ s32 func_shelter_1f_heliport_801804BC(Task* arg0, s32 arg1, RoomEventMsg* in, Ta
 static void func_shelter_1f_heliport_80180658(Task* arg0)
 {
     arg0->msgTable = D_shelter_1f_heliport_801811A0;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 1) {
         func_80149E80();
     }

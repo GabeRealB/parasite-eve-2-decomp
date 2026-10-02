@@ -14,7 +14,7 @@ s32 factoryLiftLower(Task* task)
             work->field_17++;
             break;
         case 1:
-            if (gGameSession->location.loc.stage == 2) {
+            if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                 Gp_EnqueueStageSnd6(0x52170008, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             } else {
                 Gp_EnqueueStageSnd6(0x53170008, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
@@ -39,7 +39,7 @@ s32 factoryLiftLower(Task* task)
             work->field_C.word += work->field_4;
             if (work->field_C.word <= 0) {
                 factoryLiftNotifyPanel(*(Task**)task->spawnArg2.pointer);
-                if (gGameSession->location.loc.stage == 2) {
+                if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                     Gp_EnqueueStageSnd7(0x52170008, 1);
                     Gp_EnqueueStageSnd6(0x52170010, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                 } else {
@@ -56,7 +56,7 @@ s32 factoryLiftLower(Task* task)
 
     if ((u8)(work->field_17 - 1) < 3 && Pad_CheckButtons(0, 1, 0x800) != 0 && (s16)work->field_14 >= 0xB) {
         factoryLiftNotifyPanel(*(Task**)task->spawnArg2.pointer);
-        if (gGameSession->location.loc.stage == 2) {
+        if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
             Gp_EnqueueStageSnd7(0x52170008, 1);
             Gp_EnqueueStageSnd6(0x52170010, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
         } else {

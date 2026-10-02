@@ -125,7 +125,7 @@ TaskMessageEntry D_shelter_b1_control_room_80181B94[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_control_room_8017ECD4 },
     { 5105, func_shelter_b1_control_room_8017ECCC },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_control_room_8017EE24 },
-    { 5104, func_shelter_b1_control_room_8017ED68 },
+    { ROOM_MESSAGE_COMMAND, func_shelter_b1_control_room_8017ED68 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -594,7 +594,7 @@ s32 func_shelter_b1_control_room_8017ECD4(Task* arg0, s32 arg1, RoomEventMsg* in
 {
     *out = *in;
     func_map_shelter_80179A04(in, out);
-    if (in->areaId != 0x13) {
+    if (in->areaId != GAME_AREA_SHELTER_B1_ACCESS_TUNNEL) {
         return 1;
     }
     if (GameFlag_GetNibble(0xAD) != 0) {
@@ -649,7 +649,7 @@ s32 func_shelter_b1_control_room_8017EE24(Task* task, s32 msgId, TaskMessageArg 
 static void func_shelter_b1_control_room_8017EE2C(Task* arg0)
 {
     arg0->msgTable = D_shelter_b1_control_room_80181B94;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 0xB) {
         func_80131FB8();
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {

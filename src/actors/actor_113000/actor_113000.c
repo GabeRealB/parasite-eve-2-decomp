@@ -1125,9 +1125,9 @@ AnimationSet** D_actor_113000_8013ABB0[1] = {
 TaskDesc D_actor_113000_8013ABB4 = { { { TASK_BODY_TMD, 192 } }, func_actor_113000_80131F38, { .model = &_gActor113000RupertBroderickHurtBody } };
 
 Actor113000MessageEntry D_actor_113000_8013ABC0[5] = {
-    { 2003, { .call0 = func_actor_113000_80132208 } },
-    { 2004, { .call1 = actorMsgPlaceEuler } },
-    { 2005, { .call3 = func_actor_113000_80132398 } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = func_actor_113000_80132208 } },
+    { ACTOR_MESSAGE_PLACE, { .call1 = actorMsgPlaceEuler } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = func_actor_113000_80132398 } },
     { 2016, { .call2 = func_actor_113000_80132474 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 }; /// Texture-upload state: runs the countdown at `field_4C2` down one a frame

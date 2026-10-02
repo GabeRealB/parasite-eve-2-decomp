@@ -39,14 +39,14 @@ s32 func_shelter_b1_elevator_hall_8017D810(Task* task, s32 msgId, RoomEventMsg* 
 {
     *dst = *src;
     func_map_shelter_80179A04(src, dst);
-    if (src->areaId == 0xF && GameFlag_GetNibble(0xA5) == 0) {
+    if (src->areaId == GAME_AREA_SHELTER_B1_MAIN_CORRIDOR && GameFlag_GetNibble(0xA5) == 0) {
         if (src->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_SetNibbleIf(src->flagId, 2);
             Gp_RunCapCmd1(2);
         }
         return 0;
     }
-    if (src->areaId == 0x1A) {
+    if (src->areaId == GAME_AREA_SHELTER_B2_ELEVATOR) {
         if (GameFlag_GetNibble(0xBA) == 0) {
             if (src->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_SetNibbleIf(src->flagId, 2);
@@ -60,7 +60,7 @@ s32 func_shelter_b1_elevator_hall_8017D810(Task* task, s32 msgId, RoomEventMsg* 
         }
         return 0;
     }
-    if (src->areaId == 8) {
+    if (src->areaId == GAME_AREA_MINE_SECRET_PASSAGE) {
         if (src->queryOnly == ROOM_EVENT_EXECUTE) {
             D_shelter_b1_elevator_hall_801849F8.warp              = (u8)dst->areaId;
             D_shelter_b1_elevator_hall_801849F8.field_4           = dst->warp;
@@ -173,7 +173,7 @@ s32 func_shelter_b1_elevator_hall_8017DB6C(Task* arg0, s32 arg1, s32 arg2, TaskM
 static void func_shelter_b1_elevator_hall_8017DBB8(Task* arg0)
 {
     arg0->msgTable = D_shelter_b1_elevator_hall_80182CB8;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (GameFlag_GetNibble(0x122) == 0) {
         GameFlag_SetNibble(0x122, 1);
         func_800E3FAC(0xA2, 0x1D);

@@ -251,7 +251,7 @@ s32 func_dryfield_warehouse_8017D764(Task* arg0, s32 arg1, s32 arg2, TaskMessage
 s32 func_dryfield_warehouse_8017D824(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    if (in->areaId == 9) {
+    if (in->areaId == GAME_AREA_DRYFIELD_DILAPIDATED_HOUSE) {
         if (GameFlag_GetNibble(0x3C) != 0) {
             return 1;
         }
@@ -298,7 +298,7 @@ void func_dryfield_warehouse_8017D8D4(Task* arg0)
 static void func_dryfield_warehouse_8017D99C(Task* arg0)
 {
     arg0->msgTable = D_dryfield_warehouse_8017F554;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     Task_SpawnFromTable(D_dryfield_warehouse_8017F56C, 1, 0, 0);
     arg0->state = (s32)(arg0->state + 1);
 }

@@ -34,7 +34,7 @@ s32 drivewayResolveEvent(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* o
     if (in->areaId == 0x20) {
         if (GameFlag_GetNibble(0x3A) != 2) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                if (gGameSession->location.loc.stage == 2) {
+                if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                     if (gGameSession->location.loc.variant == 1) {
                         if (GameFlag_GetNibble(0x50) == 0) {
                             Task_SpawnFromTable(gDrivewayCutsceneTasks, 1, 0, 0);

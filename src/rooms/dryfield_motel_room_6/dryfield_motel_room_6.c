@@ -213,8 +213,8 @@ TaskMessageEntry D_dryfield_motel_room_6_80182D48[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_motel_room_6_80181920 },
     { 5105, func_dryfield_motel_room_6_80181918 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_motel_room_6_801819A8 },
-    { 5106, func_dryfield_motel_room_6_80181A00 },
-    { 5104, motelRoom6CutsceneMsg },
+    { ROOM_MESSAGE_SOUND, func_dryfield_motel_room_6_80181A00 },
+    { ROOM_MESSAGE_COMMAND, motelRoom6CutsceneMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -2039,7 +2039,7 @@ s32 func_dryfield_motel_room_6_80181918(Task* task, s32 msgId, TaskMessageArg ar
 s32 func_dryfield_motel_room_6_80181920(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    if (in->areaId != 0x14) {
+    if (in->areaId != GAME_AREA_DRYFIELD_WATER_TOWER) {
         return 1;
     }
     if (GameFlag_GetNibble(0x54) != 0) {
@@ -2103,7 +2103,7 @@ void func_dryfield_motel_room_6_80181A08(Task* arg0)
 static void func_dryfield_motel_room_6_80181AC4(Task* arg0)
 {
     arg0->msgTable = D_dryfield_motel_room_6_80182D48;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     arg0->state = (s32)(arg0->state + 1);
     D_80115598  = 1;
 }

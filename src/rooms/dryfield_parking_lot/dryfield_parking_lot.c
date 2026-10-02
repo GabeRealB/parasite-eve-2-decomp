@@ -81,8 +81,8 @@ TaskMessageEntry D_dryfield_parking_lot_8017DC04[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, parkingLotEventMsg },
     { 5105, func_dryfield_parking_lot_8017DAF0 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_parking_lot_8017DB00 },
-    { 5104, func_dryfield_parking_lot_8017DAF8 },
-    { 5106, parkingLotSoundMsg },
+    { ROOM_MESSAGE_COMMAND, func_dryfield_parking_lot_8017DAF8 },
+    { ROOM_MESSAGE_SOUND, parkingLotSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -480,7 +480,7 @@ s32 func_dryfield_parking_lot_8017DB00(Task* task, s32 msgId, TaskMessageArg arg
 static void func_dryfield_parking_lot_8017DB08(Task* task)
 {
     task->msgTable = D_dryfield_parking_lot_8017DC04;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 

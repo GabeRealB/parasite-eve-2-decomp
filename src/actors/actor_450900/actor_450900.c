@@ -723,7 +723,7 @@ void func_actor_450900_80131E38(Task* task)
                     Gp_AllyAnimId(&Actor450900AllyAnim.source.index);
                     TASK_MESSAGE_DISPATCH_POINTER(companionTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &D_actor_450900_80135EC0.data.copies[0], 0);
                     TASK_MESSAGE_DISPATCH_POINTER(companionTask, ANIMATION_MESSAGE_PLAY, &Actor450900AllyAnim, 0);
-                    taskMessageDispatch(companionTask, 0x3F9, 0x40010, 0);
+                    taskMessageDispatch(companionTask, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, 0x40010, 0);
                 } else if (t % 210 == 0x3C) {
                     Gp_AllyAnimId(&D_actor_450900_801360B4.source.index);
                     TASK_MESSAGE_DISPATCH_POINTER(companionTask, ANIMATION_MESSAGE_PLAY, &D_actor_450900_801360B4, 0);
@@ -767,7 +767,7 @@ void func_actor_450900_8013207C(Task* task)
                     value++;
                     D_actor_450900_80136C98 = value;
                     SCHED_BARRIER();
-                    taskMessageDispatch(slot, 0x3F1, 0, 0);
+                    taskMessageDispatch(slot, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
                 }
             }
             return;

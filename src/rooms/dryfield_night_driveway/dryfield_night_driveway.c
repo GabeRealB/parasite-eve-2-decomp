@@ -292,8 +292,8 @@ TaskMessageEntry D_dryfield_night_driveway_8017F7A4[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, drivewayResolveEvent },
     { 5105, func_dryfield_night_driveway_8017DCE4 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_driveway_8017DCF4 },
-    { 5104, func_dryfield_night_driveway_8017DCEC },
-    { 5106, drivewayScriptSound },
+    { ROOM_MESSAGE_COMMAND, func_dryfield_night_driveway_8017DCEC },
+    { ROOM_MESSAGE_SOUND, drivewayScriptSound },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -993,7 +993,7 @@ s32 func_dryfield_night_driveway_8017DCF4(Task* task, s32 msgId, TaskMessageArg 
 static void func_dryfield_night_driveway_8017DCFC(Task* arg0)
 {
     arg0->msgTable = D_dryfield_night_driveway_8017F7A4;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     if ((gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) && (gGameSession->location.loc.warp == 4)) {
         func_800E8634(D_dryfield_night_driveway_8017FB00, 0, D_dryfield_night_driveway_8017F998);
     }

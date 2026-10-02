@@ -1116,10 +1116,10 @@ u8 Actor04000_D0C544[364] = {
 };
 
 Actor04000RecoveredMsgEntry Actor04000_D0C6B0[6] = {
-    { 2005, { .call3 = Actor04000_Fn06590 } },
-    { 2003, { .call1 = Actor04000_Fn06728 } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = Actor04000_Fn06590 } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = Actor04000_Fn06728 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = Actor04000_Fn0093C } },
-    { 2004, { .call2 = actorMsgPlace } },
+    { ACTOR_MESSAGE_PLACE, { .call2 = actorMsgPlace } },
     { 2014, { .call4 = Actor04000_Fn06704 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
@@ -1721,7 +1721,7 @@ static void Actor04000_Fn01E1C(Enemy* arg0, Task* arg1)
         case 0:
             if (work->field_496 == 1) {
                 if (((GameActor*)(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->work)->mode == GAME_ACTOR_MODE_SCRIPTED) {
-                    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
+                    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
                 }
                 work->field_496 = 0;
             }
@@ -1969,7 +1969,7 @@ static void Actor04000_Fn02F48(Enemy* arg0, Task* arg1)
         case 1:
             if (work->field_496 == 1) {
                 if (((GameActor*)(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->work)->mode == GAME_ACTOR_MODE_SCRIPTED) {
-                    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
+                    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
                 }
                 work->field_496 = 0;
             }
@@ -2304,7 +2304,7 @@ found:
         }
         if (work->field_496 == 1) {
             if (((GameActor*)gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work)->mode == GAME_ACTOR_MODE_SCRIPTED) {
-                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
             }
             work->field_496 = 0;
         }
@@ -2852,9 +2852,9 @@ static void Actor04000_Fn05F0C(Enemy* arg0, Task* arg1)
     work->field_2 = work->field_0;
     table.fn[work->field_0](arg0, arg1);
     if (work->field_496 == 1) {
-        if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0 || arg0->hp < 0) {
+        if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0 || arg0->hp < 0) {
             if (((GameActor*)gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work)->mode == GAME_ACTOR_MODE_SCRIPTED) {
-                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
             }
             work->field_496 = 0;
         }
@@ -3026,7 +3026,7 @@ static void Actor04000_Fn06878(Enemy* arg0, Task* arg1)
     animDriverTick(arg1);
     if (!(work->field_6 & 7)) {
         Gp_SpawnPadLerp(3, 0xFF, 8);
-        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F9, Gp_PackObjPair(arg0, 0), 0);
+        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(arg0, 0), 0);
     }
     work->field_6++;
     if ((s16)work->field_6 > 0x28) {

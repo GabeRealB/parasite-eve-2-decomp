@@ -10,9 +10,9 @@ void stalkerZebraIvoryReleaseHold(Task* arg0)
     StalkerZebraIvoryWork* work2;
 
     work->roll += -(s16)work->roll >> 2;
-    if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
+    if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
         if (work->holdTaken == 0) {
-            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
         }
         stalkerZebraIvorySeedTimer(arg0, 0x3C);
         work->roll      = 0;

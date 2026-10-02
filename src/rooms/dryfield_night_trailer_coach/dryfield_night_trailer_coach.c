@@ -469,8 +469,8 @@ DryfieldNightTrailerCoachMessageEntry D_dryfield_night_trailer_coach_8018794C[6]
     { ROOM_EVENT_MESSAGE_RESOLVE, { .call1 = func_dryfield_night_trailer_coach_801826A8 } },
     { 5105, { .call0 = func_dryfield_night_trailer_coach_801826A0 } },
     { 5103, { .call0 = func_dryfield_night_trailer_coach_80182800 } },
-    { 5104, { .call2 = func_dryfield_night_trailer_coach_801826EC } },
-    { 5106, { .call2 = func_dryfield_night_trailer_coach_80182808 } },
+    { ROOM_MESSAGE_COMMAND, { .call2 = func_dryfield_night_trailer_coach_801826EC } },
+    { ROOM_MESSAGE_SOUND, { .call2 = func_dryfield_night_trailer_coach_80182808 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
@@ -895,7 +895,7 @@ static void func_dryfield_night_trailer_coach_8018231C(Task* task)
     s32* state;
 
     task->msgTable = D_dryfield_night_trailer_coach_8018794C;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3E9, &D_dryfield_night_trailer_coach_801879B8, 0);
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), ANIMATION_MESSAGE_PLAY, &D_dryfield_night_trailer_coach_80187CEC, 0);

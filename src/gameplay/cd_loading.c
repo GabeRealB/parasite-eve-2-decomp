@@ -704,7 +704,7 @@ static void Gp_EnqueueWeaponCd(void)
     param2[3] = 0;
     param2[2] = 0;
     param2[1] = 0;
-    CdCmd_Enqueue(0x21, param1, param2);
+    CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
     D_800626E8 = flag;
 }
 
@@ -723,7 +723,7 @@ void Gp_EnqueueViewCd(Task* task)
         param2[1] = 0;
         param2[2] = 0;
         param2[3] = 0;
-        CdCmd_Enqueue(0x21, param1, param2);
+        CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
         task->state++;
     }
 }
@@ -898,7 +898,7 @@ void Gp_LoadViewAndCd(u8 arg0)
     }
     param2[3] = 0;
     param2[2] = 0;
-    CdCmd_Enqueue(0x21, param1, param2);
+    CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
 }
 
 void Gp_EnqueueConfigCd(s32 arg0)
@@ -920,7 +920,7 @@ void Gp_EnqueueConfigCd(s32 arg0)
         }
         param2[2] = 6;
         param2[3] = 0;
-        CdCmd_Enqueue(0x21, param1, param2);
+        CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
     }
 }
 
@@ -943,7 +943,7 @@ void Gp_EnqueueHeldWeaponCd(void)
     param2[3] = 0;
     param2[2] = 0;
     param2[1] = 0;
-    CdCmd_Enqueue(0x21, param1, param2);
+    CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
     D_800626E8 = flag;
     Gp_EnqueueWeaponCd();
 }
@@ -953,7 +953,7 @@ void Gp_EnqueueStageCd(void)
     u8 param1[8];
     u8 param2[8];
 
-    CdCmd_Enqueue(0x54, (u8*)&gGameSession->location.loc, NULL);
+    CdCmd_Enqueue(CD_COMMAND_MOUNT_STAGE, (u8*)&gGameSession->location.loc, NULL);
     param1[3] = 0;
     param1[2] = 0x5A;
     param1[0] = gGameSession->location.loc.stage;
@@ -961,7 +961,7 @@ void Gp_EnqueueStageCd(void)
     param2[2] = 0;
     param2[1] = 0;
     param2[0] = 0;
-    CdCmd_Enqueue(0x21, param1, param2);
+    CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
 }
 
 void Gp_EnqueueCompanionCd(u8 type, u8 variant)
@@ -982,7 +982,7 @@ void Gp_EnqueueCompanionCd(u8 type, u8 variant)
     param2[1]              = 0;
     param2[2]              = 4;
     param2[3]              = 6;
-    CdCmd_Enqueue(0x21, param1, param2);
+    CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
 
     if (variant != 0) {
         param1[3] = 0;
@@ -992,7 +992,7 @@ void Gp_EnqueueCompanionCd(u8 type, u8 variant)
         param2[1] = 0;
         param2[2] = 4;
         param2[3] = 6;
-        CdCmd_Enqueue(0x21, param1, param2);
+        CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
         if (variant == 5) {
             gGameSession->companionVariant                            = 3;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant = 3;

@@ -146,7 +146,7 @@ void golemKnightBishopGrabSeq(Task* arg0)
                         TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sc->anim, 0);
                     } else {
                         work->field_6D4 = GOLEM_KNIGHT_BISHOP_GRAB_RECHECK;
-                        taskMessageDispatch(player, 0x3F9, Gp_PackPair(gGolemKnightBishopAttacks, 0), 0);
+                        taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackPair(gGolemKnightBishopAttacks, 0), 0);
                         work->field_6F6++;
                     }
                 }

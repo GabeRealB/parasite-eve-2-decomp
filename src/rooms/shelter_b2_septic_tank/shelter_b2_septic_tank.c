@@ -151,7 +151,7 @@ TaskMessageEntry D_shelter_b2_septic_tank_80182F4C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_septic_tank_8017D7B4 },
     { 5105, func_shelter_b2_septic_tank_8017D7AC },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b2_septic_tank_8017D90C },
-    { 5104, func_shelter_b2_septic_tank_8017D904 },
+    { ROOM_MESSAGE_COMMAND, func_shelter_b2_septic_tank_8017D904 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1216,7 +1216,7 @@ s32 func_shelter_b2_septic_tank_8017D7B4(Task* arg0, s32 arg1, RoomEventMsg* in,
 
     *out = *in;
     func_map_shelter_80179A04(in, out);
-    if (in->areaId != 0x21) {
+    if (in->areaId != GAME_AREA_SHELTER_B2_MAIN_CORRIDOR) {
         return 1;
     }
     event.capCmd   = 3;
@@ -1270,7 +1270,7 @@ void func_shelter_b2_septic_tank_8017D9A0(void)
 static void func_shelter_b2_septic_tank_8017DA18(Task* arg0)
 {
     arg0->msgTable = D_shelter_b2_septic_tank_80182F4C;
-    Game_SetPtrSlot(arg0, 7);
+    Game_SetPtrSlot(arg0, GAME_TASK_SLOT_ROOM);
     Task_SpawnFromTable(D_shelter_b2_septic_tank_801832C0, 0, 0, 0);
     arg0->state = (s32)(arg0->state + 1);
 }

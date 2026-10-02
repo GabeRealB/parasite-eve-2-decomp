@@ -1108,7 +1108,7 @@ Actor100400AreaConfig Actor00400_D15F20[12] = {
 
 Actor00400RecoveredMsgEntry Actor00400_D16010[3] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = Actor00400_Fn0805C } },
-    { 2005, { .call1 = Actor00400_Fn08354 } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call1 = Actor00400_Fn08354 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
@@ -2203,20 +2203,20 @@ static void Actor00400_Fn02D48(Task* arg0)
             n = func_800E0C10(work->recs, &delta, 2, &mask);
             if (n < 3) {
                 if (n > 0) {
-                    if (gGameSession->location.loc.stage == 4 &&
+                    if (gGameSession->location.loc.stage == GAME_STAGE_MINE_SHELTER &&
                         (gGameSession->location.loc.area == 0x21 || gGameSession->location.loc.area == 0x2B ||
                          gGameSession->location.loc.area == 0x2C || gGameSession->location.loc.area == 0x2D ||
                          gGameSession->location.loc.area == 0x22)) {
                         if ((mask & 2) == 0) {
                             hidden = 1;
                         }
-                    } else if (gGameSession->location.loc.stage == 5 &&
+                    } else if (gGameSession->location.loc.stage == GAME_STAGE_SHELTER_NEO_ARK &&
                                (gGameSession->location.loc.area == 0xD || gGameSession->location.loc.area == 0xE ||
                                 gGameSession->location.loc.area == 0x1B)) {
                         if ((mask & 2) == 0) {
                             hidden = 1;
                         }
-                    } else if (gGameSession->location.loc.area == 0x1E && gGameSession->location.loc.stage == 5) {
+                    } else if (gGameSession->location.loc.area == GAME_AREA_NEO_ARK_SUBMARINE_GALLERY && gGameSession->location.loc.stage == GAME_STAGE_SHELTER_NEO_ARK) {
                         if ((mask & 8) == 0) {
                             hidden = 1;
                         }
@@ -3296,7 +3296,7 @@ static void Actor00400_Fn04E18(Task* arg0)
     }
     sess = &gGameSession->location.loc;
     ctx3 = arg0->extra.tmd;
-    if (sess->stage == 4 && sess->area == 0x21 && (u32)(gGameSession->location.loc.view - 0xA) < 2U) {
+    if (sess->stage == GAME_STAGE_MINE_SHELTER && sess->area == 0x21 && (u32)(gGameSession->location.loc.view - 0xA) < 2U) {
         ctx3->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
 }

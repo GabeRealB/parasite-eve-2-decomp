@@ -56,7 +56,7 @@ TaskMessageEntry D_neo_ark_altar_8017EF98[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_altar_8017D8C4 },
     { 5105, func_neo_ark_altar_8017D8BC },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_altar_8017D910 },
-    { 5104, func_neo_ark_altar_8017D908 },
+    { ROOM_MESSAGE_COMMAND, func_neo_ark_altar_8017D908 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -189,7 +189,7 @@ s32 func_neo_ark_altar_8017D910(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEven
 static void func_neo_ark_altar_8017D974(Task* task)
 {
     task->msgTable = D_neo_ark_altar_8017EF98;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     func_neo_ark_altar_8017DC40(GameFlag_GetNibble(0xD9) & 0xFF);
     Task_SpawnFromTable(D_neo_ark_altar_8017F088, 0, 0, 0);
     task->state = (s32)(task->state + 1);

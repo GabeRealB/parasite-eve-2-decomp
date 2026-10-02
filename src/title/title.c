@@ -461,7 +461,7 @@ void Title_DemoStreamTask(Task* task)
                 param2[1]                              = 0;
                 param2[2]                              = 0;
                 param2[3]                              = 0;
-                CdCmd_Enqueue(0x21, param1, param2);
+                CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
                 task->state++;
             }
             break;
@@ -536,7 +536,7 @@ void Title_BootTask(Task* arg0)
             param2[1] = 0;
             param2[2] = 0;
             param2[3] = 0;
-            CdCmd_Enqueue(0x21, param1, param2);
+            CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
             task->state = task->state + 1;
             /* fallthrough */
         case 7:
@@ -561,6 +561,6 @@ void Title_EnqueueDemoScene(s32 arg0)
     param2[3]              = 0;
     param2[2]              = 0;
     param2[1]              = 0;
-    CdCmd_Enqueue(0x21, param1, param2);
+    CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
     SCRATCH_STACK_RELEASE_BYTES(8);
 }

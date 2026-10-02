@@ -15,7 +15,7 @@ s32 factoryLiftJamTurnBack(Task* task)
             work->field_16++;
             break;
         case 1:
-            if (gGameSession->location.loc.stage == 2) {
+            if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                 Gp_EnqueueStageSnd6(0x5217000F, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             } else {
                 Gp_EnqueueStageSnd6(0x5317000F, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
@@ -29,7 +29,7 @@ s32 factoryLiftJamTurnBack(Task* task)
             }
             work->field_10.word += work->field_8;
             if (work->field_10.word < 0x3800000) {
-                if (gGameSession->location.loc.stage == 2) {
+                if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                     Gp_EnqueueStageSnd6(0x52170012, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                     Gp_SpawnScript18(gFactoryDayJoltCmds, gFactoryDayJoltRecs);
                 } else {
@@ -50,7 +50,7 @@ s32 factoryLiftJamTurnBack(Task* task)
                 GameFlag_SetNibble(0x49, work->field_0);
                 work->field_10.word = 0x4000000;
                 factoryLiftNotifyPanel(*(Task**)task->spawnArg2.pointer);
-                if (gGameSession->location.loc.stage == 2) {
+                if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                     Gp_EnqueueStageSnd7(0x5217000F, 1);
                     Gp_EnqueueStageSnd6(0x52170011, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                 } else {
@@ -70,7 +70,7 @@ s32 factoryLiftJamTurnBack(Task* task)
         GameFlag_SetNibble(0x49, work->field_0);
         work->field_10.word = 0x4000000;
         factoryLiftNotifyPanel(*(Task**)task->spawnArg2.pointer);
-        if (gGameSession->location.loc.stage == 2) {
+        if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
             Gp_EnqueueStageSnd7(0x5217000F, 1);
             Gp_EnqueueStageSnd6(0x52170011, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
         } else {

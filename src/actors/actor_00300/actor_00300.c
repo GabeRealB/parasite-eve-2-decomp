@@ -1171,9 +1171,9 @@ TaskDesc Actor00300_D162F0[3] = {
 };
 
 Actor00300RecoveredMsgEntry Actor00300_D16314[5] = {
-    { 2003, { .call0 = Actor00300_Fn05304 } },
-    { 2004, { .call2 = actorMsgPlaceRotMatrix } },
-    { 2005, { .call3 = Actor00300_Fn053EC } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = Actor00300_Fn05304 } },
+    { ACTOR_MESSAGE_PLACE, { .call2 = actorMsgPlaceRotMatrix } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = Actor00300_Fn053EC } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = Actor00300_Fn05434 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };

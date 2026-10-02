@@ -259,7 +259,7 @@ resumeView:
         } else {
             if (D_80115648 == 0) {
                 if (Gp_CapTable[(s16)D_801155AE].field_4 & 0xFE) {
-                    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F2, (s32)((u8)Gp_CapTable[(s16)D_801155AE].field_4 >> 1), 0);
+                    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_SOUND, (s32)((u8)Gp_CapTable[(s16)D_801155AE].field_4 >> 1), 0);
                     D_80115648 = 1;
                 }
             }
@@ -1267,11 +1267,11 @@ void Gp_DelayedMsgTask(Task* task)
                 mode = (task->spawnArg1.value >> 16) & 0xFF;
                 val  = task->spawnArg1.value & 0xFF;
                 if (mode == 0) {
-                    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x401, val, 0);
+                    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_SET_TEXTURE_SEQUENCE, val, 0);
                 } else if (mode == 1) {
                     slot = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
                     if (slot != NULL) {
-                        taskMessageDispatch(slot, 0x401, val, 0);
+                        taskMessageDispatch(slot, GAME_ACTOR_MESSAGE_SET_TEXTURE_SEQUENCE, val, 0);
                     }
                 } else {
                     slot = Gp_LookupSlot4(mode - 2);

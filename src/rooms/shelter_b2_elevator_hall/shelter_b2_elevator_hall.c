@@ -113,8 +113,8 @@ TaskMessageEntry D_shelter_b2_elevator_hall_801837A8[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_elevator_hall_8017DAD4 },
     { 5105, func_shelter_b2_elevator_hall_8017DC70 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b2_elevator_hall_8017DC80 },
-    { 5104, func_shelter_b2_elevator_hall_8017DC78 },
-    { 5106, func_shelter_b2_elevator_hall_8017DC88 },
+    { ROOM_MESSAGE_COMMAND, func_shelter_b2_elevator_hall_8017DC78 },
+    { ROOM_MESSAGE_SOUND, func_shelter_b2_elevator_hall_8017DC88 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -507,7 +507,7 @@ s32 func_shelter_b2_elevator_hall_8017DAD4(Task* arg0, s32 arg1, RoomEventMsg* i
 
     *out = *in;
     func_map_shelter_80179A04(in, out);
-    if (in->areaId == 0x21) {
+    if (in->areaId == GAME_AREA_SHELTER_B2_MAIN_CORRIDOR) {
         req.capCmd        = 1;
         req.missingCapCmd = 1;
         req.firstSnd      = 0x541B0007;
@@ -516,7 +516,7 @@ s32 func_shelter_b2_elevator_hall_8017DAD4(Task* arg0, s32 arg1, RoomEventMsg* i
         req.collectedBit  = 0;
         return roomEventGate(&req, out);
     }
-    if (in->areaId == 0x1C) {
+    if (in->areaId == GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY) {
         req.capCmd        = 3;
         req.missingCapCmd = 2;
         req.firstSnd      = 0x541B0009;
@@ -529,7 +529,7 @@ s32 func_shelter_b2_elevator_hall_8017DAD4(Task* arg0, s32 arg1, RoomEventMsg* i
         }
         return ret;
     }
-    if (in->areaId == 0x1A) {
+    if (in->areaId == GAME_AREA_SHELTER_B2_ELEVATOR) {
         if (GameFlag_GetNibble(0xBA) == 0) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_SetNibbleIf(in->flagId, 2);
@@ -583,7 +583,7 @@ static const TaskFuncTable3 D_shelter_b2_elevator_hall_8017D5F0 = {
 static void func_shelter_b2_elevator_hall_8017DCBC(Task* task)
 {
     task->msgTable = D_shelter_b2_elevator_hall_801837A8;
-    Game_SetPtrSlot(task, 7);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = (s32)(task->state + 1);
 }
 
