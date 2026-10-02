@@ -71,15 +71,6 @@ typedef struct {
 } _WorldCoordRankedLight;
 STATIC_ASSERT_SIZEOF(_WorldCoordRankedLight, 0xC);
 
-/// Three packed `SVECTOR3`s filled by `Gp_FillSVec3x3`. Each vector's
-/// components are set to the same s16 argument.
-typedef struct _GpSVec3x3 {
-    /* 0x00 */ SVECTOR3 field_0;
-    /* 0x06 */ SVECTOR3 field_6;
-    /* 0x0C */ SVECTOR3 field_C;
-} GpSVec3x3;
-STATIC_ASSERT_SIZEOF(GpSVec3x3, 0x12);
-
 /// Source-kind sentinel for a nearest-room-light result without a selection.
 enum { WORLD_COORDINATE_NEAREST_LIGHT_NONE = -1 };
 
@@ -305,7 +296,7 @@ static void func_800D9A30(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObje
 
 void Gp_InsertRankedSlot(_WorldCoordRankedLight* arg0, s32 arg1, s32 arg2, WorldCoordLight* arg3, s32 arg4);
 
-static void Gp_FillSVec3x3(GpSVec3x3* arg0, s16 arg1, s16 arg2, s16 arg3);
+static void Gp_FillSVec3x3(MATRIX* arg0, s16 arg1, s16 arg2, s16 arg3);
 
 static WorldCoordRoomLighting* Gp_GetRoomCoordRec(GameLocationKey* arg0);
 
@@ -842,7 +833,7 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
         return;
     }
 
-    Gp_FillSVec3x3((GpSVec3x3*)colorMtx, 0, 0, 0);
+    Gp_FillSVec3x3(colorMtx, 0, 0, 0);
 
     if ((u32)(sum - 1) >= (u32)n) {
         func_800D7A9C(extra, pos, startr, count - 1);
@@ -1786,11 +1777,10 @@ void Gp_InsertRankedSlot(_WorldCoordRankedLight* arg0, s32 arg1, s32 arg2, World
     }
 }
 
-static void Gp_FillSVec3x3(GpSVec3x3* arg0, s16 arg1, s16 arg2, s16 arg3)
+static void Gp_FillSVec3x3(MATRIX* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
-    arg0->field_0.vx = arg0->field_0.vy = arg0->field_0.vz = arg1;
-    arg0->field_6.vx = arg0->field_6.vy = arg0->field_6.vz = arg2;
-    arg0->field_C.vx = arg0->field_C.vy = arg0->field_C.vz = arg3;
+    // Called, rather than expanded, by the room-light query.
+    _gpSetColorMtx(arg0, arg1, arg2, arg3);
 }
 
 static WorldCoordRoomLighting* Gp_GetRoomCoordRec(GameLocationKey* arg0)
