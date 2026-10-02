@@ -12732,7 +12732,7 @@ pointer, `$v1` = index). Initialize the counter first:
 i = 0;
 p = SndScript_Slots;
 do {
-    if ((p->field_16 & mask) && (p->field_0 == arg0)) {
+    if ((p->state & SOUND_SCRIPT_PLAYING) && (p->soundId == arg0)) {
         return i;
     }
     i++;
@@ -12964,22 +12964,22 @@ var = (s32)((u32)(var * scale) / 65535);
 `LinInterp_Apply` is the pure example (`LinInterp` gain makes the scaling product unsigned).
 
 
-## SndVoice voice list (owner SndVoiceOwner)
+## SndVoice voice list (script-owned)
 
-`SndVoice_Attach` inserts a `SndVoice` at the head of a doubly-linked list owned
-by `SndVoiceOwner`:
+`SndVoice_Attach` inserts a `_SndVoice` at the head of a doubly-linked list owned
+by its `_SndScript`:
 
 | Offset | Role |
 |--------|------|
-| owner `+0x40` | list head (`SndVoice*`) |
-| node `+0x34` | parent owner (`SndVoiceOwner*`) |
-| node `+0x38` | prev |
-| node `+0x3C` | next |
+| script `+0x40` | `voices`, the list head |
+| voice `+0x34` | `script`, the owning script |
+| voice `+0x38` | `prev` |
+| voice `+0x3C` | `next` |
 
 Insert-at-head: if head exists, rewire `new->next = old`, `old->prev = new`,
-`new->prev = NULL`, `owner->head = new`, `new->parent = owner`. If owner is
-NULL, only clear the node's three link fields. Pair with `SndVoice_Detach`
-(unlink/free) and `SndScript_TickVoices` (walk via `+0x3C`).
+`new->prev = NULL`, `script->voices = new`, `new->script = script`. If the script is
+NULL, only clear the voice's three link fields. Pair with `SndVoice_Detach`
+(unlink/free) and `SndScript_TickVoices` (walk via `next`).
 
 ## Local jump table via struct assignment of function pointers
 
@@ -13638,7 +13638,7 @@ if (flag == 1) {
 }
 ```
 
-`SndVoice_Tick` is the pure example (`field_4 += 0xFFFF6667` vs `0xFFFF0000`
+`SndVoice_Tick` is the pure example (`gateClock += 0xFFFF6667` vs `0xFFFF0000`
 gated on `gDisplayState.region == 1`).
 
 ## `s16` accumulator forces `sll/sra 16` on each add
@@ -14203,13 +14203,13 @@ onto `$v0` and breaks the delay-slot form.
 a later `sll 24; sra 24`, split the load and the cast:
 
 ```c
-t = *(volatile u8*)&p->field_13; /* lbu, may schedule early */
+t = *(volatile u8*)&p->attenuation; /* lbu, may schedule early */
 /* … unrelated arg transforms … */
 t = (s8)t;                       /* sll; sra */
 ```
 
 Same pattern as `C37C.c`'s `status = *(volatile u8*)&entry->stage` followed by
-`stageIndex = (s8)stageIndex`. `SndVoice_SetVolumeRamp` needs this for `SndScript.field_13`.
+`stageIndex = (s8)stageIndex`. `SndVoice_SetVolumeRamp` needs this for `_SndScript.attenuation`.
 
 ## Three-way sign with `<= 0` outer for `bgtz` fall-through
 
@@ -15516,13 +15516,13 @@ as `N(t0)`, take the address of the first field (or cast it to a nested
 struct type) and store through that pointer:
 
 ```c
-_SndVoiceEnvelope* p = (_SndVoiceEnvelope*)&arg0->field_10;
+_SndVoiceEnvelope* p = (_SndVoiceEnvelope*)&arg0->envelope;
 p->envelope = chunk;
 p->stage = 0;
 /* ... */
 ```
 
-Keep one or two stores as `index->field_10.active = …` (parent-relative) when the
+Keep one or two stores as `index->envelope.active = …` (parent-relative) when the
 target uses `sb …, 0x10(a0)` rather than `sb …, 0(t0)`.
 
 ## Prefer separate stores over `next` + goto for shared `field_30`
@@ -16449,16 +16449,16 @@ When a loop walks a fixed-size struct array and both (a) loads fields near the
 start and (b) takes the address of a mid/high field for a call, writing:
 
 ```c
-SndScript* p = SndScript_Slots;
+_SndScript* p = SndScript_Slots;
 for (i = 0; i < 8; i++, p++) {
-    if (p->field_0 == arg0) {
-        LinInterp_Setup(&p->field_50, ...);
+    if (p->soundId == arg0) {
+        LinInterp_Setup(&p->volumeRamp, ...);
     }
 }
 ```
 
 lets GCC 2.8.1 keep *two* induction pointers — one at the struct base (for
-`field_0`) and one at `&field_50` (for the call / nearby bytes via negative
+`soundId`) and one at `&volumeRamp` (for the call / nearby bytes via negative
 offsets). That spills an extra callee-saved reg (`$s6`), shifts the stack frame,
 and mismatches even when the logic is identical.
 
@@ -16467,17 +16467,17 @@ Re-deriving the element from the index each time keeps a single base IV:
 ```c
 for (i = 0; i < 8; i++) {
     p = &SndScript_Slots[i];
-    if ((arg0 == p->field_0) || ((p->field_0 & 0xF0000000) == arg0)) {
-        if (p->field_16 == 8) {
-            p->field_16 = 0x10;
-            LinInterp_Setup(&p->field_50, 0, (u8)D_80082748, 8);
+    if ((arg0 == p->soundId) || ((p->soundId & 0xF0000000) == arg0)) {
+        if (p->state == SOUND_SCRIPT_MUTING) {
+            p->state = SOUND_SCRIPT_UNMUTING;
+            LinInterp_Setup(&p->volumeRamp, 0, (u8)D_80082748, 8);
         }
     }
 }
 ```
 
 The compiler still emits `addiu $s0, $s0, 0x60` for the walk, but no longer
-CSEs `&p->field_50` into a second live pointer. Operand order `index == p->field_0`
+CSEs `&p->volumeRamp` into a second live pointer. Operand order `index == p->soundId`
 also matters for `beq $s4, $v1` vs the swapped form.
 
 `SndVoice_FadeMatching` is the pure example. Closely related: `Midi_FadeVolume` avoids the
@@ -16800,12 +16800,12 @@ writes, writing the assignment in late source order keeps the load late too
 
 ```
 /* Late load — mismatches */
-p->field_0 = arg3;
-p->field_4 = 0;
-p->field_10 = arg1;
-p->field_13 = arg2;
-p->field_17 = 0;
-p->field_44 = arg4;   /* lw then nop then sw */
+p->soundId = arg3;
+p->runningTicks = 0;
+p->panOffset = arg1;
+p->attenuation = arg2;
+p->loopDepth = 0;
+p->bankSlot = arg4;   /* lw then nop then sw */
 ```
 
 Assign the stack-arg field *first* among that block. GCC 2.8.1 still emits the
@@ -16813,18 +16813,18 @@ Assign the stack-arg field *first* among that block. GCC 2.8.1 still emits the
 `lw` to right after the preceding free of `$v0`:
 
 ```c
-p->field_16 = 1;
-p->field_40 = NULL;
-p->field_44 = arg4;   /* load early; store after the next few sw/sb */
-p->field_0 = arg3;
-p->field_4 = 0;
-p->field_10 = arg1;
-p->field_13 = arg2;
-p->field_17 = 0;
+p->state = SOUND_SCRIPT_STARTING;
+p->voices = NULL;
+p->bankSlot = arg4;   /* load early; store after the next few sw/sb */
+p->soundId = arg3;
+p->runningTicks = 0;
+p->panOffset = arg1;
+p->attenuation = arg2;
+p->loopDepth = 0;
 ```
 
 `SndScript_Play` is the pure example. Pair with a second live copy of a later
-pointer arg (`desc = arg5; … p->field_48 = arg5; flags = desc->flags`) when
+pointer arg (`desc = arg5; … p->cursor = arg5; flags = desc->flags`) when
 the target holds the same pointer in two callee-saved regs for interleaved
 `lhu` / `sw`.
 
@@ -18006,15 +18006,15 @@ SPU voice volume scaling multiplies a master level (`s8`, often 0..0x7F) by two
 `mfhi` / `addu` / `sra 13` / sign correction — write the natural division:
 
 ```c
-node->field_2 = (master * params->volumeScale * node->field_A) / 16129;
+node->scaledVolume = (master * params->volumeScale * node->baseVolume) / 16129;
 ```
 
 Do not hand-write the magic constant. `SndVoice_ApplyMasterVolume` (and the same sequence in
 `SndScript_Exec`) is the reference. Related layout notes:
 
-- `SndScript::field_4C` is a `SndScriptEntryControls*` entry-control block (`volumeScale` gain).
-- `SndVoice::field_A` is the per-voice `u8` scale; `field_2` stores the result.
-- Null-check `field_40` via a temp then assign the walk pointer so the target
+- `_SndScript::entryControls` is a `SndScriptEntryControls*` entry-control block (`volumeScale` gain).
+- `_SndVoice::baseVolume` is the per-voice `u8` scale; `scaledVolume` stores the result.
+- Null-check `voices` via a temp then assign the walk pointer so the target
   keeps `lw v0,0x40; beqz v0; move a1,v0` (see earlier "temp then cur" entry).
 
 ## Range-check + shared non-zero body needs `if`/`goto`, not `switch`
@@ -20966,7 +20966,7 @@ Pulling `field_C` into a temporary *before* the `field_2 == -1` test is too
 aggressive — it fills the `lb` delay slot and shortens the function. Keep the
 compare inline and only flip the operator.
 
-`SndVoice_ScanCandidates` is the pure example (also: stash `score = p->field_4` before
+`SndVoice_ScanCandidates` is the pure example (also: stash `score = p->runningTicks` before
 paired `sb`/`sw` so the target gets `lw; sb; sw` rather than `sb; lw; nop; sw`).
 
 ## Separate stream pointers so timeout shares `$v1` while case-2 keeps `$s0`
@@ -21854,7 +21854,7 @@ unsigned-decimal digit loop as `Text_ItoaUnsigned` for the minutes half).
 
 When the same small constant K is both (a) compared every loop iteration
 (`if (status == 2)`) as SImode and (b) stored to a byte field on a rare path
-(`p->field_16 = 2`), CSE unifies them and hoists `li sN,K` into a callee-saved
+(`p->state = 2`), CSE unifies them and hoists `li sN,K` into a callee-saved
 register for the whole function. That steals a reg (often pushing another
 constant into `$s8`/`$fp`) and rewrites every use.
 
@@ -21862,7 +21862,7 @@ constant into `$s8`/`$fp`) and rewrites every use.
 /* Wrong: pins 2 in s7, four ends up in s8 */
 if (status == 2) goto case_2;
 ...
-p->field_16 = 2;
+p->state = 2;
 ```
 
 Route the *store* through an SImode temporary so the QI store and the SI
@@ -21873,11 +21873,11 @@ s32 tmp;
 if (status == 2) goto case_2; /* rematerializes li v0,2 each iter */
 ...
 tmp = 2;
-p->field_16 = tmp; /* QI store of SI temp — no hoist */
+p->state = tmp; /* QI store of SI temp — no hoist */
 ```
 
-`SndVoice_DriveSlots` is the pure example (SndScript_Slots state machine, field_16 cases
-1/2/4/8/0x10/0x20/0x80).
+`SndVoice_DriveSlots` is the pure example (`SndScript_Slots` state machine, `state` values
+`SOUND_SCRIPT_STARTING`, `RUNNING`, `STOPPING`, `MUTING`, `UNMUTING`, `RELEASING` and `FADING_OUT`).
 
 ## `*(volatile u8*)&field` forces lbu+sll24+sra24 sign-extend
 
@@ -21885,7 +21885,7 @@ A plain `(s8)p->u8_field` often becomes a single `lb`. When the target does
 `lbu` / `sll 24` / `sra 24` instead, load through a volatile byte:
 
 ```c
-temp = (s8)(*(volatile u8*)&p->field_13);
+temp = (s8)(*(volatile u8*)&p->attenuation);
 temp = temp + step;
 ```
 
@@ -21897,18 +21897,18 @@ the sign test so the scheduler emits `addu; blez; move a0,v0` rather than
 stuffing `addu` into the `blez` delay slot:
 
 ```c
-temp = (s8)(*(volatile u8*)&p->field_13);
+temp = (s8)(*(volatile u8*)&p->attenuation);
 temp = temp + step;
 new_val = temp; /* move before blez */
 if (step > 0) {
     temp <<= 16;
     temp >>= 16;
-    if ((s8)p->field_14 < temp) { /* clamp */ }
-    else { p->field_13 = new_val; }
+    if ((s8)p->attenuationTarget < temp) { /* clamp */ }
+    else { p->attenuation = new_val; }
 }
 ```
 
-`SndVoice_DriveSlots` field_13/15 envelope uses this with `register s32 temp asm("v0")`.
+`SndVoice_DriveSlots` attenuation / attenuationStep ramp uses this with `register s32 temp asm("v0")`.
 
 ## Force both ALU ops before either store with `+r` barriers
 
@@ -22500,7 +22500,7 @@ Force that pair with a short asm (do **not** over-pin path-local constants in
 on one arm can change delay fill on the other):
 
 ```c
-register SndScript* p asm("v1");
+register _SndScript* p asm("v1");
 {
     register s32 hi asm("v0");
     __asm__ volatile(
@@ -22730,23 +22730,23 @@ Column targets use `head - 0x42` (col1) and `head - 0x40` (col2), same
 ## SndScript script interpreter layout (SndScript_Exec)
 
 `SndScript_Exec` is a fourCC-dispatched music/script stepper over
-`SndScript::field_48`. Layout notes that unblocked progress toward a match:
+`_SndScript::cursor`. Layout notes that unblocked progress toward a match:
 
-- `field_17` / `field_18[8]` / `field_20[8]` are a loop stack (depth, remaining
+- `loopDepth` / `loopCounts[8]` / `loopCursors[8]` are a loop stack (depth, remaining
   counts, restart cursors) for `"Loop"`/`"endL"`. They fill the old `pad_18[0x28]`.
-- `field_44` is a `SndBankSlot*` (its `image` holds the bank's entry offsets, its
+- `bankSlot` is a `SndBankSlot*` (its `image` holds the bank's entry offsets, its
   `bank` the `SndBank`), not a bare `s32`.
-- `field_48` is a script cursor (`SndScriptCmd*`); `"oneV"` payloads are
+- `cursor` is a `u8*` command cursor; `"oneV"` payloads are
   0x18-byte `_SndScriptNote` records (bank id, program and layer, delay and
   gate ticks, pan and volume overrides, reverb level, voice priority, Q7 pitch,
   oneA and oneE offsets).
-- `"oneC"` advances the cursor by 0x10, resolves `field_4C` from the bank
-  image's entry-offset table, `*(image->entryOffsets + (u8)field_0)`, then falls
+- `"oneC"` advances the cursor by 0x10, resolves `entryControls` from the bank
+  image's entry-offset table, `*(image->entryOffsets + (u8)soundId)`, then falls
   into `"oneV"`.
-- Shared wait-tick path: when high-half of `field_8` is below the command's
+- Shared wait-tick path: when high-half of `tickClock` is below the command's
   duration, add `gDisplayState.region == 1 ? 0x9999 : 0x10000` and return 0;
   on success subtract `duration << 16` and return 1 (caller loops while nonzero).
-- Volume: `(scale * field_4C->volumeScale * voice->field_A) / 16129` (127²), same
+- Volume: `(scale * entryControls->volumeScale * voice->baseVolume) / 16129` (127²), same
   as `SndVoice_ApplyMasterVolume`.
 
 ## `a3` prim pointer → `t0` copy frees `a3` for the `0xFFFFFF` mask
@@ -65089,7 +65089,7 @@ the declared `u16` global against `-1U` removes the target's comparison.
 ## SndVoice_KeyOffMatching: split branch-local type checks to constrain delay slots
 
 The minimally typed seed scored 86.615%. Replacing its explicit walking
-`SndScript*` with the sibling pattern `p = &SndScript_Slots[i]` inside a
+`_SndScript*` with the sibling pattern `p = &SndScript_Slots[i]` inside a
 `for` loop, and duplicating the status/ID stores instead of the m2c shared-tail
 `goto`, reached 97.954%. These edits were tested together. The baseline
 `.loop` dump had strength-reduced `p + 0x16` into an extra walking pointer;
@@ -65878,7 +65878,7 @@ countdown-local reuse that reduced oneV to 17 references; the final source
 keeps the direct countdown ternary and avoids its redundant overwritten load.
 
 The last `addu` operand swap used the established index-first form,
-`*(image->entryOffsets + (u8)script->field_0)`, which keeps the index as the
+`*(image->entryOffsets + (u8)script->soundId)`, which keeps the index as the
 left operand. Indexing the same member, `image->entryOffsets[index]`, generated
 base-first addition. The final scratch candidate is `base_21.c`; all penalties
 are zero.
@@ -144583,7 +144583,7 @@ the same equivalence class) or the original is killed before the stores.
 ```c
 diff = ~arg1 & 0x7F;
 vol  = diff;               /* u8: what the stores write */
-diff -= (s8)p->field_13;   /* s16: in place, lbu + sll/sra for the byte */
+diff -= (s8)p->attenuation;   /* s16: in place, lbu + sll/sra for the byte */
 if (ABS(diff) > 0x20) {
 ```
 ## A `x / 4` duplicated in two arms stops cross-jumping when cse rewrites the first copy's bias test to the dividend (SndVoice_DriveSlots, 2026-09-26)

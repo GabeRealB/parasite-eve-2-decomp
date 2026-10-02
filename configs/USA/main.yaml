@@ -398,7 +398,7 @@ segments:
       - [0x410a0, o, libapi/a10] # WaitEvent
       - [0x410b0, c, sndevt] # SndEvt queue + Midi song driver
       - [0x43f6c, o, libspu/s_wp] # SpuWritePartly
-      - [0x43ffc, c, sndscript] # SndScript / SndVoice player
+      - [0x43ffc, c, sndscript] # _SndScript / _SndVoice player
       - [0x46f00, c, cdaudio] # CdAudio phase machine / CD audio player
       - [0x4853c, c, cdstream] # F344: Stream_Slots / CD stream decode helpers
       - [0x4c500, o, libspu/s_si] # SpuSetIRQ
