@@ -17,6 +17,7 @@
 #include "gameplay/collision.h"
 #include "gameplay/damage.h"
 #include "gameplay/enemy.h"
+#include "gameplay/gpu_image_upload.h"
 #include "geometry.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/item_pickup.h"
@@ -822,7 +823,7 @@ s32 Gp_GrantLocationItems(InventoryItemRange* arg0)
     return ret;
 }
 
-s32 Gp_LoadActorImage(Task* arg0, GpImgRec* arg1, RECT* arg2)
+s32 Gp_LoadActorImage(Task* arg0, GpuImageUpload* uploadList, RECT* arg2)
 {
     s32        ret;
     TmdObject* extra;
@@ -830,19 +831,19 @@ s32 Gp_LoadActorImage(Task* arg0, GpImgRec* arg1, RECT* arg2)
 
     extra = arg0->extra.tmd;
     ret   = 0;
-    if (arg1 != NULL) {
-        arg1->rect.x = (extra->texturePageOffset << 6) + (x = (arg2->x + 1) / 2 + 0x180);
-        arg1->rect.y = arg2->y + 0x100;
-        arg1->rect.w = arg2->w;
-        arg1->rect.h = arg2->h;
-        Gp_LoadImages(arg1);
+    if (uploadList != NULL) {
+        uploadList->destination.x = (extra->texturePageOffset << 6) + (x = (arg2->x + 1) / 2 + 0x180);
+        uploadList->destination.y = arg2->y + 0x100;
+        uploadList->destination.w = arg2->w;
+        uploadList->destination.h = arg2->h;
+        Gp_LoadImages(uploadList);
     } else {
         ret = 1;
     }
     return ret;
 }
 
-void Gp_LoadImages(GpImgRec* arg0)
+void Gp_LoadImages(GpuImageUpload* uploadList)
 {
     RECT* dest;
     s32   done;
@@ -851,13 +852,13 @@ void Gp_LoadImages(GpImgRec* arg0)
     dest = SCRATCH_STACK_RESERVE_BLOCK(RECT);
 
     do {
-        switch (arg0->field_0) {
-            case 0:
-                dest->x = arg0->rect.x;
-                dest->y = arg0->rect.y;
-                dest->w = arg0->rect.w;
-                dest->h = arg0->rect.h;
-                LoadImage(dest, arg0->data);
+        switch (uploadList->operation) {
+            case GPU_IMAGE_UPLOAD_COPY:
+                dest->x = uploadList->destination.x;
+                dest->y = uploadList->destination.y;
+                dest->w = uploadList->destination.w;
+                dest->h = uploadList->destination.h;
+                LoadImage(dest, uploadList->pixels);
                 break;
             case GP_IMG_REC_END:
                 done = 1;
@@ -866,7 +867,7 @@ void Gp_LoadImages(GpImgRec* arg0)
                 done = 1;
                 break;
         }
-        arg0++;
+        uploadList++;
     } while (done == 0);
 
     SCRATCH_STACK_RELEASE_BLOCK(RECT);

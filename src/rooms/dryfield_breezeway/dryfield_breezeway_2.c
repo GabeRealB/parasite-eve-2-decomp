@@ -24,7 +24,7 @@
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/item_menu.h"
-#include "gameplay/item_pickup.h"
+#include "gameplay/gpu_image_upload.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
@@ -448,9 +448,9 @@ u_long D_dryfield_breezeway_80182E24[64] = {
     3,
 };
 
-GpImgRec D_dryfield_breezeway_80182F24[2] = {
-    { 0, 0, { 896, 0, 8, 16 }, D_dryfield_breezeway_80182E24 },
-    { 255, 0, { 0, 0, 0, 0 }, NULL },
+GpuImageUpload D_dryfield_breezeway_80182F24[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 896, 0, 8, 16 }, D_dryfield_breezeway_80182E24 },
+    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 /// The pair of cutscene blocks `func_800E8634` hands to `Task_Spawn` (bank 9,
@@ -802,7 +802,7 @@ static void func_dryfield_breezeway_8017E464(Task* arg0)
 /// artwork `Gp_LoadImages` stages into VRAM.
 
 /// Runs the key-item prompt's scan state: uploads this room's two prompt
-/// `GpImgRec`s the first time it runs (`Task::killCountdown` is zero, and the
+/// `GpuImageUpload`s the first time it runs (`Task::killCountdown` is zero, and the
 /// increment latches it so a later frame never reloads them), rebuilds the
 /// event task's display object matrix as the same pure Y rotation of
 /// `rsin(gDisplayState.animFrame * 16)` the prop's swing builds -- one full turn every 256

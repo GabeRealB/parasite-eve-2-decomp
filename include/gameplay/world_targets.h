@@ -7,7 +7,7 @@
 
 #include "types.h"
 
-#include "gameplay/item_pickup.h"
+#include "gameplay/gpu_image_upload.h"
 #include "gameplay/world_targets_types.h"
 
 #include "main/session_types.h"
@@ -41,9 +41,9 @@ void* Gp_FindLockNodePad(Task* arg0);
 
 void Gp_GetLockPos(WorldTargetNode* arg0, VECTOR3* out);
 
-s32 Gp_LoadActorImage(Task* arg0, GpImgRec* arg1, RECT* arg2);
+s32 Gp_LoadActorImage(Task* arg0, GpuImageUpload* uploadList, RECT* arg2);
 
-void Gp_LoadImages(GpImgRec* arg0);
+void Gp_LoadImages(GpuImageUpload* uploadList);
 
 void Gp_ArmStateF0(s32 arg0);
 

@@ -3,12 +3,12 @@
 
 #include "types.h"
 
-#include "gameplay/item_pickup.h"
+#include "gameplay/gpu_image_upload.h"
 #include "gameplay/message.h"
 
 #include "main/task_types.h"
 
-extern GpImgRec D_dryfield_breezeway_80183144[2];
+extern GpuImageUpload D_dryfield_breezeway_80183144[2];
 
 extern SVECTOR D_dryfield_breezeway_80183164;
 

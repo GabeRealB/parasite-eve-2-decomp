@@ -14,7 +14,7 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/item_pickup.h"
+#include "gameplay/gpu_image_upload.h"
 #include "gameplay/items.h"
 #include "gameplay/light.h"
 #include "gameplay/message.h"
@@ -202,9 +202,9 @@ u_long D_dryfield_breezeway_80182F44[128] = {
     0,
 };
 
-GpImgRec D_dryfield_breezeway_80183144[2] = {
-    { 0, 0, { 0, 256, 256, 1 }, D_dryfield_breezeway_80182F44 },
-    { 255, 0, { 0, 0, 0, 0 }, NULL },
+GpuImageUpload D_dryfield_breezeway_80183144[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 256, 256, 1 }, D_dryfield_breezeway_80182F44 },
+    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 SVECTOR D_dryfield_breezeway_80183164 = { 17990, -1365, 2825, 0 };

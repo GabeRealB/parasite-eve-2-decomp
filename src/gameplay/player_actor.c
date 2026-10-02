@@ -24,7 +24,7 @@
 #include "gameplay/effects.h"
 #include "gameplay/geometry.h"
 #include "gameplay/hud_sprites.h"
-#include "gameplay/item_pickup.h"
+#include "gameplay/gpu_image_upload.h"
 #include "item_use.h"
 #include "gameplay/items.h"
 #include "items.h"
@@ -65,8 +65,6 @@ typedef struct {
 #include "main/wipsys.h"
 #include <psyq/abs.h>
 #include <psyq/rand.h>
-
-struct _GpImgRec;
 
 /// 0x78-byte scratch for `func_800FCD00`: twelve alternating outer/inner
 /// ring vertices, four projected screen positions, depth, and GTE flags.
@@ -250,12 +248,12 @@ extern u8 D_80112E2C[][2];
 /// `func_800B9D80(0x2000)` is set).
 extern u16 D_80112E30[];
 
-/// NULL-terminated `GpImgRec*` lists for `func_801030CC`. Indexed as
+/// NULL-terminated `GpuImageUpload*` lists for `func_801030CC`. Indexed as
 /// `table[type * 4 + gPlayerStatus.resourceVariant - 5][frame]`. `D_80112E74` is
 /// the `textureSequenceA` sequence; `D_80112EB4` is the `textureSequenceB` sequence.
-extern struct _GpImgRec** D_80112E74[];
+extern GpuImageUpload** D_80112E74[];
 
-extern struct _GpImgRec** D_80112EB4[];
+extern GpuImageUpload** D_80112EB4[];
 
 /// Per-item flag byte indexed by `gPlayerStatus.weapon`. Nonzero makes
 /// `Gp_PlayerNormalState2` / `Gp_PlayerMode2StateA` pass `GameActor.attackButton` (the current
@@ -604,53 +602,53 @@ extern GpAnimBlk D_8012EA20;
 
 extern GpAnimBlk D_8012B3CC;
 
-extern GpImgRec* D_8011CC94[];
+extern GpuImageUpload* D_8011CC94[];
 
-extern GpImgRec* D_8011CD1C[];
+extern GpuImageUpload* D_8011CD1C[];
 
-extern GpImgRec* D_8011D094[];
+extern GpuImageUpload* D_8011D094[];
 
-extern GpImgRec* D_8011D168[];
+extern GpuImageUpload* D_8011D168[];
 
-extern GpImgRec* D_8011CC9C[];
+extern GpuImageUpload* D_8011CC9C[];
 
-extern GpImgRec* D_8011CD24[];
+extern GpuImageUpload* D_8011CD24[];
 
-extern GpImgRec* D_8011D09C[];
+extern GpuImageUpload* D_8011D09C[];
 
-extern GpImgRec* D_8011D170[];
+extern GpuImageUpload* D_8011D170[];
 
-extern GpImgRec* D_8011CCAC[];
+extern GpuImageUpload* D_8011CCAC[];
 
-extern GpImgRec* D_8011CD34[];
+extern GpuImageUpload* D_8011CD34[];
 
-extern GpImgRec* D_8011D0AC[];
+extern GpuImageUpload* D_8011D0AC[];
 
-extern GpImgRec* D_8011D180[];
+extern GpuImageUpload* D_8011D180[];
 
-extern GpImgRec* D_8011CCBC[];
+extern GpuImageUpload* D_8011CCBC[];
 
-extern GpImgRec* D_8011CD44[];
+extern GpuImageUpload* D_8011CD44[];
 
-extern GpImgRec* D_8011D0BC[];
+extern GpuImageUpload* D_8011D0BC[];
 
-extern GpImgRec* D_8011D190[];
+extern GpuImageUpload* D_8011D190[];
 
-extern GpImgRec* D_8011CCDC[];
+extern GpuImageUpload* D_8011CCDC[];
 
-extern GpImgRec* D_8011CD64[];
+extern GpuImageUpload* D_8011CD64[];
 
-extern GpImgRec* D_8011D0DC[];
+extern GpuImageUpload* D_8011D0DC[];
 
-extern GpImgRec* D_8011D1B0[];
+extern GpuImageUpload* D_8011D1B0[];
 
-extern GpImgRec* D_8011CCD4[];
+extern GpuImageUpload* D_8011CCD4[];
 
-extern GpImgRec* D_8011CD5C[];
+extern GpuImageUpload* D_8011CD5C[];
 
-extern GpImgRec* D_8011D0D4[];
+extern GpuImageUpload* D_8011D0D4[];
 
-extern GpImgRec* D_8011D1A8[];
+extern GpuImageUpload* D_8011D1A8[];
 
 extern GpAnimBlk D_801756D0;
 
@@ -1054,8 +1052,8 @@ u16 D_80112E30[33] = {
     96,
     96
 };
-GpImgRec** D_80112E74[16] = { D_8011CC94, D_8011CD1C, D_8011D094, D_8011D168, D_8011CC9C, D_8011CD24, D_8011D09C, D_8011D170, D_8011CCAC, D_8011CD34, D_8011D0AC, D_8011D180, D_8011CCBC, D_8011CD44, D_8011D0BC, D_8011D190 };
-GpImgRec** D_80112EB4[8]  = { D_8011CCDC, D_8011CD64, D_8011D0DC, D_8011D1B0, D_8011CCD4, D_8011CD5C, D_8011D0D4, D_8011D1A8 };
+GpuImageUpload** D_80112E74[16] = { D_8011CC94, D_8011CD1C, D_8011D094, D_8011D168, D_8011CC9C, D_8011CD24, D_8011D09C, D_8011D170, D_8011CCAC, D_8011CD34, D_8011D0AC, D_8011D180, D_8011CCBC, D_8011CD44, D_8011D0BC, D_8011D190 };
+GpuImageUpload** D_80112EB4[8]  = { D_8011CCDC, D_8011CD64, D_8011D0DC, D_8011D1B0, D_8011CCD4, D_8011CD5C, D_8011D0D4, D_8011D1A8 };
 /// Unused, probably stale program data: likely per-weapon boolean flags.
 /// No reader identified; the original flag meaning is unknown.
 u8 D_80112ED4[33] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1 };
@@ -5331,9 +5329,9 @@ static void Gp_AimPitchDirect(Task* arg0)
 
 static void func_801030CC(Task* arg0)
 {
-    RECT*      rect;
-    GameActor* actor;
-    GpImgRec*  img;
+    RECT*           rect;
+    GameActor*      actor;
+    GpuImageUpload* uploadList;
 
     actor = arg0->work;
     rect  = SCRATCH_STACK_RESERVE_BLOCK(RECT);
@@ -5341,13 +5339,13 @@ static void func_801030CC(Task* arg0)
     if ((s8)actor->textureSequenceA != 0) {
         actor->textureDelayA--;
         if ((s8)actor->textureDelayA <= 0) {
-            img = D_80112E74[(s8)actor->textureSequenceA * 4 + (gPlayerStatus.resourceVariant - 5)][(s8)actor->textureFrameA];
-            if (img != NULL) {
+            uploadList = D_80112E74[(s8)actor->textureSequenceA * 4 + (gPlayerStatus.resourceVariant - 5)][(s8)actor->textureFrameA];
+            if (uploadList != NULL) {
                 rect->x = 0;
                 rect->y = 0x4E;
                 rect->w = 0x19;
                 rect->h = 0x10;
-                Gp_LoadActorImage(arg0, img, rect);
+                Gp_LoadActorImage(arg0, uploadList, rect);
                 actor->textureDelayA = 4;
                 actor->textureFrameA++;
             } else {
@@ -5359,13 +5357,13 @@ static void func_801030CC(Task* arg0)
     if ((s8)actor->textureSequenceB != 0) {
         actor->textureDelayB--;
         if ((s8)actor->textureDelayB <= 0) {
-            img = D_80112EB4[(s8)actor->textureSequenceB * 4 + (gPlayerStatus.resourceVariant - 5)][(s8)actor->textureFrameB];
-            if (img != NULL) {
+            uploadList = D_80112EB4[(s8)actor->textureSequenceB * 4 + (gPlayerStatus.resourceVariant - 5)][(s8)actor->textureFrameB];
+            if (uploadList != NULL) {
                 rect->x = 0xC;
                 rect->y = 0x68;
                 rect->w = 0xE;
                 rect->h = 0x14;
-                Gp_LoadActorImage(arg0, img, rect);
+                Gp_LoadActorImage(arg0, uploadList, rect);
                 actor->textureDelayB = 8;
                 actor->textureFrameB++;
             } else {

@@ -22,7 +22,7 @@
 #include "gameplay/evs_scripts.h"
 #include "gameplay/geometry.h"
 #include "gameplay/hud_sprites.h"
-#include "gameplay/item_pickup.h"
+#include "gameplay/gpu_image_upload.h"
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
@@ -64,7 +64,7 @@
 #include "rooms/dryfield_night_motel_balcony.h"
 #include "../../shared/coord_math.h"
 
-extern GpImgRec D_actor_403100_801555EC[2];
+extern GpuImageUpload D_actor_403100_801555EC[2];
 
 static void func_actor_403100_80132064(Task* arg0, SVECTOR* first, SVECTOR* second, s32 arg3);
 static void func_actor_403100_8013B5E0(Task* arg0, s16 arg1);
@@ -3059,9 +3059,9 @@ u_long D_actor_403100_80153774[1950] = {
     0xA9A9AB,
 };
 
-GpImgRec D_actor_403100_801555EC[2] = {
-    { 0, 0, { 384, 256, 30, 130 }, D_actor_403100_80153774 },
-    { 255, 0, { 0, 0, 0, 0 }, NULL },
+GpuImageUpload D_actor_403100_801555EC[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 384, 256, 30, 130 }, D_actor_403100_80153774 },
+    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 TaskDesc D_actor_403100_8015560C[2] = {

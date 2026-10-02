@@ -13,7 +13,7 @@
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/effect_tasks.h"
-#include "gameplay/item_pickup.h"
+#include "gameplay/gpu_image_upload.h"
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
@@ -38,11 +38,11 @@
 #include "../../shared/actor_messages.h"
 #include "../../shared/glow_draw.h"
 
-extern GpImgRec D_actor_141000_8013D72C[2];
+extern GpuImageUpload D_actor_141000_8013D72C[2];
 
-extern GpImgRec D_actor_141000_8013D4DC[2];
+extern GpuImageUpload D_actor_141000_8013D4DC[2];
 
-extern GpImgRec D_actor_141000_8013D28C[2];
+extern GpuImageUpload D_actor_141000_8013D28C[2];
 
 typedef struct Actor141000Proj {
     /* 0x0 */ DVECTOR sxy;
@@ -119,8 +119,8 @@ extern TaskDesc D_actor_141000_801348D8[];
 
 /// The texture uploads `func_actor_141000_801335D4` walks, one per value of
 /// `Actor141000Work::field_4CA`, and `func_actor_141000_80133FA8` picks from:
-/// each a `GpImgRec` whose own `rect` carries the upload size and whose `data`
-/// points at the pixel blob.
+/// each a terminated `GpuImageUpload` list whose `destination` carries the VRAM
+/// rectangle and whose `pixels` points at the packed texture words.
 
 /// Animation-set tables bound to the context by `animationInitContext`, indexed by
 /// the preset's bank index.
@@ -1037,9 +1037,9 @@ u_long D_actor_141000_8013C694[250] = {
     0x59704529,
 };
 
-GpImgRec D_actor_141000_8013CA7C[2] = {
-    { 0, 0, { 0, 0, 25, 20 }, D_actor_141000_8013C694 },
-    { 255, 0, { 0, 0, 0, 0 }, NULL },
+GpuImageUpload D_actor_141000_8013CA7C[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 25, 20 }, D_actor_141000_8013C694 },
+    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 u_long D_actor_141000_8013CA9C[250] = {
@@ -1295,9 +1295,9 @@ u_long D_actor_141000_8013CA9C[250] = {
     0x59704529,
 };
 
-GpImgRec D_actor_141000_8013CE84[2] = {
-    { 0, 0, { 0, 0, 25, 20 }, D_actor_141000_8013CA9C },
-    { 255, 0, { 0, 0, 0, 0 }, NULL },
+GpuImageUpload D_actor_141000_8013CE84[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 25, 20 }, D_actor_141000_8013CA9C },
+    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 u_long D_actor_141000_8013CEA4[250] = {
@@ -1553,9 +1553,9 @@ u_long D_actor_141000_8013CEA4[250] = {
     0x59704529,
 };
 
-GpImgRec D_actor_141000_8013D28C[2] = {
-    { 0, 0, { 0, 0, 25, 20 }, D_actor_141000_8013CEA4 },
-    { 255, 0, { 0, 0, 0, 0 }, NULL },
+GpuImageUpload D_actor_141000_8013D28C[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 25, 20 }, D_actor_141000_8013CEA4 },
+    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 u_long D_actor_141000_8013D2AC[140] = {
@@ -1701,9 +1701,9 @@ u_long D_actor_141000_8013D2AC[140] = {
     0xA2D3D7D9,
 };
 
-GpImgRec D_actor_141000_8013D4DC[2] = {
-    { 0, 0, { 0, 0, 14, 20 }, D_actor_141000_8013D2AC },
-    { 255, 0, { 0, 0, 0, 0 }, NULL },
+GpuImageUpload D_actor_141000_8013D4DC[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 14, 20 }, D_actor_141000_8013D2AC },
+    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 u_long D_actor_141000_8013D4FC[140] = {
@@ -1849,9 +1849,9 @@ u_long D_actor_141000_8013D4FC[140] = {
     0xA2D3D7D9,
 };
 
-GpImgRec D_actor_141000_8013D72C[2] = {
-    { 0, 0, { 0, 0, 14, 20 }, D_actor_141000_8013D4FC },
-    { 255, 0, { 0, 0, 0, 0 }, NULL },
+GpuImageUpload D_actor_141000_8013D72C[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 14, 20 }, D_actor_141000_8013D4FC },
+    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 AnimationSet* D_actor_141000_8013D74C[11] = {
@@ -2686,20 +2686,20 @@ s32 func_actor_141000_80133F6C(Task* task, s32 arg1, ActorCommand* msg)
 /// source. Unknown modes load nothing and return 0.
 s32 func_actor_141000_80133FA8(Task* task, s32 arg1, s32 mode)
 {
-    RECT      rect;
-    GpImgRec* img;
-    s32       ret;
+    RECT            rect;
+    GpuImageUpload* uploadList;
+    s32             ret;
 
     ret = 0;
     switch (mode) {
         case 0:
-            img = &D_actor_141000_8013CA7C[0];
+            uploadList = &D_actor_141000_8013CA7C[0];
             goto small;
         case 1:
-            img = &D_actor_141000_8013D28C[0];
+            uploadList = &D_actor_141000_8013D28C[0];
             goto small;
         case 2:
-            img = &D_actor_141000_8013D4DC[0];
+            uploadList = &D_actor_141000_8013D4DC[0];
         small:
             rect.y = 0x40;
             rect.w = 0x19;
@@ -2707,7 +2707,7 @@ s32 func_actor_141000_80133FA8(Task* task, s32 arg1, s32 mode)
             rect.h = 0x14;
             break;
         case 3:
-            img                                       = &D_actor_141000_8013D72C[0];
+            uploadList                                = &D_actor_141000_8013D72C[0];
             rect.y                                    = 0x40;
             rect.w                                    = 0x19;
             rect.x                                    = 0;
@@ -2716,10 +2716,10 @@ s32 func_actor_141000_80133FA8(Task* task, s32 arg1, s32 mode)
             ((Actor141000Work*)task->work)->field_4C4 = 1;
             break;
         case 4:
-            img = &D_actor_141000_8013D72C[0];
+            uploadList = &D_actor_141000_8013D72C[0];
             goto big;
         case 5:
-            img = &D_actor_141000_8013D4DC[0];
+            uploadList = &D_actor_141000_8013D4DC[0];
         big:
             rect.x = 0xC;
             rect.y = 0x60;
@@ -2727,11 +2727,11 @@ s32 func_actor_141000_80133FA8(Task* task, s32 arg1, s32 mode)
             rect.h = 0x14;
             break;
         default:
-            img = NULL;
+            uploadList = NULL;
             break;
     }
-    if (img != NULL) {
-        ret = Gp_LoadActorImage(task, img, &rect);
+    if (uploadList != NULL) {
+        ret = Gp_LoadActorImage(task, uploadList, &rect);
     }
     return ret;
 }

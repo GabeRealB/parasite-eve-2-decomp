@@ -11,7 +11,7 @@
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/effect_tasks.h"
-#include "gameplay/item_pickup.h"
+#include "gameplay/gpu_image_upload.h"
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
@@ -28,7 +28,7 @@
 #include "main/tmd.h"
 #include "main/tmd_types.h"
 
-extern GpImgRec D_actor_210700_8015858C[2];
+extern GpuImageUpload D_actor_210700_8015858C[2];
 
 /// The actor's work block. The spawn handler `func_actor_210700_80149F90`
 /// allocates it zeroed with `memCalloc(0x540, 0)` and keeps it in
@@ -667,9 +667,9 @@ u_long D_actor_210700_80157C4C[192] = {
     0x777A7254,
 };
 
-GpImgRec D_actor_210700_80157F4C[2] = {
-    { 0, 0, { 0, 0, 24, 16 }, D_actor_210700_80157C4C },
-    { 255, 0, { 0, 0, 0, 0 }, NULL },
+GpuImageUpload D_actor_210700_80157F4C[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 24, 16 }, D_actor_210700_80157C4C },
+    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 u_long D_actor_210700_80157F6C[192] = {
@@ -867,9 +867,9 @@ u_long D_actor_210700_80157F6C[192] = {
     0x777A7254,
 };
 
-GpImgRec D_actor_210700_8015826C[2] = {
-    { 0, 0, { 0, 0, 24, 16 }, D_actor_210700_80157F6C },
-    { 255, 0, { 0, 0, 0, 0 }, NULL },
+GpuImageUpload D_actor_210700_8015826C[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 24, 16 }, D_actor_210700_80157F6C },
+    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 u_long D_actor_210700_8015828C[192] = {
@@ -1067,9 +1067,9 @@ u_long D_actor_210700_8015828C[192] = {
     0x777A7254,
 };
 
-GpImgRec D_actor_210700_8015858C[2] = {
-    { 0, 0, { 0, 0, 24, 16 }, D_actor_210700_8015828C },
-    { 255, 0, { 0, 0, 0, 0 }, NULL },
+GpuImageUpload D_actor_210700_8015858C[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 24, 16 }, D_actor_210700_8015828C },
+    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 AnimationSet* D_actor_210700_801585AC[7] = {
@@ -1371,9 +1371,9 @@ s32 func_actor_210700_8014A3D4(Task* arg0, s32 arg1, s32 mode)
 /// out in source order and that is the order the retail image has them in.
 s32 func_actor_210700_8014A4B0(Task* arg0, s32 arg1, s32 mode)
 {
-    RECT      rect;
-    GpImgRec* img;
-    s32       ret;
+    RECT            rect;
+    GpuImageUpload* uploadList;
+    s32             ret;
 
     ret    = 0;
     rect.x = 0;
@@ -1383,24 +1383,24 @@ s32 func_actor_210700_8014A4B0(Task* arg0, s32 arg1, s32 mode)
 
     switch (mode) {
         case 1:
-            img = &D_actor_210700_8015858C[0];
+            uploadList = &D_actor_210700_8015858C[0];
             break;
         case 0:
         case 2:
-            img = &D_actor_210700_80157F4C[0];
+            uploadList = &D_actor_210700_80157F4C[0];
             break;
         case 3:
             ((Actor210700Work*)arg0->work)->field_53C = 1;
             ((Actor210700Work*)arg0->work)->field_538 = 1;
-            img                                       = &D_actor_210700_8015826C[0];
+            uploadList                                = &D_actor_210700_8015826C[0];
             break;
         default:
-            img = NULL;
+            uploadList = NULL;
             break;
     }
 
-    if (img != NULL) {
-        ret = Gp_LoadActorImage(arg0, img, &rect);
+    if (uploadList != NULL) {
+        ret = Gp_LoadActorImage(arg0, uploadList, &rect);
     }
     return ret;
 }

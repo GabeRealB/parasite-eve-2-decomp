@@ -19,7 +19,7 @@
 #include "gameplay/effects.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
-#include "gameplay/item_pickup.h"
+#include "gameplay/gpu_image_upload.h"
 #include "gameplay/light.h"
 #include "gameplay/message.h"
 #include "gameplay/model_objects.h"
@@ -90,7 +90,7 @@ typedef union {
 STATIC_ASSERT_SIZEOF(AcropolisWestElevatorHallPalette, 512);
 
 extern AcropolisWestElevatorHallPalette D_acropolis_west_elevator_hall_80184E04;
-extern GpImgRec                         D_acropolis_west_elevator_hall_80185004[];
+extern GpuImageUpload                   D_acropolis_west_elevator_hall_80185004[];
 
 /// The hall's two elevator-car tasks, spawned by the room task.
 extern Task* D_acropolis_west_elevator_hall_80186AE4[];
@@ -589,9 +589,9 @@ u16 D_acropolis_west_elevator_hall_80184C04[256] = {
 
 AcropolisWestElevatorHallPalette D_acropolis_west_elevator_hall_80184E04 = { 0 };
 
-GpImgRec D_acropolis_west_elevator_hall_80185004[2] = {
-    { 0, 0, { 0, 270, 256, 1 }, D_acropolis_west_elevator_hall_80184E04.words },
-    { 255, 0, { 0, 0, 0, 0 }, NULL },
+GpuImageUpload D_acropolis_west_elevator_hall_80185004[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 270, 256, 1 }, D_acropolis_west_elevator_hall_80184E04.words },
+    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 GpRoomObjRec D_acropolis_west_elevator_hall_80185024[1] = {

@@ -20,7 +20,7 @@
 #include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/hud_sprites.h"
-#include "gameplay/item_pickup.h"
+#include "gameplay/gpu_image_upload.h"
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
@@ -136,11 +136,11 @@ typedef struct _Actor800100QuadScratch {
 } Actor800100QuadScratch;
 STATIC_ASSERT_SIZEOF(Actor800100QuadScratch, 0x44);
 
-/// NULL-terminated `GpImgRec*` frame lists for `func_actor_800100_80163A58`,
+/// NULL-terminated `GpuImageUpload*` frame lists for `func_actor_800100_80163A58`,
 /// indexed `table[textureSequenceA - 1][textureFrameA]`; `D_actor_800100_80167210` is
 /// the `textureSequenceB` sequence.
-extern GpImgRec** D_actor_800100_80167200[];
-extern GpImgRec** D_actor_800100_80167210[];
+extern GpuImageUpload** D_actor_800100_80167200[];
+extern GpuImageUpload** D_actor_800100_80167210[];
 
 /// Translation the flare's own coordinate starts at, `(0, 0x200, 0x40)`.
 extern SVECTOR D_actor_800100_80167128;
@@ -219,12 +219,12 @@ extern u8* D_actor_800100_801672F8[];
 extern u8  D_actor_800100_80167308[];
 extern u8  D_actor_800100_80167310[];
 
-extern GpImgRec* D_actor_800100_80167A18[2];
-extern GpImgRec* D_actor_800100_80167A20[4];
-extern GpImgRec* D_actor_800100_80167A30[4];
-extern GpImgRec* D_actor_800100_80167A40[6];
-extern GpImgRec* D_actor_800100_80167A58[2];
-extern GpImgRec* D_actor_800100_80167A60[2];
+extern GpuImageUpload* D_actor_800100_80167A18[2];
+extern GpuImageUpload* D_actor_800100_80167A20[4];
+extern GpuImageUpload* D_actor_800100_80167A30[4];
+extern GpuImageUpload* D_actor_800100_80167A40[6];
+extern GpuImageUpload* D_actor_800100_80167A58[2];
+extern GpuImageUpload* D_actor_800100_80167A60[2];
 
 SVECTOR D_actor_800100_80167128 = { 0, 512, 64, 0 };
 
@@ -257,14 +257,14 @@ Actor800100MessageEntry D_actor_800100_80167130[26] = {
     { GAME_ACTOR_MESSAGE_SET_TEXTURE_SEQUENCE, { .call7 = func_80105AB0 } },
 };
 
-GpImgRec** D_actor_800100_80167200[4] = {
+GpuImageUpload** D_actor_800100_80167200[4] = {
     D_actor_800100_80167A18,
     D_actor_800100_80167A20,
     D_actor_800100_80167A30,
     D_actor_800100_80167A40,
 };
 
-GpImgRec** D_actor_800100_80167210[2] = {
+GpuImageUpload** D_actor_800100_80167210[2] = {
     D_actor_800100_80167A60,
     D_actor_800100_80167A58,
 };
@@ -618,9 +618,9 @@ u_long D_actor_800100_80167318[84] = {
     0xB1AEB1AE,
 };
 
-GpImgRec D_actor_800100_80167468[2] = {
-    { 0, 0, { 0, 0, 21, 8 }, D_actor_800100_80167318 },
-    { 255, 0, { 0, 0, 0, 0 }, NULL },
+GpuImageUpload D_actor_800100_80167468[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 21, 8 }, D_actor_800100_80167318 },
+    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 u_long D_actor_800100_80167488[84] = {
@@ -710,9 +710,9 @@ u_long D_actor_800100_80167488[84] = {
     0xB1AEB1AE,
 };
 
-GpImgRec D_actor_800100_801675D8[2] = {
-    { 0, 0, { 0, 0, 21, 8 }, D_actor_800100_80167488 },
-    { 255, 0, { 0, 0, 0, 0 }, NULL },
+GpuImageUpload D_actor_800100_801675D8[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 21, 8 }, D_actor_800100_80167488 },
+    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 u_long D_actor_800100_801675F8[84] = {
@@ -802,9 +802,9 @@ u_long D_actor_800100_801675F8[84] = {
     0xB1AEAEBF,
 };
 
-GpImgRec D_actor_800100_80167748[2] = {
-    { 0, 0, { 0, 0, 21, 8 }, D_actor_800100_801675F8 },
-    { 255, 0, { 0, 0, 0, 0 }, NULL },
+GpuImageUpload D_actor_800100_80167748[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 21, 8 }, D_actor_800100_801675F8 },
+    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 u_long D_actor_800100_80167768[78] = {
@@ -888,9 +888,9 @@ u_long D_actor_800100_80167768[78] = {
     0xA283A787,
 };
 
-GpImgRec D_actor_800100_801678A0[2] = {
-    { 0, 0, { 0, 0, 13, 12 }, D_actor_800100_80167768 },
-    { 255, 0, { 0, 0, 0, 0 }, NULL },
+GpuImageUpload D_actor_800100_801678A0[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 13, 12 }, D_actor_800100_80167768 },
+    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 u_long D_actor_800100_801678C0[78] = {
@@ -974,31 +974,31 @@ u_long D_actor_800100_801678C0[78] = {
     0xA283A787,
 };
 
-GpImgRec D_actor_800100_801679F8[2] = {
-    { 0, 0, { 0, 0, 13, 12 }, D_actor_800100_801678C0 },
-    { 255, 0, { 0, 0, 0, 0 }, NULL },
+GpuImageUpload D_actor_800100_801679F8[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 13, 12 }, D_actor_800100_801678C0 },
+    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
-GpImgRec* D_actor_800100_80167A18[2] = {
+GpuImageUpload* D_actor_800100_80167A18[2] = {
     D_actor_800100_80167468,
     NULL,
 };
 
-GpImgRec* D_actor_800100_80167A20[4] = {
+GpuImageUpload* D_actor_800100_80167A20[4] = {
     D_actor_800100_80167468,
     D_actor_800100_801675D8,
     D_actor_800100_80167748,
     NULL,
 };
 
-GpImgRec* D_actor_800100_80167A30[4] = {
+GpuImageUpload* D_actor_800100_80167A30[4] = {
     D_actor_800100_80167748,
     D_actor_800100_801675D8,
     D_actor_800100_80167468,
     NULL,
 };
 
-GpImgRec* D_actor_800100_80167A40[6] = {
+GpuImageUpload* D_actor_800100_80167A40[6] = {
     D_actor_800100_80167468,
     D_actor_800100_801675D8,
     D_actor_800100_80167748,
@@ -1007,12 +1007,12 @@ GpImgRec* D_actor_800100_80167A40[6] = {
     NULL,
 };
 
-GpImgRec* D_actor_800100_80167A58[2] = {
+GpuImageUpload* D_actor_800100_80167A58[2] = {
     D_actor_800100_801678A0,
     NULL,
 };
 
-GpImgRec* D_actor_800100_80167A60[2] = {
+GpuImageUpload* D_actor_800100_80167A60[2] = {
     D_actor_800100_801679F8,
     NULL,
 };
@@ -1413,15 +1413,15 @@ static void func_actor_800100_801635F4(Task* arg0)
 /// from the scratch stack and gives it back at the end of the call.
 static void func_actor_800100_80163A58(Task* arg0)
 {
-    void**      scratch;
-    u8*         head;
-    u8*         temp;
-    RECT*       rect;
-    GameActor*  actor;
-    GpImgRec*** table;
-    s32         idx;
-    u32         row;
-    GpImgRec*   img;
+    void**            scratch;
+    u8*               head;
+    u8*               temp;
+    RECT*             rect;
+    GameActor*        actor;
+    GpuImageUpload*** frameLists;
+    s32               idx;
+    u32               row;
+    GpuImageUpload*   uploadList;
 
     scratch                        = SCRATCH_HEAD_ADDR;
     head                           = SCRATCH_HEAD_AT(scratch, void);
@@ -1433,15 +1433,15 @@ static void func_actor_800100_80163A58(Task* arg0)
     if ((s8)actor->textureSequenceA != 0) {
         actor->textureDelayA--;
         if ((s8)actor->textureDelayA <= 0) {
-            table = D_actor_800100_80167200;
-            idx   = (s8)actor->textureSequenceA - 1;
-            img   = table[idx][(s8)actor->textureFrameA];
-            if (img != NULL) {
+            frameLists = D_actor_800100_80167200;
+            idx        = (s8)actor->textureSequenceA - 1;
+            uploadList = frameLists[idx][(s8)actor->textureFrameA];
+            if (uploadList != NULL) {
                 ((RECT*)head)[-1].x = 0;
                 rect->y             = 0x28;
                 rect->w             = 0x15;
                 rect->h             = 8;
-                Gp_LoadActorImage(arg0, img, rect);
+                Gp_LoadActorImage(arg0, uploadList, rect);
                 actor->textureDelayA = 4;
                 actor->textureFrameA++;
             } else {
@@ -1453,15 +1453,15 @@ static void func_actor_800100_80163A58(Task* arg0)
     if ((s8)actor->textureSequenceB != 0) {
         actor->textureDelayB--;
         if ((s8)actor->textureDelayB <= 0) {
-            table = D_actor_800100_80167210;
-            idx   = (row = (s8)actor->textureSequenceB - 1);
-            img   = table[row][(s8)actor->textureFrameB];
-            if (img != NULL) {
+            frameLists = D_actor_800100_80167210;
+            idx        = (row = (s8)actor->textureSequenceB - 1);
+            uploadList = frameLists[row][(s8)actor->textureFrameB];
+            if (uploadList != NULL) {
                 rect->x = 8;
                 rect->y = 0x40;
                 rect->w = 0xD;
                 rect->h = 0xC;
-                Gp_LoadActorImage(arg0, img, rect);
+                Gp_LoadActorImage(arg0, uploadList, rect);
                 actor->textureDelayB = 8;
                 actor->textureFrameB++;
             } else {

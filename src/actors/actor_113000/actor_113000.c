@@ -9,7 +9,7 @@
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/effect_tasks.h"
-#include "gameplay/item_pickup.h"
+#include "gameplay/gpu_image_upload.h"
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
@@ -27,7 +27,7 @@
 #include "main/tmd_types.h"
 #include "../../shared/actor_messages.h"
 
-extern GpImgRec D_actor_113000_8013AB6C[2];
+extern GpuImageUpload D_actor_113000_8013AB6C[2];
 
 /// Animation source table `func_actor_113000_80132208` indexes by the preset's
 /// bank index and hands `animationInitContext` as its data argument.
@@ -58,11 +58,9 @@ typedef struct Actor113000Work {
 } Actor113000Work;
 STATIC_ASSERT_SIZEOF(Actor113000Work, 0x4CC);
 
-/// The actor's three texture records, one per mode of the message-0x7E0
-/// handler. Each is a lone `GpImgRec` whose 0x20x0x10 source rect repeats the
-/// size the upload code's scratch `RECT` carries and whose `data` points at
-/// its pixel blob; the three sit 0x420 bytes apart in the overlay's data
-/// segment.
+/// The actor's three texture upload lists selected by the message handler.
+/// Each contains a 32-word by 16-row copy and a terminator; `pixels` points at
+/// the packed texture words.
 
 /// Message dispatch table the spawn handler parks in `Task::msgTable`:
 /// message id / handler pairs, terminated by `TASK_MESSAGE_TABLE_END` and a null word.
@@ -573,9 +571,9 @@ u_long D_actor_113000_80139F2C[256] = {
     0xDCE8DBDB,
 };
 
-GpImgRec D_actor_113000_8013A32C[2] = {
-    { 0, 0, { 0, 0, 32, 16 }, D_actor_113000_80139F2C },
-    { 255, 0, { 0, 0, 0, 0 }, NULL },
+GpuImageUpload D_actor_113000_8013A32C[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 32, 16 }, D_actor_113000_80139F2C },
+    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 u_long D_actor_113000_8013A34C[256] = {
@@ -837,9 +835,9 @@ u_long D_actor_113000_8013A34C[256] = {
     0xDCE8DBDB,
 };
 
-GpImgRec D_actor_113000_8013A74C[2] = {
-    { 0, 0, { 0, 0, 32, 16 }, D_actor_113000_8013A34C },
-    { 255, 0, { 0, 0, 0, 0 }, NULL },
+GpuImageUpload D_actor_113000_8013A74C[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 32, 16 }, D_actor_113000_8013A34C },
+    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 u_long D_actor_113000_8013A76C[256] = {
@@ -1101,9 +1099,9 @@ u_long D_actor_113000_8013A76C[256] = {
     0xDCE8DBDB,
 };
 
-GpImgRec D_actor_113000_8013AB6C[2] = {
-    { 0, 0, { 0, 0, 32, 16 }, D_actor_113000_8013A76C },
-    { 255, 0, { 0, 0, 0, 0 }, NULL },
+GpuImageUpload D_actor_113000_8013AB6C[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 32, 16 }, D_actor_113000_8013A76C },
+    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 AnimationSet* D_actor_113000_8013AB8C[9] = {
@@ -1377,9 +1375,9 @@ s32 func_actor_113000_80132398(Task* task, s32 arg1, s32 mode, s32 arg3)
 /// out in source order and that is the order the retail image has them in.
 s32 func_actor_113000_80132474(Task* arg0, s32 arg1, s32 mode)
 {
-    RECT      rect;
-    GpImgRec* img;
-    s32       ret;
+    RECT            rect;
+    GpuImageUpload* uploadList;
+    s32             ret;
 
     ret    = 0;
     rect.x = 0;
@@ -1389,24 +1387,24 @@ s32 func_actor_113000_80132474(Task* arg0, s32 arg1, s32 mode)
 
     switch (mode) {
         case 1:
-            img = &D_actor_113000_8013AB6C[0];
+            uploadList = &D_actor_113000_8013AB6C[0];
             break;
         case 0:
         case 2:
-            img = &D_actor_113000_8013A32C[0];
+            uploadList = &D_actor_113000_8013A32C[0];
             break;
         case 3:
             ((Actor113000Work*)arg0->work)->field_4C4 = 1;
             ((Actor113000Work*)arg0->work)->field_4C0 = 1;
-            img                                       = &D_actor_113000_8013A74C[0];
+            uploadList                                = &D_actor_113000_8013A74C[0];
             break;
         default:
-            img = NULL;
+            uploadList = NULL;
             break;
     }
 
-    if (img != NULL) {
-        ret = Gp_LoadActorImage(arg0, img, &rect);
+    if (uploadList != NULL) {
+        ret = Gp_LoadActorImage(arg0, uploadList, &rect);
     }
     return ret;
 }

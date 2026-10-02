@@ -2,8 +2,6 @@
 #define GAMEPLAY_ITEM_PICKUP_H
 
 #include <psyq/sys/types.h>
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
 
 #include "common.h"
 
@@ -18,18 +16,5 @@ typedef struct _GpGiveRec {
     /* 0x4 */ u16 items[4];
 } GpGiveRec;
 STATIC_ASSERT_SIZEOF(GpGiveRec, 0xC);
-
-/// 16-byte VRAM upload record walked by `Gp_LoadImages`. `field_0 == 0`
-/// uploads `rect` / `data` via `LoadImage`; non-zero ends the walk.
-/// `Gp_LoadActorImage` fills `rect` from a source RECT plus the TMD tpage at
-/// `TmdObject.texturePageOffset` (`x = tpage * 64 + (src.x + 1) / 2 + 0x180`,
-/// `y = src.y + 0x100`).
-typedef struct _GpImgRec {
-    /* 0x0 */ u16     field_0;
-    /* 0x2 */ u16     pad_2;
-    /* 0x4 */ RECT    rect;
-    /* 0xC */ u_long* data;
-} GpImgRec;
-STATIC_ASSERT_SIZEOF(GpImgRec, 0x10);
 
 #endif // GAMEPLAY_ITEM_PICKUP_H

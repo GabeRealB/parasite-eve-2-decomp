@@ -15,7 +15,7 @@
 #include "gameplay/effect_tasks.h"
 #include "gameplay/enemy.h"
 #include "gameplay/hud_sprites.h"
-#include "gameplay/item_pickup.h"
+#include "gameplay/gpu_image_upload.h"
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
@@ -40,11 +40,11 @@
 #include "../../shared/model_placement.h"
 #include "../../shared/actor_messages.h"
 
-extern GpImgRec D_actor_511000_80146F94[2];
+extern GpuImageUpload D_actor_511000_80146F94[2];
 
-extern GpImgRec D_actor_511000_80146C74[2];
+extern GpuImageUpload D_actor_511000_80146C74[2];
 
-extern GpImgRec D_actor_511000_801472B4[2];
+extern GpuImageUpload D_actor_511000_801472B4[2];
 
 /// Work block of the enemy task, reached by its model-attach children through
 /// the parent task's `Task::work`. The spawn handler
@@ -66,7 +66,7 @@ STATIC_ASSERT_SIZEOF(Actor511000ParentWork, 0x488);
 /// `light` / `color` are the matrices the model's `lightMtx` / `colorMtx`
 /// point at. `field_8` is the `Tmd_FreeBuffers` countdown (-1 disables it);
 /// `field_C` is the 16-colour CLUT published through
-/// `D_actor_511000_80147EA4[0].data`, written byte by byte as little-endian 15-bit
+/// `D_actor_511000_80147EA4[0].pixels`, written byte by byte as little-endian 15-bit
 /// colours by the palette fade `func_actor_511000_80132E6C`, which steps
 /// `field_2C` and holds on `field_2E`. `field_2F` latches once the message-1
 /// children have been spawned.
@@ -201,10 +201,9 @@ static const GpEnemyTaskFuncTable3 D_actor_511000_80131E6C = {
 /// `Gp_SpawnViewTasks` hands its own stage record.
 extern ViewCamera D_actor_511000_80147EE4[];
 
-/// The three texture records the tick state's upload steps and the
-/// message-0x7E0 handler post. Each is a lone `GpImgRec` whose 0x18x0x10
-/// source rect repeats the size the users' scratch `RECT` carries and whose
-/// `data` points at its pixel blob.
+/// The three texture upload lists used by the tick state and message handler.
+/// Each contains a 24-word by 16-row copy and a terminator; `pixels` points at
+/// the packed texture words.
 
 /// Animation sources the animation message handler selects by index.
 extern AnimationSet*  D_actor_511000_801472D4[4];
@@ -841,9 +840,9 @@ u_long D_actor_511000_80146974[192] = {
     0x777A7254,
 };
 
-GpImgRec D_actor_511000_80146C74[2] = {
-    { 0, 0, { 0, 0, 24, 16 }, D_actor_511000_80146974 },
-    { 255, 0, { 0, 0, 0, 0 }, NULL },
+GpuImageUpload D_actor_511000_80146C74[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 24, 16 }, D_actor_511000_80146974 },
+    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 u_long D_actor_511000_80146C94[192] = {
@@ -1041,9 +1040,9 @@ u_long D_actor_511000_80146C94[192] = {
     0x777A7254,
 };
 
-GpImgRec D_actor_511000_80146F94[2] = {
-    { 0, 0, { 0, 0, 24, 16 }, D_actor_511000_80146C94 },
-    { 255, 0, { 0, 0, 0, 0 }, NULL },
+GpuImageUpload D_actor_511000_80146F94[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 24, 16 }, D_actor_511000_80146C94 },
+    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 u_long D_actor_511000_80146FB4[192] = {
@@ -1241,9 +1240,9 @@ u_long D_actor_511000_80146FB4[192] = {
     0x777A7254,
 };
 
-GpImgRec D_actor_511000_801472B4[2] = {
-    { 0, 0, { 0, 0, 24, 16 }, D_actor_511000_80146FB4 },
-    { 255, 0, { 0, 0, 0, 0 }, NULL },
+GpuImageUpload D_actor_511000_801472B4[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 24, 16 }, D_actor_511000_80146FB4 },
+    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 AnimationSet* D_actor_511000_801472D4[4] = {
@@ -1678,9 +1677,9 @@ Actor511000Palette D_actor_511000_80147E84 = { .bytes = {
                                                    128,
                                                } };
 
-GpImgRec D_actor_511000_80147EA4[2] = {
-    { 0, 0, { 0, 264, 16, 1 }, D_actor_511000_80147E84.words },
-    { 255, 0, { 0, 0, 0, 0 }, NULL },
+GpuImageUpload D_actor_511000_80147EA4[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 264, 16, 1 }, D_actor_511000_80147E84.words },
+    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 u8 D_actor_511000_80147EC4[32] = {
@@ -2428,9 +2427,9 @@ out:
 /// out in source order and that is the order the retail image has them in.
 s32 func_actor_511000_80132904(Task* arg0, s32 arg1, s32 mode)
 {
-    RECT      rect;
-    GpImgRec* img;
-    s32       ret;
+    RECT            rect;
+    GpuImageUpload* uploadList;
+    s32             ret;
 
     ret    = 0;
     rect.x = 0;
@@ -2440,24 +2439,24 @@ s32 func_actor_511000_80132904(Task* arg0, s32 arg1, s32 mode)
 
     switch (mode) {
         case 1:
-            img = &D_actor_511000_801472B4[0];
+            uploadList = &D_actor_511000_801472B4[0];
             break;
         case 0:
         case 2:
-            img = &D_actor_511000_80146C74[0];
+            uploadList = &D_actor_511000_80146C74[0];
             break;
         case 3:
             ((Actor511000Work2*)arg0->work)->field_4D0 = 1;
             ((Actor511000Work2*)arg0->work)->field_4CC = 1;
-            img                                        = &D_actor_511000_80146F94[0];
+            uploadList                                 = &D_actor_511000_80146F94[0];
             break;
         default:
-            img = NULL;
+            uploadList = NULL;
             break;
     }
 
-    if (img != NULL) {
-        ret = Gp_LoadActorImage(arg0, img, &rect);
+    if (uploadList != NULL) {
+        ret = Gp_LoadActorImage(arg0, uploadList, &rect);
     }
     return ret;
 }
@@ -2668,7 +2667,7 @@ static void func_actor_511000_80132E6C(Actor511000Work* work)
 /// arms the buffer-free countdown at -1, un-hides the model (`field_C` bit
 /// 0x80), places it at rot/trans index 0, binds light/color, installs the
 /// message table, and publishes `work->field_C` through
-/// `D_actor_511000_80147EA4[0].data` before advancing to the per-frame state.
+/// `D_actor_511000_80147EA4[0].pixels` before advancing to the per-frame state.
 static void func_actor_511000_80133034(Task* task)
 {
     Actor511000Work* work;
@@ -2686,8 +2685,8 @@ static void func_actor_511000_80133034(Task* task)
     func_actor_511000_801336E0(task, D_actor_511000_80147344, D_actor_511000_80147704, 0);
     func_actor_511000_801337F0(task);
     do {
-        task->msgTable                  = D_actor_511000_80148FC4;
-        D_actor_511000_80147EA4[0].data = work->field_C.words;
+        task->msgTable                    = D_actor_511000_80148FC4;
+        D_actor_511000_80147EA4[0].pixels = work->field_C.words;
     } while (0);
     task->state += 1;
 }

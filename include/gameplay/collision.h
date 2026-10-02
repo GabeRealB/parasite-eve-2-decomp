@@ -304,7 +304,7 @@ STATIC_ASSERT_SIZEOF(WorldCollisionGrid, 0x24);
 /// with room 0 matching the whole area.
 #define GP_TASK_LOC_KEY(stage, area, room) ((stage) * 10000 + (area) * 100 + (room))
 
-/// `GpImgRec.field_0` of the record that ends a list.
+/// `GpuImageUpload.operation` of the record that ends a list.
 #define GP_IMG_REC_END 0xFF
 
 #endif // GAMEPLAY_COLLISION_H

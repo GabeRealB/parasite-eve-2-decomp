@@ -26,7 +26,7 @@
 #include "gameplay/effects.h"
 #include "gameplay/inventory.h"
 #include "gameplay/item_menu.h"
-#include "gameplay/item_pickup.h"
+#include "gameplay/gpu_image_upload.h"
 #include "gameplay/items.h"
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
@@ -240,7 +240,7 @@ extern AcropolisSecurityRoomPalette D_acropolis_security_room_80183318;
 extern AcropolisSecurityRoomPalette D_acropolis_security_room_80183518;
 extern AcropolisSecurityRoomPalette D_acropolis_security_room_80183718;
 /// The upload records for the four blended CLUTs above.
-extern GpImgRec D_acropolis_security_room_80183918[];
+extern GpuImageUpload D_acropolis_security_room_80183918[];
 /// Camera-lit bitmask for each value of `GameFlag_GetNibble(9)`; bit N is set
 /// while feed N is showing something.
 extern u16 D_acropolis_security_room_80183968[];
@@ -1434,12 +1434,12 @@ AcropolisSecurityRoomPalette D_acropolis_security_room_80183518 = { 0 };
 
 AcropolisSecurityRoomPalette D_acropolis_security_room_80183718 = { 0 };
 
-GpImgRec D_acropolis_security_room_80183918[5] = {
-    { 0, 0, { 0, 270, 256, 1 }, D_acropolis_security_room_80183118.words },
-    { 0, 0, { 0, 271, 256, 1 }, D_acropolis_security_room_80183318.words },
-    { 0, 0, { 0, 263, 256, 1 }, D_acropolis_security_room_80183518.words },
-    { 0, 0, { 0, 264, 256, 1 }, D_acropolis_security_room_80183718.words },
-    { 255, 0, { 0, 0, 0, 0 }, NULL },
+GpuImageUpload D_acropolis_security_room_80183918[5] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 270, 256, 1 }, D_acropolis_security_room_80183118.words },
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 271, 256, 1 }, D_acropolis_security_room_80183318.words },
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 263, 256, 1 }, D_acropolis_security_room_80183518.words },
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 264, 256, 1 }, D_acropolis_security_room_80183718.words },
+    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 u16 D_acropolis_security_room_80183968[4] = {
