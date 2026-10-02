@@ -4,11 +4,19 @@
 #   ./tools/refactor/name_pass.sh [--times N] [--workers N] [--profile NAME]
 #                                 [--dry-run] [--cli claude|grok|codex]
 #                                 [--from ORDER] [--step ORDER]
+#                                 [--kinds func,type,data,macro]
 #                                 [--list-profiles] [--clean-workers]
 #
 # With no --times the whole worklist is walked. --times N stops after N rounds -
 # a round being one fork-join cycle, which is one step per worker.
 # --clean-workers removes the worker worktrees and exits, doing no work.
+#
+# --kinds restricts the pass to steps holding an item of the listed kinds (the
+# worklist's `kind` column: func, type, data, macro). A cycle is one step, so it
+# is worked whole when any of its items qualifies. The filter selects work, not
+# dependencies: items of other kinds are left as they are, so a step can still
+# reason from a neighbour that has not been named yet, and an item still in
+# assembly stops the scan whatever its kind, as it always does.
 #
 # Profiles are the same ones the matching vacuum uses, from
 # local/vacuum_profiles: a profile names the agent arm, the model, the
@@ -84,6 +92,7 @@ CLEAN_WORKERS=0
 DRY=0
 FROM=0
 ONLY=""
+KINDS=""
 LIST_PROFILES=0
 KEEP_GOING=0
 REFRESH=1
@@ -103,12 +112,13 @@ while [[ $# -gt 0 ]]; do
     --list-profiles) LIST_PROFILES=1; shift ;;
     --from)  FROM="$2"; shift 2 ;;
     --step)  ONLY="$2"; shift 2 ;;
+    --kinds) KINDS="$2"; shift 2 ;;
     --dry-run) DRY=1; shift ;;
     --all) TIMES=0; KEEP_GOING=1; shift ;;
     --keep-going) KEEP_GOING=1; shift ;;
     --no-refresh) REFRESH=0; shift ;;
     --stop-on-fail) KEEP_GOING=0; shift ;;
-    -h|--help) sed -n '2,45p' "$0"; exit 0 ;;
+    -h|--help) awk 'NR > 1 && /^#/ { print; next } NR > 1 { exit }' "$0"; exit 0 ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
   esac
 done
@@ -186,15 +196,21 @@ SKIP_NAMES=" "
 # skipped. The steps behind it are the ones that use it, so working them would
 # reason from a name that cannot be established yet.
 next_batch() {
-  local order name state after first="" last="" scanned=0 barrier=""
+  local order name kind state after first="" last="" scanned=0 barrier=""
   local -a cands=()
-  while IFS=$'\t' read -r order _ name _ _ state _ _ after; do
+  while IFS=$'\t' read -r order _ name kind _ state _ _ after; do
     [[ "$order" == "order" ]] && continue
     (( order < FROM )) && continue
     [[ -n "$ONLY" && "$order" != "$ONLY" ]] && continue
     # A cycle is several rows sharing an order, and it is one step: the first
     # row that qualifies takes the whole order, and the rest are its siblings.
     [[ "$order" == "$last" ]] && continue
+    # The kind filter comes before the ledger and tree checks, which cost a grep
+    # each, but lets an item still in assembly through: it is a barrier whatever
+    # its kind, and the test below stops the scan at it.
+    if [[ -n "$KINDS" && ",$KINDS," != *",$kind,"* && "$state" != "generated" ]]; then
+      continue
+    fi
     ledgered "$name" && continue
     [[ "$SKIP_NAMES" == *" $name "* ]] && continue
     outstanding "$name" || continue
