@@ -104,27 +104,36 @@ typedef struct _GpLightCapture {
 } GpLightCapture;
 STATIC_ASSERT_SIZEOF(GpLightCapture, 0x60);
 
-/// 0x20-byte scratch from the scratch stack used by `Gp_LightFalloff` /
-/// `Gp_LightPoint` / `Gp_LightPointRoom`.
-/// `vec` is the halved local position (`Gp_LightFalloff`) or the halved
-/// world position less a world `VECTOR3` (`Gp_LightPoint` / `Gp_LightPointRoom`).
-/// `distSq` is `vx²+vy²+vz²`. `outerSq` / `innerSq` are `(radius²) >> 2`
-/// from `outer` / `inner` (`Gp_LightPointRoom` first stores
-/// `outer / 2` in `outerSq` for the `|dx|` / `|dz|` test). `scale`
-/// is 0, `0x1000`, or the 12-fractional-bit falloff copied to the light's attenuation.
-typedef struct _GpAttnScratch {
-    /* 0x00 */ VECTOR vec;
-    /* 0x10 */ s32    distSq;
-    /* 0x14 */ s32    outerSq;
-    /* 0x18 */ s32    innerSq;
-    /* 0x1C */ s32    scale;
-} GpAttnScratch;
-STATIC_ASSERT_SIZEOF(GpAttnScratch, 0x20);
+/// Temporary squared-distance falloff workspace for a point light.
+///
+/// Borrowed from the scratch stack for one query and released after its Q12
+/// attenuation is copied to the light. Offset components are arithmetically
+/// halved in the sample's coordinate frame; origin queries use local translation.
+/// The SDK vector's final word is unused and left uninitialized.
+///
+/// In the fade interval, `distanceSquared` and `outerLimit` become differences
+/// from the inner squared radius. Both are logically shifted in four-bit steps
+/// until the outer span fits 16 bits, bounding the numerator before its Q12 shift.
+typedef struct {
+    VECTOR halfOffset;         // Halved light-minus-sample offset; room rejection makes X and Z nonnegative
+    u32    distanceSquared;    // Sum of squared offset components, then inner-relative and reduced with outerLimit
+    u32    outerLimit;         // Half radius for room rejection, then (outer radius squared >> 2), then reduced fade span
+    u32    innerRadiusSquared; // Inner radius squared >> 2; full strength at or below this threshold
+    u32    attenuation;        // Contribution scale with 12 fractional bits (0 dark, ONE full strength)
+} _WorldCoordPointLightFalloffScratch;
+STATIC_ASSERT_SIZEOF(_WorldCoordPointLightFalloffScratch, 0x20);
+
+/// Q12 falloff arithmetic and the bound applied to its squared-distance span.
+enum {
+    WORLD_COORDINATE_LIGHT_FALLOFF_FRACTION_BITS   = 12,
+    WORLD_COORDINATE_LIGHT_FALLOFF_MAX_SPAN        = 0xFFFF,
+    WORLD_COORDINATE_LIGHT_FALLOFF_REDUCTION_SHIFT = 4
+};
 
 /// 0x2C-byte scratch from the scratch stack used by `Gp_LightCone`.
 /// `vec` is the halved `field_24.t -` world `VECTOR3`. `dir` is the
 /// `gfxNormalizeLightDirection` result at `head - 0x1C`. `distSq` / `outerSq`
-/// / `innerSq` / `scale` match `GpAttnScratch`. `cosAng` is
+/// / `innerSq` / `scale` use the radial falloff of `_WorldCoordPointLightFalloffScratch`. `cosAng` is
 /// `-(dir · matrix column 2) >> 12`, compared with `rcos` of half
 /// `WorldCoordSpotLight.angle`.
 typedef struct _GpSpotScratch {
@@ -400,97 +409,99 @@ void Gp_UpdateRoomCoords(Task* task)
 
 static s32 Gp_LightPointRoom(WorldCoordPointLight* light, VECTOR3* pos)
 {
-    WorldCoordLight* base;
-    GpAttnScratch*   block;
-    s32              result;
-    s32              tooFar;
-    s16              viewId;
+    WorldCoordLight*                     base;
+    _WorldCoordPointLightFalloffScratch* falloff;
+    s32                                  result;
+    s32                                  tooFar;
+    s16                                  viewId;
 
     base   = &light->head;
     viewId = base->transform.lighting.viewId;
     if (viewId != WORLD_COORDINATE_LIGHT_ALL_VIEWS && gGameSession->location.loc.view != viewId) {
         return 0;
     }
-    block          = SCRATCH_STACK_RESERVE_BLOCK(GpAttnScratch);
-    block->vec.vx  = (base->transform.lighting.composed.t[0] - pos->vx) >> 1;
-    block->vec.vy  = (base->transform.lighting.composed.t[1] - pos->vy) >> 1;
-    block->vec.vz  = (base->transform.lighting.composed.t[2] - pos->vz) >> 1;
-    block->outerSq = light->outer >> 1;
-    block->scale   = 0;
-    if (block->vec.vx < 0) {
-        block->vec.vx = -block->vec.vx;
+    falloff                = SCRATCH_STACK_RESERVE_BLOCK(_WorldCoordPointLightFalloffScratch);
+    falloff->halfOffset.vx = (base->transform.lighting.composed.t[0] - pos->vx) >> 1;
+    falloff->halfOffset.vy = (base->transform.lighting.composed.t[1] - pos->vy) >> 1;
+    falloff->halfOffset.vz = (base->transform.lighting.composed.t[2] - pos->vz) >> 1;
+    falloff->outerLimit    = light->outer >> 1;
+    falloff->attenuation   = 0;
+    if (falloff->halfOffset.vx < 0) {
+        falloff->halfOffset.vx = -falloff->halfOffset.vx;
     }
-    if (block->vec.vz < 0) {
-        block->vec.vz = -block->vec.vz;
+    if (falloff->halfOffset.vz < 0) {
+        falloff->halfOffset.vz = -falloff->halfOffset.vz;
     }
     // Rejects on the X and Z extents alone before paying for the squares.
-    tooFar = (u32)block->vec.vx > (u32)block->outerSq;
+    tooFar = (u32)falloff->halfOffset.vx > falloff->outerLimit;
     if (!tooFar) {
-        tooFar = (u32)block->vec.vz > (u32)block->outerSq;
+        tooFar = (u32)falloff->halfOffset.vz > falloff->outerLimit;
         if (!tooFar) {
-            block->outerSq = (light->outer * light->outer) >> 2;
-            block->distSq  = block->vec.vx * block->vec.vx + block->vec.vy * block->vec.vy + block->vec.vz * block->vec.vz;
-            tooFar         = (u32)block->outerSq < (u32)block->distSq;
+            falloff->outerLimit      = (light->outer * light->outer) >> 2;
+            falloff->distanceSquared = falloff->halfOffset.vx * falloff->halfOffset.vx + falloff->halfOffset.vy * falloff->halfOffset.vy + falloff->halfOffset.vz * falloff->halfOffset.vz;
+            tooFar                   = falloff->outerLimit < falloff->distanceSquared;
         }
     }
     if (tooFar) {
         result = 0;
     } else {
-        block->innerSq = (light->inner * light->inner) >> 2;
-        result         = ((light->head.color.r * 8 + light->head.color.g * 6 + light->head.color.b * 2) >> 8) + 0xF00;
-        block->scale   = ONE;
-        if ((u32)block->distSq > (u32)block->innerSq) {
-            block->outerSq -= block->innerSq;
-            block->distSq  -= block->innerSq;
-            while ((u32)block->outerSq > 0xFFFF) {
-                block->outerSq = (u32)block->outerSq >> 4;
-                block->distSq  = (u32)block->distSq >> 4;
+        falloff->innerRadiusSquared = (light->inner * light->inner) >> 2;
+        result                      = ((light->head.color.r * 8 + light->head.color.g * 6 + light->head.color.b * 2) >> 8) + 0xF00;
+        falloff->attenuation        = ONE;
+        // Measure the fade interval from its inner edge and bound the Q12 numerator.
+        if (falloff->distanceSquared > falloff->innerRadiusSquared) {
+            falloff->outerLimit      -= falloff->innerRadiusSquared;
+            falloff->distanceSquared -= falloff->innerRadiusSquared;
+            while (falloff->outerLimit > WORLD_COORDINATE_LIGHT_FALLOFF_MAX_SPAN) {
+                falloff->outerLimit      >>= WORLD_COORDINATE_LIGHT_FALLOFF_REDUCTION_SHIFT;
+                falloff->distanceSquared >>= WORLD_COORDINATE_LIGHT_FALLOFF_REDUCTION_SHIFT;
             }
-            if (block->outerSq != 0) {
-                block->scale = ((u32)(block->outerSq - block->distSq) << 12) / (u32)block->outerSq;
-                result       = (u32)(block->scale * result) >> 12;
+            if (falloff->outerLimit != 0) {
+                falloff->attenuation = ((falloff->outerLimit - falloff->distanceSquared) << WORLD_COORDINATE_LIGHT_FALLOFF_FRACTION_BITS) / falloff->outerLimit;
+                result               = (falloff->attenuation * result) >> WORLD_COORDINATE_LIGHT_FALLOFF_FRACTION_BITS;
             }
         }
     }
-    base->transform.lighting.attenuation = block->scale;
-    SCRATCH_STACK_RELEASE_BLOCK(GpAttnScratch);
+    base->transform.lighting.attenuation = falloff->attenuation;
+    SCRATCH_STACK_RELEASE_BLOCK(_WorldCoordPointLightFalloffScratch);
     return result;
 }
 
 static s32 Gp_LightPoint(WorldCoordPointLight* light, VECTOR3* pos)
 {
-    GpAttnScratch*   block;
-    s32              result;
-    WorldCoordLight* base;
+    _WorldCoordPointLightFalloffScratch* falloff;
+    s32                                  result;
+    WorldCoordLight*                     base;
 
-    base           = &light->head;
-    result         = 0;
-    block          = SCRATCH_STACK_RESERVE_BLOCK(GpAttnScratch);
-    block->vec.vx  = (base->transform.lighting.composed.t[0] - pos->vx) >> 1;
-    block->vec.vy  = (base->transform.lighting.composed.t[1] - pos->vy) >> 1;
-    block->vec.vz  = (base->transform.lighting.composed.t[2] - pos->vz) >> 1;
-    block->distSq  = block->vec.vx * block->vec.vx + block->vec.vy * block->vec.vy + block->vec.vz * block->vec.vz;
-    block->outerSq = (light->outer * light->outer) >> 2;
-    block->scale   = 0;
-    if ((u32)block->outerSq >= (u32)block->distSq) {
-        block->innerSq = (light->inner * light->inner) >> 2;
-        result         = ((light->head.color.r * 8 + light->head.color.g * 6 + light->head.color.b * 2) >> 8) + 0xF00;
-        block->scale   = ONE;
-        if ((u32)block->distSq > (u32)block->innerSq) {
-            block->outerSq -= block->innerSq;
-            block->distSq  -= block->innerSq;
-            while ((u32)block->outerSq > 0xFFFF) {
-                block->outerSq = (u32)block->outerSq >> 4;
-                block->distSq  = (u32)block->distSq >> 4;
+    base                     = &light->head;
+    result                   = 0;
+    falloff                  = SCRATCH_STACK_RESERVE_BLOCK(_WorldCoordPointLightFalloffScratch);
+    falloff->halfOffset.vx   = (base->transform.lighting.composed.t[0] - pos->vx) >> 1;
+    falloff->halfOffset.vy   = (base->transform.lighting.composed.t[1] - pos->vy) >> 1;
+    falloff->halfOffset.vz   = (base->transform.lighting.composed.t[2] - pos->vz) >> 1;
+    falloff->distanceSquared = falloff->halfOffset.vx * falloff->halfOffset.vx + falloff->halfOffset.vy * falloff->halfOffset.vy + falloff->halfOffset.vz * falloff->halfOffset.vz;
+    falloff->outerLimit      = (light->outer * light->outer) >> 2;
+    falloff->attenuation     = 0;
+    if (falloff->outerLimit >= falloff->distanceSquared) {
+        falloff->innerRadiusSquared = (light->inner * light->inner) >> 2;
+        result                      = ((light->head.color.r * 8 + light->head.color.g * 6 + light->head.color.b * 2) >> 8) + 0xF00;
+        falloff->attenuation        = ONE;
+        // Measure the fade interval from its inner edge and bound the Q12 numerator.
+        if (falloff->distanceSquared > falloff->innerRadiusSquared) {
+            falloff->outerLimit      -= falloff->innerRadiusSquared;
+            falloff->distanceSquared -= falloff->innerRadiusSquared;
+            while (falloff->outerLimit > WORLD_COORDINATE_LIGHT_FALLOFF_MAX_SPAN) {
+                falloff->outerLimit      >>= WORLD_COORDINATE_LIGHT_FALLOFF_REDUCTION_SHIFT;
+                falloff->distanceSquared >>= WORLD_COORDINATE_LIGHT_FALLOFF_REDUCTION_SHIFT;
             }
-            if (block->outerSq != 0) {
-                block->scale = ((u32)(block->outerSq - block->distSq) << 12) / (u32)block->outerSq;
-                result       = (u32)(block->scale * result) >> 12;
+            if (falloff->outerLimit != 0) {
+                falloff->attenuation = ((falloff->outerLimit - falloff->distanceSquared) << WORLD_COORDINATE_LIGHT_FALLOFF_FRACTION_BITS) / falloff->outerLimit;
+                result               = (falloff->attenuation * result) >> WORLD_COORDINATE_LIGHT_FALLOFF_FRACTION_BITS;
             }
         }
     }
-    base->transform.lighting.attenuation = block->scale;
-    SCRATCH_STACK_RELEASE_BLOCK(GpAttnScratch);
+    base->transform.lighting.attenuation = falloff->attenuation;
+    SCRATCH_STACK_RELEASE_BLOCK(_WorldCoordPointLightFalloffScratch);
     return result;
 }
 
@@ -1345,39 +1356,40 @@ void Gp_UpdateActorColor(Enemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
 
 static void Gp_LightFalloff(WorldCoordPointLight* light)
 {
-    GpAttnScratch*   block;
-    s32              result;
-    WorldCoordLight* base;
+    _WorldCoordPointLightFalloffScratch* falloff;
+    s32                                  result;
+    WorldCoordLight*                     base;
 
-    base           = &light->head;
-    result         = 0;
-    block          = SCRATCH_STACK_RESERVE_BLOCK(GpAttnScratch);
-    block->vec.vx  = base->transform.lighting.local.t[0] >> 1;
-    block->vec.vy  = base->transform.lighting.local.t[1] >> 1;
-    block->vec.vz  = base->transform.lighting.local.t[2] >> 1;
-    block->distSq  = block->vec.vx * block->vec.vx + block->vec.vy * block->vec.vy + block->vec.vz * block->vec.vz;
-    block->outerSq = (light->outer * light->outer) >> 2;
-    block->scale   = 0;
-    if ((u32)block->outerSq >= (u32)block->distSq) {
-        block->innerSq = (light->inner * light->inner) >> 2;
-        result         = ((light->head.color.r * 8 + light->head.color.g * 6 + light->head.color.b * 2) >> 8) + 0xF00;
-        block->scale   = ONE;
-        if ((u32)block->distSq > (u32)block->innerSq) {
-            block->outerSq -= block->innerSq;
-            block->distSq  -= block->innerSq;
-            while ((u32)block->outerSq > 0xFFFF) {
-                block->outerSq = (u32)block->outerSq >> 4;
-                block->distSq  = (u32)block->distSq >> 4;
+    base                     = &light->head;
+    result                   = 0;
+    falloff                  = SCRATCH_STACK_RESERVE_BLOCK(_WorldCoordPointLightFalloffScratch);
+    falloff->halfOffset.vx   = base->transform.lighting.local.t[0] >> 1;
+    falloff->halfOffset.vy   = base->transform.lighting.local.t[1] >> 1;
+    falloff->halfOffset.vz   = base->transform.lighting.local.t[2] >> 1;
+    falloff->distanceSquared = falloff->halfOffset.vx * falloff->halfOffset.vx + falloff->halfOffset.vy * falloff->halfOffset.vy + falloff->halfOffset.vz * falloff->halfOffset.vz;
+    falloff->outerLimit      = (light->outer * light->outer) >> 2;
+    falloff->attenuation     = 0;
+    if (falloff->outerLimit >= falloff->distanceSquared) {
+        falloff->innerRadiusSquared = (light->inner * light->inner) >> 2;
+        result                      = ((light->head.color.r * 8 + light->head.color.g * 6 + light->head.color.b * 2) >> 8) + 0xF00;
+        falloff->attenuation        = ONE;
+        // Measure the fade interval from its inner edge and bound the Q12 numerator.
+        if (falloff->distanceSquared > falloff->innerRadiusSquared) {
+            falloff->outerLimit      -= falloff->innerRadiusSquared;
+            falloff->distanceSquared -= falloff->innerRadiusSquared;
+            while (falloff->outerLimit > WORLD_COORDINATE_LIGHT_FALLOFF_MAX_SPAN) {
+                falloff->outerLimit      >>= WORLD_COORDINATE_LIGHT_FALLOFF_REDUCTION_SHIFT;
+                falloff->distanceSquared >>= WORLD_COORDINATE_LIGHT_FALLOFF_REDUCTION_SHIFT;
             }
-            if (block->outerSq != 0) {
-                block->scale = ((u32)(block->outerSq - block->distSq) << 12) / (u32)block->outerSq;
-                result       = (u32)(block->scale * result) >> 12;
+            if (falloff->outerLimit != 0) {
+                falloff->attenuation = ((falloff->outerLimit - falloff->distanceSquared) << WORLD_COORDINATE_LIGHT_FALLOFF_FRACTION_BITS) / falloff->outerLimit;
+                result               = (falloff->attenuation * result) >> WORLD_COORDINATE_LIGHT_FALLOFF_FRACTION_BITS;
             }
         }
     }
-    base->transform.lighting.attenuation   = block->scale;
+    base->transform.lighting.attenuation   = falloff->attenuation;
     base->transform.lighting.composed.t[0] = result;
-    SCRATCH_STACK_RELEASE_BLOCK(GpAttnScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_WorldCoordPointLightFalloffScratch);
 }
 
 void Gp_SetLightMode(Enemy* arg0, s32 arg1)

@@ -34561,12 +34561,12 @@ still subtracted `$a0`. Split the first XYZ load from its shift so both
 `lw`s issue before `sra`, then:
 
 ```c
-temp = block->outerSq;
+temp = falloff->outerLimit;
 asm volatile("" : "+r"(temp));
 lum  = inner;
 asm volatile("" : "+r"(lum));
-block->outerSq = temp - inner;
-block->distSq -= lum;
+falloff->outerLimit = temp - inner;
+falloff->distanceSquared -= lum;
 ```
 
 The first barrier forces `lw` before `move` (move fills the load delay).
@@ -34863,7 +34863,7 @@ than the commuted `addu v0, v0, v1`.
 ## Reuse an unpinned temp for `$v0`; do not pin `$v1` across `sltu`
 
 A distance-attenuation helper that wants `mflo v1` / `sra v0, v1, 2` /
-`lw v1, distSq` / `sltu v0, v0, v1` cannot pin the outer-radius temp
+`lw v1, distanceSquared` / `sltu v0, v0, v1` cannot pin the outer-radius temp
 with `register s32 outer asm("v0")`. That reserve steals `$v0` from the
 earlier `vx²+vy²+vz²` dest (`addu a0, a0, a2` instead of `addu v0, a0,
 a2`) and from the epilogue scratch pointer (`$a2` instead of `$a0`).
@@ -34872,11 +34872,11 @@ then the `>> 2` result so GCC keeps the chain in `$v0`:
 
 ```c
 sq  = vx * vx + vy * vy + vz * vz;
-block->distSq = sq;
+falloff->distanceSquared = sq;
 sq  = obj->field_5C;
 lum = sq * sq;
 sq  = lum >> 2;
-lum = block->distSq;
+lum = falloff->distanceSquared;
 tooFar = (u32)sq < (u32)lum;
 ```
 
@@ -36238,13 +36238,13 @@ success as the `beqz` target is `if (tooFar) { result = 0; } else { ... }`.
 jumps over a trailing `move a3, zero`. GCC 2.8.1 puts a short then-clause
 in the fall-through with `j`, and the long else at the branch target.
 
-`vx = lum >> 2; block->outerSq = vx` then `vx = *(head-0x20)` copy-propagates
+`vx = lum >> 2; falloff->outerLimit = vx` then `vx = *(head-0x20)` copy-propagates
 the store into a new temp (`sra a0, v1, 2`). Pin `vx` after the shift:
 
 ```c
 vx = lum >> 2;
 asm volatile("" : "+r"(vx));
-block->outerSq = vx;
+falloff->outerLimit = vx;
 ```
 
 An early `tmp` pinned to `$a0` (scratch `head - 0x20`) keeps `$a0` reserved
@@ -36253,15 +36253,15 @@ own block, then pin the product to `$a0` in the multiply-add block:
 
 ```c
 {
-    register GpAttnScratch* tmp asm("a0");
-    tmp   = (GpAttnScratch*)(head - 0x20);
-    block = tmp;
+    register _WorldCoordPointLightFalloffScratch* tmp asm("a0");
+    tmp   = (_WorldCoordPointLightFalloffScratch*)(head - 0x20);
+    falloff = tmp;
 }
 {
     register s32 sq asm("a0");
     sq = vx * vx;
     vx = lum + result;
-    tooFar = (u32)block->outerSq < (u32)(vx + sq);
+    tooFar = falloff->outerLimit < (u32)(vx + sq);
 }
 ```
 
