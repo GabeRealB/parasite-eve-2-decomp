@@ -309,19 +309,33 @@ typedef struct _RoomDraw11Scratch {
 } RoomDraw11Scratch;
 STATIC_ASSERT_SIZEOF(RoomDraw11Scratch, 0x18);
 
-/// The scratch block a room's fan drawer takes from the scratch stack for the
-/// fan's centre: `vec` is the centre, pushed through `GsWSMATRIX` with one
-/// `RTPS` into `sx` / `sy`, `otz` and `flag`. `radius` is a size divided by
-/// `otz + 1`, the on-screen length of the `POLY_G4` wedges fanned about it.
+/// Scratch-stack workspace for one eight-wedge room-effect disc.
+///
+/// The drawer copies a coordinate's world translation into `worldPoint`,
+/// narrowed to signed 16-bit coordinate units, and projects that point through
+/// `GsWSMATRIX`. One perspective transform supplies the screen centre, the GTE
+/// flag word and the SZ3 / 4 depth. A negative flag word rejects the
+/// projection. Otherwise the depth is incremented by one and used both as the
+/// divisor that scales the disc onto the screen and as the ordering-table
+/// depth of every wedge.
+///
+/// `screenX` and `screenY` keep the raw 16-bit encodings of the signed GTE
+/// pixel coordinates. They are adjacent so one screen-XY store fills both.
+/// `radius` is the disc radius in pixels, `size * 64 / depth`.
+///
+/// The radius word sits ahead of the flag word. `EffectCentreScratch` holds
+/// the same projected centre with those two words exchanged, so the flying
+/// disc does not use this record. Reserve one complete block and release it
+/// before any pointer into it is used again.
 typedef struct {
-    /* 0x00 */ SVECTOR vec;
-    /* 0x08 */ s32     otz;
-    /* 0x0C */ s32     radius;
-    /* 0x10 */ s32     flag;
-    /* 0x14 */ u16     sx;
-    /* 0x16 */ u16     sy;
-} RoomFanScratch;
-STATIC_ASSERT_SIZEOF(RoomFanScratch, 0x18);
+    SVECTOR worldPoint;      // World position at projection, each component narrowed to s16
+    s32     depth;           // SZ3 / 4 plus one; divisor for the radius and ordering-table depth
+    s32     radius;          // Disc radius in pixels, size * 64 / depth
+    s32     projectionFlags; // GTE FLAG word; bit 31 set rejects the projection
+    u16     screenX;         // Raw projected centre X; first half of the GTE screen-position word
+    u16     screenY;         // Raw projected centre Y; second half of the same GTE word
+} RoomFxFanScratch;
+STATIC_ASSERT_SIZEOF(RoomFxFanScratch, 0x18);
 
 /// Scratch-stack workspace for a radial room effect about one world point.
 ///
