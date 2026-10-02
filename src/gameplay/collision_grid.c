@@ -50,18 +50,22 @@ typedef struct {
 } _WorldCollisionGridCandidateScratch;
 STATIC_ASSERT_SIZEOF(_WorldCollisionGridCandidateScratch, 0x28);
 
-/// 0x40-byte scratch from the scratch stack used by `func_800DE7CC`.
-/// `from` / `to` are the two probe endpoints promoted to VECTOR; `delta`
-/// is `from - to`, normalised into `dir` for `func_800DD324`; `hit` is the
-/// intersection that function writes back, which becomes the next `from`.
-typedef struct _GpRayHitScratch {
-    /* 0x00 */ VECTOR  from;
-    /* 0x10 */ VECTOR  to;
-    /* 0x20 */ VECTOR  delta;
-    /* 0x30 */ SVECTOR dir;
-    /* 0x38 */ SVECTOR hit;
-} GpRayHitScratch;
-STATIC_ASSERT_SIZEOF(GpRayHitScratch, 0x40);
+/// Temporary view-space segment and intersection storage for collision-grid probes.
+///
+/// Endpoint and hit coordinates use game units; signed 16-bit inputs and hits
+/// are promoted into the endpoint array. Each accepted hit replaces endpoint 0
+/// while endpoint 1 and the original normalized direction remain fixed.
+/// The face test reads both arrays and may write a candidate intersection even
+/// when it later rejects the face; consume that point only on acceptance.
+/// This entire scratch-stack block stays live through the nested candidate and
+/// face tests and is released before the probe returns. SDK fourth components
+/// have no role in the query.
+typedef struct {
+    VECTOR  endpoints[2]; // View-space segment: [0] clipped target, [1] fixed start
+    VECTOR  delta;        // Normalization workspace, initialized to original target minus start
+    SVECTOR ray[2];       // [0] Start-to-target direction, 4096 per unit; [1] candidate intersection
+} _WorldCollisionGridProbeScratch;
+STATIC_ASSERT_SIZEOF(_WorldCollisionGridProbeScratch, 0x40);
 
 /// 0x18-byte scratch from the scratch stack used by `func_800DEC80`.
 /// `local` is `WorldCollisionBody.context.capsule` as `SVECTOR[2]` plus `WorldCollisionBody.pos`,
@@ -472,10 +476,10 @@ static void func_800DE2C0(VECTOR* arg0, s32 arg1)
 
 s32 func_800DE7CC(SVECTOR* arg0, SVECTOR* arg1, SVECTOR* arg2, SVECTOR* arg3)
 {
-    WorldCollisionGrid* grid;
-    s32                 ret;
-    GpRayHitScratch*    block;
-    s32                 i;
+    WorldCollisionGrid*              grid;
+    s32                              ret;
+    _WorldCollisionGridProbeScratch* scratch;
+    s32                              i;
 
     grid = Gp_GridParams;
     ret  = 0;
@@ -483,32 +487,26 @@ s32 func_800DE7CC(SVECTOR* arg0, SVECTOR* arg1, SVECTOR* arg2, SVECTOR* arg3)
         return ret;
     }
 
-    {
-        u8* head;
-
-        head                     = SCRATCH_STACK_CURSOR(u8);
-        i                        = 0;
-        head                    -= 0x40;
-        SCRATCH_STACK_CURSOR(u8) = head;
-        block                    = (GpRayHitScratch*)head;
-        if (ret < grid->faceCount) {
-            do {
-                D_80115450[i] = 0;
-                i++;
-            } while (i < Gp_GridParams->faceCount);
-        }
+    i       = 0;
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_WorldCollisionGridProbeScratch);
+    if (ret < grid->faceCount) {
+        do {
+            D_80115450[i] = 0;
+            i++;
+        } while (i < Gp_GridParams->faceCount);
     }
     func_800DEAFC(arg0, arg1);
-    block->from.vx  = arg0->vx;
-    block->from.vy  = arg0->vy;
-    block->from.vz  = arg0->vz;
-    block->to.vx    = arg1->vx;
-    block->to.vy    = arg1->vy;
-    block->to.vz    = arg1->vz;
-    block->delta.vx = block->from.vx - block->to.vx;
-    block->delta.vy = block->from.vy - block->to.vy;
-    block->delta.vz = block->from.vz - block->to.vz;
-    VectorNormalS(&block->delta, &block->dir);
+    // Keep the direction fixed as accepted intersections shorten the segment.
+    scratch->endpoints[0].vx = arg0->vx;
+    scratch->endpoints[0].vy = arg0->vy;
+    scratch->endpoints[0].vz = arg0->vz;
+    scratch->endpoints[1].vx = arg1->vx;
+    scratch->endpoints[1].vy = arg1->vy;
+    scratch->endpoints[1].vz = arg1->vz;
+    scratch->delta.vx        = scratch->endpoints[0].vx - scratch->endpoints[1].vx;
+    scratch->delta.vy        = scratch->endpoints[0].vy - scratch->endpoints[1].vy;
+    scratch->delta.vz        = scratch->endpoints[0].vz - scratch->endpoints[1].vz;
+    VectorNormalS(&scratch->delta, &scratch->ray[0]);
     for (i = 0; i < Gp_GridParams->faceCount; i++) {
         if (D_80115450[i] == 0) {
             continue;
@@ -518,25 +516,25 @@ s32 func_800DE7CC(SVECTOR* arg0, SVECTOR* arg1, SVECTOR* arg2, SVECTOR* arg3)
                                   ->probePassThrough != WORLD_COLLISION_SURFACE_BLOCK_PROBES) {
             continue;
         }
-        if (func_800DD324(i, &block->from, &block->dir, 0) == 0) {
+        if (func_800DD324(i, scratch->endpoints, scratch->ray, 0) == 0) {
             continue;
         }
         if (arg2 != NULL) {
-            arg2->vx = block->hit.vx;
-            arg2->vy = block->hit.vy;
-            arg2->vz = block->hit.vz;
+            arg2->vx = scratch->ray[1].vx;
+            arg2->vy = scratch->ray[1].vy;
+            arg2->vz = scratch->ray[1].vz;
         }
         if (arg3 != NULL) {
             arg3->vx = Gp_GridParams->normals[Gp_GridParams->faces[i].normalIndex].vx;
             arg3->vy = Gp_GridParams->normals[Gp_GridParams->faces[i].normalIndex].vy;
             arg3->vz = Gp_GridParams->normals[Gp_GridParams->faces[i].normalIndex].vz;
         }
-        block->from.vx = block->hit.vx;
-        block->from.vy = block->hit.vy;
-        block->from.vz = block->hit.vz;
-        ret            = 1;
+        scratch->endpoints[0].vx = scratch->ray[1].vx;
+        scratch->endpoints[0].vy = scratch->ray[1].vy;
+        scratch->endpoints[0].vz = scratch->ray[1].vz;
+        ret                      = 1;
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x40);
+    SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionGridProbeScratch);
     return ret;
 }
 
