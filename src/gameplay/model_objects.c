@@ -1049,10 +1049,17 @@ u32* tmdDrawStreamPrimGt3PreXformOffsetLayer(TmdStreamWorkspace* workspace, s32 
         /// `POLY_GT3` in each pair, using the model's base page/CLUT offsets.
         /// Ordering-table head insertion draws it before the blended layer.
         /// The command is fixed, independent of `objectFlags`.
-        TMD_GT3_OFFSET_LAYER_BASE_COMMAND   = 0x34,
-        TMD_GT3_OFFSET_LAYER_BLEND_COMMAND  = 0x36, // Same primitive with semitransparency enabled
-        TMD_GT3_OFFSET_LAYER_PACKET_COUNT   = 2,    // Layer first, model-texture base second
-        TMD_GT3_OFFSET_LAYER_OT_INDEX_SHIFT = 4     // Sixteen scaled OTZ units per four-byte OT tag
+        TMD_GT3_OFFSET_LAYER_BASE_COMMAND = 0x34,
+        /// GPU command byte for the colour-modulated, semitransparent offset-layer triangle.
+        ///
+        /// Bit 1 enables semitransparency; bit 0 stays clear so the existing lit
+        /// vertex colours modulate the texture. The prebuilt packet's `tpage`
+        /// supplies the blend mode. Written to the first `POLY_GT3` in each
+        /// offset-layer/base pair; ordering-table head insertion draws it after
+        /// the opaque base. The command is fixed, independent of `objectFlags`.
+        TMD_GT3_OFFSET_LAYER_SEMI_TRANS_COMMAND = 0x36,
+        TMD_GT3_OFFSET_LAYER_PACKET_COUNT       = 2, // Layer first, model-texture base second
+        TMD_GT3_OFFSET_LAYER_OT_INDEX_SHIFT     = 4  // Sixteen scaled OTZ units per four-byte OT tag
     };
     /// One element's offset-textured layer followed by its opaque base.
     typedef POLY_GT3 _TmdOffsetLayerTrianglePair[TMD_GT3_OFFSET_LAYER_PACKET_COUNT];
@@ -1096,7 +1103,7 @@ u32* tmdDrawStreamPrimGt3PreXformOffsetLayer(TmdStreamWorkspace* workspace, s32 
                             gte_ldSZ3(cachedDepth);
                             gte_avsz3();
                             setlen(&(*packetPair)[0], packetWordCount);
-                            setcode(&(*packetPair)[0], TMD_GT3_OFFSET_LAYER_BLEND_COMMAND);
+                            setcode(&(*packetPair)[0], TMD_GT3_OFFSET_LAYER_SEMI_TRANS_COMMAND);
                             gte_stotz(gteResultDestination);
                             setlen(&(*packetPair)[1], packetWordCount);
                             setcode(&(*packetPair)[1], baseCommand);
