@@ -7317,7 +7317,7 @@ slot->timeLeft = val;
 slot->usesBufferedPose  = 0;
 ```
 
-`func_800B4538` is the example. The same tail is in `func_800B4114` /
+`func_800B4538` is the example. The same tail is in `animationSeekSlotWithBlend` /
 `Gp_AnimPlaySlot`.
 
 
@@ -32714,7 +32714,7 @@ the saved pointer is cheaper than a reload.
 
 `val = 1 << 4` (or `one = 1; val = one << 4`) constant-folds to
 `addiu v0, zero, 0x10`. The target wants the unfolded form used by
-`arg4 << 4` in `func_800B4114`:
+`blendFrames << ANIMATION_TIME_FRACTION_BITS` in `animationSeekSlotWithBlend`:
 
 ```
 addiu v0, zero, 1
@@ -57621,25 +57621,26 @@ earlier copy and cost `branch=4 insert=1 delete=2`.
 argument and as an array index:
 
 ```c
-func_800B4114(&start->anim, i, start->field_104, 0,
+animationSeekSlotWithBlend(&start->anim, i, start->field_104, 0,
               D_acropolis_bridge_801915E4[start->field_102][start->field_104]);
 ```
 
 The target loads it once with `lh` and uses that one register for both. With
-`gameplay/1BC.h`'s `void func_800B4114(AnimationContext*, s32, u16, s32, s32)` in
-scope, GCC has to convert the `s16` field to `unsigned short` for the argument,
+the former `void animationSeekSlotWithBlend(AnimationContext*, s32, u16, s32, s32)`
+prototype in scope, GCC has to convert the `s16` field to `unsigned short` for the argument,
 which is a real zero-extension, so it emits a second `lhu` beside the `lh` used
 for the index. Declaring the third parameter `s32` in the caller collapses the
 pair back to one `lh`.
 
-The callee's own definition still needs `u16`: that `andi $x,0xffff` before the
-`slot->sets[arg2]` index is part of `func_800B4114`'s matched body, and
-rewriting the parameter as `s32` with a `(u16)` cast at the use restores the
-`andi` but reorders the two parameter-save pairs in the prologue. So the
-declaration and the definition genuinely disagree, which is why the four
-`src/actors/lib/actor_10*_text.c` TUs each declare this function locally with a
-signed `arg2`. The prototype has been removed from `gameplay/1BC.h` and each
-caller declares it, since a header cannot be right for both sides.
+The callee must still narrow the set index: that `andi $x,0xffff` before the
+`slot->sets[setIndex]` index is part of `animationSeekSlotWithBlend`'s matched body.
+The earlier direct-body attempt with an `s32` parameter and a `(u16)` cast at
+the use restored the `andi` but reordered the two parameter-save pairs in the
+prologue. The current wrapper and its canonical declaration in
+`include/gameplay/animation.h` both accept `s32 setIndex`; the wrapper passes
+`(u16)setIndex` to the inline `_animationSeekSlotWithBlend` helper. This preserves
+the required mask and parameter-save order without conflicting declarations
+or per-caller prototypes.
 
 Generally: when the target shows one `lh` feeding both a call argument and an
 index computation, the caller's declaration of that parameter was signed. An
@@ -74848,7 +74849,7 @@ slot.
     var_a1 = 1;
     do {
         var_s0 += 1;
-        func_800B4114(temp_s1, var_a1, ...);
+        animationSeekSlotWithBlend(temp_s1, var_a1, ...);
         var_a1 = var_s0;
     } while (var_s0 < 0x13);
 ```
@@ -74864,13 +74865,13 @@ s32 func_actor_510900_8013BD84(Actor510900* arg0, s32 arg1, AnimationPlayRequest
     work            = arg0->field_1C;
     work->field_586 = arg2->animationId + 0x1B;
     for (i = 1; i < 0x13; i++) {
-        func_800B4114((AnimationContext*)work, i, work->field_586, 0, blend);
+        animationSeekSlotWithBlend((AnimationContext*)work, i, work->field_586, 0, blend);
     }
 ```
 
 Recognise the family from the call rather than from the score: all of these
 handlers are the `(task, opcodeId, args)` shape and several end in the same
-slots-reseed loop `for (i = 1; i < 0x13; i++) func_800B4114(ctx, i, animId, 0,
+slots-reseed loop `for (i = 1; i < 0x13; i++) animationSeekSlotWithBlend(ctx, i, animId, 0,
 blend)`. Example: `func_actor_510900_8013BD84`, the 0x7D3 entry of the
 `D_actor_510900_80167A6C` table the section above is about. Matched first try;
 input `base_1.i`
@@ -77083,7 +77084,7 @@ var_s0 = 1;                    /* m2c */
 var_a1 = 1;
 do {
     var_s0 += 1;
-    func_800B4114(&D->anim, var_a1, D->field_4B8, 0, K);
+    animationSeekSlotWithBlend(&D->anim, var_a1, D->field_4B8, 0, K);
     var_a1 = var_s0;
 } while (var_s0 < 0x14);
 ```
@@ -77102,7 +77103,7 @@ single local used directly:
 ```c
 i = 1;
 do {
-    func_800B4114(&D->anim, i, D->field_4B8, 0, K);
+    animationSeekSlotWithBlend(&D->anim, i, D->field_4B8, 0, K);
     i++;
 } while (i < 0x14);
 ```
@@ -81010,14 +81011,14 @@ form the sibling files were matched with.
 
 ## A temp for a call argument erases the anti-dependency that orders it before the counter's increment
 
-`func_actor_207200_8014AF2C` walks a 1..3 counter through `func_800B4114` and
+`func_actor_207200_8014AF2C` walks a 1..3 counter through `animationSeekSlotWithBlend` and
 `animationTickSlot`. m2c emits the first loop with a temp for the argument, so
 the counter's increment can be hoisted between the argument setup and the call:
 
 ```c
     temp_a1 = var_s0;
     var_s0 += 1;
-    func_800B4114(work, temp_a1, work->field_28C, 0, 8);
+    animationSeekSlotWithBlend(work, temp_a1, work->field_28C, 0, 8);
 ```
 
 which scored 95% — the target's loop head is
@@ -81044,7 +81045,7 @@ the counter straight to the call removes the pseudo:
 
 ```c
     do {
-        func_800B4114((AnimationContext*)work, i, work->field_28C, 0, 8);
+        animationSeekSlotWithBlend((AnimationContext*)work, i, work->field_28C, 0, 8);
         i++;
     } while (i < 3);
 ```
@@ -83066,7 +83067,7 @@ the call argument, incremented after the call:
 ```c
     i = 1;
     do {
-        func_800B4114(&work->anim, i, work->field_4B8, 0, work->field_4FC);
+        animationSeekSlotWithBlend(&work->anim, i, work->field_4B8, 0, work->field_4FC);
         i++;
     } while (i < 0x14);
 ```
@@ -99197,7 +99198,7 @@ non-`char`-pointer is suspect before the first build, not after the first diff.
 
 ## m2c's `temp_` copy before a call reorders the whole argument setup
 
-A three-slot animation rebind whose loop calls `func_800B4114(work, i, id, 0, 0)`
+A three-slot animation rebind whose loop calls `animationSeekSlotWithBlend(work, i, id, 0, 0)`
 targets `move a0,s1` / `move a1,s0` / `addiu s0,s0,1` at the loop head, with the
 back-edge branch's delay slot refilling `move a0,s1`. An m2c seed instead emits
 `move a1,s0` / `addiu s0,s0,1` / `move a0,s1`, and the delay slot then fills with
@@ -99205,7 +99206,7 @@ back-edge branch's delay slot refilling `move a0,s1`. An m2c seed instead emits
 reorders the increment ahead of the call and passes a copy:
 
 ```c
-temp_a1 = var_s0; var_s0 += 1; func_800B4114(temp_s1, temp_a1, ...);
+temp_a1 = var_s0; var_s0 += 1; animationSeekSlotWithBlend(temp_s1, temp_a1, ...);
 ```
 
 The extra copy puts the `i++` insn ahead of the argument setup in the RTL, and
@@ -99214,7 +99215,7 @@ order - then launches the moves in a different order. Writing the call first and
 incrementing after it restores the target's order:
 
 ```c
-func_800B4114((AnimationContext*)work, i, work->field_2B8, 0, 0);
+animationSeekSlotWithBlend((AnimationContext*)work, i, work->field_2B8, 0, 0);
 i++;
 ```
 
@@ -100053,7 +100054,7 @@ This body is carried by many actors, and the matched carriers are the template -
 ```c
     i = 1;
     do {
-        func_800B4114(&ActorsShared80131f9cWork->anim, i,
+        animationSeekSlotWithBlend(&ActorsShared80131f9cWork->anim, i,
                       (s16)ActorsShared80131f9cWork->animId, 0, D_actor_451100_8013F700);
         i++;
     } while (i < 0x13);
@@ -101602,8 +101603,8 @@ One induction variable, `i++` at the bottom:
 ```c
 i = 1;
 do {
-    func_800B4114(&work->anim, i, (s16)work->animId, 0, 8);
-    func_800B4114(&work->anim, i, work->field_4B8, 0, 8);
+    animationSeekSlotWithBlend(&work->anim, i, (s16)work->animId, 0, 8);
+    animationSeekSlotWithBlend(&work->anim, i, work->field_4B8, 0, 8);
     i++;
 } while (i < 0x14);
 ```
@@ -124687,7 +124688,7 @@ continuation of that trailing comment and indents it to the trailing column:
 ```c
     /* 0x4EA */ s16 field_4EA; // distance to the target over the step count
 
-                                      /// Reset argument handed to `func_800B4114` ...
+                                      /// Reset argument handed to `animationSeekSlotWithBlend` ...
     /// `Actor461800Work` keeps at 0x4EA / 0x4EC. ...
 ```
 
@@ -127104,7 +127105,7 @@ addu    v0,a2,v0          /* ... used as the column  ...    */
 addu    v0,v0,s4
 lb      v0,0(v0)
 ...
-jal     func_800B4114     /* ... and as the third argument  */
+jal     animationSeekSlotWithBlend     /* ... and as the third argument  */
 ```
 
 The field is `u16`, and that is right: the tail's `field_880 = field_882` is
@@ -127130,7 +127131,7 @@ cast at both uses collapses the two loads into the single `lh` the target has
 and the object becomes byte-identical:
 
 ```c
-func_800B4114(&start->anim, i, (s16)start->field_882, 0,
+animationSeekSlotWithBlend(&start->anim, i, (s16)start->field_882, 0,
               D_actor_210600_8015A498[start->field_880][(s16)start->field_882]);
 ```
 
@@ -128597,7 +128598,7 @@ entry above), so the sign-extend reaches the load as `extendhisi2_internal` and
 prints `lh`. This is per *use*, not per field: the same field in the same family
 decides both ways in one object. `src/actors/lib/actors_shared_80132208.c`, the
 shared slot-reseed of the identical work block, already carries the cast for
-this reason - `func_800B4114(..., (s16)ActorsShared80131f9cWork->animId, 0, 8)`
+this reason - `animationSeekSlotWithBlend(..., (s16)ActorsShared80131f9cWork->animId, 0, 8)`
 loads `lh 0x478(a0)` while the `field_476 = animId;` store below it reads
 `lhu 0x478(v1)`. So reach for the cast whenever a matched sibling of the same
 field shows `lh` and the plain read gives `lhu`.
@@ -137928,7 +137929,7 @@ is 1 because the leading run is `byte pad_0[0x60]`. Replacing the front with a
 
 `func_actor_111800_8013214C` loads `task->work` into `work`, copies it to `ctx`
 for the opening `animationTickSlot` loop, then reloads `task->work` in two switch
-cases before `func_800B4114`. One C variable for those three lifetimes is one
+cases before `animationSeekSlotWithBlend`. One C variable for those three lifetimes is one
 pseudo: 13 refs across 37 insns, which outranks the whole-function `work`
 (20/108) and takes `$s1`. Split the reloads (`work0` / `work4`, 4/13 each) so
 `work` is allocated first (`$s1`) and the short-lived copy/reloads share `$s2`.
@@ -137953,7 +137954,7 @@ li    s0, 1
 
 and case 4 wants `li s0, 1` in the *previous* branch delay, then the same
 `lw`/`nop`/`sh`. Without a barrier, sched fills the `lw` delay with `li s3, 0xA`
-(the fifth `func_800B4114` argument) and drops the `nop`. `SCHED_BARRIER()` after
+(the fifth `animationSeekSlotWithBlend` argument) and drops the `nop`. `SCHED_BARRIER()` after
 the `sh` leaves the delay empty. Case 4 still needs `i = 1` *before* the reload
 so dbr can put it in the `bnez` delay; a barrier there instead leaves a `nop` in
 the branch and an extra `li s0, 1` after the store.
@@ -142542,7 +142543,7 @@ delay slots.
 three `asm` register pins for the setup.
 
 **Cause.** The function's first part was a copy of a sibling in the same TU
-(`func_800B4114(ctx, slot, set, start, span)`, which stores `span << 4`). The
+(`animationSeekSlotWithBlend(ctx, slot, set, start, span)`, which stores `span << 4`). The
 original inlined that body with `span = 1`; the constant parameter reaches the
 shift only after CSE, too late to fold, and the helper's own locals fix the
 allocation the pins were imitating.
@@ -144047,7 +144048,7 @@ plus `TOUCH_REG(i)` in both branches. None of it is in the source:
 if (work->animId != work->prevAnimId) {
     ...
     if (work->flag == 0) { val = table[work->animId]; } else { val = 8; }
-    for (i = 1; i < 0x13; i++) { func_800B4114(work, i, work->animId, 0, val); }
+    for (i = 1; i < 0x13; i++) { animationSeekSlotWithBlend(work, i, work->animId, 0, val); }
 } else {
     work->frame++;
     for (i = 1; i < 0x13; i++) { animationTickSlot(work, i); }

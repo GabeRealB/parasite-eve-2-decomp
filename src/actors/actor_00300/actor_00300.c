@@ -3369,7 +3369,7 @@ static void Actor00300_Fn04ED4(Task* arg0)
             val = 8;
         }
         for (i = 1; i < 0x13; i++) {
-            func_800B4114(&work->rig.anim, i, work->field_66E, 0, val);
+            animationSeekSlotWithBlend(&work->rig.anim, i, work->field_66E, 0, val);
         }
     } else {
         work->field_672++;
@@ -3508,7 +3508,7 @@ s32 Actor00300_Fn05304(Task* arg0, s32 arg1, AnimationPlayRequest* args)
         frames = args->blendFrames;
     }
     for (i = 1; i < 0x13; i++) {
-        func_800B4114(&work->rig.anim, i, work->field_66E, 0, frames);
+        animationSeekSlotWithBlend(&work->rig.anim, i, work->field_66E, 0, frames);
     }
     return 0;
 }

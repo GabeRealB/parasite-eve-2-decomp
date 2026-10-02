@@ -3566,7 +3566,7 @@ static void func_actor_521100_801358D4(Task* arg0)
 
 /// Blends every animation slot towards the clip latched in `field_686` while
 /// it differs from the clip the slots carry, then ticks them once they agree:
-/// the blend runs the nineteen slots through `func_800B4114` with the length
+/// the blend runs the nineteen slots through `animationSeekSlotWithBlend` with the length
 /// `D_actor_521100_8015F894` gives the incoming clip, and the tick counts the
 /// agreeing frames in `field_68A`.
 static void func_actor_521100_80135964(Task* arg0)
@@ -3585,7 +3585,7 @@ static void func_actor_521100_80135964(Task* arg0)
         }
         i = 1;
         do {
-            func_800B4114(&work->rig.anim, i, work->field_686, 0, val);
+            animationSeekSlotWithBlend(&work->rig.anim, i, work->field_686, 0, val);
             i++;
         } while (i < 0x13);
         return;
@@ -3698,7 +3698,7 @@ s32 func_actor_521100_80135C14(Task* arg0, s32 arg1, AnimationPlayRequest* args)
         frames = args->blendFrames;
     }
     for (i = 1; i < 0x13; i++) {
-        func_800B4114(&work->rig.anim, i, work->field_686, 0, frames);
+        animationSeekSlotWithBlend(&work->rig.anim, i, work->field_686, 0, frames);
     }
     return 0;
 }

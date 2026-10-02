@@ -2836,9 +2836,9 @@ static void Gp_AnimSeekSlot(AnimationContext* context, s32 arg1, s32 arg2)
     Gp_AnimSeekSlotEx(context, arg1, arg2, 0);
 }
 
-void func_800B4114(AnimationContext* context, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
+void animationSeekSlotWithBlend(AnimationContext* context, s32 slotIndex, s32 setIndex, s32 trackRecordOffset, s32 blendFrames)
 {
-    _animationSeekSlotWithBlend(context, arg1, arg2, arg3, arg4);
+    _animationSeekSlotWithBlend(context, slotIndex, (u16)setIndex, trackRecordOffset, blendFrames);
 }
 
 void Gp_AnimWritePoseBlend(AnimationContext* context, s32 arg1, AnimationPose* arg2, AnimationPose* arg3, s32 arg4,

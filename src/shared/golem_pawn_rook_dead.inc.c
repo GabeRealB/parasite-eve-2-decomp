@@ -92,7 +92,7 @@ void golemPawnRookDeadState(Enemy* arg0, Task* arg1)
         animWork->field_698 = 0U;
         duration            = gGolemPawnRookAnimBlendFrames[animWork->field_694];
         for (i = 1; i < 0x13; i++) {
-            func_800B4114(&animWork->rig.anim, i, animWork->field_694, 0, duration);
+            animationSeekSlotWithBlend(&animWork->rig.anim, i, animWork->field_694, 0, duration);
         }
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
     } else {

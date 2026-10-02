@@ -169,7 +169,7 @@ typedef struct Actor400500Work {
     /* 0xA08 */ u16                   field_A08;    // sub-state index
     /* 0xA0A */ u16                   field_A0A;
     /* 0xA0C */ byte                  pad_A0C[2];
-    /* 0xA0E */ s16                   field_A0E; // extra arg forwarded to func_800B4114, then cleared
+    /* 0xA0E */ s16                   field_A0E; // extra arg forwarded to animationSeekSlotWithBlend, then cleared
     /* 0xA10 */ s16                   field_A10;
     /* 0xA12 */ s16                   field_A12;
     /* 0xA14 */ byte                  pad_A14[0x2];
@@ -7689,7 +7689,7 @@ static void func_actor_400500_8013DCD4(Task* arg0)
         } else {
             do {
                 work->slots[i].rate = work->field_9F8;
-                func_800B4114(&work->anim, i, work->field_9FE, 0, work->field_A0E);
+                animationSeekSlotWithBlend(&work->anim, i, work->field_9FE, 0, work->field_A0E);
                 i++;
             } while (i < 0x12);
             work->field_A0E = 0;

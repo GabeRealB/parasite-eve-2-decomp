@@ -199,7 +199,7 @@ extern u16 D_actor_510900_801679D0[];
 /// a draw above the entry ends the walk.
 extern s16 D_actor_510900_80167A10[];
 
-/// Per-animation-id value `func_actor_510900_8013BB20` hands `func_800B4114`
+/// Per-animation-id value `func_actor_510900_8013BB20` hands `animationSeekSlotWithBlend`
 /// as its fifth argument when it reseeds animation slots 1..0x12.
 extern s16 D_actor_510900_80167B38[];
 
@@ -3300,7 +3300,7 @@ case0:
         work->field_330 = grabbed;
         i               = 1;
         do {
-            func_800B4114(&work->anim, i, 2, 0, 0);
+            animationSeekSlotWithBlend(&work->anim, i, 2, 0, 0);
             i++;
         } while (i < 0xB);
         scratch->rot.vx = 0;
@@ -3909,7 +3909,7 @@ static void func_actor_510900_8013BB20(Task* arg0)
         work->field_58A = 0;
         value           = D_actor_510900_80167B38[work->field_586];
         for (i = 1; i < 0x13; i++) {
-            func_800B4114(&work->rig.anim, i, work->field_586, 0, value);
+            animationSeekSlotWithBlend(&work->rig.anim, i, work->field_586, 0, value);
         }
     } else {
         work->field_58A++;
@@ -3976,7 +3976,7 @@ s32 func_actor_510900_8013BD84(Task* arg0, s32 arg1, AnimationPlayRequest* arg2)
     work            = arg0->work;
     work->field_586 = arg2->animationId + 0x1B;
     for (i = 1; i < 0x13; i++) {
-        func_800B4114(&work->rig.anim, i, work->field_586, 0, blend);
+        animationSeekSlotWithBlend(&work->rig.anim, i, work->field_586, 0, blend);
     }
     work->field_58A = 0;
     return 0;

@@ -13,7 +13,7 @@ static __inline__ void sucklercephTickAnim(Task* task)
             work->field_2BA = work->field_2B8;
             work->field_2BC = 0;
             for (i = 1; i < 3; i++) {
-                func_800B4114(&work->context, i, work->field_2B8, 0, 0);
+                animationSeekSlotWithBlend(&work->context, i, work->field_2B8, 0, 0);
             }
         } else {
             work->field_2BC++;

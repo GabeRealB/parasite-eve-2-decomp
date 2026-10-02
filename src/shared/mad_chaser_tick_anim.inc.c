@@ -19,12 +19,12 @@ void madChaserTickAnim(Task* arg0)
         if (start->field_416 == start->field_418) {
             for (i = 1; i < 9; i++) {
                 (&start->slot_B4)[i].rate = start->field_41C;
-                func_800B4114(&start->anim, i, start->field_418, 0, start->field_426);
+                animationSeekSlotWithBlend(&start->anim, i, start->field_418, 0, start->field_426);
             }
         } else {
             for (i = 1; i < 9; i++) {
                 (&start->slot_B4)[i].rate = start->field_41C;
-                func_800B4114(&start->anim, i, start->field_418, 0, start->field_426);
+                animationSeekSlotWithBlend(&start->anim, i, start->field_418, 0, start->field_426);
             }
             start->field_426 = 0;
         }

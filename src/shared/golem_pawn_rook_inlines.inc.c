@@ -80,7 +80,7 @@ static inline void golemPawnRookTickAnim(Task* actor)
         work->field_698 = 0;
         duration        = gGolemPawnRookAnimBlendFrames[work->field_694];
         for (i = 1; i < 0x13; i++) {
-            func_800B4114(&work->rig.anim, i, work->field_694, 0, duration);
+            animationSeekSlotWithBlend(&work->rig.anim, i, work->field_694, 0, duration);
         }
     } else {
         work->field_698++;

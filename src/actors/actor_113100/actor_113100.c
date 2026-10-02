@@ -1637,7 +1637,7 @@ s32 func_actor_113100_801328EC(Task* task, s32 msgId, ActorTransform* place, Act
         work->model.animId = msg->animationId;
         if (msg->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
             for (i = 1; i < 0x14; i++) {
-                func_800B4114(&work->rig.anim, i, work->model.animId, 0, msg->blendFrames);
+                animationSeekSlotWithBlend(&work->rig.anim, i, work->model.animId, 0, msg->blendFrames);
             }
         } else {
             for (i = 1; i < 0x14; i++) {
@@ -1886,7 +1886,7 @@ s32 func_actor_113100_801331E8(Task* task, s32 msgId, AnimationPlayRequest* pres
         work->model.animId = preset->animationId;
         if (preset->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
             for (i = 1; i < 0x14; i++) {
-                func_800B4114(&work->rig.anim, i, work->model.animId, 0, preset->blendFrames);
+                animationSeekSlotWithBlend(&work->rig.anim, i, work->model.animId, 0, preset->blendFrames);
             }
         } else {
             for (i = 1; i < 0x14; i++) {

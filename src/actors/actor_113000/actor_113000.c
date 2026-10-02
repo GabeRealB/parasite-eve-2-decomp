@@ -1287,7 +1287,7 @@ static void func_actor_113000_801321A8(Task* task)
 /// bank's animation source goes to `func_800B3F84` with the block's context,
 /// its pose buffer and its slots. The preset's
 /// animation id is then latched, every slot 1..0x13 restarted -- through
-/// `func_800B4114` when the preset asks for it, through `animationResetSlot`
+/// `animationSeekSlotWithBlend` when the preset asks for it, through `animationResetSlot`
 /// otherwise -- ticked once, and `field_474` raised.
 s32 func_actor_113000_80132208(Task* task, s32 msgId, AnimationPlayRequest* msg, s32 arg3)
 {
@@ -1306,7 +1306,7 @@ s32 func_actor_113000_80132208(Task* task, s32 msgId, AnimationPlayRequest* msg,
     work->field_478 = msg->animationId;
     if (msg->blend != ANIMATION_BLEND_RESET) {
         for (i = 1; i < 0x14; i++) {
-            func_800B4114(&work->rig.anim, i, work->field_478, 0, 6);
+            animationSeekSlotWithBlend(&work->rig.anim, i, work->field_478, 0, 6);
         }
     } else {
         for (i = 1; i < 0x14; i++) {

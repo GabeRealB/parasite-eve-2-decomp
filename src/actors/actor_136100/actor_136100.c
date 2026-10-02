@@ -1295,7 +1295,7 @@ check:
             goto check;
         loop:
             for (i = 1; i < 20; i++) {
-                func_800B4114(&animWork->rig.anim, i, id, 0, 0xA);
+                animationSeekSlotWithBlend(&animWork->rig.anim, i, id, 0, 0xA);
             }
         }
         return 1;
@@ -1526,7 +1526,7 @@ static inline void func_actor_136100_SetAnim(Task* task, s16 anim)
 
     _actor136100SetAnimId(work, anim);
     for (i = 1; (u16)i < 0x14U; i++) {
-        func_800B4114(&work->rig.anim, i & 0xFFFF, anim, 0, 0xA);
+        animationSeekSlotWithBlend(&work->rig.anim, i & 0xFFFF, anim, 0, 0xA);
     }
 }
 

@@ -4211,7 +4211,7 @@ static void func_actor_403000_80133AF8(Task* arg0)
                 animation        = seekWork->field_AC6;
                 seekSlot        += 1;
                 index            = seekWork->field_AC4 * 0x2D;
-                func_800B4114(&seekWork->anim, seekSlotIndex, (s16)(animation), 0, (s32) * (s8*)((animation + index) + table));
+                animationSeekSlotWithBlend(&seekWork->anim, seekSlotIndex, (s16)(animation), 0, (s32) * (s8*)((animation + index) + table));
                 seekIndex += 1;
             } while (seekIndex < 0x18);
             seekWork->field_AC4 = seekWork->field_AC6;

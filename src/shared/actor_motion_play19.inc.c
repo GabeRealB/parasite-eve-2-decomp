@@ -22,7 +22,7 @@ s32 actorMotionPlayAnim19(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 a
         work->model.animId = msg->animationId;
         if (msg->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
             for (i = 1; i < 0x13; i++) {
-                func_800B4114(&work->rig.anim, i, work->model.animId, 0, msg->blendFrames);
+                animationSeekSlotWithBlend(&work->rig.anim, i, work->model.animId, 0, msg->blendFrames);
             }
         } else {
             for (i = 1; i < 0x13; i++) {

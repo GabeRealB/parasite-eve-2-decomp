@@ -1628,7 +1628,7 @@ s32 func_actor_503500_80135950(Task* arg0, s32 arg1, AnimationPlayRequest* arg2,
     work->field_7D5 = arg2->animationId;
     if (arg2->blend != ANIMATION_BLEND_RESET && work->field_7D4 != 0) {
         for (i = 1; i < 0x14; i++) {
-            func_800B4114((AnimationContext*)work, i, work->field_7D5, 0, arg2->blendFrames);
+            animationSeekSlotWithBlend((AnimationContext*)work, i, work->field_7D5, 0, arg2->blendFrames);
         }
     } else {
         for (i = 1; i < 0x14; i++) {

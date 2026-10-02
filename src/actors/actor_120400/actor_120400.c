@@ -1039,7 +1039,7 @@ static void func_actor_120400_80132050(Task* arg0)
 /// the animation through `func_800B3F84` with the bank this overlay's
 /// `gActorMotionAnimBanks` selects; `model.animId` takes the preset's animation
 /// id, and a preset asking for slots while `model.ticking` says the slots are
-/// already ticking is pushed onto `func_800B4114`'s per-slot loop instead of
+/// already ticking is pushed onto `animationSeekSlotWithBlend`'s per-slot loop instead of
 /// the `animationResetSlot` one, followed by a `animationTickSlot` pass over the
 /// same 0x14 slots and `model.ticking` raised. Returns 0 either way.
 s32 func_actor_120400_80132398(Task* task, s32 arg1, ActorTransform* place, Actor120400SpawnAnim* anim)
@@ -1083,7 +1083,7 @@ s32 func_actor_120400_80132398(Task* task, s32 arg1, ActorTransform* place, Acto
     work->model.animId = msg->animationId;
     if (msg->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
         for (i = 1; i < 0x14; i++) {
-            func_800B4114(&work->rig.anim, i, work->model.animId, 0, msg->blendFrames);
+            animationSeekSlotWithBlend(&work->rig.anim, i, work->model.animId, 0, msg->blendFrames);
         }
     } else {
         for (i = 1; i < 0x14; i++) {

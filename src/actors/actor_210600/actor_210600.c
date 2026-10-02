@@ -90,7 +90,7 @@ STATIC_ASSERT_SIZEOF(Actor210600Work, 0x8D8);
 /// Step table the seeding body `func_actor_210600_8014B2C0` walks: one 5-byte
 /// row per clip the previous request latched in `Actor210600Work::field_880`,
 /// addressed by the requested clip in `field_882`. The byte it reads is handed
-/// to `func_800B4114` as the request's fifth argument.
+/// to `animationSeekSlotWithBlend` as the request's fifth argument.
 extern s8 D_actor_210600_8015A498[][5];
 
 /// Stack record the state dispatcher copies the state table into before the
@@ -397,7 +397,7 @@ static void            func_actor_210600_8014B8C8(Enemy* enemy, Task* task);
 #include "../../shared/actor_contacts.inc.c"
 
 /// Animation request handler: step 1 of the work block's `field_87C` seeks
-/// every slot 1..18 to the clip in `field_882` through `func_800B4114`,
+/// every slot 1..18 to the clip in `field_882` through `animationSeekSlotWithBlend`,
 /// passing `field_886`'s rate byte into the slot and the step `field_880`'s row
 /// of `D_actor_210600_8015A498` as the request's fifth argument, then latches
 /// the clip into `field_880`; step 2 does the same through
@@ -418,8 +418,8 @@ static void func_actor_210600_8014B2C0(Task* task)
         start = (Actor210600Work*)task->work;
         for (i = 1; i < 0x13; i++) {
             start->rig.slots[i].rate = start->field_886.byte;
-            func_800B4114(&start->rig.anim, i, (s16)start->field_882, 0,
-                          D_actor_210600_8015A498[start->field_880][(s16)start->field_882]);
+            animationSeekSlotWithBlend(&start->rig.anim, i, (s16)start->field_882, 0,
+                                       D_actor_210600_8015A498[start->field_880][(s16)start->field_882]);
         }
         start->field_880 = start->field_882;
         goto advance;

@@ -4864,8 +4864,8 @@ static void func_acropolis_bridge_8018581C(Task* task)
         start = (AcropolisBridgeEnemyWork*)task->work;
         for (i = 1; i < 4; i++) {
             start->slots[i].rate = start->field_108;
-            func_800B4114(&start->anim, i, start->field_104, 0,
-                          D_acropolis_bridge_801915E4[start->field_102][start->field_104]);
+            animationSeekSlotWithBlend(&start->anim, i, start->field_104, 0,
+                                       D_acropolis_bridge_801915E4[start->field_102][start->field_104]);
         }
         start->field_102 = start->field_104;
         goto advance;

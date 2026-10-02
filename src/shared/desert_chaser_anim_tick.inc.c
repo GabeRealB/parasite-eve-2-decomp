@@ -62,7 +62,7 @@ void desertChaserAnimTick(Task* task)
                 work->slots[seekIndex].rate = seekWork->field_832;
                 animation                   = seekWork->field_82E;
                 index                       = seekWork->field_82C * DESERT_CHASER_CLIP_COUNT;
-                func_800B4114(&seekWork->anim, seekSlotIndex, (s16)(animation), 0, (s32) * (s8*)((animation + index) + table));
+                animationSeekSlotWithBlend(&seekWork->anim, seekSlotIndex, (s16)(animation), 0, (s32) * (s8*)((animation + index) + table));
                 seekIndex += 1;
             } while (seekIndex < 0x12);
             seekWork->field_82C = seekWork->field_82E;

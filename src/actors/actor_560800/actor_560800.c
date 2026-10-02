@@ -4284,12 +4284,12 @@ static s32 func_actor_560800_80132340(Task* arg0)
 
 /// Cross-fades slots 1..`field_4BA`-1 of `work`'s animation context to animation
 /// `id` over `frames` frames.
-#define _ACTOR560800_BLEND_SLOTS(work, id, frames)                   \
-    do {                                                             \
-        u16 _i;                                                      \
-        for (_i = 1; _i < (work)->field_4BA; _i++) {                 \
-            func_800B4114(&(work)->rig.anim, _i, (id), 0, (frames)); \
-        }                                                            \
+#define _ACTOR560800_BLEND_SLOTS(work, id, frames)                                \
+    do {                                                                          \
+        u16 _i;                                                                   \
+        for (_i = 1; _i < (work)->field_4BA; _i++) {                              \
+            animationSeekSlotWithBlend(&(work)->rig.anim, _i, (id), 0, (frames)); \
+        }                                                                         \
     } while (0)
 
 /// Restarts the animation clip's hold counter.
@@ -4300,7 +4300,7 @@ static s32 func_actor_560800_80132340(Task* arg0)
 
 /// Reseeds the animation slots of the task's own `Actor560800AnimWork`: the
 /// id goes to `field_4B8` with `rate` in `field_4C8`, `field_4BE` is cleared,
-/// and slots 1..`field_4BA` are blended through `func_800B4114`.
+/// and slots 1..`field_4BA` are blended through `animationSeekSlotWithBlend`.
 static inline void Actor560800_ReseedAnim(Task* arg0, u16 id, s16 rate)
 {
     Actor560800AnimWork* w;
@@ -4311,18 +4311,18 @@ static inline void Actor560800_ReseedAnim(Task* arg0, u16 id, s16 rate)
     w->field_4C8 = rate;
     _actor560800ResetAnimHold(w);
     for (i = 1; i < w->field_4BA; i++) {
-        func_800B4114(&w->rig.anim, i, id, 0, 10);
+        animationSeekSlotWithBlend(&w->rig.anim, i, id, 0, 10);
     }
 }
 
 /// Cross-fades animation slots 1..`field_4BA` of `work`'s rig to animation
 /// `id` over `frames` frames.
-#define _ACTOR560800_BLEND_SLOTS(work, id, frames)                   \
-    do {                                                             \
-        u16 _i;                                                      \
-        for (_i = 1; _i < (work)->field_4BA; _i++) {                 \
-            func_800B4114(&(work)->rig.anim, _i, (id), 0, (frames)); \
-        }                                                            \
+#define _ACTOR560800_BLEND_SLOTS(work, id, frames)                                \
+    do {                                                                          \
+        u16 _i;                                                                   \
+        for (_i = 1; _i < (work)->field_4BA; _i++) {                              \
+            animationSeekSlotWithBlend(&(work)->rig.anim, _i, (id), 0, (frames)); \
+        }                                                                         \
     } while (0)
 
 /// Ticks every animation slot, then advances the script at `field_4B4`: a step
@@ -5353,7 +5353,7 @@ static inline void Actor560800_BlendSlotsFirst(Task* task, u16 id, s16 rate)
     if (first < count) {
         i = 1;
         do {
-            func_800B4114(&w->rig.anim, i, id, 0, 10);
+            animationSeekSlotWithBlend(&w->rig.anim, i, id, 0, 10);
             i++;
         } while (i < w->field_4BA);
     }
@@ -5601,7 +5601,7 @@ static void func_actor_560800_80134BFC(Task* arg0)
                     if (first < count) {
                         i = 1;
                         do {
-                            func_800B4114(&blend->rig.anim, i, 0x20, 0, 5);
+                            animationSeekSlotWithBlend(&blend->rig.anim, i, 0x20, 0, 5);
                             i++;
                         } while (i < blend->field_4BA);
                     }
@@ -5937,7 +5937,7 @@ void func_actor_560800_80136378(s16 arg0)
 /// The same animation reseed as `func_actor_560800_801364A0`, reached through
 /// `field_4` instead of `field_C`: the id goes to `field_4B8` with 0x10 as the
 /// restart rate in `field_4C8`, `field_4BE` is cleared, and slots 1..`field_4BA`
-/// are blended through `func_800B4114`.
+/// are blended through `animationSeekSlotWithBlend`.
 void func_actor_560800_801363F8(u16 arg0)
 {
     Actor560800Work*     work;
@@ -5955,7 +5955,7 @@ void func_actor_560800_801363F8(u16 arg0)
 /// Reseeds the animation slots of the sub-task at `field_C` from `arg0`: the
 /// id goes to `field_4B8` with 0x10 as the restart rate in `field_4C8`,
 /// `field_4BE` is cleared, and slots 1..`field_4BA` are blended through
-/// `func_800B4114`. `func_actor_560800_801363F8` is the same body reached
+/// `animationSeekSlotWithBlend`. `func_actor_560800_801363F8` is the same body reached
 /// through `field_4`.
 void func_actor_560800_801364A0(u16 arg0)
 {

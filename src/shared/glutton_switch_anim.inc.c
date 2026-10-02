@@ -12,18 +12,18 @@ void gluttonSwitchAnim(Task* arg0)
     if (work->field_7B2 != work->field_7B3) {
         for (i = 1; i < 8; i++) {
             work->slots0[i].rate = work->field_7B6;
-            func_800B4114(&work->anim0, i, work->field_7B3, 0,
-                          gGluttonAnimTransitions[work->field_7B2][work->field_7B3]);
+            animationSeekSlotWithBlend(&work->anim0, i, work->field_7B3, 0,
+                                       gGluttonAnimTransitions[work->field_7B2][work->field_7B3]);
         }
         for (i = 0; i < 4; i++) {
             work->slots2[i].rate = work->field_7B6;
-            func_800B4114(&work->anim2, i, work->field_7B3, 0,
-                          gGluttonAnimTransitions[work->field_7B2][work->field_7B3]);
+            animationSeekSlotWithBlend(&work->anim2, i, work->field_7B3, 0,
+                                       gGluttonAnimTransitions[work->field_7B2][work->field_7B3]);
         }
         for (i = 0; i < 4; i++) {
             work->slots4[i].rate = work->field_7B6;
-            func_800B4114(&work->anim4, i, work->field_7B3, 0,
-                          gGluttonAnimTransitions[work->field_7B2][work->field_7B3]);
+            animationSeekSlotWithBlend(&work->anim4, i, work->field_7B3, 0,
+                                       gGluttonAnimTransitions[work->field_7B2][work->field_7B3]);
         }
         work->field_7B2 = work->field_7B3;
     }

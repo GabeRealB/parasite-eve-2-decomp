@@ -53,8 +53,8 @@ void oddStrangerDrive(Task* arg0)
                 work->rig.slots[seekIndex].rate = seekWork->field_8A2;
                 animation                       = (s16)seekWork->field_89E;
                 index                           = seekWork->field_89C * 0x2D;
-                func_800B4114(&seekWork->rig.anim, seekSlotIndex, (s16)(animation), 0,
-                              (s32) * (s8*)((animation + index) + table));
+                animationSeekSlotWithBlend(&seekWork->rig.anim, seekSlotIndex, (s16)(animation), 0,
+                                           (s32) * (s8*)((animation + index) + table));
                 seekIndex += 1;
             } while (seekIndex < 0x13);
             seekWork->field_89C = (s16)seekWork->field_89E;

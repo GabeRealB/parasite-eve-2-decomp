@@ -318,7 +318,7 @@ static void func_actor_311900_80161E3C(Task* task, s32 arg1, s16 arg2)
 
 /// Applies the animation request in the work block's `field_474` to slots 1..19
 /// of its context, which is where the block itself begins. Step 1 seeks every
-/// slot to the id in `field_478` through `func_800B4114`, step 2 resets them to
+/// slot to the id in `field_478` through `animationSeekSlotWithBlend`, step 2 resets them to
 /// it; each first marks the slot reset-pending with the rate byte at `field_47C`,
 /// and both then latch that id as the one now playing in `field_476`, settle on
 /// step 3 and clear the frame counter at `field_47A`. Step 3 only ticks the slots
@@ -342,7 +342,7 @@ static void func_actor_311900_80162100(Task* task)
         start = (Actor311900Work*)task->work;
         for (i = 1; i < 0x14; i++) {
             start->rig.slots[i].rate = start->field_47C;
-            func_800B4114(&start->rig.anim, i, (s16)start->field_478, 0, 0);
+            animationSeekSlotWithBlend(&start->rig.anim, i, (s16)start->field_478, 0, 0);
         }
         start->field_476 = start->field_478;
         work->field_474  = 3;

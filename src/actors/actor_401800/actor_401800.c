@@ -151,7 +151,7 @@ extern OddStrangerTransformStorage gOddStrangerGrabTransform;
 extern GpDelayArg D_actor_401800_80155AF8;
 
 /// Clip-transition table the cross-fade reads: one byte per (previous clip,
-/// requested clip) pair, rows of 0x2D, handed to `func_800B4114` as the
+/// requested clip) pair, rows of 0x2D, handed to `animationSeekSlotWithBlend` as the
 /// transition argument.
 extern s8 gOddStrangerTransitions[45][45];
 

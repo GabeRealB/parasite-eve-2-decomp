@@ -10,7 +10,7 @@ void pairWalkReseedAnim(Task* task)
     work = (Actor150400Work*)task->work;
     i    = 1;
     do {
-        func_800B4114(&work->rig.anim, i, work->st.animId, 0, work->animArg);
+        animationSeekSlotWithBlend(&work->rig.anim, i, work->st.animId, 0, work->animArg);
         i++;
     } while (i < 0x13);
     work->st.appliedAnimId = work->st.animId;

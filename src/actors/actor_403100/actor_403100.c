@@ -3726,7 +3726,7 @@ static void func_actor_403100_801326DC(Actor403100Work* work)
     } else {
         for (i = 1; i < 15; i++) {
             D_actor_403100_80155808->field_B8.animation.slots[i].rate = D_actor_403100_80155808->field_5E2;
-            func_800B4114(&D_actor_403100_80155808->field_B8.animation.anim, i, D_actor_403100_80155808->field_5DE, 0, D_actor_403100_80155808->field_5FC);
+            animationSeekSlotWithBlend(&D_actor_403100_80155808->field_B8.animation.anim, i, D_actor_403100_80155808->field_5DE, 0, D_actor_403100_80155808->field_5FC);
         }
         D_actor_403100_80155808->field_5FC = 0;
     }

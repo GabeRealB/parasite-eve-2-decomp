@@ -1741,7 +1741,7 @@ static inline void _actor105100AnimUpdate(Task* task)
         work->field_592 = 0;
         val             = D_actor_105100_801414C8[(s16)work->field_58E];
         for (i = 1; i < 0x13; i++) {
-            func_800B4114(&work->rig.anim, i, (s16)work->field_58E, 0, val);
+            animationSeekSlotWithBlend(&work->rig.anim, i, (s16)work->field_58E, 0, val);
         }
     } else {
         work->field_592++;

@@ -1073,7 +1073,7 @@ static __inline__ void Actor107000_TickAnim(Task* task)
             work->field_2BA = work->field_2B8;
             work->field_2BC = 0;
             for (i = 1; i < 3; i++) {
-                func_800B4114((AnimationContext*)work, i, work->field_2B8, 0, 0);
+                animationSeekSlotWithBlend((AnimationContext*)work, i, work->field_2B8, 0, 0);
             }
         } else {
             work->field_2BC++;
@@ -1961,7 +1961,7 @@ static __inline__ void update_animation(Task* task)
         work->field_372 = work->field_370;
         work->field_374 = 0;
         for (i = 1; i < 7; i++)
-            func_800B4114(&work->context, i, work->field_370, 0, 8);
+            animationSeekSlotWithBlend(&work->context, i, work->field_370, 0, 8);
     } else {
         work->field_374++;
         for (i = 1; i < 7; i++)
@@ -2729,7 +2729,7 @@ static void Actor07000_Fn05ED4(Task* arg0)
         work->field_372 = work->field_370;
         work->field_374 = 0;
         for (i = 1; i < 7; i++) {
-            func_800B4114((AnimationContext*)work, i, work->field_370, 0, 8);
+            animationSeekSlotWithBlend((AnimationContext*)work, i, work->field_370, 0, 8);
         }
     } else {
         work->field_374++;

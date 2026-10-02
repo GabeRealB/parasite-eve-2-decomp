@@ -239,7 +239,7 @@ STATIC_ASSERT_SIZEOF(Actor110600Work, 0xBEC);
 /// `func_actor_110600_80134728` drives this view's slots and contexts and reads
 /// the state words below it through the same pointer, so the view carries the
 /// state halfwords `Actor110600Work` names too: `field_88C` is the stage it
-/// dispatches on, `field_890` / `field_892` the clip pair `func_800B4114` is
+/// dispatches on, `field_890` / `field_892` the clip pair `animationSeekSlotWithBlend` is
 /// armed with, `field_894` the frame counter it bumps, and `field_8AC` the
 /// word its stage setup clears.
 typedef struct Actor110600AnimWork {
@@ -1132,7 +1132,7 @@ EffectSpawnArg D_actor_110600_80148698 = { NULL, 0, 0 };
 /// Whole-unit step `ActorContact_PushContact` last applied to its coordinate.
 extern SVECTOR ActorContact_ScratchPosition;
 
-/// Reset argument `func_800B4114` is handed for the clip `field_892` of the
+/// Reset argument `animationSeekSlotWithBlend` is handed for the clip `field_892` of the
 /// `field_890` stage: the `0x2D`-byte row of the animation table this overlay's
 /// data carries at `D_actor_110600_80147D20`, indexed by the clip id. The row
 /// stride is the row's own length, so the load is a signed byte.
@@ -1500,7 +1500,7 @@ static s32 func_actor_110600_80134564(Actor110600AnimWork* anim)
 ///
 /// Stages 1, 2 and 6 arm every slot 1..0x12 and then park the stage at 3 with
 /// the frame counter `field_894` and `field_8AC` cleared: stage 1 plays the
-/// clip at `field_892` through `func_800B4114`, taking each slot's reset
+/// clip at `field_892` through `animationSeekSlotWithBlend`, taking each slot's reset
 /// argument out of the `field_890` row of `D_actor_110600_80147D20`; stage 2
 /// arms the same clip with `animationResetSlot`; stage 6 arms clip 0x10 and then
 /// ticks the context 99 times so the pose settles before it is shown. A
@@ -1554,7 +1554,7 @@ static void func_actor_110600_80134728(Task* arg0)
             work->slots[seekIndex].rate = seekWork->field_896;
             animation                   = seekWork->field_892;
             index                       = seekWork->field_890 * 0x2D;
-            func_800B4114(&seekWork->anim, seekIndex, animation, 0, (s32) * (s8*)((animation + index) + table));
+            animationSeekSlotWithBlend(&seekWork->anim, seekIndex, animation, 0, (s32) * (s8*)((animation + index) + table));
             seekIndex += 1;
         } while (seekIndex < 0x13);
         seekWork->field_890 = (u16)seekWork->field_892;

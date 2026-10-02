@@ -1999,7 +1999,7 @@ static inline void _actor03800TickAnim(Task* task)
         work->field_34C = 0;
         value           = Actor03800_D05F90[(s16)work->field_348];
         for (i = 1; i < 6; i++) {
-            func_800B4114(&work->anim, i, (s16)work->field_348, 0, value);
+            animationSeekSlotWithBlend(&work->anim, i, (s16)work->field_348, 0, value);
         }
     } else {
         work->field_34C++;

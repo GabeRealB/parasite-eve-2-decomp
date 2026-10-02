@@ -3555,7 +3555,7 @@ static void func_actor_206100_8014F18C(Task* task)
 
 /// Re-arms every animation slot for the pending request: writes the request's
 /// step scale (`animStep`) into each slot's `rate` and re-seeks the slot to
-/// the requested clip with `func_800B4114`, whose fifth argument is the request's
+/// the requested clip with `animationSeekSlotWithBlend`, whose fifth argument is the request's
 /// own value at `animBlend`.  When the clip already playing (`animPlaying`) is not
 /// the one requested, `animBlend` is cleared as well.  `animPlaying` latches the
 /// clip either way, which is what lets the next frame tell the two cases apart.
@@ -3571,14 +3571,14 @@ static void func_actor_206100_8014F2F0(Task* arg0)
         i = 1;
         do {
             work->slots[i].rate = work->animStep;
-            func_800B4114(&work->anim, i, work->animClip, 0, work->animBlend);
+            animationSeekSlotWithBlend(&work->anim, i, work->animClip, 0, work->animBlend);
             i++;
         } while (i < 0xF);
     } else {
         i = 1;
         do {
             work->slots[i].rate = work->animStep;
-            func_800B4114(&work->anim, i, work->animClip, 0, work->animBlend);
+            animationSeekSlotWithBlend(&work->anim, i, work->animClip, 0, work->animBlend);
             i++;
         } while (i < 0xF);
         work->animBlend = 0;

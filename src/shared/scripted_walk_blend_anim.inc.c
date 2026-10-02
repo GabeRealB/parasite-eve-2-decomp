@@ -9,8 +9,8 @@ void scriptedWalkBlendAnim(void)
 
     i = 1;
     do {
-        func_800B4114(&gScriptedWalkWork->rig.anim, i, gScriptedWalkWork->st.animId, 0,
-                      gScriptedWalkBlendFrames);
+        animationSeekSlotWithBlend(&gScriptedWalkWork->rig.anim, i, gScriptedWalkWork->st.animId, 0,
+                                   gScriptedWalkBlendFrames);
         i++;
     } while (i < 0x14);
     gScriptedWalkWork->st.appliedAnimId = gScriptedWalkWork->st.animId;

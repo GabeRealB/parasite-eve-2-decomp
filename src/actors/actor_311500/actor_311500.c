@@ -54,7 +54,7 @@
 
 typedef struct Actor311500Work {
     /// Animation context the block itself begins with: `func_actor_311500_80162F28`
-    /// hands the block straight to `func_800B4114` / `animationTickSlot`.
+    /// hands the block straight to `animationSeekSlotWithBlend` / `animationTickSlot`.
     /* 0x000 */ ActorAnimRig19 rig;
     /// List node `func_actor_311500_801630A4` unlinks on the first step of
     /// state 1. Sits directly in front of the collision table.
@@ -460,7 +460,7 @@ done:
     return work->field_4CC;
 }
 
-/// Calls `func_800B4114` on animation slots 1 to 18 with a 10-frame count.
+/// Calls `animationSeekSlotWithBlend` on animation slots 1 to 18 with a 10-frame count.
 static inline void _actor311500BlendAnim(Task* task)
 {
     Actor311500Work* work = task->work;
@@ -468,7 +468,7 @@ static inline void _actor311500BlendAnim(Task* task)
 
     i = 1;
     do {
-        func_800B4114(&work->rig.anim, i & 0xFFFF, 1, 0, 0xA);
+        animationSeekSlotWithBlend(&work->rig.anim, i & 0xFFFF, 1, 0, 0xA);
         i += 1;
     } while ((u32)(i & 0xFFFF) < 0x13U);
 }

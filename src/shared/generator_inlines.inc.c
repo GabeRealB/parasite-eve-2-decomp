@@ -18,7 +18,7 @@ static inline void generatorTickPoseInline(Task* task)
         work->field_324 = 0;
         value           = gGeneratorPoseStartFrames[(s16)work->field_320];
         for (i = 1; i < 10; i++) {
-            func_800B4114(&work->anim, i, (s16)work->field_320, 0, value);
+            animationSeekSlotWithBlend(&work->anim, i, (s16)work->field_320, 0, value);
         }
     } else {
         work->field_324++;

@@ -2953,7 +2953,7 @@ static void func_actor_450800_80132AE0(Task* task)
     work = (Actor450800Work*)task->work;
     i    = 1;
     do {
-        func_800B4114(&work->rig.anim, i, work->st.animId, 0, work->animArg);
+        animationSeekSlotWithBlend(&work->rig.anim, i, work->st.animId, 0, work->animArg);
         i++;
     } while (i < 0x14);
     work->st.appliedAnimId = work->st.animId;

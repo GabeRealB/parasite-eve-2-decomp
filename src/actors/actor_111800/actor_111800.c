@@ -248,12 +248,12 @@ static inline void _actor111800TickAnim(Task* task)
 
 /// Cross-fades body slots 1..0x12 of `work`'s animation context to animation
 /// `id` over `frames` frames.
-#define _ACTOR111800_BLEND_SLOTS(work, id, frames)                   \
-    do {                                                             \
-        u16 _i;                                                      \
-        for (_i = 1; _i < 0x13; _i++) {                              \
-            func_800B4114(&(work)->rig.anim, _i, (id), 0, (frames)); \
-        }                                                            \
+#define _ACTOR111800_BLEND_SLOTS(work, id, frames)                                \
+    do {                                                                          \
+        u16 _i;                                                                   \
+        for (_i = 1; _i < 0x13; _i++) {                                           \
+            animationSeekSlotWithBlend(&(work)->rig.anim, _i, (id), 0, (frames)); \
+        }                                                                         \
     } while (0)
 
 /// Clears the latched record and cross-fades every body slot to `id`.

@@ -1813,7 +1813,7 @@ check:
             goto check;
         loop:
             for (i = 1; i < 0x13; i++) {
-                func_800B4114(&ctx->rig.anim, i, anim, 0, 10);
+                animationSeekSlotWithBlend(&ctx->rig.anim, i, anim, 0, 10);
             }
         }
         return 1;
@@ -2263,7 +2263,7 @@ static inline void func_actor_121300_PlayAll(Task* arg0, s32 anim)
     work = (Actor121300Work*)arg0->work;
     SET_ANIM_ID(work, anim);
     for (i = 1; i < 0x13; i++) {
-        func_800B4114(&work->rig.anim, i, anim, 0, 10);
+        animationSeekSlotWithBlend(&work->rig.anim, i, anim, 0, 10);
     }
 }
 

@@ -1079,8 +1079,8 @@ static void func_actor_356100_80163508(Task* arg0)
         if (work->field_97C != work->field_97E) {
             for (i = 1; i < 0x15; i++) {
                 anim->slots[i].rate = anim->field_982;
-                func_800B4114(&anim->anim, i, anim->field_97E, 0,
-                              D_actor_356100_801728CC[anim->field_97C][anim->field_97E]);
+                animationSeekSlotWithBlend(&anim->anim, i, anim->field_97E, 0,
+                                           D_actor_356100_801728CC[anim->field_97C][anim->field_97E]);
             }
             anim->field_97C = anim->field_97E;
         }

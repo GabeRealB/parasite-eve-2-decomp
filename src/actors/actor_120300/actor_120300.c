@@ -1363,7 +1363,7 @@ check:
             goto check;
         loop:
             for (i = 1; i < 0x14; i++) {
-                func_800B4114(&animWork->rig.anim, i, anim, 0, 10);
+                animationSeekSlotWithBlend(&animWork->rig.anim, i, anim, 0, 10);
             }
         }
         return 1;
@@ -1710,12 +1710,12 @@ static void func_actor_120300_80132338(Task* arg0)
 
 /// Cross-fades body slots 1..19 of `work`'s animation context to animation
 /// `id` over `frames` frames.
-#define _ACTOR120300_BLEND_SLOTS(work, id, frames)                   \
-    do {                                                             \
-        u16 _i;                                                      \
-        for (_i = 1; _i < 0x14; _i++) {                              \
-            func_800B4114(&(work)->rig.anim, _i, (id), 0, (frames)); \
-        }                                                            \
+#define _ACTOR120300_BLEND_SLOTS(work, id, frames)                                \
+    do {                                                                          \
+        u16 _i;                                                                   \
+        for (_i = 1; _i < 0x14; _i++) {                                           \
+            animationSeekSlotWithBlend(&(work)->rig.anim, _i, (id), 0, (frames)); \
+        }                                                                         \
     } while (0)
 
 /// Parks `anim` in `field_4D4` and cross-fades every body slot to it over ten
@@ -1743,7 +1743,7 @@ static inline void _actor120300ResetAll(Task* task, u16 anim)
 
 /// After `func_actor_120300_80131EE0`, runs the request at `field_4C8` (0..19):
 /// most codes park an animation id in `field_4D4` and walk slots 1..19 through
-/// `func_800B4114` or `animationResetSlot`; a few also send message 0x7D4 or
+/// `animationSeekSlotWithBlend` or `animationResetSlot`; a few also send message 0x7D4 or
 /// change `field_4E0`. Code 1 is two-phase, stepped by `field_4CA`: phase 1
 /// slides the model on X until `coord.t[0] < 0xF3D`. Every other code, and
 /// code 1 once the slide ends, clears `field_4C8`.

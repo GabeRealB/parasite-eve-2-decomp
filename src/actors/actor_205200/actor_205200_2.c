@@ -783,7 +783,7 @@ static void func_actor_205200_8014C7CC(Task* arg0)
         work->field_580 = work->field_57E;
         work->field_582 = 0;
         for (i = 1; i < 0x13; i++) {
-            func_800B4114(&work->rig.anim, i, work->field_57E, 0, 8);
+            animationSeekSlotWithBlend(&work->rig.anim, i, work->field_57E, 0, 8);
         }
     } else {
         work->field_582++;

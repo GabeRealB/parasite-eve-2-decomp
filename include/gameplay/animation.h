@@ -128,6 +128,36 @@ STATIC_ASSERT_SIZEOF(AnimationSet, 0x28);
 /// live during playback. Capacities are neither stored nor checked here.
 void animationResetSlot(AnimationContext* context, s32 slotIndex, s32 setIndex);
 
+/// Captures a slot's ticked pose and starts a timed blend toward a selected track record.
+///
+/// First advances playback and writes the model coordinate and this slot's
+/// encoded pose-buffer entry, as in `animationTickSlotPose`. The buffered pose
+/// becomes the current endpoint, retaining its record index. A skipped pose
+/// write leaves the buffer unchanged, but still installs that endpoint.
+/// The rate, pose encoding, set table, capture tick's flags and boundary latch
+/// are retained; a later buffered blend refreshes its cached rotation delta.
+///
+/// `slotIndex` is a nonnegative element index into the context's writable slots
+/// and corresponding word-aligned, 16-byte pose-buffer entries. The exported
+/// `setIndex` is narrowed to its low 16 bits before selecting a loaded set from
+/// the slot's table; the narrowed value must exclude `ANIMATION_SET_BUFFERED_POSE`.
+/// `trackRecordOffset` counts records from that set's start for the slot's
+/// existing track. The sum must fit `s32` and is narrowed to `u16` before
+/// following control records. Jumps add walk flags; a stop retains the capture
+/// tick's next record index within the newly selected set.
+///
+/// `blendFrames` counts whole normal-rate frames, with zero requesting no
+/// transition time. Its signed shift into sixteenths is narrowed through `u16`
+/// into both time fields; 0..2047 keeps the signed remaining time nonnegative.
+/// No argument bounds are checked. Slot, coordinate, track, record and complete
+/// pose accesses must fit their arrays; the target must support the slot's
+/// existing encoding and control walks must terminate. Borrowed storage, loaded
+/// clip data, scratch-stack capacity and GTE requirements are those of
+/// `animationTickSlotPose`. The buffer must remain live while either endpoint
+/// refers to it.
+void animationSeekSlotWithBlend(AnimationContext* context, s32 slotIndex, s32 setIndex,
+                                s32 trackRecordOffset, s32 blendFrames);
+
 /// Advances one playback slot and writes its interpolated pose.
 ///
 /// Clears the slot's result flags, consumes its signed `rate` in sixteenths of

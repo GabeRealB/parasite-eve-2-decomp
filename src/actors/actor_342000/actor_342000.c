@@ -485,7 +485,7 @@ check:
             goto check;
         loop:
             for (i = first; i < arg1; i++) {
-                func_800B4114(&ctx->ctx, i, anim, 0, 10);
+                animationSeekSlotWithBlend(&ctx->ctx, i, anim, 0, 10);
             }
         }
         return 1;
@@ -888,7 +888,7 @@ static inline void Actor342000_SetAnim(Task* task, u16 anim, u16 blend, u16 n)
         }
     } else {
         for (i = first; i < n; i++) {
-            func_800B4114(&ctx->ctx, i, anim, 0, blend);
+            animationSeekSlotWithBlend(&ctx->ctx, i, anim, 0, blend);
         }
     }
 }

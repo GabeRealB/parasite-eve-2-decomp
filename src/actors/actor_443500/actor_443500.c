@@ -2704,7 +2704,7 @@ s32 func_actor_443500_801327E0(Task* task, s32 anim, AnimationPlayRequest* param
     work->model.animId = params->animationId;
     if (params->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
         for (i = 1; i < 0x14; i++) {
-            func_800B4114(&work->rig.anim, i, work->model.animId, 0, params->blendFrames);
+            animationSeekSlotWithBlend(&work->rig.anim, i, work->model.animId, 0, params->blendFrames);
         }
     } else {
         for (i = 1; i < 0x14; i++) {

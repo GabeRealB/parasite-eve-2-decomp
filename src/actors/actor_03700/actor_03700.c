@@ -2227,7 +2227,7 @@ static void Actor03700_Fn033F0(Task* task)
         work->field_24A = work->field_248;
         work->field_24C = 0;
         for (i = 1; i < 6; i++) {
-            func_800B4114(&work->anim, i, work->field_248, 0, 4);
+            animationSeekSlotWithBlend(&work->anim, i, work->field_248, 0, 4);
         }
     } else {
         work->field_24C++;

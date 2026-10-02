@@ -1087,8 +1087,8 @@ static void Actor01900_Fn01C94(Task* arg0)
         if (work->field_89C != work->field_89E) {
             for (i = 1; i < 0x13; i++) {
                 w1->rig.slots[i].rate = w1->field_8A2;
-                func_800B4114(&w1->rig.anim, i, w1->field_89E, 0,
-                              (s32)Actor01900_D16988[w1->field_89C][w1->field_89E]);
+                animationSeekSlotWithBlend(&w1->rig.anim, i, w1->field_89E, 0,
+                                           (s32)Actor01900_D16988[w1->field_89C][w1->field_89E]);
             }
             /* Keeps this store from being merged with the identical one the
                `field_898 == 2` path makes just below. */

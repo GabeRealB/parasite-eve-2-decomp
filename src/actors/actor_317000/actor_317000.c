@@ -552,7 +552,7 @@ static void func_actor_317000_801621F4(Task* task, Task* targetTask, s32 arg2, s
 /// `gActorMotionAnimBanks19` through `func_800B3F84` (`model.bank` latches it,
 /// `model.animId` goes back to -1), and a changed `field_4` -- or a preset asking
 /// for slots when `model.ticking` says the slots are already ticking -- is pushed
-/// onto `func_800B4114`'s per-slot loop instead of the `animationResetSlot`
+/// onto `animationSeekSlotWithBlend`'s per-slot loop instead of the `animationResetSlot`
 /// one, followed by a `animationTickSlot` pass over the same 0x12 slots and
 /// `model.ticking` raised. Returns 0 either way.
 s32 func_actor_317000_80162458(Task* task, s32 arg1, ActorTransform* place, Actor317000SpawnAnim* anim)
@@ -597,7 +597,7 @@ s32 func_actor_317000_80162458(Task* task, s32 arg1, ActorTransform* place, Acto
         work->model.animId = msg->animationId;
         if (msg->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
             for (i = 1; i < 0x13; i++) {
-                func_800B4114(&work->rig.anim, i, work->model.animId, 0, msg->blendFrames);
+                animationSeekSlotWithBlend(&work->rig.anim, i, work->model.animId, 0, msg->blendFrames);
             }
         } else {
             for (i = 1; i < 0x13; i++) {

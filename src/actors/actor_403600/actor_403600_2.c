@@ -3861,7 +3861,7 @@ static __inline__ void _actor403600UpdateAnimation(Task* task, u8 count)
             work->field_738 = work->field_736;
             work->field_73A = 0;
             for (i = 1; i < count; i++) {
-                func_800B4114(&work->rig.anim, i, work->field_736, 0, work->field_756);
+                animationSeekSlotWithBlend(&work->rig.anim, i, work->field_736, 0, work->field_756);
             }
         } else {
             work->field_73A++;

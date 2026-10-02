@@ -14,7 +14,7 @@ static inline void maggotCaterpillarTickAnimInline(Task* task)
         work->field_396 = 0;
         value           = gMaggotCaterpillarAnimBlend[work->field_392];
         for (i = 1; i < 8; i++) {
-            func_800B4114(&work->anim, i, work->field_392, 0, value);
+            animationSeekSlotWithBlend(&work->anim, i, work->field_392, 0, value);
         }
     } else {
         work->field_396++;

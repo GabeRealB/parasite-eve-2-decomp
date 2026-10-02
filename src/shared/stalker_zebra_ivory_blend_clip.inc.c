@@ -15,7 +15,7 @@ void stalkerZebraIvoryBlendClip(Task* arg0)
         do {
             work->slots[i].rate = work->animStep;
 #if STALKER_ZEBRA_IVORY_REBLEND_SAME_CLIP
-            func_800B4114(&work->anim, i, work->animClip, 0, work->animBlend);
+            animationSeekSlotWithBlend(&work->anim, i, work->animClip, 0, work->animBlend);
 #endif
             i++;
         } while (i < 0x12);
@@ -23,7 +23,7 @@ void stalkerZebraIvoryBlendClip(Task* arg0)
         i = 1;
         do {
             work->slots[i].rate = work->animStep;
-            func_800B4114(&work->anim, i, work->animClip, 0, work->animBlend);
+            animationSeekSlotWithBlend(&work->anim, i, work->animClip, 0, work->animBlend);
             i++;
         } while (i < 0x12);
         work->animBlend = 0;

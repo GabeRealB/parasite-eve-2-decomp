@@ -1282,7 +1282,7 @@ static __inline__ void Actor207200_TickAnim(Task* arg0)
         work->field_48E = work->field_48C;
         work->field_490 = 0;
         for (i = 1; i < 7; i++) {
-            func_800B4114((AnimationContext*)work, i, work->field_48C, 0, 8);
+            animationSeekSlotWithBlend((AnimationContext*)work, i, work->field_48C, 0, 8);
         }
     } else {
         work->field_490++;

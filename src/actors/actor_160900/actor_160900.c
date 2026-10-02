@@ -1046,7 +1046,7 @@ static inline void func_actor_160900_Reseed(Task* arg0, u16 anim)
     id              = anim;
     TOUCH_REG_USE2(id, work, work);
     for (; i < 0x14; i++) {
-        func_800B4114(&work->rig.anim, i, id, 0, 0xA);
+        animationSeekSlotWithBlend(&work->rig.anim, i, id, 0, 0xA);
     }
 }
 
@@ -1543,7 +1543,7 @@ static void func_actor_160900_8013358C(Task* arg0)
             do {
             } while (0);
             for (i = 1; (u16)i < 20; i++) {
-                func_800B4114(&child->rig.anim, (u16)i, 1, 0, 10);
+                animationSeekSlotWithBlend(&child->rig.anim, (u16)i, 1, 0, 10);
             }
             break;
         case 4:

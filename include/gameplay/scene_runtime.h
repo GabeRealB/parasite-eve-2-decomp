@@ -193,7 +193,4 @@ void func_800B5DB8(Task* arg0);
 
 void func_800B60C0(Task* arg0);
 
-/// Seek a playback slot; the animation-set index uses the low 16 bits of arg2.
-void func_800B4114(AnimationContext* context, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-
 #endif // GAMEPLAY_SCENE_RUNTIME_H

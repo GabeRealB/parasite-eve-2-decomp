@@ -13,7 +13,7 @@ static __inline__ void skullStalkerTickAnim(Task* task)
         work->field_28E = work->field_28C;
         work->field_290 = 0;
         for (i = 1; i < 3; i++) {
-            func_800B4114(&work->context, i, work->field_28C, 0, 8);
+            animationSeekSlotWithBlend(&work->context, i, work->field_28C, 0, 8);
         }
     } else {
         work->field_290++;

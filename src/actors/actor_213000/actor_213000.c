@@ -811,7 +811,7 @@ s32 func_actor_213000_8014A70C(Task* task, s32 arg1, AnimationPlayRequest* msg)
     work->field_475 = msg->animationId;
     if (msg->blend != ANIMATION_BLEND_RESET) {
         for (i = 1; i < 0x14; i++) {
-            func_800B4114(&work->rig.anim, i, work->field_475, 0, 6);
+            animationSeekSlotWithBlend(&work->rig.anim, i, work->field_475, 0, 6);
         }
     } else {
         for (i = 1; i < 0x14; i++) {

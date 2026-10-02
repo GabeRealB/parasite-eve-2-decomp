@@ -96,7 +96,7 @@ typedef struct Actor101500Work {
     /* 0x382 */ s16                   field_382; // spawn variant, `AreaPlacement.variant`
 } Actor101500Work;
 
-/// Per-state animation id handed to `func_800B4114`, indexed by `field_352`.
+/// Per-state animation id handed to `animationSeekSlotWithBlend`, indexed by `field_352`.
 extern s16 Actor01500_D0A050[];
 
 /// Fifteen vertical bob offsets cycled by `field_37C` while `field_352` is 5.
@@ -832,7 +832,7 @@ static void Actor01500_Fn00094(Enemy* arg0, Task* arg1)
         draw = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         r                      = (draw >> 16) & 0x3F;
         for (i = 1; i < 7; i++) {
-            func_800B4114(&work->anim, i, (s16)(work->field_352), 0, r);
+            animationSeekSlotWithBlend(&work->anim, i, (s16)(work->field_352), 0, r);
         }
     }
     work->field_1DC.coord            = &arg1->extra.tmd->coords[2];
@@ -2082,7 +2082,7 @@ static void Actor01500_Fn02958(Task* arg0)
         work->field_356 = 0;
         value           = Actor01500_D0A050[(s16)work->field_352];
         for (i = 1; i < 7; i++) {
-            func_800B4114(&work->anim, i, (s16)work->field_352, 0, value);
+            animationSeekSlotWithBlend(&work->anim, i, (s16)work->field_352, 0, value);
         }
     } else {
         work->field_356++;

@@ -15,7 +15,7 @@ void ratAnimate(Task* arg0)
         work2->field_382 = 0;
         val              = gRatAnimBlend[(s16)work2->field_37E];
         for (i = 1; i < 7; i++) {
-            func_800B4114(&work2->anim, i, (s16)work2->field_37E, 0, val);
+            animationSeekSlotWithBlend(&work2->anim, i, (s16)work2->field_37E, 0, val);
         }
     } else {
         work2->field_382++;

@@ -232,7 +232,7 @@ extern ActorHeightClamp D_actor_401300_801589C8[];
 /// event writes into `Enemy::hp`. Declared as an array: a scalar lets
 /// the scheduler hoist its load above the preceding store.
 
-/// Per-animation reset argument for `func_800B4114`, indexed by the previous
+/// Per-animation reset argument for `animationSeekSlotWithBlend`, indexed by the previous
 /// and the new animation id (`field_8A0`, `field_8A2`).
 extern s8 D_actor_401300_8015804C[][45];
 
@@ -1560,11 +1560,11 @@ static void func_actor_401300_80133254(Task* arg0)
         for (i = 1; i < 0x13; i++) {
             work->rig.slots[i].rate = work->field_8A6;
             if (i < 7) {
-                func_800B4114(&work->rig.anim, i, work->field_8A2, 0,
-                              D_actor_401300_8015804C[work->field_8A0][work->field_8A2]);
+                animationSeekSlotWithBlend(&work->rig.anim, i, work->field_8A2, 0,
+                                           D_actor_401300_8015804C[work->field_8A0][work->field_8A2]);
             } else if (i >= 9) {
-                func_800B4114(&work->rig.anim, i, work->field_8A2, 0,
-                              D_actor_401300_8015804C[work->field_8A0][work->field_8A2]);
+                animationSeekSlotWithBlend(&work->rig.anim, i, work->field_8A2, 0,
+                                           D_actor_401300_8015804C[work->field_8A0][work->field_8A2]);
             }
         }
         work->field_8A0 = work->field_8A2;

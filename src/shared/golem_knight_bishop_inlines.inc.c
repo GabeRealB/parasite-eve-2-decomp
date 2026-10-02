@@ -14,7 +14,7 @@ static inline void golemKnightBishopTickAnimInline(Task* arg0)
         work->field_6C4 = 0;
         value           = gGolemKnightBishopAnimBlend[work->field_6C0];
         for (i = 1; i < 0x13; i++) {
-            func_800B4114(&work->rig.anim, i, work->field_6C0, 0, value);
+            animationSeekSlotWithBlend(&work->rig.anim, i, work->field_6C0, 0, value);
         }
     } else {
         work->field_6C4++;

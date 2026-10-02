@@ -167,7 +167,7 @@ STATIC_ASSERT_SIZEOF(Actor341900AnimWork, 0x258);
 
 /// Animation command `func_actor_341900_80161FD0` copies into
 /// `Actor341900AnimWork::field_214..field_224`: `field_4` is the animation id
-/// and the low half of `field_C` the blend handed to `func_800B4114` (0 resets
+/// and the low half of `field_C` the blend handed to `animationSeekSlotWithBlend` (0 resets
 /// the slots instead).
 typedef struct Actor341900AnimCmd {
     /* 0x00 */ s32 field_0;
@@ -195,7 +195,7 @@ extern AnimationSet* D_actor_341900_801639AC[3];
 extern AnimationSet* D_actor_341900_801639B8[3];
 extern AnimationSet* D_actor_341900_801639C4[3];
 /// Animation id `func_actor_341900_80161E58` hands every slot to
-/// `func_800B4114`, indexed by `Actor341900AnimWork::field_218`; a negative
+/// `animationSeekSlotWithBlend`, indexed by `Actor341900AnimWork::field_218`; a negative
 /// entry skips the call.
 extern s16 D_actor_341900_801639D0[];
 /// Placements sent to the two effect children (`field_C` / `field_10`) as
@@ -486,7 +486,7 @@ check:
             goto check;
         loop:
             for (i = first; i < arg1; i++) {
-                func_800B4114(&ctx->ctx, i, anim, 0, 10);
+                animationSeekSlotWithBlend(&ctx->ctx, i, anim, 0, 10);
             }
         }
         return 1;
@@ -496,7 +496,7 @@ check:
 
 /// Points `n` slots of a task's animation context at `anim`, skipping slot 0
 /// on the eight-slot actor: a zero `blend` resets each slot, otherwise
-/// `func_800B4114` blends into it.
+/// `animationSeekSlotWithBlend` blends into it.
 static inline void Actor341900_SetAnim(Task* task, u16 anim, u16 blend, u16 n)
 {
     Actor341900AnimWork* ctx;
@@ -510,7 +510,7 @@ static inline void Actor341900_SetAnim(Task* task, u16 anim, u16 blend, u16 n)
         }
     } else {
         for (i = n == 8; i < n; i++) {
-            func_800B4114(&ctx->ctx, i, anim, 0, blend);
+            animationSeekSlotWithBlend(&ctx->ctx, i, anim, 0, blend);
         }
     }
 }

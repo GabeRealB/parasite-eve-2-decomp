@@ -673,7 +673,7 @@ s32 func_actor_323300_80162360(Task* arg0, s32 arg1, ActorCommand* msg, ActorTra
                 work->model.animId = preset->animationId;
                 if (preset->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
                     for (i = 1; i < 0x13; i++) {
-                        func_800B4114(&work->rig.anim, i, work->model.animId, 0, preset->blendFrames);
+                        animationSeekSlotWithBlend(&work->rig.anim, i, work->model.animId, 0, preset->blendFrames);
                     }
                 } else {
                     for (i = 1; i < 0x13; i++) {
@@ -1088,7 +1088,7 @@ static void func_actor_323300_8016359C(Task* arg0, s16 arg1)
 /// reset to -1, the bank is stored and the bank's animation source goes to
 /// `func_800B3F84` with the block's context, slots and matrix table. A
 /// different animation id then restarts every slot 1..0x12 -- through
-/// `func_800B4114` when the preset asks for it and the block has been started
+/// `animationSeekSlotWithBlend` when the preset asks for it and the block has been started
 /// before, through `animationResetSlot` otherwise -- ticks them once and latches
 /// `field_43C` so the next preset takes the first branch.
 static s32 func_actor_323300_80163718(Task* arg0, s32 arg1, AnimationPlayRequest* arg2, s32 arg3)
@@ -1109,7 +1109,7 @@ static s32 func_actor_323300_80163718(Task* arg0, s32 arg1, AnimationPlayRequest
         work->field_444 = arg2->animationId;
         if (arg2->blend != ANIMATION_BLEND_RESET && work->field_43C != 0) {
             for (i = 1; i < 0x13; i++) {
-                func_800B4114(&work->rig.anim, i, work->field_444, 0, arg2->blendFrames);
+                animationSeekSlotWithBlend(&work->rig.anim, i, work->field_444, 0, arg2->blendFrames);
             }
         } else {
             for (i = 1; i < 0x13; i++) {

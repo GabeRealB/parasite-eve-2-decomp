@@ -92,7 +92,7 @@ extern s32 gGolemKnightBishopAnimCues[];
 /// and 11-15 hold 1, so the short approach is taken about a third of the time.
 extern u16 gGolemKnightBishopApproachRoll[];
 
-/// Per-animation-id value `golemKnightBishopTickAnim` hands `func_800B4114`
+/// Per-animation-id value `golemKnightBishopTickAnim` hands `animationSeekSlotWithBlend`
 /// as its fifth argument when it reseeds animation slots 1..0x12.
 extern s16 gGolemKnightBishopAnimBlend[];
 

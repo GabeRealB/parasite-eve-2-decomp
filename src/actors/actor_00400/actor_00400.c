@@ -4781,7 +4781,7 @@ static void Actor00400_Fn08464(Task* arg0, s16 arg1, s16 arg2, SVECTOR* arg3)
 
 #include "../../shared/diver_restart_clip.inc.c"
 
-/// Like `diverRestartClip`, but restarts every slot through `func_800B4114`
+/// Like `diverRestartClip`, but restarts every slot through `animationSeekSlotWithBlend`
 /// with the pending blend value `animBlend`, which is consumed (cleared) only
 /// when the requested clip `animClip` differs from the current `animPlaying`.
 static void Actor00400_Fn08624(Task* arg0)
@@ -4794,14 +4794,14 @@ static void Actor00400_Fn08624(Task* arg0)
         i = 1;
         do {
             work->slots[i].rate = work->animStep;
-            func_800B4114(&work->anim, i, work->animClip, 0, work->animBlend);
+            animationSeekSlotWithBlend(&work->anim, i, work->animClip, 0, work->animBlend);
             i++;
         } while (i < 0xF);
     } else {
         i = 1;
         do {
             work->slots[i].rate = work->animStep;
-            func_800B4114(&work->anim, i, work->animClip, 0, work->animBlend);
+            animationSeekSlotWithBlend(&work->anim, i, work->animClip, 0, work->animBlend);
             i++;
         } while (i < 0xF);
         work->animBlend = 0;

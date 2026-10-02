@@ -57,7 +57,7 @@
 #define GOLEM_KNIGHT_BISHOP_KIND GOLEM_KNIGHT
 #include "../../shared/golem_knight_bishop.h"
 
-/// Per-animation-id value `golemKnightBishopTickAnim` hands `func_800B4114`
+/// Per-animation-id value `golemKnightBishopTickAnim` hands `animationSeekSlotWithBlend`
 /// as its fifth argument when it reseeds animation slots 1..0x12.
 extern s16 gGolemKnightBishopAnimBlend[];
 

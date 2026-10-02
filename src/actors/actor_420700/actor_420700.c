@@ -1228,7 +1228,7 @@ static void func_actor_420700_801325C8(void)
 
     i = 1;
     do {
-        func_800B4114(&gScriptedWalkWork->rig.anim, i, gScriptedWalkWork->st.animId, 0, 8);
+        animationSeekSlotWithBlend(&gScriptedWalkWork->rig.anim, i, gScriptedWalkWork->st.animId, 0, 8);
         i++;
     } while (i < 0x14);
     gScriptedWalkWork->st.appliedAnimId = gScriptedWalkWork->st.animId;

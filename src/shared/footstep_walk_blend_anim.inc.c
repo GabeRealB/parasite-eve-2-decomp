@@ -10,8 +10,8 @@ void footstepWalkBlendAnim(void)
     gFootstepWalkWork->stepRec = NULL;
     i                          = 1;
     do {
-        func_800B4114(&gFootstepWalkWork->rig.anim, i, gFootstepWalkWork->st.animId, 0,
-                      gFootstepWalkBlendFrames);
+        animationSeekSlotWithBlend(&gFootstepWalkWork->rig.anim, i, gFootstepWalkWork->st.animId, 0,
+                                   gFootstepWalkBlendFrames);
         i++;
     } while (i < 0x13);
     gFootstepWalkWork->st.appliedAnimId = gFootstepWalkWork->st.animId;

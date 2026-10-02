@@ -721,7 +721,7 @@ static void func_actor_310100_80161F80(Task* task)
             anim = (Actor310100Work*)task->work;
             i    = 1;
             do {
-                func_800B4114(&anim->rig.anim, i & 0xFFFF, seed & 0xFFFF, 0, 8);
+                animationSeekSlotWithBlend(&anim->rig.anim, i & 0xFFFF, seed & 0xFFFF, 0, 8);
                 i += 1;
             } while ((u32)(i & 0xFFFF) < 0x13U);
             work->field_4FA = seed;
@@ -1191,7 +1191,7 @@ void func_actor_310100_80162CDC(Task* task, s32 msgId, s32 arg2)
 /// task (`pos.vx` zero — the seed carries the yaw into `field_4F6` and message
 /// 0x3F4 gets `pos.vy` / `pos.vz` as a `AnimationPlayRequest`) or reseeds the nineteen
 /// animation slots (`pos.vz` zero resets them through `animationResetSlot`,
-/// otherwise `func_800B4114` blends them) and records the new base in
+/// otherwise `animationSeekSlotWithBlend` blends them) and records the new base in
 /// `field_4F8` / `field_4FA`.
 void func_actor_310100_80162D50(Task* task, s32 msgId, ActorTransform* placement)
 {
@@ -1237,7 +1237,7 @@ void func_actor_310100_80162D50(Task* task, s32 msgId, ActorTransform* placement
             } while ((u32)(i & 0xFFFF) < 0x13U);
         } else {
             do {
-                func_800B4114(&resetDisp->rig.anim, i & 0xFFFF, active, 0, 8);
+                animationSeekSlotWithBlend(&resetDisp->rig.anim, i & 0xFFFF, active, 0, 8);
                 i += 1;
             } while ((u32)(i & 0xFFFF) < 0x13U);
         }

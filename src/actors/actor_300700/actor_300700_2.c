@@ -52,7 +52,7 @@ extern u16 gRatFastMoveTimes[16];
 
 extern s16 gRatAttackRepeatChance[8];
 
-/// Per-state animation id handed to `func_800B4114`, indexed by `field_37E`.
+/// Per-state animation id handed to `animationSeekSlotWithBlend`, indexed by `field_37E`.
 extern s16 gRatAnimBlend[];
 
 /// The second variant's state handlers, in the same order as the first's:

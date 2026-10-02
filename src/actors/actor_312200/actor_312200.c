@@ -147,7 +147,7 @@ STATIC_ASSERT_SIZEOF(Actor312200Work, 0x984);
 /// Step table the seeding body `func_actor_312200_80162FB4` walks: one 5-byte
 /// row per clip the previous request latched in `Actor312200Work::field_890`,
 /// addressed by the requested clip in `field_892`. The byte it reads is handed
-/// to `func_800B4114` as the request's fifth argument.
+/// to `animationSeekSlotWithBlend` as the request's fifth argument.
 extern s8 D_actor_312200_80169F28[][5];
 
 static void func_actor_312200_80163778(Task* task);
@@ -353,8 +353,8 @@ static void func_actor_312200_80162FB4(Task* task)
         start = (Actor312200Work*)task->work;
         for (i = 1; i < 0x13; i++) {
             start->rig.slots[i].rate = start->field_896.byte;
-            func_800B4114(&start->rig.anim, i, (s16)start->field_892, 0,
-                          D_actor_312200_80169F28[start->field_890][(s16)start->field_892]);
+            animationSeekSlotWithBlend(&start->rig.anim, i, (s16)start->field_892, 0,
+                                       D_actor_312200_80169F28[start->field_890][(s16)start->field_892]);
         }
         start->field_890 = start->field_892;
         goto advance;
