@@ -146,34 +146,50 @@ STATIC_ASSERT_SIZEOF(ShelterB3DumpingHoleAnimStorageAFC8, 24);
 
 extern ShelterB3DumpingHoleAnimStorageAFC8 D_shelter_b3_dumping_hole_8018AFC8;
 
+/// Work block of the debris event's director task, which starts the event
+/// script once the player passes a set X position and stays reachable to the script's
+/// callbacks and the effect tasks through the director task global.
+///
+/// The script posts commands for the player's animations and for the scene
+/// (placements, actor commands, debris); the director handles each on its next
+/// frame and clears it. The remaining fields tell the effect tasks it spawned
+/// when to start and when to remove themselves.
 typedef struct {
-    s32   field_0;
-    s32   field_4;
-    s32   field_8;
-    u8    pad_0C[0x4];
-    s16   field_10;
-    s16   field_12;
-    s16   field_14;
-    u8    pad_16[0xE];
-    Task* field_24;
-    Task* field_28;
-    Task* field_2C;
-    u16   field_30;
-    u16   field_32;
-    u16   field_34;
-    u8    pad_36[0x2];
-    u16   field_38;
-    u16   field_3A;
-    u16   field_3C;
-    u8    pad_3E[0x2];
-    s16   field_40;
-    u16   field_42;
-    s16   field_44;
-    s16   field_46;
-    s16   field_48;
-    s16   field_4A;
-    u16   field_4C;
-} DumpingHoleEntity;
+    ActorTransform pose;               // Placement-0 actor's initial position and yaw, sent back to it with `ACTOR_MESSAGE_PLACE`
+    u8             pad_18[0xC];        // Never accessed; role unproven
+    Task*          player;             // Player task
+    Task*          placement0Actor;    // Task of the area's placement-0 actor (key: area, stage, index 0)
+    Task*          placement1Actor;    // Task of the area's placement-1 actor (key: area, stage, index 1)
+    u16            playerCommand;      // Pending player-animation command (0 none, 1-7), cleared once handled
+    u16            playerStep;         // Progress through a multi-frame player command
+    u16            playerTimer;        // Frames waited within the current player step
+    u8             pad_36[0x2];
+    u16            sceneCommand;       // Pending scene command (0 none, 1-7), cleared once handled
+    u16            sceneStep;          // Progress through a multi-frame scene command
+    u16            sceneTimer;         // Frames waited within the current scene step
+    u8             pad_3E[0x2];
+    u16            debrisModelSignal;  // Debris-model tasks' signal (`SHELTER_B3_DUMPING_HOLE_DEBRIS_MODELS_*`)
+    u16            debrisSpriteSignal; // Debris sprite rings' signal (`SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITES_*`)
+    u16            actorSpritesStop;   // 1 removes the sprites spawned at an actor's coordinate
+    u16            field_46;           // Cleared at start and set to 1 on skip like the stop flags, but never read; role unproven
+    u16            playerSpritesStop;  // 1 removes the sprites spawned at the player's model coordinate
+    u16            field_4A;           // Only ever cleared; role unproven
+    u16            fadeStop;           // 1 removes the screen fade task
+} _ShelterB3DumpingHoleDebrisEventWork;
+
+/// `_ShelterB3DumpingHoleDebrisEventWork::debrisModelSignal` values.
+enum {
+    SHELTER_B3_DUMPING_HOLE_DEBRIS_MODELS_WAIT   = 0, // Placed and waiting
+    SHELTER_B3_DUMPING_HOLE_DEBRIS_MODELS_LAUNCH = 1, // Thrown away from the screen centre
+    SHELTER_B3_DUMPING_HOLE_DEBRIS_MODELS_REMOVE = 2,
+};
+
+/// `_ShelterB3DumpingHoleDebrisEventWork::debrisSpriteSignal` values.
+enum {
+    SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITES_WAIT   = 0, // Placed and waiting
+    SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITES_REMOVE = 1,
+    SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITES_RISE   = 2, // Start rising and animating
+};
 
 typedef struct {
     s16 field_0;
@@ -2095,11 +2111,11 @@ static u16 func_shelter_b3_dumping_hole_8017DA00(GfxCoord* coord, s16 w, s16 h, 
 
 void func_shelter_b3_dumping_hole_8017DCFC(Task* arg0)
 {
-    DumpingHoleAnimWork* W      = (DumpingHoleAnimWork*)arg0->work;
-    GfxCoord*            coord  = arg0->extra.coordBody->coord;
-    DumpingHoleEntity*   entity = D_shelter_b3_dumping_hole_8018F4A8->work;
+    DumpingHoleAnimWork*                  W      = (DumpingHoleAnimWork*)arg0->work;
+    GfxCoord*                             coord  = arg0->extra.coordBody->coord;
+    _ShelterB3DumpingHoleDebrisEventWork* entity = D_shelter_b3_dumping_hole_8018F4A8->work;
 
-    if (entity->field_42 == 1) {
+    if (entity->debrisSpriteSignal == SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITES_REMOVE) {
         taskKill(arg0);
         return;
     }
@@ -2113,7 +2129,7 @@ void func_shelter_b3_dumping_hole_8017DCFC(Task* arg0)
             arg0->state++;
             return;
         case 1:
-            if (entity->field_42 != 2) {
+            if (entity->debrisSpriteSignal != SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITES_RISE) {
                 return;
             }
             W->field_1C     = 5;
@@ -2188,7 +2204,7 @@ void func_shelter_b3_dumping_hole_8017DF90(Task* arg0)
     s16                  scale = 0x1000;
     s32                  otz   = 0x3E8;
 
-    if ((u16)((DumpingHoleEntity*)D_shelter_b3_dumping_hole_8018F4A8->work)->field_44 == 1) {
+    if (((_ShelterB3DumpingHoleDebrisEventWork*)D_shelter_b3_dumping_hole_8018F4A8->work)->actorSpritesStop == 1) {
         taskKill(arg0);
         return;
     }
@@ -2282,7 +2298,7 @@ void func_shelter_b3_dumping_hole_8017E440(Task* arg0)
     s16                  var0;
     s16                  delta;
 
-    if ((u16)((DumpingHoleEntity*)D_shelter_b3_dumping_hole_8018F4A8->work)->field_48 == 1) {
+    if (((_ShelterB3DumpingHoleDebrisEventWork*)D_shelter_b3_dumping_hole_8018F4A8->work)->playerSpritesStop == 1) {
         taskKill(arg0);
         return;
     }
@@ -2418,9 +2434,9 @@ static void func_shelter_b3_dumping_hole_8017E7DC(Task* arg0)
 /// then falls under a growing downward speed.
 void func_shelter_b3_dumping_hole_8017E94C(Task* arg0)
 {
-    DumpingHoleCoordWork* work  = (DumpingHoleCoordWork*)arg0->work;
-    u16                   flag  = ((DumpingHoleEntity*)D_shelter_b3_dumping_hole_8018F4A8->work)->field_40;
-    GfxCoord*             coord = arg0->extra.tmd->coords;
+    DumpingHoleCoordWork* work   = (DumpingHoleCoordWork*)arg0->work;
+    u16                   signal = ((_ShelterB3DumpingHoleDebrisEventWork*)D_shelter_b3_dumping_hole_8018F4A8->work)->debrisModelSignal;
+    GfxCoord*             coord  = arg0->extra.tmd->coords;
     GfxCoord*             c2;
     DumpingHoleProjection p;
     s32                   sx;
@@ -2430,7 +2446,7 @@ void func_shelter_b3_dumping_hole_8017E94C(Task* arg0)
     s32                   y;
     s32                   z;
 
-    if (flag == 2) {
+    if (signal == SHELTER_B3_DUMPING_HOLE_DEBRIS_MODELS_REMOVE) {
         taskKill(arg0);
         return;
     }
@@ -2440,7 +2456,7 @@ void func_shelter_b3_dumping_hole_8017E94C(Task* arg0)
             arg0->state++;
             return;
         case 1:
-            if (flag == 1) {
+            if (signal == SHELTER_B3_DUMPING_HOLE_DEBRIS_MODELS_LAUNCH) {
                 arg0->state = 2;
             }
             return;
@@ -2527,45 +2543,45 @@ void func_shelter_b3_dumping_hole_8017E94C(Task* arg0)
 
 static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
 {
-    DumpingHoleEntity* work = (DumpingHoleEntity*)arg0->work;
+    _ShelterB3DumpingHoleDebrisEventWork* work = arg0->work;
     union {
         AnimationPlayRequest anim;
         ActorCommand         loc;
     } msg;
     u8 area;
 
-    if (work->field_24 != NULL) {
-        taskMessageDispatch(work->field_24, ANIMATION_MESSAGE_IS_PLAYING, 0, 0);
+    if (work->player != NULL) {
+        taskMessageDispatch(work->player, ANIMATION_MESSAGE_IS_PLAYING, 0, 0);
     }
-    switch (work->field_30) {
+    switch (work->playerCommand) {
         case 0:
             break;
         case 1:
-            switch (work->field_32) {
+            switch (work->playerStep) {
                 case 0:
-                    TASK_MESSAGE_DISPATCH_POINTER(work->field_24, 0x3E9, D_shelter_b3_dumping_hole_8018819C, 0);
-                    TASK_MESSAGE_DISPATCH_POINTER(work->field_24, 0x3F2, &D_shelter_b3_dumping_hole_8018819C[6], 0);
-                    work->field_32++;
+                    TASK_MESSAGE_DISPATCH_POINTER(work->player, 0x3E9, D_shelter_b3_dumping_hole_8018819C, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(work->player, 0x3F2, &D_shelter_b3_dumping_hole_8018819C[6], 0);
+                    work->playerStep++;
                     return;
                 case 1:
-                    if (taskMessageDispatch(work->field_24, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
-                        work->field_34 = 0;
-                        work->field_32++;
+                    if (taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
+                        work->playerTimer = 0;
+                        work->playerStep++;
                     }
                     return;
                 case 2:
-                    if (++work->field_34 < 6) {
+                    if (++work->playerTimer < 6) {
                         return;
                     }
                     {
-                        DumpingHoleEntity* w2         = (DumpingHoleEntity*)arg0->work;
-                        s32                weaponId   = gPlayerStatus.weapon;
-                        msg.anim.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-                        msg.anim.animationId          = 0x2F;
-                        msg.anim.blend                = ANIMATION_BLEND_INTERPOLATE;
-                        msg.anim.blendFrames          = 0xA;
-                        msg.anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                        TASK_MESSAGE_DISPATCH_POINTER(w2->field_24, ANIMATION_MESSAGE_PLAY, &msg, 0);
+                        _ShelterB3DumpingHoleDebrisEventWork* w2       = arg0->work;
+                        s32                                   weaponId = gPlayerStatus.weapon;
+                        msg.anim.source.index                          = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                        msg.anim.animationId                           = 0x2F;
+                        msg.anim.blend                                 = ANIMATION_BLEND_INTERPOLATE;
+                        msg.anim.blendFrames                           = 0xA;
+                        msg.anim.enableWorldCollision                  = ANIMATION_WORLD_COLLISION_DISABLE;
+                        TASK_MESSAGE_DISPATCH_POINTER(w2->player, ANIMATION_MESSAGE_PLAY, &msg, 0);
                     }
                     break;
                 default:
@@ -2573,56 +2589,56 @@ static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
             }
             break;
         case 2: {
-            DumpingHoleEntity* w2         = (DumpingHoleEntity*)arg0->work;
-            s32                weaponId   = gPlayerStatus.weapon;
-            msg.anim.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-            msg.anim.animationId          = 0x32;
-            msg.anim.blend                = ANIMATION_BLEND_RESET;
-            msg.anim.blendFrames          = 0;
-            msg.anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            TASK_MESSAGE_DISPATCH_POINTER(w2->field_24, ANIMATION_MESSAGE_PLAY, &msg, 0);
+            _ShelterB3DumpingHoleDebrisEventWork* w2       = arg0->work;
+            s32                                   weaponId = gPlayerStatus.weapon;
+            msg.anim.source.index                          = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            msg.anim.animationId                           = 0x32;
+            msg.anim.blend                                 = ANIMATION_BLEND_RESET;
+            msg.anim.blendFrames                           = 0;
+            msg.anim.enableWorldCollision                  = ANIMATION_WORLD_COLLISION_DISABLE;
+            TASK_MESSAGE_DISPATCH_POINTER(w2->player, ANIMATION_MESSAGE_PLAY, &msg, 0);
         } break;
         case 3:
-            taskMessageDispatch(work->field_24, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
+            taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
             break;
         case 4:
-            taskMessageDispatch(work->field_24, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(work->field_24, 0x3E9, &D_shelter_b3_dumping_hole_801881CC, 0);
+            taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->player, 0x3E9, &D_shelter_b3_dumping_hole_801881CC, 0);
             {
-                DumpingHoleEntity* w2         = (DumpingHoleEntity*)arg0->work;
-                s32                weaponId   = gPlayerStatus.weapon;
-                msg.anim.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-                msg.anim.animationId          = 9;
-                msg.anim.blend                = ANIMATION_BLEND_RESET;
-                msg.anim.blendFrames          = 0;
-                msg.anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(w2->field_24, ANIMATION_MESSAGE_PLAY, &msg, 0);
+                _ShelterB3DumpingHoleDebrisEventWork* w2       = arg0->work;
+                s32                                   weaponId = gPlayerStatus.weapon;
+                msg.anim.source.index                          = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                msg.anim.animationId                           = 9;
+                msg.anim.blend                                 = ANIMATION_BLEND_RESET;
+                msg.anim.blendFrames                           = 0;
+                msg.anim.enableWorldCollision                  = ANIMATION_WORLD_COLLISION_DISABLE;
+                TASK_MESSAGE_DISPATCH_POINTER(w2->player, ANIMATION_MESSAGE_PLAY, &msg, 0);
             }
             break;
         case 5:
-            switch (work->field_32) {
+            switch (work->playerStep) {
                 case 0:
                     msg.loc.context.loc.stage = gGameSession->location.loc.stage;
                     area                      = gGameSession->location.loc.area;
                     msg.loc.command           = 1;
                     msg.loc.context.loc.area  = area;
                     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
-                    work->field_34 = 0;
-                    work->field_32++;
+                    work->playerTimer = 0;
+                    work->playerStep++;
                     return;
                 case 1:
-                    if (++work->field_34 < 0x10) {
+                    if (++work->playerTimer < 0x10) {
                         return;
                     }
                     {
-                        DumpingHoleEntity* w2         = (DumpingHoleEntity*)arg0->work;
-                        s32                weaponId   = gPlayerStatus.weapon;
-                        msg.anim.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-                        msg.anim.animationId          = 0x30;
-                        msg.anim.blend                = ANIMATION_BLEND_INTERPOLATE;
-                        msg.anim.blendFrames          = 0xA;
-                        msg.anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                        TASK_MESSAGE_DISPATCH_POINTER(w2->field_24, ANIMATION_MESSAGE_PLAY, &msg, 0);
+                        _ShelterB3DumpingHoleDebrisEventWork* w2       = arg0->work;
+                        s32                                   weaponId = gPlayerStatus.weapon;
+                        msg.anim.source.index                          = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                        msg.anim.animationId                           = 0x30;
+                        msg.anim.blend                                 = ANIMATION_BLEND_INTERPOLATE;
+                        msg.anim.blendFrames                           = 0xA;
+                        msg.anim.enableWorldCollision                  = ANIMATION_WORLD_COLLISION_DISABLE;
+                        TASK_MESSAGE_DISPATCH_POINTER(w2->player, ANIMATION_MESSAGE_PLAY, &msg, 0);
                     }
                     break;
                 default:
@@ -2630,57 +2646,57 @@ static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
             }
             break;
         case 6: {
-            DumpingHoleEntity* w2         = (DumpingHoleEntity*)arg0->work;
-            s32                weaponId   = gPlayerStatus.weapon;
-            msg.anim.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-            msg.anim.animationId          = 0x33;
-            msg.anim.blend                = ANIMATION_BLEND_INTERPOLATE;
-            msg.anim.blendFrames          = 0xA;
-            msg.anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            TASK_MESSAGE_DISPATCH_POINTER(w2->field_24, ANIMATION_MESSAGE_PLAY, &msg, 0);
+            _ShelterB3DumpingHoleDebrisEventWork* w2       = arg0->work;
+            s32                                   weaponId = gPlayerStatus.weapon;
+            msg.anim.source.index                          = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            msg.anim.animationId                           = 0x33;
+            msg.anim.blend                                 = ANIMATION_BLEND_INTERPOLATE;
+            msg.anim.blendFrames                           = 0xA;
+            msg.anim.enableWorldCollision                  = ANIMATION_WORLD_COLLISION_DISABLE;
+            TASK_MESSAGE_DISPATCH_POINTER(w2->player, ANIMATION_MESSAGE_PLAY, &msg, 0);
         }
-            taskMessageDispatch(work->field_24, ANIMATION_MESSAGE_SET_RATE, 0x20, 0);
+            taskMessageDispatch(work->player, ANIMATION_MESSAGE_SET_RATE, 0x20, 0);
             break;
         case 7: {
-            DumpingHoleEntity* w2         = (DumpingHoleEntity*)arg0->work;
-            s32                weaponId   = gPlayerStatus.weapon;
-            msg.anim.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-            msg.anim.animationId          = 0x31;
-            msg.anim.blend                = ANIMATION_BLEND_INTERPOLATE;
-            msg.anim.blendFrames          = 0xA;
-            msg.anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            TASK_MESSAGE_DISPATCH_POINTER(w2->field_24, ANIMATION_MESSAGE_PLAY, &msg, 0);
+            _ShelterB3DumpingHoleDebrisEventWork* w2       = arg0->work;
+            s32                                   weaponId = gPlayerStatus.weapon;
+            msg.anim.source.index                          = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            msg.anim.animationId                           = 0x31;
+            msg.anim.blend                                 = ANIMATION_BLEND_INTERPOLATE;
+            msg.anim.blendFrames                           = 0xA;
+            msg.anim.enableWorldCollision                  = ANIMATION_WORLD_COLLISION_DISABLE;
+            TASK_MESSAGE_DISPATCH_POINTER(w2->player, ANIMATION_MESSAGE_PLAY, &msg, 0);
         } break;
     }
-    work->field_30 = 0;
+    work->playerCommand = 0;
 }
 
 static void func_shelter_b3_dumping_hole_8017F1B0(Task* arg0)
 {
-    DumpingHoleEntity*      work = (DumpingHoleEntity*)arg0->work;
-    ActorCommand            msg;
-    DumpingHoleDebrisSeed   seed;
-    DumpingHoleDebrisEntry* e;
-    DumpingHoleDebrisEntry* p;
-    u16                     i;
-    u8                      area;
+    _ShelterB3DumpingHoleDebrisEventWork* work = arg0->work;
+    ActorCommand                          msg;
+    DumpingHoleDebrisSeed                 seed;
+    DumpingHoleDebrisEntry*               e;
+    DumpingHoleDebrisEntry*               p;
+    u16                                   i;
+    u8                                    area;
 
-    switch (work->field_38) {
+    switch (work->sceneCommand) {
         case 0:
             break;
         case 1:
-            switch (work->field_3A) {
+            switch (work->sceneStep) {
                 case 0:
-                    work->field_40 = 1;
-                    work->field_42 = 2;
-                    work->field_3C = 0;
-                    work->field_3A++;
+                    work->debrisModelSignal  = SHELTER_B3_DUMPING_HOLE_DEBRIS_MODELS_LAUNCH;
+                    work->debrisSpriteSignal = SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITES_RISE;
+                    work->sceneTimer         = 0;
+                    work->sceneStep++;
                     return;
                 case 1:
-                    if (++work->field_3C < 3) {
+                    if (++work->sceneTimer < 3) {
                         return;
                     }
-                    taskMessageDispatch(((DumpingHoleEntity*)D_shelter_b3_dumping_hole_8018F4A8->work)->field_28, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+                    taskMessageDispatch(((_ShelterB3DumpingHoleDebrisEventWork*)D_shelter_b3_dumping_hole_8018F4A8->work)->placement0Actor, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
                     msg.context.loc.stage = gGameSession->location.loc.stage;
                     area                  = gGameSession->location.loc.area;
                     msg.command           = 2;
@@ -2692,7 +2708,7 @@ static void func_shelter_b3_dumping_hole_8017F1B0(Task* arg0)
             }
             break;
         case 2:
-            TASK_MESSAGE_DISPATCH_POINTER(work->field_28, 0x7D4, work, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->placement0Actor, ACTOR_MESSAGE_PLACE, &work->pose, 0);
             msg.context.loc.stage = gGameSession->location.loc.stage;
             area                  = gGameSession->location.loc.area;
             msg.command           = 3;
@@ -2707,13 +2723,13 @@ static void func_shelter_b3_dumping_hole_8017F1B0(Task* arg0)
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
             break;
         case 5:
-            TASK_MESSAGE_DISPATCH_POINTER(work->field_2C, 0x7D4, &D_shelter_b3_dumping_hole_801881E4, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->placement1Actor, ACTOR_MESSAGE_PLACE, &D_shelter_b3_dumping_hole_801881E4, 0);
             break;
         case 6:
-            switch (work->field_3A) {
+            switch (work->sceneStep) {
                 case 0:
-                    work->field_44 = 1;
-                    work->field_3A++;
+                    work->actorSpritesStop = 1;
+                    work->sceneStep++;
                     return;
                 case 1:
                     for (i = 0; D_shelter_b3_dumping_hole_801881FC[i].pos.vx != SHELTER_B3_DUMPING_HOLE_TRANSFORM_END; i++) {
@@ -2753,24 +2769,24 @@ static void func_shelter_b3_dumping_hole_8017F1B0(Task* arg0)
             }
             break;
         case 7:
-            work->field_42 = 1;
-            work->field_40 = 2;
+            work->debrisSpriteSignal = SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITES_REMOVE;
+            work->debrisModelSignal  = SHELTER_B3_DUMPING_HOLE_DEBRIS_MODELS_REMOVE;
             break;
     }
-    work->field_38 = 0;
+    work->sceneCommand = 0;
 }
 
 void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
 {
-    DumpingHoleEntity*       work;
-    DumpingHoleEntity*       w;
-    Task*                    t;
-    DumpingHoleEntity*       w2;
-    AnimationBankCopyRequest msg;
-    AnimationPlayRequest     anim;
-    AnimationPlayRequest*    p;
-    s32                      n;
-    s32                      weaponId;
+    _ShelterB3DumpingHoleDebrisEventWork* work;
+    _ShelterB3DumpingHoleDebrisEventWork* w;
+    Task*                                 t;
+    _ShelterB3DumpingHoleDebrisEventWork* w2;
+    AnimationBankCopyRequest              msg;
+    AnimationPlayRequest                  anim;
+    AnimationPlayRequest*                 p;
+    s32                                   n;
+    s32                                   weaponId;
 
     switch (arg0->state) {
         case 0:
@@ -2780,24 +2796,26 @@ void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
                 taskKill(arg0);
             } else {
                 memFillBytes(work, 0, sizeof(*work));
-                work->field_24                     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                work->player                       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_shelter_b3_dumping_hole_8018F4A8 = arg0;
-                work->field_28                     = Gp_FindWorkById(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8))->field_0;
-                work->field_2C                     = Gp_FindWorkById((gGameSession->location.loc.stage << 8) | (u16)(gGameSession->location.loc.area | 0x1000))->field_0;
-                work->field_42                     = 0;
-                work->field_40                     = 0;
+                work->placement0Actor              = Gp_FindWorkById(gGameSession->location.loc.area | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT))->field_0;
+                work->placement1Actor              = Gp_FindWorkById((gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | (u16)(gGameSession->location.loc.area | (1 << ENEMY_PLACE_INDEX_SHIFT)))->field_0;
+                work->debrisSpriteSignal           = SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITES_WAIT;
+                work->debrisModelSignal            = SHELTER_B3_DUMPING_HOLE_DEBRIS_MODELS_WAIT;
                 work->field_4A                     = 0;
-                work->field_48                     = 0;
+                work->playerSpritesStop            = 0;
                 work->field_46                     = 0;
             }
-            w                                                   = (DumpingHoleEntity*)arg0->work;
-            w->field_0                                          = w->field_28->extra.tmd->coords->coord.t[0];
-            t                                                   = w->field_28;
-            w->field_4                                          = t->extra.tmd->coords->coord.t[1];
-            w->field_8                                          = t->extra.tmd->coords->coord.t[2];
-            w->field_12                                         = 0x400;
-            w->field_10                                         = 0;
-            w->field_14                                         = 0;
+            // Keep the placement-0 actor's starting pose (a quarter-turn yaw)
+            // for the scene command that places it back.
+            w                                                   = arg0->work;
+            w->pose.pos.vx                                      = w->placement0Actor->extra.tmd->coords->coord.t[0];
+            t                                                   = w->placement0Actor;
+            w->pose.pos.vy                                      = t->extra.tmd->coords->coord.t[1];
+            w->pose.pos.vz                                      = t->extra.tmd->coords->coord.t[2];
+            w->pose.rot.vy                                      = 0x400;
+            w->pose.rot.vx                                      = 0;
+            w->pose.rot.vz                                      = 0;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0xC;
             gStageSceneMusicEntry                               = 3;
             arg0->state++;
@@ -2812,14 +2830,14 @@ void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
             if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE || gPlayerStatus.coordMtx->t[0] < 0x36B1) {
                 break;
             }
-            w2 = (DumpingHoleEntity*)arg0->work;
+            w2 = arg0->work;
             n  = 0;
             while (D_shelter_b3_dumping_hole_801880A0[n & 0xFFFF] != 0) {
                 n += 1;
             }
             msg.source.sets = &D_shelter_b3_dumping_hole_801880A0[0];
             msg.wordCount   = n & 0xFFFF;
-            TASK_MESSAGE_DISPATCH_POINTER(w2->field_24, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(w2->player, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &msg, 0);
             weaponId                  = gPlayerStatus.weapon;
             p                         = &anim;
             anim.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
@@ -2857,13 +2875,13 @@ s16 func_shelter_b3_dumping_hole_8017FB70(void)
 
 void func_shelter_b3_dumping_hole_8017FBA0(Task* arg0)
 {
-    OverlayFadeWork*   fade;
-    OverlayFadeWork*   alloc;
-    DumpingHoleEntity* ent;
+    OverlayFadeWork*                      fade;
+    OverlayFadeWork*                      alloc;
+    _ShelterB3DumpingHoleDebrisEventWork* ent;
 
     ent  = D_shelter_b3_dumping_hole_8018F4A8->work;
     fade = (OverlayFadeWork*)arg0->work;
-    if (ent->field_4C == 1) {
+    if (ent->fadeStop == 1) {
         taskKill(arg0);
         return;
     }
@@ -2935,9 +2953,9 @@ static void func_shelter_b3_dumping_hole_8017FD9C(GfxCoord* arg0, s32 arg1)
 
 static void func_shelter_b3_dumping_hole_8017FE10(s32 arg0)
 {
-    DumpingHoleEntity* p = D_shelter_b3_dumping_hole_8018F4A8->work;
+    _ShelterB3DumpingHoleDebrisEventWork* p = D_shelter_b3_dumping_hole_8018F4A8->work;
     if (arg0 == 0) {
-        p->field_48 = 1;
+        p->playerSpritesStop = 1;
     }
 }
 
@@ -2948,52 +2966,52 @@ void func_shelter_b3_dumping_hole_8017FE34(void)
 
 void func_shelter_b3_dumping_hole_8017FE64(s32 arg0)
 {
-    DumpingHoleEntity* p = D_shelter_b3_dumping_hole_8018F4A8->work;
-    taskMessageDispatch(p->field_28, ACTOR_MESSAGE_SET_MODEL_DRAW, arg0, 0);
+    _ShelterB3DumpingHoleDebrisEventWork* p = D_shelter_b3_dumping_hole_8018F4A8->work;
+    taskMessageDispatch(p->placement0Actor, ACTOR_MESSAGE_SET_MODEL_DRAW, arg0, 0);
 }
 
 void func_shelter_b3_dumping_hole_8017FE9C(s32 arg0)
 {
-    DumpingHoleEntity* p = D_shelter_b3_dumping_hole_8018F4A8->work;
-    taskMessageDispatch(p->field_2C, ACTOR_MESSAGE_SET_MODEL_DRAW, arg0, 0);
+    _ShelterB3DumpingHoleDebrisEventWork* p = D_shelter_b3_dumping_hole_8018F4A8->work;
+    taskMessageDispatch(p->placement1Actor, ACTOR_MESSAGE_SET_MODEL_DRAW, arg0, 0);
 }
 
 void func_shelter_b3_dumping_hole_8017FED4(s16 arg0)
 {
-    DumpingHoleEntity* p = D_shelter_b3_dumping_hole_8018F4A8->work;
-    p->field_30          = arg0;
-    p->field_32          = 0;
+    _ShelterB3DumpingHoleDebrisEventWork* p = D_shelter_b3_dumping_hole_8018F4A8->work;
+    p->playerCommand                        = arg0;
+    p->playerStep                           = 0;
 }
 
 void func_shelter_b3_dumping_hole_8017FEF4(s16 arg0)
 {
-    DumpingHoleEntity* p = D_shelter_b3_dumping_hole_8018F4A8->work;
-    p->field_38          = arg0;
-    p->field_3A          = 0;
+    _ShelterB3DumpingHoleDebrisEventWork* p = D_shelter_b3_dumping_hole_8018F4A8->work;
+    p->sceneCommand                         = arg0;
+    p->sceneStep                            = 0;
 }
 
 void func_shelter_b3_dumping_hole_8017FF14(void)
 {
-    Task*              st  = D_shelter_b3_dumping_hole_8018F4A8;
-    DumpingHoleEntity* ent = st->work;
-    DumpingHoleEntity* ent2;
-    s32                desc[5];
+    Task*                                 st  = D_shelter_b3_dumping_hole_8018F4A8;
+    _ShelterB3DumpingHoleDebrisEventWork* ent = st->work;
+    _ShelterB3DumpingHoleDebrisEventWork* ent2;
+    s32                                   desc[5];
 
-    taskMessageDispatch(ent->field_2C, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
-    taskMessageDispatch(ent->field_24, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-    TASK_MESSAGE_DISPATCH_POINTER(ent->field_24, 0x3E9, &D_shelter_b3_dumping_hole_801881CC, 0);
+    taskMessageDispatch(ent->placement1Actor, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
+    taskMessageDispatch(ent->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(ent->player, 0x3E9, &D_shelter_b3_dumping_hole_801881CC, 0);
     ent2    = st->work;
     desc[0] = gPlayerStatus.weapon + (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1 ? 1 : 0x22);
     desc[1] = 9;
     desc[2] = 0;
     desc[3] = 0;
     desc[4] = 0;
-    TASK_MESSAGE_DISPATCH_POINTER(ent2->field_24, ANIMATION_MESSAGE_PLAY, desc, 0);
-    ent->field_40 = 2;
-    ent->field_46 = 1;
-    ent->field_42 = 1;
-    ent->field_4C = 1;
-    ent->field_44 = 1;
+    TASK_MESSAGE_DISPATCH_POINTER(ent2->player, ANIMATION_MESSAGE_PLAY, desc, 0);
+    ent->debrisModelSignal  = SHELTER_B3_DUMPING_HOLE_DEBRIS_MODELS_REMOVE;
+    ent->field_46           = 1;
+    ent->debrisSpriteSignal = SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITES_REMOVE;
+    ent->fadeStop           = 1;
+    ent->actorSpritesStop   = 1;
     CdCmd_CancelReplaceAndActivate();
 }
 

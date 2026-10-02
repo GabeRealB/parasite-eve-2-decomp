@@ -70728,10 +70728,10 @@ Same function: after fixing size, the only diff was state→s1/entity→s0 where
 retail had state→s0/entity→s1. GCC assigns saved regs by allocation priority
 (ref count / live length), so the more-referenced pseudo took s0. Pinning both
 locals — `register DumpingHoleState* s asm("s0") = …;`
-`register DumpingHoleEntity* e asm("s1") = s->field_1C;` — reproduced retail's
+`register _ShelterB3DumpingHoleDebrisEventWork* e asm("s1") = s->field_1C;` — reproduced retail's
 prologue exactly (`sw s0; lw s0,state; … sw s1; lw s1,0x1C(s0)`). Residual on
 this one is unrelated: retail hoists the *entity reload* (`lw a3,0x1C(s0)`) up
-into the ternary's load-delay slot while loading `->field_24` late, a sched1
+into the ternary's load-delay slot while loading `->player` late, a sched1
 split that source order does not control (left at ~98%, permuter candidate).
 ### A loop accumulator lands in a callee-saved reg by spanning a call, not by an `asm` pin
 **Symptom.** A `switch`-free counter loop (`for (i…) if (…) count++;` then
