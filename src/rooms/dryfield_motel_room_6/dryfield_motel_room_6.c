@@ -189,8 +189,6 @@ s32                               func_dryfield_motel_room_6_801819A8(Task*, s32
 s32                               func_dryfield_motel_room_6_80181A00(Task*, s32, TaskMessageArg, TaskMessageArg);
 void                              func_dryfield_motel_room_6_80181A08(Task*);
 
-extern WorldCoordSpotLight D_dryfield_motel_room_6_80186288[2];
-
 #include "../../shared/telephone_data.inc.c"
 
 #include "../../shared/planar_reflection_data.inc.c"
@@ -969,9 +967,52 @@ static WorldCoordPointLight _gDryfieldMotelRoom6PointLights[] = {
     },
 };
 
-WorldCoordSpotLight D_dryfield_motel_room_6_80186288[2] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { -4092, -2, 258 }, { 90, 3831, 1457 }, { -242, 1459, -3827 } }, { 1225, -2361, 7903 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 0, 0, 0 }, { 0, 0 } }, { 258, 1455, -3819, 0 }, 2000, 6500, 398 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { -3451, -2, -2222 }, { -1605, -2838, 2492 }, { -1537, 2965, 2384 } }, { 6876, -2510, -586 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1465, 1443, 1440 }, { 0, 0 } }, { -2217, 2488, 2380, 0 }, 2184, 0x1822C, 682 },
+/// Authored cone lights for daytime Dryfield motel room 6, available in every view.
+///
+/// Positions and falloff radii use integer world units; RGB intensity and axes use
+/// `ONE` as 1.0, and full cone openings use 0x1000 angle units per turn.
+/// The room light collection borrows both entries while this overlay is loaded.
+/// Entries remain writable for aiming, view parenting, transform
+/// composition and attenuation queries.
+static WorldCoordSpotLight _gDryfieldMotelRoom6ConeLights[2] = {
+    {
+        .head = {
+            .transform  = { .lighting = {
+                                .composeStamp = GRAPHICS_COORD_DIRTY,
+                                .local        = { { { -4092, -2, 258 }, { 90, 3831, 1457 }, { -242, 1459, -3827 } }, { 1225, -2361, 7903 } },
+                                .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                                .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                                .unknown_46   = { 0, 0, 0, 0 },
+                                .attenuation  = 0,
+                                .parent       = NULL,
+                           } },
+            .color      = { 0, 0, 0 },
+            .unknown_56 = { 0, 0 },
+        },
+        .axis  = { 258, 1455, -3819, 0 },
+        .inner = 2000,
+        .outer = 6500,
+        .angle = 398,
+    },
+    {
+        .head = {
+            .transform  = { .lighting = {
+                                .composeStamp = GRAPHICS_COORD_DIRTY,
+                                .local        = { { { -3451, -2, -2222 }, { -1605, -2838, 2492 }, { -1537, 2965, 2384 } }, { 6876, -2510, -586 } },
+                                .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                                .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                                .unknown_46   = { 0, 0, 0, 0 },
+                                .attenuation  = 0,
+                                .parent       = NULL,
+                           } },
+            .color      = { 1465, 1443, 1440 },
+            .unknown_56 = { 0, 0 },
+        },
+        .axis  = { -2217, 2488, 2380, 0 },
+        .inner = 2184,
+        .outer = 0x1822C,
+        .angle = 682,
+    },
 };
 
 /// Unreferenced image bytes following the room's cone lights; original purpose unproven.
@@ -1843,7 +1884,7 @@ static u8 _gDryfieldMotelRoom6UnreferencedData[] = {
 };
 
 WorldCoordRoomLights D_dryfield_motel_room_6_801866C0[1] = {
-    { 0, NULL, ARRAY_SIZE(_gDryfieldMotelRoom6PointLights), _gDryfieldMotelRoom6PointLights, ARRAY_SIZE(D_dryfield_motel_room_6_80186288), D_dryfield_motel_room_6_80186288 },
+    { 0, NULL, ARRAY_SIZE(_gDryfieldMotelRoom6PointLights), _gDryfieldMotelRoom6PointLights, ARRAY_SIZE(_gDryfieldMotelRoom6ConeLights), _gDryfieldMotelRoom6ConeLights },
 };
 
 WorldCoordRoomAmbientEntry D_dryfield_motel_room_6_801866D8[13] = {
