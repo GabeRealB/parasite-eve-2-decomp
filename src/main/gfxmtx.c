@@ -59,6 +59,32 @@ typedef struct {
     /* 0x3C */ SVECTOR vec3;
 } ScratchRotZYX;
 
+/// Builds a pure Z-axis rotation from precomputed sine and cosine.
+///
+/// `rotation` supplies a live, writable `MATRIX*`. `angleSin` and `angleCos`
+/// are signed 16-bit expressions for the same angle, scaled by `ONE` (4096)
+/// and in [-ONE, ONE]. The resulting 3x3 is
+/// {{cos, -sin, 0}, {sin, cos, 0}, {0, 0, ONE}}.
+///
+/// Evaluates `rotation` nine times and each trigonometric expression twice.
+/// Arguments must have no side effects and remain unchanged by the stores;
+/// any sine/cosine storage must be disjoint from the nine destination elements.
+/// Captures no caller identifiers. Writes only those nine signed 16-bit elements;
+/// the alignment bytes and translation remain unchanged. Requires no initialized
+/// destination rotation, scratch-stack reservation or GTE state; retains no pointer.
+#define GRAPHICS_BUILD_Z_ROTATION(rotation, angleSin, angleCos) \
+    do {                                                        \
+        (rotation)->m[0][0] = (angleCos);                       \
+        (rotation)->m[0][1] = -(angleSin);                      \
+        (rotation)->m[0][2] = 0;                                \
+        (rotation)->m[1][0] = (angleSin);                       \
+        (rotation)->m[1][1] = (angleCos);                       \
+        (rotation)->m[1][2] = 0;                                \
+        (rotation)->m[2][0] = 0;                                \
+        (rotation)->m[2][1] = 0;                                \
+        (rotation)->m[2][2] = ONE;                              \
+    } while (0)
+
 static void Gfx_RotMatrixZYX(MATRIX* out, SVECTOR* angles, s32 flag);
 
 static void Gfx_TransposeRot(MATRIX* arg0, MATRIX* arg1);
@@ -449,27 +475,6 @@ void gfxRotMatrixY(MATRIX* matrix, s32 angle, s32 replace)
     SCRATCH_STACK_RELEASE_BLOCK(_GfxAxisRotationScratch);
 }
 
-/// Builds a pure Z-axis rotation from precomputed sine and cosine.
-///
-/// `scratch` holds `angleSin` and `angleCos` for the same angle, scaled by
-/// `ONE` (4096) and in [-ONE, ONE]. Its matrix need not be initialized.
-/// `rotation` is a live, writable `MATRIX`, disjoint from `scratch` or exactly
-/// `&scratch->rotation`. Writes only the nine signed 16-bit rotation elements,
-/// preserving the alignment bytes and translation. The caller owns both
-/// objects; no scratch reservation, GTE state or retained pointer is involved.
-static __inline__ void _gfxBuildZRotation(MATRIX* rotation, const _GfxAxisRotationScratch* scratch)
-{
-    rotation->m[0][0] = scratch->angleCos;
-    rotation->m[0][1] = -scratch->angleSin;
-    rotation->m[0][2] = 0;
-    rotation->m[1][0] = scratch->angleSin;
-    rotation->m[1][1] = scratch->angleCos;
-    rotation->m[1][2] = 0;
-    rotation->m[2][0] = 0;
-    rotation->m[2][1] = 0;
-    rotation->m[2][2] = ONE;
-}
-
 void gfxRotMatrixZ(MATRIX* matrix, s32 angle, s32 replace)
 {
     _GfxAxisRotationScratch* scratch;
@@ -482,9 +487,9 @@ void gfxRotMatrixZ(MATRIX* matrix, s32 angle, s32 replace)
     // Build Rz directly for replacement, or in scratch for matrix * Rz.
     // Composition reads only the 3x3, so scratch translation stays unset.
     if (replace != 0) {
-        _gfxBuildZRotation(matrix, scratch);
+        GRAPHICS_BUILD_Z_ROTATION(matrix, scratch->angleSin, scratch->angleCos);
     } else {
-        _gfxBuildZRotation(&scratch->rotation, scratch);
+        GRAPHICS_BUILD_Z_ROTATION(&scratch->rotation, scratch->angleSin, scratch->angleCos);
         gte_MulMatrix0(matrix, &scratch->rotation, matrix);
     }
 
