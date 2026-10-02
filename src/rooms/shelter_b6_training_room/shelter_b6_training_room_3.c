@@ -255,7 +255,7 @@ ActorCommand D_shelter_b6_training_room_80183BA0 = { { .loc = { 5, 24 } }, 1 };
 
 ActorCommand D_shelter_b6_training_room_80183BA4 = { { .loc = { 5, 24 } }, 2 };
 
-GpSpawnAnimArg D_shelter_b6_training_room_80183BA8 = { 3, 4 };
+ActorMotionWalkAnim D_shelter_b6_training_room_80183BA8 = { .animationId = 3, .nextAnimId = 4 };
 
 ActorCommand D_shelter_b6_training_room_80183BB0 = { { .loc = { 5, 24 } }, 1 };
 

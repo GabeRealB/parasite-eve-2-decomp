@@ -42,10 +42,6 @@ typedef struct Actor317000Work {
 } Actor317000Work;
 STATIC_ASSERT_SIZEOF(Actor317000Work, 0x4CC);
 
-/// Optional start animation for the same handler: the preset's `field_4` and
-/// the `model.nextAnimId` byte. Absent, the defaults are anim 2 and 1.
-typedef GpSpawnAnimArg Actor317000SpawnAnim;
-
 /// Indexed by `Actor317000Work::model.bank` for `animationInitContext`'s second
 /// argument by `func_actor_317000_80162458` and `actorMotionPlayAnim19`.
 /// Every preset the actor builds has `field_0` 0, so only the first word is
@@ -64,7 +60,7 @@ typedef struct {
         s32                (*call0)(Task*, s32, AnimationPlayRequest*, s32);
         s32                (*call1)(Task*, s32, ActorCommand* request);
         s32                (*call2)(Task*, s32, ActorTransform*);
-        s32                (*call3)(Task*, s32, ActorTransform*, Actor317000SpawnAnim*);
+        s32                (*call3)(Task*, s32, ActorTransform*, ActorMotionWalkAnim*);
         TaskMessageHandler call4;
     } handler;
 } Actor317000MsgEntry;
@@ -107,7 +103,7 @@ static const TaskFuncTable4 D_actor_317000_80161E30 = { {
 static const VECTOR D_actor_317000_80161E40 = { 0, 0xFF800000, 0x400000, 0 };
 
 static TmdSource _gActor317000GrinningStrangerBody;
-s32              func_actor_317000_80162458(Task*, s32, ActorTransform* place, Actor317000SpawnAnim*);
+s32              func_actor_317000_80162458(Task*, s32, ActorTransform* place, ActorMotionWalkAnim*);
 s32              func_actor_317000_80162BC4(Task*, s32, s32, s32);
 s32              func_actor_317000_80162CA0(Task*, s32, ActorCommand* msg);
 void             func_actor_317000_80162624(Task*);
@@ -544,9 +540,10 @@ static void func_actor_317000_801621F4(Task* task, Task* targetTask, s32 arg2, s
 /// and the actor's spawn body. The placement's position and rotation are
 /// copied into the work's `target` and `field_4B8..field_4BC`, `walk.motion` --
 /// the index `func_actor_317000_80161E68` dispatches on -- is latched to 1, and
-/// the animation preset is filled: `field_0` 0, `field_4` the optional start
-/// animation (2 when absent) with `model.nextAnimId` taking its companion byte (1 when
-/// absent), `field_8` 1, `field_C` 5 and `field_10` 1.
+/// the animation preset is filled: bank 0, the start clip from `anim`
+/// (`animationId`, or 2 when `anim` is absent), `nextAnimId` into
+/// `model.nextAnimId` (or 1 when absent), then blend, 5 frames and world
+/// collision on.
 ///
 /// The preset is then installed the way `actorMotionPlayAnim19` installs
 /// one, written out in-line: a changed `field_0` resets the bank in
@@ -556,7 +553,7 @@ static void func_actor_317000_801621F4(Task* task, Task* targetTask, s32 arg2, s
 /// onto `animationSeekSlotWithBlend`'s per-slot loop instead of the `animationResetSlot`
 /// one, followed by a `animationTickSlot` pass over the same 0x12 slots and
 /// `model.ticking` raised. Returns 0 either way.
-s32 func_actor_317000_80162458(Task* task, s32 arg1, ActorTransform* place, Actor317000SpawnAnim* anim)
+s32 func_actor_317000_80162458(Task* task, s32 arg1, ActorTransform* place, ActorMotionWalkAnim* anim)
 {
     Actor317000Work*      work;
     Actor317000Work*      w;
@@ -575,8 +572,8 @@ s32 func_actor_317000_80162458(Task* task, s32 arg1, ActorTransform* place, Acto
     w->walk.rotZ        = place->rot.vz;
     preset.source.index = 0;
     if (anim != NULL) {
-        preset.animationId  = anim->field_0;
-        w->model.nextAnimId = anim->field_4;
+        preset.animationId  = anim->animationId;
+        w->model.nextAnimId = anim->nextAnimId;
     } else {
         preset.animationId  = 2;
         w->model.nextAnimId = 1;

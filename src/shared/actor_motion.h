@@ -44,7 +44,7 @@ void actorMotionArrive(Task* arg0);
 void actorMotionFaceTarget(Task* task);
 void actorMotionTurnToYaw(Task* arg0);
 s32  actorMotionPlayAnim(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3);
-s32  actorMotionStartWalk(Task* task, s32 arg1, ActorTransform* place, GpSpawnAnimArg* anim);
+s32  actorMotionStartWalk(Task* task, s32 arg1, ActorTransform* place, ActorMotionWalkAnim* anim);
 void actorMotionArrive19(Task* arg0);
 s32  actorMotionPlayAnim19(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3);
 

@@ -67,10 +67,6 @@ typedef struct Actor113100Work {
 } Actor113100Work;
 STATIC_ASSERT_SIZEOF(Actor113100Work, 0x540);
 
-/// Optional start animation for the 0x7DD handler: the preset's `field_4` and
-/// the `model.nextAnimId` id byte. Absent, the defaults are anim 2 and id 1.
-typedef GpSpawnAnimArg Actor113100SpawnAnim;
-
 /// Child task table the setup handler `func_actor_113100_80131E58` spawns
 /// from, four `TaskDesc` entries. Index 1 is spawned only when
 /// `gGameSession->location.loc.variant == 2` and its task lands in
@@ -90,7 +86,7 @@ typedef struct {
         s32                (*call0)(Task*, s32, AnimationPlayRequest*, s32);
         s32                (*call1)(Task*, s32, ActorCommand* request);
         s32                (*call2)(Task*, s32, ActorTransform*);
-        s32                (*call3)(Task*, s32, ActorTransform*, Actor113100SpawnAnim*);
+        s32                (*call3)(Task*, s32, ActorTransform*, ActorMotionWalkAnim*);
         TaskMessageHandler call4;
     } handler;
 } Actor113100MsgEntry;
@@ -169,7 +165,7 @@ static TmdSource _gActor113100PierceCarradineBody;
 void             func_actor_113100_80132E98(Task*);
 
 s32 func_actor_113100_80132790(Task*, s32, s32, s32);
-s32 func_actor_113100_801328EC(Task*, s32, ActorTransform* place, Actor113100SpawnAnim*);
+s32 func_actor_113100_801328EC(Task*, s32, ActorTransform* place, ActorMotionWalkAnim*);
 s32 func_actor_113100_801331E8(Task*, s32, AnimationPlayRequest*, s32);
 s32 func_actor_113100_801333B8(Task*, s32, ActorCommand* msg);
 
@@ -1593,8 +1589,8 @@ s32 func_actor_113100_80132790(Task* task, s32 msgId, s32 mode, s32 arg3)
 /// actor as placed through `walk.motion` / `walk.motionStep`, then applies the start
 /// preset in place -- the body of the 0x7D3 handler
 /// `func_actor_113100_801331E8` written out inline against a preset built on
-/// this function's own stack, `anim` picking the preset's `field_4`.
-s32 func_actor_113100_801328EC(Task* task, s32 msgId, ActorTransform* place, Actor113100SpawnAnim* anim)
+/// this function's own stack from `anim->animationId` and `anim->nextAnimId`.
+s32 func_actor_113100_801328EC(Task* task, s32 msgId, ActorTransform* place, ActorMotionWalkAnim* anim)
 {
     Actor113100Work*      work;
     Actor113100Work*      w;
@@ -1614,8 +1610,8 @@ s32 func_actor_113100_801328EC(Task* task, s32 msgId, ActorTransform* place, Act
     w->walk.rotZ        = place->rot.vz;
     preset.source.index = 0;
     if (anim != NULL) {
-        preset.animationId  = anim->field_0;
-        w->model.nextAnimId = anim->field_4;
+        preset.animationId  = anim->animationId;
+        w->model.nextAnimId = anim->nextAnimId;
     } else {
         preset.animationId  = 2;
         w->model.nextAnimId = 1;

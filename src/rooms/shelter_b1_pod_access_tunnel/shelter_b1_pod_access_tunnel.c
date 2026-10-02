@@ -426,7 +426,7 @@ ActorCommand D_shelter_b1_pod_access_tunnel_80182FE4 = { { .loc = { 4, 17 } }, 1
 
 ActorCommand D_shelter_b1_pod_access_tunnel_80182FE8 = { { .loc = { 4, 17 } }, 2 };
 
-GpSpawnAnimArg D_shelter_b1_pod_access_tunnel_80182FEC = { 10, 3 };
+ActorMotionWalkAnim D_shelter_b1_pod_access_tunnel_80182FEC = { .animationId = 10, .nextAnimId = 3 };
 
 EvsSceneKey D_shelter_b1_pod_access_tunnel_80182FF4 = { 4, 10, 11 };
 

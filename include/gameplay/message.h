@@ -418,14 +418,18 @@ typedef struct GpOverrideArg {
 } GpOverrideArg;
 STATIC_ASSERT_SIZEOF(GpOverrideArg, 8);
 
-/// Optional animation for message 0x7DD's placement-and-approach handlers.
-/// The first word selects the animation; the byte selects the next animation
-/// id kept by the actor. A null payload uses the receiver's own defaults.
-typedef struct GpSpawnAnimArg {
-    s32 field_0;
-    u8  field_4;
-} GpSpawnAnimArg;
-STATIC_ASSERT_SIZEOF(GpSpawnAnimArg, 8);
+/// Optional clips for `ACTOR_MESSAGE_WALK_TO` on a scripted walker.
+///
+/// The message's first argument is the borrowed destination. This record,
+/// when supplied, names the clip the walk starts in and the clip kept for a
+/// later step of that walk. Both ids are in the receiver's animation bank 0.
+/// A null pointer leaves the choice to the receiver. Dispatch borrows the
+/// record for the call and does not copy it. The record occupies eight bytes.
+typedef struct {
+    s32 animationId; // Clip played as the walk starts
+    u8  nextAnimId;  // Clip kept for a later step of the walk
+} ActorMotionWalkAnim;
+STATIC_ASSERT_SIZEOF(ActorMotionWalkAnim, 8);
 
 /// Sends two argument words synchronously to a task's first matching message handler.
 ///

@@ -83,10 +83,6 @@ typedef struct Actor335800MainWork {
 } Actor335800MainWork;
 STATIC_ASSERT_SIZEOF(Actor335800MainWork, 0x50C);
 
-/// Optional start animation for `actorMotionStartWalk`: the preset's
-/// `field_4` and the `model.nextAnimId` byte. Absent, the defaults are 0xD and 1.
-typedef GpSpawnAnimArg Actor335800SpawnAnim;
-
 extern ActorTransform D_actor_335800_80164F80;
 
 extern TaskDesc             D_actor_335800_80164DE0[];
@@ -116,7 +112,7 @@ typedef struct {
         s32                (*call1)(Task*, s32, AnimationPlayRequest*, s32);
         TaskMessageHandler call2;
         s32                (*call3)(Task*, s32, ActorTransform*);
-        s32                (*call4)(Task*, s32, ActorTransform*, Actor335800SpawnAnim*);
+        s32                (*call4)(Task*, s32, ActorTransform*, ActorMotionWalkAnim*);
         s32                (*call5)(Task*, s32, s32);
     } handler;
 } Actor335800MsgEntry;
@@ -236,7 +232,7 @@ extern EvsSceneKey              D_actor_335800_80165058;
 extern ActorTransform           D_actor_335800_80164EA4[5];
 s32                             func_actor_335800_8016343C(Task*, s32, s32);
 s32                             func_actor_335800_8016354C(Task*, s32, ActorCommand* request, s32);
-s32                             func_actor_335800_80163880(Task*, s32, ActorTransform* place, Actor335800SpawnAnim*);
+s32                             func_actor_335800_80163880(Task*, s32, ActorTransform* place, ActorMotionWalkAnim*);
 s32                             func_actor_335800_80163F3C(Task*, s32, ActorTransform* args, s32 arg3);
 s32                             func_actor_335800_80163FB8(Task*, s32, s32);
 s32                             func_actor_335800_80164098(void);
@@ -1557,7 +1553,7 @@ static void func_actor_335800_80163568(Task* task)
 /// `actorMotionStartWalk`: stores the spawn position and rotation, then
 /// applies a start preset exactly as `actorMotionPlayAnim19` does
 /// (inlined here).
-s32 func_actor_335800_80163880(Task* task, s32 arg1, ActorTransform* place, Actor335800SpawnAnim* anim)
+s32 func_actor_335800_80163880(Task* task, s32 arg1, ActorTransform* place, ActorMotionWalkAnim* anim)
 {
     Actor335800Work*      work;
     Actor335800Work*      w;
@@ -1577,8 +1573,8 @@ s32 func_actor_335800_80163880(Task* task, s32 arg1, ActorTransform* place, Acto
     w->walk.rotZ        = place->rot.vz;
     preset.source.index = 0;
     if (anim != NULL) {
-        preset.animationId  = anim->field_0;
-        w->model.nextAnimId = anim->field_4;
+        preset.animationId  = anim->animationId;
+        w->model.nextAnimId = anim->nextAnimId;
     } else {
         preset.animationId  = 0xD;
         w->model.nextAnimId = 1;

@@ -301,9 +301,9 @@ ActorTransform D_mist_parking_8018DDD4 = { { -1960, 0, -4650, 0 }, { 0, -1024, 0
 
 ActorTransform D_mist_parking_8018DDEC = { { 5150, 0, -4450, 0 }, { 0, -715, 0, 0 } };
 
-GpSpawnAnimArg D_mist_parking_8018DE04 = { 2, 26 };
+ActorMotionWalkAnim D_mist_parking_8018DE04 = { .animationId = 2, .nextAnimId = 26 };
 
-GpSpawnAnimArg D_mist_parking_8018DE0C = { 2, 33 };
+ActorMotionWalkAnim D_mist_parking_8018DE0C = { .animationId = 2, .nextAnimId = 33 };
 
 ActorCommand D_mist_parking_8018DE14 = { { .loc = { 0, 0 } }, 0 };
 

@@ -36,10 +36,6 @@
 #include "../../shared/actor_messages.h"
 #include "../../shared/model_placement.h"
 
-/// Optional start animation for `actorMotionStartWalk`: the preset's
-/// `field_4` and the `model.nextAnimId` byte. Absent, the defaults are anim 0xD and 1.
-typedef GpSpawnAnimArg Actor135600SpawnAnim;
-
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 
 /// The marker quad's two vertex pairs, in the actor's local frame: `-4/+4`
@@ -64,7 +60,7 @@ typedef struct {
     union {
         s32                (*call0)(void);
         s32                (*call1)(Task*, s32, AnimationPlayRequest*, s32);
-        s32                (*call2)(Task*, s32, ActorTransform*, Actor135600SpawnAnim*);
+        s32                (*call2)(Task*, s32, ActorTransform*, ActorMotionWalkAnim*);
         s32                (*call3)(Task*, s32, ActorTransform*, s32);
         TaskMessageHandler call4;
     } handler;

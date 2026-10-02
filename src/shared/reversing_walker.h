@@ -23,7 +23,7 @@
 #include "main/task_types.h"
 
 void reverseWalkUpdate(Task* arg0);
-s32  reverseWalkStartMsg(Task* task, s32 arg1, ActorTransform* place, GpSpawnAnimArg* anim);
+s32  reverseWalkStartMsg(Task* task, s32 arg1, ActorTransform* place, ActorMotionWalkAnim* anim);
 void reverseWalkSpawn(Task* arg0);
 void reverseWalkFaceTarget(Task* task);
 void reverseWalkBeginMove(Task* arg0);

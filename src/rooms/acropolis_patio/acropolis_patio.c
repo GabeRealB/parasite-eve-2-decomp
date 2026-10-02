@@ -688,7 +688,7 @@ ActorTransform D_acropolis_patio_801827BC = { { -6100, 210, 20, 0 }, { 0, 896, 0
 
 ActorTransform D_acropolis_patio_801827D4 = { { -3743, 210, -543, 0 }, { 0, 512, 0, 0 } };
 
-GpSpawnAnimArg D_acropolis_patio_801827EC = { 7, 8 };
+ActorMotionWalkAnim D_acropolis_patio_801827EC = { .animationId = 7, .nextAnimId = 8 };
 
 ActorCommand D_acropolis_patio_801827F4 = { { .loc = { 1, 3 } }, 0 };
 

@@ -90,11 +90,6 @@ typedef struct Actor141000CtrlWork {
 } Actor141000CtrlWork;
 STATIC_ASSERT_SIZEOF(Actor141000CtrlWork, 0x10);
 
-/// Optional start animation for the 0x7DD placement handler: the preset's
-/// `field_4` and the `model.nextAnimId` byte. Absent, the defaults are anim 10 (or 2
-/// once `field_4C8` is latched) and 1.
-typedef GpSpawnAnimArg Actor141000SpawnAnim;
-
 /// The rotation table `func_actor_141000_80132FD0` feeds to `RotMatrix`: 0x5A
 /// `SVECTOR` axis triples, one per frame of the ramp the controller's state 2
 /// climbs, ending at the entry index 0x59 the function clamps to.
@@ -138,7 +133,7 @@ typedef struct {
         s32 (*call0)(Task*, s32, AnimationPlayRequest*, s32);
         s32 (*call1)(Task*, s32, ActorCommand* request);
         s32 (*call2)(Task*, s32, ActorTransform*);
-        s32 (*call3)(Task*, s32, ActorTransform*, Actor141000SpawnAnim*);
+        s32 (*call3)(Task*, s32, ActorTransform*, ActorMotionWalkAnim*);
         s32 (*call4)(Task*, s32, s32);
     } handler;
 } Actor141000MsgEntry;
@@ -238,7 +233,7 @@ static AnimationSet _gActor141000Animation0A448;
 static AnimationSet _gActor141000Animation0A5FC;
 static AnimationSet _gActor141000Animation0A84C;
 static TmdSource    _gActor141000AyaBreaBody;
-s32                 func_actor_141000_801336DC(Task*, s32, ActorTransform* place, Actor141000SpawnAnim*);
+s32                 func_actor_141000_801336DC(Task*, s32, ActorTransform* place, ActorMotionWalkAnim*);
 s32                 func_actor_141000_80133E8C(Task*, s32, s32);
 s32                 func_actor_141000_80133F6C(Task*, s32, ActorCommand* msg);
 s32                 func_actor_141000_80133FA8(Task*, s32, s32);
@@ -2367,7 +2362,7 @@ static void func_actor_141000_801335D4(Task* arg0)
 /// does (inlined here). The default anim id is chosen by the `field_4C8`
 /// variant; writing it as an if/else into the preset (not a ternary) is what
 /// keeps CSE from reusing the earlier constant 1 for the `model.nextAnimId` store.
-s32 func_actor_141000_801336DC(Task* task, s32 arg1, ActorTransform* place, Actor141000SpawnAnim* anim)
+s32 func_actor_141000_801336DC(Task* task, s32 arg1, ActorTransform* place, ActorMotionWalkAnim* anim)
 {
     Actor141000Work*      work;
     Actor141000Work*      w;
@@ -2387,8 +2382,8 @@ s32 func_actor_141000_801336DC(Task* task, s32 arg1, ActorTransform* place, Acto
     w->walk.rotZ        = place->rot.vz;
     preset.source.index = 0;
     if (anim != NULL) {
-        preset.animationId  = anim->field_0;
-        w->model.nextAnimId = anim->field_4;
+        preset.animationId  = anim->animationId;
+        w->model.nextAnimId = anim->nextAnimId;
     } else {
         if (w->field_4C8 != 0) {
             preset.animationId = 2;

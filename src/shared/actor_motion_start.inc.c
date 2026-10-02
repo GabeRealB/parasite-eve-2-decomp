@@ -2,10 +2,11 @@
 
 /// The 0x7DD entry of `D_actor_135600_8013B0F4`: starts the motion sequence,
 /// storing the placement position as `target` and its rotation in
-/// `walk.rotX`..`walk.rotZ`, then applies a start preset -- `anim`'s, or anim 0xD
-/// with preset byte 1 when absent -- with the body of
+/// `walk.rotX`..`walk.rotZ`, then applies a start preset -- `anim`'s
+/// `animationId` and `nextAnimId`, or animation 0xD and next id 1 when `anim`
+/// is absent -- with the body of
 /// `func_actor_135600_801330A8` written out inline. Returns 0.
-s32 actorMotionStartWalk(Task* task, s32 arg1, ActorTransform* place, GpSpawnAnimArg* anim)
+s32 actorMotionStartWalk(Task* task, s32 arg1, ActorTransform* place, ActorMotionWalkAnim* anim)
 {
     ActorMotionWork*      work;
     ActorMotionWork*      w;
@@ -25,8 +26,8 @@ s32 actorMotionStartWalk(Task* task, s32 arg1, ActorTransform* place, GpSpawnAni
     w->walk.rotZ        = place->rot.vz;
     preset.source.index = 0;
     if (anim != NULL) {
-        preset.animationId  = anim->field_0;
-        w->model.nextAnimId = anim->field_4;
+        preset.animationId  = anim->animationId;
+        w->model.nextAnimId = anim->nextAnimId;
     } else {
         preset.animationId  = 0xD;
         w->model.nextAnimId = 1;

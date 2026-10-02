@@ -53,11 +53,6 @@ STATIC_ASSERT_SIZEOF(Actor120400MainWork, 0x504);
 extern AnimationSet*  D_actor_120400_8013E6D0[29];
 extern AnimationSet** gActorMotionAnimBanks[1];
 
-/// Optional start animation for `func_actor_120400_80132398`: the preset's
-/// `field_4` and the `model.nextAnimId` byte. Absent, the defaults are 0x10 and 1.
-typedef GpSpawnAnimArg Actor120400SpawnAnim;
-STATIC_ASSERT_SIZEOF(Actor120400SpawnAnim, 0x8);
-
 /// The task table the parent is spawned from and its two children are spawned
 /// from (entries 1 and 2), and the message table the parent points its
 /// `Task::msgTable` at; both live in this overlay's trailing data.
@@ -70,7 +65,7 @@ typedef struct {
         s32                (*call0)(void);
         s32                (*call1)(Task*, s32, AnimationPlayRequest*, s32);
         s32                (*call2)(Task*, s32, ActorTransform*);
-        s32                (*call3)(Task*, s32, ActorTransform*, Actor120400SpawnAnim*);
+        s32                (*call3)(Task*, s32, ActorTransform*, ActorMotionWalkAnim*);
         TaskMessageHandler call4;
     } handler;
 } Actor120400MsgEntry;
@@ -119,7 +114,7 @@ static const VECTOR D_actor_120400_80131E4C = { 0, 0, 0x200000, 0 };
 static TmdSource _gActor120400KyleMadiganBody;
 static TmdSource _gActor120400KyleMadiganHandRight;
 static TmdSource _gActor120400KyleMadiganLeft;
-s32              func_actor_120400_80132398(Task*, s32, ActorTransform* place, Actor120400SpawnAnim*);
+s32              func_actor_120400_80132398(Task*, s32, ActorTransform* place, ActorMotionWalkAnim*);
 s32              func_actor_120400_80132C38(Task*, s32, s32, s32);
 s32              func_actor_120400_80132D14(void);
 void             func_actor_120400_8013254C(Task*);
@@ -1033,8 +1028,8 @@ static void func_actor_120400_80132050(Task* arg0)
 /// Message 0x7DD handler of the parent: starts the walk sequence toward a
 /// placement. The position and rotation are copied into `target` and
 /// `walk.rotX`..`walk.rotZ`, `walk.motion` selects the walk and `walk.motionStep` restarts
-/// it, and a start preset is built on the stack -- bank id 0, the optional start
-/// animation's id and companion byte (0x10 and 1 when absent), 1, 5 and 1 --
+/// it, and a start preset is built on the stack -- bank id 0, the optional
+/// `animationId` and `nextAnimId` (0x10 and 1 when absent), 1, 5 and 1 --
 /// and then applied in-line. A changed bank id latches `model.bank` and reseeds
 /// the animation through `animationInitContext` with the bank this overlay's
 /// `gActorMotionAnimBanks` selects; `model.animId` takes the preset's animation
@@ -1042,7 +1037,7 @@ static void func_actor_120400_80132050(Task* arg0)
 /// already ticking is pushed onto `animationSeekSlotWithBlend`'s per-slot loop instead of
 /// the `animationResetSlot` one, followed by a `animationTickSlot` pass over the
 /// same 0x14 slots and `model.ticking` raised. Returns 0 either way.
-s32 func_actor_120400_80132398(Task* task, s32 arg1, ActorTransform* place, Actor120400SpawnAnim* anim)
+s32 func_actor_120400_80132398(Task* task, s32 arg1, ActorTransform* place, ActorMotionWalkAnim* anim)
 {
     Actor120400MainWork*  work;
     Actor120400MainWork*  w;
@@ -1062,8 +1057,8 @@ s32 func_actor_120400_80132398(Task* task, s32 arg1, ActorTransform* place, Acto
     w->walk.rotZ        = place->rot.vz;
     preset.source.index = 0;
     if (anim != NULL) {
-        preset.animationId  = anim->field_0;
-        w->model.nextAnimId = anim->field_4;
+        preset.animationId  = anim->animationId;
+        w->model.nextAnimId = anim->nextAnimId;
     } else {
         preset.animationId  = 0x10;
         w->model.nextAnimId = 1;

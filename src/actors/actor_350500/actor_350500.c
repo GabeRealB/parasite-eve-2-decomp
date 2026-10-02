@@ -28,11 +28,6 @@
 #include "../../shared/actor_messages.h"
 #include "../../shared/reversing_walker.h"
 
-/// Optional start animation the placement handler takes: the preset's
-/// `field_4` and the `model.nextAnimId` byte. Absent, the defaults are anim 3 (or 2
-/// once `field_4C4` is set) and 1.
-typedef GpSpawnAnimArg Actor350500SpawnAnim;
-
 /// Animation bank table the preset's bank index selects from.
 extern AnimationSet*  D_actor_350500_80168E8C[5];
 extern AnimationSet** gActorMotionAnimBanks19[1];
@@ -47,7 +42,7 @@ typedef struct {
         s32 (*call0)(Task*, s32, AnimationPlayRequest*, s32);
         s32 (*call1)(Task*, s32, ActorCommand* request);
         s32 (*call2)(Task*, s32, ActorTransform*);
-        s32 (*call3)(Task*, s32, ActorTransform*, Actor350500SpawnAnim*);
+        s32 (*call3)(Task*, s32, ActorTransform*, ActorMotionWalkAnim*);
         s32 (*call4)(Task*, s32, s32);
     } handler;
 } Actor350500MsgEntry;

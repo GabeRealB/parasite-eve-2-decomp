@@ -4,7 +4,7 @@
 /// rotation from `place`, picks the start animation from `anim` (or anim 3,
 /// 2 once `field_4C4` is set) and installs it with the body of
 /// `actorMotionPlayAnim19` written out inline. Returns 0.
-s32 reverseWalkStartMsg(Task* task, s32 arg1, ActorTransform* place, GpSpawnAnimArg* anim)
+s32 reverseWalkStartMsg(Task* task, s32 arg1, ActorTransform* place, ActorMotionWalkAnim* anim)
 {
     Actor350500Work*      work;
     Actor350500Work*      w;
@@ -24,8 +24,8 @@ s32 reverseWalkStartMsg(Task* task, s32 arg1, ActorTransform* place, GpSpawnAnim
     w->walk.rotZ        = place->rot.vz;
     preset.source.index = 0;
     if (anim != NULL) {
-        preset.animationId  = anim->field_0;
-        w->model.nextAnimId = anim->field_4;
+        preset.animationId  = anim->animationId;
+        w->model.nextAnimId = anim->nextAnimId;
     } else {
         if (w->field_4C4 != 0) {
             preset.animationId = 2;

@@ -191,7 +191,7 @@ ActorCommand D_shelter_b6_corridor_8017F33C = { { .loc = { 5, 24 } }, 1 };
 
 ActorCommand D_shelter_b6_corridor_8017F340 = { { .loc = { 5, 24 } }, 2 };
 
-GpSpawnAnimArg D_shelter_b6_corridor_8017F344 = { 3, 4 };
+ActorMotionWalkAnim D_shelter_b6_corridor_8017F344 = { .animationId = 3, .nextAnimId = 4 };
 
 ActorCommand D_shelter_b6_corridor_8017F34C = { { .loc = { 5, 24 } }, 1 };
 
