@@ -2512,7 +2512,7 @@ u8 D_acropolis_bridge_801916E0[8] = {
     9,
     11,
     4,
-    255,
+    OVERLAY_WALKER_ROUTE_END,
     0,
 };
 
@@ -2521,7 +2521,7 @@ u8 D_acropolis_bridge_801916E8[8] = {
     7,
     10,
     14,
-    255,
+    OVERLAY_WALKER_ROUTE_END,
     0,
     0,
     0,
@@ -2533,7 +2533,7 @@ u8 D_acropolis_bridge_801916F0[8] = {
     9,
     6,
     7,
-    255,
+    OVERLAY_WALKER_ROUTE_END,
     0,
     0,
 };
@@ -2547,7 +2547,7 @@ u8 D_acropolis_bridge_801916F8[12] = {
     12,
     13,
     18,
-    255,
+    OVERLAY_WALKER_ROUTE_END,
     0,
     0,
     0,
@@ -2560,7 +2560,7 @@ u8 D_acropolis_bridge_80191704[8] = {
     12,
     5,
     10,
-    255,
+    OVERLAY_WALKER_ROUTE_END,
     0,
 };
 
@@ -2570,7 +2570,7 @@ u8 D_acropolis_bridge_8019170C[8] = {
     9,
     10,
     11,
-    255,
+    OVERLAY_WALKER_ROUTE_END,
     0,
     0,
 };
@@ -2579,7 +2579,7 @@ u8 D_acropolis_bridge_80191714[4] = {
     14,
     13,
     6,
-    255,
+    OVERLAY_WALKER_ROUTE_END,
 };
 
 u8 D_acropolis_bridge_80191718[8] = {
@@ -2589,7 +2589,7 @@ u8 D_acropolis_bridge_80191718[8] = {
     11,
     10,
     5,
-    255,
+    OVERLAY_WALKER_ROUTE_END,
     0,
 };
 
@@ -5012,31 +5012,31 @@ static void func_acropolis_bridge_80185988(Enemy* enemy, Task* task)
     work->field_1FA               = coord->coord.t[1];
     coord->coord.t[1]            += work->field_1F8;
 
-    work->walker.navData.nodes    = D_acropolis_bridge_8019162C;
-    work->walker.navData.count    = 0xA;
-    work->walker.navData.field_4  = D_acropolis_bridge_801916CC;
-    work->walker.navData.field_9  = 0xA;
-    work->walker.routeData.nodes  = D_acropolis_bridge_80191720[enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT];
-    work->walker.nav              = &work->walker.navData;
-    work->walker.routeData.cursor = 0;
-    work->walker.route            = &work->walker.routeData;
-    coord2                        = task->extra.tmd->coords;
-    work->walker.avoidCount       = 3;
-    walker                        = &work->walker;
-    work->walker.recs             = 0;
-    work->walker.avoidRecs        = work->recs;
-    work->walker.scale            = 0x1000;
-    work->walker.field_56         = 0;
-    work->walker.field_5A         = 0x30;
-    work->walker.coord            = coord2;
-    walker->field_5C              = 0x30;
-    walker->field_5E              = 0;
-    walker->field_60              = 1;
-    step                          = 3;
-    work->walker.state            = step;
-    work->walker.field_6B         = 1;
-    work->walker.field_6C         = 1;
-    work->walker.field_6E         = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId;
+    work->walker.navData.nodes         = D_acropolis_bridge_8019162C;
+    work->walker.navData.count         = 0xA;
+    work->walker.navData.field_4       = D_acropolis_bridge_801916CC;
+    work->walker.navData.field_9       = 0xA;
+    work->walker.routeData.nodeIndices = D_acropolis_bridge_80191720[enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT];
+    work->walker.nav                   = &work->walker.navData;
+    work->walker.routeData.cursor      = 0;
+    work->walker.route                 = &work->walker.routeData;
+    coord2                             = task->extra.tmd->coords;
+    work->walker.avoidCount            = 3;
+    walker                             = &work->walker;
+    work->walker.recs                  = 0;
+    work->walker.avoidRecs             = work->recs;
+    work->walker.scale                 = 0x1000;
+    work->walker.field_56              = 0;
+    work->walker.field_5A              = 0x30;
+    work->walker.coord                 = coord2;
+    walker->field_5C                   = 0x30;
+    walker->field_5E                   = 0;
+    walker->field_60                   = 1;
+    step                               = 3;
+    work->walker.state                 = step;
+    work->walker.field_6B              = 1;
+    work->walker.field_6C              = 1;
+    work->walker.field_6E              = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId;
 
     _acropolisBridgeInitWalkerScale(walker);
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;

@@ -2,17 +2,17 @@
 
 /// Resolves the node the route cursor names and writes its position to pos. On
 /// arrival it sets route->arrived, clears the turn counters and advances the
-/// cursor, wrapping at the 0xFF terminator.
+/// cursor, wrapping at OVERLAY_WALKER_ROUTE_END.
 void bossStrangerFollowRoute(OverlayWalker* work, SVECTOR3* pos)
 {
     OverlayWalkerRoute* route;
-    OverlayWalkerRoute* step;
-    OverlayWalkerRoute* wrap;
-    OverlayWalkerRoute* next;
+    OverlayWalkerRoute* routeAdvance;
+    OverlayWalkerRoute* routeWrap;
+    OverlayWalkerRoute* routeNext;
     u8                  node;
 
     route      = work->route;
-    work->node = route->nodes[route->cursor];
+    work->node = route->nodeIndices[route->cursor];
     if (bossStrangerArrived(work) == 0) {
         pos->vx              = work->nav->nodes[work->node].x;
         pos->vy              = work->nav->nodes[work->node].y;
@@ -21,19 +21,21 @@ void bossStrangerFollowRoute(OverlayWalker* work, SVECTOR3* pos)
         return;
     }
 
+    // Reload the route for the cursor advance, the end-marker wrap and the
+    // index the cursor then names. Each of those phases keeps its own pointer.
     work->route->arrived = 1;
-    step                 = work->route;
+    routeAdvance         = work->route;
     work->field_62       = 0;
     work->field_64       = 0;
-    step->cursor++;
+    routeAdvance->cursor++;
 
-    wrap = work->route;
-    if (wrap->nodes[wrap->cursor] == 0xFF) {
-        wrap->cursor = 0;
+    routeWrap = work->route;
+    if (routeWrap->nodeIndices[routeWrap->cursor] == OVERLAY_WALKER_ROUTE_END) {
+        routeWrap->cursor = 0;
     }
 
-    next       = work->route;
-    node       = next->nodes[next->cursor];
+    routeNext  = work->route;
+    node       = routeNext->nodeIndices[routeNext->cursor];
     work->node = node;
     pos->vx    = work->nav->nodes[node].x;
     pos->vy    = work->nav->nodes[work->node].y;

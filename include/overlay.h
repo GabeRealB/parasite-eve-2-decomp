@@ -465,14 +465,22 @@ typedef struct OverlayWalkerNav {
 } OverlayWalkerNav;
 STATIC_ASSERT_SIZEOF(OverlayWalkerNav, 0xC);
 
-/// One patrol route: a 0xFF-terminated list of node indices and the cursor
-/// into it, which wraps back to the first node at the terminator. `arrived` is
-/// raised on the frame the walker reaches the node it was heading for.
-typedef struct OverlayWalkerRoute {
-    u8* nodes;
-    u8  field_4;
-    u8  cursor;
-    u8  arrived;
+/// End of a Boss Stranger patrol route. The cursor returns to the first index
+/// when the entry it lands on has this value.
+#define OVERLAY_WALKER_ROUTE_END 0xFF
+
+/// One Boss Stranger patrol route: the order of nav-node indices the walker
+/// follows, and the cursor into that order.
+///
+/// `nodeIndices` runs until `OVERLAY_WALKER_ROUTE_END`. On the frame the
+/// walker reaches the node it is heading for, `arrived` is raised and `cursor`
+/// advances, returning to the first index at the end marker.
+typedef struct {
+    u8*  nodeIndices; // Indices into the walker's nav node table, ended by OVERLAY_WALKER_ROUTE_END
+    u8   field_4;     // Role unproven. Actor spawn stores 2 and the route rebuild stores 0; nothing reads it
+    u8   cursor;      // Index of the current entry. Wraps to 0 at the end marker
+    u8   arrived;     // 1 on the frame the current node is reached, otherwise 0
+    byte pad_7[0x1];  // Unread. Pointer alignment rounds the route to eight bytes
 } OverlayWalkerRoute;
 STATIC_ASSERT_SIZEOF(OverlayWalkerRoute, 0x8);
 

@@ -378,10 +378,10 @@ static void func_actor_110600_80135E20(Task* arg0, s16 arg1, s32 arg2);
 
 /// Steers the walker along its patrol route: resolves the node the route
 /// cursor names, and on the frame `bossStrangerArrived` reports arrival
-/// it raises the route's `arrived` flag, clears the movement deltas and steps
-/// the cursor onto the next node — wrapping back to the first at the 0xFF
-/// terminator. `pos` receives the position of the node it is heading for, so
-/// on the arrival frame it already describes the new node.
+/// it raises the route's `arrived` flag, clears the turn counters and steps
+/// the cursor onto the next node — wrapping back to the first at
+/// `OVERLAY_WALKER_ROUTE_END`. `pos` receives the position of the node it is
+/// heading for, so on the arrival frame it already describes the new node.
 
 /// Enters work state 2 (`field_88C`) on a live actor: clear the model object,
 /// clear bit 0x8000 of `field_A90.flags` and set 0x4000 of `field_950.flags`,
@@ -1195,9 +1195,9 @@ static void            func_actor_110600_80137F2C(Enemy* arg0, Task* arg1);
 /// coordinate translation; every node above it takes that translation plus the
 /// coordinate's facing column, rotated to `angle` and scaled by `scale` through
 /// the GTE, and each node laid is logged as it is built. The route is then
-/// re-seeded from the node count -- one node index per step with the 0xFF
-/// terminator after the last -- with `field_4` and the cursor cleared, and the
-/// scratch frame released.
+/// re-seeded from the node count -- one node index per step with the
+/// `OVERLAY_WALKER_ROUTE_END` marker after the last -- with `field_4` and the
+/// cursor cleared, and the scratch frame released.
 static void func_actor_110600_80133778(OverlayWalker* work, s16 scale, s16 angle)
 {
     Actor110600TsvScratch* blk;
@@ -1229,9 +1229,9 @@ static void func_actor_110600_80133778(OverlayWalker* work, s16 scale, s16 angle
     work->route->field_4 = 0;
     work->route->cursor  = 0;
     for (blk->i = 0; blk->i < work->nav->count; blk->i++) {
-        work->route->nodes[blk->i] = blk->i;
+        work->route->nodeIndices[blk->i] = blk->i;
     }
-    work->route->nodes[blk->i] = 0xFF;
+    work->route->nodeIndices[blk->i] = OVERLAY_WALKER_ROUTE_END;
     SCRATCH_STACK_RELEASE_BYTES(0x2C);
 }
 
@@ -1811,18 +1811,18 @@ static void func_actor_110600_80134AB4(Enemy* enemy, Task* task)
     } else {
         work->walker.field_6B = enabled;
     }
-    work->walker.field_6C          = 0;
-    work->walker.field_6D          = 1;
-    work->walker.field_6E          = (u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId;
-    work->walker.nav               = &work->walker.navData;
-    work->walker.route             = &work->walker.routeData;
-    work->walker.navData.count     = 2;
-    work->walker.navData.field_9   = 2;
-    work->walker.routeData.field_4 = 2;
-    work->walker.navData.nodes     = work->field_BBC;
-    work->walker.navData.field_4   = work->field_BCC;
-    work->walker.routeData.nodes   = work->field_BD0;
-    work->walker.field_6E          = (u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId;
+    work->walker.field_6C              = 0;
+    work->walker.field_6D              = 1;
+    work->walker.field_6E              = (u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId;
+    work->walker.nav                   = &work->walker.navData;
+    work->walker.route                 = &work->walker.routeData;
+    work->walker.navData.count         = 2;
+    work->walker.navData.field_9       = 2;
+    work->walker.routeData.field_4     = 2;
+    work->walker.navData.nodes         = work->field_BBC;
+    work->walker.navData.field_4       = work->field_BCC;
+    work->walker.routeData.nodeIndices = work->field_BD0;
+    work->walker.field_6E              = (u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId;
     switch (task->spawnArg1.value & 0xF0) {
         case 0:
             work->field_896    = 20;
