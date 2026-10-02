@@ -166,13 +166,17 @@ typedef struct {
 } EffectSpriteTextureFrame;
 STATIC_ASSERT_SIZEOF(EffectSpriteTextureFrame, 8);
 
-/// One corner of the unit quad in `D_80111E38`: a signed XZ pair scaled by
-/// the caller's half-size before being rotated into world space.
-typedef struct _GpQuadCorner {
-    /* 0x0 */ u16 x;
-    /* 0x2 */ u16 y;
-} GpQuadCorner;
-STATIC_ASSERT_SIZEOF(GpQuadCorner, 0x4);
+/// Dimensionless sign pair selecting a corner of a centred effect quad.
+///
+/// Multiply each sign by the corresponding half-extent, then narrow to a
+/// signed 16-bit coordinate. The drawer chooses the two local axes (usually
+/// X/Z, sometimes Y/Z) before transforming the quad. Unsigned reads preserve
+/// the same low 16 bits when the product is narrowed.
+typedef struct {
+    s16 axis0Sign; // First local-axis factor (-1 or +1).
+    s16 axis1Sign; // Second local-axis factor (-1 or +1).
+} EffectUnitQuadCorner;
+STATIC_ASSERT_SIZEOF(EffectUnitQuadCorner, 0x4);
 
 /// 0x38-byte scratch from the scratch stack used by `Gp_DrawEffSprite7C` and
 /// `Room_Draw16`. `vec[]` holds the four rotated + translated quad corners

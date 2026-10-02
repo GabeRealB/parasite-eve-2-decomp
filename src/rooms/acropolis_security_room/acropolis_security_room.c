@@ -162,13 +162,6 @@ typedef struct AsrFlashScratch {
 } AsrFlashScratch;
 STATIC_ASSERT_SIZEOF(AsrFlashScratch, 0x14);
 
-/// Local X/Z corner coordinates, scaled by the effect's field_24.
-typedef struct AsrQuadCorner {
-    /* 0x00 */ s16 x;
-    /* 0x02 */ s16 z;
-} AsrQuadCorner;
-STATIC_ASSERT_SIZEOF(AsrQuadCorner, 0x4);
-
 /// The tasks `func_acropolis_security_room_8017D77C` and
 /// `func_acropolis_security_room_8017D834` spawn and poll until they end;
 /// message 0x13F1 is forwarded to the second while it is alive.
@@ -260,7 +253,7 @@ extern AsrSpriteFrame D_acropolis_security_room_80183970[];
 extern SVECTOR D_acropolis_security_room_80183998[];
 extern s16     D_acropolis_security_room_801839B8[];
 
-extern AsrQuadCorner D_acropolis_security_room_801839C0[];
+extern EffectUnitQuadCorner D_acropolis_security_room_801839C0[];
 
 /// 0xFF-terminated area-record lists applied as the script ends.
 extern GpAreaApplyRec D_acropolis_security_room_80184F50[];
@@ -1477,7 +1470,7 @@ s16 D_acropolis_security_room_801839B8[4] = {
     2,
 };
 
-AsrQuadCorner D_acropolis_security_room_801839C0[4] = {
+EffectUnitQuadCorner D_acropolis_security_room_801839C0[4] = {
     { -1, 1 },
     { 1, 1 },
     { -1, -1 },
@@ -3414,14 +3407,14 @@ void func_acropolis_security_room_80181108(Task* arg0)
         mem->move.vz    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
     }
 
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < ARRAY_SIZE(D_acropolis_security_room_801839C0); i++) {
         /* Spelled as a shifted block rather than `&blk->v[i]`, which is the same
            address: the member form lets CSE share one register with the GTE
            macros' `&blk->v[i]`, and the original keeps two. */
         sv           = ((RoomQuadScratch*)((SVECTOR*)blk + i))->v;
-        blk->v[i].vx = D_acropolis_security_room_801839C0[i].x * mem->scale;
+        blk->v[i].vx = D_acropolis_security_room_801839C0[i].axis0Sign * mem->scale;
         sv->vy       = 0;
-        sv->vz       = D_acropolis_security_room_801839C0[i].z * mem->scale;
+        sv->vz       = D_acropolis_security_room_801839C0[i].axis1Sign * mem->scale;
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&blk->v[i]);
         gte_rtv0();

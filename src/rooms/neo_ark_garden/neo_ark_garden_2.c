@@ -544,10 +544,10 @@ static void func_neo_ark_garden_8017F42C(SVECTOR* arg0)
 
     Gfx_RotMatrixX(&m, gDisplayState.animFrame << 7, 1);
     block = SCRATCH_STACK_RESERVE_BLOCK(GpQuadScratch);
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < ARRAY_SIZE(D_80111E38); i++) {
         block->vec[i].vx = 0;
-        block->vec[i].vy = (s16)D_80111E38[i].x * 250;
-        block->vec[i].vz = (s16)D_80111E38[i].y * 250;
+        block->vec[i].vy = D_80111E38[i].axis0Sign * 250;
+        block->vec[i].vz = D_80111E38[i].axis1Sign * 250;
         gte_SetRotMatrix(&m);
         gte_ldv0(&block->vec[i]);
         gte_rtv0();

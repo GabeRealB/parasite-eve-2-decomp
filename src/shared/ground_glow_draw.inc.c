@@ -15,10 +15,10 @@ static void groundGlowDraw(GfxCoord* ground, s32 size)
 
     sc = SCRATCH_STACK_RESERVE_BLOCK(OverlayGroundScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
-    for (i = 0; i < 4; i++) {
-        sc->vec[i].vx = D_80111E38[i].x * size;
+    for (i = 0; i < ARRAY_SIZE(D_80111E38); i++) {
+        sc->vec[i].vx = (u16)D_80111E38[i].axis0Sign * size;
         sc->vec[i].vy = 0;
-        sc->vec[i].vz = D_80111E38[i].y * size;
+        sc->vec[i].vz = (u16)D_80111E38[i].axis1Sign * size;
         gte_SetRotMatrix(&gGfxViewCoord.workm);
         gte_ldv0(&sc->vec[i]);
         gte_rtv0();

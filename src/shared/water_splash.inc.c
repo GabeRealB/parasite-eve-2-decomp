@@ -8,14 +8,14 @@
 /// channels set to `arg2`. The work block lives on the scratchpad stack.
 void waterDrawSplash(GfxCoord* arg0, s32 arg1, s32 arg2)
 {
-    void**         scratch;
-    u8*            head;
-    GpQuadScratch* block;
-    SVECTOR*       v;
-    s32            i;
-    GpQuadCorner*  tbl;
-    POLY_FT4*      prim;
-    s32            prod;
+    void**                scratch;
+    u8*                   head;
+    GpQuadScratch*        block;
+    SVECTOR*              v;
+    s32                   i;
+    EffectUnitQuadCorner* corners;
+    POLY_FT4*             prim;
+    s32                   prod;
 
     scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
@@ -23,13 +23,13 @@ void waterDrawSplash(GfxCoord* arg0, s32 arg1, s32 arg2)
     *scratch = head;
     block    = (GpQuadScratch*)head;
     gte_SetTransMatrix(&GsWSMATRIX);
-    for (i = 0; i < 4; i++) {
-        tbl   = &D_80111E38[i];
-        v     = &block->vec[i];
-        prod  = tbl->x * arg1;
-        v->vy = 0;
-        v->vx = prod;
-        v->vz = tbl->y * arg1;
+    for (i = 0; i < ARRAY_SIZE(D_80111E38); i++) {
+        corners = &D_80111E38[i];
+        v       = &block->vec[i];
+        prod    = (u16)corners->axis0Sign * arg1;
+        v->vy   = 0;
+        v->vx   = prod;
+        v->vz   = (u16)corners->axis1Sign * arg1;
         gte_SetRotMatrix(&arg0->workm);
         gte_ldv0(v);
         gte_rtv0();

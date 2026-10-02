@@ -14,7 +14,7 @@ static void pykeFlameDrawSplash(VECTOR3* pos, s32 width)
     u8*                     head;
     PykeFlameSplashScratch* block;
     POLY_FT4*               prim;
-    GpQuadCorner*           tbl;
+    EffectUnitQuadCorner*   corners;
     s32                     i;
     s32                     flag;
     s32                     otz;
@@ -26,12 +26,12 @@ static void pykeFlameDrawSplash(VECTOR3* pos, s32 width)
     SCRATCH_STACK_CURSOR(u8) = head;
     block                    = (PykeFlameSplashScratch*)head;
     gte_SetTransMatrix(&GsWSMATRIX);
-    i   = 0;
-    tbl = D_80111E38;
+    i       = 0;
+    corners = D_80111E38;
     do {
-        block->vec[i].vx = tbl[i].x * width;
+        block->vec[i].vx = (u16)corners[i].axis0Sign * width;
         block->vec[i].vy = 0;
-        block->vec[i].vz = tbl[i].y * width;
+        block->vec[i].vz = (u16)corners[i].axis1Sign * width;
         gte_SetRotMatrix(&gGfxViewCoord.workm);
         gte_ldv0(&block->vec[i]);
         gte_rtv0();
@@ -40,7 +40,7 @@ static void pykeFlameDrawSplash(VECTOR3* pos, s32 width)
         (u16) block->vec[i].vy = (u16)block->vec[i].vy + (u16)pos->vy;
         (u16) block->vec[i].vz = (u16)block->vec[i].vz + (u16)pos->vz;
         i++;
-    } while (i < 4);
+    } while (i < ARRAY_SIZE(D_80111E38));
 
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec[0]);

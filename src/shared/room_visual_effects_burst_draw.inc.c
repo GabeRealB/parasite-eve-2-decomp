@@ -127,15 +127,15 @@ static void RoomFx_DrawBurst2Glow(GfxCoord* coord, s16 size)
 /// alternates between two 32-pixel columns on successive frames.
 static void RoomFx_DrawGround2Quad(GfxCoord* arg0, s32 arg1)
 {
-    void**         scratch;
-    u8*            head;
-    GpQuadScratch* block;
-    SVECTOR*       v;
-    s32            i;
-    GpQuadCorner*  tbl;
-    POLY_FT4*      prim;
-    s32            prod;
-    s32            u;
+    void**                scratch;
+    u8*                   head;
+    GpQuadScratch*        block;
+    SVECTOR*              v;
+    s32                   i;
+    EffectUnitQuadCorner* corners;
+    POLY_FT4*             prim;
+    s32                   prod;
+    s32                   u;
 
     scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
@@ -143,13 +143,13 @@ static void RoomFx_DrawGround2Quad(GfxCoord* arg0, s32 arg1)
     *scratch = head;
     block    = (GpQuadScratch*)head;
     gte_SetTransMatrix(&GsWSMATRIX);
-    for (i = 0; i < 4; i++) {
-        v     = &block->vec[i];
-        tbl   = &D_80111E38[i];
-        prod  = tbl->x * arg1;
-        v->vy = 0;
-        v->vx = prod;
-        v->vz = tbl->y * arg1;
+    for (i = 0; i < ARRAY_SIZE(D_80111E38); i++) {
+        v       = &block->vec[i];
+        corners = &D_80111E38[i];
+        prod    = (u16)corners->axis0Sign * arg1;
+        v->vy   = 0;
+        v->vx   = prod;
+        v->vz   = (u16)corners->axis1Sign * arg1;
         gte_SetRotMatrix(&gGfxViewCoord.workm);
         gte_ldv0(v);
         gte_rtv0();

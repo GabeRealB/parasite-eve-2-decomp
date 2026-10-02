@@ -38404,8 +38404,8 @@ inline-asm block. In `Gp_DrawEffSprite46` the same split appeared for the quad-c
 table, and the fix was the opposite of pinning: *remove* the pin.
 
 ```c
-register GpQuadCorner* tbl asm("t2");   /* -> lui t2,%hi; addiu t2,t2,%lo */
-GpQuadCorner*          tbl;             /* -> lui v1,%hi; addiu t2,v1,%lo */
+register EffectUnitQuadCorner* corners asm("t2");   /* -> lui t2,%hi; addiu t2,t2,%lo */
+EffectUnitQuadCorner*          corners;             /* -> lui v1,%hi; addiu t2,v1,%lo */
 ```
 
 With every other local already pinned (`t7`, `a0`, `v0`, `t1`, `t0`, `t3`, `t8`),
@@ -54066,9 +54066,9 @@ unit table `D_80111E38`, and its matched gameplay sibling `Gp_DrawEffQuadT29`
 writes the table read as a walking pointer:
 
 ```c
-v->vx = tbl->x * arg1;
+v->vx = (u16)corners->axis0Sign * arg1;
 ...
-tbl++;
+corners++;
 ```
 
 Copied verbatim that stalls at 99.18% with `reorder=2`: the two increments come
@@ -54076,25 +54076,25 @@ out swapped against the target.
 
 ```
                 mine                        target
-    addiu  t0, t0, 4      # tbl++      addiu  t1, t1, 8     # giv
+    addiu  t0, t0, 4      # corners++      addiu  t1, t1, 8     # giv
     lhu    v0, 0x4(a3)                 lhu    v0, 0x4(a3)
     lhu    v1, 0x38(t1)                lhu    v1, 0x38(t7)
-    addiu  t2, t2, 8      # giv        addiu  t0, t0, 4     # tbl++
+    addiu  t2, t2, 8      # giv        addiu  t0, t0, 4     # corners++
 ```
 
-`tbl++` is an ordinary statement, so it sits at its source position — before
+`corners++` is an ordinary statement, so it sits at its source position — before
 the first field group. The increment of the giv GCC made for the `gte_ldv0`
 operand (`&blk->v[i]`, i.e. `blk + 4 + 8i`) is emitted by `loop.c` *after* the
 giv's last use, which puts it later; the scheduler then has only the second one
 left to drop into the `lhu` load-delay slot. Subscripting the table instead,
 
 ```c
-blk->v[i].vx = tbl[i].x * arg1;
+blk->v[i].vx = (u16)corners[i].axis0Sign * arg1;
 ...
-sv->vz = tbl[i].y * arg1;
+sv->vz = (u16)corners[i].axis1Sign * arg1;
 ```
 
-makes `tbl` a giv too, both increments are emitted by `loop.c` in giv order,
+makes `corners` a giv too, both increments are emitted by `loop.c` in giv order,
 and the pair lands the target's way round — 100%. This is the same lever as
 "Index the scratch arrays by the loop counter…", but note it applies to the
 *source* array as well: a sibling's `p++` is not evidence that the copy in
@@ -57115,7 +57115,7 @@ of the same function shape already uses.
 ## A prologue local that only ever feeds a halfword store may have to be `u16`
 
 The last register in the same function refused to settle until the flare width,
-computed once in the prologue and used only as `tbl[i].x * flare` into an
+computed once in the prologue and used only as `(u16)corners[i].axis0Sign * flare` into an
 `sh`, was declared `u16` rather than `s32`:
 
 ```c
@@ -58277,9 +58277,9 @@ merge. The associated form gives the first, plain `&block->vec[i]` the second:
 
 ```c
 v                = ((AcropolisBridgeQuadScratch*)((SVECTOR*)block + i))->vec;
-block->vec[i].vx = tbl[i].x * 0x300;
+block->vec[i].vx = corners[i].axis0Sign * 0x300;
 v->vy            = 0;
-v->vz            = tbl[i].y * 0x300;
+v->vz            = corners[i].axis1Sign * 0x300;
 gte_SetRotMatrix(m);
 gte_ldv0(&block->vec[i]);      /* separate giv: addu $v0, $t1, $a3 */
 gte_rtv0();
@@ -59720,7 +59720,7 @@ workaround rather than to the bug.
 A walking `SVECTOR*` whose C stores of `vy`/`vz` would otherwise strength-reduce
 onto `&v->vz` (`sh zero, -2(a3)` plus an extra `addiu`) needs `TOUCH_REG(v)`
 between those stores so every access stays `0/2/4(v)`. That volatile `+r` is
-also a scheduling fence: `v->vy = 0; TOUCH_REG(v); v->vx = tbl->x * value;`
+also a scheduling fence: `v->vy = 0; TOUCH_REG(v); v->vx = (u16)corners->axis0Sign * value;`
 emits `sh zero` *before* the `lhu`/`mult`, not in the `mult`→`mflo` gap the
 target uses.
 
@@ -59729,12 +59729,12 @@ temp *before* the zero store so the `mult` is already in flight when `sh zero`
 is emitted:
 
 ```c
-prod  = tbl->x * arg1;
+prod  = (u16)corners->axis0Sign * arg1;
 v->vy = 0;
 TOUCH_REG(v);
 v->vx = prod;
 TOUCH_REG(v);
-v->vz = tbl->y * arg1;
+v->vz = (u16)corners->axis1Sign * arg1;
 ```
 
 ```
@@ -144658,11 +144658,11 @@ arithmetic; the shared part is likely a helper both called.
 
 Target: `addiu v1,v1,-0x38; move t1,v1; sw v1,0(v0)`, then `move a2,t1` as the
 loop's vector pointer with `sh zero,2(a2)` / `sh t2,0(a2)` - no strength-reduced
-`&v->vy` giv. Seeds written as `head = SCRATCH_STACK_CURSOR - 0x38; ... do { v->vx = tbl->x
-* s; ...; v++; tbl++; } while (++i < 4)` needed `asm("v1")`/`asm("a2")` pins
+`&v->vy` giv. Seeds written as `head = SCRATCH_STACK_CURSOR - 0x38; ... do { v->vx = (u16)corners->axis0Sign
+* s; ...; v++; corners++; } while (++i < 4)` needed `asm("v1")`/`asm("a2")` pins
 (or a `TOUCH_REG`) to get both the head copy and the plain walker. Written the
 way gameplay's `Gp_DrawEffSprite7C` is - `block = SCRATCH_STACK_RESERVE_BLOCK(GpQuadScratch);
-for (i = 0; i < 4; i++) { block->vec[i].vx = D_80111E38[i].x * s; ... }` with
+for (i = 0; i < 4; i++) { block->vec[i].vx = (u16)D_80111E38[i].axis0Sign * s; ... }` with
 `+=` on the translation - loop strength reduction produces exactly that walker
 and copy with no hack. The same body sits in energyball, hypervelocity and
 m4a1_pyke with pins or barriers.

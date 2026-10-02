@@ -72,17 +72,6 @@
 
 #define D_acropolis_promenade_80181AFC (D_acropolis_promenade_80181AF4 + 1)
 
-/// Sign pair for one corner of the promenade's ground-glow quad
-/// (`func_acropolis_promenade_8017ED44`). The four entries of
-/// `D_acropolis_promenade_80181AE4` are the +/-1 combinations, scaled by 0x300
-/// into the quad's `vx` / `vz`; the quad is flat, so there is no `y` component
-/// to sign.
-typedef struct ApmGlowCorner {
-    /* 0x0 */ s16 x;
-    /* 0x2 */ s16 y;
-} ApmGlowCorner;
-STATIC_ASSERT_SIZEOF(ApmGlowCorner, 0x4);
-
 extern EvsCommand   D_acropolis_promenade_80180F00[];
 extern EvsCommand   D_acropolis_promenade_80181068[];
 extern s32          D_acropolis_promenade_80181140;
@@ -118,7 +107,7 @@ extern SVECTOR                   D_acropolis_promenade_80181184[];
 extern PadScriptCmd              D_acropolis_promenade_80186224[6];
 extern PadScriptVibrationSegment D_acropolis_promenade_8018623C[2];
 
-extern ApmGlowCorner D_acropolis_promenade_80181AE4[];
+extern EffectUnitQuadCorner D_acropolis_promenade_80181AE4[];
 
 extern u16 D_acropolis_promenade_80181B74;
 extern u16 D_acropolis_promenade_80181B76;
@@ -560,7 +549,7 @@ SVECTOR D_acropolis_promenade_80181184[300] = {
     { 7085, -2995, 9250, 0 },
 };
 
-ApmGlowCorner D_acropolis_promenade_80181AE4[4] = {
+EffectUnitQuadCorner D_acropolis_promenade_80181AE4[4] = {
     { -1, 1 },
     { 1, 1 },
     { -1, -1 },
@@ -2331,14 +2320,14 @@ void func_acropolis_promenade_8017ED44(Task* task)
     work->age = task->spawnArg1.value;
     *scratch  = head - 0x24;
     blk       = (RoomQuadScratch*)(head - 0x24);
-    for (i = 0; i < 4; i++) {
-        blk->v[i].vx = D_acropolis_promenade_80181AE4[i].x * 0x300;
+    for (i = 0; i < ARRAY_SIZE(D_acropolis_promenade_80181AE4); i++) {
+        blk->v[i].vx = D_acropolis_promenade_80181AE4[i].axis0Sign * 0x300;
         // Spelled as an offset rather than `&blk->v[i]` so it stays a separate
         // pointer from the one the GTE macros below take; writing both the same
         // way lets CSE fold them into one register and the loop stops matching.
         sv     = (SVECTOR*)((u8*)blk + i * sizeof(SVECTOR) + OFFSET_OF(RoomQuadScratch, v));
         sv->vy = 0;
-        sv->vz = D_acropolis_promenade_80181AE4[i].y * 0x300;
+        sv->vz = D_acropolis_promenade_80181AE4[i].axis1Sign * 0x300;
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&blk->v[i]);
         gte_rtv0();

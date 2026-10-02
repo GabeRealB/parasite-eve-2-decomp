@@ -62,7 +62,7 @@ enum {
 extern const EffectSpriteTextureFrame gEffectSpriteAtlasFrames[12];
 
 /// Unit quad corners `(-1, 1)`, `(1, 1)`, `(-1, -1)`, `(1, -1)`.
-extern GpQuadCorner D_80111E38[4];
+extern EffectUnitQuadCorner D_80111E38[4];
 
 /// Draws the ground shadow under an object: a flat textured quad whose corners
 /// are the unit corner table scaled by `size` and rotated by `gGfxViewCoord.workm`,

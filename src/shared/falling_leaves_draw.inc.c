@@ -13,14 +13,14 @@ void leafDraw(GfxCoord* coord, s32 arg1, s16 arg2)
     s32              i;
 
     blk = SCRATCH_STACK_RESERVE_BLOCK(RoomQuadScratch);
-    for (i = 0; i < 4; i++) {
-        blk->v[i].vx = D_80111E38[i].x * arg1;
+    for (i = 0; i < ARRAY_SIZE(D_80111E38); i++) {
+        blk->v[i].vx = (u16)D_80111E38[i].axis0Sign * arg1;
         // Spelled as an offset rather than `&blk->v[i]` so it stays a separate
         // pointer from the one the GTE macros below take; writing both the same
         // way lets CSE fold them into one register and the loop stops matching.
         sv     = (SVECTOR*)((u8*)blk + i * sizeof(SVECTOR) + OFFSET_OF(RoomQuadScratch, v));
         sv->vy = 0;
-        sv->vz = D_80111E38[i].y * arg1;
+        sv->vz = (u16)D_80111E38[i].axis1Sign * arg1;
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&blk->v[i]);
         gte_rtv0();

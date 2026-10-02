@@ -534,17 +534,17 @@ void func_hypervelocity_8011D830(Task* task)
 /// depth names. Walls the GTE flags as behind the eye are dropped.
 static void func_hypervelocity_8011EC1C(GfxCoord* coord, s16 age, s32 radius, u8* rgb)
 {
-    HyperConeScratch* sc;
-    POLY_FT4*         prim;
-    GpQuadCorner*     tbl;
-    SVECTOR*          vert;
-    MATRIX*           rot;
-    s32               i;
-    s32               rise;
-    s32               top;
-    u16               flare;
-    s32               half;
-    s32               u0;
+    HyperConeScratch*     sc;
+    POLY_FT4*             prim;
+    EffectUnitQuadCorner* corners;
+    SVECTOR*              vert;
+    MATRIX*               rot;
+    s32                   i;
+    s32                   rise;
+    s32                   top;
+    u16                   flare;
+    s32                   half;
+    s32                   u0;
 
     /* `rise` is built in two steps and then walked in place, and `half` is a
        second spelling of `radius`, because the ROM keeps both copies the
@@ -561,13 +561,13 @@ static void func_hypervelocity_8011EC1C(GfxCoord* coord, s16 age, s32 radius, u8
     flare = radius + rise;
     half  = radius;
     gte_SetTransMatrix(&GsWSMATRIX);
-    i   = 0;
-    rot = &coord->workm;
-    tbl = D_80111E38;
+    i       = 0;
+    rot     = &coord->workm;
+    corners = D_80111E38;
     do {
-        sc->rim[i].vx = tbl[i].x * flare;
+        sc->rim[i].vx = (u16)corners[i].axis0Sign * flare;
         sc->rim[i].vy = top;
-        sc->rim[i].vz = tbl[i].y * half;
+        sc->rim[i].vz = (u16)corners[i].axis1Sign * half;
         gte_SetRotMatrix(rot);
         gte_ldv0(&sc->rim[i]);
         gte_rtv0();
@@ -576,9 +576,9 @@ static void func_hypervelocity_8011EC1C(GfxCoord* coord, s16 age, s32 radius, u8
         (u16) sc->rim[i].vy = (u16)sc->rim[i].vy + (u16)coord->workm.t[1];
         (u16) sc->rim[i].vz = (u16)sc->rim[i].vz + (u16)coord->workm.t[2];
         vert                = &sc->rim[i] + 4;
-        vert->vx            = tbl[i].x * radius;
+        vert->vx            = (u16)corners[i].axis0Sign * radius;
         vert->vy            = 0x700;
-        vert->vz            = tbl[i].y * half;
+        vert->vz            = (u16)corners[i].axis1Sign * half;
         gte_SetRotMatrix(rot);
         gte_ldv0(&sc->hub[i]);
         gte_rtv0();
@@ -587,7 +587,7 @@ static void func_hypervelocity_8011EC1C(GfxCoord* coord, s16 age, s32 radius, u8
         i++;
         (u16) vert->vy = (u16)vert->vy + (u16)coord->workm.t[1];
         (u16) vert->vz = (u16)vert->vz + (u16)coord->workm.t[2];
-    } while (i < 4);
+    } while (i < ARRAY_SIZE(D_80111E38));
 
     gte_SetRotMatrix(&GsWSMATRIX);
     i = 0;

@@ -113,17 +113,6 @@ typedef struct AcropolisBridgePromptWork {
     /* 0x0F */ s8  promptBusy;
 } AcropolisBridgePromptWork;
 
-/// One corner of the unit quad the bridge's dust-cloud task builds its
-/// billboard from (`D_acropolis_bridge_8018990C`): the signed XZ pair
-/// `(-1, 1)`, `(1, 1)`, `(-1, -1)`, `(1, -1)`, scaled by 0x300 before being
-/// rotated into world space. Same shape as the gameplay overlay's
-/// `GpQuadCorner`, but signed - the overlay loads the components with `lh`.
-typedef struct AcropolisBridgeQuadCorner {
-    /* 0x0 */ s16 x;
-    /* 0x2 */ s16 y;
-} AcropolisBridgeQuadCorner;
-STATIC_ASSERT_SIZEOF(AcropolisBridgeQuadCorner, 0x4);
-
 /// 0x2C-byte scratch block the bridge's dust-cloud task takes from
 /// the scratch stack. `vec` holds the four billboard corners, projected with
 /// one `RTPS` plus one `RTPT` straight into the `POLY_FT4`; `otz` is the
@@ -165,7 +154,7 @@ extern s32 D_acropolis_bridge_801917A8;
 /// primitive heap.
 extern DR_MOVE* D_acropolis_bridge_801917AC;
 
-extern AcropolisBridgeQuadCorner D_acropolis_bridge_8018990C[4];
+extern EffectUnitQuadCorner D_acropolis_bridge_8018990C[4];
 
 extern EnemyParams D_acropolis_bridge_80190C5C;
 
@@ -676,7 +665,7 @@ TaskMessageEntry D_acropolis_bridge_801898FC[2] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-AcropolisBridgeQuadCorner D_acropolis_bridge_8018990C[4] = {
+EffectUnitQuadCorner D_acropolis_bridge_8018990C[4] = {
     { -1, 1 },
     { 1, 1 },
     { -1, -1 },
@@ -4174,7 +4163,7 @@ void func_acropolis_bridge_801819C8(Task* task)
     void**                      scratch;
     u8*                         head;
     AcropolisBridgeQuadScratch* block;
-    AcropolisBridgeQuadCorner*  tbl;
+    EffectUnitQuadCorner*       corners;
     POLY_FT4*                   prim;
     GfxCoord*                   coord;
     EffectWork*                 work;
@@ -4190,7 +4179,7 @@ void func_acropolis_bridge_801819C8(Task* task)
     scratch   = SCRATCH_STACK_CURSOR_SLOT;
     i         = 0;
     m         = &coord->workm;
-    tbl       = D_acropolis_bridge_8018990C;
+    corners   = D_acropolis_bridge_8018990C;
     head      = SCRATCH_HEAD_AT(scratch, u8) - sizeof(AcropolisBridgeQuadScratch);
     work->age = task->spawnArg1.halves.low;
     *scratch  = head;
@@ -4200,9 +4189,9 @@ void func_acropolis_bridge_801819C8(Task* task)
            address: the member form lets CSE share one register with the GTE
            macros' `&block->vec[i]`, and the original keeps two. */
         v                = ((AcropolisBridgeQuadScratch*)((SVECTOR*)block + i))->vec;
-        block->vec[i].vx = tbl[i].x * 0x300;
+        block->vec[i].vx = corners[i].axis0Sign * 0x300;
         v->vy            = 0;
-        v->vz            = tbl[i].y * 0x300;
+        v->vz            = corners[i].axis1Sign * 0x300;
         gte_SetRotMatrix(m);
         gte_ldv0(&block->vec[i]);
         gte_rtv0();
@@ -4211,7 +4200,7 @@ void func_acropolis_bridge_801819C8(Task* task)
         i++;
         (u16) v->vy = (u16)coord->workm.t[1];
         (u16) v->vz = (u16)coord->workm.t[2];
-    } while (i < 4);
+    } while (i < ARRAY_SIZE(D_acropolis_bridge_8018990C));
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -4411,14 +4400,14 @@ static void func_acropolis_bridge_801827EC(GfxCoord* coord, s32 arg1, s16 arg2)
 
     blk = SCRATCH_STACK_RESERVE_BLOCK(OverlayFlaggedQuadScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
-    for (i = 0; i < 4; i++) {
-        blk->v[i].vx = D_80111E38[i].x * arg1;
+    for (i = 0; i < ARRAY_SIZE(D_80111E38); i++) {
+        blk->v[i].vx = (u16)D_80111E38[i].axis0Sign * arg1;
         /* Spelled as an offset rather than `&blk->v[i]`, which is the same
            address: the member form lets CSE share one register with the GTE
            macros' `&blk->v[i]`, and the original keeps two. */
         sv     = (SVECTOR*)((u8*)blk + i * sizeof(SVECTOR) + OFFSET_OF(OverlayFlaggedQuadScratch, v));
         sv->vy = 0;
-        sv->vz = D_80111E38[i].y * arg1;
+        sv->vz = (u16)D_80111E38[i].axis1Sign * arg1;
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&blk->v[i]);
         gte_rtv0();

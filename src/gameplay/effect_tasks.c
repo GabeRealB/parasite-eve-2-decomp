@@ -142,11 +142,11 @@ static void Gp_DrawEffSprite3B(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 
 static void Gp_DrawEffShard(GfxCoord* arg0, s16 arg1, s16 arg2, u16 arg3);
 
-GpQuadCorner D_80111E38[4] = {
-    { 0xFFFF, 1 },
+EffectUnitQuadCorner D_80111E38[4] = {
+    { -1, 1 },
     { 1, 1 },
-    { 0xFFFF, 0xFFFF },
-    { 1, 0xFFFF },
+    { -1, -1 },
+    { 1, -1 },
 };
 // Preserve the initialized-data placement of this shared read-only table.
 const EffectSpriteTextureFrame gEffectSpriteAtlasFrames[12] __attribute__((section(".data"))) = {
@@ -2875,10 +2875,10 @@ void Gp_EffSprTask9E(Task* arg0)
     Gp_UpdateCoord(coord);
 
     block = SCRATCH_STACK_RESERVE_BLOCK(GpQuadScratch);
-    for (i = 0; i < 4; i++) {
-        block->vec[i].vx = D_80111E38[i].x * (u16)mem->scale;
+    for (i = 0; i < ARRAY_SIZE(D_80111E38); i++) {
+        block->vec[i].vx = (u16)D_80111E38[i].axis0Sign * (u16)mem->scale;
         block->vec[i].vy = 0;
-        block->vec[i].vz = D_80111E38[i].y * (u16)mem->scale;
+        block->vec[i].vz = (u16)D_80111E38[i].axis1Sign * (u16)mem->scale;
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&block->vec[i]);
         gte_rtv0();
@@ -3058,10 +3058,10 @@ void Gp_DrawEffSprite7C(GfxCoord* arg0, s32 arg1, u32 arg2)
 
     block = SCRATCH_STACK_RESERVE_BLOCK(GpQuadScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
-    for (i = 0; i < 4; i++) {
-        block->vec[i].vx = D_80111E38[i].x * arg1;
+    for (i = 0; i < ARRAY_SIZE(D_80111E38); i++) {
+        block->vec[i].vx = (u16)D_80111E38[i].axis0Sign * arg1;
         block->vec[i].vy = 0;
-        block->vec[i].vz = D_80111E38[i].y * arg1;
+        block->vec[i].vz = (u16)D_80111E38[i].axis1Sign * arg1;
         gte_SetRotMatrix(&gGfxViewCoord.workm);
         gte_ldv0(&block->vec[i]);
         gte_rtv0();
@@ -3123,10 +3123,10 @@ void Gp_DrawEffGroundQuad(VECTOR3* pos, s32 size, s16 shade)
     if (shade >= 0 && gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         block = SCRATCH_STACK_RESERVE_BLOCK(GpQuadScratch);
         gte_SetTransMatrix(&GsWSMATRIX);
-        for (i = 0; i < 4; i++) {
-            block->vec[i].vx = D_80111E38[i].x * size;
+        for (i = 0; i < ARRAY_SIZE(D_80111E38); i++) {
+            block->vec[i].vx = (u16)D_80111E38[i].axis0Sign * size;
             block->vec[i].vy = 0;
-            block->vec[i].vz = D_80111E38[i].y * size;
+            block->vec[i].vz = (u16)D_80111E38[i].axis1Sign * size;
             gte_SetRotMatrix(&gGfxViewCoord.workm);
             gte_ldv0(&block->vec[i]);
             gte_rtv0();

@@ -480,10 +480,10 @@ static void func_pyrokinesis_801304C4(GfxCoord* arg0, s32 arg1)
 
     block = SCRATCH_STACK_RESERVE_BLOCK(GpQuadScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
-    for (i = 0; i < 4; i++) {
-        block->vec[i].vx = D_80111E38[i].x * arg1;
+    for (i = 0; i < ARRAY_SIZE(D_80111E38); i++) {
+        block->vec[i].vx = (u16)D_80111E38[i].axis0Sign * arg1;
         block->vec[i].vy = 0;
-        block->vec[i].vz = D_80111E38[i].y * arg1;
+        block->vec[i].vz = (u16)D_80111E38[i].axis1Sign * arg1;
         gte_SetRotMatrix(&gGfxViewCoord.workm);
         gte_ldv0(&block->vec[i]);
         gte_rtv0();

@@ -14,10 +14,10 @@ void leafDraw(GfxCoord* arg0, s32 arg1, s16 arg2)
     POLY_FT4*      prim;
 
     block = SCRATCH_STACK_RESERVE_BLOCK(GpQuadScratch);
-    for (i = 0; i < 4; i++) {
-        block->vec[i].vx = D_80111E38[i].x * arg1;
+    for (i = 0; i < ARRAY_SIZE(D_80111E38); i++) {
+        block->vec[i].vx = (u16)D_80111E38[i].axis0Sign * arg1;
         block->vec[i].vy = 0;
-        block->vec[i].vz = D_80111E38[i].y * arg1;
+        block->vec[i].vz = (u16)D_80111E38[i].axis1Sign * arg1;
         gte_SetRotMatrix(&arg0->workm);
         gte_ldv0(&block->vec[i]);
         gte_rtv0();
