@@ -2093,30 +2093,30 @@ static void func_actor_521100_80132958(Task* arg0)
     SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
-/// Asks the player for the hold (message 0x3F8, range 0x19) once the actor has
+/// Asks the player to await 0x19 button presses once the actor has
 /// swung its heading to within 0x20 of the slot-3 task's own and is lined up
 /// to latch on. The heading error is the 12-bit difference between the work
 /// block's `field_698` and `field_696`, wrapped into [-0x800, 0x800] and then
 /// narrowed by `field_69C` being armed with 0x50; the request goes out only
 /// while fewer than 0x4E2 units of the actor's health are left, the latch
 /// `field_6BE` is clear, `gPlayerStatus.hp` (the player's current HP) is positive
-/// and the player's own `GameActor::mode` is not its mode 2. On acceptance
+/// and the player's own `GameActor::mode` is not scripted. On acceptance
 /// the body rearms the motion state (2 into `field_69E`, 0xA frames of blend
-/// into `field_686`, the 0xA/0xFF/0x80 pad lerp) and returns 1; the 0x3F8
-/// query buffer is the 0x18 bytes pushed on the scratch-pad stack.
+/// into `field_686`, the 0xA/0xFF/0x80 pad lerp) and returns 1. The payload
+/// is a `GameActorButtonPressHold` reserved on the scratch stack.
 static s32 func_actor_521100_80132C70(Task* arg0)
 {
-    Actor521100Work* work;
-    Task*            player;
-    GpDelayArg*      msg;
-    s16              diff;
-    s32              adiff;
-    s16              wrap;
-    s32              ret;
+    Actor521100Work*          work;
+    Task*                     player;
+    GameActorButtonPressHold* msg;
+    s16                       diff;
+    s32                       adiff;
+    s16                       wrap;
+    s32                       ret;
 
     work   = arg0->work;
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    msg    = (GpDelayArg*)SCRATCH_STACK_RESERVE_BYTES(0x18);
+    msg    = SCRATCH_STACK_RESERVE_BLOCK(GameActorButtonPressHold);
 
     diff  = work->field_698 - work->field_696;
     adiff = diff >= 0 ? diff : -diff;
@@ -2129,8 +2129,8 @@ static s32 func_actor_521100_80132C70(Task* arg0)
         wrap = diff + 0x1000;
     }
     if ((wrap < 0x400) && (work->field_6AA < 0x4E2) && (work->field_6BE == 0) && (gPlayerStatus.hp > 0) && (work->field_69C = 0x50, (wrap < 0x20)) && (((GameActor*)player->work)->mode != GAME_ACTOR_MODE_SCRIPTED)) {
-        msg->field_14 = 0x19;
-        if (TASK_MESSAGE_DISPATCH_POINTER(player, 0x3F8, msg, 0) == 0) {
+        msg->pressCount = 0x19;
+        if (TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, msg, 0) == 0) {
             ret             = 1;
             work->field_6A8 = 0;
             work->field_69E = 2;
@@ -2142,7 +2142,7 @@ static s32 func_actor_521100_80132C70(Task* arg0)
             Gp_SpawnPadLerp(0xA, 0xFF, 0x80);
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BLOCK(GameActorButtonPressHold);
     return ret;
 }
 static void func_actor_521100_80132DE8(Task* arg0)

@@ -37,8 +37,8 @@ void golemKnightBishopGrabSeq(Task* arg0)
     switch (work->field_6CE) {
         case 0:
             if (((GameActor*)player->work)->mode != GAME_ACTOR_MODE_SCRIPTED && gPlayerStatus.hp > 0) {
-                sc->query.field_14 = 0x19;
-                if (TASK_MESSAGE_DISPATCH_POINTER(player, 0x3F8, sc, 0) == 0) {
+                sc->query.pressCount = 0x19;
+                if (TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, sc, 0) == 0) {
                     work->field_6C0 = 1;
                     work->field_6CE = 1;
                     work->field_6F4 = 0;

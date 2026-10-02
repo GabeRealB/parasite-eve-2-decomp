@@ -3410,7 +3410,7 @@ static void func_actor_401300_80138160(Task* arg0)
         if (abs(angle) < 0x10 && !overlayOutOfRange(&pos, 0x44C)) {
             work->field_CAC.source.sets = D_actor_401300_801588F0;
             work->field_D00             = 8;
-            if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, &work->field_CEC, 0) == 0) {
+            if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &work->field_CEC, 0) == 0) {
                 work->field_0               = 0xC;
                 work->field_D20             = 1;
                 work->field_CAC.animationId = 1;
@@ -4788,7 +4788,7 @@ static void func_actor_401300_8013DADC(Task* arg0)
             if (func_actor_401300_80132910(arg0, work->field_990, 0xC) != 0 && player->mode != GAME_ACTOR_MODE_SCRIPTED && abs(aim->turn) < 0x100 &&
                 enemy->hp > 0) {
                 work->field_D00 = 0x7F;
-                if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, &work->field_CEC, 0) == 0) {
+                if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &work->field_CEC, 0) == 0) {
                     Gp_SpawnPadLerp(0x10, 8, 0xFF);
                     work->field_D20             = 1;
                     work->field_CAC.source.sets = D_actor_401300_801588F0;
@@ -5009,7 +5009,7 @@ static void func_actor_401300_8013E930(Task* arg0)
             if (func_actor_401300_80132910(arg0, work->field_990, 0xC) != 0 && player->mode != GAME_ACTOR_MODE_SCRIPTED && work->field_6 >= 8 &&
                 enemy->hp > 0) {
                 work->field_D00 = 0x7F;
-                if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, &work->field_CEC, 0) == 0) {
+                if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &work->field_CEC, 0) == 0) {
                     Gp_SpawnPadLerp(0x10, 8, 0xFF);
                     SndEvt_EnqueueType6(SOUND_PLAYER_STRUCK, (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords),
                                         (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));

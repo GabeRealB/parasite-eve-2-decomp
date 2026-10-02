@@ -92,8 +92,8 @@ typedef struct Actor103700Work {
 /// 0x2C-byte scratch from the scratch stack used by `Actor03700_Fn03130`:
 /// the 0x3F8 query buffer followed by the `AnimationPlayRequest` it sends as message 0x3FF.
 typedef struct Actor103700HoldScratch {
-    /* 0x00 */ GpDelayArg           query;
-    /* 0x18 */ AnimationPlayRequest anim;
+    /* 0x00 */ GameActorButtonPressHold query;
+    /* 0x18 */ AnimationPlayRequest     anim;
 } Actor103700HoldScratch;
 STATIC_ASSERT_SIZEOF(Actor103700HoldScratch, 0x2C);
 
@@ -2136,8 +2136,8 @@ static s32 Actor03700_Fn03130(Task* task)
 
     ret = 0;
     if (((GameActor*)player->work)->mode != GAME_ACTOR_MODE_SCRIPTED) {
-        scratch->query.field_14 = 8;
-        if (TASK_MESSAGE_DISPATCH_POINTER(player, 0x3F8, scratch, 0) == 0) {
+        scratch->query.pressCount = 8;
+        if (TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, scratch, 0) == 0) {
             scratch->anim.source.sets          = Actor03700_D080FC;
             scratch->anim.animationId          = 1;
             scratch->anim.blend                = ANIMATION_BLEND_RESET;

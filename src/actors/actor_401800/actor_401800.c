@@ -148,7 +148,7 @@ static SVECTOR ActorContact_ScratchPosition;
 
 extern OddStrangerTransformStorage gOddStrangerGrabTransform;
 
-extern GpDelayArg D_actor_401800_80155AF8;
+extern GameActorButtonPressHold D_actor_401800_80155AF8;
 
 /// Clip-transition table the cross-fade reads: one byte per (previous clip,
 /// requested clip) pair, rows of 0x2D, handed to `animationSeekSlotWithBlend` as the
@@ -1114,7 +1114,7 @@ static inline SVECTOR* ActorContact_GetScratchPosition(void)
 
 OddStrangerTransformStorage gOddStrangerGrabTransform;
 
-GpDelayArg D_actor_401800_80155AF8;
+GameActorButtonPressHold D_actor_401800_80155AF8;
 
 static __inline__ void Actor401800_BindMatrices(Task* actor);
 static __inline__ s32  Actor401800_ChaseOutOfRange(SVECTOR* d, s16 r);
@@ -1648,9 +1648,9 @@ static void func_actor_401800_801381E4(Task* arg0)
         if (ang < 0x20) {
             if (!oddStrangerOutOfRange(&dir, 0x5DC)) {
                 Actor401800_SetGrabAnim();
-                D_actor_401800_80155AF8.field_14 = 8;
+                D_actor_401800_80155AF8.pressCount = 8;
                 do {
-                    if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, &D_actor_401800_80155AF8, 0) == 0) {
+                    if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_401800_80155AF8, 0) == 0) {
                         work->field_0                      = 0xC;
                         work->field_C28                    = 1;
                         gOddStrangerPlayerAnim.animationId = 1;

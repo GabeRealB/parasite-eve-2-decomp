@@ -561,8 +561,8 @@ STATIC_ASSERT_SIZEOF(Actor403000MessageEntry, 8);
 extern Actor403000MessageEntry D_actor_403000_80158CA8[7];
 // Preserve the unreferenced zero tail; fields versus alignment is unresolved.
 typedef struct {
-    GpDelayArg value;
-    u8         retained[8];
+    GameActorButtonPressHold value;
+    u8                       retained[8];
 } Actor403000DelayStorage;
 STATIC_ASSERT_SIZEOF(Actor403000DelayStorage, 32);
 extern Actor403000Storage8D90 D_actor_403000_80158D90;
@@ -5696,7 +5696,7 @@ static void func_actor_403000_801377C8(Task* arg0)
                 }
                 found = 0;
             done:
-                if (found != 0 && enemy->hp > 0 && TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, &D_actor_403000_80158DD0.value, 0) == 0) {
+                if (found != 0 && enemy->hp > 0 && TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_403000_80158DD0.value, 0) == 0) {
                     work->field_0      = 6;
                     work->field_FC0    = 1;
                     work->field_F74    = player->extra.tmd->coords->coord.t[0] - arg0->extra.tmd->coords->coord.t[0];
@@ -6037,7 +6037,7 @@ static void func_actor_403000_801386E8(Task* arg0)
         }
         found = 0;
     done:
-        if (found != 0 && enemy->hp > 0 && TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, &D_actor_403000_80158DD0.value, 0) == 0) {
+        if (found != 0 && enemy->hp > 0 && TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_403000_80158DD0.value, 0) == 0) {
             D_actor_403000_80158D90.value.pos.vx = player->extra.tmd->coords->coord.t[0];
             D_actor_403000_80158D90.value.pos.vy = player->extra.tmd->coords->coord.t[1];
             D_actor_403000_80158D90.value.pos.vz = player->extra.tmd->coords->coord.t[2];
@@ -7068,7 +7068,7 @@ static void func_actor_403000_8013B74C(Task* arg0)
         scratch->target.vy = work->field_F76 - player->extra.tmd->coords->coord.t[1];
         scratch->target.vz = work->field_F78 - player->extra.tmd->coords->coord.t[2];
         if (!Actor403000_Outside(&scratch->target, 1000) && enemy->hp > 0 &&
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, &D_actor_403000_80158DD0.value, 0) == 0) {
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_403000_80158DD0.value, 0) == 0) {
             task         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             scratch->ret = taskMessageDispatch(task, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 3), 0);
             if (scratch->ret == 1) {

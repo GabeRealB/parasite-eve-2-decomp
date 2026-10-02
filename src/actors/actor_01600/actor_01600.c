@@ -253,15 +253,8 @@ STATIC_ASSERT_SIZEOF(Actor01600YawScratch, 0x30);
 /// difference is computed into the scratch vector but never enters the sum.
 static s32 Actor01600_Fn052C4(Task* arg0);
 
-// The retained animation header precedes the delay count read by message 0x3F8.
-typedef struct {
-    AnimationPlayRequest animation;
-    s32                  frames;
-} Actor01600DelayArg;
-STATIC_ASSERT_SIZEOF(Actor01600DelayArg, 24);
-
-extern Actor01600DelayArg Actor01600_D12878;
-extern ActorTransform     Actor01600_D12890;
+extern GameActorButtonPressHold Actor01600_D12878;
+extern ActorTransform           Actor01600_D12890;
 
 extern s32 Actor01600_D12874;
 extern s32 Actor01600_D12870;
@@ -1338,7 +1331,10 @@ s32 Actor01600_D12870 = 0;
 
 s32 Actor01600_D12874 = 0;
 
-Actor01600DelayArg Actor01600_D12878 = { { { .sets = Actor01600_D127C8 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, 1 };
+/// Hold sent as `GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES`. The static press
+/// count is 1; the grab overwrites it with 5 and selects the animation the
+/// fallback companion handler plays.
+GameActorButtonPressHold Actor01600_D12878 = { { { .sets = Actor01600_D127C8 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, 1 };
 
 ActorTransform Actor01600_D12890;
 
@@ -3565,13 +3561,13 @@ static s32 Actor01600_Fn047A0(Task* arg0)
             }
             if (difference < 0x401) {
                 if (distance < 0x3E8) {
-                    Actor01600_D12878.frames = 5;
+                    Actor01600_D12878.pressCount = 5;
                     if (work->field_53E != 0) {
                         Actor01600_D12878.animation.animationId = 1;
                     } else {
                         Actor01600_D12878.animation.animationId = 2;
                     }
-                    if (TASK_MESSAGE_DISPATCH_POINTER(task, 0x3F8, &Actor01600_D12878, 0) == 0) {
+                    if (TASK_MESSAGE_DISPATCH_POINTER(task, GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &Actor01600_D12878, 0) == 0) {
                         other->composeStamp = GRAPHICS_COORD_DIRTY;
                         delta.vx            = coord->coord.t[0] - other->coord.t[0];
                         delta.vy            = 0;

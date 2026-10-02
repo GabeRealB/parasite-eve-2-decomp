@@ -520,7 +520,7 @@ extern AnimationPlayRequest D_actor_503500_80171508[2];
 
 extern AnimationPlayRequest D_actor_503500_80171530;
 
-extern GpDelayArg D_actor_503500_80171544;
+extern GameActorButtonPressHold D_actor_503500_80171544;
 
 extern RECT D_actor_503500_8017155C;
 

@@ -133,7 +133,7 @@ s32 func_8010C6C8(Task* arg0, s32 arg1, ActorTransform* transform, GameActorMove
 
 s32 func_8010C708(Task* arg0, s32 arg1, ActorTransform* transform, GameActorMoveAnim* moveAnim);
 
-s32 func_8010C75C(Task* arg0, s32 arg1, GpDelayArg* arg2);
+s32 func_8010C75C(Task* arg0, s32 arg1, GameActorButtonPressHold* arg2);
 
 void Gp_MoveActorByKeep(Task* arg0, s32 arg1, GpMoveArg* arg2);
 
@@ -1783,7 +1783,7 @@ s32 func_8010C708(Task* arg0, s32 arg1, ActorTransform* transform, GameActorMove
     return 0;
 }
 
-s32 func_8010C75C(Task* arg0, s32 arg1, GpDelayArg* arg2)
+s32 func_8010C75C(Task* arg0, s32 arg1, GameActorButtonPressHold* arg2)
 {
     GameActor* actor;
 
@@ -1806,7 +1806,7 @@ s32 func_8010C75C(Task* arg0, s32 arg1, GpDelayArg* arg2)
     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
     func_80106350(arg0, D_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
     actor->state       = 6;
-    actor->stateTimer  = arg2->field_14;
+    actor->stateTimer  = arg2->pressCount;
     actor->actionValue = 0;
     return 0;
 }

@@ -4314,7 +4314,7 @@ static void func_actor_503500_801437D0(Task* arg0, WorldCollisionContact* rec, s
             player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             pcoord = player->extra.tmd->coords;
             if (((GameActor*)player->work)->mode != GAME_ACTOR_MODE_SCRIPTED &&
-                TASK_MESSAGE_DISPATCH_POINTER(player, 0x3F8, &D_actor_503500_80171544, 0) == 0) {
+                TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_503500_80171544, 0) == 0) {
                 coord = arg0->parent->extra.tmd->coords;
                 src   = (s32*)&coord->coord;
                 dst   = (s32*)&work->field_40;

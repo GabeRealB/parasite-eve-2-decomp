@@ -256,8 +256,8 @@ extern SVECTOR gGluttonSpinnerTarget;
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
 typedef struct {
-    GpDelayArg value;
-    u8         retained[8];
+    GameActorButtonPressHold value;
+    u8                       retained[8];
 } Actor403200StorageF900;
 STATIC_ASSERT_SIZEOF(Actor403200StorageF900, 32);
 
@@ -283,7 +283,7 @@ STATIC_ASSERT_SIZEOF(Actor403200StorageF9C0, 64);
 
 extern Actor403200StorageF9C0 D_actor_403200_8015F9C0;
 
-extern GpDelayArg D_actor_403200_8015FA00;
+extern GameActorButtonPressHold D_actor_403200_8015FA00;
 
 /// Handwritten overlay-local follow helper. `arg1`/`arg2` select the axis pair
 /// and `arg3` the mode; takes the task, not the work block.
@@ -2862,7 +2862,7 @@ ActorCommand D_actor_403200_8015F8F4 = { { .loc = { 0, 0 } }, 0 };
 
 SVECTOR gGluttonSpinnerTarget = { 0, 0, 0, 0 };
 
-Actor403200StorageF900 gGluttonGrabQuery = { { { 0, 0, 0, 0 }, 0, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 } };
+Actor403200StorageF900 gGluttonGrabQuery = { { { 0 }, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 } };
 
 GfxCoord D_actor_403200_8015F920 = { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL };
 
@@ -2870,7 +2870,7 @@ GluttonDropCoord D_actor_403200_8015F970 = { .c = { 0, { { { 0, 0, 0 }, { 0, 0, 
 
 Actor403200StorageF9C0 D_actor_403200_8015F9C0;
 
-GpDelayArg D_actor_403200_8015FA00;
+GameActorButtonPressHold D_actor_403200_8015FA00;
 
 /// Integer part of the last step `ActorContact_PushContact` applied.
 extern SVECTOR ActorContact_ScratchPosition;
@@ -4883,7 +4883,7 @@ static void func_actor_403200_8013B8C4(Task* arg0)
     }
 
     if (((u32)((work->slots0[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) - 0xB) < 5U) && (sc->dist < 0x4B0) && (enemy->hp > 0) &&
-        (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, &D_actor_403200_8015FA00, 0) == 0)) {
+        (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_403200_8015FA00, 0) == 0)) {
         SVECTOR* dirp;
         s16      ang;
 
@@ -5370,7 +5370,7 @@ missed:
     found = 0;
 scanned:
     if (found != 0 && enemy->hp > 0 &&
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, &D_actor_403200_8015FA00, 0) == 0) {
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_403200_8015FA00, 0) == 0) {
         target          = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         reply           = taskMessageDispatch(target, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 4), 0);
         work->field_ECA = reply;

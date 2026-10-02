@@ -158,7 +158,7 @@ static inline SVECTOR* ActorContact_GetScratchPosition(void)
 
 extern OddStrangerTransformStorage gOddStrangerGrabTransform;
 
-extern GpDelayArg D_actor_401000_80155038;
+extern GameActorButtonPressHold D_actor_401000_80155038;
 
 /// Transition table the clip change seeks through: one byte per
 /// (playing clip, requested clip) pair, 0x2D requested clips to a row.
@@ -1091,7 +1091,7 @@ SVECTOR ActorContact_ScratchPosition;
 
 OddStrangerTransformStorage gOddStrangerGrabTransform;
 
-GpDelayArg D_actor_401000_80155038;
+GameActorButtonPressHold D_actor_401000_80155038;
 
 static __inline__ void Actor401000_BindMatrices(Task* actor);
 static __inline__ void Actor401000_InitPose(GfxCoord* coord, OddStrangerWork* work);
@@ -1712,8 +1712,8 @@ static void func_actor_401000_801378DC(Task* arg0)
             } else {
                 gOddStrangerPlayerAnim.source.sets = D_actor_401000_80154F00;
             }
-            D_actor_401000_80155038.field_14 = 8;
-            if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, &D_actor_401000_80155038, 0) == 0) {
+            D_actor_401000_80155038.pressCount = 8;
+            if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_401000_80155038, 0) == 0) {
                 work->field_0                      = 0xC;
                 work->field_C28                    = 1;
                 gOddStrangerPlayerAnim.animationId = 1;

@@ -988,7 +988,7 @@ AnimationPlayRequest D_actor_503500_80171508[2] = {
 
 AnimationPlayRequest D_actor_503500_80171530 = { { .sets = D_actor_503500_801714C8 }, 5, ANIMATION_BLEND_INTERPOLATE, 3, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpDelayArg D_actor_503500_80171544 = { 0 };
+GameActorButtonPressHold D_actor_503500_80171544 = { 0 };
 
 RECT D_actor_503500_8017155C = { 0, 261, 256, 1 };
 

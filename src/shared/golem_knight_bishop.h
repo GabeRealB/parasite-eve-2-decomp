@@ -437,11 +437,11 @@ STATIC_ASSERT_SIZEOF(GolemKnightBishopTrailScratch, 0x3C);
 /// and the offset `in` rotated through the actor's root into `out`; `in` is
 /// also the rotation the grab's matrix is built from.
 typedef struct GolemKnightBishopGrabScratch {
-    GpDelayArg           query;
-    AnimationPlayRequest anim;
-    ActorTransform       place;
-    VECTOR               out;
-    SVECTOR              in;
+    GameActorButtonPressHold query;
+    AnimationPlayRequest     anim;
+    ActorTransform           place;
+    VECTOR                   out;
+    SVECTOR                  in;
 } GolemKnightBishopGrabScratch;
 STATIC_ASSERT_SIZEOF(GolemKnightBishopGrabScratch, 0x5C);
 

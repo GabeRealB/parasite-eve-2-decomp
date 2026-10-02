@@ -151,8 +151,8 @@ STATIC_ASSERT_SIZEOF(Actor510900ChildFxTickScratch, 0x28);
 /// 0x2C-byte scratch from the scratch stack used by `func_actor_510900_8013A310`:
 /// the 0x3F8 query buffer followed by the `AnimationPlayRequest` it sends as message 0x3FF.
 typedef struct Actor510900HitScratch {
-    /* 0x00 */ GpDelayArg           query;
-    /* 0x18 */ AnimationPlayRequest anim;
+    /* 0x00 */ GameActorButtonPressHold query;
+    /* 0x18 */ AnimationPlayRequest     anim;
 } Actor510900HitScratch;
 STATIC_ASSERT_SIZEOF(Actor510900HitScratch, 0x2C);
 
@@ -3027,8 +3027,8 @@ static void func_actor_510900_8013A310(Task* task)
     switch (work->field_CC) {
         case 0:
             if (((GameActor*)player->work)->mode != GAME_ACTOR_MODE_SCRIPTED) {
-                scratch->query.field_14 = 0xC;
-                if (TASK_MESSAGE_DISPATCH_POINTER(player, 0x3F8, scratch, 0) != 0) {
+                scratch->query.pressCount = 0xC;
+                if (TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, scratch, 0) != 0) {
                     work->field_CA = 3;
                     break;
                 }

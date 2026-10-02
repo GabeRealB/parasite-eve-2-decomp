@@ -231,6 +231,13 @@ enum {
     GAME_ACTOR_MESSAGE_SET_MODEL_DRAW = 0x3F3,
     /// Reparents the receiver's model to a borrowed `GfxCoord`. Returns 0.
     GAME_ACTOR_MESSAGE_ATTACH_TO_COORD = 0x3F5,
+    /// Takes scripted control and waits until `pressCount` newly pressed
+    /// direction-pad or face buttons have been counted. The payload is a
+    /// borrowed `GameActorButtonPressHold`. Returns 1, changing nothing,
+    /// while recovery is still active, and 0 after accepting. Companions
+    /// that do not implement the hold read `animation` through the generic
+    /// animation handler and always return 0.
+    GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES = 0x3F8,
     /// Applies damage to the receiver (`Gp_ApplyPlayerDamage`, `Gp_HurtAlly`).
     GAME_ACTOR_MESSAGE_APPLY_DAMAGE = 0x3F9,
     /// Moves the receiver by a borrowed `GpMoveArg` displacement.
@@ -290,16 +297,27 @@ typedef struct {
 } AnimationBankCopyRequest;
 STATIC_ASSERT_SIZEOF(AnimationBankCopyRequest, 8);
 
-/// The payload of the message that holds the player or the companion in a
-/// timed state. The receivers read only `field_14`, a frame count they store as
-/// the state's countdown; senders also fill `field_4`.
-typedef struct GpDelayArg {
-    byte pad_0[4];
-    s32  field_4;
-    byte pad_8[0xC];
-    s32  field_14;
-} GpDelayArg;
-STATIC_ASSERT_SIZEOF(GpDelayArg, 0x18);
+/// Payload of `GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES`.
+///
+/// The player and the companion that implement the hold copy `pressCount`
+/// onto `GameActor.stateTimer`, clear `actionValue`, and enter scripted
+/// state 6. That state counts newly pressed direction-pad and face buttons
+/// (`PADLup`, `PADLdown`, `PADLleft`, `PADLright`, `PADRup`, `PADRdown`,
+/// `PADRleft`, `PADRright`) in `actionValue` until the count reaches
+/// `stateTimer`. A count of zero completes on the first tick. Those handlers
+/// return 1, changing nothing, while recovery is still active, and 0 after
+/// accepting.
+///
+/// Companions that do not implement the hold bind this id to their generic
+/// animation handler and read `animation`, ignoring `pressCount`. A sender
+/// that only addresses an implementing receiver may leave `animation`
+/// uninitialized. The record is borrowed through synchronous dispatch and
+/// occupies 24 bytes with four-byte alignment.
+typedef struct {
+    AnimationPlayRequest animation;  // Read by the generic animation handler; the hold handlers ignore it
+    s32                  pressCount; // Direction-pad and face-button presses before the hold completes; 0 completes on the first tick
+} GameActorButtonPressHold;
+STATIC_ASSERT_SIZEOF(GameActorButtonPressHold, 0x18);
 
 /// Scene-child lookup messages with a borrowed, writable `Task*` reply.
 ///

@@ -2410,14 +2410,14 @@ static void func_actor_400600_80133E38(Task* arg0)
 
 static void func_actor_400600_80133FC0(Task* arg0)
 {
-    AnimationPlayRequest msg;
-    GpDelayArg           query;
-    Actor400600Work*     work;
-    Actor400600Work*     work2;
-    Actor400600Work*     work3;
-    s32                  base;
-    s32                  sound;
-    s32                  pan;
+    AnimationPlayRequest     msg;
+    GameActorButtonPressHold query;
+    Actor400600Work*         work;
+    Actor400600Work*         work2;
+    Actor400600Work*         work3;
+    s32                      base;
+    s32                      sound;
+    s32                      pan;
 
     work = (Actor400600Work*)arg0->work;
     if (((GameActor*)gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->work)->mode == GAME_ACTOR_MODE_SCRIPTED || (stalkerZebraIvoryWallDistance(arg0) << 0x10) != 0 || work->playerDistance >= 0x7D0 || (u32)(work->field_72C - 0x200) < 0xC01U) {
@@ -2428,8 +2428,8 @@ static void func_actor_400600_80133FC0(Task* arg0)
         func_actor_400600_80135998(arg0, work->field_752);
         return;
     }
-    query.field_14 = 8;
-    if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, &query, 0) != 0) {
+    query.pressCount = 8;
+    if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &query, 0) != 0) {
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
         if (work->onCeiling == 0) {
             work3           = (Actor400600Work*)arg0->work;

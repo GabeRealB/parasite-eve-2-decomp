@@ -153,7 +153,7 @@ typedef struct {
         s32                (*call1)(Task*, s32, AnimationPlayRequest*);
         s32                (*call2)(Task*, s32, const AnimationBankCopyRequest*);
         s32                (*call3)(Task*, s32, GpCountArg*);
-        s32                (*call4)(Task*, s32, GpDelayArg*);
+        s32                (*call4)(Task*, s32, GameActorButtonPressHold*);
         s32                (*call5)(Task*, s32, ActorTransform*);
         s32                (*transform)(Task*, s32, ActorTransform*, s32);
         s32                (*call6)(Task*, s32, ActorTransform*, GameActorMoveAnim*);
@@ -245,7 +245,7 @@ Actor800100MessageEntry D_actor_800100_80167130[26] = {
     { GAME_ACTOR_MESSAGE_ATTACH_TO_COORD, { .call10 = func_80105A60 } },
     { 1014, { .call3 = func_801052B8 } },
     { ANIMATION_MESSAGE_COPY_BANK_EXTENSION, { .call2 = Gp_CopyAllyAnim } },
-    { 1016, { .call4 = func_8010C75C } },
+    { GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, { .call4 = func_8010C75C } },
     { GAME_ACTOR_MESSAGE_APPLY_DAMAGE, { .call8 = Gp_HurtAlly } },
     { 1018, { .call1 = func_8010C4F0 } },
     { 1019, { .call1 = func_8010C4F0 } },

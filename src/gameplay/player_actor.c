@@ -290,7 +290,7 @@ typedef struct {
         s32                (*call7)(Task*, s32, AnimationPlayRequest*);
         s32                (*call8)(Task*, s32, GpCountArg*);
         s32                (*call9)(Task*, s32, const AnimationBankCopyRequest*);
-        s32                (*call10)(Task*, s32, GpDelayArg*);
+        s32                (*call10)(Task*, s32, GameActorButtonPressHold*);
         s32                (*call11)(Task*, s32, GpMoveArg*);
     } handler;
 } GpPlayerMessageEntry;
@@ -442,7 +442,7 @@ s32 func_80104F5C(Task* arg0, s32 arg1, GpFacingArg* arg2);
 
 s32 func_80105190(Task* arg0, s32 arg1, ActorTransform* transform, GameActorMoveAnim* moveAnim);
 
-s32 func_801054D8(Task* arg0, s32 arg1, GpDelayArg* arg2);
+s32 func_801054D8(Task* arg0, s32 arg1, GameActorButtonPressHold* arg2);
 
 s32 func_80105690(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 
@@ -955,7 +955,7 @@ GpPlayerMessageEntry Gp_PlayerMsgTable[28] = {
     { GAME_ACTOR_MESSAGE_ATTACH_TO_COORD, { .coord = func_80105A60 } },
     { 1014, { .call8 = func_801052B8 } },
     { ANIMATION_MESSAGE_COPY_BANK_EXTENSION, { .call9 = Gp_CopyPlayerAnim } },
-    { 1016, { .call10 = func_801054D8 } },
+    { GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, { .call10 = func_801054D8 } },
     { GAME_ACTOR_MESSAGE_APPLY_DAMAGE, { .call5 = Gp_ApplyPlayerDamage } },
     { 1018, { .call2 = func_80105690 } },
     { 1019, { .call6 = func_80105190 } },
@@ -6613,7 +6613,7 @@ s32 Gp_MoveActorBy(Task* arg0, s32 arg1, GpMoveArg* arg2)
     return func_801041B4(arg0);
 }
 
-s32 func_801054D8(Task* arg0, s32 arg1, GpDelayArg* arg2)
+s32 func_801054D8(Task* arg0, s32 arg1, GameActorButtonPressHold* arg2)
 {
     GameActor*    actor;
     PlayerStatus* p;
@@ -6644,7 +6644,7 @@ s32 func_801054D8(Task* arg0, s32 arg1, GpDelayArg* arg2)
     }
     actor->state       = 6;
     Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
-    actor->stateTimer  = arg2->field_14;
+    actor->stateTimer  = arg2->pressCount;
     actor->actionValue = 0;
     return 0;
 }

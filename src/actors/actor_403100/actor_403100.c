@@ -6315,7 +6315,7 @@ static void func_actor_403100_80138F88(Task* arg0)
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
         func_actor_403100_8013D1B8(1, 0x3FF);
         message[5] = 0x28;
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, message, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, message, 0);
         D_actor_403100_80155808->field_656 = (u16)D_actor_403100_8015580C->hp;
     }
 }
@@ -6383,7 +6383,7 @@ static void func_actor_403100_8013922C(Task* arg0)
         D_actor_403100_80155808->pad_660[0] = 0;
         func_actor_403100_8013D1B8(1, 0x3FF);
         message[5] = 0x28;
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, message, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, message, 0);
         D_actor_403100_80155808->pad_65E[0] = (u8)D_actor_403100_80155808->pad_65E[0] + 1;
     }
     if (((u8)D_actor_403100_80155808->pad_65E[0] != 0) ||

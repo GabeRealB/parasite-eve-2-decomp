@@ -1584,7 +1584,7 @@ static void Actor04000_Fn0168C(Enemy* arg0, Task* arg1)
         if (mag < 0x200) {
             if (actor->mode != GAME_ACTOR_MODE_SCRIPTED) {
                 work->field_490 = 0xC;
-                if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, work->field_47C, 0) == 0) {
+                if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, work->field_47C, 0) == 0) {
                     coord     = player->extra.tmd->coords;
                     angle     = ratan2(sc->d.vx, sc->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
                     sc->angle = actorWrapAngle(angle);
@@ -3031,7 +3031,7 @@ static void Actor04000_Fn06878(Enemy* arg0, Task* arg1)
     work->field_6++;
     if ((s16)work->field_6 > 0x28) {
         work->field_490 = 0x270F;
-        if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, work->field_47C, 0) == 0) {
+        if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, work->field_47C, 0) == 0) {
             work->field_0 = 5;
         } else {
             work->field_0 = 0xD;

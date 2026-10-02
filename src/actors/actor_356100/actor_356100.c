@@ -699,7 +699,7 @@ EffectSpawnArg D_actor_356100_801732A8 = { NULL, 0, 0 };
 
 Actor356100Storage32B0 D_actor_356100_801732B0;
 
-GpDelayArg D_actor_356100_801732D0;
+GameActorButtonPressHold D_actor_356100_801732D0;
 
 /// Animation view of the work block above, as `func_actor_356100_801633DC`
 /// reads it: the `Actor01900AnimWork` layout 0xE0 bytes later, so the two
@@ -794,7 +794,7 @@ extern Actor356100Storage32B0 D_actor_356100_801732B0;
 
 /// Reply buffer for the message-0x3F8 query above; the six words after it are
 /// zero in the image.
-extern GpDelayArg D_actor_356100_801732D0;
+extern GameActorButtonPressHold D_actor_356100_801732D0;
 
 /// Player-character flag selecting which animation block
 /// `func_actor_356100_80166018` points `D_actor_356100_80173244.field_0` at:
@@ -1958,8 +1958,8 @@ static void func_actor_356100_80166018(Task* arg0)
             } else {
                 D_actor_356100_80173244.source.sets = D_actor_356100_80173228;
             }
-            D_actor_356100_801732D0.field_14 = 8;
-            if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, &D_actor_356100_801732D0, 0) == 0) {
+            D_actor_356100_801732D0.pressCount = 8;
+            if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_356100_801732D0, 0) == 0) {
                 work->field_0                       = 0xC;
                 work->field_B68                     = 1;
                 D_actor_356100_80173244.animationId = 1;
