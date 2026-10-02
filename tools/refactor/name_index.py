@@ -83,6 +83,9 @@ def vendored_names(root: str) -> set:
         # rest look like unnamed project types and lead the worklist.
         out |= set(re.findall(r"\}\s*(\w+)\s*;", text))
         out |= set(re.findall(r"typedef\s+(?:struct|union|enum)\s+(\w+)", text))
+        # Tagged definitions without a typedef, such as kernel.h's
+        # `struct DIRENTRY { ... };`, used only as `struct DIRENTRY`.
+        out |= set(re.findall(r"\b(?:struct|union|enum)\s+(\w+)\s*\{", text))
     return out
 
 
