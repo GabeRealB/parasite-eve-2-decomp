@@ -142645,7 +142645,7 @@ matrix rows with constants. The target holds the pointer in `$v0` and the
 constants in `$v1`. Unpinned, `m` is one variable spanning every arm, so it is
 a global allocno. local-alloc then gives each arm's block-local constant `$v0`
 first, and `m` drops to `$v1`. The fix was a
-`static inline void _gpSetColorMtx(MATRIX* m, s16 r, s16 g, s16 b)` called in
+`static inline void _worldCoordFillLightColorMatrix(MATRIX* colorMtx, s16 r, s16 g, s16 b)` called in
 every arm, and in a fifth site that had never been pinned. Each call's
 parameter is block-local, so local-alloc allocates it alongside the constants
 and it lands in `$v0`.

@@ -270,10 +270,6 @@ static __inline__ void solve_rank(_WorldCoordRankedLight* slots, s32 val, s32 ki
 
 static __inline__ void solve_rank0(_WorldCoordRankedLight* slots, s32 val, s32 kind, WorldCoordLight* obj, _WorldCoordLightQueryScratch* block);
 
-/// Fills a light colour matrix so all three lights share one colour: every
-/// column of the red, green and blue rows gets `r`, `g` and `b`.
-static inline void _gpSetColorMtx(MATRIX* mtx, s16 r, s16 g, s16 b);
-
 static void Gp_DebugPanTask(Task* arg0);
 
 /// Remaps a 3x3 color matrix (`MATRIX.m`) from lighting mode `arg2`
@@ -1093,13 +1089,17 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
     SCRATCH_STACK_RELEASE_BYTES(sizeof(_WorldCoordLightQueryScratch));
 }
 
-/// Fills a light colour matrix so all three lights share one colour: every
-/// column of the red, green and blue rows gets `r`, `g` and `b`.
-static inline void _gpSetColorMtx(MATRIX* mtx, s16 r, s16 g, s16 b)
+/// Writes one colour into every column of a light-colour matrix.
+///
+/// `r`, `g` and `b` are signed channel intensities with 12 fractional bits
+/// (`ONE` is full strength). Each value is stored in all three columns of its
+/// row, so the three lights contribute the same colour. The translation, which
+/// holds the ambient colour, is left unchanged.
+static inline void _worldCoordFillLightColorMatrix(MATRIX* colorMtx, s16 r, s16 g, s16 b)
 {
-    mtx->m[0][0] = mtx->m[0][1] = mtx->m[0][2] = r;
-    mtx->m[1][0] = mtx->m[1][1] = mtx->m[1][2] = g;
-    mtx->m[2][0] = mtx->m[2][1] = mtx->m[2][2] = b;
+    colorMtx->m[0][0] = colorMtx->m[0][1] = colorMtx->m[0][2] = r;
+    colorMtx->m[1][0] = colorMtx->m[1][1] = colorMtx->m[1][2] = g;
+    colorMtx->m[2][0] = colorMtx->m[2][1] = colorMtx->m[2][2] = b;
 }
 
 static void Gp_DebugPanTask(Task* arg0)
@@ -1172,18 +1172,18 @@ static void Gp_DebugPanTask(Task* arg0)
             if ((gDisplayState.loopCount & 1) == 0) {
                 val >>= 1;
             }
-            _gpSetColorMtx(mtx, 0x200, val, 0x200);
+            _worldCoordFillLightColorMatrix(mtx, 0x200, val, 0x200);
             D_80114F28 = 0;
         } else if ((gDisplayState.animFrame % 3) == 0 && cfg->hp > 0 && gGameSession->eventState == 0) {
             if (Gp_StateC08.field_14 > 0 || (Gp_StateC08.field_16 != 0 && Gp_StateC08.field_17 != 0)) {
-                _gpSetColorMtx(extra->colorMtx, 0x400, 0x2000, 0x2000);
+                _worldCoordFillLightColorMatrix(extra->colorMtx, 0x400, 0x2000, 0x2000);
             } else if (Gp_StateC08.field_16 != 0) {
-                _gpSetColorMtx(extra->colorMtx, 0x400, 0x400, 0x2000);
+                _worldCoordFillLightColorMatrix(extra->colorMtx, 0x400, 0x400, 0x2000);
             } else if (Gp_StateC08.field_17 != 0) {
-                _gpSetColorMtx(extra->colorMtx, 0x2000, 0x2000, 0x400);
+                _worldCoordFillLightColorMatrix(extra->colorMtx, 0x2000, 0x2000, 0x400);
             }
             if (cfg->statusFlags & PLAYER_STATUS_BERSERKER) {
-                _gpSetColorMtx(extra->colorMtx, 0x2000, 0x400, 0x400);
+                _worldCoordFillLightColorMatrix(extra->colorMtx, 0x2000, 0x400, 0x400);
             }
         }
     }
@@ -1792,7 +1792,7 @@ void Gp_InsertRankedSlot(_WorldCoordRankedLight* arg0, s32 arg1, s32 arg2, World
 static void Gp_FillSVec3x3(MATRIX* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     // Called, rather than expanded, by the room-light query.
-    _gpSetColorMtx(arg0, arg1, arg2, arg3);
+    _worldCoordFillLightColorMatrix(arg0, arg1, arg2, arg3);
 }
 
 static WorldCoordRoomLighting* Gp_GetRoomCoordRec(GameLocationKey* arg0)
