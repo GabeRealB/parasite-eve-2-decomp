@@ -2486,6 +2486,44 @@ void animationTickSlotPose(AnimationContext* context, s32 slotIndex, AnimationPo
     SCRATCH_STACK_RELEASE_BLOCK(_AnimationTickScratch);
 }
 
+/// Selects a seek's destination record, following controls and accumulating walk flags.
+///
+/// `candidateIndex` is an absolute element index in the target set's borrowed
+/// `recordArray`. Jump controls replace it with their unsigned `wordOffset`
+/// and add `ANIMATION_SLOT_FOLLOWED_JUMP`. A jump to the slot's prior next
+/// record index also adds `ANIMATION_SLOT_REACHED_BOUNDARY`; set indices are
+/// not compared. Stop controls ignore their offset, retain that prior record
+/// index and add the boundary flag. Existing flags, including the capture
+/// tick's results, remain set.
+///
+/// Installs only `nextPose.indices.recordIndex`; the caller installs the target
+/// set index afterwards. Every visited index and the retained prior index must
+/// fit the target array, even when its set differs from the prior endpoint's
+/// set. The chain must reach a keyframe or stop. Record storage must remain
+/// readable and the slot writable throughout the call; no bounds are checked.
+static inline void _animationSelectSeekRecord(AnimationSlot* playbackSlot, const AnimationRecord* recordArray, u16 candidateIndex)
+{
+    const AnimationRecord* controlRecord;
+
+    // Test the control bit as signed, but classify jump versus stop as unsigned.
+    while ((s8)recordArray[candidateIndex].flags < 0) {
+        // Negating the promoted u16 preserves the matching address-add operand order.
+        controlRecord = recordArray - -candidateIndex;
+        if (controlRecord->flags < ANIMATION_RECORD_END_THRESHOLD) {
+            candidateIndex = controlRecord->wordOffset;
+            if (candidateIndex == playbackSlot->nextPose.indices.recordIndex) {
+                playbackSlot->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
+            }
+            playbackSlot->flags |= ANIMATION_SLOT_FOLLOWED_JUMP;
+        } else {
+            candidateIndex       = playbackSlot->nextPose.indices.recordIndex;
+            playbackSlot->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
+            break;
+        }
+    }
+    playbackSlot->nextPose.indices.recordIndex = candidateIndex;
+}
+
 /// Captures a slot's ticked pose and starts a timed blend toward a track-relative record.
 ///
 /// First ticks playback with model-coordinate and encoded-buffer outputs, then
@@ -2521,41 +2559,6 @@ static inline void _animationSeekSlotWithBlend(AnimationContext* context, s32 sl
     u16                    blendDuration;
     u8(*bufferedPose)[ANIMATION_POSE_BUFFER_BYTES];
 
-    /// Resolves the seek's forward control chain without clearing the capture tick's flags.
-    ///
-    /// `playbackSlot` is a writable `AnimationSlot*`, `recordArray` a borrowed
-    /// `const AnimationRecord*`, and `candidateIndex` a separate writable `u16`.
-    /// All visited indices and the slot's retained next index must fit the array;
-    /// the chain must reach a keyframe or stop. Jumps replace the index and add
-    /// jump flags; a jump to the prior next index also adds the boundary flag.
-    /// Stops restore that prior index, add the boundary flag and ignore the offset.
-    /// The caller installs the endpoint; only the index and accumulated flags change.
-    ///
-    /// Arguments are evaluated repeatedly and must be stable, have no side
-    /// effects and not refer to the block-local `controlRecord`. The internal
-    /// break leaves only the walk. The signed-byte cast tests the control bit;
-    /// the stop threshold compares unsigned flags. Negating the index in `s32`
-    /// preserves the address-add operand order without pointer/integer casts.
-#define ANIMATION_RESOLVE_SEEK_RECORD(playbackSlot, recordArray, candidateIndex)        \
-    do {                                                                                \
-        const AnimationRecord* controlRecord;                                           \
-                                                                                        \
-        while ((s8)(recordArray)[(candidateIndex)].flags < 0) {                         \
-            controlRecord = (recordArray) - -(s32)(candidateIndex);                     \
-            if (controlRecord->flags < ANIMATION_RECORD_END_THRESHOLD) {                \
-                (candidateIndex) = controlRecord->wordOffset;                           \
-                if ((candidateIndex) == (playbackSlot)->nextPose.indices.recordIndex) { \
-                    (playbackSlot)->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;           \
-                }                                                                       \
-                (playbackSlot)->flags |= ANIMATION_SLOT_FOLLOWED_JUMP;                  \
-            } else {                                                                    \
-                (candidateIndex)       = (playbackSlot)->nextPose.indices.recordIndex;  \
-                (playbackSlot)->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;               \
-                break;                                                                  \
-            }                                                                           \
-        }                                                                               \
-    } while (0)
-
     // Capture this slot's encoded blend before replacing its destination keyframe.
     bufferedPose = context->poseBuffer + slotIndex;
     slot         = &context->slots[slotIndex];
@@ -2566,14 +2569,12 @@ static inline void _animationSeekSlotWithBlend(AnimationContext* context, s32 sl
     set         = slot->sets[setIndex];
     records     = set->records;
     recordIndex = set->trackStartIndices[slot->trackIndex] + trackRecordOffset;
-    ANIMATION_RESOLVE_SEEK_RECORD(slot, records, recordIndex);
-#undef ANIMATION_RESOLVE_SEEK_RECORD
-    slot->nextPose.indices.recordIndex = recordIndex;
-    slot->nextPose.indices.setIndex    = setIndex;
-    blendDuration                      = blendFrames << ANIMATION_TIME_FRACTION_BITS;
-    slot->timeSpan                     = blendDuration;
-    slot->timeLeft                     = blendDuration;
-    slot->usesBufferedPose             = 0;
+    _animationSelectSeekRecord(slot, records, recordIndex);
+    slot->nextPose.indices.setIndex = setIndex;
+    blendDuration                   = blendFrames << ANIMATION_TIME_FRACTION_BITS;
+    slot->timeSpan                  = blendDuration;
+    slot->timeLeft                  = blendDuration;
+    slot->usesBufferedPose          = 0;
 }
 
 static void Gp_AnimSeekSlotEx(AnimationContext* context, s32 arg1, s32 arg2, s32 arg3)
