@@ -312,7 +312,7 @@ void Gp_SortItems(InventoryItemRange* arg0, s32 arg1)
     s32                        dummy6;
     s32                        dummy7;
 
-    GpItemRowAddress cursor;
+    InventoryItemRowAddress cursor;
     i = 0;
     if ((arg0->rowCount - 1) > 0) {
         do {
@@ -366,13 +366,14 @@ void Gp_SortItems(InventoryItemRange* arg0, s32 arg1)
             } else {
                 tmp = Gp_ItemTable1;
             }
-            table        = tmp;
-            j            = i + 1;
-            other        = table + arg0->firstRow;
-            next         = i * (s32)sizeof(*other) + (s32)sizeof(*other);
-            cursor.row   = other;
-            cursor.word += next;
-            other        = cursor.row;
+            table = tmp;
+            j     = i + 1;
+            other = table + arg0->firstRow;
+            next  = i * (s32)sizeof(*other) + (s32)sizeof(*other);
+            // Start just after the row being placed.
+            cursor.row      = other;
+            cursor.address += next;
+            other           = cursor.row;
             if (j < arg0->rowCount) {
                 do {
                     id = other->itemId;

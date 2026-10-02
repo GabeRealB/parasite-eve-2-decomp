@@ -45,22 +45,30 @@ typedef struct {
 } ArmorStats;
 STATIC_ASSERT_SIZEOF(ArmorStats, 0x8);
 
-/// Cursor represented as either a row pointer or its 32-bit PS1 address.
-typedef union GpItemRowAddress {
-    InventoryItemRow* row;
-    u32               word;
-} GpItemRowAddress;
-STATIC_ASSERT_SIZEOF(GpItemRowAddress, 4);
+/// Address of one `InventoryItemRow`, as a pointer or the same four bytes.
+///
+/// Adding a byte count to `address` advances that many bytes from `row`.
+/// Callers scale an element index by `sizeof(InventoryItemRow)`. The value
+/// borrows the table that pointer already names and owns no rows of its own.
+typedef union {
+    InventoryItemRow* row;     // Row this address names.
+    u32               address; // Same storage as `row`, used when adding a byte offset.
+} InventoryItemRowAddress;
+STATIC_ASSERT_SIZEOF(InventoryItemRowAddress, 4);
 
-/// Resolve a row in the PS1 inventory address space. Address words preserve
-/// the runtime table base; row fields are always accessed through InventoryItemRow.
+/// Row `index` elements after `rows`.
+///
+/// Adds `index * sizeof(InventoryItemRow)` to the table address. The result
+/// borrows `rows`; `index` must name a row in that table.
 static inline InventoryItemRow* gpItemRowAt(InventoryItemRow* rows, s32 index)
 {
-    GpItemRowAddress base;
-    GpItemRowAddress result;
-    base.row     = rows;
-    result.word  = index * sizeof(InventoryItemRow);
-    result.word += base.word;
+    InventoryItemRowAddress base;
+    InventoryItemRowAddress result;
+
+    // Byte offset first, then the table address.
+    base.row        = rows;
+    result.address  = index * sizeof(InventoryItemRow);
+    result.address += base.address;
     return result.row;
 }
 
