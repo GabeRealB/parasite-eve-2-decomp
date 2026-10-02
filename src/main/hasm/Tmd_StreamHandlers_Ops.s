@@ -338,7 +338,39 @@ glabel tmdDrawStreamPrimG4CornerNormals
     /* 1618 80010E18 */  nop
 endlabel tmdDrawStreamPrimG4CornerNormals
 .purgem TMD_DRAW_STREAM_G4_CORNER_NORMALS_LIGHT_AND_LINK_PACKET
+/* Outside the unsigned 16-bit vertex byte-offset domain. */
+.equ TMD_XFORM_STREAM_VERTS_ELEM_COLOR_NO_PREVIOUS_VERTEX, 0x0FFE0000
+/* Assembly equivalent of the depth-cache rejection bit in main/tmd_types.h. */
+.equ TMD_XFORM_STREAM_VERTS_ELEM_COLOR_DEPTH_INVALID, 0x80000000
+
+/*
+ * Light one normal and scatter the projected XY and lit colour.
+ * Inputs: a2 element, t4 its destination word (element word 2), t9 byte stride,
+ * t8 packet base; GTE V0 holds the normal, SXY2 the projected vertex, and RGB
+ * the element's material colour. Advances a2; clobbers t3, t4 and the NCCS
+ * results. Both halves of t4 are unsigned 16-bit byte offsets from t8 and must
+ * name complete aligned four-byte words. The colour half is decoded into t3
+ * and the screen-XY half reuses t4. The fixed-colour pass loads its destination
+ * word inside its own expansion and assigns those halves to the opposite
+ * registers, so the two schedules stay separate. Offset decoding supplies the
+ * NCCS result latency; keep the stores in order even when the destinations
+ * coincide. Expansion emits no call or extra delays.
+ */
+.macro TMD_XFORM_STREAM_VERTS_ELEM_COLOR_SCATTER
+    addu        $a2, $t9, $a2
+    nccs
+    srl         $t3, $t4, 16
+    addu        $t3, $t8, $t3
+    sll         $t4, $t4, 16
+    srl         $t4, $t4, 16
+    addu        $t4, $t8, $t4
+    swc2        $14, 0x0($t4)
+    swc2        $22, 0x0($t3)
+.endm
+
 glabel tmdXformStreamVertsElemColor
+    /* a0 workspace, a1 unused object flags, a2 elements; a3 counts locally. */
+    /* t8 packet base, t6 vertices, t5 normals, v1 depth-cache base. */
     /* 161C 80010E1C */  lw          $t9, 0x18($a0)
     /* 1620 80010E20 */  lw          $a3, 0x1C($a0)
     /* 1624 80010E24 */  lw          $t8, 0x4($a0)
@@ -346,61 +378,57 @@ glabel tmdXformStreamVertsElemColor
     /* 162C 80010E2C */  lw          $t5, 0xC($a0)
     /* 1630 80010E30 */  lw          $v1, 0x10($a0)
     /* 1634 80010E34 */  sll         $t9, $t9, 2
-    /* 1638 80010E38 */  lui         $v0, 0xFFE
-    /* 163C 80010E3C */  j           .L80010E7C
+    /* 1638 80010E38 */  lui         $v0, (TMD_XFORM_STREAM_VERTS_ELEM_COLOR_NO_PREVIOUS_VERTEX >> 16)
+    /* 163C 80010E3C */  j           .LtmdXformStreamVertsElemColorNextElement
     /* 1640 80010E40 */  nop
-  .L80010E44:
+  .LtmdXformStreamVertsElemColorReuseProjection:
+    /* SXY2 survives the preceding projection; this element still has its own normal and colour. */
     /* 1644 80010E44 */  addu        $t2, $t5, $t2
-  .L80010E48:
     /* 1648 80010E48 */  lwc2        $6, 0x4($a2)
     /* 164C 80010E4C */  lwc2        $0, 0x0($t2)
     /* 1650 80010E50 */  lwc2        $1, 0x4($t2)
     /* 1654 80010E54 */  lw          $t4, 0x8($a2)
-  .L80010E58:
-    /* 1658 80010E58 */  addu        $a2, $t9, $a2
-    /* 165C 80010E5C */  .word 0x4B08041B
-    /* 1660 80010E60 */  srl         $t3, $t4, 16
-    /* 1664 80010E64 */  addu        $t3, $t8, $t3
-    /* 1668 80010E68 */  sll         $t4, $t4, 16
-    /* 166C 80010E6C */  srl         $t4, $t4, 16
-    /* 1670 80010E70 */  addu        $t4, $t8, $t4
-    /* 1674 80010E74 */  swc2        $14, 0x0($t4)
-    /* 1678 80010E78 */  swc2        $22, 0x0($t3)
-  .L80010E7C:
-    /* 167C 80010E7C */  beq         $zero, $a3, .L80010EE8
+  .LtmdXformStreamVertsElemColorScatter:
+    /* 1658..1678 80010E58..80010E78 */  TMD_XFORM_STREAM_VERTS_ELEM_COLOR_SCATTER
+  .LtmdXformStreamVertsElemColorNextElement:
+    /* The delay-slot load also reads the word after the payload, including an empty record. */
+    /* 167C 80010E7C */  beq         $zero, $a3, .LtmdXformStreamVertsElemColorReturn
     /* 1680 80010E80 */  lw          $t1, 0x0($a2)
     /* 1684 80010E84 */  addiu       $a3, $a3, -0x1
     /* 1688 80010E88 */  srl         $t2, $t1, 16
     /* 168C 80010E8C */  sll         $t1, $t1, 16
     /* 1690 80010E90 */  srl         $t1, $t1, 16
-    /* 1694 80010E94 */  beq         $t1, $v0, .L80010E44
+    /* 1694 80010E94 */  beq         $t1, $v0, .LtmdXformStreamVertsElemColorReuseProjection
     /* 1698 80010E98 */  addu        $v0, $zero, $t1
     /* 169C 80010E9C */  addu        $t1, $t6, $v0
     /* 16A0 80010EA0 */  lwc2        $0, 0x0($t1)
     /* 16A4 80010EA4 */  lwc2        $1, 0x4($t1)
+    /* Halve the vertex byte offset to address its four-byte depth-cache entry. */
     /* 16A8 80010EA8 */  srl         $t3, $v0, 1
     /* 16AC 80010EAC */  addu        $t3, $v1, $t3
-    /* 16B0 80010EB0 */  .word 0x4A180001
+    /* Project, then load this element's normal and material colour while RTPS completes. */
+    /* 16B0 80010EB0 */  rtps
     /* 16B4 80010EB4 */  addu        $t2, $t5, $t2
     /* 16B8 80010EB8 */  lwc2        $6, 0x4($a2)
     /* 16BC 80010EBC */  lwc2        $0, 0x0($t2)
     /* 16C0 80010EC0 */  lwc2        $1, 0x4($t2)
+    /* Cache SZ3 even on projection failure; later primitives reject a negative depth. */
     /* 16C4 80010EC4 */  cfc2        $t1, $31
     /* 16C8 80010EC8 */  mfc2        $t0, $19
-    /* 16CC 80010ECC */  bgez        $t1, .L80010ED8
-    /* 16D0 80010ED0 */  lui         $t4, 0x8000
+    /* 16CC 80010ECC */  bgez        $t1, .LtmdXformStreamVertsElemColorStoreDepth
+    /* 16D0 80010ED0 */  lui         $t4, (TMD_XFORM_STREAM_VERTS_ELEM_COLOR_DEPTH_INVALID >> 16)
     /* 16D4 80010ED4 */  or          $t0, $t4, $t0
-  .L80010ED8:
+  .LtmdXformStreamVertsElemColorStoreDepth:
+    /* Word 2 is loaded before the store: t3 still addresses the cache entry. */
     /* 16D8 80010ED8 */  lw          $t4, 0x8($a2)
-  .L80010EDC:
     /* 16DC 80010EDC */  sw          $t0, 0x0($t3)
-    /* 16E0 80010EE0 */  j           .L80010E58
+    /* 16E0 80010EE0 */  j           .LtmdXformStreamVertsElemColorScatter
     /* 16E4 80010EE4 */  nop
-  .L80010EE8:
+  .LtmdXformStreamVertsElemColorReturn:
     /* 16E8 80010EE8 */  addu        $v0, $zero, $a2
-  .L80010EEC:
     /* 16EC 80010EEC */  jr          $ra
     /* 16F0 80010EF0 */  nop
+.purgem TMD_XFORM_STREAM_VERTS_ELEM_COLOR_SCATTER
 /* GPU command 0x36 and neutral RGB for per-corner texture lighting. */
 .equ TMD_DRAW_STREAM_GT3_SEMI_TRANS_COLOR, 0x36808080
 

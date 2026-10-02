@@ -227,22 +227,40 @@ u32* tmdDrawStreamPrimG3CornerNormals(TmdStreamWorkspace* workspace, s32 objectF
 /// a GPU command byte, and the facing signs above always apply.
 u32* tmdDrawStreamPrimG4CornerNormals(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
-/// Draw handler of a stream's transform pre-pass records that carry a colour of
-/// their own (`0xC0`): `tmdXformStreamVerts`'s pass with the element's colour
-/// word in place of that one's fixed colour.
+/// Projects vertices and scatters screen coordinates and per-element lit colours for a `0xC0` record.
 ///
-/// An element names a vertex, a normal, a colour word and the two places in the
-/// buffer half its results go. The vertex is projected into screen coordinates,
-/// the normal is lit into a colour from the element's own word, and both results
-/// are written where the element names — the projection into the slot a packet
-/// carries a corner's coordinates in, the colour into the packet colour word
-/// beside it.
+/// `elements` starts after the three-word record header. The caller supplies
+/// `workspace->elemCount` (0..65535) and `workspace->elemStride` in u32 words,
+/// at least three words per element. Word 0 packs two unsigned u16 byte offsets:
+/// vertex, then normal. Word 1 is the material colour `NCCS` multiplies by, with
+/// R, G and B in its low three bytes; its high byte is retained in the stored
+/// colour word. Word 2 packs the destination byte offsets: screen XY, then lit
+/// colour. Geometry offsets name complete eight-byte `SVECTOR` entries in the
+/// borrowed arrays; the vertex index (offset / 8) must also fit
+/// `workspace->szTable` (1024 entries in normal drawing). Neither geometry
+/// array's full extent is supplied here.
 ///
-/// The rest is the fixed-colour pass's: the projection reused where consecutive
-/// elements name the same vertex, the depth each transform leaves in the
-/// per-vertex cache, and the flag a rejected projection sets there. The record
-/// has no variant for `flags` to select, so it goes unread.
-u32* tmdXformStreamVertsElemColor(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// Both destinations are relative to the current `workspace->preXformWrite`
+/// and must name complete aligned four-byte words within the selected buffer
+/// half's first region. XY is written before colour, even if the destinations
+/// coincide. Every element writes both words, including rejected projections.
+///
+/// The GTE must already hold the part transform, projection settings, light and
+/// colour matrices and background colour. Each element loads word 1 over the
+/// RGB those left behind. A new vertex is projected with RTPS; its SZ3
+/// (0..65535) is cached at `szTable[vertexOffset / 8]`, with
+/// `TMD_VERTEX_DEPTH_INVALID` ORed in when the fresh GTE FLAG has
+/// `TMD_GTE_ERROR_FLAG`. Consecutive equal vertex offsets reuse SXY2 and that
+/// cached depth, including a failed projection, and still light their own
+/// normal from their own material word. Later primitives test cached depths
+/// before linking.
+///
+/// Returns `elements + elemCount * elemStride`. The word at that returned
+/// address must also be readable: a branch delay slot loads it even for zero
+/// elements. The handler leaves all workspace fields and packet cursors
+/// unchanged, allocates and links no primitive, and ignores `objectFlags`.
+/// It retains no pointer; keep packet storage alive until GPU use finishes.
+u32* tmdXformStreamVertsElemColor(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 /// Projects, lights and links a record's semi-transparent gouraud textured triangles.
 ///

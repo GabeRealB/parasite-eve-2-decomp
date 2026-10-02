@@ -270,7 +270,7 @@ uses `$t6` for the per-vertex depth cache.
 | `0x40` | **quad** (4 corners) instead of triangle | `AVSZ4` instead of `AVSZ3`; every `AVSZ3` handler has an `AVSZ4` partner at `+0x40` |
 | `0x20` | **gouraud** — one normal per corner | handler adds 3–4 refs to `$t5`; without it, exactly 1 |
 | `0x10` | adds 3 words of tail | stride +3 on every pair differing only in this bit |
-| `0x08` | **use a constant instead of a per-element value** — one word less | stride −1 on every such pair; demonstrated by `0xC0` vs `0xC8`, whose handlers differ by the single instruction that loads the colour register from the element rather than from a constant (§3.5) |
+| `0x08` | **use a constant instead of a per-element value** — one word less | stride −1 on every such pair; `0xC0` carries a material-colour word where `0xC8` uses neutral RGB `0x00808080` (§3.5) |
 | `0x10`+`0x08` | **textured** — net +2 words | XY stores 12 bytes apart (`POLY_*T*`) instead of 8; +2 on 7 of 8 pairs, the exception being `0x21`→`0x39` |
 | `0x04` | **no per-vertex colour** — `POLY_F*` instead of `POLY_G*`, and no lighting at all in the transform pass | `0x18`→`0x1C` is `GT3`→`FT3`, `0x58`→`0x5C` is `GT4`→`FT4`; `0xC0`→`0xC4` drops `NCCS` and keeps only `RTPS` |
 | `0x02` | ABR / semi-transparent variant | same handler and stride as the base opcode |
@@ -419,6 +419,10 @@ They differ only in colour handling:
 `0xC0` and `0xC8` use the same projection, lighting and scatter algorithm,
 with bit `0x08` dropping the per-element colour word in favour of a constant.
 Their destination words consequently occupy different element positions.
+The handwritten expansions stay separate: `0xC0` loads that destination word
+before it caches the depth, and its scatter tail decodes the word's halves
+into the opposite temporaries from `0xC8`.
+
 `0xC4` (`0xC0 | 0x04`) skips lighting entirely, matching
 `0x04` as the "no per-vertex colour" bit. `0xC4` never appears in the extracted
 models.
