@@ -24,17 +24,18 @@ enum { WORLD_COLLISION_TRIGGER_FACING_DOT_MAX = -(ONE * ONE * 3 / 4) };
 /// Inclusive squared-distance cutoff for the strict 500-game-unit near test.
 enum { WORLD_COLLISION_TRIGGER_NEAR_DISTANCE_SQUARED_MAX = 500 * 500 - 1 };
 
-/// 0x40-byte scratch from the scratch stack used by `func_800DEAFC`.
-/// `in` is the SVECTOR promoted to VECTOR for `ApplyTransposeMatrixLV`;
-/// `out` is that transform; `pos0` / `pos1` are the 16-bit grid-space
-/// results passed to `func_800DE2C0`.
-typedef struct _GpGridPairScratch {
-    /* 0x00 */ VECTOR in;
-    /* 0x10 */ VECTOR out;
-    /* 0x20 */ VECTOR pos0;
-    /* 0x30 */ VECTOR pos1;
-} GpGridPairScratch;
-STATIC_ASSERT_SIZEOF(GpGridPairScratch, 0x40);
+/// Temporary endpoint transforms for a view-space collision-grid segment query.
+///
+/// This scratch-stack block remains live through the face-candidate scan.
+/// Coordinates use game units. Grid X/Z coordinates are initially truncated to
+/// signed 16 bits, then the scan may extend them in place; Y is zero. The SDK
+/// vectors' fourth components are unused and left uninitialized.
+typedef struct {
+    VECTOR viewEndpoint;     // View-space endpoint promoted from signed 16-bit coordinates
+    VECTOR rotatedEndpoint;  // Endpoint after inverse view rotation, before translation and grid bias
+    VECTOR gridEndpoints[2]; // Biased-grid XZ endpoints, in input order; extended by the candidate scan
+} _WorldCollisionGridQueryScratch;
+STATIC_ASSERT_SIZEOF(_WorldCollisionGridQueryScratch, 0x40);
 
 /// Temporary XZ geometry for selecting collision-grid face candidates.
 ///
@@ -541,38 +542,39 @@ s32 func_800DE7CC(SVECTOR* arg0, SVECTOR* arg1, SVECTOR* arg2, SVECTOR* arg3)
 
 static void func_800DEAFC(SVECTOR* arg0, SVECTOR* arg1)
 {
-    u8*                head;
-    GpGridPairScratch* block;
-    VECTOR*            out;
+    _WorldCollisionGridQueryScratch* scratchEnd;
+    _WorldCollisionGridQueryScratch* scratch;
+    VECTOR*                          rotatedEndpoint;
 
-    head                                    = SCRATCH_STACK_CURSOR(u8);
-    block                                   = (GpGridPairScratch*)(head - 0x40);
-    block->in.vx                            = arg0->vx;
-    block->in.vy                            = arg0->vy;
-    block->in.vz                            = arg0->vz;
-    out                                     = (VECTOR*)(head - 0x30);
-    SCRATCH_STACK_CURSOR(GpGridPairScratch) = block;
-    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &block->in, out);
+    scratchEnd = SCRATCH_STACK_CURSOR(_WorldCollisionGridQueryScratch);
+    scratch    = scratchEnd - 1;
+    // Convert each view endpoint to biased-grid XZ coordinates before scanning.
+    scratch->viewEndpoint.vx                              = arg0->vx;
+    scratch->viewEndpoint.vy                              = arg0->vy;
+    scratch->viewEndpoint.vz                              = arg0->vz;
+    rotatedEndpoint                                       = &scratch->rotatedEndpoint;
+    SCRATCH_STACK_CURSOR(_WorldCollisionGridQueryScratch) = scratch;
+    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &scratch->viewEndpoint, rotatedEndpoint);
     {
         WorldCollisionGrid* grid = Gp_GridParams;
 
-        block->pos0.vx = (s16)(block->out.vx + grid->xBias - grid->viewCoord->coord.t[0]);
-        block->pos0.vy = 0;
-        block->pos0.vz = (s16)(block->out.vz + grid->zBias - grid->viewCoord->coord.t[2]);
+        scratch->gridEndpoints[0].vx = (s16)(scratch->rotatedEndpoint.vx + grid->xBias - grid->viewCoord->coord.t[0]);
+        scratch->gridEndpoints[0].vy = 0;
+        scratch->gridEndpoints[0].vz = (s16)(scratch->rotatedEndpoint.vz + grid->zBias - grid->viewCoord->coord.t[2]);
     }
-    block->in.vx = arg1->vx;
-    block->in.vy = arg1->vy;
-    block->in.vz = arg1->vz;
-    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &block->in, out);
+    scratch->viewEndpoint.vx = arg1->vx;
+    scratch->viewEndpoint.vy = arg1->vy;
+    scratch->viewEndpoint.vz = arg1->vz;
+    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &scratch->viewEndpoint, rotatedEndpoint);
     {
         WorldCollisionGrid* grid = Gp_GridParams;
 
-        block->pos1.vx = (s16)(block->out.vx + grid->xBias - grid->viewCoord->coord.t[0]);
-        block->pos1.vy = 0;
-        block->pos1.vz = (s16)(block->out.vz + grid->zBias - grid->viewCoord->coord.t[2]);
+        scratch->gridEndpoints[1].vx = (s16)(scratch->rotatedEndpoint.vx + grid->xBias - grid->viewCoord->coord.t[0]);
+        scratch->gridEndpoints[1].vy = 0;
+        scratch->gridEndpoints[1].vz = (s16)(scratch->rotatedEndpoint.vz + grid->zBias - grid->viewCoord->coord.t[2]);
     }
-    func_800DE2C0((VECTOR*)(head - 0x20), 0);
-    SCRATCH_STACK_RELEASE_BYTES(0x40);
+    func_800DE2C0(scratch->gridEndpoints, 0);
+    SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionGridQueryScratch);
 }
 
 void func_800DEC80(WorldCollisionBody* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3)

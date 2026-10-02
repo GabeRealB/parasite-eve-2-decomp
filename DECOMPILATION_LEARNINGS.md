@@ -7125,13 +7125,13 @@ shifts every subsequent field load and the second call's
 ```c
 register WorldCollisionGrid* p asm("a2");
 
-ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, in, out);
+ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &scratch->viewEndpoint, rotatedEndpoint);
 p = Gp_GridParams;
 ```
 
-Also pass `(VECTOR*)(head - 0x20)` (not `&block->pos0`) so the follow-up
+Also pass `scratch->gridEndpoints` so the follow-up
 call is `addiu a0, s1, -0x20` from the original scratch head. Write the
-independent `pos.vy = 0` *after* the `pos.vx` store so `-fschedule-insns`
+independent `scratch->gridEndpoints[0].vy = 0` *after* the `scratch->gridEndpoints[0].vx` store so `-fschedule-insns`
 lifts `sw zero` between `addu` and `subu`. `func_800DEAFC` is the example.
 
 ## Keep the raw table pointer so it stays in `$a1` until after the NULL check
