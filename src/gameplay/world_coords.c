@@ -162,16 +162,23 @@ typedef struct _GpSpotScratch {
 } GpSpotScratch;
 STATIC_ASSERT_SIZEOF(GpSpotScratch, 0x2C);
 
-/// Scratch workspace and ranked-light table used by `func_800D7A9C`.
+/// Scratch workspace for ranking lights at one sample position.
+///
+/// Borrowed from the scratch stack while a model's light and colour columns
+/// are filled. The caller's world position is stored, then replaced by the
+/// sample in view space; falloff and direction calculations read that
+/// view-space position. The ranked table keeps three model-light contributions
+/// and the cutoff blended into ambient. A diagnostic probe may copy the table
+/// before the block is released.
 typedef struct {
-    /* 0x00 */ MATRIX                 mtx;
-    /* 0x20 */ s32                    intensity;
-    /* 0x24 */ VECTOR                 pos;
-    /* 0x34 */ SVECTOR                local;
-    /* 0x3C */ byte                   pad_3C[0x10];
-    /* 0x4C */ _WorldCoordRankedLight slots[WORLD_COORDINATE_RANKED_LIGHT_COUNT];
-} GpLightSolveScratch;
-STATIC_ASSERT_SIZEOF(GpLightSolveScratch, 0x7C);
+    MATRIX                 viewRotation;                                      // Transposed view rotation; places the sample in view space. Translation unused
+    s32                    contribution;                                      // Contribution score of the light just evaluated
+    VECTOR                 viewPosition;                                      // View-space sample. The world position is stored first and replaced before any read; SDK pad unused
+    SVECTOR                viewOffset;                                        // View-relative offset, then the rotated sample; later reused to scale a colour row
+    byte                   unknown_3C[0x10];                                  // Contents and field boundaries unproven; the query does not access these bytes
+    _WorldCoordRankedLight rankedLights[WORLD_COORDINATE_RANKED_LIGHT_COUNT]; // Three model-light contributions plus the ambient cutoff
+} _WorldCoordLightQueryScratch;
+STATIC_ASSERT_SIZEOF(_WorldCoordLightQueryScratch, 0x7C);
 
 /// Temporary workspace for one model light-direction row and RGB column.
 ///
@@ -260,7 +267,7 @@ static __inline__ s32 solve_luma(WorldCoordLight* arg0);
 
 static __inline__ void solve_rank(_WorldCoordRankedLight* slots, s32 val, s32 kind, WorldCoordLight* obj, _WorldCoordRankedLight* last);
 
-static __inline__ void solve_rank0(_WorldCoordRankedLight* slots, s32 val, s32 kind, WorldCoordLight* obj, GpLightSolveScratch* block);
+static __inline__ void solve_rank0(_WorldCoordRankedLight* slots, s32 val, s32 kind, WorldCoordLight* obj, _WorldCoordLightQueryScratch* block);
 
 /// Fills a light colour matrix so all three lights share one colour: every
 /// column of the red, green and blue rows gets `r`, `g` and `b`.
@@ -789,19 +796,19 @@ static __inline__ void solve_rank(_WorldCoordRankedLight* slots, s32 val, s32 ki
         Gp_InsertRankedSlot(slots, val, kind, obj, WORLD_COORDINATE_RANKED_LIGHT_COUNT - 2);
     }
 }
-static __inline__ void solve_rank0(_WorldCoordRankedLight* slots, s32 val, s32 kind, WorldCoordLight* obj, GpLightSolveScratch* block)
+static __inline__ void solve_rank0(_WorldCoordRankedLight* slots, s32 val, s32 kind, WorldCoordLight* obj, _WorldCoordLightQueryScratch* block)
 {
-    if (val > 0 && block->slots[ARRAY_SIZE(block->slots) - 1].rank < val) {
+    if (val > 0 && block->rankedLights[ARRAY_SIZE(block->rankedLights) - 1].rank < val) {
         Gp_InsertRankedSlot(slots, val, kind, obj, WORLD_COORDINATE_RANKED_LIGHT_COUNT - 2);
     }
 }
 void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
 {
 
-    register s32                   startr;
-    register WorldCoordRoomLights* roomLights;
-    register MATRIX*               colorMtx;
-    register GpLightSolveScratch*  block;
+    register s32                           startr;
+    register WorldCoordRoomLights*         roomLights;
+    register MATRIX*                       colorMtx;
+    register _WorldCoordLightQueryScratch* block;
 
     s32                   n;
     s32                   nOcc;
@@ -828,7 +835,7 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
 
     sum = startr + count;
     n  += nOcc;
-    if ((u32)sum >= ARRAY_SIZE(block->slots)) {
+    if ((u32)sum >= ARRAY_SIZE(block->rankedLights)) {
         return;
     }
     if (count == 0) {
@@ -846,9 +853,9 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
         u8* head;
 
         head                     = SCRATCH_STACK_CURSOR(u8);
-        head                    -= 0x7C;
+        head                    -= sizeof(_WorldCoordLightQueryScratch);
         SCRATCH_STACK_CURSOR(u8) = head;
-        block                    = SCRATCH_STACK_CURSOR(GpLightSolveScratch);
+        block                    = SCRATCH_STACK_CURSOR(_WorldCoordLightQueryScratch);
     }
 
     {
@@ -867,23 +874,24 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
 
         i = 0;
         do {
-            block->slots[i].rank  = WORLD_COORDINATE_RANKED_LIGHT_EMPTY_RANK;
-            block->slots[i].light = NULL;
+            block->rankedLights[i].rank  = WORLD_COORDINATE_RANKED_LIGHT_EMPTY_RANK;
+            block->rankedLights[i].light = NULL;
             i++;
-        } while (i < (s32)ARRAY_SIZE(block->slots));
+        } while (i < (s32)ARRAY_SIZE(block->rankedLights));
     }
 
-    block->pos.vx   = pos->vx;
-    block->pos.vy   = pos->vy;
-    block->pos.vz   = pos->vz;
-    block->local.vx = pos->vx - gGfxViewCoord.workm.t[0];
-    block->local.vy = pos->vy - gGfxViewCoord.workm.t[1];
-    block->local.vz = pos->vz - gGfxViewCoord.workm.t[2];
-    gte_TransposeMatrix(&gGfxViewCoord.workm, &block->mtx);
+    // Keep the caller's world position, then rotate the view-relative offset into view space.
+    block->viewPosition.vx = pos->vx;
+    block->viewPosition.vy = pos->vy;
+    block->viewPosition.vz = pos->vz;
+    block->viewOffset.vx   = pos->vx - gGfxViewCoord.workm.t[0];
+    block->viewOffset.vy   = pos->vy - gGfxViewCoord.workm.t[1];
+    block->viewOffset.vz   = pos->vz - gGfxViewCoord.workm.t[2];
+    gte_TransposeMatrix(&gGfxViewCoord.workm, &block->viewRotation);
 
-    _gfxLoadRotSv(&block->mtx, &block->local);
+    _gfxLoadRotSv(&block->viewRotation, &block->viewOffset);
     gte_rtv0();
-    gte_stsv(&block->local);
+    gte_stsv(&block->viewOffset);
 
     {
         s32                                     pointIndex;
@@ -894,17 +902,18 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
         // Rank active transient points alongside the room's authored lights.
         lightSlot  = gWorldCoordTransientPointLights;
         pointIndex = 0;
-        last       = &block->slots[ARRAY_SIZE(block->slots) - 1];
+        last       = &block->rankedLights[ARRAY_SIZE(block->rankedLights) - 1];
 
-        block->pos.vx = block->local.vx;
-        block->pos.vy = block->local.vy;
-        block->pos.vz = block->local.vz;
+        // Falloff and light directions read this rotated sample.
+        block->viewPosition.vx = block->viewOffset.vx;
+        block->viewPosition.vy = block->viewOffset.vy;
+        block->viewPosition.vz = block->viewOffset.vz;
         do {
             if (lightSlot->framesLeft != WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE) {
-                light            = &lightSlot->light;
-                val              = Gp_LightPoint(light, (VECTOR3*)&block->pos);
-                block->intensity = val;
-                solve_rank(block->slots, val, WORLD_COORDINATE_RANKED_LIGHT_TRANSIENT_POINT, &light->head, last);
+                light               = &lightSlot->light;
+                val                 = Gp_LightPoint(light, (VECTOR3*)&block->viewPosition);
+                block->contribution = val;
+                solve_rank(block->rankedLights, val, WORLD_COORDINATE_RANKED_LIGHT_TRANSIENT_POINT, &light->head, last);
             }
             pointIndex++;
             lightSlot++;
@@ -914,9 +923,9 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
     if (roomLights->pointLightCount > 0) {
         light = roomLights->pointLights;
         for (i = 0; i < roomLights->pointLightCount; i++, light++) {
-            val              = Gp_LightPointRoom(light, (VECTOR3*)&block->pos);
-            block->intensity = val;
-            solve_rank(block->slots, val, WORLD_COORDINATE_RANKED_LIGHT_ROOM_POINT, &light->head, &block->slots[ARRAY_SIZE(block->slots) - 1]);
+            val                 = Gp_LightPointRoom(light, (VECTOR3*)&block->viewPosition);
+            block->contribution = val;
+            solve_rank(block->rankedLights, val, WORLD_COORDINATE_RANKED_LIGHT_ROOM_POINT, &light->head, &block->rankedLights[ARRAY_SIZE(block->rankedLights) - 1]);
         }
     }
 
@@ -928,10 +937,10 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
         i    = 0;
 
         for (; i < roomLights->coneLightCount;) {
-            val              = Gp_LightCone(spot, (VECTOR3*)&block->pos);
-            coneKind         = WORLD_COORDINATE_RANKED_LIGHT_CONE;
-            block->intensity = val;
-            solve_rank(block->slots, val, coneKind, &spot->head, &block->slots[ARRAY_SIZE(block->slots) - 1]);
+            val                 = Gp_LightCone(spot, (VECTOR3*)&block->viewPosition);
+            coneKind            = WORLD_COORDINATE_RANKED_LIGHT_CONE;
+            block->contribution = val;
+            solve_rank(block->rankedLights, val, coneKind, &spot->head, &block->rankedLights[ARRAY_SIZE(block->rankedLights) - 1]);
             i++;
             spot++;
         }
@@ -943,9 +952,9 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
         directionalLight = roomLights->directionalLights;
         i                = 0;
         for (; i < roomLights->directionalLightCount;) {
-            val              = solve_luma(directionalLight);
-            block->intensity = val;
-            solve_rank0(block->slots, val, WORLD_COORDINATE_RANKED_LIGHT_DIRECTIONAL, directionalLight, block);
+            val                 = solve_luma(directionalLight);
+            block->contribution = val;
+            solve_rank0(block->rankedLights, val, WORLD_COORDINATE_RANKED_LIGHT_DIRECTIONAL, directionalLight, block);
             i++;
             directionalLight++;
         }
@@ -969,17 +978,17 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
         if ((u32)i < (u32)count) {
             end = i + count;
             do {
-                light = block->slots[i].light;
+                light = block->rankedLights[i].light;
                 if (light != NULL) {
                     if (i == end - 1) {
-                        if (block->slots[count].light != NULL) {
+                        if (block->rankedLights[count].light != NULL) {
                             WorldCoordLight* cutoffLight;
                             s32              attenuation;
                             s32              diff;
                             s32              cutoffScale;
-                            cutoffLight = block->slots[end].light;
+                            cutoffLight = block->rankedLights[end].light;
                             delta       = 0;
-                            if (block->slots[count].kind != WORLD_COORDINATE_RANKED_LIGHT_DIRECTIONAL) {
+                            if (block->rankedLights[count].kind != WORLD_COORDINATE_RANKED_LIGHT_DIRECTIONAL) {
                                 attenuation = light->transform.lighting.attenuation;
                                 cutoffScale = cutoffLight->transform.lighting.attenuation;
                                 diff        = attenuation - cutoffScale;
@@ -992,9 +1001,9 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
                                     light->transform.lighting.attenuation = diff;
                                 }
                             }
-                            extraLight     = block->slots[end].light;
+                            extraLight     = block->rankedLights[end].light;
                             delta        >>= 2;
-                            amb            = (block->slots[end].rank >> 2) + delta;
+                            amb            = (block->rankedLights[end].rank >> 2) + delta;
                             colorMtx->t[2] = amb;
                             colorMtx->t[1] = amb;
                             colorMtx->t[0] = amb;
@@ -1004,16 +1013,16 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
                         }
                     }
 
-                    switch (block->slots[i].kind) {
+                    switch (block->rankedLights[i].kind) {
                         case WORLD_COORDINATE_RANKED_LIGHT_ROOM_POINT:
                         case WORLD_COORDINATE_RANKED_LIGHT_TRANSIENT_POINT:
-                            solve_func_800D98C4(i, block->slots[i].light, &block->pos, extra);
+                            solve_func_800D98C4(i, block->rankedLights[i].light, &block->viewPosition, extra);
                             break;
                         case WORLD_COORDINATE_RANKED_LIGHT_CONE:
-                            solve_func_800D9A30(i, block->slots[i].light, &block->pos, extra);
+                            solve_func_800D9A30(i, block->rankedLights[i].light, &block->viewPosition, extra);
                             break;
                         default:
-                            solve_func_800D9794(i, block->slots[i].light, &block->pos, extra);
+                            solve_func_800D9794(i, block->rankedLights[i].light, &block->viewPosition, extra);
                             break;
                     }
                 }
@@ -1054,16 +1063,16 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
         channelIndex = 0;
         row          = (SVECTOR3*)extra->colorMtx;
         do {
-            block->local.vx = row[channelIndex].vx;
-            block->local.vy = row[channelIndex].vy;
-            block->local.vz = row[channelIndex].vz;
+            block->viewOffset.vx = row[channelIndex].vx;
+            block->viewOffset.vy = row[channelIndex].vy;
+            block->viewOffset.vz = row[channelIndex].vz;
             gte_lddp(*channelScale);
-            gte_ldsv(&block->local);
+            gte_ldsv(&block->viewOffset);
             gte_gpf12();
-            gte_stsv(&block->local);
-            row[channelIndex].vx = block->local.vx;
-            row[channelIndex].vy = block->local.vy;
-            row[channelIndex].vz = block->local.vz;
+            gte_stsv(&block->viewOffset);
+            row[channelIndex].vx = block->viewOffset.vx;
+            row[channelIndex].vy = block->viewOffset.vy;
+            row[channelIndex].vz = block->viewOffset.vz;
             channelIndex++;
             channelScale++;
         } while (channelIndex < (s32)ARRAY_SIZE(Gp_OverrideVec2.channelScales));
@@ -1073,12 +1082,12 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
     if (Pad_RemapState->diagnosticMode == GAME_DEBUG_DIAGNOSTIC_LIGHT_PROBE && D_80760618->captureEnabled == WORLD_COORDINATE_LIGHT_CAPTURE_ENABLED) {
         i = 0;
         do {
-            D_80760618->rankedLights[i] = block->slots[i];
+            D_80760618->rankedLights[i] = block->rankedLights[i];
             i++;
         } while (i < (s32)ARRAY_SIZE(D_80760618->rankedLights));
     }
 
-    SCRATCH_STACK_RELEASE_BYTES(0x7C);
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(_WorldCoordLightQueryScratch));
 }
 
 /// Fills a light colour matrix so all three lights share one colour: every
