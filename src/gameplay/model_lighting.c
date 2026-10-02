@@ -297,16 +297,25 @@ static inline void _tmdInitGt3Texture(POLY_GT3* triangle, const u32* elementWord
     triangle->clut      += workspace->encodedClutOffset;
 }
 
-/// Initializes a layered triangle's stream-relative first-layer texture.
+/// Initializes the offset-layer texture of one layered Gouraud triangle.
 ///
-/// `triangle` is a writable, four-byte-aligned `POLY_GT3`; `elementWords`
-/// addresses at least six aligned u32 words after a `0x4038` record header.
-/// The borrowed `workspace->obj` supplies independent signed page and CLUT-row
-/// displacements. Address sums wrap in the packet's u16 fields; setting the
-/// low ABR bit preserves the relocated page's high ABR bit (modes 1 or 3).
-/// Only texture fields are written, including just U2/V2 beside `pad2`.
-/// No pointer is retained and no workspace cursor or count is changed.
-static inline void _tmdInitGt3OffsetLayerTexture(POLY_GT3* triangle, const u32* elementWords, const TmdStreamWorkspace* workspace)
+/// `triangle` must be a writable, four-byte-aligned `POLY_GT3` for the first
+/// packet in a layered pair. `elementWords` starts after a `0x4038` record's
+/// three-word header and provides at least six readable, four-byte-aligned u32
+/// words. Words 3 and 4 pack unsigned byte U/V texel coordinates with encoded
+/// CLUT and texture-page settings; only word 5's low half supplies U2/V2.
+/// This minimum readable extent does not establish the element's full stride.
+///
+/// `workspace->obj` must be a live object. Its `layerTexturePageOffset` adds
+/// -128..127 encoded page units; `layerClutRowOffset` adds -128..127 palette
+/// rows (-8192..8128 encoded CLUT units, 64 per row). These offsets are
+/// independent of the workspace's base-texture offsets. Address sums wrap
+/// modulo 65536 in the packet's u16 fields. Setting ABR bit 5 after relocation
+/// preserves bit 6, selecting mode 1 or 3; drawing enables semi-transparency.
+/// The tag, colours/command, positions and SDK pad fields remain untouched.
+/// All storage is borrowed for the call; no pointer is retained and neither
+/// workspace nor object is modified.
+static inline void _modelLightingInitGt3OffsetLayerTexture(POLY_GT3* triangle, const u32* elementWords, const TmdStreamWorkspace* workspace)
 {
     enum {
         /// Index of vertex 0's packed texture/CLUT word for the offset layer.
@@ -358,16 +367,17 @@ static inline void _tmdInitGt3OffsetLayerTexture(POLY_GT3* triangle, const u32* 
         /// wraps in the packet's u16 CLUT field, preserving the six column bits.
         MODEL_LIGHTING_OFFSET_LAYER_CLUT_ROW_SHIFT = 6
     };
-    s32 layerTexturePage;
-    s32 layerClutRowByte;
+    u32 layerTexturePage;
+    u8  layerClutRowByte;
 
     MODEL_LIGHTING_UV0_CLUT_WORD(triangle)  = elementWords[MODEL_LIGHTING_GT3_OFFSET_LAYER_UV0_CLUT_WORD_INDEX];
     MODEL_LIGHTING_UV1_TPAGE_WORD(triangle) = elementWords[MODEL_LIGHTING_GT3_OFFSET_LAYER_UV1_TPAGE_WORD_INDEX];
     // Copy the U/V byte pair without overwriting the adjacent packet pad2.
     *(u16*)&triangle->u2 = (u16)elementWords[MODEL_LIGHTING_GT3_OFFSET_LAYER_UV2_WORD_INDEX];
-    triangle->tpage     += workspace->obj->layerTexturePageOffset;
-    // Load the palette-row byte before reloading the truncated page sum.
-    layerClutRowByte  = (u8)workspace->obj->layerClutRowOffset;
+    // The page sum wraps to u16 before its ABR mode is adjusted.
+    triangle->tpage += workspace->obj->layerTexturePageOffset;
+    // Keep the row byte unsigned until the CLUT calculation restores its sign.
+    layerClutRowByte  = workspace->obj->layerClutRowOffset;
     layerTexturePage  = triangle->tpage;
     layerTexturePage |= MODEL_LIGHTING_OFFSET_LAYER_TPAGE_ABR_LOW_BIT;
     triangle->tpage   = layerTexturePage;
@@ -2456,7 +2466,7 @@ u32* tmdBuildStreamGt3OffsetLayer(TmdStreamWorkspace* workspace, s32 objectFlags
     if (workspace->elemCount-- > 0) {
         do {
             // Layer and base share UVs, with independent stream-relative GPU addresses.
-            _tmdInitGt3OffsetLayerTexture(triangle, elements, workspace);
+            _modelLightingInitGt3OffsetLayerTexture(triangle, elements, workspace);
             triangle++;
             _tmdInitGt3Texture(triangle, elements, workspace);
             triangle++;
