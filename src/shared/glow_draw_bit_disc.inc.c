@@ -19,20 +19,20 @@ void glowDrawBitDisc(SVECTOR* worldPoint, s32 radiusScale, s32 packedColor)
         ROOM_VISUAL_EFFECTS_GLOW_FULL_TURN       = 0x1000,
     };
 
-    u8*                head;
-    RoomDraw25Scratch* block;
-    POLY_G4*           prim;
-    DisplayState*      displayBase;
-    DisplayState*      ds;
-    s32                radius;
-    s32                angle;
-    s32                halfStepAngle;
-    s32                nextAngle;
-    s32                shiftedColor;
-    u8                 brightness;
-    u8                 r;
-    u8                 g;
-    u8                 b;
+    u8*                      head;
+    GlowCentreRadiusScratch* block;
+    POLY_G4*                 prim;
+    DisplayState*            displayBase;
+    DisplayState*            ds;
+    s32                      radius;
+    s32                      angle;
+    s32                      halfStepAngle;
+    s32                      nextAngle;
+    s32                      shiftedColor;
+    u8                       brightness;
+    u8                       r;
+    u8                       g;
+    u8                       b;
 
     {
         void** scratch;
@@ -41,7 +41,7 @@ void glowDrawBitDisc(SVECTOR* worldPoint, s32 radiusScale, s32 packedColor)
         scratch = SCRATCH_STACK_CURSOR_SLOT;
         head    = *scratch;
         tmp     = (*scratch = head - sizeof(*block));
-        block   = (RoomDraw25Scratch*)tmp;
+        block   = (GlowCentreRadiusScratch*)tmp;
     }
 
     // Project the world point before allocating its glow packets.
@@ -49,10 +49,10 @@ void glowDrawBitDisc(SVECTOR* worldPoint, s32 radiusScale, s32 packedColor)
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(worldPoint);
     gte_rtps();
-    gte_stsxy(&((RoomDraw25Scratch*)(head - sizeof(*block)))->sx);
+    gte_stsxy(&((GlowCentreRadiusScratch*)(head - sizeof(*block)))->sx);
     gte_stszotz(&block->otz);
-    if (((RoomDraw25Scratch*)(head - sizeof(*block)))->otz >= ROOM_VISUAL_EFFECTS_GLOW_MIN_DEPTH) {
-        radius        = ((s16)radiusScale * 64) / ((RoomDraw25Scratch*)(head - sizeof(*block)))->otz;
+    if (((GlowCentreRadiusScratch*)(head - sizeof(*block)))->otz >= ROOM_VISUAL_EFFECTS_GLOW_MIN_DEPTH) {
+        radius        = ((s16)radiusScale * 64) / ((GlowCentreRadiusScratch*)(head - sizeof(*block)))->otz;
         displayBase   = &gDisplayState;
         shiftedColor  = packedColor << 16;
         brightness    = (((u8)displayBase->animFrame & 1) * ROOM_VISUAL_EFFECTS_GLOW_BRIGHTNESS_STEP) | ROOM_VISUAL_EFFECTS_GLOW_BRIGHTNESS_BASE;

@@ -6,15 +6,15 @@
 /// on odd and even frames.
 void glowDrawRedDisc(SVECTOR* arg0, s16 arg1)
 {
-    RoomDraw25Scratch* block;
-    POLY_G4*           prim;
-    s32                ang;
-    s32                t;
-    s32                t2;
-    s32                rgb;
-    s32                radius;
+    GlowCentreRadiusScratch* block;
+    POLY_G4*                 prim;
+    s32                      ang;
+    s32                      t;
+    s32                      t2;
+    s32                      rgb;
+    s32                      radius;
 
-    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw25Scratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(GlowCentreRadiusScratch);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
@@ -51,5 +51,5 @@ void glowDrawRedDisc(SVECTOR* arg0, s16 arg1)
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw25Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GlowCentreRadiusScratch);
 }

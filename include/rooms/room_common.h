@@ -222,18 +222,26 @@ typedef struct {
 } RoomGlowScratch;
 STATIC_ASSERT_SIZEOF(RoomGlowScratch, 0x18);
 
-/// 0xC-byte scratch block `Room_Draw20`, `Room_Draw25`, `Room_Draw29` and
-/// `Room_Draw30` take from the scratch stack. `otz` is the `gte_stszotz` of
-/// `arg0` through `gGfxViewCoord.workm`; `sx`/`sy` are that screen point and
-/// `radius` is `(s16)arg2 * 39 / otz` for `Room_Draw20` or `(s16)arg1 * 64 /
-/// otz` for the gouraud discs, the on-screen half-extent of the primitive.
-typedef struct _RoomDraw25Scratch {
-    /* 0x00 */ s32 otz;
-    /* 0x04 */ s32 radius;
-    /* 0x08 */ u16 sx;
-    /* 0x0A */ u16 sy;
-} RoomDraw25Scratch;
-STATIC_ASSERT_SIZEOF(RoomDraw25Scratch, 0xC);
+/// Scratch block a glow drawer takes from the scratch stack for one projected
+/// centre and the on-screen half-extent of the primitive around it.
+///
+/// One perspective transform of a world point through `gGfxViewCoord.workm`
+/// writes the screen position and the ordering-table depth. The drawer stores
+/// the half-extent, a caller size divided by that depth, and builds the
+/// primitive around the centre when the depth is at least 17. `sx` and `sy`
+/// are written by one screen-XY store, so they stay adjacent.
+///
+/// `GlowCentreScratch` keeps a GTE flag word between the depth and the
+/// half-extent. `GlowCentreRadiusFirstScratch` keeps that flag word between
+/// the half-extent and the screen position. Both are 16 bytes. This record
+/// holds the depth, the half-extent and the screen position.
+typedef struct {
+    s32 otz;    // Ordering-table depth of the centre; also the divisor for the half-extent
+    s32 radius; // On-screen half-extent of the primitive around the centre
+    u16 sx;     // Projected centre, x
+    u16 sy;     // Projected centre, y
+} GlowCentreRadiusScratch;
+STATIC_ASSERT_SIZEOF(GlowCentreRadiusScratch, 0xC);
 
 /// Scratch block a glow drawer takes from the scratch stack for one projected
 /// centre.

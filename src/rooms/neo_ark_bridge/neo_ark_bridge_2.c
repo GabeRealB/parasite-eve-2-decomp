@@ -764,19 +764,19 @@ void func_neo_ark_bridge_8017E954(Task* arg0)
 /// as `rsin(...) / 34 + 0x78`.
 static void func_neo_ark_bridge_8017EB08(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
-    u8*                head;
-    RoomDraw25Scratch* block;
-    POLY_G4*           prim;
-    LINE_G3*           line;
-    s32                sine;
-    s32                pulse;
-    s32                radius;
-    s32                i;
-    s32                t1;
-    s32                t2;
-    s32                twice;
-    u16                sx;
-    u16                sy;
+    u8*                      head;
+    GlowCentreRadiusScratch* block;
+    POLY_G4*                 prim;
+    LINE_G3*                 line;
+    s32                      sine;
+    s32                      pulse;
+    s32                      radius;
+    s32                      i;
+    s32                      t1;
+    s32                      t2;
+    s32                      twice;
+    u16                      sx;
+    u16                      sy;
 
     {
         void** scratch;
@@ -784,19 +784,19 @@ static void func_neo_ark_bridge_8017EB08(SVECTOR* arg0, s32 arg1, s32 arg2)
 
         scratch = SCRATCH_STACK_CURSOR_SLOT;
         head    = *scratch;
-        tmp     = (*scratch = head - 0xC);
-        block   = (RoomDraw25Scratch*)tmp;
+        tmp     = (*scratch = head - sizeof(*block));
+        block   = (GlowCentreRadiusScratch*)tmp;
     }
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
-    gte_stsxy(&((RoomDraw25Scratch*)(head - 0xC))->sx);
+    gte_stsxy(&((GlowCentreRadiusScratch*)(head - sizeof(*block)))->sx);
     gte_stszotz(&block->otz);
-    if (((RoomDraw25Scratch*)(head - 0xC))->otz >= 0x11) {
+    if (((GlowCentreRadiusScratch*)(head - sizeof(*block)))->otz >= 0x11) {
         sine          = rsin(gDisplayState.animFrame * (s16)arg1);
-        radius        = ((s16)arg2 * 32) / ((RoomDraw25Scratch*)(head - 0xC))->otz;
+        radius        = ((s16)arg2 * 32) / ((GlowCentreRadiusScratch*)(head - sizeof(*block)))->otz;
         i             = 0;
         pulse         = sine / 34 + 0x78;
         block->radius = radius;
@@ -847,7 +847,7 @@ static void func_neo_ark_bridge_8017EB08(SVECTOR* arg0, s32 arg1, s32 arg2)
             i = t2;
         } while (i < 2);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0xC);
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(*block));
 }
 
 #include "../../shared/water_ripple_task.inc.c"

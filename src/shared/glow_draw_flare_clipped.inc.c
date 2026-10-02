@@ -8,14 +8,14 @@
 /// `((animFrame & 1) * 16) + 0x20`.
 void glowDrawFlareClipped(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
-    RoomDraw25Scratch* block;
-    POLY_FT4*          prim;
-    s32                u;
-    s32                blend;
-    s32                idx;
-    u8                 frame;
+    GlowCentreRadiusScratch* block;
+    POLY_FT4*                prim;
+    s32                      u;
+    s32                      blend;
+    s32                      idx;
+    u8                       frame;
 
-    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw25Scratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(GlowCentreRadiusScratch);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
@@ -42,5 +42,5 @@ void glowDrawFlareClipped(SVECTOR* arg0, s32 arg1, s32 arg2)
         prim->y2 = prim->y3 = block->sy + block->radius;
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
     }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw25Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GlowCentreRadiusScratch);
 }
