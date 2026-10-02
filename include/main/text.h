@@ -167,18 +167,23 @@ typedef struct {
 } TextDrawReq;
 STATIC_ASSERT_SIZEOF(TextDrawReq, 0x10);
 
-/// 4-byte glyph UVWH entry used by TextStream_Draw (tables like D_800627E0).
-/// Distinct from _FontGlyph (0xC full font metrics).
-typedef struct _GlyphUvwh {
-    /* 0x0 */ u8 u;
-    /* 0x1 */ u8 v;
-    /* 0x2 */ u8 w;
-    /* 0x3 */ u8 h;
-} GlyphUvwh;
-STATIC_ASSERT_SIZEOF(GlyphUvwh, 0x4);
+/// Texture cell for a caption glyph, title label or inline icon.
+///
+/// Renderers supply the texture page and palette, and add any texture-origin
+/// offsets before storing GPU coordinates modulo 256. The stream sprite path
+/// subtracts one from both extents; CAP quads use them as corner deltas.
+/// Glyph indices and table lengths belong to the containing text format.
+/// CAP tables borrow the relocated file's storage for drawing and measurement.
+typedef struct {
+    u8 u;      // Texture U in texels, before renderer-supplied offsets.
+    u8 v;      // Texture V in texels, before renderer-supplied offsets.
+    u8 width;  // Cell width in texels; pen advance depends on the text format.
+    u8 height; // Cell height in texels; zero suppresses stream sprites.
+} TextGlyphCell;
+STATIC_ASSERT_SIZEOF(TextGlyphCell, 0x4);
 
 /// Caption font cells shared with room title sequences.
-extern GlyphUvwh Caption_Glyphs[];
+extern TextGlyphCell Caption_Glyphs[];
 
 void Text_MeasureAndCenter(TextDrawReq* request, u8* arg1);
 

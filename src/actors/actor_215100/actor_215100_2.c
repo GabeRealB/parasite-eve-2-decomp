@@ -147,7 +147,7 @@ extern Actor2151002MsgEntry D_actor_215100_8015E5A0[];
 /// counterpart of gameplay's `Gp_CapGlyphs`. `func_actor_215100_8014B1B0`
 /// stores it and `func_actor_215100_8014C360` indexes it with a text stream's
 /// `code & 0x3FF`.
-static GlyphUvwh* CapCaption_Data_8015E654;
+static TextGlyphCell* CapCaption_Data_8015E654;
 
 /// Caption script table, and the script currently being played back with the
 /// entry it is up to.
@@ -1742,7 +1742,7 @@ Task* D_actor_215100_8015E64C = NULL;
 
 static GpCapEntry* CapCaption_Data_8015E650 = NULL;
 
-static GlyphUvwh* CapCaption_Data_8015E654 = NULL;
+static TextGlyphCell* CapCaption_Data_8015E654 = NULL;
 
 static GpEvt12* CapCaption_Data_8015E658 = NULL;
 

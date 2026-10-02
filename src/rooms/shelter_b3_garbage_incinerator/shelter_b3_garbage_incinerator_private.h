@@ -47,7 +47,7 @@ extern Task* D_shelter_b3_garbage_incinerator_8018FC3C;
 
 extern GpCapEntry* CapCaption_Data_8015E650;
 
-extern GlyphUvwh* CapCaption_Data_8015E654;
+extern TextGlyphCell* CapCaption_Data_8015E654;
 
 extern GpEvt12* CapCaption_Data_8015E658;
 

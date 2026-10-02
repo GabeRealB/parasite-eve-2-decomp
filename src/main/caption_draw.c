@@ -43,7 +43,7 @@ static s32 Prim_DrawFadeTile(RECT* rect, u8* arg1, s16* arg2);
 
 static void Prim_DrawTile(PrimDrawParams* draw);
 
-GlyphUvwh Caption_Glyphs[] = {
+TextGlyphCell Caption_Glyphs[] = {
 #include "assets/caption_glyphs.inc"
 };
 
@@ -99,8 +99,8 @@ s32 TextStream_Draw(TextStream* stream, u8* arg1, s16* arg2, s32 arg3)
                                          (stream->tpageX & 0x3F);
                             sp.v.value = stream->glyphs[glyphIdx].v +
                                          (u8)stream->tpageY;
-                            sp.w = stream->glyphs[glyphIdx].w;
-                            h    = stream->glyphs[glyphIdx].h;
+                            sp.w = stream->glyphs[glyphIdx].width;
+                            h    = stream->glyphs[glyphIdx].height;
                             sp.h = h;
                             if (h != 0) {
                                 Prim_DrawSprt(&sp, stream->clutX,
@@ -108,7 +108,7 @@ s32 TextStream_Draw(TextStream* stream, u8* arg1, s16* arg2, s32 arg3)
                             }
                         }
                         sp.x +=
-                            stream->glyphs[glyphIdx].w;
+                            stream->glyphs[glyphIdx].width;
                     }
                 }
                 Prim_DrawTPage(1, stream->tpageX, stream->tpageY, 4);

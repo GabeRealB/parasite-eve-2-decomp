@@ -81,20 +81,20 @@ STATIC_ASSERT_SIZEOF(MistR18Sprite, 0x14);
 /// the pen origin, `u`/`v` the font page origin, `clutX`/`clutY` the palette
 /// position and `boxW`/`boxH` the backing rectangle drawn behind the text.
 typedef struct MistR18TextSpawn {
-    /* 0x00 */ s16        x;
-    /* 0x02 */ s16        y;
-    /* 0x04 */ s16        u;
-    /* 0x06 */ s16        v;
-    /* 0x08 */ s16        clutX;
-    /* 0x0A */ s16        clutY;
-    /* 0x0C */ s16        delay;
-    /* 0x0E */ s16        index;
-    /* 0x10 */ u8*        script;
-    /* 0x14 */ GlyphUvwh* glyphs;
-    /* 0x18 */ s16        lineHeight;
-    /* 0x1A */ s16        delayEnd;
-    /* 0x1C */ s16        boxW;
-    /* 0x1E */ s16        boxH;
+    /* 0x00 */ s16            x;
+    /* 0x02 */ s16            y;
+    /* 0x04 */ s16            u;
+    /* 0x06 */ s16            v;
+    /* 0x08 */ s16            clutX;
+    /* 0x0A */ s16            clutY;
+    /* 0x0C */ s16            delay;
+    /* 0x0E */ s16            index;
+    /* 0x10 */ u8*            script;
+    /* 0x14 */ TextGlyphCell* glyphs;
+    /* 0x18 */ s16            lineHeight;
+    /* 0x1A */ s16            delayEnd;
+    /* 0x1C */ s16            boxW;
+    /* 0x1E */ s16            boxH;
 } MistR18TextSpawn;
 
 STATIC_ASSERT_SIZEOF(MistR18TextSpawn, 0x20);
@@ -1175,12 +1175,12 @@ void func_mist_r18_8017D5EC(Task* task)
                 } else {
                     sprite.u = spawn->glyphs[spawn->script[i]].u + (spawn->u & 0x3F);
                     sprite.v = spawn->glyphs[spawn->script[i]].v + (u8)spawn->v;
-                    sprite.w = spawn->glyphs[spawn->script[i]].w;
-                    sprite.h = spawn->glyphs[spawn->script[i]].h;
+                    sprite.w = spawn->glyphs[spawn->script[i]].width;
+                    sprite.h = spawn->glyphs[spawn->script[i]].height;
                     if (sprite.h != 0) {
                         func_mist_r18_8017E534(&sprite, spawn->clutX, spawn->clutY);
                     }
-                    sprite.x += spawn->glyphs[spawn->script[i]].w;
+                    sprite.x += spawn->glyphs[spawn->script[i]].width;
                 }
             }
 

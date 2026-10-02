@@ -100,15 +100,15 @@ typedef struct _GpCapCmd {
 /// `field_8` / `field_C` / `field_10` are file-relative until
 /// `Gp_RelocCapFile` adds the file base. The signed glyph offset is positive
 /// before relocation; a relocated PS1 KSEG0 pointer has its high bit set. After that, `field_8` is a
-/// `GlyphUvwh*` published as `Gp_CapGlyphs`, `field_C` is a
+/// `TextGlyphCell*` published as `Gp_CapGlyphs`, `field_C` is a
 /// `GpCapEvtTable*`, and `field_10` is a `GpCapPtrTable*` whose
 /// entries (nonzero) are relocated `GpEvt12*` values.
 typedef struct _GpCapFile {
     /* 0x00 */ char magic[4];
     /* 0x04 */ s32  field_4;
     /* 0x08 */ union {
-        s32        offset;
-        GlyphUvwh* ptr;
+        s32            offset;
+        TextGlyphCell* ptr;
     } field_8;
     /* 0x0C */ union {
         s32            offset;

@@ -33,7 +33,7 @@ enum {
     CAP_CONTROL_MESSAGE_SHOW_HUD_ABORT = 0xFA8,
 };
 
-extern GlyphUvwh D_8010FB70[4];
+extern TextGlyphCell D_8010FB70[4];
 
 void Gp_RunCapCmd(s32 arg0, s16 arg1);
 

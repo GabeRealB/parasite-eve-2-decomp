@@ -62,7 +62,7 @@ s16 D_80115678;
 
 s16 D_8011567A;
 
-GlyphUvwh* Gp_CapGlyphs;
+TextGlyphCell* Gp_CapGlyphs;
 
 u8 D_80115680;
 

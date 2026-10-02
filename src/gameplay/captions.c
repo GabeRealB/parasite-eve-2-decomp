@@ -506,42 +506,42 @@ resumeView:
 
 u16 func_800E5578(u16* arg0, s32 arg1, u8 arg2, u16 arg3)
 {
-    u8           title;
-    u8           flagA;
-    u16*         text;
-    u16*         body;
-    s16          lineEnd;
-    u16          ret;
-    u16          inChoice;
-    s16          lineIdx;
-    u8           centered;
-    u8           selected;
-    s16          nChoice;
-    s16          x;
-    s32          y;
-    s16          i;
-    s16          sel;
-    u16          code;
-    s16          attr;
-    s16          sc;
-    s16          t;
-    s16          glyphY;
-    s32          palette;
-    s32          titleWidth;
-    u16*         next;
-    s32          g;
-    s16          t2;
-    s16          top;
-    s32          base59;
-    POLY_G4*     bg;
-    POLY_G4*     bg2;
-    DR_MODE*     dm;
-    POLY_FT4*    ft;
-    POLY_GT4*    gt;
-    POLY_GT4*    gt2;
-    GlyphUvwh*   icon;
-    GpCapChoice* ch;
-    GpCapChoice* p;
+    u8             title;
+    u8             flagA;
+    u16*           text;
+    u16*           body;
+    s16            lineEnd;
+    u16            ret;
+    u16            inChoice;
+    s16            lineIdx;
+    u8             centered;
+    u8             selected;
+    s16            nChoice;
+    s16            x;
+    s32            y;
+    s16            i;
+    s16            sel;
+    u16            code;
+    s16            attr;
+    s16            sc;
+    s16            t;
+    s16            glyphY;
+    s32            palette;
+    s32            titleWidth;
+    u16*           next;
+    s32            g;
+    s16            t2;
+    s16            top;
+    s32            base59;
+    POLY_G4*       bg;
+    POLY_G4*       bg2;
+    DR_MODE*       dm;
+    POLY_FT4*      ft;
+    POLY_GT4*      gt;
+    POLY_GT4*      gt2;
+    TextGlyphCell* icon;
+    GpCapChoice*   ch;
+    GpCapChoice*   p;
 
     const _GpCapLayout* layout;
 
@@ -610,23 +610,23 @@ u16 func_800E5578(u16* arg0, s32 arg1, u8 arg2, u16 arg3)
         base59     = 0x59;
         top        = base59 - (u16)D_801155B6;
         ft->x0     = (u16)D_801155B2 - 0xA7;
-        ft->y0     = (top - gDisplayState.vramYOffset) - Gp_CapGlyphs[title].h;
-        titleWidth = Gp_CapGlyphs[title].w - 0xA7;
+        ft->y0     = (top - gDisplayState.vramYOffset) - Gp_CapGlyphs[title].height;
+        titleWidth = Gp_CapGlyphs[title].width - 0xA7;
         ft->x1     = (u16)D_801155B2 + titleWidth;
-        ft->y1     = (top - gDisplayState.vramYOffset) - Gp_CapGlyphs[title].h;
+        ft->y1     = (top - gDisplayState.vramYOffset) - Gp_CapGlyphs[title].height;
         ft->x2     = (u16)D_801155B2 - 0xA7;
         ft->y2     = (base59 - gDisplayState.vramYOffset) - (u16)D_801155B6;
-        titleWidth = Gp_CapGlyphs[title].w - 0xA7;
+        titleWidth = Gp_CapGlyphs[title].width - 0xA7;
         ft->x3     = (u16)D_801155B2 + titleWidth;
         ft->y3     = (base59 - gDisplayState.vramYOffset) - (u16)D_801155B6;
         ft->u0     = Gp_CapGlyphs[title].u;
         ft->v0     = Gp_CapGlyphs[title].v;
-        ft->u1     = Gp_CapGlyphs[title].u + Gp_CapGlyphs[title].w;
+        ft->u1     = Gp_CapGlyphs[title].u + Gp_CapGlyphs[title].width;
         ft->v1     = Gp_CapGlyphs[title].v;
         ft->u2     = Gp_CapGlyphs[title].u;
-        ft->v2     = Gp_CapGlyphs[title].v + Gp_CapGlyphs[title].h;
-        ft->u3     = Gp_CapGlyphs[title].u + Gp_CapGlyphs[title].w;
-        ft->v3     = Gp_CapGlyphs[title].v + Gp_CapGlyphs[title].h;
+        ft->v2     = Gp_CapGlyphs[title].v + Gp_CapGlyphs[title].height;
+        ft->u3     = Gp_CapGlyphs[title].u + Gp_CapGlyphs[title].width;
+        ft->v3     = Gp_CapGlyphs[title].v + Gp_CapGlyphs[title].height;
         ft->clut   = 0x3D93;
         ft->tpage  = getTPage(0, 1, D_80115654, D_80115656);
         addPrim(&gGpuCurrentOt[2], ft);
@@ -734,23 +734,23 @@ u16 func_800E5578(u16* arg0, s32 arg1, u8 arg2, u16 arg3)
                 ft->tpage = 0x1E;
                 t         = (y - gDisplayState.vramYOffset) + 1;
                 ft->x0    = x;
-                ft->y0    = t - icon->h;
-                ft->x1    = x + icon->w;
-                ft->y1    = t - icon->h;
+                ft->y0    = t - icon->height;
+                ft->x1    = x + icon->width;
+                ft->y1    = t - icon->height;
                 ft->x2    = x;
                 ft->y2    = t;
-                ft->x3    = x + icon->w;
+                ft->x3    = x + icon->width;
                 ft->y3    = t;
                 ft->u0    = icon->u;
                 ft->v0    = icon->v;
-                ft->u1    = icon->u + icon->w;
+                ft->u1    = icon->u + icon->width;
                 ft->v1    = icon->v;
                 ft->u2    = icon->u;
-                ft->v2    = icon->v + icon->h;
-                ft->u3    = icon->u + icon->w;
-                ft->v3    = icon->v + icon->h;
+                ft->v2    = icon->v + icon->height;
+                ft->u3    = icon->u + icon->width;
+                ft->v3    = icon->v + icon->height;
                 addPrim(&gGpuCurrentOt[2], ft);
-                x += icon->w;
+                x += icon->width;
                 i++;
                 continue;
             } else {
@@ -776,21 +776,21 @@ u16 func_800E5578(u16* arg0, s32 arg1, u8 arg2, u16 arg3)
                 setSemiTrans(gt, 1);
                 gt->tpage = getTPage(0, 1, D_80115654, D_80115656);
                 gt->x0    = t;
-                gt->y0    = glyphY - Gp_CapGlyphs[(s16)code].h;
-                gt->x1    = t + Gp_CapGlyphs[(s16)code].w;
-                gt->y1    = glyphY - Gp_CapGlyphs[(s16)code].h;
+                gt->y0    = glyphY - Gp_CapGlyphs[(s16)code].height;
+                gt->x1    = t + Gp_CapGlyphs[(s16)code].width;
+                gt->y1    = glyphY - Gp_CapGlyphs[(s16)code].height;
                 gt->x2    = t;
                 gt->y2    = glyphY;
-                gt->x3    = t + Gp_CapGlyphs[(s16)code].w;
+                gt->x3    = t + Gp_CapGlyphs[(s16)code].width;
                 gt->y3    = glyphY;
                 gt->u0    = Gp_CapGlyphs[(s16)code].u;
                 gt->v0    = Gp_CapGlyphs[(s16)code].v;
-                gt->u1    = Gp_CapGlyphs[(s16)code].u + Gp_CapGlyphs[(s16)code].w;
+                gt->u1    = Gp_CapGlyphs[(s16)code].u + Gp_CapGlyphs[(s16)code].width;
                 gt->v1    = Gp_CapGlyphs[(s16)code].v;
                 gt->u2    = Gp_CapGlyphs[(s16)code].u;
-                gt->v2    = Gp_CapGlyphs[(s16)code].v + Gp_CapGlyphs[(s16)code].h;
-                gt->u3    = Gp_CapGlyphs[(s16)code].u + Gp_CapGlyphs[(s16)code].w;
-                gt->v3    = Gp_CapGlyphs[(s16)code].v + Gp_CapGlyphs[(s16)code].h;
+                gt->v2    = Gp_CapGlyphs[(s16)code].v + Gp_CapGlyphs[(s16)code].height;
+                gt->u3    = Gp_CapGlyphs[(s16)code].u + Gp_CapGlyphs[(s16)code].width;
+                gt->v3    = Gp_CapGlyphs[(s16)code].v + Gp_CapGlyphs[(s16)code].height;
                 addPrim(&gGpuCurrentOt[2], gt);
                 gt2            = gGpuPrimCursor;
                 gGpuPrimCursor = gt2 + 1;
@@ -798,9 +798,9 @@ u16 func_800E5578(u16* arg0, s32 arg1, u8 arg2, u16 arg3)
                 gt2->tpage     = getTPage(0, GPU_BLEND_SUBTRACT, D_80115654, D_80115656);
                 addPrim(&gGpuCurrentOt[2], gt2);
                 if (layout->vertical == 0) {
-                    x = Gp_CapGlyphs[(s16)code].w + x - 1;
+                    x = Gp_CapGlyphs[(s16)code].width + x - 1;
                 } else {
-                    y = Gp_CapGlyphs[(s16)code].h + y - 1;
+                    y = Gp_CapGlyphs[(s16)code].height + y - 1;
                 }
             }
         }
@@ -978,7 +978,7 @@ s16 Gp_CapCenterX(u16* text)
             lineW += 0x10;
             code   = text[++i];
         } else if (code >= 0) {
-            lineW += Gp_CapGlyphs[code & 0x3FF].w - 1;
+            lineW += Gp_CapGlyphs[code & 0x3FF].width - 1;
             code   = text[++i];
         } else {
             code = text[++i];
@@ -1016,7 +1016,7 @@ s16 Gp_CapCenterXLine(u16* arg0, s32 arg1)
             lineW += 0x10;
             code   = arg0[++i];
         } else if (code >= 0) {
-            lineW += Gp_CapGlyphs[code & 0x3FF].w - 1;
+            lineW += Gp_CapGlyphs[code & 0x3FF].width - 1;
             code   = arg0[++i];
         } else {
             code = arg0[++i];
@@ -1041,8 +1041,8 @@ s16 Gp_CapTextHeight(u16* arg0)
             lineH  = 0;
         } else if (code != -3) {
             if (code >= 0) {
-                if (lineH < Gp_CapGlyphs[code & 0x3FF].h + 2) {
-                    lineH = Gp_CapGlyphs[code & 0x3FF].h + 2;
+                if (lineH < Gp_CapGlyphs[code & 0x3FF].height + 2) {
+                    lineH = Gp_CapGlyphs[code & 0x3FF].height + 2;
                 }
             }
         }
@@ -1076,8 +1076,8 @@ s16 Gp_CapTextTopY(u16* arg0)
             lineH = 0;
         } else if (code != -3) {
             if (code >= 0) {
-                if (lineH < Gp_CapGlyphs[code & 0x3FF].h + 2) {
-                    lineH = Gp_CapGlyphs[code & 0x3FF].h + 2;
+                if (lineH < Gp_CapGlyphs[code & 0x3FF].height + 2) {
+                    lineH = Gp_CapGlyphs[code & 0x3FF].height + 2;
                 }
             }
         }
@@ -1100,8 +1100,8 @@ s32 func_800E6BB8(u16* arg0)
             cont   = 0;
             height = 0xD;
         } else if (code >= 0) {
-            if (height < Gp_CapGlyphs[code & 0x3FF].h + 2) {
-                height = Gp_CapGlyphs[code & 0x3FF].h + 2;
+            if (height < Gp_CapGlyphs[code & 0x3FF].height + 2) {
+                height = Gp_CapGlyphs[code & 0x3FF].height + 2;
             }
             code = arg0[++i];
         } else {

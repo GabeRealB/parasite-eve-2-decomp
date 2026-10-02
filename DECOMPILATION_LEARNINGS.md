@@ -14803,7 +14803,7 @@ array pointer as the addressing base regardless of `a[b]`/`b[a]` order or a
 `u8*`-cast offset; only the pure-integer add with the `mult` outranking a plain
 base REG (`commutative_operand_precedence`) puts the offset first. The idiom
 matches the `(GpEvt12*)(idx * sizeof(GpEvt12) + base)` and
-`(GlyphUvwh*)((code & 0x3FF) * sizeof(GlyphUvwh) + (s32)table)` forms already in
+`(TextGlyphCell*)((code & 0x3FF) * sizeof(TextGlyphCell) + (s32)table)` forms already in
 `src/gameplay/3CD8.c`.
 
 ## Pre-increment store `*++p = f()` fills `jal` delay with the previous store
@@ -21987,7 +21987,7 @@ before the base pointer is added:
 
 ```c
 /* matches addu v1, a0, v1 (off in a0, base in v1) */
-sp.field_4 = ((GlyphUvwh*)(off + (s32)arg0->field_14))->u + ...;
+sp.field_4 = ((TextGlyphCell*)(off + (s32)arg0->field_14))->u + ...;
 
 /* typically emits addu v1, v1, a0 */
 sp.field_4 = arg0->field_14[glyphIdx].u + ...;
@@ -28695,11 +28695,11 @@ addiu  a3, v0, 2
 Load into a `register s32 tmp asm("v0")`, barrier it, then add:
 
 ```c
-volatile GlyphUvwh* glyph;
+volatile TextGlyphCell* glyph;
 
-glyph = (GlyphUvwh*)((code & 0x3FF) * sizeof(GlyphUvwh) + (s32)table);
-if (acc < glyph->h + 2) {
-    tmp = glyph->h;
+glyph = (TextGlyphCell*)((code & 0x3FF) * sizeof(TextGlyphCell) + (s32)table);
+if (acc < glyph->height + 2) {
+    tmp = glyph->height;
     asm volatile("" : "+r"(tmp));
     acc = tmp + 2;
 }
@@ -80570,8 +80570,8 @@ Two consequences worth knowing before planning around it:
   byte through a struct the sibling used and the target names a raw splat
   symbol. Here the port renames the symbol to the one the target `.s` already
   names, so no relocation is left to differ: first build, 0 differences, all
-  penalties zero. Keep the sibling's struct type too — `GlyphUvwh::h` at offset
-  3 is the `lbu 0x3($v1)` the target wants, and `sizeof(GlyphUvwh)` is the `sll
+  penalties zero. Keep the sibling's struct type too — `TextGlyphCell::height` at offset
+  3 is the `lbu 0x3($v1)` the target wants, and `sizeof(TextGlyphCell)` is the `sll
   $v0,$v0,2` in front of it.
 - **A cross-family twin never blocks promotion, and is never served by it.**
   `promote` is family-scoped (`src/<family>/lib/` plus that family's manifest),
@@ -143344,8 +143344,8 @@ gfxMakeRelativeTransform(&gGfxViewCoord.workm, &root[part].workm, &m);
 ## Caption line-height walks: `s16` locals re-read the glyph byte, and a global base shifts a priority tie (func_actor_215100_8014BDFC, 2026-09-26)
 
 **Symptom.** The caption "top Y" walk (`total` of line heights, each the tallest
-glyph's `h + 2`) was held by a `volatile` glyph pointer, two register pins and a
-`TOUCH_REG`. The target loads `glyph->h` twice (compare, then assign) and keeps
+glyph's `height + 2`) was held by a `volatile` glyph pointer, two register pins and a
+`TOUCH_REG`. The target loads `glyph->height` twice (compare, then assign) and keeps
 `-1` in the loop's exit test while hoisting `-2`/`-3`.
 
 **Both come from the counters' type.** With `s16 lineH` the compare is

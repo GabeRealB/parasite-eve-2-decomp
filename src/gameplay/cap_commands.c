@@ -58,7 +58,7 @@ TaskDesc D_8010FB4C[3] = {
     { { { TASK_DESC_END, 0 } }, NULL, { NULL } },
 };
 
-GlyphUvwh D_8010FB70[4] = {
+TextGlyphCell D_8010FB70[4] = {
     { 16, 96, 16, 16 },
     { 32, 96, 16, 16 },
     { 16, 112, 16, 16 },

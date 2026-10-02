@@ -175,30 +175,30 @@ static s32 CapCaption_SelectScript(s16 arg0, s16 arg1, s32 arg2)
 
 static s32 CapCaption_DrawText(u16* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    u16*       text;
-    u16*       body;
-    s32        title;
-    s16        sc;
-    u32        shifted;
-    s32        titleWidth;
-    s16        lineIdx;
-    s16        x;
-    s32        y;
-    s16        i;
-    u16        code;
-    s16        centered;
-    s32        palette;
-    s16        t;
-    s16        t2;
-    s16        glyphY;
-    s32        top;
-    POLY_G4*   bg;
-    POLY_G4*   bg2;
-    DR_MODE*   dm;
-    POLY_FT4*  ft;
-    POLY_GT4*  gt;
-    POLY_GT4*  gt2;
-    GlyphUvwh* icon;
+    u16*           text;
+    u16*           body;
+    s32            title;
+    s16            sc;
+    u32            shifted;
+    s32            titleWidth;
+    s16            lineIdx;
+    s16            x;
+    s32            y;
+    s16            i;
+    u16            code;
+    s16            centered;
+    s32            palette;
+    s16            t;
+    s16            t2;
+    s16            glyphY;
+    s32            top;
+    POLY_G4*       bg;
+    POLY_G4*       bg2;
+    DR_MODE*       dm;
+    POLY_FT4*      ft;
+    POLY_GT4*      gt;
+    POLY_GT4*      gt2;
+    TextGlyphCell* icon;
 
     lineIdx = 0;
     title   = arg3;
@@ -242,23 +242,23 @@ static s32 CapCaption_DrawText(u16* arg0, s32 arg1, s32 arg2, s32 arg3)
         title      = title - 1;
         top        = ((u16)CapCaption_Data_8015E660 - 0x77) - (u16)CapCaption_Data_8015E664;
         ft->x0     = (u16)CapCaption_Data_8015E65C - 0xA7;
-        ft->y0     = (top - gDisplayState.vramYOffset) - CapCaption_Data_8015E654[title & 0xFF].h;
-        titleWidth = CapCaption_Data_8015E654[title & 0xFF].w - 0xA7;
+        ft->y0     = (top - gDisplayState.vramYOffset) - CapCaption_Data_8015E654[title & 0xFF].height;
+        titleWidth = CapCaption_Data_8015E654[title & 0xFF].width - 0xA7;
         ft->x1     = (u16)CapCaption_Data_8015E65C + titleWidth;
-        ft->y1     = (top - gDisplayState.vramYOffset) - CapCaption_Data_8015E654[title & 0xFF].h;
+        ft->y1     = (top - gDisplayState.vramYOffset) - CapCaption_Data_8015E654[title & 0xFF].height;
         ft->x2     = (u16)CapCaption_Data_8015E65C - 0xA7;
         ft->y2     = top - gDisplayState.vramYOffset;
-        titleWidth = CapCaption_Data_8015E654[title & 0xFF].w - 0xA7;
+        titleWidth = CapCaption_Data_8015E654[title & 0xFF].width - 0xA7;
         ft->x3     = (u16)CapCaption_Data_8015E65C + titleWidth;
         ft->y3     = top - gDisplayState.vramYOffset;
         ft->u0     = CapCaption_Data_8015E654[title & 0xFF].u;
         ft->v0     = CapCaption_Data_8015E654[title & 0xFF].v;
-        ft->u1     = CapCaption_Data_8015E654[title & 0xFF].u + CapCaption_Data_8015E654[title & 0xFF].w;
+        ft->u1     = CapCaption_Data_8015E654[title & 0xFF].u + CapCaption_Data_8015E654[title & 0xFF].width;
         ft->v1     = CapCaption_Data_8015E654[title & 0xFF].v;
         ft->u2     = CapCaption_Data_8015E654[title & 0xFF].u;
-        ft->v2     = CapCaption_Data_8015E654[title & 0xFF].v + CapCaption_Data_8015E654[title & 0xFF].h;
-        ft->u3     = CapCaption_Data_8015E654[title & 0xFF].u + CapCaption_Data_8015E654[title & 0xFF].w;
-        ft->v3     = CapCaption_Data_8015E654[title & 0xFF].v + CapCaption_Data_8015E654[title & 0xFF].h;
+        ft->v2     = CapCaption_Data_8015E654[title & 0xFF].v + CapCaption_Data_8015E654[title & 0xFF].height;
+        ft->u3     = CapCaption_Data_8015E654[title & 0xFF].u + CapCaption_Data_8015E654[title & 0xFF].width;
+        ft->v3     = CapCaption_Data_8015E654[title & 0xFF].v + CapCaption_Data_8015E654[title & 0xFF].height;
         ft->clut   = 0x3D93;
         ft->tpage  = getTPage(0, 1, CapCaption_Data_801544EC, CapCaption_Data_801544EE);
         addPrim(&gGpuCurrentOt[2], ft);
@@ -300,23 +300,23 @@ static s32 CapCaption_DrawText(u16* arg0, s32 arg1, s32 arg2, s32 arg3)
             ft->tpage = 0x1E;
             t         = (y - gDisplayState.vramYOffset) + 1;
             ft->x0    = x;
-            ft->y0    = t - icon->h;
-            ft->x1    = x + icon->w;
-            ft->y1    = t - icon->h;
+            ft->y0    = t - icon->height;
+            ft->x1    = x + icon->width;
+            ft->y1    = t - icon->height;
             ft->x2    = x;
             ft->y2    = t;
-            ft->x3    = x + icon->w;
+            ft->x3    = x + icon->width;
             ft->y3    = t;
             ft->u0    = icon->u;
             ft->v0    = icon->v;
-            ft->u1    = icon->u + icon->w;
+            ft->u1    = icon->u + icon->width;
             ft->v1    = icon->v;
             ft->u2    = icon->u;
-            ft->v2    = icon->v + icon->h;
-            ft->u3    = icon->u + icon->w;
-            ft->v3    = icon->v + icon->h;
+            ft->v2    = icon->v + icon->height;
+            ft->u3    = icon->u + icon->width;
+            ft->v3    = icon->v + icon->height;
             addPrim(&gGpuCurrentOt[2], ft);
-            x += icon->w;
+            x += icon->width;
             i++;
             continue;
         } else {
@@ -336,28 +336,28 @@ static s32 CapCaption_DrawText(u16* arg0, s32 arg1, s32 arg2, s32 arg3)
             gt->clut  = palette | 0x3D50;
             gt->x0    = x;
             gt->tpage = getTPage(0, 1, CapCaption_Data_801544EC, CapCaption_Data_801544EE);
-            gt->y0    = glyphY - CapCaption_Data_8015E654[code & 0x3FF].h;
-            gt->x1    = x + CapCaption_Data_8015E654[code & 0x3FF].w;
-            gt->y1    = glyphY - CapCaption_Data_8015E654[code & 0x3FF].h;
+            gt->y0    = glyphY - CapCaption_Data_8015E654[code & 0x3FF].height;
+            gt->x1    = x + CapCaption_Data_8015E654[code & 0x3FF].width;
+            gt->y1    = glyphY - CapCaption_Data_8015E654[code & 0x3FF].height;
             gt->x2    = x;
             gt->y2    = glyphY;
-            gt->x3    = x + CapCaption_Data_8015E654[code & 0x3FF].w;
+            gt->x3    = x + CapCaption_Data_8015E654[code & 0x3FF].width;
             gt->y3    = glyphY;
             gt->u0    = CapCaption_Data_8015E654[code & 0x3FF].u;
             gt->v0    = CapCaption_Data_8015E654[code & 0x3FF].v;
-            gt->u1    = CapCaption_Data_8015E654[code & 0x3FF].u + CapCaption_Data_8015E654[code & 0x3FF].w;
+            gt->u1    = CapCaption_Data_8015E654[code & 0x3FF].u + CapCaption_Data_8015E654[code & 0x3FF].width;
             gt->v1    = CapCaption_Data_8015E654[code & 0x3FF].v;
             gt->u2    = CapCaption_Data_8015E654[code & 0x3FF].u;
-            gt->v2    = CapCaption_Data_8015E654[code & 0x3FF].v + CapCaption_Data_8015E654[code & 0x3FF].h;
-            gt->u3    = CapCaption_Data_8015E654[code & 0x3FF].u + CapCaption_Data_8015E654[code & 0x3FF].w;
-            gt->v3    = CapCaption_Data_8015E654[code & 0x3FF].v + CapCaption_Data_8015E654[code & 0x3FF].h;
+            gt->v2    = CapCaption_Data_8015E654[code & 0x3FF].v + CapCaption_Data_8015E654[code & 0x3FF].height;
+            gt->u3    = CapCaption_Data_8015E654[code & 0x3FF].u + CapCaption_Data_8015E654[code & 0x3FF].width;
+            gt->v3    = CapCaption_Data_8015E654[code & 0x3FF].v + CapCaption_Data_8015E654[code & 0x3FF].height;
             addPrim(&gGpuCurrentOt[2], gt);
             gt2            = gGpuPrimCursor;
             gGpuPrimCursor = gt2 + 1;
             *gt2           = *gt;
             gt2->tpage     = getTPage(0, GPU_BLEND_SUBTRACT, CapCaption_Data_801544EC, CapCaption_Data_801544EE);
             addPrim(&gGpuCurrentOt[2], gt2);
-            x = CapCaption_Data_8015E654[(s16)code].w + x - 1;
+            x = CapCaption_Data_8015E654[(s16)code].width + x - 1;
         }
         i++;
     }
@@ -365,7 +365,7 @@ static s32 CapCaption_DrawText(u16* arg0, s32 arg1, s32 arg2, s32 arg3)
 }
 
 /// Top Y of the caption block the text stream `arg0` holds: every line after
-/// the first `-2` adds its height (the tallest glyph's `h + 2`, or 2 when empty)
+/// the first `-2` adds its height (the tallest glyph's `height + 2`, or 2 when empty)
 /// and the total is subtracted from `CapCaption_Data_8015E660`. Gameplay's
 /// `Gp_CapTextTopY` is the same walk against a fixed 0xD0.
 static s16 CapCaption_TextTopY(u16* arg0)
@@ -390,8 +390,8 @@ static s16 CapCaption_TextTopY(u16* arg0)
             lineH = 0;
         } else if (code != -3) {
             if (code >= 0) {
-                if (lineH < CapCaption_Data_8015E654[code & 0x3FF].h + 2) {
-                    lineH = CapCaption_Data_8015E654[code & 0x3FF].h + 2;
+                if (lineH < CapCaption_Data_8015E654[code & 0x3FF].height + 2) {
+                    lineH = CapCaption_Data_8015E654[code & 0x3FF].height + 2;
                 }
             }
         }
@@ -450,7 +450,7 @@ static void CapCaption_DrawCaret(void)
 /// only the glyph table symbol differing — `-2` closes a line and keeps the
 /// running maximum, `-3` and `0x8400`-masked codes indent it by 3 and 0x10, and
 /// each glyph code (non-negative, `& 0x3FF` indexing `CapCaption_Data_8015E654`)
-/// advances it by that glyph's `w - 1`.
+/// advances it by that glyph's `width - 1`.
 static s16 CapCaption_CenterX(u16* arg0)
 {
     s16 lineW;
@@ -476,7 +476,7 @@ static s16 CapCaption_CenterX(u16* arg0)
             lineW += 0x10;
             code   = arg0[++i];
         } else if (code >= 0) {
-            lineW += CapCaption_Data_8015E654[code & 0x3FF].w - 1;
+            lineW += CapCaption_Data_8015E654[code & 0x3FF].width - 1;
             code   = arg0[++i];
         } else {
             code = arg0[++i];
@@ -519,7 +519,7 @@ static s16 CapCaption_CenterLineX(u16* arg0, s32 arg1)
             lineW += 0x10;
             code   = arg0[++i];
         } else if (code >= 0) {
-            lineW += CapCaption_Data_8015E654[code & 0x3FF].w - 1;
+            lineW += CapCaption_Data_8015E654[code & 0x3FF].width - 1;
             code   = arg0[++i];
         } else {
             code = arg0[++i];
@@ -529,7 +529,7 @@ static s16 CapCaption_CenterLineX(u16* arg0, s32 arg1)
 }
 
 /// Total height of the caption block the text stream `arg0` holds: every `-2`
-/// line break adds the line's height (the tallest glyph's `h + 2`, or 2 when
+/// line break adds the line's height (the tallest glyph's `height + 2`, or 2 when
 /// the line is empty). Gameplay's `Gp_CapTextHeight` is the same walk plus a
 /// final `2 -> 0` clamp.
 static s16 CapCaption_TextHeight(u16* arg0)
@@ -548,8 +548,8 @@ static s16 CapCaption_TextHeight(u16* arg0)
             lineH  = 0;
         } else if (code != -3) {
             if (code >= 0) {
-                if (lineH < CapCaption_Data_8015E654[code & 0x3FF].h + 2) {
-                    lineH = CapCaption_Data_8015E654[code & 0x3FF].h + 2;
+                if (lineH < CapCaption_Data_8015E654[code & 0x3FF].height + 2) {
+                    lineH = CapCaption_Data_8015E654[code & 0x3FF].height + 2;
                 }
             }
         }
@@ -564,7 +564,7 @@ static s16 CapCaption_TextHeight(u16* arg0)
 /// with only the glyph table symbol differing.
 ///
 /// The running maximum starts at 0 and each glyph code (non-negative, `& 0x3FF`
-/// indexing `CapCaption_Data_8015E654`) raises it to that glyph's `h + 2`. Either
+/// indexing `CapCaption_Data_8015E654`) raises it to that glyph's `height + 2`. Either
 /// terminator ends the scan: `-2` leaves the maximum as it stands, `-1` forces
 /// 0xD, and any other negative code is stepped over like a glyph without
 /// touching the maximum. A maximum still at 0 — the stream opened with `-2` —
@@ -583,8 +583,8 @@ static s32 CapCaption_LineHeight(u16* arg0)
             cont   = 0;
             height = 0xD;
         } else if (code >= 0) {
-            if (height < CapCaption_Data_8015E654[code & 0x3FF].h + 2) {
-                height = CapCaption_Data_8015E654[code & 0x3FF].h + 2;
+            if (height < CapCaption_Data_8015E654[code & 0x3FF].height + 2) {
+                height = CapCaption_Data_8015E654[code & 0x3FF].height + 2;
             }
             code = arg0[++i];
         } else {

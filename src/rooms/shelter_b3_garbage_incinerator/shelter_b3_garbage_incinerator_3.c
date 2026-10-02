@@ -1859,7 +1859,7 @@ Task* D_shelter_b3_garbage_incinerator_8018FC3C = NULL;
 
 GpCapEntry* CapCaption_Data_8015E650 = NULL;
 
-GlyphUvwh* CapCaption_Data_8015E654 = NULL;
+TextGlyphCell* CapCaption_Data_8015E654 = NULL;
 
 GpEvt12* CapCaption_Data_8015E658 = NULL;
 

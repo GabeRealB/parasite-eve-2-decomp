@@ -102,7 +102,7 @@ extern s16 D_80115678;
 
 extern s16 D_8011567A;
 
-extern GlyphUvwh* Gp_CapGlyphs;
+extern TextGlyphCell* Gp_CapGlyphs;
 
 s32 Gp_RelocCapFile(GpCapFileAddress base);
 

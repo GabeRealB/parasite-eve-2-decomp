@@ -22,7 +22,7 @@ Everything below is read off the matched interpreter in
 ```
 0x00  char magic[4]    "CAP2" on disc; strncmp checks 3 bytes only
 0x04  s32  field_4     unread by the loader
-0x08  s32  → glyph table   published as Gp_CapGlyphs (GlyphUvwh*)
+0x08  s32  → glyph table   published as Gp_CapGlyphs (TextGlyphCell*)
 0x0C  s32  → event table   GpCapEvtTable*
 0x10  s32  → pointer table GpCapPtrTable*
 ```
@@ -46,7 +46,7 @@ walks both tables:
 Then:
 
 ```c
-Gp_CapGlyphs = (GlyphUvwh*)file->field_8;
+Gp_CapGlyphs = base.file->field_8.ptr;
 Gp_CapCmds   = (s32*)((GpCapPtrTable*)file->field_10 + 1);
 ```
 
@@ -192,12 +192,18 @@ its own event run.
 Run termination confirmed: within the first run the fourth record has
 `field_8 == -1`.
 
-**Text is glyph indices, not a character encoding.** Over `+0x14 .. +0xB30`:
-1422 `u16` values, only **107 distinct**, 1241 of them below `0x100`, most
-frequent `0x001B` (165x), then `0x0021` (104x), `0x0023` (80x). A dense small
-alphabet with a skewed frequency profile — indices into the glyph table at
-`field_8` (`Gp_CapGlyphs`), not ASCII or Shift-JIS. 108 values are `>= 0x8000`
-and are presumably control codes; `0xFFFE` / `0xFFFF` appear as terminators.
+**Glyph cells and text codes are separate records.** `field_8.ptr` points to
+four-byte `TextGlyphCell` entries: unsigned texture U, texture V, width and
+height. CAP quads use the extents as both screen-space and texture-space corner
+deltas; ordinary text advances by `width - 1`, and line height uses `height + 2`.
+Title labels index the same table; inline icons use the separate four-cell
+`D_8010FB70` table. Texture-page and palette selection are outside the cell.
+
+The `+0x14 .. +0xB30` region includes the glyph table and text referenced by
+events. Interpreting that entire region as halfwords yields 1422 `u16` values,
+107 distinct, 1241 below `0x100`, and 108 at least `0x8000`; those measurements
+mix cell bytes with text and do not establish a character encoding. Rendering
+uses a text code's low ten bits as its glyph-cell index after handling controls.
 
 ## 7. What is still open
 
