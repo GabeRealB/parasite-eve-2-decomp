@@ -173,12 +173,12 @@ TaskDesc D_shelter_b4_water_supply_8018263C[1] = {
 
 ShelterB4WaterSupplySurface D_shelter_b4_water_supply_80182648[2] = {
     { 9100, -0x364C, 1800, 0x2EE0, 0 },
-    { 0, 0, 0, 0, -1 },
+    { 0, 0, 0, 0, WATER_SURFACE_LIST_END },
 };
 
 ShelterB4WaterSupplySurface D_shelter_b4_water_supply_8018265C[2] = {
     { 4400, -1900, 8150, 1800, 0 },
-    { 0, 0, 0, 0, -1 },
+    { 0, 0, 0, 0, WATER_SURFACE_LIST_END },
 };
 
 SVECTOR D_shelter_b4_water_supply_80182670[2] = {
@@ -1057,7 +1057,7 @@ static void func_shelter_b4_water_supply_8017E5D8(Task* task)
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     w->y = D_shelter_b4_water_supply_80182638;
-    for (; e->count != -1; e++) {
+    for (; e->count != WATER_SURFACE_LIST_END; e++) {
         w->dx = e->width / 16;
         w->dz = e->depth / 2;
         w->x  = e->x;

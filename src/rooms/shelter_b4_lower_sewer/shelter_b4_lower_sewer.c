@@ -29,6 +29,8 @@
 
 #include "mapui/map_shelter.h"
 
+#include "rooms/room.h"
+
 /// One water surface: its near edge starts at (`x`, `z`) and runs `step` along
 /// X; its far edge sits `dz` further along Z. A surface whose `end` is -1
 /// terminates the list.
@@ -81,12 +83,12 @@ TaskDesc D_shelter_b4_lower_sewer_80181E70[1] = {
 
 _Surface D_shelter_b4_lower_sewer_80181E7C[2] = {
     { -0x28A0, 0, 0x5B68, 2900, 0 },
-    { 0, 0, 0, 0, -1 },
+    { 0, 0, 0, 0, WATER_SURFACE_LIST_END },
 };
 
 _Surface D_shelter_b4_lower_sewer_80181E90[2] = {
     { -0x32C8, 0, 3600, 1450, 0 },
-    { 0, 0, 0, 0, -1 },
+    { 0, 0, 0, 0, WATER_SURFACE_LIST_END },
 };
 
 static void func_shelter_b4_lower_sewer_8017D664(Task* task);
@@ -192,7 +194,7 @@ static void func_shelter_b4_lower_sewer_8017D72C(Task* task)
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     ((_SurfaceScratch*)(head - 0xC))->y = D_shelter_b4_lower_sewer_80181E6C;
-    for (; e->end != -1; e++) {
+    for (; e->end != WATER_SURFACE_LIST_END; e++) {
         s->step = e->step / 32;
         s->dz   = e->dz / 2;
         s->x    = e->x;
@@ -326,7 +328,7 @@ static void func_shelter_b4_lower_sewer_8017DE8C(Task* task)
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     ((_SurfaceScratch*)(head - 0xC))->y = D_shelter_b4_lower_sewer_80181E6C;
-    for (; e->end != -1; e++) {
+    for (; e->end != WATER_SURFACE_LIST_END; e++) {
         s->step = e->step / 8;
         s->dz   = e->dz;
         s->x    = e->x;

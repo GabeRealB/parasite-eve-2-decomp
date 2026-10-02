@@ -189,7 +189,7 @@ ShelterB4UpperSewerSurface D_shelter_b4_upper_sewer_80186454[5] = {
     { -900, 3100, 2800, 4800, 32, 1 },
     { -900, -5900, 1800, 9000, 32, 1 },
     { 900, -5900, 3000, 3800, 32, 1 },
-    { 0, 0, 0, 0, -1, 0 },
+    { 0, 0, 0, 0, WATER_SURFACE_LIST_END, 0 },
 };
 
 SVECTOR D_shelter_b4_upper_sewer_80186490[4] = {
@@ -1050,7 +1050,7 @@ static void func_shelter_b4_upper_sewer_8017DD98(Task* task, ShelterB4UpperSewer
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     w->y = y;
-    for (; e->count != -1; e++) {
+    for (; e->count != WATER_SURFACE_LIST_END; e++) {
         if (e->alongZ == 0) {
             w->dx = e->width / e->count;
             w->dz = e->depth;

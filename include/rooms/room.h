@@ -165,7 +165,13 @@ typedef struct RoomWaterScratch {
 } RoomWaterScratch;
 STATIC_ASSERT_SIZEOF(RoomWaterScratch, 0xC);
 
-/// Marker in `RoomWaterSurface::segmentCount` that terminates a surface list.
+/// End marker in a water-surface descriptor table's signed count or list-marker field.
+///
+/// Each table must include a final descriptor with this value within its bounds.
+/// Walkers stop before reading that descriptor's geometry or using its count
+/// for subdivision. The marker fits both the 32-bit `RoomWaterSurface::segmentCount`
+/// and the signed 16-bit marker used by alternate surface formats. Fixed strip
+/// drawers accept a count of 0 for drawable entries.
 enum { WATER_SURFACE_LIST_END = -1 };
 
 /// A rectangular water patch in world coordinates, with height supplied by its drawer.
