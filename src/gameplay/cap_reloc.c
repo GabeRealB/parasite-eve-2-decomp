@@ -81,13 +81,13 @@ s32 Gp_RelocCapFile(GpCapFileAddress base)
     }
 
     i = 0;
-    if (base.file->field_8.offset > 0) {
-        base.file->field_8.offset  += base.address;
-        base.file->field_C.offset  += base.address;
-        base.file->field_10.offset += base.address;
-        evts                        = base.file->field_C.ptr;
-        rec                         = evts->records;
-        count                       = evts->count;
+    if (base.file->glyphs.offset > 0) {
+        base.file->glyphs.offset    += base.address;
+        base.file->sequences.offset += base.address;
+        base.file->commands.offset  += base.address;
+        evts                         = base.file->sequences.table;
+        rec                          = evts->records;
+        count                        = evts->count;
         if (count > 0) {
             flag = CAP_TEXT_REF_END;
             do {
@@ -100,7 +100,7 @@ s32 Gp_RelocCapFile(GpCapFileAddress base)
                 rec++;
             } while (i < count);
         }
-        ptrs  = base.file->field_10.ptr;
+        ptrs  = base.file->commands.table;
         i     = 0;
         count = ptrs->count;
         ptr   = ptrs->entries;
@@ -115,7 +115,7 @@ s32 Gp_RelocCapFile(GpCapFileAddress base)
         }
     }
 
-    Gp_CapGlyphs = base.file->field_8.ptr;
-    Gp_CapCmds   = (base.file->field_10.ptr)->entries;
+    Gp_CapGlyphs = base.file->glyphs.cells;
+    Gp_CapCmds   = (base.file->commands.table)->entries;
     return 1;
 }

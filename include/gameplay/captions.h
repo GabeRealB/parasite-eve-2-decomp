@@ -86,7 +86,7 @@ void Gp_EndWaitTask(Task* task);
 
 void func_800E70AC(Task* task);
 
-extern GpCapFile* Gp_CapFile;
+extern CapFile* Gp_CapFile;
 
 extern u8 D_80115690;
 

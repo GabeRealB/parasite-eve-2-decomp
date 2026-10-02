@@ -29,7 +29,7 @@
 /* Define BSS before API headers to preserve first-declaration order. */
 u8 D_80115688;
 
-GpCapFile* Gp_CapFile;
+CapFile* Gp_CapFile;
 
 u8 D_80115690;
 

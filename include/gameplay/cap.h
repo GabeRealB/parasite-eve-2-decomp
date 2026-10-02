@@ -92,8 +92,8 @@ typedef struct {
 } CapSequenceRecord;
 STATIC_ASSERT_SIZEOF(CapSequenceRecord, 0xC);
 
-/// 0x10-byte header in front of a `CapSequenceRecord` array inside a `GpCapFile`
-/// (`field_C`). `count` is the first halfword; the records start at
+/// 0x10-byte header in front of a `CapSequenceRecord` array inside a `CapFile`
+/// (`sequences`). `count` is the first halfword; the records start at
 /// `records`. `Gp_RelocCapFile` relocates each record's `textRef.offset` unless
 /// it is `-1`, in which case it also skips the next record.
 typedef struct _GpCapEvtTable {
@@ -168,36 +168,39 @@ typedef struct _GpCapPtrTable {
 } GpCapPtrTable;
 STATIC_ASSERT_SIZEOF(GpCapPtrTable, 4);
 
-/// In-memory CAP dialogue file (`strncmp` magic `"CAP"`). Offsets at
-/// `field_8` / `field_C` / `field_10` are file-relative until
-/// `Gp_RelocCapFile` adds the file base. The signed glyph offset is positive
-/// before relocation; a relocated PS1 KSEG0 pointer has its high bit set. After that, `field_8` is a
-/// `TextGlyphCell*` published as `Gp_CapGlyphs`, `field_C` is a
-/// `GpCapEvtTable*`, and `field_10` is a `GpCapPtrTable*` whose
-/// entries (nonzero) address command headers followed by `CapSequenceRecord` values.
-typedef struct _GpCapFile {
-    /* 0x00 */ char magic[4];
-    /* 0x04 */ s32  field_4;
-    /* 0x08 */ union {
-        s32            offset;
-        TextGlyphCell* ptr;
-    } field_8;
-    /* 0x0C */ union {
-        s32            offset;
-        GpCapEvtTable* ptr;
-    } field_C;
-    /* 0x10 */ union {
-        s32            offset;
-        GpCapPtrTable* ptr;
-    } field_10;
-} GpCapFile;
-STATIC_ASSERT_SIZEOF(GpCapFile, 0x14);
+/// Loaded CAP dialogue file.
+///
+/// Retail payloads begin with the four bytes "CAP2". Loaders compare only the
+/// first three, so any magic starting with "CAP" is accepted. `glyphs`,
+/// `sequences` and `commands` are file-relative byte offsets until relocation
+/// adds the file base; afterwards they borrow tables stored in this file.
+/// The file must remain loaded while those pointers are used. Relocation of
+/// all three runs only while `glyphs.offset` is still positive: a relocated
+/// KSEG0 address is negative in that signed word. Retail payloads place the
+/// glyph table at the first byte after this header.
+typedef struct {
+    char magic[4];             // On-disc "CAP2". Loaders compare the first three bytes with "CAP".
+    s32  field_4;              // Constant 8 in every retail payload. No loader reads it; role unproven.
+    union {
+        s32            offset; // File-relative byte offset of the glyph cells.
+        TextGlyphCell* cells;  // Relocated cells borrowed for drawing and measurement.
+    } glyphs;
+    union {
+        s32            offset; // File-relative byte offset of the sequence-record table.
+        GpCapEvtTable* table;  // Relocated sequence records. The count precedes the array.
+    } sequences;
+    union {
+        s32            offset; // File-relative byte offset of the command-reference index.
+        GpCapPtrTable* table;  // Relocated command references. A zero entry names no sequence.
+    } commands;
+} CapFile;
+STATIC_ASSERT_SIZEOF(CapFile, 0x14);
 
 /// CAP relocation runs in the PS1's 32-bit address space. Keep the base's
 /// numeric address explicit while adding it to serialized offset words.
 typedef union {
-    GpCapFile* file;
-    u32        address;
+    CapFile* file;
+    u32      address;
 } GpCapFileAddress __attribute__((transparent_union));
 STATIC_ASSERT_SIZEOF(GpCapFileAddress, 4);
 

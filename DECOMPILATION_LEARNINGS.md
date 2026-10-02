@@ -29915,13 +29915,13 @@ takes `$a3` and shifts the loop index / count / terminator out of
 ```c
 /* BAD — extra `move a3, s0`, index in $a1 */
 base = (s32)file;
-file->field_8 += base;
+file->glyphs.offset += base;
 
 /* GOOD — `addu v1, v1, s0` */
-file->field_8 += (s32)file;
+file->glyphs.offset += (s32)file;
 ```
 
-Zero the loop index before `if (file->field_8 > 0)` so it sinks into
+Zero the loop index before `if (file->glyphs.offset > 0)` so it sinks into
 that `blez` delay slot as `move a0, zero`. A terminator compare of
 `-1` should be a hoisted local (`flag = -1`) so it lives in `$a2`.
 `Gp_RelocCapFile` is the example.

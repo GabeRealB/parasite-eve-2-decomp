@@ -109,13 +109,13 @@ static s32 CapCaption_Relocate(GpCapFileAddress base)
     }
 
     i = 0;
-    if (base.file->field_8.offset > 0) {
-        base.file->field_8.offset  += base.address;
-        base.file->field_C.offset  += base.address;
-        base.file->field_10.offset += base.address;
-        evts                        = base.file->field_C.ptr;
-        rec                         = evts->records;
-        count                       = evts->count;
+    if (base.file->glyphs.offset > 0) {
+        base.file->glyphs.offset    += base.address;
+        base.file->sequences.offset += base.address;
+        base.file->commands.offset  += base.address;
+        evts                         = base.file->sequences.table;
+        rec                          = evts->records;
+        count                        = evts->count;
         if (count > 0) {
             flag = CAP_TEXT_REF_END;
             do {
@@ -128,7 +128,7 @@ static s32 CapCaption_Relocate(GpCapFileAddress base)
                 rec++;
             } while (i < count);
         }
-        ptrs  = base.file->field_10.ptr;
+        ptrs  = base.file->commands.table;
         i     = 0;
         count = ptrs->count;
         ptr   = ptrs->entries;
@@ -143,8 +143,8 @@ static s32 CapCaption_Relocate(GpCapFileAddress base)
         }
     }
 
-    CapCaption_Data_8015E654 = base.file->field_8.ptr;
-    CapCaption_Data_8015E650 = (base.file->field_10.ptr)->entries;
+    CapCaption_Data_8015E654 = base.file->glyphs.cells;
+    CapCaption_Data_8015E650 = (base.file->commands.table)->entries;
     return 1;
 }
 

@@ -18,30 +18,32 @@ Everything below is read off the matched interpreter in
 
 ---
 
-## 1. File header — `GpCapFile` (0x14)
+## 1. File header — `CapFile` (0x14)
 
 ```
-0x00  char magic[4]    "CAP2" on disc; strncmp checks 3 bytes only
-0x04  s32  field_4     unread by the loader
-0x08  s32  → glyph table   published as Gp_CapGlyphs (TextGlyphCell*)
-0x0C  s32  → event table   GpCapEvtTable*
-0x10  s32  → pointer table GpCapPtrTable*
+0x00  char magic[4]      "CAP2" on disc; loaders compare 3 bytes
+0x04  s32  field_4       constant 8 in every retail payload; unread; role unproven
+0x08  glyphs.offset      file-relative glyph-cell offset; TextGlyphCell* cells after relocation
+0x0C  sequences.offset   file-relative sequence-table offset; GpCapEvtTable* table after relocation
+0x10  commands.offset    file-relative command-index offset; GpCapPtrTable* table after relocation
 ```
 
 The three offsets are **file-relative on disc** and rebased in place by
 `Gp_RelocCapFile`, which is also the format validator: wrong magic returns 0,
-and nothing is relocated when `field_8 <= 0`.
+and nothing is relocated when `glyphs.offset <= 0`. A relocated KSEG0 pointer
+is negative as a signed word, so the same test also refuses a second pass.
+Retail payloads store glyph offset `0x14`, the first byte after this header.
 
 ## 2. Relocation
 
-`Gp_RelocCapFile` adds the file base to `field_8` / `field_C` / `field_10`, then
-walks both tables:
+`Gp_RelocCapFile` adds the file base to `glyphs.offset`, `sequences.offset`
+and `commands.offset`, then walks both tables:
 
-- **Event table** — `GpCapEvtTable { s32 count; }` followed by `count`
-  `CapSequenceRecord` records. Each record's `textRef.offset` is rebased **unless it is
-  `CAP_TEXT_REF_END` (`-1`)**,
-  in which case the walk skips an extra record. `-1` is the terminator sentinel,
-  so a terminator consumes a slot without owning text.
+- **Event table** — `GpCapEvtTable`, whose `s16 count` is the walk limit,
+  followed by `CapSequenceRecord` records. Each record's `textRef.offset` is
+  rebased **unless it is `CAP_TEXT_REF_END` (`-1`)**, in which case the walk
+  skips an extra record. `-1` is the terminator sentinel, so a terminator
+  consumes a slot without owning text.
 - **Pointer table** — `GpCapPtrTable { s32 count; }` followed by `count`
   `CapCommandRef` words. Every nonzero word is a file-relative offset and is
   rebased; zero stays null.
@@ -49,8 +51,8 @@ walks both tables:
 Then:
 
 ```c
-Gp_CapGlyphs = base.file->field_8.ptr;
-Gp_CapCmds   = base.file->field_10.ptr->entries;
+Gp_CapGlyphs = base.file->glyphs.cells;
+Gp_CapCmds   = base.file->commands.table->entries;
 ```
 
 So **the pointer table is the command index**. `Gp_CapCmds[i].command` is the
@@ -242,7 +244,7 @@ sequence's command header.
 Run termination confirmed: within the first run the fourth record has
 `textRef.offset == CAP_TEXT_REF_END`.
 
-**Glyph cells and text codes are separate records.** `field_8.ptr` points to
+**Glyph cells and text codes are separate records.** `glyphs.cells` points to
 four-byte `TextGlyphCell` entries: unsigned texture U, texture V, width and
 height. CAP quads use the extents as both screen-space and texture-space corner
 deltas; ordinary text advances by `width - 1`, and line height uses `height + 2`.
@@ -262,16 +264,14 @@ uses a text code's low ten bits as its glyph-cell index after handling controls.
   mapping is not alphabetical by inspection (`0x21` as `A` does not produce
   words).
 - **Control codes.** The 108 values `>= 0x8000` are undecoded.
-- **The event-table count word does not parse as `s32`.** At `evt` the bytes
-  are `41 00 0C 00`. `Gp_RelocCapFile` reads that as `s32 count` = `0x000C0041`
-  = 786497, which would walk far past the file. Read as `{u16 count = 0x41;
-  u16 stride = 0x0C}` it is sensible: 65 records of 12 bytes. The interpreter
-  is matched, so the ROM really does load a word there. **Unresolved** - either
-  `GpCapEvtTable` is mistyped in `include/gameplay/cap.h`, or the relocation
-  path is not reached for these files, or the base used here is not the base
-  the loader uses. Do not build a packer on the current struct until this is
-  settled.
-- **`GpCapFile.field_4`** is `8` in this file and never read by the loader.
+- **`GpCapEvtTable` still hides bytes the loader does not read.** The matched
+  loader uses the `s16 count` as its walk limit. In the checked payload those
+  bytes are `41 00 0C 00`: count `0x41`, then `0x0C`. Every retail payload's
+  second halfword is 12, the sequence-record stride. The struct calls the
+  following bytes padding; several payloads store the first command there.
+  That layout belongs to `GpCapEvtTable`.
+- **`CapFile.field_4`** is `8` in all 213 retail CAP payloads. No loader reads
+  it, and the role is unproven.
 - **Message `0x13F0`** (opcode 3) - the payload contract with slot 7's task.
 - **What `mode` selects.** `Gp_StartCap` sets a text-box geometry
   (`0x30`, `0xC0`, `0x140`, `7`) but the per-mode differences are untraced.
