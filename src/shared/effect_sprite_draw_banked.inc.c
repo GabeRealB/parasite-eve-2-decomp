@@ -61,6 +61,10 @@ static void _effectSpriteDrawBanked(const GfxCoord* coord, u16 frameAndPalette, 
         EFFECT_SPRITE_BANKED_PALETTE_SHIFT     = 12,
         EFFECT_SPRITE_BANKED_PALETTE_ROW_COUNT = 2,
         EFFECT_SPRITE_BANKED_FIRST_PALETTE_ROW = 270,
+        /// Bit position of the VRAM palette row in a GPU CLUT selector.
+        ///
+        /// Bits 0..5 encode VRAM X in 16-word units; shifting Y by six
+        /// places the row above that column field, as in `getClut`.
         EFFECT_SPRITE_BANKED_CLUT_ROW_SHIFT    = 6,
         /// Selects the frame's six-bit VRAM X / 16 column in the GPU CLUT address.
         ///
