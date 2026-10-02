@@ -338,6 +338,49 @@ static inline void _modelLightingInitGt4Texture(POLY_GT4* quad, const u32* eleme
     quad->clut      += workspace->encodedClutOffset;
 }
 
+/// Seeds one per-corner-colour Gouraud quad's persistent texture data for the draw pass.
+///
+/// `quad` must address a writable, four-byte-aligned `POLY_GT4` packet.
+/// `elementWords` starts at a four-byte-aligned element payload, after an
+/// opcode `0x170` record's three-word header, with at least eleven readable
+/// u32 words. This minimum does not establish the full element stride. Words
+/// 0..3 pack four vertex and four normal byte offsets, and words 4..7 hold the
+/// corners' material RGB and command bytes; this helper reads neither. On the
+/// little-endian target, words 8 and 9 pack unsigned byte U/V texel coordinates in bits
+/// 0..15 and encoded CLUT/page settings in bits 16..31. Word 10 packs U2/V2
+/// in its low half and U3/V3 in its high half.
+///
+/// `workspace` supplies construction-time signed encoded-address displacements:
+/// `texturePageOffset` (-128..127) and `encodedClutOffset` (-8192..8128, 64 per
+/// palette row). Both sums wrap modulo 65536 in their u16 packet fields without
+/// changing U/V. The packet's tag, colours/command, screen positions and SDK
+/// pad fields are preserved for drawing. All three objects are borrowed for
+/// this call; no pointer is retained and the workspace is unchanged.
+static inline void _modelLightingInitGt4CornerColorsTexture(POLY_GT4* quad, const u32* elementWords,
+                                                            const TmdStreamWorkspace* workspace)
+{
+    // Word indices within the element, excluding the record header.
+    enum {
+        MODEL_LIGHTING_GT4_CORNER_COLORS_UV0_CLUT_WORD  = 8, // U0/V0 in low half, CLUT address in high half
+        MODEL_LIGHTING_GT4_CORNER_COLORS_UV1_TPAGE_WORD = 9, // U1/V1 in low half, texture-page settings in high half
+        MODEL_LIGHTING_GT4_CORNER_COLORS_UV2_UV3_WORD   = 10 // U2/V2 in low half, U3/V3 in high half
+    };
+
+    STATIC_ASSERT(OFFSET_OF(POLY_GT4, v2) == OFFSET_OF(POLY_GT4, u2) + sizeof(u8) &&
+                      OFFSET_OF(POLY_GT4, pad2) == OFFSET_OF(POLY_GT4, u2) + sizeof(u16) &&
+                      OFFSET_OF(POLY_GT4, v3) == OFFSET_OF(POLY_GT4, u3) + sizeof(u8) &&
+                      OFFSET_OF(POLY_GT4, pad3) == OFFSET_OF(POLY_GT4, u3) + sizeof(u16),
+                  model_lighting_gt4_corner_colors_uv_pair_layout);
+
+    MODEL_LIGHTING_UV0_CLUT_WORD(quad)  = elementWords[MODEL_LIGHTING_GT4_CORNER_COLORS_UV0_CLUT_WORD];
+    MODEL_LIGHTING_UV1_TPAGE_WORD(quad) = elementWords[MODEL_LIGHTING_GT4_CORNER_COLORS_UV1_TPAGE_WORD];
+    // Split the packed U/V pairs without overwriting the adjacent pad2/pad3.
+    *(u16*)&quad->u2 = (u16)elementWords[MODEL_LIGHTING_GT4_CORNER_COLORS_UV2_UV3_WORD];
+    *(u16*)&quad->u3 = (u16)(elementWords[MODEL_LIGHTING_GT4_CORNER_COLORS_UV2_UV3_WORD] >> 16);
+    quad->tpage     += workspace->texturePageOffset;
+    quad->clut      += workspace->encodedClutOffset;
+}
+
 /// Initializes the offset-layer texture of one layered Gouraud triangle.
 ///
 /// `triangle` must be a writable, four-byte-aligned `POLY_GT3` for the first
@@ -2370,25 +2413,19 @@ u32* gpStreamPrimGt4ElemColor(TmdStreamWorkspace* ws, s32 flags, u32* stream)
     return stream;
 }
 
-u32* gpStreamPrimGt4CornerColors(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+u32* tmdBuildStreamGt4CornerColors(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    POLY_GT4* poly;
+    POLY_GT4* quad;
 
-    poly = (POLY_GT4*)ws->primWrite;
-    if (ws->elemCount-- > 0) {
-        do {
-            MODEL_LIGHTING_UV0_CLUT_WORD(poly)  = stream[8];
-            MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[9];
-            *(u16*)&poly->u2                    = (u16)stream[10];
-            *(u16*)&poly->u3                    = ((u16*)&stream[10])[1];
-            poly->tpage                        += ws->texturePageOffset;
-            poly->clut                         += ws->encodedClutOffset;
-            poly++;
-            stream += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+    quad = (POLY_GT4*)workspace->primWrite;
+    // Seed texture data for the draw pass that lights each corner's material colour.
+    while (workspace->elemCount-- > 0) {
+        _modelLightingInitGt4CornerColorsTexture(quad, elements, workspace);
+        quad++;
+        elements += workspace->elemStride;
     }
-    ws->primWrite = (u8*)poly;
-    return stream;
+    workspace->primWrite = (u8*)quad;
+    return elements;
 }
 
 u32* tmdBuildStreamGt3OneNormal(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)

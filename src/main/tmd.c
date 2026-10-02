@@ -499,7 +499,7 @@ void tmdProcessStream(TmdObject* obj)
                 handler = gpStreamPrimGt4ElemColor;
                 break;
             case 0x170:
-                handler = gpStreamPrimGt4CornerColors;
+                handler = tmdBuildStreamGt4CornerColors;
                 break;
             case 0x156:
                 handler = gpStreamPrimGt4Unlit;

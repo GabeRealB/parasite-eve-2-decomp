@@ -133866,8 +133866,8 @@ Their offsets are what a construction handler's UV indices are measured against,
 since the colour words sit between the element's refs and its UV words. The
 `0x170` family is the worked example: `tmdDrawStreamPrimGt4CornerColors` loads four
 element words (`0x10`, `0x14`, `0x18`, `0x1C`) into `RGB`, one ahead of each
-corner's lighting step, and its construction handler `gpStreamPrimGt4CornerColors`
-reads the UV words at `stream[8]` where the families whose elements name no colour
+corner's lighting step, and its construction handler `tmdBuildStreamGt4CornerColors`
+reads the UV words at `elements[8]` where the families whose elements name no colour
 read them at `stream[3]` or `stream[4]`. The two arms agree, and so does the
 arithmetic — four ref words, then four colour words, then three UV words,
 which establishes an eleven-word minimum element extent.

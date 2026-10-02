@@ -766,7 +766,7 @@ u32* tmdDrawStreamPrimGt3CornerColors(TmdStreamWorkspace* workspace, s32 objectF
 /// a complete, word-aligned eight-byte vector in the borrowed `verts` or
 /// `normals` array. Words 4..7 supply the corners' material RGB and command
 /// bytes for independent NCCS lighting. Drawing reads these eight words; the
-/// complete element needs at least eleven because `gpStreamPrimGt4CornerColors`
+/// complete element needs at least eleven because `tmdBuildStreamGt4CornerColors`
 /// initializes the texture fields from words 8..10. Stream and geometry extents
 /// are caller obligations.
 ///
