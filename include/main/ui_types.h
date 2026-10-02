@@ -22,10 +22,16 @@ typedef union {
 } UiHalf;
 STATIC_ASSERT_SIZEOF(UiHalf, 2);
 
+/// A UI byte with signed and unsigned numeric views of the same eight bits.
+///
+/// List controls use these views for row counts and scroll indices, including
+/// negative intermediate scroll positions. Select a view before integer
+/// promotion; stores retain the low eight bits.
 typedef union {
-    u8 u;
-    s8 s;
+    u8 unsignedValue; // Numeric view in the range 0..255
+    s8 signedValue;   // Numeric view in the range -128..127
 } UiByte;
+STATIC_ASSERT_SIZEOF(UiByte, 1);
 
 /// Panel lifecycle indices used by the task dispatcher; storage remains s32.
 enum {

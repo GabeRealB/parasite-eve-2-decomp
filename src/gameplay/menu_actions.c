@@ -553,8 +553,8 @@ void func_800CF090(UiList* arg0, UiObject* arg1)
         }
         table++;
     }
-    arg0->field_4   = count;
-    arg0->field_5.u = 4;
+    arg0->field_4               = count;
+    arg0->field_5.unsignedValue = 4;
 }
 
 void func_800CF148(UiObject* arg0, Task* arg1)
@@ -1984,12 +1984,12 @@ void Gp_PeCommandMenuTask(Task* arg0)
     menu = &D_8010F5FC;
     obj  = arg0->spawnArg2.pointer;
     if (arg0->state == 0) {
-        table           = menu->funcs;
-        table[0]        = Gp_DrawReviveCmd;
-        table[1]        = Gp_DrawPeSlotCmd;
-        two             = 2;
-        menu->field_5.u = two;
-        menu->field_4   = two;
+        table                       = menu->funcs;
+        table[0]                    = Gp_DrawReviveCmd;
+        table[1]                    = Gp_DrawPeSlotCmd;
+        two                         = 2;
+        menu->field_5.unsignedValue = two;
+        menu->field_4               = two;
         if ((arg0->spawnArg1.value & 3) != 3) {
             Gp_SetPreviewItem(arg0->spawnArg1.value + 1, 0);
         }
@@ -2193,23 +2193,23 @@ void func_800D29B0(Task* arg0)
     menu         = &D_80114DF8[arg0->spawnArg1.value];
     Ui_DrawText(&(obj)->panel, D_8010F644[textIndex]);
     if (arg0->state == 0) {
-        menu->funcs     = D_8010F620;
-        menu->field_4   = 3;
-        menu->field_5.u = 3;
-        menu->field_6   = 0;
-        menu->field_7   = 0xF;
-        menu->field_8   = 0;
-        menu->field_9.u = 0;
+        menu->funcs                 = D_8010F620;
+        menu->field_4               = 3;
+        menu->field_5.unsignedValue = 3;
+        menu->field_6               = 0;
+        menu->field_7               = 0xF;
+        menu->field_8               = 0;
+        menu->field_9.unsignedValue = 0;
         Ui_LayoutListPanel(menu, &(obj)->panel);
         levels = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels[arg0->spawnArg1.value * 3];
         if (levels[2] != 0 || (levels[0] == 3 && levels[1] == levels[0])) {
-            menu->field_4 = menu->field_5.u = 3;
+            menu->field_4 = menu->field_5.unsignedValue = 3;
         } else {
-            menu->field_4 = menu->field_5.u = 2;
+            menu->field_4 = menu->field_5.unsignedValue = 2;
         }
-        menu->field_9.u = 0;
-        menu->field_10  = 0;
-        menu->field_A   = 1;
+        menu->field_9.unsignedValue = 0;
+        menu->field_10              = 0;
+        menu->field_A               = 1;
         if (arg0->spawnArg1.value & 1) {
             obj->panel.bounds.unsignedRect.y = obj->panel.bounds.unsignedRect.h - 0x50;
         }
@@ -2217,9 +2217,9 @@ void func_800D29B0(Task* arg0)
     }
     levels = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels[arg0->spawnArg1.value * 3];
     if (levels[2] != 0 || (levels[0] == 3 && levels[1] == levels[0])) {
-        menu->field_4 = menu->field_5.u = 3;
+        menu->field_4 = menu->field_5.unsignedValue = 3;
     } else {
-        menu->field_4 = menu->field_5.u = 2;
+        menu->field_4 = menu->field_5.unsignedValue = 2;
     }
     Ui_UpdateListNoAnim(menu, obj);
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {

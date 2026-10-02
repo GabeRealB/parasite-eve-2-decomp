@@ -273,8 +273,8 @@ void Gp_BuildItemCmdList(UiList* arg0, UiObject* arg1, s32 arg2, InventoryItemRo
             }
             break;
     }
-    arg0->field_4   = n;
-    arg0->field_5.u = n;
+    arg0->field_4               = n;
+    arg0->field_5.unsignedValue = n;
 }
 
 UiObjectDesc D_8010F02C[3] = {
@@ -1056,7 +1056,7 @@ void Gp_YesNoMenuTask(Task* arg0)
                 menu->field_4      = 2;
                 break;
         }
-        menu->field_5.u = menu->field_4;
+        menu->field_5.unsignedValue = menu->field_4;
         Ui_LayoutListPanel(menu, &(obj)->panel);
         obj->panel.bounds.unsignedRect.y -= (s16)obj->panel.bounds.unsignedRect.h / 2;
         if (arg0->spawnArg1.value & 0x10) {

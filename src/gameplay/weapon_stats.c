@@ -580,10 +580,10 @@ void Gp_AmmoListTask(Task* arg0)
             menu->field_17                   += 0x4C;
             obj->panel.bounds.unsignedRect.h += 0x4C;
         }
-        menu->field_A   = 1;
-        menu->field_10  = 0;
-        menu->field_9.u = 0;
-        arg0->state     = arg0->state + 1;
+        menu->field_A               = 1;
+        menu->field_10              = 0;
+        menu->field_9.unsignedValue = 0;
+        arg0->state                 = arg0->state + 1;
         if (menu->field_4 == 0) {
             arg0->state         = arg0->state + 1;
             arg0->killCountdown = 0xBC;
@@ -883,6 +883,6 @@ void Gp_BuildAttachList(UiList* arg0, s32 arg1)
         Gp_AttachListIds[count] = 0;
         n++;
     }
-    arg0->field_4   = n;
-    arg0->field_5.u = n;
+    arg0->field_4               = n;
+    arg0->field_5.unsignedValue = n;
 }

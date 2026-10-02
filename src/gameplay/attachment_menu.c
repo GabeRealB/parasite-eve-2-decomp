@@ -215,10 +215,10 @@ void Gp_AttachListTask(Task* task)
     if (state == 0) {
         Gp_BuildAttachList(menu, val);
         Ui_LayoutListPanel(menu, &(obj)->panel);
-        menu->field_A   = 1;
-        menu->field_10  = 0;
-        menu->field_9.u = 0;
-        task->state     = task->state + 1;
+        menu->field_A               = 1;
+        menu->field_10              = 0;
+        menu->field_9.unsignedValue = 0;
+        task->state                 = task->state + 1;
         if (menu->field_4 == 0) {
             task->state         = 2;
             task->killCountdown = 0xBC;
@@ -465,14 +465,14 @@ void Gp_SelectArmorMenuTask(Task* arg0)
 
     if (arg0->state == 0) {
         GP_COUNT_SPARE_ARMOR(count);
-        menu->field_4   = count;
-        menu->field_5.u = 4;
+        menu->field_4               = count;
+        menu->field_5.unsignedValue = 4;
         Ui_LayoutListPanel(menu, &(obj)->panel);
         menu->field_A                     = 1;
         menu->field_17                   += 0x4C;
         obj->panel.bounds.unsignedRect.h += 0x4C;
         menu->field_10                    = 0;
-        menu->field_9.u                   = 0;
+        menu->field_9.unsignedValue       = 0;
         parent                            = arg0->parent;
         Ui_SetState4(parent->spawnArg2.pointer, parent);
         Ui_SpawnFromDesc(&D_8010EC3C, 2, 0, 0x10, obj);

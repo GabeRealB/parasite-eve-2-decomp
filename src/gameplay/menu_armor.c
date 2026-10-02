@@ -322,8 +322,8 @@ static void Gp_CountEquippableRows(UiList* arg0, UiObject* arg1)
         }
         count++;
     }
-    arg0->field_4   = count + 1;
-    arg0->field_5.u = 4;
+    arg0->field_4               = count + 1;
+    arg0->field_5.unsignedValue = 4;
 }
 
 void Gp_EquipSelectMenuTask(Task* arg0)
@@ -346,7 +346,7 @@ void Gp_EquipSelectMenuTask(Task* arg0)
         obj->panel.bounds.unsignedRect.h += 0x4C;
         menu->field_A                     = 1;
         menu->field_10                    = 0;
-        menu->field_9.u                   = 0;
+        menu->field_9.unsignedValue       = 0;
         parent                            = arg0->parent;
         Ui_SetState4(parent->spawnArg2.pointer, parent);
         Ui_SpawnFromDesc(&D_8010EC3C, 3, val, 0x10, obj);

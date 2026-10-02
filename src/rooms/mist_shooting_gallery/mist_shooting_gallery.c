@@ -693,7 +693,7 @@ UiListItemFunc D_mist_shooting_gallery_80184F48[1] = {
     func_mist_shooting_gallery_8017DE7C,
 };
 
-UiList D_mist_shooting_gallery_80184F4C = { D_mist_shooting_gallery_80184F48, 1, { .u = 1 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
+UiList D_mist_shooting_gallery_80184F4C = { D_mist_shooting_gallery_80184F48, 1, { .unsignedValue = 1 }, 0, 15, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
 
 UiObjectDesc D_mist_shooting_gallery_80184F70 = { 2, 0xFFF8, 0, 144, 64, 32, 0, 0, 192, func_mist_shooting_gallery_8017E090, 0 };
 
@@ -723,7 +723,7 @@ UiListItemFunc D_mist_shooting_gallery_80185038[1] = {
     func_mist_shooting_gallery_8017F98C,
 };
 
-UiList D_mist_shooting_gallery_8018503C = { D_mist_shooting_gallery_80185038, 4, { .u = 4 }, 1, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
+UiList D_mist_shooting_gallery_8018503C = { D_mist_shooting_gallery_80185038, 4, { .unsignedValue = 4 }, 1, 15, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
 
 UiObjectDesc D_mist_shooting_gallery_80185060 = { 2, 0xFF70, 0xFFA0, 176, 64, 32, 0, 0, 192, func_mist_shooting_gallery_8017EAE0, 0 };
 
@@ -862,7 +862,7 @@ UiListItemFunc D_mist_shooting_gallery_80185334[1] = {
     jukeboxDrawRow,
 };
 
-UiList D_mist_shooting_gallery_80185338 = { D_mist_shooting_gallery_80185334, 1, { .u = 1 }, 0, 17, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
+UiList D_mist_shooting_gallery_80185338 = { D_mist_shooting_gallery_80185334, 1, { .unsignedValue = 1 }, 0, 17, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
 
 UiObjectDesc gJukeboxPanelDesc = { 2, 0xFF90, 0xFFC0, 224, 128, 48, 0, 0, 192, func_mist_shooting_gallery_80180728, 0 };
 
@@ -1106,12 +1106,12 @@ void func_mist_shooting_gallery_8017E090(Task* task)
 
         list->field_4 = count;
         if ((u8)count >= 0xB) {
-            list->field_5.u = 0xA;
+            list->field_5.unsignedValue = 0xA;
         } else {
-            list->field_5.u = count;
+            list->field_5.unsignedValue = count;
         }
-        list->field_10  = 0;
-        list->field_9.u = 0;
+        list->field_10              = 0;
+        list->field_9.unsignedValue = 0;
         Ui_LayoutListPanel(list, &(obj)->panel);
         list->field_A = 1;
         Ui_SetListScrollFlag(list, 1);
@@ -1430,18 +1430,18 @@ void func_mist_shooting_gallery_8017EAE0(Task* task)
     Ui_DrawText(&(obj)->panel, "SELECT");
     if (task->state == 0) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.replayRank == 0) {
-            list->field_4   = 2;
-            list->field_5.u = 2;
+            list->field_4               = 2;
+            list->field_5.unsignedValue = 2;
         } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.replayRank < 2) {
-            list->field_4   = 3;
-            list->field_5.u = 3;
+            list->field_4               = 3;
+            list->field_5.unsignedValue = 3;
         } else {
-            list->field_4   = 4;
-            list->field_5.u = 4;
+            list->field_4               = 4;
+            list->field_5.unsignedValue = 4;
         }
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 1) {
-            list->field_4   = 4;
-            list->field_5.u = 4;
+            list->field_4               = 4;
+            list->field_5.unsignedValue = 4;
         }
         list->field_10 = 0;
         Ui_LayoutListPanel(list, &(obj)->panel);
@@ -2230,12 +2230,12 @@ void func_mist_shooting_gallery_80180728(Task* task)
             menu->field_4 = 3;
         }
         if (menu->field_4 >= 0xB) {
-            menu->field_5.u = 0xA;
+            menu->field_5.unsignedValue = 0xA;
         } else {
-            menu->field_5.u = menu->field_4;
+            menu->field_5.unsignedValue = menu->field_4;
         }
-        menu->field_10  = 0;
-        menu->field_9.u = 0;
+        menu->field_10              = 0;
+        menu->field_9.unsignedValue = 0;
         Ui_LayoutListPanel(menu, &(obj)->panel);
         menu->field_A = 1;
         Ui_SetListScrollFlag(menu, 1);

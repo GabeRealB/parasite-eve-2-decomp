@@ -935,14 +935,14 @@ static UiListItemFunc Shop_Data_80181ADC[1] = {
     Shop_CategoryRow,
 };
 
-static UiList Shop_Data_80181AE0 = { Shop_Data_80181ADC, 1, { .u = 1 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
+static UiList Shop_Data_80181AE0 = { Shop_Data_80181ADC, 1, { .unsignedValue = 1 }, 0, 15, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
 
 static UiListItemFunc Shop_Data_80181B04[2] = {
     Shop_BuyRow,
     Shop_MessageRow,
 };
 
-static UiList Shop_Data_80181B0C = { Shop_Data_80181B04, 2, { .u = 2 }, 1, 10, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
+static UiList Shop_Data_80181B0C = { Shop_Data_80181B04, 2, { .unsignedValue = 2 }, 1, 10, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
 
 static UiObjectDesc Shop_Data_80181B30 = { 2, 0xFF70, 0xFF98, 128, 40, 56, 0, 0, 192, Shop_CategoryListTask, 0 };
 

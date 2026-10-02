@@ -85,9 +85,9 @@ void McMenu_SelectList(Task* task)
     Ui_DrawText(obj, McText_Select);
     if (task->state == 0) {
         Ui_InitList(menu, obj);
-        menu->field_A   = 1;
-        menu->field_10  = 0;
-        menu->field_9.u = 0;
+        menu->field_A               = 1;
+        menu->field_10              = 0;
+        menu->field_9.unsignedValue = 0;
         Ui_SetListScrollFlag(menu, 1);
         task->state += 1;
     } else {
@@ -137,12 +137,12 @@ void McMenu_SelectListAlt(Task* task)
     Ui_DrawText(obj, McText_Select);
     if (task->state == 0) {
         Ui_InitList(menu, obj);
-        menu->field_A   = 1;
-        menu->field_10  = ctx->selectedSlot;
-        temp            = (u8)menu->field_10 - menu->field_5.u + 1;
-        menu->field_9.u = temp;
+        menu->field_A               = 1;
+        menu->field_10              = ctx->selectedSlot;
+        temp                        = (u8)menu->field_10 - menu->field_5.unsignedValue + 1;
+        menu->field_9.unsignedValue = temp;
         if ((s8)temp < 0) {
-            menu->field_9.u = 0;
+            menu->field_9.unsignedValue = 0;
         }
         Ui_SetListScrollFlag(menu, 1);
         task->state += 1;
@@ -273,7 +273,7 @@ block_done:
         } else {
             menu->field_10 = 1;
         }
-        menu->field_9.u = 0;
+        menu->field_9.unsignedValue = 0;
         Ui_SetListScrollFlag(menu, 1);
         task->state += 1;
     } else {

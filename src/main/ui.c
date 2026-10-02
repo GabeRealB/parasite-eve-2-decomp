@@ -1351,8 +1351,6 @@ void Ui_UpdateLayoutSize(UiPanel* panel, s32 arg1, s32 arg2)
     panel->contentOriginY.unsignedValue = sp10.y - panel->contentTop.unsignedValue;
 }
 
-/// Signed overlay of UiList so field_5/field_7 load with lb (visible-row counts).
-
 void Ui_LayoutListPanel(UiList* arg0_, UiPanel* arg1_)
 {
     UiList*  arg0;
@@ -1365,13 +1363,13 @@ void Ui_LayoutListPanel(UiList* arg0_, UiPanel* arg1_)
     arg0 = arg0_;
     arg1 = arg1_;
 
-    if (arg0->field_5.s == 0) {
-        arg0->field_5.s = arg0->field_4;
-    } else if (arg0->field_4 < arg0->field_5.s) {
-        arg0->field_5.s = arg0->field_4;
+    if (arg0->field_5.signedValue == 0) {
+        arg0->field_5.signedValue = arg0->field_4;
+    } else if (arg0->field_4 < arg0->field_5.signedValue) {
+        arg0->field_5.signedValue = arg0->field_4;
     }
 
-    growth               = arg0->field_5.s * arg0->field_7;
+    growth               = arg0->field_5.signedValue * arg0->field_7;
     growth              -= arg1->contentBottom.signedValue - arg1->contentTop.signedValue;
     arg1->bounds.rect.h += growth;
     overflow             = 0x98 - (arg1->bounds.rect.x + arg1->bounds.rect.w);
@@ -1413,26 +1411,26 @@ void Ui_LayoutListPanel(UiList* arg0_, UiPanel* arg1_)
         arg0->field_7 = 0xA;
     }
     if (height >= arg0->field_4 * arg0->field_7) {
-        arg0->field_5.s = arg0->field_4;
+        arg0->field_5.signedValue = arg0->field_4;
     } else {
-        arg0->field_5.s = height / arg0->field_7;
-        if (arg0->field_5.s <= 0) {
-            arg0->field_5.s = 1;
+        arg0->field_5.signedValue = height / arg0->field_7;
+        if (arg0->field_5.signedValue <= 0) {
+            arg0->field_5.signedValue = 1;
         }
     }
     if (arg0->field_10 >= arg0->field_4) {
         arg0->field_10 = arg0->field_4 - 1;
     }
-    if (arg0->field_4 <= arg0->field_5.s) {
-        arg0->field_9.u = 0;
+    if (arg0->field_4 <= arg0->field_5.signedValue) {
+        arg0->field_9.unsignedValue = 0;
     }
     arg0->field_A  = 0;
     arg0->field_14 = 0;
     arg0->field_16 = 0;
     arg0->field_C  = 0;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cursorMode != 0) {
-        arg0->field_10  = 0;
-        arg0->field_9.u = 0;
+        arg0->field_10              = 0;
+        arg0->field_9.unsignedValue = 0;
     }
 }
 
@@ -1565,7 +1563,7 @@ static void Ui_UpdateListRows(UiList* list, UiPanel* panel, s32 animate)
     step      = 0;
     playSound = 0;
     highlight = 0;
-    margin    = list->field_5.s >> 2;
+    margin    = list->field_5.signedValue >> 2;
     itemData  = D_80067640;
     if (margin < 2) {
         margin = 0;
@@ -1577,22 +1575,22 @@ static void Ui_UpdateListRows(UiList* list, UiPanel* panel, s32 animate)
     if (state >= USER_INTERFACE_PANEL_REQUEST_MIN) {
         switch (state) {
             case USER_INTERFACE_PANEL_SELECT_FIRST_VISIBLE:
-                list->field_10 = list->field_9.s;
+                list->field_10 = list->field_9.signedValue;
                 break;
             case USER_INTERFACE_PANEL_SELECT_LAST_VISIBLE:
-                list->field_10 = list->field_9.s + list->field_5.s - 1;
+                list->field_10 = list->field_9.signedValue + list->field_5.signedValue - 1;
                 break;
         }
     }
     if (list->field_10 < 0) {
         list->field_10 += list->field_4;
     }
-    rows = list->field_5.s;
+    rows = list->field_5.signedValue;
     if (rows < list->field_4) {
-        if (list->field_6 != 0 || list->field_9.s > 0) {
+        if (list->field_6 != 0 || list->field_9.signedValue > 0) {
             Ui_DrawCaret(list, panel, 0);
         }
-        if (list->field_6 != 0 || list->field_9.s + list->field_5.s < list->field_4) {
+        if (list->field_6 != 0 || list->field_9.signedValue + list->field_5.signedValue < list->field_4) {
             Ui_DrawCaret(list, panel, 1);
         }
         list->field_1A = panel->contentTop.unsignedValue + list->field_7;
@@ -1601,16 +1599,16 @@ static void Ui_UpdateListRows(UiList* list, UiPanel* panel, s32 animate)
             if (list->field_14 <= 0) {
                 list->field_14 = 0;
                 if (list->field_16 == 1) {
-                    list->field_9.s++;
-                    if (list->field_9.s >= list->field_4) {
-                        list->field_9.s -= list->field_4;
+                    list->field_9.signedValue++;
+                    if (list->field_9.signedValue >= list->field_4) {
+                        list->field_9.signedValue -= list->field_4;
                     }
                 }
                 list->field_16 = 0;
             } else {
                 if (list->field_16 == 1) {
                     s32 top         = list->field_1A + 7;
-                    cursorY         = top - list->field_7 + (list->field_5.s - 1) * list->field_7;
+                    cursorY         = top - list->field_7 + (list->field_5.signedValue - 1) * list->field_7;
                     list->field_1A -= list->field_7 - list->field_14;
                 } else {
                     s32 top         = list->field_1A + 7;
@@ -1637,7 +1635,7 @@ static void Ui_UpdateListRows(UiList* list, UiPanel* panel, s32 animate)
     if (list->field_14 != 0) {
         Ui_SetListClip(list, panel, 1);
     }
-    item = list->field_9.s;
+    item = list->field_9.signedValue;
     for (i = 0; i < rows; i++) {
         if (item == list->field_10) {
             if (list->field_16 == 0) {
@@ -1705,7 +1703,7 @@ static void Ui_UpdateListRows(UiList* list, UiPanel* panel, s32 animate)
                 step            = 1;
                 list->field_10 += 1;
                 list->field_B   = 1;
-            } else if (list->field_5.s < list->field_4 && list->field_6 == 0) {
+            } else if (list->field_5.signedValue < list->field_4 && list->field_6 == 0) {
                 if (Pad_CheckButtons(0, 1, 4) != 0) {
                     if (list->field_10 != 0) {
                         playSound = 1;
@@ -1713,13 +1711,13 @@ static void Ui_UpdateListRows(UiList* list, UiPanel* panel, s32 animate)
                     list->field_B   = -1;
                     step            = -1;
                     list->field_10 -= 1;
-                    if (list->field_9.s > 0) {
-                        list->field_9.s -= list->field_5.s;
-                        if (list->field_9.s < 0) {
-                            list->field_9.s = 0;
+                    if (list->field_9.signedValue > 0) {
+                        list->field_9.signedValue -= list->field_5.signedValue;
+                        if (list->field_9.signedValue < 0) {
+                            list->field_9.signedValue = 0;
                         }
-                        if (list->field_9.s + list->field_5.s - 1 < list->field_10) {
-                            list->field_10 = list->field_9.s + list->field_5.s - 1;
+                        if (list->field_9.signedValue + list->field_5.signedValue - 1 < list->field_10) {
+                            list->field_10 = list->field_9.signedValue + list->field_5.signedValue - 1;
                         }
                     } else {
                         list->field_10 = 0;
@@ -1731,13 +1729,13 @@ static void Ui_UpdateListRows(UiList* list, UiPanel* panel, s32 animate)
                     list->field_B   = 1;
                     step            = 1;
                     list->field_10 += 1;
-                    if (list->field_9.s + list->field_5.s < list->field_4) {
-                        list->field_9.s += list->field_5.s;
-                        if (list->field_9.s > list->field_4 - list->field_5.s) {
-                            list->field_9.s = list->field_4 - list->field_5.s;
+                    if (list->field_9.signedValue + list->field_5.signedValue < list->field_4) {
+                        list->field_9.signedValue += list->field_5.signedValue;
+                        if (list->field_9.signedValue > list->field_4 - list->field_5.signedValue) {
+                            list->field_9.signedValue = list->field_4 - list->field_5.signedValue;
                         }
-                        if (list->field_10 < list->field_9.s) {
-                            list->field_10 = list->field_9.s;
+                        if (list->field_10 < list->field_9.signedValue) {
+                            list->field_10 = list->field_9.signedValue;
                         }
                     } else {
                         list->field_10 = list->field_4 - 1;
@@ -1768,21 +1766,21 @@ static void Ui_UpdateListRows(UiList* list, UiPanel* panel, s32 animate)
                 list->field_B  = 1;
             }
         }
-        if (list->field_4 != list->field_5.s) {
+        if (list->field_4 != list->field_5.signedValue) {
             s32 edge = margin - 1;
 
-            if (list->field_9.s + edge >= list->field_10 % list->field_4) {
+            if (list->field_9.signedValue + edge >= list->field_10 % list->field_4) {
                 if (list->field_6 != 0) {
-                    list->field_9.s -= 1;
-                    if (list->field_9.s < 0) {
-                        list->field_9.s += list->field_4;
+                    list->field_9.signedValue -= 1;
+                    if (list->field_9.signedValue < 0) {
+                        list->field_9.signedValue += list->field_4;
                     }
                     list->field_16 = -1;
                     list->field_14 = list->field_7;
                 } else {
-                    list->field_9.s -= 1;
-                    if (list->field_9.s < 0) {
-                        list->field_9.s = 0;
+                    list->field_9.signedValue -= 1;
+                    if (list->field_9.signedValue < 0) {
+                        list->field_9.signedValue = 0;
                     } else {
                         list->field_16 = -1;
                         list->field_14 = list->field_7;
@@ -1801,8 +1799,8 @@ static void Ui_UpdateListRows(UiList* list, UiPanel* panel, s32 animate)
                 list->field_B  = -1;
             }
         }
-        if (list->field_4 != list->field_5.s) {
-            if (list->field_10 % list->field_4 >= (list->field_9.s + list->field_5.s - margin) % list->field_4 && (list->field_6 != 0 || list->field_9.s < list->field_4 - list->field_5.s)) {
+        if (list->field_4 != list->field_5.signedValue) {
+            if (list->field_10 % list->field_4 >= (list->field_9.signedValue + list->field_5.signedValue - margin) % list->field_4 && (list->field_6 != 0 || list->field_9.signedValue < list->field_4 - list->field_5.signedValue)) {
                 list->field_16 = 1;
                 list->field_14 = list->field_7;
             }
@@ -2305,26 +2303,26 @@ void Ui_InitList(UiList* list, UiPanel* panel)
     temp_a2 = list->field_4;
     temp_v1 = list->field_7;
     if (height >= (temp_a2 * temp_v1)) {
-        list->field_5.u = temp_a2;
+        list->field_5.unsignedValue = temp_a2;
     } else {
-        list->field_5.u = height / temp_v1;
-        if ((s8)list->field_5.u <= 0) {
-            list->field_5.u = 1;
+        list->field_5.unsignedValue = height / temp_v1;
+        if (list->field_5.signedValue <= 0) {
+            list->field_5.unsignedValue = 1;
         }
     }
     if (list->field_10 >= list->field_4) {
         list->field_10 = list->field_4 - 1;
     }
-    if (list->field_4 <= (s8)list->field_5.u) {
-        list->field_9.u = 0;
+    if (list->field_4 <= list->field_5.signedValue) {
+        list->field_9.unsignedValue = 0;
     }
     list->field_A  = 0;
     list->field_14 = 0;
     list->field_16 = 0;
     list->field_C  = 0;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cursorMode != 0) {
-        list->field_10  = 0;
-        list->field_9.u = 0;
+        list->field_10              = 0;
+        list->field_9.unsignedValue = 0;
     }
 }
 
@@ -2343,18 +2341,18 @@ void Ui_ComputeVisibleRows(UiList* list, UiPanel* panel)
         list->field_7 = 0xA;
     }
     if (height >= list->field_4 * list->field_7) {
-        list->field_5.u = list->field_4;
+        list->field_5.unsignedValue = list->field_4;
     } else {
-        list->field_5.u = height / list->field_7;
-        if ((s8)list->field_5.u <= 0) {
-            list->field_5.u = 1;
+        list->field_5.unsignedValue = height / list->field_7;
+        if (list->field_5.signedValue <= 0) {
+            list->field_5.unsignedValue = 1;
         }
     }
     if (list->field_10 >= list->field_4) {
         list->field_10 = list->field_4 - 1;
     }
-    if (list->field_4 <= (s8)list->field_5.u) {
-        list->field_9.u = 0;
+    if (list->field_4 <= list->field_5.signedValue) {
+        list->field_9.unsignedValue = 0;
     }
     list->field_A = 0;
 }
@@ -2386,18 +2384,18 @@ static void Ui_ComputeVisibleRowsEx(UiList* list, UiPanel* panel, s32 arg2)
     temp_a2 = list->field_4;
     temp_v1 = list->field_7;
     if (height >= (temp_a2 * temp_v1)) {
-        list->field_5.u = temp_a2;
+        list->field_5.unsignedValue = temp_a2;
     } else {
-        list->field_5.u = height / temp_v1;
-        if ((s8)list->field_5.u <= 0) {
-            list->field_5.u = 1;
+        list->field_5.unsignedValue = height / temp_v1;
+        if (list->field_5.signedValue <= 0) {
+            list->field_5.unsignedValue = 1;
         }
     }
     if (list->field_10 >= list->field_4) {
         list->field_10 = list->field_4 - 1;
     }
-    if (list->field_4 <= (s8)list->field_5.u) {
-        list->field_9.u = 0;
+    if (list->field_4 <= list->field_5.signedValue) {
+        list->field_9.unsignedValue = 0;
     }
     list->field_A = 0;
 }
@@ -2890,9 +2888,9 @@ static void Ui_ListTaskCallback(Task* task)
     menu        = &Ui_DialogLineList;
     obj->result = USER_INTERFACE_RESULT_NONE;
     if (task->state == 0) {
-        base            = ctx->field_0;
-        menu->field_5.u = base;
-        menu->field_4   = base;
+        base                        = ctx->field_0;
+        menu->field_5.unsignedValue = base;
+        menu->field_4               = base;
         Ui_LayoutListPanel(menu, &(obj)->panel);
         menu->field_A = 1;
         task->state  += 1;

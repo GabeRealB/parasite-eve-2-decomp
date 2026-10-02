@@ -253,13 +253,13 @@ void func_800C5F70(Task* arg0)
                     lines = 2;
                 }
             }
-            menu->field_10  = 0;
-            menu->field_9.u = 0;
-            menu->field_5.u = lines;
-            menu->field_4   = lines;
+            menu->field_10              = 0;
+            menu->field_9.unsignedValue = 0;
+            menu->field_5.unsignedValue = lines;
+            menu->field_4               = lines;
             Ui_InitList(menu, &(obj)->panel);
-            if ((s8)menu->field_5.u >= 7) {
-                menu->field_5.u = 6;
+            if (menu->field_5.signedValue >= 7) {
+                menu->field_5.unsignedValue = 6;
             }
             menu->field_A  = 1;
             menu->field_17 = -(u8)obj->panel.contentTop.unsignedValue + 7;
@@ -302,18 +302,18 @@ void func_800C5F70(Task* arg0)
                 obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                 Ui_UpdateListNoAnim(menu, obj);
                 obj->panel.control.word = saved;
-                if ((saved == 1) && ((s32)menu->field_4 > (s8)menu->field_5.u)) {
+                if ((saved == 1) && ((s32)menu->field_4 > menu->field_5.signedValue)) {
                     if (Pad_CheckButtons(0, 1, 0x1000) != 0) {
-                        menu->field_9.u = menu->field_9.u - 1;
-                        if ((s8)menu->field_9.u < 0) {
-                            menu->field_9.u = 0;
+                        menu->field_9.unsignedValue = menu->field_9.unsignedValue - 1;
+                        if (menu->field_9.signedValue < 0) {
+                            menu->field_9.unsignedValue = 0;
                         } else {
                             menu->field_16 = -1;
                             menu->field_14 = (s8)menu->field_7;
                         }
-                        menu->field_10 = (s8)menu->field_9.u;
+                        menu->field_10 = menu->field_9.signedValue;
                     } else if (Pad_CheckButtons(0, 1, 0x4000) != 0) {
-                        menu->field_10 = (s8)menu->field_9.u + (s8)menu->field_5.u;
+                        menu->field_10 = menu->field_9.signedValue + menu->field_5.signedValue;
                         if (menu->field_10 < (s32)menu->field_4) {
                             menu->field_16 = saved;
                             menu->field_14 = (s8)menu->field_7;
@@ -321,20 +321,20 @@ void func_800C5F70(Task* arg0)
                             menu->field_10 = menu->field_4 - 1;
                         }
                     } else if (Pad_CheckButtons(0, 1, 4) != 0) {
-                        if ((s8)menu->field_9.u > 0) {
-                            menu->field_9.u = menu->field_9.u - menu->field_5.u;
-                            if ((s8)menu->field_9.u < 0) {
-                                menu->field_9.u = 0;
+                        if (menu->field_9.signedValue > 0) {
+                            menu->field_9.unsignedValue = menu->field_9.unsignedValue - menu->field_5.unsignedValue;
+                            if (menu->field_9.signedValue < 0) {
+                                menu->field_9.unsignedValue = 0;
                             }
-                            menu->field_10 = (s8)menu->field_9.u;
+                            menu->field_10 = menu->field_9.signedValue;
                         }
                     } else if (Pad_CheckButtons(0, 1, 8) != 0) {
-                        if ((s8)menu->field_9.u < (menu->field_4 - (s8)menu->field_5.u)) {
-                            menu->field_9.u += menu->field_5.u;
-                            if ((s8)menu->field_9.u > (menu->field_4 - (s8)menu->field_5.u)) {
-                                menu->field_9.u = menu->field_4 - menu->field_5.u;
+                        if (menu->field_9.signedValue < (menu->field_4 - menu->field_5.signedValue)) {
+                            menu->field_9.unsignedValue += menu->field_5.unsignedValue;
+                            if (menu->field_9.signedValue > (menu->field_4 - menu->field_5.signedValue)) {
+                                menu->field_9.unsignedValue = menu->field_4 - menu->field_5.unsignedValue;
                             }
-                            menu->field_10 = ((s8)menu->field_9.u + (s8)menu->field_5.u) - 1;
+                            menu->field_10 = (menu->field_9.signedValue + menu->field_5.signedValue) - 1;
                         }
                     }
                 }
@@ -846,7 +846,7 @@ void Gp_KeyItemMenuTask(Task* arg0)
     obj->result = USER_INTERFACE_RESULT_NONE;
     Ui_DrawText(&(obj)->panel, Gp_StrKeyItem);
     if (arg0->state == 0) {
-        menu->field_5.u = menu->field_4 = Gp_CountCollectedBits();
+        menu->field_5.unsignedValue = menu->field_4 = Gp_CountCollectedBits();
         if (menu->field_4 < menu->field_10) {
             menu->field_10 = menu->field_4;
         }
@@ -856,11 +856,11 @@ void Gp_KeyItemMenuTask(Task* arg0)
             Ui_UpdateLayoutSize(&(obj)->panel, 0, Ui_Scale15(0xA) + 1);
             Ui_SpawnFromDesc(&D_8010F868, 0, 0, 1, obj);
         }
-        menu->field_10  = 0;
-        menu->field_9.u = 0;
-        arg0->state     = arg0->state + 1;
+        menu->field_10              = 0;
+        menu->field_9.unsignedValue = 0;
+        arg0->state                 = arg0->state + 1;
     } else {
-        menu->field_5.u = menu->field_4 = Gp_CountCollectedBits();
+        menu->field_5.unsignedValue = menu->field_4 = Gp_CountCollectedBits();
         if (menu->field_4 < menu->field_10) {
             menu->field_10 = menu->field_4;
         }

@@ -516,9 +516,9 @@ static void Telephone_BuildWeaponUsage(UiList* list, UiObject* obj)
         }
     }
 
-    list->field_4   = count;
-    list->field_9.u = 0;
-    list->field_10  = 0;
+    list->field_4               = count;
+    list->field_9.unsignedValue = 0;
+    list->field_10              = 0;
 }
 
 /// Parasite Energy counterpart of `Telephone_BuildWeaponUsage`: fills
@@ -617,9 +617,9 @@ static void Telephone_BuildPeUsage(UiList* list, UiObject* obj)
         }
     }
 
-    list->field_4   = count;
-    list->field_9.u = 0;
-    list->field_10  = 0;
+    list->field_4               = count;
+    list->field_9.unsignedValue = 0;
+    list->field_10              = 0;
 }
 
 static const char Telephone_Data_8017D624[] = "Weapon Data";

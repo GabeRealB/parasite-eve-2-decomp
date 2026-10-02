@@ -569,15 +569,15 @@ void Gp_ItemPaneTask(Task* arg0)
         {
             s32 val;
 
-            val             = _gpItemPaneScan(arg0)->rowCount;
-            menu->field_4   = val;
-            menu->field_5.u = val;
+            val                         = _gpItemPaneScan(arg0)->rowCount;
+            menu->field_4               = val;
+            menu->field_5.unsignedValue = val;
             if ((s8)val >= 0xB) {
-                menu->field_5.u = 0xA;
+                menu->field_5.unsignedValue = 0xA;
             }
         }
-        menu->field_10  = 0;
-        menu->field_9.u = 0;
+        menu->field_10              = 0;
+        menu->field_9.unsignedValue = 0;
         Ui_LayoutListPanel(menu, &(obj)->panel);
         menu->field_A = 1;
         arg0->state   = arg0->state + 1;
@@ -598,8 +598,8 @@ void Gp_ItemPaneTask(Task* arg0)
         menu->field_10 = menu->field_4 - 1;
     }
     n = menu->field_4;
-    if ((s8)menu->field_5.u >= n) {
-        menu->field_9.u = 0;
+    if (menu->field_5.signedValue >= n) {
+        menu->field_9.unsignedValue = 0;
     }
     if (menu->field_4 != 0) {
         Ui_UpdateListNoAnim(menu, obj);
@@ -860,8 +860,8 @@ static void Gp_FillItemActions(UiList* arg0, UiObject* arg1)
             count                   = count + 1;
         }
     }
-    arg0->field_5.u = count;
-    arg0->field_4   = count;
+    arg0->field_5.unsignedValue = count;
+    arg0->field_4               = count;
 }
 
 void Gp_ItemActionListTask(Task* arg0)

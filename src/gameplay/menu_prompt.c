@@ -1374,11 +1374,11 @@ void Gp_CountAmmoRows(UiList* arg0, s32 arg1)
         } while (i < scan->rowCount);
     }
 
-    arg0->field_4   = count;
-    arg0->field_5.u = count;
+    arg0->field_4               = count;
+    arg0->field_5.unsignedValue = count;
     if (arg1 == 0) {
-        arg0->field_7   = 0xF;
-        arg0->field_5.u = 4;
+        arg0->field_7               = 0xF;
+        arg0->field_5.unsignedValue = 4;
     } else {
         arg0->field_7 = 0xF;
     }
@@ -1410,10 +1410,10 @@ static __inline__ void countItemRows(UiList* menu)
             menu->field_4--;
         }
     }
-    menu->field_4   = menu->field_4 + 1;
-    menu->field_5.u = menu->field_4;
-    if ((s8)menu->field_5.u >= 0xA) {
-        menu->field_5.u = 9;
+    menu->field_4               = menu->field_4 + 1;
+    menu->field_5.unsignedValue = menu->field_4;
+    if (menu->field_5.signedValue >= 0xA) {
+        menu->field_5.unsignedValue = 9;
     }
 }
 
@@ -1446,14 +1446,14 @@ static void Gp_ItemListTask(Task* arg0)
         arg0->work    = workAllocation;
         menu->field_6 = 0;
         countItemRows(menu);
-        menu->field_5.u = 9;
-        menu->field_4   = 9;
+        menu->field_5.unsignedValue = 9;
+        menu->field_4               = 9;
         Ui_LayoutListPanel(menu, &(obj)->panel);
         countItemRows(menu);
-        menu->field_A   = 1;
-        menu->field_10  = 0;
-        menu->field_9.u = 0;
-        child           = Ui_SpawnFromDesc(&D_8010EB40, 0, 0, 1, obj);
+        menu->field_A               = 1;
+        menu->field_10              = 0;
+        menu->field_9.unsignedValue = 0;
+        child                       = Ui_SpawnFromDesc(&D_8010EB40, 0, 0, 1, obj);
         if (child != NULL) {
             child->panel.bounds.unsignedRect.y = obj->panel.bounds.unsignedRect.y + obj->panel.bounds.unsignedRect.h;
         }
@@ -1466,8 +1466,8 @@ static void Gp_ItemListTask(Task* arg0)
     if (menu->field_10 >= (s32)menu->field_4) {
         menu->field_10 = menu->field_4 - 1;
     }
-    if ((menu->field_4 - (s8)menu->field_5.u) < (s8)menu->field_9.u) {
-        menu->field_9.u = menu->field_4 - menu->field_5.u;
+    if ((menu->field_4 - menu->field_5.signedValue) < menu->field_9.signedValue) {
+        menu->field_9.unsignedValue = menu->field_4 - menu->field_5.unsignedValue;
     }
     Ui_UpdateListNoAnim(menu, obj);
     status = obj->panel.control.word;
@@ -1933,8 +1933,8 @@ void Gp_WeaponMenuTask(Task* arg0)
                 other           = &D_8010E854;
                 row             = cursor.unk2 - (parentObj->panel.contentOriginY.unsignedValue + parentObj->panel.contentTop.unsignedValue);
                 row             = row / other->field_7;
-                vis             = (s8)other->field_5.u;
-                row9            = (s8)other->field_9.u;
+                vis             = other->field_5.signedValue;
+                row9            = other->field_9.signedValue;
                 sel             = row + row9;
                 other->field_10 = sel;
                 if (sel >= row9 + vis) {
@@ -2240,15 +2240,15 @@ void Gp_ArmorMenuTask(Task* arg0)
         if (id != 0) {
             menu->field_4 = Gp_GetModLevel(id);
         }
-        menu->field_5.u = menu->field_4;
+        menu->field_5.unsignedValue = menu->field_4;
         if ((s8)menu->field_4 >= 4) {
-            menu->field_5.u = 3;
+            menu->field_5.unsignedValue = 3;
         }
-        if ((menu->field_4 - (s8)menu->field_5.u) < (s8)menu->field_9.u) {
-            menu->field_9.u = 0;
+        if ((menu->field_4 - menu->field_5.signedValue) < menu->field_9.signedValue) {
+            menu->field_9.unsignedValue = 0;
         }
         if (menu->field_14 == 0) {
-            temp = (s8)menu->field_9.u + (s8)menu->field_5.u;
+            temp = menu->field_9.signedValue + menu->field_5.signedValue;
             if (menu->field_10 >= temp) {
                 menu->field_10 = temp - 1;
             }
@@ -2273,17 +2273,17 @@ void Gp_ArmorMenuTask(Task* arg0)
         }
         {
             u8 n;
-            n               = menu->field_4;
-            menu->field_5.u = n;
+            n                           = menu->field_4;
+            menu->field_5.unsignedValue = n;
             if ((s8)n >= 4) {
-                menu->field_5.u = 3;
+                menu->field_5.unsignedValue = 3;
             }
         }
-        if ((menu->field_4 - (s8)menu->field_5.u) < (s8)menu->field_9.u) {
-            menu->field_9.u = 0;
+        if ((menu->field_4 - menu->field_5.signedValue) < menu->field_9.signedValue) {
+            menu->field_9.unsignedValue = 0;
         }
         if (menu->field_14 == 0) {
-            temp = (s8)menu->field_9.u + (s8)menu->field_5.u;
+            temp = menu->field_9.signedValue + menu->field_5.signedValue;
             if (menu->field_10 >= temp) {
                 menu->field_10 = temp - 1;
             }
@@ -2329,7 +2329,7 @@ void Gp_ArmorMenuTask(Task* arg0)
             if (Pad_CheckButtons(0, 1, 0x4000) != 0) {
                 SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
                 arg0->state    = status;
-                menu->field_10 = (s8)menu->field_9.u;
+                menu->field_10 = menu->field_9.signedValue;
             } else if (Pad_CheckButtons(0, 1, 0x1000) != 0) {
                 SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
                 D_80114D98[0]->panel.control.word = status;
@@ -2489,8 +2489,8 @@ void Gp_ArmorMenuTask(Task* arg0)
                     other           = &D_8010E854;
                     row             = locals.cursor.unk2 - (parentObj->panel.contentOriginY.unsignedValue + parentObj->panel.contentTop.unsignedValue);
                     row             = row / other->field_7;
-                    vis             = (s8)other->field_5.u;
-                    row9            = (s8)other->field_9.u;
+                    vis             = other->field_5.signedValue;
+                    row9            = other->field_9.signedValue;
                     sel             = row + row9;
                     other->field_10 = sel;
                     if (sel >= row9 + vis) {
@@ -2519,14 +2519,14 @@ void Gp_ArmorMenuTask(Task* arg0)
             h           = menu->field_7;
             t          -= h * 2 + 0xA;
             if (t < 0) {
-                menu->field_10 = (s8)menu->field_9.u;
+                menu->field_10 = menu->field_9.signedValue;
             } else {
                 s32          row9;
                 s32          f5;
                 register s32 vis asm("a0");
                 t    = t / h;
-                row9 = (s8)menu->field_9.u;
-                f5   = (s8)menu->field_5.u;
+                row9 = menu->field_9.signedValue;
+                f5   = menu->field_5.signedValue;
                 vis  = row9;
                 TOUCH_REG(vis);
                 vis            = vis + f5;

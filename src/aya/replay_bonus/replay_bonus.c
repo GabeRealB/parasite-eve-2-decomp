@@ -277,13 +277,13 @@ static void func_replay_bonus_80115D60(UiList* list, UiObject* ctx)
         i += 1;
     } while (i < 0x200);
 
-    list->field_5.u = 9;
-    list->field_4   = count;
-    list->field_9.u = list->field_4 - list->field_5.u;
-    if ((s8)list->field_9.u < 0) {
-        list->field_9.u = 0;
+    list->field_5.unsignedValue = 9;
+    list->field_4               = count;
+    list->field_9.unsignedValue = list->field_4 - list->field_5.unsignedValue;
+    if (list->field_9.signedValue < 0) {
+        list->field_9.unsignedValue = 0;
     }
-    list->field_10 = (s8)list->field_9.u;
+    list->field_10 = list->field_9.signedValue;
 }
 static const char D_replay_bonus_80115774[] = "Complete Bonus";
 static const char D_replay_bonus_80115784[] = "GET ITEM";
@@ -298,7 +298,7 @@ static inline s32 _replayBonusTotalBp(UiList* list, UiObject* ctx)
 
     cfg = &gPlayerStatus;
     sum = 0;
-    for (i = (s8)list->field_9.u; i < list->field_4; i++) {
+    for (i = list->field_9.signedValue; i < list->field_4; i++) {
         sum += replayBonusItemBp(((s16*)ctx->owner->work)[i]);
     }
     sum += cfg->bp;
@@ -368,12 +368,12 @@ void func_replay_bonus_80115ED0(Task* arg0)
         obj->panel.bounds.unsignedRect.h = obj->panel.bounds.unsignedRect.h + 0x22;
         arg0->killCountdown              = 0x3C;
         arg0->state                      = arg0->state + 1;
-        list->field_9.u                  = 0;
+        list->field_9.unsignedValue      = 0;
         acc                              = _replayBonusTotalBp(list, obj);
         totals                           = &D_replay_bonus_80119274;
         totals->field_4                  = acc;
         totals->field_C                  = acc;
-        list->field_9.u                  = list->field_4 - list->field_5.u;
+        list->field_9.unsignedValue      = list->field_4 - list->field_5.unsignedValue;
         tmp                              = func_replay_bonus_80115CA4();
         exp                              = cfg->exp;
         D_replay_bonus_80119274.unk0     = tmp;
@@ -470,20 +470,20 @@ void func_replay_bonus_80115ED0(Task* arg0)
         }
     } else if (state == 2) {
         n = list->field_4;
-        if ((s8)list->field_5.u < n) {
+        if (list->field_5.signedValue < n) {
             if (list->field_14 <= 0) {
-                nxt             = list->field_9.u - 1;
-                list->field_9.u = nxt;
+                nxt                         = list->field_9.unsignedValue - 1;
+                list->field_9.unsignedValue = nxt;
                 if ((s8)nxt < 0) {
-                    list->field_9.u     = 0;
-                    arg0->killCountdown = 0xBC;
-                    arg0->state         = arg0->state + 1;
+                    list->field_9.unsignedValue = 0;
+                    arg0->killCountdown         = 0xBC;
+                    arg0->state                 = arg0->state + 1;
                 } else {
                     SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
                     list->field_16 = -1;
                     list->field_14 = (s8)(u8)list->field_7;
                 }
-                list->field_10 = (s8)list->field_9.u;
+                list->field_10 = list->field_9.signedValue;
             }
             list->field_14 = (u16)list->field_14 - 1;
         } else {

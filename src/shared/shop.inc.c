@@ -516,10 +516,10 @@ static void Shop_BuildItemList(RoomShopList* shop, UiObject* obj)
         }
     }
 
-    count                = shop->list.field_4;
-    shop->list.field_5.u = count;
+    count                            = shop->list.field_4;
+    shop->list.field_5.unsignedValue = count;
     if ((s8)count >= 0xA) {
-        shop->list.field_5.u = 9;
+        shop->list.field_5.unsignedValue = 9;
     }
     Shop_Data_801819EC = -1;
 }
@@ -707,8 +707,8 @@ static void Shop_CategoryListTask(Task* task)
         D_80067634 = NULL;
         Ui_SpawnFromDesc(&Shop_Data_80181B68, task->spawnArg1, 0, 1, obj);
         Ui_SpawnFromDesc(&D_8010D80C, 0, 0, 0, obj);
-        list->field_4   = 5;
-        list->field_5.u = 5;
+        list->field_4               = 5;
+        list->field_5.unsignedValue = 5;
         Ui_LayoutListPanel(list, &(obj)->panel);
         list->field_A = 1;
         Ui_SetListScrollFlag(list, 1);
