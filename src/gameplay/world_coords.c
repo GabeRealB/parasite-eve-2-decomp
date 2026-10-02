@@ -1028,7 +1028,7 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
         } while (j < 3);
     }
 
-    if (Pad_RemapState->field_1 == 0x13 && D_80760618->field_1 == 1) {
+    if (Pad_RemapState->diagnosticMode == GAME_DEBUG_DIAGNOSTIC_LIGHT_PROBE && D_80760618->field_1 == 1) {
         i = 0;
         do {
             D_80760618->field_30[i] = block->slots[i];
@@ -1078,7 +1078,7 @@ static void Gp_DebugPanTask(Task* arg0)
     vec.vy = coord->workm.t[1] - 0x64;
     vec.vz = coord->workm.t[2];
 
-    if (Pad_RemapState->field_1 == 0x13) {
+    if (Pad_RemapState->diagnosticMode == GAME_DEBUG_DIAGNOSTIC_LIGHT_PROBE) {
         SCRATCH_STACK_RESERVE_BLOCK(WorldCoordProjectionScratch);
         projection          = SCRATCH_STACK_CURSOR(WorldCoordProjectionScratch);
         D_80760618->field_1 = 1;

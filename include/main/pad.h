@@ -3,6 +3,7 @@
 
 #include "types.h"
 
+#include "main/game_debug_types.h"
 #include "main/pad_types.h"
 
 /// Persistent processed input, controller setup and vibration state for ports 0 and 1.
@@ -14,7 +15,7 @@
 /// including across overlay loads; consumers may clear pressed-button bits.
 extern PadState gPadStates[PAD_PORT_COUNT];
 
-extern PadRemapState* Pad_RemapState;
+extern GameDebugState* Pad_RemapState;
 
 // Button masks checked with Pad_CheckButtons: confirm (0x40), cancel
 // (0xA0) and menu-open (0x900). Gp_PadSuppressMask masks out 0x900

@@ -15,6 +15,7 @@
 #include "fs.h"
 #include "main/fs_types.h"
 #include "fs_types.h"
+#include "main/game_debug_types.h"
 #include "gfx.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
@@ -80,7 +81,7 @@ static u8* Mdec_DecodeBase;
 
 static StreamSceneImageHeader* Stage_CdEntry;
 
-static PadRemapState Pad_DefaultRemapState;
+static GameDebugState Pad_DefaultRemapState;
 
 /// Active stage/flow context pointer.
 static StageCtx* Stage_Ctx;
@@ -136,7 +137,7 @@ static void Mdec_StripCallback(void);
 /// Active stage/flow context pointer.
 static StageCtx* Stage_Ctx            = &Stage_Context;
 static TaskDesc  Display_ModeTaskDesc = { { { TASK_BODY_NONE, 0 } }, Display_DispatchTaskTable };
-PadRemapState*   Pad_RemapState       = &Pad_DefaultRemapState;
+GameDebugState*  Pad_RemapState       = &Pad_DefaultRemapState;
 TaskDesc         D_800626AC[]         = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, Task_KillMaybeSpawn },

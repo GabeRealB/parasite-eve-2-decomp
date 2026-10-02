@@ -413,7 +413,7 @@ static void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
     cfg    = &gPlayerStatus;
     slot   = Gp_GetItemSlot(cfg->weapon + 0x7F);
     count2 = -1;
-    if (Pad_RemapState->field_A != 0) {
+    if (Pad_RemapState->hideHud != 0) {
         return;
     }
     if (Gp_CapBusy() != 0) {

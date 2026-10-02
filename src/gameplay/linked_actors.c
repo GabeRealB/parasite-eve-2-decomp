@@ -439,32 +439,32 @@ static inline void _gpDrawHudLabels(UiObject* obj, s32 x, s32 y, s32 color)
 
 void func_800A57B0(GpIdMapC* arg0)
 {
-    PadRemapState* remap;
-    s32            pendingMp;
-    TILE*          tile;
-    SPRT *         sp1, *sp3, *sp5;
-    POLY_FT4 *     poly1, *poly2;
-    DR_TPAGE*      tp;
-    PlayerStatus*  cfg;
-    s32            pendingHp;
-    s32            y;
-    s32            hp;
-    s32            mp;
-    s32            color;
-    s32            rectMode;
-    s32            iconX, iconY;
-    u16*           flags;
-    s32            x;
-    s32            w1;
-    s32            w2;
-    s32            i;
-    GpStateBE8*    be8;
+    GameDebugState* debugState;
+    s32             pendingMp;
+    TILE*           tile;
+    SPRT *          sp1, *sp3, *sp5;
+    POLY_FT4 *      poly1, *poly2;
+    DR_TPAGE*       tp;
+    PlayerStatus*   cfg;
+    s32             pendingHp;
+    s32             y;
+    s32             hp;
+    s32             mp;
+    s32             color;
+    s32             rectMode;
+    s32             iconX, iconY;
+    u16*            flags;
+    s32             x;
+    s32             w1;
+    s32             w2;
+    s32             i;
+    GpStateBE8*     be8;
 
-    cfg       = &gPlayerStatus;
-    remap     = Pad_RemapState;
-    pendingHp = 0;
-    pendingMp = 0;
-    if (remap->field_A != 0) {
+    cfg        = &gPlayerStatus;
+    debugState = Pad_RemapState;
+    pendingHp  = 0;
+    pendingMp  = 0;
+    if (debugState->hideHud != 0) {
         return;
     }
 

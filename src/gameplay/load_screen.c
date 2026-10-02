@@ -240,8 +240,8 @@ void Gp_LoadWaitBoot(Task* task)
     s32           buf;
     s8            yoff;
 
-    Pad_RemapState->field_3 = 1;
-    queue                   = &gCdCmdQueue;
+    Pad_RemapState->loadingActive = GAME_DEBUG_LOADING_ACTIVE;
+    queue                         = &gCdCmdQueue;
     if (CdCmd_IsIdle() & 0xFFFF) {
         if ((u8)LoadUi_PollDiskSwap()) {
             return;

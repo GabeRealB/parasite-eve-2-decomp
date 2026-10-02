@@ -403,7 +403,7 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
         cur = 0;
     }
     y -= gDisplayState.vramYOffset;
-    if (Pad_RemapState->field_A != 0) {
+    if (Pad_RemapState->hideHud != 0) {
         return;
     }
 
@@ -751,9 +751,9 @@ static void Gp_StartPadReplay(void)
     } else {
         Gp_ReplayCursor = (u16*)((u8*)Fs_ActorLoadBase2 + 0xD4C);
     }
-    Gp_ReplayButtons        = 0xFFFF;
-    Gp_ReplayFramesLeft     = 1;
-    Pad_RemapState->field_8 = -1;
+    Gp_ReplayButtons                  = 0xFFFF;
+    Gp_ReplayFramesLeft               = 1;
+    Pad_RemapState->inputOverrideMode = GAME_DEBUG_INPUT_OVERRIDE_REPLAY;
 }
 
 void Gp_PlayClockState2(Task* arg0)

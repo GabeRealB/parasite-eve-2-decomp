@@ -354,7 +354,7 @@ void Gp_LoadFinishTask(Task* task)
     if (gCdCmdQueue.bootLoadActive == 0) {
         Gpu_ClearOTag(0);
         Gpu_ClearOTag(1);
-        Pad_RemapState->field_3 = 0;
+        Pad_RemapState->loadingActive = GAME_DEBUG_LOADING_IDLE;
         taskKill(task);
         if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 5, 0, 0)) {
             func_800AA548(1);

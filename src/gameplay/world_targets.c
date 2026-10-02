@@ -108,7 +108,7 @@ void Gp_DrawTargetCursor(void)
     s32                          v;
 
     node = gWorldTargetListHead;
-    if (Pad_RemapState->field_A != 0) {
+    if (Pad_RemapState->hideHud != 0) {
         return;
     }
     Gp_UpdateLockSlots();

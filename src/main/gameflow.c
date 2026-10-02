@@ -609,13 +609,13 @@ void Pad_UpdatePort0(void)
             }
 
             if (i == 0) {
-                if (Pad_RemapState->field_8 != 0) {
+                if (Pad_RemapState->inputOverrideMode != GAME_DEBUG_INPUT_OVERRIDE_NONE) {
                     if (ds->displayOwner == DISPLAY_OWNER_GAME_LOOP) {
                         pad->stickAxes[PAD_STICK_RIGHT_Y] = 0;
                         pad->stickAxes[PAD_STICK_RIGHT_X] = 0;
                         pad->stickAxes[PAD_STICK_LEFT_Y]  = 0;
                         pad->stickAxes[PAD_STICK_LEFT_X]  = 0;
-                        Gp_ApplyPadReplay(Pad_RemapState->field_8, scratch);
+                        Gp_ApplyPadReplay(Pad_RemapState->inputOverrideMode, scratch);
                     }
                 }
             }

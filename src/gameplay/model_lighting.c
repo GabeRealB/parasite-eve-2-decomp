@@ -2717,7 +2717,7 @@ void Gp_ApplyPadReplay(s32 arg0, PadScratch* arg1)
     u16 temp_v1;
     s32 offset;
 
-    if (arg0 == 1) {
+    if (arg0 == GAME_DEBUG_INPUT_OVERRIDE_EXTERNAL) {
         func_807150F8(1);
         return;
     }
@@ -2750,12 +2750,12 @@ void Gp_ApplyPadReplay(s32 arg0, PadScratch* arg1)
             Gp_ReplayButtons = 0xFFFF;
             Gp_ReplayCursor  = next;
             if (*next == 0xFFFF) {
-                Wip_SysFlags.field_4    = 0;
-                Pad_RemapState->field_8 = 0;
+                Wip_SysFlags.field_4              = 0;
+                Pad_RemapState->inputOverrideMode = GAME_DEBUG_INPUT_OVERRIDE_NONE;
             }
         }
     } else {
-        Pad_RemapState->field_8 = 0;
+        Pad_RemapState->inputOverrideMode = GAME_DEBUG_INPUT_OVERRIDE_NONE;
     }
 }
 
@@ -2793,9 +2793,9 @@ void Gp_InitPlayClock(Task* task)
         } else {
             Gp_ReplayCursor = (u16*)((u8*)Fs_ActorLoadBase2 + 0xD4C);
         }
-        Gp_ReplayButtons        = 0xFFFF;
-        Gp_ReplayFramesLeft     = 1;
-        Pad_RemapState->field_8 = -1;
+        Gp_ReplayButtons                  = 0xFFFF;
+        Gp_ReplayFramesLeft               = 1;
+        Pad_RemapState->inputOverrideMode = GAME_DEBUG_INPUT_OVERRIDE_REPLAY;
     } else if (Pad_RemapState->field_9 == 1) {
         func_80715198();
     }

@@ -3253,7 +3253,7 @@ CdStream_LastTransferBuffer = 0x80068B6C;
 
 CdStream_LastTransferSpuAddress = 0x80068B70;
 
-Pad_DefaultRemapState = 0x8007A370; // type:PadRemapState size:0x1C
+Pad_DefaultRemapState = 0x8007A370; // type:GameDebugState size:0x1C
 
 CdAudio_SectorBuffer = 0x80082750; // size:0x4
 
