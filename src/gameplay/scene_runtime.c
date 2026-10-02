@@ -3027,22 +3027,31 @@ static void func_800B4754(AnimationContext* unusedContext, AnimationSlot* arg1, 
     arg1->currentPose.indices.setIndex    = arg2;
 }
 
-/// Selects a play request's next record while retaining the capture tick's flags.
+/// Selects a play-with-blend's next record, following controls without clearing flags.
 ///
-/// `candidateIndex` is an absolute u16 element index into the target set's
-/// borrowed records. Jumps replace it with their unsigned offset and add walk
-/// flags, including a boundary when the target equals the slot's prior next
-/// index; set indices are not compared. Stops ignore their offset, retain that
-/// prior index and add the boundary flag. The retained index must also fit the
-/// target array even when the set changes. Every visited record must be readable
-/// and the chain must terminate. Installs only the next record index; the caller
-/// installs the set index. No bounds are checked.
+/// `playbackSlot` is the writable slot and `recordArray` the target set's borrowed
+/// records. `candidateIndex` is a by-value absolute element index in that array;
+/// the caller's variable is left unchanged. While `ANIMATION_RECORD_CONTROL` is
+/// set, flags below `ANIMATION_RECORD_END_THRESHOLD` are a jump: the local index
+/// becomes `wordOffset`, an absolute record index, and the walk adds
+/// `ANIMATION_SLOT_FOLLOWED_JUMP`. A jump whose record index equals the slot's
+/// prior next record index also adds `ANIMATION_SLOT_REACHED_BOUNDARY`; set
+/// indices are not compared. A stop ignores `wordOffset`, retains that prior
+/// record index and adds only the boundary flag. Flags already set, including
+/// the capture tick's results, stay set.
+///
+/// Installs only `nextPose.indices.recordIndex`. The caller installs the target
+/// set index afterwards. Every visited index and a stop's retained prior index
+/// must fit `recordArray`, even when that array belongs to a different set from
+/// the prior endpoint. The chain must reach a keyframe or stop. Records must
+/// remain readable and the slot writable throughout the call; no bounds are
+/// checked.
 static inline void _animationSelectPlayRecord(AnimationSlot* playbackSlot, const AnimationRecord* recordArray,
                                               u16 candidateIndex)
 {
     const AnimationRecord* controlRecord;
 
-    // The signed byte tests the control bit; the unsigned threshold distinguishes stops.
+    // The signed byte tests the ANIMATION_RECORD_CONTROL bit; the unsigned threshold separates stops.
     while ((s8)recordArray[candidateIndex].flags < 0) {
         // Subtracting the negated promoted index preserves the address-add operand order.
         controlRecord = recordArray - -candidateIndex;
