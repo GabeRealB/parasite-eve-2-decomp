@@ -474,67 +474,67 @@ GpMapName D_map_akropolis_8017A3BC[21] = {
     { "" },
 };
 
-static GpEnemyDesc D_map_akropolis_8017A65C[1] = {
-    { 0xFFFF },
+static AreaObjectSpawn D_map_akropolis_8017A65C[1] = {
+    { AREA_OBJECT_SPAWN_END },
 };
 
-static GpEnemyDesc D_map_akropolis_8017A66C[1] = {
-    { 0xFFFF },
+static AreaObjectSpawn D_map_akropolis_8017A66C[1] = {
+    { AREA_OBJECT_SPAWN_END },
 };
 
-static GpEnemyDesc D_map_akropolis_8017A67C[3] = {
-    { 4, { 0 }, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, func_acropolis_cafeteria_8018286C, { &gAcropolisCafeteriaModel0F7A4 } } },
-    { 0x107, { 0 }, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, func_acropolis_cafeteria_801827C4, { &gAcropolisCafeteriaModel0FDFC } } },
-    { 0xFFFF },
+static AreaObjectSpawn D_map_akropolis_8017A67C[3] = {
+    { 4, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, func_acropolis_cafeteria_8018286C, { &gAcropolisCafeteriaModel0F7A4 } } },
+    { 0x107, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, func_acropolis_cafeteria_801827C4, { &gAcropolisCafeteriaModel0FDFC } } },
+    { AREA_OBJECT_SPAWN_END },
 };
 
-static GpEnemyDesc D_map_akropolis_8017A6AC[2] = {
-    { 0x701, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, Gp_ItemPickupTilt, { &gAcropolisSecurityRoomAcropolisSanctuaryModel090F0 } } },
-    { 0xFFFF },
+static AreaObjectSpawn D_map_akropolis_8017A6AC[2] = {
+    { 0x701, { { { TASK_BODY_TMD, 0x62 } }, Gp_ItemPickupTilt, { &gAcropolisSecurityRoomAcropolisSanctuaryModel090F0 } } },
+    { AREA_OBJECT_SPAWN_END },
 };
 
-static GpEnemyDesc D_map_akropolis_8017A6CC[2] = {
-    { 0x104, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, func_acropolis_hallway_8017E120, { &gAcropolisHallwayModel01AE0 } } },
-    { 0xFFFF },
+static AreaObjectSpawn D_map_akropolis_8017A6CC[2] = {
+    { 0x104, { { { TASK_BODY_TMD, 0x62 } }, func_acropolis_hallway_8017E120, { &gAcropolisHallwayModel01AE0 } } },
+    { AREA_OBJECT_SPAWN_END },
 };
 
-static GpEnemyDesc D_map_akropolis_8017A6EC[1] = {
-    { 0xFFFF },
+static AreaObjectSpawn D_map_akropolis_8017A6EC[1] = {
+    { AREA_OBJECT_SPAWN_END },
 };
 
-static GpEnemyDesc D_map_akropolis_8017A6FC[1] = {
-    { 0xFFFF },
+static AreaObjectSpawn D_map_akropolis_8017A6FC[1] = {
+    { AREA_OBJECT_SPAWN_END },
 };
 
-static GpEnemyDesc D_map_akropolis_8017A70C[1] = {
-    { 0xFFFF },
+static AreaObjectSpawn D_map_akropolis_8017A70C[1] = {
+    { AREA_OBJECT_SPAWN_END },
 };
 
-static GpEnemyDesc D_map_akropolis_8017A71C[1] = {
-    { 0xFFFF },
+static AreaObjectSpawn D_map_akropolis_8017A71C[1] = {
+    { AREA_OBJECT_SPAWN_END },
 };
 
-static GpEnemyDesc D_map_akropolis_8017A72C[3] = {
-    { 0x103, { 0 }, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, func_acropolis_sanctuary_80180264, { &gAcropolisSanctuaryModel09584 } } },
-    { 0x702, { 0 }, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, Gp_ItemPickupTilt, { &gAcropolisSanctuaryModel090F0 } } },
-    { 0xFFFF },
+static AreaObjectSpawn D_map_akropolis_8017A72C[3] = {
+    { 0x103, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, func_acropolis_sanctuary_80180264, { &gAcropolisSanctuaryModel09584 } } },
+    { 0x702, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, Gp_ItemPickupTilt, { &gAcropolisSanctuaryModel090F0 } } },
+    { AREA_OBJECT_SPAWN_END },
 };
 
-static GpEnemyDesc D_map_akropolis_8017A75C[2] = {
-    { 0x105, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, func_acropolis_roof_garden_80180160, { &gAcropolisRoofGardenModel09868 } } },
-    { 0xFFFF },
+static AreaObjectSpawn D_map_akropolis_8017A75C[2] = {
+    { 0x105, { { { TASK_BODY_TMD, 0x62 } }, func_acropolis_roof_garden_80180160, { &gAcropolisRoofGardenModel09868 } } },
+    { AREA_OBJECT_SPAWN_END },
 };
 
-static GpEnemyDesc D_map_akropolis_8017A77C[1] = {
-    { 0xFFFF },
+static AreaObjectSpawn D_map_akropolis_8017A77C[1] = {
+    { AREA_OBJECT_SPAWN_END },
 };
 
-static GpEnemyDesc D_map_akropolis_8017A78C[1] = {
-    { 0xFFFF },
+static AreaObjectSpawn D_map_akropolis_8017A78C[1] = {
+    { AREA_OBJECT_SPAWN_END },
 };
 
-static GpEnemyDesc D_map_akropolis_8017A79C[1] = {
-    { 0xFFFF },
+static AreaObjectSpawn D_map_akropolis_8017A79C[1] = {
+    { AREA_OBJECT_SPAWN_END },
 };
 
 static AreaObjectPlace D_map_akropolis_8017A7AC[2] = {
@@ -542,10 +542,10 @@ static AreaObjectPlace D_map_akropolis_8017A7AC[2] = {
     { 0xFFFF },
 };
 
-static GpEnemyDesc D_map_akropolis_8017A7CC[3] = {
-    { 0x204, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, func_acropolis_helicopter_landing_pad_8017D964, { &gAcropolisHelicopterLandingPadModel0547C } } },
-    { 0xA4, { 0 }, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, func_acropolis_helicopter_landing_pad_801822B0, { &gAcropolisHelicopterLandingPadModel0A8E8 } } },
-    { 0xFFFF },
+static AreaObjectSpawn D_map_akropolis_8017A7CC[3] = {
+    { 0x204, { { { TASK_BODY_TMD, 0x62 } }, func_acropolis_helicopter_landing_pad_8017D964, { &gAcropolisHelicopterLandingPadModel0547C } } },
+    { 0xA4, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, func_acropolis_helicopter_landing_pad_801822B0, { &gAcropolisHelicopterLandingPadModel0A8E8 } } },
+    { AREA_OBJECT_SPAWN_END },
 };
 
 GpBit2List D_map_akropolis_8017A7FC[22] = {

@@ -411,7 +411,7 @@ static void func_800B6094(Task* task);
 /// The 2-bit state of entry `arg0` in the current stage's `Gp_Bit2Banks` flags.
 static inline s32 _gpGetCurBit2Flag(s32 arg0);
 
-static inline void _gpSpawnPlace(GpEnemyDesc* desc, AreaObjectPlace* place);
+static inline void _gpSpawnPlace(AreaObjectSpawn* spawn, AreaObjectPlace* place);
 
 /// Inline form of `Gp_GetRelatedQty`: the most of a related item weapon
 /// `item` can hold, from bank `bank`'s table, or 0 for a non-weapon id.
@@ -4019,8 +4019,8 @@ static inline s32 _gpGetCurBit2Flag(s32 arg0)
     return word;
 }
 
-/// Spawns the enemy descriptor whose id equals `place->kind`, at that place.
-static inline void _gpSpawnPlace(GpEnemyDesc* desc, AreaObjectPlace* place)
+/// Spawns the first `spawn` table entry whose kind equals `place->kind`, at that place.
+static inline void _gpSpawnPlace(AreaObjectSpawn* spawn, AreaObjectPlace* place)
 {
     Enemy*     enemy;
     Task*      task;
@@ -4028,10 +4028,10 @@ static inline void _gpSpawnPlace(GpEnemyDesc* desc, AreaObjectPlace* place)
     GfxCoord*  coord;
     u16        id;
 
-    id = desc->field_0;
-    while (id != 0xFFFF) {
+    id = spawn->kind;
+    while (id != AREA_OBJECT_SPAWN_END) {
         if (id == place->kind) {
-            enemy = Gp_SpawnEnemyFromTable(&desc->field_4, 0, desc->field_0, NULL);
+            enemy = Gp_SpawnEnemyFromTable(&spawn->taskDesc, 0, spawn->kind, NULL);
             if (enemy != NULL) {
                 task = enemy->task;
                 if (task->bodyKind != TASK_BODY_NONE) {
@@ -4051,8 +4051,8 @@ static inline void _gpSpawnPlace(GpEnemyDesc* desc, AreaObjectPlace* place)
             }
             return;
         }
-        desc++;
-        id = desc->field_0;
+        spawn++;
+        id = spawn->kind;
     }
 }
 

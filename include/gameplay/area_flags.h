@@ -45,29 +45,36 @@ typedef struct {
 } AreaObjectPlace;
 STATIC_ASSERT_SIZEOF(AreaObjectPlace, 0x10);
 
-/// Spawn header for `Gp_SpawnAtPlace` / `Gp_SpawnPlaces`. `field_0` is
-/// `Task_SpawnFromTable` arg2 (0xFFFF terminator); `field_4` is the
-/// `TaskDesc` table (`Gp_SpawnEnemyFromTable` uses idx 0).
-typedef struct _GpEnemyDesc {
-    /* 0x0 */ u16      field_0;
-    /* 0x2 */ byte     pad_2[2];
-    /* 0x4 */ TaskDesc field_4;
-} GpEnemyDesc;
-STATIC_ASSERT_SIZEOF(GpEnemyDesc, 0x10);
+/// `kind` value that ends an `AreaObjectSpawn` table.
+enum { AREA_OBJECT_SPAWN_END = 0xFFFF };
+
+/// How a room spawns the placed objects of one kind.
+///
+/// A room's table of these, ended by `AREA_OBJECT_SPAWN_END`, sits beside its
+/// `AreaObjectPlace` list. Each place whose flag is set spawns from the first
+/// entry whose `kind` equals the place's `kind`; a kind with no entry spawns
+/// nothing. Entries cover enemies, pickups and room props alike - every spawn
+/// is given `Enemy` work, placed at the record's position and yaw when its
+/// body is not `TASK_BODY_NONE`.
+typedef struct {
+    u16      kind;     // `AreaObjectPlace.kind` this entry spawns; also the task's spawn argument 1
+    TaskDesc taskDesc; // Spawn recipe: body, priority, per-frame callback and model
+} AreaObjectSpawn;
+STATIC_ASSERT_SIZEOF(AreaObjectSpawn, 0x10);
 
 /// 8-byte list node walked by `Gp_ApplyBit2List` / `Gp_ApplyBit2Bank` /
 /// `Gp_LookupBit2Item`. The first word holds either an `AreaObjectPlace` list
 /// (NULL skips) or an integer sentinel: -1 for `Gp_ApplyBit2List` /
 /// `Gp_ApplyBit2Bank`, 0x7FFFFFFF for `Gp_LookupBit2Item`.
 /// `Gp_SpawnPlaces` / `Gp_SpawnPlaceById` read field_4 as the room's
-/// 0xFFFF-terminated `GpEnemyDesc` table.
+/// `AREA_OBJECT_SPAWN_END`-terminated `AreaObjectSpawn` table.
 /// `Gp_Bit2Banks[i].field_0` points at a table of these.
 typedef struct _GpBit2List {
     /* 0x00 */ union {
         AreaObjectPlace* records;
         s32              sentinel;
     } field_0;
-    /* 0x04 */ GpEnemyDesc* field_4;
+    /* 0x04 */ AreaObjectSpawn* field_4;
 } GpBit2List;
 STATIC_ASSERT_SIZEOF(GpBit2List, 0x8);
 

@@ -408,17 +408,17 @@ GpMapName D_map_neo_ark_8017A28C[33] = {
     { "Substation" },
 };
 
-static GpEnemyDesc D_map_neo_ark_8017A6AC[1] = {
-    { 0xFFFF },
+static AreaObjectSpawn D_map_neo_ark_8017A6AC[1] = {
+    { AREA_OBJECT_SPAWN_END },
 };
 
-static GpEnemyDesc D_map_neo_ark_8017A6BC[2] = {
-    { 0x124, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, func_shelter_1f_vehicular_airlock_8017D5E4, { &gShelter1fVehicularAirlockModel03A58 } } },
-    { 0xFFFF },
+static AreaObjectSpawn D_map_neo_ark_8017A6BC[2] = {
+    { 0x124, { { { TASK_BODY_TMD, 0x62 } }, func_shelter_1f_vehicular_airlock_8017D5E4, { &gShelter1fVehicularAirlockModel03A58 } } },
+    { AREA_OBJECT_SPAWN_END },
 };
 
-static GpEnemyDesc D_map_neo_ark_8017A6DC[1] = {
-    { 0xFFFF },
+static AreaObjectSpawn D_map_neo_ark_8017A6DC[1] = {
+    { AREA_OBJECT_SPAWN_END },
 };
 
 GpBit2List D_map_neo_ark_8017A6EC[35] = {

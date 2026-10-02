@@ -319,22 +319,22 @@ GpMapName D_map_dryfield_full_80179F4C[38] = {
     { "Underpass" },
 };
 
-static GpEnemyDesc D_map_dryfield_full_8017A40C[1] = {
-    { 0xFFFF },
+static AreaObjectSpawn D_map_dryfield_full_8017A40C[1] = {
+    { AREA_OBJECT_SPAWN_END },
 };
 
-static GpEnemyDesc D_map_dryfield_full_8017A41C[1] = {
-    { 0xFFFF },
+static AreaObjectSpawn D_map_dryfield_full_8017A41C[1] = {
+    { AREA_OBJECT_SPAWN_END },
 };
 
-static GpEnemyDesc D_map_dryfield_full_8017A42C[2] = {
-    { 0x82, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, Gp_ItemPickupTilt, { &gDryfieldNightTrailerCoachAcropolisSanctuaryModel090F0 } } },
-    { 0xFFFF },
+static AreaObjectSpawn D_map_dryfield_full_8017A42C[2] = {
+    { 0x82, { { { TASK_BODY_TMD, 0x62 } }, Gp_ItemPickupTilt, { &gDryfieldNightTrailerCoachAcropolisSanctuaryModel090F0 } } },
+    { AREA_OBJECT_SPAWN_END },
 };
 
-static GpEnemyDesc D_map_dryfield_full_8017A44C[2] = {
-    { 0x117, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, Gp_WaitItemFlag2, { &gDryfieldNightMotelLoftActor135400Model071AC } } },
-    { 0xFFFF },
+static AreaObjectSpawn D_map_dryfield_full_8017A44C[2] = {
+    { 0x117, { { { TASK_BODY_TMD, 0x62 } }, Gp_WaitItemFlag2, { &gDryfieldNightMotelLoftActor135400Model071AC } } },
+    { AREA_OBJECT_SPAWN_END },
 };
 
 GpBit2List D_map_dryfield_full_8017A46C[40] = {

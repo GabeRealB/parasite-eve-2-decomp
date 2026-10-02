@@ -19,7 +19,7 @@
 
 static inline s32 _gpGetCurBit2Flag(s32 arg0);
 
-static inline void _gpSpawnPlace(GpEnemyDesc* desc, AreaObjectPlace* place);
+static inline void _gpSpawnPlace(AreaObjectSpawn* spawn, AreaObjectPlace* place);
 
 static void Gp_SpawnPlaceById(u16 arg0);
 
@@ -36,7 +36,7 @@ static inline s32 _gpGetCurBit2Flag(s32 arg0)
     word >>= shift;
     return word;
 }
-static inline void _gpSpawnPlace(GpEnemyDesc* desc, AreaObjectPlace* place)
+static inline void _gpSpawnPlace(AreaObjectSpawn* spawn, AreaObjectPlace* place)
 {
     Enemy*     enemy;
     Task*      task;
@@ -44,10 +44,10 @@ static inline void _gpSpawnPlace(GpEnemyDesc* desc, AreaObjectPlace* place)
     GfxCoord*  coord;
     u16        id;
 
-    id = desc->field_0;
-    while (id != 0xFFFF) {
+    id = spawn->kind;
+    while (id != AREA_OBJECT_SPAWN_END) {
         if (id == place->kind) {
-            enemy = Gp_SpawnEnemyFromTable(&desc->field_4, 0, desc->field_0, NULL);
+            enemy = Gp_SpawnEnemyFromTable(&spawn->taskDesc, 0, spawn->kind, NULL);
             if (enemy != NULL) {
                 task = enemy->task;
                 if (task->bodyKind != TASK_BODY_NONE) {
@@ -67,8 +67,8 @@ static inline void _gpSpawnPlace(GpEnemyDesc* desc, AreaObjectPlace* place)
             }
             return;
         }
-        desc++;
-        id = desc->field_0;
+        spawn++;
+        id = spawn->kind;
     }
 }
 
@@ -247,7 +247,7 @@ void Gp_SpawnPlaces(GameLocationKey* arg0)
 {
     GpBit2List*      lists;
     AreaObjectPlace* place;
-    GpEnemyDesc*     desc;
+    AreaObjectSpawn* spawn;
     Enemy*           enemy;
     Task*            task;
     TmdObject*       extra;
@@ -268,12 +268,12 @@ void Gp_SpawnPlaces(GameLocationKey* arg0)
         return;
     }
     do {
-        desc = lists[arg0->area].field_4;
-        id   = desc->field_0;
+        spawn = lists[arg0->area].field_4;
+        id    = spawn->kind;
         if (id != term) {
             do {
                 if (id == place->kind) {
-                    enemy = Gp_SpawnEnemyFromTable(&desc->field_4, 0, desc->field_0, NULL);
+                    enemy = Gp_SpawnEnemyFromTable(&spawn->taskDesc, 0, spawn->kind, NULL);
                     if (enemy != NULL) {
                         task = enemy->task;
                         if (task->bodyKind != TASK_BODY_NONE) {
@@ -293,8 +293,8 @@ void Gp_SpawnPlaces(GameLocationKey* arg0)
                     }
                     break;
                 }
-                desc++;
-                id = desc->field_0;
+                spawn++;
+                id = spawn->kind;
             } while (id != term);
         }
         place++;

@@ -424,48 +424,48 @@ GpMapName D_map_shelter_8017A268[49] = {
     { "Oval Office\x81\x69morning\x81\x6A" },
 };
 
-static GpEnemyDesc D_map_shelter_8017A888[1] = {
-    { 0xFFFF },
+static AreaObjectSpawn D_map_shelter_8017A888[1] = {
+    { AREA_OBJECT_SPAWN_END },
 };
 
-static GpEnemyDesc D_map_shelter_8017A898[2] = {
-    { 0x20D, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, func_mine_forked_tunnel_8017DBE4, { &gMineForkedTunnelModel01B48 } } },
-    { 0xFFFF },
+static AreaObjectSpawn D_map_shelter_8017A898[2] = {
+    { 0x20D, { { { TASK_BODY_TMD, 0x62 } }, func_mine_forked_tunnel_8017DBE4, { &gMineForkedTunnelModel01B48 } } },
+    { AREA_OBJECT_SPAWN_END },
 };
 
-static GpEnemyDesc D_map_shelter_8017A8B8[2] = {
-    { 0x127, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, func_shelter_b1_sleeping_quarters_8017D608, { &gShelterB1SleepingQuartersModel02DFC } } },
-    { 0xFFFF },
+static AreaObjectSpawn D_map_shelter_8017A8B8[2] = {
+    { 0x127, { { { TASK_BODY_TMD, 0x62 } }, func_shelter_b1_sleeping_quarters_8017D608, { &gShelterB1SleepingQuartersModel02DFC } } },
+    { AREA_OBJECT_SPAWN_END },
 };
 
-static GpEnemyDesc D_map_shelter_8017A8D8[2] = {
-    { 0x70A, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, Gp_ItemPickupTilt, { &gShelterB2LaboratoryAcropolisSanctuaryModel090F0 } } },
-    { 0xFFFF },
+static AreaObjectSpawn D_map_shelter_8017A8D8[2] = {
+    { 0x70A, { { { TASK_BODY_TMD, 0x62 } }, Gp_ItemPickupTilt, { &gShelterB2LaboratoryAcropolisSanctuaryModel090F0 } } },
+    { AREA_OBJECT_SPAWN_END },
 };
 
-static GpEnemyDesc D_map_shelter_8017A8F8[2] = {
-    { 0x129, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, func_shelter_b2_breeding_room_8017D5F8, { &gShelterB2BreedingRoomModel02E04 } } },
-    { 0xFFFF },
+static AreaObjectSpawn D_map_shelter_8017A8F8[2] = {
+    { 0x129, { { { TASK_BODY_TMD, 0x62 } }, func_shelter_b2_breeding_room_8017D5F8, { &gShelterB2BreedingRoomModel02E04 } } },
+    { AREA_OBJECT_SPAWN_END },
 };
 
-static GpEnemyDesc D_map_shelter_8017A918[2] = {
-    { 0x37, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, Gp_ItemPickupTilt, { &gShelterB3DumpingHoleAcropolisSanctuaryModel090F0 } } },
-    { 0xFFFF },
+static AreaObjectSpawn D_map_shelter_8017A918[2] = {
+    { 0x37, { { { TASK_BODY_TMD, 0x62 } }, Gp_ItemPickupTilt, { &gShelterB3DumpingHoleAcropolisSanctuaryModel090F0 } } },
+    { AREA_OBJECT_SPAWN_END },
 };
 
-static GpEnemyDesc D_map_shelter_8017A938[3] = {
-    { 0x20B, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, func_actor_503500_8013270C, { &gActor503500Model14DA0 } } },
-    { 0x20C, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, func_actor_503500_8013270C, { &gActor503500Model15820 } } },
-    { 0xFFFF },
+static AreaObjectSpawn D_map_shelter_8017A938[3] = {
+    { 0x20B, { { { TASK_BODY_TMD, 0x62 } }, func_actor_503500_8013270C, { &gActor503500Model14DA0 } } },
+    { 0x20C, { { { TASK_BODY_TMD, 0x62 } }, func_actor_503500_8013270C, { &gActor503500Model15820 } } },
+    { AREA_OBJECT_SPAWN_END },
 };
 
-static GpEnemyDesc D_map_shelter_8017A968[1] = {
-    { 0xFFFF },
+static AreaObjectSpawn D_map_shelter_8017A968[1] = {
+    { AREA_OBJECT_SPAWN_END },
 };
 
-static GpEnemyDesc D_map_shelter_8017A978[2] = {
-    { 0x708, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, Gp_ItemPickupTilt, { &gShelterB1SterilizationRoomAcropolisSanctuaryModel090F0 } } },
-    { 0xFFFF },
+static AreaObjectSpawn D_map_shelter_8017A978[2] = {
+    { 0x708, { { { TASK_BODY_TMD, 0x62 } }, Gp_ItemPickupTilt, { &gShelterB1SterilizationRoomAcropolisSanctuaryModel090F0 } } },
+    { AREA_OBJECT_SPAWN_END },
 };
 
 GpBit2List D_map_shelter_8017A998[51] = {

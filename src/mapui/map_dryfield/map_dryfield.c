@@ -366,22 +366,22 @@ GpMapName D_map_dryfield_8017A044[38] = {
     { "Underpass" },
 };
 
-static GpEnemyDesc D_map_dryfield_8017A504[1] = {
-    { 0xFFFF },
+static AreaObjectSpawn D_map_dryfield_8017A504[1] = {
+    { AREA_OBJECT_SPAWN_END },
 };
 
-static GpEnemyDesc D_map_dryfield_8017A514[1] = {
-    { 0xFFFF },
+static AreaObjectSpawn D_map_dryfield_8017A514[1] = {
+    { AREA_OBJECT_SPAWN_END },
 };
 
-static GpEnemyDesc D_map_dryfield_8017A524[2] = {
-    { 0x114, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, func_dryfield_junk_yard_8017D5F4, { &gDryfieldJunkYardModel01378 } } },
-    { 0xFFFF },
+static AreaObjectSpawn D_map_dryfield_8017A524[2] = {
+    { 0x114, { { { TASK_BODY_TMD, 0x62 } }, func_dryfield_junk_yard_8017D5F4, { &gDryfieldJunkYardModel01378 } } },
+    { AREA_OBJECT_SPAWN_END },
 };
 
-static GpEnemyDesc D_map_dryfield_8017A544[2] = {
-    { 0x82, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, Gp_ItemPickupTilt, { &gDryfieldTrailerCoachAcropolisSanctuaryModel090F0 } } },
-    { 0xFFFF },
+static AreaObjectSpawn D_map_dryfield_8017A544[2] = {
+    { 0x82, { { { TASK_BODY_TMD, 0x62 } }, Gp_ItemPickupTilt, { &gDryfieldTrailerCoachAcropolisSanctuaryModel090F0 } } },
+    { AREA_OBJECT_SPAWN_END },
 };
 
 GpBit2List D_map_dryfield_8017A564[40] = {
