@@ -3,18 +3,23 @@
 
 #include "common.h"
 
-/// On-screen position of an action prompt's cursor. `Room_UtilCursor` compares
-/// the pair against a previously latched copy as a single word to decide whether
-/// the cursor has moved since the last press, so the two shorts are reachable
-/// both individually and as one `s32`.
-typedef struct RoomActionPromptPos {
-    /* 0x0 */ s16 x;
-    /* 0x2 */ s16 y;
-} RoomActionPromptPos;
+/// Signed screen position of an action-prompt cursor, in pixels.
+///
+/// The origin is the screen center and Y increases downward, the same space as
+/// a hotspot rectangle: a full-screen hotspot covers [-160, -120, 320, 240].
+/// Each frame the cursor task stores the pixel coordinate of its 1/512-pixel
+/// position here; those writes stay within X [-160, 159] and Y [-110, 110].
+/// The two shorts occupy one word, so a button slot can latch the position and
+/// tell whether the cursor has moved.
+typedef struct {
+    s16 x; // Horizontal pixels from the screen center
+    s16 y; // Vertical pixels from the screen center, increasing downward
+} ActionPromptCursorPos;
+STATIC_ASSERT_SIZEOF(ActionPromptCursorPos, 4);
 
 typedef union RoomActionPromptScreen {
-    /* 0x0 */ RoomActionPromptPos xy;
-    /* 0x0 */ s32                 packed;
+    /* 0x0 */ ActionPromptCursorPos xy;
+    /* 0x0 */ s32                   packed;
 } RoomActionPromptScreen;
 
 /// One of the two button slots at the tail of `RoomActionPrompt`. `state` is the

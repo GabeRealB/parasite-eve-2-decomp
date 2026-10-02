@@ -336,6 +336,7 @@ prefixes, choose the responsibility the symbol actually implements.
 | `gpu` | Raw texture and palette uploads to VRAM, and GPU packet blend-mode commands linked into the current depth-sorted ordering table | `world_targets.c` (image uploads), `room_effects.c` | `include/gameplay/gpu_image_upload.h`, `include/gameplay/world_targets.h` (upload functions), `include/gameplay/room_effects.h` |
 | `roomEffect` | Room effect state and tasks | `room_effects.c` | `include/gameplay/room_effects.h`, `src/gameplay/room_effects.h` |
 | `hud` | HUD sprites, numbers and tracking | `hud_sprites.c` | `include/gameplay/hud_sprites.h`, `src/gameplay/hud_sprites.h` |
+| `actionPrompt` | Point-and-click action cursors shared by room and actor overlays | `menu_actions.c` (resident per-port slots) | `include/gameplay/action_prompt.h`, `src/shared/action_prompt.h` |
 | `padInput`, `padScript` | Gameplay input mapping, and scripted on/off and variable-intensity controller vibration | `pad_input.c`, `pad_scripts.c` | `include/gameplay/pad_input.h`, `include/gameplay/pad_script.h`, `src/gameplay/pad_input.h`, `src/gameplay/pad_script.h` |
 | `playerActor`, `playerState` | Player actor dispatch, movement and action states | `player_actor.c`, `player_state.c` | `include/gameplay/player_actor.h`, `include/gameplay/player_state.h`, `include/gameplay/actor_spawn_types.h` (player/companion spawn transforms), `src/gameplay/player_actor.h`, `src/gameplay/player_state.h` |
 | `scene` | Scene tasks, actor-command routing, combat state and runtime coordination | `scene_runtime.c`, `world_targets.c` (combat state) | `include/gameplay/scene_runtime.h`, `include/gameplay/scene_combat.h`, `include/gameplay/world_state.h` (combat type), `include/gameplay/message.h` (`ActorCommand`), `src/gameplay/scene_runtime.h` |
@@ -367,6 +368,12 @@ light-beam drawing. Scratch records that several overlays share, such as the
 one-centre projection block, are declared in `include/rooms/room_common.h`. If a shared implementation and a gameplay
 subsystem have similar names, distinguish actual ownership and linkage before
 introducing a qualifier; do not assume that they are one API.
+
+`actionPrompt` owns the point-and-click action cursor shared by room and actor
+overlays. The resident per-port state and its public types are gameplay
+(`include/gameplay/action_prompt.h`, slots in `menu_actions.c`). The included
+motion, drawing, hotspot test and outline are `src/shared/action_prompt.h` and
+its fragments; a package includes only the fragments it carries.
 
 `roomEvent` owns the included room event gates, latched event records and event
 tasks. Its implementation interface is `src/shared/room_events.h`; record types
