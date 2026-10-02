@@ -1090,10 +1090,10 @@ static const TaskFuncTable10 D_actor_107600_80131E84 = { {
 
 void func_actor_107600_801328CC(Task* arg0)
 {
-    TaskFuncTable4 sp;
+    TaskFuncTable4 handlers;
 
-    sp = D_actor_107600_80131E24;
-    sp.funcs[arg0->state](arg0);
+    handlers = D_actor_107600_80131E24;
+    handlers.funcs[arg0->state](arg0);
 }
 
 /// Update state of the `D_actor_107600_80131E24` table, switched on the scene
@@ -2031,10 +2031,10 @@ static void func_actor_107600_80134608(Enemy* arg0, VECTOR* arg1, s32 arg2, s32 
 
 void func_actor_107600_801348A0(Task* arg0)
 {
-    TaskFuncTable4 sp;
+    TaskFuncTable4 handlers;
 
-    sp = D_actor_107600_80131E74;
-    sp.funcs[arg0->state](arg0);
+    handlers = D_actor_107600_80131E74;
+    handlers.funcs[arg0->state](arg0);
 }
 
 static void func_actor_107600_80134904(Task* arg0)

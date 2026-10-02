@@ -129,8 +129,8 @@ static const TaskFuncTable4 D_grenade_pistol_8011D1C4 = { {
 
 void SLOT_FUNC(8011DBD0)(Task* arg0)
 {
-    TaskFuncTable4 sp;
+    TaskFuncTable4 handlers;
 
-    sp = D_grenade_pistol_8011D1C4;
-    sp.funcs[arg0->state](arg0);
+    handlers = D_grenade_pistol_8011D1C4;
+    handlers.funcs[arg0->state](arg0);
 }

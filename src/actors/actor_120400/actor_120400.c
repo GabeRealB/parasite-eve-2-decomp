@@ -1154,11 +1154,11 @@ static void func_actor_120400_801327F0(Task* arg0)
 static void func_actor_120400_801327F8(Task* task)
 {
     Actor120400MainWork* work;
-    TaskFuncTable4       fns;
+    TaskFuncTable4       handlers;
 
-    work = (Actor120400MainWork*)task->work;
-    fns  = D_actor_120400_80131E3C;
-    fns.funcs[work->walk.motionStep](task);
+    work     = (Actor120400MainWork*)task->work;
+    handlers = D_actor_120400_80131E3C;
+    handlers.funcs[work->walk.motionStep](task);
 }
 
 #include "../../shared/actor_motion_face.inc.c"

@@ -4287,11 +4287,11 @@ static const TaskFuncTable4 Actor00400_D00134 = { {
 static void Actor00400_Fn077F4(Task* arg0)
 {
     Actor100400Work* work;
-    TaskFuncTable4   fns;
+    TaskFuncTable4   handlers;
     Actor100400Work* work2;
 
-    work = arg0->work;
-    fns  = Actor00400_D00134;
+    work     = arg0->work;
+    handlers = Actor00400_D00134;
     if ((Actor00400_Fn02154(arg0) << 0x10) != 0) {
         gSceneCombatState.signals.bytes.enemyAlert = 1;
         Gp_ArmStateF0(1);
@@ -4300,7 +4300,7 @@ static void Actor00400_Fn077F4(Task* arg0)
         work2->field_638 = 4;
         work2->subState  = 0;
     } else {
-        fns.funcs[(s16)work->subState](arg0);
+        handlers.funcs[(s16)work->subState](arg0);
     }
 }
 
@@ -4454,12 +4454,12 @@ static void Actor00400_Fn07C04(Task* arg0)
 {
     Enemy*           obj;
     Actor100400Work* work;
-    TaskFuncTable4   fns;
+    TaskFuncTable4   handlers;
     Actor100400Work* work2;
 
-    obj  = arg0->spawnArg2.pointer;
-    work = arg0->work;
-    fns  = Actor00400_D00168;
+    obj      = arg0->spawnArg2.pointer;
+    work     = arg0->work;
+    handlers = Actor00400_D00168;
     if (GameFlag_GetNibble(GAME_FLAG_SUBMARINE_TUNNEL_EVENT_SEEN) != 0) {
         work2            = arg0->work;
         work2->field_638 = 0xB;
@@ -4467,7 +4467,7 @@ static void Actor00400_Fn07C04(Task* arg0)
     } else {
         work->field_660             = 1;
         obj->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        fns.funcs[(s16)work->subState](arg0);
+        handlers.funcs[(s16)work->subState](arg0);
     }
 }
 

@@ -425,11 +425,11 @@ static const TaskFuncTable4 D_actor_342400_80161E24 = { {
 
 void func_actor_342400_80162748(Task* arg0)
 {
-    TaskFuncTable4 sp;
+    TaskFuncTable4 handlers;
 
-    sp = D_actor_342400_80161E24;
+    handlers = D_actor_342400_80161E24;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        sp.funcs[arg0->state](arg0);
+        handlers.funcs[arg0->state](arg0);
     }
 }
 
@@ -445,10 +445,10 @@ static const TaskFuncTable4 D_actor_342400_80161E34 = { {
 /// Runs the first spawner task's handler for its `Task::state`.
 void func_actor_342400_801627C0(Task* arg0)
 {
-    TaskFuncTable4 sp;
+    TaskFuncTable4 handlers;
 
-    sp = D_actor_342400_80161E34;
-    sp.funcs[arg0->state](arg0);
+    handlers = D_actor_342400_80161E34;
+    handlers.funcs[arg0->state](arg0);
 }
 
 /// The second spawner task's four state handlers, dispatched by
@@ -463,10 +463,10 @@ static const TaskFuncTable4 D_actor_342400_80161E44 = { {
 /// Runs the second spawner task's handler for its `Task::state`.
 void func_actor_342400_80162824(Task* arg0)
 {
-    TaskFuncTable4 sp;
+    TaskFuncTable4 handlers;
 
-    sp = D_actor_342400_80161E44;
-    sp.funcs[arg0->state](arg0);
+    handlers = D_actor_342400_80161E44;
+    handlers.funcs[arg0->state](arg0);
 }
 
 /// The five state handlers `func_actor_342400_80162888` dispatches through by

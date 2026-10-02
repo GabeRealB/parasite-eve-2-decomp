@@ -3055,14 +3055,14 @@ static void func_actor_800200_80165E50(Task* arg0)
 
 static void func_actor_800200_80165E90(Task* arg0)
 {
-    TaskFuncTable4 sp;
+    TaskFuncTable4 handlers;
     GameActor*     actor;
 
-    sp    = D_actor_800200_80161EB8;
-    actor = arg0->work;
+    handlers = D_actor_800200_80161EB8;
+    actor    = arg0->work;
     Gp_TickActorAnimState(arg0);
     Gp_AnimTickChildSlots(arg0);
-    sp.funcs[(u16)actor->hitRegion](arg0);
+    handlers.funcs[(u16)actor->hitRegion](arg0);
     Gp_TurnPlayer(arg0);
     Gp_StepPlayerMove(arg0);
 }

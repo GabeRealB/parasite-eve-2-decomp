@@ -73,9 +73,18 @@ typedef struct {
     TaskFunc funcs[3];
 } TaskFuncTable3;
 
+/// Four task handlers stored as a value for whole-table copies.
+///
+/// Each table defines its slots' roles: the selector may be a task state,
+/// an actor state or a work substate. Dispatch requires an index in 0..3
+/// and a non-NULL entry, which receives the live task as its only argument.
+/// There is no terminator or bounds check in the table.
+/// Copying it copies callback pointers, not task or work storage; the callback
+/// code must remain loaded for the call. A handler may release the task.
 typedef struct {
-    TaskFunc funcs[4];
+    TaskFunc funcs[4]; // Handlers in selector order; slot meanings belong to each table
 } TaskFuncTable4;
+STATIC_ASSERT_SIZEOF(TaskFuncTable4, 0x10);
 
 typedef struct {
     TaskFunc funcs[5];

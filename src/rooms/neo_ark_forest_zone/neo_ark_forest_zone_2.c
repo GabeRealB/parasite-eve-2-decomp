@@ -753,10 +753,10 @@ static void func_neo_ark_forest_zone_8018141C(Task* arg0)
 /// copy of the state table on the stack.
 void func_neo_ark_forest_zone_80181430(Task* task)
 {
-    TaskFuncTable4 sp;
+    TaskFuncTable4 handlers;
 
-    sp = D_neo_ark_forest_zone_8017D5E8;
-    sp.funcs[task->state](task);
+    handlers = D_neo_ark_forest_zone_8017D5E8;
+    handlers.funcs[task->state](task);
 }
 
 s32 func_neo_ark_forest_zone_80181494(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
@@ -790,8 +790,8 @@ static const TaskFuncTable4 D_neo_ark_forest_zone_8017D634 = { {
 /// a copy of the state table on the stack.
 void func_neo_ark_forest_zone_8018151C(Task* task)
 {
-    TaskFuncTable4 sp;
+    TaskFuncTable4 handlers;
 
-    sp = D_neo_ark_forest_zone_8017D634;
-    sp.funcs[task->state](task);
+    handlers = D_neo_ark_forest_zone_8017D634;
+    handlers.funcs[task->state](task);
 }

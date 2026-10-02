@@ -4241,9 +4241,9 @@ static void func_actor_400600_80138C34(Task* arg0)
 
 static void func_actor_400600_80138D78(Task* arg0)
 {
-    TmdObject*       model = arg0->extra.tmd;
-    Actor400600Work* work  = (Actor400600Work*)arg0->work;
-    TaskFuncTable4   fns   = D_actor_400600_80131E9C;
+    TmdObject*       model    = arg0->extra.tmd;
+    Actor400600Work* work     = (Actor400600Work*)arg0->work;
+    TaskFuncTable4   handlers = D_actor_400600_80131E9C;
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
@@ -4253,7 +4253,7 @@ static void func_actor_400600_80138D78(Task* arg0)
             work->field_716++;
             func_actor_400600_80136670(arg0);
             stalkerZebraIvoryTickAnim(arg0);
-            fns.funcs[(s16)work->state](arg0);
+            handlers.funcs[(s16)work->state](arg0);
             func_actor_400600_80136558(arg0);
             stalkerZebraIvoryApplyRotation(arg0);
         case SCENE_COMBAT_ACTORS_PAUSED:
@@ -4293,9 +4293,9 @@ static void func_actor_400600_80138EA0(Task* arg0)
 
 static void func_actor_400600_80138FD4(Task* arg0)
 {
-    TmdObject*       model = arg0->extra.tmd;
-    Actor400600Work* work  = (Actor400600Work*)arg0->work;
-    TaskFuncTable4   fns   = D_actor_400600_80131E6C;
+    TmdObject*       model    = arg0->extra.tmd;
+    Actor400600Work* work     = (Actor400600Work*)arg0->work;
+    TaskFuncTable4   handlers = D_actor_400600_80131E6C;
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
@@ -4304,7 +4304,7 @@ static void func_actor_400600_80138FD4(Task* arg0)
         case SCENE_COMBAT_ACTORS_RUNNING:
             work->field_716++;
             func_actor_400600_80136670(arg0);
-            fns.funcs[(s16)work->state](arg0);
+            handlers.funcs[(s16)work->state](arg0);
             stalkerZebraIvoryTickAnim(arg0);
             func_actor_400600_80136558(arg0);
             stalkerZebraIvoryApplyRotation(arg0);
@@ -4400,11 +4400,11 @@ static void func_actor_400600_80139444(Task* arg0)
 
 static void func_actor_400600_801394E0(Task* arg0)
 {
-    Actor400600Work* work = (Actor400600Work*)arg0->work;
-    TaskFuncTable4   fns  = D_actor_400600_80131F60;
+    Actor400600Work* work     = (Actor400600Work*)arg0->work;
+    TaskFuncTable4   handlers = D_actor_400600_80131F60;
 
     stalkerZebraIvoryClearQueued(arg0);
-    fns.funcs[(s16)work->subState](arg0);
+    handlers.funcs[(s16)work->subState](arg0);
 }
 
 static void func_actor_400600_80139560(Task* arg0)
@@ -4453,20 +4453,20 @@ static void func_actor_400600_80139670(Task* arg0)
 
 static void func_actor_400600_801396E4(Task* arg0)
 {
-    Actor400600Work* work = (Actor400600Work*)arg0->work;
-    TaskFuncTable4   fns  = D_actor_400600_80131F7C;
+    Actor400600Work* work     = (Actor400600Work*)arg0->work;
+    TaskFuncTable4   handlers = D_actor_400600_80131F7C;
 
     stalkerZebraIvoryClearQueued(arg0);
-    fns.funcs[(s16)work->subState](arg0);
+    handlers.funcs[(s16)work->subState](arg0);
 }
 
 static void func_actor_400600_80139764(Task* arg0)
 {
-    Actor400600Work* work = (Actor400600Work*)arg0->work;
-    TaskFuncTable4   fns  = D_actor_400600_80131F8C;
+    Actor400600Work* work     = (Actor400600Work*)arg0->work;
+    TaskFuncTable4   handlers = D_actor_400600_80131F8C;
 
     stalkerZebraIvoryClearQueued(arg0);
-    fns.funcs[(s16)work->subState](arg0);
+    handlers.funcs[(s16)work->subState](arg0);
 }
 
 #include "../../shared/stalker_zebra_ivory_run_sub_states.inc.c"

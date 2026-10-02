@@ -1418,11 +1418,11 @@ static void func_actor_335800_80162FF4(Task* arg0)
 static void func_actor_335800_80162FFC(Task* task)
 {
     Actor335800MainWork* work;
-    TaskFuncTable4       fns;
+    TaskFuncTable4       handlers;
 
-    work = (Actor335800MainWork*)task->work;
-    fns  = D_actor_335800_80161E3C;
-    fns.funcs[work->walk.motionStep](task);
+    work     = (Actor335800MainWork*)task->work;
+    handlers = D_actor_335800_80161E3C;
+    handlers.funcs[work->walk.motionStep](task);
 }
 
 #include "../../shared/actor_motion_face.inc.c"
@@ -1680,12 +1680,12 @@ static void func_actor_335800_80163B70(Task* arg0)
 /// the stack and runs the entry `walk.motionStep` selects.
 static void func_actor_335800_80163B78(Task* arg0)
 {
-    TaskFuncTable4   sp;
+    TaskFuncTable4   handlers;
     Actor335800Work* work;
 
-    work = (Actor335800Work*)arg0->work;
-    sp   = D_actor_335800_80161E68;
-    sp.funcs[(s16)work->walk.motionStep](arg0);
+    work     = (Actor335800Work*)arg0->work;
+    handlers = D_actor_335800_80161E68;
+    handlers.funcs[(s16)work->walk.motionStep](arg0);
 }
 
 /// State handler 0 of the child block's table `D_actor_335800_80161E68`:

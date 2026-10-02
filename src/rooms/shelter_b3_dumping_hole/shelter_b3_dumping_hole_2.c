@@ -3753,11 +3753,11 @@ static const TaskFuncTable5 D_shelter_b3_dumping_hole_8017D67C = { {
 
 void func_shelter_b3_dumping_hole_80183550(Task* task)
 {
-    TaskFuncTable4 sp;
+    TaskFuncTable4 handlers;
 
-    sp = D_shelter_b3_dumping_hole_8017D654;
+    handlers = D_shelter_b3_dumping_hole_8017D654;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        sp.funcs[task->state](task);
+        handlers.funcs[task->state](task);
     }
 }
 

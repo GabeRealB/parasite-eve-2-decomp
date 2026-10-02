@@ -4745,10 +4745,10 @@ static void Gp_TeardownSlot0(Task* arg0)
 
 void Gp_PlayerWorkTask(Task* arg0)
 {
-    TaskFuncTable4 sp;
+    TaskFuncTable4 handlers;
 
-    sp = Gp_PlayerWorkStates;
-    sp.funcs[arg0->state](arg0);
+    handlers = Gp_PlayerWorkStates;
+    handlers.funcs[arg0->state](arg0);
 }
 
 /// Latches this frame's pad state into the actor of `arg0`: keeps the previous
@@ -8650,10 +8650,10 @@ static const TaskFuncTable4 Gp_PlayerMode1States = { {
 
 static void Gp_TickPlayerMode1(Task* arg0)
 {
-    TaskFuncTable4 sp;
+    TaskFuncTable4 handlers;
 
-    sp = Gp_PlayerMode1States;
-    sp.funcs[(u16)((GameActor*)arg0->work)->hitRegion](arg0);
+    handlers = Gp_PlayerMode1States;
+    handlers.funcs[(u16)((GameActor*)arg0->work)->hitRegion](arg0);
     Gp_TickActorAnimState(arg0);
     Gp_AnimTickChildSlots(arg0);
     Gp_TurnPlayer(arg0);

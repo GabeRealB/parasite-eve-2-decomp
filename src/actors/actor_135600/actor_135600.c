@@ -1054,11 +1054,11 @@ static void func_actor_135600_80132DF8(Task* arg0)
 static void func_actor_135600_80132E00(Task* task)
 {
     Actor135600Work* work;
-    TaskFuncTable4   fns;
+    TaskFuncTable4   handlers;
 
-    work = (Actor135600Work*)task->work;
-    fns  = D_actor_135600_80131E48;
-    fns.funcs[(s16)work->walk.motionStep](task);
+    work     = (Actor135600Work*)task->work;
+    handlers = D_actor_135600_80131E48;
+    handlers.funcs[(s16)work->walk.motionStep](task);
 }
 
 #include "../../shared/actor_motion_face.inc.c"

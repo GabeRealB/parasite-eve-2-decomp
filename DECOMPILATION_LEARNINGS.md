@@ -11290,17 +11290,17 @@ target reads a preserved register).
 Fix: assign the field to an explicit local *before* the calls. The pseudo's
 live range then necessarily spans them, so global alloc must home it in `$sN`.
 `func_actor_800200_80165E90` dispatches through a copied `TaskFuncTable4`;
-writing the index inline as `sp.funcs[(u16)index->actor->hitRegion](index)`
+writing the index inline as `handlers.funcs[(u16)index->actor->hitRegion](index)`
 scores 76%, while hoisting the pointer matches at 100%:
 
 ```c
     GameActor* actor;
 
-    sp = D_actor_800200_80161EB8;
+    handlers = D_actor_800200_80161EB8;
     actor = arg0->actor;          /* must precede the two ticks */
     Gp_TickActorAnimState(arg0);
     Gp_AnimTickChildSlots(arg0);
-    sp.funcs[(u16)actor->hitRegion](arg0);
+    handlers.funcs[(u16)actor->hitRegion](arg0);
 ```
 
 This is the mirror of "skip the local pointer when all accesses are pre-call":
@@ -13120,10 +13120,10 @@ extern const TaskFuncTable4 D_actor_400600_80131F60;
 void func_actor_400600_801394E0(Task* arg0)
 {
     Actor400600Work* work = (Actor400600Work*)arg0->work;
-    TaskFuncTable4   fns  = D_actor_400600_80131F60;
+    TaskFuncTable4   handlers  = D_actor_400600_80131F60;
 
     func_actor_400600_80138AA4(arg0);
-    fns.funcs[(s16)work->field_71E](arg0);
+    handlers.funcs[(s16)work->field_71E](arg0);
 }
 ```
 
@@ -24985,7 +24985,7 @@ p += arg0 >> 4;
 ## Do not hoist the jump-table index object before the struct copy
 
 Dispatchers that copy a function-pointer table onto the stack
-(`sp = D_xxx; sp.funcs[idx](index)`) need that copy to be the first
+(`handlers = D_xxx; handlers.funcs[idx](index)`) need that copy to be the first
 memory work. Pulling `inner = index->actor` (or any other index source)
 above the assignment hoists `lw actor` ahead of the multi-load/store,
 which also swaps the table pointer from `$a3` to `$t0`.
@@ -24993,8 +24993,8 @@ which also swaps the table pointer from `$a3` to `$t0`.
 Index through `index->actor->field` in the call itself:
 
 ```c
-sp = Gp_PlayerMode1States;
-sp.funcs[(u16)arg0->actor->hitRegion](arg0);
+handlers = Gp_PlayerMode1States;
+handlers.funcs[(u16)arg0->actor->hitRegion](arg0);
 ```
 
 `Gp_TickPlayerMode1` is the example.
@@ -49412,10 +49412,10 @@ live, and the body is the state-dispatcher shape its matched sibling in the same
 TU already has:
 
 ```c
-TaskFuncTable4 sp;
+TaskFuncTable4 handlers;
 
-sp = D_actor_107600_80131E74;
-sp.funcs[arg0->state](arg0);
+handlers = D_actor_107600_80131E74;
+handlers.funcs[arg0->state](arg0);
 ```
 
 Count the `$a1`-`$a3` writes the sequence actually performs before the `jalr`
@@ -51572,7 +51572,7 @@ change — `AsrMonitorWork::cameraId` has to stay `u16` for the `lhu` in
 ### A stack-copied dispatch table whose `.rodata` is longer than the copy
 
 The usual state dispatcher copies its handler table onto the stack and calls
-through the copy (`TaskFuncTable4 sp; sp = D_...; sp.funcs[task->state](task);`).
+through the copy (`TaskFuncTable4 handlers; handlers = D_...; handlers.funcs[task->state](task);`).
 Occasionally the `.rodata` block is one word longer than what the function
 copies — seven `lw`/`sw` pairs, but eight words in the data, the last one zero:
 
@@ -81480,7 +81480,7 @@ explicit cast:
 
 ```c
 /* dispatcher: lh, then sll 2 / addu / lw */
-sp.funcs[(s16)work->field_4C2](arg0);
+handlers.funcs[(s16)work->field_4C2](arg0);
 /* handler: lhu / addiu / sh */
 work->field_4C2 = work->field_4C2 + 1;
 ```
@@ -86193,10 +86193,10 @@ argument, and the shape is the one the sibling sections describe:
 ```c
 void f(Task* task)
 {
-    TaskFuncTable4 sp;
+    TaskFuncTable4 handlers;
 
-    sp = D_<seg>_<addr>;          /* or a local brace-initializer */
-    sp.funcs[task->state](task);
+    handlers = D_<seg>_<addr>;          /* or a local brace-initializer */
+    handlers.funcs[task->state](task);
 }
 ```
 
@@ -103612,7 +103612,7 @@ includes that header. `actor_100400_fn0805c.c` already carries its `D0002C` /
 `D00144` externs for exactly this reason.
 
 Sibling TUs in this overlay write the same dispatcher as
-`fns.funcs[(s16)work->field_63A]((Task*)index);`. Here the index is `Task::state`
+`handlers.funcs[(s16)work->field_63A]((Task*)index);`. Here the index is `Task::state`
 at offset 0x30 reached through the overlay's `Actor100400.field_30` (a plain
 `s32`), so there is no cast on the index and the target emits `sll $v0,$v0,2`
 straight off the `lw`; `(s16)` here would add the sign-extension the target does

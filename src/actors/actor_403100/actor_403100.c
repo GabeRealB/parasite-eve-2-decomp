@@ -8268,10 +8268,10 @@ static void func_actor_403100_8013DE0C(Task* arg0)
 }
 static void func_actor_403100_8013DEA0(Task* arg0)
 {
-    TaskFuncTable4 sp;
+    TaskFuncTable4 handlers;
 
-    sp = D_actor_403100_80132014;
-    sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
+    handlers = D_actor_403100_80132014;
+    handlers.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
 }
 static void func_actor_403100_8013DF0C(Task* task)
 {
@@ -8567,13 +8567,13 @@ static void func_actor_403100_8013E9D8(Task* arg0)
 }
 static void func_actor_403100_8013EA60(Task* arg0)
 {
-    TaskFuncTable4 sp;
+    TaskFuncTable4 handlers;
     TmdObject*     obj;
 
     obj        = arg0->extra.tmd;
-    sp         = D_actor_403100_80131EC8;
+    handlers   = D_actor_403100_80131EC8;
     obj->flags = 0;
-    sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
+    handlers.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
 }
 static void func_actor_403100_8013EAD4(Task* arg0)
 {
@@ -8596,24 +8596,24 @@ static void func_actor_403100_8013EB68(Task* arg0)
 }
 static void func_actor_403100_8013EBC8(Task* arg0)
 {
-    TaskFuncTable4 sp;
+    TaskFuncTable4 handlers;
     TmdObject*     obj;
 
     obj        = arg0->extra.tmd;
-    sp         = D_actor_403100_80131EF0;
+    handlers   = D_actor_403100_80131EF0;
     obj->flags = 0;
-    sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
+    handlers.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
     func_actor_403100_801327CC(arg0);
 }
 static void func_actor_403100_8013EC4C(Task* arg0)
 {
-    TaskFuncTable4 sp;
+    TaskFuncTable4 handlers;
     TmdObject*     obj;
 
     obj        = arg0->extra.tmd;
-    sp         = D_actor_403100_80131F00;
+    handlers   = D_actor_403100_80131F00;
     obj->flags = 0;
-    sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
+    handlers.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
     func_actor_403100_801327CC(arg0);
 }
 static void func_actor_403100_8013ECD0(Task* arg0)

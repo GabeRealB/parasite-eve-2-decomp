@@ -1190,10 +1190,10 @@ static void func_8010B5F0(Task* arg0)
 
 void func_8010B610(Task* arg0)
 {
-    TaskFuncTable4 sp;
+    TaskFuncTable4 handlers;
 
-    sp = D_80097AB0;
-    sp.funcs[arg0->state](arg0);
+    handlers = D_80097AB0;
+    handlers.funcs[arg0->state](arg0);
 }
 
 void Gp_EndPlayerActorTask(Task* arg0)

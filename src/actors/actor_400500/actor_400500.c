@@ -4774,14 +4774,14 @@ static void func_actor_400500_80138EA0(Task* arg0)
 {
     Actor400500Work* work;
     Enemy*           enemy;
-    TaskFuncTable4   sp;
+    TaskFuncTable4   handlers;
     Actor400500Work* work2;
     s32              i;
     Actor400500Work* work3;
 
-    work  = (Actor400500Work*)arg0->work;
-    enemy = (Enemy*)arg0->spawnArg2.pointer;
-    sp    = D_actor_400500_80131F1C;
+    work     = (Actor400500Work*)arg0->work;
+    enemy    = (Enemy*)arg0->spawnArg2.pointer;
+    handlers = D_actor_400500_80131F1C;
     if ((enemy->hp <= 0) && (work->field_A40 == 4)) {
         work->field_A42   = 0;
         work->obj1.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -4790,7 +4790,7 @@ static void func_actor_400500_80138EA0(Task* arg0)
         work->obj4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         return;
     }
-    sp.funcs[(s16)work->field_A08](arg0);
+    handlers.funcs[(s16)work->field_A08](arg0);
     work2 = (Actor400500Work*)arg0->work;
     if (work2->field_9FA == 1) {
         if ((s16)work2->field_9FC != work2->field_9FE) {

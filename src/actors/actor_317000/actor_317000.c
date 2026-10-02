@@ -691,12 +691,12 @@ static void func_actor_317000_80162760(Task* arg0)
 /// `Actor317000Work::walk.motionStep` selects, read sign-extended.
 static void func_actor_317000_80162768(Task* arg0)
 {
-    TaskFuncTable4   sp;
+    TaskFuncTable4   handlers;
     Actor317000Work* work;
 
-    work = (Actor317000Work*)arg0->work;
-    sp   = D_actor_317000_80161E30;
-    sp.funcs[(s16)work->walk.motionStep](arg0);
+    work     = (Actor317000Work*)arg0->work;
+    handlers = D_actor_317000_80161E30;
+    handlers.funcs[(s16)work->walk.motionStep](arg0);
 }
 
 /// Step handler at index 0 of `D_actor_317000_80161E30`: Euler-extracts the

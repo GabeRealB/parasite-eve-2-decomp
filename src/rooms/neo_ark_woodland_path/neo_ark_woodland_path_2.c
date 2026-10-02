@@ -569,10 +569,10 @@ static void func_neo_ark_woodland_path_801814D4(Task* arg0)
 /// to the stack first.
 void func_neo_ark_woodland_path_801814E8(Task* task)
 {
-    TaskFuncTable4 sp;
+    TaskFuncTable4 handlers;
 
-    sp = D_neo_ark_woodland_path_8017D638;
-    sp.funcs[task->state](task);
+    handlers = D_neo_ark_woodland_path_8017D638;
+    handlers.funcs[task->state](task);
 }
 
 s32 func_neo_ark_woodland_path_8018154C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
@@ -596,8 +596,8 @@ static void func_neo_ark_woodland_path_801815C0(Task* arg0)
 /// to the stack first.
 void func_neo_ark_woodland_path_801815D4(Task* task)
 {
-    TaskFuncTable4 sp;
+    TaskFuncTable4 handlers;
 
-    sp = D_neo_ark_woodland_path_8017D684;
-    sp.funcs[task->state](task);
+    handlers = D_neo_ark_woodland_path_8017D684;
+    handlers.funcs[task->state](task);
 }

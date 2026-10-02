@@ -305,10 +305,10 @@ void Stage_RequestMidiFromMap(s32 arg0)
 
 static void Stage_DispatchTaskTable(Task* task)
 {
-    TaskFuncTable4 sp;
+    TaskFuncTable4 handlers;
 
-    sp = Stage_TaskStates;
-    sp.funcs[task->state](task);
+    handlers = Stage_TaskStates;
+    handlers.funcs[task->state](task);
 }
 
 static void Stage_KillWhenIdle(Task* task)

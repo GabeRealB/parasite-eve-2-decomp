@@ -252,10 +252,10 @@ static const TaskFuncTable4 D_neo_ark_forest_zone_8017D5D8 = { {
 /// copy of the state table on the stack.
 void func_neo_ark_forest_zone_8017DBBC(Task* task)
 {
-    TaskFuncTable4 sp;
+    TaskFuncTable4 handlers;
 
-    sp = D_neo_ark_forest_zone_8017D5D8;
-    sp.funcs[task->state](task);
+    handlers = D_neo_ark_forest_zone_8017D5D8;
+    handlers.funcs[task->state](task);
 }
 
 #include "../../shared/falling_leaves_task.inc.c"

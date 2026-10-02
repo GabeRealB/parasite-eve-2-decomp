@@ -4,9 +4,9 @@
 void madChaserDangleState(Task* arg0)
 {
     MadChaserWork* work;
-    TaskFuncTable4 sp;
+    TaskFuncTable4 handlers;
 
-    work = (MadChaserWork*)arg0->work;
-    sp   = gMadChaserDangleSteps;
-    sp.funcs[(s16)work->field_422](arg0);
+    work     = (MadChaserWork*)arg0->work;
+    handlers = gMadChaserDangleSteps;
+    handlers.funcs[(s16)work->field_422](arg0);
 }

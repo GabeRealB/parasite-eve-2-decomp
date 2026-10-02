@@ -2609,13 +2609,13 @@ static const TaskFuncTable4 D_actor_800100_80161E88 = { {
 static void func_actor_800100_80165850(Task* arg0)
 {
     GameActor*     actor;
-    TaskFuncTable4 sp;
+    TaskFuncTable4 handlers;
 
-    sp    = D_actor_800100_80161E88;
-    actor = arg0->work;
+    handlers = D_actor_800100_80161E88;
+    actor    = arg0->work;
     Gp_TickActorAnimState(arg0);
     Gp_AnimTickChildSlots(arg0);
-    sp.funcs[(u16)actor->hitRegion](arg0);
+    handlers.funcs[(u16)actor->hitRegion](arg0);
     Gp_TurnPlayer(arg0);
     Gp_StepPlayerMove(arg0);
 }

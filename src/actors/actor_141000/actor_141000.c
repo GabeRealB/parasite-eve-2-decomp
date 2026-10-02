@@ -2057,11 +2057,11 @@ static void func_actor_141000_80132C7C(Task* task)
 static void func_actor_141000_80132D3C(Task* task)
 {
     Actor141000CtrlWork* work;
-    TaskFuncTable4       sp;
+    TaskFuncTable4       handlers;
 
-    work = (Actor141000CtrlWork*)task->work;
-    sp   = D_actor_141000_80131E3C;
-    sp.funcs[(s16)work->state](task);
+    work     = (Actor141000CtrlWork*)task->work;
+    handlers = D_actor_141000_80131E3C;
+    handlers.funcs[(s16)work->state](task);
     if (gDisplayState.animFrame & 1) {
         Gp_SpawnEff(EFFECT_SMOKE_PUFF, task->extra.tmd->coords, 0x24200, NULL);
     }
@@ -2498,12 +2498,12 @@ static void func_actor_141000_801339F8(Task* arg0)
 /// Dispatches the actor's four main-body handlers by state.
 static void func_actor_141000_80133A00(Task* arg0)
 {
-    TaskFuncTable4   sp;
+    TaskFuncTable4   handlers;
     Actor141000Work* work;
 
-    work = (Actor141000Work*)arg0->work;
-    sp   = D_actor_141000_80131E58;
-    sp.funcs[(s16)work->walk.motionStep](arg0);
+    work     = (Actor141000Work*)arg0->work;
+    handlers = D_actor_141000_80131E58;
+    handlers.funcs[(s16)work->walk.motionStep](arg0);
 }
 
 /// State 0 of the main-body table `D_actor_141000_80131E58`: turns the root

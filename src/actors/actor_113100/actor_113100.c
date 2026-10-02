@@ -1778,11 +1778,11 @@ static void func_actor_113100_80132F40(Task* arg0)
 static void func_actor_113100_80132FB4(Task* arg0)
 {
     Actor113100Work* work;
-    TaskFuncTable4   sp;
+    TaskFuncTable4   handlers;
 
-    work = (Actor113100Work*)arg0->work;
-    sp   = D_actor_113100_80131E48;
-    sp.funcs[(s16)work->walk.motionStep](arg0);
+    work     = (Actor113100Work*)arg0->work;
+    handlers = D_actor_113100_80131E48;
+    handlers.funcs[(s16)work->walk.motionStep](arg0);
 }
 
 /// Builds the offset from the actor's own translation (work + 0x4F0) to the

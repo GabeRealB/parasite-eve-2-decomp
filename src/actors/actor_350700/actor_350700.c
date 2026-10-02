@@ -599,12 +599,12 @@ void reverseWalkIdle(Task* arg0)
 /// `D_actor_350700_80161E30` that `walk.motionStep` selects.
 void reverseWalkRunStep(Task* arg0)
 {
-    TaskFuncTable4   sp;
+    TaskFuncTable4   handlers;
     Actor350500Work* work;
 
-    work = (Actor350500Work*)arg0->work;
-    sp   = D_actor_350700_80161E30;
-    sp.funcs[(s16)work->walk.motionStep](arg0);
+    work     = (Actor350500Work*)arg0->work;
+    handlers = D_actor_350700_80161E30;
+    handlers.funcs[(s16)work->walk.motionStep](arg0);
 }
 
 #include "../../shared/reversing_walker_face.inc.c"
@@ -857,11 +857,11 @@ static void func_actor_350700_801633F8(Task* arg0)
 static void func_actor_350700_80163400(Task* task)
 {
     Actor135600Work* work;
-    TaskFuncTable4   fns;
+    TaskFuncTable4   handlers;
 
-    work = (Actor135600Work*)task->work;
-    fns  = D_actor_350700_80161E68;
-    fns.funcs[(s16)work->walk.motionStep](task);
+    work     = (Actor135600Work*)task->work;
+    handlers = D_actor_350700_80161E68;
+    handlers.funcs[(s16)work->walk.motionStep](task);
 }
 
 #include "../../shared/actor_motion_face.inc.c"

@@ -1740,10 +1740,10 @@ void Gp_DrawMapName(Task* arg0)
 
 void Gp_MapTask(Task* arg0)
 {
-    TaskFuncTable4 sp;
+    TaskFuncTable4 handlers;
 
-    sp = Gp_MapTaskStates;
-    sp.funcs[arg0->state](arg0);
+    handlers = Gp_MapTaskStates;
+    handlers.funcs[arg0->state](arg0);
 }
 
 void Gp_MapPanelInit(Task* arg0)
