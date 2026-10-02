@@ -366,11 +366,17 @@ void Gfx_MatrixCol2(MATRIX* matrix, SVECTOR* vector)
     gte_ReadMatrixColumn(matrix, 2, vector);
 }
 
-/// Installs a pure X rotation using the scratch block's initialized sine and cosine.
+/// Builds a pure X-axis rotation from precomputed sine and cosine.
 ///
-/// Only the nine rotation elements are written; translation remains untouched.
-/// `rotation` may be the matrix embedded in `scratch`.
-static __inline__ void _gfxBuildXRotation(MATRIX* rotation, _GfxAxisRotationScratch* scratch)
+/// `scratch` must hold `angleSin` and `angleCos` for the same angle, scaled by
+/// `ONE` (4096) and in [-ONE, ONE]. Only these two fields are read; its matrix
+/// need not be initialized. `rotation` is a live, writable `MATRIX`, either
+/// disjoint from `scratch` or exactly `&scratch->rotation`.
+///
+/// Writes the nine signed 16-bit rotation elements, preserving the alignment
+/// bytes and translation. The caller owns both objects; no scratch-stack
+/// reservation or GTE state is changed, and no pointer is retained.
+static __inline__ void _gfxBuildXRotation(MATRIX* rotation, const _GfxAxisRotationScratch* scratch)
 {
     rotation->m[0][0] = ONE;
     rotation->m[0][1] = 0;
