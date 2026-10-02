@@ -1262,16 +1262,23 @@ static void Text_DrawGlyphImmediate(TextDrawReq* request, const _FontGlyph* glyp
     DrawPrim(p);
 }
 
-/// Initializes one opaque, color-modulated UI-glyph fill sprite.
+/// Initializes an opaque, RGB-modulated UI-glyph fill packet at the text pen.
 ///
-/// `fill` is a writable, word-aligned `SPRT`, separate from the borrowed,
-/// read-only request and glyph. Sets the payload length, RGB, command,
-/// rectangle and fill palette; allocation and DMA linking belong to the caller.
-/// `colorRgb` supplies RGB in bits 0..23 (red low); its high byte is replaced.
-/// Screen coordinates narrow to signed 16-bit pixels, V wraps modulo 256 after
-/// the signed bias, and minus-one dimensions decode to 1..256 pixels/texels.
+/// `fill` provides one writable, word-aligned `SPRT`, separate from `request`
+/// and `glyph`. Sets the four-word payload length, color, command, rectangle
+/// and fill CLUT while preserving the tag's DMA address. Borrows all objects
+/// for this call; the request and metrics stay read-only and the pen stays put.
+/// Allocation, DMA linking and submission belong to the caller.
+///
+/// Pen coordinates and glyph offsets are draw-environment pixels. X/Y narrow
+/// to signed 16-bit fields; the last row lies at pen Y plus the glyph Y offset.
+/// U/V are page-local texels, with signed V bias wrapping modulo 256, and
+/// byte-sized minus-one dimensions decode to 1..256 pixels/texels. `colorRgb`
+/// supplies RGB in bits 0..23 (red low); the command replaces its high byte.
+/// Drawing requires the font textures and fill palette to be resident and a
+/// 4bpp font page to be selected before the packet executes.
 static inline void _textInitGlyphFillSprite(SPRT* fill, const TextDrawReq* request,
-                                            const _FontGlyph* glyph, s32 colorRgb)
+                                            const _FontGlyph* glyph, u32 colorRgb)
 {
     enum {
         /// GPU CLUT selector for the opaque, color-modulated fill of queued UI text.
@@ -1288,6 +1295,7 @@ static inline void _textInitGlyphFillSprite(SPRT* fill, const TextDrawReq* reque
 
     s32 heightMinusOne;
 
+    // The packed RGB write includes the command byte, so set the command last.
     GPU_PRIMITIVE_COLOR_WORD(fill, 0) = colorRgb;
     setSprt(fill);
     fill->x0       = request->x + glyph->xOffset;
