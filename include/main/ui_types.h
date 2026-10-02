@@ -30,7 +30,6 @@ typedef union {
 /// Panel lifecycle indices used by the task dispatcher; storage remains s32.
 enum {
     USER_INTERFACE_PANEL_INITIAL = 0,
-    USER_INTERFACE_PANEL_OPENING = 1,
     /// Fully open panel, independent of its input control mode.
     ///
     /// Drawing uses the full panel bounds. Task dispatch draws and calls the

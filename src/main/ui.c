@@ -29,6 +29,18 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 
+/// Panel expanding into the open state while its content updates with input suspended.
+///
+/// Counters use nominal 60-Hz ticks. A full opening starts at
+/// `USER_INTERFACE_PANEL_ANIMATION_TICKS`; reopening may retain ticks in 0..9.
+/// Drawing uses (9 - ticks) eighths, with a minimum scale of one eighth;
+/// a zero counter gives a 9/8 scale. Ticks decrease by `gDisplayState.frameTicks`
+/// after the content callback and clamp to zero. Completion selects
+/// `USER_INTERFACE_PANEL_OPEN` only if the callback kept the opening state;
+/// full-size open dispatch begins on the next update. Callback control changes
+/// are retained; otherwise the previous input mode is restored.
+enum { USER_INTERFACE_PANEL_OPENING = 1 };
+
 /// Panel shrinking into the retained hidden state while its owning task stays alive.
 ///
 /// Entry preserves `UiPanel.animationTicks` and the input control mode.
@@ -530,7 +542,7 @@ UiObject*             Wip_UiHolder             = NULL;
 
 static const UiPanelFuncTable6 Ui_ObjectStates = { {
     Ui_AnimOpenStep,
-    Ui_DrawAndCallback,
+    [USER_INTERFACE_PANEL_OPENING] = Ui_DrawAndCallback,
     [USER_INTERFACE_PANEL_OPEN]    = Ui_LayoutDrawAndCallback,
     [USER_INTERFACE_PANEL_CLOSING] = Ui_TickAnimCounter,
     [USER_INTERFACE_PANEL_HIDING]  = Ui_AnimCloseStep,
@@ -2651,7 +2663,7 @@ static void Ui_AnimOpenStep(UiPanel* panel, Task* task)
 {
     if (panel->animationTicks == 0) {
         panel->animationTicks = USER_INTERFACE_PANEL_ANIMATION_TICKS;
-        panel->state         += 1;
+        panel->state         += USER_INTERFACE_PANEL_OPENING - USER_INTERFACE_PANEL_INITIAL;
         Ui_DrawAndCallback(panel, task);
     } else {
         if (panel->animationTicks > 0) {
