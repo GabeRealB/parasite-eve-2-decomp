@@ -293,7 +293,7 @@ u32* tmdDrawStreamGt3SemiTrans(TmdStreamWorkspace* workspace, s32 objectFlags, u
 /// at least four. Those words pack eight u16 byte offsets: vertices 0..3,
 /// then normals 0..3. Each must name a complete, word-aligned eight-byte
 /// `SVECTOR` in its borrowed array. Standard records have seven words;
-/// `gpStreamPrimGt4` has already copied their texture words into one
+/// `tmdBuildStreamGt4` has already copied their texture words into one
 /// word-aligned `POLY_GT4` slot per element at `workspace->primWrite` in the
 /// selected buffer half's second region. The GTE part transform, light/colour
 /// matrices and background colour must already be set.

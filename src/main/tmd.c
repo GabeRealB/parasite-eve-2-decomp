@@ -445,7 +445,7 @@ void tmdProcessStream(TmdObject* obj)
             case 0x8078:
             case 0x10078:
             case 0x20078:
-                handler = gpStreamPrimGt4;
+                handler = tmdBuildStreamGt4;
                 break;
             case 0x31:
             case 0x39:

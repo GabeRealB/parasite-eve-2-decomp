@@ -123,7 +123,7 @@ u32* tmdDrawStreamGt3(TmdStreamWorkspace* workspace, s32 objectFlags, u32* eleme
 /// at least four words per element. Those words pack eight u16 byte offsets:
 /// vertices 0..3, then normals 0..3. Each must name a complete eight-byte
 /// `SVECTOR` in its borrowed array. Standard records have three more texture
-/// words, initialized by `gpStreamPrimGt4`; drawing does not read them.
+/// words, initialized by `tmdBuildStreamGt4`; drawing does not read them.
 ///
 /// The GTE must already hold the part transform, light/colour matrices and
 /// background colour. Lighting uses one normal per corner and fixed RGB

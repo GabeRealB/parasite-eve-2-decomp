@@ -133842,7 +133842,7 @@ twin's `ldrgb`: `gpDrawStreamPrimGt4ElemColor` (`0x70`, a `POLY_GT4`) loads the
 element's word for `NCCT`, where `tmdDrawStreamGt4` (`0x78`, the same primitive)
 loads `0x3C808080` before its loop. That is what makes the twins' words come out
 at `5,6,7` and `4,5,6` respectively (`gpStreamPrimGt4ElemColor` against
-`gpStreamPrimGt4`), and the same read separates `0x30` from `0x38`.
+`tmdBuildStreamGt4`), and the same read separates `0x30` from `0x38`.
 
 §5.1's "Refs" column counts the colour word as normal refs, since it derives the
 ref block from the first texture word — so its `0x30` and `0x70` rows read as if a

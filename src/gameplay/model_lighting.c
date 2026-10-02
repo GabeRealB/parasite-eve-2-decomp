@@ -297,6 +297,37 @@ static inline void _tmdInitGt3Texture(POLY_GT3* triangle, const u32* elementWord
     triangle->clut      += workspace->encodedClutOffset;
 }
 
+/// Initializes one Gouraud textured quad's persistent texture coordinates and GPU addresses.
+///
+/// `quad` is a writable, four-byte-aligned `POLY_GT4`. `elementWords` addresses
+/// a four-byte-aligned `0x78`-family element, after the three-word record header,
+/// with at least seven readable u32 words. Words 0..3 hold geometry references;
+/// words 4/5 pack unsigned byte U/V texel coordinates in their low halves and
+/// encoded CLUT/texture-page settings in their high halves. Word 6 packs U2/V2
+/// in its low half and U3/V3 in its high half.
+///
+/// The workspace supplies signed encoded-address displacements; each sum wraps
+/// in its u16 packet field. The tag, colours/command, positions and SDK pad fields
+/// remain untouched for drawing. All storage is borrowed; no pointer is retained
+/// and neither the workspace's count nor its cursors are changed.
+static inline void _tmdInitGt4Texture(POLY_GT4* quad, const u32* elementWords, const TmdStreamWorkspace* workspace)
+{
+    // Word indices within the element, excluding the record header.
+    enum {
+        TMD_GT4_UV0_CLUT_WORD  = 4, // U0/V0 in low half, CLUT address in high half
+        TMD_GT4_UV1_TPAGE_WORD = 5, // U1/V1 in low half, texture-page settings in high half
+        TMD_GT4_UV2_UV3_WORD   = 6  // U2/V2 in low half, U3/V3 in high half
+    };
+
+    MODEL_LIGHTING_UV0_CLUT_WORD(quad)  = elementWords[TMD_GT4_UV0_CLUT_WORD];
+    MODEL_LIGHTING_UV1_TPAGE_WORD(quad) = elementWords[TMD_GT4_UV1_TPAGE_WORD];
+    // Halfword stores preserve the SDK pad fields beside the U/V pairs.
+    *(u16*)&quad->u2 = (u16)elementWords[TMD_GT4_UV2_UV3_WORD];
+    *(u16*)&quad->u3 = (u16)(elementWords[TMD_GT4_UV2_UV3_WORD] >> 16);
+    quad->tpage     += workspace->texturePageOffset;
+    quad->clut      += workspace->encodedClutOffset;
+}
+
 /// Initializes the offset-layer texture of one layered Gouraud triangle.
 ///
 /// `triangle` must be a writable, four-byte-aligned `POLY_GT3` for the first
@@ -2242,25 +2273,19 @@ u32* tmdBuildStreamGt3(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elem
     return elements;
 }
 
-u32* gpStreamPrimGt4(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+u32* tmdBuildStreamGt4(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    POLY_GT4* poly;
+    POLY_GT4* quad;
 
-    poly = (POLY_GT4*)ws->primWrite;
-    if (ws->elemCount-- > 0) {
-        do {
-            MODEL_LIGHTING_UV0_CLUT_WORD(poly)  = stream[4];
-            MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[5];
-            *(u16*)&poly->u2                    = (u16)stream[6];
-            *(u16*)&poly->u3                    = ((u16*)&stream[6])[1];
-            poly->tpage                        += ws->texturePageOffset;
-            poly->clut                         += ws->encodedClutOffset;
-            poly++;
-            stream += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+    quad = (POLY_GT4*)workspace->primWrite;
+    // Seed texture data that persists while drawing updates geometry and lighting.
+    while (workspace->elemCount-- > 0) {
+        _tmdInitGt4Texture(quad, elements, workspace);
+        quad++;
+        elements += workspace->elemStride;
     }
-    ws->primWrite = (u8*)poly;
-    return stream;
+    workspace->primWrite = (u8*)quad;
+    return elements;
 }
 
 u32* tmdBuildStreamGt3ElemColor(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
