@@ -636,21 +636,48 @@ u32* tmdDrawStreamPrimGt3OneNormal(TmdStreamWorkspace* workspace, s32 objectFlag
 /// supplies GPU code 0x3E; this entry always supplies opaque 0x3C.
 u32* tmdDrawStreamPrimGt4OneNormal(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
-/// The draw pass's handler for a stream's one-normal textured-quad records that
-/// ask for the semi-transparent primitive (`0x5A`): each element's quad is taken to
-/// screen space and lit from the element's one normal, and its packet is filled in
-/// with the resulting screen coordinates and colour and linked into the ordering
-/// table, unless the transform clipped it or the facing tests turned it away.
+/// Projects, lights and links semi-transparent textured quads with one face normal.
 ///
-/// The element is the opaque `0x58` quad's — one normal for the whole quad rather
-/// than one per corner, and the same refs and texture words — and the two entries
-/// share one body, so the primitive code the packet is built under is the whole of
-/// the difference between the two records: `0x3C` for the opaque quad and `0x3E`
-/// here, the semi-transparency bit being the difference. The element names no
-/// colour, so the quad is lit from a fixed mid-grey, and the same constant carries
-/// both, the code in its top byte. The opcode alone selects the variant, so `flags`
-/// goes unread.
-u32* tmdDrawStreamPrimGt4OneNormalSemiTrans(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// Draw resolution selects this callback for opcode `0x5A`. It shares the walk
+/// with `tmdDrawStreamPrimGt4OneNormal`, but always supplies GPU code 0x3E.
+/// `objectFlags` carries `TmdObject.flags` and is ignored, including blend and
+/// reverse-culling bits; the texture page's blend mode is preserved.
+///
+/// `elements` starts after the three-word record header. The caller supplies
+/// `workspace->elemCount` (0..65535) and `elemStride` in u32 words. Words 0..1
+/// pack four unsigned u16 vertex byte offsets in corner order. Word 2 is a
+/// whole u32 byte offset into `normals`, without halfword masking. Every
+/// offset must name a complete, word-aligned eight-byte SVECTOR in the borrowed
+/// `verts` or `normals` array. Drawing reads three words per element;
+/// construction reads texture words 3..5, so a complete element needs at least
+/// six words. Stream and geometry capacities are not checked.
+///
+/// The GTE must hold the part transform, lighting and four-depth averaging
+/// scale. Corner 3 is projected first, followed by (2,1,0). When corner 3's
+/// vertex offset equals the preceding element's corner-0 offset, its screen XY
+/// and depth are reused. Either projection reporting `TMD_GTE_ERROR_FLAG`
+/// rejects the quad and invalidates that key; facing rejection retains it.
+/// Facing accepts `NCLIP(2,1,0) < 0` or `NCLIP(2,1,3) > 0`, testing the
+/// second triangle only when the first is not accepted. Accepted packets get
+/// one NCCS result at all four corners, lighting fixed RGB (128,128,128).
+///
+/// `workspace->primWrite` must provide one writable, word-aligned 52-byte
+/// POLY_GT4 slot per element, with texture words already initialized. Every
+/// element consumes a slot, including rejected quads; rejection may write
+/// screen XY but does not complete colours/tags or link the packet. Accepted
+/// packets prepend to `workspace->ot` using AVSZ4 at bucket
+/// `(((u32)OTZ << (workspace->otDepthShift & 31)) & 0x3FFF) >> 4`.
+/// Normal drawing supplies shifts 0..3. The OT base includes the object's
+/// signed entry displacement, and each resulting bucket (0..1023) must fit
+/// the backing table. DMA links retain 24 address bits with twelve payload
+/// words. Packet/OT storage must remain GPU-visible until consumption ends.
+///
+/// Returns `elements + elemCount * elemStride`, leaving the next record or
+/// marker unconsumed, and advances only `workspace->primWrite` among workspace
+/// fields. Counts, saved GTE results and the first-region cursor are unchanged.
+/// An empty record reads no payload and advances neither cursor. Workspace,
+/// stream and geometry storage are borrowed for the call.
+u32* tmdDrawStreamPrimGt4OneNormalSemiTrans(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 /// Projects, lights and links Gouraud textured triangles with per-corner material colours.
 ///

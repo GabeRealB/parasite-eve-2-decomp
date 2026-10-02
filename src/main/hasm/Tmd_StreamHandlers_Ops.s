@@ -1486,8 +1486,10 @@ alabel tmdDrawStreamPrimGt4OneNormal
     /* 2300 80011B00 */  j           .LtmdGt4OneNormalSetup
     /* 2304 80011B04 */  nop
 glabel tmdDrawStreamPrimGt4OneNormalSemiTrans
-    /* 2308 80011B08 */  lui         $t0, 0x3E80
-    /* 230C 80011B0C */  ori         $t0, $t0, 0x8080
+    /* a0 workspace, a1 ignored object flags, a2 first element word. */
+    /* Seed the semi-transparent command and neutral material for the shared face-normal walk. */
+    /* 2308 80011B08 */  lui         $t0, (TMD_DRAW_STREAM_GT4_SEMI_TRANS_COLOR >> 16)
+    /* 230C 80011B0C */  ori         $t0, $t0, (TMD_DRAW_STREAM_GT4_SEMI_TRANS_COLOR & 0xFFFF)
     /* 2310 80011B10 */  mtc2        $t0, $6
   .LtmdGt4OneNormalSetup:
     /* 2314 80011B14 */  lw          $t9, 0x18($a0)
