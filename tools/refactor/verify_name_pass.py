@@ -93,7 +93,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[2])
     parser.add_argument("--log-dir", type=Path, default=Path("local/name-pass/verification"))
-    parser.add_argument("--jobs", type=int, default=min(os.cpu_count() or 4, 4))
+    parser.add_argument("--jobs", type=int, default=min(int(os.environ.get("PE2_JOBS") or 0) or os.cpu_count() or 4, 4))
     args = parser.parse_args()
     root = args.root.resolve()
     try:

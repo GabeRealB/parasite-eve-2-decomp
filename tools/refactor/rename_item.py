@@ -173,7 +173,7 @@ def main() -> int:
     ap.add_argument("--version", default=cref.DEFAULT_VERSION,
                     help=f"version directory under asm/ and configs/ "
                          f"(default: {cref.DEFAULT_VERSION})")
-    ap.add_argument("-j", "--jobs", type=int, default=os.cpu_count() or 8)
+    ap.add_argument("-j", "--jobs", type=int, default=int(os.environ.get("PE2_JOBS") or 0) or os.cpu_count() or 8)
     ap.add_argument("--no-prefilter", action="store_true")
     ap.add_argument("-n", "--dry-run", action="store_true", help="show edits, change nothing")
     ap.add_argument("--sidecars", action="store_true",

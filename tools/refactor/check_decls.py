@@ -127,7 +127,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("prefixes", nargs="*", help="only scan translation units under these paths")
     ap.add_argument("--root", default=cref.repo_root(), help="repository to check (default: this one)")
-    ap.add_argument("--jobs", type=int, default=os.cpu_count() or 4)
+    ap.add_argument("--jobs", type=int, default=int(os.environ.get("PE2_JOBS") or 0) or os.cpu_count() or 4)
     ap.add_argument("--strict", action="store_true", help="exit 1 on definition or declaration mismatches")
     ap.add_argument("--across-images", action="store_true",
                     help="also compare imported external names across overlays; "

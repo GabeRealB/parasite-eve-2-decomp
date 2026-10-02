@@ -1846,9 +1846,9 @@ def main():
     parser.add_argument(
         "-j",
         "--jobs",
-        help="parallel split workers (default: CPU count; 1 forces sequential)",
+        help="parallel split workers (default: $PE2_JOBS, else CPU count; 1 forces sequential)",
         type=int,
-        default=0,
+        default=int(os.environ.get("PE2_JOBS") or 0),
     )
     parser.add_argument(
         "-ver",

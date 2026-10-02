@@ -508,6 +508,11 @@ run_agent() {
 work_step() {
   local dir="$1" order="$2" items="$3" brief="$4" log="$5" status="$6" term="$7"
   local report outcome
+  # Every build and refactor tool defaults to all CPUs. Workers run them at
+  # once, and each one's splat pool alone averages ~110 MB a process, so a full
+  # pool per worker exhausted memory. Divide the CPUs among the workers
+  # instead; the agent and the verifier inherit this.
+  export PE2_JOBS="${PE2_JOBS:-$(( $(nproc) / WORKERS > 0 ? $(nproc) / WORKERS : 1 ))}"
   local -a names
   read -ra names <<<"$items"
   report="$(review_file "$order")"

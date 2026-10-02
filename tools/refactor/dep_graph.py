@@ -914,7 +914,7 @@ def main() -> int:
     ap.add_argument("--build", action="store_true", help="rebuild the cached graph")
     ap.add_argument("--graph", default=None)
     ap.add_argument("--version", default=cref.DEFAULT_VERSION)
-    ap.add_argument("-j", "--jobs", type=int, default=os.cpu_count() or 8)
+    ap.add_argument("-j", "--jobs", type=int, default=int(os.environ.get("PE2_JOBS") or 0) or os.cpu_count() or 8)
     ap.add_argument("-n", "--limit", type=int, default=10)
     ap.add_argument("--worklist", default=os.path.join("local", "worklist.tsv"))
     ap.add_argument("--workers", type=int, default=1)

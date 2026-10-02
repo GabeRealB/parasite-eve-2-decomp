@@ -81,7 +81,7 @@ def main() -> int:
     ap.add_argument("--version", default=cref.DEFAULT_VERSION,
                     help=f"version directory under asm/ and configs/ "
                          f"(default: {cref.DEFAULT_VERSION})")
-    ap.add_argument("-j", "--jobs", type=int, default=os.cpu_count() or 8)
+    ap.add_argument("-j", "--jobs", type=int, default=int(os.environ.get("PE2_JOBS") or 0) or os.cpu_count() or 8)
     ap.add_argument("--no-prefilter", action="store_true",
                     help="parse every translation unit, not only those spelling the identifier")
     ap.add_argument("--summary", action="store_true", help="counts per use kind and per file only")

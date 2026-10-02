@@ -141,7 +141,9 @@ NINJA_LOG="$(mktemp -t pe2-ninja-XXXXXX.log)"
 ninja_failed=0
 "$PYTHON" ninja_config.py "${SCOPE_ARGS[@]+"${SCOPE_ARGS[@]}"}" "${FRESH_ARGS[@]+"${FRESH_ARGS[@]}"}" 1>/dev/null || ninja_failed=1
 if [[ $ninja_failed -eq 0 ]]; then
-    ninja >"$NINJA_LOG" 2>&1 || ninja_failed=1
+    # PE2_JOBS caps parallelism when several trees build at once (the naming
+    # pass's workers); ninja's own default is every CPU plus two.
+    ninja ${PE2_JOBS:+-j "$PE2_JOBS"} >"$NINJA_LOG" 2>&1 || ninja_failed=1
 fi
 
 if [[ $ninja_failed -eq 0 ]]; then

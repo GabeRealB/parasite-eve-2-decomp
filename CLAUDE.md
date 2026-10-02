@@ -319,6 +319,11 @@ overlay.
   about the overlays it skipped, which for a header change is the thing you
   have to check, so finish unscoped. `--clean` wipes `asm/`, `linkers/` and
   `build/` and splits everything, as every run used to.
+- `PE2_JOBS=N` caps the parallelism of the build (`ninja_config.py`'s split
+  pool and `ninja`) and of the libclang refactor tools, which otherwise use
+  every CPU. Set it when several trees build at once: the naming pass sets it
+  per worker to the CPUs divided by `--workers`, because a full split pool per
+  worker (~110 MB a process) exhausted memory.
 - `python3 tools/check_sym_coverage.py [IMAGE ...]` fail when a C function's
   name is not in its image's symbol maps (`symbol_addrs_path`). splat names an
   unmapped function `func_<segment>_<ADDR>` in the expected objects, so a
