@@ -51727,11 +51727,11 @@ as "the contested block has one quantity too many" rather than as noise.
 A scan over a sentinel-terminated table is naturally written with a cursor:
 
 ```c
-s32 f(OverlayHotspot* table, s16 x, s16 y) {
-    OverlayHotspot* entry = table;
+s32 f(ActionPromptHotspot* table, s16 x, s16 y) {
+    ActionPromptHotspot* entry = table;
     s32 hit = 0;
-    if (entry->id != -1) {
-        do { ...; entry++; } while (entry->id != -1);
+    if (entry->id != ACTION_PROMPT_HOTSPOT_END) {
+        do { ...; entry++; } while (entry->id != ACTION_PROMPT_HOTSPOT_END);
     }
     return hit;
 }
@@ -51750,9 +51750,9 @@ the loop's biv, so the argument gets copied out of `$a0` once and the biv is
 free to take `$a0` back:
 
 ```c
-s32 f(OverlayHotspot* table, s16 x, s16 y) {
+s32 f(ActionPromptHotspot* table, s16 x, s16 y) {
     s32 hit = 0;
-    while (table->id != -1) { ...; table++; }
+    while (table->id != ACTION_PROMPT_HOTSPOT_END) { ...; table++; }
     return hit;
 }
 ```

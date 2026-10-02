@@ -197,7 +197,7 @@ extern TaskDesc                      D_acropolis_security_room_8018263C;
 
 /// The security monitor's own hotspot table, hit-tested by
 /// `actionPromptHitTest`.
-extern OverlayHotspot D_acropolis_security_room_80182648[];
+extern ActionPromptHotspot D_acropolis_security_room_80182648[];
 
 /// The five camera ids the security monitor can display, in the order the
 /// `GameFlag_GetNibble(0x2A)` nibble indexes them.
@@ -209,8 +209,8 @@ extern TaskDesc D_acropolis_security_room_801826C0[];
 /// The script's message table, parked in `Task::msgTable`.
 extern TaskMessageEntry D_acropolis_security_room_801826CC[];
 
-/// The script's hotspot table, terminated by an entry whose `id` is -1.
-extern OverlayHotspot D_acropolis_security_room_801826DC[];
+/// The script's hotspot table, terminated by `ACTION_PROMPT_HOTSPOT_END`.
+extern ActionPromptHotspot D_acropolis_security_room_801826DC[];
 
 /// The two `TaskDesc`s this room's script spawns from: index 0 is
 /// `func_acropolis_security_room_80180368`, index 1 is
@@ -280,7 +280,7 @@ static void func_acropolis_security_room_8017FB20(Task* task);
 static void func_acropolis_security_room_8017FB54(Task* task);
 static void func_acropolis_security_room_8017FBA4(Task* task);
 static void func_acropolis_security_room_8017FC30(Task* task);
-static s32  func_acropolis_security_room_8017FCB0(OverlayHotspot* table, s16 x, s16 y);
+static s32  func_acropolis_security_room_8017FCB0(ActionPromptHotspot* table, s16 x, s16 y);
 static void func_acropolis_security_room_8017FD64(s32 flags);
 static void func_acropolis_security_room_8017FE6C(Task* task);
 static void func_acropolis_security_room_8017FF0C(Task* task);
@@ -347,7 +347,7 @@ TaskDesc D_acropolis_security_room_80182618[3] = {
 
 TaskDesc D_acropolis_security_room_8018263C = { { { TASK_BODY_NONE, 192 } }, func_acropolis_security_room_8017E9D8, { .value = 0 } };
 
-OverlayHotspot D_acropolis_security_room_80182648[9] = {
+ActionPromptHotspot D_acropolis_security_room_80182648[9] = {
     { -30, 81, 12, 11, 8, 1, 0 },
     { -7, 81, 12, 11, 9, 1, 0 },
     { 16, 81, 12, 11, 10, 1, 0 },
@@ -356,7 +356,7 @@ OverlayHotspot D_acropolis_security_room_80182648[9] = {
     { 82, 81, 12, 11, 13, 1, 0 },
     { -141, -76, 12, 11, -0x8000, 1, 0 },
     { -141, -58, 12, 11, -0x7FFF, 1, 0 },
-    { 0, 0, 0, 0, -1, 0, 0 },
+    { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 
 s16 D_acropolis_security_room_801826B4[6] = {
@@ -377,10 +377,10 @@ TaskMessageEntry D_acropolis_security_room_801826CC[2] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-OverlayHotspot D_acropolis_security_room_801826DC[3] = {
+ActionPromptHotspot D_acropolis_security_room_801826DC[3] = {
     { -68, 20, 24, 24, 1, 0, 0 },
     { 54, 20, 24, 24, 2, 0, 0 },
-    { 0, 0, 0, 0, -1, 0, 0 },
+    { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 
 TaskDesc D_acropolis_security_room_80182700[2] = {
@@ -2094,11 +2094,11 @@ void func_acropolis_security_room_8017D984(Task* task)
 /// clears every hotspot's `hit` flag so the first hit test starts clean.
 static void func_acropolis_security_room_8017D9DC(Task* task)
 {
-    AsrMonitorWork* work;
-    OverlayHotspot* hs;
-    s16             flag;
-    s32             state;
-    s16             stateElse;
+    AsrMonitorWork*      work;
+    ActionPromptHotspot* hs;
+    s16                  flag;
+    s32                  state;
+    s16                  stateElse;
 
     work = memCalloc(sizeof(AsrMonitorWork), 0);
     if (work == NULL) {
@@ -2131,11 +2131,11 @@ static void func_acropolis_security_room_8017D9DC(Task* task)
     gGameSession->cutsceneHold = 1;
     gGameSession->eventState   = 1;
     hs                         = D_acropolis_security_room_80182648;
-    if (hs->id != -1) {
+    if (hs->id != ACTION_PROMPT_HOTSPOT_END) {
         do {
             hs->hit = 0;
             hs++;
-        } while (hs->id != -1);
+        } while (hs->id != ACTION_PROMPT_HOTSPOT_END);
     }
 }
 
@@ -2147,9 +2147,9 @@ static void func_acropolis_security_room_8017D9DC(Task* task)
 /// task advances to state 5 once the prompt has been dismissed.
 static void func_acropolis_security_room_8017DB30(Task* task)
 {
-    AsrMonitorWork* work;
-    OverlayHotspot* hs;
-    ActionPrompt*   prompt;
+    AsrMonitorWork*      work;
+    ActionPromptHotspot* hs;
+    ActionPrompt*        prompt;
 
     hs     = D_acropolis_security_room_80182648;
     prompt = D_80114D28;
@@ -2166,7 +2166,7 @@ static void func_acropolis_security_room_8017DB30(Task* task)
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
-        if ((prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) && (hs->id != -1)) {
+        if ((prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) && (hs->id != ACTION_PROMPT_HOTSPOT_END)) {
             do {
                 if (hs->hit != 0) {
                     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
@@ -2177,7 +2177,7 @@ static void func_acropolis_security_room_8017DB30(Task* task)
                     return;
                 }
                 hs++;
-            } while (hs->id != -1);
+            } while (hs->id != ACTION_PROMPT_HOTSPOT_END);
         }
     } else {
         prompt->mode = ACTION_PROMPT_MODE_IDLE;
@@ -2519,8 +2519,8 @@ done:
 /// monitor by advancing to state 5.
 static void func_acropolis_security_room_8017EB9C(Task* task)
 {
-    ActionPrompt*   prompt  = D_80114D28;
-    OverlayHotspot* hotspot = D_acropolis_security_room_80182648;
+    ActionPrompt*        prompt  = D_80114D28;
+    ActionPromptHotspot* hotspot = D_acropolis_security_room_80182648;
 
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
@@ -2533,7 +2533,7 @@ static void func_acropolis_security_room_8017EB9C(Task* task)
     if (actionPromptHitTest(hotspot, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
         if (prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) {
-            for (; hotspot->id != -1; hotspot++) {
+            for (; hotspot->id != ACTION_PROMPT_HOTSPOT_END; hotspot++) {
                 if (hotspot->hit != 0) {
                     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
                     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
@@ -2596,7 +2596,7 @@ void func_acropolis_security_room_8017ED68(Task* task)
 static void func_acropolis_security_room_8017EE44(Task* task)
 {
     ActionPrompt*               prompt = D_80114D28;
-    OverlayHotspot*             hs     = D_acropolis_security_room_801826DC;
+    ActionPromptHotspot*        hs     = D_acropolis_security_room_801826DC;
     AcropolisSecurityRoomState* st     = (AcropolisSecurityRoomState*)task->work;
 
     gGameSession->hideHud    = 1;
@@ -2610,7 +2610,7 @@ static void func_acropolis_security_room_8017EE44(Task* task)
     if (func_acropolis_security_room_8017FCB0(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
         if (prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) {
-            for (; hs->id != -1; hs++) {
+            for (; hs->id != ACTION_PROMPT_HOTSPOT_END; hs++) {
                 if (hs->hit != 0) {
                     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
                     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
@@ -2750,7 +2750,7 @@ void func_acropolis_security_room_8017F9C8(Task* task)
 static void func_acropolis_security_room_8017FA18(Task* task)
 {
     AcropolisSecurityRoomState* st;
-    OverlayHotspot*             hs;
+    ActionPromptHotspot*        hs;
 
     st = memCalloc(sizeof(AcropolisSecurityRoomState), 0);
     if (st == NULL) {
@@ -2769,7 +2769,7 @@ static void func_acropolis_security_room_8017FA18(Task* task)
     gGameSession->hideHud      = 1;
     gGameSession->eventState   = 1;
     Display_AcquireRef();
-    for (hs = D_acropolis_security_room_801826DC; hs->id != -1; hs++) {
+    for (hs = D_acropolis_security_room_801826DC; hs->id != ACTION_PROMPT_HOTSPOT_END; hs++) {
         hs->hit = 0;
     }
 }

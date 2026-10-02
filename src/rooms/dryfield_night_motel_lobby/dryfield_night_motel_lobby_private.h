@@ -5,7 +5,7 @@
 
 #include "main/task_types.h"
 
-#include "overlay.h"
+#include "gameplay/action_prompt.h"
 
 #include "rooms/room.h"
 
@@ -34,10 +34,10 @@ typedef struct DnmlExamineWork {
 } DnmlExamineWork;
 STATIC_ASSERT_SIZEOF(DnmlExamineWork, 0xA);
 
-/// The lobby's hotspot table: fifteen `OverlayHotspot` entries, the last of them
-/// (index 14) the `id == -1` terminator the scans stop on. The room's init
+/// The lobby's hotspot table: fifteen `ActionPromptHotspot` entries, the last of them
+/// (index 14) the `ACTION_PROMPT_HOTSPOT_END` terminator the scans stop on. The room's init
 /// clears every entry's `hit` flag on the way in.
-extern OverlayHotspot D_dryfield_night_motel_lobby_80182820[];
+extern ActionPromptHotspot D_dryfield_night_motel_lobby_80182820[];
 
 extern TaskDesc D_dryfield_night_motel_lobby_801828D4;
 

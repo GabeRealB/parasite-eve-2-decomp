@@ -144,7 +144,7 @@ typedef struct AcropolisBridgeDebrisScratch {
 } AcropolisBridgeDebrisScratch;
 STATIC_ASSERT_SIZEOF(AcropolisBridgeDebrisScratch, 0x18);
 
-extern OverlayHotspot D_acropolis_bridge_8018983C[];
+extern ActionPromptHotspot D_acropolis_bridge_8018983C[];
 
 extern s32 D_acropolis_bridge_801917A8;
 
@@ -639,7 +639,7 @@ SVECTOR D_acropolis_bridge_80189240[190] = {
 
 TaskDesc D_acropolis_bridge_80189830 = { { { TASK_BODY_NONE, 192 } }, func_acropolis_bridge_8017F280, { .value = 0 } };
 
-OverlayHotspot D_acropolis_bridge_8018983C[12] = {
+ActionPromptHotspot D_acropolis_bridge_8018983C[12] = {
     { 20, -41, 20, 21, 1, 0, 0 },
     { 41, -41, 20, 21, 2, 0, 0 },
     { 62, -41, 20, 21, 3, 0, 0 },
@@ -651,7 +651,7 @@ OverlayHotspot D_acropolis_bridge_8018983C[12] = {
     { 62, 1, 20, 21, 9, 0, 0 },
     { 20, 23, 20, 21, 0, 0, 0 },
     { 42, 23, 40, 21, 10, 0, 0 },
-    { 0, 0, 0, 0, -1, 0, 0 },
+    { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 
 u8 D_acropolis_bridge_801898CC[3][16] = {
@@ -2981,7 +2981,7 @@ static void func_acropolis_bridge_8017E04C(Task* task)
 {
     AcropolisBridgePromptWork* work;
     GameLocationKey*           sess;
-    OverlayHotspot*            hs;
+    ActionPromptHotspot*       hs;
     SpriteView*                rec;
     s32                        view;
 
@@ -3004,7 +3004,7 @@ static void func_acropolis_bridge_8017E04C(Task* task)
     Display_AcquireRef();
     gGameSession->eventState = 1;
     gGameSession->hideHud    = 1;
-    for (hs = D_acropolis_bridge_8018983C; hs->id != -1; hs++) {
+    for (hs = D_acropolis_bridge_8018983C; hs->id != ACTION_PROMPT_HOTSPOT_END; hs++) {
         hs->hit = 0;
     }
     D_acropolis_bridge_801917A8 = 0;
@@ -3021,7 +3021,7 @@ static void func_acropolis_bridge_8017E04C(Task* task)
 static void func_acropolis_bridge_8017E1D0(Task* task)
 {
     AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->work;
-    OverlayHotspot*            hs     = D_acropolis_bridge_8018983C;
+    ActionPromptHotspot*       hs     = D_acropolis_bridge_8018983C;
     ActionPrompt*              prompt = D_80114D28;
 
     gGameSession->hideHud    = 1;
@@ -3034,7 +3034,7 @@ static void func_acropolis_bridge_8017E1D0(Task* task)
         if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
             prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
             if (prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) {
-                while (hs->id != -1) {
+                while (hs->id != ACTION_PROMPT_HOTSPOT_END) {
                     if (hs->hit != 0) {
                         if (work->promptBusy == 0) {
                             prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
@@ -3085,7 +3085,7 @@ static void func_acropolis_bridge_8017E1D0(Task* task)
 static void func_acropolis_bridge_8017E3A0(Task* task)
 {
     ActionPrompt*              prompt = D_80114D28;
-    OverlayHotspot*            hs     = D_acropolis_bridge_8018983C;
+    ActionPromptHotspot*       hs     = D_acropolis_bridge_8018983C;
     AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->work;
     GameLocationKey*           sess   = &gGameSession->location.loc;
     SpriteView*                rec;
@@ -3136,7 +3136,7 @@ after:
 static void func_acropolis_bridge_8017E4FC(Task* task)
 {
     ActionPrompt*              prompt = D_80114D28;
-    OverlayHotspot*            hs     = D_acropolis_bridge_8018983C;
+    ActionPromptHotspot*       hs     = D_acropolis_bridge_8018983C;
     AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->work;
     s16                        tick;
     u8                         retry;
@@ -3477,7 +3477,7 @@ static void func_acropolis_bridge_8017F544(Task* task)
 {
     ActionPrompt*              prompt = D_80114D28;
     AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->work;
-    OverlayHotspot*            hs     = D_acropolis_bridge_8018983C;
+    ActionPromptHotspot*       hs     = D_acropolis_bridge_8018983C;
 
     if (work->field_A < 0xA) {
         work->field_A++;

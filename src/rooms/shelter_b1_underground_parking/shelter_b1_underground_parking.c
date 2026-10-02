@@ -335,12 +335,12 @@ extern TaskDesc D_shelter_b1_underground_parking_80187670;
 
 extern TaskMessageEntry D_shelter_b1_underground_parking_80187230[];
 
-extern DVECTOR        D_shelter_b1_underground_parking_801876D4[];
-extern u8             D_shelter_b1_underground_parking_8018D788;
-extern u8             D_shelter_b1_underground_parking_8018D789;
-extern TaskDesc       D_shelter_b1_underground_parking_80187664[];
-extern OverlayHotspot D_shelter_b1_underground_parking_8018767C[];
-extern u8             D_shelter_b1_underground_parking_801876C4[];
+extern DVECTOR             D_shelter_b1_underground_parking_801876D4[];
+extern u8                  D_shelter_b1_underground_parking_8018D788;
+extern u8                  D_shelter_b1_underground_parking_8018D789;
+extern TaskDesc            D_shelter_b1_underground_parking_80187664[];
+extern ActionPromptHotspot D_shelter_b1_underground_parking_8018767C[];
+extern u8                  D_shelter_b1_underground_parking_801876C4[];
 
 extern SVECTOR D_shelter_b1_underground_parking_80187714[];
 extern SVECTOR D_shelter_b1_underground_parking_80187784[];
@@ -516,13 +516,13 @@ TaskDesc D_shelter_b1_underground_parking_80187664[1] = {
 
 TaskDesc D_shelter_b1_underground_parking_80187670 = { { { TASK_BODY_NONE, 32 } }, func_shelter_b1_underground_parking_80184284, { .value = 0 } };
 
-OverlayHotspot D_shelter_b1_underground_parking_8018767C[6] = {
+ActionPromptHotspot D_shelter_b1_underground_parking_8018767C[6] = {
     { -78, 77, 16, 16, 8, 1, 0 },
     { -48, 77, 16, 16, 4, 1, 0 },
     { -21, 77, 16, 16, 2, 1, 0 },
     { 3, 77, 16, 16, 1, 1, 0 },
     { 34, 77, 40, 16, 16, 1, 0 },
-    { 0, 0, 0, 0, -1, 0, 0 },
+    { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 
 u8 D_shelter_b1_underground_parking_801876C4[16] = {
@@ -2278,8 +2278,8 @@ void func_shelter_b1_underground_parking_80184284(Task* task)
 
 static void func_shelter_b1_underground_parking_80184304(Task* task)
 {
-    SbupExamineWork* st;
-    OverlayHotspot*  hs;
+    SbupExamineWork*     st;
+    ActionPromptHotspot* hs;
 
     st = memCalloc(0x10, 0);
     if (st == NULL) {
@@ -2300,7 +2300,7 @@ static void func_shelter_b1_underground_parking_80184304(Task* task)
         } while (0);
     } while (0);
     Display_AcquireRef();
-    for (hs = D_shelter_b1_underground_parking_8018767C; hs->id != -1; hs++) {
+    for (hs = D_shelter_b1_underground_parking_8018767C; hs->id != ACTION_PROMPT_HOTSPOT_END; hs++) {
         hs->hit = 0;
     }
     gGameSession->cutsceneHold = 1;
@@ -2323,9 +2323,9 @@ static void func_shelter_b1_underground_parking_801843F0(Task* task)
 
 static void func_shelter_b1_underground_parking_80184468(Task* task)
 {
-    ActionPrompt*    prompt = D_80114D28;
-    OverlayHotspot*  hs     = D_shelter_b1_underground_parking_8018767C;
-    SbupExamineWork* work   = (SbupExamineWork*)task->work;
+    ActionPrompt*        prompt = D_80114D28;
+    ActionPromptHotspot* hs     = D_shelter_b1_underground_parking_8018767C;
+    SbupExamineWork*     work   = (SbupExamineWork*)task->work;
 
     func_shelter_b1_underground_parking_80183B9C();
     gGameSession->hideHud = 1;
@@ -2338,7 +2338,7 @@ static void func_shelter_b1_underground_parking_80184468(Task* task)
     if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
         if (prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) {
-            for (; hs->id != -1; hs++) {
+            for (; hs->id != ACTION_PROMPT_HOTSPOT_END; hs++) {
                 if (hs->hit != 0) {
                     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
                     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;

@@ -6,8 +6,8 @@
 /// the room's hotspot list.
 void factoryPanelInit(Task* task)
 {
-    FactoryPanelWork* work;
-    OverlayHotspot*   hs;
+    FactoryPanelWork*    work;
+    ActionPromptHotspot* hs;
 
     work = memCalloc(0x10, 0);
     if (work == NULL) {
@@ -24,7 +24,7 @@ void factoryPanelInit(Task* task)
     }
     task->state++;
     Display_AcquireRef();
-    for (hs = gFactoryPanelHotspots; hs->id != -1; hs++) {
+    for (hs = gFactoryPanelHotspots; hs->id != ACTION_PROMPT_HOTSPOT_END; hs++) {
         hs->hit = 0;
     }
     gGameSession->cutsceneHold = 1;

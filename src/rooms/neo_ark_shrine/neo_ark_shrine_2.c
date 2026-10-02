@@ -1101,8 +1101,8 @@ void func_neo_ark_shrine_8017EBB8(Task* task)
 /// state and clears the shrine's hotspot list.
 static void func_neo_ark_shrine_8017ECC4(Task* task)
 {
-    NeoArkShrineScript* st;
-    OverlayHotspot*     hs;
+    NeoArkShrineScript*  st;
+    ActionPromptHotspot* hs;
 
     st = memCalloc(0x10, 0);
     if (st == NULL) {
@@ -1120,7 +1120,7 @@ static void func_neo_ark_shrine_8017ECC4(Task* task)
         task->state++;
     } while (0);
     Display_AcquireRef();
-    for (hs = D_neo_ark_shrine_80182430; hs->id != -1; hs++) {
+    for (hs = D_neo_ark_shrine_80182430; hs->id != ACTION_PROMPT_HOTSPOT_END; hs++) {
         hs->hit = 0;
     }
     gGameSession->cutsceneHold = 1;

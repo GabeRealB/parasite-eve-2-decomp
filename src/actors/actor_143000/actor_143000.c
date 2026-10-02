@@ -41,7 +41,7 @@ extern u8 D_actor_143000_80135C0C[4];
 extern u8 D_actor_143000_80135C0C_value __asm__("D_actor_143000_80135C0C");
 
 /// Work block of the actor's callback task. `promptKind` is the picked hotspot's
-/// prompt display mode, copied from its `Actor143000Rect::field_A` by
+/// prompt display mode, copied from its `ActionPromptHotspot::promptKind` by
 /// `func_actor_143000_801325F0` and handed to `func_800D4E78` when
 /// `func_actor_143000_80133698` re-spawns the prompt.
 typedef struct Actor143000Work {
@@ -63,26 +63,10 @@ typedef struct Actor143000Work {
 } Actor143000Work;
 STATIC_ASSERT_SIZEOF(Actor143000Work, 0x1C);
 
-/// One hotspot of the `D_actor_143000_80134580` list: a screen rect
-/// `func_actor_143000_80133AE8` hit-tests the prompt cursor against. The list
-/// ends on an entry whose `field_8` is -1.
-typedef struct Actor143000Rect {
-    /* 0x0 */ s16 x;
-    /* 0x2 */ s16 y;
-    /* 0x4 */ s16 w;
-    /* 0x6 */ s16 h;
-    /* 0x8 */ s16 field_8;
-    /* 0xA */ s8  field_A;
-    /// Set while the prompt cursor is inside the rect; cleared on every entry
-    /// when `func_actor_143000_801324C8` starts the actor.
-    /* 0xB */ s8 field_B;
-} Actor143000Rect;
-STATIC_ASSERT_SIZEOF(Actor143000Rect, 0xC);
-
-extern TaskDesc        D_actor_143000_80134558;
-extern u8              D_actor_143000_80134570[];
-extern Actor143000Rect D_actor_143000_80134580[];
-extern const char*     D_actor_143000_801345F8[3];
+extern TaskDesc            D_actor_143000_80134558;
+extern u8                  D_actor_143000_80134570[];
+extern ActionPromptHotspot D_actor_143000_80134580[];
+extern const char*         D_actor_143000_801345F8[3];
 
 static void func_actor_143000_80132A04(Task* arg0);
 static void func_actor_143000_80133664(Task* task);
@@ -93,7 +77,7 @@ static void func_actor_143000_801338C8(Task* arg0);
 static void func_actor_143000_801338E0(Task* arg0);
 static void func_actor_143000_801339CC(Task* arg0);
 static void func_actor_143000_80133AC0(Task* arg0);
-static s32  func_actor_143000_80133AE8(Actor143000Rect* p, s16 x, s16 y);
+static s32  func_actor_143000_80133AE8(ActionPromptHotspot* p, s16 x, s16 y);
 static void func_actor_143000_80133C2C(void);
 
 void func_actor_143000_80133578(Task*);
@@ -126,7 +110,9 @@ u8 D_actor_143000_80134570[16] = {
     1,
 };
 
-Actor143000Rect D_actor_143000_80134580[10] = {
+/// Action-cursor hotspots. `func_actor_143000_80133AE8` tests them; the last
+/// entry is the end marker.
+ActionPromptHotspot D_actor_143000_80134580[10] = {
     { -128, 32, 208, 48, 5, 0, 0 },
     { -133, 11, 266, 17, 4, 0, 0 },
     { -160, -120, 27, 240, 2, 0, 0 },
@@ -136,7 +122,7 @@ Actor143000Rect D_actor_143000_80134580[10] = {
     { -160, 84, 320, 36, 2, 0, 0 },
     { -120, -72, 266, 17, 1, 0, 0 },
     { 88, 64, 40, 16, 3, 1, 0 },
-    { 0, 0, 0, 0, -1, 0, 0 },
+    { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 
 const char* D_actor_143000_801345F8[3] = {
@@ -269,9 +255,9 @@ static void func_actor_143000_80132D10(Task* arg0);
 
 static void func_actor_143000_801324C8(Task* arg0)
 {
-    Actor143000Work* work;
-    Actor143000Rect* p;
-    u8               temp_a0;
+    Actor143000Work*     work;
+    ActionPromptHotspot* p;
+    u8                   temp_a0;
 
     p    = D_actor_143000_80134580;
     work = memCalloc(0x1CU, false);
@@ -287,11 +273,12 @@ static void func_actor_143000_801324C8(Task* arg0)
     arg0->state                                               += 1;
     work->field_4                                              = 0;
     Display_AcquireRef();
-    if (p->field_8 != -1) {
+    // Clear hits left on the table before the prompt scan starts.
+    if (p->id != ACTION_PROMPT_HOTSPOT_END) {
         do {
-            p->field_B = 0;
+            p->hit = 0;
             p++;
-        } while (p->field_8 != -1);
+        } while (p->id != ACTION_PROMPT_HOTSPOT_END);
     }
     work->field_7              = 0;
     work->field_12             = 1;
@@ -309,20 +296,20 @@ static void func_actor_143000_801324C8(Task* arg0)
 
 static void func_actor_143000_801325F0(Task* arg0)
 {
-    Actor143000Work* work;
-    u8               u;
-    Actor143000Rect* p;
-    POLY_FT4*        prim;
-    ActionPrompt*    prompt;
-    s16              dx;
-    s16              dy;
-    s16              x;
-    s16              y;
-    s16              w;
-    s16              h;
-    u8               v;
-    u8               uw;
-    u8               vh;
+    Actor143000Work*     work;
+    u8                   u;
+    ActionPromptHotspot* p;
+    POLY_FT4*            prim;
+    ActionPrompt*        prompt;
+    s16                  dx;
+    s16                  dy;
+    s16                  x;
+    s16                  y;
+    s16                  w;
+    s16                  h;
+    u8                   v;
+    u8                   uw;
+    u8                   vh;
 
     work                           = arg0->work;
     gGameSession->hideHud          = 1;
@@ -343,9 +330,9 @@ static void func_actor_143000_801325F0(Task* arg0)
     if (func_actor_143000_80133AE8(p, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
         if (prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) {
-            for (; p->field_8 != -1; p++) {
-                if (p->field_B != 0) {
-                    if (work->field_7 != 0 && p->field_8 == 5) {
+            for (; p->id != ACTION_PROMPT_HOTSPOT_END; p++) {
+                if (p->hit != 0) {
+                    if (work->field_7 != 0 && p->id == 5) {
                         SndEvt_EnqueueType6(SOUND_SHELTER_B2_LAB_KEYPAD_KEY, 0, 0);
                         prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
                         prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
@@ -356,17 +343,17 @@ static void func_actor_143000_801325F0(Task* arg0)
                     }
                     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
                     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-                    work->field_2       = p->field_8;
-                    work->promptKind    = p->field_A;
+                    work->field_2       = p->id;
+                    work->promptKind    = p->promptKind;
                     arg0->state         = 3;
                     return;
                 }
             }
         }
-        for (p = D_actor_143000_80134580; p->field_8 != -1; p++) {
-            if (p->field_B != 0) {
-                if (p->field_8 != 3) {
-                    if (p->field_8 == 5) {
+        for (p = D_actor_143000_80134580; p->id != ACTION_PROMPT_HOTSPOT_END; p++) {
+            if (p->hit != 0) {
+                if (p->id != 3) {
+                    if (p->id == 5) {
                         prim           = gGpuPrimCursor;
                         gGpuPrimCursor = prim + 1;
                         SetPolyFT4(prim);
@@ -856,41 +843,43 @@ static void func_actor_143000_80133AC0(Task* arg0)
     }
 }
 
-static s32 func_actor_143000_80133AE8(Actor143000Rect* p, s16 x, s16 y)
+/// Hit-tests the cursor against `p`. The far edge is outside the rectangle,
+/// where `actionPromptHitTest` includes it. Returns the first hit `id`, or 0.
+static s32 func_actor_143000_80133AE8(ActionPromptHotspot* p, s16 x, s16 y)
 {
     s32 result = 0;
 
-    if (p->field_8 != -1) {
+    if (p->id != ACTION_PROMPT_HOTSPOT_END) {
         do {
             if (x >= p->x && x < p->x + p->w && y >= p->y && y < p->y + p->h) {
                 if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 9) {
-                    actionPromptOutlineRect(p, 0, 0, 0);
+                    actionPromptOutlineRect((RoomRect*)p, 0, 0, 0);
                 }
-                p->field_B = 1;
+                p->hit = 1;
                 if (result == 0) {
-                    result = p->field_8;
+                    result = p->id;
                 }
             } else {
                 if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 9) {
-                    actionPromptOutlineRect(p, 0xFF, 0, 0);
+                    actionPromptOutlineRect((RoomRect*)p, 0xFF, 0, 0);
                 }
-                p->field_B = 0;
+                p->hit = 0;
             }
             p++;
-        } while (p->field_8 != -1);
+        } while (p->id != ACTION_PROMPT_HOTSPOT_END);
     }
     return result;
 }
 
 static void func_actor_143000_80133C2C(void)
 {
-    Actor143000Rect* p = D_actor_143000_80134580;
+    ActionPromptHotspot* p = D_actor_143000_80134580;
 
-    if (p->field_8 != -1) {
+    if (p->id != ACTION_PROMPT_HOTSPOT_END) {
         do {
-            actionPromptOutlineRect(p, 0, 0xFF, 0);
+            actionPromptOutlineRect((RoomRect*)p, 0, 0xFF, 0);
             p++;
-        } while (p->field_8 != -1);
+        } while (p->id != ACTION_PROMPT_HOTSPOT_END);
     }
 }
 

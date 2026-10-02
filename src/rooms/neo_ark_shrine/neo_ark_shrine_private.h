@@ -5,7 +5,7 @@
 
 #include "main/task_types.h"
 
-#include "overlay.h"
+#include "gameplay/action_prompt.h"
 
 /// A pair of 16-bit coordinates used by the shrine's sliding-tile puzzle: the
 /// screen position of a tile's quad, or the texture origin it samples from.
@@ -26,8 +26,8 @@ typedef struct {
     /* 0x0F */ s8  field_F;
 } NeoArkShrineScript;
 
-/// Hotspot table of the shrine's cap script, terminated by an `id` of -1.
-extern OverlayHotspot D_neo_ark_shrine_80182430[];
+/// Hotspot table of the shrine's cap script, terminated by `ACTION_PROMPT_HOTSPOT_END`.
+extern ActionPromptHotspot D_neo_ark_shrine_80182430[];
 
 extern TaskDesc D_neo_ark_shrine_80182508[];
 

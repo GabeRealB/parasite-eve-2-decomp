@@ -93,7 +93,7 @@ static TaskMessageEntry     D_shelter_r47_80186F2C[6];
 static AnimationPlayRequest D_shelter_r47_80186F5C;
 static TaskDesc             D_shelter_r47_80186F70[3];
 static TaskDesc             D_shelter_r47_80186F94[2];
-static OverlayHotspot       D_shelter_r47_80186FB4[9];
+static ActionPromptHotspot  D_shelter_r47_80186FB4[9];
 static TaskDesc             D_shelter_r47_80187020;
 /// Piece lists of the sprites `func_shelter_r47_80180F38` draws, by sprite id.
 static ShelterR47SpritePart* D_shelter_r47_8018729C[];
@@ -154,7 +154,7 @@ u8 D_shelter_r47_80186FAC[5] = {
     19,
 };
 
-static OverlayHotspot D_shelter_r47_80186FB4[9] = {
+static ActionPromptHotspot D_shelter_r47_80186FB4[9] = {
     { 128, -104, 20, 20, 1025, 0, 0 },
     { -152, -104, 68, 20, 769, 0, 0 },
     { -152, 72, 72, 16, 257, 1, 0 },
@@ -163,7 +163,7 @@ static OverlayHotspot D_shelter_r47_80186FB4[9] = {
     { 124, -51, 26, 16, 2, 1, 0 },
     { 124, -35, 26, 16, 3, 1, 0 },
     { 124, -19, 26, 16, 4, 1, 0 },
-    { 0, 0, 0, 0, -1, 0, 0 },
+    { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 
 static TaskDesc D_shelter_r47_80187020 = { { { TASK_BODY_NONE, 192 } }, func_shelter_r47_80182B18, { .value = 0 } };
@@ -472,18 +472,18 @@ u8* D_shelter_r47_80187374[10] = {
     D_shelter_r47_80187364,
 };
 
-OverlayHotspot D_shelter_r47_8018739C[5] = {
+ActionPromptHotspot D_shelter_r47_8018739C[5] = {
     { -156, -103, 78, 10, 4, 0, 0 },
     { -150, 63, 56, 14, 2, 1, 0 },
     { -144, 80, 56, 14, 3, 1, 0 },
     { -155, -90, 68, 84, 1, 0, 0 },
-    { 0, 0, 0, 0, -1, 0, 0 },
+    { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 
-OverlayHotspot D_shelter_r47_801873D8[3] = {
+ActionPromptHotspot D_shelter_r47_801873D8[3] = {
     { -150, 63, 56, 14, 2, 1, 0 },
     { -144, 80, 56, 14, 3, 1, 0 },
-    { 0, 0, 0, 0, -1, 0, 0 },
+    { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 
 u8 D_shelter_r47_801873FC[8] = {
@@ -1114,9 +1114,9 @@ void func_shelter_r47_80180F38(s16 x, s16 y, s16 id)
 
 void func_shelter_r47_8018138C(Task* task)
 {
-    ShelterR47State* work;
-    OverlayHotspot*  hs;
-    s32              arg1;
+    ShelterR47State*     work;
+    ActionPromptHotspot* hs;
+    s32                  arg1;
 
     work = memCalloc(0x54, false);
     if (work == NULL) {
@@ -1131,7 +1131,7 @@ void func_shelter_r47_8018138C(Task* task)
     Display_AcquireRef();
 
     hs = D_shelter_r47_80186FB4;
-    while (hs->id != -1) {
+    while (hs->id != ACTION_PROMPT_HOTSPOT_END) {
         hs->hit = 0;
         hs++;
     }
@@ -1187,9 +1187,9 @@ void func_shelter_r47_8018138C(Task* task)
 /// and with `field_51` clear a dismissed prompt advances to state 6.
 void func_shelter_r47_80181568(Task* task)
 {
-    ShelterR47State* work;
-    OverlayHotspot*  hs;
-    ActionPrompt*    prompt;
+    ShelterR47State*     work;
+    ActionPromptHotspot* hs;
+    ActionPrompt*        prompt;
 
     hs     = D_shelter_r47_80186FB4;
     prompt = D_80114D28;
@@ -1209,7 +1209,7 @@ void func_shelter_r47_80181568(Task* task)
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     if (func_shelter_r47_80182B9C(task, hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
-        if ((prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) && (hs->id != -1)) {
+        if ((prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) && (hs->id != ACTION_PROMPT_HOTSPOT_END)) {
             do {
                 if (hs->hit != 0) {
                     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
@@ -1220,7 +1220,7 @@ void func_shelter_r47_80181568(Task* task)
                     return;
                 }
                 hs++;
-            } while (hs->id != -1);
+            } while (hs->id != ACTION_PROMPT_HOTSPOT_END);
         }
     } else {
         prompt->mode = ACTION_PROMPT_MODE_IDLE;

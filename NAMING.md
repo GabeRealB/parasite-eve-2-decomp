@@ -378,7 +378,8 @@ introducing a qualifier; do not assume that they are one API.
 
 `actionPrompt` owns the point-and-click action cursor shared by room and actor
 overlays. The resident per-port state and its public types are gameplay
-(`include/gameplay/action_prompt.h`, slots in `menu_actions.c`). The included
+(`include/gameplay/action_prompt.h`, slots in `menu_actions.c`). The hotspot
+table entry is `ActionPromptHotspot` in that header. The included
 motion, drawing, hotspot test and outline are `src/shared/action_prompt.h` and
 its fragments; a package includes only the fragments it carries.
 

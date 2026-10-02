@@ -64,7 +64,7 @@ static void func_shelter_r47_80184F40(s32 x, s32 y, s32 variant);
 static void func_shelter_r47_80185028(Task* task);
 static void func_shelter_r47_80185098(Task* task);
 static void func_shelter_r47_801851B8(Task* task);
-static s32  func_shelter_r47_801852A0(OverlayHotspot* table, s16 x, s16 y);
+static s32  func_shelter_r47_801852A0(ActionPromptHotspot* table, s16 x, s16 y);
 static void func_shelter_r47_80185354(Task* task);
 static void func_shelter_r47_80185450(Task* task);
 static void func_shelter_r47_80185510(Task* task);
@@ -1665,13 +1665,13 @@ static void func_shelter_r47_8018489C(RoomRect* rect, u8 r, u8 g, u8 b);
 /// loop notes stop the scheduler moving instructions across them.
 static void func_shelter_r47_8018431C(Task* task)
 {
-    ShelterR47State2* state;
-    s16               spriteX;
-    OverlayHotspot*   hs;
-    s32               arg;
-    u8                view;
-    s32               level;
-    s16               quadW, quadH, quad2W, quad2H;
+    ShelterR47State2*    state;
+    s16                  spriteX;
+    ActionPromptHotspot* hs;
+    s32                  arg;
+    u8                   view;
+    s32                  level;
+    s16                  quadW, quadH, quad2W, quad2H;
 
     state = memCalloc(0x30, false);
     if (state == NULL) {
@@ -1685,7 +1685,7 @@ static void func_shelter_r47_8018431C(Task* task)
     state->hotspots = task->spawnArg1.value == 2 ? D_shelter_r47_801873D8 : D_shelter_r47_8018739C;
     do {
     } while (0);
-    for (hs = state->hotspots; hs->id != -1; hs++) {
+    for (hs = state->hotspots; hs->id != ACTION_PROMPT_HOTSPOT_END; hs++) {
         hs->hit = 0;
     }
     gGameSession->cutsceneHold = 1;
@@ -1729,9 +1729,9 @@ static void func_shelter_r47_8018431C(Task* task)
 /// of 3 moves straight to state 9.
 static void func_shelter_r47_801844A0(Task* task)
 {
-    ActionPrompt*     prompt = D_80114D28;
-    ShelterR47State2* st     = (ShelterR47State2*)task->work;
-    OverlayHotspot*   hs     = st->hotspots;
+    ActionPrompt*        prompt = D_80114D28;
+    ShelterR47State2*    st     = (ShelterR47State2*)task->work;
+    ActionPromptHotspot* hs     = st->hotspots;
 
     if (st->field_2C != 0) {
         if (--st->field_2C == 0) {
@@ -1754,7 +1754,7 @@ static void func_shelter_r47_801844A0(Task* task)
     if (func_shelter_r47_801852A0(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
         if (prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) {
-            for (; hs->id != -1; hs++) {
+            for (; hs->id != ACTION_PROMPT_HOTSPOT_END; hs++) {
                 if (hs->hit != 0) {
                     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
                     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;

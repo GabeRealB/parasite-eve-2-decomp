@@ -15,14 +15,14 @@
 
 #include "main/task_types.h"
 
-#include "overlay.h"
+#include "gameplay/action_prompt.h"
 
 #include "rooms/room_common.h"
 
 void actionPromptReset(Task* task);
 void actionPromptMoveCursors(Task* task);
 void actionPromptDrawCursor(s32 x, s32 y, s32 variant);
-s32  actionPromptHitTest(OverlayHotspot* table, s16 x, s16 y);
+s32  actionPromptHitTest(ActionPromptHotspot* table, s16 x, s16 y);
 void actionPromptOutlineRect(RoomRect* rect, u8 r, u8 g, u8 b);
 void actionPromptEventEnd(Task* task);
 

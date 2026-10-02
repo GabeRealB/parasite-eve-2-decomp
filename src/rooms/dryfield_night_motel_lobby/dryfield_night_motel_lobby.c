@@ -310,9 +310,9 @@ void func_dryfield_night_motel_lobby_8017FE38(Task* task)
 /// landing past it. Writing a `goto` there compiles to a different tail.
 void func_dryfield_night_motel_lobby_8017FE90(Task* task)
 {
-    DnmlExamineWork* work   = (DnmlExamineWork*)task->work;
-    OverlayHotspot*  hs     = D_dryfield_night_motel_lobby_80182820;
-    ActionPrompt*    prompt = D_80114D28;
+    DnmlExamineWork*     work   = (DnmlExamineWork*)task->work;
+    ActionPromptHotspot* hs     = D_dryfield_night_motel_lobby_80182820;
+    ActionPrompt*        prompt = D_80114D28;
 
     work->field_7            = 0;
     gGameSession->hideHud    = 1;
@@ -325,7 +325,7 @@ void func_dryfield_night_motel_lobby_8017FE90(Task* task)
         if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
             prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
             if (prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) {
-                while (hs->id != -1) {
+                while (hs->id != ACTION_PROMPT_HOTSPOT_END) {
                     if (hs->hit != 0) {
                         if (work->promptBusy == 0) {
                             prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;

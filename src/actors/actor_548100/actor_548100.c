@@ -216,8 +216,8 @@ static void func_actor_548100_80132550(Task* task);
 static void func_actor_548100_80132684(Task* task);
 static void func_actor_548100_80132808(Task* arg0);
 static void func_actor_548100_801330EC(void);
-static void func_actor_548100_80134400(OverlayHotspot* unused);
-static s32  func_actor_548100_801348A4(OverlayHotspot* table, s16 x, s16 y);
+static void func_actor_548100_80134400(ActionPromptHotspot* unused);
+static s32  func_actor_548100_801348A4(ActionPromptHotspot* table, s16 x, s16 y);
 static s32  func_actor_548100_80134CB8(s32 nodeA, u8 nodeB);
 static void func_actor_548100_80134D88(Task* task);
 static void func_actor_548100_80134DBC(Task* task);
@@ -249,7 +249,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(Actor548100MsgEntry, 8);
 
 extern Actor548100MsgEntry D_actor_548100_801351C0[];
-extern OverlayHotspot      D_actor_548100_801357E8[];
+extern ActionPromptHotspot D_actor_548100_801357E8[];
 extern Actor548100Route    D_actor_548100_801356D8[12];
 extern s16                 D_actor_548100_80135B50;
 extern u8                  D_actor_548100_80135B52;
@@ -419,7 +419,7 @@ Actor548100TexRect D_actor_548100_801357C0[5] = {
     { 0, 0, 75, 239 },
 };
 
-OverlayHotspot D_actor_548100_801357E8[13] = {
+ActionPromptHotspot D_actor_548100_801357E8[13] = {
     { -84, -87, 14, 14, 1, 0, 0 },
     { -71, -75, 14, 14, 2, 0, 0 },
     { -84, -63, 14, 14, 3, 0, 0 },
@@ -432,7 +432,7 @@ OverlayHotspot D_actor_548100_801357E8[13] = {
     { 75, -46, 56, 117, 7, 0, 0 },
     { -79, -1, 152, 93, 7, 0, 0 },
     { -37, 92, 96, 20, 8, 0, 0 },
-    { 0, 0, 0, 0, -1, 0, 0 },
+    { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 
 u8 D_actor_548100_80135884 = 16;
@@ -919,9 +919,9 @@ static const TaskFuncTable11 D_actor_548100_80131E6C = { {
 /// action-prompt task and initializes the map UI.
 static void func_actor_548100_80132420(Task* task)
 {
-    Actor548100Work* work;
-    OverlayHotspot*  rec;
-    OverlayHotspot*  start;
+    Actor548100Work*     work;
+    ActionPromptHotspot* rec;
+    ActionPromptHotspot* start;
 
     work = memCalloc(0x18, 0);
     if (work == NULL) {
@@ -940,7 +940,7 @@ static void func_actor_548100_80132420(Task* task)
     work->collectBitId = 0;
     Display_AcquireRef();
     start = D_actor_548100_801357E8;
-    for (rec = start; rec->id != -1; rec++) {
+    for (rec = start; rec->id != ACTION_PROMPT_HOTSPOT_END; rec++) {
         rec->hit = 0;
     }
     D_actor_548100_80135B50 = 0x10;
@@ -954,9 +954,9 @@ static void func_actor_548100_80132420(Task* task)
 
 static void func_actor_548100_80132550(Task* task)
 {
-    ActionPrompt*    prompt = D_80114D28;
-    OverlayHotspot*  hs     = D_actor_548100_801357E8;
-    Actor548100Work* work   = (Actor548100Work*)task->work;
+    ActionPrompt*        prompt = D_80114D28;
+    ActionPromptHotspot* hs     = D_actor_548100_801357E8;
+    Actor548100Work*     work   = (Actor548100Work*)task->work;
 
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
@@ -970,7 +970,7 @@ static void func_actor_548100_80132550(Task* task)
     if (func_actor_548100_801348A4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
         if (prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) {
-            for (; hs->id != -1; hs++) {
+            for (; hs->id != ACTION_PROMPT_HOTSPOT_END; hs++) {
                 if (hs->hit != 0) {
                     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
                     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
@@ -1916,7 +1916,7 @@ static void func_actor_548100_801342D8(s32 id, s32 stop, s16 pos)
 /// coordinates in `field_4` / `field_6` and their span less 2 in `dist`.
 /// Finally reset each edge's `state` for the current stage, as
 /// `func_actor_548100_80134BF0` does.
-static void func_actor_548100_80134400(OverlayHotspot* unused)
+static void func_actor_548100_80134400(ActionPromptHotspot* unused)
 {
     Actor548100Edge* edge;
     Actor548100Edge* cell;
@@ -2064,12 +2064,12 @@ static void func_actor_548100_801347F8(Task* arg0)
 
 /// Hit-tests (`x`, `y`) against `table`, raising `hit` on every containing entry
 /// and clearing it on the rest. Returns the `id` of the first entry hit, or 0.
-static s32 func_actor_548100_801348A4(OverlayHotspot* table, s16 x, s16 y)
+static s32 func_actor_548100_801348A4(ActionPromptHotspot* table, s16 x, s16 y)
 {
     s32 hit;
 
     hit = 0;
-    while (table->id != -1) {
+    while (table->id != ACTION_PROMPT_HOTSPOT_END) {
         if ((x >= table->x) && ((table->x + table->w) >= x) && (y >= table->y) && ((table->y + table->h) >= y)) {
             table->hit = 1;
             if (hit == 0) {

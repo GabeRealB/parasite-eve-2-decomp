@@ -13,9 +13,9 @@
 /// leaves the scan by advancing to state 5.
 void factoryPanelIdle(Task* task)
 {
-    ActionPrompt*     prompt = D_80114D28;
-    OverlayHotspot*   hs     = gFactoryPanelHotspots;
-    FactoryPanelWork* st     = (FactoryPanelWork*)task->work;
+    ActionPrompt*        prompt = D_80114D28;
+    ActionPromptHotspot* hs     = gFactoryPanelHotspots;
+    FactoryPanelWork*    st     = (FactoryPanelWork*)task->work;
 
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
@@ -31,7 +31,7 @@ void factoryPanelIdle(Task* task)
     if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
         if (prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) {
-            for (; hs->id != -1; hs++) {
+            for (; hs->id != ACTION_PROMPT_HOTSPOT_END; hs++) {
                 if (hs->hit != 0) {
                     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
                     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;

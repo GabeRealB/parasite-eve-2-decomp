@@ -124,7 +124,7 @@ TaskDesc D_dryfield_night_motel_lobby_80182814[1] = {
     { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_motel_lobby_80180D08, { .value = 0 } },
 };
 
-OverlayHotspot D_dryfield_night_motel_lobby_80182820[15] = {
+ActionPromptHotspot D_dryfield_night_motel_lobby_80182820[15] = {
     { -48, -62, 20, 22, 7, 0, 0 },
     { -20, -62, 20, 22, 8, 0, 0 },
     { 8, -62, 20, 22, 9, 0, 0 },
@@ -139,7 +139,7 @@ OverlayHotspot D_dryfield_night_motel_lobby_80182820[15] = {
     { 8, 22, 20, 22, 11, 0, 0 },
     { -20, 50, 50, 22, 12, 0, 0 },
     { 42, 50, 50, 22, 13, 0, 0 },
-    { 0, 0, 0, 0, -1, 0, 0 },
+    { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 
 TaskDesc D_dryfield_night_motel_lobby_801828D4 = { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_motel_lobby_80180D58, { .value = 0 } };
@@ -854,11 +854,11 @@ void func_dryfield_night_motel_lobby_80180D58(Task* task)
 /// lists them.
 static void func_dryfield_night_motel_lobby_80180E98(Task* task)
 {
-    DnmlExamineWork* work;
-    OverlayHotspot*  hs;
-    u8*              p;
-    u8               empty;
-    s32              i;
+    DnmlExamineWork*     work;
+    ActionPromptHotspot* hs;
+    u8*                  p;
+    u8                   empty;
+    s32                  i;
 
     work = memCalloc(0xA, 0);
     if (work == NULL) {
@@ -874,7 +874,7 @@ static void func_dryfield_night_motel_lobby_80180E98(Task* task)
         task->state++;
     } while (0);
     Display_AcquireRef();
-    for (hs = D_dryfield_night_motel_lobby_80182820; hs->id != -1; hs++) {
+    for (hs = D_dryfield_night_motel_lobby_80182820; hs->id != ACTION_PROMPT_HOTSPOT_END; hs++) {
         hs->hit = 0;
     }
     /* The fill value has to reach the store through a register and the pointer

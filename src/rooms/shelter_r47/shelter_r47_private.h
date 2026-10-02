@@ -5,15 +5,15 @@
 
 #include "main/task_types.h"
 
-#include "overlay.h"
+#include "gameplay/action_prompt.h"
 
 #include "rooms/room.h"
 
 extern Task* gRoomCutsceneSoundTask;
 
 /// Hotspot tables of the second cap script; `spawnArg1` 2 selects the second.
-extern OverlayHotspot D_shelter_r47_8018739C[];
-extern OverlayHotspot D_shelter_r47_801873D8[];
+extern ActionPromptHotspot D_shelter_r47_8018739C[];
+extern ActionPromptHotspot D_shelter_r47_801873D8[];
 /// Area views of the map pages the second cap script steps through, indexed by
 /// `ShelterR47State2::field_1C`.
 extern u8 D_shelter_r47_801873FC[];
@@ -70,30 +70,30 @@ STATIC_ASSERT_SIZEOF(ShelterR47State, 0x54);
 /// `memCalloc(0x30)` in its state-0 entry `func_shelter_r47_8018431C`, stored
 /// at `Task::work`.
 typedef struct {
-    u8              pad_0[4];
-    OverlayHotspot* hotspots; ///< table hit-tested against the action cursor
-    u8              pad_8[2];
-    s16             field_A;  ///< width of the first quad drawn by `func_shelter_r47_80183B84`; eases toward `field_E`
-    s16             field_C;  ///< height of that quad; eases toward `field_10`
-    s16             field_E;
-    s16             field_10;
-    s16             field_12; ///< width of the second quad drawn by `func_shelter_r47_80183B84`; eases toward `field_16`
-    s16             field_14; ///< height of that quad; eases toward `field_18`
-    s16             field_16;
-    s16             field_18;
-    s16             field_1A;   ///< id of the confirmed hotspot
-    s16             field_1C;   ///< index of the map page shown, wrapping over 0..4
-    s16             field_1E;   ///< target that `field_20` eases toward by a quarter of the gap a frame
-    s16             field_20;   ///< x of the sprite drawn by `func_shelter_r47_80183FF4`
-    u16             fade;       ///< fade-to-black ramp: +0x10 a frame, clamped at 0xFF
-    s16             field_24;   ///< frame counter; past 300 the task moves to state 9
-    u16             field_26;   ///< frames the first quad has been fully open; zeroed while it grows
-    s8              promptKind; ///< `promptKind` of the confirmed hotspot, forwarded to `func_800D4E78`
-    u8              field_29;   ///< low byte of the area view saved on entry
-    s8              field_2A;
-    s8              field_2B;   ///< non-zero holds the prompt off
-    s8              field_2C;   ///< countdown; a sound plays as it reaches zero
-    u8              pad_2D[3];
+    u8                   pad_0[4];
+    ActionPromptHotspot* hotspots; ///< table hit-tested against the action cursor
+    u8                   pad_8[2];
+    s16                  field_A;  ///< width of the first quad drawn by `func_shelter_r47_80183B84`; eases toward `field_E`
+    s16                  field_C;  ///< height of that quad; eases toward `field_10`
+    s16                  field_E;
+    s16                  field_10;
+    s16                  field_12; ///< width of the second quad drawn by `func_shelter_r47_80183B84`; eases toward `field_16`
+    s16                  field_14; ///< height of that quad; eases toward `field_18`
+    s16                  field_16;
+    s16                  field_18;
+    s16                  field_1A;   ///< id of the confirmed hotspot
+    s16                  field_1C;   ///< index of the map page shown, wrapping over 0..4
+    s16                  field_1E;   ///< target that `field_20` eases toward by a quarter of the gap a frame
+    s16                  field_20;   ///< x of the sprite drawn by `func_shelter_r47_80183FF4`
+    u16                  fade;       ///< fade-to-black ramp: +0x10 a frame, clamped at 0xFF
+    s16                  field_24;   ///< frame counter; past 300 the task moves to state 9
+    u16                  field_26;   ///< frames the first quad has been fully open; zeroed while it grows
+    s8                   promptKind; ///< `promptKind` of the confirmed hotspot, forwarded to `func_800D4E78`
+    u8                   field_29;   ///< low byte of the area view saved on entry
+    s8                   field_2A;
+    s8                   field_2B;   ///< non-zero holds the prompt off
+    s8                   field_2C;   ///< countdown; a sound plays as it reaches zero
+    u8                   pad_2D[3];
 } ShelterR47State2;
 STATIC_ASSERT_SIZEOF(ShelterR47State2, 0x30);
 
@@ -131,7 +131,7 @@ void func_shelter_r47_80181914(Task* task, s16 arg1);
 
 void func_shelter_r47_80182AA0(Task* task);
 
-s32 func_shelter_r47_80182B9C(Task* task, OverlayHotspot* table, s16 x, s16 y);
+s32 func_shelter_r47_80182B9C(Task* task, ActionPromptHotspot* table, s16 x, s16 y);
 
 void func_shelter_r47_80183210(void);
 

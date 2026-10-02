@@ -6,7 +6,7 @@
 /// Signed screen position of an action-prompt cursor, in pixels.
 ///
 /// The origin is the screen center and Y increases downward, the same space as
-/// a hotspot rectangle: a full-screen hotspot covers [-160, -120, 320, 240].
+/// an `ActionPromptHotspot`: a full-screen hotspot covers [-160, -120, 320, 240].
 /// Each frame the cursor task stores the pixel coordinate of its 1/512-pixel
 /// position here; those writes stay within X [-160, 159] and Y [-110, 110].
 /// The two shorts occupy one word, so a button slot can latch the position and
@@ -16,6 +16,32 @@ typedef struct {
     s16 y; // Vertical pixels from the screen center, increasing downward
 } ActionPromptCursorPos;
 STATIC_ASSERT_SIZEOF(ActionPromptCursorPos, 4);
+
+/// `id` of the entry that ends an action-prompt hotspot table. Not a choice.
+#define ACTION_PROMPT_HOTSPOT_END (-1)
+
+/// One entry of an action-prompt hotspot table.
+///
+/// Rooms and actors test the action cursor against these tables. The rectangle
+/// uses the same center-origin pixel space as `ActionPromptCursorPos`; a
+/// full-screen entry covers [-160, -120, 320, 240]. The shared hit test treats
+/// the far edges `x + w` and `y + h` as inside. `id` is the value the owner
+/// copies when the player confirms the entry. Several entries may share one
+/// `id`, and any value other than `ACTION_PROMPT_HOTSPOT_END`, including
+/// other negatives, is a choice the owner defines. `promptKind` is the display
+/// mode the owner forwards when it opens the prompt for that choice. `hit` is
+/// set on every entry whose rectangle contains the cursor and cleared on the
+/// others, so more than one entry can be hit at once.
+typedef struct {
+    s16 x;          // Left edge, pixels from the screen center
+    s16 y;          // Top edge, pixels from the screen center, increasing downward
+    s16 w;          // Width in pixels
+    s16 h;          // Height in pixels
+    s16 id;         // Choice copied on confirm; ACTION_PROMPT_HOTSPOT_END ends the table
+    u8  promptKind; // Display mode forwarded when the prompt opens for this choice
+    s8  hit;        // 1 while the cursor is inside this rectangle, otherwise 0
+} ActionPromptHotspot;
+STATIC_ASSERT_SIZEOF(ActionPromptHotspot, 0xC);
 
 /// Screen position of an action-prompt cursor, as pixels or as one word.
 ///

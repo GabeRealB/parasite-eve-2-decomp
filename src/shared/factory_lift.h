@@ -27,6 +27,7 @@
 
 #include <psyq/libgte.h>
 
+#include "gameplay/action_prompt.h"
 #include "gameplay/collision.h"
 #include "gameplay/geometry.h"
 #include "gameplay/message.h"
@@ -35,8 +36,6 @@
 #include "main/task_types.h"
 
 #include "dryfield_time.h"
-
-#include "overlay.h"
 
 /// Cutscene work block the room's cutscene task allocates as 0xC zeroed bytes
 /// in its state 0 and parks at `Task::work` -- that slot is *not* a `TaskIdMap`
@@ -148,10 +147,10 @@ extern TaskDesc         gFactoryPanelSessionDesc[];
 extern TaskDesc* gFactorySpawnTable;
 extern TaskDesc* gFactoryPanelDesc;
 extern Task**    gFactoryPanelSlot;
-/// The panel's prompt state machine descriptor, its 0xFFFF-terminated hotspot
-/// table and its message table.
+/// The panel's prompt state machine descriptor, its hotspot table ended by
+/// `ACTION_PROMPT_HOTSPOT_END`, and its message table.
 extern TaskDesc                   gFactoryPromptDesc[];
-extern OverlayHotspot             gFactoryPanelHotspots[];
+extern ActionPromptHotspot        gFactoryPanelHotspots[];
 extern FactoryControlMessageEntry gFactoryPanelMsgTable[2];
 
 /* The room is built once per stage, day (stage 2) and night, from the same

@@ -154,7 +154,7 @@ u16 D_neo_ark_shrine_80182410[16] = {
     0,
 };
 
-OverlayHotspot D_neo_ark_shrine_80182430[18] = {
+ActionPromptHotspot D_neo_ark_shrine_80182430[18] = {
     { -64, -64, 32, 32, 0, 0, 0 },
     { -32, -64, 32, 32, 1, 0, 0 },
     { 0, -64, 32, 32, 2, 0, 0 },
@@ -172,7 +172,7 @@ OverlayHotspot D_neo_ark_shrine_80182430[18] = {
     { 0, 32, 32, 32, 14, 0, 0 },
     { 32, 32, 32, 32, 15, 0, 0 },
     { -160, -120, 320, 240, 16, 0, 0 },
-    { 0, 0, 0, 0, -1, 0, 0 },
+    { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 
 TaskDesc D_neo_ark_shrine_80182508[3] = {
@@ -386,10 +386,10 @@ void func_neo_ark_shrine_8017D948(Task* task)
 /// `task`, so the copy itself is dropped by the allocator.
 void func_neo_ark_shrine_8017D9A0(Task* task)
 {
-    OverlayHotspot*     hs     = D_neo_ark_shrine_80182430;
-    ActionPrompt*       prompt = D_80114D28;
-    NeoArkShrineScript* st     = (NeoArkShrineScript*)task->work;
-    u16                 id;
+    ActionPromptHotspot* hs     = D_neo_ark_shrine_80182430;
+    ActionPrompt*        prompt = D_80114D28;
+    NeoArkShrineScript*  st     = (NeoArkShrineScript*)task->work;
+    u16                  id;
 
     func_neo_ark_shrine_8017EAC0(task);
     gGameSession->hideHud = 1;
@@ -403,7 +403,7 @@ void func_neo_ark_shrine_8017D9A0(Task* task)
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
         if (prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) {
             id = hs->id;
-            if (hs->id != -1) {
+            if (hs->id != ACTION_PROMPT_HOTSPOT_END) {
                 do {
                     if (hs->hit != 0) {
                         if ((s16)id == 0x10 || st->field_F == 0) {
@@ -421,7 +421,7 @@ void func_neo_ark_shrine_8017D9A0(Task* task)
                     }
                     hs++;
                     id = hs->id;
-                } while (hs->id != -1);
+                } while (hs->id != ACTION_PROMPT_HOTSPOT_END);
             }
         }
     } else {

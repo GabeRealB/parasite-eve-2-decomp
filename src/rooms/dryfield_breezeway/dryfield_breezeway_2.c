@@ -106,7 +106,7 @@ STATIC_ASSERT_SIZEOF(DbwWork, 0x14);
 /// when it is 1 and state 2 otherwise.
 ///
 /// `promptKind` is the display mode the hotspot scan
-/// `func_dryfield_breezeway_8017E65C` copies off the `OverlayHotspot` the cursor
+/// `func_dryfield_breezeway_8017E65C` copies off the `ActionPromptHotspot` the cursor
 /// landed on (whose id it parks at 0x4C) before it picks state 3;
 /// `func_dryfield_breezeway_8017FD9C` forwards it to `func_800D4E78` when it
 /// re-spawns the prompt.
@@ -206,25 +206,26 @@ extern ActorTransform D_dryfield_breezeway_80181E28;
 /// third record is reached as `[1]` rather than by a symbol of its own.
 extern ActorTransform D_dryfield_breezeway_80181E40[];
 
-/// The key-item prompt's own hotspot table: the one-entry 0xFFFF-terminated
-/// `OverlayHotspot` run `func_dryfield_breezeway_8017E65C` hit-tests at the
+/// The key-item prompt's own hotspot table: the one-entry
+/// `ActionPromptHotspot` run, ended by `ACTION_PROMPT_HOTSPOT_END`, that
+/// `func_dryfield_breezeway_8017E65C` hit-tests at the
 /// prompt's own screen position and walks for the entry the cursor landed on,
 /// where the prop table below is hit-tested at the cursor itself. Its `id` is
 /// the script variant the prompt confirms, which the scan parks in the event
 /// work block (`DbwEventWork.field_4C`, with `promptKind` at 0x5C) before state
 /// 3. `func_dryfield_breezeway_8017E464` clears its `hit` along with the other
 /// table's.
-extern OverlayHotspot D_dryfield_breezeway_80182E00[];
+extern ActionPromptHotspot D_dryfield_breezeway_80182E00[];
 
-/// This room's prop hotspot table, the 0xFFFF-terminated `OverlayHotspot` run
-/// `actionPromptHitTest` hit-tests the action cursor against. Its
-/// entries are the room's interactive props:
+/// This room's prop hotspot table: an `ActionPromptHotspot` run ended by
+/// `ACTION_PROMPT_HOTSPOT_END`. `actionPromptHitTest` hit-tests the action
+/// cursor against it. Its entries are the room's interactive props:
 /// `func_dryfield_breezeway_8017E464` clears every entry's `hit` through it
 /// before the first frame -- both tables', so the key-item prompt above starts
 /// clean too -- and the scan in
 /// `func_dryfield_breezeway_8017E81C` walks it for the entry the cursor landed
 /// on.
-extern OverlayHotspot D_dryfield_breezeway_80182DDC[];
+extern ActionPromptHotspot D_dryfield_breezeway_80182DDC[];
 
 static void func_dryfield_breezeway_8017E464(Task* arg0);
 static void func_dryfield_breezeway_8017E65C(Task* task);
@@ -368,15 +369,15 @@ TaskMessageEntry D_dryfield_breezeway_80182DCC[2] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-OverlayHotspot D_dryfield_breezeway_80182DDC[3] = {
+ActionPromptHotspot D_dryfield_breezeway_80182DDC[3] = {
     { 102, -80, 34, 30, 1, 0, 0 },
     { 115, -50, 20, 30, 1, 0, 0 },
-    { 0, 0, 0, 0, -1, 0, 0 },
+    { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 
-OverlayHotspot D_dryfield_breezeway_80182E00[2] = {
+ActionPromptHotspot D_dryfield_breezeway_80182E00[2] = {
     { -16, 20, 32, 48, 1, 0, 0 },
-    { 0, 0, 0, 0, -1, 0, 0 },
+    { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 
 TaskDesc D_dryfield_breezeway_80182E18 = { { { TASK_BODY_TMD, 192 } }, func_dryfield_breezeway_8017FC38, { .model = &_gDryfieldBreezewayModel04E8C } };
@@ -697,10 +698,10 @@ void func_dryfield_breezeway_8017E390(void)
 /// already holds.
 static void func_dryfield_breezeway_8017E464(Task* arg0)
 {
-    TmdObject*      ext;
-    GfxCoord*       coord;
-    DbwEventWork*   work;
-    OverlayHotspot* hs;
+    TmdObject*           ext;
+    GfxCoord*            coord;
+    DbwEventWork*        work;
+    ActionPromptHotspot* hs;
 
     ext   = arg0->extra.tmd;
     coord = ext->coords;
@@ -722,13 +723,13 @@ static void func_dryfield_breezeway_8017E464(Task* arg0)
     Display_AcquireRef();
 
     hs = D_dryfield_breezeway_80182E00;
-    while (hs->id != -1) {
+    while (hs->id != ACTION_PROMPT_HOTSPOT_END) {
         hs->hit = 0;
         hs++;
     }
 
     hs = D_dryfield_breezeway_80182DDC;
-    while (hs->id != -1) {
+    while (hs->id != ACTION_PROMPT_HOTSPOT_END) {
         hs->hit = 0;
         hs++;
     }
@@ -820,11 +821,11 @@ static void func_dryfield_breezeway_8017E464(Task* arg0)
 /// in state 5, and a busy cap abandons the scan with the prompt cleared.
 static void func_dryfield_breezeway_8017E65C(Task* task)
 {
-    DbwEventWork*   work;
-    OverlayHotspot* hs;
-    ActionPrompt*   prompt;
-    GfxCoord*       coord;
-    MATRIX*         m;
+    DbwEventWork*        work;
+    ActionPromptHotspot* hs;
+    ActionPrompt*        prompt;
+    GfxCoord*            coord;
+    MATRIX*              m;
 
     coord  = task->extra.tmd->coords;
     work   = (DbwEventWork*)task->work;
@@ -857,7 +858,7 @@ static void func_dryfield_breezeway_8017E65C(Task* task)
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
-        if ((prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) && (hs->id != -1)) {
+        if ((prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) && (hs->id != ACTION_PROMPT_HOTSPOT_END)) {
             do {
                 if (hs->hit != 0) {
                     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
@@ -868,7 +869,7 @@ static void func_dryfield_breezeway_8017E65C(Task* task)
                     return;
                 }
                 hs++;
-            } while (hs->id != -1);
+            } while (hs->id != ACTION_PROMPT_HOTSPOT_END);
         }
     } else {
         prompt->mode = ACTION_PROMPT_MODE_IDLE;
@@ -892,11 +893,11 @@ static void func_dryfield_breezeway_8017E65C(Task* task)
 /// A cancel press (`buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED`) ends it in state 5 as well.
 static void func_dryfield_breezeway_8017E81C(Task* task)
 {
-    ActionPrompt*   prompt = D_80114D28;
-    GfxCoord*       coord  = task->extra.tmd->coords;
-    DbwEventWork*   work   = (DbwEventWork*)task->work;
-    OverlayHotspot* hs     = D_dryfield_breezeway_80182DDC;
-    MATRIX*         m;
+    ActionPrompt*        prompt = D_80114D28;
+    GfxCoord*            coord  = task->extra.tmd->coords;
+    DbwEventWork*        work   = (DbwEventWork*)task->work;
+    ActionPromptHotspot* hs     = D_dryfield_breezeway_80182DDC;
+    MATRIX*              m;
 
     prompt->mode        = ACTION_PROMPT_MODE_IDLE;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
@@ -913,7 +914,7 @@ static void func_dryfield_breezeway_8017E81C(Task* task)
 
     if (actionPromptHitTest(hs, work->cursorX, work->cursorY) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
-        while (hs->id != -1) {
+        while (hs->id != ACTION_PROMPT_HOTSPOT_END) {
             if (hs->hit != 0) {
                 Gp_RunCapCmd1(3);
                 task->state = 5;

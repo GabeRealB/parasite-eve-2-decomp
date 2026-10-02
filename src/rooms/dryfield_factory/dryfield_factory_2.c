@@ -251,13 +251,13 @@ FactoryControlMessageEntry gFactoryPanelMsgTable[2] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-OverlayHotspot gFactoryPanelHotspots[6] = {
+ActionPromptHotspot gFactoryPanelHotspots[6] = {
     { -68, -63, 16, 16, 0, 1, 0 },
     { -27, -63, 16, 16, 1, 1, 0 },
     { 13, -63, 16, 16, 2, 1, 0 },
     { 46, -80, 34, 32, 3, 0, 0 },
     { -38, 0, 72, 48, 4, 0, 0 },
-    { 0, 0, 0, 0, -1, 0, 0 },
+    { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 
 SVECTOR gFactoryGlowPos48 = { 395, -1630, 846, 0 };
