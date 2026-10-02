@@ -136,22 +136,32 @@ enum {
     WORLD_COORDINATE_LIGHT_FALLOFF_REDUCTION_SHIFT = 4
 };
 
-/// 0x2C-byte scratch from the scratch stack used by `Gp_LightCone`.
-/// `vec` is the halved `field_24.t -` world `VECTOR3`. `dir` is the
-/// `gfxNormalizeLightDirection` result at `head - 0x1C`. `distSq` / `outerSq`
-/// / `innerSq` / `scale` use the radial falloff of `_WorldCoordPointLightFalloffScratch`. `cosAng` is
-/// `-(dir · matrix column 2) >> 12`, compared with `rcos` of half
-/// `WorldCoordSpotLight.angle`.
-typedef struct _GpSpotScratch {
-    /* 0x00 */ VECTOR  vec;
-    /* 0x10 */ SVECTOR dir;
-    /* 0x18 */ u32     distSq;
-    /* 0x1C */ u32     outerSq;
-    /* 0x20 */ u32     innerSq;
-    /* 0x24 */ u32     scale;
-    /* 0x28 */ s32     cosAng;
-} GpSpotScratch;
-STATIC_ASSERT_SIZEOF(GpSpotScratch, 0x2C);
+/// Temporary workspace for one cone-light contribution query.
+///
+/// Borrowed from the scratch stack for one sample and released after its Q12
+/// attenuation is copied to the light, including a zero contribution. Offset
+/// components are arithmetically halved in the sample's coordinate frame.
+/// The SDK vector's final word is unused and left uninitialized.
+/// Normalization yields the direction from the sample toward the light, and
+/// the cone test compares it with the composed matrix's Z column, the cone
+/// axis.
+///
+/// Inside the cone, distance falloff matches a point light: full strength
+/// within the inner radius and none once the distance reaches the outer
+/// radius. Equal radii are full strength out to that distance. In the fade
+/// interval, `distanceSquared` and `outerLimit` become differences from the
+/// inner squared radius. Both are logically shifted in four-bit steps until
+/// the outer span fits 16 bits, bounding the numerator before its Q12 shift.
+typedef struct {
+    VECTOR  halfOffset;         // Halved light-minus-sample offset; final word unused and uninitialized
+    SVECTOR direction;          // Normalized sample-to-light direction, length about ONE
+    u32     distanceSquared;    // Sum of squared offset components, then inner-relative and reduced with outerLimit
+    u32     outerLimit;         // (outer radius squared >> 2), then the reduced fade span
+    u32     innerRadiusSquared; // Inner radius squared >> 2; full strength at or below this threshold
+    u32     attenuation;        // Contribution scale with 12 fractional bits (0 dark, ONE full strength)
+    s32     axisCosine;         // Q12 cosine of the angle from the cone axis to the sample
+} _WorldCoordConeLightScratch;
+STATIC_ASSERT_SIZEOF(_WorldCoordConeLightScratch, 0x2C);
 
 /// Scratch workspace for ranking lights at one sample position.
 ///
@@ -523,9 +533,9 @@ static s32 Gp_LightPoint(WorldCoordPointLight* light, VECTOR3* pos)
 
 static s32 Gp_LightCone(WorldCoordSpotLight* spot, VECTOR3* pos)
 {
-    WorldCoordLight* light;
-    GpSpotScratch*   block;
-    s32              result;
+    WorldCoordLight*             light;
+    _WorldCoordConeLightScratch* scratch;
+    s32                          result;
 
     light  = &spot->head;
     result = 0;
@@ -534,40 +544,42 @@ static s32 Gp_LightCone(WorldCoordSpotLight* spot, VECTOR3* pos)
             return result;
         }
     }
-    SCRATCH_STACK_RESERVE_BLOCK(GpSpotScratch);
-    block          = SCRATCH_STACK_CURSOR(GpSpotScratch);
-    block->vec.vx  = (light->transform.lighting.composed.t[0] - pos->vx) >> 1;
-    block->vec.vy  = (light->transform.lighting.composed.t[1] - pos->vy) >> 1;
-    block->vec.vz  = (light->transform.lighting.composed.t[2] - pos->vz) >> 1;
-    block->distSq  = block->vec.vx * block->vec.vx + block->vec.vy * block->vec.vy + block->vec.vz * block->vec.vz;
-    block->outerSq = (spot->outer * spot->outer) >> 2;
-    block->scale   = 0;
-    if (block->outerSq < block->distSq) {
+    SCRATCH_STACK_RESERVE_BLOCK(_WorldCoordConeLightScratch);
+    scratch                  = SCRATCH_STACK_CURSOR(_WorldCoordConeLightScratch);
+    scratch->halfOffset.vx   = (light->transform.lighting.composed.t[0] - pos->vx) >> 1;
+    scratch->halfOffset.vy   = (light->transform.lighting.composed.t[1] - pos->vy) >> 1;
+    scratch->halfOffset.vz   = (light->transform.lighting.composed.t[2] - pos->vz) >> 1;
+    scratch->distanceSquared = scratch->halfOffset.vx * scratch->halfOffset.vx + scratch->halfOffset.vy * scratch->halfOffset.vy + scratch->halfOffset.vz * scratch->halfOffset.vz;
+    scratch->outerLimit      = (spot->outer * spot->outer) >> 2;
+    scratch->attenuation     = 0;
+    if (scratch->outerLimit < scratch->distanceSquared) {
         result = 0;
     } else {
-        block->innerSq = (spot->inner * spot->inner) >> 2;
-        gfxNormalizeLightDirection(&block->vec, &block->dir);
-        block->cosAng = -(block->dir.vx * light->transform.lighting.composed.m[0][2] + block->dir.vy * light->transform.lighting.composed.m[1][2] + block->dir.vz * light->transform.lighting.composed.m[2][2]) >> 12;
+        scratch->innerRadiusSquared = (spot->inner * spot->inner) >> 2;
+        gfxNormalizeLightDirection(&scratch->halfOffset, &scratch->direction);
+        // The normalized offset points toward the light, so negate the axis dot product.
+        scratch->axisCosine = -(scratch->direction.vx * light->transform.lighting.composed.m[0][2] + scratch->direction.vy * light->transform.lighting.composed.m[1][2] + scratch->direction.vz * light->transform.lighting.composed.m[2][2]) >> 12;
         // Inside the cone when the sample is nearer the axis than half the opening.
-        if (rcos(spot->angle >> 1) < block->cosAng) {
-            result       = ((spot->head.color.r * 8 + spot->head.color.g * 6 + spot->head.color.b * 2) >> 8) + 0xF00;
-            block->scale = ONE;
-            if (block->distSq > block->innerSq) {
-                block->outerSq -= block->innerSq;
-                block->distSq  -= block->innerSq;
-                while (block->outerSq > 0xFFFF) {
-                    block->outerSq >>= 4;
-                    block->distSq  >>= 4;
+        if (rcos(spot->angle >> 1) < scratch->axisCosine) {
+            result               = ((spot->head.color.r * 8 + spot->head.color.g * 6 + spot->head.color.b * 2) >> 8) + 0xF00;
+            scratch->attenuation = ONE;
+            // Measure the fade interval from its inner edge and bound the Q12 numerator.
+            if (scratch->distanceSquared > scratch->innerRadiusSquared) {
+                scratch->outerLimit      -= scratch->innerRadiusSquared;
+                scratch->distanceSquared -= scratch->innerRadiusSquared;
+                while (scratch->outerLimit > WORLD_COORDINATE_LIGHT_FALLOFF_MAX_SPAN) {
+                    scratch->outerLimit      >>= WORLD_COORDINATE_LIGHT_FALLOFF_REDUCTION_SHIFT;
+                    scratch->distanceSquared >>= WORLD_COORDINATE_LIGHT_FALLOFF_REDUCTION_SHIFT;
                 }
-                if (block->outerSq != 0) {
-                    block->scale = ((block->outerSq - block->distSq) << 12) / block->outerSq;
-                    result       = (block->scale * result) >> 12;
+                if (scratch->outerLimit != 0) {
+                    scratch->attenuation = ((scratch->outerLimit - scratch->distanceSquared) << WORLD_COORDINATE_LIGHT_FALLOFF_FRACTION_BITS) / scratch->outerLimit;
+                    result               = (scratch->attenuation * result) >> WORLD_COORDINATE_LIGHT_FALLOFF_FRACTION_BITS;
                 }
             }
         }
     }
-    light->transform.lighting.attenuation = block->scale;
-    SCRATCH_STACK_RELEASE_BLOCK(GpSpotScratch);
+    light->transform.lighting.attenuation = scratch->attenuation;
+    SCRATCH_STACK_RELEASE_BLOCK(_WorldCoordConeLightScratch);
     return result;
 }
 
