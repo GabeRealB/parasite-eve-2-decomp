@@ -20671,7 +20671,7 @@ switch (b) {
 Without the pins, GCC still dual-loads but elides `andi` before `sb`. Without
 `volatile`, it collapses to one `lw` + `move`. `CdStream_InitDisc` (CD init state
 machine, sibling of `Cd_InitStateMachine`) is the pure example — also needs
-`CdStreamState.field_56` as `u16` for the case-7 retry counter.
+`CdStreamState.settleCounter` as `u16` for the case-7 retry counter.
 
 ## Entry pointer in `$a0` for load-then-store of a `u8` field
 
@@ -22825,13 +22825,13 @@ the next attempt:
    has the full signed `div` trap sequence (`break 7` / `break 6`); bare `div`
    from GCC will not match without maspsx expansion.
 
-2. **Identical dual `SpuWrite` arms** when `(remaining % mtsPeriod) == 1` and the
-   two `field_1C & 1` branches are byte-for-byte the same in the ROM. GCC 2.8.1
+2. **Identical dual `SpuWrite` arms** when `(sectorsLeft % mtsPeriod) == 1` and the
+   two `chunkIndex & 1` branches are byte-for-byte the same in the ROM. GCC 2.8.1
    cross-jumps them into one block. A slight asymmetry (e.g. `u8* buf = …` on
    only one arm) can force two `jal SpuWrite`s; then re-converge the codegen.
 
-3. **CdStreamState field map** (in `cdstream.c`): `spuAddr`, `countdown`,
-   `mtsPeriod`/`mtsParam`, `remaining`, `voiceL`/`voiceR`/`mode`, `sector` as
+3. **CdStreamState field map** (in `cdstream.c`): `spuAddr`, `gapRemaining`,
+   `mtsPeriod`/`gapSectors`, `sectorsLeft`, `voiceL`/`voiceR`/`channelCount`, `sector` as
    `_MtsHeader*`.
 
 4. **Error counters** at `D_80068B5C+1` / `+3` and `D_80068B64+1` want
