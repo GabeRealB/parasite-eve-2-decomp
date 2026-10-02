@@ -244,14 +244,19 @@ static inline void _tmdStoreFlatQuadFirstTriangleFacing(const POLY_F4* packet, s
     gte_stopz(facingArea);
 }
 
-/// Stores the signed double area of a projected Gouraud textured triangle.
+/// Stores a projected Gouraud textured triangle's signed double area for facing tests.
 ///
-/// `packet` supplies word-aligned signed 16-bit XY pairs in pixels for corners
-/// 0..2; `facingArea` receives the signed 32-bit NCLIP result in square pixels.
-/// This handler accepts only positive results. Overflow is not checked.
-/// Reads all three coordinate pairs before storing; buffers may overlap.
-/// Replaces SXY0..SXY2 and clobbers MAC0/FLAG, with no projection or lighting.
-/// Both pointers are borrowed for the call and are not retained.
+/// `packet` supplies three word-aligned packed XY pairs in corner order 0..2:
+/// signed 16-bit X in the low half and Y in the high half, both in pixels.
+/// Reads only those pairs (12 bytes); the header, colours and texture fields
+/// are not inputs. `facingArea` must address one word-aligned writable s32;
+/// it receives MAC0's signed 32-bit NCLIP result in square pixels. Overflow is
+/// not checked, and the caller chooses which winding survives.
+///
+/// Leaves corners 0..2 in SXY0..SXY2 and clobbers MAC0/FLAG. No prior GTE setup
+/// is required; performs no projection, clipping or lighting. All coordinate
+/// reads precede the result store, so the buffers may overlap. Both pointers
+/// are borrowed for the call and are not retained.
 static inline void _tmdStoreTexturedTriangleFacing(const POLY_GT3* packet, s32* facingArea)
 {
     gte_ldSXYP(*(const u32*)&packet->x0);
