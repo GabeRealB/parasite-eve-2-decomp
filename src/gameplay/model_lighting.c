@@ -342,7 +342,14 @@ static inline void _tmdInitGt3OffsetLayerTexture(POLY_GT3* triangle, const u32* 
         /// and four-byte aligned. This index does not define the element's
         /// stride or complete extent.
         MODEL_LIGHTING_GT3_OFFSET_LAYER_UV2_WORD_INDEX = 5,
-        TMD_LAYER_TPAGE_ABR_LOW_BIT                    = 1 << 5, // Set ABR bit 5 without clearing bit 6
+        /// Encoded texture-page mask setting the offset layer's low ABR bit.
+        ///
+        /// Apply to the page after its signed displacement has wrapped to u16.
+        /// The GPU's two-bit semi-transparency mode occupies bits 5..6; ORing
+        /// this mask retains bit 6, selecting mode 1 when clear or 3 when set.
+        /// Every other page bit is preserved. The primitive command separately
+        /// enables semi-transparency.
+        MODEL_LIGHTING_OFFSET_LAYER_TPAGE_ABR_LOW_BIT = 1 << 5,
         /// Shift from signed offset-layer palette rows to encoded CLUT displacement.
         ///
         /// The GPU CLUT address stores Y above six X/16 column bits.
@@ -362,7 +369,7 @@ static inline void _tmdInitGt3OffsetLayerTexture(POLY_GT3* triangle, const u32* 
     // Load the palette-row byte before reloading the truncated page sum.
     layerClutRowByte  = (u8)workspace->obj->layerClutRowOffset;
     layerTexturePage  = triangle->tpage;
-    layerTexturePage |= TMD_LAYER_TPAGE_ABR_LOW_BIT;
+    layerTexturePage |= MODEL_LIGHTING_OFFSET_LAYER_TPAGE_ABR_LOW_BIT;
     triangle->tpage   = layerTexturePage;
     triangle->clut   += (s8)layerClutRowByte << MODEL_LIGHTING_OFFSET_LAYER_CLUT_ROW_SHIFT;
 }
