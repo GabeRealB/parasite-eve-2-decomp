@@ -22737,8 +22737,9 @@ Column targets use `head - 0x42` (col1) and `head - 0x40` (col2), same
 - `field_44` is a `SndBankSlot*` (its `image` holds the bank's entry offsets, its
   `bank` the `SndBank`), not a bare `s32`.
 - `field_48` is a script cursor (`SndScriptCmd*`); `"oneV"` payloads are
-  0x18-byte `SndOneV` records (bank id, note, duration, pan/vol,
-  reverb gate, pitch, oneA/oneE offsets).
+  0x18-byte `_SndScriptNote` records (bank id, program and layer, delay and
+  gate ticks, pan and volume overrides, reverb level, voice priority, Q7 pitch,
+  oneA and oneE offsets).
 - `"oneC"` advances the cursor by 0x10, resolves `field_4C` from the bank
   image's entry-offset table, `*(image->entryOffsets + (u8)field_0)`, then falls
   into `"oneV"`.

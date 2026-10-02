@@ -95,6 +95,77 @@ typedef struct _SndVoiceFx {
 } SndVoiceFx;
 STATIC_ASSERT_SIZEOF(SndVoiceFx, 0x24);
 
+/// `oneV` FourCC. A command with this tag keys on one voice.
+///
+/// `SOUND_SCRIPT_NOTE_LAYER_ADSR` and `SOUND_SCRIPT_NOTE_NO_ENVELOPE` are the
+/// image-relative offset sentinels. `SOUND_SCRIPT_NOTE_HELD` is the countdown
+/// stored for a note whose gate does not time out.
+enum {
+    SOUND_SCRIPT_NOTE_TAG         = 0x56656E6F,
+    SOUND_SCRIPT_NOTE_LAYER_ADSR  = -1,
+    SOUND_SCRIPT_NOTE_NO_ENVELOPE = -1,
+    SOUND_SCRIPT_NOTE_HELD        = 0x7FFFFFFF
+};
+
+/// One voice-on command in a sound-script entry.
+///
+/// This is the 24-byte `oneV` command in a loaded `hONE` bank image. The
+/// interpreter reads it when the command tag is `SOUND_SCRIPT_NOTE_TAG`. It
+/// also reads the 24 bytes immediately after an `oneC` entry header through
+/// this layout, without checking their tag. The image owns the bytes, and a
+/// pointer to the command remains valid until that image is released or
+/// reloaded.
+///
+/// `bankId` 0 plays the script slot's bank. Any other id selects a loaded
+/// bank; 0xFFFF is looked up as bank 0 rather than selecting the script bank.
+/// A missing bank releases the voice just allocated and leaves the cursor
+/// unmoved, so the command is tried again. `program` and `layer` select the
+/// sample in that bank.
+///
+/// `delayTicks` is how many script ticks must have accumulated before key-on;
+/// zero keys the voice on this step, and the clock then consumes that delay.
+/// `gateTicks` is how long the voice stays keyed, in the same ticks. Zero does
+/// not time out.
+///
+/// A nonnegative `panOverride` replaces the layer pan (0 left, 64 centre, 127
+/// right). A nonnegative `volumeOverride` replaces the layer gain (0 silent,
+/// 127 full). A negative value keeps the layer's. The entry's pan bias is
+/// applied after the pan choice, and the entry's volume scale combines with
+/// the chosen gain.
+///
+/// `reverbLevel` is compared with the global reverb setting. A negative level
+/// leaves reverb off. Levels 0..2 enable reverb once the setting reaches them,
+/// except that setting 3 enables only level 3. Level 3 also enables reverb
+/// when the setting is at least 2.
+///
+/// `voicePriority` is the allocation priority: a higher value can take an SPU
+/// voice from a lower one. `adsrOffset` and `pitchEnvelopeOffset` are signed
+/// byte offsets from the start of the bank image. The ADSR sentinel keeps the
+/// layer's registers, and any other offset is used only when it addresses an
+/// `oneA` chunk. The envelope sentinel leaves pitch modulation off; setup arms
+/// modulation only when the addressed chunk is `oneE`.
+///
+/// `pitchOffset` is a Q7 offset from the layer's minimum key, where 128 is one
+/// semitone. It is stored and added as an unsigned halfword, and the sounding
+/// key and fraction come from the low 16 bits of that sum.
+typedef struct {
+    s32 magic;               // Serialized oneV FourCC
+    u16 bankId;              // 0 uses the script's bank; any other id is looked up
+    u8  program;             // Program index for the layer lookup
+    u8  layer;               // Layer index within that program
+    u16 delayTicks;          // Script ticks to wait before key-on; zero keys immediately
+    u16 gateTicks;           // Keyed length in script ticks; zero does not time out
+    s8  panOverride;         // Absolute pan 0..127, or negative to keep the layer pan
+    s8  volumeOverride;      // Absolute gain 0..127, or negative to keep the layer gain
+    s8  reverbLevel;         // Threshold against the global reverb setting; negative leaves reverb off
+    u8  pad;                 // Always zero in retail banks; aligns the following halfword
+    u16 voicePriority;       // Higher values can take an SPU voice from a lower priority
+    s16 adsrOffset;          // Image-relative oneA byte offset; -1 keeps the layer ADSR
+    u16 pitchOffset;         // Q7 offset from the layer's minimum key, added as an unsigned halfword
+    s16 pitchEnvelopeOffset; // Image-relative oneE byte offset; -1 leaves pitch modulation off
+} _SndScriptNote;
+STATIC_ASSERT_SIZEOF(_SndScriptNote, 0x18);
+
 /// Voice/FX object for one SPU voice, allocated by `SndVoice_Alloc`.
 ///
 /// SPU voices 16..23 have records in SndScript_Voices; voices 0..15 belong to
@@ -111,7 +182,7 @@ struct _SndVoice {
     /* 0x08 */ s16                field_8;
     /* 0x0A */ u8                 field_A;
     /* 0x0B */ u8                 pad_0B;
-    /* 0x0C */ struct _SndOneV*   field_C; // current oneV/script command (SndScript_Exec)
+    /* 0x0C */ _SndScriptNote*    field_C; // note command that started this voice
     /* 0x10 */ SndVoiceFx         field_10;
     /* 0x34 */ struct _SndScript* field_34;
     /* 0x38 */ SndVoice*          field_38;
@@ -120,26 +191,6 @@ struct _SndVoice {
 STATIC_ASSERT_SIZEOF(SndVoice, 0x40);
 STATIC_ASSERT(OFFSET_OF(SndVoice, field_10) == 0x10, snd_voice_fx_offset);
 STATIC_ASSERT(OFFSET_OF(SndVoice, field_34) == 0x34, snd_voice_owner_offset);
-
-/// "oneV" (0x56656E6F) voice-on script command consumed by SndScript_Exec.
-/// Also the 0x18-byte payload after a "oneC" (0x43656E6F) command.
-typedef struct _SndOneV {
-    /* 0x00 */ s32 magic;
-    /* 0x04 */ u16 field_4;  // bank id for Snd_FindBank (0 = use ctx bank)
-    /* 0x06 */ u8  field_6;  // note group for Snd_GetNote
-    /* 0x07 */ u8  field_7;  // note index for Snd_GetNote
-    /* 0x08 */ u16 field_8;  // duration (high half of field_8 timer units)
-    /* 0x0A */ u16 field_A;  // voice countdown (0 → 0x7FFFFFFF)
-    /* 0x0C */ s8  field_C;  // pan bias (<0 → use SndBankLayer::pan)
-    /* 0x0D */ s8  field_D;  // volume scale (<0 → use SndBankLayer::volume)
-    /* 0x0E */ s8  field_E;  // reverb gate vs D_8008274B
-    /* 0x0F */ u8  pad_F;
-    /* 0x10 */ u16 field_10; // voice-alloc priority for SndVoice_Alloc
-    /* 0x12 */ s16 field_12; // oneA offset for SndScript_FindOneA
-    /* 0x14 */ u16 field_14; // base pitch
-    /* 0x16 */ s16 field_16; // oneE offset for SndVoice_SetupEnvelope (-1 disables)
-} SndOneV;
-STATIC_ASSERT_SIZEOF(SndOneV, 0x18);
 
 /// "Loop" (0x706F6F4C) / "Wait" (0x74696157) / "endL" (0x4C646E65) script cmds.
 /// Loop: repeat count and minimum wait; Wait: signed duration.
@@ -166,7 +217,7 @@ STATIC_ASSERT_SIZEOF(SndScriptCmd, 0x8);
 /// field_40 heads the doubly-linked voice list (SndVoice_Attach/Detach);
 /// SndScript_TickVoices walks the list and SndScript_Play clears it;
 /// field_44 is the `SndBankSlot` whose bank the script plays (its image holds the
-/// `oneC` entry offsets, its bank is the default for a `oneV` with bank id 0);
+/// `oneC` entry offsets, its bank is the default for a `_SndScriptNote` with `bankId` 0);
 /// field_48 is a byte cursor over variable-length tagged commands;
 /// field_F is bit1 of SndScriptEntryControls::flags.
 /// field_4C is the `SndScriptEntryControls` block of the sound being played, reloaded by
@@ -332,7 +383,7 @@ static inline void _sndScriptAdvanceClock(SndScript* script);
 /// global one. A note at level 3 gets reverb whenever the global level is at
 /// least 2; a global level of 3 turns it off for every other note; otherwise a
 /// note with a non-negative level gets reverb once the global level reaches it.
-static inline u8 _sndScriptUseReverb(SndOneV* oneV);
+static inline u8 _sndScriptUseReverb(_SndScriptNote* note);
 
 static s32 SndScript_Exec(SndScript* script);
 
@@ -1363,18 +1414,18 @@ static inline void _sndScriptAdvanceClock(SndScript* script)
 /// global one. A note at level 3 gets reverb whenever the global level is at
 /// least 2; a global level of 3 turns it off for every other note; otherwise a
 /// note with a non-negative level gets reverb once the global level reaches it.
-static inline u8 _sndScriptUseReverb(SndOneV* oneV)
+static inline u8 _sndScriptUseReverb(_SndScriptNote* note)
 {
     s32 on;
 
-    if (oneV->field_E == 3 && D_8008274B >= 2) {
+    if (note->reverbLevel == 3 && D_8008274B >= 2) {
         on = 1;
-    } else if (oneV->field_E != 3 && D_8008274B == 3) {
+    } else if (note->reverbLevel != 3 && D_8008274B == 3) {
         on = 0;
     } else {
         on = 0;
-        if (oneV->field_E >= 0) {
-            on = D_8008274B >= oneV->field_E;
+        if (note->reverbLevel >= 0) {
+            on = D_8008274B >= note->reverbLevel;
         }
     }
     return on;
@@ -1387,29 +1438,29 @@ static s32 SndScript_Exec(SndScript* script)
         SOUND_BANK_PAN_MAX           = 127,
         SOUND_BANK_KEY_FRACTION_BITS = 7
     };
-    SpuVoiceRef   voiceRef;
-    s16           volume[2];
-    SndScriptCmd* cmd;
-    SndOneV*      oneV;
-    SndVoice*     voice;
-    SndBankLayer* bankLayer;
-    SpuVoiceAttr* attr;
-    SndBankSlot*  bankSlot;
-    SndBank*      bank;
-    SndBankHdr*   header;
-    s32           result;
-    s32           ticks;
-    s32           wait;
-    s32           index;
-    s32           masterVolume;
-    u8            layerVolume;
-    s32           panSum;
-    s16           pan;
-    s16           voicePan;
-    s32           pitchValue;
-    u16           pitch;
-    s32           countdown;
-    s16           envelopeOffset;
+    SpuVoiceRef     voiceRef;
+    s16             volume[2];
+    SndScriptCmd*   cmd;
+    _SndScriptNote* note;
+    SndVoice*       voice;
+    SndBankLayer*   bankLayer;
+    SpuVoiceAttr*   attr;
+    SndBankSlot*    bankSlot;
+    SndBank*        bank;
+    SndBankHdr*     header;
+    s32             result;
+    s32             ticks;
+    s32             wait;
+    s32             index;
+    s32             masterVolume;
+    u8              layerVolume;
+    s32             panSum;
+    s16             pan;
+    s16             voicePan;
+    s32             pitchValue;
+    u16             pitch;
+    s32             countdown;
+    s16             envelopeOffset;
 
     cmd = (SndScriptCmd*)script->field_48;
     switch ((u32)cmd->magic) {
@@ -1455,24 +1506,26 @@ static s32 SndScript_Exec(SndScript* script)
             goto done;
         case SOUND_SCRIPT_ENTRY_TAG:
             header = script->field_44->image;
-            // Reload this entry's controls before executing its first voice command.
+            // Reload this entry's controls. The next 24 bytes are then read as a
+            // note even when their tag is not oneV.
             script->field_4C = (SndScriptEntryControls*)((u8*)header + *(header->entryOffsets + (u8)script->field_0));
             script->field_48 = script->field_48 + sizeof(SndScriptEntryControls);
-        case 0x56656E6F:
-            oneV  = (SndOneV*)script->field_48;
+        case SOUND_SCRIPT_NOTE_TAG:
+            note  = (_SndScriptNote*)script->field_48;
             ticks = script->field_8;
-            if ((ticks >> 16) < oneV->field_8) {
+            if ((ticks >> 16) < note->delayTicks) {
                 _sndScriptAdvanceClock(script);
                 result = 0;
                 goto done;
             }
-            voice  = SndVoice_Alloc(oneV->field_10);
+            voice  = SndVoice_Alloc(note->voicePriority);
             result = 1;
             if (voice != NULL) {
                 bankSlot = script->field_44;
-                if (oneV->field_4 != 0) {
-                    bank = Snd_FindBank(oneV->field_4);
+                if (note->bankId != 0) {
+                    bank = Snd_FindBank(note->bankId);
                     if (bank == 0) {
+                        // Not loaded yet: release the voice and retry this command.
                         voice->field_8 = 0;
                         Spu_ReleaseVoiceSlot(voice->field_0);
                         Spu_ClearVoiceCallbacks(voice->field_0);
@@ -1484,21 +1537,22 @@ static s32 SndScript_Exec(SndScript* script)
                 bank = bankSlot->bank;
             setup_voice:
                 Spu_GetVoiceRef(voice->field_0, &voiceRef);
-                bankLayer    = Snd_GetNote(bank, (u8)oneV->field_6, oneV->field_7);
+                bankLayer    = Snd_GetNote(bank, (u8)note->program, note->layer);
                 attr         = voiceRef.field_4;
                 masterVolume = D_80082748;
                 attr->addr   = bankLayer->waveAddr;
                 if ((D_80082749 != 0) && (script->field_4C->flags & SOUND_SCRIPT_USE_UNDUCKED_VOLUME)) {
                     masterVolume = D_80082749;
                 }
-                layerVolume = (u8)oneV->field_D;
-                if (oneV->field_D < 0) {
+                // A negative override keeps the layer value. Entry pan bias is applied after.
+                layerVolume = (u8)note->volumeOverride;
+                if (note->volumeOverride < 0) {
                     layerVolume = bankLayer->volume;
                 }
                 voice->field_A = layerVolume;
                 voice->field_2 = (s8)((masterVolume * script->field_4C->volumeScale * voice->field_A) / (SOUND_SCRIPT_VOLUME_UNITY * SOUND_SCRIPT_VOLUME_UNITY));
                 pan            = script->field_4C->panBias;
-                panSum         = oneV->field_C;
+                panSum         = note->panOverride;
                 if (panSum < 0) {
                     panSum = bankLayer->pan;
                 }
@@ -1513,14 +1567,14 @@ static s32 SndScript_Exec(SndScript* script)
                 } else {
                     voice->field_3 = SOUND_BANK_PAN_MAX;
                 }
-                if (SndScript_FindOneA((u8*)script->field_44->image, oneV->field_12, attr) == -1) {
+                if (SndScript_FindOneA((u8*)script->field_44->image, note->adsrOffset, attr) == -1) {
                     attr->adsr1 = bankLayer->adsr1;
                     attr->adsr2 = bankLayer->adsr2;
                 }
                 // Script pitch is a Q7 offset from the layer's minimum key.
-                pitchValue = pitch = oneV->field_14 + (bankLayer->keyMin << SOUND_BANK_KEY_FRACTION_BITS);
+                pitchValue = pitch = note->pitchOffset + (bankLayer->keyMin << SOUND_BANK_KEY_FRACTION_BITS);
                 attr->pitch        = Spu_CalcVolume((u32)(pitch & 0xFFFF) >> SOUND_BANK_KEY_FRACTION_BITS, (pitchValue & 0x7F) * 2, bankLayer->rootKey, bankLayer->fineTune);
-                if (_sndScriptUseReverb(oneV) == 0) {
+                if (_sndScriptUseReverb(note) == 0) {
                     Spu_DisableReverbVoice(voice->field_0);
                     voice->field_1 = 1;
                 } else {
@@ -1534,12 +1588,12 @@ static s32 SndScript_Exec(SndScript* script)
                 attr->volmode.right = 0;
                 attr->mask          = 0x6009F;
                 Spu_KeyOn(voice->field_0);
-                voice->field_C = oneV;
-                countdown      = oneV->field_A == 0 ? 0x7FFFFFFF : oneV->field_A << 16;
+                voice->field_C = note;
+                countdown      = note->gateTicks == 0 ? SOUND_SCRIPT_NOTE_HELD : note->gateTicks << 16;
                 voice->field_4 = countdown;
                 SndVoice_Attach(script, voice);
-                envelopeOffset = oneV->field_16;
-                if (envelopeOffset != -1) {
+                envelopeOffset = note->pitchEnvelopeOffset;
+                if (envelopeOffset != SOUND_SCRIPT_NOTE_NO_ENVELOPE) {
                     SndVoice_SetupEnvelope(voice, envelopeOffset, pitch & 0xFFFF, bankLayer);
                     result = 1;
                 } else {
@@ -1547,8 +1601,8 @@ static s32 SndScript_Exec(SndScript* script)
                     result                  = 1;
                 }
             }
-            script->field_8  = (s32)(script->field_8 - (oneV->field_8 << 0x10));
-            script->field_48 = script->field_48 + sizeof(SndOneV);
+            script->field_8  = (s32)(script->field_8 - (note->delayTicks << 0x10));
+            script->field_48 = script->field_48 + sizeof(_SndScriptNote);
 
             goto done;
         case 0x74696157:
@@ -2230,7 +2284,7 @@ static void SndVoice_SetupEnvelope(SndVoice* voice, s16 envelopeOffset, u32 pitc
     s16                temp;
 
     p = &voice->field_10;
-    if (envelopeOffset == -1) {
+    if (envelopeOffset == SOUND_SCRIPT_NOTE_NO_ENVELOPE) {
         voice->field_10.field_0 = 0;
         return;
     }
@@ -2238,7 +2292,7 @@ static void SndVoice_SetupEnvelope(SndVoice* voice, s16 envelopeOffset, u32 pitc
         voice->field_10.field_0 = 0;
         return;
     }
-    // The voice command stores a byte offset from the start of the bank image.
+    // pitchEnvelopeOffset is a byte offset from the start of the bank image.
     base        = (u8*)voice->field_34->field_44->image;
     envelope    = (_SndPitchEnvelope*)&base[envelopeOffset];
     p->field_20 = envelope;
@@ -2262,7 +2316,7 @@ static s32 SndScript_FindOneA(u8* arg0, s16 arg1, SpuVoiceAttr* arg2)
 {
     SndOneA* chunk;
 
-    if (arg1 != -1) {
+    if (arg1 != SOUND_SCRIPT_NOTE_LAYER_ADSR) {
         chunk = (SndOneA*)&arg0[arg1];
         if (chunk->field_0 == 0x41656E6F) {
             arg2->adsr1 = chunk->field_4;
