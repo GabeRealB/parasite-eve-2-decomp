@@ -390,11 +390,11 @@ static void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 
             line->y1 = sc->sy1;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sc->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), line);
             gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, sc->otz0);
-            sc->r0 = 0x4000 / sc->otz0;
-            sc->r1 = 0x4000 / sc->otz1;
-            r      = r * 2 / 3;
-            g      = g * 2 / 3;
-            b      = b * 2 / 3;
+            sc->radius0 = 0x4000 / sc->otz0;
+            sc->radius1 = 0x4000 / sc->otz1;
+            r           = r * 2 / 3;
+            g           = g * 2 / 3;
+            b           = b * 2 / 3;
             if ((flags & 2) || D_m4a1_javelin_8012EB64 != 0) {
                 angle                   = ratan2(line->y1 - line->y0, line->x0 - line->x1);
                 D_m4a1_javelin_8012EB60 = angle;
@@ -408,16 +408,16 @@ static void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 
                     setRGB2(prim, r, g, b);
                     setRGB3(prim, 0, 0, 0);
                     tipAng   = i + 0x800;
-                    prim->x0 = (u16)line->x1 + ((sc->r1 * rsin(tipAng)) >> 12);
-                    prim->y0 = (u16)line->y1 + ((sc->r1 * rcos(tipAng)) >> 12);
+                    prim->x0 = (u16)line->x1 + ((sc->radius1 * rsin(tipAng)) >> 12);
+                    prim->y0 = (u16)line->y1 + ((sc->radius1 * rcos(tipAng)) >> 12);
                     tipAng   = i + 0xA00;
-                    prim->x1 = (u16)line->x1 + ((sc->r1 * rsin(tipAng)) >> 12);
-                    prim->y1 = (u16)line->y1 + ((sc->r1 * rcos(tipAng)) >> 12);
+                    prim->x1 = (u16)line->x1 + ((sc->radius1 * rsin(tipAng)) >> 12);
+                    prim->y1 = (u16)line->y1 + ((sc->radius1 * rcos(tipAng)) >> 12);
                     prim->x2 = (u16)line->x1;
                     prim->y2 = (u16)line->y1;
                     tipAng   = i + 0xC00;
-                    prim->x3 = (u16)line->x1 + ((sc->r1 * rsin(tipAng)) >> 12);
-                    prim->y3 = (u16)line->y1 + ((sc->r1 * rcos(tipAng)) >> 12);
+                    prim->x3 = (u16)line->x1 + ((sc->radius1 * rsin(tipAng)) >> 12);
+                    prim->y3 = (u16)line->y1 + ((sc->radius1 * rcos(tipAng)) >> 12);
                     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sc->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                             prim);
                     gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, sc->otz1);
@@ -434,16 +434,16 @@ static void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 
                     setRGB1(prim, 0, 0, 0);
                     setRGB2(prim, r, g, b);
                     setRGB3(prim, 0, 0, 0);
-                    prim->x0 = (u16)line->x0 + ((sc->r0 * rsin(i)) >> 12);
-                    prim->y0 = (u16)line->y0 + ((sc->r0 * rcos(i)) >> 12);
+                    prim->x0 = (u16)line->x0 + ((sc->radius0 * rsin(i)) >> 12);
+                    prim->y0 = (u16)line->y0 + ((sc->radius0 * rcos(i)) >> 12);
                     baseAng  = i + 0x200;
-                    prim->x1 = (u16)line->x0 + ((sc->r0 * rsin(baseAng)) >> 12);
-                    prim->y1 = (u16)line->y0 + ((sc->r0 * rcos(baseAng)) >> 12);
+                    prim->x1 = (u16)line->x0 + ((sc->radius0 * rsin(baseAng)) >> 12);
+                    prim->y1 = (u16)line->y0 + ((sc->radius0 * rcos(baseAng)) >> 12);
                     prim->x2 = (u16)line->x0;
                     prim->y2 = (u16)line->y0;
                     baseAng  = i + 0x400;
-                    prim->x3 = (u16)line->x0 + ((sc->r0 * rsin(baseAng)) >> 12);
-                    prim->y3 = (u16)line->y0 + ((sc->r0 * rcos(baseAng)) >> 12);
+                    prim->x3 = (u16)line->x0 + ((sc->radius0 * rsin(baseAng)) >> 12);
+                    prim->y3 = (u16)line->y0 + ((sc->radius0 * rcos(baseAng)) >> 12);
                     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sc->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                             prim);
                     gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, sc->otz0);
@@ -458,10 +458,10 @@ static void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 
                 setRGB1(prim, 0, 0, 0);
                 setRGB2(prim, r, g, b);
                 setRGB3(prim, r, g, b);
-                prim->x0 = (u16)line->x0 + ((sc->r0 * rsin(bodyAng)) >> 12);
-                prim->y0 = (u16)line->y0 + ((sc->r0 * rcos(bodyAng)) >> 12);
-                prim->x1 = (u16)line->x1 + ((sc->r1 * rsin(bodyAng)) >> 12);
-                prim->y1 = (u16)line->y1 + ((sc->r1 * rcos(bodyAng)) >> 12);
+                prim->x0 = (u16)line->x0 + ((sc->radius0 * rsin(bodyAng)) >> 12);
+                prim->y0 = (u16)line->y0 + ((sc->radius0 * rcos(bodyAng)) >> 12);
+                prim->x1 = (u16)line->x1 + ((sc->radius1 * rsin(bodyAng)) >> 12);
+                prim->y1 = (u16)line->y1 + ((sc->radius1 * rcos(bodyAng)) >> 12);
                 prim->x2 = (u16)line->x0;
                 prim->y2 = (u16)line->y0;
                 prim->x3 = (u16)line->x1;
@@ -545,8 +545,8 @@ static void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 
     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((OverlayPointPairScratch*)head)[-1].otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
             line);
     gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, ((OverlayPointPairScratch*)head)[-1].otz0);
-    sc->r0 = 0x4000 / ((OverlayPointPairScratch*)head)[-1].otz0;
-    sc->r1 = 0x4000 / sc->otz1;
+    sc->radius0 = 0x4000 / ((OverlayPointPairScratch*)head)[-1].otz0;
+    sc->radius1 = 0x4000 / sc->otz1;
 
     if ((flags & 2) || D_m4a1_javelin_8012EB66 != 0) {
         ang                     = ratan2(line->y1 - line->y0, line->x0 - line->x1);
@@ -560,14 +560,14 @@ static void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 
             setRGB1(poly, 0, 0, 0);
             setRGB2(poly, r, g, b);
             setRGB3(poly, 0, 0, 0);
-            poly->x0 = (u16)line->x1 + ((sc->r1 * rsin(i + 0x800)) >> 12);
-            poly->y0 = (u16)line->y1 + ((sc->r1 * rcos(i + 0x800)) >> 12);
-            poly->x1 = (u16)line->x1 + ((sc->r1 * rsin(i + 0xA00)) >> 12);
-            poly->y1 = (u16)line->y1 + ((sc->r1 * rcos(i + 0xA00)) >> 12);
+            poly->x0 = (u16)line->x1 + ((sc->radius1 * rsin(i + 0x800)) >> 12);
+            poly->y0 = (u16)line->y1 + ((sc->radius1 * rcos(i + 0x800)) >> 12);
+            poly->x1 = (u16)line->x1 + ((sc->radius1 * rsin(i + 0xA00)) >> 12);
+            poly->y1 = (u16)line->y1 + ((sc->radius1 * rcos(i + 0xA00)) >> 12);
             poly->x2 = line->x1;
             poly->y2 = line->y1;
-            poly->x3 = (u16)line->x1 + ((sc->r1 * rsin(i + 0xC00)) >> 12);
-            poly->y3 = (u16)line->y1 + ((sc->r1 * rcos(i + 0xC00)) >> 12);
+            poly->x3 = (u16)line->x1 + ((sc->radius1 * rsin(i + 0xC00)) >> 12);
+            poly->y3 = (u16)line->y1 + ((sc->radius1 * rcos(i + 0xC00)) >> 12);
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sc->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), poly);
             gpuSetPrimitiveBlendMode(poly, GPU_BLEND_ADD, sc->otz1);
         }
@@ -584,14 +584,14 @@ static void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 
             setRGB1(poly, 0, 0, 0);
             setRGB2(poly, r, g, b);
             setRGB3(poly, 0, 0, 0);
-            poly->x0 = (u16)line->x0 + ((sc->r0 * rsin(i)) >> 12);
-            poly->y0 = (u16)line->y0 + ((sc->r0 * rcos(i)) >> 12);
-            poly->x1 = (u16)line->x0 + ((sc->r0 * rsin(i + 0x200)) >> 12);
-            poly->y1 = (u16)line->y0 + ((sc->r0 * rcos(i + 0x200)) >> 12);
+            poly->x0 = (u16)line->x0 + ((sc->radius0 * rsin(i)) >> 12);
+            poly->y0 = (u16)line->y0 + ((sc->radius0 * rcos(i)) >> 12);
+            poly->x1 = (u16)line->x0 + ((sc->radius0 * rsin(i + 0x200)) >> 12);
+            poly->y1 = (u16)line->y0 + ((sc->radius0 * rcos(i + 0x200)) >> 12);
             poly->x2 = line->x0;
             poly->y2 = line->y0;
-            poly->x3 = (u16)line->x0 + ((sc->r0 * rsin(i + 0x400)) >> 12);
-            poly->y3 = (u16)line->y0 + ((sc->r0 * rcos(i + 0x400)) >> 12);
+            poly->x3 = (u16)line->x0 + ((sc->radius0 * rsin(i + 0x400)) >> 12);
+            poly->y3 = (u16)line->y0 + ((sc->radius0 * rcos(i + 0x400)) >> 12);
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sc->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), poly);
             gpuSetPrimitiveBlendMode(poly, GPU_BLEND_ADD, sc->otz0);
         }
@@ -605,10 +605,10 @@ static void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 
         setRGB1(poly, 0, 0, 0);
         setRGB2(poly, r, g, b);
         setRGB3(poly, r, g, b);
-        poly->x0 = (u16)line->x0 + ((sc->r0 * rsin((s16)ang + ((i - (s16)ang) * 2))) >> 12);
-        poly->y0 = (u16)line->y0 + ((sc->r0 * rcos((s16)ang + ((i - (s16)ang) * 2))) >> 12);
-        poly->x1 = (u16)line->x1 + ((sc->r1 * rsin((s16)ang + ((i - (s16)ang) * 2))) >> 12);
-        poly->y1 = (u16)line->y1 + ((sc->r1 * rcos((s16)ang + ((i - (s16)ang) * 2))) >> 12);
+        poly->x0 = (u16)line->x0 + ((sc->radius0 * rsin((s16)ang + ((i - (s16)ang) * 2))) >> 12);
+        poly->y0 = (u16)line->y0 + ((sc->radius0 * rcos((s16)ang + ((i - (s16)ang) * 2))) >> 12);
+        poly->x1 = (u16)line->x1 + ((sc->radius1 * rsin((s16)ang + ((i - (s16)ang) * 2))) >> 12);
+        poly->y1 = (u16)line->y1 + ((sc->radius1 * rcos((s16)ang + ((i - (s16)ang) * 2))) >> 12);
         poly->x2 = line->x0;
         poly->y2 = line->y0;
         poly->x3 = line->x1;

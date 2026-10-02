@@ -393,20 +393,28 @@ typedef struct OverlayFlaggedQuadScratch {
 } OverlayFlaggedQuadScratch;
 STATIC_ASSERT_SIZEOF(OverlayFlaggedQuadScratch, 0x28);
 
-/// The scratch-pad block of two points projected one after the other, each
-/// with a radius scaled by its own depth: `otz0` and `otz1` are the depths,
-/// `flag` the GTE flag word of whichever projection ran last, `r0` and `r1`
-/// the two radii and `sx0`, `sy0`, `sx1`, `sy1` the two screen points.
-typedef struct OverlayPointPairScratch {
-    s32 otz0;
-    s32 otz1;
-    s32 flag;
-    s32 r0;
-    s32 r1;
-    u16 sx0;
-    u16 sy0;
-    u16 sx1;
-    u16 sy1;
+/// Scratch-stack block for projecting two world points and sizing a primitive
+/// around each.
+///
+/// The points are transformed one after the other. Each transform writes that
+/// point's screen position as one screen-XY word, so its two halves stay
+/// adjacent, and replaces `flag` with the GTE flag word. A negative flag word
+/// means that transform reported an error, and the drawer stops. Otherwise the
+/// ordering-table depth is stored. The on-screen radius is a caller-chosen
+/// numerator divided by the depth stored for that point, and a caller may
+/// adjust the stored depth before the division. Code that subtracts two screen
+/// halves sign-extends each one: the halves are the raw encoding of signed GTE
+/// pixel coordinates.
+typedef struct {
+    s32 otz0;    // Ordering-table depth of the first point, and the divisor for its radius
+    s32 otz1;    // Ordering-table depth of the second point, and the divisor for its radius
+    s32 flag;    // GTE flag word of the latest transform; negative means that transform failed
+    s32 radius0; // On-screen radius at the first point, in pixels
+    s32 radius1; // On-screen radius at the second point, in pixels
+    u16 sx0;     // Raw projected X of the first point; first half of its screen-XY word
+    u16 sy0;     // Raw projected Y of the first point; second half of that word
+    u16 sx1;     // Raw projected X of the second point; first half of its screen-XY word
+    u16 sy1;     // Raw projected Y of the second point; second half of that word
 } OverlayPointPairScratch;
 STATIC_ASSERT_SIZEOF(OverlayPointPairScratch, 0x1C);
 

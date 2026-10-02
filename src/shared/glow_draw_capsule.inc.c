@@ -63,11 +63,11 @@ void glowDrawCapsule(SVECTOR* arg0, s32 arg1, s32 arg2)
                 block->otz1 = otz - GLOW_DRAW_CAPSULE_PULL;
             }
 #endif
-            scaled    = (s16)arg1 * 64;
-            block->r0 = scaled / block->otz0;
-            block->r1 = scaled / block->otz1;
-            ang       = ratan2((s16)block->sy1 - (s16)block->sy0, (s16)block->sx0 - (s16)block->sx1);
-            ds        = &gDisplayState;
+            scaled         = (s16)arg1 * 64;
+            block->radius0 = scaled / block->otz0;
+            block->radius1 = scaled / block->otz1;
+            ang            = ratan2((s16)block->sy1 - (s16)block->sy0, (s16)block->sx0 - (s16)block->sx1);
+            ds             = &gDisplayState;
 #ifdef GLOW_DRAW_CAPSULE_SHIFTED_FLICKER
             /* the flicker bit, shifted by the colour word's top nibble, is
                added to each channel */
@@ -102,16 +102,16 @@ void glowDrawCapsule(SVECTOR* arg0, s32 arg1, s32 arg2)
                     setRGB1(prim, 0, 0, 0);
                     setRGB2(prim, r, g, b);
                     setRGB3(prim, 0, 0, 0);
-                    prim->x0 = block->sx0 + ((block->r0 * rsin(ang)) >> 12);
+                    prim->x0 = block->sx0 + ((block->radius0 * rsin(ang)) >> 12);
                     t        = ang + 0x200;
-                    prim->y0 = block->sy0 + ((block->r0 * rcos(ang)) >> 12);
-                    prim->x1 = block->sx0 + ((block->r0 * rsin(t)) >> 12);
-                    prim->y1 = block->sy0 + ((block->r0 * rcos(t)) >> 12);
+                    prim->y0 = block->sy0 + ((block->radius0 * rcos(ang)) >> 12);
+                    prim->x1 = block->sx0 + ((block->radius0 * rsin(t)) >> 12);
+                    prim->y1 = block->sy0 + ((block->radius0 * rcos(t)) >> 12);
                     t2       = ang + 0x400;
                     prim->x2 = block->sx0;
                     prim->y2 = block->sy0;
-                    prim->x3 = block->sx0 + ((block->r0 * rsin(t2)) >> 12);
-                    prim->y3 = block->sy0 + ((block->r0 * rcos(t2)) >> 12);
+                    prim->x3 = block->sx0 + ((block->radius0 * rsin(t2)) >> 12);
+                    prim->y3 = block->sy0 + ((block->radius0 * rcos(t2)) >> 12);
                     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                             prim);
                     gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz0);
@@ -124,10 +124,10 @@ void glowDrawCapsule(SVECTOR* arg0, s32 arg1, s32 arg2)
                     setRGB1(prim, 0, 0, 0);
                     setRGB2(prim, r, g, b);
                     setRGB3(prim, r, g, b);
-                    prim->x0 = block->sx0 + ((block->r0 * rsin(side)) >> 12);
-                    prim->y0 = block->sy0 + ((block->r0 * rcos(side)) >> 12);
-                    prim->x1 = block->sx1 + ((block->r1 * rsin(side)) >> 12);
-                    prim->y1 = block->sy1 + ((block->r1 * rcos(side)) >> 12);
+                    prim->x0 = block->sx0 + ((block->radius0 * rsin(side)) >> 12);
+                    prim->y0 = block->sy0 + ((block->radius0 * rcos(side)) >> 12);
+                    prim->x1 = block->sx1 + ((block->radius1 * rsin(side)) >> 12);
+                    prim->y1 = block->sy1 + ((block->radius1 * rcos(side)) >> 12);
                     prim->x2 = block->sx0;
                     prim->y2 = block->sy0;
                     prim->x3 = block->sx1;
@@ -144,16 +144,16 @@ void glowDrawCapsule(SVECTOR* arg0, s32 arg1, s32 arg2)
                     setRGB1(prim, 0, 0, 0);
                     setRGB2(prim, r, g, b);
                     setRGB3(prim, 0, 0, 0);
-                    prim->x0 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
-                    prim->y0 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
+                    prim->x0 = block->sx1 + ((block->radius1 * rsin(t)) >> 12);
+                    prim->y0 = block->sy1 + ((block->radius1 * rcos(t)) >> 12);
                     t        = ang + 0xA00;
-                    prim->x1 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
-                    prim->y1 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
+                    prim->x1 = block->sx1 + ((block->radius1 * rsin(t)) >> 12);
+                    prim->y1 = block->sy1 + ((block->radius1 * rcos(t)) >> 12);
                     t        = ang + 0xC00;
                     prim->x2 = block->sx1;
                     prim->y2 = block->sy1;
-                    prim->x3 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
-                    prim->y3 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
+                    prim->x3 = block->sx1 + ((block->radius1 * rsin(t)) >> 12);
+                    prim->y3 = block->sy1 + ((block->radius1 * rcos(t)) >> 12);
                     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                             prim);
                     gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz1);
