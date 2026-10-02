@@ -62,10 +62,11 @@ static void _effectSpriteDrawBanked(const GfxCoord* coord, u16 frameAndPalette, 
         EFFECT_SPRITE_BANKED_PALETTE_ROW_COUNT = 2,
         EFFECT_SPRITE_BANKED_FIRST_PALETTE_ROW = 270,
         EFFECT_SPRITE_BANKED_CLUT_ROW_SHIFT    = 6,
-        /// Selects the packed CLUT's six-bit VRAM X / 16 column.
+        /// Selects the frame's six-bit VRAM X / 16 column in the GPU CLUT address.
         ///
         /// Columns span 16 VRAM words and wrap modulo 64 without changing the
-        /// selected row. Texture-cell bounds are independent of this encoding.
+        /// selected row. Only banks 0 and 1 use this field, below the encoded row.
+        /// Texture-cell bounds are independent of this encoding.
         EFFECT_SPRITE_BANKED_CLUT_COLUMN_MASK = (1 << EFFECT_SPRITE_BANKED_CLUT_ROW_SHIFT) - 1,
         /// Row-major frame stride: five 48-texel cells across each texture-sheet row.
         ///
