@@ -466,7 +466,7 @@ static inline RoomHaloShade* RoomFx_GetHaloShades(void)
 #undef ROOM_FX_HALO_STORAGE_TYPE
 #undef ROOM_FX_HALO_STORAGE_BOUND
 
-GpRoomObjRec D_dryfield_night_main_street_80182284[3] = {
+WorldCollisionRoomResources D_dryfield_night_main_street_80182284[3] = {
     { D_dryfield_night_main_street_801833D0, D_dryfield_night_main_street_80187704, D_dryfield_night_main_street_80187EBC, NULL },
     { D_dryfield_night_main_street_80184540, D_dryfield_night_main_street_80187704, D_dryfield_night_main_street_8018824C, NULL },
     { D_dryfield_night_main_street_80184540, D_dryfield_night_main_street_80187704, D_dryfield_night_main_street_8018824C, NULL },

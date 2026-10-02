@@ -658,43 +658,43 @@ static ViewCount* D_map_neo_ark_8017AB04[33] = {
 
 GpViewCountTbl D_map_neo_ark_8017AB88 = { D_map_neo_ark_8017AB04 };
 
-static GpRoomObjRec D_map_neo_ark_8017AB8C[1] = {
+static WorldCollisionRoomResources D_map_neo_ark_8017AB8C[1] = {
     { &D_shelter_b6_nursery_801858A0, D_shelter_b6_nursery_801872AC, D_shelter_b6_nursery_8018750C, NULL },
 };
 
-static GpRoomObjRec D_map_neo_ark_8017AB9C[1] = {
+static WorldCollisionRoomResources D_map_neo_ark_8017AB9C[1] = {
     { &D_shelter_b6_growth_room_8017FAF0, D_shelter_b6_growth_room_8017FF90, D_shelter_b6_growth_room_801803A0, NULL },
 };
 
-static GpRoomObjRec D_map_neo_ark_8017ABAC[1] = {
+static WorldCollisionRoomResources D_map_neo_ark_8017ABAC[1] = {
     { &D_shelter_b6_corridor_8017FA90, D_shelter_b6_corridor_80180100, D_shelter_b6_corridor_8018036C, NULL },
 };
 
-static GpRoomObjRec D_map_neo_ark_8017ABBC[1] = {
+static WorldCollisionRoomResources D_map_neo_ark_8017ABBC[1] = {
     { &D_shelter_b6_training_room_80184734, D_shelter_b6_training_room_80185780, D_shelter_b6_training_room_80185A44, NULL },
 };
 
-static GpRoomObjRec D_map_neo_ark_8017ABCC[1] = {
+static WorldCollisionRoomResources D_map_neo_ark_8017ABCC[1] = {
     { &D_neo_ark_bridge_80182814, D_neo_ark_bridge_80184724, D_neo_ark_bridge_80184AB8, NULL },
 };
 
-static GpRoomObjRec D_map_neo_ark_8017ABDC[1] = {
+static WorldCollisionRoomResources D_map_neo_ark_8017ABDC[1] = {
     { &D_shelter_1f_tent_801822F0, D_shelter_1f_tent_80183A94, D_shelter_1f_tent_80183CF4, NULL },
 };
 
-static GpRoomObjRec D_map_neo_ark_8017ABEC[1] = {
+static WorldCollisionRoomResources D_map_neo_ark_8017ABEC[1] = {
     { &D_neo_ark_woodland_path_80181D5C, D_neo_ark_woodland_path_80183F9C, D_neo_ark_woodland_path_8018445C, D_neo_ark_woodland_path_801847D4 },
 };
 
-static GpRoomObjRec D_map_neo_ark_8017ABFC[1] = {
+static WorldCollisionRoomResources D_map_neo_ark_8017ABFC[1] = {
     { &D_neo_ark_submarine_gallery_8018239C, D_neo_ark_submarine_gallery_8018529C, D_neo_ark_submarine_gallery_801854FC, NULL },
 };
 
-static GpRoomObjRec D_map_neo_ark_8017AC0C[1] = {
+static WorldCollisionRoomResources D_map_neo_ark_8017AC0C[1] = {
     { NULL, NULL, NULL, NULL },
 };
 
-static GpRoomObjRec* D_map_neo_ark_8017AC1C[33] = {
+static WorldCollisionRoomResources* D_map_neo_ark_8017AC1C[33] = {
     D_shelter_1f_parking_garage_80180C64,
     D_shelter_1f_vehicular_airlock_801820FC,
     D_shelter_1f_bulwark_801803B0,

@@ -14,7 +14,7 @@
 extern GpAreaVariant D_mist_r18_80186BFC[13];
 
 // mist_r18
-extern GpRoomObjRec D_mist_r18_8018660C[];
+extern WorldCollisionRoomResources D_mist_r18_8018660C[];
 
 extern u8* D_mist_r18_8018661C[];
 

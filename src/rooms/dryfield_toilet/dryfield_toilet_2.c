@@ -171,7 +171,7 @@ EvsCommand D_dryfield_toilet_80180F40[20] = {
 
 #include "../../shared/room_visual_effects_disc_data.inc.c"
 
-GpRoomObjRec D_dryfield_toilet_8018112C[1] = {
+WorldCollisionRoomResources D_dryfield_toilet_8018112C[1] = {
     { &D_dryfield_toilet_80181404, D_dryfield_toilet_8018227C, D_dryfield_toilet_80182444, D_dryfield_toilet_801826F0 },
 };
 

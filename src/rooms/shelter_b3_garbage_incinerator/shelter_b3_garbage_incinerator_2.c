@@ -399,7 +399,7 @@ WorldCoordRoomLighting D_shelter_b3_garbage_incinerator_80187280[7] = {
     { D_shelter_b3_garbage_incinerator_8018E598, NULL },
 };
 
-GpRoomObjRec D_shelter_b3_garbage_incinerator_801872B8[7] = {
+WorldCollisionRoomResources D_shelter_b3_garbage_incinerator_801872B8[7] = {
     { D_shelter_b3_garbage_incinerator_80188388, D_shelter_b3_garbage_incinerator_8018E5B0, D_shelter_b3_garbage_incinerator_8018F734, D_shelter_b3_garbage_incinerator_8018FAD8 },
     { D_shelter_b3_garbage_incinerator_80188388, D_shelter_b3_garbage_incinerator_8018EC38, D_shelter_b3_garbage_incinerator_8018F734, D_shelter_b3_garbage_incinerator_8018FAD8 },
     { D_shelter_b3_garbage_incinerator_80188388, D_shelter_b3_garbage_incinerator_8018EC38, D_shelter_b3_garbage_incinerator_8018F734, D_shelter_b3_garbage_incinerator_8018FAD8 },

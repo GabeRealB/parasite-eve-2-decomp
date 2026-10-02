@@ -246,7 +246,7 @@ SVECTOR D_neo_ark_power_plant_1_8017F020[52] = {
 
 SVECTOR D_neo_ark_power_plant_1_8017F1C0 = { 2015, -1080, -4500, 0 };
 
-GpRoomObjRec D_neo_ark_power_plant_1_8017F1C8[1] = {
+WorldCollisionRoomResources D_neo_ark_power_plant_1_8017F1C8[1] = {
     { D_neo_ark_power_plant_1_80180090, D_neo_ark_power_plant_1_8018155C, D_neo_ark_power_plant_1_80181854, D_neo_ark_power_plant_1_80181B60 },
 };
 

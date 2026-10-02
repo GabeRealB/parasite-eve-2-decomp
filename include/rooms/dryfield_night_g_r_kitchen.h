@@ -16,7 +16,7 @@ extern GpAreaVariant D_dryfield_night_g_r_kitchen_8017EB88[12];
 // dryfield_night_g_r_kitchen
 extern WorldCoordRoomLighting D_dryfield_night_g_r_kitchen_8017E2BC[];
 
-extern GpRoomObjRec D_dryfield_night_g_r_kitchen_8017E2C4[];
+extern WorldCollisionRoomResources D_dryfield_night_g_r_kitchen_8017E2C4[];
 
 extern u8* D_dryfield_night_g_r_kitchen_8017E2D4[];
 

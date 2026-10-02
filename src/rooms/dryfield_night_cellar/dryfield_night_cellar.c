@@ -80,7 +80,7 @@ WorldCoordRoomLighting D_dryfield_night_cellar_8017DAF0[2] = {
     { D_dryfield_night_cellar_80180708, NULL },
 };
 
-GpRoomObjRec D_dryfield_night_cellar_8017DB00[2] = {
+WorldCollisionRoomResources D_dryfield_night_cellar_8017DB00[2] = {
     { D_dryfield_night_cellar_8017DE60, D_dryfield_night_cellar_8017FB3C, D_dryfield_night_cellar_8017FD04, D_dryfield_night_cellar_801802F4 },
     { D_dryfield_night_cellar_8017DE60, D_dryfield_night_cellar_8017FB3C, D_dryfield_night_cellar_8017FFFC, D_dryfield_night_cellar_801802F4 },
 };

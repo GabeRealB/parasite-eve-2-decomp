@@ -14,7 +14,7 @@
 extern GpAreaVariant D_dryfield_r08_80180B88[13];
 
 // dryfield_r08
-extern GpRoomObjRec D_dryfield_r08_8017F6DC[];
+extern WorldCollisionRoomResources D_dryfield_r08_8017F6DC[];
 
 extern u8* D_dryfield_r08_8017F6FC[];
 

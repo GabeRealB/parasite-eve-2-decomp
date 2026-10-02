@@ -16,7 +16,7 @@ extern GpAreaVariant D_dryfield_night_r08_801818D8[11];
 // dryfield_night_r08
 extern WorldCoordRoomLighting D_dryfield_night_r08_8018067C[];
 
-extern GpRoomObjRec D_dryfield_night_r08_80180684[];
+extern WorldCollisionRoomResources D_dryfield_night_r08_80180684[];
 
 extern u8* D_dryfield_night_r08_80180694[];
 

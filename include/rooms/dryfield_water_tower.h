@@ -18,7 +18,7 @@ extern u16 D_dryfield_water_tower_801876AA;
 extern GpAreaVariant D_dryfield_water_tower_8018757C[13];
 
 // dryfield_water_tower
-extern GpRoomObjRec D_dryfield_water_tower_801827CC[];
+extern WorldCollisionRoomResources D_dryfield_water_tower_801827CC[];
 
 extern u8* D_dryfield_water_tower_801827DC[];
 

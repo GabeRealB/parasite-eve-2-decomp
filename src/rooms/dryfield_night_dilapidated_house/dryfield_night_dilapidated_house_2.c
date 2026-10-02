@@ -1209,7 +1209,7 @@ WorldCoordRoomLighting D_dryfield_night_dilapidated_house_8018738C[1] = {
     { D_dryfield_night_dilapidated_house_80189B60, D_dryfield_night_dilapidated_house_8018A054 },
 };
 
-GpRoomObjRec D_dryfield_night_dilapidated_house_80187394[1] = {
+WorldCollisionRoomResources D_dryfield_night_dilapidated_house_80187394[1] = {
     { D_dryfield_night_dilapidated_house_80187D44, D_dryfield_night_dilapidated_house_801892A0, D_dryfield_night_dilapidated_house_80189B78, D_dryfield_night_dilapidated_house_80189F08 },
 };
 

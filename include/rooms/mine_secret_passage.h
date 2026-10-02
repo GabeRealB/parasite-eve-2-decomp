@@ -16,7 +16,7 @@ extern GpAreaVariant D_mine_secret_passage_80183340[12];
 // mine_secret_passage
 extern WorldCoordRoomLighting D_mine_secret_passage_80180F9C[];
 
-extern GpRoomObjRec D_mine_secret_passage_80180FA4[];
+extern WorldCollisionRoomResources D_mine_secret_passage_80180FA4[];
 
 extern u8* D_mine_secret_passage_80180FB4[];
 

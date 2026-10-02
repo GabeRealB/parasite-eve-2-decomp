@@ -170,7 +170,7 @@ static inline RoomHaloShade* RoomFx_GetHaloShades(void)
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-GpRoomObjRec D_shelter_b2_pod_access_tunnel_80183DEC[2] = {
+WorldCollisionRoomResources D_shelter_b2_pod_access_tunnel_80183DEC[2] = {
     { D_shelter_b2_pod_access_tunnel_801841B4, D_shelter_b2_pod_access_tunnel_80184FD8, D_shelter_b2_pod_access_tunnel_80185108, D_shelter_b2_pod_access_tunnel_80185664 },
     { D_shelter_b2_pod_access_tunnel_801841B4, D_shelter_b2_pod_access_tunnel_80184FD8, D_shelter_b2_pod_access_tunnel_801851EC, D_shelter_b2_pod_access_tunnel_80185664 },
 };

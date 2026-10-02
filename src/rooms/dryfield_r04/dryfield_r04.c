@@ -18,7 +18,7 @@ extern WorldCollisionGrid D_dryfield_r04_8017E1F4;
  * no sprites, an exit record and the location's parameters.
  */
 
-GpRoomObjRec D_dryfield_r04_8017D5C4[1] = {
+WorldCollisionRoomResources D_dryfield_r04_8017D5C4[1] = {
     { &D_dryfield_r04_8017E1F4, NULL, NULL, NULL },
 };
 

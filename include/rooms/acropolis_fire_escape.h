@@ -24,7 +24,7 @@ extern WorldCollisionGridFace gAcropolisFireEscapeCollision04CE8Faces[23];
 extern GpAreaVariant D_acropolis_fire_escape_8018294C[5];
 
 // acropolis_fire_escape
-extern GpRoomObjRec D_acropolis_fire_escape_80181DAC[];
+extern WorldCollisionRoomResources D_acropolis_fire_escape_80181DAC[];
 
 extern u8* D_acropolis_fire_escape_80181DBC[];
 

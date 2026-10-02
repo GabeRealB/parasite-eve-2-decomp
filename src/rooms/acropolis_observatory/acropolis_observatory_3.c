@@ -124,7 +124,7 @@ u16 D_acropolis_observatory_8017FEB8[8] = {
     144,
 };
 
-GpRoomObjRec D_acropolis_observatory_8017FEC8[2] = {
+WorldCollisionRoomResources D_acropolis_observatory_8017FEC8[2] = {
     { D_acropolis_observatory_80180A50, D_acropolis_observatory_80180A74, D_acropolis_observatory_80180D6C, NULL },
     { D_acropolis_observatory_80180A50, D_acropolis_observatory_80180A74, D_acropolis_observatory_80180D6C, NULL },
 };

@@ -28,7 +28,7 @@ extern GpAreaVariant D_neo_ark_submarine_tunnel_80187470[13];
 // neo_ark_submarine_tunnel
 extern WorldCoordRoomLighting D_neo_ark_submarine_tunnel_80181E00[];
 
-extern GpRoomObjRec D_neo_ark_submarine_tunnel_80181E08[];
+extern WorldCollisionRoomResources D_neo_ark_submarine_tunnel_80181E08[];
 
 extern u8* D_neo_ark_submarine_tunnel_80181E18[];
 

@@ -26,7 +26,7 @@ extern WorldCollisionTrigger D_dryfield_night_main_street_8018824C[12];
 extern GpAreaVariant D_dryfield_night_main_street_80188A08[13];
 
 // dryfield_night_main_street
-extern GpRoomObjRec D_dryfield_night_main_street_80182284[];
+extern WorldCollisionRoomResources D_dryfield_night_main_street_80182284[];
 
 extern WorldCoordRoomLighting D_dryfield_night_main_street_801822B4[];
 

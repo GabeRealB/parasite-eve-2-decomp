@@ -29,7 +29,7 @@ extern TaskDesc D_shelter_b3_dumping_hole_8018B57C[1];
 extern GpAreaVariant D_shelter_b3_dumping_hole_8018EC3C[13];
 
 // shelter_b3_dumping_hole
-extern GpRoomObjRec D_shelter_b3_dumping_hole_8018B678[];
+extern WorldCollisionRoomResources D_shelter_b3_dumping_hole_8018B678[];
 
 extern u8* D_shelter_b3_dumping_hole_8018B698[];
 

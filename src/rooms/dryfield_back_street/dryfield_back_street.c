@@ -89,7 +89,7 @@ TaskDesc D_dryfield_back_street_8017F98C[2] = {
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-GpRoomObjRec D_dryfield_back_street_8017F9B4[1] = {
+WorldCollisionRoomResources D_dryfield_back_street_8017F9B4[1] = {
     { D_dryfield_back_street_80180284, D_dryfield_back_street_801804C0, D_dryfield_back_street_80180688, NULL },
 };
 

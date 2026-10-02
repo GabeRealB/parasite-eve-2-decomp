@@ -96,7 +96,7 @@ TaskDesc D_neo_ark_pyramid_8017FC0C = { { { TASK_BODY_NONE, 32 } }, func_neo_ark
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-GpRoomObjRec D_neo_ark_pyramid_8017FC28[2] = {
+WorldCollisionRoomResources D_neo_ark_pyramid_8017FC28[2] = {
     { D_neo_ark_pyramid_801802C4, D_neo_ark_pyramid_801812B0, D_neo_ark_pyramid_80181478, D_neo_ark_pyramid_80181790 },
     { D_neo_ark_pyramid_801802C4, D_neo_ark_pyramid_801812B0, D_neo_ark_pyramid_80181478, D_neo_ark_pyramid_80181790 },
 };

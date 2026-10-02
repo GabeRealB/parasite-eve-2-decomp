@@ -14,7 +14,7 @@
 extern GpAreaVariant D_dryfield_general_store_80185654[13];
 
 // dryfield_general_store
-extern GpRoomObjRec D_dryfield_general_store_8017E670[];
+extern WorldCollisionRoomResources D_dryfield_general_store_8017E670[];
 
 extern u8* D_dryfield_general_store_8017E680[];
 

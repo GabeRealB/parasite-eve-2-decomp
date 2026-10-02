@@ -14,7 +14,7 @@
 extern GpAreaVariant D_acropolis_fountain_8017FC9C[11];
 
 // acropolis_fountain
-extern GpRoomObjRec D_acropolis_fountain_8017E814[];
+extern WorldCollisionRoomResources D_acropolis_fountain_8017E814[];
 
 extern u8* D_acropolis_fountain_8017E84C[];
 

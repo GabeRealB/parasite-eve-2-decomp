@@ -343,7 +343,7 @@ SVECTOR D_dryfield_main_street_80181BA4 = { -850, -1320, 9770, 0 };
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-GpRoomObjRec D_dryfield_main_street_80181BBC[1] = {
+WorldCollisionRoomResources D_dryfield_main_street_80181BBC[1] = {
     { D_dryfield_main_street_80182C9C, D_dryfield_main_street_801843A4, D_dryfield_main_street_80184B5C, NULL },
 };
 

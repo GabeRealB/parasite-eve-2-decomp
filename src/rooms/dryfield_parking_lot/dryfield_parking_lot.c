@@ -97,7 +97,7 @@ u16 D_dryfield_parking_lot_8017DC34[8] = {
     0xE5E6,
 };
 
-GpRoomObjRec D_dryfield_parking_lot_8017DC44[1] = {
+WorldCollisionRoomResources D_dryfield_parking_lot_8017DC44[1] = {
     { D_dryfield_parking_lot_8017E8DC, D_dryfield_parking_lot_8017F0A8, D_dryfield_parking_lot_8017F3A0, D_dryfield_parking_lot_8017F6E4 },
 };
 

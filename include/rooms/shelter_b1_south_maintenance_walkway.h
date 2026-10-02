@@ -16,7 +16,7 @@ extern GpAreaVariant D_shelter_b1_south_maintenance_walkway_80183598[12];
 // shelter_b1_south_maintenance_walkway
 extern WorldCoordRoomLighting D_shelter_b1_south_maintenance_walkway_801823F4[];
 
-extern GpRoomObjRec D_shelter_b1_south_maintenance_walkway_801823FC[];
+extern WorldCollisionRoomResources D_shelter_b1_south_maintenance_walkway_801823FC[];
 
 extern u8* D_shelter_b1_south_maintenance_walkway_8018240C[];
 

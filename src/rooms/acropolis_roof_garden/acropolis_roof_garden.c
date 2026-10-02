@@ -466,7 +466,7 @@ s16 D_acropolis_roof_garden_80184C5C[24] = {
     591,
 };
 
-GpRoomObjRec D_acropolis_roof_garden_80184C8C[1] = {
+WorldCollisionRoomResources D_acropolis_roof_garden_80184C8C[1] = {
     { D_acropolis_roof_garden_801854A4, D_acropolis_roof_garden_801854C8, D_acropolis_roof_garden_80185690, D_acropolis_roof_garden_80186D14 },
 };
 

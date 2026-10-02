@@ -16,7 +16,7 @@ extern GpAreaVariant D_mine_refuge_80182A00[11];
 // mine_refuge
 extern WorldCoordRoomLighting D_mine_refuge_801818F0[];
 
-extern GpRoomObjRec D_mine_refuge_801818F8[];
+extern WorldCollisionRoomResources D_mine_refuge_801818F8[];
 
 extern u8* D_mine_refuge_80181908[];
 

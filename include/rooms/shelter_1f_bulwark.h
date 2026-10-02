@@ -14,7 +14,7 @@
 extern GpAreaVariant D_shelter_1f_bulwark_80180DA8[12];
 
 // shelter_1f_bulwark
-extern GpRoomObjRec D_shelter_1f_bulwark_801803B0[];
+extern WorldCollisionRoomResources D_shelter_1f_bulwark_801803B0[];
 
 extern WorldCoordRoomLighting D_shelter_1f_bulwark_801803C0[];
 

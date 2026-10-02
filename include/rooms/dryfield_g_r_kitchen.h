@@ -14,7 +14,7 @@
 extern GpAreaVariant D_dryfield_g_r_kitchen_8017F4B8[13];
 
 // dryfield_g_r_kitchen
-extern GpRoomObjRec D_dryfield_g_r_kitchen_8017EC28[];
+extern WorldCollisionRoomResources D_dryfield_g_r_kitchen_8017EC28[];
 
 extern u8* D_dryfield_g_r_kitchen_8017EC38[];
 

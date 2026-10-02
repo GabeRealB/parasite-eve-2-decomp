@@ -19,7 +19,7 @@ extern TmdSource gAcropolisSanctuaryModel090F0;
 extern TmdSource gAcropolisSanctuaryModel09584;
 
 // acropolis_sanctuary
-extern GpRoomObjRec D_acropolis_sanctuary_801827EC[];
+extern WorldCollisionRoomResources D_acropolis_sanctuary_801827EC[];
 
 extern u8* D_acropolis_sanctuary_801827FC[];
 

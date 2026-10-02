@@ -1108,7 +1108,7 @@ SVECTOR D_mine_mesa_80186508[4] = {
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-GpRoomObjRec D_mine_mesa_80186538[1] = {
+WorldCollisionRoomResources D_mine_mesa_80186538[1] = {
     { &D_mine_mesa_8018700C, D_mine_mesa_80188E40, D_mine_mesa_801890A0, D_mine_mesa_801899B4 },
 };
 

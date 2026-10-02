@@ -109,7 +109,7 @@ WorldCoordRoomLighting D_dryfield_night_g_r_kitchen_8017E2BC[1] = {
     { D_dryfield_night_g_r_kitchen_8017E84C, NULL },
 };
 
-GpRoomObjRec D_dryfield_night_g_r_kitchen_8017E2C4[1] = {
+WorldCollisionRoomResources D_dryfield_night_g_r_kitchen_8017E2C4[1] = {
     { D_dryfield_night_g_r_kitchen_8017E554, D_dryfield_night_g_r_kitchen_8017E864, D_dryfield_night_g_r_kitchen_8017E8FC, NULL },
 };
 

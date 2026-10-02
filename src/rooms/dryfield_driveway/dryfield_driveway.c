@@ -186,7 +186,7 @@ TaskMessageEntry D_dryfield_driveway_8017E754[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-GpRoomObjRec D_dryfield_driveway_8017E784[2] = {
+WorldCollisionRoomResources D_dryfield_driveway_8017E784[2] = {
     { D_dryfield_driveway_8017ED74, D_dryfield_driveway_8017FC98, D_dryfield_driveway_801802F8, NULL },
     { D_dryfield_driveway_8017ED74, D_dryfield_driveway_8017FC98, D_dryfield_driveway_801802F8, NULL },
 };

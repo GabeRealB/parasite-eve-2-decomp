@@ -14,7 +14,7 @@
 extern GpAreaVariant D_dryfield_underpass_8017F868[13];
 
 // dryfield_underpass
-extern GpRoomObjRec D_dryfield_underpass_8017EB20[];
+extern WorldCollisionRoomResources D_dryfield_underpass_8017EB20[];
 
 extern u8* D_dryfield_underpass_8017EBBC[];
 

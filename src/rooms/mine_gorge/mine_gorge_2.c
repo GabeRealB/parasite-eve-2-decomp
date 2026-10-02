@@ -90,7 +90,7 @@ WorldCoordRoomLighting D_mine_gorge_8017E7A8[2] = {
     { D_mine_gorge_80182ABC, D_mine_gorge_801835A4 },
 };
 
-GpRoomObjRec D_mine_gorge_8017E7B8[2] = {
+WorldCollisionRoomResources D_mine_gorge_8017E7B8[2] = {
     { D_mine_gorge_8017F184, D_mine_gorge_80182AD4, D_mine_gorge_80182D34, NULL },
     { D_mine_gorge_8017F9F0, D_mine_gorge_80182AD4, D_mine_gorge_80182F94, NULL },
 };

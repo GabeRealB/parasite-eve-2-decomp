@@ -2618,7 +2618,7 @@ SVECTOR D_acropolis_plaza_80198820[19] = {
     { 7970, -640, 4980, 0 },
 };
 
-GpRoomObjRec D_acropolis_plaza_801988B8[1] = {
+WorldCollisionRoomResources D_acropolis_plaza_801988B8[1] = {
     { D_acropolis_plaza_80199180, NULL, &D_acropolis_plaza_801991A4, NULL },
 };
 

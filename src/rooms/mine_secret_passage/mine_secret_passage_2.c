@@ -134,7 +134,7 @@ WorldCoordRoomLighting D_mine_secret_passage_80180F9C[1] = {
     { D_mine_secret_passage_80182DB4, D_mine_secret_passage_801833A0 },
 };
 
-GpRoomObjRec D_mine_secret_passage_80180FA4[1] = {
+WorldCollisionRoomResources D_mine_secret_passage_80180FA4[1] = {
     { D_mine_secret_passage_801815E0, D_mine_secret_passage_80182DCC, D_mine_secret_passage_801830C4, D_mine_secret_passage_801831A8 },
 };
 

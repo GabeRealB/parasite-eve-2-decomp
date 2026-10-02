@@ -259,13 +259,13 @@ void Gp_AllocSprtLists(void)
 
 static void Gp_LinkRoomObjects(Task* task)
 {
-    GameLocationKey*        sess;
-    GpRoomObjRec*           recs;
-    WorldCollisionGrid*     grid;
-    WorldCollisionTrigger*  list1;
-    WorldCollisionTrigger*  list2;
-    WorldCollisionOccluder* occluders;
-    s32                     i;
+    GameLocationKey*                   sess;
+    const WorldCollisionRoomResources* roomResources;
+    WorldCollisionGrid*                grid;
+    WorldCollisionTrigger*             viewBoundaryTriggers;
+    WorldCollisionTrigger*             actionTriggers;
+    WorldCollisionOccluder*            occluders;
+    s32                                i;
 
     sess = &gGameSession->location.loc;
     Gp_LoadStageView();
@@ -273,33 +273,33 @@ static void Gp_LinkRoomObjects(Task* task)
     Gp_ClearObj4AList(1);
     Gp_ClearObj4AList(0);
     Gp_ClearObj3AList(0);
-    recs = Gp_RoomObjTables[sess->stage - 1]->field_0[sess->area - 1];
-    if (recs != NULL) {
-        grid      = recs[sess->room - 1].field_0;
-        list1     = recs[sess->room - 1].field_4;
-        list2     = recs[sess->room - 1].field_8;
-        occluders = recs[sess->room - 1].field_C;
+    roomResources = Gp_RoomObjTables[sess->stage - 1]->field_0[sess->area - 1];
+    if (roomResources != NULL) {
+        grid                 = roomResources[sess->room - 1].grid;
+        viewBoundaryTriggers = roomResources[sess->room - 1].viewBoundaryTriggers;
+        actionTriggers       = roomResources[sess->room - 1].actionTriggers;
+        occluders            = roomResources[sess->room - 1].occluders;
         if (grid != NULL) {
             // Bind the room mesh to the current view before publishing it.
             grid->viewCoord = &gGfxViewCoord;
             Gp_GridParams   = grid;
         }
-        if (list1 != NULL) {
+        if (viewBoundaryTriggers != NULL) {
             for (i = 0;; i++) {
-                list1[i].coord = &gGfxViewCoord;
-                Gp_LinkObj4A(1, &list1[i]);
-                list1[i].flags |= WORLD_COLLISION_TRIGGER_ENABLED;
-                if (list1[i].flags & WORLD_COLLISION_TRIGGER_LAST) {
+                viewBoundaryTriggers[i].coord = &gGfxViewCoord;
+                Gp_LinkObj4A(1, &viewBoundaryTriggers[i]);
+                viewBoundaryTriggers[i].flags |= WORLD_COLLISION_TRIGGER_ENABLED;
+                if (viewBoundaryTriggers[i].flags & WORLD_COLLISION_TRIGGER_LAST) {
                     break;
                 }
             }
         }
-        if (list2 != NULL) {
+        if (actionTriggers != NULL) {
             for (i = 0;; i++) {
-                list2[i].coord = &gGfxViewCoord;
-                Gp_LinkObj4A(0, &list2[i]);
-                list2[i].flags |= WORLD_COLLISION_TRIGGER_ENABLED;
-                if (list2[i].flags & WORLD_COLLISION_TRIGGER_LAST) {
+                actionTriggers[i].coord = &gGfxViewCoord;
+                Gp_LinkObj4A(0, &actionTriggers[i]);
+                actionTriggers[i].flags |= WORLD_COLLISION_TRIGGER_ENABLED;
+                if (actionTriggers[i].flags & WORLD_COLLISION_TRIGGER_LAST) {
                     break;
                 }
             }

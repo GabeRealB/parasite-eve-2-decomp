@@ -74,7 +74,7 @@ WorldCoordRoomLighting D_dryfield_night_junk_yard_80180784[2] = {
     { D_dryfield_night_junk_yard_80183D10, NULL },
 };
 
-GpRoomObjRec D_dryfield_night_junk_yard_80180794[2] = {
+WorldCollisionRoomResources D_dryfield_night_junk_yard_80180794[2] = {
     { D_dryfield_night_junk_yard_801811B8, D_dryfield_night_junk_yard_80183778, D_dryfield_night_junk_yard_80183D28, D_dryfield_night_junk_yard_80184318 },
     { D_dryfield_night_junk_yard_801811B8, D_dryfield_night_junk_yard_80183778, D_dryfield_night_junk_yard_80183D28, D_dryfield_night_junk_yard_80184318 },
 };

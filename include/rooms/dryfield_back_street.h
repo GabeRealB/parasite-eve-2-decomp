@@ -14,7 +14,7 @@
 extern GpAreaVariant D_dryfield_back_street_80180A50[13];
 
 // dryfield_back_street
-extern GpRoomObjRec D_dryfield_back_street_8017F9B4[];
+extern WorldCollisionRoomResources D_dryfield_back_street_8017F9B4[];
 
 extern u8* D_dryfield_back_street_8017F9C4[];
 

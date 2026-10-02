@@ -166,7 +166,7 @@ WorldCoordRoomLighting D_dryfield_night_motel_balcony_80182E00[3] = {
     { D_dryfield_night_motel_balcony_8018DA8C, D_dryfield_night_motel_balcony_8018EFE8 },
 };
 
-GpRoomObjRec D_dryfield_night_motel_balcony_80182E18[3] = {
+WorldCollisionRoomResources D_dryfield_night_motel_balcony_80182E18[3] = {
     { D_dryfield_night_motel_balcony_80183750, D_dryfield_night_motel_balcony_8018E2FC, D_dryfield_night_motel_balcony_8018EAFC, D_dryfield_night_motel_balcony_8018EF70 },
     { D_dryfield_night_motel_balcony_80183750, D_dryfield_night_motel_balcony_8018E55C, D_dryfield_night_motel_balcony_8018EC2C, D_dryfield_night_motel_balcony_8018EF70 },
     { D_dryfield_night_motel_balcony_80183FE0, D_dryfield_night_motel_balcony_8018E854, D_dryfield_night_motel_balcony_8018ED5C, D_dryfield_night_motel_balcony_8018EF70 },

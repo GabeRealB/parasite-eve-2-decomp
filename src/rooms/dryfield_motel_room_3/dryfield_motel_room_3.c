@@ -39,7 +39,7 @@ TaskMessageEntry D_dryfield_motel_room_3_8017D6B4[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-GpRoomObjRec D_dryfield_motel_room_3_8017D6DC[1] = {
+WorldCollisionRoomResources D_dryfield_motel_room_3_8017D6DC[1] = {
     { D_dryfield_motel_room_3_8017DDA0, D_dryfield_motel_room_3_8017DFC4, D_dryfield_motel_room_3_8017E308, NULL },
 };
 

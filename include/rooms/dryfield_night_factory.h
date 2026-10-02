@@ -23,7 +23,7 @@ extern u8* D_dryfield_night_factory_80186F1C[];
 
 extern WorldCoordRoomLighting D_dryfield_night_factory_80186F24[];
 
-extern GpRoomObjRec D_dryfield_night_factory_80186F34[];
+extern WorldCollisionRoomResources D_dryfield_night_factory_80186F34[];
 
 extern ViewCount D_dryfield_night_factory_80186F54[];
 

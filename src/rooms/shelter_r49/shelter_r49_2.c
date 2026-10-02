@@ -43,7 +43,7 @@ TaskDesc D_shelter_r49_8017DA00[2] = {
     { { { TASK_BODY_NONE, 192 } }, func_shelter_r49_8017D71C, { .value = 0 } },
 };
 
-GpRoomObjRec D_shelter_r49_8017DA18[1] = {
+WorldCollisionRoomResources D_shelter_r49_8017DA18[1] = {
     { D_shelter_r49_8017DAAC, NULL, NULL, NULL },
 };
 

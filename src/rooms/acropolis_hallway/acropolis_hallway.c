@@ -79,7 +79,7 @@ TaskMessageEntry D_acropolis_hallway_8017E238[4] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-GpRoomObjRec D_acropolis_hallway_8017E258[1] = {
+WorldCollisionRoomResources D_acropolis_hallway_8017E258[1] = {
     { D_acropolis_hallway_8017E5D0, D_acropolis_hallway_8017E5F4, D_acropolis_hallway_8017E724, NULL },
 };
 

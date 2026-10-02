@@ -101,7 +101,7 @@ static inline RoomHaloShade* RoomFx_GetHaloShades(void)
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-GpRoomObjRec D_neo_ark_north_promenade_80181DB4[1] = {
+WorldCollisionRoomResources D_neo_ark_north_promenade_80181DB4[1] = {
     { D_neo_ark_north_promenade_801823EC, D_neo_ark_north_promenade_80182DB4, D_neo_ark_north_promenade_801830C4, D_neo_ark_north_promenade_8018328C },
 };
 

@@ -14,7 +14,7 @@
 extern GpAreaVariant D_dryfield_night_underpass_801802DC[12];
 
 // dryfield_night_underpass
-extern GpRoomObjRec D_dryfield_night_underpass_8017DD70[];
+extern WorldCollisionRoomResources D_dryfield_night_underpass_8017DD70[];
 
 extern WorldCoordRoomLighting D_dryfield_night_underpass_8017DDD0[];
 

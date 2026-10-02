@@ -131,7 +131,7 @@ SVECTOR D_shelter_1f_parking_garage_80180C4C[1] = {
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-GpRoomObjRec D_shelter_1f_parking_garage_80180C64[1] = {
+WorldCollisionRoomResources D_shelter_1f_parking_garage_80180C64[1] = {
     { D_shelter_1f_parking_garage_80180FE8, D_shelter_1f_parking_garage_801815F8, D_shelter_1f_parking_garage_80181728, NULL },
 };
 

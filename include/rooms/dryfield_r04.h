@@ -9,7 +9,7 @@
 #include "gameplay/view.h"
 
 // dryfield_r04
-extern GpRoomObjRec D_dryfield_r04_8017D5C4[];
+extern WorldCollisionRoomResources D_dryfield_r04_8017D5C4[];
 
 extern u8* D_dryfield_r04_8017D5D4[];
 

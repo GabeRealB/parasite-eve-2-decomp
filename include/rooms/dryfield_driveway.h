@@ -14,7 +14,7 @@
 extern GpAreaVariant D_dryfield_driveway_8017EDD4[11];
 
 // dryfield_driveway
-extern GpRoomObjRec D_dryfield_driveway_8017E784[];
+extern WorldCollisionRoomResources D_dryfield_driveway_8017E784[];
 
 extern u8* D_dryfield_driveway_8017E7AC[];
 

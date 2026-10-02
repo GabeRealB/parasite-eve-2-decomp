@@ -895,7 +895,7 @@ EvsCommand D_mist_r18_80186564[7] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-GpRoomObjRec D_mist_r18_8018660C[1] = {
+WorldCollisionRoomResources D_mist_r18_8018660C[1] = {
     { D_mist_r18_801866F8, NULL, NULL, NULL },
 };
 

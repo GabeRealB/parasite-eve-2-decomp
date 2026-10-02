@@ -205,7 +205,7 @@ WorldCoordRoomLighting D_mine_refuge_801818F0[1] = {
     { D_mine_refuge_80182760, D_mine_refuge_80182A58 },
 };
 
-GpRoomObjRec D_mine_refuge_801818F8[1] = {
+WorldCollisionRoomResources D_mine_refuge_801818F8[1] = {
     { D_mine_refuge_80181BA4, D_mine_refuge_80182778, D_mine_refuge_80182810, NULL },
 };
 

@@ -14,7 +14,7 @@
 extern GpAreaVariant D_dryfield_cellar_80180ACC[12];
 
 // dryfield_cellar
-extern GpRoomObjRec D_dryfield_cellar_8017DBDC[];
+extern WorldCollisionRoomResources D_dryfield_cellar_8017DBDC[];
 
 extern u8* D_dryfield_cellar_8017DC04[];
 

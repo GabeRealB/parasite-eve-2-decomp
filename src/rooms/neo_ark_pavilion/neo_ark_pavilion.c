@@ -129,7 +129,7 @@ TaskMessageEntry D_neo_ark_pavilion_80183870[5] = {
 
 #include "../../shared/room_visual_effects_disc_data.inc.c"
 
-GpRoomObjRec D_neo_ark_pavilion_801838B4[2] = {
+WorldCollisionRoomResources D_neo_ark_pavilion_801838B4[2] = {
     { D_neo_ark_pavilion_801841E4, D_neo_ark_pavilion_80187584, D_neo_ark_pavilion_8018772C, D_neo_ark_pavilion_8018798C },
     { D_neo_ark_pavilion_801841E4, D_neo_ark_pavilion_80187584, D_neo_ark_pavilion_8018785C, D_neo_ark_pavilion_8018798C },
 };

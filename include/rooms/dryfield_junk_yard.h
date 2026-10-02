@@ -18,7 +18,7 @@ extern GpAreaVariant D_dryfield_junk_yard_8017F558[13];
 extern TmdSource gDryfieldJunkYardModel01378;
 
 // dryfield_junk_yard
-extern GpRoomObjRec D_dryfield_junk_yard_8017ED04[];
+extern WorldCollisionRoomResources D_dryfield_junk_yard_8017ED04[];
 
 extern WorldCoordRoomLighting D_dryfield_junk_yard_8017ED14[];
 

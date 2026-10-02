@@ -129,7 +129,7 @@ SVECTOR D_mist_parking_80191484[27] = {
     { -7412, -1345, 773, 0 },
 };
 
-GpRoomObjRec D_mist_parking_8019155C[4] = {
+WorldCollisionRoomResources D_mist_parking_8019155C[4] = {
     { &D_mist_parking_80192204, D_mist_parking_80193A8C, D_mist_parking_80193E1C, NULL },
     { &D_mist_parking_80192204, D_mist_parking_80193A8C, D_mist_parking_80193E1C, NULL },
     { &D_mist_parking_80192204, D_mist_parking_80193A8C, D_mist_parking_801941F8, NULL },

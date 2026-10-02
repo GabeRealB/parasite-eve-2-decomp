@@ -14,7 +14,7 @@
 extern GpAreaVariant D_mine_mesa_801898F4[12];
 
 // mine_mesa
-extern GpRoomObjRec D_mine_mesa_80186538[];
+extern WorldCollisionRoomResources D_mine_mesa_80186538[];
 
 extern u8* D_mine_mesa_80186548[];
 

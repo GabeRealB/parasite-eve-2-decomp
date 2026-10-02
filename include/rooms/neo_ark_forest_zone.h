@@ -14,7 +14,7 @@
 extern GpAreaVariant D_neo_ark_forest_zone_80182968[13];
 
 // neo_ark_forest_zone
-extern GpRoomObjRec D_neo_ark_forest_zone_801820A4[];
+extern WorldCollisionRoomResources D_neo_ark_forest_zone_801820A4[];
 
 extern WorldCoordRoomLighting D_neo_ark_forest_zone_801820B4[];
 

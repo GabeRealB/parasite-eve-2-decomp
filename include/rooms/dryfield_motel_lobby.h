@@ -11,7 +11,7 @@
 #include "main/task_types.h"
 
 // dryfield_motel_lobby
-extern GpRoomObjRec D_dryfield_motel_lobby_8017F838[];
+extern WorldCollisionRoomResources D_dryfield_motel_lobby_8017F838[];
 
 extern u8* D_dryfield_motel_lobby_8017F848[];
 

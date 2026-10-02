@@ -89,7 +89,7 @@ SVECTOR D_neo_ark_eve_access_tunnel_8017EB48[6] = {
     { -1335, -39, 1836, 0 },
 };
 
-GpRoomObjRec D_neo_ark_eve_access_tunnel_8017EB78[1] = {
+WorldCollisionRoomResources D_neo_ark_eve_access_tunnel_8017EB78[1] = {
     { D_neo_ark_eve_access_tunnel_8017F05C, D_neo_ark_eve_access_tunnel_801802EC, D_neo_ark_eve_access_tunnel_801804B4, D_neo_ark_eve_access_tunnel_80180720 },
 };
 

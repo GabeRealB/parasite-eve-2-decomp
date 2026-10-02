@@ -492,7 +492,7 @@ WorldCoordRoomLighting D_dryfield_night_driveway_801805E0[2] = {
     { D_dryfield_night_driveway_80181DB0, D_dryfield_night_driveway_80182074 },
 };
 
-GpRoomObjRec D_dryfield_night_driveway_801805F0[2] = {
+WorldCollisionRoomResources D_dryfield_night_driveway_801805F0[2] = {
     { D_dryfield_night_driveway_80180C0C, D_dryfield_night_driveway_801818E8, D_dryfield_night_driveway_80181DC8, D_dryfield_night_driveway_80181FFC },
     { D_dryfield_night_driveway_80180C0C, D_dryfield_night_driveway_801818E8, D_dryfield_night_driveway_80181DC8, D_dryfield_night_driveway_80181FFC },
 };

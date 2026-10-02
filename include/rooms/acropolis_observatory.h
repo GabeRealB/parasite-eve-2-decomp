@@ -14,7 +14,7 @@
 extern GpAreaVariant D_acropolis_observatory_80181264[19];
 
 // acropolis_observatory
-extern GpRoomObjRec D_acropolis_observatory_8017FEC8[];
+extern WorldCollisionRoomResources D_acropolis_observatory_8017FEC8[];
 
 extern u8* D_acropolis_observatory_8017FEF0[];
 

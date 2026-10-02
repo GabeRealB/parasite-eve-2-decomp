@@ -150,7 +150,7 @@ SVECTOR D_dryfield_water_hole_8017FCBC[12] = {
 
 SVECTOR D_dryfield_water_hole_8017FD1C[2] = { 0 };
 
-GpRoomObjRec D_dryfield_water_hole_8017FD2C[4] = {
+WorldCollisionRoomResources D_dryfield_water_hole_8017FD2C[4] = {
     { D_dryfield_water_hole_80180260, D_dryfield_water_hole_80181724, D_dryfield_water_hole_80181B4C, D_dryfield_water_hole_80181F28 },
     { D_dryfield_water_hole_80180260, D_dryfield_water_hole_80181724, D_dryfield_water_hole_80181D60, D_dryfield_water_hole_80181F28 },
     { D_dryfield_water_hole_80180260, D_dryfield_water_hole_80181724, D_dryfield_water_hole_80181B4C, D_dryfield_water_hole_80181F28 },

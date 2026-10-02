@@ -122,7 +122,7 @@ static inline RoomHaloShade* RoomFx_GetHaloShades(void)
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-GpRoomObjRec D_dryfield_motel_balcony_801822D0[1] = {
+WorldCollisionRoomResources D_dryfield_motel_balcony_801822D0[1] = {
     { D_dryfield_motel_balcony_80182B5C, D_dryfield_motel_balcony_80185DA0, D_dryfield_motel_balcony_80186000, D_dryfield_motel_balcony_80186130 },
 };
 

@@ -16,7 +16,7 @@ extern GpAreaVariant D_mine_tunnel_801801CC[12];
 // mine_tunnel
 extern WorldCoordRoomLighting D_mine_tunnel_8017E154[];
 
-extern GpRoomObjRec D_mine_tunnel_8017E15C[];
+extern WorldCollisionRoomResources D_mine_tunnel_8017E15C[];
 
 extern u8* D_mine_tunnel_8017E16C[];
 

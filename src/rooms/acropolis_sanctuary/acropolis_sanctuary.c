@@ -801,7 +801,7 @@ u16 D_acropolis_sanctuary_801827D4[12] = {
     428,
 };
 
-GpRoomObjRec D_acropolis_sanctuary_801827EC[1] = {
+WorldCollisionRoomResources D_acropolis_sanctuary_801827EC[1] = {
     { &D_acropolis_sanctuary_80183568, D_acropolis_sanctuary_8018358C, D_acropolis_sanctuary_80183AE4, NULL },
 };
 

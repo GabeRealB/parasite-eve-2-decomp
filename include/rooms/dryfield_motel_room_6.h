@@ -16,7 +16,7 @@ extern TaskDesc D_dryfield_motel_room_6_80182D0C[2];
 extern GpAreaVariant D_dryfield_motel_room_6_80186764[12];
 
 // dryfield_motel_room_6
-extern GpRoomObjRec D_dryfield_motel_room_6_80182D98[];
+extern WorldCollisionRoomResources D_dryfield_motel_room_6_80182D98[];
 
 extern u8* D_dryfield_motel_room_6_80182DA8[];
 

@@ -687,7 +687,7 @@ WorldCoordRoomLighting* D_map_akropolis_8017AA28[20] = {
     gMistShootingGalleryRoomLightingTable,
 };
 
-static GpRoomObjRec* D_map_akropolis_8017AA78[20] = {
+static WorldCollisionRoomResources* D_map_akropolis_8017AA78[20] = {
     D_acropolis_square_80183B9C,
     D_acropolis_east_elevator_hall_80186320,
     D_acropolis_patio_80182E68,

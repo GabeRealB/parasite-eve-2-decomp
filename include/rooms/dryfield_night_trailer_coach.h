@@ -21,7 +21,7 @@ extern TmdSource gDryfieldNightTrailerCoachAcropolisSanctuaryModel090F0;
 // dryfield_night_trailer_coach
 extern WorldCoordRoomLighting D_dryfield_night_trailer_coach_80189500[];
 
-extern GpRoomObjRec D_dryfield_night_trailer_coach_80189508[];
+extern WorldCollisionRoomResources D_dryfield_night_trailer_coach_80189508[];
 
 extern u8* D_dryfield_night_trailer_coach_80189518[];
 

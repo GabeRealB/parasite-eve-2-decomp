@@ -61,7 +61,7 @@ TaskDesc D_neo_ark_island_80181B78 = { { { TASK_BODY_NONE, 32 } }, func_neo_ark_
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-GpRoomObjRec D_neo_ark_island_80181B94[1] = {
+WorldCollisionRoomResources D_neo_ark_island_80181B94[1] = {
     { D_neo_ark_island_801826C8, D_neo_ark_island_80183CC8, D_neo_ark_island_80183DF8, NULL },
 };
 

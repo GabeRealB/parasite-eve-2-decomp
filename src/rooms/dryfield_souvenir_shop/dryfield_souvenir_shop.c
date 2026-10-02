@@ -81,7 +81,7 @@ SVECTOR gGlowPrismCorners[16] = {
     { 5040, 0, -3475, 0 },
 };
 
-GpRoomObjRec D_dryfield_souvenir_shop_8017E0BC[1] = {
+WorldCollisionRoomResources D_dryfield_souvenir_shop_8017E0BC[1] = {
     { D_dryfield_souvenir_shop_8017E5DC, D_dryfield_souvenir_shop_8017EEF4, D_dryfield_souvenir_shop_8017EF8C, NULL },
 };
 

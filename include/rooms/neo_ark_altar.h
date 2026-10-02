@@ -11,7 +11,7 @@
 #include "main/task_types.h"
 
 // neo_ark_altar
-extern GpRoomObjRec D_neo_ark_altar_8017F094[];
+extern WorldCollisionRoomResources D_neo_ark_altar_8017F094[];
 
 extern WorldCoordRoomLighting D_neo_ark_altar_8017F0C4[];
 

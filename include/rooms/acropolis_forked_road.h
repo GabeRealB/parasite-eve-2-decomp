@@ -14,7 +14,7 @@
 extern GpAreaVariant D_acropolis_forked_road_801831C4[24];
 
 // acropolis_forked_road
-extern GpRoomObjRec D_acropolis_forked_road_80182214[];
+extern WorldCollisionRoomResources D_acropolis_forked_road_80182214[];
 
 extern u8* D_acropolis_forked_road_8018225C[];
 

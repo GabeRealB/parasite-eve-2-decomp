@@ -153,6 +153,7 @@ extern WorldCoordRoomLights D_dryfield_night_saloon_g_r_80188304[1];
 extern WorldCollisionGrid     D_dryfield_night_saloon_g_r_80185B50[1];
 extern WorldCollisionOccluder D_dryfield_night_saloon_g_r_80188E18[2];
 extern WorldCollisionTrigger  D_dryfield_night_saloon_g_r_8018831C[16];
+extern WorldCollisionTrigger  D_dryfield_night_saloon_g_r_801887DC[21];
 
 extern SpriteBatch  D_dryfield_night_saloon_g_r_80185D48[2];
 extern SpriteBatch  D_dryfield_night_saloon_g_r_80185EAC[3];
@@ -1071,9 +1072,9 @@ WorldCoordRoomLighting D_dryfield_night_saloon_g_r_80185180[2] = {
     { D_dryfield_night_saloon_g_r_80188304, NULL },
 };
 
-GpRoomObjRec D_dryfield_night_saloon_g_r_80185190[2] = {
-    { D_dryfield_night_saloon_g_r_80185B50, D_dryfield_night_saloon_g_r_8018831C, &D_dryfield_night_saloon_g_r_8018831C[16], D_dryfield_night_saloon_g_r_80188E18 },
-    { D_dryfield_night_saloon_g_r_80185B50, D_dryfield_night_saloon_g_r_8018831C, &D_dryfield_night_saloon_g_r_8018831C[16], D_dryfield_night_saloon_g_r_80188E18 },
+WorldCollisionRoomResources D_dryfield_night_saloon_g_r_80185190[2] = {
+    { D_dryfield_night_saloon_g_r_80185B50, D_dryfield_night_saloon_g_r_8018831C, D_dryfield_night_saloon_g_r_801887DC, D_dryfield_night_saloon_g_r_80188E18 },
+    { D_dryfield_night_saloon_g_r_80185B50, D_dryfield_night_saloon_g_r_8018831C, D_dryfield_night_saloon_g_r_801887DC, D_dryfield_night_saloon_g_r_80188E18 },
 };
 
 u8* D_dryfield_night_saloon_g_r_801851B0[2] = {

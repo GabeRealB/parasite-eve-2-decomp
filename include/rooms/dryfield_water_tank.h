@@ -14,7 +14,7 @@
 extern GpAreaVariant D_dryfield_water_tank_80188BF0[13];
 
 // dryfield_water_tank
-extern GpRoomObjRec D_dryfield_water_tank_801868E0[];
+extern WorldCollisionRoomResources D_dryfield_water_tank_801868E0[];
 
 extern u8* D_dryfield_water_tank_801868F0[];
 

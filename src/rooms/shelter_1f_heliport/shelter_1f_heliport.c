@@ -286,7 +286,7 @@ static s16* _gShelter1fHeliportCollision03CECTable[1] = {
 
 WorldCollisionGrid gFollowCollisionSource = { NULL, _gShelter1fHeliportCollision03CECNormals, _gShelter1fHeliportCollision03CECVerts, _gShelter1fHeliportCollision03CECFaces, _gShelter1fHeliportCollision03CECTable, 131, 227, 1, 1, 4000, 4 };
 
-GpRoomObjRec D_shelter_1f_heliport_801812D0[1] = {
+WorldCollisionRoomResources D_shelter_1f_heliport_801812D0[1] = {
     { &gFollowCollisionGrid, D_shelter_1f_heliport_80182178, D_shelter_1f_heliport_80182508, NULL },
 };
 

@@ -294,7 +294,7 @@ WorldCoordRoomLighting D_shelter_b1_sterilization_room_80189354[3] = {
     { D_shelter_b1_sterilization_room_8018B630, D_shelter_b1_sterilization_room_8018C21C },
 };
 
-GpRoomObjRec D_shelter_b1_sterilization_room_8018936C[3] = {
+WorldCollisionRoomResources D_shelter_b1_sterilization_room_8018936C[3] = {
     { &D_shelter_b1_sterilization_room_80189E44, D_shelter_b1_sterilization_room_8018B648, D_shelter_b1_sterilization_room_8018B8A8, D_shelter_b1_sterilization_room_8018C1A4 },
     { &D_shelter_b1_sterilization_room_80189E44, D_shelter_b1_sterilization_room_8018B648, D_shelter_b1_sterilization_room_8018B8A8, D_shelter_b1_sterilization_room_8018C1A4 },
     { &D_shelter_b1_sterilization_room_80189E44, D_shelter_b1_sterilization_room_8018B648, D_shelter_b1_sterilization_room_8018B8A8, D_shelter_b1_sterilization_room_8018C1A4 },

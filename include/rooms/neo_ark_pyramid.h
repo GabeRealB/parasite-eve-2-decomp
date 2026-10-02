@@ -14,7 +14,7 @@
 extern GpAreaVariant D_neo_ark_pyramid_80181728[13];
 
 // neo_ark_pyramid
-extern GpRoomObjRec D_neo_ark_pyramid_8017FC28[];
+extern WorldCollisionRoomResources D_neo_ark_pyramid_8017FC28[];
 
 extern WorldCoordRoomLighting D_neo_ark_pyramid_8017FC48[];
 

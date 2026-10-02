@@ -800,7 +800,7 @@ u16 D_acropolis_patio_80182E4C[14] = {
     88,
 };
 
-GpRoomObjRec D_acropolis_patio_80182E68[3] = {
+WorldCollisionRoomResources D_acropolis_patio_80182E68[3] = {
     { D_acropolis_patio_80183DF8, D_acropolis_patio_80183E1C, D_acropolis_patio_80184244, D_acropolis_patio_80184964 },
     { D_acropolis_patio_80183DF8, D_acropolis_patio_80183E1C, D_acropolis_patio_801845D4, D_acropolis_patio_80184964 },
     { D_acropolis_patio_80183DF8, D_acropolis_patio_80183E1C, D_acropolis_patio_801845D4, D_acropolis_patio_80184964 },

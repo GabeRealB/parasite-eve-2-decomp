@@ -63,7 +63,7 @@ WorldCoordRoomLighting D_neo_ark_submarine_tunnel_80181E00[1] = {
     { D_neo_ark_submarine_tunnel_80187230, NULL },
 };
 
-GpRoomObjRec D_neo_ark_submarine_tunnel_80181E08[1] = {
+WorldCollisionRoomResources D_neo_ark_submarine_tunnel_80181E08[1] = {
     { D_neo_ark_submarine_tunnel_801824DC, D_neo_ark_submarine_tunnel_80187248, D_neo_ark_submarine_tunnel_801874D8, D_neo_ark_submarine_tunnel_8018781C },
 };
 

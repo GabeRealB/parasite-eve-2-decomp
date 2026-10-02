@@ -125,7 +125,7 @@ SVECTOR D_shelter_1f_bulwark_80180398[1] = {
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-GpRoomObjRec D_shelter_1f_bulwark_801803B0[1] = {
+WorldCollisionRoomResources D_shelter_1f_bulwark_801803B0[1] = {
     { D_shelter_1f_bulwark_80180648, D_shelter_1f_bulwark_80180A8C, D_shelter_1f_bulwark_80180B24, D_shelter_1f_bulwark_80180E08 },
 };
 

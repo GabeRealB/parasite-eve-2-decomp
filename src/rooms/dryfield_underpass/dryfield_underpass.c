@@ -201,7 +201,7 @@ s16 D_dryfield_underpass_8017EB10[8] = {
     160,
 };
 
-GpRoomObjRec D_dryfield_underpass_8017EB20[6] = {
+WorldCollisionRoomResources D_dryfield_underpass_8017EB20[6] = {
     { D_dryfield_underpass_8017F484, D_dryfield_underpass_80180388, D_dryfield_underpass_801808E0, D_dryfield_underpass_80180AA8 },
     { D_dryfield_underpass_8017F484, D_dryfield_underpass_80180388, D_dryfield_underpass_801808E0, D_dryfield_underpass_80180AA8 },
     { D_dryfield_underpass_8017F484, D_dryfield_underpass_80180388, D_dryfield_underpass_801808E0, D_dryfield_underpass_80180AA8 },

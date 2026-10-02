@@ -54,7 +54,7 @@ extern UiObjectDesc D_mist_shooting_gallery_80185000;
 extern UiObjectDesc D_mist_shooting_gallery_80184F70;
 
 // mist_shooting_gallery
-extern GpRoomObjRec D_mist_shooting_gallery_801853A8[];
+extern WorldCollisionRoomResources D_mist_shooting_gallery_801853A8[];
 
 extern u8* D_mist_shooting_gallery_801853B8[];
 

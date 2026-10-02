@@ -234,7 +234,7 @@ EvsCommand D_neo_ark_forest_zone_80181E6C[23] = {
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-GpRoomObjRec D_neo_ark_forest_zone_801820A4[1] = {
+WorldCollisionRoomResources D_neo_ark_forest_zone_801820A4[1] = {
     { D_neo_ark_forest_zone_80182274, D_neo_ark_forest_zone_801826B4, D_neo_ark_forest_zone_801829D0, NULL },
 };
 

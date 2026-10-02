@@ -274,7 +274,7 @@ WorldCoordRoomLighting D_dryfield_night_factory_80186F24[2] = {
     { D_dryfield_night_factory_80189C88, D_dryfield_night_factory_8018A0C8 },
 };
 
-GpRoomObjRec D_dryfield_night_factory_80186F34[2] = {
+WorldCollisionRoomResources D_dryfield_night_factory_80186F34[2] = {
     { &gFactoryNightGrid, D_dryfield_night_factory_80189CA0, D_dryfield_night_factory_8018A168, NULL },
     { &gFactoryNightGrid, D_dryfield_night_factory_80189CA0, D_dryfield_night_factory_8018A168, NULL },
 };

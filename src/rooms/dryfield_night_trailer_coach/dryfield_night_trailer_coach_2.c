@@ -258,7 +258,7 @@ WorldCoordRoomLighting D_dryfield_night_trailer_coach_80189500[1] = {
     { D_dryfield_night_trailer_coach_8018BB8C, D_dryfield_night_trailer_coach_8018BCD4 },
 };
 
-GpRoomObjRec D_dryfield_night_trailer_coach_80189508[1] = {
+WorldCollisionRoomResources D_dryfield_night_trailer_coach_80189508[1] = {
     { D_dryfield_night_trailer_coach_80189A20, D_dryfield_night_trailer_coach_8018BBA4, D_dryfield_night_trailer_coach_8018BD1C, NULL },
 };
 

@@ -90,7 +90,7 @@ u16 D_shelter_b2_pod_bottom_80181CA8[18][3] = {
     { 0, 2, 0 },
 };
 
-GpRoomObjRec D_shelter_b2_pod_bottom_80181D14[1] = {
+WorldCollisionRoomResources D_shelter_b2_pod_bottom_80181D14[1] = {
     { D_shelter_b2_pod_bottom_80182B5C, D_shelter_b2_pod_bottom_80186FA8, D_shelter_b2_pod_bottom_80188670, NULL },
 };
 

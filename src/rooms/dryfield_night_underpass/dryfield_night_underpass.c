@@ -91,7 +91,7 @@ s16 D_dryfield_night_underpass_8017DD60[8] = {
     160,
 };
 
-GpRoomObjRec D_dryfield_night_underpass_8017DD70[6] = {
+WorldCollisionRoomResources D_dryfield_night_underpass_8017DD70[6] = {
     { D_dryfield_night_underpass_8017E6D4, D_dryfield_night_underpass_8017F558, D_dryfield_night_underpass_8017FA18, D_dryfield_night_underpass_8017FBE0 },
     { D_dryfield_night_underpass_8017E6D4, D_dryfield_night_underpass_8017F558, D_dryfield_night_underpass_8017FA18, D_dryfield_night_underpass_8017FBE0 },
     { D_dryfield_night_underpass_8017E6D4, D_dryfield_night_underpass_8017F558, D_dryfield_night_underpass_8017FA18, D_dryfield_night_underpass_8017FBE0 },

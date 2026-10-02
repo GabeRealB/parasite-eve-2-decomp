@@ -140,7 +140,7 @@ s16 D_dryfield_saloon_g_r_8017ED84[14] = {
     1,
 };
 
-GpRoomObjRec D_dryfield_saloon_g_r_8017EDA0[2] = {
+WorldCollisionRoomResources D_dryfield_saloon_g_r_8017EDA0[2] = {
     { D_dryfield_saloon_g_r_8017F780, D_dryfield_saloon_g_r_80180EC8, D_dryfield_saloon_g_r_80181388, D_dryfield_saloon_g_r_801817B0 },
     { D_dryfield_saloon_g_r_8017F780, D_dryfield_saloon_g_r_80180EC8, D_dryfield_saloon_g_r_80181388, D_dryfield_saloon_g_r_801817B0 },
 };

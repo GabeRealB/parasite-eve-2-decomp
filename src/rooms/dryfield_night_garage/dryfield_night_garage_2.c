@@ -239,7 +239,7 @@ WorldCoordRoomLighting D_dryfield_night_garage_801833F4[2] = {
     { D_dryfield_night_garage_80186D64, D_dryfield_night_garage_8018751C },
 };
 
-GpRoomObjRec D_dryfield_night_garage_80183404[2] = {
+WorldCollisionRoomResources D_dryfield_night_garage_80183404[2] = {
     { &D_dryfield_night_garage_80183DD4, D_dryfield_night_garage_8018630C, D_dryfield_night_garage_80186D7C, NULL },
     { D_dryfield_night_garage_801843D4, D_dryfield_night_garage_80186734, D_dryfield_night_garage_8018723C, NULL },
 };

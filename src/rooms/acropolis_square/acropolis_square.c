@@ -346,7 +346,7 @@ s16 D_acropolis_square_80183B68[24] = {
 
 s32 D_acropolis_square_80183B98 = 0;
 
-GpRoomObjRec D_acropolis_square_80183B9C[1] = {
+WorldCollisionRoomResources D_acropolis_square_80183B9C[1] = {
     { D_acropolis_square_8018519C, D_acropolis_square_801851C0, D_acropolis_square_80185680, NULL },
 };
 

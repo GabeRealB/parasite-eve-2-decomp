@@ -1181,7 +1181,7 @@ WorldCoordRoomLighting D_dryfield_night_gas_station_80189DB0[4] = {
     { D_dryfield_night_gas_station_8018FD78, D_dryfield_night_gas_station_80190684 },
 };
 
-GpRoomObjRec D_dryfield_night_gas_station_80189DD0[4] = {
+WorldCollisionRoomResources D_dryfield_night_gas_station_80189DD0[4] = {
     { &D_dryfield_night_gas_station_8018ABBC, D_dryfield_night_gas_station_8018FD90, D_dryfield_night_gas_station_801900D4, NULL },
     { &D_dryfield_night_gas_station_8018ABBC, D_dryfield_night_gas_station_8018FD90, D_dryfield_night_gas_station_801900D4, NULL },
     { &D_dryfield_night_gas_station_8018ABBC, D_dryfield_night_gas_station_8018FD90, D_dryfield_night_gas_station_801900D4, NULL },

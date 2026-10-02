@@ -84,7 +84,7 @@ WorldCoordRoomLighting D_neo_ark_south_promenade_8017F6EC[1] = {
     { D_neo_ark_south_promenade_801804D0, NULL },
 };
 
-GpRoomObjRec D_neo_ark_south_promenade_8017F6F4[1] = {
+WorldCollisionRoomResources D_neo_ark_south_promenade_8017F6F4[1] = {
     { D_neo_ark_south_promenade_8017FD8C, D_neo_ark_south_promenade_801804E8, D_neo_ark_south_promenade_801806B0, D_neo_ark_south_promenade_8018094C },
 };
 

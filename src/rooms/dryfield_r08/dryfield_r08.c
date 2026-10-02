@@ -147,7 +147,7 @@ SVECTOR D_dryfield_r08_8017F4C4[67] = {
     { 0x2D50, -2720, -1640, 0 },
 };
 
-GpRoomObjRec D_dryfield_r08_8017F6DC[2] = {
+WorldCollisionRoomResources D_dryfield_r08_8017F6DC[2] = {
     { D_dryfield_r08_8017FB98, NULL, NULL, NULL },
     { D_dryfield_r08_8017FB98, NULL, NULL, NULL },
 };

@@ -14,7 +14,7 @@
 extern GpAreaVariant D_dryfield_motel_room_1_801814DC[13];
 
 // dryfield_motel_room_1
-extern GpRoomObjRec D_dryfield_motel_room_1_8017E484[];
+extern WorldCollisionRoomResources D_dryfield_motel_room_1_8017E484[];
 
 extern u8* D_dryfield_motel_room_1_8017E4B0[];
 

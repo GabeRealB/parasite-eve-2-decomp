@@ -133,7 +133,7 @@ WorldCoordRoomLighting D_shelter_b1_south_maintenance_walkway_801823F4[1] = {
     { D_shelter_b1_south_maintenance_walkway_80183094, NULL },
 };
 
-GpRoomObjRec D_shelter_b1_south_maintenance_walkway_801823FC[1] = {
+WorldCollisionRoomResources D_shelter_b1_south_maintenance_walkway_801823FC[1] = {
     { D_shelter_b1_south_maintenance_walkway_801827B8, D_shelter_b1_south_maintenance_walkway_801830AC, D_shelter_b1_south_maintenance_walkway_801832B0, D_shelter_b1_south_maintenance_walkway_80183274 },
 };
 

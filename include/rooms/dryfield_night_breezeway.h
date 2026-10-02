@@ -16,7 +16,7 @@ extern GpAreaVariant D_dryfield_night_breezeway_801803E4[22];
 // dryfield_night_breezeway
 extern WorldCoordRoomLighting D_dryfield_night_breezeway_8017E6E4[];
 
-extern GpRoomObjRec D_dryfield_night_breezeway_8017E6EC[];
+extern WorldCollisionRoomResources D_dryfield_night_breezeway_8017E6EC[];
 
 extern u8* D_dryfield_night_breezeway_8017E6FC[];
 

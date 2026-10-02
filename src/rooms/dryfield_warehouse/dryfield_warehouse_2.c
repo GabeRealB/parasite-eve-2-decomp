@@ -204,7 +204,7 @@ s16 D_dryfield_warehouse_8017FBAC[8] = {
     150,
 };
 
-GpRoomObjRec D_dryfield_warehouse_8017FBBC[3] = {
+WorldCollisionRoomResources D_dryfield_warehouse_8017FBBC[3] = {
     { D_dryfield_warehouse_801802A8, D_dryfield_warehouse_801816A4, D_dryfield_warehouse_801817D4, NULL },
     { D_dryfield_warehouse_801809AC, D_dryfield_warehouse_801816A4, D_dryfield_warehouse_80181BB0, NULL },
     { D_dryfield_warehouse_80181038, D_dryfield_warehouse_801816A4, D_dryfield_warehouse_801817D4, NULL },

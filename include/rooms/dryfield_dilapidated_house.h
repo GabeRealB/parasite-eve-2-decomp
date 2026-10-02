@@ -14,7 +14,7 @@
 extern GpAreaVariant D_dryfield_dilapidated_house_80189938[13];
 
 // dryfield_dilapidated_house
-extern GpRoomObjRec D_dryfield_dilapidated_house_80186954[];
+extern WorldCollisionRoomResources D_dryfield_dilapidated_house_80186954[];
 
 extern u8* D_dryfield_dilapidated_house_80186964[];
 

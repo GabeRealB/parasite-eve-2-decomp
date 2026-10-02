@@ -1019,7 +1019,7 @@ WorldCoordRoomLighting D_mine_forked_tunnel_80183634[1] = {
     { D_mine_forked_tunnel_80184F38, D_mine_forked_tunnel_80185564 },
 };
 
-GpRoomObjRec D_mine_forked_tunnel_8018363C[1] = {
+WorldCollisionRoomResources D_mine_forked_tunnel_8018363C[1] = {
     { &D_mine_forked_tunnel_80183D70, D_mine_forked_tunnel_80184F50, D_mine_forked_tunnel_80185118, NULL },
 };
 

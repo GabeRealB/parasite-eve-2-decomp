@@ -28,7 +28,7 @@ extern TaskDesc D_neo_ark_island_80181B30;
 extern GpAreaVariant D_neo_ark_island_80183F48[13];
 
 // neo_ark_island
-extern GpRoomObjRec D_neo_ark_island_80181B94[];
+extern WorldCollisionRoomResources D_neo_ark_island_80181B94[];
 
 extern WorldCoordRoomLighting D_neo_ark_island_80181BA4[];
 

@@ -247,7 +247,7 @@ s16 D_acropolis_fire_escape_80181D7C[24] = {
     0,
 };
 
-GpRoomObjRec D_acropolis_fire_escape_80181DAC[1] = {
+WorldCollisionRoomResources D_acropolis_fire_escape_80181DAC[1] = {
     { D_acropolis_fire_escape_801822A8, D_acropolis_fire_escape_801822CC, D_acropolis_fire_escape_8018252C, D_acropolis_fire_escape_801828BC },
 };
 

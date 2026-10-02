@@ -25,7 +25,7 @@ extern TmdSource gAcropolisHelicopterLandingPadModel0547C;
 extern TmdSource gAcropolisHelicopterLandingPadModel0A8E8;
 
 // acropolis_helicopter_landing_pad
-extern GpRoomObjRec D_acropolis_helicopter_landing_pad_80184F10[];
+extern WorldCollisionRoomResources D_acropolis_helicopter_landing_pad_80184F10[];
 
 extern u8* D_acropolis_helicopter_landing_pad_80184F3C[];
 

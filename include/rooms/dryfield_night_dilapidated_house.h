@@ -16,7 +16,7 @@ extern GpAreaVariant D_dryfield_night_dilapidated_house_80189FA4[22];
 // dryfield_night_dilapidated_house
 extern WorldCoordRoomLighting D_dryfield_night_dilapidated_house_8018738C[];
 
-extern GpRoomObjRec D_dryfield_night_dilapidated_house_80187394[];
+extern WorldCollisionRoomResources D_dryfield_night_dilapidated_house_80187394[];
 
 extern u8* D_dryfield_night_dilapidated_house_801873A4[];
 

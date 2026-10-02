@@ -928,7 +928,7 @@ SVECTOR D_dryfield_dilapidated_house_80186944[2] = {
     { -896, 96, 0, 0 },
 };
 
-GpRoomObjRec D_dryfield_dilapidated_house_80186954[1] = {
+WorldCollisionRoomResources D_dryfield_dilapidated_house_80186954[1] = {
     { D_dryfield_dilapidated_house_801872E4, D_dryfield_dilapidated_house_80188D08, D_dryfield_dilapidated_house_80188FB4, D_dryfield_dilapidated_house_80189260 },
 };
 

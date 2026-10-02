@@ -126,7 +126,7 @@ TaskDesc D_acropolis_fountain_8017E7FC[2] = {
     { { { TASK_BODY_NONE, 192 } }, func_acropolis_fountain_8017E72C, { .value = 0 } },
 };
 
-GpRoomObjRec D_acropolis_fountain_8017E814[2] = {
+WorldCollisionRoomResources D_acropolis_fountain_8017E814[2] = {
     { D_acropolis_fountain_8017F60C, D_acropolis_fountain_8017F630, D_acropolis_fountain_8017F9C0, NULL },
     { D_acropolis_fountain_8017F60C, D_acropolis_fountain_8017F630, D_acropolis_fountain_8017F9C0, NULL },
 };

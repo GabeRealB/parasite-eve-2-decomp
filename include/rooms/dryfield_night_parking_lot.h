@@ -18,7 +18,7 @@ extern GpAreaVariant D_dryfield_night_parking_lot_80181438[22];
 // dryfield_night_parking_lot
 extern WorldCoordRoomLighting D_dryfield_night_parking_lot_8017EE14[];
 
-extern GpRoomObjRec D_dryfield_night_parking_lot_8017EE24[];
+extern WorldCollisionRoomResources D_dryfield_night_parking_lot_8017EE24[];
 
 extern u8* D_dryfield_night_parking_lot_8017EE4C[];
 

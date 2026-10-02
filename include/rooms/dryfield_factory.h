@@ -13,7 +13,7 @@
 #include "main/task_types.h"
 
 // dryfield_factory
-extern GpRoomObjRec D_dryfield_factory_80186F10[];
+extern WorldCollisionRoomResources D_dryfield_factory_80186F10[];
 
 extern u8* D_dryfield_factory_80186F44[];
 

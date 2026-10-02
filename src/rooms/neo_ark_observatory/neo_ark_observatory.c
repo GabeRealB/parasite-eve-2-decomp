@@ -324,7 +324,7 @@ SVECTOR D_neo_ark_observatory_8018157C[3] = {
     { 4120, -70, 0x3D0E, 0 },
 };
 
-GpRoomObjRec D_neo_ark_observatory_80181594[2] = {
+WorldCollisionRoomResources D_neo_ark_observatory_80181594[2] = {
     { &gFollowCollisionGrid, D_neo_ark_observatory_80186ED4, D_neo_ark_observatory_8018742C, D_neo_ark_observatory_801878D4 },
     { &gFollowCollisionGrid, D_neo_ark_observatory_80186ED4, D_neo_ark_observatory_8018742C, D_neo_ark_observatory_801878D4 },
 };

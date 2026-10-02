@@ -28,7 +28,7 @@ extern TaskDesc D_neo_ark_pavilion_8018384C;
 extern GpAreaVariant D_neo_ark_pavilion_801876C4[13];
 
 // neo_ark_pavilion
-extern GpRoomObjRec D_neo_ark_pavilion_801838B4[];
+extern WorldCollisionRoomResources D_neo_ark_pavilion_801838B4[];
 
 extern WorldCoordRoomLighting D_neo_ark_pavilion_801838D4[];
 

@@ -82,7 +82,7 @@ WorldCoordRoomLighting D_dryfield_night_water_tower_8017E74C[1] = {
     { D_dryfield_night_water_tower_801823F8, NULL },
 };
 
-GpRoomObjRec D_dryfield_night_water_tower_8017E754[1] = {
+WorldCollisionRoomResources D_dryfield_night_water_tower_8017E754[1] = {
     { D_dryfield_night_water_tower_8017F3F4, D_dryfield_night_water_tower_80182410, D_dryfield_night_water_tower_80182838, NULL },
 };
 

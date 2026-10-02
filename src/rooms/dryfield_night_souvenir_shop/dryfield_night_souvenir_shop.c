@@ -87,7 +87,7 @@ WorldCoordRoomLighting D_dryfield_night_souvenir_shop_8017E0E4[1] = {
     { D_dryfield_night_souvenir_shop_8017F178, D_dryfield_night_souvenir_shop_8017F228 },
 };
 
-GpRoomObjRec D_dryfield_night_souvenir_shop_8017E0EC[1] = {
+WorldCollisionRoomResources D_dryfield_night_souvenir_shop_8017E0EC[1] = {
     { D_dryfield_night_souvenir_shop_8017E604, D_dryfield_night_souvenir_shop_8017F190, D_dryfield_night_souvenir_shop_8017F248, NULL },
 };
 

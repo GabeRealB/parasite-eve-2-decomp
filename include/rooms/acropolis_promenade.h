@@ -14,7 +14,7 @@
 extern GpAreaVariant D_acropolis_promenade_80183020[17];
 
 // acropolis_promenade
-extern GpRoomObjRec D_acropolis_promenade_80181B90[];
+extern WorldCollisionRoomResources D_acropolis_promenade_80181B90[];
 
 extern u8* D_acropolis_promenade_80181BC0[];
 

@@ -16,7 +16,7 @@ extern GpAreaVariant D_neo_ark_south_promenade_801808E4[13];
 // neo_ark_south_promenade
 extern WorldCoordRoomLighting D_neo_ark_south_promenade_8017F6EC[];
 
-extern GpRoomObjRec D_neo_ark_south_promenade_8017F6F4[];
+extern WorldCollisionRoomResources D_neo_ark_south_promenade_8017F6F4[];
 
 extern u8* D_neo_ark_south_promenade_8017F704[];
 

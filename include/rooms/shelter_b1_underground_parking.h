@@ -27,7 +27,7 @@ extern ShelterB1UndergroundParkingStorage71F0 D_shelter_b1_underground_parking_8
 // shelter_b1_underground_parking
 extern WorldCoordRoomLighting D_shelter_b1_underground_parking_801877B4[];
 
-extern GpRoomObjRec D_shelter_b1_underground_parking_801877F4[];
+extern WorldCollisionRoomResources D_shelter_b1_underground_parking_801877F4[];
 
 extern u8* D_shelter_b1_underground_parking_8018791C[];
 

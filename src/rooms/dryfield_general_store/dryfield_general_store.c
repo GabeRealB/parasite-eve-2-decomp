@@ -186,7 +186,7 @@ EvsCommand D_dryfield_general_store_8017E568[11] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-GpRoomObjRec D_dryfield_general_store_8017E670[1] = {
+WorldCollisionRoomResources D_dryfield_general_store_8017E670[1] = {
     { D_dryfield_general_store_8017F238, D_dryfield_general_store_801840EC, D_dryfield_general_store_8018493C, D_dryfield_general_store_80184F78 },
 };
 

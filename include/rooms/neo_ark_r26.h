@@ -14,7 +14,7 @@
 extern GpAreaVariant D_neo_ark_r26_8017E994[11];
 
 // neo_ark_r26
-extern GpRoomObjRec D_neo_ark_r26_8017E0CC[];
+extern WorldCollisionRoomResources D_neo_ark_r26_8017E0CC[];
 
 extern WorldCoordRoomLighting D_neo_ark_r26_8017E0DC[];
 

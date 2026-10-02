@@ -107,7 +107,7 @@ TaskDesc D_dryfield_garage_8017DCAC[2] = {
 
 ActorTransform D_dryfield_garage_8017DCC4 = { { 1680, 0, 6170, 0 }, { 0, 2048, 0, 0 } };
 
-GpRoomObjRec D_dryfield_garage_8017DCDC[1] = {
+WorldCollisionRoomResources D_dryfield_garage_8017DCDC[1] = {
     { D_dryfield_garage_8017E64C, D_dryfield_garage_8017F69C, D_dryfield_garage_8017FD1C, NULL },
 };
 

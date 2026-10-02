@@ -11,7 +11,7 @@
 #include "main/task_types.h"
 
 // neo_ark_substation
-extern GpRoomObjRec D_neo_ark_substation_8017E3F0[];
+extern WorldCollisionRoomResources D_neo_ark_substation_8017E3F0[];
 
 extern WorldCoordRoomLighting D_neo_ark_substation_8017E400[];
 

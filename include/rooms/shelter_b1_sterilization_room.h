@@ -19,7 +19,7 @@ extern GpAreaVariant D_shelter_b1_sterilization_room_8018C14C[11];
 // shelter_b1_sterilization_room
 extern WorldCoordRoomLighting D_shelter_b1_sterilization_room_80189354[];
 
-extern GpRoomObjRec D_shelter_b1_sterilization_room_8018936C[];
+extern WorldCollisionRoomResources D_shelter_b1_sterilization_room_8018936C[];
 
 extern u8* D_shelter_b1_sterilization_room_801893CC[];
 

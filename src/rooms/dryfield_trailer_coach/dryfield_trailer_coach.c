@@ -797,7 +797,7 @@ EvsCommand D_dryfield_trailer_coach_80187074[14] = {
 
 SVECTOR D_dryfield_trailer_coach_801871C4 = { 163, -1532, -766, 0 };
 
-GpRoomObjRec D_dryfield_trailer_coach_801871CC[1] = {
+WorldCollisionRoomResources D_dryfield_trailer_coach_801871CC[1] = {
     { D_dryfield_trailer_coach_801876B4, D_dryfield_trailer_coach_80189254, D_dryfield_trailer_coach_80189384, NULL },
 };
 

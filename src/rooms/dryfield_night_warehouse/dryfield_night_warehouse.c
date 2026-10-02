@@ -106,7 +106,7 @@ WorldCoordRoomLighting D_dryfield_night_warehouse_8017E8E8[3] = {
     { D_dryfield_night_warehouse_8017F6DC, D_dryfield_night_warehouse_8017F824 },
 };
 
-GpRoomObjRec D_dryfield_night_warehouse_8017E900[3] = {
+WorldCollisionRoomResources D_dryfield_night_warehouse_8017E900[3] = {
     { D_dryfield_night_warehouse_8017EF08, D_dryfield_night_warehouse_8017F6F4, D_dryfield_night_warehouse_8017F84C, NULL },
     { D_dryfield_night_warehouse_8017EF08, D_dryfield_night_warehouse_8017F6F4, D_dryfield_night_warehouse_8017F84C, NULL },
     { D_dryfield_night_warehouse_8017EF08, D_dryfield_night_warehouse_8017F6F4, D_dryfield_night_warehouse_8017F84C, NULL },

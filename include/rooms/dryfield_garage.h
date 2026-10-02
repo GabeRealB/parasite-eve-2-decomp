@@ -27,7 +27,7 @@ extern WorldCollisionGridFace gDryfieldGarageCollision0108CFaces[54];
 extern GpAreaVariant D_dryfield_garage_801800E0[13];
 
 // dryfield_garage
-extern GpRoomObjRec D_dryfield_garage_8017DCDC[];
+extern WorldCollisionRoomResources D_dryfield_garage_8017DCDC[];
 
 extern u8* D_dryfield_garage_8017DCEC[];
 

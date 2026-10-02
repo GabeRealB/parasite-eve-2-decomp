@@ -16,7 +16,7 @@ extern GpAreaVariant D_dryfield_night_motel_room_2_801809A0[22];
 // dryfield_night_motel_room_2
 extern WorldCoordRoomLighting D_dryfield_night_motel_room_2_8017DA5C[];
 
-extern GpRoomObjRec D_dryfield_night_motel_room_2_8017DA64[];
+extern WorldCollisionRoomResources D_dryfield_night_motel_room_2_8017DA64[];
 
 extern u8* D_dryfield_night_motel_room_2_8017DA74[];
 

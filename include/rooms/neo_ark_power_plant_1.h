@@ -14,7 +14,7 @@
 extern GpAreaVariant D_neo_ark_power_plant_1_80181AF8[13];
 
 // neo_ark_power_plant_1
-extern GpRoomObjRec D_neo_ark_power_plant_1_8017F1C8[];
+extern WorldCollisionRoomResources D_neo_ark_power_plant_1_8017F1C8[];
 
 extern WorldCoordRoomLighting D_neo_ark_power_plant_1_8017F1D8[];
 

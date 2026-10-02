@@ -166,7 +166,7 @@ SVECTOR D_shelter_1f_vehicular_airlock_8018206C[16] = {
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-GpRoomObjRec D_shelter_1f_vehicular_airlock_801820FC[1] = {
+WorldCollisionRoomResources D_shelter_1f_vehicular_airlock_801820FC[1] = {
     { D_shelter_1f_vehicular_airlock_80182438, D_shelter_1f_vehicular_airlock_80182714, D_shelter_1f_vehicular_airlock_801827AC, NULL },
 };
 

@@ -109,7 +109,7 @@ WorldCoordRoomLighting D_mine_tunnel_entrance_8017DB58[1] = {
     { D_mine_tunnel_entrance_8017ECD4, D_mine_tunnel_entrance_8017F38C },
 };
 
-GpRoomObjRec D_mine_tunnel_entrance_8017DB60[1] = {
+WorldCollisionRoomResources D_mine_tunnel_entrance_8017DB60[1] = {
     { D_mine_tunnel_entrance_8017E0C0, D_mine_tunnel_entrance_8017ECEC, D_mine_tunnel_entrance_8017EF4C, NULL },
 };
 

@@ -33,7 +33,7 @@ extern TmdSource gAcropolisCafeteriaModel0F7A4;
 extern TmdSource gAcropolisCafeteriaModel0FDFC;
 
 // acropolis_cafeteria
-extern GpRoomObjRec D_acropolis_cafeteria_8018753C[];
+extern WorldCollisionRoomResources D_acropolis_cafeteria_8018753C[];
 
 extern u8* D_acropolis_cafeteria_801875AC[];
 

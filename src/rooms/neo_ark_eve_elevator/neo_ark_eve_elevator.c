@@ -54,7 +54,7 @@ TaskMessageEntry D_neo_ark_eve_elevator_8017D724[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-GpRoomObjRec D_neo_ark_eve_elevator_8017D74C[1] = {
+WorldCollisionRoomResources D_neo_ark_eve_elevator_8017D74C[1] = {
     { D_neo_ark_eve_elevator_8017DA2C, NULL, D_neo_ark_eve_elevator_8017DBC8, NULL },
 };
 

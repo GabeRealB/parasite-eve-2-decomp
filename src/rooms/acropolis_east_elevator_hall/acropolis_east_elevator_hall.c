@@ -323,7 +323,7 @@ TaskMessageEntry D_acropolis_east_elevator_hall_801862F4[5] = {
 
 s32 D_acropolis_east_elevator_hall_8018631C = 0;
 
-GpRoomObjRec D_acropolis_east_elevator_hall_80186320[1] = {
+WorldCollisionRoomResources D_acropolis_east_elevator_hall_80186320[1] = {
     { D_acropolis_east_elevator_hall_80186838, D_acropolis_east_elevator_hall_8018685C, D_acropolis_east_elevator_hall_80186A24, NULL },
 };
 

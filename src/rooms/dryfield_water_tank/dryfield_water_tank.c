@@ -469,7 +469,7 @@ u16 D_dryfield_water_tank_801868CC[10] = {
     0,
 };
 
-GpRoomObjRec D_dryfield_water_tank_801868E0[1] = {
+WorldCollisionRoomResources D_dryfield_water_tank_801868E0[1] = {
     { D_dryfield_water_tank_80186EBC, D_dryfield_water_tank_80187FF8, D_dryfield_water_tank_80188920, NULL },
 };
 

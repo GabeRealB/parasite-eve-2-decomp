@@ -30389,10 +30389,10 @@ address so the first field uses the original pointer and the rest use the
 decremented one:
 
 ```c
-rec  = (Rec*)(idx * sizeof(Rec) + (s32)arr); /* index + base → addu v0,v0,v1 */
+rec  = (WorldCollisionRoomResources*)(idx * sizeof(WorldCollisionRoomResources) + (s32)arr); /* index + base → addu v0,v0,v1 */
 arr  = rec - 1;
-grid = rec[-1].field_0; /* lw -0x10(v0) */
-a    = arr->field_4;    /* lw 4(v1) */
+grid = rec[-1].grid;               /* lw -0x10(v0) */
+a    = arr->viewBoundaryTriggers;  /* lw 4(v1) */
 ```
 
 `arr + idx` / `&arr[idx]` emits `addu v0, v1, v0` (base + index). The

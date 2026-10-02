@@ -594,7 +594,7 @@ GpuImageUpload D_acropolis_west_elevator_hall_80185004[2] = {
     { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
-GpRoomObjRec D_acropolis_west_elevator_hall_80185024[1] = {
+WorldCollisionRoomResources D_acropolis_west_elevator_hall_80185024[1] = {
     { D_acropolis_west_elevator_hall_801852FC, D_acropolis_west_elevator_hall_80185320, D_acropolis_west_elevator_hall_80185450, NULL },
 };
 

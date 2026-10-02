@@ -81,7 +81,7 @@ SVECTOR D_dryfield_cellar_8017DBCC[2] = {
     { 8300, -2330, 200, 0 },
 };
 
-GpRoomObjRec D_dryfield_cellar_8017DBDC[2] = {
+WorldCollisionRoomResources D_dryfield_cellar_8017DBDC[2] = {
     { D_dryfield_cellar_8017DF54, D_dryfield_cellar_8017FEC4, D_dryfield_cellar_8018008C, D_dryfield_cellar_8018067C },
     { D_dryfield_cellar_8017DF54, D_dryfield_cellar_8017FEC4, D_dryfield_cellar_80180384, D_dryfield_cellar_8018067C },
 };

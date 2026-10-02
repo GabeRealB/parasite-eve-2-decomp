@@ -266,7 +266,7 @@ SVECTOR gFactoryGlowPos4A1 = { 5910, -1308, 5649, 0 };
 
 SVECTOR gFactoryGlowPos4A2 = { 5910, -1404, 5649, 0 };
 
-GpRoomObjRec D_dryfield_factory_80186F10[2] = {
+WorldCollisionRoomResources D_dryfield_factory_80186F10[2] = {
     { &gFactoryDayGrid, D_dryfield_factory_80189694, D_dryfield_factory_80189ABC, NULL },
     { &gFactoryDayGrid, D_dryfield_factory_80189694, D_dryfield_factory_80189ABC, NULL },
 };

@@ -14,7 +14,7 @@
 extern GpAreaVariant D_dryfield_parking_lot_8017FA74[13];
 
 // dryfield_parking_lot
-extern GpRoomObjRec D_dryfield_parking_lot_8017DC44[];
+extern WorldCollisionRoomResources D_dryfield_parking_lot_8017DC44[];
 
 extern u8* D_dryfield_parking_lot_8017DC54[];
 

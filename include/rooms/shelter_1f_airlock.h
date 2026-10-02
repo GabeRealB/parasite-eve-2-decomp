@@ -14,7 +14,7 @@
 extern GpAreaVariant D_shelter_1f_airlock_8017F758[12];
 
 // shelter_1f_airlock
-extern GpRoomObjRec D_shelter_1f_airlock_8017E59C[];
+extern WorldCollisionRoomResources D_shelter_1f_airlock_8017E59C[];
 
 extern WorldCoordRoomLighting D_shelter_1f_airlock_8017E5AC[];
 

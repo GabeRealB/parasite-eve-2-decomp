@@ -95,7 +95,7 @@ WorldCoordRoomLighting D_dryfield_night_breezeway_8017E6E4[1] = {
     { D_dryfield_night_breezeway_80180158, NULL },
 };
 
-GpRoomObjRec D_dryfield_night_breezeway_8017E6EC[1] = {
+WorldCollisionRoomResources D_dryfield_night_breezeway_8017E6EC[1] = {
     { D_dryfield_night_breezeway_8017EBC4, D_dryfield_night_breezeway_80180170, D_dryfield_night_breezeway_801802A0, NULL },
 };
 

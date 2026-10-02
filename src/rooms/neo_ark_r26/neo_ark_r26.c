@@ -208,7 +208,7 @@ TaskMessageEntry D_neo_ark_r26_8017E0A4[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-GpRoomObjRec D_neo_ark_r26_8017E0CC[1] = {
+WorldCollisionRoomResources D_neo_ark_r26_8017E0CC[1] = {
     { D_neo_ark_r26_8017E19C, NULL, NULL, NULL },
 };
 

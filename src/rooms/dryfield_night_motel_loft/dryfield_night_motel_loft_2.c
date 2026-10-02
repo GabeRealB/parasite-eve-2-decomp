@@ -182,9 +182,9 @@ WorldCoordRoomLighting D_dryfield_night_motel_loft_8017EDB0[2] = {
     { D_dryfield_night_motel_loft_8018004C, NULL },
 };
 
-GpRoomObjRec D_dryfield_night_motel_loft_8017EDC0[2] = {
-    { &D_dryfield_night_motel_loft_8017F120, D_dryfield_night_motel_loft_80180064, &D_dryfield_night_motel_loft_80180064[12], NULL },
-    { &D_dryfield_night_motel_loft_8017F120, D_dryfield_night_motel_loft_80180064, &D_dryfield_night_motel_loft_80180064[12], NULL },
+WorldCollisionRoomResources D_dryfield_night_motel_loft_8017EDC0[2] = {
+    { &D_dryfield_night_motel_loft_8017F120, D_dryfield_night_motel_loft_80180064, D_dryfield_night_motel_loft_801803F4, NULL },
+    { &D_dryfield_night_motel_loft_8017F120, D_dryfield_night_motel_loft_80180064, D_dryfield_night_motel_loft_801803F4, NULL },
 };
 
 u8 D_dryfield_night_motel_loft_8017EDE0[16] = {

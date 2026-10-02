@@ -85,7 +85,7 @@ SVECTOR D_neo_ark_garden_801813E0[4] = {
 
 #include "../../shared/room_visual_effects_disc_data.inc.c"
 
-GpRoomObjRec D_neo_ark_garden_8018140C[1] = {
+WorldCollisionRoomResources D_neo_ark_garden_8018140C[1] = {
     { D_neo_ark_garden_801816C4, D_neo_ark_garden_8018270C, D_neo_ark_garden_801828D4, NULL },
 };
 

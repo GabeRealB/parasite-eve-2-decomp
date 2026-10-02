@@ -98,7 +98,7 @@ WorldCoordRoomLighting D_dryfield_night_r08_8018067C[1] = {
     { D_dryfield_night_r08_8018189C, NULL },
 };
 
-GpRoomObjRec D_dryfield_night_r08_80180684[1] = {
+WorldCollisionRoomResources D_dryfield_night_r08_80180684[1] = {
     { D_dryfield_night_r08_80181474, NULL, NULL, NULL },
 };
 

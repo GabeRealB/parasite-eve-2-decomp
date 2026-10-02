@@ -607,7 +607,7 @@ WorldCoordRoomLighting D_shelter_b1_underground_parking_801877B4[8] = {
     { D_shelter_b1_underground_parking_8018B07C, D_shelter_b1_underground_parking_8018D638 },
 };
 
-GpRoomObjRec D_shelter_b1_underground_parking_801877F4[8] = {
+WorldCollisionRoomResources D_shelter_b1_underground_parking_801877F4[8] = {
     { D_shelter_b1_underground_parking_80187E50, D_shelter_b1_underground_parking_8018B094, D_shelter_b1_underground_parking_8018B674, NULL },
     { D_shelter_b1_underground_parking_801884D4, D_shelter_b1_underground_parking_8018B094, D_shelter_b1_underground_parking_8018BA04, NULL },
     { D_shelter_b1_underground_parking_80188BC4, D_shelter_b1_underground_parking_8018B094, D_shelter_b1_underground_parking_8018BD94, NULL },

@@ -193,7 +193,7 @@ SVECTOR D_neo_ark_shrine_80182704[2] = {
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-GpRoomObjRec D_neo_ark_shrine_80182724[6] = {
+WorldCollisionRoomResources D_neo_ark_shrine_80182724[6] = {
     { D_neo_ark_shrine_80182D2C, D_neo_ark_shrine_80185A80, D_neo_ark_shrine_80185EA8, D_neo_ark_shrine_80186730 },
     { D_neo_ark_shrine_801831D8, D_neo_ark_shrine_80185A80, D_neo_ark_shrine_80186154, D_neo_ark_shrine_80186730 },
     { D_neo_ark_shrine_80183698, D_neo_ark_shrine_80185A80, D_neo_ark_shrine_801863B4, D_neo_ark_shrine_80186730 },

@@ -138,7 +138,7 @@ static inline RoomHaloShade* RoomFx_GetHaloShades(void)
 #undef ROOM_FX_HALO_STORAGE_TYPE
 #undef ROOM_FX_HALO_STORAGE_BOUND
 
-GpRoomObjRec D_shelter_b1_storeroom_80184B50[1] = {
+WorldCollisionRoomResources D_shelter_b1_storeroom_80184B50[1] = {
     { D_shelter_b1_storeroom_801850D8, D_shelter_b1_storeroom_801862E0, D_shelter_b1_storeroom_80186670, D_shelter_b1_storeroom_80186D94 },
 };
 

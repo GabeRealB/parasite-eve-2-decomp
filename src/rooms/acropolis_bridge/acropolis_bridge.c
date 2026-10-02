@@ -758,7 +758,7 @@ SVECTOR D_acropolis_bridge_80189A44 = { -4700, -1000, -620, 0 };
 
 SVECTOR D_acropolis_bridge_80189A4C = { -4700, -1000, -520, 0 };
 
-GpRoomObjRec D_acropolis_bridge_80189A54[2] = {
+WorldCollisionRoomResources D_acropolis_bridge_80189A54[2] = {
     { D_acropolis_bridge_8018A89C, D_acropolis_bridge_8018B6B8, D_acropolis_bridge_8018B7E8, NULL },
     { D_acropolis_bridge_8018B694, D_acropolis_bridge_8018B6B8, D_acropolis_bridge_8018B9FC, NULL },
 };

@@ -74,7 +74,7 @@ TaskDesc D_shelter_1f_guardroom_8017DA60 = { { { TASK_BODY_NONE, 32 } }, func_sh
 
 TaskDesc D_shelter_1f_guardroom_8017DA6C = { { { TASK_BODY_NONE, 192 } }, func_shelter_1f_guardroom_8017D8D8, { .value = 0 } };
 
-GpRoomObjRec D_shelter_1f_guardroom_8017DA78[1] = {
+WorldCollisionRoomResources D_shelter_1f_guardroom_8017DA78[1] = {
     { D_shelter_1f_guardroom_8017DBF0, D_shelter_1f_guardroom_8017DE3C, D_shelter_1f_guardroom_8017DED4, NULL },
 };
 

@@ -19,7 +19,7 @@ extern TmdSource gMineForkedTunnelModel01B48;
 // mine_forked_tunnel
 extern WorldCoordRoomLighting D_mine_forked_tunnel_80183634[];
 
-extern GpRoomObjRec D_mine_forked_tunnel_8018363C[];
+extern WorldCollisionRoomResources D_mine_forked_tunnel_8018363C[];
 
 extern u8* D_mine_forked_tunnel_8018364C[];
 

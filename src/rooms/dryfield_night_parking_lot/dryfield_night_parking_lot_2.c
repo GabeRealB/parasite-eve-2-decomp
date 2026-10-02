@@ -163,7 +163,7 @@ WorldCoordRoomLighting D_dryfield_night_parking_lot_8017EE14[2] = {
     { D_dryfield_night_parking_lot_80180C90, NULL },
 };
 
-GpRoomObjRec D_dryfield_night_parking_lot_8017EE24[2] = {
+WorldCollisionRoomResources D_dryfield_night_parking_lot_8017EE24[2] = {
     { D_dryfield_night_parking_lot_8017FAD0, D_dryfield_night_parking_lot_80180CA8, D_dryfield_night_parking_lot_80180FA0, D_dryfield_night_parking_lot_80181330 },
     { D_dryfield_night_parking_lot_8017FAD0, D_dryfield_night_parking_lot_80180CA8, D_dryfield_night_parking_lot_80180FA0, D_dryfield_night_parking_lot_80181330 },
 };

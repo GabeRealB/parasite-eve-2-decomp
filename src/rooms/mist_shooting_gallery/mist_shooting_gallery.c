@@ -874,7 +874,7 @@ TaskDesc D_mist_shooting_gallery_80185384[3] = {
     { { { TASK_BODY_NONE, 192 } }, func_mist_shooting_gallery_80180B64, { .value = 0 } },
 };
 
-GpRoomObjRec D_mist_shooting_gallery_801853A8[1] = {
+WorldCollisionRoomResources D_mist_shooting_gallery_801853A8[1] = {
     { &D_mist_shooting_gallery_80189968, D_mist_shooting_gallery_8018BDE8, D_mist_shooting_gallery_8018C638, NULL },
 };
 

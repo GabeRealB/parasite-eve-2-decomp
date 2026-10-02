@@ -1007,7 +1007,7 @@ TaskDesc D_shelter_b3_dumping_hole_8018B57C[1] = {
 
 #include "../../shared/cap_captions_schedule.inc.c"
 
-GpRoomObjRec D_shelter_b3_dumping_hole_8018B678[2] = {
+WorldCollisionRoomResources D_shelter_b3_dumping_hole_8018B678[2] = {
     { D_shelter_b3_dumping_hole_8018C3EC, NULL, D_shelter_b3_dumping_hole_8018ECA4, NULL },
     { D_shelter_b3_dumping_hole_8018C3EC, D_shelter_b3_dumping_hole_8018E88C, D_shelter_b3_dumping_hole_8018EF9C, NULL },
 };

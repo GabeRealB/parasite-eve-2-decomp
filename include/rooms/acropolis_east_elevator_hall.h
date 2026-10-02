@@ -14,7 +14,7 @@
 extern GpAreaVariant D_acropolis_east_elevator_hall_80186C50[3];
 
 // acropolis_east_elevator_hall
-extern GpRoomObjRec D_acropolis_east_elevator_hall_80186320[];
+extern WorldCollisionRoomResources D_acropolis_east_elevator_hall_80186320[];
 
 extern u8* D_acropolis_east_elevator_hall_80186330[];
 

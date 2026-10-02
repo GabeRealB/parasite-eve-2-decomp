@@ -98,7 +98,7 @@ SVECTOR D_shelter_1f_airlock_8017E4BC[28] = {
     { -3200, -1770, 4120, 0 },
 };
 
-GpRoomObjRec D_shelter_1f_airlock_8017E59C[1] = {
+WorldCollisionRoomResources D_shelter_1f_airlock_8017E59C[1] = {
     { D_shelter_1f_airlock_8017E838, D_shelter_1f_airlock_8017F430, D_shelter_1f_airlock_8017F5F8, D_shelter_1f_airlock_8017F7B8 },
 };
 

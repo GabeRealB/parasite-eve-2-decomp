@@ -244,7 +244,7 @@ SVECTOR D_neo_ark_power_plant_2_80180678 = { 6140, -6085, -8500, 0 };
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-GpRoomObjRec D_neo_ark_power_plant_2_80180690[1] = {
+WorldCollisionRoomResources D_neo_ark_power_plant_2_80180690[1] = {
     { D_neo_ark_power_plant_2_80180DC4, D_neo_ark_power_plant_2_801828C0, D_neo_ark_power_plant_2_80182B20, D_neo_ark_power_plant_2_80182E78 },
 };
 

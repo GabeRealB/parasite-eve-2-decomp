@@ -666,7 +666,7 @@ TmdSource gAcropolisCafeteriaModel09A20 = {
     _gAcropolisCafeteriaModel09A20Stream,
 };
 
-GpRoomObjRec D_acropolis_cafeteria_8018753C[4] = {
+WorldCollisionRoomResources D_acropolis_cafeteria_8018753C[4] = {
     { D_acropolis_cafeteria_801887A8, D_acropolis_cafeteria_801887CC, D_acropolis_cafeteria_801891E4, D_acropolis_cafeteria_80189C94 },
     { D_acropolis_cafeteria_801887A8, D_acropolis_cafeteria_801887CC, D_acropolis_cafeteria_801896A4, D_acropolis_cafeteria_80189C94 },
     { D_acropolis_cafeteria_801887A8, D_acropolis_cafeteria_801887CC, D_acropolis_cafeteria_801896A4, D_acropolis_cafeteria_80189C94 },

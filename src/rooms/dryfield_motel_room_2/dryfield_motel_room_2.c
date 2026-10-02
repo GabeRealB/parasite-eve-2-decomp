@@ -50,7 +50,7 @@ u8* D_dryfield_motel_room_2_8017D6E4[1] = {
     gViewIdentityMap,
 };
 
-GpRoomObjRec D_dryfield_motel_room_2_8017D6E8[1] = {
+WorldCollisionRoomResources D_dryfield_motel_room_2_8017D6E8[1] = {
     { D_dryfield_motel_room_2_8017DE0C, D_dryfield_motel_room_2_8017FD18, D_dryfield_motel_room_2_8017FF78, D_dryfield_motel_room_2_80180140 },
 };
 

@@ -144,7 +144,7 @@ SVECTOR D_neo_ark_substation_8017E380[14] = {
     { 8560, -2090, -7835, 0 },
 };
 
-GpRoomObjRec D_neo_ark_substation_8017E3F0[1] = {
+WorldCollisionRoomResources D_neo_ark_substation_8017E3F0[1] = {
     { D_neo_ark_substation_8017E8A4, D_neo_ark_substation_8017FC5C, D_neo_ark_substation_8017FFEC, NULL },
 };
 

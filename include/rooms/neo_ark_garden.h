@@ -16,7 +16,7 @@ extern TaskDesc D_neo_ark_garden_80181398;
 extern GpAreaVariant D_neo_ark_garden_80182B54[13];
 
 // neo_ark_garden
-extern GpRoomObjRec D_neo_ark_garden_8018140C[];
+extern WorldCollisionRoomResources D_neo_ark_garden_8018140C[];
 
 extern WorldCoordRoomLighting D_neo_ark_garden_8018141C[];
 

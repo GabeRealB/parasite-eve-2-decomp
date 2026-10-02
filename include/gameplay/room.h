@@ -152,22 +152,33 @@ typedef struct {
 } WorldCollisionSurfaceProperties;
 STATIC_ASSERT_SIZEOF(WorldCollisionSurfaceProperties, 8);
 
-/// 0x10-byte per-room record in tables pointed to by `Gp_RoomObjTables`.
-/// Indexed 1-based by `GameSession.location.loc.room` / `GameLocationKey.room`.
-/// `Gp_LinkRoomObjects` / `Gp_LinkRoomObjectsSpawn` bind the grid's `viewCoord` to `&gGfxViewCoord` and
-/// link the `field_4` / `field_8` (`WorldCollisionTrigger`) and `field_C` (`WorldCollisionOccluder`) arrays.
-typedef struct _GpRoomObjRec {
-    /* 0x0 */ struct WorldCollisionGrid*     field_0;
-    /* 0x4 */ struct WorldCollisionTrigger*  field_4;
-    /* 0x8 */ struct WorldCollisionTrigger*  field_8;
-    /* 0xC */ struct WorldCollisionOccluder* field_C;
-} GpRoomObjRec;
-STATIC_ASSERT_SIZEOF(GpRoomObjRec, 0x10);
+/// A room's collision grid, view boundaries, action triggers and sight occluders.
+///
+/// Stage and area tables select a room array using valid 1-based
+/// `GameLocationKey` indices; each containing table determines its own extent.
+/// Descriptors reside in the stage-map or room overlay and borrow mutable
+/// resources from the loaded room overlay. Different rooms may share resources.
+/// Keep the grid and its pools alive while active, and the trigger and occluder
+/// storage alive until unlinked. Access resources only while that room overlay
+/// is loaded.
+///
+/// Each pointer may be NULL independently. Non-NULL trigger and occluder arrays
+/// include a final record with `WORLD_COLLISION_TRIGGER_LAST` or
+/// `WORLD_COLLISION_OCCLUDER_LAST` set. Setup links and enables that record before
+/// stopping, and binds the grid and trigger coordinates to the current view.
+/// These array markers are independent of the runtime lists' NULL next links.
+typedef struct {
+    struct WorldCollisionGrid*     grid;                 // Borrowed mutable collision mesh and cell index, or NULL.
+    struct WorldCollisionTrigger*  viewBoundaryTriggers; // Borrowed mutable source/destination view boundaries, or NULL.
+    struct WorldCollisionTrigger*  actionTriggers;       // Borrowed mutable interaction and transition triggers, or NULL.
+    struct WorldCollisionOccluder* occluders;            // Borrowed mutable line-of-sight blocking quads, or NULL.
+} WorldCollisionRoomResources;
+STATIC_ASSERT_SIZEOF(WorldCollisionRoomResources, 0x10);
 
-/// Per-stage wrapper. `field_0` is an array of `GpRoomObjRec*`, indexed
+/// Per-stage wrapper. `field_0` is an array of `WorldCollisionRoomResources*`, indexed
 /// 1-based by `GameSession.location.loc.area` / `GameLocationKey.area`.
 typedef struct _GpRoomObjTbl {
-    /* 0x0 */ GpRoomObjRec** field_0;
+    /* 0x0 */ WorldCollisionRoomResources** field_0;
 } GpRoomObjTbl;
 
 #endif // GAMEPLAY_ROOM_H

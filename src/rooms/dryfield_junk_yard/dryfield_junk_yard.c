@@ -295,7 +295,7 @@ TmdSource gDryfieldJunkYardModel01378 = {
     _gDryfieldJunkYardModel01378Stream,
 };
 
-GpRoomObjRec D_dryfield_junk_yard_8017ED04[1] = {
+WorldCollisionRoomResources D_dryfield_junk_yard_8017ED04[1] = {
     { D_dryfield_junk_yard_8017F4C8, D_dryfield_junk_yard_80180C7C, D_dryfield_junk_yard_80180F74, D_dryfield_junk_yard_80181518 },
 };
 

@@ -258,7 +258,7 @@ TaskDesc D_dryfield_gas_station_8018312C[2] = {
 
 SVECTOR D_dryfield_gas_station_80183144 = { 4378, -1383, -215, 0 };
 
-GpRoomObjRec D_dryfield_gas_station_8018314C[1] = {
+WorldCollisionRoomResources D_dryfield_gas_station_8018314C[1] = {
     { D_dryfield_gas_station_80183EA4, D_dryfield_gas_station_80184350, D_dryfield_gas_station_80184694, NULL },
 };
 

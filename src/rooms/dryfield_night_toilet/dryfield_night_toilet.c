@@ -80,7 +80,7 @@ WorldCoordRoomLighting D_dryfield_night_toilet_8017DAB0[1] = {
     { D_dryfield_night_toilet_8017EE84, NULL },
 };
 
-GpRoomObjRec D_dryfield_night_toilet_8017DAB8[1] = {
+WorldCollisionRoomResources D_dryfield_night_toilet_8017DAB8[1] = {
     { D_dryfield_night_toilet_8017DD88, D_dryfield_night_toilet_8017EE9C, D_dryfield_night_toilet_8017F064, D_dryfield_night_toilet_8017F2C4 },
 };
 

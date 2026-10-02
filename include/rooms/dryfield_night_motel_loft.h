@@ -19,7 +19,7 @@ extern TmdSource gDryfieldNightMotelLoftActor135400Model071AC;
 // dryfield_night_motel_loft
 extern WorldCoordRoomLighting D_dryfield_night_motel_loft_8017EDB0[];
 
-extern GpRoomObjRec D_dryfield_night_motel_loft_8017EDC0[];
+extern WorldCollisionRoomResources D_dryfield_night_motel_loft_8017EDC0[];
 
 extern u8* D_dryfield_night_motel_loft_8017EDF0[];
 

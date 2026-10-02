@@ -1477,7 +1477,7 @@ EffectUnitQuadCorner D_acropolis_security_room_801839C0[4] = {
     { 1, -1 },
 };
 
-GpRoomObjRec D_acropolis_security_room_801839D0[1] = {
+WorldCollisionRoomResources D_acropolis_security_room_801839D0[1] = {
     { D_acropolis_security_room_80183D94, D_acropolis_security_room_80183DB8, D_acropolis_security_room_80183EE8, NULL },
 };
 

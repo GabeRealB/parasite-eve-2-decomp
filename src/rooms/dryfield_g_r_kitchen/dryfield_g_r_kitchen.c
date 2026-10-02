@@ -110,7 +110,7 @@ SVECTOR D_dryfield_g_r_kitchen_8017EBE8[8] = {
     { 70, -2790, 370, 0 },
 };
 
-GpRoomObjRec D_dryfield_g_r_kitchen_8017EC28[1] = {
+WorldCollisionRoomResources D_dryfield_g_r_kitchen_8017EC28[1] = {
     { D_dryfield_g_r_kitchen_8017EEC0, D_dryfield_g_r_kitchen_8017F038, D_dryfield_g_r_kitchen_8017F0D0, NULL },
 };
 

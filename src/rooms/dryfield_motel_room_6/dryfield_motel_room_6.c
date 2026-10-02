@@ -227,7 +227,7 @@ SVECTOR gMotelRoom6GlowPos[1] = {
     { 550, -850, 5170, 0 },
 };
 
-GpRoomObjRec D_dryfield_motel_room_6_80182D98[1] = {
+WorldCollisionRoomResources D_dryfield_motel_room_6_80182D98[1] = {
     { D_dryfield_motel_room_6_8018381C, D_dryfield_motel_room_6_8018575C, D_dryfield_motel_room_6_80185A54, NULL },
 };
 

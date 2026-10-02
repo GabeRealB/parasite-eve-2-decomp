@@ -452,7 +452,7 @@ WorldCoordRoomLighting D_shelter_b4_reservoir_801850E8[2] = {
     { D_shelter_b4_reservoir_80186AA8, NULL },
 };
 
-GpRoomObjRec D_shelter_b4_reservoir_801850F8[2] = {
+WorldCollisionRoomResources D_shelter_b4_reservoir_801850F8[2] = {
     { D_shelter_b4_reservoir_80185AB8, D_shelter_b4_reservoir_80186AC0, D_shelter_b4_reservoir_80186D20, D_shelter_b4_reservoir_801873B0 },
     { D_shelter_b4_reservoir_80185AB8, D_shelter_b4_reservoir_80186AC0, D_shelter_b4_reservoir_80186F34, D_shelter_b4_reservoir_801873B0 },
 };

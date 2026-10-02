@@ -156,7 +156,7 @@ WorldCoordRoomLighting D_shelter_r48_80183014[1] = {
     { D_shelter_r48_8018B658, NULL },
 };
 
-GpRoomObjRec D_shelter_r48_8018301C[1] = {
+WorldCollisionRoomResources D_shelter_r48_8018301C[1] = {
     { D_shelter_r48_80183EEC, D_shelter_r48_8018B670, D_shelter_r48_8018BC78, NULL },
 };
 

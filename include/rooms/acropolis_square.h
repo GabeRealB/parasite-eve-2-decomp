@@ -18,7 +18,7 @@ extern GpAreaApplyRec D_acropolis_square_80188888[4];
 extern GpAreaVariant D_acropolis_square_80185E50[3];
 
 // acropolis_square
-extern GpRoomObjRec D_acropolis_square_80183B9C[];
+extern WorldCollisionRoomResources D_acropolis_square_80183B9C[];
 
 extern u8* D_acropolis_square_80183BAC[];
 

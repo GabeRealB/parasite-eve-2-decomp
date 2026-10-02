@@ -152,7 +152,7 @@ SVECTOR D_dryfield_night_motel_lobby_801828E0[5] = {
     { 1500, -2570, 4500, 0 },
 };
 
-GpRoomObjRec D_dryfield_night_motel_lobby_80182908[1] = {
+WorldCollisionRoomResources D_dryfield_night_motel_lobby_80182908[1] = {
     { D_dryfield_night_motel_lobby_80182DB4, D_dryfield_night_motel_lobby_80184034, D_dryfield_night_motel_lobby_80184164, NULL },
 };
 

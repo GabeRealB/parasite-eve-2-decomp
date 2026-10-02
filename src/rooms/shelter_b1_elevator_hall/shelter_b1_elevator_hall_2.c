@@ -135,7 +135,7 @@ WorldCoordRoomLighting D_shelter_b1_elevator_hall_80182DF8[1] = {
     { D_shelter_b1_elevator_hall_80184270, NULL },
 };
 
-GpRoomObjRec D_shelter_b1_elevator_hall_80182E00[1] = {
+WorldCollisionRoomResources D_shelter_b1_elevator_hall_80182E00[1] = {
     { D_shelter_b1_elevator_hall_80183414, D_shelter_b1_elevator_hall_80184288, D_shelter_b1_elevator_hall_80184580, D_shelter_b1_elevator_hall_80184748 },
 };
 

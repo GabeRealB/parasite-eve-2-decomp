@@ -21,7 +21,7 @@ extern GpAreaVariant D_shelter_r48_8018BC10[13];
 // shelter_r48
 extern WorldCoordRoomLighting D_shelter_r48_80183014[];
 
-extern GpRoomObjRec D_shelter_r48_8018301C[];
+extern WorldCollisionRoomResources D_shelter_r48_8018301C[];
 
 extern u8* D_shelter_r48_8018302C[];
 

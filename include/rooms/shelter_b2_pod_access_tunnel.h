@@ -14,7 +14,7 @@
 extern GpAreaVariant D_shelter_b2_pod_access_tunnel_801855AC[23];
 
 // shelter_b2_pod_access_tunnel
-extern GpRoomObjRec D_shelter_b2_pod_access_tunnel_80183DEC[];
+extern WorldCollisionRoomResources D_shelter_b2_pod_access_tunnel_80183DEC[];
 
 extern WorldCoordRoomLighting D_shelter_b2_pod_access_tunnel_80183E0C[];
 

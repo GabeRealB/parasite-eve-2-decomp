@@ -511,7 +511,7 @@ s32 D_acropolis_helicopter_landing_pad_80184EE0[12] = {
     0x20400,
 };
 
-GpRoomObjRec D_acropolis_helicopter_landing_pad_80184F10[1] = {
+WorldCollisionRoomResources D_acropolis_helicopter_landing_pad_80184F10[1] = {
     { D_acropolis_helicopter_landing_pad_80185998, D_acropolis_helicopter_landing_pad_801859BC, D_acropolis_helicopter_landing_pad_80185E7C, D_acropolis_helicopter_landing_pad_80186128 },
 };
 

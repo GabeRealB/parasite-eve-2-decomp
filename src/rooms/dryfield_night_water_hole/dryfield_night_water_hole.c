@@ -296,7 +296,7 @@ SVECTOR D_dryfield_night_water_hole_801809D4[4] = {
 
 SVECTOR D_dryfield_night_water_hole_801809F4[2] = { 0 };
 
-GpRoomObjRec D_dryfield_night_water_hole_80180A04[4] = {
+WorldCollisionRoomResources D_dryfield_night_water_hole_80180A04[4] = {
     { D_dryfield_night_water_hole_80180F50, D_dryfield_night_water_hole_801824BC, D_dryfield_night_water_hole_8018284C, D_dryfield_night_water_hole_80182D58 },
     { D_dryfield_night_water_hole_80180F50, D_dryfield_night_water_hole_801824BC, D_dryfield_night_water_hole_80182AF8, D_dryfield_night_water_hole_80182D58 },
     { D_dryfield_night_water_hole_80180F50, D_dryfield_night_water_hole_801824BC, D_dryfield_night_water_hole_8018284C, D_dryfield_night_water_hole_80182D58 },

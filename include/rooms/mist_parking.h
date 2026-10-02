@@ -16,7 +16,7 @@ extern TaskDesc D_mist_parking_8018668C;
 extern GpAreaVariant D_mist_parking_801951B4[13];
 
 // mist_parking
-extern GpRoomObjRec D_mist_parking_8019155C[];
+extern WorldCollisionRoomResources D_mist_parking_8019155C[];
 
 extern u8* D_mist_parking_801915B0[];
 

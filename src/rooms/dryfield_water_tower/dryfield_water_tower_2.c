@@ -387,6 +387,7 @@ extern WorldCoordRoomLights D_dryfield_water_tower_801874E4[1];
 
 extern WorldCollisionGrid    D_dryfield_water_tower_801835C4[1];
 extern WorldCollisionTrigger D_dryfield_water_tower_8018665C[14];
+extern WorldCollisionTrigger D_dryfield_water_tower_80186A84[24];
 void                         func_dryfield_water_tower_8017FD64(Task*);
 void                         func_dryfield_water_tower_80180114(void);
 void                         func_dryfield_water_tower_80180134(void);
@@ -765,8 +766,8 @@ u16 D_dryfield_water_tower_801827A0[22] = {
     3838,
 };
 
-GpRoomObjRec D_dryfield_water_tower_801827CC[1] = {
-    { D_dryfield_water_tower_801835C4, D_dryfield_water_tower_8018665C, &D_dryfield_water_tower_8018665C[14], NULL },
+WorldCollisionRoomResources D_dryfield_water_tower_801827CC[1] = {
+    { D_dryfield_water_tower_801835C4, D_dryfield_water_tower_8018665C, D_dryfield_water_tower_80186A84, NULL },
 };
 
 u8* D_dryfield_water_tower_801827DC[1] = {

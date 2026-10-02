@@ -159,7 +159,7 @@ TaskDesc D_neo_ark_altar_8017F088[1] = {
     { { { TASK_BODY_NONE, 32 } }, func_neo_ark_altar_8017ECE0, { .value = 0 } },
 };
 
-GpRoomObjRec D_neo_ark_altar_8017F094[3] = {
+WorldCollisionRoomResources D_neo_ark_altar_8017F094[3] = {
     { D_neo_ark_altar_8017F57C, NULL, D_neo_ark_altar_8017FF08, NULL },
     { D_neo_ark_altar_8017F57C, NULL, D_neo_ark_altar_8017FF08, NULL },
     { D_neo_ark_altar_8017F57C, NULL, D_neo_ark_altar_8017FF08, NULL },

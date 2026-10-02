@@ -545,7 +545,7 @@ u16 D_acropolis_forked_road_801821E8[14] = {
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-GpRoomObjRec D_acropolis_forked_road_80182214[3] = {
+WorldCollisionRoomResources D_acropolis_forked_road_80182214[3] = {
     { D_acropolis_forked_road_80182BF0, D_acropolis_forked_road_80182C14, D_acropolis_forked_road_80182DDC, NULL },
     { D_acropolis_forked_road_80182BF0, D_acropolis_forked_road_80182C14, D_acropolis_forked_road_80182DDC, NULL },
     { D_acropolis_forked_road_80182BF0, D_acropolis_forked_road_80182C14, D_acropolis_forked_road_80182DDC, NULL },

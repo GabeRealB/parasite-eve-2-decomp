@@ -601,7 +601,7 @@ u16 D_acropolis_promenade_80181B78[12] = {
     32,
 };
 
-GpRoomObjRec D_acropolis_promenade_80181B90[2] = {
+WorldCollisionRoomResources D_acropolis_promenade_80181B90[2] = {
     { D_acropolis_promenade_801823DC, D_acropolis_promenade_80182BF4, D_acropolis_promenade_80182DBC, NULL },
     { D_acropolis_promenade_80182BD0, D_acropolis_promenade_80182BF4, D_acropolis_promenade_80182DBC, NULL },
 };

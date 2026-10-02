@@ -59,7 +59,7 @@ WorldCoordRoomLighting D_mine_tunnel_8017E154[1] = {
     { D_mine_tunnel_8017FBC0, D_mine_tunnel_8018022C },
 };
 
-GpRoomObjRec D_mine_tunnel_8017E15C[1] = {
+WorldCollisionRoomResources D_mine_tunnel_8017E15C[1] = {
     { D_mine_tunnel_8017E86C, D_mine_tunnel_8017FBD8, D_mine_tunnel_8017FDA0, D_mine_tunnel_8018025C },
 };
 

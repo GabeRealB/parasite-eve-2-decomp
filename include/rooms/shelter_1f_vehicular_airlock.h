@@ -18,7 +18,7 @@ extern TmdSource gShelter1fVehicularAirlockModel03A58;
 extern GpAreaVariant D_shelter_1f_vehicular_airlock_80182A04[12];
 
 // shelter_1f_vehicular_airlock
-extern GpRoomObjRec D_shelter_1f_vehicular_airlock_801820FC[];
+extern WorldCollisionRoomResources D_shelter_1f_vehicular_airlock_801820FC[];
 
 extern WorldCoordRoomLighting D_shelter_1f_vehicular_airlock_8018210C[];
 

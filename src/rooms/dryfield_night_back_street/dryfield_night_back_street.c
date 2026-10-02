@@ -94,7 +94,7 @@ SVECTOR D_dryfield_night_back_street_8018034C[10] = {
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-GpRoomObjRec D_dryfield_night_back_street_801803AC[1] = {
+WorldCollisionRoomResources D_dryfield_night_back_street_801803AC[1] = {
     { D_dryfield_night_back_street_80180B34, D_dryfield_night_back_street_80180D70, D_dryfield_night_back_street_80180F38, NULL },
 };
 
