@@ -24,7 +24,7 @@
 static void CapCaption_RunSchedule(Task* task);
 
 static void CapCaption_DrawCurrent(void);
-static s32  CapCaption_Relocate(GpCapFileAddress base);
+static s32  CapCaption_Relocate(CapFileAddress base);
 static s32  CapCaption_SelectScript(s16 arg0, s16 arg1, s32 arg2);
 static s32  CapCaption_DrawText(const u16* arg0, s32 arg1, s32 arg2, s32 arg3);
 static s16  CapCaption_TextTopY(const u16* arg0);
@@ -94,7 +94,7 @@ static void CapCaption_DrawCurrent(void)
 /// Relocates a caption file in place, the counterpart of gameplay's
 /// `Gp_RelocCapFile`, and publishes its glyph and script tables. Returns 0
 /// when the "CAP" magic is missing.
-static s32 CapCaption_Relocate(GpCapFileAddress base)
+static s32 CapCaption_Relocate(CapFileAddress base)
 {
     s32                i;
     s32                count;

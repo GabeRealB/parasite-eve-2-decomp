@@ -205,13 +205,18 @@ typedef struct {
 } CapFile;
 STATIC_ASSERT_SIZEOF(CapFile, 0x14);
 
-/// CAP relocation runs in the PS1's 32-bit address space. Keep the base's
-/// numeric address explicit while adding it to serialized offset words.
+/// A loaded CAP file, as the file or as the unsigned address added to its offsets.
+///
+/// Callers pass the loaded file; a `void*` resource address is accepted as well.
+/// Relocation reads the header through `file` and adds `address` to each
+/// file-relative byte offset. The members are one PS1 pointer word. `file`
+/// stays first so the parameter uses that pointer's calling convention. The
+/// address is unsigned so adding a KSEG0 base to a small offset is defined.
 typedef union {
-    CapFile* file;
-    u32      address;
-} GpCapFileAddress __attribute__((transparent_union));
-STATIC_ASSERT_SIZEOF(GpCapFileAddress, 4);
+    CapFile* file;    // Loaded dialogue file relocated in place.
+    u32      address; // Same bits, added to file-relative byte offsets.
+} CapFileAddress __attribute__((transparent_union));
+STATIC_ASSERT_SIZEOF(CapFileAddress, 4);
 
 /// Resolve a record's byte displacement within a relocated CAP script.
 /// CAP references share their integer address and pointer representations;

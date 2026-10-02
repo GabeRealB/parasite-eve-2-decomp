@@ -104,7 +104,7 @@ extern s16 D_8011567A;
 
 extern TextGlyphCell* Gp_CapGlyphs;
 
-s32 Gp_RelocCapFile(GpCapFileAddress base);
+s32 Gp_RelocCapFile(CapFileAddress base);
 
 extern CapSequenceRecord* Gp_CapTable;
 

@@ -66,7 +66,7 @@ TextGlyphCell* Gp_CapGlyphs;
 
 u8 D_80115680;
 
-s32 Gp_RelocCapFile(GpCapFileAddress base)
+s32 Gp_RelocCapFile(CapFileAddress base)
 {
     s32                i;
     s32                count;
