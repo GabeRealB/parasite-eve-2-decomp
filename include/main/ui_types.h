@@ -177,19 +177,30 @@ typedef struct UiObject {
 STATIC_ASSERT_SIZEOF(UiObject, 0x30);
 STATIC_ASSERT(OFFSET_OF(UiObject, owner) == 0x28, ui_object_owner_offset);
 
-/// Template/descriptor consumed by Ui_SpawnFromDesc to spawn a UiObject + Task.
+/// Initial panel layout and owning-task seeds for a task-owned UI object.
+///
+/// `Ui_SpawnFromDesc` reads this recipe synchronously and retains no pointer to
+/// it. Spawned entries require a non-NULL `contentCallback` whose code remains
+/// live for the task's lifetime. Empty descriptor-table rows must not be spawned.
+///
+/// `bounds` supplies the unanimated outer rectangle in pixels relative to the
+/// screen center; `style` uses the complete `UiPanel.style` encoding. Spawning
+/// clears the low two bits of `otIndexSeed` and stores the remaining 16 bits as
+/// the panel's signed ordering-table base. Indices count tags, not bytes. The
+/// base and every drawing offset must fit the currently selected ordering table.
+///
+/// Task flags, priority and metadata seed a `TaskDesc`, separately from the
+/// caller's spawn payload. The task dispatches the panel's lifecycle before
+/// invoking its content handler with the owning task.
 typedef struct {
-    /* 0x00 */ s32 field_0; // → UiObject.panel.style
-    /* 0x04 */ u16 field_4; // → layout
-    /* 0x06 */ u16 field_6;
-    /* 0x08 */ u16 field_8;
-    /* 0x0A */ u16 field_A;
-    /* 0x0C */ u16 field_C;
-    /* 0x0E */ u16 field_E;
-    /* 0x10 */ u16 field_10;        // → TaskDesc seed
-    /* 0x12 */ u16 field_12;        // → TaskDesc seed
-    TaskFunc       contentCallback; // Required content handler for the spawned panel's owning task
-    /* 0x18 */ s32 field_18;        // → TaskDesc seed
+    s32      style;           // Initial packed panel style and flags
+    RECT     bounds;          // Initial outer rectangle: signed x/y and width/height in pixels
+    u16      otIndexSeed;     // Ordering-table tag seed; low two bits discarded
+    u16      field_E;         // Unread halfword; role unproven
+    u16      taskFlags;       // Complete flags: body kind (0 none, 1 TMD model, 2 coordinate body); bit 8 skips automatic model buffers
+    u16      taskPriority;    // Execution priority seed; low byte used, ascending order
+    TaskFunc contentCallback; // Required panel content handler; receives the owning task
+    s32      taskDataValue;   // Task descriptor metadata word; ignored for bodyless spawns
 } UiObjectDesc;
 STATIC_ASSERT_SIZEOF(UiObjectDesc, 0x1C);
 

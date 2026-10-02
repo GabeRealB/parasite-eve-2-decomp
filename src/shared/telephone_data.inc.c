@@ -679,11 +679,11 @@ static UiListRowCallback Telephone_Data_80181C68[1] = {
 
 static UiList Telephone_Data_80181C6C = { Telephone_Data_80181C68, 1, { .unsignedValue = 1 }, 0, 15, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
 
-static UiObjectDesc Telephone_Data_80181C90 = { 3, 0xFF70, 64, 288, 40, 56, 0, 0, 192, Telephone_PromptTask, 0 };
+static UiObjectDesc Telephone_Data_80181C90 = { 3, { -144, 64, 288, 40 }, 56, 0, TASK_BODY_NONE, 192, Telephone_PromptTask, 0 };
 
-static UiObjectDesc Telephone_Data_80181CAC = { 2, 0xFF70, 0xFF98, 288, 120, 40, 0, 0, 192, Telephone_PlayDataTask, 0 };
+static UiObjectDesc Telephone_Data_80181CAC = { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 288, 120 }, 40, 0, TASK_BODY_NONE, 192, Telephone_PlayDataTask, 0 };
 
-static UiObjectDesc Telephone_Data_80181CC8 = { 2, 0xFF70, 0xFF98, 288, 168, 40, 0, 0, 192, Telephone_UsageTask, 0 };
+static UiObjectDesc Telephone_Data_80181CC8 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 288, 168 }, 40, 0, TASK_BODY_NONE, 192, Telephone_UsageTask, 0 };
 
 static UiListRowCallback Telephone_Data_80181CE4[4] = {
     Telephone_SaveRow,

@@ -57,7 +57,7 @@ static s32 Gp_GetScanItemId(InventoryItemRange* arg0, s32 arg1);
 
 u8           Gp_StrMore[]        = "More ";
 u8           Gp_StrAttachAvail[] = "attachments available.";
-UiObjectDesc Gp_BoostPanelDesc   = { 2, 10, 20, 30, 40, 12, 0, 0, 192, Gp_TickBoostPanel, 0 };
+UiObjectDesc Gp_BoostPanelDesc   = { USER_INTERFACE_PANEL_TITLE_STYLE, { 10, 20, 30, 40 }, 12, 0, TASK_BODY_NONE, 192, Gp_TickBoostPanel, 0 };
 
 /* Count item `id` in saved rows 0..254 through a cleared range. */
 #define GP_TOTAL_QTY(scan, id) (memset(&(scan), 0, sizeof(scan)), (scan).rowCount = INVENTORY_ITEM_RANGE_MAX_ROWS, Gp_SumScanQty(&(scan), (id)))

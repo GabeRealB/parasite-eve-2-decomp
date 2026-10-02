@@ -278,14 +278,14 @@ void Gp_BuildItemCmdList(UiList* arg0, UiObject* arg1, s32 arg2, InventoryItemRo
 }
 
 UiObjectDesc D_8010F02C[3] = {
-    { 2, 0xFF70, 0xFF98, 144, 136, 56, 0, 0, 192, Gp_PickupTitleTask, 0 },
-    { 2, 0xFF70, 32, 288, 48, 44, 0, 0, 192, Gp_PickupAskTask, 0 },
-    { 2, 0xFF70, 32, 288, 48, 44, 0, 0, 192, Gp_PickupFullTask, 0 },
+    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 144, 136 }, 56, 0, TASK_BODY_NONE, 192, Gp_PickupTitleTask, 0 },
+    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, 32, 288, 48 }, 44, 0, TASK_BODY_NONE, 192, Gp_PickupAskTask, 0 },
+    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, 32, 288, 48 }, 44, 0, TASK_BODY_NONE, 192, Gp_PickupFullTask, 0 },
 };
 
-UiObjectDesc D_8010F080 = { 2, 0xFFB0, 0xFFD8, 160, 80, 8, 0, 0, 192, Gp_ObtainedNoticeTask, 0 };
+UiObjectDesc D_8010F080 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -80, -40, 160, 80 }, 8, 0, TASK_BODY_NONE, 192, Gp_ObtainedNoticeTask, 0 };
 
-UiObjectDesc D_8010F09C = { 0, 0xFF70, 0, 90, 70, 52, 0, 0, 192, func_800CCDC8, 0 };
+UiObjectDesc D_8010F09C = { 0, { -144, 0, 90, 70 }, 52, 0, TASK_BODY_NONE, 192, func_800CCDC8, 0 };
 
 GpMapName* Gp_MapNameTables[5] = {
     D_map_akropolis_8017A3BC,
@@ -347,11 +347,11 @@ u8 Gp_MapMarkCounts[5] = {
 
 u8 D_8010F13D = 1;
 
-UiObjectDesc D_8010F140 = { -0x80000000, 0xFF6F, 0xFF95, 290, 215, 56, 0, 0, 192, Gp_MapTask, 0 };
+UiObjectDesc D_8010F140 = { (s32)USER_INTERFACE_PANEL_NO_FRAME, { -145, -107, 290, 215 }, 56, 0, TASK_BODY_NONE, 192, Gp_MapTask, 0 };
 
-UiObjectDesc D_8010F15C = { 2, 0xFF74, 50, 280, 50, 20, 0, 0, 192, Gp_HelpPanelTask, 0 };
+UiObjectDesc D_8010F15C = { USER_INTERFACE_PANEL_TITLE_STYLE, { -140, 50, 280, 50 }, 20, 0, TASK_BODY_NONE, 192, Gp_HelpPanelTask, 0 };
 
-UiObjectDesc D_8010F178 = { 3, 0xFF74, 0xFF95, 170, 15, 24, 0, 0, 192, Gp_DrawMapName, 0 };
+UiObjectDesc D_8010F178 = { 3, { -140, -107, 170, 15 }, 24, 0, TASK_BODY_NONE, 192, Gp_DrawMapName, 0 };
 
 static u8 D_8010F194[] = { 142, 204, 130, 196, 130, 233, 0, 0 };
 
@@ -464,9 +464,9 @@ u8* D_8010F644[4] = {
     Gp_StrEarth,
 };
 
-UiObjectDesc D_8010F654[1] = { { 3, 0xFF78, 0xFFCE, 60, 80, 24, 0, 0, 192, Gp_PeMenuListTask, 0 } };
+UiObjectDesc D_8010F654[1] = { { 3, { -136, -50, 60, 80 }, 24, 0, TASK_BODY_NONE, 192, Gp_PeMenuListTask, 0 } };
 
-UiObjectDesc D_8010F670 = { 3, 0xFF78, 0xFFCE, 70, 80, 20, 0, 0, 192, Gp_PeCommandMenuTask, 0 };
+UiObjectDesc D_8010F670 = { 3, { -136, -50, 70, 80 }, 20, 0, TASK_BODY_NONE, 192, Gp_PeCommandMenuTask, 0 };
 
 // "EXP"
 // "MP"

@@ -944,15 +944,15 @@ static UiListRowCallback Shop_Data_80181B04[2] = {
 
 static UiList Shop_Data_80181B0C = { Shop_Data_80181B04, 2, { .unsignedValue = 2 }, 1, 10, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
 
-static UiObjectDesc Shop_Data_80181B30 = { 2, 0xFF70, 0xFF98, 128, 40, 56, 0, 0, 192, Shop_CategoryListTask, 0 };
+static UiObjectDesc Shop_Data_80181B30 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 128, 40 }, 56, 0, TASK_BODY_NONE, 192, Shop_CategoryListTask, 0 };
 
-static UiObjectDesc Shop_Data_80181B4C = { 2, 0xFF74, 0xFFA3, 188, 160, 48, 0, 0, 192, Shop_ItemListTask, 0 };
+static UiObjectDesc Shop_Data_80181B4C = { USER_INTERFACE_PANEL_TITLE_STYLE, { -140, -93, 188, 160 }, 48, 0, TASK_BODY_NONE, 192, Shop_ItemListTask, 0 };
 
-static UiObjectDesc Shop_Data_80181B68 = { 0, 48, 4, 96, 60, 52, 0, 0, 192, Shop_BalanceTask, 0 };
+static UiObjectDesc Shop_Data_80181B68 = { 0, { 48, 4, 96, 60 }, 52, 0, TASK_BODY_NONE, 192, Shop_BalanceTask, 0 };
 
-static UiObjectDesc Shop_Data_80181B84 = { 0, 48, 32, 70, 32, 20, 0, 0, 192, Shop_BuyPromptTask, 0 };
+static UiObjectDesc Shop_Data_80181B84 = { 0, { 48, 32, 70, 32 }, 20, 0, TASK_BODY_NONE, 192, Shop_BuyPromptTask, 0 };
 
-static UiObjectDesc Shop_Data_80181BA0 = { 2, 0xFFA0, 0xFFD0, 192, 96, 8, 0, 0, 192, Shop_NoticeTask, 0 };
+static UiObjectDesc Shop_Data_80181BA0 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -96, -48, 192, 96 }, 8, 0, TASK_BODY_NONE, 192, Shop_NoticeTask, 0 };
 
 /* Retained complete UI descriptor, including its embedded task seed. */
-static UiObjectDesc Shop_ItemListDescriptor = { 0, 0xFF80, 0xFFE0, 160, 92, 48, 0, 0, 192, Shop_ItemListTask, 0 };
+static UiObjectDesc Shop_ItemListDescriptor = { 0, { -128, -32, 160, 92 }, 48, 0, TASK_BODY_NONE, 192, Shop_ItemListTask, 0 };

@@ -383,7 +383,7 @@ These are real actors too; they just skip `gTaskDescBanks`.
 | `Stage_Ctx->field_0` | Per-stage desc table; `Display_SpawnFromMode` spawns index 0 |
 | `D_80725C54` | Overlay desc, from `Task_KillMaybeSpawn` |
 | `D_8010D1FC`, `D_8010FB4C`, `D_80115D9C`, `D_80119218`, `D_8011922C`, `D_80113340`, `D_80183824`, … | Gameplay / save-slot / enemy tables (`1BC.c` `func_800B25B0` switches on `gMcSaveData`) |
-| Stack `TaskDesc` | `Ui_SpawnFromDesc` seeds flags/priority/callback from a `UiObjectDesc` |
+| Stack `TaskDesc` | `Ui_SpawnFromDesc` copies `UiObjectDesc.taskFlags`, `taskPriority` and `taskDataValue`; task callback dispatches the panel, which keeps `contentCallback` |
 
 `Task_GetDesc(bank, type)` is the typed way to hand a bank entry to
 `Display_InitModeObj` without spawning onto the current list.

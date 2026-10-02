@@ -695,7 +695,7 @@ UiListRowCallback D_mist_shooting_gallery_80184F48[1] = {
 
 UiList D_mist_shooting_gallery_80184F4C = { D_mist_shooting_gallery_80184F48, 1, { .unsignedValue = 1 }, 0, 15, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
 
-UiObjectDesc D_mist_shooting_gallery_80184F70 = { 2, 0xFFF8, 0, 144, 64, 32, 0, 0, 192, func_mist_shooting_gallery_8017E090, 0 };
+UiObjectDesc D_mist_shooting_gallery_80184F70 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -8, 0, 144, 64 }, 32, 0, TASK_BODY_NONE, 192, func_mist_shooting_gallery_8017E090, 0 };
 
 TaskDesc D_mist_shooting_gallery_80184F8C = { { { TASK_BODY_NONE, 192 } }, Gp_MenuRootTask, { .value = 0 } };
 
@@ -715,9 +715,9 @@ MistShootingGalleryTarget D_mist_shooting_gallery_80184F98[13] = {
     { 600, D_mist_shooting_gallery_8017D5E0 },
 };
 
-UiObjectDesc D_mist_shooting_gallery_80185000 = { 2, 0xFF98, 0xFFD0, 208, 64, 32, 0, 0, 192, func_mist_shooting_gallery_8017E234, 0 };
+UiObjectDesc D_mist_shooting_gallery_80185000 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -104, -48, 208, 64 }, 32, 0, TASK_BODY_NONE, 192, func_mist_shooting_gallery_8017E234, 0 };
 
-UiObjectDesc D_mist_shooting_gallery_8018501C = { 2, 0xFFB8, 0xFFD0, 144, 56, 24, 0, 0, 192, func_mist_shooting_gallery_8017E854, 0 };
+UiObjectDesc D_mist_shooting_gallery_8018501C = { USER_INTERFACE_PANEL_TITLE_STYLE, { -72, -48, 144, 56 }, 24, 0, TASK_BODY_NONE, 192, func_mist_shooting_gallery_8017E854, 0 };
 
 UiListRowCallback D_mist_shooting_gallery_80185038[1] = {
     func_mist_shooting_gallery_8017F98C,
@@ -725,12 +725,12 @@ UiListRowCallback D_mist_shooting_gallery_80185038[1] = {
 
 UiList D_mist_shooting_gallery_8018503C = { D_mist_shooting_gallery_80185038, 4, { .unsignedValue = 4 }, 1, 15, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
 
-UiObjectDesc D_mist_shooting_gallery_80185060 = { 2, 0xFF70, 0xFFA0, 176, 64, 32, 0, 0, 192, func_mist_shooting_gallery_8017EAE0, 0 };
+UiObjectDesc D_mist_shooting_gallery_80185060 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -96, 176, 64 }, 32, 0, TASK_BODY_NONE, 192, func_mist_shooting_gallery_8017EAE0, 0 };
 
 UiObjectDesc D_mist_shooting_gallery_8018507C[3] = {
-    { 2, 32, 0xFFA0, 112, 128, 28, 0, 0, 192, func_mist_shooting_gallery_8017EC58, 0 },
-    { 3, 0xFF70, 32, 288, 48, 24, 0, 0, 192, func_mist_shooting_gallery_8017FAE8, 0 },
-    { 2, 0xFF70, 0xFFEA, 288, 73, 20, 0, 0, 192, func_mist_shooting_gallery_8017F128, 0 },
+    { USER_INTERFACE_PANEL_TITLE_STYLE, { 32, -96, 112, 128 }, 28, 0, TASK_BODY_NONE, 192, func_mist_shooting_gallery_8017EC58, 0 },
+    { 3, { -144, 32, 288, 48 }, 24, 0, TASK_BODY_NONE, 192, func_mist_shooting_gallery_8017FAE8, 0 },
+    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -22, 288, 73 }, 20, 0, TASK_BODY_NONE, 192, func_mist_shooting_gallery_8017F128, 0 },
 };
 
 TaskDesc D_mist_shooting_gallery_801850D0 = { { { TASK_BODY_NONE, 192 } }, func_mist_shooting_gallery_8017F6C8, { .value = 0 } };
@@ -864,7 +864,7 @@ UiListRowCallback D_mist_shooting_gallery_80185334[1] = {
 
 UiList D_mist_shooting_gallery_80185338 = { D_mist_shooting_gallery_80185334, 1, { .unsignedValue = 1 }, 0, 17, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
 
-UiObjectDesc gJukeboxPanelDesc = { 2, 0xFF90, 0xFFC0, 224, 128, 48, 0, 0, 192, func_mist_shooting_gallery_80180728, 0 };
+UiObjectDesc gJukeboxPanelDesc = { USER_INTERFACE_PANEL_TITLE_STYLE, { -112, -64, 224, 128 }, 48, 0, TASK_BODY_NONE, 192, func_mist_shooting_gallery_80180728, 0 };
 
 TaskDesc D_mist_shooting_gallery_80185378 = { { { TASK_BODY_NONE, 192 } }, jukeboxHostTask, { .value = 0 } };
 

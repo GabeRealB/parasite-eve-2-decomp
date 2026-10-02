@@ -101,14 +101,14 @@ static UiList D_options_801D5ED8 = { D_options_801D5ED4, 0x01, 0x01, 0x00, 0x0F 
 
 /// The options screen's own UI object, spawned by `Ui_SpawnFromDesc`.
 static UiObjectDesc D_options_801D5EFC = {
-    2,
-    0xFF74,
-    0xFFA0,
-    0x0118,
-    0x0090,
+    USER_INTERFACE_PANEL_TITLE_STYLE,
+    { -140,
+      -96,
+      0x0118,
+      0x0090 },
     0x0034,
     0x0000,
-    0x0000,
+    TASK_BODY_NONE,
     0x00C0,
     func_options_801D4D0C,
     0,

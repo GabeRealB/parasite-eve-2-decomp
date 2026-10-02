@@ -17919,9 +17919,9 @@ struct and whose `callback` is a function address, assign the trailing word
 TaskDesc desc;
 s32      descriptorData;
 
-desc.header.fields.flags    = src->field_10;
-desc.header.fields.priority = src->field_12;
-descriptorData      = src->field_18;       /* load first */
+desc.header.fields.flags    = src->taskFlags;
+desc.header.fields.priority = src->taskPriority;
+descriptorData      = src->taskDataValue;       /* load first */
 desc.callback = SomeFunc;
 desc.data.value = descriptorData;
 task = Task_SpawnFromTable(&desc, ...);
@@ -19280,7 +19280,7 @@ flags_a2 = (u32)temp > 0;
 
 Narrowing `TaskDesc::header.fields.priority` from `u16` to `u8` made `Task_SpawnFromDesc`
 emit `lbu`, but broke already-matched `Ui_SpawnFromDesc` (`desc.header.fields.priority =
-arg0->field_12` became `lbu`/`sb` instead of `lhu`/`sh`). Keep the wider type
+arg0->taskPriority` became `lbu`/`sb` instead of `lhu`/`sh`). Keep the wider type
 and force the byte load where needed:
 
 ```c

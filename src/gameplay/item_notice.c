@@ -32,7 +32,7 @@ typedef struct _GpPickupWork {
 } GpPickupWork;
 STATIC_ASSERT_SIZEOF(GpPickupWork, 6);
 
-UiObjectDesc D_8010D348 = { 2, -64, -32, 128, 64, 60, 0, 0, 192, func_800B92CC, 0 };
+UiObjectDesc D_8010D348 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -64, -32, 128, 64 }, 60, 0, TASK_BODY_NONE, 192, func_800B92CC, 0 };
 
 void func_800B65B0(Task* task)
 {

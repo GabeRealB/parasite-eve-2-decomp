@@ -192,19 +192,19 @@ static void Gp_CloseItemPane(UiObject* arg0, Task* arg1);
 UiList            Gp_ItemActionList = { Gp_ItemActionFns, 3, { 3 }, 1, 10, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 UiListRowCallback D_8010D6B0[1]     = { Gp_ItemMenuPrompt };
 UiList            Gp_ItemMenuList   = { D_8010D6B0, 3, { 3 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
-UiObjectDesc      D_8010D6D8        = { -0x80000000, 0xFF9C, 0xFFE2, 200, 60, 36, 0, 0, 192, Gp_ItemMoveTask, 0 };
+UiObjectDesc      D_8010D6D8        = { (s32)USER_INTERFACE_PANEL_NO_FRAME, { -100, -30, 200, 60 }, 36, 0, TASK_BODY_NONE, 192, Gp_ItemMoveTask, 0 };
 UiObjectDesc      D_8010D6F4[11]    = {
-    { 0x80002, 0xFF70, 0xFF98, 144, 160, 56, 0, 0, 192, Gp_ItemPaneTask, 0 },
-    { 0x80002, 0, 0xFF98, 144, 160, 52, 0, 0, 192, Gp_ItemPaneTask, 0 },
-    { 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, 0 },
-    { 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, 0 },
-    { 0, 0, 0, 70, 46, 16, 0, 0, 192, Gp_ItemActionListTask, 0 },
-    { 2, 0xFF9C, 0xFFE2, 200, 50, 8, 0, 0, 192, func_800BDF6C, 0 },
-    { 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, 0 },
-    { 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, 0 },
-    { 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, 0 },
-    { 0, 0xFFC6, 0xFFE2, 116, 60, 16, 0, 0, 192, Gp_ItemMenuListTask, 0 },
-    { 0, 0xFF70, 64, 288, 40, 60, 0, 0, 192, Gp_HolderPromptTask, 0 },
+    { 0x80000 | USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 144, 160 }, 56, 0, TASK_BODY_NONE, 192, Gp_ItemPaneTask, 0 },
+    { 0x80000 | USER_INTERFACE_PANEL_TITLE_STYLE, { 0, -104, 144, 160 }, 52, 0, TASK_BODY_NONE, 192, Gp_ItemPaneTask, 0 },
+    { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
+    { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
+    { 0, { 0, 0, 70, 46 }, 16, 0, TASK_BODY_NONE, 192, Gp_ItemActionListTask, 0 },
+    { USER_INTERFACE_PANEL_TITLE_STYLE, { -100, -30, 200, 50 }, 8, 0, TASK_BODY_NONE, 192, func_800BDF6C, 0 },
+    { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
+    { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
+    { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
+    { 0, { -58, -30, 116, 60 }, 16, 0, TASK_BODY_NONE, 192, Gp_ItemMenuListTask, 0 },
+    { 0, { -144, 64, 288, 40 }, 60, 0, TASK_BODY_NONE, 192, Gp_HolderPromptTask, 0 },
 };
 GpItemReplyEntry D_8010D828[2] = { { 2011, Gp_BindItemObj2 }, { TASK_MESSAGE_TABLE_END, NULL } };
 

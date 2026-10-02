@@ -59,7 +59,7 @@ static UiList            Mc_OkList           = { Mc_OkCallbacks, 1, 1, 0, 0x0F }
 static UiListRowCallback Mc_YesCallbacks[]   = { McMenu_ConfirmYes };
 static UiList            Mc_YesList          = { Mc_YesCallbacks, 1, 1, 0, 0x0F };
 UiObjectDesc             Mc_PromptDesc[]     = {
-    { 0, 0, 0, 0x4B, 0x20, 0x10, 0, 0, 0xC0, McMenu_InitByMode, 0 },
+    { 0, { 0, 0, 0x4B, 0x20 }, 0x10, 0, TASK_BODY_NONE, 0xC0, McMenu_InitByMode, 0 },
 };
 
 void McMenu_NoOpTask(Task* unused)

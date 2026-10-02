@@ -310,48 +310,48 @@ static void Ui_DrawTextUnderline(UiPanel* panel, s32 x, s32 y, char* arg3, s32 a
 /// Arguments are evaluated once, left to right. They must not refer to the
 /// macro's `_uiSpawn...` locals. The GNU statement expression keeps allocation
 /// inline while accepting a complete union value with GCC 2.8.1.
-#define USER_INTERFACE_SPAWN_OBJECT(descriptorValue, payloadValue, panelModeValue, animationTicksValue, parentValue)            \
-    ({                                                                                                                          \
-        UiObjectDesc* _uiSpawnDescriptor     = (descriptorValue);                                                               \
-        TaskSpawnArg  _uiSpawnPayload        = (payloadValue);                                                                  \
-        s32           _uiSpawnPanelMode      = (panelModeValue);                                                                \
-        s32           _uiSpawnAnimationTicks = (animationTicksValue);                                                           \
-        UiObject*     _uiSpawnParent         = (parentValue);                                                                   \
-        TaskDesc      _uiSpawnTaskDesc;                                                                                         \
-        Task*         _uiSpawnTask;                                                                                             \
-        UiObject*     _uiSpawnResult;                                                                                           \
-        s32           _uiSpawnDescriptorArg;                                                                                    \
-                                                                                                                                \
-        _uiSpawnResult                          = NULL;                                                                         \
-        _uiSpawnTaskDesc.header.fields.flags    = _uiSpawnDescriptor->field_10;                                                 \
-        _uiSpawnTaskDesc.header.fields.priority = _uiSpawnDescriptor->field_12;                                                 \
-        _uiSpawnDescriptorArg                   = _uiSpawnDescriptor->field_18;                                                 \
-        _uiSpawnTaskDesc.callback               = Ui_DispatchObjectState;                                                       \
-        _uiSpawnTaskDesc.data.value             = _uiSpawnDescriptorArg;                                                        \
-        _uiSpawnTask                            = Task_SpawnFromTable(&_uiSpawnTaskDesc, 0, _uiSpawnPayload, _uiSpawnResult);   \
-        if (_uiSpawnTask != NULL) {                                                                                             \
-            _uiSpawnResult = memCalloc(sizeof(*_uiSpawnResult), 0);                                                             \
-            if (_uiSpawnResult != NULL) {                                                                                       \
-                _uiSpawnTask->spawnArg2.pointer             = _uiSpawnResult;                                                   \
-                _uiSpawnTask->exitCallback                  = Ui_FreeAndKill;                                                   \
-                _uiSpawnResult->owner                       = _uiSpawnTask;                                                     \
-                _uiSpawnResult->panel.control.word          = _uiSpawnPanelMode;                                                \
-                _uiSpawnResult->panel.style                 = _uiSpawnDescriptor->field_0;                                      \
-                _uiSpawnResult->panel.bounds.unsignedRect.x = _uiSpawnDescriptor->field_4;                                      \
-                _uiSpawnResult->panel.bounds.unsignedRect.y = _uiSpawnDescriptor->field_6;                                      \
-                _uiSpawnResult->panel.bounds.unsignedRect.w = _uiSpawnDescriptor->field_8;                                      \
-                _uiSpawnResult->panel.bounds.unsignedRect.h = _uiSpawnDescriptor->field_A;                                      \
-                _uiSpawnResult->panel.otIndex.signedValue   = _uiSpawnDescriptor->field_C & USER_INTERFACE_PANEL_OT_GROUP_MASK; \
-                _uiSpawnResult->panel.contentCallback       = _uiSpawnDescriptor->contentCallback;                              \
-                _uiSpawnResult->panel.animationTicks        = _uiSpawnAnimationTicks;                                           \
-                if (_uiSpawnParent != NULL) {                                                                                   \
-                    taskReparent(_uiSpawnParent->owner, _uiSpawnTask);                                                          \
-                }                                                                                                               \
-            } else {                                                                                                            \
-                taskKill(_uiSpawnTask);                                                                                         \
-            }                                                                                                                   \
-        }                                                                                                                       \
-        _uiSpawnResult;                                                                                                         \
+#define USER_INTERFACE_SPAWN_OBJECT(descriptorValue, payloadValue, panelModeValue, animationTicksValue, parentValue)                \
+    ({                                                                                                                              \
+        UiObjectDesc* _uiSpawnDescriptor     = (descriptorValue);                                                                   \
+        TaskSpawnArg  _uiSpawnPayload        = (payloadValue);                                                                      \
+        s32           _uiSpawnPanelMode      = (panelModeValue);                                                                    \
+        s32           _uiSpawnAnimationTicks = (animationTicksValue);                                                               \
+        UiObject*     _uiSpawnParent         = (parentValue);                                                                       \
+        TaskDesc      _uiSpawnTaskDesc;                                                                                             \
+        Task*         _uiSpawnTask;                                                                                                 \
+        UiObject*     _uiSpawnResult;                                                                                               \
+        s32           _uiSpawnDescriptorArg;                                                                                        \
+                                                                                                                                    \
+        _uiSpawnResult                          = NULL;                                                                             \
+        _uiSpawnTaskDesc.header.fields.flags    = _uiSpawnDescriptor->taskFlags;                                                    \
+        _uiSpawnTaskDesc.header.fields.priority = _uiSpawnDescriptor->taskPriority;                                                 \
+        _uiSpawnDescriptorArg                   = _uiSpawnDescriptor->taskDataValue;                                                \
+        _uiSpawnTaskDesc.callback               = Ui_DispatchObjectState;                                                           \
+        _uiSpawnTaskDesc.data.value             = _uiSpawnDescriptorArg;                                                            \
+        _uiSpawnTask                            = Task_SpawnFromTable(&_uiSpawnTaskDesc, 0, _uiSpawnPayload, _uiSpawnResult);       \
+        if (_uiSpawnTask != NULL) {                                                                                                 \
+            _uiSpawnResult = memCalloc(sizeof(*_uiSpawnResult), 0);                                                                 \
+            if (_uiSpawnResult != NULL) {                                                                                           \
+                _uiSpawnTask->spawnArg2.pointer             = _uiSpawnResult;                                                       \
+                _uiSpawnTask->exitCallback                  = Ui_FreeAndKill;                                                       \
+                _uiSpawnResult->owner                       = _uiSpawnTask;                                                         \
+                _uiSpawnResult->panel.control.word          = _uiSpawnPanelMode;                                                    \
+                _uiSpawnResult->panel.style                 = _uiSpawnDescriptor->style;                                            \
+                _uiSpawnResult->panel.bounds.unsignedRect.x = _uiSpawnDescriptor->bounds.x;                                         \
+                _uiSpawnResult->panel.bounds.unsignedRect.y = _uiSpawnDescriptor->bounds.y;                                         \
+                _uiSpawnResult->panel.bounds.unsignedRect.w = _uiSpawnDescriptor->bounds.w;                                         \
+                _uiSpawnResult->panel.bounds.unsignedRect.h = _uiSpawnDescriptor->bounds.h;                                         \
+                _uiSpawnResult->panel.otIndex.signedValue   = _uiSpawnDescriptor->otIndexSeed & USER_INTERFACE_PANEL_OT_GROUP_MASK; \
+                _uiSpawnResult->panel.contentCallback       = _uiSpawnDescriptor->contentCallback;                                  \
+                _uiSpawnResult->panel.animationTicks        = _uiSpawnAnimationTicks;                                               \
+                if (_uiSpawnParent != NULL) {                                                                                       \
+                    taskReparent(_uiSpawnParent->owner, _uiSpawnTask);                                                              \
+                }                                                                                                                   \
+            } else {                                                                                                                \
+                taskKill(_uiSpawnTask);                                                                                             \
+            }                                                                                                                       \
+        }                                                                                                                           \
+        _uiSpawnResult;                                                                                                             \
     })
 
 static void Ui_ComputeVisibleRowsEx(UiList* list, UiPanel* panel, s32 arg2);
@@ -540,7 +540,7 @@ static s32 D_8006764C = 0xFFFFFF7E;
 
 static UiListRowCallback Ui_DialogLineCallbacks[] = { Ui_DrawDialogLine };
 static UiList            Ui_DialogLineList        = { Ui_DialogLineCallbacks, 1, 1, 0, 0x0F };
-static UiObjectDesc      Ui_DialogListDesc        = { 2, 0xFFD0, 0xFFE0, 0x60, 0x40, 0x20, 0, 0, 0xC0, Ui_ListTaskCallback, 0 };
+static UiObjectDesc      Ui_DialogListDesc        = { USER_INTERFACE_PANEL_TITLE_STYLE, { -48, -32, 0x60, 0x40 }, 0x20, 0, TASK_BODY_NONE, 0xC0, Ui_ListTaskCallback, 0 };
 UiObject*                Wip_UiHolder             = NULL;
 
 static const UiPanelFuncTable6 Ui_ObjectStates = { {
