@@ -767,7 +767,7 @@ static inline void Telephone_MenuTask(Task* task)
                 } else {
                     Ui_TeardownTree(childObj, childObj->owner);
                     SndEvt_EnqueueType6(SOUND_SYSTEM_CANCEL, 0, 0);
-                    Ui_StartCloseAnim(&(obj)->panel, task);
+                    uiStartPanelOpening(&(obj)->panel, task);
                     obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                 }
                 break;

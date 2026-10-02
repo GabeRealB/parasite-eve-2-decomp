@@ -58,7 +58,17 @@ void Ui_SetHolderParamAlt(s32 arg0, s32 unused2, s32 unused3);
 
 void Ui_ClampAnimOrClose(UiPanel* panel, Task* task, s32 arg2);
 
-void Ui_StartCloseAnim(UiPanel* panel, Task* unused2);
+/// Begins a panel's opening transition unless the panel is already open.
+///
+/// An open panel is left unchanged. Every other lifecycle selects
+/// `USER_INTERFACE_PANEL_OPENING`. A counter whose unsigned halfword is at
+/// most `USER_INTERFACE_PANEL_ANIMATION_TICKS` is kept, so opening proceeds
+/// from the current tick. A negative sentinel and any larger counter become
+/// that nine-tick span, which starts a full opening. The counter is in
+/// nominal 60-Hz frame ticks.
+///
+/// `owningTask` is the task that owns `panel`. The function does not read it.
+void uiStartPanelOpening(UiPanel* panel, Task* owningTask);
 
 void Ui_LayoutListPanel(UiList* arg0, UiPanel* arg1);
 

@@ -2282,13 +2282,14 @@ void Ui_ClampAnimOrClose(UiPanel* panel, Task* task, s32 arg2)
             panel->animationTicks = (s16)(arg2 + USER_INTERFACE_PANEL_ANIMATION_TICKS);
         }
     } else {
-        Ui_StartCloseAnim(panel, task);
+        uiStartPanelOpening(panel, task);
     }
 }
 
-void Ui_StartCloseAnim(UiPanel* panel, Task* unused2)
+void uiStartPanelOpening(UiPanel* panel, Task* owningTask)
 {
     if (panel->state != USER_INTERFACE_PANEL_OPEN) {
+        // Unsigned halfword view: a negative sentinel and any count above nine become a full opening.
         if ((u16)panel->animationTicks >= USER_INTERFACE_PANEL_ANIMATION_TICKS + 1) {
             panel->animationTicks = USER_INTERFACE_PANEL_ANIMATION_TICKS;
         }
@@ -2792,7 +2793,7 @@ static void Ui_ClipAndCallback(UiPanel* panel, Task* task)
     }
     temp_a0 = panel->animationTicks;
     if (((temp_a0 < 0) && (panel->control.word == USER_INTERFACE_PANEL_ACTIVE)) || (temp_a0 == USER_INTERFACE_PANEL_ANIMATION_TICKS)) {
-        Ui_StartCloseAnim(panel, task);
+        uiStartPanelOpening(panel, task);
     }
 }
 

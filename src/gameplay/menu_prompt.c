@@ -109,7 +109,7 @@ void Gp_UiPromptDispatch(UiObject* arg0, Task* arg1)
             desc = D_8010EAB4;
             Ui_SpawnFromDesc(desc + 5, 0, 1, 8, arg0);
             Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
-            Ui_StartCloseAnim(&(arg0)->panel, arg0->owner);
+            uiStartPanelOpening(&(arg0)->panel, arg0->owner);
             break;
         case 0x14:
         case 0x19:
@@ -123,21 +123,21 @@ void Gp_UiPromptDispatch(UiObject* arg0, Task* arg1)
             Display_SetDrawMode(1);
             Ui_SpawnFromDesc(&D_8010EAD0, 0, 1, 8, arg0);
             Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
-            Ui_StartCloseAnim(&(arg0)->panel, arg0->owner);
+            uiStartPanelOpening(&(arg0)->panel, arg0->owner);
             break;
         case 6:
         case 0xC:
             Display_SetDrawMode(1);
             Ui_SpawnFromDesc(D_8010EAB4 + arg0->resultValue, 0, 0, 8, arg0);
             Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
-            Ui_StartCloseAnim(&(arg0)->panel, arg0->owner);
+            uiStartPanelOpening(&(arg0)->panel, arg0->owner);
             break;
         case 0x24:
         default:
             Display_SetDrawMode(1);
             Ui_SpawnFromDesc(D_8010EAB4 + arg0->resultValue, 0, 1, 8, arg0);
             Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
-            Ui_StartCloseAnim(&(arg0)->panel, arg0->owner);
+            uiStartPanelOpening(&(arg0)->panel, arg0->owner);
             break;
     }
 
