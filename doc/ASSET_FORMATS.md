@@ -963,7 +963,7 @@ expects SMF; SPK playback goes through **`SndScript_Exec`** (`one*` opcodes).
 | **Tagged script stream** | `oneC` / `oneV` / `oneE` / `oneA` / `endC` / `Loop` / `Wait` / `endL` — the command structs are typed in `include/main/sound.h`; still need a stream walker |
 | **`SndScript_Exec`** | Decompiled in `src/main/sndscript.c` — authoritative interpreter for timing and opcodes |
 | **Timed event list** | Needs Wait/Loop stack + timebase (script ticks vs frame rate) |
-| **Audio mix / “play the song”** | Needs timed events + pitch (root/fine/`oneV`) + vol/pan + ADSR/`oneE` + polyphony; samples alone are not enough |
+| **Audio mix / “play the song”** | Needs timed events + pitch (root/fine/`oneV`, `oneE` envelope) + vol/pan + ADSR (`oneA`) + polyphony; samples alone are not enough |
 | **WAV → SPK encoder** | Not planned; matching packs use raw |
 | **SMF export** | Optional convenience only — not native format |
 

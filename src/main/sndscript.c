@@ -24,41 +24,74 @@ typedef struct _SndVoice SndVoice;
 
 struct _SndScript;
 
-/// "oneE" (0x45656E6F) pitch-envelope chunk pointed at by SndVoiceFx.field_20.
-/// Consumed by the state machine in SndVoice_TickEnvelope.
-typedef struct _SndOneE {
-    /* 0x00 */ s32 magic;
-    /* 0x04 */ s16 field_4;
-    /* 0x06 */ s16 field_6;
-    /* 0x08 */ s16 field_8;
-    /* 0x0A */ u16 field_A;
-    /* 0x0C */ s16 field_C;
-    /* 0x0E */ u16 field_E;
-    /* 0x10 */ s16 field_10;
-    /* 0x12 */ s16 field_12;
-    /* 0x14 */ s16 field_14;
-    /* 0x16 */ s16 field_16;
-} SndOneE;
-STATIC_ASSERT_SIZEOF(SndOneE, 0x18);
+/// `oneE` FourCC. Setup arms a `_SndPitchEnvelope` only when its `magic` matches.
+enum { SOUND_SCRIPT_PITCH_ENVELOPE_TAG = 0x45656E6F };
+
+/// Pitch envelope for one scripted voice.
+///
+/// This is the 24-byte `oneE` chunk in a loaded `hONE` bank image. The voice
+/// command names it with an image-relative byte offset; -1 leaves the voice at
+/// the pitch it was keyed on with. The image owns the bytes, and a pointer to
+/// the chunk remains valid until that image is released or reloaded. The
+/// script interpreter treats the tag as data: landing on it stops command
+/// processing without advancing the cursor.
+///
+/// Setup stores the addressed block on the voice before testing `magic`. It
+/// arms modulation, and restarts at the delay, only when `magic` is
+/// `SOUND_SCRIPT_PITCH_ENVELOPE_TAG`. Any other signature leaves the voice's
+/// modulation flag and stage as they were.
+///
+/// Levels and slopes are signed offsets from the keyed pitch, in 1/256
+/// semitone steps (256 is one semitone). Durations count audio updates, one
+/// per voice tick. `delayUpdates` and `holdUpdates` are signed, and a negative
+/// count skips that stage.
+///
+/// Playback waits out the delay, then ramps from the keyed pitch by
+/// `attackSlope`. The update that exhausts a stage's count plays the next
+/// stage, so a zero count skips the stage. The attack is followed by a hold at
+/// `attackLevel`, a ramp from that level by `decaySlope`, and then
+/// `sustainLevel` until the note is released. A ramp and the level after it
+/// are separate values; finishing the ramp switches to the level directly.
+///
+/// Release replaces the current stage. It adds `releaseSlope` to the offset
+/// last stored by a ramp until that offset reaches `releaseLevel`, then holds
+/// the level. During the attack hold that stored offset is still the attack
+/// ramp's end, and during sustain it is the decay ramp's end, rather than the
+/// level being played when the two differ. A zero slope, or a sign that points
+/// away from `releaseLevel`, snaps to the release level on the next update.
+typedef struct {
+    s32 magic;         // Serialized oneE FourCC; any other value does not arm modulation
+    s16 delayUpdates;  // Updates to keep the keyed pitch; a negative count skips the wait
+    s16 attackLevel;   // Offset held after the attack, and the offset decay starts from
+    s16 attackSlope;   // Added to the attack offset after each attack update is played
+    u16 attackUpdates; // Attack length in audio updates; zero skips the ramp
+    s16 holdUpdates;   // Updates to hold attackLevel; a non-positive count skips the hold
+    u16 decayUpdates;  // Decay length in audio updates; zero skips the ramp
+    s16 decaySlope;    // Added to the decay offset after each decay update is played
+    s16 sustainLevel;  // Offset held after decay until the note is released
+    s16 releaseLevel;  // Offset held once the tracked release reaches it
+    s16 releaseSlope;  // Signed release step per update; zero snaps to releaseLevel
+} _SndPitchEnvelope;
+STATIC_ASSERT_SIZEOF(_SndPitchEnvelope, 0x18);
 
 /// FX/envelope sub-block embedded at SndVoice + 0x10 (SndVoice_SetupEnvelope / SndVoice_TickEnvelope).
 /// field_0 is an active flag; field_1 is the state-machine index; field_2 is a
-/// secondary gate; field_20 points at the current "oneE" (0x45656E6F) chunk.
+/// secondary gate; field_20 points at the current `_SndPitchEnvelope`.
 typedef struct _SndVoiceFx {
-    /* 0x00 */ s8       field_0;
-    /* 0x01 */ s8       field_1;
-    /* 0x02 */ s8       field_2;
-    /* 0x03 */ u8       pad_3;
-    /* 0x04 */ s32      field_4;
-    /* 0x08 */ s16      field_8;
-    /* 0x0A */ s16      field_A;
-    /* 0x0C */ u16      field_C;
-    /* 0x0E */ s16      field_E;
-    /* 0x10 */ s32      field_10;
-    /* 0x14 */ s32      field_14;
-    /* 0x18 */ s32      field_18;
-    /* 0x1C */ s32      field_1C;
-    /* 0x20 */ SndOneE* field_20;
+    /* 0x00 */ s8                 field_0;
+    /* 0x01 */ s8                 field_1;
+    /* 0x02 */ s8                 field_2;
+    /* 0x03 */ u8                 pad_3;
+    /* 0x04 */ s32                field_4;
+    /* 0x08 */ s16                field_8;
+    /* 0x0A */ s16                field_A;
+    /* 0x0C */ u16                field_C;
+    /* 0x0E */ s16                field_E;
+    /* 0x10 */ s32                field_10;
+    /* 0x14 */ s32                field_14;
+    /* 0x18 */ s32                field_18;
+    /* 0x1C */ s32                field_1C;
+    /* 0x20 */ _SndPitchEnvelope* field_20;
 } SndVoiceFx;
 STATIC_ASSERT_SIZEOF(SndVoiceFx, 0x24);
 
@@ -1380,7 +1413,8 @@ static s32 SndScript_Exec(SndScript* script)
 
     cmd = (SndScriptCmd*)script->field_48;
     switch ((u32)cmd->magic) {
-        case 0x45656E6F:
+        case SOUND_SCRIPT_PITCH_ENVELOPE_TAG:
+            // Envelope data is not a command; halt without advancing the cursor.
             break;
         case 0x43646E65:
         stop:
@@ -1541,24 +1575,26 @@ done:
 
 static void SndVoice_TickEnvelope(SndVoice* voice)
 {
-    SpuVoiceRef   sp10;
-    SndVoiceFx*   fx;
-    SndOneE*      chunk;
-    s32           pitch;
-    s32           temp;
-    s32           level;
-    SpuVoiceAttr* attr;
+    SpuVoiceRef        sp10;
+    SndVoiceFx*        fx;
+    _SndPitchEnvelope* envelope;
+    s32                pitch;
+    s32                temp;
+    s32                level;
+    SpuVoiceAttr*      attr;
 
-    fx    = &voice->field_10;
-    chunk = fx->field_20;
+    fx       = &voice->field_10;
+    envelope = fx->field_20;
 
+    // Release, when requested, replaces the current stage. A stage whose count
+    // is exhausted falls through and plays the next stage on this update.
     if (fx->field_2 == 1) {
         fx->field_1 = 5;
-        temp        = (fx->field_10 - chunk->field_14) * chunk->field_16;
+        temp        = (fx->field_10 - envelope->releaseLevel) * envelope->releaseSlope;
         if (temp > 0) {
-            fx->field_E = -chunk->field_16;
+            fx->field_E = -envelope->releaseSlope;
         } else {
-            fx->field_E = chunk->field_16;
+            fx->field_E = envelope->releaseSlope;
         }
 
         fx->field_C  = 0;
@@ -1568,7 +1604,7 @@ static void SndVoice_TickEnvelope(SndVoice* voice)
 
     switch (fx->field_1) {
         case 0:
-            if (fx->field_C < chunk->field_4) {
+            if (fx->field_C < envelope->delayUpdates) {
                 fx->field_C++;
                 break;
             }
@@ -1578,37 +1614,37 @@ static void SndVoice_TickEnvelope(SndVoice* voice)
             fx->field_10 = 0;
         case 1:
             pitch = (fx->field_4 << 1) + fx->field_14;
-            if (fx->field_C < chunk->field_A) {
+            if (fx->field_C < envelope->attackUpdates) {
                 fx->field_C++;
-                fx->field_10 = fx->field_14 += chunk->field_8;
+                fx->field_10 = fx->field_14 += envelope->attackSlope;
                 goto apply;
             }
             fx->field_1 = 2;
             fx->field_C = 0;
         case 2:
-            pitch = (fx->field_4 << 1) + chunk->field_6;
-            if (fx->field_C < chunk->field_C) {
+            pitch = (fx->field_4 << 1) + envelope->attackLevel;
+            if (fx->field_C < envelope->holdUpdates) {
                 fx->field_C++;
                 goto apply;
             }
             fx->field_1  = 3;
-            fx->field_18 = chunk->field_6;
-            level        = chunk->field_6;
+            fx->field_18 = envelope->attackLevel;
+            level        = envelope->attackLevel;
             fx->field_C  = 0;
             fx->field_10 = level;
         case 3:
             pitch = (fx->field_4 << 1) + fx->field_18;
-            if (fx->field_C < chunk->field_E) {
+            if (fx->field_C < envelope->decayUpdates) {
                 fx->field_C++;
-                fx->field_10 = fx->field_18 += chunk->field_10;
+                fx->field_10 = fx->field_18 += envelope->decaySlope;
                 goto apply;
             }
             fx->field_1 = 4;
         case 4:
-            pitch = (fx->field_4 << 1) + chunk->field_12;
+            pitch = (fx->field_4 << 1) + envelope->sustainLevel;
             goto apply;
         case 5:
-            temp = (fx->field_10 - chunk->field_14) * chunk->field_16;
+            temp = (fx->field_10 - envelope->releaseLevel) * envelope->releaseSlope;
             if (temp >= 0) {
                 fx->field_1 = 6;
             } else {
@@ -1617,7 +1653,7 @@ static void SndVoice_TickEnvelope(SndVoice* voice)
             pitch = (fx->field_4 << 1) + fx->field_1C;
             goto apply;
         case 6:
-            pitch = (fx->field_4 << 1) + chunk->field_14;
+            pitch = (fx->field_4 << 1) + envelope->releaseLevel;
             goto apply;
         default:
             break;
@@ -2187,11 +2223,11 @@ static void SndVoice_ScaleVolume(s8 arg0, s8 arg1, SndVoice* voice, LinInterp* r
 
 static void SndVoice_SetupEnvelope(SndVoice* voice, s16 envelopeOffset, u32 pitch, SndBankLayer* bankLayer)
 {
-    SndVoiceFx* p;
-    u8*         base;
-    SndOneE*    chunk;
-    s32         magic;
-    s16         temp;
+    SndVoiceFx*        p;
+    u8*                base;
+    _SndPitchEnvelope* envelope;
+    s32                magic;
+    s16                temp;
 
     p = &voice->field_10;
     if (envelopeOffset == -1) {
@@ -2202,11 +2238,12 @@ static void SndVoice_SetupEnvelope(SndVoice* voice, s16 envelopeOffset, u32 pitc
         voice->field_10.field_0 = 0;
         return;
     }
+    // The voice command stores a byte offset from the start of the bank image.
     base        = (u8*)voice->field_34->field_44->image;
-    chunk       = (SndOneE*)&base[envelopeOffset];
-    p->field_20 = chunk;
-    magic       = chunk->magic;
-    if (magic == 0x45656E6F) {
+    envelope    = (_SndPitchEnvelope*)&base[envelopeOffset];
+    p->field_20 = envelope;
+    magic       = envelope->magic;
+    if (magic == SOUND_SCRIPT_PITCH_ENVELOPE_TAG) {
         voice->field_10.field_0 = 1;
         p->field_1              = 0;
         p->field_2              = 0;
