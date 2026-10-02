@@ -16837,7 +16837,7 @@ globals independently — that reloads `%hi/%lo(CdStream_State)`. Anchor on the 
 symbol and step back one typed element:
 
 ```c
-CdStreamChannels* p = &CdStream_Channels;
+_CdStreamChannels* p = &CdStream_Channels;
 volatile CdStreamState* q = (volatile CdStreamState*)p - 1; /* sizeof == gap */
 ```
 
@@ -16858,22 +16858,22 @@ else:
 sh    a0, 0xA(v0)
 ```
 
-a single shared `ch1 = &p->ch[1]` before the `if` coalesces both paths into
+a single shared `ch1 = &channels->voiceAttr[1]` before the `if` coalesces both paths into
 `$a1` and drops the delay-slot `$v0` copy. Keep two locals: one for the then
 path, and pin the else-only pointer to `$v0`, assigning it only on the fall-
 through path:
 
 ```c
 if (flag) {
-    ch1b = &p->ch[1];
+    ch1b = &channels->voiceAttr[1];
     /* use ch1b → $a1 */
     return;
 }
-ch1 = &p->ch[1];   /* register CdStreamChannel* ch1 asm("v0"); */
+ch1 = &channels->voiceAttr[1];   /* register CdStreamChannel* ch1 asm("v0"); */
 ch1->field_A = arg0;
 ```
 
-`CdStream_SetPitch` is the pure example (`CdStream_Channels.ch[0]` / `ch[1]`, stride `0x40`).
+`CdStream_SetVolume` is the pure example (`CdStream_Runtime.channels.voiceAttr[0]` / `voiceAttr[1]`, stride `0x40`).
 
 ## Dual `if (size != 0)` fill loops need a reloaded `cond`
 

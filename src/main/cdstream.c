@@ -96,17 +96,20 @@ STATIC_ASSERT_SIZEOF(CdStreamState, 0x58);
 // Channel records are copied whole into the PsyQ voice-update queue.
 STATIC_ASSERT_SIZEOF(SpuVoiceAttr, 0x40);
 
-/// The streaming left/right voice channels.
-typedef struct _CdStreamChannels {
-    /* 0x00 */ SpuVoiceAttr ch[2];
-} CdStreamChannels;
-STATIC_ASSERT_SIZEOF(CdStreamChannels, 0x80);
+/// Stereo SPU voice attributes for one CD-to-SPU stream.
+///
+/// Each record is programmed for its allocated voice and copied whole into
+/// the PsyQ voice-update queue.
+typedef struct {
+    SpuVoiceAttr voiceAttr[2]; // 0 left voice, 1 right voice
+} _CdStreamChannels;
+STATIC_ASSERT_SIZEOF(_CdStreamChannels, 0x80);
 
 /// One allocation: control state and both channels. Reset clears all 0xD8 bytes;
 /// the IRQ and read callbacks recover the control state from the channel member.
 typedef struct {
     volatile CdStreamState state;
-    CdStreamChannels       channels;
+    _CdStreamChannels      channels;
 } CdStreamRuntime;
 STATIC_ASSERT_SIZEOF(CdStreamRuntime, 0xD8);
 STATIC_ASSERT(OFFSET_OF(CdStreamRuntime, channels) == 0x58, cd_stream_channels_offset);
@@ -971,7 +974,7 @@ void CdStream_Start(CdStreamParams* arg0)
     }
     a3.state->sectorsPerChunk = sectors;
     a3.state->ringHalf        = 0x2770;
-    t0                        = PARENT_OF(a3.state, CdStreamRuntime, state)->channels.ch;
+    t0                        = PARENT_OF(a3.state, CdStreamRuntime, state)->channels.voiceAttr;
     a3.state->sector          = (_MtsHeader*)arg0->sectorBuf;
     a3.state->voiceL          = arg0->voiceL;
     vff                       = 0xFF;
@@ -1239,7 +1242,7 @@ static void CdStream_TickPlayback(void)
     stateOrPosition.position = CdStream_Runtime.state.field_18;
     if (!(((u8)CdStream_Runtime.state.flags0 >> 4) & 1) && (((u8)CdStream_Runtime.state.flags0 >> 5) & 1)) {
         CdAudio_AllocVoices((s8*)&CdStream_Runtime.state.voiceL, (s8*)&CdStream_Runtime.state.voiceR);
-        channels          = PARENT_OF(&CdStream_Runtime.state, CdStreamRuntime, state)->channels.ch;
+        channels          = PARENT_OF(&CdStream_Runtime.state, CdStreamRuntime, state)->channels.voiceAttr;
         channels->voice   = (s32)(1 << (s8)CdStream_Runtime.state.voiceL);
         channels[1].voice = (s32)(1 << CdStream_Runtime.state.voiceR);
         Spu_ArmKeyOn((s8)CdStream_Runtime.state.voiceL);
@@ -1253,7 +1256,7 @@ static void CdStream_TickPlayback(void)
         CdAudio_CopyVoiceData((s8)CdStream_Runtime.state.voiceL, channels);
         /* The channels follow CdStream_Runtime.state; addressing them from its symbol
          * shares its high half, where &CdStream_Runtime.channels would load another. */
-        CdAudio_CopyVoiceData((s8)CdStream_Runtime.state.voiceR, PARENT_OF(&CdStream_Runtime.state, CdStreamRuntime, state)->channels.ch + 1);
+        CdAudio_CopyVoiceData((s8)CdStream_Runtime.state.voiceR, PARENT_OF(&CdStream_Runtime.state, CdStreamRuntime, state)->channels.voiceAttr + 1);
         CdStream_Runtime.state.flags1 &= 0xFE;
         if (CdStream_Runtime.state.startCb != NULL) {
             CdStream_Runtime.state.startCb((1 << CdStream_Runtime.state.voiceL) | (1 << CdStream_Runtime.state.voiceR));
@@ -1532,7 +1535,7 @@ void CdStream_Drive(void)
                 } else {
                     position = CdStream_Runtime.state.field_18;
                     if (position == 0) {
-                        channels = PARENT_OF(&CdStream_Runtime.state, CdStreamRuntime, state)->channels.ch;
+                        channels = PARENT_OF(&CdStream_Runtime.state, CdStreamRuntime, state)->channels.voiceAttr;
                         CdAudio_AllocVoices((s8*)&CdStream_Runtime.state.voiceL, (s8*)&CdStream_Runtime.state.voiceR);
                         channels->voice   = (s32)(1 << (s8)CdStream_Runtime.state.voiceL);
                         channels[1].voice = (s32)(1 << CdStream_Runtime.state.voiceR);
@@ -1547,10 +1550,10 @@ void CdStream_Drive(void)
                         CdStream_Runtime.state.flags1 |= 0x80;
                     }
                     if (CdStream_Runtime.state.flags1 & 1) {
-                        CdAudio_CopyVoiceData((s8)CdStream_Runtime.state.voiceL, PARENT_OF(&CdStream_Runtime.state, CdStreamRuntime, state)->channels.ch);
+                        CdAudio_CopyVoiceData((s8)CdStream_Runtime.state.voiceL, PARENT_OF(&CdStream_Runtime.state, CdStreamRuntime, state)->channels.voiceAttr);
                         /* The channels follow CdStream_Runtime.state; addressing them from its symbol
                          * shares its high half, where &CdStream_Runtime.channels would load another. */
-                        CdAudio_CopyVoiceData((s8)CdStream_Runtime.state.voiceR, PARENT_OF(&CdStream_Runtime.state, CdStreamRuntime, state)->channels.ch + 1);
+                        CdAudio_CopyVoiceData((s8)CdStream_Runtime.state.voiceR, PARENT_OF(&CdStream_Runtime.state, CdStreamRuntime, state)->channels.voiceAttr + 1);
                         CdStream_Runtime.state.flags1 &= 0xFE;
                     }
                     if ((position / (s16)(u16)CdStream_Runtime.state.sectorsPerChunk >= CdStream_Runtime.state.field_38 - 1) &&
@@ -1965,7 +1968,7 @@ static void CdStream_ReadyMts(u8 interrupt, u8* result)
     u32                     previousPhase;
     volatile CdStreamState* channelState;
     volatile CdStreamState* regionState;
-    CdStreamChannels*       channels;
+    _CdStreamChannels*      channels;
     s32                     channelCount;
 
     if ((u16)CdStream_ReadyCallbackActive != 0) {
@@ -2091,15 +2094,15 @@ static void CdStream_ReadyMts(u8 interrupt, u8* result)
                             regionState->sectorsPerChunk = chunkSectors;
                             channels                     = &CdStream_Runtime.channels;
                             /* Recover the common allocation from its channel member. */
-                            channelState         = &PARENT_OF(channels, CdStreamRuntime, channels)->state;
-                            channels->ch[0].addr = channelState->spuBase;
+                            channelState                = &PARENT_OF(channels, CdStreamRuntime, channels)->state;
+                            channels->voiceAttr[0].addr = channelState->spuBase;
                             /* The channels' SPU buffers sit back to back, ringHalf * 2 + 0x40 bytes apart. */
-                            channels->ch[1].addr   = channelState->spuBase + (channelState->ringHalf * 2 + 0x40);
-                            channelState->flags1  |= 1;
-                            channels->ch[0].mask  |= 0x80;
-                            channels->ch[1].mask   = channels->ch[0].mask;
-                            channelState->field_1C = channelState->sector->chunkIndex;
-                            channelState->field_38 = channelState->sector->chunkCount;
+                            channels->voiceAttr[1].addr  = channelState->spuBase + (channelState->ringHalf * 2 + 0x40);
+                            channelState->flags1        |= 1;
+                            channels->voiceAttr[0].mask |= 0x80;
+                            channels->voiceAttr[1].mask  = channels->voiceAttr[0].mask;
+                            channelState->field_1C       = channelState->sector->chunkIndex;
+                            channelState->field_38       = channelState->sector->chunkCount;
                             /* Bits 5 and 6 choose where playback of the final chunk stops. */
                             if (!((u8)channelState->sector->flags & CD_STREAM_MTS_FLAG_END_MASK)) {
                                 channelState->flags1 = (u8)(channelState->flags1 | 0x40);
@@ -2349,7 +2352,7 @@ static void CdStream_SpuIrqHandler(void)
 
 void CdStream_SetVolume(s16 volume)
 {
-    CdStreamChannels*       p;
+    _CdStreamChannels*      channels;
     volatile CdStreamState* q;
     SpuVoiceAttr*           ch1b;
     SpuVoiceAttr*           ch1;
@@ -2357,38 +2360,38 @@ void CdStream_SetVolume(s16 volume)
     s32                     t0;
     s32                     t1;
 
-    p = &CdStream_Runtime.channels;
+    channels = &CdStream_Runtime.channels;
     /* CdStream_Runtime.state sits directly before the channels; reaching it back from
-     * `p` keeps one base register for both objects. */
-    q = &PARENT_OF(p, CdStreamRuntime, channels)->state;
+     * `channels` keeps one base register for both objects. */
+    q = &PARENT_OF(channels, CdStreamRuntime, channels)->state;
 
     if ((q->flags0 >> 1) & 1) {
         if (q->flags1 & 1) {
-            t0            = p->ch[0].mask;
-            t1            = p->ch[1].mask;
-            p->ch[0].mask = t0 | 3;
-            p->ch[1].mask = t1 | 3;
+            t0                          = channels->voiceAttr[0].mask;
+            t1                          = channels->voiceAttr[1].mask;
+            channels->voiceAttr[0].mask = t0 | 3;
+            channels->voiceAttr[1].mask = t1 | 3;
         } else {
-            p->ch[1].mask = 3;
-            p->ch[0].mask = 3;
-            q->flags1     = q->flags1 | 1;
+            channels->voiceAttr[1].mask = 3;
+            channels->voiceAttr[0].mask = 3;
+            q->flags1                   = q->flags1 | 1;
         }
     }
 
     if (CdStream_Runtime.state.flags & 2) {
-        ch1b                  = &p->ch[1];
-        val                   = (s16)((volume * 0xB5) >> 8);
-        ch1b->volume.left     = val;
-        p->ch[0].volume.right = val;
-        ch1b->volume.right    = val;
-        p->ch[0].volume.left  = val;
+        ch1b                                = &channels->voiceAttr[1];
+        val                                 = (s16)((volume * 0xB5) >> 8);
+        ch1b->volume.left                   = val;
+        channels->voiceAttr[0].volume.right = val;
+        ch1b->volume.right                  = val;
+        channels->voiceAttr[0].volume.left  = val;
         return;
     }
-    ch1                   = &p->ch[1];
-    ch1->volume.right     = volume;
-    p->ch[0].volume.left  = volume;
-    ch1->volume.left      = 0;
-    p->ch[0].volume.right = 0;
+    ch1                                 = &channels->voiceAttr[1];
+    ch1->volume.right                   = volume;
+    channels->voiceAttr[0].volume.left  = volume;
+    ch1->volume.left                    = 0;
+    channels->voiceAttr[0].volume.right = 0;
 }
 
 static void CdStream_SetFlag14(s32 arg0)
