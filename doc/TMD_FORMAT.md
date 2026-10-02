@@ -263,7 +263,7 @@ they issue) and the draw handlers in `src/gameplay/model_objects.c` and
 A caution learned the hard way: each handler loads *different* `ws` fields
 into the same registers, so a register name means nothing on its own.
 `tmdDrawStreamGt3` uses `$t6` for the vertex array; `tmdDrawStreamPrimGt3PreXform`
-uses `$t6` for the transform cache.
+uses `$t6` for the per-vertex depth cache.
 
 | Bit | Meaning | How it shows up |
 |---|---|---|
@@ -438,7 +438,7 @@ inference. `tmdXformStreamVerts` stores the `RTPS` result at byte address
 `(u8*)workspace->szTable + (vertex_byte_offset >> 1)`, equivalently
 `&workspace->szTable[vertex_byte_offset >> 3]`, so the cache holds one word
 per vertex; `tmdDrawStreamPrimGt3PreXform` then reads its refs at byte addresses
-`(u8*)ws->szTable + ref` and feeds them to `SZ1`/`SZ2`/`SZ3`. Halving an 8-byte
+`(u8*)workspace->szTable + ref` and feeds them to `SZ1`/`SZ2`/`SZ3`. Halving an 8-byte
 stride gives 4, so a pre-transformed ref is `vertex_index * 4` and the cache
 slot maps to a vertex one-to-one. The draw handler's negative-value check
 (`bltz` on the loaded word) tests `TMD_VERTEX_DEPTH_INVALID`. `tmdXformStreamVerts`

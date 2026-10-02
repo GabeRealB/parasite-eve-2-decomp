@@ -333,28 +333,47 @@ u32* tmdDrawStreamGt4SemiTrans(TmdStreamWorkspace* workspace, s32 objectFlags, u
 /// the facing test the other way round.
 u32* tmdDrawStreamPrimGt3PreXformSemiTrans(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
-/// Draw-pass handler of a stream's pre-transformed gouraud textured-triangle
-/// records (`0x31`, `0x39`, `0x131`): each element contributes one triangle to
-/// the buffer half's first region, where its corners are already in screen space,
-/// and links it into the ordering table at the model's own offset.
+/// Culls and links pre-transformed Gouraud textured triangles as `POLY_GT3` packets.
 ///
-/// The record is the pre-transformed form of the `0x38` triangles
-/// (`tmdDrawStreamGt3`): the pass that projects the stream's vertices
-/// (`tmdXformStreamVerts`) has already written each corner's screen coordinates
-/// and lit colour into the packet this handler files, and its depth into the
-/// per-vertex screen-Z table, so an element names its three corners in that table
-/// rather than in the vertex array. What a frame adds is the triangle's filing:
-/// the three cached depths are averaged for the ordering-table link, the facing
-/// comes from the coordinates the packet already carries, and the packet's
-/// length and primitive code are written. An element with any corner depth marked
-/// `TMD_VERTEX_DEPTH_INVALID` by the projection pre-pass, or whose triangle turns
-/// away, is stepped over rather than drawn, though its packet slot is passed over
-/// either way, so the primitives stay aligned with the elements that named them.
+/// Draw resolution selects this entry for `0x31`, `0x39` and `0x131`.
+/// `objectFlags` carries `TmdObject.flags`: `TMD_OBJECT_SEMI_TRANS` selects
+/// GPU code 0x36 through `tmdDrawStreamPrimGt3PreXformSemiTrans`, otherwise
+/// code 0x34 is used. `TMD_OBJECT_REVERSE_CULLING` keeps negative rather than
+/// positive `NCLIP(0,1,2)` areas; zero area is always rejected. The opcode
+/// itself is not read, and texture-page blend mode is left unchanged.
 ///
-/// This entry is the whole family's and is the one that chooses between the two
-/// primitive codes: it reaches `tmdDrawStreamPrimGt3PreXformSemiTrans` when the
-/// drawing object's flags ask for the blended form.
-u32* tmdDrawStreamPrimGt3PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// `elements` starts after the three-word header. `workspace->elemCount`
+/// supplies 0..65535 elements and `elemStride` their stride in u32 words,
+/// at least two for a nonempty record. The first three u16 values are byte
+/// offsets into `workspace->szTable`; the high half of word 1 is ignored.
+/// Each must name a complete aligned four-byte depth entry written by the
+/// projection pre-pass (offsets 0..4092 in normal drawing's 1024-entry cache).
+/// Cache entries hold screen Z (0..65535), with `TMD_VERTEX_DEPTH_INVALID`
+/// marking a failed projection; any such corner rejects the whole triangle.
+///
+/// The word-aligned `workspace->preXformWrite` must provide one complete
+/// 40-byte packet slot per element in the selected buffer half's first region.
+/// `gpStreamPrimGt3PreXform` builds the texture words from standard five-word
+/// elements; earlier projection records scatter screen XY and lit RGB into
+/// those slots. This handler preserves those words, changing only accepted
+/// packets' command byte and DMA tag. Every element consumes its slot,
+/// including rejected triangles.
+///
+/// Accepted cached depths go into SZ1..SZ3 for AVSZ3 using the caller's GTE
+/// ZSF3 scale. Packets receive a nine-word DMA length and prepend to
+/// `workspace->ot` at bucket
+/// `(((u32)OTZ << (workspace->otDepthShift & 31)) & 0x3FFF) >> 4`.
+/// Normal drawing supplies shifts 0..3. The OT base already includes the
+/// object's signed entry displacement; every resulting bucket (0..1023)
+/// must fit the selected table. DMA links retain 24 address bits. Stream,
+/// cache, packet and OT bounds are unchecked; all storage is borrowed.
+///
+/// Returns `elements + elemCount * elemStride` and advances `preXformWrite`
+/// past all slots. Other workspace fields, including counts and saved GTE
+/// results, are unchanged. An empty record reads no payload and advances
+/// neither cursor. No pointer is retained; keep packets and OT storage valid
+/// until GPU use finishes.
+u32* tmdDrawStreamPrimGt3PreXform(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 /// The draw pass's handler for a stream's pre-transformed textured-quad records
 /// that ask for the semi-transparent primitive (`0x7B`): each element's quad is
