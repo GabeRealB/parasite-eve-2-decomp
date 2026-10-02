@@ -54,8 +54,16 @@
 #define WATER_WAVE_STRIPS_RESET_ACTOR_LOAD_CURSOR 0
 #endif
 #ifndef WATER_WAVE_STRIPS_SET_FIRST_STRIP_COLOURS
-#ifndef SRC_SHARED_WATER_WAVE_STRIPS_FIRST_COLOURS
-#define SRC_SHARED_WATER_WAVE_STRIPS_FIRST_COLOURS
+#ifndef WATER_WAVE_STRIPS_FIRST_COLOURS_HELPER_DEFINED
+/// Keeps one definition of the default first-strip colour helper per translation unit.
+///
+/// This include sets an empty presence marker when it supplies the default
+/// helper; an override of `WATER_WAVE_STRIPS_SET_FIRST_STRIP_COLOURS` bypasses
+/// both. The marker stays defined after each include, while the colour binding
+/// is undefined, so later default instances reuse the helper. Includers must
+/// leave the marker intact and make Psy-Q's `POLY_G4` visible before the first
+/// default instance.
+#define WATER_WAVE_STRIPS_FIRST_COLOURS_HELPER_DEFINED
 /// Sets the first X strip's default vertex colours for subtractive blending.
 static inline void _waterSetFirstWaveStripColours(POLY_G4* quad)
 {
