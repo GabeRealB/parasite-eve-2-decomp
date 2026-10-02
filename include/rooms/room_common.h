@@ -395,21 +395,39 @@ typedef struct _RoomDraw24Scratch {
 } RoomDraw24Scratch;
 STATIC_ASSERT_SIZEOF(RoomDraw24Scratch, 0x28);
 
-/// 0x1C-byte scratch block `Room_Draw02` takes from the scratch stack. Same
-/// projected centre and two screen radii as `RoomFxRadialScratch`, but `otz` sits at
-/// 0x0 with `rOuter` at 0x4, `rInner` at 0x8, `flag` at 0xC and `vec` at 0x10.
-/// `rOuter` is `(s16)arg1 * 64 / (otz + 1)` and `rInner` is
-/// `(s16)(arg1 + arg2) * 64 / (otz + 1)`.
-typedef struct _RoomDraw02Scratch {
-    /* 0x00 */ s32     otz;
-    /* 0x04 */ s32     rOuter;
-    /* 0x08 */ s32     rInner;
-    /* 0x0C */ s32     flag;
-    /* 0x10 */ SVECTOR vec;
-    /* 0x18 */ u16     sx;
-    /* 0x1A */ u16     sy;
-} RoomDraw02Scratch;
-STATIC_ASSERT_SIZEOF(RoomDraw02Scratch, 0x1C);
+/// Scratch-stack workspace for one sixteen-quad flash ring.
+///
+/// The drawer copies a coordinate's world translation into `worldPoint`,
+/// narrowed to signed 16-bit coordinate units, and projects that point through
+/// `GsWSMATRIX`. One perspective transform supplies the screen centre, the GTE
+/// flag word and the SZ3 / 4 depth. A negative flag word rejects the
+/// projection. Otherwise the depth is incremented by one and used both as the
+/// divisor that scales the two radii onto the screen and as the ordering-table
+/// depth of every quad.
+///
+/// `screenX` and `screenY` keep the raw 16-bit encodings of the signed GTE
+/// pixel coordinates. They are adjacent so one screen-XY store fills both.
+///
+/// The two radii are signed pixel distances from the centre. The black edge is
+/// the first size and the tinted edge is the sum of the two sizes; each size
+/// is narrowed to 16 bits, multiplied by 64 and divided by the depth. Which
+/// edge lies farther from the centre depends on the sign of the second size.
+/// Depth, both radii and the flag word sit ahead of the world point.
+/// `RoomFxRadialScratch` holds the same words with the world point first, so
+/// the flash ring does not use that record. Reserve one complete block and
+/// release it before any pointer into it is used again.
+typedef struct {
+    s32 depth;               // SZ3 / 4 plus one; divisor for the radii and ordering-table depth
+    struct {
+        s32 black;           // Black edge radius in pixels
+        s32 tint;            // Tinted edge radius in pixels
+    } radii;
+    s32     projectionFlags; // GTE FLAG word; bit 31 set rejects the projection
+    SVECTOR worldPoint;      // World position at projection, each component narrowed to s16
+    u16     screenX;         // Raw projected centre X; first half of the GTE screen-position word
+    u16     screenY;         // Raw projected centre Y; second half of the same GTE word
+} RoomFxFlashRingScratch;
+STATIC_ASSERT_SIZEOF(RoomFxFlashRingScratch, 0x1C);
 
 /// 0x3C-byte scratch block `Room_Draw03` takes from the scratch stack. `v` is
 /// the quad's four corners, copied from `workm.t` of two adjacent slots on

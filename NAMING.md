@@ -362,7 +362,10 @@ including `actor_contacts.h`, `cap_captions.h`, `planar_reflection.h`,
 per-instance linkage as described above. `water_effects.h` uses the prefix
 `water`; its configuration macros use `WATER_`. It is the included splash,
 drift, distortion and refraction code. Gameplay `roomEffect` remains the
-resident room-effect state. `glow_draw.h` uses the prefix `glow`; its
+resident room-effect state. `room_visual_effects.h` uses the prefix `RoomFx`
+(functions `RoomFx_…`); its configuration macros use `ROOM_FX_`. It is the
+included halo, flash, trail and flying-effect drawing. `glow_draw.h` uses the
+prefix `glow`; its
 configuration macros use `GLOW_`. It is the included projected glow, flare and
 light-beam drawing. `screen_wave.h` uses the prefix `screenWave`; its
 ramp-phase and texture-modulation constants use `SCREEN_WAVE_`. It redraws the

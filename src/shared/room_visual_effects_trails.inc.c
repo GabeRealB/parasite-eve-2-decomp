@@ -7,30 +7,31 @@
 /// its scratch block laid out differently.
 static void RoomFx_DrawFlashRing(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
-    RoomDraw02Scratch* block;
-    POLY_G4*           prim;
-    s32                ang;
-    s32                t;
-    s16                blackRadius = arg1;
-    s16                tintRadius  = arg1 + arg2;
+    RoomFxFlashRingScratch* block;
+    POLY_G4*                prim;
+    s32                     ang;
+    s32                     t;
+    s16                     blackRadius = arg1;
+    s16                     tintRadius  = arg1 + arg2;
 
-    block         = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw02Scratch);
-    block->vec.vx = arg0->workm.t[0];
-    block->vec.vy = arg0->workm.t[1];
-    block->vec.vz = arg0->workm.t[2];
+    block                = SCRATCH_STACK_RESERVE_BLOCK(RoomFxFlashRingScratch);
+    block->worldPoint.vx = arg0->workm.t[0];
+    block->worldPoint.vy = arg0->workm.t[1];
+    block->worldPoint.vz = arg0->workm.t[2];
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec);
+    gte_ldv0(&block->worldPoint);
     gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        block->otz++;
-        block->rOuter = (blackRadius * 64) / block->otz;
-        block->rInner = (tintRadius * 64) / block->otz;
+    gte_stsxy(&block->screenX);
+    gte_stflg(&block->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&block->depth);
+        block->depth++;
+        block->radii.black = (blackRadius * 64) / block->depth;
+        block->radii.tint  = (tintRadius * 64) / block->depth;
 
+        // One quad per sixteenth of a turn, joining the black edge to the tinted edge.
         ang = 0;
         do {
             prim           = gGpuPrimCursor;
@@ -40,22 +41,22 @@ static void RoomFx_DrawFlashRing(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, rgb[0], rgb[1], rgb[2]);
             setRGB3(prim, rgb[0], rgb[1], rgb[2]);
-            prim->x0 = block->sx + ((block->rOuter * rsin(ang)) >> 12);
-            prim->y0 = block->sy + ((block->rOuter * rcos(ang)) >> 12);
+            prim->x0 = block->screenX + ((block->radii.black * rsin(ang)) >> 12);
+            prim->y0 = block->screenY + ((block->radii.black * rcos(ang)) >> 12);
             t        = ang + 0x100;
-            prim->x1 = block->sx + ((block->rOuter * rsin(t)) >> 12);
-            prim->y1 = block->sy + ((block->rOuter * rcos(t)) >> 12);
-            prim->x2 = block->sx + ((block->rInner * rsin(ang)) >> 12);
-            prim->y2 = block->sy + ((block->rInner * rcos(ang)) >> 12);
-            prim->x3 = block->sx + ((block->rInner * rsin(t)) >> 12);
-            prim->y3 = block->sy + ((block->rInner * rcos(t)) >> 12);
+            prim->x1 = block->screenX + ((block->radii.black * rsin(t)) >> 12);
+            prim->y1 = block->screenY + ((block->radii.black * rcos(t)) >> 12);
+            prim->x2 = block->screenX + ((block->radii.tint * rsin(ang)) >> 12);
+            prim->y2 = block->screenY + ((block->radii.tint * rcos(ang)) >> 12);
+            prim->x3 = block->screenX + ((block->radii.tint * rsin(t)) >> 12);
+            prim->y3 = block->screenY + ((block->radii.tint * rcos(t)) >> 12);
             ang      = t;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->depth);
         } while (ang < 0x1000);
     }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw02Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomFxFlashRingScratch);
 }
 
 /// Queues a gouraud disc of eight wedges around the projected world position
