@@ -134,9 +134,9 @@ STATIC_ASSERT_SIZEOF(Actor02400ChildWork, 0xB4);
 /// scaled per axis by `scale`, and the coordinate's translation `t`, restored
 /// after the multiply.
 typedef struct Actor02400ScaleScratch {
-    /* 0x00 */ OverlayMat mat;
-    /* 0x20 */ VECTOR     scale;
-    /* 0x30 */ VECTOR     t;
+    /* 0x00 */ GfxMatrix mat;
+    /* 0x20 */ VECTOR    scale;
+    /* 0x30 */ VECTOR    t;
 } Actor02400ScaleScratch;
 STATIC_ASSERT_SIZEOF(Actor02400ScaleScratch, 0x40);
 
@@ -1029,11 +1029,11 @@ static void Actor02400_Fn0208C(Task* task)
     scratch->t.vy                                = coord->coord.t[1];
     scratch->t.vz                                = coord->coord.t[2];
     coord->coord                                 = work->field_100;
-    scratch->mat.ident.m00M01                    = ONE;
-    scratch->mat.ident.m02M10                    = 0;
-    scratch->mat.ident.m11M12                    = ONE;
-    scratch->mat.ident.m20M21                    = 0;
-    scratch->mat.ident.m22                       = ONE;
+    scratch->mat.rotationWords.m00M01            = ONE;
+    scratch->mat.rotationWords.m02M10            = 0;
+    scratch->mat.rotationWords.m11M12            = ONE;
+    scratch->mat.rotationWords.m20M21            = 0;
+    scratch->mat.rotationWords.m22               = ONE;
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
     coord->coord.t[0] = scratch->t.vx;
@@ -1605,15 +1605,15 @@ static void Actor02400_Fn03278(Task* task)
     coord                                       = task->extra.tmd->coords;
     work                                        = task->work;
 
-    blk->scale.vx         = 0x1000;
-    blk->scale.vy         = work->field_12A;
-    blk->scale.vz         = 0x1000;
-    coord->coord          = work->field_100;
-    blk->mat.ident.m00M01 = ONE;
-    blk->mat.ident.m02M10 = 0;
-    blk->mat.ident.m11M12 = ONE;
-    blk->mat.ident.m20M21 = 0;
-    blk->mat.ident.m22    = ONE;
+    blk->scale.vx                 = 0x1000;
+    blk->scale.vy                 = work->field_12A;
+    blk->scale.vz                 = 0x1000;
+    coord->coord                  = work->field_100;
+    blk->mat.rotationWords.m00M01 = ONE;
+    blk->mat.rotationWords.m02M10 = 0;
+    blk->mat.rotationWords.m11M12 = ONE;
+    blk->mat.rotationWords.m20M21 = 0;
+    blk->mat.rotationWords.m22    = ONE;
     ScaleMatrix(&blk->mat.mat, &blk->scale);
     MulMatrix(&coord->coord, &blk->mat.mat);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;

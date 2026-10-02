@@ -6,7 +6,7 @@
 void madChaserTwistSpine(Task* arg0)
 {
     SVECTOR           rot;
-    OverlayMat        mtx;
+    GfxMatrix         mtx;
     GfxRotationWords* ident;
     MadChaserWork*    work;
     GfxCoord*         coords;
@@ -15,15 +15,15 @@ void madChaserTwistSpine(Task* arg0)
     MATRIX*           m3;
 
     work   = (MadChaserWork*)arg0->work;
-    ident  = &mtx.ident;
+    ident  = &mtx.rotationWords;
     coords = arg0->extra.tmd->coords;
 
-    mtx.ident.m00M01 = ONE;
-    mtx.ident.m02M10 = 0;
-    ident->m11M12    = ONE;
-    mtx.ident.m20M21 = 0;
-    ident->m22       = ONE;
-    m5               = &coords[5].coord;
+    mtx.rotationWords.m00M01 = ONE;
+    mtx.rotationWords.m02M10 = 0;
+    ident->m11M12            = ONE;
+    mtx.rotationWords.m20M21 = 0;
+    ident->m22               = ONE;
+    m5                       = &coords[5].coord;
     Gp_MtxToEuler(m5, &rot);
     rot.vy = (u16)rot.vy + work->field_424 / 3;
     RotMatrix(&rot, &mtx.mat);
@@ -38,12 +38,12 @@ void madChaserTwistSpine(Task* arg0)
     m5->m[2][2]            = (u16)mtx.mat.m[2][2];
     coords[5].composeStamp = GRAPHICS_COORD_DIRTY;
 
-    mtx.ident.m00M01 = ONE;
-    mtx.ident.m02M10 = 0;
-    ident->m11M12    = ONE;
-    mtx.ident.m20M21 = 0;
-    ident->m22       = ONE;
-    m4               = &coords[4].coord;
+    mtx.rotationWords.m00M01 = ONE;
+    mtx.rotationWords.m02M10 = 0;
+    ident->m11M12            = ONE;
+    mtx.rotationWords.m20M21 = 0;
+    ident->m22               = ONE;
+    m4                       = &coords[4].coord;
     Gp_MtxToEuler(m4, &rot);
     rot.vy = (u16)rot.vy + work->field_424 / 3;
     RotMatrix(&rot, &mtx.mat);
@@ -58,12 +58,12 @@ void madChaserTwistSpine(Task* arg0)
     m4->m[2][2]            = (u16)mtx.mat.m[2][2];
     coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
 
-    mtx.ident.m00M01 = ONE;
-    mtx.ident.m02M10 = 0;
-    ident->m11M12    = ONE;
-    mtx.ident.m20M21 = 0;
-    ident->m22       = ONE;
-    m3               = &coords[3].coord;
+    mtx.rotationWords.m00M01 = ONE;
+    mtx.rotationWords.m02M10 = 0;
+    ident->m11M12            = ONE;
+    mtx.rotationWords.m20M21 = 0;
+    ident->m22               = ONE;
+    m3                       = &coords[3].coord;
     Gp_MtxToEuler(m3, &rot);
     rot.vy = (u16)rot.vy + work->field_424 / 3;
     RotMatrix(&rot, &mtx.mat);

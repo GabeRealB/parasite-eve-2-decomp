@@ -603,10 +603,10 @@ static void func_actor_135400_801329B0(Task* task);
 /// world position (0x12FE, -0x1B3, 0x157C) and drops the phase back to 0.
 static void func_actor_135400_80131EB4(Task* task)
 {
-    OverlayMat  rot;
-    OverlayMat* src;
-    SVECTOR     sv;
-    GfxCoord*   coord;
+    GfxMatrix  rot;
+    GfxMatrix* src;
+    SVECTOR    sv;
+    GfxCoord*  coord;
 
     switch (task->spawnArg1.value) {
         case 1:
@@ -625,13 +625,13 @@ static void func_actor_135400_80131EB4(Task* task)
                 break;
             }
         case 3:
-            coord             = task->extra.tmd->coords;
-            src               = &rot;
-            src->ident.m00M01 = ONE;
-            src->ident.m02M10 = 0;
-            src->ident.m11M12 = ONE;
-            src->ident.m20M21 = 0;
-            src->ident.m22    = ONE;
+            coord                     = task->extra.tmd->coords;
+            src                       = &rot;
+            src->rotationWords.m00M01 = ONE;
+            src->rotationWords.m02M10 = 0;
+            src->rotationWords.m11M12 = ONE;
+            src->rotationWords.m20M21 = 0;
+            src->rotationWords.m22    = ONE;
             RotMatrixY(-0x38E, &rot.mat);
             coord->coord          = rot.mat;
             coord->coord.t[0]     = 0x12FE;

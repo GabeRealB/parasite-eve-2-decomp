@@ -2771,26 +2771,26 @@ static void Actor07000_Fn05FF8(Task* arg0)
 {
     GfxCoord*                parts;
     GfxCoord*                coord;
-    OverlayMat*              mat;
+    GfxMatrix*               mat;
     ActorShared80137e18Work* work;
 
-    work                  = arg0->work;
-    parts                 = arg0->extra.tmd->coords;
-    coord                 = &work->coord;
-    coord->parent         = parts;
-    parts[1].parent       = coord;
-    mat                   = (OverlayMat*)&coord->coord;
-    mat->ident.m00M01     = ONE;
-    mat->ident.m02M10     = 0;
-    mat->ident.m11M12     = ONE;
-    mat->ident.m20M21     = 0;
-    mat->ident.m22        = ONE;
-    coord->composeStamp   = GRAPHICS_COORD_DIRTY;
-    parts[1].composeStamp = GRAPHICS_COORD_DIRTY;
-    work->scale.vx        = 0x1000;
-    work->scale.vy        = 0x1000;
-    work->scale.vz        = 0x1000;
-    work->field_36E       = 0;
+    work                      = arg0->work;
+    parts                     = arg0->extra.tmd->coords;
+    coord                     = &work->coord;
+    coord->parent             = parts;
+    parts[1].parent           = coord;
+    mat                       = (GfxMatrix*)&coord->coord;
+    mat->rotationWords.m00M01 = ONE;
+    mat->rotationWords.m02M10 = 0;
+    mat->rotationWords.m11M12 = ONE;
+    mat->rotationWords.m20M21 = 0;
+    mat->rotationWords.m22    = ONE;
+    coord->composeStamp       = GRAPHICS_COORD_DIRTY;
+    parts[1].composeStamp     = GRAPHICS_COORD_DIRTY;
+    work->scale.vx            = 0x1000;
+    work->scale.vy            = 0x1000;
+    work->scale.vz            = 0x1000;
+    work->field_36E           = 0;
     if (work->field_36A != 5) {
         Gp_SpawnEff(EFFECT_CORPSE_BURN, arg0->extra.tmd->coords, 2, NULL);
     }

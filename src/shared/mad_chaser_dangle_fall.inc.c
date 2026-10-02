@@ -8,20 +8,20 @@ void madChaserDangleFall(Task* arg0)
 {
     MadChaserWork* work;
     GfxCoord*      coord;
-    OverlayMat     rot;
-    OverlayMat*    src;
+    GfxMatrix      rot;
+    GfxMatrix*     src;
     MATRIX*        dst;
     MadChaserWork* anim;
 
-    work              = (MadChaserWork*)arg0->work;
-    coord             = arg0->extra.tmd->coords;
-    src               = &rot;
-    src->ident.m00M01 = ONE;
-    src->ident.m02M10 = 0;
-    src->ident.m11M12 = ONE;
-    src->ident.m20M21 = 0;
-    src->ident.m22    = ONE;
-    work->field_434  += -work->field_434 >> 2;
+    work                      = (MadChaserWork*)arg0->work;
+    coord                     = arg0->extra.tmd->coords;
+    src                       = &rot;
+    src->rotationWords.m00M01 = ONE;
+    src->rotationWords.m02M10 = 0;
+    src->rotationWords.m11M12 = ONE;
+    src->rotationWords.m20M21 = 0;
+    src->rotationWords.m22    = ONE;
+    work->field_434          += -work->field_434 >> 2;
     RotMatrixX(work->field_434, &src->mat);
     RotMatrixY(work->field_7A, &src->mat);
     dst                = &coord->coord;

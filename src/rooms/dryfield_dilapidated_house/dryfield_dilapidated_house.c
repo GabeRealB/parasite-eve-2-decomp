@@ -3246,7 +3246,7 @@ static void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts,
 {
     SVECTOR           a;
     SVECTOR           b;
-    OverlayMat        rot;
+    GfxMatrix         rot;
     DdhScreenPoint    proj[2];
     DdhCoordWork*     work;
     MATRIX*           mtx;
@@ -3311,20 +3311,20 @@ static void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts,
     gte_stdp(&proj[0].depthCue);
     gte_stflg(arg3);
     gte_stszotz(arg2);
-    dy               = proj[0].sxy.vy - proj[1].sxy.vy;
-    x1               = proj[1].sxy.vx;
-    x0               = proj[0].sxy.vx;
-    dx               = x1 - x0;
-    y0               = proj[0].sxy.vy;
-    y1               = proj[1].sxy.vy;
-    i                = ratan2(dx, dy);
-    scale            = gDisplayState.screenDistance;
-    rot.ident.m00M01 = ONE;
-    rot.ident.m02M10 = 0;
-    words            = &rot.ident;
-    words->m11M12    = ONE;
-    rot.ident.m20M21 = 0;
-    words->m22       = ONE;
+    dy                       = proj[0].sxy.vy - proj[1].sxy.vy;
+    x1                       = proj[1].sxy.vx;
+    x0                       = proj[0].sxy.vx;
+    dx                       = x1 - x0;
+    y0                       = proj[0].sxy.vy;
+    y1                       = proj[1].sxy.vy;
+    i                        = ratan2(dx, dy);
+    scale                    = gDisplayState.screenDistance;
+    rot.rotationWords.m00M01 = ONE;
+    rot.rotationWords.m02M10 = 0;
+    words                    = &rot.rotationWords;
+    words->m11M12            = ONE;
+    rot.rotationWords.m20M21 = 0;
+    words->m22               = ONE;
     RotMatrixZ(i, &rot.mat);
     gte_SetRotMatrix(&rot.mat);
     for (i = 0; i < 6; i++) {

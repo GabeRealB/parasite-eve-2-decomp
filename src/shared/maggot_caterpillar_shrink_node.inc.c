@@ -17,14 +17,14 @@ void maggotCaterpillarShrinkNode2(Task* actor)
     SCRATCH_HEAD_AT(scratch, ActorScaleScratch) = blk;
     coord                                       = actor->extra.tmd->coords;
 
-    blk->scale.vx         = 0x100;
-    blk->scale.vy         = 0x100;
-    blk->scale.vz         = 0x100;
-    blk->mat.ident.m00M01 = ONE;
-    blk->mat.ident.m02M10 = 0;
-    blk->mat.ident.m11M12 = ONE;
-    blk->mat.ident.m20M21 = 0;
-    blk->mat.ident.m22    = ONE;
+    blk->scale.vx                 = 0x100;
+    blk->scale.vy                 = 0x100;
+    blk->scale.vz                 = 0x100;
+    blk->mat.rotationWords.m00M01 = ONE;
+    blk->mat.rotationWords.m02M10 = 0;
+    blk->mat.rotationWords.m11M12 = ONE;
+    blk->mat.rotationWords.m20M21 = 0;
+    blk->mat.rotationWords.m22    = ONE;
     ScaleMatrix(&blk->mat.mat, &blk->scale);
     MulMatrix(&coord[2].coord, &blk->mat.mat);
     SCRATCH_POP_AT(scratch, ActorScaleScratch);

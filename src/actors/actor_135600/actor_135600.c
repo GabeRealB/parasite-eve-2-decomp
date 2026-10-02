@@ -667,25 +667,25 @@ static s32 func_actor_135600_80131E68(GfxCoord* coord, s32 arg1);
 /// runs on as `arg1`.
 static s32 func_actor_135600_80131E68(GfxCoord* coord, s32 arg1)
 {
-    SVECTOR    v0;
-    SVECTOR    v1;
-    SVECTOR    pos;
-    SVECTOR    quad[4];
-    OverlayMat m;
-    MATRIX*    mtx;
-    long       sxy0;
-    long       p;
-    long       flag;
-    long       sxy1;
-    s16        y0;
-    s16        y1;
-    s32        rot;
-    u16        x0;
-    u16        x1;
-    s32        depth;
-    POLY_F4*   poly;
-    DR_TPAGE*  tpage;
-    s32        i;
+    SVECTOR   v0;
+    SVECTOR   v1;
+    SVECTOR   pos;
+    SVECTOR   quad[4];
+    GfxMatrix m;
+    MATRIX*   mtx;
+    long      sxy0;
+    long      p;
+    long      flag;
+    long      sxy1;
+    s16       y0;
+    s16       y1;
+    s32       rot;
+    u16       x0;
+    u16       x1;
+    s32       depth;
+    POLY_F4*  poly;
+    DR_TPAGE* tpage;
+    s32       i;
 
     Gp_UpdateCoord(coord);
     mtx = &m.mat;
@@ -724,7 +724,7 @@ static s32 func_actor_135600_80131E68(GfxCoord* coord, s32 arg1)
      * written that way keeps its address in the register `RotMatrixZ` is
      * handed, where the ones naming `m` directly fold to a frame-relative
      * address, and the target has both. */
-    m.ident.m00M01            = ONE;
+    m.rotationWords.m00M01    = ONE;
     MATRIX_PAIR(&m.mat, 0, 2) = 0;
     MATRIX_PAIR(mtx, 1, 1)    = 0x1000;
     MATRIX_PAIR(&m.mat, 2, 0) = 0;
@@ -925,7 +925,7 @@ void func_actor_135600_80132ABC(Task* task)
 /// set to 0x1000, the value the marker's draw state runs on.
 static void func_actor_135600_80132B14(Task* task)
 {
-    OverlayMat m;
+    GfxMatrix  m;
     MATRIX*    mtx;
     Task*      parent;
     s32        part;
@@ -946,7 +946,7 @@ static void func_actor_135600_80132B14(Task* task)
     coord->coord.t[2] = 0;
 
     mtx                    = &m.mat;
-    m.ident.m00M01         = ONE;
+    m.rotationWords.m00M01 = ONE;
     MATRIX_PAIR(mtx, 0, 2) = 0;
     MATRIX_PAIR(mtx, 1, 1) = 0x1000;
     MATRIX_PAIR(mtx, 2, 0) = 0;

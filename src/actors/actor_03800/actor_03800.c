@@ -799,10 +799,10 @@ static void Actor03800_Fn003B8(Task* arg0)
     Actor103800Work* work;
     Enemy*           ctx;
     GfxCoord*        src;
-    OverlayMat*      mtx;
-    OverlayMat*      srcmtx;
-    OverlayMat*      mtx2;
-    OverlayMat*      srcmtx2;
+    GfxMatrix*       mtx;
+    GfxMatrix*       srcmtx;
+    GfxMatrix*       mtx2;
+    GfxMatrix*       srcmtx2;
     SVECTOR          rot;
     MATRIX           mat;
     s16              mode;
@@ -844,12 +844,12 @@ static void Actor03800_Fn003B8(Task* arg0)
             work->field_37A = 0;
             work->field_2CC = src->coord;
 
-            mtx               = (OverlayMat*)&work->coord.coord;
-            mtx->ident.m00M01 = ONE;
-            mtx->ident.m02M10 = 0;
-            mtx->ident.m11M12 = ONE;
-            mtx->ident.m20M21 = 0;
-            mtx->ident.m22    = ONE;
+            mtx                       = (GfxMatrix*)&work->coord.coord;
+            mtx->rotationWords.m00M01 = ONE;
+            mtx->rotationWords.m02M10 = 0;
+            mtx->rotationWords.m11M12 = ONE;
+            mtx->rotationWords.m20M21 = 0;
+            mtx->rotationWords.m22    = ONE;
 
             work->coord.parent     = &gGfxViewCoord;
             work->coord.coord      = src->coord;
@@ -857,12 +857,12 @@ static void Actor03800_Fn003B8(Task* arg0)
             work->coord.coord.t[1] = src->coord.t[1];
             work->coord.coord.t[2] = src->coord.t[2];
 
-            srcmtx               = (OverlayMat*)&src->coord;
-            srcmtx->ident.m00M01 = ONE;
-            srcmtx->ident.m02M10 = 0;
-            srcmtx->ident.m11M12 = ONE;
-            srcmtx->ident.m20M21 = 0;
-            srcmtx->ident.m22    = ONE;
+            srcmtx                       = (GfxMatrix*)&src->coord;
+            srcmtx->rotationWords.m00M01 = ONE;
+            srcmtx->rotationWords.m02M10 = 0;
+            srcmtx->rotationWords.m11M12 = ONE;
+            srcmtx->rotationWords.m20M21 = 0;
+            srcmtx->rotationWords.m22    = ONE;
 
             src->parent     = &work->coord;
             src->coord.t[0] = 0;
@@ -894,12 +894,12 @@ static void Actor03800_Fn003B8(Task* arg0)
             work->field_37A = 0;
             work->field_2CC = src->coord;
 
-            mtx2               = (OverlayMat*)&work->coord.coord;
-            mtx2->ident.m00M01 = ONE;
-            mtx2->ident.m02M10 = 0;
-            mtx2->ident.m11M12 = ONE;
-            mtx2->ident.m20M21 = 0;
-            mtx2->ident.m22    = ONE;
+            mtx2                       = (GfxMatrix*)&work->coord.coord;
+            mtx2->rotationWords.m00M01 = ONE;
+            mtx2->rotationWords.m02M10 = 0;
+            mtx2->rotationWords.m11M12 = ONE;
+            mtx2->rotationWords.m20M21 = 0;
+            mtx2->rotationWords.m22    = ONE;
 
             work->coord.parent     = &gGfxViewCoord;
             work->coord.coord      = src->coord;
@@ -907,12 +907,12 @@ static void Actor03800_Fn003B8(Task* arg0)
             work->coord.coord.t[1] = src->coord.t[1];
             work->coord.coord.t[2] = src->coord.t[2];
 
-            srcmtx2               = (OverlayMat*)&src->coord;
-            srcmtx2->ident.m00M01 = ONE;
-            srcmtx2->ident.m02M10 = 0;
-            srcmtx2->ident.m11M12 = ONE;
-            srcmtx2->ident.m20M21 = 0;
-            srcmtx2->ident.m22    = ONE;
+            srcmtx2                       = (GfxMatrix*)&src->coord;
+            srcmtx2->rotationWords.m00M01 = ONE;
+            srcmtx2->rotationWords.m02M10 = 0;
+            srcmtx2->rotationWords.m11M12 = ONE;
+            srcmtx2->rotationWords.m20M21 = 0;
+            srcmtx2->rotationWords.m22    = ONE;
 
             src->parent     = &work->coord;
             src->coord.t[0] = 0;
@@ -2489,15 +2489,15 @@ static void Actor03800_Fn037E0(Task* arg0)
     if (work->field_35A >= 0x201) {
         work->field_35A = (u16)work->field_35A - 0x50;
     }
-    scratch->scale.vx         = 0x1000;
-    scratch->scale.vy         = (s32)work->field_35A;
-    scratch->scale.vz         = 0x1000;
-    coord->coord              = work->field_2CC;
-    scratch->mat.ident.m00M01 = ONE;
-    scratch->mat.ident.m02M10 = 0;
-    scratch->mat.ident.m11M12 = ONE;
-    scratch->mat.ident.m20M21 = 0;
-    scratch->mat.ident.m22    = ONE;
+    scratch->scale.vx                 = 0x1000;
+    scratch->scale.vy                 = (s32)work->field_35A;
+    scratch->scale.vz                 = 0x1000;
+    coord->coord                      = work->field_2CC;
+    scratch->mat.rotationWords.m00M01 = ONE;
+    scratch->mat.rotationWords.m02M10 = 0;
+    scratch->mat.rotationWords.m11M12 = ONE;
+    scratch->mat.rotationWords.m20M21 = 0;
+    scratch->mat.rotationWords.m22    = ONE;
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;

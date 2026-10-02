@@ -114,8 +114,8 @@ STATIC_ASSERT_SIZEOF(ActorScratchStack, 0x4);
 /// Scaling a coordinate's rotation: an identity matrix scaled by `scale`,
 /// then multiplied into the coordinate.
 typedef struct ActorScaleScratch {
-    OverlayMat mat;
-    VECTOR     scale;
+    GfxMatrix mat;
+    VECTOR    scale;
 } ActorScaleScratch;
 STATIC_ASSERT_SIZEOF(ActorScaleScratch, 0x30);
 

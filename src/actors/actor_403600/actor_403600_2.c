@@ -106,17 +106,17 @@ typedef struct Actor403600DistanceScratch {
 STATIC_ASSERT_SIZEOF(Actor403600DistanceScratch, 0x24);
 
 typedef struct Actor403600TurnScratch {
-    /* 0x00 */ u16        angles[4];
-    /* 0x08 */ s16        vector[4];
-    /* 0x10 */ OverlayMat matrix;
+    /* 0x00 */ u16       angles[4];
+    /* 0x08 */ s16       vector[4];
+    /* 0x10 */ GfxMatrix matrix;
 } Actor403600TurnScratch;
 STATIC_ASSERT_SIZEOF(Actor403600TurnScratch, 0x30);
 
 /// Scratch vector, rotation matrix and yaw used by func_actor_403600_8013C864.
 typedef struct Actor403600TargetScratch {
-    /* 0x00 */ SVECTOR    vector;
-    /* 0x08 */ OverlayMat matrix;
-    /* 0x28 */ s32        angle;
+    /* 0x00 */ SVECTOR   vector;
+    /* 0x08 */ GfxMatrix matrix;
+    /* 0x28 */ s32       angle;
 } Actor403600TargetScratch;
 STATIC_ASSERT_SIZEOF(Actor403600TargetScratch, 0x2C);
 
@@ -2507,17 +2507,17 @@ static void func_actor_403600_8013A444(Task* arg0)
 /// an identity turn matrix for `RotMatrixY` to rotate.
 static inline void _actor403600ArcStart(Actor403600TargetScratch* s)
 {
-    OverlayMat* m;
+    GfxMatrix* m;
 
-    s->vector.vx    = 0;
-    s->vector.vy    = 0;
-    m               = &s->matrix;
-    s->vector.vz    = 0x3A98 - D_actor_403600_801605D4.vz;
-    m->ident.m00M01 = ONE;
-    m->ident.m02M10 = 0;
-    m->ident.m11M12 = ONE;
-    m->ident.m20M21 = 0;
-    m->ident.m22    = ONE;
+    s->vector.vx            = 0;
+    s->vector.vy            = 0;
+    m                       = &s->matrix;
+    s->vector.vz            = 0x3A98 - D_actor_403600_801605D4.vz;
+    m->rotationWords.m00M01 = ONE;
+    m->rotationWords.m02M10 = 0;
+    m->rotationWords.m11M12 = ONE;
+    m->rotationWords.m20M21 = 0;
+    m->rotationWords.m22    = ONE;
 }
 
 /// Rotates the arc vector by the turn matrix on the GTE and places the actor's
@@ -3142,9 +3142,9 @@ static s32 func_actor_403600_8013DFE0(Task* arg0)
     s32                     stepped;
     s32                     temp_lo;
     s32                     temp_s5;
-    OverlayMat*             temp_s0;
+    GfxMatrix*              temp_s0;
     MATRIX*                 temp_s0_2;
-    OverlayMat*             temp_s0_3;
+    GfxMatrix*              temp_s0_3;
     MATRIX*                 temp_s0_4;
     SVECTOR*                temp_s1;
     SVECTOR*                temp_s2;
@@ -3187,13 +3187,13 @@ static s32 func_actor_403600_8013DFE0(Task* arg0)
     temp_lo   = temp_v0_3 * temp_v0_3;
     temp_s5   = SquareRoot0((temp_v0 * temp_v0) + (temp_v0_2 * temp_v0_2) + temp_lo);
     if (temp_s4->field_746 == 3) {
-        temp_s2                        = (SVECTOR*)temp_v1_2->vector;
-        temp_s0                        = &temp_v1_2->matrix;
-        temp_v1_2->matrix.ident.m00M01 = ONE;
-        temp_s0->ident.m02M10          = 0;
-        temp_s0->ident.m11M12          = ONE;
-        temp_s0->ident.m20M21          = 0;
-        temp_s0->ident.m22             = ONE;
+        temp_s2                                = (SVECTOR*)temp_v1_2->vector;
+        temp_s0                                = &temp_v1_2->matrix;
+        temp_v1_2->matrix.rotationWords.m00M01 = ONE;
+        temp_s0->rotationWords.m02M10          = 0;
+        temp_s0->rotationWords.m11M12          = ONE;
+        temp_s0->rotationWords.m20M21          = 0;
+        temp_s0->rotationWords.m22             = ONE;
         VectorNormalSS(temp_s2, temp_s2);
         temp_v1_2->angles[0] = 0;
         temp_v1_2->angles[1] = 0x1000;
@@ -3205,13 +3205,13 @@ static s32 func_actor_403600_8013DFE0(Task* arg0)
         Gfx_RotMatrixXYZ(temp_s0_2, (SVECTOR*)temp_v1_2, 1);
         Gfx_MatrixCol2(temp_s0_2, (SVECTOR*)temp_v1_2);
     } else {
-        temp_s1                        = (SVECTOR*)temp_v1_2->vector;
-        temp_s0_3                      = &temp_v1_2->matrix;
-        temp_v1_2->matrix.ident.m00M01 = ONE;
-        temp_s0_3->ident.m02M10        = 0;
-        temp_s0_3->ident.m11M12        = ONE;
-        temp_s0_3->ident.m20M21        = 0;
-        temp_s0_3->ident.m22           = ONE;
+        temp_s1                                = (SVECTOR*)temp_v1_2->vector;
+        temp_s0_3                              = &temp_v1_2->matrix;
+        temp_v1_2->matrix.rotationWords.m00M01 = ONE;
+        temp_s0_3->rotationWords.m02M10        = 0;
+        temp_s0_3->rotationWords.m11M12        = ONE;
+        temp_s0_3->rotationWords.m20M21        = 0;
+        temp_s0_3->rotationWords.m22           = ONE;
         VectorNormalSS(temp_s1, temp_s1);
         temp_v1_2->angles[0] = 0;
         temp_v1_2->angles[1] = 0x1000;
@@ -3888,8 +3888,8 @@ static void func_actor_403600_8013F7B8(Enemy* enemy, Task* task)
     s32                    angle;
     s32                    i;
     u32                    randomState;
-    OverlayMat*            worldMatrix;
-    OverlayMat*            modelMatrix;
+    GfxMatrix*             worldMatrix;
+    GfxMatrix*             modelMatrix;
 
     model      = task->extra.tmd;
     modelCoord = model->coords;
@@ -3905,22 +3905,22 @@ static void func_actor_403600_8013F7B8(Enemy* enemy, Task* task)
     model->flags                      = TMD_OBJECT_SEMI_TRANS;
     model->shading.screenFadeDistance = 0;
     work->field_4B8.parent            = &gGfxViewCoord;
-    worldMatrix                       = (OverlayMat*)&work->field_4B8.coord;
-    worldMatrix->ident.m00M01         = ONE;
-    worldMatrix->ident.m02M10         = 0;
-    worldMatrix->ident.m11M12         = ONE;
-    worldMatrix->ident.m20M21         = 0;
-    worldMatrix->ident.m22            = ONE;
-    modelMatrix                       = (OverlayMat*)&modelCoord->coord;
+    worldMatrix                       = (GfxMatrix*)&work->field_4B8.coord;
+    worldMatrix->rotationWords.m00M01 = ONE;
+    worldMatrix->rotationWords.m02M10 = 0;
+    worldMatrix->rotationWords.m11M12 = ONE;
+    worldMatrix->rotationWords.m20M21 = 0;
+    worldMatrix->rotationWords.m22    = ONE;
+    modelMatrix                       = (GfxMatrix*)&modelCoord->coord;
     work->field_4B8.coord.t[0]        = 0;
     work->field_4B8.coord.t[1]        = 0;
     work->field_4B8.coord.t[2]        = 0;
     modelCoord->parent                = worldCoord;
-    modelMatrix->ident.m00M01         = ONE;
-    modelMatrix->ident.m02M10         = 0;
-    modelMatrix->ident.m11M12         = ONE;
-    modelMatrix->ident.m20M21         = 0;
-    modelMatrix->ident.m22            = ONE;
+    modelMatrix->rotationWords.m00M01 = ONE;
+    modelMatrix->rotationWords.m02M10 = 0;
+    modelMatrix->rotationWords.m11M12 = ONE;
+    modelMatrix->rotationWords.m20M21 = 0;
+    modelMatrix->rotationWords.m22    = ONE;
     modelCoord->coord.t[0]            = 0;
     modelCoord->coord.t[1]            = 0x744;
     modelCoord->coord.t[2]            = 0;

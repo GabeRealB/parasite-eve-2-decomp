@@ -55319,7 +55319,7 @@ The source used a word-wise view of the matrix, which a union expresses
 without pointer arithmetic:
 
 ```c
-OverlayMat* mat; /* MATRIX mat plus the GfxRotationWords ident view */
+GfxMatrix* mat; /* MATRIX mat plus the GfxRotationWords rotationWords view */
 ```
 
 The base register is the second half of the tell. `a1` here is the
@@ -55330,8 +55330,8 @@ the scheduler hoists `addiu a1,s0,4` into a branch delay slot far above and
 every store stays on `s0`. Bind one local pointer and use it for both:
 
 ```c
-mat                = (OverlayMat*)&coord->coord;
-mat->ident.m00M01 = 0x1000;
+mat                = (GfxMatrix*)&coord->coord;
+mat->rotationWords.m00M01 = 0x1000;
 /* ... */
 RotMatrixX(coord->angle, &mat->mat);
 ```
@@ -69264,7 +69264,7 @@ row pointer into `idx`'s call-crossing `$s0` quantity, and the matrix pointer
 needs a fresh saved register.
 
 Writing that one store as a struct member of a word-view union
-(`m.ident.m00M01 = 0x1000`, the rest through `ident = &m.ident`) makes it
+(`m.rotationWords.m00M01 = 0x1000`, the rest through `ident = &m.rotationWords`) makes it
 in-struct, so it conflicts with the `t[]` stores and stays in the chain; the
 argument moves fill the idle slots in the target's order and the function
 went from 80% to 100% (with three store-order fixes in later blocks).
@@ -69843,17 +69843,17 @@ the symbol maps, so do not go looking there.
 `func_actor_342400_8016BD98` splats an identity into a local union and passes
 `&m.mat` to `ScaleMatrix`/`MulMatrix`. Target: `sw v0,0x20(sp)`,
 `sw zero,0x24(sp)`, `sw v0,8(s1)`, `sw zero,0x2c(sp)`, `sh v0,0x10(s1)`, with
-`s1 = sp+0x20` the call argument. Writing all five as `m.ident.x = ...` puts
+`s1 = sp+0x20` the call argument. Writing all five as `m.rotationWords.x = ...` puts
 every store on `$sp` (99%, regs + reorder). The mixed bases come from the
 source reaching two of the words through a pointer to the word view, as
 `ActorsShared801639a8` already does:
 
 ```c
-ident           = &m.ident;   /* GfxRotationWords* */
-m.ident.m00M01 = 0x1000;
-m.ident.m02M10 = 0;
+ident           = &m.rotationWords;   /* GfxRotationWords* */
+m.rotationWords.m00M01 = 0x1000;
+m.rotationWords.m02M10 = 0;
 ident->m11M12  = 0x1000;
-m.ident.m20M21 = 0;
+m.rotationWords.m20M21 = 0;
 ident->m22      = 0x1000;
 ```
 
@@ -72225,7 +72225,7 @@ takes `$v1` instead of `$v0`. Retail emits the block in source order with
 `li a2, 1` filling that slot.
 
 Writing the words as named union fields restores `MEM_IN_STRUCT_P`, the
-dependence, and the order. This is the shape `OverlayMat` already uses;
+dependence, and the order. This is the shape `GfxMatrix` already uses;
 widen it to the whole `GfxCoord` when the identity is built in a local
 coordinate:
 
@@ -73345,17 +73345,17 @@ sw   zero,0xc(v1)
 A `*(s32*)&x` store is not a component reference, so its MEM lacks
 `MEM_IN_STRUCT_P` while the member stores around it carry it; GCC 2.8.1's
 alias check treats the two classes as independent and sched1 is free to move
-them past each other. Give the pointer a union type whose `ident` half names
+them past each other. Give the pointer a union type whose `rotationWords` member names
 the word pairs - the project has one shared by rooms and actors,
-`OverlayMat` - so every store is a real
+`GfxMatrix` - so every store is a real
 component reference and source order survives:
 
 ```c
-mtx                = (OverlayMat*)&D_x.c.coord;
-mtx->ident.m02M10 = 0;
-mtx->ident.m11M12 = 0x1000;
-mtx->ident.m20M21 = 0;
-mtx->ident.m22     = 0x1000;
+mtx                = (GfxMatrix*)&D_x.c.coord;
+mtx->rotationWords.m02M10 = 0;
+mtx->rotationWords.m11M12 = 0x1000;
+mtx->rotationWords.m20M21 = 0;
+mtx->rotationWords.m22     = 0x1000;
 ```
 
 Two further points for a global rather than a stack coordinate:
@@ -74346,8 +74346,8 @@ SCRATCH_SP -= sizeof(Actor444000RunScratch);
 sc          = (Actor444000RunScratch*)SCRATCH_SP;   /* separate pseudo: move s3,v1 */
 ...
 mat = &((Actor444000RunScratch*)(head - sizeof(Actor444000RunScratch)))->m;
-mat->ident.m00M01 = 0x1000;   /* CSE folds this one back to -0x24(a0) */
-mat->ident.m02M10 = 0;        /* the rest keep the materialised base  */
+mat->rotationWords.m00M01 = 0x1000;   /* CSE folds this one back to -0x24(a0) */
+mat->rotationWords.m02M10 = 0;        /* the rest keep the materialised base  */
 ```
 
 Reading `sc` back out of `SCRATCH_SP` rather than computing it from `head` is
@@ -76884,7 +76884,7 @@ because it modelled the identity splat as loose scalars (`sp18` / `sp1C` /
 `sp24` plus invented `unksp1A` … names), so the nine copy stores read the wrong
 slots. Structure match with insert/delete-only penalties on a rotation function
 is that signature. Write the block as the overlay's own word-view union — the
-`OverlayMat` shape, five aligned stores for
+`GfxMatrix` shape, five aligned stores for
 the identity — and copy with `dest->m[i][j] = matrix.mat.m[i][j];`. The
 project's `MATRIX` is `short m[3][3]; long t[3];`, so both sides are nine
 *consecutive* halfwords (`m[1][0]` at +6, `m[2][2]` at +0x10); a 4x4 reading
@@ -82173,7 +82173,7 @@ byte offsets.
 
 When a ported body has to keep the target's *base-relative* first store — here
 `sw v1,0x670(v0)` against `sw zero,4(a0)` for the rest — write the first store
-through the container (`work->light.ident.m00M01`) and take the element pointer
+through the container (`work->light.rotationWords.m00M01`) and take the element pointer
 on the next statement. Assigning the pointer first makes GCC address every store
 off it and the displacement disappears from the encoding.
 
@@ -93381,7 +93381,7 @@ Three consequences showed up in one function (`Actor00400_Fn02648`):
 
 **A reused pointer variable loses its register to the block's temporaries.**
 Writing one `GfxRotationWords* ip` and reassigning it for each matrix
-(`&ma.ident`, then `&mb.ident`, then `&rot.ident`) makes it global, so the
+(`&ma.matrix.rotationWords`, then `&mb.matrix.rotationWords`, then `&rot.matrix.rotationWords`) makes it global, so the
 block's own single-assignment temporaries take `$s1`-`$s3` first and `ip`
 lands in `$s4`. Declaring `ia`, `ib`, `ir` as separate single-assignment
 pointers in the same block makes all three local; local-alloc orders
@@ -100689,7 +100689,7 @@ five-word idiom (`*(s32*)&m->m[0][0] = 0x1000;` and friends). There are two ways
 to write it and they are not equivalent to the allocator:
 
 ```c
-m.ident.m00M01      = 0x1000;   /* direct on the object   -> fp-relative store */
+m.rotationWords.m00M01      = 0x1000;   /* direct on the object   -> fp-relative store */
 *(s32*)&mtx->m[0][2] = 0;        /* through MATRIX* mtx = &m.mat -> register store */
 ```
 
@@ -100724,8 +100724,8 @@ The mix in the source is legible in the target object. Here the target's first
 store is `sw $s3,0x10($sp)` and the rest are on the same register the two calls
 pass in `a1`, i.e. one direct store then four through the pointer - and that is
 exactly what the source has to say. Both splits appear among matched siblings:
-`func_actor_206100_8014EB60` writes two direct (`matrix.ident.m00M01`,
-`matrix.ident.m02M10`) and three through `mtx`, and its target asm shows the
+`func_actor_206100_8014EB60` writes two direct (`matrix.rotationWords.m00M01`,
+`matrix.rotationWords.m02M10`) and three through `mtx`, and its target asm shows the
 same two `($sp)` / three `($s1)` split; `actor_107600` and `actor_403600` write
 all five through a pointer that is a runtime value already. Read a sibling's
 target asm before choosing - the store bases say which form each line used.
@@ -100821,12 +100821,12 @@ halfwords stay on the outer pointer (`sh $v0,0x4A4($v1)`). That is one local
 word-view pointer for the splat plus direct member writes for the overwrite:
 
 ```c
-    light = (OverlayMat*)&work->light;   /* union: MATRIX + four words and a halfword */
-    light->ident.m00M01 = 0x1000;                /* first store: 0x484($v1) */
-    light->ident.m02M10 = 0;
-    light->ident.m11M12 = 0x1000;
-    light->ident.m20M21 = 0;
-    light->ident.m22     = 0x1000;
+    light = (GfxMatrix*)&work->light;   /* union: MATRIX + four words and a halfword */
+    light->rotationWords.m00M01 = 0x1000;                /* first store: 0x484($v1) */
+    light->rotationWords.m02M10 = 0;
+    light->rotationWords.m11M12 = 0x1000;
+    light->rotationWords.m20M21 = 0;
+    light->rotationWords.m22     = 0x1000;
     /* ...the colour matrix, then the republish... */
     work->color.m[0][0] = 0x1000;                 /* 0x4A4($v1): no pointer involved */
 ```
@@ -100869,8 +100869,9 @@ Evidence: scratch `nonmatchings/func_actor_311900_8016278C-vacuum/`. `base.c`
 `8e2bf86f…` (m2c seed, 87.78%, object `90bf4dd9…`), `base_1.c` `c94933f6…`
 (two store widths retyped, 100.000%), `base_2.c` `57f4a3af…` (typed port, same
 object `3bbd323f…` as `base_1.c`, `build.sh` reports it as a repeat). Compiler
-`60d886cd…` throughout. `include/actors/actor_311900.h` is new, holding
-`OverlayMat` and `Actor311900Work`.
+`60d886cd…` throughout. `Actor311900Work` is declared in
+`src/actors/actor_311900/actor_311900.c`; `GfxMatrix` is declared in
+`include/main/gfx_types.h`.
 
 ## `regs` counts every operand field, so an immediate mismatch is a types bug, not allocation (func_actor_311900_801624F8, 2026-09-16)
 
@@ -104803,14 +104804,14 @@ fact:
 
 ```
 target:   addiu s1,sp,0x20 / addu a0,s1,zero      (early, before the stores)
-          sw v0,8(s1)                             (m.ident.m11M12)
+          sw v0,8(s1)                             (m.rotationWords.m11M12)
           sh v0,0x10(s1)                          (ident->m22)
 seed:     sw v0,0x28(sp) / sh v0,0x30(sp)         (same two stores, folded)
           and sw v0,0x18(sp) emitted before lh v1,0x430(s2)
 ```
 
 The fix was to declare and initialise a named pointer exactly as the sibling
-does, `ident = &m.ident;`, and write two of the five splat stores through it
+does, `ident = &m.rotationWords;`, and write two of the five splat stores through it
 (`ident->m11M12`, `ident->m22`). Nothing else changed.
 
 This is the positive form of the rule the "`&local` passed to two back-to-back
@@ -104846,10 +104847,10 @@ statements were already right, so the whole difference was whether `&rot` was
 named:
 
 ```c
-    OverlayMat   rot;
-    OverlayMat*  src;
+    GfxMatrix   rot;
+    GfxMatrix*  src;
     src                = &rot;
-    src->ident.m00M01 = 0x1000;
+    src->rotationWords.m00M01 = 0x1000;
 ```
 
 The named pointer keeps the frame address live across both calls, so the target
@@ -117179,16 +117180,16 @@ the model's root coordinate, and scales a second local the same way. The two
 initialisers write the same five words, and the target emits them split:
 
 ```
-sw   s1,0x18(sp)      /* matrix.ident.m00M01   */
-sw   zero,0x1c(sp)    /* matrix.ident.m02M10   */
+sw   s1,0x18(sp)      /* matrix.rotationWords.m00M01   */
+sw   zero,0x1c(sp)    /* matrix.rotationWords.m02M10   */
 sw   s1,8(s0)         /* *(s32*)&mtx->m[1][1]   */
-sw   zero,0x24(sp)    /* matrix.ident.m20M21   */
+sw   zero,0x24(sp)    /* matrix.rotationWords.m20M21   */
 sh   s1,0x10(s0)      /* mtx->m[2][2]           */
 ```
 
 Three of the five are frame-relative, two are displacements off `$s0`, and
 `$s0` is `&matrix` — the same register the two calls get. Writing all five by
-naming the members (or the union's `ident` view) leaves every one of them
+naming the members (or the union's `rotationWords` view) leaves every one of them
 frame-relative and `$s0` is never materialised: 89.822% with the rest of the
 function already correct.
 
@@ -117231,14 +117232,14 @@ sums off one register (`4(s3)`, `6(s3)`, …) and no second base. That first-sto
 fold is the same one "Scratch frame: address the pre-decrement head" documents.
 
 Note the mode flags fall out of the same rewrite and agree with "The same
-exemption from the store side": the `.ident` stores are `mem/s:SI`, the
+exemption from the store side": the `.rotationWords` stores are `mem/s:SI`, the
 `mtx->`/`dest->` ones plain `mem:SI`, because a pointer-typed base clears
 `MEM_IN_STRUCT_P`.
 
 The rule crosses families unchanged: `func_dryfield_breezeway_8017F1F4` (a room
 overlay) builds the same identity splat for its `RotMatrixZ` and shows the same
-3-frame + 2-`$s0` split, so its `OverlayMat` union (the room's word-wise view,
-`dryfield_breezeway.h`) is named for the three words it can pair and the two
+3-frame + 2-`$s0` split, so its `GfxMatrix` union (the word-wise view in
+`include/main/gfx_types.h`) is named for the three words it can pair and the two
 diagonal ones go through a `MATRIX* mtx = &matw.mat` instead. Reading all five
 off the union gives all five frame-relative (98.756%); the split is the tell
 here too, and `func_actor_403100_801339EC` is the matched sibling to copy the
@@ -127877,7 +127878,7 @@ The identity-matrix splat in `func_actor_135600_80131E68` writes five words into
 block*:
 
 ```
-sw    v0, 0x48($sp)     # m.ident.m00M01
+sw    v0, 0x48($sp)     # m.rotationWords.m00M01
 sw    zero, 0x4C($sp)   # m02M10
 sw    v0, 8(a1)         # m11M12   <- a1 = &m.mat, the RotMatrixZ argument
 sw    zero, 0x54($sp)   # m20M21
@@ -127890,13 +127891,13 @@ base register differs, so no amount of register shuffling fixes it. Which form a
 takes is decided by how the C spells the address: a store written *through a live local
 pointer* (`*(s32*)&mtx->m[1][1] = 0x1000;`, `mtx->m[2][2] = 0x1000;`) keeps the pointer's
 register and renders `disp($sN)`, while the same store written against the object
-(`m.ident.m00M01 = 0x1000;`, `*(s32*)&m.mat.m[0][2] = 0;`) folds to the frame pointer.
+(`m.rotationWords.m00M01 = 0x1000;`, `*(s32*)&m.mat.m[0][2] = 0;`) folds to the frame pointer.
 A target that mixes the two forms mixed the two spellings — reproduce the mix store by
 store. Writing the two pointer stores by object name as well (`base_4.c`) leaves both as
 `disp($sp)` and stalls at 99.918% (`regs=4`); the mixed spelling is 100.000%.
 
 The unmixed direction has its own worked example two functions away:
-`func_actor_135600_80132B14`'s splat is `m.ident.m00M01` plus four `mtx->` stores, and
+`func_actor_135600_80132B14`'s splat is `m.rotationWords.m00M01` plus four `mtx->` stores, and
 comes out as one `0x10($sp)` followed by four `disp($s2)`.
 
 Do not therefore reach for a pointer everywhere. In the same function the *loop* block
@@ -133163,7 +133164,7 @@ Compiler SHA256:
 
 ### A separate matrix-pointer local changes launch priority and stops an unwanted tail merge (func_actor_405800_801375C4, 2026-09-19)
 
-A shared identity-matrix pointer assigned in four arms held its address initialization at priority 1 in sched1. Both negative-angle arms then scheduled identically, so jump2 merged their child flags store and extra reload (14 blocks instead of 15). Splitting only the final arm to `OverlayMat* m2` creates a set-once pseudo: `birthing_insn_p` in patched GCC 2.8.1 `sched.c:2499` checks `REG_N_SETS == 1`, and `adjust_priority` promotes its definition. This is a scheduler change even though both pointers ultimately occupy a1.
+A shared identity-matrix pointer assigned in four arms held its address initialization at priority 1 in sched1. Both negative-angle arms then scheduled identically, so jump2 merged their child flags store and extra reload (14 blocks instead of 15). Splitting only the final arm to `GfxMatrix* m2` creates a set-once pseudo: `birthing_insn_p` in patched GCC 2.8.1 `sched.c:2499` checks `REG_N_SETS == 1`, and `adjust_priority` promotes its definition. This is a scheduler change even though both pointers ultimately occupy a1.
 
 Controlled base_1 -> base_2: at backward T-37, UID501 changes from priority 1 (UID495 selected) to `0x7f000001` (UID501 selected). Its address initialization therefore moves later in forward order, after the extra reload. Local allocation gives m2/r85 a1 and preserves raw angle/r189 in a0. sched2 interleaves negu/sll/sra in three pointer-load delays; jump2 keeps distinct predecessors. Score 94.459% -> 100.000%, all penalties zero. A plan before the controlled change predicted both late pointer initialization and preservation of angle/store placement.
 

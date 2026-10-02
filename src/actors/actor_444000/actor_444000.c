@@ -119,10 +119,10 @@ STATIC_ASSERT_SIZEOF(Actor444000EventWork, 0x34);
 /// turn adds to the coordinate; `m` is the working copy of the model's root
 /// coordinate and `angle` the yaw `gfxRotMatrixY` rebuilds it from.
 typedef struct Actor444000RunScratch {
-    /* 0x00 */ SVECTOR    dir;
-    /* 0x08 */ OverlayMat m;
-    /* 0x28 */ s16        pad_28;
-    /* 0x2A */ s16        angle;
+    /* 0x00 */ SVECTOR   dir;
+    /* 0x08 */ GfxMatrix m;
+    /* 0x28 */ s16       pad_28;
+    /* 0x2A */ s16       angle;
 } Actor444000RunScratch;
 STATIC_ASSERT_SIZEOF(Actor444000RunScratch, 0x2C);
 
@@ -3076,7 +3076,7 @@ static __inline__ void Actor444000_StepForward(GfxCoord* coord)
 static void func_actor_444000_8013482C(Task* task)
 {
     Actor444000RunScratch* sc;
-    OverlayMat*            mat;
+    GfxMatrix*             mat;
     TmdObject*             tmd;
     GluttonWork*           work;
     Enemy*                 enemy;
@@ -3105,11 +3105,11 @@ static void func_actor_444000_8013482C(Task* task)
         work->field_EFA               = 0;
         work->field_EFE               = 0;
         mat                           = &((Actor444000RunScratch*)(head - sizeof(Actor444000RunScratch)))->m;
-        mat->ident.m00M01             = ONE;
-        mat->ident.m02M10             = 0;
-        mat->ident.m11M12             = ONE;
-        mat->ident.m20M21             = 0;
-        mat->ident.m22                = ONE;
+        mat->rotationWords.m00M01     = ONE;
+        mat->rotationWords.m02M10     = 0;
+        mat->rotationWords.m11M12     = ONE;
+        mat->rotationWords.m20M21     = 0;
+        mat->rotationWords.m22        = ONE;
     }
 
     gluttonTickAnim(task);
@@ -4185,7 +4185,7 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
     GluttonWork* work;
     GluttonWork* buffers;
     GluttonWork* escorts;
-    OverlayMat*  mtx;
+    GfxMatrix*   mtx;
     TmdObject*   tmd;
     TmdObject*   model;
     TmdObject*   escortTmd;
@@ -4378,11 +4378,11 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
     freeCoord                             = &work->field_E3C.c;
     work->field_E3C.c.parent              = task->extra.tmd->coords;
     work->field_E3C.ident.rotation.m00M01 = ONE;
-    mtx                                   = (OverlayMat*)&work->field_E3C.c.coord;
-    mtx->ident.m02M10                     = 0;
-    mtx->ident.m11M12                     = ONE;
-    mtx->ident.m20M21                     = 0;
-    mtx->ident.m22                        = ONE;
+    mtx                                   = (GfxMatrix*)&work->field_E3C.c.coord;
+    mtx->rotationWords.m02M10             = 0;
+    mtx->rotationWords.m11M12             = ONE;
+    mtx->rotationWords.m20M21             = 0;
+    mtx->rotationWords.m22                = ONE;
     work->field_E3C.c.coord.t[0] = work->field_E3C.c.coord.t[1] = work->field_E3C.c.coord.t[2] = 0;
     work->field_E3C.c.composeStamp                                                             = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(freeCoord);
@@ -5845,7 +5845,7 @@ static void func_actor_444000_80140BBC(Task* arg0)
     GluttonWork* buffers;
     TmdObject*   tmd;
     TmdObject*   escortTmd;
-    OverlayMat*  mtx;
+    GfxMatrix*   mtx;
     GfxCoord*    coords;
     s16          i;
     s16          j;
@@ -5887,11 +5887,11 @@ static void func_actor_444000_80140BBC(Task* arg0)
     if (work->field_7B3 == 9 && work->field_6 == 0x2D) {
         coords                                        = arg0->extra.tmd->coords;
         D_actor_444000_801618B8.ident.rotation.m00M01 = ONE;
-        mtx                                           = (OverlayMat*)&D_actor_444000_801618B8.c.coord;
-        mtx->ident.m02M10                             = 0;
-        mtx->ident.m11M12                             = ONE;
-        mtx->ident.m20M21                             = 0;
-        mtx->ident.m22                                = ONE;
+        mtx                                           = (GfxMatrix*)&D_actor_444000_801618B8.c.coord;
+        mtx->rotationWords.m02M10                     = 0;
+        mtx->rotationWords.m11M12                     = ONE;
+        mtx->rotationWords.m20M21                     = 0;
+        mtx->rotationWords.m22                        = ONE;
         D_actor_444000_801618B8.c.coord.t[1]          = -0x64;
         D_actor_444000_801618B8.c.coord.t[0]          = 0;
         D_actor_444000_801618B8.c.coord.t[2]          = 0x64;

@@ -3169,8 +3169,8 @@ void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
 static void func_shelter_b3_dumping_hole_8018098C(Task* task)
 {
     DumpingHoleEntity4* work;
-    OverlayMat*         ident;
-    OverlayMat*         ident2;
+    GfxMatrix*          ident;
+    GfxMatrix*          ident2;
     u16                 i;
     ActorCommand*       command3;
     ActorCommand*       command5;
@@ -3265,24 +3265,24 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
                             task->extra.tmd->coords[2].coord.t[1] += 8;
                             work->scale.vx                        -= 10;
                             work->scale.vz                        -= 10;
-                            ident                                  = (OverlayMat*)&task->extra.tmd->coords[3].coord;
+                            ident                                  = (GfxMatrix*)&task->extra.tmd->coords[3].coord;
 
-                            ident->ident.m00M01 = ONE;
-                            ident->ident.m02M10 = 0;
-                            ident->ident.m11M12 = ONE;
-                            ident->ident.m20M21 = 0;
-                            ident->ident.m22    = ONE;
+                            ident->rotationWords.m00M01 = ONE;
+                            ident->rotationWords.m02M10 = 0;
+                            ident->rotationWords.m11M12 = ONE;
+                            ident->rotationWords.m20M21 = 0;
+                            ident->rotationWords.m22    = ONE;
 
                             gfxScaleMatrixColumns(&task->extra.tmd->coords[3].coord, &work->scale);
                         } else if (work->timer < 0x20) {
                             task->extra.tmd->coords[2].coord.t[1] += 0x20;
-                            ident2                                 = (OverlayMat*)&task->extra.tmd->coords[3].coord;
+                            ident2                                 = (GfxMatrix*)&task->extra.tmd->coords[3].coord;
 
-                            ident2->ident.m00M01 = ONE;
-                            ident2->ident.m02M10 = 0;
-                            ident2->ident.m11M12 = ONE;
-                            ident2->ident.m20M21 = 0;
-                            ident2->ident.m22    = ONE;
+                            ident2->rotationWords.m00M01 = ONE;
+                            ident2->rotationWords.m02M10 = 0;
+                            ident2->rotationWords.m11M12 = ONE;
+                            ident2->rotationWords.m20M21 = 0;
+                            ident2->rotationWords.m22    = ONE;
                         }
                         if (!(gDisplayState.animFrame & 0xF)) {
                             buf.vec[1].vx = 0xC8;

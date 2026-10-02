@@ -2,6 +2,7 @@
 #define MAIN_GFX_TYPES_H
 
 #include <psyq/sys/types.h>
+#include <psyq/libgte.h>
 
 #include "common.h"
 
@@ -28,5 +29,23 @@ typedef struct {
     s32 m20M21; // Coefficients m[2][0] (low) and m[2][1] (high)
     s16 m22;    // Signed coefficient m[2][2]; no access to the alignment halfword
 } GfxRotationWords;
+
+/// Graphics matrix with SDK element access and packed access to its 3x3 coefficients.
+///
+/// The same coefficients describe rotation, scale, or light/colour transforms,
+/// with 12 fractional bits (`ONE` represents 1.0). `mat.t` holds three signed
+/// translation values whose units belong to the caller.
+///
+/// `rotationWords` accesses exactly 18 bytes with four words and one halfword;
+/// its field stores leave the alignment halfword and translation untouched.
+/// Copy those fields individually when transferring only the 3x3: copying the
+/// whole word-view struct includes its tail alignment bytes. A whole `GfxMatrix`
+/// copy includes the translation. A borrowed SDK `MATRIX` may be accessed through
+/// this view while it remains live and word-aligned; borrowing does not transfer ownership.
+typedef union {
+    MATRIX           mat;           // SDK coefficients and translation
+    GfxRotationWords rotationWords; // Packed signed 12-fractional-bit coefficients; excludes translation
+} GfxMatrix;
+STATIC_ASSERT_SIZEOF(GfxMatrix, 0x20);
 
 #endif // MAIN_GFX_TYPES_H

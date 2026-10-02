@@ -89,8 +89,8 @@ typedef struct Actor323300MtxWork {
     /* 0x44C */ s32            field_44C;
     /* 0x450 */ GfxCoord       shadow[3];   // unsquashed copies of parts 3..5, re-parented onto 4..6
     /* 0x540 */ VECTOR         partPos[19]; // original part translations, before the squash
-    /* 0x670 */ OverlayMat     light;
-    /* 0x690 */ OverlayMat     color;
+    /* 0x670 */ GfxMatrix      light;
+    /* 0x690 */ GfxMatrix      color;
 } Actor323300MtxWork;
 STATIC_ASSERT_SIZEOF(Actor323300MtxWork, 0x6B0);
 
@@ -773,7 +773,7 @@ static void func_actor_323300_80162748(Task* arg0)
 static void func_actor_323300_801627B4(Task* arg0)
 {
     Actor323300Work* work;
-    OverlayMat*      words;
+    GfxMatrix*       words;
     GfxCoord*        coord;
     SVECTOR          vec;
     s16              diff;
@@ -802,12 +802,12 @@ static void func_actor_323300_801627B4(Task* arg0)
         work->walk.motionStep = 0;
     }
 
-    words               = (OverlayMat*)&coord->coord;
-    words->ident.m00M01 = ONE;
-    words->ident.m02M10 = 0;
-    words->ident.m11M12 = ONE;
-    words->ident.m20M21 = 0;
-    words->ident.m22    = ONE;
+    words                       = (GfxMatrix*)&coord->coord;
+    words->rotationWords.m00M01 = ONE;
+    words->rotationWords.m02M10 = 0;
+    words->rotationWords.m11M12 = ONE;
+    words->rotationWords.m20M21 = 0;
+    words->rotationWords.m22    = ONE;
     RotMatrix(&vec, &coord->coord);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
@@ -1017,8 +1017,8 @@ static void func_actor_323300_801634B0(Task* arg0)
 static void func_actor_323300_80163510(Task* arg0)
 {
     Actor323300MtxWork* work;
-    OverlayMat*         light;
-    OverlayMat*         color;
+    GfxMatrix*          light;
+    GfxMatrix*          color;
     GfxCoord*           coords;
     TmdObject*          extra;
 
@@ -1026,19 +1026,19 @@ static void func_actor_323300_80163510(Task* arg0)
     work   = (Actor323300MtxWork*)arg0->work;
     coords = extra->coords;
 
-    work->light.ident.m00M01 = ONE;
-    light                    = &work->light;
-    light->ident.m02M10      = 0;
-    light->ident.m11M12      = ONE;
-    light->ident.m20M21      = 0;
-    light->ident.m22         = ONE;
+    work->light.rotationWords.m00M01 = ONE;
+    light                            = &work->light;
+    light->rotationWords.m02M10      = 0;
+    light->rotationWords.m11M12      = ONE;
+    light->rotationWords.m20M21      = 0;
+    light->rotationWords.m22         = ONE;
 
-    work->color.ident.m00M01 = ONE;
-    color                    = &work->color;
-    color->ident.m02M10      = 0;
-    color->ident.m11M12      = ONE;
-    color->ident.m20M21      = 0;
-    color->ident.m22         = ONE;
+    work->color.rotationWords.m00M01 = ONE;
+    color                            = &work->color;
+    color->rotationWords.m02M10      = 0;
+    color->rotationWords.m11M12      = ONE;
+    color->rotationWords.m20M21      = 0;
+    color->rotationWords.m22         = ONE;
 
     extra->lightMtx = &light->mat;
     extra->colorMtx = &color->mat;

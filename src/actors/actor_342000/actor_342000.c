@@ -536,8 +536,8 @@ void func_actor_342000_8016201C(Task* arg0)
 /// of being hoisted to the top of each case.
 static inline void Actor342000_InitCoord(Task* arg0, Actor342000Work* w)
 {
-    GfxCoord*   coord;
-    OverlayMat* mtx;
+    GfxCoord*  coord;
+    GfxMatrix* mtx;
 
     coord                                 = &w->coord;
     coord->parent                         = ((Actor342000Work*)arg0->work)->field_2A4;
@@ -545,12 +545,12 @@ static inline void Actor342000_InitCoord(Task* arg0, Actor342000Work* w)
     coord->coord.t[0]                     = 0;
     coord->coord.t[1]                     = 0;
     coord->coord.t[2]                     = 0;
-    mtx                                   = (OverlayMat*)&w->coord.coord;
-    mtx->ident.m00M01                     = ONE;
-    mtx->ident.m02M10                     = 0;
-    mtx->ident.m11M12                     = ONE;
-    mtx->ident.m20M21                     = 0;
-    mtx->ident.m22                        = ONE;
+    mtx                                   = (GfxMatrix*)&w->coord.coord;
+    mtx->rotationWords.m00M01             = ONE;
+    mtx->rotationWords.m02M10             = 0;
+    mtx->rotationWords.m11M12             = ONE;
+    mtx->rotationWords.m20M21             = 0;
+    mtx->rotationWords.m22                = ONE;
     w->coord.composeStamp                 = GRAPHICS_COORD_DIRTY;
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
@@ -651,7 +651,7 @@ static void func_actor_342000_80162158(Task* arg0)
 void func_actor_342000_801625D8(Task* arg0)
 {
     Actor342000Work* work;
-    OverlayMat*      mtx;
+    GfxMatrix*       mtx;
     VECTOR*          sc;
     GfxCoord*        coord;
     TmdObject*       extra;
@@ -671,13 +671,13 @@ void func_actor_342000_801625D8(Task* arg0)
             arg0->state        += 1;
             break;
         case 1:
-            sc                = &((Actor342000Work*)work->field_298->work)->field_264;
-            mtx               = (OverlayMat*)&work->coord.coord;
-            mtx->ident.m00M01 = ONE;
-            mtx->ident.m02M10 = 0;
-            mtx->ident.m11M12 = ONE;
-            mtx->ident.m20M21 = 0;
-            mtx->ident.m22    = ONE;
+            sc                        = &((Actor342000Work*)work->field_298->work)->field_264;
+            mtx                       = (GfxMatrix*)&work->coord.coord;
+            mtx->rotationWords.m00M01 = ONE;
+            mtx->rotationWords.m02M10 = 0;
+            mtx->rotationWords.m11M12 = ONE;
+            mtx->rotationWords.m20M21 = 0;
+            mtx->rotationWords.m22    = ONE;
             gfxScaleMatrixColumns(&mtx->mat, sc);
             work->coord.composeStamp = GRAPHICS_COORD_DIRTY;
             break;
@@ -701,7 +701,7 @@ void func_actor_342000_801628C8(Task* arg0)
 {
     Actor342000Work* work;
     Actor342000Work* data;
-    OverlayMat*      mtx;
+    GfxMatrix*       mtx;
     s32*             ang;
     TmdObject*       extra;
     VECTOR           pos;
@@ -715,13 +715,13 @@ void func_actor_342000_801628C8(Task* arg0)
             arg0->state += 1;
             return;
         case 1:
-            mtx               = (OverlayMat*)&work->coord.coord;
-            mtx->ident.m00M01 = ONE;
-            mtx->ident.m02M10 = 0;
-            mtx->ident.m11M12 = ONE;
-            mtx->ident.m20M21 = 0;
-            mtx->ident.m22    = ONE;
-            ang               = &work->field_274;
+            mtx                       = (GfxMatrix*)&work->coord.coord;
+            mtx->rotationWords.m00M01 = ONE;
+            mtx->rotationWords.m02M10 = 0;
+            mtx->rotationWords.m11M12 = ONE;
+            mtx->rotationWords.m20M21 = 0;
+            mtx->rotationWords.m22    = ONE;
+            ang                       = &work->field_274;
             gfxRotMatrixY(&mtx->mat, ang[1], 1);
             Gfx_RotMatrixX(&mtx->mat, ang[0], 0);
             Gfx_RotMatrixZ(&mtx->mat, ang[2], 0);

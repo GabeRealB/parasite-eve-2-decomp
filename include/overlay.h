@@ -12,7 +12,6 @@
 #include "gameplay/geometry.h"
 
 #include "main/coord.h"
-#include "main/gfx_types.h"
 #include "main/scratch.h"
 #include "main/session_types.h"
 #include "main/task_types.h"
@@ -309,17 +308,6 @@ typedef struct OverlayRippleScratch {
     byte    pad_3C[0x10];
 } OverlayRippleScratch;
 STATIC_ASSERT_SIZEOF(OverlayRippleScratch, 0x4C);
-
-/// Matrix with native SDK fields and a packed rotation-word view.
-///
-/// `mat` includes the translation; `ident` covers only the nine rotation
-/// coefficients, paired into four words and a final halfword. Word writes
-/// preserve the native matrix's translation and do not clear its unused halfword.
-typedef union {
-    MATRIX     mat;
-    GfxRotationWords ident;
-} OverlayMat;
-STATIC_ASSERT_SIZEOF(OverlayMat, 0x20);
 
 /// Working state of the steering walk that nudges a coordinate away from the
 /// obstacles among its contact records. `dir` is first the coordinate's

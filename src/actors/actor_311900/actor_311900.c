@@ -597,27 +597,27 @@ static s32 func_actor_311900_80162658(GfxCoord* arg0, s16 arg1)
 /// for `m[1][0]` and `m[2][2]`, the colour matrix fully pass-through.
 static void func_actor_311900_8016278C(Task* task)
 {
-    OverlayMat*      color;
-    OverlayMat*      light;
+    GfxMatrix*       color;
+    GfxMatrix*       light;
     TmdObject*       ext;
     Actor311900Work* work;
 
     work  = (Actor311900Work*)task->work;
     ext   = task->extra.tmd;
-    light = (OverlayMat*)&work->light;
-    color = (OverlayMat*)&work->color;
+    light = (GfxMatrix*)&work->light;
+    color = (GfxMatrix*)&work->color;
 
-    light->ident.m00M01 = ONE;
-    light->ident.m02M10 = 0;
-    light->ident.m11M12 = ONE;
-    light->ident.m20M21 = 0;
-    light->ident.m22    = ONE;
+    light->rotationWords.m00M01 = ONE;
+    light->rotationWords.m02M10 = 0;
+    light->rotationWords.m11M12 = ONE;
+    light->rotationWords.m20M21 = 0;
+    light->rotationWords.m22    = ONE;
 
-    color->ident.m00M01 = ONE;
-    color->ident.m02M10 = 0;
-    color->ident.m11M12 = ONE;
-    color->ident.m20M21 = 0;
-    color->ident.m22    = ONE;
+    color->rotationWords.m00M01 = ONE;
+    color->rotationWords.m02M10 = 0;
+    color->rotationWords.m11M12 = ONE;
+    color->rotationWords.m20M21 = 0;
+    color->rotationWords.m22    = ONE;
 
     ext->lightMtx = &work->light;
 
@@ -650,27 +650,27 @@ static void func_actor_311900_8016278C(Task* task)
 /// matrix flat except for a negated `m[0][0]`.
 static void func_actor_311900_8016281C(Task* task)
 {
-    OverlayMat*      color;
-    OverlayMat*      light;
+    GfxMatrix*       color;
+    GfxMatrix*       light;
     TmdObject*       ext;
     Actor311900Work* work;
 
     work  = (Actor311900Work*)task->work;
     ext   = task->extra.tmd;
-    light = (OverlayMat*)&work->light;
-    color = (OverlayMat*)&work->color;
+    light = (GfxMatrix*)&work->light;
+    color = (GfxMatrix*)&work->color;
 
-    light->ident.m00M01 = ONE;
-    light->ident.m02M10 = 0;
-    light->ident.m11M12 = ONE;
-    light->ident.m20M21 = 0;
-    light->ident.m22    = ONE;
+    light->rotationWords.m00M01 = ONE;
+    light->rotationWords.m02M10 = 0;
+    light->rotationWords.m11M12 = ONE;
+    light->rotationWords.m20M21 = 0;
+    light->rotationWords.m22    = ONE;
 
-    color->ident.m00M01 = ONE;
-    color->ident.m02M10 = 0;
-    color->ident.m11M12 = ONE;
-    color->ident.m20M21 = 0;
-    color->ident.m22    = ONE;
+    color->rotationWords.m00M01 = ONE;
+    color->rotationWords.m02M10 = 0;
+    color->rotationWords.m11M12 = ONE;
+    color->rotationWords.m20M21 = 0;
+    color->rotationWords.m22    = ONE;
 
     ext->lightMtx = &work->light;
 

@@ -3974,7 +3974,7 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
     GluttonWork*           work;
     GluttonWork*           buffers;
     GluttonWork*           escorts;
-    OverlayMat*            mtx;
+    GfxMatrix*             mtx;
     TmdObject*             tmd;
     GfxCoord*              coord;
     GfxCoord*              freeCoord;
@@ -4197,11 +4197,11 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
 
     work->field_E3C.c.parent              = task->extra.tmd->coords;
     work->field_E3C.ident.rotation.m00M01 = ONE;
-    mtx                                   = (OverlayMat*)&work->field_E3C.c.coord;
-    mtx->ident.m02M10                     = 0;
-    mtx->ident.m11M12                     = ONE;
-    mtx->ident.m20M21                     = 0;
-    mtx->ident.m22                        = ONE;
+    mtx                                   = (GfxMatrix*)&work->field_E3C.c.coord;
+    mtx->rotationWords.m02M10             = 0;
+    mtx->rotationWords.m11M12             = ONE;
+    mtx->rotationWords.m20M21             = 0;
+    mtx->rotationWords.m22                = ONE;
     work->field_E3C.c.coord.t[0] = work->field_E3C.c.coord.t[1] = work->field_E3C.c.coord.t[2] = 0;
     work->field_E3C.c.composeStamp                                                             = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(freeCoord);
@@ -5709,7 +5709,7 @@ static void func_actor_403200_8013E2FC(Task* arg0)
     GluttonWork* work;
     GluttonWork* escorts;
     GluttonWork* dying;
-    OverlayMat*  mtx;
+    GfxMatrix*   mtx;
     GfxCoord*    coords;
     s32          state;
     s32          frame;
@@ -5750,11 +5750,11 @@ static void func_actor_403200_8013E2FC(Task* arg0)
     if (work->field_7B3 == 9 && work->field_6 == 0x2D) {
         coords                                        = arg0->extra.tmd->coords;
         D_actor_403200_8015F970.ident.rotation.m00M01 = ONE;
-        mtx                                           = (OverlayMat*)&D_actor_403200_8015F970.c.coord;
-        mtx->ident.m02M10                             = 0;
-        mtx->ident.m11M12                             = ONE;
-        mtx->ident.m20M21                             = 0;
-        mtx->ident.m22                                = ONE;
+        mtx                                           = (GfxMatrix*)&D_actor_403200_8015F970.c.coord;
+        mtx->rotationWords.m02M10                     = 0;
+        mtx->rotationWords.m11M12                     = ONE;
+        mtx->rotationWords.m20M21                     = 0;
+        mtx->rotationWords.m22                        = ONE;
         D_actor_403200_8015F970.c.coord.t[1]          = -0x64;
         D_actor_403200_8015F970.c.coord.t[0]          = 0;
         D_actor_403200_8015F970.c.coord.t[2]          = 0x64;

@@ -1637,8 +1637,8 @@ static void func_actor_400500_80132000(Task* arg0)
 static void func_actor_400500_8013226C(Task* arg0)
 {
     Actor400500Work* work;
-    OverlayMat       rot;
-    OverlayMat*      src;
+    GfxMatrix        rot;
+    GfxMatrix*       src;
     GfxCoord*        parts;
     GfxCoord*        part7;
     GfxCoord*        part10;
@@ -1648,25 +1648,25 @@ static void func_actor_400500_8013226C(Task* arg0)
     TmdObject*       tmd;
     TmdObject*       parentTmd;
 
-    parts              = arg0->extra.tmd->coords;
-    work               = (Actor400500Work*)arg0->work;
-    part7              = &parts[7];
-    part10             = &parts[10];
-    child              = Task_SpawnFromTable(D_actor_400500_80153D48, 0, 0, 0);
-    work->field_9F0[0] = child;
-    extra              = child->extra.tmd;
-    coord              = extra->coords;
-    extra->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    coord->parent      = part10;
-    coord->coord.t[0]  = 0x400;
-    coord->coord.t[1]  = 0;
-    coord->coord.t[2]  = 0;
-    src                = &rot;
-    rot.ident.m00M01   = ONE;
-    src->ident.m02M10  = 0;
-    src->ident.m11M12  = ONE;
-    src->ident.m20M21  = 0;
-    src->ident.m22     = ONE;
+    parts                     = arg0->extra.tmd->coords;
+    work                      = (Actor400500Work*)arg0->work;
+    part7                     = &parts[7];
+    part10                    = &parts[10];
+    child                     = Task_SpawnFromTable(D_actor_400500_80153D48, 0, 0, 0);
+    work->field_9F0[0]        = child;
+    extra                     = child->extra.tmd;
+    coord                     = extra->coords;
+    extra->flags              = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    coord->parent             = part10;
+    coord->coord.t[0]         = 0x400;
+    coord->coord.t[1]         = 0;
+    coord->coord.t[2]         = 0;
+    src                       = &rot;
+    rot.rotationWords.m00M01  = ONE;
+    src->rotationWords.m02M10 = 0;
+    src->rotationWords.m11M12 = ONE;
+    src->rotationWords.m20M21 = 0;
+    src->rotationWords.m22    = ONE;
     RotMatrixY((s16)(-0x180), &src->mat);
     func_actor_400500_8013DE2C(&src->mat, &coord->coord);
     parentTmd              = arg0->extra.tmd;
@@ -1694,11 +1694,11 @@ static void func_actor_400500_8013226C(Task* arg0)
         tmdProcessStream(tmd);
         tmdProcessStream(tmd);
     }
-    rot.ident.m00M01  = ONE;
-    src->ident.m02M10 = 0;
-    src->ident.m11M12 = ONE;
-    src->ident.m20M21 = 0;
-    src->ident.m22    = ONE;
+    rot.rotationWords.m00M01  = ONE;
+    src->rotationWords.m02M10 = 0;
+    src->rotationWords.m11M12 = ONE;
+    src->rotationWords.m20M21 = 0;
+    src->rotationWords.m22    = ONE;
     RotMatrixY((s16)(0x180), &src->mat);
     func_actor_400500_8013DE2C(&src->mat, &coord->coord);
 }
@@ -1708,8 +1708,8 @@ static void func_actor_400500_80132438(Task* arg0)
     SVECTOR          dir;
     SVECTOR*         dirp;
     SVECTOR          delta;
-    OverlayMat       rot;
-    OverlayMat*      src;
+    GfxMatrix        rot;
+    GfxMatrix*       src;
     Actor400500Work* work;
     GfxCoord*        coord;
     GfxCoord*        other;
@@ -1756,18 +1756,18 @@ static void func_actor_400500_80132438(Task* arg0)
         work->field_A16 = dist;
         work->field_9E4 = vz;
         VectorNormalSS(dirp, dirp);
-        work->field_A36   = (ratan2(dir.vx, dir.vz) - (u16)work->field_94A) & 0xFFF;
-        delta.vx          = (u16)other->coord.t[0] - (u16)work->field_9D0.vx;
-        delta.vy          = (u16)other->coord.t[1] - (u16)work->field_9D0.vy;
-        one               = ONE;
-        delta.vz          = (u16)other->coord.t[2] - (u16)work->field_9D0.vz;
-        src               = &rot;
-        rot.ident.m00M01  = one;
-        rot.ident.m02M10  = 0;
-        src->ident.m11M12 = one;
-        rot.ident.m20M21  = 0;
-        src->ident.m22    = one;
-        heading           = work->field_94A;
+        work->field_A36           = (ratan2(dir.vx, dir.vz) - (u16)work->field_94A) & 0xFFF;
+        delta.vx                  = (u16)other->coord.t[0] - (u16)work->field_9D0.vx;
+        delta.vy                  = (u16)other->coord.t[1] - (u16)work->field_9D0.vy;
+        one                       = ONE;
+        delta.vz                  = (u16)other->coord.t[2] - (u16)work->field_9D0.vz;
+        src                       = &rot;
+        rot.rotationWords.m00M01  = one;
+        rot.rotationWords.m02M10  = 0;
+        src->rotationWords.m11M12 = one;
+        rot.rotationWords.m20M21  = 0;
+        src->rotationWords.m22    = one;
+        heading                   = work->field_94A;
         RotMatrixY(-heading, &src->mat);
         ApplyMatrixSV(&src->mat, &delta, &work->field_9D8);
     }
@@ -1898,8 +1898,8 @@ static void func_actor_400500_80132AB0(Task* arg0, s16 arg1, s32 arg2)
 static void func_actor_400500_80132C54(Task* arg0)
 {
     Actor400500Work* work;
-    OverlayMat       rot;
-    OverlayMat*      src;
+    GfxMatrix        rot;
+    GfxMatrix*       src;
     GfxCoord*        coord;
     s32              tx;
 
@@ -1941,13 +1941,13 @@ static void func_actor_400500_80132C54(Task* arg0)
             coord->coord.t[2] = tx;
             break;
     }
-    tx                = ONE;
-    src               = &rot;
-    rot.ident.m00M01  = tx;
-    src->ident.m02M10 = 0;
-    src->ident.m11M12 = tx;
-    src->ident.m20M21 = 0;
-    src->ident.m22    = tx;
+    tx                        = ONE;
+    src                       = &rot;
+    rot.rotationWords.m00M01  = tx;
+    src->rotationWords.m02M10 = 0;
+    src->rotationWords.m11M12 = tx;
+    src->rotationWords.m20M21 = 0;
+    src->rotationWords.m22    = tx;
     RotMatrixZ(work->field_94C, &src->mat);
     RotMatrixY(work->field_94A, &src->mat);
     func_actor_400500_8013DE2C(&src->mat, &coord->coord);
@@ -3027,12 +3027,12 @@ static void func_actor_400500_80135770(Task* arg0)
     PlayerStatus*              cfg;
     AnimationPlayRequest       msg;
     Actor400500TaskFuncTable13 sp;
-    OverlayMat                 rot;
+    GfxMatrix                  rot;
     s8                         handshake;
     Actor400500Work*           work_pos;
     Actor400500Work*           work_dead;
     Actor400500Work*           work_rot;
-    OverlayMat*                src;
+    GfxMatrix*                 src;
     s32                        one;
     s16                        ang;
     s16                        ang_z;
@@ -3111,21 +3111,21 @@ static void func_actor_400500_80135770(Task* arg0)
                 work_pos->field_9D0.vy = (u16)player->coord.t[1];
                 work_pos->field_9D0.vz = (u16)player->coord.t[2];
             }
-            src                 = &rot;
-            work_rot            = (Actor400500Work*)arg0->work;
-            rot_root            = arg0->extra.tmd->coords;
-            ang                 = work_rot->field_948;
-            ang_y               = work_rot->field_94A;
-            work_rot->field_948 = ang & 0xFFF;
-            ang_z               = work_rot->field_94C;
-            work_rot->field_94A = ang_y & 0xFFF;
-            work_rot->field_94C = ang_z & 0xFFF;
-            one                 = ONE;
-            rot.ident.m00M01    = one;
-            rot.ident.m02M10    = 0;
-            src->ident.m11M12   = one;
-            rot.ident.m20M21    = 0;
-            src->ident.m22      = one;
+            src                       = &rot;
+            work_rot                  = (Actor400500Work*)arg0->work;
+            rot_root                  = arg0->extra.tmd->coords;
+            ang                       = work_rot->field_948;
+            ang_y                     = work_rot->field_94A;
+            work_rot->field_948       = ang & 0xFFF;
+            ang_z                     = work_rot->field_94C;
+            work_rot->field_94A       = ang_y & 0xFFF;
+            work_rot->field_94C       = ang_z & 0xFFF;
+            one                       = ONE;
+            rot.rotationWords.m00M01  = one;
+            rot.rotationWords.m02M10  = 0;
+            src->rotationWords.m11M12 = one;
+            rot.rotationWords.m20M21  = 0;
+            src->rotationWords.m22    = one;
             RotMatrixZ(work_rot->field_94C, &src->mat);
             RotMatrixX(work_rot->field_948, &src->mat);
             RotMatrixY(work_rot->field_94A, &src->mat);
@@ -3304,9 +3304,9 @@ static void func_actor_400500_80135EBC(Task* arg0)
 
 static void func_actor_400500_801361EC(Task* arg0)
 {
-    OverlayMat          rot;
+    GfxMatrix           rot;
     MATRIX              local;
-    OverlayMat*         src;
+    GfxMatrix*          src;
     MATRIX*             dst;
     Actor400500Work*    work;
     Actor400500Work*    workA;
@@ -3437,25 +3437,25 @@ static void func_actor_400500_801361EC(Task* arg0)
                     work->field_A08 = 7;
                     break;
                 default:
-                    tx                = -0x3E8;
-                    coord->coord.t[0] = tx;
-                    tx                = -0xFA0;
-                    coord->coord.t[1] = tx;
-                    tx                = -0x2116;
-                    coord->coord.t[2] = tx;
-                    tx                = 0x400;
-                    work->field_94A   = tx;
-                    tx                = 0x800;
-                    work->field_94C   = tx;
-                    tx                = ONE;
-                    src               = &rot;
-                    work->field_948   = 0;
-                    work->field_A1E   = 0;
-                    rot.ident.m00M01  = tx;
-                    src->ident.m02M10 = 0;
-                    src->ident.m11M12 = tx;
-                    src->ident.m20M21 = 0;
-                    src->ident.m22    = tx;
+                    tx                        = -0x3E8;
+                    coord->coord.t[0]         = tx;
+                    tx                        = -0xFA0;
+                    coord->coord.t[1]         = tx;
+                    tx                        = -0x2116;
+                    coord->coord.t[2]         = tx;
+                    tx                        = 0x400;
+                    work->field_94A           = tx;
+                    tx                        = 0x800;
+                    work->field_94C           = tx;
+                    tx                        = ONE;
+                    src                       = &rot;
+                    work->field_948           = 0;
+                    work->field_A1E           = 0;
+                    rot.rotationWords.m00M01  = tx;
+                    src->rotationWords.m02M10 = 0;
+                    src->rotationWords.m11M12 = tx;
+                    src->rotationWords.m20M21 = 0;
+                    src->rotationWords.m22    = tx;
                     RotMatrixZ(work->field_94C, &src->mat);
                     RotMatrixY(work->field_94A, &src->mat);
                     dst          = &coord->coord;
@@ -4292,8 +4292,8 @@ static void func_actor_400500_8013771C(Task* arg0)
 {
     SVECTOR             in;
     SVECTOR             out;
-    OverlayMat          rot;
-    OverlayMat*         src;
+    GfxMatrix           rot;
+    GfxMatrix*          src;
     Actor400500Work*    work;
     Actor400500HitView* hit;
     GameActor*          player;
@@ -4310,16 +4310,16 @@ static void func_actor_400500_8013771C(Task* arg0)
     _actor400500TickAnim(arg0);
     src = &rot;
     if ((s16)work->field_A04 < 0xF) {
-        in.vx             = (u16)work->field_9E0;
-        in.vy             = 0;
-        vz                = (u16)work->field_9E4;
-        ident             = ONE;
-        rot.ident.m00M01  = ident;
-        rot.ident.m02M10  = 0;
-        in.vz             = vz;
-        src->ident.m11M12 = ident;
-        rot.ident.m20M21  = 0;
-        src->ident.m22    = ident;
+        in.vx                     = (u16)work->field_9E0;
+        in.vy                     = 0;
+        vz                        = (u16)work->field_9E4;
+        ident                     = ONE;
+        rot.rotationWords.m00M01  = ident;
+        rot.rotationWords.m02M10  = 0;
+        in.vz                     = vz;
+        src->rotationWords.m11M12 = ident;
+        rot.rotationWords.m20M21  = 0;
+        src->rotationWords.m22    = ident;
         RotMatrixY(work->field_94A, &src->mat);
         ApplyMatrixSV(&src->mat, &in, &out);
         r                = ratan2(out.vx, work->field_9E2 - 0x6A0);
@@ -4535,7 +4535,7 @@ static void func_actor_400500_801387E8(Task* arg0)
     Actor400500Work*    work2;
     Actor400500Work*    work3;
     Actor400500HitView* hit;
-    OverlayMat          rot;
+    GfxMatrix           rot;
     s32                 soundId;
     s32                 pan;
     s32                 cond;
@@ -4657,7 +4657,7 @@ static void func_actor_400500_80138B78(Task* arg0)
 {
     Actor400500Work*    work;
     Actor400500HitView* hit;
-    OverlayMat          rot;
+    GfxMatrix           rot;
     s32                 soundId;
     s32                 pan;
     s32                 cond;
@@ -4697,24 +4697,24 @@ static void func_actor_400500_80138B78(Task* arg0)
 static void func_actor_400500_80138CE8(Task* arg0)
 {
     Actor400500Work* work;
-    OverlayMat       rot;
-    OverlayMat*      src;
+    GfxMatrix        rot;
+    GfxMatrix*       src;
     Task*            child;
     GfxCoord*        coord;
     s32              angle;
 
-    work                    = (Actor400500Work*)arg0->work;
-    src                     = &rot;
-    angle                   = work->field_A26 - 0x80;
-    work->field_A26         = angle;
-    child                   = ((Actor400500Work*)arg0->work)->field_9F0[0];
-    child->extra.tmd->flags = 0;
-    coord                   = child->extra.tmd->coords;
-    rot.ident.m00M01        = ONE;
-    rot.ident.m02M10        = 0;
-    src->ident.m11M12       = ONE;
-    rot.ident.m20M21        = 0;
-    src->ident.m22          = ONE;
+    work                      = (Actor400500Work*)arg0->work;
+    src                       = &rot;
+    angle                     = work->field_A26 - 0x80;
+    work->field_A26           = angle;
+    child                     = ((Actor400500Work*)arg0->work)->field_9F0[0];
+    child->extra.tmd->flags   = 0;
+    coord                     = child->extra.tmd->coords;
+    rot.rotationWords.m00M01  = ONE;
+    rot.rotationWords.m02M10  = 0;
+    src->rotationWords.m11M12 = ONE;
+    rot.rotationWords.m20M21  = 0;
+    src->rotationWords.m22    = ONE;
     RotMatrixY((s16)(-angle), &src->mat);
     func_actor_400500_8013DE2C(&src->mat, &coord->coord);
     if ((s16)work->field_A26 <= 0) {
@@ -5053,10 +5053,10 @@ static void func_actor_400500_801395D0(Task* arg0)
 
 static void func_actor_400500_8013973C(Task* arg0)
 {
-    OverlayMat          rot;
+    GfxMatrix           rot;
     MATRIX              local0;
     MATRIX              local3;
-    OverlayMat*         src;
+    GfxMatrix*          src;
     MATRIX*             view;
     Actor400500Work*    work;
     Actor400500Work*    workRot;
@@ -5133,26 +5133,26 @@ static void func_actor_400500_8013973C(Task* arg0)
         work->field_948 = pitch - 0x80;
     }
     if (root->coord.t[1] >= -0x3E7) {
-        y                   = -0x3E8;
-        root->coord.t[0]    = (s16)work->field_950;
-        root->coord.t[2]    = (s16)work->field_954;
-        root->coord.t[1]    = y;
-        work->field_A08     = work->field_A08 + 1;
-        root->coord.t[1]    = y;
-        src                 = &rot;
-        work->field_948     = 0;
-        work->field_94C     = 0;
-        work->field_94A     = (u16)work->field_94A + 0x800;
-        workRot             = (Actor400500Work*)arg0->work;
-        coordsRot           = arg0->extra.tmd->coords;
-        workRot->field_948 &= 0xFFF;
-        workRot->field_94A &= 0xFFF;
-        workRot->field_94C &= 0xFFF;
-        rot.ident.m00M01    = ONE;
-        rot.ident.m02M10    = 0;
-        src->ident.m11M12   = ONE;
-        rot.ident.m20M21    = 0;
-        src->ident.m22      = ONE;
+        y                         = -0x3E8;
+        root->coord.t[0]          = (s16)work->field_950;
+        root->coord.t[2]          = (s16)work->field_954;
+        root->coord.t[1]          = y;
+        work->field_A08           = work->field_A08 + 1;
+        root->coord.t[1]          = y;
+        src                       = &rot;
+        work->field_948           = 0;
+        work->field_94C           = 0;
+        work->field_94A           = (u16)work->field_94A + 0x800;
+        workRot                   = (Actor400500Work*)arg0->work;
+        coordsRot                 = arg0->extra.tmd->coords;
+        workRot->field_948       &= 0xFFF;
+        workRot->field_94A       &= 0xFFF;
+        workRot->field_94C       &= 0xFFF;
+        rot.rotationWords.m00M01  = ONE;
+        rot.rotationWords.m02M10  = 0;
+        src->rotationWords.m11M12 = ONE;
+        rot.rotationWords.m20M21  = 0;
+        src->rotationWords.m22    = ONE;
         RotMatrixZ(workRot->field_94C, &src->mat);
         RotMatrixX(workRot->field_948, &src->mat);
         RotMatrixY(workRot->field_94A, &src->mat);
@@ -5387,9 +5387,9 @@ static void func_actor_400500_80139F6C(Task* arg0)
 
 static void func_actor_400500_8013A0B8(Task* arg0)
 {
-    OverlayMat          rot;
+    GfxMatrix           rot;
     MATRIX              local2;
-    OverlayMat*         src;
+    GfxMatrix*          src;
     Actor400500Work*    work;
     Actor400500Work*    ang;
     Actor400500Work*    work3;
@@ -5446,18 +5446,18 @@ static void func_actor_400500_8013A0B8(Task* arg0)
     if (cond) {
         src = &rot;
         if (enemy->hp > 0) {
-            work->field_A1E  &= 0xFFFD;
-            work->field_94A   = ((u16)work->field_94A + 0x800) & 0xFFF;
-            ang               = (Actor400500Work*)arg0->work;
-            coord             = arg0->extra.tmd->coords;
-            ang->field_948   &= 0xFFF;
-            ang->field_94A   &= 0xFFF;
-            ang->field_94C   &= 0xFFF;
-            rot.ident.m00M01  = ONE;
-            rot.ident.m02M10  = 0;
-            src->ident.m11M12 = ONE;
-            rot.ident.m20M21  = 0;
-            src->ident.m22    = ONE;
+            work->field_A1E          &= 0xFFFD;
+            work->field_94A           = ((u16)work->field_94A + 0x800) & 0xFFF;
+            ang                       = (Actor400500Work*)arg0->work;
+            coord                     = arg0->extra.tmd->coords;
+            ang->field_948           &= 0xFFF;
+            ang->field_94A           &= 0xFFF;
+            ang->field_94C           &= 0xFFF;
+            rot.rotationWords.m00M01  = ONE;
+            rot.rotationWords.m02M10  = 0;
+            src->rotationWords.m11M12 = ONE;
+            rot.rotationWords.m20M21  = 0;
+            src->rotationWords.m22    = ONE;
             RotMatrixZ(ang->field_94C, &src->mat);
             RotMatrixX(ang->field_948, &src->mat);
             RotMatrixY(ang->field_94A, &src->mat);
@@ -5512,18 +5512,18 @@ static void func_actor_400500_8013A0B8(Task* arg0)
                 work3->field_A08 = 0;
             }
         } else {
-            work->field_A42   = 0;
-            work->field_94A   = ((u16)work->field_94A + 0x800) & 0xFFF;
-            ang               = (Actor400500Work*)arg0->work;
-            coord             = arg0->extra.tmd->coords;
-            ang->field_948   &= 0xFFF;
-            ang->field_94A   &= 0xFFF;
-            ang->field_94C   &= 0xFFF;
-            rot.ident.m00M01  = ONE;
-            rot.ident.m02M10  = 0;
-            src->ident.m11M12 = ONE;
-            rot.ident.m20M21  = 0;
-            src->ident.m22    = ONE;
+            work->field_A42           = 0;
+            work->field_94A           = ((u16)work->field_94A + 0x800) & 0xFFF;
+            ang                       = (Actor400500Work*)arg0->work;
+            coord                     = arg0->extra.tmd->coords;
+            ang->field_948           &= 0xFFF;
+            ang->field_94A           &= 0xFFF;
+            ang->field_94C           &= 0xFFF;
+            rot.rotationWords.m00M01  = ONE;
+            rot.rotationWords.m02M10  = 0;
+            src->rotationWords.m11M12 = ONE;
+            rot.rotationWords.m20M21  = 0;
+            src->rotationWords.m22    = ONE;
             RotMatrixZ(ang->field_94C, &src->mat);
             RotMatrixX(ang->field_948, &src->mat);
             RotMatrixY(ang->field_94A, &src->mat);
@@ -6433,26 +6433,26 @@ static void func_actor_400500_8013BE50(Task* arg0)
 static void func_actor_400500_8013BEC4(Task* arg0)
 {
     Actor400500Work* work;
-    OverlayMat       rot;
-    OverlayMat*      src;
+    GfxMatrix        rot;
+    GfxMatrix*       src;
     Task*            child;
     GfxCoord*        coord;
     Actor400500Work* work2;
     s32              angle;
 
-    work                    = (Actor400500Work*)arg0->work;
-    src                     = &rot;
-    work->field_A26         = work->field_A26 + 0x80;
-    work->field_A04         = work->field_A04 + 1;
-    child                   = ((Actor400500Work*)arg0->work)->field_9F0[1];
-    angle                   = work->field_A26;
-    child->extra.tmd->flags = 0;
-    coord                   = child->extra.tmd->coords;
-    rot.ident.m00M01        = ONE;
-    rot.ident.m02M10        = 0;
-    src->ident.m11M12       = ONE;
-    rot.ident.m20M21        = 0;
-    src->ident.m22          = ONE;
+    work                      = (Actor400500Work*)arg0->work;
+    src                       = &rot;
+    work->field_A26           = work->field_A26 + 0x80;
+    work->field_A04           = work->field_A04 + 1;
+    child                     = ((Actor400500Work*)arg0->work)->field_9F0[1];
+    angle                     = work->field_A26;
+    child->extra.tmd->flags   = 0;
+    coord                     = child->extra.tmd->coords;
+    rot.rotationWords.m00M01  = ONE;
+    rot.rotationWords.m02M10  = 0;
+    src->rotationWords.m11M12 = ONE;
+    rot.rotationWords.m20M21  = 0;
+    src->rotationWords.m22    = ONE;
     RotMatrixY((s16)(angle), &src->mat);
     func_actor_400500_8013DE2C(&src->mat, &coord->coord);
     if ((s16)work->field_A26 >= 0x200) {
@@ -6491,26 +6491,26 @@ static void func_actor_400500_8013BFB0(Task* arg0)
 static void func_actor_400500_8013C018(Task* arg0)
 {
     Actor400500Work* work;
-    OverlayMat       rot;
-    OverlayMat*      src;
+    GfxMatrix        rot;
+    GfxMatrix*       src;
     Task*            child;
     GfxCoord*        coord;
     Actor400500Work* work2;
     s32              angle;
 
-    work                    = (Actor400500Work*)arg0->work;
-    src                     = &rot;
-    work->field_A26         = work->field_A26 + 0x80;
-    work->field_A04         = work->field_A04 + 1;
-    child                   = ((Actor400500Work*)arg0->work)->field_9F0[0];
-    angle                   = work->field_A26;
-    child->extra.tmd->flags = 0;
-    coord                   = child->extra.tmd->coords;
-    rot.ident.m00M01        = ONE;
-    rot.ident.m02M10        = 0;
-    src->ident.m11M12       = ONE;
-    rot.ident.m20M21        = 0;
-    src->ident.m22          = ONE;
+    work                      = (Actor400500Work*)arg0->work;
+    src                       = &rot;
+    work->field_A26           = work->field_A26 + 0x80;
+    work->field_A04           = work->field_A04 + 1;
+    child                     = ((Actor400500Work*)arg0->work)->field_9F0[0];
+    angle                     = work->field_A26;
+    child->extra.tmd->flags   = 0;
+    coord                     = child->extra.tmd->coords;
+    rot.rotationWords.m00M01  = ONE;
+    rot.rotationWords.m02M10  = 0;
+    src->rotationWords.m11M12 = ONE;
+    rot.rotationWords.m20M21  = 0;
+    src->rotationWords.m22    = ONE;
     RotMatrixY((s16)(-angle), &src->mat);
     func_actor_400500_8013DE2C(&src->mat, &coord->coord);
     if ((s16)work->field_A26 >= 0x200) {

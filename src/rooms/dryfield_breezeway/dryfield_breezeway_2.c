@@ -747,20 +747,20 @@ static void func_dryfield_breezeway_8017E464(Task* arg0)
     {
         DbwEventWork* eventWork = (DbwEventWork*)arg0->work;
         TmdObject*    eventObj  = arg0->extra.tmd;
-        OverlayMat*   light     = (OverlayMat*)&eventWork->light;
-        OverlayMat*   color     = (OverlayMat*)&eventWork->color;
+        GfxMatrix*    light     = (GfxMatrix*)&eventWork->light;
+        GfxMatrix*    color     = (GfxMatrix*)&eventWork->color;
 
-        light->ident.m00M01 = ONE;
-        light->ident.m02M10 = 0;
-        light->ident.m11M12 = ONE;
-        light->ident.m20M21 = 0;
-        light->ident.m22    = ONE;
+        light->rotationWords.m00M01 = ONE;
+        light->rotationWords.m02M10 = 0;
+        light->rotationWords.m11M12 = ONE;
+        light->rotationWords.m20M21 = 0;
+        light->rotationWords.m22    = ONE;
 
-        color->ident.m00M01 = ONE;
-        color->ident.m02M10 = 0;
-        color->ident.m11M12 = ONE;
-        color->ident.m20M21 = 0;
-        color->ident.m22    = ONE;
+        color->rotationWords.m00M01 = ONE;
+        color->rotationWords.m02M10 = 0;
+        color->rotationWords.m11M12 = ONE;
+        color->rotationWords.m20M21 = 0;
+        color->rotationWords.m22    = ONE;
 
         eventObj->lightMtx = &eventWork->light;
 
@@ -1118,30 +1118,30 @@ static void func_dryfield_breezeway_8017EB8C(Task* task, s16 arg1, s16 arg2)
 /// which is what makes the first segment of a beam run from the origin.
 static void func_dryfield_breezeway_8017F1F4(s16 arg0, s16 arg1, DbwVec* arg2, DbwVec* arg3, DbwBeamEdge* arg4)
 {
-    SVECTOR    probe;
-    DbwVec     tip;
-    SVECTOR    near0;
-    SVECTOR    near1;
-    SVECTOR    far0;
-    SVECTOR    far1;
-    DbwVec     corner0;
-    DbwVec     corner1;
-    DbwVec     corner2;
-    DbwVec     corner3;
-    OverlayMat matw;
-    MATRIX*    mtx;
-    long       flag;
-    POLY_FT4*  p;
+    SVECTOR   probe;
+    DbwVec    tip;
+    SVECTOR   near0;
+    SVECTOR   near1;
+    SVECTOR   far0;
+    SVECTOR   far1;
+    DbwVec    corner0;
+    DbwVec    corner1;
+    DbwVec    corner2;
+    DbwVec    corner3;
+    GfxMatrix matw;
+    MATRIX*   mtx;
+    long      flag;
+    POLY_FT4* p;
 
-    mtx                    = &matw.mat;
-    matw.ident.m00M01      = ONE;
-    matw.ident.m02M10      = 0;
-    MATRIX_PAIR(mtx, 1, 1) = 0x1000;
-    matw.ident.m20M21      = 0;
-    mtx->m[2][2]           = 0x1000;
-    matw.mat.t[0]          = 0;
-    matw.mat.t[1]          = 0;
-    matw.mat.t[2]          = 0;
+    mtx                       = &matw.mat;
+    matw.rotationWords.m00M01 = ONE;
+    matw.rotationWords.m02M10 = 0;
+    MATRIX_PAIR(mtx, 1, 1)    = 0x1000;
+    matw.rotationWords.m20M21 = 0;
+    mtx->m[2][2]              = 0x1000;
+    matw.mat.t[0]             = 0;
+    matw.mat.t[1]             = 0;
+    matw.mat.t[2]             = 0;
     RotMatrixZ(arg0, &matw.mat);
     SetRotMatrix(&matw.mat);
     SetTransMatrix(&matw.mat);

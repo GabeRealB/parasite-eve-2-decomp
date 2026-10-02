@@ -2681,7 +2681,7 @@ static void func_actor_503500_8013FA74(Task* arg0)
     Actor503500Work3D8*    work;
     WorldCollisionContact* rec;
     WorldCollisionContact* rec2;
-    OverlayMat             m;
+    GfxMatrix              m;
     GfxRotationWords*      ident;
     s32                    idx;
     s32                    i;
@@ -2694,16 +2694,16 @@ static void func_actor_503500_8013FA74(Task* arg0)
     memFillBytes(work, 0, sizeof(*work));
     arg0->work = work;
 
-    coord->parent     = &arg0->parent->extra.tmd->coords[1];
-    coord->coord.t[0] = D_actor_503500_8016F3AC[idx].vx;
-    coord->coord.t[1] = D_actor_503500_8016F3AC[idx].vy;
-    coord->coord.t[2] = D_actor_503500_8016F3AC[idx].vz;
-    m.ident.m00M01    = ONE;
-    ident             = &m.ident;
-    ident->m02M10     = 0;
-    ident->m11M12     = ONE;
-    ident->m20M21     = 0;
-    ident->m22        = ONE;
+    coord->parent          = &arg0->parent->extra.tmd->coords[1];
+    coord->coord.t[0]      = D_actor_503500_8016F3AC[idx].vx;
+    coord->coord.t[1]      = D_actor_503500_8016F3AC[idx].vy;
+    coord->coord.t[2]      = D_actor_503500_8016F3AC[idx].vz;
+    m.rotationWords.m00M01 = ONE;
+    ident                  = &m.rotationWords;
+    ident->m02M10          = 0;
+    ident->m11M12          = ONE;
+    ident->m20M21          = 0;
+    ident->m22             = ONE;
     RotMatrix(&D_actor_503500_8016F3CC[idx], &m.mat);
     MulMatrix0(&coord->coord, &m.mat, &coord->coord);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3944,7 +3944,7 @@ static void func_actor_503500_8014271C(Task* arg0)
 static void func_actor_503500_80142980(Task* arg0)
 {
     SVECTOR             rot;
-    OverlayMat          m;
+    GfxMatrix           m;
     s8                  param1[8];
     s8                  param2[8];
     GfxRotationWords*   ident;
@@ -4014,6 +4014,7 @@ static void func_actor_503500_80142980(Task* arg0)
                 }
                 work->field_21E = CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, (u8*)param1, (u8*)param2);
                 Gp_ComposeParentWorld(coord, &m.mat, &rot);
+                // Copy the nine coefficients as four words and a halfword; preserve the alignment halfword.
                 in  = (s32*)&m;
                 out = (s32*)&coord->coord;
                 for (k = 0; k < 4; k++) {
@@ -4106,15 +4107,15 @@ static void func_actor_503500_80142980(Task* arg0)
             arg0->state++;
             break;
     }
-    rot.vx         = work->rot.vx.word >> 16;
-    rot.vy         = work->rot.vy.word >> 16;
-    rot.vz         = work->rot.vz.word >> 16;
-    m.ident.m00M01 = ONE;
-    m.ident.m02M10 = 0;
-    ident          = &m.ident;
-    ident->m11M12  = ONE;
-    m.ident.m20M21 = 0;
-    ident->m22     = ONE;
+    rot.vx                 = work->rot.vx.word >> 16;
+    rot.vy                 = work->rot.vy.word >> 16;
+    rot.vz                 = work->rot.vz.word >> 16;
+    m.rotationWords.m00M01 = ONE;
+    m.rotationWords.m02M10 = 0;
+    ident                  = &m.rotationWords;
+    ident->m11M12          = ONE;
+    m.rotationWords.m20M21 = 0;
+    ident->m22             = ONE;
     RotMatrix(&rot, &m.mat);
     gte_SetRotMatrix(&coord->coord);
     gte_ldclmv(&m.mat);

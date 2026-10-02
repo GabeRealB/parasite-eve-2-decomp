@@ -9,7 +9,7 @@ s32 factoryLiftJamTurnOut(Task* task)
     FactoryLiftWork* work  = (FactoryLiftWork*)task->work;
     GfxCoord*        coord = task->extra.tmd->coords;
     s32              done  = 0;
-    OverlayMat*      mat;
+    GfxMatrix*       mat;
 
     switch (work->field_16) {
         case 0:
@@ -82,12 +82,12 @@ s32 factoryLiftJamTurnOut(Task* task)
         work->field_16 = 4;
         done           = 1;
     }
-    mat               = (OverlayMat*)&coord->coord;
-    mat->ident.m00M01 = ONE;
-    mat->ident.m02M10 = 0;
-    mat->ident.m11M12 = ONE;
-    mat->ident.m20M21 = 0;
-    mat->ident.m22    = ONE;
+    mat                       = (GfxMatrix*)&coord->coord;
+    mat->rotationWords.m00M01 = ONE;
+    mat->rotationWords.m02M10 = 0;
+    mat->rotationWords.m11M12 = ONE;
+    mat->rotationWords.m20M21 = 0;
+    mat->rotationWords.m22    = ONE;
     RotMatrixY(work->field_10.halves.integer, &mat->mat);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     return done;

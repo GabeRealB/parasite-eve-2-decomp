@@ -3548,9 +3548,9 @@ static const Actor403100VoidTable4 D_actor_403100_80131E24 = {
 static void func_actor_403100_80132064(Task* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
 {
     SVECTOR                end;
-    OverlayMat             matrix;
+    GfxMatrix              matrix;
     u16                    mode;
-    OverlayMat*            identity;
+    GfxMatrix*             identity;
     GfxCoord*              joint;
     s32                    i;
     u32                    random;
@@ -3582,11 +3582,11 @@ static void func_actor_403100_80132064(Task* arg0, SVECTOR* arg1, SVECTOR* arg2,
             D_actor_403100_80155814[i].position.vy          = (u16)arg1->vy;
             D_actor_403100_80155814[i].position.vz          = (u16)arg1->vz;
             D_actor_403100_80155814[i].coord.parent         = &gGfxViewCoord;
-            matrix.ident.m00M01                             = ONE;
-            matrix.ident.m02M10                             = 0;
-            identity->ident.m11M12                          = ONE;
-            matrix.ident.m20M21                             = 0;
-            identity->ident.m22                             = ONE;
+            matrix.rotationWords.m00M01                     = ONE;
+            matrix.rotationWords.m02M10                     = 0;
+            identity->rotationWords.m11M12                  = ONE;
+            matrix.rotationWords.m20M21                     = 0;
+            identity->rotationWords.m22                     = ONE;
             matrix.mat.t[0]                                 = (s32)(s16)arg1->vx;
             matrix.mat.t[1]                                 = (s32)(s16)arg1->vy;
             records                                         = D_actor_403100_80155814[i].records;

@@ -35,11 +35,11 @@ void modelPlacementSetScaled(Task* arg0, MATRIX* arg1, s16 arg2, s32 arg3)
 
     coord->coord = *arg1;
 
-    blk->mat.ident.m00M01 = ONE;
-    blk->mat.ident.m02M10 = 0;
-    blk->mat.ident.m11M12 = ONE;
-    blk->mat.ident.m20M21 = 0;
-    blk->mat.ident.m22    = ONE;
+    blk->mat.rotationWords.m00M01 = ONE;
+    blk->mat.rotationWords.m02M10 = 0;
+    blk->mat.rotationWords.m11M12 = ONE;
+    blk->mat.rotationWords.m20M21 = 0;
+    blk->mat.rotationWords.m22    = ONE;
 
     ScaleMatrix(&blk->mat.mat, &blk->scale);
     MulMatrix(&coord->coord, &blk->mat.mat);

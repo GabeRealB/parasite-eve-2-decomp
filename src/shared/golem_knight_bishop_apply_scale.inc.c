@@ -7,25 +7,25 @@
 void golemKnightBishopApplyScale(Task* arg0)
 {
     void**                 scratch;
-    OverlayMat*            head;
-    OverlayMat*            m;
+    GfxMatrix*             head;
+    GfxMatrix*             m;
     GfxCoord*              coord;
     GolemKnightBishopWork* work;
 
-    scratch                              = SCRATCH_HEAD_ADDR;
-    head                                 = SCRATCH_HEAD_AT(scratch, OverlayMat);
-    m                                    = head - 1;
-    SCRATCH_HEAD_AT(scratch, OverlayMat) = m;
-    coord                                = &arg0->extra.tmd->coords[0];
-    work                                 = arg0->work;
+    scratch                             = SCRATCH_HEAD_ADDR;
+    head                                = SCRATCH_HEAD_AT(scratch, GfxMatrix);
+    m                                   = head - 1;
+    SCRATCH_HEAD_AT(scratch, GfxMatrix) = m;
+    coord                               = &arg0->extra.tmd->coords[0];
+    work                                = arg0->work;
 
-    coord->coord    = work->field_674;
-    m->ident.m00M01 = ONE;
-    m->ident.m02M10 = 0;
-    m->ident.m11M12 = ONE;
-    m->ident.m20M21 = 0;
-    m->ident.m22    = ONE;
+    coord->coord            = work->field_674;
+    m->rotationWords.m00M01 = ONE;
+    m->rotationWords.m02M10 = 0;
+    m->rotationWords.m11M12 = ONE;
+    m->rotationWords.m20M21 = 0;
+    m->rotationWords.m22    = ONE;
     ScaleMatrix(&m->mat, &work->scale);
     MulMatrix(&coord->coord, &m->mat);
-    SCRATCH_POP_AT(scratch, OverlayMat);
+    SCRATCH_POP_AT(scratch, GfxMatrix);
 }

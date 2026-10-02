@@ -26,7 +26,7 @@ void gluttonRainSpawn(Enemy* enemy, Task* task)
     Enemy*           owner;
     Task*            parent;
     Task*            player;
-    OverlayMat*      mtx;
+    GfxMatrix*       mtx;
     SVECTOR          vec;
     s32              dist;
     s32              rnd;
@@ -123,13 +123,13 @@ void gluttonRainSpawn(Enemy* enemy, Task* task)
     vec.vy = 0;
     vec.vz = 0;
 
-    work->coord.parent = &gGfxViewCoord;
-    mtx                = (OverlayMat*)&work->coord.coord;
-    mtx->ident.m00M01  = ONE;
-    mtx->ident.m02M10  = 0;
-    mtx->ident.m11M12  = ONE;
-    mtx->ident.m20M21  = 0;
-    mtx->ident.m22     = ONE;
+    work->coord.parent        = &gGfxViewCoord;
+    mtx                       = (GfxMatrix*)&work->coord.coord;
+    mtx->rotationWords.m00M01 = ONE;
+    mtx->rotationWords.m02M10 = 0;
+    mtx->rotationWords.m11M12 = ONE;
+    mtx->rotationWords.m20M21 = 0;
+    mtx->rotationWords.m22    = ONE;
     gfxRotMatrixY(&mtx->mat, 0, 1);
 
     actorLinkWorkObj(&work->coord, &work->obj, &work->rec, &vec, 0x100, 3, 1);

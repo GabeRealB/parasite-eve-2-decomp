@@ -9,20 +9,20 @@ void madChaserDangleSway(Task* arg0)
 {
     MadChaserWork* work;
     GfxCoord*      coord;
-    OverlayMat     rot;
-    OverlayMat*    src;
+    GfxMatrix      rot;
+    GfxMatrix*     src;
     MATRIX*        dst;
     s16            pitch;
 
-    work              = (MadChaserWork*)arg0->work;
-    coord             = arg0->extra.tmd->coords;
-    src               = &rot;
-    src->ident.m00M01 = ONE;
-    src->ident.m02M10 = 0;
-    src->ident.m11M12 = ONE;
-    src->ident.m20M21 = 0;
-    src->ident.m22    = ONE;
-    pitch             = ((rsin(work->field_442 << 6) * 0x10) >> 7) - 0x400;
+    work                      = (MadChaserWork*)arg0->work;
+    coord                     = arg0->extra.tmd->coords;
+    src                       = &rot;
+    src->rotationWords.m00M01 = ONE;
+    src->rotationWords.m02M10 = 0;
+    src->rotationWords.m11M12 = ONE;
+    src->rotationWords.m20M21 = 0;
+    src->rotationWords.m22    = ONE;
+    pitch                     = ((rsin(work->field_442 << 6) * 0x10) >> 7) - 0x400;
     RotMatrixX(pitch, &src->mat);
     RotMatrixY(work->field_7A, &src->mat);
     dst          = &coord->coord;

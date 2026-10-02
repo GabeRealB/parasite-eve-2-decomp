@@ -20,15 +20,15 @@ void sucklercephFlatten(Task* arg0)
     if (work->field_2CA >= 0x201) {
         work->field_2CA = (u16)work->field_2CA - 0x50;
     }
-    scratch->scale.vx         = 0x1000;
-    scratch->scale.vy         = (s32)work->field_2CA;
-    scratch->scale.vz         = 0x1000;
-    coord->coord              = work->field_28C;
-    scratch->mat.ident.m00M01 = ONE;
-    scratch->mat.ident.m02M10 = 0;
-    scratch->mat.ident.m11M12 = ONE;
-    scratch->mat.ident.m20M21 = 0;
-    scratch->mat.ident.m22    = ONE;
+    scratch->scale.vx                 = 0x1000;
+    scratch->scale.vy                 = (s32)work->field_2CA;
+    scratch->scale.vz                 = 0x1000;
+    coord->coord                      = work->field_28C;
+    scratch->mat.rotationWords.m00M01 = ONE;
+    scratch->mat.rotationWords.m02M10 = 0;
+    scratch->mat.rotationWords.m11M12 = ONE;
+    scratch->mat.rotationWords.m20M21 = 0;
+    scratch->mat.rotationWords.m22    = ONE;
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;

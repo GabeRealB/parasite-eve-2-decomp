@@ -6636,7 +6636,7 @@ void func_actor_560800_80137F58(Task* task, s32 msgId, VECTOR* msg)
     ActorTransform*       pose;
     Actor560800ModelWork* part;
     GfxCoord*             coord;
-    OverlayMat*           mat;
+    GfxMatrix*            mat;
     s32                   i;
     s32                   j;
 
@@ -6658,21 +6658,21 @@ void func_actor_560800_80137F58(Task* task, s32 msgId, VECTOR* msg)
             i    = 0;
             do {
                 if (work->parts[i & 0xFFFF] != NULL) {
-                    coord             = work->parts[i & 0xFFFF]->extra.tmd->coords;
-                    mat               = (OverlayMat*)&coord->coord;
-                    mat->ident.m00M01 = ONE;
-                    mat->ident.m02M10 = 0;
-                    mat->ident.m11M12 = ONE;
-                    mat->ident.m20M21 = 0;
-                    mat->ident.m22    = ONE;
-                    coord->parent     = &gGfxViewCoord;
-                    part              = (Actor560800ModelWork*)work->parts[i & 0xFFFF]->work;
-                    part->field_254   = msg->vx + pose->pos.vx;
-                    part->field_256   = msg->vy + pose->pos.vy;
-                    part->field_258   = msg->vz + pose->pos.vz;
-                    part->field_24C   = 0;
-                    part->field_24E   = 0;
-                    part->field_250   = 0;
+                    coord                     = work->parts[i & 0xFFFF]->extra.tmd->coords;
+                    mat                       = (GfxMatrix*)&coord->coord;
+                    mat->rotationWords.m00M01 = ONE;
+                    mat->rotationWords.m02M10 = 0;
+                    mat->rotationWords.m11M12 = ONE;
+                    mat->rotationWords.m20M21 = 0;
+                    mat->rotationWords.m22    = ONE;
+                    coord->parent             = &gGfxViewCoord;
+                    part                      = (Actor560800ModelWork*)work->parts[i & 0xFFFF]->work;
+                    part->field_254           = msg->vx + pose->pos.vx;
+                    part->field_256           = msg->vy + pose->pos.vy;
+                    part->field_258           = msg->vz + pose->pos.vz;
+                    part->field_24C           = 0;
+                    part->field_24E           = 0;
+                    part->field_250           = 0;
                 }
                 i++;
                 pose++;

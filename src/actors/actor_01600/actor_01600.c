@@ -304,11 +304,11 @@ STATIC_ASSERT_SIZEOF(Actor01600GroundScratch, 0x18);
 /// `SVECTOR` `Gfx_MatrixCol2` reads that facing into, the rotation
 /// `RotMatrixY` builds for the yaw and the yaw itself.
 typedef struct Actor01600StepScratch {
-    /* 0x00 */ VECTOR     move;
-    /* 0x10 */ SVECTOR    dir;
-    /* 0x18 */ OverlayMat mat;
-    /* 0x38 */ s16        yaw;
-    /* 0x3A */ byte       pad_3A[2];
+    /* 0x00 */ VECTOR    move;
+    /* 0x10 */ SVECTOR   dir;
+    /* 0x18 */ GfxMatrix mat;
+    /* 0x38 */ s16       yaw;
+    /* 0x3A */ byte      pad_3A[2];
 } Actor01600StepScratch;
 STATIC_ASSERT_SIZEOF(Actor01600StepScratch, 0x3C);
 
@@ -4672,15 +4672,15 @@ static void Actor01600_Fn06880(Task* arg0)
     if (work->field_518 >= 0x201) {
         work->field_518 = (u16)work->field_518 - 0x50;
     }
-    scratch->scale.vx         = 0x1000;
-    scratch->scale.vy         = (s32)work->field_518;
-    scratch->scale.vz         = 0x1000;
-    coord->coord              = work->field_49C;
-    scratch->mat.ident.m00M01 = ONE;
-    scratch->mat.ident.m02M10 = 0;
-    scratch->mat.ident.m11M12 = ONE;
-    scratch->mat.ident.m20M21 = 0;
-    scratch->mat.ident.m22    = ONE;
+    scratch->scale.vx                 = 0x1000;
+    scratch->scale.vy                 = (s32)work->field_518;
+    scratch->scale.vz                 = 0x1000;
+    coord->coord                      = work->field_49C;
+    scratch->mat.rotationWords.m00M01 = ONE;
+    scratch->mat.rotationWords.m02M10 = 0;
+    scratch->mat.rotationWords.m11M12 = ONE;
+    scratch->mat.rotationWords.m20M21 = 0;
+    scratch->mat.rotationWords.m22    = ONE;
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -4694,7 +4694,7 @@ static void Actor01600_Fn06880(Task* arg0)
 /// result is added to `coord.t`.
 static void Actor01600_Fn06974(Task* actor, s32 distance)
 {
-    OverlayMat*            mat;
+    GfxMatrix*             mat;
     Actor01600StepScratch* work;
     GfxCoord*              coord;
     Actor01600StepScratch* head;
@@ -4709,13 +4709,13 @@ static void Actor01600_Fn06974(Task* actor, s32 distance)
     work->move.vz                  = 0;
     SCRATCH_HEAD_AT(scratch, void) = work;
     Gfx_MatrixCol2(&actor->extra.tmd->coords->coord, &(head - 1)->dir);
-    mat               = &(head - 1)->mat;
-    work->yaw         = ratan2(work->dir.vx, work->dir.vz);
-    mat->ident.m00M01 = ONE;
-    mat->ident.m02M10 = 0;
-    mat->ident.m11M12 = ONE;
-    mat->ident.m20M21 = 0;
-    mat->ident.m22    = ONE;
+    mat                       = &(head - 1)->mat;
+    work->yaw                 = ratan2(work->dir.vx, work->dir.vz);
+    mat->rotationWords.m00M01 = ONE;
+    mat->rotationWords.m02M10 = 0;
+    mat->rotationWords.m11M12 = ONE;
+    mat->rotationWords.m20M21 = 0;
+    mat->rotationWords.m22    = ONE;
     RotMatrixY(work->yaw, &mat->mat);
     ApplyMatrixLV(&mat->mat, &work->move, &work->move);
     coord->coord.t[0] += work->move.vx;
