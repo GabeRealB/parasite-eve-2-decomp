@@ -23,7 +23,21 @@ enum {
     /// The last texel is `EFFECT_SPRITE_ATLAS_UV_SPAN` past the origin;
     /// adjacent cells begin immediately after that texel.
     EFFECT_SPRITE_ATLAS_CELL_SIZE = 40,
-    EFFECT_SPRITE_ATLAS_UV_SPAN   = EFFECT_SPRITE_ATLAS_CELL_SIZE - 1, // Inclusive texel distance between edges.
+};
+
+/// Distance from the first to the last texel of an effect-atlas cell, in texels.
+///
+/// Add this 39-texel span to a frame's U or V origin for the inclusive right
+/// or bottom UV endpoint. It covers 40 texels including both endpoints;
+/// frame origins advance by `EFFECT_SPRITE_ATLAS_CELL_SIZE` instead.
+/// The six-column, two-row atlas reaches U=239 and V=79, within GPU UV bytes.
+///
+/// Spinning billboard drawers also reuse this span as their sizing multiplier:
+/// size * span / depth gives the screen-space half-diagonal before rotation,
+/// in pixels. Here size is the caller's sizing numerator, not a texel count,
+/// and depth is SZ3 / 4 with the drawer's depth bias already applied.
+enum {
+    EFFECT_SPRITE_ATLAS_UV_SPAN = EFFECT_SPRITE_ATLAS_CELL_SIZE - 1,
 };
 
 /// GPU texture-page word for drawing the shared effect sprite atlas additively.
