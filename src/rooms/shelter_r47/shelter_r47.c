@@ -74,19 +74,32 @@ extern s32 D_80142C24;
 extern s32 D_801432FC;
 extern s32 D_80143494;
 
-/// One textured piece of a sprite drawn by `func_shelter_r47_80180F38`: its
-/// CLUT position, its offset from the sprite's origin, and its texture window.
-/// A piece whose `clutX` is 0xFFFF ends the list.
+/// `clutX` value that ends a sprite's piece list. That record is not drawn.
+enum { SHELTER_R47_SPRITE_PART_END = 0xFFFF };
+
+/// Texture page every piece is drawn on: 4-bit texels at VRAM (832, 0).
+enum { SHELTER_R47_SPRITE_PART_TPAGE = 0xD };
+
+/// One textured quad of a composite sprite on this room's selection screen.
+///
+/// A sprite is a list of these records. The list ends at the record whose
+/// `clutX` is `SHELTER_R47_SPRITE_PART_END`; that record is not drawn, and its
+/// other fields are unread. Each earlier record is emitted as a raw-textured
+/// flat quad on `SHELTER_R47_SPRITE_PART_TPAGE` into ordering-table slot 10.
+/// The quad's screen rectangle is the caller's origin plus `x` and `y`, sized
+/// `w` by `h`. The same `w` and `h` are the texture span from (`u`, `v`).
+/// The palette is `getClut(clutX, clutY)`.
 typedef struct {
-    u16 clutX;
-    u16 clutY;
-    s16 x;
-    s16 y;
-    u8  u;
-    u8  v;
-    u8  w;
-    u8  h;
-} ShelterR47SpritePart;
+    u16 clutX; // Palette X in VRAM pixels, aligned to 16. SHELTER_R47_SPRITE_PART_END ends the list.
+    u16 clutY; // Palette Y in VRAM pixels.
+    s16 x;     // X offset from the sprite origin, in pixels.
+    s16 y;     // Y offset from the sprite origin, in pixels.
+    u8  u;     // Left column of the texture rectangle, in texels.
+    u8  v;     // Top row of the texture rectangle, in texels.
+    u8  w;     // Width of the quad in pixels and of the texture rectangle in texels.
+    u8  h;     // Height of the quad in pixels and of the texture rectangle in texels.
+} _ShelterR47SpritePart;
+STATIC_ASSERT_SIZEOF(_ShelterR47SpritePart, 0xC);
 
 static TaskDesc             gRoomCutsceneTaskDescs[3];
 static TaskMessageEntry     D_shelter_r47_80186F2C[6];
@@ -96,18 +109,18 @@ static TaskDesc             D_shelter_r47_80186F94[2];
 static ActionPromptHotspot  D_shelter_r47_80186FB4[9];
 static TaskDesc             D_shelter_r47_80187020;
 /// Piece lists of the sprites `func_shelter_r47_80180F38` draws, by sprite id.
-static ShelterR47SpritePart* D_shelter_r47_8018729C[];
-static TaskDesc              D_shelter_r47_801872F0;
-static s32                   func_shelter_r47_8017FE84(Task*, s32, RoomEventMsg*, TaskMessageArg);
-static s32                   func_shelter_r47_801801DC(Task*, s32, s32, TaskMessageArg);
-static void                  func_shelter_r47_80180324(Task*);
-static s32                   func_shelter_r47_801805D0(Task*, s32, TaskMessageArg, TaskMessageArg);
-static s32                   func_shelter_r47_801805D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-static s32                   func_shelter_r47_8018061C(Task*, s32, s32, TaskMessageArg);
-static void                  func_shelter_r47_80180650(Task*);
-static void                  func_shelter_r47_80180714(Task*);
-static void                  func_shelter_r47_8018080C(Task*);
-static void                  func_shelter_r47_801808D4(Task*);
+static _ShelterR47SpritePart* D_shelter_r47_8018729C[];
+static TaskDesc               D_shelter_r47_801872F0;
+static s32                    func_shelter_r47_8017FE84(Task*, s32, RoomEventMsg*, TaskMessageArg);
+static s32                    func_shelter_r47_801801DC(Task*, s32, s32, TaskMessageArg);
+static void                   func_shelter_r47_80180324(Task*);
+static s32                    func_shelter_r47_801805D0(Task*, s32, TaskMessageArg, TaskMessageArg);
+static s32                    func_shelter_r47_801805D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32                    func_shelter_r47_8018061C(Task*, s32, s32, TaskMessageArg);
+static void                   func_shelter_r47_80180650(Task*);
+static void                   func_shelter_r47_80180714(Task*);
+static void                   func_shelter_r47_8018080C(Task*);
+static void                   func_shelter_r47_801808D4(Task*);
 
 #define TELEPHONE_TITLE_BYTES "Telephone\0\xDC" \
                               "2"
@@ -168,122 +181,122 @@ static ActionPromptHotspot D_shelter_r47_80186FB4[9] = {
 
 static TaskDesc D_shelter_r47_80187020 = { { { TASK_BODY_NONE, 192 } }, func_shelter_r47_80182B18, { .value = 0 } };
 
-static ShelterR47SpritePart D_shelter_r47_8018702C[2] = {
+static _ShelterR47SpritePart D_shelter_r47_8018702C[2] = {
     { 32, 255, 0, 0, 120, 160, 72, 24 },
-    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+    { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static ShelterR47SpritePart D_shelter_r47_80187044[2] = {
+static _ShelterR47SpritePart D_shelter_r47_80187044[2] = {
     { 96, 255, 0, 0, 0, 184, 72, 16 },
-    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+    { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static ShelterR47SpritePart D_shelter_r47_8018705C[2] = {
+static _ShelterR47SpritePart D_shelter_r47_8018705C[2] = {
     { 128, 255, 0, 0, 0, 184, 72, 16 },
-    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+    { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static ShelterR47SpritePart D_shelter_r47_80187074[3] = {
+static _ShelterR47SpritePart D_shelter_r47_80187074[3] = {
     { 0, 255, 0, 0, 0, 0, 255, 16 },
     { 48, 255, 255, 0, 72, 184, 48, 16 },
-    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+    { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static ShelterR47SpritePart D_shelter_r47_80187098[3] = {
+static _ShelterR47SpritePart D_shelter_r47_80187098[3] = {
     { 0, 255, 0, 0, 0, 16, 255, 16 },
     { 48, 255, 255, 0, 72, 184, 48, 16 },
-    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+    { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static ShelterR47SpritePart D_shelter_r47_801870BC[3] = {
+static _ShelterR47SpritePart D_shelter_r47_801870BC[3] = {
     { 0, 255, 0, 0, 0, 32, 255, 16 },
     { 48, 255, 255, 0, 72, 184, 48, 16 },
-    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+    { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static ShelterR47SpritePart D_shelter_r47_801870E0[3] = {
+static _ShelterR47SpritePart D_shelter_r47_801870E0[3] = {
     { 0, 255, 0, 0, 0, 48, 255, 16 },
     { 48, 255, 255, 0, 72, 184, 48, 16 },
-    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+    { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static ShelterR47SpritePart D_shelter_r47_80187104[3] = {
+static _ShelterR47SpritePart D_shelter_r47_80187104[3] = {
     { 0, 255, 0, 0, 0, 64, 255, 16 },
     { 48, 255, 255, 0, 72, 184, 48, 16 },
-    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+    { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static ShelterR47SpritePart D_shelter_r47_80187128[3] = {
+static _ShelterR47SpritePart D_shelter_r47_80187128[3] = {
     { 0, 255, 0, 0, 0, 80, 255, 16 },
     { 48, 255, 255, 0, 72, 184, 48, 16 },
-    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+    { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static ShelterR47SpritePart D_shelter_r47_8018714C[3] = {
+static _ShelterR47SpritePart D_shelter_r47_8018714C[3] = {
     { 0, 255, 0, 0, 0, 96, 255, 16 },
     { 48, 255, 255, 0, 72, 184, 48, 16 },
-    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+    { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static ShelterR47SpritePart D_shelter_r47_80187170[3] = {
+static _ShelterR47SpritePart D_shelter_r47_80187170[3] = {
     { 0, 255, 0, 0, 0, 112, 255, 16 },
     { 48, 255, 255, 0, 72, 184, 48, 16 },
-    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+    { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static ShelterR47SpritePart D_shelter_r47_80187194[3] = {
+static _ShelterR47SpritePart D_shelter_r47_80187194[3] = {
     { 0, 255, 0, 0, 0, 128, 255, 16 },
     { 48, 255, 255, 0, 72, 184, 48, 16 },
-    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+    { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static ShelterR47SpritePart D_shelter_r47_801871B8[3] = {
+static _ShelterR47SpritePart D_shelter_r47_801871B8[3] = {
     { 0, 255, 0, 0, 0, 144, 255, 16 },
     { 48, 255, 255, 0, 72, 184, 48, 16 },
-    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+    { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static ShelterR47SpritePart D_shelter_r47_801871DC[2] = {
+static _ShelterR47SpritePart D_shelter_r47_801871DC[2] = {
     { 16, 255, 0, 0, 0, 160, 24, 24 },
-    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+    { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static ShelterR47SpritePart D_shelter_r47_801871F4[2] = {
+static _ShelterR47SpritePart D_shelter_r47_801871F4[2] = {
     { 16, 255, 0, 0, 24, 160, 24, 24 },
-    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+    { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static ShelterR47SpritePart D_shelter_r47_8018720C[2] = {
+static _ShelterR47SpritePart D_shelter_r47_8018720C[2] = {
     { 16, 255, 0, 0, 48, 160, 24, 24 },
-    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+    { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static ShelterR47SpritePart D_shelter_r47_80187224[2] = {
+static _ShelterR47SpritePart D_shelter_r47_80187224[2] = {
     { 16, 255, 0, 0, 72, 160, 24, 24 },
-    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+    { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static ShelterR47SpritePart D_shelter_r47_8018723C[2] = {
+static _ShelterR47SpritePart D_shelter_r47_8018723C[2] = {
     { 16, 255, 0, 0, 96, 160, 24, 24 },
-    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+    { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static ShelterR47SpritePart D_shelter_r47_80187254[2] = {
+static _ShelterR47SpritePart D_shelter_r47_80187254[2] = {
     { 80, 255, 0, 0, 120, 184, 40, 16 },
-    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+    { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static ShelterR47SpritePart D_shelter_r47_8018726C[2] = {
+static _ShelterR47SpritePart D_shelter_r47_8018726C[2] = {
     { 112, 255, 0, 0, 120, 184, 40, 16 },
-    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+    { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static ShelterR47SpritePart D_shelter_r47_80187284[2] = {
+static _ShelterR47SpritePart D_shelter_r47_80187284[2] = {
     { 64, 255, 0, 0, 160, 184, 16, 16 },
-    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+    { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static ShelterR47SpritePart* D_shelter_r47_8018729C[21] = {
+static _ShelterR47SpritePart* D_shelter_r47_8018729C[21] = {
     D_shelter_r47_8018702C,
     D_shelter_r47_80187044,
     D_shelter_r47_8018705C,
@@ -1089,24 +1102,24 @@ s32 func_shelter_r47_80180C48(Task* task)
 /// the current view is 0x12.
 void func_shelter_r47_80180F38(s16 x, s16 y, s16 id)
 {
-    ShelterR47SpritePart* g;
-    POLY_FT4*             p;
+    _ShelterR47SpritePart* part;
+    POLY_FT4*              p;
 
-    g = D_shelter_r47_8018729C[id];
+    part = D_shelter_r47_8018729C[id];
     if (gGameSession->location.loc.view == 0x12 && (u16)(id - 1) < 2) {
         return;
     }
-    while (g->clutX != 0xFFFF) {
+    while (part->clutX != SHELTER_R47_SPRITE_PART_END) {
         p              = gGpuPrimCursor;
         gGpuPrimCursor = p + 1;
         setPolyFT4(p);
-        setUVWH(p, g->u, g->v, g->w, g->h);
-        p->tpage = 0xD;
+        setUVWH(p, part->u, part->v, part->w, part->h);
+        p->tpage = SHELTER_R47_SPRITE_PART_TPAGE;
         setShadeTex(p, 1);
-        p->clut = getClut(g->clutX, g->clutY);
-        setXYWH(p, x + g->x, y + g->y, g->w, g->h);
+        p->clut = getClut(part->clutX, part->clutY);
+        setXYWH(p, x + part->x, y + part->y, part->w, part->h);
         addPrim(&gGpuCurrentOt[10], p);
-        g++;
+        part++;
     }
 }
 
