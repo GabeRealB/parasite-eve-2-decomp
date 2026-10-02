@@ -679,8 +679,11 @@ static void func_m4a1_javelin_8011EE78(SVECTOR* p0, SVECTOR* p1, u16 brightness)
 #define SPRITE_QUAD_CLUT 0x42C3
 /// Texel width and horizontal stride of each of the launch flash's eight texture frames.
 #define SPRITE_QUAD_CELL_WIDTH 32
-#define SPRITE_QUAD_V0         0x18
-#define SPRITE_QUAD_V1         0x37
+/// Inclusive top texel row of the launch-flash strip, relative to its texture page.
+///
+/// Signed integer constant for the next drawer inclusion; see `sprite_quad.h`.
+#define SPRITE_QUAD_TOP_V 0x18
+#define SPRITE_QUAD_V1    0x37
 /// Perspective-sizing multiplier for Javelin's launch flash.
 ///
 /// Uses the cell's inclusive 31-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.

@@ -261,8 +261,11 @@ void func_necrosis_8012F52C(Task* arg0)
 #define SPRITE_QUAD_CLUT 0x428F
 /// Texel width and horizontal stride of each of the six frames selected by the caller.
 #define SPRITE_QUAD_CELL_WIDTH 40
-#define SPRITE_QUAD_V0         0x38
-#define SPRITE_QUAD_V1         0x5F
+/// Inclusive top texel row of the necrosis strip, relative to its texture page.
+///
+/// Signed integer constant for the next drawer inclusion; see `sprite_quad.h`.
+#define SPRITE_QUAD_TOP_V 0x38
+#define SPRITE_QUAD_V1    0x5F
 /// Perspective-sizing multiplier for the necrosis sprite.
 ///
 /// Uses the cell's inclusive 39-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.

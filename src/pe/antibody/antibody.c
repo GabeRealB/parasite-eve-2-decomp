@@ -425,8 +425,11 @@ void func_antibody_8012F734(Task* arg0)
 #define SPRITE_QUAD_CELL_WIDTH 40
 /// Number of cells in the mote texture row, repeated as the effect ages.
 #define SPRITE_QUAD_CELLS_PER_ROW 6
-#define SPRITE_QUAD_V0            0x50
-#define SPRITE_QUAD_V1            0x77
+/// Inclusive top texel row of the mote strip, relative to its texture page.
+///
+/// Signed integer constant for the next drawer inclusion; see `sprite_quad.h`.
+#define SPRITE_QUAD_TOP_V 0x50
+#define SPRITE_QUAD_V1    0x77
 /// Perspective-sizing multiplier for the antibody mote.
 ///
 /// Uses the cell's inclusive 39-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.
@@ -438,8 +441,11 @@ void func_antibody_8012F734(Task* arg0)
 #define SPRITE_QUAD_CELL_WIDTH 40
 /// Number of cells in the larger antibody sprite's repeating texture row.
 #define SPRITE_QUAD_CELLS_PER_ROW 6
-#define SPRITE_QUAD_V0            0x38
-#define SPRITE_QUAD_V1            0x5F
+/// Inclusive top texel row of the larger sprite strip, relative to its texture page.
+///
+/// Signed integer constant for the next drawer inclusion; see `sprite_quad.h`.
+#define SPRITE_QUAD_TOP_V 0x38
+#define SPRITE_QUAD_V1    0x5F
 /// Perspective-sizing multiplier for the larger antibody sprite.
 ///
 /// Uses the cell's inclusive 39-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.

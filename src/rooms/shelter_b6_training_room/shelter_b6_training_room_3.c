@@ -1201,8 +1201,11 @@ void func_shelter_b6_training_room_80181A3C(Task* task)
 #define SPRITE_QUAD_CELL_WIDTH 40
 /// Number of cells in the training effect's texture row, repeated as the effect ages.
 #define SPRITE_QUAD_CELLS_PER_ROW 6
-#define SPRITE_QUAD_V0            0x38
-#define SPRITE_QUAD_V1            0x5F
+/// Inclusive top texel row of the training effect strip, relative to its texture page.
+///
+/// Signed integer constant for the next drawer inclusion; see `sprite_quad.h`.
+#define SPRITE_QUAD_TOP_V 0x38
+#define SPRITE_QUAD_V1    0x5F
 /// Perspective-sizing multiplier for the training effect sprite.
 ///
 /// Uses the cell's inclusive 39-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.

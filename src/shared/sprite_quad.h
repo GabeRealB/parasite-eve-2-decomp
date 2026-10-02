@@ -8,11 +8,12 @@
  * The including unit sets the texture before including the fragment:
  *   SPRITE_QUAD_CLUT        CLUT word
  *   SPRITE_QUAD_CELL_WIDTH  cell width in texels, including both endpoints
- *   SPRITE_QUAD_V0/_V1      top and bottom texel rows
+ *   SPRITE_QUAD_TOP_V       inclusive top texel row of the first cell row
+ *   SPRITE_QUAD_V1          inclusive bottom texel row of the first cell row
  *   SPRITE_QUAD_SCALE       signed perspective-sizing multiplier
  *   SPRITE_QUAD_CELLS_PER_ROW  optional: number of cell columns, not texels
  *   SPRITE_QUAD_CELL_H      optional, with CELLS_PER_ROW: a grid of cells this
- *                           tall, the rows offset from V0/V1
+ *                           tall, added to TOP_V/V1 for each row
  *   SPRITE_QUAD_UV_TABLE    optional: an EffectSpriteTextureFrame table supplying
  *                           UV origins; its palette fields are ignored
  *                           (SPRITE_QUAD_CLUT may be an expression of `frame`)
@@ -61,7 +62,7 @@
  * constant, bound before each sprite_quad_draw.inc.c inclusion. In arithmetic
  * UV mode it selects the column with frame % count, taking precedence over
  * SPRITE_QUAD_CELL_MASK. Without SPRITE_QUAD_CELL_H, only the column repeats
- * and V0/V1 stay fixed. With CELL_H, the count is required and frame / count
+ * and TOP_V/V1 stay fixed. With CELL_H, the count is required and frame / count
  * selects the row; the count does not limit the number of rows or frames.
  * Signed frames retain signed division/remainder behavior, and the resulting
  * UV coordinates narrow to GPU bytes. SPRITE_QUAD_UV_TABLE bypasses this
@@ -69,6 +70,25 @@
  * next texture needs its own binding. Current bindings are six columns for
  * both antibody strips, the gallery, training room and Hammer, and five for
  * sterilization's grid.
+ *
+ * SPRITE_QUAD_TOP_V must be a signed integer constant expression, bound before
+ * each arithmetic-UV sprite_quad_draw.inc.c inclusion. It counts texels from
+ * the selected texture-page origin to the first cell row's inclusive top edge,
+ * assigned to texture vertices 0 and 1; rotation may move that edge anywhere
+ * on screen. An enum constant is valid. The binding has no parameters or
+ * captured locals, and is evaluated twice for each emitted arithmetic-mode quad.
+ *
+ * Strips keep this V coordinate fixed for every frame. With SPRITE_QUAD_CELL_H,
+ * the drawer first adds (s16)(frame / SPRITE_QUAD_CELLS_PER_ROW) * CELL_H using
+ * signed arithmetic, then setUV4 narrows both top coordinates modulo 256 into
+ * GPU bytes. Sterilization retains -0x80 for its first row at V=0x80; the next
+ * row starts at V=0xB0 after adding the 48-texel stride. The origin does not
+ * set the cell height, row count, frame count or screen-space extent.
+ *
+ * SPRITE_QUAD_UV_TABLE bypasses this binding entirely and need not define it.
+ * The fragment undefines TOP_V after every inclusion, including both instances
+ * in antibody and m4a1_hammer, so each arithmetic instance supplies its own.
+ * The flicker drawer uses its separate core/rim cell bindings.
  *
  * SPRITE_QUAD_U_BASE shifts computed cell columns within the selected texture
  * page; leaving it undefined starts at column zero. It is ignored when

@@ -1478,8 +1478,11 @@ static void func_shelter_b6_nursery_80181EDC(GfxCoord* coord, u16 arg1, s16 arg2
 /// Texel width and horizontal stride of each cell in the eight-frame particle strip.
 #define SPRITE_QUAD_CELL_WIDTH 32
 #define SPRITE_QUAD_CELL_MASK  7
-#define SPRITE_QUAD_V0         0x88
-#define SPRITE_QUAD_V1         0xA7
+/// Inclusive top texel row of the particle strip, relative to its texture page.
+///
+/// Signed integer constant for the next drawer inclusion; see `sprite_quad.h`.
+#define SPRITE_QUAD_TOP_V 0x88
+#define SPRITE_QUAD_V1    0xA7
 /// Perspective-sizing multiplier for the nursery particle sprite.
 ///
 /// Uses the cell's inclusive 31-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.

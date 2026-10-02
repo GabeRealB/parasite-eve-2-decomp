@@ -2277,8 +2277,11 @@ void func_mist_shooting_gallery_80182064(Task* task)
 #define SPRITE_QUAD_CELL_WIDTH 40
 /// Number of cells in the gallery flash's texture row, repeated by its frame counter.
 #define SPRITE_QUAD_CELLS_PER_ROW 6
-#define SPRITE_QUAD_V0            0x38
-#define SPRITE_QUAD_V1            0x5F
+/// Inclusive top texel row of the gallery flash strip, relative to its texture page.
+///
+/// Signed integer constant for the next drawer inclusion; see `sprite_quad.h`.
+#define SPRITE_QUAD_TOP_V 0x38
+#define SPRITE_QUAD_V1    0x5F
 /// Perspective-sizing multiplier for the gallery effect sprite.
 ///
 /// Uses the cell's inclusive 39-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.

@@ -151,8 +151,11 @@ void flareSparkTask(Task* arg0)
 #define SPRITE_QUAD_CLUT 0x4311
 /// Texel width and horizontal stride of each of the spark's eight texture frames.
 #define SPRITE_QUAD_CELL_WIDTH 32
-#define SPRITE_QUAD_V0         0x18
-#define SPRITE_QUAD_V1         0x37
+/// Inclusive top texel row of the spark strip, relative to its texture page.
+///
+/// Signed integer constant for the next drawer inclusion; see `sprite_quad.h`.
+#define SPRITE_QUAD_TOP_V 0x18
+#define SPRITE_QUAD_V1    0x37
 /// Perspective-sizing multiplier for the flare spark.
 ///
 /// Uses the cell's inclusive 31-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.

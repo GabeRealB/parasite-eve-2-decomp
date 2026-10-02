@@ -504,8 +504,11 @@ void func_hypervelocity_8011D830(Task* task)
 /// The effect age's low bit selects U = 0x70..0xA7 or 0xA8..0xDF.
 /// This integer constant configures the next drawer inclusion, which undefines it.
 #define SPRITE_QUAD_U_BASE 0x70
-#define SPRITE_QUAD_V0     0xC8
-#define SPRITE_QUAD_V1     0xFF
+/// Inclusive top texel row of both beam-flame cells, relative to their texture page.
+///
+/// Signed integer constant for the next drawer inclusion; see `sprite_quad.h`.
+#define SPRITE_QUAD_TOP_V 0xC8
+#define SPRITE_QUAD_V1    0xFF
 /// Perspective-sizing multiplier for the hypervelocity flame sprite.
 ///
 /// Uses the cell's inclusive 55-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.

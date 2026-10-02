@@ -1424,9 +1424,13 @@ void func_shelter_b1_sterilization_room_801823D8(Task* task)
 /// Number of columns in the drifting sprite's grid of ten frames in two rows.
 #define SPRITE_QUAD_CELLS_PER_ROW 5
 #define SPRITE_QUAD_CELL_H        0x30
-/* rows start at texel 0x80: the offsets wrap through the u8 V coordinate */
-#define SPRITE_QUAD_V0 -0x80
-#define SPRITE_QUAD_V1 -0x51
+/// Inclusive top texel row of the grid's first row, relative to its texture page.
+///
+/// Keep this signed: adding the frame's row stride precedes narrowing to the
+/// GPU byte. Frames 0..4 start at V=0x80; frames 5..9 start at V=0xB0.
+/// The next drawer inclusion undefines this binding; see `sprite_quad.h`.
+#define SPRITE_QUAD_TOP_V (-0x80)
+#define SPRITE_QUAD_V1    -0x51
 /// Perspective-sizing multiplier for the sterilization room's drifting sprite.
 ///
 /// Uses the cell's inclusive 47-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.

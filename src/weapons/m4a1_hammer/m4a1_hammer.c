@@ -226,8 +226,11 @@ void func_m4a1_hammer_8011D1E0(Task* task)
 /// Texel width and horizontal stride of each cell in the charge flare's eight-cell strip.
 #define SPRITE_QUAD_CELL_WIDTH 24
 #define SPRITE_QUAD_CELL_MASK  7
-#define SPRITE_QUAD_V0         0x88
-#define SPRITE_QUAD_V1         0x9F
+/// Inclusive top texel row of the charge-flare strip, relative to its texture page.
+///
+/// Signed integer constant for the next drawer inclusion; see `sprite_quad.h`.
+#define SPRITE_QUAD_TOP_V 0x88
+#define SPRITE_QUAD_V1    0x9F
 /// Perspective-sizing multiplier for Hammer's charge flare.
 ///
 /// Uses the cell's inclusive 23-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.
@@ -289,8 +292,11 @@ void func_m4a1_hammer_8011DD08(Task* arg0)
 #define SPRITE_QUAD_CELL_WIDTH 40
 /// Number of cells in Hammer's repeating sprite row, separate from its masked charge strip.
 #define SPRITE_QUAD_CELLS_PER_ROW 6
-#define SPRITE_QUAD_V0            0x38
-#define SPRITE_QUAD_V1            0x5F
+/// Inclusive top texel row of Hammer's repeating strip, relative to its texture page.
+///
+/// Signed integer constant for the next drawer inclusion; see `sprite_quad.h`.
+#define SPRITE_QUAD_TOP_V 0x38
+#define SPRITE_QUAD_V1    0x5F
 /// Perspective-sizing multiplier for Hammer's repeating sprite strip.
 ///
 /// Uses the cell's inclusive 39-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.
