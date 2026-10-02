@@ -309,16 +309,25 @@ static inline void _tmdInitGt3Texture(POLY_GT3* triangle, const u32* elementWord
 static inline void _tmdInitGt3OffsetLayerTexture(POLY_GT3* triangle, const u32* elementWords, const TmdStreamWorkspace* workspace)
 {
     enum {
-        TMD_GT3_LAYER_UV0_CLUT_WORD  = 3,      // U0/V0 in low half, encoded CLUT in high half
-        TMD_GT3_LAYER_UV1_TPAGE_WORD = 4,      // U1/V1 in low half, encoded page settings in high half
-        TMD_GT3_LAYER_UV2_WORD       = 5,      // U2/V2 in low half; high half is not copied
-        TMD_LAYER_TPAGE_ABR_LOW_BIT  = 1 << 5, // Set ABR bit 5 without clearing bit 6
-        TMD_LAYER_CLUT_ROW_SHIFT     = 6       // One signed palette row adds 64 encoded CLUT units
+        /// Index of vertex 0's packed texture/CLUT word for the offset layer.
+        ///
+        /// Counts u32 words from the element base after the stream record's
+        /// three-word header. Words 0..2 hold three vertex and three normal
+        /// references. Word 3 packs unsigned texel coordinates U0 in bits
+        /// 0..7 and V0 in bits 8..15, with the encoded GPU palette address in
+        /// bits 16..31. All four bytes are copied to the first `POLY_GT3`
+        /// packet's u0/v0/clut before the object's signed CLUT-row displacement
+        /// is added. The selected word must be readable and four-byte aligned.
+        MODEL_LIGHTING_GT3_OFFSET_LAYER_UV0_CLUT_WORD_INDEX = 3,
+        TMD_GT3_LAYER_UV1_TPAGE_WORD                        = 4,      // U1/V1 in low half, encoded page settings in high half
+        TMD_GT3_LAYER_UV2_WORD                              = 5,      // U2/V2 in low half; high half is not copied
+        TMD_LAYER_TPAGE_ABR_LOW_BIT                         = 1 << 5, // Set ABR bit 5 without clearing bit 6
+        TMD_LAYER_CLUT_ROW_SHIFT                            = 6       // One signed palette row adds 64 encoded CLUT units
     };
     s32 layerTexturePage;
     s32 layerClutRowByte;
 
-    MODEL_LIGHTING_UV0_CLUT_WORD(triangle)  = elementWords[TMD_GT3_LAYER_UV0_CLUT_WORD];
+    MODEL_LIGHTING_UV0_CLUT_WORD(triangle)  = elementWords[MODEL_LIGHTING_GT3_OFFSET_LAYER_UV0_CLUT_WORD_INDEX];
     MODEL_LIGHTING_UV1_TPAGE_WORD(triangle) = elementWords[TMD_GT3_LAYER_UV1_TPAGE_WORD];
     *(u16*)&triangle->u2                    = (u16)elementWords[TMD_GT3_LAYER_UV2_WORD];
     triangle->tpage                        += workspace->obj->layerTexturePageOffset;
