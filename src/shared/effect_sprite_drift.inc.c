@@ -5,8 +5,7 @@
  * A room whose gameplay table names its own task defines
  * EFFECT_SPRITE_DRIFT_TASK to that name; EFFECT_SPRITE_DRIFT_DRAW_A / _B name the room's own
  * drawers when it does not use effectSpriteDrawBanked / effectSpriteDrawRotated.
- * EFFECT_SPRITE_DRIFT_PAUSED_PLAIN 1 redraws a paused sprite with the first
- * drawer and the bare cell index (Dryfield R08). EFFECT_SPRITE_DRIFT_SIGN_BANK 1
+ * EFFECT_SPRITE_DRIFT_SIGN_BANK 1
  * takes the drawer from the top four bits of the spawn argument and the bank
  * from its sign alone, and EFFECT_SPRITE_DRIFT_STEADY_RISE 1 rises at a
  * constant rate for every kind (Shelter R48). */
@@ -47,8 +46,8 @@ void EFFECT_SPRITE_DRIFT_TASK(Task* task)
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-#if EFFECT_SPRITE_DRIFT_PAUSED_PLAIN
-        /* this build redraws a paused sprite with the first drawer, unbanked */
+#if EFFECT_SPRITE_DRIFT_PAUSED_DRAW_A_UNBANKED
+        // Suspended sprites use drawer A's base palette even in drawer B's state.
         EFFECT_SPRITE_DRIFT_DRAW_A(coord, work->index, work->scale, work->angle);
 #elif EFFECT_SPRITE_DRIFT_SIGN_BANK
         if (task->spawnArg1.value < 0) {
@@ -202,7 +201,7 @@ void EFFECT_SPRITE_DRIFT_TASK(Task* task)
 }
 
 #undef EFFECT_SPRITE_DRIFT_TASK
-#undef EFFECT_SPRITE_DRIFT_PAUSED_PLAIN
+#undef EFFECT_SPRITE_DRIFT_PAUSED_DRAW_A_UNBANKED
 #undef EFFECT_SPRITE_DRIFT_SIGN_BANK
 #undef EFFECT_SPRITE_DRIFT_STEADY_RISE
 #undef EFFECT_SPRITE_DRIFT_DRAW_A

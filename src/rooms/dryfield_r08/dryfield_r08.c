@@ -633,10 +633,19 @@ void func_dryfield_r08_8017D5F8(Task* task)
 }
 
 /* gameplay's room-effect table names the task, drawn with the room's own drawers */
-#define EFFECT_SPRITE_DRIFT_TASK         func_dryfield_r08_8017D8B4
-#define EFFECT_SPRITE_DRIFT_DRAW_A       func_dryfield_r08_8017DEFC
-#define EFFECT_SPRITE_DRIFT_DRAW_B       func_dryfield_r08_8017E36C
-#define EFFECT_SPRITE_DRIFT_PAUSED_PLAIN 1
+#define EFFECT_SPRITE_DRIFT_TASK   func_dryfield_r08_8017D8B4
+#define EFFECT_SPRITE_DRIFT_DRAW_A func_dryfield_r08_8017DEFC
+#define EFFECT_SPRITE_DRIFT_DRAW_B func_dryfield_r08_8017E36C
+/// Uses drawer A without the saved palette selector while sprite updates are suspended.
+///
+/// Define as 1 before including `effect_sprite_drift.inc.c`; 0 or undefined
+/// retains the usual drawer and palette selection. Dryfield R08 enables this
+/// override for every non-running effect-control value, including the final
+/// redraw before cancellation, regardless of the task's drawer state. The cell
+/// index, scale and rotation are retained; drawer A receives palette selector 0.
+/// This takes precedence over `EFFECT_SPRITE_DRIFT_SIGN_BANK` for suspended draws
+/// and is undefined at the end of the fragment.
+#define EFFECT_SPRITE_DRIFT_PAUSED_DRAW_A_UNBANKED 1
 #include "../../shared/effect_sprite_drift.inc.c"
 
 /// Same projected, spinning `POLY_FT4` as `func_dryfield_r08_8017E36C`, with
