@@ -83,11 +83,17 @@ enum { USER_INTERFACE_LIST_SCROLL_PIXELS_PER_TICK = 2 };
 /// Exiting the owning task can release them before the handler returns.
 typedef void (*_UiPanelLifecycleFunc)(UiPanel* panel, Task* task);
 
-/// Fixed-size table of _UiPanelLifecycleFunc callbacks. Copied onto the stack by
-/// Ui_DispatchObjectState so the call uses a local jump table.
+/// Six panel lifecycle handlers stored as a value for a whole-table copy.
+///
+/// Dispatch copies the table and calls the `funcs` entry selected by
+/// `UiPanel.state`. The index is not bounds-checked. Each entry is a
+/// `_UiPanelLifecycleFunc`, so the handler receives the panel and its owning
+/// task. The copy duplicates those pointers only; the handlers must remain
+/// loaded.
 typedef struct {
-    _UiPanelLifecycleFunc funcs[6];
-} UiPanelFuncTable6;
+    _UiPanelLifecycleFunc funcs[6]; // One handler per lifecycle (0 initial, 1 opening, 2 open, 3 closing, 4 hiding, 5 hidden)
+} _UiPanelLifecycleFuncTable6;
+STATIC_ASSERT_SIZEOF(_UiPanelLifecycleFuncTable6, 0x18);
 
 /// Linked text option node walked by Ui_DrawDialogLine (index via UiList::currentItemIndex).
 /// field_0 is the string passed to Text_DrawPrompt; field_4 is the next node.
@@ -227,7 +233,7 @@ static UiList Ui_DialogLineList;
 
 static UiObjectDesc Ui_DialogListDesc;
 
-static const UiPanelFuncTable6 Ui_ObjectStates;
+static const _UiPanelLifecycleFuncTable6 Ui_ObjectStates;
 
 void func_80707534(Task* arg0);
 
@@ -551,7 +557,7 @@ static UiList            Ui_DialogLineList        = { Ui_DialogLineCallbacks, 1,
 static UiObjectDesc      Ui_DialogListDesc        = { USER_INTERFACE_PANEL_TITLE_STYLE, { -48, -32, 0x60, 0x40 }, 0x20, 0, TASK_BODY_NONE, 0xC0, Ui_ListTaskCallback, 0 };
 UiObject*                Wip_UiHolder             = NULL;
 
-static const UiPanelFuncTable6 Ui_ObjectStates = { {
+static const _UiPanelLifecycleFuncTable6 Ui_ObjectStates = { {
     Ui_AnimOpenStep,
     [USER_INTERFACE_PANEL_OPENING] = Ui_DrawAndCallback,
     [USER_INTERFACE_PANEL_OPEN]    = Ui_LayoutDrawAndCallback,
@@ -2812,8 +2818,8 @@ static void Ui_ClipAndCallback(UiPanel* panel, Task* task)
 
 static void Ui_DispatchObjectState(Task* task)
 {
-    UiPanelFuncTable6 sp;
-    UiPanel*          temp;
+    _UiPanelLifecycleFuncTable6 sp;
+    UiPanel*                    temp;
 
     sp   = Ui_ObjectStates;
     temp = task->spawnArg2.pointer;
