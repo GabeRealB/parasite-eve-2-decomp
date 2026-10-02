@@ -206,7 +206,7 @@ static s32 D_80067648;
 
 static s32 D_8006764C;
 
-static UiListItemFunc Ui_DialogLineCallbacks[];
+static UiListRowCallback Ui_DialogLineCallbacks[];
 
 static UiList Ui_DialogLineList;
 
@@ -535,10 +535,10 @@ static s32 D_80067644 = 0x0038443C;
 static s32 D_80067648 = 0xFFFFFF56;
 static s32 D_8006764C = 0xFFFFFF7E;
 
-static UiListItemFunc Ui_DialogLineCallbacks[] = { Ui_DrawDialogLine };
-static UiList         Ui_DialogLineList        = { Ui_DialogLineCallbacks, 1, 1, 0, 0x0F };
-static UiObjectDesc   Ui_DialogListDesc        = { 2, 0xFFD0, 0xFFE0, 0x60, 0x40, 0x20, 0, 0, 0xC0, Ui_ListTaskCallback, 0 };
-UiObject*             Wip_UiHolder             = NULL;
+static UiListRowCallback Ui_DialogLineCallbacks[] = { Ui_DrawDialogLine };
+static UiList            Ui_DialogLineList        = { Ui_DialogLineCallbacks, 1, 1, 0, 0x0F };
+static UiObjectDesc      Ui_DialogListDesc        = { 2, 0xFFD0, 0xFFE0, 0x60, 0x40, 0x20, 0, 0, 0xC0, Ui_ListTaskCallback, 0 };
+UiObject*                Wip_UiHolder             = NULL;
 
 static const UiPanelFuncTable6 Ui_ObjectStates = { {
     Ui_AnimOpenStep,

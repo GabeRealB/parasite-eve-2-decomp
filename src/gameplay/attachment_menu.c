@@ -23,7 +23,7 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
-extern UiListItemFunc Gp_ItemCmdRows[2];
+extern UiListRowCallback Gp_ItemCmdRows[2];
 
 extern const u8 Gp_StrWrongAmmo2[];
 
@@ -176,19 +176,19 @@ UiObjectDesc D_8010F7C0[2] = {
     { 2, 0xFF80, 0xFFB0, 192, 144, 12, 0, 0, 192, Gp_DrawNextLevelCmd, 0 },
     { 2, 0xFFA0, 0xFFB8, 176, 112, 8, 0, 0, 192, func_800D573C, 0 },
 };
-UiObjectDesc   D_8010F7F8          = { 2, 0xFFA0, 0xFF98, 192, 208, 8, 0, 0, 192, Gp_DrawSpecsCmd, 0 };
-UiListItemFunc Gp_ItemCmdRows[2]   = { Gp_DrawExaminePushCmd, Gp_DrawItemCmd };
-UiList         D_8010F81C          = { Gp_ItemCmdRows, 2, { 2 }, 1, 10, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
-UiObjectDesc   D_8010F840          = { 3, 0, 0, 70, 64, 60, 0, 0, 192, Gp_MapMenuListTask, 0 };
-TaskDesc       D_8010F85C          = { { { TASK_BODY_NONE, 192 } }, Gp_MapScreenTask, { NULL } };
-UiObjectDesc   D_8010F868          = { 0, 0, 0xFF98, 144, 16, 36, 0, 0, 192, func_800D5A48, 0 };
-s32            D_8010F884          = 0;
-s32            Gp_HealPending      = 0;
-s32            Gp_PendingRelatedId = 0;
-s32            Gp_RelatedPending   = 0;
-s32            Gp_UsedItemId       = 0;
-UiObjectDesc   D_8010F898          = { 2, 0, 28, 152, 72, 56, 0, 0, 192, func_800D6334, 0 };
-UiObjectDesc   D_8010F8B4          = { 2, 0xFF68, 28, 152, 72, 60, 0, 0, 192, Gp_DrawWeaponLabel, 0 };
+UiObjectDesc      D_8010F7F8          = { 2, 0xFFA0, 0xFF98, 192, 208, 8, 0, 0, 192, Gp_DrawSpecsCmd, 0 };
+UiListRowCallback Gp_ItemCmdRows[2]   = { Gp_DrawExaminePushCmd, Gp_DrawItemCmd };
+UiList            D_8010F81C          = { Gp_ItemCmdRows, 2, { 2 }, 1, 10, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
+UiObjectDesc      D_8010F840          = { 3, 0, 0, 70, 64, 60, 0, 0, 192, Gp_MapMenuListTask, 0 };
+TaskDesc          D_8010F85C          = { { { TASK_BODY_NONE, 192 } }, Gp_MapScreenTask, { NULL } };
+UiObjectDesc      D_8010F868          = { 0, 0, 0xFF98, 144, 16, 36, 0, 0, 192, func_800D5A48, 0 };
+s32               D_8010F884          = 0;
+s32               Gp_HealPending      = 0;
+s32               Gp_PendingRelatedId = 0;
+s32               Gp_RelatedPending   = 0;
+s32               Gp_UsedItemId       = 0;
+UiObjectDesc      D_8010F898          = { 2, 0, 28, 152, 72, 56, 0, 0, 192, func_800D6334, 0 };
+UiObjectDesc      D_8010F8B4          = { 2, 0xFF68, 28, 152, 72, 60, 0, 0, 192, Gp_DrawWeaponLabel, 0 };
 
 const u8 Gp_StrWrongAmmo2[] = "You do not have the correct ammo.";
 

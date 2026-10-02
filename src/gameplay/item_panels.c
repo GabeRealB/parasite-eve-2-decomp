@@ -146,9 +146,9 @@ extern u8 Gp_StrCannotSwitchItem[];
 
 extern u8 Gp_StrCannotSwitchWith[];
 
-extern UiListItemFunc D_8010F5C8[2];
+extern UiListRowCallback D_8010F5C8[2];
 
-extern UiListItemFunc Gp_PeCmdFns[2];
+extern UiListRowCallback Gp_PeCmdFns[2];
 
 extern u8 Gp_StrFire[];
 
@@ -437,15 +437,15 @@ u8* Gp_PromptTexts[] = {
     Gp_StrCannotSwitchWith,
 };
 
-UiListItemFunc D_8010F5C8[2] = { Gp_DrawUseAttachCmd, Gp_DrawKeyItemCmd };
+UiListRowCallback D_8010F5C8[2] = { Gp_DrawUseAttachCmd, Gp_DrawKeyItemCmd };
 
 UiList D_8010F5D0 = { D_8010F5C8, 2, { 2 }, 1, 10, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 
-UiListItemFunc Gp_PeCmdFns[2] = { Gp_DrawReviveCmd, Gp_DrawPeSlotCmd };
+UiListRowCallback Gp_PeCmdFns[2] = { Gp_DrawReviveCmd, Gp_DrawPeSlotCmd };
 
 UiList D_8010F5FC = { Gp_PeCmdFns, 2, { 2 }, 1, 10, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 
-UiListItemFunc D_8010F620[1] = {
+UiListRowCallback D_8010F620[1] = {
     Gp_DrawPeSlotRow,
 };
 

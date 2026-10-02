@@ -739,7 +739,7 @@ static u8 Shop_Data_80181AC4[];
 static u8 Shop_Data_80181AD0[];
 
 /// Row handlers, lists and panel descriptors of the shop's panels.
-static UiListItemFunc Shop_Data_80181AD8[];
+static UiListRowCallback Shop_Data_80181AD8[];
 
 static UiList Shop_Data_80181AE0;
 

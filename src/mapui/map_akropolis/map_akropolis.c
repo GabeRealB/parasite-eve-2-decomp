@@ -604,7 +604,7 @@ static s32 D_map_akropolis_8017A9A8 = 0;
 static s32 D_map_akropolis_8017A9AC[4] = { 0x109, 0x10A, 0x10B, 0x10C };
 
 /// One-entry row-draw table for the list below; `UiList.funcs` points here.
-static UiListItemFunc D_map_akropolis_8017A9BC[1] = { func_map_akropolis_80179C50 };
+static UiListRowCallback D_map_akropolis_8017A9BC[1] = { func_map_akropolis_80179C50 };
 
 /// The key-item list: four rows of one line each, 0x0F tall, everything else
 /// filled in at runtime by the list reset.

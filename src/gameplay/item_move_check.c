@@ -8,7 +8,7 @@
 #include "main/mc_types.h"
 #include "main/ui_types.h"
 
-extern UiListItemFunc D_8010D630[1];
+extern UiListRowCallback D_8010D630[1];
 
 u8 Gp_StrMove2[] = "Move";
 
@@ -32,14 +32,14 @@ InventoryItemRange Gp_MoveScanSrc = { 0, 60, INVENTORY_ITEM_TABLE_INDIRECT, 0 };
 
 InventoryItemRange Gp_MoveScanDst = { 60, 60, INVENTORY_ITEM_TABLE_INDIRECT, 0 };
 
-UiListItemFunc D_8010D630[1] = { Gp_ItemMoveRow };
+UiListRowCallback D_8010D630[1] = { Gp_ItemMoveRow };
 
 UiList Gp_InvLists[2] = {
     { D_8010D630, 60, { 60 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 },
     { D_8010D630, 60, { 60 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 },
 };
 
-UiListItemFunc Gp_ItemActionFns[3] = {
+UiListRowCallback Gp_ItemActionFns[3] = {
     func_800BD6DC,
     Gp_ItemActionConfirm,
     NULL,

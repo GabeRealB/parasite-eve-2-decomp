@@ -16,15 +16,15 @@
 
 static const char McText_Select[];
 
-static UiListItemFunc Mc_YesNoCallbacks[];
+static UiListRowCallback Mc_YesNoCallbacks[];
 
 static UiList Mc_YesNoList;
 
-static UiListItemFunc Mc_OkCallbacks[];
+static UiListRowCallback Mc_OkCallbacks[];
 
 static UiList Mc_OkList;
 
-static UiListItemFunc Mc_YesCallbacks[];
+static UiListRowCallback Mc_YesCallbacks[];
 
 static UiList Mc_YesList;
 
@@ -52,13 +52,13 @@ const char        McText_Exp[]         = "EXP";
 const char        McText_Unavailable[] = "---";
 const char        McText_Bp[]          = "BP";
 
-static UiListItemFunc Mc_YesNoCallbacks[] = { McMenu_ConfirmDialog, McMenu_ConfirmNo };
-static UiList         Mc_YesNoList        = { Mc_YesNoCallbacks, 2, 2, 0, 0x0F };
-static UiListItemFunc Mc_OkCallbacks[]    = { McMenu_ConfirmDialogAlt };
-static UiList         Mc_OkList           = { Mc_OkCallbacks, 1, 1, 0, 0x0F };
-static UiListItemFunc Mc_YesCallbacks[]   = { McMenu_ConfirmYes };
-static UiList         Mc_YesList          = { Mc_YesCallbacks, 1, 1, 0, 0x0F };
-UiObjectDesc          Mc_PromptDesc[]     = {
+static UiListRowCallback Mc_YesNoCallbacks[] = { McMenu_ConfirmDialog, McMenu_ConfirmNo };
+static UiList            Mc_YesNoList        = { Mc_YesNoCallbacks, 2, 2, 0, 0x0F };
+static UiListRowCallback Mc_OkCallbacks[]    = { McMenu_ConfirmDialogAlt };
+static UiList            Mc_OkList           = { Mc_OkCallbacks, 1, 1, 0, 0x0F };
+static UiListRowCallback Mc_YesCallbacks[]   = { McMenu_ConfirmYes };
+static UiList            Mc_YesList          = { Mc_YesCallbacks, 1, 1, 0, 0x0F };
+UiObjectDesc             Mc_PromptDesc[]     = {
     { 0, 0, 0, 0x4B, 0x20, 0x10, 0, 0, 0xC0, McMenu_InitByMode, 0 },
 };
 

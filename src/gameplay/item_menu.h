@@ -87,7 +87,7 @@ extern u8 Gp_MapRoomId;
 extern u8 Gp_MapRoomOff;
 
 /// Shared row callback and the fire/wind/water/earth panel captions.
-extern UiListItemFunc D_8010F620[1];
+extern UiListRowCallback D_8010F620[1];
 
 extern u8* D_8010F644[4];
 
@@ -480,11 +480,11 @@ extern UiList D_8010E9CC;
 
 extern UiList D_8010E9F4;
 
-extern UiListItemFunc Gp_ItemCmdFns[6];
+extern UiListRowCallback Gp_ItemCmdFns[6];
 
 extern UiList D_8010EA30;
 
-extern UiListItemFunc Gp_DialogCmdFns[2];
+extern UiListRowCallback Gp_DialogCmdFns[2];
 
 extern UiList D_8010EA74;
 
@@ -618,7 +618,7 @@ extern InventoryItemRange Gp_MoveScanDst;
 extern UiList Gp_InvLists[];
 
 /// Action-button callbacks for `Gp_ItemActionList`, filled by `Gp_FillItemActions`.
-extern UiListItemFunc Gp_ItemActionFns[];
+extern UiListRowCallback Gp_ItemActionFns[];
 
 extern u8 Gp_StrAll[];
 

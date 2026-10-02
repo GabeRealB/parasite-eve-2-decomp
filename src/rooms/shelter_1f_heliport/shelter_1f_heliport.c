@@ -166,17 +166,17 @@ static RoomShopTier Shop_Data_80181950[13];
 static s32 Shop_Data_801819EC;
 
 /// Row handlers, lists and panel descriptors of the shop's panels.
-static UiListItemFunc Shop_Data_80181AD8[];
-static UiList         Shop_Data_80181AE0;
-static UiList         Shop_Data_80181B0C;
-static UiObjectDesc   Shop_Data_80181B30;
-static UiObjectDesc   Shop_Data_80181B4C;
-static UiObjectDesc   Shop_Data_80181B68;
-static UiObjectDesc   Shop_Data_80181B84;
-static UiObjectDesc   Shop_Data_80181BA0;
-static UiObjectDesc   Shop_Data_80181BD8;
-static UiObjectDesc   Shop_Data_80181BF4;
-static UiObjectDesc   Shop_Data_80181C10;
+static UiListRowCallback Shop_Data_80181AD8[];
+static UiList            Shop_Data_80181AE0;
+static UiList            Shop_Data_80181B0C;
+static UiObjectDesc      Shop_Data_80181B30;
+static UiObjectDesc      Shop_Data_80181B4C;
+static UiObjectDesc      Shop_Data_80181B68;
+static UiObjectDesc      Shop_Data_80181B84;
+static UiObjectDesc      Shop_Data_80181BA0;
+static UiObjectDesc      Shop_Data_80181BD8;
+static UiObjectDesc      Shop_Data_80181BF4;
+static UiObjectDesc      Shop_Data_80181C10;
 
 /// Descriptors of the room's event task and of its cap-script task.
 extern TaskDesc D_shelter_1f_heliport_80181194;

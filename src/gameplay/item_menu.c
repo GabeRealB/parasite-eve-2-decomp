@@ -89,7 +89,7 @@ extern UiList Gp_ItemActionList;
 /// UiList used by `Gp_ItemMenuListTask`. `field_10` is 1 when `spawnArg1` is 0.
 extern UiList Gp_ItemMenuList;
 
-extern UiListItemFunc D_8010D6B0[1];
+extern UiListRowCallback D_8010D6B0[1];
 
 typedef struct {
     s32 id;
@@ -186,11 +186,11 @@ static s32 Gp_ItemUseRestricted(s32 arg0, s32 arg1);
 /// onto the parent (confirm also restores status).
 static void Gp_CloseItemPane(UiObject* arg0, Task* arg1);
 
-UiList         Gp_ItemActionList = { Gp_ItemActionFns, 3, { 3 }, 1, 10, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
-UiListItemFunc D_8010D6B0[1]     = { Gp_ItemMenuPrompt };
-UiList         Gp_ItemMenuList   = { D_8010D6B0, 3, { 3 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
-UiObjectDesc   D_8010D6D8        = { -0x80000000, 0xFF9C, 0xFFE2, 200, 60, 36, 0, 0, 192, Gp_ItemMoveTask, 0 };
-UiObjectDesc   D_8010D6F4[11]    = {
+UiList            Gp_ItemActionList = { Gp_ItemActionFns, 3, { 3 }, 1, 10, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
+UiListRowCallback D_8010D6B0[1]     = { Gp_ItemMenuPrompt };
+UiList            Gp_ItemMenuList   = { D_8010D6B0, 3, { 3 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
+UiObjectDesc      D_8010D6D8        = { -0x80000000, 0xFF9C, 0xFFE2, 200, 60, 36, 0, 0, 192, Gp_ItemMoveTask, 0 };
+UiObjectDesc      D_8010D6F4[11]    = {
     { 0x80002, 0xFF70, 0xFF98, 144, 160, 56, 0, 0, 192, Gp_ItemPaneTask, 0 },
     { 0x80002, 0, 0xFF98, 144, 160, 52, 0, 0, 192, Gp_ItemPaneTask, 0 },
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, 0 },
@@ -832,7 +832,7 @@ static void Gp_FillItemActions(UiList* arg0, UiObject* arg1)
     s32                 item;
     s32                 count;
     s32                 idx;
-    UiListItemFunc*     table;
+    UiListRowCallback*  table;
     Task*               owner;
     InventoryItemRange* scan;
 

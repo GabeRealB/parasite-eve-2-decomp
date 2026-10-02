@@ -211,7 +211,19 @@ typedef struct TextBlockDesc {
 } TextBlockDesc;
 STATIC_ASSERT_SIZEOF(TextBlockDesc, 0xC);
 
-typedef void (*UiListItemFunc)(struct _UiList* arg0, UiObject* arg1);
+/// Draws one visible list row and handles its permitted input.
+///
+/// `list` supplies the current row in `field_8`, panel-relative pixel coordinates
+/// in `field_18` / `field_1A`, and a packed RGB text color in `field_1C`.
+/// Handlers gate row input on `field_C == 1`; they may change the list state,
+/// publish `object` results, or open child panels through `object->owner`.
+/// Both arguments are borrowed mutable objects that remain live throughout the
+/// call; `object` is the task-owned UI node whose panel displays the list.
+///
+/// `UiList.funcs` must remain live while the list is dispatched. When
+/// `field_A & 1` is set, entry zero handles every row; otherwise the table must
+/// contain a non-null callback for every reachable row index below `field_4`.
+typedef void (*UiListRowCallback)(struct _UiList* list, UiObject* object);
 
 /// UI list/menu object (data symbols Mc_SaveSlotList, Mc_LoadSlotList, Mc_YesNoList,
 /// Mc_OkList, Mc_YesList, Ui_DialogLineList; size 0x24).
@@ -231,25 +243,25 @@ typedef void (*UiListItemFunc)(struct _UiList* arg0, UiObject* arg1);
 /// in `Gp_YesNoMenuTask`; same values UiList handlers write to
 /// UiList::field_22).
 typedef struct _UiList {
-    /* 0x00 */ UiListItemFunc* funcs;    // function-table pointer
-    /* 0x04 */ u8              field_4;  // base index
-    /* 0x05 */ UiByte          field_5;  // base index (also used vs field_9)
-    /* 0x06 */ s8              field_6;  // layout size
-    /* 0x07 */ s8              field_7;  // TILE height / row height
-    /* 0x08 */ s8              field_8;
-    /* 0x09 */ UiByte          field_9;  // list cursor (visible offset)
-    /* 0x0A */ u8              field_A;  // flag
-    /* 0x0B */ s8              field_B;
-    /* 0x0C */ s32             field_C;  // cleared by list reset
-    /* 0x10 */ s32             field_10; // selection index
-    /* 0x14 */ s16             field_14; // cleared by list reset
-    /* 0x16 */ s8              field_16; // cleared by list reset
-    /* 0x17 */ s8              field_17; // layout adjust for visible rows
-    /* 0x18 */ s16             field_18;
-    /* 0x1A */ s16             field_1A;
-    /* 0x1C */ s32             field_1C;
-    /* 0x20 */ UiHalf          field_20; // selected item id
-    /* 0x22 */ s16             field_22; // selected action (0x20 skip pad, 0x23 confirm)
+    /* 0x00 */ UiListRowCallback* funcs;    // function-table pointer
+    /* 0x04 */ u8                 field_4;  // base index
+    /* 0x05 */ UiByte             field_5;  // base index (also used vs field_9)
+    /* 0x06 */ s8                 field_6;  // layout size
+    /* 0x07 */ s8                 field_7;  // TILE height / row height
+    /* 0x08 */ s8                 field_8;
+    /* 0x09 */ UiByte             field_9;  // list cursor (visible offset)
+    /* 0x0A */ u8                 field_A;  // flag
+    /* 0x0B */ s8                 field_B;
+    /* 0x0C */ s32                field_C;  // cleared by list reset
+    /* 0x10 */ s32                field_10; // selection index
+    /* 0x14 */ s16                field_14; // cleared by list reset
+    /* 0x16 */ s8                 field_16; // cleared by list reset
+    /* 0x17 */ s8                 field_17; // layout adjust for visible rows
+    /* 0x18 */ s16                field_18;
+    /* 0x1A */ s16                field_1A;
+    /* 0x1C */ s32                field_1C;
+    /* 0x20 */ UiHalf             field_20; // selected item id
+    /* 0x22 */ s16                field_22; // selected action (0x20 skip pad, 0x23 confirm)
 } UiList;
 STATIC_ASSERT_SIZEOF(UiList, 0x24);
 

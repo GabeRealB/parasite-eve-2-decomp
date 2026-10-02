@@ -927,17 +927,17 @@ static u16 Shop_Data_80181AD4[2] = {
     0,
 };
 
-static UiListItemFunc Shop_Data_80181AD8[1] = {
+static UiListRowCallback Shop_Data_80181AD8[1] = {
     Shop_ItemRow,
 };
 
-static UiListItemFunc Shop_Data_80181ADC[1] = {
+static UiListRowCallback Shop_Data_80181ADC[1] = {
     Shop_CategoryRow,
 };
 
 static UiList Shop_Data_80181AE0 = { Shop_Data_80181ADC, 1, { .unsignedValue = 1 }, 0, 15, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
 
-static UiListItemFunc Shop_Data_80181B04[2] = {
+static UiListRowCallback Shop_Data_80181B04[2] = {
     Shop_BuyRow,
     Shop_MessageRow,
 };

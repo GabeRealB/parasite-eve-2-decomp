@@ -136,17 +136,17 @@ static u8 Shop_Data_80181AC4[];
 static u8 Shop_Data_80181AD0[];
 
 /// Row handlers, lists and panel descriptors of the shop's panels.
-static UiListItemFunc Shop_Data_80181AD8[];
-static UiList         Shop_Data_80181AE0;
-static UiList         Shop_Data_80181B0C;
-static UiObjectDesc   Shop_Data_80181B30;
-static UiObjectDesc   Shop_Data_80181B4C;
-static UiObjectDesc   Shop_Data_80181B68;
-static UiObjectDesc   Shop_Data_80181B84;
-static UiObjectDesc   Shop_Data_80181BA0;
-static UiObjectDesc   Shop_Data_80181BD8;
-static UiObjectDesc   Shop_Data_80181BF4;
-static UiObjectDesc   Shop_Data_80181C10;
+static UiListRowCallback Shop_Data_80181AD8[];
+static UiList            Shop_Data_80181AE0;
+static UiList            Shop_Data_80181B0C;
+static UiObjectDesc      Shop_Data_80181B30;
+static UiObjectDesc      Shop_Data_80181B4C;
+static UiObjectDesc      Shop_Data_80181B68;
+static UiObjectDesc      Shop_Data_80181B84;
+static UiObjectDesc      Shop_Data_80181BA0;
+static UiObjectDesc      Shop_Data_80181BD8;
+static UiObjectDesc      Shop_Data_80181BF4;
+static UiObjectDesc      Shop_Data_80181C10;
 
 /// Descriptor of the event task the door gate spawns, and the table the
 /// room's own tasks are spawned from.

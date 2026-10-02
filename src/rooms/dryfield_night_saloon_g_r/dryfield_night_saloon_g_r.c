@@ -1000,7 +1000,7 @@ RoomsShared8018055cCourse D_dryfield_night_saloon_g_r_80185004[4] = {
     { 37, D_dryfield_night_saloon_g_r_8017D81C },
 };
 
-UiListItemFunc D_dryfield_night_saloon_g_r_80185024[1] = {
+UiListRowCallback D_dryfield_night_saloon_g_r_80185024[1] = {
     jukeboxDrawRow,
 };
 

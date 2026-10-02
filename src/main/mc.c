@@ -205,9 +205,9 @@ static u16 Mc_GlyphsSymbol[];
 
 static u8 Mc_DefaultChecksumSrc[];
 
-static UiListItemFunc Mc_SaveSlotCallbacks[];
+static UiListRowCallback Mc_SaveSlotCallbacks[];
 
-static UiListItemFunc Mc_LoadSlotCallbacks[];
+static UiListRowCallback Mc_LoadSlotCallbacks[];
 
 static u8* Mc_ModeLabels[];
 
@@ -647,10 +647,10 @@ McBufferSlot Mc_BufferSlots[9] = {
     { (McChecksumBlock*)&gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE], sizeof(gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE]), GAME_FLAG_NIBBLE_BANK_CARD_SECTORS },
 };
 
-static UiListItemFunc Mc_SaveSlotCallbacks[] = { Mc_StateSaveSlotUi };
-UiList                Mc_SaveSlotList        = { Mc_SaveSlotCallbacks, 0x0F, 0x0F, 0, 0x2E };
-static UiListItemFunc Mc_LoadSlotCallbacks[] = { McMenu_ConfirmWithRender };
-UiList                Mc_LoadSlotList        = { Mc_LoadSlotCallbacks, 0x0F, 0x0F, 0, 0x2E };
+static UiListRowCallback Mc_SaveSlotCallbacks[] = { Mc_StateSaveSlotUi };
+UiList                   Mc_SaveSlotList        = { Mc_SaveSlotCallbacks, 0x0F, 0x0F, 0, 0x2E };
+static UiListRowCallback Mc_LoadSlotCallbacks[] = { McMenu_ConfirmWithRender };
+UiList                   Mc_LoadSlotList        = { Mc_LoadSlotCallbacks, 0x0F, 0x0F, 0, 0x2E };
 
 static u8* Mc_ModeLabels[] = { (u8*)McText_Replay, (u8*)McText_Bounty, (u8*)McText_Scavenger, (u8*)McText_Nightmare };
 

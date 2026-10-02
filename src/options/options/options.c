@@ -80,7 +80,7 @@ static void func_options_801D4D0C(Task* task);
 static u8 D_options_801D5E90[4] = { 0, 0, 0, 0 };
 
 /// The seven list-item renderers the main options list dispatches through.
-static UiListItemFunc D_options_801D5E94[7] = {
+static UiListRowCallback D_options_801D5E94[7] = {
     func_options_801D404C,
     func_options_801D42A8,
     func_options_801D4504,
@@ -94,7 +94,7 @@ static UiListItemFunc D_options_801D5E94[7] = {
 static UiList D_options_801D5EB0 = { D_options_801D5E94, 0x07, 0x07, 0x00, 0x12 };
 
 /// The key-config sub-list renders every row with the same function.
-static UiListItemFunc D_options_801D5ED4[1] = { func_options_801D4724 };
+static UiListRowCallback D_options_801D5ED4[1] = { func_options_801D4724 };
 
 /// That sub-list: one row of 0x0F pixels.
 static UiList D_options_801D5ED8 = { D_options_801D5ED4, 0x01, 0x01, 0x00, 0x0F };

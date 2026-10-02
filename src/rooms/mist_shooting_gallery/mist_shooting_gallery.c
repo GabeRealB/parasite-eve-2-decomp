@@ -689,7 +689,7 @@ s16 D_mist_shooting_gallery_80184F34[10] = {
     142,
 };
 
-UiListItemFunc D_mist_shooting_gallery_80184F48[1] = {
+UiListRowCallback D_mist_shooting_gallery_80184F48[1] = {
     func_mist_shooting_gallery_8017DE7C,
 };
 
@@ -719,7 +719,7 @@ UiObjectDesc D_mist_shooting_gallery_80185000 = { 2, 0xFF98, 0xFFD0, 208, 64, 32
 
 UiObjectDesc D_mist_shooting_gallery_8018501C = { 2, 0xFFB8, 0xFFD0, 144, 56, 24, 0, 0, 192, func_mist_shooting_gallery_8017E854, 0 };
 
-UiListItemFunc D_mist_shooting_gallery_80185038[1] = {
+UiListRowCallback D_mist_shooting_gallery_80185038[1] = {
     func_mist_shooting_gallery_8017F98C,
 };
 
@@ -858,7 +858,7 @@ RoomsShared8018055cCourse gJukeboxTracks4[4] = {
     { 37, D_mist_shooting_gallery_8017DA88 },
 };
 
-UiListItemFunc D_mist_shooting_gallery_80185334[1] = {
+UiListRowCallback D_mist_shooting_gallery_80185334[1] = {
     jukeboxDrawRow,
 };
 

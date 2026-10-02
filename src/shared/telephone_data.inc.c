@@ -667,13 +667,13 @@ static u8 Telephone_Data_80181C08[56] = {
     0,
 };
 
-static UiListItemFunc Telephone_Data_80181C40[1] = {
+static UiListRowCallback Telephone_Data_80181C40[1] = {
     Telephone_DrawPlayDataRow,
 };
 
 static UiList Telephone_Data_80181C44 = { Telephone_Data_80181C40, 9, { .unsignedValue = 9 }, 0, 15, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
 
-static UiListItemFunc Telephone_Data_80181C68[1] = {
+static UiListRowCallback Telephone_Data_80181C68[1] = {
     Telephone_DrawUsageRow,
 };
 
@@ -685,7 +685,7 @@ static UiObjectDesc Telephone_Data_80181CAC = { 2, 0xFF70, 0xFF98, 288, 120, 40,
 
 static UiObjectDesc Telephone_Data_80181CC8 = { 2, 0xFF70, 0xFF98, 288, 168, 40, 0, 0, 192, Telephone_UsageTask, 0 };
 
-static UiListItemFunc Telephone_Data_80181CE4[4] = {
+static UiListRowCallback Telephone_Data_80181CE4[4] = {
     Telephone_SaveRow,
     Telephone_PlayDataRow,
     Telephone_WeaponDataRow,

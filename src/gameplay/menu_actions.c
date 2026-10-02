@@ -1970,16 +1970,16 @@ void Gp_DrawReviveCmd(UiList* arg0, UiObject* arg1)
 
 void Gp_PeCommandMenuTask(Task* arg0)
 {
-    UiObject*       obj;
-    UiList*         menu;
-    Task*           owner;
-    Task*           child;
-    Task*           next;
-    Task*           head;
-    UiObject*       childObj;
-    UiListItemFunc* table;
-    s32             flag;
-    s32             two;
+    UiObject*          obj;
+    UiList*            menu;
+    Task*              owner;
+    Task*              child;
+    Task*              next;
+    Task*              head;
+    UiObject*          childObj;
+    UiListRowCallback* table;
+    s32                flag;
+    s32                two;
 
     menu = &D_8010F5FC;
     obj  = arg0->spawnArg2.pointer;

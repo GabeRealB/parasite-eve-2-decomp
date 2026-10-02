@@ -104,27 +104,27 @@ extern TaskDesc D_8010E7E8;
 
 extern AnimationPlayRequest D_8010E7F4;
 
-extern UiListItemFunc Gp_MainMenuCmds[6];
+extern UiListRowCallback Gp_MainMenuCmds[6];
 
-extern UiListItemFunc D_8010E850[1];
+extern UiListRowCallback D_8010E850[1];
 
-extern UiListItemFunc Gp_WeaponSlotRows[3];
+extern UiListRowCallback Gp_WeaponSlotRows[3];
 
-extern UiListItemFunc D_8010E8A8[1];
+extern UiListRowCallback D_8010E8A8[1];
 
-extern UiListItemFunc D_8010E8D0[1];
+extern UiListRowCallback D_8010E8D0[1];
 
-extern UiListItemFunc D_8010E90C[1];
+extern UiListRowCallback D_8010E90C[1];
 
-extern UiListItemFunc D_8010E934[1];
+extern UiListRowCallback D_8010E934[1];
 
-extern UiListItemFunc D_8010E95C[1];
+extern UiListRowCallback D_8010E95C[1];
 
-extern UiListItemFunc D_8010E9A0[1];
+extern UiListRowCallback D_8010E9A0[1];
 
-extern UiListItemFunc D_8010E9C8[1];
+extern UiListRowCallback D_8010E9C8[1];
 
-extern UiListItemFunc D_8010E9F0[1];
+extern UiListRowCallback D_8010E9F0[1];
 
 static s32 D_8010EA54[];
 
@@ -236,7 +236,7 @@ TaskDesc D_8010E7E8 = { { { TASK_BODY_NONE, 32 } }, Gp_MenuExitCallback, { NULL 
 
 AnimationPlayRequest D_8010E7F4 = { { 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-UiListItemFunc Gp_MainMenuCmds[6] = { Gp_DrawUseAttachCmd, Gp_DrawKeyItemCmd, Gp_DrawPeEnergyCmd, Gp_DrawMapCmd, Gp_DrawOptionCmd, Gp_DrawExitCmd };
+UiListRowCallback Gp_MainMenuCmds[6] = { Gp_DrawUseAttachCmd, Gp_DrawKeyItemCmd, Gp_DrawPeEnergyCmd, Gp_DrawMapCmd, Gp_DrawOptionCmd, Gp_DrawExitCmd };
 
 UiList D_8010E820 = { Gp_MainMenuCmds, 6, { 6 }, 1, 8, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 
@@ -247,19 +247,19 @@ GpEnergyIcon D_8010E844[4] = {
     { 120, 80, 0 },
 };
 
-UiListItemFunc D_8010E850[1] = { Gp_DrawItemOrderRow };
+UiListRowCallback D_8010E850[1] = { Gp_DrawItemOrderRow };
 
 UiList D_8010E854 = { D_8010E850, 10, { 10 }, 1, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 
-UiListItemFunc Gp_WeaponSlotRows[3] = { Gp_DrawWeaponSlotRow, Gp_DrawWeaponSlotRow2, Gp_DrawWeaponSlotRow2 };
+UiListRowCallback Gp_WeaponSlotRows[3] = { Gp_DrawWeaponSlotRow, Gp_DrawWeaponSlotRow2, Gp_DrawWeaponSlotRow2 };
 
 UiList D_8010E884 = { Gp_WeaponSlotRows, 3, { 3 }, 0, 16, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 
-UiListItemFunc D_8010E8A8[1] = { func_800C41A4 };
+UiListRowCallback D_8010E8A8[1] = { func_800C41A4 };
 
 UiList D_8010E8AC = { D_8010E8A8, 1, { 1 }, 0, 16, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 
-UiListItemFunc D_8010E8D0[1] = { Gp_DrawRemoveArmorRow };
+UiListRowCallback D_8010E8D0[1] = { Gp_DrawRemoveArmorRow };
 
 UiList D_8010E8D4 = { D_8010E8D0, 1, { 1 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 
@@ -271,15 +271,15 @@ s32 Gp_PreviewItems[5] = {
     -1,
 };
 
-UiListItemFunc D_8010E90C[1] = { Gp_DrawItemDescLine };
+UiListRowCallback D_8010E90C[1] = { Gp_DrawItemDescLine };
 
 UiList D_8010E910 = { D_8010E90C, 1, { 1 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 
-UiListItemFunc D_8010E934[1] = { Gp_DrawUseCmd };
+UiListRowCallback D_8010E934[1] = { Gp_DrawUseCmd };
 
 UiList D_8010E938 = { D_8010E934, 1, { 1 }, 1, 10, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 
-UiListItemFunc D_8010E95C[1] = { Gp_DrawCollectedRow };
+UiListRowCallback D_8010E95C[1] = { Gp_DrawCollectedRow };
 
 UiList D_8010E960 = { D_8010E95C, 1, { 1 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 
@@ -299,19 +299,19 @@ u8* D_8010E994[3] = {
     gGpStrAttachDot,
 };
 
-UiListItemFunc D_8010E9A0[1] = { Gp_DrawAmmoRow };
+UiListRowCallback D_8010E9A0[1] = { Gp_DrawAmmoRow };
 
 UiList D_8010E9A4 = { D_8010E9A0, 25, { 25 }, 0, 14, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 
-UiListItemFunc D_8010E9C8[1] = { Gp_DrawRemoveAmmoRow };
+UiListRowCallback D_8010E9C8[1] = { Gp_DrawRemoveAmmoRow };
 
 UiList D_8010E9CC = { D_8010E9C8, 3, { 3 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 
-UiListItemFunc D_8010E9F0[1] = { Gp_DrawArmorSelectRow };
+UiListRowCallback D_8010E9F0[1] = { Gp_DrawArmorSelectRow };
 
 UiList D_8010E9F4 = { D_8010E9F0, 1, { 1 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 
-UiListItemFunc Gp_ItemCmdFns[6] = {
+UiListRowCallback Gp_ItemCmdFns[6] = {
     Gp_DrawUsePrompt,
     Gp_DrawMovePrompt,
     Gp_DrawMovePrompt,
@@ -324,7 +324,7 @@ UiList D_8010EA30 = { Gp_ItemCmdFns, 3, { 3 }, 1, 10, 0, { 0 }, 0, 0, 0, 0, 0, 0
 
 static s32 D_8010EA54[] = { 30, 60, 50, 100, 100, 200 };
 
-UiListItemFunc Gp_DialogCmdFns[2] = {
+UiListRowCallback Gp_DialogCmdFns[2] = {
     Gp_DrawOkCmd,
     Gp_DrawOkCmd,
 };
