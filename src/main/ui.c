@@ -358,7 +358,7 @@ static void Ui_ComputeVisibleRowsEx(UiList* list, UiPanel* panel, s32 arg2);
 
 static void Ui_DrawTextAtLayout(UiPanel* panel, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6);
 
-static void Ui_InsetRect2(void* unused1, RECT* arg1, RECT* arg2);
+static void _uiComputePanelInnerRect(const UiPanel* unusedPanel, const RECT* outerRect, RECT* innerRect);
 
 static void Ui_ComputeAnimRect(UiPanel* panel, RECT* rect);
 
@@ -937,7 +937,7 @@ static void Ui_SetupClip(UiPanel* panel)
     RECT     sp18;
     DR_AREA* p;
 
-    Ui_InsetRect2(panel, &panel->bounds.rect, &sp18);
+    _uiComputePanelInnerRect(panel, &panel->bounds.rect, &sp18);
     if ((panel->style & USER_INTERFACE_PANEL_STYLE_MASK) == USER_INTERFACE_PANEL_TITLE_STYLE) {
         sp18.y += 9;
         sp18.h -= 0xB;
@@ -1039,7 +1039,7 @@ after_fill: {
     RECT* arg1;
 
     arg1 = &sp10;
-    Ui_InsetRect2(panel, &panel->bounds.rect, &sp20);
+    _uiComputePanelInnerRect(panel, &panel->bounds.rect, &sp20);
     if ((panel->style & USER_INTERFACE_PANEL_STYLE_MASK) == USER_INTERFACE_PANEL_TITLE_STYLE) {
         sp20.y += 9;
         sp20.h -= 0xB;
@@ -1058,7 +1058,7 @@ after_fill: {
     panel->contentOriginX.unsignedValue = sp20.x - panel->contentLeft.unsignedValue;
     panel->contentOriginY.unsignedValue = sp20.y - panel->contentTop.unsignedValue;
     if (arg1 != NULL) {
-        Ui_InsetRect2(panel, arg1, &sp18);
+        _uiComputePanelInnerRect(panel, arg1, &sp18);
     }
     Ui_DrawPanel(panel, &sp10, &sp18, 1);
 }
@@ -1103,7 +1103,7 @@ after_fill: {
     RECT* arg1;
 
     arg1 = &sp10;
-    Ui_InsetRect2(panel, &panel->bounds.rect, &sp20);
+    _uiComputePanelInnerRect(panel, &panel->bounds.rect, &sp20);
     if ((panel->style & USER_INTERFACE_PANEL_STYLE_MASK) == USER_INTERFACE_PANEL_TITLE_STYLE) {
         sp20.y += 9;
         sp20.h -= 0xB;
@@ -1122,7 +1122,7 @@ after_fill: {
     panel->contentOriginX.unsignedValue = sp20.x - panel->contentLeft.unsignedValue;
     panel->contentOriginY.unsignedValue = sp20.y - panel->contentTop.unsignedValue;
     if (arg1 != NULL) {
-        Ui_InsetRect2(panel, arg1, &sp18);
+        _uiComputePanelInnerRect(panel, arg1, &sp18);
     }
     Ui_DrawPanel(panel, &sp10, &sp18, 0);
 }
@@ -1167,7 +1167,7 @@ after_fill: {
     RECT* arg1;
 
     arg1 = &sp10;
-    Ui_InsetRect2(panel, &panel->bounds.rect, &sp20);
+    _uiComputePanelInnerRect(panel, &panel->bounds.rect, &sp20);
     if ((panel->style & USER_INTERFACE_PANEL_STYLE_MASK) == USER_INTERFACE_PANEL_TITLE_STYLE) {
         sp20.y += 9;
         sp20.h -= 0xB;
@@ -1186,7 +1186,7 @@ after_fill: {
     panel->contentOriginX.unsignedValue = sp20.x - panel->contentLeft.unsignedValue;
     panel->contentOriginY.unsignedValue = sp20.y - panel->contentTop.unsignedValue;
     if (arg1 != NULL) {
-        Ui_InsetRect2(panel, arg1, &sp18);
+        _uiComputePanelInnerRect(panel, arg1, &sp18);
     }
     Ui_DrawPanel(panel, &sp10, &sp18, 1);
 }
@@ -1334,7 +1334,7 @@ void Ui_UpdateLayoutSize(UiPanel* panel, s32 arg1, s32 arg2)
     if (arg2 > 0) {
         panel->bounds.rect.h = (panel->bounds.rect.h - (panel->contentBottom.unsignedValue - panel->contentTop.unsignedValue)) + arg2;
     }
-    Ui_InsetRect2(panel, &panel->bounds.rect, &sp10);
+    _uiComputePanelInnerRect(panel, &panel->bounds.rect, &sp10);
     if ((panel->style & USER_INTERFACE_PANEL_STYLE_MASK) == USER_INTERFACE_PANEL_TITLE_STYLE) {
         sp10.y += 9;
         sp10.h -= 0xB;
@@ -1384,7 +1384,7 @@ void Ui_LayoutListPanel(UiList* arg0_, UiPanel* arg1_)
         arg1->bounds.rect.y += overflow;
     }
 
-    Ui_InsetRect2(arg1, &arg1->bounds.rect, &sp10);
+    _uiComputePanelInnerRect(arg1, &arg1->bounds.rect, &sp10);
     if ((arg1->style & USER_INTERFACE_PANEL_STYLE_MASK) == USER_INTERFACE_PANEL_TITLE_STYLE) {
         sp10.y += 9;
         sp10.h -= 0xB;
@@ -2080,7 +2080,7 @@ UiObject* Ui_SpawnTextBlock(TextBlockDesc* descriptor, s32 unused2, s32 unused3,
                 }
                 node = node->next;
             }
-            Ui_InsetRect2(obj, &obj->panel.bounds.rect, &rect);
+            _uiComputePanelInnerRect(&obj->panel, &obj->panel.bounds.rect, &rect);
             if ((obj->panel.style & USER_INTERFACE_PANEL_STYLE_MASK) == USER_INTERFACE_PANEL_TITLE_STYLE) {
                 rect.y += 9;
                 rect.h -= 0xB;
@@ -2197,7 +2197,7 @@ void Ui_SizeFromText(UiPanel* panel, u8* arg1, s32 arg2, s32 arg3)
     s32 u;
 
     sp.dims.as32 = Text_MeasureMultiLine(arg1);
-    Ui_InsetRect2(panel, &panel->bounds.rect, &sp.rect);
+    _uiComputePanelInnerRect(panel, &panel->bounds.rect, &sp.rect);
     if ((panel->style & USER_INTERFACE_PANEL_STYLE_MASK) == USER_INTERFACE_PANEL_TITLE_STYLE) {
         sp.rect.y += 9;
         sp.rect.h -= 0xB;
@@ -2596,12 +2596,26 @@ void Ui_LayoutWithMode1(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 
     Ui_DrawBeveledRect(arg0, arg1, arg2, arg3, arg4, arg5, 1);
 }
 
-static void Ui_InsetRect2(void* unused1, RECT* arg1, RECT* arg2)
+/// Computes the inner panel rectangle used for drawing, clipping and content layout.
+///
+/// Both rectangles must be non-null and remain live for the call. Coordinates
+/// and dimensions are pixels in the caller's coordinate system. For separate
+/// rectangles, the inset is two pixels on the left/top and one on the right/bottom,
+/// before style-specific text padding. Stores retain the low 16 bits without
+/// clamping dimensions. Writes occur in x, y, w, h order; overlapping rectangles
+/// observe preceding writes. `unusedPanel` is ignored.
+static void _uiComputePanelInnerRect(const UiPanel* unusedPanel, const RECT* outerRect, RECT* innerRect)
 {
-    arg2->x = arg1->x + 2;
-    arg2->y = arg1->y + 2;
-    arg2->w = (arg1->w + arg1->x) - arg2->x - 1;
-    arg2->h = (arg1->h + arg1->y) - arg2->y - 1;
+    enum {
+        USER_INTERFACE_PANEL_FRAME_LEADING_INSET_PIXELS  = 2,
+        USER_INTERFACE_PANEL_FRAME_TRAILING_INSET_PIXELS = 1
+    };
+
+    innerRect->x = outerRect->x + USER_INTERFACE_PANEL_FRAME_LEADING_INSET_PIXELS;
+    innerRect->y = outerRect->y + USER_INTERFACE_PANEL_FRAME_LEADING_INSET_PIXELS;
+    // Use the stored 16-bit origins when measuring the remaining extents.
+    innerRect->w = (outerRect->w + outerRect->x) - innerRect->x - USER_INTERFACE_PANEL_FRAME_TRAILING_INSET_PIXELS;
+    innerRect->h = (outerRect->h + outerRect->y) - innerRect->y - USER_INTERFACE_PANEL_FRAME_TRAILING_INSET_PIXELS;
 }
 
 void Ui_InsetLayout(UiPanel* panel, RECT* arg1, RECT* arg2, s32 unused4)
@@ -2609,7 +2623,7 @@ void Ui_InsetLayout(UiPanel* panel, RECT* arg1, RECT* arg2, s32 unused4)
     RECT sp10;
 
     // Center content within the full panel and retain its screen translation.
-    Ui_InsetRect2(panel, &panel->bounds.rect, &sp10);
+    _uiComputePanelInnerRect(panel, &panel->bounds.rect, &sp10);
     if ((panel->style & USER_INTERFACE_PANEL_STYLE_MASK) == USER_INTERFACE_PANEL_TITLE_STYLE) {
         sp10.y += 9;
         sp10.h -= 0xB;
@@ -2628,7 +2642,7 @@ void Ui_InsetLayout(UiPanel* panel, RECT* arg1, RECT* arg2, s32 unused4)
     panel->contentOriginX.unsignedValue = sp10.x - panel->contentLeft.unsignedValue;
     panel->contentOriginY.unsignedValue = sp10.y - panel->contentTop.unsignedValue;
     if (arg1 != NULL) {
-        Ui_InsetRect2(panel, arg1, arg2);
+        _uiComputePanelInnerRect(panel, arg1, arg2);
     }
 }
 
