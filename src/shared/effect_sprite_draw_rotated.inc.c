@@ -8,15 +8,34 @@
 #define EFFECT_SPRITE_ROTATED_DEPTH_BIAS 0
 #endif
 
-/// Computes a corner's pixel displacement from perspective size and a turn angle.
-static __inline__ void _effectSpriteRotatedRotateCorner(EffectShapeScratch* scratch, s16 size, s32 angle)
+/// Writes the signed pixel offset from a sprite's centre to one rotated corner.
+///
+/// `scratch` borrows a live workspace with positive `depth` already initialized;
+/// only `extent.corner` is replaced and no pointer is retained. `sizeFactor`
+/// gives a signed half-diagonal of `sizeFactor * 47 / depth` pixels, truncated
+/// toward zero before rotation. Sizing and rotated products use signed 32-bit
+/// arithmetic and must fit that width; no depth or overflow check occurs here.
+///
+/// `cornerAngle` uses 4096 units per turn. Q12 sine/cosine products are shifted
+/// to integer pixels, rounding negative products down. X points right and Y
+/// points up: a positive half-diagonal at angle zero points upward, and a
+/// quarter turn points rightward. The drawer uses opposite signs for each pair
+/// of corners and repeats this calculation a quarter turn later for the other pair.
+static __inline__ void _effectSpriteRotatedComputeCornerOffset(EffectShapeScratch* scratch, s16 sizeFactor, s32 cornerAngle)
 {
     enum {
-        EFFECT_SPRITE_ROTATED_PERSPECTIVE_SCALE  = 47,
-        EFFECT_SPRITE_ROTATED_TRIG_FRACTION_BITS = 12 // rsin/rcos return Q12 samples
+        EFFECT_SPRITE_ROTATED_PERSPECTIVE_SCALE  = 47, // Multiplier in the depth-divided half-diagonal numerator
+        EFFECT_SPRITE_ROTATED_TRIG_FRACTION_BITS = 12  // Fractional bits in rsin/rcos samples; 4096 represents 1.0
     };
-    scratch->extent.corner.x = (((size * EFFECT_SPRITE_ROTATED_PERSPECTIVE_SCALE) / scratch->depth) * rsin(angle)) >> EFFECT_SPRITE_ROTATED_TRIG_FRACTION_BITS;
-    scratch->extent.corner.y = (((size * EFFECT_SPRITE_ROTATED_PERSPECTIVE_SCALE) / scratch->depth) * rcos(angle)) >> EFFECT_SPRITE_ROTATED_TRIG_FRACTION_BITS;
+    s32 halfDiagonalPixels;
+    s32 trigSample;
+
+    trigSample               = rsin(cornerAngle);
+    halfDiagonalPixels       = (sizeFactor * EFFECT_SPRITE_ROTATED_PERSPECTIVE_SCALE) / scratch->depth;
+    scratch->extent.corner.x = (halfDiagonalPixels * trigSample) >> EFFECT_SPRITE_ROTATED_TRIG_FRACTION_BITS;
+    trigSample               = rcos(cornerAngle);
+    halfDiagonalPixels       = (sizeFactor * EFFECT_SPRITE_ROTATED_PERSPECTIVE_SCALE) / scratch->depth;
+    scratch->extent.corner.y = (halfDiagonalPixels * trigSample) >> EFFECT_SPRITE_ROTATED_TRIG_FRACTION_BITS;
 }
 
 /// Draws a rotating camera-facing animation cell with a base or alternate palette.
@@ -100,13 +119,13 @@ static void _effectSpriteDrawRotated(const GfxCoord* coord, u16 frameAndPalette,
                cellU + EFFECT_SPRITE_ROTATED_UV_SPAN_TEXELS, cellV + (EFFECT_SPRITE_ROTATED_FIRST_TEXEL_ROW + EFFECT_SPRITE_ROTATED_UV_SPAN_TEXELS));
 
         // Opposite corners share a radius; GPU halfword stores wrap screen coordinates.
-        _effectSpriteRotatedRotateCorner(scratch, size, angle);
+        _effectSpriteRotatedComputeCornerOffset(scratch, size, angle);
         quad->x0           = scratch->screenX + (u16)scratch->extent.corner.x;
         quad->x3           = scratch->screenX - (u16)scratch->extent.corner.x;
         quad->y0           = scratch->screenY - (u16)scratch->extent.corner.y;
         quad->y3           = scratch->screenY + (u16)scratch->extent.corner.y;
         perpendicularAngle = angle + EFFECT_SPRITE_ROTATED_QUARTER_TURN;
-        _effectSpriteRotatedRotateCorner(scratch, size, perpendicularAngle);
+        _effectSpriteRotatedComputeCornerOffset(scratch, size, perpendicularAngle);
         quad->x1 = scratch->screenX + (u16)scratch->extent.corner.x;
         quad->x2 = scratch->screenX - (u16)scratch->extent.corner.x;
         quad->y1 = scratch->screenY - (u16)scratch->extent.corner.y;
