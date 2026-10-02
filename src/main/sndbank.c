@@ -56,14 +56,26 @@
 
 #include "weapons/weapon.h"
 
-typedef struct _HeapBlockHeader {
-    u32                      size;
-    u16                      isAllocated;
-    u16                      magic;
-    struct _HeapBlockHeader* prev;
-    struct _HeapBlockHeader* next;
-} HeapBlockHeader;
-STATIC_ASSERT_SIZEOF(HeapBlockHeader, 0x10);
+/// Header of one block in the sound heap.
+///
+/// The heap is one buffer of variable-length blocks chained in address order,
+/// reserved and free alike. The caller's pointer addresses the payload
+/// immediately after this header. A request is rounded up with the header so
+/// every block stays 4-byte aligned. When the remainder cannot hold another
+/// header, the reserved block keeps its existing length.
+///
+/// `magic` identifies a sound-heap block. Initialization stores 0xB25A on the
+/// single initial block, which occupies the whole buffer. A block created by a
+/// split stores 0xA52B and keeps that value if it is later reserved. Release
+/// accepts either value and coalesces both the same way.
+typedef struct _SndHeapBlockHeader {
+    u32                         size;        // Byte length of this block, including this header
+    u16                         isAllocated; // 0 free, 1 reserved
+    u16                         magic;       // 0xB25A initial block, 0xA52B block created by a split
+    struct _SndHeapBlockHeader* prev;        // Preceding block in address order, or NULL
+    struct _SndHeapBlockHeader* next;        // Succeeding block in address order, or NULL
+} _SndHeapBlockHeader;
+STATIC_ASSERT_SIZEOF(_SndHeapBlockHeader, 0x10);
 
 /// Per-frame audio callback list node (AudioTick_List sentinel + chain).
 typedef struct _AudioTickNode {
@@ -90,7 +102,7 @@ enum {
 #define SNDHEAP_MAGIC 0xA52B
 
 /* Define BSS before API headers to preserve first-declaration order. */
-static HeapBlockHeader* SndHeap_Start;
+static _SndHeapBlockHeader* SndHeap_Start;
 
 /// Unreferenced.
 static u8 D_8007A3A8[8];
@@ -753,7 +765,7 @@ s32 AudioTick_Insert(AudioTickPoll poll, AudioTickOnRemove onRemove, u16 id, s32
 
 static void SndHeap_Reset(void)
 {
-    SndHeap_Start              = (HeapBlockHeader*)SndHeap_Buffer;
+    SndHeap_Start              = (_SndHeapBlockHeader*)SndHeap_Buffer;
     SndHeap_Start->size        = SNDHEAP_SIZE;
     SndHeap_Start->magic       = SNDHEAP_START_MAGIC;
     SndHeap_Start->isAllocated = false;
@@ -763,64 +775,42 @@ static void SndHeap_Reset(void)
 
 void* SndHeap_Malloc(size_t size)
 {
-    // Simple first-fit allocator, using linked lists.
-    // The allocator splits up the available space into variable-length blocks.
-    // Each block starts with a header, which contains the total length of the
-    // block in bytes (including the header), whether it is allocated, a magic
-    // value, and pointers to the previous/next blocks. The header is followed
-    // by a chunk of data, which is returned to the caller. The returned
-    // pointer (and the block header) are aligned to 4 bytes.
-    size_t           maxBlockSize;
-    size_t           newBlockSize;
-    size_t           allocSize;
-    HeapBlockHeader* block;
-    HeapBlockHeader* newBlock;
+    // First fit over the address-ordered chain. Split a free block when the
+    // remainder can hold another header; otherwise reserve the whole block and
+    // leave its length unchanged. The returned pointer is the payload.
+    size_t               maxBlockSize;
+    size_t               newBlockSize;
+    size_t               allocSize;
+    _SndHeapBlockHeader* block;
+    _SndHeapBlockHeader* newBlock;
 
     maxBlockSize = 0;
 
-    // Reserve additional space for the header and align to 4 bytes.
-    allocSize = (size + sizeof(HeapBlockHeader) + 3) & ~3;
+    // Header plus payload, rounded up to the block alignment.
+    allocSize = (size + sizeof(_SndHeapBlockHeader) + 3) & ~3;
 
-    // Find the first suitable block, starting the search at the first header.
     for (block = SndHeap_Start; block != NULL; block = block->next) {
-        // Check that the block is still in bounds of our heap.
-        if (block < (HeapBlockHeader*)SndHeap_Buffer ||
-            (HeapBlockHeader*)&SndHeap_Buffer[SNDHEAP_SIZE] < block) {
+        // A header outside the buffer is not a sound-heap block.
+        if (block < (_SndHeapBlockHeader*)SndHeap_Buffer ||
+            (_SndHeapBlockHeader*)&SndHeap_Buffer[SNDHEAP_SIZE] < block) {
             return NULL;
         }
 
-        // Skip allocated blocks.
         if (block->isAllocated) {
             continue;
         }
 
-        // Does not do anything, but is in the assembly for some reason.
+        // Retained search step. The running maximum is not read again.
         if (maxBlockSize < block->size) {
             maxBlockSize = block->size;
         }
 
-        // If we found a block that is big enough, we can allocate from it.
         if (block->size >= allocSize) {
-            // We allocate by splitting the block in two such that:
-            //
-            // [ block    | byte 0 | ... | byte blockSize ]
-            //
-            // Turns into the following if there is enough space
-            // for a new block:
-            //
-            // [ block    | byte 0 | ... | byte allocSize ]
-            // [ newBlock | byte 0 | ... | byte restSize  ]
-            //
-            // Or otherwise into:
-            //
-            // [ block    | byte 0 | ... | byte allocSize ]
-            // [            byte 0 | ... | byte restSize  ]
             newBlockSize = block->size - allocSize;
-            newBlock     = (HeapBlockHeader*)((u8*)block + allocSize);
+            newBlock     = (_SndHeapBlockHeader*)((u8*)block + allocSize);
 
-            // If there is enough space for a new block, we must link it
-            // to the current block.
-            if (sizeof(HeapBlockHeader) < newBlockSize) {
+            // Insert the remainder immediately after this block.
+            if (sizeof(_SndHeapBlockHeader) < newBlockSize) {
                 newBlock->size        = newBlockSize;
                 newBlock->magic       = SNDHEAP_MAGIC;
                 newBlock->isAllocated = false;
@@ -849,16 +839,12 @@ void* SndHeap_Malloc(size_t size)
 
 void SndHeap_Free(void* ptr)
 {
-    // This is the inverse of the allocation function. Given a pointer, that we
-    // assume points to the start of the data region which was returned by the
-    // allocation function, we insert it into the linked list of blocks. To
-    // prevent fragmentation, we first try to merge neighboring blocks, if they
-    // are not in use.
-    uintptr          heapStart;
-    uintptr          heapEnd;
-    HeapBlockHeader* header;
+    // Release a payload pointer, or return on NULL. Coalesce with free
+    // neighbors so the chain stays in address order.
+    uintptr              heapStart;
+    uintptr              heapEnd;
+    _SndHeapBlockHeader* header;
 
-    // If `ptr` is `NULL` we are done.
     if (ptr == NULL) {
         return;
     }
@@ -877,32 +863,28 @@ void SndHeap_Free(void* ptr)
         return;
     }
 
-    // As with the allocation, the data pointer is located directly after the
-    // block header. For some reason, the original code first sets the
-    // `isAllocated` flag to `false`, before checking the magic number.
-    //
-    // TODO: Maybe there same heap is reused with a block kind that is not
-    // merged on free. Investigate!
-    header              = ptr - sizeof(HeapBlockHeader);
+    // The payload starts immediately after its header. The reserved flag is
+    // cleared before the recognizer is tested; any other value returns without
+    // coalescing, so the flag stays clear. Both sound-heap recognizers take
+    // the same merge path.
+    header              = (_SndHeapBlockHeader*)ptr - 1;
     header->isAllocated = false;
     if (header->magic != SNDHEAP_MAGIC && header->magic != SNDHEAP_START_MAGIC) {
         return;
     }
 
-    // If the preceding block is also free, we grow it to take up the
-    // additional space of the current block and make it point to the
-    // succeeding block. `header` will always point to the earliest block.
+    // A free predecessor absorbs this block and becomes the block to merge forward.
     if (header->prev != NULL && header->prev->isAllocated == false) {
         if (header->next != NULL) {
             header->next->prev = header->prev;
-            header->prev       = header->prev;
+            header->prev       = header->prev; // Retained; the value does not change.
         }
         header->prev->next  = header->next;
         header->prev->size += header->size;
         header              = header->prev;
     }
 
-    // We do the same, in case the succeeding neighbor is also not in use.
+    // A free successor is absorbed the same way.
     if (header->next != NULL && header->next->isAllocated == false) {
         if (header->next->next != NULL) {
             header->next->next->prev = header;
@@ -911,8 +893,7 @@ void SndHeap_Free(void* ptr)
         header->next  = header->next->next;
     }
 
-    // This should not be required, since all headers already had the flag
-    // set to `false`. Nevertheless, here it is.
+    // The surviving block is already free. This store is part of the release.
     header->isAllocated = false;
 }
 
