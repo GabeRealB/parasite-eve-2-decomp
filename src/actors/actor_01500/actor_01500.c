@@ -1684,7 +1684,7 @@ static void Actor01500_Fn01DF0(Enemy* arg0, Task* arg1)
             work->field_368 = 0x1000;
             work->field_32C = coord->coord;
             arg0->recs      = 0;
-            Gp_UnlinkNode(&arg0->node);
+            worldTargetUnlinkNode(&arg0->node);
             Gp_UnlinkObj(&work->field_1DC);
             Gp_UnlinkObj(&work->field_244);
             Gp_UnlinkObj(&work->field_2DC);
@@ -1731,7 +1731,7 @@ static void Actor01500_Fn01DF0(Enemy* arg0, Task* arg1)
             break;
         case 4:
             if (work->field_362 == 0) {
-                Gp_UnlinkNode(&arg0->node);
+                worldTargetUnlinkNode(&arg0->node);
                 Gp_UnlinkObj(&work->field_1DC);
                 Gp_UnlinkObj(&work->field_244);
                 Gp_UnlinkObj(&work->field_2DC);

@@ -43,7 +43,7 @@ void skullStalkerDeathState(Enemy* arg0, Task* arg1)
         work->field_288 = 1;
         work->field_28A = 0;
         arg0->recs      = 0;
-        Gp_UnlinkNode(&arg0->node);
+        worldTargetUnlinkNode(&arg0->node);
         Gp_UnlinkObj(&work->field_14C);
         Gp_UnlinkObj(&work->field_FC);
         Gp_UnlinkObj(&work->field_184);

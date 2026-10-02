@@ -15,9 +15,14 @@
 
 void func_800DA6E8(void* arg0, s32 arg1, s32 arg2);
 
-/// Detaches `node` from every actor slot locked onto it and takes it off the
-/// tracked list.
-void Gp_UnlinkNode(WorldTargetNode* node);
+/// Releases actor locks on `node` and removes it from target tracking.
+///
+/// `node` must point to a live enemy's target entry; ownership stays with the
+/// caller. An on-list value of 1 enables removal and clears both `onList` and
+/// `targeted`, even if the entry is absent from the list. Other membership
+/// values only release the player and companion references. The successor and
+/// flags are retained, and no storage is freed.
+void worldTargetUnlinkNode(WorldTargetNode* node);
 
 /// Appends `node` to the tracked list when it is not already on it, and marks
 /// it lockable.

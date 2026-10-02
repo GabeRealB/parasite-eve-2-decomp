@@ -19,7 +19,7 @@ void generatorLifeSupportTeardown(Enemy* arg0, Task* arg1)
         timer          = part->field_42 + 1;
         part->field_42 = timer;
         if ((s16)timer == 1) {
-            Gp_UnlinkNode(&arg0->node);
+            worldTargetUnlinkNode(&arg0->node);
             Gp_UnlinkObj(&part->obj);
             arg0->recs = 0;
             SndEvt_EnqueueType7(parentWork->field_31C, 1);

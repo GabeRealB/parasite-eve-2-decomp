@@ -829,7 +829,7 @@ static void func_actor_205200_8014C924(Enemy* arg0, Task* arg1)
     Actor205200Work* work;
 
     work = arg1->work;
-    Gp_UnlinkNode(&arg0->node);
+    worldTargetUnlinkNode(&arg0->node);
     Gp_UnlinkObj(&work->field_47C);
     Gp_UnlinkObj(&work->field_4E4);
     Gp_DestroyEnemy(arg0, arg1);

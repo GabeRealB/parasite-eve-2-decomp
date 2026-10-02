@@ -25,7 +25,7 @@ void madChaserPulledIn(Task* arg0)
     if ((gSceneCombatState.madChaserAlertOwner & SCENE_COMBAT_MAD_CHASER_OWNER_MASK) == (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
         gSceneCombatState.madChaserAlertOwner = 0;
     }
-    Gp_UnlinkNode(&enemy->node);
+    worldTargetUnlinkNode(&enemy->node);
     Gp_ReleaseStateF0Add(arg0, 0);
     enemy->recs = 0;
     objs        = (MadChaserWork*)arg0->work;

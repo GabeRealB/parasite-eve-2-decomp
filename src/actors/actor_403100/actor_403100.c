@@ -4222,7 +4222,7 @@ static void func_actor_403100_80133C94(Task* task)
     s32 i;
 
     SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
-    Gp_UnlinkNode(&D_actor_403100_8015580C->node);
+    worldTargetUnlinkNode(&D_actor_403100_8015580C->node);
     D_actor_403100_80155810 = 0;
     for (i = 0; i < 28; i++) {
         if (D_actor_403100_80155814[i].active != 0) {
@@ -7102,7 +7102,7 @@ static void func_actor_403100_8013B128(Task* arg0)
         D_actor_403100_80155808->field_5FA = 0U;
         return;
     }
-    Gp_UnlinkNode(&D_actor_403100_8015580C->node);
+    worldTargetUnlinkNode(&D_actor_403100_8015580C->node);
     entries                 = D_actor_403100_80155814;
     obj                     = &entries->obj;
     D_actor_403100_80155810 = 0;
@@ -8186,7 +8186,7 @@ static void func_actor_403100_8013D8F4(Task* arg0)
     D_actor_403100_8015580C->reactionFlags = 0;
     Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
     SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
-    Gp_UnlinkNode(&D_actor_403100_8015580C->node);
+    worldTargetUnlinkNode(&D_actor_403100_8015580C->node);
     func_800E8614(&D_80165FC0, 0);
     arg0->state                        = 1;
     D_actor_403100_80155808->field_5F8 = 0;

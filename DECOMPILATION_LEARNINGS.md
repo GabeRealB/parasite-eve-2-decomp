@@ -46592,7 +46592,7 @@ plus a swapped destination register in its delay slot.
 Merging `Actor03800_Fn02068`'s L-label span needed the byte at `0x801153F2`,
 which is `gSceneCombatState.signals.bytes.actionFlags` in `include/gameplay/scene_combat.h`. Adding that include
 to `src/actors/lib/actor_103800_text.c` does not build: the file opens with its
-own hand-written prototypes for `Gp_UnlinkNode`, `Gp_UnlinkObj`,
+own hand-written prototypes for `worldTargetUnlinkNode`, `Gp_UnlinkObj`,
 `Gp_SetLightMode`, `Gp_ReleaseStateF0Add`, `Gp_UpdateActorColor`,
 `worldCoordGetOriginAudioPan` and `worldCoordGetOriginAudioDepth`, and several of them disagree with the
 header in *arity*, not just in pointer type (`Gp_UpdateActorColor` is declared
@@ -101321,8 +101321,8 @@ the number it printed is the raw byte offset from the disassembly.
 `Enemy::node` is the `WorldTargetNode` at +0x10:
 
 ```c
--        Gp_UnlinkNode(arg0 + 0x10);
-+        Gp_UnlinkNode(&arg0->node);
+-        worldTargetUnlinkNode(arg0 + 0x10);
++        worldTargetUnlinkNode(&arg0->node);
 ```
 
 Sweep the m2c seed for every remaining `p + N` before the first build rather

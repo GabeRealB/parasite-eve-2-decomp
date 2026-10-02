@@ -2078,7 +2078,7 @@ death:
     work->field_35A = 0x1000;
     work->field_2CC = coord->coord;
     arg0->recs      = 0;
-    Gp_UnlinkNode(&arg0->node);
+    worldTargetUnlinkNode(&arg0->node);
     Gp_UnlinkObj((WorldCollisionBody*)work->field_1A4);
     Gp_UnlinkObj((WorldCollisionBody*)work->field_20C);
     Gp_UnlinkObj((WorldCollisionBody*)work->field_28C);

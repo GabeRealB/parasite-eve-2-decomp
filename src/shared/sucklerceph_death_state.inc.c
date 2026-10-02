@@ -61,7 +61,7 @@ void sucklercephDeathState(Enemy* enemy, Task* task)
                         work->field_2CA = 0x1000;
                         work->field_28C = coord->coord;
                         enemy->recs     = NULL;
-                        Gp_UnlinkNode(&enemy->node);
+                        worldTargetUnlinkNode(&enemy->node);
                         Gp_UnlinkObj(&work->objFC);
                         Gp_UnlinkObj(&work->obj134);
                         Gp_UnlinkObj(&work->obj1B4);

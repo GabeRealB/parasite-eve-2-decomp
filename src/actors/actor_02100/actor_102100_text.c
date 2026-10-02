@@ -1967,7 +1967,7 @@ static void Actor02100_Fn035D4(Enemy* arg0, Task* arg1)
     goto epilogue;
 case0:
     arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    Gp_UnlinkNode(&arg0->node);
+    worldTargetUnlinkNode(&arg0->node);
     Gp_UnlinkObj(&work->field_40);
     Gp_UnlinkObj(&work->field_78);
     Gp_UnlinkObj(&work->field_C8);

@@ -3413,7 +3413,7 @@ static void Actor01600_Fn04054(Enemy* arg0, Task* arg1)
             }
             arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             arg0->recs                   = 0;
-            Gp_UnlinkNode(&arg0->node);
+            worldTargetUnlinkNode(&arg0->node);
             Gp_UnlinkObj((WorldCollisionBody*)work->field_40C);
             Gp_UnlinkObj((WorldCollisionBody*)work->field_29C);
             Gp_UnlinkObj(&work->collision.obj);
@@ -4875,7 +4875,7 @@ static void Actor01600_Fn06EA4(Task* arg0)
 
     ctx->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     ctx->recs                   = 0;
-    Gp_UnlinkNode(&ctx->node);
+    worldTargetUnlinkNode(&ctx->node);
     Gp_UnlinkObj((WorldCollisionBody*)work->field_40C);
     Gp_UnlinkObj((WorldCollisionBody*)work->field_29C);
     Gp_UnlinkObj(&work->collision.obj);
@@ -4937,7 +4937,7 @@ static void Actor01600_Fn06FDC(Task* arg0, s32 arg1)
     obj2        = arg0->extra.tmd;
     obj2->flags = (u16)(obj2->flags | TMD_OBJECT_SKIP_AUTO_BUFFER);
     ctx->recs   = 0;
-    Gp_UnlinkNode(&ctx->node);
+    worldTargetUnlinkNode(&ctx->node);
     if (!(arg1 & 0xFF)) {
         Gp_UnlinkObj((WorldCollisionBody*)work->field_40C);
         Gp_UnlinkObj((WorldCollisionBody*)work->field_29C);

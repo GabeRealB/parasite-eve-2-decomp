@@ -75,6 +75,29 @@ static void Gp_ClearLockSlots(void);
 
 static s32 Gp_ProjectToSxy(WorldTargetNode* arg0, s32* sxy);
 
+/// Releases both actor slots' borrowed references to a target entry.
+static __inline__ void _worldTargetReleaseActorLocks(WorldTargetNode* node)
+{
+    s32        actorSlot;
+    Task**     taskSlot;
+    Task*      actorTask;
+    GameActor* actor;
+
+    actorSlot = 0;
+    taskSlot  = gPlayerActorTasks;
+    do {
+        actorTask = *taskSlot;
+        if (actorTask != NULL) {
+            actor = actorTask->work;
+            if (actor->targetNode == node) {
+                actor->targetNode = NULL;
+            }
+        }
+        actorSlot++;
+        taskSlot++;
+    } while (actorSlot < PLAYER_ACTOR_TASK_COUNT);
+}
+
 static __inline__ void project_slot(s32* sxy, GpSlot70* slot)
 {
     WorldTargetNode* src;
@@ -498,44 +521,32 @@ static void Gp_UpdateLockSlots(void)
     } while (i < 0x20);
 }
 
-void Gp_UnlinkNode(WorldTargetNode* node)
+void worldTargetUnlinkNode(WorldTargetNode* node)
 {
-    s32               i;
-    Task* volatile*   p;
-    Task*             work;
-    GameActor*        actor;
-    WorldTargetNode** list;
+    enum {
+        WORLD_TARGET_OFF_LIST     = 0,
+        WORLD_TARGET_ON_LIST      = 1,
+        WORLD_TARGET_NOT_TARGETED = 0
+    };
+    WorldTargetNode** incomingLink;
 
-    i = 0;
-    p = gPlayerActorTasks;
-    do {
-        work = *p;
-        if (work != NULL) {
-            actor = work->work;
-            if (actor->targetNode == node) {
-                actor->targetNode = NULL;
+    _worldTargetReleaseActorLocks(node);
+
+    // The incoming link is either the list head or a predecessor's successor.
+    if (node->state.parts.onList == WORLD_TARGET_ON_LIST) {
+        incomingLink = &gWorldTargetListHead;
+        while (*incomingLink != node) {
+            if (*incomingLink == NULL) {
+                goto clearTrackingState;
             }
+            incomingLink = &(*incomingLink)->next;
         }
-        i++;
-        p++;
-    } while (i < PLAYER_ACTOR_TASK_COUNT);
-
-    if (node->state.parts.onList == 1) {
-        list = &gWorldTargetListHead;
-        if (gWorldTargetListHead != node) {
-            do {
-                if (*list == NULL) {
-                    goto done;
-                }
-                list = &(*list)->next;
-            } while (*list != node);
+        if (*incomingLink != NULL) {
+            *incomingLink = node->next;
         }
-        if (*list != NULL) {
-            *list = node->next;
-        }
-    done:
-        node->state.parts.onList   = 0;
-        node->state.parts.targeted = 0;
+    clearTrackingState:
+        node->state.parts.onList   = WORLD_TARGET_OFF_LIST;
+        node->state.parts.targeted = WORLD_TARGET_NOT_TARGETED;
     }
 }
 

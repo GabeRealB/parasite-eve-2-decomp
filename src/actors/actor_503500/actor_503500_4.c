@@ -775,7 +775,7 @@ static void func_actor_503500_8013B8D0(Task* arg0)
         case 0:
             work->obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             enemy->recs      = 0;
-            Gp_UnlinkNode(&enemy->node);
+            worldTargetUnlinkNode(&enemy->node);
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
             work->field_E8 = 0;
             (Gp_IncStateF0Ref)(0);
@@ -1136,7 +1136,7 @@ static void func_actor_503500_8013C558(Task* arg0)
         case 0:
             work->obj.flags                        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             ((Enemy*)arg0->spawnArg2.pointer)->recs = 0;
-            Gp_UnlinkNode(&((Enemy*)arg0->spawnArg2.pointer)->node);
+            worldTargetUnlinkNode(&((Enemy*)arg0->spawnArg2.pointer)->node);
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
             work->field_E8 = 0;
             (Gp_IncStateF0Ref)(0);
@@ -1575,7 +1575,7 @@ static void func_actor_503500_8013D558(Task* arg0)
         case 0:
             work->obj.flags                        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             ((Enemy*)arg0->spawnArg2.pointer)->recs = 0;
-            Gp_UnlinkNode(&((Enemy*)arg0->spawnArg2.pointer)->node);
+            worldTargetUnlinkNode(&((Enemy*)arg0->spawnArg2.pointer)->node);
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
             work->field_E8 = 0;
             (Gp_IncStateF0Ref)(0);
@@ -1754,7 +1754,7 @@ static void func_actor_503500_8013DA2C(Task* arg0, s32 arg1)
         }
         func_actor_503500_8013DBA8(arg0, 0);
         work->obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        Gp_UnlinkNode(&enemy->node);
+        worldTargetUnlinkNode(&enemy->node);
         work->field_E8 = 0;
         return;
     }
@@ -2090,7 +2090,7 @@ static void func_actor_503500_8013E740(Task* arg0)
         case 0:
             work->obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             enemy->recs      = 0;
-            Gp_UnlinkNode(&enemy->node);
+            worldTargetUnlinkNode(&enemy->node);
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
             work->field_E8 = 0;
             (Gp_IncStateF0Ref)(0);
@@ -2490,7 +2490,7 @@ static void func_actor_503500_8013F4A4(Task* arg0)
         case 0:
             work->obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             enemy->recs      = 0;
-            Gp_UnlinkNode(&enemy->node);
+            worldTargetUnlinkNode(&enemy->node);
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
             work->field_E8 = 0;
             (Gp_IncStateF0Ref)(0);
@@ -3018,7 +3018,7 @@ static void func_actor_503500_80140654(Task* arg0)
         case 0:
             work->obj160.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             enemy->recs         = 0;
-            Gp_UnlinkNode(&enemy->node);
+            worldTargetUnlinkNode(&enemy->node);
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
             work->field_3A8 = 0;
             (Gp_IncStateF0Ref)(0);
@@ -3969,7 +3969,7 @@ static void func_actor_503500_80142980(Task* arg0)
         case 0:
             work->obj0.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             enemy->recs       = 0;
-            Gp_UnlinkNode(&enemy->node);
+            worldTargetUnlinkNode(&enemy->node);
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
             work->field_218 = 0;
             (Gp_IncStateF0Ref)(0);

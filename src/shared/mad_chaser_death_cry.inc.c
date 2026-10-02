@@ -15,7 +15,7 @@ void madChaserDeathCry(Task* arg0)
     work  = (MadChaserWork*)arg0->work;
     SndEvt_EnqueueType7(((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0002, 0xF);
     madChaserSetAlertHold(arg0, 0);
-    Gp_UnlinkNode(&enemy->node);
+    worldTargetUnlinkNode(&enemy->node);
     if (work->field_448 == 4) {
         work->field_412  = 0;
         model->flags     = model->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;

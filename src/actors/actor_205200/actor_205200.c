@@ -601,7 +601,7 @@ static void func_actor_205200_8014B484(Enemy* arg0, Task* arg1)
             Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0x32001400, NULL);
             Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0xF2001400, NULL);
             Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0xF2001400, NULL);
-            Gp_UnlinkNode(&arg0->node);
+            worldTargetUnlinkNode(&arg0->node);
             Gp_UnlinkObj(&part->obj);
             Gp_ReleaseStateF0Add(arg1, 0x34);
             arg0->recs     = 0;
@@ -659,7 +659,7 @@ static void func_actor_205200_8014B484(Enemy* arg0, Task* arg1)
             break;
         case 2:
             (Gp_ReleaseStateF0)(arg1, 0x34);
-            Gp_UnlinkNode(&arg0->node);
+            worldTargetUnlinkNode(&arg0->node);
             Gp_UnlinkObj(&part->obj);
             part->field_72 = 3;
             break;

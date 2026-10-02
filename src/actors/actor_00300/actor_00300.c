@@ -2817,7 +2817,7 @@ common:
             work->field_674 = 0x1000;
             work->field_608 = coord->coord;
             arg0->recs      = NULL;
-            Gp_UnlinkNode(&arg0->node);
+            worldTargetUnlinkNode(&arg0->node);
             Gp_UnlinkObj(&work->obj480);
             Gp_UnlinkObj(&work->obj538);
             Gp_UnlinkObj(&work->obj4D0);
@@ -3543,7 +3543,7 @@ s32 Actor00300_Fn05434(Task* arg0, s32 arg1, ActorCommand* args)
     enemy = arg0->spawnArg2.pointer;
     if (args->command != 0) {
         enemy->recs = 0;
-        Gp_UnlinkNode(&enemy->node);
+        worldTargetUnlinkNode(&enemy->node);
         Gp_UnlinkObj(&work->obj480);
         Gp_UnlinkObj(&work->obj538);
         Gp_UnlinkObj(&work->obj4D0);

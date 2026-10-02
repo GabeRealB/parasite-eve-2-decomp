@@ -3771,7 +3771,7 @@ static void func_actor_405800_801388E4(Task* task)
     work->obj_6B4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->obj_694.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->obj_674.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    Gp_UnlinkNode(&enemy->node);
+    worldTargetUnlinkNode(&enemy->node);
     if (work->pendingAction == 4) {
         work->field_842 = 0;
         model->flags   |= TMD_OBJECT_SKIP_ACTIVE_DRAW;

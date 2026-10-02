@@ -1348,7 +1348,7 @@ static void func_actor_207200_8014CA84(Enemy* arg0, Task* arg1)
                     work->field_49C = 0x1000;
                     work->field_464 = coord->coord;
                     arg0->recs      = 0;
-                    Gp_UnlinkNode(&arg0->node);
+                    worldTargetUnlinkNode(&arg0->node);
                     Gp_UnlinkObj(&work->obj1);
                     Gp_UnlinkObj(&work->obj2);
                     Gp_UnlinkObj(&work->obj3);
@@ -1836,7 +1836,7 @@ static void func_actor_207200_8014DB4C(Task* arg0)
     ctx       = arg0->spawnArg2.pointer;
     work      = arg0->work;
     ctx->recs = 0;
-    Gp_UnlinkNode(&ctx->node);
+    worldTargetUnlinkNode(&ctx->node);
     Gp_UnlinkObj(&work->obj1);
     Gp_UnlinkObj(&work->obj2);
     Gp_UnlinkObj(&work->obj3);

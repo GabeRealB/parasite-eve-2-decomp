@@ -39,7 +39,7 @@ void maggotCaterpillarDyingState(Enemy* arg0, Task* arg1)
                     work->field_3A0 = 0x1000;
                     work->field_370 = coord->coord;
                     arg0->recs      = 0;
-                    Gp_UnlinkNode(&arg0->node);
+                    worldTargetUnlinkNode(&arg0->node);
                     Gp_UnlinkObj(&work->field_214);
                     Gp_UnlinkObj(&work->field_294);
                     Gp_UnlinkObj(&work->field_2E4);

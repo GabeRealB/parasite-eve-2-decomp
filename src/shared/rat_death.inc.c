@@ -68,7 +68,7 @@ death:
     work->field_390 = 0x1000;
     work->field_340 = coord->coord;
     arg0->recs      = 0;
-    Gp_UnlinkNode(&arg0->node);
+    worldTargetUnlinkNode(&arg0->node);
     Gp_UnlinkObj(&work->field_1DC);
     Gp_UnlinkObj(&work->field_214);
     Gp_UnlinkObj(&work->field_27C);

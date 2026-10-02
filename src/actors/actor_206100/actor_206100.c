@@ -3899,7 +3899,7 @@ static void func_actor_206100_8014FBE4(Task* task, void* unusedTable)
     SndEvt_EnqueueType7(SOUND_NEO_ARK_SUB_GALLERY_DIVER_ATTACK_LOOP, 1);
     Gp_ApplyAreaRecs(D_neo_ark_submarine_gallery_8018590C);
     work->field_526 = work->field_536;
-    Gp_UnlinkNode(&enemy->node);
+    worldTargetUnlinkNode(&enemy->node);
     Gp_ReleaseStateF0Add(task, 0);
     GameFlag_SetNibble(GAME_FLAG_0F3, 1);
     enemy->recs = 0;

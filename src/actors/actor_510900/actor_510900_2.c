@@ -4164,7 +4164,7 @@ static void func_actor_510900_8013C380(Task* arg0)
     Enemy*                enemy = arg0->spawnArg2.pointer;
     Actor510900ChildAnim* work  = arg0->work;
 
-    Gp_UnlinkNode(&enemy->node);
+    worldTargetUnlinkNode(&enemy->node);
     Gp_UnlinkObj(&work->obj2BC);
     Gp_UnlinkObj(&work->obj2F4);
     Gp_DestroyEnemy(enemy, arg0);
@@ -4185,7 +4185,7 @@ static void func_actor_510900_8013C430(Task* arg0)
     Enemy*                enemy = arg0->spawnArg2.pointer;
     Actor510900ChildWork* work  = arg0->work;
 
-    Gp_UnlinkNode(&enemy->node);
+    worldTargetUnlinkNode(&enemy->node);
     Gp_UnlinkObj(&work->obj0);
     Gp_UnlinkObj(&work->obj38);
     Gp_DestroyEnemy(enemy, arg0);

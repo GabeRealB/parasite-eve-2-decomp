@@ -5724,7 +5724,7 @@ static void func_actor_400500_8013A8E4(Task* arg0)
         animationTickSlot(&work2->anim, i);
         i++;
     } while (i < 0x12);
-    Gp_UnlinkNode(&enemy->node);
+    worldTargetUnlinkNode(&enemy->node);
     Gp_ReleaseStateF0Add(arg0, 0);
     enemy->recs = 0;
     Gp_UnlinkObj(&work->obj0);

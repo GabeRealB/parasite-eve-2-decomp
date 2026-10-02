@@ -2805,7 +2805,7 @@ static void Actor00400_Fn042C0(Task* arg0)
     if (arg0->extra.tmd->coords->coord.t[1] - work->field_64E < 0x320) {
         work->field_63E = work->field_64E;
     }
-    Gp_UnlinkNode(&obj->node);
+    worldTargetUnlinkNode(&obj->node);
     Gp_ReleaseStateF0Add(arg0, 0);
     obj->recs = NULL;
     Gp_UnlinkObj(&work->obj_35C);
@@ -3122,7 +3122,7 @@ static void Actor00400_Fn04CF8(Task* arg0)
     Gp_UnlinkObj(&work->obj_35C);
     Gp_UnlinkObj(&work->obj_37C);
     Gp_UnlinkObj(&work->obj_4DC);
-    Gp_UnlinkNode(&obj->node);
+    worldTargetUnlinkNode(&obj->node);
     Gp_ReleaseStateF0Add(arg0, 0);
     work->field_648 = 0x80;
     if (work->field_644 == 4) {

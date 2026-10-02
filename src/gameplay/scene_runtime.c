@@ -965,7 +965,7 @@ Enemy* Gp_SpawnEnemyFromTable(TaskDesc* table, s32 idx, s32 arg2, Enemy* parent)
 
 void Gp_DestroyEnemy(Enemy* enemy, Task* task)
 {
-    Gp_UnlinkNode(&enemy->node);
+    worldTargetUnlinkNode(&enemy->node);
     memFree(enemy);
     taskKill(task);
 }
@@ -975,7 +975,7 @@ void Gp_EnemyTaskExit(Task* task)
     Enemy* enemy;
 
     enemy = task->spawnArg2.pointer;
-    Gp_UnlinkNode(&enemy->node);
+    worldTargetUnlinkNode(&enemy->node);
     memFree(enemy);
     taskKill(task);
 }

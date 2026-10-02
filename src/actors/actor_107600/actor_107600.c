@@ -1606,7 +1606,7 @@ static void func_actor_107600_801337FC(Task* arg0)
             work->field_15A++;
             arg0->spawnArg1.value |= 0x40;
             work->field_154        = 7;
-            Gp_UnlinkNode(&enemy->node);
+            worldTargetUnlinkNode(&enemy->node);
             enemy->recs      = 0;
             work->obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         case 1:
@@ -1727,7 +1727,7 @@ static void func_actor_107600_801339A4(Task* arg0)
             if (v < -220) {
                 ((Actor107600HitPos*)&work->pitch)->vy = -220;
             }
-            Gp_UnlinkNode(&enemy->node);
+            worldTargetUnlinkNode(&enemy->node);
             enemy->recs      = 0;
             work->obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         case 1:

@@ -492,7 +492,7 @@ static void func_actor_503500_801334CC(Task* arg0)
             Gp_LinkNode(&enemy->node);
         } else {
             work->field_5D4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-            Gp_UnlinkNode(&enemy->node);
+            worldTargetUnlinkNode(&enemy->node);
         }
     }
 }
@@ -969,7 +969,7 @@ static void func_actor_503500_80134408(Task* arg0)
         case 0:
             work->field_5D4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             func_actor_503500_8013611C(arg0->spawnArg1.value);
-            Gp_UnlinkNode(&enemy->node);
+            worldTargetUnlinkNode(&enemy->node);
             enemy->recs     = 0;
             work->field_7B4 = 0;
             Gp_PulseState1C();
@@ -2732,7 +2732,7 @@ static void func_actor_503500_80137678(Task* arg0)
         case 0:
             work->slot40.obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             enemy->recs             = 0;
-            Gp_UnlinkNode(&enemy->node);
+            worldTargetUnlinkNode(&enemy->node);
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
             work->field_158 = 0;
             (Gp_IncStateF0Ref)(0);
@@ -3448,7 +3448,7 @@ static void func_actor_503500_80139014(Task* arg0)
         case 0:
             work->obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             enemy->recs      = 0;
-            Gp_UnlinkNode(&enemy->node);
+            worldTargetUnlinkNode(&enemy->node);
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
             work->field_2D8 = 0;
             (Gp_IncStateF0Ref)(0);
@@ -3575,7 +3575,7 @@ static void func_actor_503500_801395BC(Task* arg0)
     switch (phase) {
         case 0:
             work->obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-            Gp_UnlinkNode(&enemy->node);
+            worldTargetUnlinkNode(&enemy->node);
             enemy->recs     = 0;
             work->field_2D8 = 0;
             work->field_2E4++;

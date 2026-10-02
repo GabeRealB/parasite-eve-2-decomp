@@ -2009,7 +2009,7 @@ static void Actor07000_Fn04468(Enemy* arg0, Task* arg1)
                         Actor07000_Fn05FF8(arg1);
                     }
                     arg0->recs = 0;
-                    Gp_UnlinkNode(&arg0->node);
+                    worldTargetUnlinkNode(&arg0->node);
                     Gp_UnlinkObj(&work->field_1DC);
                     Gp_UnlinkObj(&work->field_22C);
                     Gp_UnlinkObj(&work->field_2AC);
@@ -3006,7 +3006,7 @@ static void Actor07000_Fn06750(Task* task)
 
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     enemy->recs                   = 0;
-    Gp_UnlinkNode(&enemy->node);
+    worldTargetUnlinkNode(&enemy->node);
     Gp_UnlinkObj(&work->field_1DC);
     Gp_UnlinkObj(&work->field_22C);
     Gp_UnlinkObj(&work->field_2AC);

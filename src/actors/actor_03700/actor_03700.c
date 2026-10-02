@@ -1785,7 +1785,7 @@ static void Actor03700_Fn020D4(Enemy* enemy, Task* task)
                 case 0:
                     enemy->recs = 0;
                     Gp_UnlinkObj(&work->obj);
-                    Gp_UnlinkNode(&enemy->node);
+                    worldTargetUnlinkNode(&enemy->node);
                     Gp_ReleaseStateF0Add(task, 0x25);
                     model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     sound        = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40250003;

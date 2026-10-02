@@ -1448,7 +1448,7 @@ death:
     work->field_332 = 0x1000;
     work->field_2E4 = coord->coord;
     arg0->recs      = NULL;
-    Gp_UnlinkNode(&arg0->node);
+    worldTargetUnlinkNode(&arg0->node);
     Gp_UnlinkObj(&work->obj16C);
     Gp_UnlinkObj(&work->obj1A4);
     Gp_UnlinkObj(&work->obj20C);

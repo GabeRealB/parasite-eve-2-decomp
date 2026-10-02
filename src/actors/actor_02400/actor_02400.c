@@ -1186,7 +1186,7 @@ static void Actor02400_Fn024F8(Enemy* arg0, Task* arg1)
                     work->field_12A = 0x1000;
                     work->field_100 = coord->coord;
                     arg0->recs      = 0;
-                    Gp_UnlinkNode(&arg0->node);
+                    worldTargetUnlinkNode(&arg0->node);
                     Gp_UnlinkObj(&work->obj40);
                     Gp_UnlinkObj(&work->objC0);
                     Gp_SetLightMode(arg0, ENEMY_COLOR_WEIGHTED);

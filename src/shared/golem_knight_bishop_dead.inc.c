@@ -42,7 +42,7 @@ void golemKnightBishopDeadState(Enemy* arg0, Task* arg1)
     switch (work->field_6CE) {
         case 0:
             arg0->recs = 0;
-            Gp_UnlinkNode(&arg0->node);
+            worldTargetUnlinkNode(&arg0->node);
             Gp_UnlinkObj((WorldCollisionBody*)work->field_4E4);
             Gp_UnlinkObj((WorldCollisionBody*)work->field_47C);
             Gp_UnlinkObj((WorldCollisionBody*)work->field_564);

@@ -12,7 +12,7 @@ void sucklercephExit(Task* task)
     work  = (SucklercephWork*)task->work;
 
     enemy->recs = 0;
-    Gp_UnlinkNode(&enemy->node);
+    worldTargetUnlinkNode(&enemy->node);
     Gp_UnlinkObj(&work->objFC);
     Gp_UnlinkObj(&work->obj134);
     Gp_UnlinkObj(&work->obj1B4);

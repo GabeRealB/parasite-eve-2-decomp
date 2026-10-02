@@ -4308,7 +4308,7 @@ static void func_actor_403600_80140488(Enemy* arg0, Task* arg1)
             cleanupWork                     = arg1->work;
             arg1->extra.tmd->coords->parent = &gGfxViewCoord;
             enemy->recs                     = 0;
-            Gp_UnlinkNode(&enemy->node);
+            worldTargetUnlinkNode(&enemy->node);
             Gp_UnlinkObj(&cleanupWork->field_508);
             Gp_UnlinkObj(&cleanupWork->field_588);
             if (arg1 == D_actor_403600_801606A8) {
@@ -4713,7 +4713,7 @@ static void func_actor_403600_80141598(Task* task)
     work                            = (Actor403600Work*)task->work;
     task->extra.tmd->coords->parent = &gGfxViewCoord;
     enemy->recs                     = 0;
-    Gp_UnlinkNode(&enemy->node);
+    worldTargetUnlinkNode(&enemy->node);
     Gp_UnlinkObj(&work->field_508);
     Gp_UnlinkObj(&work->field_588);
     if (task == D_actor_403600_801606A8) {
