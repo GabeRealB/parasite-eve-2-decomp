@@ -632,33 +632,58 @@ void func_dryfield_r08_8017D5F8(Task* task)
     }
 }
 
-/// Computes the first corner and returns the shared perspective-size numerator.
+/// Writes the first drift-sprite corner offset and returns its perspective numerator.
 ///
-/// Borrows the projection workspace with nonzero depth. Sampling the sine before
-/// scaling preserves the drawer's evaluation order; Q12 rotation follows division.
-static __inline__ s32 _dryfieldR08BeginDriftCorners(EffectBillboardScratch* projection, s16 size, s32 angle)
+/// `projection` borrows a live workspace with positive `depth`; only its corner
+/// offsets change. The return is `sizeFactor * 47`, shared by both corner pairs;
+/// dividing it by depth gives the signed pixel half-diagonal, truncated toward
+/// zero. Rotated products must fit s32; their arithmetic shift rounds down.
+///
+/// `cornerAngle` uses 4096 units per turn. X points right and Y points up, so a
+/// positive half-diagonal at zero angle points up and at a quarter turn points
+/// right. The drawer subtracts Y from the screen centre. No pointer is retained.
+static __inline__ s32 _dryfieldR08BeginDriftCorners(EffectBillboardScratch* projection, s16 sizeFactor, s32 cornerAngle)
 {
-    enum { DRYFIELD_R08_DRIFT_PERSPECTIVE_SCALE  = 47,
-           DRYFIELD_R08_DRIFT_TRIG_FRACTION_BITS = 12 };
-    s32 trigSine;
-    s32 scaledSize;
+    enum {
+        DRYFIELD_R08_DRIFT_PERSPECTIVE_SCALE  = 47, // Multiplier in the depth-divided half-diagonal numerator
+        DRYFIELD_R08_DRIFT_TRIG_FRACTION_BITS = 12  // Fractional bits in rsin/rcos samples; 4096 represents 1.0
+    };
+    s32 trigSample;
+    s32 perspectiveNumerator;
+    s32 halfDiagonalPixels;
 
-    trigSine                  = rsin(angle);
-    scaledSize                = size * DRYFIELD_R08_DRIFT_PERSPECTIVE_SCALE;
-    projection->cornerOffsetX = ((scaledSize / projection->depth) * trigSine) >> DRYFIELD_R08_DRIFT_TRIG_FRACTION_BITS;
-    projection->cornerOffsetY = ((scaledSize / projection->depth) * rcos(angle)) >> DRYFIELD_R08_DRIFT_TRIG_FRACTION_BITS;
-    return scaledSize;
+    trigSample                = rsin(cornerAngle);
+    perspectiveNumerator      = sizeFactor * DRYFIELD_R08_DRIFT_PERSPECTIVE_SCALE;
+    halfDiagonalPixels        = perspectiveNumerator / projection->depth;
+    projection->cornerOffsetX = (halfDiagonalPixels * trigSample) >> DRYFIELD_R08_DRIFT_TRIG_FRACTION_BITS;
+    trigSample                = rcos(cornerAngle);
+    halfDiagonalPixels        = perspectiveNumerator / projection->depth;
+    projection->cornerOffsetY = (halfDiagonalPixels * trigSample) >> DRYFIELD_R08_DRIFT_TRIG_FRACTION_BITS;
+    return perspectiveNumerator;
 }
 
-/// Computes a perpendicular sprite corner from a pre-scaled perspective numerator.
+/// Writes a drift-sprite corner offset at an absolute screen-space angle.
 ///
-/// Borrows the projection workspace with nonzero depth; division precedes Q12
-/// rotation and truncates toward zero. Only the two signed pixel offsets change.
-static __inline__ void _dryfieldR08RotateDriftCorner(EffectBillboardScratch* projection, s32 scaledSize, s32 angle)
+/// `perspectiveNumerator` is the signed `sizeFactor * 47` returned by
+/// `_dryfieldR08BeginDriftCorners`. The borrowed workspace requires positive
+/// depth; division gives the pixel half-diagonal, truncated toward zero, before
+/// Q12 rotation. Products must fit s32; their arithmetic shift rounds down.
+///
+/// Only the corner offsets change. `cornerAngle` uses 4096 units per turn with
+/// X right and Y up; the drawer supplies the first angle plus a quarter turn
+/// for the second pair of opposite corners. No pointer is retained.
+static __inline__ void _dryfieldR08RotateDriftCorner(EffectBillboardScratch* projection, s32 perspectiveNumerator, s32 cornerAngle)
 {
-    enum { DRYFIELD_R08_DRIFT_TRIG_FRACTION_BITS = 12 };
-    projection->cornerOffsetX = ((scaledSize / projection->depth) * rsin(angle)) >> DRYFIELD_R08_DRIFT_TRIG_FRACTION_BITS;
-    projection->cornerOffsetY = ((scaledSize / projection->depth) * rcos(angle)) >> DRYFIELD_R08_DRIFT_TRIG_FRACTION_BITS;
+    enum { DRYFIELD_R08_DRIFT_TRIG_FRACTION_BITS = 12 }; // rsin/rcos fractional bits
+    s32 halfDiagonalPixels;
+    s32 trigSample;
+
+    trigSample                = rsin(cornerAngle);
+    halfDiagonalPixels        = perspectiveNumerator / projection->depth;
+    projection->cornerOffsetX = (halfDiagonalPixels * trigSample) >> DRYFIELD_R08_DRIFT_TRIG_FRACTION_BITS;
+    trigSample                = rcos(cornerAngle);
+    halfDiagonalPixels        = perspectiveNumerator / projection->depth;
+    projection->cornerOffsetY = (halfDiagonalPixels * trigSample) >> DRYFIELD_R08_DRIFT_TRIG_FRACTION_BITS;
 }
 
 /// Binds Dryfield R08's exported `void (Task*)` callback for this drift instance.
@@ -730,7 +755,7 @@ static void _dryfieldR08DrawBankedDriftSprite(const GfxCoord* coord, u16 frameAn
     POLY_FT4*               quad;
     s32                     cornerAngle;
     s32                     perpendicularAngle;
-    s32                     scaledSize;
+    s32                     perspectiveNumerator;
     s32                     cellU;
     s32                     cellV;
     s32                     lastU;
@@ -771,13 +796,13 @@ static void _dryfieldR08DrawBankedDriftSprite(const GfxCoord* coord, u16 frameAn
         lastV       = cellV + DRYFIELD_R08_DRIFT_LAST_TEXEL_ROW;
         cellV       = cellV + DRYFIELD_R08_DRIFT_FIRST_TEXEL_ROW;
         setUV4(quad, cellU, cellV, lastU, cellV, cellU, lastV, lastU, lastV);
-        scaledSize         = _dryfieldR08BeginDriftCorners(projection, size, cornerAngle);
-        quad->x0           = projection->screenX + (u16)projection->cornerOffsetX;
-        quad->x3           = projection->screenX - (u16)projection->cornerOffsetX;
-        quad->y0           = projection->screenY - (u16)projection->cornerOffsetY;
-        quad->y3           = projection->screenY + (u16)projection->cornerOffsetY;
-        perpendicularAngle = cornerAngle + DRYFIELD_R08_DRIFT_QUARTER_TURN;
-        _dryfieldR08RotateDriftCorner(projection, scaledSize, perpendicularAngle);
+        perspectiveNumerator = _dryfieldR08BeginDriftCorners(projection, size, cornerAngle);
+        quad->x0             = projection->screenX + (u16)projection->cornerOffsetX;
+        quad->x3             = projection->screenX - (u16)projection->cornerOffsetX;
+        quad->y0             = projection->screenY - (u16)projection->cornerOffsetY;
+        quad->y3             = projection->screenY + (u16)projection->cornerOffsetY;
+        perpendicularAngle   = cornerAngle + DRYFIELD_R08_DRIFT_QUARTER_TURN;
+        _dryfieldR08RotateDriftCorner(projection, perspectiveNumerator, perpendicularAngle);
         quad->x1 = projection->screenX + (u16)projection->cornerOffsetX;
         quad->x2 = projection->screenX - (u16)projection->cornerOffsetX;
         quad->y1 = projection->screenY - (u16)projection->cornerOffsetY;
@@ -825,7 +850,7 @@ static void _dryfieldR08DrawAlternateDriftSprite(const GfxCoord* coord, u16 fram
     POLY_FT4*               quad;
     s32                     cornerAngle;
     s32                     perpendicularAngle;
-    s32                     scaledSize;
+    s32                     perspectiveNumerator;
     s32                     cellU;
     s32                     cellV;
     s32                     lastU;
@@ -866,13 +891,13 @@ static void _dryfieldR08DrawAlternateDriftSprite(const GfxCoord* coord, u16 fram
         lastV       = cellV + DRYFIELD_R08_DRIFT_LAST_TEXEL_ROW;
         cellV       = cellV + DRYFIELD_R08_DRIFT_FIRST_TEXEL_ROW;
         setUV4(quad, cellU, cellV, lastU, cellV, cellU, lastV, lastU, lastV);
-        scaledSize         = _dryfieldR08BeginDriftCorners(projection, size, cornerAngle);
-        quad->x0           = projection->screenX + projection->cornerOffsetX;
-        quad->x3           = projection->screenX - projection->cornerOffsetX;
-        quad->y0           = projection->screenY - projection->cornerOffsetY;
-        quad->y3           = projection->screenY + projection->cornerOffsetY;
-        perpendicularAngle = cornerAngle + DRYFIELD_R08_DRIFT_QUARTER_TURN;
-        _dryfieldR08RotateDriftCorner(projection, scaledSize, perpendicularAngle);
+        perspectiveNumerator = _dryfieldR08BeginDriftCorners(projection, size, cornerAngle);
+        quad->x0             = projection->screenX + projection->cornerOffsetX;
+        quad->x3             = projection->screenX - projection->cornerOffsetX;
+        quad->y0             = projection->screenY - projection->cornerOffsetY;
+        quad->y3             = projection->screenY + projection->cornerOffsetY;
+        perpendicularAngle   = cornerAngle + DRYFIELD_R08_DRIFT_QUARTER_TURN;
+        _dryfieldR08RotateDriftCorner(projection, perspectiveNumerator, perpendicularAngle);
         quad->x1 = projection->screenX + projection->cornerOffsetX;
         quad->x2 = projection->screenX - projection->cornerOffsetX;
         quad->y1 = projection->screenY - projection->cornerOffsetY;

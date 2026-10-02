@@ -35,11 +35,18 @@
 #define EFFECT_SPRITE_DRIFT_DRAW_ALTERNATE _effectSpriteDrawRotated
 #endif
 
-/// Normalizes the drift direction and scales it to coordinate units per update.
+/// Converts a drift sprite's initial direction into velocity at its selected speed.
 ///
-/// The Q12 normalized direction is replaced in place. Read the work's speed
-/// after normalization; the borrowed work and its velocity remain task-owned.
-static __inline__ void _effectSpriteDriftNormalizeVelocity(EffectWork* work)
+/// `work` borrows the task-owned effect work. `move` initially contains a signed
+/// direction; `step` supplies speed in coordinate units per running update
+/// (0 disables movement, otherwise the drift initializer selects 1..255).
+/// In-place Q12 normalization precedes speed scaling; the resulting signed
+/// halfword components are the displacement added to the coordinate each update.
+///
+/// Only the three `move` components change; `step` and the SVECTOR pad remain
+/// intact, and no pointer is retained. Zero directions follow `VectorNormalSS`
+/// without a special case. The operation clobbers GTE data and result registers.
+static __inline__ void _effectSpriteDriftInitializeVelocity(EffectWork* work)
 {
     SVECTOR* velocity;
 
@@ -190,7 +197,7 @@ void EFFECT_SPRITE_DRIFT_TASK(Task* task)
                         work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                         break;
                 }
-                _effectSpriteDriftNormalizeVelocity(work);
+                _effectSpriteDriftInitializeVelocity(work);
             } else {
                 work->step = EFFECT_SPRITE_DRIFT_DEFAULT_SPEED;
             }

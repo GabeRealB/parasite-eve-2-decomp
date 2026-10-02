@@ -2793,16 +2793,32 @@ void waterDrawTileU16(GfxCoord* arg0, s32 arg1, s32 arg2)
     SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
-/// Computes a sprite corner in signed pixels from perspective size and turn angle.
+/// Writes the signed pixel offset to one rotated drift-sprite corner.
 ///
-/// Borrows the projection workspace with nonzero depth; only the two corner
-/// offsets change. Division precedes Q12 rotation and truncates toward zero.
-static __inline__ void _shelterR48RotateDriftCorner(EffectShapeScratch* projection, s16 size, s32 angle)
+/// `projection` borrows a live workspace with positive `depth`; only
+/// `extent.corner` changes and no pointer is retained. The signed half-diagonal
+/// is `sizeFactor * 47 / depth` pixels, truncated toward zero before rotation.
+/// Products must fit s32; the Q12 arithmetic shift rounds negative products down.
+///
+/// `cornerAngle` is absolute, in 4096 units per turn. X points right and Y up:
+/// with a positive half-diagonal, zero points up and a quarter turn points right.
+/// The drawer subtracts Y from the centre and uses opposite signs for each pair
+/// of corners, repeating a quarter turn later for the other pair.
+static __inline__ void _shelterR48RotateDriftCorner(EffectShapeScratch* projection, s16 sizeFactor, s32 cornerAngle)
 {
-    enum { SHELTER_R48_DRIFT_PERSPECTIVE_SCALE  = 47,
-           SHELTER_R48_DRIFT_TRIG_FRACTION_BITS = 12 };
-    projection->extent.corner.x = (((size * SHELTER_R48_DRIFT_PERSPECTIVE_SCALE) / projection->depth) * rsin(angle)) >> SHELTER_R48_DRIFT_TRIG_FRACTION_BITS;
-    projection->extent.corner.y = (((size * SHELTER_R48_DRIFT_PERSPECTIVE_SCALE) / projection->depth) * rcos(angle)) >> SHELTER_R48_DRIFT_TRIG_FRACTION_BITS;
+    enum {
+        SHELTER_R48_DRIFT_PERSPECTIVE_SCALE  = 47, // Multiplier in the depth-divided half-diagonal numerator
+        SHELTER_R48_DRIFT_TRIG_FRACTION_BITS = 12  // Fractional bits in rsin/rcos samples; 4096 represents 1.0
+    };
+    s32 halfDiagonalPixels;
+    s32 trigSample;
+
+    trigSample                  = rsin(cornerAngle);
+    halfDiagonalPixels          = (sizeFactor * SHELTER_R48_DRIFT_PERSPECTIVE_SCALE) / projection->depth;
+    projection->extent.corner.x = (halfDiagonalPixels * trigSample) >> SHELTER_R48_DRIFT_TRIG_FRACTION_BITS;
+    trigSample                  = rcos(cornerAngle);
+    halfDiagonalPixels          = (sizeFactor * SHELTER_R48_DRIFT_PERSPECTIVE_SCALE) / projection->depth;
+    projection->extent.corner.y = (halfDiagonalPixels * trigSample) >> SHELTER_R48_DRIFT_TRIG_FRACTION_BITS;
 }
 
 /// Binds Shelter R48's exported `void (Task*)` callback for this drift instance.
