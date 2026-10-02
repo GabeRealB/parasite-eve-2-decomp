@@ -24,7 +24,6 @@
 #include "item_use.h"
 #include "gameplay/light.h"
 #include "gameplay/lighting_work.h"
-#include "lighting_work.h"
 #include "loading.h"
 #include "gameplay/room.h"
 #include "gameplay/scene.h"
@@ -308,8 +307,6 @@ static WorldCoordRoomLighting* Gp_GetRoomCoordRec(GameLocationKey* arg0);
 static void Gp_CopyDefaultBound(WorldCoordRoomAmbientEntry* ambientEntry);
 
 static void Gp_BindDefaultMtx(Task* arg0);
-
-static __inline__ void project_slot(s32* sxy, GpSlot70* slot);
 
 static __inline__ void Gp_ObjWorldPosInline(WorldCollisionBody* obj, VECTOR* pos);
 
@@ -1861,28 +1858,6 @@ static void Gp_BindDefaultMtx(Task* arg0)
         arg0->state++;
         Gp_DebugPanTask(arg0);
     }
-}
-
-static __inline__ void project_slot(s32* sxy, GpSlot70* slot)
-{
-    WorldTargetNode* src;
-    GpPerspScratch*  block;
-
-    src = slot->field_0;
-    SCRATCH_STACK_RESERVE_BLOCK(GpPerspScratch);
-    block         = SCRATCH_STACK_CURSOR(GpPerspScratch);
-    block->vec.vx = GP_NODE_ENEMY(src)->bodyPos.vx;
-    block->vec.vy = GP_NODE_ENEMY(src)->bodyPos.vy;
-    block->vec.vz = GP_NODE_ENEMY(src)->bodyPos.vz;
-    gte_SetRotMatrix(&GP_NODE_ENEMY(src)->coord->workm);
-    gte_SetTransMatrix(&GP_NODE_ENEMY(src)->coord->workm);
-    gte_ldv0(&block->vec);
-    gte_rtps();
-    gte_stsxy(sxy);
-    gte_stdp(&block->p);
-    gte_stflg(&block->flag);
-    gte_stszotz(&block->otz);
-    SCRATCH_STACK_RELEASE_BLOCK(GpPerspScratch);
 }
 
 static __inline__ void Gp_ObjWorldPosInline(WorldCollisionBody* obj, VECTOR* pos)

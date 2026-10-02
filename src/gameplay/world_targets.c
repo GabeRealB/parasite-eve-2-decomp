@@ -54,15 +54,62 @@ typedef struct _GpLockScanScratch {
 } GpLockScanScratch;
 STATIC_ASSERT_SIZEOF(GpLockScanScratch, 0x38);
 
+/// Projected screen position of a target bound to a readout.
+///
+/// The projection writes both pixels as one word. The readout's on-screen
+/// number reads the two signed components when it places itself beside the
+/// target. The origin is the screen center and Y increases downward. Storing
+/// either member replaces the other.
+typedef union {
+    DVECTOR xy;     // Signed screen pixels from the center (vx right, vy down)
+    s32     packed; // Both pixels in the one word the projection stores
+} WorldTargetScreenPos;
+STATIC_ASSERT_SIZEOF(WorldTargetScreenPos, 4);
+
+/// Lifetime and display limits of one floating readout.
+enum {
+    WORLD_TARGET_READOUT_FRAMES        = 20,    // Passes the number stays up after the latest addition
+    WORLD_TARGET_READOUT_DEPARTED      = 4,     // Binding word once the target has left the tracked list; not a pointer
+    WORLD_TARGET_READOUT_DISPLAY_LIMIT = 10000, // Absolute total at which the drawn figure stops growing
+    WORLD_TARGET_READOUT_DISPLAY_MAX   = 9999   // Figure drawn once the stored total reaches the limit
+};
+
+/// One floating damage or heal number drawn beside a tracked target.
+///
+/// `Gp_LockSlots` holds 32 of these. The binding is NULL when the slot is
+/// empty, a `WorldTargetNode` while that target stays on the tracked list, or
+/// `WORLD_TARGET_READOUT_DEPARTED` once the target has left the list. A
+/// non-negative total and a negative total use separate slots for the same
+/// target. Each addition rearms `framesLeft` to `WORLD_TARGET_READOUT_FRAMES`
+/// passes. Each draw stores a new projection in `screen` while the target
+/// remains listed, and leaves the last projection in place after the target
+/// leaves. That draw decrements `framesLeft` and clears the slot at zero.
+/// The drawn figure is the absolute value, limited to
+/// `WORLD_TARGET_READOUT_DISPLAY_MAX`. The stored total is not limited.
+/// Releasing a slot clears the binding, the total and the countdown.
+typedef struct {
+    union {
+        WorldTargetNode* node;       // Bound target, or NULL when the slot is empty
+        u32              word;       // Same storage; WORLD_TARGET_READOUT_DEPARTED after the target leaves the list
+    } binding;
+    s16                  amount;     // Signed total (non-negative damage, negative heal)
+    s16                  framesLeft; // Passes left before the slot is cleared
+    WorldTargetScreenPos screen;     // Last projected position; not cleared on release
+} WorldTargetReadout;
+STATIC_ASSERT_SIZEOF(WorldTargetReadout, 0xC);
+STATIC_ASSERT(OFFSET_OF(WorldTargetReadout, amount) == 4, WorldTargetReadout_amount);
+STATIC_ASSERT(OFFSET_OF(WorldTargetReadout, framesLeft) == 6, WorldTargetReadout_framesLeft);
+STATIC_ASSERT(OFFSET_OF(WorldTargetReadout, screen) == 8, WorldTargetReadout_screen);
+
 /* Define BSS before API headers to preserve first-declaration order. */
-GpSlot70 Gp_LockSlots[32];
+WorldTargetReadout Gp_LockSlots[32];
 
 SceneCombatState gSceneCombatState;
 
 #include "gameplay/scene_combat.h"
 #include "gameplay/world_targets.h"
 
-static __inline__ void project_slot(s32* sxy, GpSlot70* slot);
+static __inline__ void project_slot(s32* sxy, WorldTargetReadout* slot);
 
 static void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag);
 
@@ -101,12 +148,13 @@ static __inline__ void _worldTargetReleaseActorLocks(const WorldTargetNode* node
     } while (actorSlot < PLAYER_ACTOR_TASK_COUNT);
 }
 
-static __inline__ void project_slot(s32* sxy, GpSlot70* slot)
+static __inline__ void project_slot(s32* sxy, WorldTargetReadout* slot)
 {
     WorldTargetNode* src;
     GpPerspScratch*  block;
 
-    src = slot->field_0;
+    // The caller has matched this binding to a target still on the tracked list.
+    src = slot->binding.node;
     SCRATCH_STACK_RESERVE_BLOCK(GpPerspScratch);
     block         = SCRATCH_STACK_CURSOR(GpPerspScratch);
     block->vec.vx = GP_NODE_ENEMY(src)->bodyPos.vx;
@@ -341,22 +389,23 @@ static void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag)
 
 void func_800DA6E8(void* arg0, s32 arg1, s32 arg2)
 {
-    GpSlot70* found;
-    s32       i;
-    GpSlot70* p;
+    WorldTargetReadout* found;
+    s32                 i;
+    WorldTargetReadout* p;
 
     found = NULL;
     i     = 0;
     p     = Gp_LockSlots;
+    // Non-negative totals and healing totals occupy separate slots.
 loop:
-    if (p->field_0 == arg0) {
+    if (p->binding.node == arg0) {
         if (arg1 >= 0) {
-            if (p->field_4 >= 0) {
+            if (p->amount >= 0) {
                 found = p;
                 goto done;
             }
             p++;
-        } else if (p->field_4 < 0) {
+        } else if (p->amount < 0) {
             found = p;
             goto done;
         } else {
@@ -374,10 +423,10 @@ done:
         i = 0;
         p = Gp_LockSlots;
     loop2:
-        if (p->field_0 == NULL) {
-            found          = p;
-            p->field_0     = arg0;
-            found->field_4 = 0;
+        if (p->binding.node == NULL) {
+            found           = p;
+            p->binding.node = arg0;
+            found->amount   = 0;
         } else {
             i++;
             p++;
@@ -390,28 +439,28 @@ done:
         }
     } else {
     update:
-        found->field_6  = 0x14;
-        found->field_4 += arg1;
+        found->framesLeft = WORLD_TARGET_READOUT_FRAMES;
+        found->amount    += arg1;
     }
 }
 
 static void Gp_UpdateLockSlots(void)
 {
-    RECT             rect;
-    u8               buf[16];
-    TextDrawReq      req;
-    s32              i;
-    GpSlot70*        slot;
-    u8*              bufp;
-    TextDrawReq*     reqp;
-    s32              x;
-    s32              y;
-    s32              val;
-    s32              x14;
-    s32              ot;
-    void*            obj;
-    WorldTargetNode* node;
-    s32              found;
+    RECT                rect;
+    u8                  buf[16];
+    TextDrawReq         req;
+    s32                 i;
+    WorldTargetReadout* slot;
+    u8*                 bufp;
+    TextDrawReq*        reqp;
+    s32                 x;
+    s32                 y;
+    s32                 val;
+    s32                 x14;
+    s32                 ot;
+    void*               obj;
+    WorldTargetNode*    node;
+    s32                 found;
 
     slot = Gp_LockSlots;
     i    = 0;
@@ -419,7 +468,7 @@ static void Gp_UpdateLockSlots(void)
     reqp = &req;
     ot   = -0xA;
     do {
-        obj = slot->field_0;
+        obj = slot->binding.node;
         if (obj == NULL) {
             goto empty;
         }
@@ -439,10 +488,11 @@ static void Gp_UpdateLockSlots(void)
             // Project the bound target into this slot's screen position.
             project_slot(&slot->screen.packed, slot);
         } else {
-            slot->field_0 = (void*)4;
+            // The target has left the tracked list. Keep the last projection until the countdown ends.
+            slot->binding.word = WORLD_TARGET_READOUT_DEPARTED;
         }
 
-        val = slot->field_4;
+        val = slot->amount;
         if (val >= 0) {
             x = slot->screen.xy.vx + 0xA;
             y = slot->screen.xy.vy + 4;
@@ -472,13 +522,13 @@ static void Gp_UpdateLockSlots(void)
         req.alignment  = TEXT_ALIGNMENT_RIGHT;
         req.drawMode   = TEXT_DRAW_OUTLINED;
 
-        val = slot->field_4;
+        val = slot->amount;
         if (val < 0) {
             req.colorRgb = 0x808008;
             val          = -val;
         }
-        if (val >= 0x2710) {
-            val = 0x270F;
+        if (val >= WORLD_TARGET_READOUT_DISPLAY_LIMIT) {
+            val = WORLD_TARGET_READOUT_DISPLAY_MAX;
         }
 
         req.x        = x14;
@@ -504,21 +554,21 @@ static void Gp_UpdateLockSlots(void)
 
         {
             s16 timer;
-            timer = slot->field_6;
+            timer = slot->framesLeft;
             timer--;
-            slot->field_6 = timer;
+            slot->framesLeft = timer;
             if (timer > 0) {
                 goto next;
             }
         }
-        slot->field_4 = 0;
-        slot->field_6 = 0;
-        slot->field_0 = NULL;
+        slot->amount       = 0;
+        slot->framesLeft   = 0;
+        slot->binding.node = NULL;
         goto next;
 
     empty:
-        slot->field_4 = 0;
-        slot->field_6 = 0;
+        slot->amount     = 0;
+        slot->framesLeft = 0;
     next:
         i++;
         slot++;
@@ -722,16 +772,16 @@ void Gp_GetLockPos(WorldTargetNode* arg0, VECTOR3* out)
 
 static void Gp_ClearLockSlots(void)
 {
-    s32       i;
-    GpSlot70* p;
+    s32                 i;
+    WorldTargetReadout* p;
 
     p = Gp_LockSlots;
     i = 0;
     do {
         i++;
-        p->field_0 = NULL;
-        p->field_4 = 0;
-        p->field_6 = 0;
+        p->binding.node = NULL;
+        p->amount       = 0;
+        p->framesLeft   = 0;
         p++;
     } while (i < 0x20);
 }
