@@ -634,7 +634,7 @@ void func_800CF330(Task* arg0)
             D_80067634 = NULL;
         }
     }
-    Ui_FreeAndKill(arg0);
+    uiObjectTaskExit(arg0);
 }
 
 void Gp_DrawUseCmd(UiList* arg0, UiObject* arg1)

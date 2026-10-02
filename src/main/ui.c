@@ -329,7 +329,7 @@ static void Ui_DrawTextUnderline(UiPanel* panel, s32 x, s32 y, char* arg3, s32 a
             _uiSpawnResult = memCalloc(sizeof(*_uiSpawnResult), 0);                                                                 \
             if (_uiSpawnResult != NULL) {                                                                                           \
                 _uiSpawnTask->spawnArg2.pointer             = _uiSpawnResult;                                                       \
-                _uiSpawnTask->exitCallback                  = Ui_FreeAndKill;                                                       \
+                _uiSpawnTask->exitCallback                  = uiObjectTaskExit;                                                     \
                 _uiSpawnResult->owner                       = _uiSpawnTask;                                                         \
                 _uiSpawnResult->panel.control.word          = _uiSpawnPanelMode;                                                    \
                 _uiSpawnResult->panel.style                 = _uiSpawnDescriptor->style;                                            \
@@ -2259,8 +2259,9 @@ void Ui_TeardownTree(UiObject* object, Task* unused2)
     }
 }
 
-void Ui_FreeAndKill(Task* task)
+void uiObjectTaskExit(Task* task)
 {
+    // Release the owned object before teardown dispatches child exit handlers.
     if (task->spawnArg2.pointer != NULL) {
         memFree(task->spawnArg2.pointer);
     }

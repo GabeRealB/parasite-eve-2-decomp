@@ -225,5 +225,5 @@ static void Telephone_ClosePrompt(Task* task)
     if (Wip_UiHolder == holder) {
         Wip_UiHolder = NULL;
     }
-    Ui_FreeAndKill(task);
+    uiObjectTaskExit(task);
 }

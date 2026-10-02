@@ -36,7 +36,20 @@ void Ui_UpdateLayoutSize(UiPanel* panel, s32 arg1, s32 arg2);
 
 void Ui_TeardownTree(UiObject* object, Task* unused2);
 
-void Ui_FreeAndKill(Task* task);
+/// Frees a task's UI object and begins default task teardown.
+///
+/// The exit handler installed when an object task is spawned. `task` must be
+/// non-NULL, live and not already torn down. Its second spawn argument is
+/// either NULL or the primary-heap `UiObject` allocated for that task. A null
+/// pointer frees nothing and does not select the primary heap.
+///
+/// The object is released before `taskKill`. Child exit handlers therefore
+/// run after it is gone. `taskKill` does not release this spawn argument, and
+/// immediate teardown can free the task before it returns, so the object
+/// cannot be freed afterwards. Calling this directly bypasses a replacement
+/// exit callback. The pointer is left dangling. Callers must not access the
+/// task or the object afterwards.
+void uiObjectTaskExit(Task* task);
 
 void Ui_SetState4(UiObject* object, Task* unused2);
 
