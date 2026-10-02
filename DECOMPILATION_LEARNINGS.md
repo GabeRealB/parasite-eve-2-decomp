@@ -37485,7 +37485,7 @@ gets its own register and prologue with no per-register macro. (Earlier
 revisions kept `_s0` and `$24` variants of the fifo macros to force this; they
 were scaffolding and are gone.)
 
-`gpDrawStreamPrimGt4PreXformLayer` is the pure example: it is the POLY_GT4 (0x34 stride, `avsz4`,
+`tmdDrawStreamPrimGt4PreXformEnvLayer` is the pure example: it is the POLY_GT4 (0x34 stride, `avsz4`,
 len 12 / code 0x3C-0x3E, 4-iteration u-fixup loop) sibling of the POLY_GT3
 `tmdDrawStreamPrimGt3PreXformEnvLayer`, and porting that function with the
 type, stride and loop bound swapped matched on the first attempt. When a TU holds a family
@@ -134166,7 +134166,7 @@ mapped, because what the element draws is the halves that survive:
 
 The copies go into both of the element's packets, so the pair stays consistent, and
 they are what trims the quad: the polygon then has two corners in the same place,
-so what it covers is the surviving triangle. `gpDrawStreamPrimGt4PreXformLayer`
+so what it covers is the surviving triangle. `tmdDrawStreamPrimGt4PreXformEnvLayer`
 (`0x4079`) is the pre-transformed example and `func_8009C414` (`0x4078`) the
 transform-region one. The quad twin that takes the layer's page from the object
 instead (`gpDrawStreamPrimGt4PreXformOffsetLayer`) keeps or drops the element on the same two tests but

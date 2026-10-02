@@ -202,40 +202,45 @@ u32* tmdDrawStreamPrimF3PreXform(TmdStreamWorkspace* workspace, s32 objectFlags,
 /// alive until the GPU finishes consuming them; no pointers are retained here.
 u32* tmdDrawStreamPrimGt3PreXformEnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
-/// Draw-pass handler of a stream's layered pre-transformed textured-quad records
-/// (`0x4079`): each element's two quads — the base the model is drawn from and the
-/// semi-transparent layer drawn over it — are culled against the corners the
-/// packets already carry, stamped, and linked into the ordering table at the depth
-/// those corners average to.
+/// Culls and links pre-transformed textured quads with an additive environment layer.
 ///
-/// The opcode says the quads' corners are already in screen space: the record's
-/// vertex commands put them there and left each corner's screen Z in the
-/// per-vertex cache, where a corner whose projection failed carries its sign bit.
-/// The element's corner refs index that cache, and an element naming a failed
-/// corner is passed over. The facing test is taken on the layer's corners, read
-/// back out of the packet, as the two triangles the quad's corners make: where one
-/// half alone survives, the element is trimmed onto it — the corner that half does
-/// not use takes a copy of one it does, in each of the element's two packets — and
-/// where neither survives the element is passed over. Either way its packets' room
-/// is stepped over, so the primitives stay in step with the elements that named
-/// them.
+/// Draw callback for opcode `0x4079` outside stage 2, area 16; that location
+/// selects `gpDrawStreamPrimGt4PreXformOffsetLayer`. `objectFlags` is ignored,
+/// including transparency and reverse-culling bits. `elements` starts after
+/// the three-word record header. `workspace->elemCount` initially counts
+/// 0..65535 elements; `elemStride` counts u32 words. Drawing reads each element's
+/// first four u16 depth references. Clear their low two bits and divide by four
+/// to index `szTable`; the low bits' role is unproven. Each reference must select
+/// an entry below 1024 initialized by an earlier projection in this draw walk.
+/// Construction reads through word 4, requiring at least five words per element;
+/// the complete payload extent is not established here.
 ///
-/// The layer is this pass's to texture. Its page is the one the corners' marks
-/// select — the marks being what the record's vertex commands left in the layer's
-/// corner code bytes as they worked out its texture coordinates — and a corner
-/// carrying none has its coordinate folded back into that page, dropped by `0x80`
-/// where it ran into the upper half of its range and taken as the page's start
-/// where it did not. Both packets are then stamped with their length and their
-/// code, `0x3E` on the layer and `0x3C` on the base, and filed together at the
-/// depth the four cached corners average to.
+/// `preXformWrite` addresses two writable, word-aligned `POLY_GT4` packets per
+/// element in the selected buffer half's first region: environment layer first,
+/// opaque model-texture base second. Earlier commands supply signed screen XY
+/// in pixels, lit colours, layer U/V and 0/1 second-page markers in the layer's
+/// `code/p1/p2/p3` bytes. Buffers, depth cache and workspace are borrowed.
 ///
-/// The record has two draw handlers, and this is the one that runs where the layer
-/// is left for this pass to texture. The other runs where the process pass textured
-/// the layer itself, page and coordinates both coming from the object's offsets
-/// (`gpStreamPrimGt4PreXformOffsetLayer` is that record's process-pass handler).
-/// Which of the two a record gets is settled where its handler is resolved, from
-/// the area the session is in, so the `flags` this one is handed goes unread.
-u32* gpDrawStreamPrimGt4PreXformLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// Accepts positive NCLIP for corners 0/1/2 and negative for 1/2/3. If only one
+/// half survives, copies XY 1 to 0 or 2 to 3 in both packets to fold away the
+/// other half. The first copy occurs even if both halves are rejected. Depth
+/// sorting still uses AVSZ4 over all four original cached depths and rejects
+/// any `TMD_VERTEX_DEPTH_INVALID` entry, including a folded-away corner.
+///
+/// With no markers, the layer samples the direct-colour page at VRAM (448,256).
+/// Any marker selects (576,256); unmarked U >= 128 subtracts 128 texels, and
+/// smaller U clamps to zero. Marked U was already rebased by projection; V stays
+/// unchanged. Writes 12-word packet lengths and commands 0x3E/0x3C, replacing
+/// the first marker with the layer command. Both packets use the same OT index:
+/// unsigned OTZ shifted left by `gDisplayState.otDepthShift`, then right by four,
+/// wrapped to 0..1023 relative to the object's displaced `ot`. That table must
+/// contain the selected entry. Head insertion draws the opaque base first.
+///
+/// Advances past both packet slots even for culled elements and returns the
+/// word after the payload, leaving any stream marker unconsumed. Decrements
+/// `elemCount` to -1, updates `preXformWrite`, reuses `gteResult`, and clobbers
+/// the GTE screen/depth FIFOs, MAC0, OTZ and FLAG. No pointers are retained.
+u32* tmdDrawStreamPrimGt4PreXformEnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 /// Culls and links pre-transformed textured triangles with an object-offset layer.
 ///
