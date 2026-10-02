@@ -387,6 +387,12 @@ entry task and scenes between the day and night packages. Its interface is
 the compiled instance's function bindings independently of runtime stage
 selection.
 
+The paired Dryfield factory, G & R kitchen, motel room 6 and trailer coach
+implementations use `src/shared/dryfield_time.h` for their `DRYFIELD_`
+configuration constants. Carriers bind `DRYFIELD_TIME` before their shared
+header to select a daytime or nighttime compiled instance; these discriminator
+values are separate from runtime stage numbers.
+
 `glutton` owns the included boss helpers shared by `actor_403200` and
 `actor_444000`. Its implementation interface is `src/shared/glutton.h`;
 `GLUTTON_` instance bindings select each carrier's local boss state.
