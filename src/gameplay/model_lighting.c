@@ -2111,24 +2111,21 @@ u32* gpXformStreamVertsUnlit(TmdStreamWorkspace* ws, s32 flags, u32* stream)
     return stream;
 }
 
-u32* gpStreamPrimGt3PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+u32* tmdBuildStreamGt3PreXform(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    POLY_GT3* poly;
+    // Word offset after the element's three u16 depth references and unused high half.
+    enum { TMD_GT3_PRE_XFORM_UV0_CLUT_WORD_INDEX = 2 };
+    POLY_GT3* triangle;
 
-    poly = (POLY_GT3*)ws->preXformWrite;
-    if (ws->elemCount-- > 0) {
-        do {
-            MODEL_LIGHTING_UV0_CLUT_WORD(poly)  = stream[2];
-            MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[3];
-            *(u16*)&poly->u2                    = (u16)stream[4];
-            poly->tpage                        += ws->texturePageOffset;
-            poly->clut                         += ws->encodedClutOffset;
-            poly++;
-            stream += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+    triangle = (POLY_GT3*)workspace->preXformWrite;
+    // Seed texture data in the region whose positions and colours the projection pre-pass writes.
+    while (workspace->elemCount-- > 0) {
+        _modelLightingInitGt3TextureWords(triangle, elements, TMD_GT3_PRE_XFORM_UV0_CLUT_WORD_INDEX, workspace);
+        triangle++;
+        elements += workspace->elemStride;
     }
-    ws->preXformWrite = (u8*)poly;
-    return stream;
+    workspace->preXformWrite = (u8*)triangle;
+    return elements;
 }
 
 u32* gpStreamPrimGt4PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream)

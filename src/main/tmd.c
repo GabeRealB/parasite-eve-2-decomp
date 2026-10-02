@@ -452,7 +452,7 @@ void tmdProcessStream(TmdObject* obj)
             case 0x3B:
             case 0x131:
             case 0x8039:
-                handler = gpStreamPrimGt3PreXform;
+                handler = tmdBuildStreamGt3PreXform;
                 break;
             case 0x71:
             case 0x79:

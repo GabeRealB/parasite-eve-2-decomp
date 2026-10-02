@@ -372,7 +372,7 @@ u32* tmdDrawStreamPrimGt3PreXformSemiTrans(TmdStreamWorkspace* workspace, s32 ob
 ///
 /// The word-aligned `workspace->preXformWrite` must provide one complete
 /// 40-byte packet slot per element in the selected buffer half's first region.
-/// `gpStreamPrimGt3PreXform` builds the texture words from standard five-word
+/// `tmdBuildStreamGt3PreXform` builds the texture words from standard five-word
 /// elements; earlier projection records scatter screen XY and lit RGB into
 /// those slots. This handler preserves those words, changing only accepted
 /// packets' command byte and DMA tag. Every element consumes its slot,

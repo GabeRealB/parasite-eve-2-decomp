@@ -218,16 +218,33 @@ u32* gpDrawStreamPrimG4CornerColorsSemiTrans(TmdStreamWorkspace* ws, s32 flags, 
 /// The record has no variant for `flags` to select, so it goes unread.
 u32* gpXformStreamVertsUnlit(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
-/// Handler of a stream's pre-transformed textured-triangle records (`0x31`,
-/// `0x39`, `0x3B`, `0x131`, `0x8039`): each element contributes one triangle to
-/// the buffer half's first region, with the element's texture words written into
-/// it.
+/// Initializes persistent texture fields for a record of pre-transformed Gouraud textured triangles.
 ///
-/// The opcode says the triangle's vertices are already in screen space, so there
-/// is no transform or cull for this command to do. It writes the polygon's
-/// `u`/`v` fields, and adds the model's texture page and CLUT to the primitive's
-/// own, which are stored relative to the model.
-u32* gpStreamPrimGt3PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// Construction selects this callback for `0x31`, `0x39`, `0x3B`, `0x131` and
+/// `0x8039`. `elements` begins after the three-word record header; the caller
+/// supplies `workspace->elemCount` (0..65535) and `elemStride` in u32 words,
+/// at least five for a nonempty record. The first three u16 values are the
+/// draw pass's byte offsets into its depth cache; word 1's high half is ignored.
+/// Words 2 and 3 pack unsigned byte U/V texel coordinates with encoded CLUT and
+/// texture-page settings. Only word 4's low half supplies U2/V2. Five words is
+/// a minimum readable extent, not a fixed element size; bounds are unchecked.
+///
+/// `preXformWrite` must address one writable, four-byte-aligned `POLY_GT3` slot
+/// per element in the selected buffer half's first region. The workspace supplies
+/// signed encoded-address displacements: `texturePageOffset` (-128..127) and
+/// `encodedClutOffset` (-8192..8128, 64 per palette row). Sums wrap modulo 65536
+/// in the packet's u16 fields. Projection records supply screen positions and
+/// colours during drawing; the primitive draw handler supplies length/code and
+/// links. Construction preserves those fields and the SDK pad fields, including
+/// `pad2` beside U2/V2, and leaves the second-region cursor `primWrite` unchanged.
+///
+/// Advances `preXformWrite` by one 40-byte packet per element and returns
+/// `elements` advanced by the original count times the word stride. Consumes
+/// `elemCount` to -1 even for an empty record, which reads no payload and advances
+/// neither cursor. `objectFlags` is the shared callback argument, passed as zero
+/// during construction and ignored here. The stream and packet region must
+/// contain all elements and slots. All storage is borrowed; no pointer is retained.
+u32* tmdBuildStreamGt3PreXform(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 /// Handler of a stream's pre-transformed textured-quad records (`0x71`, `0x79`,
 /// `0x7B`, `0x171`, `0x8079`): each element contributes one quad to the buffer
