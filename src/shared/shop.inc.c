@@ -319,7 +319,7 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
             blocked          = 1;
             prompt->field_1C = Ui_LookupTable(obj, 2);
         }
-        Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, Shop_Data_80181A1C, prompt->field_1C, TEXT_DRAW_OUTLINED, 0);
+        Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, Shop_Data_80181A1C, prompt->field_1C, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
         if (prompt->field_C == 1 && blocked == 0 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(0x16, 0, 0);
             child = Ui_SpawnFromDesc(&Shop_Data_80181B84, itemId, 1, 1, obj);
@@ -636,7 +636,7 @@ static void Shop_CategoryRow(UiList* prompt, UiObject* obj)
 
     if ((prompt->field_4 - 1) == prompt->field_8) {
         one = 1;
-        Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, Shop_Data_80181A04, prompt->field_1C, one, 0);
+        Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, Shop_Data_80181A04, prompt->field_1C, one, TEXT_ALIGNMENT_LEFT);
         if (prompt->field_C == one && Pad_CheckButtons(0, one, Pad_MaskConfirm) != 0) {
             obj->result = USER_INTERFACE_RESULT_CONFIRM;
         }
@@ -668,7 +668,7 @@ static void Shop_CategoryRow(UiList* prompt, UiObject* obj)
     }
 
     one2 = 1;
-    Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, text, prompt->field_1C, one2, 0);
+    Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, text, prompt->field_1C, one2, TEXT_ALIGNMENT_LEFT);
 
     status = obj->panel.control.word;
     if (((status >> 16) == one2) || (status == one2)) {
@@ -888,7 +888,7 @@ static void Shop_NoticeTask(Task* task)
         task->killCountdown = 0xBC;
         task->state        += 1;
     }
-    Text_DrawMultiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, text, 0x606060, TEXT_DRAW_OUTLINED, 0);
+    Text_DrawMultiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, text, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     task->killCountdown -= gDisplayState.frameTicks;
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {

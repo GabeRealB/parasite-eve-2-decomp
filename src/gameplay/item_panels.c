@@ -862,7 +862,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
         Gp_DrawItemIcon(arg0, x, y, item, 0);
     }
     y += 0xF;
-    Text_DrawPrompt(arg0, x, y, Gp_StrUsedDot, 0x606060, TEXT_DRAW_OUTLINED, 0);
+    Text_DrawPrompt(arg0, x, y, Gp_StrUsedDot, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     hiddenState = USER_INTERFACE_PANEL_HIDDEN;
     item        = work->field_8;
     y          += 0xF;
@@ -922,7 +922,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
             }
         }
     }
-    Text_DrawPrompt(arg0, x, y + 0xF, Gp_StrCreatedDot, 0x606060, TEXT_DRAW_OUTLINED, 0);
+    Text_DrawPrompt(arg0, x, y + 0xF, Gp_StrCreatedDot, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (arg0->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         cd                  = arg1->killCountdown - 1;
         arg1->killCountdown = cd;
@@ -980,9 +980,9 @@ void Gp_InvokePeItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
     }
 
     Ui_DrawText(&(arg0)->panel, Gp_StrInvoke);
-    Text_DrawPrompt(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0xF, Gp_StrInvoked, 0x606060, TEXT_DRAW_OUTLINED, 0);
-    width = Text_DrawPrompt(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0x1E, text, 0x37A78, TEXT_DRAW_OUTLINED, 0);
-    Text_DrawPrompt(arg0, width, arg0->panel.contentTop.signedValue + 0x1E, Gp_StrDot, 0x606060, TEXT_DRAW_OUTLINED, 0);
+    Text_DrawPrompt(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0xF, Gp_StrInvoked, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    width = Text_DrawPrompt(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0x1E, text, 0x37A78, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    Text_DrawPrompt(arg0, width, arg0->panel.contentTop.signedValue + 0x1E, Gp_StrDot, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     arg1->killCountdown--;
     if (arg0->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
@@ -1440,7 +1440,7 @@ void Gp_PickupAskTask(Task* arg0)
     Ui_DrawTextColored(&(obj)->panel, Gp_StrMessage);
     color = 0x606060;
     one   = 1;
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrPickupAsk, color, one, 0);
+    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrPickupAsk, color, one, TEXT_ALIGNMENT_LEFT);
     child = arg0->firstChild;
     if (child != NULL) {
         childObj = child->spawnArg2.pointer;
@@ -1501,8 +1501,8 @@ void Gp_PickupFullTask(Task* arg0)
     }
     color = 0x606060;
     one   = 1;
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrInvFull, color, one, 0);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x1E, D_8010E588, color, one, 0);
+    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrInvFull, color, one, TEXT_ALIGNMENT_LEFT);
+    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x1E, D_8010E588, color, one, TEXT_ALIGNMENT_LEFT);
     childTask = arg0->firstChild;
     if (childTask != NULL) {
         childObj = childTask->spawnArg2.pointer;
@@ -1540,10 +1540,10 @@ void Gp_ObtainedNoticeTask(Task* arg0)
     }
     color = 0x606060;
     one   = 1;
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrObtained, color, one, 0);
+    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrObtained, color, one, TEXT_ALIGNMENT_LEFT);
     text = Gp_GetItemText(item, 0, 0);
-    temp = Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x1E, text, 0x37A78, one, 0);
-    Text_DrawPrompt(obj, temp, obj->panel.contentTop.signedValue + 0x1E, Gp_StrDot, color, one, 0);
+    temp = Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x1E, text, 0x37A78, one, TEXT_ALIGNMENT_LEFT);
+    Text_DrawPrompt(obj, temp, obj->panel.contentTop.signedValue + 0x1E, Gp_StrDot, color, one, TEXT_ALIGNMENT_LEFT);
     arg0->killCountdown--;
     if (obj->panel.control.word == one) {
         if ((arg0->killCountdown <= 0) ||

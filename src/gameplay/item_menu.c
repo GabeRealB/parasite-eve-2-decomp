@@ -1245,7 +1245,7 @@ void Gp_ItemMenuPrompt(UiList* arg0, UiObject* arg1)
         }
     }
     mode = arg0->field_8;
-    Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, texts.texts[mode], arg0->field_1C, TEXT_DRAW_OUTLINED, 0);
+    Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, texts.texts[mode], arg0->field_1C, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 
     if (arg0->field_C == 1) {
         if (arg0->field_8 == 2) {
@@ -1596,9 +1596,9 @@ void Gp_HolderPromptTask(Task* arg0)
     if (val != 0) {
         color = 0x606060;
         one   = 1;
-        Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, val, color, one, 0);
+        Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, val, color, one, TEXT_ALIGNMENT_LEFT);
         text = Text_SkipLines(val, one);
-        Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x1E, text, color, one, 0);
+        Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x1E, text, color, one, TEXT_ALIGNMENT_LEFT);
     }
 }
 

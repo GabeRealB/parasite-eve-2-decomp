@@ -159,7 +159,7 @@ static void Telephone_SaveRow(UiList* prompt, UiObject* obj)
 {
     s32 sel;
 
-    Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, Telephone_Data_801819F8, prompt->field_1C, TEXT_DRAW_OUTLINED, 0);
+    Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, Telephone_Data_801819F8, prompt->field_1C, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     sel = prompt->field_C;
     if (sel == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0 && CdCmd_IsIdle() != 0) {
         SndEvt_EnqueueType6(0x16, 0, 0);
@@ -175,7 +175,7 @@ static void Telephone_SaveRow(UiList* prompt, UiObject* obj)
 /// `Telephone_Data_80181CAC` and moves the owning task to state 2.
 static void Telephone_PlayDataRow(UiList* prompt, UiObject* obj)
 {
-    Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, Telephone_Data_80181A00, prompt->field_1C, TEXT_DRAW_OUTLINED, 0);
+    Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, Telephone_Data_80181A00, prompt->field_1C, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
         SndEvt_EnqueueType6(0x16, 0, 0);
         Ui_SpawnFromDesc(&Telephone_Data_80181CAC, 0, 1, 1, obj);
@@ -190,7 +190,7 @@ static void Telephone_PlayDataRow(UiList* prompt, UiObject* obj)
 /// state 2.
 static void Telephone_WeaponDataRow(UiList* prompt, UiObject* obj)
 {
-    Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, Telephone_Data_80181A0C, prompt->field_1C, TEXT_DRAW_OUTLINED, 0);
+    Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, Telephone_Data_80181A0C, prompt->field_1C, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
         SndEvt_EnqueueType6(0x16, 0, 0);
         Ui_SpawnFromDesc(&Telephone_Data_80181CC8, 0, 1, 1, obj);
@@ -205,7 +205,7 @@ static void Telephone_WeaponDataRow(UiList* prompt, UiObject* obj)
 /// task to state 2.
 static void Telephone_PeDataRow(UiList* prompt, UiObject* obj)
 {
-    Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, Telephone_Data_80181A18, prompt->field_1C, TEXT_DRAW_OUTLINED, 0);
+    Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, Telephone_Data_80181A18, prompt->field_1C, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
         SndEvt_EnqueueType6(0x16, 0, 0);
         Ui_SpawnFromDesc(&Telephone_Data_80181CC8, 1, 1, 1, obj);

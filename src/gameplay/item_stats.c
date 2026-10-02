@@ -296,7 +296,7 @@ void func_800C5F70(Task* arg0)
             }
             if (item >= 0x500) {
                 Text_DrawMultiLine(obj, obj->panel.contentLeft.signedValue + 2, 0x34, Text_SkipLines(payload, 5),
-                                   0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, 0);
+                                   0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
             } else {
                 saved                   = obj->panel.control.word;
                 obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -674,14 +674,14 @@ void Gp_UseKeyItemRow(Task* arg0)
         Ui_DrawText(&(obj)->panel, Gp_StrNotice);
         if (arg0->spawnArg1.value == -1) {
             color = Ui_LookupTable(obj, 1);
-            Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrNoUseNow, color, TEXT_DRAW_OUTLINED, 0);
+            Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrNoUseNow, color, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
         } else {
             color = Ui_LookupTable(obj, 1);
             one   = 1;
-            Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrUsed, color, one, 0);
+            Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrUsed, color, one, TEXT_ALIGNMENT_LEFT);
             text  = Gp_GetItemText(arg0->spawnArg1.value, 0, 0);
-            width = Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x1E, text, 0x37A78, one, 0);
-            Text_DrawPrompt(obj, width, obj->panel.contentTop.signedValue + 0x1E, Gp_StrDot, 0x606060, one, 0);
+            width = Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x1E, text, 0x37A78, one, TEXT_ALIGNMENT_LEFT);
+            Text_DrawPrompt(obj, width, obj->panel.contentTop.signedValue + 0x1E, Gp_StrDot, 0x606060, one, TEXT_ALIGNMENT_LEFT);
         }
         arg0->killCountdown = arg0->killCountdown - gDisplayState.frameTicks;
         if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {

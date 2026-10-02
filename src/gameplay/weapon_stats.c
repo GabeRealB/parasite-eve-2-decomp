@@ -640,7 +640,7 @@ void Gp_AmmoListTask(Task* arg0)
         return;
     }
     Ui_DrawText(&(obj)->panel, Gp_StrAttention);
-    Text_DrawMultiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrNoWeaponEq, 0x606060, one, 0);
+    Text_DrawMultiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrNoWeaponEq, 0x606060, one, TEXT_ALIGNMENT_LEFT);
     arg0->killCountdown--;
     if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
         obj->result = USER_INTERFACE_RESULT_CANCEL;

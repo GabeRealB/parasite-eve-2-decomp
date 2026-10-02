@@ -858,9 +858,9 @@ void Gp_DrawItemObtained(Task* arg0)
             obj->panel.bounds.unsignedRect.y += 9;
             arg0->state++;
         }
-        Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 6, 7, Gp_StrBonusItem, 0x606060, TEXT_DRAW_OUTLINED, 0);
+        Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 6, 7, Gp_StrBonusItem, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     } else {
-        Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 6, 7, Gp_StrItemObtained, 0x606060, TEXT_DRAW_OUTLINED, 0);
+        Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 6, 7, Gp_StrItemObtained, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     }
 }
 

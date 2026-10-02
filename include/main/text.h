@@ -39,6 +39,13 @@ enum {
 
 /// Placement of the measured line relative to its initial X coordinate.
 enum {
+    /// Starts an encoded UI-text line at the request's current pen X.
+    ///
+    /// Selector 0, stored in the signed byte `TextDrawReq::alignment`.
+    /// Alignment skips width measurement and leaves X unchanged, including
+    /// for empty lines. Drawing still applies glyph offsets, pair kerning and
+    /// inline position commands, advancing the mutable X/Y pen while retaining
+    /// this selector. Reinitialize placement before drawing an independent line.
     TEXT_ALIGNMENT_LEFT = 0,
     /// Centers a measured UI-text line on the request's initial X coordinate.
     ///

@@ -29696,7 +29696,7 @@ if (flags & 3) {
     req.otIndex = (s16)obj->drawOrder + 1;
     req.colorRgb = prompt->field_1C;
     req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    req.alignment = 0;
+    req.alignment = TEXT_ALIGNMENT_LEFT;
     req.drawMode = TEXT_DRAW_OUTLINED;
     func_8002E53C(&req, Gp_StrStrengthen);
 } else {
@@ -29705,7 +29705,7 @@ if (flags & 3) {
     req.otIndex = (s16)obj->drawOrder + 1;
     req.colorRgb = prompt->field_1C;
     req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    req.alignment = 0;
+    req.alignment = TEXT_ALIGNMENT_LEFT;
     req.drawMode = TEXT_DRAW_OUTLINED;
     func_8002E53C(&req, Gp_StrRevive);
 }
@@ -36854,10 +36854,10 @@ asm("lui %0, %%hi(D_str)" : "=r"(str));
 /* colorRgb / glyphTable / baseX / drawMode */
 by = obj.baseY;
 asm("addiu %0, %0, %%lo(D_str)" : "+r"(str) : "r"(by));
-req.alignment = 0;
+req.alignment = TEXT_ALIGNMENT_LEFT;
 ```
 
-Identical `alignment = 0` stores in both arms sink to the join (`sb` after
+Identical `alignment = TEXT_ALIGNMENT_LEFT` stores in both arms sink to the join (`sb` after
 the else `addiu x, 6`). A memory clobber after the store keeps it in-arm so
 the `if` path can `j` with `addiu x, 4` in the delay.
 
@@ -49881,7 +49881,7 @@ the `colorRgb` assignment:
 /* 82.9% - loads land after the four stores */
 label0.colorRgb    = 0x606060;
 label0.glyphTable = 5;
-label0.alignment = 0;
+label0.alignment = TEXT_ALIGNMENT_LEFT;
 label0.drawMode    = TEXT_DRAW_OUTLINED;
 rating            = &missionLevels.entries[gMcSaveData.gameMode];
 label0.otIndex    = (s16)obj->drawOrder + 1;
@@ -49891,7 +49891,7 @@ label0.otIndex    = (s16)obj->drawOrder + 1;
 rating            = &missionLevels.entries[gMcSaveData.gameMode];
 label0.colorRgb    = 0x606060;
 label0.glyphTable = 5;
-label0.alignment = 0;
+label0.alignment = TEXT_ALIGNMENT_LEFT;
 label0.drawMode    = TEXT_DRAW_OUTLINED;
 ```
 

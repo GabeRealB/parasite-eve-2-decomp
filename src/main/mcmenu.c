@@ -183,7 +183,7 @@ static void McMenu_ConfirmDialog(UiList* list, UiObject* object)
 {
     s32 temp;
 
-    Text_DrawPrompt(object, list->field_18, list->field_1A, McText_Yes, list->field_1C, TEXT_DRAW_OUTLINED, 0);
+    Text_DrawPrompt(object, list->field_18, list->field_1A, McText_Yes, list->field_1C, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     temp = list->field_C;
     if (temp == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
@@ -202,7 +202,7 @@ static void McMenu_ConfirmDialogAlt(UiList* list, UiObject* object)
 {
     s32 temp;
 
-    Text_DrawPrompt(object, list->field_18, list->field_1A, McText_Ok, list->field_1C, TEXT_DRAW_OUTLINED, 0);
+    Text_DrawPrompt(object, list->field_18, list->field_1A, McText_Ok, list->field_1C, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     temp = list->field_C;
     if (temp == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
@@ -217,7 +217,7 @@ static void McMenu_ConfirmYes(UiList* list, UiObject* object)
 {
     s32 temp;
 
-    Text_DrawPrompt(object, list->field_18, list->field_1A, McText_Cancel, list->field_1C, TEXT_DRAW_OUTLINED, 0);
+    Text_DrawPrompt(object, list->field_18, list->field_1A, McText_Cancel, list->field_1C, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     temp = list->field_C;
     if (temp == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
@@ -230,7 +230,7 @@ static void McMenu_ConfirmYes(UiList* list, UiObject* object)
 
 static void McMenu_ConfirmNo(UiList* list, UiObject* object)
 {
-    Text_DrawPrompt(object, list->field_18, list->field_1A, McText_No, list->field_1C, TEXT_DRAW_OUTLINED, 0);
+    Text_DrawPrompt(object, list->field_18, list->field_1A, McText_No, list->field_1C, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (list->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(0x3B, 0, 0);
