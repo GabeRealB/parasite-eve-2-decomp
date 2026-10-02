@@ -1042,10 +1042,17 @@ u32* tmdDrawStreamPrimGt3PreXformOffsetLayer(TmdStreamWorkspace* workspace, s32 
 {
     enum {
         TMD_GT3_OFFSET_LAYER_DEPTH_BYTE_OFFSET_MASK = 0xFFFC, // Clear two unproven low reference bits; does not check cache bounds
-        TMD_GT3_OFFSET_LAYER_BASE_COMMAND           = 0x34,   // Opaque, colour-modulated Gouraud textured triangle
-        TMD_GT3_OFFSET_LAYER_BLEND_COMMAND          = 0x36,   // Same primitive with semitransparency enabled
-        TMD_GT3_OFFSET_LAYER_PACKET_COUNT           = 2,      // Layer first, model-texture base second
-        TMD_GT3_OFFSET_LAYER_OT_INDEX_SHIFT         = 4       // Sixteen scaled OTZ units per four-byte OT tag
+        /// GPU command byte for the opaque, colour-modulated Gouraud-textured base triangle.
+        ///
+        /// Bits 1 and 0 are clear: semitransparency is disabled and the existing
+        /// per-corner colours modulate the texture. Written to the second
+        /// `POLY_GT3` in each pair, using the model's base page/CLUT offsets.
+        /// Ordering-table head insertion draws it before the blended layer.
+        /// The command is fixed, independent of `objectFlags`.
+        TMD_GT3_OFFSET_LAYER_BASE_COMMAND   = 0x34,
+        TMD_GT3_OFFSET_LAYER_BLEND_COMMAND  = 0x36, // Same primitive with semitransparency enabled
+        TMD_GT3_OFFSET_LAYER_PACKET_COUNT   = 2,    // Layer first, model-texture base second
+        TMD_GT3_OFFSET_LAYER_OT_INDEX_SHIFT = 4     // Sixteen scaled OTZ units per four-byte OT tag
     };
     /// One element's offset-textured layer followed by its opaque base.
     typedef POLY_GT3 _TmdOffsetLayerTrianglePair[TMD_GT3_OFFSET_LAYER_PACKET_COUNT];
