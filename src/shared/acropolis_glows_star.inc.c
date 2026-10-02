@@ -1,8 +1,7 @@
 /* Part of the Acropolis glows library; see acropolis_glows.h. */
 
-/* ACROPOLIS_GLOWS_STAR_OWN_HEIGHT 1 (the Promenade) computes the lower quad's
-   half-height separately from its half-width, though the two are equal. */
-#if ACROPOLIS_GLOWS_STAR_OWN_HEIGHT
+// Select the core quad's half-height storage for this included instance.
+#if defined(GLOW_STAR_STORE_HALF_HEIGHT) && GLOW_STAR_STORE_HALF_HEIGHT
 #define ACROPOLIS_GLOWS_STAR_HALF_HEIGHT blk->dy
 #else
 #define ACROPOLIS_GLOWS_STAR_HALF_HEIGHT blk->dx
@@ -72,7 +71,7 @@ void ACROPOLIS_GLOWS_STAR_TASK(Task* task)
         prim->u3    = (work->age % 6) * 16 + 0xF;
         prim->v3    = 0xF;
         blk->dx     = 0x1680 / blk->otz;
-#if ACROPOLIS_GLOWS_STAR_OWN_HEIGHT
+#if defined(GLOW_STAR_STORE_HALF_HEIGHT) && GLOW_STAR_STORE_HALF_HEIGHT
         blk->dy = 0x1680 / blk->otz;
 #endif
         prim->x0 = prim->x2 = blk->sxy.vx - blk->dx;
@@ -124,5 +123,5 @@ void ACROPOLIS_GLOWS_STAR_TASK(Task* task)
 }
 
 #undef ACROPOLIS_GLOWS_STAR_TASK
-#undef ACROPOLIS_GLOWS_STAR_OWN_HEIGHT
+#undef GLOW_STAR_STORE_HALF_HEIGHT
 #undef ACROPOLIS_GLOWS_STAR_HALF_HEIGHT

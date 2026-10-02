@@ -1977,8 +1977,15 @@ void func_acropolis_promenade_8017E394(Task* task)
     effectKillTask(work, task);
 }
 
-#define ACROPOLIS_GLOWS_STAR_TASK       func_acropolis_promenade_8017E634
-#define ACROPOLIS_GLOWS_STAR_OWN_HEIGHT 1
+#define ACROPOLIS_GLOWS_STAR_TASK func_acropolis_promenade_8017E634
+/// Stores the star core's pixel half-height separately from its equal half-width.
+///
+/// Numeric configuration for `acropolis_glows_star.inc.c`: nonzero stores
+/// `0x1680 / otz` in `OverlaySpriteScratch::dy` and uses it for the core's Y
+/// extent; zero or omission reuses `dx` for both axes. The Promenade enables
+/// the separate storage; the Bridge omits it. The fragment undefines the
+/// switch after compiling this instance.
+#define GLOW_STAR_STORE_HALF_HEIGHT 1
 #include "../../shared/acropolis_glows_star.inc.c"
 
 /// Draws one frame of the promenade's ground glow: a semi-transparent textured
