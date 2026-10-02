@@ -1472,8 +1472,9 @@ static void func_shelter_b6_nursery_80181EDC(GfxCoord* coord, u16 arg1, s16 arg2
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }
 
-#define SPRITE_QUAD_TPAGE 0x2B
-#define SPRITE_QUAD_CLUT  0x4385
+/// Packed additive particle texture page: 4-bit indexed texels at VRAM X=704 words, Y=0 scanlines.
+#define SPRITE_QUAD_TEXTURE_PAGE getTPage(0, GPU_BLEND_ADD, 704, 0)
+#define SPRITE_QUAD_CLUT         0x4385
 /// Texel width and horizontal stride of each cell in the eight-frame particle strip.
 #define SPRITE_QUAD_CELL_WIDTH 32
 #define SPRITE_QUAD_CELL_MASK  7

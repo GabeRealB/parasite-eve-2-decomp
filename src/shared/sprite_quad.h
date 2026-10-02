@@ -21,9 +21,12 @@
  *   SPRITE_QUAD_MIN_OTZ     optional: draw only at this depth or beyond
  *   SPRITE_QUAD_OTZ_BIAS    1 (default) sorts the sprite one slot behind its
  *                           point, 0 at the point itself
- * and SPRITE_QUAD_TPAGE when it is not 0x2A. The fragment clears these, so a
- * unit drawing two textures includes it twice; SPRITE_QUAD_FUNC names the
- * second instance (the first is spriteQuadDraw, declared here).
+ *   SPRITE_QUAD_TEXTURE_PAGE optional: packed 16-bit GPU texture-page word;
+ *                           the default is getTPage(0, GPU_BLEND_ADD, 640, 0)
+ * The texture-page binding's contract is beside the fragment's default.
+ * The fragment clears these bindings, so a unit drawing two textures includes
+ * it twice; SPRITE_QUAD_FUNC names the second instance (the first is
+ * spriteQuadDraw, declared here).
  *
  * SPRITE_QUAD_CELL_WIDTH must be a signed integer constant from 1 to 256,
  * bound before each sprite_quad_draw.inc.c inclusion. A C enum constant is

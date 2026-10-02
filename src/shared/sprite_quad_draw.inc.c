@@ -17,8 +17,23 @@
 #ifndef SPRITE_QUAD_FUNC
 #define SPRITE_QUAD_FUNC spriteQuadDraw
 #endif
-#ifndef SPRITE_QUAD_TPAGE
-#define SPRITE_QUAD_TPAGE 0x2A
+#ifndef SPRITE_QUAD_TEXTURE_PAGE
+/// Packed GPU texture-page word for one included sprite-quad drawer.
+///
+/// Bind a 16-bit integer constant before each inclusion, using `getTPage`
+/// or a named packed value. The default selects 4-bit indexed texels at VRAM
+/// X=640 words, Y=0 scanlines with `GPU_BLEND_ADD`. The SDK `getTPage` macro
+/// and `GPU_BLEND_ADD` must be in scope through `psyq/libgpu.h` and
+/// `gameplay/room_effects.h` before this fragment is included.
+///
+/// The word selects the texel format, page origin and semitransparency mode;
+/// UVs count texels relative to that origin and the CLUT is bound separately.
+/// The drawer enables semitransparency; texture colours with bit 15 set blend.
+/// This binding is assigned once to each emitted `POLY_FT4::tpage` and then
+/// undefined after the drawer definition, so a later instance gets its own
+/// binding or the default. Antibody's larger sprite, Flare, Necrosis, the
+/// gallery, training room, Hammer's six-cell strip and Javelin use the default.
+#define SPRITE_QUAD_TEXTURE_PAGE getTPage(0, GPU_BLEND_ADD, 640, 0)
 #endif
 #ifndef SPRITE_QUAD_OTZ_BIAS
 #define SPRITE_QUAD_OTZ_BIAS 1
@@ -44,6 +59,7 @@ static void SPRITE_QUAD_FUNC(SPRITE_QUAD_POSITION_SOURCE_TYPE* pos, SPRITE_QUAD_
 
     // Check in C so bindings may refer to enum constants as well as literals.
     STATIC_ASSERT(SPRITE_QUAD_CELL_WIDTH >= 1 && SPRITE_QUAD_CELL_WIDTH <= 256, sprite_quad_cell_width_fits_uv_byte);
+    STATIC_ASSERT(SPRITE_QUAD_TEXTURE_PAGE >= 0 && SPRITE_QUAD_TEXTURE_PAGE <= 0xFFFF, sprite_quad_texture_page_fits_packet);
 
     // Project the source translation's low 16 bits without changing its coordinate cache.
     head                                     = SCRATCH_STACK_CURSOR(EffectShapeScratch);
@@ -75,7 +91,7 @@ static void SPRITE_QUAD_FUNC(SPRITE_QUAD_POSITION_SOURCE_TYPE* pos, SPRITE_QUAD_
             setPolyFT4(prim);
             setSemiTrans(prim, 1);
             setShadeTex(prim, 1);
-            prim->tpage = SPRITE_QUAD_TPAGE;
+            prim->tpage = SPRITE_QUAD_TEXTURE_PAGE;
             prim->clut  = SPRITE_QUAD_CLUT;
 #if defined(SPRITE_QUAD_UV_TABLE)
             // Cell widths count texels; both square-cell endpoints are inclusive.
@@ -133,7 +149,7 @@ static void SPRITE_QUAD_FUNC(SPRITE_QUAD_POSITION_SOURCE_TYPE* pos, SPRITE_QUAD_
 }
 
 #undef SPRITE_QUAD_FUNC
-#undef SPRITE_QUAD_TPAGE
+#undef SPRITE_QUAD_TEXTURE_PAGE
 #undef SPRITE_QUAD_CLUT
 #undef SPRITE_QUAD_CELL_WIDTH
 #undef SPRITE_QUAD_CELLS_PER_ROW

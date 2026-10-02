@@ -220,8 +220,9 @@ void func_m4a1_hammer_8011D1E0(Task* task)
 /// Unsigned 16-bit perspective size for the charge flare, matching its forward declaration.
 #define SPRITE_QUAD_SIZE_T u16
 #define SPRITE_QUAD_FUNC   spriteQuadDrawCharge
-#define SPRITE_QUAD_TPAGE  0x28
-#define SPRITE_QUAD_CLUT   0x430C
+/// Packed additive charge-flare page: 4-bit indexed texels at VRAM X=512 words, Y=0 scanlines.
+#define SPRITE_QUAD_TEXTURE_PAGE getTPage(0, GPU_BLEND_ADD, 512, 0)
+#define SPRITE_QUAD_CLUT         0x430C
 /// Texel width and horizontal stride of each cell in the charge flare's eight-cell strip.
 #define SPRITE_QUAD_CELL_WIDTH 24
 #define SPRITE_QUAD_CELL_MASK  7

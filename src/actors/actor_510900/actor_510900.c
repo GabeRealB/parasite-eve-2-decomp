@@ -2114,9 +2114,10 @@ void func_actor_510900_8013482C(Task* arg0)
     }
 }
 
-#define SPRITE_QUAD_TPAGE    EFFECT_SPRITE_ATLAS_TEXTURE_PAGE
-#define SPRITE_QUAD_CLUT     ((D_actor_510900_8013C48C[frame].clutY << 6) | ((D_actor_510900_8013C48C[frame].clutX >> 4) & 0x3F))
-#define SPRITE_QUAD_UV_TABLE gEffectSpriteAtlasFrames
+/// Packed additive texture page for the shared effect atlas, with this actor's palettes.
+#define SPRITE_QUAD_TEXTURE_PAGE EFFECT_SPRITE_ATLAS_TEXTURE_PAGE
+#define SPRITE_QUAD_CLUT         ((D_actor_510900_8013C48C[frame].clutY << 6) | ((D_actor_510900_8013C48C[frame].clutX >> 4) & 0x3F))
+#define SPRITE_QUAD_UV_TABLE     gEffectSpriteAtlasFrames
 /// Texel width and height of the shared atlas cells used with this actor's palettes.
 #define SPRITE_QUAD_CELL_WIDTH EFFECT_SPRITE_ATLAS_CELL_SIZE
 // Reuse the atlas's inclusive texel span for the projected half-diagonal.

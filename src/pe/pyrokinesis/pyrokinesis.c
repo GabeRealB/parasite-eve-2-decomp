@@ -537,8 +537,9 @@ static void func_pyrokinesis_801304C4(GfxCoord* arg0, s32 arg1)
     SCRATCH_STACK_RELEASE_BLOCK(GpQuadScratch);
 }
 
-#define SPRITE_QUAD_TPAGE 0x29
-#define SPRITE_QUAD_CLUT  0x428C
+/// Packed additive flame texture page: 4-bit indexed texels at VRAM X=576 words, Y=0 scanlines.
+#define SPRITE_QUAD_TEXTURE_PAGE getTPage(0, GPU_BLEND_ADD, 576, 0)
+#define SPRITE_QUAD_CLUT         0x428C
 /// Texel width and horizontal stride of the two flame cells selected by age parity.
 #define SPRITE_QUAD_CELL_WIDTH 56
 #define SPRITE_QUAD_CELL_MASK  1

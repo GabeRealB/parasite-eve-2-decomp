@@ -417,9 +417,10 @@ void func_antibody_8012F734(Task* arg0)
     }
 }
 
-#define SPRITE_QUAD_FUNC  spriteQuadDrawMote
-#define SPRITE_QUAD_TPAGE 0x29
-#define SPRITE_QUAD_CLUT  0x42C6
+#define SPRITE_QUAD_FUNC spriteQuadDrawMote
+/// Packed additive mote texture page: 4-bit indexed texels at VRAM X=576 words, Y=0 scanlines.
+#define SPRITE_QUAD_TEXTURE_PAGE getTPage(0, GPU_BLEND_ADD, 576, 0)
+#define SPRITE_QUAD_CLUT         0x42C6
 /// Texel width and horizontal stride of each cell in the mote's six-cell strip.
 #define SPRITE_QUAD_CELL_WIDTH 40
 /// Number of cells in the mote texture row, repeated as the effect ages.
