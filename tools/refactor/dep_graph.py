@@ -37,6 +37,7 @@ import argparse
 import collections
 import json
 import os
+import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -367,9 +368,19 @@ def _former_names(root: str) -> dict:
     return out
 
 def _node_kind(usr: str) -> str:
+    """Kind of a node from its libclang USR.
+
+    The tail decides, not any marker along the way: a constant of an enum
+    declared inside a function carries the function's `@F@` too, and was once
+    taken for a function. An enum constant is the component after an enum's
+    (`@E@Tag@CONST`, or `@Ea@`/`@EA@` for an anonymous one); a function's USR
+    ends at its own `@F@name`.
+    """
     if usr.startswith("macro:"):
         return "macro"
-    if "@F@" in usr:
+    if re.search(r"@E[aA]?@[^@]*@[^@]+$", usr):
+        return "enum"
+    if re.search(r"@F@[^@]+$", usr):
         return "func"
     if any(t in usr for t in ("@S@", "@SA@", "@U@", "@UA@", "@E@", "@EA@", "@T@")):
         return "type"

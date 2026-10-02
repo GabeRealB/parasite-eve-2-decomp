@@ -289,7 +289,8 @@ def classify(name: str, kind: str, vendor: set) -> str:
     # Spelling cannot establish subsystem ownership: e.g. gpLoad... is still
     # current here, but the naming review must replace an overlay-wide prefix
     # with the actual owner's identity where that role is established.
-    if kind == "macro":
+    if kind in ("macro", "enum"):
+        # Enum constants follow the macros' spelling: UPPER_SNAKE_CASE.
         from macro_refs import conventional
         return "current" if conventional(name.rsplit("/", 1)[-1]) else "legacy"
     if name in vendor or name.startswith("__"):

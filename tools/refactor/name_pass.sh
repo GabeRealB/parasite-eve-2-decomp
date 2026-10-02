@@ -4,7 +4,7 @@
 #   ./tools/refactor/name_pass.sh [--times N] [--workers N] [--profile NAME]
 #                                 [--dry-run] [--cli claude|grok|codex]
 #                                 [--from ORDER] [--step ORDER]
-#                                 [--kinds func,type,data,macro]
+#                                 [--kinds func,type,data,enum,macro]
 #                                 [--list-profiles] [--clean-workers]
 #
 # With no --times the whole worklist is walked. --times N stops after N rounds -
@@ -12,7 +12,7 @@
 # --clean-workers removes the worker worktrees and exits, doing no work.
 #
 # --kinds restricts the pass to steps holding an item of the listed kinds (the
-# worklist's `kind` column: func, type, data, macro). A cycle is one step, so it
+# worklist's `kind` column: func, type, data, enum, macro). A cycle is one step, so it
 # is worked whole when any of its items qualifies. The filter selects work, not
 # dependencies: items of other kinds are left as they are, so a step can still
 # reason from a neighbour that has not been named yet, and an item still in
