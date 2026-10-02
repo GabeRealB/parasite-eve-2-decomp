@@ -56,16 +56,17 @@ static __inline__ void _effectSpriteBankedRotateCorner(EffectShapeScratch* scrat
 /// retained. Projection updates the GTE matrices and result registers.
 static void _effectSpriteDrawBanked(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle)
 {
+    /// Left shift from a VRAM palette row to the GPU CLUT selector's row bits.
+    ///
+    /// As in `getClut`, bits 0..5 encode VRAM X in 16-word units; Y starts at bit 6.
+    /// This drawer shifts only rows 270 and 271, fitting the 16-bit CLUT field.
+    enum { EFFECT_SPRITE_BANKED_CLUT_ROW_SHIFT = 6 };
+
     enum {
         EFFECT_SPRITE_BANKED_FRAME_MASK        = 0xFFF,
         EFFECT_SPRITE_BANKED_PALETTE_SHIFT     = 12,
         EFFECT_SPRITE_BANKED_PALETTE_ROW_COUNT = 2,
         EFFECT_SPRITE_BANKED_FIRST_PALETTE_ROW = 270,
-        /// Bit position of the VRAM palette row in a GPU CLUT selector.
-        ///
-        /// Bits 0..5 encode VRAM X in 16-word units; shifting Y by six
-        /// places the row above that column field, as in `getClut`.
-        EFFECT_SPRITE_BANKED_CLUT_ROW_SHIFT    = 6,
         /// Selects the frame's six-bit VRAM X / 16 column in the GPU CLUT address.
         ///
         /// Columns span 16 VRAM words and wrap modulo 64 without changing the
