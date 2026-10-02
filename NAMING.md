@@ -405,6 +405,14 @@ values are separate from runtime stage numbers.
 `actor_444000`. Its implementation interface is `src/shared/glutton.h`;
 `GLUTTON_` instance bindings select each carrier's local boss state.
 
+`bossStranger` owns the included Boss Stranger movement core shared by
+`actor_110600` and `acropolis_bridge`. Its implementation interface is
+`src/shared/boss_stranger.h`. The movement record is `BossStrangerWalker` in
+`include/overlay.h`, with `BossStrangerNode`, `BossStrangerNav` and
+`BossStrangerRoute` beside it. State values use `BOSS_STRANGER_WALKER_`.
+The scratch frames the step opens stay with the walker family under their
+`OverlayWalker` names until their own review.
+
 ## Documentation
 
 [`include/main/mem.h`](include/main/mem.h) is the worked example. Read it before

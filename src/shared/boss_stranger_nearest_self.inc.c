@@ -4,7 +4,7 @@
 /// each node and the low halfwords of the walker coordinate's translation,
 /// with the running best and the cursor staged in a scratch block. Same body
 /// as the acropolis bridge room's `func_acropolis_bridge_8018450C`.
-u8 bossStrangerNodeNearestSelf(OverlayWalker* work)
+u8 bossStrangerNodeNearestSelf(BossStrangerWalker* work)
 {
     OverlayWalkerNearScratch* block;
     u8*                       head;

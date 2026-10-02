@@ -18,16 +18,16 @@
 
 #include "overlay.h"
 
-s16  bossStrangerArrived(OverlayWalker* walker);
-void bossStrangerFollowRoute(OverlayWalker* work, SVECTOR3* pos);
-u8   bossStrangerNodeNearestActor(OverlayWalker* work, s32 actor);
-u8   bossStrangerNodeNearestSelf(OverlayWalker* work);
-void bossStrangerPlanToward(OverlayWalker* work, s16 actor);
-void bossStrangerApplyGroundStep(OverlayWalker* work);
-void bossStrangerAvoidContacts(OverlayWalker* work);
-void bossStrangerTurnToward(OverlayWalker* work, SVECTOR3* pos);
-void bossStrangerTick(OverlayWalker* walker);
+s16  bossStrangerArrived(BossStrangerWalker* walker);
+void bossStrangerFollowRoute(BossStrangerWalker* work, SVECTOR3* pos);
+u8   bossStrangerNodeNearestActor(BossStrangerWalker* work, s32 actor);
+u8   bossStrangerNodeNearestSelf(BossStrangerWalker* work);
+void bossStrangerPlanToward(BossStrangerWalker* work, s16 actor);
+void bossStrangerApplyGroundStep(BossStrangerWalker* work);
+void bossStrangerAvoidContacts(BossStrangerWalker* work);
+void bossStrangerTurnToward(BossStrangerWalker* work, SVECTOR3* pos);
+void bossStrangerTick(BossStrangerWalker* walker);
 
-static inline void bossStrangerStep(OverlayWalker* walker, u8* head, OverlayWalkerTickScratch* block);
+static inline void bossStrangerStep(BossStrangerWalker* walker, u8* head, OverlayWalkerTickScratch* block);
 
 #endif /* SRC_SHARED_BOSS_STRANGER_H */

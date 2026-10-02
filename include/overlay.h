@@ -450,12 +450,11 @@ typedef struct {
     s16  y;          // World Y, in signed game-coordinate units
     s16  z;          // World Z, in signed game-coordinate units
     byte pad_6[0x2]; // Unread; makes each node eight bytes
-} OverlayWalkerNode;
-STATIC_ASSERT_SIZEOF(OverlayWalkerNode, 0x8);
+} BossStrangerNode;
+STATIC_ASSERT_SIZEOF(BossStrangerNode, 0x8);
 
 /// Nav record of a Boss Stranger patrol walker: the positions it can steer
-/// toward, and the order of node indices state 2 walks while closing on a
-/// player.
+/// toward, and the order of node indices the close-in state walks.
 ///
 /// `nodeCount` is how many leading entries of `nodes` the nearest-node scans
 /// walk. It is not the allocated length of that table: a patrol route may
@@ -464,13 +463,13 @@ STATIC_ASSERT_SIZEOF(OverlayWalkerNode, 0x8);
 /// walker's `cursor` indexes it, and the re-plan searches it for the steps
 /// that name two nodes.
 typedef struct {
-    OverlayWalkerNode* nodes;      // Positions the walker steers toward
+    BossStrangerNode* nodes;      // Positions the walker steers toward
     u8*                nodeOrder;  // Node index at each step. The walker's cursor indexes this
     u8                 nodeCount;  // Leading nodes the nearest-node scans walk
     u8                 orderCount; // Live entries in nodeOrder
     byte               pad_A[0x2]; // Unread. Keeps the record twelve bytes
-} OverlayWalkerNav;
-STATIC_ASSERT_SIZEOF(OverlayWalkerNav, 0xC);
+} BossStrangerNav;
+STATIC_ASSERT_SIZEOF(BossStrangerNav, 0xC);
 
 /// End of a Boss Stranger patrol route. The cursor returns to the first index
 /// when the entry it lands on has this value.
@@ -488,73 +487,67 @@ typedef struct {
     u8   cursor;      // Index of the current entry. Wraps to 0 at the end marker
     u8   arrived;     // 1 on the frame the current node is reached, otherwise 0
     byte pad_7[0x1];  // Unread. Pointer alignment rounds the route to eight bytes
-} OverlayWalkerRoute;
-STATIC_ASSERT_SIZEOF(OverlayWalkerRoute, 0x8);
+} BossStrangerRoute;
+STATIC_ASSERT_SIZEOF(BossStrangerRoute, 0x8);
 
-/// State of a patrol walker: an enemy that steers its coordinate from node to
-/// node of a patrol table, backs away from the obstacles among its contact
-/// records and scales its model in and out. `nav` and `route` point at the
-/// tables it walks, normally `navData` and `routeData`; `node` is the node it
-/// is heading for and `cursor` its index in `nav`'s `nodeOrder`. `recs` is the
-/// collision table the movement step measures the walker against, with
-/// `field_56` records, and `avoidRecs` the `avoidCount` contact records the
-/// avoidance step backs away from, adding what it moves to `push` and setting
-/// `blocked` when a record is of the blocking kind. `moveStep` is how far the
-/// walker moves this frame and `moveDelta` the whole-unit step the movement
-/// step applied; `moving` says whether that moved it in XZ at all. `scaleMtx`
-/// is the model's saved rotation, rebuilt around `scale`. `state` selects the
-/// walker's behaviour, `field_69` is the state the previous tick ran, and
-/// `field_6C` / `field_6D` skip the movement and avoidance steps while set.
-/// `field_6E` indexes the actor configuration table the walker is measured
-/// against, `field_73` is the signed advance applied to `cursor` on arrival,
-/// `field_5A` is the most the walker may turn in one frame, `field_62` counts
-/// the consecutive frames it has been turning and `field_64` is an extra
-/// allowance added to that limit; the counter and allowance are cleared on
-/// arrival.
-typedef struct OverlayWalker {
-    OverlayWalkerNav*   nav;
-    OverlayWalkerRoute* route;
-    GfxCoord*      coord;
-    WorldCollisionContact*            recs;
-    WorldCollisionContact*            avoidRecs;
-    byte                pad_14[0x8];
-    SVECTOR             moveStep;
-    SVECTOR             moveDelta;
-    SVECTOR3            push;
-    byte                pad_32[0x2];
-    MATRIX              scaleMtx;
-    s16                 scale;
-    s16                 field_56;
-    s16                 avoidCount;
-    u16                 field_5A;
-    u16                 field_5C;
-    u16                 field_5E;
-    u16                 field_60;
-    u16                 field_62;
-    u16                 field_64;
-    byte                pad_66[0x2];
-    u8                  state;
-    u8                  field_69;
-    u8                  node;
-    u8                  field_6B;
-    u8                  field_6C;
-    u8                  field_6D;
-    u8                  field_6E;
-    u8                  field_6F;
-    u8                  field_70;
-    u8                  field_71;
-    u8                  field_72;
-    s8                  field_73;
-    byte                pad_74[0x1];
-    u8                  field_75;
-    u8                  cursor;
-    u8                  blocked;
-    u8                  moving;
-    byte                pad_79[0x7];
-    OverlayWalkerNav    navData;
-    OverlayWalkerRoute  routeData;
-} OverlayWalker;
-STATIC_ASSERT_SIZEOF(OverlayWalker, 0x94);
+/// Values of `BossStrangerWalker::state`. Close-in is implemented; neither
+/// carrier stores it.
+#define BOSS_STRANGER_WALKER_IDLE   0
+#define BOSS_STRANGER_WALKER_CHASE  1
+#define BOSS_STRANGER_WALKER_CLOSE  2
+#define BOSS_STRANGER_WALKER_PATROL 3
+
+/// Movement record of the Boss Stranger walker.
+///
+/// Embedded in `actor_110600` and the Acropolis bridge copy. Each tick steers
+/// `coord` toward the selected player, along `nav`'s node order, or along the
+/// patrol route, then ramps `speed` and turns within `turnLimit`. The ground
+/// step and contact avoidance run unless the carrier skips them. `scaleMtx`
+/// keeps the model's saved rotation and is rebuilt around `scale`.
+typedef struct {
+    BossStrangerNav*       nav;           // Node table and order. Usually &navData
+    BossStrangerRoute*     route;         // Patrol route. Usually &routeData
+    GfxCoord*              coord;         // Coordinate the step writes
+    WorldCollisionContact* recs;          // Contacts the ground step measures. NULL on the bridge
+    WorldCollisionContact* avoidRecs;     // Contacts the avoidance step backs away from
+    byte                   pad_14[0x8];   // Unread
+    SVECTOR                moveStep;      // Facing step applied this frame, or zero while actors are frozen
+    SVECTOR                moveDelta;     // Whole-unit collision step the ground step applied
+    SVECTOR3               push;          // Sum of the avoidance nudges this frame
+    byte                   pad_32[0x2];   // Aligns scaleMtx
+    MATRIX                 scaleMtx;      // Saved rotation the turn step copies back before applying yaw
+    s16                    scale;         // Uniform model scale. 0x1000 is full size
+    s16                    recCount;      // Contact count passed with recs. The actor stores 12, the bridge 0
+    s16                    avoidCount;    // Leading avoidRecs the avoidance step walks
+    u16                    turnLimit;     // Maximum yaw change per frame, in angle units. 0 forces the turn to 0
+    u16                    speedTarget;   // Unsigned ramp target. 0xFFFE is the patrol-out sentinel, applied as a step of -2
+    u16                    speed;         // Current speed, applied as a signed step along facing
+    u16                    speedStep;     // Most that speed may change in one frame
+    u16                    turnRun;       // Consecutive frames the relative bearing was nonzero. Cleared at 0 and on route arrival
+    u16                    turnBonus;     // Added to turnLimit. Each duration tier stores 0, and route arrival clears it
+    byte                   pad_66[0x2];   // Unread
+    u8                     state;         // BOSS_STRANGER_WALKER_IDLE, CHASE, CLOSE or PATROL
+    u8                     prevState;     // State the previous close-in tick ran. A change re-plans
+    u8                     node;          // Nav-node index being steered toward
+    u8                     lockHeight;    // Non-zero pins Y: the ground step discards collision Y and skips the fall
+    u8                     skipGround;    // Non-zero skips the ground step
+    u8                     skipAvoid;     // Non-zero skips contact avoidance
+    u8                     playerId;      // One-based player-status selector, copied from the save character id. Chase uses playerId - 1. Only initialization is known to store 1; a second resident record is not established
+    u8                     actorNode;     // Nav node nearest the selected actor
+    u8                     selfNode;      // Nav node nearest this walker
+    u8                     prevActorNode; // Previous actorNode. A change re-plans the close-in
+    u8                     prevSelfNode;  // Previous selfNode. A change re-plans the close-in
+    s8                     orderStep;     // +1 or -1 along nodeOrder. Added to cursor through a u8 cast, so it wraps
+    byte                   pad_74[0x1];   // Unread
+    u8                     goalSlot;      // nodeOrder slot on the actor side of the closest pair. Nothing reads it
+    u8                     cursor;        // Index into nav->nodeOrder while closing in
+    u8                     blocked;       // 1 when an avoidance contact's kind is 0x10000. Nothing reads it
+    u8                     offOrigin;     // 1 when local X or Z is nonzero after the ground step. Nothing reads it
+    byte                   pad_79[0x7];   // Unread
+    BossStrangerNav        navData;       // Storage nav usually points at
+    BossStrangerRoute      routeData;     // Storage route usually points at
+} BossStrangerWalker;
+STATIC_ASSERT_SIZEOF(BossStrangerWalker, 0x94);
 
 /// The scratch-pad block a patrol walker's arrival test stages the offset
 /// from the walker to its node in. The node's coordinates are copied over and

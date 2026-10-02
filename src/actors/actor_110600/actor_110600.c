@@ -82,20 +82,20 @@ STATIC_ASSERT_SIZEOF(Actor110600TsvScratch, 0x2C);
 /// walker's `cursor` once the state or the node bytes have moved. Same body as
 /// the acropolis bridge room's `func_acropolis_bridge_80184638`.
 
-/// One per-frame behaviour step the walker runs while its `field_6C` gate is
-/// clear: steps it toward its current patrol node. `func_800E0C10` produces the
+/// One per-frame behaviour step the walker runs while `skipGround` is clear:
+/// steps it toward its current patrol node. `func_800E0C10` produces the
 /// 16.16 delta; the high half of each component becomes the whole-unit step,
-/// rounded away from zero whenever a fraction is left over. While `field_6B` is
-/// set the walker is pinned vertically, otherwise Y also carries a constant
+/// rounded away from zero whenever a fraction is left over. While `lockHeight`
+/// is set the walker is pinned vertically, otherwise Y also carries a constant
 /// 0x10 fall. Y is applied in three bands: a +8 hop above 0x20, a -0x20 drop
-/// below -0x20, and the plain step in between. `moving` records whether the
-/// frame produced any XZ motion at all. Same body as the acropolis bridge
-/// room's `func_acropolis_bridge_80184908`.
+/// below -0x20, and the plain step in between. `offOrigin` is 1 when the local
+/// X or Z translation is nonzero afterwards; nothing reads it. Same body as
+/// the acropolis bridge room's `func_acropolis_bridge_80184908`.
 
-/// The second per-frame behaviour step, gated on `field_6D`. Same body as the
-/// acropolis bridge room's `func_acropolis_bridge_80184B94`.
+/// The second per-frame behaviour step, skipped while `skipAvoid` is set. Same
+/// body as the acropolis bridge room's `func_acropolis_bridge_80184B94`.
 
-/// Turns the walker towards `pos` by at most `field_5A` angle units a frame.
+/// Turns the walker towards `pos` by at most `turnLimit` angle units a frame.
 /// The wrapped relative bearing drives the consecutive-turn counter, then
 /// becomes the absolute yaw the model's saved scale matrix is rebuilt around.
 
@@ -174,8 +174,8 @@ typedef struct Actor110600Work {
     /* 0x8B1 */ s8   field_8B1;
     /* 0x8B2 */ byte pad_8B2[2];
     /* 0x8B4 */ s16  field_8B4;
-    /// Per-state walk speed the spawn handler seeds (0xA / 8 / 0xE); the aiming
-    /// stage hands it to the walker as its `field_5E` ramp target.
+    /// Per-state walk speed the spawn handler seeds (0xA / 8 / 0xE) and copies
+    /// into the walker's current `speed`.
     /* 0x8B6 */ u16                field_8B6;
     /* 0x8B8 */ WorldCollisionBody field_8B8;
     /// The `WorldCollisionContact` table the spawn handler links behind `field_8B8`: five
@@ -205,13 +205,13 @@ typedef struct Actor110600Work {
     /* 0xAE8 */ MATRIX field_AE8;
     /// Saved copy of `field_AE8` the state-12 handler `func_actor_110600_80136B20`
     /// swaps in and out around each `ScaleMatrix` call.
-    /* 0xB08 */ MATRIX            field_B08;
-    /* 0xB28 */ OverlayWalker     walker;
-    /* 0xBBC */ OverlayWalkerNode field_BBC[2];
-    /* 0xBCC */ u8                field_BCC[4];
-    /* 0xBD0 */ u8                field_BD0[4];
-    /* 0xBD4 */ Task*             field_BD4;
-    /* 0xBD8 */ Task*             field_BD8;
+    /* 0xB08 */ MATRIX             field_B08;
+    /* 0xB28 */ BossStrangerWalker walker;
+    /* 0xBBC */ BossStrangerNode   field_BBC[2];
+    /* 0xBCC */ u8                 field_BCC[4];
+    /* 0xBD0 */ u8                 field_BD0[4];
+    /* 0xBD4 */ Task*              field_BD4;
+    /* 0xBD8 */ Task*              field_BD8;
     /// Copy of the first three bytes of the last event
     /// `func_actor_110600_80134040` handled.
     /* 0xBDC */ Actor110600Event field_BDC;
@@ -358,8 +358,8 @@ static s32 func_actor_110600_80134564(Actor110600AnimWork* anim);
 
 /// Aiming stage: wraps the yaw from the model's root coordinate to the camera
 /// target `gPlayerStatus.coordMtx` against the coordinate's own yaw into `field_8A2`, ticks
-/// the model, and moves the actor to state 3 once the walker's `field_5C` bit 0
-/// arrives.
+/// the model, and moves the actor to state 3 once this work block's `field_5C`
+/// bit 0 is set.
 static void func_actor_110600_80135A18(Task* arg0);
 
 /// Picks one of twelve hit positions out of `D_actor_110600_801485C4` by damage
@@ -367,14 +367,13 @@ static void func_actor_110600_80135A18(Task* arg0);
 /// part that entry names.
 static void func_actor_110600_80135E20(Task* arg0, s16 arg1, s32 arg2);
 
-/// Per-tick walker step: advances the animation the `field_68` byte selects,
-/// resolves the one-based character ID in `field_6E` against `gPlayerStatus`,
-/// and ramp-scales the model matrix between `field_5E` and `field_5C`.
+/// Per-tick walker step. Opens a scratch frame and runs the chase, close-in
+/// or patrol, then the speed ramp and the optional ground and avoidance steps.
 
 /// Measures the walker's node against the coordinate it is moving towards,
 /// leaving the three per-axis deltas in the scratchpad, and reports whether it
 /// has arrived: 1 while the delta is inside either of two radii -- the walker's
-/// own `field_5C * 4`, or a flat 300 -- and 0 once it is outside both.
+/// `speedTarget` * 4, or a flat 300 -- and 0 once it is outside both.
 
 /// Steers the walker along its patrol route: resolves the node the route
 /// cursor names, and on the frame `bossStrangerArrived` reports arrival
@@ -1148,11 +1147,11 @@ extern Actor110600MessageEntry D_actor_110600_80148624[7];
 /// zero.
 static void func_actor_110600_80136210(Task* arg0);
 
-static void            func_actor_110600_80133778(OverlayWalker* work, s16 scale, s16 angle);
+static void            func_actor_110600_80133778(BossStrangerWalker* work, s16 scale, s16 angle);
 static __inline__ void Actor110600_ScaleRotation(Task* task, s16 scale);
 static void            func_actor_110600_80134438(Task* arg0);
 static __inline__ void Actor110600_InitBodyObj(WorldCollisionBody* obj, GfxCoord* coord, WorldCollisionContact* recs, SVECTOR* pos, s16 enabled);
-static __inline__ void Actor110600_InitScale(OverlayWalker* walker);
+static __inline__ void Actor110600_InitScale(BossStrangerWalker* walker);
 static void            func_actor_110600_80134AB4(Enemy* enemy, Task* task);
 static void            func_actor_110600_80135194(Task* arg0);
 static __inline__ s16  Actor110600_WrapHitAngle(s16 angle);
@@ -1199,7 +1198,7 @@ static void            func_actor_110600_80137F2C(Enemy* arg0, Task* arg1);
 /// -- one node index per step with the `OVERLAY_WALKER_ROUTE_END` marker after
 /// the last -- with the route's `field_4` and `cursor` cleared, and the scratch
 /// frame released.
-static void func_actor_110600_80133778(OverlayWalker* work, s16 scale, s16 angle)
+static void func_actor_110600_80133778(BossStrangerWalker* work, s16 scale, s16 angle)
 {
     Actor110600TsvScratch* blk;
     u8*                    head;
@@ -1301,7 +1300,7 @@ s32 func_actor_110600_80133E48(Task* task, s32 arg1, ActorTransform* placement)
     gfxRotMatrixX(&task->extra.tmd->coords->coord, placement->rot.vx, GRAPHICS_ROTATION_REPLACE);
     gfxRotMatrixY(&task->extra.tmd->coords->coord, placement->rot.vy, 0);
     gfxRotMatrixZ(&task->extra.tmd->coords->coord, placement->rot.vz, GRAPHICS_ROTATION_COMPOSE);
-    Actor110600_ScaleRotation(task, (s16)work->walker.scale);
+    Actor110600_ScaleRotation(task, work->walker.scale);
     work->field_8 = ratan2(-task->extra.tmd->coords->coord.m[2][0],
                            task->extra.tmd->coords->coord.m[2][2]);
     return 1;
@@ -1673,7 +1672,7 @@ static __inline__ void Actor110600_InitBodyObj(WorldCollisionBody* obj, GfxCoord
     Gp_LinkObj(3, obj);
 }
 
-static __inline__ void Actor110600_InitScale(OverlayWalker* walker)
+static __inline__ void Actor110600_InitScale(BossStrangerWalker* walker)
 {
     VECTOR *head, *scale;
     s32     amount;
@@ -1801,20 +1800,20 @@ static void func_actor_110600_80134AB4(Enemy* enemy, Task* task)
     func_800D7A9C(task->extra.tmd, &world, 0, 3);
     work->walker.coord      = coord;
     work->walker.recs       = savedRecs;
-    work->walker.field_56   = 0xC;
+    work->walker.recCount   = 0xC;
     work->walker.avoidCount = 5;
-    work->walker.state      = 0;
+    work->walker.state      = BOSS_STRANGER_WALKER_IDLE;
     work->walker.avoidRecs  = contactRecs;
     work->walker.scale      = 0;
-    work->walker.field_5A   = 0x20;
+    work->walker.turnLimit  = 0x20;
     if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 3, 0, 0)) {
-        work->walker.field_6B = 0;
+        work->walker.lockHeight = 0;
     } else {
-        work->walker.field_6B = enabled;
+        work->walker.lockHeight = enabled;
     }
-    work->walker.field_6C              = 0;
-    work->walker.field_6D              = 1;
-    work->walker.field_6E              = (u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId;
+    work->walker.skipGround            = 0;
+    work->walker.skipAvoid             = 1;
+    work->walker.playerId              = (u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId;
     work->walker.nav                   = &work->walker.navData;
     work->walker.route                 = &work->walker.routeData;
     work->walker.navData.nodeCount     = 2;
@@ -1823,7 +1822,7 @@ static void func_actor_110600_80134AB4(Enemy* enemy, Task* task)
     work->walker.navData.nodes         = work->field_BBC;
     work->walker.navData.nodeOrder     = work->field_BCC;
     work->walker.routeData.nodeIndices = work->field_BD0;
-    work->walker.field_6E              = (u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId;
+    work->walker.playerId              = (u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId;
     switch (task->spawnArg1.value & 0xF0) {
         case 0:
             work->field_896    = 20;
@@ -1951,10 +1950,10 @@ static void func_actor_110600_80135194(Task* arg0)
         enemy->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
         work->field_88C               = 2;
         work->field_892               = 2;
-        work->walker.state            = 3;
-        work->walker.field_5A         = 0x10;
+        work->walker.state            = BOSS_STRANGER_WALKER_PATROL;
+        work->walker.turnLimit        = 0x10;
     }
-    work->walker.field_5E = work->field_8B6;
+    work->walker.speed = work->field_8B6;
     bossStrangerTick(&work->walker);
     coord    = arg0->extra.tmd->coords;
     d        = &delta;
@@ -2021,18 +2020,18 @@ static __inline__ s32 Actor110600_TickShake(void)
 
 static void func_actor_110600_80135454(Task* arg0)
 {
-    Actor110600Work* work;
-    TmdObject*       obj;
-    Enemy*           enemy;
-    GfxCoord*        coord;
-    GfxCoord*        facing;
-    OverlayWalker*   walker;
-    SVECTOR          delta;
-    SVECTOR*         d;
-    s16              angle;
-    u16              ramp;
-    s32              pose;
-    s32              nextPose;
+    Actor110600Work*    work;
+    TmdObject*          obj;
+    Enemy*              enemy;
+    GfxCoord*           coord;
+    GfxCoord*           facing;
+    BossStrangerWalker* walker;
+    SVECTOR             delta;
+    SVECTOR*            d;
+    s16                 angle;
+    u16                 ramp;
+    s32                 pose;
+    s32                 nextPose;
 
     work  = arg0->work;
     obj   = arg0->extra.tmd;
@@ -2044,21 +2043,21 @@ static void func_actor_110600_80135454(Task* arg0)
         enemy->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
         work->field_88C               = 1;
         work->field_892               = 2;
-        work->walker.state            = 1;
+        work->walker.state            = BOSS_STRANGER_WALKER_CHASE;
         work->field_896               = work->field_898;
         if (work->field_898 == 0x38)
-            work->walker.field_5A = 0x30;
-        work->walker.field_5A = 0x1C;
-        work->field_BE0       = 0;
+            work->walker.turnLimit = 0x30;
+        work->walker.turnLimit = 0x1C;
+        work->field_BE0        = 0;
     }
     if (work->field_88E == 0) {
-        work->walker.field_5E = (s16)work->field_8B6 * work->field_896 / 16;
-        if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x1A4, (s16)work->walker.field_5E) == 0)
-            work->walker.field_5E = 0;
+        work->walker.speed = (s16)work->field_8B6 * work->field_896 / 16;
+        if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x1A4, (s16)work->walker.speed) == 0)
+            work->walker.speed = 0;
     } else {
-        work->walker.field_5E = (u16)(work->field_8B4 * work->field_896 / 1520) / 2;
-        if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x1A4, (s16)work->walker.field_5E) == 0)
-            work->walker.field_5E = 0;
+        work->walker.speed = (u16)(work->field_8B4 * work->field_896 / 1520) / 2;
+        if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x1A4, (s16)work->walker.speed) == 0)
+            work->walker.speed = 0;
     }
     coord    = arg0->extra.tmd->coords;
     d        = &delta;
@@ -2066,12 +2065,12 @@ static void func_actor_110600_80135454(Task* arg0)
     d->vy    = (u16)gPlayerStatus.coordMtx->t[1] - (u16)coord->coord.t[1];
     d->vz    = (u16)gPlayerStatus.coordMtx->t[2] - (u16)coord->coord.t[2];
     if (actorOutsideRadius(&delta, 900) == 0)
-        work->walker.field_5E = 0;
-    walker           = &work->walker;
-    ramp             = work->walker.field_5E;
-    walker->field_60 = 0;
-    walker->field_5C = ramp;
-    walker->field_5E = ramp;
+        work->walker.speed = 0;
+    walker              = &work->walker;
+    ramp                = work->walker.speed;
+    walker->speedStep   = 0;
+    walker->speedTarget = ramp;
+    walker->speed       = ramp;
     bossStrangerTick(walker);
     work->field_BE0++;
     facing = arg0->extra.tmd->coords;
@@ -2110,7 +2109,7 @@ static void func_actor_110600_80135454(Task* arg0)
 /// `gPlayerStatus.coordMtx`'s translation goes through `ratan2`, has the coordinate's own
 /// yaw (`ratan2` of `-m[2][0]`, `m[2][2]`) subtracted, and is wrapped into
 /// [-0x800, 0x800] before it lands in `field_8A2`; the model is ticked and the
-/// actor moves on (state 3) once the `field_5C` bit the walker sets arrives.
+/// actor moves on (state 3) once this work block's `field_5C` bit 0 is set.
 /// Both translations are measured in their low 16 bits, so all three delta
 /// reads are `u16`.
 static void func_actor_110600_80135A18(Task* arg0)
@@ -2186,23 +2185,23 @@ static __inline__ s32 Actor110600_HasRec10000(WorldCollisionContact* recs)
 /// `field_BE6` — a zeroed one packs the model pair with 1 and holds the stage
 /// at `field_892` 5 for 0x10 ticks, a set one packs it with 0 and holds mode 4
 /// for 0x1A. `walker.state` is raised and `walker` is re-armed
-/// for a fresh patrol (`field_5C` cleared, `field_5E` reloaded from
-/// `walker.field_5E`, `field_60` = 8) with `field_8A2` / `field_8A4` cleared and
-/// `walker.field_5A` parked at 0x10 to cover the first ten ticks. Every tick after
-/// that raises `field_BE0`, which retires `walker.field_5A` once it passes 0xB, and
+/// for a fresh patrol (`speedTarget` cleared, `speed` reloaded from its own
+/// value, `speedStep` = 8) with `field_8A2` / `field_8A4` cleared and
+/// `walker.turnLimit` parked at 0x10 to cover the first ten ticks. Every tick after
+/// that raises `field_BE0`, which retires `walker.turnLimit` once it passes 0xB, and
 /// ticks the model; the pose `field_4E` then drives the pair of flag edges the
 /// mode owns — 0xF raises and 0x15 drops 0x8000 in mode 4, 0x10 / 0x13 the
-/// same in mode 5. The `field_5C` bit 0 the walker sets moves the actor on
+/// same in mode 5. This work block's `field_5C` bit 0 moves the actor on
 /// (state 3). Finally, while the first `WorldCollisionContact` record still carries the
 /// 0x10000 kind tag, the model root's pan and depth are played as sound
 /// 0x401D000D and 0x8000 comes off `field_A90.flags`.
 static void func_actor_110600_80135B84(Task* arg0)
 {
-    Actor110600Work* work;
-    OverlayWalker*   walker;
-    Enemy*           enemy;
-    TmdObject*       obj;
-    u16              ramp;
+    Actor110600Work*    work;
+    BossStrangerWalker* walker;
+    Enemy*              enemy;
+    TmdObject*          obj;
+    u16                 ramp;
 
     work  = arg0->work;
     obj   = arg0->extra.tmd;
@@ -2222,20 +2221,20 @@ static void func_actor_110600_80135B84(Task* arg0)
             work->field_892     = 5;
             work->field_896     = 0x10;
         }
-        work->walker.state    = 1;
-        walker                = &work->walker;
-        ramp                  = work->walker.field_5E;
-        walker->field_5C      = 0;
-        walker->field_60      = 8;
-        walker->field_5E      = ramp;
-        work->walker.field_5A = 0x10;
-        work->field_8A4       = 0;
-        work->field_8A2       = 0;
-        work->field_BE0       = 0;
+        work->walker.state     = BOSS_STRANGER_WALKER_CHASE;
+        walker                 = &work->walker;
+        ramp                   = work->walker.speed;
+        walker->speedTarget    = 0;
+        walker->speedStep      = 8;
+        walker->speed          = ramp;
+        work->walker.turnLimit = 0x10;
+        work->field_8A4        = 0;
+        work->field_8A2        = 0;
+        work->field_BE0        = 0;
     }
     work->field_BE0++;
     if (work->field_BE0 >= 0xB) {
-        work->walker.field_5A = 0;
+        work->walker.turnLimit = 0;
     }
     func_actor_110600_80134728(arg0);
     if (work->field_892 == 4) {
@@ -2487,21 +2486,21 @@ static void func_actor_110600_80136210(Task* arg0)
 /// a live actor re-arms it: clear the model object, take 0x8000 off
 /// `field_A90.flags` and put 0x4000 on `field_950.flags`, tag the enemy's link
 /// node, set the stage timer to 0x18 and `field_896` from `field_898`, then
-/// re-arm `walker` for a fresh patrol (`field_5C` cleared,
-/// `field_5E` reloaded from `walker.field_5E`, `field_60` = 8) with `walker.state` /
-/// `walker.field_5A` / `field_8A4` / `field_8A2` cleared. Every tick after that steps
+/// re-arm `walker` for a fresh patrol (`speedTarget` cleared,
+/// `speed` reloaded from its own value, `speedStep` = 8) with `walker.state` /
+/// `walker.turnLimit` / `field_8A4` / `field_8A2` cleared. Every tick after that steps
 /// the walker and the model, then retimes: at 0x18 a draw of `gRandomLcgState`
-/// whose seventh bit is clear drops it to 0xE, and at 0xE the `field_5C` bit 0
-/// the walker sets on arrival — or on hitting something — puts it back to 0x18.
+/// whose seventh bit is clear drops it to 0xE, and at 0xE this work block's
+/// `field_5C` bit 0 — on arrival, or on hitting something — puts it back to 0x18.
 /// Both retimes re-enter state 1 (`field_88C`) and tick once more.
 static void func_actor_110600_80136888(Task* arg0)
 {
-    Actor110600Work* work;
-    OverlayWalker*   walker;
-    Enemy*           enemy;
-    TmdObject*       obj;
-    u32              rng;
-    u16              ramp;
+    Actor110600Work*    work;
+    BossStrangerWalker* walker;
+    Enemy*              enemy;
+    TmdObject*          obj;
+    u32                 rng;
+    u16                 ramp;
 
     work  = arg0->work;
     obj   = arg0->extra.tmd;
@@ -2514,13 +2513,13 @@ static void func_actor_110600_80136888(Task* arg0)
         work->field_88C               = 1;
         work->field_892               = 0x18;
         work->field_896               = work->field_898;
-        ramp                          = work->walker.field_5E;
+        ramp                          = work->walker.speed;
         walker                        = &work->walker;
-        work->walker.state            = 0;
-        walker->field_5C              = 0;
-        walker->field_5E              = ramp;
-        walker->field_60              = 8;
-        work->walker.field_5A         = 0;
+        work->walker.state            = BOSS_STRANGER_WALKER_IDLE;
+        walker->speedTarget           = 0;
+        walker->speed                 = ramp;
+        walker->speedStep             = 8;
+        work->walker.turnLimit        = 0;
         work->field_8A4               = 0;
         work->field_8A2               = 0;
     }
@@ -2548,21 +2547,21 @@ static void func_actor_110600_80136888(Task* arg0)
 /// model object, take 0x8000 off `field_A90.flags` and put 0x4000 on
 /// `field_950.flags`, tag the enemy's link node, park the stage timer at 0x1D
 /// with `field_896` at 0x10, then re-arm `walker` to run its
-/// patrol out (`field_5C` = 0xFFFE, `field_5E` reloaded from `walker.field_5E`,
-/// `field_60` = 2) with `walker.state` / `walker.field_5A` / `field_8A4` / `field_8A2`
-/// cleared. Every tick after that steps the walker and the model; at 0x1D the
-/// `field_5C` bit 0 the walker sets on arrival moves the stage to 0x1E and
+/// patrol out (`speedTarget` = 0xFFFE, `speed` reloaded from its own value,
+/// `speedStep` = 2) with `walker.state` / `walker.turnLimit` / `field_8A4` /
+/// `field_8A2` cleared. Every tick after that steps the walker and the model; at
+/// 0x1D this work block's `field_5C` bit 0 moves the stage to 0x1E and
 /// re-seeds the walker block, and at 0x1E that same bit picks what the actor
 /// does next: 0xB while the enemy's `hp` is still positive, 0xC once it
 /// has run out.
 static void func_actor_110600_801369D8(Task* arg0)
 {
-    Actor110600Work* work;
-    OverlayWalker*   walker;
-    OverlayWalker*   walker2;
-    Enemy*           enemy;
-    u16              ramp;
-    u16              ramp2;
+    Actor110600Work*    work;
+    BossStrangerWalker* walker;
+    BossStrangerWalker* walker2;
+    Enemy*              enemy;
+    u16                 ramp;
+    u16                 ramp2;
 
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
@@ -2574,13 +2573,13 @@ static void func_actor_110600_801369D8(Task* arg0)
         work->field_88C               = 2;
         work->field_892               = 0x1D;
         work->field_896               = 0x10;
-        ramp                          = work->walker.field_5E;
+        ramp                          = work->walker.speed;
         walker                        = &work->walker;
-        work->walker.state            = 0;
-        walker->field_5C              = 0xFFFE;
-        walker->field_5E              = ramp;
-        walker->field_60              = 2;
-        work->walker.field_5A         = 0;
+        work->walker.state            = BOSS_STRANGER_WALKER_IDLE;
+        walker->speedTarget           = 0xFFFE;
+        walker->speed                 = ramp;
+        walker->speedStep             = 2;
+        work->walker.turnLimit        = 0;
         work->field_8A4               = 0;
         work->field_8A2               = 0;
     }
@@ -2589,12 +2588,12 @@ static void func_actor_110600_801369D8(Task* arg0)
     func_actor_110600_80134728(arg0);
     if (work->field_892 == 0x1D) {
         if (work->field_5C & 1) {
-            ramp2             = work->walker.field_5E;
-            work->field_892   = 0x1E;
-            work->field_88C   = 2;
-            walker2->field_5C = 0;
-            walker2->field_60 = 2;
-            walker2->field_5E = ramp2;
+            ramp2                = work->walker.speed;
+            work->field_892      = 0x1E;
+            work->field_88C      = 2;
+            walker2->speedTarget = 0;
+            walker2->speedStep   = 2;
+            walker2->speed       = ramp2;
             return;
         }
     }
@@ -2715,7 +2714,7 @@ static void func_actor_110600_80136B20(Task* arg0)
 
 /// Re-dresses a live actor: take the model object out of draw, drop bit 0x8000
 /// of `field_A90.flags` and bit 0x4000 of `field_950.flags`, tag the enemy's
-/// link node, clear the `walker.field_5A` / `field_8A4` / `field_8A2` timers and hand
+/// link node, clear the `walker.turnLimit` / `field_8A4` / `field_8A2` timers and hand
 /// the model the 0x80 texture page, then spawn five effects off its part
 /// coordinates 6, 8, 10, 11 and 15 (`Gp_SpawnEff` bank 0xA0005, buffer sizes
 /// 0x200 / 0x200 / 0x200 / 0x300 / 0x300). Each spawned model object takes its
@@ -2762,7 +2761,7 @@ static void func_actor_110600_80136ECC(Task* arg0)
         work->field_A90.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->field_950.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        work->walker.field_5A         = 0;
+        work->walker.turnLimit        = 0;
         work->field_8A4               = 0;
         work->field_8A2               = 0;
         obj->flags                    = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -2989,7 +2988,7 @@ static void func_actor_110600_801372CC(Task* arg0)
 /// `func_actor_110600_80136888`: entering on a live actor clears the model
 /// object, takes 0x8000 off `field_A90.flags` and 0x4000 off
 /// `field_950.flags`, tags the enemy's link node with 1 and parks the timer at
-/// `field_896` = 0x20 with `field_88C` re-armed, `walker.field_5A` / `field_8A4` /
+/// `field_896` = 0x20 with `field_88C` re-armed, `walker.turnLimit` / `field_8A4` /
 /// `field_8A2` cleared. Every tick after that steps the shared handler and, at
 /// 0x16, rolls `gRandomLcgState` and turns the model's root coordinate by the yaw
 /// the roll's low nibble picks — 0x32 while it is under 0xA, -0x78 past it —
@@ -3011,7 +3010,7 @@ static void func_actor_110600_80137684(Task* arg0)
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         work->field_896               = 0x20;
         work->field_88C               = 1;
-        work->walker.field_5A         = 0;
+        work->walker.turnLimit        = 0;
         work->field_8A4               = 0;
         work->field_8A2               = 0;
         work->field_892               = 0x16;
@@ -3056,7 +3055,7 @@ static void func_actor_110600_801377FC(Task* arg0)
         work->field_A90.flags         = (u16)(work->field_A90.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
         work->field_950.flags         = (u16)(work->field_950.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
         enemy->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
-        work->walker.field_5A         = 0;
+        work->walker.turnLimit        = 0;
         work->field_8A4               = 0;
         work->field_896               = 0x10;
         work->field_8A2               = 0;
@@ -3076,11 +3075,11 @@ static void func_actor_110600_801377FC(Task* arg0)
 /// Aiming stage that re-arms the model behaviour on a live actor — `field_892`
 /// = 0x15 with `field_88C` = 1, the model object's `field_C` cleared, bit 0x8000
 /// off `field_A90.flags` and 0x4000 on `field_950.flags`, the enemy's link node
-/// tagged 1 with `walker.field_5A` / `field_8A4` cleared and `field_896` = 0x10 — then
+/// tagged 1 with `walker.turnLimit` / `field_8A4` cleared and `field_896` = 0x10 — then
 /// wraps the yaw from the model's root coordinate to the player
 /// `gPlayerStatus.coordMtx` against the coordinate's own yaw (`ratan2` of `-m[2][0]`,
 /// `m[2][2]`) into `field_8A2`. Ticks the model and moves the actor to state 3
-/// once the `field_5C` bit the walker sets arrives. Same wrap as
+/// once this work block's `field_5C` bit 0 is set. Same wrap as
 /// `func_actor_110600_80135A18`.
 static void func_actor_110600_80137980(Task* arg0)
 {
@@ -3103,7 +3102,7 @@ static void func_actor_110600_80137980(Task* arg0)
         work->field_A90.flags         = (u16)(work->field_A90.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
         work->field_950.flags         = (u16)(work->field_950.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        work->walker.field_5A         = 0;
+        work->walker.turnLimit        = 0;
         work->field_8A4               = 0;
         work->field_896               = 0x10;
     }
@@ -3233,7 +3232,7 @@ static void func_actor_110600_80137DB0(Task* arg0)
         enemy->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
         work->field_892               = 0xC;
         work->field_88C               = 2;
-        work->walker.field_5A         = 0;
+        work->walker.turnLimit        = 0;
         work->field_8A4               = 0;
         work->field_896               = 6;
         func_actor_110600_80134728(arg0);
@@ -3661,10 +3660,10 @@ static s32 func_actor_110600_80138900(void)
 
 static void func_actor_110600_80138980(Task* arg0)
 {
-    Actor110600Work* work;
-    OverlayWalker*   walker;
-    Enemy*           enemy;
-    u16              ramp;
+    Actor110600Work*    work;
+    BossStrangerWalker* walker;
+    Enemy*              enemy;
+    u16                 ramp;
 
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
@@ -3676,13 +3675,13 @@ static void func_actor_110600_80138980(Task* arg0)
         work->field_88C               = 2;
         work->field_892               = 0xC;
         work->field_896               = 0x10;
-        ramp                          = work->walker.field_5E;
+        ramp                          = work->walker.speed;
         walker                        = &work->walker;
-        work->walker.state            = 0;
-        walker->field_5C              = 2;
-        walker->field_5E              = ramp;
-        walker->field_60              = 8;
-        work->walker.field_5A         = 0;
+        work->walker.state            = BOSS_STRANGER_WALKER_IDLE;
+        walker->speedTarget           = 2;
+        walker->speed                 = ramp;
+        walker->speedStep             = 8;
+        work->walker.turnLimit        = 0;
         work->field_8A4               = 0;
         work->field_8A2               = 0;
     }
@@ -3725,10 +3724,10 @@ static void func_actor_110600_80138A70(Task* arg0)
 
 static void func_actor_110600_80138AFC(Task* arg0)
 {
-    Actor110600Work* work;
-    OverlayWalker*   walker;
-    Enemy*           enemy;
-    u16              ramp;
+    Actor110600Work*    work;
+    BossStrangerWalker* walker;
+    Enemy*              enemy;
+    u16                 ramp;
 
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
@@ -3740,13 +3739,13 @@ static void func_actor_110600_80138AFC(Task* arg0)
         work->field_88C               = 2;
         work->field_892               = 0xF;
         work->field_896               = work->field_898;
-        ramp                          = work->walker.field_5E;
+        ramp                          = work->walker.speed;
         walker                        = &work->walker;
-        work->walker.state            = 0;
-        walker->field_5C              = 0;
-        walker->field_5E              = ramp;
-        walker->field_60              = 8;
-        work->walker.field_5A         = 0;
+        work->walker.state            = BOSS_STRANGER_WALKER_IDLE;
+        walker->speedTarget           = 0;
+        walker->speed                 = ramp;
+        walker->speedStep             = 8;
+        work->walker.turnLimit        = 0;
         work->field_8A4               = 0;
         work->field_8A2               = 0;
     }
@@ -3759,10 +3758,10 @@ static void func_actor_110600_80138AFC(Task* arg0)
 
 static void func_actor_110600_80138BD0(Task* arg0)
 {
-    Actor110600Work* work;
-    OverlayWalker*   walker;
-    Enemy*           enemy;
-    u16              ramp;
+    Actor110600Work*    work;
+    BossStrangerWalker* walker;
+    Enemy*              enemy;
+    u16                 ramp;
 
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
@@ -3774,13 +3773,13 @@ static void func_actor_110600_80138BD0(Task* arg0)
         work->field_88C               = 2;
         work->field_892               = 0x10;
         work->field_896               = work->field_898;
-        ramp                          = work->walker.field_5E;
+        ramp                          = work->walker.speed;
         walker                        = &work->walker;
-        work->walker.state            = 0;
-        walker->field_5C              = 0;
-        walker->field_5E              = ramp;
-        walker->field_60              = 8;
-        work->walker.field_5A         = 0;
+        work->walker.state            = BOSS_STRANGER_WALKER_IDLE;
+        walker->speedTarget           = 0;
+        walker->speed                 = ramp;
+        walker->speedStep             = 8;
+        work->walker.turnLimit        = 0;
         work->field_8A4               = 0;
         work->field_8A2               = 0;
     }
@@ -3809,7 +3808,7 @@ static void func_actor_110600_80138CA4(Task* arg0)
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         work->field_892               = 0x15;
         work->field_88C               = 2;
-        work->walker.field_5A         = 0;
+        work->walker.turnLimit        = 0;
         work->field_8A4               = 0;
         work->field_896               = 0x10;
         work->field_88E               = 0;

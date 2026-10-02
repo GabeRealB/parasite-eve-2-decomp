@@ -1,9 +1,9 @@
 /* Part of the Boss Stranger library; see boss_stranger.h. */
 
-/// Turns the walker towards `pos` by at most `field_5A` angle units a frame.
+/// Turns the walker towards `pos` by at most `turnLimit` angle units a frame.
 /// The wrapped relative bearing drives the consecutive-turn counter, then
 /// becomes the absolute yaw the model's saved scale matrix is rebuilt around.
-void bossStrangerTurnToward(OverlayWalker* work, SVECTOR3* pos)
+void bossStrangerTurnToward(BossStrangerWalker* work, SVECTOR3* pos)
 {
     OverlayWalkerTurnScratch* s;
     GfxCoord*                 coord;
@@ -36,22 +36,22 @@ void bossStrangerTurnToward(OverlayWalker* work, SVECTOR3* pos)
     angle    = t;
     s->angle = angle;
     if (angle != 0)
-        work->field_62++;
+        work->turnRun++;
     else
-        work->field_62 = 0;
+        work->turnRun = 0;
     // Extra turn allowance by how long the walker has kept turning; every
-    // tier grants nothing, so the limit is always `field_5A` alone.
-    if (work->field_62 > 60)
-        work->field_64 = 0;
-    else if (work->field_62 > 30)
-        work->field_64 = 0;
+    // tier grants nothing, so the limit is always `turnLimit` alone.
+    if (work->turnRun > 60)
+        work->turnBonus = 0;
+    else if (work->turnRun > 30)
+        work->turnBonus = 0;
     else
-        work->field_64 = 0;
-    if (work->field_5A + work->field_64 < s->angle)
-        s->angle = work->field_5A + work->field_64;
-    if (s->angle < -(work->field_5A + work->field_64))
-        s->angle = -(work->field_5A + work->field_64);
-    if (work->field_5A == 0)
+        work->turnBonus = 0;
+    if (work->turnLimit + work->turnBonus < s->angle)
+        s->angle = work->turnLimit + work->turnBonus;
+    if (s->angle < -(work->turnLimit + work->turnBonus))
+        s->angle = -(work->turnLimit + work->turnBonus);
+    if (work->turnLimit == 0)
         s->angle = 0;
     s->angle += ratan2(-work->coord->coord.m[2][0], work->coord->coord.m[2][2]);
     memcpy(work->coord->coord.m, work->scaleMtx.m, sizeof(work->scaleMtx.m));

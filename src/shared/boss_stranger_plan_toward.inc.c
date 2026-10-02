@@ -4,14 +4,14 @@
 /// towards actor `actor`. It collects every slot of that order naming the
 /// node nearest the actor and every slot naming the node nearest the walker,
 /// then picks the pair of slots that are closest together: the walker's
-/// `cursor` becomes the slot on its own side, `field_75` records the slot on
-/// the actor's side, and `field_73` becomes the +1 / -1 direction the cursor
+/// `cursor` becomes the slot on its own side, `goalSlot` records the slot on
+/// the actor's side, and `orderStep` becomes the +1 / -1 direction the cursor
 /// has to travel along the order to close the gap -- which the caller then
 /// applies, as does the last line here. Both lists hold at most eight slots,
 /// so an order with more matches than that is silently truncated; if no pair
 /// was found at all the routine only complains and leaves the cursor where it
 /// was.
-void bossStrangerPlanToward(OverlayWalker* work, s16 actor)
+void bossStrangerPlanToward(BossStrangerWalker* work, s16 actor)
 {
     OverlayWalkerRouteScratch* s;
     u8*                        head;
@@ -55,11 +55,11 @@ void bossStrangerPlanToward(OverlayWalker* work, s16 actor)
             if (diff < best) {
                 s->best        = diff;
                 work->cursor   = s->listB[s->j];
-                work->field_75 = s->listA[s->i];
+                work->goalSlot = s->listA[s->i];
                 if (s->diff < 0) {
-                    work->field_73 = -1;
+                    work->orderStep = -1;
                 } else {
-                    work->field_73 = 1;
+                    work->orderStep = 1;
                 }
             }
         }
@@ -68,6 +68,6 @@ void bossStrangerPlanToward(OverlayWalker* work, s16 actor)
     if (s->best == 0xFF) {
         printf(_gPatrolNoPairMsg);
     }
-    work->cursor += (u8)work->field_73;
+    work->cursor += (u8)work->orderStep;
     SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }

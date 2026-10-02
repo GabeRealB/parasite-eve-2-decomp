@@ -277,7 +277,7 @@ typedef struct AcropolisBridgeEnemyWork {
     /* 0x1F0 */ EffectSpawnArg        field_1F0;
     /* 0x1F8 */ s16                   field_1F8;
     /* 0x1FA */ s16                   field_1FA;
-    /* 0x1FC */ OverlayWalker         walker;
+    /* 0x1FC */ BossStrangerWalker    walker;
     /* 0x290 */ u16                   field_290;
     /* 0x292 */ u16                   field_292;
 } AcropolisBridgeEnemyWork;
@@ -2456,7 +2456,7 @@ s16 D_acropolis_bridge_801915E4[6][6] = {
     { 0, 0, 0, 0, 0, 0 },
 };
 
-OverlayWalkerNode D_acropolis_bridge_8019162C[20] = {
+BossStrangerNode D_acropolis_bridge_8019162C[20] = {
     { -0x376E, 1000, 600, { 0, 0 } },
     { -0x3962, 1000, -900, { 0, 0 } },
     { -0x376E, 1000, -2900, { 0, 0 } },
@@ -2644,7 +2644,7 @@ DR_MOVE* D_acropolis_bridge_801917AC;
 
 extern AnimationSet* D_acropolis_bridge_801915C8[7];
 
-extern OverlayWalkerNode D_acropolis_bridge_8019162C[];
+extern BossStrangerNode D_acropolis_bridge_8019162C[];
 
 extern u8 D_acropolis_bridge_801916CC[];
 
@@ -2653,10 +2653,10 @@ extern u8* D_acropolis_bridge_80191720[];
 extern AcropolisBridgeMessageEntry D_acropolis_bridge_80191744[3];
 
 static void            func_acropolis_bridge_8017EB4C(s32 state, s8 dx, s8 dy);
-static __inline__ void walkerStep(OverlayWalker* walker, u8* head,
+static __inline__ void walkerStep(BossStrangerWalker* walker, u8* head,
                                   OverlayWalkerTickScratch* block);
 static __inline__ void bridge_set_obj_pos(WorldCollisionBody* obj, SVECTOR3* pos);
-static __inline__ void _acropolisBridgeInitWalkerScale(OverlayWalker* walker);
+static __inline__ void _acropolisBridgeInitWalkerScale(BossStrangerWalker* walker);
 static __inline__ void _acropolisBridgeLightModel(Task* task, GfxCoord* coord);
 static __inline__ void bridge_reset_scale_mtx_entry(AcropolisBridgeEnemyWork* work);
 static __inline__ void bridge_reset_scale_mtx_shrink(AcropolisBridgeEnemyWork* work);
@@ -4621,18 +4621,15 @@ static const GpEnemyTaskFuncTable3 D_acropolis_bridge_8017D6E8 = {
 /// as it was before the frame was carved off, so the `SVECTOR3` the states
 /// steer towards is `head - 0x24` == `&block->pos`.
 ///
-/// State 1 heads straight for the actor selected by the walker's spawn
-/// variant -- the low halfword of each translation component of that actor's
-/// coordinate matrix -- state 2 re-runs the patrol steering and re-reads
-/// `nav`'s `nodeOrder` at the walker's `cursor` whenever the step or the state
-/// changed, and
-/// state 3 follows the patrol route proper. The scalar at `field_5E` then
-/// ramps towards `field_5C` by `field_60` a frame; while it is non-zero it
-/// scales (`GPF`) the normalised facing column of the model matrix into the
+/// State 1 heads straight for the selected player's matrix translation.
+/// State 2 walks `nav`'s `nodeOrder` and re-plans when the state or a node
+/// byte changes, and state 3 follows the patrol route. `speed` then ramps
+/// towards `speedTarget` by at most `speedStep` a frame; while it is non-zero
+/// it scales (`GPF`) the normalised facing column of the model matrix into the
 /// per-frame world step, which is added to the coordinate's translation and
-/// kept in `moveStep`. `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen` (a global freeze flag) zeroes the step
-/// instead.
-static __inline__ void walkerStep(OverlayWalker* walker, u8* head,
+/// kept in `moveStep`. `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen`
+/// zeroes the step instead.
+static __inline__ void walkerStep(BossStrangerWalker* walker, u8* head,
                                   OverlayWalkerTickScratch* block)
 {
     u8*           head2;
@@ -4650,56 +4647,56 @@ static __inline__ void walkerStep(OverlayWalker* walker, u8* head,
     s32           result;
 
     switch (walker->state) {
-        case 0:
+        case BOSS_STRANGER_WALKER_IDLE:
             break;
-        case 1:
-            cfg                            = &gPlayerStatus + (walker->field_6E - 1);
+        case BOSS_STRANGER_WALKER_CHASE:
+            cfg                            = &gPlayerStatus + (walker->playerId - 1);
             pos                            = (SVECTOR3*)(head - 0x24);
             ((SVECTOR3*)(head - 0x24))->vx = (u16)cfg->coordMtx->t[0];
             pos->vy                        = (u16)cfg->coordMtx->t[1];
             pos->vz                        = (u16)cfg->coordMtx->t[2];
             break;
-        case 2:
+        case BOSS_STRANGER_WALKER_CLOSE:
             SCRATCH_STACK_RESERVE_BYTES(4);
-            walker->field_6F = bossStrangerNodeNearestActor(walker, 1);
-            walker->field_70 = bossStrangerNodeNearestSelf(walker);
-            if (walker->field_69 != walker->state || walker->field_70 != walker->field_72 ||
-                walker->field_6F != walker->field_71) {
+            walker->actorNode = bossStrangerNodeNearestActor(walker, 1);
+            walker->selfNode  = bossStrangerNodeNearestSelf(walker);
+            if (walker->prevState != walker->state || walker->selfNode != walker->prevSelfNode ||
+                walker->actorNode != walker->prevActorNode) {
                 bossStrangerPlanToward(walker, 1);
                 walker->node = walker->nav->nodeOrder[walker->cursor];
             }
-            walker->field_69 = walker->state;
-            walker->field_72 = walker->field_70;
-            walker->field_71 = walker->field_6F;
+            walker->prevState     = walker->state;
+            walker->prevSelfNode  = walker->selfNode;
+            walker->prevActorNode = walker->actorNode;
             if (bossStrangerArrived(walker) != 0) {
-                walker->cursor += (u8)walker->field_73;
+                walker->cursor += (u8)walker->orderStep;
                 walker->node    = walker->nav->nodeOrder[walker->cursor];
                 SCRATCH_STACK_RELEASE_BYTES(4);
             }
             break;
-        case 3:
+        case BOSS_STRANGER_WALKER_PATROL:
             bossStrangerFollowRoute(walker, (SVECTOR3*)(head - 0x24));
             break;
     }
     bossStrangerTurnToward(walker, &block->pos);
 
-    cur    = walker->field_5C;
-    target = walker->field_5E;
+    cur    = walker->speedTarget;
+    target = walker->speed;
     if (cur != target) {
         diff  = cur - target;
         sdiff = diff;
-        if (sdiff > walker->field_60) {
-            result = target + walker->field_60;
-        } else if (sdiff < -walker->field_60) {
-            result = target - walker->field_60;
+        if (sdiff > walker->speedStep) {
+            result = target + walker->speedStep;
+        } else if (sdiff < -walker->speedStep) {
+            result = target - walker->speedStep;
         } else {
             result = target + diff;
         }
-        walker->field_5E = result;
+        walker->speed = result;
     }
 
     coord = walker->coord;
-    speed = walker->field_5E;
+    speed = walker->speed;
     step  = &walker->moveStep;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen == 1) {
         step->vz            = 0;
@@ -4727,10 +4724,10 @@ static __inline__ void walkerStep(OverlayWalker* walker, u8* head,
         }
         SCRATCH_STACK_RELEASE_BYTES(8);
     }
-    if (walker->field_6C == 0) {
+    if (walker->skipGround == 0) {
         bossStrangerApplyGroundStep(walker);
     }
-    if (walker->field_6D == 0) {
+    if (walker->skipAvoid == 0) {
         bossStrangerAvoidContacts(walker);
     }
 }
@@ -4872,7 +4869,7 @@ static __inline__ void bridge_set_obj_pos(WorldCollisionBody* obj, SVECTOR3* pos
 /// `scale` is 0 or unity, scales it by `scale` on all three axes. The `VECTOR`
 /// handed to `ScaleMatrix` is taken from the scratch stack and left there for
 /// `_acropolisBridgeLightModel` to reuse and release.
-static __inline__ void _acropolisBridgeInitWalkerScale(OverlayWalker* walker)
+static __inline__ void _acropolisBridgeInitWalkerScale(BossStrangerWalker* walker)
 {
     VECTOR* head;
     VECTOR* scale;
@@ -4938,7 +4935,7 @@ static void func_acropolis_bridge_80185988(Enemy* enemy, Task* task)
     GfxCoord*                 coord;
     GfxCoord*                 coord2;
     AcropolisBridgeEnemyWork* work;
-    OverlayWalker*            walker;
+    BossStrangerWalker*       walker;
     WorldCollisionBody*       link;
     WorldCollisionBody*       link2;
     s32                       variant;
@@ -5027,17 +5024,17 @@ static void func_acropolis_bridge_80185988(Enemy* enemy, Task* task)
     work->walker.recs                  = 0;
     work->walker.avoidRecs             = work->recs;
     work->walker.scale                 = 0x1000;
-    work->walker.field_56              = 0;
-    work->walker.field_5A              = 0x30;
+    work->walker.recCount              = 0;
+    work->walker.turnLimit             = 0x30;
     work->walker.coord                 = coord2;
-    walker->field_5C                   = 0x30;
-    walker->field_5E                   = 0;
-    walker->field_60                   = 1;
-    step                               = 3;
+    walker->speedTarget                = 0x30;
+    walker->speed                      = 0;
+    walker->speedStep                  = 1;
+    step                               = BOSS_STRANGER_WALKER_PATROL;
     work->walker.state                 = step;
-    work->walker.field_6B              = 1;
-    work->walker.field_6C              = 1;
-    work->walker.field_6E              = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId;
+    work->walker.lockHeight            = 1;
+    work->walker.skipGround            = 1;
+    work->walker.playerId              = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId;
 
     _acropolisBridgeInitWalkerScale(walker);
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -5085,10 +5082,10 @@ static void func_acropolis_bridge_80185988(Enemy* enemy, Task* task)
 /// written before the block is taken.
 static __inline__ void bridge_reset_scale_mtx_entry(AcropolisBridgeEnemyWork* work)
 {
-    OverlayWalker* walker;
-    u8*            head;
-    VECTOR*        scale;
-    s32            amount;
+    BossStrangerWalker* walker;
+    u8*                 head;
+    VECTOR*             scale;
+    s32                 amount;
 
     head                         = SCRATCH_STACK_CURSOR(u8);
     walker                       = &work->walker;
@@ -5122,10 +5119,10 @@ static __inline__ void bridge_reset_scale_mtx_entry(AcropolisBridgeEnemyWork* wo
 /// the spawn ramp).
 static __inline__ void bridge_reset_scale_mtx_shrink(AcropolisBridgeEnemyWork* work)
 {
-    OverlayWalker* walker;
-    u8*            head;
-    VECTOR*        scale;
-    s32            amount;
+    BossStrangerWalker* walker;
+    u8*                 head;
+    VECTOR*             scale;
+    s32                 amount;
 
     walker                   = &work->walker;
     head                     = SCRATCH_STACK_CURSOR(u8);
@@ -5166,8 +5163,8 @@ static __inline__ void bridge_reset_scale_mtx_shrink(AcropolisBridgeEnemyWork* w
 void func_acropolis_bridge_80185F28(Task* task)
 {
     AcropolisBridgeEnemyWork* work;
-    OverlayWalker*            walker;
-    OverlayWalker*            walker2;
+    BossStrangerWalker*       walker;
+    BossStrangerWalker*       walker2;
     Enemy*                    enemy;
     PlayerStatus*             cfg;
 
@@ -5175,25 +5172,25 @@ void func_acropolis_bridge_80185F28(Task* task)
     work  = (AcropolisBridgeEnemyWork*)task->work;
     enemy = (Enemy*)task->spawnArg2.pointer;
     if (work->field_4 != 0) {
-        work->walker.state            = 3;
+        work->walker.state            = BOSS_STRANGER_WALKER_PATROL;
         work->walker.routeData.cursor = 0;
         work->hit.flags              &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->body.flags             |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         bridge_reset_scale_mtx_entry(work);
-        work->walker.field_5A = 0x60;
-        walker                = &work->walker;
-        walker->field_5C      = 0x20;
-        walker->field_5E      = 0;
-        walker->field_60      = 1;
-        work->field_100       = 2;
-        work->field_104       = 1;
-        work->field_108       = 0x10;
+        work->walker.turnLimit = 0x60;
+        walker                 = &work->walker;
+        walker->speedTarget    = 0x20;
+        walker->speed          = 0;
+        walker->speedStep      = 1;
+        work->field_100        = 2;
+        work->field_104        = 1;
+        work->field_108        = 0x10;
     }
     if (work->walker.routeData.arrived == 1) {
-        walker2           = &work->walker;
-        walker2->field_5C = 0x20;
-        walker2->field_5E = 0x60;
-        walker2->field_60 = 2;
+        walker2              = &work->walker;
+        walker2->speedTarget = 0x20;
+        walker2->speed       = 0x60;
+        walker2->speedStep   = 2;
     }
     if (work->field_1F8 < 0x708) {
         work->field_1F8 += 0x2D;
@@ -5220,10 +5217,10 @@ void func_acropolis_bridge_80185F28(Task* task)
 /// the scratch stack.
 static __inline__ void bridge_scale_up(AcropolisBridgeEnemyWork* work)
 {
-    OverlayWalker* walker;
-    u8*            head;
-    VECTOR*        scale;
-    s32            amount;
+    BossStrangerWalker* walker;
+    u8*                 head;
+    VECTOR*             scale;
+    s32                 amount;
 
     work->walker.scale      += 0x88;
     walker                   = &work->walker;
@@ -5275,7 +5272,7 @@ static __inline__ s16 _acropolisBridgeWasHit(Task* task)
 void func_acropolis_bridge_801861A0(Task* task)
 {
     AcropolisBridgeEnemyWork* work;
-    OverlayWalker*            walker;
+    BossStrangerWalker*       walker;
     Enemy*                    enemy;
     PlayerStatus*             cfg;
     u16                       height;
@@ -5286,13 +5283,13 @@ void func_acropolis_bridge_801861A0(Task* task)
         enemy = (Enemy*)task->spawnArg2.pointer;
         Gp_ArmStateF0(1);
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        height                        = work->walker.field_5E;
+        height                        = work->walker.speed;
         walker                        = &work->walker;
-        work->walker.field_5A         = 0x100;
-        walker->field_5C              = 0xA0;
-        walker->field_60              = 6;
-        walker->field_5E              = height;
-        work->walker.state            = 1;
+        work->walker.turnLimit        = 0x100;
+        walker->speedTarget           = 0xA0;
+        walker->speedStep             = 6;
+        walker->speed                 = height;
+        work->walker.state            = BOSS_STRANGER_WALKER_CHASE;
         work->hit.flags              |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         work->body.flags             |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         work->hit.key                 = Gp_PackObjPair(enemy, 0);
@@ -5333,7 +5330,7 @@ void func_acropolis_bridge_801861A0(Task* task)
 void func_acropolis_bridge_801863A8(Task* task)
 {
     AcropolisBridgeEnemyWork* work;
-    OverlayWalker*            walker;
+    BossStrangerWalker*       walker;
     Enemy*                    enemy;
     PlayerStatus*             cfg;
 
@@ -5341,18 +5338,18 @@ void func_acropolis_bridge_801863A8(Task* task)
     work  = (AcropolisBridgeEnemyWork*)task->work;
     enemy = (Enemy*)task->spawnArg2.pointer;
     if (work->field_4 != 0) {
-        work->walker.state            = 3;
+        work->walker.state            = BOSS_STRANGER_WALKER_PATROL;
         work->walker.routeData.cursor = 0;
         work->hit.flags              &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         bridge_reset_scale_mtx_entry(work);
-        work->walker.field_5A = 0x200;
-        walker                = &work->walker;
-        walker->field_5C      = 0x20;
-        walker->field_5E      = 0x80;
-        walker->field_60      = 3;
-        work->field_100       = 2;
-        work->field_104       = 1;
-        work->field_108       = 0x10;
+        work->walker.turnLimit = 0x200;
+        walker                 = &work->walker;
+        walker->speedTarget    = 0x20;
+        walker->speed          = 0x80;
+        walker->speedStep      = 3;
+        work->field_100        = 2;
+        work->field_104        = 1;
+        work->field_108        = 0x10;
     }
     if (work->field_1F8 < 0x708) {
         work->field_1F8 += 0x2D;

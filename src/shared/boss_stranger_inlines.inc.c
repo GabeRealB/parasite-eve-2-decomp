@@ -2,17 +2,17 @@
 
 /// The walker's per-tick body, open on the scratch frame `bossStrangerTick`
 /// hands it. State 1 heads straight for the player matrix's translation, using
-/// `field_6E` as the one-based player selector; state 2 re-runs patrol steering and
-/// re-reads `nav`'s `nodeOrder` at the walker's `cursor` whenever the step or one of the
-/// three node bytes changed, and state 3 follows the patrol route proper. The
-/// scalar at `field_5E` then ramps towards `field_5C` by `field_60` a frame;
-/// while it is non-zero it scales (`GPF`) the normalised facing column of the
-/// model matrix into the per-frame world step, which is added to the
-/// coordinate's translation and kept in `moveStep`. `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen` (a global
-/// freeze flag) zeroes the step instead. Written as an inline so the two
-/// scratch-head accesses inside one frame stay absolute; see
+/// `playerId` as the one-based player selector; state 2 walks `nav`'s
+/// `nodeOrder` and re-plans whenever the state or one of the node bytes
+/// changed, and state 3 follows the patrol route. `speed` then ramps towards
+/// `speedTarget` by at most `speedStep` a frame; while it is non-zero it
+/// scales (`GPF`) the normalised facing column of the model matrix into the
+/// per-frame world step, which is added to the coordinate's translation and
+/// kept in `moveStep`. `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen`
+/// zeroes the step instead. Written as an inline so the two scratch-head
+/// accesses inside one frame stay absolute; see
 /// `func_acropolis_bridge_8018532C` in `acropolis_bridge_12.c`, the same body.
-static __inline__ void bossStrangerStep(OverlayWalker* walker, u8* head,
+static __inline__ void bossStrangerStep(BossStrangerWalker* walker, u8* head,
                                         OverlayWalkerTickScratch* block)
 {
     u8*           head2;
@@ -30,56 +30,56 @@ static __inline__ void bossStrangerStep(OverlayWalker* walker, u8* head,
     s32           result;
 
     switch (walker->state) {
-        case 0:
+        case BOSS_STRANGER_WALKER_IDLE:
             break;
-        case 1:
-            cfg                            = &gPlayerStatus + (walker->field_6E - 1);
+        case BOSS_STRANGER_WALKER_CHASE:
+            cfg                            = &gPlayerStatus + (walker->playerId - 1);
             pos                            = (SVECTOR3*)(head - 0x24);
             ((SVECTOR3*)(head - 0x24))->vx = (u16)cfg->coordMtx->t[0];
             pos->vy                        = (u16)cfg->coordMtx->t[1];
             pos->vz                        = (u16)cfg->coordMtx->t[2];
             break;
-        case 2:
+        case BOSS_STRANGER_WALKER_CLOSE:
             SCRATCH_STACK_RESERVE_BYTES(4);
-            walker->field_6F = bossStrangerNodeNearestActor(walker, 1);
-            walker->field_70 = bossStrangerNodeNearestSelf(walker);
-            if (walker->field_69 != walker->state || walker->field_70 != walker->field_72 ||
-                walker->field_6F != walker->field_71) {
+            walker->actorNode = bossStrangerNodeNearestActor(walker, 1);
+            walker->selfNode  = bossStrangerNodeNearestSelf(walker);
+            if (walker->prevState != walker->state || walker->selfNode != walker->prevSelfNode ||
+                walker->actorNode != walker->prevActorNode) {
                 bossStrangerPlanToward(walker, 1);
                 walker->node = walker->nav->nodeOrder[walker->cursor];
             }
-            walker->field_69 = walker->state;
-            walker->field_72 = walker->field_70;
-            walker->field_71 = walker->field_6F;
+            walker->prevState     = walker->state;
+            walker->prevSelfNode  = walker->selfNode;
+            walker->prevActorNode = walker->actorNode;
             if (bossStrangerArrived(walker) != 0) {
-                walker->cursor += (u8)walker->field_73;
+                walker->cursor += (u8)walker->orderStep;
                 walker->node    = walker->nav->nodeOrder[walker->cursor];
                 SCRATCH_STACK_RELEASE_BYTES(4);
             }
             break;
-        case 3:
+        case BOSS_STRANGER_WALKER_PATROL:
             bossStrangerFollowRoute(walker, (SVECTOR3*)(head - 0x24));
             break;
     }
     bossStrangerTurnToward(walker, &block->pos);
 
-    cur    = walker->field_5C;
-    target = walker->field_5E;
+    cur    = walker->speedTarget;
+    target = walker->speed;
     if (cur != target) {
         diff  = cur - target;
         sdiff = diff;
-        if (sdiff > walker->field_60) {
-            result = target + walker->field_60;
-        } else if (sdiff < -walker->field_60) {
-            result = target - walker->field_60;
+        if (sdiff > walker->speedStep) {
+            result = target + walker->speedStep;
+        } else if (sdiff < -walker->speedStep) {
+            result = target - walker->speedStep;
         } else {
             result = target + diff;
         }
-        walker->field_5E = result;
+        walker->speed = result;
     }
 
     coord = walker->coord;
-    speed = walker->field_5E;
+    speed = walker->speed;
     step  = &walker->moveStep;
     if (gMcSaveData[0].state.actorsFrozen == 1) {
         step->vz            = 0;
@@ -105,10 +105,10 @@ static __inline__ void bossStrangerStep(OverlayWalker* walker, u8* head,
         }
         SCRATCH_STACK_RELEASE_BYTES(8);
     }
-    if (walker->field_6C == 0) {
+    if (walker->skipGround == 0) {
         bossStrangerApplyGroundStep(walker);
     }
-    if (walker->field_6D == 0) {
+    if (walker->skipAvoid == 0) {
         bossStrangerAvoidContacts(walker);
     }
 }

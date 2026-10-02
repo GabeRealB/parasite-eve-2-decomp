@@ -1,10 +1,11 @@
 /* Part of the Boss Stranger library; see boss_stranger.h. */
 
 /// Turns the 16.16 collision delta from func_800E0C10 into a whole-unit step
-/// rounded away from zero, and adds a 0x10 fall unless field_6B pins it. Y is
-/// applied in bands (+8 hop above 0x20, -0x20 drop below -0x20, otherwise the
-/// plain step), and moving records whether it moved in XZ.
-void bossStrangerApplyGroundStep(OverlayWalker* work)
+/// rounded away from zero, and adds a 0x10 fall unless `lockHeight` pins Y.
+/// Y is applied in bands (+8 hop above 0x20, -0x20 drop below -0x20, otherwise
+/// the plain step). `offOrigin` is then 1 when the local X or Z translation
+/// is nonzero; nothing reads it.
+void bossStrangerApplyGroundStep(BossStrangerWalker* work)
 {
     u8*                       head;
     OverlayWalkerMoveScratch* s;
@@ -19,7 +20,7 @@ void bossStrangerApplyGroundStep(OverlayWalker* work)
     head                     = SCRATCH_STACK_CURSOR(u8);
     SCRATCH_STACK_CURSOR(u8) = head - 0x18;
     s                        = (OverlayWalkerMoveScratch*)(head - 0x18);
-    if (func_800E0C10(work->recs, &s->delta, work->field_56, NULL) != 0) {
+    if (func_800E0C10(work->recs, &s->delta, work->recCount, NULL) != 0) {
         dx         = ((OverlayWalkerMoveScratch*)(head - 0x18))->delta.fixed.vx.halves.integer;
         dz         = s->delta.fixed.vz.halves.integer;
         s->move.vx = dx;
@@ -40,7 +41,7 @@ void bossStrangerApplyGroundStep(OverlayWalker* work)
                 s->move.vz--;
             }
         }
-        if (work->field_6B == 0) {
+        if (work->lockHeight == 0) {
             dy         = s->delta.fixed.vy.halves.integer;
             valy       = s->delta.fixed.vy.word;
             s->move.vy = s->move.vy + dy;
@@ -59,7 +60,7 @@ void bossStrangerApplyGroundStep(OverlayWalker* work)
         s->move.vy = 0;
         s->move.vz = 0;
     }
-    if (work->field_6B == 0) {
+    if (work->lockHeight == 0) {
         s->move.vy += 0x10;
     }
     work->moveDelta          = s->move;
@@ -76,9 +77,9 @@ void bossStrangerApplyGroundStep(OverlayWalker* work)
     }
     work->coord->coord.t[2] += s->move.vz;
     if (work->coord->coord.t[0] != 0 || work->coord->coord.t[2] != 0) {
-        work->moving = 1;
+        work->offOrigin = 1;
     } else {
-        work->moving = 0;
+        work->offOrigin = 0;
     }
     SCRATCH_STACK_RELEASE_BYTES(0x18);
 }

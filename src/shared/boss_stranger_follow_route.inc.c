@@ -3,13 +3,13 @@
 /// Resolves the node the route cursor names and writes its position to pos. On
 /// arrival it sets route->arrived, clears the turn counters and advances the
 /// cursor, wrapping at OVERLAY_WALKER_ROUTE_END.
-void bossStrangerFollowRoute(OverlayWalker* work, SVECTOR3* pos)
+void bossStrangerFollowRoute(BossStrangerWalker* work, SVECTOR3* pos)
 {
-    OverlayWalkerRoute* route;
-    OverlayWalkerRoute* routeAdvance;
-    OverlayWalkerRoute* routeWrap;
-    OverlayWalkerRoute* routeNext;
-    u8                  node;
+    BossStrangerRoute* route;
+    BossStrangerRoute* routeAdvance;
+    BossStrangerRoute* routeWrap;
+    BossStrangerRoute* routeNext;
+    u8                 node;
 
     route      = work->route;
     work->node = route->nodeIndices[route->cursor];
@@ -25,8 +25,8 @@ void bossStrangerFollowRoute(OverlayWalker* work, SVECTOR3* pos)
     // index the cursor then names. Each of those phases keeps its own pointer.
     work->route->arrived = 1;
     routeAdvance         = work->route;
-    work->field_62       = 0;
-    work->field_64       = 0;
+    work->turnRun        = 0;
+    work->turnBonus      = 0;
     routeAdvance->cursor++;
 
     routeWrap = work->route;

@@ -5,7 +5,7 @@
 /// from the translation of the actor config's matrix rather than from the
 /// walker's own coordinate; the walker uses it with the player (entry 1) to
 /// pick the node it retreats to.
-u8 bossStrangerNodeNearestActor(OverlayWalker* work, s32 actor)
+u8 bossStrangerNodeNearestActor(BossStrangerWalker* work, s32 actor)
 {
     OverlayWalkerNearCfgScratch* block;
     u8*                          head;

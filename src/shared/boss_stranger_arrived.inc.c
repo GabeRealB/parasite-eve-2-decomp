@@ -1,8 +1,10 @@
 /* Part of the Boss Stranger library; see boss_stranger.h. */
 
-/// Returns 1 when the walker is within field_5C*4 or 300 units (XZ) of its
-/// current nav node, else 0.
-s16 bossStrangerArrived(OverlayWalker* walker)
+/// Returns 1 when the walker is within `speedTarget` * 4 or 300 units (XZ) of
+/// its current nav node, else 0. The larger radius wins. `speedTarget` is
+/// unsigned; 0xFFFE truncates to a negative radius when passed as an `s16`,
+/// so the 300-unit test still decides.
+s16 bossStrangerArrived(BossStrangerWalker* walker)
 {
     OverlayWalkerArrivalDelta* d;
     u8*                        head;
@@ -18,7 +20,7 @@ s16 bossStrangerArrived(OverlayWalker* walker)
     d->y = 0;
     d->z = d->z - (u16)walker->coord->coord.t[2];
 
-    if (!overlayWalkerOutOfRange(d, walker->field_5C * 4) ||
+    if (!overlayWalkerOutOfRange(d, walker->speedTarget * 4) ||
         !overlayWalkerOutOfRange(d, 300)) {
         SCRATCH_STACK_RELEASE_BYTES(0x8);
         return 1;

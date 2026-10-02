@@ -4,7 +4,7 @@
 /// records (kind 0x10000 also sets blocked). Agreeing bearings each push the
 /// walker 10 units away along that direction, and the push is accumulated in
 /// push.
-void bossStrangerAvoidContacts(OverlayWalker* work)
+void bossStrangerAvoidContacts(BossStrangerWalker* work)
 {
     u8*                  head;
     OverlayAvoidScratch* s;
