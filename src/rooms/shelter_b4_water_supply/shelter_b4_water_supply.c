@@ -1015,11 +1015,16 @@ static s32 func_shelter_b4_water_supply_8017DDFC(RoomEventMsg* in, RoomEventMsg*
 }
 
 #define WATER_WAVE_STRIPS_SURFACE_T ShelterB4WaterSupplySurface
-// This room's 10-byte surface format keeps the list marker in a signed halfword.
-#define WATER_WAVE_STRIPS_SEGMENT_COUNT(surface) ((surface)->count)
-#define WATER_WAVE_STRIPS_SURFACES               D_shelter_b4_water_supply_80182648
-#define WATER_WAVE_STRIPS_HEIGHT                 D_shelter_b4_water_supply_80182638
-#define WATER_WAVE_STRIPS_PRIM_CURSOR            D_shelter_b4_water_supply_80184E50
+/// Tests the list terminator in the water supply's 10-byte surface descriptor.
+///
+/// Reads the signed 16-bit `count` marker from a valid descriptor once and
+/// returns an int (0 drawable entry, 1 list end), without reading geometry.
+/// Captures no caller locals and adds no side effects. The shared strip
+/// include consumes and undefines this override; see its predicate contract.
+#define WATER_WAVE_STRIPS_IS_LIST_END(surface) ((surface)->count == WATER_SURFACE_LIST_END)
+#define WATER_WAVE_STRIPS_SURFACES             D_shelter_b4_water_supply_80182648
+#define WATER_WAVE_STRIPS_HEIGHT               D_shelter_b4_water_supply_80182638
+#define WATER_WAVE_STRIPS_PRIM_CURSOR          D_shelter_b4_water_supply_80184E50
 /// Scales the seam's sine displacement to -64..64 world-coordinate Y units.
 ///
 /// Integer shift count for `water_wave_strips.inc.c`; see its configuration

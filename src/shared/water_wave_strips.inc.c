@@ -20,13 +20,20 @@
 #ifndef WATER_WAVE_STRIPS_SURFACE_T
 #define WATER_WAVE_STRIPS_SURFACE_T RoomWaterSurface
 #endif
-#ifndef WATER_WAVE_STRIPS_SEGMENT_COUNT
-/// Reads the signed subdivision/list marker from `WATER_WAVE_STRIPS_SURFACE_T`.
+#ifndef WATER_WAVE_STRIPS_IS_LIST_END
+/// Tests whether a descriptor terminates the fixed water-strip surface list.
 ///
-/// Fixed strips use it only to detect `WATER_SURFACE_LIST_END`. An alternate
-/// surface format supplies this accessor along with its type binding; the
-/// accessor must evaluate its pointer argument once and preserve signedness.
-#define WATER_WAVE_STRIPS_SEGMENT_COUNT(surface) ((surface)->segmentCount)
+/// Returns an int (0 drawable entry, 1 list end). `surface` must point to a
+/// readable `WATER_WAVE_STRIPS_SURFACE_T` descriptor in a table terminated
+/// within its bounds. Only the signed marker is read, before any geometry;
+/// other marker values, including 0, do not affect the fixed 16 subdivisions.
+/// The main corridor and both septic-tank instances use this default. An
+/// alternate surface type must bind a matching predicate before the include.
+/// Definitions must evaluate the pointer once and preserve the signed
+/// `WATER_SURFACE_LIST_END` comparison, with no additional side effects or
+/// captured caller locals. This include undefines the binding; each instance
+/// must supply its override again.
+#define WATER_WAVE_STRIPS_IS_LIST_END(surface) ((surface)->segmentCount == WATER_SURFACE_LIST_END)
 #endif
 #ifndef WATER_WAVE_STRIPS_RESET_ACTOR_LOAD_CURSOR
 /// Selects whether the strip drawer resets its actor-load packet cursor.
@@ -178,7 +185,7 @@ static void WATER_WAVE_STRIPS_FUNC(Task* task)
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     scratch->y = WATER_WAVE_STRIPS_HEIGHT;
-    for (; WATER_WAVE_STRIPS_SEGMENT_COUNT(surface) != WATER_SURFACE_LIST_END; surface++) {
+    for (; !WATER_WAVE_STRIPS_IS_LIST_END(surface); surface++) {
         scratch->dx = surface->width / 2;
         scratch->dz = surface->depth / 16;
         scratch->x  = surface->x;
@@ -265,7 +272,7 @@ static void WATER_WAVE_STRIPS_FUNC(Task* task)
 #undef WATER_WAVE_STRIPS_SET_FIRST_STRIP_COLOURS
 #undef WATER_WAVE_STRIPS_SET_SECOND_STRIP_COLOURS
 #undef WATER_WAVE_STRIPS_SURFACE_T
-#undef WATER_WAVE_STRIPS_SEGMENT_COUNT
+#undef WATER_WAVE_STRIPS_IS_LIST_END
 #undef WATER_WAVE_STRIPS_RESET_ACTOR_LOAD_CURSOR
 #undef WATER_WAVE_STRIPS_AMPLITUDE_SHIFT
 #undef WATER_WAVE_STRIPS_PRIM_CURSOR
