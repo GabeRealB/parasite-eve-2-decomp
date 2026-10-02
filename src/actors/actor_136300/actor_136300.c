@@ -1160,7 +1160,7 @@ ActorTransform D_actor_136300_8013B558 = { { 2000, 0, 5240, 0 }, { 0, -2048, 0, 
 
 ActorTransform D_actor_136300_8013B570 = { { 2230, 0, 5240, 0 }, { 0, -1024, 0, 0 } };
 
-GpOverrideArg D_actor_136300_8013B588 = { 19, 47 };
+GameActorMoveAnim D_actor_136300_8013B588 = { 19, 47 };
 
 EvsCommand D_actor_136300_8013B590[149] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_136300_80132A7C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

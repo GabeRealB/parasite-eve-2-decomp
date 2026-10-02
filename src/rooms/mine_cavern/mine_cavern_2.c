@@ -677,7 +677,7 @@ ActorTransform D_mine_cavern_80187B94 = { { 3880, 0, 6678, 0 }, { 0, 910, 0, 0 }
 
 ActorTransform D_mine_cavern_80187BAC = { { 1900, 0, 160, 0 }, { 0, -114, 0, 0 } };
 
-GpOverrideArg D_mine_cavern_80187BC4 = { 55, 48 };
+GameActorMoveAnim D_mine_cavern_80187BC4 = { 55, 48 };
 
 ActorTransform D_mine_cavern_80187BCC = { { 7400, 0, 1750, 0 }, { 0, 1024, 0, 0 } };
 

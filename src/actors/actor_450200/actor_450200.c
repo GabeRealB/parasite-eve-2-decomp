@@ -1077,7 +1077,7 @@ AnimationPlayRequest D_actor_450200_8013FBD4 = { { .index = 1 }, 50, ANIMATION_B
 
 AnimationBankCopyRequest D_actor_450200_8013FBE8 = { { .words = D_actor_450200_8013FB4C.words }, ANIMATION_BANK_EXTENSION_CAPACITY };
 
-GpOverrideArg D_actor_450200_8013FBF0 = { 19, 1 };
+GameActorMoveAnim D_actor_450200_8013FBF0 = { 19, 1 };
 
 ActorTransform D_actor_450200_8013FBF8 = { { 6271, 0, 3306, 0 }, { 0, -682, 0, 0 } };
 

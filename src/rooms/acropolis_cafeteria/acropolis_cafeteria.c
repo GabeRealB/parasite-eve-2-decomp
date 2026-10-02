@@ -236,7 +236,7 @@ EvsSceneKey D_acropolis_cafeteria_80182E5C = { 1, 4, 11 };
 
 EvsSceneKey D_acropolis_cafeteria_80182E64 = { 1, 6, 11 };
 
-GpOverrideArg D_acropolis_cafeteria_80182E6C = { 19, 1 };
+GameActorMoveAnim D_acropolis_cafeteria_80182E6C = { 19, 1 };
 
 EvsCommand D_acropolis_cafeteria_80182E74[35] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_acropolis_cafeteria_8017E2B0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

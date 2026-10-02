@@ -1606,13 +1606,13 @@ void func_acropolis_helicopter_landing_pad_8017E75C(s32 arg0)
 
 void func_acropolis_helicopter_landing_pad_8017E76C(Task* task)
 {
-    GpOverrideArg args;
+    GameActorMoveAnim moveAnim;
 
     switch (task->state) {
         case 0:
-            args.field_0 = 0xC;
-            args.field_4 = 9;
-            Gp_DispatchMsgPtrs(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_MOVE_TO, &D_acropolis_helicopter_landing_pad_801837E0, &args);
+            moveAnim.approachAnimId = 0xC;
+            moveAnim.arrivalAnimId  = 9;
+            Gp_DispatchMsgPtrs(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_MOVE_TO, &D_acropolis_helicopter_landing_pad_801837E0, &moveAnim);
             task->state++;
             break;
         case 1:

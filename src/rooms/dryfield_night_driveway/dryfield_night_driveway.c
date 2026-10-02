@@ -335,7 +335,7 @@ AnimationPlayRequest D_dryfield_night_driveway_8017F968 = { { .index = 6 }, 8, A
 
 AnimationPlayRequest D_dryfield_night_driveway_8017F97C = { { .index = 6 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpOverrideArg D_dryfield_night_driveway_8017F990 = { 4, 9 };
+GameActorMoveAnim D_dryfield_night_driveway_8017F990 = { 4, 9 };
 
 EvsCommand D_dryfield_night_driveway_8017F998[15] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

@@ -286,7 +286,7 @@ typedef struct {
         s32                (*call4)(Task*);
         s32                (*call5)(Task*, s32, s32);
         s32                (*coord)(Task*, s32, GfxCoord*);
-        s32                (*call6)(Task*, s32, ActorTransform*, GpOverrideArg*);
+        s32                (*call6)(Task*, s32, ActorTransform*, GameActorMoveAnim*);
         s32                (*call7)(Task*, s32, AnimationPlayRequest*);
         s32                (*call8)(Task*, s32, GpCountArg*);
         s32                (*call9)(Task*, s32, const AnimationBankCopyRequest*);
@@ -440,7 +440,7 @@ static inline void _gpSwitchToPlayerMode2(Task* arg0);
 
 s32 func_80104F5C(Task* arg0, s32 arg1, GpFacingArg* arg2);
 
-s32 func_80105190(Task* arg0, s32 arg1, ActorTransform* transform, GpOverrideArg* arg3);
+s32 func_80105190(Task* arg0, s32 arg1, ActorTransform* transform, GameActorMoveAnim* moveAnim);
 
 s32 func_801054D8(Task* arg0, s32 arg1, GpDelayArg* arg2);
 
@@ -6452,7 +6452,7 @@ s32 func_80104F5C(Task* arg0, s32 arg1, GpFacingArg* arg2)
     return 0;
 }
 
-s32 Gp_SetActorDest(Task* arg0, s32 arg1, ActorTransform* transform, GpOverrideArg* arg3)
+s32 Gp_SetActorDest(Task* arg0, s32 arg1, ActorTransform* transform, GameActorMoveAnim* moveAnim)
 {
     GameActor*    actor;
     PlayerStatus* p;
@@ -6484,9 +6484,10 @@ s32 Gp_SetActorDest(Task* arg0, s32 arg1, ActorTransform* transform, GpOverrideA
     actor->destination.vx          = transform->pos.vx;
     actor->destination.vy          = transform->pos.vy;
     actor->destination.vz          = transform->pos.vz;
-    if (arg3 != NULL) {
-        actor->actionArgument = arg3->field_0;
-        actor->actionValue    = arg3->field_4;
+    // A null record, or a zero word, selects that clip's default. The low 16 bits are kept.
+    if (moveAnim != NULL) {
+        actor->actionArgument = moveAnim->approachAnimId;
+        actor->actionValue    = moveAnim->arrivalAnimId;
     } else {
         actor->actionArgument = 0;
         actor->actionValue    = 0;
@@ -6494,7 +6495,7 @@ s32 Gp_SetActorDest(Task* arg0, s32 arg1, ActorTransform* transform, GpOverrideA
     return 0;
 }
 
-s32 func_80105190(Task* arg0, s32 arg1, ActorTransform* transform, GpOverrideArg* arg3)
+s32 func_80105190(Task* arg0, s32 arg1, ActorTransform* transform, GameActorMoveAnim* moveAnim)
 {
     GameActor*    actor;
     PlayerStatus* p;
@@ -6526,9 +6527,10 @@ s32 func_80105190(Task* arg0, s32 arg1, ActorTransform* transform, GpOverrideArg
     actor->destination.vx          = transform->pos.vx;
     actor->destination.vy          = transform->pos.vy;
     actor->destination.vz          = transform->pos.vz;
-    if (arg3 != NULL) {
-        actor->actionArgument = arg3->field_0;
-        actor->actionValue    = arg3->field_4;
+    // A null record, or a zero word, selects that clip's default. The low 16 bits are kept.
+    if (moveAnim != NULL) {
+        actor->actionArgument = moveAnim->approachAnimId;
+        actor->actionValue    = moveAnim->arrivalAnimId;
     } else {
         actor->actionArgument = 0;
         actor->actionValue    = 0;

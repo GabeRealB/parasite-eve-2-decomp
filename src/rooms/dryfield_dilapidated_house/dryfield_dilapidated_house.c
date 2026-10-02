@@ -448,7 +448,7 @@ ActorTransform D_dryfield_dilapidated_house_801843C0 = { { 500, 0, 300, 0 }, { 0
 
 ActorTransform D_dryfield_dilapidated_house_801843D8 = { { 1000, 0, 0, 0 }, { 0, 1024, 0, 0 } };
 
-GpOverrideArg D_dryfield_dilapidated_house_801843F0 = { 19, 1 };
+GameActorMoveAnim D_dryfield_dilapidated_house_801843F0 = { 19, 1 };
 
 EvsSceneKey D_dryfield_dilapidated_house_801843F8 = { 2, 11, 11 };
 

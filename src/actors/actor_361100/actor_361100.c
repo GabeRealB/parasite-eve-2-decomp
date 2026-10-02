@@ -199,7 +199,7 @@ extern ActorCommand              D_actor_361100_80165E78;
 extern ActorCommand              D_actor_361100_80165E7C;
 extern ActorCommand              D_actor_361100_80165E80;
 extern AnimationBankCopyRequest  D_actor_361100_80165C98;
-extern GpOverrideArg             D_actor_361100_80165DC8;
+extern GameActorMoveAnim         D_actor_361100_80165DC8;
 extern PadScriptCmd              D_actor_361100_80166AB8[3];
 extern PadScriptVibrationSegment D_actor_361100_80166AC4[3];
 extern ActorTransform            D_actor_361100_80165D68;
@@ -471,7 +471,7 @@ ActorTransform D_actor_361100_80165D98 = { { 7760, -4010, 7010, 0 }, { 0, -1480,
 
 ActorTransform D_actor_361100_80165DB0 = { { 3836, -8010, 0x2A13, 0 }, { 0, 0, 0, 0 } };
 
-GpOverrideArg D_actor_361100_80165DC8 = { 54, 48 };
+GameActorMoveAnim D_actor_361100_80165DC8 = { 54, 48 };
 
 ActorCommand D_actor_361100_80165DD0 = { { .loc = { 4, 22 } }, 6 };
 

@@ -259,7 +259,7 @@ extern WorldCollisionGrid         D_dryfield_night_gas_station_8018ABBC;
 extern WorldCollisionGrid         D_dryfield_night_gas_station_8018B75C[1];
 extern WorldCollisionTrigger      D_dryfield_night_gas_station_8018FD90[11];
 extern WorldCollisionTrigger      D_dryfield_night_gas_station_801900D4[16];
-extern GpOverrideArg              D_dryfield_night_gas_station_801889DC;
+extern GameActorMoveAnim          D_dryfield_night_gas_station_801889DC;
 extern WorldCoordRoomAmbientEntry D_dryfield_night_gas_station_80190684[22];
 extern WorldCoordRoomLights       D_dryfield_night_gas_station_8018FAC0[1];
 extern WorldCoordRoomLights       D_dryfield_night_gas_station_8018FD78[1];
@@ -852,7 +852,7 @@ ActorTransform D_dryfield_night_gas_station_801889AC = { { 2670, 0, -4332, 0 }, 
 
 ActorTransform D_dryfield_night_gas_station_801889C4 = { { 7767, 0, -2200, 0 }, { 0, 1376, 0, 0 } };
 
-GpOverrideArg D_dryfield_night_gas_station_801889DC = { 2, 51 };
+GameActorMoveAnim D_dryfield_night_gas_station_801889DC = { 2, 51 };
 
 AnimationSet* D_dryfield_night_gas_station_801889E4[11] = {
     NULL,

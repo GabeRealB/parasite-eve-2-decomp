@@ -83,7 +83,7 @@ static void func_dryfield_general_store_8017DF4C(Task* task);
 
 extern AnimationPlayRequest     D_dryfield_general_store_8017E4FC;
 extern AnimationBankCopyRequest D_dryfield_general_store_8017E4E0;
-extern GpOverrideArg            D_dryfield_general_store_8017E554;
+extern GameActorMoveAnim        D_dryfield_general_store_8017E554;
 extern ActorTransform           D_dryfield_general_store_8017E524;
 extern ActorTransform           D_dryfield_general_store_8017E53C;
 extern s32                      D_dryfield_general_store_8017E560;
@@ -164,7 +164,7 @@ ActorTransform D_dryfield_general_store_8017E524 = { { 1735, 0, 6800, 0 }, { 0, 
 
 ActorTransform D_dryfield_general_store_8017E53C = { { 1505, 0, 5558, 0 }, { 0, -2047, 0, 0 } };
 
-GpOverrideArg D_dryfield_general_store_8017E554 = { 4, 9 };
+GameActorMoveAnim D_dryfield_general_store_8017E554 = { 4, 9 };
 
 s32 D_dryfield_general_store_8017E55C = 770;
 

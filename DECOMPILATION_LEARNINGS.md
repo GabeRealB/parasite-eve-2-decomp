@@ -24710,9 +24710,9 @@ Declaring that same callee `void` frees `$v0` immediately, so you get
 `li v0,K` instead — a one-register miss on an otherwise identical body.
 
 ```c
-s32 Gp_SetActorDest(Task* arg0, s32 arg1, ActorTransform* transform, GpOverrideArg* arg3);
+s32 Gp_SetActorDest(Task* arg0, s32 arg1, ActorTransform* transform, GameActorMoveAnim* moveAnim);
 
-Gp_SetActorDest(arg0, arg1, transform, arg3); /* jal; nop — $v0 still "holds" the return */
+Gp_SetActorDest(arg0, arg1, transform, moveAnim); /* jal; nop — $v0 still "holds" the return */
 actor->state = 8;    /* li v1,8; sh v1,0x956(s2) */
 return 0;                /* move v0,zero after the restores */
 ```

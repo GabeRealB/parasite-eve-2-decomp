@@ -184,7 +184,7 @@ extern AnimationPlayRequest     D_dryfield_night_saloon_g_r_80183A6C;
 extern AnimationPlayRequest     D_dryfield_night_saloon_g_r_80183A94;
 extern AnimationPlayRequest     D_dryfield_night_saloon_g_r_80183AA8;
 extern AnimationBankCopyRequest D_dryfield_night_saloon_g_r_8018394C;
-extern GpOverrideArg            D_dryfield_night_saloon_g_r_80183B34;
+extern GameActorMoveAnim        D_dryfield_night_saloon_g_r_80183B34;
 extern ActorTransform           D_dryfield_night_saloon_g_r_80183ABC;
 extern ActorTransform           D_dryfield_night_saloon_g_r_80183AD4;
 extern ActorTransform           D_dryfield_night_saloon_g_r_80183AEC;
@@ -686,7 +686,7 @@ ActorTransform D_dryfield_night_saloon_g_r_80183B04 = { { 2150, 0, 545, 0 }, { 0
 
 ActorTransform D_dryfield_night_saloon_g_r_80183B1C = { { 4110, 0, 1730, 0 }, { 0, -1024, 0, 0 } };
 
-GpOverrideArg D_dryfield_night_saloon_g_r_80183B34 = { 62, 48 };
+GameActorMoveAnim D_dryfield_night_saloon_g_r_80183B34 = { 62, 48 };
 
 AnimationPlayRequest D_dryfield_night_saloon_g_r_80183B3C[2] = {
     { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },

@@ -256,7 +256,7 @@ AnimationPlayRequest D_mist_parking_80190A0C[20] = {
     { { .index = 0 }, 35, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
 };
 
-GpOverrideArg D_mist_parking_80190B9C = { 0, 0x10000 };
+GameActorMoveAnim D_mist_parking_80190B9C = { 0, 0x10000 };
 
 ActorCommand D_mist_parking_80190BA4 = { { .loc = { 0, 0 } }, 2 };
 

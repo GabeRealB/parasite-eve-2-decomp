@@ -224,7 +224,7 @@ enum {
     /// changing nothing, when the receiver is not under scripted control.
     GAME_ACTOR_MESSAGE_END_SCRIPTED = 0x3F1,
     /// Takes scripted control and walks the receiver to a borrowed
-    /// `ActorTransform` position, with an optional `GpOverrideArg`. Returns 0.
+    /// `ActorTransform` position, with an optional `GameActorMoveAnim`. Returns 0.
     GAME_ACTOR_MESSAGE_MOVE_TO = 0x3F2,
     /// Sets the model's draw and buffer state from the mode in the first
     /// argument (0-4), allocating or freeing its buffers where the mode needs.
@@ -409,14 +409,28 @@ typedef struct GpFacingArg {
 } GpFacingArg;
 STATIC_ASSERT_SIZEOF(GpFacingArg, 8);
 
-/// The optional second payload of `GAME_ACTOR_MESSAGE_MOVE_TO`, which sends the receiver to a
-/// `ActorTransform` destination: two values the receiver keeps in its own state
-/// while it gets there. Without one it clears both.
-typedef struct GpOverrideArg {
-    s32 field_0;
-    s32 field_4;
-} GpOverrideArg;
-STATIC_ASSERT_SIZEOF(GpOverrideArg, 8);
+/// Optional clips for a scripted move of the player or a companion.
+///
+/// `GAME_ACTOR_MESSAGE_MOVE_TO` walks the receiver to a borrowed
+/// `ActorTransform` and reads this record when the sender supplies one.
+/// Message 0x3FB reads it the same way on the player and on a companion
+/// whose handler for that id takes this record. One companion answers
+/// 0x3FB as an animation request and does not read it.
+/// A null pointer selects both default clips.
+///
+/// `approachAnimId` is the clip played while moving, in the receiver's
+/// current animation bank. Zero selects that move's default: the usual
+/// walk, the unarmed walk when no weapon model is attached, or the
+/// alternate approach's clip. `arrivalAnimId` is the clip played on
+/// arrival. Zero selects clip 1. Handlers keep the low 16 bits of each word.
+///
+/// The record is borrowed through synchronous dispatch and is not copied.
+/// It occupies eight bytes with four-byte alignment.
+typedef struct {
+    s32 approachAnimId; // Approach clip; 0 selects the move's default
+    s32 arrivalAnimId;  // Arrival clip; 0 selects clip 1
+} GameActorMoveAnim;
+STATIC_ASSERT_SIZEOF(GameActorMoveAnim, 8);
 
 /// Optional clips for `ACTOR_MESSAGE_WALK_TO` on a scripted walker.
 ///

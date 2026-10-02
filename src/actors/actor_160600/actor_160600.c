@@ -105,8 +105,8 @@ extern AnimationPlayRequest D_actor_160600_801351A8;
 extern AnimationPlayRequest D_actor_160600_801351BC;
 extern AnimationPlayRequest D_actor_160600_801351D0;
 extern AnimationPlayRequest D_actor_160600_801351E4;
-extern GpOverrideArg        D_actor_160600_801351F8;
-extern GpOverrideArg        D_actor_160600_80135208;
+extern GameActorMoveAnim    D_actor_160600_801351F8;
+extern GameActorMoveAnim    D_actor_160600_80135208;
 extern ActorTransform       D_actor_160600_801350A0;
 extern ActorTransform       D_actor_160600_801350B8;
 extern ActorTransform       D_actor_160600_801350D0;
@@ -516,15 +516,15 @@ AnimationPlayRequest D_actor_160600_801351D0 = { { .index = 1 }, 9, ANIMATION_BL
 
 AnimationPlayRequest D_actor_160600_801351E4 = { { .index = 1 }, 38, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpOverrideArg D_actor_160600_801351F8 = { 19, 47 };
+GameActorMoveAnim D_actor_160600_801351F8 = { 19, 47 };
 
-GpOverrideArg D_actor_160600_80135200 = { 19, 59 };
+GameActorMoveAnim D_actor_160600_80135200 = { 19, 59 };
 
-GpOverrideArg D_actor_160600_80135208 = { 19, 61 };
+GameActorMoveAnim D_actor_160600_80135208 = { 19, 61 };
 
-GpOverrideArg D_actor_160600_80135210 = { 19, 7 };
+GameActorMoveAnim D_actor_160600_80135210 = { 19, 7 };
 
-GpOverrideArg D_actor_160600_80135218 = { 4, 7 };
+GameActorMoveAnim D_actor_160600_80135218 = { 4, 7 };
 
 EvsCommand D_actor_160600_80135220[20] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 11 }, { .value = 0 } },

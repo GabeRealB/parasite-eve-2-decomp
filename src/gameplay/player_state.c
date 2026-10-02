@@ -129,9 +129,9 @@ s32 func_8010C648(Task* task, s32 msgId, AnimationPlayRequest* request);
 
 s32 func_8010C688(Task* arg0, s32 arg1, ActorTransform* transform, s32 arg3);
 
-s32 func_8010C6C8(Task* arg0, s32 arg1, ActorTransform* transform, GpOverrideArg* arg3);
+s32 func_8010C6C8(Task* arg0, s32 arg1, ActorTransform* transform, GameActorMoveAnim* moveAnim);
 
-s32 func_8010C708(Task* arg0, s32 arg1, ActorTransform* transform, GpOverrideArg* arg3);
+s32 func_8010C708(Task* arg0, s32 arg1, ActorTransform* transform, GameActorMoveAnim* moveAnim);
 
 s32 func_8010C75C(Task* arg0, s32 arg1, GpDelayArg* arg2);
 
@@ -1756,19 +1756,19 @@ s32 func_8010C688(Task* arg0, s32 arg1, ActorTransform* transform, s32 arg3)
     return 0;
 }
 
-s32 func_8010C6C8(Task* arg0, s32 arg1, ActorTransform* transform, GpOverrideArg* arg3)
+s32 func_8010C6C8(Task* arg0, s32 arg1, ActorTransform* transform, GameActorMoveAnim* moveAnim)
 {
     PlayerStatus* p;
     u8            savedInteractionPressed;
 
     p                       = &gPlayerStatus;
     savedInteractionPressed = p->interactionPressed;
-    Gp_SetActorDest(arg0, arg1, transform, arg3);
+    Gp_SetActorDest(arg0, arg1, transform, moveAnim);
     p->interactionPressed = savedInteractionPressed;
     return 0;
 }
 
-s32 func_8010C708(Task* arg0, s32 arg1, ActorTransform* transform, GpOverrideArg* arg3)
+s32 func_8010C708(Task* arg0, s32 arg1, ActorTransform* transform, GameActorMoveAnim* moveAnim)
 {
     PlayerStatus* p;
     u8            savedInteractionPressed;
@@ -1777,7 +1777,7 @@ s32 func_8010C708(Task* arg0, s32 arg1, ActorTransform* transform, GpOverrideArg
     p                       = &gPlayerStatus;
     actor                   = arg0->work;
     savedInteractionPressed = p->interactionPressed;
-    Gp_SetActorDest(arg0, arg1, transform, arg3);
+    Gp_SetActorDest(arg0, arg1, transform, moveAnim);
     p->interactionPressed = savedInteractionPressed;
     actor->state          = 8;
     return 0;

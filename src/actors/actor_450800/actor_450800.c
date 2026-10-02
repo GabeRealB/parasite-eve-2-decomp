@@ -1250,7 +1250,7 @@ AnimationPlayRequest D_actor_450800_8013AE00 = { { .index = 0 }, 5, ANIMATION_BL
 
 AnimationPlayRequest D_actor_450800_8013AE14 = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpOverrideArg D_actor_450800_8013AE28 = { 19, 1 };
+GameActorMoveAnim D_actor_450800_8013AE28 = { 19, 1 };
 
 ActorTransform D_actor_450800_8013AE30 = { { 6280, 0, 960, 0 }, { 0, 1024, 0, 0 } };
 

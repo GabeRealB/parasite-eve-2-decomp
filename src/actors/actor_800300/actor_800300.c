@@ -56,7 +56,7 @@ typedef struct {
         s32                (*call3)(Task*, s32, GpCountArg*);
         s32                (*call4)(Task*, s32, ActorTransform*);
         s32                (*transform)(Task*, s32, ActorTransform*, s32);
-        s32                (*call5)(Task*, s32, ActorTransform*, GpOverrideArg*);
+        s32                (*call5)(Task*, s32, ActorTransform*, GameActorMoveAnim*);
         s32                (*call6)(Task*, s32, s32);
         TaskMessageHandler call7;
         s32                (*call9)(Task*, s32, GfxCoord*);
