@@ -91,13 +91,26 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(FsCdfChunk, FS_SECTOR_BYTE_SIZE);
 STATIC_ASSERT(sizeof(((FsCdfChunk*)0)->data.bytes) == sizeof(((FsCdfChunk*)0)->data.words), fs_cdf_chunk_data_widths);
 
-/// Contents of a CD sector.
-typedef union _FsSector {
-    u8              bytes[FS_SECTOR_BYTE_SIZE];
-    u32             words[FS_SECTOR_WORD_SIZE];
-    FsCdfFolderList folderList;
-    FsCdfChunk      chunk;
-    CdlLOC          location; // First bytes of the raw three-word CD sector header.
+/// One 2048-byte CD sector.
+///
+/// The members read the same storage. `bytes` and `words` are the whole
+/// sector. `folderList` is the folder table that fills the first sector of a
+/// stage CDF. `chunk` is the opening sector of a CDF chunk; a later sector of
+/// that chunk is ordinary sector data and is read as `bytes`. `location` is
+/// the BCD minute, second and sector at the start of the 12-byte header
+/// delivered ahead of the payload. Those four bytes stay meaningful only until
+/// a payload read reuses the buffer.
+///
+/// A folder's file list is an array of file-id and folder-relative offset
+/// records from the start of the sector, ending at a zero offset, with stream
+/// descriptors later in that same sector. The stage-zero header is walked
+/// through `words`, and ISO directory records through `bytes`.
+typedef union {
+    u8              bytes[FS_SECTOR_BYTE_SIZE]; // Whole sector as bytes
+    u32             words[FS_SECTOR_WORD_SIZE]; // Whole sector as 32-bit words
+    FsCdfFolderList folderList;                 // Folder table from a stage CDF's first sector
+    FsCdfChunk      chunk;                      // Opening sector of a CDF chunk
+    CdlLOC          location;                   // BCD disc position from the 12-byte header
 } FsSector;
 STATIC_ASSERT_SIZEOF(FsSector, FS_SECTOR_BYTE_SIZE);
 

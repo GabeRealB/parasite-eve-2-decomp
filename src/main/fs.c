@@ -896,7 +896,7 @@ void Fs_SelectStage(s32 stageIdx)
     Fs_ChunkMode    = 0;
     D5B498_8006ADF4 = 0;
     sector          = Fs_StageCdfSectors[(u8)stageIdx];
-    dest            = (u8*)&Fs_CdSector;
+    dest            = Fs_CdSector.bytes;
 
     if (CdSync(1, NULL) == CdlDiskError) {
         Fs_WaitDiskReset(1);
@@ -1595,7 +1595,7 @@ u8 Fs_LoadImageStrip(s32 mode)
         if (D5B498_8006D748 == 0) {
             Fs_ContinueDrawing(ot);
             if ((u8)mode == 0) {
-                Fs_ChunkReadPtr = (u8*)&Fs_CdSector;
+                Fs_ChunkReadPtr = Fs_CdSector.bytes;
                 if (GetRCnt(RCntCNT2) >= 0x6E40) {
                     return 0x7F;
                 }
@@ -1623,7 +1623,7 @@ u8 Fs_LoadImageStrip(s32 mode)
             if (Fs_WorkEntries[D5B498_8006ADE0].field_0 == 0xFFFF) {
                 Fs_ContinueDrawing(ot);
                 if ((u8)mode == 0) {
-                    Fs_ChunkReadPtr = (u8*)&Fs_CdSector;
+                    Fs_ChunkReadPtr = Fs_CdSector.bytes;
                     if (GetRCnt(RCntCNT2) >= 0x6E40) {
                         return 0x7F;
                     }
