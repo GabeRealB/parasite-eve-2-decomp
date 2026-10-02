@@ -221,11 +221,16 @@ typedef struct {
 } _CdStreamChannels;
 STATIC_ASSERT_SIZEOF(_CdStreamChannels, 0x80);
 
-/// One allocation: control state and both channels. Reset clears all 0xD8 bytes;
-/// the IRQ and read callbacks recover the control state from the channel member.
+/// The one live CD-to-SPU stream.
+///
+/// The control block and both voice-attribute records are a single allocation.
+/// The block is volatile because the vsync tick, the disc callback and the SPU
+/// interrupt all update it. The records are the left and right channels, and
+/// each is copied whole into the SPU voice queue. The allocation is one object:
+/// wiping it clears the records with the block.
 typedef struct {
-    volatile CdStreamState state;
-    _CdStreamChannels      channels;
+    volatile CdStreamState state;    // control block shared by the tick and the callbacks
+    _CdStreamChannels      channels; // left and right SPU voice attributes
 } CdStreamRuntime;
 STATIC_ASSERT_SIZEOF(CdStreamRuntime, 0xD8);
 STATIC_ASSERT(OFFSET_OF(CdStreamRuntime, channels) == 0x58, cd_stream_channels_offset);
