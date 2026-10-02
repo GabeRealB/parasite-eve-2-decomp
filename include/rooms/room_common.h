@@ -429,27 +429,42 @@ typedef struct {
 } RoomFxFlashRingScratch;
 STATIC_ASSERT_SIZEOF(RoomFxFlashRingScratch, 0x1C);
 
-/// 0x3C-byte scratch block `Room_Draw03` takes from the scratch stack. `v` is
-/// the quad's four corners, copied from `workm.t` of two adjacent slots on
-/// each trail. `flag` is `gte_stflg` (negative rejects the quad) and `otz` is
-/// `gte_stszotz` (then incremented). `sx0`..`sy3` are the `gte_stsxy` /
-/// `gte_stsxy3` of the four corners, copied onto the `POLY_G4` after it is
-/// allocated.
-typedef struct _RoomDraw03Scratch {
-    /* 0x00 */ SVECTOR v[4];
-    /* 0x20 */ s32     otz;
-    /* 0x24 */ s32     flag;
-    /* 0x28 */ s32     unused;
-    /* 0x2C */ u16     sx0;
-    /* 0x2E */ u16     sy0;
-    /* 0x30 */ u16     sx1;
-    /* 0x32 */ u16     sy1;
-    /* 0x34 */ u16     sx2;
-    /* 0x36 */ u16     sy2;
-    /* 0x38 */ u16     sx3;
-    /* 0x3A */ u16     sy3;
-} RoomDraw03Scratch;
-STATIC_ASSERT_SIZEOF(RoomDraw03Scratch, 0x3C);
+/// Scratch-stack workspace for one quad of a twin trail.
+///
+/// The twin-trail drawer reserves one block and reuses it for each of the
+/// seven quads between two rings of eight coordinate frames. The corners are
+/// those frames' world translations, narrowed to signed 16-bit coordinate
+/// units. Corner 0 is the first trail's newer slot and is projected on its
+/// own. Corners 1, 2 and 3 are the second trail's newer slot, the first
+/// trail's older slot and the second trail's older slot, projected together.
+///
+/// `projectionFlags` is the GTE flag word of that three-vertex transform. A
+/// negative word skips the quad. Otherwise `depth` is SZ3 / 4 plus one, and
+/// it is the quad's ordering-table depth.
+///
+/// Each `screenX` / `screenY` pair keeps the raw 16-bit encodings of one
+/// corner's signed GTE pixel coordinates. The halves of a pair are adjacent
+/// so one screen-XY store fills both, and the drawer copies them onto the
+/// gouraud quad in corner order.
+///
+/// The word between the flag and the screen coordinates is never read or
+/// written. Its role is unproven. Reserve one complete block and release it
+/// before any pointer into it is used again.
+typedef struct {
+    SVECTOR worldCorners[4]; // World-space quad corners, each component narrowed to s16
+    s32     depth;           // SZ3 / 4 plus one; ordering-table depth of the quad
+    s32     projectionFlags; // GTE FLAG word of the three-vertex transform; bit 31 set skips the quad
+    s32     field_28;        // Role unproven; the drawer never reads or writes this word
+    u16     screenX0;        // Raw projected X of corner 0; first half of that corner's GTE screen-position word
+    u16     screenY0;        // Raw projected Y of corner 0; second half of the same word
+    u16     screenX1;        // Raw projected X of corner 1; same encoding as screenX0
+    u16     screenY1;        // Raw projected Y of corner 1; same encoding as screenY0
+    u16     screenX2;        // Raw projected X of corner 2; same encoding as screenX0
+    u16     screenY2;        // Raw projected Y of corner 2; same encoding as screenY0
+    u16     screenX3;        // Raw projected X of corner 3; same encoding as screenX0
+    u16     screenY3;        // Raw projected Y of corner 3; same encoding as screenY0
+} RoomFxTwinTrailScratch;
+STATIC_ASSERT_SIZEOF(RoomFxTwinTrailScratch, 0x3C);
 
 /// One entry of a room's ambience table: the table holds one entry per area and
 /// is indexed by `gGameSession->location.loc.view`. A room's ambience task passes

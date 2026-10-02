@@ -9,58 +9,60 @@
 /// skipped.
 static void RoomFx_DrawTwinTrail(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 arg3)
 {
-    RoomDraw03Scratch* blk;
-    GfxCoord*          a;
-    GfxCoord*          b;
-    POLY_G4*           prim;
-    s32                i;
-    s32                j;
-    s32                i0;
-    s32                i1;
-    s32                hi;
-    s32                lo;
-    s32                fade;
-    s32                r;
-    s32                g;
-    s32                bl;
-    s32                r2;
-    s32                g2;
-    s32                b2;
+    RoomFxTwinTrailScratch* block;
+    GfxCoord*               a;
+    GfxCoord*               b;
+    POLY_G4*                prim;
+    s32                     i;
+    s32                     j;
+    s32                     i0;
+    s32                     i1;
+    s32                     hi;
+    s32                     lo;
+    s32                     fade;
+    s32                     r;
+    s32                     g;
+    s32                     bl;
+    s32                     r2;
+    s32                     g2;
+    s32                     b2;
 
-    blk = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw03Scratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(RoomFxTwinTrailScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
+    // Seven quads, newest edge first. Each joins the two trails at one slot and the slot before it.
     i = 0;
     do {
-        j            = arg2 - i;
-        i0           = j & 7;
-        a            = &arg0[i0];
-        blk->v[0].vx = (u16)a->workm.t[0];
-        j            = j - 1;
-        blk->v[0].vy = (u16)a->workm.t[1];
-        i1           = j & 7;
-        blk->v[0].vz = (u16)a->workm.t[2];
-        b            = &arg1[i0];
-        blk->v[1].vx = (u16)b->workm.t[0];
-        blk->v[1].vy = (u16)b->workm.t[1];
-        blk->v[1].vz = (u16)b->workm.t[2];
-        a            = &arg0[i1];
-        blk->v[2].vx = (u16)a->workm.t[0];
-        blk->v[2].vy = (u16)a->workm.t[1];
-        blk->v[2].vz = (u16)a->workm.t[2];
-        b            = &arg1[i1];
-        blk->v[3].vx = (u16)b->workm.t[0];
-        blk->v[3].vy = (u16)b->workm.t[1];
-        blk->v[3].vz = (u16)b->workm.t[2];
-        gte_ldv0(&blk->v[0]);
+        j                         = arg2 - i;
+        i0                        = j & 7;
+        a                         = &arg0[i0];
+        block->worldCorners[0].vx = (u16)a->workm.t[0];
+        j                         = j - 1;
+        block->worldCorners[0].vy = (u16)a->workm.t[1];
+        i1                        = j & 7;
+        block->worldCorners[0].vz = (u16)a->workm.t[2];
+        b                         = &arg1[i0];
+        block->worldCorners[1].vx = (u16)b->workm.t[0];
+        block->worldCorners[1].vy = (u16)b->workm.t[1];
+        block->worldCorners[1].vz = (u16)b->workm.t[2];
+        a                         = &arg0[i1];
+        block->worldCorners[2].vx = (u16)a->workm.t[0];
+        block->worldCorners[2].vy = (u16)a->workm.t[1];
+        block->worldCorners[2].vz = (u16)a->workm.t[2];
+        b                         = &arg1[i1];
+        block->worldCorners[3].vx = (u16)b->workm.t[0];
+        block->worldCorners[3].vy = (u16)b->workm.t[1];
+        block->worldCorners[3].vz = (u16)b->workm.t[2];
+        // Corner 0 is projected alone. The flag word belongs to the transform of the other three.
+        gte_ldv0(&block->worldCorners[0]);
         gte_rtps();
-        gte_stsxy(&blk->sx0);
-        gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
+        gte_stsxy(&block->screenX0);
+        gte_ldv3(&block->worldCorners[1], &block->worldCorners[2], &block->worldCorners[3]);
         gte_rtpt();
-        gte_stsxy3(&blk->sx1, &blk->sx2, &blk->sx3);
-        gte_stflg(&blk->flag);
-        if (blk->flag >= 0) {
-            gte_stszotz(&blk->otz);
+        gte_stsxy3(&block->screenX1, &block->screenX2, &block->screenX3);
+        gte_stflg(&block->projectionFlags);
+        if (block->projectionFlags >= 0) {
+            gte_stszotz(&block->depth);
             fade           = 0x40 - i * 9;
             hi             = fade & 0xFF;
             r              = hi * (arg3 >> 8);
@@ -70,7 +72,7 @@ static void RoomFx_DrawTwinTrail(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 a
             r2             = lo * (arg3 >> 8);
             g2             = lo * ((arg3 >> 4) & 3);
             prim           = gGpuPrimCursor;
-            blk->otz       = blk->otz + 1;
+            block->depth   = block->depth + 1;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 8);
             b2 = lo * (arg3 & 3);
@@ -87,21 +89,21 @@ static void RoomFx_DrawTwinTrail(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 a
             prim->g3 = g2;
             prim->b2 = b2;
             prim->b3 = b2;
-            prim->x0 = blk->sx0;
-            prim->y0 = blk->sy0;
-            prim->x1 = blk->sx1;
-            prim->y1 = blk->sy1;
-            prim->x2 = blk->sx2;
-            prim->y2 = blk->sy2;
-            prim->x3 = blk->sx3;
-            prim->y3 = blk->sy3;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            prim->x0 = block->screenX0;
+            prim->y0 = block->screenY0;
+            prim->x1 = block->screenX1;
+            prim->y1 = block->screenY1;
+            prim->x2 = block->screenX2;
+            prim->y2 = block->screenY2;
+            prim->x3 = block->screenX3;
+            prim->y3 = block->screenY3;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->depth);
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw03Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomFxTwinTrailScratch);
 }
 
 /// A spark burst. The first tick spawns its flash effect; then, for a non-zero
