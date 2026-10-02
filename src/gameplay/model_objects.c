@@ -266,15 +266,22 @@ static inline void _tmdStoreTexturedTriangleFacing(const POLY_GT3* packet, s32* 
     gte_stopz(facingArea);
 }
 
-/// Stores the signed double area of a textured quad's first triangle.
+/// Stores the signed double area of a projected Gouraud textured quad's first triangle.
 ///
-/// Reads corners 0..2 from a word-aligned `POLY_GT4` as packed signed
-/// 16-bit pixel coordinates. `facingArea` must address one writable s32;
-/// receives NCLIP's signed square-pixel result, without checking overflow.
-/// Positive results accept this half. Leaves corners 0..2 in SXY0..SXY2
-/// so pushing corner 3 tests the second half, whose accepted sign is negative.
-/// No prior GTE setup is needed; clobbers MAC0/FLAG and the screen FIFO.
-/// All coordinate reads precede the store; borrowed pointers are not retained.
+/// `packet` supplies word-aligned packed XY pairs for corners 0..2: signed
+/// 16-bit X in the low half and Y in the high half, both in pixels. Reads
+/// exactly those three four-byte pairs; the header, colours, texture fields
+/// and corner 3 are not inputs. `facingArea` must address one word-aligned
+/// writable s32 and receives MAC0's signed NCLIP result in square pixels.
+/// Overflow is not checked, and no facing decision is made here.
+///
+/// Leaves corners 0..2 in SXY0..SXY2. Preserve that FIFO until pushing corner 3
+/// to test corners 1..3. The environment-layer caller accepts a positive first
+/// result and a negative second result; zero rejects either triangle.
+/// No prior GTE setup is required. Performs no projection, clipping or lighting;
+/// replaces the screen FIFO and clobbers MAC0/FLAG. All coordinate reads precede
+/// the store, so the result may overlap writable packet storage. Both pointers
+/// are borrowed for this call and are not retained.
 static inline void _tmdStoreTexturedQuadFirstTriangleFacing(const POLY_GT4* packet, s32* facingArea)
 {
     gte_ldSXYP(*(const u32*)&packet->x0);
