@@ -5457,11 +5457,11 @@ call (the delay slot still bumps `$a2` on the way into `jal`, which is why
 the extra arg looked live):
 
 ```c
-if (slot->field_0 == type) {
+if (slot->kind == resourceKind) {
     if (count == arg0) {
-        temp = slot->field_4;
-        dest = temp;
-        func(temp, i); /* not count — dead on this path */
+        stfFile = slot->data;
+        dest = stfFile;
+        func(stfFile, i); /* not count — dead on this path */
         return;
     }
     count++;
@@ -8877,7 +8877,7 @@ for (; i < 50; i++) {
     out  = &Gp_CapFile;       /* hoist 1: lui s1, %hi */
     slot = &D_8006C338[i];    /* hoist 2: lui v0 / addiu s0 */
     ...
-    Gp_CapFile = slot->field_4; /* sw %lo(Gp_CapFile)(s1) */
+    Gp_CapFile = slot->data; /* sw %lo(Gp_CapFile)(s1) */
 }
 ```
 
@@ -8898,10 +8898,10 @@ register s32 type3 asm("v0");
 
 slot  = &arr[i];
 type3 = 3;                    /* li v0, 3 — fills the lbu delay */
-if (slot->field_0 == type3) { /* lbu v1; bne v1, v0 */
+if (slot->kind == type3) { /* lbu v1; bne v1, v0 */
 ```
 
-A bare `if (slot->field_0 == 3)` still hoists. `Gp_LoadCapFile` is the example.
+A bare `if (slot->kind == 3)` still hoists. `Gp_LoadCapFile` is the example.
 
 ## Finding which pass causes a mismatch
 
@@ -80455,14 +80455,14 @@ rebuild.
 
 The same function settles a second guess in the same direction. A literal
 compared inside the loop is hoisted into a register *before* the loop —
-`addiu $t1, $zero, 0x3` with `bne $v0, $t1` — so the sibling's `type = 3;` local
-is not needed to explain a hoisted constant; `field_0 == 3` written inline
+`addiu $t1, $zero, 0x3` with `bne $v0, $t1` — so the sibling's `resourceKind = FILE_SYSTEM_RESOURCE_DATA;` local
+is not needed to explain a hoisted constant; `kind == 3` written inline
 produces it. `func_shelter_b3_dumping_hole_80183198` (rooms) has that inline
 form and is instruction-for-instruction identical to this target.
 
-Both are copies of one `FsFolderSlot` scan: walk `D_8006C338[0..0x32]`, take the
-`arg2`-th entry whose `field_0 == 3`, call the overlay's relocation helper on its
-`field_4`. `overlay_dup_index find` shows the four carriers, and `promote`
+Both are copies of one `FsResourceSlot` scan: walk `D_8006C338[0..49]`, take the
+`arg2`-th entry whose `kind == 3`, call the overlay's relocation helper on its
+`data`. `overlay_dup_index find` shows the four carriers, and `promote`
 refuses them — the body names its own overlay's globals and callee.
 
 ## One alloc result kept in two registers: assign the call to a short-lived pointer, then copy it

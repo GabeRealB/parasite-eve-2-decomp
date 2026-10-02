@@ -14,10 +14,10 @@ static inline void CapCaption_LoadResource(s16 arg0, s16 arg1, s16 arg2)
     count                    = 0;
     CapCaption_Data_801544EC = arg0;
     CapCaption_Data_801544EE = arg1;
-    for (i = 0; i < 0x32; i++) {
-        if (D_8006C338[i].field_0 == 3) {
+    for (i = 0; i < ARRAY_SIZE(D_8006C338); i++) {
+        if (D_8006C338[i].kind == FILE_SYSTEM_RESOURCE_DATA) {
             if (count == arg2) {
-                CapCaption_Relocate(D_8006C338[i].field_4);
+                CapCaption_Relocate(D_8006C338[i].data);
                 break;
             }
             count++;

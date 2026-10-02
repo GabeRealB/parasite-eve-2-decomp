@@ -1164,13 +1164,13 @@ void Gp_LoadCapFile(s32 arg0)
     s32 count;
 
     count = 0;
-    for (i = 0; i < 50; i++) {
-        if (D_8006C338[i].field_0 == 3) {
+    for (i = 0; i < ARRAY_SIZE(D_8006C338); i++) {
+        if (D_8006C338[i].kind == FILE_SYSTEM_RESOURCE_DATA) {
             if (count == arg0) {
                 if (gDisplayState.debugMode != 0) {
                     func_80724714();
                 }
-                Gp_CapFile = D_8006C338[i].field_4;
+                Gp_CapFile = D_8006C338[i].data;
                 Gp_RelocCapFile(Gp_CapFile);
                 break;
             }

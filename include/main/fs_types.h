@@ -251,14 +251,25 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(CdCmdQueue, 0x254);
 STATIC_ASSERT(sizeof(((CdCmdQueue*)0)->activeRequest) == 0x10, cd_command_active_request_size);
 
-/// Per-folder slot cleared by `Fs_PrepareFolderLoad` (50 entries, parallel to
-/// `Fs_FolderTable`). Only the first byte is written by the init path.
-typedef struct _FsFolderSlot {
-    u8    field_0;
-    u8    pad_1[3];
-    void* field_4; // The folder's loaded data; its type depends on the file
-} FsFolderSlot;
-STATIC_ASSERT_SIZEOF(FsFolderSlot, 0x8);
+/// Resource kinds in a CDF bundle directory, separate from outer chunk opcodes.
+enum {
+    FILE_SYSTEM_RESOURCE_NONE  = 0,
+    FILE_SYSTEM_RESOURCE_IMAGE = 2,
+    FILE_SYSTEM_RESOURCE_DATA  = 3,
+};
+
+/// A borrowed payload address and kind from a CDF resource bundle.
+///
+/// The resident table preserves the bundle's fifty directory slots (indices
+/// 0..49). Addresses are published before payload loading finishes; consumers
+/// must wait for that load and keep its destination storage alive. Images use
+/// `FsImageChunk`; data resources can contain CAP/STF files or MDEC bitstreams.
+/// Clearing `kind` invalidates a slot without clearing or releasing `data`.
+typedef struct {
+    u8    kind; // Resource kind (0 none, 2 image, 3 untyped data)
+    void* data; // Borrowed RAM destination; its payload format depends on the resource
+} FsResourceSlot;
+STATIC_ASSERT_SIZEOF(FsResourceSlot, 0x8);
 
 /// Image workspace, used as twenty 1920-word strips or one continuous frame.
 /// A flat array also keeps whole-frame pixel processing within one C object.

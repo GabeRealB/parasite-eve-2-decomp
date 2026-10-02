@@ -23,7 +23,7 @@ extern FsImgBuffers* Fs_ImgBuffers;
 /// Bytes produced in each streaming destination; -1 means pending.
 extern s32 Fs_ChunkOutputSizes[3];
 
-extern FsFolderSlot D_8006C338[50];
+extern FsResourceSlot D_8006C338[50];
 
 extern s8 D5B498_8006C234;
 

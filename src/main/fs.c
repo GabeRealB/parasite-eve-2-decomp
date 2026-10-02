@@ -159,7 +159,7 @@ s8 D5B498_8006C234;
 /// Referenced only by the table at the start of the image.
 u8 D_8006C238[0x100];
 
-FsFolderSlot D_8006C338[50];
+FsResourceSlot D_8006C338[50];
 
 /// Per-slot image-load status bytes (indexed by `D5B498_8006ADF4`).
 static u8 D_8006C4C8[0xC];
@@ -638,9 +638,10 @@ static u8 Fs_ProcessChunkHeader(void)
                 return 1;
             }
             entry = (FsCdfChunkHeader*)Fs_CdSector.chunk.data.bytes;
-            for (i = 0; i < 50; i++) {
-                D_8006C338[i].field_0 = entry->type;
-                D_8006C338[i].field_4 = entry->loadAddr;
+            // Publish resource destinations before streaming the bundle's payload.
+            for (i = 0; i < ARRAY_SIZE(D_8006C338); i++) {
+                D_8006C338[i].kind = entry->type;
+                D_8006C338[i].data = entry->loadAddr;
                 if (entry->redirectAddr != 0) {
                     Fs_LoadRedirect.enabled        = 1;
                     Fs_LoadRedirect.redirectSector = entry->offset.redirectSector;
@@ -948,8 +949,8 @@ void Fs_PrepareFolderLoad(s32 arg0, s32 arg1, s32 arg2)
     Fs_ChunkMode                   = 0;
     D5B498_8006ADF4                = 0;
 
-    for (i = 0; i < 0x32; i++) {
-        D_8006C338[i].field_0 = 0;
+    for (i = 0; i < ARRAY_SIZE(D_8006C338); i++) {
+        D_8006C338[i].kind = FILE_SYSTEM_RESOURCE_NONE;
     }
 
     for (i = 0; i < ARRAY_SIZE(Stream_Slots); i++) {

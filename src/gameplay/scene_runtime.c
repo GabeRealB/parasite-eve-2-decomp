@@ -1121,20 +1121,20 @@ void func_800B06F0(Task* arg0)
 
 static void Gp_StartStageLoad(Task* task)
 {
-    s32           i;
-    u8            param1[8];
-    u8            param2[8];
-    FsFolderSlot* table;
-    s32           fileId;
+    s32             i;
+    u8              param1[8];
+    u8              param2[8];
+    FsResourceSlot* resourceSlots;
+    s32             fileId;
 
     if (Midi_IsBusy(0) == 0) {
         gDisplayState.suppressDisconnectPause = 1;
         i                                     = 0;
-        table                                 = D_8006C338;
+        resourceSlots                         = D_8006C338;
         do {
-            table[(u8)i].field_0 = 0;
+            resourceSlots[(u8)i].kind = FILE_SYSTEM_RESOURCE_NONE;
             i++;
-        } while ((u8)i < 0x32);
+        } while ((u8)i < ARRAY_SIZE(D_8006C338));
 
         fileId = 0xA;
         if (gGameSession->restartMode != GAME_SESSION_RESTART_ENDING) {

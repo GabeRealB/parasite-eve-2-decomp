@@ -115,7 +115,7 @@ void func_replay_bonus_801159A0(Task* arg0)
             DecDCTReset(0);
             D_replay_bonus_8011925C = memMalloc((s16)D_replay_bonus_80119266 << 6, true);
             vlcBuf                  = memMalloc(D_replay_bonus_80119264 * (s16)D_replay_bonus_80119266 * 2, true);
-            bs                      = D_8006C338[stream->fileId].field_4;
+            bs                      = D_8006C338[stream->fileId].data;
             D_replay_bonus_80119260 = vlcBuf;
             bufSize                 = DecDCTBufSize(bs);
             width                   = D_replay_bonus_80119264;
@@ -123,7 +123,7 @@ void func_replay_bonus_801159A0(Task* arg0)
                 width += 0xF;
             }
             DecDCTvlcSize2((bufSize / (width >> 4)) + 2);
-            if ((DecDCTvlc2(D_8006C338[stream->fileId].field_4, D_replay_bonus_80119260, stream->table) << 0x10) == 0) {
+            if ((DecDCTvlc2(D_8006C338[stream->fileId].data, D_replay_bonus_80119260, stream->table) << 0x10) == 0) {
                 arg0->state = 2;
                 return;
             }

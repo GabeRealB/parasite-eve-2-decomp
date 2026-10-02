@@ -5972,7 +5972,7 @@ void func_actor_560800_801364A0(u16 arg0)
 }
 
 /// Copies a 64x256 strip of VRAM to (0x280, 0x100), then re-loads the chunk at
-/// `D_8006C454` with `D5B498_8006C234` set to 5 for the duration (that byte is
+/// `D_8006C338[35].data` with `D5B498_8006C234` set to 5 for the duration (that byte is
 /// the image mode `Fs_LoadImageChunk` reads for chunks whose second halfword is
 /// in 0xF5..0xFF), restoring it to 0 afterwards.
 void func_actor_560800_80136548(void)
@@ -5985,7 +5985,7 @@ void func_actor_560800_80136548(void)
     rect.h = 0x100;
     MoveImage(&rect, 0x280, 0x100);
     D5B498_8006C234 = 5;
-    Fs_LoadImageChunk(D_8006C338[35].field_4, 1);
+    Fs_LoadImageChunk(D_8006C338[35].data, 1);
     D5B498_8006C234 = 0;
 }
 
@@ -6020,7 +6020,7 @@ void func_actor_560800_80136678(s32 arg0)
 /// which first parks `gDisplayState.control.flags.flipMode` at 2 — only step the state, and state 3 runs
 /// the hand-off. That hand-off copies a 64x256 VRAM strip from (0x380, 0) to
 /// (0x200, 0x100), the same shape `func_actor_560800_80136548` uses for the
-/// other strip, then re-loads the chunk at `D_8006C45C` with
+/// other strip, then re-loads the chunk at `D_8006C338[36].data` with
 /// `D5B498_8006C234` at 8 for the duration, kills this task, resets the
 /// display heap and spawns `D_actor_560800_801718F0` index 0xB into the work
 /// block's `field_4`. Like `func_actor_310100_801620FC`, state 3 hands the
@@ -6046,7 +6046,7 @@ void func_actor_560800_801366B0(Task* arg0)
             rect.h = 0x100;
             MoveImage(&rect, 0x200, 0x100);
             D5B498_8006C234 = 8;
-            Fs_LoadImageChunk(D_8006C338[36].field_4, 1);
+            Fs_LoadImageChunk(D_8006C338[36].data, 1);
             D5B498_8006C234 = 0;
             taskKill(arg0);
             Display_ResetHeapWrapper();

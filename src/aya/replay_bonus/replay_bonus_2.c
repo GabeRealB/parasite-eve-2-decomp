@@ -1007,26 +1007,26 @@ void func_replay_bonus_80118E3C(Task* arg0)
 
 static void func_replay_bonus_80118F00(s32 arg0)
 {
-    FsFolderSlot*       slot;
+    FsResourceSlot*     slot;
     s32                 count;
     s32                 i;
-    s32                 type;
-    ReplayBonusStfFile* temp;
+    s32                 resourceKind;
+    ReplayBonusStfFile* stfFile;
 
-    count = 0;
-    i     = count;
-    type  = 3;
+    count        = 0;
+    i            = count;
+    resourceKind = FILE_SYSTEM_RESOURCE_DATA;
     do {
         slot = &D_8006C338[i];
-        if (slot->field_0 == type) {
+        if (slot->kind == resourceKind) {
             if (count == arg0) {
-                temp                    = slot->field_4;
-                D_replay_bonus_8011928C = temp;
-                func_replay_bonus_80118B6C(temp, i);
+                stfFile                 = slot->data;
+                D_replay_bonus_8011928C = stfFile;
+                func_replay_bonus_80118B6C(stfFile, i);
                 return;
             }
             count++;
         }
         i++;
-    } while (i < 0x32);
+    } while (i < ARRAY_SIZE(D_8006C338));
 }

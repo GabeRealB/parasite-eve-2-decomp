@@ -761,10 +761,10 @@ void Gp_LoadViewImages(void)
     u8 i;
 
     view = Gp_GetViewIndex();
-    for (i = 0; i < 50; i++) {
-        if (D_8006C338[i].field_0 == 2) {
+    for (i = 0; i < ARRAY_SIZE(D_8006C338); i++) {
+        if (D_8006C338[i].kind == FILE_SYSTEM_RESOURCE_IMAGE) {
             if (view - 1 == i) {
-                while (Fs_LoadImageChunk(D_8006C338[i].field_4, 1)) {
+                while (Fs_LoadImageChunk(D_8006C338[i].data, 1)) {
                 }
                 break;
             }
@@ -877,10 +877,10 @@ void Gp_LoadViewAndCd(u8 arg0)
     u8           param1[8];
 
     view = Gp_GetViewIndex();
-    for (i = 0; i < 50; i++) {
-        if (D_8006C338[i].field_0 == 2) {
+    for (i = 0; i < ARRAY_SIZE(D_8006C338); i++) {
+        if (D_8006C338[i].kind == FILE_SYSTEM_RESOURCE_IMAGE) {
             if (view - 1 == i) {
-                while (Fs_LoadImageChunk(D_8006C338[i].field_4, 1)) {
+                while (Fs_LoadImageChunk(D_8006C338[i].data, 1)) {
                 }
                 break;
             }

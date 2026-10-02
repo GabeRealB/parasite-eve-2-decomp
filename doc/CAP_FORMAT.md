@@ -1,8 +1,9 @@
-# CAP dialogue files (`.pe2cap2`)
+# CAP dialogue payloads in `.pe2cap2` bundles
 
-The per-room dialogue container, magic `"CAP2"` (the loader compares 3 bytes).
-172 files on disc, one per room
-that speaks.
+The dialogue payload has magic `"CAP2"` (the loader compares 3 bytes).
+Extracted `.pe2cap2` files are CDF resource bundles: they can contain CAP
+payloads, images, STF credits and MDEC bitstreams. Their resource directory is
+described in §6; the sections below describe the CAP payload itself.
 
 A CAP file is not a dialogue blob. It is a **small state machine that chooses
 which line plays**, over counters that persist in save flags, plus the text those
@@ -192,11 +193,20 @@ the loader sees.
 **The magic on disc is `"CAP2"`, four characters.** `Gp_RelocCapFile` compares
 only three, so any `CAP*` passes. Do not write a 4-byte comparison.
 
-**One raw chunk holds several CAP2 blobs.** This file has headers at `0x1AA0`
-and `0x29F0`. The leading region before the first magic is a different
-structure containing already-absolute pointers (`0x80188920`, matching the
-per-room cap2 RAM address in `OVERLAYS.md` §2). What that leading region is has
-not been identified.
+**One raw chunk is a resource bundle containing images and data blobs.** This
+file has CAP2 headers at `0x1AA0` and `0x29F0`. Its first `0x320` bytes contain
+fifty 16-byte resource descriptors; the rest of the first `0x7F0` payload bytes
+is zero. The descriptors hold a resource kind (0 empty, 2 image, 3 untyped data),
+byte size and absolute RAM destination. `Fs_ProcessChunkHeader` publishes only
+the kind and destination as `FsResourceSlot` entries in `D_8006C338`, before
+streaming the subsequent sectors into RAM. These resource kinds are distinct
+from the outer CDF chunk opcodes.
+
+Here slots 2..7 describe six image resources starting at raw offset `0x7F0`,
+with RAM destinations beginning at `0x80188920`. Slots 14 and 15 describe the
+two CAP2 blobs, at `0x80189BD0` and `0x8018AB20`. Caption selection counts
+kind-3 resources in directory order; that kind can also hold STF credits or
+MDEC bitstreams in other bundles, so it does not by itself identify a CAP file.
 
 Header at `0x1AA0`, matching §1 exactly:
 
@@ -253,7 +263,6 @@ uses a text code's low ten bits as its glyph-cell index after handling controls.
 - **Message `0x13F0`** (opcode 3) - the payload contract with slot 7's task.
 - **What `mode` selects.** `Gp_StartCap` sets a text-box geometry
   (`0x30`, `0xC0`, `0x140`, `7`) but the per-mode differences are untraced.
-- **The leading pre-magic region** of the raw chunk.
 
 ## 8. Why this matters beyond extraction
 
