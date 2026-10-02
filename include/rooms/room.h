@@ -273,18 +273,6 @@ typedef struct RoomDiscScratch {
 } RoomDiscScratch;
 STATIC_ASSERT_SIZEOF(RoomDiscScratch, 0x14);
 
-/// The scratch block a room's quad drawer projects one quad in when it keeps
-/// the screen corners: the four corners in world space, the GTE depth and
-/// flag of their projection (a negative flag rejects the quad), and the
-/// projected corners, copied onto the primitive once one is allocated.
-typedef struct RoomQuadProjScratch {
-    SVECTOR v[4];
-    s32     otz;
-    s32     flag;
-    DVECTOR sxy[4];
-} RoomQuadProjScratch;
-STATIC_ASSERT_SIZEOF(RoomQuadProjScratch, 0x38);
-
 /// The scratch block a room's light-shaft drawer takes from the scratch stack
 /// for one shaft: the depth of its projection and its four corners in world
 /// space - the two roots, then the tip reached from each.

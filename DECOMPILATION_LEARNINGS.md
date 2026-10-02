@@ -7,7 +7,7 @@ Each entry was verified against real target assembly.
 
 Removing `TOUCH_REG(v)` from a vertex-pointer walk creates a second induction
 pointer for the Y/Z fields (97.668%). Indexing the vector avoids that extra
-walk, but `v = &block->vec[i]` remains non-replaceable if `i++` precedes the
+walk, but `v = &quadScratch->vertices[i]` remains non-replaceable if `i++` precedes the
 last `v` access: `loop.c:record_giv` explicitly rejects a biv update within
 the derived pointer's lifetime. The combined giv is then rejected as
 `not worth while, -3472 vs 29` (96.938%). Moving `i++` after the last vertex
@@ -38563,7 +38563,7 @@ variable actually stored:
 
 ```c
 vTop = 0xB8;                 /* early: crosses the gte_stszotz "memory" asm */
-block->otz++;
+quadScratch->depth++;
 prim       = gGpuPrimCursor;
 gGpuPrimCursor = prim + 1;
 __asm__ volatile("" ::: "memory");
@@ -63020,7 +63020,7 @@ function itself — yet the body was already matched several times over, as
 `Gp_DrawEffSprite7C` in gameplay, `Room_Draw16` in `src/rooms/lib`, and again
 in the `m4a1_pyke`, `hypervelocity` and `energyball` overlays. The index
 compares whole disassembly texts, so a body that differs only in its texture
-constants, its `setcode`, or by a single extra statement (here `block->otz++`)
+constants, its `setcode`, or by a single extra statement (here `quadScratch->depth++`)
 is not a duplicate by its measure even though it is the same routine.
 
 When the target reads a named global that only a family of routines touches —
@@ -142155,7 +142155,7 @@ size.
 
 Same function: a scratch-block fill written as a pointer walk (`v++`) with
 pins on `v`, `i` and the head matched as a plain indexed loop over
-`block->vec[i]`. Loop strength reduction makes the one address giv the pins
+`quadScratch->vertices[i]`. Loop strength reduction makes the one address giv the pins
 were imitating; the walk form gave an extra giv for `&v->vz` instead.
 
 ## Hand-inlined view walks and Y-rescales are the `actor.h` helpers; pick the spelling by setup order (Actor00100_Fn04270, 2026-09-26)
@@ -144660,8 +144660,8 @@ loop's vector pointer with `sh zero,2(a2)` / `sh t2,0(a2)` - no strength-reduced
 `&v->vy` giv. Seeds written as `head = SCRATCH_STACK_CURSOR - 0x38; ... do { v->vx = (u16)corners->axis0Sign
 * s; ...; v++; corners++; } while (++i < 4)` needed `asm("v1")`/`asm("a2")` pins
 (or a `TOUCH_REG`) to get both the head copy and the plain walker. Written the
-way gameplay's `Gp_DrawEffSprite7C` is - `block = SCRATCH_STACK_RESERVE_BLOCK(GpQuadScratch);
-for (i = 0; i < 4; i++) { block->vec[i].vx = (u16)D_80111E38[i].axis0Sign * s; ... }` with
+way gameplay's `Gp_DrawEffSprite7C` is - `quadScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectQuadScratch);
+for (i = 0; i < 4; i++) { quadScratch->vertices[i].vx = (u16)D_80111E38[i].axis0Sign * s; ... }` with
 `+=` on the translation - loop strength reduction produces exactly that walker
 and copy with no hack. The same body sits in energyball, hypervelocity and
 m4a1_pyke with pins or barriers.

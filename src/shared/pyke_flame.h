@@ -37,8 +37,8 @@ STATIC_ASSERT_SIZEOF(PykeFlameBody, 0x38);
 
 /// 0x30-byte scratch `pykeFlameDrawSplash` takes from the scratch stack: `vec`
 /// the splash quad's four corners in world space, `sxy` where they project.
-/// Same shape as the gameplay `GpQuadScratch`, but with `otz` and `flag` kept
-/// on the stack instead of in the block.
+/// Same quad projection as `EffectQuadScratch`, but depth and projection status
+/// stay on the call stack instead of in the block.
 typedef struct PykeFlameSplashScratch {
     /* 0x00 */ SVECTOR vec[4];
     /* 0x20 */ DVECTOR sxy[4];

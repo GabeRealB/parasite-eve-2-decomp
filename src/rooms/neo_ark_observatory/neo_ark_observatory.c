@@ -19,6 +19,7 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
+#include "gameplay/effects.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/light.h"
@@ -1955,16 +1956,16 @@ void func_neo_ark_observatory_80180124(Task* task)
 /// is negative.
 static void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s16 arg3)
 {
-    RoomQuadProjScratch* blk;
-    POLY_G4*             prim;
-    SVECTOR*             outer;
-    DisplayState*        ds;
-    s16                  start;
-    s16                  step;
-    s32                  angle;
-    s32                  next;
-    s16                  innerRadius;
-    s16                  level;
+    EffectQuadScratch* quadScratch;
+    POLY_G4*           prim;
+    SVECTOR*           outer;
+    DisplayState*      ds;
+    s16                start;
+    s16                step;
+    s32                angle;
+    s32                next;
+    s16                innerRadius;
+    s16                level;
 
     step        = 0x1000 / arg3;
     outer       = v + 1;
@@ -1972,34 +1973,34 @@ static void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s1
     start       = gDisplayState.animFrame & 0xFFF;
     level       = arg2 + (rsin(gDisplayState.animFrame << 10) >> 10);
     if (level >= 0) {
-        SCRATCH_STACK_RESERVE_BLOCK(RoomQuadProjScratch);
-        blk = SCRATCH_STACK_CURSOR(RoomQuadProjScratch);
+        SCRATCH_STACK_RESERVE_BLOCK(EffectQuadScratch);
+        quadScratch = SCRATCH_STACK_CURSOR(EffectQuadScratch);
         gte_SetTransMatrix(&gGfxViewCoord.workm);
         for (angle = start; angle < start + step * arg3; angle = next) {
-            blk->v[0].vx = v->vx + ((rsin(angle) * innerRadius) >> 12);
-            blk->v[0].vy = v->vy;
-            blk->v[0].vz = v->vz + ((rcos(angle) * innerRadius) >> 12);
-            next         = angle + step;
-            blk->v[1].vx = v->vx + ((rsin(next) * innerRadius) >> 12);
-            blk->v[1].vy = v->vy;
-            blk->v[1].vz = v->vz + ((rcos(next) * innerRadius) >> 12);
-            blk->v[2].vx = outer->vx + ((rsin(angle) * (s16)arg1) >> 12);
-            blk->v[2].vy = outer->vy;
-            blk->v[2].vz = outer->vz + ((rcos(angle) * (s16)arg1) >> 12);
-            blk->v[3].vx = outer->vx + ((rsin(next) * (s16)arg1) >> 12);
-            blk->v[3].vy = outer->vy;
-            blk->v[3].vz = outer->vz + ((rcos(next) * (s16)arg1) >> 12);
+            quadScratch->vertices[0].vx = v->vx + ((rsin(angle) * innerRadius) >> 12);
+            quadScratch->vertices[0].vy = v->vy;
+            quadScratch->vertices[0].vz = v->vz + ((rcos(angle) * innerRadius) >> 12);
+            next                        = angle + step;
+            quadScratch->vertices[1].vx = v->vx + ((rsin(next) * innerRadius) >> 12);
+            quadScratch->vertices[1].vy = v->vy;
+            quadScratch->vertices[1].vz = v->vz + ((rcos(next) * innerRadius) >> 12);
+            quadScratch->vertices[2].vx = outer->vx + ((rsin(angle) * (s16)arg1) >> 12);
+            quadScratch->vertices[2].vy = outer->vy;
+            quadScratch->vertices[2].vz = outer->vz + ((rcos(angle) * (s16)arg1) >> 12);
+            quadScratch->vertices[3].vx = outer->vx + ((rsin(next) * (s16)arg1) >> 12);
+            quadScratch->vertices[3].vy = outer->vy;
+            quadScratch->vertices[3].vz = outer->vz + ((rcos(next) * (s16)arg1) >> 12);
             gte_SetRotMatrix(&gGfxViewCoord.workm);
-            gte_ldv0(&blk->v[0]);
+            gte_ldv0(&quadScratch->vertices[0]);
             gte_rtps();
-            gte_stsxy(&blk->sxy[0]);
-            gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
+            gte_stsxy(&quadScratch->screenCorners[0]);
+            gte_ldv3(&quadScratch->vertices[1], &quadScratch->vertices[2], &quadScratch->vertices[3]);
             gte_rtpt();
-            gte_stsxy3(&blk->sxy[1], &blk->sxy[2], &blk->sxy[3]);
-            gte_stflg(&blk->flag);
-            if (blk->flag >= 0) {
-                gte_stszotz(&blk->otz);
-                blk->otz++;
+            gte_stsxy3(&quadScratch->screenCorners[1], &quadScratch->screenCorners[2], &quadScratch->screenCorners[3]);
+            gte_stflg(&quadScratch->projectionFlags);
+            if (quadScratch->projectionFlags >= 0) {
+                gte_stszotz(&quadScratch->depth);
+                quadScratch->depth++;
                 ds             = &gDisplayState;
                 prim           = gGpuPrimCursor;
                 gGpuPrimCursor = prim + 1;
@@ -2008,20 +2009,20 @@ static void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s1
                 setRGB1(prim, level >> 1, level >> 1, level >> 1);
                 setRGB2(prim, 0, 0, 0);
                 setRGB3(prim, 0, 0, 0);
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(blk->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(quadScratch->depth << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                         prim);
-                prim->x0 = blk->sxy[0].vx;
-                prim->y0 = blk->sxy[0].vy;
-                prim->x1 = blk->sxy[1].vx;
-                prim->y1 = blk->sxy[1].vy;
-                prim->x2 = blk->sxy[2].vx;
-                prim->y2 = blk->sxy[2].vy;
-                prim->x3 = blk->sxy[3].vx;
-                prim->y3 = blk->sxy[3].vy;
-                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
+                prim->x0 = quadScratch->screenCorners[0].vx;
+                prim->y0 = quadScratch->screenCorners[0].vy;
+                prim->x1 = quadScratch->screenCorners[1].vx;
+                prim->y1 = quadScratch->screenCorners[1].vy;
+                prim->x2 = quadScratch->screenCorners[2].vx;
+                prim->y2 = quadScratch->screenCorners[2].vy;
+                prim->x3 = quadScratch->screenCorners[3].vx;
+                prim->y3 = quadScratch->screenCorners[3].vy;
+                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, quadScratch->depth);
             }
         }
-        SCRATCH_STACK_RELEASE_BLOCK(RoomQuadProjScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(EffectQuadScratch);
     }
 }
 

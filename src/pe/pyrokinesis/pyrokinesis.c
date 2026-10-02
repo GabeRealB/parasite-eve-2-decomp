@@ -473,37 +473,37 @@ L_release:
 /// Same 0x38 scratch block and body as `Gp_DrawEffSprite7C`.
 static void func_pyrokinesis_801304C4(GfxCoord* arg0, s32 arg1)
 {
-    GpQuadScratch* block;
-    s32            i;
-    POLY_FT4*      prim;
-    s32            u;
+    EffectQuadScratch* quadScratch;
+    s32                i;
+    POLY_FT4*          prim;
+    s32                u;
 
-    block = SCRATCH_STACK_RESERVE_BLOCK(GpQuadScratch);
+    quadScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectQuadScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     for (i = 0; i < ARRAY_SIZE(D_80111E38); i++) {
-        block->vec[i].vx = (u16)D_80111E38[i].axis0Sign * arg1;
-        block->vec[i].vy = 0;
-        block->vec[i].vz = (u16)D_80111E38[i].axis1Sign * arg1;
+        quadScratch->vertices[i].vx = (u16)D_80111E38[i].axis0Sign * arg1;
+        quadScratch->vertices[i].vy = 0;
+        quadScratch->vertices[i].vz = (u16)D_80111E38[i].axis1Sign * arg1;
         gte_SetRotMatrix(&gGfxViewCoord.workm);
-        gte_ldv0(&block->vec[i]);
+        gte_ldv0(&quadScratch->vertices[i]);
         gte_rtv0();
-        gte_stsv(&block->vec[i]);
-        block->vec[i].vx += arg0->workm.t[0];
-        block->vec[i].vy += arg0->workm.t[1];
-        block->vec[i].vz += arg0->workm.t[2];
+        gte_stsv(&quadScratch->vertices[i]);
+        quadScratch->vertices[i].vx += arg0->workm.t[0];
+        quadScratch->vertices[i].vy += arg0->workm.t[1];
+        quadScratch->vertices[i].vz += arg0->workm.t[2];
     }
 
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec[0]);
+    gte_ldv0(&quadScratch->vertices[0]);
     gte_rtps();
-    gte_stsxy(&block->sxy0);
-    gte_ldv3(&block->vec[1], &block->vec[2], &block->vec[3]);
+    gte_stsxy(&quadScratch->screenCorners[0]);
+    gte_ldv3(&quadScratch->vertices[1], &quadScratch->vertices[2], &quadScratch->vertices[3]);
     gte_rtpt();
-    gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        block->otz++;
+    gte_stsxy3(&quadScratch->screenCorners[1], &quadScratch->screenCorners[2], &quadScratch->screenCorners[3]);
+    gte_stflg(&quadScratch->projectionFlags);
+    if (quadScratch->projectionFlags >= 0) {
+        gte_stszotz(&quadScratch->depth);
+        quadScratch->depth++;
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -523,18 +523,18 @@ static void func_pyrokinesis_801304C4(GfxCoord* arg0, s32 arg1)
         u           = ((gDisplayState.animFrame & 1) << 5) + 0xDF;
         prim->v3    = 0x57;
         prim->u3    = u;
-        prim->x0    = block->sxy0.vx;
-        prim->y0    = block->sxy0.vy;
-        prim->x1    = block->sxy1.vx;
-        prim->y1    = block->sxy1.vy;
-        prim->x2    = block->sxy2.vx;
-        prim->y2    = block->sxy2.vy;
-        prim->x3    = block->sxy3.vx;
-        prim->y3    = block->sxy3.vy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        prim->x0    = quadScratch->screenCorners[0].vx;
+        prim->y0    = quadScratch->screenCorners[0].vy;
+        prim->x1    = quadScratch->screenCorners[1].vx;
+        prim->y1    = quadScratch->screenCorners[1].vy;
+        prim->x2    = quadScratch->screenCorners[2].vx;
+        prim->y2    = quadScratch->screenCorners[2].vy;
+        prim->x3    = quadScratch->screenCorners[3].vx;
+        prim->y3    = quadScratch->screenCorners[3].vy;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)quadScratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_STACK_RELEASE_BLOCK(GpQuadScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectQuadScratch);
 }
 
 /// Packed additive flame texture page: 4-bit indexed texels at VRAM X=576 words, Y=0 scanlines.

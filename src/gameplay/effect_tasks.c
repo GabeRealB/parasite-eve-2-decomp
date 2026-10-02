@@ -2848,14 +2848,14 @@ static void Gp_DrawEffShard(GfxCoord* arg0, s16 arg1, s16 arg2, u16 arg3)
 
 void Gp_EffSprTask9E(Task* arg0)
 {
-    GpQuadScratch* block;
-    s32            i;
-    EffectWork*    mem;
-    GfxCoord*      coord;
-    POLY_FT4*      prim;
-    s32            scale;
-    s32            shade;
-    u8             col;
+    EffectQuadScratch* quadScratch;
+    s32                i;
+    EffectWork*        mem;
+    GfxCoord*          coord;
+    POLY_FT4*          prim;
+    s32                scale;
+    s32                shade;
+    u8                 col;
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
@@ -2874,36 +2874,36 @@ void Gp_EffSprTask9E(Task* arg0)
     }
     Gp_UpdateCoord(coord);
 
-    block = SCRATCH_STACK_RESERVE_BLOCK(GpQuadScratch);
+    quadScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectQuadScratch);
     for (i = 0; i < ARRAY_SIZE(D_80111E38); i++) {
-        block->vec[i].vx = (u16)D_80111E38[i].axis0Sign * (u16)mem->scale;
-        block->vec[i].vy = 0;
-        block->vec[i].vz = (u16)D_80111E38[i].axis1Sign * (u16)mem->scale;
+        quadScratch->vertices[i].vx = (u16)D_80111E38[i].axis0Sign * (u16)mem->scale;
+        quadScratch->vertices[i].vy = 0;
+        quadScratch->vertices[i].vz = (u16)D_80111E38[i].axis1Sign * (u16)mem->scale;
         gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&block->vec[i]);
+        gte_ldv0(&quadScratch->vertices[i]);
         gte_rtv0();
-        gte_stsv(&block->vec[i]);
-        block->vec[i].vx += coord->workm.t[0];
-        block->vec[i].vy += coord->workm.t[1];
-        block->vec[i].vz += coord->workm.t[2];
+        gte_stsv(&quadScratch->vertices[i]);
+        quadScratch->vertices[i].vx += coord->workm.t[0];
+        quadScratch->vertices[i].vy += coord->workm.t[1];
+        quadScratch->vertices[i].vz += coord->workm.t[2];
     }
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec[0]);
+    gte_ldv0(&quadScratch->vertices[0]);
     gte_rtps();
     shade = -0x80 - (mem->age >> 3);
     col   = shade;
-    gte_stsxy(&block->sxy0);
-    gte_ldv3(&block->vec[1], &block->vec[2], &block->vec[3]);
+    gte_stsxy(&quadScratch->screenCorners[0]);
+    gte_ldv3(&quadScratch->vertices[1], &quadScratch->vertices[2], &quadScratch->vertices[3]);
     gte_rtpt();
-    gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        block->otz    += 0x80;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
+    gte_stsxy3(&quadScratch->screenCorners[1], &quadScratch->screenCorners[2], &quadScratch->screenCorners[3]);
+    gte_stflg(&quadScratch->projectionFlags);
+    if (quadScratch->projectionFlags >= 0) {
+        gte_stszotz(&quadScratch->depth);
+        quadScratch->depth += 0x80;
+        prim                = gGpuPrimCursor;
+        gGpuPrimCursor      = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2E);
         prim->g0    = col >> 2;
@@ -2919,18 +2919,18 @@ void Gp_EffSprTask9E(Task* arg0)
         prim->v2    = 0xFF;
         prim->u3    = 0xDF;
         prim->v3    = 0xFF;
-        prim->x0    = block->sxy0.vx;
-        prim->y0    = block->sxy0.vy;
-        prim->x1    = block->sxy1.vx;
-        prim->y1    = block->sxy1.vy;
-        prim->x2    = block->sxy2.vx;
-        prim->y2    = block->sxy2.vy;
-        prim->x3    = block->sxy3.vx;
-        prim->y3    = block->sxy3.vy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        prim->x0    = quadScratch->screenCorners[0].vx;
+        prim->y0    = quadScratch->screenCorners[0].vy;
+        prim->x1    = quadScratch->screenCorners[1].vx;
+        prim->y1    = quadScratch->screenCorners[1].vy;
+        prim->x2    = quadScratch->screenCorners[2].vx;
+        prim->y2    = quadScratch->screenCorners[2].vy;
+        prim->x3    = quadScratch->screenCorners[3].vx;
+        prim->y3    = quadScratch->screenCorners[3].vy;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)quadScratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x38);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectQuadScratch);
     mem->age++;
     if (mem->angle < mem->age) {
         effectKillTask(mem, arg0);
@@ -3052,36 +3052,36 @@ void Gp_EffSprTask54(Task* arg0)
 
 void Gp_DrawEffSprite7C(GfxCoord* arg0, s32 arg1, u32 arg2)
 {
-    GpQuadScratch* block;
-    s32            i;
-    POLY_FT4*      prim;
+    EffectQuadScratch* quadScratch;
+    s32                i;
+    POLY_FT4*          prim;
 
-    block = SCRATCH_STACK_RESERVE_BLOCK(GpQuadScratch);
+    quadScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectQuadScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     for (i = 0; i < ARRAY_SIZE(D_80111E38); i++) {
-        block->vec[i].vx = (u16)D_80111E38[i].axis0Sign * arg1;
-        block->vec[i].vy = 0;
-        block->vec[i].vz = (u16)D_80111E38[i].axis1Sign * arg1;
+        quadScratch->vertices[i].vx = (u16)D_80111E38[i].axis0Sign * arg1;
+        quadScratch->vertices[i].vy = 0;
+        quadScratch->vertices[i].vz = (u16)D_80111E38[i].axis1Sign * arg1;
         gte_SetRotMatrix(&gGfxViewCoord.workm);
-        gte_ldv0(&block->vec[i]);
+        gte_ldv0(&quadScratch->vertices[i]);
         gte_rtv0();
-        gte_stsv(&block->vec[i]);
-        block->vec[i].vx += arg0->workm.t[0];
-        block->vec[i].vy += arg0->workm.t[1];
-        block->vec[i].vz += arg0->workm.t[2];
+        gte_stsv(&quadScratch->vertices[i]);
+        quadScratch->vertices[i].vx += arg0->workm.t[0];
+        quadScratch->vertices[i].vy += arg0->workm.t[1];
+        quadScratch->vertices[i].vz += arg0->workm.t[2];
     }
 
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec[0]);
+    gte_ldv0(&quadScratch->vertices[0]);
     gte_rtps();
-    gte_stsxy(&block->sxy0);
-    gte_ldv3(&block->vec[1], &block->vec[2], &block->vec[3]);
+    gte_stsxy(&quadScratch->screenCorners[0]);
+    gte_ldv3(&quadScratch->vertices[1], &quadScratch->vertices[2], &quadScratch->vertices[3]);
     gte_rtpt();
-    gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        block->otz++;
+    gte_stsxy3(&quadScratch->screenCorners[1], &quadScratch->screenCorners[2], &quadScratch->screenCorners[3]);
+    gte_stflg(&quadScratch->projectionFlags);
+    if (quadScratch->projectionFlags >= 0) {
+        gte_stszotz(&quadScratch->depth);
+        quadScratch->depth++;
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -3100,52 +3100,52 @@ void Gp_DrawEffSprite7C(GfxCoord* arg0, s32 arg1, u32 arg2)
         prim->u3    = 0xFF;
         prim->v3    = 0xE7;
         setSemiTrans(prim, 1);
-        prim->x0 = block->sxy0.vx;
-        prim->y0 = block->sxy0.vy;
-        prim->x1 = block->sxy1.vx;
-        prim->y1 = block->sxy1.vy;
-        prim->x2 = block->sxy2.vx;
-        prim->y2 = block->sxy2.vy;
-        prim->x3 = block->sxy3.vx;
-        prim->y3 = block->sxy3.vy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        prim->x0 = quadScratch->screenCorners[0].vx;
+        prim->y0 = quadScratch->screenCorners[0].vy;
+        prim->x1 = quadScratch->screenCorners[1].vx;
+        prim->y1 = quadScratch->screenCorners[1].vy;
+        prim->x2 = quadScratch->screenCorners[2].vx;
+        prim->y2 = quadScratch->screenCorners[2].vy;
+        prim->x3 = quadScratch->screenCorners[3].vx;
+        prim->y3 = quadScratch->screenCorners[3].vy;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)quadScratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x38);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectQuadScratch);
 }
 
 void Gp_DrawEffGroundQuad(VECTOR3* pos, s32 size, s16 shade)
 {
-    GpQuadScratch* block;
-    s32            i;
-    POLY_FT4*      prim;
+    EffectQuadScratch* quadScratch;
+    s32                i;
+    POLY_FT4*          prim;
 
     if (shade >= 0 && gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
-        block = SCRATCH_STACK_RESERVE_BLOCK(GpQuadScratch);
+        quadScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectQuadScratch);
         gte_SetTransMatrix(&GsWSMATRIX);
         for (i = 0; i < ARRAY_SIZE(D_80111E38); i++) {
-            block->vec[i].vx = (u16)D_80111E38[i].axis0Sign * size;
-            block->vec[i].vy = 0;
-            block->vec[i].vz = (u16)D_80111E38[i].axis1Sign * size;
+            quadScratch->vertices[i].vx = (u16)D_80111E38[i].axis0Sign * size;
+            quadScratch->vertices[i].vy = 0;
+            quadScratch->vertices[i].vz = (u16)D_80111E38[i].axis1Sign * size;
             gte_SetRotMatrix(&gGfxViewCoord.workm);
-            gte_ldv0(&block->vec[i]);
+            gte_ldv0(&quadScratch->vertices[i]);
             gte_rtv0();
-            gte_stsv(&block->vec[i]);
-            block->vec[i].vx += pos->vx;
-            block->vec[i].vy += pos->vy;
-            block->vec[i].vz += pos->vz;
+            gte_stsv(&quadScratch->vertices[i]);
+            quadScratch->vertices[i].vx += pos->vx;
+            quadScratch->vertices[i].vy += pos->vy;
+            quadScratch->vertices[i].vz += pos->vz;
         }
 
         gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&block->vec[0]);
+        gte_ldv0(&quadScratch->vertices[0]);
         gte_rtps();
-        gte_stsxy(&block->sxy0);
-        gte_ldv3(&block->vec[1], &block->vec[2], &block->vec[3]);
+        gte_stsxy(&quadScratch->screenCorners[0]);
+        gte_ldv3(&quadScratch->vertices[1], &quadScratch->vertices[2], &quadScratch->vertices[3]);
         gte_rtpt();
-        gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
-        gte_stflg(&block->flag);
-        if (block->flag >= 0) {
-            gte_stszotz(&block->otz);
+        gte_stsxy3(&quadScratch->screenCorners[1], &quadScratch->screenCorners[2], &quadScratch->screenCorners[3]);
+        gte_stflg(&quadScratch->projectionFlags);
+        if (quadScratch->projectionFlags >= 0) {
+            gte_stszotz(&quadScratch->depth);
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
@@ -3168,18 +3168,18 @@ void Gp_DrawEffGroundQuad(VECTOR3* pos, s32 size, s16 shade)
             prim->u3    = 0xF7;
             prim->v3    = 0xCF;
             setSemiTrans(prim, 1);
-            prim->x0 = block->sxy0.vx;
-            prim->y0 = block->sxy0.vy;
-            prim->x1 = block->sxy1.vx;
-            prim->y1 = block->sxy1.vy;
-            prim->x2 = block->sxy2.vx;
-            prim->y2 = block->sxy2.vy;
-            prim->x3 = block->sxy3.vx;
-            prim->y3 = block->sxy3.vy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            prim->x0 = quadScratch->screenCorners[0].vx;
+            prim->y0 = quadScratch->screenCorners[0].vy;
+            prim->x1 = quadScratch->screenCorners[1].vx;
+            prim->y1 = quadScratch->screenCorners[1].vy;
+            prim->x2 = quadScratch->screenCorners[2].vx;
+            prim->y2 = quadScratch->screenCorners[2].vy;
+            prim->x3 = quadScratch->screenCorners[3].vx;
+            prim->y3 = quadScratch->screenCorners[3].vy;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)quadScratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
         }
-        SCRATCH_STACK_RELEASE_BYTES(0x38);
+        SCRATCH_STACK_RELEASE_BLOCK(EffectQuadScratch);
     }
 }
 

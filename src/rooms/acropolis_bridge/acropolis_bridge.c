@@ -117,8 +117,8 @@ typedef struct AcropolisBridgePromptWork {
 /// the scratch stack. `vec` holds the four billboard corners, projected with
 /// one `RTPS` plus one `RTPT` straight into the `POLY_FT4`; `otz` is the
 /// `gte_stszotz` depth the primitive is linked into the OT at. `flag` and
-/// `sxy` are the `gte_stflg` / `gte_stsxy` slots of the same layout the
-/// gameplay overlay's `GpQuadScratch` uses, and this task leaves them unused.
+/// `sxy` are projection outputs that `EffectQuadScratch` retains; this task
+/// leaves its slots for those outputs unused.
 typedef struct AcropolisBridgeQuadScratch {
     /* 0x00 */ s32     otz;
     /* 0x04 */ s32     flag;

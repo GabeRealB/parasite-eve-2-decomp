@@ -178,22 +178,29 @@ typedef struct {
 } EffectUnitQuadCorner;
 STATIC_ASSERT_SIZEOF(EffectUnitQuadCorner, 0x4);
 
-/// 0x38-byte scratch from the scratch stack used by `Gp_DrawEffSprite7C` and
-/// `Room_Draw16`. `vec[]` holds the four rotated + translated quad corners
-/// fed to the GTE; `otz` is `gte_stszotz` (then incremented by the sprite
-/// helpers, not by `Room_Draw16`), `flag` is `gte_stflg`, and `sxy0` (RTPS
-/// of `vec[0]`) plus `sxy1`..`sxy3` (RTPT of the rest) are the projected
-/// screen positions copied into the `POLY_FT4`.
-typedef struct _GpQuadScratch {
-    /* 0x00 */ SVECTOR vec[4];
-    /* 0x20 */ s32     otz;
-    /* 0x24 */ s32     flag;
-    /* 0x28 */ DVECTOR sxy0;
-    /* 0x2C */ DVECTOR sxy1;
-    /* 0x30 */ DVECTOR sxy2;
-    /* 0x34 */ DVECTOR sxy3;
-} GpQuadScratch;
-STATIC_ASSERT_SIZEOF(GpQuadScratch, 0x38);
+/// Scratch-stack workspace for projecting one four-corner effect quad.
+///
+/// `vertices` stages local corners and is reused for their rotated, translated
+/// world positions, narrowed to signed 16-bit coordinate units. Corners and
+/// screen positions share indices 0..3 in GPU quad strip order.
+///
+/// One RTPS projects corner 0 and one RTPT projects corners 1..3. `depth` is
+/// the last corner's SZ3 divided by four, optionally biased before ordering
+/// the primitive. `projectionFlags` holds the most recently stored GTE FLAG
+/// word.
+/// The drawer decides which projections to reject before copying the screen
+/// positions to a textured or Gouraud-shaded quad packet.
+///
+/// Reserve one complete, word-aligned block and initialize fields as needed.
+/// Release it in scratch-stack order after drawing; pointers into the block
+/// must not survive release.
+typedef struct {
+    SVECTOR vertices[4];      // Local corner workspace, then world positions supplied to the projection
+    s32     depth;            // Last projected corner's SZ3 / 4, with the drawer's ordering bias
+    s32     projectionFlags;  // Latest GTE FLAG word; bit 31 makes it negative and rejects that projection
+    DVECTOR screenCorners[4]; // Signed screen X/Y pixels, written together as one GTE word per corner
+} EffectQuadScratch;
+STATIC_ASSERT_SIZEOF(EffectQuadScratch, 0x38);
 
 /// Scratch-stack workspace for a spinning textured billboard about one world point.
 ///

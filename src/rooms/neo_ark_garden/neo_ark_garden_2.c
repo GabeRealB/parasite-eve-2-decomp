@@ -537,37 +537,37 @@ void func_neo_ark_garden_8017EA9C(Task* task)
 /// word is negative.
 static void func_neo_ark_garden_8017F42C(SVECTOR* arg0)
 {
-    MATRIX         m;
-    GpQuadScratch* block;
-    s32            i;
-    POLY_FT4*      prim;
+    MATRIX             m;
+    EffectQuadScratch* quadScratch;
+    s32                i;
+    POLY_FT4*          prim;
 
     Gfx_RotMatrixX(&m, gDisplayState.animFrame << 7, 1);
-    block = SCRATCH_STACK_RESERVE_BLOCK(GpQuadScratch);
+    quadScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectQuadScratch);
     for (i = 0; i < ARRAY_SIZE(D_80111E38); i++) {
-        block->vec[i].vx = 0;
-        block->vec[i].vy = D_80111E38[i].axis0Sign * 250;
-        block->vec[i].vz = D_80111E38[i].axis1Sign * 250;
+        quadScratch->vertices[i].vx = 0;
+        quadScratch->vertices[i].vy = D_80111E38[i].axis0Sign * 250;
+        quadScratch->vertices[i].vz = D_80111E38[i].axis1Sign * 250;
         gte_SetRotMatrix(&m);
-        gte_ldv0(&block->vec[i]);
+        gte_ldv0(&quadScratch->vertices[i]);
         gte_rtv0();
-        gte_stsv(&block->vec[i]);
-        block->vec[i].vx += arg0->vx;
-        block->vec[i].vy += arg0->vy;
-        block->vec[i].vz += arg0->vz;
+        gte_stsv(&quadScratch->vertices[i]);
+        quadScratch->vertices[i].vx += arg0->vx;
+        quadScratch->vertices[i].vy += arg0->vy;
+        quadScratch->vertices[i].vz += arg0->vz;
     }
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(&block->vec[0]);
+    gte_ldv0(&quadScratch->vertices[0]);
     gte_rtps();
-    gte_stsxy(&block->sxy0);
-    gte_ldv3(&block->vec[1], &block->vec[2], &block->vec[3]);
+    gte_stsxy(&quadScratch->screenCorners[0]);
+    gte_ldv3(&quadScratch->vertices[1], &quadScratch->vertices[2], &quadScratch->vertices[3]);
     gte_rtpt();
-    gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
+    gte_stsxy3(&quadScratch->screenCorners[1], &quadScratch->screenCorners[2], &quadScratch->screenCorners[3]);
+    gte_stflg(&quadScratch->projectionFlags);
+    if (quadScratch->projectionFlags >= 0) {
+        gte_stszotz(&quadScratch->depth);
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -582,18 +582,18 @@ static void func_neo_ark_garden_8017F42C(SVECTOR* arg0)
         prim->v2    = 0x3F;
         prim->u3    = 0x3F;
         prim->v3    = 0x3F;
-        prim->x0    = block->sxy0.vx;
-        prim->y0    = block->sxy0.vy;
-        prim->x1    = block->sxy1.vx;
-        prim->y1    = block->sxy1.vy;
-        prim->x2    = block->sxy2.vx;
-        prim->y2    = block->sxy2.vy;
-        prim->x3    = block->sxy3.vx;
-        prim->y3    = block->sxy3.vy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        prim->x0    = quadScratch->screenCorners[0].vx;
+        prim->y0    = quadScratch->screenCorners[0].vy;
+        prim->x1    = quadScratch->screenCorners[1].vx;
+        prim->y1    = quadScratch->screenCorners[1].vy;
+        prim->x2    = quadScratch->screenCorners[2].vx;
+        prim->y2    = quadScratch->screenCorners[2].vy;
+        prim->x3    = quadScratch->screenCorners[3].vx;
+        prim->y3    = quadScratch->screenCorners[3].vy;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)quadScratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_STACK_RELEASE_BLOCK(GpQuadScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectQuadScratch);
 }
 
 #include "../../shared/room_visual_effects.inc.c"
