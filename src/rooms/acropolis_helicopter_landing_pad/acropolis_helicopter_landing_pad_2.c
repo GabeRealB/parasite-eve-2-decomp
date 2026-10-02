@@ -202,33 +202,436 @@ static WorldCoordLight _gAcropolisHelicopterLandingPadDirectionalLights[] = {
     },
 };
 
-WorldCoordPointLight D_acropolis_helicopter_landing_pad_801862A8[22] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3900, -4205, -1800 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2129, 2211 }, { 0, 0 } }, 500, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -4205, -6000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2129, 2211 }, { 0, 0 } }, 500, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5000, -1000, -6100 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3194, 3276 }, { 0, 0 } }, 500, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2000, -1000, 6100 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3194, 3276 }, { 0, 0 } }, 500, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2000, -1000, 6100 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3194, 3276 }, { 0, 0 } }, 500, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5000, -1000, 6100 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3194, 3276 }, { 0, 0 } }, 500, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -6100, -1000, 5000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3194, 3276 }, { 0, 0 } }, 500, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -6100, -1000, 2000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3194, 3276 }, { 0, 0 } }, 500, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6100, -1010, 500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3686, 2867 }, { 0, 0 } }, 500, 1000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1300, -1010, 6100 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3686, 2867 }, { 0, 0 } }, 500, 1000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -6100, -1010, -100 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3686, 2867 }, { 0, 0 } }, 500, 1000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5800, -1610, -1400 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3686, 3686 }, { 0, 0 } }, 800, 1300 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2200, -3770, -6800 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1556, 1556, 1638 }, { 0, 0 } }, 500, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2000, -1000, -6100 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3194, 3276 }, { 0, 0 } }, 500, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2000, -1000, -6100 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3194, 3276 }, { 0, 0 } }, 500, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5000, -1000, -6100 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3194, 3276 }, { 0, 0 } }, 500, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6100, -1000, -5000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3194, 3276 }, { 0, 0 } }, 500, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6100, -1000, -2000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3194, 3276 }, { 0, 0 } }, 500, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6100, -1000, 2000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3194, 3276 }, { 0, 0 } }, 500, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6100, -1000, 5000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3194, 3276 }, { 0, 0 } }, 500, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5000, -1000, 6100 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3194, 3276 }, { 0, 0 } }, 500, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1200, -4205, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2129, 2211 }, { 0, 0 } }, 500, 2000 },
+/// The landing pad's 22 point lights for model shading and spatial light queries.
+///
+/// Every entry accepts every room view. Positions and falloff radii use
+/// integer world units; RGB intensities have 12 fractional bits (`ONE` is 1.0).
+/// The loaded room overlay owns these writable records: coordinate updates
+/// attach the view parent and compose transforms, and queries overwrite
+/// attenuation. Borrowed pointers must not survive unloading the overlay.
+static WorldCoordPointLight _gAcropolisHelicopterLandingPadPointLights[] = {
+    {
+        .head = {
+            .transform = {
+                .lighting = {
+                    .composeStamp = GRAPHICS_COORD_DIRTY,
+                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -3900, -4205, -1800 } },
+                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { 0, 0, 0 } },
+                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                    .unknown_46   = { 0, 0, 0, 0 },
+                    .attenuation  = 0,
+                    .parent       = NULL,
+                },
+            },
+            .color      = { .r = 2048, .g = 2129, .b = 2211 },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 500,
+        .outer = 2000,
+    },
+    {
+        .head = {
+            .transform = {
+                .lighting = {
+                    .composeStamp = GRAPHICS_COORD_DIRTY,
+                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { 0, -4205, -6000 } },
+                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { 0, 0, 0 } },
+                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                    .unknown_46   = { 0, 0, 0, 0 },
+                    .attenuation  = 0,
+                    .parent       = NULL,
+                },
+            },
+            .color      = { .r = 2048, .g = 2129, .b = 2211 },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 500,
+        .outer = 2000,
+    },
+    {
+        .head = {
+            .transform = {
+                .lighting = {
+                    .composeStamp = GRAPHICS_COORD_DIRTY,
+                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -5000, -1000, -6100 } },
+                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { 0, 0, 0 } },
+                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                    .unknown_46   = { 0, 0, 0, 0 },
+                    .attenuation  = 0,
+                    .parent       = NULL,
+                },
+            },
+            .color      = { .r = 3112, .g = 3194, .b = 3276 },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 500,
+        .outer = 1500,
+    },
+    {
+        .head = {
+            .transform = {
+                .lighting = {
+                    .composeStamp = GRAPHICS_COORD_DIRTY,
+                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { 2000, -1000, 6100 } },
+                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { 0, 0, 0 } },
+                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                    .unknown_46   = { 0, 0, 0, 0 },
+                    .attenuation  = 0,
+                    .parent       = NULL,
+                },
+            },
+            .color      = { .r = 3112, .g = 3194, .b = 3276 },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 500,
+        .outer = 1500,
+    },
+    {
+        .head = {
+            .transform = {
+                .lighting = {
+                    .composeStamp = GRAPHICS_COORD_DIRTY,
+                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -2000, -1000, 6100 } },
+                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { 0, 0, 0 } },
+                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                    .unknown_46   = { 0, 0, 0, 0 },
+                    .attenuation  = 0,
+                    .parent       = NULL,
+                },
+            },
+            .color      = { .r = 3112, .g = 3194, .b = 3276 },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 500,
+        .outer = 1500,
+    },
+    {
+        .head = {
+            .transform = {
+                .lighting = {
+                    .composeStamp = GRAPHICS_COORD_DIRTY,
+                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -5000, -1000, 6100 } },
+                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { 0, 0, 0 } },
+                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                    .unknown_46   = { 0, 0, 0, 0 },
+                    .attenuation  = 0,
+                    .parent       = NULL,
+                },
+            },
+            .color      = { .r = 3112, .g = 3194, .b = 3276 },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 500,
+        .outer = 1500,
+    },
+    {
+        .head = {
+            .transform = {
+                .lighting = {
+                    .composeStamp = GRAPHICS_COORD_DIRTY,
+                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -6100, -1000, 5000 } },
+                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { 0, 0, 0 } },
+                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                    .unknown_46   = { 0, 0, 0, 0 },
+                    .attenuation  = 0,
+                    .parent       = NULL,
+                },
+            },
+            .color      = { .r = 3112, .g = 3194, .b = 3276 },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 500,
+        .outer = 1500,
+    },
+    {
+        .head = {
+            .transform = {
+                .lighting = {
+                    .composeStamp = GRAPHICS_COORD_DIRTY,
+                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -6100, -1000, 2000 } },
+                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { 0, 0, 0 } },
+                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                    .unknown_46   = { 0, 0, 0, 0 },
+                    .attenuation  = 0,
+                    .parent       = NULL,
+                },
+            },
+            .color      = { .r = 3112, .g = 3194, .b = 3276 },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 500,
+        .outer = 1500,
+    },
+    {
+        .head = {
+            .transform = {
+                .lighting = {
+                    .composeStamp = GRAPHICS_COORD_DIRTY,
+                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { 6100, -1010, 500 } },
+                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { 0, 0, 0 } },
+                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                    .unknown_46   = { 0, 0, 0, 0 },
+                    .attenuation  = 0,
+                    .parent       = NULL,
+                },
+            },
+            .color      = { .r = ONE, .g = 3686, .b = 2867 },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 500,
+        .outer = 1000,
+    },
+    {
+        .head = {
+            .transform = {
+                .lighting = {
+                    .composeStamp = GRAPHICS_COORD_DIRTY,
+                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -1300, -1010, 6100 } },
+                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { 0, 0, 0 } },
+                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                    .unknown_46   = { 0, 0, 0, 0 },
+                    .attenuation  = 0,
+                    .parent       = NULL,
+                },
+            },
+            .color      = { .r = ONE, .g = 3686, .b = 2867 },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 500,
+        .outer = 1000,
+    },
+    {
+        .head = {
+            .transform = {
+                .lighting = {
+                    .composeStamp = GRAPHICS_COORD_DIRTY,
+                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -6100, -1010, -100 } },
+                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { 0, 0, 0 } },
+                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                    .unknown_46   = { 0, 0, 0, 0 },
+                    .attenuation  = 0,
+                    .parent       = NULL,
+                },
+            },
+            .color      = { .r = ONE, .g = 3686, .b = 2867 },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 500,
+        .outer = 1000,
+    },
+    {
+        .head = {
+            .transform = {
+                .lighting = {
+                    .composeStamp = GRAPHICS_COORD_DIRTY,
+                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -5800, -1610, -1400 } },
+                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { 0, 0, 0 } },
+                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                    .unknown_46   = { 0, 0, 0, 0 },
+                    .attenuation  = 0,
+                    .parent       = NULL,
+                },
+            },
+            .color      = { .r = 3686, .g = 3686, .b = 3686 },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 800,
+        .outer = 1300,
+    },
+    {
+        .head = {
+            .transform = {
+                .lighting = {
+                    .composeStamp = GRAPHICS_COORD_DIRTY,
+                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -2200, -3770, -6800 } },
+                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { 0, 0, 0 } },
+                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                    .unknown_46   = { 0, 0, 0, 0 },
+                    .attenuation  = 0,
+                    .parent       = NULL,
+                },
+            },
+            .color      = { .r = 1556, .g = 1556, .b = 1638 },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 500,
+        .outer = 1500,
+    },
+    {
+        .head = {
+            .transform = {
+                .lighting = {
+                    .composeStamp = GRAPHICS_COORD_DIRTY,
+                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -2000, -1000, -6100 } },
+                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { 0, 0, 0 } },
+                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                    .unknown_46   = { 0, 0, 0, 0 },
+                    .attenuation  = 0,
+                    .parent       = NULL,
+                },
+            },
+            .color      = { .r = 3112, .g = 3194, .b = 3276 },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 500,
+        .outer = 1500,
+    },
+    {
+        .head = {
+            .transform = {
+                .lighting = {
+                    .composeStamp = GRAPHICS_COORD_DIRTY,
+                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { 2000, -1000, -6100 } },
+                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { 0, 0, 0 } },
+                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                    .unknown_46   = { 0, 0, 0, 0 },
+                    .attenuation  = 0,
+                    .parent       = NULL,
+                },
+            },
+            .color      = { .r = 3112, .g = 3194, .b = 3276 },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 500,
+        .outer = 1500,
+    },
+    {
+        .head = {
+            .transform = {
+                .lighting = {
+                    .composeStamp = GRAPHICS_COORD_DIRTY,
+                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { 5000, -1000, -6100 } },
+                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { 0, 0, 0 } },
+                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                    .unknown_46   = { 0, 0, 0, 0 },
+                    .attenuation  = 0,
+                    .parent       = NULL,
+                },
+            },
+            .color      = { .r = 3112, .g = 3194, .b = 3276 },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 500,
+        .outer = 1500,
+    },
+    {
+        .head = {
+            .transform = {
+                .lighting = {
+                    .composeStamp = GRAPHICS_COORD_DIRTY,
+                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { 6100, -1000, -5000 } },
+                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { 0, 0, 0 } },
+                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                    .unknown_46   = { 0, 0, 0, 0 },
+                    .attenuation  = 0,
+                    .parent       = NULL,
+                },
+            },
+            .color      = { .r = 3112, .g = 3194, .b = 3276 },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 500,
+        .outer = 1500,
+    },
+    {
+        .head = {
+            .transform = {
+                .lighting = {
+                    .composeStamp = GRAPHICS_COORD_DIRTY,
+                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { 6100, -1000, -2000 } },
+                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { 0, 0, 0 } },
+                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                    .unknown_46   = { 0, 0, 0, 0 },
+                    .attenuation  = 0,
+                    .parent       = NULL,
+                },
+            },
+            .color      = { .r = 3112, .g = 3194, .b = 3276 },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 500,
+        .outer = 1500,
+    },
+    {
+        .head = {
+            .transform = {
+                .lighting = {
+                    .composeStamp = GRAPHICS_COORD_DIRTY,
+                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { 6100, -1000, 2000 } },
+                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { 0, 0, 0 } },
+                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                    .unknown_46   = { 0, 0, 0, 0 },
+                    .attenuation  = 0,
+                    .parent       = NULL,
+                },
+            },
+            .color      = { .r = 3112, .g = 3194, .b = 3276 },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 500,
+        .outer = 1500,
+    },
+    {
+        .head = {
+            .transform = {
+                .lighting = {
+                    .composeStamp = GRAPHICS_COORD_DIRTY,
+                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { 6100, -1000, 5000 } },
+                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { 0, 0, 0 } },
+                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                    .unknown_46   = { 0, 0, 0, 0 },
+                    .attenuation  = 0,
+                    .parent       = NULL,
+                },
+            },
+            .color      = { .r = 3112, .g = 3194, .b = 3276 },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 500,
+        .outer = 1500,
+    },
+    {
+        .head = {
+            .transform = {
+                .lighting = {
+                    .composeStamp = GRAPHICS_COORD_DIRTY,
+                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { 5000, -1000, 6100 } },
+                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { 0, 0, 0 } },
+                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                    .unknown_46   = { 0, 0, 0, 0 },
+                    .attenuation  = 0,
+                    .parent       = NULL,
+                },
+            },
+            .color      = { .r = 3112, .g = 3194, .b = 3276 },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 500,
+        .outer = 1500,
+    },
+    {
+        .head = {
+            .transform = {
+                .lighting = {
+                    .composeStamp = GRAPHICS_COORD_DIRTY,
+                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -1200, -4205, 0 } },
+                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { 0, 0, 0 } },
+                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                    .unknown_46   = { 0, 0, 0, 0 },
+                    .attenuation  = 0,
+                    .parent       = NULL,
+                },
+            },
+            .color      = { .r = 2048, .g = 2129, .b = 2211 },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 500,
+        .outer = 2000,
+    },
 };
 
 WorldCoordRoomLights D_acropolis_helicopter_landing_pad_80186AE8[1] = {
-    { ARRAY_SIZE(_gAcropolisHelicopterLandingPadDirectionalLights), _gAcropolisHelicopterLandingPadDirectionalLights, ARRAY_SIZE(D_acropolis_helicopter_landing_pad_801862A8), D_acropolis_helicopter_landing_pad_801862A8, 0, NULL },
+    { ARRAY_SIZE(_gAcropolisHelicopterLandingPadDirectionalLights), _gAcropolisHelicopterLandingPadDirectionalLights, ARRAY_SIZE(_gAcropolisHelicopterLandingPadPointLights), _gAcropolisHelicopterLandingPadPointLights, 0, NULL },
 };
 
 SpriteBatch D_acropolis_helicopter_landing_pad_80186B00[2] = {
