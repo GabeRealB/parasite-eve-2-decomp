@@ -284,7 +284,7 @@ extern u8 Actor01100_D15670;
 extern DamageAttack Actor01100_D074F8[6];
 
 /// One of the actor's three state handlers - spawn/setup, per-frame tick and
-/// teardown. Wider than the usual two-argument `GpEnemyTaskFunc` shape: the
+/// teardown. Wider than the usual two-argument `EnemyTaskFunc` shape: the
 /// handlers also take the actor's work block (`Task::work`) and a 0x68-byte
 /// scratchpad buffer the dispatcher allocates around the call.
 typedef void (*Actor101100StateFunc)(Enemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* scratch);

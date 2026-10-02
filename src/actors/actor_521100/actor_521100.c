@@ -3303,7 +3303,7 @@ static const GpEnemyTaskFuncTable3 D_actor_521100_80131E40 = { {
 /// `Enemy` along with the task.
 void func_actor_521100_80135378(Task* task)
 {
-    GpEnemyTaskFunc fns[2] = {
+    EnemyTaskFunc fns[2] = {
         func_actor_521100_80131E8C,
         func_actor_521100_801353CC,
     };

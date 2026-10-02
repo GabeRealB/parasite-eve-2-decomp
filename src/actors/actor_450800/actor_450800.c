@@ -2881,7 +2881,7 @@ static void func_actor_450800_80132448(Task* task)
 
 void func_actor_450800_80132790(Task* task)
 {
-    GpEnemyTaskFunc fns[2] = { func_actor_450800_80132160, func_actor_450800_801327E4 };
+    EnemyTaskFunc fns[2] = { func_actor_450800_80132160, func_actor_450800_801327E4 };
 
     fns[task->state](task->spawnArg2.pointer, task);
 }
@@ -3115,7 +3115,7 @@ s32 func_actor_450800_80132D74(Task* task, s32 arg1, VECTOR* target, s32 mode)
 
 void func_actor_450800_80133264(Task* task)
 {
-    GpEnemyTaskFunc fns[2] = { pairWalkSpawn, func_actor_450800_801332B8 };
+    EnemyTaskFunc fns[2] = { pairWalkSpawn, func_actor_450800_801332B8 };
 
     fns[task->state](task->spawnArg2.pointer, task);
 }

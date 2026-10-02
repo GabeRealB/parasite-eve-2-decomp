@@ -120,7 +120,7 @@ STATIC_ASSERT_SIZEOF(Actor01200Work, 0x3E0);
 
 /// The ten substate handlers the tick copies onto its stack before dispatching.
 typedef struct Actor01200StateTable {
-    /* 0x00 */ GpEnemyTaskFunc fn[10];
+    /* 0x00 */ EnemyTaskFunc fn[10];
 } Actor01200StateTable;
 
 extern EnemyParams               Actor01200_D04034;

@@ -672,7 +672,7 @@ static void func_actor_205200_8014B484(Enemy* arg0, Task* arg1)
 /// record along with the task.
 void func_actor_205200_8014B8C0(Task* task)
 {
-    GpEnemyTaskFunc fns[2] = {
+    EnemyTaskFunc fns[2] = {
         func_actor_205200_8014A72C,
         func_actor_205200_8014A958,
     };

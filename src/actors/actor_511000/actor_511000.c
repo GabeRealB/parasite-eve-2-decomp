@@ -3208,7 +3208,7 @@ s32 func_actor_511000_80133EAC(Task* task, s32 arg1, s32 arg2)
 
 void func_actor_511000_80133EF4(Task* task)
 {
-    GpEnemyTaskFunc fns[2] = { func_actor_511000_80133F48, func_actor_511000_80133F88 };
+    EnemyTaskFunc fns[2] = { func_actor_511000_80133F48, func_actor_511000_80133F88 };
 
     fns[task->state](task->spawnArg2.pointer, task);
 }
@@ -3245,7 +3245,7 @@ static void func_actor_511000_80133F88(Enemy* arg0, Task* arg1)
 
 void func_actor_511000_80133FC8(Task* task)
 {
-    GpEnemyTaskFunc fns[2] = { func_actor_511000_8013401C, func_actor_511000_8013405C };
+    EnemyTaskFunc fns[2] = { func_actor_511000_8013401C, func_actor_511000_8013405C };
 
     fns[task->state](task->spawnArg2.pointer, task);
 }
@@ -3279,7 +3279,7 @@ static void func_actor_511000_8013405C(Enemy* arg0, Task* arg1)
 
 void func_actor_511000_8013409C(Task* task)
 {
-    GpEnemyTaskFunc fns[2] = { func_actor_511000_801340F0, func_actor_511000_80134130 };
+    EnemyTaskFunc fns[2] = { func_actor_511000_801340F0, func_actor_511000_80134130 };
 
     fns[task->state](task->spawnArg2.pointer, task);
 }

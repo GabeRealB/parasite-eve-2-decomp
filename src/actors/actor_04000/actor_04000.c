@@ -157,7 +157,7 @@ STATIC_ASSERT_SIZEOF(Actor104000AimScratch, 0x14);
 
 /// The nineteen handlers the tick copies onto its stack before dispatching.
 typedef struct Actor104000StateTable {
-    /* 0x00 */ GpEnemyTaskFunc fn[19];
+    /* 0x00 */ EnemyTaskFunc fn[19];
 } Actor104000StateTable;
 STATIC_ASSERT_SIZEOF(Actor104000StateTable, 0x4C);
 

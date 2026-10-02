@@ -49052,7 +49052,7 @@ sp = ActorsShared80135df4Table;
 sp.funcs[task->state](task->spawnArg2, task);
 ```
 
-The element type is `GpEnemyTaskFunc` — `void (*)(Enemy*, Task*)` — so a
+The element type is `EnemyTaskFunc` — `void (*)(Enemy*, Task*)` — so a
 handler m2c renders as a single `void *value` is really
 `(Enemy* enemy, Task* task)`. The *unused* leading `Enemy*` is what leaves
 the live pointer in `$a1`, and the body then copies `$a1` into `$a0` for its own

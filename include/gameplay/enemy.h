@@ -151,25 +151,32 @@ void enemyDestroy(Enemy* enemy, Task* task);
 /// is left dangling; callers must not access the task or enemy afterwards.
 void enemyTaskExit(Task* task);
 
-/// Callback for Enemy + Task state handlers (entries in `Gp_EnemyWaitFuncs`).
-typedef void (*GpEnemyTaskFunc)(Enemy* enemy, Task* task);
+/// Enemy state handler. Takes the enemy work object and the task that owns it,
+/// and returns nothing.
+///
+/// A task body or a per-frame tick selects one from a table by `Task::state`
+/// or by an actor substate and calls it with that pair. The enemy is the
+/// object stored in the task's `spawnArg2.pointer`. Both pointers are live on
+/// entry. A teardown handler may release them before returning; the caller
+/// must not use either afterwards.
+typedef void (*EnemyTaskFunc)(Enemy* enemy, Task* task);
 
-/// Fixed-size table of `GpEnemyTaskFunc` callbacks. Copied onto the stack by
+/// Fixed-size table of `EnemyTaskFunc` callbacks. Copied onto the stack by
 /// `Gp_EnemyDispatch` so the call uses a local jump table.
 typedef struct {
-    GpEnemyTaskFunc funcs[3];
+    EnemyTaskFunc funcs[3];
 } GpEnemyTaskFuncTable3;
 
 /// Four-entry form of `GpEnemyTaskFuncTable3`, for actors whose dispatcher has
 /// an extra state beyond spawn/tick/teardown.
 typedef struct {
-    GpEnemyTaskFunc funcs[4];
+    EnemyTaskFunc funcs[4];
 } GpEnemyTaskFuncTable4;
 
 /// Five-entry form of `GpEnemyTaskFuncTable3`, for actors with two extra
 /// states beyond spawn/tick/teardown.
 typedef struct {
-    GpEnemyTaskFunc funcs[5];
+    EnemyTaskFunc funcs[5];
 } GpEnemyTaskFuncTable5;
 
 /// Overlay of `Task::spawnArg2` for sibling walkers. `field_A` high byte is

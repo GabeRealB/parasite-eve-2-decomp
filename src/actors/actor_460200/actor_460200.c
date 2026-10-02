@@ -2262,7 +2262,7 @@ static void func_actor_460200_80132390(void)
 
 void func_actor_460200_801327B4(Task* task)
 {
-    GpEnemyTaskFunc fns[2] = { pacedWalkSpawn, pacedWalkFrame };
+    EnemyTaskFunc fns[2] = { pacedWalkSpawn, pacedWalkFrame };
 
     fns[task->state](task->spawnArg2.pointer, task);
 }
@@ -2318,7 +2318,7 @@ s32 func_actor_460200_80132C8C(Task* task, s32 arg1, ActorCommand* args)
 
 void func_actor_460200_801330C8(Task* task)
 {
-    GpEnemyTaskFunc fns[2] = { strideWalkSpawn, strideWalkFrame };
+    EnemyTaskFunc fns[2] = { strideWalkSpawn, strideWalkFrame };
 
     fns[task->state](task->spawnArg2.pointer, task);
 }
@@ -2387,7 +2387,7 @@ s32 func_actor_460200_80133568(Task* task, s32 arg1, ActorCommand* args)
 
 void func_actor_460200_8013386C(Task* task)
 {
-    GpEnemyTaskFunc fns[2] = { func_actor_460200_801338C0, func_actor_460200_80133A04 };
+    EnemyTaskFunc fns[2] = { func_actor_460200_801338C0, func_actor_460200_80133A04 };
 
     fns[task->state](task->spawnArg2.pointer, task);
 }
