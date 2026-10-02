@@ -17,8 +17,6 @@
 /// remain loaded until it is cleared. Starting CAP playback clears the callback.
 typedef void (*CapTextUpdateCallback)(s32 cursorX, s32 cursorY, const u16* text, s32 revealIndex, s32 codeAdvanced);
 
-struct _GpCapCmd;
-
 /// End of a CAP sequence table; relocation leaves this reference unchanged.
 enum { CAP_TEXT_REF_END = -1 };
 
@@ -105,12 +103,57 @@ typedef struct _GpCapEvtTable {
 } GpCapEvtTable;
 STATIC_ASSERT_SIZEOF(GpCapEvtTable, 0x10);
 
+/// How a command chooses the variant key played from its sequence.
+enum {
+    CAP_COMMAND_PLAIN   = 0, // Play variant 0.
+    CAP_COMMAND_COUNTER = 1, // Play the counter, then advance it.
+    CAP_COMMAND_FLAG    = 2, // Play the game-flag nibble named by this command.
+    CAP_COMMAND_ROOM    = 3, // Give the command index to the room; do not start playback.
+    CAP_COMMAND_TALLY   = 4  // Play how many of a run of two-bit flags are 0, 1 or 3.
+};
+
+/// Modifiers in `CapCommand.flags`.
+///
+/// The counter opcode reads all three. The tally opcode reads only
+/// `CAP_COMMAND_BRANCH`. Other opcodes leave the byte unused.
+enum {
+    CAP_COMMAND_WRAP    = 0x01, // Store 0 when the counter has reached the limit and BRANCH is clear.
+    CAP_COMMAND_PERSIST = 0x02, // Keep the counter in the game-flag nibble instead of `counter`.
+    CAP_COMMAND_BRANCH  = 0x04  // Continue at `nextIndex` instead of playing: counter above the limit, or a zero tally.
+};
+
+/// Selects the variant key for one CAP sequence, and occupies its first slot.
+///
+/// The command pointer table addresses this record. Playback keeps that address
+/// and starts at the next slot, so command selection and text playback share a
+/// base without sharing a meaning. The game-flag nibble index is
+/// `flagIndexLo | (flagIndexHi << 8)`. A counter plays that value and then
+/// advances it: `CAP_COMMAND_PERSIST` uses the game-flag nibble, and otherwise
+/// the value is `counter` in the loaded file. `CAP_COMMAND_BRANCH` continues
+/// at `nextIndex` without playing when the counter is above `counterLimit`, or
+/// when a tally is 0. With BRANCH clear, `CAP_COMMAND_WRAP` stores 0 at the
+/// limit and any other counter stays there.
+typedef struct {
+    u8 opcode;       // CAP_COMMAND_* selector.
+    u8 flags;        // CAP_COMMAND_WRAP, CAP_COMMAND_PERSIST, CAP_COMMAND_BRANCH.
+    u8 counterLimit; // Highest counter value that still plays.
+    u8 flagIndexLo;  // Low byte of the game-flag nibble index.
+    u8 counter;      // Live file counter when CAP_COMMAND_PERSIST is clear. Retail commands store 0.
+    u8 bitFlagIndex; // First current-stage two-bit flag read by CAP_COMMAND_TALLY.
+    u8 bitFlagCount; // How many consecutive two-bit flags CAP_COMMAND_TALLY reads.
+    u8 flagIndexHi;  // High byte of the game-flag nibble index.
+    u8 nextIndex;    // Command-table index taken when CAP_COMMAND_BRANCH skips playback.
+    u8 slotTail[3];  // Unread. Zero in every retail command; the next sequence slot starts after them.
+} CapCommand;
+STATIC_ASSERT_SIZEOF(CapCommand, 0xC);
+STATIC_ASSERT(sizeof(CapCommand) == sizeof(CapSequenceRecord), cap_command_sequence_slot);
+
 /// The CAP file's command pointer table: a count, then that many entries. Each
 /// entry is a file-relative offset until relocation adds the file base, making
 /// it the address of a command record; a zero entry is left as no record.
 typedef union {
     s32                offset;
-    struct _GpCapCmd*  command;
+    CapCommand*        command;
     CapSequenceRecord* events;
 } GpCapEntry;
 STATIC_ASSERT_SIZEOF(GpCapEntry, 4);
@@ -120,23 +163,6 @@ typedef struct _GpCapPtrTable {
     /* 0x4 */ GpCapEntry entries[0];
 } GpCapPtrTable;
 STATIC_ASSERT_SIZEOF(GpCapPtrTable, 4);
-
-/// Command record pointed to by `Gp_CapCmds[index]`. `Gp_RunCapCmd` switches
-/// on `field_0` and may follow `field_8` to another index. Flag id is
-/// `field_3 | (field_7 << 8)`. `field_1` bits: 0 = wrap counter, 1 = persist
-/// counter in a game-flag nibble, 2 = skip/compare against `field_2`.
-/// `Gp_StartCapSlot` then starts the event at the same table slot.
-typedef struct _GpCapCmd {
-    /* 0x0 */ u8 field_0; // opcode (0..4)
-    /* 0x1 */ u8 field_1; // flags
-    /* 0x2 */ u8 field_2; // counter limit
-    /* 0x3 */ u8 field_3; // flag id lo
-    /* 0x4 */ u8 field_4; // live counter
-    /* 0x5 */ u8 field_5; // first 2-bit slot (`Gp_GetCurBit2Flag`)
-    /* 0x6 */ u8 field_6; // slot count
-    /* 0x7 */ u8 field_7; // flag id hi
-    /* 0x8 */ u8 field_8; // next command index
-} GpCapCmd;
 
 /// In-memory CAP dialogue file (`strncmp` magic `"CAP"`). Offsets at
 /// `field_8` / `field_C` / `field_10` are file-relative until

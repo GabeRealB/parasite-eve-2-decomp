@@ -81,58 +81,61 @@ static const TaskFuncTable3 D_800974C8 = { {
 
 void Gp_RunCapCmd(s32 arg0, s16 arg1)
 {
-    GpCapCmd* rec;
-    s32       flagId;
-    s32       val;
-    s32       i;
+    CapCommand* command;
+    s32         flagId;
+    s32         val;
+    s32         i;
 
     for (;;) {
-        rec    = Gp_CapCmds[arg0].command;
-        flagId = rec->field_3 | (rec->field_7 << 8);
-        switch (rec->field_0) {
-            case 0:
+        command = Gp_CapCmds[arg0].command;
+        flagId  = command->flagIndexLo | (command->flagIndexHi << 8);
+        switch (command->opcode) {
+            case CAP_COMMAND_PLAIN:
                 Gp_StartCapSlot(arg0, arg1, 0);
                 return;
-            case 1:
-                if (rec->field_1 & 2) {
+            case CAP_COMMAND_COUNTER:
+                // Persist keeps the counter in a game flag. Otherwise it is this command's byte.
+                if (command->flags & CAP_COMMAND_PERSIST) {
                     val = GameFlag_GetNibble(flagId);
                 } else {
-                    val = rec->field_4;
+                    val = command->counter;
                 }
-                if ((rec->field_1 & 4) && rec->field_2 < val) {
-                    arg0 = rec->field_8;
+                // Above the limit, BRANCH continues at nextIndex without playing or advancing.
+                if ((command->flags & CAP_COMMAND_BRANCH) && command->counterLimit < val) {
+                    arg0 = command->nextIndex;
                     continue;
                 }
                 Gp_StartCapSlot(arg0, arg1, val);
-                if ((val < rec->field_2) || (rec->field_1 & 4)) {
+                if ((val < command->counterLimit) || (command->flags & CAP_COMMAND_BRANCH)) {
                     val++;
-                } else if (rec->field_1 & 1) {
+                } else if (command->flags & CAP_COMMAND_WRAP) {
                     val = 0;
                 }
-                if (rec->field_1 & 2) {
+                if (command->flags & CAP_COMMAND_PERSIST) {
                     GameFlag_SetNibble(flagId, val);
                 } else {
-                    rec->field_4 = val;
+                    command->counter = val;
                 }
                 return;
-            case 2:
+            case CAP_COMMAND_FLAG:
                 val = GameFlag_GetNibble(flagId);
                 Gp_StartCapSlot(arg0, arg1, val);
                 return;
-            case 3:
+            case CAP_COMMAND_ROOM:
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_COMMAND, arg0, 0);
                 return;
-            case 4:
+            case CAP_COMMAND_TALLY:
+                // Count two-bit flags whose value is 0, 1 or 3.
                 val = 0;
-                for (i = 0; i < rec->field_6; i++) {
-                    if (Gp_GetCurBit2Flag(rec->field_5 + i) == 0 ||
-                        Gp_GetCurBit2Flag(rec->field_5 + i) == 1 ||
-                        Gp_GetCurBit2Flag(rec->field_5 + i) == 3) {
+                for (i = 0; i < command->bitFlagCount; i++) {
+                    if (Gp_GetCurBit2Flag(command->bitFlagIndex + i) == 0 ||
+                        Gp_GetCurBit2Flag(command->bitFlagIndex + i) == 1 ||
+                        Gp_GetCurBit2Flag(command->bitFlagIndex + i) == 3) {
                         val++;
                     }
                 }
-                if ((rec->field_1 & 4) && val == 0) {
-                    arg0 = rec->field_8;
+                if ((command->flags & CAP_COMMAND_BRANCH) && val == 0) {
+                    arg0 = command->nextIndex;
                     continue;
                 }
                 Gp_StartCapSlot(arg0, arg1, val);

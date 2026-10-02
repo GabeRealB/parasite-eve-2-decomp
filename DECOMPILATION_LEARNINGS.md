@@ -31423,13 +31423,13 @@ Leaving all three unpinned gives `rec` in `$s1` and `val` in `$s2` even
 when `flagId` already landed in `$s0`. Pin only the pointer:
 
 ```c
-register GpCapCmd* rec asm("s2");
+register CapCommand* rec asm("s2");
 ```
 
 Do not also pin `flagId` / `val`: that rewrites the `lbu` temps
-(`field_7` into `$s0` instead of `$v0`) and drops the `sra` from the
+(`flagIndexHi` into `$s0` instead of `$v0`) and drops the `sra` from the
 `bnez count` delay slot. Reuse `val` as the case-4 tally (`i = 0; val = i`)
-so the copy fills that `beqz field_6` delay slot. `Gp_RunCapCmd` is the
+so the copy fills that `beqz bitFlagCount` delay slot. `Gp_RunCapCmd` is the
 example.
 
 ## Force `i = 0` before an independent load so the delay slot stays `nop`

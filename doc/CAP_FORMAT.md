@@ -53,7 +53,7 @@ Gp_CapCmds   = (s32*)((GpCapPtrTable*)file->field_10 + 1);
 ```
 
 So **the pointer table is the command index**: `Gp_CapCmds[i]` is a
-`GpCapCmd*`, one per event slot.
+`CapCommand*`, one per event slot.
 
 ## 3. Event records — `CapSequenceRecord` (0xC)
 
@@ -101,29 +101,35 @@ stops at the first record whose `textRef.offset == CAP_TEXT_REF_END` **or** whos
 the current `Gp_CapEventKey`, returning the index. So an event slot is a run of
 records terminated by `-1`, and the key selects a variant within the run.
 
-## 4. Command records — `GpCapCmd` (9 bytes)
+## 4. Command records — `CapCommand` (0xC)
 
 ```
-0x0  u8 opcode        0..4
-0x1  u8 flags         bit0 wrap, bit1 persist counter in a flag, bit2 compare/branch
-0x2  u8 limit         counter limit
-0x3  u8 flagId lo
-0x4  u8 counter       live in-memory counter (opcode 1, non-persistent)
-0x5  u8 bitSlot       first 2-bit flag slot (opcode 4)
-0x6  u8 bitCount      slot count (opcode 4)
-0x7  u8 flagId hi
-0x8  u8 next          next command index for the branch
+0x0  u8 opcode         CAP_COMMAND_PLAIN, COUNTER, FLAG, ROOM or TALLY
+0x1  u8 flags          CAP_COMMAND_WRAP, CAP_COMMAND_PERSIST, CAP_COMMAND_BRANCH
+0x2  u8 counterLimit   highest counter value that still plays
+0x3  u8 flagIndexLo    low byte of the game-flag nibble index
+0x4  u8 counter        live file counter when PERSIST is clear; 0 in every shipped command
+0x5  u8 bitFlagIndex   first current-stage two-bit flag (TALLY)
+0x6  u8 bitFlagCount   how many consecutive two-bit flags TALLY reads
+0x7  u8 flagIndexHi    high byte of the game-flag nibble index
+0x8  u8 nextIndex      command-table index taken when BRANCH skips playback
+0x9  u8 slotTail[3]    unread; zero in every shipped command
 ```
 
-Flag id is `field_3 | (field_7 << 8)` — a `GameFlag_*Nibble` id.
+The record is one sequence slot wide, the same 12 bytes as a
+`CapSequenceRecord`. Bytes 9..11 have no command reader. The game-flag nibble
+index is `flagIndexLo | (flagIndexHi << 8)`.
 
-`Gp_RunCapCmd(index, mode)` is a `for(;;)` over the command table; `next` makes
-it a jump, so commands chain without recursion.
+`Gp_RunCapCmd(index, mode)` walks the command table in a loop. `nextIndex`
+replaces the index, so a branch chains without recursion.
 
 ## 5. Opcodes
 
-Every opcode ends by calling `Gp_StartCapSlot(index, mode, variant)`. The
-opcodes differ only in **how `variant` is chosen** and whether state advances.
+`CAP_COMMAND_PLAIN`, `CAP_COMMAND_COUNTER`, `CAP_COMMAND_FLAG` and
+`CAP_COMMAND_TALLY` finish by starting playback at this command's sequence.
+`CAP_COMMAND_ROOM` gives the command index to the room and does not start
+playback itself. The playing opcodes differ in how the variant key is chosen
+and whether state advances.
 
 ### 0 — plain
 
@@ -137,20 +143,21 @@ Always variant 0. One unconditional line.
 The only opcode that mutates state.
 
 ```c
-val = (flags & 2) ? GameFlag_GetNibble(flagId) : rec->counter;
-if ((flags & 4) && limit < val)  goto next;          // past the limit, branch away
+val = (flags & CAP_COMMAND_PERSIST) ? GameFlag_GetNibble(flagId) : command->counter;
+if ((flags & CAP_COMMAND_BRANCH) && command->counterLimit < val)  goto nextIndex;
 Gp_StartCapSlot(index, mode, val);
-if (val < limit || (flags & 4)) val++;
-else if (flags & 1)             val = 0;             // wrap
-(flags & 2) ? GameFlag_SetNibble(flagId, val) : (rec->counter = val);
+if (val < command->counterLimit || (flags & CAP_COMMAND_BRANCH)) val++;
+else if (flags & CAP_COMMAND_WRAP)                               val = 0;
+(flags & CAP_COMMAND_PERSIST) ? GameFlag_SetNibble(flagId, val) : (command->counter = val);
 ```
 
-- `flags & 2` decides **where the counter lives**: a save-game nibble
-  (persistent across rooms and saves) or `field_4` in the record itself
+- `CAP_COMMAND_PERSIST` decides **where the counter lives**: a save-game nibble
+  (persistent across rooms and saves) or `counter` in the record itself
   (resets when the file reloads).
-- `flags & 4` turns the limit into a **branch condition** rather than a clamp —
-  once past it, control jumps to `next` instead of speaking.
-- `flags & 1` wraps back to 0 at the limit; without it the counter sticks.
+- `CAP_COMMAND_BRANCH` turns the limit into a **branch condition** rather than a
+  clamp — once past it, control jumps to `nextIndex` instead of speaking.
+- `CAP_COMMAND_WRAP` stores 0 at the limit; without it, and without BRANCH, the
+  counter sticks.
 
 That triple covers "say it once", "cycle through N lines", "say N times then
 something else".
@@ -175,14 +182,17 @@ the file only marks the hand-off point.
 
 ```c
 val = 0;
-for (i = 0; i < bitCount; i++)
-    if (Gp_GetCurBit2Flag(bitSlot + i) != 2) val++;   // counts states 0, 1, 3
-if ((flags & 4) && val == 0) goto next;
+for (i = 0; i < command->bitFlagCount; i++)
+    if (Gp_GetCurBit2Flag(command->bitFlagIndex + i) == 0 ||
+        Gp_GetCurBit2Flag(command->bitFlagIndex + i) == 1 ||
+        Gp_GetCurBit2Flag(command->bitFlagIndex + i) == 3)
+        val++;
+if ((flags & CAP_COMMAND_BRANCH) && val == 0) goto nextIndex;
 Gp_StartCapSlot(index, mode, val);
 ```
-Variant is **how many** of a run of 2-bit flags are not in state 2 — a progress
-tally ("how many of these have you not finished"). With `flags & 4`, a zero
-tally branches instead of speaking.
+Variant is how many of a run of current-stage two-bit flags have value 0, 1 or
+3. With `CAP_COMMAND_BRANCH`, a zero tally continues at `nextIndex` instead of
+playing.
 
 ## 6. Checked against a real file
 
@@ -221,7 +231,7 @@ exactly `evt + 4`, the first command header. Entry gaps are whole multiples of 1
 
 Each sequence starts with a **command header in slot zero**, followed by
 `CapSequenceRecord` playback records from slot one. `Gp_RunCapCmd` reads the
-header as `GpCapCmd`; `Gp_StartCap` stores the same base pointer as
+header as `CapCommand`; `Gp_StartCap` stores the same base pointer as
 `Gp_CapTable` but initializes its record index to one. The command and playback
 records have different meanings. Relocation starts at `evt + 0x10`, after the
 first command header, and its extra step after a terminator skips the next
