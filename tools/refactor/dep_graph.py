@@ -77,12 +77,36 @@ def _is_local(usr: str) -> bool:
     return bool(re.search(r"@\d+@", usr))
 
 
+def _sdk_usrs(tu, root: str) -> set:
+    """USRs of everything a Psy-Q header declares, enum constants included.
+
+    The SDK is excluded by where it is declared, not by what it is called: a
+    name list read out of the headers misses whatever form it was not written
+    for (`struct DIRENTRY { ... };` with no typedef was one), and the symbol
+    then reaches the worklist as if it were the project's.
+    """
+    out = set()
+    for cur in tu.cursor.get_children():
+        loc = cur.location
+        if loc.file is None:
+            continue
+        where = cref.relpath(loc.file.name, root)
+        if not where.startswith("include/psyq/"):
+            continue
+        usr = cur.get_usr()
+        if usr:
+            out.add(usr)
+        if cur.kind == ci.CursorKind.ENUM_DECL:
+            out.update(c.get_usr() for c in cur.get_children() if c.get_usr())
+    return out
+
+
 def scan_tu(job):
-    """(node, [used nodes]) for every definition in one translation unit."""
+    """((node, [used nodes]) for every definition, SDK USRs) for one translation unit."""
     rel, args, root = job
     tu = cref.parse_tu(rel, args, root)
     if tu is None:
-        return []
+        return [], set()
     out = []
     for cur in tu.cursor.get_children():
         # A type depends on the types of its fields. Without this the graph has
@@ -187,7 +211,7 @@ def scan_tu(job):
                 continue
             uses.add((r_usr, ref.spelling))
         out.append(((usr, cur.spelling, where, loc.line, cur.extent.start.line, cur.extent.end.line), sorted(uses)))
-    return out
+    return out, _sdk_usrs(tu, root)
 
 
 def build(root: str, version: str, jobs: int, out_path: str) -> None:
@@ -196,9 +220,11 @@ def build(root: str, version: str, jobs: int, out_path: str) -> None:
     db = cref.load_db(root, version)
     files = list(db)
     nodes, edges = {}, {}
+    sdk = set()
     done = 0
     with Pool(jobs) as pool:
-        for res in pool.imap_unordered(scan_tu, [(f, db[f], root) for f in files], chunksize=4):
+        for res, tu_sdk in pool.imap_unordered(scan_tu, [(f, db[f], root) for f in files], chunksize=4):
+            sdk |= tu_sdk
             done += 1
             if done % 50 == 0 or done == len(files):
                 print(f"\r  parsed {done}/{len(files)} TUs", end="", file=sys.stderr, flush=True)
@@ -243,6 +269,9 @@ def build(root: str, version: str, jobs: int, out_path: str) -> None:
         for usr in list(edges):
             edges[usr] = {alias.get(d, d) for d in edges[usr]} - {usr}
         print(f"  merged {len(alias)} typedef/record pairs", file=sys.stderr)
+
+    for usr in sdk & set(nodes):
+        nodes[usr]["sdk"] = True
 
     macro_refs.add_graph(root, nodes, edges)
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
@@ -305,6 +334,8 @@ def _out_of_scope(name: str, meta: dict, vendor: set) -> bool:
     """
     if meta.get("kind") == "macro":
         return False  # The inventory already excludes guards and infrastructure.
+    if meta.get("sdk"):
+        return True  # Declared in a Psy-Q header.
     if name in vendor or name in _PRIMITIVE:
         return True
     if name.startswith("__maspsx_") or name.startswith("static_assertion_"):
