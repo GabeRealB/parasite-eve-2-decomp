@@ -244,7 +244,7 @@ extern SVECTOR D_actor_401300_80158A08[2];
 /// Data `func_actor_401300_80134454` wires up at init: the enemy parameter
 /// record (`Enemy::param`), the three per-variant `field_CA0..CA4`
 /// triples selected by `spawnArg1 & 0xF`, the animation bank passed to
-/// `Gp_AnimInitCtxSlots`, the 0x3FF message seed, and the task's `field_24`.
+/// `animationBindContext`, the 0x3FF message seed, and the task's `field_24`.
 extern EnemyParams   D_actor_401300_80141FA0;
 extern SVECTOR       D_actor_401300_80141FB0[3];
 extern AnimationSet* D_actor_401300_80158838[46];
@@ -2229,10 +2229,10 @@ static void func_actor_401300_80134454(Enemy* enemy, Task* actor)
     enemy->hp                     = (s16)D_actor_401300_80141FA0.hpMax;
     enemy->param                  = &D_actor_401300_80141FA0;
     enemy->recs                   = work->field_990;
-    Gp_AnimInitCtxSlots(&((Actor401300AnimWork*)work)->rig.anim, D_actor_401300_80158838, obj,
-                        ((Actor401300AnimWork*)work)->rig.poses, ((Actor401300AnimWork*)work)->rig.slots);
-    Gp_AnimInitCtxSlots(&((Actor401300AnimWork*)work)->blend.anim, D_actor_401300_80158838, obj,
-                        ((Actor401300AnimWork*)work)->blend.poses, ((Actor401300AnimWork*)work)->blend.slots);
+    animationBindContext(&((Actor401300AnimWork*)work)->rig.anim, D_actor_401300_80158838, obj,
+                         ((Actor401300AnimWork*)work)->rig.poses, ((Actor401300AnimWork*)work)->rig.slots);
+    animationBindContext(&((Actor401300AnimWork*)work)->blend.anim, D_actor_401300_80158838, obj,
+                         ((Actor401300AnimWork*)work)->blend.poses, ((Actor401300AnimWork*)work)->blend.slots);
     work->field_89C = 2;
     work->field_89E = 0;
     work->field_8A2 = 2;

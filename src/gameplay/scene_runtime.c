@@ -2754,18 +2754,19 @@ static void func_800B3EE8(AnimationContext* context, AnimationSlot* arg1, s32 ar
     arg1->timeLeft = segmentTime;
 }
 
-void Gp_AnimInitCtxSlots(AnimationContext* ctx, void* sets, TmdObject* model, void* poses, AnimationSlot* slots)
+void animationBindContext(AnimationContext* context, AnimationSet** setTable, TmdObject* model,
+                          u8 (*poseBuffer)[ANIMATION_POSE_BUFFER_BYTES], AnimationSlot* slots)
 {
-    ctx->sets       = sets;
-    ctx->coords     = PARENT_OF(model, TmdAllocation, object)->coords;
-    ctx->poseBuffer = poses;
-    ctx->partCount  = model->partCount;
-    ctx->slots      = slots;
+    context->sets       = setTable;
+    context->coords     = PARENT_OF(model, TmdAllocation, object)->coords;
+    context->poseBuffer = poseBuffer;
+    context->partCount  = model->partCount;
+    context->slots      = slots;
 }
 
 void func_800B3F84(AnimationContext* context, void* arg1, TmdObject* arg2, void* arg3, AnimationSlot* arg4)
 {
-    Gp_AnimInitCtxSlots(context, arg1, arg2, arg3, arg4);
+    animationBindContext(context, arg1, arg2, arg3, arg4);
 }
 
 /// Primes a slot's rate, time and endpoint sets for a model-part track restart.

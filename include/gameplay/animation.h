@@ -9,6 +9,7 @@
 #include "gameplay/animation_types.h"
 
 #include "main/coord.h"
+#include "main/tmd_types.h"
 
 /// Unpacked local transform of one animated model part.
 ///
@@ -110,6 +111,23 @@ typedef struct AnimationSet {
     const void*            poseBanks[ANIMATION_POSE_BANK_COUNT]; // Borrowed encoding-indexed banks (1 translation/rotation, 4 packed rotation); NULL if absent
 } AnimationSet;
 STATIC_ASSERT_SIZEOF(AnimationSet, 0x28);
+
+/// Binds an animation context to a model and caller-owned playback storage.
+///
+/// `model` must be a live, non-NULL object returned by `Tmd_Create`. The context
+/// borrows the allocation's coordinate tail and copies the model's part count.
+/// `setTable` supplies a loaded set pointer for every set index playback uses;
+/// slot setup copies this table pointer into the slot.
+///
+/// `slots` and `poseBuffer` must provide an entry for every slot index used.
+/// The writable buffer must be word-aligned; each `ANIMATION_POSE_BUFFER_BYTES`
+/// entry holds an encoded transition pose, rather than an unpacked pose.
+/// The model allocation, table, clip data, slots and buffer must remain live
+/// while playback uses them. No capacities are stored or checked.
+///
+/// Writes only the context bindings; initialize slots separately before ticking.
+void animationBindContext(AnimationContext* context, AnimationSet** setTable, TmdObject* model,
+                          u8 (*poseBuffer)[ANIMATION_POSE_BUFFER_BYTES], AnimationSlot* slots);
 
 /// Restarts a slot on the same-numbered model-part track and coordinate.
 ///

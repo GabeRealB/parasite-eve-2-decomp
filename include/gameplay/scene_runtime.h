@@ -75,13 +75,7 @@ void Gp_AnimInitSlot(AnimationContext* context, AnimationSlot* arg1, s32 arg2, s
 
 void Gp_AnimTickSlot(AnimationContext* context, AnimationSlot* arg1);
 
-/// Binds the model, set table, pose buffer and playback slots to an animation context.
-///
-/// The model allocation and borrowed-data lifetime requirements are those of
-/// `Gp_AnimInitCtx`; `slots` supplies one playback slot per model part.
-void Gp_AnimInitCtxSlots(AnimationContext* ctx, void* sets, TmdObject* model, void* poses, AnimationSlot* slots);
-
-/// Forwards to `Gp_AnimInitCtxSlots`, which most callers reach by this name
+/// Forwards to `animationBindContext`, which most callers reach by this name
 /// rather than its own.
 void func_800B3F84(AnimationContext* context, void* arg1, TmdObject* arg2, void* arg3, AnimationSlot* arg4);
 
