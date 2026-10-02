@@ -100,7 +100,7 @@ static void SPRITE_QUAD_FUNC(SPRITE_QUAD_POSITION_SOURCE_TYPE* pos, SPRITE_QUAD_
             prim->clut  = SPRITE_QUAD_CLUT;
 #if defined(SPRITE_QUAD_UV_TABLE)
             // Cell widths count texels; both square-cell endpoints are inclusive.
-            textureFrame = &SPRITE_QUAD_UV_TABLE[frame];
+            textureFrame = &(SPRITE_QUAD_UV_TABLE)[frame];
             setUV4(prim, textureFrame->u, textureFrame->v, textureFrame->u + (SPRITE_QUAD_CELL_WIDTH - 1), textureFrame->v,
                    textureFrame->u, textureFrame->v + (SPRITE_QUAD_CELL_WIDTH - 1),
                    textureFrame->u + (SPRITE_QUAD_CELL_WIDTH - 1), textureFrame->v + (SPRITE_QUAD_CELL_WIDTH - 1));

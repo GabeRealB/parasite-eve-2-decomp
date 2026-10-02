@@ -2117,7 +2117,26 @@ void func_actor_510900_8013482C(Task* arg0)
 /// Packed additive texture page for the shared effect atlas, with this actor's palettes.
 #define SPRITE_QUAD_TEXTURE_PAGE EFFECT_SPRITE_ATLAS_TEXTURE_PAGE
 #define SPRITE_QUAD_CLUT         ((D_actor_510900_8013C48C[frame].clutY << 6) | ((D_actor_510900_8013C48C[frame].clutX >> 4) & 0x3F))
-#define SPRITE_QUAD_UV_TABLE     gEffectSpriteAtlasFrames
+/// UV-origin table for the next included sprite-quad drawer.
+///
+/// Bind an array or side-effect-free pointer expression with
+/// `EffectSpriteTextureFrame` elements before `sprite_quad_draw.inc.c`.
+/// The drawer borrows the table for the call and reads only `u` and `v`, in
+/// texels relative to `SPRITE_QUAD_TEXTURE_PAGE`; palettes come from
+/// `SPRITE_QUAD_CLUT`. Each cell is square with `SPRITE_QUAD_CELL_WIDTH`
+/// texels per side, and its inclusive endpoints narrow to GPU bytes.
+///
+/// Defining this binding replaces arithmetic UV selection. The drawer's
+/// `frame` parameter indexes it directly, without wrapping or clamping, and
+/// must be nonnegative and in range for both this table and any frame-indexed
+/// CLUT table. The table expression is evaluated once for an emitted quad;
+/// no pointer is retained. The fragment undefines the binding after inclusion.
+///
+/// Actor 510900 is the sole table-mode carrier: it borrows the gameplay
+/// image's twelve atlas origins and selects twelve actor-specific palettes.
+#define SPRITE_QUAD_UV_TABLE gEffectSpriteAtlasFrames
+STATIC_ASSERT(ARRAY_SIZE(SPRITE_QUAD_UV_TABLE) == ARRAY_SIZE(D_actor_510900_8013C48C), sprite_quad_uv_palette_frame_counts_match);
+
 /// Texel width and height of the shared atlas cells used with this actor's palettes.
 #define SPRITE_QUAD_CELL_WIDTH EFFECT_SPRITE_ATLAS_CELL_SIZE
 /// Perspective-sizing multiplier for the shared atlas sprite.
