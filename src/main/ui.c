@@ -258,8 +258,7 @@ extern void func_801D4B64(Task* arg0);
 /// Reserved UI task callback with no runtime work.
 static void Ui_NoOpTask(Task* unused);
 
-/// A neutral grey colour word with every channel at the low byte of `level`.
-static inline s32 _uiGrey(s32 level);
+static inline u32 _uiGrey(s32 level);
 
 static void Ui_DrawWindowBorder(RECT* rect, s32 arg1, s32 arg2);
 
@@ -553,8 +552,11 @@ static void Ui_NoOpTask(Task* unused)
 {
 }
 
-/// A neutral grey colour word with every channel at the low byte of `level`.
-static inline s32 _uiGrey(s32 level)
+/// Neutral grey GPU colour word from one grey level.
+///
+/// Red, green and blue each take the low 8 bits of `level`. Bits above that
+/// byte are discarded, and the command byte is clear.
+static inline u32 _uiGrey(s32 level)
 {
     level &= 0xFF;
     return (level << 16) | (level << 8) | level;
