@@ -588,10 +588,10 @@ void func_actor_342100_80162C88(void)
 /// the task alive until `gGameSession->eventState` is set.
 static s32 func_actor_342100_80162F54(Task* arg0)
 {
-    Actor342100Work* work = (Actor342100Work*)arg0->work;
-    Actor342100Work* msgWork;
-    GpCopyArg        msg;
-    s32              n;
+    Actor342100Work*         work = (Actor342100Work*)arg0->work;
+    Actor342100Work*         msgWork;
+    AnimationBankCopyRequest msg;
+    s32                      n;
 
     switch (work->field_3E) {
         case 0:
@@ -601,7 +601,7 @@ static s32 func_actor_342100_80162F54(Task* arg0)
                 n += 1;
             }
             msg.source.sets = &D_actor_342100_80164900[0];
-            msg.count       = n & 0xFFFF;
+            msg.wordCount   = n & 0xFFFF;
             TASK_MESSAGE_DISPATCH_POINTER(msgWork->field_2C, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &msg, 0);
             Gp_MsgPlayerWeapon(0);
             Gp_StateC08.field_6 |= 1;

@@ -184,7 +184,7 @@ s32 func_mine_forked_tunnel_8017E19C(Task*, s32, TaskMessageArg firstArg, TaskMe
 void func_mine_forked_tunnel_8017E2E0(Task*);
 void func_mine_forked_tunnel_8017E38C(Task*);
 
-extern GpCopyArg                  D_mine_forked_tunnel_8018312C;
+extern AnimationBankCopyRequest   D_mine_forked_tunnel_8018312C;
 extern WorldCollisionGrid         D_mine_forked_tunnel_80183D70;
 extern WorldCollisionTrigger      D_mine_forked_tunnel_80184F50[6];
 extern WorldCollisionTrigger      D_mine_forked_tunnel_80185118[6];
@@ -929,7 +929,7 @@ AnimationSet* D_mine_forked_tunnel_8018311C[4] = {
     &_gMineForkedTunnelAnimation05B1C,
 };
 
-GpCopyArg D_mine_forked_tunnel_8018312C = { { .sets = D_mine_forked_tunnel_8018311C }, 4 };
+AnimationBankCopyRequest D_mine_forked_tunnel_8018312C = { { .sets = D_mine_forked_tunnel_8018311C }, ARRAY_SIZE(D_mine_forked_tunnel_8018311C) };
 
 AnimationPlayRequest D_mine_forked_tunnel_80183134 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
@@ -952,7 +952,7 @@ ActorCommand D_mine_forked_tunnel_801831A8 = { { .loc = { 4, 7 } }, 3 };
 EvsCommand D_mine_forked_tunnel_801831AC[35] = {
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_mine_forked_tunnel_8018312C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mine_forked_tunnel_8018312C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_forked_tunnel_8018315C }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mine_forked_tunnel_80183184 } }, { .value = 0 } },

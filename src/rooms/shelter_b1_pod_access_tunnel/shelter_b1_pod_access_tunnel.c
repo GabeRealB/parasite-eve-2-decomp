@@ -142,26 +142,26 @@ void func_shelter_b1_pod_access_tunnel_8017E44C(Task*);
 void func_shelter_b1_pod_access_tunnel_8017E55C(Task*);
 void func_shelter_b1_pod_access_tunnel_8017E778(Task*);
 
-extern AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182D8C;
-extern AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182DA0;
-extern AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182DB4;
-extern AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182DC8;
-extern AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182DDC;
-extern AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182DF0;
-extern AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182E04;
-extern GpCopyArg            D_shelter_b1_pod_access_tunnel_80182D70;
-extern ActorTransform       D_shelter_b1_pod_access_tunnel_80182E18;
-extern ActorTransform       D_shelter_b1_pod_access_tunnel_80182E30;
-extern ActorTransform       D_shelter_b1_pod_access_tunnel_80182E48;
-void                        func_shelter_b1_pod_access_tunnel_8017E39C(void);
-void                        func_shelter_b1_pod_access_tunnel_8017E3BC(void);
-void                        func_shelter_b1_pod_access_tunnel_8017E3DC(void);
-void                        func_shelter_b1_pod_access_tunnel_8017E3FC(void);
-void                        func_shelter_b1_pod_access_tunnel_8017E41C(s32);
-void                        func_shelter_b1_pod_access_tunnel_8017E52C(s32);
-void                        func_shelter_b1_pod_access_tunnel_8017E704(void);
-void                        func_shelter_b1_pod_access_tunnel_8017E734(s32);
-void                        func_shelter_b1_pod_access_tunnel_8017E7B4(void);
+extern AnimationPlayRequest     D_shelter_b1_pod_access_tunnel_80182D8C;
+extern AnimationPlayRequest     D_shelter_b1_pod_access_tunnel_80182DA0;
+extern AnimationPlayRequest     D_shelter_b1_pod_access_tunnel_80182DB4;
+extern AnimationPlayRequest     D_shelter_b1_pod_access_tunnel_80182DC8;
+extern AnimationPlayRequest     D_shelter_b1_pod_access_tunnel_80182DDC;
+extern AnimationPlayRequest     D_shelter_b1_pod_access_tunnel_80182DF0;
+extern AnimationPlayRequest     D_shelter_b1_pod_access_tunnel_80182E04;
+extern AnimationBankCopyRequest D_shelter_b1_pod_access_tunnel_80182D70;
+extern ActorTransform           D_shelter_b1_pod_access_tunnel_80182E18;
+extern ActorTransform           D_shelter_b1_pod_access_tunnel_80182E30;
+extern ActorTransform           D_shelter_b1_pod_access_tunnel_80182E48;
+void                            func_shelter_b1_pod_access_tunnel_8017E39C(void);
+void                            func_shelter_b1_pod_access_tunnel_8017E3BC(void);
+void                            func_shelter_b1_pod_access_tunnel_8017E3DC(void);
+void                            func_shelter_b1_pod_access_tunnel_8017E3FC(void);
+void                            func_shelter_b1_pod_access_tunnel_8017E41C(s32);
+void                            func_shelter_b1_pod_access_tunnel_8017E52C(s32);
+void                            func_shelter_b1_pod_access_tunnel_8017E704(void);
+void                            func_shelter_b1_pod_access_tunnel_8017E734(s32);
+void                            func_shelter_b1_pod_access_tunnel_8017E7B4(void);
 
 TaskDesc D_shelter_b1_pod_access_tunnel_801810CC = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
@@ -362,7 +362,7 @@ AnimationSet* D_shelter_b1_pod_access_tunnel_80182D50[8] = {
     &_gShelterB1PodAccessTunnelAnimation05744,
 };
 
-GpCopyArg D_shelter_b1_pod_access_tunnel_80182D70 = { { .sets = D_shelter_b1_pod_access_tunnel_80182D50 }, 8 };
+AnimationBankCopyRequest D_shelter_b1_pod_access_tunnel_80182D70 = { { .sets = D_shelter_b1_pod_access_tunnel_80182D50 }, ARRAY_SIZE(D_shelter_b1_pod_access_tunnel_80182D50) };
 
 AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182D78 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
@@ -431,7 +431,7 @@ GpSpawnAnimArg D_shelter_b1_pod_access_tunnel_80182FEC = { 10, 3 };
 EvsSceneKey D_shelter_b1_pod_access_tunnel_80182FF4 = { 4, 10, 11 };
 
 EvsCommand D_shelter_b1_pod_access_tunnel_80182FFC[86] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_shelter_b1_pod_access_tunnel_80182D70 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_shelter_b1_pod_access_tunnel_80182D70 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },

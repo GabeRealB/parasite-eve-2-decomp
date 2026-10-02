@@ -115,25 +115,25 @@ extern WorldCollisionTrigger  D_acropolis_roof_garden_801854C8[6];
 extern WorldCollisionTrigger  D_acropolis_roof_garden_80185690[7];
 extern WorldCoordRoomLights   D_acropolis_roof_garden_80186BDC[1];
 
-extern AnimationPlayRequest D_acropolis_roof_garden_80184ACC;
-extern AnimationPlayRequest D_acropolis_roof_garden_80184AE0;
-extern GpCopyArg            D_acropolis_roof_garden_80184AB0;
-void                        func_acropolis_roof_garden_8017DCCC(void);
+extern AnimationPlayRequest     D_acropolis_roof_garden_80184ACC;
+extern AnimationPlayRequest     D_acropolis_roof_garden_80184AE0;
+extern AnimationBankCopyRequest D_acropolis_roof_garden_80184AB0;
+void                            func_acropolis_roof_garden_8017DCCC(void);
 
-extern AnimationPlayRequest D_acropolis_roof_garden_80183C44;
-extern AnimationPlayRequest D_acropolis_roof_garden_80183CCC;
-extern AnimationPlayRequest D_acropolis_roof_garden_80183CE0;
-extern AnimationPlayRequest D_acropolis_roof_garden_80183CF4;
-extern AnimationPlayRequest D_acropolis_roof_garden_80183D08;
-extern AnimationPlayRequest D_acropolis_roof_garden_80183D1C;
-extern AnimationPlayRequest D_acropolis_roof_garden_80183D30;
-extern AnimationPlayRequest D_acropolis_roof_garden_80183D44;
-extern AnimationPlayRequest D_acropolis_roof_garden_80183D58;
-extern GpCopyArg            D_acropolis_roof_garden_80183CC4;
-extern ActorTransform       D_acropolis_roof_garden_80183C58;
-extern ActorTransform       D_acropolis_roof_garden_80183C70;
-extern ActorTransform       D_acropolis_roof_garden_80183CA0;
-void                        func_acropolis_roof_garden_8017DAD4(s32);
+extern AnimationPlayRequest     D_acropolis_roof_garden_80183C44;
+extern AnimationPlayRequest     D_acropolis_roof_garden_80183CCC;
+extern AnimationPlayRequest     D_acropolis_roof_garden_80183CE0;
+extern AnimationPlayRequest     D_acropolis_roof_garden_80183CF4;
+extern AnimationPlayRequest     D_acropolis_roof_garden_80183D08;
+extern AnimationPlayRequest     D_acropolis_roof_garden_80183D1C;
+extern AnimationPlayRequest     D_acropolis_roof_garden_80183D30;
+extern AnimationPlayRequest     D_acropolis_roof_garden_80183D44;
+extern AnimationPlayRequest     D_acropolis_roof_garden_80183D58;
+extern AnimationBankCopyRequest D_acropolis_roof_garden_80183CC4;
+extern ActorTransform           D_acropolis_roof_garden_80183C58;
+extern ActorTransform           D_acropolis_roof_garden_80183C70;
+extern ActorTransform           D_acropolis_roof_garden_80183CA0;
+void                            func_acropolis_roof_garden_8017DAD4(s32);
 
 static AnimationSet _gAcropolisRoofGardenAnimation04164;
 static AnimationSet _gAcropolisRoofGardenAnimation060FC;
@@ -250,7 +250,7 @@ AnimationSet* D_acropolis_roof_garden_80183CB8[3] = {
     &_gAcropolisRoofGardenAnimation065F4,
 };
 
-GpCopyArg D_acropolis_roof_garden_80183CC4 = { { .sets = D_acropolis_roof_garden_80183CB8 }, 3 };
+AnimationBankCopyRequest D_acropolis_roof_garden_80183CC4 = { { .sets = D_acropolis_roof_garden_80183CB8 }, ARRAY_SIZE(D_acropolis_roof_garden_80183CB8) };
 
 AnimationPlayRequest D_acropolis_roof_garden_80183CCC = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -274,7 +274,7 @@ EvsCommand D_acropolis_roof_garden_80183D74[44] = {
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_acropolis_roof_garden_80183CC4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_acropolis_roof_garden_80183CC4 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_acropolis_roof_garden_80183C70 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_roof_garden_80183CCC }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_acropolis_roof_garden_8017DAD4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -389,7 +389,7 @@ AnimationSet* D_acropolis_roof_garden_80184AA4[3] = {
     &_gAcropolisRoofGardenAnimation074BC,
 };
 
-GpCopyArg D_acropolis_roof_garden_80184AB0 = { { .sets = D_acropolis_roof_garden_80184AA4 }, 3 };
+AnimationBankCopyRequest D_acropolis_roof_garden_80184AB0 = { { .sets = D_acropolis_roof_garden_80184AA4 }, ARRAY_SIZE(D_acropolis_roof_garden_80184AA4) };
 
 AnimationPlayRequest D_acropolis_roof_garden_80184AB8 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -401,7 +401,7 @@ AnimationPlayRequest D_acropolis_roof_garden_80184AE0 = { { .index = 1 }, 49, AN
 AnimationPlayRequest D_acropolis_roof_garden_80184AF4 = { { .index = 1 }, 9, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
 EvsCommand D_acropolis_roof_garden_80184B08[10] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_acropolis_roof_garden_80184AB0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_acropolis_roof_garden_80184AB0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_roof_garden_80184ACC }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_acropolis_roof_garden_8017DCCC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

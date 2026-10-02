@@ -113,17 +113,17 @@ extern WorldCollisionTrigger      D_dryfield_night_driveway_80181DC8[4];
 extern WorldCoordRoomAmbientEntry D_dryfield_night_driveway_80182074[11];
 extern WorldCoordRoomLights       D_dryfield_night_driveway_80181DB0[1];
 
-extern AnimationPlayRequest D_dryfield_night_driveway_8017F380;
-extern AnimationPlayRequest D_dryfield_night_driveway_8017F3A8;
-static AnimationSet         _gDryfieldNightDrivewayAnimation01870;
-static AnimationSet         _gDryfieldNightDrivewayAnimation01A84;
-static AnimationSet         _gDryfieldNightDrivewayAnimation01D64;
-extern GpCopyArg            D_dryfield_night_driveway_8017F378;
-s32                         func_dryfield_night_driveway_8017DCE4(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                         func_dryfield_night_driveway_8017DCEC(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                         func_dryfield_night_driveway_8017DCF4(Task*, s32, TaskMessageArg, TaskMessageArg);
-void                        func_dryfield_night_driveway_8017DC6C(s32);
-void                        func_dryfield_night_driveway_8017DC88(u8);
+extern AnimationPlayRequest     D_dryfield_night_driveway_8017F380;
+extern AnimationPlayRequest     D_dryfield_night_driveway_8017F3A8;
+static AnimationSet             _gDryfieldNightDrivewayAnimation01870;
+static AnimationSet             _gDryfieldNightDrivewayAnimation01A84;
+static AnimationSet             _gDryfieldNightDrivewayAnimation01D64;
+extern AnimationBankCopyRequest D_dryfield_night_driveway_8017F378;
+s32                             func_dryfield_night_driveway_8017DCE4(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                             func_dryfield_night_driveway_8017DCEC(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                             func_dryfield_night_driveway_8017DCF4(Task*, s32, TaskMessageArg, TaskMessageArg);
+void                            func_dryfield_night_driveway_8017DC6C(s32);
+void                            func_dryfield_night_driveway_8017DC88(u8);
 
 TaskDesc gRoomEventStagedTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
@@ -226,7 +226,7 @@ AnimationSet* D_dryfield_night_driveway_8017F370[2] = {
     NULL,
 };
 
-GpCopyArg D_dryfield_night_driveway_8017F378 = { { .sets = D_dryfield_night_driveway_8017F370 }, 2 };
+AnimationBankCopyRequest D_dryfield_night_driveway_8017F378 = { { .sets = D_dryfield_night_driveway_8017F370 }, ARRAY_SIZE(D_dryfield_night_driveway_8017F370) };
 
 AnimationPlayRequest D_dryfield_night_driveway_8017F380 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
@@ -238,7 +238,7 @@ ActorTransform D_dryfield_night_driveway_8017F3BC = { { -1067, 0, 1407, 0 }, { 0
 
 EvsCommand gDrivewayCutsceneScript[14] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_dryfield_night_driveway_8017F378 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_night_driveway_8017F378 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_driveway_8017F3A8 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x5219000C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -323,7 +323,7 @@ AnimationPlayRequest D_dryfield_night_driveway_8017F8FC = { { .index = 1 }, 48, 
 
 AnimationPlayRequest D_dryfield_night_driveway_8017F910 = { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpCopyArg D_dryfield_night_driveway_8017F924 = { { .words = D_dryfield_night_driveway_8017F8C4.words }, 10 };
+AnimationBankCopyRequest D_dryfield_night_driveway_8017F924 = { { .words = D_dryfield_night_driveway_8017F8C4.words }, 10 };
 
 AnimationPlayRequest D_dryfield_night_driveway_8017F92C = { { .index = 6 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -359,7 +359,7 @@ EvsCommand D_dryfield_night_driveway_8017FB00[51] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 5 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_driveway_8017F524 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_driveway_8017F92C }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_dryfield_night_driveway_8017F924 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_night_driveway_8017F924 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -430,7 +430,7 @@ EvsCommand D_dryfield_night_driveway_80180118[49] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 5 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_driveway_8017F524 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_driveway_8017F92C }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_dryfield_night_driveway_8017F924 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_night_driveway_8017F924 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

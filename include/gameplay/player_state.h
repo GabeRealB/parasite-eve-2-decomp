@@ -66,7 +66,7 @@ s32 func_8010C30C(Task*);
 s32 func_8010C6C8(Task*, s32, ActorTransform* transform, GpOverrideArg*);
 /// Installs a borrowed companion animation-set table while preserving player state.
 s32  func_8010C648(Task* task, s32 msgId, AnimationPlayRequest* request);
-s32  Gp_CopyAllyAnim(Task*, s32, GpCopyArg*);
+s32  Gp_CopyAllyAnim(Task*, s32, const AnimationBankCopyRequest* request);
 s32  func_8010C75C(Task*, s32, GpDelayArg*);
 void Gp_MoveActorByKeep(Task*, s32, GpMoveArg*);
 s32  func_8010C708(Task*, s32, ActorTransform* transform, GpOverrideArg*);

@@ -108,12 +108,12 @@ extern ShelterB6CorridorStorage51B0 D_shelter_b6_corridor_801851B0;
 extern s32                          D_shelter_b6_corridor_801851B8;
 
 // Indexed views below share one contiguous table.
-extern AnimationPlayRequest D_shelter_b6_corridor_8017F27C;
-extern ActorCommand         D_shelter_b6_corridor_8017F34C;
-extern ActorCommand         D_shelter_b6_corridor_8017F350;
-extern GpCopyArg            D_shelter_b6_corridor_8017F260;
-void                        func_shelter_b6_corridor_8017E19C(s32);
-void                        func_shelter_b6_corridor_8017E204(void);
+extern AnimationPlayRequest     D_shelter_b6_corridor_8017F27C;
+extern ActorCommand             D_shelter_b6_corridor_8017F34C;
+extern ActorCommand             D_shelter_b6_corridor_8017F350;
+extern AnimationBankCopyRequest D_shelter_b6_corridor_8017F260;
+void                            func_shelter_b6_corridor_8017E19C(s32);
+void                            func_shelter_b6_corridor_8017E204(void);
 
 void func_shelter_b6_corridor_8017E19C(s32);
 void func_shelter_b6_corridor_8017E204(void);
@@ -167,7 +167,7 @@ AnimationSet* D_shelter_b6_corridor_8017F258[2] = {
     &_gShelterB6CorridorAnimation01C70,
 };
 
-GpCopyArg D_shelter_b6_corridor_8017F260 = { { .sets = D_shelter_b6_corridor_8017F258 }, 2 };
+AnimationBankCopyRequest D_shelter_b6_corridor_8017F260 = { { .sets = D_shelter_b6_corridor_8017F258 }, ARRAY_SIZE(D_shelter_b6_corridor_8017F258) };
 
 AnimationPlayRequest D_shelter_b6_corridor_8017F268 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -198,7 +198,7 @@ ActorCommand D_shelter_b6_corridor_8017F34C = { { .loc = { 5, 24 } }, 1 };
 ActorCommand D_shelter_b6_corridor_8017F350 = { { .loc = { 5, 24 } }, 1 };
 
 EvsCommand D_shelter_b6_corridor_8017F354[34] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_shelter_b6_corridor_8017F260 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_shelter_b6_corridor_8017F260 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b6_corridor_8017F27C }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -239,7 +239,7 @@ EvsCommand D_shelter_b6_corridor_8017F684[18] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b6_corridor_8017E204 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_shelter_b6_corridor_8017F260 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_shelter_b6_corridor_8017F260 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b6_corridor_8017F27C }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_shelter_b6_corridor_8017F34C } }, { .value = 0 } },

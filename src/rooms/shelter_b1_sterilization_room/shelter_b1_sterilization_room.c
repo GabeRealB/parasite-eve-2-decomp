@@ -446,7 +446,7 @@ AnimationSet* D_shelter_b1_sterilization_room_80188570[8] = {
     &_gShelterB1SterilizationRoomAnimation0AF1C,
 };
 
-GpCopyArg D_shelter_b1_sterilization_room_80188590 = { { .sets = D_shelter_b1_sterilization_room_80188570 }, 8 };
+AnimationBankCopyRequest D_shelter_b1_sterilization_room_80188590 = { { .sets = D_shelter_b1_sterilization_room_80188570 }, ARRAY_SIZE(D_shelter_b1_sterilization_room_80188570) };
 
 AnimationPlayRequest D_shelter_b1_sterilization_room_80188598 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 

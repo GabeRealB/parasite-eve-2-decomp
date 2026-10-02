@@ -48,7 +48,7 @@ extern AnimationPlayRequest D_dryfield_night_trailer_coach_80187C3C;
 
 extern AnimationPlayRequest D_dryfield_night_trailer_coach_80187CA0;
 
-extern GpCopyArg D_dryfield_night_trailer_coach_80187CE4;
+extern AnimationBankCopyRequest D_dryfield_night_trailer_coach_80187CE4;
 
 extern EvsCommand D_dryfield_night_trailer_coach_80188708[14];
 

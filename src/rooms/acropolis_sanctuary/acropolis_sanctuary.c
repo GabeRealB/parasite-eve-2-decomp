@@ -264,36 +264,36 @@ extern WorldCollisionGrid    D_acropolis_sanctuary_80183568;
 extern WorldCollisionTrigger D_acropolis_sanctuary_8018358C[18];
 extern WorldCoordRoomLights  D_acropolis_sanctuary_801843EC[1];
 
-extern AnimationPlayRequest D_acropolis_sanctuary_80180904;
-extern AnimationPlayRequest D_acropolis_sanctuary_80180944;
-extern AnimationPlayRequest D_acropolis_sanctuary_80180958;
-extern AnimationPlayRequest D_acropolis_sanctuary_8018096C;
-extern AnimationPlayRequest D_acropolis_sanctuary_80180980;
-extern AnimationPlayRequest D_acropolis_sanctuary_80180994;
-extern AnimationPlayRequest D_acropolis_sanctuary_801809A8;
-extern AnimationPlayRequest D_acropolis_sanctuary_801809BC;
-extern AnimationPlayRequest D_acropolis_sanctuary_801809D0;
-extern AnimationPlayRequest D_acropolis_sanctuary_801809E4;
-extern AnimationPlayRequest D_acropolis_sanctuary_80180A20;
-extern AnimationPlayRequest D_acropolis_sanctuary_80180A34;
-extern AnimationPlayRequest D_acropolis_sanctuary_80180A48;
-extern AnimationPlayRequest D_acropolis_sanctuary_80180A5C;
-extern AnimationPlayRequest D_acropolis_sanctuary_80180A70;
-extern AnimationPlayRequest D_acropolis_sanctuary_80180A84;
-extern AnimationPlayRequest D_acropolis_sanctuary_80180A98;
-extern AnimationPlayRequest D_acropolis_sanctuary_80180AAC;
-extern AnimationPlayRequest D_acropolis_sanctuary_80180AC0;
-extern AnimationPlayRequest D_acropolis_sanctuary_80180AD4;
-extern GpCopyArg            D_acropolis_sanctuary_8018093C;
-extern EvsSceneKey          D_acropolis_sanctuary_80180AFC;
-extern ActorTransform       D_acropolis_sanctuary_80180844;
-extern ActorTransform       D_acropolis_sanctuary_8018085C;
-extern ActorTransform       D_acropolis_sanctuary_8018088C;
-extern ActorTransform       D_acropolis_sanctuary_801808A4;
-extern ActorTransform       D_acropolis_sanctuary_801808D4;
-extern ActorTransform       D_acropolis_sanctuary_801808EC;
-void                        func_acropolis_sanctuary_8017D8A0(u32);
-void                        func_acropolis_sanctuary_8017D8CC(void);
+extern AnimationPlayRequest     D_acropolis_sanctuary_80180904;
+extern AnimationPlayRequest     D_acropolis_sanctuary_80180944;
+extern AnimationPlayRequest     D_acropolis_sanctuary_80180958;
+extern AnimationPlayRequest     D_acropolis_sanctuary_8018096C;
+extern AnimationPlayRequest     D_acropolis_sanctuary_80180980;
+extern AnimationPlayRequest     D_acropolis_sanctuary_80180994;
+extern AnimationPlayRequest     D_acropolis_sanctuary_801809A8;
+extern AnimationPlayRequest     D_acropolis_sanctuary_801809BC;
+extern AnimationPlayRequest     D_acropolis_sanctuary_801809D0;
+extern AnimationPlayRequest     D_acropolis_sanctuary_801809E4;
+extern AnimationPlayRequest     D_acropolis_sanctuary_80180A20;
+extern AnimationPlayRequest     D_acropolis_sanctuary_80180A34;
+extern AnimationPlayRequest     D_acropolis_sanctuary_80180A48;
+extern AnimationPlayRequest     D_acropolis_sanctuary_80180A5C;
+extern AnimationPlayRequest     D_acropolis_sanctuary_80180A70;
+extern AnimationPlayRequest     D_acropolis_sanctuary_80180A84;
+extern AnimationPlayRequest     D_acropolis_sanctuary_80180A98;
+extern AnimationPlayRequest     D_acropolis_sanctuary_80180AAC;
+extern AnimationPlayRequest     D_acropolis_sanctuary_80180AC0;
+extern AnimationPlayRequest     D_acropolis_sanctuary_80180AD4;
+extern AnimationBankCopyRequest D_acropolis_sanctuary_8018093C;
+extern EvsSceneKey              D_acropolis_sanctuary_80180AFC;
+extern ActorTransform           D_acropolis_sanctuary_80180844;
+extern ActorTransform           D_acropolis_sanctuary_8018085C;
+extern ActorTransform           D_acropolis_sanctuary_8018088C;
+extern ActorTransform           D_acropolis_sanctuary_801808A4;
+extern ActorTransform           D_acropolis_sanctuary_801808D4;
+extern ActorTransform           D_acropolis_sanctuary_801808EC;
+void                            func_acropolis_sanctuary_8017D8A0(u32);
+void                            func_acropolis_sanctuary_8017D8CC(void);
 
 s32 func_acropolis_sanctuary_8017D73C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_acropolis_sanctuary_8017D808(Task*, s32, TaskMessageArg, TaskMessageArg);
@@ -360,7 +360,7 @@ AnimationSet* D_acropolis_sanctuary_80180918[9] = {
     &_gAcropolisSanctuaryAnimation03234,
 };
 
-GpCopyArg D_acropolis_sanctuary_8018093C = { { .sets = D_acropolis_sanctuary_80180918 }, 9 };
+AnimationBankCopyRequest D_acropolis_sanctuary_8018093C = { { .sets = D_acropolis_sanctuary_80180918 }, ARRAY_SIZE(D_acropolis_sanctuary_80180918) };
 
 AnimationPlayRequest D_acropolis_sanctuary_80180944 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 1, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -416,7 +416,7 @@ EvsCommand D_acropolis_sanctuary_80180B0C[121] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_sanctuary_80180904 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_acropolis_sanctuary_8018093C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_acropolis_sanctuary_8018093C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_acropolis_sanctuary_80180AFC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },

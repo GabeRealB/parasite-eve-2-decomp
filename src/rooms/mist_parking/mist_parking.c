@@ -210,7 +210,7 @@ AnimationSet* D_mist_parking_80186C28[1] = {
     &_gMistParkingAnimation095D0,
 };
 
-GpCopyArg D_mist_parking_80186C2C = { { .sets = D_mist_parking_80186C28 }, 1 };
+AnimationBankCopyRequest D_mist_parking_80186C2C = { { .sets = D_mist_parking_80186C28 }, ARRAY_SIZE(D_mist_parking_80186C28) };
 
 AnimationPlayRequest D_mist_parking_80186C34 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -252,7 +252,7 @@ EvsCommand D_mist_parking_80186DC4[13] = {
 
 EvsCommand D_mist_parking_80186EFC[12] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mist_parking_80186C10 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_mist_parking_80186C2C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mist_parking_80186C2C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_80186C34 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
@@ -1129,7 +1129,7 @@ void func_mist_parking_801828F0(Task* task)
     actor = (GameActor*)(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->work;
     if (D_801156F9 == 0) {
         idx = actor->animationSlots[1].nextPose.indices.setIndex - ANIMATION_BANK_BASE_SET_COUNT;
-        if ((idx > 0) && (idx < D_mist_parking_8018D82C.count)) {
+        if ((idx > 0) && (idx < D_mist_parking_8018D82C.wordCount)) {
             flag = D_mist_parking_8018DA28[idx];
         } else {
             flag = 0;

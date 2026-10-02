@@ -19,7 +19,7 @@ extern TaskDesc D_shelter_b1_sterilization_room_80188504[];
 /// spawned, so each is spawned only once until the mask is cleared.
 extern s32 D_shelter_b1_sterilization_room_8018C340;
 
-extern GpCopyArg D_shelter_b1_sterilization_room_80188590;
+extern AnimationBankCopyRequest D_shelter_b1_sterilization_room_80188590;
 
 extern AnimationPlayRequest D_shelter_b1_sterilization_room_801885AC;
 

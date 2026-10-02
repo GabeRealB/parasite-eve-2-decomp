@@ -36,9 +36,9 @@ s32 func_mine_tunnel_8017D670(Task*, s32, RoomEventMsg*, s32);
 
 static AnimationSet _gMineTunnelAnimation009DC;
 
-extern AnimationPlayRequest D_mine_tunnel_8017DFFC;
-extern GpCopyArg            D_mine_tunnel_8017DFF4;
-void                        func_mine_tunnel_8017D6E0(s32);
+extern AnimationPlayRequest     D_mine_tunnel_8017DFFC;
+extern AnimationBankCopyRequest D_mine_tunnel_8017DFF4;
+void                            func_mine_tunnel_8017D6E0(s32);
 
 static AnimationPackedPose _gMineTunnelAnimation009DCBank1[10] = {
 #include "assets/mine_tunnel_animation_009DC_bank1.inc"
@@ -75,7 +75,7 @@ AnimationSet* D_mine_tunnel_8017DFEC[2] = {
     NULL,
 };
 
-GpCopyArg D_mine_tunnel_8017DFF4 = { { .sets = D_mine_tunnel_8017DFEC }, 2 };
+AnimationBankCopyRequest D_mine_tunnel_8017DFF4 = { { .sets = D_mine_tunnel_8017DFEC }, ARRAY_SIZE(D_mine_tunnel_8017DFEC) };
 
 AnimationPlayRequest D_mine_tunnel_8017DFFC = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
@@ -84,7 +84,7 @@ AnimationPlayRequest D_mine_tunnel_8017E010 = { { .index = 1 }, 7, ANIMATION_BLE
 
 EvsCommand D_mine_tunnel_8017E024[11] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_mine_tunnel_8017DFF4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mine_tunnel_8017DFF4 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_tunnel_8017D6E0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_tunnel_8017DFFC }, { .value = 0 } },

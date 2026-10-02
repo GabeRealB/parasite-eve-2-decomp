@@ -97,7 +97,7 @@ extern AnimationSet gMistParkingAnimation0FE5C;
 
 extern AnimationSet gMistParkingAnimation10174;
 
-extern GpCopyArg D_mist_parking_8018D82C;
+extern AnimationBankCopyRequest D_mist_parking_8018D82C;
 
 extern s8 D_mist_parking_8018DA28[28];
 
@@ -119,7 +119,7 @@ extern AnimationSet gMistParkingAnimation12DCC;
 
 extern AnimationSet gMistParkingAnimation1323C;
 
-extern GpCopyArg D_mist_parking_80190870;
+extern AnimationBankCopyRequest D_mist_parking_80190870;
 
 extern AnimationPlayRequest D_mist_parking_8019088C;
 

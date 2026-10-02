@@ -80,10 +80,10 @@ s32 func_neo_ark_submarine_tunnel_8017F2C8(Task*, s32, s32, s32);
 static AnimationSet _gNeoArkSubmarineTunnelAnimation03EE0;
 static AnimationSet _gNeoArkSubmarineTunnelAnimation0444C;
 
-extern AnimationPlayRequest D_neo_ark_submarine_tunnel_80181A88;
-extern AnimationPlayRequest D_neo_ark_submarine_tunnel_80181A9C;
-extern GpCopyArg            D_neo_ark_submarine_tunnel_80181A80;
-void                        func_neo_ark_submarine_tunnel_8017F398(s32);
+extern AnimationPlayRequest     D_neo_ark_submarine_tunnel_80181A88;
+extern AnimationPlayRequest     D_neo_ark_submarine_tunnel_80181A9C;
+extern AnimationBankCopyRequest D_neo_ark_submarine_tunnel_80181A80;
+void                            func_neo_ark_submarine_tunnel_8017F398(s32);
 
 TaskDesc D_neo_ark_submarine_tunnel_801810E4 = { { { TASK_BODY_NONE, 192 } }, waterRefractionTask, { .value = 0 } };
 
@@ -153,7 +153,7 @@ AnimationSet* D_neo_ark_submarine_tunnel_80181A78[2] = {
     &_gNeoArkSubmarineTunnelAnimation03EE0,
 };
 
-GpCopyArg D_neo_ark_submarine_tunnel_80181A80 = { { .sets = D_neo_ark_submarine_tunnel_80181A78 }, 2 };
+AnimationBankCopyRequest D_neo_ark_submarine_tunnel_80181A80 = { { .sets = D_neo_ark_submarine_tunnel_80181A78 }, ARRAY_SIZE(D_neo_ark_submarine_tunnel_80181A78) };
 
 AnimationPlayRequest D_neo_ark_submarine_tunnel_80181A88 = { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -174,7 +174,7 @@ EvsSceneKey D_neo_ark_submarine_tunnel_80181AE8 = { 5, 60, 11 };
 EvsCommand D_neo_ark_submarine_tunnel_80181AF0[32] = {
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_neo_ark_submarine_tunnel_80181AE8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_neo_ark_submarine_tunnel_80181A80 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_neo_ark_submarine_tunnel_80181A80 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_neo_ark_submarine_tunnel_80181ABC }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_CAP_DIRECT_VIEW_IDS, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },

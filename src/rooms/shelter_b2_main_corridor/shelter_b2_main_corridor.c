@@ -217,7 +217,7 @@ AnimationSet* D_shelter_b2_main_corridor_80182C5C[1] = {
     &_gShelterB2MainCorridorAnimation05620,
 };
 
-GpCopyArg D_shelter_b2_main_corridor_80182C60 = { { .sets = D_shelter_b2_main_corridor_80182C5C }, 1 };
+AnimationBankCopyRequest D_shelter_b2_main_corridor_80182C60 = { { .sets = D_shelter_b2_main_corridor_80182C5C }, ARRAY_SIZE(D_shelter_b2_main_corridor_80182C5C) };
 
 AnimationPlayRequest D_shelter_b2_main_corridor_80182C68 = { { .index = 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
 
@@ -227,7 +227,7 @@ ActorTransform D_shelter_b2_main_corridor_80182C90 = { { 0, 0, 0, 0 }, { 0, 1024
 
 EvsCommand D_shelter_b2_main_corridor_80182CA8[13] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 5 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_shelter_b2_main_corridor_80182C60 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_shelter_b2_main_corridor_80182C60 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b2_main_corridor_80182C68 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1006 }, { .message = { .pointer = &D_shelter_b2_main_corridor_80182C90 } }, { .value = 0 } },

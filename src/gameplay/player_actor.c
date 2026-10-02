@@ -288,7 +288,7 @@ typedef struct {
         s32                (*call6)(Task*, s32, ActorTransform*, GpOverrideArg*);
         s32                (*call7)(Task*, s32, AnimationPlayRequest*);
         s32                (*call8)(Task*, s32, GpCountArg*);
-        s32                (*call9)(Task*, s32, GpCopyArg*);
+        s32                (*call9)(Task*, s32, const AnimationBankCopyRequest*);
         s32                (*call10)(Task*, s32, GpDelayArg*);
         s32                (*call11)(Task*, s32, GpMoveArg*);
     } handler;
@@ -447,7 +447,7 @@ s32 func_80105690(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 s32 func_80105754(Task* arg0);
 
-s32 Gp_CopyPlayerAnim(Task* arg0, s32 arg1, GpCopyArg* arg2);
+s32 Gp_CopyPlayerAnim(Task* arg0, s32 arg1, const AnimationBankCopyRequest* request);
 
 s32 Gp_ApplyPlayerDamage(Task* arg0, s32 arg1, s32 arg2);
 
@@ -953,7 +953,7 @@ GpPlayerMessageEntry Gp_PlayerMsgTable[28] = {
     { ANIMATION_MESSAGE_INSTALL_AND_PLAY, { .call7 = func_80104B54 } },
     { GAME_ACTOR_MESSAGE_ATTACH_TO_COORD, { .coord = func_80105A60 } },
     { 1014, { .call8 = func_801052B8 } },
-    { 1015, { .call9 = Gp_CopyPlayerAnim } },
+    { ANIMATION_MESSAGE_COPY_BANK_EXTENSION, { .call9 = Gp_CopyPlayerAnim } },
     { 1016, { .call10 = func_801054D8 } },
     { GAME_ACTOR_MESSAGE_APPLY_DAMAGE, { .call5 = Gp_ApplyPlayerDamage } },
     { 1018, { .call2 = func_80105690 } },
@@ -6799,24 +6799,25 @@ s32 func_801058BC(Task* arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-s32 Gp_CopyPlayerAnim(Task* arg0, s32 arg1, GpCopyArg* arg2)
+s32 Gp_CopyPlayerAnim(Task* arg0, s32 arg1, const AnimationBankCopyRequest* request)
 {
     union {
         GpAnimBlk* block;
         s32*       words;
     } dest;
-    s32* src;
-    s32  i;
-    s32  count;
+    const s32* src;
+    s32        i;
+    s32        count;
 
     dest.block = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon];
-    src        = arg2->source.words;
-    count      = arg2->count;
+    src        = request->source.words;
+    count      = request->wordCount;
     if (count >= ANIMATION_BANK_EXTENSION_CAPACITY + 1) {
         return 1;
     }
+    // Transfer raw words: the span can include records after the clip pointers.
     dest.words = &dest.block->table.addresses[ANIMATION_BANK_BASE_SET_COUNT];
-    for (i = 0; i < arg2->count; i++) {
+    for (i = 0; i < request->wordCount; i++) {
         dest.words[i] = src[i];
     }
     return 0;

@@ -81,13 +81,13 @@ extern EvsCommand       D_dryfield_general_store_8017E568[];
 static void func_dryfield_general_store_8017DEAC(Task* arg0);
 static void func_dryfield_general_store_8017DF4C(Task* task);
 
-extern AnimationPlayRequest D_dryfield_general_store_8017E4FC;
-extern GpCopyArg            D_dryfield_general_store_8017E4E0;
-extern GpOverrideArg        D_dryfield_general_store_8017E554;
-extern ActorTransform       D_dryfield_general_store_8017E524;
-extern ActorTransform       D_dryfield_general_store_8017E53C;
-extern s32                  D_dryfield_general_store_8017E560;
-void                        func_dryfield_general_store_8017E130(s32);
+extern AnimationPlayRequest     D_dryfield_general_store_8017E4FC;
+extern AnimationBankCopyRequest D_dryfield_general_store_8017E4E0;
+extern GpOverrideArg            D_dryfield_general_store_8017E554;
+extern ActorTransform           D_dryfield_general_store_8017E524;
+extern ActorTransform           D_dryfield_general_store_8017E53C;
+extern s32                      D_dryfield_general_store_8017E560;
+void                            func_dryfield_general_store_8017E130(s32);
 
 extern WorldCollisionGrid         D_dryfield_general_store_8017F238[1];
 extern WorldCollisionOccluder     D_dryfield_general_store_80184F78[4];
@@ -151,7 +151,7 @@ AnimationSet* D_dryfield_general_store_8017E4D8[2] = {
     &_gDryfieldGeneralStoreAnimation00ED8,
 };
 
-GpCopyArg D_dryfield_general_store_8017E4E0 = { { .sets = D_dryfield_general_store_8017E4D8 }, 2 };
+AnimationBankCopyRequest D_dryfield_general_store_8017E4E0 = { { .sets = D_dryfield_general_store_8017E4D8 }, ARRAY_SIZE(D_dryfield_general_store_8017E4D8) };
 
 AnimationPlayRequest D_dryfield_general_store_8017E4E8 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -174,7 +174,7 @@ s32 D_dryfield_general_store_8017E564 = 0x20302;
 
 EvsCommand D_dryfield_general_store_8017E568[11] = {
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_dryfield_general_store_8017E4E0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_general_store_8017E4E0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_general_store_8017E4FC }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_general_store_8017E524 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1019 }, { .message = { .pointer = &D_dryfield_general_store_8017E53C } }, { .message = { .pointer = &D_dryfield_general_store_8017E554 } } },

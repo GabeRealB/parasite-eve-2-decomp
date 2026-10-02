@@ -171,34 +171,34 @@ extern ActorTransform       D_actor_450800_8013994C;
 void                        func_actor_450800_80131F28(s32);
 void                        func_actor_450800_80132080(void);
 
-extern AnimationPlayRequest D_actor_450800_80139458;
-extern AnimationPlayRequest D_actor_450800_8013946C;
-extern AnimationPlayRequest D_actor_450800_80139480;
-extern AnimationPlayRequest D_actor_450800_80139494;
-extern AnimationPlayRequest D_actor_450800_801394A8;
-extern AnimationPlayRequest D_actor_450800_801395C4;
-extern AnimationPlayRequest D_actor_450800_801395D8;
-extern AnimationPlayRequest D_actor_450800_801397CC;
-extern AnimationPlayRequest D_actor_450800_801397E0;
-extern AnimationPlayRequest D_actor_450800_801397F4;
-extern AnimationPlayRequest D_actor_450800_80139808;
-extern AnimationPlayRequest D_actor_450800_8013981C;
-extern AnimationPlayRequest D_actor_450800_80139830;
-extern AnimationPlayRequest D_actor_450800_801398A8;
-extern AnimationPlayRequest D_actor_450800_8013ADEC;
-extern AnimationPlayRequest D_actor_450800_8013AE00;
-extern AnimationPlayRequest D_actor_450800_8013AE14;
-extern ActorCommand         D_actor_450800_801398E0;
-extern ActorCommand         D_actor_450800_801398E4;
-extern GpCopyArg            D_actor_450800_801398D0;
-extern GpCopyArg            D_actor_450800_801398D8;
-extern ActorTransform       D_actor_450800_8013AE30;
-extern ActorTransform       D_actor_450800_8013AE48;
-extern ActorTransform       D_actor_450800_8013AE60;
-void                        func_actor_450800_80131F28(s32);
-void                        func_actor_450800_80132080(void);
-void                        func_actor_450800_801320E8(s32);
-void                        func_actor_450800_80132108(void);
+extern AnimationPlayRequest     D_actor_450800_80139458;
+extern AnimationPlayRequest     D_actor_450800_8013946C;
+extern AnimationPlayRequest     D_actor_450800_80139480;
+extern AnimationPlayRequest     D_actor_450800_80139494;
+extern AnimationPlayRequest     D_actor_450800_801394A8;
+extern AnimationPlayRequest     D_actor_450800_801395C4;
+extern AnimationPlayRequest     D_actor_450800_801395D8;
+extern AnimationPlayRequest     D_actor_450800_801397CC;
+extern AnimationPlayRequest     D_actor_450800_801397E0;
+extern AnimationPlayRequest     D_actor_450800_801397F4;
+extern AnimationPlayRequest     D_actor_450800_80139808;
+extern AnimationPlayRequest     D_actor_450800_8013981C;
+extern AnimationPlayRequest     D_actor_450800_80139830;
+extern AnimationPlayRequest     D_actor_450800_801398A8;
+extern AnimationPlayRequest     D_actor_450800_8013ADEC;
+extern AnimationPlayRequest     D_actor_450800_8013AE00;
+extern AnimationPlayRequest     D_actor_450800_8013AE14;
+extern ActorCommand             D_actor_450800_801398E0;
+extern ActorCommand             D_actor_450800_801398E4;
+extern AnimationBankCopyRequest D_actor_450800_801398D0;
+extern AnimationBankCopyRequest D_actor_450800_801398D8;
+extern ActorTransform           D_actor_450800_8013AE30;
+extern ActorTransform           D_actor_450800_8013AE48;
+extern ActorTransform           D_actor_450800_8013AE60;
+void                            func_actor_450800_80131F28(s32);
+void                            func_actor_450800_80132080(void);
+void                            func_actor_450800_801320E8(s32);
+void                            func_actor_450800_80132108(void);
 
 extern AnimationPlayRequest D_actor_450800_80139390;
 extern AnimationPlayRequest D_actor_450800_801393A4;
@@ -975,9 +975,9 @@ AnimationPlayRequest D_actor_450800_801398A8 = { { .index = 1 }, 1, ANIMATION_BL
 
 AnimationPlayRequest D_actor_450800_801398BC = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpCopyArg D_actor_450800_801398D0 = { { .words = D_actor_450800_801394BC.words }, 32 };
+AnimationBankCopyRequest D_actor_450800_801398D0 = { { .words = D_actor_450800_801394BC.words }, ANIMATION_BANK_EXTENSION_CAPACITY };
 
-GpCopyArg D_actor_450800_801398D8 = { { .words = D_actor_450800_80139310.words }, 32 };
+AnimationBankCopyRequest D_actor_450800_801398D8 = { { .words = D_actor_450800_80139310.words }, ANIMATION_BANK_EXTENSION_CAPACITY };
 
 ActorCommand D_actor_450800_801398E0 = { { .loc = { 5, 22 } }, 0 };
 
@@ -999,8 +999,8 @@ EvsCommand D_actor_450800_80139964[105] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450800_80131F28 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_actor_450800_801398D8 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_actor_450800_801398D0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450800_801398D8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450800_801398D0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_80139628 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_450800_801398E8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_80139894 }, { .value = 0 } },
@@ -1132,7 +1132,7 @@ EvsCommand D_actor_450800_8013A33C[23] = {
 EvsCommand D_actor_450800_8013A564[12] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450800_80131F28 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_actor_450800_801398D0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450800_801398D0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_801398A8 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_80139574 }, { .value = 0 } },
@@ -1170,7 +1170,7 @@ EvsCommand D_actor_450800_8013A774[9] = {
 };
 
 EvsCommand D_actor_450800_8013A84C[6] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_actor_450800_801398D0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450800_801398D0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_450800_8013994C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_80139560 }, { .value = 0 } },
@@ -1179,7 +1179,7 @@ EvsCommand D_actor_450800_8013A84C[6] = {
 };
 
 EvsCommand D_actor_450800_8013A8DC[7] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_actor_450800_801398D0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450800_801398D0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_450800_8013994C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_80139560 }, { .value = 0 } },
@@ -1190,7 +1190,7 @@ EvsCommand D_actor_450800_8013A8DC[7] = {
 
 EvsCommand D_actor_450800_8013A984[21] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450800_80131F28 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_actor_450800_801398D8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450800_801398D8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 6 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_801398A8 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_801396F0 } }, { .value = 0 } },
@@ -1214,7 +1214,7 @@ EvsCommand D_actor_450800_8013A984[21] = {
 
 EvsCommand D_actor_450800_8013AB7C[16] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450800_80131F28 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_actor_450800_801398D8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450800_801398D8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 7 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_801398A8 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_801396F0 } }, { .value = 0 } },
@@ -1299,8 +1299,8 @@ EvsCommand D_actor_450800_8013AF8C[117] = {
     { EVENT_SCRIPT_OPCODE_START_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_801398A8 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 13 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_actor_450800_801398D8 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_actor_450800_801398D0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450800_801398D8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450800_801398D0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x55160007 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

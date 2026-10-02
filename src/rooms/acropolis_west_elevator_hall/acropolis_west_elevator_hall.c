@@ -135,10 +135,10 @@ s32 func_acropolis_west_elevator_hall_8017F4C0(Task*, s32, RoomEventMsg*, RoomEv
 s32 func_acropolis_west_elevator_hall_8017F560(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_acropolis_west_elevator_hall_80180274(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern AnimationPlayRequest D_acropolis_west_elevator_hall_80184598;
-extern GpCopyArg            D_acropolis_west_elevator_hall_80184590;
-extern ActorTransform       D_acropolis_west_elevator_hall_801845AC;
-extern ActorTransform       D_acropolis_west_elevator_hall_801845C4;
+extern AnimationPlayRequest     D_acropolis_west_elevator_hall_80184598;
+extern AnimationBankCopyRequest D_acropolis_west_elevator_hall_80184590;
+extern ActorTransform           D_acropolis_west_elevator_hall_801845AC;
+extern ActorTransform           D_acropolis_west_elevator_hall_801845C4;
 
 static AnimationSet _gAcropolisWestElevatorHallAnimation06F80;
 static TmdSource    _gAcropolisWestElevatorHallModel02DE8;
@@ -251,7 +251,7 @@ AnimationSet* D_acropolis_west_elevator_hall_8018458C[1] = {
     &_gAcropolisWestElevatorHallAnimation06F80,
 };
 
-GpCopyArg D_acropolis_west_elevator_hall_80184590 = { { .sets = D_acropolis_west_elevator_hall_8018458C }, 1 };
+AnimationBankCopyRequest D_acropolis_west_elevator_hall_80184590 = { { .sets = D_acropolis_west_elevator_hall_8018458C }, ARRAY_SIZE(D_acropolis_west_elevator_hall_8018458C) };
 
 AnimationPlayRequest D_acropolis_west_elevator_hall_80184598 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -270,7 +270,7 @@ EvsCommand D_acropolis_west_elevator_hall_80184620[26] = {
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 67 }, { .value = 67 }, { .value = 78 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1020 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_west_elevator_hall_8018460C }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_acropolis_west_elevator_hall_80184590 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_acropolis_west_elevator_hall_80184590 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_acropolis_west_elevator_hall_801845AC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 40 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

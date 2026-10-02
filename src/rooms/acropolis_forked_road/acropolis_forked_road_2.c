@@ -99,13 +99,13 @@ void func_acropolis_forked_road_8017DD60(Task*);
 void func_acropolis_forked_road_8017E1C0(Task*);
 void func_acropolis_forked_road_8017E220(Task*);
 
-extern AnimationPlayRequest  D_acropolis_forked_road_8018207C;
-extern GpCopyArg             D_acropolis_forked_road_80182060;
-extern WorldCollisionGrid    D_acropolis_forked_road_80182BF0[1];
-extern WorldCollisionTrigger D_acropolis_forked_road_80182C14[6];
-extern WorldCollisionTrigger D_acropolis_forked_road_80182DDC[7];
-extern WorldCoordRoomLights  D_acropolis_forked_road_80184E70[1];
-void                         func_acropolis_forked_road_8017E288(void);
+extern AnimationPlayRequest     D_acropolis_forked_road_8018207C;
+extern AnimationBankCopyRequest D_acropolis_forked_road_80182060;
+extern WorldCollisionGrid       D_acropolis_forked_road_80182BF0[1];
+extern WorldCollisionTrigger    D_acropolis_forked_road_80182C14[6];
+extern WorldCollisionTrigger    D_acropolis_forked_road_80182DDC[7];
+extern WorldCoordRoomLights     D_acropolis_forked_road_80184E70[1];
+void                            func_acropolis_forked_road_8017E288(void);
 
 extern SpriteBatch  D_acropolis_forked_road_80183284[2];
 extern SpriteBatch  D_acropolis_forked_road_80183938[12];
@@ -485,7 +485,7 @@ AnimationSet* D_acropolis_forked_road_80182054[3] = {
     &_gAcropolisForkedRoadAnimation04A6C,
 };
 
-GpCopyArg D_acropolis_forked_road_80182060 = { { .sets = D_acropolis_forked_road_80182054 }, 3 };
+AnimationBankCopyRequest D_acropolis_forked_road_80182060 = { { .sets = D_acropolis_forked_road_80182054 }, ARRAY_SIZE(D_acropolis_forked_road_80182054) };
 
 AnimationPlayRequest D_acropolis_forked_road_80182068 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -497,7 +497,7 @@ AnimationPlayRequest D_acropolis_forked_road_80182090[2] = {
 };
 
 EvsCommand D_acropolis_forked_road_801820B8[8] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_acropolis_forked_road_80182060 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_acropolis_forked_road_80182060 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_forked_road_8018207C }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_acropolis_forked_road_8017E288 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

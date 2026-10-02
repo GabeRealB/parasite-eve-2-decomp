@@ -57,10 +57,10 @@ void func_mine_gorge_8017D8BC(u8);
 
 static AnimationSet _gMineGorgeAnimation00C98;
 
-extern AnimationPlayRequest D_mine_gorge_8017E2DC;
-extern AnimationPlayRequest D_mine_gorge_8017E5E8;
-extern GpCopyArg            D_mine_gorge_8017E5E0;
-void                        func_mine_gorge_8017D8C8(s32);
+extern AnimationPlayRequest     D_mine_gorge_8017E2DC;
+extern AnimationPlayRequest     D_mine_gorge_8017E5E8;
+extern AnimationBankCopyRequest D_mine_gorge_8017E5E0;
+void                            func_mine_gorge_8017D8C8(s32);
 
 static AnimationPackedPose _gMineGorgeAnimation00C98Bank1[10] = {
 #include "assets/mine_gorge_animation_00C98_bank1.inc"
@@ -145,7 +145,7 @@ AnimationSet* D_mine_gorge_8017E5D8[2] = {
     NULL,
 };
 
-GpCopyArg D_mine_gorge_8017E5E0 = { { .sets = D_mine_gorge_8017E5D8 }, 2 };
+AnimationBankCopyRequest D_mine_gorge_8017E5E0 = { { .sets = D_mine_gorge_8017E5D8 }, ARRAY_SIZE(D_mine_gorge_8017E5D8) };
 
 AnimationPlayRequest D_mine_gorge_8017E5E8 = { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 7, ANIMATION_WORLD_COLLISION_ENABLE };
 
@@ -154,7 +154,7 @@ AnimationPlayRequest D_mine_gorge_8017E5FC = { { .index = 1 }, 48, ANIMATION_BLE
 
 EvsCommand D_mine_gorge_8017E610[14] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_mine_gorge_8017E5E0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mine_gorge_8017E5E0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_gorge_8017E2DC }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x54050007 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

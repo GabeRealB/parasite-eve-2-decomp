@@ -1017,10 +1017,10 @@ static s32 func_shelter_b3_garbage_incinerator_8017F318(Task* arg0)
 /// `func_shelter_b3_garbage_incinerator_8017F318` with the task and returns 0.
 static s32 func_shelter_b3_garbage_incinerator_8017F588(Task* arg0)
 {
-    GarbageIncineratorWork* work = (GarbageIncineratorWork*)arg0->work;
-    GarbageIncineratorWork* msgWork;
-    GpCopyArg               msg;
-    s32                     n;
+    GarbageIncineratorWork*  work = (GarbageIncineratorWork*)arg0->work;
+    GarbageIncineratorWork*  msgWork;
+    AnimationBankCopyRequest msg;
+    s32                      n;
 
     switch (work->field_3A) {
         case 0:
@@ -1030,7 +1030,7 @@ static s32 func_shelter_b3_garbage_incinerator_8017F588(Task* arg0)
                 n += 1;
             }
             msg.source.sets = &D_shelter_b3_garbage_incinerator_80186F78[0];
-            msg.count       = n & 0xFFFF;
+            msg.wordCount   = n & 0xFFFF;
             TASK_MESSAGE_DISPATCH_POINTER(msgWork->field_2C, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &msg, 0);
             Gp_MsgPlayerWeapon(0);
             Gp_StateC08.field_6 |= 1;

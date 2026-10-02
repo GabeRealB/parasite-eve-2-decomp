@@ -954,7 +954,7 @@ AnimationSet* D_dryfield_night_dilapidated_house_801864BC[25] = {
     &_gDryfieldNightDilapidatedHouseAnimation05D8C,
 };
 
-GpCopyArg D_dryfield_night_dilapidated_house_80186520 = { { .sets = D_dryfield_night_dilapidated_house_801864BC }, 25 };
+AnimationBankCopyRequest D_dryfield_night_dilapidated_house_80186520 = { { .sets = D_dryfield_night_dilapidated_house_801864BC }, ARRAY_SIZE(D_dryfield_night_dilapidated_house_801864BC) };
 
 AnimationPlayRequest D_dryfield_night_dilapidated_house_80186528 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
@@ -1023,7 +1023,7 @@ AnimationSet* D_dryfield_night_dilapidated_house_80186734[16] = {
     &_gDryfieldNightDilapidatedHouseAnimation08ED4,
 };
 
-GpCopyArg D_dryfield_night_dilapidated_house_80186774 = { { .sets = D_dryfield_night_dilapidated_house_80186734 }, 16 };
+AnimationBankCopyRequest D_dryfield_night_dilapidated_house_80186774 = { { .sets = D_dryfield_night_dilapidated_house_80186734 }, ARRAY_SIZE(D_dryfield_night_dilapidated_house_80186734) };
 
 AnimationPlayRequest D_dryfield_night_dilapidated_house_8018677C = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
@@ -1076,8 +1076,8 @@ EvsCommand D_dryfield_night_dilapidated_house_801868F4[88] = {
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_night_dilapidated_house_8017DA90 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_dryfield_night_dilapidated_house_80186520 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_dryfield_night_dilapidated_house_80186774 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_night_dilapidated_house_80186520 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_night_dilapidated_house_80186774 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_night_dilapidated_house_8018671C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_night_dilapidated_house_801868BC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },

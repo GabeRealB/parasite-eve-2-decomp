@@ -149,14 +149,14 @@ extern ActorTransform       D_acropolis_patio_801827BC;
 extern ActorTransform       D_acropolis_patio_801827D4;
 void                        func_acropolis_patio_8017DFE4(s32);
 
-extern AnimationPlayRequest D_acropolis_patio_8018270C;
-extern AnimationPlayRequest D_acropolis_patio_80182720;
-extern GpCopyArg            D_acropolis_patio_801825C4;
-extern ActorTransform       D_acropolis_patio_80182630;
-extern ActorTransform       D_acropolis_patio_80182678;
-void                        func_acropolis_patio_8017DFE4(s32);
-void                        func_acropolis_patio_8017E024(void);
-void                        func_acropolis_patio_8017E054(Task*);
+extern AnimationPlayRequest     D_acropolis_patio_8018270C;
+extern AnimationPlayRequest     D_acropolis_patio_80182720;
+extern AnimationBankCopyRequest D_acropolis_patio_801825C4;
+extern ActorTransform           D_acropolis_patio_80182630;
+extern ActorTransform           D_acropolis_patio_80182678;
+void                            func_acropolis_patio_8017DFE4(s32);
+void                            func_acropolis_patio_8017E024(void);
+void                            func_acropolis_patio_8017E054(Task*);
 
 extern SpriteBatch  D_acropolis_patio_80184AF0[2];
 extern SpriteBatch  D_acropolis_patio_80184D1C[7];
@@ -380,7 +380,7 @@ AnimationPlayRequest D_acropolis_patio_801803CC = { { .index = 1 }, 51, ANIMATIO
 
 AnimationPlayRequest D_acropolis_patio_801803E0 = { { .index = 1 }, 52, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpCopyArg D_acropolis_patio_801803F4 = { { .sets = D_acropolis_patio_80180364 }, 6 };
+AnimationBankCopyRequest D_acropolis_patio_801803F4 = { { .sets = D_acropolis_patio_80180364 }, ARRAY_SIZE(D_acropolis_patio_80180364) };
 
 AnimationPlayRequest D_acropolis_patio_801803FC = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -452,7 +452,7 @@ EvsCommand D_acropolis_patio_8018082C[45] = {
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 9 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_acropolis_patio_801803F4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_acropolis_patio_801803F4 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_acropolis_patio_8017DF38 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -637,7 +637,7 @@ AnimationSet* D_acropolis_patio_801825B0[5] = {
     &_gAcropolisPatioAnimation04FC8,
 };
 
-GpCopyArg D_acropolis_patio_801825C4 = { { .sets = D_acropolis_patio_801825B0 }, 5 };
+AnimationBankCopyRequest D_acropolis_patio_801825C4 = { { .sets = D_acropolis_patio_801825B0 }, ARRAY_SIZE(D_acropolis_patio_801825B0) };
 
 AnimationPlayRequest D_acropolis_patio_801825CC[4] = {
     { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
@@ -699,7 +699,7 @@ ActorCommand D_acropolis_patio_801827FC = { { .loc = { 0, 0 } }, 2 };
 TaskDesc D_acropolis_patio_80182800 = { { { TASK_BODY_NONE, 192 } }, func_acropolis_patio_8017E054, { .value = 0 } };
 
 EvsCommand D_acropolis_patio_8018280C[41] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_acropolis_patio_801825C4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_acropolis_patio_801825C4 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 18 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 12 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_acropolis_patio_80182630 } }, { .value = 0 } },

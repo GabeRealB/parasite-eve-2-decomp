@@ -426,7 +426,7 @@ AnimationSet* D_actor_143400_80134E6C[11] = {
     &_gActor143400Animation017F0,
 };
 
-GpCopyArg D_actor_143400_80134E98 = { { .sets = D_actor_143400_80134E6C }, 11 };
+AnimationBankCopyRequest D_actor_143400_80134E98 = { { .sets = D_actor_143400_80134E6C }, ARRAY_SIZE(D_actor_143400_80134E6C) };
 
 AnimationPlayRequest D_actor_143400_80134EA0 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
@@ -466,7 +466,7 @@ AnimationSet* D_actor_143400_80134FAC[9] = {
     &_gActor143400Animation03024,
 };
 
-GpCopyArg D_actor_143400_80134FD0 = { { .sets = D_actor_143400_80134FAC }, 9 };
+AnimationBankCopyRequest D_actor_143400_80134FD0 = { { .sets = D_actor_143400_80134FAC }, ARRAY_SIZE(D_actor_143400_80134FAC) };
 
 AnimationPlayRequest D_actor_143400_80134FD8 = { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
@@ -493,8 +493,8 @@ ActorTransform D_actor_143400_801350A4 = { { 7650, 0, 4110, 0 }, { 0, 0, 0, 0 } 
 EvsCommand D_actor_143400_801350BC[97] = {
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_actor_143400_80134E98 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_actor_143400_80134FD0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_143400_80134E98 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_143400_80134FD0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },

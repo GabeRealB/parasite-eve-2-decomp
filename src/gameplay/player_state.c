@@ -137,7 +137,7 @@ s32 func_8010C75C(Task* arg0, s32 arg1, GpDelayArg* arg2);
 
 void Gp_MoveActorByKeep(Task* arg0, s32 arg1, GpMoveArg* arg2);
 
-s32 Gp_CopyAllyAnim(Task* arg0, s32 arg1, GpCopyArg* arg2);
+s32 Gp_CopyAllyAnim(Task* arg0, s32 arg1, const AnimationBankCopyRequest* request);
 
 static inline void _gpResumeBaseState(Task* arg0)
 {
@@ -1822,24 +1822,25 @@ void Gp_MoveActorByKeep(Task* arg0, s32 arg1, GpMoveArg* arg2)
     p->interactionPressed = savedInteractionPressed;
 }
 
-s32 Gp_CopyAllyAnim(Task* arg0, s32 arg1, GpCopyArg* arg2)
+s32 Gp_CopyAllyAnim(Task* arg0, s32 arg1, const AnimationBankCopyRequest* request)
 {
     union {
         GpAnimBlk* block;
         s32*       words;
     } dest;
-    s32* src;
-    s32  i;
-    s32  count;
+    const s32* src;
+    s32        i;
+    s32        count;
 
     dest.block = Gp_AnimBlkTbl[Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant];
-    src        = arg2->source.words;
-    count      = arg2->count;
+    src        = request->source.words;
+    count      = request->wordCount;
     if (count >= ANIMATION_BANK_EXTENSION_CAPACITY + 1) {
         return 1;
     }
+    // Transfer raw words: the span can include records after the clip pointers.
     dest.words = &dest.block->table.addresses[ANIMATION_BANK_BASE_SET_COUNT];
-    for (i = 0; i < arg2->count; i++) {
+    for (i = 0; i < request->wordCount; i++) {
         dest.words[i] = src[i];
     }
     return 0;

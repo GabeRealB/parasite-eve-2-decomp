@@ -27664,8 +27664,8 @@ semantically identical but cannot match.
 
 ## Index the copy (`dest[i] = src[i]`) so `count` wins `$a1`
 
-A word copy whose count is loaded from `arg->count` and whose source
-is `arg->src` (offset 0) fights over `$a1`. `*dest++ = *src++` treats
+A word copy whose count is loaded from `request->wordCount` and whose source
+is `request->source.words` (offset 0) fights over `$a1`. `*dest++ = *src++` treats
 `src` as a live pointer and schedules `lw a1, 0(arg)` first, so count
 lands in `$a3` and the loop never emits the target's
 
@@ -27678,13 +27678,13 @@ remap. Indexed stores keep `src` as a base, so count takes `$a1` and
 src takes `$a3`:
 
 ```c
-src   = arg2->field_0;
-count = arg2->field_4;
+src   = request->source.words;
+count = request->wordCount;
 if (count >= 0x21) {
     return 1;
 }
 dest = &((GpAnimBlk*)dest)->table.addresses[ANIMATION_BANK_BASE_SET_COUNT];
-for (i = 0; i < arg2->field_4; i++) {
+for (i = 0; i < request->wordCount; i++) {
     dest[i] = src[i];
 }
 ```
@@ -80734,7 +80734,7 @@ n = 0;
 while (D_actor_136100_8013F180[n & 0xFFFF] != 0) {
     n += 1;
 }
-msg.count = n & 0xFFFF;                 /* one -1, 100% */
+msg.wordCount = n & 0xFFFF;             /* one -1, 100% */
 ```
 
 Two things fall out of that form. The `n == 0` entry test is constant-folded, so

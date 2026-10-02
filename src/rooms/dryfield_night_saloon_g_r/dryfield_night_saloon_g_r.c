@@ -171,57 +171,57 @@ extern SpriteSource D_dryfield_night_saloon_g_r_80186AB8[91];
 extern SpriteSource D_dryfield_night_saloon_g_r_801871FC[23];
 extern SpriteSource D_dryfield_night_saloon_g_r_80187400[13];
 
-extern AnimationPlayRequest D_dryfield_night_saloon_g_r_80183968;
-extern AnimationPlayRequest D_dryfield_night_saloon_g_r_8018397C;
-extern AnimationPlayRequest D_dryfield_night_saloon_g_r_80183990;
-extern AnimationPlayRequest D_dryfield_night_saloon_g_r_801839B8;
-extern AnimationPlayRequest D_dryfield_night_saloon_g_r_801839CC;
-extern AnimationPlayRequest D_dryfield_night_saloon_g_r_801839F4;
-extern AnimationPlayRequest D_dryfield_night_saloon_g_r_80183A08;
-extern AnimationPlayRequest D_dryfield_night_saloon_g_r_80183A1C;
-extern AnimationPlayRequest D_dryfield_night_saloon_g_r_80183A6C;
-extern AnimationPlayRequest D_dryfield_night_saloon_g_r_80183A94;
-extern AnimationPlayRequest D_dryfield_night_saloon_g_r_80183AA8;
-extern GpCopyArg            D_dryfield_night_saloon_g_r_8018394C;
-extern GpOverrideArg        D_dryfield_night_saloon_g_r_80183B34;
-extern ActorTransform       D_dryfield_night_saloon_g_r_80183ABC;
-extern ActorTransform       D_dryfield_night_saloon_g_r_80183AD4;
-extern ActorTransform       D_dryfield_night_saloon_g_r_80183AEC;
-extern ActorTransform       D_dryfield_night_saloon_g_r_80183B04;
-extern ActorTransform       D_dryfield_night_saloon_g_r_80183B1C;
-extern const char           D_dryfield_night_saloon_g_r_8017D600[22];
-extern const char           D_dryfield_night_saloon_g_r_8017D618[19];
-extern const char           D_dryfield_night_saloon_g_r_8017D62C[14];
-extern const char           D_dryfield_night_saloon_g_r_8017D63C[26];
-extern const char           D_dryfield_night_saloon_g_r_8017D658[24];
-extern const char           D_dryfield_night_saloon_g_r_8017D670[17];
-extern const char           D_dryfield_night_saloon_g_r_8017D684[23];
-extern const char           D_dryfield_night_saloon_g_r_8017D69C[17];
-extern const char           D_dryfield_night_saloon_g_r_8017D6B0[16];
-extern const char           D_dryfield_night_saloon_g_r_8017D6C0[15];
-extern const char           D_dryfield_night_saloon_g_r_8017D6D0[24];
-extern const char           D_dryfield_night_saloon_g_r_8017D6E8[11];
-extern const char           D_dryfield_night_saloon_g_r_8017D6F4[27];
-extern const char           D_dryfield_night_saloon_g_r_8017D710[11];
-extern const char           D_dryfield_night_saloon_g_r_8017D71C[17];
-extern const char           D_dryfield_night_saloon_g_r_8017D730[14];
-extern const char           D_dryfield_night_saloon_g_r_8017D740[11];
-extern const char           D_dryfield_night_saloon_g_r_8017D74C[13];
-extern const char           D_dryfield_night_saloon_g_r_8017D75C[23];
-extern const char           D_dryfield_night_saloon_g_r_8017D774[13];
-extern const char           D_dryfield_night_saloon_g_r_8017D784[17];
-extern const char           D_dryfield_night_saloon_g_r_8017D798[16];
-extern const char           D_dryfield_night_saloon_g_r_8017D7A8[12];
-extern const char           D_dryfield_night_saloon_g_r_8017D7B4[20];
-extern const char           D_dryfield_night_saloon_g_r_8017D7C8[17];
-extern const char           D_dryfield_night_saloon_g_r_8017D7DC[19];
-extern const char           D_dryfield_night_saloon_g_r_8017D7F0[24];
-extern const char           D_dryfield_night_saloon_g_r_8017D808[19];
-extern const char           D_dryfield_night_saloon_g_r_8017D81C[27];
-extern const char           D_dryfield_night_saloon_g_r_8017D838[18];
-extern const char           D_dryfield_night_saloon_g_r_8017D84C[16];
-extern const char           D_dryfield_night_saloon_g_r_8017D85C[20];
-void                        func_dryfield_night_saloon_g_r_8017E0A8(u8);
+extern AnimationPlayRequest     D_dryfield_night_saloon_g_r_80183968;
+extern AnimationPlayRequest     D_dryfield_night_saloon_g_r_8018397C;
+extern AnimationPlayRequest     D_dryfield_night_saloon_g_r_80183990;
+extern AnimationPlayRequest     D_dryfield_night_saloon_g_r_801839B8;
+extern AnimationPlayRequest     D_dryfield_night_saloon_g_r_801839CC;
+extern AnimationPlayRequest     D_dryfield_night_saloon_g_r_801839F4;
+extern AnimationPlayRequest     D_dryfield_night_saloon_g_r_80183A08;
+extern AnimationPlayRequest     D_dryfield_night_saloon_g_r_80183A1C;
+extern AnimationPlayRequest     D_dryfield_night_saloon_g_r_80183A6C;
+extern AnimationPlayRequest     D_dryfield_night_saloon_g_r_80183A94;
+extern AnimationPlayRequest     D_dryfield_night_saloon_g_r_80183AA8;
+extern AnimationBankCopyRequest D_dryfield_night_saloon_g_r_8018394C;
+extern GpOverrideArg            D_dryfield_night_saloon_g_r_80183B34;
+extern ActorTransform           D_dryfield_night_saloon_g_r_80183ABC;
+extern ActorTransform           D_dryfield_night_saloon_g_r_80183AD4;
+extern ActorTransform           D_dryfield_night_saloon_g_r_80183AEC;
+extern ActorTransform           D_dryfield_night_saloon_g_r_80183B04;
+extern ActorTransform           D_dryfield_night_saloon_g_r_80183B1C;
+extern const char               D_dryfield_night_saloon_g_r_8017D600[22];
+extern const char               D_dryfield_night_saloon_g_r_8017D618[19];
+extern const char               D_dryfield_night_saloon_g_r_8017D62C[14];
+extern const char               D_dryfield_night_saloon_g_r_8017D63C[26];
+extern const char               D_dryfield_night_saloon_g_r_8017D658[24];
+extern const char               D_dryfield_night_saloon_g_r_8017D670[17];
+extern const char               D_dryfield_night_saloon_g_r_8017D684[23];
+extern const char               D_dryfield_night_saloon_g_r_8017D69C[17];
+extern const char               D_dryfield_night_saloon_g_r_8017D6B0[16];
+extern const char               D_dryfield_night_saloon_g_r_8017D6C0[15];
+extern const char               D_dryfield_night_saloon_g_r_8017D6D0[24];
+extern const char               D_dryfield_night_saloon_g_r_8017D6E8[11];
+extern const char               D_dryfield_night_saloon_g_r_8017D6F4[27];
+extern const char               D_dryfield_night_saloon_g_r_8017D710[11];
+extern const char               D_dryfield_night_saloon_g_r_8017D71C[17];
+extern const char               D_dryfield_night_saloon_g_r_8017D730[14];
+extern const char               D_dryfield_night_saloon_g_r_8017D740[11];
+extern const char               D_dryfield_night_saloon_g_r_8017D74C[13];
+extern const char               D_dryfield_night_saloon_g_r_8017D75C[23];
+extern const char               D_dryfield_night_saloon_g_r_8017D774[13];
+extern const char               D_dryfield_night_saloon_g_r_8017D784[17];
+extern const char               D_dryfield_night_saloon_g_r_8017D798[16];
+extern const char               D_dryfield_night_saloon_g_r_8017D7A8[12];
+extern const char               D_dryfield_night_saloon_g_r_8017D7B4[20];
+extern const char               D_dryfield_night_saloon_g_r_8017D7C8[17];
+extern const char               D_dryfield_night_saloon_g_r_8017D7DC[19];
+extern const char               D_dryfield_night_saloon_g_r_8017D7F0[24];
+extern const char               D_dryfield_night_saloon_g_r_8017D808[19];
+extern const char               D_dryfield_night_saloon_g_r_8017D81C[27];
+extern const char               D_dryfield_night_saloon_g_r_8017D838[18];
+extern const char               D_dryfield_night_saloon_g_r_8017D84C[16];
+extern const char               D_dryfield_night_saloon_g_r_8017D85C[20];
+void                            func_dryfield_night_saloon_g_r_8017E0A8(u8);
 
 s32  func_dryfield_night_saloon_g_r_8017DD7C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_dryfield_night_saloon_g_r_8017DD84(Task*, s32, s32, s32);
@@ -637,7 +637,7 @@ AnimationSet* D_dryfield_night_saloon_g_r_80183904[18] = {
     &_gDryfieldNightSaloonGRAnimation04238,
 };
 
-GpCopyArg D_dryfield_night_saloon_g_r_8018394C = { { .sets = D_dryfield_night_saloon_g_r_80183904 }, 18 };
+AnimationBankCopyRequest D_dryfield_night_saloon_g_r_8018394C = { { .sets = D_dryfield_night_saloon_g_r_80183904 }, ARRAY_SIZE(D_dryfield_night_saloon_g_r_80183904) };
 
 AnimationPlayRequest D_dryfield_night_saloon_g_r_80183954 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -727,7 +727,7 @@ EvsCommand D_dryfield_night_saloon_g_r_80183C94[118] = {
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_8018394C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_8018394C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183ABC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183C7C } }, { .value = 0 } },
@@ -862,7 +862,7 @@ EvsCommand D_dryfield_night_saloon_g_r_801847A4[13] = {
 
 EvsCommand D_dryfield_night_saloon_g_r_801848DC[25] = {
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_8018394C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_8018394C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183AEC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183C7C } }, { .value = 0 } },
@@ -890,7 +890,7 @@ EvsCommand D_dryfield_night_saloon_g_r_801848DC[25] = {
 
 EvsCommand D_dryfield_night_saloon_g_r_80184B34[21] = {
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_8018394C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_8018394C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183B04 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183C7C } }, { .value = 0 } },
@@ -914,7 +914,7 @@ EvsCommand D_dryfield_night_saloon_g_r_80184B34[21] = {
 
 EvsCommand D_dryfield_night_saloon_g_r_80184D2C[20] = {
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_8018394C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_8018394C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183B1C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183C7C } }, { .value = 0 } },

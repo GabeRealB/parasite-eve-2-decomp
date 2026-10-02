@@ -121,52 +121,52 @@ static WorldCollisionGridFace _gActor443500Collision269B8Faces[2];
 static SVECTOR                _gActor443500Collision269B8Normals[2];
 static SVECTOR                _gActor443500Collision269B8Verts[6];
 
-extern AnimationPlayRequest D_actor_443500_80140E8C;
-extern AnimationPlayRequest D_actor_443500_80140EA0;
-extern AnimationPlayRequest D_actor_443500_80140EB4;
-extern AnimationPlayRequest D_actor_443500_80140EC8;
-extern AnimationPlayRequest D_actor_443500_80140EDC;
-extern AnimationPlayRequest D_actor_443500_80140EF0;
-extern AnimationPlayRequest D_actor_443500_80140F04;
-extern AnimationPlayRequest D_actor_443500_80140F18;
-extern AnimationPlayRequest D_actor_443500_80140F2C;
-extern AnimationPlayRequest D_actor_443500_80140F40;
-extern AnimationPlayRequest D_actor_443500_80141004;
-extern AnimationPlayRequest D_actor_443500_80141018;
-extern AnimationPlayRequest D_actor_443500_8014102C;
-extern AnimationPlayRequest D_actor_443500_80141040;
-extern AnimationPlayRequest D_actor_443500_80141054;
-extern AnimationPlayRequest D_actor_443500_80141068;
-extern AnimationPlayRequest D_actor_443500_80141090;
-extern AnimationPlayRequest D_actor_443500_801410A4;
-extern AnimationPlayRequest D_actor_443500_801410B8;
-extern AnimationPlayRequest D_actor_443500_801410CC;
-extern AnimationPlayRequest D_actor_443500_801410E0;
-extern AnimationPlayRequest D_actor_443500_801410F4;
-extern AnimationPlayRequest D_actor_443500_80141108;
-extern AnimationPlayRequest D_actor_443500_8014111C;
-extern AnimationPlayRequest D_actor_443500_80141130;
-extern AnimationPlayRequest D_actor_443500_80141144;
-extern AnimationPlayRequest D_actor_443500_80141158;
-extern AnimationPlayRequest D_actor_443500_8014116C;
-extern AnimationPlayRequest D_actor_443500_80141180;
-extern AnimationPlayRequest D_actor_443500_801411A8;
-extern AnimationPlayRequest D_actor_443500_801411BC;
-extern AnimationPlayRequest D_actor_443500_801411D0;
-extern GpCopyArg            D_actor_443500_80140E70;
-extern GpCopyArg            D_actor_443500_80140FE8;
-extern ActorTransform       D_actor_443500_80140F54;
-extern ActorTransform       D_actor_443500_80140F6C;
-extern ActorTransform       D_actor_443500_801411E4;
-extern ActorTransform       D_actor_443500_801411FC;
-void                        func_actor_443500_80131E3C(s32);
-void                        func_actor_443500_80131E84(s32);
-void                        func_actor_443500_80131EE4(void);
-void                        func_actor_443500_80131F18(void);
-void                        func_actor_443500_80131F58(void);
-void                        func_actor_443500_8013201C(s16);
-void                        func_actor_443500_80132048(void);
-void                        func_actor_443500_8013206C(s8);
+extern AnimationPlayRequest     D_actor_443500_80140E8C;
+extern AnimationPlayRequest     D_actor_443500_80140EA0;
+extern AnimationPlayRequest     D_actor_443500_80140EB4;
+extern AnimationPlayRequest     D_actor_443500_80140EC8;
+extern AnimationPlayRequest     D_actor_443500_80140EDC;
+extern AnimationPlayRequest     D_actor_443500_80140EF0;
+extern AnimationPlayRequest     D_actor_443500_80140F04;
+extern AnimationPlayRequest     D_actor_443500_80140F18;
+extern AnimationPlayRequest     D_actor_443500_80140F2C;
+extern AnimationPlayRequest     D_actor_443500_80140F40;
+extern AnimationPlayRequest     D_actor_443500_80141004;
+extern AnimationPlayRequest     D_actor_443500_80141018;
+extern AnimationPlayRequest     D_actor_443500_8014102C;
+extern AnimationPlayRequest     D_actor_443500_80141040;
+extern AnimationPlayRequest     D_actor_443500_80141054;
+extern AnimationPlayRequest     D_actor_443500_80141068;
+extern AnimationPlayRequest     D_actor_443500_80141090;
+extern AnimationPlayRequest     D_actor_443500_801410A4;
+extern AnimationPlayRequest     D_actor_443500_801410B8;
+extern AnimationPlayRequest     D_actor_443500_801410CC;
+extern AnimationPlayRequest     D_actor_443500_801410E0;
+extern AnimationPlayRequest     D_actor_443500_801410F4;
+extern AnimationPlayRequest     D_actor_443500_80141108;
+extern AnimationPlayRequest     D_actor_443500_8014111C;
+extern AnimationPlayRequest     D_actor_443500_80141130;
+extern AnimationPlayRequest     D_actor_443500_80141144;
+extern AnimationPlayRequest     D_actor_443500_80141158;
+extern AnimationPlayRequest     D_actor_443500_8014116C;
+extern AnimationPlayRequest     D_actor_443500_80141180;
+extern AnimationPlayRequest     D_actor_443500_801411A8;
+extern AnimationPlayRequest     D_actor_443500_801411BC;
+extern AnimationPlayRequest     D_actor_443500_801411D0;
+extern AnimationBankCopyRequest D_actor_443500_80140E70;
+extern AnimationBankCopyRequest D_actor_443500_80140FE8;
+extern ActorTransform           D_actor_443500_80140F54;
+extern ActorTransform           D_actor_443500_80140F6C;
+extern ActorTransform           D_actor_443500_801411E4;
+extern ActorTransform           D_actor_443500_801411FC;
+void                            func_actor_443500_80131E3C(s32);
+void                            func_actor_443500_80131E84(s32);
+void                            func_actor_443500_80131EE4(void);
+void                            func_actor_443500_80131F18(void);
+void                            func_actor_443500_80131F58(void);
+void                            func_actor_443500_8013201C(s16);
+void                            func_actor_443500_80132048(void);
+void                            func_actor_443500_8013206C(s8);
 
 static AnimationSet _gActor443500Animation010D0;
 static AnimationSet _gActor443500Animation026FC;
@@ -937,7 +937,7 @@ AnimationSet* D_actor_443500_80140E44[11] = {
     &_gActor443500Animation0D3C0,
 };
 
-GpCopyArg D_actor_443500_80140E70 = { { .sets = D_actor_443500_80140E44 }, 11 };
+AnimationBankCopyRequest D_actor_443500_80140E70 = { { .sets = D_actor_443500_80140E44 }, ARRAY_SIZE(D_actor_443500_80140E44) };
 
 AnimationPlayRequest D_actor_443500_80140E78 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
@@ -993,7 +993,7 @@ AnimationSet* D_actor_443500_80140F84[25] = {
     &_gActor443500Animation0DB60,
 };
 
-GpCopyArg D_actor_443500_80140FE8 = { { .sets = D_actor_443500_80140F84 }, 25 };
+AnimationBankCopyRequest D_actor_443500_80140FE8 = { { .sets = D_actor_443500_80140F84 }, ARRAY_SIZE(D_actor_443500_80140F84) };
 
 AnimationPlayRequest D_actor_443500_80140FF0 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
@@ -1130,7 +1130,7 @@ ActorTransform D_actor_443500_80141514 = { { 0x3E80, -1000, 5910, 0 }, { 0, 0, 0
 EvsCommand D_actor_443500_8014152C[74] = {
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_actor_443500_80140E70 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_443500_80140E70 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
@@ -1226,7 +1226,7 @@ EvsCommand D_actor_443500_80141C1C[16] = {
 EvsCommand D_actor_443500_80141D9C[137] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_443500_80131F58 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_SOUND, { .value = 0x542F0001 }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_actor_443500_80140FE8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_443500_80140FE8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = func_actor_443500_8013206C }, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
@@ -1315,7 +1315,7 @@ EvsCommand D_actor_443500_80141D9C[137] = {
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_actor_443500_80140FE8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_443500_80140FE8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_443500_80141054 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_443500_801411FC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
@@ -1386,7 +1386,7 @@ EvsCommand D_actor_443500_80142A74[18] = {
 
 EvsCommand D_actor_443500_80142C24[73] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_443500_80131F58 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_actor_443500_80140FE8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_443500_80140FE8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_443500_80131E3C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1481,7 +1481,7 @@ EvsCommand D_actor_443500_801432FC[17] = {
 };
 
 EvsCommand D_actor_443500_80143494[10] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_actor_443500_80140FE8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_443500_80140FE8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_443500_80141004 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_443500_80141458 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_443500_80131E84 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

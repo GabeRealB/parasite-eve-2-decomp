@@ -2150,7 +2150,7 @@ static inline s16 func_actor_136100_TakeStartCue(u16* evtId, u8* evtKind, u8* ev
 
 /// Copies seven set addresses into the player's writable animation-bank extension.
 ///
-/// `record` must be a side-effect-free `GpCopyArg` lvalue. The table is
+/// `record` must be a side-effect-free `AnimationBankCopyRequest` lvalue. The table is
 /// null-terminated; the receiver copies only the preceding entries.
 /// Per-expansion work pointers preserve the original call scheduling.
 #define ACTOR_136100_COPY_PLAYER_ANIMATION_SETS(task, record)                                                   \
@@ -2163,7 +2163,7 @@ static inline s16 func_actor_136100_TakeStartCue(u16* evtId, u8* evtKind, u8* ev
             n += 1;                                                                                             \
         }                                                                                                       \
         (record).source.sets = &D_actor_136100_8013F180[0];                                                     \
-        (record).count       = n & 0xFFFF;                                                                      \
+        (record).wordCount   = n & 0xFFFF;                                                                      \
         TASK_MESSAGE_DISPATCH_POINTER(msgWork->field_4B4, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &(record), 0); \
     }
 
@@ -2195,10 +2195,10 @@ void func_actor_136100_80133BC8(Task* arg0)
     Actor136100Work* work = (Actor136100Work*)arg0->work;
     SVECTOR          unused;
     union {
-        AnimationPlayRequest animation;
-        GpCopyArg            copy;
-        VECTOR               shadowPosition;
-        SVECTOR              floorOffset;
+        AnimationPlayRequest     animation;
+        AnimationBankCopyRequest copy;
+        VECTOR                   shadowPosition;
+        SVECTOR                  floorOffset;
     } message;
     s32 cue;
     u16 evtId;
@@ -2495,15 +2495,15 @@ void func_actor_136100_801349B4(s32 arg0)
 /// the table and that count to message 0x3F7.
 static void func_actor_136100_80134A18(Task* arg0)
 {
-    Actor136100Work* work = (Actor136100Work*)arg0->work;
-    GpCopyArg        msg;
-    s32              n;
+    Actor136100Work*         work = (Actor136100Work*)arg0->work;
+    AnimationBankCopyRequest msg;
+    s32                      n;
 
     n = 0;
     while (D_actor_136100_8013F180[n & 0xFFFF] != 0) {
         n += 1;
     }
     msg.source.sets = &D_actor_136100_8013F180[0];
-    msg.count       = n & 0xFFFF;
+    msg.wordCount   = n & 0xFFFF;
     TASK_MESSAGE_DISPATCH_POINTER(work->field_4B4, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &msg, 0);
 }

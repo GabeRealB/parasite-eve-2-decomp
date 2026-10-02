@@ -134,8 +134,8 @@ extern u16 D_shelter_b3_dumping_hole_8018F4B0_value __asm__("D_shelter_b3_dumpin
 // Keep the typed fields and the complete copied word range together.
 typedef union {
     struct {
-        AnimationSet* sets[4];
-        GpCopyArg     copy;
+        AnimationSet*            sets[4];
+        AnimationBankCopyRequest copy;
     } data;
     s32 words[6];
 } ShelterB3DumpingHoleAnimStorageAFC8;
@@ -936,7 +936,7 @@ ActorCommand D_shelter_b3_dumping_hole_8018B078 = { { .loc = { 4, 39 } }, 0 };
 ActorCommand D_shelter_b3_dumping_hole_8018B07C = { { .loc = { 4, 39 } }, 1 };
 
 EvsCommand D_shelter_b3_dumping_hole_8018B080[39] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_shelter_b3_dumping_hole_8018AFC8.data.copy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_shelter_b3_dumping_hole_8018AFC8.data.copy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_shelter_b3_dumping_hole_8018B078 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b3_dumping_hole_8018AFF4 }, { .value = 0 } },
@@ -2762,15 +2762,15 @@ static void func_shelter_b3_dumping_hole_8017F1B0(Task* arg0)
 
 void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
 {
-    DumpingHoleEntity*    work;
-    DumpingHoleEntity*    w;
-    Task*                 t;
-    DumpingHoleEntity*    w2;
-    GpCopyArg             msg;
-    AnimationPlayRequest  anim;
-    AnimationPlayRequest* p;
-    s32                   n;
-    s32                   weaponId;
+    DumpingHoleEntity*       work;
+    DumpingHoleEntity*       w;
+    Task*                    t;
+    DumpingHoleEntity*       w2;
+    AnimationBankCopyRequest msg;
+    AnimationPlayRequest     anim;
+    AnimationPlayRequest*    p;
+    s32                      n;
+    s32                      weaponId;
 
     switch (arg0->state) {
         case 0:
@@ -2818,7 +2818,7 @@ void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
                 n += 1;
             }
             msg.source.sets = &D_shelter_b3_dumping_hole_801880A0[0];
-            msg.count       = n & 0xFFFF;
+            msg.wordCount   = n & 0xFFFF;
             TASK_MESSAGE_DISPATCH_POINTER(w2->field_24, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &msg, 0);
             weaponId                  = gPlayerStatus.weapon;
             p                         = &anim;

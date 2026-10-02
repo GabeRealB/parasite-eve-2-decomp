@@ -102,7 +102,7 @@ AnimationSet* D_dryfield_night_garage_80182CB0[5] = {
     &gDryfieldNightGarageAnimation056B0,
 };
 
-GpCopyArg D_dryfield_night_garage_80182CC4 = { { .sets = D_dryfield_night_garage_80182CB0 }, 5 };
+AnimationBankCopyRequest D_dryfield_night_garage_80182CC4 = { { .sets = D_dryfield_night_garage_80182CB0 }, ARRAY_SIZE(D_dryfield_night_garage_80182CB0) };
 
 AnimationPlayRequest D_dryfield_night_garage_80182CCC = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -148,7 +148,7 @@ EvsSceneKey D_dryfield_night_garage_80182DF0 = { 3, 55, 11 };
 EvsCommand D_dryfield_night_garage_80182DF8[40] = {
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_dryfield_night_garage_80182DF0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_night_garage_80180924 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_dryfield_night_garage_80182CC4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_night_garage_80182CC4 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_garage_80182CE0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 9 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

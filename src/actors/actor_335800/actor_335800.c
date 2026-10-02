@@ -202,63 +202,63 @@ void func_actor_335800_80162364(Task*);
 void func_actor_335800_801624DC(Task*);
 void func_actor_335800_80162588(Task*);
 
-extern ActorTransform       D_actor_335800_80164F80;
-extern AnimationPlayRequest D_actor_335800_80164E54;
-extern AnimationPlayRequest D_actor_335800_80164E90;
-extern AnimationPlayRequest D_actor_335800_80164F44;
-extern AnimationPlayRequest D_actor_335800_80164F58;
-extern AnimationPlayRequest D_actor_335800_80164F6C;
-extern ActorCommand         D_actor_335800_80164FC8;
-extern GpCopyArg            D_actor_335800_80164E24;
-extern ActorTransform       D_actor_335800_80164EA4[5];
-extern ActorTransform       D_actor_335800_80164F98;
-extern ActorTransform       D_actor_335800_80164FB0;
-void                        func_actor_335800_80162040(void);
-void                        func_actor_335800_80162060(void);
-void                        func_actor_335800_80162080(void);
-void                        func_actor_335800_801620C0(void);
-void                        func_actor_335800_801623D8(void);
-void                        func_actor_335800_80162408(void);
-void                        func_actor_335800_801624B8(s32);
-void                        func_actor_335800_80162558(void);
+extern ActorTransform           D_actor_335800_80164F80;
+extern AnimationPlayRequest     D_actor_335800_80164E54;
+extern AnimationPlayRequest     D_actor_335800_80164E90;
+extern AnimationPlayRequest     D_actor_335800_80164F44;
+extern AnimationPlayRequest     D_actor_335800_80164F58;
+extern AnimationPlayRequest     D_actor_335800_80164F6C;
+extern ActorCommand             D_actor_335800_80164FC8;
+extern AnimationBankCopyRequest D_actor_335800_80164E24;
+extern ActorTransform           D_actor_335800_80164EA4[5];
+extern ActorTransform           D_actor_335800_80164F98;
+extern ActorTransform           D_actor_335800_80164FB0;
+void                            func_actor_335800_80162040(void);
+void                            func_actor_335800_80162060(void);
+void                            func_actor_335800_80162080(void);
+void                            func_actor_335800_801620C0(void);
+void                            func_actor_335800_801623D8(void);
+void                            func_actor_335800_80162408(void);
+void                            func_actor_335800_801624B8(s32);
+void                            func_actor_335800_80162558(void);
 
-extern AnimationPlayRequest D_actor_335800_80164E40;
-extern AnimationPlayRequest D_actor_335800_80164E7C;
-extern AnimationPlayRequest D_actor_335800_80164E90;
-extern ActorCommand         D_actor_335800_8016502C;
-extern ActorCommand         D_actor_335800_80165038;
-extern ActorCommand         D_actor_335800_8016503C;
-extern ActorCommand         D_actor_335800_80165040;
-extern ActorCommand         D_actor_335800_80165044;
-extern GpCopyArg            D_actor_335800_80164E24;
-extern EvsSceneKey          D_actor_335800_80165050;
-extern EvsSceneKey          D_actor_335800_80165058;
-extern ActorTransform       D_actor_335800_80164EA4[5];
-s32                         func_actor_335800_8016343C(Task*, s32, s32);
-s32                         func_actor_335800_8016354C(Task*, s32, ActorCommand* request, s32);
-s32                         func_actor_335800_80163880(Task*, s32, ActorTransform* place, Actor335800SpawnAnim*);
-s32                         func_actor_335800_80163F3C(Task*, s32, ActorTransform* args, s32 arg3);
-s32                         func_actor_335800_80163FB8(Task*, s32, s32);
-s32                         func_actor_335800_80164098(void);
-void                        func_actor_335800_80162040(void);
-void                        func_actor_335800_80162060(void);
-void                        func_actor_335800_80162080(void);
-void                        func_actor_335800_801620A0(void);
-void                        func_actor_335800_801620F0(u8);
-void                        func_actor_335800_80162114(void);
-void                        func_actor_335800_801621B4(s32);
-void                        func_actor_335800_8016224C(void);
-void                        func_actor_335800_801622C0(s32);
-void                        func_actor_335800_80162408(void);
-void                        func_actor_335800_80162428(s8);
-void                        func_actor_335800_80162434(s32);
-void                        func_actor_335800_80162460(void);
-void                        func_actor_335800_80162484(void);
-void                        func_actor_335800_801624B8(s32);
-void                        func_actor_335800_80162558(void);
-void                        func_actor_335800_80162E34(Task*);
-void                        func_actor_335800_80162F10(Task*);
-void                        func_actor_335800_80163A34(Task*);
+extern AnimationPlayRequest     D_actor_335800_80164E40;
+extern AnimationPlayRequest     D_actor_335800_80164E7C;
+extern AnimationPlayRequest     D_actor_335800_80164E90;
+extern ActorCommand             D_actor_335800_8016502C;
+extern ActorCommand             D_actor_335800_80165038;
+extern ActorCommand             D_actor_335800_8016503C;
+extern ActorCommand             D_actor_335800_80165040;
+extern ActorCommand             D_actor_335800_80165044;
+extern AnimationBankCopyRequest D_actor_335800_80164E24;
+extern EvsSceneKey              D_actor_335800_80165050;
+extern EvsSceneKey              D_actor_335800_80165058;
+extern ActorTransform           D_actor_335800_80164EA4[5];
+s32                             func_actor_335800_8016343C(Task*, s32, s32);
+s32                             func_actor_335800_8016354C(Task*, s32, ActorCommand* request, s32);
+s32                             func_actor_335800_80163880(Task*, s32, ActorTransform* place, Actor335800SpawnAnim*);
+s32                             func_actor_335800_80163F3C(Task*, s32, ActorTransform* args, s32 arg3);
+s32                             func_actor_335800_80163FB8(Task*, s32, s32);
+s32                             func_actor_335800_80164098(void);
+void                            func_actor_335800_80162040(void);
+void                            func_actor_335800_80162060(void);
+void                            func_actor_335800_80162080(void);
+void                            func_actor_335800_801620A0(void);
+void                            func_actor_335800_801620F0(u8);
+void                            func_actor_335800_80162114(void);
+void                            func_actor_335800_801621B4(s32);
+void                            func_actor_335800_8016224C(void);
+void                            func_actor_335800_801622C0(s32);
+void                            func_actor_335800_80162408(void);
+void                            func_actor_335800_80162428(s8);
+void                            func_actor_335800_80162434(s32);
+void                            func_actor_335800_80162460(void);
+void                            func_actor_335800_80162484(void);
+void                            func_actor_335800_801624B8(s32);
+void                            func_actor_335800_80162558(void);
+void                            func_actor_335800_80162E34(Task*);
+void                            func_actor_335800_80162F10(Task*);
+void                            func_actor_335800_80163A34(Task*);
 
 static AnimationPackedPose _gActor335800Animation0255CBank1[6] = {
 #include "assets/actor_335800_animation_0255C_bank1.inc"
@@ -363,7 +363,7 @@ AnimationSet* D_actor_335800_80164E10[5] = {
     &_gActor335800Animation02F98,
 };
 
-GpCopyArg D_actor_335800_80164E24 = { { .sets = D_actor_335800_80164E10 }, 5 };
+AnimationBankCopyRequest D_actor_335800_80164E24 = { { .sets = D_actor_335800_80164E10 }, ARRAY_SIZE(D_actor_335800_80164E10) };
 
 AnimationPlayRequest D_actor_335800_80164E2C = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -450,7 +450,7 @@ EvsCommand D_actor_335800_80165060[72] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_335800_80162040 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_335800_80162558 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_actor_335800_80164E24 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_335800_80164E24 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = D_actor_335800_80164EA4 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
@@ -550,7 +550,7 @@ EvsCommand D_actor_335800_80165960[21] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_335800_80162484 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 12 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_actor_335800_80164E24 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_335800_80164E24 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_335800_80164E40 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_335800_80162114 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_335800_80162558 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -572,7 +572,7 @@ EvsCommand D_actor_335800_80165960[21] = {
 
 EvsCommand D_actor_335800_80165B58[26] = {
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 36 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_actor_335800_80164E24 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_335800_80164E24 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_335800_80164E7C }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_335800_8016503C } }, { .value = 0 } },
@@ -602,7 +602,7 @@ EvsCommand D_actor_335800_80165B58[26] = {
 EvsCommand D_actor_335800_80165DC8[21] = {
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 36 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_actor_335800_80164E24 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_335800_80164E24 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_335800_80164E7C }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_335800_80165044 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 300 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -624,7 +624,7 @@ EvsCommand D_actor_335800_80165DC8[21] = {
 };
 
 EvsCommand D_actor_335800_80165FC0[9] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_actor_335800_80164E24 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_335800_80164E24 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_335800_80164E7C }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_actor_335800_80165050 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -636,7 +636,7 @@ EvsCommand D_actor_335800_80165FC0[9] = {
 };
 
 EvsCommand D_actor_335800_80166098[10] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_actor_335800_80164E24 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_335800_80164E24 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_335800_80164E7C }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_335800_80162434 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

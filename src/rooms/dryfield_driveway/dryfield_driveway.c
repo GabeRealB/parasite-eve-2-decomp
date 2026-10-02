@@ -66,19 +66,19 @@ extern RoomFadeStorage  gRoomEventFade;
 extern RoomEventMsg     gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
-extern AnimationPlayRequest  D_dryfield_driveway_8017E330;
-extern AnimationPlayRequest  D_dryfield_driveway_8017E358;
-extern GpCopyArg             D_dryfield_driveway_8017E328;
-extern WorldCollisionGrid    D_dryfield_driveway_8017ED74[1];
-extern WorldCollisionTrigger D_dryfield_driveway_8017FC98[6];
-extern WorldCollisionTrigger D_dryfield_driveway_801802F8[11];
-extern WorldCoordRoomLights  D_dryfield_driveway_801802E0[1];
-extern TaskDesc              D_8014D8A4;
-s32                          func_dryfield_driveway_8017DCC0(Task*, s32, s32, s32);
-s32                          func_dryfield_driveway_8017DDB0(Task*, s32, s32, s32);
-s32                          func_dryfield_driveway_8017DDB8(Task*, s32, s32, s32);
-void                         func_dryfield_driveway_8017DC48(s32);
-void                         func_dryfield_driveway_8017DC64(u8);
+extern AnimationPlayRequest     D_dryfield_driveway_8017E330;
+extern AnimationPlayRequest     D_dryfield_driveway_8017E358;
+extern AnimationBankCopyRequest D_dryfield_driveway_8017E328;
+extern WorldCollisionGrid       D_dryfield_driveway_8017ED74[1];
+extern WorldCollisionTrigger    D_dryfield_driveway_8017FC98[6];
+extern WorldCollisionTrigger    D_dryfield_driveway_801802F8[11];
+extern WorldCoordRoomLights     D_dryfield_driveway_801802E0[1];
+extern TaskDesc                 D_8014D8A4;
+s32                             func_dryfield_driveway_8017DCC0(Task*, s32, s32, s32);
+s32                             func_dryfield_driveway_8017DDB0(Task*, s32, s32, s32);
+s32                             func_dryfield_driveway_8017DDB8(Task*, s32, s32, s32);
+void                            func_dryfield_driveway_8017DC48(s32);
+void                            func_dryfield_driveway_8017DC64(u8);
 
 static AnimationPackedPose _gDryfieldDrivewayAnimation00D08Bank1[10] = {
 #include "assets/dryfield_driveway_animation_00D08_bank1.inc"
@@ -115,7 +115,7 @@ AnimationSet* D_dryfield_driveway_8017E320[2] = {
     NULL,
 };
 
-GpCopyArg D_dryfield_driveway_8017E328 = { { .sets = D_dryfield_driveway_8017E320 }, 2 };
+AnimationBankCopyRequest D_dryfield_driveway_8017E328 = { { .sets = D_dryfield_driveway_8017E320 }, ARRAY_SIZE(D_dryfield_driveway_8017E320) };
 
 AnimationPlayRequest D_dryfield_driveway_8017E330 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
@@ -127,7 +127,7 @@ ActorTransform D_dryfield_driveway_8017E36C = { { -1067, 0, 1407, 0 }, { 0, 0, 0
 
 EvsCommand gDrivewayCutsceneScript[14] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_dryfield_driveway_8017E328 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_driveway_8017E328 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_driveway_8017E358 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x5219000C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

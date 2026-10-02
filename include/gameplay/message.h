@@ -276,17 +276,31 @@ typedef struct AnimationPlayRequest {
 } AnimationPlayRequest;
 STATIC_ASSERT_SIZEOF(AnimationPlayRequest, 0x14);
 
-/// The payload of the message that copies animation parameters onto a
-/// task's current animation block: `count` words, at most 0x20. The source
-/// is usually an array of animation-set pointers; the receiver copies words.
-typedef struct GpCopyArg {
+/// Copies borrowed words into the selected player or companion animation-bank extension.
+///
+/// `ANIMATION_MESSAGE_COPY_BANK_EXTENSION` overwrites the bank from set index
+/// `ANIMATION_BANK_BASE_SET_COUNT`, leaving later entries unchanged. The player
+/// selects its character/equipped-weapon bank; a companion selects its saved
+/// type/variant bank. The receiver does not start playback or select a new bank.
+/// The selected resource bank must be loaded and writable.
+/// Counts above `ANIMATION_BANK_EXTENSION_CAPACITY` return 1 without copying;
+/// nonpositive counts copy nothing and return 0. Other accepted counts return 0.
+///
+/// Positive counts require that many readable, word-aligned source words.
+/// The source can be a set-pointer table, including null entries, or a word
+/// span that also covers adjacent request/script data. The count is not always
+/// the number of playable clips. Only valid set pointers may be used for playback.
+/// The request and source span are borrowed through synchronous dispatch;
+/// copied clip pointers and their data must remain live while playback uses them.
+/// The record occupies eight bytes with four-byte alignment.
+typedef struct {
     union {
-        s32*                  words;
-        struct AnimationSet** sets;
-    } source;
-    s32 count;
-} GpCopyArg;
-STATIC_ASSERT_SIZEOF(GpCopyArg, 8);
+        const s32*                  words; // Read-only word span, possibly including data after the set pointers
+        struct AnimationSet* const* sets;  // Read-only set-pointer table; the descriptors remain borrowed
+    } source;                              // Borrowed source span in either view
+    s32 wordCount;                         // Number of 32-bit words to overwrite (1..32, nonpositive no copy)
+} AnimationBankCopyRequest;
+STATIC_ASSERT_SIZEOF(AnimationBankCopyRequest, 8);
 
 /// The payload of the message that holds the player or the companion in a
 /// timed state. The receivers read only `field_14`, a frame count they store as

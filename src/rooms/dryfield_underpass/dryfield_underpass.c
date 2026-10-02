@@ -61,13 +61,13 @@ extern WorldCollisionTrigger  D_dryfield_underpass_801808E0[6];
 extern WorldCoordRoomLights   D_dryfield_underpass_80180EBC[1];
 extern WorldCoordRoomLights   D_dryfield_underpass_80181114[1];
 
-extern AnimationPlayRequest D_dryfield_underpass_8017E870;
-extern AnimationPlayRequest D_dryfield_underpass_8017E884;
-extern ActorCommand         D_dryfield_underpass_8017E8A0;
-extern ActorCommand         D_dryfield_underpass_8017E8A4;
-extern ActorCommand         D_dryfield_underpass_8017E8A8;
-extern GpCopyArg            D_dryfield_underpass_8017E868;
-void                        func_dryfield_underpass_8017DA08(void);
+extern AnimationPlayRequest     D_dryfield_underpass_8017E870;
+extern AnimationPlayRequest     D_dryfield_underpass_8017E884;
+extern ActorCommand             D_dryfield_underpass_8017E8A0;
+extern ActorCommand             D_dryfield_underpass_8017E8A4;
+extern ActorCommand             D_dryfield_underpass_8017E8A8;
+extern AnimationBankCopyRequest D_dryfield_underpass_8017E868;
+void                            func_dryfield_underpass_8017DA08(void);
 
 s32 func_dryfield_underpass_8017D900(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_underpass_8017D908(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -135,7 +135,7 @@ AnimationSet* D_dryfield_underpass_8017E860[2] = {
     &_gDryfieldUnderpassAnimation01230,
 };
 
-GpCopyArg D_dryfield_underpass_8017E868 = { { .sets = D_dryfield_underpass_8017E860 }, 2 };
+AnimationBankCopyRequest D_dryfield_underpass_8017E868 = { { .sets = D_dryfield_underpass_8017E860 }, ARRAY_SIZE(D_dryfield_underpass_8017E860) };
 
 AnimationPlayRequest D_dryfield_underpass_8017E870 = { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_ENABLE };
 
@@ -157,7 +157,7 @@ ActorTransform D_dryfield_underpass_8017E8C0 = { { 0x3EE0, -1000, -3624, 0 }, { 
 
 EvsCommand D_dryfield_underpass_8017E8D8[21] = {
     { EVENT_SCRIPT_OPCODE_SET_CAP_DIRECT_VIEW_IDS, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_dryfield_underpass_8017E868 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_underpass_8017E868 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_underpass_8017E884 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

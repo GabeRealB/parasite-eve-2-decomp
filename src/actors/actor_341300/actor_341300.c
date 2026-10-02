@@ -82,28 +82,28 @@ void func_actor_341300_80162698(Task*);
 
 void func_actor_341300_80163A10(Task*);
 
-extern AnimationPlayRequest D_actor_341300_80165260;
-extern AnimationPlayRequest D_actor_341300_80165274;
-extern AnimationPlayRequest D_actor_341300_80165288;
-extern AnimationPlayRequest D_actor_341300_8016529C;
-extern AnimationPlayRequest D_actor_341300_801652B0;
-extern AnimationPlayRequest D_actor_341300_801652F4;
-extern AnimationPlayRequest D_actor_341300_80165308;
-extern AnimationPlayRequest D_actor_341300_8016531C;
-extern GpCopyArg            D_actor_341300_80165244;
-extern ActorTransform       D_actor_341300_801652C4;
-extern ActorTransform       D_actor_341300_801652DC;
-void                        func_actor_341300_8016239C(void);
-void                        func_actor_341300_801623BC(void);
-void                        func_actor_341300_801623DC(void);
-void                        func_actor_341300_801623FC(void);
-void                        func_actor_341300_8016241C(void);
-void                        func_actor_341300_80162450(void);
-void                        func_actor_341300_80162530(void);
-void                        func_actor_341300_80162564(s16);
-void                        func_actor_341300_80162588(s16);
-void                        func_actor_341300_801625AC(void);
-void                        func_actor_341300_80162680(s8);
+extern AnimationPlayRequest     D_actor_341300_80165260;
+extern AnimationPlayRequest     D_actor_341300_80165274;
+extern AnimationPlayRequest     D_actor_341300_80165288;
+extern AnimationPlayRequest     D_actor_341300_8016529C;
+extern AnimationPlayRequest     D_actor_341300_801652B0;
+extern AnimationPlayRequest     D_actor_341300_801652F4;
+extern AnimationPlayRequest     D_actor_341300_80165308;
+extern AnimationPlayRequest     D_actor_341300_8016531C;
+extern AnimationBankCopyRequest D_actor_341300_80165244;
+extern ActorTransform           D_actor_341300_801652C4;
+extern ActorTransform           D_actor_341300_801652DC;
+void                            func_actor_341300_8016239C(void);
+void                            func_actor_341300_801623BC(void);
+void                            func_actor_341300_801623DC(void);
+void                            func_actor_341300_801623FC(void);
+void                            func_actor_341300_8016241C(void);
+void                            func_actor_341300_80162450(void);
+void                            func_actor_341300_80162530(void);
+void                            func_actor_341300_80162564(s16);
+void                            func_actor_341300_80162588(s16);
+void                            func_actor_341300_801625AC(void);
+void                            func_actor_341300_80162680(s8);
 
 void func_actor_341300_80162278(Task*);
 void func_actor_341300_80162478(Task*);
@@ -234,7 +234,7 @@ AnimationSet* D_actor_341300_8016522C[6] = {
     &_gActor341300Animation033C0,
 };
 
-GpCopyArg D_actor_341300_80165244 = { { .sets = D_actor_341300_8016522C }, 6 };
+AnimationBankCopyRequest D_actor_341300_80165244 = { { .sets = D_actor_341300_8016522C }, ARRAY_SIZE(D_actor_341300_8016522C) };
 
 AnimationPlayRequest D_actor_341300_8016524C = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
@@ -266,7 +266,7 @@ EvsSceneKey D_actor_341300_8016534C = { 4, 13, 11 };
 
 EvsCommand D_actor_341300_80165354[52] = {
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_actor_341300_80165244 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_341300_80165244 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -324,7 +324,7 @@ EvsCommand D_actor_341300_80165834[21] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_341300_801652DC } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1015 }, { .message = { .pointer = &D_actor_341300_80165244 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_341300_80165244 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_341300_80165260 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_341300_80165348 } }, { .value = 0 } },
