@@ -85,32 +85,56 @@ typedef union {
 } _MidiChannelTable;
 STATIC_ASSERT_SIZEOF(_MidiChannelTable, 0x80);
 
-/// Track/channel entry inside MidiSong (stride 0x3C). field_5 is a per-entry flag
-/// written by Midi_ResetTrackFlags; absolute offset of first entry's field_5 is 0x51.
-/// field_0 / field_1 / field_4 are NRPN/RPN state used by the MIDI CC handler
-/// (Midi_Event3). field_6 / field_7 and field_8[] form a loop stack for the
-/// 0xF5/0xF6 meta opcodes (Midi_HandleMetaSysex); field_8[8] is also the track data
-/// pointer resolved by Midi_ResolveTrackData (absolute offset 0x74). field_2C is the
-/// current track cursor advanced by the MIDI event driver (Midi_DriveTrack).
-/// field_30 is a saved event cursor for looped CC 0x63. field_34 is the
-/// remaining delta-time for the next event; field_38 is a fractional tick
-/// accumulator (mod 6000/3600 per gDisplayState.region).
-typedef struct _MidiTrack {
-    /* 0x00 */ u8  field_0;
-    /* 0x01 */ u8  field_1;
-    /* 0x02 */ u8  field_2;
-    /* 0x03 */ u8  field_3;
-    /* 0x04 */ u8  field_4;
-    /* 0x05 */ u8  field_5;
-    /* 0x06 */ u8  field_6;
-    /* 0x07 */ s8  field_7;
-    /* 0x08 */ u8* field_8[9];
-    /* 0x2C */ u8* field_2C;
-    /* 0x30 */ u8* field_30;
-    /* 0x34 */ s32 field_34;
-    /* 0x38 */ s32 field_38;
-} MidiTrack;
-STATIC_ASSERT_SIZEOF(MidiTrack, 0x3C);
+// Track storage extent and the region-dependent denominator of fractional MIDI ticks.
+enum {
+    MIDI_TRACK_RETURN_CAPACITY       = 9,
+    MIDI_TRACK_PAL_TICK_DIVISOR      = 6000,
+    MIDI_TRACK_NTSC_TICK_DIVISOR     = 3600,
+    MIDI_TRACK_INITIAL_TICK_FRACTION = MIDI_TRACK_NTSC_TICK_DIVISOR - 1
+};
+
+// Custom NRPN selectors: reverb depth, a saved loop start, and a counted loop jump.
+enum {
+    MIDI_TRACK_NRPN_IDLE         = 0,
+    MIDI_TRACK_NRPN_REVERB_DEPTH = 0x10,
+    MIDI_TRACK_NRPN_LOOP_START   = 0x14,
+    MIDI_TRACK_NRPN_LOOP_END     = 0x1E,
+    MIDI_TRACK_LOOP_FOREVER      = 0x7F
+};
+
+/// Playback state for one MIDI sequence track, including timing and custom control flow.
+///
+/// A song owns eighteen records; the sequence header must not exceed that count.
+/// Sequence startup clears its active records.
+/// Cursors borrow the loaded sequence buffer and remain valid until it is reused.
+/// Startup saves each track's first delta cursor in the ninth return slot so the
+/// next chunk can be located. Playback then reuses all nine slots for calls.
+/// Valid streams call at depths 0..8 and return at depths 1..9; the signed depth
+/// and its byte arithmetic retain the existing malformed-stream behavior.
+/// The delta countdown uses MIDI ticks, not audio frames. The fractional tick
+/// numerator is carried between updates with a region-dependent denominator.
+typedef struct {
+    u8 nrpnMsb;                                                  // CC 99 selector (0 cleared, 16 reverb depth, 20 loop start, 30 loop end)
+    u8 nrpnLsb;                                                  // CC 98 selector (16 with MSB 16 applies reverb depth); cleared to 0
+    u8 runningChannel;                                           // Last explicit channel (0..15), reused by implicit note-on data
+    u8 implicitNoteOn;                                           // Last event form (0 explicit status, 1 implicit note-on); no reader
+    u8 loopRepeatsLeft;                                          // Further controller-loop jumps (0 exhausted, 127 unbounded)
+    u8 ended;                                                    // Playback gate (0 active, 1 end-of-track or explicitly stopped)
+    u8 callLatched;                                              // Call latch (0 reset/negative-depth return, 1 call seen); no reader
+    s8 callDepth;                                                // Occupied return slots (0..9 for valid streams); signed error check
+    union {
+        u8* returnAddresses[MIDI_TRACK_RETURN_CAPACITY];         // Delta cursors to resume after custom calls
+        struct {
+            u8* returnAddresses[MIDI_TRACK_RETURN_CAPACITY - 1]; // The same first eight return slots
+            u8* dataStart;                                       // First delta cursor, aliasing the ninth return slot
+        } startup;                                               // Track-chunk lookup before playback starts
+    } savedCursors;                                              // Startup chunk cursor and playback return-stack views
+    u8* eventCursor;                                             // Event cursor; handlers return the next delta or NULL on error
+    u8* loopCursor;                                              // Delta cursor saved by the loop-start data entry and resumed at loop end
+    s32 ticksUntilEvent;                                         // Remaining MIDI ticks; may become negative after the track ends
+    s32 tickFraction;                                            // Tick numerator remainder (PAL modulo 6000, NTSC modulo 3600); starts 3599
+} _MidiTrack;
+STATIC_ASSERT_SIZEOF(_MidiTrack, 0x3C);
 
 // Both selectors are invalidated when a note slot is reset or its voice released.
 enum { MIDI_NOTE_SLOT_FREE = -1 };
@@ -162,13 +186,13 @@ typedef struct _MidiSong {
     /* 0x40 */ SndBank*           bank;
     /* 0x44 */ SndBankGroup*      groups;
     /* 0x48 */ SndBankLayer*      notes;
-    /* 0x4C */ MidiTrack          entries[18];
+    /* 0x4C */ _MidiTrack         entries[18];
     /* 0x484 */ _MidiChannelTable channels;
     /* 0x504 */ _MidiNoteSlot     voiceSlots[0x12];
 } MidiSong;
 STATIC_ASSERT_SIZEOF(MidiSong, 0x5DC);
 
-typedef u8* (*MidiHandler)(s32, u8*, MidiSong*, MidiTrack*);
+typedef u8* (*MidiHandler)(s32, u8*, MidiSong*, _MidiTrack*);
 
 /* Define BSS before API headers to preserve first-declaration order. */
 /// Permission for the audio interrupt to drain deferred sound events (0 defer, 1 process).
@@ -327,7 +351,7 @@ static void Midi_ResetTrackFlags(MidiSong* song);
 
 static void Midi_KeyOffVoices(MidiSong* song);
 
-static void Midi_DriveTrack(MidiSong* song, MidiTrack* track);
+static void Midi_DriveTrack(MidiSong* song, _MidiTrack* track);
 
 static void Midi_UpdateVoiceVolumes(MidiSong* song);
 
@@ -336,27 +360,27 @@ static void Midi_UpdateVoiceVolumes(MidiSong* song);
  * too, and its event is one byte longer. Returns the cursor past the event. */
 static inline u8* _midiNoteOff(s32 status, u8* data, MidiSong* song);
 
-static u8* Midi_Event1(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* unused);
+static u8* Midi_Event1(s32 arg0, u8* arg1, MidiSong* song, _MidiTrack* unused);
 
-static u8* Midi_Event3(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* track);
+static u8* Midi_Event3(s32 arg0, u8* arg1, MidiSong* song, _MidiTrack* track);
 
 /* Decodes the variable-length quantity at `p`, storing how many bytes it
  * took in `*len`. */
 static inline s32 _midiReadVlq(u8* p, u8* len);
 
-static u8* Midi_HandleMetaSysex(s32 unused1, u8* arg1, MidiSong* song, MidiTrack* track);
+static u8* Midi_HandleMetaSysex(s32 unused1, u8* arg1, MidiSong* song, _MidiTrack* track);
 
 static s32 Midi_ReadVlq(u8* arg0, u8* arg1);
 
 static void Midi_InitChannelTable(_MidiChannelTable* channels);
 
-static u8* Midi_IncPtr(s32 unused1, u8* arg1, MidiSong* unusedSong, MidiTrack* unusedTrack);
+static u8* Midi_IncPtr(s32 unused1, u8* arg1, MidiSong* unusedSong, _MidiTrack* unusedTrack);
 
-static u8* Midi_KeyOffChannel(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* unused);
+static u8* Midi_KeyOffChannel(s32 arg0, u8* arg1, MidiSong* song, _MidiTrack* unused);
 
-static u8* Midi_SetProgram(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* unused);
+static u8* Midi_SetProgram(s32 arg0, u8* arg1, MidiSong* song, _MidiTrack* unused);
 
-static u8* Midi_PitchBend(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* unused);
+static u8* Midi_PitchBend(s32 arg0, u8* arg1, MidiSong* song, _MidiTrack* unused);
 
 static s32 SndBank_SetupFromLoad(SndLoadState* load);
 
@@ -749,15 +773,15 @@ s32 Midi_InitSystem(u32 unused)
 
 static s32 Midi_InitSequence(u8 arg0, u16 arg1)
 {
-    s32        i;
-    s32        j;
-    MidiSong*  obj;
-    MidiTrack* tracks;
-    MidiTrack* track;
-    u8*        data;
-    u8*        trackPtr;
-    s32*       clearPtr;
-    u8         len;
+    s32         i;
+    s32         j;
+    MidiSong*   obj;
+    _MidiTrack* tracks;
+    _MidiTrack* track;
+    u8*         data;
+    u8*         trackPtr;
+    s32*        clearPtr;
+    u8          len;
 
     i = 0;
     do {
@@ -775,7 +799,8 @@ static s32 Midi_InitSequence(u8 arg0, u16 arg1)
                 clearPtr        = (s32*)tracks;
                 obj->trackCount = data[0xB];
 
-                for (j = 0; j < obj->trackCount * (sizeof(MidiTrack) / sizeof(s32)); j++) {
+                // Clear each complete active record through its 32-bit representation.
+                for (j = 0; j < obj->trackCount * (sizeof(_MidiTrack) / sizeof(s32)); j++) {
                     *clearPtr++ = 0;
                 }
 
@@ -783,15 +808,15 @@ static s32 Midi_InitSequence(u8 arg0, u16 arg1)
                     j     = 0;
                     track = tracks;
                     do {
-                        trackPtr          = Midi_ResolveTrackData(obj, j & 0xFF, obj->sequenceData);
-                        track->field_8[8] = trackPtr;
-                        track->field_2C   = trackPtr;
+                        trackPtr                              = Midi_ResolveTrackData(obj, j & 0xFF, obj->sequenceData);
+                        track->savedCursors.startup.dataStart = trackPtr;
+                        track->eventCursor                    = trackPtr;
                         if ((trackPtr < D_8007F8E0) || (trackPtr >= (u8*)&D_800820E0)) {
                             return -1;
                         }
-                        track->field_34  = Midi_ReadVlq(trackPtr, &len);
-                        track->field_2C += len;
-                        track->field_38  = 0xE0F;
+                        track->ticksUntilEvent = Midi_ReadVlq(trackPtr, &len);
+                        track->eventCursor    += len;
+                        track->tickFraction    = MIDI_TRACK_INITIAL_TICK_FRACTION;
                         j++;
                         track++;
                     } while (j < obj->trackCount);
@@ -862,7 +887,7 @@ s32 Midi_Tick(s32* unused)
             case 2:
             play:
                 for (j = 0; j < song->trackCount; j++) {
-                    if (song->entries[j].field_5 == 0) {
+                    if (song->entries[j].ended == false) {
                         Midi_DriveTrack(song, &song->entries[j]);
                     }
                 }
@@ -1243,7 +1268,7 @@ static u8* Midi_ResolveTrackData(MidiSong* song, s32 arg1, u8* arg2)
     u32 len;
 
     if ((u8)arg1 != 0) {
-        arg2 = song->entries[(u8)arg1 - 1].field_8[8];
+        arg2 = song->entries[(u8)arg1 - 1].savedCursors.startup.dataStart;
         len  = MIDI_READ_BE32(arg2 - 4);
         return arg2 + len + 8;
     }
@@ -1256,7 +1281,7 @@ static void Midi_ResetTrackFlags(MidiSong* song)
     s32 i;
 
     for (i = 0; i < song->trackCount; i++) {
-        song->entries[i].field_5 = 1;
+        song->entries[i].ended = true;
     }
 }
 
@@ -1289,7 +1314,7 @@ static void Midi_KeyOffVoices(MidiSong* song)
     } while (i < ARRAY_SIZE(song->voiceSlots));
 }
 
-static void Midi_DriveTrack(MidiSong* song, MidiTrack* track)
+static void Midi_DriveTrack(MidiSong* song, _MidiTrack* track)
 {
     u8  len;
     u32 temp;
@@ -1298,53 +1323,54 @@ static void Midi_DriveTrack(MidiSong* song, MidiTrack* track)
     u32 rem;
     u8  status;
 
-    temp = track->field_38 + (song->field_4 + song->field_5) * song->ticksPerQuarter;
+    // Carry the fractional numerator while advancing by whole MIDI ticks.
+    temp = track->tickFraction + (song->field_4 + song->field_5) * song->ticksPerQuarter;
     if (gDisplayState.region == MODE_PAL) {
-        quot = temp / 6000U;
+        quot = temp / MIDI_TRACK_PAL_TICK_DIVISOR;
     } else {
-        quot = temp / 3600U;
+        quot = temp / MIDI_TRACK_NTSC_TICK_DIVISOR;
     }
     if (gDisplayState.region == MODE_PAL) {
-        rem = temp % 6000U;
+        rem = temp % MIDI_TRACK_PAL_TICK_DIVISOR;
     } else {
-        rem = temp % 3600U;
+        rem = temp % MIDI_TRACK_NTSC_TICK_DIVISOR;
     }
-    track->field_38  = rem;
-    song->songTicks += quot;
-    ticks            = quot;
+    track->tickFraction = rem;
+    song->songTicks    += quot;
+    ticks               = quot;
     if (song->sequenceId == 0x4F) {
         song->volumeDirtyChannels = 0xFFFF;
     }
-    while (ticks >= track->field_34) {
-        ticks          -= track->field_34;
-        track->field_34 = 0;
+    while (ticks >= track->ticksUntilEvent) {
+        ticks                 -= track->ticksUntilEvent;
+        track->ticksUntilEvent = 0;
         do {
-            status = *track->field_2C;
+            status = *track->eventCursor;
             if (status & 0x80) {
-                track->field_3 = 0;
+                track->implicitNoteOn = false;
                 if ((status & 0xF0) != 0xF0) {
-                    track->field_2 = status & MIDI_CHANNEL_STATUS_MASK;
+                    track->runningChannel = status & MIDI_CHANNEL_STATUS_MASK;
                 }
-                track->field_2C = Midi_EventFns[((status & 0xF0) >> 4) - 8](status, track->field_2C, song, track);
+                track->eventCursor = Midi_EventFns[((status & 0xF0) >> 4) - 8](status, track->eventCursor, song, track);
             } else {
-                track->field_3  = 1;
-                track->field_2C = Midi_EventFns[1](track->field_2 | 0x90, track->field_2C - 1, song, track);
+                track->implicitNoteOn = true;
+                track->eventCursor    = Midi_EventFns[1](track->runningChannel | 0x90, track->eventCursor - 1, song, track);
             }
-            if (track->field_5 != 0) {
+            if (track->ended != false) {
                 goto end;
             }
-            if (track->field_2C == NULL) {
-                track->field_0  = 0;
-                track->field_38 = 0;
-                song->status    = 4;
+            if (track->eventCursor == NULL) {
+                track->nrpnMsb      = MIDI_TRACK_NRPN_IDLE;
+                track->tickFraction = 0;
+                song->status        = 4;
                 return;
             }
-            track->field_34  = Midi_ReadVlq(track->field_2C, &len);
-            track->field_2C += len;
-        } while (track->field_34 == 0);
+            track->ticksUntilEvent = Midi_ReadVlq(track->eventCursor, &len);
+            track->eventCursor    += len;
+        } while (track->ticksUntilEvent == 0);
     }
 end:
-    track->field_34 -= ticks;
+    track->ticksUntilEvent -= ticks;
 }
 
 static void Midi_UpdateVoiceVolumes(MidiSong* song)
@@ -1437,7 +1463,7 @@ static inline u8* _midiNoteOff(s32 status, u8* data, MidiSong* song)
     return ptr + 2;
 }
 
-static u8* Midi_Event1(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* unused)
+static u8* Midi_Event1(s32 arg0, u8* arg1, MidiSong* song, _MidiTrack* unused)
 {
     enum {
         SOUND_BANK_VOLUME_FRACTION_BITS = 7,
@@ -1542,9 +1568,12 @@ static u8* Midi_Event1(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* unused)
     return arg1;
 }
 
-static u8* Midi_Event3(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* track)
+static u8* Midi_Event3(s32 arg0, u8* arg1, MidiSong* song, _MidiTrack* track)
 {
     enum {
+        MIDI_TRACK_CONTROL_DATA_ENTRY   = 6,
+        MIDI_TRACK_CONTROL_NRPN_LSB     = 0x62,
+        MIDI_TRACK_CONTROL_NRPN_MSB     = 0x63,
         MIDI_CHANNEL_CONTROL_VOLUME     = 7,
         MIDI_CHANNEL_CONTROL_PAN        = 10,
         MIDI_CHANNEL_CONTROL_EXPRESSION = 11
@@ -1558,29 +1587,30 @@ static u8* Midi_Event3(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* track)
     ctrl    = arg1[1];
 
     switch (ctrl) {
-        case 6:
-            status = track->field_0;
-            if (status != 0x10) {
-                if (status != 0x14) {
+        case MIDI_TRACK_CONTROL_DATA_ENTRY:
+            status = track->nrpnMsb;
+            if (status != MIDI_TRACK_NRPN_REVERB_DEPTH) {
+                if (status != MIDI_TRACK_NRPN_LOOP_START) {
                     return arg1 + 3;
                 }
-                if (track->field_4 != 0) {
+                if (track->loopRepeatsLeft != 0) {
                     return arg1 + 3;
                 }
-                track->field_30 = arg1 + 3;
+                // Count later jumps from the delta immediately after this data entry.
+                track->loopCursor = arg1 + 3;
                 if ((s8)arg1[2] >= 0) {
-                    track->field_4 = arg1[2];
+                    track->loopRepeatsLeft = arg1[2];
                 } else {
-                    track->field_4 = 0x7F;
+                    track->loopRepeatsLeft = MIDI_TRACK_LOOP_FOREVER;
                 }
-                track->field_0 = 0;
+                track->nrpnMsb = MIDI_TRACK_NRPN_IDLE;
             } else {
-                if (track->field_1 != status) {
+                if (track->nrpnLsb != status) {
                     return arg1 + 3;
                 }
                 Spu_SetReverbDepth((s16)(arg1[2] << 8));
-                track->field_0 = 0;
-                track->field_1 = 0;
+                track->nrpnMsb = MIDI_TRACK_NRPN_IDLE;
+                track->nrpnLsb = MIDI_TRACK_NRPN_IDLE;
             }
             break;
 
@@ -1603,27 +1633,27 @@ static u8* Midi_Event3(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* track)
             song->volumeDirtyChannels                 |= 1 << channel;
             break;
 
-        case 0x62:
-            track->field_1 = arg1[2];
+        case MIDI_TRACK_CONTROL_NRPN_LSB:
+            track->nrpnLsb = arg1[2];
             break;
 
-        case 0x63:
+        case MIDI_TRACK_CONTROL_NRPN_MSB:
             value          = arg1[2];
-            track->field_0 = value;
-            if ((value & 0xFF) == 0x14) {
+            track->nrpnMsb = value;
+            if ((value & 0xFF) == MIDI_TRACK_NRPN_LOOP_START) {
                 break;
             }
-            if ((value & 0xFF) != 0x1E) {
+            if ((value & 0xFF) != MIDI_TRACK_NRPN_LOOP_END) {
                 return arg1 + 3;
             }
-            if ((track->field_4 & 0xFF) < 0x7F) {
-                if ((track->field_4 & 0xFF) == 0) {
-                    track->field_4 = 0;
+            if (track->loopRepeatsLeft < MIDI_TRACK_LOOP_FOREVER) {
+                if (track->loopRepeatsLeft == 0) {
+                    track->loopRepeatsLeft = 0;
                     break;
                 }
-                track->field_4 = track->field_4 - 1;
+                track->loopRepeatsLeft = track->loopRepeatsLeft - 1;
             }
-            return track->field_30;
+            return track->loopCursor;
 
         default:
             return arg1 + 3;
@@ -1648,8 +1678,13 @@ static inline s32 _midiReadVlq(u8* p, u8* len)
     return result;
 }
 
-static u8* Midi_HandleMetaSysex(s32 unused1, u8* arg1, MidiSong* song, MidiTrack* track)
+static u8* Midi_HandleMetaSysex(s32 unused1, u8* arg1, MidiSong* song, _MidiTrack* track)
 {
+    enum {
+        MIDI_TRACK_COMMAND_CALL   = 0xF5,
+        MIDI_TRACK_COMMAND_RETURN = 0xF6,
+        MIDI_TRACK_META_END       = 0x2F
+    };
     u8  sp0;
     s32 var_a0;
     u8* var_t0;
@@ -1666,25 +1701,26 @@ static u8* Midi_HandleMetaSysex(s32 unused1, u8* arg1, MidiSong* song, MidiTrack
                 } while (*var_t0++ != 0xF7);
             }
             goto f7_body;
-        case 0xF5:
-            if (track->field_7 < 9) {
-                track->field_6                 = 1;
-                track->field_8[track->field_7] = var_t0 + 3;
-                track->field_7                 = (u8)track->field_7 + 1;
+        case MIDI_TRACK_COMMAND_CALL:
+            // Save the return delta, then jump relative to the end of the call command.
+            if (track->callDepth < ARRAY_SIZE(track->savedCursors.returnAddresses)) {
+                track->callLatched                                    = true;
+                track->savedCursors.returnAddresses[track->callDepth] = var_t0 + 3;
+                track->callDepth                                      = (u8)track->callDepth + 1;
                 var_t0 =
                     var_t0 + ((s16)((var_t0[1] << 8) | var_t0[2]) + 3);
             } else {
                 var_t0 = NULL;
             }
             break;
-        case 0xF6:
-            if (track->field_7 < 0) {
-                track->field_6 = 0;
-                var_t0         = NULL;
+        case MIDI_TRACK_COMMAND_RETURN:
+            if (track->callDepth < 0) {
+                track->callLatched = false;
+                var_t0             = NULL;
             } else {
-                temp_v0        = (u8)track->field_7 - 1;
-                track->field_7 = temp_v0;
-                var_t0         = track->field_8[temp_v0];
+                temp_v0          = (u8)track->callDepth - 1;
+                track->callDepth = temp_v0;
+                var_t0           = track->savedCursors.returnAddresses[temp_v0];
             }
             break;
         case 0xF7:
@@ -1692,7 +1728,7 @@ static u8* Midi_HandleMetaSysex(s32 unused1, u8* arg1, MidiSong* song, MidiTrack
         case 0xFF:
             var_t0 += 1;
             temp_v1 = *var_t0;
-            if (temp_v1 == 0x2F) {
+            if (temp_v1 == MIDI_TRACK_META_END) {
                 goto eot;
             }
             if (temp_v1 == 0x51) {
@@ -1700,7 +1736,7 @@ static u8* Midi_HandleMetaSysex(s32 unused1, u8* arg1, MidiSong* song, MidiTrack
             }
             goto vlq;
         eot:
-            track->field_5 = 1;
+            track->ended = true;
         f7_body:
             var_t0 += 1;
             break;
@@ -1755,23 +1791,23 @@ static void Midi_InitChannelTable(_MidiChannelTable* channels)
     }
 }
 
-static u8* Midi_IncPtr(s32 unused1, u8* arg1, MidiSong* unusedSong, MidiTrack* unusedTrack)
+static u8* Midi_IncPtr(s32 unused1, u8* arg1, MidiSong* unusedSong, _MidiTrack* unusedTrack)
 {
     return arg1 + 1;
 }
 
-static u8* Midi_KeyOffChannel(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* unused)
+static u8* Midi_KeyOffChannel(s32 arg0, u8* arg1, MidiSong* song, _MidiTrack* unused)
 {
     return _midiNoteOff(arg0, arg1, song);
 }
 
-static u8* Midi_SetProgram(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* unused)
+static u8* Midi_SetProgram(s32 arg0, u8* arg1, MidiSong* song, _MidiTrack* unused)
 {
     song->channels.entries[arg0 & MIDI_CHANNEL_STATUS_MASK].program = arg1[1];
     return arg1 + 2;
 }
 
-static u8* Midi_PitchBend(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* unused)
+static u8* Midi_PitchBend(s32 arg0, u8* arg1, MidiSong* song, _MidiTrack* unused)
 {
     enum { MIDI_PITCH_WHEEL_CENTER = 0x2000 };
     SpuVoiceRef    sp10;

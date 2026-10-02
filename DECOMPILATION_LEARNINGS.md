@@ -21584,7 +21584,7 @@ used on one call site can also be required to keep the register set stable.
 ## Dual magic-division + remainder for NTSC/PAL frame scaling
 
 When the target does two separate `multu` sequences gated on
-`gDisplayState.region == 1` (NTSC → `/ 6000`, PAL → `/ 3600`) — first for the
+`gDisplayState.region == 1` (PAL → `/ 6000`, NTSC → `/ 3600`) — first for the
 quotient, then again for remainder reconstruction — write two separate `if`
 blocks rather than combining `/` and `%` in one:
 
@@ -21612,7 +21612,7 @@ join matches `sll v0; subu v1, a0, v0; move s1, a1; sw v1`:
     scaled = rem_factor * 0x10;
     rem = temp - scaled;
     ticks = quot;
-    p->field_38 = rem;
+    p->tickFraction = rem;
 }
 ```
 
@@ -21634,7 +21634,7 @@ if (flag == 1) {
 
 early_exit:
     /* orphan return — only reached by later goto early_exit */
-    p->field_0 = 0;
+    p->nrpnMsb = 0;
     return;
 
 rem_else:
@@ -21691,9 +21691,9 @@ the `li` into `$v1` (handler owns `$v0`). Inline the handler load as the callee
 expression and put the field store in a comma on the first argument:
 
 ```c
-p->field_2C = (*(Handler*)((u8*)table + 4))(
-    (p->field_3 = 1, p->field_2 | 0x90),
-    p->field_2C - 1, parent, p);
+p->eventCursor = (*(Handler*)((u8*)table + 4))(
+    (p->implicitNoteOn = 1, p->runningChannel | 0x90),
+    p->eventCursor - 1, parent, p);
 ```
 
 Arg evaluation keeps `lbu`/`lw` of the call operands interleaved correctly and
@@ -21703,26 +21703,26 @@ example (else / running-status arm).
 ## Mid-struct `s32*` at the last field for negative offsets
 
 When the target bases a loop on the *last* field of a struct element
-(`addiu s0, a1, 0x38` for `MidiTrack::field_38`) and stores earlier
+(`addiu s0, a1, 0x38` for `_MidiTrack::tickFraction`) and stores earlier
 fields with negative offsets (`sw -0x10(s0)`, `sw -0xc(s0)`, `sw -0x4(s0)`),
 a typed overlay starting at that field cannot express the earlier members
-(C fields only grow forward). Plain `MidiTrack*` access often rebases on
-a mid field instead (e.g. `field_2C` at `a1+0x2c`).
+(C fields only grow forward). Plain `_MidiTrack*` access often rebases on
+a mid field instead (e.g. `eventCursor` at `a1+0x2c`).
 
-Fix: take `s32* p = &entry->field_38` (pin to `s0` if needed) and access
+Fix: take `s32* p = &entry->tickFraction` (pin to `s0` if needed) and access
 via word offsets:
 
 ```c
 register s32* p asm("s0");
-p = &entries->field_38;
-((u8**)p)[-4] = trackPtr; /* field_8[8] at -0x10 */
-((u8**)p)[-3] = trackPtr; /* field_2C at -0xC */
-p[-1] = delta;            /* field_34 at -0x4 */
-*p = 0xE0F;               /* field_38 */
+p = &entries->tickFraction;
+((u8**)p)[-4] = trackPtr; /* savedCursors.startup.dataStart at -0x10 */
+((u8**)p)[-3] = trackPtr; /* eventCursor at -0xC */
+p[-1] = delta;            /* ticksUntilEvent at -0x4 */
+*p = 0xE0F;               /* tickFraction */
 p += 15;                  /* next entry, +0x3C */
 ```
 
-Pair with `register MidiTrack* entries asm("a1")` so the clear loop keeps
+Pair with `register _MidiTrack* entries asm("a1")` so the clear loop keeps
 `a1 = entries` and `addiu s0, a1, 0x38` matches. `Midi_InitSequence` is the pure
 example.
 
@@ -144516,11 +144516,11 @@ both survive.
 
 The target walks an array of 0x3C-byte records with one register seeded at
 `base + 0x38` and stores at `-0x10`, `-0xC`, `-0x4` and `0`. The seed rebuilt
-that with an `s32* p = &entries->field_38` pinned to `$s0` and every other field
-reached as `p[-4]`, `p[-3]`. The original was a plain `MidiTrack* track` bumped
+that with an `s32* p = &entries->tickFraction` pinned to `$s0` and every other field
+reached as `p[-4]`, `p[-3]`. The original was a plain `_MidiTrack* track` bumped
 with `track++`: loop.c reduces each field address to a giv of the same biv,
 combines them, and keeps one register at the offset of the field the loop body
-touches *last*. Writing `track->field_38 = 0xE0F;` before `track->field_2C +=
+touches *last*. Writing `track->tickFraction = 0xE0F;` before `track->eventCursor +=
 len;` based the register at 0x2C (`sw ...,0xc(s0)`); swapping the two statements
 based it at 0x38 and matched. When a walking pointer comes out at the wrong
 offset, sweep the order of the loop's final field accesses before anything else.
