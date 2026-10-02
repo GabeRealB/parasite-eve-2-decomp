@@ -1165,7 +1165,7 @@ static u8** D_map_shelter_8017B484[49] = {
     D_shelter_r49_8017DA28,
 };
 
-GpViewIndexTbl D_map_shelter_8017B548 = { D_map_shelter_8017B484 };
+ViewIndexTable D_map_shelter_8017B548 = { D_map_shelter_8017B484 };
 
 static SpriteView* D_map_shelter_8017B54C[49] = {
     D_mine_mesa_80188744,

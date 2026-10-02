@@ -69,7 +69,7 @@ extern GpViewCountTbl* Gp_ViewCountTables[];
 extern WorldCoordRoomLighting** Gp_RoomCoordTables[];
 
 /// Per-stage pointer table. Index is `GameSession.location.loc.stage - 1`.
-extern GpViewIndexTbl* Gp_ViewIndexTables[];
+extern ViewIndexTable* Gp_ViewIndexTables[];
 
 /// Per-stage pointer table. Index is `GameSession.location.loc.stage - 1`.
 extern GpRoomObjTbl* Gp_RoomObjTables[];

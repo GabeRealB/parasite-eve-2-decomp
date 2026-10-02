@@ -26312,8 +26312,8 @@ this hoist.
 
 ## Spill a 3-level table walk into pointer temps so `$v0`/`$v1` stay paired
 
-A wrapper-then-3-level lookup (`tbl->field_0[a-1][b-1][c-1]`) written as
-one expression (or with only `tbl`) inverts `$v0`/`$v1` versus the 2-level
+A wrapper-then-3-level lookup (`viewIndexTable->viewMaps[a-1][b-1][c-1]`) written as
+one expression (or with only `viewIndexTable`) inverts `$v0`/`$v1` versus the 2-level
 sibling (`Gp_GetViewCountLo`): each `lw` lands in the other register and the
 last `lw` schedules after the final `lbu`.
 
@@ -26323,10 +26323,10 @@ it through the overlay so the load stays `lbu` (`GameSession.location.loc.view` 
 `byte`; `sess->field_0` is the same byte as `u8`):
 
 ```c
-mid   = D_table[sess->field_3 - 1]->field_0;
-inner = mid[sess->field_2 - 1];
-bytes = inner[sess->field_1 - 1];
-return bytes[sess->field_0 - 1]; /* not session->field_4 — that is `lb` */
+areaViewMaps = Gp_ViewIndexTables[sess->field_3 - 1]->viewMaps;
+roomViewMaps = areaViewMaps[sess->field_2 - 1];
+viewMap      = roomViewMaps[sess->field_1 - 1];
+return viewMap[sess->field_0 - 1]; /* not session->field_4 — that is `lb` */
 ```
 
 `Gp_GetViewIndex` is the example. The one-liner stuck at 88% with only the
@@ -27712,7 +27712,7 @@ other global with the same `i`:
 tbl68 = Gp_SprtTables;
 i     = sess->field_3 - 1;
 tbl68 = &tbl68[i];          /* addu a2, v1, a2 */
-tbl   = Gp_ViewIndexTables[i];      /* addu v1, v1, v0; lw 0(v1) */
+viewIndexTable = Gp_ViewIndexTables[i]; /* addu v1, v1, v0; lw 0(v1) */
 ...
 tbl2  = *tbl68;             /* delayed lw 0(a2) */
 ```

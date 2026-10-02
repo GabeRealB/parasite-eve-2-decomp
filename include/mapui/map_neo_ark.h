@@ -68,7 +68,7 @@ extern GpRoomObjTbl D_map_neo_ark_8017ACA0;
 
 extern GpViewTbl D_map_neo_ark_8017AD28;
 
-extern GpViewIndexTbl D_map_neo_ark_8017ADB0;
+extern ViewIndexTable D_map_neo_ark_8017ADB0;
 
 extern GpSprtTbl D_map_neo_ark_8017AE38;
 

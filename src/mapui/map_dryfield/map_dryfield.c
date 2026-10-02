@@ -746,7 +746,7 @@ static u8** D_map_dryfield_8017AB64[38] = {
     D_dryfield_underpass_8017EBBC,
 };
 
-GpViewIndexTbl D_map_dryfield_8017ABFC = { D_map_dryfield_8017AB64 };
+ViewIndexTable D_map_dryfield_8017ABFC = { D_map_dryfield_8017AB64 };
 
 static SpriteView* D_map_dryfield_8017AC00[38] = {
     D_dryfield_gas_station_801842A8,

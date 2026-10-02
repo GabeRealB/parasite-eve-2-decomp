@@ -66,7 +66,7 @@ extern GpRoomObjTbl D_map_dryfield_8017AAC4;
 
 extern GpViewTbl D_map_dryfield_8017AB60;
 
-extern GpViewIndexTbl D_map_dryfield_8017ABFC;
+extern ViewIndexTable D_map_dryfield_8017ABFC;
 
 extern GpSprtTbl D_map_dryfield_8017AC98;
 

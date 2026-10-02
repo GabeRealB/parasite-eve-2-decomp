@@ -45,12 +45,24 @@ typedef struct _GpViewCountTbl {
     /* 0x0 */ GpViewCountRec** field_0;
 } GpViewCountTbl;
 
-/// Per-stage wrapper. `field_0` is a 3-level table of bytes, indexed
-/// 1-based by `GameSession.location.loc.area` / `location.loc.room` / `location.loc.view`.
-/// `Gp_GetViewIndex` returns the innermost byte (camera / view index).
-typedef struct _GpViewIndexTbl {
-    /* 0x0 */ u8*** field_0;
-} GpViewIndexTbl;
+/// A stage's directory mapping room-local logical views to camera/image indices.
+///
+/// `viewMaps[area - 1][room - 1][view - 1]` is an unsigned, 1-based index
+/// shared by the area's camera, image and sprite resources. Areas without
+/// resources may have NULL entries; lookups require a populated area and valid
+/// 1-based area, room and view IDs within their respective table extents.
+/// Maps have no terminator. Their capacities, room reverse-search limits and
+/// indexed resource extents are separate; multiple logical views may map to
+/// the same index.
+///
+/// The stage map overlay owns the area directory and borrows room-overlay
+/// room directories and maps, or gameplay's `gViewIdentityMap`. Gameplay scripts
+/// may change map entries. Borrowed room pointers require that overlay to stay
+/// loaded; this record does not allocate or release any of the tables.
+typedef struct {
+    u8*** viewMaps; // Area directories of per-room logical-view byte maps.
+} ViewIndexTable;
+STATIC_ASSERT_SIZEOF(ViewIndexTable, 4);
 
 /// Spawn coordinates written with a full-word yaw, consumed with a halfword yaw.
 typedef union _GpSpawnTransform {

@@ -71,7 +71,7 @@ extern GpViewCountTbl D_map_akropolis_8017ABC0;
 
 extern GpViewTbl D_map_akropolis_8017AC14;
 
-extern GpViewIndexTbl D_map_akropolis_8017AC68;
+extern ViewIndexTable D_map_akropolis_8017AC68;
 
 extern WorldCollisionSurfaceProperties** D_map_akropolis_8017AC6C[];
 

@@ -833,7 +833,7 @@ static u8** D_map_akropolis_8017AC18[20] = {
     D_mist_shooting_gallery_801853B8,
 };
 
-GpViewIndexTbl D_map_akropolis_8017AC68 = { D_map_akropolis_8017AC18 };
+ViewIndexTable D_map_akropolis_8017AC68 = { D_map_akropolis_8017AC18 };
 
 WorldCollisionSurfaceProperties** D_map_akropolis_8017AC6C[20] = {
     D_acropolis_square_80188868,

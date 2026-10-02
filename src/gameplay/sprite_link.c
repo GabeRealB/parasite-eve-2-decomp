@@ -323,15 +323,15 @@ s8 Gp_FindViewIndex(s32 arg0)
     s16              idx;
     GameLocationKey* sess;
     s16              limit;
-    u8*              bytes;
+    u8*              viewMap;
 
-    idx   = 0;
-    sess  = &gGameSession->location.loc;
-    limit = Gp_ViewCountTables[sess->stage - 1]->field_0[sess->area - 1][sess->room - 1].prefix.packed;
-    bytes = Gp_ViewIndexTables[sess->stage - 1]->field_0[sess->area - 1][sess->room - 1];
+    idx     = 0;
+    sess    = &gGameSession->location.loc;
+    limit   = Gp_ViewCountTables[sess->stage - 1]->field_0[sess->area - 1][sess->room - 1].prefix.packed;
+    viewMap = Gp_ViewIndexTables[sess->stage - 1]->viewMaps[sess->area - 1][sess->room - 1];
     if (limit > 0) {
         do {
-            if (bytes[idx] == (u8)arg0) {
+            if (viewMap[idx] == (u8)arg0) {
                 return idx + 1;
             }
             idx++;
@@ -346,29 +346,29 @@ static s32 Gp_ViewSprtCmdEmpty(void)
     GameLocationKey* sess;
     GpSprtTbl**      tbl68;
     s32              i;
-    GpViewIndexTbl*  tbl;
-    u8***            mid;
-    u8**             inner;
-    u8*              bytes;
-    u8               idx;
+    ViewIndexTable*  viewIndexTable;
+    u8***            areaViewMaps;
+    u8**             roomViewMaps;
+    u8*              viewMap;
+    u8               mappedViewIndex;
     GpSprtTbl*       tbl2;
     SpriteView**     mid2;
     SpriteView*      recs;
 
-    session = gGameSession;
-    tbl68   = Gp_SprtTables;
-    sess    = &session->location.loc;
-    i       = sess->stage - 1;
-    tbl68   = &tbl68[i];
-    tbl     = Gp_ViewIndexTables[i];
-    mid     = tbl->field_0;
-    inner   = mid[sess->area - 1];
-    bytes   = inner[sess->room - 1];
-    idx     = bytes[sess->view - 1];
-    tbl2    = *tbl68;
-    mid2    = tbl2->field_0;
-    recs    = mid2[sess->area - 1];
-    return recs[idx - 1].batches->spriteCount == 0;
+    session         = gGameSession;
+    tbl68           = Gp_SprtTables;
+    sess            = &session->location.loc;
+    i               = sess->stage - 1;
+    tbl68           = &tbl68[i];
+    viewIndexTable  = Gp_ViewIndexTables[i];
+    areaViewMaps    = viewIndexTable->viewMaps;
+    roomViewMaps    = areaViewMaps[sess->area - 1];
+    viewMap         = roomViewMaps[sess->room - 1];
+    mappedViewIndex = viewMap[sess->view - 1];
+    tbl2            = *tbl68;
+    mid2            = tbl2->field_0;
+    recs            = mid2[sess->area - 1];
+    return recs[mappedViewIndex - 1].batches->spriteCount == 0;
 }
 
 static void func_800AD024(void)
@@ -376,28 +376,28 @@ static void func_800AD024(void)
     RECT             rect;
     GameSession*     session;
     GameLocationKey* sess;
-    GpViewIndexTbl*  tbl;
-    u8***            mid;
-    u8**             inner;
-    u8*              bytes;
-    u8               idx;
+    ViewIndexTable*  viewIndexTable;
+    u8***            areaViewMaps;
+    u8**             roomViewMaps;
+    u8*              viewMap;
+    u8               mappedViewIndex;
     GpSprtTbl*       tbl2;
     SpriteView**     mid2;
     SpriteView*      recs;
     SpriteDrawArea*  drawArea;
     DR_AREA*         prim;
 
-    session  = gGameSession;
-    sess     = &session->location.loc;
-    tbl      = Gp_ViewIndexTables[sess->stage - 1];
-    mid      = tbl->field_0;
-    inner    = mid[sess->area - 1];
-    bytes    = inner[sess->room - 1];
-    idx      = bytes[sess->view - 1];
-    tbl2     = Gp_SprtTables[sess->stage - 1];
-    mid2     = tbl2->field_0;
-    recs     = mid2[sess->area - 1];
-    drawArea = recs[idx - 1].drawAreas;
+    session         = gGameSession;
+    sess            = &session->location.loc;
+    viewIndexTable  = Gp_ViewIndexTables[sess->stage - 1];
+    areaViewMaps    = viewIndexTable->viewMaps;
+    roomViewMaps    = areaViewMaps[sess->area - 1];
+    viewMap         = roomViewMaps[sess->room - 1];
+    mappedViewIndex = viewMap[sess->view - 1];
+    tbl2            = Gp_SprtTables[sess->stage - 1];
+    mid2            = tbl2->field_0;
+    recs            = mid2[sess->area - 1];
+    drawArea        = recs[mappedViewIndex - 1].drawAreas;
     if (drawArea != NULL) {
         for (; drawArea->restoreDepth != SPRITE_DRAW_AREA_END; drawArea++) {
             // Apply the view clip before depth-sorted drawing begins.
@@ -430,44 +430,44 @@ s32 Gp_GetViewIndex(void)
 {
     GameSession*     session;
     GameLocationKey* sess;
-    GpViewIndexTbl*  tbl;
-    u8***            mid;
-    u8**             inner;
-    u8*              bytes;
+    ViewIndexTable*  viewIndexTable;
+    u8***            areaViewMaps;
+    u8**             roomViewMaps;
+    u8*              viewMap;
 
-    session = gGameSession;
-    sess    = &session->location.loc;
-    tbl     = Gp_ViewIndexTables[sess->stage - 1];
-    mid     = tbl->field_0;
-    inner   = mid[sess->area - 1];
-    bytes   = inner[sess->room - 1];
-    return bytes[sess->view - 1];
+    session        = gGameSession;
+    sess           = &session->location.loc;
+    viewIndexTable = Gp_ViewIndexTables[sess->stage - 1];
+    areaViewMaps   = viewIndexTable->viewMaps;
+    roomViewMaps   = areaViewMaps[sess->area - 1];
+    viewMap        = roomViewMaps[sess->room - 1];
+    return viewMap[sess->view - 1];
 }
 
 void* Gp_GetViewSprtExtra(void)
 {
     GameSession*     session;
     GameLocationKey* sess;
-    GpViewIndexTbl*  tbl;
-    u8***            mid;
-    u8**             inner;
-    u8*              bytes;
-    u8               idx;
+    ViewIndexTable*  viewIndexTable;
+    u8***            areaViewMaps;
+    u8**             roomViewMaps;
+    u8*              viewMap;
+    u8               mappedViewIndex;
     GpSprtTbl*       tbl2;
     SpriteView**     mid2;
     SpriteView*      recs;
 
-    session = gGameSession;
-    sess    = &session->location.loc;
-    tbl     = Gp_ViewIndexTables[sess->stage - 1];
-    mid     = tbl->field_0;
-    inner   = mid[sess->area - 1];
-    bytes   = inner[sess->room - 1];
-    idx     = bytes[sess->view - 1];
-    tbl2    = Gp_SprtTables[sess->stage - 1];
-    mid2    = tbl2->field_0;
-    recs    = mid2[sess->area - 1];
-    return recs[idx - 1].drawAreas;
+    session         = gGameSession;
+    sess            = &session->location.loc;
+    viewIndexTable  = Gp_ViewIndexTables[sess->stage - 1];
+    areaViewMaps    = viewIndexTable->viewMaps;
+    roomViewMaps    = areaViewMaps[sess->area - 1];
+    viewMap         = roomViewMaps[sess->room - 1];
+    mappedViewIndex = viewMap[sess->view - 1];
+    tbl2            = Gp_SprtTables[sess->stage - 1];
+    mid2            = tbl2->field_0;
+    recs            = mid2[sess->area - 1];
+    return recs[mappedViewIndex - 1].drawAreas;
 }
 
 void Gp_RoomObjState1(Task* task)
