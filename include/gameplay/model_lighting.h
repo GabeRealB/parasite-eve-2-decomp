@@ -82,7 +82,7 @@ u32* gpDrawStreamPrimGt3OffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stre
 /// it two primitives rather than one. Both primitives' texture words, page and
 /// CLUT are the process pass's: it wrote the element's words into each, and biased
 /// their page and CLUT — the base's by the model's, the layer's by the object's
-/// extra page and CLUT offsets (`gpStreamPrimGt4OffsetLayer`, whose cursor this
+/// extra page and CLUT offsets (`tmdBuildStreamGt4OffsetLayer`, whose cursor this
 /// handler stays in step with) — so nothing is textured here. The record's other
 /// draw handler is the one that textures the layer itself, from the corners'
 /// normals and a page of its own.
@@ -659,25 +659,44 @@ u32* tmdBuildStreamGt3OffsetLayer(TmdStreamWorkspace* workspace, s32 objectFlags
 /// the workspace and storage are borrowed, with no pointer retained.
 u32* tmdBuildStreamGt3LayeredBase(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
-/// Handler of a stream's layered textured-quad records (`0x4078`) whose
-/// semi-transparent layer takes its texture page from the object: each element
-/// contributes two quads to the buffer half's second region, with the element's
-/// texture words written into both.
+/// Initializes both textures in each layered Gouraud quad packet pair.
 ///
-/// The record is not pre-transformed, so its quads are built in the region the
-/// draw pass transforms. `0x4000` asks for two primitives per element — the base
-/// the model is drawn from, and the semi-transparent layer drawn over it — and
-/// that layer is normally the draw pass's to texture, from a page of its own. The
-/// walk takes this handler where both quads are written from the record instead:
-/// the same `u`/`v` fields go into each, the base takes the model's texture page
-/// and CLUT, and the layer takes the object's extra page and CLUT offsets, along
-/// with the semi-transparency rate it blends at.
-u32* gpStreamPrimGt4OffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// `tmdProcessStream` selects this construction callback for `0x4078` in stage
+/// 2, areas 15 and 16. `elements` starts after the three-word record header.
+/// Words 0..3 pack four vertex and four normal references; this callback does
+/// not read them. Words 4 and 5 pack unsigned byte U/V texel coordinates with
+/// encoded CLUT and texture-page settings. Word 6 packs U2/V2 in its low half
+/// and U3/V3 in its high half.
+///
+/// The first packet receives the element's texture fields plus the object's
+/// independent `layerTexturePageOffset` (-128..127 encoded units) and signed
+/// `layerClutRowOffset` (-128..127 palette rows, 64 encoded units per row).
+/// The relocated page's ABR bit 5 is then set, preserving bit 6 and selecting
+/// mode 1 or 3. The second packet instead adds the workspace's base
+/// `texturePageOffset` (-128..127) and `encodedClutOffset` (-8192..8128).
+/// All address sums wrap to u16; the base offsets are never added to the layer.
+/// Drawing supplies the layer's semi-transparent command and the base's opaque
+/// command, along with both packets' tags, positions and colours. Construction
+/// preserves those fields and the SDK pad fields.
+///
+/// The caller supplies `elemCount` (0..65535) and `elemStride` in u32 words,
+/// at least seven for nonempty records, with every full stride readable.
+/// `primWrite` must have two writable, four-byte-aligned `POLY_GT4` slots per
+/// element within the selected buffer half's second region. Capacities are
+/// unchecked. Workspace, object, payload and packet storage are borrowed for
+/// the call; no pointer is retained. `objectFlags` is the shared callback
+/// argument, passed as zero during construction and ignored here.
+///
+/// Advances `primWrite` by two 52-byte packets per element and returns
+/// `elements + initial elemCount * elemStride`, leaving the next record or
+/// terminator unconsumed. The count is consumed to -1 even for an empty record;
+/// an empty record reads no element or object fields and advances neither cursor.
+u32* tmdBuildStreamGt4OffsetLayer(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 /// Initializes the opaque base texture in each layered Gouraud quad packet pair.
 ///
 /// `tmdProcessStream` selects this construction callback for `0x4078` outside
-/// stage 2, areas 15 and 16, which use `gpStreamPrimGt4OffsetLayer` instead.
+/// stage 2, areas 15 and 16, which use `tmdBuildStreamGt4OffsetLayer` instead.
 /// `elements` starts after the three-word record header. Words 0..3 pack four
 /// vertex and four normal byte-offset references used during drawing; this
 /// callback does not read them. Words 4 and 5 pack unsigned byte U/V texel

@@ -529,6 +529,60 @@ static inline void _modelLightingInitGt3OffsetLayerTexture(POLY_GT3* triangle, c
     triangle->clut   += (s8)layerClutRowByte << MODEL_LIGHTING_OFFSET_LAYER_CLUT_ROW_SHIFT;
 }
 
+/// Initializes the offset-layer texture of one layered Gouraud quad.
+///
+/// `quad` must be a writable, four-byte-aligned `POLY_GT4` for the first
+/// packet in a layered pair. `elementWords` starts after a `0x4078` record's
+/// three-word header and provides at least seven readable, four-byte-aligned
+/// u32 words. Words 0..3 pack four vertex and four normal references and are
+/// not read here. Words 4 and 5 pack unsigned byte U/V texel coordinates with
+/// encoded CLUT and texture-page settings. Word 6 packs U2/V2 in its low half
+/// and U3/V3 in its high half. This minimum readable extent does not establish
+/// the element's full stride.
+///
+/// `workspace->obj` must be a live object. Its `layerTexturePageOffset` adds
+/// -128..127 encoded page units; `layerClutRowOffset` adds -128..127 palette
+/// rows (-8192..8128 encoded CLUT units, 64 per row). These offsets are
+/// independent of the workspace's base-texture offsets. Address sums wrap
+/// modulo 65536 in the packet's u16 fields. Setting ABR bit 5 after relocation
+/// preserves bit 6, selecting mode 1 or 3; drawing enables semi-transparency.
+/// The tag, colours/command, positions and SDK pad fields remain untouched.
+/// All storage is borrowed for the call; no pointer is retained and neither
+/// workspace nor object is modified.
+static inline void _modelLightingInitGt4OffsetLayerTexture(POLY_GT4* quad, const u32* elementWords,
+                                                           const TmdStreamWorkspace* workspace)
+{
+    enum {
+        MODEL_LIGHTING_GT4_OFFSET_LAYER_UV0_CLUT_WORD  = 4,      // Packed U0/V0 bytes and encoded CLUT
+        MODEL_LIGHTING_GT4_OFFSET_LAYER_UV1_TPAGE_WORD = 5,      // Packed U1/V1 bytes and encoded page settings
+        MODEL_LIGHTING_GT4_OFFSET_LAYER_UV2_UV3_WORD   = 6,      // U2/V2 in the low half, U3/V3 in the high half
+        MODEL_LIGHTING_OFFSET_LAYER_TPAGE_ABR_LOW_BIT  = 1 << 5, // OR after relocation; retains ABR bit 6 (mode 1 or 3)
+        MODEL_LIGHTING_OFFSET_LAYER_CLUT_ROW_SHIFT     = 6       // Signed palette rows to encoded CLUT units (64 per row)
+    };
+    u32 layerTexturePage;
+    u8  layerClutRowByte;
+
+    STATIC_ASSERT(OFFSET_OF(POLY_GT4, v2) == OFFSET_OF(POLY_GT4, u2) + sizeof(u8) &&
+                      OFFSET_OF(POLY_GT4, pad2) == OFFSET_OF(POLY_GT4, u2) + sizeof(u16) &&
+                      OFFSET_OF(POLY_GT4, v3) == OFFSET_OF(POLY_GT4, u3) + sizeof(u8) &&
+                      OFFSET_OF(POLY_GT4, pad3) == OFFSET_OF(POLY_GT4, u3) + sizeof(u16),
+                  model_lighting_gt4_offset_layer_uv_pair_layout);
+
+    MODEL_LIGHTING_UV0_CLUT_WORD(quad)  = elementWords[MODEL_LIGHTING_GT4_OFFSET_LAYER_UV0_CLUT_WORD];
+    MODEL_LIGHTING_UV1_TPAGE_WORD(quad) = elementWords[MODEL_LIGHTING_GT4_OFFSET_LAYER_UV1_TPAGE_WORD];
+    // Split the packed U/V pairs without overwriting the adjacent pad2/pad3.
+    *(u16*)&quad->u2 = (u16)elementWords[MODEL_LIGHTING_GT4_OFFSET_LAYER_UV2_UV3_WORD];
+    *(u16*)&quad->u3 = (u16)(elementWords[MODEL_LIGHTING_GT4_OFFSET_LAYER_UV2_UV3_WORD] >> 16);
+    // The page sum wraps to u16 before its ABR mode is adjusted.
+    quad->tpage += workspace->obj->layerTexturePageOffset;
+    // Keep the row byte unsigned until the CLUT calculation restores its sign.
+    layerClutRowByte  = workspace->obj->layerClutRowOffset;
+    layerTexturePage  = quad->tpage;
+    layerTexturePage |= MODEL_LIGHTING_OFFSET_LAYER_TPAGE_ABR_LOW_BIT;
+    quad->tpage       = layerTexturePage;
+    quad->clut       += (s8)layerClutRowByte << MODEL_LIGHTING_OFFSET_LAYER_CLUT_ROW_SHIFT;
+}
+
 /// Initializes one Gouraud textured triangle's texture from a per-corner-colour element.
 ///
 /// `triangle` must be a writable, four-byte-aligned `POLY_GT3`. `elementWords`
@@ -2685,38 +2739,33 @@ u32* tmdBuildStreamGt3LayeredBase(TmdStreamWorkspace* workspace, s32 objectFlags
     return elements;
 }
 
-u32* gpStreamPrimGt4OffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+u32* tmdBuildStreamGt4OffsetLayer(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    POLY_GT4* poly;
-    s32       tpage;
-    s32       tmp;
+    /// Index of the texture suffix shared by both packets of a layered GT4 element.
+    ///
+    /// Counts u32 words from the element base, after the three-word record
+    /// header. Opcode `0x4078` stores four geometry-reference words, then this
+    /// word. It packs U0/V0 in bits 0..15 and the encoded CLUT in bits 16..31.
+    /// The next word supplies U1/V1 and the encoded texture-page settings, and
+    /// the word after that packs U2/V2 in its low half and U3/V3 in its high
+    /// half. The layer packet relocates this suffix with the object's layer
+    /// offsets; the base packet adds the workspace's base displacements.
+    enum { MODEL_LIGHTING_GT4_OFFSET_LAYER_UV0_CLUT_WORD = 4 };
+    POLY_GT4* quad;
 
-    poly = (POLY_GT4*)ws->primWrite;
-    if (ws->elemCount-- > 0) {
+    quad = (POLY_GT4*)workspace->primWrite;
+    if (workspace->elemCount-- > 0) {
         do {
-            MODEL_LIGHTING_UV0_CLUT_WORD(poly)  = stream[4];
-            MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[5];
-            *(u16*)&poly->u2                    = (u16)stream[6];
-            *(u16*)&poly->u3                    = ((u16*)&stream[6])[1];
-            poly->tpage                        += ws->obj->layerTexturePageOffset;
-            tmp                                 = (u8)ws->obj->layerClutRowOffset;
-            tpage                               = poly->tpage;
-            tpage                              |= 0x20;
-            poly->tpage                         = tpage;
-            poly->clut                         += (s8)tmp << 6;
-            poly++;
-            MODEL_LIGHTING_UV0_CLUT_WORD(poly)  = stream[4];
-            MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[5];
-            *(u16*)&poly->u2                    = (u16)stream[6];
-            *(u16*)&poly->u3                    = ((u16*)&stream[6])[1];
-            poly->tpage                        += ws->texturePageOffset;
-            poly->clut                         += ws->encodedClutOffset;
-            poly++;
-            stream += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+            // Layer and base share UVs, with independent stream-relative GPU addresses.
+            _modelLightingInitGt4OffsetLayerTexture(quad, elements, workspace);
+            quad++;
+            _modelLightingInitGt4TextureWords(quad, elements, MODEL_LIGHTING_GT4_OFFSET_LAYER_UV0_CLUT_WORD, workspace);
+            quad++;
+            elements += workspace->elemStride;
+        } while (workspace->elemCount-- > 0);
     }
-    ws->primWrite = (u8*)poly;
-    return stream;
+    workspace->primWrite = (u8*)quad;
+    return elements;
 }
 
 u32* tmdBuildStreamGt4LayeredBase(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)

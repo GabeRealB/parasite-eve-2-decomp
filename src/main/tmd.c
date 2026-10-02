@@ -437,7 +437,7 @@ void tmdProcessStream(TmdObject* obj)
             case 0x4078:
                 handler = tmdBuildStreamGt4LayeredBase;
                 if (flag != 0) {
-                    handler = gpStreamPrimGt4OffsetLayer;
+                    handler = tmdBuildStreamGt4OffsetLayer;
                 }
                 break;
             case 0x78:

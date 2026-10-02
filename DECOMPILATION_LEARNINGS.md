@@ -30846,12 +30846,9 @@ triangle->tpage   = layerTexturePage;
 triangle->clut   += (s8)layerClutRowByte * (1 << MODEL_LIGHTING_OFFSET_LAYER_CLUT_ROW_SHIFT);
 ```
 
-`tmdBuildStreamGt3PreXformOffsetLayer` is the example. Same split is needed for the
-`primWrite` / `POLY_GT4` siblings (`tmdBuildStreamGt3OffsetLayer`,
-`gpStreamPrimGt4OffsetLayer`, `gpStreamPrimGt4PreXformOffsetLayer`).
-`tmdBuildStreamGt3PreXformOffsetLayer` is the example. Same split is needed for the
-`primWrite` / `POLY_GT4` siblings (`tmdBuildStreamGt3OffsetLayer`, `gpStreamPrimGt4OffsetLayer`,
-`gpStreamPrimGt4PreXformOffsetLayer`).
+`tmdBuildStreamGt3PreXformOffsetLayer` is the example. The same reload split is
+in `_modelLightingInitGt3OffsetLayerTexture` and `_modelLightingInitGt4OffsetLayerTexture`.
+`gpStreamPrimGt4PreXformOffsetLayer` still spells the sequence inline.
 
 ## Finish the 2D byte offset before adding the table base
 
