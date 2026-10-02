@@ -330,7 +330,7 @@ if ((u32)(arg0 - 0x80) < 0x20U) {   // the 32 weapon item ids
 ```
 
 so **item `0x80 + n` is package `10301 + n`**, and the name comes from
-`Gp_ItemDescs[id].field_4`. Three independent facts agree with that mapping,
+`Gp_ItemDescs[id].textFields`. Three independent facts agree with that mapping,
 which is what rules out an off-by-one:
 
 * The variant groups line up. `10316`/`10320`/`10321` share one animation

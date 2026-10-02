@@ -772,17 +772,17 @@ static inline s32 _gpHasItemSeenBit(s32 item)
 
 char* Gp_GetItemText(s32 arg0, s32 arg1, s32 arg2)
 {
-    s8*         str;
-    GpItemDesc* desc;
-    s32         c;
-    s32         n;
-    s32         row;
-    s32         col;
-    s32         id;
-    s32         ofs;
+    const s8*       str;
+    const ItemDesc* desc;
+    s32             c;
+    s32             n;
+    s32             row;
+    s32             col;
+    s32             id;
+    s32             ofs;
 
     if (arg0 >= 0x500) {
-        str = Gp_ItemTextHi[arg0 - 0x500];
+        str = (const s8*)Gp_ItemTextHi[arg0 - 0x500];
     } else if (arg0 >= 0x300) {
         // A packed id: bits 4-7 and 2-3 pick a run of three entries starting
         // at id 0xF, bits 0-1 the entry within it (1-3, with 0 read as 1).
@@ -794,7 +794,7 @@ char* Gp_GetItemText(s32 arg0, s32 arg1, s32 arg2)
         }
         id  = (row * 3 + col) * 3;
         ofs = n + 0xE;
-        str = Gp_GetItemText(id + ofs, arg1, 1);
+        str = (const s8*)Gp_GetItemText(id + ofs, arg1, 1);
     } else {
         if (arg0 < 0x100) {
             desc = &Gp_ItemDescs[arg0];
@@ -804,7 +804,8 @@ char* Gp_GetItemText(s32 arg0, s32 arg1, s32 arg2)
         if (arg2 == 0) {
             arg2 = _gpHasItemSeenBit(arg0);
         }
-        str = desc->field_4;
+        // The parser reads signed bytes, even though catalogue text uses u8 storage.
+        str = (const s8*)desc->textFields;
         if (arg1 >= 3) {
             arg1 = 0;
         }
@@ -820,7 +821,7 @@ char* Gp_GetItemText(s32 arg0, s32 arg1, s32 arg2)
             }
         }
     }
-    return str;
+    return (char*)str;
 }
 
 s32 Gp_NthRelatedId(InventoryItemRange* arg0, s32 arg1, s32 arg2)

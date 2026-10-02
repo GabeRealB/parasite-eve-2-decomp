@@ -508,7 +508,7 @@ void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1)
             if (Gp_ItemMoveWork->field_10 != arg1->owner->spawnArg1.value) {
                 flags = arg1->owner->status;
                 flag  = 0;
-                if (Gp_ItemDescs[item2].field_3 & 1) {
+                if (Gp_ItemDescs[item2].flags & ITEM_FLAG_NO_DISCARD) {
                     flag = flags == 1;
                 }
                 if ((Gp_MoveItemKey == 0x703) && (item2 == 0x81) && (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage == GAME_STAGE_ACROPOLIS)) {
@@ -729,7 +729,7 @@ void func_800BD6DC(UiList* arg0, UiObject* arg1)
             owner      = arg1->owner;
             flags      = owner->parent->status;
             restricted = 0;
-            if (Gp_ItemDescs[item].field_3 & 1) {
+            if (Gp_ItemDescs[item].flags & ITEM_FLAG_NO_DISCARD) {
                 restricted = flags == 1;
             }
             if ((Gp_MoveItemKey == 0x703) && (item == 0x81) && (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage == selected)) {
@@ -800,7 +800,7 @@ void Gp_ItemActionConfirm(UiList* arg0, UiObject* arg1)
             owner = arg1->owner;
             flags = owner->parent->status;
             flag  = 0;
-            if (Gp_ItemDescs[item].field_3 & 1) {
+            if (Gp_ItemDescs[item].flags & ITEM_FLAG_NO_DISCARD) {
                 flag = flags == 1;
             }
             if ((Gp_MoveItemKey == 0x703) && (item == 0x81) && (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage == selected)) {
@@ -1513,7 +1513,7 @@ static s32 Gp_ItemUseRestricted(s32 arg0, s32 arg1)
     s32 ret;
 
     ret = 0;
-    if (Gp_ItemDescs[arg0].field_3 & 1) {
+    if (Gp_ItemDescs[arg0].flags & ITEM_FLAG_NO_DISCARD) {
         ret = arg1 == 1;
     }
     if ((Gp_MoveItemKey == 0x703) && (arg0 == 0x81) && (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage == GAME_STAGE_ACROPOLIS)) {

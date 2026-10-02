@@ -583,11 +583,11 @@ void Gp_SyncHeldRelated(void)
 
 static void Gp_InitItemSeenBits(void)
 {
-    McSaveData* p;
-    GpItemDesc* desc;
-    u8*         str;
-    s32         i;
-    s32         count;
+    McSaveData*     p;
+    const ItemDesc* desc;
+    const u8*       str;
+    s32             i;
+    s32             count;
 
     p = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     for (i = 0x5F; i >= 0; i--) {
@@ -602,14 +602,14 @@ static void Gp_InitItemSeenBits(void)
         } else {
             desc = &Gp_KeyItemDescs[(i)-0x100];
         }
-        str = desc->field_4;
+        str = desc->textFields;
         while (count > 0) {
-            if (*str == 0 || *str == 0xA) {
+            if (*str == '\0' || *str == '\n') {
                 count--;
             }
             str++;
         }
-        if (*str == 0xA) {
+        if (*str == '\n') {
             Gp_SetItemSeenBit(i, 1);
         }
         i++;

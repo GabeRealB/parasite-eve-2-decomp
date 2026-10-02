@@ -31244,7 +31244,7 @@ if (arg0 < 0x100) {
 } else {
     table = B;
 }
-desc = (GpItemDesc*)(tmp + (s32)table);
+desc = (ItemDesc*)(tmp + (s32)table);
 ```
 
 If a sibling arm already needs a `$v1` temp (`index & 3`, then later
@@ -31704,7 +31704,7 @@ block    = (Type*)head;
 
 `Gp_ItemUseRestricted(item, owner->parent->flags)` is written out in
 `Gp_ItemActionConfirm` (no `jal`). Computing `flags` only inside
-`if (desc->field_3 & 1)` loads `owner` after the bit test, leaves
+`if (desc->flags & ITEM_FLAG_NO_DISCARD)` loads `owner` after the bit test, leaves
 `flag` in `$a0`, and inserts nops. Evaluate the second argument
 first so `owner` stays in `$a0` and `parent` / `flags` load before
 the `andi`:
@@ -31713,7 +31713,7 @@ the `andi`:
 owner = arg1->owner;
 flags = owner->parent->flags;
 flag  = 0;
-if (Gp_ItemDescs[item].field_3 & 1) {
+if (Gp_ItemDescs[item].flags & ITEM_FLAG_NO_DISCARD) {
     flag = flags == 1;
 }
 ```
@@ -65352,7 +65352,7 @@ then materialises the descriptor address in `$v0`.
 selectedRec = Gp_SelItemRec;
 selected = *selectedRec;
 USE_REG(selectedRec);
-if (!(Gp_ItemDescs[selected].field_3 & 4)) { /* ... */ }
+if (!(Gp_ItemDescs[selected].flags & ITEM_FLAG_NO_ATTACHMENT)) { /* ... */ }
 ```
 
 This input-only keep-live restores the target sequence without register pins.
@@ -66284,7 +66284,7 @@ record retained the target base-before-index address sequence:
 descBase = Gp_ItemDescs;
 desc = descBase + item;
 TOUCH_REG(desc);
-caliber = desc->field_2 & 0xF;
+caliber = desc->classification & ITEM_SUBTYPE_MASK;
 ```
 
 The volatile fence kept the following color `lui` after the descriptor address.
@@ -145328,7 +145328,7 @@ allocation of every pseudo in the block.
 A `register s32 clut asm("t3")` held a clut constant stored into two SPRTs and a POLY_FT4; unpinned, it swapped `t3`/`t4` with the `%hi(gGpuCurrentOt)` pseudo. Both had 4 refs in one block, so `local-alloc` ranked them by live length alone (170 vs 166 insns in `.lreg`'s `Register N used ... across` lines), and the constant lost by a few insns. The fix was a statement sitting inside the constant's range that belonged after it: `setlen(poly, 9)` had been written mid-primitive, and moving it down beside `setcode(poly, ...)`, after the last `clut` store, shortened the range by two insns and sched2 still emitted the stores in target order. When two equal-ref pseudos swap, compare their ranges in `.lreg` and look for a statement that can move across either end.
 
 ## A `nop` after the index load, then `lui` of the table, is a `desc = &table[i]` local (func_800C41A4, 2026-09-27)
-The target read `lw v0,Gp_SelItemRec; nop; lbu v1,0(v0); lui v0,%hi(Gp_ItemDescs)` - the table's `lui` reusing the pointer's register and leaving the load delay unfilled. `Gp_ItemDescs[*p].field_3` in one expression (with or without an `s32`/`u8` index local, or an inline returning the field) lets sched1 hoist the independent `lui` above the `lbu`, and a `USE_REG(p)` barrier after the index load had been holding it back. Taking the element address into its own local, `GpItemDesc* desc = &Gp_ItemDescs[*p]; if (desc->field_3 & 4)`, reproduces the order unaided; an inline returning `&Gp_ItemDescs[id]` does too.
+The target read `lw v0,Gp_SelItemRec; nop; lbu v1,0(v0); lui v0,%hi(Gp_ItemDescs)` - the table's `lui` reusing the pointer's register and leaving the load delay unfilled. `Gp_ItemDescs[*p].flags` in one expression (with or without an `s32`/`u8` index local, or an inline returning the field) lets sched1 hoist the independent `lui` above the `lbu`, and a `USE_REG(p)` barrier after the index load had been holding it back. Taking the element address into its own local, `const ItemDesc* desc = &Gp_ItemDescs[*p]; if (desc->flags & ITEM_FLAG_NO_ATTACHMENT)`, reproduces the order unaided; an inline returning `&Gp_ItemDescs[id]` does too.
 
 ## A pinned flag in a loop may be the inlined body of the function just before it, written as one `||` condition (func_800CECC0, 2026-09-27)
 A `register s32 ok asm("a2")` held a "row is usable" flag set by an `if / else if / else if` chain inside a search loop; the static function directly above, with no callers, computed exactly that flag. Inlining the same chain as a helper left the flag and the row pointer swapped (`a1`/`a2`, 99.339%): the chain's three `ret = 0` stores gave the flag 10 refs over 22 insns in `.lreg`, outranking the pointer. Writing the test as a single `if (a || (b && c) || (d && e)) ret = 0;` - the shape the file's other predicates already use - gives one store, lowers the flag's rank, and matches. The out-of-line neighbour matched with the same body, so it became `return helper(index);` rather than a second copy. When an uncalled static sits beside a pinned function, try it as the inline first, and try both the chained and the `||` spelling.

@@ -212,7 +212,7 @@ void Gp_DrawItemIcon(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
             tu   = (idx % 3) * 16 + 0xB0;
             tv   = (idx / 3) * 16 + 0x80;
             clut = getClut((idx / 3) * 16 + 0x40, 0xF0);
-        } else if ((Gp_ItemDescs[arg3].field_2 & 0xF) == 1) {
+        } else if ((Gp_ItemDescs[arg3].classification & ITEM_SUBTYPE_MASK) == ITEM_SUBTYPE_MEDICINE) {
             icon = 1;
             kind = 4;
         } else {
@@ -246,23 +246,23 @@ void Gp_DrawItemIcon(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
         if (rel == 0) {
             icon = 2;
         } else {
-            switch (Gp_ItemDescs[rel].field_2 & 0xF) {
-                case 1:
+            switch (Gp_ItemDescs[rel].classification & ITEM_SUBTYPE_MASK) {
+                case ITEM_AMMO_9MM:
                     icon = 3;
                     break;
-                case 3:
+                case ITEM_AMMO_44_MAGNUM:
                     icon = 4;
                     break;
-                case 4:
+                case ITEM_AMMO_40MM:
                     icon = 7;
                     break;
-                case 5:
+                case ITEM_AMMO_12_GAUGE:
                     icon = 5;
                     break;
-                case 6:
+                case ITEM_AMMO_556MM:
                     icon = 6;
                     break;
-                case 8:
+                case ITEM_AMMO_BATTERY:
                     icon = 8;
                     break;
                 default:
@@ -272,20 +272,20 @@ void Gp_DrawItemIcon(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
         }
         kind = 0;
     } else if (arg3 < 0xC0) {
-        switch (Gp_ItemDescs[arg3].field_2 & 0xF) {
-            case 1:
+        switch (Gp_ItemDescs[arg3].classification & ITEM_SUBTYPE_MASK) {
+            case ITEM_AMMO_9MM:
                 icon = 3;
                 break;
-            case 3:
+            case ITEM_AMMO_44_MAGNUM:
                 icon = 4;
                 break;
-            case 4:
+            case ITEM_AMMO_40MM:
                 icon = 7;
                 break;
-            case 5:
+            case ITEM_AMMO_12_GAUGE:
                 icon = 5;
                 break;
-            case 6:
+            case ITEM_AMMO_556MM:
                 icon = 6;
                 break;
             default:
@@ -2139,9 +2139,9 @@ void func_800C41A4(UiList* prompt, UiObject* obj)
         mode = Gp_ItemOrderMode;
         if (mode == rowState) {
             if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-                GpItemDesc* desc;
+                const ItemDesc* desc;
                 desc = &Gp_ItemDescs[Gp_SelItemRec->itemId];
-                if (!(desc->field_3 & 4)) {
+                if (!(desc->flags & ITEM_FLAG_NO_ATTACHMENT)) {
                     SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
                     if (Gp_SelItemRec->itemId != INVENTORY_ITEM_NONE) {
                         Gp_SelItemRec->attachSlot = prompt->field_8 + 1;
@@ -2614,7 +2614,7 @@ InventoryItemRow* Gp_NthEquippableRec(InventoryItemRange* arg0, s32 arg1, s32 ar
     rec   = NULL;
     table = &table[arg0->firstRow];
     for (i = 0; i < arg0->rowCount; i++, table++) {
-        if ((Gp_ItemDescs[table->itemId].field_3 & 4) || (table->itemId == INVENTORY_ITEM_NONE)) {
+        if ((Gp_ItemDescs[table->itemId].flags & ITEM_FLAG_NO_ATTACHMENT) || (table->itemId == INVENTORY_ITEM_NONE)) {
             continue;
         }
         if ((u8)(table->itemId + 0x80) < 0x20 && _gpIsEquippedItem(table->itemId)) {

@@ -107,11 +107,11 @@ void Gp_ResetScanDefault(void);
 /// Named as a task entry by the enemy descriptor tables in the map UI overlays.
 void Gp_WaitItemFlag2(Task* arg0);
 
-extern GpItemDesc Gp_ItemDescs[];
+extern ItemDesc Gp_ItemDescs[];
 
 /// Item descriptors for ids from 0x100 up, indexed by `id - 0x100`.
 /// Key-item rows, indexed by item id minus 0x100.
-extern GpItemDesc Gp_KeyItemDescs[];
+extern ItemDesc Gp_KeyItemDescs[];
 
 /// Weapon quantity/related-id rows, indexed by item id minus 0x80.
 extern GpRelatedItemTable Gp_RelatedQty0;

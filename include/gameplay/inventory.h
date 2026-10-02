@@ -79,18 +79,43 @@ typedef struct _GpItemObj8 {
     /* 0x0A */ u16  field_A;
 } GpItemObj8;
 
-/// 8-byte item descriptor. Ordinary ids use `Gp_ItemDescs[id]`; key-item ids
-/// use `Gp_KeyItemDescs[id - 0x100]`. The latter follows the 192 ordinary rows.
-/// `field_3` bit 0 gates the `arg1 == 1` result in `Gp_ItemUseRestricted`.
-/// `field_4` is a name/string pointer walked by `Gp_GetItemText` /
-/// `Gp_InitItemSeenBits` (fields separated by NUL or `'\n'`).
-typedef struct _GpItemDesc {
-    /* 0x00 */ u16   price;
-    /* 0x02 */ u8    field_2;
-    /* 0x03 */ u8    field_3;
-    /* 0x04 */ void* field_4;
-} GpItemDesc;
-STATIC_ASSERT_SIZEOF(GpItemDesc, 0x8);
+/// Low-nibble item subtypes used by inventory icons and ammunition labels.
+///
+/// The subtype's meaning depends on the catalogue category: medicine uses 1,
+/// while ammunition uses the caliber or load kind below.
+enum {
+    ITEM_SUBTYPE_MASK     = 0x0F,
+    ITEM_SUBTYPE_MEDICINE = 1,
+    ITEM_AMMO_9MM         = 1,
+    ITEM_AMMO_44_MAGNUM   = 3,
+    ITEM_AMMO_40MM        = 4,
+    ITEM_AMMO_12_GAUGE    = 5,
+    ITEM_AMMO_556MM       = 6,
+    ITEM_AMMO_BATTERY     = 8
+};
+
+/// Restrictions in `ItemDesc::flags`; these masks leave the stored byte intact.
+enum {
+    ITEM_FLAG_NO_DISCARD    = 0x01, // Also blocks transfers in the battle-loot menu.
+    ITEM_FLAG_NO_ATTACHMENT = 0x04  // Cannot occupy an armor attachment slot.
+};
+
+/// Catalogue properties and identified/unidentified text for an inventory item.
+///
+/// `Gp_ItemDescs` and `Gp_KeyItemDescs` use this same row layout. The high
+/// nibble of `classification` groups entries (0 other, 1 armor, 2 weapon,
+/// 3 ammunition, 4 key item); the low nibble is a category-specific subtype.
+/// `textFields` borrows text for the gameplay image's lifetime: an identified
+/// name and two description lines, followed by their unidentified counterparts.
+/// Fields end at NUL, newline or a `\n` / `\N` escape. An empty unidentified
+/// name makes the item identified from the start.
+typedef struct {
+    u16       price;          // Purchase price in BP; replay-bonus credit is half.
+    u8        classification; // Packed catalogue category and subtype.
+    u8        flags;          // ITEM_FLAG_* restrictions; the role of 0x08 is unproven.
+    const u8* textFields;     // Six delimited text fields, owned by the gameplay image.
+} ItemDesc;
+STATIC_ASSERT_SIZEOF(ItemDesc, 0x8);
 
 /// Scan dest used while `Gp_InitStarterInv` copies the current inventory out.
 #define D_8010D55C Gp_ScanPtrs[3]

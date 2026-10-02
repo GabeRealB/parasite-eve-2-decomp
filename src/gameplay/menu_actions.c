@@ -2051,7 +2051,7 @@ void Gp_DiscardWarnTask(Task* arg0)
     obj         = arg0->spawnArg2.pointer;
     obj->result = USER_INTERFACE_RESULT_NONE;
     mode        = 0x10;
-    if (Gp_ItemDescs[id].field_3 & 1) {
+    if (Gp_ItemDescs[id].flags & ITEM_FLAG_NO_DISCARD) {
         mode = 1;
     } else if (((u32)(id - 0xA0) < 0x20U) && (Gp_CountEquippedRelated(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, id) > 0)) {
         mode = 3;

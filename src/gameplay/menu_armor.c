@@ -314,7 +314,7 @@ static void Gp_CountEquippableRows(UiList* arg0, UiObject* arg1)
     count = 0;
     table = &table[scan->firstRow];
     for (i = 0; i < scan->rowCount; i++, table++) {
-        if ((Gp_ItemDescs[table->itemId].field_3 & 4) || (table->itemId == INVENTORY_ITEM_NONE)) {
+        if ((Gp_ItemDescs[table->itemId].flags & ITEM_FLAG_NO_ATTACHMENT) || (table->itemId == INVENTORY_ITEM_NONE)) {
             continue;
         }
         if ((u8)(table->itemId + 0x80) < 0x20 && _gpIsEquippedItem(table->itemId)) {
