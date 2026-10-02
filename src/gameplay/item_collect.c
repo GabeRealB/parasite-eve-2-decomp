@@ -46,7 +46,7 @@ static void Gp_ApplyBit2List(GpBit2List* table, u32* dest);
 
 static s32 Gp_GetBit2Flag(GameLocationKey* arg0, s32 arg1);
 
-static Enemy* Gp_SpawnAtPlace(GpEnemyDesc* arg0, GpBit2Rec* arg1);
+static Enemy* Gp_SpawnAtPlace(GpEnemyDesc* arg0, AreaObjectPlace* place);
 
 static void func_800BBB54(Task* arg0);
 
@@ -80,9 +80,9 @@ static inline s32 _gpGetModLevel(s32 item)
 }
 static inline void _gpApplyBit2List(GpBit2List* table, u32* dest)
 {
-    GpBit2Rec* rec;
-    u32*       p;
-    u32        mask;
+    AreaObjectPlace* rec;
+    u32*             p;
+    u32              mask;
 
     if (table == NULL) {
         return;
@@ -93,11 +93,11 @@ static inline void _gpApplyBit2List(GpBit2List* table, u32* dest)
     }
     do {
         if (rec != NULL) {
-            for (; rec->field_0 != 0xFFFF; rec++) {
-                mask = 3 << ((rec->field_0 & 0xF) * 2);
-                p    = &dest[rec->field_0 >> 4];
+            for (; rec->flagIndex != AREA_OBJECT_PLACE_END; rec++) {
+                mask = AREA_OBJECT_PLACE_STATE_MASK << ((rec->flagIndex & 0xF) * 2);
+                p    = &dest[rec->flagIndex >> 4];
                 *p  &= ~mask;
-                mask = (rec->field_6 & 3) << ((rec->field_0 & 0xF) * 2);
+                mask = (rec->state & AREA_OBJECT_PLACE_STATE_MASK) << ((rec->flagIndex & 0xF) * 2);
                 *p  |= mask;
             }
         }
@@ -366,7 +366,7 @@ void Gp_SavePlayerPos(void)
     save->state.playerBp  = cfg->bp;
 }
 
-static Enemy* Gp_SpawnAtPlace(GpEnemyDesc* arg0, GpBit2Rec* arg1)
+static Enemy* Gp_SpawnAtPlace(GpEnemyDesc* arg0, AreaObjectPlace* place)
 {
     Enemy*     enemy;
     Task*      task;
@@ -379,14 +379,14 @@ static Enemy* Gp_SpawnAtPlace(GpEnemyDesc* arg0, GpBit2Rec* arg1)
         if (task->bodyKind != TASK_BODY_NONE) {
             extra               = task->extra.tmd;
             coord               = extra->coords;
-            enemy->placeKey     = arg1->field_0 | (arg1->field_4 << ENEMY_PLACE_STAGE_SHIFT);
-            enemy->workType     = arg1->field_2;
-            coord->coord.t[0]   = arg1->field_8;
-            coord->coord.t[1]   = arg1->field_A;
-            coord->coord.t[2]   = arg1->field_C;
-            coord->param.rot.vy = arg1->field_E;
+            enemy->placeKey     = place->flagIndex | (place->placeKeyHigh << ENEMY_PLACE_STAGE_SHIFT);
+            enemy->workType     = place->kind;
+            coord->coord.t[0]   = place->x;
+            coord->coord.t[1]   = place->y;
+            coord->coord.t[2]   = place->z;
+            coord->param.rot.vy = place->yaw;
             if (coord->param.rot.vy != 0) {
-                gfxRotMatrixY(&coord->coord, (s16)arg1->field_E, 1);
+                gfxRotMatrixY(&coord->coord, (s16)place->yaw, 1);
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         }

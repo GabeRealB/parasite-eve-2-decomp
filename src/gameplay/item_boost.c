@@ -299,9 +299,9 @@ static inline void _gpSetPlayerScan(s32 count)
 }
 static inline void _gpApplyBit2List(GpBit2List* table, u32* dest)
 {
-    GpBit2Rec* rec;
-    u32*       p;
-    u32        mask;
+    AreaObjectPlace* rec;
+    u32*             p;
+    u32              mask;
 
     if (table == NULL) {
         return;
@@ -312,11 +312,11 @@ static inline void _gpApplyBit2List(GpBit2List* table, u32* dest)
     }
     do {
         if (rec != NULL) {
-            for (; rec->field_0 != 0xFFFF; rec++) {
-                mask = 3 << ((rec->field_0 & 0xF) * 2);
-                p    = &dest[rec->field_0 >> 4];
+            for (; rec->flagIndex != AREA_OBJECT_PLACE_END; rec++) {
+                mask = AREA_OBJECT_PLACE_STATE_MASK << ((rec->flagIndex & 0xF) * 2);
+                p    = &dest[rec->flagIndex >> 4];
                 *p  &= ~mask;
-                mask = (rec->field_6 & 3) << ((rec->field_0 & 0xF) * 2);
+                mask = (rec->state & AREA_OBJECT_PLACE_STATE_MASK) << ((rec->flagIndex & 0xF) * 2);
                 *p  |= mask;
             }
         }

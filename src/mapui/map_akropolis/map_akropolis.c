@@ -87,26 +87,26 @@ static void func_map_akropolis_80179C50(UiList* arg0, UiObject* arg1);
 static void func_map_akropolis_80179D78(Task* task);
 static void func_map_akropolis_80179E8C(Task* task);
 
-static const char   D_map_akropolis_8017997C[12];
-static s32          D_map_akropolis_8017A9A8;
-static s32          D_map_akropolis_8017A9AC[4];
-static UiList       D_map_akropolis_8017A9C0;
-static UiObjectDesc D_map_akropolis_8017A9E4;
-static TaskDesc     D_map_akropolis_8017AA00;
-static GpBit2Rec    D_map_akropolis_8017BE1C[6];
-static GpBit2Rec    D_map_akropolis_8017BE7C[2];
-static GpBit2Rec    D_map_akropolis_8017BE9C[5];
-static GpBit2Rec    D_map_akropolis_8017BEEC[1];
-static GpBit2Rec    D_map_akropolis_8017BEFC[2];
-static GpBit2Rec    D_map_akropolis_8017BF1C[4];
-static GpBit2Rec    D_map_akropolis_8017BF5C[2];
-static GpBit2Rec    D_map_akropolis_8017BF7C[2];
-static GpBit2Rec    D_map_akropolis_8017BF9C[3];
-static GpBit2Rec    D_map_akropolis_8017BFCC[2];
-static GpBit2Rec    D_map_akropolis_8017BFEC[2];
-static GpBit2Rec    D_map_akropolis_8017C00C[2];
-static GpBit2Rec    D_map_akropolis_8017C02C[1];
-static GpBit2Rec    D_map_akropolis_8017C03C[10];
+static const char      D_map_akropolis_8017997C[12];
+static s32             D_map_akropolis_8017A9A8;
+static s32             D_map_akropolis_8017A9AC[4];
+static UiList          D_map_akropolis_8017A9C0;
+static UiObjectDesc    D_map_akropolis_8017A9E4;
+static TaskDesc        D_map_akropolis_8017AA00;
+static AreaObjectPlace D_map_akropolis_8017BE1C[6];
+static AreaObjectPlace D_map_akropolis_8017BE7C[2];
+static AreaObjectPlace D_map_akropolis_8017BE9C[5];
+static AreaObjectPlace D_map_akropolis_8017BEEC[1];
+static AreaObjectPlace D_map_akropolis_8017BEFC[2];
+static AreaObjectPlace D_map_akropolis_8017BF1C[4];
+static AreaObjectPlace D_map_akropolis_8017BF5C[2];
+static AreaObjectPlace D_map_akropolis_8017BF7C[2];
+static AreaObjectPlace D_map_akropolis_8017BF9C[3];
+static AreaObjectPlace D_map_akropolis_8017BFCC[2];
+static AreaObjectPlace D_map_akropolis_8017BFEC[2];
+static AreaObjectPlace D_map_akropolis_8017C00C[2];
+static AreaObjectPlace D_map_akropolis_8017C02C[1];
+static AreaObjectPlace D_map_akropolis_8017C03C[10];
 
 static void func_map_akropolis_80179988(u8* arg0);
 static s32  func_map_akropolis_80179FC8(s32 arg0, s32 arg1);
@@ -537,7 +537,7 @@ static GpEnemyDesc D_map_akropolis_8017A79C[1] = {
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_akropolis_8017A7AC[2] = {
+static AreaObjectPlace D_map_akropolis_8017A7AC[2] = {
     { 0x28, 0x204, 0, 1, -0x14DC, -0xB40, -0x76C },
     { 0xFFFF },
 };
@@ -1325,7 +1325,7 @@ AreaPlacement D_map_akropolis_8017BDEC[3] = {
     { AREA_PLACEMENT_END },
 };
 
-static GpBit2Rec D_map_akropolis_8017BE1C[6] = {
+static AreaObjectPlace D_map_akropolis_8017BE1C[6] = {
     { 1, 0xA0, 0, 3 },
     { 0xA, 2, 0, 1 },
     { 0x17, 2, 0, 1 },
@@ -1334,12 +1334,12 @@ static GpBit2Rec D_map_akropolis_8017BE1C[6] = {
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_akropolis_8017BE7C[2] = {
+static AreaObjectPlace D_map_akropolis_8017BE7C[2] = {
     { 2, 0x101, 0, 0x201 },
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_akropolis_8017BE9C[5] = {
+static AreaObjectPlace D_map_akropolis_8017BE9C[5] = {
     { 3, 0x102, 0, 1 },
     { 4, 0x107, 0, 1, -0x96A, -0x3F2, -0x8FC },
     { 9, 4, 0, 1, 0x654, -0x672, 0xAC8 },
@@ -1347,58 +1347,58 @@ static GpBit2Rec D_map_akropolis_8017BE9C[5] = {
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_akropolis_8017BEEC[1] = {
+static AreaObjectPlace D_map_akropolis_8017BEEC[1] = {
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_akropolis_8017BEFC[2] = {
+static AreaObjectPlace D_map_akropolis_8017BEFC[2] = {
     { 0xB, 0x104, 0, 1, 0x410, -0x960, -0x4D8 },
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_akropolis_8017BF1C[4] = {
+static AreaObjectPlace D_map_akropolis_8017BF1C[4] = {
     { 0xC, 0x3C, 0, 1 },
     { 0xD, 0x8A, 0, 1 },
     { 0xE, 7, 0, 1 },
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_akropolis_8017BF5C[2] = {
+static AreaObjectPlace D_map_akropolis_8017BF5C[2] = {
     { 0x18, 8, 0, 1 },
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_akropolis_8017BF7C[2] = {
+static AreaObjectPlace D_map_akropolis_8017BF7C[2] = {
     { 0x10, 0x65, 0, 1 },
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_akropolis_8017BF9C[3] = {
+static AreaObjectPlace D_map_akropolis_8017BF9C[3] = {
     { 0x12, 0xA9, 0, 1 },
     { 0x15, 0x9D, 0, 1 },
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_akropolis_8017BFCC[2] = {
+static AreaObjectPlace D_map_akropolis_8017BFCC[2] = {
     { 0x1C, 0x103, 0, 1, -0x19C8, -0xA, -0x1F86, 0xFCE0 },
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_akropolis_8017BFEC[2] = {
+static AreaObjectPlace D_map_akropolis_8017BFEC[2] = {
     { 0x13, 0x105, 0, 1, -0x1257, 0, -0x8FB, 0xFCE0 },
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_akropolis_8017C00C[2] = {
+static AreaObjectPlace D_map_akropolis_8017C00C[2] = {
     { 0x2F, 0x802, 0, 0x101, -0xC60, -0xC60, 0x9E0 },
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_akropolis_8017C02C[1] = {
+static AreaObjectPlace D_map_akropolis_8017C02C[1] = {
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_akropolis_8017C03C[10] = {
+static AreaObjectPlace D_map_akropolis_8017C03C[10] = {
     { 0x2D, 0x803, 0, 0x101, -0xC60, -0xC60, 0x9E0 },
     { 0x1E, 0x703, 0, 1 },
     { 0x1A, 3, 0, 1 },

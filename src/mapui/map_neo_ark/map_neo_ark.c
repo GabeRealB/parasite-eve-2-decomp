@@ -100,15 +100,15 @@
  * or at the map pictures' marker models.
  */
 
-static GpBit2Rec D_map_neo_ark_8017C790[2];
-static GpBit2Rec D_map_neo_ark_8017C7B0[14];
-static GpBit2Rec D_map_neo_ark_8017C890[2];
-static GpBit2Rec D_map_neo_ark_8017C8B0[2];
-static GpBit2Rec D_map_neo_ark_8017C8D0[4];
-static GpBit2Rec D_map_neo_ark_8017C910[2];
-static GpBit2Rec D_map_neo_ark_8017C930[4];
-static GpBit2Rec D_map_neo_ark_8017C970[2];
-static GpBit2Rec D_map_neo_ark_8017C990[2];
+static AreaObjectPlace D_map_neo_ark_8017C790[2];
+static AreaObjectPlace D_map_neo_ark_8017C7B0[14];
+static AreaObjectPlace D_map_neo_ark_8017C890[2];
+static AreaObjectPlace D_map_neo_ark_8017C8B0[2];
+static AreaObjectPlace D_map_neo_ark_8017C8D0[4];
+static AreaObjectPlace D_map_neo_ark_8017C910[2];
+static AreaObjectPlace D_map_neo_ark_8017C930[4];
+static AreaObjectPlace D_map_neo_ark_8017C970[2];
+static AreaObjectPlace D_map_neo_ark_8017C990[2];
 
 static void func_map_neo_ark_801799BC(u8* arg0);
 static s32  func_map_neo_ark_80179BE4(u32 arg0, u8 arg1, LinInterp* ramp);
@@ -1552,12 +1552,12 @@ AreaPlacement D_map_neo_ark_8017C760[3] = {
     { AREA_PLACEMENT_END },
 };
 
-static GpBit2Rec D_map_neo_ark_8017C790[2] = {
+static AreaObjectPlace D_map_neo_ark_8017C790[2] = {
     { 6, 0x124, 0, 0x301, -0x1C21, 2, 0x484, 0x4F0 },
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_neo_ark_8017C7B0[14] = {
+static AreaObjectPlace D_map_neo_ark_8017C7B0[14] = {
     { 2, 0x128, 0, 0x201 },
     { 3, 7, 0, 1 },
     { 4, 0xA7, 0, 1 },
@@ -1574,41 +1574,41 @@ static GpBit2Rec D_map_neo_ark_8017C7B0[14] = {
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_neo_ark_8017C890[2] = {
+static AreaObjectPlace D_map_neo_ark_8017C890[2] = {
     { 0x15, 0xB, 0, 1 },
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_neo_ark_8017C8B0[2] = {
+static AreaObjectPlace D_map_neo_ark_8017C8B0[2] = {
     { 7, 7, 0, 1 },
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_neo_ark_8017C8D0[4] = {
+static AreaObjectPlace D_map_neo_ark_8017C8D0[4] = {
     { 1, 0x80D, 0, 1 },
     { 0x16, 0x3D, 0, 1 },
     { 0x17, 0xE, 0, 1 },
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_neo_ark_8017C910[2] = {
+static AreaObjectPlace D_map_neo_ark_8017C910[2] = {
     { 0x18, 0x3C, 0, 1 },
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_neo_ark_8017C930[4] = {
+static AreaObjectPlace D_map_neo_ark_8017C930[4] = {
     { 0x2E, 0x80E, 0, 1 },
     { 8, 0xAA, 0, 1 },
     { 9, 0x3D, 0, 1 },
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_neo_ark_8017C970[2] = {
+static AreaObjectPlace D_map_neo_ark_8017C970[2] = {
     { 0x14, 0x36, 0, 1 },
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_neo_ark_8017C990[2] = {
+static AreaObjectPlace D_map_neo_ark_8017C990[2] = {
     { 0xA, 0xA1, 0, 3 },
     { 0xFFFF },
 };

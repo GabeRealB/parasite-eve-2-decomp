@@ -108,34 +108,34 @@ GpItemA0 Gp_StackLimits[32] = {
 
 s32 Gp_LookupBit2Item(s32 arg0)
 {
-    GpBit2List* lists;
-    GpBit2Rec*  rec;
-    u16*        tail;
-    GpItemA0*   attrs;
-    s32         idx;
-    s32         matched;
-    u16         item;
-    u16         extra;
-    s32         term;
-    s32         found;
+    GpBit2List*      lists;
+    AreaObjectPlace* rec;
+    u16*             tail;
+    GpItemA0*        attrs;
+    s32              idx;
+    s32              matched;
+    u16              item;
+    u16              extra;
+    s32              term;
+    s32              found;
 
     idx   = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage;
     lists = Gp_Bit2Banks[idx].field_0;
     found = 0;
     if (lists != NULL) {
         if (lists->field_0.sentinel != 0x7FFFFFFF) {
-            term = 0xFFFF;
+            term = AREA_OBJECT_PLACE_END;
             do {
                 rec     = lists->field_0.records;
                 matched = 0;
                 if (rec != NULL) {
-                    if (rec->field_0 != term) {
+                    if (rec->flagIndex != term) {
                         attrs = Gp_StackLimits;
-                        tail  = &rec->field_2;
+                        tail  = &rec->kind;
                         do {
-                            if (rec->field_0 == arg0) {
+                            if (rec->flagIndex == arg0) {
                                 item          = *tail;
-                                extra         = PARENT_OF(tail, GpBit2Rec, field_2)->field_6;
+                                extra         = PARENT_OF(tail, AreaObjectPlace, kind)->state;
                                 Gp_PubItemId  = arg0;
                                 Gp_PubItemLoc = item;
                                 D_80114DDE    = extra;
@@ -167,8 +167,8 @@ s32 Gp_LookupBit2Item(s32 arg0)
                                 break;
                             }
                             rec++;
-                            tail = &PARENT_OF(tail, GpBit2Rec, field_2)[1].field_2;
-                        } while (rec->field_0 != term);
+                            tail = &PARENT_OF(tail, AreaObjectPlace, kind)[1].kind;
+                        } while (rec->flagIndex != term);
                     }
                 }
                 if (matched == 1) {

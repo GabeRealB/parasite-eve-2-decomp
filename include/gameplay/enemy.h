@@ -93,7 +93,7 @@ typedef struct Enemy {
     Task*                  task;                // Owning task; the one whose `spawnArg2` is this object
     MATRIX*                field_4;             // Model-part matrix stored at spawn. Nothing reads it back; role unproven
     u16                    placeKey;            // Placement identity: area, stage, then the placement index in the high nibble (`ENEMY_PLACE_INDEX_SHIFT`)
-    u16                    workType;            // Spawn kind: bank in the high byte, subtype in the low. `ENEMY_WORK_PLAIN`, or the placement record's own type word
+    u16                    workType;            // Spawn kind: bank in the high byte, subtype in the low. `ENEMY_WORK_PLAIN`, or `AreaObjectPlace.kind`
     s32                    waitTicks;           // Frames left before an enemy with no actor body is destroyed (`ENEMY_WAIT_FRAMES` at the start)
     WorldTargetNode        node;                // Tracked-target entry. Lock-on, radar, area scans, the HP readout and damage reactions reach the enemy through it
     GfxCoord*              coord;               // Coordinate the body sits at, usually one of the actor's model parts

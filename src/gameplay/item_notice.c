@@ -19,11 +19,11 @@
 #include "main/wipsys.h"
 
 /// `Task::spawnArg2` payload of `func_800B65B0`, the pickup-confirm task.
-/// field_0 is the `GpBit2Rec` item id passed to `Gp_LookupBit2Item`;
+/// field_0 is the `AreaObjectPlace` flag index passed to `Gp_LookupBit2Item`;
 /// field_2 is set to 1 when the task finishes, field_3 to 1 when the player
 /// confirmed (`UiObject.resultValue == 0x33`), and field_4 is the spawn mode
-/// (0 when `D_80114DDE` bit 9 is set, else 1; passed inverted to
-/// `Ui_SpawnFromDesc`).
+/// (0 when `D_80114DDE` has `AREA_OBJECT_PLACE_PROMPT` set, else 1; passed
+/// inverted to `Ui_SpawnFromDesc`).
 typedef struct _GpPickupWork {
     /* 0x0 */ u16 field_0;
     /* 0x2 */ u8  field_2;
@@ -97,7 +97,7 @@ void func_800B65B0(Task* task)
                 break;
         }
         work->field_3 = 0;
-        if (D_80114DDE & 0x200) {
+        if (D_80114DDE & AREA_OBJECT_PLACE_PROMPT) {
             work->field_4 = 0;
         } else {
             work->field_4 = 1;

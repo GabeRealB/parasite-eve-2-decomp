@@ -132,26 +132,26 @@
 
 /// The overlay's own flagged item and enemy placement lists, which the
 /// `GpBit2List` table names before they are defined.
-static GpBit2Rec D_map_shelter_8017B6D8[2];
-static GpBit2Rec D_map_shelter_8017B6F8[3];
-static GpBit2Rec D_map_shelter_8017B728[5];
-static GpBit2Rec D_map_shelter_8017B778[3];
-static GpBit2Rec D_map_shelter_8017B7A8[3];
-static GpBit2Rec D_map_shelter_8017B7D8[2];
-static GpBit2Rec D_map_shelter_8017B7F8[5];
-static GpBit2Rec D_map_shelter_8017B848[2];
-static GpBit2Rec D_map_shelter_8017B868[3];
-static GpBit2Rec D_map_shelter_8017B898[15];
-static GpBit2Rec D_map_shelter_8017B988[1];
-static GpBit2Rec D_map_shelter_8017B998[2];
-static GpBit2Rec D_map_shelter_8017B9B8[3];
-static GpBit2Rec D_map_shelter_8017B9E8[3];
-static GpBit2Rec D_map_shelter_8017BA18[5];
-static GpBit2Rec D_map_shelter_8017BA68[4];
-static GpBit2Rec D_map_shelter_8017BAA8[2];
-static GpBit2Rec D_map_shelter_8017BAC8[2];
-static GpBit2Rec D_map_shelter_8017BAE8[4];
-static GpBit2Rec D_map_shelter_8017BB28[3];
+static AreaObjectPlace D_map_shelter_8017B6D8[2];
+static AreaObjectPlace D_map_shelter_8017B6F8[3];
+static AreaObjectPlace D_map_shelter_8017B728[5];
+static AreaObjectPlace D_map_shelter_8017B778[3];
+static AreaObjectPlace D_map_shelter_8017B7A8[3];
+static AreaObjectPlace D_map_shelter_8017B7D8[2];
+static AreaObjectPlace D_map_shelter_8017B7F8[5];
+static AreaObjectPlace D_map_shelter_8017B848[2];
+static AreaObjectPlace D_map_shelter_8017B868[3];
+static AreaObjectPlace D_map_shelter_8017B898[15];
+static AreaObjectPlace D_map_shelter_8017B988[1];
+static AreaObjectPlace D_map_shelter_8017B998[2];
+static AreaObjectPlace D_map_shelter_8017B9B8[3];
+static AreaObjectPlace D_map_shelter_8017B9E8[3];
+static AreaObjectPlace D_map_shelter_8017BA18[5];
+static AreaObjectPlace D_map_shelter_8017BA68[4];
+static AreaObjectPlace D_map_shelter_8017BAA8[2];
+static AreaObjectPlace D_map_shelter_8017BAC8[2];
+static AreaObjectPlace D_map_shelter_8017BAE8[4];
+static AreaObjectPlace D_map_shelter_8017BB28[3];
 
 /// The Shelter resolver, which rooms call by this name.
 #define roomVariantResolveShelter func_map_shelter_80179A04
@@ -1273,18 +1273,18 @@ WorldCollisionSurfaceProperties** D_map_shelter_8017B614[49] = {
     D_shelter_r49_8017DDF8,
 };
 
-static GpBit2Rec D_map_shelter_8017B6D8[2] = {
+static AreaObjectPlace D_map_shelter_8017B6D8[2] = {
     { 0x1B, 0x705, 0, 1 },
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_shelter_8017B6F8[3] = {
+static AreaObjectPlace D_map_shelter_8017B6F8[3] = {
     { 6, 0x12C, 0, 0x201 },
     { 8, 0x84, 0, 1 },
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_shelter_8017B728[5] = {
+static AreaObjectPlace D_map_shelter_8017B728[5] = {
     { 0xC, 0xA0, 0, 3 },
     { 0x2F, 0x807, 0, 1 },
     { 4, 0x120, 0, 1 },
@@ -1292,24 +1292,24 @@ static GpBit2Rec D_map_shelter_8017B728[5] = {
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_shelter_8017B778[3] = {
+static AreaObjectPlace D_map_shelter_8017B778[3] = {
     { 1, 0x11F, 0, 0x201 },
     { 0x37, 0x20D, 0, 0x201 },
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_shelter_8017B7A8[3] = {
+static AreaObjectPlace D_map_shelter_8017B7A8[3] = {
     { 0xD, 0xA0, 0, 3 },
     { 0x32, 0x3D, 0, 1 },
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_shelter_8017B7D8[2] = {
+static AreaObjectPlace D_map_shelter_8017B7D8[2] = {
     { 2, 0x121, 0, 0x201 },
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_shelter_8017B7F8[5] = {
+static AreaObjectPlace D_map_shelter_8017B7F8[5] = {
     { 0xF, 0x8D, 0, 1 },
     { 0x11, 0xA0, 0, 3 },
     { 0x12, 0xA1, 0, 3 },
@@ -1317,18 +1317,18 @@ static GpBit2Rec D_map_shelter_8017B7F8[5] = {
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_shelter_8017B848[2] = {
+static AreaObjectPlace D_map_shelter_8017B848[2] = {
     { 0x14, 0x127, 0, 1, 0x12C, -0x258, 0xC80, 0xD10 },
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_shelter_8017B868[3] = {
+static AreaObjectPlace D_map_shelter_8017B868[3] = {
     { 0x1C, 0x708, 0, 1, 0x1418, 0, 0x32DD, 0x800 },
     { 0x2E, 0x808, 0, 1 },
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_shelter_8017B898[15] = {
+static AreaObjectPlace D_map_shelter_8017B898[15] = {
     { 9, 0x121, 0, 0x201 },
     { 0xA, 0x122, 0, 0x201 },
     { 0xB, 0x123, 0, 0x201 },
@@ -1346,28 +1346,28 @@ static GpBit2Rec D_map_shelter_8017B898[15] = {
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_shelter_8017B988[1] = {
+static AreaObjectPlace D_map_shelter_8017B988[1] = {
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_shelter_8017B998[2] = {
+static AreaObjectPlace D_map_shelter_8017B998[2] = {
     { 3, 0x122, 0, 0x201 },
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_shelter_8017B9B8[3] = {
+static AreaObjectPlace D_map_shelter_8017B9B8[3] = {
     { 0x16, 0x3D, 0, 1 },
     { 0x33, 0x3E, 0, 1 },
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_shelter_8017B9E8[3] = {
+static AreaObjectPlace D_map_shelter_8017B9E8[3] = {
     { 0x1E, 0x70A, 0, 1, 0xC86, 0, 0x1217, 0x988 },
     { 0x2C, 0x80A, 0, 1 },
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_shelter_8017BA18[5] = {
+static AreaObjectPlace D_map_shelter_8017BA18[5] = {
     { 0x18, 0x129, 0, 1, 0x834, -0x352, -0xA28, 0x600 },
     { 0x19, 0xA0, 0, 3 },
     { 0x17, 4, 0, 1 },
@@ -1375,31 +1375,31 @@ static GpBit2Rec D_map_shelter_8017BA18[5] = {
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_shelter_8017BA68[4] = {
+static AreaObjectPlace D_map_shelter_8017BA68[4] = {
     { 0x1A, 0x37, 0, 0x101, 0xD7A, 0, -0x17C0, 0x3C0 },
     { 0x1F, 0xA1, 0, 3 },
     { 0x30, 0xA0, 0, 3 },
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_shelter_8017BAA8[2] = {
+static AreaObjectPlace D_map_shelter_8017BAA8[2] = {
     { 0x2B, 0x80B, 0, 1 },
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_shelter_8017BAC8[2] = {
+static AreaObjectPlace D_map_shelter_8017BAC8[2] = {
     { 0x31, 7, 0, 1 },
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_shelter_8017BAE8[4] = {
+static AreaObjectPlace D_map_shelter_8017BAE8[4] = {
     { 7, 0x12D, 0, 0x201 },
     { 0x22, 0x125, 0, 0x200 },
     { 0x2A, 0x80C, 0, 1 },
     { 0xFFFF },
 };
 
-static GpBit2Rec D_map_shelter_8017BB28[3] = {
+static AreaObjectPlace D_map_shelter_8017BB28[3] = {
     { 0x20, 0x20B, 0, 1 },
     { 0x21, 0x20C, 0, 1 },
     { 0xFFFF },

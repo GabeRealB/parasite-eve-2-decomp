@@ -411,9 +411,7 @@ static void func_800B6094(Task* task);
 /// The 2-bit state of entry `arg0` in the current stage's `Gp_Bit2Banks` flags.
 static inline s32 _gpGetCurBit2Flag(s32 arg0);
 
-/// Finds the record in the 0xFFFF-terminated `desc` table whose id is
-/// `place->field_2` and spawns that enemy at `place`.
-static inline void _gpSpawnPlace(GpEnemyDesc* desc, GpBit2Rec* place);
+static inline void _gpSpawnPlace(GpEnemyDesc* desc, AreaObjectPlace* place);
 
 /// Inline form of `Gp_GetRelatedQty`: the most of a related item weapon
 /// `item` can hold, from bank `bank`'s table, or 0 for a non-weapon id.
@@ -4021,9 +4019,8 @@ static inline s32 _gpGetCurBit2Flag(s32 arg0)
     return word;
 }
 
-/// Finds the record in the 0xFFFF-terminated `desc` table whose id is
-/// `place->field_2` and spawns that enemy at `place`.
-static inline void _gpSpawnPlace(GpEnemyDesc* desc, GpBit2Rec* place)
+/// Spawns the enemy descriptor whose id equals `place->kind`, at that place.
+static inline void _gpSpawnPlace(GpEnemyDesc* desc, AreaObjectPlace* place)
 {
     Enemy*     enemy;
     Task*      task;
@@ -4033,21 +4030,21 @@ static inline void _gpSpawnPlace(GpEnemyDesc* desc, GpBit2Rec* place)
 
     id = desc->field_0;
     while (id != 0xFFFF) {
-        if (id == place->field_2) {
+        if (id == place->kind) {
             enemy = Gp_SpawnEnemyFromTable(&desc->field_4, 0, desc->field_0, NULL);
             if (enemy != NULL) {
                 task = enemy->task;
                 if (task->bodyKind != TASK_BODY_NONE) {
                     extra               = task->extra.tmd;
                     coord               = extra->coords;
-                    enemy->placeKey     = place->field_0 | (place->field_4 << ENEMY_PLACE_STAGE_SHIFT);
-                    enemy->workType     = place->field_2;
-                    coord->coord.t[0]   = place->field_8;
-                    coord->coord.t[1]   = place->field_A;
-                    coord->coord.t[2]   = place->field_C;
-                    coord->param.rot.vy = place->field_E;
+                    enemy->placeKey     = place->flagIndex | (place->placeKeyHigh << ENEMY_PLACE_STAGE_SHIFT);
+                    enemy->workType     = place->kind;
+                    coord->coord.t[0]   = place->x;
+                    coord->coord.t[1]   = place->y;
+                    coord->coord.t[2]   = place->z;
+                    coord->param.rot.vy = place->yaw;
                     if (coord->param.rot.vy != 0) {
-                        gfxRotMatrixY(&coord->coord, (s16)place->field_E, 1);
+                        gfxRotMatrixY(&coord->coord, (s16)place->yaw, 1);
                     }
                     coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 }
@@ -4058,11 +4055,6 @@ static inline void _gpSpawnPlace(GpEnemyDesc* desc, GpBit2Rec* place)
         id = desc->field_0;
     }
 }
-
-/// Walks `Gp_Bit2Banks[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area / stage]` for a `GpBit2Rec`
-/// whose `field_0` equals `arg0`. If the packed 2-bit flag at
-/// `Gp_Bit2Banks[gGameSession->location.loc.stage].field_4` is non-zero, spawns that
-/// placement via `Gp_SpawnEnemyFromTable` (same coord/yaw writeback as `Gp_SpawnPlaces`).
 
 /// Inline form of `Gp_GetRelatedQty`: the most of a related item weapon
 /// `item` can hold, from bank `bank`'s table, or 0 for a non-weapon id.

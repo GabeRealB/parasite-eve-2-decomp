@@ -5,28 +5,45 @@
 
 #include "main/task_types.h"
 
-/// 16-byte record of a room's `GpBit2List.field_0` list, ended by a `field_0`
-/// of 0xFFFF. The same list serves two readers. The 2-bit bank code
-/// (`Gp_ApplyBit2List` / `Gp_ApplyBit2Bank` / `Gp_LookupBit2Item`) keys on
-/// `field_0`, publishes `field_2` as the item id to `Gp_PubItemLoc` and `field_6`
-/// to `D_80114DDE`, and writes the low 2 bits of `field_6` into the bank. The
-/// placement spawn (`Gp_SpawnAtPlace` / `Gp_SpawnPlaces` /
-/// `Gp_SpawnPlaceById`) packs `field_0` and `field_4` into `Enemy.placeKey` as
-/// `field_0 | (field_4 << 8)`, spawns the room's `GpEnemyDesc` whose id is
-/// `field_2` and copies `field_2` to `Enemy.workType`; `field_8` / `field_A` / `field_C` are the world X/Y/Z
-/// (`GfxCoord.coord.t`) and `field_E` the yaw stored at coord +0x46 and passed to
-/// `gfxRotMatrixY` when non-zero.
-typedef struct _GpBit2Rec {
-    /* 0x00 */ u16 field_0;
-    /* 0x02 */ u16 field_2;
-    /* 0x04 */ u16 field_4;
-    /* 0x06 */ u16 field_6;
-    /* 0x08 */ s16 field_8;
-    /* 0x0A */ s16 field_A;
-    /* 0x0C */ s16 field_C;
-    /* 0x0E */ u16 field_E;
-} GpBit2Rec;
-STATIC_ASSERT_SIZEOF(GpBit2Rec, 0x10);
+/// `flagIndex` value that ends an `AreaObjectPlace` list.
+enum { AREA_OBJECT_PLACE_END = 0xFFFF };
+
+/// Low two bits of `AreaObjectPlace.state`, the slot's initial flag value.
+enum { AREA_OBJECT_PLACE_STATE_MASK = 3 };
+
+/// Bit 9 of `AreaObjectPlace.state`.
+///
+/// Published with the rest of `state`. The pickup prompt receives spawn
+/// argument 1 when the bit is set and 0 when it is clear; the ordinary
+/// pickup prompt collects the object immediately for argument 1.
+enum { AREA_OBJECT_PLACE_PROMPT = 0x200 };
+
+/// One object in a room's flag-bank list, ended by `AREA_OBJECT_PLACE_END`.
+///
+/// The record seeds that slot's packed 2-bit flag and, when `kind` matches
+/// an enemy descriptor, supplies the spawn's place key, work type and
+/// transform. `flagIndex` selects the flag — sixteen 2-bit values per word,
+/// the low nibble the pair and the upper bits the word — and is stored in
+/// the low half of the enemy place key. `placeKeyHigh` is shifted into that
+/// key at bit 8, where the key keeps its stage and placement index; the
+/// stored tables leave it zero. `kind` is a bank in the high byte and a
+/// subtype in the low. Bank 0 is published as an item id, banks 0 and 1 open
+/// the ordinary pickup prompt, and bank 8 is stored as the save point. The
+/// spawn matches the whole word against the room's enemy-descriptor ids and
+/// copies it to the enemy's work type. `state` contributes its low two bits
+/// as the flag's initial value. Bit 8 of `state` is stored and published;
+/// nothing reads it.
+typedef struct {
+    u16 flagIndex;    // Flag-bank index and place-key low half. AREA_OBJECT_PLACE_END ends the list
+    u16 kind;         // Bank in the high byte, subtype in the low
+    u16 placeKeyHigh; // Place key at bit 8 (stage, then placement index). Stored tables are zero
+    u16 state;        // Bits 0..1 initial flag. Bit 9 is AREA_OBJECT_PLACE_PROMPT. Bit 8 is unread
+    s16 x;            // World X, in game-coordinate units
+    s16 y;            // World Y, in game-coordinate units
+    s16 z;            // World Z, in game-coordinate units
+    u16 yaw;          // Yaw, 0x1000 units per turn. Zero leaves the rotation unapplied
+} AreaObjectPlace;
+STATIC_ASSERT_SIZEOF(AreaObjectPlace, 0x10);
 
 /// Spawn header for `Gp_SpawnAtPlace` / `Gp_SpawnPlaces`. `field_0` is
 /// `Task_SpawnFromTable` arg2 (0xFFFF terminator); `field_4` is the
@@ -39,7 +56,7 @@ typedef struct _GpEnemyDesc {
 STATIC_ASSERT_SIZEOF(GpEnemyDesc, 0x10);
 
 /// 8-byte list node walked by `Gp_ApplyBit2List` / `Gp_ApplyBit2Bank` /
-/// `Gp_LookupBit2Item`. The first word holds either a `GpBit2Rec` list
+/// `Gp_LookupBit2Item`. The first word holds either an `AreaObjectPlace` list
 /// (NULL skips) or an integer sentinel: -1 for `Gp_ApplyBit2List` /
 /// `Gp_ApplyBit2Bank`, 0x7FFFFFFF for `Gp_LookupBit2Item`.
 /// `Gp_SpawnPlaces` / `Gp_SpawnPlaceById` read field_4 as the room's
@@ -47,8 +64,8 @@ STATIC_ASSERT_SIZEOF(GpEnemyDesc, 0x10);
 /// `Gp_Bit2Banks[i].field_0` points at a table of these.
 typedef struct _GpBit2List {
     /* 0x00 */ union {
-        GpBit2Rec* records;
-        s32        sentinel;
+        AreaObjectPlace* records;
+        s32              sentinel;
     } field_0;
     /* 0x04 */ GpEnemyDesc* field_4;
 } GpBit2List;
