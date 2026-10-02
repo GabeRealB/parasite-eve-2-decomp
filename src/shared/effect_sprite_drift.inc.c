@@ -7,8 +7,8 @@
  * drawers when it does not use effectSpriteDrawBanked / effectSpriteDrawRotated.
  * Shelter R48 enables EFFECT_SPRITE_DRIFT_SIGN_BANK; see its definition for
  * the spawn-argument and suspended-draw contract.
- * EFFECT_SPRITE_DRIFT_STEADY_RISE 1 rises at a
- * constant rate for every kind (Shelter R48). */
+ * Shelter R48 enables EFFECT_SPRITE_DRIFT_FIXED_NEGATIVE_Y_ACCELERATION;
+ * see its definition for the per-drawer acceleration and update contract. */
 
 #ifndef EFFECT_SPRITE_DRIFT_TASK
 #define EFFECT_SPRITE_DRIFT_TASK effectSpriteDriftTask
@@ -156,15 +156,14 @@ void EFFECT_SPRITE_DRIFT_TASK(Task* task)
                 coord->coord.t[1]  += work->move.vy;
                 coord->coord.t[2]  += work->move.vz;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
-#if EFFECT_SPRITE_DRIFT_STEADY_RISE
-                work->move.vy -= 2;
-#else
+#if !EFFECT_SPRITE_DRIFT_FIXED_NEGATIVE_Y_ACCELERATION
                 if (((task->spawnArg1.value >> 24) & 0xF) == 7) {
                     work->move.vy += work->age / 10;
-                } else {
+                } else
+#endif
+                {
                     work->move.vy -= 2;
                 }
-#endif
             }
             if ((work->age % work->period) == 0) {
                 work->index++;
@@ -180,15 +179,14 @@ void EFFECT_SPRITE_DRIFT_TASK(Task* task)
                 coord->coord.t[1]  += work->move.vy;
                 coord->coord.t[2]  += work->move.vz;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
-#if EFFECT_SPRITE_DRIFT_STEADY_RISE
-                work->move.vy -= 1;
-#else
+#if !EFFECT_SPRITE_DRIFT_FIXED_NEGATIVE_Y_ACCELERATION
                 if (((task->spawnArg1.value >> 24) & 0xF) == 7) {
                     work->move.vy += work->age / 10;
-                } else {
+                } else
+#endif
+                {
                     work->move.vy -= 1;
                 }
-#endif
             }
             if ((work->age % work->period) == 0) {
                 work->index++;
@@ -203,6 +201,6 @@ void EFFECT_SPRITE_DRIFT_TASK(Task* task)
 #undef EFFECT_SPRITE_DRIFT_TASK
 #undef EFFECT_SPRITE_DRIFT_PAUSED_DRAW_A_UNBANKED
 #undef EFFECT_SPRITE_DRIFT_SIGN_BANK
-#undef EFFECT_SPRITE_DRIFT_STEADY_RISE
+#undef EFFECT_SPRITE_DRIFT_FIXED_NEGATIVE_Y_ACCELERATION
 #undef EFFECT_SPRITE_DRIFT_DRAW_A
 #undef EFFECT_SPRITE_DRIFT_DRAW_B

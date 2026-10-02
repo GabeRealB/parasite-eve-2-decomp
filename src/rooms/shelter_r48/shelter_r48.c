@@ -2813,8 +2813,19 @@ void waterDrawTileU16(GfxCoord* arg0, s32 arg1, s32 arg2)
 /// `EFFECT_SPRITE_DRIFT_PAUSED_DRAW_A_UNBANKED` overrides suspended selection.
 /// The fragment tests this configuration with #if/#elif and undefines it
 /// after inclusion.
-#define EFFECT_SPRITE_DRIFT_SIGN_BANK   1
-#define EFFECT_SPRITE_DRIFT_STEADY_RISE 1
+#define EFFECT_SPRITE_DRIFT_SIGN_BANK 1
+/// Applies fixed negative-Y acceleration to every moving drift sprite.
+///
+/// Define as integer 1 before including `effect_sprite_drift.inc.c`, as Shelter
+/// R48 does; 0 or undefined retains movement kind 7's age-dependent positive-Y
+/// acceleration. Kind is bits 24..27 of `Task::spawnArg1.value`. With 1, both
+/// drawer states ignore kind: state 1 subtracts 2 from Y velocity per moving
+/// update, and state 2 subtracts 1 (coordinate units per update squared).
+/// Position advances with the current velocity before this signed-halfword
+/// velocity update. Initialization, suspension and sprites with `EffectWork::step`
+/// zero do not accelerate. The fragment tests this switch with #if and undefines
+/// it after inclusion.
+#define EFFECT_SPRITE_DRIFT_FIXED_NEGATIVE_Y_ACCELERATION 1
 #include "../../shared/effect_sprite_drift.inc.c"
 
 static void func_shelter_r48_80180804(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
