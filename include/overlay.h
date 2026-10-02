@@ -438,13 +438,18 @@ static __inline__ s16 overlayBearingXY(SVECTOR3* p, SVECTOR3* eye)
     return ratan2(d->vx, d->vy);
 }
 
-/// One node of a patrol walker's node table: a position the walker can steer
-/// for.
-typedef struct OverlayWalkerNode {
-    s16  x;
-    s16  y;
-    s16  z;
-    byte pad_6[0x2];
+/// One node of the Boss Stranger's patrol table: a world position the walker
+/// steers toward.
+///
+/// The coordinates are signed game coordinates. Code that copies a live
+/// translation keeps its low halfword, and the arrival and nearest-node tests
+/// subtract that same halfword. The trailing bytes are never read; they make
+/// each node eight bytes.
+typedef struct {
+    s16  x;          // World X, in signed game-coordinate units
+    s16  y;          // World Y, in signed game-coordinate units
+    s16  z;          // World Z, in signed game-coordinate units
+    byte pad_6[0x2]; // Unread; makes each node eight bytes
 } OverlayWalkerNode;
 STATIC_ASSERT_SIZEOF(OverlayWalkerNode, 0x8);
 
