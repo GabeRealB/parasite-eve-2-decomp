@@ -724,18 +724,135 @@ WorldCollisionTrigger D_dryfield_night_junk_yard_80183778[10] = {
     { NULL, NULL, NULL, { 0x343F, -1345, 1280, 0 }, { { -1090, -2352, 2426, 0 }, { 1090, -2352, -2426, 0 }, { -1090, 2352, 2426, 0 }, { 1090, 2352, -2426, 0 } }, { -3741, 0, -1681, 0 }, { 0, 0, 4096, 0 }, 3547, 0, 4, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCoordPointLight D_dryfield_night_junk_yard_80183A70[7] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -340, -1140, 4782 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1121, 3124 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9395, -1941, 3919 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4016, 3761, 4096 }, { 0, 0 } }, 921, 2558 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x5931, -2202, 4970 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1702, 4769 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x5336, -2180, 1052 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3552, 2054 }, { 0, 0 } }, 0, 1807 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3402, -1820, 321 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3555, 3695, 4096 }, { 0, 0 } }, 1162, 4860 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x4423, -4059, 6797 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1706, 2302, 2709 }, { 0, 0 } }, 1980, 0x3346 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4863, -4059, 6797 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1706, 2302, 2709 }, { 0, 0 } }, 1980, 0x3346 },
+/// Authored point lights for Dryfield's nighttime junk yard, contributing in every view.
+///
+/// Positions and falloff radii use integer world units; RGB intensity uses `ONE` as 1.0.
+/// The room light collection borrows the full array while this overlay is loaded.
+/// Entries remain writable for view parenting, transform composition and attenuation queries.
+static WorldCoordPointLight _gDryfieldNightJunkYardPointLights[] = {
+    {
+        .head = {
+            .transform  = { .lighting = {
+                                .composeStamp = GRAPHICS_COORD_DIRTY,
+                                .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -340, -1140, 4782 } },
+                                .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                                .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                                .unknown_46   = { 0, 0, 0, 0 },
+                                .attenuation  = 0,
+                                .parent       = NULL,
+                           } },
+            .color      = { ONE, ONE, ONE },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 1121,
+        .outer = 3124,
+    },
+    {
+        .head = {
+            .transform  = { .lighting = {
+                                .composeStamp = GRAPHICS_COORD_DIRTY,
+                                .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 9395, -1941, 3919 } },
+                                .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                                .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                                .unknown_46   = { 0, 0, 0, 0 },
+                                .attenuation  = 0,
+                                .parent       = NULL,
+                           } },
+            .color      = { 4016, 3761, ONE },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 921,
+        .outer = 2558,
+    },
+    {
+        .head = {
+            .transform  = { .lighting = {
+                                .composeStamp = GRAPHICS_COORD_DIRTY,
+                                .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x5931, -2202, 4970 } },
+                                .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                                .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                                .unknown_46   = { 0, 0, 0, 0 },
+                                .attenuation  = 0,
+                                .parent       = NULL,
+                           } },
+            .color      = { ONE, ONE, ONE },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 1702,
+        .outer = 4769,
+    },
+    {
+        .head = {
+            .transform  = { .lighting = {
+                                .composeStamp = GRAPHICS_COORD_DIRTY,
+                                .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x5336, -2180, 1052 } },
+                                .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                                .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                                .unknown_46   = { 0, 0, 0, 0 },
+                                .attenuation  = 0,
+                                .parent       = NULL,
+                           } },
+            .color      = { ONE, 3552, 2054 },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 0,
+        .outer = 1807,
+    },
+    {
+        .head = {
+            .transform  = { .lighting = {
+                                .composeStamp = GRAPHICS_COORD_DIRTY,
+                                .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3402, -1820, 321 } },
+                                .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                                .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                                .unknown_46   = { 0, 0, 0, 0 },
+                                .attenuation  = 0,
+                                .parent       = NULL,
+                           } },
+            .color      = { 3555, 3695, ONE },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 1162,
+        .outer = 4860,
+    },
+    {
+        .head = {
+            .transform  = { .lighting = {
+                                .composeStamp = GRAPHICS_COORD_DIRTY,
+                                .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x4423, -4059, 6797 } },
+                                .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                                .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                                .unknown_46   = { 0, 0, 0, 0 },
+                                .attenuation  = 0,
+                                .parent       = NULL,
+                           } },
+            .color      = { 1706, 2302, 2709 },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 1980,
+        .outer = 0x3346,
+    },
+    {
+        .head = {
+            .transform  = { .lighting = {
+                                .composeStamp = GRAPHICS_COORD_DIRTY,
+                                .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4863, -4059, 6797 } },
+                                .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                                .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                                .unknown_46   = { 0, 0, 0, 0 },
+                                .attenuation  = 0,
+                                .parent       = NULL,
+                           } },
+            .color      = { 1706, 2302, 2709 },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 1980,
+        .outer = 0x3346,
+    },
 };
 
 WorldCoordRoomLights D_dryfield_night_junk_yard_80183D10[1] = {
-    { 0, NULL, ARRAY_SIZE(D_dryfield_night_junk_yard_80183A70), D_dryfield_night_junk_yard_80183A70, 0, NULL },
+    { 0, NULL, ARRAY_SIZE(_gDryfieldNightJunkYardPointLights), _gDryfieldNightJunkYardPointLights, 0, NULL },
 };
 
 WorldCollisionTrigger D_dryfield_night_junk_yard_80183D28[20] = {
