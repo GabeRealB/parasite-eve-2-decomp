@@ -4092,8 +4092,9 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
 
 #include "../../shared/glow_draw_flame_star.inc.c"
 
-#define SPRITE_QUAD_SCALE      55
-#define SPRITE_QUAD_PRIM_FIRST 1
+#define SPRITE_QUAD_SCALE 55
+/// Reserves a flicker packet even when the GTE rejects the quad's projection.
+#define SPRITE_QUAD_RESERVE_BEFORE_PROJECTION_CHECK 1
 #define SPRITE_QUAD_ODD_LOOK(p)   \
     setRGB0(p, 0xC0, 0x60, 0x40); \
     SPRITE_QUAD_CORE_CELL(p);     \

@@ -4,11 +4,21 @@
  * strip (tpage 0x29, v 0xC8-0xFF) - SPRITE_QUAD_ODD_LOOK(prim) and
  * SPRITE_QUAD_EVEN_LOOK(prim), statements the including unit defines from
  * SPRITE_QUAD_CORE_CELL / SPRITE_QUAD_RIM_CELL plus its own tint and blend
- * flags. SPRITE_QUAD_PRIM_FIRST 1 takes the primitive before the projection is
- * checked. */
+ * flags. */
 
-#ifndef SPRITE_QUAD_PRIM_FIRST
-#define SPRITE_QUAD_PRIM_FIRST 0
+#ifndef SPRITE_QUAD_RESERVE_BEFORE_PROJECTION_CHECK
+/// Selects when a flicker draw reserves and initializes its `POLY_FT4` packet.
+///
+/// Bind to an integer preprocessor expression before including this fragment:
+/// 0 (default) reserves only after the GTE FLAG word accepts the projection;
+/// nonzero reserves before reading FLAG, so even a rejected projection advances
+/// `gGpuPrimCursor` by one `POLY_FT4` and initializes the packet header. Rejected
+/// packets are never linked into the ordering table or reclaimed by this draw.
+/// The frame's packet arena must have room for every reservation.
+///
+/// `combustion` and `energyball` use the default; `dryfield_dilapidated_house`
+/// binds 1. This fragment undefines the binding after defining its drawer.
+#define SPRITE_QUAD_RESERVE_BEFORE_PROJECTION_CHECK 0
 #endif
 
 static void spriteQuadDrawFlicker(GfxCoord* coord, s16 frame, s16 size, s16 angle)
@@ -26,8 +36,8 @@ static void spriteQuadDrawFlicker(GfxCoord* coord, s16 frame, s16 size, s16 angl
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->worldPoint);
     gte_rtps();
-#if SPRITE_QUAD_PRIM_FIRST
-    /* taken while the GTE projects, before its flag is read: a dropped sprite still uses its slot */
+#if SPRITE_QUAD_RESERVE_BEFORE_PROJECTION_CHECK
+    // Rejected projections still consume a packet; only accepted ones are linked.
     prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setPolyFT4(prim);
@@ -37,7 +47,7 @@ static void spriteQuadDrawFlicker(GfxCoord* coord, s16 frame, s16 size, s16 angl
     if (block->projectionFlags >= 0) {
         gte_stszotz(&block->depth);
         block->depth++;
-#if !SPRITE_QUAD_PRIM_FIRST
+#if !SPRITE_QUAD_RESERVE_BEFORE_PROJECTION_CHECK
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setPolyFT4(prim);
@@ -69,5 +79,5 @@ static void spriteQuadDrawFlicker(GfxCoord* coord, s16 frame, s16 size, s16 angl
 
 #undef SPRITE_QUAD_ODD_LOOK
 #undef SPRITE_QUAD_EVEN_LOOK
-#undef SPRITE_QUAD_PRIM_FIRST
+#undef SPRITE_QUAD_RESERVE_BEFORE_PROJECTION_CHECK
 #undef SPRITE_QUAD_SCALE
