@@ -59,7 +59,7 @@
 
 /// 0x2C-byte scratch frame `func_actor_110600_80133778` opens on
 /// the scratch stack to lay one patrol node out: `m` receives a copy of the
-/// walker coordinate's matrix, `v` the facing column `Gfx_MatrixCol2` reads
+/// walker coordinate's matrix, `v` the facing column `gfxReadMatrixZAxis` reads
 /// out of it once it has been rotated and scaled by the GTE, and `i` the node
 /// index the two loops below walk.
 typedef struct Actor110600TsvScratch {
@@ -1215,7 +1215,7 @@ static void func_actor_110600_80133778(OverlayWalker* work, s16 scale, s16 angle
     blk->m                   = work->coord->coord;
     for (blk->i = 1; blk->i < work->nav->count; blk->i++) {
         gfxRotMatrixY(&blk->m, angle, 0);
-        Gfx_MatrixCol2(&blk->m, &blk->v);
+        gfxReadMatrixZAxis(&blk->m, &blk->v);
         gte_lddp(scale);
         gte_ldsv(&blk->v);
         gte_gpf12();

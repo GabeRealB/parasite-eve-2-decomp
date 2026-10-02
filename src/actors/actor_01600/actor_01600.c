@@ -293,7 +293,7 @@ STATIC_ASSERT_SIZEOF(Actor01600GroundScratch, 0x18);
 
 /// 0x3C-byte scratch stack block `Actor01600_Fn06974` steps the attachment
 /// coordinate in: the step vector the coordinate's facing is rotated into, the
-/// `SVECTOR` `Gfx_MatrixCol2` reads that facing into, the rotation
+/// `SVECTOR` `gfxReadMatrixZAxis` reads that facing into, the rotation
 /// `RotMatrixY` builds for the yaw and the yaw itself.
 typedef struct Actor01600StepScratch {
     /* 0x00 */ VECTOR    move;
@@ -1450,7 +1450,7 @@ static void Actor01600_Fn001F4(Enemy* ctx, Task* actor)
     random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
     work->field_536 = (s16)(((random >> 0x10) & 0x1F) + 1);
     gRandomLcgState = random;
-    Gfx_MatrixCol2(&actor->extra.tmd->coords->coord, &sp18);
+    gfxReadMatrixZAxis(&actor->extra.tmd->coords->coord, &sp18);
     work->field_4FC = ratan2((s32)sp18.vx, (s32)sp18.vz);
     Actor01600_Fn05400(actor);
     actor->exitCallback = &Actor01600_Fn06EA4;
@@ -3852,7 +3852,7 @@ static u8 Actor01600_Fn04EB0(Task* arg0)
         case 1:
             work->field_4E0 = Actor01600_Fn045A8(arg0, &distance);
             if (Actor01600_Fn04C64(arg0, distance, work->field_4E0) & 0xFF) {
-                Gfx_MatrixCol2(&arg0->extra.tmd->coords->coord, &dir);
+                gfxReadMatrixZAxis(&arg0->extra.tmd->coords->coord, &dir);
                 ratan2(dir.vx, dir.vz);
                 mag   = __builtin_abs(work->field_4E0);
                 other = 0x1000 - mag;
@@ -3954,7 +3954,7 @@ static u8 Actor01600_Fn04EB0(Task* arg0)
                 work->field_4E0 -= 0x1000;
             else if (work->field_4E0 < -0x800)
                 work->field_4E0 += 0x1000;
-            Gfx_MatrixCol2(&arg0->extra.tmd->coords->coord, &dir);
+            gfxReadMatrixZAxis(&arg0->extra.tmd->coords->coord, &dir);
             ratan2(dir.vx, dir.vz);
             angle = __builtin_abs(work->field_4E0);
             if (angle > 0x800)
@@ -4680,7 +4680,7 @@ static void Actor01600_Fn06880(Task* arg0)
 }
 
 /// Steps the attachment coordinate `distance` units along the model's facing:
-/// `Gfx_MatrixCol2` reads that coordinate's column into `dir`, `ratan2` turns it
+/// `gfxReadMatrixZAxis` reads that coordinate's column into `dir`, `ratan2` turns it
 /// into a yaw, `RotMatrixY` builds the rotation for the yaw and
 /// `ApplyMatrixLV` rotates the step vector `(distance, 0, 0)` by it before the
 /// result is added to `coord.t`.
@@ -4700,7 +4700,7 @@ static void Actor01600_Fn06974(Task* actor, s32 distance)
     work->move.vy                  = 0;
     work->move.vz                  = 0;
     SCRATCH_HEAD_AT(scratch, void) = work;
-    Gfx_MatrixCol2(&actor->extra.tmd->coords->coord, &(head - 1)->dir);
+    gfxReadMatrixZAxis(&actor->extra.tmd->coords->coord, &(head - 1)->dir);
     mat                       = &(head - 1)->mat;
     work->yaw                 = ratan2(work->dir.vx, work->dir.vz);
     mat->rotationWords.m00M01 = ONE;
@@ -4787,7 +4787,7 @@ static s32 Actor01600_Fn06C94(Task* arg0, s32 arg1, s32 unusedDistance)
         return 0;
     }
     work->field_4E0 = arg1;
-    Gfx_MatrixCol2(&arg0->extra.tmd->coords->coord, &dir);
+    gfxReadMatrixZAxis(&arg0->extra.tmd->coords->coord, &dir);
     ratan2(dir.vx, dir.vz);
     ang  = ABS(work->field_4E0);
     half = 0x1000 - ang;

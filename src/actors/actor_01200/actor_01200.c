@@ -777,7 +777,7 @@ static void Actor01200_Fn00A6C(Enemy* arg0, Task* arg1)
     work->origin.vx = arg1->extra.tmd->coords->coord.t[0];
     work->origin.vy = arg1->extra.tmd->coords->coord.t[1];
     work->origin.vz = arg1->extra.tmd->coords->coord.t[2];
-    Gfx_MatrixCol2(&arg1->extra.tmd->coords->coord, &sv);
+    gfxReadMatrixZAxis(&arg1->extra.tmd->coords->coord, &sv);
     sv.vy = 0;
     q     = &sv;
     VectorNormalSS(q, q);

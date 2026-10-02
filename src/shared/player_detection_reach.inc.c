@@ -43,7 +43,7 @@ s32 detectPlayerOutOfReach(GfxCoord* coord, s16 range, s16 offset)
             return 1;
         }
     }
-    Gfx_MatrixCol2(&coord->coord, &v);
+    gfxReadMatrixZAxis(&coord->coord, &v);
     pv = &v;
     VectorNormalSS(pv, pv);
     gte_lddp(offset);

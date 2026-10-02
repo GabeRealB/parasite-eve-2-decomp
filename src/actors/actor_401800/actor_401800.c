@@ -1257,7 +1257,7 @@ static void func_actor_401800_8013423C(Enemy* enemy, Task* actor)
     work->field_14     = 0;
     work->field_C[0].x = actor->extra.tmd->coords->coord.t[0];
     work->field_C[0].z = actor->extra.tmd->coords->coord.t[2];
-    Gfx_MatrixCol2(&actor->extra.tmd->coords->coord, v);
+    gfxReadMatrixZAxis(&actor->extra.tmd->coords->coord, v);
     dir.vy = 0;
     VectorNormalSS(v, v);
     gte_lddp(2000);

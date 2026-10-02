@@ -549,7 +549,7 @@ static void func_actor_311900_801625F0(Enemy* enemy, Task* task)
 }
 
 /// Takes `arg1` as a signed 16-bit step, builds a direction vector from
-/// `arg0->coord`'s rotation with `Gfx_MatrixCol2`, normalizes it with
+/// `arg0->coord`'s rotation with `gfxReadMatrixZAxis`, normalizes it with
 /// `VectorNormalSS`, scales it by the step on the GTE, adds it to
 /// `arg0->coord.t` and clears `arg0->composeStamp`. Returns the step, or 0 having
 /// touched nothing while the game is paused (`gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen == 1`) or when the
@@ -574,7 +574,7 @@ static s32 func_actor_311900_80162658(GfxCoord* arg0, s16 arg1)
     gte                           = head - 1;
     SCRATCH_STACK_CURSOR(SVECTOR) = vec;
     if (arg1 != 0) {
-        Gfx_MatrixCol2(&arg0->coord, vec);
+        gfxReadMatrixZAxis(&arg0->coord, vec);
         VectorNormalSS(vec, vec);
         gte_lddp(arg1);
         gte_ldsv(gte);

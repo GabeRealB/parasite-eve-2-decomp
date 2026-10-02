@@ -91,7 +91,7 @@ static __inline__ void bossStrangerStep(OverlayWalker* walker, u8* head,
         SCRATCH_STACK_CURSOR(u8) = (u8*)sv;
         gsv                      = sv;
         if (speed != 0) {
-            Gfx_MatrixCol2(&coord->coord, sv);
+            gfxReadMatrixZAxis(&coord->coord, sv);
             VectorNormalSS(sv, sv);
             gte_lddp(speed);
             gte_ldsv(gsv);

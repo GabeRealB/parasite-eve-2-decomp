@@ -938,7 +938,7 @@ static __inline__ void Actor223600_MoveForward(GfxCoord* coord, s16 amount)
         head                          = SCRATCH_STACK_CURSOR(SVECTOR);
         vec                           = head - 1;
         SCRATCH_STACK_CURSOR(SVECTOR) = vec;
-        Gfx_MatrixCol2(&coord->coord, vec);
+        gfxReadMatrixZAxis(&coord->coord, vec);
         Actor223600_ScaleForward(vec, amount);
         coord->coord.t[0]  += head[-1].vx;
         coord->coord.t[1]  += vec->vy;
@@ -1028,7 +1028,7 @@ static void func_actor_223600_8014B540(Enemy* enemy, Task* task)
     work->field_196 = (u16)task->extra.tmd->coords->coord.t[1];
     work->field_198 = (u16)task->extra.tmd->coords->coord.t[2];
 
-    Gfx_MatrixCol2(&task->extra.tmd->coords->coord, &dir);
+    gfxReadMatrixZAxis(&task->extra.tmd->coords->coord, &dir);
     dir.vy = 0;
     Actor223600_ScaleForward(&dir, 0x3E8);
 
@@ -1245,7 +1245,7 @@ static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
         case 0xF:
             work->field_176 = 0x10;
             if (work->field_6 < 0xB) {
-                Gfx_MatrixCol2(&task->extra.tmd->coords->coord, vec);
+                gfxReadMatrixZAxis(&task->extra.tmd->coords->coord, vec);
                 VectorNormalSS(vec, vec);
                 gte_lddp(0x23);
                 gte_ldsv(gte);

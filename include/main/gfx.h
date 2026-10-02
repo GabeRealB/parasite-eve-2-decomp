@@ -112,7 +112,19 @@ void Gfx_MatrixCol0(MATRIX* matrix, SVECTOR* vector);
 
 void Gfx_MatrixCol1(MATRIX* matrix, SVECTOR* vector);
 
-void Gfx_MatrixCol2(MATRIX* matrix, SVECTOR* vector);
+/// Copies the matrix's local Z axis (its third column) into `zAxis`.
+///
+/// Copies `m[0][2]`, `m[1][2]` and `m[2][2]` into `vx`, `vy` and `vz`
+/// without normalization or translation. The signed 16-bit components retain
+/// the matrix's scale and destination coordinate frame; conventional rotation
+/// matrices use `ONE` (4096) for 1.0. A scaled matrix need not yield a unit axis.
+///
+/// The three matrix elements must be readable and initialized, and the vector's
+/// xyz writable; both require halfword alignment. The vector's `pad` is untouched.
+/// Source and destination may overlap: all three reads precede the stores.
+/// Borrows both objects only for the call; allocates no scratch space and changes
+/// no GTE state.
+void gfxReadMatrixZAxis(const MATRIX* matrix, SVECTOR* zAxis);
 
 /// Converts a light direction to a short vector with length approximately `ONE`.
 ///

@@ -653,7 +653,7 @@ static void func_actor_403600_80138EF8(Enemy* enemy, Task* task)
     Gp_LinkObj(3, &temp_v0->field_5C0);
     Gp_InitRec18Table(temp_s0_4, 4, 0);
     temp_v0->field_5C0.flags = temp_v0->field_5C0.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-    Gfx_MatrixCol2(&task->extra.tmd->coords->coord, &rot);
+    gfxReadMatrixZAxis(&task->extra.tmd->coords->coord, &rot);
     temp_s0_5 = ratan2(rot.vx, rot.vz);
     rot.vx    = 0;
     rot.vy    = temp_s0_5;
@@ -3203,7 +3203,7 @@ static s32 func_actor_403600_8013DFE0(Task* arg0)
         temp_s0_2            = &temp_s4->field_4B8.coord;
         temp_v1_2->angles[2] = (u16)(temp_v1_2->angles[2] + temp_s4->field_75E);
         Gfx_RotMatrixXYZ(temp_s0_2, (SVECTOR*)temp_v1_2, 1);
-        Gfx_MatrixCol2(temp_s0_2, (SVECTOR*)temp_v1_2);
+        gfxReadMatrixZAxis(temp_s0_2, (SVECTOR*)temp_v1_2);
     } else {
         temp_s1                                = (SVECTOR*)temp_v1_2->vector;
         temp_s0_3                              = &temp_v1_2->matrix;
@@ -3285,7 +3285,7 @@ static s32 func_actor_403600_8013DFE0(Task* arg0)
         temp_v1_2->vector[2] = (s16)((u16)temp_v1_2->vector[2] + temp_s4->field_75E);
         Gfx_RotMatrixXYZ(temp_s0_4, (SVECTOR*)temp_v1_2->vector, 1);
         temp_s4->field_748 = (u16)temp_v1_2->vector[1];
-        Gfx_MatrixCol2(temp_s0_4, (SVECTOR*)temp_v1_2);
+        gfxReadMatrixZAxis(temp_s0_4, (SVECTOR*)temp_v1_2);
     }
     temp_s4->field_748 = ratan2((s16)temp_v1_2->angles[0], (s16)temp_v1_2->angles[2]);
     SCRATCH_STACK_RELEASE_BYTES(0x30);
@@ -3986,7 +3986,7 @@ static void func_actor_403600_8013F7B8(Enemy* enemy, Task* task)
     work->field_4B8.coord.t[0] = (s32)ownerWork->field_4B8.coord.t[0];
     work->field_4B8.coord.t[1] = (s32)ownerWork->field_4B8.coord.t[1];
     work->field_4B8.coord.t[2] = (s32)ownerWork->field_4B8.coord.t[2];
-    Gfx_MatrixCol2(&ownerWork->field_4B8.coord, &rot);
+    gfxReadMatrixZAxis(&ownerWork->field_4B8.coord, &rot);
     angle  = ratan2((s32)rot.vx, (s32)rot.vz);
     rot.vx = 0;
     rot.vy = (s16)angle;

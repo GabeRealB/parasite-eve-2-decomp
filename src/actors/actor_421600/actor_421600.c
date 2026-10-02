@@ -2302,7 +2302,7 @@ static s32 desertChaserAvoidWalk(GfxCoord* coord, WorldCollisionContact* recs, s
                    ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
             s->diff = diff;
             gfxRotMatrixY(&s->m, diff, 1);
-            Gfx_MatrixCol2(&s->m, &s->dir);
+            gfxReadMatrixZAxis(&s->m, &s->dir);
             VectorNormalSS(&s->dir, &s->dir);
             gte_lddp(-10);
             gte_ldsv(&s->dir);
@@ -2796,7 +2796,7 @@ static void func_actor_421600_80134AD4(Enemy* enemy, Task* actor)
     work->field_14           = 0;
     work->field_C[0].x       = actor->extra.tmd->coords->coord.t[0];
     work->field_C[0].z       = actor->extra.tmd->coords->coord.t[2];
-    Gfx_MatrixCol2(&actor->extra.tmd->coords->coord, &dir);
+    gfxReadMatrixZAxis(&actor->extra.tmd->coords->coord, &dir);
     dir.vy = 0;
     v      = &dir;
     VectorNormalSS(v, v);

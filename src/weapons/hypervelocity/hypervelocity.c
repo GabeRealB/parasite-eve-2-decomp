@@ -51,7 +51,7 @@
 
 /// 0x18-byte scratchpad block `func_hypervelocity_8011F724` reserves for one
 /// frame of the barrel's recoil kick. `dir` receives the third column of the
-/// weapon coordinate matrix from `Gfx_MatrixCol2`; each axis is then scaled by
+/// weapon coordinate matrix from `gfxReadMatrixZAxis`; each axis is then scaled by
 /// the remaining recoil ticks over a per-tick divisor, negated, and added to
 /// the coordinate's translation so the gun rides back along its own barrel.
 typedef struct HyperRecoil {
@@ -929,7 +929,7 @@ static void func_hypervelocity_8011F724(Task* arg0)
                         div = 0xF4;
                     }
                     actor->movementSign = -1;
-                    Gfx_MatrixCol2(&coord->coord, (SVECTOR*)(head - 8));
+                    gfxReadMatrixZAxis(&coord->coord, &rec->dir);
                     rec->vx            = -(rec->dir.vx * actor->stateTimer / div);
                     rec->vy            = -(rec->dir.vy * actor->stateTimer / div);
                     rec->vz            = -(rec->dir.vz * actor->stateTimer / div);

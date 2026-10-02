@@ -387,9 +387,9 @@ void Gfx_MatrixCol1(MATRIX* matrix, SVECTOR* vector)
     gte_ReadMatrixColumn(matrix, 1, vector);
 }
 
-void Gfx_MatrixCol2(MATRIX* matrix, SVECTOR* vector)
+void gfxReadMatrixZAxis(const MATRIX* matrix, SVECTOR* zAxis)
 {
-    gte_ReadMatrixColumn(matrix, 2, vector);
+    gte_ReadMatrixColumn(matrix, 2, zAxis);
 }
 
 /// Builds a pure X-axis rotation from precomputed sine and cosine.

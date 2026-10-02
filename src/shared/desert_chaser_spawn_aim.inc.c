@@ -40,7 +40,7 @@ void desertChaserSpawnAim(Task* arg0)
         work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         work->field_832          = work->field_834;
         desertChaserAnimTick(arg0);
-        Gfx_MatrixCol2(&arg0->extra.tmd->coords->coord, vec);
+        gfxReadMatrixZAxis(&arg0->extra.tmd->coords->coord, vec);
 #if !DESERT_CHASER_RUN_SEQUENCE
         work->field_C28 = 0;
 #endif

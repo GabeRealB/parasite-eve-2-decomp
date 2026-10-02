@@ -83,7 +83,7 @@ void desertChaserTurnStep(Task* arg0)
     yaw          = ((s16)scratch->delta / (s16)scratch->steps) + ratan2((s32)-facing2->coord.m[2][0], (s32)facing2->coord.m[2][2]);
     scratch->yaw = yaw;
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, (s32)yaw, 1);
-    Gfx_MatrixCol2(&arg0->extra.tmd->coords->coord, &scratch->vec);
+    gfxReadMatrixZAxis(&arg0->extra.tmd->coords->coord, &scratch->vec);
     VectorNormalSS(&scratch->vec, &scratch->vec);
     gte_lddp(-0x1A);
     gte_ldsv(&scratch->vec);

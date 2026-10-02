@@ -57,7 +57,7 @@ void gluttonThrowFly(Enemy* enemy, Task* task)
         work->field_1AC++;
         task->extra.tmd->coords->coord.t[1] += 0xA;
 
-        Gfx_MatrixCol2(&task->extra.tmd->coords->coord, dir);
+        gfxReadMatrixZAxis(&task->extra.tmd->coords->coord, dir);
         VectorNormalSS(dir, dir);
         gte_lddp(0x89);
         gte_ldsv(gteDir);

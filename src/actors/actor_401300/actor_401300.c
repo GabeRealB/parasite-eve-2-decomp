@@ -2304,7 +2304,7 @@ static void func_actor_401300_80134454(Enemy* enemy, Task* actor)
     work->field_16     = 0;
     work->field_C[0].x = actor->extra.tmd->coords->coord.t[0];
     work->field_C[0].z = actor->extra.tmd->coords->coord.t[2];
-    Gfx_MatrixCol2(&actor->extra.tmd->coords->coord, v);
+    gfxReadMatrixZAxis(&actor->extra.tmd->coords->coord, v);
     dir.vy = 0;
     VectorNormalSS(v, v);
     gte_lddp(2000);
@@ -2496,7 +2496,7 @@ static void func_actor_401300_80134F90(Task* arg0)
                 s->m = arg0->extra.tmd->coords->coord;
                 gfxRotMatrixY(&s->m, s->yaw, 0);
                 dir = &s->dir;
-                Gfx_MatrixCol2(&s->m, dir);
+                gfxReadMatrixZAxis(&s->m, dir);
                 VectorNormalSS(dir, dir);
                 if (work->field_89E == 1) {
                     gte_lddp(-5);
@@ -3046,7 +3046,7 @@ static __inline__ void Actor401300_MoveBy(GfxCoord* coord, s16 amount)
         SCRATCH_STACK_CURSOR(SVECTOR) = vec;
         v                             = vec;
         if (amount != 0) {
-            Gfx_MatrixCol2(&coord->coord, vec);
+            gfxReadMatrixZAxis(&coord->coord, vec);
             VectorNormalSS(vec, vec);
             gte_lddp(amount);
             gte_ldsv(v);
@@ -3337,7 +3337,7 @@ static void func_actor_401300_80137D78(Task* arg0)
         func_actor_401300_80133A3C(arg0);
         gfxRotMatrixY(&mat, aim->turn, 1);
         dir = &work->field_C8C;
-        Gfx_MatrixCol2(&mat, dir);
+        gfxReadMatrixZAxis(&mat, dir);
         VectorNormalSS(dir, dir);
         work->field_C9E = 0xDE;
         work->field_D1E++;
@@ -4654,7 +4654,7 @@ static __inline__ void Actor401300_MoveForwardSave(McSaveData* save, GfxCoord* c
         head                          = SCRATCH_STACK_CURSOR(SVECTOR);
         vec                           = head - 1;
         SCRATCH_STACK_CURSOR(SVECTOR) = vec;
-        Gfx_MatrixCol2(&coord->coord, vec);
+        gfxReadMatrixZAxis(&coord->coord, vec);
         VectorNormalSS(vec, vec);
         gte_lddp(amount);
         gte_ldsv(vec);
@@ -4823,7 +4823,7 @@ static void func_actor_401300_8013DADC(Task* arg0)
                     TASK_MESSAGE_DISPATCH_POINTER(task, 0x3E9, &work->field_CD4, 0);
                     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->field_CAC, 0);
                     work->field_D22 = 0;
-                    Gfx_MatrixCol2(&task->extra.tmd->coords->coord, &aim->delta);
+                    gfxReadMatrixZAxis(&task->extra.tmd->coords->coord, &aim->delta);
                     aim->delta.vy = 0;
                     VectorNormalSS(&aim->delta, &aim->delta);
                     gte_lddp(amount);
@@ -4888,7 +4888,7 @@ static __inline__ void Actor401300_MoveForwardNonzeroSave(McSaveData* save, GfxC
         SCRATCH_STACK_CURSOR(SVECTOR) = vec;
         gteVec                        = vec;
         if (amount != 0) {
-            Gfx_MatrixCol2(&coord->coord, vec);
+            gfxReadMatrixZAxis(&coord->coord, vec);
             VectorNormalSS(vec, vec);
             gte_lddp(amount);
             gte_ldsv(gteVec);
@@ -5042,7 +5042,7 @@ static void func_actor_401300_8013E930(Task* arg0)
                     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->field_CAC, 0);
                     work->field_D22 = 0;
                     vec             = &blk->delta;
-                    Gfx_MatrixCol2(&task->extra.tmd->coords->coord, vec);
+                    gfxReadMatrixZAxis(&task->extra.tmd->coords->coord, vec);
                     blk->delta.vy = 0;
                     VectorNormalSS(vec, vec);
                     gte_lddp(amount);

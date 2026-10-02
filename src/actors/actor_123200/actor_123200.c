@@ -765,7 +765,7 @@ static void func_actor_123200_8013352C(Enemy* enemy, Task* task)
     work->field_1AA = (u16)task->extra.tmd->coords->coord.t[1];
     work->field_1AC = (u16)task->extra.tmd->coords->coord.t[2];
 
-    Gfx_MatrixCol2(&task->extra.tmd->coords->coord, &dir);
+    gfxReadMatrixZAxis(&task->extra.tmd->coords->coord, &dir);
     dir.vy = 0;
     Actor123200_ScaleForward(&dir);
 
@@ -790,7 +790,7 @@ static __inline__ void Actor123200_StepForward(GfxCoord* coord)
     dir                        = (SVECTOR*)(head - sizeof(SVECTOR));
     SCRATCH_STACK_CURSOR(void) = dir;
 
-    Gfx_MatrixCol2(&coord->coord, dir);
+    gfxReadMatrixZAxis(&coord->coord, dir);
     VectorNormalSS(dir, dir);
     gte_lddp(5);
     gte_ldsv(dir);
@@ -859,7 +859,7 @@ static __inline__ void Actor123200_MoveForward(GfxCoord* coord)
         head                          = SCRATCH_STACK_CURSOR(SVECTOR);
         vec                           = head - 1;
         SCRATCH_STACK_CURSOR(SVECTOR) = vec;
-        Gfx_MatrixCol2(&coord->coord, vec);
+        gfxReadMatrixZAxis(&coord->coord, vec);
         VectorNormalSS(vec, vec);
         gte_lddp(5);
         gte_ldsv(vec);

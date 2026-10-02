@@ -70,7 +70,7 @@
 /// (`(rand() & 0xFFF) + 0x3000`, decremented every frame);
 /// `field_B4` / `field_B8` / `field_BC` are the per-axis velocities added into
 /// the object's coordinate; `field_C4` is the rotation handed to `RotMatrix`
-/// and `field_CC` the normalised surface direction from `Gfx_MatrixCol2` /
+/// and `field_CC` the normalised surface direction from `gfxReadMatrixZAxis` /
 /// `VectorNormalSS`; `field_D4` is the task's own sub-state.
 typedef struct AcropolisCafeteriaDebris {
     /* 0x00 */ WorldCollisionBody    obj;
@@ -1431,7 +1431,7 @@ static void func_acropolis_cafeteria_80181A3C(Task* task)
                 work->field_D4++;
                 head[-1]  = coord->coord;
                 direction = &work->field_CC;
-                Gfx_MatrixCol2(gPlayerStatus.coordMtx, direction);
+                gfxReadMatrixZAxis(gPlayerStatus.coordMtx, direction);
                 VectorNormalSS(direction, direction);
                 rand();
                 speed          = work->field_B0;

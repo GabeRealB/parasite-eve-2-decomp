@@ -75,7 +75,7 @@ void oddStrangerSidestep(Task* arg0)
         oddStrangerDrive(arg0);
         gfxRotMatrixY(&mat, aim->turn, 1);
         dir = &work->field_BF0;
-        Gfx_MatrixCol2(&mat, dir);
+        gfxReadMatrixZAxis(&mat, dir);
         VectorNormalSS(dir, dir);
         work->field_C0A = 0xDE;
         work->field_C26++;

@@ -77,7 +77,7 @@ void bossStrangerAvoidContacts(OverlayWalker* work)
                    ratan2(-work->coord->coord.m[2][0], work->coord->coord.m[2][2]);
             s->diff = diff;
             gfxRotMatrixY(&s->m, diff, 1);
-            Gfx_MatrixCol2(&s->m, &s->dir);
+            gfxReadMatrixZAxis(&s->m, &s->dir);
             VectorNormalSS(&s->dir, &s->dir);
             gte_lddp(-10);
             gte_ldsv(&s->dir);

@@ -46524,7 +46524,7 @@ The frame was 8 bytes short: the target reserved `sp+0x10 .. sp+0x20` for
 locals (saved `$s0`/`$ra` at `0x20`/`0x24`, `addiu $sp,$sp,-0x28`) while a
 single `SVECTOR` local only filled `0x10 .. 0x18`, giving `-0x20`. Nothing in
 the function reads the second half — the only stack traffic is the `SVECTOR`
-written by `Gfx_MatrixCol2` and read back at `+0x0` / `+0x4`.
+written by `gfxReadMatrixZAxis` and read back at `+0x0` / `+0x4`.
 
 GCC 2.8.1 drops an unused *scalar* local, but keeps the slot for an unused
 *aggregate* one, so a second declaration is enough to restore the frame:
@@ -46533,7 +46533,7 @@ GCC 2.8.1 drops an unused *scalar* local, but keeps the slot for an unused
 SVECTOR dir;
 SVECTOR unused;                 /* never read; owns sp+0x18..sp+0x20 */
 ...
-Gfx_MatrixCol2(&coord->coord, &dir);
+gfxReadMatrixZAxis(&coord->coord, &dir);
 ```
 
 Declaration order matters: the first aggregate declared lands at the lowest
@@ -72992,7 +72992,7 @@ dir                        = (SVECTOR*)(head - sizeof(SVECTOR));
 ```
 
 `head` (`$s4`), `dir` (`$s1`) and a third pseudo (`$s3`) are all live across the
-body: `$s1` feeds `Gfx_MatrixCol2` / `VectorNormalSS` and the `->vy` / `->vz`
+body: `$s1` feeds `gfxReadMatrixZAxis` / `VectorNormalSS` and the `->vy` / `->vz`
 reads, `$s4` is the base of the `->vx` read (`lh $v1, -0x8($s4)`), and `$s3` is
 used by nothing but the `gte_ldsv` / `gte_stsv` operands. Adding
 
@@ -104157,7 +104157,7 @@ which reads like one reused `WorldCollisionBody* o`. Writing it that way reached
 `o` has many sets and deaths, so local-alloc rejects it (see "local-alloc only
 sees single-death pseudos"); global-alloc then puts it in `$s6`, pushing the
 work pointer and `index` down a register and moving the CSE constants.
-sched1 also moved `o = &dir` above the preceding `Gfx_MatrixCol2` call (UID 712
+sched1 also moved `o = &dir` above the preceding `gfxReadMatrixZAxis` call (UID 712
 ahead of call 706 in `.sched`), after which reload CSE wrote it as `move $s6,$a1`
 and a load-delay `nop` disappeared.
 
@@ -110945,7 +110945,7 @@ stay where the target has them.
 
 An `static __inline__` helper that borrows and returns a scratch slot is
 inlined twice per aim arm, and each copy has two locals competing for
-callee-saved registers: the coordinate (live across `Gfx_MatrixCol2` /
+callee-saved registers: the coordinate (live across `gfxReadMatrixZAxis` /
 `VectorNormalSS`) and the scratch `head` (live from the load to `head[-1].vx`).
 `func_actor_421600_80138D24` wants `head` in `$s1` and the coordinate in
 `$s2`.
@@ -124441,7 +124441,7 @@ It is `ActorsShared8014c874_MoveForward`, already a `static __inline__` in
 `include/actors/actors_shared_8014c874.h` (which names it as the same body as
 `actorMoveForward`), and the call reproduces the inline exactly - the
 `gte_lddp(amount)` / `gte_ldsv(vec)` / `.word 0x4B98003D` / `gte_stsv(vec)`
-sequence, the two scratch-pad bumps around `Gfx_MatrixCol2` + `VectorNormalSS`,
+sequence, the two scratch-pad bumps around `gfxReadMatrixZAxis` + `VectorNormalSS`,
 and the `coord->composeStamp = 0` between the `t[1]` and `t[2]` adds. `gpf 1` is the
 RTPS-style op with `sf=1` and bit 19 set, which gas spells that way; there is no
 need to model it.
@@ -124904,7 +124904,7 @@ Inputs: `base_3.i` (100.000%)
 ## The scratch vector's second name is a re-derived expression, and cse makes the copy
 
 The "step forward" idiom every actor family carries — scratch vector off
-`SCRATCH_STACK_CURSOR_SLOT`, `Gfx_MatrixCol2` + `VectorNormalSS`, `gpf 12`, store back,
+`SCRATCH_STACK_CURSOR_SLOT`, `gfxReadMatrixZAxis` + `VectorNormalSS`, `gpf 12`, store back,
 add into `coord.t` — is one variable in the inline copies
 (`Actor201200_StepForward` and friends). `func_actor_311900_80162658` is the
 standalone version and keeps the pointer in *two* registers, `$s0` for the
@@ -126221,7 +126221,7 @@ is handed to two calls:
 
 ```c
 s16 sp18; s16 sp1A; s16 sp1C;
-Gfx_MatrixCol2(..., &sp18);
+gfxReadMatrixZAxis(..., &sp18);
 temp_s0_5 = ratan2(sp18, sp1C);
 sp18 = 0; sp1A = temp_s0_5; sp1C = 0;
 ```
@@ -128491,7 +128491,7 @@ if (D_80072729 != 1) {
 0x1F8003FC)` MEM at rtl-gen behind a one-use address temp, so cse gives them all
 one quantity: the step's head load is *forwarded* the value the outer RMW stored
 (`addu $s0,$a1,-0x14`, no load at all), the step's head store is sunk past
-`Gfx_MatrixCol2`, and one `lui`/`ori` pair feeds all three sites from a
+`gfxReadMatrixZAxis`, and one `lui`/`ori` pair feeds all three sites from a
 callee-saved register. The target instead re-reads the head as a **split
 constant address** and spends two extra `lui`s on it:
 

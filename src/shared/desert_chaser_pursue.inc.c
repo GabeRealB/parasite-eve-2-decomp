@@ -125,7 +125,7 @@ void desertChaserPursue(Task* arg0)
             printf("EM01 PLAYER WORK %d, %d\n", playerWork->mode, playerWork->state);
 #endif
             if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, work->replyBuf, 0) == 0) {
-                Gfx_MatrixCol2(&arg0->extra.tmd->coords->coord, (SVECTOR*)scratch);
+                gfxReadMatrixZAxis(&arg0->extra.tmd->coords->coord, (SVECTOR*)scratch);
                 contactYaw          = ratan2(scratch->vx, scratch->vz) + 0x800;
                 scratch->contactYaw = contactYaw;
                 scratch->contactYaw = actorNormalizeYaw(contactYaw);

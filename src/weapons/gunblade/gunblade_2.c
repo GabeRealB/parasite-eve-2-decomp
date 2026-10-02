@@ -29,7 +29,7 @@
 /// `coord` is the sound source handed to `Gp_PickNearestRec18` and
 /// `Gp_PlayObjSfx` (the lock-on target's position is written into its
 /// `workm.t`), `dir` receives the blade's forward column from
-/// `Gfx_MatrixCol2`, and `step` is that column scaled down by 136 - the
+/// `gfxReadMatrixZAxis`, and `step` is that column scaled down by 136 - the
 /// per-axis camera shake added to the muzzle coordinate while the slash's
 /// recoil timer runs.
 typedef struct _GunbladeScratch {
@@ -225,7 +225,7 @@ static void func_gunblade_8011E040(Task* arg0)
             }
             break;
     }
-    Gfx_MatrixCol2(&coord->coord, &blk->dir);
+    gfxReadMatrixZAxis(&coord->coord, &blk->dir);
     actor->movementSign = shake;
     blk->step.vx        = (s16)(blk->dir.vx / 136) * shake;
     blk->step.vy        = (s16)(blk->dir.vy / 136) * shake;

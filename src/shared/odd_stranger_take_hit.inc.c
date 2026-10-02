@@ -81,7 +81,7 @@ void oddStrangerTakeHit(Task* arg0)
                 s->m = arg0->extra.tmd->coords->coord;
                 gfxRotMatrixY(&s->m, s->yaw, 0);
                 dir = &s->dir;
-                Gfx_MatrixCol2(&s->m, dir);
+                gfxReadMatrixZAxis(&s->m, dir);
                 VectorNormalSS(dir, dir);
                 if (work->field_BEC > 0) {
                     gte_lddp(-0x19);

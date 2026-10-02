@@ -2936,7 +2936,7 @@ static __inline__ void Actor403200_StepForward(GfxCoord* coord)
     dir                        = (SVECTOR*)(head - sizeof(SVECTOR));
     SCRATCH_STACK_CURSOR(void) = dir;
 
-    Gfx_MatrixCol2(&coord->coord, dir);
+    gfxReadMatrixZAxis(&coord->coord, dir);
     VectorNormalSS(dir, dir);
     gte_lddp(0x19);
     gte_ldsv(dir);
@@ -4033,7 +4033,7 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
     work->hits[2].obj.pos.vx = 0;
     work->hits[2].obj.pos.vz = -0x400;
 
-    Gfx_MatrixCol2(&task->extra.tmd->coords->coord, &dir);
+    gfxReadMatrixZAxis(&task->extra.tmd->coords->coord, &dir);
     dir.vy = 0;
     gteDir = &dir;
     VectorNormalSS(gteDir, gteDir);
@@ -5572,7 +5572,7 @@ static void func_actor_403200_8013D9EC(Task* arg0)
 /// the first escort. From 0x3D on the state also drops debris: every third step
 /// the shared scratch coordinate is rebuilt on that same part -- its rotation
 /// accumulated up the parent chain, its origin carried into view space, then
-/// turned a quarter turn each way so `Gfx_MatrixCol2` yields the launch
+/// turned a quarter turn each way so `gfxReadMatrixZAxis` yields the launch
 /// direction, which is normalised and scaled to 0x320 before being added to the
 /// origin -- and an effect is spawned on it. Every tenth step a fresh enemy is
 /// spawned from `gGluttonEscortTasks` and remembered in `field_EF0`.
@@ -5667,7 +5667,7 @@ static void func_actor_403200_8013DC3C(Task* arg0)
             D_actor_403200_8015F920.coord.t[2] = pos.vz;
             gfxRotMatrixY(&D_actor_403200_8015F920.coord, 0x80, 0);
             gfxRotMatrixX(&D_actor_403200_8015F920.coord, -0x80, GRAPHICS_ROTATION_COMPOSE);
-            Gfx_MatrixCol2(&D_actor_403200_8015F920.coord, &pos);
+            gfxReadMatrixZAxis(&D_actor_403200_8015F920.coord, &pos);
 
             posp   = &pos;
             pos.vy = 0;
@@ -6737,7 +6737,7 @@ static void func_actor_403200_801408D8(Task* task, s16 scale, s16 drop, s16 inde
     };
     SVECTOR* d;
 
-    Gfx_MatrixCol2(&task->extra.tmd->coords->coord, &normal);
+    gfxReadMatrixZAxis(&task->extra.tmd->coords->coord, &normal);
     Gfx_MatrixCol0(&task->extra.tmd->coords->coord, &dir);
     d = &dir;
     VectorNormalSS(d, d);

@@ -4651,7 +4651,7 @@ static void func_actor_403000_801343B8(Enemy* arg0, Task* arg1)
     work->objBE8.obj.pos.vz = -0x100;
     work->field_FC0         = 0;
     work->field_F88         = GameFlag_GetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
-    Gfx_MatrixCol2(&arg1->extra.tmd->coords->coord, &dir);
+    gfxReadMatrixZAxis(&arg1->extra.tmd->coords->coord, &dir);
     dir.vy = 0;
     dirp   = &dir;
     VectorNormalSS(dirp, dirp);
@@ -5539,7 +5539,7 @@ static void func_actor_403000_80137084(Task* arg0)
         coord                = arg0->extra.tmd->coords;
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
             dir = Actor403000_PushVec();
-            Gfx_MatrixCol2(&coord->coord, dir);
+            gfxReadMatrixZAxis(&coord->coord, dir);
             VectorNormalSS(dir, dir);
             Actor403000_ScaleVec(dir, 300);
             coord->coord.t[0]  += dir->vx;
@@ -5736,7 +5736,7 @@ static void func_actor_403000_801377C8(Task* arg0)
                         work->field_FA0 = 1;
                         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->field_F90, 0);
                         dir = &scratch->target;
-                        Gfx_MatrixCol2(&arg0->extra.tmd->coords->coord, dir);
+                        gfxReadMatrixZAxis(&arg0->extra.tmd->coords->coord, dir);
                         VectorNormalSS(dir, dir);
                         gte_lddp(-0x546);
                         gte_ldsv(dir);
@@ -5761,7 +5761,7 @@ static void func_actor_403000_801377C8(Task* arg0)
                         work->field_FA0 = 1;
                         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->field_F90, 0);
                         dir = &scratch->target;
-                        Gfx_MatrixCol2(&arg0->extra.tmd->coords->coord, dir);
+                        gfxReadMatrixZAxis(&arg0->extra.tmd->coords->coord, dir);
                         VectorNormalSS(dir, dir);
                         gte_lddp(-0x546);
                         gte_ldsv(dir);
@@ -5795,7 +5795,7 @@ static void func_actor_403000_801377C8(Task* arg0)
         coord = arg0->extra.tmd->coords;
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
             dirA = Actor403000_PushVec();
-            Gfx_MatrixCol2(&coord->coord, dirA);
+            gfxReadMatrixZAxis(&coord->coord, dirA);
             VectorNormalSS(dirA, dirA);
             Actor403000_ScaleVec(dirA, 300);
             coord->coord.t[0]  += dirA->vx;
@@ -5812,7 +5812,7 @@ static void func_actor_403000_801377C8(Task* arg0)
             dirB = Actor403000_PushVec();
             v    = dirB;
             if (step != 0) {
-                Gfx_MatrixCol2(&coord2->coord, dirB);
+                gfxReadMatrixZAxis(&coord2->coord, dirB);
                 VectorNormalSS(dirB, dirB);
                 Actor403000_ScaleVec(v, step);
                 coord2->coord.t[0]  += dirB->vx;
@@ -5981,7 +5981,7 @@ static void func_actor_403000_801386E8(Task* arg0)
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
             dir = Actor403000_PushVec();
             if (step != 0) {
-                Gfx_MatrixCol2(&coord->coord, dir);
+                gfxReadMatrixZAxis(&coord->coord, dir);
                 VectorNormalSS(dir, dir);
                 Actor403000_ScaleVec(dir, step);
                 coord->coord.t[0]  += dir->vx;
@@ -6127,7 +6127,7 @@ static void func_actor_403000_80138DB0(Task* arg0)
         work->field_6        = 0;
         work->field_F84      = (dist - 900) / 20;
         t1                   = &scratch->target;
-        Gfx_MatrixCol2(&arg0->extra.tmd->coords->coord, t1);
+        gfxReadMatrixZAxis(&arg0->extra.tmd->coords->coord, t1);
         VectorNormalSS(t1, t1);
         Actor403000_ScaleVec(t1, 0x41A);
         arg0->extra.tmd->coords->coord.t[0] = player->extra.tmd->coords->coord.t[0] - scratch->target.vx;
@@ -6157,7 +6157,7 @@ static void func_actor_403000_80138DB0(Task* arg0)
         gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         t2                                    = &scratch->target;
-        Gfx_MatrixCol2(&arg0->extra.tmd->coords->coord, t2);
+        gfxReadMatrixZAxis(&arg0->extra.tmd->coords->coord, t2);
         VectorNormalSS(t2, t2);
         Actor403000_ScaleVec(t2, 0x96);
         D_actor_403000_80158DB0.value.x        = scratch->target.vx;
@@ -6175,7 +6175,7 @@ static void func_actor_403000_80138DB0(Task* arg0)
         coord = arg0->extra.tmd->coords;
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
             dir = Actor403000_PushVec();
-            Gfx_MatrixCol2(&coord->coord, dir);
+            gfxReadMatrixZAxis(&coord->coord, dir);
             VectorNormalSS(dir, dir);
             Actor403000_ScaleVec(dir, 0x78);
             coord->coord.t[0]  += dir->vx;
@@ -6187,7 +6187,7 @@ static void func_actor_403000_80138DB0(Task* arg0)
         v.vz = 0;
         v.vy = 0;
         v.vx = 0;
-        Gfx_MatrixCol2(&arg0->extra.tmd->coords->coord, &v);
+        gfxReadMatrixZAxis(&arg0->extra.tmd->coords->coord, &v);
         vp = &v;
         VectorNormalSS(vp, vp);
         Actor403000_ScaleVec(vp, 0x546);
@@ -6231,7 +6231,7 @@ static void func_actor_403000_80138DB0(Task* arg0)
     }
     if ((s16)work->field_6 == 0x29) {
         t4 = &scratch->target;
-        Gfx_MatrixCol2(&arg0->extra.tmd->coords->coord, t4);
+        gfxReadMatrixZAxis(&arg0->extra.tmd->coords->coord, t4);
         VectorNormalSS(t4, t4);
         Actor403000_ScaleVec(t4, 0x21);
         D_actor_403000_80158DB0.value.x = scratch->target.vx;
@@ -6946,7 +6946,7 @@ static void func_actor_403000_8013B238(Task* arg0)
         gte_gpf12();
         gte_stsv(&scratch->vec);
         work->field_FB0 = scratch->vec;
-        Gfx_MatrixCol2(&arg0->extra.tmd->coords->coord, &scratch->vec);
+        gfxReadMatrixZAxis(&arg0->extra.tmd->coords->coord, &scratch->vec);
         VectorNormalSS(&scratch->vec, &scratch->vec);
         gte_lddp(-0x29);
         gte_ldsv(&scratch->vec);
@@ -7166,7 +7166,7 @@ static void func_actor_403000_8013BDE0(Task* arg0)
         arg0->extra.tmd->coords->coord.t[2] += (work->field_F78 - arg0->extra.tmd->coords->coord.t[2]) >> 2;
     }
     if ((s16)work->field_6 < 8) {
-        Gfx_MatrixCol2(&player->extra.tmd->coords->coord, &scratch->dir);
+        gfxReadMatrixZAxis(&player->extra.tmd->coords->coord, &scratch->dir);
         VectorNormalSS(&scratch->dir, &scratch->dir);
         gte_lddp(-0x2A);
         gte_ldsv(&scratch->dir);

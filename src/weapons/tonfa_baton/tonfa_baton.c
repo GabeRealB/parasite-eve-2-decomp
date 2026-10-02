@@ -34,7 +34,7 @@
 
 /// 0x18-byte scratchpad block `func_tonfa_baton_8011DBFC` reserves for one
 /// frame of the swing. `dir` receives the third column of the weapon's
-/// coordinate matrix from `Gfx_MatrixCol2`; each axis is then scaled to
+/// coordinate matrix from `gfxReadMatrixZAxis`; each axis is then scaled to
 /// 1/84th and multiplied by the swing flag to give the per-frame translation
 /// added to the coordinate.
 typedef struct TonfaSwing {
@@ -373,7 +373,7 @@ static void func_tonfa_baton_8011DBFC(Task* arg0)
             break;
     }
     coord = arg0->extra.tmd->coords;
-    Gfx_MatrixCol2(&coord->coord, &swing->dir);
+    gfxReadMatrixZAxis(&coord->coord, &swing->dir);
     swing->vx          = (s16)(swing->dir.vx / 84) * swinging;
     swing->vy          = (s16)(swing->dir.vy / 84) * swinging;
     swing->vz          = (s16)(swing->dir.vz / 84) * swinging;

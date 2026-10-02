@@ -966,7 +966,7 @@ static __inline__ void actorMoveForward(GfxCoord* coord, s16 amount)
         head                          = SCRATCH_STACK_CURSOR(SVECTOR);
         vec                           = head - 1;
         SCRATCH_STACK_CURSOR(SVECTOR) = vec;
-        Gfx_MatrixCol2(&coord->coord, vec);
+        gfxReadMatrixZAxis(&coord->coord, vec);
         VectorNormalSS(vec, vec);
         gte_lddp(amount);
         gte_ldsv(vec);
@@ -994,7 +994,7 @@ static __inline__ void actorMoveForwardNonzero(GfxCoord* coord, s16 amount)
         SCRATCH_STACK_CURSOR(SVECTOR) = vec;
         gteVec                        = vec;
         if (amount != 0) {
-            Gfx_MatrixCol2(&coord->coord, vec);
+            gfxReadMatrixZAxis(&coord->coord, vec);
             VectorNormalSS(vec, vec);
             gte_lddp(amount);
             gte_ldsv(gteVec);
@@ -1021,7 +1021,7 @@ static __inline__ void actorMoveModelForward(Task* task, s16 amount)
         head                          = SCRATCH_STACK_CURSOR(SVECTOR);
         vec                           = head - 1;
         SCRATCH_STACK_CURSOR(SVECTOR) = vec;
-        Gfx_MatrixCol2(&coord->coord, vec);
+        gfxReadMatrixZAxis(&coord->coord, vec);
         VectorNormalSS(vec, vec);
         gte_lddp(amount);
         gte_ldsv(vec);
@@ -1119,7 +1119,7 @@ static __inline__ void actorStepForward(GfxCoord* coord, s16 amount)
         SCRATCH_STACK_CURSOR(SVECTOR) = vec;
         if (amount != 0) {
             SOFT_TOUCH_REG(vec);
-            Gfx_MatrixCol2(&coord->coord, vec);
+            gfxReadMatrixZAxis(&coord->coord, vec);
             VectorNormalSS(vec, vec);
             gte_lddp(amount);
             gte_ldsv(vec);

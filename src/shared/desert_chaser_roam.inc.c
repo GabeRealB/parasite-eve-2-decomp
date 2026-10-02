@@ -116,7 +116,7 @@ void desertChaserRoam(Task* arg0)
         work->field_840 = wrapped;
         matrix          = &scratch->matrix;
         gfxRotMatrixY(matrix, (s16)ratan2((s32)scratch->vec.vx, (s32)scratch->vec.vz) + 0x3E8, 1);
-        Gfx_MatrixCol2(matrix, &scratch->vec);
+        gfxReadMatrixZAxis(matrix, &scratch->vec);
         VectorNormalSS(&scratch->vec, &scratch->vec);
         gte_lddp(1000);
         gte_ldsv(&scratch->vec);
@@ -167,7 +167,7 @@ void desertChaserRoam(Task* arg0)
             work->field_14 = 0;
         }
         direction = &scratch->target;
-        Gfx_MatrixCol2(&scratch->matrix, direction);
+        gfxReadMatrixZAxis(&scratch->matrix, direction);
         VectorNormalSS(direction, direction);
         gte_lddp(2000);
         gte_ldsv(direction);

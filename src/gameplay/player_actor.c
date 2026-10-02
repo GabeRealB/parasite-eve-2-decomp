@@ -111,7 +111,7 @@ STATIC_ASSERT_SIZEOF(GpAngleScratch, 0xC);
 /// `scale` is `D_80112E10[movementMode]` (signed, stored as a word). `angle`
 /// holds `0x640000` then the yaw passed to `gfxRotMatrixY`. `saved` is a
 /// copy of `GfxCoord.coord` around that rotate. `vec` is the matrix
-/// column from `Gfx_MatrixCol2` / `VectorNormalSS`, later the Manhattan
+/// column from `gfxReadMatrixZAxis` / `VectorNormalSS`, later the Manhattan
 /// `|dx|+|dz|` to the lock point. `lock` is `Gp_GetLockPos` output.
 typedef struct _GpMoveScratch {
     /* 0x00 */ s32     scale;
@@ -4943,7 +4943,7 @@ void Gp_StepPlayerMove(Task* arg0)
                 actor->velocity.vz = 0;
             } else {
                 s->scale = D_80112E10[(u16)actor->movementMode];
-                Gfx_MatrixCol2(&coord->coord, &s->vec);
+                gfxReadMatrixZAxis(&coord->coord, &s->vec);
                 VectorNormalSS(&s->vec, &s->vec);
                 actor->velocity.vx = s->vec.vx * actor->movementSign / s->scale;
                 actor->velocity.vy = 0;
@@ -4952,7 +4952,7 @@ void Gp_StepPlayerMove(Task* arg0)
             break;
         case 4:
             s->scale = D_80112E10[(u16)actor->movementMode];
-            Gfx_MatrixCol2(&coord->coord, &s->vec);
+            gfxReadMatrixZAxis(&coord->coord, &s->vec);
             VectorNormalSS(&s->vec, &s->vec);
             actor->velocity.vx = s->vec.vx * actor->movementSign / s->scale;
             actor->velocity.vy = 0;
@@ -4968,7 +4968,7 @@ void Gp_StepPlayerMove(Task* arg0)
             s->angle   = 0x640000;
             s->angle   = (0x800 - s->angle / (s->vec.vx * 0x274)) >> 1;
             gfxRotMatrixY(&coord->coord, s->angle, 0);
-            Gfx_MatrixCol2(&coord->coord, &s->vec);
+            gfxReadMatrixZAxis(&coord->coord, &s->vec);
             actor->velocity.vx = s->vec.vx * actor->turnSign / s->scale;
             actor->velocity.vy = 0;
             actor->velocity.vz = s->vec.vz * actor->turnSign / s->scale;
@@ -7952,8 +7952,8 @@ static void Gp_PlayerMode2State3(Task* arg0)
                 angle = 0x180;
             }
             gfxRotMatrixX(&blk->mtx, angle, GRAPHICS_ROTATION_COMPOSE);
-            Gfx_MatrixCol2(&blk->mtx, (SVECTOR*)(head - 0xC));
-            VectorNormalSS((SVECTOR*)(head - 0xC), (SVECTOR*)(head - 0xC));
+            gfxReadMatrixZAxis(&blk->mtx, &blk->dir);
+            VectorNormalSS(&blk->dir, &blk->dir);
             if (actor->jumpVariant == 0) {
                 actor->statePhase  = 1;
                 actor->stateTimer  = 0;
@@ -7982,8 +7982,8 @@ static void Gp_PlayerMode2State3(Task* arg0)
                     if (actor->scriptMotion.jumpSteps <= 0) {
                         actor->stateTimer = 8;
                         actor->statePhase++;
-                        Gfx_MatrixCol2(&coord->coord, (SVECTOR*)(head - 0xC));
-                        VectorNormalSS((SVECTOR*)(head - 0xC), (SVECTOR*)(head - 0xC));
+                        gfxReadMatrixZAxis(&coord->coord, &blk->dir);
+                        VectorNormalSS(&blk->dir, &blk->dir);
                         actor->velocity.vx = (s16)(blk->dir.vx / 180);
                         actor->velocity.vy = (s16)(blk->dir.vy / 180);
                         mode               = 0x26;
@@ -8017,8 +8017,8 @@ static void Gp_PlayerMode2State3(Task* arg0)
         case 3:
             if (func_80105ED4(arg0) != 0) {
                 if (actor->scriptMotion.jumpSteps == 1) {
-                    Gfx_MatrixCol2(&coord->coord, (SVECTOR*)(head - 0xC));
-                    VectorNormalSS((SVECTOR*)(head - 0xC), (SVECTOR*)(head - 0xC));
+                    gfxReadMatrixZAxis(&coord->coord, &blk->dir);
+                    VectorNormalSS(&blk->dir, &blk->dir);
                     actor->velocity.vx = (s16)(blk->dir.vx / 58);
                     actor->velocity.vz = (s16)(blk->dir.vz / 58);
                 }

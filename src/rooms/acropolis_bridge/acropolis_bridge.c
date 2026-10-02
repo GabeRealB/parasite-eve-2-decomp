@@ -4712,7 +4712,7 @@ static __inline__ void walkerStep(OverlayWalker* walker, u8* head,
            transfers; without it `sv` and the copy share one register. */
         gsv = sv;
         if (speed != 0) {
-            Gfx_MatrixCol2(&coord->coord, sv);
+            gfxReadMatrixZAxis(&coord->coord, sv);
             VectorNormalSS(sv, sv);
             gte_lddp(speed);
             gte_ldsv(gsv);

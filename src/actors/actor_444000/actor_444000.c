@@ -3044,7 +3044,7 @@ static __inline__ void Actor444000_StepForward(GfxCoord* coord)
     dir                           = (SVECTOR*)(head - sizeof(SVECTOR));
     SCRATCH_STACK_CURSOR(SVECTOR) = dir;
 
-    Gfx_MatrixCol2(&coord->coord, dir);
+    gfxReadMatrixZAxis(&coord->coord, dir);
     VectorNormalSS(dir, dir);
     gte_lddp(0x32);
     gte_ldsv(dir);
@@ -3190,7 +3190,7 @@ static void func_actor_444000_8013482C(Task* task)
                 sc->angle = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) + 0xD;
                 sc->m.mat = task->extra.tmd->coords->coord;
 
-                Gfx_MatrixCol2(&sc->m.mat, &sc->dir);
+                gfxReadMatrixZAxis(&sc->m.mat, &sc->dir);
                 VectorNormalSS(&sc->dir, &sc->dir);
                 gte_lddp(0xBEA);
                 gte_ldsv(&sc->dir);
@@ -3204,7 +3204,7 @@ static void func_actor_444000_8013482C(Task* task)
                 gfxRotMatrixY(&sc->m.mat, sc->angle, 1);
                 task->extra.tmd->coords->coord = sc->m.mat;
 
-                Gfx_MatrixCol2(&sc->m.mat, &sc->dir);
+                gfxReadMatrixZAxis(&sc->m.mat, &sc->dir);
                 VectorNormalSS(&sc->dir, &sc->dir);
                 gte_lddp(-0xBB8);
                 gte_ldsv(&sc->dir);
@@ -3766,7 +3766,7 @@ static void func_actor_444000_801371E8(Task* task, s32 scale, s16 face)
     };
     SVECTOR* d;
 
-    Gfx_MatrixCol2(&task->extra.tmd->coords->coord, &dir);
+    gfxReadMatrixZAxis(&task->extra.tmd->coords->coord, &dir);
     d = &dir;
     VectorNormalSS(d, d);
     gte_lddp(scale);
@@ -4246,7 +4246,7 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
     work->hits[2].obj.pos.vy = 0x400;
     work->hits[2].obj.pos.vz = -0x400;
 
-    Gfx_MatrixCol2(&task->extra.tmd->coords->coord, &dir);
+    gfxReadMatrixZAxis(&task->extra.tmd->coords->coord, &dir);
     dir.vy = 0;
     gteDir = &dir;
     VectorNormalSS(gteDir, gteDir);
@@ -5703,7 +5703,7 @@ scanned:
 /// fifth step one of the three shared coordinates in
 /// `D_actor_444000_80161948.value` is rebuilt at that escort's second part -- its
 /// rotation accumulated up the parent chain, its origin carried into view
-/// space, then turned a quarter turn each way so `Gfx_MatrixCol2` yields the
+/// space, then turned a quarter turn each way so `gfxReadMatrixZAxis` yields the
 /// launch direction, which is normalised and scaled to 0x320 before being
 /// added to the origin -- and an effect is spawned on it. Every tenth step a
 /// fresh enemy is spawned from `gGluttonEscortTasks` and remembered in
@@ -5790,7 +5790,7 @@ static void func_actor_444000_801404C0(Task* arg0)
             D_actor_444000_80161948.value[D_actor_444000_80161850].coord.t[2] = pos.vz;
             gfxRotMatrixY(&D_actor_444000_80161948.value[D_actor_444000_80161850].coord, 0x80, 0);
             gfxRotMatrixX(&D_actor_444000_80161948.value[D_actor_444000_80161850].coord, -0x80, GRAPHICS_ROTATION_COMPOSE);
-            Gfx_MatrixCol2(&D_actor_444000_80161948.value[D_actor_444000_80161850].coord, &pos);
+            gfxReadMatrixZAxis(&D_actor_444000_80161948.value[D_actor_444000_80161850].coord, &pos);
 
             posp   = &pos;
             pos.vy = 0;

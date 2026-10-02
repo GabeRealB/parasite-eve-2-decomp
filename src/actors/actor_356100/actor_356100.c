@@ -162,7 +162,7 @@ typedef struct Actor356100Work {
     /// `Actor00100Ctx.field_4C & 2` bit `Actor00100_Fn0BB2C` tests there.
     /* 0xB3A */ s16  field_B3A;
     /* 0xB3C */ byte pad_B3C[4];
-    /// Direction `Gfx_MatrixCol2` takes off the model's root colour-matrix Y
+    /// Direction `gfxReadMatrixZAxis` takes off the model's root colour-matrix Y
     /// column and `VectorNormalSS` normalises; `func_actor_356100_80165B30`
     /// then GPF-scales it by `field_B52` into its aim scratch, the same
     /// normalise-then-scale pair `Actor01900_MoveForward` runs.
@@ -1213,7 +1213,7 @@ static void func_actor_356100_8016382C(Enemy* enemy, Task* actor)
     work->field_14     = 0;
     work->field_C[0].x = actor->extra.tmd->coords->coord.t[0];
     work->field_C[0].z = actor->extra.tmd->coords->coord.t[2];
-    Gfx_MatrixCol2(&actor->extra.tmd->coords->coord, &dir);
+    gfxReadMatrixZAxis(&actor->extra.tmd->coords->coord, &dir);
     dir.vy = 0;
     v      = &dir;
     VectorNormalSS(v, v);
@@ -1384,7 +1384,7 @@ static __inline__ void Actor356100_StepForward(GfxCoord* coord, s16 amount)
         head                          = SCRATCH_STACK_CURSOR(SVECTOR);
         SCRATCH_STACK_CURSOR(SVECTOR) = head - 1;
         vec                           = head - 1;
-        Gfx_MatrixCol2(&coord->coord, vec);
+        gfxReadMatrixZAxis(&coord->coord, vec);
         VectorNormalSS(vec, vec);
         gte_lddp(amount);
         gte_ldsv(vec);
@@ -1869,7 +1869,7 @@ static void func_actor_356100_80165B30(Task* arg0)
         func_actor_356100_80163508(arg0);
         gfxRotMatrixY(&mat, aim->angle, 1);
         dir = &work->field_B40;
-        Gfx_MatrixCol2(&mat, dir);
+        gfxReadMatrixZAxis(&mat, dir);
         VectorNormalSS(dir, dir);
         work->field_B52 = 0xDE;
         work->field_B66++;
@@ -2092,7 +2092,7 @@ static void func_actor_356100_801668FC(Task* actor)
             scratchBase                                                = PLAYSTATION_SCRATCHPAD_BASE;
             *(SVECTOR**)(scratchBase + SCRATCH_STACK_HEAD_BYTE_OFFSET) = movementDirection;
             scratchBase                                                = savedVectorHead;
-            Gfx_MatrixCol2(&coord->coord, movementDirection);
+            gfxReadMatrixZAxis(&coord->coord, movementDirection);
             VectorNormalSS(movementDirection, movementDirection);
             gte_lddp(-0x78);
             gte_ldsv(movementDirection);
@@ -2409,7 +2409,7 @@ static __inline__ void Actor356100_MoveForward(GfxCoord* coord, s16 amount)
         vec                           = head;
         SCRATCH_STACK_CURSOR(SVECTOR) = vec;
         if (amount != 0) {
-            Gfx_MatrixCol2(&coord->coord, vec);
+            gfxReadMatrixZAxis(&coord->coord, vec);
             VectorNormalSS(vec, vec);
             gte_lddp(amount);
             gte_ldsv(vec);
@@ -2557,7 +2557,7 @@ static __inline__ void Actor356100_StepForwardSave(McSaveData* save, GfxCoord* c
         head                          = SCRATCH_STACK_CURSOR(SVECTOR);
         vec                           = head - 1;
         SCRATCH_STACK_CURSOR(SVECTOR) = vec;
-        Gfx_MatrixCol2(&coord->coord, vec);
+        gfxReadMatrixZAxis(&coord->coord, vec);
         VectorNormalSS(vec, vec);
         gte_lddp(amount);
         gte_ldsv(vec);
