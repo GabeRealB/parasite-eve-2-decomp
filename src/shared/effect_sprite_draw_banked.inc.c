@@ -63,7 +63,7 @@ static void _effectSpriteDrawBanked(const GfxCoord* coord, u16 frameAndPalette, 
         EFFECT_SPRITE_BANKED_FIRST_PALETTE_ROW = 270,
         EFFECT_SPRITE_BANKED_CLUT_ROW_SHIFT    = 6,
         EFFECT_SPRITE_BANKED_CLUT_COLUMN_MASK  = 0x3F,
-        /// Number of 48-texel animation cells across each texture-sheet row.
+        /// Row-major frame stride: five 48-texel cells across each texture-sheet row.
         ///
         /// The zero-based frame index advances across columns before rows.
         /// Palette selection and total animation length are independent.
@@ -118,8 +118,12 @@ static void _effectSpriteDrawBanked(const GfxCoord* coord, u16 frameAndPalette, 
             quad->clut = ((paletteBank + EFFECT_SPRITE_BANKED_FIRST_PALETTE_ROW) << EFFECT_SPRITE_BANKED_CLUT_ROW_SHIFT) |
                          (frameIndex & EFFECT_SPRITE_BANKED_CLUT_COLUMN_MASK);
         }
-        cellColumn  = (u16)frameIndex % EFFECT_SPRITE_BANKED_CELLS_PER_ROW;
-        cellRow     = (u16)frameIndex / EFFECT_SPRITE_BANKED_CELLS_PER_ROW;
+        {
+            u32 cellIndex = (u16)frameIndex;
+
+            cellColumn = cellIndex % EFFECT_SPRITE_BANKED_CELLS_PER_ROW;
+            cellRow    = cellIndex / EFFECT_SPRITE_BANKED_CELLS_PER_ROW;
+        }
         cornerAngle = angle;
         cellU       = cellColumn * EFFECT_SPRITE_BANKED_CELL_TEXELS;
         cellV       = cellRow * EFFECT_SPRITE_BANKED_CELL_TEXELS;
