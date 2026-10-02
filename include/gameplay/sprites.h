@@ -156,26 +156,37 @@ typedef struct {
 } SpriteAreaTable;
 STATIC_ASSERT_SIZEOF(SpriteAreaTable, 4);
 
-/// Halfword UV and word size transfers used when building GPU sprites.
-typedef union GpSpritePacket {
-    SPRT fields;
+/// Variable-size GPU sprite primitive, as an SDK `SPRT` and as transfer words.
+///
+/// Room-sprite emission stores this 20-byte primitive in a merged texture-page
+/// packet and in the cached sprite lists. `sprt` is the SDK primitive: GPU
+/// macros take its address, and the command byte and CLUT are updated through
+/// it. `packed` groups the same bytes into the copies taken from a
+/// `SpriteSource`. Colour, the upper-left position and the size move as words;
+/// the texture origin moves as a halfword. Storing either member replaces the
+/// bytes they share.
+///
+/// A colour-word store replaces the command byte. Writers set the sprite
+/// code after that store.
+typedef union {
+    SPRT sprt;        // SDK sprite. Command byte is 0x64 plus SPRITE_SOURCE_RAW_TEXTURE and SPRITE_SOURCE_SEMI_TRANSPARENT
     struct {
-        u32 tag;
-        u32 color;
-        u32 position;
-        u16 uv;
-        u16 clut;
-        u32 size;
-    } packed;
-} GpSpritePacket;
-STATIC_ASSERT_SIZEOF(GpSpritePacket, 0x14);
+        u32 tag;      // Next primitive address and packet length (4 words after the tag)
+        u32 color;    // Red, green, blue, and the command byte in bits 24..31
+        u32 position; // Upper-left X in the low halfword, Y in the high halfword, in pixels
+        u16 uv;       // Texture U in the low byte, V in the high byte
+        u16 clut;     // Encoded GPU colour lookup-table address
+        u32 size;     // Width in the low halfword, height in the high halfword, in pixels
+    } packed;         // Word and halfword transfers of the same primitive
+} SpritePacket;
+STATIC_ASSERT_SIZEOF(SpritePacket, 0x14);
 
 /// Merged `DR_TPAGE` + `SPRT` (0x1C) written into `gGpuPrimCursor` by
 /// `Gp_EmitSprts`. `MargePrim` concatenates the tpage packet onto the
 /// sprite so they share one OT entry.
 typedef struct _GpTpageSprt {
-    /* 0x00 */ DR_TPAGE       tpage;
-    /* 0x08 */ GpSpritePacket sprt;
+    /* 0x00 */ DR_TPAGE     tpage;
+    /* 0x08 */ SpritePacket sprt;
 } GpTpageSprt;
 STATIC_ASSERT_SIZEOF(GpTpageSprt, 0x1C);
 

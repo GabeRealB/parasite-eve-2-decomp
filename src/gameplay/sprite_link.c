@@ -94,15 +94,15 @@ void Gp_LinkViewSprts(void)
 
 static void Gp_EmitSprts(SpriteSource* sources, SpriteBatch* batch)
 {
-    u32             i;
-    GpTpageSprt*    dest;
-    SpriteSource*   texturePageSource;
-    SpriteSource*   source;
-    DisplayState*   ds;
-    u32             maskHi;
-    u32             mask;
-    GpSpritePacket* sprt;
-    u32             tpage;
+    u32           i;
+    GpTpageSprt*  dest;
+    SpriteSource* texturePageSource;
+    SpriteSource* source;
+    DisplayState* ds;
+    u32           maskHi;
+    u32           mask;
+    SpritePacket* packet;
+    u32           tpage;
 
     i                 = 0;
     dest              = gGpuPrimCursor;
@@ -114,23 +114,23 @@ static void Gp_EmitSprts(SpriteSource* sources, SpriteBatch* batch)
         maskHi = 0xFF000000;
         source = texturePageSource;
         do {
-            sprt = &dest->sprt;
+            packet = &dest->sprt;
             // Copy source geometry and texture state, then link the merged packet by depth.
             if ((source->codeFlags & SPRITE_SOURCE_RAW_TEXTURE) == 0) {
-                sprt->packed.color = GPU_PRIMITIVE_COLOR_WORD(source, 0);
+                packet->packed.color = GPU_PRIMITIVE_COLOR_WORD(source, 0);
             }
             tpage = texturePageSource->tpage;
             setlen(&dest->tpage, 1);
-            setlen(&sprt->fields, 4);
-            setcode(&sprt->fields, 0x64);
+            setlen(&packet->sprt, 4);
+            setcode(&packet->sprt, 0x64);
             dest->tpage.code[0] = 0xE1000000 | (tpage & SPRITE_SOURCE_TEXTURE_PAGE_MASK);
-            MargePrim(dest, &sprt->fields);
-            sprt->fields.code    |= source->codeFlags;
-            sprt->packed.uv       = source->uv.packed;
-            sprt->fields.clut     = source->clut;
-            sprt->packed.position = GPU_PRIMITIVE_XY_WORD(source, 0);
+            MargePrim(dest, &packet->sprt);
+            packet->sprt.code      |= source->codeFlags;
+            packet->packed.uv       = source->uv.packed;
+            packet->sprt.clut       = source->clut;
+            packet->packed.position = GPU_PRIMITIVE_XY_WORD(source, 0);
             i++;
-            sprt->packed.size = source->size.packed;
+            packet->packed.size = source->size.packed;
             texturePageSource++;
             dest->tpage.tag = (dest->tpage.tag & maskHi) | (*GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)source->depth << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) & mask);
             *GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)source->depth << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) =
@@ -164,9 +164,9 @@ static void Gp_SetSprtShadeBits(s32 arg0)
                 if (Gp_SprtLists[0] != NULL) {
                     for (i = 0; i < batch->spriteCount; i++) {
                         if (arg0 != 0) {
-                            prim->sprt.fields.code |= 1;
+                            prim->sprt.sprt.code |= 1;
                         } else {
-                            prim->sprt.fields.code &= ~1;
+                            prim->sprt.sprt.code &= ~1;
                         }
                         prim++;
                     }
@@ -185,16 +185,16 @@ void Gp_AllocSprtLists(void)
         u32         address;
         GpSprtPrim* records;
     } count;
-    s32             i;
-    SpriteView*     recs;
-    SpriteBatch*    batch;
-    SpriteSource*   sources;
-    SpriteSource*   source;
-    s32             bufIdx;
-    GpTpageSprt*    buf[2];
-    GpTpageSprt*    dest;
-    GpSpritePacket* sprt;
-    u32             tpage;
+    s32           i;
+    SpriteView*   recs;
+    SpriteBatch*  batch;
+    SpriteSource* sources;
+    SpriteSource* source;
+    s32           bufIdx;
+    GpTpageSprt*  buf[2];
+    GpTpageSprt*  dest;
+    SpritePacket* packet;
+    u32           tpage;
 
     sess          = &gGameSession->location.loc;
     count.address = 0;
@@ -236,20 +236,20 @@ void Gp_AllocSprtLists(void)
             // Snapshot the source range into both buffers with raw texture enabled.
             source = sources + batch->firstSprite;
             for (i = 0; i < batch->spriteCount; i++) {
-                dest               = buf[bufIdx];
-                sprt               = &dest->sprt;
-                sprt->packed.color = GPU_PACK_COLOR_WORD(0, 0x80, 0, 0);
+                dest                 = buf[bufIdx];
+                packet               = &dest->sprt;
+                packet->packed.color = GPU_PACK_COLOR_WORD(0, 0x80, 0, 0);
                 setlen(&dest->tpage, 1);
                 tpage = source->tpage;
-                setlen(&dest->sprt.fields, 4);
-                setcode(&dest->sprt.fields, 0x64 | SPRITE_SOURCE_RAW_TEXTURE);
+                setlen(&dest->sprt.sprt, 4);
+                setcode(&dest->sprt.sprt, 0x64 | SPRITE_SOURCE_RAW_TEXTURE);
                 dest->tpage.code[0] = 0xE1000000 | (tpage & SPRITE_SOURCE_TEXTURE_PAGE_MASK);
-                MargePrim(dest, &sprt->fields);
-                sprt->fields.code    |= source->codeFlags;
-                sprt->packed.uv       = source->uv.packed;
-                sprt->fields.clut     = source->clut;
-                sprt->packed.position = GPU_PRIMITIVE_XY_WORD(source, 0);
-                sprt->packed.size     = source->size.packed;
+                MargePrim(dest, &packet->sprt);
+                packet->sprt.code      |= source->codeFlags;
+                packet->packed.uv       = source->uv.packed;
+                packet->sprt.clut       = source->clut;
+                packet->packed.position = GPU_PRIMITIVE_XY_WORD(source, 0);
+                packet->packed.size     = source->size.packed;
                 source++;
                 buf[bufIdx]++;
             }
