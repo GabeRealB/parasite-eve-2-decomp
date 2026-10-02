@@ -1199,23 +1199,23 @@ static void func_800D0614(Task* arg0)
 
 static void Gp_DrawMapMarks(Task* arg0)
 {
-    Task*        keep;
-    GameSession* session;
-    GpFlagBank** banks;
-    GpFlagBank*  bank;
-    s32          flags[2];
-    u8*          flagTbl;
-    GpMapMark*   recs;
-    GpMapMark**  markTable;
-    UiObject*    obj;
-    s32          color;
-    s32          i;
-    s32          which;
-    s32          bit;
-    s32          idx;
-    s32          one;
-    u8           stage;
-    s32          stageM1;
+    Task*                 keep;
+    GameSession*          session;
+    GameFlagStageHeader** banks;
+    GameFlagStageHeader*  bank;
+    s32                   flags[2];
+    u8*                   flagTbl;
+    GpMapMark*            recs;
+    GpMapMark**           markTable;
+    UiObject*             obj;
+    s32                   color;
+    s32                   i;
+    s32                   which;
+    s32                   bit;
+    s32                   idx;
+    s32                   one;
+    u8                    stage;
+    s32                   stageM1;
 
     keep      = arg0;
     color     = 0x5D7;
@@ -1300,19 +1300,19 @@ static void Gp_DrawMapMarks(Task* arg0)
 
 static void func_800D0C34(Task* arg0)
 {
-    UiObject*       obj;
-    GpMapFlagIcon*  icons;
-    GpFlagBank*     bank;
-    GpMapCursorPos* pos;
-    SPRT_16*        p;
-    DR_TPAGE*       dr;
-    s32             flags[2];
-    u8              i;
-    s16             which;
-    s32             bit;
-    u16             state;
-    u8              stage;
-    u8              flag;
+    UiObject*            obj;
+    GpMapFlagIcon*       icons;
+    GameFlagStageHeader* bank;
+    GpMapCursorPos*      pos;
+    SPRT_16*             p;
+    DR_TPAGE*            dr;
+    s32                  flags[2];
+    u8                   i;
+    s16                  which;
+    s32                  bit;
+    u16                  state;
+    u8                   stage;
+    u8                   flag;
 
     i        = 0;
     stage    = gGameSession->location.loc.stage;
@@ -1512,14 +1512,14 @@ static void Gp_EnqueueMapRoomCd(void)
 
 static s8 func_800D1434(u32 roomId, u8 flagId)
 {
-    GpFlagBank* bank;
-    GpMapRec*   recs;
-    s32         flags[2];
-    s32         i;
-    s32         which;
-    s32         bit;
-    s32         one;
-    s32         skip;
+    GameFlagStageHeader* bank;
+    GpMapRec*            recs;
+    s32                  flags[2];
+    s32                  i;
+    s32                  which;
+    s32                  bit;
+    s32                  one;
+    s32                  skip;
 
     bank = Gp_FlagBanks[gGameSession->location.loc.stage];
     if (gGameSession->location.loc.stage != GAME_STAGE_SHELTER_NEO_ARK) {

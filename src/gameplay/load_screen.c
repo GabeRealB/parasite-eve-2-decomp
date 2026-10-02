@@ -608,9 +608,9 @@ void Gp_FadeGrayHold(Task* task)
 
 static void Gp_InitStageVisit(GameLocationKey* arg0)
 {
-    McSaveData*  save;
-    GpFlagBank** banks;
-    GpFlagBank*  bank;
+    McSaveData*           save;
+    GameFlagStageHeader** banks;
+    GameFlagStageHeader*  bank;
 
     banks = Gp_FlagBanks;
     save  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];

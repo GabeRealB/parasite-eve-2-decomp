@@ -257,7 +257,7 @@ void Gp_SetupCompanionActor(const ActorSpawnTransform* spawnTransform, u16* arg1
 
 static void Gp_ClearFlagBank(s32 arg0)
 {
-    GpFlagBank* bank;
+    GameFlagStageHeader* bank;
 
     bank                  = Gp_FlagBanks[arg0];
     bank->visitedAreas[0] = 0;
@@ -266,12 +266,12 @@ static void Gp_ClearFlagBank(s32 arg0)
 
 void Gp_MarkAreaVisited(GameLocationKey* arg0)
 {
-    McSaveData* save;
-    GpFlagBank* bank;
-    s32         which;
-    s32         bit;
-    s32         mask;
-    s32         flags;
+    McSaveData*          save;
+    GameFlagStageHeader* bank;
+    s32                  which;
+    s32                  bit;
+    s32                  mask;
+    s32                  flags;
 
     bank = Gp_FlagBanks[arg0->stage];
     save = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];

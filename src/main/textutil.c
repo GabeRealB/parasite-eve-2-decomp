@@ -66,7 +66,7 @@ static u_long Text_OutlineClutPixels[] = {
 /// Unreferenced.
 static _TextClutRecord Text_OutlineClut = { 0, { 0x100, 0xF0, 0x30, 1 }, Text_OutlineClutPixels, 0xFF, { 0 } };
 
-GpFlagBank* Gp_FlagBanks[] = {
+GameFlagStageHeader* Gp_FlagBanks[] = {
     NULL,
     &GameFlag_AcropolisBanks[0].header,
     &GameFlag_DryfieldBanks[0].header,

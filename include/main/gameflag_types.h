@@ -42,17 +42,21 @@ STATIC_ASSERT_SIZEOF(GameFlagNibbleBank, 0x100);
 STATIC_ASSERT(OFFSET_OF(GameFlagNibbleBank, payload) == 4, game_flag_payload_offset);
 STATIC_ASSERT(OFFSET_OF(GameFlagNibbleBank, payload.state.playTimeMark) == 0x38, game_flag_play_time_offset);
 
-/// Common saved stage header. Area IDs 1..64 select visitedAreas; each
-/// entryStates word holds sixteen two-bit placement/item states (IDs 0..63).
-typedef struct _GpFlagBank {
-    u16 checksum;
-    u16 checksumComplement;
-    s32 visitedAreas[2];
-    u32 entryStates[4];
-    u8  unknown_1C[4]; // Saved bytes before the first referenced area record
-} GpFlagBank;
-STATIC_ASSERT_SIZEOF(GpFlagBank, 0x20);
-STATIC_ASSERT(OFFSET_OF(GpFlagBank, entryStates) == 0xC, game_flag_entry_states_offset);
+/// Saved prefix of a stage bank.
+///
+/// The memory-card system stores each stage bank as one checksummed block.
+/// The sum covers every byte after the first four, including area records
+/// that follow this prefix in the larger banks. Loading compares that sum
+/// and ignores its complement.
+typedef struct {
+    u16 checksum;           // Low 16 bits of the signed byte sum of the stage bank after these four bytes
+    u16 checksumComplement; // Ones' complement of checksum. Loading compares checksum only
+    s32 visitedAreas[2];    // Ids 1..32, then 33..64, one bit each. Set when the area is marked visited; both words are cleared on the stage's first entry
+    u32 objectStates[4];    // Ids 0..63, sixteen two-bit states per word, low pair first. Seeded from the place list on first entry. Night Dryfield uses the daytime bank's words and is not reseeded
+    u8  unknown_1C[4];      // Saved with the bank. No access through this prefix has been found; role unproven
+} GameFlagStageHeader;
+STATIC_ASSERT_SIZEOF(GameFlagStageHeader, 0x20);
+STATIC_ASSERT(OFFSET_OF(GameFlagStageHeader, objectStates) == 0xC, game_flag_object_states_offset);
 
 /// Default placement layout and bits of `AreaSavedState.spawnFlags`.
 enum {
@@ -91,35 +95,35 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(GameFlagAreaSlot, 4);
 
 typedef struct {
-    GpFlagBank       header;
-    GameFlagAreaSlot areas[18];
-    u8               unknown_68[4];
+    GameFlagStageHeader header;
+    GameFlagAreaSlot    areas[18];
+    u8                  unknown_68[4];
 } GameFlagAcropolisBank;
 STATIC_ASSERT_SIZEOF(GameFlagAcropolisBank, 0x6C);
 
 typedef struct {
-    GpFlagBank       header;
-    GameFlagAreaSlot areas[36];
+    GameFlagStageHeader header;
+    GameFlagAreaSlot    areas[36];
 } GameFlagDryfieldBank;
 STATIC_ASSERT_SIZEOF(GameFlagDryfieldBank, 0xB0);
 
 typedef struct {
-    GpFlagBank header;
-    u8         unknown_20[4];
+    GameFlagStageHeader header;
+    u8                  unknown_20[4];
 } GameFlagDryfieldFullBank;
 STATIC_ASSERT_SIZEOF(GameFlagDryfieldFullBank, 0x24);
 
 typedef struct {
-    GpFlagBank       header;
-    GameFlagAreaSlot areas[48];
-    u8               unknown_E0[4];
+    GameFlagStageHeader header;
+    GameFlagAreaSlot    areas[48];
+    u8                  unknown_E0[4];
 } GameFlagShelterBank;
 STATIC_ASSERT_SIZEOF(GameFlagShelterBank, 0xE4);
 
 typedef struct {
-    GpFlagBank       header;
-    GameFlagAreaSlot areas[32];
-    u8               unknown_A0[4];
+    GameFlagStageHeader header;
+    GameFlagAreaSlot    areas[32];
+    u8                  unknown_A0[4];
 } GameFlagNeoArkBank;
 STATIC_ASSERT_SIZEOF(GameFlagNeoArkBank, 0xA4);
 

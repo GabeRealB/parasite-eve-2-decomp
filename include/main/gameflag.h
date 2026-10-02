@@ -25,7 +25,7 @@ extern GameFlagShelterBank      GameFlag_ShelterBanks[2];
 extern GameFlagNeoArkBank       GameFlag_NeoArkBanks[2];
 
 /// Live stage headers, indexed by GameLocationKey.stage (1..5; slot 0 is NULL).
-extern GpFlagBank* Gp_FlagBanks[6];
+extern GameFlagStageHeader* Gp_FlagBanks[6];
 
 /// Set one of the 504 game flags; index is 0..503 and value is 0..15.
 void GameFlag_SetNibble(s32 index, s32 value);
