@@ -1070,7 +1070,20 @@ u32* tmdDrawStreamPrimGt3PreXformOffsetLayer(TmdStreamWorkspace* workspace, s32 
         /// the opaque base. The command is fixed, independent of `objectFlags`.
         TMD_GT3_OFFSET_LAYER_SEMI_TRANS_COMMAND = 0x36,
         TMD_GT3_OFFSET_LAYER_PACKET_COUNT       = 2, // Layer first, model-texture base second
-        TMD_GT3_OFFSET_LAYER_OT_INDEX_SHIFT     = 4  // Sixteen scaled OTZ units per four-byte OT tag
+        /// Right shift converting an offset-layer triangle's scaled GTE OTZ to an OT tag index.
+        ///
+        /// Applied after the u32 left shift by `gDisplayState.otDepthShift`
+        /// (0..3): sixteen scaled depth units select one four-byte tag.
+        /// Combines the depth-to-byte-offset right shift by two with the
+        /// bytes-to-tags conversion. The following mask is
+        /// `GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot)`;
+        /// it keeps scaled-depth bits 4..13, wrapping to indices 0..1023.
+        /// The unsigned cast preserves unsigned shift arithmetic; the result
+        /// counts tags, not bytes, and does not clamp depth. Both packets use
+        /// this index relative to `workspace->ot`, already displaced by the
+        /// model's signed tag offset. The selected table must contain that
+        /// entry; neither the shift nor the mask checks its storage bounds.
+        TMD_GT3_OFFSET_LAYER_OT_INDEX_SHIFT = 4
     };
     /// One element's offset-textured layer followed by its opaque base.
     typedef POLY_GT3 _TmdOffsetLayerTrianglePair[TMD_GT3_OFFSET_LAYER_PACKET_COUNT];
