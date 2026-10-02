@@ -478,22 +478,45 @@ u32* tmdDrawStreamPrimG3(TmdStreamWorkspace* workspace, s32 objectFlags, u32* el
 /// comes from the element and the facing signs above always apply.
 u32* tmdDrawStreamPrimG4(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
-/// The draw pass's handler for a stream's one-normal textured-triangle records
-/// that ask for the semi-transparent primitive (`0x1A`): each element's triangle
-/// is taken to screen space and lit from the element's one normal, and its packet
-/// is filled in with the resulting screen coordinates and colours and linked into
-/// the ordering table, unless the transform clipped the triangle or the facing
-/// test turned it away.
+/// Projects and draws semi-transparent textured triangles, lighting each from one face normal.
 ///
-/// The element is the opaque `0x18` triangle's — one normal for the whole triangle
-/// rather than one per corner, and the same refs and texture words — and the two
-/// entries share one body, so the primitive code the packet is built under is the
-/// whole of the difference between the two records: `0x34` for the opaque triangle
-/// and `0x36` here, the semi-transparency bit being the difference. The element
-/// names no colour, so the triangle is lit from a fixed mid-grey, and the same
-/// constant carries both, the code in its top byte. The opcode alone selects the
-/// variant, so `flags` goes unread.
-u32* tmdDrawStreamPrimGt3OneNormalSemiTrans(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// Draw resolution selects this entry for opcode `0x1A`. `elements` starts
+/// after the three-word record header. Words 0/1 pack four unsigned u16 byte
+/// offsets: vertex 0, vertex 1, vertex 2, then the face normal. Each must address
+/// a complete, word-aligned eight-byte vector in the borrowed `workspace->verts`
+/// or `workspace->normals` array; neither array's full extent is supplied here.
+/// `elemCount` and `elemStride` are decoded unsigned halfwords (0..65535);
+/// stride counts u32 words. Drawing reads two words per element, but construction
+/// requires at least five: `gpStreamPrimGt3OneNormal` initializes UVs, texture
+/// page and CLUT from words 2..4. The stream must contain count * stride payload
+/// words and remain valid for the call.
+///
+/// The word-aligned `workspace->primWrite` must have count complete 40-byte
+/// `POLY_GT3` slots in the selected buffer half's second region, with texture
+/// words already initialized. Every element consumes one slot, including
+/// triangles rejected for GTE FLAG bit 31 or nonpositive `NCLIP(0,1,2)` winding.
+/// Rejection writes neither packet nor OT. Accepted packets receive projected
+/// XY and the same lit RGB/command word at all three corners: NCCS lights fixed
+/// RGB (128,128,128) with GPU code 0x36. Texture words, including the texture
+/// page's blend mode, remain unchanged.
+///
+/// The caller supplies the part's GTE transform, lighting and three-depth
+/// averaging scale. Accepted packets prepend to `workspace->ot` using AVSZ3 at
+/// entry `(((u32)OTZ << (workspace->otDepthShift & 31)) & 0x3FFF) >> 4`.
+/// Normal drawing supplies shifts 0..3. The OT base already includes the
+/// object's signed entry displacement; every resulting bucket (0..1023) must
+/// fit the selected table. DMA links retain 24 address bits and the packet tag
+/// records nine payload words. Capacities are unchecked; packet and OT storage
+/// must remain GPU-visible until consumption completes.
+///
+/// Returns `elements + elemCount * elemStride`, leaving the next record or
+/// marker unconsumed, and updates only `workspace->primWrite` among workspace
+/// fields. Counts, saved GTE results and the first-region cursor are unchanged.
+/// An empty record reads no payload and advances neither cursor, but still sets
+/// GTE RGBC to the fixed colour/code. `objectFlags` is ignored, including blend
+/// and reverse-culling bits. This alternate entry shares the rendering body of
+/// `tmdDrawStreamPrimGt3OneNormal` and always supplies semi-transparent code 0x36.
+u32* tmdDrawStreamPrimGt3OneNormalSemiTrans(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 /// Projects and draws opaque textured triangles, lighting each from one face normal.
 ///

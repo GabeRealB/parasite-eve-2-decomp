@@ -1300,8 +1300,10 @@ glabel tmdDrawStreamPrimG4
 endlabel tmdDrawStreamPrimG4
 .purgem TMD_DRAW_STREAM_PRIM_G4_LINK_PACKET
 alabel tmdDrawStreamPrimGt3OneNormalSemiTrans
-    /* 2194 80011994 */  lui         $t0, 0x3680
-    /* 2198 80011998 */  ori         $t0, $t0, 0x8080
+    /* a0 workspace, a1 ignored object flags, a2 first element word. */
+    /* Seed the semi-transparent command and neutral material before the shared face-normal walk. */
+    /* 2194 80011994 */  lui         $t0, (TMD_DRAW_STREAM_GT3_SEMI_TRANS_COLOR >> 16)
+    /* 2198 80011998 */  ori         $t0, $t0, (TMD_DRAW_STREAM_GT3_SEMI_TRANS_COLOR & 0xFFFF)
     /* 219C 8001199C */  mtc2        $t0, $6
     /* 21A0 800119A0 */  j           .LtmdGt3OneNormalSetup
     /* 21A4 800119A4 */  nop
