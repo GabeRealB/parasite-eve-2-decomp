@@ -416,30 +416,49 @@ u32* tmdDrawStreamPrimGt3PreXform(TmdStreamWorkspace* workspace, s32 objectFlags
 /// round.
 u32* tmdDrawStreamPrimGt4PreXformSemiTrans(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
-/// Draw-pass handler of a stream's pre-transformed textured-quad records
-/// (`0x71`, `0x79`, `0x171`): each element contributes one quad to the buffer
-/// half's first region, where its corners are already in screen space, and its
-/// packet is linked into the ordering table at the depth those corners measured.
+/// Culls and links pre-transformed Gouraud textured quads using cached vertex depths.
 ///
-/// The record is the pre-transformed form of the `0x78` quads
-/// (`tmdDrawStreamGt4`): the build pass (`gpStreamPrimGt4PreXform`) lays each
-/// element's texture words, page and CLUT down, and the stream's transform
-/// records (`0xC8`, `tmdXformStreamVerts`) project the element's four corners into
-/// the same packet, light them and put their depths in the per-vertex screen-Z
-/// table, so the element's refs are read as entries of that table rather than as
-/// vertex indices. What a frame adds is the quad's filing: the four cached depths
-/// are averaged for the ordering-table link, the facing comes from the coordinates
-/// the packet already carries, and the packet's length and primitive code are
-/// written. An element with any corner depth marked `TMD_VERTEX_DEPTH_INVALID` by
-/// the projection pre-pass, or whose quad turns away, is stepped over rather than
-/// drawn, though its packet slot is passed over either way, so the primitives stay
-/// aligned with the elements that named them.
+/// Draw resolution selects this callback for opcodes `0x71`, `0x79` and `0x171`.
+/// `objectFlags` contains `TmdObject.flags`: `TMD_OBJECT_SEMI_TRANS` selects
+/// GPU code 0x3E instead of 0x3C through `tmdDrawStreamPrimGt4PreXformSemiTrans`.
+/// `TMD_OBJECT_REVERSE_CULLING` reverses both facing tests. With corners in
+/// packet order, ordinary facing keeps `NCLIP(0,1,2) > 0` or, if that fails,
+/// `NCLIP(1,2,3) < 0`; reversed facing keeps the opposite strict signs.
+/// Zero in both tests rejects the quad. The record opcode is not read here,
+/// and the texture page's blend mode is preserved.
 ///
-/// This entry is the whole family's and is the one that chooses between the two
-/// primitive codes: it reaches `tmdDrawStreamPrimGt4PreXformSemiTrans` when the
-/// drawing object's flags ask for the blended form, and stamps the opaque `0x3C`
-/// where they do not.
-u32* tmdDrawStreamPrimGt4PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// `elements` starts after the three-word record header. The caller supplies
+/// `workspace->elemCount` (0..65535) and `elemStride` in u32 words. Words 0..1
+/// pack four unsigned u16 byte offsets into `workspace->szTable`, in corner
+/// order. Each must name a complete aligned four-byte depth entry written by
+/// a preceding projection command (offsets 0..4092 in normal drawing's
+/// 1024-entry cache). Entries retain screen Z (0..65535); any corner marked
+/// `TMD_VERTEX_DEPTH_INVALID` rejects the quad before averaging. Drawing reads
+/// two words per element, while `gpStreamPrimGt4PreXform` initializes texture
+/// data from words 2..4, so a complete element needs at least five words.
+/// The stream must contain count * stride payload words; bounds are unchecked.
+///
+/// `workspace->preXformWrite` must provide one writable, word-aligned 52-byte
+/// `POLY_GT4` slot per element in the selected buffer half's first region.
+/// Texture fields and corner colours must already be initialized, and the
+/// pre-pass must have supplied screen XY and cached depths. The GTE must hold
+/// the four-depth averaging scale; this handler uses existing packet colours.
+/// Accepted packets prepend to `workspace->ot` using AVSZ4 depth at bucket
+/// `(((u32)OTZ << (workspace->otDepthShift & 31)) & 0x3FFF) >> 4`.
+/// Normal drawing supplies shifts 0..3. The OT base includes the object's
+/// signed entry displacement; every wrapped bucket (0..1023) must fit the
+/// backing table. DMA links retain 24 address bits and twelve payload words.
+/// Only the command byte, DMA tag and selected OT head are written; rejection
+/// leaves packet and OT data unchanged. Every element consumes its reserved
+/// packet slot, including rejected quads.
+///
+/// Returns `elements + elemCount * elemStride`, leaving the next record or
+/// marker unconsumed, and advances only `workspace->preXformWrite` among
+/// workspace fields. Counts, saved GTE results and `primWrite` are unchanged.
+/// An empty record reads no payload and advances neither cursor. Workspace,
+/// stream, cache, packets and OT are borrowed; keep packets and OT storage
+/// GPU-visible until consumption finishes.
+u32* tmdDrawStreamPrimGt4PreXform(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 /// Projects and draws opcode-zero triangles, lighting each `POLY_G3` from one face normal.
 ///

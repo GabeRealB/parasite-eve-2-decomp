@@ -132742,8 +132742,8 @@ words of a `POLY_GT3`).
 
 The arms do not line up one for one, so read the one that selects the body being
 named rather than the twin's own label list. A draw handler can branch on its
-`flags` argument instead of on the opcode (`tmdDrawStreamPrimGt4PreXform` jumps into
-`tmdDrawStreamPrimGt4PreXformSemiTrans` when `flags & 2`, which is the semi-transparent
+`objectFlags` argument instead of on the opcode (`tmdDrawStreamPrimGt4PreXform` jumps into
+`tmdDrawStreamPrimGt4PreXformSemiTrans` when `objectFlags & TMD_OBJECT_SEMI_TRANS`, which is the semi-transparent
 variant), and the process path may merge into one arm what the draw path splits.
 
 The two arms write one packet between them, rather than one writing it and the
@@ -134221,9 +134221,11 @@ the two copies with a bit of the drawing object's flags. `tmdDrawStreamGt3` does
 it on `objectFlags & TMD_OBJECT_REVERSE_CULLING` (`0x10`), and the same shape
 repeats in the pre-transformed triangle and quad families
 (`tmdDrawStreamPrimGt3PreXform`, `tmdDrawStreamPrimGt4PreXform`), so it is the
-family's, not one handler's. The copies are the same instructions except for the
-branch that follows the facing result: one skips the element when `MAC0 <= 0`,
-the other when `MAC0 >= 0`. The bit therefore picks which winding the walk keeps,
+family's, not one handler's. Triangle copies differ in the branch that follows
+the facing result: one skips the element when `MAC0 <= 0`, the other when
+`MAC0 >= 0`. The pre-transformed quad copies reverse two tests: ordinary facing
+keeps `NCLIP(0,1,2) > 0` or `NCLIP(1,2,3) < 0`, and reversed facing keeps the
+opposite strict signs. The bit therefore picks which winding the walk keeps,
 which is the only difference between the copies that changes what is drawn.
 
 That difference is invisible to the comparison one reaches for first. Each copy
@@ -134231,7 +134233,7 @@ branches to its own labels, so masking `.L8001....` (a `difflib` over the
 mnemonic column of the `.s`, which is how the duplicates get read) makes the two
 compare equal, and the walk then looks like dead weight. Compare the instruction
 words out of the target binary instead: apart from the branch offsets, the two
-differ in exactly one word.
+triangle walks below differ in exactly one word.
 
     0x80010FF4  0x1900FFD7   blez  $t0, skip   # opcode 6 = BLEZ: keeps MAC0 > 0
     0x800120FC  0x0501FFD7   bgez  $t0, skip   # opcode 1, rt 1 = BGEZ: keeps MAC0 < 0

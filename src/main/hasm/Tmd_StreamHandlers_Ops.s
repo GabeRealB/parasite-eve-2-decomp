@@ -963,12 +963,44 @@ alabel tmdDrawStreamPrimGt4PreXformSemiTrans
     /* 1D14 80011514 */  lui         $v0, 0xC00
     /* 1D18 80011518 */  addiu       $v1, $zero, 0x3E
     /* 1D1C 8001151C */  andi        $t1, $a1, 0x10
-    /* 1D20 80011520 */  bnez        $t1, .L80012270
+    /* 1D20 80011520 */  bnez        $t1, .LtmdGt4PreXformReverseLoop
     /* 1D24 80011524 */  lw          $a1, 0x84($a0)
-    /* 1D28 80011528 */  j           .L80011578
+    /* 1D28 80011528 */  j           .LtmdGt4PreXformLoop
     /* 1D2C 8001152C */  nop
+
+/* Reuse GT4 packet/depth constants; pre-pass RGB remains in the packet. */
+.equ TMD_DRAW_STREAM_GT4_PRE_XFORM_OPAQUE_CODE, (TMD_DRAW_STREAM_GT4_COLOR >> 24)
+/* GPU linked-list addresses retain the low 24 bits of a packet address. */
+.equ TMD_DRAW_STREAM_GT4_PRE_XFORM_DMA_ADDRESS_MASK, 0x00FFFFFF
+
+/*
+ * Complete the packet's command/tag and prepend it to its wrapped depth bucket.
+ * Inputs: t8 packet, t1 its 24-bit DMA address, t7 displaced OT base,
+ * t2 AVSZ4 OTZ, a1 depth shift, t0 DMA address mask, v1 GPU command byte,
+ * v0 twelve-word DMA length in bits 24..31. Clobbers t2 and t5; writes the
+ * OT head, packet tag and command byte, retaining all XY, RGB and texture data.
+ * Both facing walks and the semi-transparent entry use this expansion.
+ * Fixed registers preserve the load/GTE delays; it emits no call or extra
+ * instructions and is purged after this body's reverse-culling walk.
+ */
+.macro TMD_DRAW_STREAM_GT4_PRE_XFORM_LINK_PACKET
+    sb          $v1, 0x7($t8)
+    sllv        $t2, $t2, $a1
+    andi        $t2, $t2, TMD_DRAW_STREAM_GT4_DEPTH_MASK
+    srl         $t2, $t2, TMD_DRAW_STREAM_GT4_DEPTH_SHIFT
+    sll         $t2, $t2, 2
+    addu        $t2, $t2, $t7
+    lw          $t5, 0x0($t2)
+    sw          $t1, 0x0($t2)
+    and         $t5, $t0, $t5
+    or          $t5, $v0, $t5
+    sw          $t5, 0x0($t8)
+.endm
+
 glabel tmdDrawStreamPrimGt4PreXform
-    /* 1D30 80011530 */  andi        $t0, $a1, 0x2
+    /* a0 workspace, a1 object flags, a2 first element word; a3 counts locally. */
+    /* t8 first-region packet cursor, t6 depth cache, t7 displaced OT base. */
+    /* 1D30 80011530 */  andi        $t0, $a1, TMD_OBJECT_SEMI_TRANS
     /* 1D34 80011534 */  bnez        $t0, tmdDrawStreamPrimGt4PreXformSemiTrans
     /* 1D38 80011538 */  nop
     /* 1D3C 8001153C */  lw          $t9, 0x18($a0)
@@ -977,83 +1009,75 @@ glabel tmdDrawStreamPrimGt4PreXform
     /* 1D48 80011548 */  lw          $t7, 0x14($a0)
     /* 1D4C 8001154C */  lw          $t6, 0x10($a0)
     /* 1D50 80011550 */  sll         $t9, $t9, 2
-    /* 1D54 80011554 */  lui         $v0, 0xC00
-    /* 1D58 80011558 */  addiu       $v1, $zero, 0x3C
-    /* 1D5C 8001155C */  andi        $t1, $a1, 0x10
-    /* 1D60 80011560 */  bnez        $t1, .L80012270
+    /* 1D54 80011554 */  lui         $v0, (TMD_DRAW_STREAM_GT4_PACKET_WORDS << 8)
+    /* 1D58 80011558 */  addiu       $v1, $zero, TMD_DRAW_STREAM_GT4_PRE_XFORM_OPAQUE_CODE
+    /* 1D5C 8001155C */  andi        $t1, $a1, TMD_OBJECT_REVERSE_CULLING
+    /* 1D60 80011560 */  bnez        $t1, .LtmdGt4PreXformReverseLoop
     /* 1D64 80011564 */  lw          $a1, 0x84($a0)
-    /* 1D68 80011568 */  j           .L80011578
+    /* 1D68 80011568 */  j           .LtmdGt4PreXformLoop
     /* 1D6C 8001156C */  nop
-  .L80011570:
-    /* 1D70 80011570 */  addiu       $t8, $t8, 0x34
-  .L80011574:
+  .LtmdGt4PreXformAdvance:
+    /* Rejection consumes the same reserved slot as an accepted quad. */
+    /* 1D70 80011570 */  addiu       $t8, $t8, TMD_DRAW_STREAM_GT4_PACKET_BYTES
     /* 1D74 80011574 */  addu        $a2, $t9, $a2
-  .L80011578:
-    /* 1D78 80011578 */  beq         $zero, $a3, .L80011668
+  .LtmdGt4PreXformLoop:
+    /* 1D78 80011578 */  beq         $zero, $a3, .LtmdGt4PreXformReturn
     /* 1D7C 8001157C */  nop
+    /* Test existing packet corners; the SXY FIFO first holds 0, 1, 2. */
     /* 1D80 80011580 */  lwc2        $15, 0x8($t8)
     /* 1D84 80011584 */  lwc2        $15, 0x14($t8)
     /* 1D88 80011588 */  lwc2        $15, 0x20($t8)
     /* 1D8C 8001158C */  addiu       $a3, $a3, -0x1
     /* 1D90 80011590 */  nop
-    /* 1D94 80011594 */  .word 0x4B400006
+    /* 1D94 80011594 */  nclip
     /* 1D98 80011598 */  lw          $t1, 0x0($a2)
     /* 1D9C 8001159C */  lw          $t3, 0x4($a2)
     /* 1DA0 800115A0 */  mfc2        $t0, $24
     /* 1DA4 800115A4 */  srl         $t2, $t1, 16
-    /* 1DA8 800115A8 */  bgtz        $t0, .L800115CC
+    /* 1DA8 800115A8 */  bgtz        $t0, .LtmdGt4PreXformCheckDepths
     /* 1DAC 800115AC */  nop
+    /* The fallback keeps strict negative winding of corners 1, 2, 3. */
     /* 1DB0 800115B0 */  lwc2        $15, 0x2C($t8)
     /* 1DB4 800115B4 */  nop
     /* 1DB8 800115B8 */  nop
-    /* 1DBC 800115BC */  .word 0x4B400006
+    /* 1DBC 800115BC */  nclip
     /* 1DC0 800115C0 */  mfc2        $t0, $24
     /* 1DC4 800115C4 */  nop
-    /* 1DC8 800115C8 */  bgez        $t0, .L80011570
-  .L800115CC:
+    /* 1DC8 800115C8 */  bgez        $t0, .LtmdGt4PreXformAdvance
+  .LtmdGt4PreXformCheckDepths:
+    /* Halfwords are depth-cache byte offsets; TMD_VERTEX_DEPTH_INVALID marks failed projections. */
     /* 1DCC 800115CC */  addu        $t2, $t6, $t2
-  .L800115D0:
     /* 1DD0 800115D0 */  lw          $t2, 0x0($t2)
     /* 1DD4 800115D4 */  sll         $t1, $t1, 16
-    /* 1DD8 800115D8 */  bltz        $t2, .L80011570
+    /* 1DD8 800115D8 */  bltz        $t2, .LtmdGt4PreXformAdvance
     /* 1DDC 800115DC */  srl         $t1, $t1, 16
     /* 1DE0 800115E0 */  addu        $t1, $t6, $t1
     /* 1DE4 800115E4 */  lw          $t1, 0x0($t1)
     /* 1DE8 800115E8 */  srl         $t4, $t3, 16
-    /* 1DEC 800115EC */  bltz        $t1, .L80011570
+    /* 1DEC 800115EC */  bltz        $t1, .LtmdGt4PreXformAdvance
     /* 1DF0 800115F0 */  addu        $t4, $t6, $t4
     /* 1DF4 800115F4 */  lw          $t4, 0x0($t4)
     /* 1DF8 800115F8 */  sll         $t3, $t3, 16
-    /* 1DFC 800115FC */  bltz        $t4, .L80011570
+    /* 1DFC 800115FC */  bltz        $t4, .LtmdGt4PreXformAdvance
     /* 1E00 80011600 */  srl         $t3, $t3, 16
     /* 1E04 80011604 */  addu        $t3, $t6, $t3
     /* 1E08 80011608 */  lw          $t3, 0x0($t3)
     /* 1E0C 8001160C */  mtc2        $t1, $16
-    /* 1E10 80011610 */  bltz        $t3, .L80011570
+    /* 1E10 80011610 */  bltz        $t3, .LtmdGt4PreXformAdvance
     /* 1E14 80011614 */  mtc2        $t2, $17
     /* 1E18 80011618 */  mtc2        $t3, $18
     /* 1E1C 8001161C */  mtc2        $t4, $19
-    /* 1E20 80011620 */  lui         $t0, 0xFF
-    /* 1E24 80011624 */  ori         $t0, $t0, 0xFFFF
-    /* 1E28 80011628 */  .word 0x4B68002E
+    /* Average valid cached depths with the caller's ZSF4 scale, then link the packet. */
+    /* 1E20 80011620 */  lui         $t0, (TMD_DRAW_STREAM_GT4_PRE_XFORM_DMA_ADDRESS_MASK >> 16)
+    /* 1E24 80011624 */  ori         $t0, $t0, (TMD_DRAW_STREAM_GT4_PRE_XFORM_DMA_ADDRESS_MASK & 0xFFFF)
+    /* 1E28 80011628 */  avsz4
     /* 1E2C 8001162C */  and         $t1, $t0, $t8
     /* 1E30 80011630 */  mfc2        $t2, $7
-    /* 1E34 80011634 */  sb          $v1, 0x7($t8)
-    /* 1E38 80011638 */  sllv        $t2, $t2, $a1
-    /* 1E3C 8001163C */  andi        $t2, $t2, 0x3FFF
-    /* 1E40 80011640 */  srl         $t2, $t2, 4
-    /* 1E44 80011644 */  sll         $t2, $t2, 2
-    /* 1E48 80011648 */  addu        $t2, $t2, $t7
-    /* 1E4C 8001164C */  lw          $t5, 0x0($t2)
-    /* 1E50 80011650 */  sw          $t1, 0x0($t2)
-    /* 1E54 80011654 */  and         $t5, $t0, $t5
-    /* 1E58 80011658 */  or          $t5, $v0, $t5
-    /* 1E5C 8001165C */  sw          $t5, 0x0($t8)
-    /* 1E60 80011660 */  j           .L80011570
+    /* 1E34..1E5C 80011634..8001165C */  TMD_DRAW_STREAM_GT4_PRE_XFORM_LINK_PACKET
+    /* 1E60 80011660 */  j           .LtmdGt4PreXformAdvance
     /* 1E64 80011664 */  nop
-  .L80011668:
+  .LtmdGt4PreXformReturn:
     /* 1E68 80011668 */  sw          $t8, 0x4($a0)
-  .L8001166C:
     /* 1E6C 8001166C */  addu        $v0, $zero, $a2
     /* 1E70 80011670 */  jr          $ra
     /* 1E74 80011674 */  nop
@@ -1959,80 +1983,70 @@ glabel tmdDrawStreamPrimGt4OneNormalSemiTrans
     /* 2A60 80012260 */  jr          $ra
     /* 2A64 80012264 */  nop
 .purgem TMD_DRAW_STREAM_GT3_PRE_XFORM_LINK_PACKET
-  .L80012268:
-    /* 2A68 80012268 */  addiu       $t8, $t8, 0x34
-  .L8001226C:
+  .LtmdGt4PreXformReverseAdvance:
+    /* The alternate walk reverses both strict facing signs. */
+    /* 2A68 80012268 */  addiu       $t8, $t8, TMD_DRAW_STREAM_GT4_PACKET_BYTES
     /* 2A6C 8001226C */  addu        $a2, $t9, $a2
-  .L80012270:
-    /* 2A70 80012270 */  beq         $zero, $a3, .L80012360
-  .L80012274:
+  .LtmdGt4PreXformReverseLoop:
+    /* 2A70 80012270 */  beq         $zero, $a3, .LtmdGt4PreXformReverseReturn
     /* 2A74 80012274 */  nop
     /* 2A78 80012278 */  lwc2        $15, 0x8($t8)
     /* 2A7C 8001227C */  lwc2        $15, 0x14($t8)
     /* 2A80 80012280 */  lwc2        $15, 0x20($t8)
     /* 2A84 80012284 */  addiu       $a3, $a3, -0x1
     /* 2A88 80012288 */  nop
-    /* 2A8C 8001228C */  .word 0x4B400006
+    /* 2A8C 8001228C */  nclip
     /* 2A90 80012290 */  lw          $t1, 0x0($a2)
     /* 2A94 80012294 */  lw          $t3, 0x4($a2)
     /* 2A98 80012298 */  mfc2        $t0, $24
     /* 2A9C 8001229C */  srl         $t2, $t1, 16
-    /* 2AA0 800122A0 */  bltz        $t0, .L800122C4
+    /* 2AA0 800122A0 */  bltz        $t0, .LtmdGt4PreXformReverseCheckDepths
     /* 2AA4 800122A4 */  nop
+    /* The fallback keeps strict positive winding of corners 1, 2, 3. */
     /* 2AA8 800122A8 */  lwc2        $15, 0x2C($t8)
     /* 2AAC 800122AC */  nop
     /* 2AB0 800122B0 */  nop
-    /* 2AB4 800122B4 */  .word 0x4B400006
+    /* 2AB4 800122B4 */  nclip
     /* 2AB8 800122B8 */  mfc2        $t0, $24
     /* 2ABC 800122BC */  nop
-    /* 2AC0 800122C0 */  blez        $t0, .L80012268
-  .L800122C4:
+    /* 2AC0 800122C0 */  blez        $t0, .LtmdGt4PreXformReverseAdvance
+  .LtmdGt4PreXformReverseCheckDepths:
+    /* Reversed facing still rejects each cached TMD_VERTEX_DEPTH_INVALID marker. */
     /* 2AC4 800122C4 */  addu        $t2, $t6, $t2
-  .L800122C8:
     /* 2AC8 800122C8 */  lw          $t2, 0x0($t2)
     /* 2ACC 800122CC */  sll         $t1, $t1, 16
-    /* 2AD0 800122D0 */  bltz        $t2, .L80012268
+    /* 2AD0 800122D0 */  bltz        $t2, .LtmdGt4PreXformReverseAdvance
     /* 2AD4 800122D4 */  srl         $t1, $t1, 16
     /* 2AD8 800122D8 */  addu        $t1, $t6, $t1
     /* 2ADC 800122DC */  lw          $t1, 0x0($t1)
     /* 2AE0 800122E0 */  srl         $t4, $t3, 16
-    /* 2AE4 800122E4 */  bltz        $t1, .L80012268
+    /* 2AE4 800122E4 */  bltz        $t1, .LtmdGt4PreXformReverseAdvance
     /* 2AE8 800122E8 */  addu        $t4, $t6, $t4
     /* 2AEC 800122EC */  lw          $t4, 0x0($t4)
     /* 2AF0 800122F0 */  sll         $t3, $t3, 16
-    /* 2AF4 800122F4 */  bltz        $t4, .L80012268
+    /* 2AF4 800122F4 */  bltz        $t4, .LtmdGt4PreXformReverseAdvance
     /* 2AF8 800122F8 */  srl         $t3, $t3, 16
     /* 2AFC 800122FC */  addu        $t3, $t6, $t3
     /* 2B00 80012300 */  lw          $t3, 0x0($t3)
     /* 2B04 80012304 */  mtc2        $t1, $16
-    /* 2B08 80012308 */  bltz        $t3, .L80012268
+    /* 2B08 80012308 */  bltz        $t3, .LtmdGt4PreXformReverseAdvance
     /* 2B0C 8001230C */  mtc2        $t2, $17
     /* 2B10 80012310 */  mtc2        $t3, $18
     /* 2B14 80012314 */  mtc2        $t4, $19
-    /* 2B18 80012318 */  lui         $t0, 0xFF
-    /* 2B1C 8001231C */  ori         $t0, $t0, 0xFFFF
-    /* 2B20 80012320 */  .word 0x4B68002E
+    /* 2B18 80012318 */  lui         $t0, (TMD_DRAW_STREAM_GT4_PRE_XFORM_DMA_ADDRESS_MASK >> 16)
+    /* 2B1C 8001231C */  ori         $t0, $t0, (TMD_DRAW_STREAM_GT4_PRE_XFORM_DMA_ADDRESS_MASK & 0xFFFF)
+    /* 2B20 80012320 */  avsz4
     /* 2B24 80012324 */  and         $t1, $t0, $t8
     /* 2B28 80012328 */  mfc2        $t2, $7
-    /* 2B2C 8001232C */  sb          $v1, 0x7($t8)
-    /* 2B30 80012330 */  sllv        $t2, $t2, $a1
-    /* 2B34 80012334 */  andi        $t2, $t2, 0x3FFF
-    /* 2B38 80012338 */  srl         $t2, $t2, 4
-    /* 2B3C 8001233C */  sll         $t2, $t2, 2
-    /* 2B40 80012340 */  addu        $t2, $t2, $t7
-    /* 2B44 80012344 */  lw          $t5, 0x0($t2)
-    /* 2B48 80012348 */  sw          $t1, 0x0($t2)
-    /* 2B4C 8001234C */  and         $t5, $t0, $t5
-    /* 2B50 80012350 */  or          $t5, $v0, $t5
-    /* 2B54 80012354 */  sw          $t5, 0x0($t8)
-    /* 2B58 80012358 */  j           .L80012268
+    /* 2B2C..2B54 8001232C..80012354 */  TMD_DRAW_STREAM_GT4_PRE_XFORM_LINK_PACKET
+    /* 2B58 80012358 */  j           .LtmdGt4PreXformReverseAdvance
     /* 2B5C 8001235C */  nop
-  .L80012360:
+  .LtmdGt4PreXformReverseReturn:
     /* 2B60 80012360 */  sw          $t8, 0x4($a0)
-  .L80012364:
     /* 2B64 80012364 */  addu        $v0, $zero, $a2
     /* 2B68 80012368 */  jr          $ra
     /* 2B6C 8001236C */  nop
+.purgem TMD_DRAW_STREAM_GT4_PRE_XFORM_LINK_PACKET
 /* Reuse GT3 packet/depth constants; take only the command byte, not neutral RGB. */
 .equ TMD_DRAW_STREAM_GT3_CORNER_COLORS_OPAQUE_CODE, (TMD_DRAW_STREAM_GT3_COLOR >> 24)
 .equ TMD_DRAW_STREAM_GT3_CORNER_COLORS_SEMI_TRANS_CODE, (TMD_DRAW_STREAM_GT3_SEMI_TRANS_COLOR >> 24)
