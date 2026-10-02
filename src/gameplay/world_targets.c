@@ -30,7 +30,6 @@
 #include "gameplay/world_collision.h"
 #include "world_coords.h"
 #include "gameplay/world_state.h"
-#include "world_state.h"
 
 #include "main/display.h"
 #include "main/gfx.h"
@@ -437,6 +436,7 @@ static void Gp_UpdateLockSlots(void)
         }
     check_found:
         if (found != 0) {
+            // Project the bound target into this slot's screen position.
             project_slot(&slot->screen.packed, slot);
         } else {
             slot->field_0 = (void*)4;
