@@ -80,15 +80,22 @@ typedef struct _GpSVec3x3 {
 } GpSVec3x3;
 STATIC_ASSERT_SIZEOF(GpSVec3x3, 0x12);
 
-/// Nearest room light selected by `func_800D78A4`. `kind` is -1 when no
-/// light is selected, 1 for a point light, or 2 for a spot light.
-/// `light` points to the selected light; `field_4` is cleared.
-typedef struct _GpNearestLight {
-    /* 0x00 */ s32              kind;
-    /* 0x04 */ s32              field_4;
-    /* 0x08 */ WorldCoordLight* light;
-} GpNearestLight;
-STATIC_ASSERT_SIZEOF(GpNearestLight, 0xC);
+/// Source-kind sentinel for a nearest-room-light result without a selection.
+enum { WORLD_COORDINATE_NEAREST_LIGHT_NONE = -1 };
+
+/// The diagnostic probe's nearest authored room point or cone light.
+///
+/// Selection compares squared distances after arithmetically halving each
+/// signed coordinate difference. Only unsigned sums below 0x7FFFFFFF select a
+/// source. Equal distances retain the earlier entry, with points before cones.
+/// View filters, intensity, falloff radii and cone angles do not affect selection.
+/// The source header is borrowed and must not outlive its loaded room overlay.
+typedef struct {
+    s32              kind;    // Source kind (-1 none, 1 room point, 2 cone)
+    s32              field_4; // Role unproven; the nearest-light query always clears this word
+    WorldCoordLight* light;   // Borrowed common source header, or NULL when kind is -1
+} _WorldCoordNearestRoomLight;
+STATIC_ASSERT_SIZEOF(_WorldCoordNearestRoomLight, 0xC);
 
 /// Room-light capture block owned by another overlay (imported at
 /// `D_80760618`). `func_800D7A9C` fills the four `field_30` entries with the
@@ -96,11 +103,11 @@ STATIC_ASSERT_SIZEOF(GpNearestLight, 0xC);
 /// the nearest light selection into `field_24`. `Gp_DebugPanTask` raises
 /// `field_1` around that pair so the capture happens, then clears it.
 typedef struct _GpLightCapture {
-    /* 0x00 */ byte                   pad_0[0x1];
-    /* 0x01 */ s8                     field_1;
-    /* 0x02 */ byte                   pad_2[0x22];
-    /* 0x24 */ GpNearestLight         field_24;
-    /* 0x30 */ _WorldCoordRankedLight field_30[WORLD_COORDINATE_RANKED_LIGHT_COUNT];
+    /* 0x00 */ byte                        pad_0[0x1];
+    /* 0x01 */ s8                          field_1;
+    /* 0x02 */ byte                        pad_2[0x22];
+    /* 0x24 */ _WorldCoordNearestRoomLight field_24;
+    /* 0x30 */ _WorldCoordRankedLight      field_30[WORLD_COORDINATE_RANKED_LIGHT_COUNT];
 } GpLightCapture;
 STATIC_ASSERT_SIZEOF(GpLightCapture, 0x60);
 
@@ -229,8 +236,8 @@ static void func_800D759C(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObje
 
 /// Selects the nearest point or cone light to world position `arg0`, using
 /// squared distance after halving each coordinate difference. Initializes
-/// `arg1` to no selection even when `Gp_GetRoomCoordSet` returns 0.
-static void func_800D78A4(VECTOR* arg0, GpNearestLight* arg1);
+/// `nearestLight` to no selection even when `Gp_GetRoomCoordSet` returns 0.
+static void func_800D78A4(VECTOR* arg0, _WorldCoordNearestRoomLight* nearestLight);
 
 static __inline__ void solve_func_800D9794(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObject* arg3);
 
@@ -595,8 +602,8 @@ static void func_800D759C(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObje
 
 /// Selects the nearest point or cone light to world position `arg0`, using
 /// squared distance after halving each coordinate difference. Initializes
-/// `arg1` to no selection even when `Gp_GetRoomCoordSet` returns 0.
-static void func_800D78A4(VECTOR* arg0, GpNearestLight* arg1)
+/// `nearestLight` to no selection even when `Gp_GetRoomCoordSet` returns 0.
+static void func_800D78A4(VECTOR* arg0, _WorldCoordNearestRoomLight* nearestLight)
 {
     WorldCoordRoomLights* roomLights;
     WorldCoordPointLight* point;
@@ -607,11 +614,11 @@ static void func_800D78A4(VECTOR* arg0, GpNearestLight* arg1)
     u32                   dist;
     s32                   i;
 
-    roomLights    = Gp_GetRoomCoordSet(&gGameSession->location.loc);
-    best          = 0x7FFFFFFF;
-    arg1->kind    = -1;
-    arg1->field_4 = 0;
-    arg1->light   = NULL;
+    roomLights            = Gp_GetRoomCoordSet(&gGameSession->location.loc);
+    best                  = 0x7FFFFFFF;
+    nearestLight->kind    = WORLD_COORDINATE_NEAREST_LIGHT_NONE;
+    nearestLight->field_4 = 0;
+    nearestLight->light   = NULL;
     if (roomLights != NULL) {
         SCRATCH_STACK_RESERVE_BYTES(0x10);
         delta = SCRATCH_STACK_CURSOR(VECTOR);
@@ -624,9 +631,9 @@ static void func_800D78A4(VECTOR* arg0, GpNearestLight* arg1)
                 delta->vz = (light->transform.coord.workm.t[2] - arg0->vz) >> 1;
                 dist      = delta->vx * delta->vx + delta->vy * delta->vy + delta->vz * delta->vz;
                 if (dist < best) {
-                    best        = dist;
-                    arg1->kind  = 1;
-                    arg1->light = light;
+                    best                = dist;
+                    nearestLight->kind  = WORLD_COORDINATE_RANKED_LIGHT_ROOM_POINT;
+                    nearestLight->light = light;
                 }
             }
         }
@@ -639,9 +646,9 @@ static void func_800D78A4(VECTOR* arg0, GpNearestLight* arg1)
                 delta->vz = (light->transform.coord.workm.t[2] - arg0->vz) >> 1;
                 dist      = delta->vx * delta->vx + delta->vy * delta->vy + delta->vz * delta->vz;
                 if (dist < best) {
-                    best        = dist;
-                    arg1->kind  = 2;
-                    arg1->light = light;
+                    best                = dist;
+                    nearestLight->kind  = WORLD_COORDINATE_RANKED_LIGHT_CONE;
+                    nearestLight->light = light;
                 }
             }
         }
