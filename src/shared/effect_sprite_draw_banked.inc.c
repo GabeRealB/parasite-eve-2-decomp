@@ -20,7 +20,8 @@
 static __inline__ void _effectSpriteBankedRotateCorner(EffectShapeScratch* scratch, s16 size, s32 angle)
 {
     enum {
-        EFFECT_SPRITE_BANKED_UV_SPAN = 47,
+        /// Multiplier in the signed half-diagonal numerator, divided by projection depth.
+        EFFECT_SPRITE_BANKED_PERSPECTIVE_SCALE = 47,
         /// Fractional bits in the signed `rsin` and `rcos` results; 4096 represents 1.0.
         ///
         /// Arithmetic right-shifting the rotated products by this count yields
@@ -28,8 +29,8 @@ static __inline__ void _effectSpriteBankedRotateCorner(EffectShapeScratch* scrat
         /// division precedes multiplication by the trigonometric sample.
         EFFECT_SPRITE_BANKED_TRIG_FRACTION_BITS = 12
     };
-    scratch->extent.corner.x = (((size * EFFECT_SPRITE_BANKED_UV_SPAN) / scratch->depth) * rsin(angle)) >> EFFECT_SPRITE_BANKED_TRIG_FRACTION_BITS;
-    scratch->extent.corner.y = (((size * EFFECT_SPRITE_BANKED_UV_SPAN) / scratch->depth) * rcos(angle)) >> EFFECT_SPRITE_BANKED_TRIG_FRACTION_BITS;
+    scratch->extent.corner.x = (((size * EFFECT_SPRITE_BANKED_PERSPECTIVE_SCALE) / scratch->depth) * rsin(angle)) >> EFFECT_SPRITE_BANKED_TRIG_FRACTION_BITS;
+    scratch->extent.corner.y = (((size * EFFECT_SPRITE_BANKED_PERSPECTIVE_SCALE) / scratch->depth) * rcos(angle)) >> EFFECT_SPRITE_BANKED_TRIG_FRACTION_BITS;
 }
 
 /// Draws a palette-selected animation frame as a rotating camera-facing quad.
@@ -64,9 +65,10 @@ static void _effectSpriteDrawBanked(const GfxCoord* coord, u16 frameAndPalette, 
         EFFECT_SPRITE_BANKED_CLUT_COLUMN_MASK  = 0x3F,
         EFFECT_SPRITE_BANKED_CELLS_PER_ROW     = 5,
         EFFECT_SPRITE_BANKED_CELL_TEXELS       = 48,
-        EFFECT_SPRITE_BANKED_UV_SPAN           = EFFECT_SPRITE_BANKED_CELL_TEXELS - 1,
-        EFFECT_SPRITE_BANKED_QUARTER_TURN      = 0x400,
-        EFFECT_SPRITE_BANKED_PACKET_CODE       = 0x2F // Textured quad, raw texture, semi-transparency
+        /// First-to-last texel distance across one inclusive square animation cell.
+        EFFECT_SPRITE_BANKED_UV_SPAN_TEXELS = EFFECT_SPRITE_BANKED_CELL_TEXELS - 1,
+        EFFECT_SPRITE_BANKED_QUARTER_TURN   = 0x400,
+        EFFECT_SPRITE_BANKED_PACKET_CODE    = 0x2F // Textured quad, raw texture, semi-transparency
     };
     EffectShapeScratch* scratchTop;
     EffectShapeScratch* scratch;
@@ -117,12 +119,12 @@ static void _effectSpriteDrawBanked(const GfxCoord* coord, u16 frameAndPalette, 
         cornerAngle = angle;
         cellU       = cellColumn * EFFECT_SPRITE_BANKED_CELL_TEXELS;
         cellV       = cellRow * EFFECT_SPRITE_BANKED_CELL_TEXELS;
-        // UV fields wrap to bytes, so bottom rows can use their signed byte encodings.
+        // UV endpoints are inclusive; GPU fields narrow the coordinates to bytes.
         setUV4(quad,
                cellU, cellV + EFFECT_SPRITE_BANKED_FIRST_TEXEL_ROW,
-               cellU + EFFECT_SPRITE_BANKED_UV_SPAN, cellV + EFFECT_SPRITE_BANKED_FIRST_TEXEL_ROW,
-               cellU, cellV + (EFFECT_SPRITE_BANKED_FIRST_TEXEL_ROW + EFFECT_SPRITE_BANKED_UV_SPAN - 256),
-               cellU + EFFECT_SPRITE_BANKED_UV_SPAN, cellV + (EFFECT_SPRITE_BANKED_FIRST_TEXEL_ROW + EFFECT_SPRITE_BANKED_UV_SPAN - 256));
+               cellU + EFFECT_SPRITE_BANKED_UV_SPAN_TEXELS, cellV + EFFECT_SPRITE_BANKED_FIRST_TEXEL_ROW,
+               cellU, cellV + (EFFECT_SPRITE_BANKED_FIRST_TEXEL_ROW + EFFECT_SPRITE_BANKED_UV_SPAN_TEXELS),
+               cellU + EFFECT_SPRITE_BANKED_UV_SPAN_TEXELS, cellV + (EFFECT_SPRITE_BANKED_FIRST_TEXEL_ROW + EFFECT_SPRITE_BANKED_UV_SPAN_TEXELS));
 
         // Opposite corners share a radius; GPU halfword stores retain wrapped coordinates.
         _effectSpriteBankedRotateCorner(scratch, size, cornerAngle);
