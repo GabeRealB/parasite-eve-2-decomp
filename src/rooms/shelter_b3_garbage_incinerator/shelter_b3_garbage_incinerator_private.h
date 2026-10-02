@@ -49,7 +49,7 @@ extern GpCapEntry* CapCaption_Data_8015E650;
 
 extern TextGlyphCell* CapCaption_Data_8015E654;
 
-extern GpEvt12* CapCaption_Data_8015E658;
+extern CapSequenceRecord* CapCaption_Data_8015E658;
 
 extern s16 CapCaption_Data_8015E65C;
 

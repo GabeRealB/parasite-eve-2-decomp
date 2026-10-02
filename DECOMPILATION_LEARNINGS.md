@@ -14802,7 +14802,7 @@ integer form matches. The subscript form is base-first because GCC treats the
 array pointer as the addressing base regardless of `a[b]`/`b[a]` order or a
 `u8*`-cast offset; only the pure-integer add with the `mult` outranking a plain
 base REG (`commutative_operand_precedence`) puts the offset first. The idiom
-matches the `(GpEvt12*)(idx * sizeof(GpEvt12) + base)` and
+matches the `(CapSequenceRecord*)(idx * sizeof(CapSequenceRecord) + base)` and
 `(TextGlyphCell*)((code & 0x3FF) * sizeof(TextGlyphCell) + (s32)table)` forms already in
 `src/gameplay/3CD8.c`.
 
@@ -46442,7 +46442,7 @@ func_..._8014B3C8(M2C_FIELD(temp_v0, s32*, 8), 0x80, 1,
                   M2C_FIELD(temp_v0, u8*, 0) | ((M2C_FIELD(temp_v0, u8*, 1) & 0x10) * 0x10));
 ```
 
-Typing that literally - a local `GpEvt12* line = &tab[idx];` - stalls at
+Typing that literally - a local `CapSequenceRecord* line = &tab[idx];` - stalls at
 99.27% with `regs=8`. The target computes the element address as
 `addu v0, <idx*0xC>, <base>`; the hoisted local produces
 `addu v1, <base>, <idx*0xC>`, so the sum lands in the other register and every
@@ -46451,8 +46451,8 @@ subsequent `lbu`/`lw` reads off it.
 Writing the array expression out at each field instead matches exactly:
 
 ```c
-func_..._8014B3C8(tab[idx].field_8, 0x80, 1,
-                  tab[idx].field_0 | ((tab[idx].field_1 & 0x10) * 0x10));
+func_..._8014B3C8(tab[idx].textRef.text, 0x80, 1,
+                  tab[idx].control.text.title | ((tab[idx].control.text.flags & CAP_SEQUENCE_TITLE_BANK) * 0x10));
 ```
 
 GCC 2.8.1 common-subexpression-eliminates the three copies into one address
@@ -89773,7 +89773,7 @@ already matched as `(Task* task, s32 msgId, s32 arg2, s32 arg3)`.
 
 The payload type follows the *id*, not the parameter's shape. A room table is
 indexed by global message ids whose payloads are unrelated to each other:
-`0x13F2` is dispatched as `(s32)((u8)Gp_CapTable[...].field_4 >> 1)`, a plain
+`0x13F2` is dispatched as `(Gp_CapTable[...].trigger.soundAndTextFlags >> 1)`, a plain
 integer, which is why `Room_Snd01` reads `arg2` as an `s32` and never
 dereferences it. Grepping the immediate finds the id's one producer - here
 `addiu $a1, $zero, 0x13EF` occurs exactly once in `asm/USA/`, in `Gp_PostMsg13EF`

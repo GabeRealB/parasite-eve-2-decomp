@@ -1266,8 +1266,8 @@ Dependencies: see `requirements.txt` (includes **Pillow** for PNG).
   palettes), not the font TIM clut — see §7.5 / §7.6.
 - **Cap2 / dialogue** container, relocation, event records and the five
   interpreter opcodes are documented in [`CAP_FORMAT.md`](CAP_FORMAT.md).
-  Still open there: the `u16*` text encoding, `GpEvt12` fields 0-3/6,
-  and the `0x13F0` message contract used by opcode 3.
+  Still open there: the `u16*` text encoding and the `0x13F0` message contract
+  used by opcode 3.
 - **Streaming movies (STR/MDEC)** and **audio (MTS)**: documented in
   [`STREAM_FORMATS.md`](STREAM_FORMATS.md). A full `extract.py` run writes
   them (or re-run `extract_movies.py` / `extract_streams.py`). INTER movies

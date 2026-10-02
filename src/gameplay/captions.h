@@ -106,7 +106,7 @@ extern TextGlyphCell* Gp_CapGlyphs;
 
 s32 Gp_RelocCapFile(GpCapFileAddress base);
 
-extern GpEvt12* Gp_CapTable;
+extern CapSequenceRecord* Gp_CapTable;
 
 extern s16 D_801155AC;
 
@@ -134,7 +134,7 @@ extern s16 D_801155BE;
 
 extern s16 D_801155C0;
 
-s32 Gp_StartCap(GpEvt12* arg0, s16 arg1, s16 arg2);
+s32 Gp_StartCap(CapSequenceRecord* sequence, s16 arg1, s16 arg2);
 
 /// Pointer to the loaded `.pe2cap2` blob (folder slot type 3).
 extern u8 D_80115688;

@@ -35,39 +35,73 @@ typedef union {
 } CapTextRef;
 STATIC_ASSERT_SIZEOF(CapTextRef, 4);
 
-/// 0xC-byte sequence-table record. `Gp_CapTable` is the current table
-/// (`Gp_StartCap` stores its first arg there). `Gp_FindCapEvt` walks
-/// from a start index until `field_8.offset == -1` (terminator) or `field_5`
-/// equals `Gp_CapEventKey` (the key `Gp_StartCap` saved from its third arg).
-/// When not -1, `field_8.text` is a relocated `const u16*` text stream walked by
-/// `Gp_CapTextTopY` / `Gp_CapTextHeight` / `func_800E6BB8` / `Gp_CapCenterX` / `Gp_CapCenterXLine` (codes `-1` end,
-/// `-2` newline, `-3` skip; else glyph index `& 0x3FF` into `Gp_CapGlyphs`).
-typedef struct _GpEvt12 {
+/// Flags and encoded values in a CAP playback record.
+enum {
+    CAP_SEQUENCE_LEFT_ALIGN          = 0x02,
+    CAP_SEQUENCE_FORCE_CARET         = 0x04,
+    CAP_SEQUENCE_DELAYED_MESSAGE     = 0x08,
+    CAP_SEQUENCE_TITLE_BANK          = 0x10,
+    CAP_SEQUENCE_SCENE_CONTROL       = 0x20,
+    CAP_SEQUENCE_SCENE_PHASE         = 0x40,
+    CAP_SEQUENCE_VIEW_CONTROL        = 0x80,
+    CAP_SEQUENCE_INSTANT_TEXT        = 0x01,
+    CAP_SEQUENCE_SOUND_ID_MASK       = 0xFE,
+    CAP_SEQUENCE_TIMING_MASK         = 0xFFFF0000,
+    CAP_SEQUENCE_PAUSE_UNTIL_RESUMED = 0xFF,
+    CAP_SEQUENCE_CHILD_ACTION_BASE   = 100
+};
+
+/// One keyed text, action or view-control record in a CAP playback sequence.
+///
+/// Records have a 12-byte stride. A script pointer addresses its command header
+/// in slot zero; playback scans from slot one for the selected `key`, stopping
+/// at `textRef.offset == CAP_TEXT_REF_END`. The terminal record has no text.
+/// Nonterminal text references borrow storage from the loaded CAP file.
+/// Each scan must reach its selected key or a terminal record within that file.
+///
+/// `control.text.flags` and `control.scene.flags` are the same flag byte.
+/// `CAP_SEQUENCE_VIEW_CONTROL` selects the scene view; otherwise an `actionId`
+/// selects an action whose fallback result can change the key through the action
+/// view. Ordinary text uses the title and frame counts. The packed view tests
+/// both timing bytes together while retaining the aligned word access.
+typedef struct {
     union {
         struct {
-            /* 0x0 */ u8 field_0;
-            /* 0x1 */ u8 field_1;
-            /* 0x2 */ u8 field_2;
-            /* 0x3 */ u8 field_3;
-        } bytes;
-        u32 packed;
-    } prefix;
-    /* 0x4 */ u8         field_4; // flags copied to D_80115670; bit 0 cleared if field_7
-    /* 0x5 */ u8         field_5; // compared with Gp_CapEventKey
-    /* 0x6 */ u8         field_6;
-    /* 0x7 */ u8         field_7; // copied to D_80115678
-    /* 0x8 */ CapTextRef field_8;
-} GpEvt12;
-STATIC_ASSERT_SIZEOF(GpEvt12, 0xC);
+            u8 title;         // Title glyph plus one (0 none); TITLE_BANK adds 256.
+            u8 flags;         // CAP_SEQUENCE_* flags; bit 0 has no observed consumer.
+            u8 displayFrames; // Frames displaying completed text before the pause (0 untimed if pauseFrames is also 0).
+            u8 pauseFrames;   // Frames without text afterward (255 waits for external resume).
+        } text;
+        struct {
+            u8 view;               // View selector (0 unchanged); lookup or direct index follows playback mode.
+            u8 flags;              // Same CAP_SEQUENCE_* flag byte as the text view.
+            u8 messageValue;       // Delayed message's low-byte argument when DELAYED_MESSAGE is set.
+            u8 messageDelayFrames; // Frames before the delayed message is dispatched.
+        } scene;
+        struct {
+            u8 fallbackKey; // Variant key when an action is declined/unavailable (0 keeps the current key).
+        } action;
+        u32 packed;         // First four bytes; TIMING_MASK selects the two timing/message bytes.
+    } control;
+    union {
+        u8 soundAndTextFlags;    // Bit 0 reveals text instantly/hides the caption caret; bits 1-7 encode a room sound ID.
+        u8 messageRecipient;     // Delayed message target (0 player, 1 companion, otherwise placed-actor index + 2).
+    } trigger;
+    u8         key;              // Variant key used when scanning a sequence.
+    u8         actionId;         // Action (0 none, 1-100 two-bit flag/item action, 101-255 non-type-9 scene child ID + 100).
+    u8         minDisplayFrames; // Minimum playback frames before advancing after confirmation; nonzero disables instant text.
+    CapTextRef textRef;          // Serialized text offset, relocated text stream, or sequence terminator.
+} CapSequenceRecord;
+STATIC_ASSERT_SIZEOF(CapSequenceRecord, 0xC);
 
-/// 0x10-byte header in front of a `GpEvt12` array inside a `GpCapFile`
+/// 0x10-byte header in front of a `CapSequenceRecord` array inside a `GpCapFile`
 /// (`field_C`). `count` is the first halfword; the records start at
-/// `records`. `Gp_RelocCapFile` relocates each record's `field_8.offset` unless
+/// `records`. `Gp_RelocCapFile` relocates each record's `textRef.offset` unless
 /// it is `-1`, in which case it also skips the next record.
 typedef struct _GpCapEvtTable {
-    /* 0x00 */ s16     count;
-    /* 0x02 */ byte    pad_2[0xE];
-    /* 0x10 */ GpEvt12 records[0];
+    /* 0x00 */ s16               count;
+    /* 0x02 */ byte              pad_2[0xE];
+    /* 0x10 */ CapSequenceRecord records[0];
 } GpCapEvtTable;
 STATIC_ASSERT_SIZEOF(GpCapEvtTable, 0x10);
 
@@ -75,9 +109,9 @@ STATIC_ASSERT_SIZEOF(GpCapEvtTable, 0x10);
 /// entry is a file-relative offset until relocation adds the file base, making
 /// it the address of a command record; a zero entry is left as no record.
 typedef union {
-    s32               offset;
-    struct _GpCapCmd* command;
-    GpEvt12*          events;
+    s32                offset;
+    struct _GpCapCmd*  command;
+    CapSequenceRecord* events;
 } GpCapEntry;
 STATIC_ASSERT_SIZEOF(GpCapEntry, 4);
 
@@ -110,7 +144,7 @@ typedef struct _GpCapCmd {
 /// before relocation; a relocated PS1 KSEG0 pointer has its high bit set. After that, `field_8` is a
 /// `TextGlyphCell*` published as `Gp_CapGlyphs`, `field_C` is a
 /// `GpCapEvtTable*`, and `field_10` is a `GpCapPtrTable*` whose
-/// entries (nonzero) are relocated `GpEvt12*` values.
+/// entries (nonzero) address command headers followed by `CapSequenceRecord` values.
 typedef struct _GpCapFile {
     /* 0x00 */ char magic[4];
     /* 0x04 */ s32  field_4;
@@ -140,11 +174,11 @@ STATIC_ASSERT_SIZEOF(GpCapFileAddress, 4);
 /// Resolve a record's byte displacement within a relocated CAP script.
 /// CAP references share their integer address and pointer representations;
 /// this preserves that representation through the indexed address addition.
-static inline GpEvt12* Gp_CapEventAt(GpEvt12* events, s32 index)
+static inline CapSequenceRecord* Gp_CapEventAt(CapSequenceRecord* events, s32 index)
 {
     GpCapEntry entry;
     entry.events = events;
-    entry.offset = index * sizeof(GpEvt12) + entry.offset;
+    entry.offset = index * sizeof(CapSequenceRecord) + entry.offset;
     return entry.events;
 }
 

@@ -37,7 +37,7 @@ and nothing is relocated when `field_8 <= 0`.
 walks both tables:
 
 - **Event table** — `GpCapEvtTable { s32 count; }` followed by `count`
-  `GpEvt12` records. Each record's `field_8.offset` is rebased **unless it is
+  `CapSequenceRecord` records. Each record's `textRef.offset` is rebased **unless it is
   `CAP_TEXT_REF_END` (`-1`)**,
   in which case the walk skips an extra record. `-1` is the terminator sentinel,
   so a terminator consumes a slot without owning text.
@@ -54,19 +54,40 @@ Gp_CapCmds   = (s32*)((GpCapPtrTable*)file->field_10 + 1);
 So **the pointer table is the command index**: `Gp_CapCmds[i]` is a
 `GpCapCmd*`, one per event slot.
 
-## 3. Event records — `GpEvt12` (0xC)
+## 3. Event records — `CapSequenceRecord` (0xC)
 
 ```
-0x0  u8  field_0
-0x1  u8  field_1
-0x2  u8  field_2
-0x3  u8  field_3
-0x4  u8  field_4    flags copied to D_80115670; bit 0 cleared if field_7
-0x5  u8  field_5    matched against Gp_CapEventKey
-0x6  u8  field_6
-0x7  u8  field_7    copied to D_80115678
-0x8  CapTextRef field_8    file-relative byte offset, then const u16* text; -1 ends the run
+0x0  u8  control.text.title          title glyph + 1; 0 means no title
+0x1  u8  control.text.flags          CAP_SEQUENCE_* flags
+0x2  u8  control.text.displayFrames  frames displaying completed text
+0x3  u8  control.text.pauseFrames    following frames without text; 255 waits for resume
+0x4  u8  trigger.soundAndTextFlags   bit 0 instant text; bits 1-7 room sound ID
+0x5  u8  key                         variant matched against Gp_CapEventKey
+0x6  u8  actionId                    0 none; 1-100 flag/item action; >100 non-type-9 scene child ID + 100
+0x7  u8  minDisplayFrames            minimum elapsed frames before advancing after confirmation
+0x8  CapTextRef textRef              file-relative byte offset, then const u16* text; -1 ends the run
 ```
+
+The flag byte selects additional interpretations of the control bytes.
+`CAP_SEQUENCE_VIEW_CONTROL` (`0x80`) selects `control.scene`: byte 0 is
+`view`, byte 2 is `messageValue`, byte 3 is `messageDelayFrames`, and byte 4
+is `trigger.messageRecipient` (0 player, 1 companion, otherwise placed-actor index +
+2). `CAP_SEQUENCE_DELAYED_MESSAGE` (`0x08`) enables that delayed message.
+An action ID above 100 is decoded by subtracting `CAP_SEQUENCE_CHILD_ACTION_BASE`
+and sending `SCENE_MESSAGE_FIND_OTHER_CHILD`, which matches a byte ID on children
+outside type 9. This differs from the placed-actor lookup used by delayed messages.
+For an action record, byte 0 is `control.action.fallbackKey`: declining an
+item action or finding it unavailable can select that nonzero variant key.
+
+For text, `CAP_SEQUENCE_LEFT_ALIGN` (`0x02`) disables centering,
+`CAP_SEQUENCE_FORCE_CARET` (`0x04`) requests the caret, and
+`CAP_SEQUENCE_TITLE_BANK` (`0x10`) adds 256 to the title selector. Scene flags
+`0x20` and `0x40` request the control handshake and select its phase. Bit 0 of
+the flag byte has no observed playback consumer. Both timing bytes zero select
+manual confirmation. A nonzero `minDisplayFrames` disables instant text; if
+confirmation comes early, playback waits the remaining minimum before
+processing the next record. Shared captions use the same instant-text bit to
+suppress their caret.
 
 `CapTextRef.offset` holds a file-relative byte offset before relocation. Adding
 the CAP file base to that word makes `CapTextRef.text` a borrowed `const u16*`
@@ -75,7 +96,7 @@ are u16 elements, with 0xFFFF ending the stream. The separate table-end sentinel
 `CAP_TEXT_REF_END` (`-1`) is never relocated or dereferenced.
 
 `Gp_FindCapEvt(start)` scans forward from `start` through `Gp_CapTable` and
-stops at the first record whose `field_8.offset == CAP_TEXT_REF_END` **or** whose `field_5` equals
+stops at the first record whose `textRef.offset == CAP_TEXT_REF_END` **or** whose `key` equals
 the current `Gp_CapEventKey`, returning the index. So an event slot is a run of
 records terminated by `-1`, and the key selects a variant within the run.
 
@@ -185,17 +206,19 @@ Header at `0x1AA0`, matching §1 exactly:
 
 **The pointer table indexes into the event table.** Count 18; entries are
 file-relative offsets `0xB34`, `0xB64`, `0xB88`, `0xBA0`, … and `0xB34` is
-exactly `evt + 4`, the first `GpEvt12`. Entry gaps are whole multiples of 12
+exactly `evt + 4`, the first command header. Entry gaps are whole multiples of 12
 (`0xB64-0xB34 = 4 records`, `0xB88-0xB64 = 3`, `0xBA0-0xB88 = 2`).
 
-That settles the aliasing question: **`GpCapCmd` and `GpEvt12` are the same
-records seen two ways.** `Gp_RunCapCmd` reads `Gp_CapCmds[i]` as a 9-byte
-command; `Gp_StartCap` stores the same pointer as `Gp_CapTable` and
-`Gp_FindCapEvt` walks it as 12-byte events. The command record is the head of
-its own event run.
+Each sequence starts with a **command header in slot zero**, followed by
+`CapSequenceRecord` playback records from slot one. `Gp_RunCapCmd` reads the
+header as `GpCapCmd`; `Gp_StartCap` stores the same base pointer as
+`Gp_CapTable` but initializes its record index to one. The command and playback
+records have different meanings. Relocation starts at `evt + 0x10`, after the
+first command header, and its extra step after a terminator skips the next
+sequence's command header.
 
 Run termination confirmed: within the first run the fourth record has
-`field_8 == -1`.
+`textRef.offset == CAP_TEXT_REF_END`.
 
 **Glyph cells and text codes are separate records.** `field_8.ptr` points to
 four-byte `TextGlyphCell` entries: unsigned texture U, texture V, width and
@@ -226,8 +249,6 @@ uses a text code's low ten bits as its glyph-cell index after handling controls.
   path is not reached for these files, or the base used here is not the base
   the loader uses. Do not build a packer on the current struct until this is
   settled.
-- **`GpEvt12` fields 0-3 and 6.** Only `field_4`, `field_5`, `field_7`,
-  `field_8` have known roles.
 - **`GpCapFile.field_4`** is `8` in this file and never read by the loader.
 - **Message `0x13F0`** (opcode 3) - the payload contract with slot 7's task.
 - **What `mode` selects.** `Gp_StartCap` sets a text-box geometry

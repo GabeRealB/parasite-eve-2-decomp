@@ -151,14 +151,14 @@ static TextGlyphCell* CapCaption_Data_8015E654;
 
 /// Caption script table, and the script currently being played back with the
 /// entry it is up to.
-static GpCapEntry* CapCaption_Data_8015E650;
-static GpEvt12*    CapCaption_Data_8015E658;
-static s16         CapCaption_Data_8015E65C;
-static s16         CapCaption_Data_8015E65E;
-static s16         CapCaption_Data_8015E660;
-static s16         CapCaption_Data_8015E662;
-static s16         CapCaption_Data_8015E664;
-static s16         CapCaption_Data_8015E666;
+static GpCapEntry*        CapCaption_Data_8015E650;
+static CapSequenceRecord* CapCaption_Data_8015E658;
+static s16                CapCaption_Data_8015E65C;
+static s16                CapCaption_Data_8015E65E;
+static s16                CapCaption_Data_8015E660;
+static s16                CapCaption_Data_8015E662;
+static s16                CapCaption_Data_8015E664;
+static s16                CapCaption_Data_8015E666;
 /// Frames left before the caret starts drawing.
 /// Caret grey level (pulses between 9 and 15) and its direction flag.
 static s32 CapCaption_Data_801545E4;
@@ -1744,7 +1744,7 @@ static GpCapEntry* CapCaption_Data_8015E650 = NULL;
 
 static TextGlyphCell* CapCaption_Data_8015E654 = NULL;
 
-static GpEvt12* CapCaption_Data_8015E658 = NULL;
+static CapSequenceRecord* CapCaption_Data_8015E658 = NULL;
 
 static s16 CapCaption_Data_8015E65C = 0;
 

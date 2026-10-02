@@ -68,13 +68,13 @@ u8 D_80115680;
 
 s32 Gp_RelocCapFile(GpCapFileAddress base)
 {
-    s32            i;
-    s32            count;
-    s32            flag;
-    GpEvt12*       rec;
-    GpCapEntry*    ptr;
-    GpCapEvtTable* evts;
-    GpCapPtrTable* ptrs;
+    s32                i;
+    s32                count;
+    s32                flag;
+    CapSequenceRecord* rec;
+    GpCapEntry*        ptr;
+    GpCapEvtTable*     evts;
+    GpCapPtrTable*     ptrs;
 
     if (strncmp(base.file->magic, Gp_StrCapMagic, 3) != 0) {
         return 0;
@@ -91,8 +91,8 @@ s32 Gp_RelocCapFile(GpCapFileAddress base)
         if (count > 0) {
             flag = CAP_TEXT_REF_END;
             do {
-                if (rec->field_8.offset != flag) {
-                    rec->field_8.offset += base.address;
+                if (rec->textRef.offset != flag) {
+                    rec->textRef.offset += base.address;
                 } else {
                     rec++;
                 }

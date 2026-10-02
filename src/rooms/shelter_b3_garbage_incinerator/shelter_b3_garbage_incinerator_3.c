@@ -1861,7 +1861,7 @@ GpCapEntry* CapCaption_Data_8015E650 = NULL;
 
 TextGlyphCell* CapCaption_Data_8015E654 = NULL;
 
-GpEvt12* CapCaption_Data_8015E658 = NULL;
+CapSequenceRecord* CapCaption_Data_8015E658 = NULL;
 
 s16 CapCaption_Data_8015E65C = 0;
 

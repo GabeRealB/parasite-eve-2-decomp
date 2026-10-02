@@ -10,7 +10,7 @@
 #include "main/mc.h"
 #include "main/task.h"
 
-GpEvt12* Gp_CapTable;
+CapSequenceRecord* Gp_CapTable;
 
 s16 D_801155AC;
 
@@ -40,18 +40,18 @@ s16 D_801155C0;
 
 void func_807245B8(void);
 
-s32 Gp_StartCap(GpEvt12* arg0, s16 arg1, s16 arg2)
+s32 Gp_StartCap(CapSequenceRecord* sequence, s16 arg1, s16 arg2)
 {
     CdCmdQueue* queue;
     TaskDesc*   desc;
 
     queue = &gCdCmdQueue;
-    if (arg0 == 0) {
+    if (sequence == 0) {
         return 0;
     }
 
     Gp_CapEventKey = arg2;
-    Gp_CapTable    = arg0;
+    Gp_CapTable    = sequence;
     D_801155AC     = 0;
     D_801155AE     = 1;
     D_801155B0     = 0;
@@ -85,14 +85,14 @@ s32 Gp_StartCap(GpEvt12* arg0, s16 arg1, s16 arg2)
     }
 
     D_801155AE = Gp_FindCapEvt((s16)D_801155AE);
-    if (Gp_CapTable[(s16)D_801155AE].field_8.offset == CAP_TEXT_REF_END) {
+    if (Gp_CapTable[(s16)D_801155AE].textRef.offset == CAP_TEXT_REF_END) {
         Gp_CapTable = 0;
         return 0;
     }
 
     Gp_ApplyCapEvtFlags();
-    D_801155B4 = Gp_CapTextTopY(Gp_CapTable[(s16)D_801155AE].field_8.text);
-    D_801155B6 = Gp_CapTextHeight(Gp_CapTable[(s16)D_801155AE].field_8.text);
+    D_801155B4 = Gp_CapTextTopY(Gp_CapTable[(s16)D_801155AE].textRef.text);
+    D_801155B6 = Gp_CapTextHeight(Gp_CapTable[(s16)D_801155AE].textRef.text);
     D_80115666 = arg1;
     D_80115660 = 0;
     if (arg1 != 0) {

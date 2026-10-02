@@ -369,7 +369,7 @@ extern ShelterB3DumpingHole2MessageEntry D_shelter_b3_dumping_hole_8018965C[2];
 extern EvsCommand                        D_shelter_b3_dumping_hole_8018968C[];
 extern EvsCommand                        D_shelter_b3_dumping_hole_801899A4[];
 extern TaskDesc                          D_shelter_b3_dumping_hole_8018AFBC;
-static GpEvt12*                          CapCaption_Data_8015E658;
+static CapSequenceRecord*                CapCaption_Data_8015E658;
 static s16                               CapCaption_Data_8015E662;
 static OverlayCapWindow                  CapCaption_Data_80154514[];
 static TextGlyphCell*                    CapCaption_Data_8015E654;
@@ -1974,7 +1974,7 @@ static GpCapEntry* CapCaption_Data_8015E650 = NULL;
 
 static TextGlyphCell* CapCaption_Data_8015E654 = NULL;
 
-static GpEvt12* CapCaption_Data_8015E658 = NULL;
+static CapSequenceRecord* CapCaption_Data_8015E658 = NULL;
 
 static s16 CapCaption_Data_8015E65C = 0;
 

@@ -80,12 +80,12 @@ static void CapCaption_RunSchedule(Task* task)
 static void CapCaption_DrawCurrent(void)
 {
     if ((CapCaption_Data_8015E658 != NULL) &&
-        (CapCaption_Data_8015E658[CapCaption_Data_8015E662].field_8.offset != CAP_TEXT_REF_END) &&
+        (CapCaption_Data_8015E658[CapCaption_Data_8015E662].textRef.offset != CAP_TEXT_REF_END) &&
         (Gp_CapBusy() == 0)) {
-        CapCaption_DrawText(CapCaption_Data_8015E658[CapCaption_Data_8015E662].field_8.text, 0x80, 1,
-                            CapCaption_Data_8015E658[CapCaption_Data_8015E662].prefix.bytes.field_0 |
-                                ((CapCaption_Data_8015E658[CapCaption_Data_8015E662].prefix.bytes.field_1 & 0x10) * 0x10));
-        if (!(CapCaption_Data_8015E658[CapCaption_Data_8015E662].field_4 & 1)) {
+        CapCaption_DrawText(CapCaption_Data_8015E658[CapCaption_Data_8015E662].textRef.text, 0x80, 1,
+                            CapCaption_Data_8015E658[CapCaption_Data_8015E662].control.text.title |
+                                ((CapCaption_Data_8015E658[CapCaption_Data_8015E662].control.text.flags & CAP_SEQUENCE_TITLE_BANK) * 0x10));
+        if (!(CapCaption_Data_8015E658[CapCaption_Data_8015E662].trigger.soundAndTextFlags & CAP_SEQUENCE_INSTANT_TEXT)) {
             CapCaption_DrawCaret();
         }
     }
@@ -96,13 +96,13 @@ static void CapCaption_DrawCurrent(void)
 /// when the "CAP" magic is missing.
 static s32 CapCaption_Relocate(GpCapFileAddress base)
 {
-    s32            i;
-    s32            count;
-    s32            flag;
-    GpEvt12*       rec;
-    GpCapEntry*    ptr;
-    GpCapEvtTable* evts;
-    GpCapPtrTable* ptrs;
+    s32                i;
+    s32                count;
+    s32                flag;
+    CapSequenceRecord* rec;
+    GpCapEntry*        ptr;
+    GpCapEvtTable*     evts;
+    GpCapPtrTable*     ptrs;
 
     if (strncmp(base.file->magic, "CAP", 3) != 0) {
         return 0;
@@ -119,8 +119,8 @@ static s32 CapCaption_Relocate(GpCapFileAddress base)
         if (count > 0) {
             flag = CAP_TEXT_REF_END;
             do {
-                if (rec->field_8.offset != flag) {
-                    rec->field_8.offset += base.address;
+                if (rec->textRef.offset != flag) {
+                    rec->textRef.offset += base.address;
                 } else {
                     rec++;
                 }
@@ -154,8 +154,8 @@ static s32 CapCaption_Relocate(GpCapFileAddress base)
 /// such script, 0 once it is playing; `arg2` is the line delay.
 static s32 CapCaption_SelectScript(s16 arg0, s16 arg1, s32 arg2)
 {
-    GpEvt12* caption;
-    s16      entry;
+    CapSequenceRecord* caption;
+    s16                entry;
 
     caption                  = CapCaption_Data_8015E650[arg0].events;
     CapCaption_Data_8015E658 = caption;
@@ -166,9 +166,9 @@ static s32 CapCaption_SelectScript(s16 arg0, s16 arg1, s32 arg2)
     entry                       = CapCaption_FindKeyedLine(1);
     CapCaption_Data_8015E662    = entry;
     CapCaption_Data_8015E660    = arg2;
-    CapCaption_Data_8015E65C    = CapCaption_CenterX(CapCaption_Data_8015E658[entry].field_8.text);
-    CapCaption_Data_8015E65E    = CapCaption_TextTopY(CapCaption_Data_8015E658[CapCaption_Data_8015E662].field_8.text);
-    CapCaption_Data_8015E664    = CapCaption_TextHeight(CapCaption_Data_8015E658[CapCaption_Data_8015E662].field_8.text);
+    CapCaption_Data_8015E65C    = CapCaption_CenterX(CapCaption_Data_8015E658[entry].textRef.text);
+    CapCaption_Data_8015E65E    = CapCaption_TextTopY(CapCaption_Data_8015E658[CapCaption_Data_8015E662].textRef.text);
+    CapCaption_Data_8015E664    = CapCaption_TextHeight(CapCaption_Data_8015E658[CapCaption_Data_8015E662].textRef.text);
     CapCaption_Data_8015E66C[0] = 0x1E;
     return 0;
 }
@@ -599,20 +599,20 @@ static s32 CapCaption_LineHeight(const u16* arg0)
 
 static s32 CapCaption_FindKeyedLine(s32 arg0)
 {
-    s32      flag;
-    s32      id;
-    GpEvt12* base;
-    GpEvt12* p;
+    s32                flag;
+    s32                id;
+    CapSequenceRecord* base;
+    CapSequenceRecord* p;
 
     flag = CAP_TEXT_REF_END;
     id   = CapCaption_Data_8015E666;
     base = CapCaption_Data_8015E658;
     p    = Gp_CapEventAt(base, arg0);
 loop:
-    if (p->field_8.offset == flag) {
+    if (p->textRef.offset == flag) {
         goto done;
     }
-    if (p->field_5 == id) {
+    if (p->key == id) {
         goto done;
     }
     p++;
