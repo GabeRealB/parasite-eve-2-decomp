@@ -740,7 +740,13 @@ u32* tmdDrawStreamPrimGt3PreXformEnvLayer(TmdStreamWorkspace* workspace, s32 obj
         /// provides alignment without checking bounds or projection validity;
         /// `TMD_VERTEX_DEPTH_INVALID` is tested in the selected cache entry.
         TMD_GT3_ENV_DEPTH_BYTE_OFFSET_MASK = 0xFFFC,
-        /// Direct-colour texture mode: 15 RGB bits per 16-bit VRAM texel.
+        /// GPU texture-depth selector for direct-colour environment sampling.
+        ///
+        /// Passed unshifted to `getTPage`: selector 2 sets texture-depth bits
+        /// 8..7 to binary 10. Each texel occupies one 16-bit VRAM word, so U
+        /// advances one word per texel and the packet's CLUT is unused.
+        /// Both environment pages use this format; `GPU_BLEND_ADD` selects
+        /// their blend mode separately.
         TMD_GT3_ENV_TEXTURE_DEPTH_DIRECT = 2,
         /// Packed GPU texture-page settings for environment triangles with no second-page markers.
         ///
