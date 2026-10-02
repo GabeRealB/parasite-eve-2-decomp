@@ -1041,7 +1041,18 @@ u32* gpDrawStreamPrimGt4PreXformLayer(TmdStreamWorkspace* ws, s32 flags, u32* st
 u32* tmdDrawStreamPrimGt3PreXformOffsetLayer(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
     enum {
-        TMD_GT3_OFFSET_LAYER_DEPTH_BYTE_OFFSET_MASK = 0xFFFC, // Clear two unproven low reference bits; does not check cache bounds
+        /// Extracts an aligned depth-cache byte offset from an offset-layer triangle's corner reference.
+        ///
+        /// Applied to each of the element's first three u16 values: retain
+        /// bits 15..2 and discard bits 1..0, whose role is unproven. Results
+        /// span 0..65532 bytes and are divided by `sizeof(*vertexDepths)` to
+        /// index four-byte `szTable` entries. The draw walk supplies 1024
+        /// entries: valid byte offsets are 0..4092, and each selected depth
+        /// must be initialized by an earlier projection in that walk.
+        /// This mask checks neither
+        /// bounds nor validity; `TMD_VERTEX_DEPTH_INVALID` is tested in the
+        /// selected cache entry, independently of the reference's low bits.
+        TMD_GT3_OFFSET_LAYER_DEPTH_BYTE_OFFSET_MASK = 0xFFFC,
         /// GPU command byte for the opaque, colour-modulated Gouraud-textured base triangle.
         ///
         /// Bits 1 and 0 are clear: semitransparency is disabled and the existing
