@@ -35,7 +35,7 @@ extern ViewCount D_dryfield_garage_8017DCF0[];
 
 extern WorldCoordRoomLighting D_dryfield_garage_8017DCF4[];
 
-extern GpWarpRec D_dryfield_garage_8017DCFC[];
+extern DirectionWarpEntry D_dryfield_garage_8017DCFC[];
 
 extern ViewCamera D_dryfield_garage_8017E670[];
 

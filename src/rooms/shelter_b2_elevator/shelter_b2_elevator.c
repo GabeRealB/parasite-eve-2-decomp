@@ -147,8 +147,8 @@ u8* D_shelter_b2_elevator_8017DFD8[1] = {
 
 ViewCount D_shelter_b2_elevator_8017DFDC[1] = { 3 };
 
-GpWarpRec D_shelter_b2_elevator_8017DFE0[1] = {
-    { { { .word = 1024 }, 0x2CEA, 0, -496 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 0x2CEA, 0, -496 }, { 0, 0, 0, 0 }, 0x541A0002, 0x541A0001, 0, 2, 0, 0 },
+DirectionWarpEntry D_shelter_b2_elevator_8017DFE0[1] = {
+    { { { .word = 1024 }, 0x2CEA, 0, -496 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 0x2CEA, 0, -496 }, { 0, 0, 0, 0 }, 0x541A0002, 0x541A0001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gShelterB2ElevatorCollision00B24Normals[6] = {

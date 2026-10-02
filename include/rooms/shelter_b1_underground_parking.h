@@ -33,7 +33,7 @@ extern u8* D_shelter_b1_underground_parking_8018791C[];
 
 extern ViewCount D_shelter_b1_underground_parking_8018793C[];
 
-extern GpWarpRec D_shelter_b1_underground_parking_8018794C[];
+extern DirectionWarpEntry D_shelter_b1_underground_parking_8018794C[];
 
 extern ViewCamera D_shelter_b1_underground_parking_80189778[];
 

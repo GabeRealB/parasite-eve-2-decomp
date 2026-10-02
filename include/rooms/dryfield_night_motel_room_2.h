@@ -22,7 +22,7 @@ extern u8* D_dryfield_night_motel_room_2_8017DA74[];
 
 extern ViewCount D_dryfield_night_motel_room_2_8017DA78[];
 
-extern GpWarpRec D_dryfield_night_motel_room_2_8017DA7C[];
+extern DirectionWarpEntry D_dryfield_night_motel_room_2_8017DA7C[];
 
 extern ViewCamera D_dryfield_night_motel_room_2_8017E1A8[];
 

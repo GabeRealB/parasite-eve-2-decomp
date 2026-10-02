@@ -565,10 +565,10 @@ u8* D_shelter_b1_pod_access_tunnel_80183A14[1] = {
 
 ViewCount D_shelter_b1_pod_access_tunnel_80183A18[1] = { 14 };
 
-GpWarpRec D_shelter_b1_pod_access_tunnel_80183A1C[3] = {
-    { { { .word = 0 }, 1698, 0, -6028 }, { 0, 0, 0, 0 }, { { .word = 0 }, 1698, 0, -6028 }, { 0, 0, 0, 0 }, 0x54110002, 0x54110001, 0, 2, 0, 0 },
-    { { { .word = 3072 }, 6834, 0, -1772 }, { 0, 0, 0, 0 }, { { .word = 3840 }, 6150, 0, -2450 }, { 0, 0, 0, 0 }, 0x54110005, 0x54110004, 0x54110003, 4, 0, 450 },
-    { { { .word = 2048 }, 4530, 0, -1050 }, { 0, 0, 0, 0 }, { { .word = 3328 }, 5350, 0, -1750 }, { 0, 0, 0, 0 }, 0x54110007, 0, 0, 4, 0, 438 },
+DirectionWarpEntry D_shelter_b1_pod_access_tunnel_80183A1C[3] = {
+    { { { .word = 0 }, 1698, 0, -6028 }, { 0, 0, 0, 0 }, { { .word = 0 }, 1698, 0, -6028 }, { 0, 0, 0, 0 }, 0x54110002, 0x54110001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 3072 }, 6834, 0, -1772 }, { 0, 0, 0, 0 }, { { .word = 3840 }, 6150, 0, -2450 }, { 0, 0, 0, 0 }, 0x54110005, 0x54110004, 0x54110003, 4, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_B2_LABORATORY },
+    { { { .word = 2048 }, 4530, 0, -1050 }, { 0, 0, 0, 0 }, { { .word = 3328 }, 5350, 0, -1750 }, { 0, 0, 0, 0 }, 0x54110007, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_POD },
 };
 
 static SVECTOR _gShelterB1PodAccessTunnelCollision06664Normals[6] = {

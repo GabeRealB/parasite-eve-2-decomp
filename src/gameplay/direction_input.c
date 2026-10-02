@@ -223,18 +223,18 @@ void func_800AD6BC(void)
 
 void Gp_SetupDirWarp(void)
 {
-    Task*            slot7;
-    Task*            slot3;
-    PlayerStatus*    cfg;
-    GameActor*       actor;
-    GameLocationKey* sess;
-    GpWarpRec        rec;
-    ActorTransform   msg;
-    SVECTOR          pos;
-    SVECTOR          pos2;
-    s32              stage;
-    s32              room;
-    s16              ret;
+    Task*              slot7;
+    Task*              slot3;
+    PlayerStatus*      cfg;
+    GameActor*         actor;
+    GameLocationKey*   sess;
+    DirectionWarpEntry warpEntry;
+    ActorTransform     msg;
+    SVECTOR            pos;
+    SVECTOR            pos2;
+    s32                stage;
+    s32                room;
+    s16                ret;
 
     sess  = &gGameSession->location.loc;
     stage = sess->stage;
@@ -257,46 +257,47 @@ void Gp_SetupDirWarp(void)
 
     D_80114CF4      = 0;
     Gp_DirFadeLevel = 0;
-    rec             = Gp_WarpTables[stage - 1][room - 1][(Gp_DirNibble >> 4) - 1];
+    // The current endpoint supplies facing and sounds for this departure.
+    warpEntry = Gp_WarpTables[stage - 1][room - 1][(Gp_DirNibble >> 4) - 1];
 
     Gp_WarpLoc.field_4   = 1;
     Gp_WarpLoc.room      = 1;
     Gp_WarpLoc.queryOnly = ROOM_EVENT_QUERY_ONLY;
     Gp_WarpLoc.areaId    = Gp_DirByte;
     Gp_WarpLoc.warp      = Gp_DirNibble & 0xF;
-    Gp_WarpLoc.flagId    = rec.field_36;
+    Gp_WarpLoc.flagId    = warpEntry.mapFlagId;
 
     ret        = Gp_DispatchMsgPtrs(slot7, ROOM_EVENT_MESSAGE_RESOLVE, &Gp_WarpLoc, &Gp_WarpLoc);
     D_80114CF4 = ret;
 
     switch (ret) {
         case 1:
-            if (rec.field_2C != 0) {
-                D_80114CF0 = rec.field_2C;
+            if (warpEntry.departureSound != DIRECTION_WARP_SOUND_NONE) {
+                D_80114CF0 = warpEntry.departureSound;
             } else {
                 D_80114CF0 = 0;
             }
             msg.rot.vx = 0;
             msg.rot.vz = 0;
-            msg.rot.vy = (rec.player.yaw.word + ACTOR_TRANSFORM_ANGLE_HALF_TURN) & ACTOR_TRANSFORM_ANGLE_MASK;
-            if (rec.player.yaw.word == ACTOR_SPAWN_YAW_FACE_TRANSITION_POINT_ALT || rec.player.yaw.word == ACTOR_SPAWN_YAW_FACE_TRANSITION_POINT) {
+            msg.rot.vy = (warpEntry.player.yaw.word + ACTOR_TRANSFORM_ANGLE_HALF_TURN) & ACTOR_TRANSFORM_ANGLE_MASK;
+            if (warpEntry.player.yaw.word == ACTOR_SPAWN_YAW_FACE_TRANSITION_POINT_ALT || warpEntry.player.yaw.word == ACTOR_SPAWN_YAW_FACE_TRANSITION_POINT) {
                 pos.vx     = -0x5C1;
                 pos.vy     = 0;
                 pos.vz     = 0x9C1;
                 msg.rot.vy = Gp_YawToPosXZ(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], (GpPosXZ*)&pos);
-            } else if (rec.player.yaw.word == ACTOR_SPAWN_YAW_KEEP_FACING) {
+            } else if (warpEntry.player.yaw.word == ACTOR_SPAWN_YAW_KEEP_FACING) {
                 msg.rot.vy = actor->rotation.vy;
             }
             TASK_MESSAGE_DISPATCH_POINTER(slot3, 0x3EE, &msg, 0);
-            if (rec.field_35 & 2) {
+            if (warpEntry.flags & DIRECTION_WARP_FLAG_FADE_DEPARTURE) {
                 Gp_DirFadeLevel = 0x1E;
             }
             Gp_DirPhase++;
             break;
 
         case 0:
-            if (rec.field_30 != 0) {
-                D_80114CF0 = rec.field_30;
+            if (warpEntry.blockedSound != DIRECTION_WARP_SOUND_NONE) {
+                D_80114CF0 = warpEntry.blockedSound;
             } else {
                 D_80114CF0 = 0;
             }
@@ -306,7 +307,7 @@ void Gp_SetupDirWarp(void)
                 Gp_WarpLoc.queryOnly = ROOM_EVENT_EXECUTE;
                 Gp_WarpLoc.areaId    = Gp_DirByte;
                 Gp_WarpLoc.warp      = Gp_DirNibble & 0xF;
-                Gp_WarpLoc.flagId    = rec.field_36;
+                Gp_WarpLoc.flagId    = warpEntry.mapFlagId;
                 Gp_DispatchMsgPtrs(slot7, ROOM_EVENT_MESSAGE_RESOLVE, &Gp_WarpLoc, &Gp_WarpLoc);
                 D_80114CF8              = 0;
                 Gp_DirNibble            = 0;
@@ -320,13 +321,13 @@ void Gp_SetupDirWarp(void)
             }
             msg.rot.vx = 0;
             msg.rot.vz = 0;
-            msg.rot.vy = (rec.player.yaw.word + ACTOR_TRANSFORM_ANGLE_HALF_TURN) & ACTOR_TRANSFORM_ANGLE_MASK;
-            if (rec.player.yaw.word == ACTOR_SPAWN_YAW_FACE_TRANSITION_POINT_ALT || rec.player.yaw.word == ACTOR_SPAWN_YAW_FACE_TRANSITION_POINT) {
+            msg.rot.vy = (warpEntry.player.yaw.word + ACTOR_TRANSFORM_ANGLE_HALF_TURN) & ACTOR_TRANSFORM_ANGLE_MASK;
+            if (warpEntry.player.yaw.word == ACTOR_SPAWN_YAW_FACE_TRANSITION_POINT_ALT || warpEntry.player.yaw.word == ACTOR_SPAWN_YAW_FACE_TRANSITION_POINT) {
                 pos2.vx    = -0x5C1;
                 pos2.vy    = 0;
                 pos2.vz    = 0x9C1;
                 msg.rot.vy = Gp_YawToPosXZ(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], (GpPosXZ*)&pos2);
-            } else if (rec.player.yaw.word == ACTOR_SPAWN_YAW_KEEP_FACING) {
+            } else if (warpEntry.player.yaw.word == ACTOR_SPAWN_YAW_KEEP_FACING) {
                 msg.rot.vy = actor->rotation.vy;
             }
             TASK_MESSAGE_DISPATCH_POINTER(slot3, 0x3EE, &msg, 0);
@@ -339,7 +340,7 @@ void Gp_SetupDirWarp(void)
             Gp_WarpLoc.queryOnly = ROOM_EVENT_EXECUTE;
             Gp_WarpLoc.areaId    = Gp_DirByte;
             Gp_WarpLoc.warp      = Gp_DirNibble & 0xF;
-            Gp_WarpLoc.flagId    = rec.field_36;
+            Gp_WarpLoc.flagId    = warpEntry.mapFlagId;
             Gp_DispatchMsgPtrs(slot7, ROOM_EVENT_MESSAGE_RESOLVE, &Gp_WarpLoc, &Gp_WarpLoc);
             D_80114CF8              = 0;
             Gp_DirNibble            = 0;
@@ -374,20 +375,20 @@ void Gp_FadeDirWaitMsg(void)
 
 void Gp_CommitWarp(void)
 {
-    Task*            slot3;
-    Task*            slot7;
-    PlayerStatus*    cfg;
-    GameLocationKey* sess;
-    GpWarpRec        rec;
-    RoomEventMsg*    loc;
-    u8               fade;
+    Task*              slot3;
+    Task*              slot7;
+    PlayerStatus*      cfg;
+    GameLocationKey*   sess;
+    DirectionWarpEntry warpEntry;
+    RoomEventMsg*      loc;
+    u8                 fade;
 
     slot3 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     cfg   = &gPlayerStatus;
     slot7 = gameGetTaskSlot(GAME_TASK_SLOT_ROOM);
 
-    sess = &gGameSession->location.loc;
-    rec  = Gp_WarpTables[sess->stage - 1][sess->area - 1][(Gp_DirNibble >> 4) - 1];
+    sess      = &gGameSession->location.loc;
+    warpEntry = Gp_WarpTables[sess->stage - 1][sess->area - 1][(Gp_DirNibble >> 4) - 1];
 
     if (*(s16*)&Gp_DirFadeLevel != 0) {
         fade = *(u8*)&Gp_DirFadeLevel;
@@ -404,7 +405,7 @@ void Gp_CommitWarp(void)
     loc->queryOnly    = ROOM_EVENT_EXECUTE;
     Gp_WarpLoc.areaId = Gp_DirByte;
     loc->warp         = Gp_DirNibble & 0xF;
-    loc->flagId       = rec.field_36;
+    loc->flagId       = warpEntry.mapFlagId;
     Gp_DispatchMsgPtrs(slot7, ROOM_EVENT_MESSAGE_RESOLVE, loc, loc);
 
     if (D_80114CF0 != 0) {

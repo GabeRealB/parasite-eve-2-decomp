@@ -815,10 +815,10 @@ WorldCoordRoomLighting D_acropolis_sanctuary_80182804[1] = {
     { D_acropolis_sanctuary_801843EC, NULL },
 };
 
-GpWarpRec D_acropolis_sanctuary_8018280C[3] = {
-    { { { .word = 1024 }, -9757, 2, -8070 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -9757, 2, -8070 }, { 0, 0, 0, 0 }, 0x510C0002, 0x510C0001, 0, 2, 0, 493 },
-    { { { .word = 2048 }, -7465, 2, -4239 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -7465, 2, -4239 }, { 0, 0, 0, 0 }, 0x510C0004, 0x510C0003, 0, 7, 0, 492 },
-    { { { .word = 1024 }, -9757, 2, -8070 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -9757, 2, -8070 }, { 0, 0, 0, 0 }, 0x510C0002, 0x510C0001, 0, 2, 0, 493 },
+DirectionWarpEntry D_acropolis_sanctuary_8018280C[3] = {
+    { { { .word = 1024 }, -9757, 2, -8070 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -9757, 2, -8070 }, { 0, 0, 0, 0 }, 0x510C0002, 0x510C0001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 493 },
+    { { { .word = 2048 }, -7465, 2, -4239 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -7465, 2, -4239 }, { 0, 0, 0, 0 }, 0x510C0004, 0x510C0003, DIRECTION_WARP_SOUND_NONE, 7, DIRECTION_WARP_FLAG_NONE, 492 },
+    { { { .word = 1024 }, -9757, 2, -8070 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -9757, 2, -8070 }, { 0, 0, 0, 0 }, 0x510C0002, 0x510C0001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 493 },
 };
 
 static SVECTOR _gAcropolisSanctuaryCollision05FA8Normals[42] = {

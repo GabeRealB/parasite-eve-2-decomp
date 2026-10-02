@@ -126,8 +126,8 @@ u8* D_shelter_b1_golem_freezer_1_8017E790[1] = {
 
 ViewCount D_shelter_b1_golem_freezer_1_8017E794[2] = { 7, 0 };
 
-GpWarpRec D_shelter_b1_golem_freezer_1_8017E798[1] = {
-    { { { .word = 3072 }, 6763, -80, 1000 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 6763, -80, 1000 }, { 0, 0, 0, 0 }, 0x54150002, 0x54150001, 0, 5, 0, 433 },
+DirectionWarpEntry D_shelter_b1_golem_freezer_1_8017E798[1] = {
+    { { { .word = 3072 }, 6763, -80, 1000 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 6763, -80, 1000 }, { 0, 0, 0, 0 }, 0x54150002, 0x54150001, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, 433 },
 };
 
 static SVECTOR _gShelterB1GolemFreezer1Collision01400Normals[9] = {

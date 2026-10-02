@@ -1122,9 +1122,9 @@ WorldCoordRoomLighting D_mine_mesa_8018654C[1] = {
 
 ViewCount D_mine_mesa_80186554[1] = { 11 };
 
-GpWarpRec D_mine_mesa_80186558[2] = {
-    { { { .word = 2048 }, 7060, 0, 2570 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 7060, 0, 2570 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
-    { { { .word = 1024 }, 315, 0, 3562 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 315, 0, 3562 }, { 0, 0, 0, 0 }, 0x54010002, 0x54010001, 0, 5, 0, 0 },
+DirectionWarpEntry D_mine_mesa_80186558[2] = {
+    { { { .word = 2048 }, 7060, 0, 2570 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 7060, 0, 2570 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 1024 }, 315, 0, 3562 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 315, 0, 3562 }, { 0, 0, 0, 0 }, 0x54010002, 0x54010001, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gMineMesaCollision09A4CNormals[37] = {

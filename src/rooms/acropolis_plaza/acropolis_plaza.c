@@ -2662,8 +2662,8 @@ SpriteView D_acropolis_plaza_80198A08[8] = {
     { { .elements = NULL }, D_acropolis_plaza_801989F8, NULL },
 };
 
-GpWarpRec D_acropolis_plaza_80198A68[1] = {
-    { { { .word = 3072 }, 0x5AA0, 0, 1800 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x5AA0, 0, 1800 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
+DirectionWarpEntry D_acropolis_plaza_80198A68[1] = {
+    { { { .word = 3072 }, 0x5AA0, 0, 1800 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x5AA0, 0, 1800 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gAcropolisPlazaCollision1BBC0Normals[30] = {

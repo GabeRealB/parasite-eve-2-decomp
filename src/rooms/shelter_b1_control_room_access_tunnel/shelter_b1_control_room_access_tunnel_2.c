@@ -50,9 +50,9 @@ u8* D_shelter_b1_control_room_access_tunnel_80181F00[1] = {
 
 ViewCount D_shelter_b1_control_room_access_tunnel_80181F04[1] = { 3 };
 
-GpWarpRec D_shelter_b1_control_room_access_tunnel_80181F08[2] = {
-    { { { .word = 3072 }, 5389, -25, 194 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 5389, -25, 194 }, { 0, 0, 0, 0 }, 0x54190002, 0x54190001, 0, 2, 0, 0 },
-    { { { .word = 1024 }, 831, -24, 119 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 831, -24, 119 }, { 0, 0, 0, 0 }, 0x54190004, 0x54190003, 0, 3, 0, 0 },
+DirectionWarpEntry D_shelter_b1_control_room_access_tunnel_80181F08[2] = {
+    { { { .word = 3072 }, 5389, -25, 194 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 5389, -25, 194 }, { 0, 0, 0, 0 }, 0x54190002, 0x54190001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 1024 }, 831, -24, 119 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 831, -24, 119 }, { 0, 0, 0, 0 }, 0x54190004, 0x54190003, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gShelterB1ControlRoomAccessTunnelCollision04AB0Normals[6] = {

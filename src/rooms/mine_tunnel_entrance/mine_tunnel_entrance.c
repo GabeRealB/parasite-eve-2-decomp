@@ -119,10 +119,10 @@ u8* D_mine_tunnel_entrance_8017DB70[1] = {
 
 ViewCount D_mine_tunnel_entrance_8017DB74[1] = { 6 };
 
-GpWarpRec D_mine_tunnel_entrance_8017DB78[3] = {
-    { { { .word = 3072 }, 0x44C0, 0, 1750 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x44C0, 0, 1750 }, { 0, 0, 0, 0 }, 0x54030002, 0x54030001, 0, 2, 0, 0 },
-    { { { .word = 0 }, 2873, 0, -448 }, { 0, 0, 0, 0 }, { { .word = 0 }, 2873, 0, -448 }, { 0, 0, 0, 0 }, 0x54030004, 0x54030003, 0, 6, 0, 0 },
-    { { { .word = 1024 }, 417, 0, 1571 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 417, 0, 1571 }, { 0, 0, 0, 0 }, 0x54030006, 0x54030005, 0, 4, 0, 0 },
+DirectionWarpEntry D_mine_tunnel_entrance_8017DB78[3] = {
+    { { { .word = 3072 }, 0x44C0, 0, 1750 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x44C0, 0, 1750 }, { 0, 0, 0, 0 }, 0x54030002, 0x54030001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 0 }, 2873, 0, -448 }, { 0, 0, 0, 0 }, { { .word = 0 }, 2873, 0, -448 }, { 0, 0, 0, 0 }, 0x54030004, 0x54030003, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 1024 }, 417, 0, 1571 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 417, 0, 1571 }, { 0, 0, 0, 0 }, 0x54030006, 0x54030005, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gMineTunnelEntranceCollision00B00Normals[23] = {

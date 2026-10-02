@@ -115,9 +115,9 @@ u8* D_neo_ark_north_promenade_80181DCC[1] = {
 
 ViewCount D_neo_ark_north_promenade_80181DD0[1] = { 6 };
 
-GpWarpRec D_neo_ark_north_promenade_80181DD4[2] = {
-    { { { .word = 3072 }, 0x2A43, 0, 1354 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x2A43, 0, 1354 }, { 0, 0, 0, 0 }, 0, 0, 0, 6, 0, 0 },
-    { { { .word = 1024 }, 1193, 0, 0x2C19 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 1193, 0, 0x2C19 }, { 0, 0, 0, 0 }, 0x550A0002, 0x550A0001, 0x550A0003, 2, 0, 434 },
+DirectionWarpEntry D_neo_ark_north_promenade_80181DD4[2] = {
+    { { { .word = 3072 }, 0x2A43, 0, 1354 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x2A43, 0, 1354 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 1024 }, 1193, 0, 0x2C19 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 1193, 0, 0x2C19 }, { 0, 0, 0, 0 }, 0x550A0002, 0x550A0001, 0x550A0003, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_POWER_PLANT_1 },
 };
 
 static SVECTOR _gNeoArkNorthPromenadeCollision04E2CNormals[12] = {

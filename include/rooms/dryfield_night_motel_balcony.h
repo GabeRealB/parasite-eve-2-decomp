@@ -27,7 +27,7 @@ extern u8* D_dryfield_night_motel_balcony_80182E98[];
 
 extern ViewCount D_dryfield_night_motel_balcony_80182EA4[];
 
-extern GpWarpRec D_dryfield_night_motel_balcony_80182EAC[];
+extern DirectionWarpEntry D_dryfield_night_motel_balcony_80182EAC[];
 
 extern ViewCamera D_dryfield_night_motel_balcony_80184004[];
 

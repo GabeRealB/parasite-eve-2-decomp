@@ -19,7 +19,7 @@ extern ViewCount D_dryfield_motel_lobby_8017F84C[];
 
 extern WorldCoordRoomLighting D_dryfield_motel_lobby_8017F850[];
 
-extern GpWarpRec D_dryfield_motel_lobby_8017F858[];
+extern DirectionWarpEntry D_dryfield_motel_lobby_8017F858[];
 
 extern ViewCamera D_dryfield_motel_lobby_8017FC08[];
 

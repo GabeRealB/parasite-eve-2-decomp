@@ -223,9 +223,9 @@ WorldCoordRoomLighting D_dryfield_breezeway_80183180[1] = {
 
 ViewCount D_dryfield_breezeway_80183188[2] = { 6, 0 };
 
-GpWarpRec D_dryfield_breezeway_8018318C[2] = {
-    { { { .word = 1024 }, 6656, 1, 1568 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 6656, 1, 1568 }, { 0, 0, 0, 0 }, 0x52160002, 0x52160001, 0, 2, 0, 476 },
-    { { { .word = 3072 }, 0x44F3, 1, 2075 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x44F3, 1, 2075 }, { 0, 0, 0, 0 }, 0x52160004, 0x52160003, 0x52160005, 4, 0, 475 },
+DirectionWarpEntry D_dryfield_breezeway_8018318C[2] = {
+    { { { .word = 1024 }, 6656, 1, 1568 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 6656, 1, 1568 }, { 0, 0, 0, 0 }, 0x52160002, 0x52160001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 476 },
+    { { { .word = 3072 }, 0x44F3, 1, 2075 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x44F3, 1, 2075 }, { 0, 0, 0, 0 }, 0x52160004, 0x52160003, 0x52160005, 4, DIRECTION_WARP_FLAG_NONE, 475 },
 };
 
 static SVECTOR _gDryfieldBreezewayCollision06068Normals[16] = {

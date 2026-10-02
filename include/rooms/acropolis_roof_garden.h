@@ -25,7 +25,7 @@ extern ViewCount D_acropolis_roof_garden_80184CA0[];
 
 extern WorldCoordRoomLighting D_acropolis_roof_garden_80184CA4[];
 
-extern GpWarpRec D_acropolis_roof_garden_80184CAC[];
+extern DirectionWarpEntry D_acropolis_roof_garden_80184CAC[];
 
 extern SpriteView D_acropolis_roof_garden_80186648[];
 

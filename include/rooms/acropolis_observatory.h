@@ -22,7 +22,7 @@ extern ViewCount D_acropolis_observatory_8017FEF8[];
 
 extern WorldCoordRoomLighting D_acropolis_observatory_8017FEFC[];
 
-extern GpWarpRec D_acropolis_observatory_8017FF0C[];
+extern DirectionWarpEntry D_acropolis_observatory_8017FF0C[];
 
 extern SpriteView D_acropolis_observatory_80183300[];
 

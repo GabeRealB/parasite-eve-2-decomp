@@ -260,8 +260,8 @@ u8* D_neo_ark_power_plant_1_8017F1E0[1] = {
 
 ViewCount D_neo_ark_power_plant_1_8017F1E4[1] = { 9 };
 
-GpWarpRec D_neo_ark_power_plant_1_8017F1E8[1] = {
-    { { { .word = 3072 }, 8680, 0, -0x2904 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 8680, 0, -0x2904 }, { 0, 0, 0, 0 }, 0x55110002, 0x55110001, 0, 2, 0, 440 },
+DirectionWarpEntry D_neo_ark_power_plant_1_8017F1E8[1] = {
+    { { { .word = 3072 }, 8680, 0, -0x2904 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 8680, 0, -0x2904 }, { 0, 0, 0, 0 }, 0x55110002, 0x55110001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SHRINE },
 };
 
 WorldCoordPointLight D_neo_ark_power_plant_1_8017F220[25] = {

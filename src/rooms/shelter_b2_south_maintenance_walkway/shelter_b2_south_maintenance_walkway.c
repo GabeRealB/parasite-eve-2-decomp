@@ -152,9 +152,9 @@ u8* D_shelter_b2_south_maintenance_walkway_8018263C[1] = {
 
 ViewCount D_shelter_b2_south_maintenance_walkway_80182640[1] = { 5 };
 
-GpWarpRec D_shelter_b2_south_maintenance_walkway_80182644[2] = {
-    { { { .word = 1024 }, -2412, 0, -3946 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -2412, 0, -3946 }, { 0, 0, 0, 0 }, 0x541C0002, 0x541C0001, 0, 2, 0, 457 },
-    { { { .word = 2048 }, 2048, 0, 4600 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 2048, 0, 4600 }, { 0, 0, 0, 0 }, 0x541C0002, 0x541C0001, 0, 5, 0, 456 },
+DirectionWarpEntry D_shelter_b2_south_maintenance_walkway_80182644[2] = {
+    { { { .word = 1024 }, -2412, 0, -3946 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -2412, 0, -3946 }, { 0, 0, 0, 0 }, 0x541C0002, 0x541C0001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 457 },
+    { { { .word = 2048 }, 2048, 0, 4600 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 2048, 0, 4600 }, { 0, 0, 0, 0 }, 0x541C0002, 0x541C0001, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, 456 },
 };
 
 static SVECTOR _gShelterB2SouthMaintenanceWalkwayCollision05428Normals[14] = {

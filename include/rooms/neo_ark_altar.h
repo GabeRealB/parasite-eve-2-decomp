@@ -19,7 +19,7 @@ extern u8* D_neo_ark_altar_8017F0EC[];
 
 extern ViewCount D_neo_ark_altar_8017F0F8[];
 
-extern GpWarpRec D_neo_ark_altar_8017F0FC[];
+extern DirectionWarpEntry D_neo_ark_altar_8017F0FC[];
 
 extern ViewCamera D_neo_ark_altar_8017F5A0[];
 

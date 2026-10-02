@@ -368,10 +368,10 @@ u8* D_neo_ark_observatory_801815DC[2] = {
 
 ViewCount D_neo_ark_observatory_801815E4[2] = { 21, 21 };
 
-GpWarpRec D_neo_ark_observatory_801815E8[3] = {
-    { { { .word = 3072 }, 0x34BC, 0, 0x2EE0 }, { 0, 0, 0, 0 }, { { .word = 2560 }, 0x2D82, 0, 0x316A }, { 0, 0, 0, 0 }, 0x55070006, 0x55070005, 0, 2, 0, 452 },
-    { { { .word = 3072 }, 6700, 0, 0x37DC }, { 0, 0, 0, 0 }, { { .word = 3072 }, 6700, 0, 0x37DC }, { 0, 0, 0, 0 }, 0, 0, 0, 11, 0, 0 },
-    { { { .word = 3072 }, 6490, 0, 1700 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 6490, 0, 1700 }, { 0, 0, 0, 0 }, 0, 0, 0, 10, 0, 0 },
+DirectionWarpEntry D_neo_ark_observatory_801815E8[3] = {
+    { { { .word = 3072 }, 0x34BC, 0, 0x2EE0 }, { 0, 0, 0, 0 }, { { .word = 2560 }, 0x2D82, 0, 0x316A }, { 0, 0, 0, 0 }, 0x55070006, 0x55070005, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_B2_MAIN_CORRIDOR },
+    { { { .word = 3072 }, 6700, 0, 0x37DC }, { 0, 0, 0, 0 }, { { .word = 3072 }, 6700, 0, 0x37DC }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 11, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 3072 }, 6490, 0, 1700 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 6490, 0, 1700 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 10, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gNeoArkObservatoryCollision049E4Normals[26] = {

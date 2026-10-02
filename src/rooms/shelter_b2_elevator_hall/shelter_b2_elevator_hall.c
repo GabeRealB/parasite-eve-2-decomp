@@ -189,10 +189,10 @@ u8* D_shelter_b2_elevator_hall_801838DC[1] = {
 
 ViewCount D_shelter_b2_elevator_hall_801838E0[1] = { 7 };
 
-GpWarpRec D_shelter_b2_elevator_hall_801838E4[3] = {
-    { { { .word = 2048 }, -5465, 0, 1040 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -5465, 0, 1040 }, { 0, 0, 0, 0 }, 0x541B0006, 0x541B0005, 0, 2, 0, 455 },
-    { { { .word = 3072 }, 9400, 0, -600 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 9400, 0, -600 }, { 0, 0, 0, 0 }, 0x541B0002, 0x541B0001, 0, 5, 0, 443 },
-    { { { .word = 3072 }, 9484, 0, 3743 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 9484, 0, 3743 }, { 0, 0, 0, 0 }, 0x541B0004, 0x541B0003, 0x541B0008, 6, 0, 457 },
+DirectionWarpEntry D_shelter_b2_elevator_hall_801838E4[3] = {
+    { { { .word = 2048 }, -5465, 0, 1040 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -5465, 0, 1040 }, { 0, 0, 0, 0 }, 0x541B0006, 0x541B0005, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SHELTER_1C7 },
+    { { { .word = 3072 }, 9400, 0, -600 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 9400, 0, -600 }, { 0, 0, 0, 0 }, 0x541B0002, 0x541B0001, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SHELTER_1BB },
+    { { { .word = 3072 }, 9484, 0, 3743 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 9484, 0, 3743 }, { 0, 0, 0, 0 }, 0x541B0004, 0x541B0003, 0x541B0008, 6, DIRECTION_WARP_FLAG_NONE, 457 },
 };
 
 static SVECTOR _gShelterB2ElevatorHallCollision067F4Normals[7] = {

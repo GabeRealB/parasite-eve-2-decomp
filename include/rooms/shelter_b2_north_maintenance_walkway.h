@@ -19,7 +19,7 @@ extern u8* D_shelter_b2_north_maintenance_walkway_80183C5C[];
 
 extern ViewCount D_shelter_b2_north_maintenance_walkway_80183C60[];
 
-extern GpWarpRec D_shelter_b2_north_maintenance_walkway_80183C64[];
+extern DirectionWarpEntry D_shelter_b2_north_maintenance_walkway_80183C64[];
 
 extern WorldCollisionGrid D_shelter_b2_north_maintenance_walkway_8018401C;
 

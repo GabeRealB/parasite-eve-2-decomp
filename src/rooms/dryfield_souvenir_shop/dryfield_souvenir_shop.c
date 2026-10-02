@@ -95,8 +95,8 @@ WorldCoordRoomLighting D_dryfield_souvenir_shop_8017E0D4[1] = {
     { D_dryfield_souvenir_shop_8017F55C, NULL },
 };
 
-GpWarpRec D_dryfield_souvenir_shop_8017E0DC[1] = {
-    { { { .word = 0 }, 2000, 0, -3550 }, { 0, 0, 0, 0 }, { { .word = 512 }, 1381, 0, -2750 }, { 0, 0, 0, 0 }, 0x52060002, 0x52060001, 0, 2, 0, 469 },
+DirectionWarpEntry D_dryfield_souvenir_shop_8017E0DC[1] = {
+    { { { .word = 0 }, 2000, 0, -3550 }, { 0, 0, 0, 0 }, { { .word = 512 }, 1381, 0, -2750 }, { 0, 0, 0, 0 }, 0x52060002, 0x52060001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 469 },
 };
 
 static SVECTOR _gDryfieldSouvenirShopCollision0101CNormals[11] = {

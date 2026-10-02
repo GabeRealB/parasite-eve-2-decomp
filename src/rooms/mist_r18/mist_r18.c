@@ -909,8 +909,8 @@ WorldCoordRoomLighting D_mist_r18_80186624[1] = {
     { D_mist_r18_80186E44, NULL },
 };
 
-GpWarpRec D_mist_r18_8018662C[1] = {
-    { { { .word = 2048 }, -6000, 0, 3218 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -6000, 0, 3218 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
+DirectionWarpEntry D_mist_r18_8018662C[1] = {
+    { { { .word = 2048 }, -6000, 0, 3218 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -6000, 0, 3218 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gMistR18Collision09138Normals[1] = {

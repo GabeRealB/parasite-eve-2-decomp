@@ -94,9 +94,9 @@ u8* D_neo_ark_south_promenade_8017F704[1] = {
 
 ViewCount D_neo_ark_south_promenade_8017F708[1] = { 5 };
 
-GpWarpRec D_neo_ark_south_promenade_8017F70C[2] = {
-    { { { .word = 1024 }, 1137, 0, 2500 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 1137, 0, 2500 }, { 0, 0, 0, 0 }, 0x55130002, 0x55130001, 0, 5, 0, 0 },
-    { { { .word = 3072 }, 0x2A30, 0, 0x3200 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x2A30, 0, 0x3200 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
+DirectionWarpEntry D_neo_ark_south_promenade_8017F70C[2] = {
+    { { { .word = 1024 }, 1137, 0, 2500 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 1137, 0, 2500 }, { 0, 0, 0, 0 }, 0x55130002, 0x55130001, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 3072 }, 0x2A30, 0, 0x3200 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x2A30, 0, 0x3200 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gNeoArkSouthPromenadeCollision027CCNormals[13] = {

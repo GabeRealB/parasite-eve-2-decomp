@@ -21,7 +21,7 @@ extern WorldCoordRoomLighting D_dryfield_factory_80186F4C[];
 
 extern ViewCount D_dryfield_factory_80186F5C[];
 
-extern GpWarpRec D_dryfield_factory_80186F60[];
+extern DirectionWarpEntry D_dryfield_factory_80186F60[];
 
 extern ViewCamera D_dryfield_factory_80187C1C[];
 

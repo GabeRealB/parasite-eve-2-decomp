@@ -305,10 +305,10 @@ WorldCoordRoomLighting D_dryfield_underpass_8017EBE0[6] = {
     { D_dryfield_underpass_80180EBC, NULL },
 };
 
-GpWarpRec D_dryfield_underpass_8017EC10[3] = {
-    { { { .word = 0 }, 5303, -997, -0x2C94 }, { 0, 0, 0, 0 }, { { .word = 0 }, 5303, -997, -0x2C94 }, { 0, 0, 0, 0 }, 0x52260008, 0x52260007, 0, 6, 0, 463 },
-    { { { .word = 1024 }, 0x3D31, -1000, -4216 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 0x3D31, -1000, -4216 }, { 0, 0, 0, 0 }, 0x52260006, 0x52260005, 0, 2, 0, 462 },
-    { { { .word = 2048 }, 1212, -1000, -7543 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 1212, -1000, -7543 }, { 0, 0, 0, 0 }, 0x52260001, 0x52260001, 0, 7, 2, 0 },
+DirectionWarpEntry D_dryfield_underpass_8017EC10[3] = {
+    { { { .word = 0 }, 5303, -997, -0x2C94 }, { 0, 0, 0, 0 }, { { .word = 0 }, 5303, -997, -0x2C94 }, { 0, 0, 0, 0 }, 0x52260008, 0x52260007, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, 463 },
+    { { { .word = 1024 }, 0x3D31, -1000, -4216 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 0x3D31, -1000, -4216 }, { 0, 0, 0, 0 }, 0x52260006, 0x52260005, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 462 },
+    { { { .word = 2048 }, 1212, -1000, -7543 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 1212, -1000, -7543 }, { 0, 0, 0, 0 }, 0x52260001, 0x52260001, DIRECTION_WARP_SOUND_NONE, 7, DIRECTION_WARP_FLAG_FADE_DEPARTURE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gDryfieldUnderpassCollision01EC4Normals[12] = {

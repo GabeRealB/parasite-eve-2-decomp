@@ -608,9 +608,9 @@ WorldCoordRoomLighting D_acropolis_west_elevator_hall_8018503C[1] = {
     { D_acropolis_west_elevator_hall_801869E4, NULL },
 };
 
-GpWarpRec D_acropolis_west_elevator_hall_80185044[2] = {
-    { { { .word = 2048 }, -1234, -30, 1924 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -1234, -30, 1924 }, { 0, 0, 0, 0 }, 0, 0, 0, 5, 0, 0 },
-    { { { .word = 3072 }, 5384, -30, 1039 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 5384, -30, 1039 }, { 0, 0, 0, 0 }, 0x51110002, 0x51110001, 0, 4, 0, 503 },
+DirectionWarpEntry D_acropolis_west_elevator_hall_80185044[2] = {
+    { { { .word = 2048 }, -1234, -30, 1924 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -1234, -30, 1924 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 3072 }, 5384, -30, 1039 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 5384, -30, 1039 }, { 0, 0, 0, 0 }, 0x51110002, 0x51110001, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, 503 },
 };
 
 static SVECTOR _gAcropolisWestElevatorHallCollision07D3CNormals[7] = {

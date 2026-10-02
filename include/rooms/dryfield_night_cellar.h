@@ -22,7 +22,7 @@ extern u8* D_dryfield_night_cellar_8017DB28[];
 
 extern ViewCount D_dryfield_night_cellar_8017DB30[];
 
-extern GpWarpRec D_dryfield_night_cellar_8017DB34[];
+extern DirectionWarpEntry D_dryfield_night_cellar_8017DB34[];
 
 extern ViewCamera D_dryfield_night_cellar_8017DE84[];
 

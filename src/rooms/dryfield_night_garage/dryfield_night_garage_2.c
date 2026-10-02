@@ -270,9 +270,9 @@ u8* D_dryfield_night_garage_80183434[2] = {
 
 ViewCount D_dryfield_night_garage_8018343C[2] = { 15, 15 };
 
-GpWarpRec D_dryfield_night_garage_80183440[2] = {
-    { { { .word = 1024 }, 853, 0, 2741 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 853, 0, 2741 }, { 0, 0, 0, 0 }, 0x53180004, 0x53180003, 0, 2, 2, 473 },
-    { { { .word = 2048 }, 912, 0, 7143 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 912, 0, 7143 }, { 0, 0, 0, 0 }, 0x53180002, 0x53180001, 0x53180007, 6, 0, 472 },
+DirectionWarpEntry D_dryfield_night_garage_80183440[2] = {
+    { { { .word = 1024 }, 853, 0, 2741 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 853, 0, 2741 }, { 0, 0, 0, 0 }, 0x53180004, 0x53180003, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_FADE_DEPARTURE, 473 },
+    { { { .word = 2048 }, 912, 0, 7143 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 912, 0, 7143 }, { 0, 0, 0, 0 }, 0x53180002, 0x53180001, 0x53180007, 6, DIRECTION_WARP_FLAG_NONE, 472 },
 };
 
 static SVECTOR _gDryfieldNightGarageCollision06814Normals[40] = {

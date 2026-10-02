@@ -22,7 +22,7 @@ extern ViewCount D_acropolis_patio_80182ECC[];
 
 extern WorldCoordRoomLighting D_acropolis_patio_80182ED4[];
 
-extern GpWarpRec D_acropolis_patio_80182EEC[];
+extern DirectionWarpEntry D_acropolis_patio_80182EEC[];
 
 extern SpriteView D_acropolis_patio_80186360[];
 

@@ -22,7 +22,7 @@ extern u8* D_dryfield_night_driveway_8018061C[];
 
 extern ViewCount D_dryfield_night_driveway_80180624[];
 
-extern GpWarpRec D_dryfield_night_driveway_80180628[];
+extern DirectionWarpEntry D_dryfield_night_driveway_80180628[];
 
 extern ViewCamera D_dryfield_night_driveway_80180C30[];
 

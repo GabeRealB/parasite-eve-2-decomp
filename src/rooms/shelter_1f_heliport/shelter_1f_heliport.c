@@ -300,9 +300,9 @@ u8* D_shelter_1f_heliport_801812E8[1] = {
 
 ViewCount D_shelter_1f_heliport_801812EC[1] = { 12 };
 
-GpWarpRec D_shelter_1f_heliport_801812F0[2] = {
-    { { { .word = 3072 }, 9920, 0, 3450 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x2792, 0, 2880 }, { 0, 0, 0, 0 }, 0x55040002, 0x55040001, 0, 11, 0, 0 },
-    { { { .word = 1024 }, 440, 0, 4340 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x2792, 0, 2880 }, { 0, 0, 0, 0 }, 0, 0, 0, 3, 0, 0 },
+DirectionWarpEntry D_shelter_1f_heliport_801812F0[2] = {
+    { { { .word = 3072 }, 9920, 0, 3450 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x2792, 0, 2880 }, { 0, 0, 0, 0 }, 0x55040002, 0x55040001, DIRECTION_WARP_SOUND_NONE, 11, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 1024 }, 440, 0, 4340 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x2792, 0, 2880 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gShelter1fHeliportCollision043B4Normals[12] = {

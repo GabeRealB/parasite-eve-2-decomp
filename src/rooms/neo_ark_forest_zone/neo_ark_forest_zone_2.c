@@ -248,10 +248,10 @@ u8* D_neo_ark_forest_zone_801820BC[1] = {
 
 ViewCount D_neo_ark_forest_zone_801820C0[1] = { 6 };
 
-GpWarpRec D_neo_ark_forest_zone_801820C4[3] = {
-    { { { .word = 3072 }, 8995, 0, -128 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 8995, 0, -128 }, { 0, 0, 0, 0 }, 0x550B0002, 0x550B0001, 0, 2, 0, 434 },
-    { { { .word = 1024 }, -7000, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -7000, 0, 0 }, { 0, 0, 0, 0 }, 0x550B000C, 0x550B000B, 0, 5, 0, 0 },
-    { { { .word = 0 }, -3000, 0, -770 }, { 0, 0, 0, 0 }, { { .word = 0 }, -3000, 0, -770 }, { 0, 0, 0, 0 }, 0x550B0004, 0x550B0003, 0, 4, 0, 0 },
+DirectionWarpEntry D_neo_ark_forest_zone_801820C4[3] = {
+    { { { .word = 3072 }, 8995, 0, -128 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 8995, 0, -128 }, { 0, 0, 0, 0 }, 0x550B0002, 0x550B0001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_POWER_PLANT_1 },
+    { { { .word = 1024 }, -7000, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -7000, 0, 0 }, { 0, 0, 0, 0 }, 0x550B000C, 0x550B000B, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 0 }, -3000, 0, -770 }, { 0, 0, 0, 0 }, { { .word = 0 }, -3000, 0, -770 }, { 0, 0, 0, 0 }, 0x550B0004, 0x550B0003, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gNeoArkForestZoneCollision04CB4Normals[6] = {

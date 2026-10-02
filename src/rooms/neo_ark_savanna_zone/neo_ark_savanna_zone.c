@@ -106,9 +106,9 @@ u8* D_neo_ark_savanna_zone_8017F9FC[1] = {
 
 ViewCount D_neo_ark_savanna_zone_8017FA00[1] = { 4 };
 
-GpWarpRec D_neo_ark_savanna_zone_8017FA04[2] = {
-    { { { .word = 1024 }, 510, 0, 1500 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 510, 0, 1500 }, { 0, 0, 0, 0 }, 0x55120002, 0x55120001, 0, 4, 0, 0 },
-    { { { .word = 3072 }, 0x34BC, 0, 1500 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x34BC, 0, 1500 }, { 0, 0, 0, 0 }, 0x55120004, 0x55120003, 0, 2, 0, 0 },
+DirectionWarpEntry D_neo_ark_savanna_zone_8017FA04[2] = {
+    { { { .word = 1024 }, 510, 0, 1500 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 510, 0, 1500 }, { 0, 0, 0, 0 }, 0x55120002, 0x55120001, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 3072 }, 0x34BC, 0, 1500 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x34BC, 0, 1500 }, { 0, 0, 0, 0 }, 0x55120004, 0x55120003, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gNeoArkSavannaZoneCollision02610Normals[5] = {

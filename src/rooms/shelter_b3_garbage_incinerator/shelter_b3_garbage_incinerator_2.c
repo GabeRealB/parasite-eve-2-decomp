@@ -636,10 +636,10 @@ u8* D_shelter_b3_garbage_incinerator_801873F0[7] = {
 
 ViewCount D_shelter_b3_garbage_incinerator_8018740C[7] = { 40, 40, 40, 40, 40, 40, 40 };
 
-GpWarpRec D_shelter_b3_garbage_incinerator_8018741C[3] = {
-    { { { .word = 1024 }, 640, 0, -2656 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 640, 0, -2656 }, { 0, 0, 0, 0 }, 0, 0, 0, 8, 0, 0 },
-    { { { .word = 0 }, 0x36D5, 0, -0x6466 }, { 0, 0, 0, 0 }, { { .word = 0 }, 0x36D5, 0, -0x6466 }, { 0, 0, 0, 0 }, 0, 0x54280006, 0, 9, 0, 0 },
-    { { { .word = 1024 }, 522, 0, -714 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 522, 0, -714 }, { 0, 0, 0, 0 }, 0x54280002, 0x54280001, 0, 2, 0, 0 },
+DirectionWarpEntry D_shelter_b3_garbage_incinerator_8018741C[3] = {
+    { { { .word = 1024 }, 640, 0, -2656 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 640, 0, -2656 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 8, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 0 }, 0x36D5, 0, -0x6466 }, { 0, 0, 0, 0 }, { { .word = 0 }, 0x36D5, 0, -0x6466 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, 0x54280006, DIRECTION_WARP_SOUND_NONE, 9, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 1024 }, 522, 0, -714 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 522, 0, -714 }, { 0, 0, 0, 0 }, 0x54280002, 0x54280001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static s16 func_shelter_b3_garbage_incinerator_8017DF24(Task* arg0);

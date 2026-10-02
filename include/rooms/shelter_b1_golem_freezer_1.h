@@ -19,7 +19,7 @@ extern u8* D_shelter_b1_golem_freezer_1_8017E790[];
 
 extern ViewCount D_shelter_b1_golem_freezer_1_8017E794[];
 
-extern GpWarpRec D_shelter_b1_golem_freezer_1_8017E798[];
+extern DirectionWarpEntry D_shelter_b1_golem_freezer_1_8017E798[];
 
 extern WorldCollisionGrid D_shelter_b1_golem_freezer_1_8017E9C0;
 

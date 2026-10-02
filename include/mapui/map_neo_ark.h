@@ -60,7 +60,7 @@ extern u16 D_map_neo_ark_8017A9A0[];
 /// record this overlay holds itself.
 extern WorldCoordRoomLighting* D_map_neo_ark_8017A9FC[];
 
-extern GpWarpRec* D_map_neo_ark_8017AA80[];
+extern DirectionWarpEntry* D_map_neo_ark_8017AA80[];
 
 extern GpViewCountTbl D_map_neo_ark_8017AB88;
 

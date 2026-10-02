@@ -25,7 +25,7 @@ extern u8* D_dryfield_night_water_hole_80180A94[];
 
 extern ViewCount D_dryfield_night_water_hole_80180AA4[];
 
-extern GpWarpRec D_dryfield_night_water_hole_80180AAC[];
+extern DirectionWarpEntry D_dryfield_night_water_hole_80180AAC[];
 
 extern ViewCamera D_dryfield_night_water_hole_80180F74[];
 

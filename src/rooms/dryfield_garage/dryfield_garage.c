@@ -121,9 +121,9 @@ WorldCoordRoomLighting D_dryfield_garage_8017DCF4[1] = {
     { D_dryfield_garage_8017FD04, D_dryfield_garage_80180148 },
 };
 
-GpWarpRec D_dryfield_garage_8017DCFC[2] = {
-    { { { .word = 1024 }, 853, 0, 2741 }, { 0, 0, 0, 0 }, { { .word = 3584 }, 940, 0, 2200 }, { 0, 0, 0, 0 }, 0x52180004, 0x52180003, 0, 2, 2, 473 },
-    { { { .word = 2048 }, 950, 0, 7300 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 1100, 0, 7300 }, { 0, 0, 0, 0 }, 0x52180002, 0x52180001, 0x52180007, 6, 0, 472 },
+DirectionWarpEntry D_dryfield_garage_8017DCFC[2] = {
+    { { { .word = 1024 }, 853, 0, 2741 }, { 0, 0, 0, 0 }, { { .word = 3584 }, 940, 0, 2200 }, { 0, 0, 0, 0 }, 0x52180004, 0x52180003, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_FADE_DEPARTURE, 473 },
+    { { { .word = 2048 }, 950, 0, 7300 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 1100, 0, 7300 }, { 0, 0, 0, 0 }, 0x52180002, 0x52180001, 0x52180007, 6, DIRECTION_WARP_FLAG_NONE, 472 },
 };
 
 SVECTOR gDryfieldGarageCollision0108CNormals[39] = {

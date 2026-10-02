@@ -490,7 +490,7 @@ WorldCoordRoomLighting* D_map_dryfield_full_8017A774[38] = {
     D_dryfield_night_underpass_8017DDD0,
 };
 
-GpWarpRec* D_map_dryfield_full_8017A80C[38] = {
+DirectionWarpEntry* D_map_dryfield_full_8017A80C[38] = {
     D_dryfield_night_gas_station_80189E88,
     D_dryfield_night_main_street_80182310,
     D_dryfield_night_general_store_8017E84C,

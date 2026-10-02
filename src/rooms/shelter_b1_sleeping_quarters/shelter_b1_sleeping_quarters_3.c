@@ -15,6 +15,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/gameflag_ids.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
@@ -45,9 +46,9 @@ u8* D_shelter_b1_sleeping_quarters_80180658[1] = {
 
 ViewCount D_shelter_b1_sleeping_quarters_8018065C[1] = { 11 };
 
-GpWarpRec D_shelter_b1_sleeping_quarters_80180660[2] = {
-    { { { .word = 1024 }, 0, 0, -860 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 0, 0, -860 }, { 0, 0, 0, 0 }, 0x540E0004, 0x540E0003, 0, 2, 0, 0 },
-    { { { .word = 2048 }, 0x2E2C, 0, 5980 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 0x2E2C, 0, 5980 }, { 0, 0, 0, 0 }, 0x540E0002, 0x540E0001, 0, 9, 0, 435 },
+DirectionWarpEntry D_shelter_b1_sleeping_quarters_80180660[2] = {
+    { { { .word = 1024 }, 0, 0, -860 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 0, 0, -860 }, { 0, 0, 0, 0 }, 0x540E0004, 0x540E0003, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 2048 }, 0x2E2C, 0, 5980 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 0x2E2C, 0, 5980 }, { 0, 0, 0, 0 }, 0x540E0002, 0x540E0001, DIRECTION_WARP_SOUND_NONE, 9, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SHELTER_1B3 },
 };
 
 static SVECTOR _gShelterB1SleepingQuartersCollision03B14Normals[7] = {

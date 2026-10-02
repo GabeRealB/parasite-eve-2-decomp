@@ -69,9 +69,9 @@ u8* D_mine_tunnel_8017E16C[1] = {
 
 ViewCount D_mine_tunnel_8017E170[1] = { 5 };
 
-GpWarpRec D_mine_tunnel_8017E174[2] = {
-    { { { .word = 3072 }, 0x3CF0, 0, 1200 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x3CF0, 0, 1200 }, { 0, 0, 0, 0 }, 0x54040002, 0x54040001, 0, 2, 0, 0 },
-    { { { .word = 1024 }, 500, 0, 1630 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 500, 0, 1630 }, { 0, 0, 0, 0 }, 0x54040004, 0x54040003, 0, 5, 0, 0 },
+DirectionWarpEntry D_mine_tunnel_8017E174[2] = {
+    { { { .word = 3072 }, 0x3CF0, 0, 1200 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x3CF0, 0, 1200 }, { 0, 0, 0, 0 }, 0x54040002, 0x54040001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 1024 }, 500, 0, 1630 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 500, 0, 1630 }, { 0, 0, 0, 0 }, 0x54040004, 0x54040003, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gMineTunnelCollision012ACNormals[29] = {

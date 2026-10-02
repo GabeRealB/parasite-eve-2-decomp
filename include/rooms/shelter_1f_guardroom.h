@@ -19,7 +19,7 @@ extern u8* D_shelter_1f_guardroom_8017DA90[];
 
 extern ViewCount D_shelter_1f_guardroom_8017DA94[];
 
-extern GpWarpRec D_shelter_1f_guardroom_8017DA98[];
+extern DirectionWarpEntry D_shelter_1f_guardroom_8017DA98[];
 
 extern ViewCamera D_shelter_1f_guardroom_8017DC14[];
 

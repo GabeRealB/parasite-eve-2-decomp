@@ -24,7 +24,7 @@ extern u8* D_neo_ark_garden_80181424[];
 
 extern ViewCount D_neo_ark_garden_80181428[];
 
-extern GpWarpRec D_neo_ark_garden_8018142C[];
+extern DirectionWarpEntry D_neo_ark_garden_8018142C[];
 
 extern ViewCamera D_neo_ark_garden_801816E8[];
 

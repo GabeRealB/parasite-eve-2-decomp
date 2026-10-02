@@ -22,7 +22,7 @@ extern u8* D_neo_ark_pyramid_8017FC60[];
 
 extern ViewCount D_neo_ark_pyramid_8017FC68[];
 
-extern GpWarpRec D_neo_ark_pyramid_8017FC6C[];
+extern DirectionWarpEntry D_neo_ark_pyramid_8017FC6C[];
 
 extern ViewCamera D_neo_ark_pyramid_801802E8[];
 

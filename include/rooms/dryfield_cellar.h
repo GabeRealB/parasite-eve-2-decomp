@@ -22,7 +22,7 @@ extern ViewCount D_dryfield_cellar_8017DC0C[];
 
 extern WorldCoordRoomLighting D_dryfield_cellar_8017DC10[];
 
-extern GpWarpRec D_dryfield_cellar_8017DC20[];
+extern DirectionWarpEntry D_dryfield_cellar_8017DC20[];
 
 extern ViewCamera D_dryfield_cellar_8017DF78[];
 

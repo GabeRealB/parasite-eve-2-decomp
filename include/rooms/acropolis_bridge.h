@@ -24,7 +24,7 @@ extern ViewCount D_acropolis_bridge_80189A88[];
 
 extern WorldCoordRoomLighting D_acropolis_bridge_80189A8C[];
 
-extern GpWarpRec D_acropolis_bridge_80189AB4[];
+extern DirectionWarpEntry D_acropolis_bridge_80189AB4[];
 
 extern SpriteView D_acropolis_bridge_8018FFA4[];
 

@@ -180,10 +180,10 @@ u8* D_shelter_1f_vehicular_airlock_80182114[1] = {
 
 ViewCount D_shelter_1f_vehicular_airlock_80182118[1] = { 3 };
 
-GpWarpRec D_shelter_1f_vehicular_airlock_8018211C[3] = {
-    { { { .word = 2048 }, -5000, 0, 1570 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -4960, 0, 1380 }, { 0, 0, 0, 0 }, 0x55020002, 0x55020001, 0, 2, 0, 0 },
-    { { { .word = 0 }, -8900, 0, -1730 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -4960, 0, 1380 }, { 0, 0, 0, 0 }, 0x55020002, 0x55020001, 0, 3, 0, 0 },
-    { { { .word = 1024 }, -0x2710, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -0x2710, 0, 0 }, { 0, 0, 0, 0 }, 0x55020004, 0x55020003, 0, 3, 0, 428 },
+DirectionWarpEntry D_shelter_1f_vehicular_airlock_8018211C[3] = {
+    { { { .word = 2048 }, -5000, 0, 1570 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -4960, 0, 1380 }, { 0, 0, 0, 0 }, 0x55020002, 0x55020001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 0 }, -8900, 0, -1730 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -4960, 0, 1380 }, { 0, 0, 0, 0 }, 0x55020002, 0x55020001, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 1024 }, -0x2710, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -0x2710, 0, 0 }, { 0, 0, 0, 0 }, 0x55020004, 0x55020003, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, 428 },
 };
 
 static SVECTOR _gShelter1fVehicularAirlockCollision04E78Normals[10] = {

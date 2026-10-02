@@ -7605,11 +7605,11 @@ A 0x38-byte stack copy that the target does as three aligned 16-byte
 `lw`/`sw` chunks plus an 8-byte tail (`dest` in `$a1`, `src+0x30` in
 `$v0`) is `rec = table[i][j][k - 1]` of a 4-aligned type.
 
-`byte pad[0x36]; u16 field_36;` is the same size but only 2-aligned, so
+`byte pad[0x36]; u16 mapFlagId;` is the same size but only 2-aligned, so
 GCC emits `andi src, 3` plus an `lwl`/`lwr` fallback. A leading `s32`
 (or any 4-aligned member) is enough.
 
-`Gp_CommitWarp` is the example (`Gp_WarpTables` / `GpWarpRec`).
+`Gp_CommitWarp` is the example (`Gp_WarpTables` / `DirectionWarpEntry`).
 
 ## Barrier after scratch alloc so GTE setup cannot fill load-delay nops
 

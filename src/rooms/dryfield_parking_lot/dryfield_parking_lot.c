@@ -111,12 +111,12 @@ WorldCoordRoomLighting D_dryfield_parking_lot_8017DC5C[1] = {
     { D_dryfield_parking_lot_8017F9FC, NULL },
 };
 
-GpWarpRec D_dryfield_parking_lot_8017DC64[5] = {
-    { { { .word = 3072 }, 0x2995, 0, 3077 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x2995, 0, 3077 }, { 0, 0, 0, 0 }, 0x520F0002, 0x520F0001, 0, 7, 0, 486 },
-    { { { .word = 2048 }, 3200, 0, 3472 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 3200, 0, 3472 }, { 0, 0, 0, 0 }, 0x520F0008, 0x520F0007, 0x520F000A, 5, 0, 481 },
-    { { { .word = 0 }, -285, 0, 351 }, { 0, 0, 0, 0 }, { { .word = 0 }, -285, 0, 351 }, { 0, 0, 0, 0 }, 0x520F0006, 0x520F0005, 0x520F000A, 4, 0, 480 },
-    { { { .word = 2048 }, -6840, 0, -450 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -6840, 0, -450 }, { 0, 0, 0, 0 }, 0x520F0008, 0x520F0007, 0, 2, 0, 479 },
-    { { { .word = 0 }, 4771, -450, 1414 }, { 0, 0, 0, 0 }, { { .word = 0 }, 4491, 0, 2215 }, { 0, 0, 0, 0 }, 0, 0, 0, 6, 1, 0 },
+DirectionWarpEntry D_dryfield_parking_lot_8017DC64[5] = {
+    { { { .word = 3072 }, 0x2995, 0, 3077 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x2995, 0, 3077 }, { 0, 0, 0, 0 }, 0x520F0002, 0x520F0001, DIRECTION_WARP_SOUND_NONE, 7, DIRECTION_WARP_FLAG_NONE, 486 },
+    { { { .word = 2048 }, 3200, 0, 3472 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 3200, 0, 3472 }, { 0, 0, 0, 0 }, 0x520F0008, 0x520F0007, 0x520F000A, 5, DIRECTION_WARP_FLAG_NONE, 481 },
+    { { { .word = 0 }, -285, 0, 351 }, { 0, 0, 0, 0 }, { { .word = 0 }, -285, 0, 351 }, { 0, 0, 0, 0 }, 0x520F0006, 0x520F0005, 0x520F000A, 4, DIRECTION_WARP_FLAG_NONE, 480 },
+    { { { .word = 2048 }, -6840, 0, -450 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -6840, 0, -450 }, { 0, 0, 0, 0 }, 0x520F0008, 0x520F0007, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 479 },
+    { { { .word = 0 }, 4771, -450, 1414 }, { 0, 0, 0, 0 }, { { .word = 0 }, 4491, 0, 2215 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_SCRIPTED_PLAYER, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gDryfieldParkingLotCollision0131CNormals[18] = {

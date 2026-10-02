@@ -22,6 +22,7 @@
 #include "gameplay/view.h"
 
 #include "main/coord.h"
+#include "main/gameflag_ids.h"
 #include "main/session.h"
 #include "main/session_types.h"
 #include "main/task.h"
@@ -104,8 +105,8 @@ u8* D_shelter_b2_pod_bottom_80181D2C[1] = {
 
 ViewCount D_shelter_b2_pod_bottom_80181D30[1] = { 16 };
 
-GpWarpRec D_shelter_b2_pod_bottom_80181D34[1] = {
-    { { { .word = 1024 }, 1542, -1998, 7374 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 1542, -1998, 7374 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 449 },
+DirectionWarpEntry D_shelter_b2_pod_bottom_80181D34[1] = {
+    { { { .word = 1024 }, 1542, -1998, 7374 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 1542, -1998, 7374 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_POD_SERVICE_GANTRY },
 };
 
 static SVECTOR _gShelterB2PodBottomCollision0559CNormals[40] = {

@@ -57,8 +57,8 @@ WorldCoordRoomLighting D_shelter_r49_8017DA30[1] = {
     { D_shelter_r49_8017DD24, NULL },
 };
 
-GpWarpRec D_shelter_r49_8017DA38[1] = {
-    { { { .word = 1024 }, 0, -0x2710, 0 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 0, 0, 0 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
+DirectionWarpEntry D_shelter_r49_8017DA38[1] = {
+    { { { .word = 1024 }, 0, -0x2710, 0 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 0, 0, 0 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gShelterR49Collision004ECNormals[1] = {

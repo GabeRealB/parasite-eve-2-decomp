@@ -29,7 +29,7 @@ extern u8* D_shelter_b4_upper_sewer_80186590[];
 
 extern ViewCount D_shelter_b4_upper_sewer_80186594[];
 
-extern GpWarpRec D_shelter_b4_upper_sewer_80186598[];
+extern DirectionWarpEntry D_shelter_b4_upper_sewer_80186598[];
 
 extern WorldCollisionGrid D_shelter_b4_upper_sewer_80186EF8;
 

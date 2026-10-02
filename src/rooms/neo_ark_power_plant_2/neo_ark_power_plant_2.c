@@ -258,8 +258,8 @@ u8* D_neo_ark_power_plant_2_801806A8[1] = {
 
 ViewCount D_neo_ark_power_plant_2_801806AC[2] = { 9, 0 };
 
-GpWarpRec D_neo_ark_power_plant_2_801806B0[1] = {
-    { { { .word = 3072 }, 4000, -5000, -400 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4000, -5000, -400 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
+DirectionWarpEntry D_neo_ark_power_plant_2_801806B0[1] = {
+    { { { .word = 3072 }, 4000, -5000, -400 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4000, -5000, -400 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gNeoArkPowerPlant2Collision03804Normals[11] = {

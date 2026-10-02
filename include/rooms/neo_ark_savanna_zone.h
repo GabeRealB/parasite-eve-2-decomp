@@ -22,7 +22,7 @@ extern u8* D_neo_ark_savanna_zone_8017F9FC[];
 
 extern ViewCount D_neo_ark_savanna_zone_8017FA00[];
 
-extern GpWarpRec D_neo_ark_savanna_zone_8017FA04[];
+extern DirectionWarpEntry D_neo_ark_savanna_zone_8017FA04[];
 
 extern ViewCamera D_neo_ark_savanna_zone_8017FBF4[];
 

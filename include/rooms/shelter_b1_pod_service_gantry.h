@@ -20,7 +20,7 @@ extern u8* D_shelter_b1_pod_service_gantry_8017FB1C[];
 
 extern ViewCount D_shelter_b1_pod_service_gantry_8017FB20[];
 
-extern GpWarpRec D_shelter_b1_pod_service_gantry_8017FB24[];
+extern DirectionWarpEntry D_shelter_b1_pod_service_gantry_8017FB24[];
 
 extern WorldCollisionGrid D_shelter_b1_pod_service_gantry_801801C4;
 

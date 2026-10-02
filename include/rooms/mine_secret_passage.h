@@ -22,7 +22,7 @@ extern u8* D_mine_secret_passage_80180FB4[];
 
 extern ViewCount D_mine_secret_passage_80180FB8[];
 
-extern GpWarpRec D_mine_secret_passage_80180FBC[];
+extern DirectionWarpEntry D_mine_secret_passage_80180FBC[];
 
 extern ViewCamera D_mine_secret_passage_80181604[];
 

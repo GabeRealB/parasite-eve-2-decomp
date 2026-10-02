@@ -24,7 +24,7 @@ extern u8* D_neo_ark_observatory_801815DC[];
 
 extern ViewCount D_neo_ark_observatory_801815E4[];
 
-extern GpWarpRec D_neo_ark_observatory_801815E8[];
+extern DirectionWarpEntry D_neo_ark_observatory_801815E8[];
 
 extern ViewCamera D_neo_ark_observatory_80181FC8[];
 

@@ -176,9 +176,9 @@ WorldCoordRoomLighting D_dryfield_saloon_g_r_8017EDDC[2] = {
     { D_dryfield_saloon_g_r_80181AC8, NULL },
 };
 
-GpWarpRec D_dryfield_saloon_g_r_8017EDEC[2] = {
-    { { { .word = 0 }, 2386, 0, -4661 }, { 0, 0, 0, 0 }, { { .word = 0 }, 2386, 0, -4661 }, { 0, 0, 0, 0 }, 0x52120002, 0x52120001, 0, 2, 0, 479 },
-    { { { .word = 3072 }, 4665, 0, 4567 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4665, 0, 4567 }, { 0, 0, 0, 0 }, 0x52120004, 0x52120003, 0, 7, 0, 478 },
+DirectionWarpEntry D_dryfield_saloon_g_r_8017EDEC[2] = {
+    { { { .word = 0 }, 2386, 0, -4661 }, { 0, 0, 0, 0 }, { { .word = 0 }, 2386, 0, -4661 }, { 0, 0, 0, 0 }, 0x52120002, 0x52120001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 479 },
+    { { { .word = 3072 }, 4665, 0, 4567 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4665, 0, 4567 }, { 0, 0, 0, 0 }, 0x52120004, 0x52120003, DIRECTION_WARP_SOUND_NONE, 7, DIRECTION_WARP_FLAG_NONE, 478 },
 };
 
 static SVECTOR _gDryfieldSaloonGRCollision021C0Normals[9] = {

@@ -16,6 +16,7 @@
 
 #include "main/coord.h"
 #include "main/fs.h"
+#include "main/gameflag_ids.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/task_types.h"
@@ -68,8 +69,8 @@ u8* D_neo_ark_eve_elevator_8017D764[1] = {
 
 ViewCount D_neo_ark_eve_elevator_8017D768[1] = { 4 };
 
-GpWarpRec D_neo_ark_eve_elevator_8017D76C[1] = {
-    { { { .word = 3072 }, -960, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -960, 0, 0 }, { 0, 0, 0, 0 }, 0x55090002, 0x55090001, 0, 2, 0, 444 },
+DirectionWarpEntry D_neo_ark_eve_elevator_8017D76C[1] = {
+    { { { .word = 3072 }, -960, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -960, 0, 0 }, { 0, 0, 0, 0 }, 0x55090002, 0x55090001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_POWER_PLANT_2 },
 };
 
 static SVECTOR _gNeoArkEveElevatorCollision0046CNormals[14] = {

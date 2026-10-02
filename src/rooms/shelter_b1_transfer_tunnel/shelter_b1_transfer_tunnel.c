@@ -33,6 +33,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/gameflag_ids.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
@@ -128,9 +129,9 @@ u8* D_shelter_b1_transfer_tunnel_80182954[1] = {
 
 ViewCount D_shelter_b1_transfer_tunnel_80182958[1] = { 4 };
 
-GpWarpRec D_shelter_b1_transfer_tunnel_8018295C[2] = {
-    { { { .word = 3072 }, 6214, 0, 60 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 5570, 0, 20 }, { 0, 0, 0, 0 }, 0x54180002, 0x54180001, 0, 2, 0, 454 },
-    { { { .word = 1024 }, 971, 0, 18 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 971, 0, 18 }, { 0, 0, 0, 0 }, 0x54180004, 0x54180003, 0, 4, 0, 0 },
+DirectionWarpEntry D_shelter_b1_transfer_tunnel_8018295C[2] = {
+    { { { .word = 3072 }, 6214, 0, 60 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 5570, 0, 20 }, { 0, 0, 0, 0 }, 0x54180002, 0x54180001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SHELTER_R47_1C6 },
+    { { { .word = 1024 }, 971, 0, 18 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 971, 0, 18 }, { 0, 0, 0, 0 }, 0x54180004, 0x54180003, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gShelterB1TransferTunnelCollision0552CNormals[6] = {

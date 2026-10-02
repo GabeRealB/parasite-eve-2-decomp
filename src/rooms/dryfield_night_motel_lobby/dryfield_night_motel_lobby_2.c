@@ -166,8 +166,8 @@ u8* D_dryfield_night_motel_lobby_80182920[1] = {
 
 ViewCount D_dryfield_night_motel_lobby_80182924[1] = { 7 };
 
-GpWarpRec D_dryfield_night_motel_lobby_80182928[1] = {
-    { { { .word = 0 }, 2940, 0, 316 }, { 0, 0, 0, 0 }, { { .word = 0 }, 2940, 0, 316 }, { 0, 0, 0, 0 }, 0x53110002, 0x53110001, 0, 2, 0, 481 },
+DirectionWarpEntry D_dryfield_night_motel_lobby_80182928[1] = {
+    { { { .word = 0 }, 2940, 0, 316 }, { 0, 0, 0, 0 }, { { .word = 0 }, 2940, 0, 316 }, { 0, 0, 0, 0 }, 0x53110002, 0x53110001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 481 },
 };
 
 static SVECTOR _gDryfieldNightMotelLobbyCollision057F4Normals[9] = {

@@ -22,7 +22,7 @@ extern ViewCount D_dryfield_main_street_80181BD0[];
 
 extern WorldCoordRoomLighting D_dryfield_main_street_80181BD4[];
 
-extern GpWarpRec D_dryfield_main_street_80181BDC[];
+extern DirectionWarpEntry D_dryfield_main_street_80181BDC[];
 
 extern ViewCamera D_dryfield_main_street_80182CC0[];
 

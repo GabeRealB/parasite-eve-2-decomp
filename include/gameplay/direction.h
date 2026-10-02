@@ -24,25 +24,45 @@ enum {
     DIRECTION_MESSAGE_ROOM_ACTION = 0x13EF,
 };
 
-/// 0x38-byte record in tables pointed to by `Gp_WarpTables`. Indexed
-/// 1-based by `GameLocationKey.stage` / `area`, then
-/// `(Gp_DirNibble >> 4)`. `Gp_CommitWarp` copies one record onto the
-/// stack and writes `field_36` into `RoomEventMsg.flagId`. The transform words
-/// keep the record 4-aligned for its 56-byte assignment.
-/// func_800AA548 uses the transforms at 0x00 / 0x14 to spawn the player /
-/// companion, field_28 as a sound event, and field_34 as the initial view.
-typedef struct _GpWarpRec {
-    /* 0x00 */ ActorSpawnTransform player;
-    /* 0x10 */ byte                pad_10[4];
-    /* 0x14 */ ActorSpawnTransform companion;
-    /* 0x24 */ byte                pad_24[4];
-    /* 0x28 */ s32                 field_28;
-    /* 0x2C */ s32                 field_2C;
-    /* 0x30 */ s32                 field_30;
-    /* 0x34 */ u8                  field_34;
-    /* 0x35 */ u8                  field_35;
-    /* 0x36 */ u16                 field_36;
-} GpWarpRec;
-STATIC_ASSERT_SIZEOF(GpWarpRec, 0x38);
+/// Optional sound and map-marker sentinels in a `DirectionWarpEntry`.
+enum {
+    DIRECTION_WARP_SOUND_NONE    = 0,
+    DIRECTION_WARP_MAP_FLAG_NONE = 0,
+};
+
+/// Spawn and departure options stored in `DirectionWarpEntry.flags`.
+enum {
+    DIRECTION_WARP_FLAG_NONE            = 0,
+    DIRECTION_WARP_FLAG_SCRIPTED_PLAYER = 0x01, // Start the arriving player in scripted actor mode
+    DIRECTION_WARP_FLAG_FADE_DEPARTURE  = 0x02, // Fade out when the room query permits the transition
+};
+
+/// Placement and transition options for one warp endpoint in an area.
+///
+/// Stage directories borrow room-overlay entry arrays, indexed by 1-based
+/// stage, area and warp IDs minus one. Extents vary by area; there is no
+/// terminator. Lookups require a populated area, valid selectors and the owning
+/// room overlay still loaded. Consumers copy the complete 56-byte, four-byte-
+/// aligned entry by value; actor spawn calls borrow its transforms synchronously.
+///
+/// The current endpoint supplies departure facing and sounds; the destination
+/// endpoint supplies actor placements, a room-local view and arrival effects.
+/// Initial session setup suppresses the arrival sound and map-flag update.
+/// Later arrivals write 1 to the optional map-marker nibble; room event handlers
+/// may write 2 to show a marker. Both unexplained byte spans are retained by
+/// whole-entry copies; their role is unproven.
+typedef struct {
+    ActorSpawnTransform player;         // Arrival placement; yaw also prepares departure facing
+    byte                unknown_10[4];  // Stored bytes with no individual consumers; role unproven
+    ActorSpawnTransform companion;      // Companion's arrival placement
+    byte                unknown_24[4];  // Stored bytes with no individual consumers; role unproven
+    s32                 arrivalSound;   // Arrival sound event (DIRECTION_WARP_SOUND_NONE skips playback)
+    s32                 departureSound; // Departure sound event for room query result 1 (DIRECTION_WARP_SOUND_NONE skips playback)
+    s32                 blockedSound;   // Sound event for room query result 0, which stays in the area (DIRECTION_WARP_SOUND_NONE skips playback)
+    u8                  initialView;    // Default 1-based view slot in the destination room
+    u8                  flags;          // DIRECTION_WARP_FLAG_* option bits
+    u16                 mapFlagId;      // Optional map-marker nibble index (DIRECTION_WARP_MAP_FLAG_NONE skips updates, 1..503 valid)
+} DirectionWarpEntry;
+STATIC_ASSERT_SIZEOF(DirectionWarpEntry, 0x38);
 
 #endif // GAMEPLAY_DIRECTION_H

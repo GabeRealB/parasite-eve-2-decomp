@@ -782,7 +782,7 @@ WorldCoordRoomLighting* D_map_shelter_8017AEC4[49] = {
     D_shelter_r49_8017DA30,
 };
 
-GpWarpRec* D_map_shelter_8017AF88[49] = {
+DirectionWarpEntry* D_map_shelter_8017AF88[49] = {
     D_mine_mesa_80186558,
     D_mine_cavern_80189074,
     D_mine_tunnel_entrance_8017DB78,

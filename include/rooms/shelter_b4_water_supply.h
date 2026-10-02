@@ -21,7 +21,7 @@ extern u8* D_shelter_b4_water_supply_8018273C[];
 
 extern ViewCount D_shelter_b4_water_supply_80182740[];
 
-extern GpWarpRec D_shelter_b4_water_supply_80182744[];
+extern DirectionWarpEntry D_shelter_b4_water_supply_80182744[];
 
 extern WorldCollisionGrid D_shelter_b4_water_supply_80182E3C;
 

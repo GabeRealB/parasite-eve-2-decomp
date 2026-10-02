@@ -117,10 +117,10 @@ u8* D_mine_gorge_8017E7E4[2] = {
 
 ViewCount D_mine_gorge_8017E7EC[2] = { 11, 11 };
 
-GpWarpRec D_mine_gorge_8017E7F0[3] = {
-    { { { .word = 3072 }, 0x4588, 0, 1600 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x4588, 0, 1600 }, { 0, 0, 0, 0 }, 0x54050002, 0x54050001, 0, 2, 0, 0 },
-    { { { .word = 2048 }, 1731, 0, 3487 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 1731, 0, 3487 }, { 0, 0, 0, 0 }, 0x54050004, 0x54050003, 0, 6, 0, 0 },
-    { { { .word = 1024 }, 300, 0, 1500 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 300, 0, 1500 }, { 0, 0, 0, 0 }, 0x54050006, 0x54050005, 0x54050008, 6, 0, 448 },
+DirectionWarpEntry D_mine_gorge_8017E7F0[3] = {
+    { { { .word = 3072 }, 0x4588, 0, 1600 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x4588, 0, 1600 }, { 0, 0, 0, 0 }, 0x54050002, 0x54050001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 2048 }, 1731, 0, 3487 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 1731, 0, 3487 }, { 0, 0, 0, 0 }, 0x54050004, 0x54050003, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 1024 }, 300, 0, 1500 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 300, 0, 1500 }, { 0, 0, 0, 0 }, 0x54050006, 0x54050005, 0x54050008, 6, DIRECTION_WARP_FLAG_NONE, 448 },
 };
 
 static SVECTOR _gMineGorgeCollision01BC4Normals[30] = {

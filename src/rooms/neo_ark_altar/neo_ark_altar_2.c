@@ -201,8 +201,8 @@ u8* D_neo_ark_altar_8017F0EC[3] = {
 
 ViewCount D_neo_ark_altar_8017F0F8[2] = { 8, 8 };
 
-GpWarpRec D_neo_ark_altar_8017F0FC[1] = {
-    { { { .word = 1024 }, 7533, -3600, -7520 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -2944, 0, -2035 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 1, 0 },
+DirectionWarpEntry D_neo_ark_altar_8017F0FC[1] = {
+    { { { .word = 1024 }, 7533, -3600, -7520 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -2944, 0, -2035 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_SCRIPTED_PLAYER, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gNeoArkAltarCollision01FBCNormals[9] = {

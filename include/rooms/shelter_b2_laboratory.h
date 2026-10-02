@@ -27,7 +27,7 @@ extern u8* D_shelter_b2_laboratory_80182C08[];
 
 extern ViewCount D_shelter_b2_laboratory_80182C0C[];
 
-extern GpWarpRec D_shelter_b2_laboratory_80182C10[];
+extern DirectionWarpEntry D_shelter_b2_laboratory_80182C10[];
 
 extern WorldCollisionGrid D_shelter_b2_laboratory_8018355C;
 

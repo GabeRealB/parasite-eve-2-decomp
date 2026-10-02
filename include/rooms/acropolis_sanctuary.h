@@ -27,7 +27,7 @@ extern ViewCount D_acropolis_sanctuary_80182800[];
 
 extern WorldCoordRoomLighting D_acropolis_sanctuary_80182804[];
 
-extern GpWarpRec D_acropolis_sanctuary_8018280C[];
+extern DirectionWarpEntry D_acropolis_sanctuary_8018280C[];
 
 extern SpriteView D_acropolis_sanctuary_801860C8[];
 

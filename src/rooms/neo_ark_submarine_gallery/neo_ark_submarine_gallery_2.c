@@ -135,8 +135,8 @@ u8* D_neo_ark_submarine_gallery_80181A08[1] = {
 
 ViewCount D_neo_ark_submarine_gallery_80181A0C[1] = { 7 };
 
-GpWarpRec D_neo_ark_submarine_gallery_80181A10[1] = {
-    { { { .word = 2304 }, 1300, 5000, 3100 }, { 0, 0, 0, 0 }, { { .word = 2304 }, 1300, 5000, 3100 }, { 0, 0, 0, 0 }, 0x551E0001, 0x551E0001, 0, 2, 2, 0 },
+DirectionWarpEntry D_neo_ark_submarine_gallery_80181A10[1] = {
+    { { { .word = 2304 }, 1300, 5000, 3100 }, { 0, 0, 0, 0 }, { { .word = 2304 }, 1300, 5000, 3100 }, { 0, 0, 0, 0 }, 0x551E0001, 0x551E0001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_FADE_DEPARTURE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 // Height override read by the shared waypoint actor.

@@ -22,7 +22,7 @@ extern u8* D_shelter_b2_pod_access_tunnel_80183E24[];
 
 extern ViewCount D_shelter_b2_pod_access_tunnel_80183E2C[];
 
-extern GpWarpRec D_shelter_b2_pod_access_tunnel_80183E30[];
+extern DirectionWarpEntry D_shelter_b2_pod_access_tunnel_80183E30[];
 
 extern ViewCamera D_shelter_b2_pod_access_tunnel_801841D8[];
 

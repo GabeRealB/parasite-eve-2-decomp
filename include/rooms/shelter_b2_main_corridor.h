@@ -29,7 +29,7 @@ extern u8* D_shelter_b2_main_corridor_801830CC[];
 
 extern ViewCount D_shelter_b2_main_corridor_801830D0[];
 
-extern GpWarpRec D_shelter_b2_main_corridor_801830D4[];
+extern DirectionWarpEntry D_shelter_b2_main_corridor_801830D4[];
 
 extern WorldCollisionGrid D_shelter_b2_main_corridor_80184440;
 

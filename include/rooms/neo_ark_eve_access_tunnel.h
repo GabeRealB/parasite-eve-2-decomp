@@ -22,7 +22,7 @@ extern u8* D_neo_ark_eve_access_tunnel_8017EB90[];
 
 extern ViewCount D_neo_ark_eve_access_tunnel_8017EB94[];
 
-extern GpWarpRec D_neo_ark_eve_access_tunnel_8017EB98[];
+extern DirectionWarpEntry D_neo_ark_eve_access_tunnel_8017EB98[];
 
 extern ViewCamera D_neo_ark_eve_access_tunnel_8017F080[];
 

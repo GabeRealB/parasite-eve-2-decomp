@@ -22,7 +22,7 @@ extern u8* D_dryfield_night_general_store_8017E844[];
 
 extern ViewCount D_dryfield_night_general_store_8017E848[];
 
-extern GpWarpRec D_dryfield_night_general_store_8017E84C[];
+extern DirectionWarpEntry D_dryfield_night_general_store_8017E84C[];
 
 extern ViewCamera D_dryfield_night_general_store_8017F4A8[];
 

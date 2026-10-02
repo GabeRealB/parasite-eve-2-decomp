@@ -20,7 +20,7 @@ extern u8* D_shelter_b2_breeding_room_8018055C[];
 
 extern ViewCount D_shelter_b2_breeding_room_80180560[];
 
-extern GpWarpRec D_shelter_b2_breeding_room_80180564[];
+extern DirectionWarpEntry D_shelter_b2_breeding_room_80180564[];
 
 extern WorldCollisionGrid D_shelter_b2_breeding_room_801810F4;
 

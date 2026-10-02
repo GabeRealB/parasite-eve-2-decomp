@@ -26,7 +26,7 @@ extern u8* D_shelter_1f_vehicular_airlock_80182114[];
 
 extern ViewCount D_shelter_1f_vehicular_airlock_80182118[];
 
-extern GpWarpRec D_shelter_1f_vehicular_airlock_8018211C[];
+extern DirectionWarpEntry D_shelter_1f_vehicular_airlock_8018211C[];
 
 extern ViewCamera D_shelter_1f_vehicular_airlock_8018245C[];
 

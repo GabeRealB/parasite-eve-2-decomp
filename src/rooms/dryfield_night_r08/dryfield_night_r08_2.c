@@ -108,8 +108,8 @@ u8* D_dryfield_night_r08_80180694[1] = {
 
 ViewCount D_dryfield_night_r08_80180698[1] = { 9 };
 
-GpWarpRec D_dryfield_night_r08_8018069C[1] = {
-    { { { .word = 0 }, 0, 0, -0x4650 }, { 0, 0, 0, 0 }, { { .word = 0 }, 0, 0, -0x4650 }, { 0, 0, 0, 0 }, 0, 0, 0, 1, 0, 0 },
+DirectionWarpEntry D_dryfield_night_r08_8018069C[1] = {
+    { { { .word = 0 }, 0, 0, -0x4650 }, { 0, 0, 0, 0 }, { { .word = 0 }, 0, 0, -0x4650 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 1, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gDryfieldNightR08Collision03EB4Normals[34] = {

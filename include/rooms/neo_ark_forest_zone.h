@@ -22,7 +22,7 @@ extern u8* D_neo_ark_forest_zone_801820BC[];
 
 extern ViewCount D_neo_ark_forest_zone_801820C0[];
 
-extern GpWarpRec D_neo_ark_forest_zone_801820C4[];
+extern DirectionWarpEntry D_neo_ark_forest_zone_801820C4[];
 
 extern ViewCamera D_neo_ark_forest_zone_80182298[];
 

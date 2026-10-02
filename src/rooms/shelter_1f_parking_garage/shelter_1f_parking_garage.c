@@ -145,9 +145,9 @@ u8* D_shelter_1f_parking_garage_80180C7C[1] = {
 
 ViewCount D_shelter_1f_parking_garage_80180C80[1] = { 4 };
 
-GpWarpRec D_shelter_1f_parking_garage_80180C84[2] = {
-    { { { .word = 3072 }, 8564, 0, -1341 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 9100, 0, -1560 }, { 0, 0, 0, 0 }, 0x55010003, 0x55010004, 0, 2, 0, 436 },
-    { { { .word = 2048 }, 2000, 0, 1700 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 2000, 0, 1700 }, { 0, 0, 0, 0 }, 0x55010002, 0x55010001, 0, 4, 0, 0 },
+DirectionWarpEntry D_shelter_1f_parking_garage_80180C84[2] = {
+    { { { .word = 3072 }, 8564, 0, -1341 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 9100, 0, -1560 }, { 0, 0, 0, 0 }, 0x55010003, 0x55010004, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_UNDERGROUND_PARKING },
+    { { { .word = 2048 }, 2000, 0, 1700 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 2000, 0, 1700 }, { 0, 0, 0, 0 }, 0x55010002, 0x55010001, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gShelter1fParkingGarageCollision03A28Normals[11] = {

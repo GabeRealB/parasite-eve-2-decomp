@@ -37,7 +37,7 @@ extern u8* D_shelter_b3_garbage_incinerator_801873F0[];
 
 extern ViewCount D_shelter_b3_garbage_incinerator_8018740C[];
 
-extern GpWarpRec D_shelter_b3_garbage_incinerator_8018741C[];
+extern DirectionWarpEntry D_shelter_b3_garbage_incinerator_8018741C[];
 
 extern ViewCamera D_shelter_b3_garbage_incinerator_801883AC[];
 

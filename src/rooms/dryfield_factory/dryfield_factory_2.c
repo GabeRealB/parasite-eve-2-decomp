@@ -306,10 +306,10 @@ WorldCoordRoomLighting D_dryfield_factory_80186F4C[2] = {
 
 ViewCount D_dryfield_factory_80186F5C[2] = { 19, 19 };
 
-GpWarpRec D_dryfield_factory_80186F60[3] = {
-    { { { .word = 3072 }, 5178, 0, 1454 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 4530, 0, 1200 }, { 0, 0, 0, 0 }, 0x52170002, 0x52170001, 0, 2, 0, 474 },
-    { { { .word = 1024 }, 642, 0, 7493 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 4530, 0, 1200 }, { 0, 0, 0, 0 }, 0x52170004, 0x52170003, 0x52170005, 7, 0, 475 },
-    { { { .word = 3072 }, 5445, 0, 6866 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 5420, 0, 6000 }, { 0, 0, 0, 0 }, 0x52170014, 0x52170006, 0, 6, 2, 473 },
+DirectionWarpEntry D_dryfield_factory_80186F60[3] = {
+    { { { .word = 3072 }, 5178, 0, 1454 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 4530, 0, 1200 }, { 0, 0, 0, 0 }, 0x52170002, 0x52170001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 474 },
+    { { { .word = 1024 }, 642, 0, 7493 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 4530, 0, 1200 }, { 0, 0, 0, 0 }, 0x52170004, 0x52170003, 0x52170005, 7, DIRECTION_WARP_FLAG_NONE, 475 },
+    { { { .word = 3072 }, 5445, 0, 6866 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 5420, 0, 6000 }, { 0, 0, 0, 0 }, 0x52170014, 0x52170006, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_FADE_DEPARTURE, 473 },
 };
 
 #include "../../shared/factory_panel_idle.inc.c"

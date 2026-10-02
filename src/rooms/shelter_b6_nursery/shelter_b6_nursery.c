@@ -317,9 +317,9 @@ u8* D_shelter_b6_nursery_80185304[1] = {
 
 ViewCount D_shelter_b6_nursery_80185308[1] = { 19 };
 
-GpWarpRec D_shelter_b6_nursery_8018530C[2] = {
-    { { { .word = 1024 }, 680, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 680, 0, 0 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
-    { { { .word = 3072 }, 0x4CF4, 0, 3600 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x4CF4, 0, 3600 }, { 0, 0, 0, 0 }, 0, 0, 0, 6, 0, 0 },
+DirectionWarpEntry D_shelter_b6_nursery_8018530C[2] = {
+    { { { .word = 1024 }, 680, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 680, 0, 0 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 3072 }, 0x4CF4, 0, 3600 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x4CF4, 0, 3600 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gShelterB6NurseryCollision082E0Normals[14] = {

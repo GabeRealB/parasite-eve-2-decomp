@@ -93,11 +93,11 @@ WorldCoordRoomLighting D_acropolis_hallway_8017E270[1] = {
     { D_acropolis_hallway_8017EBC4, NULL },
 };
 
-GpWarpRec D_acropolis_hallway_8017E278[4] = {
-    { { { .word = 3072 }, 3012, -937, -698 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 3012, -937, -698 }, { 0, 0, 0, 0 }, 0x51070002, 0x51070001, 0, 4, 0, 497 },
-    { { { .word = 2048 }, 2271, -937, 970 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 2271, -937, 970 }, { 0, 0, 0, 0 }, 0x51070002, 0x51070001, 0, 4, 0, 498 },
-    { { { .word = 2048 }, -748, -937, 970 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -748, -937, 970 }, { 0, 0, 0, 0 }, 0x51070002, 0x51070001, 0, 3, 0, 499 },
-    { { { .word = 1024 }, -2963, -937, -623 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -2963, -937, -623 }, { 0, 0, 0, 0 }, 0x51070004, 0x51070003, 0, 2, 0, 500 },
+DirectionWarpEntry D_acropolis_hallway_8017E278[4] = {
+    { { { .word = 3072 }, 3012, -937, -698 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 3012, -937, -698 }, { 0, 0, 0, 0 }, 0x51070002, 0x51070001, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, 497 },
+    { { { .word = 2048 }, 2271, -937, 970 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 2271, -937, 970 }, { 0, 0, 0, 0 }, 0x51070002, 0x51070001, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, 498 },
+    { { { .word = 2048 }, -748, -937, 970 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -748, -937, 970 }, { 0, 0, 0, 0 }, 0x51070002, 0x51070001, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, 499 },
+    { { { .word = 1024 }, -2963, -937, -623 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -2963, -937, -623 }, { 0, 0, 0, 0 }, 0x51070004, 0x51070003, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 500 },
 };
 
 static SVECTOR _gAcropolisHallwayCollision01010Normals[10] = {

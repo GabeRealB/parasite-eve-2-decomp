@@ -35,6 +35,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/gameflag_ids.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
@@ -145,11 +146,11 @@ u8* D_shelter_b1_elevator_hall_80182E10[1] = {
 
 ViewCount D_shelter_b1_elevator_hall_80182E14[1] = { 9 };
 
-GpWarpRec D_shelter_b1_elevator_hall_80182E18[4] = {
-    { { { .word = 1024 }, -0x29CC, 0, 520 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -0x29CC, 0, 520 }, { 0, 0, 0, 0 }, 0x54090006, 0x54090007, 0, 2, 2, 0 },
-    { { { .word = 2048 }, -3864, 0, 1073 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -3864, 0, 1073 }, { 0, 0, 0, 0 }, 0x54090002, 0x54090001, 0x54090003, 3, 0, 461 },
-    { { { .word = 3072 }, 9950, 0, -290 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 9950, 0, -290 }, { 0, 0, 0, 0 }, 0x54090009, 0x54090008, 0, 8, 0, 443 },
-    { { { .word = 3072 }, 9950, 0, 3740 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 9950, 0, 3740 }, { 0, 0, 0, 0 }, 0x54090005, 0x54090004, 0, 7, 0, 0 },
+DirectionWarpEntry D_shelter_b1_elevator_hall_80182E18[4] = {
+    { { { .word = 1024 }, -0x29CC, 0, 520 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -0x29CC, 0, 520 }, { 0, 0, 0, 0 }, 0x54090006, 0x54090007, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_FADE_DEPARTURE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 2048 }, -3864, 0, 1073 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -3864, 0, 1073 }, { 0, 0, 0, 0 }, 0x54090002, 0x54090001, 0x54090003, 3, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SHELTER_1CD },
+    { { { .word = 3072 }, 9950, 0, -290 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 9950, 0, -290 }, { 0, 0, 0, 0 }, 0x54090009, 0x54090008, DIRECTION_WARP_SOUND_NONE, 8, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SHELTER_1BB },
+    { { { .word = 3072 }, 9950, 0, 3740 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 9950, 0, 3740 }, { 0, 0, 0, 0 }, 0x54090005, 0x54090004, DIRECTION_WARP_SOUND_NONE, 7, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gShelterB1ElevatorHallCollision05E54Normals[8] = {

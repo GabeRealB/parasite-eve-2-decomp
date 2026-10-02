@@ -19,7 +19,7 @@ extern u8* D_shelter_b3_incinerator_control_room_80181920[];
 
 extern ViewCount D_shelter_b3_incinerator_control_room_80181928[];
 
-extern GpWarpRec D_shelter_b3_incinerator_control_room_8018192C[];
+extern DirectionWarpEntry D_shelter_b3_incinerator_control_room_8018192C[];
 
 extern WorldCollisionGrid D_shelter_b3_incinerator_control_room_80181CC0;
 

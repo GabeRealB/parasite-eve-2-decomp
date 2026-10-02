@@ -22,7 +22,7 @@ extern u8* D_shelter_b1_storeroom_80184B68[];
 
 extern ViewCount D_shelter_b1_storeroom_80184B6C[];
 
-extern GpWarpRec D_shelter_b1_storeroom_80184B70[];
+extern DirectionWarpEntry D_shelter_b1_storeroom_80184B70[];
 
 extern ViewCamera D_shelter_b1_storeroom_801850FC[];
 

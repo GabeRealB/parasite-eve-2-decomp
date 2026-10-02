@@ -280,9 +280,9 @@ u8* D_shelter_b6_corridor_8017F8B4[1] = {
 
 ViewCount D_shelter_b6_corridor_8017F8B8[1] = { 5 };
 
-GpWarpRec D_shelter_b6_corridor_8017F8BC[2] = {
-    { { { .word = 1024 }, 430, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 430, 0, 0 }, { 0, 0, 0, 0 }, 0x55180001, 0, 0, 4, 0, 0 },
-    { { { .word = 3072 }, 8400, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 8400, 0, 0 }, { 0, 0, 0, 0 }, 0, 0x55180003, 0, 3, 0, 0 },
+DirectionWarpEntry D_shelter_b6_corridor_8017F8BC[2] = {
+    { { { .word = 1024 }, 430, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 430, 0, 0 }, { 0, 0, 0, 0 }, 0x55180001, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 3072 }, 8400, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 8400, 0, 0 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, 0x55180003, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gShelterB6CorridorCollision024D0Normals[6] = {

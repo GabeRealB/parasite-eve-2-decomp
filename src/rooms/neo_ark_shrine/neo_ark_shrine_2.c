@@ -291,10 +291,10 @@ u8* D_neo_ark_shrine_801827F0[6] = {
 
 ViewCount D_neo_ark_shrine_80182808[6] = { 18, 18, 18, 18, 18, 18 };
 
-GpWarpRec D_neo_ark_shrine_80182814[3] = {
-    { { { .word = 1024 }, 525, 0, 1200 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 525, 0, 1200 }, { 0, 0, 0, 0 }, 0x55150004, 0x55150003, 0x55150005, 9, 0, 440 },
-    { { { .word = 3072 }, 0x32C8, 0, 1530 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x32C8, 0, 1530 }, { 0, 0, 0, 0 }, 0x55150002, 0x55150001, 0, 2, 0, 0 },
-    { { { .word = 2048 }, 6950, 0, -3700 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 6950, 0, -3700 }, { 0, 0, 0, 0 }, 0, 0, 0, 10, 0, 0 },
+DirectionWarpEntry D_neo_ark_shrine_80182814[3] = {
+    { { { .word = 1024 }, 525, 0, 1200 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 525, 0, 1200 }, { 0, 0, 0, 0 }, 0x55150004, 0x55150003, 0x55150005, 9, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SHRINE },
+    { { { .word = 3072 }, 0x32C8, 0, 1530 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x32C8, 0, 1530 }, { 0, 0, 0, 0 }, 0x55150002, 0x55150001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 2048 }, 6950, 0, -3700 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 6950, 0, -3700 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 10, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gNeoArkShrineCollision0576CNormals[10] = {

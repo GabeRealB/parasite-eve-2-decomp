@@ -22,7 +22,7 @@ extern u8* D_dryfield_night_souvenir_shop_8017E0FC[];
 
 extern ViewCount D_dryfield_night_souvenir_shop_8017E100[];
 
-extern GpWarpRec D_dryfield_night_souvenir_shop_8017E104[];
+extern DirectionWarpEntry D_dryfield_night_souvenir_shop_8017E104[];
 
 extern ViewCamera D_dryfield_night_souvenir_shop_8017E628[];
 

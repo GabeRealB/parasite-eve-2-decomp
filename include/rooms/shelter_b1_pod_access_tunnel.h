@@ -19,7 +19,7 @@ extern u8* D_shelter_b1_pod_access_tunnel_80183A14[];
 
 extern ViewCount D_shelter_b1_pod_access_tunnel_80183A18[];
 
-extern GpWarpRec D_shelter_b1_pod_access_tunnel_80183A1C[];
+extern DirectionWarpEntry D_shelter_b1_pod_access_tunnel_80183A1C[];
 
 extern WorldCollisionGrid D_shelter_b1_pod_access_tunnel_80183C24;
 

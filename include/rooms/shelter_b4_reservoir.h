@@ -36,7 +36,7 @@ extern u8* D_shelter_b4_reservoir_80185118[];
 
 extern ViewCount D_shelter_b4_reservoir_80185120[];
 
-extern GpWarpRec D_shelter_b4_reservoir_80185124[];
+extern DirectionWarpEntry D_shelter_b4_reservoir_80185124[];
 
 extern ViewCamera D_shelter_b4_reservoir_80185ADC[];
 

@@ -1066,9 +1066,9 @@ u8* D_mine_cavern_80189060[3] = {
 
 ViewCount D_mine_cavern_8018906C[3] = { 25, 25, 25 };
 
-GpWarpRec D_mine_cavern_80189074[2] = {
-    { { { .word = 3072 }, 0x4524, 0, 2500 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x4524, 0, 2500 }, { 0, 0, 0, 0 }, 0x54020002, 0x54020001, 0, 2, 0, 448 },
-    { { { .word = 0 }, 2840, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 0 }, 2840, 0, 0 }, { 0, 0, 0, 0 }, 0x54020004, 0x54020003, 0x54020012, 23, 0, 441 },
+DirectionWarpEntry D_mine_cavern_80189074[2] = {
+    { { { .word = 3072 }, 0x4524, 0, 2500 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x4524, 0, 2500 }, { 0, 0, 0, 0 }, 0x54020002, 0x54020001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 448 },
+    { { { .word = 0 }, 2840, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 0 }, 2840, 0, 0 }, { 0, 0, 0, 0 }, 0x54020004, 0x54020003, 0x54020012, 23, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_MINE_CAVERN },
 };
 
 static SVECTOR _gMineCavernCollision0C25CNormals[30] = {

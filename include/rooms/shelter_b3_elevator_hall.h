@@ -19,7 +19,7 @@ extern u8* D_shelter_b3_elevator_hall_80182B54[];
 
 extern ViewCount D_shelter_b3_elevator_hall_80182B58[];
 
-extern GpWarpRec D_shelter_b3_elevator_hall_80182B5C[];
+extern DirectionWarpEntry D_shelter_b3_elevator_hall_80182B5C[];
 
 extern WorldCollisionGrid D_shelter_b3_elevator_hall_801834C8;
 

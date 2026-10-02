@@ -164,8 +164,8 @@ WorldCoordRoomLighting D_dryfield_r08_8017F708[2] = {
     { &D_dryfield_r08_80180B58, NULL },
 };
 
-GpWarpRec D_dryfield_r08_8017F718[1] = {
-    { { { .word = 1024 }, 3360, 0, 2976 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 3360, 0, 2976 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
+DirectionWarpEntry D_dryfield_r08_8017F718[1] = {
+    { { { .word = 1024 }, 3360, 0, 2976 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 3360, 0, 2976 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gDryfieldR08Collision025D8Normals[6] = {

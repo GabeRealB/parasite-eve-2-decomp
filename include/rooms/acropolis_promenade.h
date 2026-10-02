@@ -22,7 +22,7 @@ extern ViewCount D_acropolis_promenade_80181BC8[];
 
 extern WorldCoordRoomLighting D_acropolis_promenade_80181BCC[];
 
-extern GpWarpRec D_acropolis_promenade_80181BDC[];
+extern DirectionWarpEntry D_acropolis_promenade_80181BDC[];
 
 extern SpriteView D_acropolis_promenade_80185FB4[];
 

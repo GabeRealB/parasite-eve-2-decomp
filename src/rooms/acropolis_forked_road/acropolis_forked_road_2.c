@@ -42,6 +42,7 @@
 #include "main/display_types.h"
 #include "main/fs.h"
 #include "main/fs_types.h"
+#include "main/gameflag_ids.h"
 #include "main/gameflow.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
@@ -595,12 +596,12 @@ WorldCoordRoomLighting D_acropolis_forked_road_80182270[3] = {
     { D_acropolis_forked_road_80184E70, NULL },
 };
 
-GpWarpRec D_acropolis_forked_road_80182288[5] = {
-    { { { .word = 1920 }, -3791, 1, 833 }, { 0, 0, 0, 0 }, { { .word = 1920 }, -3791, 1, 833 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
-    { { { .word = 3072 }, -261, 1, 1205 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -261, 1, 1205 }, { 0, 0, 0, 0 }, 0, 0, 0, 8, 0, 494 },
-    { { { .word = 0 }, -5107, 1, -4030 }, { 0, 0, 0, 0 }, { { .word = 0 }, -5107, 1, -4030 }, { 0, 0, 0, 0 }, 0x51090003, 0x51090002, 0x51090006, 4, 0, 495 },
-    { { { .word = 1792 }, -4094, -470, 1325 }, { 0, 0, 0, 0 }, { { .word = 1792 }, -3764, -600, 797 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 1, 0 },
-    { { { .word = 3072 }, -261, 1, 1205 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -261, 1, 1205 }, { 0, 0, 0, 0 }, 0, 0, 0, 3, 0, 494 },
+DirectionWarpEntry D_acropolis_forked_road_80182288[5] = {
+    { { { .word = 1920 }, -3791, 1, 833 }, { 0, 0, 0, 0 }, { { .word = 1920 }, -3791, 1, 833 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 3072 }, -261, 1, 1205 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -261, 1, 1205 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 8, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SECURITY_ROOM },
+    { { { .word = 0 }, -5107, 1, -4030 }, { 0, 0, 0, 0 }, { { .word = 0 }, -5107, 1, -4030 }, { 0, 0, 0, 0 }, 0x51090003, 0x51090002, 0x51090006, 4, DIRECTION_WARP_FLAG_NONE, 495 },
+    { { { .word = 1792 }, -4094, -470, 1325 }, { 0, 0, 0, 0 }, { { .word = 1792 }, -3764, -600, 797 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_SCRIPTED_PLAYER, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 3072 }, -261, 1, 1205 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -261, 1, 1205 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SECURITY_ROOM },
 };
 
 static SVECTOR _gAcropolisForkedRoadCollision05630Normals[18] = {

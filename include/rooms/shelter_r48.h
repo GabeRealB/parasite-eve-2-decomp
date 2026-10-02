@@ -27,7 +27,7 @@ extern u8* D_shelter_r48_8018302C[];
 
 extern ViewCount D_shelter_r48_80183030[];
 
-extern GpWarpRec D_shelter_r48_80183034[];
+extern DirectionWarpEntry D_shelter_r48_80183034[];
 
 extern ViewCamera D_shelter_r48_80183F10[];
 

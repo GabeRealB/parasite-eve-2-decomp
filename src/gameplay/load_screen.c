@@ -57,6 +57,9 @@ DR_TPAGE Gp_FadeTpages[2];
 
 ActorSpawnTransform D_80114CB0;
 
+/// Map-marker state written on arrival after the initial session setup.
+enum { DIRECTION_WARP_MAP_FLAG_ARRIVED = 1 };
+
 static inline u16 _gpAdvanceAreaCd(void);
 
 static void Gp_InitStageVisit(GameLocationKey* arg0);
@@ -88,21 +91,21 @@ GpViewCountTbl*                    Gp_ViewCountTables[5] = { &D_map_akropolis_80
 ViewIndexTable*                    Gp_ViewIndexTables[5] = { &D_map_akropolis_8017AC68, &D_map_dryfield_8017ABFC, &D_map_dryfield_full_8017AB10, &D_map_shelter_8017B548, &D_map_neo_ark_8017ADB0 };
 GpSprtTbl*                         Gp_SprtTables[5]      = { &D_map_akropolis_8017AB1C, &D_map_dryfield_8017AC98, &D_map_dryfield_full_8017ABAC, &D_map_shelter_8017B610, &D_map_neo_ark_8017AE38 };
 GpRoomObjTbl*                      Gp_RoomObjTables[5]   = { &D_map_akropolis_8017AAC8, &D_map_dryfield_8017AAC4, &D_map_dryfield_full_8017A9D8, &D_map_shelter_8017B3B8, &D_map_neo_ark_8017ACA0 };
-GpWarpRec**                        Gp_WarpTables[5]      = { D_map_akropolis_8017AB20, D_map_dryfield_8017A8F8, D_map_dryfield_full_8017A80C, D_map_shelter_8017AF88, D_map_neo_ark_8017AA80 };
+DirectionWarpEntry**               Gp_WarpTables[5]      = { D_map_akropolis_8017AB20, D_map_dryfield_8017A8F8, D_map_dryfield_full_8017A80C, D_map_shelter_8017AF88, D_map_neo_ark_8017AA80 };
 WorldCoordRoomLighting**           Gp_RoomCoordTables[5] = { D_map_akropolis_8017AA28, D_map_dryfield_8017A860, D_map_dryfield_full_8017A774, D_map_shelter_8017AEC4, D_map_neo_ark_8017A9FC };
 WorldCollisionSurfaceProperties*** Gp_RoomParamTables[5] = { D_map_akropolis_8017AC6C, D_map_dryfield_8017AC9C, D_map_dryfield_full_8017ABB0, D_map_shelter_8017B614, D_map_neo_ark_8017AE3C };
 
 void func_800AA548(s32 arg0)
 {
-    GpWarpRec        rec;
-    GpActorFlags     flags;
-    TmdObject*       model;
-    GameLocationKey* sess;
-    GameSession*     session;
-    PlayerPos*       savedPos;
-    s32              stage;
-    s32              warp;
-    u32              playerId;
+    DirectionWarpEntry warpEntry;
+    GpActorFlags       flags;
+    TmdObject*         model;
+    GameLocationKey*   sess;
+    GameSession*       session;
+    PlayerPos*         savedPos;
+    s32                stage;
+    s32                warp;
+    u32                playerId;
 
     session                    = gGameSession;
     session->deathVariant      = 0;
@@ -126,14 +129,15 @@ void func_800AA548(s32 arg0)
         Game_SetPtrSlot(Task_Spawn(0, 0x16, 0, 0), GAME_TASK_SLOT_VIEW_GATE);
     }
     Game_SetPtrSlot(Task_Spawn(0, 0x10, 0, 0), 2);
-    stage = sess->stage;
-    warp  = sess->warp;
-    rec   = Gp_WarpTables[stage - 1][sess->area - 1][warp - 1];
+    // The destination endpoint supplies actor placements and the default view.
+    stage     = sess->stage;
+    warp      = sess->warp;
+    warpEntry = Gp_WarpTables[stage - 1][sess->area - 1][warp - 1];
     if (!(gDisplayState.control.word & DISPLAY_ROOM_START_KEEP_VIEW_MASK)) {
         if (((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_KEY(0xFF, 0xFF, 0xFF, 0)) == GAME_LOCATION_KEY(3, 24, 2, 0)) && (gGameSession->location.loc.warp == 2)) {
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = gGameSession->location.loc.view = 2;
         } else {
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = gGameSession->location.loc.view = rec.field_34;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = gGameSession->location.loc.view = warpEntry.initialView;
         }
     }
     gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]    = NULL;
@@ -148,15 +152,15 @@ void func_800AA548(s32 arg0)
         flags.field_0       = 0x23;
         flags.field_2       = 0;
         Gp_SpawnPlayer(&D_80114CB0, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId & 0xFFFF, 0, &flags);
-        Gp_SetupCompanionActor(&rec.companion, &flags.field_0);
+        Gp_SetupCompanionActor(&warpEntry.companion, &flags.field_0);
         gDisplayState.control.flags.pendingPlayerPos = 0;
     } else {
         playerId      = (u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId;
         flags.field_0 = 1;
-        flags.field_2 = rec.field_35 & 1;
-        Gp_SpawnPlayer(&rec.player, (s8)playerId & 0xFFFF, 0, &flags);
+        flags.field_2 = warpEntry.flags & DIRECTION_WARP_FLAG_SCRIPTED_PLAYER;
+        Gp_SpawnPlayer(&warpEntry.player, (s8)playerId & 0xFFFF, 0, &flags);
         flags.field_2 = 0;
-        Gp_SetupCompanionActor(&rec.companion, &flags.field_0);
+        Gp_SetupCompanionActor(&warpEntry.companion, &flags.field_0);
     }
     model                    = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd;
     model->texturePageOffset = 6;
@@ -176,15 +180,16 @@ void func_800AA548(s32 arg0)
     Gp_InitStateF0();
     Task_Spawn(1, 0xF, 0, 0);
     Task_Spawn(1, 0x10, 0, 0);
-    stage = sess->stage;
-    warp  = sess->warp;
-    rec   = Gp_WarpTables[stage - 1][sess->area - 1][warp - 1];
+    // Read arrival effects after the room's setup has run.
+    stage     = sess->stage;
+    warp      = sess->warp;
+    warpEntry = Gp_WarpTables[stage - 1][sess->area - 1][warp - 1];
     if (gGameSession->areaSetupDone != 0) {
-        if (rec.field_28 != 0) {
-            SndEvt_EnqueueType6(rec.field_28, 0, 0);
+        if (warpEntry.arrivalSound != DIRECTION_WARP_SOUND_NONE) {
+            SndEvt_EnqueueType6(warpEntry.arrivalSound, 0, 0);
         }
-        if (rec.field_36 != 0) {
-            GameFlag_SetNibble((s32)rec.field_36, 1);
+        if (warpEntry.mapFlagId != DIRECTION_WARP_MAP_FLAG_NONE) {
+            GameFlag_SetNibble(warpEntry.mapFlagId, DIRECTION_WARP_MAP_FLAG_ARRIVED);
         }
     } else {
         gGameSession->areaSetupDone = 1;

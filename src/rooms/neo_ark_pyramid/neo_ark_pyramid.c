@@ -124,9 +124,9 @@ u8* D_neo_ark_pyramid_8017FC60[2] = {
 
 ViewCount D_neo_ark_pyramid_8017FC68[2] = { 8, 8 };
 
-GpWarpRec D_neo_ark_pyramid_8017FC6C[2] = {
-    { { { .word = 2048 }, -2944, 0, -2035 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -2944, 0, -2035 }, { 0, 0, 0, 0 }, 0x55200002, 0x55200001, 0, 2, 0, 0 },
-    { { { .word = 3072 }, 3200, -650, -7490 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4200, -1160, -7500 }, { 0, 0, 0, 0 }, 0, 0, 0, 4, 1, 0 },
+DirectionWarpEntry D_neo_ark_pyramid_8017FC6C[2] = {
+    { { { .word = 2048 }, -2944, 0, -2035 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -2944, 0, -2035 }, { 0, 0, 0, 0 }, 0x55200002, 0x55200001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 3072 }, 3200, -650, -7490 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4200, -1160, -7500 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_SCRIPTED_PLAYER, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gNeoArkPyramidCollision02D04Normals[13] = {

@@ -20,7 +20,7 @@ extern u8* D_shelter_b6_training_room_80184418[];
 
 extern ViewCount D_shelter_b6_training_room_8018441C[];
 
-extern GpWarpRec D_shelter_b6_training_room_80184420[];
+extern DirectionWarpEntry D_shelter_b6_training_room_80184420[];
 
 extern WorldCollisionGrid D_shelter_b6_training_room_80184734;
 

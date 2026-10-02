@@ -22,7 +22,7 @@ extern u8* D_mine_cavern_80189060[];
 
 extern ViewCount D_mine_cavern_8018906C[];
 
-extern GpWarpRec D_mine_cavern_80189074[];
+extern DirectionWarpEntry D_mine_cavern_80189074[];
 
 extern ViewCamera D_mine_cavern_80189840[];
 

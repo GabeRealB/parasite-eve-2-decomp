@@ -21,7 +21,7 @@ extern u8* D_shelter_b1_armory_80182580[];
 
 extern ViewCount D_shelter_b1_armory_80182584[];
 
-extern GpWarpRec D_shelter_b1_armory_80182588[];
+extern DirectionWarpEntry D_shelter_b1_armory_80182588[];
 
 extern WorldCollisionGrid D_shelter_b1_armory_80182ED0;
 

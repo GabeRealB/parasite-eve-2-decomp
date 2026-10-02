@@ -349,9 +349,9 @@ u8* D_shelter_b2_laboratory_80182C08[1] = {
 
 ViewCount D_shelter_b2_laboratory_80182C0C[1] = { 15 };
 
-GpWarpRec D_shelter_b2_laboratory_80182C10[2] = {
-    { { { .word = 1024 }, 100, 0, 1800 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 100, 0, 1800 }, { 0, 0, 0, 0 }, 0x541F0004, 0x541F0003, 0, 2, 0, 451 },
-    { { { .word = 2048 }, 6350, 0, 2900 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 6350, 0, 2900 }, { 0, 0, 0, 0 }, 0x541F0002, 0x541F0001, 0, 4, 0, 0 },
+DirectionWarpEntry D_shelter_b2_laboratory_80182C10[2] = {
+    { { { .word = 1024 }, 100, 0, 1800 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 100, 0, 1800 }, { 0, 0, 0, 0 }, 0x541F0004, 0x541F0003, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 451 },
+    { { { .word = 2048 }, 6350, 0, 2900 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 6350, 0, 2900 }, { 0, 0, 0, 0 }, 0x541F0002, 0x541F0001, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gShelterB2LaboratoryCollision05F9CNormals[23] = {

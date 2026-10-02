@@ -33,7 +33,7 @@ extern ViewCount D_acropolis_helicopter_landing_pad_80184F40[];
 
 extern WorldCoordRoomLighting D_acropolis_helicopter_landing_pad_80184F44[];
 
-extern GpWarpRec D_acropolis_helicopter_landing_pad_80184F4C[];
+extern DirectionWarpEntry D_acropolis_helicopter_landing_pad_80184F4C[];
 
 extern SpriteView D_acropolis_helicopter_landing_pad_80187824[];
 

@@ -22,7 +22,7 @@ extern u8* D_shelter_1f_airlock_8017E5B4[];
 
 extern ViewCount D_shelter_1f_airlock_8017E5B8[];
 
-extern GpWarpRec D_shelter_1f_airlock_8017E5BC[];
+extern DirectionWarpEntry D_shelter_1f_airlock_8017E5BC[];
 
 extern ViewCamera D_shelter_1f_airlock_8017E85C[];
 

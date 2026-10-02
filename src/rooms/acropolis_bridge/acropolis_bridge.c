@@ -818,9 +818,9 @@ u8 D_acropolis_bridge_80189A9C[24] = {
     2,
 };
 
-GpWarpRec D_acropolis_bridge_80189AB4[2] = {
-    { { { .word = 3072 }, -3643, 2, -2161 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -3643, 2, -2161 }, { 0, 0, 0, 0 }, 0x510E0008, 0x510E0007, 0, 6, 0, 491 },
-    { { { .word = 1024 }, -0x3D4E, 0, -2098 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -0x3D4E, 0, -2098 }, { 0, 0, 0, 0 }, 0x510E0006, 0x510E0005, 0, 2, 0, 490 },
+DirectionWarpEntry D_acropolis_bridge_80189AB4[2] = {
+    { { { .word = 3072 }, -3643, 2, -2161 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -3643, 2, -2161 }, { 0, 0, 0, 0 }, 0x510E0008, 0x510E0007, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, 491 },
+    { { { .word = 1024 }, -0x3D4E, 0, -2098 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -0x3D4E, 0, -2098 }, { 0, 0, 0, 0 }, 0x510E0006, 0x510E0005, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 490 },
 };
 
 static SVECTOR _gAcropolisBridgeCollision0D2DCNormals[19] = {

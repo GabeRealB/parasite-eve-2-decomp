@@ -41,7 +41,7 @@ extern ViewCount D_acropolis_cafeteria_801875BC[];
 
 extern WorldCoordRoomLighting D_acropolis_cafeteria_801875C4[];
 
-extern GpWarpRec D_acropolis_cafeteria_801875E4[];
+extern DirectionWarpEntry D_acropolis_cafeteria_801875E4[];
 
 extern SpriteView D_acropolis_cafeteria_8018C48C[];
 

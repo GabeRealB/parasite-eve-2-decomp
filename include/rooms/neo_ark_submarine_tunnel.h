@@ -34,7 +34,7 @@ extern u8* D_neo_ark_submarine_tunnel_80181E18[];
 
 extern ViewCount D_neo_ark_submarine_tunnel_80181E1C[];
 
-extern GpWarpRec D_neo_ark_submarine_tunnel_80181E20[];
+extern DirectionWarpEntry D_neo_ark_submarine_tunnel_80181E20[];
 
 extern ViewCamera D_neo_ark_submarine_tunnel_80182500[];
 

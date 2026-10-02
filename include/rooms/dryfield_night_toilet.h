@@ -22,7 +22,7 @@ extern u8* D_dryfield_night_toilet_8017DAC8[];
 
 extern ViewCount D_dryfield_night_toilet_8017DACC[];
 
-extern GpWarpRec D_dryfield_night_toilet_8017DAD0[];
+extern DirectionWarpEntry D_dryfield_night_toilet_8017DAD0[];
 
 extern ViewCamera D_dryfield_night_toilet_8017DDAC[];
 

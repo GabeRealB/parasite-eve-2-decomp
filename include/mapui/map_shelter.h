@@ -57,7 +57,7 @@ extern u16 D_map_shelter_8017AD88[];
 /// coordinate and object records are this overlay's own.
 extern WorldCoordRoomLighting* D_map_shelter_8017AEC4[];
 
-extern GpWarpRec* D_map_shelter_8017AF88[];
+extern DirectionWarpEntry* D_map_shelter_8017AF88[];
 
 extern GpViewCountTbl D_map_shelter_8017B110;
 

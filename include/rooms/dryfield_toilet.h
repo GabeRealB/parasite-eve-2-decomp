@@ -28,7 +28,7 @@ extern ViewCount D_dryfield_toilet_80181140[];
 
 extern WorldCoordRoomLighting D_dryfield_toilet_80181144[];
 
-extern GpWarpRec D_dryfield_toilet_8018114C[];
+extern DirectionWarpEntry D_dryfield_toilet_8018114C[];
 
 extern ViewCamera D_dryfield_toilet_80181428[];
 

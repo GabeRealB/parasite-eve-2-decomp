@@ -65,7 +65,7 @@ extern GpRoomObjTbl D_map_akropolis_8017AAC8;
 
 extern GpSprtTbl D_map_akropolis_8017AB1C;
 
-extern GpWarpRec* D_map_akropolis_8017AB20[];
+extern DirectionWarpEntry* D_map_akropolis_8017AB20[];
 
 extern GpViewCountTbl D_map_akropolis_8017ABC0;
 

@@ -15,7 +15,7 @@ extern u8* D_dryfield_r04_8017D5D4[];
 
 extern ViewCount D_dryfield_r04_8017D5D8[];
 
-extern GpWarpRec D_dryfield_r04_8017D5E4[];
+extern DirectionWarpEntry D_dryfield_r04_8017D5E4[];
 
 extern ViewCamera D_dryfield_r04_8017E218[];
 

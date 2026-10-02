@@ -19,7 +19,7 @@ extern u8* D_shelter_b2_operating_room_80180BC8[];
 
 extern ViewCount D_shelter_b2_operating_room_80180BCC[];
 
-extern GpWarpRec D_shelter_b2_operating_room_80180BD0[];
+extern DirectionWarpEntry D_shelter_b2_operating_room_80180BD0[];
 
 extern WorldCollisionGrid D_shelter_b2_operating_room_80181364;
 

@@ -33,7 +33,7 @@ extern u8* D_neo_ark_bridge_80181F80[];
 
 extern ViewCount D_neo_ark_bridge_80181F84[];
 
-extern GpWarpRec D_neo_ark_bridge_80181F88[];
+extern DirectionWarpEntry D_neo_ark_bridge_80181F88[];
 
 extern WorldCollisionGrid D_neo_ark_bridge_80182814;
 

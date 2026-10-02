@@ -22,7 +22,7 @@ extern ViewCount D_dryfield_g_r_kitchen_8017EC3C[];
 
 extern WorldCoordRoomLighting D_dryfield_g_r_kitchen_8017EC40[];
 
-extern GpWarpRec D_dryfield_g_r_kitchen_8017EC48[];
+extern DirectionWarpEntry D_dryfield_g_r_kitchen_8017EC48[];
 
 extern ViewCamera D_dryfield_g_r_kitchen_8017EEE4[];
 

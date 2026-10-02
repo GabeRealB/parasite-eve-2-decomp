@@ -90,8 +90,8 @@ u8* D_dryfield_night_toilet_8017DAC8[1] = {
 
 ViewCount D_dryfield_night_toilet_8017DACC[1] = { 9 };
 
-GpWarpRec D_dryfield_night_toilet_8017DAD0[1] = {
-    { { { .word = 2048 }, -1660, 0, 1653 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -1660, 0, 1653 }, { 0, 0, 0, 0 }, 0x53100002, 0x53100001, 0, 2, 0, 480 },
+DirectionWarpEntry D_dryfield_night_toilet_8017DAD0[1] = {
+    { { { .word = 2048 }, -1660, 0, 1653 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -1660, 0, 1653 }, { 0, 0, 0, 0 }, 0x53100002, 0x53100001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 480 },
 };
 
 static SVECTOR _gDryfieldNightToiletCollision007C8Normals[7] = {

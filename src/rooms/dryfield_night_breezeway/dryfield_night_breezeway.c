@@ -105,9 +105,9 @@ u8* D_dryfield_night_breezeway_8017E6FC[1] = {
 
 ViewCount D_dryfield_night_breezeway_8017E700[1] = { 6 };
 
-GpWarpRec D_dryfield_night_breezeway_8017E704[2] = {
-    { { { .word = 1024 }, 6656, 1, 1568 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 7940, 1, 1590 }, { 0, 0, 0, 0 }, 0x53160002, 0x53160001, 0, 2, 0, 476 },
-    { { { .word = 3072 }, 0x44F3, 1, 2075 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x44F3, 1, 2075 }, { 0, 0, 0, 0 }, 0x53160004, 0x53160003, 0x53160005, 4, 0, 475 },
+DirectionWarpEntry D_dryfield_night_breezeway_8017E704[2] = {
+    { { { .word = 1024 }, 6656, 1, 1568 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 7940, 1, 1590 }, { 0, 0, 0, 0 }, 0x53160002, 0x53160001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 476 },
+    { { { .word = 3072 }, 0x44F3, 1, 2075 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x44F3, 1, 2075 }, { 0, 0, 0, 0 }, 0x53160004, 0x53160003, 0x53160005, 4, DIRECTION_WARP_FLAG_NONE, 475 },
 };
 
 static SVECTOR _gDryfieldNightBreezewayCollision01604Normals[16] = {

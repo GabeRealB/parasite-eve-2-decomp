@@ -22,7 +22,7 @@ extern ViewCount D_mist_r18_80186620[];
 
 extern WorldCoordRoomLighting D_mist_r18_80186624[];
 
-extern GpWarpRec D_mist_r18_8018662C[];
+extern DirectionWarpEntry D_mist_r18_8018662C[];
 
 extern ViewCamera D_mist_r18_8018671C[];
 

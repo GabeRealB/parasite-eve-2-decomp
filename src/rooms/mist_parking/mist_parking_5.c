@@ -175,11 +175,11 @@ WorldCoordRoomLighting D_mist_parking_801915C8[4] = {
     { D_mist_parking_80195178, D_mist_parking_8019521C },
 };
 
-GpWarpRec D_mist_parking_801915E8[4] = {
-    { { { .word = 3072 }, 0x2EEC, 0, -5053 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x2EEC, 0, -5053 }, { 0, 0, 0, 0 }, 0x51130015, 0x51130014, 0, 2, 0, 0 },
-    { { { .word = 0 }, 8448, 0, -3014 }, { 0, 0, 0, 0 }, { { .word = 0 }, 8448, 0, -3014 }, { 0, 0, 0, 0 }, 0, 0, 0, 3, 0, 0 },
-    { { { .word = 3072 }, 0x2EEC, 0, -5053 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x2EEC, 0, -5053 }, { 0, 0, 0, 0 }, 0, 0, 0, 10, 0, 0 },
-    { { { .word = 2048 }, 5022, 0, -5260 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 5022, 0, -5260 }, { 0, 0, 0, 0 }, 0, 0, 0, 5, 0, 0 },
+DirectionWarpEntry D_mist_parking_801915E8[4] = {
+    { { { .word = 3072 }, 0x2EEC, 0, -5053 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x2EEC, 0, -5053 }, { 0, 0, 0, 0 }, 0x51130015, 0x51130014, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 0 }, 8448, 0, -3014 }, { 0, 0, 0, 0 }, { { .word = 0 }, 8448, 0, -3014 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 3072 }, 0x2EEC, 0, -5053 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x2EEC, 0, -5053 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 10, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 2048 }, 5022, 0, -5260 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 5022, 0, -5260 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gMistParkingCollision14C44Normals[13] = {

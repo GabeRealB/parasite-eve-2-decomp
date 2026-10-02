@@ -75,9 +75,9 @@ extern ViewIndexTable* Gp_ViewIndexTables[];
 extern GpRoomObjTbl* Gp_RoomObjTables[];
 
 /// Per-stage pointer table. Index is `GameSession.location.loc.stage - 1`. Each
-/// entry is an array of `GpWarpRec*`, indexed 1-based by
+/// entry is an array of `DirectionWarpEntry*`, indexed 1-based by
 /// `GameSession.location.loc.area` / `GameLocationKey.area`.
-extern GpWarpRec** Gp_WarpTables[];
+extern DirectionWarpEntry** Gp_WarpTables[];
 
 void func_800AA548(s32 arg0);
 

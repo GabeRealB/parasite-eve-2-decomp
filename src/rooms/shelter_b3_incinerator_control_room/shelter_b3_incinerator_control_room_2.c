@@ -27,6 +27,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/gameflag_ids.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/task_types.h"
@@ -82,11 +83,11 @@ u8* D_shelter_b3_incinerator_control_room_80181920[2] = {
 
 ViewCount D_shelter_b3_incinerator_control_room_80181928[2] = { 8, 8 };
 
-GpWarpRec D_shelter_b3_incinerator_control_room_8018192C[4] = {
-    { { { .word = 2048 }, -5333, 0, 2984 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -5333, 0, 2984 }, { 0, 0, 0, 0 }, 0x54290008, 0, 0, 5, 0, 0 },
-    { { { .word = 3072 }, 820, 0, -2540 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 820, 0, -3100 }, { 0, 0, 0, 0 }, 0, 0, 0, 3, 0, 447 },
-    { { { .word = 0 }, -6048, 0, -3020 }, { 0, 0, 0, 0 }, { { .word = 256 }, -5200, 0, -3020 }, { 0, 0, 0, 0 }, 0x54290006, 0x54290005, 0x54290007, 4, 0, 459 },
-    { { { .word = 2048 }, -5333, 0, 2984 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -5333, 0, 2984 }, { 0, 0, 0, 0 }, 0, 0, 0, 6, 0, 0 },
+DirectionWarpEntry D_shelter_b3_incinerator_control_room_8018192C[4] = {
+    { { { .word = 2048 }, -5333, 0, 2984 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -5333, 0, 2984 }, { 0, 0, 0, 0 }, 0x54290008, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 3072 }, 820, 0, -2540 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 820, 0, -3100 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_RESERVOIR_1BF },
+    { { { .word = 0 }, -6048, 0, -3020 }, { 0, 0, 0, 0 }, { { .word = 256 }, -5200, 0, -3020 }, { 0, 0, 0, 0 }, 0x54290006, 0x54290005, 0x54290007, 4, DIRECTION_WARP_FLAG_NONE, 459 },
+    { { { .word = 2048 }, -5333, 0, 2984 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -5333, 0, 2984 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gShelterB3IncineratorControlRoomCollision04700Normals[10] = {

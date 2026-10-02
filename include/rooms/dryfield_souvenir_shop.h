@@ -22,7 +22,7 @@ extern ViewCount D_dryfield_souvenir_shop_8017E0D0[];
 
 extern WorldCoordRoomLighting D_dryfield_souvenir_shop_8017E0D4[];
 
-extern GpWarpRec D_dryfield_souvenir_shop_8017E0DC[];
+extern DirectionWarpEntry D_dryfield_souvenir_shop_8017E0DC[];
 
 extern ViewCamera D_dryfield_souvenir_shop_8017E600[];
 

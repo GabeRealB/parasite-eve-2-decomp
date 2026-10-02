@@ -34,7 +34,7 @@ extern u8* D_dryfield_night_main_street_801822FC[];
 
 extern ViewCount D_dryfield_night_main_street_80182308[];
 
-extern GpWarpRec D_dryfield_night_main_street_80182310[];
+extern DirectionWarpEntry D_dryfield_night_main_street_80182310[];
 
 extern ViewCamera D_dryfield_night_main_street_80184564[];
 

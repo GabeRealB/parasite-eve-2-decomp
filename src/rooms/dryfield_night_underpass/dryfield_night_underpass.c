@@ -195,10 +195,10 @@ u8* D_dryfield_night_underpass_8017DE3C[6] = {
 
 ViewCount D_dryfield_night_underpass_8017DE54[6] = { 26, 11, 11, 11, 11, 11 };
 
-GpWarpRec D_dryfield_night_underpass_8017DE60[3] = {
-    { { { .word = 0 }, 5303, -997, -0x2C94 }, { 0, 0, 0, 0 }, { { .word = 0 }, 5303, -997, -0x2C94 }, { 0, 0, 0, 0 }, 0x53260008, 0x53260007, 0, 6, 0, 463 },
-    { { { .word = 1024 }, 0x3D31, -1000, -4216 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 0x3D31, -1000, -4216 }, { 0, 0, 0, 0 }, 0x53260006, 0x53260005, 0, 2, 0, 462 },
-    { { { .word = 2048 }, 1212, -1000, -7543 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 1212, -1000, -7543 }, { 0, 0, 0, 0 }, 0x53260001, 0x53260001, 0, 7, 2, 0 },
+DirectionWarpEntry D_dryfield_night_underpass_8017DE60[3] = {
+    { { { .word = 0 }, 5303, -997, -0x2C94 }, { 0, 0, 0, 0 }, { { .word = 0 }, 5303, -997, -0x2C94 }, { 0, 0, 0, 0 }, 0x53260008, 0x53260007, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, 463 },
+    { { { .word = 1024 }, 0x3D31, -1000, -4216 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 0x3D31, -1000, -4216 }, { 0, 0, 0, 0 }, 0x53260006, 0x53260005, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 462 },
+    { { { .word = 2048 }, 1212, -1000, -7543 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 1212, -1000, -7543 }, { 0, 0, 0, 0 }, 0x53260001, 0x53260001, DIRECTION_WARP_SOUND_NONE, 7, DIRECTION_WARP_FLAG_FADE_DEPARTURE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gDryfieldNightUnderpassCollision01114Normals[12] = {

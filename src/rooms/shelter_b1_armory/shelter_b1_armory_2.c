@@ -65,11 +65,11 @@ u8* D_shelter_b1_armory_80182580[1] = {
 
 ViewCount D_shelter_b1_armory_80182584[1] = { 13 };
 
-GpWarpRec D_shelter_b1_armory_80182588[4] = {
-    { { { .word = 1024 }, 0, 0, 2100 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 0, 0, 2100 }, { 0, 0, 0, 0 }, 0x540D0004, 0x540D0003, 0, 2, 0, 0 },
-    { { { .word = 2048 }, 6425, 0, 3054 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 6425, 0, 3054 }, { 0, 0, 0, 0 }, 0x540D0002, 0x540D0001, 0, 5, 0, 460 },
-    { { { .word = 3072 }, 4700, 0, -1300 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4700, 0, -1300 }, { 0, 0, 0, 0 }, 0x540D0007, 0x540D0006, 0x540D000A, 3, 0, 429 },
-    { { { .word = 1024 }, 5900, 0, -1820 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 5900, 0, -1820 }, { 0, 0, 0, 0 }, 0x540D0007, 0x540D0006, 0x540D000A, 4, 0, 429 },
+DirectionWarpEntry D_shelter_b1_armory_80182588[4] = {
+    { { { .word = 1024 }, 0, 0, 2100 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 0, 0, 2100 }, { 0, 0, 0, 0 }, 0x540D0004, 0x540D0003, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 2048 }, 6425, 0, 3054 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 6425, 0, 3054 }, { 0, 0, 0, 0 }, 0x540D0002, 0x540D0001, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, 460 },
+    { { { .word = 3072 }, 4700, 0, -1300 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4700, 0, -1300 }, { 0, 0, 0, 0 }, 0x540D0007, 0x540D0006, 0x540D000A, 3, DIRECTION_WARP_FLAG_NONE, 429 },
+    { { { .word = 1024 }, 5900, 0, -1820 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 5900, 0, -1820 }, { 0, 0, 0, 0 }, 0x540D0007, 0x540D0006, 0x540D000A, 4, DIRECTION_WARP_FLAG_NONE, 429 },
 };
 
 static SVECTOR _gShelterB1ArmoryCollision05910Normals[11] = {

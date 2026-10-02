@@ -22,7 +22,7 @@ extern u8* D_dryfield_night_saloon_g_r_801851B0[];
 
 extern ViewCount D_dryfield_night_saloon_g_r_801851B8[];
 
-extern GpWarpRec D_dryfield_night_saloon_g_r_801851BC[];
+extern DirectionWarpEntry D_dryfield_night_saloon_g_r_801851BC[];
 
 extern ViewCamera D_dryfield_night_saloon_g_r_80185B74[];
 

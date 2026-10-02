@@ -19,7 +19,7 @@ extern u8* D_shelter_b6_growth_room_8017F378[];
 
 extern ViewCount D_shelter_b6_growth_room_8017F37C[];
 
-extern GpWarpRec D_shelter_b6_growth_room_8017F380[];
+extern DirectionWarpEntry D_shelter_b6_growth_room_8017F380[];
 
 extern WorldCollisionGrid D_shelter_b6_growth_room_8017FAF0;
 

@@ -143,9 +143,9 @@ u8* D_shelter_b1_south_maintenance_walkway_8018240C[1] = {
 
 ViewCount D_shelter_b1_south_maintenance_walkway_80182410[1] = { 5 };
 
-GpWarpRec D_shelter_b1_south_maintenance_walkway_80182414[2] = {
-    { { { .word = 1024 }, -2357, 0, -3990 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -2357, 0, -3990 }, { 0, 0, 0, 0 }, 0x540A0002, 0x540A0001, 0, 5, 0, 0 },
-    { { { .word = 2048 }, 2048, 0, 4600 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 2048, 0, 4600 }, { 0, 0, 0, 0 }, 0x540A0004, 0x540A0003, 0, 2, 0, 430 },
+DirectionWarpEntry D_shelter_b1_south_maintenance_walkway_80182414[2] = {
+    { { { .word = 1024 }, -2357, 0, -3990 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -2357, 0, -3990 }, { 0, 0, 0, 0 }, 0x540A0002, 0x540A0001, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 2048 }, 2048, 0, 4600 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 2048, 0, 4600 }, { 0, 0, 0, 0 }, 0x540A0004, 0x540A0003, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SHELTER_1AE },
 };
 
 static SVECTOR _gShelterB1SouthMaintenanceWalkwayCollision051F8Normals[14] = {

@@ -68,7 +68,7 @@ extern ViewCount D_mist_shooting_gallery_801853BC[];
 /// The table and its borrowed data are valid only while the room overlay is loaded.
 extern WorldCoordRoomLighting gMistShootingGalleryRoomLightingTable[1];
 
-extern GpWarpRec D_mist_shooting_gallery_801853C8[];
+extern DirectionWarpEntry D_mist_shooting_gallery_801853C8[];
 
 extern ViewCamera D_mist_shooting_gallery_8018998C[];
 

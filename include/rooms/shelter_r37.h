@@ -16,7 +16,7 @@ extern u8* D_shelter_r37_8017D6F8[];
 
 extern ViewCount D_shelter_r37_8017D6FC[];
 
-extern GpWarpRec D_shelter_r37_8017D700[];
+extern DirectionWarpEntry D_shelter_r37_8017D700[];
 
 extern WorldCollisionGrid D_shelter_r37_8017D920;
 

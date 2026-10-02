@@ -480,9 +480,9 @@ WorldCoordRoomLighting D_acropolis_roof_garden_80184CA4[1] = {
     { D_acropolis_roof_garden_80186BDC, NULL },
 };
 
-GpWarpRec D_acropolis_roof_garden_80184CAC[2] = {
-    { { { .word = 0 }, -7458, 0, -9712 }, { 0, 0, 0, 0 }, { { .word = 0 }, -7458, 0, -9712 }, { 0, 0, 0, 0 }, 0x510D0002, 0x510D0001, 0, 2, 0, 0 },
-    { { { .word = 0 }, -7458, 0, -9712 }, { 0, 0, 0, 0 }, { { .word = 0 }, -7458, 0, -9712 }, { 0, 0, 0, 0 }, 0, 0, 0, 3, 0, 0 },
+DirectionWarpEntry D_acropolis_roof_garden_80184CAC[2] = {
+    { { { .word = 0 }, -7458, 0, -9712 }, { 0, 0, 0, 0 }, { { .word = 0 }, -7458, 0, -9712 }, { 0, 0, 0, 0 }, 0x510D0002, 0x510D0001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 0 }, -7458, 0, -9712 }, { 0, 0, 0, 0 }, { { .word = 0 }, -7458, 0, -9712 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gAcropolisRoofGardenCollision07EE4Normals[31] = {

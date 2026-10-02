@@ -75,9 +75,9 @@ u8* D_neo_ark_island_80181BAC[1] = {
 
 ViewCount D_neo_ark_island_80181BB0[1] = { 5 };
 
-GpWarpRec D_neo_ark_island_80181BB4[2] = {
-    { { { .word = 2048 }, 3100, 0, 6464 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 3100, 0, 6464 }, { 0, 0, 0, 0 }, 0x550E0002, 0x550E0001, 0, 2, 0, 0 },
-    { { { .word = ACTOR_SPAWN_YAW_KEEP_FACING }, 5300, 0, -1900 }, { 0, 0, 0, 0 }, { { .word = ACTOR_SPAWN_YAW_KEEP_FACING }, 5300, 0, -1900 }, { 0, 0, 0, 0 }, 0x550E0004, 0, 0, 4, 2, 0 },
+DirectionWarpEntry D_neo_ark_island_80181BB4[2] = {
+    { { { .word = 2048 }, 3100, 0, 6464 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 3100, 0, 6464 }, { 0, 0, 0, 0 }, 0x550E0002, 0x550E0001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = ACTOR_SPAWN_YAW_KEEP_FACING }, 5300, 0, -1900 }, { 0, 0, 0, 0 }, { { .word = ACTOR_SPAWN_YAW_KEEP_FACING }, 5300, 0, -1900 }, { 0, 0, 0, 0 }, 0x550E0004, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_FADE_DEPARTURE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 #include "../../shared/water_ripple_task_fixed_coord.inc.c"

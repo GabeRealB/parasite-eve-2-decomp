@@ -256,11 +256,11 @@ u8* D_shelter_b4_upper_sewer_80186590[1] = {
 
 ViewCount D_shelter_b4_upper_sewer_80186594[1] = { 14 };
 
-GpWarpRec D_shelter_b4_upper_sewer_80186598[4] = {
-    { { { .word = 1024 }, -9200, 0, 6080 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -9200, 0, 6850 }, { 0, 0, 0, 0 }, 0x542C0002, 0x542C0001, 0, 7, 0, 0 },
-    { { { .word = 3072 }, 3344, 0, -3054 }, { 0, 0, 0, 0 }, { { .word = 3840 }, 3350, 0, -3930 }, { 0, 0, 0, 0 }, 0, 0x542C0003, 0, 2, 2, 446 },
-    { { { .word = 3072 }, 3360, -2000, 9000 }, { 0, 0, 0, 0 }, { { .word = 2816 }, 3360, -2000, 8300 }, { 0, 0, 0, 0 }, 0, 0x542C0003, 0, 10, 0, 0 },
-    { { { .word = 0 }, -8960, -2000, 5600 }, { 0, 0, 0, 0 }, { { .word = 512 }, -9600, -2000, 6200 }, { 0, 0, 0, 0 }, 0x542C0007, 0x542C0006, 0, 12, 0, 0 },
+DirectionWarpEntry D_shelter_b4_upper_sewer_80186598[4] = {
+    { { { .word = 1024 }, -9200, 0, 6080 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -9200, 0, 6850 }, { 0, 0, 0, 0 }, 0x542C0002, 0x542C0001, DIRECTION_WARP_SOUND_NONE, 7, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 3072 }, 3344, 0, -3054 }, { 0, 0, 0, 0 }, { { .word = 3840 }, 3350, 0, -3930 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, 0x542C0003, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_FADE_DEPARTURE, GAME_FLAG_MAP_MARK_RESERVOIR_1BE },
+    { { { .word = 3072 }, 3360, -2000, 9000 }, { 0, 0, 0, 0 }, { { .word = 2816 }, 3360, -2000, 8300 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, 0x542C0003, DIRECTION_WARP_SOUND_NONE, 10, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 0 }, -8960, -2000, 5600 }, { 0, 0, 0, 0 }, { { .word = 512 }, -9600, -2000, 6200 }, { 0, 0, 0, 0 }, 0x542C0007, 0x542C0006, DIRECTION_WARP_SOUND_NONE, 12, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 // Retained data: Eight-point coordinate pool explicitly addressed by the following pointer table; no runtime owner found.

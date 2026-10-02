@@ -109,8 +109,8 @@ WorldCoordRoomLighting D_dryfield_cellar_8017DC10[2] = {
     { D_dryfield_cellar_80180A90, NULL },
 };
 
-GpWarpRec D_dryfield_cellar_8017DC20[1] = {
-    { { { .word = 2048 }, 5611, 3, 3945 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 5611, 3, 3945 }, { 0, 0, 0, 0 }, 0x52220002, 0x52220001, 0, 2, 0, 463 },
+DirectionWarpEntry D_dryfield_cellar_8017DC20[1] = {
+    { { { .word = 2048 }, 5611, 3, 3945 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 5611, 3, 3945 }, { 0, 0, 0, 0 }, 0x52220002, 0x52220001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 463 },
 };
 
 static SVECTOR _gDryfieldCellarCollision00994Normals[8] = {

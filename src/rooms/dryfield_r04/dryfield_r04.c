@@ -30,8 +30,8 @@ ViewCount D_dryfield_r04_8017D5D8[1] = { 2 };
 /// entry for this room.
 static WorldCoordRoomLighting D_dryfield_r04_8017D5DC = { NULL, NULL };
 
-GpWarpRec D_dryfield_r04_8017D5E4[1] = {
-    { .field_34 = 2 },
+DirectionWarpEntry D_dryfield_r04_8017D5E4[1] = {
+    { .initialView = 2 },
 };
 
 static SVECTOR _gDryfieldR04Collision00C34Normals[1] = {

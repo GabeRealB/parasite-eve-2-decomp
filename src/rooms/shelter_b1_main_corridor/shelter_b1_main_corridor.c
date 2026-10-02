@@ -193,13 +193,13 @@ u8* D_shelter_b1_main_corridor_801831F8[1] = {
 
 ViewCount D_shelter_b1_main_corridor_801831FC[1] = { 10 };
 
-GpWarpRec D_shelter_b1_main_corridor_80183200[6] = {
-    { { { .word = 0 }, 0, 0, -0x4A38 }, { 0, 0, 0, 0 }, { { .word = 0 }, 10, 0, -390 }, { 0, 0, 0, 0 }, 0x540F0002, 0x540F0001, 0, 2, 0, 461 },
-    { { { .word = 1024 }, -3467, 0, -0x2745 }, { 0, 0, 0, 0 }, { { .word = 0 }, 10, 0, -390 }, { 0, 0, 0, 0 }, 0x540F0002, 0x540F0001, 0, 6, 0, 0 },
-    { { { .word = 3072 }, 3510, 0, -0x2729 }, { 0, 0, 0, 0 }, { { .word = 0 }, 10, 0, -390 }, { 0, 0, 0, 0 }, 0x540F0002, 0x540F0001, 0, 5, 0, 0 },
-    { { { .word = 1024 }, -3500, 0, -1940 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -3500, 0, -1940 }, { 0, 0, 0, 0 }, 0x540F0002, 0x540F0001, 0x540F000D, 10, 0, 454 },
-    { { { .word = 3072 }, 3500, 0, -1940 }, { 0, 0, 0, 0 }, { { .word = 0 }, 10, 0, -390 }, { 0, 0, 0, 0 }, 0x540F0002, 0x540F0001, 0, 9, 0, 0 },
-    { { { .word = 2048 }, 0, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 0 }, 10, 0, -390 }, { 0, 0, 0, 0 }, 0x540F0002, 0x540F0001, 0, 8, 0, 0 },
+DirectionWarpEntry D_shelter_b1_main_corridor_80183200[6] = {
+    { { { .word = 0 }, 0, 0, -0x4A38 }, { 0, 0, 0, 0 }, { { .word = 0 }, 10, 0, -390 }, { 0, 0, 0, 0 }, 0x540F0002, 0x540F0001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SHELTER_1CD },
+    { { { .word = 1024 }, -3467, 0, -0x2745 }, { 0, 0, 0, 0 }, { { .word = 0 }, 10, 0, -390 }, { 0, 0, 0, 0 }, 0x540F0002, 0x540F0001, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 3072 }, 3510, 0, -0x2729 }, { 0, 0, 0, 0 }, { { .word = 0 }, 10, 0, -390 }, { 0, 0, 0, 0 }, 0x540F0002, 0x540F0001, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 1024 }, -3500, 0, -1940 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -3500, 0, -1940 }, { 0, 0, 0, 0 }, 0x540F0002, 0x540F0001, 0x540F000D, 10, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SHELTER_R47_1C6 },
+    { { { .word = 3072 }, 3500, 0, -1940 }, { 0, 0, 0, 0 }, { { .word = 0 }, 10, 0, -390 }, { 0, 0, 0, 0 }, 0x540F0002, 0x540F0001, DIRECTION_WARP_SOUND_NONE, 9, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 2048 }, 0, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 0 }, 10, 0, -390 }, { 0, 0, 0, 0 }, 0x540F0002, 0x540F0001, DIRECTION_WARP_SOUND_NONE, 8, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gShelterB1MainCorridorCollision06B30Normals[34] = {

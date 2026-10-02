@@ -556,10 +556,10 @@ WorldCoordRoomLighting D_acropolis_helicopter_landing_pad_80184F44[1] = {
     { D_acropolis_helicopter_landing_pad_80186AE8, NULL },
 };
 
-GpWarpRec D_acropolis_helicopter_landing_pad_80184F4C[3] = {
-    { { { .word = 2048 }, -6387, 1, -6306 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -6387, 1, -6306 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
-    { { { .word = 1024 }, -5340, -3001, -1921 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -5340, -3001, -1921 }, { 0, 0, 0, 0 }, 0, 0, 0, 11, 0, 0 },
-    { { { .word = 2048 }, -6400, 600, -5280 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -6387, 451, -5400 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 1, 0 },
+DirectionWarpEntry D_acropolis_helicopter_landing_pad_80184F4C[3] = {
+    { { { .word = 2048 }, -6387, 1, -6306 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -6387, 1, -6306 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 1024 }, -5340, -3001, -1921 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -5340, -3001, -1921 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 11, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 2048 }, -6400, 600, -5280 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -6387, 451, -5400 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_SCRIPTED_PLAYER, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gAcropolisHelicopterLandingPadCollision083D8Normals[15] = {

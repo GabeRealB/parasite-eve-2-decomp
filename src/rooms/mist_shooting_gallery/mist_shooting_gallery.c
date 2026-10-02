@@ -891,14 +891,14 @@ WorldCoordRoomLighting gMistShootingGalleryRoomLightingTable[1] = {
     },
 };
 
-GpWarpRec D_mist_shooting_gallery_801853C8[7] = {
-    { { { .word = 1024 }, -0x2D50, 0, 5200 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -0x2D50, 0, 5200 }, { 0, 0, 0, 0 }, 0x51140002, 0x51140001, 0, 2, 0, 0 },
-    { { { .word = 3072 }, -9630, 0, -3040 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -9630, 0, -3040 }, { 0, 0, 0, 0 }, 0x51140004, 0x51140003, 0, 4, 0, 0 },
-    { { { .word = 1024 }, -6800, 0, 3000 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -6800, 0, 3000 }, { 0, 0, 0, 0 }, 0, 0, 0, 14, 0, 0 },
-    { { { .word = 1024 }, -8700, 0, -3000 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -8700, 0, -3000 }, { 0, 0, 0, 0 }, 0x51140004, 0x51140003, 0, 5, 0, 0 },
-    { { { .word = 2048 }, -8000, 0, -1800 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -8000, 0, -1800 }, { 0, 0, 0, 0 }, 0x51140006, 0x51140005, 0, 5, 0, 0 },
-    { { { .word = 0 }, -8000, 0, -720 }, { 0, 0, 0, 0 }, { { .word = 0 }, -8000, 0, -720 }, { 0, 0, 0, 0 }, 0x51140006, 0x51140005, 0, 7, 0, 0 },
-    { { { .word = 0 }, -8000, 0, -720 }, { 0, 0, 0, 0 }, { { .word = 0 }, -8000, 0, -720 }, { 0, 0, 0, 0 }, 0, 0, 0, 15, 0, 0 },
+DirectionWarpEntry D_mist_shooting_gallery_801853C8[7] = {
+    { { { .word = 1024 }, -0x2D50, 0, 5200 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -0x2D50, 0, 5200 }, { 0, 0, 0, 0 }, 0x51140002, 0x51140001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 3072 }, -9630, 0, -3040 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -9630, 0, -3040 }, { 0, 0, 0, 0 }, 0x51140004, 0x51140003, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 1024 }, -6800, 0, 3000 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -6800, 0, 3000 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 14, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 1024 }, -8700, 0, -3000 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -8700, 0, -3000 }, { 0, 0, 0, 0 }, 0x51140004, 0x51140003, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 2048 }, -8000, 0, -1800 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -8000, 0, -1800 }, { 0, 0, 0, 0 }, 0x51140006, 0x51140005, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 0 }, -8000, 0, -720 }, { 0, 0, 0, 0 }, { { .word = 0 }, -8000, 0, -720 }, { 0, 0, 0, 0 }, 0x51140006, 0x51140005, DIRECTION_WARP_SOUND_NONE, 7, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 0 }, -8000, 0, -720 }, { 0, 0, 0, 0 }, { { .word = 0 }, -8000, 0, -720 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 15, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 SVECTOR D_mist_shooting_gallery_80185550[45] = {

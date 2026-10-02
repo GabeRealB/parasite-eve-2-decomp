@@ -266,12 +266,12 @@ u8* D_dryfield_night_motel_balcony_80182E98[3] = {
 
 ViewCount D_dryfield_night_motel_balcony_80182EA4[3] = { 39, 39, 39 };
 
-GpWarpRec D_dryfield_night_motel_balcony_80182EAC[5] = {
-    { { { .word = 0 }, -0x315E, -3198, 1396 }, { 0, 0, 0, 0 }, { { .word = 0 }, -0x315E, -3198, 1396 }, { 0, 0, 0, 0 }, 0x531D0006, 0x531D0005, 0x531D0009, 2, 0, 0 },
-    { { { .word = 1024 }, -6572, -3200, -2869 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -6572, -3200, -2869 }, { 0, 0, 0, 0 }, 0x531D0002, 0x531D0001, 0x531D0009, 6, 0, 464 },
-    { { { .word = 1024 }, -6669, -3200, 4477 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -6669, -3200, 4477 }, { 0, 0, 0, 0 }, 0x531D0002, 0x531D0001, 0x531D0009, 5, 0, 465 },
-    { { { .word = 2048 }, -1990, -3200, 0x29A8 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -1990, -3200, 0x29A8 }, { 0, 0, 0, 0 }, 0x531D0002, 0x531D0001, 0x531D0009, 4, 0, 466 },
-    { { { .word = 1024 }, -6669, -3200, 4477 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -6669, -3200, 4477 }, { 0, 0, 0, 0 }, 0, 0, 0, 5, 0, 465 },
+DirectionWarpEntry D_dryfield_night_motel_balcony_80182EAC[5] = {
+    { { { .word = 0 }, -0x315E, -3198, 1396 }, { 0, 0, 0, 0 }, { { .word = 0 }, -0x315E, -3198, 1396 }, { 0, 0, 0, 0 }, 0x531D0006, 0x531D0005, 0x531D0009, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 1024 }, -6572, -3200, -2869 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -6572, -3200, -2869 }, { 0, 0, 0, 0 }, 0x531D0002, 0x531D0001, 0x531D0009, 6, DIRECTION_WARP_FLAG_NONE, 464 },
+    { { { .word = 1024 }, -6669, -3200, 4477 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -6669, -3200, 4477 }, { 0, 0, 0, 0 }, 0x531D0002, 0x531D0001, 0x531D0009, 5, DIRECTION_WARP_FLAG_NONE, 465 },
+    { { { .word = 2048 }, -1990, -3200, 0x29A8 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -1990, -3200, 0x29A8 }, { 0, 0, 0, 0 }, 0x531D0002, 0x531D0001, 0x531D0009, 4, DIRECTION_WARP_FLAG_NONE, 466 },
+    { { { .word = 1024 }, -6669, -3200, 4477 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -6669, -3200, 4477 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, 465 },
 };
 
 static SVECTOR _gDryfieldNightMotelBalconyCollision06190Normals[7] = {

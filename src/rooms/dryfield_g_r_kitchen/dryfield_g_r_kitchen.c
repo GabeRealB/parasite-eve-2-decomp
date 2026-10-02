@@ -124,9 +124,9 @@ WorldCoordRoomLighting D_dryfield_g_r_kitchen_8017EC40[1] = {
     { D_dryfield_g_r_kitchen_8017F464, NULL },
 };
 
-GpWarpRec D_dryfield_g_r_kitchen_8017EC48[2] = {
-    { { { .word = 1024 }, -1168, 0, 2135 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -1168, 0, 2135 }, { 0, 0, 0, 0 }, 0x52130002, 0x52130001, 0, 2, 0, 478 },
-    { { { .word = 2048 }, 0, 0, 2512 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 0, 0, 2512 }, { 0, 0, 0, 0 }, 0x52130002, 0x52130001, 0, 2, 0, 477 },
+DirectionWarpEntry D_dryfield_g_r_kitchen_8017EC48[2] = {
+    { { { .word = 1024 }, -1168, 0, 2135 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -1168, 0, 2135 }, { 0, 0, 0, 0 }, 0x52130002, 0x52130001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 478 },
+    { { { .word = 2048 }, 0, 0, 2512 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 0, 0, 2512 }, { 0, 0, 0, 0 }, 0x52130002, 0x52130001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 477 },
 };
 
 static SVECTOR _gDryfieldGRKitchenCollision01900Normals[6] = {

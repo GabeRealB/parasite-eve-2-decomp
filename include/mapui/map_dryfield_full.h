@@ -57,7 +57,7 @@ extern u16 D_map_dryfield_full_8017A738[];
 /// one pointer per room into that room's package.
 extern WorldCoordRoomLighting* D_map_dryfield_full_8017A774[];
 
-extern GpWarpRec* D_map_dryfield_full_8017A80C[];
+extern DirectionWarpEntry* D_map_dryfield_full_8017A80C[];
 
 extern GpViewCountTbl D_map_dryfield_full_8017A93C;
 

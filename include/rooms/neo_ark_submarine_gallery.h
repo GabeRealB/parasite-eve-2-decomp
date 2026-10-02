@@ -40,7 +40,7 @@ extern u8* D_neo_ark_submarine_gallery_80181A08[];
 
 extern ViewCount D_neo_ark_submarine_gallery_80181A0C[];
 
-extern GpWarpRec D_neo_ark_submarine_gallery_80181A10[];
+extern DirectionWarpEntry D_neo_ark_submarine_gallery_80181A10[];
 
 extern WorldCollisionGrid D_neo_ark_submarine_gallery_8018239C;
 

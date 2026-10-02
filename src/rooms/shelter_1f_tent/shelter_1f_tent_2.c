@@ -76,8 +76,8 @@ u8* D_shelter_1f_tent_80181D44[1] = {
 
 ViewCount D_shelter_1f_tent_80181D48[1] = { 10 };
 
-GpWarpRec D_shelter_1f_tent_80181D4C[1] = {
-    { { { .word = 3072 }, -638, 0, 4300 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -638, 0, 4300 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
+DirectionWarpEntry D_shelter_1f_tent_80181D4C[1] = {
+    { { { .word = 3072 }, -638, 0, 4300 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -638, 0, 4300 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gShelter1fTentCollision04D30Normals[17] = {

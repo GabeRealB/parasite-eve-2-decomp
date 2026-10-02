@@ -464,9 +464,9 @@ u8* D_shelter_b4_reservoir_80185118[2] = {
 
 ViewCount D_shelter_b4_reservoir_80185120[2] = { 10, 10 };
 
-GpWarpRec D_shelter_b4_reservoir_80185124[2] = {
-    { { { .word = 3072 }, 5500, 0, -3000 }, { 0, 0, 0, 0 }, { { .word = 3584 }, 5000, 0, -3650 }, { 0, 0, 0, 0 }, 0x542D0004, 0x542D0003, 0, 2, 0, 0 },
-    { { { .word = 1024 }, -2527, -2000, -2825 }, { 0, 0, 0, 0 }, { { .word = 512 }, -2700, -2000, -2000 }, { 0, 0, 0, 0 }, 0, 0, 0, 7, 2, 446 },
+DirectionWarpEntry D_shelter_b4_reservoir_80185124[2] = {
+    { { { .word = 3072 }, 5500, 0, -3000 }, { 0, 0, 0, 0 }, { { .word = 3584 }, 5000, 0, -3650 }, { 0, 0, 0, 0 }, 0x542D0004, 0x542D0003, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 1024 }, -2527, -2000, -2825 }, { 0, 0, 0, 0 }, { { .word = 512 }, -2700, -2000, -2000 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 7, DIRECTION_WARP_FLAG_FADE_DEPARTURE, GAME_FLAG_MAP_MARK_RESERVOIR_1BE },
 };
 
 SVECTOR D_shelter_b4_reservoir_80185194[8] = {

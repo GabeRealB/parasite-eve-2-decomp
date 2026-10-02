@@ -25,7 +25,7 @@ extern u8* D_dryfield_night_motel_loft_8017EDF0[];
 
 extern ViewCount D_dryfield_night_motel_loft_8017EDF8[];
 
-extern GpWarpRec D_dryfield_night_motel_loft_8017EDFC[];
+extern DirectionWarpEntry D_dryfield_night_motel_loft_8017EDFC[];
 
 extern ViewCamera D_dryfield_night_motel_loft_8017F144[];
 

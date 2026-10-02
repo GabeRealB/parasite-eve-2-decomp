@@ -22,7 +22,7 @@ extern ViewCount D_dryfield_underpass_8017EBD4[];
 
 extern WorldCoordRoomLighting D_dryfield_underpass_8017EBE0[];
 
-extern GpWarpRec D_dryfield_underpass_8017EC10[];
+extern DirectionWarpEntry D_dryfield_underpass_8017EC10[];
 
 extern ViewCamera D_dryfield_underpass_8017F4A8[];
 

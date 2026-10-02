@@ -22,6 +22,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/gameflag_ids.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/session.h"
@@ -103,9 +104,9 @@ u8* D_neo_ark_eve_access_tunnel_8017EB90[1] = {
 
 ViewCount D_neo_ark_eve_access_tunnel_8017EB94[1] = { 7 };
 
-GpWarpRec D_neo_ark_eve_access_tunnel_8017EB98[2] = {
-    { { { .word = 0 }, -800, 0, 850 }, { 0, 0, 0, 0 }, { { .word = 0 }, -800, 0, 850 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 431 },
-    { { { .word = 1024 }, -1167, 0, 4892 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -1167, 0, 4892 }, { 0, 0, 0, 0 }, 0x55080004, 0x55080003, 0, 5, 0, 444 },
+DirectionWarpEntry D_neo_ark_eve_access_tunnel_8017EB98[2] = {
+    { { { .word = 0 }, -800, 0, 850 }, { 0, 0, 0, 0 }, { { .word = 0 }, -800, 0, 850 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 431 },
+    { { { .word = 1024 }, -1167, 0, 4892 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -1167, 0, 4892 }, { 0, 0, 0, 0 }, 0x55080004, 0x55080003, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_POWER_PLANT_2 },
 };
 
 static SVECTOR _gNeoArkEveAccessTunnelCollision01A9CNormals[19] = {

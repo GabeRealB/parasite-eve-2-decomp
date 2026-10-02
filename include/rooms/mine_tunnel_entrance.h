@@ -22,7 +22,7 @@ extern u8* D_mine_tunnel_entrance_8017DB70[];
 
 extern ViewCount D_mine_tunnel_entrance_8017DB74[];
 
-extern GpWarpRec D_mine_tunnel_entrance_8017DB78[];
+extern DirectionWarpEntry D_mine_tunnel_entrance_8017DB78[];
 
 extern ViewCamera D_mine_tunnel_entrance_8017E0E4[];
 

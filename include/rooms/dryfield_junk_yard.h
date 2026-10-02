@@ -26,7 +26,7 @@ extern u8* D_dryfield_junk_yard_8017ED1C[];
 
 extern ViewCount D_dryfield_junk_yard_8017ED20[];
 
-extern GpWarpRec D_dryfield_junk_yard_8017ED24[];
+extern DirectionWarpEntry D_dryfield_junk_yard_8017ED24[];
 
 extern ViewCamera D_dryfield_junk_yard_8017F5C0[];
 

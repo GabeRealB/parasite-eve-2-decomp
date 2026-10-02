@@ -22,7 +22,7 @@ extern ViewCount D_dryfield_general_store_8017E684[];
 
 extern WorldCoordRoomLighting D_dryfield_general_store_8017E688[];
 
-extern GpWarpRec D_dryfield_general_store_8017E690[];
+extern DirectionWarpEntry D_dryfield_general_store_8017E690[];
 
 extern ViewCamera D_dryfield_general_store_8017F25C[];
 

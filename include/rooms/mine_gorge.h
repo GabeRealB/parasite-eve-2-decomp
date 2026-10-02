@@ -22,7 +22,7 @@ extern u8* D_mine_gorge_8017E7E4[];
 
 extern ViewCount D_mine_gorge_8017E7EC[];
 
-extern GpWarpRec D_mine_gorge_8017E7F0[];
+extern DirectionWarpEntry D_mine_gorge_8017E7F0[];
 
 extern ViewCamera D_mine_gorge_8017FA14[];
 

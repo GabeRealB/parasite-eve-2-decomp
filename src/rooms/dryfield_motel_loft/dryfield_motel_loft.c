@@ -53,8 +53,8 @@ WorldCoordRoomLighting D_dryfield_motel_loft_8017D6F4[1] = {
     { D_dryfield_motel_loft_8017E614, NULL },
 };
 
-GpWarpRec D_dryfield_motel_loft_8017D6FC[1] = {
-    { { { .word = 0 }, 3953, 0, -2156 }, { 0, 0, 0, 0 }, { { .word = 0 }, 3953, 0, -2156 }, { 0, 0, 0, 0 }, 0x521F0002, 0x521F0001, 0, 2, 0, 466 },
+DirectionWarpEntry D_dryfield_motel_loft_8017D6FC[1] = {
+    { { { .word = 0 }, 3953, 0, -2156 }, { 0, 0, 0, 0 }, { { .word = 0 }, 3953, 0, -2156 }, { 0, 0, 0, 0 }, 0x521F0002, 0x521F0001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 466 },
 };
 
 static SVECTOR _gDryfieldMotelLoftCollision003FCNormals[8] = {

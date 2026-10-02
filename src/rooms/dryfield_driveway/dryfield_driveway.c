@@ -214,10 +214,10 @@ WorldCoordRoomLighting D_dryfield_driveway_8017E7B4[2] = {
 
 ViewCount D_dryfield_driveway_8017E7C4[2] = { 7, 7 };
 
-GpWarpRec D_dryfield_driveway_8017E7C8[3] = {
-    { { { .word = 1024 }, -3400, 0, 600 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -3400, 0, 1250 }, { 0, 0, 0, 0 }, 0x52190004, 0x52190003, 0, 4, 0, 474 },
-    { { { .word = ACTOR_SPAWN_YAW_FACE_TRANSITION_POINT_ALT }, -1300, 0, 1700 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 200, 0, 1650 }, { 0, 0, 0, 0 }, 0, 0, 0, 4, 0, 0 },
-    { { { .word = 1024 }, -9500, 4, -1418 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 200, 0, 1650 }, { 0, 0, 0, 0 }, 0x52190002, 0x52190001, 0, 2, 0, 482 },
+DirectionWarpEntry D_dryfield_driveway_8017E7C8[3] = {
+    { { { .word = 1024 }, -3400, 0, 600 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -3400, 0, 1250 }, { 0, 0, 0, 0 }, 0x52190004, 0x52190003, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, 474 },
+    { { { .word = ACTOR_SPAWN_YAW_FACE_TRANSITION_POINT_ALT }, -1300, 0, 1700 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 200, 0, 1650 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 1024 }, -9500, 4, -1418 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 200, 0, 1650 }, { 0, 0, 0, 0 }, 0x52190002, 0x52190001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 482 },
 };
 
 static SVECTOR _gDryfieldDrivewayCollision017B4Normals[13] = {

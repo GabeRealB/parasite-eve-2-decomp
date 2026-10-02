@@ -22,7 +22,7 @@ extern ViewCount D_acropolis_fountain_8017E854[];
 
 extern WorldCoordRoomLighting D_acropolis_fountain_8017E858[];
 
-extern GpWarpRec D_acropolis_fountain_8017E868[];
+extern DirectionWarpEntry D_acropolis_fountain_8017E868[];
 
 extern SpriteView D_acropolis_fountain_8018375C[];
 

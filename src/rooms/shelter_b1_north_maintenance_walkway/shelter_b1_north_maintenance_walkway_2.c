@@ -33,6 +33,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/gameflag_ids.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
@@ -73,9 +74,9 @@ u8* D_shelter_b1_north_maintenance_walkway_80184B80[1] = {
 
 ViewCount D_shelter_b1_north_maintenance_walkway_80184B84[1] = { 6 };
 
-GpWarpRec D_shelter_b1_north_maintenance_walkway_80184B88[2] = {
-    { { { .word = 0 }, -2000, 0, 3600 }, { 0, 0, 0, 0 }, { { .word = 0 }, -2000, 0, 3600 }, { 0, 0, 0, 0 }, 0x540C0002, 0x540C0001, 0, 2, 0, 435 },
-    { { { .word = 0 }, 1983, 0, -4420 }, { 0, 0, 0, 0 }, { { .word = 0 }, 1983, 0, -4420 }, { 0, 0, 0, 0 }, 0x540C0004, 0x540C0003, 0, 5, 0, 432 },
+DirectionWarpEntry D_shelter_b1_north_maintenance_walkway_80184B88[2] = {
+    { { { .word = 0 }, -2000, 0, 3600 }, { 0, 0, 0, 0 }, { { .word = 0 }, -2000, 0, 3600 }, { 0, 0, 0, 0 }, 0x540C0002, 0x540C0001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SHELTER_1B3 },
+    { { { .word = 0 }, 1983, 0, -4420 }, { 0, 0, 0, 0 }, { { .word = 0 }, 1983, 0, -4420 }, { 0, 0, 0, 0 }, 0x540C0004, 0x540C0003, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SHELTER_1B0 },
 };
 
 static SVECTOR _gShelterB1NorthMaintenanceWalkwayCollision07980Normals[14] = {

@@ -25,7 +25,7 @@ extern ViewCount D_acropolis_hallway_8017E26C[];
 
 extern WorldCoordRoomLighting D_acropolis_hallway_8017E270[];
 
-extern GpWarpRec D_acropolis_hallway_8017E278[];
+extern DirectionWarpEntry D_acropolis_hallway_8017E278[];
 
 extern SpriteView D_acropolis_hallway_8017EC2C[];
 

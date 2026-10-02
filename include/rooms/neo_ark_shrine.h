@@ -22,7 +22,7 @@ extern u8* D_neo_ark_shrine_801827F0[];
 
 extern ViewCount D_neo_ark_shrine_80182808[];
 
-extern GpWarpRec D_neo_ark_shrine_80182814[];
+extern DirectionWarpEntry D_neo_ark_shrine_80182814[];
 
 extern ViewCamera D_neo_ark_shrine_801836BC[];
 

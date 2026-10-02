@@ -170,12 +170,12 @@ WorldCoordRoomLighting D_acropolis_fountain_8017E858[2] = {
     { D_acropolis_fountain_8017FF34, NULL },
 };
 
-GpWarpRec D_acropolis_fountain_8017E868[5] = {
-    { { { .word = 2048 }, -3896, 65, 3466 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -3896, 65, 3466 }, { 0, 0, 0, 0 }, 0x51080006, 0x51080005, 0, 2, 0, 496 },
-    { { { .word = 2048 }, 4015, 65, 3348 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 4015, 65, 3348 }, { 0, 0, 0, 0 }, 0x51080006, 0x51080005, 0, 6, 0, 495 },
-    { { { .word = 1024 }, -5162, 66, -5011 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -5162, 66, -5011 }, { 0, 0, 0, 0 }, 0x51080008, 0x51080007, 0, 3, 0, 497 },
-    { { { .word = 2048 }, 4015, 65, 3348 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 4015, 65, 3348 }, { 0, 0, 0, 0 }, 0x51080006, 0x51080005, 0, 17, 0, 0 },
-    { { { .word = 1024 }, -5162, 66, -5011 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -5162, 66, -5011 }, { 0, 0, 0, 0 }, 0x51080006, 0x51080005, 0, 17, 0, 0 },
+DirectionWarpEntry D_acropolis_fountain_8017E868[5] = {
+    { { { .word = 2048 }, -3896, 65, 3466 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -3896, 65, 3466 }, { 0, 0, 0, 0 }, 0x51080006, 0x51080005, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 496 },
+    { { { .word = 2048 }, 4015, 65, 3348 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 4015, 65, 3348 }, { 0, 0, 0, 0 }, 0x51080006, 0x51080005, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, 495 },
+    { { { .word = 1024 }, -5162, 66, -5011 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -5162, 66, -5011 }, { 0, 0, 0, 0 }, 0x51080008, 0x51080007, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, 497 },
+    { { { .word = 2048 }, 4015, 65, 3348 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 4015, 65, 3348 }, { 0, 0, 0, 0 }, 0x51080006, 0x51080005, DIRECTION_WARP_SOUND_NONE, 17, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 1024 }, -5162, 66, -5011 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -5162, 66, -5011 }, { 0, 0, 0, 0 }, 0x51080006, 0x51080005, DIRECTION_WARP_SOUND_NONE, 17, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gAcropolisFountainCollision0204CNormals[32] = {

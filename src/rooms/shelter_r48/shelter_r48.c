@@ -166,8 +166,8 @@ u8* D_shelter_r48_8018302C[1] = {
 
 ViewCount D_shelter_r48_80183030[1] = { 18 };
 
-GpWarpRec D_shelter_r48_80183034[1] = {
-    { { { .word = 1024 }, 1542, -1998, 7374 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 1542, -1998, 7374 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 449 },
+DirectionWarpEntry D_shelter_r48_80183034[1] = {
+    { { { .word = 1024 }, 1542, -1998, 7374 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 1542, -1998, 7374 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_POD_SERVICE_GANTRY },
 };
 
 static SVECTOR _gShelterR48Collision0692CNormals[40] = {

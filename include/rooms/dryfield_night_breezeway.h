@@ -22,7 +22,7 @@ extern u8* D_dryfield_night_breezeway_8017E6FC[];
 
 extern ViewCount D_dryfield_night_breezeway_8017E700[];
 
-extern GpWarpRec D_dryfield_night_breezeway_8017E704[];
+extern DirectionWarpEntry D_dryfield_night_breezeway_8017E704[];
 
 extern ViewCamera D_dryfield_night_breezeway_8017EBE8[];
 

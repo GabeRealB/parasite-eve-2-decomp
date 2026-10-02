@@ -22,7 +22,7 @@ extern u8* D_shelter_b6_nursery_80185304[];
 
 extern ViewCount D_shelter_b6_nursery_80185308[];
 
-extern GpWarpRec D_shelter_b6_nursery_8018530C[];
+extern DirectionWarpEntry D_shelter_b6_nursery_8018530C[];
 
 extern WorldCollisionGrid D_shelter_b6_nursery_801858A0;
 

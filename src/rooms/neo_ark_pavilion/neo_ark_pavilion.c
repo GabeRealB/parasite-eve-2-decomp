@@ -157,10 +157,10 @@ u8* D_neo_ark_pavilion_801838EC[2] = {
 
 ViewCount D_neo_ark_pavilion_801838F4[2] = { 7, 7 };
 
-GpWarpRec D_neo_ark_pavilion_801838F8[3] = {
-    { { { .word = 3072 }, 2000, 0, 9504 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 2000, 0, 9504 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
-    { { { .word = 0 }, -2700, 0, 7650 }, { 0, 0, 0, 0 }, { { .word = 0 }, -2700, 0, 7650 }, { 0, 0, 0, 0 }, 0x550D0004, 0x550D0003, 0, 3, 0, 0 },
-    { { { .word = 0 }, 3000, 0, 7500 }, { 0, 0, 0, 0 }, { { .word = 0 }, 3000, 0, 7500 }, { 0, 0, 0, 0 }, 0x550D0004, 0x550D0003, 0, 2, 0, 0 },
+DirectionWarpEntry D_neo_ark_pavilion_801838F8[3] = {
+    { { { .word = 3072 }, 2000, 0, 9504 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 2000, 0, 9504 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 0 }, -2700, 0, 7650 }, { 0, 0, 0, 0 }, { { .word = 0 }, -2700, 0, 7650 }, { 0, 0, 0, 0 }, 0x550D0004, 0x550D0003, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 0 }, 3000, 0, 7500 }, { 0, 0, 0, 0 }, { { .word = 0 }, 3000, 0, 7500 }, { 0, 0, 0, 0 }, 0x550D0004, 0x550D0003, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 // Height override read by the shared waypoint actor.

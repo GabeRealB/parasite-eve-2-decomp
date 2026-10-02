@@ -206,10 +206,10 @@ WorldCoordRoomLighting D_dryfield_water_hole_8017FD9C[4] = {
     { D_dryfield_water_hole_8018278C, NULL },
 };
 
-GpWarpRec D_dryfield_water_hole_8017FDBC[3] = {
-    { { { .word = 0 }, 7400, 0, -1350 }, { 0, 0, 0, 0 }, { { .word = 0 }, 7400, 0, -1350 }, { 0, 0, 0, 0 }, 0x52200003, 0x52200003, 0, 3, 2, 0 },
-    { { { .word = 3072 }, 0x57C0, -534, -3076 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x57C0, -534, -3076 }, { 0, 0, 0, 0 }, 0x52200002, 0x52200001, 0, 8, 0, 462 },
-    { { { .word = 1024 }, 4680, 0, -954 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 4680, 0, -954 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 445 },
+DirectionWarpEntry D_dryfield_water_hole_8017FDBC[3] = {
+    { { { .word = 0 }, 7400, 0, -1350 }, { 0, 0, 0, 0 }, { { .word = 0 }, 7400, 0, -1350 }, { 0, 0, 0, 0 }, 0x52200003, 0x52200003, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_FADE_DEPARTURE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 3072 }, 0x57C0, -534, -3076 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x57C0, -534, -3076 }, { 0, 0, 0, 0 }, 0x52200002, 0x52200001, DIRECTION_WARP_SOUND_NONE, 8, DIRECTION_WARP_FLAG_NONE, 462 },
+    { { { .word = 1024 }, 4680, 0, -954 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 4680, 0, -954 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_WATER },
 };
 
 static SVECTOR _gDryfieldWaterHoleCollision02CA0Normals[10] = {

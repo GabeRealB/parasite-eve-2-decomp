@@ -25,7 +25,7 @@ extern u8* D_shelter_b1_sterilization_room_801893CC[];
 
 extern ViewCount D_shelter_b1_sterilization_room_801893D8[];
 
-extern GpWarpRec D_shelter_b1_sterilization_room_801893E0[];
+extern DirectionWarpEntry D_shelter_b1_sterilization_room_801893E0[];
 
 extern ViewCamera D_shelter_b1_sterilization_room_80189E68[];
 

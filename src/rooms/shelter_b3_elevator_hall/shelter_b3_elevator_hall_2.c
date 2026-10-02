@@ -33,6 +33,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/gameflag_ids.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
@@ -59,10 +60,10 @@ u8* D_shelter_b3_elevator_hall_80182B54[1] = {
 
 ViewCount D_shelter_b3_elevator_hall_80182B58[1] = { 7 };
 
-GpWarpRec D_shelter_b3_elevator_hall_80182B5C[3] = {
-    { { { .word = 2048 }, -6047, 0, 1500 }, { 0, 0, 0, 0 }, { { .word = 3328 }, -5000, 0, -200 }, { 0, 0, 0, 0 }, 0x542A0004, 0x542A0003, 0x542A0005, 2, 0, 459 },
-    { { { .word = 3072 }, 6749, 0, -300 }, { 0, 0, 0, 0 }, { { .word = 2304 }, 6400, 0, 500 }, { 0, 0, 0, 0 }, 0, 0, 0, 6, 0, 0 },
-    { { { .word = 3072 }, -4500, 0, 920 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -4500, 0, 920 }, { 0, 0, 0, 0 }, 0x542A0002, 0, 0, 2, 0, 443 },
+DirectionWarpEntry D_shelter_b3_elevator_hall_80182B5C[3] = {
+    { { { .word = 2048 }, -6047, 0, 1500 }, { 0, 0, 0, 0 }, { { .word = 3328 }, -5000, 0, -200 }, { 0, 0, 0, 0 }, 0x542A0004, 0x542A0003, 0x542A0005, 2, DIRECTION_WARP_FLAG_NONE, 459 },
+    { { { .word = 3072 }, 6749, 0, -300 }, { 0, 0, 0, 0 }, { { .word = 2304 }, 6400, 0, 500 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 3072 }, -4500, 0, 920 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -4500, 0, 920 }, { 0, 0, 0, 0 }, 0x542A0002, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SHELTER_1BB },
 };
 
 static SVECTOR _gShelterB3ElevatorHallCollision05F08Normals[9] = {

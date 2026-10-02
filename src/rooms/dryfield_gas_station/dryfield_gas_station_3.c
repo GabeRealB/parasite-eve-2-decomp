@@ -272,10 +272,10 @@ WorldCoordRoomLighting D_dryfield_gas_station_80183160[1] = {
 
 ViewCount D_dryfield_gas_station_80183168[1] = { 14 };
 
-GpWarpRec D_dryfield_gas_station_8018316C[3] = {
-    { { { .word = 2816 }, 0x3848, 0, -2630 }, { 0, 0, 0, 0 }, { { .word = 2816 }, 0x3848, 0, -1440 }, { 0, 0, 0, 0 }, 0, 0, 0, 3, 0, 0 },
-    { { { .word = 1024 }, 294, -5, -3482 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 294, -5, -4466 }, { 0, 0, 0, 0 }, 0x52010002, 0x52010001, 0, 4, 0, 488 },
-    { { { .word = 2048 }, 3039, 0, -433 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 4316, 0, -535 }, { 0, 0, 0, 0 }, 0x52010004, 0x52010003, 0x5201000F, 6, 0, 489 },
+DirectionWarpEntry D_dryfield_gas_station_8018316C[3] = {
+    { { { .word = 2816 }, 0x3848, 0, -2630 }, { 0, 0, 0, 0 }, { { .word = 2816 }, 0x3848, 0, -1440 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 1024 }, 294, -5, -3482 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 294, -5, -4466 }, { 0, 0, 0, 0 }, 0x52010002, 0x52010001, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, 488 },
+    { { { .word = 2048 }, 3039, 0, -433 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 4316, 0, -535 }, { 0, 0, 0, 0 }, 0x52010004, 0x52010003, 0x5201000F, 6, DIRECTION_WARP_FLAG_NONE, 489 },
 };
 
 static SVECTOR _gDryfieldGasStationCollision068E4Normals[32] = {

@@ -56,8 +56,8 @@ u8* D_neo_ark_r31_8017DA1C[1] = {
 
 ViewCount D_neo_ark_r31_8017DA20[1] = { 3 };
 
-GpWarpRec D_neo_ark_r31_8017DA24[1] = {
-    { { { .word = 2048 }, 0, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 0, 0, 0 }, { 0, 0, 0, 0 }, 0, 0, 0, 1, 0, 0 },
+DirectionWarpEntry D_neo_ark_r31_8017DA24[1] = {
+    { { { .word = 2048 }, 0, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 0, 0, 0 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 1, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 ViewCamera D_neo_ark_r31_8017DA5C[3] = {

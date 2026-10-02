@@ -139,9 +139,9 @@ u8* D_shelter_1f_bulwark_801803C8[1] = {
 
 ViewCount D_shelter_1f_bulwark_801803CC[1] = { 3 };
 
-GpWarpRec D_shelter_1f_bulwark_801803D0[2] = {
-    { { { .word = 3072 }, 4000, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 3130, 0, 0 }, { 0, 0, 0, 0 }, 0x55030002, 0x55030001, 0, 2, 0, 428 },
-    { { { .word = 1024 }, -3800, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -3800, 0, 0 }, { 0, 0, 0, 0 }, 0x55030004, 0x55030003, 0, 3, 0, 0 },
+DirectionWarpEntry D_shelter_1f_bulwark_801803D0[2] = {
+    { { { .word = 3072 }, 4000, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 3130, 0, 0 }, { 0, 0, 0, 0 }, 0x55030002, 0x55030001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 428 },
+    { { { .word = 1024 }, -3800, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -3800, 0, 0 }, { 0, 0, 0, 0 }, 0x55030004, 0x55030003, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gShelter1fBulwarkCollision03088Normals[6] = {

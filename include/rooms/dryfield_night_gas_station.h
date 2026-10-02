@@ -22,7 +22,7 @@ extern u8* D_dryfield_night_gas_station_80189E70[];
 
 extern ViewCount D_dryfield_night_gas_station_80189E80[];
 
-extern GpWarpRec D_dryfield_night_gas_station_80189E88[];
+extern DirectionWarpEntry D_dryfield_night_gas_station_80189E88[];
 
 extern ViewCamera D_dryfield_night_gas_station_8018B780[];
 

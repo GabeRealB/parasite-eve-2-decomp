@@ -22,7 +22,7 @@ extern u8* D_shelter_b1_sleeping_quarters_80180658[];
 
 extern ViewCount D_shelter_b1_sleeping_quarters_8018065C[];
 
-extern GpWarpRec D_shelter_b1_sleeping_quarters_80180660[];
+extern DirectionWarpEntry D_shelter_b1_sleeping_quarters_80180660[];
 
 extern WorldCollisionGrid D_shelter_b1_sleeping_quarters_801810D4;
 

@@ -79,10 +79,10 @@ u8* D_dryfield_night_general_store_8017E844[1] = {
 
 ViewCount D_dryfield_night_general_store_8017E848[1] = { 16 };
 
-GpWarpRec D_dryfield_night_general_store_8017E84C[3] = {
-    { { { .word = 0 }, 3100, 0, 439 }, { 0, 0, 0, 0 }, { { .word = 1536 }, 2496, 0, 920 }, { 0, 0, 0, 0 }, 0x53030004, 0x53030003, 0, 2, 0, 489 },
-    { { { .word = 3072 }, 9669, 0, 4832 }, { 0, 0, 0, 0 }, { { .word = 512 }, 9128, 0, 4172 }, { 0, 0, 0, 0 }, 0x53030002, 0x53030001, 0x5303000B, 7, 0, 470 },
-    { { { .word = 3072 }, 8649, 0, 7411 }, { 0, 0, 0, 0 }, { { .word = 512 }, 8209, 0, 6766 }, { 0, 0, 0, 0 }, 0x5303000E, 0x5303000D, 0x53030006, 14, 0, 0 },
+DirectionWarpEntry D_dryfield_night_general_store_8017E84C[3] = {
+    { { { .word = 0 }, 3100, 0, 439 }, { 0, 0, 0, 0 }, { { .word = 1536 }, 2496, 0, 920 }, { 0, 0, 0, 0 }, 0x53030004, 0x53030003, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 489 },
+    { { { .word = 3072 }, 9669, 0, 4832 }, { 0, 0, 0, 0 }, { { .word = 512 }, 9128, 0, 4172 }, { 0, 0, 0, 0 }, 0x53030002, 0x53030001, 0x5303000B, 7, DIRECTION_WARP_FLAG_NONE, 470 },
+    { { { .word = 3072 }, 8649, 0, 7411 }, { 0, 0, 0, 0 }, { { .word = 512 }, 8209, 0, 6766 }, { 0, 0, 0, 0 }, 0x5303000E, 0x5303000D, 0x53030006, 14, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gDryfieldNightGeneralStoreCollision01EC4Normals[13] = {

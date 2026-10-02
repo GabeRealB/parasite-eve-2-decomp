@@ -60,9 +60,9 @@ u8* D_shelter_b6_training_room_80184418[1] = {
 
 ViewCount D_shelter_b6_training_room_8018441C[2] = { 8, 0 };
 
-GpWarpRec D_shelter_b6_training_room_80184420[2] = {
-    { { { .word = 1024 }, 500, 0, 1500 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 500, 0, 1500 }, { 0, 0, 0, 0 }, 0x55190005, 0, 0, 2, 0, 0 },
-    { { { .word = 3072 }, 4500, 0, 9390 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4500, 0, 9390 }, { 0, 0, 0, 0 }, 0, 0, 0, 4, 0, 0 },
+DirectionWarpEntry D_shelter_b6_training_room_80184420[2] = {
+    { { { .word = 1024 }, 500, 0, 1500 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 500, 0, 1500 }, { 0, 0, 0, 0 }, 0x55190005, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 3072 }, 4500, 0, 9390 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4500, 0, 9390 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gShelterB6TrainingRoomCollision07174Normals[7] = {

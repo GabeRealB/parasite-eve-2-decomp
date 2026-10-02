@@ -24,6 +24,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/gameflag_ids.h"
 #include "main/gameflow.h"
 #include "main/gfx.h"
 #include "main/mc.h"
@@ -113,8 +114,8 @@ u8* D_shelter_r47_80187674[1] = {
 
 ViewCount D_shelter_r47_80187678[1] = { 46 };
 
-GpWarpRec D_shelter_r47_8018767C[1] = {
-    { { { .word = 1024 }, 400, 0, 3300 }, { 0, 0, 0, 0 }, { { .word = 1792 }, 2800, 0, 3700 }, { 0, 0, 0, 0 }, 0x542F000B, 0x542F000A, 0, 2, 0, 450 },
+DirectionWarpEntry D_shelter_r47_8018767C[1] = {
+    { { { .word = 1024 }, 400, 0, 3300 }, { 0, 0, 0, 0 }, { { .word = 1792 }, 2800, 0, 3700 }, { 0, 0, 0, 0 }, 0x542F000B, 0x542F000A, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_B2_LABORATORY },
 };
 
 WorldCollisionTrigger D_shelter_r47_801876B4[6] = {

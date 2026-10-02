@@ -27,7 +27,7 @@ extern u8* D_dryfield_night_trailer_coach_80189518[];
 
 extern ViewCount D_dryfield_night_trailer_coach_8018951C[];
 
-extern GpWarpRec D_dryfield_night_trailer_coach_80189520[];
+extern DirectionWarpEntry D_dryfield_night_trailer_coach_80189520[];
 
 extern ViewCamera D_dryfield_night_trailer_coach_80189A44[];
 

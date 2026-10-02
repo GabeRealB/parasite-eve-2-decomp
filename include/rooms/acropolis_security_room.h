@@ -25,7 +25,7 @@ extern ViewCount D_acropolis_security_room_801839E4[];
 
 extern WorldCoordRoomLighting D_acropolis_security_room_801839E8[];
 
-extern GpWarpRec D_acropolis_security_room_801839F0[];
+extern DirectionWarpEntry D_acropolis_security_room_801839F0[];
 
 extern SpriteView D_acropolis_security_room_80184C50[];
 

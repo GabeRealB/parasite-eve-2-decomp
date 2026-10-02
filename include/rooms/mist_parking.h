@@ -24,7 +24,7 @@ extern ViewCount D_mist_parking_801915C0[];
 
 extern WorldCoordRoomLighting D_mist_parking_801915C8[];
 
-extern GpWarpRec D_mist_parking_801915E8[];
+extern DirectionWarpEntry D_mist_parking_801915E8[];
 
 extern ViewCamera D_mist_parking_80192228[];
 

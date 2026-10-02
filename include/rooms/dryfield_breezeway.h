@@ -22,7 +22,7 @@ extern WorldCoordRoomLighting D_dryfield_breezeway_80183180[];
 
 extern ViewCount D_dryfield_breezeway_80183188[];
 
-extern GpWarpRec D_dryfield_breezeway_8018318C[];
+extern DirectionWarpEntry D_dryfield_breezeway_8018318C[];
 
 extern ViewCamera D_dryfield_breezeway_8018364C[];
 

@@ -360,14 +360,14 @@ WorldCoordRoomLighting D_acropolis_square_80183BB4[1] = {
     { D_acropolis_square_80186468, D_acropolis_square_80186480 },
 };
 
-GpWarpRec D_acropolis_square_80183BBC[7] = {
-    { { { .word = 1024 }, -6510, -2136, 511 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -6510, -2136, 511 }, { 0, 0, 0, 0 }, 0x51010003, 0x51010002, 0x51010004, 13, 0, 503 },
-    { { { .word = 3072 }, 6513, -2138, 140 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 6513, -2138, 140 }, { 0, 0, 0, 0 }, 0x51010003, 0x51010002, 0x51010004, 6, 0, 502 },
-    { { { .word = 256 }, -4227, -1535, -3725 }, { 0, 0, 0, 0 }, { { .word = 256 }, -4227, -1535, -3725 }, { 0, 0, 0, 0 }, 0, 0, 0, 4, 0, 0 },
-    { { { .word = 3840 }, 4199, -1535, -3916 }, { 0, 0, 0, 0 }, { { .word = 3840 }, 4199, -1535, -3916 }, { 0, 0, 0, 0 }, 0, 0, 0, 5, 0, 0 },
-    { { { .word = 256 }, -4703, -1000, -4644 }, { 0, 0, 0, 0 }, { { .word = 256 }, -4419, -1200, -4340 }, { 0, 0, 0, 0 }, 0, 0, 0, 4, 1, 0 },
-    { { { .word = 3840 }, 4905, -1000, -4576 }, { 0, 0, 0, 0 }, { { .word = 3840 }, 4481, -1240, -4416 }, { 0, 0, 0, 0 }, 0, 0, 0, 5, 1, 0 },
-    { { { .word = 1024 }, -6510, -2136, 511 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -6510, -2136, 511 }, { 0, 0, 0, 0 }, 0x51010003, 0x51010002, 0x51010004, 15, 0, 503 },
+DirectionWarpEntry D_acropolis_square_80183BBC[7] = {
+    { { { .word = 1024 }, -6510, -2136, 511 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -6510, -2136, 511 }, { 0, 0, 0, 0 }, 0x51010003, 0x51010002, 0x51010004, 13, DIRECTION_WARP_FLAG_NONE, 503 },
+    { { { .word = 3072 }, 6513, -2138, 140 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 6513, -2138, 140 }, { 0, 0, 0, 0 }, 0x51010003, 0x51010002, 0x51010004, 6, DIRECTION_WARP_FLAG_NONE, 502 },
+    { { { .word = 256 }, -4227, -1535, -3725 }, { 0, 0, 0, 0 }, { { .word = 256 }, -4227, -1535, -3725 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 3840 }, 4199, -1535, -3916 }, { 0, 0, 0, 0 }, { { .word = 3840 }, 4199, -1535, -3916 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 256 }, -4703, -1000, -4644 }, { 0, 0, 0, 0 }, { { .word = 256 }, -4419, -1200, -4340 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_SCRIPTED_PLAYER, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 3840 }, 4905, -1000, -4576 }, { 0, 0, 0, 0 }, { { .word = 3840 }, 4481, -1240, -4416 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_SCRIPTED_PLAYER, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 1024 }, -6510, -2136, 511 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -6510, -2136, 511 }, { 0, 0, 0, 0 }, 0x51010003, 0x51010002, 0x51010004, 15, DIRECTION_WARP_FLAG_NONE, 503 },
 };
 
 static SVECTOR _gAcropolisSquareCollision07BDCNormals[82] = {

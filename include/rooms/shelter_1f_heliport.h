@@ -24,7 +24,7 @@ extern u8* D_shelter_1f_heliport_801812E8[];
 
 extern ViewCount D_shelter_1f_heliport_801812EC[];
 
-extern GpWarpRec D_shelter_1f_heliport_801812F0[];
+extern DirectionWarpEntry D_shelter_1f_heliport_801812F0[];
 
 extern ViewCamera D_shelter_1f_heliport_80181998[];
 

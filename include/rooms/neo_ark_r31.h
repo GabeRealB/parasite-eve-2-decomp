@@ -22,7 +22,7 @@ extern u8* D_neo_ark_r31_8017DA1C[];
 
 extern ViewCount D_neo_ark_r31_8017DA20[];
 
-extern GpWarpRec D_neo_ark_r31_8017DA24[];
+extern DirectionWarpEntry D_neo_ark_r31_8017DA24[];
 
 extern ViewCamera D_neo_ark_r31_8017DA5C[];
 

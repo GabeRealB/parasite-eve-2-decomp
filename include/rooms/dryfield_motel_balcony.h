@@ -22,7 +22,7 @@ extern ViewCount D_dryfield_motel_balcony_801822E4[];
 
 extern WorldCoordRoomLighting D_dryfield_motel_balcony_801822E8[];
 
-extern GpWarpRec D_dryfield_motel_balcony_801822F0[];
+extern DirectionWarpEntry D_dryfield_motel_balcony_801822F0[];
 
 extern ViewCamera D_dryfield_motel_balcony_80182B80[];
 

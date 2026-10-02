@@ -30,6 +30,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/gameflag_ids.h"
 #include "main/random.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
@@ -99,10 +100,10 @@ u8* D_neo_ark_garden_80181424[1] = {
 
 ViewCount D_neo_ark_garden_80181428[1] = { 7 };
 
-GpWarpRec D_neo_ark_garden_8018142C[3] = {
-    { { { .word = 2048 }, -3040, 0, -0x319C }, { 0, 0, 0, 0 }, { { .word = 2048 }, -3040, 0, -0x319C }, { 0, 0, 0, 0 }, 0x550F0006, 0x550F0005, 0, 2, 0, 0 },
-    { { { .word = 3072 }, 1500, 0, -0x445C }, { 0, 0, 0, 0 }, { { .word = 3072 }, 1500, 0, -0x445C }, { 0, 0, 0, 0 }, 0x550F0002, 0x550F0001, 0x550F0009, 4, 0, 439 },
-    { { { .word = 0 }, -7543, 0, -0x4876 }, { 0, 0, 0, 0 }, { { .word = 0 }, -7543, 0, -0x4876 }, { 0, 0, 0, 0 }, 0, 0, 0, 3, 0, 437 },
+DirectionWarpEntry D_neo_ark_garden_8018142C[3] = {
+    { { { .word = 2048 }, -3040, 0, -0x319C }, { 0, 0, 0, 0 }, { { .word = 2048 }, -3040, 0, -0x319C }, { 0, 0, 0, 0 }, 0x550F0006, 0x550F0005, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 3072 }, 1500, 0, -0x445C }, { 0, 0, 0, 0 }, { { .word = 3072 }, 1500, 0, -0x445C }, { 0, 0, 0, 0 }, 0x550F0002, 0x550F0001, 0x550F0009, 4, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_ALTAR },
+    { { { .word = 0 }, -7543, 0, -0x4876 }, { 0, 0, 0, 0 }, { { .word = 0 }, -7543, 0, -0x4876 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, 437 },
 };
 
 static SVECTOR _gNeoArkGardenCollision04104Normals[5] = {

@@ -38,6 +38,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/gameflag_ids.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
 #include "main/mem.h"
@@ -152,11 +153,11 @@ WorldCoordRoomLighting D_acropolis_observatory_8017FEFC[2] = {
     { D_acropolis_observatory_8018177C, NULL },
 };
 
-GpWarpRec D_acropolis_observatory_8017FF0C[4] = {
-    { { { .word = 1024 }, -2296, -2923, -0x2C02 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -2296, -2923, -0x2C02 }, { 0, 0, 0, 0 }, 0, 0, 0, 4, 0, 0 },
-    { { { .word = 1024 }, -2408, -2926, -1748 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -2408, -2926, -1748 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 494 },
-    { { { .word = 1024 }, -2296, -2923, -0x2C02 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -2296, -2923, -0x2C02 }, { 0, 0, 0, 0 }, 0, 0, 0, 7, 0, 0 },
-    { { { .word = 1024 }, -2408, -2926, -1748 }, { 0, 0, 0, 0 }, { { .word = 0 }, 0, 0, 0 }, { 0, 0, 0, 0 }, 0, 0, 0, 6, 0, 494 },
+DirectionWarpEntry D_acropolis_observatory_8017FF0C[4] = {
+    { { { .word = 1024 }, -2296, -2923, -0x2C02 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -2296, -2923, -0x2C02 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 1024 }, -2408, -2926, -1748 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -2408, -2926, -1748 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SECURITY_ROOM },
+    { { { .word = 1024 }, -2296, -2923, -0x2C02 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -2296, -2923, -0x2C02 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 7, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 1024 }, -2408, -2926, -1748 }, { 0, 0, 0, 0 }, { { .word = 0 }, 0, 0, 0 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SECURITY_ROOM },
 };
 
 static SVECTOR _gAcropolisObservatoryCollision03490Normals[22] = {

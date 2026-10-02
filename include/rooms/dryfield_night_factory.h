@@ -27,7 +27,7 @@ extern WorldCollisionRoomResources D_dryfield_night_factory_80186F34[];
 
 extern ViewCount D_dryfield_night_factory_80186F54[];
 
-extern GpWarpRec D_dryfield_night_factory_80186F58[];
+extern DirectionWarpEntry D_dryfield_night_factory_80186F58[];
 
 extern ViewCamera D_dryfield_night_factory_80187C14[];
 

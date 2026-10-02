@@ -261,10 +261,10 @@ WorldCoordRoomLighting D_acropolis_fire_escape_80181DC4[1] = {
     { D_acropolis_fire_escape_80182B54, NULL },
 };
 
-GpWarpRec D_acropolis_fire_escape_80181DCC[3] = {
-    { { { .word = 3072 }, 2628, 1, -183 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 2628, 1, -183 }, { 0, 0, 0, 0 }, 0x510F0003, 0x510F0002, 0, 2, 0, 490 },
-    { { { .word = 0 }, -4294, -1799, 1240 }, { 0, 0, 0, 0 }, { { .word = 0 }, -4294, -1799, 1240 }, { 0, 0, 0, 0 }, 0, 0, 0, 6, 0, 0 },
-    { { { .word = 0 }, -4294, -2450, 340 }, { 0, 0, 0, 0 }, { { .word = 0 }, -4294, -1800, 1240 }, { 0, 0, 0, 0 }, 0, 0, 0, 6, 1, 0 },
+DirectionWarpEntry D_acropolis_fire_escape_80181DCC[3] = {
+    { { { .word = 3072 }, 2628, 1, -183 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 2628, 1, -183 }, { 0, 0, 0, 0 }, 0x510F0003, 0x510F0002, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 490 },
+    { { { .word = 0 }, -4294, -1799, 1240 }, { 0, 0, 0, 0 }, { { .word = 0 }, -4294, -1799, 1240 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 0 }, -4294, -2450, 340 }, { 0, 0, 0, 0 }, { { .word = 0 }, -4294, -1800, 1240 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_SCRIPTED_PLAYER, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 SVECTOR gAcropolisFireEscapeCollision04CE8Normals[10] = {

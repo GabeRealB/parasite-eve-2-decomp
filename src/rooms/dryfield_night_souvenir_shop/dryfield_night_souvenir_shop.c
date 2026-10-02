@@ -97,8 +97,8 @@ u8* D_dryfield_night_souvenir_shop_8017E0FC[1] = {
 
 ViewCount D_dryfield_night_souvenir_shop_8017E100[1] = { 3 };
 
-GpWarpRec D_dryfield_night_souvenir_shop_8017E104[1] = {
-    { { { .word = 0 }, 2000, 0, -3550 }, { 0, 0, 0, 0 }, { { .word = 512 }, 1381, 0, -2750 }, { 0, 0, 0, 0 }, 0x53060002, 0x53060001, 0, 2, 0, 469 },
+DirectionWarpEntry D_dryfield_night_souvenir_shop_8017E104[1] = {
+    { { { .word = 0 }, 2000, 0, -3550 }, { 0, 0, 0, 0 }, { { .word = 512 }, 1381, 0, -2750 }, { 0, 0, 0, 0 }, 0x53060002, 0x53060001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 469 },
 };
 
 static SVECTOR _gDryfieldNightSouvenirShopCollision01044Normals[11] = {

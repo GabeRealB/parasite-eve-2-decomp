@@ -22,7 +22,7 @@ extern u8* D_dryfield_night_g_r_kitchen_8017E2D4[];
 
 extern ViewCount D_dryfield_night_g_r_kitchen_8017E2D8[];
 
-extern GpWarpRec D_dryfield_night_g_r_kitchen_8017E2DC[];
+extern DirectionWarpEntry D_dryfield_night_g_r_kitchen_8017E2DC[];
 
 extern ViewCamera D_dryfield_night_g_r_kitchen_8017E578[];
 

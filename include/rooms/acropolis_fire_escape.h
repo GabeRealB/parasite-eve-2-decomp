@@ -32,7 +32,7 @@ extern ViewCount D_acropolis_fire_escape_80181DC0[];
 
 extern WorldCoordRoomLighting D_acropolis_fire_escape_80181DC4[];
 
-extern GpWarpRec D_acropolis_fire_escape_80181DCC[];
+extern DirectionWarpEntry D_acropolis_fire_escape_80181DCC[];
 
 extern SpriteView D_acropolis_fire_escape_80182E18[];
 

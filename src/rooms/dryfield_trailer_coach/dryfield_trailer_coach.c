@@ -811,9 +811,9 @@ u8* D_dryfield_trailer_coach_801871E4[1] = {
 
 ViewCount D_dryfield_trailer_coach_801871E8[1] = { 11 };
 
-GpWarpRec D_dryfield_trailer_coach_801871EC[2] = {
-    { { { .word = 2048 }, 1579, 0, -800 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 1579, 0, -800 }, { 0, 0, 0, 0 }, 0x521B0002, 0x521B0001, 0, 2, 0, 471 },
-    { { { .word = 2048 }, 1579, 0, -800 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 1579, 0, -800 }, { 0, 0, 0, 0 }, 0x521B0002, 0x521B0001, 0, 5, 0, 471 },
+DirectionWarpEntry D_dryfield_trailer_coach_801871EC[2] = {
+    { { { .word = 2048 }, 1579, 0, -800 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 1579, 0, -800 }, { 0, 0, 0, 0 }, 0x521B0002, 0x521B0001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 471 },
+    { { { .word = 2048 }, 1579, 0, -800 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 1579, 0, -800 }, { 0, 0, 0, 0 }, 0x521B0002, 0x521B0001, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, 471 },
 };
 
 static SVECTOR _gDryfieldTrailerCoachCollision0A0F4Normals[10] = {

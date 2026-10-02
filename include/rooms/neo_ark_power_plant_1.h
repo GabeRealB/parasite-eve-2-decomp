@@ -22,7 +22,7 @@ extern u8* D_neo_ark_power_plant_1_8017F1E0[];
 
 extern ViewCount D_neo_ark_power_plant_1_8017F1E4[];
 
-extern GpWarpRec D_neo_ark_power_plant_1_8017F1E8[];
+extern DirectionWarpEntry D_neo_ark_power_plant_1_8017F1E8[];
 
 extern ViewCamera D_neo_ark_power_plant_1_801800B4[];
 

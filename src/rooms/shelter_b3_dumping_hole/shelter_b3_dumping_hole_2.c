@@ -1019,10 +1019,10 @@ u8* D_shelter_b3_dumping_hole_8018B698[2] = {
 
 ViewCount D_shelter_b3_dumping_hole_8018B6A0[2] = { 37, 37 };
 
-GpWarpRec D_shelter_b3_dumping_hole_8018B6A4[3] = {
-    { { { .word = 3072 }, 0x4C2C, 0, -4450 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x4C2C, 0, -4450 }, { 0, 0, 0, 0 }, 0x54270004, 0x54270003, 0, 30, 0, 0 },
-    { { { .word = 3072 }, 0x4C2C, 0, -4450 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x4C2C, 0, -4450 }, { 0, 0, 0, 0 }, 0, 0, 0, 30, 0, 0 },
-    { { { .word = 3072 }, 0x4C2C, 0, -4450 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x4C2C, 0, -4450 }, { 0, 0, 0, 0 }, 0, 0, 0, 15, 0, 0 },
+DirectionWarpEntry D_shelter_b3_dumping_hole_8018B6A4[3] = {
+    { { { .word = 3072 }, 0x4C2C, 0, -4450 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x4C2C, 0, -4450 }, { 0, 0, 0, 0 }, 0x54270004, 0x54270003, DIRECTION_WARP_SOUND_NONE, 30, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 3072 }, 0x4C2C, 0, -4450 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x4C2C, 0, -4450 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 30, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 3072 }, 0x4C2C, 0, -4450 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x4C2C, 0, -4450 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 15, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 ActorsShared801673f8Spot D_shelter_b3_dumping_hole_8018B74C[12] = {

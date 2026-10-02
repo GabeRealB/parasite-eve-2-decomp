@@ -22,7 +22,7 @@ extern u8* D_shelter_1f_parking_garage_80180C7C[];
 
 extern ViewCount D_shelter_1f_parking_garage_80180C80[];
 
-extern GpWarpRec D_shelter_1f_parking_garage_80180C84[];
+extern DirectionWarpEntry D_shelter_1f_parking_garage_80180C84[];
 
 extern ViewCamera D_shelter_1f_parking_garage_8018100C[];
 

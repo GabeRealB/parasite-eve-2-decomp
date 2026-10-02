@@ -22,7 +22,7 @@ extern u8* D_neo_ark_south_promenade_8017F704[];
 
 extern ViewCount D_neo_ark_south_promenade_8017F708[];
 
-extern GpWarpRec D_neo_ark_south_promenade_8017F70C[];
+extern DirectionWarpEntry D_neo_ark_south_promenade_8017F70C[];
 
 extern ViewCamera D_neo_ark_south_promenade_8017FDB0[];
 

@@ -22,7 +22,7 @@ extern u8* D_dryfield_night_dilapidated_house_801873A4[];
 
 extern ViewCount D_dryfield_night_dilapidated_house_801873A8[];
 
-extern GpWarpRec D_dryfield_night_dilapidated_house_801873AC[];
+extern DirectionWarpEntry D_dryfield_night_dilapidated_house_801873AC[];
 
 extern ViewCamera D_dryfield_night_dilapidated_house_80187D68[];
 

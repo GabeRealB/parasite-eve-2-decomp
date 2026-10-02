@@ -88,8 +88,8 @@ u8* D_shelter_1f_guardroom_8017DA90[1] = {
 
 ViewCount D_shelter_1f_guardroom_8017DA94[1] = { 3 };
 
-GpWarpRec D_shelter_1f_guardroom_8017DA98[1] = {
-    { { { .word = 2048 }, -9000, 0, -3620 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -9000, 0, -3620 }, { 0, 0, 0, 0 }, 0x55060002, 0x55060001, 0, 2, 0, 0 },
+DirectionWarpEntry D_shelter_1f_guardroom_8017DA98[1] = {
+    { { { .word = 2048 }, -9000, 0, -3620 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -9000, 0, -3620 }, { 0, 0, 0, 0 }, 0x55060002, 0x55060001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gShelter1fGuardroomCollision00630Normals[7] = {

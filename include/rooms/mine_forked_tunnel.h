@@ -25,7 +25,7 @@ extern u8* D_mine_forked_tunnel_8018364C[];
 
 extern ViewCount D_mine_forked_tunnel_80183650[];
 
-extern GpWarpRec D_mine_forked_tunnel_80183654[];
+extern DirectionWarpEntry D_mine_forked_tunnel_80183654[];
 
 extern ViewCamera D_mine_forked_tunnel_80183D94[];
 

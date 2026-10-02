@@ -69,9 +69,9 @@ u8* D_neo_ark_bridge_80181F80[1] = {
 
 ViewCount D_neo_ark_bridge_80181F84[1] = { 8 };
 
-GpWarpRec D_neo_ark_bridge_80181F88[2] = {
-    { { { .word = 2048 }, -3160, 0, 6368 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -3160, 0, 6368 }, { 0, 0, 0, 0 }, 0x551B0002, 0x551B0001, 0, 2, 0, 0 },
-    { { { .word = 0 }, -3160, 0, -0x2D50 }, { 0, 0, 0, 0 }, { { .word = 0 }, -3160, 0, -0x2D50 }, { 0, 0, 0, 0 }, 0x551B0002, 0x551B0001, 0, 6, 0, 0 },
+DirectionWarpEntry D_neo_ark_bridge_80181F88[2] = {
+    { { { .word = 2048 }, -3160, 0, 6368 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -3160, 0, 6368 }, { 0, 0, 0, 0 }, 0x551B0002, 0x551B0001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 0 }, -3160, 0, -0x2D50 }, { 0, 0, 0, 0 }, { { .word = 0 }, -3160, 0, -0x2D50 }, { 0, 0, 0, 0 }, 0x551B0002, 0x551B0001, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 // Height override read by the shared waypoint actor.

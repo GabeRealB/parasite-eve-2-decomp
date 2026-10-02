@@ -222,8 +222,8 @@ u8* D_neo_ark_r26_8017E0E4[1] = {
 
 ViewCount D_neo_ark_r26_8017E0E8[1] = { 4 };
 
-GpWarpRec D_neo_ark_r26_8017E0EC[1] = {
-    { { { .word = 2048 }, 0, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 0, 0, 0 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
+DirectionWarpEntry D_neo_ark_r26_8017E0EC[1] = {
+    { { { .word = 2048 }, 0, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 0, 0, 0 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gNeoArkR26Collision00BDCNormals[1] = {

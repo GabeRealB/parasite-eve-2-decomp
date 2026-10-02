@@ -22,7 +22,7 @@ extern WorldCoordRoomLighting D_mine_mesa_8018654C[];
 
 extern ViewCount D_mine_mesa_80186554[];
 
-extern GpWarpRec D_mine_mesa_80186558[];
+extern DirectionWarpEntry D_mine_mesa_80186558[];
 
 extern ViewCamera D_mine_mesa_80187030[];
 

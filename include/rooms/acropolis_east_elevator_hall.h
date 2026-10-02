@@ -22,7 +22,7 @@ extern ViewCount D_acropolis_east_elevator_hall_80186334[];
 
 extern WorldCoordRoomLighting D_acropolis_east_elevator_hall_80186338[];
 
-extern GpWarpRec D_acropolis_east_elevator_hall_80186340[];
+extern DirectionWarpEntry D_acropolis_east_elevator_hall_80186340[];
 
 extern SpriteView D_acropolis_east_elevator_hall_80187870[];
 

@@ -43,10 +43,10 @@ u8* D_shelter_b1_control_room_80181C70[1] = {
 
 ViewCount D_shelter_b1_control_room_80181C74[1] = { 8 };
 
-GpWarpRec D_shelter_b1_control_room_80181C78[3] = {
-    { { { .word = 3072 }, 0x283C, -600, -3700 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x283C, -600, -3700 }, { 0, 0, 0, 0 }, 0x54120002, 0x54120001, 0, 2, 0, 0 },
-    { { { .word = 2048 }, 9120, -672, -3000 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 9120, -672, -3000 }, { 0, 0, 0, 0 }, 0x54120004, 0x54120003, 0x54120005, 2, 0, 453 },
-    { { { .word = 3072 }, 0x283C, -600, -3700 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x283C, -600, -3700 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
+DirectionWarpEntry D_shelter_b1_control_room_80181C78[3] = {
+    { { { .word = 3072 }, 0x283C, -600, -3700 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x283C, -600, -3700 }, { 0, 0, 0, 0 }, 0x54120002, 0x54120001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 2048 }, 9120, -672, -3000 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 9120, -672, -3000 }, { 0, 0, 0, 0 }, 0x54120004, 0x54120003, 0x54120005, 2, DIRECTION_WARP_FLAG_NONE, 453 },
+    { { { .word = 3072 }, 0x283C, -600, -3700 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x283C, -600, -3700 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gShelterB1ControlRoomCollision04B38Normals[7] = {

@@ -281,10 +281,10 @@ WorldCollisionRoomResources D_dryfield_night_factory_80186F34[2] = {
 
 ViewCount D_dryfield_night_factory_80186F54[2] = { 19, 19 };
 
-GpWarpRec D_dryfield_night_factory_80186F58[3] = {
-    { { { .word = 3072 }, 5178, 0, 1454 }, { 0, 0, 0, 0 }, { { .word = 768 }, 3952, 0, 1200 }, { 0, 0, 0, 0 }, 0x53170002, 0x53170001, 0, 2, 0, 474 },
-    { { { .word = 1024 }, 642, 0, 7493 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 1100, 0, 7060 }, { 0, 0, 0, 0 }, 0x53170004, 0x53170003, 0x53170005, 7, 0, 475 },
-    { { { .word = 3072 }, 5445, 1, 6866 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 1100, 0, 7060 }, { 0, 0, 0, 0 }, 0x53170014, 0x53170006, 0, 6, 2, 473 },
+DirectionWarpEntry D_dryfield_night_factory_80186F58[3] = {
+    { { { .word = 3072 }, 5178, 0, 1454 }, { 0, 0, 0, 0 }, { { .word = 768 }, 3952, 0, 1200 }, { 0, 0, 0, 0 }, 0x53170002, 0x53170001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 474 },
+    { { { .word = 1024 }, 642, 0, 7493 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 1100, 0, 7060 }, { 0, 0, 0, 0 }, 0x53170004, 0x53170003, 0x53170005, 7, DIRECTION_WARP_FLAG_NONE, 475 },
+    { { { .word = 3072 }, 5445, 1, 6866 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 1100, 0, 7060 }, { 0, 0, 0, 0 }, 0x53170014, 0x53170006, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_FADE_DEPARTURE, 473 },
 };
 
 static SVECTOR _gDryfieldNightFactoryCollision0A630Normals[28] = {

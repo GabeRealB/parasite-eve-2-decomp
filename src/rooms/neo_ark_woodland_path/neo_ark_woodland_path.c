@@ -85,9 +85,9 @@ u8* D_neo_ark_woodland_path_80181694[1] = {
 
 ViewCount D_neo_ark_woodland_path_80181698[1] = { 10 };
 
-GpWarpRec D_neo_ark_woodland_path_8018169C[2] = {
-    { { { .word = 2048 }, -3895, 0, 9510 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -3895, 0, 9510 }, { 0, 0, 0, 0 }, 0x551D0002, 0x551D0001, 0, 2, 0, 0 },
-    { { { .word = 0 }, -5000, 0, -6680 }, { 0, 0, 0, 0 }, { { .word = 0 }, -5000, 0, -6680 }, { 0, 0, 0, 0 }, 0x551D0004, 0x551D0003, 0, 10, 0, 0 },
+DirectionWarpEntry D_neo_ark_woodland_path_8018169C[2] = {
+    { { { .word = 2048 }, -3895, 0, 9510 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -3895, 0, 9510 }, { 0, 0, 0, 0 }, 0x551D0002, 0x551D0001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 0 }, -5000, 0, -6680 }, { 0, 0, 0, 0 }, { { .word = 0 }, -5000, 0, -6680 }, { 0, 0, 0, 0 }, 0x551D0004, 0x551D0003, DIRECTION_WARP_SOUND_NONE, 10, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gNeoArkWoodlandPathCollision0479CNormals[17] = {

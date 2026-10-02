@@ -22,7 +22,7 @@ extern ViewCount D_dryfield_water_hole_8017FD94[];
 
 extern WorldCoordRoomLighting D_dryfield_water_hole_8017FD9C[];
 
-extern GpWarpRec D_dryfield_water_hole_8017FDBC[];
+extern DirectionWarpEntry D_dryfield_water_hole_8017FDBC[];
 
 extern ViewCamera D_dryfield_water_hole_80180284[];
 

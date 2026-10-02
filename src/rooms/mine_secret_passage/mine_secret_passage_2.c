@@ -34,6 +34,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/gameflag_ids.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
@@ -144,9 +145,9 @@ u8* D_mine_secret_passage_80180FB4[1] = {
 
 ViewCount D_mine_secret_passage_80180FB8[1] = { 8 };
 
-GpWarpRec D_mine_secret_passage_80180FBC[2] = {
-    { { { .word = 2048 }, 1400, 0, 0x36B0 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 1400, 0, 0x36B0 }, { 0, 0, 0, 0 }, 0x54080002, 0x54080001, 0, 2, 0, 441 },
-    { { { .word = 3072 }, 0x5014, 0, 3900 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x5014, 0, 3900 }, { 0, 0, 0, 0 }, 0x54080004, 0x54080003, 0, 6, 2, 0 },
+DirectionWarpEntry D_mine_secret_passage_80180FBC[2] = {
+    { { { .word = 2048 }, 1400, 0, 0x36B0 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 1400, 0, 0x36B0 }, { 0, 0, 0, 0 }, 0x54080002, 0x54080001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_MINE_CAVERN },
+    { { { .word = 3072 }, 0x5014, 0, 3900 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x5014, 0, 3900 }, { 0, 0, 0, 0 }, 0x54080004, 0x54080003, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_FADE_DEPARTURE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gMineSecretPassageCollision04020Normals[21] = {

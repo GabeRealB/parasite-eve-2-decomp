@@ -1029,8 +1029,8 @@ u8* D_mine_forked_tunnel_8018364C[1] = {
 
 ViewCount D_mine_forked_tunnel_80183650[1] = { 7 };
 
-GpWarpRec D_mine_forked_tunnel_80183654[1] = {
-    { { { .word = 2048 }, 2350, 0, 0x2904 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 2350, 0, 0x2904 }, { 0, 0, 0, 0 }, 0x54070002, 0x54070001, 0, 3, 0, 0 },
+DirectionWarpEntry D_mine_forked_tunnel_80183654[1] = {
+    { { { .word = 2048 }, 2350, 0, 0x2904 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 2350, 0, 0x2904 }, { 0, 0, 0, 0 }, 0x54070002, 0x54070001, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gMineForkedTunnelCollision067B0Normals[33] = {

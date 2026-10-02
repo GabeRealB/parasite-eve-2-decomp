@@ -48,9 +48,9 @@ u8* D_shelter_b2_breeding_room_8018055C[1] = {
 
 ViewCount D_shelter_b2_breeding_room_80180560[1] = { 10 };
 
-GpWarpRec D_shelter_b2_breeding_room_80180564[2] = {
-    { { { .word = 1024 }, 100, 0, -900 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 100, 0, -900 }, { 0, 0, 0, 0 }, 0x54200004, 0x54200003, 0, 2, 0, 0 },
-    { { { .word = 2048 }, 0x2E9E, 0, 5960 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 0x2E9E, 0, 5960 }, { 0, 0, 0, 0 }, 0x54200002, 0x54200001, 0, 6, 0, 0 },
+DirectionWarpEntry D_shelter_b2_breeding_room_80180564[2] = {
+    { { { .word = 1024 }, 100, 0, -900 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 100, 0, -900 }, { 0, 0, 0, 0 }, 0x54200004, 0x54200003, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 2048 }, 0x2E9E, 0, 5960 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 0x2E9E, 0, 5960 }, { 0, 0, 0, 0 }, 0x54200002, 0x54200001, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gShelterB2BreedingRoomCollision03B34Normals[27] = {

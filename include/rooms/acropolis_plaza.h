@@ -98,7 +98,7 @@ extern ViewCamera D_acropolis_plaza_801988D8[];
 
 extern SpriteView D_acropolis_plaza_80198A08[];
 
-extern GpWarpRec D_acropolis_plaza_80198A68[];
+extern DirectionWarpEntry D_acropolis_plaza_80198A68[];
 
 extern WorldCollisionSurfaceProperties* D_acropolis_plaza_80199F28[];
 

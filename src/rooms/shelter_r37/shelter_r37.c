@@ -42,8 +42,8 @@ u8* D_shelter_r37_8017D6F8[1] = {
 
 ViewCount D_shelter_r37_8017D6FC[1] = { 3 };
 
-GpWarpRec D_shelter_r37_8017D700[1] = {
-    { { { .word = 1024 }, 3756, 0, -197 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 3756, 0, -197 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
+DirectionWarpEntry D_shelter_r37_8017D700[1] = {
+    { { { .word = 1024 }, 3756, 0, -197 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 3756, 0, -197 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gShelterR37Collision00360Normals[6] = {

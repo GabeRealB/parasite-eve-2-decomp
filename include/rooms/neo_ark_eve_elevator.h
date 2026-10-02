@@ -19,7 +19,7 @@ extern u8* D_neo_ark_eve_elevator_8017D764[];
 
 extern ViewCount D_neo_ark_eve_elevator_8017D768[];
 
-extern GpWarpRec D_neo_ark_eve_elevator_8017D76C[];
+extern DirectionWarpEntry D_neo_ark_eve_elevator_8017D76C[];
 
 extern ViewCamera D_neo_ark_eve_elevator_8017DA50[];
 

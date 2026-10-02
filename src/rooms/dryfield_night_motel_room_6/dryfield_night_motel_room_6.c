@@ -231,9 +231,9 @@ u8* D_dryfield_night_motel_room_6_80182F18[1] = {
 
 ViewCount D_dryfield_night_motel_room_6_80182F1C[1] = { 12 };
 
-GpWarpRec D_dryfield_night_motel_room_6_80182F20[2] = {
-    { { { .word = 3072 }, 4350, 0, 1500 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4350, 0, 1500 }, { 0, 0, 0, 0 }, 0x531E0002, 0x531E0001, 0, 2, 0, 465 },
-    { { { .word = 1024 }, 715, 0, 6640 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 715, 0, 6640 }, { 0, 0, 0, 0 }, 0, 0x531E0003, 0, 5, 2, 0 },
+DirectionWarpEntry D_dryfield_night_motel_room_6_80182F20[2] = {
+    { { { .word = 3072 }, 4350, 0, 1500 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4350, 0, 1500 }, { 0, 0, 0, 0 }, 0x531E0002, 0x531E0001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 465 },
+    { { { .word = 1024 }, 715, 0, 6640 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 715, 0, 6640 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, 0x531E0003, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_FADE_DEPARTURE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gDryfieldNightMotelRoom6Collision063C4Normals[24] = {

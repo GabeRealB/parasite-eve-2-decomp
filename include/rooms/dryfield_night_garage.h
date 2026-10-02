@@ -26,7 +26,7 @@ extern u8* D_dryfield_night_garage_80183434[];
 
 extern ViewCount D_dryfield_night_garage_8018343C[];
 
-extern GpWarpRec D_dryfield_night_garage_80183440[];
+extern DirectionWarpEntry D_dryfield_night_garage_80183440[];
 
 extern ViewCamera D_dryfield_night_garage_801843F8[];
 

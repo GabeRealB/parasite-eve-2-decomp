@@ -22,7 +22,7 @@ extern u8* D_dryfield_night_underpass_8017DE3C[];
 
 extern ViewCount D_dryfield_night_underpass_8017DE54[];
 
-extern GpWarpRec D_dryfield_night_underpass_8017DE60[];
+extern DirectionWarpEntry D_dryfield_night_underpass_8017DE60[];
 
 extern ViewCamera D_dryfield_night_underpass_8017E6F8[];
 

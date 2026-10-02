@@ -31,6 +31,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/gameflag_ids.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
@@ -152,10 +153,10 @@ u8* D_shelter_b1_storeroom_80184B68[1] = {
 
 ViewCount D_shelter_b1_storeroom_80184B6C[1] = { 8 };
 
-GpWarpRec D_shelter_b1_storeroom_80184B70[3] = {
-    { { { .word = 0 }, 5750, 0, -2200 }, { 0, 0, 0, 0 }, { { .word = 0 }, 5750, 0, -2200 }, { 0, 0, 0, 0 }, 0x540B0002, 0x540B0001, 0, 2, 0, 430 },
-    { { { .word = 0 }, -3250, 0, -2200 }, { 0, 0, 0, 0 }, { { .word = 0 }, -3250, 0, -2200 }, { 0, 0, 0, 0 }, 0x540B0006, 0x540B0005, 0x540B0007, 4, 0, 460 },
-    { { { .word = 2048 }, 5750, 0, 2200 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 5750, 0, 2200 }, { 0, 0, 0, 0 }, 0x540B0004, 0x540B0003, 0, 6, 0, 432 },
+DirectionWarpEntry D_shelter_b1_storeroom_80184B70[3] = {
+    { { { .word = 0 }, 5750, 0, -2200 }, { 0, 0, 0, 0 }, { { .word = 0 }, 5750, 0, -2200 }, { 0, 0, 0, 0 }, 0x540B0002, 0x540B0001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SHELTER_1AE },
+    { { { .word = 0 }, -3250, 0, -2200 }, { 0, 0, 0, 0 }, { { .word = 0 }, -3250, 0, -2200 }, { 0, 0, 0, 0 }, 0x540B0006, 0x540B0005, 0x540B0007, 4, DIRECTION_WARP_FLAG_NONE, 460 },
+    { { { .word = 2048 }, 5750, 0, 2200 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 5750, 0, 2200 }, { 0, 0, 0, 0 }, 0x540B0004, 0x540B0003, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SHELTER_1B0 },
 };
 
 static SVECTOR _gShelterB1StoreroomCollision07B18Normals[18] = {

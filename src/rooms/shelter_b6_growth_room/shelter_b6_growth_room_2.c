@@ -122,8 +122,8 @@ u8* D_shelter_b6_growth_room_8017F378[1] = {
 
 ViewCount D_shelter_b6_growth_room_8017F37C[1] = { 8 };
 
-GpWarpRec D_shelter_b6_growth_room_8017F380[1] = {
-    { { { .word = 0 }, 4030, 0, -2950 }, { 0, 0, 0, 0 }, { { .word = 0 }, 4030, 0, -2950 }, { 0, 0, 0, 0 }, 0, 0, 0, 4, 0, 437 },
+DirectionWarpEntry D_shelter_b6_growth_room_8017F380[1] = {
+    { { { .word = 0 }, 4030, 0, -2950 }, { 0, 0, 0, 0 }, { { .word = 0 }, 4030, 0, -2950 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, 437 },
 };
 
 static SVECTOR _gShelterB6GrowthRoomCollision02530Normals[14] = {

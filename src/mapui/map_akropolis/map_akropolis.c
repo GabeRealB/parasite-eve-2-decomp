@@ -737,7 +737,7 @@ static SpriteView* D_map_akropolis_8017AACC[20] = {
 
 GpSprtTbl D_map_akropolis_8017AB1C = { D_map_akropolis_8017AACC };
 
-GpWarpRec* D_map_akropolis_8017AB20[20] = {
+DirectionWarpEntry* D_map_akropolis_8017AB20[20] = {
     D_acropolis_square_80183BBC,
     D_acropolis_east_elevator_hall_80186340,
     D_acropolis_patio_80182EEC,

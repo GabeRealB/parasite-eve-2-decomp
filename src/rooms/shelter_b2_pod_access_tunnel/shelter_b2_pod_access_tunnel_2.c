@@ -35,6 +35,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/gameflag_ids.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
@@ -198,10 +199,10 @@ u8* D_shelter_b2_pod_access_tunnel_80183E24[2] = {
 
 ViewCount D_shelter_b2_pod_access_tunnel_80183E2C[2] = { 7, 7 };
 
-GpWarpRec D_shelter_b2_pod_access_tunnel_80183E30[3] = {
-    { { { .word = 0 }, 1700, 0, -0x28CD }, { 0, 0, 0, 0 }, { { .word = 256 }, 1050, 0, -0x2710 }, { 0, 0, 0, 0 }, 0x54230002, 0x54230001, 0, 2, 0, 0 },
-    { { { .word = 3072 }, 5500, 0, -1700 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 5500, 0, -1700 }, { 0, 0, 0, 0 }, 0, 0x54230006, 0x54230003, 4, 0, 449 },
-    { { { .word = 0 }, 4800, 0, -2400 }, { 0, 0, 0, 0 }, { { .word = 2560 }, 4500, 0, -1250 }, { 0, 0, 0, 0 }, 0x54230005, 0, 0, 4, 0, 438 },
+DirectionWarpEntry D_shelter_b2_pod_access_tunnel_80183E30[3] = {
+    { { { .word = 0 }, 1700, 0, -0x28CD }, { 0, 0, 0, 0 }, { { .word = 256 }, 1050, 0, -0x2710 }, { 0, 0, 0, 0 }, 0x54230002, 0x54230001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 3072 }, 5500, 0, -1700 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 5500, 0, -1700 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, 0x54230006, 0x54230003, 4, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_POD_SERVICE_GANTRY },
+    { { { .word = 0 }, 4800, 0, -2400 }, { 0, 0, 0, 0 }, { { .word = 2560 }, 4500, 0, -1250 }, { 0, 0, 0, 0 }, 0x54230005, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_POD },
 };
 
 static SVECTOR _gShelterB2PodAccessTunnelCollision06BF4Normals[5] = {

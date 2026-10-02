@@ -19,7 +19,7 @@ extern u8* D_shelter_b1_main_corridor_801831F8[];
 
 extern ViewCount D_shelter_b1_main_corridor_801831FC[];
 
-extern GpWarpRec D_shelter_b1_main_corridor_80183200[];
+extern DirectionWarpEntry D_shelter_b1_main_corridor_80183200[];
 
 extern WorldCollisionGrid D_shelter_b1_main_corridor_801840F0;
 

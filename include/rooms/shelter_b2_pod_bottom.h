@@ -31,7 +31,7 @@ extern u8* D_shelter_b2_pod_bottom_80181D2C[];
 
 extern ViewCount D_shelter_b2_pod_bottom_80181D30[];
 
-extern GpWarpRec D_shelter_b2_pod_bottom_80181D34[];
+extern DirectionWarpEntry D_shelter_b2_pod_bottom_80181D34[];
 
 extern ViewCamera D_shelter_b2_pod_bottom_80182B80[];
 

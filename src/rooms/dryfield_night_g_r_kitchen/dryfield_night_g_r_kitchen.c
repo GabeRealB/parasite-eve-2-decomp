@@ -119,9 +119,9 @@ u8* D_dryfield_night_g_r_kitchen_8017E2D4[1] = {
 
 ViewCount D_dryfield_night_g_r_kitchen_8017E2D8[1] = { 3 };
 
-GpWarpRec D_dryfield_night_g_r_kitchen_8017E2DC[2] = {
-    { { { .word = 1024 }, -1168, 0, 2135 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -1168, 0, 2135 }, { 0, 0, 0, 0 }, 0x53130002, 0x53130001, 0, 2, 0, 478 },
-    { { { .word = 2048 }, 0, 0, 2512 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 0, 0, 2512 }, { 0, 0, 0, 0 }, 0x53130002, 0x53130001, 0, 2, 0, 477 },
+DirectionWarpEntry D_dryfield_night_g_r_kitchen_8017E2DC[2] = {
+    { { { .word = 1024 }, -1168, 0, 2135 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -1168, 0, 2135 }, { 0, 0, 0, 0 }, 0x53130002, 0x53130001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 478 },
+    { { { .word = 2048 }, 0, 0, 2512 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 0, 0, 2512 }, { 0, 0, 0, 0 }, 0x53130002, 0x53130001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 477 },
 };
 
 static SVECTOR _gDryfieldNightGRKitchenCollision00F94Normals[6] = {

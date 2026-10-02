@@ -158,9 +158,9 @@ u8* D_neo_ark_substation_8017E408[1] = {
 
 ViewCount D_neo_ark_substation_8017E40C[1] = { 8 };
 
-GpWarpRec D_neo_ark_substation_8017E410[2] = {
-    { { { .word = 1024 }, 514, 0, -1440 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 514, 0, -1440 }, { 0, 0, 0, 0 }, 0x55210002, 0x55210001, 0, 2, 0, 439 },
-    { { { .word = 3072 }, 3720, 0, -1580 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 3720, 0, -1580 }, { 0, 0, 0, 0 }, 0, 0, 0, 3, 0, 0 },
+DirectionWarpEntry D_neo_ark_substation_8017E410[2] = {
+    { { { .word = 1024 }, 514, 0, -1440 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 514, 0, -1440 }, { 0, 0, 0, 0 }, 0x55210002, 0x55210001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_ALTAR },
+    { { { .word = 3072 }, 3720, 0, -1580 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 3720, 0, -1580 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gNeoArkSubstationCollision012E4Normals[8] = {

@@ -215,8 +215,8 @@ u8* D_mine_refuge_80181908[1] = {
 
 ViewCount D_mine_refuge_8018190C[1] = { 7 };
 
-GpWarpRec D_mine_refuge_80181910[1] = {
-    { { { .word = 0 }, 1472, 0, 288 }, { 0, 0, 0, 0 }, { { .word = 0 }, 1472, 0, 288 }, { 0, 0, 0, 0 }, 0x54060002, 0x54060001, 0, 2, 0, 0 },
+DirectionWarpEntry D_mine_refuge_80181910[1] = {
+    { { { .word = 0 }, 1472, 0, 288 }, { 0, 0, 0, 0 }, { { .word = 0 }, 1472, 0, 288 }, { 0, 0, 0, 0 }, 0x54060002, 0x54060001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 static SVECTOR _gMineRefugeCollision045E4Normals[12] = {
