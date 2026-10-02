@@ -541,10 +541,14 @@ static void func_pyrokinesis_801304C4(GfxCoord* arg0, s32 arg1)
 #define SPRITE_QUAD_CLUT      0x428C
 #define SPRITE_QUAD_CELL_W    0x38
 #define SPRITE_QUAD_CELL_MASK 1
-#define SPRITE_QUAD_U_BASE    0x70
-#define SPRITE_QUAD_V0        0xC8
-#define SPRITE_QUAD_V1        0xFF
-#define SPRITE_QUAD_SCALE     55
+/// First flame-cell U coordinate in texels relative to the selected texture page.
+///
+/// The effect age's low bit selects U = 0x70..0xA7 or 0xA8..0xDF.
+/// This integer constant configures the next drawer inclusion, which undefines it.
+#define SPRITE_QUAD_U_BASE 0x70
+#define SPRITE_QUAD_V0     0xC8
+#define SPRITE_QUAD_V1     0xFF
+#define SPRITE_QUAD_SCALE  55
 #include "../../shared/sprite_quad_draw.inc.c"
 
 void func_pyrokinesis_80130C54(Task* arg0)

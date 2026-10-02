@@ -17,7 +17,7 @@
  *                           UV origins; its palette fields are ignored
  *                           (SPRITE_QUAD_CLUT may be an expression of `frame`)
  *   SPRITE_QUAD_CELL_MASK   optional: the frame's low bits pick the cell
- *   SPRITE_QUAD_U_BASE      optional: texel column of the first cell
+ *   SPRITE_QUAD_U_BASE      optional: integer first-cell texel column (0..255)
  *   SPRITE_QUAD_MIN_OTZ     optional: draw only at this depth or beyond
  *   SPRITE_QUAD_OTZ_BIAS    1 (default) sorts the sprite one slot behind its
  *                           point, 0 at the point itself
@@ -37,6 +37,12 @@
  * next texture needs its own binding. Current bindings are six columns for
  * both antibody strips, the gallery, training room and Hammer, and five for
  * sterilization's grid.
+ *
+ * SPRITE_QUAD_U_BASE shifts computed cell columns within the selected texture
+ * page; leaving it undefined starts at column zero. It is ignored when
+ * SPRITE_QUAD_UV_TABLE supplies the origins. For a strip, the right edge uses
+ * a signed-byte first-cell endpoint; setUV4 stores both edges modulo 256.
+ * Pyrokinesis and Hypervelocity bind 0x70 for their two-cell flame strips.
  */
 
 #ifndef SRC_SHARED_SPRITE_QUAD_H

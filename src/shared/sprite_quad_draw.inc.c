@@ -90,7 +90,7 @@ static void SPRITE_QUAD_FUNC(SPRITE_QUAD_POSITION_SOURCE_TYPE* pos, SPRITE_QUAD_
             u0 = frame * SPRITE_QUAD_CELL_W;
 #endif
 #ifdef SPRITE_QUAD_U_BASE
-            /* both edges from the cell's offset; the right edge wraps past 0xFF */
+            // Sign-extend the first cell's right endpoint; GPU U fields retain its low byte.
             u1 = u0 + (s8)(SPRITE_QUAD_U_BASE + SPRITE_QUAD_CELL_W - 1);
             u0 = u0 + SPRITE_QUAD_U_BASE;
 #else
