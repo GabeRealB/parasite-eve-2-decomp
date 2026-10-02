@@ -134,20 +134,21 @@ typedef struct _GpGridHitScratch {
 } GpGridHitScratch;
 STATIC_ASSERT_SIZEOF(GpGridHitScratch, 0x88);
 
-/// 0x70-byte scratch from the scratch stack used by `func_800DD324`, the
-/// ray / face intersection test. Same tail layout as `GpGridHitScratch`
-/// without the object position and cell: `verts` are the face corners rotated
-/// by `Gp_GridParams->viewCoord->workm` and translated by that matrix, `normal`
-/// the rotated face normal, and per edge `delta` is the corner difference,
-/// `unit` its `VectorNormal`, then `delta` is reused for the `normal x unit`
-/// inward edge plane.
-typedef struct _GpGridRayScratch {
-    /* 0x00 */ VECTOR verts[4];
-    /* 0x40 */ VECTOR normal;
-    /* 0x50 */ VECTOR unit;
-    /* 0x60 */ VECTOR delta;
-} GpGridRayScratch;
-STATIC_ASSERT_SIZEOF(GpGridRayScratch, 0x70);
+/// Transformed grid-face geometry and edge work for a segment intersection test.
+///
+/// Corners and directions use the query space given by the grid's cached
+/// transform; only corners receive its translation. Triangle tests initialize
+/// three corners, quad tests all four. The scratch stack reserves this entire
+/// block for one face test and releases it on every exit; its contents are not
+/// retained. `edgeWork` changes units when the edge-plane normal replaces the
+/// displacement, without changing its signed 32-bit component representation.
+typedef struct {
+    VECTOR corners[4];    // Face corners in query space, in game-coordinate units
+    VECTOR faceNormal;    // Rotated face normal, with 4096 representing one unit
+    VECTOR edgeDirection; // Normalized end-minus-start edge direction, with 4096 per unit
+    VECTOR edgeWork;      // Edge displacement in game units, then outward edge-plane normal with 4096 per unit
+} _WorldCollisionGridRayScratch;
+STATIC_ASSERT_SIZEOF(_WorldCollisionGridRayScratch, 0x70);
 
 s32 Gp_PendingObj4CFlag;
 
@@ -825,55 +826,56 @@ done:
 
 s32 func_800DD324(s32 faceId, VECTOR* seg, SVECTOR* ray, WorldCollisionBody* arg3)
 {
-    u8*                     head;
-    GpGridRayScratch*       block;
-    WorldCollisionGridFace* face;
-    s32                     i;
-    s32                     n;
-    s16                     faceDot;
-    s32                     denom;
-    s32                     t;
-    s32                     edgeDot;
-    s32                     val;
-    s32                     limit;
+    _WorldCollisionGridRayScratch* scratchEnd;
+    _WorldCollisionGridRayScratch* scratch;
+    WorldCollisionGridFace*        face;
+    s32                            i;
+    s32                            n;
+    s16                            faceDot;
+    s32                            denom;
+    s32                            t;
+    s32                            edgeDot;
+    s32                            val;
+    s32                            limit;
 
-    head                       = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(void) = head - 0x70;
+    scratchEnd                 = SCRATCH_STACK_CURSOR(_WorldCollisionGridRayScratch);
+    SCRATCH_STACK_CURSOR(void) = scratchEnd - 1;
     face                       = &Gp_GridParams->faces[faceId];
-    block                      = (GpGridRayScratch*)(head - 0x70);
+    scratch                    = scratchEnd - 1;
 
+    // Transform the face into the segment's query space.
     gte_SetRotMatrix(&Gp_GridParams->viewCoord->workm);
     gte_ldv0(&Gp_GridParams->vertices[face->vertexIndices[0]]);
     gte_rtv0();
-    gte_stlvnl(&block->verts[0]);
-    block->verts[0].vx += Gp_GridParams->viewCoord->workm.t[0];
-    block->verts[0].vy += Gp_GridParams->viewCoord->workm.t[1];
-    block->verts[0].vz += Gp_GridParams->viewCoord->workm.t[2];
+    gte_stlvnl(&scratch->corners[0]);
+    scratch->corners[0].vx += Gp_GridParams->viewCoord->workm.t[0];
+    scratch->corners[0].vy += Gp_GridParams->viewCoord->workm.t[1];
+    scratch->corners[0].vz += Gp_GridParams->viewCoord->workm.t[2];
 
     gte_ldv0(&Gp_GridParams->normals[face->normalIndex]);
     gte_rtv0();
-    gte_stlvnl(&block->normal);
+    gte_stlvnl(&scratch->faceNormal);
 
-    faceDot = (block->normal.vx * block->verts[0].vx + block->normal.vy * block->verts[0].vy +
-               block->normal.vz * block->verts[0].vz) >>
+    faceDot = (scratch->faceNormal.vx * scratch->corners[0].vx + scratch->faceNormal.vy * scratch->corners[0].vy +
+               scratch->faceNormal.vz * scratch->corners[0].vz) >>
               12;
-    denom = (block->normal.vx * ray[0].vx + block->normal.vy * ray[0].vy + block->normal.vz * ray[0].vz) >> 12;
+    denom = (scratch->faceNormal.vx * ray[0].vx + scratch->faceNormal.vy * ray[0].vy + scratch->faceNormal.vz * ray[0].vz) >> 12;
 
     if (denom >= 0) {
-        SCRATCH_STACK_RELEASE_BYTES(0x70);
+        SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionGridRayScratch);
         return 0;
     }
-    if ((((block->normal.vx * seg[1].vx + block->normal.vy * seg[1].vy + block->normal.vz * seg[1].vz) >> 12) -
+    if ((((scratch->faceNormal.vx * seg[1].vx + scratch->faceNormal.vy * seg[1].vy + scratch->faceNormal.vz * seg[1].vz) >> 12) -
          faceDot) <= 0) {
-        SCRATCH_STACK_RELEASE_BYTES(0x70);
+        SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionGridRayScratch);
         return 0;
     }
-    t = -(((((block->normal.vx * seg[0].vx + block->normal.vy * seg[0].vy + block->normal.vz * seg[0].vz) >> 12) -
+    t = -(((((scratch->faceNormal.vx * seg[0].vx + scratch->faceNormal.vy * seg[0].vy + scratch->faceNormal.vz * seg[0].vz) >> 12) -
             faceDot)
            << 12)) /
         denom;
     if (t >= 0) {
-        SCRATCH_STACK_RELEASE_BYTES(0x70);
+        SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionGridRayScratch);
         return 0;
     }
 
@@ -881,43 +883,44 @@ s32 func_800DD324(s32 faceId, VECTOR* seg, SVECTOR* ray, WorldCollisionBody* arg
     ray[1].vy = seg[0].vy + ((ray[0].vy * t) >> 12);
     ray[1].vz = seg[0].vz + ((ray[0].vz * t) >> 12);
 
-    n = (face->vertexIndices[3] == WORLD_COLLISION_GRID_FACE_NO_VERTEX) ? 3 : 4;
+    n = (face->vertexIndices[3] == WORLD_COLLISION_GRID_FACE_NO_VERTEX) ? 3 : (s32)ARRAY_SIZE(scratch->corners);
 
     gte_SetRotMatrix(&Gp_GridParams->viewCoord->workm);
     for (i = 1; i < n; i++) {
         gte_ldv0(&Gp_GridParams->vertices[face->vertexIndices[i]]);
         gte_rtv0();
-        gte_stlvnl(&block->verts[i]);
-        block->verts[i].vx += Gp_GridParams->viewCoord->workm.t[0];
-        block->verts[i].vy += Gp_GridParams->viewCoord->workm.t[1];
-        block->verts[i].vz += Gp_GridParams->viewCoord->workm.t[2];
+        gte_stlvnl(&scratch->corners[i]);
+        scratch->corners[i].vx += Gp_GridParams->viewCoord->workm.t[0];
+        scratch->corners[i].vy += Gp_GridParams->viewCoord->workm.t[1];
+        scratch->corners[i].vz += Gp_GridParams->viewCoord->workm.t[2];
     }
 
+    // Reuse the displacement slot for each edge's outward Q12 plane normal.
     for (i = n - 3; i < n * 2 - 3; i++) {
-        block->delta.vx = block->verts[Gp_FaceEdgePairs[i].endCornerIndex].vx - block->verts[Gp_FaceEdgePairs[i].startCornerIndex].vx;
-        block->delta.vy = block->verts[Gp_FaceEdgePairs[i].endCornerIndex].vy - block->verts[Gp_FaceEdgePairs[i].startCornerIndex].vy;
-        block->delta.vz = block->verts[Gp_FaceEdgePairs[i].endCornerIndex].vz - block->verts[Gp_FaceEdgePairs[i].startCornerIndex].vz;
-        VectorNormal(&block->delta, &block->unit);
-        gte_ldopv1(&block->normal);
-        gte_ldopv2(&block->unit);
+        scratch->edgeWork.vx = scratch->corners[Gp_FaceEdgePairs[i].endCornerIndex].vx - scratch->corners[Gp_FaceEdgePairs[i].startCornerIndex].vx;
+        scratch->edgeWork.vy = scratch->corners[Gp_FaceEdgePairs[i].endCornerIndex].vy - scratch->corners[Gp_FaceEdgePairs[i].startCornerIndex].vy;
+        scratch->edgeWork.vz = scratch->corners[Gp_FaceEdgePairs[i].endCornerIndex].vz - scratch->corners[Gp_FaceEdgePairs[i].startCornerIndex].vz;
+        VectorNormal(&scratch->edgeWork, &scratch->edgeDirection);
+        gte_ldopv1(&scratch->faceNormal);
+        gte_ldopv2(&scratch->edgeDirection);
         gte_op12();
-        gte_stlvnl(&block->delta);
+        gte_stlvnl(&scratch->edgeWork);
 
-        edgeDot = (block->delta.vx * block->verts[Gp_FaceEdgePairs[i].endCornerIndex].vx +
-                   block->delta.vy * block->verts[Gp_FaceEdgePairs[i].endCornerIndex].vy +
-                   block->delta.vz * block->verts[Gp_FaceEdgePairs[i].endCornerIndex].vz) >>
+        edgeDot = (scratch->edgeWork.vx * scratch->corners[Gp_FaceEdgePairs[i].endCornerIndex].vx +
+                   scratch->edgeWork.vy * scratch->corners[Gp_FaceEdgePairs[i].endCornerIndex].vy +
+                   scratch->edgeWork.vz * scratch->corners[Gp_FaceEdgePairs[i].endCornerIndex].vz) >>
                   12;
         limit = 5;
-        val   = ((block->delta.vx * ray[1].vx + block->delta.vy * ray[1].vy + block->delta.vz * ray[1].vz) >> 12) -
+        val   = ((scratch->edgeWork.vx * ray[1].vx + scratch->edgeWork.vy * ray[1].vy + scratch->edgeWork.vz * ray[1].vz) >> 12) -
               edgeDot;
         if (arg3 != 0) {
             limit = 10;
         }
         if ((s16)val - limit > 0) {
-            SCRATCH_STACK_RELEASE_BYTES(0x70);
+            SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionGridRayScratch);
             return 0;
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x70);
+    SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionGridRayScratch);
     return 1;
 }

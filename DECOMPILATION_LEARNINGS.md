@@ -40755,10 +40755,10 @@ assignment of the scratch pointer — left `addu v0, v0, a0` after the
 `lw a1, %lo(Gp_GridParams)` and fixed all ~40 register diffs at once:
 
 ```c
-    head     = *scratch;
-    *scratch = head - 0x70;
-    face     = &Gp_GridParams->faces[faceId];   /* not before, not after */
-    block    = (GpGridRayScratch*)(head - 0x70);
+    scratchEnd                = SCRATCH_STACK_CURSOR(_WorldCollisionGridRayScratch);
+    SCRATCH_STACK_CURSOR(void) = scratchEnd - 1;
+    face                      = &Gp_GridParams->faces[faceId];   /* not before, not after */
+    scratch                   = scratchEnd - 1;
 ```
 
 Useful corollary when reasoning about which registers are even candidates:
@@ -40790,8 +40790,8 @@ register. The target's extra `addiu a2, s0, -0x70` / `sw a2` / `move s1, a2`
 comes from storing the expression and re-deriving the pointer:
 
 ```c
-    *scratch = head - 0x70;
-    block    = (GpGridRayScratch*)(head - 0x70);
+    SCRATCH_STACK_CURSOR(void) = scratchEnd - 1;
+    scratch                   = scratchEnd - 1;
 ```
 
 CSE rewrites the second occurrence as a copy of the first pseudo, and the two
