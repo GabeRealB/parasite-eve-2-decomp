@@ -3,7 +3,7 @@
 /// The walker's per-tick body, open on the scratch frame `bossStrangerTick`
 /// hands it. State 1 heads straight for the player matrix's translation, using
 /// `field_6E` as the one-based player selector; state 2 re-runs patrol steering and
-/// re-reads `nav`'s byte table at `cursor` whenever the step or one of the
+/// re-reads `nav`'s `nodeOrder` at the walker's `cursor` whenever the step or one of the
 /// three node bytes changed, and state 3 follows the patrol route proper. The
 /// scalar at `field_5E` then ramps towards `field_5C` by `field_60` a frame;
 /// while it is non-zero it scales (`GPF`) the normalised facing column of the
@@ -46,14 +46,14 @@ static __inline__ void bossStrangerStep(OverlayWalker* walker, u8* head,
             if (walker->field_69 != walker->state || walker->field_70 != walker->field_72 ||
                 walker->field_6F != walker->field_71) {
                 bossStrangerPlanToward(walker, 1);
-                walker->node = walker->nav->field_4[walker->cursor];
+                walker->node = walker->nav->nodeOrder[walker->cursor];
             }
             walker->field_69 = walker->state;
             walker->field_72 = walker->field_70;
             walker->field_71 = walker->field_6F;
             if (bossStrangerArrived(walker) != 0) {
                 walker->cursor += (u8)walker->field_73;
-                walker->node    = walker->nav->field_4[walker->cursor];
+                walker->node    = walker->nav->nodeOrder[walker->cursor];
                 SCRATCH_STACK_RELEASE_BYTES(4);
             }
             break;

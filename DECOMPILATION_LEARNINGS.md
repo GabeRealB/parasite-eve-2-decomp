@@ -4217,7 +4217,7 @@ the unsigned dest.
 
 ## Cross-block CSE: a load survives a branch, and only a clobber parts it
 
-`func_actor_110600_80133778` opens on `if (work->nav->count < 2) return;` and
+`func_actor_110600_80133778` opens on `if (work->nav->nodeCount < 2) return;` and
 then reloads `work->nav` for every statement of the body. The candidate managed
 with one load fewer: CSE carried the entry block's load into the block below it,
 because `cse_end_of_basic_block` had extended the block over the branch, and
@@ -4227,7 +4227,7 @@ pointer first, and `invalidate_memory` drops the table for those. Only the
 first statement is close enough to the check for the merge to happen.
 
 The lever is a clobber, not a store. A `QI` store sets `writes_ptr->all`, so
-`work->nav->field_4[0] = 0;` hoisted above the first store does invalidate the
+`work->nav->nodeOrder[0] = 0;` hoisted above the first store does invalidate the
 table - and scores *worse* (94.1%): sched keeps the `sb` where the source put
 it, so the store order changes and the whole block shifts. A `u16*`-cast access
 is no help either: CSE compares the MEM rtx, and `MEM_IN_STRUCT_P` is not part
@@ -16321,12 +16321,12 @@ bnez v0, loop
 
 ```c
 /* m2c shape: body reloads work->nav, two lw at the loop top */
-if (work->nav->count != 0) {
-    do { ... work->nav->nodes[i] ... } while (i < work->nav->count);
+if (work->nav->nodeCount != 0) {
+    do { ... work->nav->nodes[i] ... } while (i < work->nav->nodeCount);
 }
 
 /* Emits the shared pseudo */
-for (block->node = 0; block->node < work->nav->count; block->node++) {
+for (block->node = 0; block->node < work->nav->nodeCount; block->node++) {
     ... work->nav->nodes[block->node] ...
 }
 ```
@@ -58853,7 +58853,7 @@ lw    a0, 0(s1)       /* work->nav, before the loop */
 lbu   v0, 9(a0)
 beqz  v0, end
 loop:
-lw    v0, 4(a0)       /* work->nav->field_4 — a0 still live */
+lw    v0, 4(a0)       /* work->nav->nodeOrder — a0 still live */
 ```
 
 Before the `loop` pass rotates the exit test to the bottom, the loop top and
@@ -98150,7 +98150,7 @@ change - which a `.s`-versus-`.s` diff cannot.
 Padding comments are not evidence either. `OverlayWalkerNav` padded the word at
 0x4 with "a second byte table the walker does not reach through this pointer, so it
 is only padded over here" - it is exactly the table that body indexes as
-`nav->field_4[walker->cursor]`. Carve the field out and correct the comment; the
+`nav->nodeOrder[walker->cursor]`. Carve the field out and correct the comment; the
 offsets do not move, so the neighbouring matched bodies stay matched.
 
 ## m2c's masked loop variable is a `(u16)i` cast at each use site, not a variable of its own
@@ -114602,7 +114602,7 @@ The rest of the body is a cross-family twin (`func_acropolis_bridge_80184638`,
 instruction-identical, same string text): read the twin, `promote` answers
 `only one copy in actors, nothing to share`, and the port is a type rename - the
 m2c baseline 82.557% (`branch=12 regs=48 insert=15 delete=12`) went to 100.000%
-on the first transcription, the only changes being `field_9` on the nav table,
+on the first transcription, the only changes being `orderCount` on the nav table,
 `field_75` on the walker (the `pad_74[0x2]` it was hidden in), and the string.
 
 Inputs: `base_3.i` SHA256
@@ -145003,7 +145003,7 @@ and restores the `move`. With a single `return ret;` any narrow type works; with
 early returns `u8` does not, so try `s16` first.
 ## A barrier after an early-out that forces a pointer reload is a scratch push written before the stores (func_actor_110600_80133778, 2026-09-27)
 
-`if (work->nav->count < 2) return;` is followed by `work->nav->nodes[0].x = …`,
+`if (work->nav->nodeCount < 2) return;` is followed by `work->nav->nodes[0].x = …`,
 and the target reloads `work->nav` although nothing sits between the test and
 the store; the scratch-frame push comes after the three node stores. Without
 the `SOFT_COMPILER_BARRIER()` cse reuses the test's load. The source pushes the

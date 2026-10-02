@@ -1,16 +1,16 @@
 /* Part of the Boss Stranger library; see boss_stranger.h. */
 
-/// Re-plans the walker's position in the room's route byte table so that it
-/// heads towards actor `actor`. It collects every slot of that table naming
-/// the node nearest the actor and every slot naming the node nearest the
-/// walker, then picks the pair of slots that are closest together: the
-/// walker's cursor becomes the slot on its own side, `field_75` records the
-/// slot on the actor's side, and `field_73` becomes the +1 / -1 direction the
-/// cursor has to travel along the table to close the gap -- which the caller
-/// then applies, as does the last line here. Both lists hold at most eight
-/// slots, so a table with more matches than that is silently truncated; if no
-/// pair was found at all the routine only complains and leaves the cursor
-/// where it was.
+/// Re-plans the walker's position in `nav`'s `nodeOrder` so that it heads
+/// towards actor `actor`. It collects every slot of that order naming the
+/// node nearest the actor and every slot naming the node nearest the walker,
+/// then picks the pair of slots that are closest together: the walker's
+/// `cursor` becomes the slot on its own side, `field_75` records the slot on
+/// the actor's side, and `field_73` becomes the +1 / -1 direction the cursor
+/// has to travel along the order to close the gap -- which the caller then
+/// applies, as does the last line here. Both lists hold at most eight slots,
+/// so an order with more matches than that is silently truncated; if no pair
+/// was found at all the routine only complains and leaves the cursor where it
+/// was.
 void bossStrangerPlanToward(OverlayWalker* work, s16 actor)
 {
     OverlayWalkerRouteScratch* s;
@@ -26,12 +26,12 @@ void bossStrangerPlanToward(OverlayWalker* work, s16 actor)
     s->nodeB  = bossStrangerNodeNearestSelf(work);
     s->countA = 0;
     s->countB = 0;
-    for (s->i = 0; s->i < work->nav->field_9; s->i++) {
-        if (work->nav->field_4[s->i] == s->nodeA && s->countA < 8) {
+    for (s->i = 0; s->i < work->nav->orderCount; s->i++) {
+        if (work->nav->nodeOrder[s->i] == s->nodeA && s->countA < 8) {
             s->listA[s->countA] = s->i;
             s->countA++;
         }
-        if (work->nav->field_4[s->i] == s->nodeB && s->countB < 8) {
+        if (work->nav->nodeOrder[s->i] == s->nodeB && s->countB < 8) {
             s->listB[s->countB] = s->i;
             s->countB++;
         }

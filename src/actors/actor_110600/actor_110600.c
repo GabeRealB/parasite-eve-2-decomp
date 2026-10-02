@@ -78,9 +78,9 @@ STATIC_ASSERT_SIZEOF(Actor110600TsvScratch, 0x2C);
 /// stored node byte for the `actor` variant of the walker. Same body as the
 /// acropolis bridge room's `func_acropolis_bridge_801843A0`.
 
-/// Re-resolves the walker's patrol node against the route's byte table once
-/// the state or the node bytes have moved. Same body as the acropolis bridge
-/// room's `func_acropolis_bridge_80184638`.
+/// Re-resolves the walker's patrol node against `nav`'s `nodeOrder` at the
+/// walker's `cursor` once the state or the node bytes have moved. Same body as
+/// the acropolis bridge room's `func_acropolis_bridge_80184638`.
 
 /// One per-frame behaviour step the walker runs while its `field_6C` gate is
 /// clear: steps it toward its current patrol node. `func_800E0C10` produces the
@@ -1194,16 +1194,17 @@ static void            func_actor_110600_80137F2C(Enemy* arg0, Task* arg1);
 /// Debug rebuild of the walker's patrol table. Node 0 takes the walker's own
 /// coordinate translation; every node above it takes that translation plus the
 /// coordinate's facing column, rotated to `angle` and scaled by `scale` through
-/// the GTE, and each node laid is logged as it is built. The route is then
-/// re-seeded from the node count -- one node index per step with the
-/// `OVERLAY_WALKER_ROUTE_END` marker after the last -- with `field_4` and the
-/// cursor cleared, and the scratch frame released.
+/// the GTE, and each node laid is logged as it is built. Each `nodeOrder`
+/// entry is set to its own index. The route is then re-seeded from `nodeCount`
+/// -- one node index per step with the `OVERLAY_WALKER_ROUTE_END` marker after
+/// the last -- with the route's `field_4` and `cursor` cleared, and the scratch
+/// frame released.
 static void func_actor_110600_80133778(OverlayWalker* work, s16 scale, s16 angle)
 {
     Actor110600TsvScratch* blk;
     u8*                    head;
 
-    if (work->nav->count < 2)
+    if (work->nav->nodeCount < 2)
         return;
     head                     = SCRATCH_STACK_CURSOR(u8);
     SCRATCH_STACK_CURSOR(u8) = head - 0x2C;
@@ -1211,24 +1212,24 @@ static void func_actor_110600_80133778(OverlayWalker* work, s16 scale, s16 angle
     work->nav->nodes[0].x    = (u16)work->coord->coord.t[0];
     work->nav->nodes[0].y    = (u16)work->coord->coord.t[1];
     work->nav->nodes[0].z    = (u16)work->coord->coord.t[2];
-    work->nav->field_4[0]    = 0;
+    work->nav->nodeOrder[0]  = 0;
     blk->m                   = work->coord->coord;
-    for (blk->i = 1; blk->i < work->nav->count; blk->i++) {
+    for (blk->i = 1; blk->i < work->nav->nodeCount; blk->i++) {
         gfxRotMatrixY(&blk->m, angle, 0);
         gfxReadMatrixZAxis(&blk->m, &blk->v);
         gte_lddp(scale);
         gte_ldsv(&blk->v);
         gte_gpf12();
         gte_stsv(&blk->v);
-        work->nav->nodes[blk->i].x = (u16)work->coord->coord.t[0] + (u16)blk->v.vx;
-        work->nav->nodes[blk->i].y = (u16)work->coord->coord.t[1] + (u16)blk->v.vy;
-        work->nav->nodes[blk->i].z = (u16)work->coord->coord.t[2] + (u16)blk->v.vz;
-        work->nav->field_4[blk->i] = blk->i;
+        work->nav->nodes[blk->i].x   = (u16)work->coord->coord.t[0] + (u16)blk->v.vx;
+        work->nav->nodes[blk->i].y   = (u16)work->coord->coord.t[1] + (u16)blk->v.vy;
+        work->nav->nodes[blk->i].z   = (u16)work->coord->coord.t[2] + (u16)blk->v.vz;
+        work->nav->nodeOrder[blk->i] = blk->i;
         printf("emc_m->tsv[%d]( %d, %d, %d )\n", blk->i, work->nav->nodes[blk->i].x, work->nav->nodes[blk->i].y, work->nav->nodes[blk->i].z);
     }
     work->route->field_4 = 0;
     work->route->cursor  = 0;
-    for (blk->i = 0; blk->i < work->nav->count; blk->i++) {
+    for (blk->i = 0; blk->i < work->nav->nodeCount; blk->i++) {
         work->route->nodeIndices[blk->i] = blk->i;
     }
     work->route->nodeIndices[blk->i] = OVERLAY_WALKER_ROUTE_END;
@@ -1816,11 +1817,11 @@ static void func_actor_110600_80134AB4(Enemy* enemy, Task* task)
     work->walker.field_6E              = (u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId;
     work->walker.nav                   = &work->walker.navData;
     work->walker.route                 = &work->walker.routeData;
-    work->walker.navData.count         = 2;
-    work->walker.navData.field_9       = 2;
+    work->walker.navData.nodeCount     = 2;
+    work->walker.navData.orderCount    = 2;
     work->walker.routeData.field_4     = 2;
     work->walker.navData.nodes         = work->field_BBC;
-    work->walker.navData.field_4       = work->field_BCC;
+    work->walker.navData.nodeOrder     = work->field_BCC;
     work->walker.routeData.nodeIndices = work->field_BD0;
     work->walker.field_6E              = (u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId;
     switch (task->spawnArg1.value & 0xF0) {

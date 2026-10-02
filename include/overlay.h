@@ -453,15 +453,22 @@ typedef struct {
 } OverlayWalkerNode;
 STATIC_ASSERT_SIZEOF(OverlayWalkerNode, 0x8);
 
-/// A patrol walker's node table: `nodes` holds `count` positions, and
-/// `field_4` is a byte table of `field_9` node indices, one per patrol step,
-/// which the walker's own `cursor` walks and the route re-plan searches.
-typedef struct OverlayWalkerNav {
-    OverlayWalkerNode* nodes;
-    u8*                field_4;
-    u8                 count;
-    u8                 field_9;
-    byte               pad_A[0x2];
+/// Nav record of a Boss Stranger patrol walker: the positions it can steer
+/// toward, and the order of node indices state 2 walks while closing on a
+/// player.
+///
+/// `nodeCount` is how many leading entries of `nodes` the nearest-node scans
+/// walk. It is not the allocated length of that table: a patrol route may
+/// name a later entry. `nodeOrder` is a second index list, distinct from the
+/// route. It holds `orderCount` node indices and has no end marker. The
+/// walker's `cursor` indexes it, and the re-plan searches it for the steps
+/// that name two nodes.
+typedef struct {
+    OverlayWalkerNode* nodes;      // Positions the walker steers toward
+    u8*                nodeOrder;  // Node index at each step. The walker's cursor indexes this
+    u8                 nodeCount;  // Leading nodes the nearest-node scans walk
+    u8                 orderCount; // Live entries in nodeOrder
+    byte               pad_A[0x2]; // Unread. Keeps the record twelve bytes
 } OverlayWalkerNav;
 STATIC_ASSERT_SIZEOF(OverlayWalkerNav, 0xC);
 
@@ -488,7 +495,7 @@ STATIC_ASSERT_SIZEOF(OverlayWalkerRoute, 0x8);
 /// node of a patrol table, backs away from the obstacles among its contact
 /// records and scales its model in and out. `nav` and `route` point at the
 /// tables it walks, normally `navData` and `routeData`; `node` is the node it
-/// is heading for and `cursor` its index in the nav byte table. `recs` is the
+/// is heading for and `cursor` its index in `nav`'s `nodeOrder`. `recs` is the
 /// collision table the movement step measures the walker against, with
 /// `field_56` records, and `avoidRecs` the `avoidCount` contact records the
 /// avoidance step backs away from, adding what it moves to `push` and setting
@@ -595,12 +602,12 @@ typedef struct OverlayWalkerNearCfgScratch {
 } OverlayWalkerNearCfgScratch;
 STATIC_ASSERT_SIZEOF(OverlayWalkerNearCfgScratch, 0x18);
 
-/// The scratch-pad block of a patrol walker's route re-plan. `nodeA` is the
-/// node nearest the actor the walker reacts to and `nodeB` the node nearest
-/// the walker; `listA` and `listB` collect the nav byte-table slots naming
-/// each, terminated by 0xFF, and `i` and `j` walk them. `diff` is the signed
-/// step between the pair under test and `best` the smallest seen, starting at
-/// 0xFF so the first pair always wins.
+/// The scratch-pad block of a patrol walker's re-plan along `nodeOrder`.
+/// `nodeA` is the node nearest the actor the walker reacts to and `nodeB` the
+/// node nearest the walker; `listA` and `listB` collect the `nodeOrder` slots
+/// naming each, terminated by 0xFF, and `i` and `j` walk them. `diff` is the
+/// signed step between the pair under test and `best` the smallest seen,
+/// starting at 0xFF so the first pair always wins.
 typedef struct OverlayWalkerRouteScratch {
     s16  diff;
     byte pad_2[0x2];

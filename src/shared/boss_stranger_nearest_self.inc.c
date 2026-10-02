@@ -15,7 +15,7 @@ u8 bossStrangerNodeNearestSelf(OverlayWalker* work)
     block                    = SCRATCH_STACK_CURSOR(OverlayWalkerNearScratch);
 
     block->best = -1;
-    for (block->node = 0; block->node < work->nav->count; block->node++) {
+    for (block->node = 0; block->node < work->nav->nodeCount; block->node++) {
         block->dx   = (u16)work->coord->coord.t[0] - work->nav->nodes[block->node].x;
         dz          = (u16)work->coord->coord.t[2] - work->nav->nodes[block->node].z;
         block->dz   = dz;

@@ -17,7 +17,7 @@ u8 bossStrangerNodeNearestActor(OverlayWalker* work, s32 actor)
 
     block->cfg  = &gPlayerStatus + ((s16)actor - 1);
     block->best = -1;
-    for (block->node = 0; block->node < work->nav->count; block->node++) {
+    for (block->node = 0; block->node < work->nav->nodeCount; block->node++) {
         block->dx   = (u16)block->cfg->coordMtx->t[0] - work->nav->nodes[block->node].x;
         block->dy   = (u16)block->cfg->coordMtx->t[1] - work->nav->nodes[block->node].y;
         dz          = (u16)block->cfg->coordMtx->t[2] - work->nav->nodes[block->node].z;

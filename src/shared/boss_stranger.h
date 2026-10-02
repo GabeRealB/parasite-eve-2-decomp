@@ -1,8 +1,8 @@
 /* The movement core of the Boss Stranger (actor_110600, and the Acropolis
  * bridge room's copy of it), which walks a patrol network of nav nodes. Each
- * tick it either heads for a player position, re-plans along the route byte
- * table towards the player (nearest node to the player vs nearest node to
- * itself, pairing the closest table slots), or cycles its fixed patrol route.
+ * tick it either heads for a player position, re-plans along `nodeOrder`
+ * towards the player (nearest node to the player vs nearest node to itself,
+ * pairing the closest slots of that order), or cycles its fixed patrol route.
  * It then turns towards the goal by a capped rate, ramps its speed, and steps
  * along its facing. It also resolves its collision/gravity delta and pushes
  * itself away from nearby contacts.

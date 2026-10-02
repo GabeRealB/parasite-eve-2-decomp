@@ -4623,8 +4623,9 @@ static const GpEnemyTaskFuncTable3 D_acropolis_bridge_8017D6E8 = {
 ///
 /// State 1 heads straight for the actor selected by the walker's spawn
 /// variant -- the low halfword of each translation component of that actor's
-/// coordinate matrix -- state 2 re-runs the patrol steering and re-reads the
-/// route's byte table at `cursor` whenever the step or the state changed, and
+/// coordinate matrix -- state 2 re-runs the patrol steering and re-reads
+/// `nav`'s `nodeOrder` at the walker's `cursor` whenever the step or the state
+/// changed, and
 /// state 3 follows the patrol route proper. The scalar at `field_5E` then
 /// ramps towards `field_5C` by `field_60` a frame; while it is non-zero it
 /// scales (`GPF`) the normalised facing column of the model matrix into the
@@ -4665,14 +4666,14 @@ static __inline__ void walkerStep(OverlayWalker* walker, u8* head,
             if (walker->field_69 != walker->state || walker->field_70 != walker->field_72 ||
                 walker->field_6F != walker->field_71) {
                 bossStrangerPlanToward(walker, 1);
-                walker->node = walker->nav->field_4[walker->cursor];
+                walker->node = walker->nav->nodeOrder[walker->cursor];
             }
             walker->field_69 = walker->state;
             walker->field_72 = walker->field_70;
             walker->field_71 = walker->field_6F;
             if (bossStrangerArrived(walker) != 0) {
                 walker->cursor += (u8)walker->field_73;
-                walker->node    = walker->nav->field_4[walker->cursor];
+                walker->node    = walker->nav->nodeOrder[walker->cursor];
                 SCRATCH_STACK_RELEASE_BYTES(4);
             }
             break;
@@ -5013,9 +5014,9 @@ static void func_acropolis_bridge_80185988(Enemy* enemy, Task* task)
     coord->coord.t[1]            += work->field_1F8;
 
     work->walker.navData.nodes         = D_acropolis_bridge_8019162C;
-    work->walker.navData.count         = 0xA;
-    work->walker.navData.field_4       = D_acropolis_bridge_801916CC;
-    work->walker.navData.field_9       = 0xA;
+    work->walker.navData.nodeCount     = 0xA;
+    work->walker.navData.nodeOrder     = D_acropolis_bridge_801916CC;
+    work->walker.navData.orderCount    = 0xA;
     work->walker.routeData.nodeIndices = D_acropolis_bridge_80191720[enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT];
     work->walker.nav                   = &work->walker.navData;
     work->walker.routeData.cursor      = 0;
