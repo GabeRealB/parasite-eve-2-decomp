@@ -1887,22 +1887,19 @@ void Fs_InitFolderTable(s32 unused)
     Fs_FolderTableLen = 0;
     entry             = Fs_CdSector.folderList.entries;
 
-    // The cdf file starts with a header section. Therefore, the offset to
-    // the start of the first folder is always one. Following folders are
-    // located immediately after the previous ones.
+    // The folder table fills the CDF's first sector, so the first folder
+    // starts at sector 1. Each sector count places the folder after it.
     offset = 1;
     while (true) {
-        if (entry->size == FS_CDF_FOLDER_CANARY) {
+        if (entry->sectorCount == FS_CDF_FOLDER_CANARY) {
             return;
         }
 
-        // Save the folder info into the table.
-        Fs_FolderTable[Fs_FolderTableLen].id     = entry->id;
+        Fs_FolderTable[Fs_FolderTableLen].id     = entry->folderId;
         Fs_FolderTable[Fs_FolderTableLen].offset = offset;
         Fs_FolderTableLen                       += 1;
 
-        // Go to the next entry.
-        offset += entry->size;
+        offset += entry->sectorCount;
         entry  += 1;
     }
 }

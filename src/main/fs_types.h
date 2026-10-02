@@ -6,11 +6,19 @@
 
 #include "common.h"
 
-/// An entry of the folder list, as stored in a .CDF file.
-typedef struct _FsCdfFolderListEntry {
-    u32 id;   // Folder id.
-    u32 size; // Folder size.
+/// One record in the folder table that fills the first sector of a stage CDF.
+///
+/// `folderId` is the disc folder number. Dividing it by 100 gives the area
+/// index, and the room folders on the disc are `area * 100 + 1`. A load
+/// matches `fileGroup * 100 + fileIdHundreds`. `sectorCount` is that folder's
+/// length in CD sectors, including its own file list. The first folder starts
+/// at sector 1 of the CDF, and each count is the step to the next. A count of
+/// zero ends the table.
+typedef struct {
+    u32 folderId;    // Disc folder number; the area index is this value / 100
+    u32 sectorCount; // Length of this folder in CD sectors; 0 ends the table
 } FsCdfFolderListEntry;
+STATIC_ASSERT_SIZEOF(FsCdfFolderListEntry, 0x8);
 
 /// Number of bytes in a CD sector.
 #define FS_SECTOR_BYTE_SIZE 0x800
