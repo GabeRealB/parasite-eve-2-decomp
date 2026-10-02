@@ -833,17 +833,21 @@ glabel tmdXformStreamVerts
     /* 1BAC 800113AC */  jr          $ra
     /* 1BB0 800113B0 */  nop
 .purgem TMD_XFORM_STREAM_VERTS_LIGHT_AND_SCATTER
+/* Take the semi-transparent GT3 command byte; pre-pass RGB remains in the packet. */
+.equ TMD_DRAW_STREAM_GT3_PRE_XFORM_SEMI_TRANS_CODE, (TMD_DRAW_STREAM_GT3_SEMI_TRANS_COLOR >> 24)
+
 alabel tmdDrawStreamPrimGt3PreXformSemiTrans
+    /* a0 workspace, a1 object flags, a2 elements; force blending, retain facing selection. */
+    /* t8 first-region packet cursor, t6 depth cache, t7 displaced OT base. */
     /* 1BB4 800113B4 */  lw          $t9, 0x18($a0)
-  .L800113B8:
     /* 1BB8 800113B8 */  lw          $a3, 0x1C($a0)
     /* 1BBC 800113BC */  lw          $t8, 0x4($a0)
     /* 1BC0 800113C0 */  lw          $t7, 0x14($a0)
     /* 1BC4 800113C4 */  lw          $t6, 0x10($a0)
     /* 1BC8 800113C8 */  sll         $t9, $t9, 2
-    /* 1BCC 800113CC */  lui         $v0, 0x900
-    /* 1BD0 800113D0 */  addiu       $v1, $zero, 0x36
-    /* 1BD4 800113D4 */  andi        $t1, $a1, 0x10
+    /* 1BCC 800113CC */  lui         $v0, (TMD_DRAW_STREAM_GT3_PACKET_WORDS << 8)
+    /* 1BD0 800113D0 */  addiu       $v1, $zero, TMD_DRAW_STREAM_GT3_PRE_XFORM_SEMI_TRANS_CODE
+    /* 1BD4 800113D4 */  andi        $t1, $a1, TMD_OBJECT_REVERSE_CULLING
     /* 1BD8 800113D8 */  bnez        $t1, .LtmdGt3PreXformReverseLoop
     /* 1BDC 800113DC */  lw          $a1, 0x84($a0)
     /* 1BE0 800113E0 */  j           .LtmdGt3PreXformLoop
