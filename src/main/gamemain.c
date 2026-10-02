@@ -44,7 +44,6 @@ enum {
     DISPLAY_BACKGROUND_ROW_BYTES       = 640,
     DISPLAY_BACKGROUND_STRIP_WIDTH     = 16,
     DISPLAY_BACKGROUND_STRIP_ROW_BYTES = 32,
-    DISPLAY_BACKGROUND_STRIP_BYTES     = 7680,
     DISPLAY_BACKGROUND_STRIP_COUNT     = 20U,
 };
 
@@ -532,7 +531,7 @@ void Display_LoadImageStrips(s32 bufferIndex)
             rect.x = 0;
             rect.w = DISPLAY_BACKGROUND_WIDTH;
             rect.h = DISPLAY_BACKGROUND_HEIGHT - gDisplayState.vramYOffset;
-            LoadImage(&rect, Fs_ImgBuffers->words);
+            LoadImage(&rect, Fs_ImgBuffers->strips[0]);
             return;
         }
         if (bufferIndex == 0) {
@@ -548,7 +547,7 @@ void Display_LoadImageStrips(s32 bufferIndex)
         return;
     }
     sourceRowOffsetBytes = 0;
-    // Strips are 16 pixels wide and occupy 7680 bytes each in loader order.
+    // Each strip is one 16-pixel column of the image workspace.
     if (gCdCmdQueue.imageLayout == FILE_SYSTEM_IMAGE_STRIPS) {
         bufferY *= DISPLAY_BACKGROUND_BUFFER_STRIDE;
         rect.w   = DISPLAY_BACKGROUND_STRIP_WIDTH;
@@ -566,7 +565,7 @@ void Display_LoadImageStrips(s32 bufferIndex)
         do {
             stripIndex16 = stripIndex & 0xFFFF;
             rect.x       = stripIndex16 * DISPLAY_BACKGROUND_STRIP_WIDTH;
-            LoadImage(&rect, (u_long*)((u8*)Fs_ImgBuffers + (stripIndex16 * DISPLAY_BACKGROUND_STRIP_BYTES) + sourceRowOffsetBytes));
+            LoadImage(&rect, (u_long*)((u8*)Fs_ImgBuffers->strips[stripIndex16] + sourceRowOffsetBytes));
             stripIndex++;
         } while ((u32)(stripIndex & 0xFFFF) < DISPLAY_BACKGROUND_STRIP_COUNT);
     }

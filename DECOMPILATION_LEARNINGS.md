@@ -120027,9 +120027,9 @@ what proves the leftover is a home swap rather than something structural - but
 treat the pins in a matched sibling as evidence of an allocation `global_alloc`
 does not reach unaided, not as residue to clean up.
 
-The sibling's `p0 = Fs_ImgBuffers->buffers[0]` needs no editing for a carrier
-that reads the pointer directly: `buffers` sits at offset 0 of `FsImgBuffers`
-(`include/main/fs.h`), so the expression is the struct's own address and
+The sibling's `p0 = Fs_ImgBuffers->strips[0]` needs no editing for a carrier
+that reads the pointer directly: `strips` sits at offset 0 of `FsImgBuffers`
+(`include/main/fs_types.h`), so the expression is the struct's own address and
 compiles to the single `lw $t1,%lo(Fs_ImgBuffers)($v0)` the carrier wants. Only
 the include differs - the carrier's TU has to add `#include "main/fs.h"`.
 `promote` refuses this shape for the same family-scoped reason as above ("only

@@ -1063,9 +1063,9 @@ static void Mdec_ProcessDecode(void)
             Gpu_ResetGraphAndOt();
             p->mdecOutputPending = 1;
             if (p->sceneVlcTableMode == STREAM_SCENE_VLC_IMAGE_BUFFER) {
-                DecDCTvlcBuild((u16*)((u8*)Fs_ImgBuffers + 0x8800));
+                DecDCTvlcBuild((u16*)((u8*)Fs_ImgBuffers + FILE_SYSTEM_IMAGE_VLC_OFFSET));
                 p->rebuildImageVlcTable = 0;
-                p->vlcTable             = (u16*)((u8*)Fs_ImgBuffers + 0x8800);
+                p->vlcTable             = (u16*)((u8*)Fs_ImgBuffers + FILE_SYSTEM_IMAGE_VLC_OFFSET);
             }
             DecDCTReset(0);
             DecDCTvlcSize2(0);
@@ -1075,7 +1075,7 @@ static void Mdec_ProcessDecode(void)
             DecDCToutCallback(Mdec_StripCallback);
             DecDCTin(gMemActiveAuxHeap, p->imageMdecMode);
             p->imageMdecMode = MDEC_IMAGE_MODE_RGB16;
-            DecDCTout((u_long*)Fs_ImgBuffers, 0x780);
+            DecDCTout(Fs_ImgBuffers->strips[0], FILE_SYSTEM_IMAGE_STRIP_WORDS);
             D_8007A358 = 0;
             p->imageDecodeStep++;
             /* fallthrough */
@@ -1153,36 +1153,36 @@ static void Mdec_DecodeToVram(void)
             DecDCTReset(0);
             DecDCTvlcSize2(0);
             DecDCTvlc2((u_long*)D_8007A360, gMemActiveAuxHeap,
-                       (u_short*)((u8*)Fs_ImgBuffers + 0x8800));
+                       (u_short*)((u8*)Fs_ImgBuffers + FILE_SYSTEM_IMAGE_VLC_OFFSET));
             D_8007A35E = 1;
             DecDCToutCallback(Mdec_StripCallback);
             DecDCTin(gMemActiveAuxHeap, p->imageMdecMode);
             p->imageMdecMode = MDEC_IMAGE_MODE_RGB16;
-            DecDCTout((u_long*)Fs_ImgBuffers, 0x780);
+            DecDCTout(Fs_ImgBuffers->strips[0], FILE_SYSTEM_IMAGE_STRIP_WORDS);
             p->imageDecodeStep += 1;
             /* fallthrough */
         case CD_COMMAND_IMAGE_WAIT_OUTPUT:
             i = 0;
             if (p->mdecOutputPending == 0) {
-                rect.w = 0x10;
-                rect.h = 0xF0;
+                rect.w = FILE_SYSTEM_IMAGE_STRIP_WIDTH;
+                rect.h = FILE_SYSTEM_IMAGE_HEIGHT;
                 rect.y = (gDisplayState.drawBuffer ^ 1) * 0x110;
                 do {
                     temp   = i & 0xFFFF;
-                    rect.x = temp * 0x10;
-                    LoadImage(&rect, &Fs_ImgBuffers->words[temp * 1920]);
+                    rect.x = temp * FILE_SYSTEM_IMAGE_STRIP_WIDTH;
+                    LoadImage(&rect, Fs_ImgBuffers->strips[temp]);
                     i++;
-                } while ((u32)(i & 0xFFFF) < 0x14U);
-                rect.w = 0x140;
+                } while ((u32)(i & 0xFFFF) < (u32)FILE_SYSTEM_IMAGE_STRIP_COUNT);
+                rect.w = FILE_SYSTEM_IMAGE_WIDTH;
                 rect.x = 0;
-                rect.h = 0xF0;
+                rect.h = FILE_SYSTEM_IMAGE_HEIGHT;
                 d      = &gDisplayState;
                 rect.y = (d->drawBuffer ^ 1) * 0x110;
-                StoreImage(&rect, (u_long*)Fs_ImgBuffers);
+                StoreImage(&rect, Fs_ImgBuffers->strips[0]);
                 if (p->preserveDisplayAfterDecode != 0) {
                     rect.x = 0;
                     rect.w = 0x1E0;
-                    rect.h = 0xF0;
+                    rect.h = FILE_SYSTEM_IMAGE_HEIGHT;
                     rect.y = d->drawBuffer * 0x110;
                     MoveImage(&rect, 0, (d->drawBuffer ^ 1) * 0x110);
                     p->preserveDisplayAfterDecode = 0;
@@ -1211,7 +1211,7 @@ void CdCmd_StepVlcRebuild(void)
     p = &gCdCmdQueue;
     if (p->scenePayloadAvailable == 0) {
         if (p->rebuildImageVlcTable != 0) {
-            DecDCTvlcBuild((u16*)((u8*)Fs_ImgBuffers + 0x8800));
+            DecDCTvlcBuild((u16*)((u8*)Fs_ImgBuffers + FILE_SYSTEM_IMAGE_VLC_OFFSET));
             p->rebuildImageVlcTable = 0;
         }
         if ((p->imageDecodePending != 0) && (p->rebuildImageVlcTable == 0)) {
@@ -1245,14 +1245,14 @@ static void Mdec_StripCallback(void)
     s32         temp;
     CdCmdQueue* p;
 
-    temp = 0x140 / (D_8007A35E * 16);
+    temp = FILE_SYSTEM_IMAGE_WIDTH / (D_8007A35E * FILE_SYSTEM_IMAGE_STRIP_WIDTH);
     p    = &gCdCmdQueue;
     if (D_8007A35C == temp - 1) {
         p->mdecOutputPending = 0;
         DecDCToutCallback(0);
     } else {
         D_8007A35C = D_8007A35C + 1;
-        DecDCTout(&Fs_ImgBuffers->words[D_8007A35C * 1920], 0x780);
+        DecDCTout(Fs_ImgBuffers->strips[D_8007A35C], FILE_SYSTEM_IMAGE_STRIP_WORDS);
     }
 }
 

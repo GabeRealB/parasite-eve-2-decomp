@@ -609,10 +609,10 @@ static void func_shelter_b6_corridor_8017E064(Task* arg0)
     ptr = (u16*)Fs_ImgBuffers;
     i   = 0;
     do {
-        *ptr = (u16)(*ptr | 0x8000);
+        *ptr = (u16)(*ptr | FILE_SYSTEM_IMAGE_PIXEL_MASK);
         i   += 1;
         ptr += 1;
-    } while (i <= 0x12BFF);
+    } while (i <= FILE_SYSTEM_IMAGE_STRIP_COUNT * FILE_SYSTEM_IMAGE_STRIP_WORDS * 2 - 1);
     D_shelter_b6_corridor_801851B0.value = 2;
     if (gGameSession->location.loc.variant == 1) {
         gStageSceneMusicEntry    = 2;

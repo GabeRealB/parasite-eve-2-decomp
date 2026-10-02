@@ -25,13 +25,13 @@ static inline void screenNegativeCaptureTask(Task* task)
                     gScreenNegativeStripRect.y = 0x110;
                 }
                 if (gDisplayState.debugMode < 0) {
-                    StoreImage(&gScreenNegativeFrameRect, Fs_ImgBuffers->words);
+                    StoreImage(&gScreenNegativeFrameRect, Fs_ImgBuffers->strips[0]);
                 } else {
-                    strip = Fs_ImgBuffers->words;
-                    for (i = 0; i < 20; i++) {
-                        gScreenNegativeStripRect.x = i * 16;
+                    strip = Fs_ImgBuffers->strips[0];
+                    for (i = 0; i < FILE_SYSTEM_IMAGE_STRIP_COUNT; i++) {
+                        gScreenNegativeStripRect.x = i * FILE_SYSTEM_IMAGE_STRIP_WIDTH;
                         StoreImage(&gScreenNegativeStripRect, strip);
-                        strip += 1920;
+                        strip += FILE_SYSTEM_IMAGE_STRIP_WORDS;
                     }
                 }
                 gDisplayState.skipDraw = 1;

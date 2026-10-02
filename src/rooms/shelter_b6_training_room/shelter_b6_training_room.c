@@ -424,10 +424,10 @@ static void func_shelter_b6_training_room_8017D7D4(Task* arg0)
     ptr = (u16*)Fs_ImgBuffers;
     i   = 0;
     do {
-        *ptr = (u16)(*ptr | 0x8000);
+        *ptr = (u16)(*ptr | FILE_SYSTEM_IMAGE_PIXEL_MASK);
         i   += 1;
         ptr += 1;
-    } while (i <= 0x12BFF);
+    } while (i <= FILE_SYSTEM_IMAGE_STRIP_COUNT * FILE_SYSTEM_IMAGE_STRIP_WORDS * 2 - 1);
     GameFlag_SetNibble(GAME_FLAG_COMPANION_3_SCHEDULE, 1);
     gStageSceneMusicEntry = 0xA;
     func_shelter_b6_training_room_8017DBB0(0);

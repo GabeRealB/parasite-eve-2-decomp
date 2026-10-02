@@ -271,12 +271,36 @@ typedef struct {
 } FsResourceSlot;
 STATIC_ASSERT_SIZEOF(FsResourceSlot, 0x8);
 
-/// Image workspace, used as twenty 1920-word strips or one continuous frame.
-/// A flat array also keeps whole-frame pixel processing within one C object.
-typedef struct _FsImgBuffers {
-    u_long words[20 * 1920];
+/// Pixel layout of the resident image workspace.
+///
+/// One frame is 320×240 16-bit pixels in twenty strips of 16×240. Each GPU
+/// word holds two pixels, a contiguous row is 640 bytes, and pixel bit 15 is
+/// the mask bit. Image decode builds its VLC table at
+/// `FILE_SYSTEM_IMAGE_VLC_OFFSET`; that table is `STREAM_VLC_TABLE_BYTES`
+/// long and still ends inside the frame.
+enum {
+    FILE_SYSTEM_IMAGE_WIDTH       = 320,
+    FILE_SYSTEM_IMAGE_HEIGHT      = 240,
+    FILE_SYSTEM_IMAGE_STRIP_WIDTH = 16,
+    FILE_SYSTEM_IMAGE_STRIP_COUNT = FILE_SYSTEM_IMAGE_WIDTH / FILE_SYSTEM_IMAGE_STRIP_WIDTH,
+    FILE_SYSTEM_IMAGE_STRIP_WORDS = (FILE_SYSTEM_IMAGE_STRIP_WIDTH * FILE_SYSTEM_IMAGE_HEIGHT) / 2,
+    FILE_SYSTEM_IMAGE_ROW_BYTES   = FILE_SYSTEM_IMAGE_WIDTH * 2,
+    FILE_SYSTEM_IMAGE_PIXEL_MASK  = 0x8000,
+    FILE_SYSTEM_IMAGE_VLC_OFFSET  = 0x8800,
+};
+
+/// Resident image workspace for one 320×240 frame.
+///
+/// `strips` is the frame in decode order. The same bytes are also one
+/// contiguous image. A background bitstream occupies them until decoded
+/// strips replace it, and the image-mode VLC table is built in the middle
+/// of that storage first.
+typedef struct {
+    u_long strips[FILE_SYSTEM_IMAGE_STRIP_COUNT][FILE_SYSTEM_IMAGE_STRIP_WORDS]; // 16×240 columns, two pixels per word
 } FsImgBuffers;
 STATIC_ASSERT_SIZEOF(FsImgBuffers, 0x25800);
+STATIC_ASSERT(sizeof(FsImgBuffers) == FILE_SYSTEM_IMAGE_WIDTH * FILE_SYSTEM_IMAGE_HEIGHT * 2, fs_image_frame_bytes);
+STATIC_ASSERT(FILE_SYSTEM_IMAGE_VLC_OFFSET + STREAM_VLC_TABLE_BYTES <= sizeof(FsImgBuffers), fs_image_vlc_table_fits);
 
 /// On-disk / in-sector image chunk header used by `Fs_LoadImageChunk`.
 /// Fields at +4/+6 are height then width (swapped relative to RECT).

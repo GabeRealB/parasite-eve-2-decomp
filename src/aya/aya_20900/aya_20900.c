@@ -49,13 +49,13 @@ void func_aya_20900_8011578C(Task* arg0)
             arg0->state += 1;
             break;
         case 2:
-            buf = (u32*)Fs_ImgBuffers;
+            buf = (u32*)Fs_ImgBuffers->strips[0];
             val = 0x1F001F;
             i   = 0;
             do {
                 *buf++ = val;
                 i++;
-            } while ((i & 0xFFFF) <= 0x95FFU);
+            } while ((i & 0xFFFF) <= (u32)(FILE_SYSTEM_IMAGE_STRIP_COUNT * FILE_SYSTEM_IMAGE_STRIP_WORDS - 1));
             arg0->state += 1;
             break;
         case 3:

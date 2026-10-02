@@ -929,7 +929,7 @@ void func_actor_143000_80133CF0(Task* arg0)
             SOFT_TOUCH_REG_USE(rp, n);
             p->count = n;
             bottom   = p->y + p->h * n / p->total;
-            offset   = r.y * 640;
+            offset   = r.y * FILE_SYSTEM_IMAGE_ROW_BYTES;
             r.h      = bottom - r.y;
             SOFT_USE_REG(offset);
             r2    = r;

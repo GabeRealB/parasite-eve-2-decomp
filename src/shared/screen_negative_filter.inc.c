@@ -1,7 +1,7 @@
 /* Part of the screen negative library; see screen_negative.h. */
 
-/// Walks Fs_ImgBuffers two words (four 15-bit pixels) at a time for 0x4B00
-/// steps, the whole 320x240 frame. For each pixel it forms the luma
+/// Walks the frame two GPU words (four 15-bit pixels) at a time, covering
+/// every pixel. For each pixel it forms the luma
 /// (3R + 4G + B) / 8, inverts it (31 - l) and writes it back to all three
 /// channels.
 static void screenNegativeFilter(void)
@@ -14,7 +14,7 @@ static void screenNegativeFilter(void)
     u32     gray;
     u32     t;
 
-    p0 = Fs_ImgBuffers->words;
+    p0 = Fs_ImgBuffers->strips[0];
     i  = 0;
     p1 = p0 + 1;
     do {
@@ -47,5 +47,5 @@ static void screenNegativeFilter(void)
         *p1  = hi;
         p1  += 2;
         p0  += 2;
-    } while (i < 0x4B00);
+    } while (i < (FILE_SYSTEM_IMAGE_STRIP_COUNT * FILE_SYSTEM_IMAGE_STRIP_WORDS) / 2);
 }
