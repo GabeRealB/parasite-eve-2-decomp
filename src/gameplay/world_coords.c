@@ -97,19 +97,27 @@ typedef struct {
 } _WorldCoordNearestRoomLight;
 STATIC_ASSERT_SIZEOF(_WorldCoordNearestRoomLight, 0xC);
 
-/// Room-light capture block owned by another overlay (imported at
-/// `D_80760618`). `func_800D7A9C` fills the four `field_30` entries with the
-/// ranked light contributions while `field_1` is set, and `func_800D78A4` writes
-/// the nearest light selection into `field_24`. `Gp_DebugPanTask` raises
-/// `field_1` around that pair so the capture happens, then clears it.
-typedef struct _GpLightCapture {
-    /* 0x00 */ byte                        pad_0[0x1];
-    /* 0x01 */ s8                          field_1;
-    /* 0x02 */ byte                        pad_2[0x22];
-    /* 0x24 */ _WorldCoordNearestRoomLight field_24;
-    /* 0x30 */ _WorldCoordRankedLight      field_30[WORLD_COORDINATE_RANKED_LIGHT_COUNT];
-} GpLightCapture;
-STATIC_ASSERT_SIZEOF(GpLightCapture, 0x60);
+/// Values written to the light-probe's ranked snapshot gate.
+enum {
+    WORLD_COORDINATE_LIGHT_CAPTURE_DISABLED = 0,
+    WORLD_COORDINATE_LIGHT_CAPTURE_ENABLED  = 1
+};
+
+/// Writable light-probe capture prefix used by world-coordinate diagnostics.
+///
+/// The player probe opens `captureEnabled` while sampling lighting. The nearest
+/// selection is refreshed independently; an early solver return retains the
+/// ranked snapshot. Captured light headers are borrowed and require their source
+/// storage to remain live. Only the accessed 0x60-byte prefix is described;
+/// allocation ownership and the original object's full extent are unproven.
+typedef struct {
+    byte                        unknown_0[0x1];                                    // Contents unproven
+    s8                          captureEnabled;                                    // Ranked snapshot gate (0 closed, 1 open; other values closed)
+    byte                        unknown_2[0x22];                                   // Contents and field boundaries unproven
+    _WorldCoordNearestRoomLight nearestRoomLight;                                  // Nearest authored room point/cone selection, independent of contribution rank
+    _WorldCoordRankedLight      rankedLights[WORLD_COORDINATE_RANKED_LIGHT_COUNT]; // Three model-light contributions plus the ambient cutoff
+} _WorldCoordLightProbeCapture;
+STATIC_ASSERT_SIZEOF(_WorldCoordLightProbeCapture, 0x60);
 
 /// Temporary squared-distance falloff workspace for a point light.
 ///
@@ -223,9 +231,8 @@ s32 D_80115264;
 
 #include "world_coords.h"
 
-/// Overlay import: pointer to the room-light capture block written by
-/// `func_800D7A9C` / `func_800D78A4`.
-extern GpLightCapture* D_80760618;
+/// Absolute import: pointer to the light-probe capture block.
+extern _WorldCoordLightProbeCapture* D_80760618;
 
 /// Re-evaluates each lit transient light slot against the view.
 static inline void _gpUpdateRoomCoordSlots(void);
@@ -1062,12 +1069,13 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
         } while (channelIndex < (s32)ARRAY_SIZE(Gp_OverrideVec2.channelScales));
     }
 
-    if (Pad_RemapState->diagnosticMode == GAME_DEBUG_DIAGNOSTIC_LIGHT_PROBE && D_80760618->field_1 == 1) {
+    // Retain the ranked snapshot before releasing the query's scratch storage.
+    if (Pad_RemapState->diagnosticMode == GAME_DEBUG_DIAGNOSTIC_LIGHT_PROBE && D_80760618->captureEnabled == WORLD_COORDINATE_LIGHT_CAPTURE_ENABLED) {
         i = 0;
         do {
-            D_80760618->field_30[i] = block->slots[i];
+            D_80760618->rankedLights[i] = block->slots[i];
             i++;
-        } while (i < (s32)ARRAY_SIZE(block->slots));
+        } while (i < (s32)ARRAY_SIZE(D_80760618->rankedLights));
     }
 
     SCRATCH_STACK_RELEASE_BYTES(0x7C);
@@ -1114,12 +1122,13 @@ static void Gp_DebugPanTask(Task* arg0)
 
     if (Pad_RemapState->diagnosticMode == GAME_DEBUG_DIAGNOSTIC_LIGHT_PROBE) {
         SCRATCH_STACK_RESERVE_BLOCK(WorldCoordProjectionScratch);
-        projection          = SCRATCH_STACK_CURSOR(WorldCoordProjectionScratch);
-        D_80760618->field_1 = 1;
+        projection = SCRATCH_STACK_CURSOR(WorldCoordProjectionScratch);
+        // Open the ranked snapshot gate only for the player's diagnostic sample.
+        D_80760618->captureEnabled = WORLD_COORDINATE_LIGHT_CAPTURE_ENABLED;
         func_800D7A9C(extra, &vec, 0, 3);
-        func_800D78A4(&vec, &D_80760618->field_24);
-        inputPoint          = &projection->point;
-        D_80760618->field_1 = 0;
+        func_800D78A4(&vec, &D_80760618->nearestRoomLight);
+        inputPoint                 = &projection->point;
+        D_80760618->captureEnabled = WORLD_COORDINATE_LIGHT_CAPTURE_DISABLED;
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_SetTransMatrix(&GsWSMATRIX);
         // Project the sampled position to place the debug light readout.

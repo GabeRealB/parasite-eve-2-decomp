@@ -65760,7 +65760,7 @@ attempt from 93.381% (branch=4, insert=3, delete=4) to 100%.
 
 The output was previously declared as a direction vector, but the stores are
 `kind = -1/1/2`, a cleared word, and a selected light header pointer. The corrected
-`_WorldCoordNearestRoomLight` type preserves the 12-byte layout of `GpLightCapture.field_24`.
+`_WorldCoordNearestRoomLight` type preserves the 12-byte layout of `_WorldCoordLightProbeCapture.nearestRoomLight`.
 
 
 ## Share only the loop-exit update before LICM; preserve adjacent symbols separately
