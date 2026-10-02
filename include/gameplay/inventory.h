@@ -50,22 +50,26 @@ typedef struct _GpItemA0 {
 } GpItemA0;
 STATIC_ASSERT_SIZEOF(GpItemA0, 0x4);
 
-/// The starting max HP at the head of a `Gp_StatRow`. `Gp_RecalcMaxHp` reads it
-/// as the unsigned halfword it writes straight into `gPlayerStatus.hpMax`,
-/// while the Mist shooting gallery's STATUS panel reads the same slot as a full
-/// word, so the slot is declared both ways.
-typedef union _GpStatBase {
-    /* 0x0 */ u16 half;
-    /* 0x0 */ s32 word;
-} GpStatBase;
-STATIC_ASSERT_SIZEOF(GpStatBase, 0x4);
+/// Starting maximum HP for one game mode.
+///
+/// Each `GpStatRow` carries one in `base`. The count occupies the low half, and
+/// the mode table stores zero in the high half, so the word view is the same
+/// count. Maximum-HP recalculation reads `hp` and copies it into
+/// `PlayerStatus.hpMax` before the saved HP bonus and armour. The
+/// shooting-gallery status panel reads `hpWord` and prints that count. The
+/// mode table's initializer writes `hp`, so that member stays first.
+typedef union {
+    u16 hp;     // Low half copied into the player's maximum HP.
+    s32 hpWord; // All four bytes, as the status panel's HP figure.
+} PlayerModeBaseHp;
+STATIC_ASSERT_SIZEOF(PlayerModeBaseHp, 0x4);
 
 /// 8-byte row in `Gp_StatRows` (4 entries), indexed by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode`.
-/// base is the starting max HP (see `GpStatBase`). field_4 is the word added
+/// base is the starting max HP (see `PlayerModeBaseHp`). field_4 is the word added
 /// into `gPlayerStatus.mpMax` (`Gp_RecalcMaxMp`).
 typedef struct _GpStatRow {
-    /* 0x00 */ GpStatBase base;
-    /* 0x04 */ s32        field_4;
+    /* 0x00 */ PlayerModeBaseHp base;
+    /* 0x04 */ s32              field_4;
 } GpStatRow;
 STATIC_ASSERT_SIZEOF(GpStatRow, 0x8);
 

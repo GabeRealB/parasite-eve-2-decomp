@@ -273,7 +273,7 @@ static inline void _gpRecalcMaxHp(void)
     cfg        = &gPlayerStatus;
     table      = Gp_StatRows;
     save       = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    val        = table[save->state.gameMode].base.half;
+    val        = table[save->state.gameMode].base.hp;
     cfg->hpMax = val;
     val       += save->state.hpBonus;
     cfg->hpMax = val;
@@ -429,7 +429,7 @@ void Gp_UiBoostHp(UiObject* arg0, Task* arg1)
         if (save->state.hpBonus < 0xFA) {
             save->state.hpBonus = save->state.hpBonus + 5;
         }
-        val        = Gp_StatRows[save->state.gameMode].base.half;
+        val        = Gp_StatRows[save->state.gameMode].base.hp;
         cfg->hpMax = val;
         val       += save->state.hpBonus;
         cfg->hpMax = val;

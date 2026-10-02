@@ -50399,18 +50399,18 @@ Give the slot a named union in the shared header and let each caller pick the
 member it needs:
 
 ```c
-typedef union _GpStatBase {
-    /* 0x0 */ u16 half;   /* Gp_RecalcMaxHp: lhu */
-    /* 0x0 */ s32 word;   /* shooting gallery STATUS: lw */
-} GpStatBase;
+typedef union {
+    u16 hp;     /* Gp_RecalcMaxHp: lhu */
+    s32 hpWord; /* shooting gallery STATUS: lw */
+} PlayerModeBaseHp;
 
 typedef struct _GpStatRow {
-    /* 0x00 */ GpStatBase base;
+    /* 0x00 */ PlayerModeBaseHp base;
     /* 0x04 */ s32        field_4;
 } GpStatRow;
 ```
 
-A cast does not work: `(u16)row.word` is `lw` + `andi`, and widening the field
+A cast does not work: `(u16)row.hpWord` is `lw` + `andi`, and widening the field
 to `s32` turns the gameplay side's `lhu` into `lw`. Re-verify every TU that
 touches the struct with an unscoped `build-and-verify.sh` after the change.
 

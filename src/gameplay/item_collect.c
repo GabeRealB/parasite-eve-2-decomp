@@ -643,7 +643,7 @@ void Gp_RecalcMaxHp(void)
     cfg        = &gPlayerStatus;
     table      = Gp_StatRows;
     save       = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    val        = table[save->state.gameMode].base.half;
+    val        = table[save->state.gameMode].base.hp;
     cfg->hpMax = val;
     val       += save->state.hpBonus;
     cfg->hpMax = val;

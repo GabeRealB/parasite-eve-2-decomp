@@ -1482,7 +1482,7 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
     color = 0x606060;
     top   = obj->panel.contentTop.signedValue;
     y     = top + 0xF;
-    val   = Gp_StatRows[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode].base.word;
+    val   = Gp_StatRows[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode].base.hpWord;
     xOff  = obj->panel.contentLeft.signedValue + 6;
     if (val < 100) {
         color = 0xD287F;

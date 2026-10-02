@@ -505,7 +505,7 @@ void Gp_EquipMod(s32 arg0)
                     p        = &gPlayerStatus;
                     table    = Gp_StatRows;
                     save     = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-                    val      = table[save->state.gameMode].base.half;
+                    val      = table[save->state.gameMode].base.hp;
                     p->hpMax = val;
                     val     += save->state.hpBonus;
                     p->hpMax = val;
@@ -565,7 +565,7 @@ void Gp_EquipMod(s32 arg0)
 
         table      = Gp_StatRows;
         save       = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-        val        = table[save->state.gameMode].base.half;
+        val        = table[save->state.gameMode].base.hp;
         cfg->hpMax = val;
         val       += save->state.hpBonus;
         cfg->hpMax = val;
