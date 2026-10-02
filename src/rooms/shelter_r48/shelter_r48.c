@@ -2794,9 +2794,25 @@ void waterDrawTileU16(GfxCoord* arg0, s32 arg1, s32 arg2)
 }
 
 /* gameplay's room-effect table names the task, drawn with the room's own drawers */
-#define EFFECT_SPRITE_DRIFT_TASK        func_shelter_r48_80180210
-#define EFFECT_SPRITE_DRIFT_DRAW_A      func_shelter_r48_80180804
-#define EFFECT_SPRITE_DRIFT_DRAW_B      func_shelter_r48_80180C5C
+#define EFFECT_SPRITE_DRIFT_TASK   func_shelter_r48_80180210
+#define EFFECT_SPRITE_DRIFT_DRAW_A func_shelter_r48_80180804
+#define EFFECT_SPRITE_DRIFT_DRAW_B func_shelter_r48_80180C5C
+/// Selects the drift sprite's palette bank from the spawn argument's sign bit.
+///
+/// Define as integer 1 before including `effect_sprite_drift.inc.c`, as Shelter
+/// R48 does; 0 or undefined selects the default encoding (bit 31 chooses the
+/// drawer, bits 28..30 choose the palette bank). With 1, initialization chooses
+/// drawer A when bits 28..31 are all zero, otherwise drawer B. Bit 31 alone
+/// sets `EffectWork::pos.vx` to 0 or 0x1000, ORed with the animation cell index
+/// in the drawer's u16 argument. Both R48 drawers use bank 1 for CLUT 0x428F
+/// and bank 0 for their ordinary palettes.
+///
+/// Suspended updates choose A for a nonnegative spawn argument and B for a
+/// negative one, regardless of the running drawer state, retaining the current
+/// cell and bank. The bank is initialized only on the first running update.
+/// `EFFECT_SPRITE_DRIFT_PAUSED_DRAW_A_UNBANKED` overrides suspended selection.
+/// The fragment tests this configuration with #if/#elif and undefines it
+/// after inclusion.
 #define EFFECT_SPRITE_DRIFT_SIGN_BANK   1
 #define EFFECT_SPRITE_DRIFT_STEADY_RISE 1
 #include "../../shared/effect_sprite_drift.inc.c"

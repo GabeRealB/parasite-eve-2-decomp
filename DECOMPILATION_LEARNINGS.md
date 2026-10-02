@@ -140001,8 +140001,8 @@ afterwards. Combine then leaves `(ashift (lt x 0) 12)` alone.
 **Fix.** Compare against a local assigned 0 just before:
 
 ```c
-zero           = 0;
-work->field_18 = (task->spawnArg1 < zero) << 12;
+zero         = 0;
+work->pos.vx = (task->spawnArg1.value < zero) << 12;
 ```
 ## Call sites that all sign-extend an argument mean the parameter is `s16`
 

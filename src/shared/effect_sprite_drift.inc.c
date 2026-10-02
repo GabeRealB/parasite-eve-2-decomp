@@ -5,9 +5,9 @@
  * A room whose gameplay table names its own task defines
  * EFFECT_SPRITE_DRIFT_TASK to that name; EFFECT_SPRITE_DRIFT_DRAW_A / _B name the room's own
  * drawers when it does not use effectSpriteDrawBanked / effectSpriteDrawRotated.
- * EFFECT_SPRITE_DRIFT_SIGN_BANK 1
- * takes the drawer from the top four bits of the spawn argument and the bank
- * from its sign alone, and EFFECT_SPRITE_DRIFT_STEADY_RISE 1 rises at a
+ * Shelter R48 enables EFFECT_SPRITE_DRIFT_SIGN_BANK; see its definition for
+ * the spawn-argument and suspended-draw contract.
+ * EFFECT_SPRITE_DRIFT_STEADY_RISE 1 rises at a
  * constant rate for every kind (Shelter R48). */
 
 #ifndef EFFECT_SPRITE_DRIFT_TASK
@@ -22,7 +22,7 @@
 
 /// Per-frame handler for one animated sprite effect, drawn by
 /// `effectSpriteDrawBanked` (state 1) or
-/// `effectSpriteDrawRotated` (state 2). Its first frame unpacks
+/// `effectSpriteDrawRotated` (state 2). By default its first frame unpacks
 /// `spawnArg1`: the low 12 bits are the sprite size, bits 12..14 the frames per
 /// animation cell (1 when zero), bits 28..30 are kept as the drawer's clut
 /// selector, and the sign bit picks the second drawer. When the work block
@@ -50,6 +50,7 @@ void EFFECT_SPRITE_DRIFT_TASK(Task* task)
         // Suspended sprites use drawer A's base palette even in drawer B's state.
         EFFECT_SPRITE_DRIFT_DRAW_A(coord, work->index, work->scale, work->angle);
 #elif EFFECT_SPRITE_DRIFT_SIGN_BANK
+        // Suspension reselects the drawer from the sign, rather than the running state.
         if (task->spawnArg1.value < 0) {
             EFFECT_SPRITE_DRIFT_DRAW_B(coord, work->index | work->pos.vx, work->scale, work->angle);
         } else {
@@ -81,8 +82,7 @@ void EFFECT_SPRITE_DRIFT_TASK(Task* task)
             work->period = step;
             work->age    = 0;
 #if EFFECT_SPRITE_DRIFT_SIGN_BANK
-            /* any of the top four bits picks the second drawer, and the sign
-               alone the second bank */
+            // The high nibble chooses the running drawer; its sign alone chooses the palette.
             task->state  = task->spawnArg1.value & 0xF0000000 ? 2 : 1;
             zero         = 0;
             work->pos.vx = (task->spawnArg1.value < zero) << 12;
