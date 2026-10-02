@@ -3833,7 +3833,7 @@ static void func_actor_444000_801371E8(Task* task, s32 scale, s16 face)
 
 /// State handlers of the textured prop sub-task: setup, per-frame refresh and
 /// teardown.
-static const GpEnemyTaskFuncTable3 gGluttonPropStates = {
+static const EnemyTaskFuncTable3 gGluttonPropStates = {
     {
         gluttonPropSetup,
         gluttonPropTick,
@@ -3842,7 +3842,7 @@ static const GpEnemyTaskFuncTable3 gGluttonPropStates = {
 };
 
 /// State handlers of the enemy `gluttonThrowTask` dispatches.
-static const GpEnemyTaskFuncTable3 gGluttonThrowStates = {
+static const EnemyTaskFuncTable3 gGluttonThrowStates = {
     {
         gluttonThrowSpawn,
         gluttonThrowFly,

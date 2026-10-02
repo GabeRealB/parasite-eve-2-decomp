@@ -178,7 +178,7 @@ static void Actor03800_Fn037E0(Task* arg0);
 /// (`Task::state`): the spawn state that allocates the work block and
 /// moves to state 1, the per-frame tick, and the state-2 handler the tick hands
 /// over to, which carries the death sequence.
-static const GpEnemyTaskFuncTable3 Actor03800_D00004 = {
+static const EnemyTaskFuncTable3 Actor03800_D00004 = {
     {
         Actor03800_Fn000B8,
         Actor03800_Fn031B8,
@@ -2239,7 +2239,7 @@ static void Actor03800_Fn03008(Task* actor, u32 variant)
 
 static void Actor03800_Fn0315C(Task* arg0)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = Actor03800_D00004;
     sp.funcs[arg0->state](((Enemy*)arg0->spawnArg2.pointer), arg0);

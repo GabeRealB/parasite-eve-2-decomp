@@ -58,7 +58,7 @@ extern s16 gRatAnimBlend[];
 /// The second variant's state handlers, in the same order as the first's:
 /// spawn, per-frame update and state 2. `ratTask`
 /// dispatches them.
-static const GpEnemyTaskFuncTable3 gRatStateHandlers = {
+static const EnemyTaskFuncTable3 gRatStateHandlers = {
     {
         ratSpawn,
         ratUpdate,

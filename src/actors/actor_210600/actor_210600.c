@@ -97,9 +97,9 @@ extern s8 D_actor_210600_8015A498[][5];
 /// indirect call. Only `table` is written; the dispatcher's frame is larger
 /// than the table alone, which the two trailing words account for.
 typedef struct Actor210600DispatchCtx {
-    /* 0x00 */ GpEnemyTaskFuncTable3 table;
-    /* 0x0C */ s32                   field_C;
-    /* 0x10 */ s32                   field_10;
+    /* 0x00 */ EnemyTaskFuncTable3 table;
+    /* 0x0C */ s32                 field_C;
+    /* 0x10 */ s32                 field_10;
 } Actor210600DispatchCtx;
 STATIC_ASSERT_SIZEOF(Actor210600DispatchCtx, 0x14);
 
@@ -634,7 +634,7 @@ static void func_actor_210600_8014B8C8(Enemy* enemy, Task* task)
 
 /// The actor's three task states - spawn, update and teardown - which
 /// `func_actor_210600_8014BA3C` runs by `Task::state`.
-static const GpEnemyTaskFuncTable3 D_actor_210600_80149E24 = {
+static const EnemyTaskFuncTable3 D_actor_210600_80149E24 = {
     {
         func_actor_210600_8014B8C8,
         func_actor_210600_8014B434,

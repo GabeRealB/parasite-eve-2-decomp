@@ -248,7 +248,7 @@ static s32  Actor02100_Fn014E4(Task* arg0);
 
 static void Actor02100_Fn00048(Enemy* arg0, Task* arg1);
 
-static const GpEnemyTaskFuncTable3 Actor02100_D00004 = { {
+static const EnemyTaskFuncTable3 Actor02100_D00004 = { {
     Actor02100_Fn00048,
     Actor02100_Fn031C4,
     Actor02100_Fn035D4,
@@ -1790,7 +1790,7 @@ static void Actor02100_Fn02924(Task* arg0, s32 arg1)
 
 static void Actor02100_Fn03168(Task* arg0)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = Actor02100_D00004;
     sp.funcs[arg0->state]((Enemy*)arg0->spawnArg2.pointer, arg0);

@@ -909,7 +909,7 @@ static void func_actor_123200_801339F0(Enemy* enemy, Task* task)
 /// The three display-mode handlers `func_actor_123200_80133BA0` picks between
 /// by the work block's `field_0`, copied onto its stack before the call: 0 the
 /// idle state, 1 and 2 the two stepping handlers.
-static const GpEnemyTaskFuncTable3 D_actor_123200_80131E24 = {
+static const EnemyTaskFuncTable3 D_actor_123200_80131E24 = {
     {
         func_actor_123200_80134178,
         func_actor_123200_80133820,
@@ -928,12 +928,12 @@ static const GpEnemyTaskFuncTable3 D_actor_123200_80131E24 = {
 /// raised `gGameSession->viewReady` flags the coordinate for rebuild again.
 static void func_actor_123200_80133BA0(Enemy* enemy, Task* arg1)
 {
-    VECTOR                pos;
-    GpEnemyTaskFuncTable3 table;
-    Actor123200Work*      work;
-    s32                   snd;
-    s32                   pan;
-    s32                   id;
+    VECTOR              pos;
+    EnemyTaskFuncTable3 table;
+    Actor123200Work*    work;
+    s32                 snd;
+    s32                 pan;
+    s32                 id;
 
     work                                  = (Actor123200Work*)arg1->work;
     table                                 = D_actor_123200_80131E24;
@@ -984,7 +984,7 @@ static void func_actor_123200_80133BA0(Enemy* enemy, Task* arg1)
 
 /// The enemy's three task states -- spawn, per-frame tick and teardown -- which
 /// `func_actor_123200_801341A8` runs by `Task::state`.
-static const GpEnemyTaskFuncTable3 D_actor_123200_80131E30 = {
+static const EnemyTaskFuncTable3 D_actor_123200_80131E30 = {
     {
         func_actor_123200_8013352C,
         func_actor_123200_80133BA0,
@@ -1092,7 +1092,7 @@ static void func_actor_123200_80134178(Enemy* arg0, Task* arg1)
 /// copying the table onto the stack before the call.
 void func_actor_123200_801341A8(Task* task)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = D_actor_123200_80131E30;
     sp.funcs[task->state](task->spawnArg2.pointer, task);

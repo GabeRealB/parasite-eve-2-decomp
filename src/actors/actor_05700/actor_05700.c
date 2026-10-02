@@ -1307,7 +1307,7 @@ extern s32 gGolemPawnRookBurstCue;
 
 /// State handlers of the model child hung off the actor's part 7 - spawn,
 /// per-frame tick and teardown - dispatched through by `Actor05700_Fn05040`.
-static const GpEnemyTaskFuncTable3 Actor05700_D00080 = {
+static const EnemyTaskFuncTable3 Actor05700_D00080 = {
     golemPawnRookGunSpawn,
     golemPawnRookGunTick,
     enemyDestroy,
@@ -1355,7 +1355,7 @@ static const GpEnemyTaskFuncTable3 Actor05700_D00080 = {
 
 void Actor05700_Fn05040(Task* arg0)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = Actor05700_D00080;
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
@@ -1367,7 +1367,7 @@ void Actor05700_Fn05040(Task* arg0)
 
 /// State handlers of the effect child - spawn/setup, per-frame tick and
 /// teardown - dispatched through by `Actor05700_Fn0517C`.
-static const GpEnemyTaskFuncTable3 Actor05700_D0008C = {
+static const EnemyTaskFuncTable3 Actor05700_D0008C = {
     golemPawnRookBulletSpawn,
     golemPawnRookBulletFly,
     golemPawnRookBulletDestroy,
@@ -1375,7 +1375,7 @@ static const GpEnemyTaskFuncTable3 Actor05700_D0008C = {
 
 void Actor05700_Fn0517C(Task* arg0)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = Actor05700_D0008C;
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
@@ -1385,7 +1385,7 @@ void Actor05700_Fn0517C(Task* arg0)
 
 /// State handlers of the burst child parented to the actor's part 11 - spawn,
 /// per-frame tick and teardown - dispatched through by `Actor05700_Fn05270`.
-static const GpEnemyTaskFuncTable3 Actor05700_D00098 = {
+static const EnemyTaskFuncTable3 Actor05700_D00098 = {
     golemPawnRookBurstPartSpawn,
     golemPawnRookBurstPartTick,
     enemyDestroy,
@@ -1393,7 +1393,7 @@ static const GpEnemyTaskFuncTable3 Actor05700_D00098 = {
 
 void Actor05700_Fn05270(Task* arg0)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = Actor05700_D00098;
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
@@ -1404,7 +1404,7 @@ void Actor05700_Fn05270(Task* arg0)
 /// The actor's own state handlers - spawn/setup, per-frame tick and
 /// teardown - dispatched through by `Actor05700_Fn05470`. The tick and
 /// teardown take the task as the actor view it is.
-static const GpEnemyTaskFuncTable3 Actor05700_D000A4 = {
+static const EnemyTaskFuncTable3 Actor05700_D000A4 = {
     golemPawnRookSpawn,
     golemPawnRookFrameState,
     golemPawnRookDeadState,
@@ -1414,7 +1414,7 @@ static const GpEnemyTaskFuncTable3 Actor05700_D000A4 = {
 
 void Actor05700_Fn05470(Task* arg0)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = Actor05700_D000A4;
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);

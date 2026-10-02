@@ -165,7 +165,7 @@ DamageAttack D_actor_207200_8014E7CC[2] = { { 25, 11 }, { 10, 0 } };
 
 /// The small enemy's state handlers - spawn, live tick and dying tick - which
 /// `skullStalkerTask` dispatches through by task state.
-static const GpEnemyTaskFuncTable3 gSkullStalkerTaskStates = {
+static const EnemyTaskFuncTable3 gSkullStalkerTaskStates = {
     { skullStalkerSpawnState, skullStalkerUpdateState, skullStalkerDeathState }
 };
 

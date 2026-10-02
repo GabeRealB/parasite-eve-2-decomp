@@ -3229,7 +3229,7 @@ static const GpEnemyTaskFuncTable5 D_mine_cavern_8017D7F8 = {
 };
 
 /// The second enemy's state handlers, run by `func_mine_cavern_80183C10`.
-static const GpEnemyTaskFuncTable3 D_mine_cavern_8017D80C = {
+static const EnemyTaskFuncTable3 D_mine_cavern_8017D80C = {
     { func_mine_cavern_801836D0, func_mine_cavern_80183AD4, enemyDestroy },
 };
 
@@ -3357,7 +3357,7 @@ static void func_mine_cavern_80183AD4(Enemy* enemy, Task* task)
 /// table onto the stack before the call.
 void func_mine_cavern_80183C10(Task* task)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = D_mine_cavern_8017D80C;
     sp.funcs[task->state](task->spawnArg2.pointer, task);

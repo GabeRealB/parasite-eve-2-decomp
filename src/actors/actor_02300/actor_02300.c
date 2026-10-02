@@ -1426,7 +1426,7 @@ static void Actor02300_Fn028AC(Enemy* enemy, Task* actor)
 /// State handlers of the child task hung off part 7 of the enemy's model -
 /// spawn/setup, per-frame tick and teardown - dispatched through by
 /// `Actor02300_Fn03BA8`.
-static const GpEnemyTaskFuncTable3 Actor02300_D00060 = {
+static const EnemyTaskFuncTable3 Actor02300_D00060 = {
     golemPawnRookDelayedEffectSpawn,
     golemPawnRookDelayedEffectTick,
     enemyDestroy,
@@ -1434,7 +1434,7 @@ static const GpEnemyTaskFuncTable3 Actor02300_D00060 = {
 
 void Actor02300_Fn03BA8(Task* arg0)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = Actor02300_D00060;
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
@@ -1447,7 +1447,7 @@ void Actor02300_Fn03BA8(Task* arg0)
 /// State handlers of the child task hung off part 11 of the enemy's model -
 /// spawn/setup, per-frame tick and teardown - dispatched through by
 /// `Actor02300_Fn03CE8`.
-static const GpEnemyTaskFuncTable3 Actor02300_D0006C = {
+static const EnemyTaskFuncTable3 Actor02300_D0006C = {
     golemPawnRookBurstPartSpawn,
     golemPawnRookBurstPartTick,
     enemyDestroy,
@@ -1455,7 +1455,7 @@ static const GpEnemyTaskFuncTable3 Actor02300_D0006C = {
 
 void Actor02300_Fn03CE8(Task* arg0)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = Actor02300_D0006C;
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
@@ -1466,7 +1466,7 @@ void Actor02300_Fn03CE8(Task* arg0)
 /// The enemy's own state handlers - spawn/setup, per-frame tick and
 /// teardown - dispatched through by `Actor02300_Fn03EE8`. Each takes the task
 /// as the enemy view it is.
-static const GpEnemyTaskFuncTable3 Actor02300_D00078 = {
+static const EnemyTaskFuncTable3 Actor02300_D00078 = {
     Actor02300_Fn028AC,
     golemPawnRookFrameState,
     golemPawnRookDeadState,
@@ -1476,7 +1476,7 @@ static const GpEnemyTaskFuncTable3 Actor02300_D00078 = {
 
 void Actor02300_Fn03EE8(Task* arg0)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = Actor02300_D00078;
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);

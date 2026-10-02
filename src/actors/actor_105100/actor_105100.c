@@ -283,7 +283,7 @@ extern SVECTOR D_actor_105100_801414E0[];
 
 /// The enemy task's state handlers, indexed by `Task::state`: spawn/setup,
 /// per-frame tick and teardown.
-static const GpEnemyTaskFuncTable3 D_actor_105100_80131E24 = {
+static const EnemyTaskFuncTable3 D_actor_105100_80131E24 = {
     {
         func_actor_105100_801327B4,
         func_actor_105100_80132AA0,
@@ -1989,7 +1989,7 @@ static void func_actor_105100_801347D4(Enemy* arg0, Task* arg1)
 
 /// The projectile task's state handlers, indexed by `Task::state`: setup,
 /// per-frame flight and teardown.
-static const GpEnemyTaskFuncTable3 D_actor_105100_80131E90 = {
+static const EnemyTaskFuncTable3 D_actor_105100_80131E90 = {
     {
         func_actor_105100_801347D4,
         func_actor_105100_80134B00,
@@ -2501,7 +2501,7 @@ done:
 
 void func_actor_105100_80135DF8(Task* arg0)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = D_actor_105100_80131E24;
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
@@ -2801,7 +2801,7 @@ static void func_actor_105100_801364CC(Task* arg0)
 
 /// The child collision task's state handlers, indexed by `Task::state`:
 /// setup, per-frame reaction and teardown.
-static const GpEnemyTaskFuncTable3 D_actor_105100_80131EB0 = {
+static const EnemyTaskFuncTable3 D_actor_105100_80131EB0 = {
     {
         func_actor_105100_80135278,
         func_actor_105100_801354E8,
@@ -2825,7 +2825,7 @@ static void func_actor_105100_80136524(Task* arg0)
 
 void func_actor_105100_8013667C(Task* arg0)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = D_actor_105100_80131E90;
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
@@ -2843,7 +2843,7 @@ static void func_actor_105100_801366D8(Enemy* arg0, Task* arg1)
 
 void func_actor_105100_8013672C(Task* arg0)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = D_actor_105100_80131EB0;
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);

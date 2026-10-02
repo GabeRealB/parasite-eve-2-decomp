@@ -372,7 +372,7 @@ static void func_actor_311900_80162100(Task* task)
 /// The actor's first state table - `func_actor_311900_8016228C`'s setup,
 /// `func_actor_311900_801623B0`'s tick and teardown - dispatched through by
 /// `func_actor_311900_8016222C`.
-static const GpEnemyTaskFuncTable3 D_actor_311900_80161E24 = {
+static const EnemyTaskFuncTable3 D_actor_311900_80161E24 = {
     func_actor_311900_8016228C,
     func_actor_311900_801623B0,
     enemyDestroy,
@@ -381,7 +381,7 @@ static const GpEnemyTaskFuncTable3 D_actor_311900_80161E24 = {
 /// The actor's second state table - `func_actor_311900_801624F8`'s setup,
 /// `func_actor_311900_801625F0`'s tick and teardown - dispatched through by
 /// `func_actor_311900_8016249C`.
-static const GpEnemyTaskFuncTable3 D_actor_311900_80161E30 = {
+static const EnemyTaskFuncTable3 D_actor_311900_80161E30 = {
     func_actor_311900_801624F8,
     func_actor_311900_801625F0,
     enemyDestroy,
@@ -393,8 +393,8 @@ static const GpEnemyTaskFuncTable3 D_actor_311900_80161E30 = {
 /// stack copy rather than the overlay's own `.rodata`.
 void func_actor_311900_8016222C(Task* task)
 {
-    Enemy*                enemy;
-    GpEnemyTaskFuncTable3 sp;
+    Enemy*              enemy;
+    EnemyTaskFuncTable3 sp;
 
     enemy = task->spawnArg2.pointer;
     sp    = D_actor_311900_80161E24;
@@ -486,7 +486,7 @@ static void func_actor_311900_801623B0(Enemy* enemy, Task* task)
 /// the same shape as `func_actor_311900_8016222C` for the first table.
 void func_actor_311900_8016249C(Task* task)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = D_actor_311900_80161E30;
     sp.funcs[task->state](task->spawnArg2.pointer, task);

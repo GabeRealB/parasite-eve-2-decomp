@@ -283,7 +283,7 @@ AnimationSet* gGeneratorAnimSets[4] = {
 
 /// State handlers of the part task, indexed by `Task::state`: spawn, per-frame
 /// hit reaction and teardown.
-static const GpEnemyTaskFuncTable3 gGeneratorLifeSupportStates = {
+static const EnemyTaskFuncTable3 gGeneratorLifeSupportStates = {
     {
         generatorLifeSupportSpawn,
         generatorLifeSupportHit,
@@ -301,7 +301,7 @@ static const GpEnemyTaskFuncTable3 gGeneratorLifeSupportStates = {
 
 /// State handlers of the main task, indexed by `Task::state`: spawn, per-frame
 /// tick and death.
-static const GpEnemyTaskFuncTable3 gGeneratorTaskStates = {
+static const EnemyTaskFuncTable3 gGeneratorTaskStates = {
     {
         generatorSpawn,
         generatorTickState,

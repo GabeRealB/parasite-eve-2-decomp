@@ -237,7 +237,7 @@ extern AnimationSet*               Actor00300_D1633C[22];
 
 /// State handlers of the task `Actor00300_Fn04770` dispatches, indexed by
 /// `Task::state`. The first sets the task up and moves it to state 1.
-static const GpEnemyTaskFuncTable3 Actor00300_D00004 = {
+static const EnemyTaskFuncTable3 Actor00300_D00004 = {
     {
         Actor00300_Fn00970,
         Actor00300_Fn047CC,
@@ -3111,7 +3111,7 @@ static void Actor00300_Fn04528(Task* arg0)
 
 void Actor00300_Fn04770(Task* arg0)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = Actor00300_D00004;
     sp.funcs[arg0->state](((Enemy*)arg0->spawnArg2.pointer), arg0);
@@ -3231,7 +3231,7 @@ static void Actor00300_Fn04A2C(Task* arg0)
 /// State handlers of the task `Actor00300_Fn05138` dispatches, indexed by
 /// `Task::state`: a setup that attaches the coordinate to the parent's and
 /// moves to state 1, an empty state, and `enemyDestroy`.
-static const GpEnemyTaskFuncTable3 Actor00300_D0003C = {
+static const EnemyTaskFuncTable3 Actor00300_D0003C = {
     {
         Actor00300_Fn05194,
         Actor00300_Fn03F40,
@@ -3243,7 +3243,7 @@ static const GpEnemyTaskFuncTable3 Actor00300_D0003C = {
 /// `Task::state`. The first sets the task up and moves it to state 1, the
 /// second moves it on to state 2, and the third destroys it once its timer
 /// has run out.
-static const GpEnemyTaskFuncTable3 Actor00300_D00048 = {
+static const EnemyTaskFuncTable3 Actor00300_D00048 = {
     {
         Actor00300_Fn040A4,
         Actor00300_Fn04370,
@@ -3432,7 +3432,7 @@ static void Actor00300_Fn0505C(Task* arg0, MATRIX* arg1, s16 arg2)
 
 void Actor00300_Fn05138(Task* arg0)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = Actor00300_D0003C;
     sp.funcs[arg0->state](((Enemy*)arg0->spawnArg2.pointer), arg0);
@@ -3463,7 +3463,7 @@ static void Actor00300_Fn05194(Enemy* arg0, Task* arg1)
 
 void Actor00300_Fn0521C(Task* arg0)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = Actor00300_D00048;
     sp.funcs[arg0->state](((Enemy*)arg0->spawnArg2.pointer), arg0);

@@ -77,7 +77,7 @@ extern AnimationSet*       gMothAnimSets[2];
 
 /// The state handlers `ratTask` dispatches on `Task::state`:
 /// set-up, per-frame update, and the one entered once the health runs out.
-static const GpEnemyTaskFuncTable3 gRatStateHandlers = {
+static const EnemyTaskFuncTable3 gRatStateHandlers = {
     { ratSpawn, ratUpdate, ratDeath },
 };
 
@@ -567,7 +567,7 @@ ActorSpriteUv gMothBurstUvs[8] = {
 /// The state handlers `mothTask` dispatches on `Task::state`,
 /// for the second body this package carries: set-up, per-frame update, and the
 /// one a resolved hit switches it to.
-static const GpEnemyTaskFuncTable3 gMothStateHandlers = {
+static const EnemyTaskFuncTable3 gMothStateHandlers = {
     { mothSpawn, mothUpdate, mothDeath },
 };
 

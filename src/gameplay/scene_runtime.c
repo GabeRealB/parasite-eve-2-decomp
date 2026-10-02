@@ -308,7 +308,7 @@ extern GpSndMaskRec Gp_SndMaskTable[];
 static const char Gp_StrNewEnemyNull[];
 
 /// Three-entry dispatcher table: `Gp_EnemyWaitStart`, `Gp_EnemyWaitTick`, `enemyDestroy`.
-static const GpEnemyTaskFuncTable3 Gp_EnemyWaitFuncs;
+static const EnemyTaskFuncTable3 Gp_EnemyWaitFuncs;
 
 static const TaskFuncTable3 Gp_StageLoadStates;
 
@@ -451,7 +451,7 @@ static const TaskFuncTable3 D_80093A5C;
 
 static const char Gp_StrNewEnemyNull[];
 
-static const GpEnemyTaskFuncTable3 Gp_EnemyWaitFuncs;
+static const EnemyTaskFuncTable3 Gp_EnemyWaitFuncs;
 
 s32 func_800AF590(s32 unused0, s32 unused1)
 {
@@ -1064,7 +1064,7 @@ static void Gp_EnemyWaitTick(Enemy* enemy, Task* task)
 
 void Gp_EnemyDispatch(Task* arg0)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = Gp_EnemyWaitFuncs;
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
@@ -4100,7 +4100,7 @@ static inline s16 _gpScanHeldQty(InventoryItemRow* table, InventoryItemRange* sc
 static const char Gp_StrNewEnemyNull[] = "new_enemy ---> NULL\n";
 
 /// Three-entry dispatcher table: `Gp_EnemyWaitStart`, `Gp_EnemyWaitTick`, `enemyDestroy`.
-static const GpEnemyTaskFuncTable3 Gp_EnemyWaitFuncs = { {
+static const EnemyTaskFuncTable3 Gp_EnemyWaitFuncs = { {
     Gp_EnemyWaitStart,
     Gp_EnemyWaitTick,
     enemyDestroy,

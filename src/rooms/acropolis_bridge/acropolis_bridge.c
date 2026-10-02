@@ -4594,7 +4594,7 @@ void effectSpriteDrawBillboard(GfxCoord* coord, u16 frame, s16 size)
 static const char _gPatrolNoPairMsg[] = "s->root_cnt == 0xff about \n";
 
 /// The bridge enemy's three state handlers: setup, per-frame tick and teardown.
-static const GpEnemyTaskFuncTable3 D_acropolis_bridge_8017D6E8 = {
+static const EnemyTaskFuncTable3 D_acropolis_bridge_8017D6E8 = {
     { func_acropolis_bridge_80185988, func_acropolis_bridge_80187850, enemyDestroy }
 };
 
@@ -6060,7 +6060,7 @@ void func_acropolis_bridge_80187D04(Task* task)
 /// teardown - copying the table onto the stack before the call.
 void func_acropolis_bridge_80187D80(Task* task)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = D_acropolis_bridge_8017D6E8;
     sp.funcs[task->state](task->spawnArg2.pointer, task);

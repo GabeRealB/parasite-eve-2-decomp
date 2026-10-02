@@ -646,7 +646,7 @@ AnimationSet* gMaggotCaterpillarAnimSets[15] = {
 
 /// State handlers of the projectile task `maggotCaterpillarPuffTask` dispatches,
 /// indexed by `Task::state`: setup, per-frame tick and `enemyDestroy`.
-static const GpEnemyTaskFuncTable3 gMaggotCaterpillarPuffStates = {
+static const EnemyTaskFuncTable3 gMaggotCaterpillarPuffStates = {
     {
         maggotCaterpillarPuffSetup,
         maggotCaterpillarPuffTick,
@@ -656,7 +656,7 @@ static const GpEnemyTaskFuncTable3 gMaggotCaterpillarPuffStates = {
 
 /// State handlers of the actor task `maggotCaterpillarTask` dispatches, indexed
 /// by `Task::state`: spawn, per-frame tick and the dying sequence.
-static const GpEnemyTaskFuncTable3 gMaggotCaterpillarStates = {
+static const EnemyTaskFuncTable3 gMaggotCaterpillarStates = {
     {
         maggotCaterpillarSpawn,
         maggotCaterpillarTick,

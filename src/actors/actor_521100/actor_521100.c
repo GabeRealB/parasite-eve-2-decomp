@@ -3291,7 +3291,7 @@ static void func_actor_521100_80135230(Task* arg0)
 /// State handlers of the actor's second part, which `func_actor_521100_80135AE4`
 /// dispatches through: the setup `func_actor_521100_80135B40`, the per-frame
 /// tick `func_actor_521100_80135B80` and `enemyDestroy`.
-static const GpEnemyTaskFuncTable3 D_actor_521100_80131E40 = { {
+static const EnemyTaskFuncTable3 D_actor_521100_80131E40 = { {
     func_actor_521100_80135B40,
     func_actor_521100_80135B80,
     enemyDestroy,
@@ -3619,7 +3619,7 @@ static void func_actor_521100_80135A34(Task* arg0)
 /// `Enemy`.
 void func_actor_521100_80135AE4(Task* task)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = D_actor_521100_80131E40;
     sp.funcs[task->state](task->spawnArg2.pointer, task);

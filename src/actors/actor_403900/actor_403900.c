@@ -1261,7 +1261,7 @@ AnimationSet* gGolemKnightBishopAnimSets[22] = {
 /// picks by `Task::state`: the spawn setup, the frame handler that runs the
 /// sequences, and the frame handler that unlinks the enemy and saves its pose
 /// before running its own short sequence.
-static const GpEnemyTaskFuncTable3 D_actor_403900_80131F18 = {
+static const EnemyTaskFuncTable3 D_actor_403900_80131F18 = {
     golemKnightBishopSpawn,
     golemKnightBishopFrameState,
     golemKnightBishopDeadState,
@@ -1316,7 +1316,7 @@ s32 func_actor_403900_801381E4(Task* task)
 /// `D_actor_403900_80131F18`, copying the table onto the stack first.
 static void func_actor_403900_80138344(Task* task)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = D_actor_403900_80131F18;
     sp.funcs[task->state](task->spawnArg2.pointer, task);

@@ -5,7 +5,7 @@
 /// for the task's state with the enemy in spawnArg2 and the task.
 void generatorTask(Task* arg0)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = gGeneratorTaskStates;
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);

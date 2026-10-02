@@ -1359,7 +1359,7 @@ static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
 /// state word, copied onto the stack before the call. The copy is a three-word
 /// block move out of the unit's `.rodata`, which is why the table is a rodata
 /// object rather than a local initialiser.
-static const GpEnemyTaskFuncTable3 D_actor_223600_80149E4C = {
+static const EnemyTaskFuncTable3 D_actor_223600_80149E4C = {
     {
         func_actor_223600_8014CF3C,
         func_actor_223600_8014B840,
@@ -1380,11 +1380,11 @@ static const GpEnemyTaskFuncTable3 D_actor_223600_80149E4C = {
 /// the session's `viewReady` or a dirty coordinate arrives.
 static void func_actor_223600_8014CA00(Enemy* enemy, Task* task)
 {
-    Actor223600Work*      work;
-    GpEnemyTaskFuncTable3 fns;
-    s32                   reaction;
-    s32                   cue;
-    s32                   pan;
+    Actor223600Work*    work;
+    EnemyTaskFuncTable3 fns;
+    s32                 reaction;
+    s32                 cue;
+    s32                 pan;
 
     work = (Actor223600Work*)task->work;
     fns  = D_actor_223600_80149E4C;
@@ -1437,7 +1437,7 @@ static void func_actor_223600_8014CA00(Enemy* enemy, Task* task)
 
 /// The enemy's three task states -- spawn, per-frame tick and teardown -- which
 /// `func_actor_223600_8014CF6C` runs by `Task::state`.
-static const GpEnemyTaskFuncTable3 D_actor_223600_80149E58 = {
+static const EnemyTaskFuncTable3 D_actor_223600_80149E58 = {
     {
         func_actor_223600_8014B540,
         func_actor_223600_8014CA00,
@@ -1531,7 +1531,7 @@ static void func_actor_223600_8014CF3C(Enemy* arg0, Task* arg1)
 /// copying the table onto the stack before the call.
 void func_actor_223600_8014CF6C(Task* task)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = D_actor_223600_80149E58;
     sp.funcs[task->state](task->spawnArg2.pointer, task);

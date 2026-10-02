@@ -3419,7 +3419,7 @@ static const Actor403200ViewPoints D_actor_403200_80131E64 = {
 /// State handlers of the escort model task `gluttonPropTask` and
 /// `func_actor_403200_8014148C` dispatch: texture setup, coordinate refresh,
 /// teardown.
-static const GpEnemyTaskFuncTable3 gGluttonPropStates = {
+static const EnemyTaskFuncTable3 gGluttonPropStates = {
     {
         gluttonPropSetup,
         gluttonPropTick,
@@ -3672,7 +3672,7 @@ static void func_actor_403200_80134D40(Task* arg0)
 
 /// State handlers of the enemy stood up on the host's first escort: spawn,
 /// flight, teardown.
-static const GpEnemyTaskFuncTable3 gGluttonThrowStates = {
+static const EnemyTaskFuncTable3 gGluttonThrowStates = {
     {
         gluttonThrowSpawn,
         gluttonThrowFly,
@@ -6348,7 +6348,7 @@ static const Actor403200StateTable D_actor_403200_80132154 = {
 
 /// The host task's three states -- spawn/setup, per-frame tick and teardown --
 /// dispatched through by state.
-static const GpEnemyTaskFuncTable3 D_actor_403200_801321B8 = {
+static const EnemyTaskFuncTable3 D_actor_403200_801321B8 = {
     {
         func_actor_403200_80138AFC,
         func_actor_403200_8013FB54,
@@ -6822,14 +6822,14 @@ static void func_actor_403200_801408D8(Task* task, s16 scale, s16 drop, s16 inde
 /// copy of the handler table.
 void func_actor_403200_80140E6C(Task* arg0)
 {
-    GpEnemyTaskFuncTable3 sp;
-    GluttonWork*          work;
-    Task*                 player;
-    Enemy*                enemy;
-    s32                   diff;
-    s32                   y;
-    GfxCoord*             playerCoord;
-    GfxCoord*             selfCoord;
+    EnemyTaskFuncTable3 sp;
+    GluttonWork*        work;
+    Task*               player;
+    Enemy*              enemy;
+    s32                 diff;
+    s32                 y;
+    GfxCoord*           playerCoord;
+    GfxCoord*           selfCoord;
 
     sp     = D_actor_403200_801321B8;
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);

@@ -710,7 +710,7 @@ s32 func_actor_205200_8014B94C(Task* arg0, s32 arg1, ActorCommand* request)
 
 /// State handlers of a part task - spawn, per-frame tick and teardown - that
 /// `func_actor_205200_8014B978` dispatches through by state.
-static const GpEnemyTaskFuncTable3 D_actor_205200_80149E24 = {
+static const EnemyTaskFuncTable3 D_actor_205200_80149E24 = {
     func_actor_205200_8014AE0C,
     func_actor_205200_8014B9D4,
     func_actor_205200_8014B484,
@@ -720,7 +720,7 @@ static const GpEnemyTaskFuncTable3 D_actor_205200_80149E24 = {
 /// `Task::state` selects, through a stack copy of the table.
 void func_actor_205200_8014B978(Task* arg0)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = D_actor_205200_80149E24;
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);

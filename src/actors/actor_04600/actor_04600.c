@@ -335,7 +335,7 @@ SVECTOR gSkullStalkerHitFxOffset = { 0, 0, 100, 0 };
 
 /// Task states of the first enemy as `sucklercephTask` dispatches them:
 /// spawn, per-frame update and death.
-static const GpEnemyTaskFuncTable3 gSucklercephTaskStates = {
+static const EnemyTaskFuncTable3 gSucklercephTaskStates = {
     { sucklercephSpawnState, sucklercephUpdateState, sucklercephDeathState },
 };
 
@@ -406,7 +406,7 @@ static const GpEnemyTaskFuncTable4 gSucklercephDropTaskStates = {
 
 /// Task states of the second enemy as `skullStalkerTask` dispatches them:
 /// spawn, per-frame update and the dying tick.
-static const GpEnemyTaskFuncTable3 gSkullStalkerTaskStates = {
+static const EnemyTaskFuncTable3 gSkullStalkerTaskStates = {
     { skullStalkerSpawnState, skullStalkerUpdateState, skullStalkerDeathState },
 };
 

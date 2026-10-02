@@ -2127,7 +2127,7 @@ void func_actor_401800_8013DCB4(void)
 /// The enemy task's three handlers, indexed by `Task::state`: the first
 /// initialises the actor, the second runs it every frame, and the third tears
 /// the enemy down.
-static const GpEnemyTaskFuncTable3 D_actor_401800_80132064 = { {
+static const EnemyTaskFuncTable3 D_actor_401800_80132064 = { {
     func_actor_401800_8013423C,
     oddStrangerTick,
     enemyDestroy,
@@ -2205,7 +2205,7 @@ static void func_actor_401800_8013E4F0(Task* arg0)
 /// three-entry table onto the stack first.
 void func_actor_401800_8013E68C(Task* task)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = D_actor_401800_80132064;
     sp.funcs[task->state](task->spawnArg2.pointer, task);

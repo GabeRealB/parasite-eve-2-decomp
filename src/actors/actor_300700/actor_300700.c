@@ -194,7 +194,7 @@ TmdSource gActor300700RatBody = {
 #include "../../shared/moth_draw_burst.inc.c"
 /// The first variant's state handlers, dispatched by `mothTask`
 /// on the task's state: spawn, per-frame update, and the handler for state 2.
-static const GpEnemyTaskFuncTable3 gMothStateHandlers = {
+static const EnemyTaskFuncTable3 gMothStateHandlers = {
     {
         mothSpawn,
         mothUpdate,

@@ -1007,7 +1007,7 @@ static void func_actor_341700_8016C0F4(Enemy* arg0, Task* arg1)
 
 /// Three state handlers, indexed by `Actor341700SubWork::field_0`; copied onto
 /// the stack before dispatch.
-static const GpEnemyTaskFuncTable3 D_actor_341700_80162058 = { {
+static const EnemyTaskFuncTable3 D_actor_341700_80162058 = { {
     func_actor_341700_8016D2B8,
     func_actor_341700_8016D2E8,
     func_actor_341700_8016C0F4,
@@ -1024,9 +1024,9 @@ static const GpEnemyTaskFuncTable3 D_actor_341700_80162058 = { {
 /// come out with the wrong polarity and a stray low-bound test.
 static void func_actor_341700_8016CC9C(Enemy* arg0, Task* arg1)
 {
-    VECTOR                block;
-    Actor341700SubWork*   work = (Actor341700SubWork*)arg1->work;
-    GpEnemyTaskFuncTable3 sp   = D_actor_341700_80162058;
+    VECTOR              block;
+    Actor341700SubWork* work = (Actor341700SubWork*)arg1->work;
+    EnemyTaskFuncTable3 sp   = D_actor_341700_80162058;
 
     arg1->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(&arg1->extra.tmd->coords[1]);
@@ -1059,7 +1059,7 @@ static void func_actor_341700_8016CC9C(Enemy* arg0, Task* arg1)
 /// Task-state handlers of the `func_actor_341700_8016D130` task: set-up, the
 /// per-frame callback, teardown. `func_actor_341700_8016D32C` dispatches them
 /// on `Task::state`.
-static const GpEnemyTaskFuncTable3 D_actor_341700_80162064 = { {
+static const EnemyTaskFuncTable3 D_actor_341700_80162064 = { {
     func_actor_341700_8016D130,
     func_actor_341700_8016CC9C,
     enemyDestroy,
@@ -1202,7 +1202,7 @@ static void func_actor_341700_8016D2E8(Enemy* arg0, Task* arg1)
 /// copying the table onto the stack before the call.
 static void func_actor_341700_8016D32C(Task* task)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = D_actor_341700_80162064;
     sp.funcs[task->state](task->spawnArg2.pointer, task);

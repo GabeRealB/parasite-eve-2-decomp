@@ -76,11 +76,11 @@ extern Actor521100Work4B4* D_actor_521100_8016A3D8;
 /// `field_C` is unread. Same 20-byte table-plus-context shape as
 /// `Actor210600DispatchCtx`.
 typedef struct Actor521100DispatchCtx {
-    /* 0x00 */ GpEnemyTaskFuncTable3 table;
-    /* 0x0C */ s32                   field_C;
-    /* 0x10 */ u8                    field_10;
-    /* 0x11 */ u8                    field_11;
-    /* 0x12 */ u16                   field_12;
+    /* 0x00 */ EnemyTaskFuncTable3 table;
+    /* 0x0C */ s32                 field_C;
+    /* 0x10 */ u8                  field_10;
+    /* 0x11 */ u8                  field_11;
+    /* 0x12 */ u16                 field_12;
 } Actor521100DispatchCtx;
 STATIC_ASSERT_SIZEOF(Actor521100DispatchCtx, 0x14);
 
@@ -689,7 +689,7 @@ void func_actor_521100_80136404(Task* task)
 }
 /// State table the overlay dispatches through, indexed by `Task::state`:
 /// create, update and teardown.
-static const GpEnemyTaskFuncTable3 D_actor_521100_80131E68 = { {
+static const EnemyTaskFuncTable3 D_actor_521100_80131E68 = { {
     func_actor_521100_80135DDC,
     func_actor_521100_80136680,
     func_actor_521100_801360C4,

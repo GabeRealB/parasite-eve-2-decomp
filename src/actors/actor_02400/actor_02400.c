@@ -312,7 +312,7 @@ static void Actor02400_Fn023B4(Task* task);
 
 /// The main body's state handlers, run by `Actor02400_Fn02DB0` for the task's
 /// state: spawn, per-frame tick and death.
-static const GpEnemyTaskFuncTable3 Actor02400_D00004 = {
+static const EnemyTaskFuncTable3 Actor02400_D00004 = {
     { Actor02400_Fn0095C, Actor02400_Fn02E0C, Actor02400_Fn024F8 },
 };
 
@@ -611,7 +611,7 @@ move_done:
 
 /// The projectile's state handlers, run by `Actor02400_Fn03358` for the task's
 /// state: spawn, flight and teardown.
-static const GpEnemyTaskFuncTable3 Actor02400_D0003C = {
+static const EnemyTaskFuncTable3 Actor02400_D0003C = {
     { Actor02400_Fn02790, Actor02400_Fn02AF0, Actor02400_Fn033B4 },
 };
 
@@ -1389,7 +1389,7 @@ static void Actor02400_Fn02AF0(Enemy* arg0, Task* arg1)
 /// the task's state.
 void Actor02400_Fn02DB0(Task* arg0)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = Actor02400_D00004;
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
@@ -1624,7 +1624,7 @@ static void Actor02400_Fn03278(Task* task)
 /// the task's state.
 void Actor02400_Fn03358(Task* arg0)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = Actor02400_D0003C;
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);

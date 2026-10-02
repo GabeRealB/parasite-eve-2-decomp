@@ -2248,7 +2248,7 @@ void func_actor_401000_8013D68C(void)
 /// `func_actor_401000_8013E038`: the first allocates and sets up the work
 /// block, the second runs the per-state logic every frame, and the third tears
 /// the enemy down.
-static const GpEnemyTaskFuncTable3 D_actor_401000_8013207C = { {
+static const EnemyTaskFuncTable3 D_actor_401000_8013207C = { {
     func_actor_401000_80133274,
     oddStrangerTick,
     enemyDestroy,
@@ -2324,7 +2324,7 @@ static void func_actor_401000_8013DEC8(Task* arg0)
 /// three-entry table onto the stack first.
 void func_actor_401000_8013E038(Task* task)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = D_actor_401000_8013207C;
     sp.funcs[task->state](task->spawnArg2.pointer, task);

@@ -1092,7 +1092,7 @@ static __inline__ void Actor107000_TickAnim(Task* task)
 
 /// Task states of the caged specimen as `sucklercephTask` dispatches
 /// them: spawn, per-frame update and teardown.
-static const GpEnemyTaskFuncTable3 gSucklercephTaskStates = {
+static const EnemyTaskFuncTable3 gSucklercephTaskStates = {
     { sucklercephSpawnState, sucklercephUpdateState, sucklercephDeathState },
 };
 

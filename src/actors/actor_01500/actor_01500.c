@@ -165,7 +165,7 @@ static void Actor01500_Fn02C34(Task* actor);
 
 /// The actor's three task states - spawn, per-frame tick and teardown - run
 /// by `Actor01500_Fn02428`.
-static const GpEnemyTaskFuncTable3 Actor01500_D00004 = {
+static const EnemyTaskFuncTable3 Actor01500_D00004 = {
     {
         Actor01500_Fn00094,
         Actor01500_Fn02484,
@@ -1842,7 +1842,7 @@ static void Actor01500_Fn020D8(Task* arg0)
 /// the table onto the stack before the call.
 static void Actor01500_Fn02428(Task* task)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = Actor01500_D00004;
     sp.funcs[task->state](task->spawnArg2.pointer, task);

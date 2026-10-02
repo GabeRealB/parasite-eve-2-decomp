@@ -57,7 +57,7 @@
 #if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
 typedef GpEnemyTaskFuncTable4 DesertChaserTaskStates;
 #else
-typedef GpEnemyTaskFuncTable3 DesertChaserTaskStates;
+typedef EnemyTaskFuncTable3 DesertChaserTaskStates;
 #endif
 
 /// A route point, the placement and the one a fixed step ahead of it.

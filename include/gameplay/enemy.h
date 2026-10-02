@@ -161,19 +161,26 @@ void enemyTaskExit(Task* task);
 /// must not use either afterwards.
 typedef void (*EnemyTaskFunc)(Enemy* enemy, Task* task);
 
-/// Fixed-size table of `EnemyTaskFunc` callbacks. Copied onto the stack by
-/// `Gp_EnemyDispatch` so the call uses a local jump table.
+/// Three `EnemyTaskFunc` handlers stored as a value for whole-table copies.
+///
+/// Each table defines its slots' roles. The selector may be a task state or a
+/// work substate. Dispatch requires an index in 0..2 and a non-NULL entry,
+/// which receives the live enemy and the task that owns it. There is no
+/// terminator or bounds check in the table. Copying it copies callback
+/// pointers, not enemy or task storage; the callback code must remain loaded
+/// for the call. A handler may release either argument before returning.
 typedef struct {
-    EnemyTaskFunc funcs[3];
-} GpEnemyTaskFuncTable3;
+    EnemyTaskFunc funcs[3]; // Handlers in selector order; slot meanings belong to each table
+} EnemyTaskFuncTable3;
+STATIC_ASSERT_SIZEOF(EnemyTaskFuncTable3, 0xC);
 
-/// Four-entry form of `GpEnemyTaskFuncTable3`, for actors whose dispatcher has
+/// Four-entry form of `EnemyTaskFuncTable3`, for actors whose dispatcher has
 /// an extra state beyond spawn/tick/teardown.
 typedef struct {
     EnemyTaskFunc funcs[4];
 } GpEnemyTaskFuncTable4;
 
-/// Five-entry form of `GpEnemyTaskFuncTable3`, for actors with two extra
+/// Five-entry form of `EnemyTaskFuncTable3`, for actors with two extra
 /// states beyond spawn/tick/teardown.
 typedef struct {
     EnemyTaskFunc funcs[5];

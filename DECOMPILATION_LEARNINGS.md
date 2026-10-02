@@ -48300,7 +48300,7 @@ the overlay id at `0x80161E20` and `ActorsShared80135df4Table` at `0x80161E30`:
 ```c
 INCLUDE_RODATA("actors/nonmatchings/actor_311900/actor_311900", D_actor_311900_80161E20);
 
-const GpEnemyTaskFuncTable3 D_actor_311900_80161E24 = {
+const EnemyTaskFuncTable3 D_actor_311900_80161E24 = {
     func_actor_311900_8016228C,
     func_actor_311900_801623B0,
     enemyDestroy,
@@ -49221,9 +49221,11 @@ outcome, not a coincidence: fix the call before reading any dump.
 
 The third form of the same invention, and the one where the callee cannot settle
 it. Dispatchers here copy a fixed function table onto the stack and call through
-one entry — `TaskFuncTable3/4/5`, `GpEnemyTaskFuncTable3/4/5`. The copy's
-temporaries land in `$a1`-`$a3` (they die at the `jalr`, so nothing else claims
-them), which leaves exactly the picture of a call passing the table's contents:
+one entry — `TaskFuncTable3/4/5`, `EnemyTaskFuncTable3`,
+`GpEnemyTaskFuncTable4` or `GpEnemyTaskFuncTable5`. The copy's
+temporaries land in `$a1`-`$a3` (they die at the `jalr`, so nothing else
+claims them), which leaves exactly the picture of a call passing the table's
+contents:
 
 ```
 lw $a1,0x0($t0) ; lw $a2,0x4($t0) ; lw $a3,0x8($t0)
@@ -102708,10 +102710,10 @@ same `addu $a1` + `lui`, and 5 of them carry this table-copy shape.
 Name the type from the whole table, not from the call: `Actor01900_D0023C`'s
 four words point at `Actor01900_Fn02018`, `Actor01900_Fn0ABA0`,
 `Actor01900_Fn09D3C` and `enemyDestroy`, which is `GpEnemyTaskFuncTable4`
-(gameplay/1BC.h). The three-entry `GpEnemyTaskFuncTable3` and five-entry
-`...Table5` forms are the same idiom with a different count, so a table whose
-length does not fit the type guessed from the call is a length error, not an
-argument error.
+(gameplay/1BC.h). The three-entry `EnemyTaskFuncTable3` and five-entry
+`GpEnemyTaskFuncTable5` forms are the same idiom with a different count, so a
+table whose length does not fit the type guessed from the call is a length
+error, not an argument error.
 
 The twins are exact: the brief starred `Actor00100_Fn0BD28`
 (src/actors/lib/actor_400100_tail.c:507) and `func_actor_104600_80134A8C` at
@@ -123984,7 +123986,7 @@ a switch-label question rather than an allocation or scheduling one.
 Two more leftovers from the same function, both about the frame:
 
 * `VECTOR block;` has to be declared *before* the struct-copy table
-  (`GpEnemyTaskFuncTable3 sp = D_actor_341700_80162058;`). GCC hands out the
+  (`EnemyTaskFuncTable3 sp = D_actor_341700_80162058;`). GCC hands out the
   local slots in declaration order, so the table came out at 0x10 and the vector
   at 0x20 where the target has them the other way round - a pure
   `sw t0,0x10(sp)` vs `0x20(sp)` diff, reported as `branch=4`.

@@ -3206,7 +3206,7 @@ static void Actor04000_Fn06D38(Enemy* arg0, Task* arg1)
 
 /// The enemy's spawn, per-frame and teardown handlers, indexed by the task's
 /// state.
-static const GpEnemyTaskFuncTable3 Actor04000_D00240 = {
+static const EnemyTaskFuncTable3 Actor04000_D00240 = {
     Actor04000_Fn010B8,
     Actor04000_Fn05F0C,
     enemyDestroy,
@@ -3216,7 +3216,7 @@ static const GpEnemyTaskFuncTable3 Actor04000_D00240 = {
 /// copying the table onto the stack before the call.
 void Actor04000_Fn06E4C(Task* task)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = Actor04000_D00240;
     sp.funcs[task->state](task->spawnArg2.pointer, task);

@@ -45,8 +45,8 @@
 #include "../../shared/player_detection.h"
 #include "../../shared/golem_pawn_rook.h"
 
-static const GpEnemyTaskFuncTable3 Actor02000_D00060;
-static const GpEnemyTaskFuncTable3 Actor02000_D0006C;
+static const EnemyTaskFuncTable3 Actor02000_D00060;
+static const EnemyTaskFuncTable3 Actor02000_D0006C;
 
 extern DamageAttack gGolemPawnRookAttacks[];
 // Only the leading value has established accesses. Preserve the following
@@ -1492,7 +1492,7 @@ void Actor02000_Fn02D5C(Task* arg0)
 
 void Actor02000_Fn035E8(Task* arg0)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = Actor02000_D00060;
     sp.funcs[arg0->state](((Enemy*)arg0->spawnArg2.pointer), arg0);
@@ -1504,19 +1504,19 @@ void Actor02000_Fn035E8(Task* arg0)
 
 void Actor02000_Fn03728(Task* arg0)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = Actor02000_D0006C;
     sp.funcs[arg0->state](((Enemy*)arg0->spawnArg2.pointer), arg0);
 }
 
-static const GpEnemyTaskFuncTable3 Actor02000_D00060 = { {
+static const EnemyTaskFuncTable3 Actor02000_D00060 = { {
     golemPawnRookDelayedEffectSpawn,
     golemPawnRookDelayedEffectTick,
     enemyDestroy,
 } };
 
-static const GpEnemyTaskFuncTable3 Actor02000_D0006C = { {
+static const EnemyTaskFuncTable3 Actor02000_D0006C = { {
     Actor02000_Fn0251C,
     golemPawnRookFrameStateNoDust,
     golemPawnRookDeadState,

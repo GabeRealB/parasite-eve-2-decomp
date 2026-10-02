@@ -1365,7 +1365,7 @@ static __inline__ void update_actor_color(Enemy* ctx, GfxCoord* attach)
     SCRATCH_STACK_CURSOR(u8) = SCRATCH_STACK_CURSOR(u8) + 0x10;
 }
 
-static const GpEnemyTaskFuncTable3 Actor01600_D00004 = {
+static const EnemyTaskFuncTable3 Actor01600_D00004 = {
     { Actor01600_Fn001F4, Actor01600_Fn00674, Actor01600_Fn04054 },
 };
 
@@ -4588,7 +4588,7 @@ static void Actor01600_Fn0646C(Task* arg0)
 
 void Actor01600_Fn066E8(Task* arg0)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = Actor01600_D00004;
     sp.funcs[arg0->state](((Enemy*)arg0->spawnArg2.pointer), arg0);

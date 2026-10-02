@@ -4116,7 +4116,7 @@ static void func_actor_403600_8013FC2C(Enemy* arg0, Task* arg1)
 /// Handlers for states 0-2 of the task `func_actor_403600_80141BE0` dispatches,
 /// indexed by `Task::state`. The state-0 handler sets the task up and
 /// advances it.
-static const GpEnemyTaskFuncTable3 D_actor_403600_801320A0 = { {
+static const EnemyTaskFuncTable3 D_actor_403600_801320A0 = { {
     func_actor_403600_8013F7B8,
     func_actor_403600_8013FC2C,
     func_actor_403600_80140488,
@@ -4953,7 +4953,7 @@ static void func_actor_403600_80141B60(Task* arg0)
 
 void func_actor_403600_80141BE0(Task* arg0)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = D_actor_403600_801320A0;
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
@@ -4989,7 +4989,7 @@ static void func_actor_403600_80141C7C(Task* arg0, s32 arg1)
 /// Handlers for states 0-2 of the task `func_actor_403600_80141CD4` dispatches,
 /// indexed by `Task::state`. The state-0 handler sets the task up and
 /// advances it.
-static const GpEnemyTaskFuncTable3 D_actor_403600_801320EC = { {
+static const EnemyTaskFuncTable3 D_actor_403600_801320EC = { {
     func_actor_403600_80141D30,
     func_actor_403600_80141E78,
     func_actor_403600_80140B4C,
@@ -4997,7 +4997,7 @@ static const GpEnemyTaskFuncTable3 D_actor_403600_801320EC = { {
 
 void func_actor_403600_80141CD4(Task* arg0)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = D_actor_403600_801320EC;
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);

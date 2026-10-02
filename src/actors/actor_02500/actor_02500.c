@@ -162,7 +162,7 @@ static void Actor02500_Fn02874(Enemy* ctx, Task* task);
 
 /// State handlers of the enemy task `Actor02500_Fn01E04` dispatches, indexed
 /// by `Task::state`: spawn, per-frame tick and the dying sequence.
-static const GpEnemyTaskFuncTable3 Actor02500_D00004 = {
+static const EnemyTaskFuncTable3 Actor02500_D00004 = {
     {
         Actor02500_Fn00078,
         Actor02500_Fn01E60,
@@ -1516,7 +1516,7 @@ timer:
 
 void Actor02500_Fn01E04(Task* arg0)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = Actor02500_D00004;
     sp.funcs[arg0->state](((Enemy*)arg0->spawnArg2.pointer), arg0);
@@ -1616,7 +1616,7 @@ static void Actor02500_Fn01F8C(Task* actor)
 /// State handlers of the helper task `Actor02500_Fn02574` dispatches, indexed
 /// by `Task::state`: setup, per-frame tick and the countdown that
 /// destroys it.
-static const GpEnemyTaskFuncTable3 Actor02500_D00050 = {
+static const EnemyTaskFuncTable3 Actor02500_D00050 = {
     {
         Actor02500_Fn025D0,
         Actor02500_Fn02750,
@@ -1843,7 +1843,7 @@ static void Actor02500_Fn02480(Task* arg0)
 
 void Actor02500_Fn02574(Task* arg0)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = Actor02500_D00050;
     sp.funcs[arg0->state](((Enemy*)arg0->spawnArg2.pointer), arg0);

@@ -3421,7 +3421,7 @@ void func_actor_110600_80138394(void)
 
 /// The enemy task's three state handlers - spawn, per-frame tick and teardown -
 /// that `func_actor_110600_80138EA8` dispatches through by `Task::state`.
-static const GpEnemyTaskFuncTable3 D_actor_110600_80131FA0 = {
+static const EnemyTaskFuncTable3 D_actor_110600_80131FA0 = {
     func_actor_110600_80134AB4,
     func_actor_110600_80137F2C,
     enemyDestroy,
@@ -3866,7 +3866,7 @@ static void func_actor_110600_80138D7C(Task* arg0)
 /// before the call.
 void func_actor_110600_80138EA8(Task* task)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = D_actor_110600_80131FA0;
     sp.funcs[task->state](task->spawnArg2.pointer, task);

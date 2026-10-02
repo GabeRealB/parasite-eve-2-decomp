@@ -717,7 +717,7 @@ static inline void Actor03700_SwayInline(Task* task, s32 arg1)
 
 /// The enemy's state handlers, run by `Actor03700_Fn02FA8` for the task's
 /// state: spawn, per-frame tick and death.
-static const GpEnemyTaskFuncTable3 Actor03700_D00004 = {
+static const EnemyTaskFuncTable3 Actor03700_D00004 = {
     { Actor03700_Fn000A4, Actor03700_Fn03004, Actor03700_Fn020D4 },
 };
 
@@ -2050,7 +2050,7 @@ static void Actor03700_Fn029C0(Task* task)
 /// task was spawned with. The table is copied onto the stack before the call.
 static void Actor03700_Fn02FA8(Task* task)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = Actor03700_D00004;
     sp.funcs[task->state](task->spawnArg2.pointer, task);

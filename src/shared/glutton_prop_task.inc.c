@@ -6,7 +6,7 @@
 /// `func_actor_444000_8014382C`).
 void gluttonPropTask(Task* arg0)
 {
-    GpEnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 sp;
 
     sp = gGluttonPropStates;
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
