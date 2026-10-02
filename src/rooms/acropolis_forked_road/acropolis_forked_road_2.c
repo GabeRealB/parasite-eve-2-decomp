@@ -736,7 +736,7 @@ AreaResource D_acropolis_forked_road_80183188[5] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_acropolis_forked_road_801831C4[24] = {
+AreaVariant D_acropolis_forked_road_801831C4[24] = {
     { NULL, NULL },
     { NULL, NULL },
     { D_map_akropolis_8017B1DC, D_acropolis_forked_road_80182FF0 },

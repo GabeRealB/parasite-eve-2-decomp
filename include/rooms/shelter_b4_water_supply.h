@@ -14,7 +14,7 @@
 
 extern u8 D_shelter_b4_water_supply_801826FC[64];
 
-extern GpAreaVariant D_shelter_b4_water_supply_80184CA4[12];
+extern AreaVariant D_shelter_b4_water_supply_80184CA4[12];
 
 // shelter_b4_water_supply
 extern u8* D_shelter_b4_water_supply_8018273C[];

@@ -997,7 +997,7 @@ AreaPlacement D_mine_gorge_80183474[13] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_mine_gorge_80183544[12] = {
+AreaVariant D_mine_gorge_80183544[12] = {
     { NULL, NULL },
     { D_mine_gorge_80183194, D_mine_gorge_80183110 },
     { D_mine_gorge_80183264, D_mine_gorge_80183128 },

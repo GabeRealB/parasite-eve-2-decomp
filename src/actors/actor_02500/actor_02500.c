@@ -1334,7 +1334,7 @@ static void Actor02500_Fn0184C(Task* arg0)
         index1      = raw1 >> 12;
         key.view    = areaByte0;
         areaSyncLocationVariant(&key);
-        entry1                    = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index1);
+        entry1                    = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->placements, index1);
         model1->texturePageOffset = entry1->texturePageOffset;
         model1->clutRowOffset     = entry1->clutRowOffset;
         if (model1->buffer != NULL) {
@@ -1355,7 +1355,7 @@ static void Actor02500_Fn0184C(Task* arg0)
         index2      = raw2 >> 12;
         key.view    = areaByte0;
         areaSyncLocationVariant(&key);
-        entry2                    = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index2);
+        entry2                    = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->placements, index2);
         model2->texturePageOffset = entry2->texturePageOffset;
         model2->clutRowOffset     = entry2->clutRowOffset;
         if (model2->buffer != NULL) {
@@ -1376,7 +1376,7 @@ static void Actor02500_Fn0184C(Task* arg0)
         index3      = raw3 >> 12;
         key.view    = areaByte0;
         areaSyncLocationVariant(&key);
-        entry3                    = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index3);
+        entry3                    = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->placements, index3);
         model3->texturePageOffset = entry3->texturePageOffset;
         model3->clutRowOffset     = entry3->clutRowOffset;
         if (model3->buffer != NULL) {

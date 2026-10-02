@@ -366,7 +366,7 @@ AreaResource D_dryfield_parking_lot_8017FA5C[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_dryfield_parking_lot_8017FA74[13] = {
+AreaVariant D_dryfield_parking_lot_8017FA74[13] = {
     { NULL, NULL },
     { D_map_dryfield_8017B1C4, D_dryfield_parking_lot_8017FA14 },
     { D_map_dryfield_8017B1D4, D_dryfield_parking_lot_8017FA20 },

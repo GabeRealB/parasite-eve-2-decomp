@@ -668,7 +668,7 @@ AreaResource D_neo_ark_power_plant_2_80182DC8[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_neo_ark_power_plant_2_80182DE0[19] = {
+AreaVariant D_neo_ark_power_plant_2_80182DE0[19] = {
     { NULL, NULL },
     { D_map_neo_ark_8017B7D0, D_neo_ark_power_plant_2_80182D80 },
     { NULL, NULL },

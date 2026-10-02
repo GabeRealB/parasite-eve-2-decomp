@@ -848,7 +848,7 @@ AreaResource D_dryfield_night_driveway_80181F28[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_dryfield_night_driveway_80181F4C[22] = {
+AreaVariant D_dryfield_night_driveway_80181F4C[22] = {
     { NULL, NULL },
     { D_map_dryfield_full_8017C5B8, D_dryfield_night_driveway_80181EF8 },
     { NULL, NULL },

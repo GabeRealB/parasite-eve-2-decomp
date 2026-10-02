@@ -1018,7 +1018,7 @@ AreaResource D_dryfield_night_garage_801874A4[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_dryfield_night_garage_801874BC[12] = {
+AreaVariant D_dryfield_night_garage_801874BC[12] = {
     { NULL, NULL },
     { D_map_dryfield_full_8017C4E8, D_dryfield_night_garage_80187450 },
     { D_map_dryfield_full_8017C538, D_dryfield_night_garage_80187468 },

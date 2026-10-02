@@ -47,7 +47,7 @@ extern TaskDesc D_mist_shooting_gallery_80185384[3];
 
 extern TaskDesc D_mist_shooting_gallery_801856B8[2];
 
-extern GpAreaVariant D_mist_shooting_gallery_8018DF74[12];
+extern AreaVariant D_mist_shooting_gallery_8018DF74[12];
 
 extern UiObjectDesc D_mist_shooting_gallery_80185000;
 

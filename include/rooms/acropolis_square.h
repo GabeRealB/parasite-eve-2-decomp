@@ -15,7 +15,7 @@
 // The copied room-event handler uses this table only in stage 1, area 1.
 extern GpAreaApplyRec D_acropolis_square_80188888[4];
 
-extern GpAreaVariant D_acropolis_square_80185E50[3];
+extern AreaVariant D_acropolis_square_80185E50[3];
 
 // acropolis_square
 extern WorldCollisionRoomResources D_acropolis_square_80183B9C[];

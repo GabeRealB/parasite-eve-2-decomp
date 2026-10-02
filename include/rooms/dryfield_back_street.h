@@ -11,7 +11,7 @@
 
 #include "main/task_types.h"
 
-extern GpAreaVariant D_dryfield_back_street_80180A50[13];
+extern AreaVariant D_dryfield_back_street_80180A50[13];
 
 // dryfield_back_street
 extern WorldCollisionRoomResources D_dryfield_back_street_8017F9B4[];

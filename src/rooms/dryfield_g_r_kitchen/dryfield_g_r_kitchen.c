@@ -230,7 +230,7 @@ AreaResource D_dryfield_g_r_kitchen_8017F494[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_dryfield_g_r_kitchen_8017F4B8[13] = {
+AreaVariant D_dryfield_g_r_kitchen_8017F4B8[13] = {
     { NULL, NULL },
     { D_map_dryfield_8017B474, D_dryfield_g_r_kitchen_8017F47C },
     { D_map_dryfield_8017B4B4, D_dryfield_g_r_kitchen_8017F494 },

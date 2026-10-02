@@ -1239,7 +1239,7 @@ AreaResource D_dryfield_water_hole_801827A4[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_dryfield_water_hole_801827BC[13] = {
+AreaVariant D_dryfield_water_hole_801827BC[13] = {
     { NULL, NULL },
     { D_map_dryfield_8017BB84, D_dryfield_water_hole_801827A4 },
     { NULL, NULL },

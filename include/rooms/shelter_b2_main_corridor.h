@@ -22,7 +22,7 @@ extern SVECTOR D_shelter_b2_main_corridor_80182EFC[12];
 
 extern s16 D_shelter_b2_main_corridor_80182E28;
 
-extern GpAreaVariant D_shelter_b2_main_corridor_8018933C[22];
+extern AreaVariant D_shelter_b2_main_corridor_8018933C[22];
 
 // shelter_b2_main_corridor
 extern u8* D_shelter_b2_main_corridor_801830CC[];

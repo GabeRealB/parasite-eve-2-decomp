@@ -16,7 +16,7 @@ extern TaskDesc D_acropolis_cafeteria_80182AD8[4];
 
 extern TmdSource gAcropolisCafeteriaModel077D8;
 
-extern GpAreaVariant D_acropolis_cafeteria_80189DCC[11];
+extern AreaVariant D_acropolis_cafeteria_80189DCC[11];
 
 /// Models those descriptors attach.
 extern TmdSource gAcropolisCafeteriaModel07CA8;

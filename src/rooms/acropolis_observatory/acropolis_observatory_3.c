@@ -307,7 +307,7 @@ AreaPlacement D_acropolis_observatory_80181244[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_acropolis_observatory_80181264[19] = {
+AreaVariant D_acropolis_observatory_80181264[19] = {
     { NULL, NULL },
     { D_map_akropolis_8017B6DC, D_acropolis_observatory_80181018 },
     { D_map_akropolis_8017B70C, D_acropolis_observatory_80181030 },

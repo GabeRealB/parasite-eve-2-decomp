@@ -849,7 +849,7 @@ AreaPlacement D_shelter_b4_reservoir_80187320[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_shelter_b4_reservoir_80187350[12] = {
+AreaVariant D_shelter_b4_reservoir_80187350[12] = {
     { NULL, NULL },
     { D_shelter_b4_reservoir_80187270, D_shelter_b4_reservoir_801871E0 },
     { D_shelter_b4_reservoir_80187290, D_shelter_b4_reservoir_801871F8 },

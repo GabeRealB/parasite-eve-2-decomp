@@ -440,7 +440,7 @@ AreaResource D_shelter_b6_corridor_801802C8[5] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_shelter_b6_corridor_80180304[13] = {
+AreaVariant D_shelter_b6_corridor_80180304[13] = {
     { NULL, NULL },
     { D_map_neo_ark_8017C0F0, D_shelter_b6_corridor_801802C8 },
     { NULL, NULL },

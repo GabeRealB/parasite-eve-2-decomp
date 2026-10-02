@@ -1104,7 +1104,7 @@ AreaPlacement D_shelter_b2_septic_tank_80186F00[4] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_shelter_b2_septic_tank_80186F40[22] = {
+AreaVariant D_shelter_b2_septic_tank_80186F40[22] = {
     { NULL, NULL },
     { D_shelter_b2_septic_tank_80186E00, D_shelter_b2_septic_tank_80186D4C },
     { D_shelter_b2_septic_tank_80186E30, D_shelter_b2_septic_tank_80186D64 },

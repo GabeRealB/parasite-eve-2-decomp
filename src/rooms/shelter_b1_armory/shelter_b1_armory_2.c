@@ -497,7 +497,7 @@ WorldCollisionTrigger D_shelter_b1_armory_80184E0C[23] = {
     { NULL, NULL, NULL, { 4048, -64, -2304, 0 }, { { -1072, 0, -432, 0 }, { 1072, 0, -432, 0 }, { -1072, 0, 432, 0 }, { 1072, 0, 432, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, 4097, 0 }, 1152, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaVariant D_shelter_b1_armory_801854E0[11] = { 0 };
+AreaVariant D_shelter_b1_armory_801854E0[11] = { 0 };
 
 WorldCollisionFootstepSounds D_shelter_b1_armory_80185538 = {
     0x10000015,

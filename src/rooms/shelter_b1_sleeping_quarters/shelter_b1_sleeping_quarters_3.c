@@ -681,7 +681,7 @@ AreaPlacement D_shelter_b1_sleeping_quarters_80183FBC[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_shelter_b1_sleeping_quarters_80183FDC[22] = {
+AreaVariant D_shelter_b1_sleeping_quarters_80183FDC[22] = {
     { NULL, NULL },
     { D_shelter_b1_sleeping_quarters_80183E6C, D_shelter_b1_sleeping_quarters_80183DDC },
     { D_shelter_b1_sleeping_quarters_80183ECC, D_shelter_b1_sleeping_quarters_80183E00 },

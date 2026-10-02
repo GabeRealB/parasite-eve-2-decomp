@@ -500,7 +500,7 @@ AreaResource D_neo_ark_island_80183F30[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_neo_ark_island_80183F48[13] = {
+AreaVariant D_neo_ark_island_80183F48[13] = {
     { NULL, NULL },
     { D_map_neo_ark_8017B550, D_neo_ark_island_80183EDC },
     { D_map_neo_ark_8017B590, D_neo_ark_island_80183EF4 },

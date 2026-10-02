@@ -1542,7 +1542,7 @@ AreaResource D_acropolis_security_room_80184064[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_acropolis_security_room_80184088[4] = {
+AreaVariant D_acropolis_security_room_80184088[4] = {
     { NULL, NULL },
     { D_map_akropolis_8017B01C, D_acropolis_security_room_80184064 },
     { NULL, NULL },

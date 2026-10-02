@@ -162,7 +162,7 @@ AreaResource D_acropolis_helicopter_landing_pad_801861B8[4] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_acropolis_helicopter_landing_pad_801861E8[13] = {
+AreaVariant D_acropolis_helicopter_landing_pad_801861E8[13] = {
     { NULL, NULL },
     { D_map_akropolis_8017BD2C, D_acropolis_helicopter_landing_pad_801861A0 },
     { D_map_akropolis_8017BD4C, D_acropolis_helicopter_landing_pad_801861B8 },

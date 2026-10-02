@@ -329,7 +329,7 @@ AreaResource D_acropolis_fire_escape_80182934[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_acropolis_fire_escape_8018294C[5] = {
+AreaVariant D_acropolis_fire_escape_8018294C[5] = {
     { NULL, NULL },
     { D_map_akropolis_8017BD0C, D_acropolis_fire_escape_80182934 },
     { D_map_akropolis_8017BD0C, D_acropolis_fire_escape_80182934 },

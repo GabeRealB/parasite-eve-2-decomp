@@ -2435,7 +2435,7 @@ AreaResource D_dryfield_night_gas_station_80190600[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_dryfield_night_gas_station_80190624[12] = {
+AreaVariant D_dryfield_night_gas_station_80190624[12] = {
     { NULL, NULL },
     { D_map_dryfield_full_8017AC48, D_dryfield_night_gas_station_80190594 },
     { D_map_dryfield_full_8017AD18, D_dryfield_night_gas_station_801905AC },

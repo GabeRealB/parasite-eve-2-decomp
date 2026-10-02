@@ -19,7 +19,7 @@ extern WorldCollisionGrid D_shelter_r47_8018828C;
 
 extern GpAreaApplyRec D_shelter_r47_8018A638[21];
 
-extern GpAreaVariant D_shelter_r47_80187CB8[12];
+extern AreaVariant D_shelter_r47_80187CB8[12];
 
 // shelter_r47
 extern u8* D_shelter_r47_80187674[];

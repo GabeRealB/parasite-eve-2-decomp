@@ -816,7 +816,7 @@ AreaPlacement D_shelter_b2_operating_room_80184094[9] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_shelter_b2_operating_room_80184124[12] = {
+AreaVariant D_shelter_b2_operating_room_80184124[12] = {
     { NULL, NULL },
     { D_shelter_b2_operating_room_80183F54, D_shelter_b2_operating_room_80183EB8 },
     { D_shelter_b2_operating_room_80183FC4, D_shelter_b2_operating_room_80183EF4 },

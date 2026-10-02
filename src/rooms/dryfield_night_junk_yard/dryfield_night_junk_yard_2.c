@@ -907,7 +907,7 @@ AreaResource D_dryfield_night_junk_yard_801843CC[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_dryfield_night_junk_yard_801843F0[22] = {
+AreaVariant D_dryfield_night_junk_yard_801843F0[22] = {
     { NULL, NULL },
     { D_map_dryfield_full_8017C7F8, D_dryfield_night_junk_yard_80184354 },
     { D_map_dryfield_full_8017C828, D_dryfield_night_junk_yard_8018436C },

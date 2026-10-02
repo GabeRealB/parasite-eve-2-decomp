@@ -33,7 +33,7 @@ extern GpAreaApplyRec D_neo_ark_submarine_gallery_8018590C[4];
 
 extern TaskDesc D_neo_ark_submarine_gallery_8018186C;
 
-extern GpAreaVariant D_neo_ark_submarine_gallery_80185860[13];
+extern AreaVariant D_neo_ark_submarine_gallery_80185860[13];
 
 // neo_ark_submarine_gallery
 extern u8* D_neo_ark_submarine_gallery_80181A08[];

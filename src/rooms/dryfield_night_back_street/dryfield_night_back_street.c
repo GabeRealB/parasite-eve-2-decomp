@@ -366,7 +366,7 @@ AreaResource D_dryfield_night_back_street_80181500[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_dryfield_night_back_street_80181518[22] = {
+AreaVariant D_dryfield_night_back_street_80181518[22] = {
     { NULL, NULL },
     { D_map_dryfield_full_8017B048, D_dryfield_night_back_street_80181488 },
     { NULL, NULL },

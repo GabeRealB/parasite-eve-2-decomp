@@ -11,7 +11,7 @@
 
 #include "main/task_types.h"
 
-extern GpAreaVariant D_mine_refuge_80182A00[11];
+extern AreaVariant D_mine_refuge_80182A00[11];
 
 // mine_refuge
 extern WorldCoordRoomLighting D_mine_refuge_801818F0[];

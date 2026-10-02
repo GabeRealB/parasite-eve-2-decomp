@@ -85,7 +85,7 @@ AreaResource D_dryfield_night_dilapidated_house_80189F8C[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_dryfield_night_dilapidated_house_80189FA4[22] = {
+AreaVariant D_dryfield_night_dilapidated_house_80189FA4[22] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

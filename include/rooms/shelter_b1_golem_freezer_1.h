@@ -12,7 +12,7 @@
 
 #include "main/task_types.h"
 
-extern GpAreaVariant D_shelter_b1_golem_freezer_1_8017F17C[23];
+extern AreaVariant D_shelter_b1_golem_freezer_1_8017F17C[23];
 
 // shelter_b1_golem_freezer_1
 extern u8* D_shelter_b1_golem_freezer_1_8017E790[];

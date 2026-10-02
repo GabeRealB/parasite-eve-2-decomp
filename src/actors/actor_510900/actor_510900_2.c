@@ -1627,7 +1627,7 @@ static void func_actor_510900_801373B8(Task* arg0)
     GfxCoord*        coord;
     GameLocationKey* sessionKey;
     TmdObject*       model;
-    GpAreaVariant*   rec;
+    AreaVariant*     layout;
     AreaPlacement*   entry;
     GameLocationKey  key;
     s32              idx;
@@ -1652,10 +1652,10 @@ static void func_actor_510900_801373B8(Task* arg0)
         key.room        = sessionKey->room;
         key.view        = gGameSession->location.loc.view;
         areaSyncLocationVariant(&key);
-        rec = Gp_GetNestedAreaRec(&key);
-        /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled
+        layout = Gp_GetNestedAreaRec(&key);
+        /* offset + base, not `&layout->placements[idx]`: the ROM adds the scaled
            index onto the table (`addu s0, s0, v0`). */
-        entry                    = gpAreaPlaceAt(rec->field_0, idx);
+        entry                    = gpAreaPlaceAt(layout->placements, idx);
         model->texturePageOffset = entry->texturePageOffset;
         model->clutRowOffset     = entry->clutRowOffset;
         if (model->buffer != NULL) {

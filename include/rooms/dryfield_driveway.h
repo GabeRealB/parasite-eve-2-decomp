@@ -11,7 +11,7 @@
 
 #include "main/task_types.h"
 
-extern GpAreaVariant D_dryfield_driveway_8017EDD4[11];
+extern AreaVariant D_dryfield_driveway_8017EDD4[11];
 
 // dryfield_driveway
 extern WorldCollisionRoomResources D_dryfield_driveway_8017E784[];

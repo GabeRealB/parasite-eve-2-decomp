@@ -12,7 +12,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-extern GpAreaVariant D_acropolis_sanctuary_8018402C[12];
+extern AreaVariant D_acropolis_sanctuary_8018402C[12];
 
 extern TmdSource gAcropolisSanctuaryModel090F0;
 

@@ -14,7 +14,7 @@
 
 extern TaskDesc D_shelter_b1_armory_801824D0;
 
-extern GpAreaVariant D_shelter_b1_armory_801854E0[11];
+extern AreaVariant D_shelter_b1_armory_801854E0[11];
 
 // shelter_b1_armory
 extern u8* D_shelter_b1_armory_80182580[];

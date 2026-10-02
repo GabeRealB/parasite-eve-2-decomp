@@ -882,7 +882,7 @@ AreaResource D_neo_ark_submarine_gallery_80185848[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_neo_ark_submarine_gallery_80185860[13] = {
+AreaVariant D_neo_ark_submarine_gallery_80185860[13] = {
     { NULL, NULL },
     { D_map_neo_ark_8017C4A0, D_neo_ark_submarine_gallery_801857F4 },
     { D_map_neo_ark_8017C4D0, D_neo_ark_submarine_gallery_80185818 },

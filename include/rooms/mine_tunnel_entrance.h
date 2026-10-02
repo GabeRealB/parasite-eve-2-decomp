@@ -11,7 +11,7 @@
 
 #include "main/task_types.h"
 
-extern GpAreaVariant D_mine_tunnel_entrance_8017F32C[12];
+extern AreaVariant D_mine_tunnel_entrance_8017F32C[12];
 
 // mine_tunnel_entrance
 extern WorldCoordRoomLighting D_mine_tunnel_entrance_8017DB58[];

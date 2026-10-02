@@ -391,7 +391,7 @@ AreaResource D_acropolis_east_elevator_hall_80186C38[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_acropolis_east_elevator_hall_80186C50[3] = {
+AreaVariant D_acropolis_east_elevator_hall_80186C50[3] = {
     { NULL, NULL },
     { D_map_akropolis_8017ACDC, D_acropolis_east_elevator_hall_80186C38 },
     { NULL, NULL },

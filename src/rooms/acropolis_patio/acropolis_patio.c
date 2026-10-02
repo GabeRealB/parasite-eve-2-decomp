@@ -984,7 +984,7 @@ AreaResource D_acropolis_patio_80184A84[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_acropolis_patio_80184A90[12] = {
+AreaVariant D_acropolis_patio_80184A90[12] = {
     { NULL, NULL },
     { D_map_akropolis_8017ACFC, D_acropolis_patio_801849DC },
     { D_map_akropolis_8017AD2C, D_acropolis_patio_80184A00 },

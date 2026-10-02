@@ -21,7 +21,7 @@ extern SVECTOR D_shelter_b4_reservoir_801851E4[5];
 
 extern s16 D_shelter_b4_reservoir_80184F80;
 
-extern GpAreaVariant D_shelter_b4_reservoir_80187350[12];
+extern AreaVariant D_shelter_b4_reservoir_80187350[12];
 
 extern u8 D_shelter_b4_reservoir_801850C8[16];
 

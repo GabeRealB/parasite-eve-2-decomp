@@ -16,7 +16,7 @@ extern WorldCollisionGrid D_shelter_r48_80183EEC[1];
 
 extern TaskDesc D_shelter_r48_80182FAC;
 
-extern GpAreaVariant D_shelter_r48_8018BC10[13];
+extern AreaVariant D_shelter_r48_8018BC10[13];
 
 // shelter_r48
 extern WorldCoordRoomLighting D_shelter_r48_80183014[];

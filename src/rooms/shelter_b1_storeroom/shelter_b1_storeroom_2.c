@@ -557,7 +557,7 @@ AreaPlacement D_shelter_b1_storeroom_80186C6C[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_shelter_b1_storeroom_80186C9C[22] = {
+AreaVariant D_shelter_b1_storeroom_80186C9C[22] = {
     { NULL, NULL },
     { D_shelter_b1_storeroom_80186B5C, D_shelter_b1_storeroom_80186AE4 },
     { D_shelter_b1_storeroom_80186BBC, D_shelter_b1_storeroom_80186B08 },

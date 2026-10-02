@@ -896,7 +896,7 @@ AreaResource D_acropolis_cafeteria_80189DB4[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_acropolis_cafeteria_80189DCC[11] = {
+AreaVariant D_acropolis_cafeteria_80189DCC[11] = {
     { NULL, NULL },
     { D_map_akropolis_8017AE9C, D_acropolis_cafeteria_80189D0C },
     { D_map_akropolis_8017AEDC, D_acropolis_cafeteria_80189D3C },

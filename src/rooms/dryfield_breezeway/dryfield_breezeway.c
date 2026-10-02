@@ -445,7 +445,7 @@ AreaPlacement D_dryfield_breezeway_801842C8[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_dryfield_breezeway_801842F8[13] = {
+AreaVariant D_dryfield_breezeway_801842F8[13] = {
     { NULL, NULL },
     { D_map_dryfield_8017B674, D_dryfield_breezeway_80184268 },
     { NULL, NULL },

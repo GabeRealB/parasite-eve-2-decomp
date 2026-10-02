@@ -11,7 +11,7 @@
 
 #include "main/task_types.h"
 
-extern GpAreaVariant D_shelter_b1_elevator_hall_80184940[12];
+extern AreaVariant D_shelter_b1_elevator_hall_80184940[12];
 
 // shelter_b1_elevator_hall
 extern WorldCoordRoomLighting D_shelter_b1_elevator_hall_80182DF8[];

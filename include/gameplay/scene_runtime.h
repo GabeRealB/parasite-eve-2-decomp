@@ -122,7 +122,7 @@ enum {
 void areaSetPlacementVariant(GameLocationKey* key, s32 variant, s32 resetMode);
 
 /// Returns the stage/area/variant layout, or NULL when its tables are absent.
-GpAreaVariant* Gp_GetNestedAreaRec(GameLocationKey* key);
+AreaVariant* Gp_GetNestedAreaRec(GameLocationKey* key);
 
 /// Copies the area's saved placement variant into `key->variant`.
 ///

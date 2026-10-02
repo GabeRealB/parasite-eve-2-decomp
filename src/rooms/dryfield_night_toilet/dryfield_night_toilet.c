@@ -428,7 +428,7 @@ AreaResource D_dryfield_night_toilet_8017F33C[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_dryfield_night_toilet_8017F354[12] = {
+AreaVariant D_dryfield_night_toilet_8017F354[12] = {
     { NULL, NULL },
     { D_map_dryfield_full_8017BCC8, D_dryfield_night_toilet_8017F300 },
     { NULL, NULL },

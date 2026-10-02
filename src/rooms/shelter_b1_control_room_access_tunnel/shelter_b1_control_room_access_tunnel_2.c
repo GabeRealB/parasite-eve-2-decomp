@@ -183,7 +183,7 @@ AreaPlacement D_shelter_b1_control_room_access_tunnel_8018259C[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_shelter_b1_control_room_access_tunnel_801825AC[22] = {
+AreaVariant D_shelter_b1_control_room_access_tunnel_801825AC[22] = {
     { NULL, NULL },
     { D_shelter_b1_control_room_access_tunnel_801824AC, D_shelter_b1_control_room_access_tunnel_8018241C },
     { D_shelter_b1_control_room_access_tunnel_801824FC, D_shelter_b1_control_room_access_tunnel_80182440 },

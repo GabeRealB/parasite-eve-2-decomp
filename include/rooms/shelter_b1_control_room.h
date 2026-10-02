@@ -19,7 +19,7 @@ extern GpAreaApplyRec D_shelter_b1_control_room_80183BE0[2];
 
 extern TaskDesc D_shelter_b1_control_room_80181B88;
 
-extern GpAreaVariant D_shelter_b1_control_room_80183A98[22];
+extern AreaVariant D_shelter_b1_control_room_80183A98[22];
 
 // shelter_b1_control_room
 extern u8* D_shelter_b1_control_room_80181C70[];

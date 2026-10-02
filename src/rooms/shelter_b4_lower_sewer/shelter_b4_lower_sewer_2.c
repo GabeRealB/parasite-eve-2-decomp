@@ -437,7 +437,7 @@ AreaPlacement D_shelter_b4_lower_sewer_80183D08[4] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_shelter_b4_lower_sewer_80183D48[12] = {
+AreaVariant D_shelter_b4_lower_sewer_80183D48[12] = {
     { NULL, NULL },
     { D_shelter_b4_lower_sewer_80183C18, D_shelter_b4_lower_sewer_80183B64 },
     { D_shelter_b4_lower_sewer_80183C48, D_shelter_b4_lower_sewer_80183B7C },

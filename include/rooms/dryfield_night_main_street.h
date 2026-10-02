@@ -23,7 +23,7 @@ extern WorldCollisionGridFace gDryfieldNightMainStreetCollision06F80Faces[89];
 
 extern WorldCollisionTrigger D_dryfield_night_main_street_8018824C[12];
 
-extern GpAreaVariant D_dryfield_night_main_street_80188A08[13];
+extern AreaVariant D_dryfield_night_main_street_80188A08[13];
 
 // dryfield_night_main_street
 extern WorldCollisionRoomResources D_dryfield_night_main_street_80182284[];

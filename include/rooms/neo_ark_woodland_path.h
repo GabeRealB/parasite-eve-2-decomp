@@ -14,7 +14,7 @@
 
 extern TaskDesc D_neo_ark_woodland_path_80181638;
 
-extern GpAreaVariant D_neo_ark_woodland_path_8018471C[12];
+extern AreaVariant D_neo_ark_woodland_path_8018471C[12];
 
 // neo_ark_woodland_path
 extern u8* D_neo_ark_woodland_path_80181694[];

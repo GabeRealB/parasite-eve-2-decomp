@@ -15,7 +15,7 @@
 /// Models the Neo Ark map UI overlay's enemy descriptors attach.
 extern TmdSource gShelter1fVehicularAirlockModel03A58;
 
-extern GpAreaVariant D_shelter_1f_vehicular_airlock_80182A04[12];
+extern AreaVariant D_shelter_1f_vehicular_airlock_80182A04[12];
 
 // shelter_1f_vehicular_airlock
 extern WorldCollisionRoomResources D_shelter_1f_vehicular_airlock_801820FC[];

@@ -18,7 +18,7 @@ extern PadScriptCmd D_acropolis_helicopter_landing_pad_80187D34[2];
 
 extern PadScriptVibrationSegment D_acropolis_helicopter_landing_pad_80187D3C;
 
-extern GpAreaVariant D_acropolis_helicopter_landing_pad_801861E8[13];
+extern AreaVariant D_acropolis_helicopter_landing_pad_801861E8[13];
 
 extern TmdSource gAcropolisHelicopterLandingPadModel0547C;
 

@@ -15,7 +15,7 @@
 
 extern GpAreaApplyRec D_shelter_b2_elevator_8017E9F8[2];
 
-extern GpAreaVariant D_shelter_b2_elevator_8017E964[11];
+extern AreaVariant D_shelter_b2_elevator_8017E964[11];
 
 // shelter_b2_elevator
 extern u8* D_shelter_b2_elevator_8017DFD8[];

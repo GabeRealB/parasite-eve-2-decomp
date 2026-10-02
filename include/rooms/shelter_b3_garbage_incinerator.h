@@ -26,7 +26,7 @@ extern GpAreaApplyRec D_shelter_b3_garbage_incinerator_8018FB6C[23];
 
 extern u16 D_shelter_b3_garbage_incinerator_8018FBC8[2];
 
-extern GpAreaVariant D_shelter_b3_garbage_incinerator_8018FA58[13];
+extern AreaVariant D_shelter_b3_garbage_incinerator_8018FA58[13];
 
 // shelter_b3_garbage_incinerator
 extern WorldCoordRoomLighting D_shelter_b3_garbage_incinerator_80187280[];

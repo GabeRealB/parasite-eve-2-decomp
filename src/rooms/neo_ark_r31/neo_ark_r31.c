@@ -99,7 +99,7 @@ AreaResource D_neo_ark_r31_8017DB94[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_neo_ark_r31_8017DBB8[13] = {
+AreaVariant D_neo_ark_r31_8017DBB8[13] = {
     { NULL, NULL },
     { D_map_neo_ark_8017C550, D_neo_ark_r31_8017DB94 },
     { NULL, NULL },

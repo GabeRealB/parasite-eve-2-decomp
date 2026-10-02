@@ -293,7 +293,7 @@ AreaResource D_neo_ark_south_promenade_801808C0[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_neo_ark_south_promenade_801808E4[13] = {
+AreaVariant D_neo_ark_south_promenade_801808E4[13] = {
     { NULL, NULL },
     { NULL, NULL },
     { D_map_neo_ark_8017BDB0, D_neo_ark_south_promenade_80180878 },

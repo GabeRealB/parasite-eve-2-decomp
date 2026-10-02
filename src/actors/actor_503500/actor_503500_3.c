@@ -266,7 +266,7 @@ static void func_actor_503500_80132F64(Task* arg0)
     GameLocationKey        key;
     GameLocationKey*       sessionKey;
     u8                     areaByte0;
-    GpAreaVariant*         rec;
+    AreaVariant*           layout;
     AreaPlacement*         entry;
     Enemy*                 child;
     TmdObject*             model;
@@ -342,8 +342,8 @@ static void func_actor_503500_80132F64(Task* arg0)
             idx        = raw >> 12;
             key.view   = areaByte0;
             areaSyncLocationVariant(&key);
-            rec                      = Gp_GetNestedAreaRec(&key);
-            entry                    = gpAreaPlaceAt(rec->field_0, idx);
+            layout                   = Gp_GetNestedAreaRec(&key);
+            entry                    = gpAreaPlaceAt(layout->placements, idx);
             model->texturePageOffset = entry->texturePageOffset;
             model->clutRowOffset     = entry->clutRowOffset;
             if (model->buffer != NULL) {
@@ -1728,7 +1728,7 @@ Enemy* func_actor_503500_80135D00(Task* arg0, s32 arg1)
     GameLocationKey  key;
     GameLocationKey* sessionKey;
     u8               areaByte0;
-    GpAreaVariant*   rec;
+    AreaVariant*     layout;
     AreaPlacement*   entry;
     Enemy*           enemy;
     TmdObject*       model;
@@ -1750,8 +1750,8 @@ Enemy* func_actor_503500_80135D00(Task* arg0, s32 arg1)
         idx        = raw >> 12;
         key.view   = areaByte0;
         areaSyncLocationVariant(&key);
-        rec                      = Gp_GetNestedAreaRec(&key);
-        entry                    = gpAreaPlaceAt(rec->field_0, idx);
+        layout                   = Gp_GetNestedAreaRec(&key);
+        entry                    = gpAreaPlaceAt(layout->placements, idx);
         model->texturePageOffset = entry->texturePageOffset;
         model->clutRowOffset     = entry->clutRowOffset;
         if (model->buffer != NULL) {

@@ -282,7 +282,7 @@ AreaPlacement D_shelter_b1_golem_freezer_1_8017F15C[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_shelter_b1_golem_freezer_1_8017F17C[23] = {
+AreaVariant D_shelter_b1_golem_freezer_1_8017F17C[23] = {
     { NULL, NULL },
     { D_shelter_b1_golem_freezer_1_8017F14C, D_shelter_b1_golem_freezer_1_8017F128 },
     { NULL, NULL },

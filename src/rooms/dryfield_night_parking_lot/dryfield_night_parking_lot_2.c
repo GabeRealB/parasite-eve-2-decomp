@@ -536,7 +536,7 @@ AreaResource D_dryfield_night_parking_lot_80181420[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_dryfield_night_parking_lot_80181438[22] = {
+AreaVariant D_dryfield_night_parking_lot_80181438[22] = {
     { NULL, NULL },
     { NULL, NULL },
     { D_map_dryfield_full_8017BAB8, D_dryfield_night_parking_lot_801813A8 },

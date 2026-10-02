@@ -11,7 +11,7 @@
 
 #include "main/task_types.h"
 
-extern GpAreaVariant D_mine_mesa_801898F4[12];
+extern AreaVariant D_mine_mesa_801898F4[12];
 
 // mine_mesa
 extern WorldCollisionRoomResources D_mine_mesa_80186538[];

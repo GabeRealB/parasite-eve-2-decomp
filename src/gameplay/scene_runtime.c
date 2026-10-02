@@ -3155,7 +3155,7 @@ void Gp_SaveEnemyPose(Enemy* enemy)
 void Gp_SpawnArea(GameLocationKey* location)
 {
     GpAreaRec*     areaRecords;
-    GpAreaVariant* variants;
+    AreaVariant*   variants;
     GpAreaObj*     areaState;
     AreaPlacement* placement;
     AreaResource*  resource;
@@ -3178,7 +3178,7 @@ void Gp_SpawnArea(GameLocationKey* location)
         return;
     }
     _areaPrepareSpawnState(location, areaState);
-    placement      = variants[location->variant].field_0;
+    placement      = variants[location->variant].placements;
     placementIndex = 0;
     if (placement == NULL) {
         return;
@@ -3188,7 +3188,7 @@ void Gp_SpawnArea(GameLocationKey* location)
     }
     // Match each placement with the resource entry that defines its actor.
     do {
-        resource   = variants[location->variant].field_4;
+        resource   = variants[location->variant].resources;
         resourceId = resource->entryId;
         if (resourceId != AREA_PLACEMENT_END) {
             do {
@@ -3496,7 +3496,7 @@ void Gp_ApplyAreaTmdFlags(void)
     Task*            iter;
     GameLocationKey* key;
     GpAreaRec*       rec;
-    GpAreaVariant*   nested;
+    AreaVariant*     variants;
     AreaResource*    table;
     AreaResource*    entry;
     GpWorkObj*       work;
@@ -3520,9 +3520,9 @@ void Gp_ApplyAreaTmdFlags(void)
                 place = work->field_3C;
                 table = NULL;
                 if (rec != NULL) {
-                    nested = rec[key->area].field_0;
-                    if (nested != NULL) {
-                        table = nested[key->variant].field_4;
+                    variants = rec[key->area].field_0;
+                    if (variants != NULL) {
+                        table = variants[key->variant].resources;
                     }
                 }
                 entry = table;
@@ -3735,25 +3735,25 @@ void Gp_SetAreaFlag2(s32 useSavedPoses, GameLocationKey* key)
 
 static AreaResource* Gp_GetNestedAreaObj(GameLocationKey* key)
 {
-    GpAreaRec*     areaRecords;
-    GpAreaVariant* variants;
-    AreaResource*  resources;
+    GpAreaRec*    areaRecords;
+    AreaVariant*  variants;
+    AreaResource* resources;
 
     areaRecords = Gp_AreaTables[key->stage];
     resources   = NULL;
     if (areaRecords != NULL) {
         variants = areaRecords[key->area].field_0;
         if (variants != NULL) {
-            resources = variants[key->variant].field_4;
+            resources = variants[key->variant].resources;
         }
     }
     return resources;
 }
 
-GpAreaVariant* Gp_GetNestedAreaRec(GameLocationKey* key)
+AreaVariant* Gp_GetNestedAreaRec(GameLocationKey* key)
 {
-    GpAreaRec*     areaRecords;
-    GpAreaVariant* variants;
+    GpAreaRec*   areaRecords;
+    AreaVariant* variants;
 
     areaRecords = Gp_AreaTables[key->stage];
     variants    = NULL;
@@ -3898,9 +3898,9 @@ static void func_800B6014(void)
 
 void areaSyncLocationVariant(GameLocationKey* key)
 {
-    GpAreaRec*     areaRecords;
-    GpAreaVariant* variants;
-    GpAreaObj*     areaState;
+    GpAreaRec*   areaRecords;
+    AreaVariant* variants;
+    GpAreaObj*   areaState;
 
     areaRecords  = Gp_AreaTables[key->stage];
     key->variant = AREA_DEFAULT_VARIANT;

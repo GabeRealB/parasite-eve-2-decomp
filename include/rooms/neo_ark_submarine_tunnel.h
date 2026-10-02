@@ -23,7 +23,7 @@ extern ActorWaypointHeight D_neo_ark_submarine_tunnel_80181E90;
 
 extern TaskDesc D_neo_ark_submarine_tunnel_801810E4;
 
-extern GpAreaVariant D_neo_ark_submarine_tunnel_80187470[13];
+extern AreaVariant D_neo_ark_submarine_tunnel_80187470[13];
 
 // neo_ark_submarine_tunnel
 extern WorldCoordRoomLighting D_neo_ark_submarine_tunnel_80181E00[];

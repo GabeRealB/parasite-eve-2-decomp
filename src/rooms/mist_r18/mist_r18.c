@@ -1058,7 +1058,7 @@ AreaResource D_mist_r18_80186BD8[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_mist_r18_80186BFC[13] = {
+AreaVariant D_mist_r18_80186BFC[13] = {
     { NULL, NULL },
     { D_map_akropolis_8017BD8C, D_mist_r18_80186BD8 },
     { NULL, NULL },

@@ -11,7 +11,7 @@
 
 #include "main/task_types.h"
 
-extern GpAreaVariant D_neo_ark_eve_access_tunnel_801806B8[13];
+extern AreaVariant D_neo_ark_eve_access_tunnel_801806B8[13];
 
 // neo_ark_eve_access_tunnel
 extern WorldCollisionRoomResources D_neo_ark_eve_access_tunnel_8017EB78[];

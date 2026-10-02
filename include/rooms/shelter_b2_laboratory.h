@@ -20,7 +20,7 @@ extern GpAreaApplyRec D_shelter_b2_laboratory_80186488[5];
 
 extern GpAreaApplyRec D_shelter_b2_laboratory_8018649C[2];
 
-extern GpAreaVariant D_shelter_b2_laboratory_80186360[11];
+extern AreaVariant D_shelter_b2_laboratory_80186360[11];
 
 // shelter_b2_laboratory
 extern u8* D_shelter_b2_laboratory_80182C08[];

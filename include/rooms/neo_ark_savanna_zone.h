@@ -11,7 +11,7 @@
 
 #include "main/task_types.h"
 
-extern GpAreaVariant D_neo_ark_savanna_zone_80180864[13];
+extern AreaVariant D_neo_ark_savanna_zone_80180864[13];
 
 // neo_ark_savanna_zone
 extern WorldCollisionRoomResources D_neo_ark_savanna_zone_8017F9E4[];

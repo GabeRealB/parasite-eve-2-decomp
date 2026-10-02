@@ -2416,7 +2416,7 @@ static void func_actor_121300_80133BFC(Task* task)
     tmd->lightMtx           = &work->field_43C;
     tmd->flags              = 0;
     tmd->colorMtx           = &work->field_45C;
-    place                   = Gp_GetNestedAreaRec(&gGameSession->location.loc)->field_0;
+    place                   = Gp_GetNestedAreaRec(&gGameSession->location.loc)->placements;
     entryId                 = place->entryId;
     while (entryId != AREA_PLACEMENT_END) {
         if (entryId == TEXTURE_RESOURCE_ENTRY_ID) {

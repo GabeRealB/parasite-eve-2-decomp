@@ -1155,7 +1155,7 @@ static __inline__ s32 actorFindHit(SVECTOR* pos, WorldCollisionContact* records)
 }
 
 /// Looks up the current area's placement record from the session location.
-static __inline__ GpAreaVariant* actorGetCurrentAreaRec(void)
+static __inline__ AreaVariant* actorGetCurrentAreaRec(void)
 {
     GameLocationKey  key;
     GameLocationKey* sessionKey;
@@ -1173,13 +1173,13 @@ static __inline__ GpAreaVariant* actorGetCurrentAreaRec(void)
 /// current area, and reprocesses its stream when it already has one.
 static __inline__ void actorTintModel(TmdObject* model, Enemy* enemy)
 {
-    GpAreaVariant* rec;
+    AreaVariant*   layout;
     AreaPlacement* place;
     s32            idx;
 
     idx                      = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
-    rec                      = actorGetCurrentAreaRec();
-    place                    = gpAreaPlaceAt(rec->field_0, idx);
+    layout                   = actorGetCurrentAreaRec();
+    place                    = gpAreaPlaceAt(layout->placements, idx);
     model->texturePageOffset = place->texturePageOffset;
     model->clutRowOffset     = place->clutRowOffset;
     if (model->buffer != NULL) {
@@ -1193,7 +1193,7 @@ static __inline__ void actorTintTask(Task* spawned, Enemy* enemy)
 {
     GameLocationKey  key;
     GameLocationKey* sessionKey;
-    GpAreaVariant*   rec;
+    AreaVariant*     layout;
     AreaPlacement*   place;
     TmdObject*       model;
     s32              idx;
@@ -1206,8 +1206,8 @@ static __inline__ void actorTintTask(Task* spawned, Enemy* enemy)
     key.room   = sessionKey->room;
     key.view   = sessionKey->view;
     areaSyncLocationVariant(&key);
-    rec                      = Gp_GetNestedAreaRec(&key);
-    place                    = gpAreaPlaceAt(rec->field_0, idx);
+    layout                   = Gp_GetNestedAreaRec(&key);
+    place                    = gpAreaPlaceAt(layout->placements, idx);
     model->texturePageOffset = place->texturePageOffset;
     model->clutRowOffset     = place->clutRowOffset;
     if (model->buffer != NULL) {

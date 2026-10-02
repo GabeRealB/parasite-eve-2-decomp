@@ -14,7 +14,7 @@
 
 extern TmdSource gShelterB1SterilizationRoomAcropolisSanctuaryModel090F0;
 
-extern GpAreaVariant D_shelter_b1_sterilization_room_8018C14C[11];
+extern AreaVariant D_shelter_b1_sterilization_room_8018C14C[11];
 
 // shelter_b1_sterilization_room
 extern WorldCoordRoomLighting D_shelter_b1_sterilization_room_80189354[];

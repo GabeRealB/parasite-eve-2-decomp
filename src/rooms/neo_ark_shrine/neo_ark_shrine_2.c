@@ -982,7 +982,7 @@ AreaResource D_neo_ark_shrine_801866B0[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_neo_ark_shrine_801866C8[13] = {
+AreaVariant D_neo_ark_shrine_801866C8[13] = {
     { NULL, NULL },
     { D_map_neo_ark_8017BEB0, D_neo_ark_shrine_80186614 },
     { D_map_neo_ark_8017BEF0, D_neo_ark_shrine_8018662C },

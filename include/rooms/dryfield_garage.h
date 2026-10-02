@@ -24,7 +24,7 @@ extern SVECTOR gDryfieldGarageCollision0108CVerts[106];
 
 extern WorldCollisionGridFace gDryfieldGarageCollision0108CFaces[54];
 
-extern GpAreaVariant D_dryfield_garage_801800E0[13];
+extern AreaVariant D_dryfield_garage_801800E0[13];
 
 // dryfield_garage
 extern WorldCollisionRoomResources D_dryfield_garage_8017DCDC[];

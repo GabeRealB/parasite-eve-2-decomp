@@ -341,7 +341,7 @@ AreaResource D_shelter_1f_airlock_8017F740[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_shelter_1f_airlock_8017F758[12] = {
+AreaVariant D_shelter_1f_airlock_8017F758[12] = {
     { NULL, NULL },
     { D_map_neo_ark_8017AFD0, D_shelter_1f_airlock_8017F728 },
     { NULL, NULL },

@@ -12,7 +12,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-extern GpAreaVariant D_dryfield_night_motel_loft_80180888[13];
+extern AreaVariant D_dryfield_night_motel_loft_80180888[13];
 
 extern TmdSource gDryfieldNightMotelLoftActor135400Model071AC;
 

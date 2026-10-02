@@ -11,7 +11,7 @@
 
 #include "main/task_types.h"
 
-extern GpAreaVariant D_dryfield_dilapidated_house_80189938[13];
+extern AreaVariant D_dryfield_dilapidated_house_80189938[13];
 
 // dryfield_dilapidated_house
 extern WorldCollisionRoomResources D_dryfield_dilapidated_house_80186954[];

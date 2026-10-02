@@ -644,7 +644,7 @@ AreaResource D_neo_ark_bridge_80184A38[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_neo_ark_bridge_80184A50[13] = {
+AreaVariant D_neo_ark_bridge_80184A50[13] = {
     { NULL, NULL },
     { D_map_neo_ark_8017C1D0, D_neo_ark_bridge_80184984 },
     { D_map_neo_ark_8017C210, D_neo_ark_bridge_8018499C },

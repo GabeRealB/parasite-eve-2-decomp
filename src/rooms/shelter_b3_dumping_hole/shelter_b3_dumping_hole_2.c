@@ -1802,7 +1802,7 @@ AreaPlacement D_shelter_b3_dumping_hole_8018EBEC[5] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_shelter_b3_dumping_hole_8018EC3C[13] = {
+AreaVariant D_shelter_b3_dumping_hole_8018EC3C[13] = {
     { NULL, NULL },
     { D_shelter_b3_dumping_hole_8018EAEC, D_shelter_b3_dumping_hole_8018EB3C },
     { D_shelter_b3_dumping_hole_8018EBEC, D_shelter_b3_dumping_hole_8018EBB0 },

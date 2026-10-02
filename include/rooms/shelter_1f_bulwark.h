@@ -11,7 +11,7 @@
 
 #include "main/task_types.h"
 
-extern GpAreaVariant D_shelter_1f_bulwark_80180DA8[12];
+extern AreaVariant D_shelter_1f_bulwark_80180DA8[12];
 
 // shelter_1f_bulwark
 extern WorldCollisionRoomResources D_shelter_1f_bulwark_801803B0[];

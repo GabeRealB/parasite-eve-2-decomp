@@ -15,7 +15,7 @@ extern s32 D_neo_ark_r31_8017DC54;
 
 extern TaskDesc D_neo_ark_r31_8017D9E8;
 
-extern GpAreaVariant D_neo_ark_r31_8017DBB8[13];
+extern AreaVariant D_neo_ark_r31_8017DBB8[13];
 
 // neo_ark_r31
 extern u8* D_neo_ark_r31_8017DA1C[];

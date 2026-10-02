@@ -1502,7 +1502,7 @@ AreaPlacement D_shelter_b2_main_corridor_801892FC[4] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_shelter_b2_main_corridor_8018933C[22] = {
+AreaVariant D_shelter_b2_main_corridor_8018933C[22] = {
     { NULL, NULL },
     { D_shelter_b2_main_corridor_801891FC, D_shelter_b2_main_corridor_80189154 },
     { D_shelter_b2_main_corridor_8018923C, D_shelter_b2_main_corridor_8018916C },

@@ -693,7 +693,7 @@ AreaPlacement D_shelter_b4_water_supply_80184C74[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_shelter_b4_water_supply_80184CA4[12] = {
+AreaVariant D_shelter_b4_water_supply_80184CA4[12] = {
     { NULL, NULL },
     { D_shelter_b4_water_supply_80184BC4, D_shelter_b4_water_supply_80184B58 },
     { D_shelter_b4_water_supply_80184BE4, D_shelter_b4_water_supply_80184B70 },

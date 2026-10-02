@@ -517,7 +517,7 @@ AreaResource D_dryfield_toilet_80182900[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_dryfield_toilet_80182918[13] = {
+AreaVariant D_dryfield_toilet_80182918[13] = {
     { NULL, NULL },
     { D_map_dryfield_8017B2A4, D_dryfield_toilet_801828C4 },
     { D_map_dryfield_8017B2D4, D_dryfield_toilet_801828E8 },

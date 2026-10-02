@@ -11,7 +11,7 @@
 
 #include "main/task_types.h"
 
-extern GpAreaVariant D_acropolis_fountain_8017FC9C[11];
+extern AreaVariant D_acropolis_fountain_8017FC9C[11];
 
 // acropolis_fountain
 extern WorldCollisionRoomResources D_acropolis_fountain_8017E814[];

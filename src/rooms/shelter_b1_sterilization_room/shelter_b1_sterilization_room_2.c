@@ -824,7 +824,7 @@ AreaPlacement D_shelter_b1_sterilization_room_8018C12C[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_shelter_b1_sterilization_room_8018C14C[11] = {
+AreaVariant D_shelter_b1_sterilization_room_8018C14C[11] = {
     { NULL, NULL },
     { D_shelter_b1_sterilization_room_8018C11C, D_shelter_b1_sterilization_room_8018C0F8 },
     { NULL, NULL },

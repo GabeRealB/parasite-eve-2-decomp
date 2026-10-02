@@ -241,7 +241,7 @@ AreaResource D_acropolis_fountain_8017FC84[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_acropolis_fountain_8017FC9C[11] = {
+AreaVariant D_acropolis_fountain_8017FC9C[11] = {
     { NULL, NULL },
     { NULL, NULL },
     { D_map_akropolis_8017B17C, D_acropolis_fountain_8017FC6C },

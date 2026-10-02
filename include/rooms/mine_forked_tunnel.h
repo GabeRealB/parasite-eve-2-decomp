@@ -12,7 +12,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-extern GpAreaVariant D_mine_forked_tunnel_80185504[12];
+extern AreaVariant D_mine_forked_tunnel_80185504[12];
 
 extern TmdSource gMineForkedTunnelModel01B48;
 

@@ -20,7 +20,7 @@ extern TmdSource gShelterB2PodBottomModel0AA08;
 
 extern TmdSource gShelterB2PodBottomModel0AE48;
 
-extern GpAreaVariant D_shelter_b2_pod_bottom_80187678[11];
+extern AreaVariant D_shelter_b2_pod_bottom_80187678[11];
 
 // shelter_b2_pod_bottom
 extern WorldCollisionRoomResources D_shelter_b2_pod_bottom_80181D14[];

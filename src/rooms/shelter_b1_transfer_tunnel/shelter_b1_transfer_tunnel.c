@@ -247,7 +247,7 @@ AreaPlacement D_shelter_b1_transfer_tunnel_80183038[8] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_shelter_b1_transfer_tunnel_801830B8[22] = {
+AreaVariant D_shelter_b1_transfer_tunnel_801830B8[22] = {
     { NULL, NULL },
     { D_shelter_b1_transfer_tunnel_80182FB8, D_shelter_b1_transfer_tunnel_80182F70 },
     { NULL, NULL },

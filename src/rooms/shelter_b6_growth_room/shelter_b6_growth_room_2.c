@@ -271,7 +271,7 @@ AreaResource D_shelter_b6_growth_room_80180320[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_shelter_b6_growth_room_80180338[13] = {
+AreaVariant D_shelter_b6_growth_room_80180338[13] = {
     { NULL, NULL },
     { D_map_neo_ark_8017C0E0, D_shelter_b6_growth_room_80180320 },
     { NULL, NULL },

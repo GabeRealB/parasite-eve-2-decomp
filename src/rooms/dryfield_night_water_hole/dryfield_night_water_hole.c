@@ -921,7 +921,7 @@ AreaResource D_dryfield_night_water_hole_80183400[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_dryfield_night_water_hole_80183418[22] = {
+AreaVariant D_dryfield_night_water_hole_80183418[22] = {
     { NULL, NULL },
     { D_map_dryfield_full_8017CCE8, D_dryfield_night_water_hole_801833B8 },
     { D_map_dryfield_full_8017CD08, D_dryfield_night_water_hole_801833D0 },

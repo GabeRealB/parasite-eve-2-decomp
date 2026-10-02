@@ -11,7 +11,7 @@
 
 #include "main/task_types.h"
 
-extern GpAreaVariant D_shelter_b2_pod_access_tunnel_801855AC[23];
+extern AreaVariant D_shelter_b2_pod_access_tunnel_801855AC[23];
 
 // shelter_b2_pod_access_tunnel
 extern WorldCollisionRoomResources D_shelter_b2_pod_access_tunnel_80183DEC[];

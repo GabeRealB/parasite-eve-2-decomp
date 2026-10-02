@@ -101,7 +101,7 @@ AreaPlacement D_shelter_b1_pod_service_gantry_8017FB98[6] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_shelter_b1_pod_service_gantry_8017FBF8[11] = {
+AreaVariant D_shelter_b1_pod_service_gantry_8017FBF8[11] = {
     { NULL, NULL },
     { D_shelter_b1_pod_service_gantry_8017FB98, D_shelter_b1_pod_service_gantry_8017FB5C },
     { NULL, NULL },

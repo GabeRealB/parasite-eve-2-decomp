@@ -2088,7 +2088,7 @@ AreaPlacement D_mine_cavern_8018E218[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_mine_cavern_8018E238[22] = {
+AreaVariant D_mine_cavern_8018E238[22] = {
     { NULL, NULL },
     { D_mine_cavern_8018E168, D_mine_cavern_8018E0F0 },
     { D_mine_cavern_8018E188, D_mine_cavern_8018E108 },

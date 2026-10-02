@@ -102,7 +102,7 @@ extern DirectionWarpEntry D_acropolis_plaza_80198A68[];
 
 extern WorldCollisionSurfaceProperties* D_acropolis_plaza_80199F28[];
 
-extern GpAreaVariant D_acropolis_plaza_80199390[3];
+extern AreaVariant D_acropolis_plaza_80199390[3];
 
 void func_acropolis_plaza_8018251C(Task* task);
 

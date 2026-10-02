@@ -20,7 +20,7 @@ typedef struct {
 } ShelterB1UndergroundParkingStorage71F0;
 STATIC_ASSERT_SIZEOF(ShelterB1UndergroundParkingStorage71F0, 16);
 
-extern GpAreaVariant D_shelter_b1_underground_parking_8018B5C4[22];
+extern AreaVariant D_shelter_b1_underground_parking_8018B5C4[22];
 
 extern ShelterB1UndergroundParkingStorage71F0 D_shelter_b1_underground_parking_801871F0;
 

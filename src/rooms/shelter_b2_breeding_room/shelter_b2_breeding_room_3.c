@@ -745,7 +745,7 @@ AreaPlacement D_shelter_b2_breeding_room_80183ECC[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_shelter_b2_breeding_room_80183EEC[22] = {
+AreaVariant D_shelter_b2_breeding_room_80183EEC[22] = {
     { NULL, NULL },
     { D_shelter_b2_breeding_room_80183CDC, D_shelter_b2_breeding_room_80183BEC },
     { D_shelter_b2_breeding_room_80183D2C, D_shelter_b2_breeding_room_80183C04 },

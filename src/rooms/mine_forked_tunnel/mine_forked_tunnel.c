@@ -1412,7 +1412,7 @@ AreaPlacement D_mine_forked_tunnel_801854D4[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_mine_forked_tunnel_80185504[12] = {
+AreaVariant D_mine_forked_tunnel_80185504[12] = {
     { NULL, NULL },
     { D_mine_forked_tunnel_80185364, D_mine_forked_tunnel_801852E0 },
     { D_mine_forked_tunnel_80185374, D_mine_forked_tunnel_801852EC },

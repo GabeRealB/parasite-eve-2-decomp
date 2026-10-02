@@ -21,7 +21,7 @@ extern SVECTOR gAcropolisFireEscapeCollision04CE8Verts[55];
 
 extern WorldCollisionGridFace gAcropolisFireEscapeCollision04CE8Faces[23];
 
-extern GpAreaVariant D_acropolis_fire_escape_8018294C[5];
+extern AreaVariant D_acropolis_fire_escape_8018294C[5];
 
 // acropolis_fire_escape
 extern WorldCollisionRoomResources D_acropolis_fire_escape_80181DAC[];

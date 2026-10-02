@@ -16,7 +16,7 @@
 
 #include "main/task_types.h"
 
-extern GpAreaVariant D_dryfield_night_factory_8018A70C[11];
+extern AreaVariant D_dryfield_night_factory_8018A70C[11];
 
 // dryfield_night_factory
 extern u8* D_dryfield_night_factory_80186F1C[];

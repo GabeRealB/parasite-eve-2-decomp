@@ -544,7 +544,7 @@ static void func_actor_213000_80149E54(Task* task)
     spawned2        = Task_SpawnFromTable(D_actor_213000_80157DE0, 4, 0xC, task);
     if (spawned1 != NULL) {
         TmdObject*       model;
-        GpAreaVariant*   rec;
+        AreaVariant*     layout;
         AreaPlacement*   place;
         GameLocationKey* sessionKey;
         s32              idx;
@@ -557,8 +557,8 @@ static void func_actor_213000_80149E54(Task* task)
         key.room   = sessionKey->room;
         key.view   = sessionKey->view;
         areaSyncLocationVariant(&key);
-        rec                      = Gp_GetNestedAreaRec(&key);
-        place                    = gpAreaPlaceAt(rec->field_0, idx);
+        layout                   = Gp_GetNestedAreaRec(&key);
+        place                    = gpAreaPlaceAt(layout->placements, idx);
         model->texturePageOffset = place->texturePageOffset;
         model->clutRowOffset     = place->clutRowOffset;
         if (model->buffer != NULL) {
@@ -568,7 +568,7 @@ static void func_actor_213000_80149E54(Task* task)
     }
     if (spawned2 != NULL) {
         TmdObject*       model;
-        GpAreaVariant*   rec;
+        AreaVariant*     layout;
         AreaPlacement*   place;
         GameLocationKey* sessionKey;
         s32              idx;
@@ -581,8 +581,8 @@ static void func_actor_213000_80149E54(Task* task)
         key.room   = sessionKey->room;
         key.view   = sessionKey->view;
         areaSyncLocationVariant(&key);
-        rec                      = Gp_GetNestedAreaRec(&key);
-        place                    = gpAreaPlaceAt(rec->field_0, idx);
+        layout                   = Gp_GetNestedAreaRec(&key);
+        place                    = gpAreaPlaceAt(layout->placements, idx);
         model->texturePageOffset = place->texturePageOffset;
         model->clutRowOffset     = place->clutRowOffset;
         if (model->buffer != NULL) {

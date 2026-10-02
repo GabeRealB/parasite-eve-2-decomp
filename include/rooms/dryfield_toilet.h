@@ -17,7 +17,7 @@
 
 extern OverlayMorphTarget D_dryfield_toilet_801865D0;
 
-extern GpAreaVariant D_dryfield_toilet_80182918[13];
+extern AreaVariant D_dryfield_toilet_80182918[13];
 
 // dryfield_toilet
 extern WorldCollisionRoomResources D_dryfield_toilet_8018112C[];

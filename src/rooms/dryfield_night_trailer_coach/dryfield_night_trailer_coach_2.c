@@ -785,7 +785,7 @@ AreaResource D_dryfield_night_trailer_coach_8018C144[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_dryfield_night_trailer_coach_8018C15C[13] = {
+AreaVariant D_dryfield_night_trailer_coach_8018C15C[13] = {
     { NULL, NULL },
     { D_map_dryfield_full_8017C948, D_dryfield_night_trailer_coach_8018C144 },
     { NULL, NULL },

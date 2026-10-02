@@ -240,7 +240,7 @@ AreaPlacement D_dryfield_back_street_80180A20[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_dryfield_back_street_80180A50[13] = {
+AreaVariant D_dryfield_back_street_80180A50[13] = {
     { NULL, NULL },
     { D_map_dryfield_8017AEA4, D_dryfield_back_street_801809CC },
     { NULL, NULL },

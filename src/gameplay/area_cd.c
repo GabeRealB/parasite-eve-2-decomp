@@ -16,15 +16,13 @@ typedef struct _GpTbl2 {
 } GpTbl2;
 STATIC_ASSERT_SIZEOF(GpTbl2, 2);
 
-typedef GpAreaVariant GpCdAreaRec;
-
 enum { LOADING_AREA_FILE_COMMAND = 0x21,
        LOADING_FILE_ID_RADIX     = 100 };
 
 /* Define BSS before API headers to preserve first-declaration order. */
 s16 Gp_AreaCdPhase;
 
-GpCdAreaRec* D_80114C64;
+AreaVariant* D_80114C64;
 
 AreaResource* D_80114C68;
 
@@ -51,7 +49,7 @@ u16 Gp_PollAreaCdLoads(void)
 {
     u8            fileKey[8];
     u8            fileParams[8];
-    GpCdAreaRec*  layout;
+    AreaVariant*  layout;
     AreaResource* resource;
     s32           fileNumber;
 
@@ -59,7 +57,7 @@ u16 Gp_PollAreaCdLoads(void)
         case LOADING_AREA_INIT:
             layout      = Gp_GetNestedAreaRec(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
             D_80114C64  = layout;
-            Gp_CdRecCur = layout->field_0;
+            Gp_CdRecCur = layout->placements;
             if (layout == NULL) {
                 return 1;
             }
@@ -76,7 +74,7 @@ u16 Gp_PollAreaCdLoads(void)
                     Gp_CdRecCur++;
                     continue;
                 }
-                for (D_80114C68 = D_80114C64->field_4; D_80114C68->entryId != AREA_PLACEMENT_END; D_80114C68++) {
+                for (D_80114C68 = D_80114C64->resources; D_80114C68->entryId != AREA_PLACEMENT_END; D_80114C68++) {
                     if (Gp_CdRecCur->entryId == D_80114C68->entryId) {
                         break;
                     }
@@ -122,7 +120,7 @@ u16 func_800AA120(void)
 {
     u8            fileKey[8];
     u8            fileParams[8];
-    GpCdAreaRec*  layout;
+    AreaVariant*  layout;
     AreaResource* resource;
     u16           entryId;
     s32           fileNumber;
@@ -133,11 +131,11 @@ u16 func_800AA120(void)
         case LOADING_AREA_INIT:
             layout     = Gp_GetNestedAreaRec(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
             D_80114C64 = layout;
-            D_80114C68 = layout->field_4;
+            D_80114C68 = layout->resources;
             if (layout == NULL) {
                 goto finished;
             }
-            if (layout->field_4 == NULL) {
+            if (layout->resources == NULL) {
                 return 1;
             }
             D_80114C70++;
@@ -146,7 +144,7 @@ u16 func_800AA120(void)
                 return 1;
             }
             do {
-                Gp_CdRecCur = D_80114C64->field_0;
+                Gp_CdRecCur = D_80114C64->placements;
                 D_80114C72  = 0;
                 if (Gp_CdRecCur->entryId != AREA_PLACEMENT_END) {
                     entryId = D_80114C68->entryId;

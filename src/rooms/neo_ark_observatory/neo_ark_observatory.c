@@ -1496,7 +1496,7 @@ AreaResource D_neo_ark_observatory_80187854[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_neo_ark_observatory_8018786C[13] = {
+AreaVariant D_neo_ark_observatory_8018786C[13] = {
     { NULL, NULL },
     { D_map_neo_ark_8017B010, D_neo_ark_observatory_80187854 },
     { NULL, NULL },

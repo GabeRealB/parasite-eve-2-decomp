@@ -11,7 +11,7 @@
 
 #include "main/task_types.h"
 
-extern GpAreaVariant D_dryfield_night_motel_lobby_801843C4[11];
+extern AreaVariant D_dryfield_night_motel_lobby_801843C4[11];
 
 // dryfield_night_motel_lobby
 extern WorldCollisionRoomResources D_dryfield_night_motel_lobby_80182908[];

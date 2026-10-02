@@ -12,7 +12,7 @@
 
 #include "main/task_types.h"
 
-extern GpAreaVariant D_shelter_b6_corridor_80180304[13];
+extern AreaVariant D_shelter_b6_corridor_80180304[13];
 
 // shelter_b6_corridor
 extern u8* D_shelter_b6_corridor_8017F8B4[];

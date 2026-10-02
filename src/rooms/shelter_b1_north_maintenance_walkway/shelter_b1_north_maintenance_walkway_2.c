@@ -288,7 +288,7 @@ AreaPlacement D_shelter_b1_north_maintenance_walkway_801859D8[6] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_shelter_b1_north_maintenance_walkway_80185A38[12] = {
+AreaVariant D_shelter_b1_north_maintenance_walkway_80185A38[12] = {
     { NULL, NULL },
     { D_shelter_b1_north_maintenance_walkway_80185898, D_shelter_b1_north_maintenance_walkway_801857F0 },
     { D_shelter_b1_north_maintenance_walkway_801858F8, D_shelter_b1_north_maintenance_walkway_80185814 },

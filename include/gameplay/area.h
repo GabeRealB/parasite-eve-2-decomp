@@ -54,17 +54,22 @@ typedef struct {
 } AreaResource;
 STATIC_ASSERT_SIZEOF(AreaResource, 0xC);
 
-/// One selected layout: its placements and the resource entries they name.
-typedef struct GpAreaVariant {
-    AreaPlacement* field_0;
-    AreaResource*  field_4;
-} GpAreaVariant;
-STATIC_ASSERT_SIZEOF(GpAreaVariant, 8);
+/// One area layout: its placement table and the resource table those placements name.
+///
+/// A room publishes a table of these, indexed by `GameLocationKey.variant`.
+/// Index 0 is an empty slot and variant 1 is the default. A published slot
+/// stores both tables or neither. The tables are borrowed from the loaded
+/// room; a NULL pointer means that variant is absent.
+typedef struct {
+    AreaPlacement* placements; // Placement table for this variant, or NULL
+    AreaResource*  resources;  // Resource table those placements name, or NULL
+} AreaVariant;
+STATIC_ASSERT_SIZEOF(AreaVariant, 8);
 
 /// Outer stage/area record, distinct from the selected placement layout.
 typedef struct _GpAreaRec {
-    GpAreaVariant* field_0;
-    GpAreaObj*     field_4;
+    AreaVariant* field_0;
+    GpAreaObj*   field_4;
 } GpAreaRec;
 STATIC_ASSERT_SIZEOF(GpAreaRec, 8);
 

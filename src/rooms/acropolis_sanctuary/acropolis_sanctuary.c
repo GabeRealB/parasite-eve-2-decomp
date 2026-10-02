@@ -897,7 +897,7 @@ AreaResource D_acropolis_sanctuary_80184014[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_acropolis_sanctuary_8018402C[12] = {
+AreaVariant D_acropolis_sanctuary_8018402C[12] = {
     { NULL, NULL },
     { D_map_akropolis_8017BA5C, D_acropolis_sanctuary_80183FF0 },
     { D_map_akropolis_8017BA8C, D_acropolis_sanctuary_80184014 },

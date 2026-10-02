@@ -451,7 +451,7 @@ AreaPlacement D_shelter_b1_elevator_hall_80184910[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_shelter_b1_elevator_hall_80184940[12] = {
+AreaVariant D_shelter_b1_elevator_hall_80184940[12] = {
     { NULL, NULL },
     { NULL, NULL },
     { D_shelter_b1_elevator_hall_801847F0, D_shelter_b1_elevator_hall_80184784 },

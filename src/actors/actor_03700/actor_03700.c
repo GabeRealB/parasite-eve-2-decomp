@@ -1712,7 +1712,7 @@ static inline void _actor03700SpawnRemains(Task* task)
     GameLocationKey  key;
     GameLocationKey* sessionKey;
     u8               view;
-    GpAreaVariant*   rec;
+    AreaVariant*     layout;
     AreaPlacement*   entry;
     EffectWork*      eff;
     TmdObject*       model;
@@ -1739,8 +1739,8 @@ static inline void _actor03700SpawnRemains(Task* task)
     idx        = raw >> 12;
     key.view   = view;
     areaSyncLocationVariant(&key);
-    rec                      = Gp_GetNestedAreaRec(&key);
-    entry                    = gpAreaPlaceAt(rec->field_0, idx);
+    layout                   = Gp_GetNestedAreaRec(&key);
+    entry                    = gpAreaPlaceAt(layout->placements, idx);
     model->texturePageOffset = entry->texturePageOffset;
     model->clutRowOffset     = entry->clutRowOffset;
     if (model->buffer != NULL) {

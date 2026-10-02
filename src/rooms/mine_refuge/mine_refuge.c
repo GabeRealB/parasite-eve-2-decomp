@@ -461,7 +461,7 @@ AreaPlacement D_mine_refuge_801829F0[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_mine_refuge_80182A00[11] = {
+AreaVariant D_mine_refuge_80182A00[11] = {
     { NULL, NULL },
     { D_mine_refuge_801829F0, D_mine_refuge_801829D8 },
     { NULL, NULL },

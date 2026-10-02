@@ -543,7 +543,7 @@ AreaResource D_shelter_1f_heliport_80182BD0[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_shelter_1f_heliport_80182BF4[13] = {
+AreaVariant D_shelter_1f_heliport_80182BF4[13] = {
     { NULL, NULL },
     { D_map_neo_ark_8017AF30, D_shelter_1f_heliport_80182BAC },
     { D_map_neo_ark_8017AF80, D_shelter_1f_heliport_80182BD0 },

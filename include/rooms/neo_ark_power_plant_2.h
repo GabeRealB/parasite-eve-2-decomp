@@ -11,7 +11,7 @@
 
 #include "main/task_types.h"
 
-extern GpAreaVariant D_neo_ark_power_plant_2_80182DE0[19];
+extern AreaVariant D_neo_ark_power_plant_2_80182DE0[19];
 
 // neo_ark_power_plant_2
 extern WorldCollisionRoomResources D_neo_ark_power_plant_2_80180690[];

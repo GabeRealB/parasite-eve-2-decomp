@@ -11,7 +11,7 @@
 
 #include "main/task_types.h"
 
-extern GpAreaVariant D_shelter_b1_south_maintenance_walkway_80183598[12];
+extern AreaVariant D_shelter_b1_south_maintenance_walkway_80183598[12];
 
 // shelter_b1_south_maintenance_walkway
 extern WorldCoordRoomLighting D_shelter_b1_south_maintenance_walkway_801823F4[];

@@ -15,7 +15,7 @@
 
 extern TmdSource gShelterB1SleepingQuartersModel02DFC;
 
-extern GpAreaVariant D_shelter_b1_sleeping_quarters_80183FDC[22];
+extern AreaVariant D_shelter_b1_sleeping_quarters_80183FDC[22];
 
 // shelter_b1_sleeping_quarters
 extern u8* D_shelter_b1_sleeping_quarters_80180658[];

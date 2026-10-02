@@ -11,7 +11,7 @@
 
 #include "main/task_types.h"
 
-extern GpAreaVariant D_dryfield_water_tank_80188BF0[13];
+extern AreaVariant D_dryfield_water_tank_80188BF0[13];
 
 // dryfield_water_tank
 extern WorldCollisionRoomResources D_dryfield_water_tank_801868E0[];

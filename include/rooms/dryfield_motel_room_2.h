@@ -11,7 +11,7 @@
 
 #include "main/task_types.h"
 
-extern GpAreaVariant D_dryfield_motel_room_2_80180410[12];
+extern AreaVariant D_dryfield_motel_room_2_80180410[12];
 
 // dryfield_motel_room_2
 extern u8* D_dryfield_motel_room_2_8017D6E4[];

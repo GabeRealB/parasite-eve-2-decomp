@@ -581,7 +581,7 @@ WorldCollisionTrigger D_dryfield_night_motel_lobby_80184164[8] = {
     { NULL, NULL, NULL, { 4497, -64, 4464, 0 }, { { -608, 0, -496, 0 }, { 608, 0, -496, 0 }, { -608, 0, 496, 0 }, { 608, 0, 496, 0 } }, { 0, 4105, 0, 0 }, { 4091, 0, -201, 0 }, 783, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaVariant D_dryfield_night_motel_lobby_801843C4[11] = { 0 };
+AreaVariant D_dryfield_night_motel_lobby_801843C4[11] = { 0 };
 
 WorldCoordRoomAmbientEntry D_dryfield_night_motel_lobby_8018441C[8] = {
     { .viewCount = ARRAY_SIZE(D_dryfield_night_motel_lobby_8018441C) - 1 },

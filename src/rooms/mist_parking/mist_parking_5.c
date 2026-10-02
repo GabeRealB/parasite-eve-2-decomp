@@ -739,7 +739,7 @@ AreaResource D_mist_parking_80195190[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_mist_parking_801951B4[13] = {
+AreaVariant D_mist_parking_801951B4[13] = {
     { NULL, NULL },
     { D_map_akropolis_8017BDBC, D_mist_parking_80195190 },
     { D_map_akropolis_8017BDBC, D_mist_parking_80195190 },

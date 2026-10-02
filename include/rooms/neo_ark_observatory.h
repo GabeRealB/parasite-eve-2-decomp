@@ -13,7 +13,7 @@
 
 extern TaskDesc D_neo_ark_observatory_80180DBC[2];
 
-extern GpAreaVariant D_neo_ark_observatory_8018786C[13];
+extern AreaVariant D_neo_ark_observatory_8018786C[13];
 
 // neo_ark_observatory
 extern WorldCollisionRoomResources D_neo_ark_observatory_80181594[];

@@ -2709,7 +2709,7 @@ AreaResource D_acropolis_plaza_8019936C[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_acropolis_plaza_80199390[3] = {
+AreaVariant D_acropolis_plaza_80199390[3] = {
     { NULL, NULL },
     { D_map_akropolis_8017AFEC, D_acropolis_plaza_8019936C },
     { NULL, NULL },
@@ -4122,7 +4122,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             buf.key.room                 = gGameSession->spriteVariant;
             buf.key.view                 = gGameSession->location.loc.view;
             buf.key.variant              = sessionKey->variant;
-            entry                        = Gp_GetNestedAreaRec(&buf.key)->field_0;
+            entry                        = Gp_GetNestedAreaRec(&buf.key)->placements;
             idx                          = 0;
             /* `for (;;)` with a `goto` out: a `break` here makes GCC copy the
                first exit test into the loop preheader and the walk stops
@@ -4167,7 +4167,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
                 buf.key.room    = gGameSession->spriteVariant;
                 buf.key.view    = gGameSession->location.loc.view;
                 buf.key.variant = sessionKey->variant;
-                entry           = Gp_GetNestedAreaRec(&buf.key)->field_0;
+                entry           = Gp_GetNestedAreaRec(&buf.key)->placements;
                 idx             = 0;
                 if (entry->entryId != AREA_PLACEMENT_END) {
                     for (;;) {

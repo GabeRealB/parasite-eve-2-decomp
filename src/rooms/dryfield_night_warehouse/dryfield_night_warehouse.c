@@ -310,7 +310,7 @@ AreaResource D_dryfield_night_warehouse_8017FB74[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_dryfield_night_warehouse_8017FB98[12] = {
+AreaVariant D_dryfield_night_warehouse_8017FB98[12] = {
     { NULL, NULL },
     { D_map_dryfield_full_8017B408, D_dryfield_night_warehouse_8017FB44 },
     { NULL, NULL },

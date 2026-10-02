@@ -521,7 +521,7 @@ AreaPlacement D_dryfield_garage_801800C0[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_dryfield_garage_801800E0[13] = {
+AreaVariant D_dryfield_garage_801800E0[13] = {
     { NULL, NULL },
     { D_map_dryfield_8017B724, D_dryfield_garage_80180060 },
     { D_map_dryfield_8017B744, D_dryfield_garage_80180078 },

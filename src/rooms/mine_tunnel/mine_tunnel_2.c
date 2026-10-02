@@ -479,7 +479,7 @@ AreaPlacement D_mine_tunnel_8018015C[7] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_mine_tunnel_801801CC[12] = {
+AreaVariant D_mine_tunnel_801801CC[12] = {
     { NULL, NULL },
     { D_mine_tunnel_8017FF6C, D_mine_tunnel_8017FED0 },
     { D_mine_tunnel_8017FFCC, D_mine_tunnel_8017FEE8 },

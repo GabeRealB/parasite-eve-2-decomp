@@ -166,7 +166,7 @@ AreaResource D_acropolis_hallway_8017EA18[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_acropolis_hallway_8017EA3C[13] = {
+AreaVariant D_acropolis_hallway_8017EA3C[13] = {
     { NULL, NULL },
     { D_map_akropolis_8017B04C, D_acropolis_hallway_8017E9D0 },
     { D_map_akropolis_8017B0DC, D_acropolis_hallway_8017E9E8 },

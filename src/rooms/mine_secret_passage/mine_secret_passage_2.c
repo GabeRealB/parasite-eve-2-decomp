@@ -577,7 +577,7 @@ AreaPlacement D_mine_secret_passage_80183300[4] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_mine_secret_passage_80183340[12] = {
+AreaVariant D_mine_secret_passage_80183340[12] = {
     { NULL, NULL },
     { D_mine_secret_passage_80183280, D_mine_secret_passage_80183220 },
     { D_mine_secret_passage_801832A0, D_mine_secret_passage_80183238 },

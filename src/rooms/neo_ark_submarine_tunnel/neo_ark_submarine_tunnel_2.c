@@ -1201,7 +1201,7 @@ AreaResource D_neo_ark_submarine_tunnel_80187464[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_neo_ark_submarine_tunnel_80187470[13] = {
+AreaVariant D_neo_ark_submarine_tunnel_80187470[13] = {
     { NULL, NULL },
     { D_map_neo_ark_8017B330, D_neo_ark_submarine_tunnel_80187410 },
     { D_map_neo_ark_8017B360, D_neo_ark_submarine_tunnel_80187428 },

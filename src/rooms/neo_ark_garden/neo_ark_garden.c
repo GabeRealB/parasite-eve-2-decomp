@@ -75,7 +75,7 @@ AreaResource D_neo_ark_garden_80182B3C[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_neo_ark_garden_80182B54[13] = {
+AreaVariant D_neo_ark_garden_80182B54[13] = {
     { NULL, NULL },
     { D_map_neo_ark_8017B630, D_neo_ark_garden_80182AE8 },
     { D_map_neo_ark_8017B6E0, D_neo_ark_garden_80182B00 },

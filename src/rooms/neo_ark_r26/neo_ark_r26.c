@@ -391,7 +391,7 @@ AreaPlacement D_neo_ark_r26_8017E964[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_neo_ark_r26_8017E994[11] = {
+AreaVariant D_neo_ark_r26_8017E994[11] = {
     { NULL, NULL },
     { D_neo_ark_r26_8017E964, D_neo_ark_r26_8017E940 },
     { NULL, NULL },

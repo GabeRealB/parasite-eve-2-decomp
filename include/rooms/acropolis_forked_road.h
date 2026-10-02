@@ -11,7 +11,7 @@
 
 #include "main/task_types.h"
 
-extern GpAreaVariant D_acropolis_forked_road_801831C4[24];
+extern AreaVariant D_acropolis_forked_road_801831C4[24];
 
 // acropolis_forked_road
 extern WorldCollisionRoomResources D_acropolis_forked_road_80182214[];

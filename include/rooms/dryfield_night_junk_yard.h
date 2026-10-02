@@ -11,7 +11,7 @@
 
 #include "main/task_types.h"
 
-extern GpAreaVariant D_dryfield_night_junk_yard_801843F0[22];
+extern AreaVariant D_dryfield_night_junk_yard_801843F0[22];
 
 // dryfield_night_junk_yard
 extern WorldCoordRoomLighting D_dryfield_night_junk_yard_80180784[];

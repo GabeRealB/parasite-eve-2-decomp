@@ -1738,7 +1738,7 @@ AreaPlacement D_shelter_b3_garbage_incinerator_8018FA28[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_shelter_b3_garbage_incinerator_8018FA58[13] = {
+AreaVariant D_shelter_b3_garbage_incinerator_8018FA58[13] = {
     { NULL, NULL },
     { D_shelter_b3_garbage_incinerator_8018F92C, D_shelter_b3_garbage_incinerator_8018F8FC },
     { D_shelter_b3_garbage_incinerator_8018F9B8, D_shelter_b3_garbage_incinerator_8018F96C },

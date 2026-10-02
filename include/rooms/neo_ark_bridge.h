@@ -26,7 +26,7 @@ extern ActorWaypointHeight D_neo_ark_bridge_80181FF8;
 
 extern TaskDesc D_neo_ark_bridge_80181F18;
 
-extern GpAreaVariant D_neo_ark_bridge_80184A50[13];
+extern AreaVariant D_neo_ark_bridge_80184A50[13];
 
 // neo_ark_bridge
 extern u8* D_neo_ark_bridge_80181F80[];

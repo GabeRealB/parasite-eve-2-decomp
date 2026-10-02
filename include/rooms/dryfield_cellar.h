@@ -11,7 +11,7 @@
 
 #include "main/task_types.h"
 
-extern GpAreaVariant D_dryfield_cellar_80180ACC[12];
+extern AreaVariant D_dryfield_cellar_80180ACC[12];
 
 // dryfield_cellar
 extern WorldCollisionRoomResources D_dryfield_cellar_8017DBDC[];

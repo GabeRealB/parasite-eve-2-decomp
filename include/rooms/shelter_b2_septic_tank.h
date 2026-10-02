@@ -22,7 +22,7 @@ extern SVECTOR D_shelter_b2_septic_tank_801836B4[12];
 
 extern s16 D_shelter_b2_septic_tank_801832BC;
 
-extern GpAreaVariant D_shelter_b2_septic_tank_80186F40[22];
+extern AreaVariant D_shelter_b2_septic_tank_80186F40[22];
 
 // shelter_b2_septic_tank
 extern u8* D_shelter_b2_septic_tank_8018356C[];

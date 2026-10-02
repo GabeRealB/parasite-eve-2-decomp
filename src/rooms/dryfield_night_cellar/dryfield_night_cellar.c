@@ -814,7 +814,7 @@ AreaResource D_dryfield_night_cellar_8018075C[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_dryfield_night_cellar_80180780[12] = {
+AreaVariant D_dryfield_night_cellar_80180780[12] = {
     { NULL, NULL },
     { D_map_dryfield_full_8017CD88, D_dryfield_night_cellar_80180720 },
     { NULL, NULL },

@@ -371,7 +371,7 @@ AreaResource D_dryfield_underpass_8017F850[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_dryfield_underpass_8017F868[13] = {
+AreaVariant D_dryfield_underpass_8017F868[13] = {
     { NULL, NULL },
     { D_map_dryfield_8017BCC4, D_dryfield_underpass_8017F850 },
     { NULL, NULL },

@@ -3022,7 +3022,7 @@ static void func_actor_511000_80133958(Enemy* enemy, Task* task)
     GameLocationKey*       sessionKey;
     u8                     view;
     u8                     stage;
-    GpAreaVariant*         layout;
+    AreaVariant*           layout;
     TmdObject*             model;
     GfxCoord*              coord;
     Actor511000ParentWork* work;
@@ -3066,7 +3066,7 @@ static void func_actor_511000_80133958(Enemy* enemy, Task* task)
     areaSyncLocationVariant(&key);
     layout                   = Gp_GetNestedAreaRec(&key);
     placementWord          <<= 4;
-    placementWord           += (u32)layout->field_0;
+    placementWord           += (u32)layout->placements;
     model->texturePageOffset = ((AreaPlacement*)placementWord)->texturePageOffset;
     model->clutRowOffset     = ((AreaPlacement*)placementWord)->clutRowOffset;
     if (model->buffer != NULL) {
@@ -3089,7 +3089,7 @@ static void func_actor_511000_80133958(Enemy* enemy, Task* task)
     areaSyncLocationVariant(&key);
     layout                   = Gp_GetNestedAreaRec(&key);
     placementWord          <<= 4;
-    placementWord           += (u32)layout->field_0;
+    placementWord           += (u32)layout->placements;
     model->texturePageOffset = ((AreaPlacement*)placementWord)->texturePageOffset;
     model->clutRowOffset     = ((AreaPlacement*)placementWord)->clutRowOffset;
     if (model->buffer != NULL) {

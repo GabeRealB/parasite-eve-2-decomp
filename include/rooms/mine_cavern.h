@@ -11,7 +11,7 @@
 
 #include "main/task_types.h"
 
-extern GpAreaVariant D_mine_cavern_8018E238[22];
+extern AreaVariant D_mine_cavern_8018E238[22];
 
 // mine_cavern
 extern WorldCollisionRoomResources D_mine_cavern_80188FE0[];

@@ -11,7 +11,7 @@
 
 #include "main/task_types.h"
 
-extern GpAreaVariant D_acropolis_east_elevator_hall_80186C50[3];
+extern AreaVariant D_acropolis_east_elevator_hall_80186C50[3];
 
 // acropolis_east_elevator_hall
 extern WorldCollisionRoomResources D_acropolis_east_elevator_hall_80186320[];

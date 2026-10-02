@@ -13,7 +13,7 @@
 
 extern u8 D_acropolis_bridge_80189A9C[24];
 
-extern GpAreaVariant D_acropolis_bridge_8019004C[12];
+extern AreaVariant D_acropolis_bridge_8019004C[12];
 
 // acropolis_bridge
 extern WorldCollisionRoomResources D_acropolis_bridge_80189A54[];

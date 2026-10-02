@@ -674,7 +674,7 @@ AreaResource D_neo_ark_woodland_path_80184704[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_neo_ark_woodland_path_8018471C[12] = {
+AreaVariant D_neo_ark_woodland_path_8018471C[12] = {
     { NULL, NULL },
     { D_map_neo_ark_8017C3C0, D_neo_ark_woodland_path_801846BC },
     { D_map_neo_ark_8017C3F0, D_neo_ark_woodland_path_801846D4 },

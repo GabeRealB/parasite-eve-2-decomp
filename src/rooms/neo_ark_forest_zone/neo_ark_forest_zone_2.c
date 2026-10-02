@@ -426,7 +426,7 @@ AreaPlacement D_neo_ark_forest_zone_80182948[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_neo_ark_forest_zone_80182968[13] = {
+AreaVariant D_neo_ark_forest_zone_80182968[13] = {
     { NULL, NULL },
     { D_map_neo_ark_8017B190, D_neo_ark_forest_zone_8018287C },
     { D_map_neo_ark_8017B1C0, D_neo_ark_forest_zone_801828A0 },

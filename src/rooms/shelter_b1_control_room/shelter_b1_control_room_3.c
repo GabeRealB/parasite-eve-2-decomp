@@ -464,7 +464,7 @@ AreaPlacement D_shelter_b1_control_room_80183A28[7] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_shelter_b1_control_room_80183A98[22] = {
+AreaVariant D_shelter_b1_control_room_80183A98[22] = {
     { NULL, NULL },
     { D_shelter_b1_control_room_80183908, D_shelter_b1_control_room_80183884 },
     { D_shelter_b1_control_room_80183988, D_shelter_b1_control_room_801838A8 },

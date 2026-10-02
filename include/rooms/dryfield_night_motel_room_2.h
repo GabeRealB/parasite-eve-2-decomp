@@ -11,7 +11,7 @@
 
 #include "main/task_types.h"
 
-extern GpAreaVariant D_dryfield_night_motel_room_2_801809A0[22];
+extern AreaVariant D_dryfield_night_motel_room_2_801809A0[22];
 
 // dryfield_night_motel_room_2
 extern WorldCoordRoomLighting D_dryfield_night_motel_room_2_8017DA5C[];

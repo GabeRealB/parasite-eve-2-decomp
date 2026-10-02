@@ -11,7 +11,7 @@
 
 #include "main/task_types.h"
 
-extern GpAreaVariant D_dryfield_night_dilapidated_house_80189FA4[22];
+extern AreaVariant D_dryfield_night_dilapidated_house_80189FA4[22];
 
 // dryfield_night_dilapidated_house
 extern WorldCoordRoomLighting D_dryfield_night_dilapidated_house_8018738C[];

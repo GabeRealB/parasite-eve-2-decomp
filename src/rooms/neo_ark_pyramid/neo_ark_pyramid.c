@@ -420,7 +420,7 @@ AreaResource D_neo_ark_pyramid_80181704[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_neo_ark_pyramid_80181728[13] = {
+AreaVariant D_neo_ark_pyramid_80181728[13] = {
     { NULL, NULL },
     { D_map_neo_ark_8017C580, D_neo_ark_pyramid_8018168C },
     { D_map_neo_ark_8017C620, D_neo_ark_pyramid_801816A4 },

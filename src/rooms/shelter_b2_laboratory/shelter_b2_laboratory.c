@@ -953,7 +953,7 @@ AreaPlacement D_shelter_b2_laboratory_80186340[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_shelter_b2_laboratory_80186360[11] = {
+AreaVariant D_shelter_b2_laboratory_80186360[11] = {
     { NULL, NULL },
     { D_shelter_b2_laboratory_80186340, D_shelter_b2_laboratory_80186328 },
     { NULL, NULL },

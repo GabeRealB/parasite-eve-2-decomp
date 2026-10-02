@@ -13,7 +13,7 @@
 
 extern TaskDesc D_shelter_r49_8017DA00[2];
 
-extern GpAreaVariant D_shelter_r49_8017DD74[13];
+extern AreaVariant D_shelter_r49_8017DD74[13];
 
 // shelter_r49
 extern WorldCollisionRoomResources D_shelter_r49_8017DA18[];

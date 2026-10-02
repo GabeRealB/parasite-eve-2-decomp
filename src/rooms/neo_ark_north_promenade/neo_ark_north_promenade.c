@@ -337,7 +337,7 @@ AreaResource D_neo_ark_north_promenade_80183044[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_neo_ark_north_promenade_8018305C[13] = {
+AreaVariant D_neo_ark_north_promenade_8018305C[13] = {
     { NULL, NULL },
     { NULL, NULL },
     { D_map_neo_ark_8017B0F0, D_neo_ark_north_promenade_80183014 },

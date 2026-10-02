@@ -1711,7 +1711,7 @@ static void func_actor_521100_80131E8C(Enemy* enemy, Task* task)
     areaSyncLocationVariant(&key);
     /* offset + base, as in the sibling spawn bodies: the ROM adds the scaled
        index onto the table. */
-    place                    = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, idx);
+    place                    = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->placements, idx);
     model->texturePageOffset = place->texturePageOffset;
     model->clutRowOffset     = place->clutRowOffset;
     if (model->buffer != NULL) {

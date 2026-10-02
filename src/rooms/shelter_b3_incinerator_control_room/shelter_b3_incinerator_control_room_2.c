@@ -252,7 +252,7 @@ AreaPlacement D_shelter_b3_incinerator_control_room_80182600[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_shelter_b3_incinerator_control_room_80182610[11] = {
+AreaVariant D_shelter_b3_incinerator_control_room_80182610[11] = {
     { NULL, NULL },
     { D_shelter_b3_incinerator_control_room_80182600, D_shelter_b3_incinerator_control_room_801825E8 },
     { NULL, NULL },

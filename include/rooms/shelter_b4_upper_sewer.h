@@ -22,7 +22,7 @@ extern SVECTOR D_shelter_b4_upper_sewer_80186708[9];
 
 extern s16 D_shelter_b4_upper_sewer_80186438;
 
-extern GpAreaVariant D_shelter_b4_upper_sewer_80188B9C[12];
+extern AreaVariant D_shelter_b4_upper_sewer_80188B9C[12];
 
 // shelter_b4_upper_sewer
 extern u8* D_shelter_b4_upper_sewer_80186590[];

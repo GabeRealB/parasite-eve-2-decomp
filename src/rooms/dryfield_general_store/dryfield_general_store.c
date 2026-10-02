@@ -1498,7 +1498,7 @@ AreaPlacement D_dryfield_general_store_801855C4[9] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_dryfield_general_store_80185654[13] = {
+AreaVariant D_dryfield_general_store_80185654[13] = {
     { NULL, NULL },
     { D_map_dryfield_8017AE44, D_dryfield_general_store_80185588 },
     { NULL, NULL },

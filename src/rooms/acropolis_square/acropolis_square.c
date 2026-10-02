@@ -449,7 +449,7 @@ AreaResource D_acropolis_square_80185E38[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_acropolis_square_80185E50[3] = {
+AreaVariant D_acropolis_square_80185E50[3] = {
     { NULL, NULL },
     { D_map_akropolis_8017ACBC, D_acropolis_square_80185E38 },
     { NULL, NULL },

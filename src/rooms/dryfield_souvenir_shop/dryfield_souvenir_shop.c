@@ -309,7 +309,7 @@ AreaResource D_dryfield_souvenir_shop_8017F574[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_dryfield_souvenir_shop_8017F598[13] = {
+AreaVariant D_dryfield_souvenir_shop_8017F598[13] = {
     { NULL, NULL },
     { D_map_dryfield_8017AF04, D_dryfield_souvenir_shop_8017F574 },
     { NULL, NULL },

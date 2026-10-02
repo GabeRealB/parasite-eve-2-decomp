@@ -12,7 +12,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-extern GpAreaVariant D_acropolis_hallway_8017EA3C[13];
+extern AreaVariant D_acropolis_hallway_8017EA3C[13];
 
 extern TmdSource gAcropolisHallwayModel01AE0;
 

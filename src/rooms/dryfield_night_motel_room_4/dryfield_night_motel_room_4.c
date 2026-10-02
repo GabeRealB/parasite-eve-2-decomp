@@ -558,7 +558,7 @@ AreaResource D_dryfield_night_motel_room_4_801802D8[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_dryfield_night_motel_room_4_801802FC[13] = {
+AreaVariant D_dryfield_night_motel_room_4_801802FC[13] = {
     { NULL, NULL },
     { D_map_dryfield_full_8017BA08, D_dryfield_night_motel_room_4_801802C0 },
     { D_map_dryfield_full_8017BA38, D_dryfield_night_motel_room_4_801802D8 },

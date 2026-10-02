@@ -554,7 +554,7 @@ AreaResource D_acropolis_roof_garden_80185910[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_acropolis_roof_garden_80185934[12] = {
+AreaVariant D_acropolis_roof_garden_80185934[12] = {
     { NULL, NULL },
     { D_map_akropolis_8017BABC, D_acropolis_roof_garden_801858A4 },
     { D_map_akropolis_8017BB1C, D_acropolis_roof_garden_801858C8 },

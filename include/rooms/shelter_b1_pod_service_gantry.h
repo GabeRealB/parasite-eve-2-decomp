@@ -13,7 +13,7 @@
 #include "main/coord.h"
 #include "main/task_types.h"
 
-extern GpAreaVariant D_shelter_b1_pod_service_gantry_8017FBF8[11];
+extern AreaVariant D_shelter_b1_pod_service_gantry_8017FBF8[11];
 
 // shelter_b1_pod_service_gantry
 extern u8* D_shelter_b1_pod_service_gantry_8017FB1C[];

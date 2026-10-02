@@ -958,7 +958,7 @@ AreaPlacement D_dryfield_motel_room_1_8018148C[5] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_dryfield_motel_room_1_801814DC[13] = {
+AreaVariant D_dryfield_motel_room_1_801814DC[13] = {
     { NULL, NULL },
     { D_map_dryfield_8017AF94, D_dryfield_motel_room_1_801813F0 },
     { D_map_dryfield_8017AFA4, D_dryfield_motel_room_1_801813FC },

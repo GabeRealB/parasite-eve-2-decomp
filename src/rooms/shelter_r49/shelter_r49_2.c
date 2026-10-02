@@ -151,7 +151,7 @@ AreaPlacement D_shelter_r49_8017DD54[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_shelter_r49_8017DD74[13] = {
+AreaVariant D_shelter_r49_8017DD74[13] = {
     { NULL, NULL },
     { D_shelter_r49_8017DD54, D_shelter_r49_8017DD3C },
     { NULL, NULL },

@@ -779,7 +779,7 @@ WorldCollisionTrigger D_dryfield_night_motel_room_6_80185D40[15] = {
     { NULL, NULL, NULL, { 2976, -64, 6528, 0 }, { { -176, 0, -1024, 0 }, { 816, 0, -1024, 0 }, { -176, 0, 960, 0 }, { 816, 0, 960, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1305, WORLD_COLLISION_TRIGGER_ACTION_CAP, 15, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaVariant D_dryfield_night_motel_room_6_801861B4[11] = { 0 };
+AreaVariant D_dryfield_night_motel_room_6_801861B4[11] = { 0 };
 
 WorldCollisionFootstepSounds D_dryfield_night_motel_room_6_8018620C = {
     0x1000002D,

@@ -279,7 +279,7 @@ AreaResource D_shelter_1f_vehicular_airlock_801829E0[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_shelter_1f_vehicular_airlock_80182A04[12] = {
+AreaVariant D_shelter_1f_vehicular_airlock_80182A04[12] = {
     { NULL, NULL },
     { D_map_neo_ark_8017AED0, D_shelter_1f_vehicular_airlock_801829E0 },
     { NULL, NULL },

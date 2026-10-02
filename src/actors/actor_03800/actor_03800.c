@@ -2188,7 +2188,7 @@ static void Actor03800_Fn03008(Task* actor, u32 variant)
     GameLocationKey  key;
     GameLocationKey* sessionKey;
     u8               areaByte0;
-    GpAreaVariant*   rec;
+    AreaVariant*     layout;
     AreaPlacement*   entry;
     EffectWork*      eff;
     TmdObject*       model;
@@ -2226,9 +2226,9 @@ static void Actor03800_Fn03008(Task* actor, u32 variant)
     idx        = raw >> 12;
     key.view   = areaByte0;
     areaSyncLocationVariant(&key);
-    rec = Gp_GetNestedAreaRec(&key);
+    layout = Gp_GetNestedAreaRec(&key);
 
-    entry                    = gpAreaPlaceAt(rec->field_0, idx);
+    entry                    = gpAreaPlaceAt(layout->placements, idx);
     model->texturePageOffset = entry->texturePageOffset;
     model->clutRowOffset     = entry->clutRowOffset;
     if (model->buffer != NULL) {

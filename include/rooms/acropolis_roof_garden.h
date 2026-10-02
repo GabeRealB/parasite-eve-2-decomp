@@ -12,7 +12,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-extern GpAreaVariant D_acropolis_roof_garden_80185934[12];
+extern AreaVariant D_acropolis_roof_garden_80185934[12];
 
 extern TmdSource gAcropolisRoofGardenModel09868;
 

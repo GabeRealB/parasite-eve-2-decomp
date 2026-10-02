@@ -858,7 +858,7 @@ AreaResource D_dryfield_water_tank_80188BE4[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_dryfield_water_tank_80188BF0[13] = {
+AreaVariant D_dryfield_water_tank_80188BF0[13] = {
     { NULL, NULL },
     { D_map_dryfield_8017B644, D_dryfield_water_tank_80188BCC },
     { D_map_dryfield_8017B664, D_dryfield_water_tank_80188BE4 },

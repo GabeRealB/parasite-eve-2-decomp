@@ -13,7 +13,7 @@
 #include "main/coord.h"
 #include "main/task_types.h"
 
-extern GpAreaVariant D_shelter_b6_training_room_801859DC[13];
+extern AreaVariant D_shelter_b6_training_room_801859DC[13];
 
 // shelter_b6_training_room
 extern u8* D_shelter_b6_training_room_80184418[];

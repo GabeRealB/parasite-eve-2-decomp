@@ -11,7 +11,7 @@
 
 #include "main/task_types.h"
 
-extern GpAreaVariant D_dryfield_breezeway_801842F8[13];
+extern AreaVariant D_dryfield_breezeway_801842F8[13];
 
 // dryfield_breezeway
 extern WorldCollisionRoomResources D_dryfield_breezeway_8018316C[];

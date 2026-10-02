@@ -13,7 +13,7 @@
 
 extern TaskDesc D_shelter_1f_heliport_80181188;
 
-extern GpAreaVariant D_shelter_1f_heliport_80182BF4[13];
+extern AreaVariant D_shelter_1f_heliport_80182BF4[13];
 
 // shelter_1f_heliport
 extern WorldCollisionRoomResources D_shelter_1f_heliport_801812D0[];

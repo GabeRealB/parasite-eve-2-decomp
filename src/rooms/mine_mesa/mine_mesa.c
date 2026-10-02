@@ -2430,7 +2430,7 @@ AreaPlacement D_mine_mesa_80189884[7] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_mine_mesa_801898F4[12] = {
+AreaVariant D_mine_mesa_801898F4[12] = {
     { NULL, NULL },
     { D_mine_mesa_80189704, D_mine_mesa_80189644 },
     { D_mine_mesa_80189724, D_mine_mesa_8018965C },
@@ -3453,7 +3453,7 @@ static void func_mine_mesa_80181358(Task* arg0)
         key.room                                                     = loc->room;
         key.view                                                     = gGameSession->location.loc.view;
         areaSyncLocationVariant(&key);
-        place                  = Gp_GetNestedAreaRec(&key)->field_0;
+        place                  = Gp_GetNestedAreaRec(&key)->placements;
         tmd->texturePageOffset = place->texturePageOffset;
         tmd->clutRowOffset     = place->clutRowOffset;
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 10) {

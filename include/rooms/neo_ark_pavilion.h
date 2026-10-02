@@ -25,7 +25,7 @@ extern ActorWaypointHeight D_neo_ark_pavilion_801839A0;
 
 extern TaskDesc D_neo_ark_pavilion_8018384C;
 
-extern GpAreaVariant D_neo_ark_pavilion_801876C4[13];
+extern AreaVariant D_neo_ark_pavilion_801876C4[13];
 
 // neo_ark_pavilion
 extern WorldCollisionRoomResources D_neo_ark_pavilion_801838B4[];

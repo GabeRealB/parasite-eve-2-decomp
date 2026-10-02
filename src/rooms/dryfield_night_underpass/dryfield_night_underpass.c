@@ -635,7 +635,7 @@ AreaResource D_dryfield_night_underpass_801802C4[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_dryfield_night_underpass_801802DC[12] = {
+AreaVariant D_dryfield_night_underpass_801802DC[12] = {
     { NULL, NULL },
     { D_map_dryfield_full_8017CF58, D_dryfield_night_underpass_80180264 },
     { D_map_dryfield_full_8017CF78, D_dryfield_night_underpass_8018027C },

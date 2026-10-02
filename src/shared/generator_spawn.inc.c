@@ -6,7 +6,7 @@ void generatorSpawn(Enemy* arg0, Task* arg1)
     TmdObject*       obj;
     GfxCoord*        coord;
     GameLocationKey* sessionKey;
-    GpAreaVariant*   rec;
+    AreaVariant*     layout;
     AreaPlacement*   place;
     TmdObject*       model;
     Enemy*           spawned;
@@ -81,8 +81,8 @@ void generatorSpawn(Enemy* arg0, Task* arg1)
     key.room           = sessionKey->room;
     key.view           = sessionKey->view;
     areaSyncLocationVariant(&key);
-    rec                      = Gp_GetNestedAreaRec(&key);
-    place                    = gpAreaPlaceAt(rec->field_0, idx);
+    layout                   = Gp_GetNestedAreaRec(&key);
+    place                    = gpAreaPlaceAt(layout->placements, idx);
     model->texturePageOffset = place->texturePageOffset;
     model->clutRowOffset     = place->clutRowOffset;
     if (model->buffer != NULL) {

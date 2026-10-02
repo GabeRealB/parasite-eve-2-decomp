@@ -12,7 +12,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-extern GpAreaVariant D_dryfield_junk_yard_8017F558[13];
+extern AreaVariant D_dryfield_junk_yard_8017F558[13];
 
 /// Models the Dryfield map UI overlay's enemy descriptors attach.
 extern TmdSource gDryfieldJunkYardModel01378;

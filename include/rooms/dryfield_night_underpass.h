@@ -11,7 +11,7 @@
 
 #include "main/task_types.h"
 
-extern GpAreaVariant D_dryfield_night_underpass_801802DC[12];
+extern AreaVariant D_dryfield_night_underpass_801802DC[12];
 
 // dryfield_night_underpass
 extern WorldCollisionRoomResources D_dryfield_night_underpass_8017DD70[];

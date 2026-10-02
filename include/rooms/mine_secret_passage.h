@@ -11,7 +11,7 @@
 
 #include "main/task_types.h"
 
-extern GpAreaVariant D_mine_secret_passage_80183340[12];
+extern AreaVariant D_mine_secret_passage_80183340[12];
 
 // mine_secret_passage
 extern WorldCoordRoomLighting D_mine_secret_passage_80180F9C[];

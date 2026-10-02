@@ -2127,7 +2127,7 @@ AreaResource D_mist_shooting_gallery_8018DF50[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_mist_shooting_gallery_8018DF74[12] = {
+AreaVariant D_mist_shooting_gallery_8018DF74[12] = {
     { NULL, NULL },
     { D_map_akropolis_8017BDEC, D_mist_shooting_gallery_8018DF50 },
     { NULL, NULL },

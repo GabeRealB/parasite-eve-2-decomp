@@ -1414,7 +1414,7 @@ AreaPlacement D_shelter_b1_underground_parking_8018B5A4[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_shelter_b1_underground_parking_8018B5C4[22] = {
+AreaVariant D_shelter_b1_underground_parking_8018B5C4[22] = {
     { NULL, NULL },
     { D_shelter_b1_underground_parking_8018B560, D_shelter_b1_underground_parking_8018B554 },
     { NULL, NULL },

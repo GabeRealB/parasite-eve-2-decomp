@@ -12,7 +12,7 @@
 
 #include "main/task_types.h"
 
-extern GpAreaVariant D_shelter_b2_north_maintenance_walkway_80186258[22];
+extern AreaVariant D_shelter_b2_north_maintenance_walkway_80186258[22];
 
 // shelter_b2_north_maintenance_walkway
 extern u8* D_shelter_b2_north_maintenance_walkway_80183C5C[];

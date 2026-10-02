@@ -527,7 +527,7 @@ AreaResource D_dryfield_night_water_tank_8018074C[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_dryfield_night_water_tank_80180764[13] = {
+AreaVariant D_dryfield_night_water_tank_80180764[13] = {
     { NULL, NULL },
     { D_map_dryfield_full_8017C228, D_dryfield_night_water_tank_8018071C },
     { NULL, NULL },

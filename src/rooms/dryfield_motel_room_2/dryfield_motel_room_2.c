@@ -690,7 +690,7 @@ AreaResource D_dryfield_motel_room_2_801803EC[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_dryfield_motel_room_2_80180410[12] = {
+AreaVariant D_dryfield_motel_room_2_80180410[12] = {
     { NULL, NULL },
     { D_map_dryfield_8017B0B4, D_dryfield_motel_room_2_801803B0 },
     { D_map_dryfield_8017B0E4, D_dryfield_motel_room_2_801803C8 },

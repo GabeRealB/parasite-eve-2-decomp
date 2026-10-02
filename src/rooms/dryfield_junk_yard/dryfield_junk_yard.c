@@ -361,7 +361,7 @@ AreaPlacement D_dryfield_junk_yard_8017F528[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_dryfield_junk_yard_8017F558[13] = {
+AreaVariant D_dryfield_junk_yard_8017F558[13] = {
     { NULL, NULL },
     { D_map_dryfield_8017B9B4, D_dryfield_junk_yard_8017F4EC },
     { D_map_dryfield_8017B9C4, D_dryfield_junk_yard_8017F4F8 },

@@ -1679,7 +1679,7 @@ AreaPlacement D_dryfield_water_tower_8018755C[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_dryfield_water_tower_8018757C[13] = {
+AreaVariant D_dryfield_water_tower_8018757C[13] = {
     { NULL, NULL },
     { D_map_dryfield_8017B534, D_dryfield_water_tower_801874FC },
     { D_map_dryfield_8017B564, D_dryfield_water_tower_80187514 },

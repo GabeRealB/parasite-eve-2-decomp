@@ -260,7 +260,7 @@ AreaResource D_dryfield_driveway_8017EDBC[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_dryfield_driveway_8017EDD4[11] = {
+AreaVariant D_dryfield_driveway_8017EDD4[11] = {
     { NULL, NULL },
     { D_map_dryfield_8017B7E4, D_dryfield_driveway_8017ED98 },
     { D_map_dryfield_8017B984, D_dryfield_driveway_8017EDB0 },

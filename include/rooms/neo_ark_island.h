@@ -25,7 +25,7 @@ extern ActorWaypointHeight D_neo_ark_island_80181C24;
 
 extern TaskDesc D_neo_ark_island_80181B30;
 
-extern GpAreaVariant D_neo_ark_island_80183F48[13];
+extern AreaVariant D_neo_ark_island_80183F48[13];
 
 // neo_ark_island
 extern WorldCollisionRoomResources D_neo_ark_island_80181B94[];

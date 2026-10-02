@@ -12,7 +12,7 @@
 
 #include "main/task_types.h"
 
-extern GpAreaVariant D_shelter_b1_transfer_tunnel_801830B8[22];
+extern AreaVariant D_shelter_b1_transfer_tunnel_801830B8[22];
 
 // shelter_b1_transfer_tunnel
 extern u8* D_shelter_b1_transfer_tunnel_80182954[];

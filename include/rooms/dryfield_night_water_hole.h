@@ -14,7 +14,7 @@
 
 extern GpAreaApplyRec D_dryfield_night_water_hole_80183618[4];
 
-extern GpAreaVariant D_dryfield_night_water_hole_80183418[22];
+extern AreaVariant D_dryfield_night_water_hole_80183418[22];
 
 // dryfield_night_water_hole
 extern WorldCollisionRoomResources D_dryfield_night_water_hole_80180A04[];

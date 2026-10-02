@@ -2240,7 +2240,7 @@ void func_actor_510900_801350F8(Enemy* arg0, Task* arg1)
     areaByte0   = gGameSession->location.loc.view;
     key.view    = areaByte0;
     areaSyncLocationVariant(&key);
-    entry1                    = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index1);
+    entry1                    = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->placements, index1);
     model1->texturePageOffset = entry1->texturePageOffset;
     model1->clutRowOffset     = entry1->clutRowOffset;
     if (model1->buffer != NULL) {
@@ -2267,7 +2267,7 @@ void func_actor_510900_801350F8(Enemy* arg0, Task* arg1)
     areaByte0   = gGameSession->location.loc.view;
     key.view    = areaByte0;
     areaSyncLocationVariant(&key);
-    entry2                    = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index2);
+    entry2                    = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->placements, index2);
     model2->texturePageOffset = entry2->texturePageOffset;
     model2->clutRowOffset     = entry2->clutRowOffset;
     if (model2->buffer != NULL) {

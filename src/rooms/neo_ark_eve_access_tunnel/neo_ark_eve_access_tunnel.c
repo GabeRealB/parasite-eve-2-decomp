@@ -366,7 +366,7 @@ AreaResource D_neo_ark_eve_access_tunnel_80180694[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_neo_ark_eve_access_tunnel_801806B8[13] = {
+AreaVariant D_neo_ark_eve_access_tunnel_801806B8[13] = {
     { NULL, NULL },
     { D_map_neo_ark_8017B030, D_neo_ark_eve_access_tunnel_8018067C },
     { NULL, NULL },

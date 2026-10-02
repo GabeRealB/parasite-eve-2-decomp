@@ -236,7 +236,7 @@ AreaResource D_dryfield_night_r08_801818B4[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_dryfield_night_r08_801818D8[11] = {
+AreaVariant D_dryfield_night_r08_801818D8[11] = {
     { NULL, NULL },
     { D_map_dryfield_full_8017B508, D_dryfield_night_r08_801818B4 },
     { NULL, NULL },

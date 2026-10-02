@@ -11,7 +11,7 @@
 
 #include "main/task_types.h"
 
-extern GpAreaVariant D_shelter_1f_parking_garage_801818D8[12];
+extern AreaVariant D_shelter_1f_parking_garage_801818D8[12];
 
 // shelter_1f_parking_garage
 extern WorldCollisionRoomResources D_shelter_1f_parking_garage_80180C64[];

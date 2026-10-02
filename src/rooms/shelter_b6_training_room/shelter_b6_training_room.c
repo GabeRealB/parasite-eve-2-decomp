@@ -268,7 +268,7 @@ AreaResource D_shelter_b6_training_room_80185994[6] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_shelter_b6_training_room_801859DC[13] = {
+AreaVariant D_shelter_b6_training_room_801859DC[13] = {
     { NULL, NULL },
     { D_map_neo_ark_8017C140, D_shelter_b6_training_room_80185994 },
     { NULL, NULL },

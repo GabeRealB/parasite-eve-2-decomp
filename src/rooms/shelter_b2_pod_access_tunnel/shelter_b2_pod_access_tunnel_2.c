@@ -547,7 +547,7 @@ AreaPlacement D_shelter_b2_pod_access_tunnel_8018558C[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_shelter_b2_pod_access_tunnel_801855AC[23] = {
+AreaVariant D_shelter_b2_pod_access_tunnel_801855AC[23] = {
     { NULL, NULL },
     { D_shelter_b2_pod_access_tunnel_801853CC, D_shelter_b2_pod_access_tunnel_801852D0 },
     { D_shelter_b2_pod_access_tunnel_8018541C, D_shelter_b2_pod_access_tunnel_801852F4 },

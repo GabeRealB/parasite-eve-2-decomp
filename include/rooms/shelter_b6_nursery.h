@@ -15,7 +15,7 @@
 
 extern TmdSource gShelterB6NurseryModel07BAC;
 
-extern GpAreaVariant D_shelter_b6_nursery_801874A4[13];
+extern AreaVariant D_shelter_b6_nursery_801874A4[13];
 
 // shelter_b6_nursery
 extern u8* D_shelter_b6_nursery_80185304[];

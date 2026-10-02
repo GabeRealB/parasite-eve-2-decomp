@@ -1762,7 +1762,7 @@ AreaResource D_dryfield_night_saloon_g_r_80188EC0[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_dryfield_night_saloon_g_r_80188EE4[13] = {
+AreaVariant D_dryfield_night_saloon_g_r_80188EE4[13] = {
     { NULL, NULL },
     { D_map_dryfield_full_8017BE58, D_dryfield_night_saloon_g_r_80188E90 },
     { D_map_dryfield_full_8017BE78, D_dryfield_night_saloon_g_r_80188EA8 },

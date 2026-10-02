@@ -40,7 +40,7 @@ extern WorldCollisionOccluder D_shelter_b2_breeding_room_8018467C[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b2_breeding_room_801847F4[];
 
-extern GpAreaVariant D_shelter_b2_breeding_room_80183EEC[22];
+extern AreaVariant D_shelter_b2_breeding_room_80183EEC[22];
 
 void func_shelter_b2_breeding_room_8017D5F8(Task* task);
 

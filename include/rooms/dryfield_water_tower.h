@@ -15,7 +15,7 @@ extern u16 D_dryfield_water_tower_801876A8;
 
 extern u16 D_dryfield_water_tower_801876AA;
 
-extern GpAreaVariant D_dryfield_water_tower_8018757C[13];
+extern AreaVariant D_dryfield_water_tower_8018757C[13];
 
 // dryfield_water_tower
 extern WorldCollisionRoomResources D_dryfield_water_tower_801827CC[];

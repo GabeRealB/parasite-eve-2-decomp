@@ -483,7 +483,7 @@ AreaPlacement D_dryfield_gas_station_80184A18[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_dryfield_gas_station_80184A38[12] = {
+AreaVariant D_dryfield_gas_station_80184A38[12] = {
     { NULL, NULL },
     { D_map_dryfield_8017AD34, D_dryfield_gas_station_8018498C },
     { NULL, NULL },

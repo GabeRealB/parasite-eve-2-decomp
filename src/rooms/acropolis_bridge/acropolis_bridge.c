@@ -1937,7 +1937,7 @@ AreaResource D_acropolis_bridge_80190040[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_acropolis_bridge_8019004C[12] = {
+AreaVariant D_acropolis_bridge_8019004C[12] = {
     { NULL, NULL },
     { D_map_akropolis_8017BC7C, D_acropolis_bridge_8019001C },
     { D_map_akropolis_8017BCEC, D_acropolis_bridge_80190034 },

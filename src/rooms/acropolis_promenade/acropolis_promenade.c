@@ -743,7 +743,7 @@ AreaResource D_acropolis_promenade_80182FFC[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_acropolis_promenade_80183020[17] = {
+AreaVariant D_acropolis_promenade_80183020[17] = {
     { NULL, NULL },
     { D_map_akropolis_8017B82C, D_acropolis_promenade_80182F84 },
     { D_map_akropolis_8017B85C, D_acropolis_promenade_80182F9C },

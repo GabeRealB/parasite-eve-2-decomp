@@ -116,7 +116,7 @@ WorldCoordRoomLights D_dryfield_warehouse_801820E8[1] = {
     { 0, NULL, ARRAY_SIZE(D_dryfield_warehouse_80181EA8), D_dryfield_warehouse_80181EA8, 0, NULL },
 };
 
-GpAreaVariant D_dryfield_warehouse_80182100[13] = { 0 };
+AreaVariant D_dryfield_warehouse_80182100[13] = { 0 };
 
 WorldCollisionFootstepSounds D_dryfield_warehouse_80182168 = {
     0x10000045,

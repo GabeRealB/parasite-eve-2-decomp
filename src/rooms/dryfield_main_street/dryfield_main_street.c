@@ -854,7 +854,7 @@ AreaPlacement D_dryfield_main_street_80184EF0[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaVariant D_dryfield_main_street_80184F20[13] = {
+AreaVariant D_dryfield_main_street_80184F20[13] = {
     { NULL, NULL },
     { D_map_dryfield_8017AD44, D_dryfield_main_street_80184E54 },
     { D_map_dryfield_8017AD74, D_dryfield_main_street_80184E78 },

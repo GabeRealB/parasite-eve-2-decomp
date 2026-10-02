@@ -502,7 +502,7 @@ AreaResource D_shelter_1f_tent_80184200[4] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_shelter_1f_tent_80184230[13] = {
+AreaVariant D_shelter_1f_tent_80184230[13] = {
     { NULL, NULL },
     { D_map_neo_ark_8017C380, D_shelter_1f_tent_80184200 },
     { NULL, NULL },

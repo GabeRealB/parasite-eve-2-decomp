@@ -11,7 +11,7 @@
 
 #include "main/task_types.h"
 
-extern GpAreaVariant D_mine_gorge_80183544[12];
+extern AreaVariant D_mine_gorge_80183544[12];
 
 // mine_gorge
 extern WorldCoordRoomLighting D_mine_gorge_8017E7A8[];

@@ -168,7 +168,7 @@ WorldCollisionTrigger D_dryfield_night_factory_8018A168[19] = {
     { NULL, NULL, NULL, { 5632, -64, 9808, 0 }, { { -672, 0, -368, 0 }, { 672, 0, -368, 0 }, { -672, 0, 368, 0 }, { 672, 0, 368, 0 } }, { 0, 4102, 0, 0 }, { -3612, 0, 1931, 0 }, 765, WORLD_COLLISION_TRIGGER_ACTION_CAP, 21, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaVariant D_dryfield_night_factory_8018A70C[11] = { 0 };
+AreaVariant D_dryfield_night_factory_8018A70C[11] = { 0 };
 
 WorldCollisionFootstepSounds D_dryfield_night_factory_8018A764 = {
     0x10000051,

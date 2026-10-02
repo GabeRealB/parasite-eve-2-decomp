@@ -11,7 +11,7 @@
 
 #include "main/task_types.h"
 
-extern GpAreaVariant D_neo_ark_forest_zone_80182968[13];
+extern AreaVariant D_neo_ark_forest_zone_80182968[13];
 
 // neo_ark_forest_zone
 extern WorldCollisionRoomResources D_neo_ark_forest_zone_801820A4[];

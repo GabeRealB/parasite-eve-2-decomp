@@ -2408,7 +2408,7 @@ AreaResource D_dryfield_dilapidated_house_80189914[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaVariant D_dryfield_dilapidated_house_80189938[13] = {
+AreaVariant D_dryfield_dilapidated_house_80189938[13] = {
     { NULL, NULL },
     { D_map_dryfield_8017AF64, D_dryfield_dilapidated_house_80189914 },
     { NULL, NULL },
