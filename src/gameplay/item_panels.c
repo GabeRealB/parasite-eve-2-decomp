@@ -9,6 +9,7 @@
 
 #include "attachment_state.h"
 #include "attachments.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/inventory.h"
 #include "item_menu.h"
 #include "item_use.h"
@@ -616,9 +617,9 @@ void Gp_UseHealItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
                 cfg->hp = cfg->hpMax;
             }
         } else if (hp < cfg->hpMax) {
-            cfg->mp      = cfg->mp - func_800D50D4(arg2, 2);
+            cfg->mp      = cfg->mp - func_800D50D4(arg2, ATTACHMENT_LEVEL_CAST_COST);
             be8->field_4 = cfg->mp;
-            cfg->hp      = cfg->hp + func_800D50D4(arg2, 4);
+            cfg->hp      = cfg->hp + func_800D50D4(arg2, ATTACHMENT_LEVEL_AMOUNT);
             save         = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
             if ((s16)save->state.attachUseCounts[7] < 0x270F) {
                 save->state.attachUseCounts[7] = save->state.attachUseCounts[7] + 1;

@@ -25,7 +25,6 @@
 #include "gameplay/room_effects.h"
 #include "scene_runtime.h"
 #include "gameplay/scene_combat.h"
-#include "gameplay/weapon_data.h"
 #include "weapon_data.h"
 #include "world_targets.h"
 
@@ -543,7 +542,7 @@ static __inline__ s32 isStateF0Active_(void)
 /// level `lvl`.
 static __inline__ u16 _gpAttachParam(s32 idx, s32 lvl, s32 field)
 {
-    return Gp_IdParamHi.rows[idx * 3 + lvl].field[field];
+    return Gp_IdParamHi.rows[idx * 3 + lvl].value[field];
 }
 
 static s32 Gp_CheckAttachThreshold(s32 arg0)
@@ -557,11 +556,11 @@ static s32 Gp_CheckAttachThreshold(s32 arg0)
     n      = getAttachLevel(arg0);
 
     if (!isStateF0Active_()) {
-        if (cfg->mp < _gpAttachParam(arg0, n, 2) || arg0 != ATTACHMENT_INDEX_HEALING || cfg->hpMax == cfg->hp) {
+        if (cfg->mp < _gpAttachParam(arg0, n, ATTACHMENT_LEVEL_CAST_COST) || arg0 != ATTACHMENT_INDEX_HEALING || cfg->hpMax == cfg->hp) {
             result = 1;
         }
     } else if (arg0 < ATTACHMENT_SPELL_COUNT) {
-        if ((cfg->statusFlags & PLAYER_STATUS_SILENCE) || (!(cfg->statusFlags & PLAYER_STATUS_BERSERKER) && cfg->mp < _gpAttachParam(arg0, n, 2) && gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cheatMode == 0) || (arg0 == ATTACHMENT_INDEX_METABOLISM && Gp_StateC08.mindWard != 0 && Gp_StateC08.bodyWard != 0) || (arg0 == ATTACHMENT_INDEX_HEALING && cfg->hpMax == cfg->hp && gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cheatMode == 0) || (arg0 == ATTACHMENT_INDEX_ENERGY_BALL && gEnergyBallInFlightCount >= 3) || ((cfg->statusFlags & PLAYER_STATUS_BERSERKER) && (arg0 >= ATTACHMENT_INDEX_METABOLISM || _gpAttachParam(arg0, n, 2) * 2 >= cfg->hp))) {
+        if ((cfg->statusFlags & PLAYER_STATUS_SILENCE) || (!(cfg->statusFlags & PLAYER_STATUS_BERSERKER) && cfg->mp < _gpAttachParam(arg0, n, ATTACHMENT_LEVEL_CAST_COST) && gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cheatMode == 0) || (arg0 == ATTACHMENT_INDEX_METABOLISM && Gp_StateC08.mindWard != 0 && Gp_StateC08.bodyWard != 0) || (arg0 == ATTACHMENT_INDEX_HEALING && cfg->hpMax == cfg->hp && gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cheatMode == 0) || (arg0 == ATTACHMENT_INDEX_ENERGY_BALL && gEnergyBallInFlightCount >= 3) || ((cfg->statusFlags & PLAYER_STATUS_BERSERKER) && (arg0 >= ATTACHMENT_INDEX_METABOLISM || _gpAttachParam(arg0, n, ATTACHMENT_LEVEL_CAST_COST) * 2 >= cfg->hp))) {
             result = 1;
         }
     }
@@ -596,7 +595,7 @@ static void Gp_SetAttachState(s32 arg0)
     attachment              = &Gp_StateC08;
     attachment->attachId    = attachId;
     attachment->effectPhase = ATTACHMENT_EFFECT_HELD;
-    duration                = Gp_GetAttachParam(3);
+    duration                = Gp_GetAttachParam(ATTACHMENT_LEVEL_ATP_LOSS);
     attachment->duration    = duration;
     if (duration <= 0) {
         attachment->duration = ATTACHMENT_DURATION_MIN;
@@ -733,7 +732,7 @@ static __inline__ u16 getAttachWheelParam(s32 slot, s32 field)
     s32 lvl;
 
     lvl = getAttachWheelLevel(slot);
-    return Gp_IdParamHi.rows[slot * 3 + lvl].field[field];
+    return Gp_IdParamHi.rows[slot * 3 + lvl].value[field];
 }
 
 static s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
@@ -810,10 +809,10 @@ static s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
     if (Gp_StateC08.queuedIndex == 0) {
         xOff           = arg1 + 2;
         yOff           = arg2 + 2;
-        arg0->field_10 = getAttachWheelParam(Gp_StateC08.wheelIndex, 2);
+        arg0->field_10 = getAttachWheelParam(Gp_StateC08.wheelIndex, ATTACHMENT_LEVEL_CAST_COST);
 
         item  = ((Gp_StateC08.wheelIndex / 3) << 4) + ((Gp_StateC08.wheelIndex % 3) << 2) + 0x300;
-        param = getAttachWheelParam(Gp_StateC08.wheelIndex, 2);
+        param = getAttachWheelParam(Gp_StateC08.wheelIndex, ATTACHMENT_LEVEL_CAST_COST);
         if (cfg->statusFlags & PLAYER_STATUS_BERSERKER) {
             param <<= 1;
         }
@@ -929,7 +928,7 @@ static void Gp_DrawPeGauge(GpIdMapC* arg0, s32 arg1, s32 arg2)
     s32       cat;
     s32       order;
 
-    n = Gp_GetAttachParam(3);
+    n = Gp_GetAttachParam(ATTACHMENT_LEVEL_ATP_LOSS);
     if (Gp_StateC08.activeIndex < 0xD) {
         if (Gp_StateC08.duration > 0) {
             tile           = gGpuPrimCursor;
@@ -1232,12 +1231,12 @@ static void Gp_UseItemTask(GpIdMapC* arg0)
                 Gp_ItemGrantCooldown           = 0x14;
                 CdCmd_EnqueueLoadFile(0, 0, 4);
                 if (cfg->statusFlags & PLAYER_STATUS_BERSERKER) {
-                    cfg->hp -= Gp_GetAttachParam(2) * 2;
+                    cfg->hp -= Gp_GetAttachParam(ATTACHMENT_LEVEL_CAST_COST) * 2;
                     if (cfg->hp <= 0) {
                         cfg->hp = 1;
                     }
                 } else {
-                    cfg->mp -= Gp_GetAttachParam(2);
+                    cfg->mp -= Gp_GetAttachParam(ATTACHMENT_LEVEL_CAST_COST);
                     if (cfg->mp < 0) {
                         cfg->mp = 0;
                     }

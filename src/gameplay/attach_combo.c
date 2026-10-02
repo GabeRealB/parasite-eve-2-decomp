@@ -8,7 +8,6 @@
 #include "gameplay/attachments.h"
 #include "gameplay/player_state.h"
 #include "gameplay/scene_combat.h"
-#include "gameplay/weapon_data.h"
 
 /// Draws one of the prompt's button labels on line `line`, `dx` pixels right of
 /// the prompt's left edge.
@@ -138,17 +137,17 @@ void Gp_UpdateAttachCombo(s32 arg0)
         case ATTACHMENT_ID_HEALING_1:
         case ATTACHMENT_ID_HEALING_2:
         case ATTACHMENT_ID_HEALING_3: {
-            GpRec16* params;
-            s32      row;
-            s32      min;
-            s32      max;
-            s32      heal;
+            AttachmentLevelRow* params;
+            s32                 row;
+            s32                 min;
+            s32                 max;
+            s32                 heal;
 
-            /* The parameter rows attach 7 uses at levels 1 to 3. */
+            /* Healing, levels 1 to 3. */
             params = Gp_IdParamHi.rows;
             row    = ATTACHMENT_INDEX_HEALING * 3 + 1 + Gp_StateC08.attachId % 3;
-            max    = params[row].field[5];
-            min    = params[row].field[4];
+            max    = params[row].column.outcome.healMax;
+            min    = params[row].column.amount;
             if (min >= max || !isStateF0Active_()) {
                 heal = min;
             } else {

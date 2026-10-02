@@ -29,7 +29,6 @@
 #include "gameplay/room.h"
 #include "gameplay/scene.h"
 #include "gameplay/scene_combat.h"
-#include "gameplay/weapon_data.h"
 #include "gameplay/world_targets.h"
 
 #include "gameplay/damage.h"
@@ -1909,5 +1908,5 @@ static inline u16 _gpIdParam0(s32 id)
     if ((id & 0x8000) == 0) {
         return Gp_IdParamLo[id & 0x7F].params[2];
     }
-    return Gp_IdParamHi.rows[id & 0x7F].field[5];
+    return Gp_IdParamHi.rows[id & 0x7F].column.outcome.hitReaction;
 }

@@ -12,7 +12,6 @@
 #include "inventory.h"
 #include "item_use.h"
 #include "items.h"
-#include "gameplay/weapon_data.h"
 
 #include "main/mc.h"
 #include "main/wipsys.h"
@@ -452,7 +451,7 @@ void Gp_RecalcMaxMp(void)
     for (i = 0; i < 0xC; i++) {
         if (*levels > 0) {
             for (j = 0; j < *levels; j++) {
-                acc += Gp_IdParamHi.rows[i * 3 + j + 1].field[1];
+                acc += Gp_IdParamHi.rows[i * 3 + j + 1].column.mpBonus;
             }
         }
         levels++;

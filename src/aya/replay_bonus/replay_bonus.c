@@ -12,7 +12,6 @@
 #include "gameplay/inventory.h"
 #include "gameplay/item_menu.h"
 #include "gameplay/items.h"
-#include "gameplay/weapon_data.h"
 
 #include "main/display.h"
 #include "main/display_types.h"
@@ -171,10 +170,10 @@ u16* func_replay_bonus_80115C68(void)
     return table;
 }
 
-/// Field 0 of the `Gp_IdParamHi` row for attachment `slot` one level above `from`.
+/// EXP cost of attachment `slot` one level above `from`.
 static inline u16 _replayBonusUpgradeCost(s32 slot, s32 from)
 {
-    return Gp_IdParamHi.rows[slot * 3 + from + 1].field[0];
+    return Gp_IdParamHi.rows[slot * 3 + from + 1].column.expCost;
 }
 
 s32 func_replay_bonus_80115CA4(void)

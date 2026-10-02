@@ -9,9 +9,8 @@
 #include "item_menu.h"
 #include "item_pickup.h"
 #include "gameplay/enemy_params.h"
-#include "gameplay/weapon_data.h"
-
 #include "gameplay/damage.h"
+
 #include "main/random.h"
 #include "main/session_types.h"
 #include "main/task_types.h"
@@ -96,7 +95,7 @@ s32 Gp_GetIdParam0(s32 arg0)
     if ((arg0 & 0x8000) == 0) {
         ret = Gp_IdParamLo[arg0 & 0x7F].params[2];
     } else {
-        ret = Gp_IdParamHi.rows[arg0 & 0x7F].field[5];
+        ret = Gp_IdParamHi.rows[arg0 & 0x7F].column.outcome.hitReaction;
     }
     return ret;
 }
@@ -108,7 +107,7 @@ s32 Gp_GetIdParam1(s32 arg0)
     if ((arg0 & 0x8000) == 0) {
         ret = Gp_IdParamLo[arg0 & 0x7F].params[3];
     } else {
-        ret = Gp_IdParamHi.rows[arg0 & 0x7F].field[6];
+        ret = Gp_IdParamHi.rows[arg0 & 0x7F].column.effectId;
     }
     return ret;
 }
@@ -240,7 +239,7 @@ s32 Gp_GetIdParam2(s32 arg0)
     if ((arg0 & 0x8000) == 0) {
         ret = Gp_IdParamLo[arg0 & 0x7F].params[4];
     } else {
-        ret = Gp_IdParamHi.rows[arg0 & 0x7F].field[7];
+        ret = Gp_IdParamHi.rows[arg0 & 0x7F].column.hitCooldown;
     }
     return ret;
 }

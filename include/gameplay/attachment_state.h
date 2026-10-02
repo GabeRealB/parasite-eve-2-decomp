@@ -3,14 +3,53 @@
 
 #include "common.h"
 
-#include "gameplay/weapon_data.h"
+/// Column numbers of `AttachmentLevelRow`, in stored order. Column
+/// `ATTACHMENT_LEVEL_HIT_REACTION` is `outcome`: the victim's reaction for an
+/// attack, the upper heal amount for a heal.
+#define ATTACHMENT_LEVEL_EXP_COST     0
+#define ATTACHMENT_LEVEL_MP_BONUS     1
+#define ATTACHMENT_LEVEL_CAST_COST    2
+#define ATTACHMENT_LEVEL_ATP_LOSS     3
+#define ATTACHMENT_LEVEL_AMOUNT       4
+#define ATTACHMENT_LEVEL_HIT_REACTION 5
+#define ATTACHMENT_LEVEL_EFFECT_ID    6
+#define ATTACHMENT_LEVEL_HIT_COOLDOWN 7
+#define ATTACHMENT_LEVEL_COLUMN_COUNT 8
 
-/// 16-byte records selected by `Gp_GetIdParam2` when the id's 0x8000 bit is
-/// set. Indexed by `id & 0x7F`.
-/// Both row and byte-offset access address this complete table.
+/// Parameters of one attachment ability at one level.
+///
+/// `GpIdParamTable` holds 55 rows. Row 0 is empty, and each of the eighteen
+/// abilities occupies the next three rows, level 1 then 2 then 3. An attack
+/// id with bit 0x8000 set selects the same row by its low 7 bits, so a spell
+/// level and that spell's hit record are one row.
+///
+/// The ability menu labels the first four halfwords EXP cost, bonus MP,
+/// casting cost and ATP loss.
+typedef union {
+    u16 value[ATTACHMENT_LEVEL_COLUMN_COUNT]; // Same halfwords, indexed by the column constants
+    struct {
+        u16 expCost;                          // EXP spent to reach this level. Other modes pay 4/5; a cleared normal game pays 2/5
+        u16 mpBonus;                          // Bonus MP. Each learned level of a wheel spell adds this into max MP
+        u16 castCost;                         // MP spent to cast. Taken from HP, doubled, while berserk
+        u16 atpLoss;                          // Cast length in frames; the gauge counts it down
+        u16 amount;                           // Hit damage, or HP restored. A heal in battle rolls upward from this
+        union {
+            u16 hitReaction;                  // Kind of reaction the victim takes
+            u16 healMax;                      // High end of a heal rolled in battle
+        } outcome;
+        u16 effectId;                         // Effect spawned for the hit
+        u16 hitCooldown;                      // Frames the hit imposes. Victims arm a cooldown or a stun from it
+    } column;
+} AttachmentLevelRow;
+STATIC_ASSERT_SIZEOF(AttachmentLevelRow, 0x10);
+
+/// Attachment level table.
+///
+/// `rows` addresses each level. `bytes` is the same storage by byte offset.
+/// Both views cover the whole table.
 typedef union GpIdParamTable {
-    GpRec16 rows[55];
-    u8      bytes[55 * sizeof(GpRec16)];
+    AttachmentLevelRow rows[55];
+    u8                 bytes[55 * sizeof(AttachmentLevelRow)];
 } GpIdParamTable;
 STATIC_ASSERT_SIZEOF(GpIdParamTable, 0x370);
 

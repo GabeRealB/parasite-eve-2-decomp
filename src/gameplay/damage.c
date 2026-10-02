@@ -18,7 +18,6 @@
 #include "items.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/scene_combat.h"
-#include "gameplay/weapon_data.h"
 #include "weapon_data.h"
 
 #include "main/random.h"
@@ -65,7 +64,7 @@ static inline u16 _gpIdParam0(s32 id)
     if ((id & 0x8000) == 0) {
         return Gp_IdParamLo[id & 0x7F].params[2];
     }
-    return Gp_IdParamHi.rows[id & 0x7F].field[5];
+    return Gp_IdParamHi.rows[id & 0x7F].column.outcome.hitReaction;
 }
 
 u16 D_80113568[47][8] = {
@@ -226,7 +225,7 @@ u32 Gp_ComputeDamage(u32 arg0, u32 arg1, s32 arg2, s32 arg3)
         u32 rnd;
         s32 pc;
 
-        dmg = Gp_IdParamHi.rows[arg0 & 0x7F].field[4];
+        dmg = Gp_IdParamHi.rows[arg0 & 0x7F].column.amount;
         if ((arg0 & 0x7F) >= 0x19 && (arg0 & 0x7F) < 0x1C) {
             if (gSceneCombatState.peTargetCount != 0) {
                 dmg = dmg / gSceneCombatState.peTargetCount;

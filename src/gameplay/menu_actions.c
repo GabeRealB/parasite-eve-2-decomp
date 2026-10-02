@@ -24,7 +24,6 @@
 #include "items.h"
 #include "loading.h"
 #include "gameplay/map.h"
-#include "gameplay/weapon_data.h"
 
 #include "main/display.h"
 #include "main/fs.h"
@@ -2330,7 +2329,7 @@ void Gp_DrawCastCostLines(UiObject* arg0, s32 arg1)
         req.alignment  = TEXT_ALIGNMENT_LEFT;
         req.drawMode   = TEXT_DRAW_OUTLINED;
         Text_DrawString(&req, Gp_StrCastCost);
-        func_800D3660(arg0, arg1, 0, 0x34, y + 0x1A, 2);
+        func_800D3660(arg0, arg1, 0, 0x34, y + 0x1A, ATTACHMENT_LEVEL_CAST_COST);
     }
 }
 
@@ -2442,7 +2441,7 @@ void Gp_PeUpgradePanelTask(Task* arg0)
     row  = ((id + 1) & 0x30) >> 4;
     col  = ((id + 1) & 0xC) >> 2;
     lvl  = (id + 1) & 3;
-    cost = Gp_IdParamHi.rows[(row * 3 + col) * 3 + lvl].field[0];
+    cost = Gp_IdParamHi.rows[(row * 3 + col) * 3 + lvl].column.expCost;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode > 0) {
         cost = (cost * 4) / 5;
     } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount > 0) {
@@ -2470,11 +2469,11 @@ void Gp_PeUpgradePanelTask(Task* arg0)
     req4.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req4, D_80097220);
 
-    bonusIdx = 1;
+    bonusIdx = ATTACHMENT_LEVEL_MP_BONUS;
     row2     = ((id + 1) & 0x30) >> 4;
     col2     = ((id + 1) & 0xC) >> 2;
     lvl2     = (id + 1) & 3;
-    Text_DrawPrompt(obj, x + 0x30, y, Text_ItoaSigned(str, Gp_IdParamHi.rows[(row2 * 3 + col2) * 3 + lvl2].field[bonusIdx]),
+    Text_DrawPrompt(obj, x + 0x30, y, Text_ItoaSigned(str, Gp_IdParamHi.rows[(row2 * 3 + col2) * 3 + lvl2].value[bonusIdx]),
                     0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
     if (arg0->firstChild != NULL) {
@@ -2488,7 +2487,7 @@ void Gp_PeUpgradePanelTask(Task* arg0)
             if (childObj->result == USER_INTERFACE_RESULT_CONFIRM) {
                 if (childObj->resultValue == 0x33) {
                     cfg   = &gPlayerStatus;
-                    price = Gp_IdParamHi.rows[(row3 * 3 + col3) * 3 + lvl3].field[0];
+                    price = Gp_IdParamHi.rows[(row3 * 3 + col3) * 3 + lvl3].column.expCost;
                     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode > 0) {
                         price = (price * 4) / 5;
                     } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount > 0) {
@@ -2498,7 +2497,7 @@ void Gp_PeUpgradePanelTask(Task* arg0)
                         Ui_SpawnFromDesc(&D_8010F788, 0xC, 1, 1, obj);
                         Ui_TeardownTree(childObj, childObj->owner);
                     } else {
-                        price = Gp_IdParamHi.rows[(row3 * 3 + col3) * 3 + lvl3].field[0];
+                        price = Gp_IdParamHi.rows[(row3 * 3 + col3) * 3 + lvl3].column.expCost;
                         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode > 0) {
                             price = (price * 4) / 5;
                         } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount > 0) {
@@ -2555,7 +2554,7 @@ static void func_800D3660(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4
         a   = (arg1 & 0x30) >> 4;
         b   = (arg1 & 0xC) >> 2;
         c   = arg1 & 3;
-        raw = Gp_IdParamHi.rows[(((a * 3) + b) * 3) + c].field[arg5];
+        raw = Gp_IdParamHi.rows[(((a * 3) + b) * 3) + c].value[arg5];
     }
     if (arg5 == 0) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode > 0) {
@@ -2571,15 +2570,15 @@ static void func_800D3660(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4
     span = width - x;
     val  = raw & 0xFFFF;
     switch (arg5) {
-        case 2:
+        case ATTACHMENT_LEVEL_CAST_COST:
             max = 0x3C;
             break;
 
-        case 3:
+        case ATTACHMENT_LEVEL_ATP_LOSS:
             max = 0x5F;
             break;
 
-        case 1:
+        case ATTACHMENT_LEVEL_MP_BONUS:
             max  = 0x14;
             arg2 = 0;
             break;
@@ -2595,7 +2594,7 @@ static void func_800D3660(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4
             aPrev   = (prevId & 0x30) >> 4;
             bPrev   = (prevId & 0xC) >> 2;
             cPrev   = prevId & 3;
-            rawPrev = Gp_IdParamHi.rows[(((aPrev * 3) + bPrev) * 3) + cPrev].field[arg5];
+            rawPrev = Gp_IdParamHi.rows[(((aPrev * 3) + bPrev) * 3) + cPrev].value[arg5];
         }
         if (arg5 == 0) {
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode > 0) {
@@ -2755,7 +2754,7 @@ static void func_800D3D98(UiObject* arg0, s32 arg1, s32 arg2)
     req2.alignment  = TEXT_ALIGNMENT_LEFT;
     req2.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req2, text);
-    func_800D3660(arg0, arg1, arg2, x, y, 2);
+    func_800D3660(arg0, arg1, arg2, x, y, ATTACHMENT_LEVEL_CAST_COST);
 
     req3.x          = arg0->panel.contentOriginX.unsignedValue + 1 + x;
     req3.y          = arg0->panel.contentOriginY.unsignedValue + temp + 0x46;
@@ -2766,7 +2765,7 @@ static void func_800D3D98(UiObject* arg0, s32 arg1, s32 arg2)
     req3.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req3, Gp_StrAtpLoss);
     y = temp + 0x58;
-    func_800D3660(arg0, arg1, arg2, x, y, 3);
+    func_800D3660(arg0, arg1, arg2, x, y, ATTACHMENT_LEVEL_ATP_LOSS);
 }
 
 void Gp_MapMenuListTask(Task* arg0)
@@ -3226,8 +3225,8 @@ s32 func_800D50D4(s32 arg0, s32 arg1)
     a   = (arg0 & 0x30) >> 4;
     b   = (arg0 & 0xC) >> 2;
     c   = arg0 & 3;
-    val = Gp_IdParamHi.rows[(a * 3 + b) * 3 + c].field[arg1];
-    if (arg1 == 0) {
+    val = Gp_IdParamHi.rows[(a * 3 + b) * 3 + c].value[arg1];
+    if (arg1 == ATTACHMENT_LEVEL_EXP_COST) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode > 0) {
             val = (val * 4) / 5;
         } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount > 0) {

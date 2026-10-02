@@ -2,7 +2,6 @@
 
 #include "gameplay/attachment_state.h"
 #include "attachment_state.h"
-#include "gameplay/weapon_data.h"
 
 #include "main/mc.h"
 #include "main/session.h"
@@ -125,7 +124,7 @@ u16 Gp_GetAttachParam(s32 arg0)
         }
     }
     off  = arg0 * sizeof(u16);
-    off += (Gp_StateC08.activeIndex * 3 + ret) * sizeof(GpRec16);
+    off += (Gp_StateC08.activeIndex * 3 + ret) * sizeof(AttachmentLevelRow);
     {
         union {
             u8*  bytes;

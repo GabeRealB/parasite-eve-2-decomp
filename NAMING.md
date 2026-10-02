@@ -327,7 +327,7 @@ prefixes, choose the responsibility the symbol actually implements.
 | `equipment`, `attachment` | Equipment selection, attachment combinations and modifiers | `equipment.c`, `attachments.c`, `attach_combo.c`, `attachment_stats.c`, `attachment_menu.c` | `include/gameplay/items.h`, `include/gameplay/attachments.h`, `include/gameplay/attachment_state.h`, `src/gameplay/attachments.h` |
 | `itemMenu`, `menu` | Inventory panels, commands and menu flow | `item_menu.c`, `item_panels.c`, `item_stats.c`, `menu_root.c`, `menu_actions.c`, `menu_armor.c`, `menu_prompt.c` | `include/gameplay/item_menu.h`, `src/gameplay/item_menu.h`, `src/gameplay/menu.h` |
 | `itemPickup`, `itemPlacement` | Pickup dispatch and placed items | `pickup_dispatch.c`, `item_placement.c` | `include/gameplay/item_pickup.h`, `include/gameplay/item_placement.h`, `src/gameplay/item_placement.h` |
-| `weapon` | Resident weapon/ammunition properties and stat presentation | `weapon_stats.c` | `include/gameplay/weapon_data.h`, `src/gameplay/weapon_data.h` |
+| `weapon` | Resident weapon/ammunition properties and stat presentation | `weapon_stats.c` | `src/gameplay/weapon_data.h` |
 | `damage` | Damage calculation and combat modifiers | `damage.c` | `include/gameplay/damage.h`, `src/gameplay/damage.h` |
 | `enemy` | Enemy work objects and the shared parameters of one enemy kind | `scene_runtime.c` (`Gp_AllocEnemy`) | `include/gameplay/enemy.h`, `include/gameplay/enemy_params.h` |
 | `cap` | CAP relocation, dialogue, commands, rendering and playback | `cap_commands.c`, `cap_control.c`, `cap_reloc.c`, `cap_script.c`, `cap_start.c`, `captions.c` | `include/gameplay/cap.h`, `include/gameplay/captions.h`, `src/gameplay/cap.h`, `src/gameplay/captions.h` |
