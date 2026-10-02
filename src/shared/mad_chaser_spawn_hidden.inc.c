@@ -38,7 +38,7 @@ void madChaserSpawnHidden(Task* task)
     flags = task->spawnArg1.value;
     if ((flags >> 16) & 1) {
     destroy:
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     kind = flags & 0xF;

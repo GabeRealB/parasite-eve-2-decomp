@@ -552,7 +552,7 @@ static void func_actor_403600_80138EF8(Enemy* enemy, Task* task)
     temp_v0 = memCalloc(0x7B8, 0);
     temp_s5 = &temp_s0[1];
     if (temp_v0 == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     task->work                                             = temp_v0;
@@ -3897,7 +3897,7 @@ static void func_actor_403600_8013F7B8(Enemy* enemy, Task* task)
     work       = memCalloc(sizeof(Actor403600Work), false);
     bodyCoord  = &modelCoord[1];
     if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     worldCoord                        = &work->field_4B8;
@@ -5014,7 +5014,7 @@ static void func_actor_403600_80141D30(Enemy* arg0, Task* arg1)
     coord = arg1->extra.tmd->coords;
     work  = memCalloc(sizeof(*work), false);
     if (work == NULL) {
-        Gp_DestroyEnemy(arg0, arg1);
+        enemyDestroy(arg0, arg1);
         return;
     }
 

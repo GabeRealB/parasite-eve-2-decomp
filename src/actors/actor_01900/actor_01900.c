@@ -1211,7 +1211,7 @@ static void Actor01900_Fn02018(Enemy* enemy, Task* actor)
     work        = memCalloc(0xC9C, 0);
     actor->work = work;
     if (work == NULL) {
-        Gp_DestroyEnemy(enemy, actor);
+        enemyDestroy(enemy, actor);
         return;
     }
     (Gp_IncStateF0Ref)(0);
@@ -3425,7 +3425,7 @@ static const GpEnemyTaskFuncTable4 Actor01900_D0023C = { {
     Actor01900_Fn02018,
     Actor01900_Fn0ABA0,
     Actor01900_Fn09D3C,
-    Gp_DestroyEnemy,
+    enemyDestroy,
 } };
 
 s32 Actor01900_Fn0A31C(Task* arg0, s32 arg1, AnimationPlayRequest* arg2)
@@ -3530,7 +3530,7 @@ static void Actor01900_Fn0A6CC(Task* task)
         Gp_UnlinkObj(&work->field_A08);
         enemy->recs = 0;
     }
-    Gp_DestroyEnemy(enemy, task);
+    enemyDestroy(enemy, task);
 }
 
 static void Actor01900_Fn0A764(Task* arg0)

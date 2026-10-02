@@ -307,7 +307,7 @@ extern GpSndMaskRec Gp_SndMaskTable[];
 /// Printed when an enemy's work block cannot be allocated.
 static const char Gp_StrNewEnemyNull[];
 
-/// Three-entry dispatcher table: `Gp_EnemyWaitStart`, `Gp_EnemyWaitTick`, `Gp_DestroyEnemy`.
+/// Three-entry dispatcher table: `Gp_EnemyWaitStart`, `Gp_EnemyWaitTick`, `enemyDestroy`.
 static const GpEnemyTaskFuncTable3 Gp_EnemyWaitFuncs;
 
 static const TaskFuncTable3 Gp_StageLoadStates;
@@ -963,8 +963,9 @@ Enemy* Gp_SpawnEnemyFromTable(TaskDesc* table, s32 idx, s32 arg2, Enemy* parent)
     return ret;
 }
 
-void Gp_DestroyEnemy(Enemy* enemy, Task* task)
+void enemyDestroy(Enemy* enemy, Task* task)
 {
+    // Detach target references while the enemy allocation is still live.
     worldTargetUnlinkNode(&enemy->node);
     memFree(enemy);
     taskKill(task);
@@ -3253,7 +3254,7 @@ void Gp_SpawnArea(GameLocationKey* location)
                                     savedPose++;
                                 } while (poseIndex < ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses));
                                 if (poseIndex == ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses)) {
-                                    Gp_DestroyEnemy(enemy, enemy->task);
+                                    enemyDestroy(enemy, enemy->task);
                                 }
                             }
                         }
@@ -4080,11 +4081,11 @@ static inline s16 _gpScanHeldQty(InventoryItemRow* table, InventoryItemRange* sc
 /// Printed when an enemy's work block cannot be allocated.
 static const char Gp_StrNewEnemyNull[] = "new_enemy ---> NULL\n";
 
-/// Three-entry dispatcher table: `Gp_EnemyWaitStart`, `Gp_EnemyWaitTick`, `Gp_DestroyEnemy`.
+/// Three-entry dispatcher table: `Gp_EnemyWaitStart`, `Gp_EnemyWaitTick`, `enemyDestroy`.
 static const GpEnemyTaskFuncTable3 Gp_EnemyWaitFuncs = { {
     Gp_EnemyWaitStart,
     Gp_EnemyWaitTick,
-    Gp_DestroyEnemy,
+    enemyDestroy,
 } };
 
 static const TaskFuncTable3 Gp_StageLoadStates = { {

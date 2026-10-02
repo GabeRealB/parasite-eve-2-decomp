@@ -1310,7 +1310,7 @@ extern s32 gGolemPawnRookBurstCue;
 static const GpEnemyTaskFuncTable3 Actor05700_D00080 = {
     golemPawnRookGunSpawn,
     golemPawnRookGunTick,
-    Gp_DestroyEnemy,
+    enemyDestroy,
 };
 
 #include "../../shared/golem_pawn_rook_lunge_strike.inc.c"
@@ -1388,7 +1388,7 @@ void Actor05700_Fn0517C(Task* arg0)
 static const GpEnemyTaskFuncTable3 Actor05700_D00098 = {
     golemPawnRookBurstPartSpawn,
     golemPawnRookBurstPartTick,
-    Gp_DestroyEnemy,
+    enemyDestroy,
 };
 
 void Actor05700_Fn05270(Task* arg0)

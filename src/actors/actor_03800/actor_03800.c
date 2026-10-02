@@ -703,7 +703,7 @@ static void Actor03800_Fn000B8(Enemy* arg0, Task* arg1)
     extra = arg1->extra.tmd;
     work  = memCalloc(0x384, 0);
     if (work == NULL) {
-        Gp_DestroyEnemy(arg0, arg1);
+        enemyDestroy(arg0, arg1);
         return;
     }
     arg1->work      = work;
@@ -2121,7 +2121,7 @@ dying:
     Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
     return;
 destroy:
-    Gp_DestroyEnemy(arg0, arg1);
+    enemyDestroy(arg0, arg1);
     return;
 case3:
     if (work->field_368 == 0) {

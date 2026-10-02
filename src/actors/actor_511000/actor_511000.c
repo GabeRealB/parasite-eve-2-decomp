@@ -190,7 +190,7 @@ static const TaskFuncTable3 D_actor_511000_80131E60 = {
 static const GpEnemyTaskFuncTable3 D_actor_511000_80131E6C = {
     func_actor_511000_80133958,
     func_actor_511000_80133B80,
-    Gp_DestroyEnemy,
+    enemyDestroy,
 };
 
 /// Camera path `func_actor_511000_801330F0` walks once the session reaches
@@ -3035,7 +3035,7 @@ static void func_actor_511000_80133958(Enemy* enemy, Task* task)
     coord = model->coords;
     work  = memCalloc(sizeof(*work), 0);
     if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     task->work      = work;

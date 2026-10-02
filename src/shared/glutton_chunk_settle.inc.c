@@ -19,7 +19,7 @@ void gluttonChunkSettle(Enemy* enemy, Task* task)
     if (gGluttonEnded == 1) {
         Gp_UnlinkObj(&work->obj0);
         Gp_UnlinkObj(&work->obj1);
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
 

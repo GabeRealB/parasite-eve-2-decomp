@@ -427,7 +427,7 @@ extern EffectSpawnArg D_actor_110600_80148698;
 
 /// `Task::exitCallback` installed by the spawn handler: bump the two helper
 /// tasks' `state` if present, unlink the three display nodes, drop the enemy's
-/// `recs` slot, clear the screen shake, then `Gp_DestroyEnemy`.
+/// `recs` slot, clear the screen shake, then `enemyDestroy`.
 static void func_actor_110600_801387F4(Task* task);
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
@@ -1716,7 +1716,7 @@ static void func_actor_110600_80134AB4(Enemy* enemy, Task* task)
     work       = memCalloc(0xBECU, false);
     task->work = work;
     if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     task->exitCallback   = func_actor_110600_801387F4;
@@ -3304,7 +3304,7 @@ static const Actor110600StateTable D_actor_110600_80131F3C = {
 };
 
 /// The actor's enemy tick, the middle entry of the `D_actor_110600_80131FA0`
-/// triple `func_actor_110600_80134AB4` / this / `Gp_DestroyEnemy`: copies
+/// triple `func_actor_110600_80134AB4` / this / `enemyDestroy`: copies
 /// `D_actor_110600_80131F3C` onto its frame, rebuilds the model root's
 /// coordinate and hands its translation to `Gp_UpdateActorColor`, then switches
 /// on `gSceneCombatState.actorControl`.
@@ -3424,7 +3424,7 @@ void func_actor_110600_80138394(void)
 static const GpEnemyTaskFuncTable3 D_actor_110600_80131FA0 = {
     func_actor_110600_80134AB4,
     func_actor_110600_80137F2C,
-    Gp_DestroyEnemy,
+    enemyDestroy,
 };
 
 /// The `0x7D3` handler of the display-opcode table `D_actor_110600_80148624`:
@@ -3615,7 +3615,7 @@ static void func_actor_110600_801387F4(Task* task)
         enemy->recs = 0;
     }
     displaySetShakeY(0);
-    Gp_DestroyEnemy(enemy, task);
+    enemyDestroy(enemy, task);
 }
 
 static void func_actor_110600_801388A4(Task* arg0)

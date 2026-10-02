@@ -6,7 +6,7 @@
 /// table from the player's current weapon block and (re)send it as message
 /// 0x3FF, flagging the model object busy. Then count the step, and after nine
 /// of them cancel the animation with message 0x3F1 and step the task on.
-/// Bails to `Gp_DestroyEnemy` when the overlay is shutting down, cancelling a
+/// Bails to `enemyDestroy` when the overlay is shutting down, cancelling a
 /// still-installed animation on the way out.
 void gluttonGlobHold(Enemy* enemy, Task* task)
 {
@@ -21,7 +21,7 @@ void gluttonGlobHold(Enemy* enemy, Task* task)
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 2, 0);
             work->field_1B2 = 0;
         }
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
 

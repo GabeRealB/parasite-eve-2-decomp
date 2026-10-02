@@ -14,6 +14,6 @@ void madChaserDespawn(Task* arg0)
         if ((gGameSession->location.loc.stage == GAME_STAGE_MINE_SHELTER) && ((u32)(gGameSession->location.loc.area - 0x27) < 2U) && (gGameSession->location.loc.variant == 1)) {
             taskMessageDispatch(Gp_LookupSlot4(0), ROOM_MESSAGE_ACTOR_EVENT, 1, 0);
         }
-        Gp_DestroyEnemy(arg0->spawnArg2.pointer, arg0);
+        enemyDestroy(arg0->spawnArg2.pointer, arg0);
     }
 }

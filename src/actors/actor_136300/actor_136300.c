@@ -1068,7 +1068,7 @@ static AnimationSet _gActor136300Animation092D4 = {
     { NULL, _gActor136300Animation092D4Bank1, NULL, NULL, _gActor136300Animation092D4Bank4, NULL, NULL, NULL },
 };
 
-Actor136300RetainedTaskSeed D_actor_136300_8013B11C = { 0, 192, Gp_DestroyEnemy, NULL };
+Actor136300RetainedTaskSeed D_actor_136300_8013B11C = { 0, 192, enemyDestroy, NULL };
 
 TaskDesc D_actor_136300_8013B128 = { { { TASK_BODY_NONE, 32 } }, func_actor_136300_8013267C, { .value = 0 } };
 

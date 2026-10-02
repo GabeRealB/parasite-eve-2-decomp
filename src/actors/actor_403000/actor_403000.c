@@ -517,7 +517,7 @@ static s16 func_actor_403000_8013D48C(Task* task);
 
 /// `Task::exitCallback` installed by the spawn handler, for the teardown path
 /// where the enemy was created: hand the four display nodes back to
-/// `Gp_UnlinkObj`, drop the enemy's `recs` slot, then let `Gp_DestroyEnemy`
+/// `Gp_UnlinkObj`, drop the enemy's `recs` slot, then let `enemyDestroy`
 /// free the enemy and the task.
 static void func_actor_403000_8013D4F4(Task* task);
 
@@ -4522,7 +4522,7 @@ static void func_actor_403000_801343B8(Enemy* arg0, Task* arg1)
     coord      = obj->coords;
     arg1->work = (work = memCalloc(0xFDCU, false));
     if (work == NULL) {
-        Gp_DestroyEnemy(arg0, arg1);
+        enemyDestroy(arg0, arg1);
         return;
     }
     arg1->exitCallback = func_actor_403000_8013D4F4;
@@ -7605,7 +7605,7 @@ static const GpEnemyTaskFuncTable3 D_actor_403000_80132004 = {
     {
         func_actor_403000_801343B8,
         func_actor_403000_8013C864,
-        Gp_DestroyEnemy,
+        enemyDestroy,
     },
 };
 
@@ -7726,7 +7726,7 @@ static void func_actor_403000_8013D4F4(Task* task)
         Gp_UnlinkObj(&work->objD18.obj);
         enemy->recs = 0;
     }
-    Gp_DestroyEnemy(enemy, task);
+    enemyDestroy(enemy, task);
 }
 
 static void func_actor_403000_8013D564(SVECTOR* arg0, s32 arg1)

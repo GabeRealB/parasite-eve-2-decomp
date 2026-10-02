@@ -330,7 +330,7 @@ static void Actor02400_Fn0095C(Enemy* enemy, Task* task)
     coord = obj->coords;
     work  = memCalloc(0x154, false);
     if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     task->work          = work;
@@ -1224,7 +1224,7 @@ static void Actor02400_Fn024F8(Enemy* arg0, Task* arg1)
                     Gp_UpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
                     break;
                 case 2:
-                    Gp_DestroyEnemy(arg0, arg1);
+                    enemyDestroy(arg0, arg1);
                     break;
             }
             break;
@@ -1260,7 +1260,7 @@ static void Actor02400_Fn02790(Enemy* arg0, Task* arg1)
     parentWork                               = parent->work;
     work                                     = memCalloc(0xB4, 0);
     if (work == NULL) {
-        Gp_DestroyEnemy(arg0, arg1);
+        enemyDestroy(arg0, arg1);
         return;
     }
     arg1->work         = work;
@@ -1650,7 +1650,7 @@ static void Actor02400_Fn033B4(Enemy* arg0, Task* arg1)
             temp_v0        = work->field_B0 - 1;
             work->field_B0 = temp_v0;
             if ((temp_v0 << 0x10) <= 0) {
-                Gp_DestroyEnemy(arg0, arg1);
+                enemyDestroy(arg0, arg1);
             }
             return;
     }

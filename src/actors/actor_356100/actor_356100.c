@@ -866,7 +866,7 @@ static void func_actor_356100_80167818(Task* arg0);
 s32 func_actor_356100_8016A0B8(Task* arg0, s32 arg1, Actor356100Event* arg2);
 
 /// `Task::exitCallback` teardown: kill the two helper tasks, drop the
-/// enemy's `recs` slot, then `Gp_DestroyEnemy`. Same shape as
+/// enemy's `recs` slot, then `enemyDestroy`. Same shape as
 /// `Actor01900_Fn0A6CC` without the three `Gp_UnlinkObj` calls.
 static void func_actor_356100_8016A158(Task* task);
 
@@ -1179,7 +1179,7 @@ static void func_actor_356100_8016382C(Enemy* enemy, Task* actor)
     work        = memCalloc(0xBC0, 0);
     actor->work = work;
     if (work == NULL) {
-        Gp_DestroyEnemy(enemy, actor);
+        enemyDestroy(enemy, actor);
         return;
     }
     actor->exitCallback = func_actor_356100_8016A158;
@@ -2972,7 +2972,7 @@ static const Actor356100StateTable D_actor_356100_80161EC4 = {
 static const GpEnemyTaskFuncTable3 D_actor_356100_80161F40 = {
     func_actor_356100_8016382C,
     func_actor_356100_80169854,
-    Gp_DestroyEnemy,
+    enemyDestroy,
 };
 
 static void func_actor_356100_80169854(Enemy* arg0, Task* arg1)
@@ -3120,7 +3120,7 @@ static void func_actor_356100_8016A158(Task* task)
         }
         enemy->recs = 0;
     }
-    Gp_DestroyEnemy(enemy, task);
+    enemyDestroy(enemy, task);
 }
 
 static void func_actor_356100_8016A1D8(Task* arg0)

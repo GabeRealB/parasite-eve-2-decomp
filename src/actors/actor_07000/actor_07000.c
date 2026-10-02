@@ -1247,14 +1247,14 @@ void sucklercephKill(Task* arg0, u8 arg1)
 /// Task states of the specimen's second form as `Actor07000_Fn05E6C`
 /// dispatches them: spawn, per-frame update, death and destruction.
 static const GpEnemyTaskFuncTable4 Actor07000_D0003C = {
-    { Actor07000_Fn02E0C, Actor07000_Fn03164, Actor07000_Fn04468, Gp_DestroyEnemy },
+    { Actor07000_Fn02E0C, Actor07000_Fn03164, Actor07000_Fn04468, enemyDestroy },
 };
 
 /// Task states of the specimen's second form as `Actor07000_Fn067B4`
 /// dispatches them: the same update, death and destruction after a spawn that
 /// parks the model hidden, and a fifth state for its drop into place.
 static const GpEnemyTaskFuncTable5 Actor07000_D0004C = {
-    { Actor07000_Fn05068, Actor07000_Fn03164, Actor07000_Fn04468, Gp_DestroyEnemy, Actor07000_Fn05400 },
+    { Actor07000_Fn05068, Actor07000_Fn03164, Actor07000_Fn04468, enemyDestroy, Actor07000_Fn05400 },
 };
 
 #include "../../shared/sucklerceph_drop_state.inc.c"
@@ -1309,7 +1309,7 @@ static void Actor07000_Fn02E0C(Enemy* arg0, Task* arg1)
     coord = obj->coords;
     work  = memCalloc(0x39C, false);
     if (work == NULL) {
-        Gp_DestroyEnemy(arg0, arg1);
+        enemyDestroy(arg0, arg1);
         return;
     }
     arg1->work          = work;
@@ -2346,12 +2346,12 @@ static void Actor07000_Fn05068(Enemy* arg0, Task* arg1)
     part  = &coord[6];
     one   = 1;
     if ((s16)(arg1->spawnArg1.value >> 16) == one) {
-        Gp_DestroyEnemy(arg0, arg1);
+        enemyDestroy(arg0, arg1);
         return;
     }
     work = memCalloc(0x39CU, false);
     if (work == NULL) {
-        Gp_DestroyEnemy(arg0, arg1);
+        enemyDestroy(arg0, arg1);
         return;
     }
     arg1->work          = work;

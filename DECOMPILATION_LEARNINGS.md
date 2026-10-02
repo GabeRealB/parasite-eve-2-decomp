@@ -883,7 +883,7 @@ reads its destination. Naming the same block twice,
 mem         = (MineCavernWork*)memCalloc(0x14C, false);
 work        = mem;
 arg1->work = mem;
-if (mem == NULL) { Gp_DestroyEnemy(arg0, arg1); return; }
+if (mem == NULL) { enemyDestroy(arg0, arg1); return; }
 ...
 ((TmdObject*)arg1->extra)->lightMtx = &work->light;
 ```
@@ -48301,7 +48301,7 @@ INCLUDE_RODATA("actors/nonmatchings/actor_311900/actor_311900", D_actor_311900_8
 const GpEnemyTaskFuncTable3 D_actor_311900_80161E24 = {
     func_actor_311900_8016228C,
     func_actor_311900_801623B0,
-    Gp_DestroyEnemy,
+    enemyDestroy,
 };
 
 void func_actor_311900_8016222C(Task* task) { ... }
@@ -48551,7 +48551,7 @@ was store ordering).
 
 Two bail-outs written as one merged test and one written as two separate `if`s
 emit the *same* object, because cross-jumping merges the identical
-`Gp_DestroyEnemy` tails back together - but they do not allocate the same,
+`enemyDestroy` tails back together - but they do not allocate the same,
 because that merge happens after reload while `global.c` already counted the
 references in the unmerged RTL.
 
@@ -48564,7 +48564,7 @@ so whichever sorts first takes `$s0`, and `allocno_compare` ranks by
 ```c
 if (D_actor_444000_80144A68 == 1 ||
     (work = memCalloc(sizeof(GluttonGrabWork), false), task->field_1C = work, work == NULL)) {
-    Gp_DestroyEnemy(enemy, (Task*)task);
+    enemyDestroy(enemy, (Task*)task);
     return;
 }
 ```
@@ -48576,14 +48576,14 @@ a third reference, flips the order and matches exactly:
 
 ```c
 if (D_actor_444000_80144A68 == 1) {
-    Gp_DestroyEnemy(enemy, (Task*)task);
+    enemyDestroy(enemy, (Task*)task);
     return;
 }
 
 work           = memCalloc(sizeof(GluttonGrabWork), false);
 task->field_1C = work;
 if (work == NULL) {
-    Gp_DestroyEnemy(enemy, (Task*)task);
+    enemyDestroy(enemy, (Task*)task);
     return;
 }
 ```
@@ -100942,7 +100942,7 @@ and the prediction at the end of that entry held: the port with the six named
 edits compiled to the target on the first build, 100.000%, all penalties zero.
 What the port needed beyond those edits was the shape of its first statement.
 
-The two functions share one teardown (`Gp_DestroyEnemy`) reached from two
+The two functions share one teardown (`enemyDestroy`) reached from two
 places: an early bail-out on a game flag, and a failed work-block allocation.
 m2c renders that as two inverted tests whose true edges both jump to one tail
 block -
@@ -100958,7 +100958,7 @@ block -
         return;
     }
 fail:
-    Gp_DestroyEnemy(enemy, task);
+    enemyDestroy(enemy, task);
 ```
 
 - which scores 90.521% at `stack=0 branch=2 regs=2 reorder=3 insert=2 delete=3`,
@@ -100975,7 +100975,7 @@ the then-arm of one `if`:
 ```c
     if ((GameFlag_GetNibble(0xA) & 2) ||
         (work = memCalloc(0x4CC, 0), task->work = work, work == NULL)) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
 ```
@@ -102166,7 +102166,7 @@ uses it for the null test, the `Task::work` store and every later use:
 ```c
 temp_v0 = memCalloc(0x8D8, 0);
 M2C_FIELD(arg1, void **, 0x1C) = temp_v0;
-if (temp_v0 == NULL) { Gp_DestroyEnemy(arg0, arg1); return; }
+if (temp_v0 == NULL) { enemyDestroy(arg0, arg1); return; }
 ...
 animationInitContext(temp_v0, ...);
 ```
@@ -102196,7 +102196,7 @@ mem         = (Actor210600Work*)memCalloc(0x8D8, false);
 work        = mem;
 task->work = mem;
 if (mem == NULL) {
-    Gp_DestroyEnemy(enemy, task);
+    enemyDestroy(enemy, task);
     return;
 }
 ```
@@ -102705,7 +102705,7 @@ same `addu $a1` + `lui`, and 5 of them carry this table-copy shape.
 
 Name the type from the whole table, not from the call: `Actor01900_D0023C`'s
 four words point at `Actor01900_Fn02018`, `Actor01900_Fn0ABA0`,
-`Actor01900_Fn09D3C` and `Gp_DestroyEnemy`, which is `GpEnemyTaskFuncTable4`
+`Actor01900_Fn09D3C` and `enemyDestroy`, which is `GpEnemyTaskFuncTable4`
 (gameplay/1BC.h). The three-entry `GpEnemyTaskFuncTable3` and five-entry
 `...Table5` forms are the same idiom with a different count, so a table whose
 length does not fit the type guessed from the call is a length error, not an
@@ -136348,7 +136348,7 @@ The permuter reached zero by wrapping the failure cleanup in do/while(0)
 and adding a radius constant temporary. Flow's retained loop notes made
 arg0's reference count 3, and global allocation placed it before the table.
 A controlled alternative, planned before compilation, adds only
-`USE_REG(index);` immediately before `Gp_DestroyEnemy(index, value);`.
+`USE_REG(index);` immediately before `enemyDestroy(index, value);`.
 No loop wrapper or radius temporary is needed. It reports 3 refs / 50 insns
 for arg0, table unchanged at 3 / 68, and preserves the initial conflicts.
 Priorities become 600 versus 441 (arg0 previously 416), flipping the global

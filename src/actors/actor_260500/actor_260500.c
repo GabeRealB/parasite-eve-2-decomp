@@ -1577,7 +1577,7 @@ static void func_actor_260500_80149FB0(Enemy* enemy, Task* task)
     gFootstepWalkWork = work;
     task->work        = work;
     if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     task->exitCallback               = func_actor_260500_8014A540;
@@ -1631,10 +1631,10 @@ void func_actor_260500_8014A460(Task* task)
 #undef walkerDrawShadow
 
 /// `Task::exitCallback` the spawn routine installs: hands the task's `Enemy`
-/// back to `Gp_DestroyEnemy`.
+/// back to `enemyDestroy`.
 static void func_actor_260500_8014A540(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
+    enemyDestroy(task->spawnArg2.pointer, task);
 }
 
 #include "../../shared/footstep_walk_tick_anim.inc.c"

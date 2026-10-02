@@ -857,7 +857,7 @@ static void func_actor_503500_8013BC54(Task* arg0)
     Gp_UnlinkObj(&((Actor503500Work*)arg0->work)->obj);
     enemy->recs = 0;
     arg0->work  = NULL;
-    Gp_DestroyEnemy(enemy, arg0);
+    enemyDestroy(enemy, arg0);
 }
 
 static void func_actor_503500_8013BCB4(Task* arg0)
@@ -1216,7 +1216,7 @@ static void func_actor_503500_8013C900(Task* arg0)
     Gp_UnlinkObj(&((Actor503500Work*)arg0->work)->obj);
     enemy->recs = 0;
     arg0->work  = NULL;
-    Gp_DestroyEnemy(enemy, arg0);
+    enemyDestroy(enemy, arg0);
 }
 
 static void func_actor_503500_8013C960(Task* arg0)
@@ -1650,7 +1650,7 @@ static void func_actor_503500_8013D85C(Task* arg0)
     Gp_UnlinkObj(&((Actor503500Work*)arg0->work)->obj);
     enemy->recs = 0;
     arg0->work  = NULL;
-    Gp_DestroyEnemy(enemy, arg0);
+    enemyDestroy(enemy, arg0);
 }
 
 static void func_actor_503500_8013D8BC(Task* arg0)
@@ -2161,7 +2161,7 @@ static void func_actor_503500_8013EA2C(Task* arg0)
     Gp_UnlinkObj(&((Actor503500Work*)arg0->work)->obj);
     enemy->recs = 0;
     arg0->work  = NULL;
-    Gp_DestroyEnemy(enemy, arg0);
+    enemyDestroy(enemy, arg0);
 }
 
 static void func_actor_503500_8013EA8C(Task* arg0)
@@ -2560,7 +2560,7 @@ static void func_actor_503500_8013F778(Task* arg0)
     Gp_UnlinkObj(&((Actor503500Work*)arg0->work)->obj);
     enemy->recs = 0;
     arg0->work  = NULL;
-    Gp_DestroyEnemy(enemy, arg0);
+    enemyDestroy(enemy, arg0);
 }
 
 static void func_actor_503500_8013F7D8(Task* arg0)
@@ -3512,7 +3512,7 @@ static void func_actor_503500_80141D04(Task* arg0)
     Gp_UnlinkObj(&((Actor503500Work*)arg0->work)->obj240);
     enemy->recs = 0;
     arg0->work  = NULL;
-    Gp_DestroyEnemy(enemy, arg0);
+    enemyDestroy(enemy, arg0);
 }
 
 static void func_actor_503500_80141D7C(Task* arg0)
@@ -4513,7 +4513,7 @@ static void func_actor_503500_80143F78(Task* arg0)
     Gp_UnlinkObj(&work->obj2);
     enemy->recs = 0;
     arg0->work  = NULL;
-    Gp_DestroyEnemy(enemy, arg0);
+    enemyDestroy(enemy, arg0);
 }
 
 static void func_actor_503500_80143FFC(Task* arg0)

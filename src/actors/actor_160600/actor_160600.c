@@ -1205,10 +1205,10 @@ void func_actor_160600_801321B4(Task* task)
 #include "../../shared/paced_walk_spawn.inc.c"
 
 /// The actor's `Task::exitCallback`: hands the task's `Enemy`, parked in
-/// `Task::spawnArg2`, back to `Gp_DestroyEnemy`.
+/// `Task::spawnArg2`, back to `enemyDestroy`.
 void pacedWalkExit(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
+    enemyDestroy(task->spawnArg2.pointer, task);
 }
 
 #include "../../shared/walker_shadow.inc.c"

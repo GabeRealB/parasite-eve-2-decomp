@@ -2707,7 +2707,7 @@ static void func_actor_421600_80134AD4(Enemy* enemy, Task* actor)
     work        = memCalloc(0xEB0, 0);
     actor->work = work;
     if (work == 0) {
-        Gp_DestroyEnemy(enemy, actor);
+        enemyDestroy(enemy, actor);
         return;
     }
     (Gp_IncStateF0Ref)(0);
@@ -5199,7 +5199,7 @@ static const DesertChaserTaskStates gDesertChaserTaskStates = {
     {
         func_actor_421600_80134AD4,
         func_actor_421600_8013D658,
-        Gp_DestroyEnemy,
+        enemyDestroy,
     },
 };
 
@@ -5234,7 +5234,7 @@ s32 func_actor_421600_8013E654(Task* task)
 }
 
 /// `Task::exitCallback` teardown: kill the two helper tasks, unlink the three
-/// display nodes, clear the enemy's `recs`, then `Gp_DestroyEnemy`.
+/// display nodes, clear the enemy's `recs`, then `enemyDestroy`.
 static void func_actor_421600_8013E668(Task* task)
 {
     DesertChaserWork* work;
@@ -5254,7 +5254,7 @@ static void func_actor_421600_8013E668(Task* task)
         Gp_UnlinkObj(&work->objs[2].obj);
         enemy->recs = 0;
     }
-    Gp_DestroyEnemy(enemy, task);
+    enemyDestroy(enemy, task);
 }
 
 #include "../../shared/desert_chaser_part_effect.inc.c"

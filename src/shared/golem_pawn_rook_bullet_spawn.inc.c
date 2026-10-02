@@ -25,7 +25,7 @@ void golemPawnRookBulletSpawn(Enemy* arg0, Task* arg1)
     parentCoord = parent->extra.tmd->coords;
     work        = memCalloc(0xF0, false);
     if (work == NULL) {
-        Gp_DestroyEnemy(arg0, arg1);
+        enemyDestroy(arg0, arg1);
         return;
     }
     arg1->work    = work;

@@ -3423,7 +3423,7 @@ static const GpEnemyTaskFuncTable3 gGluttonPropStates = {
     {
         gluttonPropSetup,
         gluttonPropTick,
-        Gp_DestroyEnemy,
+        enemyDestroy,
     },
 };
 
@@ -3676,7 +3676,7 @@ static const GpEnemyTaskFuncTable3 gGluttonThrowStates = {
     {
         gluttonThrowSpawn,
         gluttonThrowFly,
-        Gp_DestroyEnemy,
+        enemyDestroy,
     },
 };
 
@@ -3696,7 +3696,7 @@ static const GpEnemyTaskFuncTable5 gGluttonGlobStates = {
         gluttonGlobFall,
         gluttonGlobEngulf,
         gluttonGlobHold,
-        Gp_DestroyEnemy,
+        enemyDestroy,
     },
 };
 
@@ -3713,7 +3713,7 @@ static const GpEnemyTaskFuncTable4 gGluttonChunkStates = {
         gluttonChunkSpawn,
         gluttonChunkFall,
         gluttonChunkSettle,
-        Gp_DestroyEnemy,
+        enemyDestroy,
     },
 };
 
@@ -3733,7 +3733,7 @@ static const GpEnemyTaskFuncTable5 gGluttonRainStates = {
         gluttonRainRise,
         gluttonRainFall,
         gluttonRainSplat,
-        Gp_DestroyEnemy,
+        enemyDestroy,
     },
 };
 
@@ -3747,7 +3747,7 @@ static const GpEnemyTaskFuncTable4 gGluttonSpinnerStates = {
         gluttonSpinnerSpawn,
         gluttonSpinnerWait,
         gluttonSpinnerChase,
-        Gp_DestroyEnemy,
+        enemyDestroy,
     },
 };
 
@@ -3993,7 +3993,7 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
     work       = memCalloc(0xF24, 0);
     task->work = work;
     if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
 
@@ -6352,7 +6352,7 @@ static const GpEnemyTaskFuncTable3 D_actor_403200_801321B8 = {
     {
         func_actor_403200_80138AFC,
         func_actor_403200_8013FB54,
-        Gp_DestroyEnemy,
+        enemyDestroy,
     },
 };
 

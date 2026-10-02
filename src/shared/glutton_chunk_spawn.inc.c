@@ -29,7 +29,7 @@ void gluttonChunkSpawn(Enemy* enemy, Task* task)
 
     if (gGluttonEnded == 1 ||
         (work = memCalloc(sizeof(GluttonGrabWork), false), task->work = work, work == NULL)) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
 

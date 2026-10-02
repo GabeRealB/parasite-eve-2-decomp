@@ -9,7 +9,7 @@
 /// the spin rate to the step count (`field_98 += field_96 / 8`), the offset is
 /// normalised and scaled by `field_98` through the GTE's `gpf` interpolator, and
 /// the result is added to the root translation before the three rotations are
-/// rebuilt from `field_98` and `field_96`. Bails to `Gp_DestroyEnemy` while the
+/// rebuilt from `field_98` and `field_96`. Bails to `enemyDestroy` while the
 /// overlay is shutting down.
 void gluttonSpinnerChase(Enemy* enemy, Task* task)
 {
@@ -29,7 +29,7 @@ void gluttonSpinnerChase(Enemy* enemy, Task* task)
     func_800D7A9C(task->extra.tmd, (VECTOR*)task->extra.tmd->coords->workm.t, 0, 3);
 
     if (gGluttonEnded == 1 || gGluttonSpinnersReleased == 0) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
 

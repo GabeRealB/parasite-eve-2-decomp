@@ -1045,7 +1045,7 @@ static void func_actor_260400_80149FE0(Enemy* enemy, Task* task)
     gScriptedWalkWork = work;
     task->work        = work;
     if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     task->exitCallback               = func_actor_260400_8014A630;
@@ -1106,12 +1106,12 @@ void func_actor_260400_8014A550(Task* task)
 #undef walkerDrawShadow
 
 /// `Task::exitCallback` the spawn routine installs: hands the task's `Enemy`
-/// back to `Gp_DestroyEnemy` and kills the helper task.
+/// back to `enemyDestroy` and kills the helper task.
 static void func_actor_260400_8014A630(Task* task)
 {
     Actor260400Work* work = (Actor260400Work*)task->work;
 
-    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
+    enemyDestroy(task->spawnArg2.pointer, task);
     taskKill(work->helper);
 }
 

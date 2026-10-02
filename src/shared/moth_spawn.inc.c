@@ -19,7 +19,7 @@ void mothSpawn(Enemy* arg0, Task* arg1)
     coord = obj->coords;
     work  = memCalloc(0x2F4U, false);
     if (work == NULL) {
-        Gp_DestroyEnemy(arg0, arg1);
+        enemyDestroy(arg0, arg1);
         return;
     }
     arg1->work              = work;

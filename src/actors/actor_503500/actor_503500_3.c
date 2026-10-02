@@ -1949,7 +1949,7 @@ static void func_actor_503500_80136228(Task* arg0)
     Gp_UnlinkObj(&((Actor503500Work*)arg0->work)->field_5D4);
     enemy->recs = 0;
     arg0->work  = NULL;
-    Gp_DestroyEnemy(enemy, arg0);
+    enemyDestroy(enemy, arg0);
 }
 
 static void func_actor_503500_80136280(Task* arg0)
@@ -3015,7 +3015,7 @@ static void func_actor_503500_80138288(Task* arg0)
     Gp_UnlinkObj(&((Actor503500Work*)arg0->work)->slot40.obj);
     enemy->recs = 0;
     arg0->work  = NULL;
-    Gp_DestroyEnemy(enemy, arg0);
+    enemyDestroy(enemy, arg0);
 }
 
 static void func_actor_503500_801382F4(Task* arg0)
@@ -3992,7 +3992,7 @@ static void func_actor_503500_8013A900(Task* arg0)
     Gp_UnlinkObj(&((Actor503500Work*)arg0->work)->obj160);
     enemy->recs = 0;
     arg0->work  = NULL;
-    Gp_DestroyEnemy(enemy, arg0);
+    enemyDestroy(enemy, arg0);
 }
 
 static void func_actor_503500_8013A96C(Task* arg0)

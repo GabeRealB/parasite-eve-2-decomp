@@ -375,7 +375,7 @@ static void func_actor_311900_80162100(Task* task)
 static const GpEnemyTaskFuncTable3 D_actor_311900_80161E24 = {
     func_actor_311900_8016228C,
     func_actor_311900_801623B0,
-    Gp_DestroyEnemy,
+    enemyDestroy,
 };
 
 /// The actor's second state table - `func_actor_311900_801624F8`'s setup,
@@ -384,7 +384,7 @@ static const GpEnemyTaskFuncTable3 D_actor_311900_80161E24 = {
 static const GpEnemyTaskFuncTable3 D_actor_311900_80161E30 = {
     func_actor_311900_801624F8,
     func_actor_311900_801625F0,
-    Gp_DestroyEnemy,
+    enemyDestroy,
 };
 
 /// Runs the actor's state handler that `Task::state` selects. Copies the
@@ -424,7 +424,7 @@ static void func_actor_311900_8016228C(Enemy* enemy, Task* task)
     coord = obj->coords;
     if ((GameFlag_GetNibble(GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN) & 2) ||
         (work = memCalloc(0x4CC, 0), task->work = work, work == NULL)) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     func_actor_311900_8016278C(task);
@@ -481,7 +481,7 @@ static void func_actor_311900_801623B0(Enemy* enemy, Task* task)
 }
 
 /// Runs the actor's second state table - `func_actor_311900_801624F8`'s setup,
-/// `func_actor_311900_801625F0`'s tick and `Gp_DestroyEnemy` - at the handler
+/// `func_actor_311900_801625F0`'s tick and `enemyDestroy` - at the handler
 /// `Task::state` selects. The table is copied onto the stack before the call,
 /// the same shape as `func_actor_311900_8016222C` for the first table.
 void func_actor_311900_8016249C(Task* task)
@@ -518,7 +518,7 @@ static void func_actor_311900_801624F8(Enemy* enemy, Task* task)
     coord = obj->coords;
     if (GameFlag_GetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS) >= 3 ||
         (work = memCalloc(0x4CC, 0), task->work = work, work == NULL)) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     func_actor_311900_8016281C(task);

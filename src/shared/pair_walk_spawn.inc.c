@@ -17,7 +17,7 @@ void pairWalkSpawn(Enemy* enemy, Task* task)
     coord      = obj->coords;
     task->work = (work = memCalloc(sizeof(Actor150400Work), false));
     if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     task->exitCallback               = pairWalkExit;

@@ -714,7 +714,7 @@ static void func_actor_123200_8013352C(Enemy* enemy, Task* task)
     work       = memCalloc(sizeof(Actor123200Work), false);
     task->work = work;
     if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     task->msgTable = D_actor_123200_80137214;
@@ -988,7 +988,7 @@ static const GpEnemyTaskFuncTable3 D_actor_123200_80131E30 = {
     {
         func_actor_123200_8013352C,
         func_actor_123200_80133BA0,
-        Gp_DestroyEnemy,
+        enemyDestroy,
     },
 };
 

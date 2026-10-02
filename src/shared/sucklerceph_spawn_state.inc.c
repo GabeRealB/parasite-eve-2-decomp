@@ -22,12 +22,12 @@ void sucklercephSpawnState(Enemy* arg0, Task* arg1)
     coord = obj->coords;
     part  = &coord[1];
     if ((s16)(arg1->spawnArg1.value >> 16) == 1) {
-        Gp_DestroyEnemy(arg0, arg1);
+        enemyDestroy(arg0, arg1);
         return;
     }
     work = memCalloc(0x2E4U, false);
     if (work == NULL) {
-        Gp_DestroyEnemy(arg0, arg1);
+        enemyDestroy(arg0, arg1);
         return;
     }
     arg1->work          = work;

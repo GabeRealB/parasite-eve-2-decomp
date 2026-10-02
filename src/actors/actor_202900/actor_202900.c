@@ -270,7 +270,7 @@ static void func_actor_202900_80149E24(Enemy* enemy, Task* task)
     coord      = obj->coords;
     task->work = (D_actor_202900_80156E54 = memCalloc(0x564, false));
     if (D_actor_202900_80156E54 == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     task->exitCallback               = func_actor_202900_8014A158;
@@ -359,7 +359,7 @@ static void func_actor_202900_8014A0B4(Enemy* enemy, Task* task)
 static void func_actor_202900_8014A158(Task* arg0)
 {
     taskKill(gActorHelperTask);
-    Gp_DestroyEnemy(arg0->spawnArg2.pointer, arg0);
+    enemyDestroy(arg0->spawnArg2.pointer, arg0);
 }
 
 /// Runs the body the actor's step selects and then leaves it in step 3, the

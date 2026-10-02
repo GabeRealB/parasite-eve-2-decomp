@@ -645,12 +645,12 @@ AnimationSet* gMaggotCaterpillarAnimSets[15] = {
 #include "../../shared/maggot_caterpillar_resolve_contacts.inc.c"
 
 /// State handlers of the projectile task `maggotCaterpillarPuffTask` dispatches,
-/// indexed by `Task::state`: setup, per-frame tick and `Gp_DestroyEnemy`.
+/// indexed by `Task::state`: setup, per-frame tick and `enemyDestroy`.
 static const GpEnemyTaskFuncTable3 gMaggotCaterpillarPuffStates = {
     {
         maggotCaterpillarPuffSetup,
         maggotCaterpillarPuffTick,
-        Gp_DestroyEnemy,
+        enemyDestroy,
     },
 };
 

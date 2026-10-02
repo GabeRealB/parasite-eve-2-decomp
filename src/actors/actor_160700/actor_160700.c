@@ -1538,7 +1538,7 @@ static void func_actor_160700_80131F70(Enemy* enemy, Task* task)
     work       = mem;
     task->work = mem;
     if (mem == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     task->exitCallback               = func_actor_160700_80132414;
@@ -1592,10 +1592,10 @@ void func_actor_160700_8013233C(Task* task)
 #undef walkerUpdate
 #undef walkerDrawShadow
 
-/// Exit callback: hands the task's `Enemy` back to `Gp_DestroyEnemy`.
+/// Exit callback: hands the task's `Enemy` back to `enemyDestroy`.
 static void func_actor_160700_80132414(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
+    enemyDestroy(task->spawnArg2.pointer, task);
 }
 
 #include "../../shared/walker_shadow.inc.c"

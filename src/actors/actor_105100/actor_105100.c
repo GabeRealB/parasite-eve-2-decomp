@@ -871,7 +871,7 @@ static void func_actor_105100_801327B4(Enemy* arg0, Task* arg1)
     coord = obj->coords;
     work  = memCalloc(0x5C4, 0);
     if (work == NULL) {
-        Gp_DestroyEnemy(arg0, arg1);
+        enemyDestroy(arg0, arg1);
         return;
     }
     arg1->work          = work;
@@ -1858,7 +1858,7 @@ static void func_actor_105100_80134284(Enemy* arg0, Task* arg1)
             Gp_UpdateActorColor(actor->spawnArg2.pointer, &pos, 0, 0);
             return;
         case 4:
-            Gp_DestroyEnemy(arg0, actor);
+            enemyDestroy(arg0, actor);
             return;
     }
 }
@@ -1912,7 +1912,7 @@ static void func_actor_105100_801347D4(Enemy* arg0, Task* arg1)
     parentWork  = (Actor105100Work*)parent->work;
     work        = memCalloc(0x80, 0);
     if (work == NULL) {
-        Gp_DestroyEnemy(arg0, arg1);
+        enemyDestroy(arg0, arg1);
         return;
     }
 
@@ -2203,13 +2203,13 @@ static void func_actor_105100_80135278(Enemy* arg0, Task* arg1)
     src    = parent->extra.tmd->coords;
 
     if (D_actor_105100_80141450[work->field_5B0 * 3 + (s16)work->field_5AE] == -1) {
-        Gp_DestroyEnemy(arg0, arg1);
+        enemyDestroy(arg0, arg1);
         return;
     }
 
     obj = memCalloc(0x50, 0);
     if (obj == NULL) {
-        Gp_DestroyEnemy(arg0, arg1);
+        enemyDestroy(arg0, arg1);
         return;
     }
 
@@ -2838,7 +2838,7 @@ static void func_actor_105100_801366D8(Enemy* arg0, Task* arg1)
     work = arg1->work;
     Gp_UnlinkObj(&work->obj0);
     Gp_UnlinkObj(&work->obj38);
-    Gp_DestroyEnemy(arg0, arg1);
+    enemyDestroy(arg0, arg1);
 }
 
 void func_actor_105100_8013672C(Task* arg0)
@@ -2852,5 +2852,5 @@ void func_actor_105100_8013672C(Task* arg0)
 static void func_actor_105100_80136788(Enemy* arg0, Task* arg1)
 {
     Gp_UnlinkObj(arg1->work);
-    Gp_DestroyEnemy(arg0, arg1);
+    enemyDestroy(arg0, arg1);
 }

@@ -17,6 +17,6 @@ void madChaserVanishFree(Task* arg0)
         model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
     if ((s16)work->field_412 >= 0x24) {
-        Gp_DestroyEnemy(arg0->spawnArg2.pointer, arg0);
+        enemyDestroy(arg0->spawnArg2.pointer, arg0);
     }
 }

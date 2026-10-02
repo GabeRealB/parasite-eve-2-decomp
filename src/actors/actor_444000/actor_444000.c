@@ -3837,7 +3837,7 @@ static const GpEnemyTaskFuncTable3 gGluttonPropStates = {
     {
         gluttonPropSetup,
         gluttonPropTick,
-        Gp_DestroyEnemy,
+        enemyDestroy,
     },
 };
 
@@ -3846,7 +3846,7 @@ static const GpEnemyTaskFuncTable3 gGluttonThrowStates = {
     {
         gluttonThrowSpawn,
         gluttonThrowFly,
-        Gp_DestroyEnemy,
+        enemyDestroy,
     },
 };
 
@@ -3858,7 +3858,7 @@ static const GpEnemyTaskFuncTable5 gGluttonGlobStates = {
         gluttonGlobFall,
         gluttonGlobEngulf,
         gluttonGlobHold,
-        Gp_DestroyEnemy,
+        enemyDestroy,
     },
 };
 
@@ -3877,7 +3877,7 @@ static const GpEnemyTaskFuncTable4 gGluttonChunkStates = {
         gluttonChunkSpawn,
         gluttonChunkFall,
         gluttonChunkSettle,
-        Gp_DestroyEnemy,
+        enemyDestroy,
     },
 };
 
@@ -3889,7 +3889,7 @@ static const GpEnemyTaskFuncTable5 gGluttonRainStates = {
         gluttonRainRise,
         gluttonRainFall,
         gluttonRainSplat,
-        Gp_DestroyEnemy,
+        enemyDestroy,
     },
 };
 
@@ -3899,7 +3899,7 @@ static const GpEnemyTaskFuncTable4 gGluttonSpinnerStates = {
         gluttonSpinnerSpawn,
         gluttonSpinnerWait,
         gluttonSpinnerChase,
-        Gp_DestroyEnemy,
+        enemyDestroy,
     },
 };
 
@@ -4206,7 +4206,7 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
     work       = memCalloc(0xF24, 0);
     task->work = work;
     if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
 
@@ -6819,13 +6819,13 @@ static void func_actor_444000_801423C4(Enemy* enemy, Task* task)
 /// state 5 still wants the marker.
 ///
 /// The dispatch table is a local: `Task::state` picks the spawn state, this
-/// tick, or `Gp_DestroyEnemy`.
+/// tick, or `enemyDestroy`.
 void func_actor_444000_80142F28(Task* arg0)
 {
     void (*handlers[3])(Enemy*, Task*) = {
         func_actor_444000_8013AFF8,
         func_actor_444000_801423C4,
-        Gp_DestroyEnemy,
+        enemyDestroy,
     };
     SVECTOR      result;
     GluttonWork* work;

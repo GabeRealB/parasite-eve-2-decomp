@@ -10,7 +10,7 @@
 /// The task steps on once the count passes ten with no animation installed,
 /// once the latched animation has been released, or after 200 steps. Every
 /// step refreshes the model's colour from its world position and damps the two
-/// shake terms. Bails to `Gp_DestroyEnemy` when the overlay is shutting down,
+/// shake terms. Bails to `enemyDestroy` when the overlay is shutting down,
 /// cancelling a still-installed animation on the way out.
 void gluttonGlobEngulf(Enemy* enemy, Task* task)
 {
@@ -34,7 +34,7 @@ void gluttonGlobEngulf(Enemy* enemy, Task* task)
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 2, 0);
             work->field_1B2 = 0;
         }
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
 

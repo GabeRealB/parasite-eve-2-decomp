@@ -99,7 +99,7 @@ void maggotCaterpillarDyingState(Enemy* arg0, Task* arg1)
                 case 2:
                     work->field_39E++;
                     if (work->field_39E >= 0x3C) {
-                        Gp_DestroyEnemy(arg0, arg1);
+                        enemyDestroy(arg0, arg1);
                     }
                     return;
             }

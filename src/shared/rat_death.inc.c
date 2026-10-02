@@ -133,6 +133,6 @@ dying:
     Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
     return;
 destroy:
-    Gp_DestroyEnemy(arg0, arg1);
+    enemyDestroy(arg0, arg1);
     return;
 }

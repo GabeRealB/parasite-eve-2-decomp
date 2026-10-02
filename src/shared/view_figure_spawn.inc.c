@@ -20,7 +20,7 @@ void viewFigureSpawnState(Enemy* enemy, Task* task)
     gViewFigureWork = work;
     task->work      = work;
     if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     task->exitCallback               = viewFigureExit;

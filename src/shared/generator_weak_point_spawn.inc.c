@@ -21,7 +21,7 @@ void generatorLifeSupportSpawn(Enemy* arg0, Task* arg1)
     work  = (GeneratorWork*)arg1->parent->work;
     part  = memCalloc(0x48, 0);
     if (part == NULL) {
-        Gp_DestroyEnemy(arg0, arg1);
+        enemyDestroy(arg0, arg1);
         return;
     }
     arg1->work          = part;

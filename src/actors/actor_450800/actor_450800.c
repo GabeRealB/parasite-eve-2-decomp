@@ -2784,7 +2784,7 @@ static void func_actor_450800_80132160(Enemy* enemy, Task* task)
     work       = memCalloc(0x504, 0);
     task->work = work;
     if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     task->exitCallback               = func_actor_450800_80132868;
@@ -2898,7 +2898,7 @@ static void func_actor_450800_80132868(Task* task)
 {
     Actor450800Work* work = (Actor450800Work*)task->work;
 
-    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
+    enemyDestroy(task->spawnArg2.pointer, task);
     taskKill(work->field_4F0);
     taskKill(work->field_4F4);
     taskKill(work->field_4F8);
@@ -3133,7 +3133,7 @@ void func_actor_450800_80133264(Task* task)
 /// for.
 void pairWalkExit(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
+    enemyDestroy(task->spawnArg2.pointer, task);
 }
 
 /// A further copy of the shadow, under this file's own name.

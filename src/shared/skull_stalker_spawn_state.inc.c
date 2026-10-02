@@ -28,7 +28,7 @@ void skullStalkerSpawnState(Enemy* arg0, Task* arg1)
     part  = &coord[1];
     work  = memCalloc(0x2B0U, false);
     if (work == NULL) {
-        Gp_DestroyEnemy(arg0, arg1);
+        enemyDestroy(arg0, arg1);
         return;
     }
     arg1->work          = work;

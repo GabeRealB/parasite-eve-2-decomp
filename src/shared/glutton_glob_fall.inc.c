@@ -19,7 +19,7 @@ void gluttonGlobFall(Enemy* enemy, Task* task)
     s32              bounce;
 
     if (gGluttonEnded == 1) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
 

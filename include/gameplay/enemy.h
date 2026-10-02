@@ -124,6 +124,20 @@ typedef struct Enemy {
 } Enemy;
 STATIC_ASSERT_SIZEOF(Enemy, 0x60);
 
+/// Releases an enemy work object and begins default teardown of its owning task.
+///
+/// Both arguments must be non-NULL and live, with `enemy` a primary-heap
+/// allocation owned by `task` through `spawnArg2.pointer`. Target tracking and
+/// actor locks are detached before the enemy allocation is freed. The target
+/// entry may still be unlinked when a spawn fails.
+///
+/// Callers must first release actor-specific list links and nested resources.
+/// This calls `taskKill` directly, bypassing a replacement exit callback;
+/// task and model release follow its immediate/deferred lifetime rules.
+/// The enemy is invalid on return, and `spawnArg2.pointer` is left unchanged.
+/// Callers must not access the enemy or task again after this call.
+void enemyDestroy(Enemy* enemy, Task* task);
+
 /// Callback for Enemy + Task state handlers (entries in `Gp_EnemyWaitFuncs`).
 typedef void (*GpEnemyTaskFunc)(Enemy* enemy, Task* task);
 

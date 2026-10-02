@@ -882,7 +882,7 @@ void func_actor_151000_801323F4(Task* task)
 /// the enemy the task was spawned for.
 void footstepWalkExit(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
+    enemyDestroy(task->spawnArg2.pointer, task);
 }
 
 #include "../../shared/footstep_walk_play_steps.inc.c"

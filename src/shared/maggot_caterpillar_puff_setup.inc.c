@@ -22,7 +22,7 @@ void maggotCaterpillarPuffSetup(Enemy* enemy, Task* task)
     parentCoord = &parentObj->coords[4];
     work        = memCalloc(sizeof(*work), false);
     if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     task->work                 = work;

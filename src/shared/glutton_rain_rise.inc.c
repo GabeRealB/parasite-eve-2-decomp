@@ -7,7 +7,7 @@
 /// horizontal position back onto `work->target`, restart the step counter, pick
 /// a fresh 0..0x1F bias for the next leg, flag the list object and step the task
 /// on. Either way the work block's own coordinate is left tracking the model.
-/// Bails to `Gp_DestroyEnemy` when the overlay is shutting down.
+/// Bails to `enemyDestroy` when the overlay is shutting down.
 void gluttonRainRise(Enemy* enemy, Task* task)
 {
     GluttonDropWork* work;
@@ -16,7 +16,7 @@ void gluttonRainRise(Enemy* enemy, Task* task)
     work = task->work;
     if (gGluttonEnded == 1) {
         Gp_UnlinkObj(&work->obj);
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
 

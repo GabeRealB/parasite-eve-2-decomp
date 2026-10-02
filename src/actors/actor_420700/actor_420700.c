@@ -1023,7 +1023,7 @@ static void func_actor_420700_80131E24(Enemy* enemy, Task* task)
     gScriptedWalkWork = work;
     task->work        = work;
     if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     task->exitCallback               = func_actor_420700_8013239C;
@@ -1163,7 +1163,7 @@ void func_actor_420700_80132340(Task* task)
 static void func_actor_420700_8013239C(Task* arg0)
 {
     taskKill(D_actor_420700_8013EFE8);
-    Gp_DestroyEnemy(arg0->spawnArg2.pointer, arg0);
+    enemyDestroy(arg0->spawnArg2.pointer, arg0);
 }
 
 /// State handler of the frame-4 model task: the spawn tick clears its root

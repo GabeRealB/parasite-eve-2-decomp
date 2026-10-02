@@ -204,6 +204,6 @@ void generatorDeathState(Enemy* arg0, Task* arg1)
     pos.vz = tmp->workm.t[2];
     Gp_UpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
     if ((s16)work->field_32E == 2 && (s16)work->field_330 == 1) {
-        Gp_DestroyEnemy(arg0, arg1);
+        enemyDestroy(arg0, arg1);
     }
 }

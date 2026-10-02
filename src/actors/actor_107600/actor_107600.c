@@ -807,7 +807,7 @@ static void func_actor_107600_80131F10(Task* arg0)
             ((MistShootingGalleryWork*)arg0->parent->work)->field_0E--;
         }
         SCRATCH_STACK_RELEASE_BYTES(0x10);
-        Gp_DestroyEnemy(enemy, arg0);
+        enemyDestroy(enemy, arg0);
         return;
     }
     work       = memCalloc(0x14C, false);
@@ -1153,7 +1153,7 @@ static void func_actor_107600_80132AC0(Task* arg0)
     if (work->field_144 != 2) {
         Gp_ReleaseStateF0Add(arg0, 0);
     }
-    Gp_DestroyEnemy(arg0->spawnArg2.pointer, arg0);
+    enemyDestroy(arg0->spawnArg2.pointer, arg0);
 }
 
 /// Copies the world position of the model's first attach coordinate onto a
@@ -1330,7 +1330,7 @@ static void func_actor_107600_80132ED0(Task* arg0)
     enemy   = arg0->spawnArg2.pointer;
     coord   = obj->coords;
     if (variant == 0xFF || (work = memCalloc(0x16C, false), arg0->work = work, work == NULL)) {
-        Gp_DestroyEnemy(enemy, arg0);
+        enemyDestroy(enemy, arg0);
         return;
     }
     arg0->exitCallback    = func_actor_107600_80134920;
@@ -2047,7 +2047,7 @@ static void func_actor_107600_80134904(Task* arg0)
 static void func_actor_107600_80134920(Task* arg0)
 {
     Gp_UnlinkObj(&((Actor107600Work*)arg0->work)->obj);
-    Gp_DestroyEnemy(arg0->spawnArg2.pointer, arg0);
+    enemyDestroy(arg0->spawnArg2.pointer, arg0);
 }
 
 /// Links this actor's display node the way `func_8010C980` does for the

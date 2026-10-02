@@ -450,7 +450,7 @@ static void Actor02100_Fn00048(Enemy* arg0, Task* arg1)
     coord = extra->coords;
     work  = memCalloc(sizeof(Actor02100Work), false);
     if (work == NULL) {
-        Gp_DestroyEnemy(arg0, arg1);
+        enemyDestroy(arg0, arg1);
         return;
     }
     arg1->work      = work;
@@ -458,7 +458,7 @@ static void Actor02100_Fn00048(Enemy* arg0, Task* arg1)
     variant         = (arg0->place->variant % 10) & 0xFF;
     work->field_178 = variant;
     if ((work->field_176 >= 5) || (variant >= 5)) {
-        Gp_DestroyEnemy(arg0, arg1);
+        enemyDestroy(arg0, arg1);
         return;
     }
     extra->flags                  = 0;
@@ -1986,7 +1986,7 @@ case1:
     if ((s16)timer > 0) {
         goto epilogue;
     }
-    Gp_DestroyEnemy(arg0, arg1);
+    enemyDestroy(arg0, arg1);
 epilogue:
     return;
 }

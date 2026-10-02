@@ -605,7 +605,7 @@ static AnimationSet _gActor142900Animation057B8 = {
     { NULL, _gActor142900Animation057B8Bank1, NULL, NULL, _gActor142900Animation057B8Bank4, NULL, NULL, NULL },
 };
 
-Actor142900TaskTable D_actor_142900_80137600 = { .native = { { 0, 192, { .enemyCleanup = Gp_DestroyEnemy }, { .value = 0 } }, { 0, 192, { .task = func_actor_142900_80131E24 }, { .value = 0 } } } };
+Actor142900TaskTable D_actor_142900_80137600 = { .native = { { 0, 192, { .enemyCleanup = enemyDestroy }, { .value = 0 } }, { 0, 192, { .task = func_actor_142900_80131E24 }, { .value = 0 } } } };
 
 Actor142900AnimStorage7618 D_actor_142900_80137618 = { .data = {
                                                            { &_gActor142900Animation005C8, &_gActor142900Animation0089C, &_gActor142900Animation00B88, &_gActor142900Animation02774, &_gActor142900Animation02DAC, &_gActor142900Animation03110, &_gActor142900Animation035C8, &_gActor142900Animation03910, &_gActor142900Animation03F8C, &_gActor142900Animation04260, &_gActor142900Animation04480, &_gActor142900Animation010EC, &_gActor142900Animation01370 },

@@ -21,5 +21,5 @@ void oddStrangerExit(Task* task)
         Gp_UnlinkObj(&work->field_A10);
         enemy->recs = 0;
     }
-    Gp_DestroyEnemy(enemy, task);
+    enemyDestroy(enemy, task);
 }

@@ -1073,7 +1073,7 @@ static void func_actor_461800_80132390(Enemy* enemy, Task* task)
     coord      = obj->coords;
     task->work = (gScriptedWalkWork = memCalloc(0x4F8, false));
     if (gScriptedWalkWork == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     task->exitCallback               = func_actor_461800_80132A90;
@@ -1141,13 +1141,13 @@ void func_actor_461800_801329B0(Task* task)
 
 /// `Task::exitCallback` of the first variant: hands the task's `Enemy`
 /// (parked in `Task::spawnArg2` by the spawn descriptor) back to
-/// `Gp_DestroyEnemy`, then kills the two helper tasks the spawn routine
+/// `enemyDestroy`, then kills the two helper tasks the spawn routine
 /// started.
 static void func_actor_461800_80132A90(Task* task)
 {
     Actor461800Work* work = (Actor461800Work*)task->work;
 
-    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
+    enemyDestroy(task->spawnArg2.pointer, task);
     taskKill(work->helper1);
     taskKill(work->helper2);
 }
@@ -1278,10 +1278,10 @@ void func_actor_461800_80133554(Task* task)
 
 /// `Task::exitCallback` of the second variant: hands the task's `Enemy`
 /// (parked in `Task::spawnArg2` by the spawn descriptor) back to
-/// `Gp_DestroyEnemy`.
+/// `enemyDestroy`.
 void footstepWalkExit(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
+    enemyDestroy(task->spawnArg2.pointer, task);
 }
 
 #include "../../shared/footstep_walk_play_steps.inc.c"

@@ -84,7 +84,7 @@ void sucklercephDeathState(Enemy* enemy, Task* task)
                 case 2:
                     work->field_2B6++;
                     if (work->field_2B6 >= 0x3D) {
-                        Gp_DestroyEnemy(enemy, task);
+                        enemyDestroy(enemy, task);
                     }
                     return;
             }

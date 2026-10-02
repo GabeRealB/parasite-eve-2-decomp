@@ -416,7 +416,7 @@ static void func_actor_312200_80163178(Enemy* enemy, Task* task)
     work       = mem;
     task->work = mem;
     if (mem == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     tmd               = task->extra.tmd;
@@ -675,7 +675,7 @@ static void func_actor_312200_801637CC(Task* task)
 static const GpEnemyTaskFuncTable3 D_actor_312200_80161E24 = {
     func_actor_312200_80163178,
     func_actor_312200_80163370,
-    Gp_DestroyEnemy,
+    enemyDestroy,
 };
 
 /// Runs the handler `Task::state` selects from `D_actor_312200_80161E24`,

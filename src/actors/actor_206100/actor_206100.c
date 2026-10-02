@@ -644,7 +644,7 @@ static void func_actor_206100_8014DD3C(Task* task);
 
 /// Last of the actor's five top-level states (`D_actor_206100_80149E5C`):
 /// hands the task's `Enemy`, parked in `Task::spawnArg2`, back to
-/// `Gp_DestroyEnemy`.
+/// `enemyDestroy`.
 static void func_actor_206100_8014F490(Task* task);
 
 /// Copies the 3x3 rotation of `src` into `dst`, leaving `dst`'s translation
@@ -1886,7 +1886,7 @@ static void func_actor_206100_8014C274(Task* task)
     task->work = memCalloc(0x558, 0);
     work       = (Actor206100Work*)task->work;
     if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     D_neo_ark_submarine_gallery_801818B8 = 1;
@@ -3607,7 +3607,7 @@ void func_actor_206100_8014F428(Task* task)
 
 static void func_actor_206100_8014F490(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
+    enemyDestroy(task->spawnArg2.pointer, task);
 }
 
 static void func_actor_206100_8014F4B8(MATRIX* src, MATRIX* dst)

@@ -22,7 +22,7 @@ void footstepWalkSpawn(Enemy* enemy, Task* task)
     gFootstepWalkWork = work;
     task->work        = work;
     if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     task->exitCallback               = footstepWalkExit;

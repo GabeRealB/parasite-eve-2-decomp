@@ -671,7 +671,7 @@ static void Actor01200_Fn00A6C(Enemy* arg0, Task* arg1)
     work       = memCalloc(sizeof(Actor01200Work), 0);
     arg1->work = work;
     if (work == NULL) {
-        Gp_DestroyEnemy(arg0, arg1);
+        enemyDestroy(arg0, arg1);
         return;
     }
     arg1->msgTable = Actor01200_D07058;
@@ -1579,7 +1579,7 @@ static const GpEnemyTaskFuncTable3 Actor01200_D0010C = {
     {
         Actor01200_Fn00A6C,
         Actor01200_Fn036B0,
-        Gp_DestroyEnemy,
+        enemyDestroy,
     }
 };
 

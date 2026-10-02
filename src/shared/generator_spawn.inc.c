@@ -19,7 +19,7 @@ void generatorSpawn(Enemy* arg0, Task* arg1)
     coord = obj->coords;
     work  = memCalloc(0x340, 0);
     if (work == NULL) {
-        Gp_DestroyEnemy(arg0, arg1);
+        enemyDestroy(arg0, arg1);
         return;
     }
     arg1->work          = work;

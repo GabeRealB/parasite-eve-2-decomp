@@ -481,7 +481,7 @@ static void func_actor_521100_80135DDC(Enemy* spawnArg2, Task* task)
     D_actor_521100_8016A3D8 = mem;
     task->work              = mem;
     if (mem == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     task->exitCallback               = func_actor_521100_801366FC;
@@ -727,10 +727,10 @@ static void func_actor_521100_80136680(Enemy* arg0, Task* task)
 }
 
 /// `Task::exitCallback` the create state `func_actor_521100_80135DDC`
-/// installs: hands the task's `Enemy` back to `Gp_DestroyEnemy`.
+/// installs: hands the task's `Enemy` back to `enemyDestroy`.
 static void func_actor_521100_801366FC(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
+    enemyDestroy(task->spawnArg2.pointer, task);
 }
 
 /// Ticks animation slots 1..0x12 of the actor's animation context.

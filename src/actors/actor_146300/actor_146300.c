@@ -1531,7 +1531,7 @@ static void func_actor_146300_801324AC(Enemy* enemy, Task* task)
     gScriptedWalkWork = work;
     task->work        = work;
     if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     task->exitCallback               = func_actor_146300_801327A4;
@@ -1597,10 +1597,10 @@ static void func_actor_146300_80132728(Enemy* enemy, Task* task)
 }
 
 /// `Task::exitCallback` the spawn routine installs: hands the task's `Enemy`
-/// (parked in `Task::spawnArg2`) back to `Gp_DestroyEnemy`.
+/// (parked in `Task::spawnArg2`) back to `enemyDestroy`.
 static void func_actor_146300_801327A4(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
+    enemyDestroy(task->spawnArg2.pointer, task);
 }
 
 /// Per-frame update: reset mode 1 runs the reseed with the latched reset

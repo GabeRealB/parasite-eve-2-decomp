@@ -32,7 +32,7 @@ void generatorLifeSupportTeardown(Enemy* arg0, Task* arg1)
             }
         }
         if ((s16)part->field_42 >= 0x3D) {
-            Gp_DestroyEnemy(arg0, arg1);
+            enemyDestroy(arg0, arg1);
         }
     }
 }

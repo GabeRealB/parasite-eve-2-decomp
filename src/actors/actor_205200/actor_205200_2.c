@@ -366,7 +366,7 @@ static void func_actor_205200_8014BAE8(Enemy* enemy, Task* task)
     coords = tmd->coords;
     work   = memCalloc(sizeof(Actor205200Work), 0);
     if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     task->work           = work;
@@ -832,7 +832,7 @@ static void func_actor_205200_8014C924(Enemy* arg0, Task* arg1)
     worldTargetUnlinkNode(&arg0->node);
     Gp_UnlinkObj(&work->field_47C);
     Gp_UnlinkObj(&work->field_4E4);
-    Gp_DestroyEnemy(arg0, arg1);
+    enemyDestroy(arg0, arg1);
 }
 
 /// Message 0x7D5 handler, listed in `D_actor_205200_801567D0` beside the 0x7DB

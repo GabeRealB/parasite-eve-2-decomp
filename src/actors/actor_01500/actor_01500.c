@@ -764,7 +764,7 @@ static void Actor01500_Fn00094(Enemy* arg0, Task* arg1)
     coord = obj->coords;
     work  = memCalloc(0x384U, false);
     if (work == NULL) {
-        Gp_DestroyEnemy(arg0, arg1);
+        enemyDestroy(arg0, arg1);
         return;
     }
     arg1->work          = work;
@@ -1711,7 +1711,7 @@ static void Actor01500_Fn01DF0(Enemy* arg0, Task* arg1)
             }
             break;
         case 2:
-            Gp_DestroyEnemy(arg0, arg1);
+            enemyDestroy(arg0, arg1);
             return;
         case 3:
             if (work->field_37E != 0) {

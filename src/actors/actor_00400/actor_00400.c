@@ -2470,19 +2470,19 @@ static void Actor00400_Fn03920(Task* arg0)
     obj                   = arg0->spawnArg2.pointer;
     coord                 = arg0->extra.tmd->coords;
     if ((*spawnArg >> 16) & 1) {
-        Gp_DestroyEnemy(obj, arg0);
+        enemyDestroy(obj, arg0);
         return;
     }
     arg0->work = memCalloc(sizeof(Actor100400Work), 0);
     work       = arg0->work;
     if (work == NULL) {
-        Gp_DestroyEnemy(obj, arg0);
+        enemyDestroy(obj, arg0);
         return;
     }
 
     failed = Actor00400_ApplyAreaConfig(arg0);
     if (failed) {
-        Gp_DestroyEnemy(obj, arg0);
+        enemyDestroy(obj, arg0);
         return;
     }
 
@@ -5859,7 +5859,7 @@ static void Actor00400_Fn0A414(Task* arg0)
     frame           = (u16)work->field_636 + 1;
     work->field_636 = frame;
     if ((s16)frame >= 0x12D) {
-        Gp_DestroyEnemy(arg0->spawnArg2.pointer, arg0);
+        enemyDestroy(arg0->spawnArg2.pointer, arg0);
     }
 }
 

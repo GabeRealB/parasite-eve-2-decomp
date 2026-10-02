@@ -27,5 +27,5 @@ void gluttonExit(Task* arg0)
         Gp_UnlinkObj(&work->hits[8].obj);
         enemy->recs = 0;
     }
-    Gp_DestroyEnemy(enemy, arg0);
+    enemyDestroy(enemy, arg0);
 }

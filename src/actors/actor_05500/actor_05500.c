@@ -637,12 +637,12 @@ AnimationSet* gMaggotCaterpillarAnimSets[15] = {
 
 /// State handlers of the task `maggotCaterpillarPuffTask` dispatches, indexed by the
 /// task's state: `maggotCaterpillarPuffSetup` sets up its collision object,
-/// `maggotCaterpillarPuffTick` runs it, and `Gp_DestroyEnemy` tears it down.
+/// `maggotCaterpillarPuffTick` runs it, and `enemyDestroy` tears it down.
 static const GpEnemyTaskFuncTable3 gMaggotCaterpillarPuffStates = {
     {
         maggotCaterpillarPuffSetup,
         maggotCaterpillarPuffTick,
-        Gp_DestroyEnemy,
+        enemyDestroy,
     },
 };
 

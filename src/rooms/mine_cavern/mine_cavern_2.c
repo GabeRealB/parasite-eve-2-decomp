@@ -2966,7 +2966,7 @@ static void func_mine_cavern_80182E34(Enemy* arg0, Task* arg1)
     work       = mem;
     arg1->work = mem;
     if (mem == NULL) {
-        Gp_DestroyEnemy(arg0, arg1);
+        enemyDestroy(arg0, arg1);
         return;
     }
     arg1->exitCallback                    = func_mine_cavern_80183860;
@@ -3172,7 +3172,7 @@ static void func_mine_cavern_801836D0(Enemy* arg0, Task* arg1)
     work       = mem;
     arg1->work = mem;
     if (mem == NULL) {
-        Gp_DestroyEnemy(arg0, arg1);
+        enemyDestroy(arg0, arg1);
         return;
     }
     arg1->extra.tmd->coords->parent       = &gGfxViewCoord;
@@ -3224,13 +3224,13 @@ static const GpEnemyTaskFuncTable5 D_mine_cavern_8017D7F8 = {
         func_mine_cavern_801830F0,
         func_mine_cavern_80183890,
         func_mine_cavern_801838F4,
-        Gp_DestroyEnemy,
+        enemyDestroy,
     },
 };
 
 /// The second enemy's state handlers, run by `func_mine_cavern_80183C10`.
 static const GpEnemyTaskFuncTable3 D_mine_cavern_8017D80C = {
-    { func_mine_cavern_801836D0, func_mine_cavern_80183AD4, Gp_DestroyEnemy },
+    { func_mine_cavern_801836D0, func_mine_cavern_80183AD4, enemyDestroy },
 };
 
 /// Fourth state handler of `D_mine_cavern_8017D7F8` (`func_mine_cavern_80183A68`
@@ -3353,7 +3353,7 @@ static void func_mine_cavern_80183AD4(Enemy* enemy, Task* task)
 
 /// Runs the current state handler of one of the room's enemies from its
 /// three-entry table - setup (`func_mine_cavern_801836D0`), per-frame tick
-/// (`func_mine_cavern_80183AD4`) or teardown (`Gp_DestroyEnemy`) - copying the
+/// (`func_mine_cavern_80183AD4`) or teardown (`enemyDestroy`) - copying the
 /// table onto the stack before the call.
 void func_mine_cavern_80183C10(Task* task)
 {

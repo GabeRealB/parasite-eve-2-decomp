@@ -19,7 +19,7 @@ void pacedWalkSpawn(Enemy* enemy, Task* task)
     work       = mem;
     task->work = mem;
     if (mem == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     task->exitCallback               = pacedWalkExit;

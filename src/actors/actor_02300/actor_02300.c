@@ -1261,7 +1261,7 @@ static void Actor02300_Fn028AC(Enemy* enemy, Task* actor)
     coord = obj->coords;
     work  = memCalloc(0x6E4, 0);
     if (work == NULL) {
-        Gp_DestroyEnemy(enemy, actor);
+        enemyDestroy(enemy, actor);
         return;
     }
     actor->work                = work;
@@ -1429,7 +1429,7 @@ static void Actor02300_Fn028AC(Enemy* enemy, Task* actor)
 static const GpEnemyTaskFuncTable3 Actor02300_D00060 = {
     golemPawnRookDelayedEffectSpawn,
     golemPawnRookDelayedEffectTick,
-    Gp_DestroyEnemy,
+    enemyDestroy,
 };
 
 void Actor02300_Fn03BA8(Task* arg0)
@@ -1450,7 +1450,7 @@ void Actor02300_Fn03BA8(Task* arg0)
 static const GpEnemyTaskFuncTable3 Actor02300_D0006C = {
     golemPawnRookBurstPartSpawn,
     golemPawnRookBurstPartTick,
-    Gp_DestroyEnemy,
+    enemyDestroy,
 };
 
 void Actor02300_Fn03CE8(Task* arg0)

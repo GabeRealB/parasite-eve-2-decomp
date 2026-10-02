@@ -2020,7 +2020,7 @@ static void Actor00100_Fn02C54(Enemy* arg0, Task* arg1)
     work       = memCalloc(0xC30U, false);
     arg1->work = work;
     if (work == NULL) {
-        Gp_DestroyEnemy(arg0, arg1);
+        enemyDestroy(arg0, arg1);
         return;
     }
     (Gp_IncStateF0Ref)(0);
@@ -3596,7 +3596,7 @@ static const DesertChaserTaskStates gDesertChaserTaskStates = { {
     Actor00100_Fn02C54,
     Actor00100_Fn0A288,
     Actor00100_Fn0BCBC,
-    Gp_DestroyEnemy,
+    enemyDestroy,
 } };
 
 void Actor00100_Fn0B134(void)

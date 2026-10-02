@@ -31,14 +31,14 @@ void gluttonGlobSpawn(Enemy* enemy, Task* task)
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
 
     if (gGluttonEnded == 1) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
 
     work       = memCalloc(sizeof(GluttonGrabWork), false);
     task->work = work;
     if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
 

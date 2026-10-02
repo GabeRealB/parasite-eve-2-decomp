@@ -1733,13 +1733,13 @@ static void func_actor_405800_801334B8(Task* arg0)
     enemy = (Enemy*)arg0->spawnArg2.pointer;
     coord = model->coords;
     if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(4, 8, 0, 0)) {
-        Gp_DestroyEnemy(enemy, arg0);
+        enemyDestroy(enemy, arg0);
         return;
     }
     arg0->work = memCalloc(0x89CU, false);
     work       = (Actor405800Work*)arg0->work;
     if (work == NULL) {
-        Gp_DestroyEnemy(enemy, arg0);
+        enemyDestroy(enemy, arg0);
         return;
     }
     gStageSceneMusicEntry = 2;
@@ -3965,7 +3965,7 @@ static void func_actor_405800_80138F54(Task* task)
     count           = work->field_842 + 1;
     work->field_842 = count;
     if ((s16)count >= 0x12D) {
-        Gp_DestroyEnemy((Enemy*)task->spawnArg2.pointer, task);
+        enemyDestroy(task->spawnArg2.pointer, task);
     }
 }
 

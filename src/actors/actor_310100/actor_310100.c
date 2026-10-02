@@ -11,6 +11,7 @@
 #include "gameplay/animation.h"
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
+#include "gameplay/enemy.h"
 #include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
@@ -1022,7 +1023,7 @@ void func_actor_310100_801627BC(Task* task)
         case 0:
             task->work = memMalloc(sizeof(Actor310100Work), false);
             if (task->work == NULL) {
-                Gp_DestroyEnemy(task->spawnArg2.pointer, task);
+                enemyDestroy(task->spawnArg2.pointer, task);
                 return;
             }
             task->msgTable = D_actor_310100_801798B4;
@@ -1094,7 +1095,7 @@ void func_actor_310100_801629FC(Task* task)
         case 0:
             task->work = (work = memMalloc(sizeof(Actor310100Work), false));
             if (work == NULL) {
-                Gp_DestroyEnemy(task->spawnArg2.pointer, task);
+                enemyDestroy(task->spawnArg2.pointer, task);
                 return;
             }
             task->msgTable  = D_actor_310100_801798B4;

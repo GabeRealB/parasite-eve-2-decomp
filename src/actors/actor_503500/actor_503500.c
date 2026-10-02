@@ -962,10 +962,10 @@ static void func_actor_503500_80132430(Task* arg0)
 
 /// `Task::exitCallback` of the actor's main task, and the third entry of its
 /// state table: hands the `Enemy` the spawn left in `Task::spawnArg2` back to
-/// `Gp_DestroyEnemy`.
+/// `enemyDestroy`.
 static void func_actor_503500_801324C4(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
+    enemyDestroy(task->spawnArg2.pointer, task);
 }
 
 static void func_actor_503500_801324EC(Task* arg0)

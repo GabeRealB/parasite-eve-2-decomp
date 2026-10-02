@@ -409,7 +409,7 @@ void func_actor_110800_801322FC(Task* arg0)
 void viewFigureExit(Task* arg0)
 {
     taskKill(gActorHelperTask);
-    Gp_DestroyEnemy(arg0->spawnArg2.pointer, arg0);
+    enemyDestroy(arg0->spawnArg2.pointer, arg0);
 }
 
 #include "../../shared/view_figure_step_anim.inc.c"

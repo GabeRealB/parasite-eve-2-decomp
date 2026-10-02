@@ -621,7 +621,7 @@ static void func_actor_207200_8014B278(Enemy* arg0, Task* arg1)
     part6 = coord + 6;
     part3 = coord + 3;
     if (work == NULL) {
-        Gp_DestroyEnemy(arg0, arg1);
+        enemyDestroy(arg0, arg1);
         return;
     }
     arg1->work          = work;
@@ -1382,7 +1382,7 @@ static void func_actor_207200_8014CA84(Enemy* arg0, Task* arg1)
                     }
                     break;
                 case 3:
-                    Gp_DestroyEnemy(arg0, arg1);
+                    enemyDestroy(arg0, arg1);
                     return;
             }
             Actor207200_TickAnim(arg1);

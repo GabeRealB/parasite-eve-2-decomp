@@ -38,13 +38,13 @@ void gluttonRainSpawn(Enemy* enemy, Task* task)
     parent = task->parent;
 
     if (gGluttonEnded == 1) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     work       = memCalloc(sizeof(GluttonDropWork), false);
     task->work = work;
     if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
 

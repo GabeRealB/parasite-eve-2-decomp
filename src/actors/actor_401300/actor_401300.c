@@ -2209,7 +2209,7 @@ static void func_actor_401300_80134454(Enemy* enemy, Task* actor)
     work        = memCalloc(0xD7C, 0);
     actor->work = work;
     if (work == NULL) {
-        Gp_DestroyEnemy(enemy, actor);
+        enemyDestroy(enemy, actor);
         return;
     }
     if ((actor->spawnArg1.value >> 16) != 2) {
@@ -5735,7 +5735,7 @@ void func_actor_401300_8014148C(void)
 static const GpEnemyTaskFuncTable3 D_actor_401300_8013201C = { {
     func_actor_401300_80134454,
     func_actor_401300_801405DC,
-    Gp_DestroyEnemy,
+    enemyDestroy,
 } };
 
 s32 func_actor_401300_80141494(Task* arg0, s32 arg1, AnimationPlayRequest* arg2)
@@ -5814,7 +5814,7 @@ static void func_actor_401300_80141758(Task* task)
         Gp_UnlinkObj(&work->field_AB0);
         enemy->recs = 0;
     }
-    Gp_DestroyEnemy(enemy, task);
+    enemyDestroy(enemy, task);
 }
 
 static s32 func_actor_401300_801417F0(Task* arg0)

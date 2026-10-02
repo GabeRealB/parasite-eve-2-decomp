@@ -4595,7 +4595,7 @@ static const char _gPatrolNoPairMsg[] = "s->root_cnt == 0xff about \n";
 
 /// The bridge enemy's three state handlers: setup, per-frame tick and teardown.
 static const GpEnemyTaskFuncTable3 D_acropolis_bridge_8017D6E8 = {
-    { func_acropolis_bridge_80185988, func_acropolis_bridge_80187850, Gp_DestroyEnemy }
+    { func_acropolis_bridge_80185988, func_acropolis_bridge_80187850, enemyDestroy }
 };
 
 #include "../../shared/glow_draw_tinted_disc_no_bias.inc.c"
@@ -4951,7 +4951,7 @@ static void func_acropolis_bridge_80185988(Enemy* enemy, Task* task)
     work       = memCalloc(sizeof(AcropolisBridgeEnemyWork), 0);
     task->work = work;
     if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     obj2            = task->extra.tmd;

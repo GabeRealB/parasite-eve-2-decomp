@@ -2271,7 +2271,7 @@ void func_actor_460200_801327B4(Task* task)
 
 void pacedWalkExit(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
+    enemyDestroy(task->spawnArg2.pointer, task);
 }
 
 #include "../../shared/walker_shadow.inc.c"
@@ -2329,7 +2329,7 @@ void func_actor_460200_801330C8(Task* task)
 
 void strideWalkExit(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
+    enemyDestroy(task->spawnArg2.pointer, task);
 }
 
 /// A further copy of the shadow, under this file's own name.
@@ -2393,7 +2393,7 @@ void func_actor_460200_8013386C(Task* task)
 }
 
 /// Spawn routine of the actor whose `func_actor_460200_80133A88` exit path
-/// hands it back to `Gp_DestroyEnemy`: it allocates the 0x4F8 work block (the
+/// hands it back to `enemyDestroy`: it allocates the 0x4F8 work block (the
 /// matrix pair its sub-model reads through `TmdObject::lightMtx`/`colorMtx`
 /// plus the animation state below), parks the enemy in `Actor160600Work::enemy`
 /// and runs the step body `func_actor_460200_801336B4` once in state 2.
@@ -2411,7 +2411,7 @@ static void func_actor_460200_801338C0(Enemy* enemy, Task* task)
     workMem = memCalloc(0x4F8, 0);
     work    = (Actor160600Work*)workMem;
     if ((task->work = work) == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     task->exitCallback               = func_actor_460200_80133A88;
@@ -2448,7 +2448,7 @@ static void func_actor_460200_801338C0(Enemy* enemy, Task* task)
 
 static void func_actor_460200_80133A88(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
+    enemyDestroy(task->spawnArg2.pointer, task);
 }
 
 /// A further copy of the shadow, under this file's own name.

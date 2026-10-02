@@ -29,7 +29,7 @@ void maggotCaterpillarSpawn(Enemy* ctx, Task* actor)
     coord = obj->coords;
     work  = memCalloc(sizeof(MaggotCaterpillarWork), 0);
     if (work == NULL) {
-        Gp_DestroyEnemy(ctx, actor);
+        enemyDestroy(ctx, actor);
         return;
     }
     actor->work         = work;

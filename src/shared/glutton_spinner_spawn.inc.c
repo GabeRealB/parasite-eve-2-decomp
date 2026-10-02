@@ -6,20 +6,20 @@
 /// allocate its `GluttonSpinnerWork`, parent the model object to the world
 /// coordinate, give it a random orientation off `gRandomLcgState`, point it at its
 /// own light and colour matrices and step the task on. Bails to
-/// `Gp_DestroyEnemy` when the overlay is shutting down or the allocation fails.
+/// `enemyDestroy` when the overlay is shutting down or the allocation fails.
 void gluttonSpinnerSpawn(Enemy* enemy, Task* task)
 {
     GluttonSpinnerWork* work;
 
     if (gGluttonEnded == 1) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
 
     work       = memCalloc(0xA0, 0);
     task->work = work;
     if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
 

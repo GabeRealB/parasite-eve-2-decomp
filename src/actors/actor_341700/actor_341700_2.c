@@ -1062,7 +1062,7 @@ static void func_actor_341700_8016CC9C(Enemy* arg0, Task* arg1)
 static const GpEnemyTaskFuncTable3 D_actor_341700_80162064 = { {
     func_actor_341700_8016D130,
     func_actor_341700_8016CC9C,
-    Gp_DestroyEnemy,
+    enemyDestroy,
 } };
 
 s32 func_actor_341700_8016CE28(Task* task, s32 arg1, s32 arg2)
@@ -1142,7 +1142,7 @@ static void func_actor_341700_8016D130(Enemy* arg0, Task* arg1)
     work           = workAllocation;
     arg1->work     = workAllocation;
     if (workAllocation == NULL) {
-        Gp_DestroyEnemy(arg0, arg1);
+        enemyDestroy(arg0, arg1);
         return;
     }
     coord->parent                         = &gGfxViewCoord;

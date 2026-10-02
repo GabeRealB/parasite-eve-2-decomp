@@ -2721,7 +2721,7 @@ static void func_actor_510900_801397F0(Enemy* arg0, Task* arg1)
     parentCoord  = &parentCoords[3];
     work         = memCalloc(sizeof(Actor510900ChildFx), false);
     if (work == NULL) {
-        Gp_DestroyEnemy(arg0, arg1);
+        enemyDestroy(arg0, arg1);
         return;
     }
     arg1->work    = work;
@@ -2992,7 +2992,7 @@ static void func_actor_510900_8013A100(Enemy* enemy, Task* task)
                 if (tick >= 0x1F) {
                     parent->field_5BA = 0;
                     Gp_UnlinkObj(&work->obj40);
-                    Gp_DestroyEnemy(enemy, task);
+                    enemyDestroy(enemy, task);
                 }
                 break;
         }
@@ -3095,7 +3095,7 @@ static void func_actor_510900_8013A5B8(Enemy* enemy, Task* task)
     work   = memCalloc(sizeof(Actor510900ChildAnim), 0);
     coord  = &coords[10];
     if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     task->work                 = work;
@@ -3384,7 +3384,7 @@ static void func_actor_510900_8013AD90(Enemy* enemy, Task* task)
     coord = task->extra.tmd->coords;
     work  = memCalloc(sizeof(Actor510900ChildWork), false);
     if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     mat                 = (GfxRotationWords*)&coord->coord;
@@ -3680,7 +3680,7 @@ void func_actor_510900_8013B608(Task* arg0)
     Gp_UnlinkObj(&work->obj47C);
     Gp_UnlinkObj(&work->obj4E4);
     Gp_UnlinkObj(&work->obj504);
-    Gp_DestroyEnemy(arg0->spawnArg2.pointer, arg0);
+    enemyDestroy(arg0->spawnArg2.pointer, arg0);
 }
 
 static void func_actor_510900_8013B658(Enemy* arg0, Task* arg1)
@@ -4167,7 +4167,7 @@ static void func_actor_510900_8013C380(Task* arg0)
     worldTargetUnlinkNode(&enemy->node);
     Gp_UnlinkObj(&work->obj2BC);
     Gp_UnlinkObj(&work->obj2F4);
-    Gp_DestroyEnemy(enemy, arg0);
+    enemyDestroy(enemy, arg0);
 }
 
 void func_actor_510900_8013C3DC(Task* task)
@@ -4188,5 +4188,5 @@ static void func_actor_510900_8013C430(Task* arg0)
     worldTargetUnlinkNode(&enemy->node);
     Gp_UnlinkObj(&work->obj0);
     Gp_UnlinkObj(&work->obj38);
-    Gp_DestroyEnemy(enemy, arg0);
+    enemyDestroy(enemy, arg0);
 }

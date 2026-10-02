@@ -1571,10 +1571,10 @@ void func_actor_161500_801326E8(Task* task)
 #include "../../shared/stride_walk_frame.inc.c"
 
 /// The actor's `Task::exitCallback`: hands the task's `Enemy`, parked in
-/// `Task::spawnArg2`, back to `Gp_DestroyEnemy`.
+/// `Task::spawnArg2`, back to `enemyDestroy`.
 void strideWalkExit(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
+    enemyDestroy(task->spawnArg2.pointer, task);
 }
 
 #include "../../shared/walker_shadow.inc.c"

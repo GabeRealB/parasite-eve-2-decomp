@@ -1256,7 +1256,7 @@ extern Actor05600Storage8114 gGolemPawnRookImpactSound;
 static const GpEnemyTaskFuncTable3 Actor05600_D00080 = {
     golemPawnRookGunSpawn,
     golemPawnRookGunTick,
-    Gp_DestroyEnemy,
+    enemyDestroy,
 };
 
 void Actor05600_Fn04A70(Task* arg0)

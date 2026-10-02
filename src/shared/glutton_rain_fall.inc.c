@@ -6,7 +6,7 @@
 /// it reaches floor level, zero the height, restart the step counter, tell the
 /// trailing `Gp_SpawnEff` effect to wind down, play the landing cue and step
 /// the task on. Either way the work block's own coordinate is left tracking
-/// the model. Bails to `Gp_DestroyEnemy` when the overlay is shutting down.
+/// the model. Bails to `enemyDestroy` when the overlay is shutting down.
 void gluttonRainFall(Enemy* enemy, Task* task)
 {
     GluttonDropWork* work;
@@ -19,7 +19,7 @@ void gluttonRainFall(Enemy* enemy, Task* task)
     work = task->work;
     if (gGluttonEnded == 1) {
         Gp_UnlinkObj(&work->obj);
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
 

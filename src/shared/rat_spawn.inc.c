@@ -16,7 +16,7 @@ void ratSpawn(Enemy* ctx, Task* actor)
     coord = obj->coords;
     work  = memCalloc(0x39CU, false);
     if (work == NULL) {
-        Gp_DestroyEnemy(ctx, actor);
+        enemyDestroy(ctx, actor);
         return;
     }
     actor->work         = work;

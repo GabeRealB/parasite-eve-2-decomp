@@ -1199,7 +1199,7 @@ void func_actor_535700_80132478(Task* task)
 /// down the enemy the task was spawned for.
 void footstepWalkExit(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
+    enemyDestroy(task->spawnArg2.pointer, task);
 }
 
 #include "../../shared/footstep_walk_play_steps.inc.c"
@@ -1285,7 +1285,7 @@ void func_actor_535700_80132F20(Task* task)
 /// down the enemy the task was spawned for.
 void pairWalkExit(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
+    enemyDestroy(task->spawnArg2.pointer, task);
 }
 
 /// A further copy of the shadow, under this file's own name.

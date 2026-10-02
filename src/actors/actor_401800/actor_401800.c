@@ -1177,7 +1177,7 @@ static void func_actor_401800_8013423C(Enemy* enemy, Task* actor)
     work        = memCalloc(0xC78, 0);
     actor->work = work;
     if (work == NULL) {
-        Gp_DestroyEnemy(enemy, actor);
+        enemyDestroy(enemy, actor);
         return;
     }
     (Gp_IncStateF0Ref)(0);
@@ -2130,7 +2130,7 @@ void func_actor_401800_8013DCB4(void)
 static const GpEnemyTaskFuncTable3 D_actor_401800_80132064 = { {
     func_actor_401800_8013423C,
     oddStrangerTick,
-    Gp_DestroyEnemy,
+    enemyDestroy,
 } };
 
 #include "../../shared/odd_stranger_play_message.inc.c"

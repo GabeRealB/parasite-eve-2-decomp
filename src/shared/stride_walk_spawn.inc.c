@@ -18,7 +18,7 @@ void strideWalkSpawn(Enemy* enemy, Task* task)
     work       = memCalloc(0x4FC, false);
     task->work = work;
     if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     task->exitCallback               = strideWalkExit;

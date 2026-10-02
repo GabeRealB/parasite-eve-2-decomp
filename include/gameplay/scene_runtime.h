@@ -29,8 +29,6 @@ s32 func_800B0118(s32 arg0, s32 arg1);
 
 Enemy* Gp_SpawnEnemyFromTable(TaskDesc* table, s32 idx, s32 arg2, Enemy* parent);
 
-void Gp_DestroyEnemy(Enemy* enemy, Task* task);
-
 void Gp_EnemyTaskExit(Task* task);
 
 /// Copies `arg1`'s matrix onto the coordinate at `Task::extra.coordBody->coord`,

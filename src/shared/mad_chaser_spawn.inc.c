@@ -28,7 +28,7 @@ void madChaserSpawn(Task* task)
     task->work = memCalloc(0x454, 0);
     work       = (MadChaserWork*)task->work;
     if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     madChaserLoadSoundBank();

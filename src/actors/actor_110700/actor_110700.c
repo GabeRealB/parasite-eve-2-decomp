@@ -262,7 +262,7 @@ static void func_actor_110700_80131E78(Enemy* enemy, Task* task)
     coord = obj->coords;
     work  = memCalloc(sizeof(Actor110700Work), false);
     if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     task->work    = work;

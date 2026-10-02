@@ -31,7 +31,7 @@ void skullStalkerDeathState(Enemy* arg0, Task* arg1)
         skullStalkerFlatten(arg1);
         work->field_28A++;
         if (work->field_28A >= 0x3D) {
-            Gp_DestroyEnemy(arg0, arg1);
+            enemyDestroy(arg0, arg1);
         }
         return;
     }

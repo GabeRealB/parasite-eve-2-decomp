@@ -254,12 +254,12 @@ static void func_actor_205200_8014A72C(Enemy* enemy, Task* task)
 
     kind = enemy->place->mode;
     if ((u16)(kind - 1) >= 3) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     work = memCalloc(sizeof(*work), false);
     if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     task->work                    = work;
@@ -439,7 +439,7 @@ static void func_actor_205200_8014AE0C(Enemy* arg0, Task* arg1)
     pwork = (Actor205200CtrlWork*)arg1->parent->work;
     part  = memCalloc(0x7CU, false);
     if (part == NULL) {
-        Gp_DestroyEnemy(arg0, arg1);
+        enemyDestroy(arg0, arg1);
         return;
     }
     arg1->work     = part;

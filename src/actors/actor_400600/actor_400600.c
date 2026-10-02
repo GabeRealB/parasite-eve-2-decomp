@@ -2145,7 +2145,7 @@ static void func_actor_400600_80133434(Task* arg0)
     arg0->work = memCalloc(0x770U, false);
     work       = (Actor400600Work*)arg0->work;
     if (work == NULL) {
-        Gp_DestroyEnemy(enemy, arg0);
+        enemyDestroy(enemy, arg0);
         return;
     }
     func_actor_400600_8013B640();
@@ -4842,7 +4842,7 @@ static void func_actor_400600_8013AB44(Task* arg0)
     frame           = work->field_718 + 1;
     work->field_718 = frame;
     if ((s16)frame >= 0x97) {
-        Gp_DestroyEnemy(arg0->spawnArg2.pointer, arg0);
+        enemyDestroy(arg0->spawnArg2.pointer, arg0);
     }
 }
 

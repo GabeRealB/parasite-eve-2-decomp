@@ -1284,7 +1284,7 @@ static void Actor00300_Fn00970(Enemy* enemy, Task* task)
     coord = obj->coords;
     work  = memCalloc(sizeof(Actor00300MainWork), 0);
     if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     task->work      = work;
@@ -2864,7 +2864,7 @@ common:
             Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
             return;
         case 2:
-            Gp_DestroyEnemy(arg0, arg1);
+            enemyDestroy(arg0, arg1);
             return;
         case 3:
             if (work->field_682 != 0) {
@@ -2962,7 +2962,7 @@ static void Actor00300_Fn040A4(Enemy* arg0, Task* arg1)
     parentWork                               = (Actor100300Work*)parent->work;
     work                                     = memCalloc(0x8C, 0);
     if (work == NULL) {
-        Gp_DestroyEnemy(arg0, arg1);
+        enemyDestroy(arg0, arg1);
         return;
     }
     arg1->work         = work;
@@ -3230,12 +3230,12 @@ static void Actor00300_Fn04A2C(Task* arg0)
 
 /// State handlers of the task `Actor00300_Fn05138` dispatches, indexed by
 /// `Task::state`: a setup that attaches the coordinate to the parent's and
-/// moves to state 1, an empty state, and `Gp_DestroyEnemy`.
+/// moves to state 1, an empty state, and `enemyDestroy`.
 static const GpEnemyTaskFuncTable3 Actor00300_D0003C = {
     {
         Actor00300_Fn05194,
         Actor00300_Fn03F40,
-        Gp_DestroyEnemy,
+        enemyDestroy,
     },
 };
 
@@ -3486,7 +3486,7 @@ static void Actor00300_Fn05278(Enemy* arg0, Task* arg1)
             timer       = work->timer - 1;
             work->timer = timer;
             if ((s16)timer <= 0) {
-                Gp_DestroyEnemy(arg0, arg1);
+                enemyDestroy(arg0, arg1);
             }
             return;
     }
@@ -3548,7 +3548,7 @@ s32 Actor00300_Fn05434(Task* arg0, s32 arg1, ActorCommand* args)
         Gp_UnlinkObj(&work->obj538);
         Gp_UnlinkObj(&work->obj4D0);
         Gp_UnlinkObj(&work->obj5B8);
-        Gp_DestroyEnemy(enemy, arg0);
+        enemyDestroy(enemy, arg0);
     }
     return 0;
 }

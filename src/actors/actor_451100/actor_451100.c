@@ -1475,7 +1475,7 @@ static void func_actor_451100_80131E24(Enemy* enemy, Task* task)
     gFootstepWalkWork = work;
     task->work        = work;
     if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     task->exitCallback               = func_actor_451100_801323B4;
@@ -1533,7 +1533,7 @@ void func_actor_451100_801322D4(Task* task)
 /// actor's task: tears down the enemy the task was spawned for.
 static void func_actor_451100_801323B4(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
+    enemyDestroy(task->spawnArg2.pointer, task);
 }
 
 #include "../../shared/footstep_walk_tick_anim.inc.c"
@@ -1628,7 +1628,7 @@ static void func_actor_451100_801328A8(Enemy* enemy, Task* task)
     work       = (Actor150400Work*)block;
     task->work = block;
     if (block == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     task->exitCallback               = func_actor_451100_80132CAC;
@@ -1685,7 +1685,7 @@ void func_actor_451100_80132BD4(Task* task)
 /// actor's task: tears down the enemy the task was spawned for.
 static void func_actor_451100_80132CAC(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
+    enemyDestroy(task->spawnArg2.pointer, task);
 }
 
 /// A further copy of the shadow, under this file's own name.

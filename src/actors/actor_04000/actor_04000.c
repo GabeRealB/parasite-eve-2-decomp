@@ -1385,7 +1385,7 @@ static void Actor04000_Fn010B8(Enemy* arg0, Task* arg1)
     work       = memCalloc(sizeof(Actor104000Work), 0);
     arg1->work = work;
     if (work == NULL) {
-        Gp_DestroyEnemy(arg0, arg1);
+        enemyDestroy(arg0, arg1);
         return;
     }
     coord->parent   = &gGfxViewCoord;
@@ -3209,7 +3209,7 @@ static void Actor04000_Fn06D38(Enemy* arg0, Task* arg1)
 static const GpEnemyTaskFuncTable3 Actor04000_D00240 = {
     Actor04000_Fn010B8,
     Actor04000_Fn05F0C,
-    Gp_DestroyEnemy,
+    enemyDestroy,
 };
 
 /// The enemy task's callback: runs the handler for the task's current state,

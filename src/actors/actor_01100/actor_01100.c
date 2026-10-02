@@ -3713,7 +3713,7 @@ static void Actor01100_Fn0668C(Task* task)
     }
     coord           = task->extra.tmd->coords;
     coord[1].parent = coord;
-    Gp_DestroyEnemy(enemy, task);
+    enemyDestroy(enemy, task);
 }
 
 /// Message 0x7D5 handler: switches the enemy's model and collision bodies between

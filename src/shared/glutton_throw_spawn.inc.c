@@ -28,7 +28,7 @@ void gluttonThrowSpawn(Enemy* enemy, Task* task)
     if (gGluttonEnded == 1 || host->field_0 == 0x10 || host->field_0 == 5 ||
         host->field_0 == 0xC || host->field_0 == 0x12 ||
         (work = memCalloc(sizeof(GluttonGrabWork), false), task->work = work, work == NULL)) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
 

@@ -974,7 +974,7 @@ static void func_actor_223600_8014B540(Enemy* enemy, Task* task)
     work       = memCalloc(sizeof(Actor223600Work), false);
     task->work = work;
     if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     coord->parent  = &gGfxViewCoord;
@@ -1441,7 +1441,7 @@ static const GpEnemyTaskFuncTable3 D_actor_223600_80149E58 = {
     {
         func_actor_223600_8014B540,
         func_actor_223600_8014CA00,
-        Gp_DestroyEnemy,
+        enemyDestroy,
     },
 };
 

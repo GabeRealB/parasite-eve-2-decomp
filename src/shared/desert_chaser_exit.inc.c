@@ -4,5 +4,5 @@
 /// task carries.
 void desertChaserExit(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
+    enemyDestroy(task->spawnArg2.pointer, task);
 }

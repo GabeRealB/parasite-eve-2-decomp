@@ -600,7 +600,7 @@ static void func_actor_210600_8014B8C8(Enemy* enemy, Task* task)
     work       = mem;
     task->work = mem;
     if (mem == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     tmd               = task->extra.tmd;
@@ -638,7 +638,7 @@ static const GpEnemyTaskFuncTable3 D_actor_210600_80149E24 = {
     {
         func_actor_210600_8014B8C8,
         func_actor_210600_8014B434,
-        Gp_DestroyEnemy,
+        enemyDestroy,
     },
 };
 

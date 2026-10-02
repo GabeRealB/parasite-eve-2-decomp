@@ -21,7 +21,7 @@ void golemPawnRookBulletDestroy(Enemy* arg0, Task* arg1)
             temp_v0        = work->field_E8 + 1;
             work->field_E8 = temp_v0;
             if ((s16)temp_v0 >= 0x3D) {
-                Gp_DestroyEnemy(arg0, arg1);
+                enemyDestroy(arg0, arg1);
             }
             return;
     }

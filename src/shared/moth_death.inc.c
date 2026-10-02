@@ -83,7 +83,7 @@ void mothDeath(Enemy* arg0, Task* arg1)
                 case 2:
                     work->field_2E0--;
                     if (work->field_2E0 <= 0) {
-                        Gp_DestroyEnemy(arg0, arg1);
+                        enemyDestroy(arg0, arg1);
                     }
                     break;
             }

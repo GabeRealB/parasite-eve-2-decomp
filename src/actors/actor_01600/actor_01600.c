@@ -1385,7 +1385,7 @@ static void Actor01600_Fn001F4(Enemy* ctx, Task* actor)
     work       = memCalloc(0x558U, false);
     next_coord = coord + 1;
     if (work == NULL) {
-        Gp_DestroyEnemy(ctx, actor);
+        enemyDestroy(ctx, actor);
         return;
     }
     actor->work                               = work;
@@ -4352,7 +4352,7 @@ s32 Actor01600_Fn05B08(Task* arg0, s32 arg1, ActorCommand* request)
             break;
         case 8:
             Gp_ReleaseStateF0Add(arg0, 0x10);
-            Gp_DestroyEnemy(ctx, arg0);
+            enemyDestroy(ctx, arg0);
             Actor01600_D12874 -= 1;
             break;
         default:
@@ -4938,7 +4938,7 @@ static void Actor01600_Fn06FDC(Task* arg0, s32 arg1)
     }
     Gp_SetLightMode(ctx, ENEMY_COLOR_WEIGHTED);
     Gp_ReleaseStateF0Add(arg0, 0x10);
-    Gp_DestroyEnemy(ctx, arg0);
+    enemyDestroy(ctx, arg0);
     Actor01600_D12874 -= 1;
 }
 

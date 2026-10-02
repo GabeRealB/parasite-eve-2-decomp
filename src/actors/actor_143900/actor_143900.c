@@ -1230,7 +1230,7 @@ static void func_actor_143900_80131E70(Enemy* enemy, Task* task)
     gScriptedWalkWork = work;
     task->work        = work;
     if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     task->exitCallback               = func_actor_143900_80132404;
@@ -1284,10 +1284,10 @@ void func_actor_143900_80132324(Task* task)
 #undef walkerDrawShadow
 
 /// `Task::exitCallback` of the first variant: hands the task's `Enemy`
-/// (parked in `Task::spawnArg2`) back to `Gp_DestroyEnemy`.
+/// (parked in `Task::spawnArg2`) back to `enemyDestroy`.
 static void func_actor_143900_80132404(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
+    enemyDestroy(task->spawnArg2.pointer, task);
 }
 
 #include "../../shared/walker_shadow_shaded.inc.c"
@@ -1376,7 +1376,7 @@ static void func_actor_143900_801328D4(Enemy* enemy, Task* task)
     D_actor_143900_801496C4 = work;
     task->work              = work;
     if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
+        enemyDestroy(enemy, task);
         return;
     }
     task->exitCallback               = func_actor_143900_80132ECC;
@@ -1456,13 +1456,13 @@ void func_actor_143900_80132DEC(Task* task)
 #undef walkerDrawShadow
 
 /// `Task::exitCallback` of the second variant: hands the task's `Enemy`
-/// (parked in `Task::spawnArg2`) back to `Gp_DestroyEnemy`, then kills the two
+/// (parked in `Task::spawnArg2`) back to `enemyDestroy`, then kills the two
 /// helper tasks the spawn routine started.
 static void func_actor_143900_80132ECC(Task* task)
 {
     Actor461800Work* work = (Actor461800Work*)task->work;
 
-    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
+    enemyDestroy(task->spawnArg2.pointer, task);
     taskKill(work->helper1);
     taskKill(work->helper2);
 }
