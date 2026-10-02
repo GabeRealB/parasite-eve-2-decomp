@@ -4050,13 +4050,13 @@ static inline s32 _gpRelatedQty(s32 item, s32 bank)
 {
     s32 ret;
 
-    item -= 0x80;
+    item -= EQUIPMENT_WEAPON_ITEM_FIRST;
     ret   = 0;
-    if ((u32)item < 0x20) {
+    if ((u32)item < ARRAY_SIZE(Gp_RelatedQty0.rows)) {
         if (bank == 0) {
-            ret = Gp_RelatedQty0.rows[item].field_0;
+            ret = Gp_RelatedQty0.rows[item].capacity;
         } else {
-            ret = Gp_RelatedQty1.rows[item].field_0;
+            ret = Gp_RelatedQty1.rows[item].capacity;
         }
     }
     return ret;

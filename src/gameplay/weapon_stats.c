@@ -848,8 +848,8 @@ void Gp_BuildAttachList(UiList* arg0, s32 arg1)
         SOFT_TOUCH_REG(n);
         i = n;
         do {
-            item = Gp_RelatedQty0.rows[arg1 - 0x80].related[i];
-            if (item != 0) {
+            item = Gp_RelatedQty0.rows[arg1 - EQUIPMENT_WEAPON_ITEM_FIRST].acceptedItemIds[i];
+            if (item != INVENTORY_ITEM_NONE) {
                 qty  = Gp_ScanStackQty(scan, item);
                 qty -= Gp_CountEquippedRelated(scan, item);
                 if (mode == 0 && slot->primaryItemId == item) {
@@ -861,12 +861,12 @@ void Gp_BuildAttachList(UiList* arg0, s32 arg1)
                 }
             }
             i++;
-        } while (i < 3);
+        } while (i < ARRAY_SIZE(Gp_RelatedQty0.rows[0].acceptedItemIds));
     }
     if (mode != 1) {
-        for (i = 0; i < 3; i++) {
-            item = Gp_RelatedQty1.rows[arg1 - 0x80].related[i];
-            if (item != 0) {
+        for (i = 0; i < ARRAY_SIZE(Gp_RelatedQty0.rows[0].acceptedItemIds); i++) {
+            item = Gp_RelatedQty1.rows[arg1 - EQUIPMENT_WEAPON_ITEM_FIRST].acceptedItemIds[i];
+            if (item != INVENTORY_ITEM_NONE) {
                 qty  = Gp_ScanStackQty(scan, item);
                 qty -= Gp_CountEquippedRelated(scan, item);
                 if (mode == 0 && slot->secondaryItemId == item) {

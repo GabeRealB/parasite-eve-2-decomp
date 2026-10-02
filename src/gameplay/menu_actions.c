@@ -685,25 +685,26 @@ void Gp_EquipHeld(s32 arg0)
 
 static s32 Gp_NthStockRelated(InventoryItemRange* arg0, s32 arg1, s32 arg2)
 {
-    s32 i;
-    s32 result;
-    s32 item;
-    s32 qty;
-    s32 mode;
-    s32 idx;
-    s32 temp;
-    u8* table0;
-    u8* table1;
+    s32       i;
+    s32       result;
+    s32       item;
+    s32       qty;
+    s32       mode;
+    s32       idx;
+    s32       temp;
+    const u8* table0;
+    const u8* table1;
 
     result = 0;
     mode   = Gp_ReloadMode;
     if (mode != 2) {
-        i      = 0;
+        i = 0;
+        // Keep the row byte offset separate from the consumable-choice index.
         table0 = Gp_RelatedQty0.bytes;
-        idx    = arg2 - 0x80;
+        idx    = arg2 - EQUIPMENT_WEAPON_ITEM_FIRST;
         do {
-            temp = i + idx * 4;
-            item = table0[temp + 1];
+            temp = i + idx * (s32)sizeof(EquipmentWeaponLoadOptions);
+            item = table0[temp + OFFSET_OF(EquipmentWeaponLoadOptions, acceptedItemIds)];
             qty  = Gp_ScanStackQty(arg0, item);
             qty -= Gp_CountEquippedRelated(arg0, item);
             if (qty > 0) {
@@ -714,16 +715,16 @@ static s32 Gp_NthStockRelated(InventoryItemRange* arg0, s32 arg1, s32 arg2)
                 }
             }
             i++;
-        } while (i < 3);
+        } while (i < ARRAY_SIZE(Gp_RelatedQty0.rows[0].acceptedItemIds));
     }
     if (mode != 1) {
         if (arg1 >= 0) {
             i      = 0;
             table1 = Gp_RelatedQty1.bytes;
-            idx    = arg2 - 0x80;
+            idx    = arg2 - EQUIPMENT_WEAPON_ITEM_FIRST;
             do {
-                temp = i + idx * 4;
-                item = table1[temp + 1];
+                temp = i + idx * (s32)sizeof(EquipmentWeaponLoadOptions);
+                item = table1[temp + OFFSET_OF(EquipmentWeaponLoadOptions, acceptedItemIds)];
                 qty  = Gp_ScanStackQty(arg0, item);
                 qty -= Gp_CountEquippedRelated(arg0, item);
                 if (qty > 0) {
@@ -734,7 +735,7 @@ static s32 Gp_NthStockRelated(InventoryItemRange* arg0, s32 arg1, s32 arg2)
                     }
                 }
                 i++;
-            } while (i < 3);
+            } while (i < ARRAY_SIZE(Gp_RelatedQty0.rows[0].acceptedItemIds));
         }
     }
     return result;

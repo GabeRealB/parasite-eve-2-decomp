@@ -242,8 +242,8 @@ void Gp_DrawItemIcon(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
         icon = 9;
         kind = 3;
     } else if (arg3 < 0xA0) {
-        rel = Gp_RelatedQty0.rows[arg3 - 0x80].related[0];
-        if (rel == 0) {
+        rel = Gp_RelatedQty0.rows[arg3 - EQUIPMENT_WEAPON_ITEM_FIRST].acceptedItemIds[0];
+        if (rel == INVENTORY_ITEM_NONE) {
             icon = 2;
         } else {
             switch (Gp_ItemDescs[rel].classification & ITEM_SUBTYPE_MASK) {
@@ -1302,8 +1302,8 @@ void Gp_CountAmmoRows(UiList* arg0, s32 arg1)
     InventoryItemRow*          rec2;
     InventoryItemRange*        scan;
     PlayerStatus*              cfg;
-    u8*                        table0;
-    u8*                        table1;
+    const u8*                  table0;
+    const u8*                  table1;
 
     count = 0;
     // Byte offsets select whole rows; accesses resume through the row type.
@@ -1319,12 +1319,13 @@ void Gp_CountAmmoRows(UiList* arg0, s32 arg1)
     item  = scan->firstRow;
     i     = count;
     if (count < limit) {
+        // Search the primary and secondary load choices as packed row bytes.
         table0 = Gp_RelatedQty0.bytes;
         table1 = Gp_RelatedQty1.bytes;
         temp   = (u8)item * sizeof(InventoryItemRow);
         rec    = (InventoryItemRow*)&rowBytes[temp];
         do {
-            if ((u8)(rec->itemId + 0x80) < 0x20) {
+            if ((u8)(rec->itemId - EQUIPMENT_WEAPON_ITEM_FIRST) < ARRAY_SIZE(Gp_RelatedQty0.rows)) {
                 rec2 = rec;
                 if (arg1 == 0) {
                     goto increment;
@@ -1332,11 +1333,11 @@ void Gp_CountAmmoRows(UiList* arg0, s32 arg1)
                 j = 0;
                 USE_REG(j);
                 item = rec->itemId;
-                off  = (item - 0x80) * sizeof(GpItemQty);
+                off  = (item - EQUIPMENT_WEAPON_ITEM_FIRST) * sizeof(EquipmentWeaponLoadOptions);
                 item = item - 0x7F;
                 do {
                     temp = j + off;
-                    if (table0[temp + OFFSET_OF(GpItemQty, related)] == arg1) {
+                    if (table0[temp + OFFSET_OF(EquipmentWeaponLoadOptions, acceptedItemIds)] == arg1) {
                         if (rec2->attachSlot > INVENTORY_ATTACHMENT_NONE) {
                             count++;
                         } else if (cfg->weapon == item) {
@@ -1345,16 +1346,16 @@ void Gp_CountAmmoRows(UiList* arg0, s32 arg1)
                         break;
                     }
                     j++;
-                } while (j < 3);
+                } while (j < ARRAY_SIZE(Gp_RelatedQty0.rows[0].acceptedItemIds));
 
                 j    = 0;
                 item = rec->itemId;
                 rec2 = rec;
-                off  = (item - 0x80) * sizeof(GpItemQty);
+                off  = (item - EQUIPMENT_WEAPON_ITEM_FIRST) * sizeof(EquipmentWeaponLoadOptions);
                 item = item - 0x7F;
                 do {
                     temp = j + off;
-                    if (table1[temp + OFFSET_OF(GpItemQty, related)] == arg1) {
+                    if (table1[temp + OFFSET_OF(EquipmentWeaponLoadOptions, acceptedItemIds)] == arg1) {
                         if (rec2->attachSlot > INVENTORY_ATTACHMENT_NONE) {
                             goto increment;
                         }
@@ -1366,7 +1367,7 @@ void Gp_CountAmmoRows(UiList* arg0, s32 arg1)
                         goto next;
                     }
                     j++;
-                } while (j < 3);
+                } while (j < ARRAY_SIZE(Gp_RelatedQty0.rows[0].acceptedItemIds));
             }
         next:
             rec++;

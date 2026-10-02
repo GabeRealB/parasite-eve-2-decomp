@@ -16,26 +16,25 @@ typedef struct _GpItemMap {
 } GpItemMap;
 STATIC_ASSERT_SIZEOF(GpItemMap, 0x4);
 
-/// 4-byte entry in `Gp_RelatedQty1` / `Gp_RelatedQty0` (32 entries, item ids
-/// 0x80–0x9F). field_0 is a count (`Gp_GetRelatedQty` / `Gp_ApplyItemMap`);
-/// `related` holds the item ids the weapon accepts, searched in order
-/// (`Gp_BuildAttachList` / `Gp_NthRelatedId` / `Gp_NthStockRelated` /
-/// `Gp_EquipRelatedBank` / `Gp_EquipRelatedItem`).
-/// `Gp_RelatedQty0` describes `EquipmentWeaponLoad::primaryItemId` and
-/// `primaryQty` (arg0 == 0); `Gp_RelatedQty1` describes `secondaryItemId` and
-/// `secondaryQty`.
-/// `Gp_QtyById0` / `Gp_QtyById1` are the same tables indexed by raw item id
-/// (`Gp_RelatedQty0` is `Gp_QtyById0 + 0x200`).
-typedef struct _GpItemQty {
-    /* 0x00 */ u8 field_0;
-    /* 0x01 */ u8 related[3];
-} GpItemQty;
-STATIC_ASSERT_SIZEOF(GpItemQty, 0x4);
+/// Capacity and consumable choices for one weapon's primary or secondary load.
+///
+/// The gameplay tables have one four-byte row per weapon id 0x80..0x9F,
+/// indexed by item id minus `EQUIPMENT_WEAPON_ITEM_FIRST`: `Gp_RelatedQty0`
+/// describes the primary load and `Gp_RelatedQty1` the secondary load in
+/// `EquipmentWeaponLoad`. Quantities count rounds or rechargeable supply units.
+/// All three choices are searched, including slots after an unused zero;
+/// the first choice supplies the ammunition icon and shooting-gallery load.
+/// Row pointers borrow the tables for the gameplay image's lifetime.
+typedef struct {
+    u8 capacity;           // Maximum loaded rounds or supply units (0 no capacity).
+    u8 acceptedItemIds[3]; // Consumable item ids (0 unused, otherwise 0xA0..0xBF), in selection order.
+} EquipmentWeaponLoadOptions;
+STATIC_ASSERT_SIZEOF(EquipmentWeaponLoadOptions, 0x4);
 
 /// The 32 weapon entries, also read as packed bytes by the ammo-row scan.
 typedef union GpRelatedItemTable {
-    GpItemQty rows[32];
-    u8        bytes[32 * sizeof(GpItemQty)];
+    EquipmentWeaponLoadOptions rows[32];
+    u8                         bytes[32 * sizeof(EquipmentWeaponLoadOptions)];
 } GpRelatedItemTable;
 STATIC_ASSERT_SIZEOF(GpRelatedItemTable, 0x80);
 

@@ -320,13 +320,13 @@ s32 Gp_GetRelatedQty(s32 arg0, s32 arg1)
 {
     s32 ret;
 
-    arg0 -= 0x80;
+    arg0 -= EQUIPMENT_WEAPON_ITEM_FIRST;
     ret   = 0;
-    if ((u32)arg0 < 0x20) {
+    if ((u32)arg0 < ARRAY_SIZE(Gp_RelatedQty0.rows)) {
         if (arg1 == 0) {
-            ret = Gp_RelatedQty0.rows[arg0].field_0;
+            ret = Gp_RelatedQty0.rows[arg0].capacity;
         } else {
-            ret = Gp_RelatedQty1.rows[arg0].field_0;
+            ret = Gp_RelatedQty1.rows[arg0].capacity;
         }
     }
     return ret;

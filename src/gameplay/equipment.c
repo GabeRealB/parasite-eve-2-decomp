@@ -33,13 +33,13 @@ static inline s32 _gpRelatedQty(s32 item, s32 bank)
 {
     s32 ret;
 
-    item -= 0x80;
+    item -= EQUIPMENT_WEAPON_ITEM_FIRST;
     ret   = 0;
-    if ((u32)item < 0x20) {
+    if ((u32)item < ARRAY_SIZE(Gp_RelatedQty0.rows)) {
         if (bank == 0) {
-            ret = Gp_RelatedQty0.rows[item].field_0;
+            ret = Gp_RelatedQty0.rows[item].capacity;
         } else {
-            ret = Gp_RelatedQty1.rows[item].field_0;
+            ret = Gp_RelatedQty1.rows[item].capacity;
         }
     }
     return ret;
@@ -152,36 +152,36 @@ done:
 
 s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    s32                  index;
-    InventoryItemRow*    table;
-    InventoryItemRange*  scan;
-    EquipmentWeaponLoad* slot;
-    GpItemQty*           row;
-    s32                  maxQty;
-    s32                  have;
-    s32                  i;
+    s32                               index;
+    InventoryItemRow*                 table;
+    InventoryItemRange*               scan;
+    EquipmentWeaponLoad*              slot;
+    const EquipmentWeaponLoadOptions* row;
+    s32                               maxQty;
+    s32                               have;
+    s32                               i;
 
     scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
     table = Gp_GetItemTable(scan);
-    if ((u32)(arg1 - 0x80) >= 0x20) {
+    if ((u32)(arg1 - EQUIPMENT_WEAPON_ITEM_FIRST) >= ARRAY_SIZE(Gp_RelatedQty0.rows)) {
         return -1;
     }
     if (_gpScanHeldQty(table, scan, arg1) <= 0) {
         return -1;
     }
     if (arg0 == 0) {
-        row    = &Gp_RelatedQty0.rows[arg1 - 0x80];
+        row    = &Gp_RelatedQty0.rows[arg1 - EQUIPMENT_WEAPON_ITEM_FIRST];
         maxQty = _gpRelatedQty(arg1, 0);
     } else {
-        row    = &Gp_RelatedQty1.rows[arg1 - 0x80];
+        row    = &Gp_RelatedQty1.rows[arg1 - EQUIPMENT_WEAPON_ITEM_FIRST];
         maxQty = _gpRelatedQty(arg1, 1);
     }
-    for (i = 0; i < 3; i++) {
-        if (row->related[i] == arg2) {
+    for (i = 0; i < ARRAY_SIZE(row->acceptedItemIds); i++) {
+        if (row->acceptedItemIds[i] == arg2) {
             break;
         }
     }
-    if (i == 3) {
+    if (i == ARRAY_SIZE(row->acceptedItemIds)) {
         return -1;
     }
     if (arg3 < 0) {
@@ -224,40 +224,40 @@ s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 
 s32 Gp_EquipRelatedItem(InventoryItemRange* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    s32                  index;
-    InventoryItemRow*    table;
-    EquipmentWeaponLoad* slot;
-    GpItemQty*           row;
-    s32                  maxQty;
-    s32                  have;
-    s32                  useSecond;
-    s32                  i;
+    s32                               index;
+    InventoryItemRow*                 table;
+    EquipmentWeaponLoad*              slot;
+    const EquipmentWeaponLoadOptions* row;
+    s32                               maxQty;
+    s32                               have;
+    s32                               useSecond;
+    s32                               i;
 
     table     = Gp_GetItemTable(arg0);
     useSecond = 0;
-    if ((u32)(arg2 - 0xA0) >= 0x20 || (u32)(arg1 - 0x80) >= 0x20) {
+    if ((u32)(arg2 - 0xA0) >= 0x20 || (u32)(arg1 - EQUIPMENT_WEAPON_ITEM_FIRST) >= ARRAY_SIZE(Gp_RelatedQty0.rows)) {
         return -1;
     }
     if (_gpScanHeldQty(table, arg0, arg1) <= 0) {
         return -1;
     }
-    row    = &Gp_RelatedQty0.rows[arg1 - 0x80];
+    row    = &Gp_RelatedQty0.rows[arg1 - EQUIPMENT_WEAPON_ITEM_FIRST];
     maxQty = _gpRelatedQty(arg1, 0);
-    for (i = 0; i < 3; i++) {
-        if (row->related[i] == arg2) {
+    for (i = 0; i < ARRAY_SIZE(row->acceptedItemIds); i++) {
+        if (row->acceptedItemIds[i] == arg2) {
             break;
         }
     }
-    if (i == 3) {
+    if (i == ARRAY_SIZE(row->acceptedItemIds)) {
         useSecond = 1;
-        row       = &Gp_RelatedQty1.rows[arg1 - 0x80];
+        row       = &Gp_RelatedQty1.rows[arg1 - EQUIPMENT_WEAPON_ITEM_FIRST];
         maxQty    = _gpRelatedQty(arg1, 1);
-        for (i = 0; i < 3; i++) {
-            if (row->related[i] == arg2) {
+        for (i = 0; i < ARRAY_SIZE(row->acceptedItemIds); i++) {
+            if (row->acceptedItemIds[i] == arg2) {
                 break;
             }
         }
-        if (i == 3) {
+        if (i == ARRAY_SIZE(row->acceptedItemIds)) {
             return -1;
         }
     }

@@ -838,20 +838,20 @@ s32 Gp_NthRelatedId(InventoryItemRange* arg0, s32 arg1, s32 arg2)
     idx   = arg0->firstRow;
     cfg   = &gPlayerStatus;
     while (arg1 >= 0) {
-        if ((u8)(table[idx].itemId + 0x80) < 0x20) {
+        if ((u8)(table[idx].itemId - EQUIPMENT_WEAPON_ITEM_FIRST) < ARRAY_SIZE(Gp_RelatedQty0.rows)) {
             if (arg2 == 0) {
                 arg1--;
             } else {
-                for (i = 0; i < 3; i++) {
-                    if (Gp_RelatedQty0.rows[table[idx].itemId - 0x80].related[i] == arg2) {
+                for (i = 0; i < ARRAY_SIZE(Gp_RelatedQty0.rows[0].acceptedItemIds); i++) {
+                    if (Gp_RelatedQty0.rows[table[idx].itemId - EQUIPMENT_WEAPON_ITEM_FIRST].acceptedItemIds[i] == arg2) {
                         if (table[idx].attachSlot > INVENTORY_ATTACHMENT_NONE || cfg->weapon == table[idx].itemId - 0x7F) {
                             arg1--;
                         }
                         break;
                     }
                 }
-                for (i = 0; i < 3; i++) {
-                    if (Gp_RelatedQty1.rows[table[idx].itemId - 0x80].related[i] == arg2) {
+                for (i = 0; i < ARRAY_SIZE(Gp_RelatedQty0.rows[0].acceptedItemIds); i++) {
+                    if (Gp_RelatedQty1.rows[table[idx].itemId - EQUIPMENT_WEAPON_ITEM_FIRST].acceptedItemIds[i] == arg2) {
                         if (table[idx].attachSlot > INVENTORY_ATTACHMENT_NONE || cfg->weapon == table[idx].itemId - 0x7F) {
                             arg1--;
                         }

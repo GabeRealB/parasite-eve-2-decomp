@@ -1003,15 +1003,15 @@ void func_mist_shooting_gallery_8017DCAC(s32 mode)
 }
 void func_mist_shooting_gallery_8017DE7C(UiList* arg0, UiObject* arg1)
 {
-    s32                 item;
-    s32                 i;
-    s32                 skip;
-    s32                 status;
-    s32                 selected;
-    s32                 ammo;
-    GpItemQty*          row;
-    u8*                 weaponIdx;
-    InventoryItemRange* scan;
+    s32                               item;
+    s32                               i;
+    s32                               skip;
+    s32                               status;
+    s32                               selected;
+    s32                               ammo;
+    const EquipmentWeaponLoadOptions* row;
+    u8*                               weaponIdx;
+    InventoryItemRange*               scan;
 
     item = 0;
     skip = arg0->currentItemIndex;
@@ -1039,8 +1039,8 @@ void func_mist_shooting_gallery_8017DE7C(UiList* arg0, UiObject* arg1)
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             scan       = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
             weaponIdx  = &gPlayerStatus.weapon;
-            row        = &Gp_RelatedQty0.rows[(item)-0x80];
-            ammo       = row->related[0];
+            row        = &Gp_RelatedQty0.rows[item - EQUIPMENT_WEAPON_ITEM_FIRST];
+            ammo       = row->acceptedItemIds[0];
             *weaponIdx = item - 0x7F;
             Gp_ResetScanDefault();
             Gp_ClearScanItems(scan);

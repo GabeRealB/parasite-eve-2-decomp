@@ -30258,7 +30258,7 @@ compete with the prologue.
 
 ## Split `i + idx * 4` so the add is `addu v0, i, off`
 
-A byte walk `table[idx].field_1` at `table + i + (id - K) * 4` wants:
+A byte walk over `acceptedItemIds[i]` at `table + i + (id - K) * 4` wants:
 
 ```
 addiu  v0, a2, -K
@@ -30275,7 +30275,7 @@ the subtract into `addiu s6` / `sll s6, s6, 2`. Split the addend:
 ```c
 idx  = arg2 - 0x80;
 temp = i + idx * 4;
-item = ((GpItemQty*)(temp + (s32)table))->field_1;
+item = table[temp + OFFSET_OF(EquipmentWeaponLoadOptions, acceptedItemIds)];
 ```
 
 Assign the table pointer *before* the subtract so `lui`/`addiu` of the
@@ -33921,7 +33921,7 @@ or else pulls an earlier `lh field_18` out of its `lhu baseX` delay.
 ## Two spilled offset locals for two `i + off + table` loops
 
 A pair of loops that both compute `(id - 0x80) * 4` then
-`((GpItemQty*)(i + off + (s32)table))->field_1` will keep `off` in `$s8`
+`table[i + off + OFFSET_OF(EquipmentWeaponLoadOptions, acceptedItemIds)]` will keep `off` in `$s8`
 (clobbering a live scan pointer) or reuse one stack slot if they share
 one local. Separate `off` / `off2` gives `sw 0x10(sp)` / `sw 0x14(sp)`
 and the `lw a2` / `nop` / `addu v0, s2, a2` form. `Gp_BuildAttachList` is the
@@ -141445,9 +141445,9 @@ same register another address uses as `shift+tbl`, check whether splat's
 symbol is a *virtual base*: here `Gp_QtyById0` is `Gp_RelatedQty0 - 0x200`,
 pointing into unrelated data, and the real object is the 32-entry array.
 Indexing that array with a separate offset variable, the way
-`Gp_GetRelatedQty` does (`item -= 0x80; Gp_RelatedQty0[item].field_0`),
+`Gp_GetRelatedQty` does (`item -= 0x80; Gp_RelatedQty0.rows[item].capacity`),
 makes CSE rebuild it from the base register as `(tbl + 0x200)` via its
-related-value lookup, with the order the target has; `&Gp_RelatedQty0[item -
+related-value lookup, with the order the target has; `&Gp_RelatedQty0.rows[item -
 0x80]` for the row folds to the virtual base. Writing `item - 0x80` inline in
 both places instead lets `fold` merge the two addresses into one.
 
@@ -141784,7 +141784,7 @@ with its own locals gives each copy separate pseudos and cannot reproduce it.
 the shift to `$v0` before an `if` choosing a table pointer, and hand-built the `+0x200`.
 
 **Cause.** The original wrote each arm in full against the *slice* symbol that starts
-0x80 entries into the table: `row = &Gp_RelatedQty0[id - 0x80]; max = _gpRelatedQty(id, 0);`
+0x80 entries into the table: `row = &Gp_RelatedQty0.rows[id - 0x80]; max = _gpRelatedQty(id, 0);`
 (and the `1` arm likewise). `sym[id - k]` folds to `(sym - k*4) + id*4`, so each arm
 loads `sym - 0x200` into one register and the helper's `sym[idx]` becomes `0x200` off it.
 jump2 cross-jumps the two identical helper tails into one, and reorg puts the `sll` that
@@ -143669,7 +143669,7 @@ loop is scanned first and hoists the invariant `table + idx*4` into a new
 pseudo; the outer loop then strength-reduces `table + idx*4` into the walked
 giv, and the hoisted computation becomes a copy of it. Writing every access as
 `table[idx].itemId` / `table[idx].attachSlot`, and `Q[table[idx].itemId -
-0x80].related[i]` for the lookup (which keeps the `(i + off) + base` address
+0x80].acceptedItemIds[i]` for the lookup (which keeps the `(i + off) + base` address
 split), matched with no pins. A `cfg = &gPlayerStatus` local set before the
 `while` is what put its `lui` ahead of the loop-entry test; referenced directly,
 loop.c hoisted it into the preheader after the test.
