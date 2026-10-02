@@ -1197,7 +1197,8 @@ void func_shelter_b6_training_room_80181A3C(Task* task)
     }
 }
 
-#define SPRITE_QUAD_CELL_W        0x28
+#define SPRITE_QUAD_CELL_W 0x28
+/// Number of cells in the training effect's texture row, repeated as the effect ages.
 #define SPRITE_QUAD_CELLS_PER_ROW 6
 #define SPRITE_QUAD_V0            0x38
 #define SPRITE_QUAD_V1            0x5F

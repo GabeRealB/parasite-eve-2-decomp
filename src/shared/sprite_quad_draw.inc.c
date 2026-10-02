@@ -1,5 +1,15 @@
 /* Part of the sprite quad library; see sprite_quad.h. */
 
+#if !defined(SPRITE_QUAD_UV_TABLE)
+#if defined(SPRITE_QUAD_CELLS_PER_ROW)
+#if (SPRITE_QUAD_CELLS_PER_ROW) <= 0
+#error SPRITE_QUAD_CELLS_PER_ROW must be a positive integer constant
+#endif
+#elif defined(SPRITE_QUAD_CELL_H)
+#error A sprite cell grid requires SPRITE_QUAD_CELLS_PER_ROW
+#endif
+#endif
+
 #ifndef SPRITE_QUAD_FUNC
 #define SPRITE_QUAD_FUNC spriteQuadDraw
 #endif
@@ -69,9 +79,10 @@ static void SPRITE_QUAD_FUNC(SPRITE_QUAD_POSITION_SOURCE_TYPE* pos, SPRITE_QUAD_
 #else
 #if defined(SPRITE_QUAD_CELLS_PER_ROW)
 #ifdef SPRITE_QUAD_CELL_H
-            u0 = (s16)(frame % SPRITE_QUAD_CELLS_PER_ROW) * SPRITE_QUAD_CELL_W;
+            u0 = (s16)(frame % (SPRITE_QUAD_CELLS_PER_ROW)) * SPRITE_QUAD_CELL_W;
 #else
-            u0 = (frame % SPRITE_QUAD_CELLS_PER_ROW) * SPRITE_QUAD_CELL_W;
+            // Repeat the strip's column while keeping its texel rows fixed.
+            u0 = (frame % (SPRITE_QUAD_CELLS_PER_ROW)) * SPRITE_QUAD_CELL_W;
 #endif
 #elif defined(SPRITE_QUAD_CELL_MASK)
             u0 = (frame & SPRITE_QUAD_CELL_MASK) * SPRITE_QUAD_CELL_W;
@@ -86,8 +97,8 @@ static void SPRITE_QUAD_FUNC(SPRITE_QUAD_POSITION_SOURCE_TYPE* pos, SPRITE_QUAD_
             u1 = u0 + (SPRITE_QUAD_CELL_W - 1);
 #endif
 #ifdef SPRITE_QUAD_CELL_H
-            /* a grid of cells: the row comes from the frame too */
-            v0 = (s16)(frame / SPRITE_QUAD_CELLS_PER_ROW) * SPRITE_QUAD_CELL_H;
+            // Advance through grid rows; the column count is not a frame limit.
+            v0 = (s16)(frame / (SPRITE_QUAD_CELLS_PER_ROW)) * SPRITE_QUAD_CELL_H;
             setUV4(prim, u0, v0 + SPRITE_QUAD_V0, u0 + (SPRITE_QUAD_CELL_W - 1), v0 + SPRITE_QUAD_V0, u0, v0 + SPRITE_QUAD_V1,
                    u0 + (SPRITE_QUAD_CELL_W - 1), v0 + SPRITE_QUAD_V1);
 #else

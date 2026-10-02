@@ -417,18 +417,20 @@ void func_antibody_8012F734(Task* arg0)
     }
 }
 
-#define SPRITE_QUAD_FUNC          spriteQuadDrawMote
-#define SPRITE_QUAD_TPAGE         0x29
-#define SPRITE_QUAD_CLUT          0x42C6
-#define SPRITE_QUAD_CELL_W        0x28
+#define SPRITE_QUAD_FUNC   spriteQuadDrawMote
+#define SPRITE_QUAD_TPAGE  0x29
+#define SPRITE_QUAD_CLUT   0x42C6
+#define SPRITE_QUAD_CELL_W 0x28
+/// Number of cells in the mote texture row, repeated as the effect ages.
 #define SPRITE_QUAD_CELLS_PER_ROW 6
 #define SPRITE_QUAD_V0            0x50
 #define SPRITE_QUAD_V1            0x77
 #define SPRITE_QUAD_SCALE         39
 #include "../../shared/sprite_quad_draw.inc.c"
 
-#define SPRITE_QUAD_CLUT          0x42C9
-#define SPRITE_QUAD_CELL_W        0x28
+#define SPRITE_QUAD_CLUT   0x42C9
+#define SPRITE_QUAD_CELL_W 0x28
+/// Number of cells in the larger antibody sprite's repeating texture row.
 #define SPRITE_QUAD_CELLS_PER_ROW 6
 #define SPRITE_QUAD_V0            0x38
 #define SPRITE_QUAD_V1            0x5F

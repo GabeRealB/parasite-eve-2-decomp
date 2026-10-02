@@ -280,7 +280,8 @@ void func_m4a1_hammer_8011DD08(Task* arg0)
     }
 }
 
-#define SPRITE_QUAD_CELL_W        0x28
+#define SPRITE_QUAD_CELL_W 0x28
+/// Number of cells in Hammer's repeating sprite row, separate from its masked charge strip.
 #define SPRITE_QUAD_CELLS_PER_ROW 6
 #define SPRITE_QUAD_V0            0x38
 #define SPRITE_QUAD_V1            0x5F

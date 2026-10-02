@@ -1,8 +1,8 @@
 /* Sprite quad: the overlays' copy of gameplay's `Gp_DrawFxQuad` with the
  * texture fixed per overlay. A world position is projected through
  * `GsWSMATRIX` and, unless it lands behind the camera, a camera-facing
- * textured POLY_FT4 is drawn there: `frame` picks a cell along the texture
- * row, `angle` spins the quad and `size` combines with the carrier's scale
+ * textured POLY_FT4 is drawn there: `frame` selects a texture cell,
+ * `angle` spins the quad and `size` combines with the carrier's scale
  * and projected depth to set its screen-space half-diagonal.
  *
  * The including unit sets the texture before including the fragment:
@@ -10,7 +10,7 @@
  *   SPRITE_QUAD_CELL_W      cell width in texels (cells sit side by side)
  *   SPRITE_QUAD_V0/_V1      top and bottom texel rows
  *   SPRITE_QUAD_SCALE       size multiplier (the cell's half-width in texels)
- *   SPRITE_QUAD_CELLS_PER_ROW  optional: frames wrap after this many cells
+ *   SPRITE_QUAD_CELLS_PER_ROW  optional: number of cell columns, not texels
  *   SPRITE_QUAD_CELL_H      optional, with CELLS_PER_ROW: a grid of cells this
  *                           tall, the rows offset from V0/V1
  *   SPRITE_QUAD_UV_TABLE    optional: an EffectSpriteTextureFrame table supplying
@@ -24,6 +24,19 @@
  * and SPRITE_QUAD_TPAGE when it is not 0x2A. The fragment clears these, so a
  * unit drawing two textures includes it twice; SPRITE_QUAD_FUNC names the
  * second instance (the first is spriteQuadDraw, declared here).
+ *
+ * SPRITE_QUAD_CELLS_PER_ROW must be a positive signed integer preprocessor
+ * constant, bound before each sprite_quad_draw.inc.c inclusion. In arithmetic
+ * UV mode it selects the column with frame % count, taking precedence over
+ * SPRITE_QUAD_CELL_MASK. Without SPRITE_QUAD_CELL_H, only the column repeats
+ * and V0/V1 stay fixed. With CELL_H, the count is required and frame / count
+ * selects the row; the count does not limit the number of rows or frames.
+ * Signed frames retain signed division/remainder behavior, and the resulting
+ * UV coordinates narrow to GPU bytes. SPRITE_QUAD_UV_TABLE bypasses this
+ * arithmetic. The fragment undefines the count after each instance, so the
+ * next texture needs its own binding. Current bindings are six columns for
+ * both antibody strips, the gallery, training room and Hammer, and five for
+ * sterilization's grid.
  */
 
 #ifndef SRC_SHARED_SPRITE_QUAD_H
