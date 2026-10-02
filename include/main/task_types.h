@@ -69,9 +69,17 @@ STATIC_ASSERT_SIZEOF(TaskBody, 4);
 typedef void (*TaskFunc)(struct Task* task);
 
 /// Three task handlers stored as a value for whole-table copies.
+///
+/// Each table defines its slots' roles. The selector may be a task state,
+/// an actor mode, or a work substate. Dispatch requires an index in 0..2
+/// and a non-NULL entry, which receives the live task as its only argument.
+/// There is no terminator or bounds check in the table.
+/// Copying it copies callback pointers, not task or work storage; the callback
+/// code must remain loaded for the call. A handler may release the task.
 typedef struct {
-    TaskFunc funcs[3];
+    TaskFunc funcs[3]; // Handlers in selector order; slot meanings belong to each table
 } TaskFuncTable3;
+STATIC_ASSERT_SIZEOF(TaskFuncTable3, 0xC);
 
 /// Four task handlers stored as a value for whole-table copies.
 ///
