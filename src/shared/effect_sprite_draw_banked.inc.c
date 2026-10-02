@@ -68,13 +68,13 @@ static void _effectSpriteDrawBanked(const GfxCoord* coord, u16 frameAndPalette, 
         /// The zero-based frame index advances across columns before rows.
         /// Palette selection and total animation length are independent.
         EFFECT_SPRITE_BANKED_CELLS_PER_ROW = 5,
-        /// Side length of a square animation cell, in texels on each texture axis.
+        /// Square-cell side length and origin pitch along U and V, measured in texels.
         ///
-        /// Also the U/V stride between cell origins; inclusive corners span one
-        /// texel less. This length is independent of palette selection and frame count.
-        EFFECT_SPRITE_BANKED_CELL_SIDE_TEXELS = 48,
+        /// Each cell samples inclusive offsets 0..47, so its UV span is pitch minus one.
+        /// This length is independent of palette selection and animation frame count.
+        EFFECT_SPRITE_BANKED_CELL_PITCH_TEXELS = 48,
         /// First-to-last texel distance across one inclusive square animation cell.
-        EFFECT_SPRITE_BANKED_UV_SPAN_TEXELS = EFFECT_SPRITE_BANKED_CELL_SIDE_TEXELS - 1,
+        EFFECT_SPRITE_BANKED_UV_SPAN_TEXELS = EFFECT_SPRITE_BANKED_CELL_PITCH_TEXELS - 1,
         EFFECT_SPRITE_BANKED_QUARTER_TURN   = 0x400,
         EFFECT_SPRITE_BANKED_PACKET_CODE    = 0x2F // Textured quad, raw texture, semi-transparency
     };
@@ -129,8 +129,8 @@ static void _effectSpriteDrawBanked(const GfxCoord* coord, u16 frameAndPalette, 
             cellRow    = cellIndex / EFFECT_SPRITE_BANKED_CELLS_PER_ROW;
         }
         cornerAngle = angle;
-        cellU       = cellColumn * EFFECT_SPRITE_BANKED_CELL_SIDE_TEXELS;
-        cellV       = cellRow * EFFECT_SPRITE_BANKED_CELL_SIDE_TEXELS;
+        cellU       = cellColumn * EFFECT_SPRITE_BANKED_CELL_PITCH_TEXELS;
+        cellV       = cellRow * EFFECT_SPRITE_BANKED_CELL_PITCH_TEXELS;
         // UV endpoints are inclusive; GPU fields narrow the coordinates to bytes.
         setUV4(quad,
                cellU, cellV + EFFECT_SPRITE_BANKED_FIRST_TEXEL_ROW,
