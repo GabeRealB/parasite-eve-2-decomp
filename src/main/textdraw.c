@@ -1273,12 +1273,18 @@ static void Text_DrawGlyphImmediate(TextDrawReq* request, const _FontGlyph* glyp
 static inline void _textInitGlyphFillSprite(SPRT* fill, const TextDrawReq* request,
                                             const _FontGlyph* glyph, s32 colorRgb)
 {
-    /// 4bpp glyph-fill palette at VRAM word X=976, Y=511.
-    ///
-    /// The first 16 colors uploaded by `Text_LoadClutImages`: indices 0..10
-    /// are transparent; 11..15 are RGB5 grays 7, 13, 19, 25 and 31.
-    /// The sprite modulates these colors by RGB and disables blending.
-    enum { TEXT_QUEUED_GLYPH_FILL_CLUT = getClut(976, 511) };
+    enum {
+        /// GPU CLUT selector for the opaque, color-modulated fill of queued UI text.
+        ///
+        /// Encodes VRAM word X=976, row Y=511 as 0x7FFD in `SPRT::clut`.
+        /// Selects the first 16 entries of the 48-color row uploaded by
+        /// `Text_LoadClutImages`; these must remain resident while drawing.
+        /// 4bpp texel indices 0..10 are transparent; 11..15 are RGB5 grays
+        /// 7, 13, 19, 25 and 31, with the semi-transparency bit set.
+        /// The fill's sprite command modulates them by RGB and disables blending;
+        /// this selector encodes only the palette address.
+        TEXT_QUEUED_GLYPH_FILL_CLUT = getClut(976, 511),
+    };
 
     s32 heightMinusOne;
 
