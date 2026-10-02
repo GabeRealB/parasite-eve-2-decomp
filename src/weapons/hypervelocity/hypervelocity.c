@@ -495,7 +495,8 @@ void func_hypervelocity_8011D830(Task* task)
 
 /// Packed additive beam-flame page: 4-bit indexed texels at VRAM X=576 words, Y=0 scanlines.
 #define SPRITE_QUAD_TEXTURE_PAGE getTPage(0, GPU_BLEND_ADD, 576, 0)
-#define SPRITE_QUAD_CLUT         0x428B
+/// Beam-flame palette: VRAM X=176 words, Y=266 scanlines, the core look in `SPRITE_QUAD_CORE_CELL`.
+#define SPRITE_QUAD_CLUT getClut(176, 266)
 /// Texel width and horizontal stride of the two beam-flame cells selected by age parity.
 #define SPRITE_QUAD_CELL_WIDTH 56
 #define SPRITE_QUAD_CELL_MASK  1

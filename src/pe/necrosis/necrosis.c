@@ -258,7 +258,8 @@ void func_necrosis_8012F52C(Task* arg0)
     }
 }
 
-#define SPRITE_QUAD_CLUT 0x428F
+/// Trail-puff palette: VRAM X=240 words, Y=266 scanlines.
+#define SPRITE_QUAD_CLUT getClut(240, 266)
 /// Texel width and horizontal stride of each of the six frames selected by the caller.
 #define SPRITE_QUAD_CELL_WIDTH 40
 /// Inclusive top texel row of the necrosis strip, relative to its texture page.

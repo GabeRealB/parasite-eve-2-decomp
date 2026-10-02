@@ -67,19 +67,24 @@ typedef struct Actor510900TrailScratch {
 } Actor510900TrailScratch;
 STATIC_ASSERT_SIZEOF(Actor510900TrailScratch, 0x24);
 
-/// One VRAM CLUT coordinate per frame of the muzzle-flash sprite, packed the
-/// way `getClut` takes them. `D_actor_510900_8013C48C` holds twelve, one for
-/// each frame `gEffectSpriteAtlasFrames` supplies the texture window for.
-typedef struct Actor510900SprClut {
-    /* 0x0 */ u16 clutX;
-    /* 0x2 */ u16 clutY;
-} Actor510900SprClut;
-STATIC_ASSERT_SIZEOF(Actor510900SprClut, 4);
+/// VRAM coordinates of one palette for actor 510900's explosion fireball.
+///
+/// Each entry is the unencoded input of `getClut`: X in words, Y in scanlines.
+/// The fireball drawer pairs entry `frame` with the same index of
+/// `gEffectSpriteAtlasFrames`.
+typedef struct {
+    u16 clutX; // Palette X in VRAM words, aligned to 16 words.
+    u16 clutY; // Palette Y in VRAM scanlines.
+} _Actor510900SpritePalette;
+STATIC_ASSERT_SIZEOF(_Actor510900SpritePalette, 4);
 
-/// The twelve muzzle-flash CLUTs `spriteQuadDraw` indexes by frame.
-extern Actor510900SprClut D_actor_510900_8013C48C[];
-
-Actor510900SprClut D_actor_510900_8013C48C[12] = {
+/// Twelve fireball palettes, one per frame of `gEffectSpriteAtlasFrames`.
+///
+/// Every entry sits on scanline 270. X runs from 80 through 256 in steps of
+/// 16 words, one 16-colour palette per atlas frame. The fireball drawer in
+/// this file is the only reader. The table stays in initialized data so that
+/// drawer can address it at its image offset.
+static const _Actor510900SpritePalette _gActor510900FireballFramePalettes[12] __attribute__((section(".data"))) = {
     { 80, 270 },
     { 96, 270 },
     { 112, 270 },
@@ -2116,7 +2121,12 @@ void func_actor_510900_8013482C(Task* arg0)
 
 /// Packed additive texture page for the shared effect atlas, with this actor's palettes.
 #define SPRITE_QUAD_TEXTURE_PAGE EFFECT_SPRITE_ATLAS_TEXTURE_PAGE
-#define SPRITE_QUAD_CLUT         ((D_actor_510900_8013C48C[frame].clutY << 6) | ((D_actor_510900_8013C48C[frame].clutX >> 4) & 0x3F))
+/// Fireball palette for atlas frame `frame`, packed as a GPU CLUT word.
+///
+/// X is in VRAM words and Y in scanlines. The drawer assigns the word once per
+/// emitted quad. `frame` must be a nonnegative index into the twelve-entry
+/// table; the subscript is evaluated for each coordinate.
+#define SPRITE_QUAD_CLUT getClut(_gActor510900FireballFramePalettes[frame].clutX, _gActor510900FireballFramePalettes[frame].clutY)
 /// UV-origin table for the next included sprite-quad drawer.
 ///
 /// Bind an array or side-effect-free pointer expression with
@@ -2135,7 +2145,7 @@ void func_actor_510900_8013482C(Task* arg0)
 /// Actor 510900 is the sole table-mode carrier: it borrows the gameplay
 /// image's twelve atlas origins and selects twelve actor-specific palettes.
 #define SPRITE_QUAD_UV_TABLE gEffectSpriteAtlasFrames
-STATIC_ASSERT(ARRAY_SIZE(SPRITE_QUAD_UV_TABLE) == ARRAY_SIZE(D_actor_510900_8013C48C), sprite_quad_uv_palette_frame_counts_match);
+STATIC_ASSERT(ARRAY_SIZE(SPRITE_QUAD_UV_TABLE) == ARRAY_SIZE(_gActor510900FireballFramePalettes), sprite_quad_uv_palette_frame_counts_match);
 
 /// Texel width and height of the shared atlas cells used with this actor's palettes.
 #define SPRITE_QUAD_CELL_WIDTH EFFECT_SPRITE_ATLAS_CELL_SIZE

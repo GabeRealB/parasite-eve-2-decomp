@@ -36,7 +36,12 @@
 #include "../../shared/sprite_quad.h"
 #include "../../shared/beam_strip.h"
 
-static void spriteQuadDrawCharge(const long* arg0, u16 arg1, u16 arg2, s16 arg3);
+/// Charge-flare instance of `spriteQuadDraw`.
+///
+/// `pos` is three cached translation words. `frame` walks the eight-cell strip,
+/// `size` is the unsigned perspective numerator and `angle` is the spin in
+/// 4096 units per turn.
+static void spriteQuadDrawCharge(const long* pos, u16 frame, u16 size, s16 angle);
 
 /// Fixed offset from the parent coordinate that the hammer effect starts at.
 static SVECTOR D_m4a1_hammer_8011EB60 = { 0, 0x280, 0x20, 0 };
@@ -219,10 +224,12 @@ void func_m4a1_hammer_8011D1E0(Task* task)
 #define SPRITE_QUAD_FRAME_T u16
 /// Unsigned 16-bit perspective size for the charge flare, matching its forward declaration.
 #define SPRITE_QUAD_SIZE_T u16
-#define SPRITE_QUAD_FUNC   spriteQuadDrawCharge
+/// Defines the charge-flare instance. The six-cell strip below is unbound and becomes `spriteQuadDraw`.
+#define SPRITE_QUAD_FUNC spriteQuadDrawCharge
 /// Packed additive charge-flare page: 4-bit indexed texels at VRAM X=512 words, Y=0 scanlines.
 #define SPRITE_QUAD_TEXTURE_PAGE getTPage(0, GPU_BLEND_ADD, 512, 0)
-#define SPRITE_QUAD_CLUT         0x430C
+/// Charge-flare palette: VRAM X=192 words, Y=268 scanlines.
+#define SPRITE_QUAD_CLUT getClut(192, 268)
 /// Texel width and horizontal stride of each cell in the charge flare's eight-cell strip.
 #define SPRITE_QUAD_CELL_WIDTH 24
 #define SPRITE_QUAD_CELL_MASK  7
@@ -301,7 +308,8 @@ void func_m4a1_hammer_8011DD08(Task* arg0)
 ///
 /// Uses the cell's inclusive 39-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.
 #define SPRITE_QUAD_SCALE (SPRITE_QUAD_CELL_WIDTH - 1)
-#define SPRITE_QUAD_CLUT  0x4293
+/// Repeating-strip palette: VRAM X=304 words, Y=266 scanlines.
+#define SPRITE_QUAD_CLUT getClut(304, 266)
 #include "../../shared/sprite_quad_draw.inc.c"
 
 #include "../../shared/beam_strip_draw.inc.c"

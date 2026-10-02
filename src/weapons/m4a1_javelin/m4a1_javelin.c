@@ -676,7 +676,8 @@ static void func_m4a1_javelin_8011EE78(SVECTOR* p0, SVECTOR* p1, u16 brightness)
     SCRATCH_STACK_RELEASE_BYTES(sizeof(M4a1JavelinLineScratch));
 }
 
-#define SPRITE_QUAD_CLUT 0x42C3
+/// Contact-flash palette: VRAM X=48 words, Y=267 scanlines.
+#define SPRITE_QUAD_CLUT getClut(48, 267)
 /// Texel width and horizontal stride of each of the launch flash's eight texture frames.
 #define SPRITE_QUAD_CELL_WIDTH 32
 /// Inclusive top texel row of the launch-flash strip, relative to its texture page.

@@ -1,5 +1,5 @@
 // Overlay-local symbols for actor_510900.
-D_actor_510900_8013C48C = 0x8013C48C; // size:0x30 defined:True
+_gActor510900FireballFramePalettes = 0x8013C48C; // size:0x30 defined:True
 D_actor_510900_80167B38 = 0x80167B38; // size:0x44 defined:True
 D_actor_510900_80167B7C = 0x80167B7C; // size:0x8 defined:True
 D_actor_510900_80167B84 = 0x80167B84; // size:0x10 defined:True

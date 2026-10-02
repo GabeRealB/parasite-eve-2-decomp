@@ -6,7 +6,7 @@
  * and projected depth to set its screen-space half-diagonal.
  *
  * The including unit sets the texture before including the fragment:
- *   SPRITE_QUAD_CLUT        CLUT word
+ *   SPRITE_QUAD_CLUT        packed CLUT word, or an expression of `frame`
  *   SPRITE_QUAD_CELL_WIDTH  cell width in texels, including both endpoints
  *   SPRITE_QUAD_TOP_V       inclusive top texel row of the first cell row
  *   SPRITE_QUAD_V1          inclusive bottom texel row of the first cell row
@@ -25,9 +25,22 @@
  *   SPRITE_QUAD_TEXTURE_PAGE optional: packed 16-bit GPU texture-page word;
  *                           the default is getTPage(0, GPU_BLEND_ADD, 640, 0)
  * The texture-page binding's contract is beside the fragment's default.
- * The fragment clears these bindings, so a unit drawing two textures includes
- * it twice; SPRITE_QUAD_FUNC names the second instance (the first is
- * spriteQuadDraw, declared here).
+ *
+ * SPRITE_QUAD_CLUT is required and has no default. It is the 16-bit palette
+ * selector stored in POLY_FT4::clut. A constant is a packed getClut word:
+ * scanline Y in bits 6..15 and the palette X, in 16-word steps, in bits 0..5.
+ * An expression may read `frame` and must not change it; actor 510900 indexes
+ * its per-frame palette table that way. The drawer assigns the value once for
+ * each emitted quad. The fragment undefines the binding, so each texture
+ * supplies its own.
+ *
+ * SPRITE_QUAD_FUNC names the function that inclusion defines. Leave it unset
+ * and the instance is spriteQuadDraw, declared below. Bind an identifier that
+ * matches a static declaration in the carrier for another instance: antibody's
+ * mote and Hammer's charge flare do. The fragment undefines the name, so a
+ * later inclusion in the same file is spriteQuadDraw unless bound again.
+ * The fragment clears the other bindings too, so a unit drawing two textures
+ * includes it twice.
  *
  * SPRITE_QUAD_SCALE must be a positive signed integer constant, bound before
  * each sprite_quad_draw.inc.c inclusion. A C enum constant is valid. It
@@ -172,6 +185,20 @@
 #define SPRITE_QUAD_FRAME_T u16
 #endif
 
+/// Projects `pos` and draws one camera-facing cell of the carrier's sprite texture.
+///
+/// `frame` selects the cell under the carrier's UV bindings. `size` is the
+/// perspective-size numerator: `size * SPRITE_QUAD_SCALE / depth` is the
+/// screen-space half-diagonal in pixels before rotation. `angle` is the spin
+/// in 4096 units per turn. `SPRITE_QUAD_CLUT` and the texture-page binding
+/// select the palette and page.
+///
+/// `pos` supplies a world translation in `GsWSMATRIX` input space; only the
+/// low 16 bits of each component are projected, and the source is borrowed for
+/// the call. Nothing is drawn when the point is behind the camera, or when a
+/// bound minimum depth rejects it. Depth must be nonzero when a quad is sized.
+/// The primitive is semitransparent and unshaded, ordered one slot behind the
+/// point unless `SPRITE_QUAD_OTZ_BIAS` is 0.
 static void spriteQuadDraw(SPRITE_QUAD_POSITION_SOURCE_TYPE* pos, SPRITE_QUAD_FRAME_T frame, SPRITE_QUAD_SIZE_T size, s16 angle);
 
 /* The flicker form (sprite_quad_draw_flicker.inc.c) alternates two looks of

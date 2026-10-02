@@ -87,7 +87,11 @@ static AntibodyStep D_antibody_80130BD4[] = {
 /// once when `func_antibody_8012EF34` seeds the cast.
 static s32 D_antibody_80130C00[] = { 0xE0290001, 0xE02C0001, 0xE02F0001 };
 
-static void spriteQuadDrawMote(const GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
+/// Antibody mote instance of `spriteQuadDraw`.
+///
+/// `pos` is the effect coordinate, `frame` selects the mote cell, `size` is
+/// the perspective numerator and `angle` is the spin in 4096 units per turn.
+static void spriteQuadDrawMote(const GfxCoord* pos, s16 frame, s16 size, s16 angle);
 static void func_antibody_80130428(GfxCoord* arg0, s16 arg1, s16 arg2);
 
 /// Sixteen wedge yaws, refilled once per cast by `func_antibody_8012EF34`.
@@ -417,10 +421,12 @@ void func_antibody_8012F734(Task* arg0)
     }
 }
 
+/// Defines the mote instance. The next inclusion is unbound and becomes `spriteQuadDraw`.
 #define SPRITE_QUAD_FUNC spriteQuadDrawMote
 /// Packed additive mote texture page: 4-bit indexed texels at VRAM X=576 words, Y=0 scanlines.
 #define SPRITE_QUAD_TEXTURE_PAGE getTPage(0, GPU_BLEND_ADD, 576, 0)
-#define SPRITE_QUAD_CLUT         0x42C6
+/// Mote palette: VRAM X=96 words, Y=267 scanlines.
+#define SPRITE_QUAD_CLUT getClut(96, 267)
 /// Texel width and horizontal stride of each cell in the mote's six-cell strip.
 #define SPRITE_QUAD_CELL_WIDTH 40
 /// Number of cells in the mote texture row, repeated as the effect ages.
@@ -436,7 +442,8 @@ void func_antibody_8012F734(Task* arg0)
 #define SPRITE_QUAD_SCALE (SPRITE_QUAD_CELL_WIDTH - 1)
 #include "../../shared/sprite_quad_draw.inc.c"
 
-#define SPRITE_QUAD_CLUT 0x42C9
+/// Larger antibody sprite palette: VRAM X=144 words, Y=267 scanlines.
+#define SPRITE_QUAD_CLUT getClut(144, 267)
 /// Texel width and horizontal stride of each cell in the larger sprite's six-cell strip.
 #define SPRITE_QUAD_CELL_WIDTH 40
 /// Number of cells in the larger antibody sprite's repeating texture row.

@@ -8,6 +8,10 @@
 #error Define SPRITE_QUAD_SCALE before including the sprite quad drawer
 #endif
 
+#ifndef SPRITE_QUAD_CLUT
+#error Define SPRITE_QUAD_CLUT before including the sprite quad drawer
+#endif
+
 #if !defined(SPRITE_QUAD_UV_TABLE)
 #ifndef SPRITE_QUAD_TOP_V
 #error Define SPRITE_QUAD_TOP_V before including the arithmetic sprite quad drawer
@@ -21,6 +25,12 @@
 #endif
 #endif
 
+/// Name of the drawer this inclusion defines.
+///
+/// The default is `spriteQuadDraw`. A carrier that needs another instance binds
+/// an identifier matching a visible `static` declaration before including this
+/// fragment. The binding is undefined after the definition, so a second
+/// inclusion in the same file returns to the default unless it binds a name again.
 #ifndef SPRITE_QUAD_FUNC
 #define SPRITE_QUAD_FUNC spriteQuadDraw
 #endif
@@ -46,7 +56,8 @@
 #define SPRITE_QUAD_OTZ_BIAS 1
 #endif
 
-/// Draws one cell of the overlay's sprite texture at the translation supplied by `pos`.
+/// Included sprite-quad drawer. `SPRITE_QUAD_FUNC` is this instance's name;
+/// `spriteQuadDraw` states the call contract.
 static void SPRITE_QUAD_FUNC(SPRITE_QUAD_POSITION_SOURCE_TYPE* pos, SPRITE_QUAD_FRAME_T frame, SPRITE_QUAD_SIZE_T size, s16 angle)
 {
     EffectShapeScratch* head;

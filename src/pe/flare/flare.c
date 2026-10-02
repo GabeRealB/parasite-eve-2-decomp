@@ -148,7 +148,8 @@ void flareSparkTask(Task* arg0)
     effectKillTask(mem, arg0);
 }
 
-#define SPRITE_QUAD_CLUT 0x4311
+/// Spark palette: VRAM X=272 words, Y=268 scanlines.
+#define SPRITE_QUAD_CLUT getClut(272, 268)
 /// Texel width and horizontal stride of each of the spark's eight texture frames.
 #define SPRITE_QUAD_CELL_WIDTH 32
 /// Inclusive top texel row of the spark strip, relative to its texture page.

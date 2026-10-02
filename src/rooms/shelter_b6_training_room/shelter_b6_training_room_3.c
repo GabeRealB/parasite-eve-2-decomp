@@ -1209,8 +1209,9 @@ void func_shelter_b6_training_room_80181A3C(Task* task)
 /// Perspective-sizing multiplier for the training effect sprite.
 ///
 /// Uses the cell's inclusive 39-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.
-#define SPRITE_QUAD_SCALE    (SPRITE_QUAD_CELL_WIDTH - 1)
-#define SPRITE_QUAD_CLUT     0x42C9
+#define SPRITE_QUAD_SCALE (SPRITE_QUAD_CELL_WIDTH - 1)
+/// Energy-arc sprite palette: VRAM X=144 words, Y=267 scanlines.
+#define SPRITE_QUAD_CLUT     getClut(144, 267)
 #define SPRITE_QUAD_OTZ_BIAS 0
 #include "../../shared/sprite_quad_draw.inc.c"
 
