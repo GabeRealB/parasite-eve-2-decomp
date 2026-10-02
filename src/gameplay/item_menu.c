@@ -1642,7 +1642,7 @@ void Gp_PublishItemObj(Task* arg0)
         Gp_PubItemQty   = 1;
         Gp_PubItemReady = 1;
     } else {
-        count           = Gp_StackLimits[Gp_PubItemLoc - 0xA0].perBuy;
+        count           = Gp_StackLimits[Gp_PubItemLoc - 0xA0].packQty;
         Gp_PubItemReady = 1;
         Gp_PubItemQty   = count;
     }

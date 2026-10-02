@@ -52,21 +52,25 @@
 
 #include "rooms/shelter_r47.h"
 
-/// Resolve a row in the PS1 stack-limit table address space. Address words preserve
-/// the runtime table base; row fields are always accessed through GpItemA0.
-static inline GpItemA0* gpStackLimitAt(GpItemA0* rows, s32 index)
+/// A consumable stack row's address, viewable as an integer for byte-offset arithmetic.
+typedef union {
+    InventoryConsumableStack* row;     // Row this address names.
+    u32                       address; // Same storage as `row`, used when adding a byte offset.
+} _InventoryConsumableStackAddress;
+
+/// Row `index` elements after `rows`.
+///
+/// Adds `index * sizeof(InventoryConsumableStack)` to the table address. The
+/// result borrows `rows`; `index` must name a row in that table.
+static inline InventoryConsumableStack* gpStackLimitAt(InventoryConsumableStack* rows, s32 index)
 {
-    union {
-        GpItemA0* rows;
-        u32       word;
-    } base;
-    union {
-        GpItemA0* row;
-        u32       word;
-    } result;
-    base.rows    = rows;
-    result.word  = index * sizeof(GpItemA0);
-    result.word += base.word;
+    _InventoryConsumableStackAddress base;
+    _InventoryConsumableStackAddress result;
+
+    // Byte offset first, then the table address.
+    base.row        = rows;
+    result.address  = index * sizeof(InventoryConsumableStack);
+    result.address += base.address;
     return result.row;
 }
 
@@ -76,7 +80,7 @@ static inline InventoryItemRow* _gpScanTable(InventoryItemRange* scan);
 /// True if `arg2` of item `arg1` can be added to the item table selected
 /// by `arg0`. Ids `>= 0x100` always succeed. Ids `0xA0..0xFF` stack onto
 /// an existing row when `qty + arg2` fits `Gp_StackLimits[id-0xA0].maxHeld`;
-/// `arg2 < 0` uses that row's `field_0` as the addend. Other ids need a
+/// `arg2 < 0` uses that row's `packQty` as the addend. Other ids need a
 /// free slot.
 static s32 Gp_CanAddItemQty(InventoryItemRange* arg0, s32 arg1, s32 arg2);
 
@@ -420,28 +424,28 @@ void Gp_SortItems(InventoryItemRange* arg0, s32 arg1)
 /// True if `arg2` of item `arg1` can be added to the item table selected
 /// by `arg0`. Ids `>= 0x100` always succeed. Ids `0xA0..0xFF` stack onto
 /// an existing row when `qty + arg2` fits `Gp_StackLimits[id-0xA0].maxHeld`;
-/// `arg2 < 0` uses that row's `field_0` as the addend. Other ids need a
+/// `arg2 < 0` uses that row's `packQty` as the addend. Other ids need a
 /// free slot.
 static s32 Gp_CanAddItemQty(InventoryItemRange* arg0, s32 arg1, s32 arg2)
 {
-    InventoryItemRow* tmp;
-    InventoryItemRow* table;
-    InventoryItemRow* rec;
-    s32               i;
-    s32               occupied;
-    s32               count;
-    s32               start;
-    s32               limit;
-    s32               used;
-    s32               found;
-    InventoryItemRow* table2;
-    InventoryItemRow* walker;
-    s32               count2;
-    s32               start2;
-    GpItemA0*         p;
-    s32               idx;
-    GpItemA0*         cap;
-    s32               capacity;
+    InventoryItemRow*         tmp;
+    InventoryItemRow*         table;
+    InventoryItemRow*         rec;
+    s32                       i;
+    s32                       occupied;
+    s32                       count;
+    s32                       start;
+    s32                       limit;
+    s32                       used;
+    s32                       found;
+    InventoryItemRow*         table2;
+    InventoryItemRow*         walker;
+    s32                       count2;
+    s32                       start2;
+    InventoryConsumableStack* stacks;
+    s32                       idx;
+    InventoryConsumableStack* stack;
+    s32                       capacity;
 
     switch (arg0->tableId) {
         case INVENTORY_ITEM_TABLE_AREA_GRANTS:
@@ -492,19 +496,19 @@ static s32 Gp_CanAddItemQty(InventoryItemRange* arg0, s32 arg1, s32 arg2)
                 break;
         }
         if (arg2 < 0) {
-            arg2 = Gp_StackLimits[arg1 - 0xA0].perBuy;
+            arg2 = Gp_StackLimits[arg1 - 0xA0].packQty;
         }
         i      = 0;
         count2 = arg0->rowCount;
         if (count2 != 0) {
-            p      = Gp_StackLimits;
+            stacks = Gp_StackLimits;
             idx    = arg1 - 0xA0;
-            cap    = gpStackLimitAt(p, idx);
+            stack  = gpStackLimitAt(stacks, idx);
             walker = gpItemRowAt(table2, start2);
             do {
                 if (walker->itemId == arg1) {
                     found = 2;
-                    if (cap->maxHeld >= walker->qty + arg2) {
+                    if (stack->maxHeld >= walker->qty + arg2) {
                         found = 1;
                     }
                     break;
@@ -528,24 +532,24 @@ static s32 Gp_CanAddItemQty(InventoryItemRange* arg0, s32 arg1, s32 arg2)
 
 s32 Gp_CanAddItem(InventoryItemRange* arg0, s32 arg1)
 {
-    InventoryItemRow* tmp;
-    InventoryItemRow* table;
-    InventoryItemRow* rec;
-    s32               i;
-    s32               occupied;
-    s32               count;
-    s32               start;
-    s32               limit;
-    s32               used;
-    s32               found;
-    InventoryItemRow* table2;
-    InventoryItemRow* walker;
-    s32               count2;
-    s32               start2;
-    GpItemA0*         p;
-    s32               idx;
-    GpItemA0*         cap;
-    s32               capacity;
+    InventoryItemRow*         tmp;
+    InventoryItemRow*         table;
+    InventoryItemRow*         rec;
+    s32                       i;
+    s32                       occupied;
+    s32                       count;
+    s32                       start;
+    s32                       limit;
+    s32                       used;
+    s32                       found;
+    InventoryItemRow*         table2;
+    InventoryItemRow*         walker;
+    s32                       count2;
+    s32                       start2;
+    InventoryConsumableStack* stacks;
+    s32                       idx;
+    InventoryConsumableStack* stack;
+    s32                       capacity;
 
     switch (arg0->tableId) {
         case INVENTORY_ITEM_TABLE_AREA_GRANTS:
@@ -598,13 +602,13 @@ s32 Gp_CanAddItem(InventoryItemRange* arg0, s32 arg1)
         i      = 0;
         count2 = arg0->rowCount;
         if (count2 != 0) {
-            p      = Gp_StackLimits;
+            stacks = Gp_StackLimits;
             idx    = arg1 - 0xA0;
-            cap    = gpStackLimitAt(p, idx);
+            stack  = gpStackLimitAt(stacks, idx);
             walker = gpItemRowAt(table2, start2);
             do {
                 if (walker->itemId == arg1) {
-                    if (walker->qty < cap->maxHeld) {
+                    if (walker->qty < stack->maxHeld) {
                         found = 1;
                     } else {
                         found = 2;
@@ -677,8 +681,8 @@ InventoryItemRow* Gp_SetScanItem(InventoryItemRange* arg0, s32 arg1, s32 arg2, s
 
 /// Adds `arg2` of item `arg1` to the item table selected by `arg0`.
 /// Ids `0xA0..0xBF` stack onto an existing row, clamped to
-/// `Gp_StackLimits[id-0xA0].maxHeld`. `arg2 < 0` uses that row's `field_0`
-/// as the count, or `field_2` when `arg2 == -2`; out-of-range ids use 1.
+/// `Gp_StackLimits[id-0xA0].maxHeld`. `arg2 < 0` uses that row's `packQty`
+/// as the count, or `maxHeld` when `arg2 == -2`; out-of-range ids use 1.
 /// Other ids take the first free slot with quantity 1. Returns the
 /// written row, or NULL if none was free.
 InventoryItemRow* Gp_AddItem(InventoryItemRange* arg0, s32 arg1, s32 arg2)
@@ -696,7 +700,7 @@ InventoryItemRow* Gp_AddItem(InventoryItemRange* arg0, s32 arg1, s32 arg2)
             if (arg2 == -2) {
                 arg2 = Gp_StackLimits[arg1 - 0xA0].maxHeld;
             } else {
-                arg2 = Gp_StackLimits[arg1 - 0xA0].perBuy;
+                arg2 = Gp_StackLimits[arg1 - 0xA0].packQty;
             }
         } else {
             arg2 = 1;

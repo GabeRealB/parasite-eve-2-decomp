@@ -159,8 +159,8 @@ void Gp_RefreshItemRow(InventoryItemRow* arg0);
 
 /// Adds `arg2` of item `arg1` to the item table selected by `arg0`.
 /// Ids `0xA0..0xBF` stack onto an existing row, clamped to
-/// `Gp_StackLimits[id-0xA0].maxHeld`. `arg2 < 0` uses that row's `field_0`
-/// as the count, or `field_2` when `arg2 == -2`; out-of-range ids use 1.
+/// `Gp_StackLimits[id-0xA0].maxHeld`. `arg2 < 0` uses that row's `packQty`
+/// as the count, or `maxHeld` when `arg2 == -2`; out-of-range ids use 1.
 /// Other ids take the first free slot with quantity 1. Returns the
 /// written row, or NULL if none was free.
 InventoryItemRow* Gp_AddItem(InventoryItemRange* arg0, s32 arg1, s32 arg2);

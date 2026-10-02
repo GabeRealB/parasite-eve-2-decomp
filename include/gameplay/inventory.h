@@ -54,14 +54,19 @@ typedef struct {
 } EquipmentWeaponLoadOptionsTable;
 STATIC_ASSERT_SIZEOF(EquipmentWeaponLoadOptionsTable, 0x80);
 
-/// 4-byte row in `Gp_StackLimits`, indexed by item id − 0xA0 (ids ≥ 0xA0).
-/// perBuy is the default pickup/purchase count; maxHeld is the quantity limit.
-typedef struct _GpItemA0 {
-    /* 0x00 */ u8  perBuy;
-    /* 0x01 */ u8  field_1;
-    /* 0x02 */ u16 maxHeld;
-} GpItemA0;
-STATIC_ASSERT_SIZEOF(GpItemA0, 0x4);
+/// Pack size and stack capacity for one consumable item (ids 0xA0..0xBF).
+///
+/// `Gp_StackLimits` holds one row per consumable, indexed by item id minus
+/// 0xA0. A pack is the quantity one pickup, one shop purchase or a default
+/// grant adds; the capacity bounds the quantity of the item's single stack
+/// row in an item table. Row pointers borrow the table for the gameplay
+/// image's lifetime.
+typedef struct {
+    u8  packQty; // Quantity in one pack: a pickup, a shop purchase, or a grant without an explicit count.
+    u8  field_1; // Zero in every row and never read; role unproven.
+    u16 maxHeld; // Largest quantity the item's stack row may hold.
+} InventoryConsumableStack;
+STATIC_ASSERT_SIZEOF(InventoryConsumableStack, 0x4);
 
 /// Starting maximum HP for one game mode.
 ///

@@ -116,10 +116,10 @@ extern ItemDesc Gp_KeyItemDescs[];
 /// Weapon quantity/related-id rows, indexed by item id minus 0x80.
 extern EquipmentWeaponLoadOptionsTable Gp_RelatedQty0;
 
-extern GpItemA0 Gp_StackLimits[];
+extern InventoryConsumableStack Gp_StackLimits[];
 
-/// Quantity limits for an ammunition item (ids 0xA0–0xBF).
-static inline GpItemA0* gpItemStock(s32 itemId)
+/// Pack size and stack capacity of consumable `itemId` (0xA0..0xBF).
+static inline InventoryConsumableStack* gpItemStock(s32 itemId)
 {
     return &Gp_StackLimits[itemId - 0xA0];
 }

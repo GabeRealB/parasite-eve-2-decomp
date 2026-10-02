@@ -364,7 +364,7 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
         /* Dead: emits the scaled index before the table base so the
            `addu` is index-first, matching the original. */
         scaled = itemId * 4;
-        Gp_DrawQty(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, gpItemStock(itemId)->perBuy, prompt->colorRgb);
+        Gp_DrawQty(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, gpItemStock(itemId)->packQty, prompt->colorRgb);
     }
     Text_ItoaUnsigned(buf, price);
     Text_DrawPrompt(obj, -prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, buf, prompt->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
@@ -1085,16 +1085,16 @@ static void Shop_QuantityTask(Task* task)
     }
 
     if ((u32)(itemId - 0xA0) < 0x20) {
-        GpItemA0* stock = gpItemStock(itemId);
+        InventoryConsumableStack* stock = gpItemStock(itemId);
 
-        if (stock->perBuy != 0) {
+        if (stock->packQty != 0) {
             held    = Gp_ScanStackQty(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, itemId);
             maxHeld = stock->maxHeld;
             maxQty  = maxHeld - held;
             if (maxQty <= 0) {
                 maxQty = 1;
             } else {
-                maxQty = (maxQty - 1) / stock->perBuy;
+                maxQty = (maxQty - 1) / stock->packQty;
                 maxQty = maxQty + 1;
             }
         }
@@ -1113,9 +1113,9 @@ static void Shop_QuantityTask(Task* task)
     y    = top + 0xF;
     Gp_DrawItemLabel(obj, x, y, itemId, 0x606060, 0);
     if ((u32)(itemId - 0xA0) < 0x20) {
-        GpItemA0* stock = gpItemStock(itemId);
+        InventoryConsumableStack* stock = gpItemStock(itemId);
 
-        Gp_DrawQty(obj, x, y, stock->perBuy, 0x606060);
+        Gp_DrawQty(obj, x, y, stock->packQty, 0x606060);
     }
 
     count = task->extraState.value;

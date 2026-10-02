@@ -48,10 +48,6 @@
 #include "rooms/room_common.h"
 #include "../../shared/garage.h"
 
-/// Shop stock uses gameplay's pickup/purchase quantity limits. Item ids
-/// 0xA0–0xBF index `Gp_StackLimits[id - 0xA0]`.
-typedef GpItemA0 RoomShopStock;
-
 /// Task descriptor table and cutscene script blobs owned by the main
 /// executable.
 extern TaskDesc D_8013B11C[];

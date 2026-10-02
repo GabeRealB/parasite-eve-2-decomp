@@ -72,7 +72,7 @@ ArmorStats                      Gp_ModStatAttrs[32] = {
     { 0, 0, 4, 0, 0 },
     { 0, 0, 4, 0, 0 },
 };
-GpItemA0 Gp_StackLimits[32] = {
+InventoryConsumableStack Gp_StackLimits[32] = {
     { 50, 0, 500 },
     { 50, 0, 500 },
     { 50, 0, 500 },
@@ -109,16 +109,16 @@ GpItemA0 Gp_StackLimits[32] = {
 
 s32 Gp_LookupBit2Item(s32 arg0)
 {
-    GpBit2List*      lists;
-    AreaObjectPlace* rec;
-    u16*             tail;
-    GpItemA0*        attrs;
-    s32              idx;
-    s32              matched;
-    u16              item;
-    u16              extra;
-    s32              term;
-    s32              found;
+    GpBit2List*               lists;
+    AreaObjectPlace*          rec;
+    u16*                      tail;
+    InventoryConsumableStack* stacks;
+    s32                       idx;
+    s32                       matched;
+    u16                       item;
+    u16                       extra;
+    s32                       term;
+    s32                       found;
 
     idx   = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage;
     lists = Gp_Bit2Banks[idx].field_0;
@@ -131,8 +131,8 @@ s32 Gp_LookupBit2Item(s32 arg0)
                 matched = 0;
                 if (rec != NULL) {
                     if (rec->flagIndex != term) {
-                        attrs = Gp_StackLimits;
-                        tail  = &rec->kind;
+                        stacks = Gp_StackLimits;
+                        tail   = &rec->kind;
                         do {
                             if (rec->flagIndex == arg0) {
                                 item          = *tail;
@@ -152,10 +152,10 @@ s32 Gp_LookupBit2Item(s32 arg0)
                                     } else if ((u32)(*tail - 0xA0) < 0x20U) {
                                         if (Gp_GetCurBit2Flag(arg0) != 3) {
                                             idx           = *tail - 0xA0;
-                                            Gp_PubItemQty = attrs[idx].perBuy;
+                                            Gp_PubItemQty = stacks[idx].packQty;
                                         } else {
                                             idx           = *tail - 0xA0;
-                                            Gp_PubItemQty = attrs[idx].maxHeld;
+                                            Gp_PubItemQty = stacks[idx].maxHeld;
                                         }
                                         Gp_PubItemReady = 1;
                                     } else {
