@@ -402,11 +402,49 @@ SpriteView D_dryfield_night_breezeway_8017FD10[6] = {
     { { .elements = D_dryfield_night_breezeway_8017F848 }, D_dryfield_night_breezeway_8017FCF8, NULL },
 };
 
-WorldCoordLight D_dryfield_night_breezeway_8017FD58[4] = {
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1000, -1000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 750, 750, 750 }, { 0, 0 } },
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1000, -1000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 750, 750, 750 }, { 0, 0 } },
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -1000, 1000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 750, 750, 750 }, { 0, 0 } },
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -1000, -1000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 750, 750, 750 }, { 0, 0 } },
+/// Four directional model-shading lights shared by every nighttime breezeway view.
+///
+/// Local translations hold direction vectors, normalized when shading, with
+/// equal RGB intensities of 750 in ONE-based fixed point. Coordinate updates
+/// and lighting queries mutate the transform caches, parent and attenuation;
+/// the room light collection borrows this array while the overlay is loaded.
+static WorldCoordLight _gDryfieldNightBreezewayDirectionalLights[] = {
+    {
+        .transform = { .lighting = {
+                           .composeStamp = GRAPHICS_COORD_DIRTY,
+                           .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1000, -1000, 0 } },
+                           .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                           .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                       } },
+        .color     = { 750, 750, 750 },
+    },
+    {
+        .transform = { .lighting = {
+                           .composeStamp = GRAPHICS_COORD_DIRTY,
+                           .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -1000, -1000, 0 } },
+                           .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                           .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                       } },
+        .color     = { 750, 750, 750 },
+    },
+    {
+        .transform = { .lighting = {
+                           .composeStamp = GRAPHICS_COORD_DIRTY,
+                           .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -1000, 1000 } },
+                           .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                           .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                       } },
+        .color     = { 750, 750, 750 },
+    },
+    {
+        .transform = { .lighting = {
+                           .composeStamp = GRAPHICS_COORD_DIRTY,
+                           .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -1000, -1000 } },
+                           .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                           .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                       } },
+        .color     = { 750, 750, 750 },
+    },
 };
 
 WorldCoordPointLight D_dryfield_night_breezeway_8017FEB8[7] = {
@@ -420,7 +458,7 @@ WorldCoordPointLight D_dryfield_night_breezeway_8017FEB8[7] = {
 };
 
 WorldCoordRoomLights D_dryfield_night_breezeway_80180158[1] = {
-    { ARRAY_SIZE(D_dryfield_night_breezeway_8017FD58), D_dryfield_night_breezeway_8017FD58, ARRAY_SIZE(D_dryfield_night_breezeway_8017FEB8), D_dryfield_night_breezeway_8017FEB8, 0, NULL },
+    { ARRAY_SIZE(_gDryfieldNightBreezewayDirectionalLights), _gDryfieldNightBreezewayDirectionalLights, ARRAY_SIZE(D_dryfield_night_breezeway_8017FEB8), D_dryfield_night_breezeway_8017FEB8, 0, NULL },
 };
 
 WorldCollisionTrigger D_dryfield_night_breezeway_80180170[4] = {
