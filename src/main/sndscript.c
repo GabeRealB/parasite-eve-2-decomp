@@ -138,7 +138,7 @@ STATIC_ASSERT_SIZEOF(SndScriptCmd, 0x8);
 /// field_F is bit1 of SndScriptEntryControls::flags.
 /// field_4C is the `SndScriptEntryControls` block of the sound being played, reloaded by
 /// its `oneC` command.
-/// field_50 is a volume interpolator driven by SndVoice_FadeMatching via LinInterp_Setup.
+/// field_50 applies a shared fade gain to every voice playing in this script instance.
 typedef struct _SndScript {
     /* 0x00 */ s32                     field_0;
     /* 0x04 */ s32                     field_4;
@@ -326,7 +326,7 @@ static s32 SndVoice_Tick(SndVoice* voice);
 
 static s32 SndScript_TickVoices(SndScript* script);
 
-static void SndVoice_ScaleVolume(s8 arg0, s8 arg1, SndVoice* voice, LinInterp* arg3, s16* arg4);
+static void SndVoice_ScaleVolume(s8 arg0, s8 arg1, SndVoice* voice, LinInterp* ramp, s16* arg4);
 
 static void SndVoice_SetupEnvelope(SndVoice* voice, s16 envelopeOffset, u32 pitch, SndBankLayer* bankLayer);
 
@@ -1082,14 +1082,14 @@ static s32 SndVoice_DriveSlots(s32* unused)
                 p->field_4          = 0;
                 p->field_40         = NULL;
                 p->field_16         = 2;
-                p->field_50.field_E = 0;
+                p->field_50.enabled = LINEAR_INTERPOLATOR_BYPASS;
                 p->field_12         = 0;
                 p->field_15         = 0;
                 p->field_E          = 0;
                 goto run;
 
             case 0x80:
-                if (p->field_50.field_0 == p->field_50.field_4) {
+                if (p->field_50.gain == p->field_50.targetGain) {
                     p->field_16 = 4;
                     goto stop;
                 }
@@ -1180,7 +1180,7 @@ static s32 SndVoice_DriveSlots(s32* unused)
             case 0x10:
                 p->field_E = 1;
                 LinInterp_Step(&p->field_50);
-                if (p->field_50.field_0 == p->field_50.field_4) {
+                if (p->field_50.gain == p->field_50.targetGain) {
                     p->field_16 = 2;
                     goto run;
                 }
@@ -1216,7 +1216,7 @@ static s32 SndVoice_DriveSlots(s32* unused)
                         voice->field_34 = 0;
                     }
                     p->field_40         = NULL;
-                    p->field_50.field_E = 0;
+                    p->field_50.enabled = LINEAR_INTERPOLATOR_BYPASS;
                 }
                 break;
         }
@@ -2172,7 +2172,7 @@ static s32 SndScript_TickVoices(SndScript* script)
     return count;
 }
 
-static void SndVoice_ScaleVolume(s8 arg0, s8 arg1, SndVoice* voice, LinInterp* arg3, s16* arg4)
+static void SndVoice_ScaleVolume(s8 arg0, s8 arg1, SndVoice* voice, LinInterp* ramp, s16* arg4)
 {
     s32 vol;
 
@@ -2181,7 +2181,7 @@ static void SndVoice_ScaleVolume(s8 arg0, s8 arg1, SndVoice* voice, LinInterp* a
         vol = voice->field_2 * abs(vol) / 127;
         vol = (vol < 0x80) ? ((vol < 0) ? 0 : vol) : 0x7F;
         Spu_ApplyPanVolume(arg4, (s8)voice->field_3 + arg0 * 3,
-                           LinInterp_Apply(arg3, Snd_VelocityGainTable[vol]));
+                           LinInterp_Apply(ramp, Snd_VelocityGainTable[vol]));
     }
 }
 

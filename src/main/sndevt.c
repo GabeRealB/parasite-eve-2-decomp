@@ -232,7 +232,7 @@ static volatile s32 D_800689E8;
 
 static u8 D_800689F0[];
 
-extern s32 func_80179BE4(u16 arg0, u8 arg1, LinInterp* arg2);
+extern s32 func_80179BE4(u16 arg0, u8 arg1, LinInterp* ramp);
 
 static void SndEvt_Free(SndEvt* event);
 
@@ -816,7 +816,7 @@ s32 Midi_Tick(s32* unused)
                 break;
             case 0x40:
             case 0x80:
-                if (song->volumeRamp.field_0 == song->volumeRamp.field_4) {
+                if (song->volumeRamp.gain == song->volumeRamp.targetGain) {
                     if (song->status == 0x40) {
                         song->status = 2;
                     } else {
@@ -846,7 +846,7 @@ s32 Midi_Tick(s32* unused)
                 song->status = 0;
                 break;
             case 0x10:
-                if (song->status == 8 && (u32)song->volumeRamp.field_0 >= (u32)song->volumeRamp.field_4) {
+                if (song->status == 8 && song->volumeRamp.gain >= song->volumeRamp.targetGain) {
                     song->volumeDirtyChannels = 0xFFFF;
                     song->status              = 2;
                     goto play;

@@ -97,9 +97,9 @@ SndBank* Snd_FindBank(u16 bankId);
 
 void Snd_BuildGroupIndex(SndBank* bank);
 
-void LinInterp_Setup(LinInterp* arg0, s32 arg1, s32 arg2, s32 arg3);
+void LinInterp_Setup(LinInterp* ramp, s32 arg1, s32 arg2, s32 arg3);
 
-void LinInterp_Step(LinInterp* arg0);
+void LinInterp_Step(LinInterp* ramp);
 
 void Spu_ApplyPanVolume(s16* arg0, s16 arg1, s32 arg2);
 

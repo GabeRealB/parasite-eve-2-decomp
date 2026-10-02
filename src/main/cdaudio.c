@@ -71,7 +71,7 @@ STATIC_ASSERT_SIZEOF(CdAudioTblEntry, 0x4);
 typedef struct {
     volatile CdAudioLoc loc;
     CdlLOC              setloc; // passed to CdlSetloc to start a seek
-    LinInterp           ramp;   // scales the stream pitch down before a stop
+    LinInterp           ramp;   // Fades the stream volume down before a stop
     CdStreamParams      stream; // setup handed to CdStream_Start
 } _CdAudioState;
 
@@ -292,8 +292,8 @@ static s32 CdAudio_DrivePhase0(void)
             ramp       = &_gCdAudioState.ramp;
             p->field_1 = 4;
             LinInterp_Step(ramp);
-            if (ramp->field_0 == ramp->field_4) {
-                ramp->field_E = 0;
+            if (ramp->gain == ramp->targetGain) {
+                ramp->enabled = LINEAR_INTERPOLATOR_BYPASS;
                 CdStream_SetVolume(0);
                 CdStream_Stop();
                 p->field_2 = 2;

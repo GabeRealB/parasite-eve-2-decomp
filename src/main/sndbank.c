@@ -76,6 +76,13 @@ typedef struct _AudioTickNode {
 } AudioTickNode;
 STATIC_ASSERT_SIZEOF(AudioTickNode, 0x18);
 
+// Normalized audio gain and the two directions selected during ramp setup.
+enum {
+    LINEAR_INTERPOLATOR_UNITY_GAIN = 65535,
+    LINEAR_INTERPOLATOR_DECREASING = -1,
+    LINEAR_INTERPOLATOR_INCREASING = 1
+};
+
 #define SNDHEAP_SIZE 0x3D00
 
 #define SNDHEAP_START_MAGIC 0xB25A
@@ -583,7 +590,7 @@ void Snd_BuildGroupIndex(SndBank* bank)
     }
 }
 
-void LinInterp_Setup(LinInterp* arg0, s32 arg1, s32 arg2, s32 arg3)
+void LinInterp_Setup(LinInterp* ramp, s32 arg1, s32 arg2, s32 arg3)
 {
     s32 temp;
     s32 limit;
@@ -597,57 +604,57 @@ void LinInterp_Setup(LinInterp* arg0, s32 arg1, s32 arg2, s32 arg3)
         }
     }
 
-    arg0->field_8 = 0;
-    arg0->field_4 = 0;
-    arg0->field_0 = 0;
-    arg0->field_E = 0;
+    ramp->step       = 0;
+    ramp->targetGain = 0;
+    ramp->gain       = 0;
+    ramp->enabled    = LINEAR_INTERPOLATOR_BYPASS;
     return;
 
 setup:
-    limit         = 0xFFFF;
-    arg0->field_8 = limit / arg3;
-    temp          = arg2 - arg1;
+    limit      = LINEAR_INTERPOLATOR_UNITY_GAIN;
+    ramp->step = limit / arg3;
+    temp       = arg2 - arg1;
     if (temp < 0) {
-        arg0->field_C = -1;
-        arg0->field_0 = limit;
-        arg0->field_4 = 0;
+        ramp->direction  = LINEAR_INTERPOLATOR_DECREASING;
+        ramp->gain       = limit;
+        ramp->targetGain = 0;
     } else {
-        arg0->field_C = 1;
-        arg0->field_0 = 0;
-        arg0->field_4 = limit;
+        ramp->direction  = LINEAR_INTERPOLATOR_INCREASING;
+        ramp->gain       = 0;
+        ramp->targetGain = limit;
     }
-    arg0->field_E = 1;
+    ramp->enabled = LINEAR_INTERPOLATOR_SCALE;
 }
 
-s32 LinInterp_Apply(LinInterp* arg0, s32 arg1)
+s32 LinInterp_Apply(LinInterp* ramp, s32 arg1)
 {
     s32 var_a1;
 
     var_a1 = arg1;
-    if (arg0->field_E == 1) {
-        if (arg0->field_0 == arg0->field_4) {
-            arg0->field_8 = 0;
+    if (ramp->enabled == LINEAR_INTERPOLATOR_SCALE) {
+        if (ramp->gain == ramp->targetGain) {
+            ramp->step = 0;
         }
-        var_a1 = (s32)((u32)(var_a1 * arg0->field_0) / 65535);
+        var_a1 = (s32)((var_a1 * ramp->gain) / LINEAR_INTERPOLATOR_UNITY_GAIN);
     }
     return var_a1;
 }
 
-void LinInterp_Step(LinInterp* arg0)
+void LinInterp_Step(LinInterp* ramp)
 {
-    s32 step = arg0->field_8;
+    s32 step = ramp->step;
 
     if (step) {
-        if (arg0->field_C < 0) {
-            if ((u32)(arg0->field_4 + step) >= (u32)arg0->field_0) {
-                arg0->field_0 = arg0->field_4;
+        if (ramp->direction < 0) {
+            if (ramp->targetGain + step >= ramp->gain) {
+                ramp->gain = ramp->targetGain;
             } else {
-                arg0->field_0 = arg0->field_0 - step;
+                ramp->gain = ramp->gain - step;
             }
         } else {
-            arg0->field_0 = arg0->field_0 + step;
-            if ((u32)arg0->field_0 >= (u32)arg0->field_4) {
-                arg0->field_0 = arg0->field_4;
+            ramp->gain = ramp->gain + step;
+            if (ramp->gain >= ramp->targetGain) {
+                ramp->gain = ramp->targetGain;
             }
         }
     }

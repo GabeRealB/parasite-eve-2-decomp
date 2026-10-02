@@ -8337,7 +8337,7 @@ inside the `else` lets delay-slot filling hoist the `addiu` while keeping the
 result in `$v0`:
 
 ```c
-if (interp->field_0 == interp->field_4) {
+if (interp->gain == interp->targetGain) {
     /* equal path — never mentions parent */
     func_X(0);
 } else {
@@ -12961,7 +12961,7 @@ var = (var * scale) / 65535;
 var = (s32)((u32)(var * scale) / 65535);
 ```
 
-`LinInterp_Apply` is the pure example (LinInterp linear interpolator scale).
+`LinInterp_Apply` is the pure example (`LinInterp` gain makes the scaling product unsigned).
 
 
 ## SndVoice voice list (owner SndVoiceOwner)
@@ -13947,17 +13947,17 @@ bnez  v0, end
 
 ```c
 /* GOOD — step local only; fields accessed directly */
-s32 step = arg0->field_8;
+s32 step = ramp->step;
 if (step) {
-    if (arg0->field_C < 0) {
-        if ((u32)(arg0->field_4 + step) >= (u32)arg0->field_0)
-            arg0->field_0 = arg0->field_4;
+    if (ramp->direction < 0) {
+        if (ramp->targetGain + step >= ramp->gain)
+            ramp->gain = ramp->targetGain;
         else
-            arg0->field_0 = arg0->field_0 - step;
+            ramp->gain = ramp->gain - step;
     } else {
-        arg0->field_0 = arg0->field_0 + step;
-        if ((u32)arg0->field_0 >= (u32)arg0->field_4)
-            arg0->field_0 = arg0->field_4;
+        ramp->gain = ramp->gain + step;
+        if (ramp->gain >= ramp->targetGain)
+            ramp->gain = ramp->targetGain;
     }
 }
 ```
@@ -13966,7 +13966,7 @@ Branch polarity for the decreasing arm: write `if (end + step >= cur) clamp;
 else subtract` so fall-through is clamp and `bnez` targets subtract (matches
 `sltu`/`bnez`). Inverting to `<` swaps the arms.
 
-`LinInterp_Step` is the pure example (LinInterp linear interpolator tick).
+`LinInterp_Step` is the pure example (`LinInterp` normalized gain ramp tick).
 
 ## Empty switch case as binary-search pivot to shared default
 

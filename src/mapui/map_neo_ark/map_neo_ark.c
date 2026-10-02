@@ -111,7 +111,7 @@ static GpBit2Rec D_map_neo_ark_8017C970[2];
 static GpBit2Rec D_map_neo_ark_8017C990[2];
 
 static void func_map_neo_ark_801799BC(u8* arg0);
-static s32  func_map_neo_ark_80179BE4(u32 arg0, u8 arg1, LinInterp* arg2);
+static s32  func_map_neo_ark_80179BE4(u32 arg0, u8 arg1, LinInterp* ramp);
 
 /// MDEC buffer layout hook for the Neo Ark map, reached from
 /// `Mdec_SetupBuffers` (main) for stream kinds 6 and 9. Both kinds park the
@@ -162,7 +162,7 @@ static void func_map_neo_ark_801799BC(u8* arg0)
 /// and anything else plays at `arg0` with both ramps reset. Each ramp waits out
 /// its own counter (0x79 / 0xF1 frames), then walks `D_800820E0` by 0x300 a
 /// frame until it reaches the target and the counter is parked at 0xFF.
-static s32 func_map_neo_ark_80179BE4(u32 arg0, u8 arg1, LinInterp* arg2)
+static s32 func_map_neo_ark_80179BE4(u32 arg0, u8 arg1, LinInterp* ramp)
 {
     s32 volume;
     u32 temp;
@@ -183,7 +183,7 @@ static s32 func_map_neo_ark_80179BE4(u32 arg0, u8 arg1, LinInterp* arg2)
         }
         temp   = Midi_GetMasterVolume() & 0xFF;
         temp   = temp * D_800820E0;
-        volume = LinInterp_Apply(arg2, temp / 127U);
+        volume = LinInterp_Apply(ramp, temp / 127U);
     } else if (arg1 == 0x10) {
         if (D_800820E6 == 0) {
             D_800820E4 = 0;
@@ -200,11 +200,11 @@ static s32 func_map_neo_ark_80179BE4(u32 arg0, u8 arg1, LinInterp* arg2)
         }
         temp   = Midi_GetMasterVolume() & 0xFF;
         temp   = temp * D_800820E0;
-        volume = LinInterp_Apply(arg2, temp / 127U);
+        volume = LinInterp_Apply(ramp, temp / 127U);
     } else {
         temp       = Midi_GetMasterVolume() & 0xFF;
         temp       = temp * arg0;
-        volume     = LinInterp_Apply(arg2, temp / 127U);
+        volume     = LinInterp_Apply(ramp, temp / 127U);
         D_800820E4 = 0;
         D_800820E6 = 0;
     }

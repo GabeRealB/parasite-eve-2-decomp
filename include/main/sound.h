@@ -15,7 +15,7 @@ extern s16 D_800820E6;
 
 void Snd_ApplyVolumeTable(s32 arg0);
 
-s32 LinInterp_Apply(LinInterp* arg0, s32 arg1);
+s32 LinInterp_Apply(LinInterp* ramp, s32 arg1);
 
 s32 SndEvt_EnqueueType1(s32 arg0, s32 arg1);
 
