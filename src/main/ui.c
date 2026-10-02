@@ -284,10 +284,7 @@ static void Ui_DrawCursor(UiPanel* panel, s32 arg1, s32 arg2);
 
 static void Ui_DrawCaret(UiList* list, UiPanel* panel, s32 arg2);
 
-/// Fills the inside of a w x h box at (x, y), relative to the panel's origin,
-/// with a flat tile in the ordering-table slot after the panel's. Nothing is
-/// drawn for a zero colour or a box too narrow to have an inside.
-static inline void _uiFillTile(UiPanel* panel, s32 x, s32 y, s32 w, s32 h, u32 color);
+static inline void _uiFillRectInterior(const UiPanel* panel, s32 left, s32 top, s32 width, s32 height, u32 colorWord);
 
 static void Ui_DrawListHighlight(UiList* list, UiPanel* panel, s32 arg2, s32 unused4);
 
@@ -1437,26 +1434,40 @@ void Ui_LayoutListPanel(UiList* arg0_, UiPanel* arg1_)
     }
 }
 
-/// Fills the inside of a w x h box at (x, y), relative to the panel's origin,
-/// with a flat tile in the ordering-table slot after the panel's. Nothing is
-/// drawn for a zero colour or a box too narrow to have an inside.
-static inline void _uiFillTile(UiPanel* panel, s32 x, s32 y, s32 w, s32 h, u32 color)
+/// Queues an opaque solid fill one pixel inside a rectangle's edges.
+///
+/// `left` and `top` are signed pixel coordinates relative to the panel's content
+/// origin; `width` and `height` are edge spans in pixels. The fill starts at
+/// (left + 1, top + 1) and measures (width - 1) by (height - 1).
+/// A zero `colorWord` or width < 2 does nothing; height is not checked. Colour
+/// bytes are packed red, green, blue from low to high. All 32 bits take part in
+/// the zero test; otherwise the high byte is overwritten with the TILE command.
+/// Coordinate and dimension stores retain the low 16 bits without clamping.
+///
+/// Borrows the panel without modifying it. Drawing requires word-aligned space
+/// for one `TILE` in the current primitive arena and a writable ordering-table
+/// tag at the panel's signed base + 1. No capacity checks or clipping occur here;
+/// the arena must retain the packet until the GPU finishes drawing the frame.
+static inline void _uiFillRectInterior(const UiPanel* panel, s32 left, s32 top, s32 width, s32 height, u32 colorWord)
 {
-    TILE* p;
-    s32   top;
+    enum {
+        USER_INTERFACE_RECT_NO_FILL_COLOR  = 0,
+        USER_INTERFACE_RECT_FILL_OT_OFFSET = 1
+    };
+    TILE* tile;
+    s32   originY;
 
-    if (color != 0 && w >= 2) {
-        p                              = gGpuPrimCursor;
-        gGpuPrimCursor                 = p + 1;
-        p->x0                          = panel->contentOriginX.unsignedValue + x + 1;
-        top                            = panel->contentOriginY.unsignedValue;
-        p->w                           = w - 1;
-        p->h                           = h - 1;
-        GPU_PRIMITIVE_COLOR_WORD(p, 0) = color;
-        setlen(p, 3);
-        p->y0 = top + y + 1;
-        setcode(p, 0x60);
-        addPrim(gGpuCurrentOt + panel->otIndex.signedValue + 1, p);
+    if (colorWord != USER_INTERFACE_RECT_NO_FILL_COLOR && width >= 2) {
+        tile                              = gGpuPrimCursor;
+        gGpuPrimCursor                    = tile + 1;
+        tile->x0                          = panel->contentOriginX.unsignedValue + left + 1;
+        originY                           = panel->contentOriginY.unsignedValue;
+        tile->w                           = width - 1;
+        tile->h                           = height - 1;
+        GPU_PRIMITIVE_COLOR_WORD(tile, 0) = colorWord;
+        tile->y0                          = originY + top + 1;
+        setTile(tile);
+        addPrim(gGpuCurrentOt + panel->otIndex.signedValue + USER_INTERFACE_RECT_FILL_OT_OFFSET, tile);
     }
 }
 
@@ -1465,7 +1476,7 @@ void Ui_DrawBeveledRect(UiPanel* panel, s32 x, s32 y, s32 width, s32 height, u32
     LINE_F3* l;
     u16      t;
 
-    _uiFillTile(panel, x, y, width, height, color);
+    _uiFillRectInterior(panel, x, y, width, height, color);
 
     l                              = gGpuPrimCursor;
     l->x2                          = panel->contentOriginX.unsignedValue + x + 1;
@@ -1506,7 +1517,7 @@ static void Ui_DrawListHighlight(UiList* list, UiPanel* panel, s32 arg2, s32 unu
     h  = list->rowHeight;
     x1 = a1->contentLeft.signedValue;
     a1->otIndex.unsignedValue++;
-    _uiFillTile(panel, x1, arg2 - h, a1->contentRight.signedValue - x1 - 1, h, 0x1741F);
+    _uiFillRectInterior(panel, x1, arg2 - h, a1->contentRight.signedValue - x1 - 1, h, GPU_PACK_COLOR_WORD(0x1F, 0x74, 0x01, 0));
     a1->otIndex.unsignedValue--;
 }
 

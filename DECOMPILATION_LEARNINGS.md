@@ -144644,11 +144644,11 @@ The target stored `panel->otIndex.unsignedValue + 1` and only then loaded `conte
 `nop` behind its use. Both go through the same base register at different
 offsets, so there is no alias edge and sched1 hoisted the load above the store;
 the seed held it with `SOFT_COMPILER_BARRIER()` and a register pin on the tile
-colour. `func_80046B34` in the same file builds the identical TILE (`x0 =
-contentOriginX.unsignedValue + x + 1`, `w - 1`, `h - 1`, `if (w >= 2)`), and calling one
-`static inline` fill helper from both - with `contentRight.signedValue - x1 - 1` and `arg2 - h`
+colour. `Ui_DrawBeveledRect` in the same file builds the identical TILE (`x0 =
+contentOriginX.unsignedValue + left + 1`, `width - 1`, `height - 1`, `if (width >= 2)`), and calling one
+`static inline` fill helper, `_uiFillRectInterior`, from both - with `contentRight.signedValue - x1 - 1` and `arg2 - h`
 as its arguments - matched with neither hack. The helper's parameters are
-separate pseudos (`w` and `w >= 2` rather than `(width - 1) >= 2`), which
+separate pseudos (`width` and `width >= 2` rather than `(width - 1) >= 2`), which
 changes the block's insn list enough that sched1 picks the target's order with
 no dependence at all. When a hack steers a primitive-building body, look for
 another function in the file that emits the same primitive with the same
