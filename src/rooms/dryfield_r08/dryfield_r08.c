@@ -54,8 +54,8 @@ extern s32     D_dryfield_r08_80180C24;
 extern WorldCoordRoomLights D_dryfield_r08_801809C0;
 extern WorldCoordRoomLights D_dryfield_r08_80180B58;
 
-static void func_dryfield_r08_8017DEFC(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-static void func_dryfield_r08_8017E36C(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+static void _dryfieldR08DrawBankedDriftSprite(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
+static void _dryfieldR08DrawAlternateDriftSprite(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
 static void func_dryfield_r08_8017EB68(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 extern WorldCollisionGrid D_dryfield_r08_8017FB98[1];
@@ -632,166 +632,254 @@ void func_dryfield_r08_8017D5F8(Task* task)
     }
 }
 
-/* gameplay's room-effect table names the task, drawn with the room's own drawers */
-#define EFFECT_SPRITE_DRIFT_TASK   func_dryfield_r08_8017D8B4
-#define EFFECT_SPRITE_DRIFT_DRAW_A func_dryfield_r08_8017DEFC
-#define EFFECT_SPRITE_DRIFT_DRAW_B func_dryfield_r08_8017E36C
-/// Uses drawer A without the saved palette selector while sprite updates are suspended.
+/// Computes the first corner and returns the shared perspective-size numerator.
+///
+/// Borrows the projection workspace with nonzero depth. Sampling the sine before
+/// scaling preserves the drawer's evaluation order; Q12 rotation follows division.
+static __inline__ s32 _dryfieldR08BeginDriftCorners(EffectBillboardScratch* projection, s16 size, s32 angle)
+{
+    enum { DRYFIELD_R08_DRIFT_PERSPECTIVE_SCALE  = 47,
+           DRYFIELD_R08_DRIFT_TRIG_FRACTION_BITS = 12 };
+    s32 trigSine;
+    s32 scaledSize;
+
+    trigSine                  = rsin(angle);
+    scaledSize                = size * DRYFIELD_R08_DRIFT_PERSPECTIVE_SCALE;
+    projection->cornerOffsetX = ((scaledSize / projection->depth) * trigSine) >> DRYFIELD_R08_DRIFT_TRIG_FRACTION_BITS;
+    projection->cornerOffsetY = ((scaledSize / projection->depth) * rcos(angle)) >> DRYFIELD_R08_DRIFT_TRIG_FRACTION_BITS;
+    return scaledSize;
+}
+
+/// Computes a perpendicular sprite corner from a pre-scaled perspective numerator.
+///
+/// Borrows the projection workspace with nonzero depth; division precedes Q12
+/// rotation and truncates toward zero. Only the two signed pixel offsets change.
+static __inline__ void _dryfieldR08RotateDriftCorner(EffectBillboardScratch* projection, s32 scaledSize, s32 angle)
+{
+    enum { DRYFIELD_R08_DRIFT_TRIG_FRACTION_BITS = 12 };
+    projection->cornerOffsetX = ((scaledSize / projection->depth) * rsin(angle)) >> DRYFIELD_R08_DRIFT_TRIG_FRACTION_BITS;
+    projection->cornerOffsetY = ((scaledSize / projection->depth) * rcos(angle)) >> DRYFIELD_R08_DRIFT_TRIG_FRACTION_BITS;
+}
+
+/// Binds Dryfield R08's exported `void (Task*)` callback for this drift instance.
+///
+/// Function-identifier alias supplied before the fragment and cleared after it.
+/// Used only as the definition name; no arguments, captures or constructed tokens.
+#define EFFECT_SPRITE_DRIFT_TASK dryfieldR08SpriteDriftTask
+/// Binds the twelve-frame drift drawer: `(const GfxCoord*, u16 frameAndPalette, s16 size, s16 angle)`.
+///
+/// Function-identifier alias supplied before the fragment and cleared after it.
+/// Arguments are evaluated once; the coordinate is borrowed, size is a perspective
+/// numerator, and angle uses 4096 units per turn. No captures or constructed tokens.
+#define EFFECT_SPRITE_DRIFT_DRAW_BANKED _dryfieldR08DrawBankedDriftSprite
+/// Binds the ten-frame drift drawer with the same coordinate, packed-frame, size and angle contract.
+///
+/// Function-identifier alias supplied before the fragment and cleared after it.
+/// Arguments are evaluated once; the coordinate is borrowed, size is a perspective
+/// numerator, and angle uses 4096 units per turn. No captures or constructed tokens.
+#define EFFECT_SPRITE_DRIFT_DRAW_ALTERNATE _dryfieldR08DrawAlternateDriftSprite
+/// Uses the banked drawer without the saved palette selector while sprite updates are suspended.
 ///
 /// Define as 1 before including `effect_sprite_drift.inc.c`; 0 or undefined
 /// retains the usual drawer and palette selection. Dryfield R08 enables this
 /// override for every non-running effect-control value, including the final
 /// redraw before cancellation, regardless of the task's drawer state. The cell
-/// index, scale and rotation are retained; drawer A receives palette selector 0.
+/// index, scale and rotation are retained; the banked drawer receives palette selector 0.
 /// This takes precedence over `EFFECT_SPRITE_DRIFT_SIGN_BANK` for suspended draws
 /// and is undefined at the end of the fragment.
 #define EFFECT_SPRITE_DRIFT_PAUSED_DRAW_A_UNBANKED 1
 #include "../../shared/effect_sprite_drift.inc.c"
 
-/// Same projected, spinning `POLY_FT4` as `func_dryfield_r08_8017E36C`, with
-/// its own texture window: the low 12 bits of `arg1` pick a 48x48 cell from a
-/// five-column grid (u = `cell % 5 * 48`, v = `cell / 5 * 48 + 0x68`), and the
-/// top four bits select the clut - row `0x10E + sel` at column `cell & 0x3F`
-/// for 0 and 1, the fixed clut 0x428F otherwise.
-static void func_dryfield_r08_8017DEFC(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
+/// Draws a rotating twelve-cell sprite with a per-cell or alternate palette.
+///
+/// `coord->workm` must be composed for `GsWSMATRIX`; only its translation,
+/// narrowed to s16, is projected. `frameAndPalette` packs cell 0..11 in bits
+/// 0..11 and a palette selector in bits 12..15: 0/1 use per-cell CLUT rows
+/// 270/271, 2..15 use CLUT 0x428F. The five-column 48-texel sheet starts at
+/// V=104 on texture page 0x2B; GPU byte UVs wrap across V=255.
+///
+/// `size * 47 / depth` is the signed pixel half-diagonal before Q12 rotation;
+/// `angle` uses 4096 units per turn. Accepted projections require nonzero
+/// SZ3/4 depth. A nonnegative GTE FLAG queues one additive raw-texture FT4,
+/// requiring packet space at the primitive cursor. One initialized scratch
+/// stack block is borrowed and released on every path; no pointer is retained.
+/// A packet is reserved even when the projection is rejected.
+static void _dryfieldR08DrawBankedDriftSprite(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle)
 {
-    EffectBillboardScratch* block;
-    POLY_FT4*               prim;
-    s32                     ang;
-    s32                     ang2;
-    s32                     span;
-    s32                     u0;
-    s32                     v0;
-    s32                     u1;
-    s32                     v1;
-    s32                     tex;
-    u16                     sel;
-    s32                     sine;
+    enum {
+        // Signed row offsets wrap to GPU UV bytes; last - first is 47 modulo 256.
+        DRYFIELD_R08_DRIFT_FIRST_TEXEL_ROW     = 104,
+        DRYFIELD_R08_DRIFT_LAST_TEXEL_ROW      = -105,
+        DRYFIELD_R08_DRIFT_CLUT_ROW_SHIFT      = 6,
+        DRYFIELD_R08_DRIFT_PALETTE_ROW_COUNT   = 2,
+        DRYFIELD_R08_DRIFT_FRAME_MASK          = 0xFFF,
+        DRYFIELD_R08_DRIFT_PALETTE_SHIFT       = 12,
+        DRYFIELD_R08_DRIFT_CELLS_PER_ROW       = 5,
+        DRYFIELD_R08_DRIFT_CELL_PITCH_TEXELS   = 48,
+        DRYFIELD_R08_DRIFT_UV_SPAN_TEXELS      = 47,
+        DRYFIELD_R08_DRIFT_QUARTER_TURN        = 0x400,
+        DRYFIELD_R08_DRIFT_PACKET_WORDS        = sizeof(POLY_FT4) / sizeof(u32) - 1,
+        DRYFIELD_R08_DRIFT_TEXTURED_QUAD_CODE  = 0x2C,
+        DRYFIELD_R08_DRIFT_RAW_SEMITRANSPARENT = 3,
+        DRYFIELD_R08_DRIFT_TEXTURE_PAGE        = 0x2B,
+        DRYFIELD_R08_DRIFT_ALTERNATE_CLUT      = 0x428F,
+        DRYFIELD_R08_DRIFT_FIRST_PALETTE_ROW   = 0x10E,
+        DRYFIELD_R08_DRIFT_CLUT_COLUMN_MASK    = 0x3F
+    };
+    EffectBillboardScratch* projection;
+    POLY_FT4*               quad;
+    s32                     cornerAngle;
+    s32                     perpendicularAngle;
+    s32                     scaledSize;
+    s32                     cellU;
+    s32                     cellV;
+    s32                     lastU;
+    s32                     lastV;
+    s32                     frameIndex;
+    u16                     paletteSelector;
 
-    block                = SCRATCH_STACK_RESERVE_BLOCK(EffectBillboardScratch);
-    block->worldPoint.vx = arg0->workm.t[0];
-    block->worldPoint.vy = arg0->workm.t[1];
-    block->worldPoint.vz = arg0->workm.t[2];
-    tex                  = arg1 & 0xFFF;
-    sel                  = arg1 >> 12;
+    projection                = SCRATCH_STACK_RESERVE_BLOCK(EffectBillboardScratch);
+    projection->worldPoint.vx = coord->workm.t[0];
+    projection->worldPoint.vy = coord->workm.t[1];
+    projection->worldPoint.vz = coord->workm.t[2];
+    frameIndex                = frameAndPalette & DRYFIELD_R08_DRIFT_FRAME_MASK;
+    paletteSelector           = frameAndPalette >> DRYFIELD_R08_DRIFT_PALETTE_SHIFT;
+    // Project the composed centre; the quad rotates only in screen space.
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->worldPoint);
+    gte_ldv0(&projection->worldPoint);
     gte_rtps();
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setlen(prim, 9);
-    setcode(prim, 0x2C);
-    gte_stsxy(&block->screenX);
-    gte_stflg(&block->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&block->depth);
-        prim->tpage = 0x2B;
-        prim->code |= 3;
-        if (sel >= 2) {
-            prim->clut = 0x428F;
+    quad           = gGpuPrimCursor;
+    gGpuPrimCursor = quad + 1;
+    setlen(quad, DRYFIELD_R08_DRIFT_PACKET_WORDS);
+    setcode(quad, DRYFIELD_R08_DRIFT_TEXTURED_QUAD_CODE);
+    gte_stsxy(&projection->screenX);
+    gte_stflg(&projection->projectionFlags);
+    if (projection->projectionFlags >= 0) {
+        gte_stszotz(&projection->depth);
+        quad->tpage = DRYFIELD_R08_DRIFT_TEXTURE_PAGE;
+        quad->code |= DRYFIELD_R08_DRIFT_RAW_SEMITRANSPARENT;
+        if (paletteSelector >= DRYFIELD_R08_DRIFT_PALETTE_ROW_COUNT) {
+            quad->clut = DRYFIELD_R08_DRIFT_ALTERNATE_CLUT;
         } else {
-            prim->clut = ((sel + 0x10E) << 6) | (tex & 0x3F);
+            quad->clut = ((paletteSelector + DRYFIELD_R08_DRIFT_FIRST_PALETTE_ROW) << DRYFIELD_R08_DRIFT_CLUT_ROW_SHIFT) | (frameIndex & DRYFIELD_R08_DRIFT_CLUT_COLUMN_MASK);
         }
-        ang = arg3;
-        u0  = ((u16)tex % 5) * 0x30;
-        v0  = ((u16)tex / 5) * 0x30;
-        u1  = u0 + 0x2F;
-        v1  = v0 - 0x69;
-        v0  = v0 + 0x68;
-        setUV4(prim, u0, v0, u1, v0, u0, v1, u1, v1);
-        sine                 = rsin(ang);
-        span                 = arg2 * 0x2F;
-        block->cornerOffsetX = ((span / block->depth) * sine) >> 12;
-        block->cornerOffsetY = ((span / block->depth) * rcos(ang)) >> 12;
-        prim->x0             = block->screenX + (u16)block->cornerOffsetX;
-        prim->x3             = block->screenX - (u16)block->cornerOffsetX;
-        prim->y0             = block->screenY - (u16)block->cornerOffsetY;
-        prim->y3             = block->screenY + (u16)block->cornerOffsetY;
-        ang2                 = ang + 0x400;
-        block->cornerOffsetX = ((span / block->depth) * rsin(ang2)) >> 12;
-        block->cornerOffsetY = ((span / block->depth) * rcos(ang2)) >> 12;
-        prim->x1             = block->screenX + (u16)block->cornerOffsetX;
-        prim->x2             = block->screenX - (u16)block->cornerOffsetX;
-        prim->y1             = block->screenY - (u16)block->cornerOffsetY;
-        prim->y2             = block->screenY + (u16)block->cornerOffsetY;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+        cornerAngle = angle;
+        cellU       = ((u16)frameIndex % DRYFIELD_R08_DRIFT_CELLS_PER_ROW) * DRYFIELD_R08_DRIFT_CELL_PITCH_TEXELS;
+        cellV       = ((u16)frameIndex / DRYFIELD_R08_DRIFT_CELLS_PER_ROW) * DRYFIELD_R08_DRIFT_CELL_PITCH_TEXELS;
+        lastU       = cellU + DRYFIELD_R08_DRIFT_UV_SPAN_TEXELS;
+        lastV       = cellV + DRYFIELD_R08_DRIFT_LAST_TEXEL_ROW;
+        cellV       = cellV + DRYFIELD_R08_DRIFT_FIRST_TEXEL_ROW;
+        setUV4(quad, cellU, cellV, lastU, cellV, cellU, lastV, lastU, lastV);
+        scaledSize         = _dryfieldR08BeginDriftCorners(projection, size, cornerAngle);
+        quad->x0           = projection->screenX + (u16)projection->cornerOffsetX;
+        quad->x3           = projection->screenX - (u16)projection->cornerOffsetX;
+        quad->y0           = projection->screenY - (u16)projection->cornerOffsetY;
+        quad->y3           = projection->screenY + (u16)projection->cornerOffsetY;
+        perpendicularAngle = cornerAngle + DRYFIELD_R08_DRIFT_QUARTER_TURN;
+        _dryfieldR08RotateDriftCorner(projection, scaledSize, perpendicularAngle);
+        quad->x1 = projection->screenX + (u16)projection->cornerOffsetX;
+        quad->x2 = projection->screenX - (u16)projection->cornerOffsetX;
+        quad->y1 = projection->screenY - (u16)projection->cornerOffsetY;
+        quad->y2 = projection->screenY + (u16)projection->cornerOffsetY;
+        // Sort by projection depth; the GPU consumes a complete textured-quad packet.
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectBillboardScratch);
 }
 
-/// Projects `arg0`'s world translation through `GsWSMATRIX` and, unless the
-/// GTE flag word is negative, queues one semi-transparent `POLY_FT4` centred on
-/// the projected point. The low 12 bits of `arg1` pick a 48x48 cell from a
-/// five-column grid (u = `cell % 5 * 48`, v = `cell / 5 * 48 - 0x80`); any of
-/// its top four bits set selects clut 0x428F instead of 0x43D0. The quad's
-/// diagonals are `arg2 * 47 / depth` long, turned by `arg3` and
-/// `arg3 + 0x400`, so it shrinks with distance and spins with the angle.
-static void func_dryfield_r08_8017E36C(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
+/// Draws a rotating ten-cell sprite with a base or alternate palette.
+///
+/// `coord->workm` must be composed for `GsWSMATRIX`; its translation is
+/// narrowed to s16. Bits 0..11 of `frameAndPalette` hold cell 0..9; any bit
+/// in 12..15 selects CLUT 0x428F instead of 0x43D0. The five-column sheet
+/// has 48-texel cells starting at V=128 on texture page 0x2C.
+///
+/// `size * 47 / depth` is the signed pixel half-diagonal before Q12 rotation;
+/// `angle` uses 4096 units per turn. Accepted projections require nonzero
+/// SZ3/4 depth. A nonnegative GTE FLAG queues an additive raw-texture FT4.
+/// The initialized scratch stack and primitive cursor must provide one block
+/// and one packet; scratch is released on every path and no pointer is retained.
+/// A packet is reserved even when the projection is rejected.
+static void _dryfieldR08DrawAlternateDriftSprite(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle)
 {
-    EffectBillboardScratch* block;
-    POLY_FT4*               prim;
-    s32                     ang;
-    s32                     ang2;
-    s32                     span;
-    s32                     u0;
-    s32                     v0;
-    s32                     u1;
-    s32                     v1;
-    u16                     tex;
-    u16                     sel;
-    s32                     sine;
+    enum {
+        // Signed row offsets wrap to GPU UV bytes; last - first is 47 modulo 256.
+        DRYFIELD_R08_DRIFT_FIRST_TEXEL_ROW     = -128,
+        DRYFIELD_R08_DRIFT_LAST_TEXEL_ROW      = -81,
+        DRYFIELD_R08_DRIFT_FRAME_MASK          = 0xFFF,
+        DRYFIELD_R08_DRIFT_PALETTE_SHIFT       = 12,
+        DRYFIELD_R08_DRIFT_CELLS_PER_ROW       = 5,
+        DRYFIELD_R08_DRIFT_CELL_PITCH_TEXELS   = 48,
+        DRYFIELD_R08_DRIFT_UV_SPAN_TEXELS      = 47,
+        DRYFIELD_R08_DRIFT_QUARTER_TURN        = 0x400,
+        DRYFIELD_R08_DRIFT_PACKET_WORDS        = sizeof(POLY_FT4) / sizeof(u32) - 1,
+        DRYFIELD_R08_DRIFT_TEXTURED_QUAD_CODE  = 0x2C,
+        DRYFIELD_R08_DRIFT_RAW_SEMITRANSPARENT = 3,
+        DRYFIELD_R08_DRIFT_TEXTURE_PAGE        = 0x2C,
+        DRYFIELD_R08_DRIFT_ALTERNATE_CLUT      = 0x428F,
+        DRYFIELD_R08_DRIFT_BASE_CLUT           = 0x43D0
+    };
+    EffectBillboardScratch* projection;
+    POLY_FT4*               quad;
+    s32                     cornerAngle;
+    s32                     perpendicularAngle;
+    s32                     scaledSize;
+    s32                     cellU;
+    s32                     cellV;
+    s32                     lastU;
+    s32                     lastV;
+    u16                     frameIndex;
+    u16                     paletteSelector;
 
-    block                = SCRATCH_STACK_RESERVE_BLOCK(EffectBillboardScratch);
-    block->worldPoint.vx = arg0->workm.t[0];
-    sel                  = arg1 >> 12;
-    block->worldPoint.vy = arg0->workm.t[1];
-    block->worldPoint.vz = arg0->workm.t[2];
-    tex                  = arg1 & 0xFFF;
+    projection                = SCRATCH_STACK_RESERVE_BLOCK(EffectBillboardScratch);
+    projection->worldPoint.vx = coord->workm.t[0];
+    paletteSelector           = frameAndPalette >> DRYFIELD_R08_DRIFT_PALETTE_SHIFT;
+    projection->worldPoint.vy = coord->workm.t[1];
+    projection->worldPoint.vz = coord->workm.t[2];
+    frameIndex                = frameAndPalette & DRYFIELD_R08_DRIFT_FRAME_MASK;
+    // Project the composed centre; the quad rotates only in screen space.
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->worldPoint);
+    gte_ldv0(&projection->worldPoint);
     gte_rtps();
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setlen(prim, 9);
-    setcode(prim, 0x2C);
-    gte_stsxy(&block->screenX);
-    gte_stflg(&block->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&block->depth);
-        prim->tpage = 0x2C;
-        prim->code |= 3;
-        if (sel) {
-            prim->clut = 0x428F;
+    quad           = gGpuPrimCursor;
+    gGpuPrimCursor = quad + 1;
+    setlen(quad, DRYFIELD_R08_DRIFT_PACKET_WORDS);
+    setcode(quad, DRYFIELD_R08_DRIFT_TEXTURED_QUAD_CODE);
+    gte_stsxy(&projection->screenX);
+    gte_stflg(&projection->projectionFlags);
+    if (projection->projectionFlags >= 0) {
+        gte_stszotz(&projection->depth);
+        quad->tpage = DRYFIELD_R08_DRIFT_TEXTURE_PAGE;
+        quad->code |= DRYFIELD_R08_DRIFT_RAW_SEMITRANSPARENT;
+        if (paletteSelector) {
+            quad->clut = DRYFIELD_R08_DRIFT_ALTERNATE_CLUT;
         } else {
-            prim->clut = 0x43D0;
+            quad->clut = DRYFIELD_R08_DRIFT_BASE_CLUT;
         }
-        ang = arg3;
-        u0  = (tex % 5) * 0x30;
-        v0  = (tex / 5) * 0x30;
-        u1  = u0 + 0x2F;
-        v1  = v0 - 0x51;
-        v0  = v0 - 0x80;
-        setUV4(prim, u0, v0, u1, v0, u0, v1, u1, v1);
-        sine                 = rsin(ang);
-        span                 = arg2 * 0x2F;
-        block->cornerOffsetX = ((span / block->depth) * sine) >> 12;
-        block->cornerOffsetY = ((span / block->depth) * rcos(ang)) >> 12;
-        prim->x0             = block->screenX + block->cornerOffsetX;
-        prim->x3             = block->screenX - block->cornerOffsetX;
-        prim->y0             = block->screenY - block->cornerOffsetY;
-        prim->y3             = block->screenY + block->cornerOffsetY;
-        ang2                 = ang + 0x400;
-        block->cornerOffsetX = ((span / block->depth) * rsin(ang2)) >> 12;
-        block->cornerOffsetY = ((span / block->depth) * rcos(ang2)) >> 12;
-        prim->x1             = block->screenX + block->cornerOffsetX;
-        prim->x2             = block->screenX - block->cornerOffsetX;
-        prim->y1             = block->screenY - block->cornerOffsetY;
-        prim->y2             = block->screenY + block->cornerOffsetY;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+        cornerAngle = angle;
+        cellU       = (frameIndex % DRYFIELD_R08_DRIFT_CELLS_PER_ROW) * DRYFIELD_R08_DRIFT_CELL_PITCH_TEXELS;
+        cellV       = (frameIndex / DRYFIELD_R08_DRIFT_CELLS_PER_ROW) * DRYFIELD_R08_DRIFT_CELL_PITCH_TEXELS;
+        lastU       = cellU + DRYFIELD_R08_DRIFT_UV_SPAN_TEXELS;
+        lastV       = cellV + DRYFIELD_R08_DRIFT_LAST_TEXEL_ROW;
+        cellV       = cellV + DRYFIELD_R08_DRIFT_FIRST_TEXEL_ROW;
+        setUV4(quad, cellU, cellV, lastU, cellV, cellU, lastV, lastU, lastV);
+        scaledSize         = _dryfieldR08BeginDriftCorners(projection, size, cornerAngle);
+        quad->x0           = projection->screenX + projection->cornerOffsetX;
+        quad->x3           = projection->screenX - projection->cornerOffsetX;
+        quad->y0           = projection->screenY - projection->cornerOffsetY;
+        quad->y3           = projection->screenY + projection->cornerOffsetY;
+        perpendicularAngle = cornerAngle + DRYFIELD_R08_DRIFT_QUARTER_TURN;
+        _dryfieldR08RotateDriftCorner(projection, scaledSize, perpendicularAngle);
+        quad->x1 = projection->screenX + projection->cornerOffsetX;
+        quad->x2 = projection->screenX - projection->cornerOffsetX;
+        quad->y1 = projection->screenY - projection->cornerOffsetY;
+        quad->y2 = projection->screenY + projection->cornerOffsetY;
+        // Sort by projection depth; the GPU consumes a complete textured-quad packet.
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectBillboardScratch);
 }

@@ -42,6 +42,19 @@ void func_shelter_b1_pod_service_gantry_8017E880(Task* task);
 
 void func_shelter_b1_pod_service_gantry_8017F8C8(Task* task);
 
-void func_shelter_b1_pod_service_gantry_8017D8F4(Task* task);
+/// Advances the pod service gantry's animated drifting sprite and releases it at completion.
+///
+/// Requires a live coordinate-body task with initialized `EffectWork` in
+/// `spawnArg2.pointer`. `spawnArg1.value` packs size in bits 0..11, period in
+/// 12..14 (1 only when bits 12..15 are all zero), speed in 16..23 (0 means 64),
+/// movement kind in 24..27, palette bank in 28..30, and alternate drawer in 31.
+/// A nonzero period nibble must encode a nonzero period. Spin uses 4096 units
+/// per turn; movement uses coordinate units per running update.
+/// Initializes without drawing; later updates draw before moving, accelerating
+/// and advancing through 12 banked or 10 alternate cells. Nonzero effect control
+/// freezes updates but retains the drawer and palette; control >= 4 frees work
+/// and task after that redraw. Drawing needs composed coordinates and scratch
+/// and primitive-packet capacity.
+void shelterB1PodServiceGantrySpriteDriftTask(Task* task);
 
 #endif // INCLUDE_ROOMS_SHELTER_B1_POD_SERVICE_GANTRY_H

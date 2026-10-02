@@ -883,7 +883,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_r48_8017E4C4, { NULL } },                                 // 0x189
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_r48_8017EC18, { NULL } },                                 // 0x18A
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_r48_8017F6C0, { NULL } },                                 // 0x18B
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_r48_80180210, { NULL } },                                 // 0x18C
+    { { { TASK_BODY_COORD, 0x70 } }, shelterR48SpriteDriftTask, { NULL } },                                 // 0x18C
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_r48_8017E704, { NULL } },                                 // 0x18D
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_r48_8017E9B8, { NULL } },                                 // 0x18E
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_r48_8017EFD8, { NULL } },                                 // 0x18F
@@ -923,11 +923,11 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_main_street_8017E830, { NULL } },                        // 0x1B1
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_main_street_8017F3B0, { NULL } },                  // 0x1B2
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_pod_bottom_8017D850, { NULL } },                       // 0x1B3
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_pod_service_gantry_8017D8F4, { NULL } },               // 0x1B4
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB1PodServiceGantrySpriteDriftTask, { NULL } },                  // 0x1B4
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_pod_access_tunnel_8017E6E0, { NULL } },                // 0x1B5
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_r08_8017D5F8, { NULL } },                                // 0x1B6
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_r08_8017D8B4, { NULL } },                                // 0x1B7
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_r08_8017D8B4, { NULL } },                                // 0x1B8
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldR08SpriteDriftTask, { NULL } },                                // 0x1B7
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldR08SpriteDriftTask, { NULL } },                                // 0x1B8
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_pod_bottom_80181B48, { NULL } },                       // 0x1B9
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_pod_bottom_8017EC78, { NULL } },                       // 0x1BA
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_pod_bottom_8017F448, { NULL } },                       // 0x1BB

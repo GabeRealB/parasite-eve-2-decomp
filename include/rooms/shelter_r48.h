@@ -47,7 +47,21 @@ void func_shelter_r48_8017EC18(Task* task);
 
 void func_shelter_r48_8017F6C0(Task* task);
 
-void func_shelter_r48_80180210(Task* task);
+/// Advances Shelter R48's drifting sprite with sign-selected palettes and fixed Y acceleration.
+///
+/// Requires a live coordinate-body task with initialized `EffectWork` in
+/// `spawnArg2.pointer`. Bits 0..11 of `spawnArg1.value` give size, 12..14 give
+/// period (1 only when bits 12..15 are all zero), 16..23 give speed (0 means 64),
+/// and 24..27 select movement kind. A nonzero period nibble must encode a
+/// nonzero period. Any bit in 28..31 selects the ten-cell alternate running
+/// drawer; otherwise the twelve-cell banked drawer runs. Bit 31 selects palette
+/// 1 (CLUT 0x428F), with palette 0 otherwise. Spin uses 4096 units per turn.
+/// Initializes without drawing; moving updates advance position in coordinate
+/// units then subtract 2/1 from banked/alternate Y velocity, even for kind 7.
+/// Nonzero effect control freezes updates and selects the redraw's drawer from
+/// bit 31 alone; control >= 4 frees work and task after the redraw. Drawing
+/// requires composed coordinates, initialized scratch and primitive-packet space.
+void shelterR48SpriteDriftTask(Task* task);
 
 void func_shelter_r48_8017E704(Task* arg0);
 

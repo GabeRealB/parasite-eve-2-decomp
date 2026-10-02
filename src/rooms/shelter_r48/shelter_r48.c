@@ -98,8 +98,8 @@ static void func_shelter_r48_8017E1A4(Task* arg0);
 static void func_shelter_r48_8017E214(Task* task);
 static void func_shelter_r48_8017F124(EffectWork* work, GfxCoord* coord, s32 part);
 static void func_shelter_r48_8018258C(SVECTOR* arg0, s32 arg1, s32 arg2);
-static void func_shelter_r48_80180804(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-static void func_shelter_r48_80180C5C(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+static void _shelterR48DrawBankedDriftSprite(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
+static void _shelterR48DrawAlternateDriftSprite(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
 static void func_shelter_r48_80181C14(GfxCoord* coord, s16 size, s32 yaw, s32 color);
 
 extern AreaResource D_shelter_r48_8018BB30[3];
@@ -2360,7 +2360,7 @@ void func_shelter_r48_8017E704(Task* arg0)
     mem   = (EffectWork*)arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        func_shelter_r48_80180804(coord, ((s16)(mem->age / 2) % 12) & 0xFFFF, 0x800, 0);
+        _shelterR48DrawBankedDriftSprite(coord, ((s16)(mem->age / 2) % 12) & 0xFFFF, 0x800, 0);
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             effectKillTask(mem, arg0);
         }
@@ -2388,7 +2388,7 @@ void func_shelter_r48_8017E704(Task* arg0)
             arg0->spawnArg1.value = 1;
             return;
         case 1:
-            func_shelter_r48_80180804(coord, ((s16)(mem->age / 2) % 12) & 0xFFFF, 0x800, 0);
+            _shelterR48DrawBankedDriftSprite(coord, ((s16)(mem->age / 2) % 12) & 0xFFFF, 0x800, 0);
             if (!(mem->age & 1)) {
                 Gp_SpawnEff(EFFECT_SHELTER_R48_SPRAY, coord, 0x12801800, NULL);
             }
@@ -2414,7 +2414,7 @@ void func_shelter_r48_8017E9B8(Task* arg0)
     mem   = (EffectWork*)arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        func_shelter_r48_80180804(coord, ((s16)(mem->age / 2) % 12 | 0x1000) & 0xFFFF, 0xA00, 0);
+        _shelterR48DrawBankedDriftSprite(coord, ((s16)(mem->age / 2) % 12 | 0x1000) & 0xFFFF, 0xA00, 0);
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             effectKillTask(mem, arg0);
         }
@@ -2442,7 +2442,7 @@ void func_shelter_r48_8017E9B8(Task* arg0)
             arg0->spawnArg1.value = 1;
             return;
         case 1:
-            func_shelter_r48_80180804(coord, ((s16)(mem->age / 2) % 12 | 0x1000) & 0xFFFF, 0x800, 0);
+            _shelterR48DrawBankedDriftSprite(coord, ((s16)(mem->age / 2) % 12 | 0x1000) & 0xFFFF, 0x800, 0);
             if (!(mem->age & 1)) {
                 Gp_SpawnEff(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, 0x92801800, NULL);
             }
@@ -2793,16 +2793,41 @@ void waterDrawTileU16(GfxCoord* arg0, s32 arg1, s32 arg2)
     SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
-/* gameplay's room-effect table names the task, drawn with the room's own drawers */
-#define EFFECT_SPRITE_DRIFT_TASK   func_shelter_r48_80180210
-#define EFFECT_SPRITE_DRIFT_DRAW_A func_shelter_r48_80180804
-#define EFFECT_SPRITE_DRIFT_DRAW_B func_shelter_r48_80180C5C
+/// Computes a sprite corner in signed pixels from perspective size and turn angle.
+///
+/// Borrows the projection workspace with nonzero depth; only the two corner
+/// offsets change. Division precedes Q12 rotation and truncates toward zero.
+static __inline__ void _shelterR48RotateDriftCorner(EffectShapeScratch* projection, s16 size, s32 angle)
+{
+    enum { SHELTER_R48_DRIFT_PERSPECTIVE_SCALE  = 47,
+           SHELTER_R48_DRIFT_TRIG_FRACTION_BITS = 12 };
+    projection->extent.corner.x = (((size * SHELTER_R48_DRIFT_PERSPECTIVE_SCALE) / projection->depth) * rsin(angle)) >> SHELTER_R48_DRIFT_TRIG_FRACTION_BITS;
+    projection->extent.corner.y = (((size * SHELTER_R48_DRIFT_PERSPECTIVE_SCALE) / projection->depth) * rcos(angle)) >> SHELTER_R48_DRIFT_TRIG_FRACTION_BITS;
+}
+
+/// Binds Shelter R48's exported `void (Task*)` callback for this drift instance.
+///
+/// Function-identifier alias supplied before the fragment and cleared after it.
+/// Used only as the definition name; no arguments, captures or constructed tokens.
+#define EFFECT_SPRITE_DRIFT_TASK shelterR48SpriteDriftTask
+/// Binds the twelve-frame drift drawer: `(const GfxCoord*, u16 frameAndPalette, s16 size, s16 angle)`.
+///
+/// Function-identifier alias supplied before the fragment and cleared after it.
+/// Arguments are evaluated once; the coordinate is borrowed, size is a perspective
+/// numerator, and angle uses 4096 units per turn. No captures or constructed tokens.
+#define EFFECT_SPRITE_DRIFT_DRAW_BANKED _shelterR48DrawBankedDriftSprite
+/// Binds the ten-frame drift drawer with the same coordinate, packed-frame, size and angle contract.
+///
+/// Function-identifier alias supplied before the fragment and cleared after it.
+/// Arguments are evaluated once; the coordinate is borrowed, size is a perspective
+/// numerator, and angle uses 4096 units per turn. No captures or constructed tokens.
+#define EFFECT_SPRITE_DRIFT_DRAW_ALTERNATE _shelterR48DrawAlternateDriftSprite
 /// Selects the drift sprite's palette bank from the spawn argument's sign bit.
 ///
 /// Define as integer 1 before including `effect_sprite_drift.inc.c`, as Shelter
 /// R48 does; 0 or undefined selects the default encoding (bit 31 chooses the
 /// drawer, bits 28..30 choose the palette bank). With 1, initialization chooses
-/// drawer A when bits 28..31 are all zero, otherwise drawer B. Bit 31 alone
+/// the banked drawer when bits 28..31 are all zero, otherwise the alternate drawer. Bit 31 alone
 /// sets `EffectWork::pos.vx` to 0 or 0x1000, ORed with the animation cell index
 /// in the drawer's u16 argument. Both R48 drawers use bank 1 for CLUT 0x428F
 /// and bank 0 for their ordinary palettes.
@@ -2828,134 +2853,191 @@ void waterDrawTileU16(GfxCoord* arg0, s32 arg1, s32 arg2)
 #define EFFECT_SPRITE_DRIFT_FIXED_NEGATIVE_Y_ACCELERATION 1
 #include "../../shared/effect_sprite_drift.inc.c"
 
-static void func_shelter_r48_80180804(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
+/// Draws a rotating twelve-cell sprite with a per-cell or alternate palette.
+///
+/// `coord->workm` must be composed for `GsWSMATRIX`; translation is narrowed
+/// to s16. Bits 0..11 of `frameAndPalette` hold cell 0..11; any selector in
+/// bits 12..15 uses CLUT 0x428F instead of the cell palette on VRAM row 270.
+/// The five-column sheet has 48-texel cells at V=112 on texture page 0x2C.
+///
+/// `size * 47 / (SZ3/4 + 1)` is the signed pixel half-diagonal before Q12
+/// rotation; `angle` uses 4096 units per turn. A nonnegative GTE FLAG queues
+/// an additive raw-texture FT4, also sorted with the biased depth. One scratch
+/// block is borrowed and released on every path; the initialized scratch stack
+/// and primitive cursor must provide capacity. No pointer is retained.
+static void _shelterR48DrawBankedDriftSprite(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle)
 {
-    EffectShapeScratch* head;
-    EffectShapeScratch* block;
-    POLY_FT4*           prim;
-    u16                 col;
-    u16                 row;
-    s32                 u0;
-    s32                 v0;
-    s32                 ang;
-    s32                 ang2;
-    s32                 bank;
-    s32                 idx;
+    enum {
+        // Signed row offsets wrap to GPU UV bytes; last - first is 47 modulo 256.
+        SHELTER_R48_DRIFT_FIRST_TEXEL_ROW   = 112,
+        SHELTER_R48_DRIFT_LAST_TEXEL_ROW    = -97,
+        SHELTER_R48_DRIFT_FRAME_MASK        = 0xFFF,
+        SHELTER_R48_DRIFT_PALETTE_SHIFT     = 12,
+        SHELTER_R48_DRIFT_CELLS_PER_ROW     = 5,
+        SHELTER_R48_DRIFT_CELL_PITCH_TEXELS = 48,
+        SHELTER_R48_DRIFT_UV_SPAN_TEXELS    = 47,
+        SHELTER_R48_DRIFT_QUARTER_TURN      = 0x400,
+        SHELTER_R48_DRIFT_PACKET_WORDS      = sizeof(POLY_FT4) / sizeof(u32) - 1,
+        SHELTER_R48_DRIFT_PACKET_CODE       = 0x2F,
+        SHELTER_R48_DRIFT_TEXTURE_PAGE      = 0x2C,
+        SHELTER_R48_DRIFT_ALTERNATE_CLUT    = 0x428F,
+        SHELTER_R48_DRIFT_FIRST_FRAME_CLUT  = 0x4380,
+        SHELTER_R48_DRIFT_CLUT_COLUMN_MASK  = 0x3F
+    };
+    EffectShapeScratch* scratchEnd;
+    EffectShapeScratch* projection;
+    POLY_FT4*           quad;
+    u16                 cellColumn;
+    u16                 cellRow;
+    s32                 cellU;
+    s32                 cellV;
+    s32                 cornerAngle;
+    s32                 perpendicularAngle;
+    s32                 paletteSelector;
+    s32                 frameIndex;
 
-    head                       = SCRATCH_STACK_CURSOR(EffectShapeScratch);
-    (head - 1)->worldPoint.vx  = arg0->workm.t[0];
-    SCRATCH_STACK_CURSOR(void) = head - 1;
-    block                      = SCRATCH_STACK_CURSOR(EffectShapeScratch);
-    block->worldPoint.vy       = arg0->workm.t[1];
-    block->worldPoint.vz       = arg0->workm.t[2];
-    idx                        = arg1 & 0xFFF;
-    bank                       = arg1 >> 12;
+    scratchEnd                      = SCRATCH_STACK_CURSOR(EffectShapeScratch);
+    (scratchEnd - 1)->worldPoint.vx = coord->workm.t[0];
+    SCRATCH_STACK_CURSOR(void)      = scratchEnd - 1;
+    projection                      = SCRATCH_STACK_CURSOR(EffectShapeScratch);
+    projection->worldPoint.vy       = coord->workm.t[1];
+    projection->worldPoint.vz       = coord->workm.t[2];
+    frameIndex                      = frameAndPalette & SHELTER_R48_DRIFT_FRAME_MASK;
+    paletteSelector                 = frameAndPalette >> SHELTER_R48_DRIFT_PALETTE_SHIFT;
+    // Project the composed centre; the quad rotates only in screen space.
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->worldPoint);
+    gte_ldv0(&projection->worldPoint);
     gte_rtps();
-    gte_stsxy(&(head - 1)->screenX);
-    gte_stflg(&(head - 1)->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&(head - 1)->depth);
-        block->depth++;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2F);
-        prim->tpage = 0x2C;
-        if (bank != 0) {
-            prim->clut = 0x428F;
+    gte_stsxy(&(scratchEnd - 1)->screenX);
+    gte_stflg(&(scratchEnd - 1)->projectionFlags);
+    if (projection->projectionFlags >= 0) {
+        gte_stszotz(&(scratchEnd - 1)->depth);
+        projection->depth++;
+        quad           = gGpuPrimCursor;
+        gGpuPrimCursor = quad + 1;
+        setlen(quad, SHELTER_R48_DRIFT_PACKET_WORDS);
+        setcode(quad, SHELTER_R48_DRIFT_PACKET_CODE);
+        quad->tpage = SHELTER_R48_DRIFT_TEXTURE_PAGE;
+        if (paletteSelector != 0) {
+            quad->clut = SHELTER_R48_DRIFT_ALTERNATE_CLUT;
         } else {
-            prim->clut = (idx & 0x3F) | 0x4380;
+            quad->clut = (frameIndex & SHELTER_R48_DRIFT_CLUT_COLUMN_MASK) | SHELTER_R48_DRIFT_FIRST_FRAME_CLUT;
         }
-        col = (u16)idx % 5;
-        row = (u16)idx / 5;
-        ang = arg3;
-        u0  = col * 0x30;
-        v0  = row * 0x30;
-        setUV4(prim, u0, v0 + 0x70, u0 + 0x2F, v0 + 0x70, u0, v0 - 0x61, u0 + 0x2F, v0 - 0x61);
-        block->extent.corner.x = (((arg2 * 47) / block->depth) * rsin(ang)) >> 12;
-        block->extent.corner.y = (((arg2 * 47) / block->depth) * rcos(ang)) >> 12;
-        prim->x0               = block->screenX + (u16)block->extent.corner.x;
-        prim->x3               = block->screenX - (u16)block->extent.corner.x;
-        prim->y0               = block->screenY - (u16)block->extent.corner.y;
-        prim->y3               = block->screenY + (u16)block->extent.corner.y;
-        ang2                   = ang + 0x400;
-        block->extent.corner.x = (((arg2 * 47) / block->depth) * rsin(ang2)) >> 12;
-        block->extent.corner.y = (((arg2 * 47) / block->depth) * rcos(ang2)) >> 12;
-        prim->x1               = block->screenX + (u16)block->extent.corner.x;
-        prim->x2               = block->screenX - (u16)block->extent.corner.x;
-        prim->y1               = block->screenY - (u16)block->extent.corner.y;
-        prim->y2               = block->screenY + (u16)block->extent.corner.y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+        cellColumn  = (u16)frameIndex % SHELTER_R48_DRIFT_CELLS_PER_ROW;
+        cellRow     = (u16)frameIndex / SHELTER_R48_DRIFT_CELLS_PER_ROW;
+        cornerAngle = angle;
+        cellU       = cellColumn * SHELTER_R48_DRIFT_CELL_PITCH_TEXELS;
+        cellV       = cellRow * SHELTER_R48_DRIFT_CELL_PITCH_TEXELS;
+        setUV4(quad, cellU, cellV + SHELTER_R48_DRIFT_FIRST_TEXEL_ROW, cellU + SHELTER_R48_DRIFT_UV_SPAN_TEXELS, cellV + SHELTER_R48_DRIFT_FIRST_TEXEL_ROW, cellU, cellV + SHELTER_R48_DRIFT_LAST_TEXEL_ROW, cellU + SHELTER_R48_DRIFT_UV_SPAN_TEXELS, cellV + SHELTER_R48_DRIFT_LAST_TEXEL_ROW);
+        _shelterR48RotateDriftCorner(projection, size, cornerAngle);
+        quad->x0           = projection->screenX + (u16)projection->extent.corner.x;
+        quad->x3           = projection->screenX - (u16)projection->extent.corner.x;
+        quad->y0           = projection->screenY - (u16)projection->extent.corner.y;
+        quad->y3           = projection->screenY + (u16)projection->extent.corner.y;
+        perpendicularAngle = cornerAngle + SHELTER_R48_DRIFT_QUARTER_TURN;
+        _shelterR48RotateDriftCorner(projection, size, perpendicularAngle);
+        quad->x1 = projection->screenX + (u16)projection->extent.corner.x;
+        quad->x2 = projection->screenX - (u16)projection->extent.corner.x;
+        quad->y1 = projection->screenY - (u16)projection->extent.corner.y;
+        quad->y2 = projection->screenY + (u16)projection->extent.corner.y;
+        // Sort by projection depth; the GPU consumes a complete textured-quad packet.
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }
 
-static void func_shelter_r48_80180C5C(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
+/// Draws a rotating ten-cell sprite with a base or alternate palette.
+///
+/// `coord->workm` must be composed for `GsWSMATRIX`; translation is narrowed
+/// to s16. Bits 0..11 of `frameAndPalette` hold cell 0..9; any nonzero selector
+/// in bits 12..15 uses CLUT 0x428F instead of 0x43D0. The five-column sheet
+/// has 48-texel cells at V=128 on texture page 0x2B.
+///
+/// `size * 47 / (SZ3/4 + 1)` is the signed pixel half-diagonal before Q12
+/// rotation; `angle` uses 4096 units per turn. A nonnegative GTE FLAG queues
+/// an additive raw-texture FT4, sorted with biased depth. One scratch block
+/// is borrowed and released on every path; the initialized scratch stack and
+/// primitive cursor must provide capacity. No pointer is retained.
+static void _shelterR48DrawAlternateDriftSprite(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle)
 {
-    EffectShapeScratch* head;
-    EffectShapeScratch* block;
-    POLY_FT4*           prim;
-    u16                 col;
-    u16                 row;
-    s32                 u0;
-    s32                 v0;
-    s32                 ang;
-    s32                 ang2;
-    s32                 bank;
-    u16                 idx;
+    enum {
+        // Signed row offsets wrap to GPU UV bytes; last - first is 47 modulo 256.
+        SHELTER_R48_DRIFT_FIRST_TEXEL_ROW   = -128,
+        SHELTER_R48_DRIFT_LAST_TEXEL_ROW    = -81,
+        SHELTER_R48_DRIFT_FRAME_MASK        = 0xFFF,
+        SHELTER_R48_DRIFT_PALETTE_SHIFT     = 12,
+        SHELTER_R48_DRIFT_CELLS_PER_ROW     = 5,
+        SHELTER_R48_DRIFT_CELL_PITCH_TEXELS = 48,
+        SHELTER_R48_DRIFT_UV_SPAN_TEXELS    = 47,
+        SHELTER_R48_DRIFT_QUARTER_TURN      = 0x400,
+        SHELTER_R48_DRIFT_PACKET_WORDS      = sizeof(POLY_FT4) / sizeof(u32) - 1,
+        SHELTER_R48_DRIFT_PACKET_CODE       = 0x2F,
+        SHELTER_R48_DRIFT_TEXTURE_PAGE      = 0x2B,
+        SHELTER_R48_DRIFT_ALTERNATE_CLUT    = 0x428F,
+        SHELTER_R48_DRIFT_BASE_CLUT         = 0x43D0
+    };
+    EffectShapeScratch* scratchEnd;
+    EffectShapeScratch* projection;
+    POLY_FT4*           quad;
+    u16                 cellColumn;
+    u16                 cellRow;
+    s32                 cellU;
+    s32                 cellV;
+    s32                 cornerAngle;
+    s32                 perpendicularAngle;
+    s32                 paletteSelector;
+    u16                 frameIndex;
 
-    head                       = SCRATCH_STACK_CURSOR(EffectShapeScratch);
-    (head - 1)->worldPoint.vx  = arg0->workm.t[0];
-    SCRATCH_STACK_CURSOR(void) = head - 1;
-    block                      = SCRATCH_STACK_CURSOR(EffectShapeScratch);
-    block->worldPoint.vy       = arg0->workm.t[1];
-    block->worldPoint.vz       = arg0->workm.t[2];
-    idx                        = arg1 & 0xFFF;
-    bank                       = arg1 >> 12;
+    scratchEnd                      = SCRATCH_STACK_CURSOR(EffectShapeScratch);
+    (scratchEnd - 1)->worldPoint.vx = coord->workm.t[0];
+    SCRATCH_STACK_CURSOR(void)      = scratchEnd - 1;
+    projection                      = SCRATCH_STACK_CURSOR(EffectShapeScratch);
+    projection->worldPoint.vy       = coord->workm.t[1];
+    projection->worldPoint.vz       = coord->workm.t[2];
+    frameIndex                      = frameAndPalette & SHELTER_R48_DRIFT_FRAME_MASK;
+    paletteSelector                 = frameAndPalette >> SHELTER_R48_DRIFT_PALETTE_SHIFT;
+    // Project the composed centre; the quad rotates only in screen space.
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->worldPoint);
+    gte_ldv0(&projection->worldPoint);
     gte_rtps();
-    gte_stsxy(&(head - 1)->screenX);
-    gte_stflg(&(head - 1)->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&(head - 1)->depth);
-        block->depth++;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2F);
-        prim->tpage = 0x2B;
-        if (bank != 0) {
-            prim->clut = 0x428F;
+    gte_stsxy(&(scratchEnd - 1)->screenX);
+    gte_stflg(&(scratchEnd - 1)->projectionFlags);
+    if (projection->projectionFlags >= 0) {
+        gte_stszotz(&(scratchEnd - 1)->depth);
+        projection->depth++;
+        quad           = gGpuPrimCursor;
+        gGpuPrimCursor = quad + 1;
+        setlen(quad, SHELTER_R48_DRIFT_PACKET_WORDS);
+        setcode(quad, SHELTER_R48_DRIFT_PACKET_CODE);
+        quad->tpage = SHELTER_R48_DRIFT_TEXTURE_PAGE;
+        if (paletteSelector != 0) {
+            quad->clut = SHELTER_R48_DRIFT_ALTERNATE_CLUT;
         } else {
-            prim->clut = 0x43D0;
+            quad->clut = SHELTER_R48_DRIFT_BASE_CLUT;
         }
-        col = (u16)idx % 5;
-        row = (u16)idx / 5;
-        ang = arg3;
-        u0  = col * 0x30;
-        v0  = row * 0x30;
-        setUV4(prim, u0, v0 - 0x80, u0 + 0x2F, v0 - 0x80, u0, v0 - 0x51, u0 + 0x2F, v0 - 0x51);
-        block->extent.corner.x = (((arg2 * 47) / block->depth) * rsin(ang)) >> 12;
-        block->extent.corner.y = (((arg2 * 47) / block->depth) * rcos(ang)) >> 12;
-        prim->x0               = block->screenX + (u16)block->extent.corner.x;
-        prim->x3               = block->screenX - (u16)block->extent.corner.x;
-        prim->y0               = block->screenY - (u16)block->extent.corner.y;
-        prim->y3               = block->screenY + (u16)block->extent.corner.y;
-        ang2                   = ang + 0x400;
-        block->extent.corner.x = (((arg2 * 47) / block->depth) * rsin(ang2)) >> 12;
-        block->extent.corner.y = (((arg2 * 47) / block->depth) * rcos(ang2)) >> 12;
-        prim->x1               = block->screenX + (u16)block->extent.corner.x;
-        prim->x2               = block->screenX - (u16)block->extent.corner.x;
-        prim->y1               = block->screenY - (u16)block->extent.corner.y;
-        prim->y2               = block->screenY + (u16)block->extent.corner.y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+        cellColumn  = (u16)frameIndex % SHELTER_R48_DRIFT_CELLS_PER_ROW;
+        cellRow     = (u16)frameIndex / SHELTER_R48_DRIFT_CELLS_PER_ROW;
+        cornerAngle = angle;
+        cellU       = cellColumn * SHELTER_R48_DRIFT_CELL_PITCH_TEXELS;
+        cellV       = cellRow * SHELTER_R48_DRIFT_CELL_PITCH_TEXELS;
+        setUV4(quad, cellU, cellV + SHELTER_R48_DRIFT_FIRST_TEXEL_ROW, cellU + SHELTER_R48_DRIFT_UV_SPAN_TEXELS, cellV + SHELTER_R48_DRIFT_FIRST_TEXEL_ROW, cellU, cellV + SHELTER_R48_DRIFT_LAST_TEXEL_ROW, cellU + SHELTER_R48_DRIFT_UV_SPAN_TEXELS, cellV + SHELTER_R48_DRIFT_LAST_TEXEL_ROW);
+        _shelterR48RotateDriftCorner(projection, size, cornerAngle);
+        quad->x0           = projection->screenX + (u16)projection->extent.corner.x;
+        quad->x3           = projection->screenX - (u16)projection->extent.corner.x;
+        quad->y0           = projection->screenY - (u16)projection->extent.corner.y;
+        quad->y3           = projection->screenY + (u16)projection->extent.corner.y;
+        perpendicularAngle = cornerAngle + SHELTER_R48_DRIFT_QUARTER_TURN;
+        _shelterR48RotateDriftCorner(projection, size, perpendicularAngle);
+        quad->x1 = projection->screenX + (u16)projection->extent.corner.x;
+        quad->x2 = projection->screenX - (u16)projection->extent.corner.x;
+        quad->y1 = projection->screenY - (u16)projection->extent.corner.y;
+        quad->y2 = projection->screenY + (u16)projection->extent.corner.y;
+        // Sort by projection depth; the GPU consumes a complete textured-quad packet.
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }

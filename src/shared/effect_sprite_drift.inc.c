@@ -1,66 +1,115 @@
 #include "main/random.h"
 
-/* Part of the effect sprite library; see effect_sprite.h.
- *
- * A room whose gameplay table names its own task defines
- * EFFECT_SPRITE_DRIFT_TASK to that name; EFFECT_SPRITE_DRIFT_DRAW_A / _B name the room's own
- * drawers when it does not use _effectSpriteDrawBanked / _effectSpriteDrawRotated.
- * Shelter R48 enables EFFECT_SPRITE_DRIFT_SIGN_BANK; see its definition for
- * the spawn-argument and suspended-draw contract.
- * Shelter R48 enables EFFECT_SPRITE_DRIFT_FIXED_NEGATIVE_Y_ACCELERATION;
- * see its definition for the per-drawer acceleration and update contract. */
+/* Included drift-task implementation; declarations and the default contract
+ * are in effect_sprite.h. Five room carriers instantiate this fragment.
+ * Drawer bindings are function identifiers, not expression-like macros. */
 
 #ifndef EFFECT_SPRITE_DRIFT_TASK
+/// Names the externally linked `void (Task*)` drift callback defined by this fragment.
+///
+/// Pod bottom and pod access tunnel use this default. Dryfield R08, pod service
+/// gantry and Shelter R48 bind their exported package callbacks before inclusion.
+/// The binding is used once as a definition name and cleared after inclusion;
+/// it has no arguments, captures, stringification or token pasting.
 #define EFFECT_SPRITE_DRIFT_TASK effectSpriteDriftTask
 #endif
-#ifndef EFFECT_SPRITE_DRIFT_DRAW_A
-#define EFFECT_SPRITE_DRIFT_DRAW_A _effectSpriteDrawBanked
+#ifndef EFFECT_SPRITE_DRIFT_DRAW_BANKED
+/// Binds the twelve-frame drawer used by the drift task's banked state.
+///
+/// Supply a function identifier accepting `(const GfxCoord*, u16, s16, s16)`:
+/// composed coordinate, packed frame/palette, perspective size, and angle in
+/// 4096 units per turn. It borrows the coordinate and retains no pointer.
+/// The default uses per-frame palettes; three carriers bind local variants.
+/// Dryfield R08 also uses this drawer with palette zero during suspension.
+/// Calls evaluate each argument once. This binding is cleared after inclusion.
+#define EFFECT_SPRITE_DRIFT_DRAW_BANKED _effectSpriteDrawBanked
 #endif
-#ifndef EFFECT_SPRITE_DRIFT_DRAW_B
-#define EFFECT_SPRITE_DRIFT_DRAW_B _effectSpriteDrawRotated
+#ifndef EFFECT_SPRITE_DRIFT_DRAW_ALTERNATE
+/// Binds the ten-frame drawer used by the drift task's alternate state.
+///
+/// The function identifier has the same borrowed-coordinate signature and units
+/// as `EFFECT_SPRITE_DRIFT_DRAW_BANKED`; nonzero palette bits select its alternate
+/// palette. Pod bottom and pod access tunnel use the default, while three rooms
+/// bind local variants. Arguments are evaluated once; the binding is cleared
+/// after inclusion. Neither drawer binding manufactures tokens or captures locals.
+#define EFFECT_SPRITE_DRIFT_DRAW_ALTERNATE _effectSpriteDrawRotated
 #endif
 
-/// Per-frame handler for one animated sprite effect, drawn by
-/// `_effectSpriteDrawBanked` (state 1) or
-/// `_effectSpriteDrawRotated` (state 2). By default its first frame unpacks
-/// `spawnArg1`: the low 12 bits are the sprite size, bits 12..14 the frames per
-/// animation cell (1 when zero), bits 28..30 are kept as the drawer's clut
-/// selector, and the sign bit picks the second drawer. When the work block
-/// arrives without a velocity, bits 24..27 choose how one is rolled from
-/// `gRandomLcgState` (0 leaves it still) and it is scaled to a speed from bits
-/// 16..23 (0x40 when zero). Each later frame draws the current cell, moves the
-/// coordinate by the velocity and bends its Y component, then frees the effect
-/// after the drawer's last cell (12 or 10). While the player is in an event it
-/// only draws, and frees once the event state reaches 4.
+/// Normalizes the drift direction and scales it to coordinate units per update.
+///
+/// The Q12 normalized direction is replaced in place. Read the work's speed
+/// after normalization; the borrowed work and its velocity remain task-owned.
+static __inline__ void _effectSpriteDriftNormalizeVelocity(EffectWork* work)
+{
+    SVECTOR* velocity;
+
+    velocity = &work->move;
+    VectorNormalSS(velocity, velocity);
+    gte_lddp(work->step);
+    gte_ldsv(velocity);
+    gte_gpf12();
+    gte_stsv(velocity);
+}
+
 void EFFECT_SPRITE_DRIFT_TASK(Task* task)
 {
+    enum {
+        EFFECT_SPRITE_DRIFT_INITIALIZE         = 0,
+        EFFECT_SPRITE_DRIFT_BANKED             = 1,
+        EFFECT_SPRITE_DRIFT_ALTERNATE          = 2,
+        EFFECT_SPRITE_DRIFT_SIZE_MASK          = 0xFFF,
+        EFFECT_SPRITE_DRIFT_SPIN_MASK          = 0xFFF,
+        EFFECT_SPRITE_DRIFT_DRAWER_NIBBLE_MASK = 0xF0000000,
+        // Signed-halfword encoding of -64 before the random upward Y offset.
+        EFFECT_SPRITE_DRIFT_UPWARD_Y_BIAS = 0xFFC0,
+        // Bit 15 participates in the fallback test but not in the extracted period.
+        EFFECT_SPRITE_DRIFT_PERIOD_NIBBLE_MASK    = 0xF000,
+        EFFECT_SPRITE_DRIFT_PERIOD_SHIFT          = 12,
+        EFFECT_SPRITE_DRIFT_PERIOD_MASK           = 7,
+        EFFECT_SPRITE_DRIFT_SPEED_MASK            = 0xFF0000,
+        EFFECT_SPRITE_DRIFT_SPEED_SHIFT           = 16,
+        EFFECT_SPRITE_DRIFT_DEFAULT_SPEED         = 0x40,
+        EFFECT_SPRITE_DRIFT_MOVEMENT_SHIFT        = 24,
+        EFFECT_SPRITE_DRIFT_MOVEMENT_MASK         = 0xF,
+        EFFECT_SPRITE_DRIFT_PALETTE_MASK          = 0x7000,
+        EFFECT_SPRITE_DRIFT_PALETTE_SHIFT         = 12,
+        EFFECT_SPRITE_DRIFT_STILL                 = 0,
+        EFFECT_SPRITE_DRIFT_RANDOM_UPWARD         = 1,
+        EFFECT_SPRITE_DRIFT_RANDOM_ALL_AXES       = 2,
+        EFFECT_SPRITE_DRIFT_RANDOM_NARROW_UPWARD  = 3,
+        EFFECT_SPRITE_DRIFT_OFFSET_DIRECTION      = 5,
+        EFFECT_SPRITE_DRIFT_RANDOM_PLANAR         = 6,
+        EFFECT_SPRITE_DRIFT_AGE_ACCELERATION      = 7,
+        EFFECT_SPRITE_DRIFT_BANKED_FRAME_COUNT    = 12,
+        EFFECT_SPRITE_DRIFT_ALTERNATE_FRAME_COUNT = 10
+    };
     EffectWork* work;
     GfxCoord*   coord;
-    SVECTOR*    vec;
-    s32         step;
-    s32         level;
+    s32         framesPerCell;
+    s32         speed;
 #if EFFECT_SPRITE_DRIFT_SIGN_BANK
-    s32 zero;
+    s32 zeroSignReference;
 #endif
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        // Every suspended or cancelling update redraws before any work is released.
 #if EFFECT_SPRITE_DRIFT_PAUSED_DRAW_A_UNBANKED
-        // Suspended sprites use drawer A's base palette even in drawer B's state.
-        EFFECT_SPRITE_DRIFT_DRAW_A(coord, work->index, work->scale, work->angle);
+        // Suspended sprites use the banked base palette even in the alternate state.
+        EFFECT_SPRITE_DRIFT_DRAW_BANKED(coord, work->index, work->scale, work->angle);
 #elif EFFECT_SPRITE_DRIFT_SIGN_BANK
         // Suspension reselects the drawer from the sign, rather than the running state.
         if (task->spawnArg1.value < 0) {
-            EFFECT_SPRITE_DRIFT_DRAW_B(coord, work->index | work->pos.vx, work->scale, work->angle);
+            EFFECT_SPRITE_DRIFT_DRAW_ALTERNATE(coord, work->index | work->pos.vx, work->scale, work->angle);
         } else {
-            EFFECT_SPRITE_DRIFT_DRAW_A(coord, work->index | work->pos.vx, work->scale, work->angle);
+            EFFECT_SPRITE_DRIFT_DRAW_BANKED(coord, work->index | work->pos.vx, work->scale, work->angle);
         }
 #else
-        if (task->state < 2) {
-            EFFECT_SPRITE_DRIFT_DRAW_A(coord, work->index | work->pos.vx, work->scale, work->angle);
+        if (task->state < EFFECT_SPRITE_DRIFT_ALTERNATE) {
+            EFFECT_SPRITE_DRIFT_DRAW_BANKED(coord, work->index | work->pos.vx, work->scale, work->angle);
         } else {
-            EFFECT_SPRITE_DRIFT_DRAW_B(coord, work->index | work->pos.vx, work->scale, work->angle);
+            EFFECT_SPRITE_DRIFT_DRAW_ALTERNATE(coord, work->index | work->pos.vx, work->scale, work->angle);
         }
 #endif
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
@@ -70,47 +119,48 @@ void EFFECT_SPRITE_DRIFT_TASK(Task* task)
     }
     work->age++;
     switch (task->state) {
-        case 0:
-            work->scale     = task->spawnArg1.value & 0xFFF;
+        case EFFECT_SPRITE_DRIFT_INITIALIZE:
+            // Initialization consumes one random spin sample and does not draw.
+            work->scale     = task->spawnArg1.value & EFFECT_SPRITE_DRIFT_SIZE_MASK;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->angle     = (gRandomLcgState >> 16) & 0xFFF;
-            if (task->spawnArg1.value & 0xF000) {
-                step = (task->spawnArg1.value >> 12) & 7;
+            work->angle     = (gRandomLcgState >> 16) & EFFECT_SPRITE_DRIFT_SPIN_MASK;
+            if (task->spawnArg1.value & EFFECT_SPRITE_DRIFT_PERIOD_NIBBLE_MASK) {
+                framesPerCell = (task->spawnArg1.value >> EFFECT_SPRITE_DRIFT_PERIOD_SHIFT) & EFFECT_SPRITE_DRIFT_PERIOD_MASK;
             } else {
-                step = 1;
+                framesPerCell = 1;
             }
-            work->period = step;
+            work->period = framesPerCell;
             work->age    = 0;
 #if EFFECT_SPRITE_DRIFT_SIGN_BANK
             // The high nibble chooses the running drawer; its sign alone chooses the palette.
-            task->state  = task->spawnArg1.value & 0xF0000000 ? 2 : 1;
-            zero         = 0;
-            work->pos.vx = (task->spawnArg1.value < zero) << 12;
+            task->state       = task->spawnArg1.value & EFFECT_SPRITE_DRIFT_DRAWER_NIBBLE_MASK ? EFFECT_SPRITE_DRIFT_ALTERNATE : EFFECT_SPRITE_DRIFT_BANKED;
+            zeroSignReference = 0;
+            work->pos.vx      = (task->spawnArg1.value < zeroSignReference) << EFFECT_SPRITE_DRIFT_PALETTE_SHIFT;
 #else
-            task->state  = 1;
-            task->state  = task->spawnArg1.value < 0 ? 2 : 1;
-            work->pos.vx = (task->spawnArg1.value >> 16) & 0x7000;
+            task->state  = EFFECT_SPRITE_DRIFT_BANKED;
+            task->state  = task->spawnArg1.value < 0 ? EFFECT_SPRITE_DRIFT_ALTERNATE : EFFECT_SPRITE_DRIFT_BANKED;
+            work->pos.vx = (task->spawnArg1.value >> EFFECT_SPRITE_DRIFT_SPEED_SHIFT) & EFFECT_SPRITE_DRIFT_PALETTE_MASK;
 #endif
             if ((work->move.vx | work->move.vy | work->move.vz) == 0) {
-                if (task->spawnArg1.value & 0xFF0000) {
-                    level = (task->spawnArg1.value >> 16) & 0xFF;
+                if (task->spawnArg1.value & EFFECT_SPRITE_DRIFT_SPEED_MASK) {
+                    speed = (task->spawnArg1.value >> EFFECT_SPRITE_DRIFT_SPEED_SHIFT) & 0xFF;
                 } else {
-                    level = 0x40;
+                    speed = EFFECT_SPRITE_DRIFT_DEFAULT_SPEED;
                 }
-                work->step = level;
-                switch ((task->spawnArg1.value >> 24) & 0xF) {
-                    case 0:
+                work->step = speed;
+                switch ((task->spawnArg1.value >> EFFECT_SPRITE_DRIFT_MOVEMENT_SHIFT) & EFFECT_SPRITE_DRIFT_MOVEMENT_MASK) {
+                    case EFFECT_SPRITE_DRIFT_STILL:
                         work->step = 0;
                         break;
-                    case 1:
+                    case EFFECT_SPRITE_DRIFT_RANDOM_UPWARD:
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->move.vx   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vy   = 0xFFC0 - ((gRandomLcgState >> 16) & 0x7F);
+                        work->move.vy   = EFFECT_SPRITE_DRIFT_UPWARD_Y_BIAS - ((gRandomLcgState >> 16) & 0x7F);
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                         break;
-                    case 2:
+                    case EFFECT_SPRITE_DRIFT_RANDOM_ALL_AXES:
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->move.vx   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -118,7 +168,7 @@ void EFFECT_SPRITE_DRIFT_TASK(Task* task)
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                         break;
-                    case 3:
+                    case EFFECT_SPRITE_DRIFT_RANDOM_NARROW_UPWARD:
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->move.vx   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -126,12 +176,13 @@ void EFFECT_SPRITE_DRIFT_TASK(Task* task)
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->move.vz   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
                         break;
-                    case 5:
+                    case EFFECT_SPRITE_DRIFT_OFFSET_DIRECTION:
+                        // X now contains palette bits; Y and Z retain the spawn offset.
                         work->move.vx = work->pos.vx;
                         work->move.vy = work->pos.vy;
                         work->move.vz = work->pos.vz;
                         break;
-                    case 6:
+                    case EFFECT_SPRITE_DRIFT_RANDOM_PLANAR:
                         work->move.vy   = 0;
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->move.vx   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
@@ -139,25 +190,21 @@ void EFFECT_SPRITE_DRIFT_TASK(Task* task)
                         work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                         break;
                 }
-                vec = &work->move;
-                VectorNormalSS(vec, vec);
-                gte_lddp(work->step);
-                gte_ldsv(vec);
-                gte_gpf12();
-                gte_stsv(vec);
+                _effectSpriteDriftNormalizeVelocity(work);
             } else {
-                work->step = 0x40;
+                work->step = EFFECT_SPRITE_DRIFT_DEFAULT_SPEED;
             }
             break;
-        case 1:
-            EFFECT_SPRITE_DRIFT_DRAW_A(coord, work->index | work->pos.vx, work->scale, work->angle);
+        case EFFECT_SPRITE_DRIFT_BANKED:
+            // Draw the current cell before moving, accelerating, or retiring it.
+            EFFECT_SPRITE_DRIFT_DRAW_BANKED(coord, work->index | work->pos.vx, work->scale, work->angle);
             if (work->step != 0) {
                 coord->coord.t[0]  += work->move.vx;
                 coord->coord.t[1]  += work->move.vy;
                 coord->coord.t[2]  += work->move.vz;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
 #if !EFFECT_SPRITE_DRIFT_FIXED_NEGATIVE_Y_ACCELERATION
-                if (((task->spawnArg1.value >> 24) & 0xF) == 7) {
+                if (((task->spawnArg1.value >> EFFECT_SPRITE_DRIFT_MOVEMENT_SHIFT) & EFFECT_SPRITE_DRIFT_MOVEMENT_MASK) == EFFECT_SPRITE_DRIFT_AGE_ACCELERATION) {
                     work->move.vy += work->age / 10;
                 } else
 #endif
@@ -167,20 +214,20 @@ void EFFECT_SPRITE_DRIFT_TASK(Task* task)
             }
             if ((work->age % work->period) == 0) {
                 work->index++;
-                if (work->index >= 12) {
+                if (work->index >= EFFECT_SPRITE_DRIFT_BANKED_FRAME_COUNT) {
                     effectKillTask(work, task);
                 }
             }
             break;
-        case 2:
-            EFFECT_SPRITE_DRIFT_DRAW_B(coord, work->index | work->pos.vx, work->scale, work->angle);
+        case EFFECT_SPRITE_DRIFT_ALTERNATE:
+            EFFECT_SPRITE_DRIFT_DRAW_ALTERNATE(coord, work->index | work->pos.vx, work->scale, work->angle);
             if (work->step != 0) {
                 coord->coord.t[0]  += work->move.vx;
                 coord->coord.t[1]  += work->move.vy;
                 coord->coord.t[2]  += work->move.vz;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
 #if !EFFECT_SPRITE_DRIFT_FIXED_NEGATIVE_Y_ACCELERATION
-                if (((task->spawnArg1.value >> 24) & 0xF) == 7) {
+                if (((task->spawnArg1.value >> EFFECT_SPRITE_DRIFT_MOVEMENT_SHIFT) & EFFECT_SPRITE_DRIFT_MOVEMENT_MASK) == EFFECT_SPRITE_DRIFT_AGE_ACCELERATION) {
                     work->move.vy += work->age / 10;
                 } else
 #endif
@@ -190,7 +237,7 @@ void EFFECT_SPRITE_DRIFT_TASK(Task* task)
             }
             if ((work->age % work->period) == 0) {
                 work->index++;
-                if (work->index >= 10) {
+                if (work->index >= EFFECT_SPRITE_DRIFT_ALTERNATE_FRAME_COUNT) {
                     effectKillTask(work, task);
                 }
             }
@@ -202,5 +249,5 @@ void EFFECT_SPRITE_DRIFT_TASK(Task* task)
 #undef EFFECT_SPRITE_DRIFT_PAUSED_DRAW_A_UNBANKED
 #undef EFFECT_SPRITE_DRIFT_SIGN_BANK
 #undef EFFECT_SPRITE_DRIFT_FIXED_NEGATIVE_Y_ACCELERATION
-#undef EFFECT_SPRITE_DRIFT_DRAW_A
-#undef EFFECT_SPRITE_DRIFT_DRAW_B
+#undef EFFECT_SPRITE_DRIFT_DRAW_BANKED
+#undef EFFECT_SPRITE_DRIFT_DRAW_ALTERNATE

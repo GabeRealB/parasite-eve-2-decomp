@@ -88,6 +88,8 @@ func_shelter_b1_pod_service_gantry_8017E880 = 0x8017E880; // type:func
 
 effectSpriteRiseTask = 0x8017F8C8; // type:func
 
-func_shelter_b1_pod_service_gantry_8017D8F4 = 0x8017D8F4; // type:func
+shelterB1PodServiceGantrySpriteDriftTask = 0x8017D8F4; // type:func
 waterDrawSpinU16 = 0x8017ED3C; // type:func
 waterDrawTileU16 = 0x8017F160; // type:func
+_shelterB1PodServiceGantryDrawBankedDriftSprite = 0x8017df70; // type:func
+_shelterB1PodServiceGantryDrawAlternateDriftSprite = 0x8017e400; // type:func

@@ -120500,7 +120500,7 @@ pins, no empty asm, no permuter run. The overlay needed `rodata_head = "0x4"`
 plus an explicit zero word (`const u32 D_dryfield_r08_8017D5D8
 SECTION(".rodata") = 0;`) after the generated table - the `actor_401000` shape
 above, the pad being the one the target keeps ahead of
-`func_dryfield_r08_8017D8B4`'s still-asm table. Scratch
+`dryfieldR08SpriteDriftTask`'s still-asm table. Scratch
 `nonmatchings/func_dryfield_r08_8017D5F8-vacuum`.
 ## A per-arm memory store is what keeps a conditional's value in `$v0` - if-conversion rewrites the if/else that uses a local (func_dryfield_night_water_hole_8017DADC, 2026-09-17)
 
@@ -138697,7 +138697,7 @@ because those stores may alias it, while an `s32` local keeps it in one register
 as the target does. And `ori code, 1` is `setShadeTex(p, 1)`; `setSemiTrans`
 sets bit 1 (`ori code, 2`).
 
-## Sign-extending sub-word loads from a shift of the word; `move` before a double store is a ternary (func_dryfield_r08_8017D8B4, 2026-09-23)
+## Sign-extending sub-word loads from a shift of the word; `move` before a double store is a ternary (dryfieldR08SpriteDriftTask, 2026-09-23)
 
 **Symptom.** Reading `Task::spawnArg1`'s high half and top byte through the
 `TaskSpawnArg::halves`/`TaskSpawnArg::signedBytes` views gave `lhu 0x36` / `lbu 0x37` where
@@ -138714,7 +138714,7 @@ state = 2; task->state = state;`) stores the constant directly. **Fix.**
 
 ```c
 task->state = 1;
-task->state = task->spawnArg1 < 0 ? 2 : 1;
+task->state = task->spawnArg1.value < 0 ? 2 : 1;
 ```
 
 The ternary's pseudo is the `a0` value, and CSE rewrites the first store's
@@ -139989,7 +139989,7 @@ the angles inline (`rsin(ang + 0x800)`) gives single-death CSE temporaries, whic
 local-alloc places first. That moved the `POLY_G4*` cursor from `$s1` to the
 target's `$s2`, and every other callee-saved register fell into place: 94% to 98.8%.
 
-## `slti $v0,$v0,0` on a sign test means the source compared against a zero-valued variable, not a literal 0 (func_shelter_r48_80180210, 2026-09-23)
+## `slti $v0,$v0,0` on a sign test means the source compared against a zero-valued variable, not a literal 0 (shelterR48SpriteDriftTask, 2026-09-23)
 
 **Symptom.** The target computes a sign flag as `slti v0,v0,0; sll v0,v0,12`.
 `(x < 0) << 12` emits `srl v0,v0,31` (or, once combine folds the shift,
@@ -140005,8 +140005,8 @@ afterwards. Combine then leaves `(ashift (lt x 0) 12)` alone.
 **Fix.** Compare against a local assigned 0 just before:
 
 ```c
-zero         = 0;
-work->pos.vx = (task->spawnArg1.value < zero) << 12;
+zeroSignReference         = 0;
+work->pos.vx = (task->spawnArg1.value < zeroSignReference) << 12;
 ```
 ## Call sites that all sign-extend an argument mean the parameter is `s16`
 
@@ -140580,25 +140580,25 @@ LUID and flips relative to the other arguments.
 and the body's `(u16)` cast became redundant. Try the narrow type the body
 casts to before reaching for locals or pins.
 
-### Entry `andi` after the argument copies with registers right: the masked local is reused later (func_shelter_b1_pod_service_gantry_8017DF70, 2026-09-24)
+### Entry `andi` after the argument copies with registers right: the masked local is reused later (_shelterB1PodServiceGantryDrawBankedDriftSprite, 2026-09-24)
 
-**Symptom.** Only the prologue differed: the target computes `idx = value & 0xFFF`
+**Symptom.** Only the prologue differed: the target computes `frameOrAngle = value & 0xFFF`
 (`andi s1,a1,0xfff`) right after the scratch-pointer `lui/ori` and *before*
 `move s6,a2` / `move s5,a3`; the build put it after them. Statement order,
-`u32`/`s32`/`u16` for `idx` and `s32` parameters all left it in place.
+`u32`/`s32`/`u16` for `frameOrAngle` and `s32` parameters all left it in place.
 
 **Cause.** The same LUID tie-break as the entry above (backward `sched.c`
-`rank_for_schedule`): with `idx` set once, its `and` is an ordinary
+`rank_for_schedule`): with `frameOrAngle` set once, its `and` is an ordinary
 single-set insn that wins the tie and lands after the copies. The target's
 `$s1` also holds the second spin angle later (`addiu s1,s1,0x400`), i.e. the
-original reused `idx` for it; a second assignment to the local changes how
+original reused `frameOrAngle` for it; a second assignment to the local changes how
 its entry `and` is treated and flips the order. The permuter found the lead
-(any later reassignment of `idx`, distance 270 → 10).
+(any later reassignment of `frameOrAngle`, distance 270 → 10).
 
-**Fix.** Drop the separate `ang2` and write `idx = ang + 0x400;
-rsin(idx) / rcos(idx)`. Reusing `ang` for both (`ang = arg1 & 0xFFF ...
-ang = arg3`) fixed the prologue but routed `ang`'s sign extension through
-`$v0`; `ang += 0x400` broke allocation outright. When a callee-saved register
+**Fix.** Drop the separate `perpendicularAngle` and write `frameOrAngle = cornerAngle + 0x400;
+rsin(frameOrAngle) / rcos(frameOrAngle)`. Reusing `cornerAngle` for both (`cornerAngle = frameAndPalette & 0xFFF ...
+cornerAngle = angle`) fixed the prologue but routed `cornerAngle`'s sign extension through
+`$v0`; `cornerAngle += 0x400` broke allocation outright. When a callee-saved register
 in the target carries two unrelated values, try the reuse on each pairing.
 
 ## Scrambled prim colour stores can be `setRGBn` per vertex, reordered by sched1 (func_shelter_b2_septic_tank_8017E2DC, 2026-09-24)

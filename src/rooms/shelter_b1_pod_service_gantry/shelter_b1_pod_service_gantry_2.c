@@ -60,8 +60,8 @@ STATIC_ASSERT_SIZEOF(_ShelterB1PodServiceGantrySpinScratch, 0x1C);
 extern s32 D_801752EC;
 extern s8  D_shelter_b1_pod_service_gantry_8018256C[];
 
-static void func_shelter_b1_pod_service_gantry_8017DF70(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-static void func_shelter_b1_pod_service_gantry_8017E400(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+static void _shelterB1PodServiceGantryDrawBankedDriftSprite(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
+static void _shelterB1PodServiceGantryDrawAlternateDriftSprite(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
 
 s32 D_shelter_b1_pod_service_gantry_8018250C[3] = {
     0x10000011,
@@ -100,155 +100,223 @@ GpAreaApplyRec D_shelter_b1_pod_service_gantry_80182540[11] = {
 
 s8 D_shelter_b1_pod_service_gantry_8018256C[8] = { 0 };
 
-/* gameplay's room-effect table names the task, drawn with the room's own drawers */
-#define EFFECT_SPRITE_DRIFT_TASK   func_shelter_b1_pod_service_gantry_8017D8F4
-#define EFFECT_SPRITE_DRIFT_DRAW_A func_shelter_b1_pod_service_gantry_8017DF70
-#define EFFECT_SPRITE_DRIFT_DRAW_B func_shelter_b1_pod_service_gantry_8017E400
+/// Computes a sprite corner in signed pixels from perspective size and turn angle.
+///
+/// Borrows the projection workspace with nonzero depth; only the two corner
+/// offsets change. Division precedes Q12 rotation and truncates toward zero.
+static __inline__ void _shelterB1PodServiceGantryRotateDriftCorner(EffectShapeScratch* projection, s16 size, s32 angle)
+{
+    enum { SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_PERSPECTIVE_SCALE  = 47,
+           SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_TRIG_FRACTION_BITS = 12 };
+    projection->extent.corner.x = (((size * SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_PERSPECTIVE_SCALE) / projection->depth) * rsin(angle)) >> SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_TRIG_FRACTION_BITS;
+    projection->extent.corner.y = (((size * SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_PERSPECTIVE_SCALE) / projection->depth) * rcos(angle)) >> SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_TRIG_FRACTION_BITS;
+}
+
+/// Binds the pod service gantry's exported `void (Task*)` callback for this drift instance.
+///
+/// Function-identifier alias supplied before the fragment and cleared after it.
+/// Used only as the definition name; no arguments, captures or constructed tokens.
+#define EFFECT_SPRITE_DRIFT_TASK shelterB1PodServiceGantrySpriteDriftTask
+/// Binds the twelve-frame drift drawer: `(const GfxCoord*, u16 frameAndPalette, s16 size, s16 angle)`.
+///
+/// Function-identifier alias supplied before the fragment and cleared after it.
+/// Arguments are evaluated once; the coordinate is borrowed, size is a perspective
+/// numerator, and angle uses 4096 units per turn. No captures or constructed tokens.
+#define EFFECT_SPRITE_DRIFT_DRAW_BANKED _shelterB1PodServiceGantryDrawBankedDriftSprite
+/// Binds the ten-frame drift drawer with the same coordinate, packed-frame, size and angle contract.
+///
+/// Function-identifier alias supplied before the fragment and cleared after it.
+/// Arguments are evaluated once; the coordinate is borrowed, size is a perspective
+/// numerator, and angle uses 4096 units per turn. No captures or constructed tokens.
+#define EFFECT_SPRITE_DRIFT_DRAW_ALTERNATE _shelterB1PodServiceGantryDrawAlternateDriftSprite
 #include "../../shared/effect_sprite_drift.inc.c"
 
-/// Draws a camera-facing sprite at `arg0`'s world position: the point is
-/// projected through `GsWSMATRIX` into a zeroed scratch block popped from
-/// the scratch stack and, when the GTE flag is non-negative, one
-/// semi-transparent `POLY_FT4` (tpage 0x2B) is queued with its corners on two
-/// radii at angles `arg3` and `arg3 + 0x400`, of length `arg2 * 47` divided by
-/// the depth. The low 12 bits of `arg1` pick a 48x48 cell of a five-column
-/// texture grid starting at v 0x70. The bits above them select the CLUT: 0 and
-/// 1 pick row 0x10E or 0x10F with the column taken from the cell index, and
-/// anything higher the fixed CLUT 0x428F.
-static void func_shelter_b1_pod_service_gantry_8017DF70(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
+/// Draws a rotating twelve-cell sprite with a per-cell or alternate palette.
+///
+/// `coord->workm` must be composed for `GsWSMATRIX`; translation is narrowed
+/// to s16. Bits 0..11 of `frameAndPalette` hold cell 0..11; selectors 0/1 in
+/// bits 12..15 use per-cell CLUT rows 270/271, and 2..15 use CLUT 0x428F.
+/// The five-column sheet has 48-texel cells at V=112 on texture page 0x2B.
+///
+/// `size * 47 / depth` gives the signed pixel half-diagonal before Q12
+/// rotation; `angle` uses 4096 units per turn. Accepted SZ3/4 depth must be
+/// nonzero. A nonnegative GTE FLAG queues an additive raw-texture FT4. One
+/// complete scratch block is reserved, cleared and released on every path;
+/// the initialized scratch stack and primitive cursor must have capacity.
+static void _shelterB1PodServiceGantryDrawBankedDriftSprite(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle)
 {
-    void**              scratch;
-    EffectShapeScratch* head;
-    EffectShapeScratch* block;
-    POLY_FT4*           prim;
-    u16                 bank;
-    u32                 idx;
-    u16                 col;
-    u16                 row;
-    s32                 u0;
-    s32                 v0;
-    s32                 ang;
+    enum {
+        // Signed row offsets wrap to GPU UV bytes; last - first is 47 modulo 256.
+        SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_FIRST_TEXEL_ROW   = 112,
+        SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_LAST_TEXEL_ROW    = 159,
+        SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_CLUT_ROW_SHIFT    = 6,
+        SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_PALETTE_ROW_COUNT = 2,
+        SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_FRAME_MASK        = 0xFFF,
+        SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_PALETTE_SHIFT     = 12,
+        SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_CELLS_PER_ROW     = 5,
+        SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_CELL_PITCH_TEXELS = 48,
+        SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_UV_SPAN_TEXELS    = 47,
+        SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_QUARTER_TURN      = 0x400,
+        SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_PACKET_WORDS      = sizeof(POLY_FT4) / sizeof(u32) - 1,
+        SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_PACKET_CODE       = 0x2F,
+        SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_TEXTURE_PAGE      = 0x2B,
+        SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_ALTERNATE_CLUT    = 0x428F,
+        SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_FIRST_PALETTE_ROW = 0x10E,
+        SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_CLUT_COLUMN_MASK  = 0x3F
+    };
+    void**              cursorSlot;
+    EffectShapeScratch* scratchEnd;
+    EffectShapeScratch* projection;
+    POLY_FT4*           quad;
+    u16                 paletteSelector;
+    u32                 frameOrAngle;
+    u16                 cellColumn;
+    u16                 cellRow;
+    s32                 cellU;
+    s32                 cellV;
+    s32                 cornerAngle;
 
-    idx      = arg1;
-    idx     &= 0xFFF;
-    bank     = arg1 >> 12;
-    scratch  = SCRATCH_STACK_CURSOR_SLOT;
-    head     = *scratch;
-    *scratch = head - 1;
-    block    = head - 1;
-    memFillBytes(block, 0, sizeof(*block));
-    (head - 1)->worldPoint.vx = (u16)arg0->workm.t[0];
-    block->worldPoint.vy      = (u16)arg0->workm.t[1];
-    block->worldPoint.vz      = (u16)arg0->workm.t[2];
+    frameOrAngle    = frameAndPalette;
+    frameOrAngle   &= SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_FRAME_MASK;
+    paletteSelector = frameAndPalette >> SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_PALETTE_SHIFT;
+    cursorSlot      = SCRATCH_STACK_CURSOR_SLOT;
+    scratchEnd      = *cursorSlot;
+    *cursorSlot     = scratchEnd - 1;
+    projection      = scratchEnd - 1;
+    memFillBytes(projection, 0, sizeof(*projection));
+    (scratchEnd - 1)->worldPoint.vx = (u16)coord->workm.t[0];
+    projection->worldPoint.vy       = (u16)coord->workm.t[1];
+    projection->worldPoint.vz       = (u16)coord->workm.t[2];
+    // Project the composed centre; the quad rotates only in screen space.
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->worldPoint);
+    gte_ldv0(&projection->worldPoint);
     gte_rtps();
-    gte_stsxy(&(head - 1)->screenX);
-    gte_stflg(&(head - 1)->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&(head - 1)->depth);
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2F);
-        prim->tpage = 0x2B;
-        if (bank >= 2) {
-            prim->clut = 0x428F;
+    gte_stsxy(&(scratchEnd - 1)->screenX);
+    gte_stflg(&(scratchEnd - 1)->projectionFlags);
+    if (projection->projectionFlags >= 0) {
+        gte_stszotz(&(scratchEnd - 1)->depth);
+        quad           = gGpuPrimCursor;
+        gGpuPrimCursor = quad + 1;
+        setlen(quad, SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_PACKET_WORDS);
+        setcode(quad, SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_PACKET_CODE);
+        quad->tpage = SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_TEXTURE_PAGE;
+        if (paletteSelector >= SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_PALETTE_ROW_COUNT) {
+            quad->clut = SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_ALTERNATE_CLUT;
         } else {
-            prim->clut = ((bank + 0x10E) << 6) | (idx & 0x3F);
+            quad->clut = ((paletteSelector + SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_FIRST_PALETTE_ROW) << SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_CLUT_ROW_SHIFT) | (frameOrAngle & SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_CLUT_COLUMN_MASK);
         }
-        col = (u16)idx % 5;
-        row = (u16)idx / 5;
-        ang = arg3;
-        u0  = col * 0x30;
-        v0  = row * 0x30;
-        setUV4(prim, u0, v0 + 0x70, u0 + 0x2F, v0 + 0x70, u0, v0 + 0x9F, u0 + 0x2F, v0 + 0x9F);
-        block->extent.corner.x = (((arg2 * 47) / block->depth) * rsin(ang)) >> 12;
-        block->extent.corner.y = (((arg2 * 47) / block->depth) * rcos(ang)) >> 12;
-        prim->x0               = block->screenX + (u16)block->extent.corner.x;
-        prim->x3               = block->screenX - (u16)block->extent.corner.x;
-        prim->y0               = block->screenY - (u16)block->extent.corner.y;
-        idx                    = ang + 0x400;
-        prim->y3               = block->screenY + (u16)block->extent.corner.y;
-        block->extent.corner.x = (((arg2 * 47) / block->depth) * rsin(idx)) >> 12;
-        block->extent.corner.y = (((arg2 * 47) / block->depth) * rcos(idx)) >> 12;
-        prim->x1               = block->screenX + (u16)block->extent.corner.x;
-        prim->x2               = block->screenX - (u16)block->extent.corner.x;
-        prim->y1               = block->screenY - (u16)block->extent.corner.y;
-        prim->y2               = block->screenY + (u16)block->extent.corner.y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+        cellColumn  = (u16)frameOrAngle % SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_CELLS_PER_ROW;
+        cellRow     = (u16)frameOrAngle / SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_CELLS_PER_ROW;
+        cornerAngle = angle;
+        cellU       = cellColumn * SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_CELL_PITCH_TEXELS;
+        cellV       = cellRow * SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_CELL_PITCH_TEXELS;
+        setUV4(quad, cellU, cellV + SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_FIRST_TEXEL_ROW, cellU + SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_UV_SPAN_TEXELS, cellV + SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_FIRST_TEXEL_ROW, cellU, cellV + SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_LAST_TEXEL_ROW, cellU + SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_UV_SPAN_TEXELS, cellV + SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_LAST_TEXEL_ROW);
+        _shelterB1PodServiceGantryRotateDriftCorner(projection, size, cornerAngle);
+        quad->x0     = projection->screenX + (u16)projection->extent.corner.x;
+        quad->x3     = projection->screenX - (u16)projection->extent.corner.x;
+        quad->y0     = projection->screenY - (u16)projection->extent.corner.y;
+        frameOrAngle = cornerAngle + SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_QUARTER_TURN;
+        quad->y3     = projection->screenY + (u16)projection->extent.corner.y;
+        _shelterB1PodServiceGantryRotateDriftCorner(projection, size, frameOrAngle);
+        quad->x1 = projection->screenX + (u16)projection->extent.corner.x;
+        quad->x2 = projection->screenX - (u16)projection->extent.corner.x;
+        quad->y1 = projection->screenY - (u16)projection->extent.corner.y;
+        quad->y2 = projection->screenY + (u16)projection->extent.corner.y;
+        // Sort by projection depth; the GPU consumes a complete textured-quad packet.
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }
 
-/// Draws a camera-facing sprite at `arg0`'s world position: the point is
-/// projected through `GsWSMATRIX` into a zeroed scratch block popped from
-/// the scratch stack and, when the GTE flag is non-negative, one
-/// semi-transparent `POLY_FT4` (tpage 0x2C) is queued with its corners on two
-/// radii at angles `arg3` and `arg3 + 0x400`, of length `arg2 * 47` divided by
-/// the depth. The low 12 bits of `arg1` pick a 48x48 cell of a five-column
-/// texture grid, and any bit above them selects CLUT 0x428F instead of 0x43D0.
-static void func_shelter_b1_pod_service_gantry_8017E400(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
+/// Draws a rotating ten-cell sprite with a base or alternate palette.
+///
+/// `coord->workm` must be composed for `GsWSMATRIX`; translation is narrowed
+/// to s16. Bits 0..11 of `frameAndPalette` hold cell 0..9; any nonzero
+/// selector in bits 12..15 uses CLUT 0x428F instead of 0x43D0. The five-column
+/// sheet has 48-texel cells starting at V=128 on texture page 0x2C.
+///
+/// `size * 47 / depth` gives the signed pixel half-diagonal before Q12
+/// rotation; `angle` uses 4096 units per turn. Accepted SZ3/4 depth must be
+/// nonzero. A nonnegative GTE FLAG queues an additive raw-texture FT4. One
+/// complete scratch block is reserved, cleared and released on every path;
+/// the initialized scratch stack and primitive cursor must have capacity.
+static void _shelterB1PodServiceGantryDrawAlternateDriftSprite(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle)
 {
-    void**              scratch;
-    EffectShapeScratch* head;
-    EffectShapeScratch* block;
-    POLY_FT4*           prim;
-    u16                 bank;
-    u16                 col;
-    u16                 row;
-    s32                 u0;
-    s32                 v0;
-    s32                 ang;
-    s32                 ang2;
+    enum {
+        // Signed row offsets wrap to GPU UV bytes; last - first is 47 modulo 256.
+        SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_FIRST_TEXEL_ROW   = -128,
+        SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_LAST_TEXEL_ROW    = -81,
+        SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_FRAME_MASK        = 0xFFF,
+        SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_PALETTE_SHIFT     = 12,
+        SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_CELLS_PER_ROW     = 5,
+        SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_CELL_PITCH_TEXELS = 48,
+        SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_UV_SPAN_TEXELS    = 47,
+        SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_QUARTER_TURN      = 0x400,
+        SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_PACKET_WORDS      = sizeof(POLY_FT4) / sizeof(u32) - 1,
+        SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_PACKET_CODE       = 0x2F,
+        SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_TEXTURE_PAGE      = 0x2C,
+        SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_ALTERNATE_CLUT    = 0x428F,
+        SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_BASE_CLUT         = 0x43D0
+    };
+    void**              cursorSlot;
+    EffectShapeScratch* scratchEnd;
+    EffectShapeScratch* projection;
+    POLY_FT4*           quad;
+    u16                 paletteSelector;
+    u16                 cellColumn;
+    u16                 cellRow;
+    s32                 cellU;
+    s32                 cellV;
+    s32                 cornerAngle;
+    s32                 perpendicularAngle;
 
-    bank     = arg1 >> 12;
-    arg1    &= 0xFFF;
-    scratch  = SCRATCH_STACK_CURSOR_SLOT;
-    head     = *scratch;
-    *scratch = head - 1;
-    block    = head - 1;
-    memFillBytes(block, 0, sizeof(*block));
-    (head - 1)->worldPoint.vx = (u16)arg0->workm.t[0];
-    block->worldPoint.vy      = (u16)arg0->workm.t[1];
-    block->worldPoint.vz      = (u16)arg0->workm.t[2];
+    paletteSelector  = frameAndPalette >> SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_PALETTE_SHIFT;
+    frameAndPalette &= SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_FRAME_MASK;
+    cursorSlot       = SCRATCH_STACK_CURSOR_SLOT;
+    scratchEnd       = *cursorSlot;
+    *cursorSlot      = scratchEnd - 1;
+    projection       = scratchEnd - 1;
+    memFillBytes(projection, 0, sizeof(*projection));
+    (scratchEnd - 1)->worldPoint.vx = (u16)coord->workm.t[0];
+    projection->worldPoint.vy       = (u16)coord->workm.t[1];
+    projection->worldPoint.vz       = (u16)coord->workm.t[2];
+    // Project the composed centre; the quad rotates only in screen space.
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->worldPoint);
+    gte_ldv0(&projection->worldPoint);
     gte_rtps();
-    gte_stsxy(&(head - 1)->screenX);
-    gte_stflg(&(head - 1)->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&(head - 1)->depth);
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2F);
-        prim->tpage = 0x2C;
-        prim->clut  = bank ? 0x428F : 0x43D0;
-        col         = arg1 % 5;
-        row         = arg1 / 5;
-        ang         = arg3;
-        u0          = col * 0x30;
-        v0          = row * 0x30;
-        setUV4(prim, u0, v0 - 0x80, u0 + 0x2F, v0 - 0x80, u0, v0 - 0x51, u0 + 0x2F, v0 - 0x51);
-        block->extent.corner.x = (((arg2 * 47) / block->depth) * rsin(ang)) >> 12;
-        block->extent.corner.y = (((arg2 * 47) / block->depth) * rcos(ang)) >> 12;
-        prim->x0               = block->screenX + (u16)block->extent.corner.x;
-        prim->x3               = block->screenX - (u16)block->extent.corner.x;
-        prim->y0               = block->screenY - (u16)block->extent.corner.y;
-        ang2                   = ang + 0x400;
-        prim->y3               = block->screenY + (u16)block->extent.corner.y;
-        block->extent.corner.x = (((arg2 * 47) / block->depth) * rsin(ang2)) >> 12;
-        block->extent.corner.y = (((arg2 * 47) / block->depth) * rcos(ang2)) >> 12;
-        prim->x1               = block->screenX + (u16)block->extent.corner.x;
-        prim->x2               = block->screenX - (u16)block->extent.corner.x;
-        prim->y1               = block->screenY - (u16)block->extent.corner.y;
-        prim->y2               = block->screenY + (u16)block->extent.corner.y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+    gte_stsxy(&(scratchEnd - 1)->screenX);
+    gte_stflg(&(scratchEnd - 1)->projectionFlags);
+    if (projection->projectionFlags >= 0) {
+        gte_stszotz(&(scratchEnd - 1)->depth);
+        quad           = gGpuPrimCursor;
+        gGpuPrimCursor = quad + 1;
+        setlen(quad, SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_PACKET_WORDS);
+        setcode(quad, SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_PACKET_CODE);
+        quad->tpage = SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_TEXTURE_PAGE;
+        quad->clut  = paletteSelector ? SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_ALTERNATE_CLUT : SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_BASE_CLUT;
+        cellColumn  = frameAndPalette % SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_CELLS_PER_ROW;
+        cellRow     = frameAndPalette / SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_CELLS_PER_ROW;
+        cornerAngle = angle;
+        cellU       = cellColumn * SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_CELL_PITCH_TEXELS;
+        cellV       = cellRow * SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_CELL_PITCH_TEXELS;
+        setUV4(quad, cellU, cellV + SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_FIRST_TEXEL_ROW, cellU + SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_UV_SPAN_TEXELS, cellV + SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_FIRST_TEXEL_ROW, cellU, cellV + SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_LAST_TEXEL_ROW, cellU + SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_UV_SPAN_TEXELS, cellV + SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_LAST_TEXEL_ROW);
+        _shelterB1PodServiceGantryRotateDriftCorner(projection, size, cornerAngle);
+        quad->x0           = projection->screenX + (u16)projection->extent.corner.x;
+        quad->x3           = projection->screenX - (u16)projection->extent.corner.x;
+        quad->y0           = projection->screenY - (u16)projection->extent.corner.y;
+        perpendicularAngle = cornerAngle + SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_QUARTER_TURN;
+        quad->y3           = projection->screenY + (u16)projection->extent.corner.y;
+        _shelterB1PodServiceGantryRotateDriftCorner(projection, size, perpendicularAngle);
+        quad->x1 = projection->screenX + (u16)projection->extent.corner.x;
+        quad->x2 = projection->screenX - (u16)projection->extent.corner.x;
+        quad->y1 = projection->screenY - (u16)projection->extent.corner.y;
+        quad->y2 = projection->screenY + (u16)projection->extent.corner.y;
+        // Sort by projection depth; the GPU consumes a complete textured-quad packet.
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }

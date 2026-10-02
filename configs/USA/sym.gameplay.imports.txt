@@ -1357,7 +1357,7 @@ func_shelter_r48_8017EFD8 = 0x8017EFD8; // absolute:True
 
 func_shelter_r48_8017F6C0 = 0x8017F6C0; // absolute:True
 
-func_shelter_r48_80180210 = 0x80180210; // absolute:True
+shelterR48SpriteDriftTask = 0x80180210; // absolute:True
 
 func_shelter_r48_801810B0 = 0x801810B0; // absolute:True
 
@@ -1941,9 +1941,9 @@ func_acropolis_helicopter_landing_pad_801802E0 = 0x801802E0; // absolute:True
 
 func_neo_ark_forest_zone_8017DC20 = 0x8017DC20; // absolute:True
 
-func_shelter_b1_pod_service_gantry_8017D8F4 = 0x8017D8F4; // absolute:True
+shelterB1PodServiceGantrySpriteDriftTask = 0x8017D8F4; // absolute:True
 
-func_dryfield_r08_8017D8B4 = 0x8017D8B4; // absolute:True
+dryfieldR08SpriteDriftTask = 0x8017D8B4; // absolute:True
 
 func_shelter_b2_pod_bottom_8017EC78 = 0x8017EC78; // absolute:True
 
