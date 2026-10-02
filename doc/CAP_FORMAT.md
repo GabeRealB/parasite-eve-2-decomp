@@ -42,18 +42,20 @@ walks both tables:
   `CAP_TEXT_REF_END` (`-1`)**,
   in which case the walk skips an extra record. `-1` is the terminator sentinel,
   so a terminator consumes a slot without owning text.
-- **Pointer table** — `GpCapPtrTable { s32 count; }` followed by `count` words.
-  Every nonzero word is rebased.
+- **Pointer table** — `GpCapPtrTable { s32 count; }` followed by `count`
+  `CapCommandRef` words. Every nonzero word is a file-relative offset and is
+  rebased; zero stays null.
 
 Then:
 
 ```c
 Gp_CapGlyphs = base.file->field_8.ptr;
-Gp_CapCmds   = (s32*)((GpCapPtrTable*)file->field_10 + 1);
+Gp_CapCmds   = base.file->field_10.ptr->entries;
 ```
 
-So **the pointer table is the command index**: `Gp_CapCmds[i]` is a
-`CapCommand*`, one per event slot.
+So **the pointer table is the command index**. `Gp_CapCmds[i].command` is the
+`CapCommand*` in slot zero, and `Gp_CapCmds[i].sequence` is that same address
+indexed as `CapSequenceRecord` values. Playback starts at slot one.
 
 ## 3. Event records — `CapSequenceRecord` (0xC)
 

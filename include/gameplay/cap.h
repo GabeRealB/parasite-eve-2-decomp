@@ -148,19 +148,23 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(CapCommand, 0xC);
 STATIC_ASSERT(sizeof(CapCommand) == sizeof(CapSequenceRecord), cap_command_sequence_slot);
 
-/// The CAP file's command pointer table: a count, then that many entries. Each
-/// entry is a file-relative offset until relocation adds the file base, making
-/// it the address of a command record; a zero entry is left as no record.
+/// One command-table word: a file offset until relocation, then the sequence base.
+///
+/// Nonzero words are byte offsets from the CAP file base until in-place relocation
+/// adds that base. Zero stays null and names no sequence. The relocated address is
+/// the command in slot zero, and playback indexes that same address as sequence
+/// records starting at slot one. The command and those records share the 12-byte
+/// stride. The loaded CAP file owns the storage.
 typedef union {
-    s32                offset;
-    CapCommand*        command;
-    CapSequenceRecord* events;
-} GpCapEntry;
-STATIC_ASSERT_SIZEOF(GpCapEntry, 4);
+    s32                offset;   // File-relative byte offset, or the address as an integer (0 names no sequence).
+    CapCommand*        command;  // Relocated command in slot zero.
+    CapSequenceRecord* sequence; // Same address indexed as sequence records; playback starts at slot one.
+} CapCommandRef;
+STATIC_ASSERT_SIZEOF(CapCommandRef, 4);
 
 typedef struct _GpCapPtrTable {
-    /* 0x0 */ s32        count;
-    /* 0x4 */ GpCapEntry entries[0];
+    /* 0x0 */ s32           count;
+    /* 0x4 */ CapCommandRef entries[0];
 } GpCapPtrTable;
 STATIC_ASSERT_SIZEOF(GpCapPtrTable, 4);
 
@@ -202,10 +206,10 @@ STATIC_ASSERT_SIZEOF(GpCapFileAddress, 4);
 /// this preserves that representation through the indexed address addition.
 static inline CapSequenceRecord* Gp_CapEventAt(CapSequenceRecord* events, s32 index)
 {
-    GpCapEntry entry;
-    entry.events = events;
-    entry.offset = index * sizeof(CapSequenceRecord) + entry.offset;
-    return entry.events;
+    CapCommandRef address;
+    address.sequence = events;
+    address.offset   = index * sizeof(CapSequenceRecord) + address.offset;
+    return address.sequence;
 }
 
 #endif // GAMEPLAY_CAP_H

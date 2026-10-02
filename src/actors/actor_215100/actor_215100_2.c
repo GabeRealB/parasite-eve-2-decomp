@@ -151,7 +151,7 @@ static TextGlyphCell* CapCaption_Data_8015E654;
 
 /// Caption script table, and the script currently being played back with the
 /// entry it is up to.
-static GpCapEntry*        CapCaption_Data_8015E650;
+static CapCommandRef*     CapCaption_Data_8015E650;
 static CapSequenceRecord* CapCaption_Data_8015E658;
 static s16                CapCaption_Data_8015E65C;
 static s16                CapCaption_Data_8015E65E;
@@ -1740,7 +1740,7 @@ AnimationSet* D_actor_215100_8015E5E8[25] = {
 
 Task* D_actor_215100_8015E64C = NULL;
 
-static GpCapEntry* CapCaption_Data_8015E650 = NULL;
+static CapCommandRef* CapCaption_Data_8015E650 = NULL;
 
 static TextGlyphCell* CapCaption_Data_8015E654 = NULL;
 

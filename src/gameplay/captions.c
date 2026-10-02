@@ -42,7 +42,7 @@ s16 D_8011569A;
 
 u8 D_8011569C;
 
-GpCapEntry* Gp_CapCmds;
+CapCommandRef* Gp_CapCmds;
 
 u8 D_801156A4;
 
@@ -1123,7 +1123,7 @@ s32 Gp_StartCapSlot(s16 arg0, s16 arg1, s16 arg2)
         return 0;
     }
 
-    entry = Gp_CapCmds[arg0].events;
+    entry = Gp_CapCmds[arg0].sequence;
     if (entry == 0) {
         return 1;
     }

@@ -45,7 +45,7 @@ extern OverlayWaveCtx* gScreenWaveCtx;
 
 extern Task* D_shelter_b3_garbage_incinerator_8018FC3C;
 
-extern GpCapEntry* CapCaption_Data_8015E650;
+extern CapCommandRef* CapCaption_Data_8015E650;
 
 extern TextGlyphCell* CapCaption_Data_8015E654;
 

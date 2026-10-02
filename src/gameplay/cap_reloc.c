@@ -72,7 +72,7 @@ s32 Gp_RelocCapFile(GpCapFileAddress base)
     s32                count;
     s32                flag;
     CapSequenceRecord* rec;
-    GpCapEntry*        ptr;
+    CapCommandRef*     ptr;
     GpCapEvtTable*     evts;
     GpCapPtrTable*     ptrs;
 

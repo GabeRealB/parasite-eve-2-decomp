@@ -92,7 +92,7 @@ extern u8 D_80115690;
 
 extern s32 D_80115694;
 
-extern GpCapEntry* Gp_CapCmds;
+extern CapCommandRef* Gp_CapCmds;
 
 extern u8 D_801156A4;
 

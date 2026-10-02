@@ -100,7 +100,7 @@ static s32 CapCaption_Relocate(GpCapFileAddress base)
     s32                count;
     s32                flag;
     CapSequenceRecord* rec;
-    GpCapEntry*        ptr;
+    CapCommandRef*     ptr;
     GpCapEvtTable*     evts;
     GpCapPtrTable*     ptrs;
 
@@ -157,7 +157,7 @@ static s32 CapCaption_SelectScript(s16 arg0, s16 arg1, s32 arg2)
     CapSequenceRecord* caption;
     s16                entry;
 
-    caption                  = CapCaption_Data_8015E650[arg0].events;
+    caption                  = CapCaption_Data_8015E650[arg0].sequence;
     CapCaption_Data_8015E658 = caption;
     if (caption == NULL) {
         return 1;

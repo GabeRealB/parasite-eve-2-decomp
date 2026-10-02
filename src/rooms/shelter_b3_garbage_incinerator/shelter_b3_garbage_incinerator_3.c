@@ -1857,7 +1857,7 @@ OverlayWaveCtx* gScreenWaveCtx = NULL;
 
 Task* D_shelter_b3_garbage_incinerator_8018FC3C = NULL;
 
-GpCapEntry* CapCaption_Data_8015E650 = NULL;
+CapCommandRef* CapCaption_Data_8015E650 = NULL;
 
 TextGlyphCell* CapCaption_Data_8015E654 = NULL;
 

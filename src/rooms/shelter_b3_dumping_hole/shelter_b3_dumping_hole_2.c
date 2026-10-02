@@ -373,7 +373,7 @@ static CapSequenceRecord*                CapCaption_Data_8015E658;
 static s16                               CapCaption_Data_8015E662;
 static OverlayCapWindow                  CapCaption_Data_80154514[];
 static TextGlyphCell*                    CapCaption_Data_8015E654;
-static GpCapEntry*                       CapCaption_Data_8015E650;
+static CapCommandRef*                    CapCaption_Data_8015E650;
 static s16                               CapCaption_Data_8015E65C;
 static s16                               CapCaption_Data_8015E65E;
 static s16                               CapCaption_Data_8015E660;
@@ -1970,7 +1970,7 @@ u16 D_shelter_b3_dumping_hole_8018F4B0[2] = {
     0xDF0D,
 };
 
-static GpCapEntry* CapCaption_Data_8015E650 = NULL;
+static CapCommandRef* CapCaption_Data_8015E650 = NULL;
 
 static TextGlyphCell* CapCaption_Data_8015E654 = NULL;
 
