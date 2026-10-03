@@ -37,26 +37,33 @@
 
 #include "dryfield_time.h"
 
-/// Cutscene work block the room's cutscene task allocates as 0xC zeroed bytes
-/// in its state 0 and parks at `Task::work` -- that slot is *not* a `TaskIdMap`
-/// here.
+/// Values of `FactoryHatchWork::state`: the slot of the hatch's handler table
+/// that runs this frame.
+enum {
+    FACTORY_HATCH_STATE_WATCH, // Idle, waiting for the hatch-open flag to change
+    FACTORY_HATCH_STATE_OPEN,  // Swinging open
+    FACTORY_HATCH_STATE_CLOSE, // Swinging shut
+};
+
+/// Work block of the hatch task: the swing of the hatch model about X and the
+/// state of the sequence driving it.
 ///
-/// `state` selects the handler out of the room's cutscene handler table, `step`
-/// is the counter the movement handlers advance, and `prevFlag` is the nibble of
-/// game flag 0x4E the state-0 handler last saw. The set-up state parks `state`
-/// at 0xFF when the scene is already on.
+/// The task's set-up state allocates it zeroed and parks it at `Task::work`.
+/// The hatch is shut at angle 0 and open at -0x300. A movement state restarts
+/// `angularVelocity` from rest, accelerates it each frame up to its own limit
+/// and adds it to `angle`; the model's rotation is rebuilt every frame from
+/// the integer half of `angle` alone.
 ///
-/// `field_0` is the angular velocity the two movement handlers accelerate
-/// towards their own limit and `field_4` is the 16.16 angle it drives: each
-/// handler adds the first to the second, clamps it at its limit, and rotates
-/// the model by the integer half.
-typedef struct FactoryHatchWork {
-    /* 0x0 */ s32     field_0;
-    /* 0x4 */ Fixed16 field_4;
-    /* 0x8 */ u8      state;
-    /* 0x9 */ u8      step;
-    /* 0xA */ u8      prevFlag;
-    /* 0xB */ byte    pad_B[0x1];
+/// Set-up also stores 0xFF in `state` when it finds the hatch-open flag
+/// already set, and turns the model to the open angle itself. That value
+/// names no handler and the dispatcher does not range-check it; what it was
+/// meant to select is unproven.
+typedef struct {
+    s32     angularVelocity; // Swing rate, 16.16 angle units (0x1000 a turn) per frame
+    Fixed16 angle;           // Rotation about X, 16.16 angle units; 0 shut, negative towards open
+    u8      state;           // Handler running, a `FACTORY_HATCH_STATE_`
+    u8      step;            // Phase of the running movement; zeroed when one is armed
+    u8      prevFlag;        // Hatch-open flag nibble the watch state last saw (0 shut, 1 open)
 } FactoryHatchWork;
 STATIC_ASSERT_SIZEOF(FactoryHatchWork, 0xC);
 

@@ -6,11 +6,11 @@
 /// part of the scene, which drops the sequence back to the shared state 0.
 void factoryHatchUpdate(Task* task)
 {
-    FactoryHatchWork*  work = (FactoryHatchWork*)task->work;
+    FactoryHatchWork*  work = task->work;
     FactoryHatchStates sp;
 
     sp = _gFactoryHatchStates;
     if (sp.funcs[work->state](task) != 0) {
-        work->state = 0;
+        work->state = FACTORY_HATCH_STATE_WATCH;
     }
 }

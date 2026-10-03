@@ -16,7 +16,7 @@ void factoryHatchInit(Task* task)
     TmdObject*        capModel = cap->extra.tmd;
     GfxCoord*         coord    = model->coords;
     GfxCoord*         capCoord = capModel->coords;
-    FactoryHatchWork* work     = memCalloc(0xC, 0);
+    FactoryHatchWork* work     = memCalloc(sizeof(FactoryHatchWork), 0);
     u16               flags;
 
     if (work == NULL) {
@@ -41,6 +41,7 @@ void factoryHatchInit(Task* task)
     coord->coord.t[0] = 0;
     coord->coord.t[2] = -0x5FA;
     if (GameFlag_GetNibble(GAME_FLAG_FACTORY_HATCH_OPEN) == 1) {
+        // Not a handler slot: the dispatcher has no entry for this value.
         work->state = 0xFF;
         RotMatrixX(-0x300, &coord->coord);
     }

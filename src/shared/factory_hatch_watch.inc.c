@@ -6,18 +6,18 @@
 /// restarts `step`. Every call records the nibble in `prevFlag`.
 s32 factoryHatchWatch(Task* task)
 {
-    FactoryHatchWork* work  = (FactoryHatchWork*)task->work;
+    FactoryHatchWork* work  = task->work;
     s32               flag  = GameFlag_GetNibble(GAME_FLAG_FACTORY_HATCH_OPEN);
     s32               state = flag & 0xFF;
 
     if (state == 1) {
         if (work->prevFlag == 0) {
-            work->state = state;
+            work->state = FACTORY_HATCH_STATE_OPEN;
             goto reset;
         }
     }
     if (((flag & 0xFF) == 0) && (work->prevFlag == 1)) {
-        work->state = 2;
+        work->state = FACTORY_HATCH_STATE_CLOSE;
     reset:
         work->step = 0;
     }
