@@ -57,17 +57,26 @@
 #include <psyq/memory.h>
 #include <psyq/rand.h>
 
-/// 0x30-byte play-clock work `Gp_InitPlayClock` stores at `Task::work`.
-/// `field_0` / `field_4` are `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime` split into minutes and
-/// seconds. `field_8` snapshots `gDisplayState.gameTick`. `extra` is the
-/// HUD's state, which the HUD routines are handed by address.
-typedef struct _GpIdMap30 {
-    /* 0x00 */ s32      field_0;
-    /* 0x04 */ s32      field_4;
-    /* 0x08 */ s32      field_8;
-    /* 0x0C */ HudState extra;
-} GpIdMap30;
-STATIC_ASSERT_SIZEOF(GpIdMap30, 0x30);
+/// Work block of the task that runs play.
+///
+/// Each frame that task advances the play clock, watches for the death of the
+/// player or the companion, and otherwise updates the HUD. It allocates this
+/// block zero-filled when it starts, and the block is freed with the task. The
+/// block carries the play time as the clock readout shows it, the tick sample
+/// the clock advances from, and the HUD's state.
+///
+/// `hours` and `minutes` are the saved play time, a count of minutes, split
+/// once at start and then kept in step with it: each whole minute of
+/// `DisplayState.gameTick` adds one to both, and both stop at 999:59 with the
+/// saved count at 59999. Only the clock readout reads them, and it is drawn
+/// only while the saved state selects attract demo 1.
+typedef struct {
+    s32      hours;        // Whole hours of play time, 0..999
+    s32      minutes;      // Minutes past the hour, 0..59
+    s32      lastGameTick; // `DisplayState.gameTick` when the clock last advanced; the next advance adds the difference
+    HudState hud;          // HUD state, handed to the HUD routines by address
+} _PlayClockWork;
+STATIC_ASSERT_SIZEOF(_PlayClockWork, 0x30);
 
 extern CVECTOR D_80114BA4;
 
@@ -3002,23 +3011,23 @@ void Gp_ApplyPadReplay(s32 arg0, PadScratch* arg1)
 
 void Gp_InitPlayClock(Task* task)
 {
-    GpIdMap30*    rec;
-    DisplayState* ds;
+    _PlayClockWork* work;
+    DisplayState*   ds;
 
     Gp_UpdatePadInput();
     gGameSession->field_5E = 1;
-    rec                    = memCalloc(0x30, 0);
-    if (rec == NULL) {
+    work                   = memCalloc(sizeof(_PlayClockWork), 0);
+    if (work == NULL) {
         taskKill(task);
         return;
     }
-    Gp_ResetHudFx(&rec->extra);
+    Gp_ResetHudFx(&work->hud);
     GameMain_SetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
-    task->work   = rec;
-    rec->field_0 = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime / 60;
-    rec->field_4 = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime % 60;
-    ds           = &gDisplayState;
-    rec->field_8 = ds->gameTick;
+    task->work         = work;
+    work->hours        = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime / 60;
+    work->minutes      = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime % 60;
+    ds                 = &gDisplayState;
+    work->lastGameTick = ds->gameTick;
     func_800B25B0();
     if (ds->demoScene != DISPLAY_DEMO_NONE) {
         srand(1);
@@ -3045,38 +3054,38 @@ void Gp_InitPlayClock(Task* task)
 
 void Gp_TickPlayClock(Task* task)
 {
-    TextDrawReq   req;
-    u8            buf[0x20];
-    GpIdMap30*    rec;
-    McSaveData*   save;
-    PlayerStatus* cfg;
-    GameSession*  session;
-    s32           one;
-    s32           temp;
-    s32           companion;
+    TextDrawReq     req;
+    u8              buf[0x20];
+    _PlayClockWork* work;
+    McSaveData*     save;
+    PlayerStatus*   cfg;
+    GameSession*    session;
+    s32             one;
+    s32             temp;
+    s32             companion;
 
-    rec = (GpIdMap30*)task->work;
-    cfg = &gPlayerStatus;
+    work = task->work;
+    cfg  = &gPlayerStatus;
     Gp_UpdatePadInput();
 
-    temp         = gDisplayState.gameTick;
-    D_8005ED68  += temp - rec->field_8;
-    rec->field_8 = temp;
+    temp               = gDisplayState.gameTick;
+    D_8005ED68        += temp - work->lastGameTick;
+    work->lastGameTick = temp;
     if (D_8005ED68 >= 0xE10) {
         McSaveData* p;
         D_8005ED68 -= 0xE10;
         p           = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
         if (p->state.playTime <= 0xEA5E) {
             p->state.playTime++;
-            rec->field_4++;
-            if (rec->field_4 >= 0x3C) {
-                rec->field_4 -= 0x3C;
-                rec->field_0++;
+            work->minutes++;
+            if (work->minutes >= 60) {
+                work->minutes -= 60;
+                work->hours++;
             }
         } else {
             p->state.playTime = 0xEA5F;
-            rec->field_0      = 0x3E7;
-            rec->field_4      = 0x3B;
+            work->hours       = 999;
+            work->minutes     = 59;
         }
     }
 
@@ -3090,9 +3099,9 @@ void Gp_TickPlayClock(Task* task)
         req.glyphTable = TEXT_GLYPH_TABLE_LARGE_ALTERNATE;
         req.alignment  = TEXT_ALIGNMENT_LEFT;
         req.drawMode   = one;
-        Text_DrawString(&req, Text_ItoaUnsigned(buf, rec->field_0));
+        Text_DrawString(&req, Text_ItoaUnsigned(buf, work->hours));
         Text_DrawString(&req, ":");
-        Text_DrawString(&req, Text_ItoaPadded(buf, rec->field_4, 2));
+        Text_DrawString(&req, Text_ItoaPadded(buf, work->minutes, 2));
         Text_DrawString(&req, "'");
         Text_DrawString(&req, Text_ItoaPadded(buf, D_8005ED68 / 60, 2));
         Pad_CheckButtons(one, one, 0x100);
@@ -3173,7 +3182,7 @@ block_normal:
         gGameSession->deathVariant = 1;
         task->state++;
     } else {
-        Gp_HudTask(&rec->extra);
+        Gp_HudTask(&work->hud);
     }
 }
 

@@ -6514,7 +6514,7 @@ also need separate block-scope pointers: a function-level `pos` lives in
 ## Fresh block-scope pointer at a join so it reuses a dead `s` register
 
 A function-level `save = &gMcSaveData` lives in `$s2` from the first half. At a
-later join the target reloads `&gMcSaveData` into `$s1` (the now-dead `rec`
+later join the target reloads `&gMcSaveData` into `$s1` (the now-dead `work`
 register). Reassigning the same `save` reloads into `$s2`. Give the join its
 own block-scope pointer so the allocator takes the lowest free saved reg:
 
