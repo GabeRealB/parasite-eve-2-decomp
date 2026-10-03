@@ -223,6 +223,29 @@ typedef struct {
 } EffectQuadScratch;
 STATIC_ASSERT_SIZEOF(EffectQuadScratch, 0x38);
 
+/// Scratch-stack workspace for projecting one four-corner quad straight into its packet.
+///
+/// `vertices` stages each corner and is reused for its rotated, translated
+/// world position, narrowed to signed 16-bit coordinate units. Corners share
+/// indices 0..3 in GPU quad strip order. One RTPS projects corner 0 and one
+/// RTPT corners 1..3, and the screen positions are stored directly in the
+/// primitive, so unlike `EffectQuadScratch` the block keeps neither them nor
+/// a GTE FLAG word.
+///
+/// `depth` is the last corner's SZ3 divided by four, optionally biased by the
+/// drawer. Most drawers skip a quad whose depth is below 0x11 (too near the
+/// camera); otherwise it selects the ordering-table entry and the blend
+/// packet's depth.
+///
+/// Reserve one complete, word-aligned block and initialize fields as needed.
+/// Release it in scratch-stack order after drawing; pointers into the block
+/// must not survive release.
+typedef struct {
+    s32     depth;       // Last projected corner's SZ3 / 4, with the drawer's ordering bias
+    SVECTOR vertices[4]; // Local corner workspace, then world positions supplied to the projection
+} EffectQuadCornersScratch;
+STATIC_ASSERT_SIZEOF(EffectQuadCornersScratch, 0x24);
+
 /// Scratch-stack workspace for a spinning textured billboard about one world point.
 ///
 /// One perspective transform supplies the centre, GTE status and SZ3 / 4

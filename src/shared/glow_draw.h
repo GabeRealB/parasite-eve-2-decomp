@@ -17,6 +17,8 @@
 
 #include "overlay.h"
 
+#include "gameplay/effects.h"
+
 #include "main/coord.h"
 
 /// Scratch-block type `glowDrawDisc` reserves.

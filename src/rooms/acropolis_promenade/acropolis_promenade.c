@@ -2285,9 +2285,9 @@ void func_acropolis_promenade_8017E394(Task* task)
 /// `D_acropolis_promenade_80181AE4` are scaled to +/-0x300 in `vx` / `vz` (with
 /// `vy` left at zero, so the quad is horizontal), rotated by the task's own
 /// `workm`, offset by that matrix's translation and then projected through
-/// `GsWSMATRIX` into an `RoomQuadScratch` block taken from the scratch stack. The
-/// first corner goes through `rtps` and the other three through `rtpt`, the
-/// same split the sanctuary's mosaic tiles use.
+/// `GsWSMATRIX` into an `EffectQuadCornersScratch` block taken from the
+/// scratch stack. The first corner goes through `rtps` and the other three
+/// through `rtpt`, the same split the sanctuary's mosaic tiles use.
 ///
 /// The depth is biased by 0x20 before the near-plane test, so the glow survives
 /// a little closer to the camera than the 0x11 cutoff alone would allow. Its
@@ -2299,50 +2299,45 @@ void func_acropolis_promenade_8017E394(Task* task)
 /// been queued, so the room respawns it each frame it wants the glow.
 void func_acropolis_promenade_8017ED44(Task* task)
 {
-    GfxCoord*        coord;
-    EffectWork*      work;
-    void**           scratch;
-    u8*              head;
-    RoomQuadScratch* blk;
-    POLY_FT4*        prim;
-    SVECTOR*         sv;
-    s32              i;
-    s32              grey;
+    GfxCoord*                 coord;
+    EffectWork*               work;
+    EffectQuadCornersScratch* blk;
+    POLY_FT4*                 prim;
+    SVECTOR*                  sv;
+    s32                       i;
+    s32                       grey;
 
     coord = task->extra.coordBody->coord;
     work  = task->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
-    scratch   = SCRATCH_STACK_CURSOR_SLOT;
-    head      = *scratch;
     work->age = task->spawnArg1.value;
-    *scratch  = head - 0x24;
-    blk       = (RoomQuadScratch*)(head - 0x24);
+    blk       = SCRATCH_STACK_RESERVE_BLOCK(EffectQuadCornersScratch);
     for (i = 0; i < ARRAY_SIZE(D_acropolis_promenade_80181AE4); i++) {
-        blk->v[i].vx = D_acropolis_promenade_80181AE4[i].axis0Sign * 0x300;
-        // Spelled as an offset rather than `&blk->v[i]` so it stays a separate
+        blk->vertices[i].vx = D_acropolis_promenade_80181AE4[i].axis0Sign * 0x300;
+        // Spelled as an offset rather than `&blk->vertices[i]` so it stays a separate
         // pointer from the one the GTE macros below take; writing both the same
         // way lets CSE fold them into one register and the loop stops matching.
-        sv     = (SVECTOR*)((u8*)blk + i * sizeof(SVECTOR) + OFFSET_OF(RoomQuadScratch, v));
+        sv     = (SVECTOR*)((u8*)blk + i * sizeof(SVECTOR) + OFFSET_OF(EffectQuadCornersScratch, vertices));
         sv->vy = 0;
         sv->vz = D_acropolis_promenade_80181AE4[i].axis1Sign * 0x300;
         gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&blk->v[i]);
+        gte_ldv0(&blk->vertices[i]);
         gte_rtv0();
-        gte_stsv(&blk->v[i]);
-        blk->v[i].vx += coord->workm.t[0];
-        sv->vy       += coord->workm.t[1];
-        sv->vz       += coord->workm.t[2];
+        gte_stsv(&blk->vertices[i]);
+        blk->vertices[i].vx += coord->workm.t[0];
+        sv->vy              += coord->workm.t[1];
+        sv->vz              += coord->workm.t[2];
     }
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&blk->v[0]);
+    gte_ldv0(&blk->vertices[0]);
     gte_rtps();
     prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
     gte_stsxy(&prim->x0);
-    gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
+    gte_ldv3(&blk->vertices[1], &blk->vertices[2], &blk->vertices[3]);
     gte_rtpt();
     prim->u0 = 0;
     prim->v0 = 0x10;
@@ -2353,9 +2348,9 @@ void func_acropolis_promenade_8017ED44(Task* task)
     prim->u3 = 0x27;
     prim->v3 = 0x37;
     gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
-    gte_stszotz(&blk->otz);
-    blk->otz += 0x20;
-    if (blk->otz >= 0x11) {
+    gte_stszotz(&blk->depth);
+    blk->depth += 0x20;
+    if (blk->depth >= 0x11) {
         prim->tpage     = 0x2B;
         prim->clut      = 0x4381;
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -2364,10 +2359,10 @@ void func_acropolis_promenade_8017ED44(Task* task)
         prim->g0        = grey;
         prim->b0        = grey;
         prim->code     |= 2;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x24);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectQuadCornersScratch);
     effectKillTask(work, task);
 }
 

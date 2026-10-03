@@ -18,6 +18,7 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
+#include "gameplay/effects.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
@@ -775,86 +776,86 @@ void func_dryfield_warehouse_8017E3F4(s16 arg0)
 /// `GsWSMATRIX`; the lit edge glows at 0x14 plus a small pulse.
 static void func_dryfield_warehouse_8017ED34(GfxCoord* coord, s16 arg1, s16 arg2)
 {
-    RoomQuadScratch* blk;
-    POLY_G4*         prim;
-    s16              level;
-    s16              step;
-    s16              start;
-    s32              angle;
-    s32              next;
+    EffectQuadCornersScratch* blk;
+    POLY_G4*                  prim;
+    s16                       level;
+    s16                       step;
+    s16                       start;
+    s32                       angle;
+    s32                       next;
 
     level = (rsin(gDisplayState.animFrame << 10) >> 11) + 0x14;
-    SCRATCH_STACK_RESERVE_BLOCK(RoomQuadScratch);
-    blk   = SCRATCH_STACK_CURSOR(RoomQuadScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(EffectQuadCornersScratch);
+    blk   = SCRATCH_STACK_CURSOR(EffectQuadCornersScratch);
     start = gDisplayState.animFrame & 0xFFF;
     step  = 0x1000 / arg2;
     gte_SetTransMatrix(&GsWSMATRIX);
     for (angle = start; angle < start + step * arg2; angle = next) {
-        blk->v[0].vx = gGlowPrismCorners[arg1].vx + ((rsin(angle) * D_dryfield_warehouse_8017FBAC[arg1]) >> 12);
-        blk->v[0].vy = gGlowPrismCorners[arg1].vy;
-        blk->v[0].vz = gGlowPrismCorners[arg1].vz + ((rcos(angle) * D_dryfield_warehouse_8017FBAC[arg1]) >> 12);
+        blk->vertices[0].vx = gGlowPrismCorners[arg1].vx + ((rsin(angle) * D_dryfield_warehouse_8017FBAC[arg1]) >> 12);
+        blk->vertices[0].vy = gGlowPrismCorners[arg1].vy;
+        blk->vertices[0].vz = gGlowPrismCorners[arg1].vz + ((rcos(angle) * D_dryfield_warehouse_8017FBAC[arg1]) >> 12);
         gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&blk->v[0]);
+        gte_ldv0(&blk->vertices[0]);
         gte_rtv0();
-        gte_stsv(&blk->v[0]);
-        blk->v[0].vx += coord->workm.t[0];
-        blk->v[0].vy += coord->workm.t[1];
-        next          = angle + step;
-        blk->v[0].vz += coord->workm.t[2];
+        gte_stsv(&blk->vertices[0]);
+        blk->vertices[0].vx += coord->workm.t[0];
+        blk->vertices[0].vy += coord->workm.t[1];
+        next                 = angle + step;
+        blk->vertices[0].vz += coord->workm.t[2];
 
-        blk->v[1].vx = gGlowPrismCorners[arg1].vx + ((rsin(next) * D_dryfield_warehouse_8017FBAC[arg1]) >> 12);
-        blk->v[1].vy = gGlowPrismCorners[arg1].vy;
-        blk->v[1].vz = gGlowPrismCorners[arg1].vz + ((rcos(next) * D_dryfield_warehouse_8017FBAC[arg1]) >> 12);
+        blk->vertices[1].vx = gGlowPrismCorners[arg1].vx + ((rsin(next) * D_dryfield_warehouse_8017FBAC[arg1]) >> 12);
+        blk->vertices[1].vy = gGlowPrismCorners[arg1].vy;
+        blk->vertices[1].vz = gGlowPrismCorners[arg1].vz + ((rcos(next) * D_dryfield_warehouse_8017FBAC[arg1]) >> 12);
         gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&blk->v[1]);
+        gte_ldv0(&blk->vertices[1]);
         gte_rtv0();
-        gte_stsv(&blk->v[1]);
-        blk->v[1].vx += coord->workm.t[0];
-        blk->v[1].vy += coord->workm.t[1];
-        blk->v[1].vz += coord->workm.t[2];
+        gte_stsv(&blk->vertices[1]);
+        blk->vertices[1].vx += coord->workm.t[0];
+        blk->vertices[1].vy += coord->workm.t[1];
+        blk->vertices[1].vz += coord->workm.t[2];
 
-        blk->v[2].vx = gGlowPrismCorners[arg1 + 1].vx + ((rsin(angle) * D_dryfield_warehouse_8017FBAC[arg1 + 1]) >> 12);
-        blk->v[2].vy = gGlowPrismCorners[arg1 + 1].vy;
-        blk->v[2].vz = gGlowPrismCorners[arg1 + 1].vz + ((rcos(angle) * D_dryfield_warehouse_8017FBAC[arg1 + 1]) >> 12);
+        blk->vertices[2].vx = gGlowPrismCorners[arg1 + 1].vx + ((rsin(angle) * D_dryfield_warehouse_8017FBAC[arg1 + 1]) >> 12);
+        blk->vertices[2].vy = gGlowPrismCorners[arg1 + 1].vy;
+        blk->vertices[2].vz = gGlowPrismCorners[arg1 + 1].vz + ((rcos(angle) * D_dryfield_warehouse_8017FBAC[arg1 + 1]) >> 12);
         gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&blk->v[2]);
+        gte_ldv0(&blk->vertices[2]);
         gte_rtv0();
-        gte_stsv(&blk->v[2]);
-        blk->v[2].vx += coord->workm.t[0];
-        blk->v[2].vy += coord->workm.t[1];
-        blk->v[2].vz += coord->workm.t[2];
+        gte_stsv(&blk->vertices[2]);
+        blk->vertices[2].vx += coord->workm.t[0];
+        blk->vertices[2].vy += coord->workm.t[1];
+        blk->vertices[2].vz += coord->workm.t[2];
 
-        blk->v[3].vx = gGlowPrismCorners[arg1 + 1].vx + ((rsin(next) * D_dryfield_warehouse_8017FBAC[arg1 + 1]) >> 12);
-        blk->v[3].vy = gGlowPrismCorners[arg1 + 1].vy;
-        blk->v[3].vz = gGlowPrismCorners[arg1 + 1].vz + ((rcos(next) * D_dryfield_warehouse_8017FBAC[arg1 + 1]) >> 12);
+        blk->vertices[3].vx = gGlowPrismCorners[arg1 + 1].vx + ((rsin(next) * D_dryfield_warehouse_8017FBAC[arg1 + 1]) >> 12);
+        blk->vertices[3].vy = gGlowPrismCorners[arg1 + 1].vy;
+        blk->vertices[3].vz = gGlowPrismCorners[arg1 + 1].vz + ((rcos(next) * D_dryfield_warehouse_8017FBAC[arg1 + 1]) >> 12);
         gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&blk->v[3]);
+        gte_ldv0(&blk->vertices[3]);
         gte_rtv0();
-        gte_stsv(&blk->v[3]);
-        blk->v[3].vx += coord->workm.t[0];
-        blk->v[3].vy += coord->workm.t[1];
-        blk->v[3].vz += coord->workm.t[2];
+        gte_stsv(&blk->vertices[3]);
+        blk->vertices[3].vx += coord->workm.t[0];
+        blk->vertices[3].vy += coord->workm.t[1];
+        blk->vertices[3].vz += coord->workm.t[2];
 
         gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&blk->v[0]);
+        gte_ldv0(&blk->vertices[0]);
         gte_rtps();
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setPolyG4(prim);
         gte_stsxy(&prim->x0);
-        gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
+        gte_ldv3(&blk->vertices[1], &blk->vertices[2], &blk->vertices[3]);
         gte_rtpt();
         gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
-        gte_stszotz(&blk->otz);
+        gte_stszotz(&blk->depth);
         setRGB0(prim, level, level, level);
         setRGB1(prim, level, level, level);
         setRGB2(prim, 0, 0, 0);
         setRGB3(prim, 0, 0, 0);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(blk->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
-        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
+        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->depth);
     }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomQuadScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectQuadCornersScratch);
 }
 
 /// Per-frame effect on the room's coordinate task: draws the room geometry for the

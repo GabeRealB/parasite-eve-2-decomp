@@ -196,17 +196,6 @@ typedef struct _RoomShaftArg {
 } RoomShaftArg;
 STATIC_ASSERT_SIZEOF(RoomShaftArg, 0x4);
 
-/// The scratch block a room's quad drawer takes from the scratch stack to
-/// build one quad in: `v` holds its four corners once they are placed in
-/// world space, and `otz` the ordering-table depth of their projection, which
-/// picks the bucket the primitive is linked into and lets the drawer reject a
-/// quad too close to the camera.
-typedef struct _RoomQuadScratch {
-    /* 0x00 */ s32     otz;
-    /* 0x04 */ SVECTOR v[4];
-} RoomQuadScratch;
-STATIC_ASSERT_SIZEOF(RoomQuadScratch, 0x24);
-
 /// Scratch block a room's glow or flare drawer takes from the scratch stack.
 /// `vec` is the glow's anchor point in world space; `otz` and `sx` / `sy` are
 /// that point projected through `GsWSMATRIX`. `rOuter` and `rInner` are sizes

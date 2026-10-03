@@ -274,18 +274,6 @@ typedef struct RoomDiscScratch {
 } RoomDiscScratch;
 STATIC_ASSERT_SIZEOF(RoomDiscScratch, 0x14);
 
-/// The scratch block a room's light-shaft drawer takes from the scratch stack
-/// for one shaft: the depth of its projection and its four corners in world
-/// space - the two roots, then the tip reached from each.
-typedef struct RoomLightShaftScratch {
-    s32     otz;
-    SVECTOR rootA;
-    SVECTOR rootB;
-    SVECTOR tipA;
-    SVECTOR tipB;
-} RoomLightShaftScratch;
-STATIC_ASSERT_SIZEOF(RoomLightShaftScratch, 0x24);
-
 /// One row of a ring effect's per-band table, added to the effect work's ring
 /// parameters: `rInner` widens the ring drawn at the origin height, `yOff`
 /// raises the second ring, and `rExtra` widens the second ring beyond the

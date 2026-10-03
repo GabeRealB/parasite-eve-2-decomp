@@ -54086,12 +54086,12 @@ out swapped against the target.
 
 `corners++` is an ordinary statement, so it sits at its source position — before
 the first field group. The increment of the giv GCC made for the `gte_ldv0`
-operand (`&blk->v[i]`, i.e. `blk + 4 + 8i`) is emitted by `loop.c` *after* the
+operand (`&blk->vertices[i]`, i.e. `blk + 4 + 8i`) is emitted by `loop.c` *after* the
 giv's last use, which puts it later; the scheduler then has only the second one
 left to drop into the `lhu` load-delay slot. Subscripting the table instead,
 
 ```c
-blk->v[i].vx = (u16)corners[i].axis0Sign * arg1;
+blk->vertices[i].vx = (u16)corners[i].axis0Sign * arg1;
 ...
 sv->vz = (u16)corners[i].axis1Sign * arg1;
 ```
@@ -55135,7 +55135,7 @@ the multiply, and reload materialises the `li`.
 
 ```c
 s32 len = 0x600;
-blk->v[1].vx = (rsin(ang) * len) >> 12;
+blk->vertices[1].vx = (rsin(ang) * len) >> 12;
 ```
 
 **Where you assign it decides its register.** The assignment's position sets the
@@ -143926,9 +143926,10 @@ A scratch-pad push whose new top is computed into one register, copied to
 another, and the copy both stored back and used as the block pointer, was held
 by `register ... asm()` pins on the coordinate and head pointer plus a
 `SOFT_TOUCH_REG` between the subtraction and the block assignment. It is the
-value of the cursor assignment: `blk = SCRATCH_STACK_RESERVE_BLOCK(RoomQuadScratch);`. The
-pins, the extra locals (`tbl`, `wm`, `head`) and the `(u16)` casts on the
-`+=` corner updates all went with it; `for` instead of `do/while` also matched.
+value of the cursor assignment:
+`blk = SCRATCH_STACK_RESERVE_BLOCK(EffectQuadCornersScratch);`. The pins, the
+extra locals (`tbl`, `wm`, `head`) and the `(u16)` casts on the `+=` corner
+updates all went with it; `for` instead of `do/while` also matched.
 
 ## Moving data and bss into C: link order and emission order (2026-09-26)
 

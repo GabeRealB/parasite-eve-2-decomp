@@ -16,6 +16,8 @@
 
 #include "types.h"
 
+#include "gameplay/effects.h"
+
 #include "main/coord.h"
 
 void leafDraw(GfxCoord* coord, s32 arg1, s16 arg2);

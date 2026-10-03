@@ -3375,18 +3375,18 @@ void func_acropolis_security_room_80180E34(Task* arg0)
 /// Draws a rotating textured quad and updates its drift until it settles.
 void func_acropolis_security_room_80181108(Task* arg0)
 {
-    RoomQuadScratch* blk;
-    GfxCoord*        coord;
-    EffectWork*      mem;
-    POLY_FT4*        prim;
-    s32              i;
-    SVECTOR*         sv;
-    s32              ty;
-    s32              tx;
-    s32              tz;
+    EffectQuadCornersScratch* blk;
+    GfxCoord*                 coord;
+    EffectWork*               mem;
+    POLY_FT4*                 prim;
+    s32                       i;
+    SVECTOR*                  sv;
+    s32                       ty;
+    s32                       tx;
+    s32                       tz;
 
-    SCRATCH_STACK_RESERVE_BLOCK(RoomQuadScratch);
-    blk   = SCRATCH_STACK_CURSOR(RoomQuadScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(EffectQuadCornersScratch);
+    blk   = SCRATCH_STACK_CURSOR(EffectQuadCornersScratch);
     coord = arg0->extra.coordBody->coord;
     mem   = arg0->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
@@ -3406,32 +3406,32 @@ void func_acropolis_security_room_80181108(Task* arg0)
     }
 
     for (i = 0; i < ARRAY_SIZE(D_acropolis_security_room_801839C0); i++) {
-        /* Spelled as a shifted block rather than `&blk->v[i]`, which is the same
-           address: the member form lets CSE share one register with the GTE
-           macros' `&blk->v[i]`, and the original keeps two. */
-        sv           = ((RoomQuadScratch*)((SVECTOR*)blk + i))->v;
-        blk->v[i].vx = D_acropolis_security_room_801839C0[i].axis0Sign * mem->scale;
-        sv->vy       = 0;
-        sv->vz       = D_acropolis_security_room_801839C0[i].axis1Sign * mem->scale;
+        // Spelled as an offset rather than `&blk->vertices[i]` so it stays a
+        // separate pointer from the one the GTE macros below take; writing both
+        // the same way lets CSE fold them into one register.
+        sv                  = (SVECTOR*)((u8*)blk + i * sizeof(SVECTOR) + OFFSET_OF(EffectQuadCornersScratch, vertices));
+        blk->vertices[i].vx = D_acropolis_security_room_801839C0[i].axis0Sign * mem->scale;
+        sv->vy              = 0;
+        sv->vz              = D_acropolis_security_room_801839C0[i].axis1Sign * mem->scale;
         gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&blk->v[i]);
+        gte_ldv0(&blk->vertices[i]);
         gte_rtv0();
-        gte_stsv(&blk->v[i]);
-        blk->v[i].vx = (u16)blk->v[i].vx + (u16)coord->workm.t[0];
-        sv->vy       = (u16)sv->vy + (u16)coord->workm.t[1];
-        sv->vz       = (u16)sv->vz + (u16)coord->workm.t[2];
+        gte_stsv(&blk->vertices[i]);
+        blk->vertices[i].vx = (u16)blk->vertices[i].vx + (u16)coord->workm.t[0];
+        sv->vy              = (u16)sv->vy + (u16)coord->workm.t[1];
+        sv->vz              = (u16)sv->vz + (u16)coord->workm.t[2];
     }
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&blk->v[0]);
+    gte_ldv0(&blk->vertices[0]);
     gte_rtps();
 
     prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setPolyFT4(prim);
     gte_stsxy(&prim->x0);
-    gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
+    gte_ldv3(&blk->vertices[1], &blk->vertices[2], &blk->vertices[3]);
     gte_rtpt();
     prim->u0 = 0;
     prim->v0 = 0;
@@ -3442,14 +3442,14 @@ void func_acropolis_security_room_80181108(Task* arg0)
     prim->u3 = 7;
     prim->v3 = 7;
     gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
-    gte_stszotz(&blk->otz);
-    if (blk->otz > 0x10) {
+    gte_stszotz(&blk->depth);
+    if (blk->depth > 0x10) {
         prim->tpage = 0x2D;
         prim->clut  = 0x4390;
         prim->code |= 1;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
     }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomQuadScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectQuadCornersScratch);
 
     if (mem->index == 0) {
         coord->coord.t[0] += mem->move.vx;
