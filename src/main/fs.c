@@ -34,10 +34,17 @@ typedef struct _FsCdfFile {
     u32 offset; // Offset from the beginning of the folder.
 } FsCdfFile;
 
-typedef struct _FsCdfFileSmall {
-    u16 id;     // File id.
-    u16 offset; // Offset from the beginning of the folder.
-} FsCdfFileSmall;
+/// A compact `STAGE0.HED` file entry, kept in the tables for file categories 1-4.
+///
+/// The HED lists every STAGE0 file as a pair of words, file id and sector
+/// offset. Ids whose category (`id / 10000`) is 1-4 are stored at half width,
+/// one table per category, and looked up by the request's
+/// `fileIdHundreds * 100 + fileIndex`; larger ids keep the full `FsCdfFile`.
+typedef struct {
+    u16 idInCategory; // File id less its category's multiple of 10000
+    u16 sectorOffset; // Sector of the file relative to the start of `STAGE0.CDF`
+} _FsStage0CategoryFile;
+STATIC_ASSERT_SIZEOF(_FsStage0CategoryFile, 0x4);
 
 /// One entry in the directory of a CDF resource bundle (chunk opcode 4).
 ///
@@ -124,22 +131,22 @@ static u16 Fs_FileOffsetsCat0[0x30];
 
 static u16 Fs_FileOffsetsCat5[0x40];
 
-static FsCdfFileSmall Fs_FileTableCat3[0x1e];
+static _FsStage0CategoryFile Fs_FileTableCat3[0x1e];
 
 static u8 Fs_FileTableCat3Len;
 
-static FsCdfFileSmall Fs_FileTableCat4[0x46];
+static _FsStage0CategoryFile Fs_FileTableCat4[0x46];
 
 static u8 Fs_FileTableCat4Len;
 
-static FsCdfFileSmall Fs_FileTableCat1[0x3c];
+static _FsStage0CategoryFile Fs_FileTableCat1[0x3c];
 
 static u8 Fs_FileTableCat1Len;
 
 /// Unreferenced.
 static u8 D_8006B180[8];
 
-static FsCdfFileSmall Fs_FileTableCat2[0x160];
+static _FsStage0CategoryFile Fs_FileTableCat2[0x160];
 
 static u16 Fs_FileTableCat2Len;
 
@@ -370,8 +377,8 @@ s32 Fs_LoadFile(u8* req, s32 mode, s32 a2, s32 a3)
                 i      = 0;
                 if ((u32)sector < (u32)len) {
                     do {
-                        if (Fs_FileTableCat1[i].id == fileId) {
-                            sector = Fs_FileTableCat1[i].offset + Fs_StageCdfSectors[0];
+                        if (Fs_FileTableCat1[i].idInCategory == fileId) {
+                            sector = Fs_FileTableCat1[i].sectorOffset + Fs_StageCdfSectors[0];
                             goto setup_and_load;
                         }
                         i++;
@@ -385,8 +392,8 @@ s32 Fs_LoadFile(u8* req, s32 mode, s32 a2, s32 a3)
                 i      = 0;
                 if ((u32)sector < (u32)len) {
                     do {
-                        if (Fs_FileTableCat2[i].id == fileId) {
-                            sector = Fs_FileTableCat2[i].offset + Fs_StageCdfSectors[0];
+                        if (Fs_FileTableCat2[i].idInCategory == fileId) {
+                            sector = Fs_FileTableCat2[i].sectorOffset + Fs_StageCdfSectors[0];
                             goto setup_and_load;
                         }
                         i++;
@@ -400,8 +407,8 @@ s32 Fs_LoadFile(u8* req, s32 mode, s32 a2, s32 a3)
                 i      = 0;
                 if ((u32)sector < (u32)len) {
                     do {
-                        if (Fs_FileTableCat3[i].id == fileId) {
-                            sector = Fs_FileTableCat3[i].offset + Fs_StageCdfSectors[0];
+                        if (Fs_FileTableCat3[i].idInCategory == fileId) {
+                            sector = Fs_FileTableCat3[i].sectorOffset + Fs_StageCdfSectors[0];
                             goto setup_and_load;
                         }
                         i++;
@@ -417,8 +424,8 @@ s32 Fs_LoadFile(u8* req, s32 mode, s32 a2, s32 a3)
                     i      = 0;
                     if ((u32)sector < (u32)len) {
                         do {
-                            if (Fs_FileTableCat4[i].id == fileId) {
-                                sector = Fs_FileTableCat4[i].offset + Fs_StageCdfSectors[0];
+                            if (Fs_FileTableCat4[i].idInCategory == fileId) {
+                                sector = Fs_FileTableCat4[i].sectorOffset + Fs_StageCdfSectors[0];
                                 goto after4;
                             }
                             i++;
@@ -1079,19 +1086,19 @@ loop_streams:
 static void Fs_InitStage0TablesCb(u8 status, u8* result)
 {
     enum { FILE_SYSTEM_HED_STREAM_HEADER_MASK = 0x7FFFFFFF };
-    CdlLOC          currLoc[3];
-    s32             currPos;
-    u32             headerOffset;
-    u32             streamIdx;
-    u32             fileId;
-    u32             fileCategory;
-    u8              isValidCategory;
-    u32             i;
-    u32*            entry;
-    u8*             entryBytes;
-    u8*             streamCpyPos;
-    FsCdfFileSmall* tbl;
-    FsSector*       sectorBuffer;
+    CdlLOC                 currLoc[3];
+    s32                    currPos;
+    u32                    headerOffset;
+    u32                    streamIdx;
+    u32                    fileId;
+    u32                    fileCategory;
+    u8                     isValidCategory;
+    u32                    i;
+    u32*                   entry;
+    u8*                    entryBytes;
+    u8*                    streamCpyPos;
+    _FsStage0CategoryFile* tbl;
+    FsSector*              sectorBuffer;
     // The cursor is reused for input words and the full-size output records.
     union {
         u32*       words;
@@ -1188,8 +1195,8 @@ sector_start:
                     tbl             = Fs_FileTableCat1;
                     n               = Fs_FileTableCat1Len;
                     Fs_FileTableCat1Len++;
-                    tbl[n].id     = fileId - 10000;
-                    tbl[n].offset = entry[1];
+                    tbl[n].idInCategory = fileId - 10000;
+                    tbl[n].sectorOffset = entry[1];
                     break;
                 }
 
@@ -1200,8 +1207,8 @@ sector_start:
                     tbl             = Fs_FileTableCat2;
                     n               = Fs_FileTableCat2Len;
                     Fs_FileTableCat2Len++;
-                    tbl[n].id     = fileId - fileCategory * 10000;
-                    tbl[n].offset = entry[1];
+                    tbl[n].idInCategory = fileId - fileCategory * 10000;
+                    tbl[n].sectorOffset = entry[1];
                     break;
                 }
 
@@ -1212,8 +1219,8 @@ sector_start:
                     tbl             = Fs_FileTableCat3;
                     n               = Fs_FileTableCat3Len;
                     Fs_FileTableCat3Len++;
-                    tbl[n].id     = fileId - 30000;
-                    tbl[n].offset = entry[1];
+                    tbl[n].idInCategory = fileId - 30000;
+                    tbl[n].sectorOffset = entry[1];
                     break;
                 }
 
@@ -1224,8 +1231,8 @@ sector_start:
                     tbl             = Fs_FileTableCat4;
                     n               = Fs_FileTableCat4Len;
                     Fs_FileTableCat4Len++;
-                    tbl[n].id     = fileId - fileCategory * 10000;
-                    tbl[n].offset = entry[1];
+                    tbl[n].idInCategory = fileId - fileCategory * 10000;
+                    tbl[n].sectorOffset = entry[1];
                     break;
                 }
 
