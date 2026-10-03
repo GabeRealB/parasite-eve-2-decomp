@@ -98,7 +98,7 @@ WorldCollisionSurfaceProperties*** Gp_RoomParamTables[5] = { D_map_akropolis_801
 void func_800AA548(s32 arg0)
 {
     DirectionWarpEntry warpEntry;
-    GpActorFlags       flags;
+    ActorSpawnOptions  spawnOptions;
     TmdObject*         model;
     GameLocationKey*   sess;
     GameSession*       session;
@@ -144,23 +144,23 @@ void func_800AA548(s32 arg0)
     gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] = NULL;
     if (gDisplayState.control.flags.pendingPlayerPos == 1) {
         // Restore the captured signed coordinates instead of the warp's start.
-        savedPos            = &(&gPlayerStatus)[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1].pos;
-        D_80114CB0.yaw.word = savedPos->yaw;
-        D_80114CB0.x        = savedPos->x;
-        D_80114CB0.y        = savedPos->y;
-        D_80114CB0.z        = savedPos->z;
-        flags.field_0       = 0x23;
-        flags.field_2       = 0;
-        Gp_SpawnPlayer(&D_80114CB0, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId & 0xFFFF, 0, &flags);
-        Gp_SetupCompanionActor(&warpEntry.companion, &flags.field_0);
+        savedPos                        = &(&gPlayerStatus)[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1].pos;
+        D_80114CB0.yaw.word             = savedPos->yaw;
+        D_80114CB0.x                    = savedPos->x;
+        D_80114CB0.y                    = savedPos->y;
+        D_80114CB0.z                    = savedPos->z;
+        spawnOptions.initialAnimationId = 0x23;
+        spawnOptions.startScripted      = 0;
+        Gp_SpawnPlayer(&D_80114CB0, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId & 0xFFFF, 0, &spawnOptions);
+        Gp_SetupCompanionActor(&warpEntry.companion, &spawnOptions);
         gDisplayState.control.flags.pendingPlayerPos = 0;
     } else {
-        playerId      = (u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId;
-        flags.field_0 = 1;
-        flags.field_2 = warpEntry.flags & DIRECTION_WARP_FLAG_SCRIPTED_PLAYER;
-        Gp_SpawnPlayer(&warpEntry.player, (s8)playerId & 0xFFFF, 0, &flags);
-        flags.field_2 = 0;
-        Gp_SetupCompanionActor(&warpEntry.companion, &flags.field_0);
+        playerId                        = (u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId;
+        spawnOptions.initialAnimationId = 1;
+        spawnOptions.startScripted      = warpEntry.flags & DIRECTION_WARP_FLAG_SCRIPTED_PLAYER;
+        Gp_SpawnPlayer(&warpEntry.player, (s8)playerId & 0xFFFF, 0, &spawnOptions);
+        spawnOptions.startScripted = 0;
+        Gp_SetupCompanionActor(&warpEntry.companion, &spawnOptions);
     }
     model                    = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd;
     model->texturePageOffset = 6;

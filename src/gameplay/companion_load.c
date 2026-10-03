@@ -241,7 +241,7 @@ done:
     Snd_SetModeFlag(flag);
 }
 
-void Gp_SetupCompanionActor(const ActorSpawnTransform* spawnTransform, u16* arg1)
+void Gp_SetupCompanionActor(const ActorSpawnTransform* spawnTransform, ActorSpawnOptions* options)
 {
     McSaveData* save;
     s32         field;
@@ -250,9 +250,9 @@ void Gp_SetupCompanionActor(const ActorSpawnTransform* spawnTransform, u16* arg1
     field = save->state.companionType;
     if (field != 0) {
         if (field == 2) {
-            Gp_SpawnAlly(spawnTransform, save->state.companionType, GameFlag_GetNibble(GAME_FLAG_COMPANION_2_SCHEDULE), arg1);
+            Gp_SpawnAlly(spawnTransform, save->state.companionType, GameFlag_GetNibble(GAME_FLAG_COMPANION_2_SCHEDULE), options);
         } else {
-            Gp_SpawnAlly(spawnTransform, field, 0, arg1);
+            Gp_SpawnAlly(spawnTransform, field, 0, options);
         }
     }
 }

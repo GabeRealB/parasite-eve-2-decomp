@@ -78,7 +78,7 @@ s32 Gp_SetActorDest(Task* arg0, s32 arg1, ActorTransform* transform, GameActorMo
 
 s32 Gp_MoveActorBy(Task* arg0, s32 arg1, GameActorMoveBy* move, s32 unusedSecondArg);
 
-Task* Gp_SpawnPlayer(const ActorSpawnTransform* spawnTransform, u16 arg1, s32 arg2, GpActorFlags* arg3);
+Task* Gp_SpawnPlayer(const ActorSpawnTransform* spawnTransform, u16 arg1, s32 arg2, ActorSpawnOptions* options);
 
 void func_801061F0(void);
 

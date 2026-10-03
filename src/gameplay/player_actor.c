@@ -5541,13 +5541,13 @@ join_50:
     return actor->equipmentTasks[1];
 }
 
-Task* Gp_SpawnPlayer(const ActorSpawnTransform* spawnTransform, u16 arg1, s32 arg2, GpActorFlags* arg3)
+Task* Gp_SpawnPlayer(const ActorSpawnTransform* spawnTransform, u16 arg1, s32 arg2, ActorSpawnOptions* options)
 {
     Task*      task;
     GameActor* actor;
     GfxCoord*  coord;
 
-    task = Task_Spawn(7, gPlayerStatus.resourceVariant + 3, arg2, arg3);
+    task = Task_Spawn(7, gPlayerStatus.resourceVariant + 3, arg2, options);
     if (task != NULL) {
         goto have_task;
     }
@@ -5565,14 +5565,14 @@ have_actor:
     gameSetTaskSlot(task, GAME_TASK_SLOT_PLAYER);
     task->work = actor;
     memFillBytes(actor, 0, sizeof(*actor));
-    actor->actionArgument = arg3->field_0;
+    actor->actionArgument = options->initialAnimationId;
     actor->rotation.vy    = spawnTransform->yaw.angle;
     coord                 = task->extra.tmd->coords;
     coord->coord.t[0]     = spawnTransform->x;
     coord->coord.t[1]     = spawnTransform->y;
     coord->coord.t[2]     = spawnTransform->z;
     D_80115768            = 0;
-    if (arg3->field_2 != 0) {
+    if (options->startScripted != 0) {
         actor->mode = GAME_ACTOR_MODE_SCRIPTED;
     }
     return task;

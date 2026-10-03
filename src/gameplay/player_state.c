@@ -1338,7 +1338,7 @@ void func_8010B9A4(Task* arg0)
     playerActorPlayChildSlotsWithBlend(arg0, anim, 0, 3);
 }
 
-Task* Gp_SpawnAlly(const ActorSpawnTransform* spawnTransform, u16 arg1, s32 arg2, u16* arg3)
+Task* Gp_SpawnAlly(const ActorSpawnTransform* spawnTransform, u16 arg1, s32 arg2, ActorSpawnOptions* options)
 {
     Task*          task;
     GameActor*     actor;
@@ -1351,7 +1351,7 @@ Task* Gp_SpawnAlly(const ActorSpawnTransform* spawnTransform, u16 arg1, s32 arg2
     } else {
         type = arg1 + 0x82;
     }
-    task = Task_Spawn(7, type, arg2, arg3);
+    task = Task_Spawn(7, type, arg2, options);
     if (task != NULL) {
         goto have_task;
     }
@@ -1377,7 +1377,7 @@ have_actor:
     task->work           = actor;
     actor->companionWork = companion;
     Gp_PumpTmdStream(task);
-    actor->actionArgument = *arg3;
+    actor->actionArgument = options->initialAnimationId;
     actor->rotation.vy    = spawnTransform->yaw.angle;
     coord                 = task->extra.tmd->coords;
     coord->coord.t[0]     = spawnTransform->x;
