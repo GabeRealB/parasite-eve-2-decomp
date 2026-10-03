@@ -134,18 +134,23 @@ extern u16 D_shelter_b3_dumping_hole_8018F4B0[2];
 // Scalar symbol view preserves the original byte/halfword address formation.
 extern u16 D_shelter_b3_dumping_hole_8018F4B0_value __asm__("D_shelter_b3_dumping_hole_8018F4B0");
 
-// The animation copy spans the bank and its following records.
-// Keep the typed fields and the complete copied word range together.
+/// The clips the dumping hole's one-time arrival scene adds to the player's animation bank.
+///
+/// The scene's event script opens by sending `data.copy` to the player. The
+/// copy takes five words from the start of this storage: the four set pointers
+/// and the request's own source pointer. Those words occupy extended ids 47-51.
+/// The script then plays ids 48, 49 and 50 in turn. Id 47 stays NULL, id 51
+/// holds the source pointer, and the stored word count sits past the copied span.
 typedef union {
     struct {
-        AnimationSet*            sets[4];
-        AnimationBankCopyRequest copy;
-    } data;
-    s32 words[6];
-} ShelterB3DumpingHoleAnimStorageAFC8;
-STATIC_ASSERT_SIZEOF(ShelterB3DumpingHoleAnimStorageAFC8, 24);
+        AnimationSet*            sets[4]; // Player clips for extended ids 47-50; NULL at the id nothing plays
+        AnimationBankCopyRequest copy;    // Copies the first five words of this storage
+    } data;                               // The records by name
+    s32 words[6];                         // The same storage as the copy reads it; the last word lies beyond the copied span
+} _ShelterB3DumpingHoleAnimationBankExtensionStorage;
+STATIC_ASSERT_SIZEOF(_ShelterB3DumpingHoleAnimationBankExtensionStorage, 24);
 
-extern ShelterB3DumpingHoleAnimStorageAFC8 D_shelter_b3_dumping_hole_8018AFC8;
+extern _ShelterB3DumpingHoleAnimationBankExtensionStorage D_shelter_b3_dumping_hole_8018AFC8;
 
 /// Work block of the debris event's director task, which starts the event
 /// script once the player passes a set X position and stays reachable to the script's
@@ -507,24 +512,22 @@ void func_shelter_b3_dumping_hole_801819F0(void);
 
 void func_shelter_b3_dumping_hole_80181A48(Task*);
 
-static AnimationSet                        _gShelterB3DumpingHoleAnimation0C810;
-static AnimationSet                        _gShelterB3DumpingHoleAnimation0CCB4;
-static AnimationSet                        _gShelterB3DumpingHoleAnimation0D9C4;
-extern ShelterB3DumpingHoleAnimStorageAFC8 D_shelter_b3_dumping_hole_8018AFC8;
+static AnimationSet _gShelterB3DumpingHoleAnimation0C810;
+static AnimationSet _gShelterB3DumpingHoleAnimation0CCB4;
+static AnimationSet _gShelterB3DumpingHoleAnimation0D9C4;
 
-extern AnimationPlayRequest                D_shelter_b3_dumping_hole_8018AFF4;
-extern AnimationPlayRequest                D_shelter_b3_dumping_hole_8018B008;
-extern AnimationPlayRequest                D_shelter_b3_dumping_hole_8018B01C;
-extern ActorCommand                        D_shelter_b3_dumping_hole_8018B078;
-extern PadScriptCmd                        D_shelter_b3_dumping_hole_8018AFAC[2];
-extern PadScriptVibrationSegment           D_shelter_b3_dumping_hole_8018AFB4[2];
-extern ActorTransform                      D_shelter_b3_dumping_hole_8018B030;
-extern ActorTransform                      D_shelter_b3_dumping_hole_8018B048;
-extern ActorTransform                      D_shelter_b3_dumping_hole_8018B060;
-extern ShelterB3DumpingHoleAnimStorageAFC8 D_shelter_b3_dumping_hole_8018AFC8;
-void                                       func_shelter_b3_dumping_hole_80181A18(void);
-void                                       func_shelter_b3_dumping_hole_80181B04(s16);
-void                                       func_shelter_b3_dumping_hole_80181B44(s32);
+extern AnimationPlayRequest      D_shelter_b3_dumping_hole_8018AFF4;
+extern AnimationPlayRequest      D_shelter_b3_dumping_hole_8018B008;
+extern AnimationPlayRequest      D_shelter_b3_dumping_hole_8018B01C;
+extern ActorCommand              D_shelter_b3_dumping_hole_8018B078;
+extern PadScriptCmd              D_shelter_b3_dumping_hole_8018AFAC[2];
+extern PadScriptVibrationSegment D_shelter_b3_dumping_hole_8018AFB4[2];
+extern ActorTransform            D_shelter_b3_dumping_hole_8018B030;
+extern ActorTransform            D_shelter_b3_dumping_hole_8018B048;
+extern ActorTransform            D_shelter_b3_dumping_hole_8018B060;
+void                             func_shelter_b3_dumping_hole_80181A18(void);
+void                             func_shelter_b3_dumping_hole_80181B04(s16);
+void                             func_shelter_b3_dumping_hole_80181B44(s32);
 
 extern WorldCollisionGrid    D_shelter_b3_dumping_hole_8018C3EC[1];
 extern WorldCollisionTrigger D_shelter_b3_dumping_hole_8018E88C[8];
@@ -977,7 +980,7 @@ PadScriptVibrationSegment D_shelter_b3_dumping_hole_8018AFB4[2] = {
 
 TaskDesc D_shelter_b3_dumping_hole_8018AFBC = { { { TASK_BODY_NONE, 192 } }, func_shelter_b3_dumping_hole_80181A48, { .value = 0 } };
 
-ShelterB3DumpingHoleAnimStorageAFC8 D_shelter_b3_dumping_hole_8018AFC8 = { .data = { { NULL, &_gShelterB3DumpingHoleAnimation0C810, &_gShelterB3DumpingHoleAnimation0CCB4, &_gShelterB3DumpingHoleAnimation0D9C4 }, { { .words = D_shelter_b3_dumping_hole_8018AFC8.words }, 5 } } };
+_ShelterB3DumpingHoleAnimationBankExtensionStorage D_shelter_b3_dumping_hole_8018AFC8 = { .data = { { NULL, &_gShelterB3DumpingHoleAnimation0C810, &_gShelterB3DumpingHoleAnimation0CCB4, &_gShelterB3DumpingHoleAnimation0D9C4 }, { { .words = D_shelter_b3_dumping_hole_8018AFC8.words }, 5 } } };
 
 AnimationPlayRequest D_shelter_b3_dumping_hole_8018AFE0 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
@@ -998,7 +1001,7 @@ ActorCommand D_shelter_b3_dumping_hole_8018B078 = { { .loc = { 4, 39 } }, 0 };
 ActorCommand D_shelter_b3_dumping_hole_8018B07C = { { .loc = { 4, 39 } }, 1 };
 
 EvsCommand D_shelter_b3_dumping_hole_8018B080[39] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_shelter_b3_dumping_hole_8018AFC8.data.copy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &D_shelter_b3_dumping_hole_8018AFC8.data.copy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_shelter_b3_dumping_hole_8018B078 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b3_dumping_hole_8018AFF4 }, { .value = 0 } },
