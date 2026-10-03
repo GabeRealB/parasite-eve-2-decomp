@@ -21,11 +21,13 @@
  * Trail and disc tables have external linkage: some rooms define a table in
  * one file and use it from another. Halo shades are private to each carrier.
  * Include _halo_data, _trail_data and _disc_data for the room's sections, at
- * the tables' position in the data. The halo storage's layout varies by room -
- * RoomFx_GetHaloShades supplies a typed array view of
- * it, which may retain a trailing halfword - so the room sets
+ * the tables' position in the data. The halo shades are always the same three
+ * rows, but the two bytes of alignment after them are zero in some rooms and
+ * hold differing non-zero fill in others, so the room sets
  * ROOM_FX_HALO_STORAGE_TYPE, _BOUND and _INITIALIZER before including
- * _halo_data and defines RoomFx_GetHaloShades where its halo code is.
+ * _halo_data - RoomFxShade [3], or RoomFxHaloStorage to spell the fill - and
+ * defines RoomFx_GetHaloShades, the array view the halo code reads, where its
+ * halo code is.
  */
 
 #ifndef SRC_SHARED_ROOM_VISUAL_EFFECTS_H
@@ -84,13 +86,20 @@ typedef struct {
 } RoomFxShade;
 STATIC_ASSERT_SIZEOF(RoomFxShade, 0x6);
 
-/// Halo shade storage whose three shades are followed by a retained halfword.
-/// The halfword differs between rooms and nothing reads it; whether it belongs
-/// to this object is unresolved.
+/// The halo shade table together with the alignment gap that follows it, for
+/// rooms whose image holds non-zero bytes in that gap.
+///
+/// The three shades end two bytes short of the next word boundary, where the
+/// following table starts. Rooms whose gap is zero declare the plain
+/// `RoomFxShade [3]` and let the compiler pad it. The rest carry the same shades
+/// followed by a value that differs from room to room, so it is not part of the
+/// shared table; C can reproduce it only as a member. Code reads the shades
+/// alone, through `RoomFx_GetHaloShades`.
 typedef struct {
-    RoomFxShade entries[3];
-    u16         retained;
+    RoomFxShade entries[3];    // the halo's colour variants, indexed by spawn argument
+    u16         alignmentFill; // build fill before the next word-aligned table; never read
 } RoomFxHaloStorage;
+STATIC_ASSERT_SIZEOF(RoomFxHaloStorage, 0x14);
 
 extern SVECTOR     RoomFx_TrailOffsets[2];
 extern RoomFxShade RoomFx_DiscShades[2];

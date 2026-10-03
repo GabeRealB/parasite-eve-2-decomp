@@ -134,7 +134,7 @@ SVECTOR D_shelter_b3_elevator_hall_80182AF4[8] = {
     { 8394, -2122, 3666, 0 },
 };
 
-#define ROOM_FX_HALO_STORAGE_INITIALIZER { { { 0, 1, 2 }, { 2, 1, 0 }, { 0, 2, 1 } }, 1685 }
+#define ROOM_FX_HALO_STORAGE_INITIALIZER { { { 0, 1, 2 }, { 2, 1, 0 }, { 0, 2, 1 } }, 0x0695 }
 #define ROOM_FX_HALO_STORAGE_TYPE        RoomFxHaloStorage
 #define ROOM_FX_HALO_STORAGE_BOUND
 #include "../../shared/room_visual_effects_halo_data.inc.c"

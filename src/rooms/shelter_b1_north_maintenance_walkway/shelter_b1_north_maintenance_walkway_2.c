@@ -62,7 +62,7 @@
 
 static inline RoomFxShade* RoomFx_GetHaloShades(void)
 {
-    return (_gRoomEffectHaloShades.entries);
+    return _gRoomEffectHaloShades.entries;
 }
 #undef ROOM_FX_HALO_STORAGE_INITIALIZER
 #undef ROOM_FX_HALO_STORAGE_TYPE
