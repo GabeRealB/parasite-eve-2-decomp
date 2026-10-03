@@ -352,64 +352,50 @@ void func_dryfield_g_r_kitchen_8017D9A4(Task* task)
 /// `glowDrawTaperedBeam`'s.
 static void func_dryfield_g_r_kitchen_8017E27C(GfxCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
 {
-    u8*                head;
-    RoomDraw24Scratch* block;
-    POLY_G4*           prim;
-    s32                ang;
-    s32                t;
-    s32                rgb;
-    s32                extent;
-    s32                r0;
-    s32                r1;
+    GlowWorldPointPairScratch* block;
+    POLY_G4*                   prim;
+    s32                        ang;
+    s32                        t;
+    s32                        rgb;
+    s32                        extent;
 
-    {
-        void** scratch;
-        u8*    tmp;
-
-        scratch  = SCRATCH_STACK_CURSOR_SLOT;
-        head     = *scratch;
-        tmp      = head - 0x28;
-        *scratch = tmp;
-        block    = (RoomDraw24Scratch*)tmp;
-    }
+    block = SCRATCH_STACK_RESERVE_BLOCK(GlowWorldPointPairScratch);
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&arg0->workm);
     gte_ldv0(arg1);
     gte_rtv0();
-    gte_stsv(&((RoomDraw24Scratch*)(head - 0x28))->vec0);
-    (u16) block->vec0.vx = (u16)block->vec0.vx + (u16)arg0->workm.t[0];
-    (u16) block->vec0.vy = (u16)block->vec0.vy + (u16)arg0->workm.t[1];
-    (u16) block->vec0.vz = (u16)block->vec0.vz + (u16)arg0->workm.t[2];
+    gte_stsv(&block->worldPoint0);
+    block->worldPoint0.vx += arg0->workm.t[0];
+    block->worldPoint0.vy += arg0->workm.t[1];
+    block->worldPoint0.vz += arg0->workm.t[2];
 
     gte_SetRotMatrix(&arg0->workm);
     gte_ldv0(arg2);
     gte_rtv0();
-    gte_stsv(&((RoomDraw24Scratch*)(head - 0x28))->vec1);
-    (u16) block->vec1.vx = (u16)block->vec1.vx + (u16)arg0->workm.t[0];
-    (u16) block->vec1.vy = (u16)block->vec1.vy + (u16)arg0->workm.t[1];
-    (u16) block->vec1.vz = (u16)block->vec1.vz + (u16)arg0->workm.t[2];
+    gte_stsv(&block->worldPoint1);
+    block->worldPoint1.vx += arg0->workm.t[0];
+    block->worldPoint1.vy += arg0->workm.t[1];
+    block->worldPoint1.vz += arg0->workm.t[2];
 
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((RoomDraw24Scratch*)(head - 0x28))->vec0);
+    gte_ldv0(&block->worldPoint0);
     gte_rtps();
-    gte_stsxy(&((RoomDraw24Scratch*)(head - 0x28))->sx0);
+    gte_stsxy(&block->sx0);
     gte_stszotz(&block->otz0);
-    gte_ldv0(&((RoomDraw24Scratch*)(head - 0x28))->vec1);
+    gte_ldv0(&block->worldPoint1);
     gte_rtps();
-    gte_stsxy(&((RoomDraw24Scratch*)(head - 0x28))->sx1);
-    gte_stszotz(&((RoomDraw24Scratch*)(head - 0x28))->otz1);
+    gte_stsxy(&block->sx1);
+    gte_stszotz(&block->otz1);
     if (block->otz1 >= 0x11) {
-        if (((RoomDraw24Scratch*)(head - 0x28))->otz0 < 0x10) {
-            ((RoomDraw24Scratch*)(head - 0x28))->otz0 = 0x10;
+        if (block->otz0 < 0x10) {
+            block->otz0 = 0x10;
         }
-        extent    = (s16)arg3 * 64;
-        r0        = extent / ((RoomDraw24Scratch*)(head - 0x28))->otz0;
-        r1        = extent / block->otz1;
-        ang       = 0;
-        rgb       = (((u8)gDisplayState.animFrame & 1) * 16) + 0x10;
-        block->r0 = r0;
-        block->r1 = r1;
+        extent         = (s16)arg3 * 64;
+        ang            = 0;
+        rgb            = (((u8)gDisplayState.animFrame & 1) * 16) + 0x10;
+        block->radius0 = extent / block->otz0;
+        block->radius1 = extent / block->otz1;
         do {
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
@@ -418,15 +404,15 @@ static void func_dryfield_g_r_kitchen_8017E27C(GfxCoord* arg0, SVECTOR* arg1, SV
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, rgb, rgb, rgb);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx0 + ((block->r0 * rsin(ang - 0x400)) >> 12);
+            prim->x0 = block->sx0 + ((block->radius0 * rsin(ang - 0x400)) >> 12);
             t        = ang - 0x200;
-            prim->y0 = block->sy0 + ((block->r0 * rcos(ang - 0x400)) >> 12);
-            prim->x1 = block->sx0 + ((block->r0 * rsin(t)) >> 12);
-            prim->y1 = block->sy0 + ((block->r0 * rcos(t)) >> 12);
+            prim->y0 = block->sy0 + ((block->radius0 * rcos(ang - 0x400)) >> 12);
+            prim->x1 = block->sx0 + ((block->radius0 * rsin(t)) >> 12);
+            prim->y1 = block->sy0 + ((block->radius0 * rcos(t)) >> 12);
             prim->x2 = block->sx0;
             prim->y2 = block->sy0;
-            prim->x3 = block->sx0 + ((block->r0 * rsin(ang)) >> 12);
-            prim->y3 = block->sy0 + ((block->r0 * rcos(ang)) >> 12);
+            prim->x3 = block->sx0 + ((block->radius0 * rsin(ang)) >> 12);
+            prim->y3 = block->sy0 + ((block->radius0 * rcos(ang)) >> 12);
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz0);
@@ -438,10 +424,10 @@ static void func_dryfield_g_r_kitchen_8017E27C(GfxCoord* arg0, SVECTOR* arg1, SV
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, rgb, rgb, rgb);
             setRGB3(prim, rgb, rgb, rgb);
-            prim->x0 = block->sx0 + ((block->r0 * rsin(ang * 2 - 0x400)) >> 12);
-            prim->y0 = block->sy0 + ((block->r0 * rcos(ang * 2 - 0x400)) >> 12);
-            prim->x1 = block->sx1 + ((block->r1 * rsin(ang * 2 - 0x400)) >> 12);
-            prim->y1 = block->sy1 + ((block->r1 * rcos(ang * 2 - 0x400)) >> 12);
+            prim->x0 = block->sx0 + ((block->radius0 * rsin(ang * 2 - 0x400)) >> 12);
+            prim->y0 = block->sy0 + ((block->radius0 * rcos(ang * 2 - 0x400)) >> 12);
+            prim->x1 = block->sx1 + ((block->radius1 * rsin(ang * 2 - 0x400)) >> 12);
+            prim->y1 = block->sy1 + ((block->radius1 * rcos(ang * 2 - 0x400)) >> 12);
             prim->x2 = block->sx0;
             prim->y2 = block->sy0;
             prim->x3 = block->sx1;
@@ -457,21 +443,21 @@ static void func_dryfield_g_r_kitchen_8017E27C(GfxCoord* arg0, SVECTOR* arg1, SV
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, rgb, rgb, rgb);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx1 + ((block->r1 * rsin(0xC00 - ang)) >> 12);
-            prim->y0 = block->sy1 + ((block->r1 * rcos(0xC00 - ang)) >> 12);
-            prim->x1 = block->sx1 + ((block->r1 * rsin(0xA00 - ang)) >> 12);
-            prim->y1 = block->sy1 + ((block->r1 * rcos(0xA00 - ang)) >> 12);
+            prim->x0 = block->sx1 + ((block->radius1 * rsin(0xC00 - ang)) >> 12);
+            prim->y0 = block->sy1 + ((block->radius1 * rcos(0xC00 - ang)) >> 12);
+            prim->x1 = block->sx1 + ((block->radius1 * rsin(0xA00 - ang)) >> 12);
+            prim->y1 = block->sy1 + ((block->radius1 * rcos(0xA00 - ang)) >> 12);
             prim->x2 = block->sx1;
             prim->y2 = block->sy1;
-            prim->x3 = block->sx1 + ((block->r1 * rsin(0x800 - ang)) >> 12);
-            prim->y3 = block->sy1 + ((block->r1 * rcos(0x800 - ang)) >> 12);
+            prim->x3 = block->sx1 + ((block->radius1 * rsin(0x800 - ang)) >> 12);
+            prim->y3 = block->sy1 + ((block->radius1 * rcos(0x800 - ang)) >> 12);
             ang     += 0x400;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz1);
         } while (ang < 0x800);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x28);
+    SCRATCH_STACK_RELEASE_BLOCK(GlowWorldPointPairScratch);
 }
 
 /// Draws two light beams under the task's coordinate in `arg0->extra.coordBody->coord`,
