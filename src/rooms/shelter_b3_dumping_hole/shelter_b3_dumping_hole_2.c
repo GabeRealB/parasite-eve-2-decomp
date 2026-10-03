@@ -280,15 +280,20 @@ typedef struct {
     u16                             delay;      // Ticks left before the animation starts
 } _ShelterB3DumpingHoleSpriteWork;
 
-/// Spawn record for a falling shard: where it starts relative to `parent`, its
-/// base velocity, its size, and the downward speed it gains each frame.
+/// Spawn record of the collapse event's falling shards, passed to each shard
+/// task as its second spawn argument.
+///
+/// The record is lent, not copied: it stays in the director's work block, and a
+/// shard reads it once, on its first frame, so it must outlive that frame.
+/// Every shard of a burst shares one record and differs only by what it
+/// randomises itself.
 typedef struct {
-    SVECTOR   pos;
-    SVECTOR   vel;
-    GfxCoord* parent;
-    u16       size;
-    u16       fall;
-} DumpingHoleShardCfg;
+    SVECTOR   offset;  // Added in world axes to `emitter`'s world position to give the shard's start; `pad` is never set
+    SVECTOR   vel;     // Base velocity per frame, to which each shard adds up to 31 either way per axis; `pad` is never set
+    GfxCoord* emitter; // Coordinate whose world placement the shard starts from; sampled once, the shard is not attached to it
+    u16       radius;  // Circumradius of the shard's equilateral triangle, before each corner's random tenth is added
+    u16       gravity; // Added to the shard's downward velocity every frame
+} _ShelterB3DumpingHoleShardSpawn;
 
 /// Work block of a falling shard: its current rotation and spin, its velocity,
 /// the three corners of the triangle it draws, and the per-frame fall speed.
@@ -309,24 +314,24 @@ typedef struct {
 /// collapse itself shakes the model while part 2 sheds shards, then lets part 2
 /// drop away and part 1 tip over.
 typedef struct {
-    MATRIX              lightMtx;         // Storage for the model's light matrix
-    MATRIX              colorMtx;         // Storage for the model's colour matrix
-    ActorTransform      pose;             // The model's placement, sent to the director itself with `ACTOR_MESSAGE_PLACE`
-    DumpingHoleShardCfg shardSpawn;       // Spawn record lent to every shard task, which reads it on its first frame: shards start at part 2's coordinate
-    VECTOR              part3Scale;       // Per-axis scale of model part 3 (`ONE` = 1.0), shrunk in X and Z while part 2 sinks
-    Task*               player;           // Player task
-    Task*               placement0Actor;  // Task of the area's placement-0 actor (key: area, stage, index 0)
-    Task*               framebufferBlend; // Framebuffer-blend effect task while one runs, else NULL
-    u16                 command;          // Pending command (`SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_*`), cleared once handled
-    u16                 step;             // Progress through a multi-frame command
-    u16                 timer;            // Frames spent in the current step
-    u8                  pad_92[0x2];
-    s16                 savedView;        // The session's view slot when the event started, written back to the saved location on finish
-    s16                 field_96;         // Set to 1 where a command or the skip ends the collapse, but never read; role unproven
-    s16                 part1Pitch;       // Angle about X: follows the model's pitch while it shakes, then restarts at 0 as part 1's tipping angle
-    s16                 field_9A;         // Set to 0x80 as part 2 starts to drop, but never read; role unproven
-    u16                 battleReleased;   // 1 once the event has dropped its battle reference, so the release runs once
-    u8                  pad_9E[0x2];
+    MATRIX                          lightMtx;         // Storage for the model's light matrix
+    MATRIX                          colorMtx;         // Storage for the model's colour matrix
+    ActorTransform                  pose;             // The model's placement, sent to the director itself with `ACTOR_MESSAGE_PLACE`
+    _ShelterB3DumpingHoleShardSpawn shardSpawn;       // Spawn record lent to every shard task, which reads it on its first frame: shards start at part 2's coordinate
+    VECTOR                          part3Scale;       // Per-axis scale of model part 3 (`ONE` = 1.0), shrunk in X and Z while part 2 sinks
+    Task*                           player;           // Player task
+    Task*                           placement0Actor;  // Task of the area's placement-0 actor (key: area, stage, index 0)
+    Task*                           framebufferBlend; // Framebuffer-blend effect task while one runs, else NULL
+    u16                             command;          // Pending command (`SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_*`), cleared once handled
+    u16                             step;             // Progress through a multi-frame command
+    u16                             timer;            // Frames spent in the current step
+    u8                              pad_92[0x2];
+    s16                             savedView;        // The session's view slot when the event started, written back to the saved location on finish
+    s16                             field_96;         // Set to 1 where a command or the skip ends the collapse, but never read; role unproven
+    s16                             part1Pitch;       // Angle about X: follows the model's pitch while it shakes, then restarts at 0 as part 1's tipping angle
+    s16                             field_9A;         // Set to 0x80 as part 2 starts to drop, but never read; role unproven
+    u16                             battleReleased;   // 1 once the event has dropped its battle reference, so the release runs once
+    u8                              pad_9E[0x2];
 } _ShelterB3DumpingHoleCollapseEventWork;
 STATIC_ASSERT_SIZEOF(_ShelterB3DumpingHoleCollapseEventWork, 0xA0);
 
@@ -3054,23 +3059,23 @@ void func_shelter_b3_dumping_hole_80180034(void)
 /// draws itself as a shaded triangle.
 void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
 {
-    DumpingHoleShard*    work;
-    GfxCoord*            coord;
-    DumpingHoleShardCfg* cfg;
-    POLY_G3*             prim;
-    SVECTOR              ofs;
-    s16                  x[3];
-    s16                  y[3];
-    SVECTOR              origin;
-    s32                  sxy;
-    s32                  otz;
-    s16                  i;
-    s16                  sx;
-    s16                  sy;
+    DumpingHoleShard*                work;
+    GfxCoord*                        coord;
+    _ShelterB3DumpingHoleShardSpawn* spawn;
+    POLY_G3*                         prim;
+    SVECTOR                          ofs;
+    s16                              x[3];
+    s16                              y[3];
+    SVECTOR                          origin;
+    s32                              sxy;
+    s32                              otz;
+    s16                              i;
+    s16                              sx;
+    s16                              sy;
 
     work  = (DumpingHoleShard*)arg0->work;
     coord = arg0->extra.coordBody->coord;
-    cfg   = (DumpingHoleShardCfg*)arg0->spawnArg2.pointer;
+    spawn = arg0->spawnArg2.pointer;
     if (D_shelter_b3_dumping_hole_8018F4B0_value == 0) {
         taskKill(arg0);
         return;
@@ -3084,14 +3089,14 @@ void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
             work          = (DumpingHoleShard*)arg0->work;
             coord->parent = &gGfxViewCoord;
             memFillBytes(arg0->work, 0, 0x34);
-            Gp_ComposeParentWorld(cfg->parent, &coord->coord, &ofs);
-            coord->coord.t[0] = ofs.vx + cfg->pos.vx;
-            coord->coord.t[1] = ofs.vy + cfg->pos.vy;
-            coord->coord.t[2] = ofs.vz + cfg->pos.vz;
-            work->vel.vx      = cfg->vel.vx + ((DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & 0x1F) : -(DUMPING_HOLE_RAND() & 0x1F));
-            work->vel.vy      = cfg->vel.vy + ((DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & 0x1F) : -(DUMPING_HOLE_RAND() & 0x1F));
-            work->vel.vz      = cfg->vel.vz + ((DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & 0x1F) : -(DUMPING_HOLE_RAND() & 0x1F));
-            work->fall        = cfg->fall;
+            Gp_ComposeParentWorld(spawn->emitter, &coord->coord, &ofs);
+            coord->coord.t[0] = ofs.vx + spawn->offset.vx;
+            coord->coord.t[1] = ofs.vy + spawn->offset.vy;
+            coord->coord.t[2] = ofs.vz + spawn->offset.vz;
+            work->vel.vx      = spawn->vel.vx + ((DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & 0x1F) : -(DUMPING_HOLE_RAND() & 0x1F));
+            work->vel.vy      = spawn->vel.vy + ((DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & 0x1F) : -(DUMPING_HOLE_RAND() & 0x1F));
+            work->vel.vz      = spawn->vel.vz + ((DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & 0x1F) : -(DUMPING_HOLE_RAND() & 0x1F));
+            work->fall        = spawn->gravity;
             work->rotSpeed.vx = (DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & 0x7F) : -(DUMPING_HOLE_RAND() & 0x7F);
             work->rotSpeed.vy = (DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & 0x7F) : -(DUMPING_HOLE_RAND() & 0x7F);
             work->rotSpeed.vz = (DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & 0x7F) : -(DUMPING_HOLE_RAND() & 0x7F);
@@ -3111,13 +3116,13 @@ void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
                 work->rotSpeed.vz -= 100;
             }
             work->verts[0].vx = 0;
-            work->verts[0].vy = cfg->size + ((DUMPING_HOLE_RAND() & 1) ? cfg->size / 10 : 0);
+            work->verts[0].vy = spawn->radius + ((DUMPING_HOLE_RAND() & 1) ? spawn->radius / 10 : 0);
             work->verts[0].vz = 0;
-            work->verts[1].vx = cfg->size * rsin(0x2AA) / 4096 + ((DUMPING_HOLE_RAND() & 1) ? cfg->size / 10 : 0);
-            work->verts[1].vy = -(cfg->size * rsin(0x155) / 4096) - ((DUMPING_HOLE_RAND() & 1) ? cfg->size / 10 : 0);
+            work->verts[1].vx = spawn->radius * rsin(0x2AA) / 4096 + ((DUMPING_HOLE_RAND() & 1) ? spawn->radius / 10 : 0);
+            work->verts[1].vy = -(spawn->radius * rsin(0x155) / 4096) - ((DUMPING_HOLE_RAND() & 1) ? spawn->radius / 10 : 0);
             work->verts[1].vz = 0;
-            work->verts[2].vx = -(cfg->size * rsin(0x2AA) / 4096) - ((DUMPING_HOLE_RAND() & 1) ? cfg->size / 10 : 0);
-            work->verts[2].vy = -(cfg->size * rsin(0x155) / 4096) - ((DUMPING_HOLE_RAND() & 1) ? cfg->size / 10 : 0);
+            work->verts[2].vx = -(spawn->radius * rsin(0x2AA) / 4096) - ((DUMPING_HOLE_RAND() & 1) ? spawn->radius / 10 : 0);
+            work->verts[2].vy = -(spawn->radius * rsin(0x155) / 4096) - ((DUMPING_HOLE_RAND() & 1) ? spawn->radius / 10 : 0);
             work->verts[2].vz = 0;
             arg0->state++;
             break;
@@ -3256,12 +3261,12 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
                     work->pose.rot.vy = D_shelter_b3_dumping_hole_8018966C.rot.vy;
                     work->pose.rot.vz = D_shelter_b3_dumping_hole_8018966C.rot.vz;
                     TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &work->pose, 0);
-                    work->shardSpawn.pos.vx                  = 0;
-                    work->shardSpawn.pos.vy                  = 0;
-                    work->shardSpawn.pos.vz                  = 0;
+                    work->shardSpawn.offset.vx               = 0;
+                    work->shardSpawn.offset.vy               = 0;
+                    work->shardSpawn.offset.vz               = 0;
                     D_shelter_b3_dumping_hole_8018F4B0_value = 1;
-                    work->shardSpawn.parent                  = &task->extra.tmd->coords[2];
-                    work->shardSpawn.size                    = 0x14;
+                    work->shardSpawn.emitter                 = &task->extra.tmd->coords[2];
+                    work->shardSpawn.radius                  = 0x14;
                     work->part3Scale.vx                      = 0x1000;
                     work->part3Scale.vy                      = 0x1000;
                     work->part3Scale.vz                      = 0x1000;
@@ -3271,10 +3276,10 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
                 case 1:
                     work->timer++;
                     if (!(gDisplayState.animFrame & 0xF)) {
-                        work->shardSpawn.vel.vx = 0;
-                        work->shardSpawn.vel.vy = 0;
-                        work->shardSpawn.vel.vz = 0;
-                        work->shardSpawn.fall   = 4;
+                        work->shardSpawn.vel.vx  = 0;
+                        work->shardSpawn.vel.vy  = 0;
+                        work->shardSpawn.vel.vz  = 0;
+                        work->shardSpawn.gravity = 4;
                         for (i = 0; i < 10; i++) {
                             Task_SpawnFromTable(D_shelter_b3_dumping_hole_80189ADC, 1, 0, &work->shardSpawn);
                         }
