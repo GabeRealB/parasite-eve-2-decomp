@@ -51,8 +51,8 @@ void Gp_ItemMenuInit(UiObject* arg0, Task* arg1);
 
 void Gp_ItemMenuTask(Task* arg0);
 
-/// Per-stage table of `GpMapRec` arrays. Index is `GameSession.location.loc.stage - 1`.
-extern GpMapRec* Gp_MapRecTables[];
+/// Per-stage table of `MenuMapArea` arrays. Index is `GameSession.location.loc.stage - 1`.
+extern MenuMapArea* Gp_MapRecTables[];
 
 /// Per-stage table of `GpMapName` arrays. Index is `GameSession.location.loc.stage - 1`.
 /// A NULL entry skips the name draw (`Gp_DrawMapName`).
@@ -80,7 +80,7 @@ extern UiObjectDesc D_8010F15C;
 /// Per-stage `GpMapMark` counts. Index is `GameSession.location.loc.stage - 1`.
 extern u8 Gp_MapMarkCounts[];
 
-/// Current room id copied from `GpMapRec.field_C` by `Gp_GetMapRoomId`.
+/// Current room id copied from `MenuMapArea.page` by `Gp_GetMapRoomId`.
 extern u8 Gp_MapRoomId;
 
 /// Room-id offset applied by `Gp_EnqueueMapRoomCd` (0, or 1 / 3 for two flagged rooms).

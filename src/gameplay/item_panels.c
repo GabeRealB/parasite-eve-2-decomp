@@ -312,7 +312,7 @@ GpMapFlagIcon* D_8010F0E0[5] = {
     D_map_neo_ark_8017A230,
 };
 
-GpMapRec* Gp_MapRecTables[5] = {
+MenuMapArea* Gp_MapRecTables[5] = {
     D_map_akropolis_8017A154,
     D_map_dryfield_80179BD0,
     D_map_dryfield_full_80179AE0,

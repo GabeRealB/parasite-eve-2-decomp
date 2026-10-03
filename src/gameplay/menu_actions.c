@@ -1068,7 +1068,7 @@ static void Gp_DrawMapCursor(Task* arg0)
 {
     UiObject*       obj;
     GameActor*      actor;
-    GpMapRec*       rec;
+    MenuMapArea*    rec;
     PlayerStatus*   cfg;
     GpMapCursorPos* pos;
     s32             off;
@@ -1083,7 +1083,7 @@ static void Gp_DrawMapCursor(Task* arg0)
     actor = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
     rec   = Gp_MapRecTables[gGameSession->location.loc.stage - 1];
     rec   = rec + gGameSession->location.loc.area;
-    if (rec->field_C != (s8)Gp_MapRoomId) {
+    if (rec->page != (s8)Gp_MapRoomId) {
         return;
     }
 
@@ -1091,11 +1091,11 @@ static void Gp_DrawMapCursor(Task* arg0)
     pos->field_14 = 0;
     pos->field_12 = 0;
     pos->field_10 = 0;
-    off           = (rec->field_0 - cfg->coordMtx->t[0]) / rec->field_8;
-    base          = rec->field_4;
+    off           = (rec->originX - cfg->coordMtx->t[0]) / rec->scaleX;
+    base          = rec->mapX;
     pos->x        = base - off;
-    off           = (rec->field_2 - cfg->coordMtx->t[2]) / rec->field_A;
-    base          = rec->field_6;
+    off           = (rec->originZ - cfg->coordMtx->t[2]) / rec->scaleZ;
+    base          = rec->mapY;
     pos->y        = base + off;
 
     p              = gGpuPrimCursor;
@@ -1513,7 +1513,7 @@ static void Gp_EnqueueMapRoomCd(void)
 static s8 func_800D1434(u32 roomId, u8 flagId)
 {
     GameFlagStageHeader* bank;
-    GpMapRec*            recs;
+    MenuMapArea*         recs;
     s32                  flags[2];
     s32                  i;
     s32                  which;
@@ -1540,13 +1540,13 @@ static s8 func_800D1434(u32 roomId, u8 flagId)
                 flags[0] |= bank->visitedAreas[0];
                 flags[1] |= bank->visitedAreas[1];
             }
-            if (recs->field_C != 0xFFFF) {
-                skip = 0xF000;
+            if (recs->page != MENU_MAP_AREA_PAGE_END) {
+                skip = MENU_MAP_AREA_PAGE_NONE;
                 one  = 1;
                 do {
                     recs++;
                     i++;
-                    if (recs->field_C != skip) {
+                    if (recs->page != skip) {
                         which = 0;
                         if ((u8)i >= 0x21U) {
                             which = 1;
@@ -1555,12 +1555,12 @@ static s8 func_800D1434(u32 roomId, u8 flagId)
                             bit = one << ((u8)i - 1);
                         }
                         if (bit & flags[which]) {
-                            if (recs->field_C == (u8)roomId) {
+                            if (recs->page == (u8)roomId) {
                                 return 1;
                             }
                         }
                     }
-                } while (recs->field_C != 0xFFFF);
+                } while (recs->page != MENU_MAP_AREA_PAGE_END);
             }
         }
     }
@@ -1747,13 +1747,13 @@ void Gp_MapTask(Task* arg0)
 
 void Gp_MapPanelInit(Task* arg0)
 {
-    RECT         rect;
-    GameSession* session;
-    GpMapRec**   table;
-    s32          idx;
-    u8           f6;
-    GpMapRec*    recs;
-    u8           val;
+    RECT          rect;
+    GameSession*  session;
+    MenuMapArea** table;
+    s32           idx;
+    u8            f6;
+    MenuMapArea*  recs;
+    u8            val;
 
     if (gDisplayState.keepGraphics == 0) {
         rect.x = 0x380;
@@ -1770,7 +1770,7 @@ void Gp_MapPanelInit(Task* arg0)
     f6           = session->location.loc.area;
     recs         = table[idx];
     recs         = recs + f6;
-    val          = recs->field_C;
+    val          = recs->page;
     Gp_MapRoomId = val;
     Gp_EnqueueMapRoomCd();
     arg0->state = arg0->state + 1;
@@ -1834,11 +1834,11 @@ static void func_800D1F90(Task* arg0)
 
 static u8 Gp_GetMapRoomId(void)
 {
-    GameSession* session;
-    GpMapRec**   table;
-    s32          idx;
-    u8           f6;
-    GpMapRec*    recs;
+    GameSession*  session;
+    MenuMapArea** table;
+    s32           idx;
+    u8            f6;
+    MenuMapArea*  recs;
 
     session = gGameSession;
     table   = Gp_MapRecTables;
@@ -1847,7 +1847,7 @@ static u8 Gp_GetMapRoomId(void)
     recs    = table[idx];
     recs    = recs + f6;
 
-    Gp_MapRoomId = recs->field_C;
+    Gp_MapRoomId = recs->page;
     return Gp_MapRoomId;
 }
 

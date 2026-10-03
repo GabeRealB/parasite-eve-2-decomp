@@ -31,7 +31,7 @@ extern StageMusicEntry D_map_akropolis_8017C304[];
 extern u8 D_map_akropolis_8017A14C[];
 
 /// This stage's `Gp_MapRecTables` entry: where each room sits on the map, by room.
-extern GpMapRec D_map_akropolis_8017A154[];
+extern MenuMapArea D_map_akropolis_8017A154[];
 
 /// This stage's `Gp_MapMarkTables` entry: the room markers, each a model in the
 /// map picture its map room id selects.

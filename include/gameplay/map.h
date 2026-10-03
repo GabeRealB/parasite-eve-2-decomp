@@ -5,21 +5,29 @@
 
 #include "main/tmd_types.h"
 
-/// 0xE-byte per-room record in tables pointed to by `Gp_MapRecTables`.
-/// Indexed by `GameSession.location.loc.stage - 1` then `GameSession.location.loc.area`.
-/// field_0/field_2 are signed coords, field_4/field_6 unsigned extents,
-/// field_8/field_A signed scales (`Gp_DrawMapCursor`); field_C is the
-/// room id stored in `Gp_MapRoomId` (`Gp_GetMapRoomId`).
-typedef struct _GpMapRec {
-    /* 0x00 */ s16 field_0;
-    /* 0x02 */ s16 field_2;
-    /* 0x04 */ u16 field_4;
-    /* 0x06 */ u16 field_6;
-    /* 0x08 */ s16 field_8;
-    /* 0x0A */ s16 field_A;
-    /* 0x0C */ u16 field_C;
-} GpMapRec;
-STATIC_ASSERT_SIZEOF(GpMapRec, 0xE);
+/// `MenuMapArea.page` of an area index the stage's map does not show.
+#define MENU_MAP_AREA_PAGE_NONE 0xF000
+
+/// `MenuMapArea.page` of the record closing a stage's table.
+#define MENU_MAP_AREA_PAGE_END 0xFFFF
+
+/// Where one area sits on the map screen.
+///
+/// Each stage has a table of these, indexed by `GameSession.location.loc.area`.
+/// A record names the map page the area is drawn on and ties a point in the
+/// area's own coordinates to a point on that page, which is what places the
+/// player cursor: one map pixel covers `scaleX` units of X and `scaleZ` units
+/// of Z, and the page's Y runs against Z.
+typedef struct {
+    s16 originX; // Area-space X of the reference point
+    s16 originZ; // Area-space Z of the reference point
+    u16 mapX;    // Map-screen X of the reference point; wraps as 16-bit, so 0xFFFD is -3
+    u16 mapY;    // Map-screen Y of the reference point; wraps the same way
+    s16 scaleX;  // Area units per map pixel along X
+    s16 scaleZ;  // Area units per map pixel along Z
+    u16 page;    // Map page showing the area, counted from 1, or a `MENU_MAP_AREA_PAGE_*` marker
+} MenuMapArea;
+STATIC_ASSERT_SIZEOF(MenuMapArea, 0xE);
 
 /// 0x20-byte per-room name string in tables pointed to by `Gp_MapNameTables`.
 /// Indexed by `GameSession.location.loc.stage - 1` then `GameSession.location.loc.area - 1`.

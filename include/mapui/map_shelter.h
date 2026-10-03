@@ -26,7 +26,7 @@ extern StageMusicEntry D_map_shelter_8017C2D8[];
 extern u8 D_map_shelter_80179CD0[];
 
 /// This stage's `Gp_MapRecTables` entry: where each room sits on the map, by room.
-extern GpMapRec D_map_shelter_80179CD8[];
+extern MenuMapArea D_map_shelter_80179CD8[];
 
 /// This stage's `Gp_MapMarkTables` entry: the room markers, each a model in the
 /// map picture its map room id selects.

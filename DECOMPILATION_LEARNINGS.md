@@ -25257,10 +25257,10 @@ force the `lbu` into `$v0`:
 
 ```c
 register GameSession* session asm("a0");
-register GpMapRec**   table asm("v1");
+register MenuMapArea** table asm("v1");
 register s32          idx asm("v0");
 register u8           f6 asm("a0");
-register GpMapRec*    recs asm("v1");
+register MenuMapArea* recs asm("v1");
 
 session = gGameSession;
 table   = D_table;

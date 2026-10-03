@@ -27,7 +27,7 @@ extern StageMusicEntry D_map_dryfield_full_8017D594[];
 extern u8 D_map_dryfield_full_80179ADC[];
 
 /// This stage's `Gp_MapRecTables` entry: where each room sits on the map, by room.
-extern GpMapRec D_map_dryfield_full_80179AE0[];
+extern MenuMapArea D_map_dryfield_full_80179AE0[];
 
 /// This stage's `Gp_MapMarkTables` entry: the room markers, each a model in the
 /// map picture its map room id selects.
