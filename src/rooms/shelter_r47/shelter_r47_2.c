@@ -1058,13 +1058,13 @@ static void func_shelter_r47_801833DC(Task* task, s16 arg1)
 /// has no table or the area no saved state. The counterpart of `Gp_GetAreaFlag2`.
 static inline s32 _shelterR47GetAreaFlag4(GameLocationKey* key)
 {
-    GpAreaRec*      rec;
+    AreaRecord*     rec;
     AreaSavedState* areaState;
     s16             val;
 
     rec = Gp_AreaTables[key->stage];
     if (rec != NULL) {
-        areaState = rec[key->area].field_4;
+        areaState = rec[key->area].savedState;
         if (areaState != NULL) {
             val = areaState->spawnFlags & AREA_SAVED_MAP_MARK;
             return val != 0;

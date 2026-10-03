@@ -200,7 +200,7 @@ void Gp_RunDirAction(void)
 void Gp_ApplyAreaRecs(AreaApplyRec* recs)
 {
     GameLocationKey  key;
-    GpAreaRec*       tbl;
+    AreaRecord*      tbl;
     AreaSavedState*  areaState;
     GameLocationKey* sess;
     s32              i;
@@ -238,7 +238,7 @@ void Gp_ApplyAreaRecs(AreaApplyRec* recs)
         if (apply) {
             areaSetPlacementVariant(&key, recs[i].variant, AREA_VARIANT_RESET_ALWAYS);
             if (tbl != NULL) {
-                areaState = tbl[recs[i].area].field_4;
+                areaState = tbl[recs[i].area].savedState;
                 if (areaState != NULL) {
                     if (recs[i].policy & AREA_APPLY_MAP_MARK_MASK) {
                         areaState->spawnFlags |= AREA_SAVED_MAP_MARK;

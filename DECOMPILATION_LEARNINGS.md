@@ -124588,15 +124588,15 @@ has `0x34c`, and an index the target shifts left by 4 arriving as
 **Cause.** m2c writes a field reached through a `T*` as `M2C_FIELD(p, T*, off)`
 *and* its own address arithmetic as `(T*)(p + n)`, both scaled by `sizeof(T)`.
 The seed here spelled the work block as `_StageMusicSelection*` (8 bytes), so `p + 0x20`
-compiled to `p + 0x100`, and a table index added to `GpAreaRec::field_0` - a
-`GpAreaRec*`, also 8 bytes - was multiplied by another 8 on top of the source's
+compiled to `p + 0x100`, and a table index added to `AreaRecord::variants` - an
+`AreaVariant*`, also 8 bytes - was multiplied by another 8 on top of the source's
 own `* 16`.
 
 **Fix.** Take the offset from the target and write the arithmetic the way the
 matched sibling does, casting the base so no element size is applied:
 
 ```c
-place = gpAreaPlaceAt(rec->field_0, idx);
+place = gpAreaPlaceAt(layout->placements, idx);
 ```
 
 `src/actors/actor_150400/actor_150400.c` is the worked example - same body, same

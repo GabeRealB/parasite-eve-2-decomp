@@ -3182,7 +3182,7 @@ void Gp_SaveEnemyPose(Enemy* enemy)
 
 void Gp_SpawnArea(GameLocationKey* location)
 {
-    GpAreaRec*      areaRecords;
+    AreaRecord*     areaRecords;
     AreaVariant*    variants;
     AreaSavedState* areaState;
     AreaPlacement*  placement;
@@ -3200,8 +3200,8 @@ void Gp_SpawnArea(GameLocationKey* location)
     if (areaRecords == NULL) {
         return;
     }
-    variants  = areaRecords[location->area].field_0;
-    areaState = areaRecords[location->area].field_4;
+    variants  = areaRecords[location->area].variants;
+    areaState = areaRecords[location->area].savedState;
     if (variants == NULL) {
         return;
     }
@@ -3523,7 +3523,7 @@ void Gp_ApplyAreaTmdFlags(void)
     Task*            head;
     Task*            iter;
     GameLocationKey* key;
-    GpAreaRec*       rec;
+    AreaRecord*      rec;
     AreaVariant*     variants;
     AreaResource*    table;
     AreaResource*    entry;
@@ -3548,7 +3548,7 @@ void Gp_ApplyAreaTmdFlags(void)
                 place = enemy->place;
                 table = NULL;
                 if (rec != NULL) {
-                    variants = rec[key->area].field_0;
+                    variants = rec[key->area].variants;
                     if (variants != NULL) {
                         table = variants[key->variant].resources;
                     }
@@ -3631,14 +3631,14 @@ void Gp_SetTmdBytes(TmdObject* arg0, s32 arg1, s32 arg2)
 
 static void Gp_SetCurAreaFlag2(s32 useSavedPoses)
 {
-    GpAreaRec*       areaRecords;
+    AreaRecord*      areaRecords;
     AreaSavedState*  areaState;
     GameLocationKey* key;
 
     key         = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
     areaRecords = Gp_AreaTables[key->stage];
     if (areaRecords != NULL) {
-        areaState = areaRecords[key->area].field_4;
+        areaState = areaRecords[key->area].savedState;
         if (areaState != NULL) {
             if (areaState->variant == key->variant) {
                 if (useSavedPoses == 0) {
@@ -3653,13 +3653,13 @@ static void Gp_SetCurAreaFlag2(s32 useSavedPoses)
 
 s32 Gp_GetAreaFlag2(GameLocationKey* key)
 {
-    GpAreaRec*      areaRecords;
+    AreaRecord*     areaRecords;
     AreaSavedState* areaState;
     s32             savedPoseFlag;
 
     areaRecords = Gp_AreaTables[key->stage];
     if (areaRecords != NULL) {
-        areaState = areaRecords[key->area].field_4;
+        areaState = areaRecords[key->area].savedState;
         if (areaState != NULL) {
             savedPoseFlag = areaState->spawnFlags & AREA_SPAWN_RESTORE_SAVED_POSES;
             return savedPoseFlag != 0;
@@ -3670,14 +3670,14 @@ s32 Gp_GetAreaFlag2(GameLocationKey* key)
 
 static AreaSavedState* Gp_GetAreaObj(GameLocationKey* key)
 {
-    GpAreaRec*      areaRecords;
+    AreaRecord*     areaRecords;
     AreaSavedState* areaState;
 
     areaRecords = Gp_AreaTables[key->stage];
     if (areaRecords == NULL) {
         areaState = NULL;
     } else {
-        areaState = areaRecords[key->area].field_4;
+        areaState = areaRecords[key->area].savedState;
     }
     return areaState;
 }
@@ -3715,12 +3715,12 @@ static void _areaPrepareSpawnState(GameLocationKey* key, AreaSavedState* areaSta
 
 void areaSetPlacementVariant(GameLocationKey* key, s32 variant, s32 resetMode)
 {
-    GpAreaRec*      areaRecords;
+    AreaRecord*     areaRecords;
     AreaSavedState* areaState;
 
     areaRecords = Gp_AreaTables[key->stage];
     if (areaRecords != NULL) {
-        areaState = areaRecords[key->area].field_4;
+        areaState = areaRecords[key->area].savedState;
         if (areaState != NULL) {
             if (resetMode != AREA_VARIANT_RESET_IF_CHANGED) {
                 areaState->variant = variant;
@@ -3743,12 +3743,12 @@ void areaSetPlacementVariant(GameLocationKey* key, s32 variant, s32 resetMode)
 
 void Gp_SetAreaFlag2(s32 useSavedPoses, GameLocationKey* key)
 {
-    GpAreaRec*      areaRecords;
+    AreaRecord*     areaRecords;
     AreaSavedState* areaState;
 
     areaRecords = Gp_AreaTables[key->stage];
     if (areaRecords != NULL) {
-        areaState = areaRecords[key->area].field_4;
+        areaState = areaRecords[key->area].savedState;
         if (areaState != NULL) {
             if (areaState->variant == key->variant) {
                 if (useSavedPoses == 0) {
@@ -3763,14 +3763,14 @@ void Gp_SetAreaFlag2(s32 useSavedPoses, GameLocationKey* key)
 
 static AreaResource* Gp_GetNestedAreaObj(GameLocationKey* key)
 {
-    GpAreaRec*    areaRecords;
+    AreaRecord*   areaRecords;
     AreaVariant*  variants;
     AreaResource* resources;
 
     areaRecords = Gp_AreaTables[key->stage];
     resources   = NULL;
     if (areaRecords != NULL) {
-        variants = areaRecords[key->area].field_0;
+        variants = areaRecords[key->area].variants;
         if (variants != NULL) {
             resources = variants[key->variant].resources;
         }
@@ -3780,13 +3780,13 @@ static AreaResource* Gp_GetNestedAreaObj(GameLocationKey* key)
 
 AreaVariant* Gp_GetNestedAreaRec(GameLocationKey* key)
 {
-    GpAreaRec*   areaRecords;
+    AreaRecord*  areaRecords;
     AreaVariant* variants;
 
     areaRecords = Gp_AreaTables[key->stage];
     variants    = NULL;
     if (areaRecords != NULL) {
-        variants = areaRecords[key->area].field_0;
+        variants = areaRecords[key->area].variants;
         if (variants != NULL) {
             variants = &variants[key->variant];
         }
@@ -3797,14 +3797,14 @@ AreaVariant* Gp_GetNestedAreaRec(GameLocationKey* key)
 void Gp_SetAreaFlag0(GameLocationKey* location)
 {
     u32             stageAreaKey;
-    GpAreaRec*      areaRecords;
+    AreaRecord*     areaRecords;
     AreaSavedState* areaState;
 
     stageAreaKey = GAME_LOCATION_WORD(*location) & GAME_LOCATION_STAGE_AREA_MASK;
     areaRecords  = Gp_AreaTables[location->stage];
     if (stageAreaKey != GAME_LOCATION_KEY(3, 0x26, 0, 0)) {
         if (areaRecords != NULL) {
-            areaState = areaRecords[location->area].field_4;
+            areaState = areaRecords[location->area].savedState;
             if (areaState != NULL) {
                 areaState->spawnFlags |= AREA_SPAWN_RESET_SAVED_POSES;
             }
@@ -3926,7 +3926,7 @@ static void func_800B6014(void)
 
 void areaSyncLocationVariant(GameLocationKey* key)
 {
-    GpAreaRec*      areaRecords;
+    AreaRecord*     areaRecords;
     AreaVariant*    variants;
     AreaSavedState* areaState;
 
@@ -3935,8 +3935,8 @@ void areaSyncLocationVariant(GameLocationKey* key)
     if (areaRecords == NULL) {
         return;
     }
-    variants  = areaRecords[key->area].field_0;
-    areaState = areaRecords[key->area].field_4;
+    variants  = areaRecords[key->area].variants;
+    areaState = areaRecords[key->area].savedState;
     if (variants == NULL) {
         return;
     }

@@ -12,7 +12,7 @@
 // Room-resource loading, view setup and sprite-list construction.
 
 /// Per-area pointer table. Index is `GameLocationKey.stage`.
-extern GpAreaRec* Gp_AreaTables[];
+extern AreaRecord* Gp_AreaTables[];
 
 void func_800A99B4(void);
 

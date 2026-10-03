@@ -66,12 +66,18 @@ typedef struct {
 } AreaVariant;
 STATIC_ASSERT_SIZEOF(AreaVariant, 8);
 
-/// Outer stage/area record, distinct from the selected placement layout.
-typedef struct _GpAreaRec {
-    AreaVariant*    field_0;
-    AreaSavedState* field_4;
-} GpAreaRec;
-STATIC_ASSERT_SIZEOF(GpAreaRec, 8);
+/// One area in a stage table: its layout variants and its saved placement state.
+///
+/// `Gp_AreaTables[stage]` is an array of these, indexed by area id. Index 0 is
+/// empty, and an area the stage does not publish stores both pointers as NULL.
+/// `variants` is borrowed from the loaded room and indexed by placement variant.
+/// `savedState` addresses that area's saved placement variant and spawn flags
+/// in the stage save bank, so placement and map updates write the save directly.
+typedef struct {
+    AreaVariant*    variants;   // Layouts for this area, indexed by placement variant, or NULL
+    AreaSavedState* savedState; // Saved placement variant and spawn flags in the stage bank, or NULL
+} AreaRecord;
+STATIC_ASSERT_SIZEOF(AreaRecord, 8);
 
 /// Resolve a placement index within its loaded room resource.
 /// `index` must be within the borrowed `records` array; no bounds check is made.

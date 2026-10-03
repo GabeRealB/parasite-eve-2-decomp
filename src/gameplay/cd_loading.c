@@ -339,27 +339,27 @@ typedef struct _GpTbl5 {
 } GpTbl5;
 STATIC_ASSERT_SIZEOF(GpTbl5, 5);
 
-extern GpAreaRec D_8010CBE4[21];
+extern AreaRecord D_8010CBE4[21];
 
 /// End marker following the stage 1 room table.
 extern u32 D_8010CC8C[2];
 
-extern GpAreaRec D_8010CC94[39];
+extern AreaRecord D_8010CC94[39];
 
 /// End marker following the stage 2 room table.
 extern u32 D_8010CDCC[2];
 
-extern GpAreaRec D_8010CDD4[39];
+extern AreaRecord D_8010CDD4[39];
 
 /// End marker following the stage 3 room table.
 extern u32 D_8010CF0C[2];
 
-extern GpAreaRec D_8010CF14[50];
+extern AreaRecord D_8010CF14[50];
 
 /// End marker following the stage 4 room table.
 extern u32 D_8010D0A4[2];
 
-extern GpAreaRec D_8010D0AC[34];
+extern AreaRecord D_8010D0AC[34];
 
 /// End marker following the stage 5 room table.
 extern u32 D_8010D1BC[2];
@@ -382,8 +382,8 @@ static void Gp_ReloadFromSave(void);
 
 static void Gp_ReloadAtLoc(s32 arg0);
 
-GpAreaRec* Gp_AreaTables[6] = { NULL, D_8010CBE4, D_8010CC94, D_8010CDD4, D_8010CF14, D_8010D0AC };
-GpAreaRec  D_8010CBE4[21]   = {
+AreaRecord* Gp_AreaTables[6] = { NULL, D_8010CBE4, D_8010CC94, D_8010CDD4, D_8010CF14, D_8010D0AC };
+AreaRecord  D_8010CBE4[21]   = {
     { NULL, NULL },
     { D_acropolis_square_80185E50, &GameFlag_AcropolisBanks[0].areas[0].state },
     { D_acropolis_east_elevator_hall_80186C50, &GameFlag_AcropolisBanks[0].areas[1].state },
@@ -407,8 +407,8 @@ GpAreaRec  D_8010CBE4[21]   = {
     { D_mist_shooting_gallery_8018DF74, &GameFlag_DryfieldBanks[0].areas[29].state },
 };
 /// End marker following the stage 1 room table.
-u32       D_8010CC8C[2]  = { 0xFFFF, 0 };
-GpAreaRec D_8010CC94[39] = {
+u32        D_8010CC8C[2]  = { 0xFFFF, 0 };
+AreaRecord D_8010CC94[39] = {
     { NULL, NULL },
     { D_dryfield_gas_station_80184A38, &GameFlag_DryfieldBanks[0].areas[0].state },
     { D_dryfield_main_street_80184F20, &GameFlag_DryfieldBanks[0].areas[1].state },
@@ -450,8 +450,8 @@ GpAreaRec D_8010CC94[39] = {
     { D_dryfield_underpass_8017F868, &GameFlag_DryfieldBanks[0].areas[28].state },
 };
 /// End marker following the stage 2 room table.
-u32       D_8010CDCC[2]  = { 0xFFFF, 0 };
-GpAreaRec D_8010CDD4[39] = {
+u32        D_8010CDCC[2]  = { 0xFFFF, 0 };
+AreaRecord D_8010CDD4[39] = {
     { NULL, NULL },
     { D_dryfield_night_gas_station_80190624, &GameFlag_DryfieldBanks[0].areas[0].state },
     { D_dryfield_night_main_street_80188A08, &GameFlag_DryfieldBanks[0].areas[1].state },
@@ -493,8 +493,8 @@ GpAreaRec D_8010CDD4[39] = {
     { D_dryfield_night_underpass_801802DC, &GameFlag_DryfieldBanks[0].areas[28].state },
 };
 /// End marker following the stage 3 room table.
-u32       D_8010CF0C[2]  = { 0xFFFF, 0 };
-GpAreaRec D_8010CF14[50] = {
+u32        D_8010CF0C[2]  = { 0xFFFF, 0 };
+AreaRecord D_8010CF14[50] = {
     { NULL, NULL },
     { D_mine_mesa_801898F4, &GameFlag_ShelterBanks[0].areas[0].state },
     { D_mine_cavern_8018E238, &GameFlag_ShelterBanks[0].areas[1].state },
@@ -547,8 +547,8 @@ GpAreaRec D_8010CF14[50] = {
     { D_shelter_r49_8017DD74, &GameFlag_ShelterBanks[0].areas[5].state },
 };
 /// End marker following the stage 4 room table.
-u32       D_8010D0A4[2]  = { 0xFFFF, 0 };
-GpAreaRec D_8010D0AC[34] = {
+u32        D_8010D0A4[2]  = { 0xFFFF, 0 };
+AreaRecord D_8010D0AC[34] = {
     { NULL, NULL },
     { D_shelter_1f_parking_garage_801818D8, &GameFlag_NeoArkBanks[0].areas[0].state },
     { D_shelter_1f_vehicular_airlock_80182A04, &GameFlag_NeoArkBanks[0].areas[1].state },
