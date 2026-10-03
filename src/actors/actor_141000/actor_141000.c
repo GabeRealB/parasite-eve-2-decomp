@@ -67,26 +67,19 @@ typedef struct Actor141000Work {
 } Actor141000Work;
 STATIC_ASSERT_SIZEOF(Actor141000Work, 0x4CC);
 
-/// Work block of the overlay's controller task -- the one whose three `Task`
-/// states are `D_actor_141000_80131E30`, which spawns the actor and then drives
-/// its model through the four animation states at 0x80131E3C.
+/// Work block of the overlay's controller task, allocated zeroed by its spawn
+/// state and kept at `Task::work`.
 ///
-/// `func_actor_141000_80132C7C` allocates it with `memCalloc(0x10, 0)` and
-/// parks it in that task's `Task::work` slot, so the size below is the
-/// allocation and not a guess; the slot is not a `TaskIdMap` here.
-///
-/// `field_0` is armed at 0xFFF by the spawn state, `frames` is the counter the
-/// state at 0x80132EF4 masks with 7 to pace the actor's spawns, `scale` is the
-/// Z scale the state at 0x80132E24 ramps by 0x100 a frame up to 0x1000, `state`
-/// is the index `func_actor_141000_80132D3C` dispatches through, and `ticks` is
-/// the per-state frame counter the state at 0x80132EB0 holds for 0x1F frames.
-typedef struct Actor141000CtrlWork {
-    /* 0x0 */ s32  field_0; // armed at 0xFFF by the spawn state
-    /* 0x4 */ byte pad_4[0x4];
-    /* 0x8 */ u16  frames;
-    /* 0xA */ u16  scale;
-    /* 0xC */ u16  state;
-    /* 0xE */ u16  ticks;
+/// The controller unfolds its model along Z, holds it, then flies it along a
+/// recorded rotation/position path while spawning trail actors; the ring-beam
+/// actor it attaches reads `beamLevel` through its parent link.
+typedef struct {
+    s32  beamLevel;    // Brightness and length of the attached ring beam, 4.12 fixed point; set once to 0xFFF (full)
+    byte field_4[0x4]; // Allocated but never accessed; role unproven
+    u16  frames;       // Frames into the flight path; indexes the path tables and paces trail spawns every eighth frame
+    u16  scale;        // Z scale of the model, 4.12 fixed point, ramped from 0 to 0x1000 while unfolding
+    u16  state;        // Animation phase (0 unfold, 1 hold, 2 fly the path, 3 idle at its end)
+    u16  ticks;        // Frames spent in the hold phase, which ends after 0x1F
 } Actor141000CtrlWork;
 STATIC_ASSERT_SIZEOF(Actor141000CtrlWork, 0x10);
 
@@ -102,7 +95,7 @@ extern SVECTOR D_actor_141000_801344F8[];
 
 /// Quad index table: sixteen quads, four point/colour indices each.
 
-/// Base vertex colours, scaled by the controller's `field_0` each frame.
+/// Base vertex colours, scaled by the controller's `beamLevel` each frame.
 
 extern SVECTOR D_actor_141000_80134868[2];
 extern SVECTOR D_actor_141000_80134878[];
@@ -1882,7 +1875,7 @@ Actor141000MsgEntry D_actor_141000_8013D788[7] = {
 
 static void func_actor_141000_801323F0(Task* arg0, SVECTOR* arg1, s32* arg2, s32* arg3);
 
-#define GLOW_DRAW_RING_BEAM_BRIGHTNESS(t) ((Actor141000CtrlWork*)((Task*)(t)->spawnArg2.pointer)->work)->field_0
+#define GLOW_DRAW_RING_BEAM_BRIGHTNESS(t) ((Actor141000CtrlWork*)((Task*)(t)->spawnArg2.pointer)->work)->beamLevel
 #define GLOW_DRAW_RING_BEAM_OT_OFFSET     (-20)
 #define GLOW_DRAW_RING_BEAM_HALO_TPAGE    0xE1000425
 #include "../../shared/glow_draw_ring_beam.inc.c"
@@ -1911,7 +1904,7 @@ static void func_actor_141000_801323F0(Task* arg0, SVECTOR* arg1, s32* arg2, s32
 
     parent = arg0->spawnArg2.pointer;
     mtx    = &parent->extra.tmd->coords->coord;
-    f      = ((Actor141000CtrlWork*)parent->work)->field_0;
+    f      = ((Actor141000CtrlWork*)parent->work)->beamLevel;
     a.vx   = D_actor_141000_80134868[0].vx;
     a.vy   = D_actor_141000_80134868[0].vy;
     a.vz   = D_actor_141000_80134868[0].vz;
@@ -2015,7 +2008,7 @@ void func_actor_141000_80132C24(Task* task)
 
 /// Spawn state of the overlay's controller task: takes the display object's
 /// root coordinate, allocates the work block the later states read through
-/// `Task::work` and arms it at step 0xFFF, un-parks the model (`field_C` bit
+/// `Task::work` and sets its ring-beam level to full, un-parks the model (`field_C` bit
 /// 0x80 is the flag that keeps a `TmdObject` out of the coordinate update),
 /// republishes that coordinate onto the two scale helpers, spawns the attach
 /// task from `D_actor_141000_801348D8` and installs `func_actor_141000_80132E04`
@@ -2029,14 +2022,14 @@ static void func_actor_141000_80132C7C(Task* task)
 
     obj   = task->extra.tmd;
     coord = obj->coords;
-    work  = memCalloc(0x10, 0);
+    work  = memCalloc(sizeof(*work), 0);
     if (work == NULL) {
         taskKill(task);
         return;
     }
-    task->work    = work;
-    work->field_0 = 0xFFF;
-    obj->flags   &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    task->work      = work;
+    work->beamLevel = 0xFFF;
+    obj->flags     &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     func_actor_141000_80132FD0(coord, 0);
     func_actor_141000_8013308C(coord, 0);
     Task_SpawnFromTable(D_actor_141000_801348D8, 1, 0, task);
@@ -2054,7 +2047,7 @@ static void func_actor_141000_80132D3C(Task* task)
     Actor141000CtrlWork* work;
     TaskFuncTable4       handlers;
 
-    work     = (Actor141000CtrlWork*)task->work;
+    work     = task->work;
     handlers = D_actor_141000_80131E3C;
     handlers.funcs[(s16)work->state](task);
     if (gDisplayState.animFrame & 1) {
@@ -2080,7 +2073,7 @@ static void func_actor_141000_80132E24(Task* arg0)
     Actor141000CtrlWork* work;
     u16                  scale;
 
-    work        = (Actor141000CtrlWork*)arg0->work;
+    work        = arg0->work;
     scale       = work->scale + 0x100;
     work->scale = scale;
     if ((s16)scale >= 0x1000) {
@@ -2098,7 +2091,7 @@ static void func_actor_141000_80132EB0(Task* arg0)
     Actor141000CtrlWork* work;
     u16                  ticks;
 
-    work        = (Actor141000CtrlWork*)arg0->work;
+    work        = arg0->work;
     ticks       = work->ticks + 1;
     work->ticks = ticks;
     if ((s16)ticks >= 0x1F) {
@@ -2121,7 +2114,7 @@ static void func_actor_141000_80132EF4(Task* arg0)
     GfxCoord*            dst;
     u16                  frames;
 
-    work         = (Actor141000CtrlWork*)arg0->work;
+    work         = arg0->work;
     obj          = arg0->extra.tmd;
     frames       = work->frames + 1;
     work->frames = frames;
