@@ -72,20 +72,27 @@ typedef struct {
 } _ShelterB1ControlRoomMirrorConfig;
 STATIC_ASSERT_SIZEOF(_ShelterB1ControlRoomMirrorConfig, 0x30);
 
-/// The mirror task's `Task::work`. `viewFlg` caches
-/// `gGfxViewCoord.composeStamp & GRAPHICS_COORD_STAMP_MASK` so the frame is rebuilt only when the view
-/// moves. `coord` is the reflected frame the clone's root part hangs from,
-/// `light` and `color` the matrices the clone is drawn under, and `clip` the
-/// screen rectangle (left, right, top, bottom) the reflection may cover.
+/// Work block the control-room mirror task parks in `Task::work`.
+///
+/// The task draws another copy of the configured subject's model, parented to
+/// `coord`. A floor mirror copies the view frame and negates its second row;
+/// a plane mirror reflects the view through the configured plane. The frame is
+/// rebuilt only when `viewRebuildStamp` differs from the view's masked
+/// composition stamp, so a change of visit parity alone leaves it in place.
+/// The stamp starts at -1. Startup and each rebuild refill `cfg` from the location.
 typedef struct {
-    s32                               viewFlg;
-    GfxCoord                          coord;
-    MATRIX                            light;
-    MATRIX                            color;
-    s16                               clip[4];
-    byte                              unknown_9C[4];
-    _ShelterB1ControlRoomMirrorConfig cfg;
-} _MirrorWork;
+    s32                               viewRebuildStamp; // Masked `GfxCoord::composeStamp` last rebuilt from; -1 rebuilds on the next update
+    GfxCoord                          coord;            // Reflected frame the clone's root part is parented to
+    MATRIX                            light;            // Light matrix the clone is drawn with
+    MATRIX                            color;            // Colour matrix the clone is drawn with
+    s16                               clipLeft;         // Left screen edge the overlay may cover, in pixels from centre
+    s16                               clipRight;        // Right screen edge, in pixels from centre
+    s16                               clipTop;          // Top screen edge, in pixels from centre
+    s16                               clipBottom;       // Bottom screen edge, in pixels from centre
+    byte                              unknown_9C[4];    // No recovered access; role unproven
+    _ShelterB1ControlRoomMirrorConfig cfg;              // Mirror configuration for the current location
+} _ShelterB1ControlRoomMirrorWork;
+STATIC_ASSERT_SIZEOF(_ShelterB1ControlRoomMirrorWork, 0xD0);
 
 /// Which axis `_ShelterB1ControlRoomMirrorScratch::leastAxis` names while a
 /// plane mirror builds its reflected frame. Each projection then overwrites
@@ -294,14 +301,14 @@ static void func_shelter_b1_control_room_8017D600(Task* task, _ShelterB1ControlR
 ///
 /// On the first frame it attaches the subject's TMD source to this task so the
 /// clone draws the same model, hangs the clone's root part from the reflected
-/// frame and adopts the subject task. When the view moves it rebuilds the
-/// reflected frame, and on request it copies the frame buffer into the
-/// off-screen strip. While active it copies the subject's pose and matrices
-/// onto the clone, projects the clone to find its screen rectangle and, where
-/// that overlaps the clip rectangle, draws quads sampling the strip.
+/// frame and adopts the subject task. When the view's masked rebuild stamp
+/// changes it rebuilds the reflected frame, and on request it copies the frame
+/// buffer into the off-screen strip. While active it copies the subject's pose
+/// and matrices onto the clone, projects the clone to find its screen rectangle
+/// and, where that overlaps the clip rectangle, draws quads sampling the strip.
 void func_shelter_b1_control_room_8017D7B8(Task* task)
 {
-    _MirrorWork*                        work;
+    _ShelterB1ControlRoomMirrorWork*    work;
     _ShelterB1ControlRoomMirrorConfig*  cfg;
     _ShelterB1ControlRoomMirrorScratch* scratch;
     TmdObject*                          model;
@@ -328,7 +335,7 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
     RECT                                rect;
 
     if (task->state == 0) {
-        work = memCalloc(0xD0, 0);
+        work = memCalloc(sizeof(_ShelterB1ControlRoomMirrorWork), 0);
         cfg  = &work->cfg;
         if (work == NULL) {
             goto exit;
@@ -357,7 +364,7 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
         model->lightMtx        = &work->light;
         model->colorMtx        = &work->color;
         taskReparent(cfg->subject, task);
-        work->viewFlg = -1;
+        work->viewRebuildStamp = -1;
         task->state++;
     }
 
@@ -366,16 +373,16 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
     work    = task->work;
     parts   = model->coords;
     cfg     = &work->cfg;
-    if (work->viewFlg != (gGfxViewCoord.composeStamp & GRAPHICS_COORD_STAMP_MASK)) {
-        work->viewFlg = gGfxViewCoord.composeStamp & GRAPHICS_COORD_STAMP_MASK;
+    if (work->viewRebuildStamp != (gGfxViewCoord.composeStamp & GRAPHICS_COORD_STAMP_MASK)) {
+        work->viewRebuildStamp = gGfxViewCoord.composeStamp & GRAPHICS_COORD_STAMP_MASK;
         func_shelter_b1_control_room_8017D600(task, cfg);
         if (work->cfg.active == 1) {
             sub                      = gGfxViewCoord.parent;
-            work->clip[0]            = SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_LEFT;
-            work->clip[1]            = SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_RIGHT;
-            work->clip[2]            = SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_TOP;
+            work->clipLeft           = SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_LEFT;
+            work->clipRight          = SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_RIGHT;
+            work->clipTop            = SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_TOP;
             work->coord.composeStamp = GRAPHICS_COORD_DIRTY;
-            work->clip[3]            = SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_BOTTOM;
+            work->clipBottom         = SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_BOTTOM;
             work->coord.parent       = sub;
             if (cfg->mode == SHELTER_B1_CONTROL_ROOM_MIRROR_MODE_FLOOR) {
                 work->coord.coord          = gGfxViewCoord.coord;
@@ -607,8 +614,8 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
             if (scratch->bottom > SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_BOTTOM) {
                 scratch->bottom = SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_BOTTOM;
             }
-            if (scratch->top < work->clip[3] && work->clip[2] < scratch->bottom && scratch->left < work->clip[1] &&
-                work->clip[0] < scratch->right) {
+            if (scratch->top < work->clipBottom && work->clipTop < scratch->bottom && scratch->left < work->clipRight &&
+                work->clipLeft < scratch->right) {
                 DR_TPAGE* mode;
 
                 mode                  = gGpuPrimCursor;
