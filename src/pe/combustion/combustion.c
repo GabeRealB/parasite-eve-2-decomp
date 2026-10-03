@@ -34,20 +34,25 @@
 #include "../../shared/pyro_flame.h"
 #include "../../shared/sprite_quad.h"
 
-/// One 8-byte row of `D_combustion_80130980`, indexed by `EffectWork.index`
-/// (`Gp_StateC08.attachId % 10 - 1`, so the burn scales with the combo counter).
-/// `field_0` / `field_2` are the per-frame Y / Z drift added to the flame
-/// overlay `EffectWork.move`. `field_4` is the last
-/// `EffectWork.age` tick that still spawns flames, and `field_6` is the
-/// last tick of the burn as a whole; it is also the pad-rumble duration
-/// `Gp_SpawnPadLerp` is given when the effect starts.
-typedef struct CombustionStep {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u16 field_2;
-    /* 0x4 */ s16 field_4;
-    /* 0x6 */ s16 field_6;
-} CombustionStep;
-STATIC_ASSERT_SIZEOF(CombustionStep, 0x8);
+/// Reach and duration of the combustion flame lines at one Parasite Energy
+/// level.
+///
+/// The cast runs two flame emitters, each laying one flame per frame along a
+/// line that leaves the caster to one side of its facing and descends as it
+/// goes. An emitter and every flame it lays select a row by the level digit of
+/// the spell being cast (`AttachmentState::attachId % 10 - 1`), so a higher
+/// level lays more flames along a longer, shallower line and burns for longer.
+///
+/// The steps are distances along the emitter coordinate's own axes. The frame
+/// counts are compared with `EffectWork::age`, which is 1 on an emitter's
+/// first frame.
+typedef struct {
+    s16 flameDropStep;     // Added each frame to the Y of the offset the next flame is laid at; positive is down
+    s16 flameReachStep;    // Added each frame to the Z of that offset, which starts 0x200 out
+    s16 narrowFlameFrames; // Frames an emitter lays narrow flames for. The flame of the frame after is drawn wide and ends the line, and the spell's stats are applied on that frame
+    s16 emitterFrames;     // Frames an emitter lives; also the length of the controller vibration that fades out under it
+} _CombustionLevelTuning;
+STATIC_ASSERT_SIZEOF(_CombustionLevelTuning, 0x8);
 
 static void func_combustion_8012F5EC(GfxCoord* arg0, s16 arg1, s16 arg2);
 static void func_combustion_8012FF0C(GfxCoord* arg0, s32 arg1, s16 arg2);
@@ -55,7 +60,7 @@ static void func_combustion_801305F8(GfxCoord* arg0, s16 arg1, s16 arg2);
 
 /// Per-level tuning for the combustion flame, one row per PE level 1-3,
 /// weakest first.
-static CombustionStep D_combustion_80130980[] = {
+static _CombustionLevelTuning D_combustion_80130980[] = {
     { 0x0060, 0x0120, 0x0007, 0x0015 },
     { 0x0055, 0x0187, 0x0008, 0x0017 },
     { 0x004C, 0x01F3, 0x0009, 0x0019 },
@@ -71,11 +76,11 @@ static s32 D_combustion_801309A4 = 0;
 /// Burns the player: parents an effect coordinate to the player model, plays
 /// the ignition sound and fades the screen, then spawns a flame every frame
 /// while drifting the flame overlay by the `D_combustion_80130980` row for the
-/// current intensity. State 1 spawns, state 2 (past `field_4`) only unwinds
-/// the yaw the ignition applied, and either state ends as soon as the player
-/// is dying (`Gp_StateC08.effectPhase`), parasite-energy effects are cancelled
-/// (`gRoomEffectState->peEffectControl`) or the
-/// row's `field_6` tick is reached.
+/// current intensity. State 1 spawns, state 2 (past `narrowFlameFrames`) only
+/// unwinds the yaw the ignition applied, and either state ends as soon as the
+/// player is dying (`Gp_StateC08.effectPhase`), parasite-energy effects are
+/// cancelled (`gRoomEffectState->peEffectControl`) or the row's
+/// `emitterFrames` tick is reached.
 void func_combustion_8012EF34(Task* arg0)
 {
     EffectWork*       mem;
@@ -117,20 +122,20 @@ void func_combustion_8012EF34(Task* arg0)
             Gp_DrawFadeQuad(rgb, 1);
             arg0->state = 1;
             mem->index  = Gp_StateC08.attachId % 10 - 1;
-            Gp_SpawnPadLerp(D_combustion_80130980[mem->index].field_6, 0xFF, 8);
+            Gp_SpawnPadLerp(D_combustion_80130980[mem->index].emitterFrames, 0xFF, 8);
             /* fallthrough */
         case 1:
             Gp_UpdateCoord(coord);
             if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
                 goto release;
             }
-            mem->move.vy = mem->move.vy + D_combustion_80130980[mem->index].field_0;
-            mem->move.vz = mem->move.vz + D_combustion_80130980[mem->index].field_2;
+            mem->move.vy = mem->move.vy + D_combustion_80130980[mem->index].flameDropStep;
+            mem->move.vz = mem->move.vz + D_combustion_80130980[mem->index].flameReachStep;
             spawned      = Gp_SpawnEff((EFFECT_COMBUSTION_FLAME | EFFECT_SPAWN_UNLIMITED), coord, (s32)(mem->age), &mem->move);
             if (spawned != NULL) {
                 taskReparent(arg0, spawned->task);
             }
-            if (D_combustion_80130980[mem->index].field_4 < mem->age) {
+            if (D_combustion_80130980[mem->index].narrowFlameFrames < mem->age) {
                 Gp_StateC08.flags |= ATTACHMENT_FLAG_APPLY_STATS;
                 arg0->state        = 2;
                 return;
@@ -139,7 +144,7 @@ void func_combustion_8012EF34(Task* arg0)
         case 2:
             Gp_UpdateCoord(coord);
             if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) ||
-                (mem->age > D_combustion_80130980[mem->index].field_6)) {
+                (mem->age > D_combustion_80130980[mem->index].emitterFrames)) {
             release:
                 effectKillTask(mem, arg0);
                 return;
@@ -155,8 +160,8 @@ void func_combustion_8012EF34(Task* arg0)
 /// block's `pos` offset, seeds the phase `age` from
 /// `gRandomLcgState`, the radius `scale` from `spawnArg1` and the intensity
 /// `index` from `Gp_StateC08.attachId % 10 - 1`, then splits: `spawnArg1`
-/// past the `D_combustion_80130980` row's `field_4` runs the wide state 2,
-/// anything smaller the narrow state 1. Both states redraw every frame -
+/// past the `D_combustion_80130980` row's `narrowFlameFrames` runs the wide
+/// state 2, anything smaller the narrow state 1. Both states redraw every frame -
 /// `index < 2` picks the small draw helper, otherwise the large one - and
 /// one frame in four spawn a trailing ember that adopts this task as its
 /// parent. Either state releases the effect once the player is dying
@@ -199,7 +204,7 @@ void func_combustion_8012F2BC(Task* arg0)
             mem->age        = ((u32)rng >> 16) & 0xF;
             mem->scale      = arg0->spawnArg1.value * 32 + 512;
             mem->index      = Gp_StateC08.attachId % 10 - 1;
-            last            = D_combustion_80130980[mem->index].field_4;
+            last            = D_combustion_80130980[mem->index].narrowFlameFrames;
             gRandomLcgState = rng;
             if (last < arg0->spawnArg1.value) {
                 arg0->state = 2;
