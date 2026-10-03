@@ -144078,8 +144078,8 @@ copy is born is not rewritten. Writing the head store after the field stores,
 as the hack did, puts it after the copy and it collapses onto one register.
 
 **Fix.** Push first, then take the member pointer:
-`s = SCRATCH_STACK_RESERVE_BLOCK(GpDirScratch); vec = &s->vec; vec->vx = …;` - later calls
-that pass `&s->vec` keep the block register because cse's equivalence ends at
+`s = SCRATCH_STACK_RESERVE_BLOCK(_WorldCollisionContactViewOffsetScratch); delta = &s->delta; delta->vx = …;` - later calls
+that pass `&s->delta` keep the block register because cse's equivalence ends at
 the `if` before them.
 ### Constants pinned to registers across a `POLY_FT4` fill: write the UVs with `setUV4` (Gp_DrawFloorQuad, 2026-09-26)
 

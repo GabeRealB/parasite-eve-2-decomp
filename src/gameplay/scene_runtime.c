@@ -265,14 +265,20 @@ typedef struct {
 } _Rgb555Scratch;
 STATIC_ASSERT_SIZEOF(_Rgb555Scratch, 8);
 
-/// 0x28-byte scratch from the scratch stack used by `worldCollisionCalcContactViewOffset`.
-/// `vec` is the `arg1->pos - arg0` delta (normalized in place);
-/// `mtx` is the transpose of `gGfxViewCoord.workm`.
-typedef struct _GpDirScratch {
-    /* 0x00 */ SVECTOR vec;
-    /* 0x08 */ MATRIX  mtx;
-} GpDirScratch;
-STATIC_ASSERT_SIZEOF(GpDirScratch, 0x28);
+/// Scratch-stack workspace for turning one collision contact into an offset
+/// expressed through the view coordinate's rotation.
+///
+/// `delta` is worked on in place through three stages: the contact point minus
+/// the queried position, then that vector normalized, then the normalized
+/// vector rotated by `transposedView`. The offset written to the caller is the
+/// last stage scaled by a signed distance, so nothing in the block outlives
+/// the call. Reserve the complete, word-aligned block and release it before
+/// returning.
+typedef struct {
+    SVECTOR delta;          // Separation in world-coordinate units truncated to signed halfwords, then its direction with 4096 for one unit
+    MATRIX  transposedView; // Transpose of `gGfxViewCoord.workm`; only its 3x3 rotation is loaded into the GTE
+} _WorldCollisionContactViewOffsetScratch;
+STATIC_ASSERT_SIZEOF(_WorldCollisionContactViewOffsetScratch, 0x28);
 
 /// Scratch-stack workspace for projecting the ground shadow of one model.
 ///
@@ -4003,13 +4009,13 @@ void func_800B60C0(Task* arg0)
 
 void worldCollisionCalcContactViewOffset(SVECTOR* position, WorldCollisionContact* contact, SVECTOR* offset)
 {
-    GpDirScratch* scratch;
-    SVECTOR*      delta;
-    GfxCoord*     viewCoord;
-    s32           scale;
+    _WorldCollisionContactViewOffsetScratch* scratch;
+    SVECTOR*                                 delta;
+    GfxCoord*                                viewCoord;
+    s32                                      scale;
 
-    scratch = SCRATCH_STACK_RESERVE_BLOCK(GpDirScratch);
-    delta   = &scratch->vec;
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_WorldCollisionContactViewOffsetScratch);
+    delta   = &scratch->delta;
     // Measure separation after the signed-halfword coordinate truncation.
     delta->vx = contact->point.vx - position->vx;
     delta->vy = contact->point.vy - position->vy;
@@ -4020,16 +4026,16 @@ void worldCollisionCalcContactViewOffset(SVECTOR* position, WorldCollisionContac
         scale = -scale;
     }
     // Rotate and scale the offset in the view coordinate frame.
-    VectorNormalSS(&scratch->vec, &scratch->vec);
-    TransposeMatrix(&viewCoord->workm, &scratch->mtx);
-    _gfxLoadRotSv(&scratch->mtx, &scratch->vec);
+    VectorNormalSS(&scratch->delta, &scratch->delta);
+    TransposeMatrix(&viewCoord->workm, &scratch->transposedView);
+    _gfxLoadRotSv(&scratch->transposedView, &scratch->delta);
     gte_rtv0();
     gte_stsv(delta);
     gte_lddp(scale);
     gte_ldsv(delta);
     gte_gpf12();
     gte_stsv(offset);
-    SCRATCH_STACK_RELEASE_BLOCK(GpDirScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionContactViewOffsetScratch);
 }
 
 void Gp_FreeSlot4TmdBuffers(void)
