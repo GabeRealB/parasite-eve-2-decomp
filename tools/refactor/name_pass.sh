@@ -636,6 +636,16 @@ create_worker() {
 # Bring a worker back to the driver's state. Called after every join, so a
 # round always forks from one tree: its own commits are already on the driver's
 # branch by then, and anything it left behind is not wanted.
+# The reference index (tools/refactor/ref_index.py) that renames and lookups
+# query. The driver keeps it current on the landed tree, and each worker gets a
+# copy at sync: paths are repository-relative and keyed by content hash, so it
+# is valid in any checkout of the same commit, and a worker's own edits only
+# re-scan what they touch. A failure is not fatal - the tools build it on demand.
+index_refresh() {
+  venv/bin/python3 tools/refactor/ref_index.py refresh >>"$LOG" 2>&1 \
+    || echo "    reference index refresh failed; workers will build their own" | tee -a "$LOG"
+}
+
 sync_worker() {
   local i="$1" wt; wt="$(worker_dir "$i")"
   git -C "$wt" reset -q --hard HEAD
@@ -647,6 +657,10 @@ sync_worker() {
   cp -a "$ROOT/local/name_pass_done.tsv" "$wt/local/name_pass_done.tsv" 2>/dev/null || true
   mkdir -p "$wt/local/name-pass/reviews"
   cp -a "$ROOT/local/name-pass/reviews/." "$wt/local/name-pass/reviews/" 2>/dev/null || true
+  if [[ -f "$ROOT/local/ref_index.sqlite" ]]; then
+    rm -f "$wt/local/ref_index.sqlite-wal" "$wt/local/ref_index.sqlite-shm"
+    cp "$ROOT/local/ref_index.sqlite" "$wt/local/ref_index.sqlite"
+  fi
 }
 
 # Carry a worker's rename log back. The rows are appended by rename_item.py in
@@ -776,6 +790,7 @@ fi
 
 if (( WORKERS > 1 && DRY == 0 )); then
   for w in $(seq 1 "$WORKERS"); do
+    (( w == 1 )) && index_refresh
     create_worker "$w" || { echo "could not create worker $w" >&2; exit 1; }
     sync_worker "$w"
   done
@@ -951,6 +966,7 @@ BARRIER
   fi
 
   refresh_worklist
+  (( WORKERS > 1 )) && index_refresh
   if (( WORKERS > 1 )); then
     for w in $(seq 1 "$WORKERS"); do sync_worker "$w"; done
   fi

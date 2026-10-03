@@ -1096,6 +1096,15 @@ def _entry_candidates(entry: Entry, root: str, db, prefilter=True) -> list[str]:
     return anchor_candidates(root, entry.anchor, files, entry.kind)
 
 
+def _ref_index(root: str, jobs: int):
+    """The tree's reference index, up to date, or None when it is switched off
+    (PE2_REF_INDEX=0) - then references are found by parsing, as before."""
+    if os.environ.get("PE2_REF_INDEX", "1") == "0":
+        return None
+    import ref_index
+    return ref_index.fresh(root, jobs)
+
+
 def find_refs_multi(entries: list, root: str, db, jobs: int = 8, prefilter=True,
                     progress=None) -> dict:
     """References for many entries from one walk over the union of their units.
@@ -1117,6 +1126,11 @@ def find_refs_multi(entries: list, root: str, db, jobs: int = 8, prefilter=True,
         out[e.label] = refs
         scanned += n
 
+    idx = _ref_index(root, jobs) if shared else None
+    if idx is not None:
+        for e in shared:
+            out[e.label] = idx.refs(e.usrs, e.names, "")
+        shared = []
     if shared:
         union: set[str] = set()
         for e in shared:
@@ -1168,6 +1182,11 @@ def find_refs(usrs, token: str, root: str, db, jobs: int = 8, prefilter=True,
     while every reference to it lies inside one function, so the function's name
     is the far more selective filter."""
     names = set(names or {token})
+    usr_set = set(usrs) if not isinstance(usrs, str) else {usrs}
+    if kind != "parameter" and not any("#param" in u for u in usr_set):
+        idx = _ref_index(root, jobs)
+        if idx is not None:
+            return idx.refs(usr_set, names, token), 0
     files = list(db)
     if prefilter:
         # Narrow on every alias: a tag spelling appears in almost no file, so
