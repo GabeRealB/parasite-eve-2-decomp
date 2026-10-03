@@ -44,32 +44,6 @@
 
 extern WorldCoordRoomLights D_mist_r18_80186E44[1];
 
-/// Sprite description the overlay's two primitive emitters read from.
-///
-/// `func_mist_r18_8017E448` turns it into a flat-shaded `TILE` and
-/// `func_mist_r18_8017E534` into a textured `SPRT`; both take the screen
-/// rectangle from `x`/`y`/`w`/`h`, the colour from `r`/`g`/`b`, and pick the
-/// `SetShadeTex` argument from `semiTrans`. Only the textured emitter reads
-/// `u`/`v`, and only their low bytes: the text renderer builds them as
-/// halfwords (glyph offset plus the page origin) before handing the sprite
-/// over.
-typedef struct MistR18Sprite {
-    /* 0x00 */ s16 x;
-    /* 0x02 */ s16 y;
-    /* 0x04 */ s16 u;
-    /* 0x06 */ s16 v;
-    /* 0x08 */ s16 w;
-    /* 0x0A */ s16 h;
-    /* 0x0C */ u8  r;
-    /* 0x0D */ u8  g;
-    /* 0x0E */ u8  b;
-    /* 0x0F */ u8  pad_F;
-    /* 0x10 */ s16 semiTrans;
-    /* 0x12 */ s16 scale;
-} MistR18Sprite;
-
-STATIC_ASSERT_SIZEOF(MistR18Sprite, 0x14);
-
 /// Spawn descriptor for the sprite task `func_mist_r18_8017E3A4` drives: the
 /// screen rectangle it redraws every frame, hung off `Task::spawnArg2`.
 typedef struct MistR18SpriteSpawn {
@@ -88,8 +62,8 @@ static void func_mist_r18_8017D960(Task* task);
 static void func_mist_r18_8017DBB8(s32 shade, s32 arg1);
 static void func_mist_r18_8017DD7C(Task* task);
 static void func_mist_r18_8017E39C(Task* task);
-static void func_mist_r18_8017E448(MistR18Sprite* sprite);
-static void func_mist_r18_8017E534(MistR18Sprite* sprite, u32 clutX, s32 clutY);
+static void func_mist_r18_8017E448(PrimDrawParams* sprite);
+static void func_mist_r18_8017E534(PrimDrawParams* sprite, u32 clutX, s32 clutY);
 static void func_mist_r18_8017E654(s16 abr, s16 x, s16 y, s32 otIdx);
 static void func_mist_r18_8017E8B8(Task* task);
 static void func_mist_r18_8017ECF4(Task* arg0);
@@ -1095,9 +1069,9 @@ s32 D_mist_r18_80186EA0;
 /// session that has left the message, kills the task.
 void func_mist_r18_8017D5EC(Task* task)
 {
-    MistR18Sprite sprite;
-    TextStream*   spawn;
-    s32           i;
+    PrimDrawParams sprite;
+    TextStream*    spawn;
+    s32            i;
 
     spawn = task->spawnArg2.pointer;
     if (gGameSession->eventState == 0) {
@@ -1130,7 +1104,7 @@ void func_mist_r18_8017D5EC(Task* task)
             sprite.g         = 0x80;
             sprite.b         = 0x80;
             sprite.semiTrans = 0;
-            sprite.scale     = ONE;
+            sprite.unused_12 = ONE;
 
             if (spawn->chars[spawn->cursor - 1] == TEXT_STREAM_END) {
                 break;
@@ -1430,7 +1404,7 @@ static void func_mist_r18_8017E39C(Task* task)
 /// `Task::spawnArg1` runs out, then kill the task.
 void func_mist_r18_8017E3A4(Task* task)
 {
-    MistR18Sprite       sprite;
+    PrimDrawParams      sprite;
     MistR18SpriteSpawn* spawn;
 
     spawn = task->spawnArg2.pointer;
@@ -1455,7 +1429,7 @@ void func_mist_r18_8017E3A4(Task* task)
 }
 
 /// Emit the sprite's screen rectangle as a flat-shaded `TILE` into OT slot 5.
-static void func_mist_r18_8017E448(MistR18Sprite* sprite)
+static void func_mist_r18_8017E448(PrimDrawParams* sprite)
 {
     TILE* tile;
 
@@ -1481,7 +1455,7 @@ static void func_mist_r18_8017E448(MistR18Sprite* sprite)
 
 /// Emit the sprite's screen rectangle as a textured `SPRT` into OT slot 4,
 /// with the CLUT taken from the framebuffer position `clutX`/`clutY`.
-static void func_mist_r18_8017E534(MistR18Sprite* sprite, u32 clutX, s32 clutY)
+static void func_mist_r18_8017E534(PrimDrawParams* sprite, u32 clutX, s32 clutY)
 {
     SPRT* p;
     u8    v;

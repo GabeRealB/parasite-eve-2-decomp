@@ -225,6 +225,29 @@ typedef struct {
 } TextStream;
 STATIC_ASSERT_SIZEOF(TextStream, 0x20);
 
+/// Screen rectangle, texture origin and colour for one `TILE` or `SPRT`.
+///
+/// The caption drawers fill one on the stack and hand it to their primitive
+/// emitters, which write the rectangle, colour and blend mode into the next
+/// primitive; only the `SPRT` emitter reads `u`/`v`, and takes their low byte.
+/// The caller builds the texture origin as a halfword (glyph offset plus the
+/// font page's origin) and keeps the record only for the call.
+typedef struct {
+    s16 x; // Left edge in draw-environment pixels.
+    s16 y; // Top edge in draw-environment pixels.
+    s16 u; // Texture U; the primitive takes the low byte.
+    s16 v; // Texture V; the primitive takes the low byte.
+    s16 w; // Width in pixels; the primitive is written `w - 1`.
+    s16 h; // Height in pixels; the primitive is written `h - 1`.
+    u8  r; // Colour, or texture modulation when `semiTrans` is set.
+    u8  g;
+    u8  b;
+    u8  pad_F;
+    s16 semiTrans; // 0 opaque with the texture drawn unmodulated; nonzero semi-transparent and colour-modulated.
+    s16 unused_12; // Captions store `ONE` here; no emitter reads it, and its role is unproven.
+} PrimDrawParams;
+STATIC_ASSERT_SIZEOF(PrimDrawParams, 0x14);
+
 /// Applies horizontal alignment to one encoded UI-text line's X anchor.
 ///
 /// Borrows `request` and `text` for this call, retaining neither. Only `x`,

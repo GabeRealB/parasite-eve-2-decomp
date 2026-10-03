@@ -10,30 +10,6 @@
 #include "display.h"
 #include "main/text.h"
 
-/// Draw params for Prim_DrawSprt (SPRT) / Prim_DrawTile (TILE).
-/// w/h are inclusive and decremented when written to the primitive.
-/// Texture coordinates are calculated as halfwords; GPU packets use the low byte.
-typedef union {
-    s16 value;
-    u8  lowByte;
-} PrimTextureCoord;
-
-typedef struct _PrimDrawParams {
-    /* 0x00 */ s16              x;
-    /* 0x02 */ s16              y;
-    /* 0x04 */ PrimTextureCoord u;
-    /* 0x06 */ PrimTextureCoord v;
-    /* 0x08 */ s16              w;
-    /* 0x0A */ s16              h;
-    /* 0x0C */ u8               r;
-    /* 0x0D */ u8               g;
-    /* 0x0E */ u8               b;
-    /* 0x0F */ u8               pad_F;
-    /* 0x10 */ s16              shadeMode;
-    /* 0x12 */ s16              unused_12; // Captions store 0x1000 here; primitive emitters ignore it.
-} PrimDrawParams;
-STATIC_ASSERT_SIZEOF(PrimDrawParams, 0x14);
-
 static void Prim_DrawSprt(PrimDrawParams* draw, u32 arg1, s32 arg2);
 
 static void Prim_DrawTPage(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -80,14 +56,14 @@ s32 TextStream_Draw(TextStream* stream, u8* arg1, s16* arg2, s32 arg3)
             // Draw the revealed prefix. Step the cursor once the countdown expires.
             sp.x         = stream->x;
             sp.y         = stream->y;
-            sp.u.value   = stream->tpageX;
+            sp.u         = stream->tpageX;
             tmp6         = stream->tpageY;
             sp.r         = 0x80;
             sp.g         = 0x80;
             sp.b         = 0x80;
-            sp.shadeMode = 0;
-            sp.unused_12 = 0x1000;
-            sp.v.value   = tmp6;
+            sp.semiTrans = 0;
+            sp.unused_12 = ONE;
+            sp.v         = tmp6;
             if (stream->chars[stream->cursor - 1] != TEXT_STREAM_END) {
                 for (i = 0; i < stream->cursor; i++) {
                     ch = stream->chars[i];
@@ -97,10 +73,10 @@ s32 TextStream_Draw(TextStream* stream, u8* arg1, s16* arg2, s32 arg3)
                     } else if (ch != TEXT_STREAM_END) {
                         glyphIdx = ch & TEXT_STREAM_GLYPH_INDEX_MASK;
                         if (((s8)ch >= 0) || (arg3 == 0)) {
-                            sp.u.value = stream->glyphs[glyphIdx].u +
-                                         (stream->tpageX & 0x3F);
-                            sp.v.value = stream->glyphs[glyphIdx].v +
-                                         (u8)stream->tpageY;
+                            sp.u = stream->glyphs[glyphIdx].u +
+                                   (stream->tpageX & 0x3F);
+                            sp.v = stream->glyphs[glyphIdx].v +
+                                   (u8)stream->tpageY;
                             sp.w = stream->glyphs[glyphIdx].width;
                             h    = stream->glyphs[glyphIdx].height;
                             sp.h = h;
@@ -143,7 +119,7 @@ static void Prim_DrawSprt(PrimDrawParams* draw, u32 arg1, s32 arg2)
     p                 = (SPRT*)Gpu_SysPrimCursor;
     Gpu_SysPrimCursor = (u8*)(p + 1);
     SetSprt(p);
-    if (draw->shadeMode == 0) {
+    if (draw->semiTrans == 0) {
         SetShadeTex(p, 1);
         SetSemiTrans(p, 0);
     } else {
@@ -155,8 +131,8 @@ static void Prim_DrawSprt(PrimDrawParams* draw, u32 arg1, s32 arg2)
     p->b0   = draw->b;
     p->x0   = draw->x;
     p->y0   = draw->y;
-    p->u0   = draw->u.lowByte;
-    v       = draw->v.lowByte;
+    p->u0   = draw->u;
+    v       = draw->v;
     p->clut = getClut(arg1, arg2);
     p->v0   = v;
     p->w    = draw->w - 1;
@@ -189,7 +165,7 @@ static s32 Prim_DrawFadeTile(RECT* rect, u8* arg1, s16* arg2)
             sp.b         = 0;
             sp.g         = 0;
             sp.r         = 0;
-            sp.shadeMode = 1;
+            sp.semiTrans = 1;
             Prim_DrawTile(&sp);
             Prim_DrawTPage(0, 0, 0, 5);
             *arg2 = *arg2 - 1;
@@ -211,7 +187,7 @@ static void Prim_DrawTile(PrimDrawParams* draw)
     p                 = (TILE*)Gpu_SysPrimCursor;
     Gpu_SysPrimCursor = (u8*)(p + 1);
     SetTile(p);
-    if (draw->shadeMode == 0) {
+    if (draw->semiTrans == 0) {
         SetShadeTex(p, 1);
         SetSemiTrans(p, 0);
     } else {
