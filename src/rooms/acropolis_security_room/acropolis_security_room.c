@@ -227,19 +227,14 @@ extern u16 D_acropolis_security_room_80182918[];
 extern u16 D_acropolis_security_room_80182B18[];
 extern u16 D_acropolis_security_room_80182D18[];
 extern u16 D_acropolis_security_room_80182F18[];
-/// The four blend results, uploaded to VRAM by
-/// `D_acropolis_security_room_80183918`.
-// Color/byte updates and the GPU upload share the same backing storage.
-typedef union {
-    u16    colors[256];
-    u_long words[128];
-} AcropolisSecurityRoomPalette;
-STATIC_ASSERT_SIZEOF(AcropolisSecurityRoomPalette, 512);
-
-extern AcropolisSecurityRoomPalette D_acropolis_security_room_80183118;
-extern AcropolisSecurityRoomPalette D_acropolis_security_room_80183318;
-extern AcropolisSecurityRoomPalette D_acropolis_security_room_80183518;
-extern AcropolisSecurityRoomPalette D_acropolis_security_room_80183718;
+/// The four blend results, one 256-colour RGB555 CLUT row per camera feed.
+///
+/// Each is written only as colours; `D_acropolis_security_room_80183918`
+/// borrows it as packed words because that is the form the GPU upload takes.
+extern u16 D_acropolis_security_room_80183118[256];
+extern u16 D_acropolis_security_room_80183318[256];
+extern u16 D_acropolis_security_room_80183518[256];
+extern u16 D_acropolis_security_room_80183718[256];
 /// The upload records for the four blended CLUTs above.
 extern GpuImageUpload D_acropolis_security_room_80183918[];
 /// Camera-lit bitmask for each value of `GameFlag_GetNibble(9)`; bit N is set
@@ -305,14 +300,10 @@ void func_acropolis_security_room_801804CC(Task*);
 void func_acropolis_security_room_8017D77C(Task*);
 void func_acropolis_security_room_8017D834(Task*);
 
-extern AcropolisSecurityRoomPalette D_acropolis_security_room_80183118;
-extern AcropolisSecurityRoomPalette D_acropolis_security_room_80183318;
-extern AcropolisSecurityRoomPalette D_acropolis_security_room_80183518;
-extern AcropolisSecurityRoomPalette D_acropolis_security_room_80183718;
-extern WorldCollisionGrid           D_acropolis_security_room_80183D94[1];
-extern WorldCollisionTrigger        D_acropolis_security_room_80183DB8[4];
-extern WorldCollisionTrigger        D_acropolis_security_room_80183EE8[5];
-extern WorldCoordRoomLights         D_acropolis_security_room_801841C8[1];
+extern WorldCollisionGrid    D_acropolis_security_room_80183D94[1];
+extern WorldCollisionTrigger D_acropolis_security_room_80183DB8[4];
+extern WorldCollisionTrigger D_acropolis_security_room_80183EE8[5];
+extern WorldCoordRoomLights  D_acropolis_security_room_801841C8[1];
 
 extern SpriteBatch  D_acropolis_security_room_801841E0[2];
 extern SpriteBatch  D_acropolis_security_room_80184358[3];
@@ -1427,19 +1418,19 @@ u16 D_acropolis_security_room_80182F18[256] = {
     0x8000,
 };
 
-AcropolisSecurityRoomPalette D_acropolis_security_room_80183118 = { 0 };
+u16 D_acropolis_security_room_80183118[256] = { 0 };
 
-AcropolisSecurityRoomPalette D_acropolis_security_room_80183318 = { 0 };
+u16 D_acropolis_security_room_80183318[256] = { 0 };
 
-AcropolisSecurityRoomPalette D_acropolis_security_room_80183518 = { 0 };
+u16 D_acropolis_security_room_80183518[256] = { 0 };
 
-AcropolisSecurityRoomPalette D_acropolis_security_room_80183718 = { 0 };
+u16 D_acropolis_security_room_80183718[256] = { 0 };
 
 GpuImageUpload D_acropolis_security_room_80183918[5] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 270, 256, 1 }, D_acropolis_security_room_80183118.words },
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 271, 256, 1 }, D_acropolis_security_room_80183318.words },
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 263, 256, 1 }, D_acropolis_security_room_80183518.words },
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 264, 256, 1 }, D_acropolis_security_room_80183718.words },
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 270, 256, 1 }, (u_long*)D_acropolis_security_room_80183118 },
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 271, 256, 1 }, (u_long*)D_acropolis_security_room_80183318 },
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 263, 256, 1 }, (u_long*)D_acropolis_security_room_80183518 },
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 264, 256, 1 }, (u_long*)D_acropolis_security_room_80183718 },
     { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
@@ -3174,23 +3165,23 @@ void func_acropolis_security_room_801805A4(Task* task)
         case 0: {
             u16* base = D_acropolis_security_room_80182718;
             u16* pal  = D_acropolis_security_room_80182918;
-            u16* out  = D_acropolis_security_room_80183118.colors;
+            u16* out  = D_acropolis_security_room_80183118;
 
             for (i = 0; i < 0x100; i += 0x10) {
                 Gp_BlendRgb555Clut(&pal[i], &base[i], 0, &out[i]);
             }
             pal = D_acropolis_security_room_80182B18;
-            out = D_acropolis_security_room_80183318.colors;
+            out = D_acropolis_security_room_80183318;
             for (i = 0; i < 0x100; i += 0x10) {
                 Gp_BlendRgb555Clut(&pal[i], &base[i], 0, &out[i]);
             }
             pal = D_acropolis_security_room_80182D18;
-            out = D_acropolis_security_room_80183518.colors;
+            out = D_acropolis_security_room_80183518;
             for (i = 0; i < 0x100; i += 0x10) {
                 Gp_BlendRgb555Clut(&pal[i], &base[i], 0, &out[i]);
             }
             pal = D_acropolis_security_room_80182F18;
-            out = D_acropolis_security_room_80183718.colors;
+            out = D_acropolis_security_room_80183718;
             for (i = 0; i < 0x100; i += 0x10) {
                 Gp_BlendRgb555Clut(&pal[i], &base[i], 0, &out[i]);
             }
@@ -3204,7 +3195,7 @@ void func_acropolis_security_room_801805A4(Task* task)
             if ((Gp_GetViewIndex() & 0xFF) == 6) {
                 u16* pal  = D_acropolis_security_room_80182918;
                 u16* base = D_acropolis_security_room_80182718;
-                u16* out  = D_acropolis_security_room_80183118.colors;
+                u16* out  = D_acropolis_security_room_80183118;
                 s32  limit;
 
                 // The cap flickers by one step every other frame.
@@ -3218,17 +3209,17 @@ void func_acropolis_security_room_801805A4(Task* task)
                     Gp_BlendRgb555Clut(&pal[i], &base[i], work->scale, &out[i]);
                 }
                 pal = D_acropolis_security_room_80182B18;
-                out = D_acropolis_security_room_80183318.colors;
+                out = D_acropolis_security_room_80183318;
                 for (i = 0; i < 0x100; i += 0x10) {
                     Gp_BlendRgb555Clut(&pal[i], &base[i], work->angle, &out[i]);
                 }
                 pal = D_acropolis_security_room_80182D18;
-                out = D_acropolis_security_room_80183518.colors;
+                out = D_acropolis_security_room_80183518;
                 for (i = 0; i < 0x100; i += 0x10) {
                     Gp_BlendRgb555Clut(&pal[i], &base[i], work->period, &out[i]);
                 }
                 pal = D_acropolis_security_room_80182F18;
-                out = D_acropolis_security_room_80183718.colors;
+                out = D_acropolis_security_room_80183718;
                 for (i = 0; i < 0x100; i += 0x10) {
                     Gp_BlendRgb555Clut(&pal[i], &base[i], work->step, &out[i]);
                 }
