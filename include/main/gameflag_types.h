@@ -132,7 +132,7 @@ enum { GAME_FLAG_DRYFIELD_BANK_BYTES = 0xB0 };
 ///
 /// The live header is the `Gp_FlagBanks` entry for that stage. Dryfield by
 /// night (`GAME_STAGE_DRYFIELD_NIGHT`) keeps its own stage header in
-/// `GameFlagDryfieldFullBank`. Night area tables and night object-state words
+/// `GameFlagDryfieldNightBank`. Night area tables and night object-state words
 /// address this live bank. Where the day and night tables both have a record
 /// for one area id, both records address the same slot. The slot index is
 /// independent of the area id. Slot 29 is the MIST shooting gallery record
@@ -145,11 +145,24 @@ typedef struct {
 } GameFlagDryfieldBank;
 STATIC_ASSERT_SIZEOF(GameFlagDryfieldBank, GAME_FLAG_DRYFIELD_BANK_BYTES);
 
+/// Bytes in one Dryfield night-bank copy, checksum prefix included.
+///
+/// `GameFlag_DryfieldFullBanks` stores the live copy followed by its
+/// memory-card backup. The pair fits one 128-byte card sector.
+enum { GAME_FLAG_DRYFIELD_NIGHT_BANK_BYTES = 0x24 };
+
+/// Checksummed save bank for Dryfield by night (`GAME_STAGE_DRYFIELD_NIGHT`).
+///
+/// The live header is the `Gp_FlagBanks` entry for that stage, so night areas
+/// set their visited bits here; the night map also shows areas visited by day.
+/// The bank holds no area records. Night area tables and night object-state
+/// words address `GameFlagDryfieldBank`, so this header's object-state words
+/// are stored but not used.
 typedef struct {
-    GameFlagStageHeader header;
-    u8                  unknown_20[4];
-} GameFlagDryfieldFullBank;
-STATIC_ASSERT_SIZEOF(GameFlagDryfieldFullBank, 0x24);
+    GameFlagStageHeader header;        // Visited-area bits for Dryfield by night. Its object-state words are unused
+    u8                  unknown_20[4]; // Stored with the bank and covered by its checksum. No field-level access found; role unproven
+} GameFlagDryfieldNightBank;
+STATIC_ASSERT_SIZEOF(GameFlagDryfieldNightBank, GAME_FLAG_DRYFIELD_NIGHT_BANK_BYTES);
 
 typedef struct {
     GameFlagStageHeader header;

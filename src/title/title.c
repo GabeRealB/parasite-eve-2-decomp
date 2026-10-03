@@ -365,8 +365,8 @@ void Title_RestoreDemoCard(void)
     memcpy(GameFlag_DryfieldBanks, src, GAME_FLAG_DRYFIELD_BANK_BYTES);
     src += GAME_FLAG_DRYFIELD_BANK_BYTES;
 
-    memcpy(GameFlag_DryfieldFullBanks, src, 0x24);
-    src += 0x24;
+    memcpy(GameFlag_DryfieldFullBanks, src, GAME_FLAG_DRYFIELD_NIGHT_BANK_BYTES);
+    src += GAME_FLAG_DRYFIELD_NIGHT_BANK_BYTES;
 
     /* bank * 0xE4, split so GCC interleaves lui of GameFlag_ShelterBanks after first sll */
     t    = bank * 8;
