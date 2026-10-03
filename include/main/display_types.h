@@ -195,14 +195,4 @@ typedef struct {
 } DisplayState;
 STATIC_ASSERT_SIZEOF(DisplayState, 0x138);
 
-/// Per-buffer OT context (Gpu_OtBuffers[2]). Indexed by display buffer (stride 0x14).
-/// field_4 is OT start; field_10 is the last tag (passed to DrawOTag).
-typedef struct _GpuOtBuf {
-    /* 0x00 */ s32     depth;
-    /* 0x04 */ u_long* ot;
-    /* 0x08 */ u8      unknown_08[0x8];
-    /* 0x10 */ u_long* lastTag;
-} GpuOtBuf;
-STATIC_ASSERT_SIZEOF(GpuOtBuf, 0x14);
-
 #endif // MAIN_DISPLAY_TYPES_H

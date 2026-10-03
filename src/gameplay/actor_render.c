@@ -13,7 +13,6 @@
 #include "gameplay/model_objects.h"
 #include "model_objects.h"
 
-#include "main/display_types.h"
 #include "main/gfx.h"
 #include "main/tmd.h"
 
@@ -213,14 +212,14 @@ static __inline__ void _gpRefreshAllCoords(void)
 
 /// Refreshes every coordinate for this frame, then draws the models the
 /// flagged pass draws.
-void Gp_DrawActorTmdFlagged(GpuOtBuf* arg0)
+void Gp_DrawActorTmdFlagged(GsOT* arg0)
 {
     _gpRefreshAllCoords();
     Tmd_DrawFlaggedNodes(PARENT_OF(gTmdList.next, TmdObject, link));
 }
 
 /// Refreshes every coordinate for this frame, then draws the active models.
-void Gp_DrawActorTmdActive(GpuOtBuf* arg0)
+void Gp_DrawActorTmdActive(GsOT* arg0)
 {
     _gpRefreshAllCoords();
     Tmd_DrawActiveNodes(PARENT_OF(gTmdList.next, TmdObject, link));

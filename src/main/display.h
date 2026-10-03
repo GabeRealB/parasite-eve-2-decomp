@@ -4,6 +4,7 @@
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
+#include <psyq/libgs.h>
 
 #include "types.h"
 
@@ -33,7 +34,7 @@ void Gpu_InitOt(void);
 /// `frameStart` is the VSync(1) horizontal-line counter origin; the return is
 /// the next origin, possibly negative to compensate for callback time.
 /// The OT-buffer and buffer-index arguments are retained and unused.
-s32 Display_FrameFlipDraw(GpuOtBuf* otBufs, s32 frameStart, s32 unused3);
+s32 Display_FrameFlipDraw(GsOT* otBufs, s32 frameStart, s32 unused3);
 
 s32 Display_DispatchModeId(s32 arg0);
 

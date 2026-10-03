@@ -58,7 +58,7 @@ static void Display_FlipOtAlt(void);
 
 static TaskDesc Display_MenuTaskDesc = { { { TASK_BODY_NONE, 0xC0 } }, Gp_MenuRootTask };
 
-s32 Display_FrameFlipDraw(GpuOtBuf* otBufs, s32 frameStart, s32 unused3)
+s32 Display_FrameFlipDraw(GsOT* otBufs, s32 frameStart, s32 unused3)
 {
     DisplayState* display;
     GsOT*         orderingTables;

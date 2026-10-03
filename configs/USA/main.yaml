@@ -299,7 +299,7 @@ segments:
       - [0x2e348, c, displaymode] # Display_SetMode / SetAutoClear
       - [0x2e6b0, o, libgpu/e03] # SetDefDrawEnv
       - [0x2e770, o, libgpu/e04] # SetDefDispEnv
-      - [0x2e7b0, c, otutil] # GameOt / display OT helpers
+      - [0x2e7b0, c, otutil] # GsOT / display OT helpers
       - [0x2f1e4, o, libgs/gs_113] # GsClearOt
       - [0x2f244, c, stage] # stage fade / transition / MDEC during load
       - [0x311D0, c, tmd] # TmdObject list / model stream

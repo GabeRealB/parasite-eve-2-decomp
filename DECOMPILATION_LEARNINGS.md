@@ -8508,13 +8508,13 @@ instructions and costs a near-match:
 /* Matches: lui of Gpu_OtBuffers, then li a1,0xA */
 otCtx = Gpu_OtBuffers;
 depth = 0xA;
-otCtx->field_0 = depth;
-/* ... otCtx[1].field_0 = depth reuses a1 */
+otCtx->length = depth;
+/* ... otCtx[1].length = depth reuses a1 */
 
 /* Mismatches: li first, then lui */
 depth = 0xA;
 otCtx = Gpu_OtBuffers;
-otCtx->field_0 = depth;
+otCtx->length = depth;
 ```
 
 `Gfx_InitGraph` is the example — `depth` is shared across both OT buffers.
@@ -12316,43 +12316,44 @@ pointer in `$v0` so the first `lbu` can land in `$v1`.
 
 `Pad_ReadButtonsInv` is the pure example (`Pad_RawPorts`, stride 0x24).
 
-## PsyQ GsOT layout without including libgs.h
+## Ordering-table descriptors are libgs `GsOT`
 
-`libgs.h` cannot be safely pulled into project-wide headers: it depends on
-extra libgs types (and redeclares several GPU primitives) that break GCC 2.8.1
-parse of units that only include a few `include/main/` headers.
-
-For double-buffered ordering-table descriptors (size `0x14`, two entries =
-`0x28`), define a local struct with the same layout as `GsOT`:
+The double-buffered ordering-table descriptors (size `0x14`, two entries =
+`0x28`) are the SDK's `GsOT` from `<psyq/libgs.h>`, which
+`include/main/display.h` includes. Both pairs use it: `Gpu_OrderingTables`
+(task-owned presentation) and `Gpu_OtBuffers` (the game loop's tables). Do not
+define a local struct with the same layout.
 
 ```c
 typedef struct {
-    u_long  length; /* OT depth as bit count; 6 → 2^6 = 64 tags */
-    u_long* org;
-    u_long  offset;
-    u_long  point;
-    u_long* tag;
-} GameOt; /* STATIC_ASSERT_SIZEOF(..., 0x14) */
+    unsigned long length; /* OT depth as bit count; 6 → 2^6 = 64 tags */
+    GsOT_TAG*     org;
+    unsigned long offset;
+    unsigned long point;
+    GsOT_TAG*     tag;
+} GsOT;
 ```
 
-Init pattern (see `Gpu_InitOtSmall`): hold `GameOt* ot = Gpu_OrderingTables`, write
+Init pattern (see `Gpu_InitOtSmall`): hold `GsOT* ot = Gpu_OrderingTables`, write
 `length`/`org` for both slots, with the second `org` as `tags + (1 << length)`.
 OT tag storage of `0x200` bytes is two buffers of `0x100` (`u_long[0x80]`).
 
-When calling PsyQ `GsClearOt`, declare it with `GameOt*` (now `GpuOtBuf*` in `display.h`) rather
-than including `libgs.h` or casting through `GsOT*`:
+`GsClearOt` takes the descriptor directly:
 
 ```c
-void GsClearOt(unsigned short offset, unsigned short point, GameOt* otp);
-/* ... */
-GsClearOt(0, 0, &ot[temp->field_118]);
-*ot[temp->field_118].org = GPU_OT_END_PRIM;
-gGpuCurrentOt = ot[temp->field_118].org;
+GsClearOt(0, 0, &ot[temp->frameBuffer]);
+*ot[temp->frameBuffer].org = GPU_OT_END_PRIM;
+gGpuCurrentOt = ot[temp->frameBuffer].org;
 ```
 
 `Gpu_InitOt` is the reference: sets both `Gpu_OrderingTables` slots to depth `0xA`
 with `Gpu_OtTags` / `+ GPU_ORDERING_TABLE_BUFFER_ENTRIES`, clears the active buffer
 (`gDisplayState.frameBuffer`), then points `gGpuCurrentOt` at the OT base.
+
+`GsClearOt` sets `tag = org + (1 << length) - 1` and clears `1 << length`
+entries. `Gpu_OtBuffers` describes `GPU_ORDERING_TABLE_BUFFER_ENTRIES` (`0x440`)
+entries at `length` 10, so `Gfx_InitGraph` stores `tag` itself and the game
+loop clears those tables with `ClearOTagR`.
 
 ## Delay `i = 0` until after a special-case rewrite of the same constant
 
@@ -16768,11 +16769,11 @@ PutDrawEnv(&drawBase[buf]);
 stride = buf * 0x14;          /* emit s0*0x14 into $s2 first */
 dispBase = ds->dispEnv;       /* then addiu a0, s1, 0x20 */
 PutDispEnv(&dispBase[buf]);   /* then addu a0, s2, a0 */
-/* later DrawOTag(Gpu_OtBuffers[buf].field_10) reuses $s2 */
+/* later DrawOTag((u_long*)Gpu_OtBuffers[buf].tag) reuses $s2 */
 ```
 
 `Display_VSyncCallback` needs this for `PutDispEnv(&gDisplayState.dispEnv[buf])`
-(DISPENV and GpuOtBuf are both 0x14). Without the dead `stride` store the
+(DISPENV and GsOT are both 0x14). Without the dead `stride` store the
 `addiu a0,s1,0x20` lands either too early (right after `PutDrawEnv`) or as
 `addiu a0,s2,0x20` / `addu a0,a0,s1`.
 
@@ -17521,9 +17522,9 @@ the message never mentions a header. `GfxCoord` comes from `main/coord.h`.
 
 ## Do not include `libgs.h` for `GsF_LIGHT`
 
-`include/main/display.h` owns `GpuOtBuf` (the 0x14 OT descriptor). Including
-`<psyq/libgs.h>` in a TU that already has a conflicting `GsClearOt` prototype
-fails with `conflicting types for GsClearOt`.
+The 0x14 OT descriptors are libgs `GsOT`, which `include/main/display.h` brings
+in through `<psyq/libgs.h>`. Including that header in a TU that already has a
+conflicting `GsClearOt` prototype fails with `conflicting types for GsClearOt`.
 
 For flat-light structs (vx/vy/vz + r/g/b at 0xC/0xD/0xE), define a local
 layout-matching type (e.g. `FlatLight`) instead of including libgs.

@@ -67,7 +67,7 @@ GfxCoord Gfx_ViewOffsetCoord;
 
 u8* Gpu_SysPrimCursor;
 
-GpuOtBuf Gpu_OtBuffers[2];
+GsOT Gpu_OtBuffers[2];
 
 GfxCoord gGfxViewCoord;
 
@@ -212,7 +212,7 @@ void Display_FlipDraw(s32 bufferIndex)
                 Stream_PresentFrame();
                 gDisplayState.drawBuffer = savedDrawBuffer;
             }
-            DrawOTag(Gpu_OtBuffers[gDisplayState.otBuffer].lastTag);
+            DrawOTag((u_long*)Gpu_OtBuffers[gDisplayState.otBuffer].tag);
         } else if (D_8006EC30 == DISPLAY_IMAGE_TRANSITION_STRIPS) {
             Display_LoadImageStrips(bufferIndex);
         } else if (D_8006EC30 == DISPLAY_IMAGE_ROOM_SLOT) {
@@ -236,7 +236,7 @@ static inline void _displayPresentFrame(s32 buf)
     }
     Stream_PresentFrame();
     if (gDisplayState.skipDraw == 0) {
-        DrawOTag(Gpu_OtBuffers[buf].lastTag);
+        DrawOTag((u_long*)Gpu_OtBuffers[buf].tag);
     }
 }
 
@@ -603,10 +603,10 @@ void Gpu_ClearOTag(s16 tableIdx)
 
 static void Gfx_InitGraph(void)
 {
-    RECT      rect;
-    GpuOtBuf* otCtx;
-    u_long*   ot;
-    s32       depth;
+    RECT    rect;
+    GsOT*   otCtx;
+    u_long* ot;
+    s32     depth;
 
     if (D_8005EC64 == 1) {
         ResetGraph(0);
@@ -620,15 +620,16 @@ static void Gfx_InitGraph(void)
     DrawSync(0);
     InitGeom();
 
-    otCtx            = Gpu_OtBuffers;
-    depth            = GPU_ORDERING_TABLE_DEPTH_BITS;
-    otCtx->depth     = depth;
-    ot               = Gpu_OtTags;
-    otCtx->lastTag   = ot + GPU_ORDERING_TABLE_BUFFER_ENTRIES - 1;
-    otCtx->ot        = ot;
-    otCtx[1].depth   = depth;
-    otCtx[1].ot      = ot + GPU_ORDERING_TABLE_BUFFER_ENTRIES;
-    otCtx[1].lastTag = ot + 2 * GPU_ORDERING_TABLE_BUFFER_ENTRIES - 1;
+    // The tables exceed `1 << length` entries, so `tag` is set here rather than by `GsClearOt`.
+    otCtx           = Gpu_OtBuffers;
+    depth           = GPU_ORDERING_TABLE_DEPTH_BITS;
+    otCtx->length   = depth;
+    ot              = Gpu_OtTags;
+    otCtx->tag      = (GsOT_TAG*)(ot + GPU_ORDERING_TABLE_BUFFER_ENTRIES - 1);
+    otCtx->org      = (GsOT_TAG*)ot;
+    otCtx[1].length = depth;
+    otCtx[1].org    = (GsOT_TAG*)(ot + GPU_ORDERING_TABLE_BUFFER_ENTRIES);
+    otCtx[1].tag    = (GsOT_TAG*)(ot + 2 * GPU_ORDERING_TABLE_BUFFER_ENTRIES - 1);
     GameMain_SpawnBootTask();
     Gfx_InitCoordinateTrees();
     Gpu_InitDefaultLights();
@@ -653,7 +654,7 @@ static void Display_PutEnvAndDraw(s32 arg0)
     }
     Stream_PresentFrame();
     if (gDisplayState.skipDraw == 0) {
-        DrawOTag(Gpu_OtBuffers[arg0].lastTag);
+        DrawOTag((u_long*)Gpu_OtBuffers[arg0].tag);
     }
 }
 

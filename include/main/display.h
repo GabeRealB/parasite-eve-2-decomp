@@ -119,7 +119,7 @@ enum { GPU_DMA_LINK_ADDRESS_MASK  = 0xFFFFFF,
 /// `frameBuffer` belong to their respective presentation paths.
 extern DisplayState gDisplayState;
 
-extern GpuOtBuf Gpu_OtBuffers[2];
+extern GsOT Gpu_OtBuffers[2];
 
 extern GsOT Gpu_OrderingTables[2];
 
