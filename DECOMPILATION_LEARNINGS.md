@@ -75691,12 +75691,12 @@ operand also needs the `(u16)` cast the sibling fade task in
 **Fix.**
 
 ```c
-typedef struct OverlayFadeWork {
-    /* 0x0 */ byte pad_0[2];
+typedef struct {
+    /* 0x0 */ byte field_0[2];
     /* 0x2 */ u16  r;
     /* 0x4 */ u16  g;
     /* 0x6 */ u16  b;
-} OverlayFadeWork;
+} ScreenFadeWork;
 
 work->r += (u16)arg0->spawnArg1;
 if ((s16)work->r >= 0x100) { ... }
@@ -83212,7 +83212,7 @@ The casts then follow from the width, and each has a distinct load:
 The sibling is the shortcut. `func_actor_560800_80135FA0` is the same fade task in
 another overlay, already matched, with the same `memMalloc(8, 0)` into
 `Task::work`, the same `switch (index->state)`, and the same three casts; its
-`OverlayFadeWork` is the struct to copy. Checking the family's other overlays
+`ScreenFadeWork` is the struct to copy. Checking the family's other overlays
 for the shape costs one `grep`, and the `.diagnosis.json` opcode delta confirms the
 width before the first edit.
 
@@ -93826,8 +93826,8 @@ declaration is not ambiguous - each width comes from the *use*:
 the call and at the compare. Do not follow m2c, which types the field from the
 byte access it happens to see and then emits every access at that width - the
 `sh` stores become `sb` and all seven sites are wrong together. The block here
-is the 8-byte fade work the rooms and actors carry as `OverlayFadeWork`
-(`u16 r, g, b`), and its matched body `func_actor_560800_80135FA0` is the same
+is the 8-byte fade work the rooms and actors carry as `ScreenFadeWork`
+(halfword `r`, `g`, `b`), and its matched body `func_actor_560800_80135FA0` is the same
 code word for word: reading the sibling turned a 74.5% baseline into an exact
 match on the first edit, where the target's own three widths look contradictory
 until you see which use produced each.
@@ -99954,7 +99954,7 @@ only the final `lh` sign-extends. The seed's own arithmetic was already right
 is the type.
 
 **The right type was already in the overlay's header.** The twin's match had
-written `OverlayFadeWork { byte pad_0[2]; u16 r; u16 g; u16 b; }` with a
+written `ScreenFadeWork { byte field_0[2]; u16 r; u16 g; u16 b; }` with a
 `STATIC_ASSERT_SIZEOF(..., 0x8)` and a comment naming this function as the
 other walker of the same block. Porting the twin's body verbatim and swapping
 the three `0xFF` stores' order to b/g/r — which the header's own field order
@@ -124139,7 +124139,7 @@ block layout, not off the sibling:
   and 1 (the stores sit between them, so the common suffix starts only at
   channel 2) and lost channel 2 and the `jal` to the surviving copy.
 
-Also: the small block is `OverlayFadeWork`, the struct shared with
+Also: the small block is `ScreenFadeWork`, the struct shared with
 its sibling fade tasks, with `s16` channels and
 `(u8)` casts at the call; the decrement reads back through the `(u16)` casts
 the siblings use, `fade->r = (s16)((u16)fade->r - (u16)index->spawnArg1);`.

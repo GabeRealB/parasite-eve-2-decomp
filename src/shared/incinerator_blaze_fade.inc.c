@@ -16,13 +16,13 @@
 /// -- 1, 6 and up -- only draws the fade.
 void blazeFadeTask(Task* arg0)
 {
-    OverlayFadeWork* work;
-    OverlayFadeWork* alloc;
+    ScreenFadeWork*  work;
+    ScreenFadeWork*  alloc;
     BlazeParentWork* parent;
     TILE*            tile;
     DR_TPAGE*        dr;
 
-    work = (OverlayFadeWork*)arg0->work;
+    work = arg0->work;
     switch (arg0->state) {
         case 0:
             alloc      = memMalloc(sizeof(*alloc), false);
@@ -40,14 +40,14 @@ void blazeFadeTask(Task* arg0)
             break;
         case 2:
             work->r += 0xA;
-            if ((s16)work->r >= 0x51) {
+            if (work->r >= 0x51) {
                 work->r     = 0x50;
                 arg0->state = 1;
             }
             break;
         case 3:
             work->r += 1;
-            if ((s16)work->r >= 0x100) {
+            if (work->r >= 0x100) {
                 work->r     = 0xFF;
                 arg0->state = 1;
             }
@@ -55,7 +55,7 @@ void blazeFadeTask(Task* arg0)
         case 4:
             work->g += 8;
             work->b += 8;
-            if ((s16)work->g >= 0x100) {
+            if (work->g >= 0x100) {
                 parent             = (BlazeParentWork*)((Task*)arg0->spawnArg2.pointer)->work;
                 parent->wave.state = SCREEN_WAVE_RAMP_FINISHED;
                 Display_SetMode(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);

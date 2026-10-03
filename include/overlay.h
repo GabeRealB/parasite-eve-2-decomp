@@ -27,18 +27,21 @@
  * every family.
  */
 
-/// Work block of a full-screen fade task, allocated eight bytes at a time and
-/// kept at `Task::work`: the three colour channels the fade overlay is drawn
-/// with, stepped toward white or black each frame. The channels are signed,
-/// since a fade-in ends when a channel goes negative. The leading halfword is
-/// never touched.
-typedef struct OverlayFadeWork {
-    byte pad_0[0x2];
-    s16  r;
-    s16  g;
-    s16  b;
-} OverlayFadeWork;
-STATIC_ASSERT_SIZEOF(OverlayFadeWork, 0x8);
+/// Work block of a full-screen fade task: the colour `Fade_DrawOverlay` is
+/// drawn with, kept at `Task::work`.
+///
+/// The task allocates it in its first state and then, each frame, draws the
+/// overlay (subtractive to darken, additive to whiten) and steps the channels
+/// by its rate, ending once the ramp leaves the 0..0xFF range a channel draws
+/// with - below zero going down, 0x100 going up. Many tasks draw `r` as the
+/// blue channel too, so `b` is stepped without ever being drawn.
+typedef struct {
+    byte field_0[0x2]; // Never read or written by any fade task; role unproven
+    s16  r;            // Red intensity; drawn as its low byte, signed so a ramp down ends below zero
+    s16  g;            // Green intensity, stepped with `r`
+    s16  b;            // Blue intensity, stepped with `r`
+} ScreenFadeWork;
+STATIC_ASSERT_SIZEOF(ScreenFadeWork, 0x8);
 
 /// How a screen-wave quad treats the captured frame.
 ///

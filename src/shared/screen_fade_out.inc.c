@@ -9,10 +9,10 @@
 /// `r` reaches 0x100 the task kills itself.
 void screenFadeOutTask(Task* arg0)
 {
-    OverlayFadeWork* work;
-    OverlayFadeWork* alloc;
+    ScreenFadeWork* work;
+    ScreenFadeWork* alloc;
 
-    work = (OverlayFadeWork*)arg0->work;
+    work = arg0->work;
     switch (arg0->state) {
         case 0:
             alloc      = memMalloc(sizeof(*alloc), false);

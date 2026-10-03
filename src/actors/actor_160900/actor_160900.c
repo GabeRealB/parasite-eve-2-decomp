@@ -1965,10 +1965,10 @@ void func_actor_160900_8013418C(Task* arg0)
 
 void func_actor_160900_801343E4(Task* arg0)
 {
-    OverlayFadeWork* work;
-    OverlayFadeWork* alloc;
+    ScreenFadeWork* work;
+    ScreenFadeWork* alloc;
 
-    work = (OverlayFadeWork*)arg0->work;
+    work = arg0->work;
     switch (arg0->state) {
         case 0:
             alloc      = memMalloc(sizeof(*alloc), false);
@@ -1998,10 +1998,10 @@ void func_actor_160900_801343E4(Task* arg0)
 }
 void func_actor_160900_801344D8(Task* arg0)
 {
-    OverlayFadeWork* work;
-    OverlayFadeWork* alloc;
+    ScreenFadeWork* work;
+    ScreenFadeWork* alloc;
 
-    work = (OverlayFadeWork*)arg0->work;
+    work = arg0->work;
     switch (arg0->state) {
         case 0:
             alloc      = memMalloc(sizeof(*alloc), false);

@@ -3291,7 +3291,7 @@ void func_acropolis_plaza_8017D6D4(void)
 
 /// Fade the plaza to white and tear the task down.
 ///
-/// State 0 allocates the `OverlayFadeWork` ramp at `Task::work` and
+/// State 0 allocates the `ScreenFadeWork` ramp at `Task::work` and
 /// zeroes it; a failed allocation kills the task outright. State 1 runs every
 /// frame: it links a semi-transparent full-screen `TILE` (`-0xA0,-0x78`,
 /// `0x140x0xF0`) plus the `0xE1000240` `DR_TPAGE` into `gGpuCurrentOt[-16]`,
@@ -3300,14 +3300,14 @@ void func_acropolis_plaza_8017D6D4(void)
 /// so the task blanks the display and kills itself.
 void func_acropolis_plaza_8017D8AC(Task* arg0)
 {
-    OverlayFadeWork* fade;
-    OverlayFadeWork* alloc;
-    u8               r;
-    u8               g;
-    TILE*            tile;
-    DR_TPAGE*        dr;
+    ScreenFadeWork* fade;
+    ScreenFadeWork* alloc;
+    u8              r;
+    u8              g;
+    TILE*           tile;
+    DR_TPAGE*       dr;
 
-    fade = (OverlayFadeWork*)arg0->work;
+    fade = arg0->work;
     switch (arg0->state) {
         case 0:
             alloc      = memMalloc(sizeof(*alloc), false);

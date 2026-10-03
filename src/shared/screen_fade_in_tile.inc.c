@@ -4,19 +4,19 @@
 /// ramp from white, but each frame links its own semi-transparent full-screen
 /// `TILE` (-0xA0,-0x78, 0x140 by 0xF0) and the `0xE1000240` `DR_TPAGE` into
 /// `gGpuCurrentOt[-16]`, tinted `r`/`g`/`r`, instead of calling
-/// `Fade_DrawOverlay`. State 0 allocates the `OverlayFadeWork` at `Task::work`
+/// `Fade_DrawOverlay`. State 0 allocates the `ScreenFadeWork` at `Task::work`
 /// with all three channels at 0xFF (a failed allocation kills the task); state 1
 /// steps them down by `Task::spawnArg1` and kills the task once `r` is below 0.
 void screenFadeInTileTask(Task* arg0)
 {
-    OverlayFadeWork* fade;
-    OverlayFadeWork* alloc;
-    u8               r;
-    u8               g;
-    TILE*            tile;
-    DR_TPAGE*        dr;
+    ScreenFadeWork* fade;
+    ScreenFadeWork* alloc;
+    u8              r;
+    u8              g;
+    TILE*           tile;
+    DR_TPAGE*       dr;
 
-    fade = (OverlayFadeWork*)arg0->work;
+    fade = arg0->work;
     switch (arg0->state) {
         case 0:
             alloc      = memMalloc(sizeof(*alloc), false);

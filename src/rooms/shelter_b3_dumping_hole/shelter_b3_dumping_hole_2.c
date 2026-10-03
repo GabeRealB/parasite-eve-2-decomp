@@ -2875,12 +2875,12 @@ s16 func_shelter_b3_dumping_hole_8017FB70(void)
 
 void func_shelter_b3_dumping_hole_8017FBA0(Task* arg0)
 {
-    OverlayFadeWork*                      fade;
-    OverlayFadeWork*                      alloc;
+    ScreenFadeWork*                       fade;
+    ScreenFadeWork*                       alloc;
     _ShelterB3DumpingHoleDebrisEventWork* ent;
 
     ent  = D_shelter_b3_dumping_hole_8018F4A8->work;
-    fade = (OverlayFadeWork*)arg0->work;
+    fade = arg0->work;
     if (ent->fadeStop == 1) {
         taskKill(arg0);
         return;

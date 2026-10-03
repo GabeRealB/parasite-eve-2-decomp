@@ -994,10 +994,10 @@ void func_actor_341900_80162EFC(Task* arg0)
 /// killing the task once `r` has gone negative.
 void func_actor_341900_80163148(Task* arg0)
 {
-    OverlayFadeWork* fade;
-    OverlayFadeWork* alloc;
+    ScreenFadeWork* fade;
+    ScreenFadeWork* alloc;
 
-    fade = (OverlayFadeWork*)arg0->work;
+    fade = arg0->work;
     switch (arg0->state) {
         case 0:
             alloc      = memCalloc(8, 0);

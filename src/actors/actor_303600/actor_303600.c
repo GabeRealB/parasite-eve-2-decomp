@@ -17029,10 +17029,10 @@ void func_actor_303600_8016216C(Task* arg0)
 /// below zero clears `D_actor_303600_8016E4C4` before killing the task.
 void func_actor_303600_801622E8(Task* arg0)
 {
-    OverlayFadeWork* work;
-    OverlayFadeWork* alloc;
+    ScreenFadeWork* work;
+    ScreenFadeWork* alloc;
 
-    work = (OverlayFadeWork*)arg0->work;
+    work = arg0->work;
     switch (arg0->state) {
         case 0:
             alloc      = memMalloc(sizeof(*alloc), false);
@@ -17069,10 +17069,10 @@ void func_actor_303600_801622E8(Task* arg0)
 /// 0xFF down past zero, is `func_actor_303600_801622E8`.
 void func_actor_303600_801623CC(Task* arg0)
 {
-    OverlayFadeWork* work;
-    OverlayFadeWork* alloc;
+    ScreenFadeWork* work;
+    ScreenFadeWork* alloc;
 
-    work = (OverlayFadeWork*)arg0->work;
+    work = arg0->work;
     switch (arg0->state) {
         case 0:
             alloc      = memMalloc(sizeof(*alloc), false);

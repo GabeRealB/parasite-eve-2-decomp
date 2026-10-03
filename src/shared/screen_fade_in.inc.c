@@ -9,10 +9,10 @@
 /// Once `r` has gone negative the screen is clear and the task kills itself.
 void screenFadeInTask(Task* arg0)
 {
-    OverlayFadeWork* fade;
-    OverlayFadeWork* alloc;
+    ScreenFadeWork* fade;
+    ScreenFadeWork* alloc;
 
-    fade = (OverlayFadeWork*)arg0->work;
+    fade = arg0->work;
     switch (arg0->state) {
         case 0:
             alloc      = memMalloc(sizeof(*alloc), false);
@@ -29,9 +29,9 @@ void screenFadeInTask(Task* arg0)
             /* fallthrough */
         case 1:
             Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->r, GPU_BLEND_SUBTRACT);
-            fade->r = (s16)((u16)fade->r - (u16)arg0->spawnArg1.value);
-            fade->g = (s16)((u16)fade->g - (u16)arg0->spawnArg1.value);
-            fade->b = (s16)((u16)fade->b - (u16)arg0->spawnArg1.value);
+            fade->r -= (u16)arg0->spawnArg1.value;
+            fade->g -= (u16)arg0->spawnArg1.value;
+            fade->b -= (u16)arg0->spawnArg1.value;
             if (fade->r >= 0) {
                 return;
             }

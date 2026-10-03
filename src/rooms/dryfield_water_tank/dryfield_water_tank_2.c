@@ -877,14 +877,14 @@ static void func_dryfield_water_tank_8017E78C(Task* task);
 /// of the same pair is `screenFadeInTileTask`.
 void func_dryfield_water_tank_8017E3C4(Task* arg0)
 {
-    OverlayFadeWork* fade;
-    OverlayFadeWork* alloc;
-    u8               r;
-    u8               g;
-    TILE*            tile;
-    DR_TPAGE*        dr;
+    ScreenFadeWork* fade;
+    ScreenFadeWork* alloc;
+    u8              r;
+    u8              g;
+    TILE*           tile;
+    DR_TPAGE*       dr;
 
-    fade = (OverlayFadeWork*)arg0->work;
+    fade = arg0->work;
     switch (arg0->state) {
         case 0:
             alloc      = memMalloc(sizeof(*alloc), false);
