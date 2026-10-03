@@ -38,17 +38,22 @@
 #define SPRITE_QUAD_FRAME_T s16
 #include "../../shared/sprite_quad.h"
 
-/// One 4-byte row of `D_necrosis_801306BC`, indexed by `EffectWork.index`
-/// (`Gp_StateC08.attachId % 10 - 1`). `field_0` is the `Gp_SpawnEff` draw
-/// parameter (plus `field_22 * 0x60` each frame) and is copied into the
-/// first `WorldCollisionBody.radius`. `field_2` is the last `EffectWork.age` tick
-/// of the spawn loop; state 2 waits an extra 0x10 ticks past it. `field_2 +
-/// 0xC` is also the pad-rumble duration at ignition.
-typedef struct NecrosisStep {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ s16 field_2;
-} NecrosisStep;
-STATIC_ASSERT_SIZEOF(NecrosisStep, 4);
+/// Size and travel time of the necrosis cloud at one Parasite Energy level.
+///
+/// The cast launches a cloud along the caster's facing. The cloud carries a
+/// collision sphere keyed with the spell's identity and sheds one trail puff
+/// per frame, both of which grow as it travels. The cast selects its row by the
+/// level digit of the spell being cast (`AttachmentState::attachId % 10 - 1`),
+/// so a higher level launches a larger cloud that travels for longer.
+///
+/// The radius is in game-coordinate units. The frame count is compared with
+/// the cast's `EffectWork::age`, which is 1 on the launch frame and is held
+/// while parasite-energy effects are paused for as long as the cloud travels.
+typedef struct {
+    s16 startRadius;  // Radius the keyed collision sphere is launched with, gaining 0x20 a frame from the launch frame on; a trail puff's sprite size is this plus 0x60 for each frame of the cast's age
+    s16 travelFrames; // Frames the cloud keeps its collision spheres for. On the frame after, it sheds its last puff and drops them, and the cast ends 0x10 frames later; the controller vibration that fades out under the cast lasts 0xC frames longer than this
+} _NecrosisLevelTuning;
+STATIC_ASSERT_SIZEOF(_NecrosisLevelTuning, 4);
 
 /// Collision pair allocated by `func_necrosis_8012EF34` (`memCalloc(0x58)`)
 /// and stored in `Task::work`. `obj` is linked on list 1, `obj2` on list 7;
@@ -61,10 +66,9 @@ typedef struct NecrosisWork {
 } NecrosisWork;
 STATIC_ASSERT_SIZEOF(NecrosisWork, 0x58);
 
-/// Per-level tuning for the necrosis burst: rows are PE levels 1-3, selected
-/// by `index`. `field_0` is the `Gp_SpawnEff` draw parameter; `field_2` is
-/// the last spawn-loop tick, and `field_2 + 0xC` the pad-rumble duration.
-static NecrosisStep D_necrosis_801306BC[] = {
+/// Per-level tuning for the necrosis cloud, one row per PE level 1-3, weakest
+/// first.
+static _NecrosisLevelTuning D_necrosis_801306BC[] = {
     { 0x03C0, 0x000A },
     { 0x0480, 0x000F },
     { 0x0540, 0x0014 },
@@ -82,7 +86,7 @@ static void func_necrosis_80130288(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 /// the combo digits plus `0x28000`. State 1 GPF-scales that offset by 0x1100
 /// each frame, walks the coordinate, and spawns `0x80060019`; a `0x100000` hit
 /// on `obj2` zeros the offset and unlinks the list-7 object. State 2 waits
-/// `field_2 + 0x10` ticks. Any state releases if the player is dying
+/// `travelFrames + 0x10` ticks. Any state releases if the player is dying
 /// (`Gp_StateC08.effectPhase` / `Gp_StateC08.effectPhase`) or parasite-energy effects are
 /// cancelled (`gRoomEffectState->peEffectControl`).
 void func_necrosis_8012EF34(Task* arg0)
@@ -148,7 +152,7 @@ void func_necrosis_8012EF34(Task* arg0)
             work->obj.context.contacts = rec;
             work->obj.key =
                 ((u16)(Gp_StateC08.attachId / 100) - 1) * 9 + ((u16)((u16)(Gp_StateC08.attachId % 100) / 10) - 1) * 3 + (u16)(Gp_StateC08.attachId % 10) + 0x28000;
-            work->obj.radius = D_necrosis_801306BC[mem->index].field_0;
+            work->obj.radius = D_necrosis_801306BC[mem->index].startRadius;
             work->obj.flags  = WORLD_COLLISION_BODY_SPHERE;
             Gp_LinkObj(1, &work->obj);
             rec->flags                  = 2;
@@ -163,7 +167,7 @@ void func_necrosis_8012EF34(Task* arg0)
             pan              = (s8)worldCoordGetOriginAudioPan(coord);
             SndEvt_EnqueueType6(D_necrosis_801306C8[(u16)(Gp_StateC08.attachId % 10) - 1], pan,
                                 (s8)worldCoordGetOriginAudioDepth(coord));
-            Gp_SpawnPadLerp((s16)((u16)D_necrosis_801306BC[mem->index].field_2 + 0xC), 0xFF, 8);
+            Gp_SpawnPadLerp(D_necrosis_801306BC[mem->index].travelFrames + 0xC, 0xFF, 8);
             arg0->state = 1;
             /* fallthrough */
         case 1:
@@ -178,7 +182,7 @@ void func_necrosis_8012EF34(Task* arg0)
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 spawned = Gp_SpawnEff((EFFECT_NECROSIS_TRAIL_PUFF | EFFECT_SPAWN_UNLIMITED), coord,
-                                      (s16)D_necrosis_801306BC[mem->index].field_0 + (mem->age * 0x60),
+                                      D_necrosis_801306BC[mem->index].startRadius + (mem->age * 0x60),
                                       NULL);
                 if (spawned != NULL) {
                     taskReparent(arg0, spawned->task);
@@ -192,7 +196,7 @@ void func_necrosis_8012EF34(Task* arg0)
                 Gp_UnlinkObj(&work->obj2);
                 goto release;
             }
-            if (mem->age > D_necrosis_801306BC[mem->index].field_2) {
+            if (mem->age > D_necrosis_801306BC[mem->index].travelFrames) {
                 Gp_UnlinkObj(&work->obj);
                 Gp_UnlinkObj(&work->obj2);
                 arg0->state = 2;
@@ -214,7 +218,7 @@ void func_necrosis_8012EF34(Task* arg0)
                 goto release;
             }
             tick = (s16)tick;
-            if ((D_necrosis_801306BC[mem->index].field_2 + 0x10) < tick) {
+            if ((D_necrosis_801306BC[mem->index].travelFrames + 0x10) < tick) {
             release:
                 effectKillTask(mem, arg0);
             }
