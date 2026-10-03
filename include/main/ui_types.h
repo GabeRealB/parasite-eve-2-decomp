@@ -206,11 +206,11 @@ STATIC_ASSERT_SIZEOF(UiObjectDesc, 0x1C);
 
 /// One selectable row of an option dialog, linked in display order.
 ///
-/// The caller builds the list and passes its head in the `TextBlockDesc` given
-/// to `Ui_SpawnTextBlock`. The dialog shows one option per list row and reports
-/// a confirmed row as its one-based position in the list. Nodes are reached by
-/// stepping `next` a counted number of times, never by testing for a
-/// terminator, so the list must hold at least the descriptor's `count` nodes.
+/// The caller builds the list and passes its head in the `UiOptionDialogRequest`
+/// given to `Ui_SpawnTextBlock`. The dialog shows one option per list row and
+/// reports a confirmed row as its one-based position in the list. Nodes are
+/// reached by stepping `next` a counted number of times, never by testing for a
+/// terminator, so the list must hold at least the request's `optionCount` nodes.
 /// The dialog keeps only the pointers: the nodes and their strings must stay
 /// valid until it closes.
 typedef struct UiDialogOption {
@@ -219,17 +219,30 @@ typedef struct UiDialogOption {
 } UiDialogOption;
 STATIC_ASSERT_SIZEOF(UiDialogOption, 0x8);
 
-/// Multi-line text block descriptor consumed by Ui_SpawnTextBlock to spawn a
-/// sized UiObject. field_0 is the line count; field_2 is cleared on return;
-/// field_4 is the head of a UiDialogOption list; field_8 selects layout mode
-/// (0 forces UiObject::panel.style = 3).
-typedef struct TextBlockDesc {
-    /* 0x0 */ s16             count;
-    /* 0x2 */ s16             field_2;
-    /* 0x4 */ UiDialogOption* lines;
-    /* 0x8 */ s32             field_8;
-} TextBlockDesc;
-STATIC_ASSERT_SIZEOF(TextBlockDesc, 0xC);
+/// Flags in `UiOptionDialogRequest.flags`; storage remains an unsigned byte.
+enum {
+    USER_INTERFACE_OPTION_DIALOG_CANCELLABLE = 1 // Cancel and menu buttons close the dialog with result -1
+};
+
+/// A caller's request for an option dialog, and the place its answer arrives.
+///
+/// The caller fills the request and passes it to `Ui_SpawnTextBlock`, which
+/// opens a screen-centred panel listing one option per row, widened to the
+/// longest label. A count of zero or less opens nothing. Either way the call
+/// clears `result`, and the caller polls it: it stays zero until the player
+/// confirms a row or, where the request permits it, cancels.
+///
+/// The dialog keeps the pointer for as long as it is open and writes the answer
+/// through it, so the request, its options and its strings must outlive the
+/// dialog. The row count is taken from the low eight bits of `optionCount`.
+typedef struct {
+    s16             optionCount; // Options listed, one row each (1..255); zero or less opens no dialog
+    s16             result;      // Answer: 0 none yet, 1..optionCount the confirmed option, -1 cancelled
+    UiDialogOption* options;     // Head of the option list in row order; holds at least `optionCount` nodes
+    char*           title;       // Heading drawn at the panel's top-left corner; NULL opens a panel without one
+    u8              flags;       // Bit 0 permits cancelling; no other bit is read
+} UiOptionDialogRequest;
+STATIC_ASSERT_SIZEOF(UiOptionDialogRequest, 0x10);
 
 /// Draws one visible list row and handles its permitted input.
 ///

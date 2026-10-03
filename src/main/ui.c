@@ -95,27 +95,6 @@ typedef struct {
 } _UiPanelLifecycleFuncTable6;
 STATIC_ASSERT_SIZEOF(_UiPanelLifecycleFuncTable6, 0x18);
 
-/// Context at Task::spawnArg1 for the Ui_DrawDialogLine dialog path.
-/// field_4 is the head of a UiDialogOption list; field_C bit0 gates cancel input.
-typedef struct _DialogListCtx {
-    /* 0x00 */ byte            unknown_0[4];
-    /* 0x04 */ UiDialogOption* field_4;
-    /* 0x08 */ byte            unknown_8[4];
-    /* 0x0C */ u8              field_C;
-} DialogListCtx;
-
-/// Context at Task::spawnArg1 for the Ui_ListTaskCallback UI path.
-/// field_0 supplies `UiList.itemCount` and `UiList.visibleRowCount`; field_2 receives
-/// the selected index from `UiObject::resultValue` on confirm/cancel; field_8 is an
-/// optional string passed to Ui_DrawText.
-typedef struct _SelectMenuCtx {
-    /* 0x00 */ u8    field_0;
-    /* 0x01 */ byte  pad_1;
-    /* 0x02 */ s16   field_2;
-    /* 0x04 */ byte  pad_4[4];
-    /* 0x08 */ char* field_8;
-} SelectMenuCtx;
-
 extern TmdSource D_8072C8F0;
 
 extern TmdSource D_8075BED4;
@@ -2074,26 +2053,26 @@ void Ui_DrawText(UiPanel* panel, char* arg1)
     panel->otIndex.unsignedValue += 1;
 }
 
-UiObject* Ui_SpawnTextBlock(TextBlockDesc* descriptor, s32 unused2, s32 unused3, s32 unused4)
+UiObject* Ui_SpawnTextBlock(UiOptionDialogRequest* request, s32 unused2, s32 unused3, s32 unused4)
 {
     UiObject*       obj;
     UiDialogOption* option;
-    TaskSpawnArg    textBlockArg;
+    TaskSpawnArg    requestArg;
     s32             count;
     s32             maxWidth;
     s32             width;
 
     obj = NULL;
-    if (descriptor->count > 0) {
-        textBlockArg.pointer = descriptor;
-        obj                  = USER_INTERFACE_SPAWN_OBJECT(&Ui_DialogListDesc, textBlockArg, 1, 1, NULL);
+    if (request->optionCount > 0) {
+        requestArg.pointer = request;
+        obj                = USER_INTERFACE_SPAWN_OBJECT(&Ui_DialogListDesc, requestArg, 1, 1, NULL);
         if (obj != NULL) {
             RECT rect;
 
-            count    = descriptor->count;
-            option   = descriptor->lines;
+            count    = request->optionCount;
+            option   = request->options;
             maxWidth = 0;
-            if (descriptor->field_8 == 0) {
+            if (request->title == NULL) {
                 obj->panel.style = 3;
             }
             for (; count > 0; count--) {
@@ -2126,13 +2105,13 @@ UiObject* Ui_SpawnTextBlock(TextBlockDesc* descriptor, s32 unused2, s32 unused3,
             maxWidth                        -= obj->panel.contentRight.signedValue - obj->panel.contentLeft.signedValue;
             obj->panel.bounds.unsignedRect.w = obj->panel.bounds.unsignedRect.w + maxWidth + 0xC;
             obj->panel.bounds.unsignedRect.x = -((s16)obj->panel.bounds.unsignedRect.w / 2);
-            maxWidth                         = descriptor->count * 0xF;
+            maxWidth                         = request->optionCount * 0xF;
             maxWidth                        -= obj->panel.contentBottom.signedValue - obj->panel.contentTop.signedValue;
             obj->panel.bounds.unsignedRect.h = obj->panel.bounds.unsignedRect.h + maxWidth;
             obj->panel.bounds.unsignedRect.y = -((s16)obj->panel.bounds.unsignedRect.h / 2);
         }
     }
-    descriptor->field_2 = 0;
+    request->result = 0;
     return obj;
 }
 
@@ -2886,14 +2865,14 @@ void Ui_WaitCdThenOverlay(Task* task)
 
 static void Ui_DrawDialogLine(UiList* list, UiObject* object)
 {
-    DialogListCtx*  temp_s3;
-    UiDialogOption* option;
-    s32             var_v0;
-    s16             temp;
+    UiOptionDialogRequest* request;
+    UiDialogOption*        option;
+    s32                    var_v0;
+    s16                    temp;
 
-    temp_s3 = object->owner->spawnArg1.pointer;
+    request = object->owner->spawnArg1.pointer;
     var_v0  = list->currentItemIndex;
-    option  = temp_s3->field_4;
+    option  = request->options;
     if (var_v0 > 0) {
         do {
             option  = option->next;
@@ -2908,7 +2887,7 @@ static void Ui_DrawDialogLine(UiList* list, UiObject* object)
             object->result      = temp;
             return;
         }
-        if ((temp_s3->field_C & 1) && (Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu) != 0)) {
+        if ((request->flags & USER_INTERFACE_OPTION_DIALOG_CANCELLABLE) && (Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu) != 0)) {
             object->resultValue = -1;
             object->result      = USER_INTERFACE_RESULT_CANCEL;
         }
@@ -2917,28 +2896,28 @@ static void Ui_DrawDialogLine(UiList* list, UiObject* object)
 
 static void Ui_ListTaskCallback(Task* task)
 {
-    UiObject*      obj;
-    SelectMenuCtx* ctx;
-    UiList*        menu;
-    char*          text;
-    u8             base;
-    s16            status;
-    Task*          parent;
-    Task*          child;
+    UiObject*              obj;
+    UiOptionDialogRequest* request;
+    UiList*                menu;
+    char*                  text;
+    u8                     base;
+    s16                    status;
+    Task*                  parent;
+    Task*                  child;
 
     obj         = (UiObject*)task->spawnArg2.pointer;
-    ctx         = task->spawnArg1.pointer;
+    request     = task->spawnArg1.pointer;
     menu        = &Ui_DialogLineList;
     obj->result = USER_INTERFACE_RESULT_NONE;
     if (task->state == 0) {
-        base                                = ctx->field_0;
+        base                                = request->optionCount;
         menu->visibleRowCount.unsignedValue = base;
         menu->itemCount                     = base;
         Ui_LayoutListPanel(menu, &(obj)->panel);
         menu->flags  = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
         task->state += 1;
     }
-    text = ctx->field_8;
+    text = request->title;
     if (text != NULL) {
         Ui_DrawText(&(obj)->panel, text);
     }
@@ -2946,9 +2925,9 @@ static void Ui_ListTaskCallback(Task* task)
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         status = obj->result;
         if ((status == USER_INTERFACE_RESULT_CONFIRM) || (status == USER_INTERFACE_RESULT_CANCEL)) {
-            ctx->field_2 = obj->resultValue;
-            parent       = obj->owner;
-            child        = parent->firstChild;
+            request->result = obj->resultValue;
+            parent          = obj->owner;
+            child           = parent->firstChild;
             if (child != NULL) {
                 do {
                     Ui_TeardownTree((UiObject*)child->spawnArg2.pointer, child);

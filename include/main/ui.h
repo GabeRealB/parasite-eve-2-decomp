@@ -16,7 +16,7 @@ extern UiObject* Wip_UiHolder;
 /// Current item-information panel, cleared when its owner closes.
 extern UiObject* D_80067634;
 
-UiObject* Ui_SpawnTextBlock(TextBlockDesc* descriptor, s32 unused2, s32 unused3, s32 unused4);
+UiObject* Ui_SpawnTextBlock(UiOptionDialogRequest* request, s32 unused2, s32 unused3, s32 unused4);
 
 /// Spawns a UI object and its task, optionally as a child of `parent`.
 ///

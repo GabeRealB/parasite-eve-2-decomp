@@ -1723,22 +1723,22 @@ static void func_dryfield_trailer_coach_801826A0(Task* task)
     }
     option[-1].next = NULL;
 
-    block->desc.count   = 2;
-    block->desc.lines   = block->lines;
-    block->desc.field_8 = 0;
-    block->field_C      = 0;
+    block->desc.optionCount = 2;
+    block->desc.options     = block->lines;
+    block->desc.title       = NULL;
+    block->desc.flags       = 0;
     Ui_SpawnTextBlock(&block->desc, 0, 0, 0);
     task->state++;
 }
 
 /// Waits for the text block parked at `Task::work` to report a result in
-/// `TextBlockDesc::field_2`, stores it through `Task::spawnArg2` and advances
+/// `UiOptionDialogRequest::result`, stores it through `Task::spawnArg2` and advances
 /// the task.
 static void func_dryfield_trailer_coach_80182794(Task* task)
 {
     s16 result;
 
-    result = ((RoomTextBlock*)task->work)->desc.field_2;
+    result = ((RoomTextBlock*)task->work)->desc.result;
     if (result != 0) {
         *(s32*)task->spawnArg2.pointer = result;
         task->state                    = task->state + 1;
