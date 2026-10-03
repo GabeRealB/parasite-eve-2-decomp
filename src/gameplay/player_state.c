@@ -45,18 +45,17 @@
 /// Duration of each timed player ailment, in active status updates.
 enum { PLAYER_STATE_STATUS_DURATION_TICKS = 600 };
 
-/// 0x14-byte scratch from the scratch stack used by `func_8010BD88`.
-/// `vx`/`vy`/`vz` overlay a `VECTOR3` for `func_80103C74`; `angle` holds
-/// the `ratan2` result and the clamped turn delta applied to
-/// `GameActor.rotation.vy`.
-typedef struct _GpTurnScratch {
-    /* 0x00 */ s32 vx;
-    /* 0x04 */ s32 vy;
-    /* 0x08 */ s32 vz;
-    /* 0x0C */ s32 pad;
-    /* 0x10 */ s32 angle;
-} GpTurnScratch;
-STATIC_ASSERT_SIZEOF(GpTurnScratch, 0x14);
+/// Scratch-stack block for turning a player actor's body yaw toward a point.
+///
+/// Holds the target's displacement from the model's root coordinate, whose X
+/// and Z give the heading to turn toward, and the yaw worked out from it. The
+/// block lives only for the one call.
+typedef struct {
+    VECTOR3 targetDelta; // Target point minus the root coordinate's translation
+    byte    field_C[4];  // Never accessed; role unproven
+    s32     yaw;         // Heading of `targetDelta`, then the signed turn toward it, in 1/4096 turns
+} _PlayerActorTurnScratch;
+STATIC_ASSERT_SIZEOF(_PlayerActorTurnScratch, 0x14);
 
 /// 0x40-byte scratch from the scratch stack used by `func_80109BB4`.
 /// `pos` is the world position of the colliding `WorldCollisionBody` (`pos` rotated by
@@ -1448,27 +1447,25 @@ s32 func_8010BCF4(Task* arg0, VECTOR3* arg1)
 
 void func_8010BD88(Task* arg0, VECTOR3* arg1)
 {
-    u8*            head;
-    GpTurnScratch* vec;
-    TmdObject*     extra;
-    GameActor*     actor;
-    s32            val;
+    _PlayerActorTurnScratch* block;
+    TmdObject*               extra;
+    GameActor*               actor;
+    s32                      val;
 
     extra = arg0->extra.tmd;
-    head  = SCRATCH_STACK_CURSOR(u8);
-    vec = SCRATCH_STACK_CURSOR(GpTurnScratch) = (GpTurnScratch*)(head - 0x14);
-    actor                                     = arg0->work;
-    func_80103C74(extra->coords, arg1, (VECTOR3*)vec);
-    vec->angle = ratan2(((GpTurnScratch*)(head - 0x14))->vx, vec->vz);
-    val        = func_80103E7C(actor->rotation.vy, vec->angle);
-    vec->angle = val;
+    block = SCRATCH_STACK_RESERVE_BLOCK(_PlayerActorTurnScratch);
+    actor = arg0->work;
+    func_80103C74(extra->coords, arg1, &block->targetDelta);
+    block->yaw = ratan2(block->targetDelta.vx, block->targetDelta.vz);
+    val        = func_80103E7C(actor->rotation.vy, block->yaw);
+    block->yaw = val;
     if (val > 0x40) {
-        vec->angle = 0x40;
+        block->yaw = 0x40;
     } else if (val < -0x40) {
-        vec->angle = -0x40;
+        block->yaw = -0x40;
     }
-    actor->rotation.vy = (actor->rotation.vy + vec->angle) & 0xFFF;
-    SCRATCH_STACK_RELEASE_BYTES(0x14);
+    actor->rotation.vy = (actor->rotation.vy + block->yaw) & 0xFFF;
+    SCRATCH_STACK_RELEASE_BLOCK(_PlayerActorTurnScratch);
 }
 
 void func_8010BE5C(Task* task, VECTOR3* targetPoint)

@@ -7930,7 +7930,7 @@ different.
 
 ## Assign `lhs = *p = expr` so the temp stays in `$v0`
 
-`vec = expr; *scratch = vec` computes `expr` straight into the dest
+`block = expr; *scratch = block` computes `expr` straight into the dest
 register (`addiu s1, s0, -K; sw s1, 0(v1)`). The target instead does
 
 ```
@@ -7947,12 +7947,14 @@ Write the store and the dest assignment as one expression. The store
 keeps the value in `$v0` and the dest is a copy:
 
 ```c
-vec = *scratch = (ScratchTurn*)(head - 0x14);
+block = *scratch = (_PlayerActorTurnScratch*)(head - 0x14);
 ```
 
-`func_8010BD88` is the example. `vec = (ScratchTurn*)(head - 0x14);
-*scratch = vec` stuck at 96% with only those three instructions (and
-the extra/head load order) wrong.
+`func_8010BD88` is the example. `block = (_PlayerActorTurnScratch*)(head - 0x14);
+*scratch = block` stuck at 96% with only those three instructions (and
+the extra/head load order) wrong. `SCRATCH_STACK_RESERVE_BLOCK` is this
+same single expression, which is how the function spells it now:
+`block = SCRATCH_STACK_RESERVE_BLOCK(_PlayerActorTurnScratch);`.
 
 ## Write the `|=` first so its address takes `$a1`
 
