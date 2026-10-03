@@ -105,25 +105,13 @@ typedef union AcsMsgArg {
 } AcsMsgArg;
 STATIC_ASSERT_SIZEOF(AcsMsgArg, 0x18);
 
-/// One corner of an `AcsQuad`, laid out like an `SVECTOR` but read unsigned:
-/// every consumer either copies the component into an `SVECTOR` verbatim or
-/// subtracts it from a value that is truncated back to 16 bits, so the sign of
-/// the load never reaches the result.
-typedef struct AcsQuadCorner {
-    /* 0x0 */ u16 vx;
-    /* 0x2 */ u16 vy;
-    /* 0x4 */ u16 vz;
-    /* 0x6 */ u16 pad;
-} AcsQuadCorner;
-STATIC_ASSERT_SIZEOF(AcsQuadCorner, 8);
-
 /// A size class of the sanctuary's mosaic effect: the four corner offsets a
 /// tile of that class is drawn with. `D_acropolis_sanctuary_80182710` holds two
 /// of them, a small one and a double-sized one, and `AcsTile::quad` picks
 /// between them. `func_acropolis_sanctuary_8017E134` only needs `corner[0]`,
 /// the origin the tile's grid position is measured from.
 typedef struct AcsQuad {
-    /* 0x0 */ AcsQuadCorner corner[4];
+    /* 0x0 */ SVECTOR corner[4];
 } AcsQuad;
 STATIC_ASSERT_SIZEOF(AcsQuad, 0x20);
 
@@ -754,8 +742,8 @@ AcsTile D_acropolis_sanctuary_80182320[72] = {
 };
 
 AcsQuad D_acropolis_sanctuary_80182710[2] = {
-    { { { 0, 0xFFB8, 63, 0 }, { 0, 0xFFB8, 0xFFC2, 0 }, { 0, 71, 63, 0 }, { 0, 71, 0xFFC2, 0 } } },
-    { { { 0, 0xFF71, 126, 0 }, { 0, 0xFF71, 0xFF83, 0 }, { 0, 143, 126, 0 }, { 0, 143, 0xFF83, 0 } } },
+    { { { 0, -72, 63, 0 }, { 0, -72, -62, 0 }, { 0, 71, 63, 0 }, { 0, 71, -62, 0 } } },
+    { { { 0, -143, 126, 0 }, { 0, -143, -125, 0 }, { 0, 143, 126, 0 }, { 0, 143, -125, 0 } } },
 };
 
 s16 D_acropolis_sanctuary_80182750[16] = {
@@ -2392,7 +2380,7 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
     u8*               head;
     AcsMosaicScratch* blk;
     POLY_FT3*         prim;
-    AcsQuadCorner*    corner;
+    SVECTOR*          corner;
     s32               size;
     s32               hi;
     s32               i;
