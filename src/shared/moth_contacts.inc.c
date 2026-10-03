@@ -26,7 +26,7 @@ void mothContacts(Task* arg0)
     head     = SCRATCH_STACK_CURSOR(void);
     delta    = (SCRATCH_STACK_CURSOR(void) = head - 1);
     coord    = arg0->extra.tmd->coords;
-    movement = func_800E0C10(&work->field_18C, delta, 4, 0);
+    movement = func_800E0C10(&work->rec18C[0], delta, 4, 0);
     switch (movement) {
         case 0:
             break;
@@ -42,7 +42,7 @@ void mothContacts(Task* arg0)
             coord->coord.t[2] = work->field_2C4;
             break;
     }
-    Gp_ClearRec18Occupied(&work->field_18C);
+    Gp_ClearRec18Occupied(&work->rec18C[0]);
     state = (u16)work->field_154.key.parts.kind;
     switch ((u32)state) {
         case 0:

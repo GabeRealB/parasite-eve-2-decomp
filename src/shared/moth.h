@@ -37,16 +37,24 @@ typedef union MothContactStorage {
     } quad;
 } MothContactStorage;
 
+/// The moth's work block: the 0x2F4 bytes `mothSpawn` allocates with
+/// `memCalloc` and stores in the task's work slot. It opens with the animation
+/// context, its four slots and pose buffer, then the two matrices handed to
+/// the model stream and the three `WorldCollisionBody` collision bodies
+/// (object-list indices 2/2/3) with their `WorldCollisionContact` tables.
+/// The tick handlers' state follows from 0x224.
 typedef struct MothWork {
     /* 0x000 */ AnimationContext      anim;
-    /* 0x014 */ byte                  pad_14[0x140];
+    /* 0x014 */ AnimationSlot         slots[4];
+    /* 0x0B4 */ byte                  field_B4[0x40]; // pose buffer, `animationInitContext` poseBuffer
+    /* 0x0F4 */ MATRIX                field_F4;       // color matrix handed to the stream
+    /* 0x114 */ MATRIX                field_114;      // light matrix handed to the stream
+    /* 0x134 */ WorldCollisionBody    obj134;
     /* 0x154 */ WorldCollisionContact field_154;
-    /* 0x16C */ byte                  pad_16C[0x20];
-    /* 0x18C */ WorldCollisionContact field_18C;
-    /* 0x1A4 */ byte                  pad_1A4[0x56];
-    /* 0x1FA */ u16                   field_1FA;
-    /* 0x1FC */ WorldCollisionContact sensorContacts[1]; // Single result for the player sensor
-    /* 0x214 */ byte                  pad_214[0x10];
+    /* 0x16C */ WorldCollisionBody    obj16C;
+    /* 0x18C */ WorldCollisionContact rec18C[4];
+    /* 0x1EC */ WorldCollisionBody    obj1EC;
+    /* 0x20C */ WorldCollisionContact rec20C;
     /* 0x224 */ EffectSpawnArg        field_224;
     /* 0x22C */ MothContactStorage    field_22C;
     /* 0x27C */ byte                  field_27C[0x30];
@@ -68,67 +76,9 @@ typedef struct MothWork {
     /* 0x2E2 */ s16                   field_2E2;
     /* 0x2E4 */ s16                   field_2E4;
     /* 0x2E6 */ s16                   field_2E6;
-    /* 0x2E8 */ byte                  pad_2E8[0x32];
-    /* 0x31A */ u16                   field_31A;
-    /* 0x31C */ WorldCollisionContact attackContacts[1]; // Single result for the paired attack body
-    /* 0x334 */ EffectSpawnArg        field_334;         // record the hit's effect is spawned with
-    /* 0x33C */ GfxCoord*             field_33C;
-    /* 0x340 */ MATRIX                field_340;
-    /* 0x360 */ s32                   field_360;
-    /* 0x364 */ s32                   field_364;
-    /* 0x368 */ s32                   field_368;
-    /* 0x36C */ byte                  pad_36C[4];
-    /* 0x370 */ SVECTOR               field_370;
-    /* 0x378 */ s16                   field_378;
-    /* 0x37A */ s16                   field_37A;
-    /* 0x37C */ s16                   field_37C;
-    /* 0x37E */ u16                   field_37E;
-    /* 0x380 */ s16                   field_380;
-    /* 0x382 */ u16                   field_382;
-    /* 0x384 */ s16                   field_384;
-    /* 0x386 */ s16                   field_386;
-    /* 0x388 */ s16                   field_388;
-    /* 0x38A */ u16                   field_38A;
-    /* 0x38C */ u16                   field_38C;
-    /* 0x38E */ u16                   field_38E;
-    /* 0x390 */ s16                   field_390;
-    /* 0x392 */ u16                   field_392;
-    /* 0x394 */ s16                   field_394;
-    /* 0x396 */ s16                   field_396;
-    /* 0x398 */ s16                   field_398;
+    /* 0x2E8 */ byte                  pad_2E8[0xC];
 } MothWork;
-
-/// The 0x2F4-byte allocation `mothSpawn` makes with
-/// `memCalloc` and stores in the task's work slot, then fills with the three
-/// `WorldCollisionBody` collision bodies (object-list indices 2/2/3) and their `WorldCollisionContact`
-/// tables. `MothWork` is the wider view the tick handlers use of the
-/// same object.
-typedef struct MothSpawnWork {
-    /* 0x000 */ AnimationContext      anim;
-    /* 0x014 */ AnimationSlot         slots[4];
-    /* 0x0B4 */ byte                  field_B4[0x40]; // pose buffer, `animationInitContext` poseBuffer
-    /* 0x0F4 */ MATRIX                field_F4;       // color matrix handed to the stream
-    /* 0x114 */ MATRIX                field_114;      // light matrix handed to the stream
-    /* 0x134 */ WorldCollisionBody    obj134;
-    /* 0x154 */ WorldCollisionContact rec154;
-    /* 0x16C */ WorldCollisionBody    obj16C;
-    /* 0x18C */ WorldCollisionContact rec18C[4];
-    /* 0x1EC */ WorldCollisionBody    obj1EC;
-    /* 0x20C */ WorldCollisionContact rec20C;
-    /* 0x224 */ void*                 field_224;
-    /* 0x228 */ u16                   field_228;
-    /* 0x22A */ u16                   field_22A;
-    /* 0x22C */ byte                  pad_22C[0x80];
-    /* 0x2AC */ s32                   field_2AC;
-    /* 0x2B0 */ s32                   field_2B0;
-    /* 0x2B4 */ s32                   field_2B4;
-    /* 0x2B8 */ byte                  pad_2B8[0x1E];
-    /* 0x2D6 */ u16                   field_2D6;
-    /* 0x2D8 */ byte                  pad_2D8[4];
-    /* 0x2DC */ u16                   field_2DC;
-    /* 0x2DE */ byte                  pad_2DE[0x16];
-} MothSpawnWork;
-STATIC_ASSERT_SIZEOF(MothSpawnWork, 0x2F4);
+STATIC_ASSERT_SIZEOF(MothWork, 0x2F4);
 
 void mothSpawn(Enemy* arg0, Task* arg1);
 void mothUpdate(Enemy* arg0, Task* arg1);

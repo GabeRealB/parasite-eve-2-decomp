@@ -45,13 +45,13 @@ void mothDeath(Enemy* arg0, Task* arg1)
                     if (!(rnd & 0x100)) {
                         angle = -angle;
                     }
-                    work->field_2E4                      = angle;
-                    arg0->recs                           = 0;
-                    ((MothSpawnWork*)work)->obj134.flags = ((MothSpawnWork*)work)->obj134.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    ((MothSpawnWork*)work)->obj16C.flags = ((MothSpawnWork*)work)->obj16C.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-                    ((MothSpawnWork*)work)->obj1EC.flags = ((MothSpawnWork*)work)->obj1EC.flags | WORLD_COLLISION_BODY_PAIR_ENABLED;
-                    id                                   = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070006;
-                    pan                                  = (s8)worldCoordGetOriginAudioPan(coord);
+                    work->field_2E4                 = angle;
+                    arg0->recs                      = 0;
+                    ((MothWork*)work)->obj134.flags = ((MothWork*)work)->obj134.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+                    ((MothWork*)work)->obj16C.flags = ((MothWork*)work)->obj16C.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+                    ((MothWork*)work)->obj1EC.flags = ((MothWork*)work)->obj1EC.flags | WORLD_COLLISION_BODY_PAIR_ENABLED;
+                    id                              = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070006;
+                    pan                             = (s8)worldCoordGetOriginAudioPan(coord);
                     SndEvt_EnqueueType6(id, pan, (s8)worldCoordGetOriginAudioDepth(coord));
                     worldTargetUnlinkNode(&arg0->node);
                     Gp_ReleaseStateF0Add(arg1, 8);
@@ -74,9 +74,9 @@ void mothDeath(Enemy* arg0, Task* arg1)
                     }
                     work->field_2E0++;
                     if (work->field_2E0 >= 0x1E) {
-                        Gp_UnlinkObj(&((MothSpawnWork*)work)->obj134);
-                        Gp_UnlinkObj(&((MothSpawnWork*)work)->obj16C);
-                        Gp_UnlinkObj(&((MothSpawnWork*)work)->obj1EC);
+                        Gp_UnlinkObj(&((MothWork*)work)->obj134);
+                        Gp_UnlinkObj(&((MothWork*)work)->obj16C);
+                        Gp_UnlinkObj(&((MothWork*)work)->obj1EC);
                         work->field_2DE = 2;
                     }
                     break;

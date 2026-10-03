@@ -101,7 +101,7 @@ typedef struct RatWork {
 } RatWork;
 
 /// The 0x39C-byte block `ratSpawn` allocates. Larger than
-/// the Moth's `MothSpawnWork` and laid out differently: the pose buffer
+/// the Moth's `MothWork` and laid out differently: the pose buffer
 /// `animationInitContext` fills sits at +0x12C instead of +0xB4, and the four
 /// `WorldCollisionBody` collision bodies it links (object-list indices 3/2/2/3, each with its
 /// own `WorldCollisionContact` table) start at +0x1DC rather than +0x134.

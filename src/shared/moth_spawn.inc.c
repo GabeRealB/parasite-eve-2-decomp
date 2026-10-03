@@ -10,10 +10,10 @@
 /// gMothAttack (list 3) - and moves to state 1.
 void mothSpawn(Enemy* arg0, Task* arg1)
 {
-    MothSpawnWork* work;
-    GfxCoord*      coord;
-    TmdObject*     obj;
-    s32            i;
+    MothWork*  work;
+    GfxCoord*  coord;
+    TmdObject* obj;
+    s32        i;
 
     obj   = arg1->extra.tmd;
     coord = obj->coords;
@@ -40,11 +40,11 @@ void mothSpawn(Enemy* arg0, Task* arg1)
     arg0->bodyPos.vy             = 0;
     arg0->bodyPos.vz             = 0;
     arg0->param                  = &gMothParams;
-    arg0->recs                   = &work->rec154;
+    arg0->recs                   = &work->field_154;
     arg0->hp                     = (u16)gMothParams.hpMax;
-    work->field_228              = 0x100;
-    work->field_22A              = 1;
-    work->field_224              = coord;
+    work->field_224.spawnArgLo   = 0x100;
+    work->field_224.spawnArgHi   = 1;
+    work->field_224.coord        = coord;
     animationInitContext(&work->anim, gMothAnimSets, obj,
                          (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->field_B4, work->slots);
     for (i = 1; i < 4; i++) {
@@ -57,7 +57,7 @@ void mothSpawn(Enemy* arg0, Task* arg1)
     work->field_2B4               = (s32)coord->coord.t[2];
     work->field_2DC               = (u16)((Enemy*)arg1->spawnArg2.pointer)->place->yaw;
     work->obj134.coord            = coord;
-    work->obj134.context.contacts = &work->rec154;
+    work->obj134.context.contacts = &work->field_154;
     work->obj134.pos.vx           = 0;
     work->obj134.pos.vy           = 0;
     work->obj134.pos.vz           = 0;
@@ -65,7 +65,7 @@ void mothSpawn(Enemy* arg0, Task* arg1)
     work->obj134.radius           = 0xFA;
     work->obj134.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->obj134);
-    Gp_InitRec18Table(&work->rec154, 1, 0);
+    Gp_InitRec18Table(&work->field_154, 1, 0);
     work->obj16C.coord            = coord;
     work->obj16C.context.contacts = &work->rec18C[0];
     work->obj16C.pos.vx           = 0;
