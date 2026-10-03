@@ -61,14 +61,20 @@ typedef struct {
 } _ItemMenuM4a1VariantTable;
 STATIC_ASSERT_SIZEOF(_ItemMenuM4a1VariantTable, 0x10);
 
+/// Task work for the panel that shows a weapon created by using an add-on.
+///
+/// The add-on is consumed and one carried weapon item is replaced by the
+/// weapon that add-on produces. The panel lists the previous weapon and the
+/// add-on above "used.", then the new weapon and any add-ons returned to the
+/// inventory above "created."
 typedef struct {
-    /* 0x00 */ s32 field_0;
-    /* 0x04 */ s32 field_4;
-    /* 0x08 */ s32 field_8;
-    /* 0x0C */ s32 field_C;
-    /* 0x10 */ s32 field_10;
-} GpUseCreateWork;
-STATIC_ASSERT_SIZEOF(GpUseCreateWork, 0x14);
+    s32 usedAddonItemId;      // Add-on item that was used.
+    s32 previousWeaponItemId; // Weapon item carried before the swap (0x80..0x9F).
+    s32 createdWeaponItemId;  // Weapon item carried after the swap (0x80..0x9F).
+    s32 returnedAddonItemId;  // Add-on taken off the old variant (0 none).
+    s32 returnedClipItemId;   // Extra Rifle Clip Holder returned while M4A1(+2) is carried (0 none).
+} _ItemMenuWeaponCreateWork;
+STATIC_ASSERT_SIZEOF(_ItemMenuWeaponCreateWork, 0x14);
 
 u8 Gp_MapRoomId;
 
@@ -665,32 +671,32 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
             _ItemMenuM4a1VariantTable variantTable;
         } u;
     } sp20;
-    s32                       result;
-    s32                       bonus;
-    register s32              src;
-    register s32              extra;
-    register s32              item;
-    register s32              x;
-    register s32              color;
-    register GpUseCreateWork* work;
-    s32                       y;
-    s32                       i;
-    s32                       carried;
-    s32                       temp;
-    s32                       lines;
-    s32                       saved;
-    s32                       ten;
-    s32                       hiddenState;
-    s32                       textY;
-    u16                       cd;
-    InventoryItemRange*       scan;
-    InventoryItemRange*       scanInit;
-    GpUseCreateWork*          newWork;
-    _ItemMenuWeaponVariant*   variants;
-    EquipmentWeaponLoad*      slotSrc;
-    EquipmentWeaponLoad*      slotDst;
-    InventoryItemRow*         rec;
-    PlayerStatus*             cfg;
+    s32                                 result;
+    s32                                 bonus;
+    register s32                        src;
+    register s32                        extra;
+    register s32                        item;
+    register s32                        x;
+    register s32                        color;
+    register _ItemMenuWeaponCreateWork* work;
+    s32                                 y;
+    s32                                 i;
+    s32                                 carried;
+    s32                                 temp;
+    s32                                 lines;
+    s32                                 saved;
+    s32                                 ten;
+    s32                                 hiddenState;
+    s32                                 textY;
+    u16                                 cd;
+    InventoryItemRange*                 scan;
+    InventoryItemRange*                 scanInit;
+    _ItemMenuWeaponCreateWork*          newWork;
+    _ItemMenuWeaponVariant*             variants;
+    EquipmentWeaponLoad*                slotSrc;
+    EquipmentWeaponLoad*                slotDst;
+    InventoryItemRow*                   rec;
+    PlayerStatus*                       cfg;
 
     if (arg1->state == 0) {
         src          = 0;
@@ -778,7 +784,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
             slotSrc    = Gp_GetItemSlot(src);
             slotDst    = Gp_GetItemSlot(result);
             rec        = Gp_FindItemById(src);
-            newWork    = memCalloc(0x14, 0);
+            newWork    = memCalloc(sizeof(_ItemMenuWeaponCreateWork), 0);
             scanInit   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
             arg1->work = newWork;
             Gp_RemoveItem(scanInit, Gp_SelItemRec, 1);
@@ -800,13 +806,13 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
             if (bonus != 0) {
                 Gp_GiveItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, bonus, -1);
             }
-            temp              = result;
-            newWork->field_8  = temp;
-            newWork->field_4  = src;
-            newWork->field_C  = extra;
-            lines             = 5;
-            newWork->field_10 = bonus;
-            newWork->field_0  = item;
+            temp                          = result;
+            newWork->createdWeaponItemId  = temp;
+            newWork->previousWeaponItemId = src;
+            newWork->returnedAddonItemId  = extra;
+            lines                         = 5;
+            newWork->returnedClipItemId   = bonus;
+            newWork->usedAddonItemId      = item;
             if (extra != 0) {
                 lines = 6;
             }
@@ -829,11 +835,11 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
     }
     color = 0x37A78;
     y     = arg0->panel.contentTop.signedValue + 0xF;
-    work  = (GpUseCreateWork*)arg1->work;
+    work  = arg1->work;
     x     = arg0->panel.contentLeft.signedValue + 2;
     Ui_DrawText(&(arg0)->panel, Gp_StrNotice);
     hiddenState = USER_INTERFACE_PANEL_HIDDEN;
-    item        = work->field_4;
+    item        = work->previousWeaponItemId;
     if (arg0->panel.state != hiddenState) {
         sp20.u.req.x          = arg0->panel.contentOriginX.unsignedValue + 0x11 + x;
         textY                 = arg0->panel.contentOriginY.unsignedValue - 6;
@@ -851,7 +857,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
         Gp_DrawItemIcon(arg0, x, y, item, 0);
     }
     hiddenState = USER_INTERFACE_PANEL_HIDDEN;
-    item        = work->field_0;
+    item        = work->usedAddonItemId;
     y          += 0xF;
     if (arg0->panel.state != hiddenState) {
         sp20.u.req.x          = arg0->panel.contentOriginX.unsignedValue + 0x11 + x;
@@ -872,7 +878,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
     y += 0xF;
     Text_DrawPrompt(arg0, x, y, Gp_StrUsedDot, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     hiddenState = USER_INTERFACE_PANEL_HIDDEN;
-    item        = work->field_8;
+    item        = work->createdWeaponItemId;
     y          += 0xF;
     if (arg0->panel.state != hiddenState) {
         sp20.u.req.x          = arg0->panel.contentOriginX.unsignedValue + 0x11 + x;
@@ -890,7 +896,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
         }
         Gp_DrawItemIcon(arg0, x, y, item, 0);
     }
-    item = work->field_C;
+    item = work->returnedAddonItemId;
     if (item != 0) {
         y += 0xF;
         if (arg0->panel.state != USER_INTERFACE_PANEL_HIDDEN) {
@@ -909,7 +915,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
             }
             Gp_DrawItemIcon(arg0, x, y, item, 0);
         }
-        item = work->field_10;
+        item = work->returnedClipItemId;
         if (item != 0) {
             y += 0xF;
             if (arg0->panel.state != USER_INTERFACE_PANEL_HIDDEN) {
