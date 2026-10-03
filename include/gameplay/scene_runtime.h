@@ -110,7 +110,7 @@ void Gp_SaveEnemyPose(Enemy* enemy);
 /// Spawns the placement/resource layout selected by stage, area and variant.
 void Gp_SpawnArea(GameLocationKey* location);
 
-GpWorkObj* Gp_FindWorkById(u16 arg0);
+Enemy* Gp_FindWorkById(u16 arg0);
 
 void Gp_SetTmdBytes(TmdObject* arg0, s32 arg1, s32 arg2);
 

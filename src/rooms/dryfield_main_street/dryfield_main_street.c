@@ -1049,7 +1049,7 @@ void func_dryfield_main_street_8017E1C0(Task* task)
 {
     Task*      player;
     GameActor* actor;
-    GpWorkObj* work;
+    Enemy*     enemy;
     GfxCoord*  self;
     GfxCoord*  target;
     s32        angle;
@@ -1060,10 +1060,10 @@ void func_dryfield_main_street_8017E1C0(Task* task)
 
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     actor  = (GameActor*)player->work;
-    work   = Gp_FindWorkById(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8));
-    if ((work != NULL) && (gGameSession->eventState != 0)) {
+    enemy  = Gp_FindWorkById(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8));
+    if ((enemy != NULL) && (gGameSession->eventState != 0)) {
         self      = player->extra.tmd->coords;
-        target    = &(work->field_0)->extra.tmd->coords[1];
+        target    = &enemy->task->extra.tmd->coords[1];
         angle     = ratan2(target->coord.t[0] - self->coord.t[0], target->coord.t[2] - self->coord.t[2]);
         delta     = angle - actor->rotation.vy;
         magnitude = ABS(delta);
@@ -1130,8 +1130,8 @@ kill:
 /// player and the current area's work object. Any other state ends the task.
 void func_dryfield_main_street_8017E3A8(Task* task)
 {
-    GpWorkObj* work;
-    u16        tick;
+    Enemy* enemy;
+    u16    tick;
 
     if (D_801156F9 == 0) {
         if (task->state == 0) {
@@ -1148,8 +1148,8 @@ void func_dryfield_main_street_8017E3A8(Task* task)
                     task->killCountdown = 0;
                 }
             }
-            work = Gp_FindWorkById(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8));
-            func_800B0928(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), work->field_0, 0x300, 0x200, task->killCountdown);
+            enemy = Gp_FindWorkById(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8));
+            func_800B0928(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), enemy->task, 0x300, 0x200, task->killCountdown);
         } else {
             taskKill(task);
         }

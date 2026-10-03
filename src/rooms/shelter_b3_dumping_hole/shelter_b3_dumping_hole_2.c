@@ -2798,8 +2798,8 @@ void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
                 memFillBytes(work, 0, sizeof(*work));
                 work->player                       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_shelter_b3_dumping_hole_8018F4A8 = arg0;
-                work->placement0Actor              = Gp_FindWorkById(gGameSession->location.loc.area | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT))->field_0;
-                work->placement1Actor              = Gp_FindWorkById((gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | (u16)(gGameSession->location.loc.area | (1 << ENEMY_PLACE_INDEX_SHIFT)))->field_0;
+                work->placement0Actor              = Gp_FindWorkById(gGameSession->location.loc.area | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT))->task;
+                work->placement1Actor              = Gp_FindWorkById((gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | (u16)(gGameSession->location.loc.area | (1 << ENEMY_PLACE_INDEX_SHIFT)))->task;
                 work->debrisSpriteSignal           = SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITES_WAIT;
                 work->debrisModelSignal            = SHELTER_B3_DUMPING_HOLE_DEBRIS_MODELS_WAIT;
                 work->field_4A                     = 0;
@@ -3487,7 +3487,7 @@ void func_shelter_b3_dumping_hole_80181560(Task* task)
                 memFillBytes(work, 0, sizeof(*work));
                 work->field_80                     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_shelter_b3_dumping_hole_8018F4AC = task;
-                work->field_84                     = Gp_FindWorkById(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8))->field_0;
+                work->field_84                     = Gp_FindWorkById(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8))->task;
                 obj->lightMtx                      = &work->lightMtx;
                 obj->colorMtx                      = &work->colorMtx;
                 task->msgTable                     = D_shelter_b3_dumping_hole_8018965C;

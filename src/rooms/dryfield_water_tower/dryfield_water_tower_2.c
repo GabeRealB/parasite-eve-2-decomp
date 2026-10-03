@@ -74,7 +74,7 @@ extern WorldCollisionTrigger D_dryfield_water_tower_80186A84[24];
 ///
 /// The first three fields are the tasks the room's script dispatches its
 /// messages to: `field_0` is the slot-3 game pointer (`gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`),
-/// and `field_4` / `field_8` are `Gp_FindWorkById(...)->field_0` for two ids
+/// and `field_4` / `field_8` are `Gp_FindWorkById(...)->task` for two ids
 /// built from the session's `location.loc.area` / `location.loc.stage` bytes (the second id has
 /// 0x1000 OR'd in). `func_dryfield_water_tower_80180220` sends the 0x7D4 pair
 /// to `field_8` / `field_4` and the 0x3F3 / 0x3E9 messages to `field_0`.
@@ -89,8 +89,8 @@ extern WorldCollisionTrigger D_dryfield_water_tower_80186A84[24];
 /// `func_dryfield_water_tower_80180194` dispatch its one-shot message once.
 typedef struct DwtwWork {
     /* 0x00 */ Task* field_0; // gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), taskMessageDispatch target
-    /* 0x04 */ Task* field_4; // Gp_FindWorkById(...)->field_0
-    /* 0x08 */ Task* field_8; // Gp_FindWorkById(...)->field_0
+    /* 0x04 */ Task* field_4; // Gp_FindWorkById(...)->task
+    /* 0x08 */ Task* field_8; // Gp_FindWorkById(...)->task
     /* 0x0C */ s16   field_C;
     /* 0x0E */ s16   field_E;
     /* 0x10 */ byte  pad_10[0x4];
@@ -3042,9 +3042,9 @@ void func_dryfield_water_tower_8017FD64(Task* task)
                 work->field_0                   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_dryfield_water_tower_801876AC = task;
                 id                              = gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8);
-                work->field_4                   = Gp_FindWorkById(id)->field_0;
+                work->field_4                   = Gp_FindWorkById(id)->task;
                 id                              = ((gGameSession->location.loc.stage << 8) | 0x1000) | gGameSession->location.loc.area;
-                work->field_8                   = Gp_FindWorkById(id)->field_0;
+                work->field_8                   = Gp_FindWorkById(id)->task;
             }
             task->state++;
             break;

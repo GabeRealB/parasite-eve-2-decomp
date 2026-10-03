@@ -81,7 +81,9 @@
 /// and body position it moves through, its hit points, the placement it was
 /// spawned from, and the parameter record of its kind. Gameplay finds the
 /// enemy on the tracked-target list through `node`, and tells one enemy from
-/// another by `placeKey`. Leaving a room saves the pose under that key;
+/// another by `placeKey`. Every child of the scene task carries one, so the
+/// scene's searches select children by `placeKey` and by the bank in
+/// `workType`. Leaving a room saves the pose under that key;
 /// `spawnState` is the state the spawn handler resumes in, so the enemy
 /// returns where it was.
 ///
@@ -185,23 +187,5 @@ typedef struct {
 typedef struct {
     EnemyTaskFunc funcs[5];
 } GpEnemyTaskFuncTable5;
-
-/// Overlay of `Task::spawnArg2` for sibling walkers. `field_A` high byte is
-/// the work type (`Gp_FindChildType9` / `Gp_ExitChildrenType9` / `Gp_SendMsgType9` match 9;
-/// `Gp_FindChildExceptType9` skips 9). `field_8` is the id compared against the search
-/// key (`as_u16` / `as_u8`; `Gp_FindWorkById` matches `as_u16` on slot 4's
-/// children). `field_3C` is the placement record the children of slot 4 were
-/// spawned from, whose `entryId` `Gp_ApplyAreaTmdFlags` matches. Full size unknown.
-typedef struct _GpWorkObj {
-    /* 0x00 */ Task* field_0; // task owning this slot-4 object
-    /* 0x04 */ byte  pad_4[4];
-    /* 0x08 */ union {
-        u16 as_u16;
-        u8  as_u8;
-    } field_8;
-    /* 0x0A */ u16            field_A;
-    /* 0x0C */ byte           pad_C[0x30];
-    /* 0x3C */ AreaPlacement* field_3C;
-} GpWorkObj;
 
 #endif // GAMEPLAY_ENEMY_H

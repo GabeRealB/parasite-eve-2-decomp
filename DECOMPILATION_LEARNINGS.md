@@ -25928,8 +25928,8 @@ the payload pointer:
 ```c
 arg1 = child;
 do {
-    arg0 = arg1->spawnArg2;
-    if (((((GpWorkObj*)arg0)->field_A >> 8) == 9) && (((GpWorkObj*)arg0)->field_8.as_u16 == arg2)) {
+    arg0 = arg1->spawnArg2.pointer;
+    if (((((Enemy*)arg0)->workType >> 8) == 9) && (((Enemy*)arg0)->placeKey == arg2)) {
         *arg3 = arg1;
         ret   = 0;
         break;
@@ -25941,23 +25941,21 @@ do {
 `Gp_FindChildType9` is the example. The same early `if (child == NULL) return ret;`
 is what emits `bnez` + `jr` instead of `beqz` to a shared tail.
 
-## Same-offset `lhu` vs `lbu` needs a union, not a cast
+## Same-offset `lhu` vs `lbu`: try a `(u8)` cast before a union
 
 Two sibling walkers can compare the same id bytes at `+0x8` with different
-load widths (`lhu` vs `lbu`). `(u8)obj->field_8` still emits `lhu` then
-`andi`, and splitting the member into two `u8`s breaks the `lhu` caller.
-
-Put both widths in a union so each access keeps its own load:
+load widths (`lhu` vs `lbu`). This was first matched with a union of
+`u16 as_u16` / `u8 as_u8` over the field, on the belief that a cast still
+emits `lhu` then `andi`. It does not: comparing `(u8)enemy->placeKey` against
+the key emits `lbu` and matches (2026-10-03), so the field keeps its single
+`u16` type and the byte view lives at the one use site:
 
 ```c
-union {
-    u16 as_u16;
-    u8  as_u8;
-} field_8;
+if (((((Enemy*)arg0)->workType >> 8) != 9) && ((u8)((Enemy*)arg0)->placeKey == arg2)) {
 ```
 
-`Gp_FindChildType9` uses `field_8.as_u16`; `Gp_FindChildExceptType9` uses `field_8.as_u8`
-and inverts the work-type test (`!= 9` instead of `== 9`).
+`Gp_FindChildType9` compares `placeKey` whole; `Gp_FindChildExceptType9` compares
+its low byte and inverts the work-type test (`!= 9` instead of `== 9`).
 
 **When not to reach for the union.** The remedy above reshapes the field, so it
 costs one rename per use site. On a shared, heavily-used struct that is not a
@@ -26017,9 +26015,9 @@ if (child == NULL) {
 }
 arg0 = child;
 do {
-    work = (GpWorkObj*)arg0->spawnArg2;
-    type = work->field_A >> 8;
-    next = arg0->nextSibling;
+    enemy = arg0->spawnArg2.pointer;
+    type  = enemy->workType >> 8;
+    next  = arg0->nextSibling;
     if (type == 9) {
         Task_CallExit(arg0);
     }
@@ -26451,7 +26449,7 @@ poly++;
 
 A circular `firstChild` / `nextSibling` search that returns the matching
 `spawnArg2` (or NULL) wants the result in `$s0` and the incoming `u16` id in
-`$s1`. Initializing `work = NULL` *after* the child load leaves the result in
+`$s1`. Initializing `enemy = NULL` *after* the child load leaves the result in
 a caller-saved reg and drops the extra save. Assign it before the call so it
 is live across `gameGetTaskSlot` and pins `$s0`.
 
@@ -26462,19 +26460,19 @@ copy the key into an `s32` after the first `spawnArg2` load so `andi` fills
 the `lhu` delay and `move v1, a1` survives:
 
 ```c
-work = NULL;
-head = gameGetTaskSlot(GAME_TASK_SLOT_SCENE)->firstChild;
+enemy = NULL;
+head  = gameGetTaskSlot(GAME_TASK_SLOT_SCENE)->firstChild;
 if (head != NULL) {
-    iter = head;
-    work = iter->spawnArg2;
-    key  = arg0; /* s32 key — andi after lhu, keeps the iterator copy */
-    if (work->field_8.as_u16 != key) {
+    iter  = head;
+    enemy = iter->spawnArg2.pointer;
+    key   = arg0; /* s32 key — andi after lhu, keeps the iterator copy */
+    if (enemy->placeKey != key) {
     loop:
-        iter = iter->nextSibling;
-        work = NULL;
+        iter  = iter->nextSibling;
+        enemy = NULL;
         if (iter != head) {
-            work = iter->spawnArg2;
-            if (work->field_8.as_u16 != key) {
+            enemy = iter->spawnArg2.pointer;
+            if (enemy->placeKey != key) {
                 goto loop;
             }
         }
@@ -30196,10 +30194,10 @@ bne   v0, t2, skip
 ```
 
 ```c
-work = iter->spawnArg2;
+enemy = iter->spawnArg2.pointer;
 if (iter->bodyKind == TASK_BODY_TMD) {
     /* ... */
-    bytes = work->field_3C;
+    place = enemy->place;
 }
 ```
 
@@ -89916,8 +89914,8 @@ holding it. That is not an argument setup: the pointer's live range ends at the
 call, so the allocator picks `$a1` for it unprompted, and no delay-slot store is
 involved.
 
-The real prototype is `GpWorkObj* Gp_FindWorkById(u16 index)`
-(`include/gameplay/1BC.h`). The natural one-argument body written against it
+The real prototype is `Enemy* Gp_FindWorkById(u16 index)`
+(`include/gameplay/scene_runtime.h`). The natural one-argument body written against it
 compiles byte-identically - 100.000%, same 19 instructions, same block count -
 so the seed was not wrong enough to fail, only misleading. An argument register
 live at a call is therefore a third shape to check next to the delay-slot store

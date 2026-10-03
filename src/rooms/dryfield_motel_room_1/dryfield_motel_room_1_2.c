@@ -1204,13 +1204,13 @@ static void func_dryfield_motel_room_1_8017DC2C(Task* arg0)
     work->field_0                    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     D_dryfield_motel_room_1_8018159C = arg0;
     id                               = gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8);
-    work->field_4                    = Gp_FindWorkById(id)->field_0;
+    work->field_4                    = Gp_FindWorkById(id)->task;
     id                               = ((gGameSession->location.loc.stage << 8) | 0x1000) | gGameSession->location.loc.area;
-    work->field_8                    = Gp_FindWorkById(id)->field_0;
+    work->field_8                    = Gp_FindWorkById(id)->task;
     id                               = ((gGameSession->location.loc.stage << 8) | 0x2000) | gGameSession->location.loc.area;
-    work->field_C                    = Gp_FindWorkById(id)->field_0;
+    work->field_C                    = Gp_FindWorkById(id)->task;
     id                               = ((gGameSession->location.loc.stage << 8) | 0x3000) | gGameSession->location.loc.area;
-    work->field_10                   = Gp_FindWorkById(id)->field_0;
+    work->field_10                   = Gp_FindWorkById(id)->task;
 }
 void func_dryfield_motel_room_1_8017DD3C(Task* arg0)
 {

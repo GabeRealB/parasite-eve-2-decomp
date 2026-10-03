@@ -1121,7 +1121,7 @@ void func_mist_parking_80182898(Task* task)
 void func_mist_parking_801828F0(Task* task)
 {
     GameActor* actor;
-    GpWorkObj* work;
+    Enemy*     enemy;
     s32        idx;
     s32        flag;
     u16        tick;
@@ -1148,8 +1148,8 @@ void func_mist_parking_801828F0(Task* task)
                     task->killCountdown = 0;
                 }
             }
-            work = Gp_FindWorkById(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8));
-            func_800B0928(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), work->field_0, 0x200, 0x100, task->killCountdown);
+            enemy = Gp_FindWorkById(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8));
+            func_800B0928(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), enemy->task, 0x200, 0x100, task->killCountdown);
         } else {
             taskKill(task);
         }

@@ -4143,7 +4143,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             TASK_MESSAGE_DISPATCH_POINTER(
                 Gp_FindWorkById((idx << ENEMY_PLACE_INDEX_SHIFT) | (sessionKey->stage << ENEMY_PLACE_STAGE_SHIFT) |
                                 sessionKey->area)
-                    ->field_0,
+                    ->task,
                 0x7D3, &roomRec, 0);
             task->state = task->state + 1;
             work->timer = 0;
@@ -4185,7 +4185,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
                 taskMessageDispatch(
                     Gp_FindWorkById((idx << ENEMY_PLACE_INDEX_SHIFT) | (sessionKey->stage << ENEMY_PLACE_STAGE_SHIFT) |
                                     sessionKey->area)
-                        ->field_0,
+                        ->task,
                     0x7D7, 1, 0);
                 taskMessageDispatch(work->slot3, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
                 Gpu_ResetGraphAndOt();

@@ -492,8 +492,8 @@ kill:
 
 void func_shelter_b6_training_room_8017D9C8(Task* task)
 {
-    GpWorkObj* work;
-    u16        tick;
+    Enemy* enemy;
+    u16    tick;
 
     if (D_801156F9 == 0) {
         if (task->state == 0) {
@@ -510,8 +510,8 @@ void func_shelter_b6_training_room_8017D9C8(Task* task)
                     task->killCountdown = 0;
                 }
             }
-            work = Gp_FindWorkById(gGameSession->location.loc.area | ((gGameSession->location.loc.stage << 8) | 0x1000));
-            func_800B0928(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), work->field_0, 0x200, 0x100, task->killCountdown);
+            enemy = Gp_FindWorkById(gGameSession->location.loc.area | ((gGameSession->location.loc.stage << 8) | 0x1000));
+            func_800B0928(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), enemy->task, 0x200, 0x100, task->killCountdown);
         } else {
             taskKill(task);
         }

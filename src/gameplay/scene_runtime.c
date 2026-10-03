@@ -3517,7 +3517,7 @@ void Gp_ApplyAreaTmdFlags(void)
     AreaVariant*     variants;
     AreaResource*    table;
     AreaResource*    entry;
-    GpWorkObj*       work;
+    Enemy*           enemy;
     AreaPlacement*   place;
     TmdObject*       extra;
     u16              id;
@@ -3529,13 +3529,13 @@ void Gp_ApplyAreaTmdFlags(void)
     if (head != NULL) {
         iter = head;
         do {
-            work = iter->spawnArg2.pointer;
+            enemy = iter->spawnArg2.pointer;
             if (iter->bodyKind == TASK_BODY_TMD) {
                 key   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
                 idx   = key->stage;
                 extra = iter->extra.tmd;
                 rec   = Gp_AreaTables[idx];
-                place = work->field_3C;
+                place = enemy->place;
                 table = NULL;
                 if (rec != NULL) {
                     variants = rec[key->area].field_0;
@@ -3581,32 +3581,32 @@ void Gp_ReparentCoord(GfxCoord* arg0, GfxCoord* arg1)
     }
 }
 
-GpWorkObj* Gp_FindWorkById(u16 arg0)
+Enemy* Gp_FindWorkById(u16 arg0)
 {
-    Task*      head;
-    Task*      iter;
-    GpWorkObj* work;
-    s32        key;
+    Task*  head;
+    Task*  iter;
+    Enemy* enemy;
+    s32    key;
 
-    work = NULL;
-    head = (gameGetTaskSlot(GAME_TASK_SLOT_SCENE))->firstChild;
+    enemy = NULL;
+    head  = (gameGetTaskSlot(GAME_TASK_SLOT_SCENE))->firstChild;
     if (head != NULL) {
-        iter = head;
-        work = iter->spawnArg2.pointer;
-        key  = arg0;
-        if (work->field_8.as_u16 != key) {
+        iter  = head;
+        enemy = iter->spawnArg2.pointer;
+        key   = arg0;
+        if (enemy->placeKey != key) {
         loop:
-            iter = iter->nextSibling;
-            work = NULL;
+            iter  = iter->nextSibling;
+            enemy = NULL;
             if (iter != head) {
-                work = iter->spawnArg2.pointer;
-                if (work->field_8.as_u16 != key) {
+                enemy = iter->spawnArg2.pointer;
+                if (enemy->placeKey != key) {
                     goto loop;
                 }
             }
         }
     }
-    return work;
+    return enemy;
 }
 
 void Gp_SetTmdBytes(TmdObject* arg0, s32 arg1, s32 arg2)
@@ -3823,7 +3823,7 @@ s32 Gp_FindChildType9(Task* arg0, Task* arg1, s32 arg2, Task** arg3)
     arg1 = child;
     do {
         arg0 = arg1->spawnArg2.pointer;
-        if (((((GpWorkObj*)arg0)->field_A >> 8) == 9) && (((GpWorkObj*)arg0)->field_8.as_u16 == arg2)) {
+        if (((((Enemy*)arg0)->workType >> 8) == 9) && (((Enemy*)arg0)->placeKey == arg2)) {
             *arg3 = arg1;
             ret   = 0;
             break;
@@ -3847,7 +3847,7 @@ s32 Gp_FindChildExceptType9(Task* arg0, Task* arg1, s32 arg2, Task** arg3)
     arg1 = child;
     do {
         arg0 = arg1->spawnArg2.pointer;
-        if (((((GpWorkObj*)arg0)->field_A >> 8) != 9) && (((GpWorkObj*)arg0)->field_8.as_u8 == arg2)) {
+        if (((((Enemy*)arg0)->workType >> 8) != 9) && ((u8)((Enemy*)arg0)->placeKey == arg2)) {
             *arg3 = arg1;
             ret   = 0;
             break;
@@ -3859,10 +3859,10 @@ s32 Gp_FindChildExceptType9(Task* arg0, Task* arg1, s32 arg2, Task** arg3)
 
 s32 Gp_ExitChildrenType9(Task* arg0)
 {
-    Task*      child;
-    Task*      next;
-    GpWorkObj* work;
-    u32        type;
+    Task*  child;
+    Task*  next;
+    Enemy* enemy;
+    u32    type;
 
     child = arg0->firstChild;
     if (child == NULL) {
@@ -3870,9 +3870,9 @@ s32 Gp_ExitChildrenType9(Task* arg0)
     }
     arg0 = child;
     do {
-        work = (GpWorkObj*)arg0->spawnArg2.pointer;
-        type = work->field_A >> 8;
-        next = arg0->nextSibling;
+        enemy = arg0->spawnArg2.pointer;
+        type  = enemy->workType >> 8;
+        next  = arg0->nextSibling;
         if (type == 9) {
             Task_CallExit(arg0);
         }
@@ -3883,10 +3883,10 @@ s32 Gp_ExitChildrenType9(Task* arg0)
 
 s32 Gp_SendMsgType9(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    Task*      child;
-    Task*      next;
-    GpWorkObj* work;
-    u32        type;
+    Task*  child;
+    Task*  next;
+    Enemy* enemy;
+    u32    type;
 
     child = arg0->firstChild;
     if (child == NULL) {
@@ -3894,9 +3894,9 @@ s32 Gp_SendMsgType9(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     }
     arg0 = child;
     do {
-        work = (GpWorkObj*)arg0->spawnArg2.pointer;
-        type = work->field_A >> 8;
-        next = arg0->nextSibling;
+        enemy = arg0->spawnArg2.pointer;
+        type  = enemy->workType >> 8;
+        next  = arg0->nextSibling;
         if (type == 9) {
             taskMessageDispatch(arg0, arg3, arg2, 0);
         }

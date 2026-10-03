@@ -3540,11 +3540,11 @@ static void func_actor_421600_801369A0(Task* arg0)
         case 0:
             hi    = gGameSession->location.loc.stage << 8;
             id    = gGameSession->location.loc.area | 0x1000;
-            found = (Enemy*)Gp_FindWorkById(id | hi);
+            found = Gp_FindWorkById(id | hi);
             break;
         case 1:
             stageAreaId = (gGameSession->location.loc.stage << 8) | gGameSession->location.loc.area;
-            found       = (Enemy*)Gp_FindWorkById(stageAreaId);
+            found       = Gp_FindWorkById(stageAreaId);
             break;
     }
     if (found != NULL) {

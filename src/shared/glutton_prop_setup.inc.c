@@ -16,13 +16,13 @@ void gluttonPropSetup(Enemy* enemy, Task* task)
     u32              raw;
 
     sessionKey = &gGameSession->location.loc;
-    raw        = ((GpWorkObj*)task->parent->spawnArg2.pointer)->field_8.as_u16;
+    raw        = ((Enemy*)task->parent->spawnArg2.pointer)->placeKey;
     model      = task->extra.tmd;
     key.stage  = sessionKey->stage;
     key.area   = sessionKey->area;
     key.room   = sessionKey->room;
     areaByte0  = sessionKey->view;
-    idx        = raw >> 12;
+    idx        = raw >> ENEMY_PLACE_INDEX_SHIFT;
     key.view   = areaByte0;
     areaSyncLocationVariant(&key);
     layout = Gp_GetNestedAreaRec(&key);

@@ -73,7 +73,7 @@
 /// `Gp_SpawnWeaponEff` while it is set, then clears it).
 typedef struct Actor341900Work {
     /* 0x00 */ Task*          field_0; // gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)
-    /* 0x04 */ Task*          field_4; // Gp_FindWorkById(session slot)->field_0
+    /* 0x04 */ Task*          field_4; // Gp_FindWorkById(session slot)->task
     /* 0x08 */ Task*          field_8;
     /* 0x0C */ Task*          field_C;
     /* 0x10 */ Task*          field_10;
@@ -952,7 +952,7 @@ void func_actor_341900_80162EFC(Task* arg0)
                 D_actor_341900_80164208 = arg0;
                 work->field_4           = Gp_FindWorkById(
                                     gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8))
-                                    ->field_0;
+                                    ->task;
             }
             request.context.loc.stage = gGameSession->location.loc.stage;
             sessionIdLo               = gGameSession->location.loc.area;

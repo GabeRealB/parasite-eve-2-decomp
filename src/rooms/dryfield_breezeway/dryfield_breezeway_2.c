@@ -71,7 +71,7 @@
 /// `func_dryfield_breezeway_8017E114`) allocates the block
 /// (`memMalloc(0x14, 0)`), fills the three leading pointers and publishes the
 /// owning task in `D_dryfield_breezeway_801843C0`: the slot-3 game pointer
-/// (`gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`), then `field_0` of the work `Gp_FindWorkById` finds
+/// (`gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`), then the `task` of the enemy `Gp_FindWorkById` finds
 /// for the id formed from `gGameSession` bytes 6/7 and for that id OR'd with
 /// 0x1000. `field_8` is the dispatch slot
 /// `func_dryfield_breezeway_8017E390` hands to `taskMessageDispatch`.
@@ -542,9 +542,9 @@ void func_dryfield_breezeway_8017E010(Task* arg0)
                 work->field_0                 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_dryfield_breezeway_801843C0 = arg0;
                 id                            = gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8);
-                work->field_4                 = Gp_FindWorkById(id)->field_0;
+                work->field_4                 = Gp_FindWorkById(id)->task;
                 id                            = ((gGameSession->location.loc.stage << 8) | 0x1000) | gGameSession->location.loc.area;
-                work->field_8                 = Gp_FindWorkById(id)->field_0;
+                work->field_8                 = Gp_FindWorkById(id)->task;
             }
             arg0->state += 1;
             return;
@@ -593,9 +593,9 @@ void func_dryfield_breezeway_8017E114(Task* arg0)
                 work->field_0                 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_dryfield_breezeway_801843C0 = arg0;
                 id                            = gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8);
-                work->field_4                 = Gp_FindWorkById(id)->field_0;
+                work->field_4                 = Gp_FindWorkById(id)->task;
                 id                            = ((gGameSession->location.loc.stage << 8) | 0x1000) | gGameSession->location.loc.area;
-                work->field_8                 = Gp_FindWorkById(id)->field_0;
+                work->field_8                 = Gp_FindWorkById(id)->task;
             }
             id                       = gPlayerStatus.weapon;
             buf.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? id + 1 : id + 0x22;

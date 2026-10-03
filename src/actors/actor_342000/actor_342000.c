@@ -1147,7 +1147,7 @@ void func_actor_342000_8016382C(Task* arg0)
                 memFillBytes(alloc, 0U, sizeof(*alloc));
                 alloc->field_48         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_actor_342000_80165070 = arg0;
-                alloc->field_4C         = Gp_FindWorkById(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8))->field_0;
+                alloc->field_4C         = Gp_FindWorkById(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8))->task;
             }
             work = (Actor342000EventWork*)arg0->work;
             if (gGameSession->skipEventIntro == 0) {

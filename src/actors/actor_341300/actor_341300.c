@@ -452,7 +452,7 @@ void func_actor_341300_80162278(Task* task)
 {
     Task*      player;
     GameActor* actor;
-    GpWorkObj* work;
+    Enemy*     enemy;
     GfxCoord*  self;
     VECTOR*    target;
     s32        angle;
@@ -463,8 +463,8 @@ void func_actor_341300_80162278(Task* task)
 
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     actor  = (GameActor*)player->work;
-    work   = Gp_FindWorkById(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8));
-    if ((work != NULL) && (gGameSession->eventState != 0)) {
+    enemy  = Gp_FindWorkById(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8));
+    if ((enemy != NULL) && (gGameSession->eventState != 0)) {
         self      = player->extra.tmd->coords;
         target    = &D_actor_341300_80165330.pos;
         angle     = ratan2(target->vx - self->coord.t[0], target->vz - self->coord.t[2]);
