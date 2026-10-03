@@ -706,8 +706,8 @@ enum {
     /// Second switch (toggle 1) of the shelter_r47 control console; its low bit picks
     /// area view 0x12 (off) or 0x24 (on).
     GAME_FLAG_SHELTER_R47_CONSOLE_SWITCH_2 = 0x0D5,
-    /// Fourth switch (toggle 3) of the shelter_r47 control console, mirrored into the
-    /// console state's field_52.
+    /// Fourth switch (toggle 3) of the shelter_r47 control console, mirrored into
+    /// `ShelterR47ConsoleWork::backdropToggle`.
     GAME_FLAG_SHELTER_R47_CONSOLE_SWITCH_4 = 0x0D6,
     /// Unidentified. One-shot Neo Ark observatory event (actionId 1): set to 1 and
     /// plays one of two scenes depending on nibble 0x83 (the other sets 0xD1 to 3).

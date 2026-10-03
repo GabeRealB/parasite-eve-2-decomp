@@ -963,42 +963,42 @@ static void func_shelter_r47_801808D4(Task* task)
 
 s32 func_shelter_r47_8018097C(Task* task)
 {
-    ShelterR47State* work;
-    POLY_G3*         tri;
-    DR_MODE*         mode;
-    s32              angle;
-    s32              done;
-    s16              i;
+    ShelterR47ConsoleWork* work;
+    POLY_G3*               tri;
+    DR_MODE*               mode;
+    s32                    angle;
+    s32                    done;
+    s16                    i;
 
     work = task->work;
     done = 0;
-    if (work->field_3C != 0) {
-        work->field_3C -= 0x20;
-        if (work->field_3C < 0) {
-            work->field_3C = 0;
+    if (work->wipeGreen != 0) {
+        work->wipeGreen -= 0x20;
+        if (work->wipeGreen < 0) {
+            work->wipeGreen = 0;
         }
     }
-    if (work->field_3C < 0xA0) {
-        if (work->field_3E != 0) {
-            work->field_3E -= 0x20;
-            if (work->field_3E < 0) {
-                work->field_3E = 0;
+    if (work->wipeGreen < 0xA0) {
+        if (work->wipeBlue != 0) {
+            work->wipeBlue -= 0x20;
+            if (work->wipeBlue < 0) {
+                work->wipeBlue = 0;
             }
         }
     }
-    if (work->field_3E < 0xA0) {
-        if (work->field_3A != 0) {
-            work->field_3A -= 0x20;
-            if (work->field_3A < 0) {
-                work->field_3A = 0;
+    if (work->wipeBlue < 0xA0) {
+        if (work->wipeRed != 0) {
+            work->wipeRed -= 0x20;
+            if (work->wipeRed < 0) {
+                work->wipeRed = 0;
             }
         }
     }
-    if (work->field_3A < 0xA0) {
-        if (work->field_40 != 0) {
-            work->field_40 -= 0x20;
-            if (work->field_40 < 0) {
-                work->field_40 = 0;
+    if (work->wipeRed < 0xA0) {
+        if (work->wipeGrey != 0) {
+            work->wipeGrey -= 0x20;
+            if (work->wipeGrey < 0) {
+                work->wipeGrey = 0;
                 done           = 1;
             }
         }
@@ -1007,9 +1007,9 @@ s32 func_shelter_r47_8018097C(Task* task)
         tri            = gGpuPrimCursor;
         gGpuPrimCursor = tri + 1;
         setPolyG3(tri);
-        setRGB0(tri, work->field_3A, work->field_3C, work->field_3E);
-        setRGB1(tri, work->field_40, work->field_40, work->field_40);
-        setRGB2(tri, work->field_40, work->field_40, work->field_40);
+        setRGB0(tri, work->wipeRed, work->wipeGreen, work->wipeBlue);
+        setRGB1(tri, work->wipeGrey, work->wipeGrey, work->wipeGrey);
+        setRGB2(tri, work->wipeGrey, work->wipeGrey, work->wipeGrey);
         setSemiTrans(tri, 1);
         angle   = i << 7;
         tri->x0 = 0;
@@ -1031,42 +1031,42 @@ s32 func_shelter_r47_8018097C(Task* task)
 
 s32 func_shelter_r47_80180C48(Task* task)
 {
-    ShelterR47State* work;
-    POLY_G3*         tri;
-    DR_MODE*         mode;
-    s32              angle;
-    s32              done;
-    s16              i;
+    ShelterR47ConsoleWork* work;
+    POLY_G3*               tri;
+    DR_MODE*               mode;
+    s32                    angle;
+    s32                    done;
+    s16                    i;
 
     work = task->work;
     done = 0;
-    if (work->field_3A != 0xFF) {
-        work->field_3A += 0x20;
-        if (work->field_3A >= 0x100) {
-            work->field_3A = 0xFF;
+    if (work->wipeRed != 0xFF) {
+        work->wipeRed += 0x20;
+        if (work->wipeRed >= 0x100) {
+            work->wipeRed = 0xFF;
         }
     }
-    if (work->field_3A > 0x60) {
-        if (work->field_3E != 0xFF) {
-            work->field_3E += 0x20;
-            if (work->field_3E >= 0x100) {
-                work->field_3E = 0xFF;
+    if (work->wipeRed > 0x60) {
+        if (work->wipeBlue != 0xFF) {
+            work->wipeBlue += 0x20;
+            if (work->wipeBlue >= 0x100) {
+                work->wipeBlue = 0xFF;
             }
         }
     }
-    if (work->field_3E > 0x60) {
-        if (work->field_3C != 0xFF) {
-            work->field_3C += 0x20;
-            if (work->field_3C >= 0x100) {
-                work->field_3C = 0xFF;
+    if (work->wipeBlue > 0x60) {
+        if (work->wipeGreen != 0xFF) {
+            work->wipeGreen += 0x20;
+            if (work->wipeGreen >= 0x100) {
+                work->wipeGreen = 0xFF;
             }
         }
     }
-    if (work->field_3C > 0x60) {
-        if (work->field_40 != 0xFF) {
-            work->field_40 += 0x20;
-            if (work->field_40 >= 0x100) {
-                work->field_40 = 0xFF;
+    if (work->wipeGreen > 0x60) {
+        if (work->wipeGrey != 0xFF) {
+            work->wipeGrey += 0x20;
+            if (work->wipeGrey >= 0x100) {
+                work->wipeGrey = 0xFF;
                 done           = 1;
             }
         }
@@ -1075,9 +1075,9 @@ s32 func_shelter_r47_80180C48(Task* task)
         tri            = gGpuPrimCursor;
         gGpuPrimCursor = tri + 1;
         setPolyG3(tri);
-        setRGB0(tri, work->field_40, work->field_40, work->field_40);
-        setRGB1(tri, work->field_3A, work->field_3C, work->field_3E);
-        setRGB2(tri, work->field_3A, work->field_3C, work->field_3E);
+        setRGB0(tri, work->wipeGrey, work->wipeGrey, work->wipeGrey);
+        setRGB1(tri, work->wipeRed, work->wipeGreen, work->wipeBlue);
+        setRGB2(tri, work->wipeRed, work->wipeGreen, work->wipeBlue);
         setSemiTrans(tri, 1);
         angle   = i << 7;
         tri->x0 = 0;
@@ -1127,9 +1127,9 @@ void func_shelter_r47_80180F38(s16 x, s16 y, s16 id)
 
 void func_shelter_r47_8018138C(Task* task)
 {
-    ShelterR47State*     work;
-    ActionPromptHotspot* hs;
-    s32                  arg1;
+    ShelterR47ConsoleWork* work;
+    ActionPromptHotspot*   hs;
+    s32                    arg1;
 
     work = memCalloc(0x54, false);
     if (work == NULL) {
@@ -1138,7 +1138,7 @@ void func_shelter_r47_8018138C(Task* task)
     }
     task->spawnArg2.pointer                                    = Task_SpawnFromTable(&D_shelter_r47_801872F0, 0, 1, 0);
     task->work                                                 = work;
-    work->field_4E                                             = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
+    work->savedView                                            = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x10;
     task->state++;
     Display_AcquireRef();
@@ -1149,46 +1149,46 @@ void func_shelter_r47_8018138C(Task* task)
         hs++;
     }
 
-    work->field_28             = -0xF8;
-    work->field_2A             = -0x68;
-    work->field_2C             = -0x98;
-    work->field_2E             = 0x80;
-    work->field_30             = -0x98;
-    work->field_32             = 0x90;
-    work->field_24             = 0xB0;
-    work->field_26             = -0x68;
-    work->field_0[0]           = 0xAA;
-    work->field_C[0]           = -0x53;
-    work->field_0[1]           = 0xBE;
-    work->field_C[1]           = -0x43;
-    work->field_0[2]           = 0xD2;
-    work->field_C[2]           = -0x33;
-    work->field_0[3]           = 0xE6;
-    work->field_C[3]           = -0x23;
-    work->field_0[4]           = 0xFA;
-    work->field_C[4]           = -0x13;
+    work->headerX              = -0xF8;
+    work->headerY              = -0x68;
+    work->buttonX              = -0x98;
+    work->buttonY              = 0x80;
+    work->messageX             = -0x98;
+    work->messageY             = 0x90;
+    work->labelX               = 0xB0;
+    work->labelY               = -0x68;
+    work->rowX[0]              = 0xAA;
+    work->rowY[0]              = -0x53;
+    work->rowX[1]              = 0xBE;
+    work->rowY[1]              = -0x43;
+    work->rowX[2]              = 0xD2;
+    work->rowY[2]              = -0x33;
+    work->rowX[3]              = 0xE6;
+    work->rowY[3]              = -0x23;
+    work->rowX[4]              = 0xFA;
+    work->rowY[4]              = -0x13;
     gGameSession->cutsceneHold = 1;
     gGameSession->hideHud      = 1;
     gGameSession->eventState   = 1;
     func_shelter_r47_80182AA0(task);
     if (work->toggles[3] == 0) {
-        work->field_52 = 0;
-        work->field_46 = 0x140;
+        work->backdropToggle = 0;
+        work->backdropScroll = 0x140;
     } else {
-        work->field_52 = 1;
-        work->field_46 = 0;
+        work->backdropToggle = 1;
+        work->backdropScroll = 0;
     }
     {
-        ShelterR47State* w = (ShelterR47State*)task->work;
+        ShelterR47ConsoleWork* w = task->work;
 
-        w->field_3A = 0xFF;
-        w->field_3C = 0xFF;
-        w->field_3E = 0xFF;
-        w->field_40 = 0xFF;
+        w->wipeRed   = 0xFF;
+        w->wipeGreen = 0xFF;
+        w->wipeBlue  = 0xFF;
+        w->wipeGrey  = 0xFF;
     }
     arg1 = task->spawnArg1.value;
     if (arg1 == 1) {
-        work->field_51 = arg1;
+        work->guideStep = arg1;
     }
 }
 
@@ -1196,17 +1196,17 @@ void func_shelter_r47_8018138C(Task* task)
 /// hit-tests the action cursor against the room's hotspot table. A miss
 /// leaves the idle cursor; a hit with the prompt confirmed
 /// (`buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED`) hands the raised entry's `id` / `promptKind` to the
-/// work block and advances to state 4. `field_51` value 4 jumps to state 0xC,
-/// and with `field_51` clear a dismissed prompt advances to state 6.
+/// work block and advances to state 4. `guideStep` value 4 jumps to state 0xC,
+/// and with `guideStep` clear a dismissed prompt advances to state 6.
 void func_shelter_r47_80181568(Task* task)
 {
-    ShelterR47State*     work;
-    ActionPromptHotspot* hs;
-    ActionPrompt*        prompt;
+    ShelterR47ConsoleWork* work;
+    ActionPromptHotspot*   hs;
+    ActionPrompt*          prompt;
 
     hs     = D_shelter_r47_80186FB4;
     prompt = D_80114D28;
-    work   = (ShelterR47State*)task->work;
+    work   = task->work;
     func_shelter_r47_80181914(task, 0);
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
@@ -1215,7 +1215,7 @@ void func_shelter_r47_80181568(Task* task)
         prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
         return;
     }
-    if (work->field_51 == 4) {
+    if (work->guideStep == 4) {
         task->state = 0xC;
         return;
     }
@@ -1227,7 +1227,7 @@ void func_shelter_r47_80181568(Task* task)
                 if (hs->hit != 0) {
                     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
                     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-                    work->selection.id  = hs->id;
+                    work->selection     = hs->id;
                     work->promptKind    = hs->promptKind;
                     task->state         = 4;
                     return;
@@ -1238,7 +1238,7 @@ void func_shelter_r47_80181568(Task* task)
     } else {
         prompt->mode = ACTION_PROMPT_MODE_IDLE;
     }
-    if (work->field_51 == 0 && prompt->buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED) {
+    if (work->guideStep == 0 && prompt->buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED) {
         task->state = 6;
     }
 }

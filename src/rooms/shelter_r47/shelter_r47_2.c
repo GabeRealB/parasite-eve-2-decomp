@@ -206,41 +206,41 @@ static inline s16 _shelterR47IsAreaMarked(s32 stage, s32 area);
 
 /// Acts on `selection`, the hotspot id stored by `func_shelter_r47_80181568`,
 /// when `func_800D4EC0` returns nonzero: the id's high byte picks the kind.
-/// Kind 0 accepts a new low byte into `field_4F` (checked by
-/// `func_shelter_r47_801829B8` while `field_51` is set, and the first time
-/// gated by a one-off cap event otherwise), clears `field_3A`..`field_40` and
+/// Kind 0 accepts a new low byte into `row` (checked by
+/// `func_shelter_r47_801829B8` while `guideStep` is set, and the first time
+/// gated by a one-off cap event otherwise), clears the wipe colour and
 /// moves to state 7. Kind 1 moves to state 9 after its one-off event, kind 2
-/// starts the cap event for the current `step`, and kinds 3 and 4 start their
+/// starts the cap event for the current `status`, and kinds 3 and 4 start their
 /// own events. Every other outcome returns to state 3.
 static void func_shelter_r47_801816CC(Task* task)
 {
-    ShelterR47State* work;
-    ShelterR47State* w;
-    ActionPrompt*    prompt;
-    u32              kind;
+    ShelterR47ConsoleWork* work;
+    ShelterR47ConsoleWork* w;
+    ActionPrompt*          prompt;
+    u32                    kind;
 
     prompt = D_80114D28;
-    work   = (ShelterR47State*)task->work;
+    work   = task->work;
     func_shelter_r47_80181914(task, 0);
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if (func_800D4EC0() != 0) {
-        kind = (u16)work->selection.id >> 8;
+        kind = (u16)work->selection >> 8;
         if (kind == 0) {
-            if (work->field_4F != (work->selection.id & 0xFF)) {
-                if (work->field_51 != 0) {
-                    if (func_shelter_r47_801829B8(task, work->selection.id & 0xFF) == 0) {
+            if (work->row != (work->selection & 0xFF)) {
+                if (work->guideStep != 0) {
+                    if (func_shelter_r47_801829B8(task, work->selection & 0xFF) == 0) {
                         task->state = 3;
                         return;
                     }
-                    work->field_50 = work->field_4F;
-                    work->field_4F = work->selection.id;
-                    w              = (ShelterR47State*)task->work;
-                    w->field_3A    = 0;
-                    w->field_3C    = 0;
-                    w->field_3E    = 0;
-                    w->field_40    = 0;
-                    task->state    = 7;
+                    work->previousRow = work->row;
+                    work->row         = work->selection;
+                    w                 = task->work;
+                    w->wipeRed        = 0;
+                    w->wipeGreen      = 0;
+                    w->wipeBlue       = 0;
+                    w->wipeGrey       = 0;
+                    task->state       = 7;
                     return;
                 }
                 if (D_shelter_r47_8018A695 == 0) {
@@ -249,17 +249,17 @@ static void func_shelter_r47_801816CC(Task* task)
                     task->state            = 3;
                     return;
                 }
-                work->field_50 = work->field_4F;
-                work->field_4F = work->selection.id;
-                w              = (ShelterR47State*)task->work;
-                w->field_3A    = 0;
-                w->field_3C    = 0;
-                w->field_3E    = 0;
-                w->field_40    = 0;
-                task->state    = 7;
+                work->previousRow = work->row;
+                work->row         = work->selection;
+                w                 = task->work;
+                w->wipeRed        = 0;
+                w->wipeGreen      = 0;
+                w->wipeBlue       = 0;
+                w->wipeGrey       = 0;
+                task->state       = 7;
                 return;
             }
-            if (work->field_51 != 0) {
+            if (work->guideStep != 0) {
                 Gp_StartCapSlot(0xF, 0, 0);
             }
             task->state = 3;
@@ -276,7 +276,7 @@ static void func_shelter_r47_801816CC(Task* task)
             return;
         }
         if (kind == 2) {
-            switch (work->step) {
+            switch (work->status) {
                 case 0:
                     Gp_StartCapSlot(0x15, 0, 0);
                     break;
@@ -326,66 +326,66 @@ static void func_shelter_r47_801816CC(Task* task)
     task->state = 3;
 }
 
-/// Sets the task's `step` to `st` and draws sprite `id` at (`field_30`,
-/// `field_32`).
-#define SHELTER_R47_DRAW_STEP(id, st)                          \
-    {                                                          \
-        s16 x_                               = work->field_30; \
-        s16 y_                               = work->field_32; \
-        ((ShelterR47State*)task->work)->step = (st);           \
-        func_shelter_r47_80180F38(x_, y_, (id));               \
+/// Sets the task's `status` to `st` and draws sprite `id` at (`messageX`,
+/// `messageY`).
+#define SHELTER_R47_DRAW_STEP(id, st)                                  \
+    {                                                                  \
+        s16 x_                                       = work->messageX; \
+        s16 y_                                       = work->messageY; \
+        ((ShelterR47ConsoleWork*)task->work)->status = (st);           \
+        func_shelter_r47_80180F38(x_, y_, (id));                       \
     }
 
 /// Per-frame draw of the cap script's selection screen. While `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` is
-/// 0x14 it scrolls the background by `field_46`. Every positioned sprite is
+/// 0x14 it scrolls the background by `backdropScroll`. Every positioned sprite is
 /// eased a quarter of the way toward its target each frame. `arg1` picks the
-/// layout: the entry drawn is `field_4F` when it is 0 and `field_50` otherwise,
-/// that entry's toggle selects `step`, and the five rows
-/// in `field_0`/`field_C` either all settle at one column or fan out, with the
+/// layout: the entry drawn is `row` when it is 0 and `previousRow` otherwise,
+/// that entry's toggle selects `status`, and the five rows
+/// at `rowX`/`rowY` either all settle at one column or fan out, with the
 /// selected row marked.
 void func_shelter_r47_80181914(Task* task, s16 arg1)
 {
-    ShelterR47State* work;
-    s32              i;
-    s16              id;
-    s16              nx;
-    s32              x;
-    s32              ny;
-    s16              y;
-    s8               c;
-    s16              sel;
+    ShelterR47ConsoleWork* work;
+    s32                    i;
+    s16                    id;
+    s16                    nx;
+    s32                    x;
+    s32                    ny;
+    s16                    y;
+    s8                     c;
+    s16                    sel;
 
-    work = (ShelterR47State*)task->work;
+    work = task->work;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == 0x14) {
-        if (work->field_52 & 1) {
-            work->field_46--;
-            if (work->field_46 < 0) {
-                work->field_46 = 0;
+        if (work->backdropToggle & 1) {
+            work->backdropScroll--;
+            if (work->backdropScroll < 0) {
+                work->backdropScroll = 0;
             }
         } else {
-            work->field_46++;
-            if (work->field_46 > 0x140) {
-                work->field_46 = 0x140;
+            work->backdropScroll++;
+            if (work->backdropScroll > 0x140) {
+                work->backdropScroll = 0x140;
             }
         }
-        func_shelter_r47_801820C0(work->field_46);
+        func_shelter_r47_801820C0(work->backdropScroll);
     }
-    if (work->field_42 > 0) {
-        work->field_42--;
+    if (work->buttonFlash > 0) {
+        work->buttonFlash--;
     }
-    work->field_28 += (-0x98 - work->field_28) >> 2;
-    func_shelter_r47_80180F38(work->field_28, work->field_2A, 0);
+    work->headerX += (-0x98 - work->headerX) >> 2;
+    func_shelter_r47_80180F38(work->headerX, work->headerY, 0);
     id = 1;
     if (arg1 == 0) {
-        work->field_2E += (0x48 - work->field_2E) >> 2;
-        if (work->field_42 == 0) {
-            func_shelter_r47_80180F38(work->field_2C, work->field_2E, id);
+        work->buttonY += (0x48 - work->buttonY) >> 2;
+        if (work->buttonFlash == 0) {
+            func_shelter_r47_80180F38(work->buttonX, work->buttonY, id);
         } else {
-            func_shelter_r47_80180F38(work->field_2C, work->field_2E, 2);
+            func_shelter_r47_80180F38(work->buttonX, work->buttonY, 2);
         }
-        work->field_32 += (0x58 - work->field_32) >> 2;
-        func_shelter_r47_80181F14(task, work->field_32);
-        switch (work->field_4F) {
+        work->messageY += (0x58 - work->messageY) >> 2;
+        func_shelter_r47_80181F14(task, work->messageY);
+        switch (work->row) {
             case 0:
                 if (work->toggles[0] == 0) {
                     SHELTER_R47_DRAW_STEP(3, 0);
@@ -423,11 +423,11 @@ void func_shelter_r47_80181914(Task* task, s16 arg1)
                 break;
         }
     } else {
-        work->field_2E += (0x80 - work->field_2E) >> 2;
-        func_shelter_r47_80180F38(work->field_2C, work->field_2E, id);
-        work->field_32 += (0x90 - work->field_32) >> 2;
-        func_shelter_r47_80181F14(task, work->field_32);
-        switch (work->field_50) {
+        work->buttonY += (0x80 - work->buttonY) >> 2;
+        func_shelter_r47_80180F38(work->buttonX, work->buttonY, id);
+        work->messageY += (0x90 - work->messageY) >> 2;
+        func_shelter_r47_80181F14(task, work->messageY);
+        switch (work->previousRow) {
             case 0:
                 if (work->toggles[0] == 0) {
                     SHELTER_R47_DRAW_STEP(3, 0);
@@ -467,76 +467,76 @@ void func_shelter_r47_80181914(Task* task, s16 arg1)
     }
     if (arg1 == 0) {
         for (i = 0; i < 5; i++) {
-            nx               = work->field_0[i] + ((0x78 - work->field_0[i]) >> 2);
-            work->field_0[i] = nx;
-            if (work->field_4F == i) {
-                ny = work->field_C[i];
+            nx            = work->rowX[i] + ((0x78 - work->rowX[i]) >> 2);
+            work->rowX[i] = nx;
+            if (work->row == i) {
+                ny = work->rowY[i];
                 func_shelter_r47_80180F38((s16)(nx + 0x18), ny, 0x14);
                 func_shelter_r47_80180F38(nx, ny, 0x12);
             } else {
-                func_shelter_r47_80180F38(nx, work->field_C[i], 0x12);
+                func_shelter_r47_80180F38(nx, work->rowY[i], 0x12);
             }
         }
     } else {
         for (i = 0; i < 5; i++) {
-            if (work->field_4F == i) {
-                nx               = work->field_0[i] + ((0x78 - work->field_0[i]) >> 2);
-                ny               = work->field_C[i];
-                work->field_0[i] = nx;
+            if (work->row == i) {
+                nx            = work->rowX[i] + ((0x78 - work->rowX[i]) >> 2);
+                ny            = work->rowY[i];
+                work->rowX[i] = nx;
                 func_shelter_r47_80180F38((s16)(nx + 0x18), ny, 0x14);
                 func_shelter_r47_80180F38(nx, ny, 0x13);
             } else {
                 switch (i) {
                     case 0:
-                        work->field_0[i] += (0xAA - work->field_0[i]) >> 2;
+                        work->rowX[i] += (0xAA - work->rowX[i]) >> 2;
                         break;
                     case 1:
-                        work->field_0[i] += (0xBE - work->field_0[i]) >> 2;
+                        work->rowX[i] += (0xBE - work->rowX[i]) >> 2;
                         break;
                     case 2:
-                        work->field_0[i] += (0xD2 - work->field_0[i]) >> 2;
+                        work->rowX[i] += (0xD2 - work->rowX[i]) >> 2;
                         break;
                     case 3:
-                        work->field_0[i] += (0xE6 - work->field_0[i]) >> 2;
+                        work->rowX[i] += (0xE6 - work->rowX[i]) >> 2;
                         break;
                     case 4:
-                        work->field_0[i] += (0xFA - work->field_0[i]) >> 2;
+                        work->rowX[i] += (0xFA - work->rowX[i]) >> 2;
                         break;
                 }
-                func_shelter_r47_80180F38(work->field_0[i], work->field_C[i], 0x12);
+                func_shelter_r47_80180F38(work->rowX[i], work->rowY[i], 0x12);
             }
         }
     }
     if (arg1 == 0) {
-        c = work->field_4F;
-        x = work->field_24;
-        y = work->field_26;
+        c = work->row;
+        x = work->labelX;
+        y = work->labelY;
     } else {
-        c = work->field_50;
-        x = work->field_24;
-        y = work->field_26;
+        c = work->previousRow;
+        x = work->labelX;
+        y = work->labelY;
     }
-    work->field_24 += (0x7E - x) >> 2;
-    sel             = c;
+    work->labelX += (0x7E - x) >> 2;
+    sel           = c;
     if ((u16)sel < 5) {
-        func_shelter_r47_80180F38(work->field_24, y, (s16)(sel + 0xD));
+        func_shelter_r47_80180F38(work->labelX, y, (s16)(sel + 0xD));
     }
 }
 
-/// Draws the current byte of the `step` sequence at row `y` through
+/// Draws the current reveal stop of status message `status` at row `y` through
 /// `func_shelter_r47_80180F38`, with a textured quad whose left edge follows
-/// the byte's value, advancing `field_48` on odd animation frames. At the
-/// terminator it redraws the previous byte for eight frames out of every
+/// the stop's x, advancing `revealPos` on odd animation frames. At the
+/// terminator it redraws the previous stop for eight frames out of every
 /// sixteen instead.
 static void func_shelter_r47_80181F14(Task* task, s16 y)
 {
-    ShelterR47State* work;
-    POLY_FT4*        poly;
-    u8*              p;
-    s32              c;
+    ShelterR47ConsoleWork* work;
+    POLY_FT4*              poly;
+    u8*                    p;
+    s32                    c;
 
-    work = (ShelterR47State*)task->work;
-    p    = D_shelter_r47_80187374[work->step] + work->field_48;
+    work = task->work;
+    p    = D_shelter_r47_80187374[work->status] + work->revealPos;
     c    = *p;
     if (c != 0xFF) {
         func_shelter_r47_80180F38(c - 0x9D, y, 0x14);
@@ -550,7 +550,7 @@ static void func_shelter_r47_80181F14(Task* task, s16 y)
         poly->code |= 1;
         addPrim(&gGpuCurrentOt[10], poly);
         if (gDisplayState.animFrame & 1) {
-            work->field_48++;
+            work->revealPos++;
         }
     } else {
         c = p[-1];
@@ -622,18 +622,18 @@ static void func_shelter_r47_801820C0(s16 arg0)
 
 static void func_shelter_r47_80182348(Task* task)
 {
-    ShelterR47State* state;
-    ShelterR47State* done;
-    u16              fade;
-    u8               level;
+    ShelterR47ConsoleWork* state;
+    ShelterR47ConsoleWork* done;
+    u16                    fade;
+    u8                     level;
 
-    state = (ShelterR47State*)task->work;
+    state = task->work;
     func_shelter_r47_80181914(task, 0);
     fade        = state->fade + 0x10;
     state->fade = fade;
     if ((s16)fade >= 0x100) {
         state->fade = 0xFF;
-        done        = (ShelterR47State*)task->work;
+        done        = task->work;
         GameFlag_SetNibble(GAME_FLAG_B1_TRANSFER_TUNNEL_DOOR_UNLOCKED, done->toggles[0]);
         GameFlag_SetNibble(GAME_FLAG_SHELTER_R47_CONSOLE_SWITCH_2, done->toggles[1]);
         GameFlag_SetNibble(GAME_FLAG_B2_CORRIDOR_OBSERVATORY_ACCESS, done->toggles[2]);
@@ -660,32 +660,32 @@ static void func_shelter_r47_80182348(Task* task)
 
 static s16 func_shelter_r47_801829B8(Task* task, s16 arg1)
 {
-    ShelterR47State* state;
-    s8               step;
+    ShelterR47ConsoleWork* state;
+    s8                     step;
 
-    state = (ShelterR47State*)task->work;
-    step  = state->field_51;
+    state = task->work;
+    step  = state->guideStep;
     switch (step) {
         case 1:
             if (arg1 != step) {
                 Gp_StartCapSlot(0x10, 0, 1);
                 return 0;
             }
-            state->field_51 = 2;
+            state->guideStep = 2;
             return 1;
         case 2:
             if (arg1 != step) {
                 Gp_StartCapSlot(0x10, 0, 2);
                 return 0;
             }
-            state->field_51 = 3;
+            state->guideStep = 3;
             return 1;
         case 3:
             if (arg1 != step) {
                 Gp_StartCapSlot(0x10, 0, 3);
                 return 0;
             }
-            state->field_51 = 4;
+            state->guideStep = 4;
             return 1;
     }
     return 0;
@@ -695,7 +695,7 @@ static s16 func_shelter_r47_801829B8(Task* task, s16 arg1)
 /// 0xD2, and sets `D_shelter_r47_80186FAC[1]` from the low bit of flag 0xD5.
 void func_shelter_r47_80182AA0(Task* task)
 {
-    ShelterR47State* state = (ShelterR47State*)task->work;
+    ShelterR47ConsoleWork* state = task->work;
 
     state->toggles[0] = GameFlag_GetNibble(GAME_FLAG_B1_TRANSFER_TUNNEL_DOOR_UNLOCKED);
     state->toggles[1] = GameFlag_GetNibble(GAME_FLAG_SHELTER_R47_CONSOLE_SWITCH_2);
@@ -720,17 +720,17 @@ void func_shelter_r47_80182B18(Task* task)
 /// Hit-tests the point (`x`, `y`) against every entry of a hotspot table up to
 /// its -1 terminator, raising `hit` on each entry whose rectangle contains the
 /// point (edges inclusive) and clearing it on the rest. Entry 0x101 is never
-/// raised while the task's `field_4F` is 1. Returns 1 if any entry was raised.
+/// raised while the task's `row` is 1. Returns 1 if any entry was raised.
 s32 func_shelter_r47_80182B9C(Task* task, ActionPromptHotspot* table, s16 x, s16 y)
 {
-    ShelterR47State* work;
-    s32              hit;
+    ShelterR47ConsoleWork* work;
+    s32                    hit;
 
-    work = (ShelterR47State*)task->work;
+    work = task->work;
     hit  = 0;
     while (table->id != ACTION_PROMPT_HOTSPOT_END) {
         if ((x >= table->x) && ((table->x + table->w) >= x) && (y >= table->y) && ((table->y + table->h) >= y) &&
-            ((work->field_4F != 1) || (table->id != 0x101))) {
+            ((work->row != 1) || (table->id != 0x101))) {
             table->hit = 1;
             hit        = 1;
         } else {
@@ -756,20 +756,20 @@ static void func_shelter_r47_80182C78(Task* task)
 
 static void func_shelter_r47_80182CA4(Task* task)
 {
-    ShelterR47State* state;
-    s32              flag;
-    s32              value;
+    ShelterR47ConsoleWork* state;
+    s32                    flag;
+    s32                    value;
 
-    state = (ShelterR47State*)task->work;
+    state = task->work;
     func_shelter_r47_80181914(task, 0);
     if ((s16)func_shelter_r47_8018097C(task) != 0) {
-        if (state->field_51 == 1) {
+        if (state->guideStep == 1) {
             Gp_StartCapSlot(0xA, 0, 0);
         }
-        if (state->field_51 == 0) {
-            func_shelter_r47_801832E4(state->step);
+        if (state->guideStep == 0) {
+            func_shelter_r47_801832E4(state->status);
         }
-        switch (((ShelterR47State*)task->work)->step) {
+        switch (((ShelterR47ConsoleWork*)task->work)->status) {
             case 0:
                 flag  = 0x1C6;
                 value = 2;
@@ -799,17 +799,17 @@ static void func_shelter_r47_80182CA4(Task* task)
 /// its gating flags are clear, shows the prompt, and moves the script to state 5.
 static void func_shelter_r47_80182DAC(Task* task)
 {
-    ShelterR47State* state;
-    ActionPrompt*    prompt = D_80114D28;
+    ShelterR47ConsoleWork* state;
+    ActionPrompt*          prompt = D_80114D28;
 
-    state = (ShelterR47State*)task->work;
+    state = task->work;
     func_shelter_r47_80181914(task, 0);
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-    if (state->field_51 == 0 && (state->selection.raw >> 8) == 0 && D_shelter_r47_8018A695 == 0) {
+    if (state->guideStep == 0 && ((u16)state->selection >> 8) == 0 && D_shelter_r47_8018A695 == 0) {
         state->promptKind = 0;
     }
-    if (((s16)state->selection.raw >> 8) == 1 && D_shelter_r47_8018A694 == 0) {
+    if ((state->selection >> 8) == 1 && D_shelter_r47_8018A694 == 0) {
         state->promptKind = 0;
     }
     func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, state->promptKind);
@@ -818,9 +818,9 @@ static void func_shelter_r47_80182DAC(Task* task)
 
 static void func_shelter_r47_80182E78(Task* task)
 {
-    ShelterR47State* state;
+    ShelterR47ConsoleWork* state;
 
-    state      = (ShelterR47State*)task->work;
+    state      = task->work;
     D_80114D08 = 0xA;
     func_shelter_r47_8018337C(task);
     Gp_MsgPlayerWeapon(1);
@@ -829,7 +829,7 @@ static void func_shelter_r47_80182E78(Task* task)
     gGameSession->eventState                                   = 0;
     gGameSession->hideHud                                      = 0;
     gGameSession->cutsceneHold                                 = 0;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = state->field_4E;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = state->savedView;
     /* Keeps the `spawnArg2` load below the `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` store, so that it
        does not fill `taskKill`'s delay slot. */
     taskKill(task->spawnArg2.pointer);
@@ -845,7 +845,7 @@ static void func_shelter_r47_80182F18(Task* task)
     func_shelter_r47_80181914(task, 0);
     if ((s16)func_shelter_r47_8018097C(task) != 0) {
         func_shelter_r47_801832EC(task);
-        step = ((ShelterR47State*)task->work)->step;
+        step = ((ShelterR47ConsoleWork*)task->work)->status;
         switch (step) {
             case 0:
                 flag  = 0x1C6;
@@ -874,42 +874,42 @@ static void func_shelter_r47_80182F18(Task* task)
 
 static void func_shelter_r47_80182FDC(Task* task)
 {
-    ShelterR47State* state;
-    ShelterR47State* work;
+    ShelterR47ConsoleWork* state;
+    ShelterR47ConsoleWork* work;
 
-    state = (ShelterR47State*)task->work;
+    state = task->work;
     func_shelter_r47_80181914(task, 1);
     if ((s16)func_shelter_r47_80180C48(task) != 0) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_shelter_r47_80186FAC[state->selection.index];
-        state->field_48                                            = 0;
-        work                                                       = (ShelterR47State*)task->work;
-        work->field_3A                                             = 0xFF;
-        work->field_3C                                             = 0xFF;
-        work->field_3E                                             = 0xFF;
-        work->field_40                                             = 0xFF;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_shelter_r47_80186FAC[(u8)state->selection];
+        state->revealPos                                           = 0;
+        work                                                       = task->work;
+        work->wipeRed                                              = 0xFF;
+        work->wipeGreen                                            = 0xFF;
+        work->wipeBlue                                             = 0xFF;
+        work->wipeGrey                                             = 0xFF;
         task->state++;
     }
 }
 
 static void func_shelter_r47_80183068(Task* task)
 {
-    ShelterR47State* state;
+    ShelterR47ConsoleWork* state;
 
-    state = (ShelterR47State*)task->work;
+    state = task->work;
     func_shelter_r47_80181914(task, 0);
-    state->field_48 = 0;
-    state->field_42 = 0x10;
+    state->revealPos   = 0;
+    state->buttonFlash = 0x10;
     task->state++;
 }
 
 static void func_shelter_r47_801830B8(Task* task)
 {
-    ShelterR47State* state;
+    ShelterR47ConsoleWork* state;
 
-    state = (ShelterR47State*)task->work;
-    func_shelter_r47_801833DC(task, state->field_4F);
+    state = task->work;
+    func_shelter_r47_801833DC(task, state->row);
     func_shelter_r47_80181914(task, 0);
-    switch (state->step) {
+    switch (state->status) {
         case 0:
             GameFlag_SetNibble(GAME_FLAG_MAP_MARK_SHELTER_R47_1C6, 2);
             break;
@@ -935,20 +935,20 @@ static void func_shelter_r47_801830B8(Task* task)
 
 static void func_shelter_r47_80183170(Task* task)
 {
-    ShelterR47State* state;
+    ShelterR47ConsoleWork* state;
 
-    state = (ShelterR47State*)task->work;
+    state = task->work;
     func_shelter_r47_80181914(task, 0);
-    if ((state->field_42 == 0) && (Gp_CapBusy() == 0)) {
+    if ((state->buttonFlash == 0) && (Gp_CapBusy() == 0)) {
         task->state = 3;
     }
 }
 
 static void func_shelter_r47_801831C8(Task* task)
 {
-    ShelterR47State* state;
+    ShelterR47ConsoleWork* state;
 
-    state = (ShelterR47State*)task->work;
+    state = task->work;
     func_shelter_r47_80181914(task, 0);
     state->fade = 0;
     task->state++;
@@ -983,11 +983,11 @@ static void func_shelter_r47_801832E4(s16 step)
 
 static void func_shelter_r47_801832EC(Task* task)
 {
-    ShelterR47State* state = (ShelterR47State*)task->work;
+    ShelterR47ConsoleWork* state = task->work;
 
-    switch (state->field_51) {
+    switch (state->guideStep) {
         case 0:
-            func_shelter_r47_801832E4(state->step);
+            func_shelter_r47_801832E4(state->status);
             break;
         case 2:
             Gp_StartCapSlot(0xB, 0, 0);
@@ -1003,9 +1003,9 @@ static void func_shelter_r47_801832EC(Task* task)
 
 static void func_shelter_r47_8018337C(Task* task)
 {
-    ShelterR47State* state;
+    ShelterR47ConsoleWork* state;
 
-    state = (ShelterR47State*)task->work;
+    state = task->work;
     GameFlag_SetNibble(GAME_FLAG_B1_TRANSFER_TUNNEL_DOOR_UNLOCKED, state->toggles[0]);
     GameFlag_SetNibble(GAME_FLAG_SHELTER_R47_CONSOLE_SWITCH_2, state->toggles[1]);
     GameFlag_SetNibble(GAME_FLAG_B2_CORRIDOR_OBSERVATORY_ACCESS, state->toggles[2]);
@@ -1014,12 +1014,12 @@ static void func_shelter_r47_8018337C(Task* task)
 }
 
 /// Flips toggle `arg1`. Toggle 1 also publishes the area view
-/// (0x12 or 0x24), and toggle 3 is mirrored into `field_52`.
+/// (0x12 or 0x24), and toggle 3 is mirrored into `backdropToggle`.
 static void func_shelter_r47_801833DC(Task* task, s16 arg1)
 {
-    ShelterR47State* state;
+    ShelterR47ConsoleWork* state;
 
-    state                = (ShelterR47State*)task->work;
+    state                = task->work;
     state->toggles[arg1] = (state->toggles[arg1] + 1) & 1;
     switch (arg1) {
         case 0:
@@ -1037,9 +1037,9 @@ static void func_shelter_r47_801833DC(Task* task, s16 arg1)
             break;
         case 3:
             if (!(state->toggles[3] & 1)) {
-                state->field_52 = 0;
+                state->backdropToggle = 0;
             } else {
-                state->field_52 = 1;
+                state->backdropToggle = 1;
             }
             break;
     }
