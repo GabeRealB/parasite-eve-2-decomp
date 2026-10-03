@@ -62,12 +62,6 @@
 #include "../../shared/falling_leaves.h"
 #include "../../shared/actor_contacts.h"
 
-/// Grey level of each of the three variants the ambient sprite task can be
-/// spawned as, picked by bits 8..9 of `Task::spawnArg1`.
-typedef struct RgSpriteLevels {
-    /* 0x0 */ u8 v[3];
-} RgSpriteLevels;
-
 /// Messages the room task answers, terminated by id `TASK_MESSAGE_TABLE_END`.
 extern TaskMessageEntry D_acropolis_roof_garden_80183BDC[];
 extern Task*            D_acropolis_roof_garden_80183C0C;
@@ -106,8 +100,6 @@ static void func_acropolis_roof_garden_8017DBEC(Task* task);
 static const TaskFuncTable3 D_acropolis_roof_garden_8017D5C4 = {
     { func_acropolis_roof_garden_8017DB74, func_acropolis_roof_garden_8017DBEC, taskKill },
 };
-
-static const RgSpriteLevels D_acropolis_roof_garden_8017D5D0 = { { 0x40, 0x60, 0x10 } };
 
 extern WorldCollisionGrid     D_acropolis_roof_garden_801854A4[1];
 extern WorldCollisionOccluder D_acropolis_roof_garden_80186D14[2];
@@ -1378,16 +1370,14 @@ void func_acropolis_roof_garden_8017DCDC(Task* task)
 /// frame: bits 16..27 are the sprite's size (defaulting to 0x280 when zero),
 /// bits 8..9 pick one of three 0x28x0x27 cells across the sheet -- and, through
 /// `getClut`, the matching 16-colour palette -- and only the low nibble is
-/// kept, as the index into the view mask. The grey level is the variant's own
-/// level from `D_acropolis_roof_garden_8017D5D0`, brightened by 0x10 on odd
-/// frames so the sprite flickers.
+/// kept, as the index into the view mask. The grey level is the cell's own
+/// resting level, brightened by 0x10 on odd frames so the sprite flickers.
 void func_acropolis_roof_garden_8017DE90(Task* arg0)
 {
     EffectWork*            mem;
     GfxCoord*              coord;
     RoomGlowSpriteScratch* blk;
     POLY_FT4*              prim;
-    RgSpriteLevels         base;
     s32                    param;
     s32                    lvl;
     s32                    flicker;
@@ -1401,12 +1391,14 @@ void func_acropolis_roof_garden_8017DE90(Task* arg0)
             Gp_UpdateCoord(coord);
             blk = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
             if (arg0->state == 0) {
-                base                  = D_acropolis_roof_garden_8017D5D0;
+                // Resting grey of each sheet cell; the room only spawns cells 0..2.
+                u8 levels[3] = { 0x40, 0x60, 0x10 };
+
                 param                 = arg0->spawnArg1.value;
                 mem->scale            = (param & 0x0FFF0000) ? ((param >> 16) & 0xFFF) : 0x280;
                 mem->angle            = (arg0->spawnArg1.value >> 8) & 3;
                 arg0->spawnArg1.value = arg0->spawnArg1.value & 0xF;
-                mem->period           = base.v[mem->angle];
+                mem->period           = levels[mem->angle];
                 arg0->state++;
             }
             blk->worldPos.vx = coord->workm.t[0];
