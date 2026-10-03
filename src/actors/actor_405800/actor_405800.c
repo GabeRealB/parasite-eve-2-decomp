@@ -64,19 +64,6 @@
 
 /// Psy-Q `RotMatrixY`, taking the angle as a `long`.
 
-/// Status flags at + 0x83C of the work block, read through two widths: bit 0
-/// as a halfword, then bits 0x102 as a word (`func_actor_405800_80137908`).
-/// The high half is `field_83E`, the scale reset to 0x1000 on death.
-typedef union Actor405800Flags83C {
-    /* 0x0 */ u32 word;
-    /* 0x0 */ u16 half;
-    struct {
-        /* 0x0 */ u16 pad;
-        /* 0x2 */ s16 field_83E;
-    } h;
-} Actor405800Flags83C;
-STATIC_ASSERT_SIZEOF(Actor405800Flags83C, 0x4);
-
 /// 0x18-byte scratch from the scratch stack used by `func_actor_405800_80133800`
 /// to project the third model part's origin. `vec` is the zero vector fed to
 /// RTPS through that part's `workm`; `sxy` is `gte_stsxy`, `p` is `gte_stdp`,
@@ -147,13 +134,14 @@ typedef struct Actor405800Work {
     /* 0x834 */ s16                   field_834;
     /* 0x836 */ s16                   field_836;
     /* 0x838 */ s16                   field_838;
-    /* 0x83A */ s16                   field_83A; // nonzero: skip the field_895 / field_896 reset
-    /* 0x83C */ Actor405800Flags83C   flags_83C;
-    /* 0x840 */ u16                   field_840; // LCG draw at spawn
-    /* 0x842 */ u16                   field_842; // per-state frame counter
-    /* 0x844 */ s16                   field_844; // cleared with field_842 on state entry
-    /* 0x846 */ u16                   state;     // state index
-    /* 0x848 */ u16                   subState;  // sub-state index
+    /* 0x83A */ s16                   field_83A;              // nonzero: skip the field_895 / field_896 reset
+    /* 0x83C */ u16                   previousAnimationFlags; // Slot 1's ANIMATION_SLOT_* results as the last running update's tick left them
+    /* 0x83E */ s16                   corpseScaleY;           // Y-axis scale of the burning corpse's root matrix (4.12, ONE = unscaled); lowered every frame of the burn
+    /* 0x840 */ u16                   field_840;              // LCG draw at spawn
+    /* 0x842 */ u16                   field_842;              // per-state frame counter
+    /* 0x844 */ s16                   field_844;              // cleared with field_842 on state entry
+    /* 0x846 */ u16                   state;                  // state index
+    /* 0x848 */ u16                   subState;               // sub-state index
     /* 0x84A */ s16                   animBlend;
     /* 0x84C */ s16                   field_84C;
     /* 0x84E */ s16                   field_84E;
@@ -1565,11 +1553,11 @@ static void func_actor_405800_80132FE0(Task* arg0)
     work->field_866           = (u16)work->field_866 + (-work->field_866 >> 2);
     model->shading.colorBlend = work->field_834;
     func_8009EA50(work->field_832);
-    work->flags_83C.h.field_83E -= 0x30;
-    scale.vx                     = 0x1000;
-    scale.vy                     = work->flags_83C.h.field_83E;
-    scale.vz                     = 0x1000;
-    coord->coord                 = work->matrix_0;
+    work->corpseScaleY -= 0x30;
+    scale.vx            = ONE;
+    scale.vy            = work->corpseScaleY;
+    scale.vz            = ONE;
+    coord->coord        = work->matrix_0;
     ScaleMatrix(&coord->coord, &scale);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     work->field_842++;
@@ -1975,8 +1963,8 @@ static void func_actor_405800_80133800(Task* arg0)
             func_actor_405800_801375C4(arg0);
             func_actor_405800_8013315C(arg0);
             stalkerZebraIvoryTickAnimInline(arg0);
-            work->flags_83C.half = work->slots[1].status.fields.flags;
-            root->composeStamp   = GRAPHICS_COORD_DIRTY;
+            work->previousAnimationFlags = work->slots[1].status.fields.flags;
+            root->composeStamp           = GRAPHICS_COORD_DIRTY;
             stalkerZebraIvoryApplyRotationInline(arg0);
             func_actor_405800_80136388(arg0);
             if (enemy->hp <= 0 && (u8)work->holding == 0) {
@@ -3461,8 +3449,9 @@ static s32 func_actor_405800_80137908(Task* arg0)
 {
     Actor405800Work* work = (Actor405800Work*)arg0->work;
 
-    if ((work->flags_83C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work->flags_83C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    if ((work->previousAnimationFlags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work->previousAnimationFlags & ANIMATION_SLOT_FOLLOWED_JUMP) ||
+        (work->previousAnimationFlags & ANIMATION_SLOT_SETTLED)) {
         return 1;
     }
     return 0;
@@ -3790,8 +3779,8 @@ static void func_actor_405800_80138A70(Task* task)
     Gp_UnlinkObj(&work->obj_674);
     Gp_UnlinkObj(&work->obj_694);
     Gp_UnlinkObj(&work->capsuleBody);
-    work->flags_83C.h.field_83E = 0x1000;
-    work->matrix_0              = coord->coord;
+    work->corpseScaleY = ONE;
+    work->matrix_0     = coord->coord;
     Gp_SetLightMode(task->spawnArg2.pointer, ENEMY_COLOR_WEIGHTED);
     work->field_842 = 0;
     work->state++;

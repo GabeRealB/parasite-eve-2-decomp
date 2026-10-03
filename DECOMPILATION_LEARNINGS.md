@@ -140678,6 +140678,14 @@ if ((work->previousAnimationFlags & ANIMATION_SLOT_FOLLOWED_JUMP) ||
 The same rewrite matched on `AnimationSlot`'s `status.fields.flags` in this
 overlay, in place of `status.word & (A | B)`.
 
+Where a bit-0 test precedes the pair - `lhu` / `andi 1` / `bnez`, then the
+`lw` / `andi 0x102` - all three belong to one condition,
+`(f & 1) || (f & 2) || (f & 0x100)`: only the last two merge, and the first
+keeps its halfword load (actor_405800's `previousAnimationFlags`, which
+replaced a three-view union). Splitting it into `if (f & 1) return 1;` and a
+second `if` for the pair keeps the loads but turns the tail into
+`sltu v0,zero,v0` in place of the target's `beqz` and two returns.
+
 Two adjacent `u8` fields tested for zero merge the same way:
 `work->part4PitchPhase == 0 && work->part3PitchPhase == 0`, on the bytes at
 0x665 and 0x666, is the target's `lw v0,0x664(a1)` / `and` with `0xFFFF00`.
