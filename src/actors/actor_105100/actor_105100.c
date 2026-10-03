@@ -152,20 +152,28 @@ typedef struct Actor105100Work {
     /* 0x5A2 */ s16                   field_5A2; // non-zero while the attack body is running; the body clears it when it finishes
     /* 0x5A4 */ s16                   field_5A4; // state of the attack body `func_actor_105100_80133CE4`
     /* 0x5A6 */ u16                   field_5A6; // its frame counter
-    /* 0x5A8 */ s16                   field_5A8;
-    /* 0x5AA */ s16                   field_5AA;
-    /* 0x5AC */ s16                   field_5AC;
-    /* 0x5AE */ u16                   field_5AE;
-    /* 0x5B0 */ s16                   field_5B0;
-    /* 0x5B2 */ s16                   field_5B2;
-    /* 0x5B4 */ s16                   field_5B4;
-    /* 0x5B6 */ s16                   field_5B6;
-    /* 0x5B8 */ u16                   field_5B8;
-    /* 0x5BA */ s16                   field_5BA; // 1 while the death cutscene message is pending; cleared after 0x13F4, gates step 3
-    /* 0x5BC */ s16                   field_5BC;
-    /* 0x5BE */ u16                   field_5BE; // accumulated damage toward the 0x1A4 stagger threshold
-    /* 0x5C0 */ u16                   field_5C0; // frames the stagger window stays open; loaded 0xBC on a hit
-    /* 0x5C2 */ s16                   field_5C2;
+                                                 /// The two gate flags. Handlers read and write the halves apart; the
+                                                 /// schedule entry `func_actor_105100_8013329C` gates on both at once with a
+                                                 /// single word load.
+    /* 0x5A8 */ union {
+        struct {
+            /* 0x5A8 */ s16 field_5A8;
+            /* 0x5AA */ s16 field_5AA;
+        } fields;
+        s32 word;
+    } gate;
+    /* 0x5AC */ s16 field_5AC;
+    /* 0x5AE */ u16 field_5AE;
+    /* 0x5B0 */ s16 field_5B0;
+    /* 0x5B2 */ s16 field_5B2;
+    /* 0x5B4 */ s16 field_5B4;
+    /* 0x5B6 */ s16 field_5B6;
+    /* 0x5B8 */ u16 field_5B8;
+    /* 0x5BA */ s16 field_5BA; // 1 while the death cutscene message is pending; cleared after 0x13F4, gates step 3
+    /* 0x5BC */ s16 field_5BC;
+    /* 0x5BE */ u16 field_5BE; // accumulated damage toward the 0x1A4 stagger threshold
+    /* 0x5C0 */ u16 field_5C0; // frames the stagger window stays open; loaded 0xBC on a hit
+    /* 0x5C2 */ s16 field_5C2;
 } Actor105100Work;
 STATIC_ASSERT_SIZEOF(Actor105100Work, 0x5C4);
 
@@ -191,17 +199,6 @@ typedef struct Actor105100Rec {
     /* 0x4E */ u16                   field_4E;
 } Actor105100Rec;
 STATIC_ASSERT_SIZEOF(Actor105100Rec, 0x50);
-
-/// Third view of the work area, held by the schedule entry
-/// `func_actor_105100_8013329C`: the `field_5A8` / `field_5AA` pair taken as
-/// one word. Every other handler reads the halves apart, so they are `s16`
-/// fields of `Actor105100Work`; this entry gates on both at once (a single
-/// `lw` at 0x5A8) and therefore reaches the pair through this view.
-typedef struct Actor105100Gate {
-    /* 0x000 */ byte pad_0[0x5A8];
-    /* 0x5A8 */ s32  field_5A8;
-} Actor105100Gate;
-STATIC_ASSERT_SIZEOF(Actor105100Gate, 0x5AC);
 
 static void func_actor_105100_801327B4(Enemy* arg0, Task* arg1);
 static void func_actor_105100_80132AA0(Enemy* arg0, Task* arg1);
@@ -900,7 +897,7 @@ static void func_actor_105100_801327B4(Enemy* arg0, Task* arg1)
     (Gp_IncStateF0Ref)(0);
     work->field_560               = coord->coord;
     work->field_594               = 0x2800;
-    work->field_5A8               = 1;
+    work->gate.fields.field_5A8   = 1;
     work->field_59E               = 0xF;
     work->field_59A               = 0x96;
     work->obj47C.coord            = &arg1->extra.tmd->coords[3];
@@ -990,7 +987,7 @@ static void func_actor_105100_80132AA0(Enemy* arg0, Task* arg1)
     func_actor_105100_80136408(arg1);
     func_actor_105100_80134130(arg1);
     modelPlacementSetScaled(arg1, &work->field_560, work->field_594, 1);
-    if (work->field_5A8 != 0) {
+    if (work->gate.fields.field_5A8 != 0) {
         func_shelter_b6_training_room_8018294C(arg1);
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -1046,7 +1043,7 @@ static void func_actor_105100_80132C2C(Task* arg0)
                 damage *= 4;
                 Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
             }
-            if (work->field_5A8 == 1) {
+            if (work->gate.fields.field_5A8 == 1) {
                 if (work->field_49C[i].key.value & 0x8000) {
                     damage = 0;
                 } else {
@@ -1070,12 +1067,12 @@ static void func_actor_105100_80132C2C(Task* arg0)
                         }
                         break;
                     case 2:
-                        if (work->field_5A8 == 0) {
+                        if (work->gate.fields.field_5A8 == 0) {
                             Gp_SetObjFlag2(ctx, work->field_49C[i].key.value, 0);
                         }
                         break;
                     case 3:
-                        if (work->field_5A8 == 0) {
+                        if (work->gate.fields.field_5A8 == 0) {
                             Gp_SetObjFlag4(ctx, work->field_49C[i].key.value, 0);
                         }
                         break;
@@ -1111,9 +1108,9 @@ static void func_actor_105100_80132C2C(Task* arg0)
                             work->field_55C              = NULL;
                         }
                         if (work->field_5B4 != 0) {
-                            work->field_5B4 = 0;
-                            work->field_5B6 = 1;
-                            work->field_5AA = 0;
+                            work->field_5B4             = 0;
+                            work->field_5B6             = 1;
+                            work->gate.fields.field_5AA = 0;
                         }
                         work->field_5AC = 0;
                     }
@@ -1169,7 +1166,7 @@ static void func_actor_105100_80133134(Task* arg0)
         gSceneCombatState.pairedEnemySignals &= (0xFF ^ SCENE_COMBAT_PAIRED_RESET_REQUEST);
         work->field_596                       = 6;
         work->field_598                       = 0;
-        work->field_5A8                       = 0;
+        work->gate.fields.field_5A8           = 0;
     }
     state = work->field_596;
     switch (state) {
@@ -1205,8 +1202,8 @@ static void func_actor_105100_80133134(Task* arg0)
     if (gSceneCombatState.pairedEnemySignals & SCENE_COMBAT_PAIRED_HEAL_READY) {
         func_actor_105100_80135FCC(arg0);
     }
-    if (work->field_5AA > 0) {
-        work->field_5AA = (u16)work->field_5AA - 1;
+    if (work->gate.fields.field_5AA > 0) {
+        work->gate.fields.field_5AA = (u16)work->gate.fields.field_5AA - 1;
     }
 }
 
@@ -1216,7 +1213,7 @@ static void func_actor_105100_80133134(Task* arg0)
 /// whenever the battle is not paused (`gSceneCombatState::field_0`), and on the frame
 /// it runs out the arming state drops to 1 (aimed) and scene music entry 0xA
 /// is selected in `gStageSceneMusicEntry`. `field_5A8` is the pair of gate flags and is
-/// tested as one word -- see `Actor105100Gate`.
+/// tested as one word, `Actor105100Work::gate`.
 ///
 /// The reroll itself is the LCG: the state advances, the pose is the table
 /// entry the high nibble selects, and the `field_5B2` interval counter counts
@@ -1225,7 +1222,6 @@ static void func_actor_105100_80133134(Task* arg0)
 static void func_actor_105100_8013329C(Task* arg0, Enemy* arg1)
 {
     Actor105100Work* work;
-    Actor105100Gate* gate;
     s16              state;
     s16              pose;
     u16              timer;
@@ -1240,8 +1236,7 @@ static void func_actor_105100_8013329C(Task* arg0, Enemy* arg1)
             gStageSceneMusicEntry = 0xA;
         }
     }
-    gate = (Actor105100Gate*)work;
-    if (gate->field_5A8 == 0) {
+    if (work->gate.word == 0) {
         work->field_596 = 4;
         work->field_598 = 0;
         return;
@@ -1542,17 +1537,17 @@ static void func_actor_105100_80133A14(Task* arg0, Enemy* arg1)
     self = arg0->extra.tmd->coords;
     switch (work->field_598) {
         case 0:
-            work->field_58E = 3;
-            work->field_59A = 0xBC;
-            work->field_5AA = 0x1E;
-            work->field_5A8 = 0;
-            work->field_5B4 = 1;
-            work->field_598 = 1;
-            pos.vx          = 0;
-            pos.vy          = -0x6D6;
-            pos.vz          = 0x1F4;
-            work->field_55C = Gp_SpawnEff((EFFECT_SHELTER_B6_TRAINING_CHARGE_RING | EFFECT_SPAWN_UNLIMITED), arg0->extra.tmd->coords, (s16)work->field_59A + 0xA, &pos);
-            work->field_588 = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40330009;
+            work->field_58E             = 3;
+            work->field_59A             = 0xBC;
+            work->gate.fields.field_5AA = 0x1E;
+            work->gate.fields.field_5A8 = 0;
+            work->field_5B4             = 1;
+            work->field_598             = 1;
+            pos.vx                      = 0;
+            pos.vy                      = -0x6D6;
+            pos.vz                      = 0x1F4;
+            work->field_55C             = Gp_SpawnEff((EFFECT_SHELTER_B6_TRAINING_CHARGE_RING | EFFECT_SPAWN_UNLIMITED), arg0->extra.tmd->coords, (s16)work->field_59A + 0xA, &pos);
+            work->field_588             = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40330009;
             SndEvt_EnqueueType6(work->field_588, (s8)worldCoordGetOriginAudioPan(self), (s8)worldCoordGetOriginAudioDepth(self));
             break;
         case 1:
@@ -2570,11 +2565,11 @@ static void func_actor_105100_80135F50(Task* arg0)
             timer           = work->field_59A - 1;
             work->field_59A = timer;
             if ((timer << 16) <= 0) {
-                work->field_5A8 = state;
-                work->field_58E = state;
-                work->field_596 = 0;
-                work->field_598 = 0;
-                work->field_59A = 0;
+                work->gate.fields.field_5A8 = state;
+                work->field_58E             = state;
+                work->field_596             = 0;
+                work->field_598             = 0;
+                work->field_59A             = 0;
             }
             break;
     }
@@ -2622,9 +2617,9 @@ static void func_actor_105100_801360AC(Task* arg0)
             work->field_58E = 8;
             work->field_598 = 1;
             if (work->field_5B4 != 0) {
-                work->field_5B4 = 0;
-                work->field_5B6 = 1;
-                work->field_5AA = 0;
+                work->field_5B4             = 0;
+                work->field_5B6             = 1;
+                work->gate.fields.field_5AA = 0;
             }
             work->field_5AC = 0;
             func_actor_105100_801362A0(arg0);
@@ -2635,7 +2630,7 @@ static void func_actor_105100_801360AC(Task* arg0)
                 work->field_55C  = NULL;
             }
             if (work->field_5B6 == 0) {
-                work->field_5AA = 0x1E;
+                work->gate.fields.field_5AA = 0x1E;
             }
             break;
         case 1:
@@ -2681,7 +2676,7 @@ static void func_actor_105100_801361C4(Task* arg0)
                 work->field_55C  = NULL;
             }
             if (work->field_5B6 == 0) {
-                work->field_5AA = 0x1E;
+                work->gate.fields.field_5AA = 0x1E;
             }
             break;
         case 1:
