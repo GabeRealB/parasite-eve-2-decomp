@@ -178,14 +178,18 @@ typedef struct AcsTileScratch {
 } AcsTileScratch;
 STATIC_ASSERT_SIZEOF(AcsTileScratch, 0x28);
 
-/// One grey level per sprite variant, indexed by the variant the flame task
-/// picked out of `Task::spawnArg1` (bits 8..9). The overlay holds two of these,
-/// the base level `D_acropolis_sanctuary_8017D5D8` and the per-frame flicker
-/// amplitude `D_acropolis_sanctuary_8017D5DC`; both are copied onto the stack
-/// so the variant index can subscript them.
-typedef struct AcsSpriteLevels {
-    /* 0x0 */ u8 v[3];
-} AcsSpriteLevels;
+/// Grey levels of the sanctuary flame sprite, one byte per variant.
+///
+/// Bits 8..9 of the flame's spawn argument select the variant. That bitfield
+/// is two bits wide, but only variants 0, 1 and 2 have a byte here. Variants
+/// 0 and 1 store the same level and variant 2 is dimmer; the twelve flames
+/// this room places select 0 and 2. The overlay keeps two tables, the resting
+/// grey and the amount added on odd frames. The drawer copies a table and
+/// then reads one byte, so the padding after the table is not a fourth level.
+typedef struct {
+    u8 grey[3]; // 0..255, written to R, G and B; variants 0 and 1 bright, 2 dim
+} _AcropolisSanctuaryFlameGrey;
+STATIC_ASSERT_SIZEOF(_AcropolisSanctuaryFlameGrey, 3);
 
 /// `gPlayerStatus.weapon` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on,
@@ -246,10 +250,11 @@ static const TaskFuncTable3 D_acropolis_sanctuary_8017D5C4 = {
 /// Offset the room task's model-coordinate effect is spawned with.
 static const SVECTOR D_acropolis_sanctuary_8017D5D0 = { -0x27F6, -0x17CA, -0x1C3E, 0 };
 
-/// The two level tables stay in assembly: each is padded to a word in the ROM,
-/// which a 3-byte C object is not, and the second pad byte is non-zero.
-static const AcsSpriteLevels D_acropolis_sanctuary_8017D5D8 = { { 0x60, 0x60, 0x10 } };
-static const AcsSpriteLevels D_acropolis_sanctuary_8017D5DC = { { 0x10, 0x10, 0x08 } };
+/// Resting grey of the sanctuary flame, one byte per variant. The next
+/// constant is word-aligned, so a zero byte follows these three.
+static const _AcropolisSanctuaryFlameGrey D_acropolis_sanctuary_8017D5D8 = { { 0x60, 0x60, 0x10 } };
+/// Grey added to the resting level on odd frames, one byte per variant.
+static const _AcropolisSanctuaryFlameGrey D_acropolis_sanctuary_8017D5DC = { { 0x10, 0x10, 0x08 } };
 /// A non-zero padding byte the original toolchain left. Nothing refers to it.
 static const u8 D_acropolis_sanctuary_8017D5DF = 0xF1;
 
@@ -2532,16 +2537,16 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
 /// level plus its flicker amplitude on odd frames.
 void func_acropolis_sanctuary_8017F4E8(Task* arg0)
 {
-    EffectWork*            mem;
-    GfxCoord*              coord;
-    RoomGlowSpriteScratch* blk;
-    POLY_FT4*              prim;
-    AcsSpriteLevels        base;
-    AcsSpriteLevels        step;
-    s32                    param;
-    s32                    lvl;
-    s16                    x;
-    s16                    y;
+    EffectWork*                  mem;
+    GfxCoord*                    coord;
+    RoomGlowSpriteScratch*       blk;
+    POLY_FT4*                    prim;
+    _AcropolisSanctuaryFlameGrey base;
+    _AcropolisSanctuaryFlameGrey step;
+    s32                          param;
+    s32                          lvl;
+    s16                          x;
+    s16                          y;
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
@@ -2549,14 +2554,15 @@ void func_acropolis_sanctuary_8017F4E8(Task* arg0)
         Gp_UpdateCoord(coord);
         blk = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
         if (arg0->state == 0) {
+            // Three bytes each. The variant subscript does not include the padding byte after the table.
             base                  = D_acropolis_sanctuary_8017D5D8;
             step                  = D_acropolis_sanctuary_8017D5DC;
             param                 = arg0->spawnArg1.value;
             mem->scale            = (param & 0x0FFF0000) ? ((param >> 16) & 0xFFF) : 0x280;
             mem->angle            = (arg0->spawnArg1.value >> 8) & 3;
             arg0->spawnArg1.value = arg0->spawnArg1.value & 0xF;
-            mem->period           = base.v[mem->angle];
-            mem->step             = step.v[mem->angle];
+            mem->period           = base.grey[mem->angle];
+            mem->step             = step.grey[mem->angle];
             arg0->state++;
         }
         blk->worldPos.vx = coord->workm.t[0];
