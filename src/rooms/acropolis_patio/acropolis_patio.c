@@ -70,13 +70,6 @@ typedef struct ApLookAtWork {
 } ApLookAtWork;
 STATIC_ASSERT_SIZEOF(ApLookAtWork, 0x78);
 
-/// The three grey levels a flickering sprite
-/// (`func_acropolis_patio_8017E324`) picks its colour from, one per animation
-/// column. The task copies the whole set onto its stack before indexing it.
-typedef struct ApGreyLevels {
-    u8 level[3];
-} ApGreyLevels;
-
 typedef struct {
     /* 0x0 */ u16 field_0;
     /* 0x2 */ u8  field_2;
@@ -2029,10 +2022,6 @@ void func_acropolis_patio_8017DF70(u8 arg0)
     gSceneCombatState.actorControl = arg0;
 }
 
-static const ApGreyLevels D_acropolis_patio_8017D5E8 = { { 0x50, 0x30, 0x40 } };
-/// A non-zero padding byte the original toolchain left. Nothing refers to it.
-static const u8 D_acropolis_patio_8017D5EB = 0xF2;
-
 static void func_acropolis_patio_8017DF7C(Task* task)
 {
     char pad[0x10];
@@ -2152,8 +2141,8 @@ void func_acropolis_patio_8017E100(Task* task)
 ///
 /// On the first frame the task unpacks the rest of `spawnArg1` into its effect
 /// work block - the sprite's half extent from bits 16-27 (0x280 when those bits
-/// are clear), its animation column from bits 8-9, and that column's grey level
-/// from `D_acropolis_patio_8017D5E8` - and keeps only the anchor index. Every
+/// are clear), its animation column from bits 8-9, and that column's resting
+/// grey level (0x50, 0x30 or 0x40) - and keeps only the anchor index. Every
 /// frame it projects the coordinate's translation through `GsWSMATRIX` into a
 /// `RoomGlowSpriteScratch` block and, at `otz` 0x11 or further, queues one
 /// semi-transparent `POLY_FT4` on tpage 0x2B whose half extent is
@@ -2175,7 +2164,8 @@ void func_acropolis_patio_8017E324(Task* task)
         Gp_UpdateCoord(coord);
         block = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
         if (task->state == 0) {
-            ApGreyLevels levels = D_acropolis_patio_8017D5E8;
+            // Resting grey of each animation column.
+            u8 levels[3] = { 0x50, 0x30, 0x40 };
 
             if (task->spawnArg1.value & 0xFFF0000) {
                 work->scale = (task->spawnArg1.value >> 16) & 0xFFF;
@@ -2184,7 +2174,7 @@ void func_acropolis_patio_8017E324(Task* task)
             }
             work->angle           = (task->spawnArg1.value >> 8) & 3;
             task->spawnArg1.value = task->spawnArg1.value & 0xF;
-            work->period          = levels.level[work->angle];
+            work->period          = levels[work->angle];
             task->state           = task->state + 1;
         }
         block->worldPos.vx = coord->workm.t[0];
@@ -2235,6 +2225,13 @@ void func_acropolis_patio_8017E324(Task* task)
         SCRATCH_STACK_RELEASE_BLOCK(RoomGlowSpriteScratch);
     }
 }
+
+/// A non-zero padding byte the original toolchain left. Nothing refers to it.
+///
+/// It fills out the word holding the three grey levels the function above
+/// initialises its local array from, so it has to stay directly below that
+/// function.
+static const u8 D_acropolis_patio_8017D5EB = 0xF2;
 
 /// Draws and drifts one puff of the fountain's mist for the current frame.
 ///

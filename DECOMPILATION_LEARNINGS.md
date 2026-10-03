@@ -60964,6 +60964,13 @@ rodata = [{ start = "0x10", unit = "acropolis_forked_road_2" },
 then re-split and delete the `INCLUDE_RODATA` line the earlier unit used to
 carry. `func_acropolis_forked_road_8017E410` is the worked example.
 
+A non-zero leftover byte in the word's fourth slot does not change this, and
+does not call for a 3-byte struct copied from a named `static const`. The
+initializer's constant is emitted with its function, so define the leftover as
+a one-byte `static const u8` directly *below* that function and it lands at
+`+3`. `func_acropolis_patio_8017E324` (levels `0x50, 0x30, 0x40`, then `0xF2`)
+is the worked example; being a single-unit overlay it needed no cut either.
+
 ## `lh` + `andi 0x3f` for a clut is `getClut(x * 16, y)`, not `(x & 0x3f) | base`
 
 `prim->clut = (work->frame & 0x3F) | 0x4380;` on an `s16` field compiles to
