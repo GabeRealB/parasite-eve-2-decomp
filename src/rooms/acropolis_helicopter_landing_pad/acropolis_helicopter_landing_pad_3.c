@@ -795,9 +795,7 @@ static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 ind
 {
     WorldCoordTransientPointLight* lightSlot;
     WorldCoordPointLight*          pointLight;
-    void**                         scratch;
-    u8*                            head;
-    RoomDraw05Scratch*             blk;
+    GlowCentreRadiiScratch*        blk;
     POLY_G4*                       prim;
     s32                            a;
     s32                            b;
@@ -819,16 +817,13 @@ static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 ind
         if (mask == 0) {
             return;
         }
-        scratch  = SCRATCH_STACK_CURSOR_SLOT;
-        head     = *scratch;
-        *scratch = head - 0x14;
-        blk      = (RoomDraw05Scratch*)(head - 0x14);
+        blk = SCRATCH_STACK_RESERVE_BLOCK(GlowCentreRadiiScratch);
         gte_SetTransMatrix(&gGfxViewCoord.workm);
         gte_SetRotMatrix(&gGfxViewCoord.workm);
         gte_ldv0(pos);
         gte_rtps();
-        gte_stsxy(&((RoomDraw05Scratch*)(head - 0x14))->sx);
-        gte_stflg(&((RoomDraw05Scratch*)(head - 0x14))->flag);
+        gte_stsxy(&blk->sx);
+        gte_stflg(&blk->flag);
         if (blk->flag >= 0) {
             gte_stszotz(&blk->otz);
             lightSlot->framesLeft                              = 2;
@@ -841,8 +836,8 @@ static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 ind
             pointLight->head.transform.lighting.local.t[1]     = pos->vy;
             pointLight->head.transform.lighting.local.t[2]     = pos->vz;
             lightSlot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
-            blk->rOuter                                        = 0xC000 / ((RoomDraw05Scratch*)(head - 0x14))->otz;
-            blk->rInner                                        = 0x1800 / ((RoomDraw05Scratch*)(head - 0x14))->otz;
+            blk->outerRadius                                   = 0xC000 / blk->otz;
+            blk->innerRadius                                   = 0x1800 / blk->otz;
 
             for (a = 0; a < 0x1000; a += 0x200) {
                 prim           = gGpuPrimCursor;
@@ -854,16 +849,16 @@ static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 ind
                 half = lvl >> 1;
                 setRGB2(prim, half, 0, 0);
                 setRGB3(prim, 0, 0, 0);
-                prim->x0 = blk->sx + ((blk->rOuter * rsin(a)) >> 12);
-                prim->y0 = blk->sy + ((blk->rOuter * rcos(a)) >> 12);
+                prim->x0 = blk->sx + ((blk->outerRadius * rsin(a)) >> 12);
+                prim->y0 = blk->sy + ((blk->outerRadius * rcos(a)) >> 12);
                 b        = a + 0x100;
-                prim->x1 = blk->sx + ((blk->rOuter * rsin(b)) >> 12);
-                prim->y1 = blk->sy + ((blk->rOuter * rcos(b)) >> 12);
+                prim->x1 = blk->sx + ((blk->outerRadius * rsin(b)) >> 12);
+                prim->y1 = blk->sy + ((blk->outerRadius * rcos(b)) >> 12);
                 prim->x2 = blk->sx;
                 prim->y2 = blk->sy;
                 c        = a + 0x200;
-                prim->x3 = blk->sx + ((blk->rOuter * rsin(c)) >> 12);
-                prim->y3 = blk->sy + ((blk->rOuter * rcos(c)) >> 12);
+                prim->x3 = blk->sx + ((blk->outerRadius * rsin(c)) >> 12);
+                prim->y3 = blk->sy + ((blk->outerRadius * rcos(c)) >> 12);
                 addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                         prim);
                 gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
@@ -876,14 +871,14 @@ static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 ind
                 setRGB1(prim, 0, 0, 0);
                 setRGB2(prim, lvl, 0, 0);
                 setRGB3(prim, 0, 0, 0);
-                prim->x0 = blk->sx + ((blk->rOuter * rsin(a)) >> 13);
-                prim->y0 = blk->sy + ((blk->rOuter * rcos(a)) >> 13);
-                prim->x1 = blk->sx + ((blk->rOuter * rsin(b)) >> 13);
-                prim->y1 = blk->sy + ((blk->rOuter * rcos(b)) >> 13);
+                prim->x0 = blk->sx + ((blk->outerRadius * rsin(a)) >> 13);
+                prim->y0 = blk->sy + ((blk->outerRadius * rcos(a)) >> 13);
+                prim->x1 = blk->sx + ((blk->outerRadius * rsin(b)) >> 13);
+                prim->y1 = blk->sy + ((blk->outerRadius * rcos(b)) >> 13);
                 prim->x2 = blk->sx;
                 prim->y2 = blk->sy;
-                prim->x3 = blk->sx + ((blk->rOuter * rsin(c)) >> 13);
-                prim->y3 = blk->sy + ((blk->rOuter * rcos(c)) >> 13);
+                prim->x3 = blk->sx + ((blk->outerRadius * rsin(c)) >> 13);
+                prim->y3 = blk->sy + ((blk->outerRadius * rcos(c)) >> 13);
                 addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                         prim);
                 gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
@@ -900,15 +895,15 @@ static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 ind
                 setRGB1(prim, 0, 0, 0);
                 setRGB2(prim, lvl, 0, 0);
                 setRGB3(prim, 0, 0, 0);
-                prim->x0 = blk->sx + ((blk->rInner * rsin(d)) >> 13);
-                prim->y0 = blk->sy + ((blk->rInner * rcos(d)) >> 13);
-                prim->x1 = blk->sx + ((blk->rOuter * rsin(a)) >> 12);
-                prim->y1 = blk->sy + ((blk->rOuter * rcos(a)) >> 12);
+                prim->x0 = blk->sx + ((blk->innerRadius * rsin(d)) >> 13);
+                prim->y0 = blk->sy + ((blk->innerRadius * rcos(d)) >> 13);
+                prim->x1 = blk->sx + ((blk->outerRadius * rsin(a)) >> 12);
+                prim->y1 = blk->sy + ((blk->outerRadius * rcos(a)) >> 12);
                 prim->x2 = blk->sx;
                 prim->y2 = blk->sy;
                 d        = a + 0x400;
-                prim->x3 = blk->sx + ((blk->rInner * rsin(d)) >> 13);
-                prim->y3 = blk->sy + ((blk->rInner * rcos(d)) >> 13);
+                prim->x3 = blk->sx + ((blk->innerRadius * rsin(d)) >> 13);
+                prim->y3 = blk->sy + ((blk->innerRadius * rcos(d)) >> 13);
                 addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                         prim);
                 gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
@@ -921,21 +916,21 @@ static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 ind
                 setRGB1(prim, 0, 0, 0);
                 setRGB2(prim, lvl, 0, 0);
                 setRGB3(prim, 0, 0, 0);
-                prim->x0 = blk->sx + ((blk->rInner * rsin(a)) >> 12);
-                prim->y0 = blk->sy + ((blk->rInner * rcos(a)) >> 12);
-                prim->x1 = blk->sx + ((blk->rOuter * rsin(d)) >> 11);
-                prim->y1 = blk->sy + ((blk->rOuter * rcos(d)) >> 11);
+                prim->x0 = blk->sx + ((blk->innerRadius * rsin(a)) >> 12);
+                prim->y0 = blk->sy + ((blk->innerRadius * rcos(a)) >> 12);
+                prim->x1 = blk->sx + ((blk->outerRadius * rsin(d)) >> 11);
+                prim->y1 = blk->sy + ((blk->outerRadius * rcos(d)) >> 11);
                 prim->x2 = blk->sx;
                 prim->y2 = blk->sy;
                 d        = a + 0x800;
-                prim->x3 = blk->sx + ((blk->rInner * rsin(d)) >> 12);
-                prim->y3 = blk->sy + ((blk->rInner * rcos(d)) >> 12);
+                prim->x3 = blk->sx + ((blk->innerRadius * rsin(d)) >> 12);
+                prim->y3 = blk->sy + ((blk->innerRadius * rcos(d)) >> 12);
                 addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                         prim);
                 gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
             }
         }
-        SCRATCH_STACK_RELEASE_BYTES(0x14);
+        SCRATCH_STACK_RELEASE_BLOCK(GlowCentreRadiiScratch);
     }
 }
 

@@ -266,20 +266,25 @@ typedef struct {
 } GlowCentreScratch;
 STATIC_ASSERT_SIZEOF(GlowCentreScratch, 0x10);
 
-/// 0x14-byte scratch block `Room_Draw05` takes from the scratch stack. Same
-/// projection as `GlowCentreScratch` (`arg0` through `gGfxViewCoord.workm`, one
-/// `RTPS`) plus a second radius: `rOuter` is `(s16)arg2 * 64 / otz` and
-/// `rInner` is `(s16)arg2 * 8 / otz`. `flag` is `gte_stflg` and `sx`/`sy` are
-/// the projected centre.
-typedef struct _RoomDraw05Scratch {
-    /* 0x00 */ s32 otz;
-    /* 0x04 */ s32 flag;
-    /* 0x08 */ s32 rOuter;
-    /* 0x0C */ s32 rInner;
-    /* 0x10 */ u16 sx;
-    /* 0x12 */ u16 sy;
-} RoomDraw05Scratch;
-STATIC_ASSERT_SIZEOF(RoomDraw05Scratch, 0x14);
+/// Scratch block a two-radius glow drawer takes from the scratch stack for one
+/// projected centre.
+///
+/// Same projected centre as `GlowCentreScratch`: one perspective transform of
+/// a world point through `gGfxViewCoord.workm` writes the screen position and
+/// the flag word, and a negative flag word means the drawer links nothing.
+/// Otherwise it stores the ordering-table depth and two on-screen radii, sizes
+/// divided by that depth: the outer one spans the sixteen-wedge disc and the
+/// inner one the cross blades drawn over it. `sx` and `sy` are written by one
+/// screen-XY store, so they stay adjacent.
+typedef struct {
+    s32 otz;         // Ordering-table depth of the centre; also the divisor for both radii
+    s32 flag;        // GTE flag word; negative means the transform reported an error
+    s32 outerRadius; // On-screen radius of the outer disc
+    s32 innerRadius; // On-screen radius of the inner cross blades
+    u16 sx;          // Projected centre, x
+    u16 sy;          // Projected centre, y
+} GlowCentreRadiiScratch;
+STATIC_ASSERT_SIZEOF(GlowCentreRadiiScratch, 0x14);
 
 /// Scratch block `glowDrawDisc` takes when a room stores the half-extent
 /// ahead of the GTE flag word.

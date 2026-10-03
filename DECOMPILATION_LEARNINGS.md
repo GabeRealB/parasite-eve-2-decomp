@@ -59502,10 +59502,10 @@ scheduler credits the pseudo with the whole loop's worth of uses.
 Here the opposite worked: drop `u` altogether and write the angles inline.
 
 ```c
-prim->x0 = block->sx + ((block->rInner * rsin(ang - 0x400)) >> 13);
-prim->y0 = block->sy + ((block->rInner * rcos(ang - 0x400)) >> 13);
+prim->x0 = block->sx + ((block->innerRadius * rsin(ang - 0x400)) >> 13);
+prim->y0 = block->sy + ((block->innerRadius * rcos(ang - 0x400)) >> 13);
 ...
-prim->x3 = block->sx + ((block->rInner * rsin(ang + 0x400)) >> 13);
+prim->x3 = block->sx + ((block->innerRadius * rsin(ang + 0x400)) >> 13);
 ...
 ang += 0x800;
 ```
@@ -138903,6 +138903,13 @@ Read the base register of every scratch access in the target before copying
 a sibling's spelling; an `addiu vN,aK,-off` means `head`, `lw x,off(sN)` means
 `block`. The sibling's `SOFT_TOUCH_REG` on the carve was not needed here - the
 plain `block = (T*)(*scratch = head - N);` form matched.
+
+The 0x14 sibling itself, `glowDrawPulsingDisc`, has since been rewritten with
+`SCRATCH_STACK_RESERVE_BLOCK(GlowCentreRadiiScratch)` and `block->` for every
+access, and it still matches in every carrier: there the `head - 0x14` re-casts
+were not load-bearing. Try the plain block form before copying `head`-relative
+accesses from a sibling, and keep them only where the target's base register
+demands it.
 
 ## `(i + K) * 8 + tbl` recomputed every iteration: a reused index local, the table symbol inside the loop, one pointer local per site (func_dryfield_night_saloon_g_r_8017EB38, 2026-09-23)
 

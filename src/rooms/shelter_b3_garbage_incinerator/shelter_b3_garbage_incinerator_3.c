@@ -2246,31 +2246,24 @@ static void func_shelter_b3_garbage_incinerator_80183E78(SVECTOR* v, s32 arg1, s
 
 static void func_shelter_b3_garbage_incinerator_801842A4(SVECTOR* arg0, u16 arg1, u16 arg2, u16 arg3)
 {
-    RoomDraw05Scratch* block;
-    POLY_G4*           prim;
-    s32                ang;
-    s32                t;
-    s32                t2;
-    s32                ua;
-    s32                ub;
-    s32                uc;
-    u16                frame;
-    u16                start;
-    s32                blend;
-    u32                packed;
-    u8                 lvl;
-    u8                 r;
-    u8                 g;
-    u8                 b;
+    GlowCentreRadiiScratch* block;
+    POLY_G4*                prim;
+    s32                     ang;
+    s32                     t;
+    s32                     t2;
+    s32                     ua;
+    s32                     ub;
+    s32                     uc;
+    u16                     frame;
+    u16                     start;
+    s32                     blend;
+    u32                     packed;
+    u8                      lvl;
+    u8                      r;
+    u8                      g;
+    u8                      b;
 
-    {
-        void** scratch;
-        u8*    tmp;
-
-        scratch = SCRATCH_STACK_CURSOR_SLOT;
-        tmp     = SCRATCH_PUSH_BYTES_AT(scratch, 0x14);
-        block   = (RoomDraw05Scratch*)tmp;
-    }
+    block = SCRATCH_STACK_RESERVE_BLOCK(GlowCentreRadiiScratch);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
@@ -2300,8 +2293,8 @@ static void func_shelter_b3_garbage_incinerator_801842A4(SVECTOR* arg0, u16 arg1
             g   = lvl * ((arg2 >> 4) & 0xF) / 15;
             b   = lvl * (arg2 & 0xF) / 15;
         }
-        block->rOuter = (arg1 * 64) / block->otz;
-        block->rInner = (arg1 * 8) / block->otz;
+        block->outerRadius = (arg1 * 64) / block->otz;
+        block->innerRadius = (arg1 * 8) / block->otz;
         for (ang = start; ang < start + 0x1000; ang = t2) {
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
@@ -2310,16 +2303,16 @@ static void func_shelter_b3_garbage_incinerator_801842A4(SVECTOR* arg0, u16 arg1
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, (u8)r >> 1, (u8)g >> 1, (u8)b >> 1);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->rOuter * rsin(ang)) >> 12);
+            prim->x0 = block->sx + ((block->outerRadius * rsin(ang)) >> 12);
             t        = ang + 0x100;
-            prim->y0 = block->sy + ((block->rOuter * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->rOuter * rsin(t)) >> 12);
-            prim->y1 = block->sy + ((block->rOuter * rcos(t)) >> 12);
+            prim->y0 = block->sy + ((block->outerRadius * rcos(ang)) >> 12);
+            prim->x1 = block->sx + ((block->outerRadius * rsin(t)) >> 12);
+            prim->y1 = block->sy + ((block->outerRadius * rcos(t)) >> 12);
             t2       = ang + 0x200;
             prim->x2 = block->sx;
             prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 12);
-            prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 12);
+            prim->x3 = block->sx + ((block->outerRadius * rsin(t2)) >> 12);
+            prim->y3 = block->sy + ((block->outerRadius * rcos(t2)) >> 12);
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
@@ -2331,14 +2324,14 @@ static void func_shelter_b3_garbage_incinerator_801842A4(SVECTOR* arg0, u16 arg1
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, r, g, b);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->rOuter * rsin(ang)) >> 13);
-            prim->y0 = block->sy + ((block->rOuter * rcos(ang)) >> 13);
-            prim->x1 = block->sx + ((block->rOuter * rsin(t)) >> 13);
-            prim->y1 = block->sy + ((block->rOuter * rcos(t)) >> 13);
+            prim->x0 = block->sx + ((block->outerRadius * rsin(ang)) >> 13);
+            prim->y0 = block->sy + ((block->outerRadius * rcos(ang)) >> 13);
+            prim->x1 = block->sx + ((block->outerRadius * rsin(t)) >> 13);
+            prim->y1 = block->sy + ((block->outerRadius * rcos(t)) >> 13);
             prim->x2 = block->sx;
             prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 13);
-            prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 13);
+            prim->x3 = block->sx + ((block->outerRadius * rsin(t2)) >> 13);
+            prim->y3 = block->sy + ((block->outerRadius * rcos(t2)) >> 13);
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
@@ -2356,15 +2349,15 @@ static void func_shelter_b3_garbage_incinerator_801842A4(SVECTOR* arg0, u16 arg1
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, r, g, b);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->rInner * rsin(ua)) >> 13);
-            prim->y0 = block->sy + ((block->rInner * rcos(ua)) >> 13);
-            prim->x1 = block->sx + ((block->rOuter * rsin(ang)) >> 12);
-            prim->y1 = block->sy + ((block->rOuter * rcos(ang)) >> 12);
+            prim->x0 = block->sx + ((block->innerRadius * rsin(ua)) >> 13);
+            prim->y0 = block->sy + ((block->innerRadius * rcos(ua)) >> 13);
+            prim->x1 = block->sx + ((block->outerRadius * rsin(ang)) >> 12);
+            prim->y1 = block->sy + ((block->outerRadius * rcos(ang)) >> 12);
             ub       = ang + 0x400;
             prim->x2 = block->sx;
             prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rInner * rsin(ub)) >> 13);
-            prim->y3 = block->sy + ((block->rInner * rcos(ub)) >> 13);
+            prim->x3 = block->sx + ((block->innerRadius * rsin(ub)) >> 13);
+            prim->y3 = block->sy + ((block->innerRadius * rcos(ub)) >> 13);
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
@@ -2376,21 +2369,21 @@ static void func_shelter_b3_garbage_incinerator_801842A4(SVECTOR* arg0, u16 arg1
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, r, g, b);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->rInner * rsin(ang)) >> 12);
-            prim->y0 = block->sy + ((block->rInner * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->rOuter * rsin(ub)) >> 11);
-            prim->y1 = block->sy + ((block->rOuter * rcos(ub)) >> 11);
+            prim->x0 = block->sx + ((block->innerRadius * rsin(ang)) >> 12);
+            prim->y0 = block->sy + ((block->innerRadius * rcos(ang)) >> 12);
+            prim->x1 = block->sx + ((block->outerRadius * rsin(ub)) >> 11);
+            prim->y1 = block->sy + ((block->outerRadius * rcos(ub)) >> 11);
             uc       = ang + 0x800;
             prim->x2 = block->sx;
             prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rInner * rsin(uc)) >> 12);
-            prim->y3 = block->sy + ((block->rInner * rcos(uc)) >> 12);
+            prim->x3 = block->sx + ((block->innerRadius * rsin(uc)) >> 12);
+            prim->y3 = block->sy + ((block->innerRadius * rcos(uc)) >> 12);
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x14);
+    SCRATCH_STACK_RELEASE_BLOCK(GlowCentreRadiiScratch);
 }
 
 static void func_shelter_b3_garbage_incinerator_80184D7C(void)

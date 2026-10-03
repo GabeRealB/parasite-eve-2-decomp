@@ -9,42 +9,33 @@
 /// blue.
 void glowDrawPulsingDisc(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
-    u8*                head;
-    RoomDraw05Scratch* block;
-    POLY_G4*           prim;
-    s32                pulse;
-    s32                color;
-    s32                half;
-    s32                size;
-    s32                ang;
-    s32                t;
-    s32                t2;
-    s32                u;
+    GlowCentreRadiiScratch* block;
+    POLY_G4*                prim;
+    s32                     pulse;
+    s32                     color;
+    s32                     half;
+    s32                     size;
+    s32                     ang;
+    s32                     t;
+    s32                     t2;
+    s32                     u;
 
-    {
-        void** scratch;
-        u8*    tmp;
-
-        scratch = SCRATCH_STACK_CURSOR_SLOT;
-        head    = *scratch;
-        tmp     = (*scratch = head - 0x14);
-        block   = (RoomDraw05Scratch*)tmp;
-    }
+    block = SCRATCH_STACK_RESERVE_BLOCK(GlowCentreRadiiScratch);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
-    gte_stsxy(&((RoomDraw05Scratch*)(head - 0x14))->sx);
-    gte_stflg(&((RoomDraw05Scratch*)(head - 0x14))->flag);
+    gte_stsxy(&block->sx);
+    gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        pulse         = rsin(gDisplayState.animFrame * (s16)arg1);
-        ang           = 0;
-        size          = (s16)arg2;
-        block->rOuter = (size * 64) / ((RoomDraw05Scratch*)(head - 0x14))->otz;
-        color         = pulse / 34 + 0x78;
-        block->rInner = (size * 8) / ((RoomDraw05Scratch*)(head - 0x14))->otz;
+        pulse              = rsin(gDisplayState.animFrame * (s16)arg1);
+        ang                = 0;
+        size               = (s16)arg2;
+        block->outerRadius = (size * 64) / block->otz;
+        color              = pulse / 34 + 0x78;
+        block->innerRadius = (size * 8) / block->otz;
         do {
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
@@ -54,16 +45,16 @@ void glowDrawPulsingDisc(SVECTOR* arg0, s32 arg1, s32 arg2)
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, 0, half, half);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->rOuter * rsin(ang)) >> 12);
+            prim->x0 = block->sx + ((block->outerRadius * rsin(ang)) >> 12);
             t        = ang + 0x100;
-            prim->y0 = block->sy + ((block->rOuter * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->rOuter * rsin(t)) >> 12);
-            prim->y1 = block->sy + ((block->rOuter * rcos(t)) >> 12);
+            prim->y0 = block->sy + ((block->outerRadius * rcos(ang)) >> 12);
+            prim->x1 = block->sx + ((block->outerRadius * rsin(t)) >> 12);
+            prim->y1 = block->sy + ((block->outerRadius * rcos(t)) >> 12);
             t2       = ang + 0x200;
             prim->x2 = block->sx;
             prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 12);
-            prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 12);
+            prim->x3 = block->sx + ((block->outerRadius * rsin(t2)) >> 12);
+            prim->y3 = block->sy + ((block->outerRadius * rcos(t2)) >> 12);
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
@@ -75,14 +66,14 @@ void glowDrawPulsingDisc(SVECTOR* arg0, s32 arg1, s32 arg2)
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, 0, color, color);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->rOuter * rsin(ang)) >> 13);
-            prim->y0 = block->sy + ((block->rOuter * rcos(ang)) >> 13);
-            prim->x1 = block->sx + ((block->rOuter * rsin(t)) >> 13);
-            prim->y1 = block->sy + ((block->rOuter * rcos(t)) >> 13);
+            prim->x0 = block->sx + ((block->outerRadius * rsin(ang)) >> 13);
+            prim->y0 = block->sy + ((block->outerRadius * rcos(ang)) >> 13);
+            prim->x1 = block->sx + ((block->outerRadius * rsin(t)) >> 13);
+            prim->y1 = block->sy + ((block->outerRadius * rcos(t)) >> 13);
             prim->x2 = block->sx;
             prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 13);
-            prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 13);
+            prim->x3 = block->sx + ((block->outerRadius * rsin(t2)) >> 13);
+            prim->y3 = block->sy + ((block->outerRadius * rcos(t2)) >> 13);
             ang      = t2;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
@@ -100,15 +91,15 @@ void glowDrawPulsingDisc(SVECTOR* arg0, s32 arg1, s32 arg2)
             setRGB2(prim, 0, color, color);
             setRGB3(prim, 0, 0, 0);
             u        = ang - 0x400;
-            prim->x0 = block->sx + ((block->rInner * rsin(u)) >> 13);
-            prim->y0 = block->sy + ((block->rInner * rcos(u)) >> 13);
-            prim->x1 = block->sx + ((block->rOuter * rsin(ang)) >> 12);
-            prim->y1 = block->sy + ((block->rOuter * rcos(ang)) >> 12);
+            prim->x0 = block->sx + ((block->innerRadius * rsin(u)) >> 13);
+            prim->y0 = block->sy + ((block->innerRadius * rcos(u)) >> 13);
+            prim->x1 = block->sx + ((block->outerRadius * rsin(ang)) >> 12);
+            prim->y1 = block->sy + ((block->outerRadius * rcos(ang)) >> 12);
             u        = ang + 0x400;
             prim->x2 = block->sx;
             prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rInner * rsin(u)) >> 13);
-            prim->y3 = block->sy + ((block->rInner * rcos(u)) >> 13);
+            prim->x3 = block->sx + ((block->innerRadius * rsin(u)) >> 13);
+            prim->y3 = block->sy + ((block->innerRadius * rcos(u)) >> 13);
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
@@ -120,20 +111,20 @@ void glowDrawPulsingDisc(SVECTOR* arg0, s32 arg1, s32 arg2)
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, 0, color, color);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->rInner * rsin(ang)) >> 12);
-            prim->y0 = block->sy + ((block->rInner * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->rOuter * rsin(u)) >> 11);
-            prim->y1 = block->sy + ((block->rOuter * rcos(u)) >> 11);
+            prim->x0 = block->sx + ((block->innerRadius * rsin(ang)) >> 12);
+            prim->y0 = block->sy + ((block->innerRadius * rcos(ang)) >> 12);
+            prim->x1 = block->sx + ((block->outerRadius * rsin(u)) >> 11);
+            prim->y1 = block->sy + ((block->outerRadius * rcos(u)) >> 11);
             u        = ang + 0x800;
             prim->x2 = block->sx;
             prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rInner * rsin(u)) >> 12);
-            prim->y3 = block->sy + ((block->rInner * rcos(u)) >> 12);
+            prim->x3 = block->sx + ((block->innerRadius * rsin(u)) >> 12);
+            prim->y3 = block->sy + ((block->innerRadius * rcos(u)) >> 12);
             ang      = u;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x14);
+    SCRATCH_STACK_RELEASE_BLOCK(GlowCentreRadiiScratch);
 }
