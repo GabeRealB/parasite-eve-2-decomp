@@ -29,20 +29,24 @@ typedef struct {
 } _HazardPlayerDamage;
 STATIC_ASSERT_SIZEOF(_HazardPlayerDamage, 0x4);
 
-/// 6-byte table entry at `Gp_IdField1`. `Gp_LookupIdField(idx, 1)` returns
-/// `field_0` for index `(u16)idx`.
-typedef struct _GpRec6 {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u16 field_2;
-    /* 0x4 */ u16 field_4;
-} GpRec6;
-STATIC_ASSERT_SIZEOF(GpRec6, 0x6);
+/// What a hazard contact does to an enemy, one row per hazard id.
+///
+/// The enemy-side counterpart of `_HazardPlayerDamage`, selected by the same
+/// hazard id. The damage is fixed per id and comes off the enemy's hit points
+/// as stored, with none of the rolls or scaling an attack's power goes
+/// through. An id whose row is zero costs the enemy nothing.
+typedef struct {
+    u16 damage;  // Hit points the contact takes from the enemy, taken as stored; 0 for a harmless id
+    u16 field_2; // Never read, role unproven. Observed 7, 0, 7 in the three damaging rows
+    u16 field_4; // Never read, role unproven. Observed equal to field_2 in every row
+} _HazardEnemyDamage;
+STATIC_ASSERT_SIZEOF(_HazardEnemyDamage, 0x6);
 
 /// 4-byte records selected by `Gp_LookupIdField(..., 0)`.
 extern _HazardPlayerDamage Gp_IdField0[];
 
 /// 6-byte records selected by `Gp_LookupIdField(..., 1)`.
-extern GpRec6 Gp_IdField1[];
+extern _HazardEnemyDamage Gp_IdField1[];
 
 /// Unreferenced nonzero halfword following the ID-field table.
 extern u16 D_80114096;
@@ -60,7 +64,7 @@ _HazardPlayerDamage Gp_IdField0[11] = {
     { 0, 0 },
     { 0, 0 },
 };
-GpRec6 Gp_IdField1[11] = {
+_HazardEnemyDamage Gp_IdField1[11] = {
     { 0, 0, 0 },
     { 0, 0, 0 },
     { 180, 7, 7 },
@@ -86,7 +90,7 @@ s32 Gp_LookupIdField(s32 arg0, s32 arg1)
             ret = Gp_IdField0[(u16)arg0].damage;
             break;
         case 1:
-            ret = Gp_IdField1[(u16)arg0].field_0;
+            ret = Gp_IdField1[(u16)arg0].damage;
             break;
     }
     return ret;
