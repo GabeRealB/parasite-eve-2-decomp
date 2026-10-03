@@ -30881,14 +30881,14 @@ addu   v0, v0, s2    /* + row<<4 */
 addu   v0, v0, s4    /* + &arr */
 ```
 
-Hoist `rowOff = row << 4`, add `col << 2`, then index the flattened first
-element. `temp >> 2` cancels against the element size so no extra
-`sra`/`sll` appear:
+Hoist the row's byte offset, add the column's byte offset, then add the
+base through a byte view of the complete matrix. The offset uses the row
+and element sizes, so no extra `sra`/`sll` appear:
 
 ```c
-rowOff = kind << 4;
-temp   = (otherKind << 2) + rowOff;
-rec    = &D_8010FA4C[0][0] + (temp >> 2);
+rowOffsetBytes  = rowIndex * (s32)sizeof(D_8010FA4C[0]);
+ruleOffsetBytes = columnIndex * (s32)sizeof(WorldCollisionPairRule) + rowOffsetBytes;
+rule            = (const WorldCollisionPairRule*)((const u8*)&D_8010FA4C + ruleOffsetBytes);
 ```
 
 Inlining `arr[row][col]` stuck at 99.8%. `Gp_RunPairHandler` is the example
@@ -30896,18 +30896,18 @@ Inlining `arr[row][col]` stuck at 99.8%. `Gp_RunPairHandler` is the example
 
 ## Load both pair fields before the swap `if`
 
-A `{u16 handler, u16 swap}` record that picks argument order must load
-both halves before the branch. `if (rec->swap == 0) fn(a,b,rec->handler)`
-reloads `handler` in each arm (`lhu a2, 0(v1)`). Locals keep one `lhu` of
+A `{u16 handlerIndex, u16 swapBodies}` record that picks argument order must load
+both halves before the branch. `if (rule->swapBodies == 0) fn(a,b,rule->handlerIndex)`
+reloads `handlerIndex` in each arm (`lhu a2, 0(v1)`). Locals keep one `lhu` of
 each half and reuse `v0` for `andi a2, v0, 0xffff`:
 
 ```c
-swap    = rec->swap;
-handler = rec->handler;
-if (swap == 0) {
-    Gp_PairHandlers[handler](node, other, handler);
+swapBodies   = rule->swapBodies;
+handlerIndex = rule->handlerIndex;
+if (swapBodies == false) {
+    Gp_PairHandlers[handlerIndex](node, other, handlerIndex);
 } else {
-    Gp_PairHandlers[handler](other, node, handler);
+    Gp_PairHandlers[handlerIndex](other, node, handlerIndex);
 }
 ```
 

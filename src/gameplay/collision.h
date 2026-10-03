@@ -20,10 +20,11 @@ STATIC_ASSERT_SIZEOF(WorldCollisionFaceEdge, 0x4);
 
 /// Tests one ordered pair of collision bodies and records any contact.
 ///
-/// Dispatch selects the function from `Gp_PairHandlers` with `GpPairRule.handler`
-/// and passes that same index as `handler`. `first` and `second` are the two
-/// bodies in the order that rule specifies; `swap` exchanges them before the
-/// call. Returns 1 when a contact was recorded and 0 otherwise. Dispatch
+/// Dispatch selects the function from `Gp_PairHandlers` with
+/// `WorldCollisionPairRule::handlerIndex` and passes that index as `handler`.
+/// `first` and `second` are the bodies in the order that rule specifies;
+/// `WorldCollisionPairRule::swapBodies` exchanges them before the call.
+/// Returns 1 when a contact was recorded and 0 otherwise. Dispatch
 /// discards the result, and the installed functions do not read `handler`.
 ///
 /// The index is 0 for two proxies or two capsules, 1 for two spheres (a motion
@@ -33,13 +34,30 @@ STATIC_ASSERT_SIZEOF(WorldCollisionFaceEdge, 0x4);
 /// nothing.
 typedef s32 (*WorldCollisionPairHandler)(WorldCollisionBody* first, WorldCollisionBody* second, s32 handler);
 
-/// One rule of the pair-rule table `D_8010FA4C`: what the collision passes do
-/// when a body of the kind its row names meets one of the kind its column
-/// names.
+/// Handler-table indices stored in `WorldCollisionPairRule::handlerIndex`.
+///
+/// Motion spheres use the sphere routes. NONE, SPHERE_PROXY and CAPSULE_PROXY
+/// currently select no-op handlers; the other two routes test and record contacts.
+enum {
+    WORLD_COLLISION_PAIR_HANDLER_NONE           = 0,
+    WORLD_COLLISION_PAIR_HANDLER_SPHERES        = 1,
+    WORLD_COLLISION_PAIR_HANDLER_SPHERE_PROXY   = 2,
+    WORLD_COLLISION_PAIR_HANDLER_SPHERE_CAPSULE = 3,
+    WORLD_COLLISION_PAIR_HANDLER_CAPSULE_PROXY  = 4
+};
+
+/// Handler selection and argument order for one ordered pair of collision-body kinds.
+///
+/// The matrix row and column are the respective body kind minus 1: sphere,
+/// contact proxy, capsule, then motion sphere. Both bodies must have kinds 1..4.
+/// Spheres include motion spheres. Mixed routes put the sphere before the
+/// capsule or proxy, and the capsule before the proxy. Same-kind routes retain
+/// the row body first. The dispatchers only read these rules and pass the
+/// handler index as the handler's third argument.
 typedef struct {
-    u16 handler; // index into Gp_PairHandlers
-    u16 swap;    // non-zero: run the handler with the two bodies exchanged
-} GpPairRule;
-STATIC_ASSERT_SIZEOF(GpPairRule, 0x4);
+    u16 handlerIndex; // Handler slot (0 none, 1 spheres, 2 sphere/proxy, 3 sphere/capsule, 4 capsule/proxy)
+    u16 swapBodies;   // Argument order (0 row body first, 1 column body first); any nonzero value exchanges them
+} WorldCollisionPairRule;
+STATIC_ASSERT_SIZEOF(WorldCollisionPairRule, 0x4);
 
 #endif // GAMEPLAY_PRIVATE_COLLISION_H

@@ -14,13 +14,13 @@
 // Collision lists, contact records, room grids and collision updates.
 
 /// Pair-handler table used by `Gp_RunPairHandler` / `Gp_CollideLists`.
-/// Indexed by `GpPairRule.handler` (`Gp_PairNop` / `Gp_PairHandler1` /
+/// Indexed by `WorldCollisionPairRule::handlerIndex` (`Gp_PairNop` / `Gp_PairHandler1` /
 /// `Gp_PairHandler3`).
 extern WorldCollisionPairHandler Gp_PairHandlers[5];
 
 /// Pair-rule table used by `Gp_RunPairHandler` / `Gp_CollideLists`, one rule
 /// per ordered pair of body kinds. Rows and columns are `(flags & 7) - 1`.
-extern GpPairRule D_8010FA4C[4][4];
+extern WorldCollisionPairRule D_8010FA4C[4][4];
 
 /// Set to 1 by `Gp_TakePendingObj4C` when a pending `Gp_PendingObj4C` node is found;
 /// `Gp_TickWorldCollision` then calls `Gp_ClearPendingObj4C` to clear those flags.

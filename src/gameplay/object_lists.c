@@ -245,34 +245,35 @@ s32 func_800E0308(SVECTOR* arg0, SVECTOR* arg1)
 
 void Gp_CollideLists(WorldCollisionBody* a, WorldCollisionBody* b)
 {
-    WorldCollisionBody* other;
-    GpPairRule*         rec;
-    s32                 rowOff;
-    s32                 temp;
-    u16                 flags;
-    u16                 handler;
-    u16                 swap;
-    u8                  kind;
-    u8                  otherKind;
+    WorldCollisionBody*           other;
+    const WorldCollisionPairRule* rule;
+    s32                           rowOffsetBytes;
+    s32                           ruleOffsetBytes;
+    u16                           flags;
+    u16                           handlerIndex;
+    u16                           swapBodies;
+    u8                            rowIndex;
+    u8                            columnIndex;
 
     for (; a != NULL; a = a->next) {
         flags = a->flags;
         if (flags & WORLD_COLLISION_BODY_PAIR_ENABLED) {
-            kind  = (a->flags & WORLD_COLLISION_BODY_KIND_MASK) - 1;
-            other = b;
+            rowIndex = (a->flags & WORLD_COLLISION_BODY_KIND_MASK) - WORLD_COLLISION_BODY_SPHERE;
+            other    = b;
             if (other != NULL) {
-                rowOff = kind << 4;
+                rowOffsetBytes = rowIndex * (s32)sizeof(D_8010FA4C[0]);
                 for (; other != NULL; other = other->next) {
                     if (other->flags & WORLD_COLLISION_BODY_PAIR_ENABLED) {
-                        otherKind = (other->flags & WORLD_COLLISION_BODY_KIND_MASK) - 1;
-                        temp      = (otherKind << 2) + rowOff;
-                        rec       = &D_8010FA4C[0][0] + (temp >> 2);
-                        swap      = rec->swap;
-                        handler   = rec->handler;
-                        if (swap == 0) {
-                            Gp_PairHandlers[handler](a, other, handler);
+                        columnIndex     = (other->flags & WORLD_COLLISION_BODY_KIND_MASK) - WORLD_COLLISION_BODY_SPHERE;
+                        ruleOffsetBytes = columnIndex * (s32)sizeof(WorldCollisionPairRule) + rowOffsetBytes;
+                        // Complete the byte offset before adding the matrix base.
+                        rule         = (const WorldCollisionPairRule*)((const u8*)&D_8010FA4C + ruleOffsetBytes);
+                        swapBodies   = rule->swapBodies;
+                        handlerIndex = rule->handlerIndex;
+                        if (swapBodies == false) {
+                            Gp_PairHandlers[handlerIndex](a, other, handlerIndex);
                         } else {
-                            Gp_PairHandlers[handler](other, a, handler);
+                            Gp_PairHandlers[handlerIndex](other, a, handlerIndex);
                         }
                     }
                 }

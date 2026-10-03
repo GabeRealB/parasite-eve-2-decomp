@@ -231,11 +231,23 @@ WorldCollisionPairHandler Gp_PairHandlers[5] = {
     Gp_PairHandler3,
     Gp_PairNop,
 };
-GpPairRule D_8010FA4C[4][4] = {
-    { { 1, 0 }, { 2, 0 }, { 3, 0 }, { 1, 0 } },
-    { { 2, 1 }, { 0, 0 }, { 4, 1 }, { 2, 1 } },
-    { { 3, 1 }, { 4, 0 }, { 0, 0 }, { 3, 1 } },
-    { { 1, 0 }, { 2, 0 }, { 3, 0 }, { 1, 0 } },
+WorldCollisionPairRule D_8010FA4C[4][4] = {
+    { { WORLD_COLLISION_PAIR_HANDLER_SPHERES, false },
+      { WORLD_COLLISION_PAIR_HANDLER_SPHERE_PROXY, false },
+      { WORLD_COLLISION_PAIR_HANDLER_SPHERE_CAPSULE, false },
+      { WORLD_COLLISION_PAIR_HANDLER_SPHERES, false } },
+    { { WORLD_COLLISION_PAIR_HANDLER_SPHERE_PROXY, true },
+      { WORLD_COLLISION_PAIR_HANDLER_NONE, false },
+      { WORLD_COLLISION_PAIR_HANDLER_CAPSULE_PROXY, true },
+      { WORLD_COLLISION_PAIR_HANDLER_SPHERE_PROXY, true } },
+    { { WORLD_COLLISION_PAIR_HANDLER_SPHERE_CAPSULE, true },
+      { WORLD_COLLISION_PAIR_HANDLER_CAPSULE_PROXY, false },
+      { WORLD_COLLISION_PAIR_HANDLER_NONE, false },
+      { WORLD_COLLISION_PAIR_HANDLER_SPHERE_CAPSULE, true } },
+    { { WORLD_COLLISION_PAIR_HANDLER_SPHERES, false },
+      { WORLD_COLLISION_PAIR_HANDLER_SPHERE_PROXY, false },
+      { WORLD_COLLISION_PAIR_HANDLER_SPHERE_CAPSULE, false },
+      { WORLD_COLLISION_PAIR_HANDLER_SPHERES, false } },
 };
 
 void Gp_TickWorldCollision(Task* unused)
@@ -276,34 +288,35 @@ void Gp_TickWorldCollision(Task* unused)
 
 static void Gp_RunPairHandler(WorldCollisionBody* node)
 {
-    WorldCollisionBody* other;
-    GpPairRule*         rec;
-    s32                 rowOff;
-    s32                 temp;
-    u16                 flags;
-    u16                 handler;
-    u16                 swap;
-    u8                  kind;
-    u8                  otherKind;
+    WorldCollisionBody*           other;
+    const WorldCollisionPairRule* rule;
+    s32                           rowOffsetBytes;
+    s32                           ruleOffsetBytes;
+    u16                           flags;
+    u16                           handlerIndex;
+    u16                           swapBodies;
+    u8                            rowIndex;
+    u8                            columnIndex;
 
     for (; node != NULL; node = node->next) {
         flags = node->flags;
         other = node->next;
         if (flags & WORLD_COLLISION_BODY_PAIR_ENABLED) {
-            kind = (node->flags & WORLD_COLLISION_BODY_KIND_MASK) - 1;
+            rowIndex = (node->flags & WORLD_COLLISION_BODY_KIND_MASK) - WORLD_COLLISION_BODY_SPHERE;
             if (other != NULL) {
-                rowOff = kind << 4;
+                rowOffsetBytes = rowIndex * (s32)sizeof(D_8010FA4C[0]);
                 for (; other != NULL; other = other->next) {
                     if (other->flags & WORLD_COLLISION_BODY_PAIR_ENABLED) {
-                        otherKind = (other->flags & WORLD_COLLISION_BODY_KIND_MASK) - 1;
-                        temp      = (otherKind << 2) + rowOff;
-                        rec       = &D_8010FA4C[0][0] + (temp >> 2);
-                        swap      = rec->swap;
-                        handler   = rec->handler;
-                        if (swap == 0) {
-                            Gp_PairHandlers[handler](node, other, handler);
+                        columnIndex     = (other->flags & WORLD_COLLISION_BODY_KIND_MASK) - WORLD_COLLISION_BODY_SPHERE;
+                        ruleOffsetBytes = columnIndex * (s32)sizeof(WorldCollisionPairRule) + rowOffsetBytes;
+                        // Complete the byte offset before adding the matrix base.
+                        rule         = (const WorldCollisionPairRule*)((const u8*)&D_8010FA4C + ruleOffsetBytes);
+                        swapBodies   = rule->swapBodies;
+                        handlerIndex = rule->handlerIndex;
+                        if (swapBodies == false) {
+                            Gp_PairHandlers[handlerIndex](node, other, handlerIndex);
                         } else {
-                            Gp_PairHandlers[handler](other, node, handler);
+                            Gp_PairHandlers[handlerIndex](other, node, handlerIndex);
                         }
                     }
                 }
