@@ -76,7 +76,7 @@ u8 D_mine_cavern_8018E3BC[4][8] = {
 
 s16 D_mine_cavern_8018E3DC = 0;
 
-MineCavernTint D_mine_cavern_8018E3E0[5] = {
+CVECTOR D_mine_cavern_8018E3E0[5] = {
     { 30, 30, 30, 0 },
     { 25, 25, 25, 0 },
     { 17, 21, 22, 0 },

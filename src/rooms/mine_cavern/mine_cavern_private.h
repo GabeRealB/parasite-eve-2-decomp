@@ -14,18 +14,6 @@
 
 #include "main/task_types.h"
 
-/// One tint of the cavern's darkness overlay: a `u8` RGB triple plus a zero
-/// fourth byte. `func_mine_cavern_80182454` picks the entry by the number of
-/// `GameFlag_GetNibble(0xE2)` bits set, so the rows run light to dark and the
-/// full-screen wash deepens as that nibble fills in.
-typedef struct MineCavernTint {
-    /* 0x0 */ u8 r;
-    /* 0x1 */ u8 g;
-    /* 0x2 */ u8 b;
-    /* 0x3 */ u8 pad;
-} MineCavernTint;
-STATIC_ASSERT_SIZEOF(MineCavernTint, 0x4);
-
 typedef struct {
     s32 id;
     union {
@@ -37,9 +25,13 @@ typedef struct {
     } handler;
 } MineCavernMessageEntry;
 
-/// The cavern's five tints: (0x1E,0x1E,0x1E), (0x19,0x19,0x19), (0x11,0x15,0x16),
-/// (0x07,0x0F,0x10) and (0x00,0x09,0x0B).
-extern MineCavernTint D_mine_cavern_8018E3E0[5];
+/// Colours of the cavern's darkness, one per count of destroyed targets (0-4).
+///
+/// The colour is what a full-screen quad subtracts from the picture, so a
+/// larger channel is a darker cavern. The rows run from an even grey with all
+/// four targets intact to a weaker wash that leaves red untouched once all are
+/// destroyed. Only the three colour channels are used; `cd` is zero.
+extern CVECTOR D_mine_cavern_8018E3E0[5];
 
 /// How many of the two steps of game flag nibble 0xE6 (values 1 and 2)
 /// `func_mine_cavern_8017DFAC` has already acted on; `func_mine_cavern_8017E394`
