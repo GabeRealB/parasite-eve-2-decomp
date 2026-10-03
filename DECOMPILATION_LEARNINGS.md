@@ -52035,7 +52035,7 @@ multu   $a0, $t3
 li      $t2, 0x9af
 li      $t1, 0xf633
 sw      $a2, 0($s0)
-sh      $t2, 8($a2)      # blk->a.vz = 0x9AF
+sh      $t2, 8($a2)      # line->start.vz = 0x9AF
 mfhi    $s1
 ```
 
@@ -52050,11 +52050,14 @@ latency, but it will not lift one across it, so source order decides which
 happens. Emit the long statement first and the cheap constant stores after it:
 
 ```c
-blk->a.vx = -0x427;
-blk->a.vy = ((u32)gDisplayState.animFrame * 6) % 406 + 0xF633;
-*scratch  = blk;
-blk->a.vz = 0x9AF;
+line           = SCRATCH_STACK_RESERVE_BLOCK(_AcropolisSecurityRoomSweepLineScratch);
+line->start.vx = -0x427;
+line->start.vy = (gDisplayState.animFrame * 6) % 406 + 0xF633;
+line->start.vz = 0x9AF;
 ```
+
+The pointer publish needs no placement of its own: written first, as the
+reservation, its `sw` is sunk into the same shadow.
 
 The same rule settled the second half of
 `func_acropolis_security_room_80180A78`: three `+=` of a `MATRIX`'s translation

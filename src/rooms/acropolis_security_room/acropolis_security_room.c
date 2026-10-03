@@ -198,18 +198,24 @@ typedef struct {
 } _AcropolisSecurityRoomMonitorFeedQuad;
 STATIC_ASSERT_SIZEOF(_AcropolisSecurityRoomMonitorFeedQuad, 0xA);
 
-/// 0x14-byte scratch block `func_acropolis_security_room_80180A78` takes from
-/// the scratch stack while it draws the security laser. `a` and `b` are the two
-/// endpoints of the beam in the emitter's local frame; each is rotated by the
-/// emitter's `GfxCoord::workm` and then biased by that matrix's
-/// translation, so both end up in world space. `otz` receives `SZ3 >> 2` from
-/// the `RTPS` of `a` and doubles as the OT slot selector.
-typedef struct AsrBeamScratch {
-    /* 0x00 */ s32     otz;
-    /* 0x04 */ SVECTOR a;
-    /* 0x0C */ SVECTOR b;
-} AsrBeamScratch;
-STATIC_ASSERT_SIZEOF(AsrBeamScratch, 0x14);
+/// Scratch-stack block of the sweep line the monitor-feed task draws in the
+/// frame of its coordinate.
+///
+/// The line is a segment along that frame's X axis which travels along Y as
+/// the frame counter advances, so its two endpoints differ only in X. Each
+/// endpoint is written in the coordinate's frame, turned into a world position
+/// in place, and then projected onto one vertex of a flat line primitive. The
+/// world positions are 16-bit: only the low half of the coordinate's world
+/// translation is added to the rotated point.
+///
+/// Reserve one whole block and release it once the primitive is linked;
+/// nothing in it outlives the draw.
+typedef struct {
+    s32     depth; // SZ3 / 4 from projecting `end`: the near-cull test, the ordering-table depth and the blend-mode depth
+    SVECTOR start; // Endpoint at the lower X, projected onto the primitive's vertex 0
+    SVECTOR end;   // Endpoint at the higher X, projected onto vertex 1
+} _AcropolisSecurityRoomSweepLineScratch;
+STATIC_ASSERT_SIZEOF(_AcropolisSecurityRoomSweepLineScratch, 0x14);
 
 /// The tasks `func_acropolis_security_room_8017D77C` and
 /// `func_acropolis_security_room_8017D834` spawn and poll until they end;
@@ -3306,65 +3312,60 @@ void func_acropolis_security_room_801805A4(Task* task)
 /// local frame are rotated into world space by the emitter coordinate's
 /// `workm`, projected through `GsWSMATRIX`, and linked into the current OT as
 /// one semi-transparent flat `LINE_F2`. The beam only exists in the two camera
-/// views selected by the `0xC` bitmask over `GameSession::location.loc.view`, its far
-/// endpoint sweeps with the frame counter (`gDisplayState.animFrame * 6` folded
-/// into a 406-step range), and nothing is queued when the near endpoint
-/// projects closer than an OTZ of 0x11.
+/// views selected by the `0xC` bitmask over `GameSession::location.loc.view`, both
+/// endpoints sweep together with the frame counter (`gDisplayState.animFrame * 6`
+/// folded into a 406-step range of their shared local Y), and nothing is queued
+/// when the second endpoint projects closer than an SZ3 / 4 of 0x11.
 static void func_acropolis_security_room_80180A78(Task* task)
 {
-    void**          scratch;
-    u8*             head;
-    AsrBeamScratch* blk;
-    GfxCoord*       coord;
-    LINE_F2*        prim;
+    _AcropolisSecurityRoomSweepLineScratch* line;
+    GfxCoord*                               coord;
+    LINE_F2*                                prim;
 
     coord = task->extra.coordBody->coord;
     if ((0xC >> (gGameSession->location.loc.view - 1)) & 1) {
-        scratch   = SCRATCH_STACK_CURSOR_SLOT;
-        head      = *scratch;
-        blk       = (AsrBeamScratch*)(head - 0x14);
-        blk->a.vx = -0x427;
-        blk->a.vy = (gDisplayState.animFrame * 6) % 406 + 0xF633;
-        *scratch  = blk;
-        blk->a.vz = 0x9AF;
+        line           = SCRATCH_STACK_RESERVE_BLOCK(_AcropolisSecurityRoomSweepLineScratch);
+        line->start.vx = -0x427;
+        line->start.vy = (gDisplayState.animFrame * 6) % 406 + 0xF633;
+        line->start.vz = 0x9AF;
         gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&((AsrBeamScratch*)(head - 0x14))->a);
+        gte_ldv0(&line->start);
         gte_rtv0();
-        gte_stsv(&((AsrBeamScratch*)(head - 0x14))->a);
-        blk->a.vx = (u16)blk->a.vx + (u16)coord->workm.t[0];
-        blk->a.vy = (u16)blk->a.vy + (u16)coord->workm.t[1];
-        blk->a.vz = (u16)blk->a.vz + (u16)coord->workm.t[2];
-        blk->b.vx = -0x1F0;
-        blk->b.vy = (gDisplayState.animFrame * 6) % 406 + 0xF633;
-        blk->b.vz = 0x9AF;
+        gte_stsv(&line->start);
+        line->start.vx += coord->workm.t[0];
+        line->start.vy += coord->workm.t[1];
+        line->start.vz += coord->workm.t[2];
+        line->end.vx    = -0x1F0;
+        line->end.vy    = (gDisplayState.animFrame * 6) % 406 + 0xF633;
+        line->end.vz    = 0x9AF;
         gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&((AsrBeamScratch*)(head - 0x14))->b);
+        gte_ldv0(&line->end);
         gte_rtv0();
-        gte_stsv(&((AsrBeamScratch*)(head - 0x14))->b);
-        blk->b.vx = (u16)blk->b.vx + (u16)coord->workm.t[0];
-        blk->b.vy = (u16)blk->b.vy + (u16)coord->workm.t[1];
-        blk->b.vz = (u16)blk->b.vz + (u16)coord->workm.t[2];
+        gte_stsv(&line->end);
+        line->end.vx += coord->workm.t[0];
+        line->end.vy += coord->workm.t[1];
+        line->end.vz += coord->workm.t[2];
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&((AsrBeamScratch*)(head - 0x14))->a);
+        gte_ldv0(&line->start);
         gte_rtps();
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setLineF2(prim);
         gte_stsxy(&prim->x0);
-        gte_ldv0(&((AsrBeamScratch*)(head - 0x14))->b);
+        gte_ldv0(&line->end);
         gte_rtps();
         prim->code |= 2;
         gte_stsxy(&prim->x1);
-        gte_stszotz(&blk->otz);
-        if (((AsrBeamScratch*)(head - 0x14))->otz > 0x10) {
+        gte_stszotz(&line->depth);
+        if (line->depth > 0x10) {
             setRGB0(prim, 0x10, 0x10, 0x10);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((AsrBeamScratch*)(head - 0x14))->otz << gDisplayState.otDepthShift) >> 2) &
-                                                             GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(
+                        ((((u32)line->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_SUBTRACT, ((AsrBeamScratch*)(head - 0x14))->otz);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_SUBTRACT, line->depth);
         }
-        SCRATCH_STACK_RELEASE_BYTES(0x14);
+        SCRATCH_STACK_RELEASE_BLOCK(_AcropolisSecurityRoomSweepLineScratch);
     }
 }
 
