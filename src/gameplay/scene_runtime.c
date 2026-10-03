@@ -325,24 +325,52 @@ static const char _gAnimationUnsupportedPoseDiagnostic[24];
 
 static const TaskFuncTable3 D_80093A5C;
 
+/// High byte of `Enemy::workType` for an actor the scene manager placed.
+enum {
+    SCENE_PLACED_ACTOR_BANK = 9,
+};
+
+/// Looks up one child of the scene task.
+///
+/// Dispatch passes `messageId` and the handler does not read it. `selector`
+/// is a packed `Enemy::placeKey` for a placed actor, or a byte id for any
+/// other child. `reply` must address one `Task*`; the handler writes the
+/// matching child there, or NULL when none matches. Returns 0 on a match
+/// and -1 when none matches.
+typedef s32 (*_SceneFindChildHandler)(Task* scene, s32 messageId, TaskMessageArg selector, Task** reply);
+
+/// Runs the exit routine of every placed actor among the scene task's children.
+///
+/// Dispatch still supplies the message ID and both argument words. The handler
+/// reads none of them and returns 0.
+typedef s32 (*_SceneExitPlacedHandler)(Task* scene, s32 messageId, s32 firstArg, s32 secondArg);
+
+/// One record of the scene manager's message table.
+///
+/// The scene task borrows the table through `Task::msgTable`. Dispatch selects
+/// the first record whose `messageId` matches and calls that callback with the
+/// receiver, the ID and two argument words. The views are the contracts this
+/// table installs. Child lookup writes a `Task*` reply; exit and broadcast
+/// walk the scene task's child ring and return 0. A record is eight bytes.
 typedef struct {
-    s32 id;
+    s32 messageId;                          // Scene-manager message ID, or TASK_MESSAGE_TABLE_END
     union {
-        s32                (*find)(Task*, Task*, s32, Task**);
-        s32                (*exit)(Task*);
-        TaskMessageHandler send;
-    } handler;
-} GpSlot4MessageEntry;
+        _SceneFindChildHandler  find;       // Child lookup; writes the child through the second argument word
+        _SceneExitPlacedHandler exitPlaced; // Exit every placed actor; argument words unused
+        TaskMessageHandler      broadcast;  // Forward the two argument words to every placed actor
+    } handler;                              // Callback for `messageId`; NULL only on the end marker
+} _SceneMessageEntry;
+STATIC_ASSERT_SIZEOF(_SceneMessageEntry, 8);
 
-extern GpSlot4MessageEntry Gp_Slot4MsgTable[5];
+extern _SceneMessageEntry Gp_Slot4MsgTable[5];
 
-s32 Gp_FindChildType9(Task* arg0, Task* arg1, s32 arg2, Task** arg3);
+s32 Gp_FindChildType9(Task* scene, s32 messageId, TaskMessageArg selector, Task** reply);
 
-s32 Gp_FindChildExceptType9(Task* arg0, Task* arg1, s32 arg2, Task** arg3);
+s32 Gp_FindChildExceptType9(Task* scene, s32 messageId, TaskMessageArg selector, Task** reply);
 
-s32 Gp_ExitChildrenType9(Task* arg0);
+s32 Gp_ExitChildrenType9(Task* scene, s32 messageId, s32 firstArg, s32 secondArg);
 
-s32 Gp_SendMsgType9(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
+s32 Gp_SendMsgType9(Task* scene, s32 messageId, TaskMessageArg payload, TaskMessageArg childMessage);
 
 static void Gp_ApplySndMasks(u16 arg0);
 
@@ -3819,99 +3847,121 @@ void func_800B5DB8(Task* arg0)
     funcs[arg0->state](arg0);
 }
 
-s32 Gp_FindChildType9(Task* arg0, Task* arg1, s32 arg2, Task** arg3)
+/// Finds the placed actor whose `placeKey` equals the selector.
+///
+/// The message ID is not read. The walk follows the scene task's child ring.
+s32 Gp_FindChildType9(Task* scene, s32 messageId, TaskMessageArg selector, Task** reply)
 {
+    Task* head;
     Task* child;
-    s32   ret;
+    s32   result;
 
-    *arg3 = NULL;
-    child = arg0->firstChild;
-    ret   = -1;
-    if (child == NULL) {
-        return ret;
+    *reply = NULL;
+    head   = scene->firstChild;
+    result = -1;
+    if (head == NULL) {
+        return result;
     }
-    arg1 = child;
+    child = head;
     do {
-        arg0 = arg1->spawnArg2.pointer;
-        if (((((Enemy*)arg0)->workType >> 8) == 9) && (((Enemy*)arg0)->placeKey == arg2)) {
-            *arg3 = arg1;
-            ret   = 0;
+        // The child publishes its enemy work through spawnArg2.
+        scene = child->spawnArg2.pointer;
+        if ((((Enemy*)scene)->workType >> 8) == SCENE_PLACED_ACTOR_BANK && ((Enemy*)scene)->placeKey == selector.value) {
+            *reply = child;
+            result = 0;
             break;
         }
-        arg1 = arg1->nextSibling;
-    } while (arg1 != child);
-    return ret;
+        child = child->nextSibling;
+    } while (child != head);
+    return result;
 }
 
-s32 Gp_FindChildExceptType9(Task* arg0, Task* arg1, s32 arg2, Task** arg3)
+/// Finds a child outside the placed-actor bank whose id byte equals the selector.
+///
+/// The id is the low byte of `placeKey`. The message ID is not read.
+s32 Gp_FindChildExceptType9(Task* scene, s32 messageId, TaskMessageArg selector, Task** reply)
 {
+    Task* head;
     Task* child;
-    s32   ret;
+    s32   result;
 
-    *arg3 = NULL;
-    child = arg0->firstChild;
-    ret   = -1;
-    if (child == NULL) {
-        return ret;
+    *reply = NULL;
+    head   = scene->firstChild;
+    result = -1;
+    if (head == NULL) {
+        return result;
     }
-    arg1 = child;
+    child = head;
     do {
-        arg0 = arg1->spawnArg2.pointer;
-        if (((((Enemy*)arg0)->workType >> 8) != 9) && ((u8)((Enemy*)arg0)->placeKey == arg2)) {
-            *arg3 = arg1;
-            ret   = 0;
+        // The child publishes its enemy work through spawnArg2.
+        scene = child->spawnArg2.pointer;
+        if ((((Enemy*)scene)->workType >> 8) != SCENE_PLACED_ACTOR_BANK && (u8)((Enemy*)scene)->placeKey == selector.value) {
+            *reply = child;
+            result = 0;
             break;
         }
-        arg1 = arg1->nextSibling;
-    } while (arg1 != child);
-    return ret;
+        child = child->nextSibling;
+    } while (child != head);
+    return result;
 }
 
-s32 Gp_ExitChildrenType9(Task* arg0)
+/// Runs the exit routine of every placed actor among the scene task's children.
+///
+/// The message ID and both argument words are not read. A child's exit routine
+/// may unlink it, so the next sibling is taken before that call.
+s32 Gp_ExitChildrenType9(Task* scene, s32 messageId, s32 firstArg, s32 secondArg)
 {
+    Task*  head;
     Task*  child;
     Task*  next;
     Enemy* enemy;
-    u32    type;
+    u32    bank;
 
-    child = arg0->firstChild;
-    if (child == NULL) {
+    head = scene->firstChild;
+    if (head == NULL) {
         return 0;
     }
-    arg0 = child;
+    child = head;
     do {
-        enemy = arg0->spawnArg2.pointer;
-        type  = enemy->workType >> 8;
-        next  = arg0->nextSibling;
-        if (type == 9) {
-            Task_CallExit(arg0);
+        enemy = child->spawnArg2.pointer;
+        bank  = enemy->workType >> 8;
+        next  = child->nextSibling;
+        if (bank == SCENE_PLACED_ACTOR_BANK) {
+            Task_CallExit(child);
         }
-        arg0 = next;
-    } while (arg0 != child);
+        child = next;
+    } while (child != head);
     return 0;
 }
 
-s32 Gp_SendMsgType9(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Forwards one message to every placed actor among the scene task's children.
+///
+/// The message ID is not read. The second word is the message sent to each
+/// child and the first word is that message's payload; the child's own second
+/// argument is zero. A handler may unlink the child, so the next sibling is
+/// taken before the send. Returns 0.
+s32 Gp_SendMsgType9(Task* scene, s32 messageId, TaskMessageArg payload, TaskMessageArg childMessage)
 {
+    Task*  head;
     Task*  child;
     Task*  next;
     Enemy* enemy;
-    u32    type;
+    u32    bank;
 
-    child = arg0->firstChild;
-    if (child == NULL) {
+    head = scene->firstChild;
+    if (head == NULL) {
         return 0;
     }
-    arg0 = child;
+    child = head;
     do {
-        enemy = arg0->spawnArg2.pointer;
-        type  = enemy->workType >> 8;
-        next  = arg0->nextSibling;
-        if (type == 9) {
-            taskMessageDispatch(arg0, arg3, arg2, 0);
+        enemy = child->spawnArg2.pointer;
+        bank  = enemy->workType >> 8;
+        next  = child->nextSibling;
+        if (bank == SCENE_PLACED_ACTOR_BANK) {
+            taskMessageDispatch(child, childMessage.value, payload.value, 0);
         }
-        arg0 = next;
-    } while (arg0 != child);
+        child = next;
+    } while (child != head);
     return 0;
 }
 
@@ -4142,12 +4192,13 @@ static const TaskFuncTable3 D_80093A5C = { {
     Task_CallExit,
 } };
 
-GpSlot4MessageEntry Gp_Slot4MsgTable[5] = {
-    { 2000, { .find = Gp_FindChildType9 } },
-    { 2008, { .find = Gp_FindChildExceptType9 } },
-    { SCENE_MESSAGE_EXIT_PLACED_ACTORS, { .exit = Gp_ExitChildrenType9 } },
-    { 2010, { .send = Gp_SendMsgType9 } },
-    { TASK_MESSAGE_TABLE_END, { .exit = NULL } },
+/// Message table the scene task installs while it is the scene manager.
+_SceneMessageEntry Gp_Slot4MsgTable[5] = {
+    { SCENE_MESSAGE_FIND_PLACED_ACTOR, { .find = Gp_FindChildType9 } },
+    { SCENE_MESSAGE_FIND_OTHER_CHILD, { .find = Gp_FindChildExceptType9 } },
+    { SCENE_MESSAGE_EXIT_PLACED_ACTORS, { .exitPlaced = Gp_ExitChildrenType9 } },
+    { SCENE_MESSAGE_BROADCAST_TO_ACTORS, { .broadcast = Gp_SendMsgType9 } },
+    { TASK_MESSAGE_TABLE_END, { .broadcast = NULL } },
 };
 GpBit2Bank Gp_Bit2Banks[6] = { { NULL, NULL }, { D_map_akropolis_8017A7FC, GameFlag_AcropolisBanks[0].header.objectStates }, { D_map_dryfield_8017A564, GameFlag_DryfieldBanks[0].header.objectStates }, { D_map_dryfield_full_8017A46C, GameFlag_DryfieldBanks[0].header.objectStates }, { D_map_shelter_8017A998, GameFlag_ShelterBanks[0].header.objectStates }, { D_map_neo_ark_8017A6EC, GameFlag_NeoArkBanks[0].header.objectStates } };
 
