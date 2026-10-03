@@ -29,12 +29,17 @@ typedef struct {
 } MistParkingHeadAimHandle;
 STATIC_ASSERT_SIZEOF(MistParkingHeadAimHandle, 8);
 
+/// Work of the talk at the parking-lot shop while the area is in variant 1.
+///
+/// The talk greets, announces each shooting-gallery prize waiting here, then
+/// offers a menu that can open the shop. It is cleared when the talk starts.
 typedef struct {
-    /* 0x0 */ u16 timer; // ticks down between companion slots
-    /* 0x2 */ s16 slot;  // companion slot 0..4 being walked
-    /* 0x4 */ s16 field_4;
-    /* 0x6 */ s16 cmd;   // cap command replayed by state 5
-} MistParkingCapState;
+    s16 prizeTimer;          // Frames left on the current prize (10 each; a waiting prize's caption starts at 5)
+    s16 prizeIndex;          // Shooting-gallery course whose prize is being announced (0..4)
+    s16 businessDone;        // Nonzero once prizes came up or a menu choice other than leaving ran; picks the farewell
+    s16 prizeClosingCommand; // CAP command closing the prize exchange (2 after the announcements, 3 when skipped)
+} MistParkingShopTalkState;
+STATIC_ASSERT_SIZEOF(MistParkingShopTalkState, 8);
 
 extern TaskDesc D_mist_parking_8018D75C[];
 
@@ -157,7 +162,7 @@ extern MistParkingScanState D_mist_parking_80195328;
 
 extern MistParkingHeadAimHandle D_mist_parking_8019532C;
 
-extern MistParkingCapState D_mist_parking_80195334;
+extern MistParkingShopTalkState D_mist_parking_80195334;
 
 /// Resets the caption state and, for 1 or 2, loads that caption file.
 void func_mist_parking_80183708(s32 arg0);

@@ -828,7 +828,7 @@ MistParkingScanState D_mist_parking_80195328 = { 0 };
 
 MistParkingHeadAimHandle D_mist_parking_8019532C = { 0 };
 
-MistParkingCapState D_mist_parking_80195334 = { 0, 0, 0, 0 };
+MistParkingShopTalkState D_mist_parking_80195334 = { 0, 0, 0, 0 };
 
 RoomCutsceneRec D_mist_parking_8019533C = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 

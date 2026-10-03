@@ -33,9 +33,6 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
-/// Scratch state of the parking-lot cap script driven by
-/// `func_mist_parking_80183EAC`, cleared with `memFillBytes` when the task starts.
-
 void              func_mist_parking_801846A4(s32 arg0);
 extern EvsCommand D_mist_parking_80190C74[];
 extern EvsCommand D_mist_parking_80190D64[];
@@ -425,21 +422,17 @@ void func_mist_parking_80183D58(Task* task)
 
 void func_mist_parking_80183EAC(Task* task)
 {
-    MistParkingCapState* st = &D_mist_parking_80195334;
-    s32                  cmd;
-    s32                  i;
-    s16                  slot;
-    s16                  slot2;
-    s32                  key;
-    u16                  raw;
-    s16                  count;
-    u16                  tick;
-    u16                  tick2;
-    s16                  next;
+    MistParkingShopTalkState* talk = &D_mist_parking_80195334;
+    s32                       cmd;
+    s32                       i;
+    s16                       prize;
+    s32                       key;
+    u16                       tick;
+    u16                       tick2;
 
     switch (task->state) {
         case 0:
-            memFillBytes(st, 0, sizeof(*st));
+            memFillBytes(talk, 0, sizeof(*talk));
             func_mist_parking_801846A4(1);
             func_800E8614(D_mist_parking_80191154, 1);
             Gp_RunCapCmd(6, 0);
@@ -464,7 +457,7 @@ void func_mist_parking_80183EAC(Task* task)
             func_mist_parking_801846A4(2);
             func_800E8614(D_mist_parking_80191154, 1);
             Gp_RunCapCmd(1, 0);
-            st->field_4 = 1;
+            talk->businessDone = 1;
             task->state++;
             break;
         case 3:
@@ -476,45 +469,44 @@ void func_mist_parking_80183EAC(Task* task)
             }
             if (Gp_GetCapEventKey() == 1) {
                 Gp_RunCapCmd(7, 0);
-                st->timer   = 0xA;
-                st->cmd     = 2;
-                task->state = 4;
+                talk->prizeTimer          = 10;
+                talk->prizeClosingCommand = 2;
+                task->state               = 4;
             } else {
-                st->cmd     = 3;
-                task->state = 5;
+                talk->prizeClosingCommand = 3;
+                task->state               = 5;
             }
             break;
         case 4:
             if (Gp_CapBusy() != 0) {
                 return;
             }
-            raw       = st->timer - 1;
-            st->timer = raw;
-            count     = raw;
-            if (count == 5) {
-                slot = st->slot;
-                if (GameFlag_GetNibble(slot + 0x125) == 2) {
-                    Gp_StartCapSlot(5, 0, slot);
+            // Give each prize ten frames: the caption of one still waiting here
+            // starts halfway, and its state flag moves on when the turn ends.
+            talk->prizeTimer--;
+            if (talk->prizeTimer == 5) {
+                prize = talk->prizeIndex;
+                if (GameFlag_GetNibble(prize + 0x125) == 2) {
+                    Gp_StartCapSlot(5, 0, prize);
                 }
                 return;
             }
-            if (count != 0) {
+            if (talk->prizeTimer != 0) {
                 return;
             }
-            slot2 = st->slot;
-            if (Gp_GetCurBit2Flag(slot2 + 0x20) != 1) {
-                GameFlag_SetNibble(slot2 + 0x125, 3);
+            prize = talk->prizeIndex;
+            if (Gp_GetCurBit2Flag(prize + 0x20) != 1) {
+                GameFlag_SetNibble(prize + 0x125, 3);
             }
-            st->timer = 0xA;
-            next      = (u16)st->slot + 1;
-            st->slot  = next;
-            if (next >= 5) {
+            talk->prizeTimer = 10;
+            talk->prizeIndex++;
+            if (talk->prizeIndex >= 5) {
                 task->state++;
             }
             break;
         case 5:
             func_800E8614(D_mist_parking_80191154, 1);
-            Gp_RunCapCmd(st->cmd, 0);
+            Gp_RunCapCmd(talk->prizeClosingCommand, 0);
             task->state++;
             break;
         case 6:
@@ -543,10 +535,10 @@ void func_mist_parking_80183EAC(Task* task)
             task->spawnArg1.value = key;
             if (key == 6) {
                 func_800E8614(D_mist_parking_80191214, 1);
-                st->field_4 = 1;
+                talk->businessDone = 1;
             } else if (key == 7) {
                 func_800E8614(D_mist_parking_80191304, 1);
-                st->field_4 = 1;
+                talk->businessDone = 1;
             } else {
                 func_800E8614(D_mist_parking_801913C4, 1);
             }
@@ -564,7 +556,7 @@ void func_mist_parking_80183EAC(Task* task)
                         Gp_RunCapCmd(8, 0);
                         break;
                     case 8:
-                        if (st->field_4 != 0) {
+                        if (talk->businessDone != 0) {
                             Gp_RunCapCmd(7, 0);
                         } else {
                             Gp_RunCapCmd(0xA, 0);
