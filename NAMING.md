@@ -420,7 +420,9 @@ values are separate from runtime stage numbers.
 `BossStrangerRoute` beside it. State values use `BOSS_STRANGER_WALKER_`.
 The blocks of the two nearest-node scans are
 `BossStrangerNodeNearestSelfScratch`, measured from the walker, and
-`BossStrangerNodeNearestPlayerScratch`, measured from a player; both are
+`BossStrangerNodeNearestPlayerScratch`, measured from a player. The block of
+the re-plan along the node order is `BossStrangerPlanTowardScratch`, whose
+list capacity and sentinels use `BOSS_STRANGER_PLAN_`. All three are
 private to that interface. The other
 scratch frames the step opens stay with the walker family under their
 `OverlayWalker` names until their own review. The arrival test has none of its

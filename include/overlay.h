@@ -591,28 +591,6 @@ typedef struct {
 } BossStrangerWalker;
 STATIC_ASSERT_SIZEOF(BossStrangerWalker, 0x94);
 
-/// The scratch-pad block of a patrol walker's re-plan along `nodeOrder`.
-/// `nodeA` is the node nearest the actor the walker reacts to and `nodeB` the
-/// node nearest the walker; `listA` and `listB` collect the `nodeOrder` slots
-/// naming each, terminated by 0xFF, and `i` and `j` walk them. `diff` is the
-/// signed step between the pair under test and `best` the smallest seen,
-/// starting at 0xFF so the first pair always wins.
-typedef struct OverlayWalkerRouteScratch {
-    s16  diff;
-    byte pad_2[0x2];
-    u8   nodeA;
-    u8   nodeB;
-    u8   i;
-    u8   j;
-    u8   best;
-    u8   countA;
-    u8   countB;
-    byte pad_B[0x1];
-    u8   listB[8];
-    u8   listA[8];
-} OverlayWalkerRouteScratch;
-STATIC_ASSERT_SIZEOF(OverlayWalkerRouteScratch, 0x1C);
-
 /// The scratch-pad frame a patrol walker's tick opens: `pos` is the position
 /// the walker steers for this frame. Nothing else in the frame is read.
 typedef struct OverlayWalkerTickScratch {

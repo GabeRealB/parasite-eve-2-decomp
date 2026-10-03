@@ -80,6 +80,47 @@ typedef struct {
 } BossStrangerGroundStepScratch;
 STATIC_ASSERT_SIZEOF(BossStrangerGroundStepScratch, 0x18);
 
+/// Capacity of each slot list in `BossStrangerPlanTowardScratch`.
+#define BOSS_STRANGER_PLAN_SLOT_CAPACITY 8
+
+/// End marker of a slot list in `BossStrangerPlanTowardScratch`. No real slot
+/// has this value: the order's length is a byte, so its slots end at 0xFE.
+#define BOSS_STRANGER_PLAN_SLOT_END 0xFF
+
+/// Value of `bestGap` in `BossStrangerPlanTowardScratch` before a pair has
+/// been taken. Every real gap is smaller, so the first pair tested always
+/// wins.
+#define BOSS_STRANGER_PLAN_GAP_NONE 0xFF
+
+/// Scratch-pad block of the walker's re-plan along its nav's node order.
+///
+/// The re-plan first collects the order slots naming the node nearest the
+/// selected actor and those naming the node nearest the walker, then tests
+/// every pair of one slot from each list and keeps the pair the fewest slots
+/// apart. Nothing clears the block when it is reserved.
+///
+/// Each list takes at most `BOSS_STRANGER_PLAN_SLOT_CAPACITY` slots, in
+/// ascending order, and later matches are dropped. The end marker is stored
+/// at the list's count, so a list that fills has no room for it: the marker
+/// of a full `selfSlots` replaces `actorSlots[0]`, and that of a full
+/// `actorSlots` falls on the byte after the block. Neither carrier's order
+/// names a node more than once.
+typedef struct {
+    s16  gap;                                          // Actor-side slot minus walker-side slot of the pair under test. Its sign picks the direction along the order
+    byte pad_2[0x2];                                   // Never accessed
+    u8   actorNode;                                    // Nav node nearest the selected actor
+    u8   selfNode;                                     // Nav node nearest the walker
+    u8   outerIndex;                                   // Order slot under test while collecting, then index into actorSlots while pairing
+    u8   innerIndex;                                   // Index into selfSlots while pairing
+    u8   bestGap;                                      // Smallest absolute gap taken so far, or BOSS_STRANGER_PLAN_GAP_NONE
+    u8   actorSlotCount;                               // Slots collected in actorSlots
+    u8   selfSlotCount;                                // Slots collected in selfSlots
+    byte pad_B[0x1];                                   // Never accessed
+    u8   selfSlots[BOSS_STRANGER_PLAN_SLOT_CAPACITY];  // Order slots naming selfNode, ended by BOSS_STRANGER_PLAN_SLOT_END unless full
+    u8   actorSlots[BOSS_STRANGER_PLAN_SLOT_CAPACITY]; // Order slots naming actorNode, ended by BOSS_STRANGER_PLAN_SLOT_END unless full
+} BossStrangerPlanTowardScratch;
+STATIC_ASSERT_SIZEOF(BossStrangerPlanTowardScratch, 0x1C);
+
 s16  bossStrangerArrived(BossStrangerWalker* walker);
 void bossStrangerFollowRoute(BossStrangerWalker* work, SVECTOR3* pos);
 u8   bossStrangerNodeNearestActor(BossStrangerWalker* work, s32 actor);

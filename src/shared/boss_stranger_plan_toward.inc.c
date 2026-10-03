@@ -13,50 +13,51 @@
 /// was.
 void bossStrangerPlanToward(BossStrangerWalker* work, s16 actor)
 {
-    OverlayWalkerRouteScratch* s;
-    u8*                        head;
-    s32                        diff;
-    s32                        best;
+    BossStrangerPlanTowardScratch* s;
+    s32                            gap;
+    s32                            bestGap;
 
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - 0x1C;
-    s                        = (OverlayWalkerRouteScratch*)(head - 0x1C);
+    s = SCRATCH_STACK_RESERVE_BLOCK(BossStrangerPlanTowardScratch);
 
-    s->nodeA  = bossStrangerNodeNearestActor(work, actor);
-    s->nodeB  = bossStrangerNodeNearestSelf(work);
-    s->countA = 0;
-    s->countB = 0;
-    for (s->i = 0; s->i < work->nav->orderCount; s->i++) {
-        if (work->nav->nodeOrder[s->i] == s->nodeA && s->countA < 8) {
-            s->listA[s->countA] = s->i;
-            s->countA++;
+    // Collect the order slots that name each of the two nodes.
+    s->actorNode      = bossStrangerNodeNearestActor(work, actor);
+    s->selfNode       = bossStrangerNodeNearestSelf(work);
+    s->actorSlotCount = 0;
+    s->selfSlotCount  = 0;
+    for (s->outerIndex = 0; s->outerIndex < work->nav->orderCount; s->outerIndex++) {
+        if (work->nav->nodeOrder[s->outerIndex] == s->actorNode && s->actorSlotCount < BOSS_STRANGER_PLAN_SLOT_CAPACITY) {
+            s->actorSlots[s->actorSlotCount] = s->outerIndex;
+            s->actorSlotCount++;
         }
-        if (work->nav->nodeOrder[s->i] == s->nodeB && s->countB < 8) {
-            s->listB[s->countB] = s->i;
-            s->countB++;
+        if (work->nav->nodeOrder[s->outerIndex] == s->selfNode && s->selfSlotCount < BOSS_STRANGER_PLAN_SLOT_CAPACITY) {
+            s->selfSlots[s->selfSlotCount] = s->outerIndex;
+            s->selfSlotCount++;
         }
     }
 
-    s->listA[s->countA] = 0xFF;
-    s->listB[s->countB] = 0xFF;
-    s->best             = 0xFF;
-    for (s->i = 0; s->i < 8; s->i++) {
-        if (s->listA[s->i] == 0xFF) {
+    // A full list has no room for its end marker; see the block's notes.
+    s->actorSlots[s->actorSlotCount] = BOSS_STRANGER_PLAN_SLOT_END;
+    s->selfSlots[s->selfSlotCount]   = BOSS_STRANGER_PLAN_SLOT_END;
+
+    // Take the pair of slots, one from each list, that are closest together.
+    s->bestGap = BOSS_STRANGER_PLAN_GAP_NONE;
+    for (s->outerIndex = 0; s->outerIndex < BOSS_STRANGER_PLAN_SLOT_CAPACITY; s->outerIndex++) {
+        if (s->actorSlots[s->outerIndex] == BOSS_STRANGER_PLAN_SLOT_END) {
             break;
         }
-        for (s->j = 0; s->j < 8; s->j++) {
-            if (s->listB[s->j] == 0xFF) {
+        for (s->innerIndex = 0; s->innerIndex < BOSS_STRANGER_PLAN_SLOT_CAPACITY; s->innerIndex++) {
+            if (s->selfSlots[s->innerIndex] == BOSS_STRANGER_PLAN_SLOT_END) {
                 break;
             }
-            diff    = s->listA[s->i] - s->listB[s->j];
-            best    = s->best;
-            s->diff = diff;
-            diff    = ABS(diff);
-            if (diff < best) {
-                s->best        = diff;
-                work->cursor   = s->listB[s->j];
-                work->goalSlot = s->listA[s->i];
-                if (s->diff < 0) {
+            gap     = s->actorSlots[s->outerIndex] - s->selfSlots[s->innerIndex];
+            bestGap = s->bestGap;
+            s->gap  = gap;
+            gap     = ABS(gap);
+            if (gap < bestGap) {
+                s->bestGap     = gap;
+                work->cursor   = s->selfSlots[s->innerIndex];
+                work->goalSlot = s->actorSlots[s->outerIndex];
+                if (s->gap < 0) {
                     work->orderStep = -1;
                 } else {
                     work->orderStep = 1;
@@ -65,9 +66,9 @@ void bossStrangerPlanToward(BossStrangerWalker* work, s16 actor)
         }
     }
 
-    if (s->best == 0xFF) {
+    if (s->bestGap == BOSS_STRANGER_PLAN_GAP_NONE) {
         printf(_gPatrolNoPairMsg);
     }
     work->cursor += (u8)work->orderStep;
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BLOCK(BossStrangerPlanTowardScratch);
 }
