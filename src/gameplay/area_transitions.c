@@ -54,12 +54,35 @@ typedef struct {
 } _AreaMapMarkRec;
 STATIC_ASSERT_SIZEOF(_AreaMapMarkRec, 2);
 
-/// Tables of no-arg callbacks copied onto the stack by the sibling
-/// dispatchers. `Gp_DirAction0` copies the 6-entry `Gp_WarpPhaseFns`;
-/// `Gp_DirAction1` copies the 5-entry `D_80093990`.
+/// Phases of the facing action, in the order its phase counter passes them.
+///
+/// The action turns the player to the yaw its trigger gives and then walks
+/// them up or down the trigger's stairs. It ends when the climb does, unless
+/// the climb carries the player onto a warp trigger, which the last phase
+/// then commits.
+enum {
+    DIRECTION_FACING_PHASE_TURN,        // Start the player's turn to the trigger's yaw
+    DIRECTION_FACING_PHASE_AWAIT_TURN,  // Wait for the turn to finish
+    DIRECTION_FACING_PHASE_CLIMB,       // Start the stair climb
+    DIRECTION_FACING_PHASE_AWAIT_CLIMB, // Follow the climb to its end, or go on once it meets a warp trigger
+    DIRECTION_FACING_PHASE_WARP,        // Commit the warp met during the climb and end the action
+    DIRECTION_FACING_PHASE_COUNT
+};
+
+/// The phase handlers of the facing action, indexed by `DIRECTION_FACING_PHASE_*`.
+///
+/// The facing action's own handler calls the entry its phase counter picks
+/// once per frame, without a range check. The counter starts at
+/// `DIRECTION_FACING_PHASE_TURN` when the action is latched and only ever
+/// steps forward by one, and the last phase ends the action without stepping
+/// it, so the index stays inside the table.
+///
+/// The array is wrapped in a struct so that the table can be copied by
+/// assignment: the action's handler dispatches through a copy of its own.
 typedef struct {
-    DirectionActionHandler funcs[5];
-} GpVoidFuncTable5;
+    DirectionActionHandler handlers[DIRECTION_FACING_PHASE_COUNT];
+} _DirectionFacingPhaseTable;
+STATIC_ASSERT_SIZEOF(_DirectionFacingPhaseTable, 0x14);
 
 typedef struct {
     DirectionActionHandler funcs[6];
@@ -92,7 +115,7 @@ extern const TaskFuncTable3 Gp_DirTaskStates;
 
 static const GpVoidFuncTable6 Gp_WarpPhaseFns;
 
-static const GpVoidFuncTable5 D_80093990;
+static const _DirectionFacingPhaseTable D_80093990;
 
 static inline s32 _gpGetAreaFlag4(GameLocationKey* key);
 
@@ -425,12 +448,12 @@ static const GpVoidFuncTable6 Gp_WarpPhaseFns = { {
     Gp_CommitSaveLoc,
 } };
 
-static const GpVoidFuncTable5 D_80093990 = { {
-    Gp_MsgPlayer3EE,
-    Gp_MsgPlayer3F0,
-    Gp_MsgPlayer3EF,
-    Gp_MsgPlayerDirFacing,
-    Gp_CommitDirWarp,
+static const _DirectionFacingPhaseTable D_80093990 = { {
+    [DIRECTION_FACING_PHASE_TURN]        = Gp_MsgPlayer3EE,
+    [DIRECTION_FACING_PHASE_AWAIT_TURN]  = Gp_MsgPlayer3F0,
+    [DIRECTION_FACING_PHASE_CLIMB]       = Gp_MsgPlayer3EF,
+    [DIRECTION_FACING_PHASE_AWAIT_CLIMB] = Gp_MsgPlayerDirFacing,
+    [DIRECTION_FACING_PHASE_WARP]        = Gp_CommitDirWarp,
 } };
 
 static inline s16 _gpStageFlagNibble(u16* table, s16 idx)
@@ -562,9 +585,9 @@ static void Gp_DirAction0(void)
 
 static void Gp_DirAction1(void)
 {
-    GpVoidFuncTable5 sp;
+    _DirectionFacingPhaseTable phaseTable;
 
-    sp = D_80093990;
+    phaseTable = D_80093990;
     if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_FINISHED) {
         if (D_80114CDE == 1) {
             D_80114CDD = D_80114CDE;
@@ -573,7 +596,7 @@ static void Gp_DirAction1(void)
     if (D_80114CDD != 0) {
         gSceneCombatState.signals.bytes.endDelayFrames = SCENE_COMBAT_END_DELAY_FRAMES;
     }
-    sp.funcs[(s16)Gp_DirPhase]();
+    phaseTable.handlers[(s16)Gp_DirPhase]();
 }
 
 static void Gp_ClearDirCursor(void)
