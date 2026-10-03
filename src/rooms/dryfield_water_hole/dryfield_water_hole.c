@@ -85,7 +85,6 @@ extern TaskMessageEntry D_dryfield_water_hole_8017FC5C[];
 /// Descriptor of the room's water task, spawned by the room task's entry tick.
 /// Its callback is `waterHoleWaterTask`.
 extern TaskDesc D_dryfield_water_hole_8017FC8C[];
-/// The room's water surfaces, terminated by an entry with `y == -1`.
 /// Point pairs of the glowing beams the splash task draws, one table per group
 /// of views.
 /// Last-frame world positions of the two tracked parts of the slot-3 task's
@@ -129,8 +128,8 @@ TaskDesc D_dryfield_water_hole_8017FC8C[1] = {
 
 WaterHoleSurface gWaterHoleSurfaces[3] = {
     { 4000, -2000, 8000, 2000, -420 },
-    { 0x2710, -4000, 0x32C8, 2000, -420 },
-    { 0, 0, 0, 0, -1 },
+    { 10000, -4000, 13000, 2000, -420 },
+    { 0, 0, 0, 0, WATER_SURFACE_LIST_END },
 };
 
 SVECTOR D_dryfield_water_hole_8017FCBC[12] = {

@@ -15,7 +15,7 @@ void waterHoleDrawSurfaces(Task* task)
     long              p, flag;
     s32               step;
     s32               phase;
-    WaterHoleSurface* e;
+    WaterHoleSurface* surface;
     POLY_G4*          poly;
     DR_MODE*          dr;
     s32               otz;
@@ -23,7 +23,7 @@ void waterHoleDrawSurfaces(Task* task)
     s32               half;
     s32               wave;
 
-    e = gWaterHoleSurfaces;
+    surface = gWaterHoleSurfaces;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
         gWaterHolePrimCursor = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * 0xC000;
     } else {
@@ -37,24 +37,24 @@ void waterHoleDrawSurfaces(Task* task)
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
-    for (; e->y != -1; e++) {
-        step = e->width / 64;
-        half = (s16)e->depth / 2;
+    for (; surface->y != WATER_SURFACE_LIST_END; surface++) {
+        step = surface->width / 64;
+        half = surface->depth / 2;
         for (i = 0; i < 64; i++) {
-            v0.vx = e->x + step * i;
-            v0.vy = e->y;
-            v0.vz = e->z;
-            v1.vx = e->x + step * (i + 1);
-            v1.vy = e->y;
-            v1.vz = e->z;
+            v0.vx = surface->x + step * i;
+            v0.vy = surface->y;
+            v0.vz = surface->z;
+            v1.vx = surface->x + step * (i + 1);
+            v1.vy = surface->y;
+            v1.vz = surface->z;
             wave  = (rsin(phase + (i << 9)) * 16) >> 12;
-            v2.vx = e->x + step * i;
-            v2.vy = e->y + wave;
-            v2.vz = e->z + half;
+            v2.vx = surface->x + step * i;
+            v2.vy = surface->y + wave;
+            v2.vz = surface->z + half;
             wave  = (rsin(phase + ((i + 1) << 9)) * 16) >> 12;
-            v3.vx = e->x + step * (i + 1);
-            v3.vy = e->y + wave;
-            v3.vz = e->z + half;
+            v3.vx = surface->x + step * (i + 1);
+            v3.vy = surface->y + wave;
+            v3.vz = surface->z + half;
             otz   = RotTransPers4(&v0, &v1, &v2, &v3, &sxy0, &sxy1, &sxy2, &sxy3, &p, &flag);
             if (flag >= 0) {
                 poly                 = (POLY_G4*)gWaterHolePrimCursor;
@@ -89,19 +89,19 @@ void waterHoleDrawSurfaces(Task* task)
         }
         for (i = 0; i < 64; i++) {
             wave  = (rsin(phase + (i << 9)) * 16) >> 12;
-            v0.vx = e->x + step * i;
-            v0.vy = e->y + wave;
-            v0.vz = e->z + half;
+            v0.vx = surface->x + step * i;
+            v0.vy = surface->y + wave;
+            v0.vz = surface->z + half;
             wave  = (rsin(phase + ((i + 1) << 9)) * 16) >> 12;
-            v1.vx = e->x + step * (i + 1);
-            v1.vy = e->y + wave;
-            v1.vz = e->z + half;
-            v2.vx = e->x + step * i;
-            v2.vy = e->y;
-            v2.vz = e->z + half * 2;
-            v3.vx = e->x + step * (i + 1);
-            v3.vy = e->y;
-            v3.vz = e->z + half * 2;
+            v1.vx = surface->x + step * (i + 1);
+            v1.vy = surface->y + wave;
+            v1.vz = surface->z + half;
+            v2.vx = surface->x + step * i;
+            v2.vy = surface->y;
+            v2.vz = surface->z + half * 2;
+            v3.vx = surface->x + step * (i + 1);
+            v3.vy = surface->y;
+            v3.vz = surface->z + half * 2;
             otz   = RotTransPers4(&v0, &v1, &v2, &v3, &sxy0, &sxy1, &sxy2, &sxy3, &p, &flag);
             if (flag >= 0) {
                 poly                 = (POLY_G4*)gWaterHolePrimCursor;

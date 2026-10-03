@@ -131,7 +131,6 @@ extern EvsCommand D_dryfield_night_water_hole_801807FC[];
 /// Descriptor of the room's water task, spawned while progress nibble 0xB8 is
 /// still clear. Its callback is `waterHoleWaterTask`.
 extern TaskDesc D_dryfield_night_water_hole_80180964[];
-/// The room's water surfaces, terminated by an entry with `y == -1`.
 /// Point pairs of the glowing beams the splash task draws, one table per group
 /// of views.
 extern SVECTOR D_dryfield_night_water_hole_80180994[];
@@ -269,8 +268,8 @@ TaskDesc D_dryfield_night_water_hole_80180964[1] = {
 
 WaterHoleSurface gWaterHoleSurfaces[3] = {
     { 4000, -2000, 8000, 2000, -420 },
-    { 0x2710, -4000, 0x32C8, 2000, -420 },
-    { 0, 0, 0, 0, -1 },
+    { 10000, -4000, 13000, 2000, -420 },
+    { 0, 0, 0, 0, WATER_SURFACE_LIST_END },
 };
 
 SVECTOR D_dryfield_night_water_hole_80180994[4] = {
