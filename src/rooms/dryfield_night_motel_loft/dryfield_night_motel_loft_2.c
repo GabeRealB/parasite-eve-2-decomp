@@ -53,19 +53,6 @@ typedef struct {
 } _DryfieldNightMotelLoftTriScratch;
 STATIC_ASSERT_SIZEOF(_DryfieldNightMotelLoftTriScratch, 0x20);
 
-/// `Task::spawnArg2` block of a falling triangle: its velocity, the spin its
-/// coordinate is rebuilt from each frame, the gain the velocity is scaled by
-/// before it is applied, and the triangle's size and grey shade.
-typedef struct _DryfieldNightMotelLoftShard {
-    byte    unknown_0[0x10];
-    SVECTOR vel;
-    SVECTOR spin;
-    byte    unknown_20[0x4];
-    u16     gain;
-    s16     size;
-    s16     shade;
-} _DryfieldNightMotelLoftShard;
-
 /// The room's sprite points. The room draws them by view - 0 and 5 for views
 /// 2 and 9, 1, 2 and 4 for 3 and 10, 2 for 4, 3 for 6, 4 and 5 for 7 and
 /// 11 - and the two effect bursts write the seventh as the offset they spawn
@@ -555,10 +542,10 @@ void func_dryfield_night_motel_loft_8017DB64(Task* arg0)
 
 /// Task driving one tumbling triangle, drawn each frame by
 /// `func_dryfield_night_motel_loft_8017E540` at the task's coordinate coordinate.
-/// State 0 rolls a random velocity (downward in Y), gain, shade and spin, with
-/// the size taken from `Task::spawnArg1`. Each later frame rebuilds the
-/// coordinate's rotation from the spin, moves it by the velocity scaled by the
-/// gain and draws it; gravity then adds to the Y velocity, unless the move
+/// State 0 rolls a random velocity (downward in Y), speed, shade and spin, with
+/// the size taken from `Task::spawnArg1`. Each later frame turns the
+/// coordinate by the spin, moves it by the velocity scaled by the speed and
+/// draws it; gravity then adds to the Y velocity, unless the move
 /// took the triangle below the floor (`t[1] > 0`), in which case the move is
 /// undone and the velocity halved with Y reflected. The first bounce enters
 /// state 2, where the shade also fades by 4 a frame and the task frees itself
@@ -566,92 +553,99 @@ void func_dryfield_night_motel_loft_8017DB64(Task* arg0)
 /// or 3 and frees itself at 4 or more.
 void func_dryfield_night_motel_loft_8017E090(Task* task)
 {
-    _DryfieldNightMotelLoftShard* w     = task->spawnArg2.pointer;
-    s16                           ev    = gRoomEffectState->effectControl;
-    GfxCoord*                     coord = task->extra.coordBody->coord;
-    SVECTOR                       step;
+    EffectWork* work  = task->spawnArg2.pointer;
+    s16         ev    = gRoomEffectState->effectControl;
+    GfxCoord*   coord = task->extra.coordBody->coord;
+    SVECTOR     step;
 
     if (ev < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         if (ev < ROOM_EFFECT_CONTROL_HIDDEN) {
             switch (task->state) {
                 case 0:
+                    // The shard's reading of its `EffectWork`: `move` is the
+                    // velocity as a 4.12 multiple of the speed in `scale`,
+                    // a unit direction until gravity and bounces change it;
+                    // `pos` is the rotation triple composed onto the
+                    // coordinate each frame, replacing the spawn offset the
+                    // coordinate was already placed from; `angle` is the
+                    // triangle's radius and `period` its grey level.
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    w->vel.vx       = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                    work->move.vx   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    w->vel.vy       = (gRandomLcgState >> 16) & 0x7F;
+                    work->move.vy   = (gRandomLcgState >> 16) & 0x7F;
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    w->vel.vz       = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                    work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    w->gain         = ((gRandomLcgState >> 16) & 0x3F) + 0x40;
-                    w->size         = task->spawnArg1.value & 0xFFF;
+                    work->scale     = ((gRandomLcgState >> 16) & 0x3F) + 0x40;
+                    work->angle     = task->spawnArg1.value & 0xFFF;
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    w->shade        = ((gRandomLcgState >> 16) & 0x7F) + 0x40;
-                    VectorNormalSS(&w->vel, &w->vel);
+                    work->period    = ((gRandomLcgState >> 16) & 0x7F) + 0x40;
+                    VectorNormalSS(&work->move, &work->move);
                     gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    w->spin.vx          = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+                    work->pos.vx        = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
                     gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    w->spin.vy          = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+                    work->pos.vy        = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
                     gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    w->spin.vz          = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+                    work->pos.vz        = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
                     coord->composeStamp = GRAPHICS_COORD_DIRTY;
                     task->state         = 1;
                     break;
                 case 1:
-                    Gfx_RotMatrixXYZ(&coord->coord, &w->spin, 0);
+                    Gfx_RotMatrixXYZ(&coord->coord, &work->pos, GRAPHICS_ROTATION_COMPOSE);
                     MatrixNormal(&coord->coord, &coord->coord);
-                    gte_lddp(w->gain);
-                    gte_ldsv(&w->vel);
+                    gte_lddp((u16)work->scale);
+                    gte_ldsv(&work->move);
                     gte_gpf12();
                     gte_stsv(&step);
                     coord->coord.t[0]  += step.vx;
                     coord->coord.t[1]  += step.vy;
                     coord->coord.t[2]  += step.vz;
                     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                    func_dryfield_night_motel_loft_8017E540(coord, w->size, w->shade);
+                    func_dryfield_night_motel_loft_8017E540(coord, work->angle, work->period);
                     if (coord->coord.t[1] > 0) {
                         coord->coord.t[0] -= step.vx;
                         coord->coord.t[1] -= step.vy;
                         coord->coord.t[2] -= step.vz;
-                        w->vel.vx          = w->vel.vx >> 1;
-                        w->vel.vy          = -(w->vel.vy >> 1);
-                        w->vel.vz          = w->vel.vz >> 1;
+                        work->move.vx      = work->move.vx >> 1;
+                        work->move.vy      = -(work->move.vy >> 1);
+                        work->move.vz      = work->move.vz >> 1;
                         task->state        = 2;
                     } else {
-                        w->vel.vy += 0x180;
+                        work->move.vy += 0x180;
                     }
                     break;
                 case 2:
-                    w->shade -= 4;
-                    if (w->shade < 5) {
+                    work->period -= 4;
+                    if (work->period < 5) {
                         goto release;
                     }
-                    Gfx_RotMatrixXYZ(&coord->coord, &w->spin, 0);
+                    Gfx_RotMatrixXYZ(&coord->coord, &work->pos, GRAPHICS_ROTATION_COMPOSE);
                     MatrixNormal(&coord->coord, &coord->coord);
-                    gte_lddp(w->gain);
-                    gte_ldsv(&w->vel);
+                    gte_lddp((u16)work->scale);
+                    gte_ldsv(&work->move);
                     gte_gpf12();
                     gte_stsv(&step);
                     coord->coord.t[0]  += step.vx;
                     coord->coord.t[1]  += step.vy;
                     coord->coord.t[2]  += step.vz;
                     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                    func_dryfield_night_motel_loft_8017E540(coord, w->size, w->shade);
+                    func_dryfield_night_motel_loft_8017E540(coord, work->angle, work->period);
                     if (coord->coord.t[1] > 0) {
                         coord->coord.t[0] -= step.vx;
                         coord->coord.t[1] -= step.vy;
                         coord->coord.t[2] -= step.vz;
-                        w->vel.vx          = w->vel.vx >> 1;
-                        w->vel.vy          = -(w->vel.vy >> 1);
-                        w->vel.vz          = w->vel.vz >> 1;
+                        work->move.vx      = work->move.vx >> 1;
+                        work->move.vy      = -(work->move.vy >> 1);
+                        work->move.vz      = work->move.vz >> 1;
                     } else {
-                        w->vel.vy += 0x180;
+                        work->move.vy += 0x180;
                     }
                     break;
             }
         }
     } else {
     release:
-        effectKillTask(w, task);
+        effectKillTask(work, task);
     }
 }
 
