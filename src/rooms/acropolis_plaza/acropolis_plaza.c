@@ -92,14 +92,6 @@ typedef struct AcropolisPlazaFlareScratch {
 } AcropolisPlazaFlareScratch;
 STATIC_ASSERT_SIZEOF(AcropolisPlazaFlareScratch, 0x4C);
 
-/// Identified tail of the beam task's spawnArg2: sweep angle, length and falloff.
-typedef struct AcropolisPlazaBeamWork {
-    /* 0x00 */ u8  pad[0x24];
-    /* 0x24 */ s16 yaw;
-    /* 0x26 */ s16 depth;
-    /* 0x28 */ s16 spread;
-} AcropolisPlazaBeamWork;
-
 /// Spawn argument the plaza's scene task (`func_acropolis_plaza_8017DFE0`)
 /// reads once in state 0: `view` seeds both `gCdCmdQueue.sceneFrame` and
 /// `movieFrame`, and a non-zero `noStream` skips the opening stream request
@@ -4748,7 +4740,7 @@ void func_acropolis_plaza_801802C0(Task* task)
     WorldCoordPointLight*          light;
     GfxCoord*                      coord;
     GfxCoord*                      lightCoord;
-    AcropolisPlazaBeamWork*        work;
+    EffectWork*                    work;
     AcropolisPlazaBeamScratch*     blk;
     SVECTOR*                       point;
     POLY_G3*                       tri;
@@ -4758,20 +4750,26 @@ void func_acropolis_plaza_801802C0(Task* task)
     u16                            red, green, blue;
     s32                            slot, pulse;
     u32                            pulse2;
-    s16                            spread, depthVal;
+    s16                            spread, length;
     u16                            yaw;
 
-    slot       = task->spawnArg1.value;
-    lightSlot  = &gWorldCoordTransientPointLights[slot & (ARRAY_SIZE(gWorldCoordTransientPointLights) - 1)];
-    light      = &lightSlot->light;
-    coord      = task->extra.coordBody->coord;
-    work       = (AcropolisPlazaBeamWork*)task->spawnArg2.pointer;
+    slot      = task->spawnArg1.value;
+    lightSlot = &gWorldCoordTransientPointLights[slot & (ARRAY_SIZE(gWorldCoordTransientPointLights) - 1)];
+    light     = &lightSlot->light;
+    coord     = task->extra.coordBody->coord;
+    // Gp_SpawnEff's EffectWork. scale is the sweep yaw: 0x1000 units per
+    // turn, 0 or a half turn by slot parity, then one step of -0x80 a frame.
+    // angle is the cone's local-Z length, 0x200 or 0x800, picked from that
+    // yaw's distance from a half turn; 0x800 also draws the far glow. period
+    // widens the point light past its full-strength radius while the cone is
+    // the long length, and is zero otherwise.
+    work       = (EffectWork*)task->spawnArg2.pointer;
     lightCoord = &light->head.transform.coord;
     if (task->state == 0) {
-        work->yaw   = (slot & 1) << 11;
+        work->scale = (slot & 1) << 11;
         task->state = task->state + 1;
     }
-    gfxRotMatrixY(&coord->coord, work->yaw, 1);
+    gfxRotMatrixY(&coord->coord, work->scale, 1);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
     blk            = SCRATCH_STACK_RESERVE_BLOCK(AcropolisPlazaBeamScratch);
@@ -4790,35 +4788,39 @@ void func_acropolis_plaza_801802C0(Task* task)
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             brightness      = ((gRandomLcgState >> 16) & 0x7F) | 0x80;
             if (task->spawnArg1.value < 5) {
-                work->depth = ABS(work->yaw - 0x800) > 0x200 ? 0x800 : 0x200;
+                work->angle = ABS(work->scale - 0x800) > 0x200 ? 0x800 : 0x200;
                 red         = brightness >> 1;
                 green       = brightness >> 1;
                 blue        = brightness;
             } else {
-                work->depth = ABS(work->yaw - 0x800) < 0x600 ? 0x800 : 0x200;
+                work->angle = ABS(work->scale - 0x800) < 0x600 ? 0x800 : 0x200;
                 red         = brightness;
                 green       = red >> 1;
                 blue        = red >> 1;
             }
-            depthVal                 = work->depth;
-            spread                   = depthVal != 0x800 ? 0 : (yaw = work->yaw, work->yaw - 0x800 >= 0 ? (yaw - 0x800) * 4 : (depthVal - yaw) * 4);
-            work->spread             = spread;
+            length = work->angle;
+            // Falloff width is four times the yaw's distance from a half turn,
+            // and only while the cone is the long length. That length is the
+            // same count as the half turn, so the negative arm reads it back
+            // from length.
+            spread                   = length != 0x800 ? 0 : (yaw = work->scale, work->scale - 0x800 >= 0 ? (yaw - 0x800) * 4 : (length - yaw) * 4);
+            work->period             = spread;
             lightCoord->coord.t[0]   = coord->coord.t[0];
             lightCoord->coord.t[1]   = coord->coord.t[1];
             lightCoord->coord.t[2]   = coord->coord.t[2];
             lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
             lightSlot->framesLeft    = 2;
             light->inner             = 0x600;
-            light->outer             = work->spread + 0x600;
+            light->outer             = work->period + 0x600;
             light->head.color.r      = red << 4;
             light->head.color.g      = green << 4;
             light->head.color.b      = blue << 4;
             blk->vec[1].vx           = -0x200;
             blk->vec[1].vy           = 0;
-            blk->vec[1].vz           = work->depth;
+            blk->vec[1].vz           = work->angle;
             blk->vec[2].vx           = 0x200;
             blk->vec[2].vy           = 0;
-            blk->vec[2].vz           = work->depth;
+            blk->vec[2].vz           = work->angle;
             blk->vec[3].vx           = -0x400;
             blk->vec[3].vy           = 0;
             blk->vec[3].vz           = 0x400;
@@ -4913,19 +4915,19 @@ void func_acropolis_plaza_801802C0(Task* task)
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     brightness      = ((gRandomLcgState >> 16) & 0x7F) | 0x80;
     if (task->spawnArg1.value < 5) {
-        work->depth = ABS(work->yaw - 0x800) > 0x300 ? 0x800 : 0x200;
+        work->angle = ABS(work->scale - 0x800) > 0x300 ? 0x800 : 0x200;
         pulse       = brightness << 16;
         red         = pulse >> 20;
         green       = pulse >> 20;
         blue        = (u32)pulse >> 18;
     } else {
-        work->depth = ABS(work->yaw - 0x800) < 0x500 ? 0x800 : 0x200;
+        work->angle = ABS(work->scale - 0x800) < 0x500 ? 0x800 : 0x200;
         pulse2      = brightness << 16;
         red         = (u32)pulse2 >> 18;
         green       = (s32)pulse2 >> 20;
         blue        = (s32)pulse2 >> 20;
     }
-    if (work->depth == 0x800) {
+    if (work->angle == 0x800) {
         blk->vec[0].vx = 0;
         blk->vec[0].vy = 0;
         blk->vec[0].vz = 0xE00;
@@ -4967,14 +4969,14 @@ void func_acropolis_plaza_801802C0(Task* task)
             }
         }
     }
-    work->yaw = (work->yaw - 0x80) & 0xFFF;
+    work->scale = (work->scale - 0x80) & 0xFFF;
     SCRATCH_STACK_RELEASE_BYTES(0x60);
 }
 
 void func_acropolis_plaza_801811D0(Task* task)
 {
     GfxCoord*                   coord;
-    AcropolisPlazaBeamWork*     work;
+    EffectWork*                 work;
     AcropolisPlazaFlareScratch* blk;
     POLY_G4*                    prim;
     s32                         i;
@@ -4985,13 +4987,18 @@ void func_acropolis_plaza_801811D0(Task* task)
     u32                         pulse2;
     s16                         level;
     coord = task->extra.coordBody->coord;
-    work  = (AcropolisPlazaBeamWork*)task->spawnArg2.pointer;
+    // Gp_SpawnEff's EffectWork. scale is the sweep yaw: 0x1000 units per
+    // turn, 0 or a half turn by slot parity, then one step of -0x80 a frame.
+    // angle is 0x800 or 0x200 from that yaw's distance from a half turn; the
+    // offset glow is drawn only for 0x800. period stays at the zero written
+    // when the effect was spawned.
+    work = (EffectWork*)task->spawnArg2.pointer;
     if (task->state == 0) {
         yawInit     = (task->spawnArg1.value & 1) << 11;
-        work->yaw   = yawInit;
+        work->scale = yawInit;
         task->state = task->state + 1;
     }
-    gfxRotMatrixY(&coord->coord, work->yaw, 1);
+    gfxRotMatrixY(&coord->coord, work->scale, 1);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
     SCRATCH_STACK_RESERVE_BLOCK(AcropolisPlazaFlareScratch);
@@ -5089,19 +5096,19 @@ void func_acropolis_plaza_801811D0(Task* task)
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     brightness      = ((gRandomLcgState >> 16) & 0x7F) | 0x80;
     if (task->spawnArg1.value < 9) {
-        work->depth = ABS(work->yaw - 0x800) > 0x300 ? 0x800 : 0x200;
+        work->angle = ABS(work->scale - 0x800) > 0x300 ? 0x800 : 0x200;
         pulse       = brightness << 16;
         red         = pulse >> 20;
         green       = pulse >> 20;
         blue        = pulse >> 18;
     } else {
-        work->depth = ABS(work->yaw - 0x800) < 0x500 ? 0x800 : 0x200;
+        work->angle = ABS(work->scale - 0x800) < 0x500 ? 0x800 : 0x200;
         pulse2      = brightness << 16;
         red         = (s32)pulse2 >> 18;
         green       = (s32)pulse2 >> 20;
         blue        = (s32)pulse2 >> 20;
     }
-    if (work->depth == 0x800) {
+    if (work->angle == 0x800) {
         blk->vec.vx = 0;
         blk->vec.vy = 0;
         blk->vec.vz = 0xE00;
@@ -5143,7 +5150,7 @@ void func_acropolis_plaza_801811D0(Task* task)
             }
         }
     }
-    work->yaw = (work->yaw - 0x80) & 0xFFF;
+    work->scale = (work->scale - 0x80) & 0xFFF;
     SCRATCH_STACK_RELEASE_BYTES(0x4C);
 }
 
