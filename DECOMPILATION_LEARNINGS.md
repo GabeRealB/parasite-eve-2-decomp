@@ -138898,8 +138898,8 @@ swapped `v0`/`v1`, because the `ior` ties to its first dying operand, and
 
 A search loop's "found" arm ended `lw v0,4(v1)` / `j L+4` / `sw v0,0x1C(s1)`,
 and the fall-out path ended `move v0,zero` / `L: sw v0,0x1C(s1)`. Writing the
-store in both arms (`key = rec->key.value; blk->key = key; goto found;` and
-`key = 0; blk->key = key;`) let CSE turn the second into `sw zero`, and the
+store in both arms (`key = rec->key.value; blk->hitKey = key; goto found;` and
+`key = 0; blk->hitKey = key;`) let CSE turn the second into `sw zero`, and the
 `move v0,zero` survived only for the later `andi`. The target has a single
 store after the label: reorg filled the `j`'s delay slot with the insn at its
 target and retargeted the jump one insn on, which is what makes it look
@@ -138911,7 +138911,7 @@ duplicated.
     ...
     key = 0;
 found:
-    blk->key = key;
+    blk->hitKey = key;
 ```
 
 ## A narrow local never "births": `u16`/`u8` entry conversions keep source order under sched1 (RoomsShared8017dcb8Draw, 2026-09-23)
