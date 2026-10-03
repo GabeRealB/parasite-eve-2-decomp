@@ -69362,20 +69362,20 @@ assignment at every prologue position before touching anything else.
 ## Duplicated tail: a literal shared by an HI and a QI store stops the cross-jump one insn early
 
 `func_actor_503500_8013667C` has two arms that end in the same
-`field_7D2 = 0; field_7DB = 1;` tail. Target path 1 ends
+`targetYawOffset = 0; attackPhase = 1;` tail. Target path 1 ends
 `sh s0,7c2; move s0,zero; j tail+4; li v0,1`. Its `j` jumps *past* path 2's
 `li v0,1`, and `li v0,1` fills the delay slot. A `goto` into a shared tail, or a
-duplicated tail that stores `field_7C2 = ret`, gives
+duplicated tail that stores `attackSlot = ret`, gives
 `j tail; move s0,zero` instead (97.3%).
 
 Mechanism (sched2 and dbr dumps): the post-sched2 jump pass cross-jumps the
 duplicated tails, and `find_cross_jump` compares insns with
 `rtx_renumbered_equal_p`, which checks modes. Path 1 writes
-`field_7C2 = 1; field_7D2 = 0; field_7DB = 1; ret = 0;`, so CSE loads the
-literal 1 once as `(reg:HI v0)` and stores `field_7DB` from its `subreg:QI`.
+`attackSlot = 1; targetYawOffset = 0; attackPhase = 1; ret = 0;`, so CSE loads the
+literal 1 once as `(reg:HI v0)` and stores `attackPhase` from its `subreg:QI`.
 Path 2's `li v0,1` is `(reg:QI v0)`. The mismatch stops the merge after
 `sh zero; sb`, which leaves path 1's `li v0,1` right before its `j`, and the
-backward fill takes it. (`field_7C2 = 1` still comes out as `sh s0` because
+backward fill takes it. (`attackSlot = 1` still comes out as `sh s0` because
 `ret` holds 1.)
 
 The same function also used `__builtin_abs` (`abssi2`, no RTL label). With an
@@ -69386,7 +69386,7 @@ takes `li a1,1`.
 
 ### Name the field in one arm to keep a two-sided `||` bound from folding to `sltiu`
 
-`func_actor_503500_8013680C` loads `s16 x = work->field_7BA` once and tests two
+`func_actor_503500_8013680C` loads `s16 x = work->playerBearing` once and tests two
 excluded bands. The target keeps the first as two `slti`s and the second as a
 merged `addiu -0x201; andi 0xFFFF; sltiu 0x3FF`, so writing both as
 `x < lo || x >= hi` folds both, and an `else if` chain changes the blocks.
@@ -69394,7 +69394,7 @@ merged `addiu -0x201; andi 0xFFFF; sltiu 0x3FF`, so writing both as
 so spell one side with the field itself:
 
 ```c
-if (x < -0x5FF || work->field_7BA >= -0x200) { ... }   /* two slti */
+if (x < -0x5FF || work->playerBearing >= -0x200) { ... }   /* two slti */
 if (x < 0x201 || x >= 0x600) { ... }                   /* one sltiu */
 ```
 
@@ -69725,7 +69725,7 @@ work pointer itself and stores to `0x40(a0)`.
 
 ## Switch default `ret = 1` instead of presetting `ret = 1` before the switch
 
-`func_actor_503500_80134284` dispatches on `(s8)work->field_7DB` with cases 0
+`func_actor_503500_80134284` dispatches on `(s8)work->attackPhase` with cases 0
 and 1, and the target tests case 1 against a separate constant, `li v0,1;
 beq v1,v0,case1`, with `li s0,1` for the fall-through in the delay slot. The
 siblings' shape, `ret = 1;` before `switch` with no `default`, lets CSE reuse
@@ -69734,8 +69734,8 @@ moves into the delay slot, leaving `j end; nop` (81%). Writing it as
 `default: ret = 1; break;` with no preset keeps the constant inside the
 default arm, so the comparison gets its own `v0` and dbr steals the arm's
 `li s0,1` for the `beq` slot (100%). Same function: `s32 dir =
-work->field_7BA` instead of `s16` gives the target's single `lh` in place of
-`lhu` plus `sll/sra`, and `if ((u16)work->field_7C2 - 7 >= 2U)` gives the
+work->playerBearing` instead of `s16` gives the target's single `lh` in place of
+`lhu` plus `sll/sra`, and `if ((u16)work->attackSlot - 7 >= 2U)` gives the
 `lhu; addiu -7; sltiu 2` range test where `switch { case 7: case 8: }`
 compiles to two `slti` compares.
 
@@ -69883,7 +69883,7 @@ touching anything else; it costs one build.
 ### A repeated switch-case tail wants its own pseudo per case: write it as a `static inline` helper
 
 `func_actor_503500_80135B74` has four cases that each run the same "enter
-boss state N" tail (`work = index->field_1C; work->field_7B0 = N; ...; call`),
+boss state N" tail (`work = index->field_1C; work->state = N; ...; call`),
 cross-jumped after allocation. Using one function-level `work` local for every
 tail (even one separate from the `work` the case bodies use) makes it a single
 pseudo live across several blocks. Global alloc then gives it `$v1` and the
@@ -69942,9 +69942,9 @@ delay slot and the `j` reappears.
 
 ## `lui/addiu` base in the wrong one of two arg regs: hoist the index into a local so the base is emitted later
 
-`func_actor_503500_801338E8` indexes `tbl[(w->field_774 >> 3) & 1][w->field_7DC]`
+`func_actor_503500_801338E8` indexes `tbl[(w->progressFlags >> 3) & 1][w->heightBand]`
 twice with the same shape. The first lookup matched; the second came out with the
-table base in `$a1` and the `lb` of `field_7DC` in `$a0`, the reverse of the
+table base in `$a1` and the `lb` of `heightBand` in `$a0`, the reverse of the
 target (99.85%, `regs` only). Both are block-local, so local-alloc decides:
 
 - The `high` pseudo dies in the `lo_sum`, so `combine_regs` ties both into one
@@ -69961,14 +69961,14 @@ Computing the phase bit into a local *before* the lookup statement emits the
 places them later, and the tied quantity outranks the `lb`. That gives 100%:
 
 ```c
-bit  = (work->field_774 >> 3) & 1;           /* only on the lookup that needs it */
-step = D_actor_503500_8016EF10[bit][work->field_7DC][work->field_7DE];
+bit  = (work->progressFlags >> 3) & 1;           /* only on the lookup that needs it */
+step = D_actor_503500_8016EF10[bit][work->heightBand][work->bearingBand];
 ```
 
 Doing the same to the first lookup broke it (96%). Other things that did not
 help: a local copy of the table pointer (distributes the shifts), `(i)[tbl]`
 pointer-add forms (reorders the whole emission), splitting into `row`/`list`
-locals, and moving the neighbouring `field_7C8` read. Input: `base_14.i`
+locals, and moving the neighbouring `randomRoll` read. Input: `base_14.i`
 sha256 `bfdfc49a8f53…`.
 
 ## `lhu` + `sll`/`sra` + `negu` + `sh`: negate into an `s32` local, not straight into the `s16` field
@@ -70087,10 +70087,10 @@ rematerialising `%hi/%lo` at each use. `func_actor_503500_80136B64`.
 stores `pos.vx >> 16` into a coordinate. The target computes `addiu $a2, $s1, 0x6C4`
 and `addiu $a1, $s1, 0x6CC`, yet the X clamp reads and writes at `0x6C4($s1)`; only the
 final `lh 0x2($a2)` and the Z clamp's accesses go through the registers.
-**Cause.** With `s32 *px = &work->field_6C4.vx;`, CSE folds most `*px` addresses back to
+**Cause.** With `s32 *px = &work->position.vx;`, CSE folds most `*px` addresses back to
 `$s1 + 0x6C4`. The `*px >> 16` is narrowed to a HImode load at `px + 2` by combine, which
 runs after CSE, so that address keeps the pointer register.
-**Fix.** Plain `work->field_6C4.vx` everywhere gives `lh 0x6C6($s1)` and drops both
+**Fix.** Plain `work->position.vx` everywhere gives `lh 0x6C6($s1)` and drops both
 `addiu`s. Declare `s32 *px, *pz` just before the clamps and use them for the clamps and
 the `>> 16` reads. A `MATRIX *m = &mat;` local does the same for an identity init whose
 stores after the first go through `addiu $a1, $sp, 0x10`.
@@ -82639,7 +82639,7 @@ emits `addiu v1, s0, 0x28` / `sb a1, 0x1D(v1)` / `addiu v1, v1, 0x28`: the
 strength-reduced induction variable carries only `i*0x28` and the invariant
 `0x14 + 9` stays in the displacement, so `$v1` walks from the work base rather
 than from a `AnimationSlot*` at `&slots[1]`. `func_actor_323300_80162748` is the
-example (`Actor503500Effect4CC` / `Actor503500WorkBoss` are the same shape
+example (`Actor503500Effect4CC` / `Actor503500Work` are the same shape
 already written this way). Input `base_1.i`
 `8080b9c2b7f7099aa79305af544c7edb78587a6b3e880f99af0e2b1363f1bd62`.
 

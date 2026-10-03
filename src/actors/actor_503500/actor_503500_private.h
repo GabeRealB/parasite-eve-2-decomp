@@ -7,6 +7,8 @@
 
 #include "common.h"
 
+#include "actors/actor.h"
+
 #include "gameplay/actor.h"
 #include "gameplay/animation.h"
 #include "gameplay/collision.h"
@@ -52,222 +54,105 @@ typedef union {
 } Actor503500FixedVector;
 STATIC_ASSERT_SIZEOF(Actor503500FixedVector, 0x10);
 
+enum {
+    ACTOR_503500_SLOT_COUNT = 17, // Slots of the boss: its own and those of the enemies riding on it
+};
+
+/// What the boss is doing, as held in `Actor503500Work::state`.
+typedef enum {
+    ACTOR_503500_STATE_IDLE      = 0, // Waits out the delay before its next attack
+    ACTOR_503500_STATE_ATTACK    = 1, // Picks an attack and runs it until it reports a result
+    ACTOR_503500_STATE_PART_LOST = 2, // Plays the recoil animation after one of its slot enemies is destroyed
+    ACTOR_503500_STATE_STUNNED   = 3, // Held by a build-up reaction until it wears off
+    ACTOR_503500_STATE_DEFEATED  = 4, // Health exhausted: stops being a target and reports to the room
+    ACTOR_503500_STATE_HELD      = 5, // Entered by actor command 1; does nothing of its own
+    ACTOR_503500_STATE_SCRIPTED  = 6, // Entered by actor command 4; runs the sequence that command starts
+    ACTOR_503500_STATE_COLLAPSE  = 7, // Entered by actor command 2; squashes flat and burns away
+} Actor503500State;
+
+/// Work block of the boss, the package's root enemy.
+///
+/// The boss is a body that turns and walks toward the player inside a fixed
+/// box, and a set of separately targetable enemies riding on its model. Each
+/// of those occupies one slot, numbered by its entry in the package's enemy
+/// table; slot 0 is the boss itself. The boss attacks by commanding a slot:
+/// it marks the slot busy, gives it a cooldown, and waits for the slot to
+/// report that it is at rest again. A slot whose enemy is destroyed stays
+/// empty until something respawns it.
+///
+/// The block opens with the rig that plays the body's animations. One static
+/// instance exists; `Task::work` of the boss task points at it, and the slot
+/// enemies reach it through the accessors this package exports.
 typedef struct Actor503500Work {
-    /* 0x000 */ WorldCollisionBody    obj;          // the collision body Gp_UnlinkObj takes
-    /* 0x020 */ WorldCollisionContact rec;          // collision table; 0xF0 enemies pass count 8
-    /* 0x038 */ byte                  pad_38[0x46]; // unreached through this view; animation slots in the boss block
-    /* 0x07E */ u16                   field_7E;     // WorldCollisionBody::flags of obj[3] in the 0x224 block
-    /* 0x080 */ byte                  pad_80[0x60];
-    /// Coordinate the 0xF4 block at `D_actor_503500_80177A6C` republishes
-    /// alongside its collision body: `func_actor_503500_8013ECBC` stores the
-    /// task's own `TmdObject::coords` in it and seeds the record's 0x600 / 3
-    /// argument pair.
-    /* 0x0E0 */ EffectSpawnArg field_E0; // record the block's effects are spawned with
-    /* 0x0E8 */ s16            field_E8; // per-frame countdown, clamped at 0
-    /* 0x0EA */ s16            field_EA;
-    /* 0x0EC */ s8             field_EC; // sub-state index
-    /* 0x0ED */ s8             field_ED; // sub-state index
-    /* 0x0EE */ s8             field_EE; // sub-state phase, cleared with field_ED
-    /* 0x0EF */ byte           pad_EF[0x1];
-    /* 0x0F0 */ s8             field_F0; // sub-state index
-    /* 0x0F1 */ s8             field_F1; // sub-state phase, cleared with field_F0
-    /* 0x0F2 */ byte           pad_F2[0x2E];
-    /// The 0x160 block's own spawn record, seeded the way `field_E0` is:
-    /// `func_actor_503500_801372C8` republishes the task's `TmdObject::coords`
-    /// here alongside the 0x400 / 3 pair it seeds.
-    /* 0x120 */ EffectSpawnArg field_120; // record the block's effects are spawned with
-                                          /// 16.16 Euler angles, velocity and position of the 0x160 block's death
-                                          /// fall, stepped by `func_actor_503500_80137678`: the angles' high halves
-                                          /// build the rotation and the position's high halves are added onto the
-                                          /// coordinate's translation each frame.
-    /* 0x128 */ Actor503500FixedVector rot;
-    /* 0x138 */ Actor503500FixedVector vel;
-    /* 0x148 */ Actor503500FixedVector pos;
-    /// Per-frame countdown of the 0x160 block, stepped down and floored at 0 by
-    /// `func_actor_503500_801382FC`.
-    /* 0x158 */ s16 field_158;
-    /// Frame counter of the 0x160 block's sub-state, stepped by
-    /// `func_actor_503500_801374BC` / `_80137678` and reset whenever
-    /// `field_15C` changes.
-    /* 0x15A */ u16 field_15A;
-    /* 0x15C */ s8  field_15C; // sub-state index
-    /* 0x15D */ s8  field_15D; // sub-state phase, cleared with field_15C
-    /* 0x15E */ s8  field_15E; // seeded to -1 by func_actor_503500_801372C8
-    /* 0x15F */ s8  field_15F; // effect-offset index, taken mod 3
-                               /// The two collision bodies of the 0x3D8 block, linked by
-                               /// `func_actor_503500_8013FA74` and both handed back to `Gp_UnlinkObj` by
-                               /// `func_actor_503500_80141D04`. The 0x224 block puts a node at 0x160 too
-                               /// (`Actor503500Work224::obj2`); the shorter blocks stop before it.
-    /* 0x160 */ WorldCollisionBody obj160;
-    /// Record table of `obj160`, passed with count 8 by
-    /// `func_actor_503500_801420C4`, so the 0x3D8 block's table really runs to
-    /// 0x240. Only the part before the 0x224 block's `field_221` is named here;
-    /// the two blocks disagree about the bytes from 0x210 on.
-    /* 0x180 */ WorldCollisionContact rec180[6];
-    /* 0x210 */ byte                  pad_210[0x11];
-    /* 0x221 */ s8                    field_221; // sub-state index
-    /* 0x222 */ byte                  pad_222[0x1E];
-    /* 0x240 */ WorldCollisionBody    obj240;
-    /* 0x260 */ WorldCollisionContact rec260[4]; // obj240's table, count 4
-    /* 0x2C0 */ byte                  pad_2C0[0x14];
-    /* 0x2D4 */ s16                   field_2D4; // sub-state index of the 0x2EC block
-    /* 0x2D6 */ s16                   field_2D6;
-    /// Per-frame countdown of the 0x2EC block, stepped down and floored at 0 by
-    /// `func_actor_503500_8013AA44`; cleared outright by
-    /// `func_actor_503500_801390C4` / `_801395BC` and gated on by
-    /// `func_actor_503500_80139A20`.
-    /* 0x2D8 */ s16  field_2D8;
-    /* 0x2DA */ s16  field_2DA;
-    /* 0x2DC */ byte pad_2DC[0x2];
-    /* 0x2DE */ s16  field_2DE; // sub-state frame counter, 0x2EC block
-    /* 0x2E0 */ byte pad_2E0[0x4];
-    /* 0x2E4 */ s8   field_2E4; // sub-state phase, cleared with field_2D4
-    /* 0x2E5 */ s8   field_2E5;
-    /* 0x2E6 */ byte pad_2E6[0x4];
-    /* 0x2EA */ s8   field_2EA;
-    /* 0x2EB */ s8   field_2EB; // TMD buffer countdown, 0x2EC block
-    /* 0x2EC */ byte pad_2EC[0x48];
-    /// Pose buffer `func_actor_503500_80135950` hands `animationInitContext` when it
-    /// re-seeds the animation slots.
-    /* 0x334 */ byte field_334[0x34];
-    /// Local offset copied from `D_actor_503500_8016F414[spawnArg1 - 0xD]`
-    /// (the same address as `D_actor_503500_8016F3AC[spawnArg1]`).
-    /* 0x368 */ SVECTOR field_368;
-    /* 0x370 */ SVECTOR field_370; // player position latched by func_actor_503500_801400A4
-                                   /// Part 0's `coord` matrix, saved by `func_actor_503500_80140654` once the
-                                   /// body has risen and restored every frame before scaling.
-    /* 0x378 */ MATRIX field_378;
-    /* 0x398 */ byte   pad_398[0x4];
-    /* 0x39C */ s32    field_39C;
-    /* 0x3A0 */ byte   pad_3A0[0x4];
-    /* 0x3A4 */ s16    field_3A4;
-    /* 0x3A6 */ s16    field_3A6;
-    /* 0x3A8 */ s16    field_3A8; // countdown, floored at 0 by func_actor_503500_801420C4
-    /* 0x3AA */ s16    field_3AA;
-    /* 0x3AC */ s16    field_3AC; // vertical scale, 0x1000 down to 0x200
-    /* 0x3AE */ s16    field_3AE; // sub-state frame counter
-    /* 0x3B0 */ u16    field_3B0;
-    /* 0x3B2 */ u16    field_3B2; // fade level, stepped by 0x10 up to 0x1000
-    /* 0x3B4 */ byte   pad_3B4[0x2];
-    /* 0x3B6 */ u16    field_3B6; // stepped by 0x20 up to 0x1000
-    /* 0x3B8 */ byte   pad_3B8[0x10];
-    /* 0x3C8 */ s16    field_3C8;
-    /* 0x3CA */ byte   pad_3CA[0x2];
-    /* 0x3CC */ u16    field_3CC; // stepped down by 0x111, floored at 0
-    /* 0x3CE */ byte   pad_3CE[0x2];
-    /* 0x3D0 */ s8     field_3D0; // sub-state index
-    /* 0x3D1 */ s8     field_3D1; // sub-state phase, cleared with field_3D0
-    /* 0x3D2 */ byte   pad_3D2[0x2];
-    /* 0x3D4 */ s8     field_3D4; // set while field_358 sits on field_368
-    /* 0x3D5 */ byte   pad_3D5[0x1];
-    /* 0x3D6 */ s8     field_3D6;
-    /* 0x3D7 */ s8     field_3D7; // TMD buffer countdown, 0x3D8 block
-    /* 0x3D8 */ byte   pad_3D8[0x9C];
-    /// The boss's own light / colour matrix pair: `func_actor_503500_80132F64`
-    /// points the model's `TmdObject::lightMtx` / `colorMtx` at these.
-    /* 0x474 */ MATRIX lightMtx;
-    /* 0x494 */ MATRIX colorMtx;
-    /// Saved copy of model part 0's coordinate: `func_actor_503500_80135B74`
-    /// stores it on message 4 and restores it on message 5.
-    /* 0x4B4 */ GfxCoord coord4B4;
-    /// Private copies of two of the boss model's part coordinates (parts 4 and
-    /// 10), refreshed by `func_actor_503500_80136DDC` when bits 0x20 / 0x800 of
-    /// `field_7AC` are set and then scaled by `field_5A4` / `field_5B4`.
-    /* 0x504 */ GfxCoord coord504;
-    /* 0x554 */ GfxCoord coord554;
-    /* 0x5A4 */ VECTOR   field_5A4; // scale of coord504
-    /* 0x5B4 */ VECTOR   field_5B4; // scale of coord554
-    /* 0x5C4 */ VECTOR   field_5C4; // scale of model part 16, bit 0x10000
-                                    /// Collision body + collision record of the boss's second body part:
-                                    /// `func_actor_503500_80132F64` links it and seeds `field_5F4`,
-                                    /// `func_actor_503500_80136A88` re-places the pair and
-                                    /// `func_actor_503500_80136228` hands `field_5D4` back to
-                                    /// `Gp_UnlinkObj` on teardown.
-    /* 0x5D4 */ WorldCollisionBody field_5D4;
-    /// Record table of `field_5D4`'s node -- `func_actor_503500_80132F64`
-    /// parks this address in that `WorldCollisionBody` and `func_actor_503500_80136A88`
-    /// re-places the pair with count 8.
-    /* 0x5F4 */ WorldCollisionContact rec5F4[8];
-    /// Per-frame X / Z step of `field_6C4`, written by
-    /// `func_actor_503500_801353F0` from the yaw matrix scaled by `field_7A0`.
-    /* 0x6B4 */ s32  field_6B4;
-    /* 0x6B8 */ byte pad_6B8[0x4];
-    /* 0x6BC */ s32  field_6BC;
-    /* 0x6C0 */ byte pad_6C0[0x4];
-    /// World position of the boss's placed part in 16.16 fixed point:
-    /// `func_actor_503500_80137088` stores the placement argument's
-    /// integer translation here shifted left by 16, alongside dropping the
-    /// same translation into the coordinate's own matrix.
-    /* 0x6C4 */ VECTOR field_6C4;
-    /* 0x6D4 */ VECTOR field_6D4; // previous frame's coordinate translation
-                                  /// The boss's own spawn record, seeded the way `field_E0` is:
-                                  /// `func_actor_503500_80132F64` stores model part 3 here and
-                                  /// `func_actor_503500_80134EAC` hands the record to `func_800FDB18` as its
-                                  /// hit-effect argument.
-    /* 0x6E4 */ EffectSpawnArg field_6E4;
-    /* 0x6EC */ Enemy*         enemies[0x11];
-    /// Two parallel per-slot halfword arrays covering the same 0x11 slots as
-    /// `enemies`: `func_actor_503500_80136F40` writes both when it asks a slot
-    /// to die, `func_actor_503500_80136FDC` reads `field_752` as a gate on
-    /// `field_730`.
-    /* 0x730 */ s16 field_730[0x11];
-    /* 0x752 */ s16 field_752[0x11];
-    /* 0x774 */ u32 field_774;                                           // one "already asked to die" bit per slot
-    /* 0x778 */ s32 (*field_778)(struct Task*, struct Actor503500Work*); // running step, see Actor503500Step
-                                                                         /// Saved rotation of the task's coordinate: the first 16 bytes of
-                                                                         /// `coord.m` as words plus `m[2][2]`, restored every frame by
-                                                                         /// `func_actor_503500_80134A24` before it rescales the matrix.
-    /* 0x77C */ s32   field_77C[4];
-    /* 0x78C */ s16   field_78C;
-    /* 0x78E */ byte  pad_78E[0xE];
-    /* 0x79C */ Task* field_79C; // spawned effect task, killed on step 2
-    /* 0x7A0 */ s32   field_7A0; // walk speed, ramped by field_7A4 / 32
-    /* 0x7A4 */ s32   field_7A4; // seeded to 0x80000
-    /* 0x7A8 */ s32   field_7A8;
-    /* 0x7AC */ s32   field_7AC; // part-scale enable bits, see coord504
-    /* 0x7B0 */ s16   field_7B0; // boss state index
-    /* 0x7B2 */ u16   field_7B2;
-    /* 0x7B4 */ s16   field_7B4; // per-frame countdown, clamped at 0
-                                 /// Yaw of the placed part, recovered by `func_actor_503500_80137088`
-                                 /// from the rotation matrix it just built (`ratan2` of `m[0][2]` over
-                                 /// `m[2][2]`).
-    /* 0x7B6 */ s16  field_7B6;
-    /* 0x7B8 */ s16  field_7B8;
-    /* 0x7BA */ s16  field_7BA;
-    /* 0x7BC */ s16  field_7BC;
-    /* 0x7BE */ s16  field_7BE;
-    /* 0x7C0 */ s16  field_7C0;
-    /* 0x7C2 */ s16  field_7C2; // slot index being asked to die
-    /* 0x7C4 */ byte pad_7C4[0x4];
-    /* 0x7C8 */ u16  field_7C8;
-    /* 0x7CA */ s16  field_7CA;
-    /* 0x7CC */ s16  field_7CC;
-    /* 0x7CE */ s16  field_7CE; // Y scale, 0x1000 stepped down by 0x10 to 0x200
-    /* 0x7D0 */ s16  field_7D0; // saved field_7B6, see coord4B4
-    /* 0x7D2 */ s16  field_7D2;
-    /// 1 once `func_actor_503500_80135950` has seeded the animation slots and
-    /// ticked them; that helper clears it again whenever it loads a new bank,
-    /// and `func_actor_503500_80136D30` uses it as the gate on its own tick.
-    /* 0x7D4 */ s8   field_7D4;
-    /* 0x7D5 */ s8   field_7D5; // boss sub-state index, seeded with field_7D6/7D9
-    /* 0x7D6 */ s8   field_7D6; // seeded to -1 with field_7D5
-    /* 0x7D7 */ byte pad_7D7[0x1];
-    /* 0x7D8 */ s8   field_7D8; // seeded to 1
-    /* 0x7D9 */ s8   field_7D9; // mode last set by func_actor_503500_80137158
-    /* 0x7DA */ u8   field_7DA; // per-state step counter
-    /* 0x7DB */ u8   field_7DB; // cleared alongside field_7DA
-    /* 0x7DC */ s8   field_7DC; // height band of the camera target, 0..2
-    /* 0x7DD */ s8   field_7DD; // previous field_7DC
-    /* 0x7DE */ s8   field_7DE;
-    /* 0x7DF */ s8   field_7DF; // previous field_7DE
-    /* 0x7E0 */ s8   field_7E0;
-    /* 0x7E1 */ s8   field_7E1;
-    /* 0x7E2 */ s8   field_7E2;
-    /* 0x7E3 */ s8   field_7E3; // set when coord4B4 is restored
-    /* 0x7E4 */ s8   field_7E4; // 1 while the case-1 sound/buffer state is active
-    /* 0x7E5 */ s8   field_7E5; // 1 while the case-2 sound state is active
-    /* 0x7E6 */ s8   field_7E6; // set to 1 when a hit takes the boss's HP to 0
-    /* 0x7E7 */ s8   field_7E7; // 1 while the sound started by `gDisplayState.pendingMode` plays
+    ActorAnimRig20        rig;                                   // Playback storage of the body model; slots 1 to 19 are driven
+    MATRIX                lightMtx;                              // Light matrix the body model is lit with
+    MATRIX                colorMtx;                              // Colour matrix the body model is lit with
+    GfxCoord              savedRootCoord;                        // Root coordinate as it was when actor command 4 arrived; command 5 puts it back
+    GfxCoord              part5Parent;                           // Scaled copy of model part 4 that part 5 hangs from while its `scaledParts` bit is set
+    GfxCoord              part11Parent;                          // Scaled copy of model part 10 that part 11 hangs from while its `scaledParts` bit is set
+    VECTOR                part5Scale;                            // Scale applied to `part5Parent`; 0x1000 is 1.0
+    VECTOR                part11Scale;                           // Scale applied to `part11Parent`; 0x1000 is 1.0
+    VECTOR                part16Scale;                           // Scale applied to model part 16 in place; 0x1000 is 1.0
+    WorldCollisionBody    body;                                  // Collision sphere of the boss's own target, carried on model part 3
+    WorldCollisionContact contacts[8];                           // Contact table of `body`, also the boss enemy's hit records
+    VECTOR                velocity;                              // Per-frame step of `position` along the facing, 16.16; only X and Z are used
+    VECTOR                position;                              // Root translation in 16.16; its integer halves are what the root coordinate gets
+    VECTOR                previousTranslation;                   // Root coordinate's translation before this frame's walk, in whole units
+    EffectSpawnArg        hitEffect;                             // Record hit effects on the boss are spawned with, bound to model part 3
+    Enemy*                enemies[ACTOR_503500_SLOT_COUNT];      // Enemy in each slot, NULL once destroyed; entry 0 is the boss's own
+    s16                   slotBusy[ACTOR_503500_SLOT_COUNT];     // 1 from the frame a slot is commanded until it reports being at rest
+    s16                   slotCooldown[ACTOR_503500_SLOT_COUNT]; // Frames before a slot may be commanded again; counts down only while idle
+    /// Things that have happened once in the fight.
+    ///
+    /// Bits 0, 1 and 2 record that slot 10, 11 or 12 was told to retire
+    /// because slot 4, 5 or 1 was lost. Bit 3 records that the room has been
+    /// sent its actor event for the slots lost so far; it also selects the
+    /// second attack table.
+    u32    progressFlags;
+    s32    (*runningAttack)(struct Task*, struct Actor503500Work*); // Attack picked for this visit to the attack state
+    MATRIX unscaledRotation;                                        // Root rotation saved on entering the collapse; only the rotation is kept
+    Task*  scriptedEffectTask;                                      // Effect task the scripted sequence spawns on part 3 and ends itself; NULL if none
+    s32    walkSpeed;                                               // Speed along the facing, 16.16 units per frame; negative walks backward
+    s32    walkSpeedLimit;                                          // Top walk speed, 16.16; a thirty-second of it is the per-frame acceleration
+    s32    turnSpeed;                                               // Yaw rate in 16.16 angle units per frame
+    s32    scaledParts;                                             // Bit N set while model part N (5, 11 or 16) is being scaled
+    s16    state;                                                   // An `Actor503500State`
+    u16    stunAnimationTimer;                                      // Frames until the stunned state restarts its animation
+    s16    hitCooldown;                                             // Frames during which further hits on the boss are ignored
+    s16    yaw;                                                     // Facing, in 4096ths of a turn
+    s16    targetYaw;                                               // Facing to turn toward: the bearing to the player plus `targetYawOffset`
+    s16    playerBearing;                                           // Bearing to the player relative to `yaw`, in [-0x800, 0x800)
+    s16    stateFrames;                                             // Frames counted by the current state's step
+    s16    attackFrames;                                            // Frames an attack has waited on its slot
+    s16    selfAttackFrames;                                        // Frames counted by the current phase of the boss's own attack
+    s16    attackSlot;                                              // Slot the running attack commanded
+    byte   pad_7C4[0x4];                                            // No access found; role unproven
+    u16    randomRoll;                                              // High half of the random state, drawn once a frame
+    s16    attackDelay;                                             // Frames the idle state waits before attacking; an attack's result reloads it
+    s16    targetableDelay;                                         // Frames until `targetablePending` is applied; 0 when nothing is pending
+    s16    collapseScaleY;                                          // Vertical scale during the collapse, 0x1000 down to 0x200
+    s16    savedYaw;                                                // `yaw` saved and restored with `savedRootCoord`
+    s16    targetYawOffset;                                         // Added to the player's bearing to give `targetYaw`; 0 faces the player
+    s8     animationStarted;                                        // 1 once the slots have been played and ticked since the rig was last bound
+    s8     animationId;                                             // Animation last requested, -1 before the first
+    s8     animationSourceIndex;                                    // Set-table index the rig is bound to, -1 before the first request
+    byte   pad_7D7[0x1];                                            // No access found; role unproven
+    s8     advancing;                                               // 1 while the walk accelerates toward its limit, 0 while it slows to a stop
+    s8     bufferFreeCountdown;                                     // Frames until the model's buffers are freed after it is hidden; negative when idle
+    u8     stateStep;                                               // Step within the current state, restarted on every state change
+    u8     attackPhase;                                             // Phase of the running attack (0 issue the command, 1 wait for the slot)
+    s8     heightBand;                                              // Band of the player's Y (0 most negative to 2 least), switched with hysteresis
+    s8     previousHeightBand;                                      // `heightBand` before the latest attack was picked
+    s8     bearingBand;                                             // Band of the `playerBearing` magnitude the latest attack was picked from
+    s8     previousBearingBand;                                     // `bearingBand` before that pick
+    s8     selfAttackCommand;                                       // Command given to slot 0; nonzero while the boss runs its own attack
+    s8     selfAttackPhase;                                         // Phase of the boss's own attack
+    s8     targetablePending;                                       // Whether the boss becomes a target (1) or stops being one (0) when the delay ends
+    s8     rootCoordRestored;                                       // 1 once actor command 5 has put `savedRootCoord` back
+    s8     controlPaused;                                           // 1 while scene actor control 1 (paused, still drawn) has been applied
+    s8     controlHidden;                                           // 1 while scene actor control 2 (hidden) has been applied
+    s8     defeated;                                                // 1 once a hit has exhausted the boss's health
+    s8     mutedForMenu;                                            // 1 while the boss's sounds are muted for a pending menu
 } Actor503500Work;
 STATIC_ASSERT_SIZEOF(Actor503500Work, 0x7E8);
 
@@ -541,7 +426,7 @@ s32 func_actor_503500_80135E04(Task* arg0, s32 arg1);
 
 void func_actor_503500_80135E20(Task* arg0, s32 arg1, SVECTOR* arg2);
 
-/// Records the per-slot halfword for slot `arg1`; `arg0` is ignored the same
+/// Stores `arg2` as the `slotBusy` flag of slot `arg1`; `arg0` is ignored the same
 /// way `func_actor_503500_80135E04` ignores it.
 void func_actor_503500_80135F9C(Task* arg0, s32 arg1, s16 arg2);
 

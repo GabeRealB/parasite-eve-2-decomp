@@ -266,7 +266,7 @@ typedef struct Actor206100Work {
     /* 0x4A0 */ byte   pad_4A0[0x20];
     /// Effect argument: the root coordinate's second part with the overlay's
     /// effect id and part index, the same coordinate / id / 3 trio
-    /// `Actor503500Work::field_6E4` holds.
+    /// `Actor503500Work::hitEffect` holds.
     /* 0x4C0 */ EffectSpawnArg eff_4C0;
     /* 0x4C8 */ byte           pad_4C8[0x8];
     /// Walk target the two state dispatchers `func_actor_206100_8014D380` /

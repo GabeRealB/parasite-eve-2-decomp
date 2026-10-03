@@ -80,12 +80,8 @@ typedef struct Actor503500Work160 {
 STATIC_ASSERT_SIZEOF(Actor503500Work160, 0x160);
 
 /// Element of `D_actor_503500_80176EE8`, the two 0x2EC blocks
-/// `func_actor_503500_8013852C` clears for spawn slots 2 and 3. The shared
-/// `Actor503500Work` cannot be indexed at this stride, and this block puts a
-/// spawn record at 0x240 where the shared view names the
-/// 0x3D8 block's `obj240`, so the array gets its own type; the task's
-/// `field_1C` still points at the block through the shared view, whose
-/// 0x2D4..0x2EB fields agree with the ones below. It opens with the light and
+/// `func_actor_503500_8013852C` clears for spawn slots 2 and 3; the task's
+/// `Task::work` points at its element. It opens with the light and
 /// colour matrices the init republishes on `TmdObject::lightMtx` / `colorMtx`,
 /// then a private copy of model parts 1..8's `coord` matrices.
 typedef struct Actor503500Work2EC {
@@ -96,7 +92,7 @@ typedef struct Actor503500Work2EC {
     /* 0x180 */ WorldCollisionContact rec[8];    // Gp_InitRec18Table(rec, 8, 0)
     /* 0x240 */ EffectSpawnArg        field_240; // record the 0x2EC block's effects are spawned with
                                                  /// Cleared by `func_actor_503500_801395BC` once `field_2E2` has faded
-                                                 /// to 0; the same offset as the shared view's `obj240.field_8`.
+                                                 /// to 0.
     /* 0x248 */ void* field_248;
     /// Bezier-sampled chain polyline, root first, that
     /// `func_actor_503500_8013A0D0` re-aims the model's links along.
@@ -129,7 +125,7 @@ typedef struct Actor503500Work2EC {
 } Actor503500Work2EC;
 STATIC_ASSERT_SIZEOF(Actor503500Work2EC, 0x2EC);
 
-/// The boss work block, cleared by `func_actor_503500_80132F64`.
+/// Storage of the boss's `Actor503500Work`, cleared by `func_actor_503500_80132F64`.
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
@@ -149,7 +145,7 @@ extern u16 D_actor_503500_80176D64[];
 /// Main-executable flag byte cleared when the boss enters state 2; also written
 /// by `mist_r18`, which has no module header for it either. Declared as an
 /// array: `func_actor_503500_801345F4` needs the in-struct store, which keeps
-/// the preceding `field_79C` store ordered before it.
+/// the preceding `scriptedEffectTask` store ordered before it.
 static s32  func_actor_503500_80133684(Task* arg0);
 static void func_actor_503500_80137074(Task* arg0, s8 arg1, s16 arg2);
 static void func_actor_503500_801338E8(Task* arg0);
@@ -161,8 +157,7 @@ static s32  func_actor_503500_80136FA8(Actor503500Work* work, s32 slot);
 static s32  func_actor_503500_80133D40(Task* arg0, Actor503500Work* work);
 static s32  func_actor_503500_80133FD8(Task* arg0, Actor503500Work* work);
 static s32  func_actor_503500_80136FDC(Actor503500Work* work, s32 slot);
-/// Asks slot `slot` to die: `arg2` becomes its `field_7E0`/`field_2A` flag
-/// and `arg3` its `field_752` countdown.
+/// Commands slot `slot`: `arg2` is the command and `arg3` its `slotCooldown`.
 static void func_actor_503500_80136F40(Actor503500Work* work, s32 slot, s32 arg2, s32 arg3);
 
 static void func_actor_503500_80136450(Task* arg0);
@@ -286,20 +281,20 @@ static void func_actor_503500_80132F64(Task* arg0)
     enemy = arg0->spawnArg2.pointer;
     coord = tmd->coords;
     memFillBytes(work, 0, sizeof(*work));
-    arg0->work          = work;
-    work->field_7D5     = -1;
-    work->field_7D6     = -1;
-    work->field_7D9     = -1;
-    work->field_7A4     = 0x80000;
-    work->field_6C4.vx  = coord->coord.t[0] << 16;
-    work->field_6C4.vy  = coord->coord.t[1] << 16;
-    work->field_6C4.vz  = coord->coord.t[2] << 16;
-    work->field_7D8     = 1;
-    work->field_7CA     = 0x5A;
-    tmd->lightMtx       = &work->lightMtx;
-    tmd->colorMtx       = &work->colorMtx;
-    tmd->otOffset       = 0x14;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    arg0->work                 = work;
+    work->animationId          = -1;
+    work->animationSourceIndex = -1;
+    work->bufferFreeCountdown  = -1;
+    work->walkSpeedLimit       = 0x80000;
+    work->position.vx          = coord->coord.t[0] << 16;
+    work->position.vy          = coord->coord.t[1] << 16;
+    work->position.vz          = coord->coord.t[2] << 16;
+    work->advancing            = 1;
+    work->attackDelay          = 0x5A;
+    tmd->lightMtx              = &work->lightMtx;
+    tmd->colorMtx              = &work->colorMtx;
+    tmd->otOffset              = 0x14;
+    coord->composeStamp        = GRAPHICS_COORD_DIRTY;
 
     enemy->field_4                 = &coord->coord;
     part                           = &coord[3];
@@ -309,25 +304,25 @@ static void func_actor_503500_80132F64(Task* arg0)
     enemy->bodyPos.vx              = D_actor_503500_8016EC50.vx;
     enemy->bodyPos.vy              = D_actor_503500_8016EC50.vy;
     enemy->bodyPos.vz              = D_actor_503500_8016EC50.vz;
-    recs                           = work->rec5F4;
+    recs                           = work->contacts;
     enemy->param                   = &D_actor_503500_8016E7EC[arg0->spawnArg1.value];
     enemy->recs                    = recs;
     enemy->hp                      = enemy->param->hpMax;
 
-    work->field_5D4.coord            = part;
-    work->field_5D4.context.contacts = recs;
-    work->field_5D4.key              = 0x30023;
-    work->field_5D4.radius           = 0x258;
-    work->field_5D4.flags            = WORLD_COLLISION_BODY_SPHERE;
-    work->field_5D4.pos.vx           = D_actor_503500_8016EC50.vx;
-    work->field_5D4.pos.vy           = D_actor_503500_8016EC50.vy;
-    work->field_5D4.pos.vz           = D_actor_503500_8016EC50.vz;
-    Gp_LinkObj(2, &work->field_5D4);
-    Gp_InitRec18Table(recs, 8, 0);
-    work->field_6E4.spawnArgLo = 0x600;
-    work->field_6E4.coord      = part;
-    work->field_6E4.spawnArgHi = 3;
-    work->field_5D4.flags     &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    work->body.coord            = part;
+    work->body.context.contacts = recs;
+    work->body.key              = 0x30023;
+    work->body.radius           = 0x258;
+    work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
+    work->body.pos.vx           = D_actor_503500_8016EC50.vx;
+    work->body.pos.vy           = D_actor_503500_8016EC50.vy;
+    work->body.pos.vz           = D_actor_503500_8016EC50.vz;
+    Gp_LinkObj(2, &work->body);
+    Gp_InitRec18Table(recs, ARRAY_SIZE(work->contacts), 0);
+    work->hitEffect.spawnArgLo = 0x600;
+    work->hitEffect.coord      = part;
+    work->hitEffect.spawnArgHi = 3;
+    work->body.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
     for (i = 1; i < 12; i++) {
         child = Gp_SpawnEnemyFromTable(D_actor_503500_8016E924, i, i, enemy);
@@ -367,7 +362,7 @@ static void func_actor_503500_80132F64(Task* arg0)
 
 /// Per-frame update. `gSceneCombatState.actorControl` 1 pauses the boss (buffers kept, only
 /// `func_actor_503500_80136AEC` runs), 2 hides it; anything else runs the
-/// normal chain. `field_7D9` counts down to the frame the TMD buffers are freed.
+/// normal chain. `bufferFreeCountdown` counts down to the frame the TMD buffers are freed.
 static void func_actor_503500_80133270(Task* arg0)
 {
     Actor503500Work* work;
@@ -382,49 +377,49 @@ static void func_actor_503500_80133270(Task* arg0)
 
     switch (mode) {
         case 1:
-            if (work->field_7E4 == 0) {
+            if (work->controlPaused == 0) {
                 SndEvt_EnqueueType8(SOUND_BANK_TYPE_CHARACTER_ALL);
                 Tmd_AllocBuffers(tmd);
-                tmd->flags     &= (u16) ~(TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
-                work->field_7E4 = mode;
-                work->field_7E5 = 0;
+                tmd->flags         &= (u16) ~(TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
+                work->controlPaused = mode;
+                work->controlHidden = 0;
             }
             func_actor_503500_80136AEC(arg0);
             return;
         case 2:
-            if (work->field_7D9 >= 0) {
-                if (work->field_7D9 == 0) {
+            if (work->bufferFreeCountdown >= 0) {
+                if (work->bufferFreeCountdown == 0) {
                     Tmd_FreeBuffers(tmd);
                 }
-                work->field_7D9--;
+                work->bufferFreeCountdown--;
             }
-            if (work->field_7E5 == 0) {
+            if (work->controlHidden == 0) {
                 SndEvt_EnqueueType8(SOUND_BANK_TYPE_CHARACTER_ALL);
-                tmd->flags     |= (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
-                work->field_7D9 = 1;
-                work->field_7E4 = 0;
-                work->field_7E5 = 1;
+                tmd->flags               |= (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
+                work->bufferFreeCountdown = 1;
+                work->controlPaused       = 0;
+                work->controlHidden       = 1;
             }
             return;
         default:
-            if (work->field_7E4 == 1 || work->field_7E5 == 1 || work->field_7E7 != 0) {
+            if (work->controlPaused == 1 || work->controlHidden == 1 || work->mutedForMenu != 0) {
                 SndEvt_EnqueueType9(SOUND_BANK_TYPE_CHARACTER_ALL);
-                work->field_7E4 = 0;
-                work->field_7E5 = 0;
-                work->field_7E7 = 0;
+                work->controlPaused = 0;
+                work->controlHidden = 0;
+                work->mutedForMenu  = 0;
             }
             if ((gDisplayState.pendingMode & DISPLAY_MODE_MENU_GROUP_MASK) == DISPLAY_MODE_GAME_MENU_GROUP) {
                 SndEvt_EnqueueType8(SOUND_BANK_TYPE_CHARACTER_ALL);
-                work->field_7E7 = 1;
+                work->mutedForMenu = 1;
             }
             if (gGameSession->eventState == 0) {
                 tmd->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
-            if (work->field_7D9 >= 0) {
-                if (work->field_7D9 == 0) {
+            if (work->bufferFreeCountdown >= 0) {
+                if (work->bufferFreeCountdown == 0) {
                     Tmd_FreeBuffers(tmd);
                 }
-                work->field_7D9--;
+                work->bufferFreeCountdown--;
             }
             if (enemy->reactionFlags != 0) {
                 func_actor_503500_80136280(arg0);
@@ -443,11 +438,11 @@ static void func_actor_503500_80133270(Task* arg0)
     }
 }
 
-/// Per-frame upkeep: ticks the `field_752` slot counters down to 0 while the
-/// boss is in state 0, rolls `field_7C8` from `gRandomLcgState`, stores the yaw to
-/// `gPlayerStatus.coordMtx` (offset by `field_7D2`, wrapped into [-0x800, 0x800)) in
-/// `field_7B8`, and when `field_7CC` runs out links or unlinks `field_20`'s
-/// node per `field_7E2`.
+/// Per-frame upkeep: ticks the `slotCooldown` slot counters down to 0 while the
+/// boss is in state 0, rolls `randomRoll` from `gRandomLcgState`, stores the yaw to
+/// `gPlayerStatus.coordMtx` (offset by `targetYawOffset`, wrapped into [-0x800, 0x800)) in
+/// `targetYaw`, and when `targetableDelay` runs out links or unlinks the
+/// boss's target per `targetablePending`.
 static void func_actor_503500_801334CC(Task* arg0)
 {
     Actor503500Work* work;
@@ -460,38 +455,38 @@ static void func_actor_503500_801334CC(Task* arg0)
     s32              i;
 
     work = arg0->work;
-    p    = work->field_752;
-    if (work->field_7B0 == 0) {
-        for (i = 0; i < 0x11; i++, p++) {
+    p    = work->slotCooldown;
+    if (work->state == ACTOR_503500_STATE_IDLE) {
+        for (i = 0; i < ARRAY_SIZE(work->slotCooldown); i++, p++) {
             if (--*p < 0) {
                 *p = 0;
             }
         }
     }
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->field_7C8 = gRandomLcgState >> 16;
-    coord           = arg0->extra.tmd->coords;
-    vec.vx          = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-    vec.vy          = 0;
-    vec.vz          = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-    angle           = work->field_7D2 + ratan2(vec.vx, vec.vz);
+    gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->randomRoll = gRandomLcgState >> 16;
+    coord            = arg0->extra.tmd->coords;
+    vec.vx           = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+    vec.vy           = 0;
+    vec.vz           = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
+    angle            = work->targetYawOffset + ratan2(vec.vx, vec.vz);
     while (angle >= 0x800) {
         angle -= 0x1000;
     }
     while (angle < -0x800) {
         angle += 0x1000;
     }
-    work->field_7B8 = angle;
+    work->targetYaw = angle;
     enemy           = arg0->spawnArg2.pointer;
-    count           = --work->field_7CC;
+    count           = --work->targetableDelay;
     if (count < 0) {
-        work->field_7CC = 0;
+        work->targetableDelay = 0;
     } else if (count == 0) {
-        if (work->field_7E2 != 0) {
-            work->field_5D4.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        if (work->targetablePending != 0) {
+            work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             Gp_LinkNode(&enemy->node);
         } else {
-            work->field_5D4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+            work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             worldTargetUnlinkNode(&enemy->node);
         }
     }
@@ -508,27 +503,27 @@ static s32 func_actor_503500_80133684(Task* arg0)
     work  = arg0->work;
     slots = work->enemies;
 
-    if (work->field_7B0 != 2) {
-        if (!(work->field_774 & 1) && (slots[4] == NULL)) {
+    if (work->state != ACTOR_503500_STATE_PART_LOST) {
+        if (!(work->progressFlags & 1) && (slots[4] == NULL)) {
             slots[10]->task->killCountdown = 8;
             ret                            = 1;
-            work->field_774               |= 1;
+            work->progressFlags           |= 1;
         }
-        if (!((work->field_774 >> 1) & 1) && (slots[5] == NULL)) {
+        if (!((work->progressFlags >> 1) & 1) && (slots[5] == NULL)) {
             slots[11]->task->killCountdown = 8;
             ret                            = 1;
-            work->field_774               |= 2;
+            work->progressFlags           |= 2;
         }
-        if (!((work->field_774 >> 2) & 1) && (slots[1] == NULL)) {
+        if (!((work->progressFlags >> 2) & 1) && (slots[1] == NULL)) {
             if (slots[12] != NULL) {
                 slots[12]->task->killCountdown = 8;
                 ret                            = 1;
-                work->field_774               |= 4;
+                work->progressFlags           |= 4;
             }
         }
     }
 
-    if (!((work->field_774 >> 3) & 1) &&
+    if (!((work->progressFlags >> 3) & 1) &&
         ((((slot1 = slots[1], slot1 == NULL)) && (slots[12] == NULL)) ||
          (slots[7] == NULL) || (slots[8] == NULL) || (slots[10] == NULL) ||
          (slots[11] == NULL) || ((slots[9] == NULL) && (slot1 == NULL)) ||
@@ -538,7 +533,7 @@ static s32 func_actor_503500_80133684(Task* arg0)
             ret = 1;
             if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
-                work->field_774 |= 8;
+                work->progressFlags |= 8;
                 /* `ret` has to be dead across the call for GCC to keep it in
                  * $a1: it is re-set on the way out of both arms. */
                 goto done;
@@ -552,13 +547,13 @@ static s32 func_actor_503500_80133684(Task* arg0)
 }
 
 /// Boss attack picker. Every frame it stores the player's yaw
-/// relative to the boss (wrapped into [-0x800, 0x800)) in `field_7BA`. Step 0
-/// updates the height band `field_7DC` from the target's Y with hysteresis,
-/// buckets `|yaw|` into `field_7DE`, then walks that bucket's weighted list
-/// until the running weight reaches the random byte in `field_7C8`, stores
-/// the chosen step in `field_778` and runs it at once. Step 1 keeps running
+/// relative to the boss (wrapped into [-0x800, 0x800)) in `playerBearing`. Step 0
+/// updates the height band `heightBand` from the target's Y with hysteresis,
+/// buckets `|yaw|` into `bearingBand`, then walks that bucket's weighted list
+/// until the running weight reaches the random byte in `randomRoll`, stores
+/// the chosen step in `runningAttack` and runs it at once. Step 1 keeps running
 /// it. A non-zero result, an empty list (0x1E) or running off the end of the
-/// list (0xF) goes to `field_7CA` after `func_actor_503500_80136EFC(arg0, 0)`.
+/// list (0xF) goes to `attackDelay` after `func_actor_503500_80136EFC(arg0, 0)`.
 static void func_actor_503500_801338E8(Task* arg0)
 {
     Actor503500Work* work;
@@ -574,80 +569,80 @@ static void func_actor_503500_801338E8(Task* arg0)
 
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
-    angle = ratan2(gPlayerStatus.coordMtx->t[0] - coord->coord.t[0], gPlayerStatus.coordMtx->t[2] - coord->coord.t[2]) - work->field_7B6;
+    angle = ratan2(gPlayerStatus.coordMtx->t[0] - coord->coord.t[0], gPlayerStatus.coordMtx->t[2] - coord->coord.t[2]) - work->yaw;
     while (angle >= 0x800) {
         angle -= 0x1000;
     }
     while (angle < -0x800) {
         angle += 0x1000;
     }
-    work->field_7BA = angle;
-    switch ((s8)work->field_7DA) {
+    work->playerBearing = angle;
+    switch ((s8)work->stateStep) {
         case 0:
-            work->field_7DD = work->field_7DC;
-            work->field_7DF = work->field_7DE;
-            switch (work->field_7DD) {
+            work->previousHeightBand  = work->heightBand;
+            work->previousBearingBand = work->bearingBand;
+            switch (work->previousHeightBand) {
                 case 0:
                     if (gPlayerStatus.coordMtx->t[1] >= -0xAEF) {
-                        work->field_7DC = 1;
+                        work->heightBand = 1;
                     }
                     break;
                 case 1:
                     if (gPlayerStatus.coordMtx->t[1] >= -0x31F) {
-                        work->field_7DC = 2;
+                        work->heightBand = 2;
                     } else if (gPlayerStatus.coordMtx->t[1] < -0xC80) {
-                        work->field_7DC = 0;
+                        work->heightBand = 0;
                     }
                     break;
                 case 2:
                     if (gPlayerStatus.coordMtx->t[1] < -0x4B0) {
-                        work->field_7DC = 1;
+                        work->heightBand = 1;
                     }
                     break;
             }
-            thr      = D_actor_503500_8016EF28[(work->field_774 >> 3) & 1][work->field_7DC];
+            thr      = D_actor_503500_8016EF28[(work->progressFlags >> 3) & 1][work->heightBand];
             absAngle = abs(angle);
-            for (work->field_7DE = 0; *thr++ < absAngle; work->field_7DE++) {
+            for (work->bearingBand = 0; *thr++ < absAngle; work->bearingBand++) {
             }
-            bit  = (work->field_774 >> 3) & 1;
-            step = D_actor_503500_8016EF10[bit][work->field_7DC][work->field_7DE];
-            r    = (u8)work->field_7C8;
+            bit  = (work->progressFlags >> 3) & 1;
+            step = D_actor_503500_8016EF10[bit][work->heightBand][work->bearingBand];
+            r    = (u8)work->randomRoll;
             if (step->fn != NULL) {
                 sum = step->weight;
                 while (sum < r) {
                     if (step[1].fn == NULL) {
-                        func_actor_503500_80136EFC(arg0, 0);
-                        work->field_7CA = 0xF;
+                        func_actor_503500_80136EFC(arg0, ACTOR_503500_STATE_IDLE);
+                        work->attackDelay = 0xF;
                         return;
                     }
                     step++;
                     sum += step->weight;
                 }
-                work->field_778 = step->fn;
-                work->field_7DA++;
+                work->runningAttack = step->fn;
+                work->stateStep++;
             } else {
-                func_actor_503500_80136EFC(arg0, 0);
-                work->field_7CA = 0x1E;
+                func_actor_503500_80136EFC(arg0, ACTOR_503500_STATE_IDLE);
+                work->attackDelay = 0x1E;
                 return;
             }
         case 1:
-            ret = work->field_778(arg0, work);
+            ret = work->runningAttack(arg0, work);
             if (ret != 0) {
-                func_actor_503500_80136EFC(arg0, 0);
-                work->field_7CA = ret;
+                func_actor_503500_80136EFC(arg0, ACTOR_503500_STATE_IDLE);
+                work->attackDelay = ret;
             }
             break;
         default:
-            func_actor_503500_80136EFC(arg0, 0);
+            func_actor_503500_80136EFC(arg0, ACTOR_503500_STATE_IDLE);
             break;
     }
 }
 
 /// Script step that dismisses one of the boss's slot-10/11 helpers. State 0
-/// picks the slot: with `field_7DE` clear it tries the slot chosen by the low
-/// bit of `field_7C8` and then the other one, and always advances; otherwise
-/// the sign of `field_7BA` picks slot 10 or 11 and it only advances once that
-/// slot is ready. State 1 waits for the chosen slot (`field_7C2`) to finish
+/// picks the slot: with `bearingBand` clear it tries the slot chosen by the low
+/// bit of `randomRoll` and then the other one, and always advances; otherwise
+/// the sign of `playerBearing` picks slot 10 or 11 and it only advances once that
+/// slot is ready. State 1 waits for the chosen slot (`attackSlot`) to finish
 /// dying. Returns 1 while no slot is ready, 0 the frame the request is issued
 /// or while waiting, and 1 once the slot has gone quiet. `arg0` is passed
 /// through the step table and ignored here.
@@ -658,37 +653,37 @@ s32 func_actor_503500_80133BF4(Task* arg0, Actor503500Work* work)
     s32 slot;
 
     ret = 1;
-    switch ((s8)work->field_7DB) {
+    switch ((s8)work->attackPhase) {
         case 0:
-            if (work->field_7DE == 0) {
-                odd  = work->field_7C8 & 1;
+            if (work->bearingBand == 0) {
+                odd  = work->randomRoll & 1;
                 slot = odd + 0xA;
                 if (func_actor_503500_80136FDC(work, slot) != 0 ||
                     (slot = 0xB - odd, func_actor_503500_80136FDC(work, slot) != 0)) {
                     func_actor_503500_80136F40(work, slot, 2, 0x78);
-                    work->field_7C2 = slot;
+                    work->attackSlot = slot;
                 }
-                ret             = 0;
-                work->field_7D2 = 0;
-                work->field_7DB = 1;
-            } else if (work->field_7BA > 0) {
+                ret                   = 0;
+                work->targetYawOffset = 0;
+                work->attackPhase     = 1;
+            } else if (work->playerBearing > 0) {
                 if (func_actor_503500_80136FDC(work, 0xA) != 0) {
                     func_actor_503500_80136F40(work, 0xA, 2, 0x78);
-                    ret             = 0;
-                    work->field_7C2 = 0xA;
-                    work->field_7D2 = 0;
-                    work->field_7DB = 1;
+                    ret                   = 0;
+                    work->attackSlot      = 0xA;
+                    work->targetYawOffset = 0;
+                    work->attackPhase     = 1;
                 }
             } else if (func_actor_503500_80136FDC(work, 0xB) != 0) {
                 func_actor_503500_80136F40(work, 0xB, 2, 0x78);
-                ret             = 0;
-                work->field_7C2 = 0xB;
-                work->field_7D2 = 0;
-                work->field_7DB = 1;
+                ret                   = 0;
+                work->attackSlot      = 0xB;
+                work->targetYawOffset = 0;
+                work->attackPhase     = 1;
             }
             break;
         case 1:
-            if (func_actor_503500_80136FA8(work, work->field_7C2) == 0) {
+            if (func_actor_503500_80136FA8(work, work->attackSlot) == 0) {
                 ret = 0;
             }
             break;
@@ -697,9 +692,9 @@ s32 func_actor_503500_80133BF4(Task* arg0, Actor503500Work* work)
 }
 
 /// Script step that dismisses the first ready slot of four (slots 2, 7, 13,
-/// 14 are tested) whose `field_7BA` range test passes; 13 and 14 also depend on
+/// 14 are tested) whose `playerBearing` range test passes; 13 and 14 also depend on
 /// whether the other one's `enemies` entry is empty. State 0 returns 0 the
-/// frame a slot is issued, else 1. State 1 bumps `field_7BE` unless the slot
+/// frame a slot is issued, else 1. State 1 bumps `attackFrames` unless the slot
 /// is 7, and once the slot is done or 0x1E frames have passed returns 0x3C for
 /// slot 7 or 0x1E for 2/13/14; until then 0. Any other state returns 1.
 static s32 func_actor_503500_80133D40(Task* arg0, Actor503500Work* work)
@@ -710,12 +705,12 @@ static s32 func_actor_503500_80133D40(Task* arg0, Actor503500Work* work)
     s16  dir;
     s16  slot;
 
-    switch ((s8)work->field_7DB) {
+    switch ((s8)work->attackPhase) {
         case 0:
             ret   = 1;
             i     = 0;
             slots = D_actor_503500_8016EF48;
-            dir   = work->field_7BA;
+            dir   = work->playerBearing;
             for (; i < 4; i++) {
                 slot = *slots;
                 if (func_actor_503500_80136FDC(work, slot) != 0) {
@@ -751,8 +746,8 @@ static s32 func_actor_503500_80133D40(Task* arg0, Actor503500Work* work)
                     }
                     if (ret == 0) {
                         func_actor_503500_80136F40(work, slot, 2, D_actor_503500_8016EF40[i]);
-                        work->field_7C2 = slot;
-                        work->field_7DB = 1;
+                        work->attackSlot  = slot;
+                        work->attackPhase = 1;
                         break;
                     }
                 }
@@ -761,11 +756,11 @@ static s32 func_actor_503500_80133D40(Task* arg0, Actor503500Work* work)
             break;
         case 1:
             ret = 0;
-            if (work->field_7C2 != 7) {
-                work->field_7BE++;
+            if (work->attackSlot != 7) {
+                work->attackFrames++;
             }
-            if (func_actor_503500_80136FA8(work, work->field_7C2) != 0 || work->field_7BE > 0x1E) {
-                switch (work->field_7C2) {
+            if (func_actor_503500_80136FA8(work, work->attackSlot) != 0 || work->attackFrames > 0x1E) {
+                switch (work->attackSlot) {
                     case 2:
                         ret = 0x1E;
                         break;
@@ -789,8 +784,8 @@ static s32 func_actor_503500_80133D40(Task* arg0, Actor503500Work* work)
 }
 
 /// Mirror of `func_actor_503500_80133D40` for the other side: tries slots 3,
-/// 15, 16 and 8 with the `field_7BA` range tests reflected. State 0 returns 0
-/// the frame a slot is issued, else 1. State 1 bumps `field_7BE` unless the
+/// 15, 16 and 8 with the `playerBearing` range tests reflected. State 0 returns 0
+/// the frame a slot is issued, else 1. State 1 bumps `attackFrames` unless the
 /// slot is 8, and once the slot is done or 0x14 frames have passed returns 0x3C
 /// for slot 8 or 0x1E for 3/15/16; until then 0. Any other state returns 1.
 static s32 func_actor_503500_80133FD8(Task* arg0, Actor503500Work* work)
@@ -801,12 +796,12 @@ static s32 func_actor_503500_80133FD8(Task* arg0, Actor503500Work* work)
     s16  dir;
     s16  slot;
 
-    switch ((s8)work->field_7DB) {
+    switch ((s8)work->attackPhase) {
         case 0:
             ret   = 1;
             i     = 0;
             slots = D_actor_503500_8016EF50;
-            dir   = work->field_7BA;
+            dir   = work->playerBearing;
             for (; i < 4; i++) {
                 slot = *slots;
                 if (func_actor_503500_80136FDC(work, slot) != 0) {
@@ -846,8 +841,8 @@ static s32 func_actor_503500_80133FD8(Task* arg0, Actor503500Work* work)
                     }
                     if (ret == 0) {
                         func_actor_503500_80136F40(work, slot, 2, D_actor_503500_8016EF40[i]);
-                        work->field_7C2 = slot;
-                        work->field_7DB = 1;
+                        work->attackSlot  = slot;
+                        work->attackPhase = 1;
                         break;
                     }
                 }
@@ -856,11 +851,11 @@ static s32 func_actor_503500_80133FD8(Task* arg0, Actor503500Work* work)
             break;
         case 1:
             ret = 0;
-            if (work->field_7C2 != 8) {
-                work->field_7BE++;
+            if (work->attackSlot != 8) {
+                work->attackFrames++;
             }
-            if (func_actor_503500_80136FA8(work, work->field_7C2) != 0 || work->field_7BE > 0x14) {
-                switch (work->field_7C2) {
+            if (func_actor_503500_80136FA8(work, work->attackSlot) != 0 || work->attackFrames > 0x14) {
+                switch (work->attackSlot) {
                     case 3:
                         ret = 0x1E;
                         break;
@@ -884,11 +879,11 @@ static s32 func_actor_503500_80133FD8(Task* arg0, Actor503500Work* work)
 }
 
 /// Script step pairing `func_actor_503500_80133D40` and `_80133FD8`. State 0
-/// runs the one the sign of `field_7BA` picks; the fallback to the other one
-/// needs `field_7BA` beyond +/-0x76C on the opposite side, which that sign
-/// rules out, so it never fires. `field_7D2` becomes 0x7D0 when the result
-/// is 0, else 0. State 1 bumps `field_7BE`
-/// unless `field_7C2` is slot 7 or 8, and once that slot is done or 0x5B
+/// runs the one the sign of `playerBearing` picks; the fallback to the other one
+/// needs `playerBearing` beyond +/-0x76C on the opposite side, which that sign
+/// rules out, so it never fires. `targetYawOffset` becomes 0x7D0 when the result
+/// is 0, else 0. State 1 bumps `attackFrames`
+/// unless `attackSlot` is slot 7 or 8, and once that slot is done or 0x5B
 /// frames have passed returns a per-slot delay (0xF, 0x3C, 0x5A or 0x1E);
 /// until then it returns 0. Any other state returns 1.
 s32 func_actor_503500_80134284(Task* arg0, Actor503500Work* work)
@@ -896,8 +891,8 @@ s32 func_actor_503500_80134284(Task* arg0, Actor503500Work* work)
     s32 ret;
     s32 dir;
 
-    dir = work->field_7BA;
-    switch ((s8)work->field_7DB) {
+    dir = work->playerBearing;
+    switch ((s8)work->attackPhase) {
         case 0:
             if (dir > 0) {
                 ret = func_actor_503500_80133D40(arg0, work);
@@ -911,18 +906,18 @@ s32 func_actor_503500_80134284(Task* arg0, Actor503500Work* work)
                 }
             }
             if (ret == 0) {
-                work->field_7D2 = 0x7D0;
+                work->targetYawOffset = 0x7D0;
             } else {
-                work->field_7D2 = 0;
+                work->targetYawOffset = 0;
             }
             break;
         case 1:
             ret = 0;
-            if ((u16)work->field_7C2 - 7 >= 2U) {
-                work->field_7BE++;
+            if ((u16)work->attackSlot - 7 >= 2U) {
+                work->attackFrames++;
             }
-            if (func_actor_503500_80136FA8(work, work->field_7C2) != 0 || work->field_7BE > 0x5A) {
-                switch (work->field_7C2) {
+            if (func_actor_503500_80136FA8(work, work->attackSlot) != 0 || work->attackFrames > 0x5A) {
+                switch (work->attackSlot) {
                     case 2:
                     case 3:
                         ret = 0xF;
@@ -965,45 +960,45 @@ static void func_actor_503500_80134408(Task* arg0)
 
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
-    switch ((s8)work->field_7DA) {
+    switch ((s8)work->stateStep) {
         case 0:
-            work->field_5D4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+            work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             func_actor_503500_8013611C(arg0->spawnArg1.value);
             worldTargetUnlinkNode(&enemy->node);
-            enemy->recs     = 0;
-            work->field_7B4 = 0;
+            enemy->recs       = 0;
+            work->hitCooldown = 0;
             Gp_PulseState1C();
             sum = 0;
-            for (i = 1; i < 0x11; i++) {
+            for (i = 1; i < ARRAY_SIZE(work->enemies); i++) {
                 if (work->enemies[i] != NULL) {
                     sum += work->enemies[i]->hp;
                 }
             }
             gGameSession->bossPartsHpSum = sum;
-            work->field_7E0              = 0;
+            work->selfAttackCommand      = 0;
             func_actor_503500_80135FB4(arg0, 0xE, 0x20);
             pan = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[3]);
             SndEvt_EnqueueType6(SOUND_BRAHMAN_DEATH_LOOP, pan,
                                 (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[3]) / 2));
-            work->field_7DA = work->field_7DA + 1;
+            work->stateStep = work->stateStep + 1;
             break;
         case 1:
-            if (++work->field_7BC >= 0x1F &&
+            if (++work->stateFrames >= 0x1F &&
                 ((GameActor*)(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->work)->mode != GAME_ACTOR_MODE_SCRIPTED &&
                 gPlayerStatus.hp > 0 && Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
                 SndEvt_EnqueueType7(SOUND_BRAHMAN_DEATH_LOOP, 0x2D);
-                work->field_7DA = work->field_7DA + 1;
+                work->stateStep = work->stateStep + 1;
             }
             break;
     }
 }
 
 /// Seven-step state of the boss block. Step 0 applies preset 0x13 and clears
-/// `field_79C`; step 1 sprays 0x60055 effects for 0x78 frames (one from the
+/// `scriptedEffectTask`; step 1 sprays 0x60055 effects for 0x78 frames (one from the
 /// frame count, one from `gRandomLcgState`), plays 0x40230012, and at frame 0x97
-/// spawns the attached effect task into `field_79C`. Step 2 waits for
-/// `field_7E3`, kills that task and spawns a fresh one; steps 3..6 walk
+/// spawns the attached effect task into `scriptedEffectTask`. Step 2 waits for
+/// `rootCoordRestored`, kills that task and spawns a fresh one; steps 3..6 walk
 /// presets 6, 7 and 8 and finally return the boss to state 0.
 static void func_actor_503500_801345F4(Task* arg0)
 {
@@ -1013,30 +1008,30 @@ static void func_actor_503500_801345F4(Task* arg0)
     s32              pan;
 
     work = arg0->work;
-    switch ((s8)work->field_7DA) {
+    switch ((s8)work->stateStep) {
         case 0:
             func_actor_503500_80135FB4(arg0, 0x13, 0x10);
             func_actor_503500_8013611C(arg0->spawnArg1.value);
-            work->field_79C = NULL;
-            work->field_7DA = work->field_7DA + 1;
+            work->scriptedEffectTask = NULL;
+            work->stateStep          = work->stateStep + 1;
             break;
         case 1:
-            if (work->field_7BC < 0x78) {
+            if (work->stateFrames < 0x78) {
                 Gp_SpawnEff(EFFECT_HIT_PUFF, &arg0->extra.tmd->coords[3], 0x01001800,
-                            &D_actor_503500_8016EF58[(s16)(work->field_7BC % 7)]);
+                            &D_actor_503500_8016EF58[(s16)(work->stateFrames % 7)]);
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 Gp_SpawnEff(EFFECT_HIT_PUFF, &arg0->extra.tmd->coords[3], 0x01001800,
                             &D_actor_503500_8016EF58[(u16)((gRandomLcgState >> 16) % 7)]);
             }
-            if (work->field_7BC == 0x78) {
+            if (work->stateFrames == 0x78) {
                 SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x12), 0x3C);
             }
-            if (work->field_7BC == 2) {
+            if (work->stateFrames == 2) {
                 coord = &arg0->extra.tmd->coords[3];
                 pan   = (s8)worldCoordGetOriginAudioPan(coord);
                 SndEvt_EnqueueType6(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x12), pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
             }
-            if (++work->field_7BC >= 0x97) {
+            if (++work->stateFrames >= 0x97) {
                 task = Task_SpawnFromTable(D_actor_503500_8016E9F0, 4, 0x64, arg0);
                 if (task != NULL) {
                     coord             = task->extra.tmd->coords;
@@ -1045,14 +1040,14 @@ static void func_actor_503500_801345F4(Task* arg0)
                     coord->coord.t[1] = D_actor_503500_8016EC50.vy;
                     coord->coord.t[2] = D_actor_503500_8016EC50.vz;
                 }
-                work->field_79C            = task;
+                work->scriptedEffectTask   = task;
                 gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_2X;
-                work->field_7DA            = work->field_7DA + 1;
+                work->stateStep            = work->stateStep + 1;
             }
             break;
         case 2:
-            if (work->field_7E3 != 0) {
-                task = work->field_79C;
+            if (work->rootCoordRestored != 0) {
+                task = work->scriptedEffectTask;
                 if (task != NULL) {
                     task->exitCallback(task);
                 }
@@ -1066,35 +1061,35 @@ static void func_actor_503500_801345F4(Task* arg0)
                     coord->coord.t[2] = D_actor_503500_8016EC50.vz;
                 }
                 func_actor_503500_80137074(arg0, 1, 1);
-                work->field_7DA = work->field_7DA + 1;
+                work->stateStep = work->stateStep + 1;
             }
             break;
         case 3:
             if (func_actor_503500_80136014(arg0, 5) != 0) {
                 func_actor_503500_80135FB4(arg0, 6, 0x10);
-                work->field_7BC = 0;
-                work->field_7DA = work->field_7DA + 1;
+                work->stateFrames = 0;
+                work->stateStep   = work->stateStep + 1;
             }
             break;
         case 4:
-            if (++work->field_7BC >= 0x33) {
+            if (++work->stateFrames >= 0x33) {
                 func_actor_503500_80135FB4(arg0, 7, 0);
-                work->field_7DA = work->field_7DA + 1;
+                work->stateStep = work->stateStep + 1;
             }
             break;
         case 5:
             if (func_actor_503500_80136014(arg0, 7) != 0) {
                 func_actor_503500_80135FB4(arg0, 8, 0);
                 func_actor_503500_80137074(arg0, 0, 0xE);
-                work->field_7DA = work->field_7DA + 1;
+                work->stateStep = work->stateStep + 1;
             }
             break;
         case 6:
             if (func_actor_503500_80136014(arg0, 8) != 0) {
                 gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_1X;
                 func_actor_503500_80135FB4(arg0, 0, 0);
-                work->field_7D2 = 0;
-                func_actor_503500_80136EFC(arg0, 0);
+                work->targetYawOffset = 0;
+                func_actor_503500_80136EFC(arg0, ACTOR_503500_STATE_IDLE);
             }
             break;
     }
@@ -1121,41 +1116,41 @@ static void func_actor_503500_80134A24(Task* arg0)
     obj   = arg0->extra.tmd;
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
-    switch ((s8)work->field_7DA) {
+    switch ((s8)work->stateStep) {
         case 0:
-            work->field_7BC = 0;
-            work->field_7CE = 0x1000;
-            dst             = work->field_77C;
-            src             = (s32*)coord->coord.m;
+            work->stateFrames    = 0;
+            work->collapseScaleY = 0x1000;
+            dst                  = (s32*)work->unscaledRotation.m;
+            src                  = (s32*)coord->coord.m;
             for (i = 0; i < 4; i++) {
                 *dst++ = *src++;
             }
-            work->field_78C = coord->coord.m[2][2];
-            work->field_7DA = work->field_7DA + 1;
+            work->unscaledRotation.m[2][2] = coord->coord.m[2][2];
+            work->stateStep                = work->stateStep + 1;
             break;
         case 1:
-            if (++work->field_7BC >= 0x1F) {
+            if (++work->stateFrames >= 0x1F) {
                 func_actor_503500_80135FB4(arg0, 0xE, 0x20);
-                work->field_7BC = 0;
-                work->field_7DA = work->field_7DA + 1;
+                work->stateFrames = 0;
+                work->stateStep   = work->stateStep + 1;
             }
             break;
         case 2:
-            if (work->field_7CE > 0x200) {
-                work->field_7CE -= 0x10;
+            if (work->collapseScaleY > 0x200) {
+                work->collapseScaleY -= 0x10;
             }
             dst = (s32*)coord->coord.m;
-            src = work->field_77C;
+            src = (s32*)work->unscaledRotation.m;
             for (i = 0; i < 4; i++) {
                 *dst++ = *src++;
             }
-            coord->coord.m[2][2] = work->field_78C;
+            coord->coord.m[2][2] = work->unscaledRotation.m[2][2];
             scale.vx             = 0x1000;
-            scale.vy             = work->field_7CE;
+            scale.vy             = work->collapseScaleY;
             scale.vz             = 0x1000;
             ScaleMatrixL(&coord->coord, &scale);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            switch (++work->field_7BC) {
+            switch (++work->stateFrames) {
                 case 0x3C:
                     obj->flags |= TMD_OBJECT_SEMI_TRANS;
                     Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
@@ -1169,7 +1164,7 @@ static void func_actor_503500_80134A24(Task* arg0)
             }
             break;
     }
-    if ((s8)work->field_7DA >= 2 && func_actor_503500_80136014(arg0, 0xE) != 0) {
+    if ((s8)work->stateStep >= 2 && func_actor_503500_80136014(arg0, 0xE) != 0) {
         func_actor_503500_80135FB4(arg0, 0xE, 0x20);
     }
 }
@@ -1181,15 +1176,15 @@ static void func_actor_503500_80134C68(Task* arg0)
     GfxCoord*        coord;
 
     work = arg0->work;
-    if ((u16)(work->field_7B0 - 2) < 3U) {
+    if ((u16)(work->state - ACTOR_503500_STATE_PART_LOST) < 3U) {
         func_actor_503500_80136F40(work, 0, 0, 0);
         return;
     }
-    switch (work->field_7E1) {
+    switch (work->selfAttackPhase) {
         case 0:
             func_actor_503500_80135FB4(arg0, 4, 0x10);
             func_actor_503500_80137074(arg0, 1, 0x4B);
-            work->field_7E1++;
+            work->selfAttackPhase++;
             break;
         case 1:
             if (func_actor_503500_80136014(arg0, 4) != 0) {
@@ -1203,33 +1198,33 @@ static void func_actor_503500_80134C68(Task* arg0)
                     coord->coord.t[2] = D_actor_503500_8016EC50.vz;
                 }
                 gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_2X;
-                work->field_7C0            = 0;
-                work->field_7E1++;
+                work->selfAttackFrames     = 0;
+                work->selfAttackPhase++;
             }
             break;
         case 2:
-            if (++work->field_7C0 >= 0x5B) {
+            if (++work->selfAttackFrames >= 0x5B) {
                 func_actor_503500_80135FB4(arg0, 6, 0x10);
-                work->field_7C0 = 0;
-                work->field_7E1++;
+                work->selfAttackFrames = 0;
+                work->selfAttackPhase++;
             }
             break;
         case 3:
-            if (++work->field_7C0 >= 0x33) {
+            if (++work->selfAttackFrames >= 0x33) {
                 func_actor_503500_80135FB4(arg0, 7, 0);
-                work->field_7E1++;
+                work->selfAttackPhase++;
             }
             break;
         case 4:
             if (func_actor_503500_80136014(arg0, 7) != 0) {
                 func_actor_503500_80135FB4(arg0, 8, 0);
                 func_actor_503500_80137074(arg0, 0, 0xE);
-                work->field_7E1++;
+                work->selfAttackPhase++;
             }
             break;
         case 5:
             if (func_actor_503500_80136014(arg0, 8) != 0) {
-                work->field_7E0            = 0;
+                work->selfAttackCommand    = 0;
                 gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_1X;
                 func_actor_503500_80135F9C(arg0, 0, 0);
                 func_actor_503500_80135FB4(arg0, 0, 0);
@@ -1240,7 +1235,7 @@ static void func_actor_503500_80134C68(Task* arg0)
 
 /// Applies this frame's hits from the collision records `arg2[0..arg3)` to
 /// the boss. Each attack id is taken once, and only type-2 ids land while the
-/// `field_7B4` countdown is clear: the damage scales with the attacker's
+/// `hitCooldown` countdown is clear: the damage scales with the attacker's
 /// distance, `Gp_RollEnemyChance` can quadruple it, and a hit that empties
 /// `hp` starts the death state instead of the id's status effect. `arg1`
 /// is passed by the caller but unused.
@@ -1275,7 +1270,7 @@ static void func_actor_503500_80134EAC(Task* arg0, WorldCollisionBody* arg1, Wor
         if ((id & 0xFFFF0000) != 0x20000) {
             continue;
         }
-        if (work->field_7B4 != 0) {
+        if (work->hitCooldown != 0) {
             continue;
         }
         src = gPlayerActorTasks[(id >> 7) & 1]->extra.tmd->coords;
@@ -1292,8 +1287,8 @@ static void func_actor_503500_80134EAC(Task* arg0, WorldCollisionBody* arg1, Wor
         enemy->hp -= dmg;
         func_800DA6E8(&enemy->node, dmg, 0);
         if (enemy->hp <= 0) {
-            func_actor_503500_80136EFC(arg0, 4);
-            work->field_7E6 = 1;
+            func_actor_503500_80136EFC(arg0, ACTOR_503500_STATE_DEFEATED);
+            work->defeated = 1;
         } else {
             switch (Gp_GetIdParam0(id) & 0xFFFF) {
                 case 0:
@@ -1315,10 +1310,10 @@ static void func_actor_503500_80134EAC(Task* arg0, WorldCollisionBody* arg1, Wor
                     break;
             }
         }
-        func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, NULL, &work->field_6E4);
+        func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, NULL, &work->hitEffect);
         stun = Gp_GetIdParam2(id);
-        if (work->field_7B4 < stun) {
-            work->field_7B4 = stun;
+        if (work->hitCooldown < stun) {
+            work->hitCooldown = stun;
         }
     next:;
     }
@@ -1340,9 +1335,9 @@ static void func_actor_503500_80135178(Task* arg0)
     work    = arg0->work;
     coord   = arg0->extra.tmd->coords;
     enemies = work->enemies;
-    if (work->field_7B0 < 2) {
-        if (work->field_7B0 >= 0) {
-            switch (D_actor_503500_8016E8FC[work->field_7D5]) {
+    if (work->state < ACTOR_503500_STATE_PART_LOST) {
+        if (work->state >= ACTOR_503500_STATE_IDLE) {
+            switch (D_actor_503500_8016E8FC[work->animationId]) {
                 case 1:
                     speed = 0x60000;
                     break;
@@ -1368,8 +1363,8 @@ static void func_actor_503500_80135178(Task* arg0)
             }
             speed  += turn;
             yaw     = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]);
-            turn    = work->field_7A8;
-            diff    = work->field_7B8 - yaw;
+            turn    = work->turnSpeed;
+            diff    = work->targetYaw - yaw;
             absDiff = ABS(diff);
             if ((speed * 8) >> 16 >= absDiff) {
                 if (turn < 0) {
@@ -1404,22 +1399,22 @@ static void func_actor_503500_80135178(Task* arg0)
                 }
             }
             newYaw          = yaw + (turn >> 16);
-            work->field_7A8 = turn;
+            work->turnSpeed = turn;
             rot.vx          = 0;
             rot.vy          = newYaw;
             rot.vz          = 0;
             RotMatrix(&rot, &coord->coord);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            work->field_7B6     = newYaw;
+            work->yaw           = newYaw;
         }
     }
 }
 
-/// Steps the boss along its yaw: ramps the walk speed `field_7A0` by
-/// `field_7A4` / 32 (reversed at a quarter rate when `field_7B8` is more than
-/// 0x258 off `field_7B6`), moves `field_6C4` by it inside a fixed box and drops
+/// Steps the boss along its yaw: ramps the walk speed `walkSpeed` by
+/// `walkSpeedLimit` / 32 (reversed at a quarter rate when `targetYaw` is more than
+/// 0x258 off `yaw`), moves `position` by it inside a fixed box and drops
 /// the integer part into the coordinate. States 4, 5 and 7 (and 6 before step
-/// 3) only record the previous translation in `field_6D4`.
+/// 3) only record the previous translation in `previousTranslation`.
 static void func_actor_503500_801353F0(Task* arg0)
 {
     MATRIX           mat;
@@ -1432,33 +1427,33 @@ static void func_actor_503500_801353F0(Task* arg0)
     long*            px;
     long*            pz;
 
-    work               = arg0->work;
-    coord              = arg0->extra.tmd->coords;
-    work->field_6D4.vx = coord->coord.t[0];
-    work->field_6D4.vy = coord->coord.t[1];
-    work->field_6D4.vz = coord->coord.t[2];
-    switch (work->field_7B0) {
-        case 4:
-        case 5:
-        case 7:
+    work                         = arg0->work;
+    coord                        = arg0->extra.tmd->coords;
+    work->previousTranslation.vx = coord->coord.t[0];
+    work->previousTranslation.vy = coord->coord.t[1];
+    work->previousTranslation.vz = coord->coord.t[2];
+    switch (work->state) {
+        case ACTOR_503500_STATE_DEFEATED:
+        case ACTOR_503500_STATE_HELD:
+        case ACTOR_503500_STATE_COLLAPSE:
             return;
-        case 6:
-            if ((s8)work->field_7DA < 3) {
+        case ACTOR_503500_STATE_SCRIPTED:
+            if ((s8)work->stateStep < 3) {
                 return;
             }
-        case 0:
-            work->field_7D8 = 1;
+        case ACTOR_503500_STATE_IDLE:
+            work->advancing = 1;
             break;
         default:
-            work->field_7D8 = 0;
+            work->advancing = 0;
             break;
     }
-    step = work->field_7A4;
-    if (ABS(work->field_7B8 - work->field_7B6) > 0x258) {
+    step = work->walkSpeedLimit;
+    if (ABS(work->targetYaw - work->yaw) > 0x258) {
         step = -step >> 2;
     }
-    if (work->field_7D8 != 0) {
-        speed = work->field_7A0 + step / 32;
+    if (work->advancing != 0) {
+        speed = work->walkSpeed + step / 32;
         if (speed > 0) {
             if (step < speed) {
                 speed = step;
@@ -1467,26 +1462,26 @@ static void func_actor_503500_801353F0(Task* arg0)
             speed = -step;
         }
     } else {
-        speed = work->field_7A0 - step / 32;
+        speed = work->walkSpeed - step / 32;
         if (speed < 0) {
             speed = 0;
         }
     }
-    work->field_7A0      = speed;
+    work->walkSpeed      = speed;
     m                    = &mat;
     MATRIX_PAIR(m, 0, 0) = 0x1000;
     MATRIX_PAIR(m, 0, 2) = 0;
     MATRIX_PAIR(m, 1, 1) = 0x1000;
     MATRIX_PAIR(m, 2, 0) = 0;
     m->m[2][2]           = 0x1000;
-    RotMatrixY(work->field_7B6, m);
-    scale               = speed >> 12;
-    work->field_6B4     = mat.m[0][2] * scale;
-    work->field_6BC     = mat.m[2][2] * scale;
-    work->field_6C4.vx += work->field_6B4;
-    work->field_6C4.vz += work->field_6BC;
-    px                  = &work->field_6C4.vx;
-    pz                  = &work->field_6C4.vz;
+    RotMatrixY(work->yaw, m);
+    scale              = speed >> 12;
+    work->velocity.vx  = mat.m[0][2] * scale;
+    work->velocity.vz  = mat.m[2][2] * scale;
+    work->position.vx += work->velocity.vx;
+    work->position.vz += work->velocity.vz;
+    px                 = &work->position.vx;
+    pz                 = &work->position.vz;
     if (*px > 0x23280000) {
         *px = 0x23280000;
     } else if (*px < 0x1B580000) {
@@ -1504,7 +1499,7 @@ static void func_actor_503500_801353F0(Task* arg0)
 
 /// Clears each slot enemy's not-lockable flag only when its
 /// `D_actor_503500_8016E910` entry covers both the camera's yaw sector
-/// (relative to `field_7B6`) and its height band and `gGameSession->eventState`
+/// (relative to `yaw`) and its height band and `gGameSession->eventState`
 /// is 0; otherwise sets it. Keep-scanned is set on a height-only miss and
 /// cleared when the yaw sector or the event state excludes the slot.
 static void func_actor_503500_80135644(Task* arg0)
@@ -1521,7 +1516,7 @@ static void func_actor_503500_80135644(Task* arg0)
 
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
-    angle = ratan2(gPlayerStatus.coordMtx->t[0] - coord->coord.t[0], gPlayerStatus.coordMtx->t[2] - coord->coord.t[2]) - work->field_7B6;
+    angle = ratan2(gPlayerStatus.coordMtx->t[0] - coord->coord.t[0], gPlayerStatus.coordMtx->t[2] - coord->coord.t[2]) - work->yaw;
     while (angle >= 0x800) {
         angle -= 0x1000;
     }
@@ -1545,7 +1540,7 @@ static void func_actor_503500_80135644(Task* arg0)
             heightMask = 1;
         }
     }
-    for (i = 0; i < 0x11; i++) {
+    for (i = 0; i < ARRAY_SIZE(work->enemies); i++) {
         enemy = work->enemies[i];
         if (enemy != NULL) {
             bits = D_actor_503500_8016E910[i];
@@ -1619,37 +1614,36 @@ s32 func_actor_503500_80135950(Task* arg0, s32 arg1, AnimationPlayRequest* arg2,
 
     work = arg0->work;
     ext  = arg0->extra.tmd;
-    if (arg2->source.index != work->field_7D6) {
-        work->field_7D6 = arg2->source.index;
-        animationInitContext((AnimationContext*)work, D_actor_503500_8016EAB8[work->field_7D6], ext,
-                             (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->field_334, (AnimationSlot*)&work->obj.pos.vz);
-        work->field_7D4 = 0;
+    if (arg2->source.index != work->animationSourceIndex) {
+        work->animationSourceIndex = arg2->source.index;
+        animationInitContext(&work->rig.anim, D_actor_503500_8016EAB8[work->animationSourceIndex], ext, work->rig.poses, work->rig.slots);
+        work->animationStarted = 0;
     }
-    work->field_7D5 = arg2->animationId;
-    if (arg2->blend != ANIMATION_BLEND_RESET && work->field_7D4 != 0) {
-        for (i = 1; i < 0x14; i++) {
-            animationSeekSlotWithBlend((AnimationContext*)work, i, work->field_7D5, 0, arg2->blendFrames);
+    work->animationId = arg2->animationId;
+    if (arg2->blend != ANIMATION_BLEND_RESET && work->animationStarted != 0) {
+        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
+            animationSeekSlotWithBlend(&work->rig.anim, i, work->animationId, 0, arg2->blendFrames);
         }
     } else {
-        for (i = 1; i < 0x14; i++) {
-            animationResetSlot((AnimationContext*)work, i, work->field_7D5);
+        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
+            animationResetSlot(&work->rig.anim, i, work->animationId);
         }
     }
-    for (i = 1; i < 0x14; i++) {
-        animationTickSlot((AnimationContext*)work, i);
+    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
+        animationTickSlot(&work->rig.anim, i);
     }
-    work->field_7D4 = 1;
-    work2           = arg0->work;
-    if (work2->field_7AC & 0x20) {
-        work2->coord504 = arg0->extra.tmd->coords[4];
-        ScaleMatrix(&work2->coord504.coord, &work2->field_5A4);
+    work->animationStarted = 1;
+    work2                  = arg0->work;
+    if (work2->scaledParts & 0x20) {
+        work2->part5Parent = arg0->extra.tmd->coords[4];
+        ScaleMatrix(&work2->part5Parent.coord, &work2->part5Scale);
     }
-    if (work2->field_7AC & 0x800) {
-        work2->coord554 = arg0->extra.tmd->coords[10];
-        ScaleMatrix(&work2->coord554.coord, &work2->field_5B4);
+    if (work2->scaledParts & 0x800) {
+        work2->part11Parent = arg0->extra.tmd->coords[10];
+        ScaleMatrix(&work2->part11Parent.coord, &work2->part11Scale);
     }
-    if (work2->field_7AC & 0x10000) {
-        ScaleMatrix(&arg0->extra.tmd->coords[16].coord, &work2->field_5C4);
+    if (work2->scaledParts & 0x10000) {
+        ScaleMatrix(&arg0->extra.tmd->coords[16].coord, &work2->part16Scale);
     }
     return 0;
 }
@@ -1661,18 +1655,18 @@ static inline void func_actor_503500_SetBossState(Task* arg0, s16 state)
 {
     Actor503500Work* work;
 
-    work            = arg0->work;
-    work->field_7B0 = state;
-    work->field_7DA = 0;
-    work->field_7DB = 0;
-    work->field_7BC = 0;
-    work->field_7BE = 0;
+    work               = arg0->work;
+    work->state        = state;
+    work->stateStep    = 0;
+    work->attackPhase  = 0;
+    work->stateFrames  = 0;
+    work->attackFrames = 0;
     func_actor_503500_80137074(arg0, 0, 3);
     gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_1X;
 }
 
 /// Boss message handler. Modes 0/1/2 enter states 0/5/7, mode 3 advances the
-/// task state, mode 4 saves model part 0's coordinate and `field_7B6` before
+/// task state, mode 4 saves model part 0's coordinate and `yaw` before
 /// entering state 6, and mode 5 restores both.
 s32 func_actor_503500_80135B74(Task* arg0, s32 arg1, ActorCommand* msg, s32 arg3)
 {
@@ -1681,32 +1675,32 @@ s32 func_actor_503500_80135B74(Task* arg0, s32 arg1, ActorCommand* msg, s32 arg3
 
     switch (msg->command) {
         case 0:
-            func_actor_503500_SetBossState(arg0, 0);
+            func_actor_503500_SetBossState(arg0, ACTOR_503500_STATE_IDLE);
             break;
         case 1:
-            func_actor_503500_SetBossState(arg0, 5);
+            func_actor_503500_SetBossState(arg0, ACTOR_503500_STATE_HELD);
             break;
         case 2:
-            func_actor_503500_SetBossState(arg0, 7);
+            func_actor_503500_SetBossState(arg0, ACTOR_503500_STATE_COLLAPSE);
             break;
         case 3:
             arg0->state++;
             break;
         case 4:
-            work                = arg0->work;
-            coord               = arg0->extra.tmd->coords;
-            work->field_7D0     = work->field_7B6;
-            work->coord4B4      = *coord;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            func_actor_503500_SetBossState(arg0, 6);
+            work                 = arg0->work;
+            coord                = arg0->extra.tmd->coords;
+            work->savedYaw       = work->yaw;
+            work->savedRootCoord = *coord;
+            coord->composeStamp  = GRAPHICS_COORD_DIRTY;
+            func_actor_503500_SetBossState(arg0, ACTOR_503500_STATE_SCRIPTED);
             break;
         case 5:
-            work                = arg0->work;
-            coord               = arg0->extra.tmd->coords;
-            work->field_7B6     = work->field_7D0;
-            *coord              = work->coord4B4;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            work->field_7E3     = 1;
+            work                    = arg0->work;
+            coord                   = arg0->extra.tmd->coords;
+            work->yaw               = work->savedYaw;
+            *coord                  = work->savedRootCoord;
+            coord->composeStamp     = GRAPHICS_COORD_DIRTY;
+            work->rootCoordRestored = 1;
             break;
     }
     return 0;
@@ -1771,7 +1765,7 @@ s32 func_actor_503500_80135E04(Task* arg0, s32 arg1)
 }
 
 /// Sets the scale of boss part `arg1` (5, 11 or 16) from `arg2` and marks it
-/// in `field_7AC` for `func_actor_503500_80136DDC`. Parts 5 and 11 also seed
+/// in `scaledParts` for `func_actor_503500_80136DDC`. Parts 5 and 11 also seed
 /// the private copy of model part 4 / 10 and link it from the next part's
 /// `parent`; any other `arg1` only sets its bit.
 void func_actor_503500_80135E20(Task* arg0, s32 arg1, SVECTOR* arg2)
@@ -1780,34 +1774,34 @@ void func_actor_503500_80135E20(Task* arg0, s32 arg1, SVECTOR* arg2)
 
     switch (arg1) {
         case 5:
-            work->field_5A4.vx                = arg2->vx;
-            work->field_5A4.vy                = arg2->vy;
-            work->field_5A4.vz                = arg2->vz;
-            work->coord504                    = arg0->extra.tmd->coords[4];
-            arg0->extra.tmd->coords[5].parent = &work->coord504;
+            work->part5Scale.vx               = arg2->vx;
+            work->part5Scale.vy               = arg2->vy;
+            work->part5Scale.vz               = arg2->vz;
+            work->part5Parent                 = arg0->extra.tmd->coords[4];
+            arg0->extra.tmd->coords[5].parent = &work->part5Parent;
             break;
         case 11:
-            work->field_5B4.vx                 = arg2->vx;
-            work->field_5B4.vy                 = arg2->vy;
-            work->field_5B4.vz                 = arg2->vz;
-            work->coord554                     = arg0->extra.tmd->coords[10];
-            arg0->extra.tmd->coords[11].parent = &work->coord554;
+            work->part11Scale.vx               = arg2->vx;
+            work->part11Scale.vy               = arg2->vy;
+            work->part11Scale.vz               = arg2->vz;
+            work->part11Parent                 = arg0->extra.tmd->coords[10];
+            arg0->extra.tmd->coords[11].parent = &work->part11Parent;
             break;
         case 16:
-            work->field_5C4.vx = arg2->vx;
-            work->field_5C4.vy = arg2->vy;
-            work->field_5C4.vz = arg2->vz;
+            work->part16Scale.vx = arg2->vx;
+            work->part16Scale.vy = arg2->vy;
+            work->part16Scale.vz = arg2->vz;
             break;
     }
-    work->field_7AC |= 1 << arg1;
+    work->scaledParts |= 1 << arg1;
 }
 
-/// Records the per-slot halfword for slot `arg1` of the boss work block.
+/// Stores `arg2` as the `slotBusy` flag of slot `arg1` of the boss work block.
 /// `arg0` is loaded by every caller but the body ignores it, the same way
 /// `func_actor_503500_80135E04` does.
 void func_actor_503500_80135F9C(Task* arg0, s32 arg1, s16 arg2)
 {
-    D_actor_503500_80176574.value.field_730[arg1] = arg2;
+    D_actor_503500_80176574.value.slotBusy[arg1] = arg2;
 }
 
 /// Sets the per-slot playback rate `AnimationSlot.rate` on animation slots 1..16 of the
@@ -1815,13 +1809,12 @@ void func_actor_503500_80135F9C(Task* arg0, s32 arg1, s16 arg2)
 /// exactly as `func_actor_503500_80137048` does -- then applies preset `arg1`.
 void func_actor_503500_80135FB4(Task* arg0, s32 arg1, s32 rate)
 {
-    ActorAnimRig20* rig;
-    AnimationSlot*  slot;
-    s32             i;
+    Actor503500Work* work;
+    AnimationSlot*   slot;
+    s32              i;
 
-    // The boss work block opens with its rig.
-    rig  = arg0->work;
-    slot = &rig->slots[1];
+    work = arg0->work;
+    slot = &work->rig.slots[1];
     if (rate == 0) {
         rate = ANIMATION_RATE_ONE;
     }
@@ -1839,13 +1832,10 @@ void func_actor_503500_80135FB4(Task* arg0, s32 arg1, s32 rate)
 /// but the body ignores it, the same way `func_actor_503500_80135E04` does.
 s32 func_actor_503500_80136014(Task* arg0, s32 arg1)
 {
-    // The boss work block opens with its rig.
-    ActorAnimRig20* rig = (ActorAnimRig20*)&D_actor_503500_80176574.value;
-
-    if (arg1 != D_actor_503500_80176574.value.field_7D5) {
+    if (arg1 != D_actor_503500_80176574.value.animationId) {
         return -1;
     }
-    return (rig->slots[1].status.fields.flags & (ANIMATION_SLOT_SETTLED | ANIMATION_SLOT_FOLLOWED_JUMP)) != 0;
+    return (D_actor_503500_80176574.value.rig.slots[1].status.fields.flags & (ANIMATION_SLOT_SETTLED | ANIMATION_SLOT_FOLLOWED_JUMP)) != 0;
 }
 
 /// Puts the boss into state 2: clears the state's step counters and the two
@@ -1855,12 +1845,12 @@ void func_actor_503500_80136048(Task* arg0)
 {
     Actor503500Work* work;
 
-    work            = arg0->work;
-    work->field_7B0 = 2;
-    work->field_7DA = 0;
-    work->field_7DB = 0;
-    work->field_7BC = 0;
-    work->field_7BE = 0;
+    work               = arg0->work;
+    work->state        = ACTOR_503500_STATE_PART_LOST;
+    work->stateStep    = 0;
+    work->attackPhase  = 0;
+    work->stateFrames  = 0;
+    work->attackFrames = 0;
     func_actor_503500_80137074(arg0, 0, 3);
     gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_1X;
 }
@@ -1869,7 +1859,7 @@ void func_actor_503500_80136048(Task* arg0)
 /// argument, and callers pass unrelated pointers they already hold.
 s32 func_actor_503500_8013608C(void* arg0)
 {
-    return (u32)((u16)D_actor_503500_80176574.value.field_7B0 - 2) < 3U;
+    return (u32)((u16)D_actor_503500_80176574.value.state - ACTOR_503500_STATE_PART_LOST) < 3U;
 }
 
 static void func_actor_503500_801360A4(s32 arg0, s16 arg1)
@@ -1935,12 +1925,12 @@ s16 func_actor_503500_80136134(Task* arg0)
 
 s32 func_actor_503500_80136208(void)
 {
-    return D_actor_503500_80176574.value.field_7E6;
+    return D_actor_503500_80176574.value.defeated;
 }
 
 s16 func_actor_503500_80136218(void)
 {
-    return D_actor_503500_80176574.value.field_7BA;
+    return D_actor_503500_80176574.value.playerBearing;
 }
 
 /// Exit callback of the boss task: tears down the second body part's display
@@ -1951,7 +1941,7 @@ static void func_actor_503500_80136228(Task* arg0)
 
     enemy = arg0->spawnArg2.pointer;
     func_actor_503500_80136B64(arg0, 0, 1);
-    Gp_UnlinkObj(&((Actor503500Work*)arg0->work)->field_5D4);
+    Gp_UnlinkObj(&((Actor503500Work*)arg0->work)->body);
     enemy->recs = 0;
     arg0->work  = NULL;
     enemyDestroy(enemy, arg0);
@@ -1971,8 +1961,8 @@ static void func_actor_503500_80136280(Task* arg0)
     }
     if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
         enemy->reactionFlags &= ENEMY_REACTION_BUILDUP_CLEAR;
-        func_actor_503500_80136EFC(arg0, 3);
-        work->field_7B2 = 3;
+        func_actor_503500_80136EFC(arg0, ACTOR_503500_STATE_STUNNED);
+        work->stunAnimationTimer = 3;
     }
     flags = enemy->reactionFlags;
     if (flags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
@@ -1985,44 +1975,44 @@ static void func_actor_503500_80136304(Task* arg0)
     Actor503500Work* work = arg0->work;
     u16              timer;
 
-    switch (work->field_7B0) {
-        case 0:
+    switch (work->state) {
+        case ACTOR_503500_STATE_IDLE:
             if (func_actor_503500_80133684(arg0) == 0) {
                 func_actor_503500_80136450(arg0);
             }
             break;
-        case 1:
+        case ACTOR_503500_STATE_ATTACK:
             func_actor_503500_801338E8(arg0);
             break;
-        case 2:
+        case ACTOR_503500_STATE_PART_LOST:
             func_actor_503500_801369E4(arg0);
             break;
-        case 3:
-            timer           = work->field_7B2 - 1;
-            work->field_7B2 = timer;
+        case ACTOR_503500_STATE_STUNNED:
+            timer                    = work->stunAnimationTimer - 1;
+            work->stunAnimationTimer = timer;
             if ((s16)timer < 0) {
                 func_actor_503500_80135FB4(arg0, 6, 0x10);
-                work->field_7B2 = 3;
+                work->stunAnimationTimer = 3;
             }
             if (Gp_TickObjFlag2(arg0->spawnArg2.pointer) != 0) {
-                func_actor_503500_80136EFC(arg0, 0);
-                work->field_7CA = 0x3C;
+                func_actor_503500_80136EFC(arg0, ACTOR_503500_STATE_IDLE);
+                work->attackDelay = 0x3C;
             }
             break;
-        case 4:
+        case ACTOR_503500_STATE_DEFEATED:
             func_actor_503500_80134408(arg0);
             break;
-        case 5:
+        case ACTOR_503500_STATE_HELD:
             func_actor_503500_80136A80(arg0);
             break;
-        case 6:
+        case ACTOR_503500_STATE_SCRIPTED:
             func_actor_503500_801345F4(arg0);
             break;
-        case 7:
+        case ACTOR_503500_STATE_COLLAPSE:
             func_actor_503500_80134A24(arg0);
             break;
     }
-    if (work->field_7E0 != 0) {
+    if (work->selfAttackCommand != 0) {
         func_actor_503500_80134C68(arg0);
     }
 }
@@ -2032,13 +2022,13 @@ static void func_actor_503500_80136450(Task* arg0)
     Actor503500Work* work = arg0->work;
     u16              timer;
 
-    if ((s8)work->field_7DA == 0 && work->field_7D5 >= 2) {
+    if ((s8)work->stateStep == 0 && work->animationId >= 2) {
         func_actor_503500_80135FB4(arg0, 1, 0x10);
     }
-    timer           = work->field_7CA - 1;
-    work->field_7CA = timer;
+    timer             = work->attackDelay - 1;
+    work->attackDelay = timer;
     if ((s16)timer < 0) {
-        func_actor_503500_80136EFC(arg0, 1);
+        func_actor_503500_80136EFC(arg0, ACTOR_503500_STATE_ATTACK);
     }
 }
 
@@ -2052,13 +2042,13 @@ s32 func_actor_503500_801364D0(Task* arg0, Actor503500Work* work)
     s32 ret;
 
     ret = 1;
-    switch ((s8)work->field_7DB) {
+    switch ((s8)work->attackPhase) {
         case 0:
             if (func_actor_503500_80136FDC(work, 0) != 0) {
                 func_actor_503500_80136F40(work, 0, 2, 0x3C);
-                work->field_7DB = 1;
-                ret             = 0;
-                work->field_7D2 = 0;
+                work->attackPhase     = 1;
+                ret                   = 0;
+                work->targetYawOffset = 0;
             }
             break;
         case 1:
@@ -2072,8 +2062,8 @@ s32 func_actor_503500_801364D0(Task* arg0, Actor503500Work* work)
 }
 
 /// Script step that dismisses both of the boss's slot-7/8 helpers: state 0
-/// asks whichever slots are ready to die and arms `field_7D2`, state 1 waits
-/// for either slot to finish dying or for `field_7BE` to pass 90 frames.
+/// asks whichever slots are ready to die and arms `targetYawOffset`, state 1 waits
+/// for either slot to finish dying or for `attackFrames` to pass 90 frames.
 /// Returns 0x1E while neither slot is ready, 0 the frame a request is issued
 /// or while waiting, and 0xF0 once the wait is over.
 s32 func_actor_503500_8013656C(Task* arg0, Actor503500Work* work)
@@ -2081,10 +2071,10 @@ s32 func_actor_503500_8013656C(Task* arg0, Actor503500Work* work)
     s32 ret;
 
     ret = 1;
-    switch ((s8)work->field_7DB) {
+    switch ((s8)work->attackPhase) {
         case 0:
-            ret             = 0x1E;
-            work->field_7D2 = 0;
+            ret                   = 0x1E;
+            work->targetYawOffset = 0;
             if (func_actor_503500_80136FDC(work, 7) != 0) {
                 func_actor_503500_80136F40(work, 7, 2, 0x96);
                 ret = 0;
@@ -2094,14 +2084,14 @@ s32 func_actor_503500_8013656C(Task* arg0, Actor503500Work* work)
                 ret = 0;
             }
             if (ret == 0) {
-                work->field_7DB = 1;
-                work->field_7D2 = 0x7D0;
+                work->attackPhase     = 1;
+                work->targetYawOffset = 0x7D0;
             }
             break;
         case 1:
             ret = 0;
             if (func_actor_503500_80136FA8(work, 7) != 0 || func_actor_503500_80136FA8(work, 8) != 0 ||
-                ++work->field_7BE > 0x5A) {
+                ++work->attackFrames > 0x5A) {
                 ret = 0xF0;
             }
             break;
@@ -2110,8 +2100,8 @@ s32 func_actor_503500_8013656C(Task* arg0, Actor503500Work* work)
 }
 
 /// Script step that dismisses one of two helpers: state 0 asks slot 1 to die
-/// when it is ready and the boss is within 500 units on `field_7BA`, otherwise
-/// falls back to slot 12; state 1 waits for the chosen slot (`field_7C2`) to
+/// when it is ready and the boss is within 500 units on `playerBearing`, otherwise
+/// falls back to slot 12; state 1 waits for the chosen slot (`attackSlot`) to
 /// finish dying. Returns 1 while busy, 0 the frame the request is issued, and
 /// 0x5A once the slot has gone quiet.
 s32 func_actor_503500_8013667C(Task* arg0, Actor503500Work* work)
@@ -2119,29 +2109,29 @@ s32 func_actor_503500_8013667C(Task* arg0, Actor503500Work* work)
     s32 ret;
 
     ret = 1;
-    switch ((s8)work->field_7DB) {
+    switch ((s8)work->attackPhase) {
         case 0:
             if (func_actor_503500_80136FDC(work, 1) != 0) {
-                if (__builtin_abs(work->field_7BA) < 500) {
+                if (__builtin_abs(work->playerBearing) < 500) {
                     func_actor_503500_80136F40(work, 1, 2, 0x96);
-                    work->field_7C2 = 1;
-                    work->field_7D2 = 0;
-                    work->field_7DB = 1;
-                    ret             = 0;
+                    work->attackSlot      = 1;
+                    work->targetYawOffset = 0;
+                    work->attackPhase     = 1;
+                    ret                   = 0;
                     break;
                 }
             }
             if (func_actor_503500_80136FDC(work, 0xC) != 0) {
                 func_actor_503500_80136F40(work, 0xC, 2, 0x96);
-                ret             = 0;
-                work->field_7C2 = 0xC;
-                work->field_7D2 = 0;
-                work->field_7DB = 1;
+                ret                   = 0;
+                work->attackSlot      = 0xC;
+                work->targetYawOffset = 0;
+                work->attackPhase     = 1;
             }
             break;
         case 1:
             ret = 0;
-            if (func_actor_503500_80136FA8(work, work->field_7C2) != 0) {
+            if (func_actor_503500_80136FA8(work, work->attackSlot) != 0) {
                 ret = 0x5A;
             }
             break;
@@ -2159,13 +2149,13 @@ s32 func_actor_503500_80136770(Task* arg0, Actor503500Work* work)
     s32 ret;
 
     ret = 1;
-    switch ((s8)work->field_7DB) {
+    switch ((s8)work->attackPhase) {
         case 0:
             if (func_actor_503500_80136FDC(work, 0xC) != 0) {
                 func_actor_503500_80136F40(work, 0xC, 2, 0x96);
-                work->field_7DB = 1;
-                ret             = 0;
-                work->field_7D2 = 0;
+                work->attackPhase     = 1;
+                ret                   = 0;
+                work->targetYawOffset = 0;
             }
             break;
         case 1:
@@ -2179,22 +2169,22 @@ s32 func_actor_503500_80136770(Task* arg0, Actor503500Work* work)
 }
 
 /// Script step for the boss's slot-4/5 helper pair: state 0 asks both slots to
-/// die, led by slot 4 unless `field_7BA` is in [-0x5FF, -0x201] and by slot 5
+/// die, led by slot 4 unless `playerBearing` is in [-0x5FF, -0x201] and by slot 5
 /// unless it is in [0x201, 0x5FF]; state 1 waits until both have finished.
 /// Returns 1 while still busy, 0 the frame a request is issued, 0xA once both
 /// slots have gone quiet. `arg0` is ignored, as in the sibling steps.
-/// The first range check compares `field_7BA` directly rather than `x`: fold
+/// The first range check compares `playerBearing` directly rather than `x`: fold
 /// merges two tests on one operand into a single unsigned range check.
 s32 func_actor_503500_8013680C(Task* arg0, Actor503500Work* work)
 {
     s32 ret;
     s16 x;
 
-    x   = work->field_7BA;
+    x   = work->playerBearing;
     ret = 1;
-    switch ((s8)work->field_7DB) {
+    switch ((s8)work->attackPhase) {
         case 0:
-            if (x < -0x5FF || work->field_7BA >= -0x200) {
+            if (x < -0x5FF || work->playerBearing >= -0x200) {
                 if (func_actor_503500_80136FDC(work, 4) != 0) {
                     func_actor_503500_80136F40(work, 4, 2, 0xB4);
                     func_actor_503500_80136F40(work, 5, 2, 0xB4);
@@ -2209,7 +2199,7 @@ s32 func_actor_503500_8013680C(Task* arg0, Actor503500Work* work)
                 }
             }
             if (ret == 0) {
-                work->field_7DB = 1;
+                work->attackPhase = 1;
             }
             break;
         case 1:
@@ -2234,13 +2224,13 @@ s32 func_actor_503500_80136948(Task* arg0, Actor503500Work* work)
     s32 ret;
 
     ret = 1;
-    switch ((s8)work->field_7DB) {
+    switch ((s8)work->attackPhase) {
         case 0:
-            work->field_7D2 = 0;
+            work->targetYawOffset = 0;
             if (func_actor_503500_80136FDC(work, 9) != 0) {
                 func_actor_503500_80136F40(work, 9, 2, 0x3C);
-                work->field_7DB = 1;
-                ret             = 0;
+                work->attackPhase = 1;
+                ret               = 0;
             }
             break;
         case 1:
@@ -2258,16 +2248,16 @@ static void func_actor_503500_801369E4(Task* arg0)
     Actor503500Work* work;
 
     work = arg0->work;
-    switch ((s8)work->field_7DA) {
+    switch ((s8)work->stateStep) {
         case 0:
             func_actor_503500_80135FB4(arg0, 0xE, 0x10);
             func_actor_503500_8013611C(arg0->spawnArg1.value);
-            work->field_7DA = work->field_7DA + 1;
+            work->stateStep = work->stateStep + 1;
             break;
         case 1:
             if (func_actor_503500_80136014(arg0, 0xE) != 0) {
-                work->field_7D2 = 0;
-                func_actor_503500_80136EFC(arg0, 0);
+                work->targetYawOffset = 0;
+                func_actor_503500_80136EFC(arg0, ACTOR_503500_STATE_IDLE);
             }
             break;
     }
@@ -2284,15 +2274,15 @@ static void func_actor_503500_80136A88(Task* arg0)
     Actor503500Work*       work = arg0->work;
     WorldCollisionContact* rec;
 
-    if (work->field_7B4 != 0) {
-        work->field_7B4 -= 1;
-        if (work->field_7B4 < 0) {
-            work->field_7B4 = 0;
+    if (work->hitCooldown != 0) {
+        work->hitCooldown -= 1;
+        if (work->hitCooldown < 0) {
+            work->hitCooldown = 0;
         }
     }
 
-    rec = work->rec5F4;
-    func_actor_503500_80134EAC(arg0, &work->field_5D4, rec, 8);
+    rec = work->contacts;
+    func_actor_503500_80134EAC(arg0, &work->body, rec, ARRAY_SIZE(work->contacts));
     Gp_ClearRec18Occupied(rec);
 }
 
@@ -2351,34 +2341,31 @@ static void func_actor_503500_80136B64(Task* arg0, s32 arg1, s32 arg2)
 }
 
 /// Per-frame animation tick of the boss block. While the slot array is seeded
-/// (`field_7D4`), every slot 1..0x13 is ticked until the first of them reports
+/// (`animationStarted`), every slot 1..0x13 is ticked until the first of them reports
 /// `ANIMATION_SLOT_SETTLED`; once it holds the clip's boundary pose the clip
 /// has finished, and in state 0 the boss resets the slot rates and re-applies
 /// preset `D_actor_503500_8016EAD4`.
 static void func_actor_503500_80136D30(Task* arg0)
 {
     Actor503500Work* work;
-    ActorAnimRig20*  rig;
     s32              i;
 
-    // The boss work block opens with its rig.
     work = arg0->work;
-    rig  = arg0->work;
-    if (work->field_7D4 != 0) {
-        if (rig->slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
-            if (work->field_7B0 == 0) {
+    if (work->animationStarted != 0) {
+        if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
+            if (work->state == ACTOR_503500_STATE_IDLE) {
                 func_actor_503500_80137048(arg0, 0);
                 func_actor_503500_80135950(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_503500_8016EAD4, 0);
             }
         } else {
-            for (i = 1; i < 0x14; i++) {
-                animationTickSlot(&rig->anim, i);
+            for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
+                animationTickSlot(&work->rig.anim, i);
             }
         }
     }
 }
 
-/// Re-applies the boss's per-part scales: for each enabled bit of `field_7AC`,
+/// Re-applies the boss's per-part scales: for each enabled bit of `scaledParts`,
 /// refreshes the private copy of model part 4 or 10 and scales it, and for
 /// 0x10000 scales model part 16 in place.
 static void func_actor_503500_80136DDC(Task* arg0)
@@ -2386,16 +2373,16 @@ static void func_actor_503500_80136DDC(Task* arg0)
     Actor503500Work* work;
 
     work = arg0->work;
-    if (work->field_7AC & 0x20) {
-        work->coord504 = arg0->extra.tmd->coords[4];
-        ScaleMatrix(&work->coord504.coord, &work->field_5A4);
+    if (work->scaledParts & 0x20) {
+        work->part5Parent = arg0->extra.tmd->coords[4];
+        ScaleMatrix(&work->part5Parent.coord, &work->part5Scale);
     }
-    if (work->field_7AC & 0x800) {
-        work->coord554 = arg0->extra.tmd->coords[10];
-        ScaleMatrix(&work->coord554.coord, &work->field_5B4);
+    if (work->scaledParts & 0x800) {
+        work->part11Parent = arg0->extra.tmd->coords[10];
+        ScaleMatrix(&work->part11Parent.coord, &work->part11Scale);
     }
-    if (work->field_7AC & 0x10000) {
-        ScaleMatrix(&arg0->extra.tmd->coords[16].coord, &work->field_5C4);
+    if (work->scaledParts & 0x10000) {
+        ScaleMatrix(&arg0->extra.tmd->coords[16].coord, &work->part16Scale);
     }
 }
 
@@ -2406,59 +2393,59 @@ static void func_actor_503500_80136EFC(Task* arg0, s32 arg1)
 {
     Actor503500Work* work;
 
-    work            = arg0->work;
-    work->field_7B0 = arg1;
-    work->field_7DA = 0;
-    work->field_7DB = 0;
-    work->field_7BC = 0;
-    work->field_7BE = 0;
-    func_actor_503500_80137074(arg0, arg1 == 3, 3);
+    work               = arg0->work;
+    work->state        = arg1;
+    work->stateStep    = 0;
+    work->attackPhase  = 0;
+    work->stateFrames  = 0;
+    work->attackFrames = 0;
+    func_actor_503500_80137074(arg0, arg1 == ACTOR_503500_STATE_STUNNED, 3);
     gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_1X;
 }
 
-/// Asks slot `slot` to die: arms its `field_730` flag with `arg3` in
-/// `field_752`. Slot 0 is the boss itself and keeps `arg2` in its own work
-/// block; any other slot writes `arg2` into its enemy task's `killCountdown`,
-/// and an empty slot is only cleared.
+/// Commands slot `slot`: marks it in `slotBusy` and gives it `arg3` frames of
+/// `slotCooldown`. Slot 0 is the boss itself and keeps the command `arg2` in
+/// `selfAttackCommand`; any other slot receives it in its enemy task's
+/// `killCountdown`, and an empty slot is only marked at rest.
 static void func_actor_503500_80136F40(Actor503500Work* work, s32 slot, s32 arg2, s32 arg3)
 {
     Enemy* enemy;
 
     if (slot == 0) {
-        work->field_7E0    = arg2;
-        work->field_7E1    = 0;
-        work->field_7C0    = 0;
-        work->field_730[0] = 1;
-        work->field_752[0] = arg3;
+        work->selfAttackCommand = arg2;
+        work->selfAttackPhase   = 0;
+        work->selfAttackFrames  = 0;
+        work->slotBusy[0]       = 1;
+        work->slotCooldown[0]   = arg3;
         return;
     }
     enemy = work->enemies[slot];
     if (enemy != NULL) {
         enemy->task->killCountdown = arg2;
-        work->field_730[slot]      = 1;
-        work->field_752[slot]      = arg3;
+        work->slotBusy[slot]       = 1;
+        work->slotCooldown[slot]   = arg3;
         return;
     }
-    work->field_730[slot] = 0;
+    work->slotBusy[slot] = 0;
 }
 
-/// True when enemy slot `slot` is either unoccupied or has its `field_730`
-/// counter at zero -- i.e. the slot has nothing left to wait for.
+/// True when enemy slot `slot` is either unoccupied or has its `slotBusy`
+/// flag clear -- i.e. the slot has nothing left to wait for.
 static s32 func_actor_503500_80136FA8(Actor503500Work* work, s32 slot)
 {
     s32 ret;
 
     ret = 1;
     if (work->enemies[slot] != NULL) {
-        ret = work->field_730[slot] == 0;
+        ret = work->slotBusy[slot] == 0;
     }
     return ret;
 }
 
 /// The stricter form of `func_actor_503500_80136FA8`: slot `slot` is ready when
-/// it is occupied, not marked dying by `field_752`, and its `field_730` counter
-/// has run out. Slot 0 stands for the boss itself, which is ready when the
-/// main-executable flag `field_7E0` and its own `field_752` are both clear.
+/// it is occupied, its `slotCooldown` has run out and its `slotBusy` flag is
+/// clear. Slot 0 stands for the boss itself, which is ready when
+/// `selfAttackCommand` and its own `slotCooldown` are both clear.
 static s32 func_actor_503500_80136FDC(Actor503500Work* work, s32 slot)
 {
     s32 ret;
@@ -2466,11 +2453,11 @@ static s32 func_actor_503500_80136FDC(Actor503500Work* work, s32 slot)
     ret = 0;
     if (slot != 0) {
         if (work->enemies[slot] != NULL) {
-            if (work->field_752[slot] == 0) {
-                ret = work->field_730[slot] == 0;
+            if (work->slotCooldown[slot] == 0) {
+                ret = work->slotBusy[slot] == 0;
             }
         }
-    } else if ((work->field_7E0 == 0) && (work->field_752[0] == 0)) {
+    } else if ((work->selfAttackCommand == 0) && (work->slotCooldown[0] == 0)) {
         ret = 1;
     }
     return ret;
@@ -2481,13 +2468,12 @@ static s32 func_actor_503500_80136FDC(Actor503500Work* work, s32 slot)
 /// meaning that default.
 static void func_actor_503500_80137048(Task* arg0, s32 rate)
 {
-    ActorAnimRig20* rig;
-    AnimationSlot*  slot;
-    s32             i;
+    Actor503500Work* work;
+    AnimationSlot*   slot;
+    s32              i;
 
-    // The boss work block opens with its rig.
-    rig  = arg0->work;
-    slot = &rig->slots[1];
+    work = arg0->work;
+    slot = &work->rig.slots[1];
     if (rate == 0) {
         rate = ANIMATION_RATE_ONE;
     }
@@ -2501,9 +2487,9 @@ static void func_actor_503500_80137074(Task* arg0, s8 arg1, s16 arg2)
 {
     Actor503500Work* work;
 
-    work            = arg0->work;
-    work->field_7E2 = arg1;
-    work->field_7CC = arg2;
+    work                    = arg0->work;
+    work->targetablePending = arg1;
+    work->targetableDelay   = arg2;
 }
 
 /// Places the boss's part at `args`: drops the translation into the root
@@ -2528,10 +2514,10 @@ s32 func_actor_503500_80137088(Task* arg0, s32 arg1, ActorTransform* args, s32 a
     coord->param.rot.vz = args->rot.vz;
     RotMatrix(&coord->param.rot, &coord->coord);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    work->field_7B6     = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]);
-    work->field_6C4.vx  = args->pos.vx << 16;
-    work->field_6C4.vy  = args->pos.vy << 16;
-    work->field_6C4.vz  = args->pos.vz << 16;
+    work->yaw           = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]);
+    work->position.vx   = args->pos.vx << 16;
+    work->position.vy   = args->pos.vy << 16;
+    work->position.vz   = args->pos.vz << 16;
     return 0;
 }
 
@@ -2552,9 +2538,9 @@ s32 func_actor_503500_80137158(Task* arg0, s32 arg1, s32 mode, s32 arg3)
             ext->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            ext->flags                               |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            ((Actor503500Work*)arg0->work)->field_7D9 = mode;
-            ext->flags                               |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            ext->flags                                         |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            ((Actor503500Work*)arg0->work)->bufferFreeCountdown = mode;
+            ext->flags                                         |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
             ext->flags = (ext->flags & ~TMD_OBJECT_SKIP_ACTIVE_DRAW) | TMD_OBJECT_SKIP_AUTO_BUFFER;
@@ -2664,11 +2650,11 @@ static void func_actor_503500_801372C8(Task* arg0)
 /// parent done.
 static void func_actor_503500_801374BC(Task* arg0)
 {
-    Actor503500Work* work;
-    Task*            task;
-    GfxCoord*        coord;
-    s32              i;
-    s32              id;
+    Actor503500Work160* work;
+    Task*               task;
+    GfxCoord*           coord;
+    s32                 i;
+    s32                 id;
 
     work = arg0->work;
     if (func_actor_503500_8013608C(arg0->parent) != 0) {
@@ -2873,21 +2859,21 @@ static void func_actor_503500_80137678(Task* arg0)
 /// `arg1` is passed by the caller but unused.
 static void func_actor_503500_80137C90(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* arg2, s32 arg3)
 {
-    VECTOR           d;
-    SVECTOR          pos;
-    MATRIX           mtx;
-    MATRIX           rot;
-    Actor503500Work* work;
-    Enemy*           enemy;
-    GfxCoord*        coord;
-    GfxCoord*        src;
-    s16              stun;
-    u32              id;
-    s32              dmg;
-    s32              crit;
-    s32              scale;
-    s32              i;
-    s32              j;
+    VECTOR              d;
+    SVECTOR             pos;
+    MATRIX              mtx;
+    MATRIX              rot;
+    Actor503500Work160* work;
+    Enemy*              enemy;
+    GfxCoord*           coord;
+    GfxCoord*           src;
+    s16                 stun;
+    u32                 id;
+    s32                 dmg;
+    s32                 crit;
+    s32                 scale;
+    s32                 i;
+    s32                 j;
 
     enemy = arg0->spawnArg2.pointer;
     work  = arg0->work;
@@ -2973,10 +2959,10 @@ static void func_actor_503500_80137C90(Task* arg0, WorldCollisionBody* arg1, Wor
 
 static void func_actor_503500_8013815C(Task* arg0)
 {
-    Actor503500Work* work;
-    Enemy*           enemy;
-    TmdObject*       tmd;
-    s8               countdown;
+    Actor503500Work160* work;
+    Enemy*              enemy;
+    TmdObject*          tmd;
+    s8                  countdown;
 
     work      = arg0->work;
     enemy     = arg0->spawnArg2.pointer;
@@ -3074,7 +3060,7 @@ static void func_actor_503500_80138378(Task* arg0)
 
 static void func_actor_503500_801383D0(Task* arg0)
 {
-    switch (((Actor503500Work*)arg0->work)->field_15C) {
+    switch (((Actor503500Work160*)arg0->work)->field_15C) {
         case 0:
             func_actor_503500_80138454(arg0);
             break;
@@ -3096,11 +3082,11 @@ static void func_actor_503500_80138454(Task* arg0)
 }
 
 /// Puts the 0x160 block into sub-state `arg1`: clears the phase and frame
-/// counter that go with it, cancels a pending kill, and records the slot's
-/// halfword as "asked to die" when the sub-state is non-zero.
+/// counter that go with it, cancels a pending kill, and reports the slot busy
+/// to the boss when the sub-state is non-zero.
 static void func_actor_503500_80138490(Task* arg0, s32 arg1)
 {
-    Actor503500Work* work = arg0->work;
+    Actor503500Work160* work = arg0->work;
 
     work->field_15C     = arg1;
     work->field_15D     = 0;
@@ -3224,11 +3210,11 @@ static void func_actor_503500_8013852C(Task* arg0)
 
 static void func_actor_503500_80138898(Task* arg0)
 {
-    Actor503500Work* work;
-    Enemy*           enemy;
-    TmdObject*       tmd;
-    s8               countdown;
-    s32              slot;
+    Actor503500Work2EC* work;
+    Enemy*              enemy;
+    TmdObject*          tmd;
+    s8                  countdown;
+    s32                 slot;
 
     work      = arg0->work;
     enemy     = arg0->spawnArg2.pointer;
@@ -3643,10 +3629,10 @@ static void func_actor_503500_801395BC(Task* arg0)
 
 static void func_actor_503500_801398D0(Task* arg0)
 {
-    Actor503500Work* work;
-    Enemy*           enemy;
-    s32              dmg;
-    u8               flags;
+    Actor503500Work2EC* work;
+    Enemy*              enemy;
+    s32                 dmg;
+    u8                  flags;
 
     enemy = arg0->spawnArg2.pointer;
     work  = arg0->work;
@@ -3997,7 +3983,7 @@ static void func_actor_503500_8013A900(Task* arg0)
     enemy = arg0->spawnArg2.pointer;
     func_actor_503500_8013611C(arg0->spawnArg1.value);
     arg0->extra.tmd->coords->parent = &gGfxViewCoord;
-    Gp_UnlinkObj(&((Actor503500Work*)arg0->work)->obj160);
+    Gp_UnlinkObj(&((Actor503500Work2EC*)arg0->work)->obj);
     enemy->recs = 0;
     arg0->work  = NULL;
     enemyDestroy(enemy, arg0);
@@ -4005,8 +3991,8 @@ static void func_actor_503500_8013A900(Task* arg0)
 
 static void func_actor_503500_8013A96C(Task* arg0)
 {
-    Actor503500Work* work;
-    s16              timer;
+    Actor503500Work2EC* work;
+    s16                 timer;
 
     work = arg0->work;
     switch (work->field_2D4) {
@@ -4042,8 +4028,8 @@ static void func_actor_503500_8013A96C(Task* arg0)
 /// before releasing the table. Same shape as `func_actor_503500_8013BD0C`.
 static void func_actor_503500_8013AA44(Task* arg0)
 {
-    Actor503500Work* work;
-    s16              timer;
+    Actor503500Work2EC* work;
+    s16                 timer;
 
     work = arg0->work;
     if (work->field_2D8 != 0) {
@@ -4054,9 +4040,9 @@ static void func_actor_503500_8013AA44(Task* arg0)
         }
     }
     if (func_actor_503500_80136208() == 0) {
-        func_actor_503500_80139A20(arg0, &work->obj160, work->rec180, 8);
+        func_actor_503500_80139A20(arg0, &work->obj, work->rec, 8);
     }
-    Gp_ClearRec18Occupied(work->rec180);
+    Gp_ClearRec18Occupied(work->rec);
 }
 
 static void func_actor_503500_8013AAC0(Task* arg0)
@@ -4105,11 +4091,11 @@ static void func_actor_503500_8013AB38(Task* arg0)
 
 /// The 0x2EC block's counterpart of `func_actor_503500_80138490`: puts the
 /// block into sub-state `arg1`, clears the phase and frame counter that go with
-/// it, cancels a pending kill, and records the slot's halfword as "asked to
-/// die" when the sub-state is non-zero.
+/// it, cancels a pending kill, and reports the slot busy to the boss when the
+/// sub-state is non-zero.
 static void func_actor_503500_8013ACC4(Task* arg0, s32 arg1)
 {
-    Actor503500Work* work = arg0->work;
+    Actor503500Work2EC* work = arg0->work;
 
     work->field_2D4     = arg1;
     work->field_2E4     = 0;
