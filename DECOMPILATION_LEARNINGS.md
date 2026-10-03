@@ -7061,14 +7061,14 @@ between them:
 
 ```c
 register s32         hi asm("v1");
-register GpBit2Bank* tmp asm("a1");
-register GpBit2Bank* banks asm("t1");
+register AreaObjectStage* tmp asm("a1");
+register AreaObjectStage* banks asm("t1");
 
 sess = &gMcSaveData.location.loc;
 asm("lui %0, %%hi(Gp_Bit2Banks)" : "=r"(hi));
 idx8 = sess->stage;
 asm("addiu %0, %1, %%lo(Gp_Bit2Banks)" : "=r"(tmp) : "r"(hi));
-lists = tmp[idx8].field_0;
+lists = tmp[idx8].rooms;
 ...
 banks = tmp;
 ```
@@ -24877,7 +24877,7 @@ The mask constant's span shrinks from six to four; it follows the word load.
 An extraction-only helper did not help. Test an accumulated result local and
 the reader's parameter boundary before treating the historical pins as required.
 
-A 2-bit extract that walks `bank->field_4[idx >> 4]` wants this tail:
+A 2-bit extract that walks `bank->objectStates[idx >> 4]` wants this tail:
 
 ```
 lw    v1, 4(v1)
@@ -24888,10 +24888,10 @@ li    v1, 3
 sllv  v1, v1, a1
 ```
 
-`p = bank->field_4; p += idx >> 4; word = *p` is the right address math
+`p = bank->objectStates; p += idx >> 4; word = *p` is the right address math
 (`addu v1,v1,v0` needs the pointer pinned in `$v1`), but once `$a0` dies
 after the `lbu` of the bank index, GCC hoists `li a0,K` and uses `$a0`
-for the mask. `bank->field_4[idx]` is worse: it copies the address into
+for the mask. `bank->objectStates[idx]` is worse: it copies the address into
 `$v0` (`addu v0,v0,v1`) so `$v1` is free for an early `li v1,K`.
 
 Pin the pointer and keep the now-unused first argument live across the
@@ -24925,7 +24925,7 @@ return (word & (3 << shift)) >> shift;
 ### Natural C replacement for `Gp_GetCurBit2Flag` (2026-09-27)
 
 The one-argument reader above no longer needs either hack. Read the stage into
-a local, take `p = &Gp_Bit2Banks[stage].field_4[index >> 4]`, and update the
+a local, take `p = &Gp_Bit2Banks[stage].objectStates[index >> 4]`, and update the
 loaded word before returning it:
 
 ```c
@@ -24991,7 +24991,7 @@ delay:
 temp = 3;
 mask = temp << shift;
 temp = gMcSaveData.field_7;
-p = Gp_Bit2Banks[temp].field_4;
+p = Gp_Bit2Banks[temp].objectStates;
 p += arg0 >> 4;
 ```
 
@@ -27899,13 +27899,13 @@ it:
 
 ```c
 register s32 tmp asm("v0");
-GpBit2Bank*  bank;
+AreaObjectStage*  bank;
 
 tmp  = (s32)Gp_Bit2Banks;
-bank = (GpBit2Bank*)tmp + arg0;
+bank = (AreaObjectStage*)tmp + arg0;
 tmp  = 3;
-val  = (u32)bank->field_0; /* keeps the first lw in $a1 */
-dest = bank->field_4;
+val  = (u32)bank->rooms; /* keeps the first lw in $a1 */
+dest = bank->objectStates;
 if (arg0 == tmp) {
     return;
 }
@@ -27980,13 +27980,13 @@ pointer stays there and `id >> 4` can reuse `$v0`:
 
 ```c
 if (arg0->state == 1) {
-    register GpBit2Bank* banks asm("v0");
+    register AreaObjectStage* banks asm("v0");
     register u32*        p asm("v1");
     GameSession*         sess;
 
     sess  = gGameSession;
     banks = Gp_Bit2Banks;
-    p     = banks[sess->field_7].field_4;
+    p     = banks[sess->field_7].objectStates;
     p    += id >> 4;
 }
 ```
@@ -50819,11 +50819,11 @@ leftover survives every statement permutation, look for a local assigned twice
 and split it; the diff is in the tie-break, not in the source order.
 
 The same rule sank `func_800B65B0`, a give-up seed stuck at 98.2% with the
-Bit2-flag read `p = Gp_Bit2Banks[i].field_4; p += id >> 4;` scheduled before
+Bit2-flag read `p = Gp_Bit2Banks[i].objectStates; p += id >> 4;` scheduled before
 the `id` shifts instead of after. `sched.c`'s `birthing_insn_p` grants the
 boost only when `REG_N_SETS (pseudo) == 1`, so the `lw` *and* the `addu` both
 kept priority 3-4 and lost to every boosted insn around them. Writing it as one
-expression, `p = Gp_Bit2Banks[i].field_4 + (id >> 4);`, gives each value its
+expression, `p = Gp_Bit2Banks[i].objectStates + (id >> 4);`, gives each value its
 own single-set pseudo and matched; dropping the `banks = Gp_Bit2Banks` local
 (which pulled the table's `lui` ahead of the `gGameSession` one) was the other
 half. Look for `+=` on a pointer or index whenever `.sched` shows a plain
@@ -144034,9 +144034,9 @@ a function. The target loads the bits pointer into `$v0` and computes
 to `$v0` and the bank base pinned to `$t1`.
 
 **Fix.** A `static inline` helper whose pointer is one address expression,
-`p = &Gp_Bit2Banks[stage].field_4[index >> 4];`, followed by
+`p = &Gp_Bit2Banks[stage].objectStates[index >> 4];`, followed by
 `word = *p; word &= 3 << shift; word >>= shift;` as separate statements.
-Splitting the pointer (`p = …field_4; p += index >> 4;`) scheduled the shift
+Splitting the pointer (`p = …objectStates; p += index >> 4;`) scheduled the shift
 after the load (94%), and folding the mask and shift into one `return`
 expression changed allocation (91%). The helper also restored the bank base's
 loop-hoisted copy (`move t1,a1`) that the `$t1` pin had imitated.

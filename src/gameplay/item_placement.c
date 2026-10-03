@@ -29,7 +29,7 @@ static inline s32 _gpGetCurBit2Flag(s32 arg0)
     u32  word;
     s32  shift;
 
-    p      = &Gp_Bit2Banks[gGameSession->location.loc.stage].field_4[arg0 >> 4];
+    p      = &Gp_Bit2Banks[gGameSession->location.loc.stage].objectStates[arg0 >> 4];
     shift  = (arg0 & 0xF) * 2;
     word   = *p;
     word  &= 3 << shift;
@@ -222,7 +222,7 @@ static void Gp_SpawnPlaceById(u16 arg0)
     u16              id;
 
     sess  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
-    rooms = Gp_Bit2Banks[sess->stage].field_0;
+    rooms = Gp_Bit2Banks[sess->stage].rooms;
     if (rooms == NULL) {
         return;
     }
@@ -255,7 +255,7 @@ void Gp_SpawnPlaces(GameLocationKey* arg0)
     u16              term;
     u16              id;
 
-    rooms = Gp_Bit2Banks[arg0->stage].field_0;
+    rooms = Gp_Bit2Banks[arg0->stage].rooms;
     if (rooms == NULL) {
         return;
     }

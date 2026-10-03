@@ -4059,7 +4059,7 @@ static inline s32 _gpGetCurBit2Flag(s32 arg0)
     u32  word;
     s32  shift;
 
-    p      = &Gp_Bit2Banks[gGameSession->location.loc.stage].field_4[arg0 >> 4];
+    p      = &Gp_Bit2Banks[gGameSession->location.loc.stage].objectStates[arg0 >> 4];
     shift  = (arg0 & 0xF) * 2;
     word   = *p;
     word  &= 3 << shift;
@@ -4188,7 +4188,7 @@ TaskMessageEntry Gp_Slot4MsgTable[5] = {
     { SCENE_MESSAGE_BROADCAST_TO_ACTORS, Gp_SendMsgType9 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
-GpBit2Bank Gp_Bit2Banks[6] = { { NULL, NULL }, { D_map_akropolis_8017A7FC, GameFlag_AcropolisBanks[0].header.objectStates }, { D_map_dryfield_8017A564, GameFlag_DryfieldBanks[0].header.objectStates }, { D_map_dryfield_full_8017A46C, GameFlag_DryfieldBanks[0].header.objectStates }, { D_map_shelter_8017A998, GameFlag_ShelterBanks[0].header.objectStates }, { D_map_neo_ark_8017A6EC, GameFlag_NeoArkBanks[0].header.objectStates } };
+AreaObjectStage Gp_Bit2Banks[6] = { { NULL, NULL }, { D_map_akropolis_8017A7FC, GameFlag_AcropolisBanks[0].header.objectStates }, { D_map_dryfield_8017A564, GameFlag_DryfieldBanks[0].header.objectStates }, { D_map_dryfield_full_8017A46C, GameFlag_DryfieldBanks[0].header.objectStates }, { D_map_shelter_8017A998, GameFlag_ShelterBanks[0].header.objectStates }, { D_map_neo_ark_8017A6EC, GameFlag_NeoArkBanks[0].header.objectStates } };
 
 void Gp_BindSlot4(Task* task)
 {

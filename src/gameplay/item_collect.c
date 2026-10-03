@@ -310,7 +310,7 @@ void Gp_SetBit2Flag(s32 arg0, u8 arg1, s32 arg2)
 
     shift = (arg0 & 0xF) * 2;
     mask  = 3 << shift;
-    p     = &Gp_Bit2Banks[arg2].field_4[arg0 >> 4];
+    p     = &Gp_Bit2Banks[arg2].objectStates[arg0 >> 4];
     *p   &= ~mask;
     mask  = arg1 << shift;
     *p   |= mask;
@@ -334,7 +334,7 @@ s32 Gp_GetRelatedQty(s32 arg0, s32 arg1)
 
 static s32 Gp_GetBit2Flag(GameLocationKey* arg0, s32 arg1)
 {
-    return _gpReadBit2Flag(Gp_Bit2Banks[arg0->stage].field_4, arg1);
+    return _gpReadBit2Flag(Gp_Bit2Banks[arg0->stage].objectStates, arg1);
 }
 
 void Gp_SavePlayerPos(void)
@@ -404,18 +404,18 @@ static void func_800BBB54(Task* arg0)
         arg0->state += 1;
     }
     if (arg0->state == 1) {
-        GpBit2Bank*  banks;
-        u32*         p;
-        u32*         indexed;
-        GameSession* sess;
-        s32          id;
-        s32          shift;
-        u32          word;
+        AreaObjectStage* banks;
+        u32*             p;
+        u32*             indexed;
+        GameSession*     sess;
+        s32              id;
+        s32              shift;
+        u32              word;
 
         sess    = gGameSession;
         banks   = Gp_Bit2Banks;
         id      = (u8)((Enemy*)arg0->spawnArg2.pointer)->placeKey;
-        p       = banks[sess->location.loc.stage].field_4;
+        p       = banks[sess->location.loc.stage].objectStates;
         indexed = p + (id >> 4);
         shift   = (id & 0xF) * 2;
         word    = *indexed;
@@ -443,7 +443,7 @@ void Gp_WaitItemFlag2(Task* arg0)
 
         id    = (u8)((Enemy*)arg0->spawnArg2.pointer)->placeKey;
         stage = gGameSession->location.loc.stage;
-        p     = &Gp_Bit2Banks[stage].field_4[id >> 4];
+        p     = &Gp_Bit2Banks[stage].objectStates[id >> 4];
         shift = (id & 0xF) * 2;
         if (((*p & (3 << shift)) >> shift) == 2) {
             extra->flags &= (u16)~TMD_OBJECT_FLAGGED_PASS;

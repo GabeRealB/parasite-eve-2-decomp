@@ -105,11 +105,11 @@ void func_800B65B0(Task* task)
                     case 1:
                         if (ui->resultValue == 0x33) {
                             id      = request->actionId;
-                            current = Gp_Bit2Banks[gGameSession->location.loc.stage].field_4 + (id >> 4);
+                            current = Gp_Bit2Banks[gGameSession->location.loc.stage].objectStates + (id >> 4);
                             shift   = (id & 0xF) * 2;
                             mask    = 3 << shift;
                             if (((*current & mask) >> shift) != 3) {
-                                flags  = Gp_Bit2Banks[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage].field_4 + (id >> 4);
+                                flags  = Gp_Bit2Banks[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage].objectStates + (id >> 4);
                                 *flags = (*flags & ~mask) | (2 << shift);
                             }
                             request->accepted = 1;

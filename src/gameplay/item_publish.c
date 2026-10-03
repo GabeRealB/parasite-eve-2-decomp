@@ -121,7 +121,7 @@ s32 Gp_LookupBit2Item(s32 arg0)
     s32                       found;
 
     idx   = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage;
-    rooms = Gp_Bit2Banks[idx].field_0;
+    rooms = Gp_Bit2Banks[idx].rooms;
     found = 0;
     if (rooms != NULL) {
         if (rooms->places.sentinel != AREA_OBJECT_ROOM_LOOKUP_END) {

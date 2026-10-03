@@ -10,7 +10,7 @@
 #include "main/session_types.h"
 #include "main/task_types.h"
 
-extern GpBit2Bank Gp_Bit2Banks[];
+extern AreaObjectStage Gp_Bit2Banks[];
 
 extern TaskDesc D_8010D1FC;
 

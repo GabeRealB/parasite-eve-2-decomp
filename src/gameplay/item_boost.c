@@ -700,8 +700,8 @@ void Gp_ApplyBit2Bank(s32 arg0)
     AreaObjectRoom* table;
     u32*            dest;
 
-    table = Gp_Bit2Banks[arg0].field_0;
-    dest  = Gp_Bit2Banks[arg0].field_4;
+    table = Gp_Bit2Banks[arg0].rooms;
+    dest  = Gp_Bit2Banks[arg0].objectStates;
     if (arg0 == 3) {
         return;
     }
@@ -718,7 +718,7 @@ void Gp_SetCurBit2Flag(s32 arg0, u8 arg1)
     shift = (arg0 & 0xF) * 2;
     mask  = 3 << shift;
     stage = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage;
-    p     = &Gp_Bit2Banks[stage].field_4[arg0 >> 4];
+    p     = &Gp_Bit2Banks[stage].objectStates[arg0 >> 4];
     *p   &= ~mask;
     mask  = arg1 << shift;
     *p   |= mask;
@@ -1072,7 +1072,7 @@ s32 Gp_GetCurBit2Flag(s32 arg0)
     s32  shift;
 
     stage = gGameSession->location.loc.stage;
-    p     = &Gp_Bit2Banks[stage].field_4[arg0 >> 4];
+    p     = &Gp_Bit2Banks[stage].objectStates[arg0 >> 4];
     shift = (arg0 & 0xF) * 2;
     word  = *p;
     word &= 3 << shift;
