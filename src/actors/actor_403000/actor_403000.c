@@ -90,34 +90,36 @@ STATIC_ASSERT_SIZEOF(Actor403000Obj, 0x98);
 /// `ANIMATION_SLOT_SETTLED` to tell that the animation it asked for is holding
 /// its boundary pose.
 typedef struct Actor403000Work {
-    /* 0x000 */ s16  field_0;
-    /* 0x002 */ s16  field_2;
-    /* 0x004 */ s16  field_4;
-    /* 0x006 */ u16  field_6;
-    /* 0x008 */ s16  field_8;
-    /* 0x00A */ byte pad_A[0x2];
-    /* 0x00C */ s16  yaw;
-    /* 0x00E */ byte pad_E[0x52];
-    /* 0x060 */ union {
-        u16 half;
-        s32 word;
-    } field_60;
-    /* 0x064 */ byte                  pad_64[0xA5C];
+    /* 0x000 */ s16                   field_0;
+    /* 0x002 */ s16                   field_2;
+    /* 0x004 */ s16                   field_4;
+    /* 0x006 */ u16                   field_6;
+    /* 0x008 */ s16                   field_8;
+    /* 0x00A */ byte                  pad_A[0x2];
+    /* 0x00C */ s16                   yaw;
+    /* 0x00E */ byte                  pad_E[0x6];
+    /* 0x014 */ AnimationContext      anim;
+    /* 0x028 */ AnimationSlot         slots[24];
+    /* 0x3E8 */ byte                  pad_3E8[0x180];
+    /* 0x568 */ AnimationContext      blendAnim;
+    /* 0x57C */ AnimationSlot         blendSlots[24];
+    /* 0x93C */ byte                  pad_93C[0x184];
     /* 0xAC0 */ s16                   field_AC0;
     /* 0xAC2 */ s16                   field_AC2;
     /* 0xAC4 */ s16                   field_AC4;
     /* 0xAC6 */ s16                   field_AC6;
-    /* 0xAC8 */ byte                  pad_AC8[2];
+    /* 0xAC8 */ u16                   field_AC8;
     /* 0xACA */ s16                   field_ACA;
     /* 0xACC */ s16                   field_ACC;
     /* 0xACE */ s16                   field_ACE;
     /* 0xAD0 */ s16                   field_AD0;
-    /* 0xAD2 */ byte                  pad_AD2[0x4];
+    /* 0xAD2 */ s16                   field_AD2;
+    /* 0xAD4 */ s16                   field_AD4;
     /* 0xAD6 */ s16                   field_AD6;
     /* 0xAD8 */ s16                   field_AD8;
     /* 0xADA */ s16                   field_ADA;
     /* 0xADC */ s16                   field_ADC;
-    /* 0xADE */ byte                  pad_ADE[0x2];
+    /* 0xADE */ s16                   field_ADE;
     /* 0xAE0 */ s16                   field_AE0;
     /* 0xAE2 */ s16                   field_AE2;
     /* 0xAE4 */ s16                   field_AE4;
@@ -126,7 +128,9 @@ typedef struct Actor403000Work {
     /* 0xAE9 */ u8                    field_AE9;
     /* 0xAEA */ u8                    field_AEA;
     /* 0xAEB */ u8                    field_AEB;
-    /* 0xAEC */ byte                  pad_AEC[0x64];
+    /* 0xAEC */ byte                  pad_AEC[4];
+    /* 0xAF0 */ u32                   field_AF0;
+    /* 0xAF4 */ byte                  pad_AF4[0x5C];
     /* 0xB50 */ Actor403000Obj        objB50;
     /* 0xBE8 */ Actor403000Obj        objBE8;
     /* 0xC80 */ Actor403000Obj        objC80;
@@ -208,43 +212,6 @@ typedef struct Actor403000Work {
     /* 0xFDB */ byte           pad_FDB[0x1];
 } Actor403000Work;
 STATIC_ASSERT_SIZEOF(Actor403000Work, 0xFDC);
-
-/// Animation view of the same work block, as `func_actor_403000_801336B4`
-/// reads it: the `Actor01900Work` layout 8 bytes earlier, with 24 slots
-/// per context. `field_AD4` is the blend weight, `field_AD2` the clip written
-/// to the blend slots and `field_ACA` the clip id (see `Actor403000Work`).
-typedef struct Actor403000AnimWork {
-    /* 0x000 */ byte             pad_0[0x14];
-    /* 0x014 */ AnimationContext anim;
-    /* 0x028 */ AnimationSlot    slots[24];
-    /* 0x3E8 */ byte             pad_3E8[0x180];
-    /* 0x568 */ AnimationContext blendAnim;
-    /* 0x57C */ AnimationSlot    blendSlots[24];
-    /* 0x93C */ byte             pad_93C[0x184];
-    /* 0xAC0 */ s16              field_AC0;
-    /* 0xAC2 */ s16              field_AC2;
-    /* 0xAC4 */ s16              field_AC4;
-    /* 0xAC6 */ s16              field_AC6;
-    /* 0xAC8 */ u16              field_AC8;
-    /* 0xACA */ s16              field_ACA;
-    /* 0xACC */ byte             pad_ACC[2];
-    /* 0xACE */ s16              field_ACE;
-    /* 0xAD0 */ s16              field_AD0;
-    /* 0xAD2 */ s16              field_AD2;
-    /* 0xAD4 */ s16              field_AD4;
-    /* 0xAD6 */ u16              field_AD6;
-    /* 0xAD8 */ u16              field_AD8;
-    /* 0xADA */ byte             pad_ADA[4];
-    /* 0xADE */ s16              field_ADE;
-    /* 0xAE0 */ u16              field_AE0;
-    /* 0xAE2 */ byte             pad_AE2[6];
-    /* 0xAE8 */ s8               field_AE8;
-    /* 0xAE9 */ s8               field_AE9;
-    /* 0xAEA */ s8               field_AEA;
-    /* 0xAEB */ s8               field_AEB;
-    /* 0xAEC */ byte             pad_AEC[4];
-    /* 0xAF0 */ u32              field_AF0;
-} Actor403000AnimWork;
 
 /// Event record `func_actor_403000_801324EC` dispatches on: `w[0]` is the
 /// event kind (only 0x204 is handled) and `w[1]` its sub-code, and the first
@@ -3543,7 +3510,7 @@ static void                func_actor_403000_801330D4(GfxCoord* parent);
 static void                func_actor_403000_801332E8(Task* arg0);
 static void                func_actor_403000_80133444(Task* arg0);
 static void                func_actor_403000_801336B4(Task* arg0);
-static s32                 func_actor_403000_801337E0(Task* arg0, Actor403000AnimWork* work);
+static s32                 func_actor_403000_801337E0(Task* arg0, Actor403000Work* work);
 static s32                 func_actor_403000_80133FC0(Task* arg0, s16 arg1, s16 arg2);
 static void                func_actor_403000_801343B8(Enemy* arg0, Task* arg1);
 static void                func_actor_403000_80134910(Task* arg0, s16 arg1, s32 arg2);
@@ -4050,14 +4017,14 @@ static void func_actor_403000_80133444(Task* arg0)
 
 static void func_actor_403000_801336B4(Task* arg0)
 {
-    AnimationPose        pose;
-    AnimationPose        blendPose;
-    AnimationContext*    anim;
-    s16                  weight;
-    s16                  i;
-    Actor403000AnimWork* work;
+    AnimationPose     pose;
+    AnimationPose     blendPose;
+    AnimationContext* anim;
+    s16               weight;
+    s16               i;
+    Actor403000Work*  work;
 
-    work   = (Actor403000AnimWork*)arg0->work;
+    work   = (Actor403000Work*)arg0->work;
     weight = work->field_AD4;
     anim   = &work->anim;
     for (i = 1; i < 0x18; i++) {
@@ -4074,7 +4041,7 @@ static void func_actor_403000_801336B4(Task* arg0)
     }
 }
 
-static s32 func_actor_403000_801337E0(Task* arg0, Actor403000AnimWork* work)
+static s32 func_actor_403000_801337E0(Task* arg0, Actor403000Work* work)
 {
     s32 ret;
 
@@ -4146,46 +4113,46 @@ static s32 func_actor_403000_801337E0(Task* arg0, Actor403000AnimWork* work)
 
 static void func_actor_403000_80133AF8(Task* arg0)
 {
-    Actor403000AnimWork* seekWork;
-    Actor403000AnimWork* resetWork;
-    Actor403000AnimWork* turnWork;
-    Actor403000AnimWork* secondaryWork;
-    Actor403000AnimWork* tickWork;
-    Actor403000AnimWork* work;
-    u32                  table;
-    s32                  index;
-    s32                  animation;
-    s32                  updatedTurn;
-    s16                  currentTurn;
-    s16                  thirdAngle;
-    s16                  state;
-    s32                  currentAngle;
-    s32                  targetAngle;
-    s16                  angle;
-    s32                  seekSlotIndex;
-    s32                  resetSlotIndex;
-    s32                  secondarySlotIndex;
-    s32                  tickSlotIndex;
-    s32                  signedTurn;
-    s32                  sound;
-    s32                  resetIndex;
-    s32                  secondaryIndex;
-    s32                  tickIndex;
-    s32                  seekIndex;
-    s32                  delta;
-    AnimationSlot*       tickSlot;
-    AnimationSlot*       seekSlot;
-    AnimationSlot*       resetSlot;
-    AnimationSlot*       secondarySlot;
-    s32                  pan;
-    s32                  currentAngleBits;
-    u16                  originalTurn;
-    s32                  targetAngleBits;
-    u16                  updatedTurnBits;
-    s16                  clampedAngle;
-    s32                  targetTurn;
+    Actor403000Work* seekWork;
+    Actor403000Work* resetWork;
+    Actor403000Work* turnWork;
+    Actor403000Work* secondaryWork;
+    Actor403000Work* tickWork;
+    Actor403000Work* work;
+    u32              table;
+    s32              index;
+    s32              animation;
+    s32              updatedTurn;
+    s16              currentTurn;
+    s16              thirdAngle;
+    s16              state;
+    s32              currentAngle;
+    s32              targetAngle;
+    s16              angle;
+    s32              seekSlotIndex;
+    s32              resetSlotIndex;
+    s32              secondarySlotIndex;
+    s32              tickSlotIndex;
+    s32              signedTurn;
+    s32              sound;
+    s32              resetIndex;
+    s32              secondaryIndex;
+    s32              tickIndex;
+    s32              seekIndex;
+    s32              delta;
+    AnimationSlot*   tickSlot;
+    AnimationSlot*   seekSlot;
+    AnimationSlot*   resetSlot;
+    AnimationSlot*   secondarySlot;
+    s32              pan;
+    s32              currentAngleBits;
+    u16              originalTurn;
+    s32              targetAngleBits;
+    u16              updatedTurnBits;
+    s16              clampedAngle;
+    s32              targetTurn;
 
-    work  = (Actor403000AnimWork*)arg0->work;
+    work  = (Actor403000Work*)arg0->work;
     state = work->field_AC0;
     if (state == 1) {
         if (work->field_AC4 != work->field_AC6) {
@@ -4224,7 +4191,7 @@ static void func_actor_403000_80133AF8(Task* arg0)
         memFillBytes(work->pad_AEC, 0U, 0x60U);
     }
     if (work->field_ACE == 2) {
-        secondaryWork            = (Actor403000AnimWork*)arg0->work;
+        secondaryWork            = (Actor403000Work*)arg0->work;
         secondaryIndex           = 1;
         secondarySlot            = secondaryWork->slots;
         secondaryWork->field_AD2 = 0x20;
@@ -4240,7 +4207,7 @@ static void func_actor_403000_80133AF8(Task* arg0)
     }
     work->field_AC8 = (u16)(work->field_AC8 + 1);
     if (work->field_AC2 == 0) {
-        tickWork  = (Actor403000AnimWork*)arg0->work;
+        tickWork  = (Actor403000Work*)arg0->work;
         tickIndex = 1;
         tickSlot  = tickWork->slots;
         do {
@@ -4256,10 +4223,10 @@ static void func_actor_403000_80133AF8(Task* arg0)
             work->field_AC2 = 0;
         }
     }
-    targetAngle      = (s16)work->field_AD8;
-    currentAngle     = (s16)work->field_AE0;
-    targetAngleBits  = work->field_AD8;
-    currentAngleBits = work->field_AE0;
+    targetAngle      = work->field_AD8;
+    currentAngle     = work->field_AE0;
+    targetAngleBits  = (u16)work->field_AD8;
+    currentAngleBits = (u16)work->field_AE0;
     if (currentAngle < targetAngle) {
         if ((targetAngle - currentAngle) >= 0x72) {
             work->field_AE0 = currentAngleBits + 0x71;
@@ -4272,8 +4239,8 @@ static void func_actor_403000_80133AF8(Task* arg0)
     block_26:
         work->field_AE0 = targetAngleBits;
     }
-    if (work->field_AE8 == 1) {
-        angle        = (s16)work->field_AE0;
+    if ((s8)work->field_AE8 == 1) {
+        angle        = work->field_AE0;
         clampedAngle = angle;
         if (angle >= 0x501) {
             clampedAngle = 0x500;
@@ -4289,12 +4256,12 @@ static void func_actor_403000_80133AF8(Task* arg0)
         ActorContact_TurnJoint(&arg0->extra.tmd->coords[4], (s16)clampedAngle / 2);
         arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
     }
-    if (work->field_AE9 == 1) {
+    if ((s8)work->field_AE9 == 1) {
         func_actor_403000_80133444(arg0);
     }
-    if (work->field_AEA == 1) {
-        turnWork     = (Actor403000AnimWork*)arg0->work;
-        targetTurn   = turnWork->field_AD6;
+    if ((s8)work->field_AEA == 1) {
+        turnWork     = (Actor403000Work*)arg0->work;
+        targetTurn   = (u16)turnWork->field_AD6;
         originalTurn = targetTurn;
         if ((s16)targetTurn >= 0x201) {
             targetTurn = 0x200;
@@ -4327,7 +4294,7 @@ static void func_actor_403000_80133AF8(Task* arg0)
         ActorContact_TurnJoint(&arg0->extra.tmd->coords[10], (s16)((s32)(u16)turnWork->field_ADE * -1));
         arg0->extra.tmd->coords[10].composeStamp = GRAPHICS_COORD_DIRTY;
     }
-    if (work->field_AEB == 1) {
+    if ((s8)work->field_AEB == 1) {
         func_actor_403000_801332E8(arg0);
     }
     sound = func_actor_403000_801337E0(arg0, work);
@@ -4531,10 +4498,10 @@ static void func_actor_403000_801343B8(Enemy* arg0, Task* arg1)
     arg0->hp            = D_actor_403000_8013DA00.hpMax;
     arg0->param         = &D_actor_403000_8013DA00;
     arg0->recs          = (firstRec = work->objB50.rec);
-    animationInitContext(&((Actor403000AnimWork*)work)->anim, animSrc, obj,
-                         (u8(*)[ANIMATION_POSE_BUFFER_BYTES])((Actor403000AnimWork*)work)->pad_3E8, ((Actor403000AnimWork*)work)->slots);
-    animationInitContext(&((Actor403000AnimWork*)work)->blendAnim, animSrc, obj,
-                         (u8(*)[ANIMATION_POSE_BUFFER_BYTES])((Actor403000AnimWork*)work)->pad_93C, ((Actor403000AnimWork*)work)->blendSlots);
+    animationInitContext(&((Actor403000Work*)work)->anim, animSrc, obj,
+                         (u8(*)[ANIMATION_POSE_BUFFER_BYTES])((Actor403000Work*)work)->pad_3E8, ((Actor403000Work*)work)->slots);
+    animationInitContext(&((Actor403000Work*)work)->blendAnim, animSrc, obj,
+                         (u8(*)[ANIMATION_POSE_BUFFER_BYTES])((Actor403000Work*)work)->pad_93C, ((Actor403000Work*)work)->blendSlots);
     work->field_AC0 = 2;
     work->field_AC2 = 0;
     work->field_AC6 = 0;
@@ -5067,7 +5034,7 @@ static void func_actor_403000_80135F08(Task* arg0)
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     func_actor_403000_80133AF8(arg0);
-    if (work->field_60.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED)) {
+    if (work->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED)) {
         seed            = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
         gRandomLcgState = seed;
         work->field_6   = (seed >> 0x10) & 0x1F;
@@ -5817,7 +5784,7 @@ static void func_actor_403000_801377C8(Task* arg0)
         work->field_FD5 = -work->field_FD3;
     }
     func_actor_403000_80133AF8(arg0);
-    if (work->field_60.half & ANIMATION_SLOT_SETTLED) {
+    if (work->slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
         if (work->field_AC6 == 0xB) {
             scratch->playerCell = Actor403000_Cell(player->extra.tmd->coords);
             cell                = Actor403000_Cell(arg0->extra.tmd->coords);
@@ -5905,7 +5872,7 @@ static void func_actor_403000_801384E8(Task* arg0)
             D_actor_403000_80158DB0.value.keepControl       = ret;
         }
     }
-    if (work->field_60.half & ANIMATION_SLOT_REACHED_BOUNDARY) {
+    if (work->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->field_0   = 4;
         work->field_FD3 = work->field_FD5 = work->field_FD2 = -work->field_FD3;
     }
@@ -6051,7 +6018,7 @@ static void func_actor_403000_801386E8(Task* arg0)
             work->field_FC0 = 1;
         }
     }
-    if (work->field_60.half & ANIMATION_SLOT_SETTLED) {
+    if (work->slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
         work->field_0   = 2;
         work->field_FD2 = work->field_FD3;
         work->field_FD3 = -work->field_FD3;
@@ -6251,7 +6218,7 @@ static void func_actor_403000_80138DB0(Task* arg0)
         work->field_FA0 = 1;
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->field_F90, 0);
     }
-    if (work->field_60.half & ANIMATION_SLOT_REACHED_BOUNDARY) {
+    if (work->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         scratch->playerCell = Actor403000_Cell(player->extra.tmd->coords);
         cell                = Actor403000_Cell(arg0->extra.tmd->coords);
         scratch->cell       = cell;
@@ -6320,7 +6287,7 @@ static void func_actor_403000_801399A0(Task* arg0)
         ActorContact_PushContact(arg0->extra.tmd->coords, work->objB50.rec, 5);
     }
     func_actor_403000_80133AF8(arg0);
-    if ((work->field_60.half & ANIMATION_SLOT_SETTLED) && work->field_AC6 == 0xE) {
+    if ((work->slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) && work->field_AC6 == 0xE) {
         work->objB50.obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         if (enemy->hp > 0) {
             if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
@@ -6959,7 +6926,7 @@ static void func_actor_403000_8013B238(Task* arg0)
     arg0->extra.tmd->coords->coord.t[2]  += work->field_FB0.vz;
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     func_actor_403000_80133AF8(arg0);
-    if (work->field_60.half & ANIMATION_SLOT_REACHED_BOUNDARY) {
+    if (work->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->field_0 = 2;
     }
     SCRATCH_STACK_RELEASE_BLOCK(Actor403000AimScratch);
@@ -7084,7 +7051,7 @@ static void func_actor_403000_8013B74C(Task* arg0)
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     func_actor_403000_80133AF8(arg0);
-    if (work->field_60.half & ANIMATION_SLOT_REACHED_BOUNDARY) {
+    if (work->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         t      = &scratch->target;
         coord2 = arg0->extra.tmd->coords;
         t->vx  = gPlayerStatus.coordMtx->t[0] - coord2->coord.t[0];
@@ -7166,7 +7133,7 @@ static void func_actor_403000_8013BDE0(Task* arg0)
     D_actor_403000_80158DB0.value.displacement.vz   = scratch->dir.vz;
     D_actor_403000_80158DB0.value.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
     D_actor_403000_80158DB0.value.keepControl       = 1;
-    if ((work->field_60.half & ANIMATION_SLOT_REACHED_BOUNDARY) && (s16)work->field_6 >= 0xB) {
+    if ((work->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) && (s16)work->field_6 >= 0xB) {
         work->field_0   = 4;
         work->field_FD3 = work->field_FD2 = work->field_FD5 = -func_actor_403000_80134204(arg0->extra.tmd->coords);
     }
@@ -7771,7 +7738,7 @@ static void func_actor_403000_8013D648(Task* arg0)
     }
     work->field_6++;
     func_actor_403000_80133AF8(arg0);
-    if ((work->field_60.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED)) || (s16)work->field_6 >= 5) {
+    if ((work->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED)) || (s16)work->field_6 >= 5) {
         if (enemy->hp > 0) {
             if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
                 work->field_0 = 0x10;
@@ -7822,7 +7789,7 @@ static void func_actor_403000_8013D72C(Task* arg0)
         work->field_F30.m[0][1] = 0;
         work->field_F30.m[0][0] = 0;
     }
-    if (work->field_FA6 == 4 && work->field_AC6 == 0x1B && (work->field_60.half & ANIMATION_SLOT_SETTLED)) {
+    if (work->field_FA6 == 4 && work->field_AC6 == 0x1B && (work->slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED)) {
         work->field_AC6 = 0x1D;
         work->field_AC0 = 2;
     }
@@ -7850,7 +7817,7 @@ static void func_actor_403000_8013D850(Task* arg0)
     }
     work->field_6++;
     func_actor_403000_80133AF8(arg0);
-    if (work->field_60.half & ANIMATION_SLOT_SETTLED) {
+    if (work->slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
         work->field_FD3 = 1;
         work->field_FD2 = 1;
         work->field_0   = 2;
