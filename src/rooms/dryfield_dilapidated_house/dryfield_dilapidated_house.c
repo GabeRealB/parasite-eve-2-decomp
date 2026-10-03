@@ -97,16 +97,18 @@ typedef struct {
 } _DryfieldDilapidatedHouseMorphWork;
 STATIC_ASSERT_SIZEOF(_DryfieldDilapidatedHouseMorphWork, 0x6C);
 
-/// Work block of the handler table at `D_dryfield_dilapidated_house_8017D61C`,
-/// whose state 0 is `func_dryfield_dilapidated_house_8018118C`: allocated with
-/// `memMalloc(0x24, 0)` and parked in the `Task::work` slot. It holds a
-/// snapshot of the placed model coordinate's matrix (`mtx`, copied from
-/// `GfxCoord::coord`) plus one 0x1000 word.
-typedef struct DdhModelWork {
-    /* 0x00 */ MATRIX mtx;
-    /* 0x20 */ s32    field_20;
-} DdhModelWork;
-STATIC_ASSERT_SIZEOF(DdhModelWork, 0x24);
+/// Work block of the curve debug task: a model task whose model stays hidden
+/// while it marks a fixed Bezier path's control points and samples on screen
+/// with small coloured crosses.
+///
+/// Nothing in the room spawns that task. The block is filled in once as the
+/// task starts and never read back: the markers are placed with the parent
+/// task's `_DryfieldDilapidatedHouseMorphWork::attachMtx` instead.
+typedef struct {
+    MATRIX initialMtx; // The model's local coordinate matrix as the task started
+    s32    field_20;   // Set to 0x1000 at start and never read; role unproven
+} _DryfieldDilapidatedHouseCurveDebugWork;
+STATIC_ASSERT_SIZEOF(_DryfieldDilapidatedHouseCurveDebugWork, 0x24);
 
 /// One turn of a `_DryfieldDilapidatedHouseConeWork::rimPhase` entry, which
 /// counts in quarters of the 4096-per-turn angle unit `rsin` takes.
@@ -3734,15 +3736,15 @@ void func_dryfield_dilapidated_house_80181134(Task* task)
 }
 
 /// State 0 of the handler table at `D_dryfield_dilapidated_house_8017D61C`:
-/// snapshots the placed model coordinate's matrix into a fresh `DdhModelWork`,
-/// seeds its 0x1000 word, marks the model's `TmdObject` hidden (bit 0x80 of
-/// `field_C`), attaches this task under the task that spawned it and advances
-/// to state 1.
+/// snapshots the placed model coordinate's matrix into a fresh
+/// `_DryfieldDilapidatedHouseCurveDebugWork`, seeds its 0x1000 word, marks the
+/// model's `TmdObject` hidden (bit 0x80 of `field_C`), attaches this task under
+/// the task that spawned it and advances to state 1.
 static void func_dryfield_dilapidated_house_8018118C(Task* arg0)
 {
-    TmdObject*    obj;
-    GfxCoord*     coord;
-    DdhModelWork* work;
+    TmdObject*                               obj;
+    GfxCoord*                                coord;
+    _DryfieldDilapidatedHouseCurveDebugWork* work;
 
     obj   = arg0->extra.tmd;
     coord = obj->coords;
@@ -3751,10 +3753,10 @@ static void func_dryfield_dilapidated_house_8018118C(Task* arg0)
         taskKill(arg0);
         return;
     }
-    arg0->work     = work;
-    work->field_20 = 0x1000;
-    work->mtx      = coord->coord;
-    obj->flags    |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    arg0->work       = work;
+    work->field_20   = 0x1000;
+    work->initialMtx = coord->coord;
+    obj->flags      |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     taskReparent(arg0->spawnArg2.pointer, arg0);
     arg0->state += 1;
 }
