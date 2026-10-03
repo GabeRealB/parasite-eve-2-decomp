@@ -486,16 +486,16 @@ u8* D_shelter_r47_80187374[10] = {
 };
 
 ActionPromptHotspot D_shelter_r47_8018739C[5] = {
-    { -156, -103, 78, 10, 4, 0, 0 },
-    { -150, 63, 56, 14, 2, 1, 0 },
-    { -144, 80, 56, 14, 3, 1, 0 },
-    { -155, -90, 68, 84, 1, 0, 0 },
+    { -156, -103, 78, 10, SHELTER_R47_MAP_HOTSPOT_TITLE, 0, 0 },
+    { -150, 63, 56, 14, SHELTER_R47_MAP_HOTSPOT_PREV, 1, 0 },
+    { -144, 80, 56, 14, SHELTER_R47_MAP_HOTSPOT_NEXT, 1, 0 },
+    { -155, -90, 68, 84, SHELTER_R47_MAP_HOTSPOT_PANEL, 0, 0 },
     { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 
 ActionPromptHotspot D_shelter_r47_801873D8[3] = {
-    { -150, 63, 56, 14, 2, 1, 0 },
-    { -144, 80, 56, 14, 3, 1, 0 },
+    { -150, 63, 56, 14, SHELTER_R47_MAP_HOTSPOT_PREV, 1, 0 },
+    { -144, 80, 56, 14, SHELTER_R47_MAP_HOTSPOT_NEXT, 1, 0 },
     { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 

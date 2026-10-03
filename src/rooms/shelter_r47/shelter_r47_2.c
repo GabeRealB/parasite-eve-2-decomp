@@ -53,8 +53,8 @@ typedef struct {
 } _ShelterR47MapMark;
 STATIC_ASSERT_SIZEOF(_ShelterR47MapMark, 8);
 
-/// Marker tables indexed by `ShelterR47State2::field_1C`; the second is used
-/// while game-flag nibble 0xDF is 1.
+/// Marker tables indexed by `ShelterR47MapTerminalWork::page`. The second is used
+/// while `GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED` is 1.
 extern _ShelterR47MapMark* D_shelter_r47_801875C4[];
 extern _ShelterR47MapMark* D_shelter_r47_801875D8[];
 
@@ -1094,31 +1094,31 @@ static inline s16 _shelterR47IsAreaMarked(s32 stage, s32 area)
     return 1;
 }
 
-/// Draws the map overlay of the room's second cap script, brightening each
-/// quad by 0x30 over the last. While `field_1C` is not 3 it draws one marker
-/// per entry of the `field_1C` marker table whose saved area state has
+/// Draws the map overlay of the room's map terminal, brightening each
+/// marker by 0x30 over the last. While `page` is not Neo Ark it draws one marker
+/// per entry of that page's marker table whose saved area state has
 /// `AREA_SAVED_MAP_MARK` set and `AREA_SPAWN_RESTORE_SAVED_POSES` clear, after a
-/// fixed marker when `field_1C` is
-/// 0, `field_2A` is not 1 and collected bit 0x12D is set. When `field_1C` is 3
-/// it first moves `field_2A` from 2 to 3 and starts cap slot 0x13, then draws
-/// the same markers if game-flag nibble 0xDF is 1, and otherwise the
-/// `field_A` x `field_C` map quad.
+/// fixed marker when `page` is B1, `openMode` is not the timed viewing and
+/// collected bit 0x12D is set. When `page` is Neo Ark it first moves `openMode`
+/// from the tour to tour-done and starts cap slot 0x13, then draws
+/// the same markers if `GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED` is 1, and otherwise the
+/// `mapWidth` x `mapHeight` map quad.
 static void func_shelter_r47_80183484(Task* task)
 {
-    ShelterR47State2*   state;
-    _ShelterR47MapMark* mark;
-    POLY_FT4*           p;
-    u8                  shade;
+    ShelterR47MapTerminalWork* state;
+    _ShelterR47MapMark*        mark;
+    POLY_FT4*                  p;
+    u8                         shade;
 
-    state = (ShelterR47State2*)task->work;
-    shade = (u8)state->field_26 * 4;
+    state = (ShelterR47MapTerminalWork*)task->work;
+    shade = (u8)state->openFrames * 4;
     if (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 1) {
-        mark = D_shelter_r47_801875D8[state->field_1C];
+        mark = D_shelter_r47_801875D8[state->page];
     } else {
-        mark = D_shelter_r47_801875C4[state->field_1C];
+        mark = D_shelter_r47_801875C4[state->page];
     }
-    if (state->field_1C != 3) {
-        if (state->field_2A != 1 && state->field_1C == 0 && Gp_HasCollectedBit(0x12D) != 0) {
+    if (state->page != SHELTER_R47_MAP_PAGE_NEO_ARK) {
+        if (state->openMode != SHELTER_R47_MAP_MODE_TIMED && state->page == SHELTER_R47_MAP_PAGE_B1 && Gp_HasCollectedBit(0x12D) != 0) {
             shade         += 0x30;
             p              = gGpuPrimCursor;
             gGpuPrimCursor = p + 1;
@@ -1149,8 +1149,8 @@ static void func_shelter_r47_80183484(Task* task)
             mark++;
         }
     } else {
-        if (state->field_2A == 2) {
-            state->field_2A = 3;
+        if (state->openMode == SHELTER_R47_MAP_MODE_TOUR) {
+            state->openMode = SHELTER_R47_MAP_MODE_TOUR_DONE;
             Gp_StartCapSlot(0x13, 0, 0);
         }
         if (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 1) {
@@ -1183,8 +1183,8 @@ static void func_shelter_r47_80183484(Task* task)
             p->clut  = 0x4000;
             setRGB0(p, shade, shade, shade);
             setSemiTrans(p, 1);
-            setXY4(p, -0x4D, -0x67, state->field_A - 0x4D, -0x67, -0x4D, state->field_C - 0x67,
-                   state->field_A - 0x4D, state->field_C - 0x67);
+            setXY4(p, -0x4D, -0x67, state->mapWidth - 0x4D, -0x67, -0x4D, state->mapHeight - 0x67,
+                   state->mapWidth - 0x4D, state->mapHeight - 0x67);
             addPrim(&gGpuCurrentOt[11], p);
         }
     }
@@ -1192,21 +1192,21 @@ static void func_shelter_r47_80183484(Task* task)
 
 void func_shelter_r47_80183B84(Task* task)
 {
-    ShelterR47State2* state;
-    POLY_FT4*         p;
+    ShelterR47MapTerminalWork* state;
+    POLY_FT4*                  p;
 
-    state           = (ShelterR47State2*)task->work;
-    state->field_A += (state->field_E - state->field_A) >> 2;
-    state->field_C += (state->field_10 - state->field_C) >> 2;
-    if (state->field_A >= 0xE5) {
-        state->field_A = 0xE8;
-        state->field_C = 0xCE;
+    state             = (ShelterR47MapTerminalWork*)task->work;
+    state->mapWidth  += (state->mapTargetWidth - state->mapWidth) >> 2;
+    state->mapHeight += (state->mapTargetHeight - state->mapHeight) >> 2;
+    if (state->mapWidth >= SHELTER_R47_MAP_WIDTH_SETTLED) {
+        state->mapWidth  = SHELTER_R47_MAP_WIDTH;
+        state->mapHeight = SHELTER_R47_MAP_HEIGHT;
         func_shelter_r47_80183484(task);
-        state->field_2B = 0;
-        state->field_26++;
+        state->holdPrompt = 0;
+        state->openFrames++;
     } else {
-        state->field_26 = 0;
-        state->field_2B = 1;
+        state->openFrames = 0;
+        state->holdPrompt = 1;
     }
 
     p              = gGpuPrimCursor;
@@ -1216,21 +1216,21 @@ void func_shelter_r47_80183B84(Task* task)
     p->tpage = 0x2D;
     p->clut  = 0x3FC0;
     p->code |= 3;
-    setXY4(p, -0x4D, -0x67, state->field_A - 0x4D, -0x67, -0x4D, state->field_C - 0x67,
-           state->field_A - 0x4D, state->field_C - 0x67);
+    setXY4(p, -0x4D, -0x67, state->mapWidth - 0x4D, -0x67, -0x4D, state->mapHeight - 0x67,
+           state->mapWidth - 0x4D, state->mapHeight - 0x67);
     addPrim(&gGpuCurrentOt[12], p);
 
-    p                = gGpuPrimCursor;
-    state->field_12 += (state->field_16 - state->field_12) >> 2;
-    state->field_14 += (state->field_18 - state->field_14) >> 2;
-    gGpuPrimCursor   = p + 1;
+    p                   = gGpuPrimCursor;
+    state->panelWidth  += (state->panelTargetWidth - state->panelWidth) >> 2;
+    state->panelHeight += (state->panelTargetHeight - state->panelHeight) >> 2;
+    gGpuPrimCursor      = p + 1;
     setPolyFT4(p);
     setUV4(p, 0, 0, 0x50, 0, 0, 0x60, 0x50, 0x60);
     p->tpage = 0x2E;
     p->clut  = 0x3FC1;
     p->code |= 3;
-    setXY4(p, -0x9C, -0x5B, state->field_12 - 0x9C, -0x5B, -0x9C, state->field_14 - 0x5B,
-           state->field_12 - 0x9C, state->field_14 - 0x5B);
+    setXY4(p, -0x9C, -0x5B, state->panelWidth - 0x9C, -0x5B, -0x9C, state->panelHeight - 0x5B,
+           state->panelWidth - 0x9C, state->panelHeight - 0x5B);
     addPrim(&gGpuCurrentOt[11], p);
 }
 
@@ -1284,15 +1284,15 @@ void func_shelter_r47_80183F0C(void)
 
 void func_shelter_r47_80183FF4(Task* task, s16 arg1)
 {
-    SpriteDrawModePacket* p;
-    SPRT*                 sprt;
-    ShelterR47State2*     state;
+    SpriteDrawModePacket*      p;
+    SPRT*                      sprt;
+    ShelterR47MapTerminalWork* state;
 
-    p                = gGpuPrimCursor;
-    state            = (ShelterR47State2*)task->work;
-    sprt             = &p->sprite.sprt;
-    gGpuPrimCursor   = p + 1;
-    state->field_20 += (state->field_1E - state->field_20) >> 2;
+    p              = gGpuPrimCursor;
+    state          = (ShelterR47MapTerminalWork*)task->work;
+    sprt           = &p->sprite.sprt;
+    gGpuPrimCursor = p + 1;
+    state->labelX += (state->labelTargetX - state->labelX) >> 2;
     setlen(&p->drawMode, 1);
     setlen(&p->sprite.sprt, 4);
     p->drawMode.code[0] = 0xE100002F;
@@ -1300,7 +1300,7 @@ void func_shelter_r47_80183FF4(Task* task, s16 arg1)
     MargePrim(p, sprt);
     sprt->clut  = 0x3FC2;
     sprt->code |= 3;
-    sprt->x0    = state->field_20;
+    sprt->x0    = state->labelX;
     sprt->y0    = -0x67;
     sprt->u0    = 0;
     sprt->v0    = D_shelter_r47_801875EC[arg1];
@@ -1311,12 +1311,12 @@ void func_shelter_r47_80183FF4(Task* task, s16 arg1)
 
 void func_shelter_r47_80184124(Task* task, s16 arg1)
 {
-    SpriteDrawModePacket* p;
-    SPRT*                 sprt;
-    ShelterR47State2*     state;
+    SpriteDrawModePacket*      p;
+    SPRT*                      sprt;
+    ShelterR47MapTerminalWork* state;
 
     p              = gGpuPrimCursor;
-    state          = (ShelterR47State2*)task->work;
+    state          = (ShelterR47MapTerminalWork*)task->work;
     sprt           = &p->sprite.sprt;
     gGpuPrimCursor = p + 1;
     setlen(&p->drawMode, 1);
@@ -1326,7 +1326,7 @@ void func_shelter_r47_80184124(Task* task, s16 arg1)
     MargePrim(p, sprt);
     sprt->clut  = 0x3FC3;
     sprt->code |= 3;
-    sprt->x0    = state->field_20;
+    sprt->x0    = state->labelX;
     sprt->y0    = 0x35;
     sprt->u0    = 0;
     sprt->v0    = D_shelter_r47_801875F8[arg1][0] + 0x38;
@@ -1344,7 +1344,7 @@ void func_shelter_r47_80184124(Task* task, s16 arg1)
     MargePrim(p, sprt);
     sprt->clut  = 0x3FC3;
     sprt->code |= 3;
-    sprt->x0    = state->field_20;
+    sprt->x0    = state->labelX;
     sprt->y0    = 0x60;
     sprt->u0    = 0;
     sprt->v0    = D_shelter_r47_801875F8[arg1][1] + 0x38;

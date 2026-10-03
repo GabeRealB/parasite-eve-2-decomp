@@ -11,11 +11,11 @@
 
 extern Task* gRoomCutsceneSoundTask;
 
-/// Hotspot tables of the second cap script; `spawnArg1` 2 selects the second.
+/// Hotspot tables of the map terminal. Spawn argument `SHELTER_R47_MAP_MODE_TOUR`
+/// selects the second, which carries only the previous and next pages.
 extern ActionPromptHotspot D_shelter_r47_8018739C[];
 extern ActionPromptHotspot D_shelter_r47_801873D8[];
-/// Area views of the map pages the second cap script steps through, indexed by
-/// `ShelterR47State2::field_1C`.
+/// Room views of the map pages, indexed by `ShelterR47MapTerminalWork::page`.
 extern u8 D_shelter_r47_801873FC[];
 
 /// Work block of the room's control console: the screen on which the player
@@ -62,37 +62,96 @@ typedef struct {
 } ShelterR47ConsoleWork;
 STATIC_ASSERT_SIZEOF(ShelterR47ConsoleWork, 0x54);
 
-/// Work block of the room's second cap script: the task family whose state
-/// table is `D_shelter_r47_8017D7DC` (dispatcher `func_shelter_r47_80185214`).
-/// `memCalloc(0x30)` in its state-0 entry `func_shelter_r47_8018431C`, stored
-/// at `Task::work`.
+/// Map page shown by the terminal, in previous/next order.
+///
+/// The marker tables, the page labels and the room view all follow this index.
+enum {
+    SHELTER_R47_MAP_PAGE_B1      = 0, // shelter basement 1
+    SHELTER_R47_MAP_PAGE_B2      = 1, // shelter basement 2
+    SHELTER_R47_MAP_PAGE_B3      = 2, // shelter basement 3
+    SHELTER_R47_MAP_PAGE_NEO_ARK = 3, // Neo Ark
+    SHELTER_R47_MAP_PAGE_1F      = 4, // shelter first floor
+    SHELTER_R47_MAP_PAGE_COUNT   = 5,
+};
+
+/// How the terminal was opened. Copied from the task's spawn argument;
+/// `SHELTER_R47_MAP_MODE_TOUR_DONE` is stored later, once the tour shows Neo Ark.
+enum {
+    SHELTER_R47_MAP_MODE_USE       = 0, // player at the terminal; cancel closes it and restores `savedView`
+    SHELTER_R47_MAP_MODE_TIMED     = 1, // unattended viewing; fades in, holds, then fades out
+    SHELTER_R47_MAP_MODE_TOUR      = 2, // event tour; previous page is refused, and only previous/next hotspots are installed
+    SHELTER_R47_MAP_MODE_TOUR_DONE = 3, // Neo Ark has opened during the tour; the idle state closes the terminal
+};
+
+/// `hotspotId` of a confirmed terminal hotspot.
+enum {
+    SHELTER_R47_MAP_HOTSPOT_PANEL = 1, // quad left of the map
+    SHELTER_R47_MAP_HOTSPOT_PREV  = 2, // previous page
+    SHELTER_R47_MAP_HOTSPOT_NEXT  = 3, // next page
+    SHELTER_R47_MAP_HOTSPOT_TITLE = 4, // page title
+};
+
+/// Open size of the map quad, in pixels. A width at or above
+/// `SHELTER_R47_MAP_WIDTH_SETTLED` snaps to this size. While a page change
+/// reopens the map, the side panel starts opening once the width reaches
+/// `SHELTER_R47_MAP_WIDTH_PANEL`.
+#define SHELTER_R47_MAP_WIDTH         0xE8
+#define SHELTER_R47_MAP_HEIGHT        0xCE
+#define SHELTER_R47_MAP_WIDTH_SETTLED 0xE5
+#define SHELTER_R47_MAP_WIDTH_PANEL   0xB5
+
+/// Open size of the panel left of the map, in pixels.
+#define SHELTER_R47_MAP_PANEL_WIDTH  0x50
+#define SHELTER_R47_MAP_PANEL_HEIGHT 0x60
+
+/// On-screen x of the page labels, and the x they take while a page change
+/// slides them off to the left. Pixels from the display centre.
+#define SHELTER_R47_MAP_LABEL_X      (-0x9C)
+#define SHELTER_R47_MAP_LABEL_X_AWAY (-0x104)
+
+/// Room view selected on entry. It is the B1 page's view.
+#define SHELTER_R47_MAP_ENTRY_VIEW 0x25
+
+/// Frames the timed viewing stays up before it closes, unless the event is skipped.
+#define SHELTER_R47_MAP_SHOW_LIMIT 300
+
+/// Frames from the start of player use until the screen-on sound.
+#define SHELTER_R47_MAP_SCREEN_ON_DELAY 6
+
+/// Work block of the room's map terminal, stored at `Task::work`.
+///
+/// The player steps through five floor pages. The map quad and the panel to
+/// its left each ease a quarter of the way toward their targets every frame,
+/// and the page labels slide on the same easing. `openMode` records whether
+/// this opening is player use, a timed viewing or the event tour. Positions
+/// are screen pixels from the display centre.
 typedef struct {
-    u8                   pad_0[4];
-    ActionPromptHotspot* hotspots; ///< table hit-tested against the action cursor
-    u8                   pad_8[2];
-    s16                  field_A;  ///< width of the first quad drawn by `func_shelter_r47_80183B84`; eases toward `field_E`
-    s16                  field_C;  ///< height of that quad; eases toward `field_10`
-    s16                  field_E;
-    s16                  field_10;
-    s16                  field_12; ///< width of the second quad drawn by `func_shelter_r47_80183B84`; eases toward `field_16`
-    s16                  field_14; ///< height of that quad; eases toward `field_18`
-    s16                  field_16;
-    s16                  field_18;
-    s16                  field_1A;   ///< id of the confirmed hotspot
-    s16                  field_1C;   ///< index of the map page shown, wrapping over 0..4
-    s16                  field_1E;   ///< target that `field_20` eases toward by a quarter of the gap a frame
-    s16                  field_20;   ///< x of the sprite drawn by `func_shelter_r47_80183FF4`
-    u16                  fade;       ///< fade-to-black ramp: +0x10 a frame, clamped at 0xFF
-    s16                  field_24;   ///< frame counter; past 300 the task moves to state 9
-    u16                  field_26;   ///< frames the first quad has been fully open; zeroed while it grows
-    s8                   promptKind; ///< `promptKind` of the confirmed hotspot, forwarded to `func_800D4E78`
-    u8                   field_29;   ///< low byte of the area view saved on entry
-    s8                   field_2A;
-    s8                   field_2B;   ///< non-zero holds the prompt off
-    s8                   field_2C;   ///< countdown; a sound plays as it reaches zero
-    u8                   pad_2D[3];
-} ShelterR47State2;
-STATIC_ASSERT_SIZEOF(ShelterR47State2, 0x30);
+    u8                   pad_0[4];          // no read or write in this overlay; role unproven
+    ActionPromptHotspot* hotspots;          // table hit-tested against the action cursor
+    u8                   pad_8[2];          // no read or write in this overlay; role unproven
+    s16                  mapWidth;          // width of the map quad; eases toward `mapTargetWidth`
+    s16                  mapHeight;         // height of the map quad; eases toward `mapTargetHeight`
+    s16                  mapTargetWidth;    // `SHELTER_R47_MAP_WIDTH` when open, 0 while a page change closes it
+    s16                  mapTargetHeight;   // `SHELTER_R47_MAP_HEIGHT` when open, 0 while a page change closes it
+    s16                  panelWidth;        // width of the quad left of the map; eases toward `panelTargetWidth`
+    s16                  panelHeight;       // height of that quad; eases toward `panelTargetHeight`
+    s16                  panelTargetWidth;  // `SHELTER_R47_MAP_PANEL_WIDTH` when open, 0 while a page change closes it
+    s16                  panelTargetHeight; // `SHELTER_R47_MAP_PANEL_HEIGHT` when open, 0 while a page change closes it
+    s16                  hotspotId;         // confirmed hotspot (`SHELTER_R47_MAP_HOTSPOT_PANEL` .. `SHELTER_R47_MAP_HOTSPOT_TITLE`)
+    s16                  page;              // page shown (0 B1, 1 B2, 2 B3, 3 Neo Ark, 4 Shelter 1F); wraps over that range
+    s16                  labelTargetX;      // x the page labels ease toward, on screen or off to the left during a page change
+    s16                  labelX;            // x of the page-label sprites; eases a quarter of the way toward `labelTargetX` a frame
+    u16                  fade;              // subtractive fade, 0 clear .. 0xFF black; closing adds 0x10 a frame, opening subtracts 8
+    s16                  showFrames;        // frames the timed viewing has been up; past `SHELTER_R47_MAP_SHOW_LIMIT`, or on skip, it closes
+    u16                  openFrames;        // frames the map quad has been fully open, zeroed while it grows; its low byte times four is the marker brightness
+    s8                   promptKind;        // `ActionPromptHotspot::promptKind` of the confirmed hotspot
+    u8                   savedView;         // room view on entry, restored when the player dismisses the terminal
+    s8                   openMode;          // how the terminal was opened (`SHELTER_R47_MAP_MODE_USE` .. `SHELTER_R47_MAP_MODE_TOUR_DONE`)
+    s8                   holdPrompt;        // 1 while the map quad is short of full width; the idle state hides the prompt until it is 0
+    s8                   screenOnDelay;     // frames until the screen-on sound; set when player use begins, and the sound plays as it reaches 0
+    u8                   pad_2D[3];         // tail padding to the block's 4-byte alignment
+} ShelterR47MapTerminalWork;
+STATIC_ASSERT_SIZEOF(ShelterR47MapTerminalWork, 0x30);
 
 /// Task spawned by the room's cap script; polled and cleared by
 /// `func_shelter_r47_80180714`.
@@ -102,10 +161,10 @@ extern u8 D_shelter_r47_8018A694;
 
 extern u8 D_shelter_r47_8018A695;
 
-/// Latches set the first time the second cap script's hotspots 2 and 3 play
-/// their one-off cap events.
+/// Set the first time the map terminal's previous-page hotspot plays its one-off cap event.
 extern u8 D_shelter_r47_8018A696;
 
+/// Set the first time the map terminal's next-page hotspot plays its one-off cap event.
 extern u8 D_shelter_r47_8018A697;
 
 extern RoomCutsceneRec D_shelter_r47_8018A698;
