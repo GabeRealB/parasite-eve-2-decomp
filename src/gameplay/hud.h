@@ -20,13 +20,6 @@ typedef struct {
 } HudTargetHpReadout;
 STATIC_ASSERT_SIZEOF(HudTargetHpReadout, 8);
 
-/// Seven `u16` masks tested against `PlayerStatus.statusFlags` by the party HP/MP
-/// HUD (`func_800A57B0`); each set bit draws one 14x14 status icon.
-typedef struct GpHudStatusBits {
-    u16 bits[7];
-} GpHudStatusBits;
-STATIC_ASSERT_SIZEOF(GpHudStatusBits, 0xE);
-
 /// Displayed player HP and MP.
 ///
 /// Signed widened copies of `PlayerStatus.hp` and `PlayerStatus.mp`, so a

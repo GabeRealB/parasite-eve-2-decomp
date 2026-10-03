@@ -82,6 +82,8 @@
 #include "main/wipsys.h"
 #include <psyq/rand.h>
 
+const char D_800938AC[8] = "????\0&!K";
+
 /// The nine rotation coefficients of a view `MATRIX`, assigned as one value.
 ///
 /// Laid out as `MATRIX::m`: row-major signed coefficients with 12 fractional

@@ -452,7 +452,6 @@ void func_800A57B0(HudState* hud)
     s32             color;
     s32             rectMode;
     s32             iconX, iconY;
-    u16*            flags;
     s32             x;
     s32             w1;
     s32             w2;
@@ -725,27 +724,37 @@ void func_800A57B0(HudState* hud)
     }
 
     if (cfg->statusFlags != 0) {
-        GpHudStatusBits statusBits;
+        iconX = x;
+        iconY = y + 0x14;
+        {
+            // Effect each icon of the status strip stands for, in the strip's
+            // left-to-right order. Active effects are drawn packed from the left.
+            u16 iconStatusMasks[7] = {
+                PLAYER_STATUS_DARKNESS,
+                PLAYER_STATUS_PARALYSIS,
+                PLAYER_STATUS_POISON,
+                PLAYER_STATUS_SILENCE,
+                0x20, // Timed effect whose gameplay meaning is unproven
+                PLAYER_STATUS_CONFUSION,
+                PLAYER_STATUS_BERSERKER,
+            };
 
-        iconX      = x;
-        iconY      = y + 0x14;
-        statusBits = D_8009389C;
-        for (i = 0; i < 7; i++) {
-            flags = statusBits.bits;
-            if (cfg->statusFlags & flags[i]) {
-                sp5            = gGpuPrimCursor;
-                gGpuPrimCursor = sp5 + 1;
-                sp5->x0        = iconX;
-                iconX         += 0xD;
-                sp5->y0        = iconY;
-                sp5->u0        = i * 0x10 + 0x60;
-                sp5->w         = 0xE;
-                sp5->h         = 0xE;
-                sp5->v0        = 0x40;
-                sp5->clut      = 0x3C08;
-                setlen(sp5, 4);
-                setcode(sp5, 0x65);
-                addPrim(gGpuCurrentOt - 2, sp5);
+            for (i = 0; i < ARRAY_SIZE(iconStatusMasks); i++) {
+                if (cfg->statusFlags & iconStatusMasks[i]) {
+                    sp5            = gGpuPrimCursor;
+                    gGpuPrimCursor = sp5 + 1;
+                    sp5->x0        = iconX;
+                    iconX         += 0xD;
+                    sp5->y0        = iconY;
+                    sp5->u0        = i * 0x10 + 0x60;
+                    sp5->w         = 0xE;
+                    sp5->h         = 0xE;
+                    sp5->v0        = 0x40;
+                    sp5->clut      = 0x3C08;
+                    setlen(sp5, 4);
+                    setcode(sp5, 0x65);
+                    addPrim(gGpuCurrentOt - 2, sp5);
+                }
             }
         }
         Ui_InsertDrawTPage(-2, 0);

@@ -1825,9 +1825,7 @@ end:
     }
 }
 
-const char            D_8009388C[]  = "R1";
-const char            D_80093890[]  = "R2";
-const char            D_80093894[]  = "%";
-const char            D_80093898[]  = "&";
-const GpHudStatusBits D_8009389C    = { { 0x1, 0x2, 0x4, 0x10, 0x20, 0x40, 0x80 } };
-const char            D_800938AC[8] = "????\0&!K";
+const char D_8009388C[] = "R1";
+const char D_80093890[] = "R2";
+const char D_80093894[] = "%";
+const char D_80093898[] = "&";

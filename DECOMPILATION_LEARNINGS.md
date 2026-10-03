@@ -57393,6 +57393,19 @@ is wrong, not something to pad around.
 The `TaskFuncTableN` family in `include/main/task_types.h` exists for the global
 shape; add the missing arity there rather than declaring a bare array.
 
+The same test can come out the other way, and then the wrapper type is the
+scaffold. The HP/MP HUD's seven status-icon masks sat in gameplay as a
+`const` struct-of-`u16[7]` global defined in `attachment_stats.c` and copied by
+`func_800A57B0` in `linked_actors.c`. Their rodata offset (`0x9C`) follows the
+labels of an earlier text unit and precedes the label of a later one, with no
+gap either side, so nothing contradicts the copying function owning them: the
+source is a block-scope `u16 iconStatusMasks[7] = { ... }`. In a hand-written
+config the cut is a `.rodata` subsegment for the copying unit, and whatever the
+earlier unit defined *after* the template has to move to the unit that uses it,
+since an object contributes its `.rodata` once. The initializer is expanded
+where it is declared, so statements the target runs before the copy stay ahead
+of it by declaring the array in a nested block.
+
 ## A pointer used only by stores in both `if` arms must be its own local
 
 `if (c) p->a[K].f = 0; else p->a[K].f = 1;` where `p->a` is itself a load does

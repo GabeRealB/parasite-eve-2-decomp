@@ -68,8 +68,6 @@ extern u16 D_80113D0C[][2];
 /// Final percent scale applied by `Gp_ComputeDamage`, indexed by `gSceneCombatState.difficulty`.
 extern u16 D_80113F90[];
 
-extern const GpHudStatusBits D_8009389C;
-
 extern const char D_800938AC[8];
 
 void Gp_HudTask(HudState* hud);

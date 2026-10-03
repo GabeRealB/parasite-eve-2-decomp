@@ -81,6 +81,8 @@ segments:
       - [0x28, .rodata, model_lighting] # play-clock punctuation
       - [0x30, .rodata, ending] # play-clock state table and battle-result labels
       - [0x78, .rodata, attachment_stats] # jtbl from Gp_ApplyAttachStats, then the prompt labels
+      - [0x9C, .rodata, linked_actors] # status-icon mask initializer of func_800A57B0
+      - [0xAC, .rodata, hud_sprites] # hidden-amount label
       - [0xB4, .rodata, cd_loading] # Gp_LoadWaitFns and Gp_ConfigCdTable, the jtbl from Gp_EnqueueWeaponCd, then the session, load and room-object tables
       - [0x150, .rodata, area_transitions] # the direction tables, then the jtbl from Gp_LookupStageFlag
       - [0x1BC, .rodata, scene_runtime] # jtbls from func_800AF590 and Gp_StepCdAudioCmd, then its strings and state tables
