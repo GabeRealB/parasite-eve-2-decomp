@@ -50,11 +50,16 @@ typedef struct {
 } _ItemMenuWeaponVariant;
 STATIC_ASSERT_SIZEOF(_ItemMenuWeaponVariant, 2);
 
+/// The eight M4A1 weapon variants, in the order an add-on use scans them.
+///
+/// The first carried row is the weapon the player has. The first other row
+/// whose mounted add-on is the item just used is the weapon it becomes.
+/// M4A1(+1) is listed before M4A1(+2); both mount the Rifle Clip Holder, so
+/// that add-on steps the base rifle to (+1) and (+1) to (+2).
 typedef struct {
-    _ItemMenuWeaponVariant pairs[8];
-} GpUseCreateTable;
-
-STATIC_ASSERT_SIZEOF(GpUseCreateTable, 0x10);
+    _ItemMenuWeaponVariant variants[8]; // One row per M4A1 variant, in scan order.
+} _ItemMenuM4a1VariantTable;
+STATIC_ASSERT_SIZEOF(_ItemMenuM4a1VariantTable, 0x10);
 
 typedef struct {
     /* 0x00 */ s32 field_0;
@@ -166,8 +171,6 @@ extern u8 Gp_StrEarth[];
 extern UiObjectDesc D_8010F654[1];
 
 extern const char Gp_StrStatus[];
-
-extern const GpUseCreateTable D_80097184;
 
 extern const char Gp_StrInvoke[];
 
@@ -496,8 +499,8 @@ const char Gp_StrBonus[];
 const char D_80097220[];
 const char Gp_StrSpecs2[];
 
-const GpUseCreateTable D_80097184;
-const TaskFuncTable4   Gp_MapTaskStates;
+const _ItemMenuM4a1VariantTable D_80097184;
+const TaskFuncTable4            Gp_MapTaskStates;
 
 void Gp_ItemCmdMenuTask(Task* arg0)
 {
@@ -658,8 +661,8 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
 {
     struct {
         union {
-            TextDrawReq      req;
-            GpUseCreateTable recipes;
+            TextDrawReq               req;
+            _ItemMenuM4a1VariantTable variantTable;
         } u;
     } sp20;
     s32                       result;
@@ -739,12 +742,13 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
                     }
                 }
                 if (arg1->status == 0xFF) {
-                    ten            = 0xA;
-                    variants       = sp20.u.recipes.pairs;
-                    sp20.u.recipes = D_80097184;
-                    arg1->status   = 0x17;
+                    ten = 0xA;
+                    // Copied into the slot the row text reuses once this scan is done.
+                    variants            = sp20.u.variantTable.variants;
+                    sp20.u.variantTable = D_80097184;
+                    arg1->status        = 0x17;
                     // Find the variant being carried; the add-on it has mounted comes back to the inventory.
-                    for (carried = 0; carried < ARRAY_SIZE(sp20.u.recipes.pairs); carried++) {
+                    for (carried = 0; carried < ARRAY_SIZE(sp20.u.variantTable.variants); carried++) {
                         if (Gp_SumScanQty(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, variants[carried].weaponItemId) != 0) {
                             extra = variants[carried].mountedItemId;
                             if (item == ten && variants[carried].weaponItemId == 0x93) {
@@ -755,7 +759,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
                             } else {
                                 // The weapon becomes the other variant that has the used item mounted.
                                 src = variants[carried].weaponItemId;
-                                for (i = 0; i < ARRAY_SIZE(sp20.u.recipes.pairs); i++) {
+                                for (i = 0; i < ARRAY_SIZE(sp20.u.variantTable.variants); i++) {
                                     if (item == variants[i].mountedItemId && src != variants[i].weaponItemId) {
                                         arg1->status = 0xFF;
                                         result       = variants[i].weaponItemId;
@@ -1852,8 +1856,8 @@ void Gp_PickupExitTask(Task* arg0)
     }
 }
 
-const char             Gp_StrStatus[]  = "Status";
-const GpUseCreateTable D_80097184      = { {
+const char                      Gp_StrStatus[]  = "Status";
+const _ItemMenuM4a1VariantTable D_80097184      = { {
     { 0x8F, 0x00 },
     { 0x93, 0x0A },
     { 0x94, 0x0A },
@@ -1863,12 +1867,12 @@ const GpUseCreateTable D_80097184      = { {
     { 0x9B, 0x43 },
     { 0x9C, 0x44 },
 } };
-const char             Gp_StrInvoke[]  = "Invoke";
-const char             Gp_StrPeList[]  = "PE LIST";
-const u8               D_800971A4      = 0;
-const char             Gp_StrTotal2[]  = "TOTAL";
-const char             Gp_StrMessage[] = "Message";
-const char             Gp_StrWarning[] = "Warning";
+const char                      Gp_StrInvoke[]  = "Invoke";
+const char                      Gp_StrPeList[]  = "PE LIST";
+const u8                        D_800971A4      = 0;
+const char                      Gp_StrTotal2[]  = "TOTAL";
+const char                      Gp_StrMessage[] = "Message";
+const char                      Gp_StrWarning[] = "Warning";
 
 const TaskFuncTable4 Gp_MapTaskStates = { {
     Gp_MapPanelInit,
