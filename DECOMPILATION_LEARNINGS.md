@@ -27654,7 +27654,7 @@ case 9:
 ## Overlay the mid-byte of a little-endian `s32` so the load is `lbu`
 
 An 8.8 interpolator stored as `s32` (`start << 8`) is posted as its
-integer byte. `(u8)(state->field_4 >> 8)` emits `lw; srl; andi`. The
+integer byte. `(u8)(work->intensity >> 8)` emits `lw; srl; andi`. The
 target is a single `lbu` at offset +1 of that word (LE byte 1).
 
 Put a union on the word so the mid-byte is a real field. GCC then
@@ -27662,14 +27662,14 @@ emits `lbu`:
 
 ```c
 union {
-    s32 as_s32;
+    s32 q8;
     struct {
-        u8 pad_4;
-        u8 as_u8; /* (as_s32 >> 8) */
+        u8 fraction;
+        u8 whole; /* (q8 >> 8) */
     } bytes;
-} field_4;
+} intensity;
 
-Pad_PostEvent(0, 1, state->field_4.bytes.as_u8, 1);
+Pad_PostEvent(0, 1, work->intensity.bytes.whole, 1);
 ```
 
 `Gp_PadLerpTask` is the example. The shift form compiles and is

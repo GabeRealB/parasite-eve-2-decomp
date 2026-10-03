@@ -10,25 +10,35 @@
 #include "main/session.h"
 #include "main/task.h"
 
-/// 0xC-byte interpolator state allocated by `Gp_SpawnPadLerp` / `Gp_SpawnPadLerpScaled`
-/// (`memCalloc(0xC, 0)`) and stored at `Task::work` for bank-2 type 0xC.
-/// `field_8` is the duration; `field_4.as_s32` is start<<8; `field_0` is the
-/// per-frame step `((end<<8) - (start<<8)) / duration`.
-/// `Gp_PadLerpTask` posts `field_4.bytes.as_u8` (the 8-bit interpolator,
-/// `as_s32 >> 8` on little-endian) via `Pad_PostEvent`.
-typedef struct _GpState0C {
-    /* 0x0 */ s32 field_0; // step
-    /* 0x4 */ union {
-        s32 as_s32;        // start << 8
+/// Fraction bits of the Q8 intensity a `_PadScriptLerpWork` ramps.
+///
+/// The ramp posts the byte above these bits, so the value is also the bit
+/// offset of `_PadScriptLerpWork::intensity.bytes.whole`.
+#define PAD_SCRIPT_LERP_FRACTION_BITS 8
+
+/// Work block of one variable-intensity vibration ramp, owned through `Task::work`.
+///
+/// The ramp drives the controller's variable-intensity motor from a start
+/// intensity toward an end intensity over a number of frames. On each frame
+/// its task runs it posts the whole part of `intensity` for one duration unit,
+/// then adds `intensityStep`; it ends when `framesRemaining` reaches 0 or the
+/// lerp halt flag is raised. The step is the Q8 span divided by the frame
+/// count and truncated toward zero. The first post is the start intensity and
+/// each later one a step further, so the Q8 value stops at least one step
+/// short of the end intensity. The block is allocated zeroed and released by
+/// the task's default teardown.
+typedef struct {
+    s32 intensityStep;   // Signed Q8 intensity added after each posted frame
+    union {
+        s32 q8;          // Current intensity in Q8, starting at the start intensity
         struct {
-            /* 0x4 */ u8 pad_4;
-            /* 0x5 */ u8 as_u8; // (as_s32 >> 8)
-        } bytes;
-    } field_4;
-    /* 0x8 */ s16  field_8; // duration
-    /* 0xA */ byte pad_A[2];
-} GpState0C;
-STATIC_ASSERT_SIZEOF(GpState0C, 0xC);
+            u8 fraction; // Low byte: the Q8 fraction
+            u8 whole;    // Second byte: the intensity posted to the motor
+        } bytes;         // Little-endian byte view of `q8`
+    } intensity;
+    s16 framesRemaining; // Frames left to post; nonzero at creation, where it divides the span
+} _PadScriptLerpWork;
+STATIC_ASSERT_SIZEOF(_PadScriptLerpWork, 0xC);
 
 /// Work block of one controller-vibration script task, owned through `Task::work`.
 ///
@@ -205,24 +215,24 @@ static void Gp_SpawnPadHold(s16 arg0)
 
 void Gp_SpawnPadLerp(s16 arg0, u8 arg1, u8 arg2)
 {
-    Task*      task;
-    GpState0C* mem;
-    s32        start;
-    s32        end;
+    Task*               task;
+    _PadScriptLerpWork* work;
+    s32                 start;
+    s32                 end;
 
     if (arg0 != 0) {
-        mem = memCalloc(0xC, 0);
-        if (mem != NULL) {
+        work = memCalloc(sizeof(*work), 0);
+        if (work != NULL) {
             task = Task_Spawn(2, 0xC, 0, 0);
             if (task == NULL) {
-                memFree(mem);
+                memFree(work);
             } else {
-                end                 = (arg2 & 0xFF) << 8;
-                start               = (arg1 & 0xFF) << 8;
-                task->work          = mem;
-                mem->field_8        = arg0;
-                mem->field_4.as_s32 = start;
-                mem->field_0        = (end - start) / arg0;
+                end                   = (arg2 & 0xFF) << PAD_SCRIPT_LERP_FRACTION_BITS;
+                start                 = (arg1 & 0xFF) << PAD_SCRIPT_LERP_FRACTION_BITS;
+                task->work            = work;
+                work->framesRemaining = arg0;
+                work->intensity.q8    = start;
+                work->intensityStep   = (end - start) / arg0;
             }
         }
     }
@@ -230,34 +240,34 @@ void Gp_SpawnPadLerp(s16 arg0, u8 arg1, u8 arg2)
 
 static void Gp_SpawnPadLerpScaled(s16 arg0, u8 arg1, u8 arg2, s16 arg3)
 {
-    Task*      task;
-    GpState0C* mem;
-    s32        start;
-    s32        end;
-    s16        scale;
-    s32        temp;
+    Task*               task;
+    _PadScriptLerpWork* work;
+    s32                 start;
+    s32                 end;
+    s16                 scale;
+    s32                 temp;
 
     if (arg0 != 0) {
-        mem = memCalloc(0xC, 0);
-        if (mem != NULL) {
+        work = memCalloc(sizeof(*work), 0);
+        if (work != NULL) {
             task = Task_Spawn(2, 0xC, 0, 0);
             if (task == NULL) {
-                memFree(mem);
+                memFree(work);
             } else {
-                task->work = mem;
+                task->work = work;
                 temp       = arg3 >> 3;
                 if (temp == 0) {
                     scale = 1;
                 } else {
                     scale = temp;
                 }
-                end                 = (arg2 & 0xFF) / scale;
-                start               = (arg1 & 0xFF) / scale;
-                end               <<= 8;
-                start             <<= 8;
-                mem->field_8        = arg0;
-                mem->field_4.as_s32 = start;
-                mem->field_0        = (end - start) / arg0;
+                end                   = (arg2 & 0xFF) / scale;
+                start                 = (arg1 & 0xFF) / scale;
+                end                 <<= PAD_SCRIPT_LERP_FRACTION_BITS;
+                start               <<= PAD_SCRIPT_LERP_FRACTION_BITS;
+                work->framesRemaining = arg0;
+                work->intensity.q8    = start;
+                work->intensityStep   = (end - start) / arg0;
             }
         }
     }
@@ -419,14 +429,15 @@ void Gp_PadHoldTask(Task* task)
 
 void Gp_PadLerpTask(Task* task)
 {
-    GpState0C* state;
+    _PadScriptLerpWork* work;
 
-    state = (GpState0C*)task->work;
+    work = task->work;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING || (gGameSession->padScriptFlags & GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE)) {
-        if (state->field_8 != 0 && Gp_PadLerpHalt == 0) {
-            state->field_8--;
-            Pad_PostEvent(0, 1, state->field_4.bytes.as_u8, 1);
-            state->field_4.as_s32        += state->field_0;
+        if (work->framesRemaining != 0 && Gp_PadLerpHalt == 0) {
+            // Post this frame's whole intensity to the variable motor, then advance the ramp.
+            work->framesRemaining--;
+            Pad_PostEvent(0, 1, work->intensity.bytes.whole, 1);
+            work->intensity.q8           += work->intensityStep;
             gGameSession->padScriptFlags |= GAME_SESSION_PAD_SCRIPT_LERP_ACTIVE;
         } else {
             gGameSession->padScriptFlags &= ~GAME_SESSION_PAD_SCRIPT_LERP_ACTIVE;
