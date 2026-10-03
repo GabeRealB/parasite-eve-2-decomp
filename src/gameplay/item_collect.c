@@ -414,7 +414,7 @@ static void func_800BBB54(Task* arg0)
 
         sess    = gGameSession;
         banks   = Gp_Bit2Banks;
-        id      = ((GpItemObj8*)arg0->spawnArg2.pointer)->field_8;
+        id      = (u8)((Enemy*)arg0->spawnArg2.pointer)->placeKey;
         p       = banks[sess->location.loc.stage].field_4;
         indexed = p + (id >> 4);
         shift   = (id & 0xF) * 2;
@@ -441,7 +441,7 @@ void Gp_WaitItemFlag2(Task* arg0)
         u32* p;
         s32  shift;
 
-        id    = ((GpItemObj8*)arg0->spawnArg2.pointer)->field_8;
+        id    = (u8)((Enemy*)arg0->spawnArg2.pointer)->placeKey;
         stage = gGameSession->location.loc.stage;
         p     = &Gp_Bit2Banks[stage].field_4[id >> 4];
         shift = (id & 0xF) * 2;

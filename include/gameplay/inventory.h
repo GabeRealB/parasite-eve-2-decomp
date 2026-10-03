@@ -95,18 +95,6 @@ typedef struct {
 } PlayerModeBaseStats;
 STATIC_ASSERT_SIZEOF(PlayerModeBaseStats, 0x8);
 
-/// Object at `Task::spawnArg2` for `Gp_BindItemObj2` / `Gp_PublishItemObj` /
-/// `Gp_PickupResultTask` / `Gp_WaitItemFlag2`. `field_8` is the packed item id passed
-/// to `Gp_GetCurBit2Flag` (and inlined by `Gp_WaitItemFlag2`).
-/// `field_A` is the item/location halfword copied into `Gp_PubItemLoc` by
-/// `Gp_PublishItemObj` and cleared by `Gp_PickupResultTask` on the cancel path.
-typedef struct _GpItemObj8 {
-    /* 0x00 */ byte pad_0[8];
-    /* 0x08 */ u8   field_8;
-    /* 0x09 */ byte pad_9;
-    /* 0x0A */ u16  field_A;
-} GpItemObj8;
-
 /// Low-nibble item subtypes used by inventory icons and ammunition labels.
 ///
 /// The subtype's meaning depends on the catalogue category: medicine uses 1,

@@ -14,9 +14,9 @@
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/enemy.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
-#include "gameplay/inventory.h"
 #include "gameplay/items.h"
 #include "gameplay/light.h"
 #include "gameplay/message.h"
@@ -1645,18 +1645,18 @@ WorldCollisionSurfaceProperties* D_dryfield_junk_yard_80181C28[8] = {
     D_dryfield_junk_yard_80181C18,
 };
 
-/// Model task tick: reads the 2-bit game flag named by the spawn object's
-/// `field_8`, clears the model's flags and sets them to 0x84 when the flag
+/// Model task tick: reads the 2-bit game flag named by the low byte of the
+/// spawned `Enemy`'s `placeKey`, clears the model's flags and sets them to 0x84 when the flag
 /// reads 2 (otherwise zeroing `otOffset`), then runs the model's draw below.
 void func_dryfield_junk_yard_8017D5F4(Task* task)
 {
-    GpItemObj8* obj;
-    TmdObject*  tmd;
-    s32         flag;
+    Enemy*     enemy;
+    TmdObject* tmd;
+    s32        flag;
 
-    obj        = (GpItemObj8*)task->spawnArg2.pointer;
+    enemy      = task->spawnArg2.pointer;
     tmd        = task->extra.tmd;
-    flag       = Gp_GetCurBit2Flag(obj->field_8);
+    flag       = Gp_GetCurBit2Flag((u8)enemy->placeKey);
     tmd->flags = 0;
     if (flag == 2) {
         tmd->flags = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);

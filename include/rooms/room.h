@@ -167,14 +167,6 @@ typedef struct {
 } RoomCompactWaterSurface;
 STATIC_ASSERT_SIZEOF(RoomCompactWaterSurface, 0xA);
 
-/// The spawn argument of a room model task whose visibility follows a 2-bit
-/// game flag: the task hides its model while the flag `flagId` names reads 2.
-/// Nothing else of the record is read.
-typedef struct RoomFlagModelArg {
-    u8 unk0[8];
-    u8 flagId;
-} RoomFlagModelArg;
-
 /// The work block a room's streamed-scene task allocates at `Task::work`. The
 /// task walks the translation of `mtx` along the scene's path table once per
 /// streamed frame, addresses its messages to `target`, the task in pointer

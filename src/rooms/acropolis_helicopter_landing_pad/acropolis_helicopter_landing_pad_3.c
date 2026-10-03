@@ -20,9 +20,9 @@
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/effects.h"
+#include "gameplay/enemy.h"
 #include "gameplay/evs.h"
 #include "gameplay/hud_sprites.h"
-#include "gameplay/inventory.h"
 #include "gameplay/items.h"
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
@@ -1545,13 +1545,13 @@ void func_acropolis_helicopter_landing_pad_801818F0(Task* arg0)
 /// fetched and ignored.
 void func_acropolis_helicopter_landing_pad_801822B0(Task* task)
 {
-    GpItemObj8* obj;
-    TmdObject*  tmd;
-    s32         flag;
+    Enemy*     enemy;
+    TmdObject* tmd;
+    s32        flag;
 
-    obj  = (GpItemObj8*)task->spawnArg2.pointer;
-    tmd  = task->extra.tmd;
-    flag = Gp_GetCurBit2Flag(obj->field_8);
+    enemy = task->spawnArg2.pointer;
+    tmd   = task->extra.tmd;
+    flag  = Gp_GetCurBit2Flag((u8)enemy->placeKey);
     Gp_GetViewIndex();
     if (flag == 2) {
         tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;

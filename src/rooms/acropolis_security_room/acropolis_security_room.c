@@ -24,7 +24,7 @@
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
 #include "gameplay/effects.h"
-#include "gameplay/inventory.h"
+#include "gameplay/enemy.h"
 #include "gameplay/item_menu.h"
 #include "gameplay/gpu_image_upload.h"
 #include "gameplay/items.h"
@@ -3640,13 +3640,13 @@ void func_acropolis_security_room_801817A4(Task* task)
 /// hidden (flags 0x80).
 static void func_acropolis_security_room_80182574(Task* task)
 {
-    GpItemObj8* obj;
-    TmdObject*  tmd;
-    s32         flag;
+    Enemy*     enemy;
+    TmdObject* tmd;
+    s32        flag;
 
-    obj  = (GpItemObj8*)task->spawnArg2.pointer;
-    tmd  = task->extra.tmd;
-    flag = Gp_GetCurBit2Flag(obj->field_8);
+    enemy = task->spawnArg2.pointer;
+    tmd   = task->extra.tmd;
+    flag  = Gp_GetCurBit2Flag((u8)enemy->placeKey);
     Gp_GetViewIndex();
     if (flag == 2) {
         tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;

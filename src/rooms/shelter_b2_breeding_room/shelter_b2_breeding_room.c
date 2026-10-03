@@ -7,6 +7,7 @@
 
 #include "gameplay/captions.h"
 #include "gameplay/direction.h"
+#include "gameplay/enemy.h"
 #include "gameplay/items.h"
 #include "gameplay/message.h"
 #include "gameplay/object_task.h"
@@ -81,7 +82,7 @@ void func_shelter_b2_breeding_room_8017D5F8(Task* task)
 {
     TmdObject* obj = task->extra.tmd;
 
-    if (Gp_GetCurBit2Flag(((RoomFlagModelArg*)task->spawnArg2.pointer)->flagId) == 2) {
+    if (Gp_GetCurBit2Flag((u8)((Enemy*)task->spawnArg2.pointer)->placeKey) == 2) {
         obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
         obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;

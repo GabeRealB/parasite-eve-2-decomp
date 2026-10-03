@@ -18,8 +18,8 @@
 #include "gameplay/actor_render.h"
 #include "gameplay/area_flags.h"
 #include "gameplay/effects.h"
+#include "gameplay/enemy.h"
 #include "gameplay/hud_sprites.h"
-#include "gameplay/inventory.h"
 #include "gameplay/items.h"
 #include "gameplay/loading.h"
 #include "gameplay/room.h"
@@ -1526,12 +1526,12 @@ void func_acropolis_cafeteria_80181E70(Task* task)
 
 void func_acropolis_cafeteria_801827C4(Task* task)
 {
-    GpItemObj8* obj;
-    TmdObject*  tmd;
+    Enemy*     enemy;
+    TmdObject* tmd;
 
-    obj = (GpItemObj8*)task->spawnArg2.pointer;
-    tmd = task->extra.tmd;
-    if (Gp_GetCurBit2Flag(obj->field_8) != 2) {
+    enemy = task->spawnArg2.pointer;
+    tmd   = task->extra.tmd;
+    if (Gp_GetCurBit2Flag((u8)enemy->placeKey) != 2) {
         tmd->lightMtx = &D_acropolis_cafeteria_8018D5C0;
         tmd->colorMtx = &D_acropolis_cafeteria_8018D5A0;
         tmd->flags    = 0;
@@ -1552,18 +1552,18 @@ void func_acropolis_cafeteria_801827C4(Task* task)
 }
 void func_acropolis_cafeteria_8018286C(Task* task)
 {
-    GpItemObj8* obj;
-    TmdObject*  tmd;
-    s32         flag;
+    Enemy*     enemy;
+    TmdObject* tmd;
+    s32        flag;
 
-    obj  = (GpItemObj8*)task->spawnArg2.pointer;
-    tmd  = task->extra.tmd;
-    flag = Gp_GetCurBit2Flag(obj->field_8);
+    enemy = task->spawnArg2.pointer;
+    tmd   = task->extra.tmd;
+    flag  = Gp_GetCurBit2Flag((u8)enemy->placeKey);
     if ((Gp_GetViewIndex() & 0xFF) != 9) {
         tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         return;
     }
-    if (obj->field_8 == 0xA) {
+    if ((u8)enemy->placeKey == 0xA) {
         gfxRotMatrixX(&task->extra.tmd->coords->coord, 0x400, GRAPHICS_ROTATION_REPLACE);
     }
     tmd->lightMtx = &D_acropolis_cafeteria_8018D600;

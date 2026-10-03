@@ -21,9 +21,9 @@
 #include "gameplay/direction.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
+#include "gameplay/enemy.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
-#include "gameplay/inventory.h"
 #include "gameplay/items.h"
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
@@ -1664,15 +1664,15 @@ void func_acropolis_roof_garden_8017F10C(Task* task)
 /// comparisons are not folded into one unsigned range check.
 void func_acropolis_roof_garden_80180160(Task* task)
 {
-    GpItemObj8* obj;
-    TmdObject*  tmd;
-    s32         flag;
-    s32         view;
+    Enemy*     enemy;
+    TmdObject* tmd;
+    s32        flag;
+    s32        view;
 
-    obj  = (GpItemObj8*)task->spawnArg2.pointer;
-    tmd  = task->extra.tmd;
-    flag = Gp_GetCurBit2Flag(obj->field_8);
-    view = Gp_GetViewIndex();
+    enemy = task->spawnArg2.pointer;
+    tmd   = task->extra.tmd;
+    flag  = Gp_GetCurBit2Flag((u8)enemy->placeKey);
+    view  = Gp_GetViewIndex();
     if (view >= 8) {
         tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else if (view < 5) {

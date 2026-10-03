@@ -35,8 +35,9 @@ void func_800BD6DC(UiList* arg0, UiObject* arg1);
 /// `field_23+0x5F`) opens prompt `7`; otherwise `result = 0x23`.
 void Gp_ItemActionConfirm(UiList* arg0, UiObject* arg1);
 
-/// First state of the `D_80096E70` dispatcher. Copies `field_8` /
-/// `field_A` into `Gp_PubItemId` / `Gp_PubItemLoc`, remaps owned 0x60–0x7F
+/// First state of the `D_80096E70` dispatcher. `spawnArg2` is the picked-up
+/// object's `Enemy`: copies the low byte of its `placeKey` and its `workType`
+/// into `Gp_PubItemId` / `Gp_PubItemLoc`, remaps owned 0x60–0x7F
 /// items to 0xD and 0x80–0x9F items to 0x3D, then publishes a stack
 /// count in `Gp_PubItemQty`.
 void Gp_PublishItemObj(Task* arg0);

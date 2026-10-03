@@ -8,6 +8,7 @@
 
 #include "gameplay/actor_render.h"
 #include "cap.h"
+#include "gameplay/enemy.h"
 #include "gameplay/inventory.h"
 #include "item_menu.h"
 #include "item_use.h"
@@ -1309,7 +1310,9 @@ void Gp_ItemMenuPrompt(UiList* arg0, UiObject* arg1)
     }
 }
 
-/// Task callback. `extra` is a `TmdObject`; `spawnArg2` is a `GpItemObj8`.
+/// Task callback. `extra` is a `TmdObject`; `spawnArg2` is the placed object's
+/// `Enemy`, whose `placeKey` low byte names its 2-bit flag and whose `workType`
+/// is the `AreaObjectPlace.kind` it was spawned from.
 /// Tilts `coords[2]` (a `GfxCoord`) while playing a location-specific
 /// type-6 sound, then signals `extraState` (`CapActionRequest.done = 1`) when
 /// the motion returns to 0.
@@ -1317,7 +1320,7 @@ void Gp_ItemPickupTilt(Task* arg0)
 {
     GameSession*      session;
     TmdObject*        extra;
-    GpItemObj8*       obj;
+    Enemy*            enemy;
     GfxCoord*         coord;
     GfxCoord*         rot;
     VECTOR            vec;
@@ -1330,10 +1333,10 @@ void Gp_ItemPickupTilt(Task* arg0)
     u16               item;
 
     extra        = arg0->extra.tmd;
-    obj          = arg0->spawnArg2.pointer;
+    enemy        = arg0->spawnArg2.pointer;
     session      = gGameSession;
     stageAreaKey = GAME_LOCATION_WORD(session->location.loc) & GAME_LOCATION_STAGE_AREA_VIEW_MASK;
-    item         = obj->field_A;
+    item         = enemy->workType;
     coord        = extra->coords;
     rot          = coord + 2;
     room         = *&session->location.loc.view;
@@ -1372,7 +1375,7 @@ void Gp_ItemPickupTilt(Task* arg0)
         extra->flags   = 0;
         arg0->state++;
     } else if (arg0->state == 1) {
-        if (Gp_GetCurBit2Flag(obj->field_8) != 2) {
+        if (Gp_GetCurBit2Flag((u8)enemy->placeKey) != 2) {
             if (arg0->status != 0) {
                 arg0->killCountdown = 0;
                 switch (stageAreaKey) {
@@ -1630,14 +1633,14 @@ void Gp_HolderPromptTask(Task* arg0)
 
 s32 Gp_BindItemObj2(Task* arg0, s32 arg1, CapActionRequest* request)
 {
-    s32         flag;
-    GpItemObj8* obj;
+    s32    flag;
+    Enemy* enemy;
 
-    obj                      = arg0->spawnArg2.pointer;
+    enemy                    = arg0->spawnArg2.pointer;
     flag                     = 1;
     arg0->status             = flag;
     arg0->extraState.pointer = request;
-    if (Gp_GetCurBit2Flag(obj->field_8) == 2) {
+    if (Gp_GetCurBit2Flag((u8)enemy->placeKey) == 2) {
         request->done = flag;
     }
     return 0;
@@ -1645,12 +1648,12 @@ s32 Gp_BindItemObj2(Task* arg0, s32 arg1, CapActionRequest* request)
 
 void Gp_PublishItemObj(Task* arg0)
 {
-    GpItemObj8* obj = arg0->spawnArg2.pointer;
-    s32         count;
+    Enemy* enemy = arg0->spawnArg2.pointer;
+    s32    count;
 
-    Gp_PubItemId  = obj->field_8;
-    Gp_PubItemLoc = obj->field_A;
-    if (obj->field_A < 0xA0) {
+    Gp_PubItemId  = (u8)enemy->placeKey;
+    Gp_PubItemLoc = enemy->workType;
+    if (enemy->workType < 0xA0) {
         if (Gp_PubItemLoc >= 0x60 && Gp_PubItemLoc < 0x80) {
             if (func_800B7420(Gp_PubItemLoc) != 0) {
                 Gp_PubItemLoc = 0xD;

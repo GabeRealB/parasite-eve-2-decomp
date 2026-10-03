@@ -9,6 +9,7 @@
 
 #include "attachments.h"
 #include "gameplay/attachment_state.h"
+#include "gameplay/enemy.h"
 #include "gameplay/inventory.h"
 #include "item_menu.h"
 #include "item_use.h"
@@ -1811,23 +1812,23 @@ void Gp_SpawnPickupUiTask(Task* arg0)
 
 void Gp_PickupResultTask(Task* arg0)
 {
-    UiObject*   obj;
-    GpItemObj8* work;
+    UiObject* obj;
+    Enemy*    enemy;
 
-    obj  = arg0->spawnArg1.pointer;
-    work = arg0->spawnArg2.pointer;
+    obj   = arg0->spawnArg1.pointer;
+    enemy = arg0->spawnArg2.pointer;
     switch (obj->result) {
         case USER_INTERFACE_RESULT_CANCEL:
             if (obj->resultValue == 0x33) {
-                work->field_A = 0;
+                enemy->workType = 0;
             }
         case USER_INTERFACE_RESULT_CONFIRM:
             switch (Gp_PubItemLoc >> 8) {
                 case 0:
                 case 1:
                     if (obj->resultValue == 0x33) {
-                        if (Gp_GetCurBit2Flag(work->field_8) != 3) {
-                            Gp_SetCurBit2Flag(work->field_8, 2);
+                        if (Gp_GetCurBit2Flag((u8)enemy->placeKey) != 3) {
+                            Gp_SetCurBit2Flag((u8)enemy->placeKey, 2);
                         }
                     }
                     break;

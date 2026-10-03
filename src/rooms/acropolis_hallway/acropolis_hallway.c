@@ -14,7 +14,7 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/inventory.h"
+#include "gameplay/enemy.h"
 #include "gameplay/items.h"
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
@@ -465,13 +465,13 @@ void func_acropolis_hallway_8017D828(Task* unused)
 /// (already taken).
 void func_acropolis_hallway_8017E120(Task* task)
 {
-    GpItemObj8* obj;
-    TmdObject*  tmd;
-    s32         flag;
+    Enemy*     enemy;
+    TmdObject* tmd;
+    s32        flag;
 
-    obj  = (GpItemObj8*)task->spawnArg2.pointer;
-    tmd  = task->extra.tmd;
-    flag = Gp_GetCurBit2Flag(obj->field_8);
+    enemy = task->spawnArg2.pointer;
+    tmd   = task->extra.tmd;
+    flag  = Gp_GetCurBit2Flag((u8)enemy->placeKey);
     if (task->state == 0) {
         tmd->flags    = TMD_OBJECT_FLAGGED_PASS;
         tmd->otOffset = 0;
@@ -493,13 +493,13 @@ void func_acropolis_hallway_8017E120(Task* task)
 /// index is fetched but unused.
 static void func_acropolis_hallway_8017E1C0(Task* task)
 {
-    GpItemObj8* obj;
-    TmdObject*  tmd;
-    s32         flag;
+    Enemy*     enemy;
+    TmdObject* tmd;
+    s32        flag;
 
-    obj  = (GpItemObj8*)task->spawnArg2.pointer;
-    tmd  = task->extra.tmd;
-    flag = Gp_GetCurBit2Flag(obj->field_8);
+    enemy = task->spawnArg2.pointer;
+    tmd   = task->extra.tmd;
+    flag  = Gp_GetCurBit2Flag((u8)enemy->placeKey);
     Gp_GetViewIndex();
     if (flag == 2) {
         tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;

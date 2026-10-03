@@ -26,9 +26,9 @@
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/effects.h"
+#include "gameplay/enemy.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
-#include "gameplay/inventory.h"
 #include "gameplay/items.h"
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
@@ -2622,12 +2622,12 @@ s32 func_acropolis_sanctuary_8017F918(Task* task, s32 msgId, TaskMessageArg arg2
 /// default flags.
 void func_acropolis_sanctuary_80180264(Task* task)
 {
-    GpItemObj8* obj = task->spawnArg2.pointer;
-    TmdObject*  tmd = task->extra.tmd;
-    s32         flag;
-    s32         view;
+    Enemy*     enemy = task->spawnArg2.pointer;
+    TmdObject* tmd   = task->extra.tmd;
+    s32        flag;
+    s32        view;
 
-    flag = Gp_GetCurBit2Flag(obj->field_8);
+    flag = Gp_GetCurBit2Flag((u8)enemy->placeKey);
     view = Gp_GetViewIndex();
     if (view == 0xB || view == 0xD || flag == 2) {
         tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -2642,13 +2642,13 @@ void func_acropolis_sanctuary_80180264(Task* task)
 /// with the default flags. The current view is queried but not used.
 static void func_acropolis_sanctuary_801802E0(Task* task)
 {
-    GpItemObj8* obj;
-    TmdObject*  tmd;
-    s32         flag;
+    Enemy*     enemy;
+    TmdObject* tmd;
+    s32        flag;
 
-    obj  = (GpItemObj8*)task->spawnArg2.pointer;
-    tmd  = task->extra.tmd;
-    flag = Gp_GetCurBit2Flag(obj->field_8);
+    enemy = task->spawnArg2.pointer;
+    tmd   = task->extra.tmd;
+    flag  = Gp_GetCurBit2Flag((u8)enemy->placeKey);
     Gp_GetViewIndex();
     if (flag == 2) {
         tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
