@@ -65,15 +65,6 @@
 #define D_shelter_b4_water_supply_801826C0 (D_shelter_b4_water_supply_80182690 + 6)
 #define D_shelter_b4_water_supply_801826D0 (D_shelter_b4_water_supply_80182690 + 8)
 
-/// Block the room task `func_shelter_b4_water_supply_8017EE54` receives as
-/// `spawnArg2`. Only the halfword at 0x26 is touched there: an effect
-/// strength, set from how far a tracked part moved this frame and used as the
-/// odds of spawning each of the two effects.
-typedef struct _ShelterB4WaterSupplySplash {
-    byte pad_0[0x26];
-    s16  strength;
-} _ShelterB4WaterSupplySplash;
-
 /// Descriptor of the departure task spawned once the event block is staged.
 extern TaskDesc D_shelter_b4_water_supply_801825E4;
 
@@ -1204,13 +1195,13 @@ static void func_shelter_b4_water_supply_8017EDD0(Task* task)
 /// `glowDrawCone`.
 void func_shelter_b4_water_supply_8017EE54(Task* arg0)
 {
-    Task*                        ctl;
-    _ShelterB4WaterSupplySplash* splash;
-    GfxCoord*                    ctlCoords;
-    GfxCoord*                    part;
-    GfxCoord                     surface;
-    s32                          i;
-    u32                          rnd;
+    Task*                 ctl;
+    RoomWaterSplashBlock* splash;
+    GfxCoord*             ctlCoords;
+    GfxCoord*             part;
+    GfxCoord              surface;
+    s32                   i;
+    u32                   rnd;
 
     splash    = arg0->spawnArg2.pointer;
     ctl       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);

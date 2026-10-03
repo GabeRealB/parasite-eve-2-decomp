@@ -70,14 +70,6 @@ typedef struct {
 } _DryfieldWaterHoleSpotLightStorage;
 STATIC_ASSERT_SIZEOF(_DryfieldWaterHoleSpotLightStorage, 648);
 
-/// Block the room's splash task receives as `spawnArg2`. Only the halfword at
-/// 0x26 is touched: an effect strength, set from how far a tracked part moved
-/// this frame and used as the odds of spawning each of the two effects.
-typedef struct {
-    byte pad_0[0x26];
-    s16  strength;
-} _DryfieldWaterHoleSplash;
-
 /// The room's message table, the `TaskMessageEntry` list the room task publishes in
 /// `Task::msgTable` for `taskMessageDispatch` to walk: 0x13EE, 0x13F1, 0x13EF, 0x13F0
 /// and 0x13F2.
@@ -1422,16 +1414,16 @@ void waterHoleWaterStart(Task* arg0)
 /// current view selects.
 void func_dryfield_water_hole_8017E040(Task* arg0)
 {
-    Task*                     ctl;
-    s32                       mask;
-    _DryfieldWaterHoleSplash* splash;
-    GfxCoord*                 coord;
-    GfxCoord*                 ctlCoords;
-    GfxCoord*                 part;
-    GfxCoord*                 view;
-    GfxCoord                  surface;
-    s32                       i;
-    u32                       rnd;
+    Task*                 ctl;
+    s32                   mask;
+    RoomWaterSplashBlock* splash;
+    GfxCoord*             coord;
+    GfxCoord*             ctlCoords;
+    GfxCoord*             part;
+    GfxCoord*             view;
+    GfxCoord              surface;
+    s32                   i;
+    u32                   rnd;
 
     ctl       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     mask      = 1 << gGameSession->location.loc.view;

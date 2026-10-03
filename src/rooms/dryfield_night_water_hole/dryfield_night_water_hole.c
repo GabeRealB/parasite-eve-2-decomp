@@ -100,14 +100,6 @@ typedef struct DnwhParamOverride {
 } DnwhParamOverride;
 STATIC_ASSERT_SIZEOF(DnwhParamOverride, 0x8);
 
-/// Block the room's splash task receives as `spawnArg2`. Only the halfword at
-/// 0x26 is touched: an effect strength, set from how far a tracked part moved
-/// this frame and used as the odds of spawning each of the two effects.
-typedef struct _DryfieldNightWaterHoleSplash {
-    byte pad_0[0x26];
-    s16  strength;
-} _DryfieldNightWaterHoleSplash;
-
 /// Resident task table the ending task is spawned from, descriptor 1.
 extern TaskDesc D_801351FC[];
 
@@ -1240,15 +1232,15 @@ void waterHoleWaterStart(Task* arg0)
 /// the current view selects.
 void func_dryfield_night_water_hole_8017E6D0(Task* arg0)
 {
-    Task*                          ctl;
-    s32                            mask;
-    _DryfieldNightWaterHoleSplash* splash;
-    GfxCoord*                      ctlCoords;
-    GfxCoord*                      part;
-    GfxCoord*                      view;
-    GfxCoord                       surface;
-    s32                            i;
-    u32                            rnd;
+    Task*                 ctl;
+    s32                   mask;
+    RoomWaterSplashBlock* splash;
+    GfxCoord*             ctlCoords;
+    GfxCoord*             part;
+    GfxCoord*             view;
+    GfxCoord              surface;
+    s32                   i;
+    u32                   rnd;
 
     ctl       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     splash    = arg0->spawnArg2.pointer;

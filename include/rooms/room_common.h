@@ -483,4 +483,13 @@ typedef struct {
 } RoomAmbienceEntry;
 STATIC_ASSERT_SIZEOF(RoomAmbienceEntry, 0x8);
 
+/// Block a room's water-splash task receives as `spawnArg2`. Only the
+/// halfword at 0x26 is touched: an effect strength, set from how far a tracked
+/// part moved this frame and used as the odds of spawning each of the two
+/// effects. What the block is beyond that is unproven.
+typedef struct RoomWaterSplashBlock {
+    byte pad_0[0x26];
+    s16  strength;
+} RoomWaterSplashBlock;
+
 #endif // INCLUDE_ROOMS_ROOM_COMMON_H
