@@ -18313,41 +18313,43 @@ separate. Also avoids `move a0, v0` after `CdCmd_PollStatus` that appears when
 
 `CdCmd_HandleFileLoad` is the pure example (paired with the busy-temp tip above).
 
-## Reuse one pointer across Task* → field_20 → UiObject* for `$a0`/`lw a0,0x20(a0)`
+## Pin the child task to `$a0` for `lw a0,0x20(a0)` with a separate UI-object pointer
 
 When the target does:
 
 ```
-lw    a0, 0xc(s2)      # child = task->field_c
+lw    a0, 0xc(s2)      # childTask = task->firstChild
 nop
 bnez  a0, else
  li    v0, 6           # else-only constant in delay slot
 # null fall-through: spawn UI into a0, ...
 else:
-lw    a0, 0x20(a0)     # childObj = child->field_20 (same reg)
+lw    a0, 0x20(a0)     # childObject = childTask->spawnArg2.pointer (same reg)
 lh    v1, 0x2e(a0)
 nop
 bne   v1, v0, skip
 ```
 
-Separate `Task* child` and `UiObject* childObj` variables put the child in
+Unpinned `Task* childTask` and `UiObject* childObject` variables put the child in
 `$v0`, so `li v0, 6` cannot ride in the outer delay slot and the else path
 becomes `lw a0, 0x20(v0)`.
 
-Fix: one pointer reused for both roles (cast through `Task*` for `field_20`):
+Fix: pin the child-task lookup to `$a0`. After that pointer's last use, the
+separate UI-object pointer reuses the register without a cast or a union:
 
 ```c
-UiObject* p;
+register Task* childTask asm("a0");
+UiObject* childObject;
 
-p = (UiObject*)arg0->field_c;
-if (p == NULL) {
-    p = Ui_SpawnFromDesc(...);
+childTask = task->firstChild;
+if (childTask == NULL) {
+    childObject = Ui_SpawnFromDesc(...);
     /* ... */
     return 0;
 }
-p = ((Task*)p)->field_20;
-if (p->result == 6) {
-    /* ...; Ui_TeardownTree(p, p->field_28) keeps p in $a0 */
+childObject = childTask->spawnArg2.pointer;
+if (childObject->result == USER_INTERFACE_RESULT_CONFIRM) {
+    /* ...; Ui_TeardownTree(childObject, childObject->owner) keeps it in $a0 */
 }
 return obj->resultValue;
 ```

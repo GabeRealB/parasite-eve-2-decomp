@@ -46,15 +46,6 @@ typedef struct {
 } McPromptPair;
 STATIC_ASSERT_SIZEOF(McPromptPair, 0x8);
 
-/// Prompt helpers first locate a child task, then replace this handle with
-/// its UI object (or a newly spawned object). Each phase reads the member it
-/// assigned; the task and UI object are never reinterpreted as each other.
-typedef union {
-    Task*     task;
-    UiObject* object;
-} McPromptChild;
-STATIC_ASSERT_SIZEOF(McPromptChild, 4);
-
 /// Generic view of a checksummed save record: a four-byte checksum header
 /// followed by the payload it covers.
 ///
@@ -858,12 +849,13 @@ void Mc_InitBufferSlots(void)
 /// Prompt + optional choice dialog (Mc_PromptTable[mode]).
 static s32 Mc_PromptDialog(Task* task, s32 arg1, s32 unused3)
 {
-    s32           ret;
-    s32           one;
-    UiObject*     obj;
-    McPromptChild child;
-    McPromptPair* entry;
-    McPromptPair* base;
+    s32            ret;
+    s32            one;
+    UiObject*      obj;
+    register Task* childTask asm("a0");
+    UiObject*      childObject;
+    McPromptPair*  entry;
+    McPromptPair*  base;
 
     obj         = task->spawnArg2.pointer;
     ret         = Ui_LookupTable(obj, 1);
@@ -875,21 +867,22 @@ static s32 Mc_PromptDialog(Task* task, s32 arg1, s32 unused3)
     Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, one, TEXT_ALIGNMENT_LEFT);
     Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, one, TEXT_ALIGNMENT_LEFT);
 
-    child.task = task->firstChild;
-    if (child.task == NULL) {
-        child.object = Ui_SpawnFromDesc(Mc_PromptDesc, one, one, 2, obj);
-        if (child.object != NULL) {
-            child.object->panel.bounds.unsignedRect.x = (obj->panel.contentOriginX.unsignedValue + obj->panel.contentRight.unsignedValue + 5) - child.object->panel.bounds.unsignedRect.w;
-            child.object->panel.bounds.unsignedRect.y = obj->panel.contentOriginY.unsignedValue + obj->panel.contentBottom.unsignedValue + 8;
-            obj->resultValue                          = 0;
-            obj->panel.control.word                   = USER_INTERFACE_PANEL_INACTIVE;
+    childTask = task->firstChild;
+    if (childTask == NULL) {
+        childObject = Ui_SpawnFromDesc(Mc_PromptDesc, one, one, 2, obj);
+        if (childObject != NULL) {
+            childObject->panel.bounds.unsignedRect.x = (obj->panel.contentOriginX.unsignedValue + obj->panel.contentRight.unsignedValue + 5) - childObject->panel.bounds.unsignedRect.w;
+            childObject->panel.bounds.unsignedRect.y = obj->panel.contentOriginY.unsignedValue + obj->panel.contentBottom.unsignedValue + 8;
+            obj->resultValue                         = 0;
+            obj->panel.control.word                  = USER_INTERFACE_PANEL_INACTIVE;
         }
         return 0;
     }
-    child.object = child.task->spawnArg2.pointer;
-    if (child.object->result == USER_INTERFACE_RESULT_CONFIRM) {
-        obj->resultValue = child.object->resultValue;
-        Ui_TeardownTree(child.object, child.object->owner);
+    // Borrow the child task's separate UI object until closing begins.
+    childObject = childTask->spawnArg2.pointer;
+    if (childObject->result == USER_INTERFACE_RESULT_CONFIRM) {
+        obj->resultValue = childObject->resultValue;
+        Ui_TeardownTree(childObject, childObject->owner);
         obj->panel.control.word = one;
     }
     return obj->resultValue;
@@ -897,12 +890,13 @@ static s32 Mc_PromptDialog(Task* task, s32 arg1, s32 unused3)
 
 static s32 Mc_PromptDialogChoice(Task* task, s32 arg1, s32 unused3)
 {
-    s32           ret;
-    s32           one;
-    UiObject*     obj;
-    McPromptChild child;
-    McPromptPair* entry;
-    McPromptPair* base;
+    s32            ret;
+    s32            one;
+    UiObject*      obj;
+    register Task* childTask asm("a0");
+    UiObject*      childObject;
+    McPromptPair*  entry;
+    McPromptPair*  base;
 
     obj         = task->spawnArg2.pointer;
     ret         = Ui_LookupTable(obj, 1);
@@ -914,21 +908,22 @@ static s32 Mc_PromptDialogChoice(Task* task, s32 arg1, s32 unused3)
     Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, one, TEXT_ALIGNMENT_LEFT);
     Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, one, TEXT_ALIGNMENT_LEFT);
 
-    child.task = task->firstChild;
-    if (child.task == NULL) {
-        child.object = Ui_SpawnFromDesc(Mc_PromptDesc, 0, one, 2, obj);
-        if (child.object != NULL) {
-            child.object->panel.bounds.unsignedRect.x = (obj->panel.contentOriginX.unsignedValue + obj->panel.contentRight.unsignedValue + 5) - child.object->panel.bounds.unsignedRect.w;
-            child.object->panel.bounds.unsignedRect.y = obj->panel.contentOriginY.unsignedValue + obj->panel.contentBottom.unsignedValue + 0x10;
-            obj->resultValue                          = 0;
-            obj->panel.control.word                   = USER_INTERFACE_PANEL_INACTIVE;
+    childTask = task->firstChild;
+    if (childTask == NULL) {
+        childObject = Ui_SpawnFromDesc(Mc_PromptDesc, 0, one, 2, obj);
+        if (childObject != NULL) {
+            childObject->panel.bounds.unsignedRect.x = (obj->panel.contentOriginX.unsignedValue + obj->panel.contentRight.unsignedValue + 5) - childObject->panel.bounds.unsignedRect.w;
+            childObject->panel.bounds.unsignedRect.y = obj->panel.contentOriginY.unsignedValue + obj->panel.contentBottom.unsignedValue + 0x10;
+            obj->resultValue                         = 0;
+            obj->panel.control.word                  = USER_INTERFACE_PANEL_INACTIVE;
         }
         return 0;
     }
-    child.object = child.task->spawnArg2.pointer;
-    if (child.object->result == USER_INTERFACE_RESULT_CONFIRM) {
-        obj->resultValue = child.object->resultValue;
-        Ui_TeardownTree(child.object, child.object->owner);
+    // Borrow the child task's separate UI object until closing begins.
+    childObject = childTask->spawnArg2.pointer;
+    if (childObject->result == USER_INTERFACE_RESULT_CONFIRM) {
+        obj->resultValue = childObject->resultValue;
+        Ui_TeardownTree(childObject, childObject->owner);
         obj->panel.control.word = one;
     }
     return obj->resultValue;
@@ -936,12 +931,13 @@ static s32 Mc_PromptDialogChoice(Task* task, s32 arg1, s32 unused3)
 
 static s32 Mc_PromptDialogSpawn(Task* task, s32 arg1, s32 unused3)
 {
-    s32           ret;
-    s32           one;
-    UiObject*     obj;
-    McPromptChild child;
-    McPromptPair* entry;
-    McPromptPair* base;
+    s32            ret;
+    s32            one;
+    UiObject*      obj;
+    register Task* childTask asm("a0");
+    UiObject*      childObject;
+    McPromptPair*  entry;
+    McPromptPair*  base;
 
     obj         = task->spawnArg2.pointer;
     ret         = Ui_LookupTable(obj, 1);
@@ -953,21 +949,22 @@ static s32 Mc_PromptDialogSpawn(Task* task, s32 arg1, s32 unused3)
     Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, one, TEXT_ALIGNMENT_LEFT);
     Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, one, TEXT_ALIGNMENT_LEFT);
 
-    child.task = task->firstChild;
-    if (child.task == NULL) {
-        child.object = Ui_SpawnFromDesc(Mc_PromptDesc, 3, one, 2, obj);
-        if (child.object != NULL) {
-            child.object->panel.bounds.unsignedRect.x = (obj->panel.contentOriginX.unsignedValue + obj->panel.contentRight.unsignedValue + 5) - child.object->panel.bounds.unsignedRect.w;
-            child.object->panel.bounds.unsignedRect.y = obj->panel.contentOriginY.unsignedValue + obj->panel.contentBottom.unsignedValue + 0x10;
-            obj->resultValue                          = 0;
-            obj->panel.control.word                   = USER_INTERFACE_PANEL_INACTIVE;
+    childTask = task->firstChild;
+    if (childTask == NULL) {
+        childObject = Ui_SpawnFromDesc(Mc_PromptDesc, 3, one, 2, obj);
+        if (childObject != NULL) {
+            childObject->panel.bounds.unsignedRect.x = (obj->panel.contentOriginX.unsignedValue + obj->panel.contentRight.unsignedValue + 5) - childObject->panel.bounds.unsignedRect.w;
+            childObject->panel.bounds.unsignedRect.y = obj->panel.contentOriginY.unsignedValue + obj->panel.contentBottom.unsignedValue + 0x10;
+            obj->resultValue                         = 0;
+            obj->panel.control.word                  = USER_INTERFACE_PANEL_INACTIVE;
         }
         return 0;
     }
-    child.object = child.task->spawnArg2.pointer;
-    if (child.object->result == USER_INTERFACE_RESULT_CONFIRM) {
-        obj->resultValue = child.object->resultValue;
-        Ui_TeardownTree(child.object, child.object->owner);
+    // Borrow the child task's separate UI object until closing begins.
+    childObject = childTask->spawnArg2.pointer;
+    if (childObject->result == USER_INTERFACE_RESULT_CONFIRM) {
+        obj->resultValue = childObject->resultValue;
+        Ui_TeardownTree(childObject, childObject->owner);
         obj->panel.control.word = one;
     }
     return obj->resultValue;
@@ -975,12 +972,13 @@ static s32 Mc_PromptDialogSpawn(Task* task, s32 arg1, s32 unused3)
 
 static s32 Mc_PromptDialogFile(Task* task, s32 arg1, s32 unused3)
 {
-    s32           ret;
-    s32           one;
-    UiObject*     obj;
-    McPromptChild child;
-    McPromptPair* entry;
-    McPromptPair* base;
+    s32            ret;
+    s32            one;
+    UiObject*      obj;
+    register Task* childTask asm("a0");
+    UiObject*      childObject;
+    McPromptPair*  entry;
+    McPromptPair*  base;
 
     obj         = task->spawnArg2.pointer;
     ret         = Ui_LookupTable(obj, 1);
@@ -992,22 +990,23 @@ static s32 Mc_PromptDialogFile(Task* task, s32 arg1, s32 unused3)
     Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, one, TEXT_ALIGNMENT_LEFT);
     Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, one, TEXT_ALIGNMENT_LEFT);
 
-    child.task = task->firstChild;
-    if (child.task == NULL) {
-        child.object = Ui_SpawnFromDesc(Mc_PromptDesc, 2, one, 2, obj);
-        if (child.object != NULL) {
-            child.object->panel.bounds.unsignedRect.h = 0x12;
-            child.object->panel.bounds.unsignedRect.x = (obj->panel.contentOriginX.unsignedValue + obj->panel.contentRight.unsignedValue + 5) - child.object->panel.bounds.unsignedRect.w;
-            child.object->panel.bounds.unsignedRect.y = obj->panel.contentOriginY.unsignedValue + obj->panel.contentBottom.unsignedValue + 8;
-            obj->resultValue                          = 0;
-            obj->panel.control.word                   = USER_INTERFACE_PANEL_INACTIVE;
+    childTask = task->firstChild;
+    if (childTask == NULL) {
+        childObject = Ui_SpawnFromDesc(Mc_PromptDesc, 2, one, 2, obj);
+        if (childObject != NULL) {
+            childObject->panel.bounds.unsignedRect.h = 0x12;
+            childObject->panel.bounds.unsignedRect.x = (obj->panel.contentOriginX.unsignedValue + obj->panel.contentRight.unsignedValue + 5) - childObject->panel.bounds.unsignedRect.w;
+            childObject->panel.bounds.unsignedRect.y = obj->panel.contentOriginY.unsignedValue + obj->panel.contentBottom.unsignedValue + 8;
+            obj->resultValue                         = 0;
+            obj->panel.control.word                  = USER_INTERFACE_PANEL_INACTIVE;
         }
         return 0;
     }
-    child.object = child.task->spawnArg2.pointer;
-    if (child.object->result == USER_INTERFACE_RESULT_CONFIRM) {
-        obj->resultValue = child.object->resultValue;
-        Ui_TeardownTree(child.object, child.object->owner);
+    // Borrow the child task's separate UI object until closing begins.
+    childObject = childTask->spawnArg2.pointer;
+    if (childObject->result == USER_INTERFACE_RESULT_CONFIRM) {
+        obj->resultValue = childObject->resultValue;
+        Ui_TeardownTree(childObject, childObject->owner);
         obj->panel.control.word = one;
     }
     return obj->resultValue;
