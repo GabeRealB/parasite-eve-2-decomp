@@ -40,16 +40,20 @@
 #include "../../shared/sprite_quad.h"
 #include "../../shared/ground_glow.h"
 
-/// One 4-byte row of `D_energyball_80131194`, indexed by `EffectWork.index`
-/// (`Gp_StateC08.attachId % 10 - 1`). `field_0` is the full size the ball grows
-/// to before it is launched (`EffectWork.angle`; half of it is the linked
-/// `WorldCollisionBody.radius`, twice it the burst's final size) and `field_2` the
-/// per-frame growth step, also the initial upward speed while charging.
-typedef struct EnergyBallStep {
-    /* 0x0 */ s16 field_0;
-    /* 0x2 */ s16 field_2;
-} EnergyBallStep;
-STATIC_ASSERT_SIZEOF(EnergyBallStep, 4);
+/// Size and growth rate of one energy ball at one Parasite Energy level.
+///
+/// A ball selects its row by the level digit of the spell being cast
+/// (`AttachmentState::attachId % 10 - 1`), so a higher level charges a larger
+/// ball at a faster rate.
+///
+/// Both members are in the units of the ball's size, which the ball keeps in
+/// `EffectWork::angle`: its glow sprite, ring and ground glow are drawn from
+/// that size and its collision sphere takes half of it as its radius.
+typedef struct {
+    s16 fullSize; // Size the ball charges to from zero before it is launched; a ball that hits bursts from this size to twice it
+    s16 sizeStep; // Size gained per frame while charging and bursting, and lost per frame by a ball fading out, which ends below one step; also the distance the ball rises per frame while it charges, and the upward speed it first steers toward once launched
+} _EnergyballLevelTuning;
+STATIC_ASSERT_SIZEOF(_EnergyballLevelTuning, 4);
 
 /// Collision block allocated by `func_energyball_8012F180` (`memCalloc(0x38)`)
 /// and stored in `Task::work`: `obj` is linked on list 1 with `context.contacts`
@@ -75,9 +79,9 @@ static s32 D_energyball_8013117C[] = {
     0xE0310001,
 };
 
-/// Per-level radius/step pairs for the ball, one row per PE level 1-3,
-/// weakest first.
-static EnergyBallStep D_energyball_80131194[] = {
+/// Per-level size tuning for the ball, one row per PE level 1-3, weakest
+/// first.
+static _EnergyballLevelTuning D_energyball_80131194[] = {
     { 0x0400, 0x0040 },
     { 0x0480, 0x0048 },
     { 0x0500, 0x0050 },
@@ -143,10 +147,10 @@ void func_energyball_8012EF48(Task* arg0)
 /// `spawnArg2` selects the `EffectWork` block. With nonzero
 /// `gRoomEffectState->peEffectControl` it only redraws; cancellation at 4 or more
 /// drops the ball. Otherwise it walks `Task::state`: 0 allocates the
-/// `EnergyBallWork` collision block, picks the charge row of
-/// `D_energyball_80131194` from the combo counter and seeds a random spin
-/// `period`; 1 grows the ball by the row's `field_2` per frame until it
-/// reaches `field_0`, then links it on list 1 with a random direction; 2
+/// `EnergyBallWork` collision block, picks the row of
+/// `D_energyball_80131194` from the spell's level digit and seeds a random spin
+/// `period`; 1 grows the ball by the row's `sizeStep` per frame until it
+/// reaches `fullSize`, then links it on list 1 with a random direction; 2
 /// flies it, re-aiming at the player every eighth frame and nudging each
 /// velocity component by 0x10 on odd frames, bursting into three 0x600F9
 /// effects on a hit (`Gp_CountRec18Hi`) or unlinking when the room's
@@ -214,7 +218,7 @@ void func_energyball_8012F180(Task* arg0)
             mem->index                = (Gp_StateC08.attachId % 10) - 1;
             mem->move.vx              = 0;
             gRandomLcgState           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->move.vy              = -(u16)D_energyball_80131194[mem->index].field_2;
+            mem->move.vy              = -D_energyball_80131194[mem->index].sizeStep;
             mem->move.vz              = 0;
             mem->angle                = 0;
             mem->period               = (gRandomLcgState >> 16) & 0xFFF;
@@ -224,8 +228,8 @@ void func_energyball_8012F180(Task* arg0)
             arg0->state               = 1;
             /* fallthrough */
         case 1:
-            if (mem->angle < D_energyball_80131194[mem->index].field_0) {
-                mem->angle          = mem->angle + (u16)D_energyball_80131194[mem->index].field_2;
+            if (mem->angle < D_energyball_80131194[mem->index].fullSize) {
+                mem->angle          = mem->angle + D_energyball_80131194[mem->index].sizeStep;
                 coord->coord.t[0]  += mem->move.vx;
                 coord->coord.t[1]  += mem->move.vy;
                 coord->coord.t[2]  += mem->move.vz;
@@ -258,7 +262,7 @@ void func_energyball_8012F180(Task* arg0)
                 gte_gpf12();
                 gte_stsv(dir);
                 mem->pos.vx = 0;
-                mem->pos.vy = -(u16)D_energyball_80131194[mem->index].field_2;
+                mem->pos.vy = -D_energyball_80131194[mem->index].sizeStep;
                 mem->pos.vz = 0;
             }
             slot->framesLeft         = 2;
@@ -278,10 +282,10 @@ void func_energyball_8012F180(Task* arg0)
             if ((gRoomEffectState->groundTraceEnabled != 0) && (Gp_TraceGroundCoord(coord, &ground) == 1)) {
                 groundGlowDraw(&ground, mem->angle);
             }
-            coord->workm.t[1] += D_energyball_80131194[mem->index].field_2 * mem->age;
+            coord->workm.t[1] += D_energyball_80131194[mem->index].sizeStep * mem->age;
             func_energyball_80130B54(coord, mem->angle,
-                                     (D_energyball_80131194[mem->index].field_0 - mem->angle) / 5);
-            coord->workm.t[1] -= D_energyball_80131194[mem->index].field_2 * mem->age;
+                                     (D_energyball_80131194[mem->index].fullSize - mem->angle) / 5);
+            coord->workm.t[1] -= D_energyball_80131194[mem->index].sizeStep * mem->age;
             if ((u16)(Gp_StateC08.attachId / 10) != ATTACHMENT_ID_ENERGY_BALL_FAMILY) {
                 if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
                     if (gEnergyBallInFlightCount > 0) {
@@ -376,7 +380,7 @@ void func_energyball_8012F180(Task* arg0)
                 snd = D_energyball_8013117C;
                 SndEvt_EnqueueType6(snd[mem->index + 3], 0, 0);
                 Gp_UnlinkObj(&work->obj);
-                mem->angle  = (u16)D_energyball_80131194[mem->index].field_0;
+                mem->angle  = D_energyball_80131194[mem->index].fullSize;
                 arg0->state = 3;
                 return;
             }
@@ -392,7 +396,7 @@ void func_energyball_8012F180(Task* arg0)
             spriteQuadDrawFlicker(coord, mem->age, mem->angle, mem->period);
             func_energyball_8012FFD0(coord, mem->angle, mem->scale >> 2);
             func_energyball_8012FFD0(coord, (u16)mem->angle * 2, mem->scale >> 2);
-            mem->angle = mem->angle + (u16)D_energyball_80131194[mem->index].field_2;
+            mem->angle = mem->angle + D_energyball_80131194[mem->index].sizeStep;
             if (((u16)(Gp_StateC08.attachId / 10) != ATTACHMENT_ID_ENERGY_BALL_FAMILY) &&
                 ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN))) {
                 if (gEnergyBallInFlightCount > 0) {
@@ -404,7 +408,7 @@ void func_energyball_8012F180(Task* arg0)
                 effectKillTask(mem, arg0);
                 return;
             }
-            if (D_energyball_80131194[mem->index].field_0 * 2 < mem->angle) {
+            if (D_energyball_80131194[mem->index].fullSize * 2 < mem->angle) {
                 if (gEnergyBallInFlightCount > 0) {
                     gEnergyBallInFlightCount -= 1;
                     if (gEnergyBallInFlightCount == 0) {
@@ -420,7 +424,7 @@ void func_energyball_8012F180(Task* arg0)
             spriteQuadDrawFlicker(coord, mem->age, mem->angle, mem->period);
             func_energyball_8012FFD0(coord, mem->angle, mem->scale >> 2);
             func_energyball_8012FFD0(coord, (u16)mem->angle * 2, mem->scale >> 2);
-            mem->angle = mem->angle - (u16)D_energyball_80131194[mem->index].field_2;
+            mem->angle = mem->angle - D_energyball_80131194[mem->index].sizeStep;
             if (((u16)(Gp_StateC08.attachId / 10) != ATTACHMENT_ID_ENERGY_BALL_FAMILY) &&
                 ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN))) {
                 if (gEnergyBallInFlightCount > 0) {
@@ -432,7 +436,7 @@ void func_energyball_8012F180(Task* arg0)
                 effectKillTask(mem, arg0);
                 return;
             }
-            if (mem->angle < D_energyball_80131194[mem->index].field_2) {
+            if (mem->angle < D_energyball_80131194[mem->index].sizeStep) {
                 if (gEnergyBallInFlightCount > 0) {
                     gEnergyBallInFlightCount -= 1;
                     if (gEnergyBallInFlightCount == 0) {
