@@ -29,7 +29,8 @@ macro's use, except in the Psy-Q SDK's macros and the scratch-pad stack's,
 whose casts are the API.
 
 The output is one line per site, then a count per kind; `--kind` restricts
-both to the kinds named, and `--pairs N` adds the most frequent source and
+both to the kinds named (spell them `ptr-to-int`, or quote `'ptr->int'`: an
+unquoted `>` is the shell's redirection and leaves a stray file behind), and `--pairs N` adds the most frequent source and
 target type pairs, which is where a single retyped field or signature removes
 the most casts at once.
 """
@@ -234,12 +235,22 @@ def _scan(rel):
 def main():
     ap = argparse.ArgumentParser(description="List pointer conversions in C code")
     ap.add_argument("path", help="File or directory to check")
-    ap.add_argument("--kind", action="append", default=[], help="Only this kind (repeatable)")
+    ap.add_argument("--kind", action="append", default=[],
+                    help="Only this kind (repeatable). Write it ptr-to-int, or quote 'ptr->int': "
+                         "an unquoted > is the shell's redirection")
     ap.add_argument("--summary", action="store_true", help="Print only the counts")
     ap.add_argument("--pairs", type=int, default=0, metavar="N",
                     help="Also count the N most frequent source -> target type pairs")
     ap.add_argument("--exclude", action="append", default=[], help="Additional directories to exclude")
     args = ap.parse_args()
+    # A kind is spelled with `->`, which an unquoted shell argument turns into
+    # a redirection: `--kind ptr->int` passes `ptr-` and writes the report to a
+    # file called `int`. Accept `-to-`, and say so when the truncated form arrives.
+    args.kind = [k.replace("-to-", "->") for k in args.kind]
+    for k in args.kind:
+        if k.endswith("-") or "->" not in k:
+            ap.error(f"unknown kind {k!r}: write it like ptr-to-int, or quote 'ptr->int' "
+                     f"(unquoted, the shell reads > as a redirection and creates a stray file)")
 
     root = cref.repo_root()
     db = cref.load_db(root)

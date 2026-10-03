@@ -68,6 +68,16 @@ def verify(root, logs, jobs, objdiff=False):
             raise RuntimeError(f"{name} failed ({result.returncode}); see {path}")
         return path
 
+    # A step has no business creating a file in the repository root. The ones
+    # that appeared there were shell accidents - `--kind ptr->int` unquoted
+    # redirects a tool's output into a file called `int` - and the driver
+    # commits whatever the tree holds.
+    status = subprocess.run(["git", "status", "--porcelain", "--untracked-files=all"], cwd=root,
+                            capture_output=True, text=True).stdout.splitlines()
+    stray = sorted(line[3:].strip('"') for line in status if line[:2] in ("??", "A ", "AM") and "/" not in line[3:])
+    require(not stray, "new file(s) in the repository root, probably an unquoted `>` in a command: "
+            + ", ".join(stray) + "; delete them")
+
     run(["./tools/build-and-verify.sh"], "matching.log")
     decls = run([python, "tools/refactor/check_decls.py", "--across-images", "--strict", "--jobs", str(jobs)],
                 "declarations.log")

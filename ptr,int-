@@ -1,4 +1,0 @@
-usage: check_pointer_casts.py [-h] [--kind KIND] [--summary] [--pairs N]
-                              [--exclude EXCLUDE]
-                              path
-check_pointer_casts.py: error: unrecognized arguments: src/shared/glow_draw_capsule.inc.c src/weapons/m4a1_javelin/m4a1_javelin.c src/rooms/dryfield_night_trailer_coach/dryfield_night_trailer_coach_2.c
