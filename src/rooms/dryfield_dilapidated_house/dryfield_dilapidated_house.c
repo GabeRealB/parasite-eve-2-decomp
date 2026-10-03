@@ -190,13 +190,10 @@ extern TaskDesc D_dryfield_dilapidated_house_80183E64[];
 extern Task*    D_dryfield_dilapidated_house_801857E8;
 extern TaskDesc D_dryfield_dilapidated_house_80186854[];
 extern Task*    D_dryfield_dilapidated_house_80189B7C;
-/// Spawn argument the spawned task reads back; its address is also the
-/// `Task_SpawnFromTable` arg, so the store and the call must stay ordered.
-typedef struct {
-    s16 spawnArg;
-    s16 active;
-} DryfieldDilapidatedHouseSpawnState;
-extern DryfieldDilapidatedHouseSpawnState D_dryfield_dilapidated_house_80189B80;
+/// Argument block of the room's negative freeze-frame: the capture task is
+/// spawned with its address and keeps reading it, so `duration` has to be
+/// stored before the spawn.
+extern ScreenNegativeCaptureArgs D_dryfield_dilapidated_house_80189B80;
 
 /// Shared in source with actor 136300: the ramp context the message handler
 /// seeds and hands to the screen-wave task it starts, and that task's entry.
@@ -2573,7 +2570,7 @@ Task* D_dryfield_dilapidated_house_80189B78 = NULL;
 
 Task* D_dryfield_dilapidated_house_80189B7C = NULL;
 
-DryfieldDilapidatedHouseSpawnState D_dryfield_dilapidated_house_80189B80 = { 0, 0 };
+ScreenNegativeCaptureArgs D_dryfield_dilapidated_house_80189B80 = { 0, 0 };
 
 ScreenWaveOscillator gScreenWaveColumns[13] = { 0 };
 
@@ -2981,7 +2978,7 @@ void func_dryfield_dilapidated_house_8017E970(s32 arg0)
 {
     if (arg0 == 0) {
         D_dryfield_dilapidated_house_80189B7C->state = 0;
-        D_dryfield_dilapidated_house_80189B80.active = 1;
+        D_dryfield_dilapidated_house_80189B80.done   = 1;
         return;
     }
     D_dryfield_dilapidated_house_80189B7C->state           = 2;
@@ -2992,12 +2989,11 @@ static void func_dryfield_dilapidated_house_8017E9A4(s32 arg0)
 {
     if (arg0 != 0) {
         Gp_SpawnScript18(&D_80114A24, D_80114A34);
-        D_dryfield_dilapidated_house_80189B80.spawnArg = arg0;
-        Task_SpawnFromTable(D_dryfield_dilapidated_house_80183E64, 0, 0,
-                            &D_dryfield_dilapidated_house_80189B80.spawnArg);
+        D_dryfield_dilapidated_house_80189B80.duration = arg0;
+        Task_SpawnFromTable(D_dryfield_dilapidated_house_80183E64, 0, 0, &D_dryfield_dilapidated_house_80189B80);
         return;
     }
-    D_dryfield_dilapidated_house_80189B80.active = 1;
+    D_dryfield_dilapidated_house_80189B80.done = 1;
 }
 
 void func_dryfield_dilapidated_house_8017EA10(s32 arg0)

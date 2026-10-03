@@ -10,7 +10,8 @@
  * screen_negative_capture.inc.c is the task that freezes the picture: it
  * captures the frame, filters it and holds it. The task is spawned from each
  * package's own table, so the package keeps its name for it and calls the
- * inline body. Its two rectangles are the package's data, defined at their
+ * inline body, and spawns it with the address of a ScreenNegativeCaptureArgs
+ * block it owns. Its two rectangles are the package's data, defined at their
  * own positions under the names declared here.
  */
 
@@ -18,6 +19,21 @@
 #define SRC_SHARED_SCREEN_NEGATIVE_H
 
 #include <psyq/libgpu.h>
+
+#include "common.h"
+
+/// What a package hands the capture task as its second spawn argument, and
+/// keeps for as long as the task runs.
+///
+/// The task takes `duration` as it starts and clears `done`; from then on it
+/// ends, and lets drawing resume, on the first frame it finds `done` nonzero.
+/// It sets the flag itself when the hold runs out, and the package sets it to
+/// end the freeze early.
+typedef struct {
+    u16 duration; // Frames the negative is held before the task ends on its own
+    s16 done;     // Nonzero ends the capture (0 running, 1 timed out or cancelled)
+} ScreenNegativeCaptureArgs;
+STATIC_ASSERT_SIZEOF(ScreenNegativeCaptureArgs, 0x4);
 
 static void screenNegativeFilter(void);
 

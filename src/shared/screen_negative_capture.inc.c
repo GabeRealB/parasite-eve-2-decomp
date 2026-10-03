@@ -1,6 +1,6 @@
 /* Part of the screen negative library; see screen_negative.h. */
 
-/// The capture task: state 0 seeds the countdown from the `OverlayCaptureArgs`
+/// The capture task: state 0 seeds the countdown from the `ScreenNegativeCaptureArgs`
 /// duration and copies the displayed frame into `Fs_ImgBuffers` - twenty
 /// 16-pixel strips from the shown buffer (`gScreenNegativeStripRect`), or the
 /// whole of `gScreenNegativeFrameRect` at once while `gDisplayState.debugMode`
@@ -9,9 +9,9 @@
 /// countdown runs out or `done` is set, then resumes drawing and ends.
 static inline void screenNegativeCaptureTask(Task* task)
 {
-    OverlayCaptureArgs* args;
-    s32                 i;
-    u_long*             strip;
+    ScreenNegativeCaptureArgs* args;
+    s32                        i;
+    u_long*                    strip;
 
     args = task->spawnArg2.pointer;
     if (D_801156F9 == 0) {

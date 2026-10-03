@@ -654,16 +654,6 @@ typedef struct OverlayDeltaFlag {
 } OverlayDeltaFlag;
 STATIC_ASSERT_SIZEOF(OverlayDeltaFlag, 0x14);
 
-/// The spawn argument of a screen-capture task: `duration` seeds the task's
-/// kill countdown, and `done` is cleared when the task starts, set when the
-/// countdown runs out or the owner cancels the capture, and ends the task once
-/// it is nonzero.
-typedef struct OverlayCaptureArgs {
-    u16 duration;
-    s16 done;
-} OverlayCaptureArgs;
-STATIC_ASSERT_SIZEOF(OverlayCaptureArgs, 0x4);
-
 /// One morph of a TMD model: what the included `modelMorph` code needs to
 /// snapshot the model's rest shape and to deform it by a 0..`ONE` ramp.
 ///
