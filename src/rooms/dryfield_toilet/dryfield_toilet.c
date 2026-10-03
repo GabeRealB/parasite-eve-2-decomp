@@ -25,22 +25,13 @@
 #include "../../shared/room_variants.h"
 #include "../../shared/toilet.h"
 
-/// The room task's message table (published in `Task::msgTable` for
-/// `taskMessageDispatch` to walk) and the four-byte payload `func_dryfield_toilet_8017D940`
-/// hands that call as `arg2`.
-// Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32                (*call0)(void);
-        TaskMessageHandler call1;
-        s32                (*call2)(s32, s32, RoomEventMsg*, RoomEventMsg*);
-    } handler;
-} DryfieldToiletMessageEntry;
-STATIC_ASSERT_SIZEOF(DryfieldToiletMessageEntry, 8);
+/// The room's message table, installed in `Task::msgTable` by the room task's
+/// entry state.
+extern TaskMessageEntry D_dryfield_toilet_801802A4[6];
 
-extern DryfieldToiletMessageEntry D_dryfield_toilet_801802A4[6];
-extern s32                        D_dryfield_toilet_801802D4;
+/// The four-byte payload the room task's entry state broadcasts to the scene's
+/// actors.
+extern s32 D_dryfield_toilet_801802D4;
 
 /// The template the room's collision grid is restored from, and the grid
 /// itself.
@@ -54,17 +45,17 @@ static const TaskFuncTable3 D_dryfield_toilet_8017D5C4 = {
     { func_dryfield_toilet_8017D940, func_dryfield_toilet_8017D9D4, taskKill },
 };
 
-s32 func_dryfield_toilet_8017D8B8(void);
-s32 func_dryfield_toilet_8017D8C0(void);
-s32 func_dryfield_toilet_8017D8C8(s32, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_dryfield_toilet_8017D8B8(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_toilet_8017D8C0(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_toilet_8017D8C8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
-DryfieldToiletMessageEntry D_dryfield_toilet_801802A4[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, { .call2 = roomVariantParkingLotMsg } },
-    { 5105, { .call0 = func_dryfield_toilet_8017D8B8 } },
-    { 5103, { .call2 = func_dryfield_toilet_8017D8C8 } },
-    { ROOM_MESSAGE_COMMAND, { .call0 = func_dryfield_toilet_8017D8C0 } },
-    { ROOM_MESSAGE_SOUND, { .call1 = toiletSoundMsg } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_dryfield_toilet_801802A4[6] = {
+    { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantParkingLotMsg },
+    { 5105, func_dryfield_toilet_8017D8B8 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_toilet_8017D8C8 },
+    { ROOM_MESSAGE_COMMAND, func_dryfield_toilet_8017D8C0 },
+    { ROOM_MESSAGE_SOUND, toiletSoundMsg },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 s32 D_dryfield_toilet_801802D4 = 4098;
@@ -177,12 +168,12 @@ static void func_dryfield_toilet_8017D5E4(void)
 
 #include "../../shared/toilet_sound_msg.inc.c"
 
-s32 func_dryfield_toilet_8017D8B8(void)
+s32 func_dryfield_toilet_8017D8B8(Task* task, s32 messageId, TaskMessageArg firstArg, TaskMessageArg secondArg)
 {
     return 0;
 }
 
-s32 func_dryfield_toilet_8017D8C0(void)
+s32 func_dryfield_toilet_8017D8C0(Task* task, s32 messageId, TaskMessageArg firstArg, TaskMessageArg secondArg)
 {
     return 0;
 }
@@ -193,7 +184,7 @@ s32 func_dryfield_toilet_8017D8C0(void)
 /// (`gGameSession::location.loc.variant`) and that has not yet latched nibble 0x60, the
 /// toilet starts its cutscene pair and latches the nibble. The outgoing record
 /// is never written: this handler only consumes the message.
-s32 func_dryfield_toilet_8017D8C8(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 func_dryfield_toilet_8017D8C8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     u8 subId = in->warp;
 
