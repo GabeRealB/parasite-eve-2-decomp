@@ -44,18 +44,24 @@
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
 
-// The animation copy spans the bank and its following records.
-// Keep the typed fields and the complete copied word range together.
+/// The clip Neo Ark power plant 1 adds to the player's animation bank.
+///
+/// One of the room's event scripts sends `data.copy` to the player and then
+/// plays the clip; the room's other play request selects a base-bank clip. The
+/// copy takes two words from the start of this storage: the set pointer and the
+/// request's own source pointer. Those words occupy extended ids 47 and 48.
+/// Id 47 is the clip, id 48 holds the source pointer and is never played, and
+/// the stored word count sits past the copied span.
 typedef union {
     struct {
-        AnimationSet*            sets[1];
-        AnimationBankCopyRequest copy;
-    } data;
-    s32 words[3];
-} NeoArkPowerPlant1AnimStorageEEC0;
-STATIC_ASSERT_SIZEOF(NeoArkPowerPlant1AnimStorageEEC0, 12);
+        AnimationSet*            sets[1]; // Player clip for extended id 47
+        AnimationBankCopyRequest copy;    // Copies the first two words of this storage
+    } data;                               // The records by name
+    s32 words[3];                         // The same storage as the copy reads it; the last word lies beyond the copied span
+} _NeoArkPowerPlant1AnimationBankExtensionStorage;
+STATIC_ASSERT_SIZEOF(_NeoArkPowerPlant1AnimationBankExtensionStorage, 12);
 
-extern NeoArkPowerPlant1AnimStorageEEC0 D_neo_ark_power_plant_1_8017EEC0;
+extern _NeoArkPowerPlant1AnimationBankExtensionStorage D_neo_ark_power_plant_1_8017EEC0;
 
 /// World positions `func_neo_ark_power_plant_1_8017DA18` draws its glows at;
 /// the second name is the one emitter it may spawn an effect at instead.
@@ -71,8 +77,7 @@ extern WorldCoordRoomLights   D_neo_ark_power_plant_1_8017FB80[1];
 extern AnimationPlayRequest D_neo_ark_power_plant_1_8017EB40;
 extern AnimationPlayRequest D_neo_ark_power_plant_1_8017EEAC;
 
-static AnimationSet                     _gNeoArkPowerPlant1Animation01530;
-extern NeoArkPowerPlant1AnimStorageEEC0 D_neo_ark_power_plant_1_8017EEC0;
+static AnimationSet _gNeoArkPowerPlant1Animation01530;
 
 static AnimationPackedPose _gNeoArkPowerPlant1Animation01530Bank1[10] = {
 #include "assets/neo_ark_power_plant_1_animation_01530_bank1.inc"
@@ -167,7 +172,7 @@ EvsCommand D_neo_ark_power_plant_1_8017EDBC[10] = {
 
 AnimationPlayRequest D_neo_ark_power_plant_1_8017EEAC = { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_ENABLE };
 
-NeoArkPowerPlant1AnimStorageEEC0 D_neo_ark_power_plant_1_8017EEC0 = { .data = { { &_gNeoArkPowerPlant1Animation01530 }, { { .words = D_neo_ark_power_plant_1_8017EEC0.words }, 2 } } };
+_NeoArkPowerPlant1AnimationBankExtensionStorage D_neo_ark_power_plant_1_8017EEC0 = { .data = { { &_gNeoArkPowerPlant1Animation01530 }, { { .words = D_neo_ark_power_plant_1_8017EEC0.words }, 2 } } };
 
 ActorTransform D_neo_ark_power_plant_1_8017EECC = { { 4800, 2, -0x2A94, 0 }, { 0, 0, 0, 0 } };
 
