@@ -14,10 +14,24 @@
 
 #include "rooms/room.h"
 
+/// Timing of one prize's turn in a parking-lot talk's prize announcements,
+/// counted down in `prizeTimer`.
+enum {
+    MIST_PARKING_PRIZE_ANNOUNCEMENT_FRAMES        = 10, // Idle frames each prize's turn lasts
+    MIST_PARKING_PRIZE_ANNOUNCEMENT_CAPTION_FRAME = 5   // Frames left when a waiting prize's caption starts
+};
+
+/// Progress through the prize announcements of the parking-lot talk that runs
+/// in every area variant but 1.
+///
+/// When the talk's prize prompt chooses the announcements, each
+/// shooting-gallery prize gets a turn in course order and the ones waiting
+/// here are captioned. It is cleared when the talk starts.
 typedef struct {
-    /* 0x0 */ s16 timer;
-    /* 0x2 */ s16 index;
-} MistParkingScanState;
+    s16 prizeTimer; // Frames left on the current prize's turn
+    s16 prizeIndex; // Shooting-gallery course whose prize has the turn (0..4; 5 once all have had one)
+} MistParkingPrizeAnnouncementState;
+STATIC_ASSERT_SIZEOF(MistParkingPrizeAnnouncementState, 4);
 
 /// The room's hold on the task that turns the player's head toward the
 /// index-0 placement for this stage and area.
@@ -158,7 +172,7 @@ extern s32 D_mist_parking_8019531C;
 
 extern RoomCutsceneRec D_mist_parking_8019533C;
 
-extern MistParkingScanState D_mist_parking_80195328;
+extern MistParkingPrizeAnnouncementState D_mist_parking_80195328;
 
 extern MistParkingHeadAimHandle D_mist_parking_8019532C;
 

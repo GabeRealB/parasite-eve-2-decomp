@@ -754,14 +754,14 @@ extern u8* D_mist_parking_8018DF24[4];
 
 void func_mist_parking_80182A44(Task* task)
 {
-    s32                   i;
-    s32                   flag;
-    s16                   idx;
-    MistParkingScanState* st = &D_mist_parking_80195328;
+    s32                                i;
+    s32                                flag;
+    s16                                prize;
+    MistParkingPrizeAnnouncementState* announcement = &D_mist_parking_80195328;
 
     switch (task->state) {
         case 0:
-            memFillBytes(st, 0, sizeof(*st));
+            memFillBytes(announcement, 0, sizeof(*announcement));
             func_800E8614(D_mist_parking_8018F9A4, 1);
             Gp_RunCapCmd(2, 0);
             task->state++;
@@ -796,7 +796,7 @@ void func_mist_parking_80182A44(Task* task)
             }
             switch (Gp_GetCapEventKey()) {
                 case 1:
-                    st->timer = 10;
+                    announcement->prizeTimer = MIST_PARKING_PRIZE_ANNOUNCEMENT_FRAMES;
                     Gp_RunCapCmd(7, 0);
                     task->state = 4;
                     break;
@@ -835,24 +835,27 @@ void func_mist_parking_80182A44(Task* task)
             if (Gp_CapBusy() != 0) {
                 return;
             }
-            st->timer--;
-            if (st->timer == 5) {
-                idx = st->index;
-                if (GameFlag_GetNibble(idx + 0x125) == 2) {
-                    Gp_StartCapSlot(5, 0, idx);
+            // Give each prize its turn: the caption of one still waiting here
+            // starts partway through, and its state flag moves on when the
+            // turn ends.
+            announcement->prizeTimer--;
+            if (announcement->prizeTimer == MIST_PARKING_PRIZE_ANNOUNCEMENT_CAPTION_FRAME) {
+                prize = announcement->prizeIndex;
+                if (GameFlag_GetNibble(prize + 0x125) == 2) {
+                    Gp_StartCapSlot(5, 0, prize);
                 }
                 return;
             }
-            if (st->timer != 0) {
+            if (announcement->prizeTimer != 0) {
                 return;
             }
-            idx = st->index;
-            if (Gp_GetCurBit2Flag(idx + 0x20) != 1) {
-                GameFlag_SetNibble(idx + 0x125, 3);
+            prize = announcement->prizeIndex;
+            if (Gp_GetCurBit2Flag(prize + 0x20) != 1) {
+                GameFlag_SetNibble(prize + 0x125, 3);
             }
-            st->timer = 10;
-            st->index++;
-            if (st->index >= 5) {
+            announcement->prizeTimer = MIST_PARKING_PRIZE_ANNOUNCEMENT_FRAMES;
+            announcement->prizeIndex++;
+            if (announcement->prizeIndex >= 5) {
                 task->state++;
             }
             break;

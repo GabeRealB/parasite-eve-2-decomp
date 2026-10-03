@@ -824,7 +824,7 @@ Task* D_mist_parking_80195320 = NULL;
 
 Task* D_mist_parking_80195324 = NULL;
 
-MistParkingScanState D_mist_parking_80195328 = { 0 };
+MistParkingPrizeAnnouncementState D_mist_parking_80195328 = { 0 };
 
 MistParkingHeadAimHandle D_mist_parking_8019532C = { 0 };
 
