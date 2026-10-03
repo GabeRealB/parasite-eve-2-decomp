@@ -56,19 +56,21 @@ typedef struct {
 } _AttachmentWheelPoint;
 STATIC_ASSERT_SIZEOF(_AttachmentWheelPoint, 4);
 
-/// Text scratch is reused for the wheel coordinates after drawing the prompt.
-typedef struct {
-    /* 0x00 */ UiObject obj;
-    /* 0x30 */ union {
-        struct {
-            /* 0x00 */ u8          buf[0x20];
-            /* 0x20 */ TextDrawReq req;
-        } text;
-        _AttachmentWheelPoint pts[12];
-    } u;
-    /* 0x60 */ RECT rect;
-} GpWheelScratch;
-STATIC_ASSERT_SIZEOF(GpWheelScratch, 0x68);
+/// Stack storage the Parasite Energy wheel uses twice while drawing one frame.
+///
+/// The highlighted spell's caption is drawn first and needs `text`. It is
+/// finished before any icon is placed, so the same bytes then hold `points`:
+/// one entry per learned spell, counted in steps round the wheel from the
+/// highlighted one, with the entries past the learned count retired. The two
+/// uses never overlap in time.
+typedef union {
+    struct {
+        u8          costDigits[0x20];                     // The spell's cast cost as decimal text
+        TextDrawReq nameRequest;                          // Placement and style of the spell's name
+    } text;
+    _AttachmentWheelPoint points[ATTACHMENT_SPELL_COUNT]; // Where each icon sits
+} _AttachmentWheelScratch;
+STATIC_ASSERT_SIZEOF(_AttachmentWheelScratch, 0x30);
 
 /// Shared player-control flag, independently addressed by gameplay and overlays.
 u8 D_80115768;
@@ -785,33 +787,35 @@ static __inline__ u16 getAttachWheelParam(s32 slot, s32 field)
 
 static s32 func_800A2104(HudState* hud, s32 arg1, s32 arg2)
 {
-    GpWheelScratch         s;
-    s32                    changed;
-    s32                    order;
-    PlayerStatus*          cfg;
-    u8*                    table;
-    s32                    cond;
-    s32                    count;
-    s32                    xOff;
-    s32                    yOff;
-    s32                    item;
-    s32                    param;
-    s32                    ret;
-    s32                    color;
-    _AttachmentWheelPoint* pts;
-    _AttachmentWheelPoint* dest;
-    _AttachmentWheelPoint* points;
-    _AttachmentWheelPoint* chosen;
-    McSaveData*            save;
-    s32                    angle;
-    s32                    best;
-    s32                    flags;
-    s32                    px;
-    s32                    py;
-    s32                    slot;
-    s32                    i;
-    s32                    j;
-    DR_TPAGE*              dr;
+    UiObject                obj;
+    _AttachmentWheelScratch scratch;
+    RECT                    rect;
+    s32                     changed;
+    s32                     order;
+    PlayerStatus*           cfg;
+    u8*                     table;
+    s32                     cond;
+    s32                     count;
+    s32                     xOff;
+    s32                     yOff;
+    s32                     item;
+    s32                     param;
+    s32                     ret;
+    s32                     color;
+    _AttachmentWheelPoint*  pts;
+    _AttachmentWheelPoint*  dest;
+    _AttachmentWheelPoint*  points;
+    _AttachmentWheelPoint*  chosen;
+    McSaveData*             save;
+    s32                     angle;
+    s32                     best;
+    s32                     flags;
+    s32                     px;
+    s32                     py;
+    s32                     slot;
+    s32                     i;
+    s32                     j;
+    DR_TPAGE*               dr;
 
     changed              = 0;
     order                = -2;
@@ -865,38 +869,38 @@ static s32 func_800A2104(HudState* hud, s32 arg1, s32 arg2)
             param <<= 1;
         }
 
-        s.obj.panel.otIndex.signedValue          = -3;
-        s.u.text.req.x                           = arg1 + 7;
-        s.u.text.req.y                           = arg2 + 0x22;
-        s.u.text.req.otIndex                     = -2;
-        s.obj.panel.contentOriginX.unsignedValue = arg1;
-        s.obj.panel.contentOriginY.unsignedValue = arg2;
-        s.obj.panel.state                        = USER_INTERFACE_PANEL_INITIAL;
-        s.u.text.req.colorRgb                    = 0x606060;
-        s.u.text.req.glyphTable                  = TEXT_GLYPH_TABLE_MEDIUM;
-        s.u.text.req.alignment                   = TEXT_ALIGNMENT_LEFT;
-        s.u.text.req.drawMode                    = TEXT_DRAW_OUTLINED;
-        Text_DrawString(&s.u.text.req, Gp_GetItemText(item, 0, 0));
+        obj.panel.otIndex.signedValue          = -3;
+        scratch.text.nameRequest.x             = arg1 + 7;
+        scratch.text.nameRequest.y             = arg2 + 0x22;
+        scratch.text.nameRequest.otIndex       = -2;
+        obj.panel.contentOriginX.unsignedValue = arg1;
+        obj.panel.contentOriginY.unsignedValue = arg2;
+        obj.panel.state                        = USER_INTERFACE_PANEL_INITIAL;
+        scratch.text.nameRequest.colorRgb      = 0x606060;
+        scratch.text.nameRequest.glyphTable    = TEXT_GLYPH_TABLE_MEDIUM;
+        scratch.text.nameRequest.alignment     = TEXT_ALIGNMENT_LEFT;
+        scratch.text.nameRequest.drawMode      = TEXT_DRAW_OUTLINED;
+        Text_DrawString(&scratch.text.nameRequest, Gp_GetItemText(item, 0, 0));
 
         ret   = getAttachWheelLevel(Gp_StateC08.wheelIndex);
         color = 0x606060;
-        func_800C2538(&s.obj, -0xB, 0x28, ret, color);
-        Text_DrawPrompt(&s.obj, 0x8E, 0x28, Text_ItoaSigned(s.u.text.buf, param), color, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+        func_800C2538(&obj, -0xB, 0x28, ret, color);
+        Text_DrawPrompt(&obj, 0x8E, 0x28, Text_ItoaSigned(scratch.text.costDigits, param), color, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
-        s.rect.x = arg1;
-        s.rect.y = arg2 + 0x17;
-        s.rect.w = 0x91;
-        s.rect.h = 0x13;
-        Ui_DrawTextInRect(&s.rect, -1, 0x40002, NULL);
+        rect.x = arg1;
+        rect.y = arg2 + 0x17;
+        rect.w = 0x91;
+        rect.h = 0x13;
+        Ui_DrawTextInRect(&rect, -1, 0x40002, NULL);
 
         /* Spread the learned spells evenly round the wheel, turned by the
          * step still in progress; the unused points are retired. */
-        s.obj.panel.contentOriginX.unsignedValue = 0x30;
-        s.obj.panel.contentOriginY.unsignedValue = 0;
-        s.obj.panel.otIndex.signedValue          = -3;
-        s.obj.panel.state                        = USER_INTERFACE_PANEL_INITIAL;
-        pts                                      = s.u.pts;
-        for (i = 0; i < ARRAY_SIZE(s.u.pts); i++) {
+        obj.panel.contentOriginX.unsignedValue = 0x30;
+        obj.panel.contentOriginY.unsignedValue = 0;
+        obj.panel.otIndex.signedValue          = -3;
+        obj.panel.state                        = USER_INTERFACE_PANEL_INITIAL;
+        pts                                    = scratch.points;
+        for (i = 0; i < ARRAY_SIZE(scratch.points); i++) {
             if (i < count) {
                 angle = ((i * 4 + hud->wheelTurn) << 12) / (count * 4);
                 if (count == 1) {
@@ -915,7 +919,7 @@ static s32 func_800A2104(HudState* hud, s32 arg1, s32 arg2)
          * greatest y, and retires it so that later passes skip it. */
         if (count > 0) {
             i      = 0;
-            points = s.u.pts;
+            points = scratch.points;
             save   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
             do {
                 best  = 0;
@@ -951,7 +955,7 @@ static s32 func_800A2104(HudState* hud, s32 arg1, s32 arg2)
                 if (best == 0 && hud->wheelTurn == 0) {
                     flags |= 8;
                 }
-                Gp_DrawItemIcon(&s.obj, px, py, ((slot / 3) << 4) + ((slot % 3) << 2) + 0x301, flags);
+                Gp_DrawItemIcon(&obj, px, py, ((slot / 3) << 4) + ((slot % 3) << 2) + 0x301, flags);
                 i++;
             } while (i < count);
         }
