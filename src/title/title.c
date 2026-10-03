@@ -31,16 +31,44 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
-/// Title-screen work block stored at Task::work (memCalloc 0x18).
-typedef struct _TitleWork {
-    /* 0x00 */ s32 timer;          // frame / phase counter
-    /* 0x04 */ s32 selection;      // menu cursor index
-    /* 0x08 */ s32 fadeTileEnable; // fullscreen fade TILE when non-zero
-    /* 0x0C */ s32 logoFade;       // intro logo alpha 0..0x80
-    /* 0x10 */ s32 menuFade;       // menu chrome alpha 0..0x80
-    /* 0x14 */ s32 menuCount;      // number of menu entries
-} TitleWork;
-STATIC_ASSERT_SIZEOF(TitleWork, 0x18);
+/// Entries of the title menu, in the order of its label and task tables.
+///
+/// The cursor only ever rests on New Game, Load Game and Configuration: the
+/// two entries before them are stepped over, and Debug Option lies beyond the
+/// count the cursor wraps at.
+enum {
+    TITLE_MENU_SURVIVAL,
+    TITLE_MENU_EXTRA_GAME,
+    TITLE_MENU_NEW_GAME,
+    TITLE_MENU_LOAD_GAME,
+    TITLE_MENU_CONFIGURATION,
+    TITLE_MENU_DEBUG_OPTION,
+};
+
+/// Frames a black fade of the title screen lasts. The idle count starts this
+/// far below zero to fade in, and runs this far past the timeout to fade out.
+#define TITLE_SCREEN_FADE_FRAMES 16
+
+/// Idle frames after which the title screen fades out and gives way to the
+/// attract demo.
+#define TITLE_SCREEN_IDLE_TIMEOUT 900
+
+/// Brightness of a title-screen row that has fully faded in, and the step a
+/// fading row rises by each frame.
+#define TITLE_SCREEN_FADE_FULL 0x80
+#define TITLE_SCREEN_FADE_STEP 8
+
+/// The title screen task's work: the PRESS START BUTTON prompt and the menu
+/// that replaces it, with the idle count that fades the screen in and out.
+typedef struct {
+    s32 idleFrames;        // Frames since the last input, starting at -TITLE_SCREEN_FADE_FRAMES
+    s32 selection;         // Highlighted entry (a TITLE_MENU_ value)
+    s32 screenFadeEnabled; // Nonzero to fade the screen in from black and back out to it
+    s32 promptFade;        // Brightness of the prompt as it slides in (0..TITLE_SCREEN_FADE_FULL)
+    s32 menuFade;          // Brightness of the menu; the prompt and copyright fade out by its complement
+    s32 menuCount;         // Entries the cursor wraps over (5, leaving Debug Option out)
+} _TitleScreenWork;
+STATIC_ASSERT_SIZEOF(_TitleScreenWork, 0x18);
 
 /// Retained text labels for the title menu (src/title/title.c).
 extern char Title_StrNewGame[];
@@ -127,9 +155,9 @@ static void Title_DrawSpriteRow(s32 y, s32 v, s32 color);
 
 static void Title_InitTask(Task* arg0)
 {
-    s32           flag;
-    DisplayState* ds;
-    TitleWork*    work;
+    s32               flag;
+    DisplayState*     ds;
+    _TitleScreenWork* work;
 
     flag                          = 1;
     ds                            = &gDisplayState;
@@ -143,20 +171,20 @@ static void Title_InitTask(Task* arg0)
         arg0->spawnArg1.value -= 1;
         return;
     }
-    work = memCalloc(0x18, 0);
+    work = memCalloc(sizeof(*work), 0);
     if (work != NULL) {
-        arg0->work           = work;
-        work->fadeTileEnable = flag;
-        work->menuCount      = 5;
-        work->selection      = 2;
-        work->timer          = 0;
+        arg0->work              = work;
+        work->screenFadeEnabled = flag;
+        work->menuCount         = 5;
+        work->selection         = TITLE_MENU_NEW_GAME;
+        work->idleFrames        = 0;
         if (Wip_SysFlags.gameOver != 0) {
-            work->selection = 3;
+            work->selection = TITLE_MENU_LOAD_GAME;
         }
         Text_LoadClutImages();
         Display_SetMode(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_KEEP_VIEW);
         ds->holdState                 = DISPLAY_HOLD_INITIAL;
-        work->timer                   = -0x10;
+        work->idleFrames              = -TITLE_SCREEN_FADE_FRAMES;
         ds->control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
         if (ds->debugMode != 0) {
             func_807246B4();
@@ -199,15 +227,15 @@ static void Title_DrawSpriteRow(s32 y, s32 v, s32 color)
 
 static void Title_MenuTask(Task* task)
 {
-    TitleWork* work = (TitleWork*)task->work;
-    s32        timer;
-    s32        i;
+    _TitleScreenWork* work = task->work;
+    s32               idleFrames;
+    s32               i;
 
-    timer       = work->timer + 1;
-    work->timer = timer;
-    if (timer >= 0x385) {
-        if (timer < 0x394) {
-            if (work->fadeTileEnable != 0) {
+    idleFrames       = work->idleFrames + 1;
+    work->idleFrames = idleFrames;
+    if (idleFrames > TITLE_SCREEN_IDLE_TIMEOUT) {
+        if (idleFrames < TITLE_SCREEN_IDLE_TIMEOUT + TITLE_SCREEN_FADE_FRAMES) {
+            if (work->screenFadeEnabled != 0) {
                 TILE*     tile;
                 DR_TPAGE* tpage;
 
@@ -215,7 +243,7 @@ static void Title_MenuTask(Task* task)
                 gGpuPrimCursor = tile + 1;
                 setlen(tile, 3);
                 setcode(tile, 0x60);
-                tile->r0 = tile->g0 = tile->b0 = (timer - 0x384) * 16 - 1;
+                tile->r0 = tile->g0 = tile->b0 = (idleFrames - TITLE_SCREEN_IDLE_TIMEOUT) * 16 - 1;
                 tile->x0                       = -0xA0;
                 tile->y0                       = -0x78;
                 tile->w                        = 0x140;
@@ -245,7 +273,7 @@ static void Title_MenuTask(Task* task)
         return;
     }
 
-    if (work->fadeTileEnable != 0 && timer < 0) {
+    if (work->screenFadeEnabled != 0 && idleFrames < 0) {
         TILE*     tile;
         DR_TPAGE* tpage;
         s32       color;
@@ -254,7 +282,7 @@ static void Title_MenuTask(Task* task)
         gGpuPrimCursor = tile + 1;
         setlen(tile, 3);
         setcode(tile, 0x62);
-        color    = ~(work->timer << 4);
+        color    = ~(work->idleFrames << 4);
         tile->x0 = -0xA0;
         tile->y0 = -0x78;
         tile->w  = 0x140;
@@ -272,40 +300,40 @@ static void Title_MenuTask(Task* task)
     }
 
     if (task->state == 3) {
-        if (work->menuFade < 0x80) {
-            work->menuFade += 8;
+        if (work->menuFade < TITLE_SCREEN_FADE_FULL) {
+            work->menuFade += TITLE_SCREEN_FADE_STEP;
         }
         for (i = 0; i < 3; i++) {
             Title_DrawSpriteRow(i * 0xE + 0x38, i * 0x10 + 0x30, work->menuFade);
         }
-        Title_DrawSpriteRow((work->selection - 2) * 0xE + 0x38, 0x20, work->menuFade);
-        Title_DrawSpriteRow(work->menuFade / 8 + 0x40, 0, 0x80 - work->menuFade);
-        Title_DrawSpriteRow(0x5C, 0x10, 0x80 - work->menuFade);
-        if (work->menuFade < 0x80) {
+        Title_DrawSpriteRow((work->selection - TITLE_MENU_NEW_GAME) * 0xE + 0x38, 0x20, work->menuFade);
+        Title_DrawSpriteRow(work->menuFade / 8 + 0x40, 0, TITLE_SCREEN_FADE_FULL - work->menuFade);
+        Title_DrawSpriteRow(0x5C, 0x10, TITLE_SCREEN_FADE_FULL - work->menuFade);
+        if (work->menuFade < TITLE_SCREEN_FADE_FULL) {
             return;
         }
 
         if (Pad_CheckButtons(0, 1, 0x4000) != 0) {
-            work->timer = 0;
+            work->idleFrames = 0;
             work->selection++;
             SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
             if (work->selection >= work->menuCount) {
                 work->selection -= work->menuCount;
             }
-            if (work->selection == 0) {
-                work->selection = 1;
+            if (work->selection == TITLE_MENU_SURVIVAL) {
+                work->selection = TITLE_MENU_EXTRA_GAME;
             }
-            if (work->selection == 1) {
-                work->selection = 2;
+            if (work->selection == TITLE_MENU_EXTRA_GAME) {
+                work->selection = TITLE_MENU_NEW_GAME;
             }
         } else if (Pad_CheckButtons(0, 1, 0x1000) != 0) {
-            work->timer = 0;
+            work->idleFrames = 0;
             work->selection--;
             SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
-            if (work->selection == 1) {
-                work->selection = 0;
+            if (work->selection == TITLE_MENU_EXTRA_GAME) {
+                work->selection = TITLE_MENU_SURVIVAL;
             }
-            if (work->selection == 0) {
+            if (work->selection == TITLE_MENU_SURVIVAL) {
                 work->selection = -1;
             }
             if (work->selection < 0) {
@@ -318,14 +346,14 @@ static void Title_MenuTask(Task* task)
             Task_CallExit(task);
         }
     } else {
-        if (work->logoFade < 0x80) {
-            work->logoFade += 8;
+        if (work->promptFade < TITLE_SCREEN_FADE_FULL) {
+            work->promptFade += TITLE_SCREEN_FADE_STEP;
         }
-        Title_DrawSpriteRow(0x40 - (0x80 - work->logoFade) / 8, 0, work->logoFade);
-        Title_DrawSpriteRow(0x5C, 0x10, 0x80);
+        Title_DrawSpriteRow(0x40 - (TITLE_SCREEN_FADE_FULL - work->promptFade) / 8, 0, work->promptFade);
+        Title_DrawSpriteRow(0x5C, 0x10, TITLE_SCREEN_FADE_FULL);
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | 0x800) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
-            work->timer = 0;
+            work->idleFrames = 0;
             task->state++;
         }
     }
