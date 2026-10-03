@@ -53,7 +53,7 @@ typedef struct {
         s32                (*call0)(Task*);
         s32                (*call1)(Task*, s32, AnimationPlayRequest*);
         s32                (*call2)(Task*, s32, const AnimationBankCopyRequest*);
-        s32                (*call3)(Task*, s32, GpCountArg*);
+        s32                (*call3)(Task*, s32, GameActorWalkSteps*);
         s32                (*call4)(Task*, s32, ActorTransform*);
         s32                (*transform)(Task*, s32, ActorTransform*, s32);
         s32                (*call5)(Task*, s32, ActorTransform*, GameActorMoveAnim*);
@@ -148,7 +148,7 @@ Actor800300MessageEntry D_actor_800300_80168880[26] = {
     { GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, { .call6 = func_80104684 } },
     { 1012, { .call1 = func_8010C648 } },
     { GAME_ACTOR_MESSAGE_ATTACH_TO_COORD, { .call9 = func_80105A60 } },
-    { 1014, { .call3 = func_801052B8 } },
+    { GAME_ACTOR_MESSAGE_WALK_STEPS, { .call3 = func_801052B8 } },
     { ANIMATION_MESSAGE_COPY_BANK_EXTENSION, { .call2 = Gp_CopyAllyAnim } },
     { GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, { .call1 = func_8010C4F0 } },
     { GAME_ACTOR_MESSAGE_APPLY_DAMAGE, { .call7 = Gp_HurtAlly } },

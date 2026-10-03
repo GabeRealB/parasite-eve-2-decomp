@@ -276,7 +276,7 @@ typedef struct {
         s32                (*coord)(Task*, s32, GfxCoord*);
         s32                (*call6)(Task*, s32, ActorTransform*, GameActorMoveAnim*);
         s32                (*call7)(Task*, s32, AnimationPlayRequest*);
-        s32                (*call8)(Task*, s32, GpCountArg*);
+        s32                (*call8)(Task*, s32, GameActorWalkSteps*);
         s32                (*call9)(Task*, s32, const AnimationBankCopyRequest*);
         s32                (*call10)(Task*, s32, GameActorButtonPressHold*);
         s32                (*call11)(Task*, s32, GameActorMoveBy*);
@@ -943,7 +943,7 @@ GpPlayerMessageEntry Gp_PlayerMsgTable[28] = {
     { GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, { .call5 = func_80104684 } },
     { ANIMATION_MESSAGE_INSTALL_AND_PLAY, { .call7 = func_80104B54 } },
     { GAME_ACTOR_MESSAGE_ATTACH_TO_COORD, { .coord = func_80105A60 } },
-    { 1014, { .call8 = func_801052B8 } },
+    { GAME_ACTOR_MESSAGE_WALK_STEPS, { .call8 = func_801052B8 } },
     { ANIMATION_MESSAGE_COPY_BANK_EXTENSION, { .call9 = Gp_CopyPlayerAnim } },
     { GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, { .call10 = func_801054D8 } },
     { GAME_ACTOR_MESSAGE_APPLY_DAMAGE, { .call5 = Gp_ApplyPlayerDamage } },
@@ -6519,7 +6519,7 @@ s32 func_80105190(Task* arg0, s32 arg1, ActorTransform* transform, GameActorMove
     return 0;
 }
 
-s32 func_801052B8(Task* arg0, s32 arg1, GpCountArg* arg2)
+s32 func_801052B8(Task* arg0, s32 arg1, GameActorWalkSteps* walkSteps)
 {
     GameActor*    actor;
     PlayerStatus* p;
@@ -6548,8 +6548,8 @@ s32 func_801052B8(Task* arg0, s32 arg1, GpCountArg* arg2)
     actor->state                   = 5;
     actor->scriptedMotionPending   = 1;
     actor->pendingCollisionUpdates = 0x38;
-    actor->actionValue             = arg2->field_0;
-    actor->stateTimer              = arg2->field_4;
+    actor->actionValue             = walkSteps->stepCount;
+    actor->stateTimer              = walkSteps->field_4;
     return 0;
 }
 

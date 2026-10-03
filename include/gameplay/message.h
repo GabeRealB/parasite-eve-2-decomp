@@ -231,6 +231,10 @@ enum {
     GAME_ACTOR_MESSAGE_SET_MODEL_DRAW = 0x3F3,
     /// Reparents the receiver's model to a borrowed `GfxCoord`. Returns 0.
     GAME_ACTOR_MESSAGE_ATTACH_TO_COORD = 0x3F5,
+    /// Takes scripted control and walks the receiver straight ahead until a
+    /// borrowed `GameActorWalkSteps` count of footsteps has sounded. Returns 0.
+    /// Only the player walks; a companion takes scripted control and stays put.
+    GAME_ACTOR_MESSAGE_WALK_STEPS = 0x3F6,
     /// Takes scripted control and waits until `pressCount` newly pressed
     /// direction-pad or face buttons have been counted. The payload is a
     /// borrowed `GameActorButtonPressHold`. Returns 1, changing nothing,
@@ -320,6 +324,28 @@ typedef struct {
     s32                  pressCount; // Direction-pad and face-button presses before the hold completes; 0 completes on the first tick
 } GameActorButtonPressHold;
 STATIC_ASSERT_SIZEOF(GameActorButtonPressHold, 0x18);
+
+/// Payload of `GAME_ACTOR_MESSAGE_WALK_STEPS`: a walk measured in footsteps.
+///
+/// The player walks forward in its walk clip, the unarmed one when no weapon
+/// model is attached, and counts a footstep each time the clip's footstep cue
+/// plays a sound. When `stepCount` have sounded
+/// the scripted motion ends and the player blends back to its standing clip.
+/// A count of zero or one ends on the first footstep; a count above 0x7FFF is
+/// kept as a negative value and does the same. A floor surface with no
+/// footstep sound is never counted, so the walk does not end on one.
+///
+/// The companions bind the message to the same handler but have no walking
+/// state behind it: they take scripted control, hold their animation and stay
+/// pending until `GAME_ACTOR_MESSAGE_END_SCRIPTED`.
+///
+/// The record is borrowed through synchronous dispatch and is not copied. It
+/// occupies eight bytes with four-byte alignment.
+typedef struct {
+    u16 stepCount; // Sounded footsteps to walk before the motion ends
+    s32 field_4;   // Role unproven: the receiver keeps the word, and the one choice its zero test makes has no effect
+} GameActorWalkSteps;
+STATIC_ASSERT_SIZEOF(GameActorWalkSteps, 8);
 
 /// Scene-child lookup messages with a borrowed, writable `Task*` reply.
 ///
