@@ -45,15 +45,31 @@
 void waterDrawSpinU16(GfxCoord* coord, u16 textureColumn, s16 radiusScale, s16 spinAngle);
 void waterDrawTileU16(GfxCoord* arg0, u16 arg1, s16 arg2);
 
-/// Temporary projection and corner offsets for the room's spinning sprite.
+/// Scratch-stack workspace for the room's spinning water sprite.
+///
+/// One perspective transform of `worldPoint` supplies the screen centre, the
+/// GTE status and the SZ3 / 4 depth. The depth divides the sprite's size onto
+/// the screen and orders its primitive, so it must be nonzero once accepted.
+/// `cornerOffsetX` and `cornerOffsetY` hold the signed pixel displacement to
+/// one pair of opposite corners, then are reused a quarter turn later for the
+/// other pair; only their low halfwords reach the GPU packet.
+///
+/// `screenX` and `screenY` keep the raw 16-bit encodings of the signed GTE
+/// pixel coordinates. They are adjacent so one GTE word store fills both.
+///
+/// The status word sits between the depth and the corner offsets.
+/// `EffectBillboardScratch` keeps it after the offsets and `EffectShapeScratch`
+/// puts the world point first, so this drawer uses neither. Reserve one
+/// complete, word-aligned block and release it after drawing; no pointer into
+/// it survives release.
 typedef struct {
-    s32     otz;  // Projected ordering-table depth (SZ3 / 4)
-    s32     flag; // GTE projection status; negative rejects the sprite
-    s32     dx;   // Rotated horizontal half-extent; the corner stores use its low half
-    s32     dy;   // Rotated vertical half-extent; the corner stores use its low half
-    SVECTOR vec;  // Low 16 bits of the coordinate's cached translation
-    u16     sx;   // Projected screen X, interpreted modulo 65536 by the corner arithmetic
-    u16     sy;   // Projected screen Y, interpreted modulo 65536 by the corner arithmetic
+    s32     depth;           // SZ3 / 4; divisor for the corner offsets and depth for sorting
+    s32     projectionFlags; // GTE FLAG word; a negative value rejects the projection
+    s32     cornerOffsetX;   // Signed horizontal displacement from the centre to a corner, in pixels
+    s32     cornerOffsetY;   // Signed vertical displacement from the centre to a corner, in pixels
+    SVECTOR worldPoint;      // World position, with each translation component narrowed to s16
+    u16     screenX;         // Raw projected centre X; first half of the GTE screen-position word
+    u16     screenY;         // Raw projected centre Y; second half of the GTE screen-position word
 } _ShelterB1PodServiceGantrySpinScratch;
 STATIC_ASSERT_SIZEOF(_ShelterB1PodServiceGantrySpinScratch, 0x1C);
 
@@ -349,12 +365,12 @@ void func_shelter_b1_pod_service_gantry_8017E880(Task* task)
 /// `coord->workm` must already be current in the space `GsWSMATRIX` projects.
 /// `textureColumn` selects a 32-texel column on texture row 0xE0..0xFF;
 /// UV stores retain only their low byte. The projected radius is
-/// `radiusScale * 31 / otz`, with a nonzero depth required. `spinAngle` uses
+/// `radiusScale * 31 / depth`, with a nonzero depth required. `spinAngle` uses
 /// 0x1000 units per turn. The scratch block lives only during this draw.
 void waterDrawSpinU16(GfxCoord* coord, u16 textureColumn, s16 radiusScale, s16 spinAngle)
 {
     void**                                          scratch;
-    u8*                                             head;
+    _ShelterB1PodServiceGantrySpinScratch*          head;
     _ShelterB1PodServiceGantrySpinScratch*          block;
     register _ShelterB1PodServiceGantrySpinScratch* depthBlock asm("s0");
     POLY_FT4*                                       prim;
@@ -366,22 +382,22 @@ void waterDrawSpinU16(GfxCoord* coord, u16 textureColumn, s16 radiusScale, s16 s
 
     scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
-    block    = (_ShelterB1PodServiceGantrySpinScratch*)(head - sizeof(*block));
+    block    = head - 1;
     *scratch = block;
     memFillBytes(block, 0, sizeof(*block));
-    block->vec.vx = (u16)coord->workm.t[0];
-    block->vec.vy = (u16)coord->workm.t[1];
-    block->vec.vz = (u16)coord->workm.t[2];
+    block->worldPoint.vx = (u16)coord->workm.t[0];
+    block->worldPoint.vy = (u16)coord->workm.t[1];
+    block->worldPoint.vz = (u16)coord->workm.t[2];
     // Reuse the saved coordinate register after capturing the position.
     depthBlock = block;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((_ShelterB1PodServiceGantrySpinScratch*)(head - sizeof(*block)))->vec);
+    gte_ldv0(&(head - 1)->worldPoint);
     gte_rtps();
-    gte_stsxy(&((_ShelterB1PodServiceGantrySpinScratch*)(head - sizeof(*block)))->sx);
-    gte_stflg(&((_ShelterB1PodServiceGantrySpinScratch*)(head - sizeof(*block)))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&depthBlock->otz);
+    gte_stsxy(&(head - 1)->screenX);
+    gte_stflg(&(head - 1)->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&depthBlock->depth);
         prim           = gGpuPrimCursor;
         angle          = spinAngle;
         gGpuPrimCursor = prim + 1;
@@ -394,23 +410,23 @@ void waterDrawSpinU16(GfxCoord* coord, u16 textureColumn, s16 radiusScale, s16 s
         v           = 0xE0;
         u1          = u0 + 0x1F;
         setUV4(prim, u0, v, u1, v, u0, 0xFF, u1, 0xFF);
-        block->dx        = (((radiusScale * 31) / ((_ShelterB1PodServiceGantrySpinScratch*)(head - sizeof(*block)))->otz) * rsin(angle)) >> 12;
-        block->dy        = (((radiusScale * 31) / ((_ShelterB1PodServiceGantrySpinScratch*)(head - sizeof(*block)))->otz) * rcos(angle)) >> 12;
-        prim->x0         = block->sx + (u16)block->dx;
-        prim->x3         = block->sx - (u16)block->dx;
-        prim->y0         = block->sy - (u16)block->dy;
-        quarterTurnAngle = angle + 0x400;
-        prim->y3         = block->sy + (u16)block->dy;
-        block->dx        = (((radiusScale * 31) / ((_ShelterB1PodServiceGantrySpinScratch*)(head - sizeof(*block)))->otz) * rsin(quarterTurnAngle)) >> 12;
-        block->dy        = (((radiusScale * 31) / ((_ShelterB1PodServiceGantrySpinScratch*)(head - sizeof(*block)))->otz) * rcos(quarterTurnAngle)) >> 12;
-        prim->x1         = block->sx + (u16)block->dx;
-        prim->x2         = block->sx - (u16)block->dx;
-        prim->y1         = block->sy - (u16)block->dy;
-        prim->y2         = block->sy + (u16)block->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((_ShelterB1PodServiceGantrySpinScratch*)(head - sizeof(*block)))->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        block->cornerOffsetX = (((radiusScale * 31) / (head - 1)->depth) * rsin(angle)) >> 12;
+        block->cornerOffsetY = (((radiusScale * 31) / (head - 1)->depth) * rcos(angle)) >> 12;
+        prim->x0             = block->screenX + (u16)block->cornerOffsetX;
+        prim->x3             = block->screenX - (u16)block->cornerOffsetX;
+        prim->y0             = block->screenY - (u16)block->cornerOffsetY;
+        quarterTurnAngle     = angle + 0x400;
+        prim->y3             = block->screenY + (u16)block->cornerOffsetY;
+        block->cornerOffsetX = (((radiusScale * 31) / (head - 1)->depth) * rsin(quarterTurnAngle)) >> 12;
+        block->cornerOffsetY = (((radiusScale * 31) / (head - 1)->depth) * rcos(quarterTurnAngle)) >> 12;
+        prim->x1             = block->screenX + (u16)block->cornerOffsetX;
+        prim->x2             = block->screenX - (u16)block->cornerOffsetX;
+        prim->y1             = block->screenY - (u16)block->cornerOffsetY;
+        prim->y2             = block->screenY + (u16)block->cornerOffsetY;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(head - 1)->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES_AT(scratch, sizeof(*block));
+    SCRATCH_POP_AT(scratch, _ShelterB1PodServiceGantrySpinScratch);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` into a
