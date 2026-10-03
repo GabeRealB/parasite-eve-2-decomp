@@ -690,12 +690,12 @@ Actor356100Storage32B0 D_actor_356100_801732B0;
 GameActorButtonPressHold D_actor_356100_801732D0;
 
 /// Animation view of the work block above, as `func_actor_356100_801633DC`
-/// reads it: the `Actor01900AnimWork` layout 0xE0 bytes later, so the two
+/// reads it: the `Actor01900Work` layout 0xE0 bytes later, so the two
 /// `AnimationContext` blocks at 0x1C / 0x4C8 each sit 0x14 bytes before their
 /// 0x28-byte slot array. `field_982` is the clip id the slot loop copies
 /// minus 3 into `slots[i].field_9`, `field_98A` the clip written whole into
 /// `blendSlots[i].field_9`, and `field_98C` the blend weight, the same three
-/// roles `Actor01900AnimWork.field_8A2` / `field_8AA` / `field_8AC` have.
+/// roles `Actor01900Work.field_8A2` / `field_8AA` / `field_8AC` have.
 typedef struct Actor356100AnimWork {
     /* 0x000 */ byte             pad_0[0x1C];
     /* 0x01C */ AnimationContext anim;

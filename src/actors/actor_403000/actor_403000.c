@@ -210,7 +210,7 @@ typedef struct Actor403000Work {
 STATIC_ASSERT_SIZEOF(Actor403000Work, 0xFDC);
 
 /// Animation view of the same work block, as `func_actor_403000_801336B4`
-/// reads it: the `Actor01900AnimWork` layout 8 bytes earlier, with 24 slots
+/// reads it: the `Actor01900Work` layout 8 bytes earlier, with 24 slots
 /// per context. `field_AD4` is the blend weight, `field_AD2` the clip written
 /// to the blend slots and `field_ACA` the clip id (see `Actor403000Work`).
 typedef struct Actor403000AnimWork {

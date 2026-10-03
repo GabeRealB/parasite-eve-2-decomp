@@ -75,22 +75,21 @@ typedef struct Actor01900Work {
     /* 0x00A */ byte                  pad_A[2];
     /* 0x00C */ Actor01900Waypoint    field_C[2];
     /* 0x014 */ s16                   field_14;
-    /* 0x016 */ byte                  pad_16[0x44];
-    /* 0x05A */ u16                   field_5A;
-    /* 0x05C */ byte                  pad_5C[0xC];
-    /* 0x068 */ u16                   field_68;
-    /* 0x06A */ byte                  pad_6A[0x82A];
+    /* 0x016 */ byte                  pad_16[0x6];
+    /* 0x01C */ ActorAnimRig19        rig;
+    /* 0x458 */ ActorAnimRig19        blend;
     /* 0x894 */ s32                   field_894;
     /* 0x898 */ s16                   field_898;
     /* 0x89A */ s16                   field_89A;
-    /* 0x89C */ byte                  pad_89C[2];
+    /* 0x89C */ s16                   field_89C;
     /* 0x89E */ s16                   field_89E;
-    /* 0x8A0 */ byte                  pad_8A0[2];
+    /* 0x8A0 */ u16                   field_8A0;
     /* 0x8A2 */ s16                   field_8A2;
     /* 0x8A4 */ s16                   field_8A4;
     /* 0x8A6 */ s16                   field_8A6;
     /* 0x8A8 */ s16                   field_8A8;
-    /* 0x8AA */ byte                  pad_8AA[4];
+    /* 0x8AA */ s16                   field_8AA;
+    /* 0x8AC */ s16                   field_8AC;
     /* 0x8AE */ s16                   field_8AE;
     /* 0x8B0 */ s16                   field_8B0;
     /* 0x8B2 */ byte                  pad_8B2[2];
@@ -138,34 +137,6 @@ typedef struct Actor01900Work {
     /* 0xC80 */ byte    pad_C80[0x18];
     /* 0xC98 */ s16     field_C98;
 } Actor01900Work;
-
-/// Animation view of the same task work block: the two animation contexts and
-/// their slot arrays, which `Actor01900Work` covers with padding because it
-/// names other fields inside that range. The tail from 0x898 on is the same
-/// run of halfwords `Actor01900Work` describes, repeated here so the animation
-/// driver can reach both through one pointer. The bytes the arrays do not
-/// cover are not yet described.
-typedef struct Actor01900AnimWork {
-    /* 0x000 */ byte           pad_0[0x1C];
-    /* 0x01C */ ActorAnimRig19 rig;
-    /* 0x458 */ ActorAnimRig19 blend;
-    /* 0x894 */ byte           pad_894[0x4];
-    /* 0x898 */ s16            field_898;
-    /* 0x89A */ s16            field_89A;
-    /* 0x89C */ s16            field_89C;
-    /* 0x89E */ s16            field_89E;
-    /* 0x8A0 */ u16            field_8A0;
-    /* 0x8A2 */ s16            field_8A2;
-    /* 0x8A4 */ byte           pad_8A4[2];
-    /* 0x8A6 */ s16            field_8A6;
-    /* 0x8A8 */ s16            field_8A8;
-    /* 0x8AA */ s16            field_8AA;
-    /* 0x8AC */ s16            field_8AC;
-    /* 0x8AE */ s16            field_8AE;
-    /* 0x8B0 */ s16            field_8B0;
-    /* 0x8B2 */ byte           pad_8B2[2];
-    /* 0x8B4 */ s32            field_8B4;
-} Actor01900AnimWork;
 
 /// The actor's state handlers, indexed by `Actor01900Work::field_0`.
 /// `Actor01900_Fn09D3C` copies the table to its frame before dispatching.
@@ -918,14 +889,14 @@ static __inline__ void Actor01900_ResetYaw(GfxCoord* coord)
 /// animation alone. The per-joint rates come from `field_8A2` and `field_8AA`.
 static void Actor01900_Fn01950(Task* arg0)
 {
-    AnimationPose       pose;
-    AnimationPose       blendPose;
-    AnimationContext*   anim;
-    s16                 weight;
-    s16                 i;
-    Actor01900AnimWork* work;
+    AnimationPose     pose;
+    AnimationPose     blendPose;
+    AnimationContext* anim;
+    s16               weight;
+    s16               i;
+    Actor01900Work*   work;
 
-    work   = (Actor01900AnimWork*)((Actor01900Work*)arg0->work);
+    work   = (Actor01900Work*)((Actor01900Work*)arg0->work);
     weight = work->field_8AC;
     anim   = &work->rig.anim;
     for (i = 1; i < 0x13; i++) {
@@ -950,7 +921,7 @@ static s32 Actor01900_Fn01A7C(Actor01900Work* work)
     switch (work->field_89E) {
         case 20:
         case 21:
-            id = work->field_5A & 0x3FF;
+            id = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
             if (id == 7) {
                 if (work->field_8B4 != id) {
                     work->field_8B4 = id;
@@ -969,7 +940,7 @@ static s32 Actor01900_Fn01A7C(Actor01900Work* work)
             }
             break;
         case 7:
-            id = work->field_5A & 0x3FF;
+            id = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
             if (id == 0xF) {
                 if (work->field_8B4 != id) {
                     work->field_8B4 = id;
@@ -989,7 +960,7 @@ static s32 Actor01900_Fn01A7C(Actor01900Work* work)
             break;
         case 2:
         case 3:
-            id = work->field_5A & 0x3FF;
+            id = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
             if (id == 0x24) {
                 if (work->field_8B4 != id) {
                     work->field_8B4 = id;
@@ -1008,31 +979,31 @@ static s32 Actor01900_Fn01A7C(Actor01900Work* work)
             }
             break;
         case 9:
-            id = work->field_5A & 0x3FF;
+            id = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
             if (id == 4 && work->field_8B4 != id) {
                 work->field_8B4 = id;
                 return 0x400A0006;
             }
-            work->field_8B4 = work->field_5A & 0x3FF;
+            work->field_8B4 = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
             break;
         case 4:
-            id = work->field_5A & 0x3FF;
+            id = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
             if (id == 0xC && work->field_8B4 != id) {
                 work->field_8B4 = id;
                 return 0x400A000C;
             }
-            work->field_8B4 = work->field_5A & 0x3FF;
+            work->field_8B4 = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
             break;
         case 11:
-            id = work->field_5A & 0x3FF;
+            id = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
             if (id == 4 && work->field_8B4 != id) {
                 work->field_8B4 = id;
                 return 0x400A0005;
             }
-            work->field_8B4 = work->field_5A & 0x3FF;
+            work->field_8B4 = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
             break;
         default:
-            prev            = work->field_5A & 0x3FF;
+            prev            = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
             work->field_8B4 = prev;
             break;
     }
@@ -1048,26 +1019,26 @@ static s32 Actor01900_Fn01A7C(Actor01900Work* work)
 /// `field_8A6` does the same for the blend animation and `field_8A8`.
 static void Actor01900_Fn01C94(Task* arg0)
 {
-    Actor01900AnimWork* work;
-    Actor01900AnimWork* w1;
-    Actor01900AnimWork* w2;
-    Actor01900AnimWork* w3;
-    Enemy*              enemy;
-    s16                 cur;
-    s16                 dst;
-    s16                 raw;
-    s32                 clamped;
-    s32                 i;
-    s32                 i2;
-    s32                 i3;
-    s32                 i4;
-    s32                 snd;
-    s32                 id;
-    s32                 pan;
-    u16                 cur_u;
-    u16                 dst_u;
+    Actor01900Work* work;
+    Actor01900Work* w1;
+    Actor01900Work* w2;
+    Actor01900Work* w3;
+    Enemy*          enemy;
+    s16             cur;
+    s16             dst;
+    s16             raw;
+    s32             clamped;
+    s32             i;
+    s32             i2;
+    s32             i3;
+    s32             i4;
+    s32             snd;
+    s32             id;
+    s32             pan;
+    u16             cur_u;
+    u16             dst_u;
 
-    work  = (Actor01900AnimWork*)((Actor01900Work*)arg0->work);
+    work  = (Actor01900Work*)((Actor01900Work*)arg0->work);
     enemy = arg0->spawnArg2.pointer;
     if (work->field_898 == 1) {
         w1 = work;
@@ -1099,7 +1070,7 @@ static void Actor01900_Fn01C94(Task* arg0)
     }
     if (work->field_8A6 == 2) {
         i3            = 1;
-        w1            = (Actor01900AnimWork*)((Actor01900Work*)arg0->work);
+        w1            = (Actor01900Work*)((Actor01900Work*)arg0->work);
         w1->field_8AA = 0x30;
         w1->field_8AC = 0x800;
         do {
@@ -1111,7 +1082,7 @@ static void Actor01900_Fn01C94(Task* arg0)
     }
     work->field_8A0 = (u16)(work->field_8A0 + 1);
     if (work->field_89A == 0) {
-        w3 = (Actor01900AnimWork*)((Actor01900Work*)arg0->work);
+        w3 = (Actor01900Work*)((Actor01900Work*)arg0->work);
         i4 = 1;
         do {
             w3->rig.slots[i4].rate = w3->field_8A2;
@@ -1216,10 +1187,10 @@ static void Actor01900_Fn02018(Enemy* enemy, Task* actor)
     enemy->hp                     = (s16)Actor01900_D0AC54.hpMax;
     enemy->param                  = &Actor01900_D0AC54;
     enemy->recs                   = &work->field_8E8;
-    animationInitContext(&((Actor01900AnimWork*)work)->rig.anim, Actor01900_D17174, obj,
-                         ((Actor01900AnimWork*)work)->rig.poses, ((Actor01900AnimWork*)work)->rig.slots);
-    animationInitContext(&((Actor01900AnimWork*)work)->blend.anim, Actor01900_D17174, obj,
-                         ((Actor01900AnimWork*)work)->blend.poses, ((Actor01900AnimWork*)work)->blend.slots);
+    animationInitContext(&((Actor01900Work*)work)->rig.anim, Actor01900_D17174, obj,
+                         ((Actor01900Work*)work)->rig.poses, ((Actor01900Work*)work)->rig.slots);
+    animationInitContext(&((Actor01900Work*)work)->blend.anim, Actor01900_D17174, obj,
+                         ((Actor01900Work*)work)->blend.poses, ((Actor01900Work*)work)->blend.slots);
     work->field_898 = 2;
     work->field_89A = 0;
     work->field_89E = 2;
@@ -1738,7 +1709,7 @@ static void Actor01900_Fn03710(Task* arg0)
         work->field_A08.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         do {
             Actor01900_Fn01C94(arg0);
-        } while ((u32)(work->field_5A & 0x3FF) < 6U);
+        } while ((u32)(work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) < 6U);
         work->field_8A2 = 0x20;
         return;
     }
@@ -1810,7 +1781,7 @@ static void Actor01900_Fn03854(Task* arg0)
         SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
         yaw                                   = SCRATCH_STACK_CURSOR(ActorChaseScratch);
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        if (work->field_68 & 0x100) {
+        if (work->rig.slots[1].status.fields.flags & 0x100) {
             work->field_0 = 7;
         }
         yaw->turn       = actorPositionYaw(arg0, &yaw->delta, &gPlayerStatus);
@@ -2108,7 +2079,7 @@ static void Actor01900_Fn042BC(Task* arg0)
         } else {
             Actor01900_StepForward(arg0->extra.tmd->coords, 0xA);
         }
-    } else if (work->field_68 & 0x100) {
+    } else if (work->rig.slots[1].status.fields.flags & 0x100) {
         work->field_89E = 3;
         work->field_898 = 1;
     }
@@ -2416,13 +2387,13 @@ static void Actor01900_Fn05F38(Task* arg0)
         work->field_6   = 0;
     }
     Actor01900_Fn01C94(arg0);
-    if ((u32)((work->field_5A & 0x3FF) - 0x10) < 7U) {
+    if ((u32)((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) - 0x10) < 7U) {
         coord = arg0->extra.tmd->coords;
         Actor01900_StepForward(coord, -0x78);
         ActorContact_PushContact(arg0->extra.tmd->coords, &work->field_A28, 0xC);
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
-    if (work->field_68 & 0x100) {
+    if (work->rig.slots[1].status.fields.flags & 0x100) {
         if (enemy->node.state.parts.targeted == 1) {
             work->field_0 = 10;
         } else {
@@ -2520,13 +2491,13 @@ static void Actor01900_Fn06634(Task* arg0)
     ActorContact_PushContact(arg0->extra.tmd->coords, &work->field_8E8, 0xC);
     ActorContact_PushContact(arg0->extra.tmd->coords, &work->field_A28, 0xC);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (work->field_68 & 0x100) {
+    if (work->rig.slots[1].status.fields.flags & 0x100) {
         if (work->field_89E == 0xA) {
             work->field_89E = 0xB;
             work->field_898 = 2;
             Actor01900_Fn01C94(arg0);
         }
-        if ((work->field_68 & 0x100) && work->field_89E == 0xB) {
+        if ((work->rig.slots[1].status.fields.flags & 0x100) && work->field_89E == 0xB) {
             work->field_8C8.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
             if (enemy->hp > 0) {
                 if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
@@ -2616,7 +2587,7 @@ static void Actor01900_Fn06B4C(Task* arg0)
         work->field_894               = 0;
     }
     Actor01900_Fn01C94(arg0);
-    if ((work->field_5A & 0x3FF) == 0xF && work->field_894 != (work->field_5A & 0x3FF) &&
+    if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0xF && work->field_894 != (work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) &&
         (GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 9, 0, 0)) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         sound           = 0x51090009;
@@ -2636,7 +2607,7 @@ static void Actor01900_Fn06B4C(Task* arg0)
                 break;
         }
     }
-    if ((work->field_5A & 0x3FF) == 5 && work->field_894 != (work->field_5A & 0x3FF)) {
+    if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 5 && work->field_894 != (work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF)) {
         work->field_8B8.coord      = arg0->extra.tmd->coords + 1;
         work->field_8B8.spawnArgLo = 0x200;
         work->field_8B8.spawnArgHi = 2;
@@ -2644,7 +2615,7 @@ static void Actor01900_Fn06B4C(Task* arg0)
             func_800FDB18((u16)Gp_GetIdParam1(0x1001), arg0->extra.tmd->coords + 5, NULL, &work->field_8B8);
         }
     }
-    work->field_894 = work->field_5A & 0x3FF;
+    work->field_894 = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
     coord           = arg0->extra.tmd->coords;
     d               = &delta;
     delta.vx        = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
@@ -2810,7 +2781,7 @@ static void Actor01900_Fn07810(Task* arg0)
         }
     }
     Actor01900_Fn01C94(arg0);
-    if ((work->field_68 & 0x100) || work->field_C24 == 0) {
+    if ((work->rig.slots[1].status.fields.flags & 0x100) || work->field_C24 == 0) {
         work->field_0 = 9;
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
@@ -2911,7 +2882,7 @@ static void Actor01900_Fn080A8(Task* arg0)
     SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     aim                                   = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (work->field_68 & 0x100) {
+    if (work->rig.slots[1].status.fields.flags & 0x100) {
         work->field_0 = 7;
     }
     aim->turn       = actorPositionYaw(arg0, &aim->delta, &gPlayerStatus);
@@ -3058,7 +3029,7 @@ static void Actor01900_Fn0892C(Task* arg0)
     work->field_6++;
     switch (work->field_89E) {
         case 2:
-            if (work->field_6 >= 0x10 && (work->field_68 & 2)) {
+            if (work->field_6 >= 0x10 && (work->rig.slots[1].status.fields.flags & 2)) {
                 work->field_89E = 0x18;
                 work->field_898 = 2;
                 work->field_8A2 = 0x10;
@@ -3081,7 +3052,7 @@ static void Actor01900_Fn0892C(Task* arg0)
             }
             break;
         case 0x18:
-            if (!(work->field_68 & 0x100)) {
+            if (!(work->rig.slots[1].status.fields.flags & 0x100)) {
                 work->field_6 = 0;
             }
             switch ((s16)(work->field_6 - 0x19)) {
@@ -3205,7 +3176,7 @@ static void Actor01900_Fn09694(Task* arg0)
         actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (work->field_68 & 0x100) {
+    if (work->rig.slots[1].status.fields.flags & 0x100) {
         if (overlayOutOfRange(&aim->delta, 0x2BC)) {
             work->field_0 = 6;
         } else {
@@ -3242,7 +3213,7 @@ static void Actor01900_Fn09BE8(Task* arg0)
     ActorContact_PushContact(arg0->extra.tmd->coords, &work->field_8E8, 0xC);
     ActorContact_PushContact(arg0->extra.tmd->coords, &work->field_A28, 0xC);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (work->field_68 & 0x100) {
+    if (work->rig.slots[1].status.fields.flags & 0x100) {
         work->field_8C8.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         if (enemy->hp <= 0) {
             work->field_0 = 0x15;
@@ -3627,7 +3598,7 @@ static void Actor01900_Fn0A9C0(Task* arg0)
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     Actor01900_Fn01C94(arg0);
-    if (work->field_68 & 0x100) {
+    if (work->rig.slots[1].status.fields.flags & 0x100) {
         work->field_0 = 7;
     }
 }
@@ -3652,7 +3623,7 @@ static void Actor01900_Fn0AA78(Task* arg0)
         work->field_8A2               = work->field_8A4;
     }
     Actor01900_Fn01C94(arg0);
-    if (work->field_68 & 0x100) {
+    if (work->rig.slots[1].status.fields.flags & 0x100) {
         work->field_0 = 7;
     }
 }
