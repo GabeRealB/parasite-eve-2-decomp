@@ -55,14 +55,22 @@ typedef struct {
 } _EnergyballLevelTuning;
 STATIC_ASSERT_SIZEOF(_EnergyballLevelTuning, 4);
 
-/// Collision block allocated by `func_energyball_8012F180` (`memCalloc(0x38)`)
-/// and stored in `Task::work`: `obj` is linked on list 1 with `context.contacts`
-/// pointing at the one-element `rec` table (terminator `field_0 = 2`).
-typedef struct EnergyBallWork {
-    /* 0x00 */ WorldCollisionBody    obj;
-    /* 0x20 */ WorldCollisionContact rec;
-} EnergyBallWork;
-STATIC_ASSERT_SIZEOF(EnergyBallWork, 0x38);
+/// Collision block of one energy ball: the sphere it strikes with and the one
+/// contact that sphere can hold.
+///
+/// The ball's task allocates the block zeroed when it spawns and keeps it in
+/// `Task::work`, so the task's teardown frees it. The sphere is armed only once
+/// the ball is fully charged: it then follows the ball's coordinate with half
+/// the ball's size as its radius and is linked on collision list 1 for pair
+/// tests. Its packed key has contact category 2 and an identity counted from
+/// 0x8000 by the digits of the spell being cast. An occupied contact of
+/// category 3 bursts the ball. The sphere is unlinked before the ball bursts,
+/// fades or is cancelled, which is harmless for a block that was never linked.
+typedef struct {
+    WorldCollisionBody    body;        // Sphere linked on list 1 while the ball flies; pair tests are enabled after the link
+    WorldCollisionContact contacts[1]; // One-entry table `body` borrows. The entry is marked LAST; a contact that does not burst the ball is cleared the frame it is found
+} _EnergyballBody;
+STATIC_ASSERT_SIZEOF(_EnergyballBody, 0x38);
 
 static void func_energyball_8012FFD0(GfxCoord* arg0, s16 arg1, s16 arg2);
 static void func_energyball_80130B54(GfxCoord* arg0, s16 arg1, s16 arg2);
@@ -147,7 +155,7 @@ void func_energyball_8012EF48(Task* arg0)
 /// `spawnArg2` selects the `EffectWork` block. With nonzero
 /// `gRoomEffectState->peEffectControl` it only redraws; cancellation at 4 or more
 /// drops the ball. Otherwise it walks `Task::state`: 0 allocates the
-/// `EnergyBallWork` collision block, picks the row of
+/// `_EnergyballBody` collision block, picks the row of
 /// `D_energyball_80131194` from the spell's level digit and seeds a random spin
 /// `period`; 1 grows the ball by the row's `sizeStep` per frame until it
 /// reaches `fullSize`, then links it on list 1 with a random direction; 2
@@ -162,7 +170,7 @@ void func_energyball_8012F180(Task* arg0)
 {
     EffectWork*                    mem;
     GfxCoord*                      coord;
-    EnergyBallWork*                work;
+    _EnergyballBody*               work;
     WorldCoordTransientPointLight* slot;
     GfxCoord*                      lightCoord;
     WorldCoordPointLight*          pointLight;
@@ -181,7 +189,7 @@ void func_energyball_8012F180(Task* arg0)
     pointLight      = &slot->light;
     coord           = arg0->extra.coordBody->coord;
     peEffectControl = gRoomEffectState->peEffectControl;
-    work            = (EnergyBallWork*)arg0->work;
+    work            = arg0->work;
     mem             = arg0->spawnArg2.pointer;
     if (peEffectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
@@ -192,7 +200,7 @@ void func_energyball_8012F180(Task* arg0)
                 }
             }
             if (arg0->state != 0) {
-                Gp_UnlinkObj(&work->obj);
+                Gp_UnlinkObj(&work->body);
             }
             goto release;
         }
@@ -209,7 +217,7 @@ void func_energyball_8012F180(Task* arg0)
     mem->age = mem->age + 1;
     switch (arg0->state) {
         case 0:
-            work = memCalloc(0x38, 0);
+            work = memCalloc(sizeof(_EnergyballBody), 0);
             if (work == NULL) {
                 mem->age = 0;
                 return;
@@ -237,25 +245,25 @@ void func_energyball_8012F180(Task* arg0)
                 Gp_UpdateCoord(coord);
             } else {
                 Gp_UpdateCoord(coord);
-                arg0->work                 = work;
-                work->obj.context.contacts = &work->rec;
-                work->obj.coord            = coord;
-                work->obj.key              = ((u16)(Gp_StateC08.attachId / 100) - 1) * 9 +
-                                ((u16)((u16)(Gp_StateC08.attachId % 100) / 10) - 1) * 3 +
-                                (u16)(Gp_StateC08.attachId % 10) + 0x28000;
-                work->obj.radius = mem->angle >> 1;
-                work->obj.flags  = WORLD_COLLISION_BODY_SPHERE;
-                Gp_LinkObj(1, &work->obj);
-                dir              = &mem->move;
-                work->rec.flags  = 2;
-                work->obj.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                arg0->state      = 2;
-                gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vx     = 0x800 - ((gRandomLcgState >> 16) & 0xFFF);
-                gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vy     = 0x800 - ((gRandomLcgState >> 16) & 0xFFF);
-                gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vz     = 0x800 - ((gRandomLcgState >> 16) & 0xFFF);
+                arg0->work                  = work;
+                work->body.context.contacts = work->contacts;
+                work->body.coord            = coord;
+                work->body.key              = ((u16)(Gp_StateC08.attachId / 100) - 1) * 9 +
+                                 ((u16)((u16)(Gp_StateC08.attachId % 100) / 10) - 1) * 3 +
+                                 (u16)(Gp_StateC08.attachId % 10) + 0x28000;
+                work->body.radius = mem->angle >> 1;
+                work->body.flags  = WORLD_COLLISION_BODY_SPHERE;
+                Gp_LinkObj(1, &work->body);
+                dir                     = &mem->move;
+                work->contacts[0].flags = WORLD_COLLISION_CONTACT_LAST;
+                work->body.flags       |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+                arg0->state             = 2;
+                gRandomLcgState         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vx            = 0x800 - ((gRandomLcgState >> 16) & 0xFFF);
+                gRandomLcgState         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vy            = 0x800 - ((gRandomLcgState >> 16) & 0xFFF);
+                gRandomLcgState         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vz            = 0x800 - ((gRandomLcgState >> 16) & 0xFFF);
                 VectorNormalSS(dir, dir);
                 gte_lddp(mem->step);
                 gte_ldsv(dir);
@@ -294,7 +302,7 @@ void func_energyball_8012F180(Task* arg0)
                             SndEvt_EnqueueType7(D_energyball_8013117C[mem->index], 1);
                         }
                     }
-                    Gp_UnlinkObj(&work->obj);
+                    Gp_UnlinkObj(&work->body);
                     effectKillTask(mem, arg0);
                     return;
                 }
@@ -359,12 +367,12 @@ void func_energyball_8012F180(Task* arg0)
                             SndEvt_EnqueueType7(D_energyball_8013117C[mem->index], 1);
                         }
                     }
-                    Gp_UnlinkObj(&work->obj);
+                    Gp_UnlinkObj(&work->body);
                     effectKillTask(mem, arg0);
                     return;
                 }
             }
-            if (Gp_CountRec18Hi(work->obj.context.contacts, 0x30000) != 0) {
+            if (Gp_CountRec18Hi(work->body.context.contacts, 0x30000) != 0) {
                 spawned = Gp_SpawnEff(EFFECT_ENERGYBALL_IMPACT_RING, coord, 0, NULL);
                 if (spawned != NULL) {
                     taskReparent(arg0, spawned->task);
@@ -379,17 +387,17 @@ void func_energyball_8012F180(Task* arg0)
                 }
                 snd = D_energyball_8013117C;
                 SndEvt_EnqueueType6(snd[mem->index + 3], 0, 0);
-                Gp_UnlinkObj(&work->obj);
+                Gp_UnlinkObj(&work->body);
                 mem->angle  = D_energyball_80131194[mem->index].fullSize;
                 arg0->state = 3;
                 return;
             }
             if (gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED) {
-                Gp_UnlinkObj(&work->obj);
+                Gp_UnlinkObj(&work->body);
                 arg0->state = 4;
                 return;
             }
-            Gp_ClearRec18Occupied(&work->rec);
+            Gp_ClearRec18Occupied(work->contacts);
             return;
         case 3:
             Gp_UpdateCoord(coord);
