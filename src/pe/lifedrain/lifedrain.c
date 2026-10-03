@@ -36,23 +36,31 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/rising_spark.h"
 
-/// Per-level band row. `field_2` is the starting inner radius (also the per-frame
-/// inner/outer step); `field_4` is the starting outer radius; `unk6` is the wedge
-/// radius `func_lifedrain_8012FAF8` copies into `EffectWork.angle`. Indexed by
-/// `(Gp_StateC08.attachId % 10) - 1`.
-typedef struct LifeDrainScale {
-    /* 0x0 */ s16 unk0;
-    /* 0x2 */ u16 field_2;
-    /* 0x4 */ u16 field_4;
-    /* 0x6 */ s16 unk6;
-    /* 0x8 */ s16 unk8;
-} LifeDrainScale;
-STATIC_ASSERT_SIZEOF(LifeDrainScale, 0xA);
+/// Visual tuning of the life drain cast for one Parasite Energy level.
+///
+/// The cast draws a funnel around the caster: a fan of glow wedges, two rings
+/// and one or more gradient rings that all grow with one radius, shedding a
+/// spark each frame, while three bands expand from the centre. The cast task
+/// and each band select their row with the level digit of the attachment id,
+/// less one. A mote selects its row with an `EffectWork` halfword it never
+/// writes, so it reads the first row at every level.
+///
+/// Radii and widths are world units ahead of the perspective divide.
+/// `brightness` is a blue channel value; red and green are half of it.
+typedef struct {
+    s16 wedgeCount;  // Glow wedges fanned around the funnel; the yaw table holds 16
+    s16 brightness;  // Brightness the opening flash fades from and the funnel rises back to; a band starts at it and grows its inner radius by a third of it and its width by half of it each frame
+    s16 outerOffset; // Width a band starts with; from level 2, also how far outside the funnel's gradient ring a second, dimmer one is drawn
+    s16 radiusLimit; // Funnel radius that ends the growth, and the radius of each spark the funnel sheds; a mote's sparks take it too, and its own sprite is sized 0x100 less
+    s16 radiusStep;  // Funnel radius gained per frame, while it grows and while it fades
+} _LifedrainLevelTuning;
+STATIC_ASSERT_SIZEOF(_LifedrainLevelTuning, 0xA);
 
 static void func_lifedrain_801301AC(GfxCoord* arg0, s16 arg1, s16 arg2);
 
-/// Per-level tuning for the life drain: rows are PE levels 1-3.
-static LifeDrainScale D_lifedrain_80130AB4[] = {
+/// Per-level tuning for the life drain, one row per PE level 1-3, weakest
+/// first.
+static _LifedrainLevelTuning D_lifedrain_80130AB4[] = {
     { 0x0008, 0x0080, 0x0100, 0x0400, 0x0040 },
     { 0x000C, 0x00B0, 0x0200, 0x0500, 0x0048 },
     { 0x0010, 0x00E0, 0x0300, 0x0600, 0x0050 },
@@ -70,7 +78,7 @@ static s32 D_lifedrain_80130AD4[] = {
     0xE0270002,
 };
 
-/// One yaw per funnel wedge, `LifeDrainScale.unk0` of them, re-rolled as a
+/// One yaw per funnel wedge, `_LifedrainLevelTuning::wedgeCount` of them, re-rolled as a
 /// block when the cast starts and replayed every frame by
 /// `glowDrawWedge`.
 static s16 D_lifedrain_80130AEC[16] = { 0 };
@@ -86,8 +94,8 @@ static struct Task* D_lifedrain_80130B0C = NULL;
 /// `gPlayerStatus.hp`, clamped to the max in `field_1a`.
 ///
 /// State 0 parents the effect coordinate at the origin with an identity
-/// rotation, seeds the combo level `index` from `Gp_StateC08.attachId`, takes
-/// the funnel radii `scale` / `period` from that row of
+/// rotation, seeds the combo level `index` from `Gp_StateC08.attachId`, sets
+/// both flash levels `scale` / `period` to that row's `brightness` in
 /// `D_lifedrain_80130AB4`, rolls one yaw per wedge into `D_lifedrain_80130AEC`
 /// and spawns the three `0x600EA` motes 0x2AA apart around the circle. State 1
 /// fades the entry quad out 0x10 a frame, plays the row's cue on tick 3 and on
@@ -95,9 +103,9 @@ static struct Task* D_lifedrain_80130B0C = NULL;
 /// banked, skips straight to the state-4 release.
 ///
 /// State 2 is the funnel proper: it grows `scale` towards the row's
-/// `field_2` cap, steps `angle` by `unk8`, redraws the wedges, the two rings
+/// `brightness`, steps `angle` by `radiusStep`, redraws the wedges, the two rings
 /// and the arcs, and each frame throws one `0x600AD` spark on an LCG yaw at
-/// `angle` radius. Once `angle` passes the row's `unk6` it moves to state
+/// `angle` radius. Once `angle` reaches the row's `radiusLimit` it moves to state
 /// 3, which shrinks `scale` by 0x10 a frame and redraws the same funnel
 /// until it drops below 0x11, then releases through state 4.
 void func_lifedrain_8012EF48(Task* arg0)
@@ -140,18 +148,18 @@ void func_lifedrain_8012EF48(Task* arg0)
             Gp_UpdateCoord(coord);
             arg0->state = 1;
             mem->index  = (Gp_StateC08.attachId % 10) - 1;
-            mem->scale  = D_lifedrain_80130AB4[mem->index].field_2;
+            mem->scale  = D_lifedrain_80130AB4[mem->index].brightness;
             mem->angle  = 0x80;
-            mem->period = D_lifedrain_80130AB4[mem->index].field_2;
+            mem->period = D_lifedrain_80130AB4[mem->index].brightness;
             i           = 0;
-            if (D_lifedrain_80130AB4[mem->index].unk0 > 0) {
+            if (D_lifedrain_80130AB4[mem->index].wedgeCount > 0) {
                 do {
                     s32 rng;
 
                     rng                     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     D_lifedrain_80130AEC[i] = (i << 10) + (((u32)rng >> 16) & 0x3FF);
                     gRandomLcgState         = rng;
-                } while (++i < D_lifedrain_80130AB4[mem->index].unk0);
+                } while (++i < D_lifedrain_80130AB4[mem->index].wedgeCount);
             }
             i = 0;
             do {
@@ -199,10 +207,10 @@ void func_lifedrain_8012EF48(Task* arg0)
             }
             return;
         case 2: {
-            LifeDrainScale* t2;
-            EffectWork*     spawned;
-            s16*            p;
-            s32             val;
+            _LifedrainLevelTuning* tuning;
+            EffectWork*            spawned;
+            s16*                   p;
+            s32                    val;
 
             Gp_UpdateCoord(coord);
             if (mem->period != 0) {
@@ -213,22 +221,22 @@ void func_lifedrain_8012EF48(Task* arg0)
                 Gp_DrawFadeQuad(rgb, 1);
             }
             val = mem->scale;
-            if (val < (s16)D_lifedrain_80130AB4[mem->index].field_2) {
+            if (val < D_lifedrain_80130AB4[mem->index].brightness) {
                 val += 0x10;
             }
             mem->scale = val;
-            mem->angle = mem->angle + (u16)D_lifedrain_80130AB4[mem->index].unk8;
+            mem->angle = mem->angle + D_lifedrain_80130AB4[mem->index].radiusStep;
             rgb[0]     = mem->scale >> 1;
             rgb[1]     = mem->scale >> 1;
             rgb[2]     = (u8)mem->scale;
             i          = 0;
-            if (D_lifedrain_80130AB4[mem->index].unk0 > 0) {
-                t2 = D_lifedrain_80130AB4;
-                p  = D_lifedrain_80130AEC;
+            if (D_lifedrain_80130AB4[mem->index].wedgeCount > 0) {
+                tuning = D_lifedrain_80130AB4;
+                p      = D_lifedrain_80130AEC;
                 do {
                     glowDrawWedge(coord, mem->angle, *p, rgb);
                     p += 1;
-                } while (++i < t2[mem->index].unk0);
+                } while (++i < tuning[mem->index].wedgeCount);
             }
             Gp_DrawRing(coord, mem->angle >> 1, rgb);
             Gp_DrawRing(coord, mem->angle >> 1, rgb);
@@ -244,12 +252,12 @@ void func_lifedrain_8012EF48(Task* arg0)
                 rgb[1] >>= 1;
                 rgb[2] >>= 1;
                 Gp_DrawArc(coord,
-                           (s16)(mem->angle + D_lifedrain_80130AB4[mem->index].field_4),
+                           (s16)(mem->angle + D_lifedrain_80130AB4[mem->index].outerOffset),
                            0x80, rgb);
                 if (mem->index == 2) {
                     if (mem->age & 1) {
                         Gp_DrawArc(coord, 0x80,
-                                   (s16)(mem->angle + D_lifedrain_80130AB4[2].field_4),
+                                   (s16)(mem->angle + D_lifedrain_80130AB4[2].outerOffset),
                                    rgb);
                     }
                 }
@@ -265,23 +273,23 @@ void func_lifedrain_8012EF48(Task* arg0)
             mem->move.vx = (rcos(mem->step) * mem->angle) >> 12;
             mem->move.vy = (rsin(mem->step) * mem->angle) >> 12;
             mem->move.vz = 0;
-            spawned      = Gp_SpawnEff(EFFECT_LIFEDRAIN_SPARK, coord, (s32)(D_lifedrain_80130AB4[mem->index].unk6),
+            spawned      = Gp_SpawnEff(EFFECT_LIFEDRAIN_SPARK, coord, (s32)D_lifedrain_80130AB4[mem->index].radiusLimit,
                                        &mem->move);
             if (spawned != NULL) {
                 taskReparent(arg0, spawned->task);
             }
-            if (mem->angle >= D_lifedrain_80130AB4[mem->index].unk6) {
+            if (mem->angle >= D_lifedrain_80130AB4[mem->index].radiusLimit) {
                 arg0->state = 3;
             }
             return;
         }
         case 3: {
-            LifeDrainScale* t2;
-            s16*            p;
+            _LifedrainLevelTuning* tuning;
+            s16*                   p;
 
             Gp_UpdateCoord(coord);
             mem->scale = mem->scale - 0x10;
-            mem->angle = mem->angle + (u16)D_lifedrain_80130AB4[mem->index].unk8;
+            mem->angle = mem->angle + D_lifedrain_80130AB4[mem->index].radiusStep;
             if (mem->scale < 0x11) {
                 arg0->state = 4;
             }
@@ -289,13 +297,13 @@ void func_lifedrain_8012EF48(Task* arg0)
             rgb[1] = mem->scale >> 1;
             rgb[2] = (u8)mem->scale;
             i      = 0;
-            if (D_lifedrain_80130AB4[mem->index].unk0 > 0) {
-                t2 = D_lifedrain_80130AB4;
-                p  = D_lifedrain_80130AEC;
+            if (D_lifedrain_80130AB4[mem->index].wedgeCount > 0) {
+                tuning = D_lifedrain_80130AB4;
+                p      = D_lifedrain_80130AEC;
                 do {
                     glowDrawWedge(coord, mem->angle, *p, rgb);
                     p += 1;
-                } while (++i < t2[mem->index].unk0);
+                } while (++i < tuning[mem->index].wedgeCount);
             }
             Gp_DrawRing(coord, mem->angle >> 1, rgb);
             Gp_DrawRing(coord, mem->angle >> 1, rgb);
@@ -311,12 +319,12 @@ void func_lifedrain_8012EF48(Task* arg0)
                 rgb[1] >>= 1;
                 rgb[2] >>= 1;
                 Gp_DrawArc(coord,
-                           (s16)(mem->angle + D_lifedrain_80130AB4[mem->index].field_4),
+                           (s16)(mem->angle + D_lifedrain_80130AB4[mem->index].outerOffset),
                            0x80, rgb);
                 if (mem->index == 2) {
                     if (mem->age & 1) {
                         Gp_DrawArc(coord, 0x80,
-                                   (s16)(mem->angle + D_lifedrain_80130AB4[2].field_4),
+                                   (s16)(mem->angle + D_lifedrain_80130AB4[2].outerOffset),
                                    rgb);
                     }
                 }
@@ -346,8 +354,8 @@ void func_lifedrain_8012F9A8(Task* task)
 /// `D_lifedrain_80130B0C`, hands it this task's `spawnArg1`, and draws a random
 /// drift out of three LCG steps: `move` / `move.vz` in `0x40 - [0, 0x7F]`
 /// and `move.vy` in `0xFFE0 - [0, 0x3F]`, so the mote starts moving up and
-/// away. `scale` is the combo level and `angle` the wedge radius from
-/// `D_lifedrain_80130AB4`, `period` trailing it by `0x100`.
+/// away. `scale` is the combo level and `angle` the spark radius, a
+/// `radiusLimit` of `D_lifedrain_80130AB4`, `period` trailing it by `0x100`.
 ///
 /// State 1 walks the coordinate by that drift and, every other tick, draws a
 /// wedge through `func_lifedrain_801301AC` and one time in four parents a
@@ -363,7 +371,7 @@ void func_lifedrain_8012FAF8(Task* arg0)
     GfxCoord*   coord;
     GfxCoord*   player;
     EffectWork* spawned;
-    s16         val;
+    s16         sparkRadius;
     s32         cur;
     VECTOR      vec;
 
@@ -383,9 +391,9 @@ void func_lifedrain_8012FAF8(Task* arg0)
                 mem->move.vz                           = 0x40 - ((gRandomLcgState >> 16) & 0x7F);
                 arg0->state                            = 1;
                 mem->scale                             = (Gp_StateC08.attachId % 10) - 1;
-                val                                    = D_lifedrain_80130AB4[mem->step].unk6;
-                mem->angle                             = val;
-                mem->period                            = val - 0x100;
+                sparkRadius                            = D_lifedrain_80130AB4[mem->step].radiusLimit;
+                mem->angle                             = sparkRadius;
+                mem->period                            = sparkRadius - 0x100;
                 /* fallthrough */
             case 1:
                 coord->coord.t[0]  += mem->move.vx;
@@ -583,7 +591,6 @@ void func_lifedrain_801308C0(Task* arg0)
     GfxCoord*   coord;
     s16         flag;
     s16         kind;
-    u16         val;
     u8          rgb[3];
     s32         scale;
 
@@ -602,16 +609,15 @@ void func_lifedrain_801308C0(Task* arg0)
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         kind                = (Gp_StateC08.attachId % 10U) - 1;
         mem->index          = kind;
-        val                 = D_lifedrain_80130AB4[kind].field_2;
+        mem->scale          = D_lifedrain_80130AB4[kind].brightness;
         mem->angle          = 0x80;
-        mem->scale          = val;
-        mem->period         = D_lifedrain_80130AB4[mem->index].field_4;
+        mem->period         = D_lifedrain_80130AB4[mem->index].outerOffset;
         arg0->state         = 1;
     }
 
     Gp_UpdateCoord(coord);
-    mem->angle  = mem->angle + ((s16)D_lifedrain_80130AB4[mem->index].field_2 / 3);
-    mem->period = mem->period + ((s16)D_lifedrain_80130AB4[mem->index].field_2 >> 1);
+    mem->angle  = mem->angle + (D_lifedrain_80130AB4[mem->index].brightness / 3);
+    mem->period = mem->period + (D_lifedrain_80130AB4[mem->index].brightness >> 1);
     rgb[0]      = mem->scale >> 1;
     rgb[1]      = mem->scale >> 1;
     rgb[2]      = (u8)mem->scale;

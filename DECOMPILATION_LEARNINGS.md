@@ -63110,17 +63110,17 @@ do {
     rng                     = gRandomLcgState * 5 + 0x71357911;
     D_lifedrain_80130AEC[i] = (i << 10) + (((u32)rng >> 16) & 0x3FF);
     gRandomLcgState             = rng;
-} while (++i < D_lifedrain_80130AB4[mem->field_20].unk0);
+} while (++i < D_lifedrain_80130AB4[mem->field_20].wedgeCount);
 ```
 
-Writing the idiomatic `t2 = D_lifedrain_80130AB4; p = D_lifedrain_80130AEC;`
+Writing the idiomatic `tuning = D_lifedrain_80130AB4; p = D_lifedrain_80130AEC;`
 pair instead puts both in the first band, ahead of the movables — 99.7% with
 `reorder=3` and every register already correct.
 
 States 2 and 3 run the same walk with a call in the body, and there the target's
 preheader is `move s5, a1` *then* the `lui`/`addiu` for the array, with no
 movables at all (the body hoists nothing). Both bands are the first one, so both
-*are* source locals and the explicit `t2` / `p` pair is what matches. Same loop,
+*are* source locals and the explicit `tuning` / `p` pair is what matches. Same loop,
 opposite answer: read the band, not the loop.
 
 
