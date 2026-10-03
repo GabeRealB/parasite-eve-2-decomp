@@ -40867,8 +40867,8 @@ Copying a scratch vector to a stack `SVECTOR` and feeding it to `gte_ldv0`
 puts the `addiu` for `&sv` in the wrong place:
 
 ```c
-sc->vec.vx = 0; sc->vec.vy = 0x12C; sc->vec.vz = 0;
-sv = sc->vec;                       /* lwl/lwr + swl/swr block move */
+scratch->point.vx = 0; scratch->point.vy = 0x12C; scratch->point.vz = 0;
+sv = scratch->point;                /* lwl/lwr + swl/swr block move */
 gte_SetRotMatrix(&coord->workm);
 gte_ldv0(&sv);
 ```
@@ -40907,11 +40907,11 @@ Two related details from the same function:
 * A flat `LINE_F2` whose colour word is a constant matches as
   `*(u32*)&prim->r0 = 0x40C000;` followed by `x0`, then `x1`, then
   `setlen` / `setcode`. Putting `setlen` / `setcode` before the `x1` store
-  makes the scheduler fill the `lw sxy` load-delay slot with the `sb`s
+  makes the scheduler fill the `lw screenXy` load-delay slot with the `sb`s
   instead of the `addiu t1, t1, %lo(gDisplayState)` the target uses.
 * `for (t = 0; t <= limit; ang += 0x73, t += 0x80)` — with the *secondary*
   induction variable first in the comma — lets `t += 0x80` fill the
-  `lw sxy` load delay. The natural `t += 0x80, ang += 0x73` order emits the
+  `lw screenXy` load delay. The natural `t += 0x80, ang += 0x73` order emits the
   increment before the load and leaves a `nop`.
 
 ## Repeat `p->field` for GTE blend; pin the packet-header tail

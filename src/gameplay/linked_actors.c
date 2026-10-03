@@ -62,37 +62,37 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
-/// 0x60-byte scratch from the scratch stack used by `Gp_DrawAimCircle` to draw the
-/// wireframe targeting sphere. `vec` is the point being rotated / projected,
-/// `mat` the rotation loaded into the GTE, `rx` / `ry` the two radii taken from
-/// the caller and `radius` the per-ring radius derived from them. `dp` / `flag`
-/// / `otz` / `sxy` receive `gte_stdp` / `gte_stflg` / `gte_stszotz` /
-/// `gte_stsxy` of each RTPS, and `sxyPrev` keeps the previous point so the two
-/// form a `LINE_F2`. `trans` is the GTE translation vector (`gte_SetTransVector`).
-typedef struct _GpCircleScratch {
-    /* 0x00 */ SVECTOR vec;
-    /* 0x08 */ MATRIX  mat;
-    /* 0x28 */ s32     rx;
-    /* 0x2C */ s32     ry;
-    /* 0x30 */ s32     radius;
-    /* 0x34 */ s32     dp;
-    /* 0x38 */ s32     flag;
-    /* 0x3C */ s32     otz;
-    /* 0x40 */ DVECTOR sxyPrev;
-    /* 0x44 */ DVECTOR sxy;
-    /* 0x48 */ byte    pad_48[8];
-    /* 0x50 */ VECTOR  trans;
-} GpCircleScratch;
-STATIC_ASSERT_SIZEOF(GpCircleScratch, 0x60);
+/// Scratch-stack workspace for drawing the wireframe of a Parasite Energy area.
+///
+/// The wireframe is a set of polylines. Each vertex is built in the area's own
+/// frame, with the area's axis along negative Y, projected through the GTE and
+/// joined to the vertex before it by a flat line. `radius` and `extent` are in
+/// world units: the dimensions of an `AttachmentAreaParam` once scaled. Reserve
+/// the complete record; nothing in it survives the release.
+typedef struct {
+    SVECTOR point;            // Vertex being projected, in the area's frame; before that, the centre's offset rotated into view space
+    MATRIX  viewRotation;     // Area-to-view rotation loaded into the GTE; only its rotation elements are used
+    s32     radius;           // Radius of the area about its axis
+    s32     extent;           // Extent of the area along its axis (an ellipsoid's semi-axis, a cylinder's length)
+    s32     ringRadius;       // Radius of the ring the vertex lies on; an ellipsoid narrows it with height
+    s32     depthCue;         // GTE IR0 depth-cue coefficient of the last projection; stored, never read
+    s32     projectionFlags;  // GTE FLAG bits of the last projection; stored, never read
+    s32     orderingDepth;    // Quarter camera-space depth of the last projected vertex (0..16383)
+    u32     previousScreenXy; // Screen position of the vertex before it, in the same packing
+    u32     screenXy;         // Screen position of the last projected vertex (X in bits 0..15, Y in bits 16..31)
+    byte    unknown_48[8];    // Never accessed; role unproven
+    VECTOR  viewCentre;       // View-space centre of an area that is not centred on the player's root
+} _AttachmentAreaWireframeScratch;
+STATIC_ASSERT_SIZEOF(_AttachmentAreaWireframeScratch, 0x60);
 
 // The image stores this head alone in the linked_actors BSS subsegment.
 WorldTargetNode* gWorldTargetListHead;
 
-static __inline__ void Gp_RingPointXZ(GpCircleScratch* sc, s32 ang);
+static __inline__ void Gp_RingPointXZ(_AttachmentAreaWireframeScratch* scratch, s32 ang);
 
-static __inline__ void Gp_ProjectRingPt(GpCircleScratch* sc);
+static __inline__ void Gp_ProjectRingPt(_AttachmentAreaWireframeScratch* scratch);
 
-static __inline__ void Gp_LinkRingSeg(GpCircleScratch* sc);
+static __inline__ void Gp_LinkRingSeg(_AttachmentAreaWireframeScratch* scratch);
 
 /// Draws `val`, clamped at zero, as a right-aligned number at (`x`, `y`).
 static inline void _gpDrawHudValue(s32 x, s32 y, s32 color, s32 val);
@@ -129,93 +129,93 @@ void func_800A4904(s32 arg0)
     }
 }
 
-static __inline__ void Gp_RingPointXZ(GpCircleScratch* sc, s32 ang)
+static __inline__ void Gp_RingPointXZ(_AttachmentAreaWireframeScratch* scratch, s32 ang)
 {
-    sc->vec.vx = (sc->radius * rcos(ang)) >> 12;
-    sc->vec.vz = (sc->radius * rsin(ang)) >> 12;
+    scratch->point.vx = (scratch->ringRadius * rcos(ang)) >> 12;
+    scratch->point.vz = (scratch->ringRadius * rsin(ang)) >> 12;
 }
 
-static __inline__ void Gp_ProjectRingPt(GpCircleScratch* sc)
+static __inline__ void Gp_ProjectRingPt(_AttachmentAreaWireframeScratch* scratch)
 {
-    gte_ldv0(&sc->vec);
+    gte_ldv0(&scratch->point);
     gte_rtps();
-    gte_stsxy(&sc->sxy);
-    gte_stdp(&sc->dp);
-    gte_stflg(&sc->flag);
-    gte_stszotz(&sc->otz);
+    gte_stsxy(&scratch->screenXy);
+    gte_stdp(&scratch->depthCue);
+    gte_stflg(&scratch->projectionFlags);
+    gte_stszotz(&scratch->orderingDepth);
 }
 
-static __inline__ void Gp_LinkRingSeg(GpCircleScratch* sc)
+static __inline__ void Gp_LinkRingSeg(_AttachmentAreaWireframeScratch* scratch)
 {
     LINE_F2* prim;
 
     prim                              = gGpuPrimCursor;
     gGpuPrimCursor                    = prim + 1;
     GPU_PRIMITIVE_COLOR_WORD(prim, 0) = GPU_PACK_COLOR_WORD(0, 0xc0, 0x40, 0);
-    GPU_PRIMITIVE_XY_WORD(prim, 0)    = *(u32*)&sc->sxyPrev;
-    GPU_PRIMITIVE_XY_WORD(prim, 1)    = *(u32*)&sc->sxy;
+    GPU_PRIMITIVE_XY_WORD(prim, 0)    = scratch->previousScreenXy;
+    GPU_PRIMITIVE_XY_WORD(prim, 1)    = scratch->screenXy;
     setlen(prim, 3);
     setcode(prim, 0x40);
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sc->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->orderingDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
             prim);
 }
 
 void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    Task*            slot;
-    GfxCoord*        coord;
-    GfxCoord*        other;
-    GpCircleScratch* sc;
-    s32              base;
-    s32              limit;
-    s32              ang;
-    s32              i;
-    s32              t;
-    s32              pass;
+    Task*                            slot;
+    GfxCoord*                        coord;
+    GfxCoord*                        other;
+    _AttachmentAreaWireframeScratch* scratch;
+    s32                              base;
+    s32                              limit;
+    s32                              ang;
+    s32                              i;
+    s32                              t;
+    s32                              pass;
 
-    slot   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    sc     = SCRATCH_STACK_RESERVE_BLOCK(GpCircleScratch);
-    coord  = slot->extra.tmd->coords;
-    sc->rx = arg1;
-    sc->ry = arg2;
-    base   = gDisplayState.animFrame << 4;
+    slot            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    scratch         = SCRATCH_STACK_RESERVE_BLOCK(_AttachmentAreaWireframeScratch);
+    coord           = slot->extra.tmd->coords;
+    scratch->radius = arg1;
+    scratch->extent = arg2;
+    base            = gDisplayState.animFrame << 4;
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     if (arg3 & 4) {
-        other      = &slot->extra.tmd->coords[4];
-        sc->vec.vx = 0;
-        sc->vec.vy = 0x12C;
-        sc->vec.vz = 0;
-        _gfxLoadRotSv(&coord->workm, &sc->vec);
+        other             = &slot->extra.tmd->coords[4];
+        scratch->point.vx = 0;
+        scratch->point.vy = 0x12C;
+        scratch->point.vz = 0;
+        _gfxLoadRotSv(&coord->workm, &scratch->point);
         gte_rtv0();
-        gte_stsv(&sc->vec);
-        sc->trans.vx = other->workm.t[0] + sc->vec.vx;
-        sc->trans.vy = other->workm.t[1] + sc->vec.vy;
-        sc->trans.vz = other->workm.t[2] + sc->vec.vz;
-        gte_SetTransVector(&sc->trans);
+        gte_stsv(&scratch->point);
+        scratch->viewCentre.vx = other->workm.t[0] + scratch->point.vx;
+        scratch->viewCentre.vy = other->workm.t[1] + scratch->point.vy;
+        scratch->viewCentre.vz = other->workm.t[2] + scratch->point.vz;
+        gte_SetTransVector(&scratch->viewCentre);
     } else if ((arg3 & 2) == 0) {
         gte_SetTransMatrix(&coord->workm);
     } else {
-        arg3      &= ~2;
-        sc->vec.vx = 0;
-        sc->vec.vy = 0;
-        sc->vec.vz = arg1;
-        _gfxLoadRotSv(&coord->workm, &sc->vec);
+        arg3             &= ~2;
+        scratch->point.vx = 0;
+        scratch->point.vy = 0;
+        scratch->point.vz = arg1;
+        _gfxLoadRotSv(&coord->workm, &scratch->point);
         gte_rtv0();
-        gte_stsv(&sc->vec);
-        sc->trans.vx = coord->workm.t[0] + sc->vec.vx;
-        sc->trans.vy = coord->workm.t[1] + sc->vec.vy;
-        sc->trans.vz = coord->workm.t[2] + sc->vec.vz;
-        gte_SetTransVector(&sc->trans);
+        gte_stsv(&scratch->point);
+        scratch->viewCentre.vx = coord->workm.t[0] + scratch->point.vx;
+        scratch->viewCentre.vy = coord->workm.t[1] + scratch->point.vy;
+        scratch->viewCentre.vz = coord->workm.t[2] + scratch->point.vz;
+        gte_SetTransVector(&scratch->viewCentre);
     }
 
     if (arg3 & 4) {
-        sc->mat = coord->workm;
-        gfxRotMatrixX(&sc->mat, -0x400, GRAPHICS_ROTATION_COMPOSE);
+        scratch->viewRotation = coord->workm;
+        gfxRotMatrixX(&scratch->viewRotation, -0x400, GRAPHICS_ROTATION_COMPOSE);
         arg3 &= ~4;
     } else {
-        sc->mat = gGfxViewCoord.workm;
+        scratch->viewRotation = gGfxViewCoord.workm;
     }
-    gte_SetRotMatrix(&sc->mat);
+    gte_SetRotMatrix(&scratch->viewRotation);
 
     limit = 0x400;
     if (arg3 == 0) {
@@ -226,19 +226,19 @@ void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
         ang = base + ((i << 12) / 12);
         for (t = 0; t <= limit; ang += 0x73, t += 0x80) {
             if (arg3 == 0) {
-                sc->radius = (sc->rx * rcos(t)) >> 12;
-                sc->vec.vy = -(sc->ry * rsin(t)) >> 12;
-                Gp_RingPointXZ(sc, ang);
+                scratch->ringRadius = (scratch->radius * rcos(t)) >> 12;
+                scratch->point.vy   = -(scratch->extent * rsin(t)) >> 12;
+                Gp_RingPointXZ(scratch, ang);
             } else {
-                sc->vec.vy = -(sc->ry * t) >> 10;
-                sc->vec.vx = (sc->rx * rcos(ang)) >> 12;
-                sc->vec.vz = (sc->rx * rsin(ang)) >> 12;
+                scratch->point.vy = -(scratch->extent * t) >> 10;
+                scratch->point.vx = (scratch->radius * rcos(ang)) >> 12;
+                scratch->point.vz = (scratch->radius * rsin(ang)) >> 12;
             }
-            Gp_ProjectRingPt(sc);
+            Gp_ProjectRingPt(scratch);
             if (t > 0) {
-                Gp_LinkRingSeg(sc);
+                Gp_LinkRingSeg(scratch);
             }
-            *(u32*)&sc->sxyPrev = *(u32*)&sc->sxy;
+            scratch->previousScreenXy = scratch->screenXy;
         }
     }
 
@@ -246,28 +246,28 @@ void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     for (pass = 0; pass < 2; pass++) {
         if (pass == 0) {
             if (arg3 == 0) {
-                sc->radius = (sc->rx * rcos(0x300)) >> 12;
-                sc->vec.vy = -(sc->ry * rsin(0x300)) >> 12;
+                scratch->ringRadius = (scratch->radius * rcos(0x300)) >> 12;
+                scratch->point.vy   = -(scratch->extent * rsin(0x300)) >> 12;
             } else {
-                sc->radius = sc->rx;
-                sc->vec.vy = -(u16)sc->ry;
+                scratch->ringRadius = scratch->radius;
+                scratch->point.vy   = -scratch->extent;
             }
         } else {
-            sc->vec.vy = 0;
-            sc->radius = sc->rx;
+            scratch->point.vy   = 0;
+            scratch->ringRadius = scratch->radius;
         }
         for (i = 0; i < 25; i++) {
             ang = base + ((i << 12) / 24);
-            Gp_RingPointXZ(sc, ang);
-            Gp_ProjectRingPt(sc);
+            Gp_RingPointXZ(scratch, ang);
+            Gp_ProjectRingPt(scratch);
             if (i != 0) {
-                Gp_LinkRingSeg(sc);
+                Gp_LinkRingSeg(scratch);
             }
-            *(u32*)&sc->sxyPrev = *(u32*)&sc->sxy;
+            scratch->previousScreenXy = scratch->screenXy;
         }
     }
 
-    SCRATCH_STACK_RELEASE_BYTES(0x60);
+    SCRATCH_STACK_RELEASE_BLOCK(_AttachmentAreaWireframeScratch);
 }
 
 void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
