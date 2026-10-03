@@ -51612,20 +51612,23 @@ dlabel D_acropolis_security_room_8017D5EC
 
 A seven-entry local initializer gives the right seven `lw`/`sw` pairs but only
 28 bytes of `.rodata`; bumping the array to eight adds the zero word *and* an
-eighth `lw`/`sw`. The trailing zero is a terminator on the source table, not
-padding, so the copy is a prefix of it. Model that with a nested struct, and no
-cast is needed:
+eighth `lw`/`sw`. The trailing zero is not part of the table: the next thing in
+`.rodata` is a compiler-generated jump table, which GCC aligns to 8 from the
+start of its object, and the zero word is that `.align 3` pad. So the table is
+a plain seven-entry `TaskFuncTable7`, and the eighth word appears by itself once
+the table and the jump table are emitted from the same object:
 
 ```c
-typedef struct { TaskFunc funcs[7]; } TaskFuncTable7;
-typedef struct { TaskFuncTable7 states; TaskFunc end; } AsrMonitorStateTable;
-
-static const AsrMonitorStateTable AsrMonitorStates = { { { f0, ..., f6 } }, NULL };
+static const TaskFuncTable7 D_acropolis_security_room_8017D5EC = { { f0, ..., f6 } };
 
 TaskFuncTable7 sp;
-sp = AsrMonitorStates.states;      /* 28 bytes, 32 bytes of .rodata */
+sp = D_acropolis_security_room_8017D5EC;   /* 28 bytes; the pad word follows */
 sp.funcs[task->state](task);
 ```
+
+While the two sat in different objects the pad had to be spelled as an eighth
+member of a wrapper struct around the seven; that wrapper went when the room's
+units were merged, and it should not be rebuilt.
 
 Placement matters as much as the bytes. The block sat *before* an earlier
 function's compiler-generated jump table in `.rodata`, so it cannot be emitted
