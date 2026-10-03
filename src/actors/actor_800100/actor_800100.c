@@ -83,19 +83,19 @@ typedef struct _Actor800100PlaceScratch {
 } Actor800100PlaceScratch;
 STATIC_ASSERT_SIZEOF(Actor800100PlaceScratch, 0x5C);
 
-/// 0x20-byte block from the scratch stack used by
-/// `func_actor_800100_80164710` and `func_actor_800100_80164B9C`: the lock
-/// position `Gp_GetLockPos` fills (also the `VECTOR3` handed to
-/// `func_80103C74`), and the `rot` vector above it whose `vx`/`vz`
-/// `func_80103D8C` measures. `80164B9C` also treats it as the `VECTOR3`
-/// handed to `func_8010BD88` / `func_8010BE5C`.
-typedef struct _Actor800100LockScratch {
-    /* 0x00 */ VECTOR3 lock;
-    /* 0x0C */ byte    pad_C[4];
-    /* 0x10 */ VECTOR3 rot;
-    /* 0x1C */ byte    pad_1C[4];
-} Actor800100LockScratch;
-STATIC_ASSERT_SIZEOF(Actor800100LockScratch, 0x20);
+/// Scratch-stack block for ranging the actor against the point it is steering toward.
+///
+/// Holds the point in room space and its displacement from the model's root
+/// coordinate, whose X and Z give the planar distance the state handlers
+/// compare with their reach limits. The point is also what the body-turn and
+/// aim-turn helpers are handed. The block lives only for the one call.
+typedef struct {
+    VECTOR3 targetPoint; // Lock position of the actor's target node, or the player's root translation when it has none
+    byte    field_C[4];  // Never accessed; role unproven
+    VECTOR3 targetDelta; // `targetPoint` minus the root coordinate's translation
+    byte    field_1C[4]; // Never accessed; role unproven
+} _Actor800100TargetScratch;
+STATIC_ASSERT_SIZEOF(_Actor800100TargetScratch, 0x20);
 
 /// 0x1C-byte block from the scratch stack used by
 /// `func_actor_800100_8016666C` to draw the vertical `LINE_G2` that
@@ -1881,35 +1881,29 @@ static void func_actor_800100_80164580(Task* arg0)
 
 static void func_actor_800100_80164710(Task* arg0)
 {
-    GameActor*              actor;
-    GameActor*              actor2;
-    GameActor*              actor3;
-    CompanionWork*          companion;
-    WorldTargetNode*        node;
-    WorldTargetNode*        lock;
-    GfxCoord*               coord;
-    Actor800100LockScratch* scratch;
-    Actor800100LockScratch* head;
-    void**                  scratchHead;
-    s32                     dist;
-    u16                     state;
+    GameActor*                 actor;
+    GameActor*                 actor2;
+    GameActor*                 actor3;
+    CompanionWork*             companion;
+    WorldTargetNode*           node;
+    WorldTargetNode*           lock;
+    GfxCoord*                  coord;
+    _Actor800100TargetScratch* block;
+    s32                        dist;
+    u16                        state;
 
-    head                       = SCRATCH_STACK_CURSOR(Actor800100LockScratch);
-    actor                      = arg0->work;
-    scratch                    = head - 1;
-    SCRATCH_STACK_CURSOR(void) = scratch;
-    companion                  = actor->companionWork;
+    actor     = arg0->work;
+    block     = SCRATCH_STACK_RESERVE_BLOCK(_Actor800100TargetScratch);
+    companion = actor->companionWork;
     Gp_TrackAllyLockTarget(arg0, 3);
     state = actor->statePhase;
     if (state != 0) {
-        if (state != 1) {
-            scratchHead = SCRATCH_HEAD_ADDR;
-        } else {
+        if (state == 1) {
             goto block_10;
         }
     } else {
         lock = actor->targetNode;
-        if ((lock == NULL) || (coord = arg0->extra.tmd->coords, Gp_GetLockPos(lock, &scratch->lock), func_80103C74(coord, &scratch->lock, &(head - 1)->rot), ((func_80103D8C(scratch->rot.vx, scratch->rot.vz) < 0x301) != 0))) {
+        if ((lock == NULL) || (coord = arg0->extra.tmd->coords, Gp_GetLockPos(lock, &block->targetPoint), func_80103C74(coord, &block->targetPoint, &block->targetDelta), ((func_80103D8C(block->targetDelta.vx, block->targetDelta.vz) < 0x301) != 0))) {
             actor2                 = arg0->work;
             actor2->mode           = GAME_ACTOR_MODE_NORMAL;
             actor2->state          = 4;
@@ -1919,7 +1913,7 @@ static void func_actor_800100_80164710(Task* arg0)
             actor2->turnSign       = 0;
             playerActorPlayChildSlotsWithBlend(arg0, 9, 0, 6);
         } else {
-            dist = func_8010BCF4(arg0, &scratch->lock);
+            dist = func_8010BCF4(arg0, &block->targetPoint);
             if (dist < 0) {
                 dist = -dist;
             }
@@ -1947,9 +1941,8 @@ static void func_actor_800100_80164710(Task* arg0)
                 }
             }
         }
-        scratchHead = SCRATCH_HEAD_ADDR;
     }
-    SCRATCH_POP_AT(scratchHead, Actor800100LockScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor800100TargetScratch);
 }
 
 /// Third arm of the lock-on drive, running the actor's `statePhase` state
@@ -2062,31 +2055,29 @@ static void func_actor_800100_80164940(Task* arg0)
 /// `0x301`, `actionValue` counts up and the LCG decides the next aim window:
 /// once the step passes `((gRandomLcgState >> 16) & 0x3F) + 0x28` the actor
 /// latches into the `0xA` / child-slot-1 chain, keeping the old `state` in
-/// `stateAux` and clearing the aim offset on `companionWork`. Otherwise it carves
-/// a 0x20-byte `Actor800100LockScratch` off the scratch stack, fills `lock`
+/// `stateAux` and clearing the aim offset on `companionWork`. Otherwise it reserves
+/// a `_Actor800100TargetScratch` on the scratch stack, fills `targetPoint`
 /// either from the lock node (`Gp_GetLockPos`) or from the player's model
-/// coordinate, runs the `statePhase` switch, measures the aim spread across
-/// `rot`, and drops back to child slot 9 when the roll loses. Both arms end by
-/// handing `lock` to `func_8010BD88` / `func_8010BE5C` and returning the
-/// scratch.
+/// coordinate, runs the `statePhase` switch, measures the planar length of
+/// `targetDelta`, and drops back to child slot 9 once the target is within the
+/// rolled reach. Both arms end by handing `targetPoint` to `func_8010BD88` /
+/// `func_8010BE5C` and releasing the block.
 static void func_actor_800100_80164B9C(Task* arg0)
 {
-    GameActor*              actor;
-    GameActor*              actor2;
-    GameActor*              actor3;
-    CompanionWork*          companion;
-    GfxCoord*               coord;
-    GfxCoord*               target;
-    Actor800100LockScratch* block;
-    WorldTargetNode*        node;
-    void**                  scratch;
-    u8*                     head;
-    u16                     step;
-    u16                     old;
-    s16                     anim;
-    u32                     random;
-    s32                     distance;
-    s32                     val;
+    GameActor*                 actor;
+    GameActor*                 actor2;
+    GameActor*                 actor3;
+    CompanionWork*             companion;
+    GfxCoord*                  coord;
+    GfxCoord*                  target;
+    _Actor800100TargetScratch* block;
+    WorldTargetNode*           node;
+    u16                        step;
+    u16                        old;
+    s16                        anim;
+    u32                        random;
+    s32                        distance;
+    s32                        val;
 
     coord    = arg0->extra.tmd->coords;
     target   = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
@@ -2115,21 +2106,18 @@ static void func_actor_800100_80164B9C(Task* arg0)
             return;
         }
     }
-    scratch                        = SCRATCH_HEAD_ADDR;
-    head                           = SCRATCH_HEAD_AT(scratch, void);
-    SCRATCH_HEAD_AT(scratch, void) = head - 0x20;
-    block                          = (Actor800100LockScratch*)(head - 0x20);
-    node                           = actor->targetNode;
+    block = SCRATCH_STACK_RESERVE_BLOCK(_Actor800100TargetScratch);
+    node  = actor->targetNode;
     if (node != NULL) {
         if ((node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE) == 0) {
-            Gp_GetLockPos(node, &block->lock);
+            Gp_GetLockPos(node, &block->targetPoint);
         } else {
             actor->statePhase = 2;
         }
     } else {
-        block->lock.vx = target->coord.t[0];
-        block->lock.vy = target->coord.t[1];
-        block->lock.vz = target->coord.t[2];
+        block->targetPoint.vx = target->coord.t[0];
+        block->targetPoint.vy = target->coord.t[1];
+        block->targetPoint.vz = target->coord.t[2];
     }
     switch (actor->statePhase) {
         case 0:
@@ -2144,8 +2132,8 @@ static void func_actor_800100_80164B9C(Task* arg0)
             goto tail;
     }
     actor->movementSign = 1;
-    func_80103C74(coord, &block->lock, &block->rot);
-    distance = func_80103D8C(block->rot.vx, block->rot.vz);
+    func_80103C74(coord, &block->targetPoint, &block->targetDelta);
+    distance = func_80103D8C(block->targetDelta.vx, block->targetDelta.vz);
     if (actor->targetNode != NULL) {
         val = (rand() & 0x3FF) + 0xB00;
     } else {
@@ -2162,9 +2150,9 @@ static void func_actor_800100_80164B9C(Task* arg0)
         playerActorPlayChildSlotsWithBlend(arg0, 9, 0, 6);
     }
 tail:
-    func_8010BD88(arg0, &block->lock);
-    func_8010BE5C(arg0, &block->lock);
-    SCRATCH_STACK_RELEASE_BYTES(0x20);
+    func_8010BD88(arg0, &block->targetPoint);
+    func_8010BE5C(arg0, &block->targetPoint);
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor800100TargetScratch);
 }
 
 static void func_actor_800100_80164E60(Task* arg0)
