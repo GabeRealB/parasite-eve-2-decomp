@@ -62,21 +62,37 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_ShelterB6TrainingRoomBandShapeStorage, 0x14);
 extern _ShelterB6TrainingRoomBandShapeStorage D_shelter_b6_training_room_80184404;
 
-/// Scratchpad block `func_shelter_b6_training_room_80181368` takes from
-/// the scratch stack: the six world-space points of the band's raised rim and of
-/// its ground rim, then the projected depth, GTE flag and packed screen
-/// positions of the quad being emitted (`sxy0` for `top[i]`, `sxy1`..`sxy3`
-/// for `top[i + 1]`, `base[i]` and `base[i + 1]`).
+/// Number of vertices in each ring of a `_ShelterB6TrainingRoomBandScratch`, and
+/// so the number of quads in one ring band. Not a power of two: the drawer wraps
+/// the next vertex index with `%`. Vertices sit this fraction of a full turn
+/// apart, a turn being `ONE` angle units, rounded down.
+#define SHELTER_B6_TRAINING_ROOM_BAND_SEGMENT_COUNT 6
+
+/// Scratch-stack workspace for drawing one of this room's ring bands.
+///
+/// The six-segment counterpart of `EffectBandScratch`. The drawer places one
+/// vertex of each ring at every sixth of a turn in the effect coordinate's
+/// local frame, rotates it by that coordinate's world matrix and adds its
+/// translation, storing the result back as a world position narrowed to 16
+/// bits. `topRing` is the wider ring, displaced by the band's lift along local
+/// -Y; `bottomRing` is the narrower ring and stays in the local XZ plane. Quad
+/// `i` takes vertices 0 and 1 from `topRing[i]` and `topRing[i + 1]`, and
+/// vertices 2 and 3 from `bottomRing[i]` and `bottomRing[i + 1]`, wrapping at
+/// the last segment.
+///
+/// Reserve one complete block on the scratch stack and release it in reverse
+/// order after drawing. Pointers into the block must not survive its release.
 typedef struct {
-    SVECTOR top[6];
-    SVECTOR base[6];
-    s32     otz;
-    s32     flag;
-    u32     sxy0;
-    u32     sxy1;
-    u32     sxy2;
-    u32     sxy3;
+    SVECTOR topRing[SHELTER_B6_TRAINING_ROOM_BAND_SEGMENT_COUNT];    // Wider ring, lifted along local -Y; quad vertices 0 and 1
+    SVECTOR bottomRing[SHELTER_B6_TRAINING_ROOM_BAND_SEGMENT_COUNT]; // Narrower ring in the local XZ plane; quad vertices 2 and 3
+    s32     otz;                                                     // Ordering-table depth: SZ3 / 4 of the quad's last vertex
+    s32     projectionFlags;                                         // GTE FLAG word after the segment's RTPT; bit 31 makes it negative and drops the quad
+    DVECTOR sxy0;                                                    // Screen position of the current quad's vertex 0
+    DVECTOR sxy1;                                                    // Screen position of vertex 1
+    DVECTOR sxy2;                                                    // Screen position of vertex 2
+    DVECTOR sxy3;                                                    // Screen position of vertex 3
 } _ShelterB6TrainingRoomBandScratch;
+STATIC_ASSERT_SIZEOF(_ShelterB6TrainingRoomBandScratch, 0x78);
 
 extern SVECTOR D_shelter_b6_training_room_80184334[];
 extern u16     D_shelter_b6_training_room_801843FC[];
@@ -1022,10 +1038,8 @@ void func_shelter_b6_training_room_801811AC(Task* task)
 /// animates on its own phase, and `scale` sets its brightness.
 static void func_shelter_b6_training_room_80181368(EffectWork* mem, GfxCoord* coord, s32 band)
 {
-    void**                             scratch;
-    u8*                                head;
     _ShelterB6TrainingRoomBandScratch* block;
-    SVECTOR*                           bp;
+    SVECTOR*                           bottomVertex;
     POLY_FT4*                          prim;
     EffectBandShape*                   shape;
     s32                                i;
@@ -1038,53 +1052,50 @@ static void func_shelter_b6_training_room_80181368(EffectWork* mem, GfxCoord* co
     u16                                height;
     u16                                period;
 
-    shape    = &D_shelter_b6_training_room_80184404.entries[band];
-    period   = mem->period;
-    rBase    = mem->angle;
-    height   = period + shape->lift;
-    rBase   += shape->baseRadius;
-    rTop     = rBase + mem->step + shape->spread;
-    scratch  = SCRATCH_STACK_CURSOR_SLOT;
-    head     = (u8*)*scratch;
-    *scratch = head - 0x78;
-    block    = (_ShelterB6TrainingRoomBandScratch*)(head - 0x78);
+    shape  = &D_shelter_b6_training_room_80184404.entries[band];
+    period = mem->period;
+    rBase  = mem->angle;
+    height = period + shape->lift;
+    rBase += shape->baseRadius;
+    rTop   = rBase + mem->step + shape->spread;
+    block  = SCRATCH_STACK_RESERVE_BLOCK(_ShelterB6TrainingRoomBandScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
-    for (i = 0; i < 6; i++) {
-        ang              = i * 0x2AA;
-        block->top[i].vx = (rsin(ang) * rTop) >> 12;
-        block->top[i].vy = -height;
-        block->top[i].vz = (rcos(ang) * rTop) >> 12;
+    for (i = 0; i < SHELTER_B6_TRAINING_ROOM_BAND_SEGMENT_COUNT; i++) {
+        ang                  = i * (ONE / SHELTER_B6_TRAINING_ROOM_BAND_SEGMENT_COUNT);
+        block->topRing[i].vx = (rsin(ang) * rTop) >> 12;
+        block->topRing[i].vy = -height;
+        block->topRing[i].vz = (rcos(ang) * rTop) >> 12;
         gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&block->top[i]);
+        gte_ldv0(&block->topRing[i]);
         gte_rtv0();
-        gte_stsv(&block->top[i]);
-        block->top[i].vx  = (u16)block->top[i].vx + (u16)coord->workm.t[0];
-        block->top[i].vy  = (u16)block->top[i].vy + (u16)coord->workm.t[1];
-        block->top[i].vz  = (u16)block->top[i].vz + (u16)coord->workm.t[2];
-        block->base[i].vx = (rsin(ang) * rBase) >> 12;
-        bp                = &block->top[i] + 6;
-        bp->vy            = 0;
-        bp->vz            = (rcos(ang) * rBase) >> 12;
+        gte_stsv(&block->topRing[i]);
+        block->topRing[i].vx    = (u16)block->topRing[i].vx + (u16)coord->workm.t[0];
+        block->topRing[i].vy    = (u16)block->topRing[i].vy + (u16)coord->workm.t[1];
+        block->topRing[i].vz    = (u16)block->topRing[i].vz + (u16)coord->workm.t[2];
+        block->bottomRing[i].vx = (rsin(ang) * rBase) >> 12;
+        bottomVertex            = &block->topRing[i] + SHELTER_B6_TRAINING_ROOM_BAND_SEGMENT_COUNT;
+        bottomVertex->vy        = 0;
+        bottomVertex->vz        = (rcos(ang) * rBase) >> 12;
         gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&block->base[i]);
+        gte_ldv0(&block->bottomRing[i]);
         gte_rtv0();
-        gte_stsv(&block->base[i]);
-        block->base[i].vx = (u16)block->base[i].vx + (u16)coord->workm.t[0];
-        bp->vy            = (u16)bp->vy + (u16)coord->workm.t[1];
-        bp->vz            = (u16)bp->vz + (u16)coord->workm.t[2];
+        gte_stsv(&block->bottomRing[i]);
+        block->bottomRing[i].vx = (u16)block->bottomRing[i].vx + (u16)coord->workm.t[0];
+        bottomVertex->vy        = (u16)bottomVertex->vy + (u16)coord->workm.t[1];
+        bottomVertex->vz        = (u16)bottomVertex->vz + (u16)coord->workm.t[2];
     }
     gte_SetRotMatrix(&GsWSMATRIX);
-    for (i = 0; i < 6; i++) {
-        gte_ldv0(&block->top[i]);
+    for (i = 0; i < SHELTER_B6_TRAINING_ROOM_BAND_SEGMENT_COUNT; i++) {
+        gte_ldv0(&block->topRing[i]);
         gte_rtps();
         gte_stsxy(&block->sxy0);
         next = i + 1;
-        gte_ldv3(&block->top[next % 6], &block->base[i], &block->base[next % 6]);
+        gte_ldv3(&block->topRing[next % SHELTER_B6_TRAINING_ROOM_BAND_SEGMENT_COUNT], &block->bottomRing[i], &block->bottomRing[next % SHELTER_B6_TRAINING_ROOM_BAND_SEGMENT_COUNT]);
         gte_rtpt();
         frame = ((s8)D_shelter_b6_training_room_80185C60[band][i] + mem->age) % 6;
         gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
-        gte_stflg(&block->flag);
-        if (block->flag >= 0) {
+        gte_stflg(&block->projectionFlags);
+        if (block->projectionFlags >= 0) {
             gte_stszotz(&block->otz);
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
@@ -1095,19 +1106,19 @@ static void func_shelter_b6_training_room_80181368(EffectWork* mem, GfxCoord* co
             prim->clut  = 0x4282;
             u           = frame * 0x28;
             setUV4(prim, u, 0x60, u + 0x27, 0x60, u, 0x87, u + 0x27, 0x87);
-            prim->x0 = block->sxy0;
-            prim->y0 = block->sxy0 >> 16;
-            prim->x1 = block->sxy1;
-            prim->y1 = block->sxy1 >> 16;
-            prim->x2 = block->sxy2;
-            prim->y2 = block->sxy2 >> 16;
-            prim->x3 = block->sxy3;
-            prim->y3 = block->sxy3 >> 16;
+            prim->x0 = (u16)block->sxy0.vx;
+            prim->y0 = (u16)block->sxy0.vy;
+            prim->x1 = (u16)block->sxy1.vx;
+            prim->y1 = (u16)block->sxy1.vy;
+            prim->x2 = (u16)block->sxy2.vx;
+            prim->y2 = (u16)block->sxy2.vy;
+            prim->x3 = (u16)block->sxy3.vx;
+            prim->y3 = (u16)block->sxy3.vy;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x78);
+    SCRATCH_STACK_RELEASE_BLOCK(_ShelterB6TrainingRoomBandScratch);
 }
 
 void func_shelter_b6_training_room_80181930(Task* task)
