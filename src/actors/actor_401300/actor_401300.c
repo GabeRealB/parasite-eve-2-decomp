@@ -89,32 +89,30 @@ typedef struct Actor401300Work {
     /* 0x00C */ Actor401300Waypoint field_C[2];
     /// Lunge step length: `func_actor_401300_8013E930`'s clamped player
     /// distance over 18.
-    /* 0x014 */ s16  field_14;
-    /* 0x016 */ s16  field_16;
-    /* 0x018 */ s16  yaw;
-    /* 0x01A */ byte pad_1A[0x44];
-    /* 0x05E */ u16  field_5E;
-    /* 0x060 */ byte pad_60[0xC];
-    /* 0x06C */ u16  field_6C;
-    /* 0x06E */ byte pad_6E[0x82A];
-    /* 0x898 */ s32  field_898;
-    /* 0x89C */ s16  field_89C;
-    /* 0x89E */ s16  field_89E;
-    /* 0x8A0 */ s16  field_8A0;
-    /* 0x8A2 */ s16  field_8A2;
-    /* 0x8A4 */ s16  field_8A4;
-    /* 0x8A6 */ s16  field_8A6;
-    /* 0x8A8 */ s16  field_8A8;
-    /* 0x8AA */ s16  field_8AA;
-    /* 0x8AC */ s16  field_8AC;
-    /* 0x8AE */ s16  field_8AE;
-    /* 0x8B0 */ s16  field_8B0;
-    /* 0x8B2 */ s16  field_8B2;
-    /* 0x8B4 */ s16  field_8B4;
-    /* 0x8B6 */ s16  field_8B6;
-    /* 0x8B8 */ s16  field_8B8;
-    /* 0x8BA */ s16  field_8BA;
-    /* 0x8BC */ s32  field_8BC;
+    /* 0x014 */ s16            field_14;
+    /* 0x016 */ s16            field_16;
+    /* 0x018 */ s16            yaw;
+    /* 0x01A */ byte           pad_1A[0x6];
+    /* 0x020 */ ActorAnimRig19 rig;
+    /* 0x45C */ ActorAnimRig19 blend;
+    /* 0x898 */ s32            field_898;
+    /* 0x89C */ s16            field_89C;
+    /* 0x89E */ s16            field_89E;
+    /* 0x8A0 */ s16            field_8A0;
+    /* 0x8A2 */ s16            field_8A2;
+    /* 0x8A4 */ s16            field_8A4;
+    /* 0x8A6 */ s16            field_8A6;
+    /* 0x8A8 */ s16            field_8A8;
+    /* 0x8AA */ s16            field_8AA;
+    /* 0x8AC */ s16            field_8AC;
+    /* 0x8AE */ s16            field_8AE;
+    /* 0x8B0 */ s16            field_8B0;
+    /* 0x8B2 */ s16            field_8B2;
+    /* 0x8B4 */ s16            field_8B4;
+    /* 0x8B6 */ s16            field_8B6;
+    /* 0x8B8 */ s16            field_8B8;
+    /* 0x8BA */ s16            field_8BA;
+    /* 0x8BC */ s32            field_8BC;
     /// Effect anchor `func_actor_401300_80139134` places at the actor's
     /// view-space position before spawning effect 0x600A5.
     /* 0x8C0 */ GfxCoord       field_8C0;
@@ -196,24 +194,6 @@ typedef struct Actor401300StateTable {
     TaskFunc fn[41];
 } Actor401300StateTable;
 STATIC_ASSERT_SIZEOF(Actor401300StateTable, 0xA4);
-
-/// Animation view of the same work block, as `func_actor_401300_80133324`
-/// reads it: the `Actor01900AnimWork` layout shifted 4 bytes later, like the
-/// rest of this overlay's animation fields.
-typedef struct Actor401300AnimWork {
-    /* 0x000 */ byte           pad_0[0x20];
-    /* 0x020 */ ActorAnimRig19 rig;
-    /* 0x45C */ ActorAnimRig19 blend;
-    /* 0x898 */ byte           pad_898[0x8];
-    /* 0x8A0 */ s16            field_8A0;
-    /* 0x8A2 */ s16            field_8A2;
-    /* 0x8A4 */ byte           pad_8A4[2];
-    /* 0x8A6 */ s16            field_8A6;
-    /* 0x8A8 */ byte           pad_8A8[4];
-    /* 0x8AC */ s16            field_8AC;
-    /* 0x8AE */ s16            field_8AE;
-    /* 0x8B0 */ s16            field_8B0;
-} Actor401300AnimWork;
 
 /// Event record `func_actor_401300_80132554` dispatches on: `w[0]` is the
 /// event kind (0x301, 0xB05, 0x1D05) and `w[1]` its sub-code, and the first
@@ -1536,10 +1516,10 @@ static s32 func_actor_401300_80132C78(GfxCoord* coord, WorldCollisionContact* re
 
 static void func_actor_401300_80133254(Task* arg0)
 {
-    s32                  i;
-    Actor401300AnimWork* work;
+    s32              i;
+    Actor401300Work* work;
 
-    work = (Actor401300AnimWork*)arg0->work;
+    work = (Actor401300Work*)arg0->work;
 
     if (work->field_8A0 != work->field_8A2) {
         for (i = 1; i < 0x13; i++) {
@@ -1558,13 +1538,13 @@ static void func_actor_401300_80133254(Task* arg0)
 
 static void func_actor_401300_80133324(Task* arg0)
 {
-    AnimationPose        pose;
-    AnimationPose        blendPose;
-    s16                  weight;
-    s16                  i;
-    Actor401300AnimWork* work;
+    AnimationPose    pose;
+    AnimationPose    blendPose;
+    s16              weight;
+    s16              i;
+    Actor401300Work* work;
 
-    work   = (Actor401300AnimWork*)arg0->work;
+    work   = (Actor401300Work*)arg0->work;
     weight = work->field_8B0;
     for (i = 1; i < 0x13; i++) {
         if (i < 0xB) {
@@ -1595,204 +1575,204 @@ static s32 func_actor_401300_8013346C(Actor401300Work* work)
 {
     switch ((s16)(work->field_8A2 - 2)) {
         case 1:
-            if ((work->field_5E & 0x3FF) == 0xF) {
-                if (work->field_8BC != (work->field_5E & 0x3FF)) {
-                    work->field_8BC = work->field_5E & 0x3FF;
+            if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0xF) {
+                if (work->field_8BC != (work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF)) {
+                    work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                     return 0x400D0004;
                 }
-                work->field_8BC = work->field_5E & 0x3FF;
+                work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                 break;
-            } else if ((work->field_5E & 0x3FF) == 0x15) {
-                if (work->field_8BC != (work->field_5E & 0x3FF)) {
-                    work->field_8BC = work->field_5E & 0x3FF;
+            } else if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0x15) {
+                if (work->field_8BC != (work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF)) {
+                    work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                     return 0x400D0003;
                 }
-                work->field_8BC = work->field_5E & 0x3FF;
+                work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                 break;
             }
             work->field_8BC = 0;
             break;
         case 0:
-            if ((work->field_5E & 0x3FF) == 0x11) {
-                if (work->field_8BC != (work->field_5E & 0x3FF)) {
-                    work->field_8BC = work->field_5E & 0x3FF;
+            if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0x11) {
+                if (work->field_8BC != (work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF)) {
+                    work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                     return 0x400D0002;
                 }
-                work->field_8BC = work->field_5E & 0x3FF;
+                work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                 break;
-            } else if ((work->field_5E & 0x3FF) == 0x1A) {
-                if (work->field_8BC != (work->field_5E & 0x3FF)) {
-                    work->field_8BC = work->field_5E & 0x3FF;
+            } else if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0x1A) {
+                if (work->field_8BC != (work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF)) {
+                    work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                     return 0x400D0001;
                 }
-                work->field_8BC = work->field_5E & 0x3FF;
+                work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                 break;
             }
             work->field_8BC = 0;
             break;
         case 23:
-            if ((work->field_5E & 0x3FF) == 0xB) {
-                if (work->field_8BC != (work->field_5E & 0x3FF)) {
-                    work->field_8BC = work->field_5E & 0x3FF;
+            if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0xB) {
+                if (work->field_8BC != (work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF)) {
+                    work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                     return 0x400D000C;
                 }
-                work->field_8BC = work->field_5E & 0x3FF;
+                work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                 break;
-            } else if ((work->field_5E & 0x3FF) == 0xE) {
-                if (work->field_8BC != (work->field_5E & 0x3FF)) {
-                    work->field_8BC = work->field_5E & 0x3FF;
+            } else if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0xE) {
+                if (work->field_8BC != (work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF)) {
+                    work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                     return 0x400D0001;
                 }
-                work->field_8BC = work->field_5E & 0x3FF;
+                work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                 break;
             }
             work->field_8BC = 0;
             break;
         case 24:
-            if ((work->field_5E & 0x3FF) == 0xB) {
-                if (work->field_8BC != (work->field_5E & 0x3FF)) {
-                    work->field_8BC = work->field_5E & 0x3FF;
+            if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0xB) {
+                if (work->field_8BC != (work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF)) {
+                    work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                     return 0x400D000C;
                 }
-                work->field_8BC = work->field_5E & 0x3FF;
+                work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                 break;
             }
             work->field_8BC = 0;
             break;
         case 10:
-            if ((work->field_5E & 0x3FF) == 0x7) {
-                if (work->field_8BC != (work->field_5E & 0x3FF)) {
-                    work->field_8BC = work->field_5E & 0x3FF;
+            if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0x7) {
+                if (work->field_8BC != (work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF)) {
+                    work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                     return 0x400D0005;
                 }
-                work->field_8BC = work->field_5E & 0x3FF;
+                work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                 break;
             }
             work->field_8BC = 0;
             break;
         case 32:
-            if ((work->field_5E & 0x3FF) == 0x4) {
-                if (work->field_8BC != (work->field_5E & 0x3FF)) {
-                    work->field_8BC = work->field_5E & 0x3FF;
+            if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0x4) {
+                if (work->field_8BC != (work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF)) {
+                    work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                     return 0x400D0005;
                 }
-                work->field_8BC = work->field_5E & 0x3FF;
+                work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                 break;
             }
             work->field_8BC = 0;
             break;
         case 9:
-            if ((work->field_5E & 0x3FF) == 0x5) {
-                if (work->field_8BC != (work->field_5E & 0x3FF)) {
-                    work->field_8BC = work->field_5E & 0x3FF;
+            if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0x5) {
+                if (work->field_8BC != (work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF)) {
+                    work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                     return 0x400D0005;
                 }
-                work->field_8BC = work->field_5E & 0x3FF;
+                work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                 break;
             }
             work->field_8BC = 0;
             break;
         case 7:
-            if ((work->field_5E & 0x3FF) == 0x7) {
-                if (work->field_8BC != (work->field_5E & 0x3FF)) {
-                    work->field_8BC = work->field_5E & 0x3FF;
+            if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0x7) {
+                if (work->field_8BC != (work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF)) {
+                    work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                     return 0x400D0006;
                 }
-                work->field_8BC = work->field_5E & 0x3FF;
+                work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                 break;
             }
             work->field_8BC = 0;
             break;
         case 30:
-            if ((work->field_5E & 0x3FF) == 0xB) {
-                if (work->field_8BC != (work->field_5E & 0x3FF)) {
-                    work->field_8BC = work->field_5E & 0x3FF;
+            if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0xB) {
+                if (work->field_8BC != (work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF)) {
+                    work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                     return 0x400D000A;
                 }
-                work->field_8BC = work->field_5E & 0x3FF;
+                work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                 break;
             }
             work->field_8BC = 0;
             break;
         case 31:
-            if ((work->field_5E & 0x3FF) == 0xD) {
-                if (work->field_8BC != (work->field_5E & 0x3FF)) {
-                    work->field_8BC = work->field_5E & 0x3FF;
+            if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0xD) {
+                if (work->field_8BC != (work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF)) {
+                    work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                     return 0x400D000B;
                 }
-                work->field_8BC = work->field_5E & 0x3FF;
+                work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                 break;
             }
             work->field_8BC = 0;
             break;
         case 25:
-            if ((work->field_5E & 0x3FF) == 0xE) {
-                if (work->field_8BC != (work->field_5E & 0x3FF)) {
-                    work->field_8BC = work->field_5E & 0x3FF;
+            if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0xE) {
+                if (work->field_8BC != (work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF)) {
+                    work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                     return 0x400D0004;
                 }
-                work->field_8BC = work->field_5E & 0x3FF;
+                work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                 break;
-            } else if ((work->field_5E & 0x3FF) == 0x14) {
-                if (work->field_8BC != (work->field_5E & 0x3FF)) {
-                    work->field_8BC = work->field_5E & 0x3FF;
+            } else if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0x14) {
+                if (work->field_8BC != (work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF)) {
+                    work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                     return 0x400D0003;
                 }
-                work->field_8BC = work->field_5E & 0x3FF;
+                work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                 break;
             }
             work->field_8BC = 0;
             break;
         case 26:
-            if ((work->field_5E & 0x3FF) == 0x12) {
+            if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0x12) {
                 if (work->field_8BC != 0xE) {
-                    work->field_8BC = work->field_5E & 0x3FF;
+                    work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                     return 0x400D0004;
                 }
-                work->field_8BC = work->field_5E & 0x3FF;
+                work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                 break;
             }
             work->field_8BC = 0;
             break;
         case 27:
-            if ((work->field_5E & 0x3FF) == 0xD) {
-                if (work->field_8BC != (work->field_5E & 0x3FF)) {
-                    work->field_8BC = work->field_5E & 0x3FF;
+            if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0xD) {
+                if (work->field_8BC != (work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF)) {
+                    work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                     return 0x400D0002;
                 }
-                work->field_8BC = work->field_5E & 0x3FF;
+                work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                 break;
-            } else if ((work->field_5E & 0x3FF) == 0xF) {
-                if (work->field_8BC != (work->field_5E & 0x3FF)) {
-                    work->field_8BC = work->field_5E & 0x3FF;
+            } else if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0xF) {
+                if (work->field_8BC != (work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF)) {
+                    work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                     return 0x400D0001;
                 }
-                work->field_8BC = work->field_5E & 0x3FF;
+                work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                 break;
-            } else if ((work->field_5E & 0x3FF) == 0x11) {
-                if (work->field_8BC != (work->field_5E & 0x3FF)) {
-                    work->field_8BC = work->field_5E & 0x3FF;
+            } else if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0x11) {
+                if (work->field_8BC != (work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF)) {
+                    work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                     return 0x400D0002;
                 }
-                work->field_8BC = work->field_5E & 0x3FF;
+                work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                 break;
-            } else if ((work->field_5E & 0x3FF) == 0x14) {
-                if (work->field_8BC != (work->field_5E & 0x3FF)) {
-                    work->field_8BC = work->field_5E & 0x3FF;
+            } else if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0x14) {
+                if (work->field_8BC != (work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF)) {
+                    work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                     return 0x400D0001;
                 }
-                work->field_8BC = work->field_5E & 0x3FF;
+                work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                 break;
             }
             work->field_8BC = 0;
             break;
         case 28:
-            if ((work->field_5E & 0x3FF) == 0x9) {
-                if (work->field_8BC != (work->field_5E & 0x3FF)) {
-                    work->field_8BC = work->field_5E & 0x3FF;
+            if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0x9) {
+                if (work->field_8BC != (work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF)) {
+                    work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                     return 0x400D0012;
                 }
-                work->field_8BC = work->field_5E & 0x3FF;
+                work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
                 break;
             }
             work->field_8BC = 0;
@@ -1924,10 +1904,10 @@ loop:
 
 static __inline__ void Actor401300_ResetAnim(Task* arg0)
 {
-    s32                  i;
-    Actor401300AnimWork* work;
+    s32              i;
+    Actor401300Work* work;
 
-    work = (Actor401300AnimWork*)arg0->work;
+    work = (Actor401300Work*)arg0->work;
     for (i = 1; i < 0x13; i++) {
         work->rig.slots[i].rate = work->field_8A6;
         if (i < 7) {
@@ -1941,10 +1921,10 @@ static __inline__ void Actor401300_ResetAnim(Task* arg0)
 
 static __inline__ void Actor401300_ResetBlendAnim(Task* arg0)
 {
-    s32                  i;
-    Actor401300AnimWork* work;
+    s32              i;
+    Actor401300Work* work;
 
-    work            = (Actor401300AnimWork*)arg0->work;
+    work            = (Actor401300Work*)arg0->work;
     work->field_8AE = 0x30;
     work->field_8B0 = 0x800;
     for (i = 1; i < 0x13; i++) {
@@ -1959,10 +1939,10 @@ static __inline__ void Actor401300_ResetBlendAnim(Task* arg0)
 
 static __inline__ void Actor401300_TickAnim(Task* arg0)
 {
-    s32                  i;
-    Actor401300AnimWork* work;
+    s32              i;
+    Actor401300Work* work;
 
-    work = (Actor401300AnimWork*)arg0->work;
+    work = (Actor401300Work*)arg0->work;
     for (i = 1; i < 0x13; i++) {
         work->rig.slots[i].rate = work->field_8A6;
         if (i < 7) {
@@ -2009,7 +1989,7 @@ static void func_actor_401300_80133A3C(Task* arg0)
         Actor401300_TickAnim(arg0);
     } else {
         func_actor_401300_80133324(arg0);
-        if (((Actor401300AnimWork*)work)->blend.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
+        if (((Actor401300Work*)work)->blend.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
             work->field_89E = 0;
         }
     }
@@ -2214,10 +2194,10 @@ static void func_actor_401300_80134454(Enemy* enemy, Task* actor)
     enemy->hp                     = (s16)D_actor_401300_80141FA0.hpMax;
     enemy->param                  = &D_actor_401300_80141FA0;
     enemy->recs                   = work->field_990;
-    animationBindContext(&((Actor401300AnimWork*)work)->rig.anim, D_actor_401300_80158838, obj,
-                         ((Actor401300AnimWork*)work)->rig.poses, ((Actor401300AnimWork*)work)->rig.slots);
-    animationBindContext(&((Actor401300AnimWork*)work)->blend.anim, D_actor_401300_80158838, obj,
-                         ((Actor401300AnimWork*)work)->blend.poses, ((Actor401300AnimWork*)work)->blend.slots);
+    animationBindContext(&((Actor401300Work*)work)->rig.anim, D_actor_401300_80158838, obj,
+                         ((Actor401300Work*)work)->rig.poses, ((Actor401300Work*)work)->rig.slots);
+    animationBindContext(&((Actor401300Work*)work)->blend.anim, D_actor_401300_80158838, obj,
+                         ((Actor401300Work*)work)->blend.poses, ((Actor401300Work*)work)->blend.slots);
     work->field_89C = 2;
     work->field_89E = 0;
     work->field_8A2 = 2;
@@ -2747,8 +2727,8 @@ static void func_actor_401300_80135DDC(Task* arg0)
         }
         do {
             func_actor_401300_80133A3C(arg0);
-        } while (!(work->field_8A2 == 0x17 && (work->field_5E & 0x3FF) >= 6) &&
-                 !(work->field_8A2 == 0x18 && (work->field_5E & 0x3FF) >= 9));
+        } while (!(work->field_8A2 == 0x17 && (work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) >= 6) &&
+                 !(work->field_8A2 == 0x18 && (work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) >= 9));
         work->field_8A6 = 0x20;
         return;
     }
@@ -2797,7 +2777,7 @@ static void func_actor_401300_80135FC4(Task* arg0)
         work->field_AB0.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         do {
             func_actor_401300_80133A3C(arg0);
-        } while (!(work->field_6C & 0x100) && ++i < 0xFF);
+        } while (!(work->rig.slots[1].status.fields.flags & 0x100) && ++i < 0xFF);
         work->field_8A6 = 0x20;
         return;
     }
@@ -2830,7 +2810,7 @@ static void func_actor_401300_80135FC4(Task* arg0)
             work->field_8A6 = 0x10;
         }
         func_actor_401300_80133A3C(arg0);
-    } else if (work->field_89E == 1 || !(work->field_6C & 0x100)) {
+    } else if (work->field_89E == 1 || !(work->rig.slots[1].status.fields.flags & 0x100)) {
         work->field_8A6 = 0x10;
         func_actor_401300_80133A3C(arg0);
     }
@@ -2880,7 +2860,7 @@ static void func_actor_401300_80136238(Task* arg0)
     SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     aim                                   = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (work->field_6C & 0x100) {
+    if (work->rig.slots[1].status.fields.flags & 0x100) {
         if (detectSightBlocked(arg0) == 1 && (GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 29, 0, 0)) {
             work->field_0 = 8;
         } else {
@@ -3169,7 +3149,7 @@ static void func_actor_401300_80136CE8(Task* arg0)
             actorRescaleYaw(arg0->extra.tmd->coords, 0x1964);
             arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(arg0->extra.tmd->coords);
-            if (work->field_6C & 0x100) {
+            if (work->rig.slots[1].status.fields.flags & 0x100) {
                 work->field_0 = 0;
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, enemy->hp, 0);
             }
@@ -3390,7 +3370,7 @@ static void func_actor_401300_80138160(Task* arg0)
         work->field_D20                       = 0;
     }
     func_actor_401300_80133A3C(arg0);
-    if ((work->field_5E & 0x3FF) == 0x10 && player->mode != GAME_ACTOR_MODE_SCRIPTED) {
+    if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0x10 && player->mode != GAME_ACTOR_MODE_SCRIPTED) {
         angle = actorMatrixPositionYaw(arg0, &pos, gPlayerStatus.coordMtx);
         if (abs(angle) < 0x10 && !overlayOutOfRange(&pos, 0x44C)) {
             work->field_CAC.source.sets = D_actor_401300_801588F0;
@@ -3409,10 +3389,10 @@ static void func_actor_401300_80138160(Task* arg0)
             }
         }
     }
-    if (work->field_8A2 == 4 && (work->field_6C & 0x100)) {
+    if (work->field_8A2 == 4 && (work->rig.slots[1].status.fields.flags & 0x100)) {
         work->field_0 = 7;
     }
-    if ((work->field_5E & 0x3FF) > 0x10) {
+    if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) > 0x10) {
         p      = &pos;
         pos.vx = arg0->extra.tmd->coords->coord.t[0] - config->coordMtx->t[0];
         pos.vy = 0;
@@ -3478,7 +3458,7 @@ static void func_actor_401300_80138800(Task* arg0)
     gfxRotMatrixX(&arg0->extra.tmd->coords[3].coord, -0x80, GRAPHICS_ROTATION_COMPOSE);
     arg0->extra.tmd->coords[5].composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(&arg0->extra.tmd->coords[3]);
-    if (work->field_8A2 == 5 && (work->field_6C & 0x100)) {
+    if (work->field_8A2 == 5 && (work->rig.slots[1].status.fields.flags & 0x100)) {
         work->field_910.coord      = &arg0->extra.tmd->coords[1];
         work->field_910.spawnArgLo = 0x300;
         work->field_910.spawnArgHi = 2;
@@ -3504,14 +3484,14 @@ static void func_actor_401300_80138B24(Task* arg0)
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->field_CAC, 0);
         work->field_D22 = 0;
     }
-    if (work->field_6C & 2) {
+    if (work->rig.slots[1].status.fields.flags & 2) {
         work->field_910.coord      = &arg0->extra.tmd->coords[1];
         work->field_910.spawnArgLo = 0x300;
         work->field_910.spawnArgHi = 2;
         func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &arg0->extra.tmd->coords[5], NULL, &work->field_910);
         work->field_0 = 0xE;
     }
-    work->field_898 = work->field_5E & 0x3FF;
+    work->field_898 = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
     func_actor_401300_80133A3C(arg0);
     gfxRotMatrixX(&arg0->extra.tmd->coords[2].coord, -0x80, GRAPHICS_ROTATION_COMPOSE);
     arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3555,13 +3535,13 @@ static void func_actor_401300_80138CF8(Task* arg0)
         func_actor_401300_80132C78(arg0->extra.tmd->coords, work->field_AD0, 0xC, 0x57);
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (work->field_6C & 0x100) {
+    if (work->rig.slots[1].status.fields.flags & 0x100) {
         if (work->field_8A2 == 0xA) {
             work->field_8A2 = 0xB;
             work->field_89C = 2;
             func_actor_401300_80133A3C(arg0);
         }
-        if ((work->field_6C & 0x100) && work->field_8A2 == 0xB) {
+        if ((work->rig.slots[1].status.fields.flags & 0x100) && work->field_8A2 == 0xB) {
             work->field_970.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
             if (enemy->hp <= 0) {
                 work->field_0 = 0x15;
@@ -3604,7 +3584,7 @@ static void func_actor_401300_80138FCC(Task* arg0)
         func_actor_401300_80132C78(arg0->extra.tmd->coords, work->field_AD0, 0xC, 0x57);
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (work->field_6C & 0x100) {
+    if (work->rig.slots[1].status.fields.flags & 0x100) {
         work->field_970.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         if (enemy->hp <= 0) {
             work->field_0 = 0x15;
@@ -3763,7 +3743,7 @@ static void func_actor_401300_80139520(Task* arg0)
         work->field_0 = 6;
     }
     func_actor_401300_80133A3C(arg0);
-    if (work->field_8A2 == 0xE && (work->field_6C & 2)) {
+    if (work->field_8A2 == 0xE && (work->rig.slots[1].status.fields.flags & 2)) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if ((gRandomLcgState >> 16) & 1) {
             work->field_8A2 = 0xF;
@@ -3771,7 +3751,7 @@ static void func_actor_401300_80139520(Task* arg0)
             func_actor_401300_80133A3C(arg0);
         }
     }
-    if (work->field_8A2 == 0xF && (work->field_6C & 0x100)) {
+    if (work->field_8A2 == 0xF && (work->rig.slots[1].status.fields.flags & 0x100)) {
         work->field_8A2 = 0xE;
         work->field_89C = 1;
         func_actor_401300_80133A3C(arg0);
@@ -3813,13 +3793,13 @@ static void func_actor_401300_801397F8(Task* arg0)
         work->field_6 = 1;
     }
     func_actor_401300_80133A3C(arg0);
-    if ((work->field_5E & 0x3FF) == 4 && work->field_8BC != (work->field_5E & 0x3FF)) {
+    if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 4 && work->field_8BC != (work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF)) {
         work->field_910.coord      = arg0->extra.tmd->coords + 1;
         work->field_910.spawnArgLo = 0x300;
         work->field_910.spawnArgHi = 2;
         func_800FDB18((u16)Gp_GetIdParam1(0x1001), arg0->extra.tmd->coords + 5, NULL, &work->field_910);
     }
-    work->field_8BC = work->field_5E & 0x3FF;
+    work->field_8BC = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
     coord           = arg0->extra.tmd->coords;
     d               = &delta;
     delta.vx        = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
@@ -3971,7 +3951,7 @@ static void func_actor_401300_8013A208(Task* arg0)
         }
     }
     func_actor_401300_80133A3C(arg0);
-    if ((work->field_6C & 0x100) || work->field_C98 == 0) {
+    if ((work->rig.slots[1].status.fields.flags & 0x100) || work->field_C98 == 0) {
         work->field_0 = 9;
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
@@ -4074,7 +4054,7 @@ static void func_actor_401300_8013AAE8(Task* arg0)
     SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     aim                                   = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if ((work->field_6C & 0x100) || work->field_6 >= 0xB) {
+    if ((work->rig.slots[1].status.fields.flags & 0x100) || work->field_6 >= 0xB) {
         work->field_0 = 0xB;
     }
     aim->turn       = actorPositionYaw(arg0, &aim->delta, &gPlayerStatus);
@@ -4269,7 +4249,7 @@ static void func_actor_401300_8013BB30(Task* arg0)
     work->field_6 = next;
     switch (work->field_8A2) {
         case 2:
-            if ((s16)next >= 0x10 && (work->field_6C & 2)) {
+            if ((s16)next >= 0x10 && (work->rig.slots[1].status.fields.flags & 2)) {
                 work->field_8A2 = 0x23;
                 work->field_89C = 2;
                 work->field_8A6 = 0x10;
@@ -4292,7 +4272,7 @@ static void func_actor_401300_8013BB30(Task* arg0)
             }
             break;
         case 0x23:
-            if (!(work->field_6C & 0x100)) {
+            if (!(work->rig.slots[1].status.fields.flags & 0x100)) {
                 work->field_6 = 0;
             }
             switch (work->field_6) {
@@ -4428,7 +4408,7 @@ static void func_actor_401300_8013CBAC(Task* arg0)
                 actorMoveForward(arg0->extra.tmd->coords, 5);
             }
         }
-    } else if (work->field_6C & 0x100) {
+    } else if (work->rig.slots[1].status.fields.flags & 0x100) {
         work->field_8A2 = 2;
         work->field_89C = 1;
     }
@@ -4504,7 +4484,7 @@ static void func_actor_401300_8013D2AC(Task* arg0)
         actorRescaleYaw(arg0->extra.tmd->coords, 0x1964);
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (work->field_6C & 0x100) {
+    if (work->rig.slots[1].status.fields.flags & 0x100) {
         work->field_0 = 6;
     }
     SCRATCH_STACK_RELEASE_BYTES(0x10);
@@ -4579,7 +4559,7 @@ static void func_actor_401300_8013D6C4(Task* arg0)
         actorRescaleYaw(arg0->extra.tmd->coords, 0x1964);
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (work->field_6C & 0x100) {
+    if (work->rig.slots[1].status.fields.flags & 0x100) {
         work->field_0 = 6;
     }
     SCRATCH_STACK_RELEASE_BYTES(0x10);
@@ -4765,7 +4745,7 @@ static void func_actor_401300_8013DADC(Task* arg0)
                 work->field_6   = 0;
             }
             aim->turn = actorYawTo(arg0->extra.tmd->coords, aim->delta.vx, aim->delta.vz);
-            if (work->field_6C & 0x100) {
+            if (work->rig.slots[1].status.fields.flags & 0x100) {
                 work->field_8A2 = 0x1D;
                 work->field_89C = 2;
                 work->field_6   = 0;
@@ -4844,12 +4824,12 @@ static void func_actor_401300_8013DADC(Task* arg0)
                 }
             }
             Actor401300_ResetActorYaw(arg0);
-            if (work->field_6C & 0x100) {
+            if (work->rig.slots[1].status.fields.flags & 0x100) {
                 work->field_0 = 6;
             }
             break;
         case 0x1D:
-            if (work->field_6C & 0x100) {
+            if (work->rig.slots[1].status.fields.flags & 0x100) {
                 work->field_0 = 6;
             }
             break;
@@ -4986,7 +4966,7 @@ static void func_actor_401300_8013E930(Task* arg0)
         case 0x20:
             work->field_970.radius = 0x140;
             func_actor_401300_80132C78(arg0->extra.tmd->coords, work->field_AD0, 0xC, 0x57);
-            if (work->field_6C & 0x100) {
+            if (work->rig.slots[1].status.fields.flags & 0x100) {
                 work->field_8A2 = 0x21;
                 work->field_89C = 2;
                 work->field_6   = 0;
@@ -5058,7 +5038,7 @@ static void func_actor_401300_8013E930(Task* arg0)
             }
             func_actor_401300_80132910(arg0, work->field_990, 0xC);
             Actor401300_ResetActorYaw(arg0);
-            if (work->field_6C & 0x100) {
+            if (work->rig.slots[1].status.fields.flags & 0x100) {
                 work->field_0 = 6;
             }
             break;
@@ -5202,7 +5182,7 @@ static void func_actor_401300_8013F628(Task* arg0)
     switch (work->field_8A2) {
         case 0x20:
             work->field_970.radius = 0x500;
-            if (work->field_6C & 0x100) {
+            if (work->rig.slots[1].status.fields.flags & 0x100) {
                 work->field_8A2 = 0x21;
                 work->field_89C = 2;
                 work->field_6   = 0;
@@ -5221,7 +5201,7 @@ static void func_actor_401300_8013F628(Task* arg0)
                 }
             }
             Actor401300_ResetActorYaw(arg0);
-            if (work->field_6C & 0x100) {
+            if (work->rig.slots[1].status.fields.flags & 0x100) {
                 work->field_0 = 6;
             }
             break;
@@ -5263,7 +5243,7 @@ static void func_actor_401300_80140300(Task* arg0)
         func_actor_401300_80132C78(arg0->extra.tmd->coords, work->field_AD0, 0xC, 0x57);
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (work->field_6C & 0x100) {
+    if (work->rig.slots[1].status.fields.flags & 0x100) {
         work->field_970.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         if (enemy->hp <= 0) {
             work->field_0 = 0x15;
@@ -5306,7 +5286,7 @@ static void func_actor_401300_8014046C(Task* arg0)
         func_actor_401300_80132C78(arg0->extra.tmd->coords, work->field_AD0, 0xC, 0x57);
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (work->field_6C & 0x100) {
+    if (work->rig.slots[1].status.fields.flags & 0x100) {
         work->field_970.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         if (enemy->hp <= 0) {
             work->field_0 = 0x15;
@@ -5926,7 +5906,7 @@ static void func_actor_401300_80141BC8(Task* arg0)
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     func_actor_401300_80133A3C(arg0);
-    if (work->field_6C & 0x100) {
+    if (work->rig.slots[1].status.fields.flags & 0x100) {
         work->field_0 = 7;
     }
 }
@@ -5955,7 +5935,7 @@ static void func_actor_401300_80141C88(Task* arg0)
         work->field_8A6               = work->field_8A8;
     }
     func_actor_401300_80133A3C(arg0);
-    if (work->field_6C & 0x100) {
+    if (work->rig.slots[1].status.fields.flags & 0x100) {
         if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 29, 0, 0)) {
             work->field_0 = 8;
         } else {
@@ -5984,7 +5964,7 @@ static void func_actor_401300_80141D50(Task* arg0)
         work->field_8A6               = work->field_8A8;
     }
     func_actor_401300_80133A3C(arg0);
-    if (work->field_6C & 0x100) {
+    if (work->rig.slots[1].status.fields.flags & 0x100) {
         work->field_0 = 7;
     }
 }
