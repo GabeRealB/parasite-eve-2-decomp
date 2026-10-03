@@ -50,8 +50,7 @@ typedef union Actor210600Rate {
 STATIC_ASSERT_SIZEOF(Actor210600Rate, 0x2);
 
 /// The actor's work block. The spawn body allocates it zeroed with
-/// `memCalloc(0x8D8, false)` and keeps it in `Task::work`, which an enemy
-/// actor uses for its own state rather than a `TaskIdMap`. It holds the
+/// `memCalloc(0x8D8, false)` and keeps it in `Task::work`. It holds the
 /// animation context and slots at the front, the animation request state, and
 /// the light / colour matrices the task's `TmdObject` is pointed at.
 typedef struct Actor210600Work {

@@ -39,7 +39,7 @@
 ///
 /// `func_actor_303600_8016216C` allocates it with `memMalloc(0x10, 0)`, zeroes
 /// it with `memFillBytes` and parks the pointer in the task's `Task::work` slot
-/// (0x1C) -- that slot is not a `TaskIdMap` here, so reach the block with
+/// (0x1C); reach the block with
 /// `(Actor303600Work*)task->work`.  The same function publishes the task
 /// itself in `D_actor_303600_8016E4C0` and stores the `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` task
 /// in `field_0`.
@@ -63,7 +63,7 @@ STATIC_ASSERT_SIZEOF(Actor303600Work, 0x10);
 
 /// Light / colour matrix pair the overlay's actor hands to its model: the pair
 /// `func_actor_303600_80162950` allocates with `memCalloc(0x44, 0)` and parks
-/// in its own task's `Task::work` slot (0x1C, again not a `TaskIdMap`), so
+/// in its own task's `Task::work` slot (0x1C), so
 /// reach it with `(Actor303600LightMats*)task->work`.  The four bytes after
 /// the two matrices are part of the allocation and are never read here.
 typedef struct Actor303600LightMats {
@@ -75,8 +75,8 @@ STATIC_ASSERT_SIZEOF(Actor303600LightMats, 0x44);
 
 /// Work block of the task `func_actor_303600_80162A7C` dispatches through
 /// `D_actor_303600_80161E48`: `func_actor_303600_801626C0` allocates it with
-/// `memCalloc(0x3C, 0)`, parks it in `Task::work` (0x1C, again not a
-/// `TaskIdMap`), fills `children` with the five model tasks it spawns -- one
+/// `memCalloc(0x3C, 0)`, parks it in `Task::work` (0x1C), fills `children` with
+/// the five model tasks it spawns -- one
 /// `Task_SpawnFromTable` of `D_actor_303600_8016E468` entry 1 each, spread
 /// 8000 units apart in y and spliced under this task's own coordinate, so
 /// `children[i]` owns the light matrices -- and installs the 0x7DB handler

@@ -55,7 +55,7 @@
 ///
 /// `func_actor_342100_801630A4` allocates it with `memMalloc(0x44, 0)`,
 /// `memFillBytes`s the same 0x44 bytes over it and stores it in that task's
-/// `Task::work` slot (0x1C), which is not a `TaskIdMap` here, then publishes
+/// `Task::work` slot (0x1C), then publishes
 /// the task in `D_actor_342100_80164BB8`. Every leaf helper reaches the block
 /// that way, `(Actor342100Work*)D_actor_342100_80164BB8->work`.
 ///

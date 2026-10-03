@@ -29,8 +29,7 @@
 #include "../../shared/model_placement.h"
 
 /// Work block the spawn state `func_actor_213100_8014A118` allocates
-/// (`memCalloc(0x488)`) and parks in `Task::work` -- that slot is not a
-/// `TaskIdMap` here.
+/// (`memCalloc(0x488)`) and parks in `Task::work`.
 ///
 /// It opens with the animation context the 0x7D3 handler
 /// `actorMotionPlayAnim19` drives: the `AnimationContext` at the block's own

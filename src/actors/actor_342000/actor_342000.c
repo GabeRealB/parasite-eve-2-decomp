@@ -54,8 +54,8 @@
 /// `func_actor_342000_80162158` allocates it with `memMalloc(0x2AC, 0)`,
 /// `memFillBytes`s it to zero over the same 0x2AC bytes and stores it in the
 /// `Task::work` slot (0x1C), so the size below is the allocation, not a
-/// guess: the actor reuses that pointer field for its own work block and it is
-/// *not* a `TaskIdMap` here. Reach it with `(Actor342000Work*)task->work`.
+/// guess: the actor reuses that pointer field for its own work block. Reach it
+/// with `(Actor342000Work*)task->work`.
 ///
 /// `field_2A4` is the coordinate node the actor's model is re-parented to:
 /// `func_actor_342000_80162158` seeds it with `&gGfxViewCoord`, and the exit

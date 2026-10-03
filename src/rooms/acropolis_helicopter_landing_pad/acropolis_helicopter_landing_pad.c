@@ -30,8 +30,8 @@
 
 /// 0x54 work block of the helipad enemy task, hung off the `Task::work`
 /// slot -- it is the `memCalloc(0x54)` block that
-/// `func_acropolis_helicopter_landing_pad_8017D658` allocates, not a
-/// `TaskIdMap`. Reach it with `(AhlpEnemyWork*)task->work`.
+/// `func_acropolis_helicopter_landing_pad_8017D658` allocates. Reach it with
+/// `(AhlpEnemyWork*)task->work`.
 ///
 /// `lightMtx` / `colorMtx` are the model's own flat-light matrices:
 /// `func_acropolis_helicopter_landing_pad_8017D7B0` points the `TmdObject`'s

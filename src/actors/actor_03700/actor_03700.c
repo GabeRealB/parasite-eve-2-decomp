@@ -43,8 +43,7 @@
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
-/// Per-actor work block, reached as `(Actor103700Work*)task->work`; this actor
-/// keeps its own state in the `Task::work` slot rather than a `TaskIdMap`.
+/// Per-actor work block, reached as `(Actor103700Work*)task->work`.
 ///
 /// `field_24E` is the behaviour mode `Actor03700_Fn008D0` dispatches on and
 /// `field_250` the phase within it. `field_248` is the animation requested and

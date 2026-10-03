@@ -57,7 +57,7 @@ extern TaskDesc D_actor_121300_8013D390[];
 ///
 /// `func_actor_121300_80133BFC` allocates it with `memMalloc(0x4B0, 0)`,
 /// zeroes it with `memFillBytes` and parks the pointer in the task's `Task::work`
-/// slot (0x1C) -- that slot is not a `TaskIdMap` here, so reach the block with
+/// slot (0x1C); reach the block with
 /// `(Actor121300Work*)task->work`.  The same function publishes the task
 /// itself in `D_actor_121300_8013D418` and stores the
 /// `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` task in `field_488`, which is the target of every

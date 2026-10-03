@@ -64,7 +64,7 @@
 #include "../../shared/glow_draw.h"
 
 /// 0x14 work block the breezeway's room task hangs off the `Task::work` slot
-/// (0x1C) -- that slot is *not* a `TaskIdMap` here. Reach it with
+/// (0x1C). Reach it with
 /// `(DbwWork*)task->work`.
 ///
 /// `func_dryfield_breezeway_8017E010` (and its twin

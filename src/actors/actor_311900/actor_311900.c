@@ -28,8 +28,8 @@
 #include "overlay.h"
 
 /// Work block allocated by the spawn state `func_actor_311900_8016228C`
-/// (`memCalloc(0x4CC)`) and parked in that task's `Task::work` slot -- that
-/// slot is not a `TaskIdMap` here. `func_actor_311900_8016278C` republishes the
+/// (`memCalloc(0x4CC)`) and parked in that task's `Task::work` slot.
+/// `func_actor_311900_8016278C` republishes the
 /// two matrices onto `TmdObject::lightMtx` / `colorMtx`, the light / colour pair
 /// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`.
 ///
@@ -405,7 +405,7 @@ void func_actor_311900_8016222C(Task* task)
 /// tears the enemy down instead while game flag 0xA's nibble 2 -- the bit
 /// `func_actor_311900_801623B0` raises once the view reaches 0xA -- is already
 /// up, or when the 0x4CC-byte work block cannot be allocated into
-/// `Task::work` (that slot is not a `TaskIdMap` here).
+/// `Task::work`.
 ///
 /// Otherwise it splats the light / colour pair `func_actor_311900_8016278C`
 /// writes onto the model root's `field_1C` / `field_20` slots, points
@@ -501,8 +501,8 @@ void func_actor_311900_8016249C(Task* task)
 /// (rather than `func_actor_311900_8016278C`'s) from a different animation run
 /// (`D_actor_311900_8016EBF4`, not `D_actor_311900_8016EBE8`).
 ///
-/// The 0x4CC-byte block goes into `Task::work` -- that slot is not a
-/// `TaskIdMap` here. `Enemy::field_4` takes the model's root coordinate's
+/// The 0x4CC-byte block goes into `Task::work`. `Enemy::field_4` takes the
+/// model's root coordinate's
 /// matrix, the root's `parent` is re-parented to `gGfxViewCoord`, the animation
 /// context is built over the block's slot array and packed-pose run, and the
 /// two work halfwords 0x474 / 0x478 seed the tick's state. Note this handler,

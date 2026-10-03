@@ -51,7 +51,7 @@
 /// 0x20-byte block `func_actor_160900_80133F90` allocates with
 /// `memCalloc(0x20, 0)` for each of the two child tasks it spawns from index 7
 /// of `D_actor_160900_8013FB50`, and parks in that child's `Task::work` slot
-/// (0x1C) -- a third work block in this overlay, not a `TaskIdMap`. The size
+/// (0x1C) -- a third work block in this overlay. The size
 /// below is the allocation: the function zeroes all 0x20 bytes with `memFillBytes`.
 ///
 /// The four vectors are the corners of an axis-aligned rectangle in the Y/Z
@@ -68,8 +68,8 @@ typedef struct Actor160900ChildWork {
 } Actor160900ChildWork;
 STATIC_ASSERT_SIZEOF(Actor160900ChildWork, 0x20);
 
-/// Work block this overlay hangs off the task's `Task::work` slot (0x1C),
-/// which is not a `TaskIdMap` here. Reach it with
+/// Work block this overlay hangs off the task's `Task::work` slot (0x1C). Reach
+/// it with
 /// `(Actor160900Work*)task->work`.
 ///
 /// `func_actor_160900_8013418C` allocates it with `memMalloc(0x68, 0)` and

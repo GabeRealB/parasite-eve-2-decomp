@@ -95,7 +95,7 @@ STATIC_ASSERT_SIZEOF(GolemKnightBishopSpot, 0x8);
 
 /// Per-instance work block the overlay's setup `func_actor_402200_80137444`
 /// allocates with `memCalloc(0x71C)` and parks in the 0x1C slot below (the
-/// task's `Task::work`, which is not a `TaskIdMap` here).
+/// task's `Task::work`).
 ///
 /// `field_6E2` is the ground-shadow shade the ground-quad body
 /// `func_actor_402200_8013806C` hands to `Gp_DrawEffGroundQuad`, which draws

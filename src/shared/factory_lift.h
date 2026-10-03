@@ -113,7 +113,7 @@ typedef struct FactoryLiftWork {
 STATIC_ASSERT_SIZEOF(FactoryLiftWork, 0x58);
 
 /// Work block the room's script task allocates (memCalloc(0x10)) and hangs off
-/// `Task::work` -- that slot is *not* a `TaskIdMap` here. Reach it with
+/// `Task::work`. Reach it with
 /// `(FactoryPanelWork*)task->work`.
 ///
 /// `field_8` is the countdown the prompt states arm with 0xA and the idle state

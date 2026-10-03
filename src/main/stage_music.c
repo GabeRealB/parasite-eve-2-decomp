@@ -25,6 +25,20 @@
 
 #include "mapui/map_shelter.h"
 
+/// The music-table entry a stage music task loads and starts; its work block.
+///
+/// The task's first state allocates it zeroed and chooses the entry once: an
+/// ordinary room entry takes the stage's area table at the current area's row
+/// and the scene's column, while a countdown request takes the stage's
+/// countdown table at the entry number the scene selected. The later states
+/// only read it. The table belongs to the stage's map overlay, which must stay
+/// loaded while the task runs; the block itself is released with the task.
+typedef struct {
+    u16              index; // Entry within `table`; not checked against the table's length
+    StageMusicEntry* table; // Borrowed area or countdown music table of the current stage
+} _StageMusicSelection;
+STATIC_ASSERT_SIZEOF(_StageMusicSelection, 0x8);
+
 /* Define BSS before API headers to preserve first-declaration order. */
 static u8 Stage_MusicCountdownActive;
 
@@ -121,17 +135,17 @@ static const TaskFuncTable4 Stage_TaskStates = { {
 
 static void Task_AllocIdMap(Task* task)
 {
-    u8         temp_s4;
-    u8         temp_s1;
-    TaskIdMap* temp_v0;
-    u8         temp_a0;
-    s32        ret;
-    s32        field34;
+    u8                    temp_s4;
+    u8                    temp_s1;
+    _StageMusicSelection* selection;
+    u8                    temp_a0;
+    s32                   ret;
+    s32                   field34;
 
-    temp_s4 = Stage_MusicRowLengths[gGameSession->location.loc.stage - 1];
-    temp_v0 = memCalloc(8, 0);
-    if (temp_v0 != NULL) {
-        task->work = temp_v0;
+    temp_s4   = Stage_MusicRowLengths[gGameSession->location.loc.stage - 1];
+    selection = memCalloc(sizeof(_StageMusicSelection), 0);
+    if (selection != NULL) {
+        task->work = selection;
         if (gStageRoomSong != 0) {
             SndEvt_EnqueueType2(0, 1);
             gStageRoomSong = 0;
@@ -150,19 +164,19 @@ static void Task_AllocIdMap(Task* task)
             p                          = Stage_CountdownMusicTables[f7 - 1];
             v                          = gStageSceneMusicEntry;
             Stage_MusicCountdownFrames = 0x12C;
-            temp_v0->index             = v;
-            temp_v0->table             = p;
+            selection->index           = v;
+            selection->table           = p;
         } else {
-            temp_v0->table = Stage_MusicTables[gGameSession->location.loc.stage - 1];
-            temp_v0->index =
+            selection->table = Stage_MusicTables[gGameSession->location.loc.stage - 1];
+            selection->index =
                 gStageMusicRow + (gGameSession->location.loc.area * (temp_s4 & 0xFF));
-            if ((temp_v0->table[gGameSession->location.loc.area * (temp_s4 & 0xFF)].sequenceId != STAGE_MUSIC_AMBIENT_AREA) &&
+            if ((selection->table[gGameSession->location.loc.area * (temp_s4 & 0xFF)].sequenceId != STAGE_MUSIC_AMBIENT_AREA) &&
                 (gStageAmbientOn != 0)) {
                 SndEvt_EnqueueType7(SOUND_STAGE_AMBIENT, 0x1E);
                 gStageAmbientOn = 0;
             }
         }
-        temp_s1 = temp_v0->table[temp_v0->index].sequenceId;
+        temp_s1 = selection->table[selection->index].sequenceId;
         if (temp_s1 == STAGE_MUSIC_NO_SEQUENCE) {
             SndEvt_EnqueueType2(gStageCurrentSong, gStageMusicParams.fadeFrames);
             gStageMusicLoadState = temp_s1;
@@ -170,14 +184,14 @@ static void Task_AllocIdMap(Task* task)
             return;
         }
         gStageMusicLoadState = 0;
-        if (Midi_IsChannelFree(temp_v0->table[temp_v0->index].sequenceId) == 1) {
+        if (Midi_IsChannelFree(selection->table[selection->index].sequenceId) == 1) {
             if ((gStageCurrentSong != 0) && (Midi_IsBusy(gStageCurrentSong) != 0)) {
                 SndEvt_EnqueueType2(gStageCurrentSong, (gStageMusicParams.fadeFrames + 1) & 0xFFFF);
             }
             task->state = task->state + 1;
             return;
         }
-        if (temp_v0->table[temp_v0->index].startMode == STAGE_MUSIC_START_DEFERRED) {
+        if (selection->table[selection->index].startMode == STAGE_MUSIC_START_DEFERRED) {
             SndEvt_EnqueueType2(gStageCurrentSong, (gStageMusicParams.fadeFrames + 1) & 0xFFFF);
             goto block_20;
         }
@@ -193,17 +207,17 @@ block_20:
 
 static void Stage_LoadOrCountdownTask(Task* task)
 {
-    u8         param1[8];
-    u8         param2[8];
-    TaskIdMap* temp;
-    s32        field34;
-    u8         flag;
+    u8                    param1[8];
+    u8                    param2[8];
+    _StageMusicSelection* selection;
+    s32                   field34;
+    u8                    flag;
 
-    temp = task->work;
+    selection = task->work;
     if (Midi_IsBusy(gStageCurrentSong) == 0) {
         param1[3] = 0;
         param1[2] = 4;
-        param1[0] = temp->table[temp->index].sequenceId;
+        param1[0] = selection->table[selection->index].sequenceId;
         param2[0] = gGameSession->spriteVariant;
         param2[3] = 0;
         param2[2] = 0;
@@ -214,7 +228,7 @@ static void Stage_LoadOrCountdownTask(Task* task)
             task->state = task->state + 2;
             return;
         }
-        if ((temp->table[temp->index].startMode == STAGE_MUSIC_START_DEFERRED) && (field34 == 0)) {
+        if ((selection->table[selection->index].startMode == STAGE_MUSIC_START_DEFERRED) && (field34 == 0)) {
             task->state = task->state + 2;
             return;
         }
@@ -236,15 +250,15 @@ static void Stage_LoadOrCountdownTask(Task* task)
 
 static void Stage_ApplyTableEntryWhenIdle(Task* task)
 {
-    TaskIdMap*       temp;
-    StageMusicEntry* entry;
-    u8               startMode;
+    _StageMusicSelection* selection;
+    StageMusicEntry*      entry;
+    u8                    startMode;
 
-    temp = task->work;
+    selection = task->work;
     if (CdCmd_IsIdle() != 0) {
-        // Added as integers: `&temp->table[temp->index]` compiles the same
-        // address with the addition's operands swapped.
-        entry     = (StageMusicEntry*)(temp->index * sizeof(StageMusicEntry) + (u32)temp->table);
+        // Added as integers: `&selection->table[selection->index]` compiles the
+        // same address with the addition's operands swapped.
+        entry     = (StageMusicEntry*)(selection->index * sizeof(StageMusicEntry) + (u32)selection->table);
         startMode = entry->startMode;
         if (startMode != STAGE_MUSIC_START_NEVER) {
             if (startMode != STAGE_MUSIC_START_IMMEDIATE) {
@@ -258,7 +272,7 @@ static void Stage_ApplyTableEntryWhenIdle(Task* task)
             Snd_ApplyVolumeTable(0);
         }
         gStageMusicLoadState = 0xFF;
-        gStageCurrentSong    = temp->table[temp->index].sequenceId;
+        gStageCurrentSong    = selection->table[selection->index].sequenceId;
         taskKill(task);
     }
 }

@@ -55,8 +55,8 @@
 #include "rooms/shelter_b1_pod_service_gantry.h"
 #include "../../shared/actor_messages.h"
 
-/// Work block this overlay hangs off the task's `Task::work` slot (0x1C),
-/// which is not a `TaskIdMap` here. Reach it with
+/// Work block this overlay hangs off the task's `Task::work` slot (0x1C). Reach
+/// it with
 /// `(Actor560800Work*)task->work`.
 ///
 /// `func_actor_560800_80135BD8` allocates it with `memMalloc(0x68, 0)`, so the

@@ -47,8 +47,7 @@
 
 /// Work block allocated by `func_actor_361100_80162D28` and
 /// `func_actor_361100_80163410` (`memCalloc(0x4A4)`)
-/// and parked in that task's `Task::work` slot -- that slot is not a
-/// `TaskIdMap` here. `func_actor_361100_80162E04` and
+/// and parked in that task's `Task::work` slot. `func_actor_361100_80162E04` and
 /// `func_actor_361100_801634B4` republish the two matrices
 /// onto `TmdObject::lightMtx` / `colorMtx`, the light/colour pair
 /// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`.

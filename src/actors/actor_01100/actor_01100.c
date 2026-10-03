@@ -58,8 +58,8 @@
 #include "../../shared/actor_contacts.h"
 
 /// 0x58-byte work block the body at 0x80137C88 allocates with
-/// `memCalloc(0x58, 0)` and parks in `Task::work` (0x1C), which is not a
-/// `TaskIdMap` here. The same block lies under the `Actor101100Work` of the four
+/// `memCalloc(0x58, 0)` and parks in `Task::work` (0x1C). The same block lies
+/// under the `Actor101100Work` of the four
 /// sibling slots (`actor_101100`, `actor_201100`, `actor_204900`,
 /// `actor_301100`), whose 0x28 run is the `WorldCollisionCapsule` filled in here: the
 /// object's `context.capsule` points at it and its `contacts` at the one-entry `WorldCollisionContact`

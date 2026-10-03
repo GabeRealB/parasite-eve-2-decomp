@@ -39,8 +39,8 @@
 #include "../../shared/model_placement.h"
 
 /// Work block of the actor's second task, the one `func_actor_135400_80132B60`
-/// sets up: the `memCalloc(0x498, 0)` result it stores in `Task::work`, which
-/// is therefore not a `TaskIdMap` here. The main task's spawn carves a
+/// sets up: the `memCalloc(0x498, 0)` result it stores in `Task::work`. The
+/// main task's spawn carves a
 /// different, 0x4C8-byte `Actor135400MainWork`.
 ///
 /// `rig` and `model` are the model's animation rig and state; the spawn

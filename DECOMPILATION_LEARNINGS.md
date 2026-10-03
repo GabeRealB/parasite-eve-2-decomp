@@ -46134,7 +46134,7 @@ node, `0x18`/`0x1C`/`0x20` are `coord.t[0..2]` (`coord` starts at 4 and
 An enemy actor handler took the spawner's work block the way the family does -
 `temp_a0 = task->parent->work;` - and stored `temp_a0 + 0x45C` / `+ 0x43C`. Both
 immediates came out 8x too large (`0x22E0`, `0x21E0`), because the m2c seed
-typed that field `TaskIdMap*` (8 bytes) and scaled the offset by the element size
+typed that field `_StageMusicSelection*` (8 bytes) and scaled the offset by the element size
 it chose. The byte offsets are the right ones; only the type m2c gave the base is
 wrong, and editing the constants to match the target is the one fix that cannot
 work - the original adds a byte offset to a pointer.
@@ -68210,10 +68210,10 @@ difference, so an operand that is neither a register nor a scheduling artefact
 still prints as `regs`.
 
 0x200 is 0x40 * 8. m2c had emitted `index->work + 0x40` against the stock
-m2c seed, where `work` was a `TaskIdMap*` and `TaskIdMap` is 8 bytes,
+m2c seed, where `work` was a `_StageMusicSelection*` and `_StageMusicSelection` is 8 bytes,
 so C scaled a byte offset by the element size. Actor overlays routinely park
 their own work block in the `Task::work` slot, and that block is not a
-`TaskIdMap`.
+`_StageMusicSelection`.
 
 **Fix:** read the immediate ratio as an element size and retype the pointer.
 Here the init that installs the exit callback (`func_actor_503500_801372C8`)
@@ -77610,7 +77610,7 @@ Example: `func_actor_300700_80161E80`. Inputs: `base.i`
 `base.c` for `func_actor_300700_80161E80` scored 88.89% with `regs=22 reorder=5
 insert=7 delete=8`, and the whole gap was one thing: m2c emits `ptr + N` on a
 *typed* pointer, so the offset scales by `sizeof(*ptr)`. `temp_v0 + 0x114` on a
-`TaskIdMap*` assembles to `addiu v0,s4,0x8a0` where the target has `addiu
+`_StageMusicSelection*` assembles to `addiu v0,s4,0x8a0` where the target has `addiu
 v0,s4,0x114`; `temp_s5 + 4` on a `GfxCoord*` gives `addiu v0,s5,0x140`
 against `0x4`. Six such offsets accounted for the insert/delete counts.
 
@@ -78306,7 +78306,7 @@ addiu    v0,s0,0x100       ; m2c's same &work->anim
 sw       v0,0x4f4(s0)
 ```
 
-m2c typed the `memCalloc` result as `TaskIdMap*` (its 8-byte return type for
+m2c typed the `memCalloc` result as `_StageMusicSelection*` (its 8-byte return type for
 this callee) and then wrote `temp_v0 + 0x20`, `temp_v0 + 0x374`, `temp_v0 +
 0x54` for what are byte offsets into a 0x4F8 work block. `M2C_FIELD` keeps its
 offsets in bytes, so the *field* stores all matched; only the bare pointer
@@ -81426,14 +81426,17 @@ Example: `func_actor_141000_80132E24` (scratch `base_1.c`; the `tmd`-local shape
 is the counter-example that failed the overlay checksum). Input `base_1.i`
 `6eebf6fc90486fed6cad608d91068483eab7f8a516ed9387d802fa52140a4597`.
 
-## A `memCalloc` result parked in `Task::work` is a work block, not a `TaskIdMap`
+## A `memCalloc` result parked in `Task::work` is a work block, not a `_StageMusicSelection`
 
-The m2c seed typed that slot `TaskIdMap*` (8 bytes), so it rendered a work block
+The m2c seed typed that slot `_StageMusicSelection*` (8 bytes), so it rendered a work block
 stored there as byte arithmetic - and a plain `*temp_v0 = 0xFFF;` does not even
-compile, because `TaskIdMap` is a struct and the assignment is an incompatible
+compile, because `_StageMusicSelection` is a struct and the assignment is an incompatible
 type. Substituting `M2C_FIELD(temp_v0, s32 *, 0) = 0xFFF;` is the minimal edit
 that yields a baseline, and here it scored 100% - but it leaves the block
-untyped, and an untyped body is a seed, not a landing.
+untyped, and an untyped body is a seed, not a landing. (`_StageMusicSelection`
+is the stage music task's own work block, private to `src/main/stage_music.c`;
+`Task::work` was declared as a pointer to it when these seeds were generated and
+is `void*` now.)
 
 Two things in the target give the real type, and neither is a guess:
 
@@ -83224,7 +83227,7 @@ That is the 100% form. The tell is the shared insn uid: an identical pair in
 the target may be one source statement, and the compiled `.s` will say so
 ("A `move` duplicated in a delay slot *and* before the label" above is the
 `reorg` side of the same mechanism). The same seed also had m2c's guessed
-`TaskIdMap*` (8-byte) stride on the index - `sra $v0,$v0,0xb` against the
+`_StageMusicSelection*` (8-byte) stride on the index - `sra $v0,$v0,0xb` against the
 target's `0xe` - which is the scaling error described earlier.
 
 ## `sb`/`lbu` where the target has `sh`/`lhu` is a width m2c took from the truncated use
@@ -84333,14 +84336,14 @@ before writing it into a header.
 offset, but only one of them means bytes:
 
 ```c
-temp_a3 = D_actor_342100_80164BB8->work;      /* m2c types this TaskIdMap* */
+temp_a3 = D_actor_342100_80164BB8->work;      /* m2c types this _StageMusicSelection* */
 M2C_FIELD(temp_a3, s16 *, 0x20) = 0x258;       /* byte offset - correct */
 M2C_FIELD(temp_a3, s16 *, 0x22) = 0x100;
 Task_SpawnFromTable(&D_actor_342100_801648DC, 0, 0, (s32) (temp_a3 + 0x20));
 ```
 
 `M2C_FIELD` takes a byte offset, but `temp_a3 + 0x20` is C pointer arithmetic on
-`TaskIdMap*`, so it scales by `sizeof(TaskIdMap)` = 8 and emits `addiu a3,a3,
+`_StageMusicSelection*`, so it scales by `sizeof(_StageMusicSelection)` = 8 and emits `addiu a3,a3,
 0x100`. The target has `addiu a3,a3,0x20`.
 
 **Why it is easy to misread.** The result is one wrong immediate at 99.737%
@@ -85171,7 +85174,7 @@ Inputs: `base.i` (m2c seed, 54.857%)
 m2c renders a field access it cannot type as pointer arithmetic on whatever
 pointer it happens to hold, and that arithmetic is in units of the pointee.
 `func_actor_401300_80141758`'s seed wrote `Gp_UnlinkObj(temp_s0 + 0xBF0)` where
-`temp_s0` came from `index->work` and was typed `TaskIdMap*` (8 bytes), so the
+`temp_s0` came from `index->work` and was typed `_StageMusicSelection*` (8 bytes), so the
 object came out `addiu a0,s0,0x5f80`. All three unlink displacements were wrong
 by exactly 8x - `0x5f80/0xbf0 == 0x4b80/0x970 == 0x5580/0xab0 == 8` - and the
 differ read that as `regs=3`, 99.605%, because the offsets live in an `addiu`
@@ -87279,7 +87282,7 @@ keeps the `== 0` overwrite" - same rule, applied to a store rather than a
 constant.
 
 The same function is also the worked example for m2c's scaled pointer
-arithmetic: `temp_v0 + 0x20` with `temp_v0` typed `TaskIdMap*` (8 bytes) emits
+arithmetic: `temp_v0 + 0x20` with `temp_v0` typed `_StageMusicSelection*` (8 bytes) emits
 `addiu v0,v1,0x100` and leaves the rest of the function matching at 99.886%.
 The block is `{ MATRIX color; MATRIX light; u16 speed, delta, ticks; }` - the
 0x48 allocation and the `light` / `color` republished onto
@@ -100151,7 +100154,7 @@ caller pattern (`src/actors/actor_150400/actor_150400.c`,
 So when an m2c seed is short a whole family of byte or halfword stores that
 share one destination, do not hunt the pass — check whether the destination is
 ever address-taken. The same seed's `temp_v0 + 0x20` also compiled scaled by
-`sizeof(TaskIdMap)` (8) into `addiu v0, s3, 0x100`; the target's offsets 0x20 /
+`sizeof(_StageMusicSelection)` (8) into `addiu v0, s3, 0x100`; the target's offsets 0x20 /
 0x40 / 0x54 / 0x374 are plain byte offsets, which is what a struct-typed work
 pointer gives for free.
 
@@ -100892,7 +100895,7 @@ the next build, registers, order and delay slot untouched - so a seed whose only
 remaining delta is a store width is a one-word edit, not a search.
 
 Two things about the shape are worth carrying to the sibling overlays. The block
-is not a `TaskIdMap`: the spawn state `memCalloc`s it (0x4CC here) into
+is not a `_StageMusicSelection`: the spawn state `memCalloc`s it (0x4CC here) into
 `Task::work`, exactly as in `actor_141000` / `actor_317000` / `actor_350500` /
 `actor_350700`, and this function republishes `&work->light` / `&work->color`
 onto `TmdObject::lightMtx` / `colorMtx` - the pair `Gp_BindDefaultMtx` otherwise
@@ -115215,7 +115218,7 @@ the offsets the function wants - `0x50` against `0x140`, `0xDC` against `0x6E0`,
 `0x154` against `0xAA0` - is not a scheduling or an allocation problem, and no
 amount of restructuring the statements will move it. m2c back-propagated the
 type of the `memCalloc` result from `value->work = temp_v0;`, so the work block
-is a `TaskIdMap*` in its output and every `temp_v0 + 0xDC` in the *source* is
+is a `_StageMusicSelection*` in its output and every `temp_v0 + 0xDC` in the *source* is
 scaled by 8 in the *RTL*; the `s32*` pieces in the same expressions scale by 4.
 The work block's own field accesses come out wrong too, because m2c writes them
 as `M2C_FIELD(temp_v0, T*, k)` off the same mis-scaled base only when the base is
@@ -115223,7 +115226,7 @@ a field - the raw `temp_v0 + k` forms are the ones that scale.
 
 The tell is that the ratio is constant and equals a struct size: here every bad
 immediate was 8x its target (`0xDC`/`0xBC`/`0x8C`/`0x14`/`0xFC`/`0x134`/`0x154`/
-`0x1B4`/`0x1D4`/`0x1EC`/`0x20C` against the `TaskIdMap`-sized `0x2E4` work
+`0x1B4`/`0x1D4`/`0x1EC`/`0x20C` against the `_StageMusicSelection`-sized `0x2E4` work
 block), while the `s32*`-typed pair came out 4x. Instruction count and control
 flow are unaffected, so the seed still scores 91.220% (`regs=38`) and looks like
 a register problem.
@@ -124553,7 +124556,7 @@ has `0x34c`, and an index the target shifts left by 4 arriving as
 
 **Cause.** m2c writes a field reached through a `T*` as `M2C_FIELD(p, T*, off)`
 *and* its own address arithmetic as `(T*)(p + n)`, both scaled by `sizeof(T)`.
-The seed here spelled the work block as `TaskIdMap*` (8 bytes), so `p + 0x20`
+The seed here spelled the work block as `_StageMusicSelection*` (8 bytes), so `p + 0x20`
 compiled to `p + 0x100`, and a table index added to `GpAreaRec::field_0` - a
 `GpAreaRec*`, also 8 bytes - was multiplied by another 8 on top of the source's
 own `* 16`.

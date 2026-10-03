@@ -9,8 +9,8 @@
 
 #include "rooms/room.h"
 
-/// Work block the motel lobby's examine task keeps at `Task::work` (0x1C) --
-/// that slot is *not* a `TaskIdMap` here. `func_dryfield_night_motel_lobby_80180E98`
+/// Work block the motel lobby's examine task keeps at `Task::work` (0x1C).
+/// `func_dryfield_night_motel_lobby_80180E98`
 /// allocates it with `memCalloc(0xA, 0)`, and every examine state reaches it
 /// with `(DnmlExamineWork*)task->work`.
 ///

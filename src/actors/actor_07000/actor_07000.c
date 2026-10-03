@@ -54,7 +54,7 @@
 #include "../../shared/sucklerceph.h"
 
 /// Work block the carriers hang off their context's 0x1C slot (the task's
-/// `Task::work`, which is not a `TaskIdMap` here). The three `WorldCollisionBody`s are the
+/// `Task::work`). The three `WorldCollisionBody`s are the
 /// display nodes `ActorsShared80138570` unlinks on its own exit path.
 ///
 /// `field_36C` is the mode this body dispatches on - the sibling state machine
@@ -181,7 +181,7 @@ typedef struct ActorsShared80137f1cWork {
 } ActorsShared80137f1cWork;
 
 /// Work block the enemy's spawn function parks in the task's `Task::work`
-/// slot (that slot is not a `TaskIdMap` here). Only the three `WorldCollisionBody` collision
+/// slot. Only the three `WorldCollisionBody` collision
 /// bodies are reached from this shared body -- `ActorsShared80138570` is the
 /// exit callback that unlinks all three -- so the type stops after the last
 /// one; whatever each overlay keeps around them differs per actor.

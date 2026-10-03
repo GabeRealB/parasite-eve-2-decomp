@@ -105,8 +105,8 @@ typedef struct Actor400500HitView {
 ///
 /// `func_actor_400500_80135414` is the overlay's only allocator: it calls
 /// `memCalloc(0xA50, 0)` and stores the result in the `Task::work` slot
-/// (0x1C), which an enemy actor reuses for its own work block, so it is *not*
-/// a `TaskIdMap` here. Reach it with `(Actor400500Work*)task->work`. The
+/// (0x1C), which an enemy actor reuses for its own work block. Reach it with
+/// `(Actor400500Work*)task->work`. The
 /// same function hands `&work->lightMtx` / `&work->colorMtx` to the
 /// `TmdObject` at `Task::extra` (`lightMtx` / `colorMtx`) and `work->rec0`
 /// to `Enemy::recs`; the size below is the allocation, not a guess.

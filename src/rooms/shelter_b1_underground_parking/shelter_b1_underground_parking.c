@@ -79,7 +79,7 @@
 #include "../../shared/room_variants.h"
 
 /// Work block of the parking-lot examine task, hung off the `Task::work` slot
-/// (0x1C) -- that slot is *not* a `TaskIdMap` here. Reach it with
+/// (0x1C). Reach it with
 /// `(SbupExamineWork*)task->work`.
 ///
 /// `func_shelter_b1_underground_parking_80184468` copies a matched hotspot's

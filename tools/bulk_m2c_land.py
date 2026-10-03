@@ -247,7 +247,7 @@ def types_compatible(cast: str, field: str) -> bool:
     M2C_FIELD(expr, type_ptr, off) expands to *(type_ptr)((s8 *)expr + off), so
     the cast is always a pointer to the field's type. One level of indirection
     is therefore part of the idiom, not a difference: `s32 *` against a field
-    declared `s32` is an exact match, and `void **` against `TaskIdMap*` is a
+    declared `s32` is an exact match, and `void **` against `void*` is a
     pointer read of a pointer field - ordinary C and the same four-byte load.
 
     What stays refused is a width change, `s16 *` against `s32`, because that

@@ -35,8 +35,8 @@
 
 #include "rooms/acropolis_plaza.h"
 
-/// Work block this overlay hangs off the task's `Task::work` slot (0x1C),
-/// which is not a `TaskIdMap` here. `func_actor_310100_801625E4` allocates it
+/// Work block this overlay hangs off the task's `Task::work` slot (0x1C).
+/// `func_actor_310100_801625E4` allocates it
 /// with `memMalloc(0x50C, false)` and hands `&slots` to the model helpers as the slot
 /// array, so the prefix is the shared actor anim layout: an `AnimationContext` and the
 /// nineteen slots the frame handler ticks.

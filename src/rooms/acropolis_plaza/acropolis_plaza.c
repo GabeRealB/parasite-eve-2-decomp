@@ -139,8 +139,8 @@ typedef struct AcropolisPlazaSceneWork {
 STATIC_ASSERT_SIZEOF(AcropolisPlazaSceneWork, 0x34);
 
 /// Work block the plaza's sequence task (`func_acropolis_plaza_80180054`)
-/// allocates with `memMalloc(0x28, 0)` and parks in `Task::work` -- that slot
-/// is not a `TaskIdMap` here. State 0 caches the slot-3 task in `slot3` and the
+/// allocates with `memMalloc(0x28, 0)` and parks in `Task::work`. State 0
+/// caches the slot-3 task in `slot3` and the
 /// task it spawns from entry 5 of the room's table in `field_C`; state 3 spawns
 /// entry 1 into `field_8`, handing it `&field_10` as its spawn argument. The
 /// halfwords from 0x1E on are the per-emitter "already playing" flags
@@ -175,8 +175,8 @@ typedef struct AcropolisPlazaWork {
 STATIC_ASSERT_SIZEOF(AcropolisPlazaWork, 0x28);
 
 /// Work block the plaza's opening sequence (`func_acropolis_plaza_8017ECF8`)
-/// allocates with `memMalloc(8, 0)` and parks in `Task::work` -- that slot is
-/// not a `TaskIdMap` here. `slot3` caches the slot-3 task every message in the
+/// allocates with `memMalloc(8, 0)` and parks in `Task::work`. `slot3` caches
+/// the slot-3 task every message in the
 /// sequence is addressed to; `timer` is the frame counter the waiting states
 /// step (0x3D frames in state 7, 0xB in state 11, 2 in state 12).
 typedef struct AcropolisPlazaOpeningWork {
@@ -197,8 +197,8 @@ typedef union AcropolisPlazaOpeningBuf {
 } AcropolisPlazaOpeningBuf;
 
 /// Work block the plaza's warp task (`func_acropolis_plaza_8017E7E4`) allocates
-/// with `memMalloc(8, 0)` and parks in `Task::work` -- that slot is not a
-/// `TaskIdMap` here. It only caches the slot-3 task every message in the
+/// with `memMalloc(8, 0)` and parks in `Task::work`. It only caches the slot-3
+/// task every message in the
 /// sequence (0x3F2 place, 0x3EE warp, 0x3F0 poll) is addressed to; the
 /// trailing four bytes are zeroed by `memFillBytes` and never read.
 typedef struct AcropolisPlazaWarpWork {

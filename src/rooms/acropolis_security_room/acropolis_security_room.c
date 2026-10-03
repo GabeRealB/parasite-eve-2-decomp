@@ -72,7 +72,7 @@
 #include "../../shared/actor_contacts.h"
 
 /// 0xA work block of the security-monitor task, hung off the `Task::work`
-/// slot (0x1C) -- that slot is *not* a `TaskIdMap` here, it is the
+/// slot (0x1C): the
 /// `memCalloc(0xA)` block `func_acropolis_security_room_8017D9DC` allocates.
 /// Reach it with `(AsrMonitorWork*)task->work`.
 ///

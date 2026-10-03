@@ -2802,7 +2802,7 @@ SndLoad_State               = 0x800820F0; // type:SndLoadState size:0x30
 Midi_Song                   = 0x8007F300; // type:MidiSong // _MidiSong
 Gpu_OtBuffers               = 0x80070EE8; // type:GsOT size:0x28
 
-// SndEvt / UiPanel / Tmd / TaskIdMap / GameSession renames
+// SndEvt / UiPanel / Tmd / GameSession renames
 _gSndEvtPool                = 0x8007EBF0; // type:SndEvt
 _gSndEvtHead                = 0x8007EBE4;
 _gSndEvtTail                = 0x8007EBE8;

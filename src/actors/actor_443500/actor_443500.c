@@ -42,7 +42,7 @@
 #include "../../shared/actor_messages.h"
 
 /// Work block `func_actor_443500_80132078` `memCalloc`s (0x4C4) and parks in
-/// the task's `Task::work` slot, which holds no `TaskIdMap` here. The spawn
+/// the task's `Task::work` slot. The spawn
 /// handler seeds the two `sb` bytes at 0x475/0x476 and the word at 0x4BC to
 /// -1 and copies the parent TmdObject's flags halfword to 0x4C0; the
 /// light/colour matrix pair at 0x478/0x498 is the one

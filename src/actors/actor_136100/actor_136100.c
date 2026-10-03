@@ -54,7 +54,7 @@ extern ActorTransform D_actor_136100_8013F304[2];
 ///
 /// `func_actor_136100_80133A88` allocates it with `memMalloc(0x4F0, 0)`,
 /// zeroes it with `memFillBytes` and parks the pointer in the task's `Task::work`
-/// slot (0x1C) -- that slot is not a `TaskIdMap` here, so reach the block with
+/// slot (0x1C); reach the block with
 /// `(Actor136100Work*)task->work`.  The same function publishes the task
 /// itself in `D_actor_136100_8014078C` and stores the `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`
 /// task in `field_4B4`.

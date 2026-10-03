@@ -23,7 +23,7 @@
 struct Enemy;
 
 /// Work block of the `actor_403600` task, parked in the task's `Task::work`
-/// slot (that slot is not a `TaskIdMap` here).
+/// slot.
 typedef struct Actor403600Work {
     /* 0x000 */ ActorAnimRig20        rig;
     /* 0x474 */ MATRIX                field_474;

@@ -109,8 +109,8 @@ typedef union Actor110600Event {
     u32 raw;
 } Actor110600Event;
 
-/// Work block this overlay parks in the task's `Task::work` slot (0x1C),
-/// which is not a `TaskIdMap` here. `func_actor_110600_80134AB4` allocates it
+/// Work block this overlay parks in the task's `Task::work` slot (0x1C).
+/// `func_actor_110600_80134AB4` allocates it
 /// with `memCalloc(0xBEC, 0)`, so the size below is the allocation.
 ///
 /// `field_0` is the state index `func_actor_110600_801387C0` writes. `field_4`

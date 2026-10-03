@@ -90,7 +90,7 @@ STATIC_ASSERT_SIZEOF(Actor400600State, 0x4);
 ///
 /// `func_actor_400600_80133434` allocates it with `memCalloc(0x770)` and
 /// stores it in the `Task::work` slot (0x1C): an enemy actor reuses that
-/// pointer field for its own work block, so it is *not* a `TaskIdMap` here.
+/// pointer field for its own work block.
 /// Reach it with `(Actor400600Work*)task->work`.
 typedef struct Actor400600Work {
     /* 0x000 */ MATRIX                   matrix_0;  // copy of the root coordinate's local matrix

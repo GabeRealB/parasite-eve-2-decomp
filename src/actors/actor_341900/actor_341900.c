@@ -47,7 +47,7 @@
 ///
 /// `func_actor_341900_80162EFC` allocates it with `memCalloc(0x70, 0)`,
 /// `memFillBytes`s the same 0x70 bytes over it and stores it in its own task's
-/// `Task::work` slot (0x1C), which is not a `TaskIdMap` here, then publishes
+/// `Task::work` slot (0x1C), then publishes
 /// that task in `D_actor_341900_80164208`. The script callbacks from
 /// `func_actor_341900_80163388` on reach the block that way,
 /// `(Actor341900Work*)D_actor_341900_80164208->work`; the two dispatchers

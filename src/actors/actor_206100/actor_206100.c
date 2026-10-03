@@ -198,7 +198,7 @@ STATIC_ASSERT_SIZEOF(Actor206100DistScratch, 0xC);
 /// `func_actor_206100_8014C274` allocates it with `memCalloc(0x558, 0)` and
 /// stores it straight into the `Task::work` slot (0x1C), so the size below is
 /// the allocation and not a guess: this overlay reuses that pointer field for
-/// its own work block and it is *not* a `TaskIdMap` here.  Reach it with
+/// its own work block.  Reach it with
 /// `(Actor206100Work*)task->work`.  (The overlay's only other allocation,
 /// `memCalloc(0x68, 0)` in `func_actor_206100_8014C458`, belongs to the child
 /// task that `Task_SpawnFromTable` returns there, so it is a different `Task`

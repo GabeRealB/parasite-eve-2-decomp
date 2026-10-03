@@ -97,7 +97,7 @@ STATIC_ASSERT_SIZEOF(Actor405800PerspScratch, 0x18);
 /// `func_actor_405800_801334B8` allocates it with `memCalloc(0x89C, 0)` and
 /// stores the result straight into the `Task::work` slot (0x1C), so the size
 /// below is the allocation and not a guess: this actor reuses that pointer
-/// field for its own work block and it is *not* a `TaskIdMap` here. It is the
+/// field for its own work block. It is the
 /// only allocator in the overlay, so every function reaches the same block
 /// with `(Actor405800Work*)task->work`.
 ///

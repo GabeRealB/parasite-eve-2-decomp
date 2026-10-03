@@ -68,8 +68,8 @@ extern ActorTransform D_dryfield_water_tower_80181A40[2];
 extern WorldCollisionTrigger D_dryfield_water_tower_80186A84[24];
 
 /// Work block of the water tower's script task, allocated as 0x18 zeroed bytes
-/// by `func_dryfield_water_tower_8017FD64` and hung off `Task::work` (0x1C) --
-/// that slot is *not* a `TaskIdMap` here. Reach it with
+/// by `func_dryfield_water_tower_8017FD64` and hung off `Task::work` (0x1C).
+/// Reach it with
 /// `(DwtwWork*)task->work`.
 ///
 /// The first three fields are the tasks the room's script dispatches its
