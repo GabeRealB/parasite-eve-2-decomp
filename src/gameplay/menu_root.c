@@ -240,7 +240,7 @@ UiListRowCallback Gp_MainMenuCmds[6] = { Gp_DrawUseAttachCmd, Gp_DrawKeyItemCmd,
 
 UiList D_8010E820 = { Gp_MainMenuCmds, 6, { 6 }, 1, 8, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 
-GpEnergyIcon D_8010E844[4] = {
+MenuParasiteEnergyCaption D_8010E844[4] = {
     { 16, 88, 0 },
     { 40, 88, 0 },
     { 72, 88, 0 },

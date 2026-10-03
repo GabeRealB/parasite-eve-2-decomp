@@ -16,15 +16,18 @@ typedef struct {
     UiObjectTaskFunc funcs[3];
 } UiObjectTaskFuncTable3;
 
-/// Per-column icon descriptor for the P.Energy attach panel (`Gp_PeGridPanelTask`).
-/// One 3-byte entry per weapon/armour column: `u`/`v` are the SPRT texture
-/// coordinates of the column caption and `xOffset` shifts the caption right of
-/// the column origin. The table `D_8010E844` holds the four columns.
-typedef struct _GpEnergyIcon {
-    /* 0x0 */ u8 u;
-    /* 0x1 */ u8 v;
-    /* 0x2 */ u8 xOffset;
-} GpEnergyIcon;
-STATIC_ASSERT_SIZEOF(GpEnergyIcon, 3);
+/// Caption sprite of one element column in the menu's Parasite Energy summary panel.
+///
+/// The panel lays the twelve Parasite Energy levels out as four columns of
+/// three, one column per element in the order the levels are stored: fire,
+/// wind, water, earth. An entry locates that element's caption in the menu
+/// texture sheet and places it over its column; the panel derives the
+/// caption's size and palette from the column number.
+typedef struct {
+    u8 u;       // Left edge of the caption in the menu texture sheet, in texels
+    u8 v;       // Top edge of the caption in the menu texture sheet, in texels
+    u8 xOffset; // Pixels the caption is drawn to the right of its column's left edge
+} MenuParasiteEnergyCaption;
+STATIC_ASSERT_SIZEOF(MenuParasiteEnergyCaption, 3);
 
 #endif // GAMEPLAY_PRIVATE_MENU_H

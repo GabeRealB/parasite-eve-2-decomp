@@ -373,7 +373,7 @@ extern char Gp_StrUsedDot[];
 extern char Gp_StrCreatedDot[];
 
 /// Column caption table drawn across the top of the P.Energy attach panel.
-extern GpEnergyIcon D_8010E844[4];
+extern MenuParasiteEnergyCaption D_8010E844[4];
 
 /// Holder text for a weapon slot with no ammunition loaded.
 extern char Gp_StrAmmoNone[];
