@@ -83,24 +83,6 @@ typedef struct Actor400500ViewPos {
 } Actor400500ViewPos;
 STATIC_ASSERT_SIZEOF(Actor400500ViewPos, 0x6);
 
-/// Dual-width hit flags at `Actor400500Work` + 0x4C. Guards test bit 0 as a
-/// halfword and then bits 0x102 as a word, the same shape as
-/// `MadChaserSlotFlags` / `ActorsShared8016974c`.
-typedef union Actor400500HitFlags {
-    /* 0x0 */ u32 word;
-    /* 0x0 */ u16 half;
-} Actor400500HitFlags;
-STATIC_ASSERT_SIZEOF(Actor400500HitFlags, 0x4);
-
-/// Prefix view of `Actor400500Work` for the dual-width flags at +0x4C.
-/// That address is `slots[1].flags` / `field_12` (0x10 into the second
-/// animation slot), the same overlap `ActorsShared80168d3cWork` uses for
-/// `flags_EC`. Bit 0x100 of the halfword is `ANIMATION_SLOT_SETTLED`.
-typedef struct Actor400500HitView {
-    /* 0x00 */ byte                pad[0x4C];
-    /* 0x4C */ Actor400500HitFlags flags_4C;
-} Actor400500HitView;
-
 /// Per-actor state block for the `actor_400500` overlay.
 ///
 /// `func_actor_400500_80135414` is the overlay's only allocator: it calls
@@ -120,7 +102,7 @@ typedef struct Actor400500HitView {
 /// slots. `func_actor_400500_8013DC4C` walks slots 1..17, copies the low byte
 /// of `field_9F8` into each slot's `field_9`, resets them from `field_9FE`,
 /// and latches that id in `field_9FC`. The second slot's `flags` overlaps
-/// `Actor400500HitView::flags_4C`.
+/// `slots[1].status`.
 typedef struct Actor400500Work {
     /* 0x000 */ AnimationContext      anim;
     /* 0x014 */ AnimationSlot         slots[0x12];
@@ -2123,14 +2105,14 @@ static s32 func_actor_400500_80133160(Task* arg0)
 
 static s32 func_actor_400500_80133358(Task* arg0)
 {
-    Actor400500Work*    work;
-    Actor400500Work*    work2;
-    Actor400500HitView* hit;
-    s16                 mode;
-    s16                 sub;
-    s32                 flag;
-    s32                 cond;
-    s32                 ret;
+    Actor400500Work* work;
+    Actor400500Work* work2;
+    Actor400500Work* hit;
+    s16              mode;
+    s16              sub;
+    s32              flag;
+    s32              cond;
+    s32              ret;
 
     work = (Actor400500Work*)arg0->work;
     mode = work->field_A3C;
@@ -2164,9 +2146,9 @@ static s32 func_actor_400500_80133358(Task* arg0)
         work->field_A3E = 0;
         return ret;
     check_hit:
-        hit = (Actor400500HitView*)arg0->work;
-        if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-            (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+        hit = (Actor400500Work*)arg0->work;
+        if ((hit->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+            (hit->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
             cond = 1;
         } else {
             cond = 0;
@@ -2181,13 +2163,13 @@ static s32 func_actor_400500_80133358(Task* arg0)
 
 static s32 func_actor_400500_80133460(Task* arg0)
 {
-    Actor400500Work*    work;
-    Actor400500Work*    work2;
-    Actor400500HitView* hit;
-    s16                 mode;
-    s16                 sub;
-    s32                 flag;
-    s32                 cond;
+    Actor400500Work* work;
+    Actor400500Work* work2;
+    Actor400500Work* hit;
+    s16              mode;
+    s16              sub;
+    s32              flag;
+    s32              cond;
 
     work = (Actor400500Work*)arg0->work;
     mode = work->field_A3C;
@@ -2238,9 +2220,9 @@ static s32 func_actor_400500_80133460(Task* arg0)
             work2->field_9FA = 2;
             work->field_A3E  = 0;
         }
-        hit = (Actor400500HitView*)arg0->work;
-        if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-            (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+        hit = (Actor400500Work*)arg0->work;
+        if ((hit->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+            (hit->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
             cond = 1;
         } else {
             cond = 0;
@@ -2308,10 +2290,10 @@ static inline void _actor400500TickAnim(Task* task)
 /// Returns 1 when slot 1 reports a reached boundary, control jump, or held boundary pose.
 static inline s32 _actor400500HitFlagged(Task* task)
 {
-    Actor400500HitView* hit = (Actor400500HitView*)task->work;
+    Actor400500Work* hit = (Actor400500Work*)task->work;
 
-    if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    if ((hit->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         return 1;
     }
     return 0;
@@ -4283,18 +4265,18 @@ static inline void _actor400500PlayAnim(Task* task, s32 id)
 
 static void func_actor_400500_8013771C(Task* arg0)
 {
-    SVECTOR             in;
-    SVECTOR             out;
-    GfxMatrix           rot;
-    GfxMatrix*          src;
-    Actor400500Work*    work;
-    Actor400500HitView* hit;
-    GameActor*          player;
-    void*               spawn;
-    s16                 vz;
-    s32                 ident;
-    s32                 r;
-    s32                 cond;
+    SVECTOR          in;
+    SVECTOR          out;
+    GfxMatrix        rot;
+    GfxMatrix*       src;
+    Actor400500Work* work;
+    Actor400500Work* hit;
+    GameActor*       player;
+    void*            spawn;
+    s16              vz;
+    s32              ident;
+    s32              r;
+    s32              cond;
 
     work            = (Actor400500Work*)arg0->work;
     player          = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->work;
@@ -4368,9 +4350,9 @@ static void func_actor_400500_8013771C(Task* arg0)
             work->field_A4D = 1;
         }
     }
-    hit = (Actor400500HitView*)arg0->work;
-    if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    hit = (Actor400500Work*)arg0->work;
+    if ((hit->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -4384,11 +4366,11 @@ static void func_actor_400500_8013771C(Task* arg0)
 
 static void func_actor_400500_80138088(Task* arg0)
 {
-    Actor400500Work*    work;
-    Actor400500Work*    work2;
-    Actor400500HitView* hit;
-    s32                 i;
-    s32                 cond;
+    Actor400500Work* work;
+    Actor400500Work* work2;
+    Actor400500Work* hit;
+    s32              i;
+    s32              cond;
 
     work            = (Actor400500Work*)arg0->work;
     work->field_A04 = work->field_A04 + 1;
@@ -4419,9 +4401,9 @@ static void func_actor_400500_80138088(Task* arg0)
     _actor400500TurnPart(&arg0->extra.tmd->coords[6], work->field_9BC);
     _actor400500TurnPart(&arg0->extra.tmd->coords[9], work->field_9BC);
 
-    hit = (Actor400500HitView*)arg0->work;
-    if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    hit = (Actor400500Work*)arg0->work;
+    if ((hit->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -4524,16 +4506,16 @@ static void func_actor_400500_801385D0(Task* arg0)
 
 static void func_actor_400500_801387E8(Task* arg0)
 {
-    Actor400500Work*    work;
-    Actor400500Work*    work2;
-    Actor400500Work*    work3;
-    Actor400500HitView* hit;
-    GfxMatrix           rot;
-    s32                 soundId;
-    s32                 pan;
-    s32                 cond;
-    s32                 flag;
-    u16                 frame;
+    Actor400500Work* work;
+    Actor400500Work* work2;
+    Actor400500Work* work3;
+    Actor400500Work* hit;
+    GfxMatrix        rot;
+    s32              soundId;
+    s32              pan;
+    s32              cond;
+    s32              flag;
+    u16              frame;
 
     work            = (Actor400500Work*)arg0->work;
     frame           = work->field_A04 + 1;
@@ -4554,9 +4536,9 @@ static void func_actor_400500_801387E8(Task* arg0)
             work->obj2.flags                                              &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         }
     }
-    hit = (Actor400500HitView*)arg0->work;
-    if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    hit = (Actor400500Work*)arg0->work;
+    if ((hit->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -4648,13 +4630,13 @@ static void func_actor_400500_8013899C(Task* arg0)
 
 static void func_actor_400500_80138B78(Task* arg0)
 {
-    Actor400500Work*    work;
-    Actor400500HitView* hit;
-    GfxMatrix           rot;
-    s32                 soundId;
-    s32                 pan;
-    s32                 cond;
-    u16                 frame;
+    Actor400500Work* work;
+    Actor400500Work* hit;
+    GfxMatrix        rot;
+    s32              soundId;
+    s32              pan;
+    s32              cond;
+    u16              frame;
 
     work            = (Actor400500Work*)arg0->work;
     frame           = work->field_A04 + 1;
@@ -4675,9 +4657,9 @@ static void func_actor_400500_80138B78(Task* arg0)
             work->obj4.flags                                              &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         }
     }
-    hit = (Actor400500HitView*)arg0->work;
-    if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    hit = (Actor400500Work*)arg0->work;
+    if ((hit->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -4718,17 +4700,17 @@ static void func_actor_400500_80138CE8(Task* arg0)
 
 static void func_actor_400500_80138DC4(Task* arg0)
 {
-    Actor400500HitView* hit;
-    Actor400500Work*    work;
-    Actor400500Work*    work2;
-    Actor400500Work*    work3;
-    s32                 cond;
-    s32                 flag;
-    u32                 rnd;
+    Actor400500Work* hit;
+    Actor400500Work* work;
+    Actor400500Work* work2;
+    Actor400500Work* work3;
+    s32              cond;
+    s32              flag;
+    u32              rnd;
 
-    hit = (Actor400500HitView*)arg0->work;
-    if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    hit = (Actor400500Work*)arg0->work;
+    if ((hit->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -5184,15 +5166,15 @@ static void func_actor_400500_8013973C(Task* arg0)
 
 static void func_actor_400500_80139AC4(Task* arg0)
 {
-    Actor400500Work*    work;
-    Actor400500Work*    work2;
-    Actor400500Work*    work3;
-    Actor400500HitView* hit;
-    Enemy*              enemy;
-    s32                 soundId;
-    s32                 pan;
-    s32                 flag;
-    s32                 cond;
+    Actor400500Work* work;
+    Actor400500Work* work2;
+    Actor400500Work* work3;
+    Actor400500Work* hit;
+    Enemy*           enemy;
+    s32              soundId;
+    s32              pan;
+    s32              flag;
+    s32              cond;
 
     enemy = (Enemy*)arg0->spawnArg2.pointer;
     work  = (Actor400500Work*)arg0->work;
@@ -5211,9 +5193,9 @@ static void func_actor_400500_80139AC4(Task* arg0)
             flag = 0;
         }
         if (flag == 0) {
-            hit = (Actor400500HitView*)arg0->work;
-            if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-                (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+            hit = (Actor400500Work*)arg0->work;
+            if ((hit->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+                (hit->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
                 cond = 1;
             } else {
                 cond = 0;
@@ -5388,7 +5370,7 @@ static void func_actor_400500_8013A0B8(Task* arg0)
     Actor400500Work*    work3;
     Actor400500Work*    nextWork;
     Actor400500Work*    anim;
-    Actor400500HitView* hit;
+    Actor400500Work*    hit;
     Actor400500ViewPos* pos;
     GfxCoord*           coords;
     GfxCoord*           coord;
@@ -5429,9 +5411,9 @@ static void func_actor_400500_8013A0B8(Task* arg0)
         Gp_UpdateCoord(coord14);
         Gp_UpdateCoord(coords);
     }
-    hit = (Actor400500HitView*)arg0->work;
-    if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    hit = (Actor400500Work*)arg0->work;
+    if ((hit->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -5737,11 +5719,11 @@ static void func_actor_400500_8013A8E4(Task* arg0)
 
 static void func_actor_400500_8013AA98(Task* arg0)
 {
-    Actor400500Work*    work;
-    Actor400500Work*    work2;
-    Actor400500HitView* hit;
-    s32                 i;
-    s32                 cond;
+    Actor400500Work* work;
+    Actor400500Work* work2;
+    Actor400500Work* hit;
+    s32              i;
+    s32              cond;
 
     work  = (Actor400500Work*)arg0->work;
     work2 = work;
@@ -5766,9 +5748,9 @@ static void func_actor_400500_8013AA98(Task* arg0)
         animationTickSlot(&work2->anim, i);
         i++;
     } while (i < 0x12);
-    hit = (Actor400500HitView*)arg0->work;
-    if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    hit = (Actor400500Work*)arg0->work;
+    if ((hit->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -6314,11 +6296,11 @@ static void func_actor_400500_8013BB18(Task* arg0)
 
 static void func_actor_400500_8013BBB0(Task* arg0)
 {
-    Actor400500Work*    work;
-    Actor400500HitView* hit;
-    s32                 soundId;
-    s32                 pan;
-    s32                 cond;
+    Actor400500Work* work;
+    Actor400500Work* hit;
+    s32              soundId;
+    s32              pan;
+    s32              cond;
 
     work = (Actor400500Work*)arg0->work;
     if ((s16)work->field_A04 == 0) {
@@ -6327,9 +6309,9 @@ static void func_actor_400500_8013BBB0(Task* arg0)
         SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         work->field_A04 = work->field_A04 + 1;
     }
-    hit = (Actor400500HitView*)arg0->work;
-    if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    hit = (Actor400500Work*)arg0->work;
+    if ((hit->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -6373,11 +6355,11 @@ static void func_actor_400500_8013BCCC(Task* arg0)
 
 static void func_actor_400500_8013BD64(Task* arg0)
 {
-    Actor400500Work*    work;
-    Actor400500HitView* hit;
-    s32                 soundId;
-    s32                 pan;
-    s32                 cond;
+    Actor400500Work* work;
+    Actor400500Work* hit;
+    s32              soundId;
+    s32              pan;
+    s32              cond;
 
     work = (Actor400500Work*)arg0->work;
     if ((s16)work->field_A04 == 0) {
@@ -6386,9 +6368,9 @@ static void func_actor_400500_8013BD64(Task* arg0)
         SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         work->field_A04 = work->field_A04 + 1;
     }
-    hit = (Actor400500HitView*)arg0->work;
-    if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    hit = (Actor400500Work*)arg0->work;
+    if ((hit->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -6563,13 +6545,13 @@ static void func_actor_400500_8013C174(Task* arg0)
 
 static void func_actor_400500_8013C218(Task* arg0)
 {
-    Actor400500Work*    work;
-    Actor400500HitView* hit;
-    Actor400500Work*    work2;
-    Enemy*              enemy;
-    s32                 soundId;
-    s32                 pan;
-    s32                 cond;
+    Actor400500Work* work;
+    Actor400500Work* hit;
+    Actor400500Work* work2;
+    Enemy*           enemy;
+    s32              soundId;
+    s32              pan;
+    s32              cond;
 
     work  = (Actor400500Work*)arg0->work;
     enemy = (Enemy*)arg0->spawnArg2.pointer;
@@ -6579,9 +6561,9 @@ static void func_actor_400500_8013C218(Task* arg0)
         SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         work->field_A04 = work->field_A04 + 1;
     }
-    hit = (Actor400500HitView*)arg0->work;
-    if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    hit = (Actor400500Work*)arg0->work;
+    if ((hit->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -6601,15 +6583,15 @@ static void func_actor_400500_8013C218(Task* arg0)
 
 static void func_actor_400500_8013C348(Task* arg0)
 {
-    Actor400500HitView* hit;
-    Actor400500Work*    work2;
-    Enemy*              enemy;
-    s32                 cond;
+    Actor400500Work* hit;
+    Actor400500Work* work2;
+    Enemy*           enemy;
+    s32              cond;
 
-    hit   = (Actor400500HitView*)arg0->work;
+    hit   = (Actor400500Work*)arg0->work;
     enemy = (Enemy*)arg0->spawnArg2.pointer;
-    if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    if ((hit->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -6628,19 +6610,19 @@ static void func_actor_400500_8013C348(Task* arg0)
 
 static void func_actor_400500_8013C3C4(Task* arg0)
 {
-    Enemy*              enemy;
-    Actor400500Work*    work;
-    Actor400500Work*    work2;
-    Actor400500Work*    work3;
-    Actor400500HitView* hit;
-    s32                 cond;
+    Enemy*           enemy;
+    Actor400500Work* work;
+    Actor400500Work* work2;
+    Actor400500Work* work3;
+    Actor400500Work* hit;
+    s32              cond;
 
     enemy = (Enemy*)arg0->spawnArg2.pointer;
     work  = (Actor400500Work*)arg0->work;
     if (enemy->hp > 0) {
-        hit = (Actor400500HitView*)work;
-        if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-            (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+        hit = (Actor400500Work*)work;
+        if ((hit->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+            (hit->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
             cond = 1;
         } else {
             cond = 0;
@@ -6666,19 +6648,19 @@ static void func_actor_400500_8013C3C4(Task* arg0)
 
 static void func_actor_400500_8013C474(Task* arg0)
 {
-    Enemy*              enemy;
-    Actor400500Work*    work;
-    Actor400500Work*    work2;
-    Actor400500Work*    work3;
-    Actor400500HitView* hit;
-    s32                 cond;
+    Enemy*           enemy;
+    Actor400500Work* work;
+    Actor400500Work* work2;
+    Actor400500Work* work3;
+    Actor400500Work* hit;
+    s32              cond;
 
     enemy = (Enemy*)arg0->spawnArg2.pointer;
     work  = (Actor400500Work*)arg0->work;
     if (enemy->hp > 0) {
-        hit = (Actor400500HitView*)work;
-        if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-            (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+        hit = (Actor400500Work*)work;
+        if ((hit->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+            (hit->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
             cond = 1;
         } else {
             cond = 0;
@@ -6702,15 +6684,15 @@ static void func_actor_400500_8013C474(Task* arg0)
 
 static void func_actor_400500_8013C508(Task* arg0)
 {
-    Actor400500HitView* hit;
-    Actor400500Work*    work;
-    Enemy*              enemy;
-    s32                 cond;
+    Actor400500Work* hit;
+    Actor400500Work* work;
+    Enemy*           enemy;
+    s32              cond;
 
-    hit   = (Actor400500HitView*)arg0->work;
+    hit   = (Actor400500Work*)arg0->work;
     enemy = (Enemy*)arg0->spawnArg2.pointer;
-    if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    if ((hit->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -6748,13 +6730,13 @@ static void func_actor_400500_8013C578(Task* arg0)
 
 static void func_actor_400500_8013C61C(Task* arg0)
 {
-    Actor400500Work*    work;
-    Actor400500HitView* hit;
-    Actor400500Work*    work2;
-    Enemy*              enemy;
-    s32                 soundId;
-    s32                 pan;
-    s32                 cond;
+    Actor400500Work* work;
+    Actor400500Work* hit;
+    Actor400500Work* work2;
+    Enemy*           enemy;
+    s32              soundId;
+    s32              pan;
+    s32              cond;
 
     work  = (Actor400500Work*)arg0->work;
     enemy = (Enemy*)arg0->spawnArg2.pointer;
@@ -6764,9 +6746,9 @@ static void func_actor_400500_8013C61C(Task* arg0)
         SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         work->field_A04 = work->field_A04 + 1;
     }
-    hit = (Actor400500HitView*)arg0->work;
-    if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    hit = (Actor400500Work*)arg0->work;
+    if ((hit->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -6787,13 +6769,13 @@ static void func_actor_400500_8013C61C(Task* arg0)
 
 static void func_actor_400500_8013C750(Task* arg0)
 {
-    Actor400500HitView* work;
-    Actor400500Work*    work2;
-    s32                 cond;
+    Actor400500Work* work;
+    Actor400500Work* work2;
+    s32              cond;
 
-    work = (Actor400500HitView*)arg0->work;
-    if ((work->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    work = (Actor400500Work*)arg0->work;
+    if ((work->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -6879,13 +6861,13 @@ static void func_actor_400500_8013C908(Task* arg0)
 
 static void func_actor_400500_8013C9D4(Task* arg0)
 {
-    Actor400500HitView* work;
-    Actor400500Work*    work2;
-    s32                 cond;
+    Actor400500Work* work;
+    Actor400500Work* work2;
+    s32              cond;
 
-    work = (Actor400500HitView*)arg0->work;
-    if ((work->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    work = (Actor400500Work*)arg0->work;
+    if ((work->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -7348,19 +7330,19 @@ static void func_actor_400500_8013D4F0(Task* arg0)
 
 static void func_actor_400500_8013D59C(Task* arg0)
 {
-    Enemy*              enemy;
-    Actor400500Work*    work;
-    Actor400500Work*    work2;
-    Actor400500Work*    work3;
-    Actor400500HitView* hit;
-    s32                 cond;
+    Enemy*           enemy;
+    Actor400500Work* work;
+    Actor400500Work* work2;
+    Actor400500Work* work3;
+    Actor400500Work* hit;
+    s32              cond;
 
     enemy = (Enemy*)arg0->spawnArg2.pointer;
     work  = (Actor400500Work*)arg0->work;
     if (enemy->hp > 0) {
-        hit = (Actor400500HitView*)work;
-        if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-            (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+        hit = (Actor400500Work*)work;
+        if ((hit->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+            (hit->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
             cond = 1;
         } else {
             cond = 0;
@@ -7384,15 +7366,15 @@ static void func_actor_400500_8013D59C(Task* arg0)
 
 static void func_actor_400500_8013D630(Task* arg0)
 {
-    Actor400500HitView* hit;
-    Actor400500Work*    work;
-    Enemy*              enemy;
-    s32                 cond;
+    Actor400500Work* hit;
+    Actor400500Work* work;
+    Enemy*           enemy;
+    s32              cond;
 
-    hit   = (Actor400500HitView*)arg0->work;
+    hit   = (Actor400500Work*)arg0->work;
     enemy = (Enemy*)arg0->spawnArg2.pointer;
-    if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    if ((hit->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -7430,13 +7412,13 @@ static void func_actor_400500_8013D6A0(Task* arg0)
 
 static void func_actor_400500_8013D744(Task* arg0)
 {
-    Actor400500Work*    work;
-    Actor400500HitView* hit;
-    Actor400500Work*    work2;
-    Enemy*              enemy;
-    s32                 soundId;
-    s32                 pan;
-    s32                 cond;
+    Actor400500Work* work;
+    Actor400500Work* hit;
+    Actor400500Work* work2;
+    Enemy*           enemy;
+    s32              soundId;
+    s32              pan;
+    s32              cond;
 
     work  = (Actor400500Work*)arg0->work;
     enemy = (Enemy*)arg0->spawnArg2.pointer;
@@ -7446,9 +7428,9 @@ static void func_actor_400500_8013D744(Task* arg0)
         SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         work->field_A04 = work->field_A04 + 1;
     }
-    hit = (Actor400500HitView*)arg0->work;
-    if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    hit = (Actor400500Work*)arg0->work;
+    if ((hit->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -7469,13 +7451,13 @@ static void func_actor_400500_8013D744(Task* arg0)
 
 static void func_actor_400500_8013D878(Task* arg0)
 {
-    Actor400500HitView* work;
-    Actor400500Work*    work2;
-    s32                 cond;
+    Actor400500Work* work;
+    Actor400500Work* work2;
+    s32              cond;
 
-    work = (Actor400500HitView*)arg0->work;
-    if ((work->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    work = (Actor400500Work*)arg0->work;
+    if ((work->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -7706,10 +7688,10 @@ static s32 func_actor_400500_8013DD8C(Task* arg0, s16 arg1)
 
 static s32 func_actor_400500_8013DDEC(Task* arg0)
 {
-    Actor400500HitView* work = (Actor400500HitView*)arg0->work;
+    Actor400500Work* work = (Actor400500Work*)arg0->work;
 
-    if ((work->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    if ((work->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         return 1;
     }
     return 0;
