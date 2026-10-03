@@ -401,16 +401,23 @@ s32            func_acropolis_bridge_8017D870(Task*, s32, TaskMessageArg, TaskMe
 void           func_acropolis_bridge_8017D878(Task*);
 void           func_acropolis_bridge_8017D8D0(Task*);
 
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
+/// Storage of the one-entry task descriptor table the bridge enemy spawns from.
+///
+/// The room's area-resource table names `desc` as the descriptor table of its
+/// enemy entry, with spawn index 0: a TMD-bodied task on the enemy model this
+/// room embeds, running the enemy's task callback. No other entry exists and
+/// nothing indexes past it. The eight bytes after the descriptor sit between it
+/// and the room's own task pointers; they are zero in the image and have no
+/// established access, so whether they belong to the descriptor's object or are
+/// separate unreferenced variables is unproven. They stay in this allocation
+/// only to keep the data that follows at its address.
 typedef struct {
-    TaskDesc value;
-    u8       retained[8];
-} AcropolisBridgeStorage1780;
-STATIC_ASSERT_SIZEOF(AcropolisBridgeStorage1780, 20);
+    TaskDesc desc;         // The enemy's spawn recipe; the table's only entry
+    u8       unknown_C[8]; // Zero in the image; no access established and role unproven
+} _AcropolisBridgeEnemyTaskDescStorage;
+STATIC_ASSERT_SIZEOF(_AcropolisBridgeEnemyTaskDescStorage, 0x14);
 
-extern AcropolisBridgeStorage1780 D_acropolis_bridge_80191780;
+extern _AcropolisBridgeEnemyTaskDescStorage D_acropolis_bridge_80191780;
 
 extern WorldCollisionFootstepSounds D_acropolis_bridge_80190BE8;
 extern WorldCollisionFootstepSounds D_acropolis_bridge_80190BF4;
@@ -1992,7 +1999,7 @@ SpriteView D_acropolis_bridge_8018FFA4[10] = {
 };
 
 AreaResource D_acropolis_bridge_8019001C[2] = {
-    { 41, 41, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, &D_acropolis_bridge_80191780.value },
+    { 41, 41, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, &D_acropolis_bridge_80191780.desc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -2690,7 +2697,7 @@ void (*D_acropolis_bridge_8019175C[9])(Task*) = {
     func_acropolis_bridge_80186BBC,
 };
 
-AcropolisBridgeStorage1780 D_acropolis_bridge_80191780 = { { { { TASK_BODY_TMD, 96 } }, func_acropolis_bridge_80187D80, { .model = &_gAcropolisBridgeModel13870 } }, { 0 } };
+_AcropolisBridgeEnemyTaskDescStorage D_acropolis_bridge_80191780 = { { { { TASK_BODY_TMD, 96 } }, func_acropolis_bridge_80187D80, { .model = &_gAcropolisBridgeModel13870 } }, { 0 } };
 
 Task* D_acropolis_bridge_80191794 = NULL;
 
