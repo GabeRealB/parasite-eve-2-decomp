@@ -1996,12 +1996,12 @@ static void func_acropolis_promenade_8017DB48(Task* task)
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// The promenade's streamed-scene task. State 0 allocates the `RoomStreamWork`
+/// The promenade's streamed-scene task. State 0 allocates the `RoomMoviePathWork`
 /// block, cues the stream (slot-6 msg 0xFA4), captures slot 3 and the player's
 /// coordinate matrix in the block, and republishes the player's weapon to slot
 /// 3 with a 0x3E8 record. State 1 waits for the stream to come up
-/// (`gCdCmdQueue::movieReady`), then starts the script pair and reparents this
-/// task under it. State 2 drives the ride: every frame it moves the player's
+/// (`gCdCmdQueue::movieReady`), then starts the script pair and adopts its task
+/// as a child. State 2 drives the ride: every frame it moves the player's
 /// matrix to the path entry the stream's countdown selects, offers the pad
 /// prompt once (`Pad_CheckFlag800`, entry 3 of the room's task table) and, when
 /// the prompt task reports back, warps slot 3 with a 0x3E9 placement and spawns
@@ -2014,32 +2014,29 @@ void func_acropolis_promenade_8017DB9C(Task* task)
     AnimationPlayRequest rec;
     ActorTransform       place;
     s32                  killed;
-    RoomStreamWork*      work;
-    RoomStreamWork*      blk;
-    RoomStreamWork*      dest;
+    RoomMoviePathWork*   work;
     CdCmdQueue*          queue;
     s32                  weaponId;
 
     queue = &gCdCmdQueue;
-    work  = (RoomStreamWork*)task->work;
+    work  = task->work;
     switch (task->state) {
         case 0:
-            blk        = memCalloc(0x14, 0);
-            task->work = blk;
-            if (blk == NULL) {
+            task->work = memCalloc(sizeof(RoomMoviePathWork), 0);
+            if (task->work == NULL) {
                 taskKill(task);
                 break;
             }
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
-            ((RoomStreamWork*)task->work)->target = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-            ((RoomStreamWork*)task->work)->mtx    = gPlayerStatus.coordMtx;
-            weaponId                              = gPlayerStatus.weapon;
-            rec.source.index                      = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-            rec.animationId                       = 1;
-            rec.blend                             = ANIMATION_BLEND_RESET;
-            rec.blendFrames                       = 0;
-            rec.enableWorldCollision              = ANIMATION_WORLD_COLLISION_DISABLE;
-            TASK_MESSAGE_DISPATCH_POINTER(((RoomStreamWork*)task->work)->target, ANIMATION_MESSAGE_PLAY, &rec, 0);
+            ((RoomMoviePathWork*)task->work)->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+            ((RoomMoviePathWork*)task->work)->playerMtx  = gPlayerStatus.coordMtx;
+            weaponId                                     = gPlayerStatus.weapon;
+            rec.source.index                             = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            rec.animationId                              = 1;
+            rec.blend                                    = ANIMATION_BLEND_RESET;
+            rec.blendFrames                              = 0;
+            rec.enableWorldCollision                     = ANIMATION_WORLD_COLLISION_DISABLE;
+            TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, ANIMATION_MESSAGE_PLAY, &rec, 0);
             func_800E9BDC(3, 0x9FF);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             task->state                    = task->state + 1;
@@ -2047,49 +2044,47 @@ void func_acropolis_promenade_8017DB9C(Task* task)
 
         case 1:
             if (queue->movieReady != 0) {
-                work->script                  = Gp_SpawnScript18(D_acropolis_promenade_80186224,
+                work->padScriptTask           = Gp_SpawnScript18(D_acropolis_promenade_80186224,
                                                                  D_acropolis_promenade_8018623C);
                 gGameSession->padScriptFlags |= GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE;
-                taskReparent(task, work->script);
+                taskReparent(task, work->padScriptTask);
                 task->state = task->state + 1;
             }
             break;
 
         case 2:
-            work->mtx->t[0] = D_acropolis_promenade_80181184[0x45 - queue->movieFrame].vx;
-            work->mtx->t[1] = D_acropolis_promenade_80181184[0x45 - queue->movieFrame].vy;
-            work->mtx->t[2] = D_acropolis_promenade_80181184[0x45 - queue->movieFrame].vz - 0xC8;
-            if (work->spawned != 0) {
-                if (Task_PollKill(work->child, &killed) != 0) {
+            work->playerMtx->t[0] = D_acropolis_promenade_80181184[0x45 - queue->movieFrame].vx;
+            work->playerMtx->t[1] = D_acropolis_promenade_80181184[0x45 - queue->movieFrame].vy;
+            work->playerMtx->t[2] = D_acropolis_promenade_80181184[0x45 - queue->movieFrame].vz - 0xC8;
+            if (work->skipFadeStarted != 0) {
+                if (Task_PollKill(work->skipFadeTask, &killed) != 0) {
                     place.pos.vx = 0x282;
                     place.pos.vy = 0x29;
                     place.pos.vz = D_acropolis_promenade_80181184[0x45 - queue->movieFrame].vz - 0xC8;
                     place.rot.vz = 0;
                     place.rot.vx = 0;
                     place.rot.vy = 0xC00;
-                    dest         = (RoomStreamWork*)task->work;
-                    TASK_MESSAGE_DISPATCH_POINTER(dest->target, 0x3E9, &place, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, 0x3E9, &place, 0);
                     Task_SpawnFromTable(D_acropolis_promenade_80181148, 4, 0, 0);
                     task->state = task->state + 1;
                     break;
                 }
             } else if (Pad_CheckFlag800() != 0) {
-                work->child   = Task_SpawnFromTable(D_acropolis_promenade_80181148, 3, 0, 0);
-                work->spawned = 1;
+                work->skipFadeTask    = Task_SpawnFromTable(D_acropolis_promenade_80181148, 3, 0, 0);
+                work->skipFadeStarted = 1;
             }
             if ((0x45 - queue->movieFrame) < 6) {
                 place.pos.vx = 0x282;
                 place.pos.vy = 0x29;
                 place.pos.vz = D_acropolis_promenade_80181184[0x45 - queue->movieFrame].vz - 0xC8;
-                dest         = (RoomStreamWork*)task->work;
-                TASK_MESSAGE_DISPATCH_POINTER(dest->target, 0x3F2, &place, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, 0x3F2, &place, 0);
                 task->state = task->state + 1;
             }
             break;
 
         case 3:
-            if (taskMessageDispatch(work->target, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
-                taskMessageDispatch(work->target, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
+            if (taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
+                taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_SHOW_HUD, 0, 0);
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 2;
                 func_800E9BDC(2, 0x9FF);

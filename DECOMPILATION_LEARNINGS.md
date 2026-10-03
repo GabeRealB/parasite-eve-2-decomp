@@ -54982,7 +54982,7 @@ grep -rn "movieFrame\|movieReady" src/     # -> acropolis_observatory_2.c
 
 `func_acropolis_observatory_8017D9A8` turned out to be the same task with a
 different path table and one fewer state, already matched and already carrying
-the `AobStreamWork` struct, the `AnimationPlayRequest` 0x3E8 record and the `ActorTransform`
+the `RoomMoviePathWork` struct, the `AnimationPlayRequest` 0x3E8 record and the `ActorTransform`
 0x3E9 payload. Porting its C shape scored 99.837% on the first attempt, with
 every remaining difference a symbol *name* (`gMcSaveData+0x22` vs
 `D_8007218A`), i.e. already a match.

@@ -1201,40 +1201,38 @@ WorldCollisionSurfaceProperties* D_acropolis_forked_road_801850A4[8] = {
 };
 
 /// The forked road's streamed-scene task. State 0 allocates the
-/// `RoomStreamWork` block, restarts the stream frame counter, cues the stream
+/// `RoomMoviePathWork` block, restarts the stream frame counter, cues the stream
 /// (slot-6 msg 0xFA4), captures the player's coordinate matrix and slot 3 in the
 /// block and warps slot 3 to the head of the path with a 0x3E9 placement.
 /// State 1 sends the same spot again as a 0x3F2. State 2 waits for slot 3 to
 /// go idle (msg 0x3F0) and then queues the stream's CD read. State 3 waits for
 /// the stream to come up (`gCdCmdQueue::movieReady`), starts the script pair and
-/// reparents this task under it. State 4 drives the ride, moving the camera
+/// adopts its task as a child. State 4 drives the ride, moving the camera
 /// target to the `field_1EA`th path entry every frame until the pad interrupts
 /// it or the path runs out at frame 0x78. State 5 stops the scene, restores
 /// the save's room ids, arms the fade-out task and kills this task.
 void func_acropolis_forked_road_8017DA24(Task* task)
 {
-    ActorTransform  place;
-    ActorTransform  place2;
-    u8              slot;
-    RoomStreamWork* work;
-    RoomStreamWork* blk;
-    CdCmdQueue*     queue;
+    ActorTransform     place;
+    ActorTransform     place2;
+    u8                 slot;
+    RoomMoviePathWork* work;
+    CdCmdQueue*        queue;
 
     queue = &gCdCmdQueue;
-    work  = (RoomStreamWork*)task->work;
+    work  = task->work;
     switch (task->state) {
         case 0:
-            blk        = memCalloc(0x14, 0);
-            task->work = blk;
-            if (blk == NULL) {
+            task->work = memCalloc(sizeof(RoomMoviePathWork), 0);
+            if (task->work == NULL) {
                 taskKill(task);
                 break;
             }
             queue->movieFrame = 1;
             func_800E9BDC(3, 0x9FF);
-            gSceneCombatState.actorControl        = SCENE_COMBAT_ACTORS_HIDDEN;
-            ((RoomStreamWork*)task->work)->mtx    = gPlayerStatus.coordMtx;
-            ((RoomStreamWork*)task->work)->target = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+            gSceneCombatState.actorControl               = SCENE_COMBAT_ACTORS_HIDDEN;
+            ((RoomMoviePathWork*)task->work)->playerMtx  = gPlayerStatus.coordMtx;
+            ((RoomMoviePathWork*)task->work)->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
             place.rot.vy = 0x400;
             place.rot.vx = 0;
@@ -1242,7 +1240,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
             place.pos.vx = D_acropolis_forked_road_80180F80[0].vx - 0x654;
             place.pos.vy = D_acropolis_forked_road_80180F80[0].vy;
             place.pos.vz = D_acropolis_forked_road_80180F80[0].vz;
-            TASK_MESSAGE_DISPATCH_POINTER(((RoomStreamWork*)task->work)->target, 0x3E9, &place, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, 0x3E9, &place, 0);
             task->state = task->state + 1;
             break;
 
@@ -1251,12 +1249,12 @@ void func_acropolis_forked_road_8017DA24(Task* task)
             place2.pos.vx = D_acropolis_forked_road_80180F80[0].vx;
             place2.pos.vy = D_acropolis_forked_road_80180F80[0].vy;
             place2.pos.vz = D_acropolis_forked_road_80180F80[0].vz;
-            TASK_MESSAGE_DISPATCH_POINTER(((RoomStreamWork*)task->work)->target, 0x3F2, &place2, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, 0x3F2, &place2, 0);
             task->state = task->state + 1;
             break;
 
         case 2:
-            if (taskMessageDispatch(work->target, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
+            if (taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
                 slot = Stream_FindSlot((u8*)&gGameSession->location.loc, 0, 0);
                 CdCmd_Enqueue(CD_COMMAND_PLAY_STREAM, 0, &slot);
                 task->state = task->state + 1;
@@ -1265,18 +1263,18 @@ void func_acropolis_forked_road_8017DA24(Task* task)
 
         case 3:
             if (queue->movieReady != 0) {
-                work->script                  = Gp_SpawnScript18(D_acropolis_forked_road_80185058,
+                work->padScriptTask           = Gp_SpawnScript18(D_acropolis_forked_road_80185058,
                                                                  D_acropolis_forked_road_80185070);
                 gGameSession->padScriptFlags |= GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE;
-                taskReparent(task, work->script);
+                taskReparent(task, work->padScriptTask);
                 task->state = task->state + 1;
             }
             break;
 
         case 4:
-            work->mtx->t[0] = D_acropolis_forked_road_80180F80[queue->movieFrame - 1].vx;
-            work->mtx->t[1] = D_acropolis_forked_road_80180F80[queue->movieFrame - 1].vy;
-            work->mtx->t[2] = D_acropolis_forked_road_80180F80[queue->movieFrame - 1].vz;
+            work->playerMtx->t[0] = D_acropolis_forked_road_80180F80[queue->movieFrame - 1].vx;
+            work->playerMtx->t[1] = D_acropolis_forked_road_80180F80[queue->movieFrame - 1].vy;
+            work->playerMtx->t[2] = D_acropolis_forked_road_80180F80[queue->movieFrame - 1].vz;
             if ((Pad_CheckFlag800() != 0) || ((queue->movieFrame - 1) >= 0x78)) {
                 task->state = task->state + 1;
             }
@@ -1302,12 +1300,12 @@ void func_acropolis_forked_road_8017DA24(Task* task)
 /// along `D_acropolis_forked_road_80180F80`, whose entries this one walks from
 /// the far end (`0x3B - gCdCmdQueue::movieFrame`).
 ///
-/// State 0 allocates the `RoomStreamWork` block, captures slot 3 and the
+/// State 0 allocates the `RoomMoviePathWork` block, captures slot 3 and the
 /// player's coordinate matrix (`gPlayerStatus.coordMtx`) in it, cues the stream
 /// (slot-6 msg 0xFA4) and republishes the player's weapon to slot 3 with a
 /// 0x3E8 record. State 1 waits for the stream to come up
 /// (`gCdCmdQueue::movieReady`), moves the player to the head of the
-/// path, starts the script pair, reparents this task under it and blanks the
+/// path, starts the script pair, adopts its task as a child and blanks the
 /// display. State 2 drives the ride: it un-blanks after two frames, walks the
 /// player along the path, and lets the pad spawn the skip task. Once
 /// that task reports done it warps slot 3 to the path's end with a 0x3E9 and
@@ -1320,23 +1318,21 @@ void func_acropolis_forked_road_8017DD60(Task* task)
     AnimationPlayRequest rec;
     ActorTransform       place;
     s32                  sp40;
-    RoomStreamWork*      work;
-    RoomStreamWork*      blk;
+    RoomMoviePathWork*   work;
     CdCmdQueue*          queue;
     s32                  weaponId;
 
     queue = &gCdCmdQueue;
-    work  = (RoomStreamWork*)task->work;
+    work  = task->work;
     switch (task->state) {
         case 0:
-            blk        = memCalloc(0x14, 0);
-            task->work = blk;
-            if (blk == NULL) {
+            task->work = memCalloc(sizeof(RoomMoviePathWork), 0);
+            if (task->work == NULL) {
                 taskKill(task);
                 break;
             }
-            ((RoomStreamWork*)task->work)->target = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-            ((RoomStreamWork*)task->work)->mtx    = gPlayerStatus.coordMtx;
+            ((RoomMoviePathWork*)task->work)->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+            ((RoomMoviePathWork*)task->work)->playerMtx  = gPlayerStatus.coordMtx;
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
             weaponId                 = gPlayerStatus.weapon;
             rec.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
@@ -1344,7 +1340,7 @@ void func_acropolis_forked_road_8017DD60(Task* task)
             rec.blend                = ANIMATION_BLEND_RESET;
             rec.blendFrames          = 0;
             rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            TASK_MESSAGE_DISPATCH_POINTER(((RoomStreamWork*)task->work)->target, ANIMATION_MESSAGE_PLAY, &rec, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, ANIMATION_MESSAGE_PLAY, &rec, 0);
             func_800E9BDC(3, 0x9FF);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_HIDDEN;
             task->state                    = task->state + 1;
@@ -1352,13 +1348,13 @@ void func_acropolis_forked_road_8017DD60(Task* task)
 
         case 1:
             if (queue->movieReady != 0) {
-                work->mtx->t[0]               = D_acropolis_forked_road_80180F80[0x3B - queue->movieFrame].vx;
-                work->mtx->t[1]               = D_acropolis_forked_road_80180F80[0x3B - queue->movieFrame].vy;
-                work->mtx->t[2]               = D_acropolis_forked_road_80180F80[0x3B - queue->movieFrame].vz;
-                work->script                  = Gp_SpawnScript18(D_acropolis_forked_road_80185038,
+                work->playerMtx->t[0]         = D_acropolis_forked_road_80180F80[0x3B - queue->movieFrame].vx;
+                work->playerMtx->t[1]         = D_acropolis_forked_road_80180F80[0x3B - queue->movieFrame].vy;
+                work->playerMtx->t[2]         = D_acropolis_forked_road_80180F80[0x3B - queue->movieFrame].vz;
+                work->padScriptTask           = Gp_SpawnScript18(D_acropolis_forked_road_80185038,
                                                                  D_acropolis_forked_road_80185050);
                 gGameSession->padScriptFlags |= GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE;
-                taskReparent(task, work->script);
+                taskReparent(task, work->padScriptTask);
                 SetDispMask(0);
                 task->killCountdown = 0;
                 task->state         = task->state + 1;
@@ -1370,38 +1366,38 @@ void func_acropolis_forked_road_8017DD60(Task* task)
             if (task->killCountdown >= 3) {
                 SetDispMask(1);
             }
-            work->mtx->t[0] = D_acropolis_forked_road_80180F80[0x3B - queue->movieFrame].vx;
-            work->mtx->t[1] = D_acropolis_forked_road_80180F80[0x3B - queue->movieFrame].vy;
-            work->mtx->t[2] = D_acropolis_forked_road_80180F80[0x3B - queue->movieFrame].vz;
-            if (work->spawned != 0) {
-                if (Task_PollKill(work->child, &sp40) != 0) {
+            work->playerMtx->t[0] = D_acropolis_forked_road_80180F80[0x3B - queue->movieFrame].vx;
+            work->playerMtx->t[1] = D_acropolis_forked_road_80180F80[0x3B - queue->movieFrame].vy;
+            work->playerMtx->t[2] = D_acropolis_forked_road_80180F80[0x3B - queue->movieFrame].vz;
+            if (work->skipFadeStarted != 0) {
+                if (Task_PollKill(work->skipFadeTask, &sp40) != 0) {
                     place.pos.vx = -0x190;
                     place.pos.vy = 1;
                     place.pos.vz = D_acropolis_forked_road_80180F80[0x3B - queue->movieFrame].vz;
                     place.rot.vz = 0;
                     place.rot.vx = 0;
                     place.rot.vy = 0xC00;
-                    TASK_MESSAGE_DISPATCH_POINTER(((RoomStreamWork*)task->work)->target, 0x3E9, &place, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, 0x3E9, &place, 0);
                     Task_SpawnFromTable(D_acropolis_forked_road_80180F44, 4, 0, 0);
                     task->state = task->state + 1;
                     break;
                 }
             } else if (Pad_CheckFlag800() != 0) {
-                work->child   = Task_SpawnFromTable(D_acropolis_forked_road_80180F44, 3, 0, 0);
-                work->spawned = 1;
+                work->skipFadeTask    = Task_SpawnFromTable(D_acropolis_forked_road_80180F44, 3, 0, 0);
+                work->skipFadeStarted = 1;
             }
             if ((0x3B - queue->movieFrame) < 0xB) {
                 place.pos.vx = -0x190;
                 place.pos.vy = 1;
                 place.pos.vz = D_acropolis_forked_road_80180F80[0x3B - queue->movieFrame].vz;
-                TASK_MESSAGE_DISPATCH_POINTER(((RoomStreamWork*)task->work)->target, 0x3F2, &place, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, 0x3F2, &place, 0);
                 task->state = task->state + 1;
             }
             break;
 
         case 3:
-            if (taskMessageDispatch(work->target, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
-                taskMessageDispatch(work->target, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
+            if (taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
+                taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(5);
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_SHOW_HUD, 0, 0);
                 func_800E9BDC(2, 0x9FF);

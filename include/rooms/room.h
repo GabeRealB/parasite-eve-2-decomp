@@ -167,22 +167,30 @@ typedef struct {
 } RoomCompactWaterSurface;
 STATIC_ASSERT_SIZEOF(RoomCompactWaterSurface, 0xA);
 
-/// The work block a room's streamed-scene task allocates at `Task::work`. The
-/// task walks the translation of `mtx` along the scene's path table once per
-/// streamed frame, addresses its messages to `target`, the task in pointer
-/// slot 3, and reparents itself under `script`, the scene's script task.
-/// `child` is a task it spawns on the way (a skip or prompt task) and polls
-/// with `Task_PollKill`; `spawned` says that it exists, since the block starts
-/// out zeroed.
-typedef struct RoomStreamWork {
-    MATRIX* mtx;
-    Task*   target;
-    Task*   child;
-    Task*   script;
-    u16     spawned;
-    byte    pad_12[0x2];
-} RoomStreamWork;
-STATIC_ASSERT_SIZEOF(RoomStreamWork, 0x14);
+/// Work block of a room task that carries the player along a path in step
+/// with a streamed movie, held in `Task::work`.
+///
+/// The task allocates the block zeroed and borrows the player's task and root
+/// coordinate matrix. While the movie plays it overwrites that matrix's
+/// translation on every tick with the row of its path table that
+/// `CdCmdQueue::movieFrame` selects, so the player keeps pace with the
+/// picture. Once the movie is ready it starts a pad script and adopts that
+/// task as a child, which ties the script's teardown to its own.
+///
+/// A task that lets the player skip the scene spawns a fade-out task on the
+/// skip input and waits for it to ask for its release, then places the player
+/// at the end of the path. A task that ends on the skip input directly leaves
+/// `skipFadeTask` and `skipFadeStarted` zero.
+///
+/// The block's last two bytes are alignment padding.
+typedef struct {
+    MATRIX* playerMtx;       // Borrowed player root coordinate matrix (`gPlayerStatus.coordMtx`); only its translation is written
+    Task*   playerTask;      // Borrowed player task, captured when the task starts; receives the scene's animation, placement and release messages
+    Task*   skipFadeTask;    // Fade-out task spawned when the player skips; valid only while `skipFadeStarted` is set
+    Task*   padScriptTask;   // Pad script task started with the movie and made a child of this block's task; stored unchecked and not read back
+    u16     skipFadeStarted; // Whether the skip fade-out has been spawned (0 no, 1 yes)
+} RoomMoviePathWork;
+STATIC_ASSERT_SIZEOF(RoomMoviePathWork, 0x14);
 
 /// Scratch-stack block of a room's own glow-beam drawer: the beam's two end
 /// points in world space, followed by the block their projection fills.

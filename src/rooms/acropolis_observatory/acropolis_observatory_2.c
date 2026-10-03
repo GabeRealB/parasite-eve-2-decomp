@@ -681,11 +681,11 @@ AnimationSet* gAcropolisObservatoryPlayerAnimationSets[2] = { NULL, &gAcropolisO
 /// Streamed-scene ride, entry 0 of the room's task table: the same ride as
 /// `func_acropolis_observatory_8017DD3C` (entry 1), walking the player's matrix
 /// along `D_acropolis_observatory_8017E80C` instead and ending on view index 2.
-/// State 0 allocates the `RoomStreamWork` block, cues the stream (slot-6 msg
+/// State 0 allocates the `RoomMoviePathWork` block, cues the stream (slot-6 msg
 /// 0xFA4), captures slot 3 and the player's coordinate matrix and republishes
 /// the player's weapon to slot 3 with a 0x3E8 record. State 1 waits for the
-/// stream (`gCdCmdQueue::movieReady`), starts the script pair and reparents
-/// this task under it. State 2 drives the ride, letting the pad skip it once
+/// stream (`gCdCmdQueue::movieReady`), starts the script pair and adopts its
+/// task as a child. State 2 drives the ride, letting the pad skip it once
 /// through the fade-out task and warping slot 3 when that task has finished
 /// or frame 0xE6 passes.
 /// State 3 waits for slot 3 to go idle, releases it and records the view.
@@ -695,32 +695,29 @@ void func_acropolis_observatory_8017D9A8(Task* task)
     AnimationPlayRequest rec;
     ActorTransform       place;
     s32                  killed;
-    RoomStreamWork*      work;
-    RoomStreamWork*      blk;
-    RoomStreamWork*      dest;
+    RoomMoviePathWork*   work;
     CdCmdQueue*          queue;
     s32                  weaponId;
 
     queue = &gCdCmdQueue;
-    work  = (RoomStreamWork*)task->work;
+    work  = task->work;
     switch (task->state) {
         case 0:
-            blk        = memCalloc(0x14, 0);
-            task->work = blk;
-            if (blk == NULL) {
+            task->work = memCalloc(sizeof(RoomMoviePathWork), 0);
+            if (task->work == NULL) {
                 taskKill(task);
                 break;
             }
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
-            ((RoomStreamWork*)task->work)->target = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-            ((RoomStreamWork*)task->work)->mtx    = gPlayerStatus.coordMtx;
-            weaponId                              = gPlayerStatus.weapon;
-            rec.source.index                      = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-            rec.animationId                       = 1;
-            rec.blend                             = ANIMATION_BLEND_RESET;
-            rec.blendFrames                       = 0;
-            rec.enableWorldCollision              = ANIMATION_WORLD_COLLISION_DISABLE;
-            TASK_MESSAGE_DISPATCH_POINTER(((RoomStreamWork*)task->work)->target, ANIMATION_MESSAGE_PLAY, &rec, 0);
+            ((RoomMoviePathWork*)task->work)->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+            ((RoomMoviePathWork*)task->work)->playerMtx  = gPlayerStatus.coordMtx;
+            weaponId                                     = gPlayerStatus.weapon;
+            rec.source.index                             = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            rec.animationId                              = 1;
+            rec.blend                                    = ANIMATION_BLEND_RESET;
+            rec.blendFrames                              = 0;
+            rec.enableWorldCollision                     = ANIMATION_WORLD_COLLISION_DISABLE;
+            TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, ANIMATION_MESSAGE_PLAY, &rec, 0);
             func_800E9BDC(3, 0x9FF);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             task->state                    = task->state + 1;
@@ -728,49 +725,47 @@ void func_acropolis_observatory_8017D9A8(Task* task)
 
         case 1:
             if (queue->movieReady != 0) {
-                work->script                  = Gp_SpawnScript18(D_acropolis_observatory_80183480,
+                work->padScriptTask           = Gp_SpawnScript18(D_acropolis_observatory_80183480,
                                                                  D_acropolis_observatory_80183498);
                 gGameSession->padScriptFlags |= GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE;
-                taskReparent(task, work->script);
+                taskReparent(task, work->padScriptTask);
                 task->state = task->state + 1;
             }
             break;
 
         case 2:
-            work->mtx->t[0] = D_acropolis_observatory_8017E80C[queue->movieFrame + 0xA8].vx;
-            work->mtx->t[1] = D_acropolis_observatory_8017E80C[queue->movieFrame + 0xA8].vy;
-            work->mtx->t[2] = D_acropolis_observatory_8017E80C[queue->movieFrame + 0xA8].vz;
-            if (work->spawned != 0) {
-                if (Task_PollKill(work->child, &killed) != 0) {
+            work->playerMtx->t[0] = D_acropolis_observatory_8017E80C[queue->movieFrame + 0xA8].vx;
+            work->playerMtx->t[1] = D_acropolis_observatory_8017E80C[queue->movieFrame + 0xA8].vy;
+            work->playerMtx->t[2] = D_acropolis_observatory_8017E80C[queue->movieFrame + 0xA8].vz;
+            if (work->skipFadeStarted != 0) {
+                if (Task_PollKill(work->skipFadeTask, &killed) != 0) {
                     place.pos.vx = -0x968;
                     place.pos.vy = -0xBAD;
                     place.pos.vz = -0x6D4;
                     place.rot.vz = 0;
                     place.rot.vx = 0;
                     place.rot.vy = 0x400;
-                    dest         = (RoomStreamWork*)task->work;
-                    TASK_MESSAGE_DISPATCH_POINTER(dest->target, 0x3E9, &place, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, 0x3E9, &place, 0);
                     Task_SpawnFromTable(D_acropolis_observatory_8017E7DC, 3, 0, 0);
                     task->state = task->state + 1;
                     break;
                 }
             } else if (Pad_CheckFlag800() != 0) {
-                work->child   = Task_SpawnFromTable(D_acropolis_observatory_8017E7DC, 2, 0, 0);
-                work->spawned = 1;
+                work->skipFadeTask    = Task_SpawnFromTable(D_acropolis_observatory_8017E7DC, 2, 0, 0);
+                work->skipFadeStarted = 1;
             }
             if ((queue->movieFrame + 0xA8) >= 0xE6) {
                 place.pos.vx = -0x968;
                 place.pos.vy = -0xBAD;
                 place.pos.vz = -0x6D4;
-                dest         = (RoomStreamWork*)task->work;
-                TASK_MESSAGE_DISPATCH_POINTER(dest->target, 0x3F2, &place, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, 0x3F2, &place, 0);
                 task->state = task->state + 1;
             }
             break;
 
         case 3:
-            if (taskMessageDispatch(work->target, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
-                taskMessageDispatch(work->target, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
+            if (taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
+                taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(2);
                 task->state                                                = task->state + 1;
             }
@@ -787,11 +782,11 @@ void func_acropolis_observatory_8017D9A8(Task* task)
 }
 
 /// Streamed-scene ride, entry 1 of the room's task table. State 0 allocates the
-/// `RoomStreamWork` block, cues the stream (slot-6 msg 0xFA4), captures slot 3
+/// `RoomMoviePathWork` block, cues the stream (slot-6 msg 0xFA4), captures slot 3
 /// and the player's coordinate matrix in the block, and republishes the
 /// player's weapon to slot 3 with a 0x3E8 record. State 1 waits for the stream
 /// to come up (`gCdCmdQueue::movieReady`), then starts the script pair and
-/// reparents this task under it. State 2 drives the ride: every frame it moves
+/// adopts its task as a child. State 2 drives the ride: every frame it moves
 /// the player's matrix to the `field_1EA`th entry of the path table; the first
 /// time `Pad_CheckFlag800` reports the pad it spawns the fade-out task (entry 2
 /// of the room's task table), and once that task has finished it warps slot 3
@@ -805,32 +800,29 @@ void func_acropolis_observatory_8017DD3C(Task* task)
     AnimationPlayRequest rec;
     ActorTransform       place;
     s32                  killed;
-    RoomStreamWork*      work;
-    RoomStreamWork*      blk;
-    RoomStreamWork*      dest;
+    RoomMoviePathWork*   work;
     CdCmdQueue*          queue;
     s32                  weaponId;
 
     queue = &gCdCmdQueue;
-    work  = (RoomStreamWork*)task->work;
+    work  = task->work;
     switch (task->state) {
         case 0:
-            blk        = memCalloc(0x14, 0);
-            task->work = blk;
-            if (blk == NULL) {
+            task->work = memCalloc(sizeof(RoomMoviePathWork), 0);
+            if (task->work == NULL) {
                 taskKill(task);
                 break;
             }
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
-            ((RoomStreamWork*)task->work)->target = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-            ((RoomStreamWork*)task->work)->mtx    = gPlayerStatus.coordMtx;
-            weaponId                              = gPlayerStatus.weapon;
-            rec.source.index                      = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-            rec.animationId                       = 1;
-            rec.blend                             = ANIMATION_BLEND_RESET;
-            rec.blendFrames                       = 0;
-            rec.enableWorldCollision              = ANIMATION_WORLD_COLLISION_DISABLE;
-            TASK_MESSAGE_DISPATCH_POINTER(((RoomStreamWork*)task->work)->target, ANIMATION_MESSAGE_PLAY, &rec, 0);
+            ((RoomMoviePathWork*)task->work)->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+            ((RoomMoviePathWork*)task->work)->playerMtx  = gPlayerStatus.coordMtx;
+            weaponId                                     = gPlayerStatus.weapon;
+            rec.source.index                             = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            rec.animationId                              = 1;
+            rec.blend                                    = ANIMATION_BLEND_RESET;
+            rec.blendFrames                              = 0;
+            rec.enableWorldCollision                     = ANIMATION_WORLD_COLLISION_DISABLE;
+            TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, ANIMATION_MESSAGE_PLAY, &rec, 0);
             func_800E9BDC(3, 0x9FF);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             task->state                    = task->state + 1;
@@ -838,49 +830,47 @@ void func_acropolis_observatory_8017DD3C(Task* task)
 
         case 1:
             if (queue->movieReady != 0) {
-                work->script                  = Gp_SpawnScript18(D_acropolis_observatory_801834A0,
+                work->padScriptTask           = Gp_SpawnScript18(D_acropolis_observatory_801834A0,
                                                                  D_acropolis_observatory_801834B8);
                 gGameSession->padScriptFlags |= GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE;
-                taskReparent(task, work->script);
+                taskReparent(task, work->padScriptTask);
                 task->state = task->state + 1;
             }
             break;
 
         case 2:
-            work->mtx->t[0] = D_acropolis_observatory_8017F16C[queue->movieFrame + 0xA8].vx;
-            work->mtx->t[1] = D_acropolis_observatory_8017F16C[queue->movieFrame + 0xA8].vy;
-            work->mtx->t[2] = D_acropolis_observatory_8017F16C[queue->movieFrame + 0xA8].vz + 0xC8;
-            if (work->spawned != 0) {
-                if (Task_PollKill(work->child, &killed) != 0) {
+            work->playerMtx->t[0] = D_acropolis_observatory_8017F16C[queue->movieFrame + 0xA8].vx;
+            work->playerMtx->t[1] = D_acropolis_observatory_8017F16C[queue->movieFrame + 0xA8].vy;
+            work->playerMtx->t[2] = D_acropolis_observatory_8017F16C[queue->movieFrame + 0xA8].vz + 0xC8;
+            if (work->skipFadeStarted != 0) {
+                if (Task_PollKill(work->skipFadeTask, &killed) != 0) {
                     place.pos.vx = -0x8F8;
                     place.pos.vy = -0xBAD;
                     place.pos.vz = -0x2936;
                     place.rot.vz = 0;
                     place.rot.vx = 0;
                     place.rot.vy = 0x400;
-                    dest         = (RoomStreamWork*)task->work;
-                    TASK_MESSAGE_DISPATCH_POINTER(dest->target, 0x3E9, &place, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, 0x3E9, &place, 0);
                     Task_SpawnFromTable(D_acropolis_observatory_8017E7DC, 3, 0, 0);
                     task->state = task->state + 1;
                     break;
                 }
             } else if (Pad_CheckFlag800() != 0) {
-                work->child   = Task_SpawnFromTable(D_acropolis_observatory_8017E7DC, 2, 0, 0);
-                work->spawned = 1;
+                work->skipFadeTask    = Task_SpawnFromTable(D_acropolis_observatory_8017E7DC, 2, 0, 0);
+                work->skipFadeStarted = 1;
             }
             if ((queue->movieFrame + 0xA8) >= 0xE6) {
                 place.pos.vx = -0x8F8;
                 place.pos.vy = -0xBAD;
                 place.pos.vz = -0x2936;
-                dest         = (RoomStreamWork*)task->work;
-                TASK_MESSAGE_DISPATCH_POINTER(dest->target, 0x3F2, &place, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, 0x3F2, &place, 0);
                 task->state = task->state + 1;
             }
             break;
 
         case 3:
-            if (taskMessageDispatch(work->target, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
-                taskMessageDispatch(work->target, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
+            if (taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
+                taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(4);
                 task->state                                                = task->state + 1;
             }
