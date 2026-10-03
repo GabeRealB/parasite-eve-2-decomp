@@ -47,17 +47,6 @@ typedef struct {
 } RoomOptionDialog;
 STATIC_ASSERT_SIZEOF(RoomOptionDialog, 0x20);
 
-/// 0xA4 work block a shop / vending-machine panel task allocates and parks in
-/// `Task::work`: the `UiList` the panel is drawn from, followed by the ids of
-/// the items the room currently offers. The overlay's list builder fills
-/// `items` while counting them into `list.itemCount`, then sorts that prefix in
-/// place, so one allocation carries both the list state and its contents.
-typedef struct RoomShopList {
-    /* 0x00 */ UiList list;
-    /* 0x24 */ u16    items[0x40];
-} RoomShopList;
-STATIC_ASSERT_SIZEOF(RoomShopList, 0xA4);
-
 /// 0xC4 work block the "Play Data" item-usage panel allocates and parks in
 /// `Task::work`. The builder walks item ids 0x80-0x9F, keeps the ones the save
 /// has a non-zero use count for, and fills three parallel arrays indexed by the

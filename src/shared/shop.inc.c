@@ -2,6 +2,7 @@
 
 #include <psyq/sys/types.h>
 
+#include "common.h"
 #include "types.h"
 
 #include "gameplay/inventory.h"
@@ -26,15 +27,25 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
-#include "rooms/room_common.h"
+/// Work block of the shop's item-list panel, parked in `Task::work`.
+///
+/// The panel's task allocates it on its first frame and the task's teardown
+/// frees it. The list's row callback and the builders reach `rowIds` through
+/// the owning task and index it by the list's item index; `list.itemCount` is
+/// the number of ids in use. Nothing checks an append against the capacity.
+typedef struct {
+    UiList list;         // List control the panel is drawn from; its `itemCount` counts the `rowIds` in use
+    u16    rowIds[0x40]; // What each row offers: an item id, or 0xFFFE for the "Batteries/Fuel" recharge service
+} _ShopItemListWork;
+STATIC_ASSERT_SIZEOF(_ShopItemListWork, 0xA4);
 
 static void Shop_ItemListTask(Task* task);
 static void Shop_SessionTask(Task* task);
 
 static u16* Shop_SelectStock(s32 mode);
 static void Shop_ItemRow(UiList* prompt, UiObject* obj);
-static void Shop_AddItem(RoomShopList* shop, UiObject* obj, s32 item);
-static void Shop_BuildItemList(RoomShopList* shop, UiObject* obj);
+static void Shop_AddItem(UiList* list, UiObject* obj, s32 item);
+static void Shop_BuildItemList(UiList* list, UiObject* obj);
 static void Shop_CategoryRow(UiList* prompt, UiObject* obj);
 static void Shop_CategoryListTask(Task* task);
 static void Shop_BalanceTask(Task* task);
@@ -259,7 +270,7 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
 {
     TextDrawReq         req;
     u8                  buf[0x20];
-    RoomShopList*       shop;
+    _ShopItemListWork*  work;
     InventoryItemRange* scan;
     s32                 y;
     s32                 scaled;
@@ -270,9 +281,9 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
     s32                 itemId;
     s32                 price;
 
-    shop    = (RoomShopList*)obj->owner->work;
+    work    = obj->owner->work;
     blocked = 0;
-    itemId  = shop->items[prompt->currentItemIndex];
+    itemId  = work->rowIds[prompt->currentItemIndex];
     /* &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems hoisted into a saved register here, as the original does,
        instead of being rematerialised at the Gp_SumScanQty call. */
     scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
@@ -374,15 +385,18 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
 /// ids 0xF..0x32 are three consecutive levels of the same kind, so an entry of
 /// the same kind is overwritten only by a higher level. In mode 0x10 the ids
 /// 0x9D..0x9F, 0x8A and 0x65 are never added.
-static void Shop_AddItem(RoomShopList* shop, UiObject* obj, s32 item)
+///
+/// `list` is the panel's list control, whose `itemCount` counts the ids; the
+/// ids themselves go to the `_ShopItemListWork` of the task owning `obj`.
+static void Shop_AddItem(UiList* list, UiObject* obj, s32 item)
 {
-    Task*         task = obj->owner;
-    s32           mode = task->spawnArg1.value;
-    RoomShopList* list = (RoomShopList*)task->work;
-    s32           i;
+    Task*              task = obj->owner;
+    s32                mode = task->spawnArg1.value;
+    _ShopItemListWork* work = task->work;
+    s32                i;
 
-    for (i = 0; i < shop->list.itemCount; i++) {
-        s32 cur = list->items[i];
+    for (i = 0; i < list->itemCount; i++) {
+        s32 cur = work->rowIds[i];
         s32 q;
 
         if (cur == item) {
@@ -395,20 +409,21 @@ static void Shop_AddItem(RoomShopList* shop, UiObject* obj, s32 item)
         if (((u32)(item - 0xF) < 0x24U) && ((u16)(cur - 0xF) < 0x24U)) {
             q = (item - 0xF) / 3;
             if ((q == (cur - 0xF) / 3) && (((item - 0xF) % 3 + 1) > ((cur - 0xF) % 3 + 1))) {
-                list->items[i] = item;
+                work->rowIds[i] = item;
                 return;
             }
         }
     }
 
     Gp_SetItemSeenBit(item, 1);
-    list->items[shop->list.itemCount] = item;
-    shop->list.itemCount++;
+    work->rowIds[list->itemCount] = item;
+    list->itemCount++;
 }
 
-/// Fills `shop` with the ids the shop currently offers, then sorts them by
-/// `Gp_ItemSortKey`, caps the visible row count at 9 and clears the cursor
-/// item.
+/// Fills the `_ShopItemListWork` of the task owning `obj` with the ids the
+/// shop currently offers, counting them into `list`, the list control of that
+/// work block. It then sorts them by `Gp_ItemSortKey`, caps the visible row
+/// count at 9 and clears the cursor item.
 ///
 /// The upper halfword of the owning task's `spawnArg1` is the mode, which picks
 /// the fixed id list (`Shop_SelectStock`) and, in game mode
@@ -418,31 +433,31 @@ static void Shop_AddItem(RoomShopList* shop, UiObject* obj, s32 item)
 /// twelve two-bit levels in `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopStock`, the id of that level
 /// (the first slot needs level 2). With `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene` 1 every row
 /// and level is unlocked first.
-static void Shop_BuildItemList(RoomShopList* shop, UiObject* obj)
+static void Shop_BuildItemList(UiList* list, UiObject* obj)
 {
-    RoomShopList* list;
-    u16*          ids;
-    s32           mode;
-    s32           tier;
-    s32           slot;
-    s32           level;
-    s32           id;
-    s32           item;
-    s32           unlocked;
-    s32           i;
-    s32           j;
-    s32           k;
-    s32           key;
-    s32           otherKey;
-    u16           tmp;
-    u8            count;
+    _ShopItemListWork* work;
+    u16*               ids;
+    s32                mode;
+    s32                tier;
+    s32                slot;
+    s32                level;
+    s32                id;
+    s32                item;
+    s32                unlocked;
+    s32                i;
+    s32                j;
+    s32                k;
+    s32                key;
+    s32                otherKey;
+    u16                tmp;
+    u8                 count;
 
     mode = obj->owner->spawnArg1.value;
     ids  = Shop_SelectStock(mode);
 
-    shop->list.itemCount = 0;
+    list->itemCount = 0;
     while (*ids != 0xFFFF) {
-        Shop_AddItem(shop, obj, *ids);
+        Shop_AddItem(list, obj, *ids);
         ids++;
     }
 
@@ -463,17 +478,17 @@ static void Shop_BuildItemList(RoomShopList* shop, UiObject* obj)
                                 if (((u32)(item - 0x80) < 0x20U) || (item == 0xC) || (item == 9) ||
                                     (item == 0xA) || (item == 0x46) || (item == 0x45) ||
                                     (item == 0x42) || (item == 0x43) || (item == 0x44)) {
-                                    Shop_AddItem(shop, obj, item);
+                                    Shop_AddItem(list, obj, item);
                                 }
                                 break;
                             case 1:
                                 if ((u32)(item - 0xA0) < 0x20U) {
-                                    Shop_AddItem(shop, obj, item);
+                                    Shop_AddItem(list, obj, item);
                                 }
                                 break;
                             case 2:
                                 if (((u32)(item - 0x60) < 0x20U) || (item == 0xD)) {
-                                    Shop_AddItem(shop, obj, item);
+                                    Shop_AddItem(list, obj, item);
                                 }
                                 break;
                             case 3:
@@ -481,7 +496,7 @@ static void Shop_BuildItemList(RoomShopList* shop, UiObject* obj)
                                     (item != 9) && (item != 0xA) && (item != 0x46) &&
                                     (item != 0x45) && (item != 0x42) && (item != 0x43) &&
                                     (item != 0x44)) {
-                                    Shop_AddItem(shop, obj, item);
+                                    Shop_AddItem(list, obj, item);
                                 }
                                 break;
                         }
@@ -496,30 +511,30 @@ static void Shop_BuildItemList(RoomShopList* shop, UiObject* obj)
                 if (slot == 0 ? level >= 2 : level > 0) {
                     /* The assignment keeps `+ 0xE` on the level instead of
                        letting GCC reassociate it onto the row base. */
-                    Shop_AddItem(shop, obj, slot * 3 + (id = level + 0xE));
+                    Shop_AddItem(list, obj, slot * 3 + (id = level + 0xE));
                 }
             }
         }
     }
 
-    list = (RoomShopList*)obj->owner->work;
-    for (i = 0; i < shop->list.itemCount - 1; i++) {
-        key = Gp_ItemSortKey(list->items[i]);
-        for (k = i + 1; k < shop->list.itemCount; k++) {
-            otherKey = Gp_ItemSortKey(list->items[k]);
+    work = obj->owner->work;
+    for (i = 0; i < list->itemCount - 1; i++) {
+        key = Gp_ItemSortKey(work->rowIds[i]);
+        for (k = i + 1; k < list->itemCount; k++) {
+            otherKey = Gp_ItemSortKey(work->rowIds[k]);
             if (otherKey < key) {
-                tmp            = list->items[i];
-                key            = otherKey;
-                list->items[i] = list->items[k];
-                list->items[k] = tmp;
+                tmp             = work->rowIds[i];
+                key             = otherKey;
+                work->rowIds[i] = work->rowIds[k];
+                work->rowIds[k] = tmp;
             }
         }
     }
 
-    count                                    = shop->list.itemCount;
-    shop->list.visibleRowCount.unsignedValue = count;
+    count                               = list->itemCount;
+    list->visibleRowCount.unsignedValue = count;
     if ((s8)count >= 0xA) {
-        shop->list.visibleRowCount.unsignedValue = 9;
+        list->visibleRowCount.unsignedValue = 9;
     }
     Shop_Data_801819EC = -1;
 }
@@ -537,7 +552,7 @@ static const u8 Shop_Data_8017D6EC[] = "Notice";
 static const char Shop_Data_8017D6F4[8] = SHOP_CHARGE_TITLE_BYTES;
 
 /// The shop's "Select" panel. On its first frame it allocates the
-/// `RoomShopList` work block, fills it through
+/// `_ShopItemListWork` work block, fills it through
 /// `Shop_BuildItemList` and opens the panel
 /// `Shop_Data_80181BF4` beside it. Every frame it draws the list and the
 /// "BP" caption; menu reports -1 and cancel 6 to the parent. A child that
@@ -545,41 +560,41 @@ static const char Shop_Data_8017D6F4[8] = SHOP_CHARGE_TITLE_BYTES;
 /// passes it up.
 static void Shop_ItemListTask(Task* task)
 {
-    TextDrawReq   req;
-    UiObject*     obj;
-    RoomShopList* shop;
-    Task*         head;
-    Task*         child;
-    Task*         next;
-    UiObject*     childObj;
-    void*         mem;
-    s32           code;
-    s32           x;
-    s32           y;
+    TextDrawReq        req;
+    UiObject*          obj;
+    _ShopItemListWork* work;
+    Task*              head;
+    Task*              child;
+    Task*              next;
+    UiObject*          childObj;
+    void*              mem;
+    s32                code;
+    s32                x;
+    s32                y;
 
     obj         = task->spawnArg2.pointer;
     obj->result = USER_INTERFACE_RESULT_NONE;
     Ui_DrawText(&(obj)->panel, (char*)Shop_Data_8017D6D0);
     if (task->state == 0) {
-        mem = memCalloc(sizeof(RoomShopList), 0);
+        mem = memCalloc(sizeof(_ShopItemListWork), 0);
         if (mem != NULL) {
-            shop                      = mem;
-            task->work                = shop;
-            shop->list.rowCallbacks   = Shop_Data_80181AD8;
-            shop->list.wrapNavigation = 0;
-            shop->list.rowHeight      = 0xF;
-            Shop_BuildItemList(shop, obj);
-            Ui_LayoutListPanel(&shop->list, &(obj)->panel);
-            shop->list.flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
-            Ui_SetListScrollFlag(&shop->list, 1);
+            work                      = mem;
+            task->work                = work;
+            work->list.rowCallbacks   = Shop_Data_80181AD8;
+            work->list.wrapNavigation = 0;
+            work->list.rowHeight      = 0xF;
+            Shop_BuildItemList(&work->list, obj);
+            Ui_LayoutListPanel(&work->list, &(obj)->panel);
+            work->list.flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
+            Ui_SetListScrollFlag(&work->list, 1);
             obj->panel.bounds.unsignedRect.h += 8;
-            shop->list.topInset               = 8;
+            work->list.topInset               = 8;
             Ui_SpawnFromDesc(&Shop_Data_80181BF4, 0, 0, 0, obj);
             task->state += 1;
         }
     }
-    shop = (RoomShopList*)task->work;
-    Ui_UpdateListNoAnim(shop, obj);
+    work = task->work;
+    Ui_UpdateListNoAnim(&work->list, obj);
     uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 6);
 
     x              = obj->panel.contentOriginX.unsignedValue - 2;

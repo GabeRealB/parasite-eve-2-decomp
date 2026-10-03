@@ -51385,13 +51385,13 @@ statement **inside** the taken block: nothing separates the copy from the branch
 any more, and the two pseudos still cannot merge.
 
 ```c
-void*         mem;
-RoomShopList* shop;
+void*              mem;
+_ShopItemListWork* work;
 
-mem  = memCalloc(sizeof(RoomShopList), 0);
-shop = mem;
+mem  = memCalloc(sizeof(_ShopItemListWork), 0);
+work = mem;
 if (mem != NULL) {
-    SOFT_TOUCH_REG(shop);
+    SOFT_TOUCH_REG(work);
     ...
 }
 ```
@@ -51419,10 +51419,10 @@ otherwise (`func_actor_312200_80163178`, `func_actor_210600_8014B8C8`). The
 soft use.
 
 The same shop-panel body can avoid that soft use entirely: in
-`func_dryfield_night_garage_8017E768`, assign `shop = mem` **inside** the
-successful arm, then reuse `shop` for the existing per-frame update:
-`shop = (RoomShopList*)task->work; Ui_UpdateListNoAnim(shop, obj);`.
-This later real assignment/use makes `shop` the CSE canonical pointer after
+`func_dryfield_night_garage_8017E768`, assign `work = mem` **inside** the
+successful arm, then reuse `work` for the existing per-frame update:
+`work = task->work; Ui_UpdateListNoAnim(&work->list, obj);`.
+This later real assignment/use makes `work` the CSE canonical pointer after
 the copy, while the earlier null test still reads `mem`. It does not extend
 the allocation's live range through the later reassignment.
 Scratch `base_8.c` reproduced the seed's 99.865% and identical normalized
