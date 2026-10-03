@@ -110,13 +110,6 @@ typedef struct {
 } _MistShootingGalleryRating;
 STATIC_ASSERT_SIZEOF(_MistShootingGalleryRating, 0x8);
 
-/// The six gauge strings the DATA panel draws through
-/// `_MistShootingGalleryRating::level`; stack-copied before use.
-typedef struct MistShootingGalleryGauges {
-    /* 0x00 */ const char* bars[6];
-} MistShootingGalleryGauges;
-STATIC_ASSERT_SIZEOF(MistShootingGalleryGauges, 0x18);
-
 /// One row of the gallery's RESULT panel: the points one kill of that target
 /// is worth and the name printed beside it ("Red Target", "Crow", ...).
 /// `func_mist_shooting_gallery_8017E234` walks the 13-entry table
@@ -149,12 +142,11 @@ static const char D_mist_shooting_gallery_8017D65C[]; // "TOTAL SCORE"
 static const _MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D6D8;
 static const _MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D708;
 
-static const MistShootingGalleryGauges D_mist_shooting_gallery_8017D808;
-static const char                      D_mist_shooting_gallery_8017D820[];
-static const char                      D_mist_shooting_gallery_8017D828[];
-static const char                      D_mist_shooting_gallery_8017D838[];
-static const char                      D_mist_shooting_gallery_8017D844[];
-static const char                      D_mist_shooting_gallery_8017D850[];
+static const char D_mist_shooting_gallery_8017D820[];
+static const char D_mist_shooting_gallery_8017D828[];
+static const char D_mist_shooting_gallery_8017D838[];
+static const char D_mist_shooting_gallery_8017D844[];
+static const char D_mist_shooting_gallery_8017D850[];
 
 extern void func_8014A398(void);
 extern s32  func_8014AA54(RoomEventMsg* loc);
@@ -1601,7 +1593,16 @@ void func_mist_shooting_gallery_8017F128(Task* task)
         { 1, "VERY POOR" },
         { 2, "POOR" },
     };
-    MistShootingGalleryGauges   gauges;
+    // The gauge drawn for each rating level: entry n is n gauge marks. No
+    // rating has level 0, whose entry repeats the single mark.
+    const char* gaugeByLevel[6] = {
+        D_mist_shooting_gallery_80184F18,
+        D_mist_shooting_gallery_80184F18,
+        D_mist_shooting_gallery_80184F1C,
+        D_mist_shooting_gallery_80184F20,
+        D_mist_shooting_gallery_80184F24,
+        D_mist_shooting_gallery_80184F2C,
+    };
     TextDrawReq                 label0;
     TextDrawReq                 value0;
     TextDrawReq                 label1;
@@ -1616,7 +1617,6 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     s32                         x;
     s32                         y;
 
-    gauges = D_mist_shooting_gallery_8017D808;
     Ui_DrawTitle(&(obj)->panel, D_mist_shooting_gallery_8017D820);
 
     col               = obj->panel.contentLeft.signedValue;
@@ -1642,7 +1642,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     value0.alignment  = TEXT_ALIGNMENT_RIGHT;
     value0.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
     Text_DrawString(&value0, rating->name);
-    Text_DrawPrompt(obj, 0x46, y, gauges.bars[rating->level], 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    Text_DrawPrompt(obj, 0x46, y, gaugeByLevel[rating->level], 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
     uiDrawHorizontalSeparator(&(obj)->panel, col + 6, -x + 5, row + 0xD);
 
     y                 = row + 0x1E;
@@ -1664,7 +1664,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     value1.alignment  = TEXT_ALIGNMENT_RIGHT;
     value1.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
     Text_DrawString(&value1, rating->name);
-    Text_DrawPrompt(obj, 0x46, y, gauges.bars[rating->level], 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    Text_DrawPrompt(obj, 0x46, y, gaugeByLevel[rating->level], 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
 
     y                 = row + 0x2D;
     label2.x          = obj->panel.contentOriginX.unsignedValue + x;
@@ -1685,7 +1685,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     value2.alignment  = TEXT_ALIGNMENT_RIGHT;
     value2.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
     Text_DrawString(&value2, rating->name);
-    Text_DrawPrompt(obj, 0x46, y, gauges.bars[rating->level], 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    Text_DrawPrompt(obj, 0x46, y, gaugeByLevel[rating->level], 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
 
     y                 = row + 0x3C;
     label3.x          = obj->panel.contentOriginX.unsignedValue + x;
@@ -1706,7 +1706,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     value3.alignment  = TEXT_ALIGNMENT_RIGHT;
     value3.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
     Text_DrawString(&value3, rating->name);
-    Text_DrawPrompt(obj, 0x46, y, gauges.bars[rating->level], 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    Text_DrawPrompt(obj, 0x46, y, gaugeByLevel[rating->level], 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 /// Task handler for the gallery's closing sequence. State 0 spawns the results
 /// panel and stashes `gPlayerStatus.exp` / `gPlayerStatus.bp` in
@@ -1927,7 +1927,6 @@ void func_mist_shooting_gallery_8017FDD0(Task* task)
             break;
     }
 }
-static const MistShootingGalleryGauges D_mist_shooting_gallery_8017D808 = { { D_mist_shooting_gallery_80184F18, D_mist_shooting_gallery_80184F18, D_mist_shooting_gallery_80184F1C, D_mist_shooting_gallery_80184F20, D_mist_shooting_gallery_80184F24, D_mist_shooting_gallery_80184F2C } };
 
 static const char D_mist_shooting_gallery_8017D820[] = "DATA";
 
