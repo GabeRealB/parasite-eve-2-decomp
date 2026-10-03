@@ -904,6 +904,13 @@ preprocessor inventory described below:
   belongs to no translation unit. Generated linker scripts are left alone on
   purpose: the next split rebuilds them, and they are not tracked, so writing
   to them only survives a revert of the sources.
+  In markdown, a field or parameter is rewritten only where the prose names
+  its owner (`Type::field`), since a bare backticked `inner` may be another
+  struct's. `--batch FILE` applies one `<spec> <newName>` per line in order, in
+  one process: each line is resolved against the tree the earlier ones left,
+  so it may name what they renamed, and the reference index only refreshes
+  what each rename touched. It stops at the first failure unless
+  `--keep-going`.
 
 A spec is a source path with the symbol appended:
 

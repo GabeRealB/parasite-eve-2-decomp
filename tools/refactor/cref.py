@@ -682,9 +682,17 @@ def _prose_refs(out: list[str], token: str, owner: str | None = None,
             # a fenced code block. A short common word does not, so it still has
             # to be cited in backticks.
             distinctive = "_" in token or sum(c.isupper() for c in token) >= 2
-            m = (qual_re.search(text)
-                 or re.search(rf"`[^`]*\b{t}\b[^`]*`", text)
-                 or (re.search(rf"\b{t}\b", text) if distinctive else None))
+            # Code spans are paired left to right; a pattern for "backtick,
+            # text, backtick" would also take the prose *between* two spans.
+            span = next((c for c in re.finditer(r"`[^`]*`", text)
+                         if re.search(rf"\b{t}\b", c.group(0))), None)
+            if only_files is not None:
+                # A field or parameter: a backticked `inner` in the notes is as
+                # likely another struct's, so prose has to name the owner.
+                m = qual_re.search(text)
+            else:
+                m = (qual_re.search(text) or span
+                     or (re.search(rf"\b{t}\b", text) if distinctive else None))
             if m:
                 col = text.index(token, m.start()) + 1
                 refs.append(Ref(path, int(lineno), col, "doc", text.strip(), "", token))

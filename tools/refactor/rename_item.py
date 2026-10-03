@@ -10,6 +10,7 @@ declaration named in the spec.
     rename_item.py <source>/<function> <newName>
     rename_item.py <source>/<function>::<param> <newName>
     rename_item.py <header> <newHeaderName> [--guard]
+    rename_item.py --batch renames.txt     # one `<spec> <newName>` per line
 
 Declarations are rewritten alongside references, because a prototype is not a
 reference and leaving it behind does not compile. Renaming a header moves the
@@ -168,8 +169,14 @@ def record_rename(root: str, ledger: str, kind: str, old: str, new: str,
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("spec", help="<path>/<Name>, <path>/<Type>::<member>, <path>/<fn>::<param>, or a header path")
-    ap.add_argument("new_name")
+    ap.add_argument("spec", nargs="?",
+                    help="<path>/<Name>, <path>/<Type>::<member>, <path>/<fn>::<param>, or a header path")
+    ap.add_argument("new_name", nargs="?")
+    ap.add_argument("--batch", metavar="FILE",
+                    help="rename every `<spec> <new_name>` line of FILE ('-' for stdin) in order, "
+                         "in one process; '#' starts a comment")
+    ap.add_argument("--keep-going", action="store_true",
+                    help="batch: continue past a rename that fails")
     ap.add_argument("--version", default=cref.DEFAULT_VERSION,
                     help=f"version directory under asm/ and configs/ "
                          f"(default: {cref.DEFAULT_VERSION})")
@@ -189,27 +196,89 @@ def main() -> int:
                     help="macro rename: caller checked lexical scope, branches and token construction")
     args = ap.parse_args()
 
-    if args.spec.endswith((".h", ".c")) and "::" not in args.spec:
-        return rename_header(cref.repo_root(), args.spec, args.new_name,
+    root = cref.repo_root()
+    if args.batch is None:
+        if args.spec is None or args.new_name is None:
+            ap.error("spec and new_name are required without --batch")
+        try:
+            return rename_one(root, args.spec, args.new_name, args)
+        except RenameError as exc:
+            sys.exit(str(exc))
+    if args.spec is not None:
+        ap.error("--batch takes its renames from the file, not the command line")
+    return rename_batch(root, args)
+
+
+def rename_batch(root: str, args) -> int:
+    """Apply a list of renames in order. Each is resolved against the tree the
+    previous ones left, so a later line may name what an earlier one renamed,
+    and the reference index refreshes only what each rename touched rather than
+    every invocation paying for a cold start."""
+    fh = sys.stdin if args.batch == "-" else open(args.batch)
+    items = []
+    for n, line in enumerate(fh, 1):
+        line = line.split("#", 1)[0].strip()
+        if not line:
+            continue
+        parts = line.split()
+        if len(parts) != 2:
+            sys.exit(f"{args.batch}:{n}: expected `<spec> <new_name>`, got {line!r}")
+        items.append((n, *parts))
+    failed = []
+    for i, (n, spec_arg, new_name) in enumerate(items, 1):
+        print(f"\n[{i}/{len(items)}] {spec_arg} -> {new_name}")
+        try:
+            rename_one(root, spec_arg, new_name, args)
+        except (RenameError, SystemExit) as exc:
+            # The resolver exits on a spec it cannot find; in a batch that is
+            # one failed line, not the end of the process.
+            print(f"{args.batch}:{n}: {exc}", file=sys.stderr)
+            failed.append(spec_arg)
+            if not args.keep_going:
+                print(f"stopped; {i - 1} rename(s) applied, {len(items) - i} not attempted",
+                      file=sys.stderr)
+                return 1
+    print(f"\n{len(items) - len(failed)} of {len(items)} rename(s) applied"
+          + (f"; failed: {', '.join(failed)}" if failed else ""))
+    return 1 if failed else 0
+
+
+class RenameError(Exception):
+    pass
+
+
+_DB = {}
+
+
+def _db(root: str, version: str):
+    if (root, version) not in _DB:
+        _DB[root, version] = cref.load_db(root, version)
+    return _DB[root, version]
+
+
+def rename_one(root: str, spec_arg: str, new_name: str, args) -> int:
+    """One rename, resolved against the tree as it stands now."""
+
+    if spec_arg.endswith((".h", ".c")) and "::" not in spec_arg:
+        return rename_header(root, spec_arg, new_name,
                              args.dry_run, args.guard)
 
-    if not re.fullmatch(r"[A-Za-z_]\w*", args.new_name):
-        sys.exit(f"not a C identifier: {args.new_name!r}")
+    if not re.fullmatch(r"[A-Za-z_]\w*", new_name):
+        raise RenameError(f"not a C identifier: {new_name!r}")
 
-    root = cref.repo_root()
     import macro_refs
-    if macro_refs.definition_exists(root, args.spec):
+    if macro_refs.definition_exists(root, spec_arg):
         try:
-            macro_refs.Inventory(root).rename(args.spec, args.new_name,
+            macro_refs.Inventory(root).rename(spec_arg, new_name,
                                              reviewed=args.macro_reviewed, dry_run=args.dry_run,
                                              ledger=args.ledger)
         except ValueError as exc:
-            sys.exit(str(exc))
+            raise RenameError(str(exc))
         return 0
-    db = cref.load_db(root, args.version)
-    spec = cref.parse_spec(args.spec)
-    if spec.name == args.new_name:
-        sys.exit("new name is the same as the old one")
+    db = _db(root, args.version)
+    spec = cref.parse_spec(spec_arg)
+    if spec.name == new_name:
+        raise RenameError("new name is the same as the old one")
 
     usrs, names, kind, where = cref.resolve(spec, root, db)
     if not args.quiet:
@@ -254,12 +323,12 @@ def main() -> int:
 
     total = sum(len(v) for v in edits.values())
     if total == 0:
-        sys.exit(f"no occurrences of {spec.name!r} resolved to that declaration")
+        raise RenameError(f"no occurrences of {spec.name!r} resolved to that declaration")
 
     for f in sorted(edits):
         n = len(edits[f])
         print(f"  {n:>5}  {f}")
-    print(f"{total} edit(s) in {len(edits)} file(s): {spec.name} -> {args.new_name}"
+    print(f"{total} edit(s) in {len(edits)} file(s): {spec.name} -> {new_name}"
           + (f"  ({len(comments)} in comments)" if comments else ""))
 
     if other_alias:
@@ -289,22 +358,24 @@ def main() -> int:
     # halfway leaves the tree half-renamed, which compiles in neither state.
     staged = {}
     for f, positions in edits.items():
-        staged[f] = _rewrite(os.path.join(root, f), positions, spec.name, args.new_name)
+        staged[f] = _rewrite(os.path.join(root, f), positions, spec.name, new_name)
     for f, text in staged.items():
         open(os.path.join(root, f), "w").write(text)
     if args.sidecars:
         for c in cars:
-            _apply_word(os.path.join(root, c), spec.name, args.new_name)
-    added = record_generated_name(root, spec.name, args.new_name, decl_file,
+            _apply_word(os.path.join(root, c), spec.name, new_name)
+    added = record_generated_name(root, spec.name, new_name, decl_file,
                                   args.version, kind, args.dry_run)
     if added:
         print(f"recorded the new name in {added} "
               f"(a generated name has nothing to substitute)")
 
-    record_rename(root, args.ledger, kind, spec.name, args.new_name,
+    record_rename(root, args.ledger, kind, spec.name, new_name,
                   decl_file or where, total)
     print("\ndone; rebuild to verify")
     return 0
+
+
 
 
 def _decl_columns(root: str, rel: str, line: int, name: str) -> list[int]:
