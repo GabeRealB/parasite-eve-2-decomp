@@ -45,8 +45,8 @@ static void func_acropolis_observatory_8017D8AC(Task* task);
 /// game's progress nibbles.
 ///
 /// Transitions to the forked road (area 9) and the promenade (area 0xB) answer with a
-/// `warp` refusal code — 5 and 1 respectively — while the disc has no stream
-/// file open (`gDisplayState.debugMode < 0 || D_8006AC30.sector == 0`) or the message's
+/// `warp` refusal code — 5 and 1 respectively — while the disc has no `.STR`
+/// movie file (`gDisplayState.debugMode < 0 || D_8006AC30.startSector == 0`) or the message's
 /// nibble is not in the state that lets it run once. The first pass through
 /// each also advances that nibble, so the refusal only shows on later visits.
 /// `queryOnly` non-zero means "report only", which suppresses both the nibble
@@ -57,7 +57,7 @@ s32 func_acropolis_observatory_8017D618(Task* arg0, s32 arg1, RoomEventMsg* in, 
 
     *out = *in;
     if (in->areaId == GAME_AREA_ACROPOLIS_FORKED_ROAD && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (gDisplayState.debugMode < 0 || D_8006AC30.sector == 0) {
+        if (gDisplayState.debugMode < 0 || D_8006AC30.startSector == 0) {
             out->warp = 5;
         }
         if (GameFlag_GetNibble(GAME_FLAG_OBSERVATORY_EXIT_USED) == 0) {
@@ -72,7 +72,7 @@ s32 func_acropolis_observatory_8017D618(Task* arg0, s32 arg1, RoomEventMsg* in, 
         }
     }
     if (in->areaId == GAME_AREA_ACROPOLIS_PROMENADE) {
-        if (gDisplayState.debugMode < 0 || D_8006AC30.sector == 0) {
+        if (gDisplayState.debugMode < 0 || D_8006AC30.startSector == 0) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 out->warp = 1;
             }

@@ -71,8 +71,8 @@ AcropolisForkedRoadStorage0F3C D_acropolis_forked_road_80180F3C = { 0, { 0 } };
 ///
 /// Message 0xA (the path on) runs capture command 2 while nibble 1 is under 2.
 /// Once it is at 2 the forked-road cutscene spawns from
-/// `D_acropolis_forked_road_80180F44` and nibble 1 advances to 3, unless no
-/// stream file is open (`gDisplayState.debugMode < 0 || D_8006AC30.sector == 0`), in which
+/// `D_acropolis_forked_road_80180F44` and nibble 1 advances to 3, unless the
+/// disc has no `.STR` movie file (`gDisplayState.debugMode < 0 || D_8006AC30.startSector == 0`), in which
 /// case the message is refused with `warp = 2`.
 s32 func_acropolis_forked_road_8017D5EC(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
@@ -108,7 +108,7 @@ s32 func_acropolis_forked_road_8017D5EC(Task* arg0, s32 arg1, RoomEventMsg* in, 
             }
             return 0;
         }
-        if ((gDisplayState.debugMode < 0) || (D_8006AC30.sector == 0)) {
+        if ((gDisplayState.debugMode < 0) || (D_8006AC30.startSector == 0)) {
             if (in->queryOnly != ROOM_EVENT_EXECUTE) {
                 return 1;
             }

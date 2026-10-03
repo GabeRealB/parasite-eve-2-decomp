@@ -383,8 +383,8 @@ Play init (`Stream_InitFromSlot` + `Stream_InitializePlayback`):
 
 1. `D_8006AC08 = startSector` (absolute LBA into stage CDF space)
 2. If **`data.movie.volumeTableIndex != 0`**: **overwrite**
-   `D_8006AC08 = source.interSectorOffset + D_8006AC30.sector`
-   (`D_8006AC30.sector` = ISO-root LBA of the disc’s `INTER*.STR`)
+   `D_8006AC08 = source.interSectorOffset + D_8006AC30.startSector`
+   (`D_8006AC30.startSector` = ISO-root LBA of the disc’s `INTER*.STR`)
 3. Seek with `CdIntToPos(D_8006AC08)` / `CdRead2`
 
 | `data.movie.volumeTableIndex` | Container | Sector form | Start |

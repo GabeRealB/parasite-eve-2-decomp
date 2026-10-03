@@ -13,7 +13,7 @@ extern u16 D_8005EAEC;
 
 extern u16 D_8005EAEE;
 
-extern FsStrInfo D_8006AC30;
+extern StreamInterFile D_8006AC30;
 
 extern u16 D_8006AC3C;
 

@@ -1318,7 +1318,7 @@ restart:
     done                    = 0;
     D_8006AC30.field_4      = 0;
     Wip_SysFlags.discNumber = GAME_MAIN_DISC_UNKNOWN;
-    D_8006AC30.sector       = 0;
+    D_8006AC30.startSector  = 0;
     Fs_Stage0HedSector      = 0;
 
     while ((done & 0xFF) == 0) {
@@ -1351,7 +1351,7 @@ restart:
                         Fs_StageCdfSectors[stageNum] =
                             *(u16*)(entry + 2) + (*(u16*)(entry + 4) << 16);
                     } else if (strncmp(Fs_ExtensionStr, (char*)name, 4) == 0) {
-                        D_8006AC30.sector =
+                        D_8006AC30.startSector =
                             *(u16*)(entry + 2) + (*(u16*)(entry + 4) << 16);
                     } else if (strncmp(Fs_Stage0HeaderName, (char*)(entry + 0x21), 0xA) == 0) {
                         Fs_Stage0HedSector =

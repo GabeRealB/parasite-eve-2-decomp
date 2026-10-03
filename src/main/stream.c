@@ -51,7 +51,7 @@ static s32 D_8006AC24;
 
 static u16 D_8006AC28;
 
-FsStrInfo D_8006AC30;
+StreamInterFile D_8006AC30;
 
 static u_short* D_8006AC38;
 
@@ -411,10 +411,10 @@ u32 Stream_InitializePlayback(u32 slotIndex)
     queue->movieFrameChanged = 0;
     Stream_InitFromSlot(slot);
     if (D_8006AC58 != 0) {
-        if (D_8006AC30.sector == 0) {
+        if (D_8006AC30.startSector == 0) {
             return 1U;
         }
-        D_8006AC08 = Stream_Slots[slot].source.interSectorOffset + D_8006AC30.sector;
+        D_8006AC08 = Stream_Slots[slot].source.interSectorOffset + D_8006AC30.startSector;
     }
     if (D_8006AC14 != STREAM_MOVIE_DISPLAY_TEXTURE) {
         params[3] = 0xFF;

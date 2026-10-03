@@ -1853,7 +1853,7 @@ static void func_acropolis_promenade_8017D5E4(Task* task)
 /// game's progress nibbles.
 ///
 /// Message 0xA answers with the `warp` refusal code 1 while the disc has no
-/// stream file open (`gDisplayState.debugMode < 0 || D_8006AC30.sector == 0`) or nibble 1 is
+/// `.STR` movie file (`gDisplayState.debugMode < 0 || D_8006AC30.startSector == 0`) or nibble 1 is
 /// not yet at 4; the first pass at 4 advances it to 5 instead of refusing.
 /// Message 0xC, while nibble 2 is still 0, refuses with code 3, latches the
 /// answered record into `D_acropolis_promenade_801862D0` for the room's own
@@ -1869,7 +1869,7 @@ s32 func_acropolis_promenade_8017D70C(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
 
     *out = *in;
     if (in->areaId == GAME_AREA_ACROPOLIS_OBSERVATORY && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (gDisplayState.debugMode < 0 || D_8006AC30.sector == 0) {
+        if (gDisplayState.debugMode < 0 || D_8006AC30.startSector == 0) {
             out->warp = 1;
         }
         if (GameFlag_GetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS) == 4) {

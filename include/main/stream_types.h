@@ -136,10 +136,14 @@ typedef struct {
 } StreamSceneImageHeader;
 STATIC_ASSERT_SIZEOF(StreamSceneImageHeader, 0x3C);
 
-/// ISO root scan: LBA of the first `.STR` (stream) file, plus a sibling word.
+/// The disc's `INTER*.STR` movie container, located by the ISO root-directory scan.
+///
+/// Movie slots with a nonzero volume-table index seek to their sector offset
+/// within this file rather than into a stage CDF. The scan records the last
+/// `.STR` entry in root-directory order and clears the whole record first.
 typedef struct {
-    s32 sector;
-    s32 field_4;
-} FsStrInfo;
+    s32 startSector; // Absolute LBA of the file's first sector (0 when the disc root has no `.STR` file)
+    s32 field_4;     // Cleared by the scan and otherwise never accessed; role unproven
+} StreamInterFile;
 
 #endif // MAIN_STREAM_TYPES_H
