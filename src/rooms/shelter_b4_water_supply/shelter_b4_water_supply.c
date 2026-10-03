@@ -65,17 +65,6 @@
 #define D_shelter_b4_water_supply_801826C0 (D_shelter_b4_water_supply_80182690 + 6)
 #define D_shelter_b4_water_supply_801826D0 (D_shelter_b4_water_supply_80182690 + 8)
 
-/// One water surface: a rectangle at (`x`, `z`) spanning `width` along X and
-/// `depth` along Z. A list of them ends at an entry whose `count` is -1;
-/// `count` is not otherwise read.
-typedef struct ShelterB4WaterSupplySurface {
-    s16 x;
-    s16 z;
-    s16 width;
-    s16 depth;
-    s16 count;
-} ShelterB4WaterSupplySurface;
-
 /// Block the room task `func_shelter_b4_water_supply_8017EE54` receives as
 /// `spawnArg2`. Only the halfword at 0x26 is touched there: an effect
 /// strength, set from how far a tracked part moved this frame and used as the
@@ -102,10 +91,10 @@ extern s16 D_shelter_b4_water_supply_80182638;
 extern TaskDesc D_shelter_b4_water_supply_8018263C[];
 
 /// The room's water surfaces whose strips run along Z.
-extern ShelterB4WaterSupplySurface D_shelter_b4_water_supply_80182648[];
+extern RoomCompactWaterSurface D_shelter_b4_water_supply_80182648[];
 
 /// The room's water surfaces whose strips run along X.
-extern ShelterB4WaterSupplySurface D_shelter_b4_water_supply_8018265C[];
+extern RoomCompactWaterSurface D_shelter_b4_water_supply_8018265C[];
 
 /// End-point pairs of the light beams the room task draws per view.
 extern SVECTOR D_shelter_b4_water_supply_80182670[];
@@ -171,12 +160,12 @@ TaskDesc D_shelter_b4_water_supply_8018263C[1] = {
     { { { TASK_BODY_NONE, 96 } }, func_shelter_b4_water_supply_8017ED28, { .value = 0 } },
 };
 
-ShelterB4WaterSupplySurface D_shelter_b4_water_supply_80182648[2] = {
+RoomCompactWaterSurface D_shelter_b4_water_supply_80182648[2] = {
     { 9100, -0x364C, 1800, 0x2EE0, 0 },
     { 0, 0, 0, 0, WATER_SURFACE_LIST_END },
 };
 
-ShelterB4WaterSupplySurface D_shelter_b4_water_supply_8018265C[2] = {
+RoomCompactWaterSurface D_shelter_b4_water_supply_8018265C[2] = {
     { 4400, -1900, 8150, 1800, 0 },
     { 0, 0, 0, 0, WATER_SURFACE_LIST_END },
 };
@@ -1012,14 +1001,14 @@ static s32 func_shelter_b4_water_supply_8017DDFC(RoomEventMsg* in, RoomEventMsg*
     return 1;
 }
 
-#define WATER_WAVE_STRIPS_SURFACE_T ShelterB4WaterSupplySurface
-/// Tests the list terminator in the water supply's 10-byte surface descriptor.
+#define WATER_WAVE_STRIPS_SURFACE_T RoomCompactWaterSurface
+/// Tests the list terminator in a `RoomCompactWaterSurface` descriptor.
 ///
-/// Reads the signed 16-bit `count` marker from a valid descriptor once and
+/// Reads the signed 16-bit `listMarker` from a valid descriptor once and
 /// returns an int (0 drawable entry, 1 list end), without reading geometry.
 /// Captures no caller locals and adds no side effects. The shared strip
 /// include consumes and undefines this override; see its predicate contract.
-#define WATER_WAVE_STRIPS_IS_LIST_END(surface) ((surface)->count == WATER_SURFACE_LIST_END)
+#define WATER_WAVE_STRIPS_IS_LIST_END(surface) ((surface)->listMarker == WATER_SURFACE_LIST_END)
 #define WATER_WAVE_STRIPS_SURFACES             D_shelter_b4_water_supply_80182648
 #define WATER_WAVE_STRIPS_HEIGHT               D_shelter_b4_water_supply_80182638
 #define WATER_WAVE_STRIPS_PRIM_CURSOR          D_shelter_b4_water_supply_80184E50
@@ -1042,19 +1031,19 @@ static s32 func_shelter_b4_water_supply_8017DDFC(RoomEventMsg* in, RoomEventMsg*
 /// whose drawing state calls it, is unused.
 static void func_shelter_b4_water_supply_8017E5D8(Task* task)
 {
-    SVECTOR                      v0, v1, v2, v3;
-    long                         sxy0, sxy1, sxy2, sxy3;
-    long                         p, flag;
-    s32                          phase;
-    ShelterB4WaterSupplySurface* e;
-    WaterQuadScratch*            scratch;
-    WaterQuadScratch*            scratchEnd;
-    POLY_G4*                     poly;
-    DR_MODE*                     dr;
-    s32                          otz;
-    s32                          i;
+    SVECTOR                  v0, v1, v2, v3;
+    long                     sxy0, sxy1, sxy2, sxy3;
+    long                     p, flag;
+    s32                      phase;
+    RoomCompactWaterSurface* surface;
+    WaterQuadScratch*        scratch;
+    WaterQuadScratch*        scratchEnd;
+    POLY_G4*                 poly;
+    DR_MODE*                 dr;
+    s32                      otz;
+    s32                      i;
 
-    e                          = D_shelter_b4_water_supply_8018265C;
+    surface                    = D_shelter_b4_water_supply_8018265C;
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     scratchEnd                 = SCRATCH_STACK_CURSOR(WaterQuadScratch);
     phase                      = -(gDisplayState.animFrame * 16);
@@ -1065,11 +1054,11 @@ static void func_shelter_b4_water_supply_8017E5D8(Task* task)
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     scratch->y = D_shelter_b4_water_supply_80182638;
-    for (; e->count != WATER_SURFACE_LIST_END; e++) {
-        scratch->dx = e->width / 16;
-        scratch->dz = e->depth / 2;
-        scratch->x  = e->x;
-        scratch->z  = e->z;
+    for (; surface->listMarker != WATER_SURFACE_LIST_END; surface++) {
+        scratch->dx = surface->width / 16;
+        scratch->dz = surface->depth / 2;
+        scratch->x  = surface->x;
+        scratch->z  = surface->z;
         for (i = 0; i < 16; i++) {
             v0.vx            = scratch->x + scratch->dx * i;
             v0.vy            = scratch->y;

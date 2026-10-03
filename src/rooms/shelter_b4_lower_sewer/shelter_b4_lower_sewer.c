@@ -31,22 +31,11 @@
 
 #include "rooms/room.h"
 
-/// One water surface: its near edge starts at (`x`, `z`) and runs `step` along
-/// X; its far edge sits `dz` further along Z. A surface whose `end` is -1
-/// terminates the list.
-typedef struct {
-    s16 x;
-    s16 z;
-    s16 step;
-    s16 dz;
-    s16 end;
-} _Surface;
-
 extern TaskMessageEntry D_shelter_b4_lower_sewer_80181E44[];
 
-extern TaskDesc D_shelter_b4_lower_sewer_80181E70[];
-extern _Surface D_shelter_b4_lower_sewer_80181E7C[];
-extern _Surface D_shelter_b4_lower_sewer_80181E90[];
+extern TaskDesc                D_shelter_b4_lower_sewer_80181E70[];
+extern RoomCompactWaterSurface D_shelter_b4_lower_sewer_80181E7C[];
+extern RoomCompactWaterSurface D_shelter_b4_lower_sewer_80181E90[];
 
 static void func_shelter_b4_lower_sewer_8017E33C(Task* arg0);
 static void func_shelter_b4_lower_sewer_8017E37C(Task* task);
@@ -71,12 +60,12 @@ TaskDesc D_shelter_b4_lower_sewer_80181E70[1] = {
     { { { TASK_BODY_NONE, 96 } }, func_shelter_b4_lower_sewer_8017E2D4, { .value = 0 } },
 };
 
-_Surface D_shelter_b4_lower_sewer_80181E7C[2] = {
+RoomCompactWaterSurface D_shelter_b4_lower_sewer_80181E7C[2] = {
     { -0x28A0, 0, 0x5B68, 2900, 0 },
     { 0, 0, 0, 0, WATER_SURFACE_LIST_END },
 };
 
-_Surface D_shelter_b4_lower_sewer_80181E90[2] = {
+RoomCompactWaterSurface D_shelter_b4_lower_sewer_80181E90[2] = {
     { -0x32C8, 0, 3600, 1450, 0 },
     { 0, 0, 0, 0, WATER_SURFACE_LIST_END },
 };
@@ -162,19 +151,19 @@ void func_shelter_b4_lower_sewer_8017D6D4(Task* task)
 /// from the water task's drawing state with the task, which it does not read.
 static void func_shelter_b4_lower_sewer_8017D72C(Task* task)
 {
-    SVECTOR           v0, v1, v2, v3;
-    long              sxy0, sxy1, sxy2, sxy3;
-    long              p, flag;
-    _Surface*         e;
-    WaterQuadScratch* scratchEnd;
-    WaterQuadScratch* scratch;
-    s32               phase;
-    POLY_G4*          poly;
-    DR_MODE*          dr;
-    s32               otz;
-    s32               i;
+    SVECTOR                  v0, v1, v2, v3;
+    long                     sxy0, sxy1, sxy2, sxy3;
+    long                     p, flag;
+    RoomCompactWaterSurface* surface;
+    WaterQuadScratch*        scratchEnd;
+    WaterQuadScratch*        scratch;
+    s32                      phase;
+    POLY_G4*                 poly;
+    DR_MODE*                 dr;
+    s32                      otz;
+    s32                      i;
 
-    e                          = D_shelter_b4_lower_sewer_80181E7C;
+    surface                    = D_shelter_b4_lower_sewer_80181E7C;
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     scratchEnd                 = SCRATCH_STACK_CURSOR(WaterQuadScratch);
     phase                      = -(gDisplayState.animFrame * 16);
@@ -185,11 +174,11 @@ static void func_shelter_b4_lower_sewer_8017D72C(Task* task)
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     (scratchEnd - 1)->y = D_shelter_b4_lower_sewer_80181E6C;
-    for (; e->end != WATER_SURFACE_LIST_END; e++) {
-        scratch->dx = e->step / 32;
-        scratch->dz = e->dz / 2;
-        scratch->x  = e->x;
-        scratch->z  = e->z;
+    for (; surface->listMarker != WATER_SURFACE_LIST_END; surface++) {
+        scratch->dx = surface->width / 32;
+        scratch->dz = surface->depth / 2;
+        scratch->x  = surface->x;
+        scratch->z  = surface->z;
         for (i = 0; i < 32; i++) {
             v0.vx            = scratch->x + scratch->dx * i;
             v0.vy            = scratch->y;
@@ -297,19 +286,19 @@ static void func_shelter_b4_lower_sewer_8017D72C(Task* task)
 /// task's drawing state with the task, which it does not read.
 static void func_shelter_b4_lower_sewer_8017DE8C(Task* task)
 {
-    SVECTOR           v0, v1, v2, v3;
-    long              sxy0, sxy1, sxy2, sxy3;
-    long              p, flag;
-    s32               phase;
-    WaterQuadScratch* scratchEnd;
-    WaterQuadScratch* scratch;
-    _Surface*         e;
-    POLY_G4*          poly;
-    DR_MODE*          dr;
-    s32               otz;
-    s32               i;
+    SVECTOR                  v0, v1, v2, v3;
+    long                     sxy0, sxy1, sxy2, sxy3;
+    long                     p, flag;
+    s32                      phase;
+    WaterQuadScratch*        scratchEnd;
+    WaterQuadScratch*        scratch;
+    RoomCompactWaterSurface* surface;
+    POLY_G4*                 poly;
+    DR_MODE*                 dr;
+    s32                      otz;
+    s32                      i;
 
-    e                          = D_shelter_b4_lower_sewer_80181E90;
+    surface                    = D_shelter_b4_lower_sewer_80181E90;
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     scratchEnd                 = SCRATCH_STACK_CURSOR(WaterQuadScratch);
     phase                      = -(gDisplayState.animFrame * 16);
@@ -320,11 +309,11 @@ static void func_shelter_b4_lower_sewer_8017DE8C(Task* task)
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     (scratchEnd - 1)->y = D_shelter_b4_lower_sewer_80181E6C;
-    for (; e->end != WATER_SURFACE_LIST_END; e++) {
-        scratch->dx = e->step / 8;
-        scratch->dz = e->dz;
-        scratch->x  = e->x;
-        scratch->z  = e->z;
+    for (; surface->listMarker != WATER_SURFACE_LIST_END; surface++) {
+        scratch->dx = surface->width / 8;
+        scratch->dz = surface->depth;
+        scratch->x  = surface->x;
+        scratch->z  = surface->z;
         for (i = 0; i < 8; i++) {
             v0.vx            = scratch->x + scratch->dx * i;
             v0.vy            = scratch->y;

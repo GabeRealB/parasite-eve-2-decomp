@@ -193,6 +193,23 @@ typedef struct {
 } RoomWaterSurface;
 STATIC_ASSERT_SIZEOF(RoomWaterSurface, 0xC);
 
+/// A rectangular water patch in world coordinates that carries no subdivision count.
+///
+/// The compact form of `RoomWaterSurface`: the same rectangle, with height
+/// supplied by its drawer, followed by a signed halfword that only marks the
+/// end of the table. Each drawer subdivides `width` and `depth` by its own
+/// constants, using integer division. Tables include a final entry with
+/// `listMarker == WATER_SURFACE_LIST_END`; the other fields of that entry are
+/// not read.
+typedef struct {
+    s16 x;          // Starting X in world units
+    s16 z;          // Starting Z in world units
+    s16 width;      // Extent along +X in world units
+    s16 depth;      // Extent along +Z in world units
+    s16 listMarker; // List terminator (0 drawable entry, -1 list end)
+} RoomCompactWaterSurface;
+STATIC_ASSERT_SIZEOF(RoomCompactWaterSurface, 0xA);
+
 /// The spawn argument of a room model task whose visibility follows a 2-bit
 /// game flag: the task hides its model while the flag `flagId` names reads 2.
 /// Nothing else of the record is read.
