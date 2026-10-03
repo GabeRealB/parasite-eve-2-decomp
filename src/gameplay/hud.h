@@ -5,16 +5,20 @@
 
 struct Enemy;
 
-/// 8-byte follow state passed to `Gp_HudTrackEnemy` / `Gp_HudTrackSlot0`.
-/// `field_0` is the last `Enemy` drawn; `field_4` / `field_6` are the
-/// previous screen X/Y that `Gp_HudTrackEnemy` lerps toward 0x6A, -0x35
-/// (or -0x64 when `func_800B9D80(0x100000)` is 0).
-typedef struct _GpHudTrack {
-    /* 0x0 */ struct Enemy* field_0;
-    /* 0x4 */ s16           field_4;
-    /* 0x6 */ s16           field_6;
-} GpHudTrack;
-STATIC_ASSERT_SIZEOF(GpHudTrack, 8);
+/// Placement of the locked-on enemy's HP readout, kept between frames.
+///
+/// The readout is anchored at the right of the screen: near the top, or lower,
+/// clear of the radar, when the player has one. A newly locked enemy's readout
+/// is drawn at the anchor. While the same enemy stays locked, each frame moves
+/// it one eighth of the remaining distance, rounded down, from the stored
+/// position toward the anchor, so it slides when the anchor moves. A zero-filled
+/// record is the valid initial state.
+typedef struct {
+    struct Enemy* enemy; // Enemy shown on the last drawn frame. Only compared, never dereferenced; `NULL` before the first
+    s16           x;     // Horizontal position as last drawn, pixels from the screen center
+    s16           y;     // Vertical position as last drawn, pixels from the screen center, increasing downward
+} HudTargetHpReadout;
+STATIC_ASSERT_SIZEOF(HudTargetHpReadout, 8);
 
 /// Seven `u16` masks tested against `PlayerStatus.statusFlags` by the party HP/MP
 /// HUD (`func_800A57B0`); each set bit draws one 14x14 status icon.

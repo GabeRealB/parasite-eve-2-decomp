@@ -45,7 +45,7 @@ s32 func_800A7550(void);
 
 void func_800A7824(s32 arg0, s32 arg1, s32 arg2);
 
-void Gp_HudTrackSlot0(GpHudTrack* arg0);
+void Gp_HudTrackSlot0(HudTargetHpReadout* readout);
 
 void Gp_DrawItemObtained(Task* arg0);
 

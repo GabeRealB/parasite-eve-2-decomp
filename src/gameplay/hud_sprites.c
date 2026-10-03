@@ -172,7 +172,7 @@ static __inline__ ViewCamera* gpViewAt(ViewCamera* records, s32 index)
     return result.record;
 }
 
-static void Gp_HudTrackEnemy(Enemy* arg0, GpHudTrack* arg1);
+static void Gp_HudTrackEnemy(Enemy* arg0, HudTargetHpReadout* readout);
 
 /// Rotates `v` in place by `m` on the GTE, reading it through a copy.
 static inline void _gpRotateVector(MATRIX* m, SVECTOR* v);
@@ -543,7 +543,7 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
     Ui_DrawTextInRect(&s.bar.rect, -1, 0x40002, NULL);
 }
 
-static void Gp_HudTrackEnemy(Enemy* arg0, GpHudTrack* arg1)
+static void Gp_HudTrackEnemy(Enemy* arg0, HudTargetHpReadout* readout)
 {
     GpHudScratch* block;
     s32           val;
@@ -556,17 +556,19 @@ static void Gp_HudTrackEnemy(Enemy* arg0, GpHudTrack* arg1)
         block->field_14 = 0x6A;
         block->field_16 = -0x64;
     }
-    if (arg1->field_0 != arg0) {
-        arg1->field_0 = arg0;
-        arg1->field_4 = block->field_14;
-        arg1->field_4 = block->field_16;
+    if (readout->enemy != arg0) {
+        // A new target starts at the anchor. The second store also lands in
+        // `x`; both members are rewritten after the draw.
+        readout->enemy = arg0;
+        readout->x     = block->field_14;
+        readout->x     = block->field_16;
     } else {
-        block->field_18   = block->field_14 - arg1->field_4;
-        block->field_1A   = block->field_16 - arg1->field_6;
+        block->field_18   = block->field_14 - readout->x;
+        block->field_1A   = block->field_16 - readout->y;
         block->field_18 >>= 3;
         block->field_1A >>= 3;
-        block->field_14   = arg1->field_4 + block->field_18;
-        block->field_16   = arg1->field_6 + block->field_1A;
+        block->field_14   = readout->x + block->field_18;
+        block->field_16   = readout->y + block->field_1A;
     }
     if (arg0->param != NULL) {
         val = arg0->param->hpMax;
@@ -575,8 +577,8 @@ static void Gp_HudTrackEnemy(Enemy* arg0, GpHudTrack* arg1)
         }
         Gp_DrawHudNumbers(block->field_14 - 8, block->field_16, arg0->hp, val, 1);
     }
-    arg1->field_4 = block->field_14;
-    arg1->field_6 = block->field_16;
+    readout->x = block->field_14;
+    readout->y = block->field_16;
     SCRATCH_STACK_RELEASE_BLOCK(GpHudScratch);
 }
 
@@ -807,7 +809,7 @@ void func_800A7824(s32 arg0, s32 arg1, s32 arg2)
     }
 }
 
-void Gp_HudTrackSlot0(GpHudTrack* arg0)
+void Gp_HudTrackSlot0(HudTargetHpReadout* readout)
 {
     WorldTargetNode* target;
     Task*            work;
@@ -826,7 +828,7 @@ void Gp_HudTrackSlot0(GpHudTrack* arg0)
             do {
                 if (node == target) {
                     if (!(node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
-                        Gp_HudTrackEnemy(GP_NODE_ENEMY(node), arg0);
+                        Gp_HudTrackEnemy(GP_NODE_ENEMY(node), readout);
                         return;
                     }
                 }
