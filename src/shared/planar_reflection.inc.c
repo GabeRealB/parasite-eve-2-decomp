@@ -111,6 +111,48 @@ static void Reflection_InitPlayer(Task* task)
     Reflection_UpdatePlayer(task);
 }
 
+/// Scratch-stack block for where a planar reflection lands on screen.
+///
+/// The mirror task in Acropolis and in the Shelter/Neo Ark stage reserves one
+/// block, projects two samples through one reflected part, and releases the
+/// block before copying the player's light matrices. While a scripted event
+/// is running the samples are on part 1, 1000 game units either side of its
+/// origin. Otherwise they are on the root part: 2000 units along negative
+/// local Y, and the origin. Model space is Y-down, so the negative-Y sample
+/// is the upper end of an upright part; it is stored as the head and the
+/// other sample as the foot.
+///
+/// `point` is reused for both projections. Each projection overwrites
+/// `depthCue` and `projectionFlags`, and the mirror never reads them. Screen
+/// Y is then ordered so `screenFoot` is the upper edge and `screenHead` the
+/// lower, and each edge is padded by 16 pixels. The swap uses `screenHead.vx`
+/// as its temporary. The quad is centred on the foot sample's screen X. Its
+/// half-width is half the padded vertical span, clamped to 95 pixels, and
+/// `left` through `bottom` is that rectangle clamped to the 320 by 240 frame.
+/// The quads are drawn when the rectangle overlaps the mirror's clip
+/// rectangle; a shared edge does not count. Otherwise the reflected model is
+/// hidden for the frame.
+///
+/// `orderingDepthFoot` is the quarter-depth the quads are ordered at. In area
+/// 2, view 5, a mirror other than index 0 stores the head sample's depth plus
+/// 10 there instead. `texturePageX` is the 64-pixel-aligned VRAM X of the
+/// 16-bit page those quads sample the off-screen frame copy from.
+typedef struct {
+    SVECTOR point;             // Sample in the part's local space; X and Z are 0, and the unused halfword is left unchanged
+    s32     depthCue;          // GTE IR0 of the latest projection, with 12 fractional bits; written and never read
+    s32     projectionFlags;   // GTE FLAG of the latest projection; written and never tested
+    s32     orderingDepthFoot; // Foot sample's SZ3 / 4, or the head depth plus 10; the quads' ordering-table depth
+    s32     orderingDepthHead; // Head sample's SZ3 / 4; read only to replace the foot depth
+    DVECTOR screenFoot;        // Foot sample's screen pixels; vy is ordered to the upper edge, vx centres the quad
+    DVECTOR screenHead;        // Head sample's screen pixels; vy is ordered to the lower edge, vx is the swap temporary
+    u16     texturePageX;      // 64-pixel-aligned VRAM X of the 16-bit page the quads sample. Two alignment bytes follow
+    s32     left;              // Quad left edge, pixels from screen centre, clamped to -160
+    s32     right;             // Quad right edge, pixels from screen centre, clamped to 160
+    s32     top;               // Quad top edge, pixels from screen centre, clamped to -120
+    s32     bottom;            // Quad bottom edge, pixels from screen centre, clamped to 120
+} _PlanarReflectionExtentScratch;
+STATIC_ASSERT_SIZEOF(_PlanarReflectionExtentScratch, 0x34);
+
 /// State 1 of the hall's mirror task, run every frame after
 /// `Reflection_InitPlayer` has set the mirror up.
 ///
@@ -127,36 +169,36 @@ static void Reflection_InitPlayer(Task* task)
 /// and light matrices onto the reflection.
 static void Reflection_UpdatePlayer(Task* task)
 {
-    RoomMirrorWork*          work;
-    PlayerStatus*            status;
-    TmdObject*               extra;
-    TmdObject*               model;
-    Task*                    owner;
-    GameActor*               actor;
-    Task*                    child;
-    Task*                    spawned;
-    RoomMirrorPlaneScratch*  plane;
-    RoomMirrorExtentScratch* extent;
-    GfxCoord*                parts;
-    GfxCoord*                refPart;
-    DR_AREA*                 drArea;
-    DR_STP*                  drStp;
-    DR_OFFSET*               drOffset;
-    SPRT*                    sprt;
-    DR_TPAGE*                tpage;
-    TILE*                    tile;
-    POLY_FT4*                poly;
-    s32                      stage;
-    s32                      area;
-    s32                      view;
-    s32                      width;
-    s32                      viewRebuildStamp;
-    s32                      copyPending;
-    s32                      halfWidth;
-    s32                      texX;
-    s32                      i;
-    s32                      layer;
-    u32                      j;
+    RoomMirrorWork*                 work;
+    PlayerStatus*                   status;
+    TmdObject*                      extra;
+    TmdObject*                      model;
+    Task*                           owner;
+    GameActor*                      actor;
+    Task*                           child;
+    Task*                           spawned;
+    RoomMirrorPlaneScratch*         plane;
+    _PlanarReflectionExtentScratch* extent;
+    GfxCoord*                       parts;
+    GfxCoord*                       refPart;
+    DR_AREA*                        drArea;
+    DR_STP*                         drStp;
+    DR_OFFSET*                      drOffset;
+    SPRT*                           sprt;
+    DR_TPAGE*                       tpage;
+    TILE*                           tile;
+    POLY_FT4*                       poly;
+    s32                             stage;
+    s32                             area;
+    s32                             view;
+    s32                             width;
+    s32                             viewRebuildStamp;
+    s32                             copyPending;
+    s32                             halfWidth;
+    s32                             texX;
+    s32                             i;
+    s32                             layer;
+    u32                             j;
 
     width  = 0x1C0;
     work   = task->work;
@@ -528,63 +570,83 @@ static void Reflection_UpdatePlayer(Task* task)
             }
         }
         if (stage == 1 || stage == 5) {
-            extent = (RoomMirrorExtentScratch*)SCRATCH_STACK_RESERVE_BYTES(0x34);
+            enum {
+                /// Local-Y distance from part 1 to each sample during a scripted event, in game coordinates.
+                PLANAR_REFLECTION_EVENT_SAMPLE_DISTANCE = 0x3E8,
+                /// Local Y of the root part's head sample, in game coordinates. The foot sample is the origin.
+                PLANAR_REFLECTION_ROOT_HEAD_OFFSET = -0x7D0,
+                /// Pixels added beyond each ordered screen edge before the quad is measured.
+                PLANAR_REFLECTION_SCREEN_EDGE_PAD = 0x10,
+                /// Quarter-depths added to the head sample when it replaces the foot's ordering depth.
+                PLANAR_REFLECTION_ORDERING_DEPTH_BIAS = 0xA,
+                /// Clears a VRAM X down to the 64-pixel alignment a 16-bit texture page requires.
+                PLANAR_REFLECTION_TEXTURE_PAGE_MASK = 0xFFC0
+            };
+
+            extent = SCRATCH_STACK_RESERVE_BLOCK(_PlanarReflectionExtentScratch);
             if (gGameSession->eventState != 0) {
                 Gp_UpdateCoord(refPart);
                 gte_SetTransMatrix(&refPart->workm);
                 gte_SetRotMatrix(&refPart->workm);
-                extent->pos.vx = 0;
-                extent->pos.vy = -0x3E8;
-                extent->pos.vz = 0;
-                gte_RotTransPers(&extent->pos, &extent->sxyHead, &extent->dp, &extent->flag, &extent->otzHead);
-                extent->pos.vx = 0;
-                extent->pos.vy = 0x3E8;
-                extent->pos.vz = 0;
-                gte_RotTransPers(&extent->pos, &extent->sxyFoot, &extent->dp, &extent->flag, &extent->otzFoot);
+                extent->point.vx = 0;
+                extent->point.vy = -PLANAR_REFLECTION_EVENT_SAMPLE_DISTANCE;
+                extent->point.vz = 0;
+                gte_RotTransPers(&extent->point, &extent->screenHead, &extent->depthCue, &extent->projectionFlags,
+                                 &extent->orderingDepthHead);
+                extent->point.vx = 0;
+                extent->point.vy = PLANAR_REFLECTION_EVENT_SAMPLE_DISTANCE;
+                extent->point.vz = 0;
+                gte_RotTransPers(&extent->point, &extent->screenFoot, &extent->depthCue, &extent->projectionFlags,
+                                 &extent->orderingDepthFoot);
             } else {
                 Gp_UpdateCoord(parts);
                 gte_SetTransMatrix(&parts->workm);
                 gte_SetRotMatrix(&parts->workm);
-                extent->pos.vx = 0;
-                extent->pos.vy = -0x7D0;
-                extent->pos.vz = 0;
-                gte_RotTransPers(&extent->pos, &extent->sxyHead, &extent->dp, &extent->flag, &extent->otzHead);
-                extent->pos.vx = 0;
-                extent->pos.vy = 0;
-                extent->pos.vz = 0;
-                gte_RotTransPers(&extent->pos, &extent->sxyFoot, &extent->dp, &extent->flag, &extent->otzFoot);
+                extent->point.vx = 0;
+                extent->point.vy = PLANAR_REFLECTION_ROOT_HEAD_OFFSET;
+                extent->point.vz = 0;
+                gte_RotTransPers(&extent->point, &extent->screenHead, &extent->depthCue, &extent->projectionFlags,
+                                 &extent->orderingDepthHead);
+                extent->point.vx = 0;
+                extent->point.vy = 0;
+                extent->point.vz = 0;
+                gte_RotTransPers(&extent->point, &extent->screenFoot, &extent->depthCue, &extent->projectionFlags,
+                                 &extent->orderingDepthFoot);
             }
-            if (extent->sxyFoot.vy > extent->sxyHead.vy) {
-                extent->sxyHead.vx = extent->sxyFoot.vy;
-                extent->sxyFoot.vy = extent->sxyHead.vy;
-                extent->sxyHead.vy = extent->sxyHead.vx;
+            // Order screen Y so the foot slot is the upper edge. screenHead.vx is the swap temporary.
+            if (extent->screenFoot.vy > extent->screenHead.vy) {
+                extent->screenHead.vx = extent->screenFoot.vy;
+                extent->screenFoot.vy = extent->screenHead.vy;
+                extent->screenHead.vy = extent->screenHead.vx;
             }
-            extent->sxyFoot.vy -= 0x10;
-            extent->sxyHead.vy += 0x10;
-            halfWidth           = (extent->sxyHead.vy - extent->sxyFoot.vy) >> 1;
+            extent->screenFoot.vy -= PLANAR_REFLECTION_SCREEN_EDGE_PAD;
+            extent->screenHead.vy += PLANAR_REFLECTION_SCREEN_EDGE_PAD;
+            // Half the padded vertical span, clamped to 95, is the quad's half-width about the foot's screen X.
+            halfWidth = (extent->screenHead.vy - extent->screenFoot.vy) >> 1;
             if (halfWidth >= 0x60) {
                 halfWidth = 0x5F;
             }
+            // Area 2, view 5: mirror 0 forces that maximum; any other mirror orders from the head sample.
             if ((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_AREA_VIEW_MASK) == GAME_LOCATION_KEY(0, 2, 0, 5)) {
                 if (task->spawnArg1.value == 0) {
                     halfWidth = 0x5F;
                 } else {
-                    extent->otzFoot = extent->otzHead + 0xA;
+                    extent->orderingDepthFoot = extent->orderingDepthHead + PLANAR_REFLECTION_ORDERING_DEPTH_BIAS;
                 }
             }
-            extent->left = extent->sxyFoot.vx - halfWidth;
+            extent->left = extent->screenFoot.vx - halfWidth;
             if (extent->left < -0xA0) {
                 extent->left = -0xA0;
             }
-            extent->right = extent->sxyFoot.vx + halfWidth;
+            extent->right = extent->screenFoot.vx + halfWidth;
             if (extent->right > 0xA0) {
                 extent->right = 0xA0;
             }
-            extent->top = extent->sxyFoot.vy;
+            extent->top = extent->screenFoot.vy;
             if (extent->top < -0x78) {
                 extent->top = -0x78;
             }
-            extent->bottom = extent->sxyHead.vy;
+            extent->bottom = extent->screenHead.vy;
             if (extent->bottom > 0x78) {
                 extent->bottom = 0x78;
             }
@@ -592,12 +654,12 @@ static void Reflection_UpdatePlayer(Task* task)
                 work->clipLeft < extent->right) {
                 DR_TPAGE* mode;
 
-                mode           = gGpuPrimCursor;
-                texX           = extent->left + (u16)(width + 0xA0);
-                extent->texX   = texX & 0xFFC0;
-                gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_TPAGE);
+                mode                 = gGpuPrimCursor;
+                texX                 = extent->left + (u16)(width + 0xA0);
+                extent->texturePageX = texX & PLANAR_REFLECTION_TEXTURE_PAGE_MASK;
+                gGpuPrimCursor       = (u8*)gGpuPrimCursor + sizeof(DR_TPAGE);
                 setDrawTPage(mode, 0, 1, 0);
-                addPrim(&gGpuCurrentOt[(((extent->otzFoot << gDisplayState.otDepthShift) & 0x3FFF) >> 4) + extra->otOffset - 15],
+                addPrim(&gGpuCurrentOt[(((extent->orderingDepthFoot << gDisplayState.otDepthShift) & 0x3FFF) >> 4) + extra->otOffset - 15],
                         mode);
                 for (layer = work->firstBlendMode; layer < GPU_BLEND_ADD_QUARTER; layer++) {
                     poly           = gGpuPrimCursor;
@@ -614,23 +676,23 @@ static void Reflection_UpdatePlayer(Task* task)
                     poly->x1 = poly->x3 = extent->right;
                     poly->y0 = poly->y1 = extent->top;
                     poly->y2 = poly->y3 = extent->bottom;
-                    poly->tpage         = getTPage(2, layer, extent->texX, 0x100);
-                    poly->u0 = poly->u2 = poly->x0 + 0xA0 + width - extent->texX;
-                    poly->u1 = poly->u3 = poly->x1 + 0xA0 + width - extent->texX;
+                    poly->tpage         = getTPage(2, layer, extent->texturePageX, 0x100);
+                    poly->u0 = poly->u2 = poly->x0 + 0xA0 + width - extent->texturePageX;
+                    poly->u1 = poly->u3 = poly->x1 + 0xA0 + width - extent->texturePageX;
                     poly->v0 = poly->v1 = poly->y0 + 0x78;
                     poly->v2 = poly->v3 = poly->y2 + 0x78;
-                    addPrim(&gGpuCurrentOt[(((extent->otzFoot << gDisplayState.otDepthShift) & 0x3FFF) >> 4) + extra->otOffset - 15],
+                    addPrim(&gGpuCurrentOt[(((extent->orderingDepthFoot << gDisplayState.otDepthShift) & 0x3FFF) >> 4) + extra->otOffset - 15],
                             poly);
                 }
                 mode           = gGpuPrimCursor;
                 gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_TPAGE);
                 setDrawTPage(mode, 0, 0, 0);
-                addPrim(&gGpuCurrentOt[(((extent->otzFoot << gDisplayState.otDepthShift) & 0x3FFF) >> 4) + extra->otOffset - 15],
+                addPrim(&gGpuCurrentOt[(((extent->orderingDepthFoot << gDisplayState.otDepthShift) & 0x3FFF) >> 4) + extra->otOffset - 15],
                         mode);
             } else {
                 extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
-            SCRATCH_STACK_RELEASE_BYTES(0x34);
+            SCRATCH_STACK_RELEASE_BLOCK(_PlanarReflectionExtentScratch);
         }
     }
 

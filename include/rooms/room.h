@@ -131,28 +131,6 @@ typedef struct RoomMirrorPlaneScratch {
 } RoomMirrorPlaneScratch;
 STATIC_ASSERT_SIZEOF(RoomMirrorPlaneScratch, 0x70);
 
-/// The scratchpad block a mirror task takes to find where the reflection
-/// lands on screen. It projects two points above and below one of the
-/// reflected model's parts through `pos`: `sxyHead` and `otzHead` for the
-/// upper point, `sxyFoot` and `otzFoot` for the lower. `left` to `bottom` is
-/// the screen rectangle the reflection quads cover, and `texX` the x of the
-/// texture page they sample the off-screen copy of the frame from.
-typedef struct RoomMirrorExtentScratch {
-    SVECTOR pos;
-    s32     dp;
-    s32     flag;
-    s32     otzFoot;
-    s32     otzHead;
-    DVECTOR sxyFoot;
-    DVECTOR sxyHead;
-    u16     texX;
-    s32     left;
-    s32     right;
-    s32     top;
-    s32     bottom;
-} RoomMirrorExtentScratch;
-STATIC_ASSERT_SIZEOF(RoomMirrorExtentScratch, 0x34);
-
 /// World-coordinate working values for constructing a water surface's quad strips.
 ///
 /// All values are signed world units. A drawer reserves one block on the
