@@ -70,24 +70,28 @@ extern AnimationSet* D_acropolis_sanctuary_80180918[9];
 
 extern WorldCollisionTrigger D_acropolis_sanctuary_80183AE4[17];
 
-/// 0xC work block of the sanctuary's cutscene task, hung off the `Task::work`
-/// slot (0x1C): the
-/// `memCalloc(0xC)` block `func_acropolis_sanctuary_8017DA40` allocates and
-/// zeroes before publishing the owning task in
-/// `D_acropolis_sanctuary_80186C90`. Reach it with `(AcsCutsceneWork*)task->work`.
+/// Script-selected phases and placement status of the sanctuary cutscene.
+enum {
+    ACROPOLIS_SANCTUARY_CUTSCENE_PHASE_INITIAL      = 0,
+    ACROPOLIS_SANCTUARY_CUTSCENE_PHASE_HOLD         = 1,
+    ACROPOLIS_SANCTUARY_CUTSCENE_PHASE_PLACE_PLAYER = 2,
+    ACROPOLIS_SANCTUARY_CUTSCENE_PLACEMENT_PENDING  = 0,
+    ACROPOLIS_SANCTUARY_CUTSCENE_PLACEMENT_APPLIED  = 1,
+};
+
+/// Task-owned state for the sanctuary cutscene's script-cued player placement.
 ///
-/// `target` is the slot-3 task the block's messages are addressed to, captured
-/// once from `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`. `phase` is the script step the driver in
-/// `func_acropolis_sanctuary_8017DA40` runs -- it only acts on phase 2, and
-/// then only while `step` is still 0, bumping `step` once the scene has been
-/// dispatched so it fires exactly once.
-typedef struct AcsCutsceneWork {
-    /* 0x0 */ Task* target;
-    /* 0x4 */ u16   phase;
-    /* 0x6 */ u16   step;
-    /* 0x8 */ s32   field_8;
-} AcsCutsceneWork;
-STATIC_ASSERT_SIZEOF(AcsCutsceneWork, 0xC);
+/// Stored in `Task::work` on the primary heap and freed by default task teardown.
+/// Script requests require the initialized cutscene task to remain live; the
+/// borrowed player task must remain live through its animation and placement
+/// messages. Each placement request resets the one-shot status.
+typedef struct {
+    Task* playerTask;       // Borrowed player task captured at creation
+    u16   phase;            // Script phase (0 initial, 1 hold, 2 place player)
+    u16   placementApplied; // Player setup status (0 pending, 1 applied)
+    u8    field_8[4];       // Cleared at creation; role and field boundaries unproven
+} _AcropolisSanctuaryCutsceneWork;
+STATIC_ASSERT_SIZEOF(_AcropolisSanctuaryCutsceneWork, 0xC);
 
 /// Scratch payload `func_acropolis_sanctuary_8017DA40` builds on its own stack
 /// for the slot-3 messages it sends: `rec` is the 0x14-byte record msgs 0x3E8
@@ -1906,7 +1910,7 @@ void func_acropolis_sanctuary_8017D9E8(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// The sanctuary cutscene task. State 0 allocates the task's `AcsCutsceneWork`
+/// The sanctuary cutscene task. State 0 allocates the task's `_AcropolisSanctuaryCutsceneWork`
 /// block, captures slot 3 in it, publishes the task itself in
 /// `D_acropolis_sanctuary_80186C90` and cues the scene: slot 3 is sent the
 /// 0x3E8 weapon record for the equipped weapon, the scene's sound event is
@@ -1916,45 +1920,45 @@ void func_acropolis_sanctuary_8017D9E8(Task* task)
 /// the sound, writes the room's exit into the save and hands off to task 0x11
 /// before the task kills itself. Otherwise the scene fires exactly
 /// once, when `func_acropolis_sanctuary_8017DCE0` has armed `phase` at 2 and
-/// `step` is still 0: the player's effects are dropped, slot 3 is given the
+/// `placementApplied` is still 0: the player's effects are dropped, slot 3 is given the
 /// 0x3F4 record and then warped to the scene's mark with a 0x3E9 placement, and
-/// `step` is bumped so the next frame does nothing.
+/// `placementApplied` is bumped so the next frame does nothing.
 void func_acropolis_sanctuary_8017DA40(Task* arg0)
 {
-    AcsMsgArg        weapon;
-    AcsMsgArg        rec;
-    AcsMsgArg*       msg;
-    AcsCutsceneWork* work;
-    AcsCutsceneWork* cutscene;
-    AcsCutsceneWork* slot;
-    AcsCutsceneWork* target;
-    s32              state;
-    s32              idx;
-    s32              weaponId;
+    AcsMsgArg                        weapon;
+    AcsMsgArg                        rec;
+    AcsMsgArg*                       msg;
+    _AcropolisSanctuaryCutsceneWork* work;
+    _AcropolisSanctuaryCutsceneWork* cutscene;
+    _AcropolisSanctuaryCutsceneWork* initialWork;
+    _AcropolisSanctuaryCutsceneWork* playerSetupWork;
+    s32                              state;
+    s32                              idx;
+    s32                              weaponId;
 
     state = arg0->state;
     switch (state) {
         case 0:
             if (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
-                work       = memCalloc(0xC, 0);
+                work       = memCalloc(sizeof(*work), 0);
                 arg0->work = work;
                 if (work == NULL) {
                     taskKill(arg0);
                 } else {
                     memFillBytes(work, 0, sizeof(*work));
-                    work->target                   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                    work->playerTask               = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                     D_acropolis_sanctuary_80186C90 = arg0;
                 }
-                slot     = (AcsCutsceneWork*)arg0->work;
-                weaponId = gPlayerStatus.weapon;
-                idx      = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                initialWork = arg0->work;
+                weaponId    = gPlayerStatus.weapon;
+                idx         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
 
                 weapon.rec.source.index         = idx;
                 weapon.rec.animationId          = 1;
                 weapon.rec.blend                = ANIMATION_BLEND_INTERPOLATE;
                 weapon.rec.blendFrames          = 0xF;
                 weapon.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(slot->target, ANIMATION_MESSAGE_PLAY, &weapon, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(initialWork->playerTask, ANIMATION_MESSAGE_PLAY, &weapon, 0);
                 SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SANCTUARY, 7), 0, 0);
                 func_800E8634(D_acropolis_sanctuary_801820F0, 0, D_acropolis_sanctuary_801821C8);
                 arg0->state = arg0->state + 1;
@@ -1973,23 +1977,23 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                 taskKill(arg0);
                 break;
             }
-            cutscene = (AcsCutsceneWork*)arg0->work;
+            cutscene = arg0->work;
             msg      = &rec;
             switch (cutscene->phase) {
-                case 0:
-                case 1:
+                case ACROPOLIS_SANCTUARY_CUTSCENE_PHASE_INITIAL:
+                case ACROPOLIS_SANCTUARY_CUTSCENE_PHASE_HOLD:
                     break;
-                case 2:
-                    if (cutscene->step == 0) {
+                case ACROPOLIS_SANCTUARY_CUTSCENE_PHASE_PLACE_PLAYER:
+                    if (cutscene->placementApplied == ACROPOLIS_SANCTUARY_CUTSCENE_PLACEMENT_PENDING) {
                         Gp_KillPlayerEffs();
-                        target = (AcsCutsceneWork*)arg0->work;
-                        if (target->target != NULL) {
+                        playerSetupWork = arg0->work;
+                        if (playerSetupWork->playerTask != NULL) {
                             rec.rec.source.sets           = D_acropolis_sanctuary_801820E4;
                             rec.rec.animationId           = 0;
                             rec.rec.blend                 = ANIMATION_BLEND_RESET;
                             msg->rec.blendFrames          = 0xF;
                             msg->rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                            TASK_MESSAGE_DISPATCH_POINTER(target->target, ANIMATION_MESSAGE_INSTALL_AND_PLAY, msg, 0);
+                            TASK_MESSAGE_DISPATCH_POINTER(playerSetupWork->playerTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, msg, 0);
                         }
                         rec.place.pos.vx  = -0x1DB0;
                         rec.place.pos.vy  = 0;
@@ -1997,9 +2001,9 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                         rec.place.rot.vx  = 0;
                         rec.place.rot.vy  = 0;
                         rec.place.rot.vz  = 0;
-                        TASK_MESSAGE_DISPATCH_POINTER(cutscene->target, 0x3E9, msg, 0);
+                        TASK_MESSAGE_DISPATCH_POINTER(cutscene->playerTask, GAME_ACTOR_MESSAGE_PLACE, msg, 0);
                         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xE;
-                        cutscene->step                                             = cutscene->step + 1;
+                        cutscene->placementApplied                                 = cutscene->placementApplied + 1;
                     }
                     break;
             }
@@ -2008,21 +2012,21 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
 }
 
 /// Request entry point for the sanctuary cutscene task's work block: 0 and 1
-/// arm the script at phase 1 or 2 respectively, rewinding `step` so the driver
+/// arm the script at phase 1 or 2 respectively, rewinding `placementApplied` so the driver
 /// runs the scene once, while 2 just plays the pair of sound events the scene
 /// is cued with.
 void func_acropolis_sanctuary_8017DCE0(s32 arg0)
 {
-    AcsCutsceneWork* work = (AcsCutsceneWork*)D_acropolis_sanctuary_80186C90->work;
+    _AcropolisSanctuaryCutsceneWork* work = D_acropolis_sanctuary_80186C90->work;
 
     switch (arg0) {
         case 0:
-            work->phase = 1;
-            work->step  = 0;
+            work->phase            = ACROPOLIS_SANCTUARY_CUTSCENE_PHASE_HOLD;
+            work->placementApplied = ACROPOLIS_SANCTUARY_CUTSCENE_PLACEMENT_PENDING;
             return;
         case 1:
-            work->phase = 2;
-            work->step  = 0;
+            work->phase            = ACROPOLIS_SANCTUARY_CUTSCENE_PHASE_PLACE_PLAYER;
+            work->placementApplied = ACROPOLIS_SANCTUARY_CUTSCENE_PLACEMENT_PENDING;
             return;
         case 2:
             SndEvt_EnqueueType7(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SANCTUARY, 7), 0);
