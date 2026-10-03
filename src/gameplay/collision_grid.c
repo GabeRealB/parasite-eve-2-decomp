@@ -151,17 +151,27 @@ typedef struct {
 } _WorldCollisionGridBodyQueryScratch;
 STATIC_ASSERT_SIZEOF(_WorldCollisionGridBodyQueryScratch, 0x50);
 
-/// 0x50-byte scratch from the scratch stack used by `func_800DD940`.
-/// `seg` holds the object's vertical world-space segment, `origin` saves its
-/// first endpoint, and `ray` holds the direction and the latest intersection.
-/// `delta` measures the displacement from `origin` to that intersection.
-typedef struct _GpFloorScratch {
-    /* 0x00 */ VECTOR  seg[2];
-    /* 0x20 */ VECTOR  origin;
-    /* 0x30 */ VECTOR  delta;
-    /* 0x40 */ SVECTOR ray[2];
-} GpFloorScratch;
-STATIC_ASSERT_SIZEOF(GpFloorScratch, 0x50);
+/// Temporary view-space segment and hit storage for a motion sphere's floor query.
+///
+/// The segment is the body's local Y axis, one radius either side of its
+/// position, placed by the body's cached transform. Endpoint 0 is the end
+/// at position Y plus the radius; the direction runs from endpoint 1 toward
+/// it. Each accepted floor hit replaces endpoint 0, so a later floor has to
+/// cross the shortened segment, while endpoint 1 and the direction stay
+/// fixed. `placedEndpoint` keeps endpoint 0 as first placed, and each hit's
+/// contact distance is measured from it. The face test may write a candidate
+/// intersection even when it later rejects the face; consume that point only
+/// on acceptance. Positions use game units. The block lives on the scratch
+/// stack through the nested candidate scan, segment placement and face
+/// tests. The SDK vectors' fourth components are unused and left
+/// uninitialized.
+typedef struct {
+    VECTOR  endpoints[2];   // View-space segment: [0] end clipped to the latest accepted hit, [1] fixed far end
+    VECTOR  placedEndpoint; // Endpoint 0 before any hit replaced it
+    VECTOR  hitOffset;      // Placed endpoint 0 minus the accepted hit; its length is the contact distance
+    SVECTOR ray[2];         // [0] Endpoint 1 to endpoint 0 direction, 4096 per unit; [1] candidate intersection
+} _WorldCollisionFloorQueryScratch;
+STATIC_ASSERT_SIZEOF(_WorldCollisionFloorQueryScratch, 0x50);
 
 /// 0x30-byte scratch from the scratch stack used by `func_800DDDF8`.
 /// `pos` holds the world-space segment from `func_800DEC80`; `ray[0]`
@@ -229,27 +239,24 @@ static __inline__ void Gp_ObjWorldPosInline(WorldCollisionBody* obj, VECTOR* pos
 void func_800DD940(WorldCollisionBody* arg0)
 {
     enum { WORLD_COLLISION_FLOOR_SURFACE_CLASS_MASK = 0xF };
-    u8*                    head;
-    GpFloorScratch*        block;
-    WorldCollisionContact* slot;
-    s32                    i;
-    u16                    flags;
+    _WorldCollisionFloorQueryScratch* scratch;
+    WorldCollisionContact*            slot;
+    s32                               i;
+    u16                               flags;
 
-    head                       = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(void) = head - 0x50;
-    block                      = (GpFloorScratch*)(head - 0x50);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_WorldCollisionFloorQueryScratch);
     for (i = 0; i < Gp_GridParams->faceCount; i++) {
         D_80115450[i] = 0;
     }
     func_800DDC2C(arg0);
-    func_800E0994(arg0, block->seg, block->ray);
-    block->origin.vx = block->seg[0].vx;
-    block->origin.vy = block->seg[0].vy;
-    block->origin.vz = block->seg[0].vz;
+    func_800E0994(arg0, scratch->endpoints, scratch->ray);
+    scratch->placedEndpoint.vx = scratch->endpoints[0].vx;
+    scratch->placedEndpoint.vy = scratch->endpoints[0].vy;
+    scratch->placedEndpoint.vz = scratch->endpoints[0].vz;
     for (i = 0; i < Gp_GridParams->faceCount; i++) {
         if (D_80115450[i] &&
             Gp_GridParams->normals[Gp_GridParams->faces[i].normalIndex].vy < -0xDDA &&
-            func_800DD324(i, block->seg, block->ray, arg0)) {
+            func_800DD324(i, scratch->endpoints, scratch->ray, arg0)) {
             slot  = arg0->context.motion->contacts;
             flags = slot->flags;
             if (flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
@@ -261,19 +268,19 @@ void func_800DD940(WorldCollisionBody* arg0)
                 slot->flags     = flags | WORLD_COLLISION_CONTACT_OCCUPIED;
                 slot->key.value = Gp_GridParams->faces[i].surfaceClass | WORLD_COLLISION_CONTACT_GRID_FLOOR;
             }
-            slot->point              = block->ray[1];
+            slot->point              = scratch->ray[1];
             slot->response.direction = Gp_GridParams->normals[Gp_GridParams->faces[i].normalIndex];
-            block->delta.vx          = block->origin.vx - block->ray[1].vx;
-            block->delta.vy          = block->origin.vy - block->ray[1].vy;
-            block->delta.vz          = block->origin.vz - block->ray[1].vz;
-            slot->distance           = SquareRoot0(block->delta.vx * block->delta.vx +
-                                                   block->delta.vy * block->delta.vy + block->delta.vz * block->delta.vz);
-            block->seg[0].vx         = block->ray[1].vx;
-            block->seg[0].vy         = block->ray[1].vy;
-            block->seg[0].vz         = block->ray[1].vz;
+            scratch->hitOffset.vx    = scratch->placedEndpoint.vx - scratch->ray[1].vx;
+            scratch->hitOffset.vy    = scratch->placedEndpoint.vy - scratch->ray[1].vy;
+            scratch->hitOffset.vz    = scratch->placedEndpoint.vz - scratch->ray[1].vz;
+            slot->distance           = SquareRoot0(scratch->hitOffset.vx * scratch->hitOffset.vx +
+                                                   scratch->hitOffset.vy * scratch->hitOffset.vy + scratch->hitOffset.vz * scratch->hitOffset.vz);
+            scratch->endpoints[0].vx = scratch->ray[1].vx;
+            scratch->endpoints[0].vy = scratch->ray[1].vy;
+            scratch->endpoints[0].vz = scratch->ray[1].vz;
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x50);
+    SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionFloorQueryScratch);
 }
 
 static void func_800DDC2C(WorldCollisionBody* arg0)
