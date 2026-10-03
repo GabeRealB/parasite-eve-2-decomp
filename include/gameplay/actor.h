@@ -63,17 +63,6 @@ typedef struct CompanionWork {
 } CompanionWork;
 STATIC_ASSERT_SIZEOF(CompanionWork, 0xD4);
 
-/// 0x14-byte scratch from the scratch stack used by `Gp_PlayerMode2State4`.
-/// `field_0` is the clamped `func_80103E7C` turn delta applied to
-/// `GameActor.rotation.vy`. `vec` is the target-minus-current offset
-/// (`GameActor.destination` minus `GfxCoord.coord.t`).
-typedef struct _GpApproachScratch {
-    /* 0x00 */ s32     field_0;
-    /* 0x04 */ VECTOR3 vec;
-    /* 0x10 */ s32     pad;
-} GpApproachScratch;
-STATIC_ASSERT_SIZEOF(GpApproachScratch, 0x14);
-
 /// Scratch-pad block for picking the nearest collision record. `delta`
 /// receives the push-back of the record being classified, which is
 /// discarded (only the record mask returned alongside it is used), `coord`

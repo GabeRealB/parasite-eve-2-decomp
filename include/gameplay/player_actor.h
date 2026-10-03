@@ -4,7 +4,7 @@
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
-#include "types.h"
+#include "common.h"
 
 #include "gameplay/animation.h"
 #include "gameplay/effects.h"
@@ -15,6 +15,20 @@
 #include "main/task_types.h"
 
 struct GfxCoord;
+
+/// Scratch-stack block for the turn a scripted walk makes toward `GameActor.destination`.
+///
+/// Holds the destination's displacement from the model's root coordinate,
+/// whose X and Z give the heading to walk along, and the part of the turn
+/// toward that heading the actor makes this frame. The player's walk-to-point
+/// state and a companion package's variants of it each reserve one block per
+/// call and release it before returning. Angles use 4096 units per turn.
+typedef struct {
+    s32     turnStep;    // Shortest signed turn onto the heading of `targetDelta`, then clamped to the state's per-frame rate
+    VECTOR3 targetDelta; // `GameActor.destination` minus the root coordinate's translation
+    byte    field_10[4]; // Never accessed; role unproven
+} PlayerActorApproachScratch;
+STATIC_ASSERT_SIZEOF(PlayerActorApproachScratch, 0x14);
 
 /// 2-wide rows indexed by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId`. `Gp_PlayerMode2StateB` passes
 /// `D_80112E04[field_22][1]` to `func_80105894`.

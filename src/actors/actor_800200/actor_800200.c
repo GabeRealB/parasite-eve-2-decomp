@@ -2161,42 +2161,42 @@ static void func_actor_800200_8016436C(Task* arg0)
 
 static void func_actor_800200_80164598(Task* arg0)
 {
-    GpApproachScratch* block;
-    GfxCoord*          coord;
-    GameActor*         actor;
-    s32                val;
-    s32                mode;
-    s32                flag;
+    PlayerActorApproachScratch* block;
+    GfxCoord*                   coord;
+    GameActor*                  actor;
+    s32                         val;
+    s32                         mode;
+    s32                         flag;
 
     actor                         = arg0->work;
     coord                         = arg0->extra.tmd->coords;
-    block                         = SCRATCH_STACK_RESERVE_BLOCK(GpApproachScratch);
-    block->vec.vx                 = actor->destination.vx - coord->coord.t[0];
-    block->vec.vy                 = actor->destination.vy - coord->coord.t[1];
-    block->vec.vz                 = actor->destination.vz - coord->coord.t[2];
-    actor->scriptMotion.targetYaw = ratan2(block->vec.vx, block->vec.vz);
+    block                         = SCRATCH_STACK_RESERVE_BLOCK(PlayerActorApproachScratch);
+    block->targetDelta.vx         = actor->destination.vx - coord->coord.t[0];
+    block->targetDelta.vy         = actor->destination.vy - coord->coord.t[1];
+    block->targetDelta.vz         = actor->destination.vz - coord->coord.t[2];
+    actor->scriptMotion.targetYaw = ratan2(block->targetDelta.vx, block->targetDelta.vz);
     val                           = func_80103E7C(actor->rotation.vy, actor->scriptMotion.targetYaw);
-    block->field_0                = val;
+    block->turnStep               = val;
     if (val > 0x30) {
-        block->field_0 = 0x30;
+        block->turnStep = 0x30;
     } else if (val < -0x30) {
-        block->field_0 = -0x30;
+        block->turnStep = -0x30;
     } else if (actor->statePhase == 0) {
         actor->statePhase = 1;
     }
-    actor->rotation.vy = (actor->rotation.vy + block->field_0) & 0xFFF;
+    actor->rotation.vy = (actor->rotation.vy + block->turnStep) & 0xFFF;
     switch (actor->statePhase) {
         case 0:
             flag                = 1;
             actor->statePhase   = flag;
             actor->movementSign = flag;
             mode                = 6;
-            if (block->field_0 < 0) {
+            if (block->turnStep < 0) {
                 mode = 5;
             }
             Gp_AnimPlayChildSlots(arg0, mode, 1);
         case 1:
-            if (block->field_0 == 0) {
+            if (block->turnStep == 0) {
                 actor->movementMode = actor->stateTimer;
                 actor->statePhase++;
                 mode = 4;
@@ -2215,7 +2215,7 @@ static void func_actor_800200_80164598(Task* arg0)
             }
             break;
     }
-    SCRATCH_STACK_RELEASE_BLOCK(GpApproachScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(PlayerActorApproachScratch);
 }
 
 static void func_actor_800200_801647A8(Task* arg0)
@@ -2401,39 +2401,39 @@ static void func_actor_800200_801649D8(Task* arg0)
 
 static void func_actor_800200_80164C54(Task* arg0)
 {
-    GpApproachScratch* block;
-    GfxCoord*          coord;
-    GameActor*         actor;
-    s32                val;
-    s32                mode;
+    PlayerActorApproachScratch* block;
+    GfxCoord*                   coord;
+    GameActor*                  actor;
+    s32                         val;
+    s32                         mode;
 
     actor                         = arg0->work;
     coord                         = arg0->extra.tmd->coords;
-    block                         = SCRATCH_STACK_RESERVE_BLOCK(GpApproachScratch);
-    block->vec.vx                 = actor->destination.vx - coord->coord.t[0];
-    block->vec.vy                 = actor->destination.vy - coord->coord.t[1];
-    block->vec.vz                 = actor->destination.vz - coord->coord.t[2];
-    actor->scriptMotion.targetYaw = ratan2(block->vec.vx, block->vec.vz);
+    block                         = SCRATCH_STACK_RESERVE_BLOCK(PlayerActorApproachScratch);
+    block->targetDelta.vx         = actor->destination.vx - coord->coord.t[0];
+    block->targetDelta.vy         = actor->destination.vy - coord->coord.t[1];
+    block->targetDelta.vz         = actor->destination.vz - coord->coord.t[2];
+    actor->scriptMotion.targetYaw = ratan2(block->targetDelta.vx, block->targetDelta.vz);
     val                           = func_80103E7C(actor->rotation.vy, actor->scriptMotion.targetYaw);
-    block->field_0                = val;
+    block->turnStep               = val;
     if (val > 0x40) {
-        block->field_0 = 0x40;
+        block->turnStep = 0x40;
     } else if (val < -0x40) {
-        block->field_0 = -0x40;
+        block->turnStep = -0x40;
     } else if (actor->statePhase == 0) {
         actor->statePhase = 1;
     }
-    actor->rotation.vy = (actor->rotation.vy + block->field_0) & 0xFFF;
+    actor->rotation.vy = (actor->rotation.vy + block->turnStep) & 0xFFF;
     switch (actor->statePhase) {
         case 0:
             actor->statePhase = 1;
             mode              = 6;
-            if (block->field_0 < 0) {
+            if (block->turnStep < 0) {
                 mode = 5;
             }
             Gp_AnimPlayChildSlots(arg0, mode, 1);
         case 1:
-            if (block->field_0 == 0) {
+            if (block->turnStep == 0) {
                 actor->movementMode = 5;
                 actor->statePhase++;
                 if (actor->actionArgument == 0) {
@@ -2466,44 +2466,44 @@ static void func_actor_800200_80164C54(Task* arg0)
             break;
     }
     Gp_AnimTickChildSlots(arg0);
-    SCRATCH_STACK_RELEASE_BLOCK(GpApproachScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(PlayerActorApproachScratch);
 }
 
 static void func_actor_800200_80164EBC(Task* arg0)
 {
-    GpApproachScratch* block;
-    GfxCoord*          coord;
-    GameActor*         actor;
-    s32                val;
-    s32                mode;
+    PlayerActorApproachScratch* block;
+    GfxCoord*                   coord;
+    GameActor*                  actor;
+    s32                         val;
+    s32                         mode;
 
     actor                         = arg0->work;
     coord                         = arg0->extra.tmd->coords;
-    block                         = SCRATCH_STACK_RESERVE_BLOCK(GpApproachScratch);
-    block->vec.vx                 = actor->destination.vx - coord->coord.t[0];
-    block->vec.vy                 = actor->destination.vy - coord->coord.t[1];
-    block->vec.vz                 = actor->destination.vz - coord->coord.t[2];
-    actor->scriptMotion.targetYaw = ratan2(block->vec.vx, block->vec.vz);
+    block                         = SCRATCH_STACK_RESERVE_BLOCK(PlayerActorApproachScratch);
+    block->targetDelta.vx         = actor->destination.vx - coord->coord.t[0];
+    block->targetDelta.vy         = actor->destination.vy - coord->coord.t[1];
+    block->targetDelta.vz         = actor->destination.vz - coord->coord.t[2];
+    actor->scriptMotion.targetYaw = ratan2(block->targetDelta.vx, block->targetDelta.vz);
     val                           = func_80103E7C(actor->rotation.vy, actor->scriptMotion.targetYaw);
-    block->field_0                = val;
+    block->turnStep               = val;
     if (val > 0x40) {
-        block->field_0 = 0x40;
+        block->turnStep = 0x40;
     } else if (val < -0x40) {
-        block->field_0 = -0x40;
+        block->turnStep = -0x40;
     } else if (actor->statePhase == 0) {
         actor->statePhase = 1;
     }
-    actor->rotation.vy = (actor->rotation.vy + block->field_0) & 0xFFF;
+    actor->rotation.vy = (actor->rotation.vy + block->turnStep) & 0xFFF;
     switch (actor->statePhase) {
         case 0:
             actor->statePhase = 1;
             mode              = 6;
-            if (block->field_0 < 0) {
+            if (block->turnStep < 0) {
                 mode = 5;
             }
             Gp_AnimPlayChildSlots(arg0, mode, 1);
         case 1:
-            if (block->field_0 == 0) {
+            if (block->turnStep == 0) {
                 actor->movementMode = 6;
                 actor->statePhase++;
                 mode = 4;
@@ -2531,7 +2531,7 @@ static void func_actor_800200_80164EBC(Task* arg0)
             break;
     }
     Gp_AnimTickChildSlots(arg0);
-    SCRATCH_STACK_RELEASE_BLOCK(GpApproachScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(PlayerActorApproachScratch);
 }
 
 /// Handlers `func_actor_800200_80165B84` runs, indexed by `state`.
