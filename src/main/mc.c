@@ -86,20 +86,25 @@ typedef struct {
 } _McSaveSection;
 STATIC_ASSERT_SIZEOF(_McSaveSection, 0xC);
 
-/// Memcard state-machine handler: (Task*, McWork*).
-typedef void (*McStateFunc)(Task* task, McWork* work);
+/// Handler for one state of a memory-card dialog machine.
+///
+/// Each run of a dialog task calls the handler its `Task.state` indexes, with
+/// that task and the work area the dialogs share. A handler moves the machine
+/// on by storing the next state in `task->state`; one that leaves it alone is
+/// called again on the next run.
+typedef void (*_McStateFunc)(Task* task, McWork* work);
 
-/// Fixed-size table of McStateFunc callbacks. Copied onto the stack by
+/// Fixed-size table of _McStateFunc callbacks. Copied onto the stack by
 /// Mc_DispatchStateTable so the call uses a local jump table (44 entries, 0xB0 bytes).
 typedef struct {
-    McStateFunc funcs[44];
+    _McStateFunc funcs[44];
 } McStateFuncTable44;
 STATIC_ASSERT_SIZEOF(McStateFuncTable44, 0xB0);
 
-/// Fixed-size table of McStateFunc callbacks. Copied onto the stack by
+/// Fixed-size table of _McStateFunc callbacks. Copied onto the stack by
 /// Mc_DispatchStateTable26 so the call uses a local jump table (26 entries, 0x68 bytes).
 typedef struct {
-    McStateFunc funcs[26];
+    _McStateFunc funcs[26];
 } McStateFuncTable26;
 STATIC_ASSERT_SIZEOF(McStateFuncTable26, 0x68);
 
@@ -256,7 +261,7 @@ static const char McText_CloseParen[];
 
 static const McStateFuncTable44 Mc_PromptStates;
 
-/// Jump table of 26 McStateFunc handlers used by Mc_DispatchStateTable26.
+/// Jump table of 26 _McStateFunc handlers used by Mc_DispatchStateTable26.
 static const McStateFuncTable26 Mc_FileSelectStates;
 
 static void Mc_BuildFileName(u8* arg0, s32 arg1);
@@ -2033,7 +2038,7 @@ static void Mc_StateSyncFileSelect(Task* task, McWork* work)
     }
 }
 
-/// Jump table of 26 McStateFunc handlers used by Mc_DispatchStateTable26.
+/// Jump table of 26 _McStateFunc handlers used by Mc_DispatchStateTable26.
 static const McStateFuncTable26 Mc_FileSelectStates = { {
     Mc_StateInitWorkDefaults,
     Mc_StateSetOpenDefaults,
