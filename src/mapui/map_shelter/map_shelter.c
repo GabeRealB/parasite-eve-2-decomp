@@ -1471,7 +1471,7 @@ GpGiveRec D_map_shelter_8017BD8C[13] = {
     { -1 },
 };
 
-TaskIdPair D_map_shelter_8017BE28[600] = {
+StageMusicEntry D_map_shelter_8017BE28[600] = {
     { 0xFF, 0 },
     { 0xFF, 0 },
     { 0xFF, 0 },
@@ -2074,7 +2074,7 @@ TaskIdPair D_map_shelter_8017BE28[600] = {
     { 0xFF, 0 },
 };
 
-TaskIdPair D_map_shelter_8017C2D8[20] = {
+StageMusicEntry D_map_shelter_8017C2D8[20] = {
     { 0x44, 2 },
     { 0x30, 2 },
     { 0x3C, 2 },

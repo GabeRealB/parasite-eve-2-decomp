@@ -1654,7 +1654,7 @@ GpGiveRec D_map_neo_ark_8017CB0C[6] = {
     { -1 },
 };
 
-TaskIdPair D_map_neo_ark_8017CB54[340] = {
+StageMusicEntry D_map_neo_ark_8017CB54[340] = {
     { 0xFF, 0 },
     { 0xFF, 0 },
     { 0xFF, 0 },
@@ -1997,7 +1997,7 @@ TaskIdPair D_map_neo_ark_8017CB54[340] = {
     { 0x59, 0 },
 };
 
-TaskIdPair D_map_neo_ark_8017CDFC[20] = {
+StageMusicEntry D_map_neo_ark_8017CDFC[20] = {
     { 0x44, 2 },
     { 0x4F, 2 },
     { 0x49, 2 },

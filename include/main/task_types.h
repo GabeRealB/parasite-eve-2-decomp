@@ -3,6 +3,7 @@
 
 #include "common.h"
 
+#include "main/stage_types.h"
 #include "main/tmd_types.h"
 
 struct ModelObjectCoordBody;
@@ -162,19 +163,12 @@ typedef struct TaskNode {
 } TaskNode;
 STATIC_ASSERT_SIZEOF(TaskNode, 0x8);
 
-/// 2-byte table entry (id + type). Indexed via TaskIdMap.
-typedef struct _TaskIdPair {
-    /* 0x0 */ u8 id;
-    /* 0x1 */ u8 type;
-} TaskIdPair;
-STATIC_ASSERT_SIZEOF(TaskIdPair, 0x2);
-
-/// Index + pointer into a TaskIdPair table. Allocated (memCalloc(8)) and stored
+/// Index + pointer into a StageMusicEntry table. Allocated (memCalloc(8)) and stored
 /// at Task::work by Task_AllocIdMap; read by Stage_ApplyTableEntryWhenIdle / Stage_LoadOrCountdownTask.
 typedef struct _TaskIdMap {
-    /* 0x0 */ u16         index;
-    /* 0x2 */ byte        pad_2[2];
-    /* 0x4 */ TaskIdPair* table;
+    /* 0x0 */ u16              index;
+    /* 0x2 */ byte             pad_2[2];
+    /* 0x4 */ StageMusicEntry* table;
 } TaskIdMap;
 STATIC_ASSERT_SIZEOF(TaskIdMap, 0x8);
 

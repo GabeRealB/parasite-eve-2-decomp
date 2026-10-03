@@ -13,6 +13,7 @@
 #include "gameplay/view.h"
 
 #include "main/gfx_types.h"
+#include "main/stage_types.h"
 #include "main/task_types.h"
 
 /// Image slots of each map, indexed by `Gfx_ImageSlotTables`.
@@ -22,9 +23,9 @@ extern GfxImageSlot D_map_akropolis_8017A048[];
 extern s32 D_map_akropolis_8017A0F8[];
 
 /// Per-map task id tables `Stage_MusicTables` and `Stage_CountdownMusicTables` index.
-extern TaskIdPair D_map_akropolis_8017C1B4[];
+extern StageMusicEntry D_map_akropolis_8017C1B4[];
 
-extern TaskIdPair D_map_akropolis_8017C304[];
+extern StageMusicEntry D_map_akropolis_8017C304[];
 
 /// This stage's `Gp_MapFlagIds` entry, indexed by map room id.
 extern u8 D_map_akropolis_8017A14C[];

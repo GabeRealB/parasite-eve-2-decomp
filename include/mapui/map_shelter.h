@@ -13,13 +13,14 @@
 #include "gameplay/view.h"
 
 #include "main/gfx_types.h"
+#include "main/stage_types.h"
 #include "main/task_types.h"
 
 extern GfxImageSlot D_map_shelter_80179B40[];
 
-extern TaskIdPair D_map_shelter_8017BE28[];
+extern StageMusicEntry D_map_shelter_8017BE28[];
 
-extern TaskIdPair D_map_shelter_8017C2D8[];
+extern StageMusicEntry D_map_shelter_8017C2D8[];
 
 /// This stage's `Gp_MapFlagIds` entry, indexed by map room id.
 extern u8 D_map_shelter_80179CD0[];

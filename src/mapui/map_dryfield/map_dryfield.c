@@ -1275,7 +1275,7 @@ GpGiveRec D_map_dryfield_8017BD80[8] = {
     { -1 },
 };
 
-TaskIdPair D_map_dryfield_8017BDE0[274] = {
+StageMusicEntry D_map_dryfield_8017BDE0[274] = {
     { 0xFF, 0 },
     { 0xFF, 0 },
     { 0xFF, 0 },
@@ -1552,7 +1552,7 @@ TaskIdPair D_map_dryfield_8017BDE0[274] = {
     { 0, 0 },
 };
 
-TaskIdPair D_map_dryfield_8017C004[21] = {
+StageMusicEntry D_map_dryfield_8017C004[21] = {
     { 0x32, 2 },
     { 0xFF, 0 },
     { 0x17, 2 },

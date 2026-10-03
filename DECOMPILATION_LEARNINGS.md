@@ -14769,7 +14769,7 @@ operand order:
 ```c
 /* Matches: sll v0,v0,1 ; addu s0,v0,v1  (offset then base) */
 temp  = ((D_80062738 + product) & 0xFFFF) * 2;
-entry = (TaskIdPair*)(temp + (s32)D_8006273C[idx]);
+entry = (StageMusicEntry*)(temp + (s32)D_8006273C[idx]);
 
 /* Mismatches: addu s0,v1,v0 */
 entry = D_8006273C[idx] + ((D_80062738 + product) & 0xFFFF);

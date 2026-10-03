@@ -1435,7 +1435,7 @@ GpGiveRec D_map_akropolis_8017C16C[6] = {
     { -1 },
 };
 
-TaskIdPair D_map_akropolis_8017C1B4[168] = {
+StageMusicEntry D_map_akropolis_8017C1B4[168] = {
     { 0xFF, 0 },
     { 0xFF, 0 },
     { 0xFF, 0 },
@@ -1606,7 +1606,7 @@ TaskIdPair D_map_akropolis_8017C1B4[168] = {
     { 0xFF, 0 },
 };
 
-TaskIdPair D_map_akropolis_8017C304[20] = {
+StageMusicEntry D_map_akropolis_8017C304[20] = {
     { 0x1E, 2 },
     { 0xB, 2 },
     { 0xFF, 0 },
