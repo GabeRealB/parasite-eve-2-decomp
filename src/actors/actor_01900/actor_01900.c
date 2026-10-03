@@ -59,13 +59,6 @@
 /// destroy callback and the two child tasks it kills. `Actor01900_Fn0A764`
 /// masks `field_A08.flags` and `field_B48.flags`, which is what fixes those
 /// two offsets as `WorldCollisionBody` rather than opaque padding.
-/// XZ patrol point in `Actor01900Work.field_C`; `field_14` selects which one
-/// `Actor01900_Fn06F40` walks toward.
-typedef struct Actor01900Waypoint {
-    /* 0x0 */ s16 x;
-    /* 0x2 */ s16 z;
-} Actor01900Waypoint;
-
 typedef struct Actor01900Work {
     /* 0x000 */ s16                   field_0;
     /* 0x002 */ s16                   field_2;
@@ -73,7 +66,7 @@ typedef struct Actor01900Work {
     /* 0x006 */ s16                   field_6;
     /* 0x008 */ s16                   field_8;
     /* 0x00A */ byte                  pad_A[2];
-    /* 0x00C */ Actor01900Waypoint    field_C[2];
+    /* 0x00C */ ActorPatrolPoint      field_C[2];
     /* 0x014 */ s16                   field_14;
     /* 0x016 */ byte                  pad_16[0x6];
     /* 0x01C */ ActorAnimRig19        rig;

@@ -55,13 +55,6 @@
 #include "../../shared/actor_messages.h"
 #include "../../shared/actor_contacts.h"
 
-/// XZ patrol point in `Actor401300Work::field_C`. Same shape as
-/// `Actor01900Waypoint`.
-typedef struct Actor401300Waypoint {
-    /* 0x0 */ s16 x;
-    /* 0x2 */ s16 z;
-} Actor401300Waypoint;
-
 /// Private work block of the actor 401300 task, hanging off `Task::work`.
 ///
 /// Only the fields the matched code touches are named so far: `yaw` at 0x18
@@ -86,7 +79,7 @@ typedef struct Actor401300Work {
     /* 0x008 */ s16  field_8;
     /* 0x00A */ byte pad_A[2];
     /// XZ patrol points: the spawn position and one step along its facing.
-    /* 0x00C */ Actor401300Waypoint field_C[2];
+    /* 0x00C */ ActorPatrolPoint field_C[2];
     /// Lunge step length: `func_actor_401300_8013E930`'s clamped player
     /// distance over 18.
     /* 0x014 */ s16            field_14;

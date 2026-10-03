@@ -74,14 +74,6 @@
  * comments are that build's; actor_401800's members from 0x8C8 on sit 8 bytes
  * lower. */
 
-/// An XZ pair: `field_C[0]` is the actor's spawn square and `field_C[1]` one
-/// step along its facing, both rebuilt by `func_actor_401000_80133274`. Same
-/// shape as `Actor401300Waypoint` / `Actor01900Waypoint`.
-typedef struct OddStrangerWaypoint {
-    /* 0x0 */ s16 x;
-    /* 0x2 */ s16 z;
-} OddStrangerWaypoint;
-
 /// The Odd Stranger's work block, hanging off `Task::work` in both packages.
 ///
 /// Only the fields the decompiled code touches are named: among them the three
@@ -105,8 +97,8 @@ typedef struct OddStrangerWork {
     /* 0x00A */ byte pad_A[2];
     /// Spawn square and one step along the facing, both narrowed to 16 bits by
     /// `func_actor_401000_80133274`'s normalised heading.
-    /* 0x00C */ OddStrangerWaypoint field_C[2];
-    /* 0x014 */ s16                 field_14;
+    /* 0x00C */ ActorPatrolPoint field_C[2];
+    /* 0x014 */ s16              field_14;
     /// Heading `actorMsgPlaceRecordYaw` takes from the root coordinate's
     /// Z axis once a placement record has been applied to it.
     /* 0x016 */ s16  yaw;

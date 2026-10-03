@@ -471,6 +471,21 @@ typedef struct ActorHeightClamp {
 } ActorHeightClamp;
 STATIC_ASSERT_SIZEOF(ActorHeightClamp, 0x10);
 
+/// One end of the two-point beat a patrolling enemy walks back and forth.
+///
+/// An enemy's work block keeps a pair of these and a selector for the one it
+/// is walking toward; coming within reach of that one switches it to the
+/// other. Setup seeds the pair with where the enemy was placed and a point a
+/// fixed step ahead of that along its facing, and an enemy that roams
+/// replaces either end later. Both coordinates are the root coordinate's
+/// translation in its parent's space, narrowed to 16 bits. No height is kept:
+/// the walk is planar.
+typedef struct {
+    s16 x; // X translation of the point
+    s16 z; // Z translation of the point
+} ActorPatrolPoint;
+STATIC_ASSERT_SIZEOF(ActorPatrolPoint, 4);
+
 /// Caller-owned playback storage for twenty slots.
 ///
 /// The context borrows the model's part coordinates and is bound to this

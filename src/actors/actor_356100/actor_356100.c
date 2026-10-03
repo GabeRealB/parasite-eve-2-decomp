@@ -52,13 +52,6 @@
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 
-/// One XZ pair of `Actor356100Work::field_C`; same shape as
-/// `Actor01900Waypoint`.
-typedef struct Actor356100Waypoint {
-    /* 0x0 */ s16 x;
-    /* 0x2 */ s16 z;
-} Actor356100Waypoint;
-
 /// 8-byte row of the `D_actor_356100_8016A994` table `func_actor_356100_8016382C`
 /// picks the re-entry pair from on the spawn argument; the same role
 /// `Actor01900TintRow` has for `Actor01900_D0AC64`.
@@ -107,7 +100,7 @@ typedef struct Actor356100Work {
     /// The two XZ pairs `func_actor_356100_8016382C` seeds on entering state
     /// 0x10: the model root's X/Z, then the same pair pushed one normalised
     /// unit along the facing. Same role as `Actor01900Work.field_C`.
-    /* 0x00C */ Actor356100Waypoint field_C[2];
+    /* 0x00C */ ActorPatrolPoint field_C[2];
     /// Zeroed on the same entry, next to the pair above; same slot as
     /// `Actor01900Work.field_14`.
     /* 0x014 */ s16 field_14;

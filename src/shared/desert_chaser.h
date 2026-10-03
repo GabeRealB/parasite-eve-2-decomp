@@ -60,13 +60,6 @@ typedef GpEnemyTaskFuncTable4 DesertChaserTaskStates;
 typedef EnemyTaskFuncTable3 DesertChaserTaskStates;
 #endif
 
-/// A route point, the placement and the one a fixed step ahead of it.
-typedef struct DesertChaserWaypoint {
-    s16 x;
-    s16 z;
-} DesertChaserWaypoint;
-STATIC_ASSERT_SIZEOF(DesertChaserWaypoint, 0x4);
-
 #if DESERT_CHASER_BUILD != DESERT_CHASER_CUTSCENE
 /* The armed builds. DESERT_CHASER_RUN_SEQUENCE is the Water Tower run: one
  * more state ahead of the turn states, hits that only reply to the player
@@ -159,8 +152,8 @@ typedef struct DesertChaserWork {
     byte pad_A[2];
     /// The point the actor was placed at and one a fixed step ahead of it;
     /// `field_14` picks the one it walks toward.
-    DesertChaserWaypoint field_C[2];
-    s16                  field_14;
+    ActorPatrolPoint field_C[2];
+    s16              field_14;
     /// Yaw of the root coordinate as the placement handler leaves it, read
     /// back from the matrix.
     s16              field_16;
