@@ -41,17 +41,20 @@ typedef struct _FsCdfFileSmall {
 
 /// One entry in the directory of a CDF resource bundle (chunk opcode 4).
 ///
-/// Fifty entries follow the chunk header in the bundle's first sector. The
-/// loader publishes `kind` and `destination` before streaming later sectors.
-/// `byteSize` is the resource length in bytes and is not read here; retail
-/// destinations are 16-byte aligned.
+/// Fifty entries open the payload of the bundle's first sector, one per
+/// `FsResourceSlot`. The payload sectors that follow stream contiguously from
+/// the chunk's load address, and `destination` is where each resource lands in
+/// that stream. The loader publishes only `kind` and `destination`, and arms
+/// `Fs_LoadRedirect` from an entry with a `redirectDestination`. `byteSize` is
+/// not read; retail bundles pack resources at 16-byte aligned destinations and
+/// leave the redirect pair zero.
 typedef struct {
-    u8    kind;                // Resource kind (0 none, 2 image, 3 untyped data)
-    u8    field_1;             // Unread. Zero in every retail bundle; role unproven
-    u16   redirectSector;      // Continuation sectors written before using `redirectDestination`
-    u32   byteSize;            // Resource length in bytes; unread by the loader
-    void* destination;         // Absolute RAM address of the resource
-    u8*   redirectDestination; // Later write pointer; zero while the stream stays contiguous
+    u8    kind;                  // Resource kind (0 none, 2 image, 3 untyped data)
+    u8    field_1;               // Unread; zero in every retail bundle, role unproven
+    u16   sectorsBeforeRedirect; // Payload sectors written before the stream moves to `redirectDestination`
+    u32   byteSize;              // Resource length in bytes
+    void* destination;           // Absolute RAM address of the resource
+    u8*   redirectDestination;   // Write pointer for the remaining payload sectors; NULL to stay contiguous
 } _FsCdfResourceEntry;
 STATIC_ASSERT_SIZEOF(_FsCdfResourceEntry, 0x10);
 
@@ -59,16 +62,16 @@ STATIC_ASSERT_SIZEOF(_FsCdfResourceEntry, 0x10);
 ///
 /// A bundle's payload is normally copied sector by sector to one contiguous
 /// address. A directory entry with a `redirectDestination` arms this record;
-/// once `sectorsRead` payload sectors reach `redirectSector`, the write
+/// once `sectorsRead` payload sectors reach `sectorsBeforeRedirect`, the write
 /// pointer moves to `destination` and the remaining sectors land there. Only
 /// one redirect is held: the last such entry in the directory wins. The record
 /// is disarmed only when a folder load is prepared, so a later bundle in the
 /// same load re-uses an earlier bundle's redirect unless it arms its own.
 typedef struct {
-    u16 enabled;        // Nonzero once a bundle entry has armed a redirect
-    u16 sectorsRead;    // Payload sectors streamed since the bundle directory
-    u16 redirectSector; // Value of `sectorsRead` at which the write pointer jumps
-    u8* destination;    // RAM address receiving the payload sectors after the jump
+    u16 enabled;               // Nonzero once a bundle entry has armed a redirect
+    u16 sectorsRead;           // Payload sectors streamed since the bundle directory
+    u16 sectorsBeforeRedirect; // Value of `sectorsRead` at which the write pointer jumps
+    u8* destination;           // RAM address receiving the payload sectors after the jump
 } _FsLoadRedirect;
 STATIC_ASSERT_SIZEOF(_FsLoadRedirect, 0xC);
 
@@ -666,10 +669,10 @@ static u8 Fs_ProcessChunkHeader(void)
             for (i = 0; i < ARRAY_SIZE(D_8006C338); i++) {
                 D_8006C338[i].kind = entry->kind;
                 D_8006C338[i].data = entry->destination;
-                if (entry->redirectDestination != 0) {
-                    Fs_LoadRedirect.enabled        = 1;
-                    Fs_LoadRedirect.redirectSector = entry->redirectSector;
-                    Fs_LoadRedirect.destination    = entry->redirectDestination;
+                if (entry->redirectDestination != NULL) {
+                    Fs_LoadRedirect.enabled               = 1;
+                    Fs_LoadRedirect.sectorsBeforeRedirect = entry->sectorsBeforeRedirect;
+                    Fs_LoadRedirect.destination           = entry->redirectDestination;
                 }
                 entry++;
             }
@@ -847,7 +850,7 @@ static u8 Fs_ProcessChunkData(void)
             }
             if (Fs_LoadRedirect.enabled != 0) {
                 Fs_LoadRedirect.sectorsRead++;
-                if (Fs_LoadRedirect.redirectSector == Fs_LoadRedirect.sectorsRead) {
+                if (Fs_LoadRedirect.sectorsBeforeRedirect == Fs_LoadRedirect.sectorsRead) {
                     Fs_ChunkWritePtr = Fs_LoadRedirect.destination;
                 }
             }
@@ -967,12 +970,12 @@ void Fs_PrepareFolderLoad(s32 arg0, s32 arg1, s32 arg2)
     s32 folderId;
     s32 sector;
 
-    Fs_LoadRedirect.enabled        = 0;
-    Fs_LoadRedirect.sectorsRead    = 0;
-    Fs_LoadRedirect.redirectSector = 0;
-    Fs_LoadRedirect.destination    = NULL;
-    Fs_ChunkMode                   = 0;
-    D5B498_8006ADF4                = 0;
+    Fs_LoadRedirect.enabled               = 0;
+    Fs_LoadRedirect.sectorsRead           = 0;
+    Fs_LoadRedirect.sectorsBeforeRedirect = 0;
+    Fs_LoadRedirect.destination           = NULL;
+    Fs_ChunkMode                          = 0;
+    D5B498_8006ADF4                       = 0;
 
     for (i = 0; i < ARRAY_SIZE(D_8006C338); i++) {
         D_8006C338[i].kind = FILE_SYSTEM_RESOURCE_NONE;
