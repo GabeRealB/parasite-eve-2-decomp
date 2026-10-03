@@ -67,6 +67,7 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
+#include "rooms/shop_tier.h"
 // Symbol is `RoomCutsceneSoundTaskStorage`; the runner reads `task`.
 #define ROOM_CUTSCENE_SOUND_TASK gRoomCutsceneSoundTask.task
 #include "../../shared/room_cutscene.h"
@@ -1404,7 +1405,7 @@ static u8 Shop_Data_80181A1C[];
 
 static UiObjectDesc Shop_Data_80181B84;
 
-static RoomShopTier Shop_Data_80181950[13];
+static ShopTier Shop_Data_80181950[SHOP_TIER_COUNT];
 
 /// Messages and labels of the shop's panels.
 static u8 Shop_Data_801819F0[];

@@ -11,6 +11,8 @@
 #include "main/task_types.h"
 #include "main/ui_types.h"
 
+#include "rooms/shop_tier.h"
+
 /// 16-byte MDEC stream context (`memCalloc(0x10)`). Offset 0 is the VLC
 /// table from `func_replay_bonus_80115C68`; `fileId` indexes `D_8006C338`;
 /// `x,y,w,h` is the VRAM destination (`x=0x280`, `w=0xF0`, `h=0xB0`,
@@ -26,20 +28,6 @@ typedef struct ReplayBonusStream {
     /* 0x0E */ u16  h;
 } ReplayBonusStream;
 STATIC_ASSERT_SIZEOF(ReplayBonusStream, 0x10);
-
-/// One row of the replay-bonus price ladder (`D_replay_bonus_80118F78`,
-/// thirteen rows). `spendThreshold` is the running total
-/// `func_replay_bonus_80115CA4` has to reach for the row to be the starting
-/// index — the last row's is `S32_MAX`, so it never does on its own — and
-/// `items` are the three ids `func_replay_bonus_80117484` then offers.
-/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopTiers` holds one bit per
-/// row; all 13 bits set (`0x1FFF`) means every tier is taken.
-typedef struct ReplayBonusShopTier {
-    /* 0x0 */ u32  spendThreshold;
-    /* 0x4 */ s16  items[3];
-    /* 0xA */ byte pad_A[2];
-} ReplayBonusShopTier;
-STATIC_ASSERT_SIZEOF(ReplayBonusShopTier, 0xC);
 
 typedef struct ReplayBonusStfCmd {
     /* 0x0 */ u8 op;
@@ -179,7 +167,7 @@ extern s16 D_replay_bonus_8011926E;
 /// 0/1 selector for the double-buffer; toggled after each LoadImage.
 extern u16 D_replay_bonus_80119270;
 
-extern ReplayBonusShopTier D_replay_bonus_80118F78[13];
+extern ShopTier D_replay_bonus_80118F78[SHOP_TIER_COUNT];
 
 /// TaskDesc for the MDEC stream worker (`func_replay_bonus_801159A0`).
 extern TaskDesc D_replay_bonus_80118F6C;

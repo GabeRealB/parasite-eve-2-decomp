@@ -310,42 +310,42 @@ static inline s32 _replayBonusTotalBp(UiList* list, UiObject* ctx)
 
 void func_replay_bonus_80115ED0(Task* arg0)
 {
-    u8                   buf[0x20];
-    TextDrawReq          req;
-    TextDrawReq          req2;
-    TextDrawReq          req3;
-    UiObject*            obj;
-    UiList*              list;
-    PlayerStatus*        cfg;
-    ReplayBonusTotals*   totals;
-    ReplayBonusShopTier* p;
-    ReplayBonusShopTier* row;
-    McSaveData*          save;
-    void*                mem;
-    s32                  status;
-    s32                  state;
-    s32                  n;
-    s32                  sum;
-    s32                  idx;
-    s32                  result;
-    u32                  spend;
-    s32                  mask;
-    s32                  one;
-    s32                  j;
-    s32                  remaining;
-    s32                  xOff;
-    s32                  yOff;
-    s32                  ot;
-    s32                  ot2;
-    s32                  ot3;
-    s32                  color;
-    s32                  exp;
-    s32                  tmp;
-    s32                  t;
-    s32                  acc;
-    s32                  shop_i;
-    s32                  bonus_i;
-    u8                   nxt;
+    u8                 buf[0x20];
+    TextDrawReq        req;
+    TextDrawReq        req2;
+    TextDrawReq        req3;
+    UiObject*          obj;
+    UiList*            list;
+    PlayerStatus*      cfg;
+    ReplayBonusTotals* totals;
+    ShopTier*          p;
+    ShopTier*          row;
+    McSaveData*        save;
+    void*              mem;
+    s32                status;
+    s32                state;
+    s32                n;
+    s32                sum;
+    s32                idx;
+    s32                result;
+    u32                spend;
+    s32                mask;
+    s32                one;
+    s32                j;
+    s32                remaining;
+    s32                xOff;
+    s32                yOff;
+    s32                ot;
+    s32                ot2;
+    s32                ot3;
+    s32                color;
+    s32                exp;
+    s32                tmp;
+    s32                t;
+    s32                acc;
+    s32                shop_i;
+    s32                bonus_i;
+    u8                 nxt;
 
     list        = &D_replay_bonus_80119130;
     obj         = arg0->spawnArg2.pointer;
@@ -406,7 +406,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
             result = -1;
         } else {
             for (shop_i = 0; shop_i < 0xD; shop_i++, p++) {
-                if (p->spendThreshold >= spend) {
+                if (p->expCeiling >= spend) {
                     idx = shop_i;
                     break;
                 }
@@ -686,13 +686,13 @@ void func_replay_bonus_80116964(Task* arg0)
 /// already bought; -1 once every tier has been bought.
 static inline s32 _replayBonusShopTier(void)
 {
-    ReplayBonusShopTier* p;
-    u32                  spend;
-    s32                  idx;
-    s32                  i;
-    McSaveData*          save;
-    s32                  mask;
-    s32                  one;
+    ShopTier*   p;
+    u32         spend;
+    s32         idx;
+    s32         i;
+    McSaveData* save;
+    s32         mask;
+    s32         one;
 
     spend = func_replay_bonus_80115CA4();
     p     = D_replay_bonus_80118F78;
@@ -701,7 +701,7 @@ static inline s32 _replayBonusShopTier(void)
         return -1;
     }
     for (i = 0; i < 0xD; i++, p++) {
-        if (p->spendThreshold >= spend) {
+        if (p->expCeiling >= spend) {
             idx = i;
             break;
         }

@@ -143,13 +143,13 @@ static void func_replay_bonus_80117194(Task* arg0)
 
 static s32 func_replay_bonus_801173A8(void)
 {
-    ReplayBonusShopTier* p;
-    u32                  spend;
-    s32                  idx;
-    s32                  i;
-    McSaveData*          save;
-    s32                  mask;
-    s32                  one;
+    ShopTier*   p;
+    u32         spend;
+    s32         idx;
+    s32         i;
+    McSaveData* save;
+    s32         mask;
+    s32         one;
 
     spend = func_replay_bonus_80115CA4();
     p     = D_replay_bonus_80118F78;
@@ -160,7 +160,7 @@ static s32 func_replay_bonus_801173A8(void)
     i = 0;
     do {
     loop:
-        if (!(p->spendThreshold < spend)) {
+        if (!(p->expCeiling < spend)) {
             idx = i;
             break;
         }
@@ -194,14 +194,14 @@ static s32 func_replay_bonus_801173A8(void)
 
 static s16 func_replay_bonus_80117484(s32 arg0, s32 arg1)
 {
-    ReplayBonusShopTier* p;
-    u32                  spend;
-    s32                  idx;
-    s32                  i;
-    McSaveData*          save;
-    s32                  mask;
-    s32                  one;
-    s32                  result;
+    ShopTier*   p;
+    u32         spend;
+    s32         idx;
+    s32         i;
+    McSaveData* save;
+    s32         mask;
+    s32         one;
+    s32         result;
 
     spend = func_replay_bonus_80115CA4();
     p     = D_replay_bonus_80118F78;
@@ -212,7 +212,7 @@ static s16 func_replay_bonus_80117484(s32 arg0, s32 arg1)
         i = 0;
         do {
         loop:
-            if (!(p->spendThreshold < spend)) {
+            if (!(p->expCeiling < spend)) {
                 idx = i;
                 break;
             }
@@ -318,21 +318,18 @@ void func_replay_bonus_801176A8(UiList* prompt, UiObject* obj)
 
 static s32 func_replay_bonus_801177A0(void)
 {
-    ReplayBonusShopTier* tier;
-    s16*                 p;
-    s32                  j;
-    s32                  sum;
-    s32                  i;
+    ShopTier* tier;
+    s32       j;
+    s32       sum;
+    s32       i;
 
     sum  = 0;
     tier = D_replay_bonus_80118F78;
     i    = sum;
     do {
         j = 0;
-        p = (s16*)tier;
         do {
-            sum += Gp_ItemDescs[p[2]].price;
-            p++;
+            sum += Gp_ItemDescs[tier->items[j]].price;
             j++;
         } while (j < 3);
         i++;

@@ -27,6 +27,8 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
+#include "rooms/shop_tier.h"
+
 /// Work block of the shop's item-list panel, parked in `Task::work`.
 ///
 /// The panel's task allocates it on its first frame and the task's teardown
@@ -427,7 +429,7 @@ static void Shop_AddItem(UiList* list, UiObject* obj, s32 item)
 ///
 /// The upper halfword of the owning task's `spawnArg1` is the mode, which picks
 /// the fixed id list (`Shop_SelectStock`) and, in game mode
-/// 0, which items of each unlocked price row are added: mode 0 ids 0x80-0x9F
+/// 0, which items of each unlocked `ShopTier` row are added: mode 0 ids 0x80-0x9F
 /// and 9, 0xA, 0xC, 0x42-0x46; mode 1 ids 0xA0-0xBF; mode 2 ids 0x60-0x7F and
 /// 0xD; mode 3 ids 1-0x5F other than those. Mode 3 also adds, for each of the
 /// twelve two-bit levels in `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopStock`, the id of that level
@@ -462,16 +464,16 @@ static void Shop_BuildItemList(UiList* list, UiObject* obj)
     }
 
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 1) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopTiers = 0x1FFF;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopTiers = SHOP_TIER_ALL_MASK;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopStock = -1;
     }
 
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode == 0) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopTiers != 0) {
-            for (tier = 0; tier < 13; tier++) {
+            for (tier = 0; tier < SHOP_TIER_COUNT; tier++) {
                 unlocked = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopTiers & (1 << tier);
                 if (unlocked != 0) {
-                    for (j = 0; j < 3; j++) {
+                    for (j = 0; j < ARRAY_SIZE(Shop_Data_80181950[tier].items); j++) {
                         item = Shop_Data_80181950[tier].items[j];
                         switch (mode >> 16) {
                             case 0:

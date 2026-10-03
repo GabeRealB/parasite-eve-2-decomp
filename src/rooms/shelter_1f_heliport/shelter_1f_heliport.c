@@ -54,6 +54,7 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
+#include "rooms/shop_tier.h"
 #include "../../shared/room_events.h"
 #include "../../shared/follow_collision.h"
 
@@ -159,8 +160,8 @@ static u8 Shop_Data_80181AA4[];
 static u8 Shop_Data_80181AC4[];
 static u8 Shop_Data_80181AD0[];
 
-/// The shop's price ladder.
-static RoomShopTier Shop_Data_80181950[13];
+/// The shop's tier ladder.
+static ShopTier Shop_Data_80181950[SHOP_TIER_COUNT];
 
 /// The item id the shop list's cursor last rested on.
 static s32 Shop_Data_801819EC;

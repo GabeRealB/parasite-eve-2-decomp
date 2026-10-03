@@ -72,6 +72,7 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
+#include "rooms/shop_tier.h"
 #include "../../shared/action_prompt.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_events.h"
@@ -248,7 +249,7 @@ static UiObjectDesc Shop_Data_80181B84;
 static UiObjectDesc Shop_Data_80181BD8;
 
 /// The shop's unlockable stock rows.
-static RoomShopTier Shop_Data_80181950[13];
+static ShopTier Shop_Data_80181950[SHOP_TIER_COUNT];
 
 /// The shop list's row handlers and the balance panel beside it.
 static UiListRowCallback Shop_Data_80181AD8[];
