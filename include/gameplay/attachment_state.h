@@ -96,8 +96,11 @@ STATIC_ASSERT_SIZEOF(AttachmentLevelTable, 0x370);
 
 /// Wheel slots. The twelve spells are `0 .. ATTACHMENT_SPELL_COUNT - 1`.
 #define ATTACHMENT_SPELL_COUNT       0xC
+#define ATTACHMENT_INDEX_PYROKINESIS 0
 #define ATTACHMENT_INDEX_METABOLISM  6
 #define ATTACHMENT_INDEX_HEALING     7
+#define ATTACHMENT_INDEX_ANTIBODY    9
+#define ATTACHMENT_INDEX_ENERGY_SHOT 0xA
 #define ATTACHMENT_INDEX_ENERGY_BALL 0xB
 
 /// Shortest cast `duration`, in frames.
@@ -176,7 +179,7 @@ STATIC_ASSERT_SIZEOF(AttachmentState, 0x18);
 #define ATTACHMENT_AREA_CYLINDER   3 // Enemies inside an upright cylinder around the player
 #define ATTACHMENT_AREA_ALL        4 // Every lockable enemy
 
-/// Area-of-effect view of a `GpAttachParam` row: the region an ability at one
+/// Area-of-effect view of an `AttachmentAreaRow`: the region an ability at one
 /// level covers, previewed while aiming and used to pick its targets on release.
 ///
 /// `radius` and `extent` are in units of 100 world units. `extent` is the
@@ -192,26 +195,37 @@ typedef struct {
 } AttachmentAreaParam;
 STATIC_ASSERT_SIZEOF(AttachmentAreaParam, 8);
 
-/// Combo view of a `GpAttachParam` row: an ability of area shape
+/// Combo view of an `AttachmentAreaRow`: an ability of area shape
 /// `ATTACHMENT_AREA_SELF` may run a timed combo, and the row's last halfword
 /// is how long it lasts.
 ///
 /// Metabolism, antibody and energy shot read it for levels 1 to 3, loading
 /// `ticks` into `metabolismTicks`, `antibodyTicks` or `energyShotTicks`.
 typedef struct {
-    u16 unused[3]; // Area shape (`ATTACHMENT_AREA_SELF`) and two zero parameters; read only through `dispatch`
+    u16 unused[3]; // Area shape (`ATTACHMENT_AREA_SELF`) and two zero parameters; read only through `area`
     u16 ticks;     // Frames the combo lasts
 } AttachmentComboParam;
 STATIC_ASSERT_SIZEOF(AttachmentComboParam, 8);
 
-/// Row zero holds four damage percentages; the next 54 rows hold
-/// three upgrade levels for each of the eighteen attachment abilities.
-/// The dispatch and combo paths read signed parameters and an unsigned count.
+/// Abilities with rows in the area table: the twelve wheel spells, then the
+/// six slots past them that items cast from.
+#define ATTACHMENT_AREA_ABILITY_COUNT 18
+
+/// Levels each ability has a row for in the area table. Level `n` is row `n - 1`.
+#define ATTACHMENT_AREA_LEVEL_COUNT 3
+
+/// How one attachment ability at one level reaches its targets, one row of the
+/// area table.
+///
+/// Every row is read as `area` first, and its shape decides how the ability
+/// is applied. Rows of shape `ATTACHMENT_AREA_SELF` have no region to
+/// describe; the abilities among them that run a timed combo keep its
+/// duration in the last halfword, which `combo` reads unsigned where `area`
+/// reads a signed flag.
 typedef union {
-    u16                  percentages[4];
-    AttachmentAreaParam  dispatch;
-    AttachmentComboParam combo;
-} GpAttachParam;
-STATIC_ASSERT_SIZEOF(GpAttachParam, 8);
+    AttachmentAreaParam  area;  // Target shape and its dimensions
+    AttachmentComboParam combo; // `ATTACHMENT_AREA_SELF` rows: how long the ability's combo lasts
+} AttachmentAreaRow;
+STATIC_ASSERT_SIZEOF(AttachmentAreaRow, 8);
 
 #endif // GAMEPLAY_ATTACHMENT_STATE_H

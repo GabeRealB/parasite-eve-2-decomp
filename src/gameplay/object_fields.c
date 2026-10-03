@@ -32,8 +32,6 @@ typedef struct _GpRec6 {
 } GpRec6;
 STATIC_ASSERT_SIZEOF(GpRec6, 0x6);
 
-#define D_80113D38 (Gp_AttachParams[0].percentages)
-
 /// 4-byte records selected by `Gp_LookupIdField(..., 0)`.
 extern GpRec4 Gp_IdField0[];
 

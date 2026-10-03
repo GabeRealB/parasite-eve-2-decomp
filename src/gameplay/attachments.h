@@ -45,6 +45,10 @@ extern u16 D_80113D28[];
 /// per `Enemy.buildupGrade`: how far the buildup reaction builds up.
 extern u16 D_80113D30[];
 
+/// Percentages of an enemy's `param->hpMax` that one pulse of the
+/// damage-over-time reaction removes, one per `Enemy.damageOverTimeGrade`.
+extern u16 D_80113D38[];
+
 /// Damage-scale rows used by `Gp_ScaleDamage`. Indexed by `gSceneCombatState.difficulty`.
 extern GpDmgRow Gp_DmgRows[];
 

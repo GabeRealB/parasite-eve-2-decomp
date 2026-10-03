@@ -82,7 +82,7 @@ void Gp_UpdateAttachCombo(s32 arg0)
             s32                   time;
 
             lvl                       = Gp_StateC08.attachId % 10;
-            param                     = &Gp_AttachParams[27 + lvl].combo;
+            param                     = &Gp_AttachParams[ATTACHMENT_INDEX_ANTIBODY][lvl - 1].combo;
             count                     = Gp_StateC08.antibodyCombo & ATTACHMENT_COMBO_STACK_MASK;
             time                      = param->ticks;
             Gp_StateC08.antibodyCombo = count;
@@ -102,7 +102,7 @@ void Gp_UpdateAttachCombo(s32 arg0)
             s32                   time;
 
             lvl                         = Gp_StateC08.attachId % 10;
-            param                       = &Gp_AttachParams[30 + lvl].combo;
+            param                       = &Gp_AttachParams[ATTACHMENT_INDEX_ENERGY_SHOT][lvl - 1].combo;
             count                       = Gp_StateC08.energyShotCombo & ATTACHMENT_COMBO_STACK_MASK;
             time                        = param->ticks;
             Gp_StateC08.energyShotCombo = count;
@@ -122,7 +122,7 @@ void Gp_UpdateAttachCombo(s32 arg0)
             s32                   time;
 
             lvl                         = Gp_StateC08.attachId % 10;
-            param                       = &Gp_AttachParams[18 + lvl].combo;
+            param                       = &Gp_AttachParams[ATTACHMENT_INDEX_METABOLISM][lvl - 1].combo;
             count                       = Gp_StateC08.metabolismCombo & ATTACHMENT_COMBO_STACK_MASK;
             time                        = param->ticks;
             Gp_StateC08.metabolismCombo = count;

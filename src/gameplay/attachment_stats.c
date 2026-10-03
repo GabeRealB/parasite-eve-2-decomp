@@ -148,66 +148,104 @@ u16 D_80113D30[4] = {
     150,
 };
 
-GpAttachParam Gp_AttachParams[55] = {
-    { .percentages = {
-          16,
-          4,
-          6,
-          8 } },
-    { .dispatch = { ATTACHMENT_AREA_PROJECTILE, 6, 65, 0 } },
-    { .dispatch = { ATTACHMENT_AREA_PROJECTILE, 8, 90, 0 } },
-    { .dispatch = { ATTACHMENT_AREA_PROJECTILE, 10, 200, 0 } },
-    { .dispatch = { ATTACHMENT_AREA_CYLINDER, 16, 16, 1 } },
-    { .dispatch = { ATTACHMENT_AREA_CYLINDER, 24, 20, 1 } },
-    { .dispatch = { ATTACHMENT_AREA_CYLINDER, 32, 50, 1 } },
-    { .dispatch = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
-    { .dispatch = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
-    { .dispatch = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
-    { .dispatch = { ATTACHMENT_AREA_PROJECTILE, 11, 40, 0 } },
-    { .dispatch = { ATTACHMENT_AREA_PROJECTILE, 12, 60, 0 } },
-    { .dispatch = { ATTACHMENT_AREA_PROJECTILE, 13, 80, 0 } },
-    { .dispatch = { ATTACHMENT_AREA_ELLIPSOID, 24, 24, 0 } },
-    { .dispatch = { ATTACHMENT_AREA_ELLIPSOID, 30, 26, 0 } },
-    { .dispatch = { ATTACHMENT_AREA_ELLIPSOID, 38, 30, 0 } },
-    { .dispatch = { ATTACHMENT_AREA_CYLINDER, 40, 50, 0 } },
-    { .dispatch = { ATTACHMENT_AREA_CYLINDER, 60, 50, 0 } },
-    { .dispatch = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
-    { .dispatch = { ATTACHMENT_AREA_SELF, 0, 0, 600 } },
-    { .dispatch = { ATTACHMENT_AREA_SELF, 0, 0, 600 } },
-    { .dispatch = { ATTACHMENT_AREA_SELF, 0, 0, 600 } },
-    { .dispatch = { ATTACHMENT_AREA_SELF, 0, 0, 0 } },
-    { .dispatch = { ATTACHMENT_AREA_SELF, 0, 0, 0 } },
-    { .dispatch = { ATTACHMENT_AREA_SELF, 0, 0, 0 } },
-    { .dispatch = { ATTACHMENT_AREA_CYLINDER, 40, 50, 0 } },
-    { .dispatch = { ATTACHMENT_AREA_CYLINDER, 60, 50, 0 } },
-    { .dispatch = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
-    { .dispatch = { ATTACHMENT_AREA_SELF, 0, 0, 2250 } },
-    { .dispatch = { ATTACHMENT_AREA_SELF, 0, 0, 2250 } },
-    { .dispatch = { ATTACHMENT_AREA_SELF, 0, 0, 2250 } },
-    { .dispatch = { ATTACHMENT_AREA_SELF, 0, 0, 2250 } },
-    { .dispatch = { ATTACHMENT_AREA_SELF, 0, 0, 2250 } },
-    { .dispatch = { ATTACHMENT_AREA_SELF, 0, 0, 2250 } },
-    { .dispatch = { ATTACHMENT_AREA_SELF, 0, 0, 10 } },
-    { .dispatch = { ATTACHMENT_AREA_SELF, 0, 0, 13 } },
-    { .dispatch = { ATTACHMENT_AREA_SELF, 0, 0, 15 } },
-    { .dispatch = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
-    { .dispatch = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
-    { .dispatch = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
-    { .dispatch = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
-    { .dispatch = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
-    { .dispatch = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
-    { .dispatch = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
-    { .dispatch = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
-    { .dispatch = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
-    { .dispatch = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
-    { .dispatch = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
-    { .dispatch = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
-    { .dispatch = { ATTACHMENT_AREA_CYLINDER, 20, 25, 1 } },
-    { .dispatch = { ATTACHMENT_AREA_CYLINDER, 16, 22, 1 } },
-    { .dispatch = { ATTACHMENT_AREA_CYLINDER, 14, 25, 1 } },
-    { .dispatch = { ATTACHMENT_AREA_CYLINDER, 38, 28, 0 } },
-    { .dispatch = { ATTACHMENT_AREA_CYLINDER, 16, 25, 1 } },
-    { .dispatch = { ATTACHMENT_AREA_CYLINDER, 16, 20, 1 } },
+u16 D_80113D38[4] = {
+    16,
+    4,
+    6,
+    8,
+};
+
+AttachmentAreaRow Gp_AttachParams[ATTACHMENT_AREA_ABILITY_COUNT][ATTACHMENT_AREA_LEVEL_COUNT] = {
+    {
+        { .area = { ATTACHMENT_AREA_PROJECTILE, 6, 65, 0 } },
+        { .area = { ATTACHMENT_AREA_PROJECTILE, 8, 90, 0 } },
+        { .area = { ATTACHMENT_AREA_PROJECTILE, 10, 200, 0 } },
+    },
+    {
+        { .area = { ATTACHMENT_AREA_CYLINDER, 16, 16, 1 } },
+        { .area = { ATTACHMENT_AREA_CYLINDER, 24, 20, 1 } },
+        { .area = { ATTACHMENT_AREA_CYLINDER, 32, 50, 1 } },
+    },
+    {
+        { .area = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+        { .area = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+        { .area = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+    },
+    {
+        { .area = { ATTACHMENT_AREA_PROJECTILE, 11, 40, 0 } },
+        { .area = { ATTACHMENT_AREA_PROJECTILE, 12, 60, 0 } },
+        { .area = { ATTACHMENT_AREA_PROJECTILE, 13, 80, 0 } },
+    },
+    {
+        { .area = { ATTACHMENT_AREA_ELLIPSOID, 24, 24, 0 } },
+        { .area = { ATTACHMENT_AREA_ELLIPSOID, 30, 26, 0 } },
+        { .area = { ATTACHMENT_AREA_ELLIPSOID, 38, 30, 0 } },
+    },
+    {
+        { .area = { ATTACHMENT_AREA_CYLINDER, 40, 50, 0 } },
+        { .area = { ATTACHMENT_AREA_CYLINDER, 60, 50, 0 } },
+        { .area = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+    },
+    {
+        { .area = { ATTACHMENT_AREA_SELF, 0, 0, 600 } },
+        { .area = { ATTACHMENT_AREA_SELF, 0, 0, 600 } },
+        { .area = { ATTACHMENT_AREA_SELF, 0, 0, 600 } },
+    },
+    {
+        { .area = { ATTACHMENT_AREA_SELF, 0, 0, 0 } },
+        { .area = { ATTACHMENT_AREA_SELF, 0, 0, 0 } },
+        { .area = { ATTACHMENT_AREA_SELF, 0, 0, 0 } },
+    },
+    {
+        { .area = { ATTACHMENT_AREA_CYLINDER, 40, 50, 0 } },
+        { .area = { ATTACHMENT_AREA_CYLINDER, 60, 50, 0 } },
+        { .area = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+    },
+    {
+        { .area = { ATTACHMENT_AREA_SELF, 0, 0, 2250 } },
+        { .area = { ATTACHMENT_AREA_SELF, 0, 0, 2250 } },
+        { .area = { ATTACHMENT_AREA_SELF, 0, 0, 2250 } },
+    },
+    {
+        { .area = { ATTACHMENT_AREA_SELF, 0, 0, 2250 } },
+        { .area = { ATTACHMENT_AREA_SELF, 0, 0, 2250 } },
+        { .area = { ATTACHMENT_AREA_SELF, 0, 0, 2250 } },
+    },
+    {
+        { .area = { ATTACHMENT_AREA_SELF, 0, 0, 10 } },
+        { .area = { ATTACHMENT_AREA_SELF, 0, 0, 13 } },
+        { .area = { ATTACHMENT_AREA_SELF, 0, 0, 15 } },
+    },
+    {
+        { .area = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+        { .area = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+        { .area = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+    },
+    {
+        { .area = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+        { .area = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+        { .area = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+    },
+    {
+        { .area = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+        { .area = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+        { .area = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+    },
+    {
+        { .area = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+        { .area = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+        { .area = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+    },
+    {
+        { .area = { ATTACHMENT_AREA_CYLINDER, 20, 25, 1 } },
+        { .area = { ATTACHMENT_AREA_CYLINDER, 16, 22, 1 } },
+        { .area = { ATTACHMENT_AREA_CYLINDER, 14, 25, 1 } },
+    },
+    {
+        { .area = { ATTACHMENT_AREA_CYLINDER, 38, 28, 0 } },
+        { .area = { ATTACHMENT_AREA_CYLINDER, 16, 25, 1 } },
+        { .area = { ATTACHMENT_AREA_CYLINDER, 16, 20, 1 } },
+    },
 };
 GpDmgRow Gp_DmgRows[5] = {
     { { 20, 30, 40, 50, 60 }, { 50, 60, 70, 80, 100 } },
@@ -262,7 +300,6 @@ void Gp_ApplyAttachStats(s32 arg0, GpIdMapC* arg1)
     PlayerStatus*        p;
     SceneCombatState*    state;
     AttachmentAreaParam* area;
-    GpAttachParam*       row;
     s32                  cond;
     s32                  ret;
     u8*                  table;
@@ -302,8 +339,7 @@ void Gp_ApplyAttachStats(s32 arg0, GpIdMapC* arg1)
             }
         }
     }
-    row                  = &Gp_AttachParams[idx * 3];
-    area                 = &row[ret].dispatch;
+    area                 = &Gp_AttachParams[idx][ret - 1].area;
     state                = &gSceneCombatState;
     radius               = area->radius;
     extent               = area->extent;

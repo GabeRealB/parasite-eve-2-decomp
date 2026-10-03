@@ -83,7 +83,7 @@ static s16 D_pyrokinesis_80131DFC[16] = { 0 };
 /// variant, and links a `PyroWork` collision pair (list 1 + list 7) whose
 /// packed id is the combo digits plus `0x28000`. State 1 walks the coordinate
 /// by that offset each frame, redraws the cone and ring, parks the room light
-/// slot on it and burns until the `D_80113D40` budget for the combo level runs
+/// slot on it and burns until the `Gp_AttachParams` extent for the combo level runs
 /// out. A `0x30000` hit on `obj` bursts into three `0x600F6` flames and moves
 /// to state 3 (or 4 for cast variant 2); a `0x100000` hit on `obj2` means a
 /// wall, which drops to state 2 and fades the cone out. States 3 and 4 grow
@@ -291,7 +291,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 return;
             }
             tick = mem->age;
-            if (tick * 6 > (Gp_AttachParams + 1)[mem->index].dispatch.extent) {
+            if (tick * 6 > Gp_AttachParams[ATTACHMENT_INDEX_PYROKINESIS][mem->index].area.extent) {
                 Gp_UnlinkObj(&work->obj);
                 Gp_UnlinkObj(&work->obj2);
                 arg0->state = 2;

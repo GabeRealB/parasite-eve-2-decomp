@@ -2257,7 +2257,8 @@ D_80113CFC = 0x80113CFC; // size:0x10 defined:True
 D_80113D0C = 0x80113D0C; // size:0x1C defined:True
 D_80113D28 = 0x80113D28; // size:0x8 defined:True
 D_80113D30 = 0x80113D30; // size:0x8 defined:True
-Gp_AttachParams = 0x80113D38; // size:0x1B8 defined:True
+D_80113D38 = 0x80113D38; // size:0x8 defined:True
+Gp_AttachParams = 0x80113D40; // size:0x1B0 defined:True
 D_80113F54 = 0x80113F54; // size:0x3C defined:True
 D_80113F90 = 0x80113F90; // size:0xC defined:True
 

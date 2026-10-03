@@ -16,6 +16,6 @@ extern AttachmentState Gp_StateC08;
 /// Flag byte cleared by `func_800A7DE0` / `Gp_SpawnPlayer`.
 extern u8 D_80115768;
 
-extern GpAttachParam Gp_AttachParams[55];
+extern AttachmentAreaRow Gp_AttachParams[ATTACHMENT_AREA_ABILITY_COUNT][ATTACHMENT_AREA_LEVEL_COUNT];
 
 #endif // GAMEPLAY_ATTACHMENTS_H
