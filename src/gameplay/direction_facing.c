@@ -28,17 +28,21 @@
 
 #include "rooms/shelter_b4_water_supply.h"
 
-/// 8-byte pair of byte-table pointers at `D_801149FC`. `Gp_MsgPlayerDirFacing`
-/// indexes by `(Gp_DirByte & 0x70) >> 4`. `Gp_DirFlags & 0x100` selects
-/// `field_4` over `field_0`. The byte at `(Gp_DirByte & 0xF) -
-/// GameActor.scriptMotion.surfaceIndexBase` is stored into `GameActor.surfaceClass`.
-typedef struct _GpDirPair {
-    /* 0x0 */ u8* field_0;
-    /* 0x4 */ u8* field_4;
-} GpDirPair;
-STATIC_ASSERT_SIZEOF(GpDirPair, 8);
+/// Surface classes along one stair flight whose surface changes on the way.
+///
+/// A stair trigger normally carries a single surface class for its whole
+/// flight; one that sets bit 7 of its first parameter selects a flight record
+/// instead. Each row gives the `GameActor.surfaceClass` to apply once a given
+/// number of steps has been taken, so a climb of `n` steps reads entries 0
+/// through `n` of the row for its direction. The rows are borrowed and are
+/// only read; most belong to the room that owns the flight.
+typedef struct {
+    u8* ascent;  // Row for a walk up the flight, indexed by steps taken so far
+    u8* descent; // Row for a walk down the flight, indexed the same way
+} _DirectionStairSurfaces;
+STATIC_ASSERT_SIZEOF(_DirectionStairSurfaces, 8);
 
-extern GpDirPair D_801149FC[];
+extern _DirectionStairSurfaces D_801149FC[];
 
 extern u8 D_801149E8[10];
 
@@ -67,7 +71,7 @@ u8 D_801149F4[8] = {
     4
 };
 
-GpDirPair D_801149FC[5] = {
+_DirectionStairSurfaces D_801149FC[5] = {
     { D_acropolis_bridge_80189A9C, &D_acropolis_bridge_80189A9C[12] },
     { D_801149E8, D_801149F4 },
     { D_shelter_b4_water_supply_801826FC, &D_shelter_b4_water_supply_801826FC[16] },
@@ -88,10 +92,10 @@ void Gp_MsgPlayerDirFacing(void)
     if (flags & 0x80) {
         surfaceIndexBase = actor->scriptMotion.surfaceIndexBase;
         if (Gp_DirFlags & 0x100) {
-            row                 = D_801149FC[(flags & 0x70) >> 4].field_4;
+            row                 = D_801149FC[(flags & 0x70) >> 4].descent;
             actor->surfaceClass = row[(flags & 0xF) - surfaceIndexBase];
         } else {
-            row                 = D_801149FC[(flags & 0x70) >> 4].field_0;
+            row                 = D_801149FC[(flags & 0x70) >> 4].ascent;
             actor->surfaceClass = row[(flags & 0xF) - surfaceIndexBase];
         }
     } else {
