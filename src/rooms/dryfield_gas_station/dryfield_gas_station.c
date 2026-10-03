@@ -102,20 +102,9 @@ static UiObjectDesc Telephone_Data_80181CC8;
 /// The list shown by `func_dryfield_gas_station_8017EA90`.
 static UiList Telephone_Data_80181CF4;
 
-extern TaskDesc gRoomCutsceneTaskDescs[];
-extern TaskDesc D_dryfield_gas_station_80181E3C[];
-// Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(void);
-        s32 (*call1)(s32, s32, RoomEventMsg*, RoomEventMsg*);
-        s32 (*call2)(s32, s32, s32);
-    } handler;
-} DryfieldGasStationMessageEntry;
-STATIC_ASSERT_SIZEOF(DryfieldGasStationMessageEntry, 8);
-
-extern DryfieldGasStationMessageEntry D_dryfield_gas_station_80181E54[5];
+extern TaskDesc         gRoomCutsceneTaskDescs[];
+extern TaskDesc         D_dryfield_gas_station_80181E3C[];
+extern TaskMessageEntry D_dryfield_gas_station_80181E54[5];
 
 #define TELEPHONE_TITLE_BYTES "Telephone\0\0\x12"
 #include "../../shared/telephone.h"
@@ -135,15 +124,15 @@ TaskDesc D_dryfield_gas_station_80181E3C[2] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-s32 func_dryfield_gas_station_8017FD4C(void);
-s32 func_dryfield_gas_station_8017FD54(s32, s32, s32);
+s32 func_dryfield_gas_station_8017FD4C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_gas_station_8017FD54(Task*, s32, s32, TaskMessageArg);
 
-DryfieldGasStationMessageEntry D_dryfield_gas_station_80181E54[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, { .call1 = roomVariantGasStationMsg } },
-    { 5105, { .call0 = func_dryfield_gas_station_8017FD4C } },
-    { ROOM_MESSAGE_COMMAND, { .call2 = func_dryfield_gas_station_8017FD54 } },
-    { ROOM_MESSAGE_SOUND, { .call2 = gasStationCueSoundMsg } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_dryfield_gas_station_80181E54[5] = {
+    { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantGasStationMsg },
+    { 5105, func_dryfield_gas_station_8017FD4C },
+    { ROOM_MESSAGE_COMMAND, func_dryfield_gas_station_8017FD54 },
+    { ROOM_MESSAGE_SOUND, gasStationCueSoundMsg },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 /// Telephone menu title, including retained bytes after its terminator.
@@ -172,7 +161,7 @@ void func_dryfield_gas_station_8017EA90(Task* task)
 #include "../../shared/room_cutscene_sound_task.inc.c"
 
 /// Always returns 0.
-s32 func_dryfield_gas_station_8017FD4C(void)
+s32 func_dryfield_gas_station_8017FD4C(Task* arg0, s32 arg1, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -182,7 +171,7 @@ s32 func_dryfield_gas_station_8017FD4C(void)
 /// fills in the room's cap script (area 8, this request as the slot and file)
 /// and spawns `gRoomCutsceneTaskDescs`. Returns 1 when the request is
 /// not 1, otherwise the spawned task.
-s32 func_dryfield_gas_station_8017FD54(s32 arg0, s32 arg1, s32 arg2)
+s32 func_dryfield_gas_station_8017FD54(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if (arg2 == 1) {
         if (GameFlag_GetNibble(GAME_FLAG_GAS_STATION_FIRST_SCENE) == 0) {

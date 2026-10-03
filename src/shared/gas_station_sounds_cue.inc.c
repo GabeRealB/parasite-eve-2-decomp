@@ -4,7 +4,7 @@
 /// the gas station, then enqueues it as a type-6 sound event. Event key 0x83
 /// only plays if a cap script is still reporting an event key. Keys with no
 /// sound are ignored. Always returns 0.
-s32 gasStationCueSoundMsg(s32 arg0, s32 arg1, s32 arg2)
+s32 gasStationCueSoundMsg(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     s32 id;
 

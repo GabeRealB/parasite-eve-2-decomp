@@ -161,8 +161,9 @@ typedef struct {
     union {
         s32 (*call0)(void);
         s32 (*call1)(Task*, s32, DirectionActionRequest*);
-        s32 (*call2)(s32, s32, RoomEventMsg*, RoomEventMsg*);
+        s32 (*call2)(Task*, s32, RoomEventMsg*, RoomEventMsg*);
         s32 (*call3)(s32, s32, s32);
+        s32 (*call4)(Task*, s32, s32, TaskMessageArg);
     } handler;
 } DryfieldNightGasStationMessageEntry;
 STATIC_ASSERT_SIZEOF(DryfieldNightGasStationMessageEntry, 8);
@@ -305,7 +306,7 @@ DryfieldNightGasStationMessageEntry D_dryfield_night_gas_station_80184034[7] = {
     { 5105, { .call3 = func_dryfield_night_gas_station_8017F7E0 } },
     { DIRECTION_MESSAGE_ROOM_ACTION, { .call1 = func_dryfield_night_gas_station_8017F990 } },
     { ROOM_MESSAGE_COMMAND, { .call3 = func_dryfield_night_gas_station_8017F89C } },
-    { ROOM_MESSAGE_SOUND, { .call3 = gasStationCueSoundMsg } },
+    { ROOM_MESSAGE_SOUND, { .call4 = gasStationCueSoundMsg } },
     { ROOM_MESSAGE_ACTOR_EVENT, { .call0 = func_dryfield_night_gas_station_8017F9E8 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };

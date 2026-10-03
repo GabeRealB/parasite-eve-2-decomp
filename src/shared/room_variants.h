@@ -32,6 +32,6 @@ s32 roomVariantMotelBalconySoundMsg(Task* task, s32 msgId, s32 arg2, s32 arg3);
 
 s32 roomVariantSaloonMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);
 s32 roomVariantUnderpassMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);
-s32 roomVariantGasStationMsg(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);
+s32 roomVariantGasStationMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);
 
 #endif /* SRC_SHARED_ROOM_VARIANTS_H */

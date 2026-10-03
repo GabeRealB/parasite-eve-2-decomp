@@ -7,7 +7,7 @@
 /// message 2 returns 0 while nibble 0x45 reads 1. The cap commands and nibble
 /// write that go with those answers run only when `in->queryOnly` is clear.
 /// Every other case returns 1.
-s32 roomVariantGasStationMsg(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 roomVariantGasStationMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     s32 n;
     s32 val;

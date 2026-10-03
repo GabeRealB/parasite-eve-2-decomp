@@ -11,6 +11,10 @@
 
 #include "types.h"
 
-s32 gasStationCueSoundMsg(s32 arg0, s32 arg1, s32 arg2);
+#include "gameplay/message.h"
+
+#include "main/task_types.h"
+
+s32 gasStationCueSoundMsg(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3);
 
 #endif /* SRC_SHARED_GAS_STATION_SOUNDS_H */
