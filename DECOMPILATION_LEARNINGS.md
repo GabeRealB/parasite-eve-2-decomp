@@ -24447,10 +24447,13 @@ GCC 2.8.1's C front end has **no anonymous unions or structs**: wrapping
 existing byte fields in an unnamed `union { s32 word; struct { ... }; };`
 fails with "structure has no member named" at every use site (and trips the
 `STATIC_ASSERT_SIZEOF`). Name both levels and rename the existing byte users.
+Check first that the wide load is a second view at all.
 `func_actor_400600_80136558` does `lw 0x75C` + `& 0xFFFF0000` over the
-`u8 field_75E` / `s8 field_75F` pair that other functions store with `sb`;
-it became `Actor400600State { s32 word; struct { ... } b; }`, with the byte
-writes spelled `work->field_75C.b.field_75E`.
+`u8 cloaked` / `u8 cloakFading` pair that other functions store with `sb`,
+which is `work->cloaked == 0 && work->cloakFading == 1` merged by
+`fold_truthop` and loaded in the widest mode the word-aligned work block
+allows (see "A `lw` + `andi` mask test on a `u16` flags field is two bit tests
+joined by `||`"), so those stay plain members and need no union.
 
 ## Pin a later-used call arg to `$s0` so the `Task*` stays in `$s1`
 

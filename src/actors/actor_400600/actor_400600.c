@@ -71,19 +71,6 @@ typedef union Actor400600Timer {
 } Actor400600Timer;
 STATIC_ASSERT_SIZEOF(Actor400600Timer, 0x4);
 
-/// The word at `Actor400600Work::field_75C`. Its two high bytes are a state
-/// pair written one at a time; `func_actor_400600_80136558` reads the whole word
-/// and dispatches on its high half, so both views are modelled explicitly.
-typedef union Actor400600State {
-    /* 0x0 */ s32 word;
-    struct {
-        /* 0x0 */ s16 field_75C; // cleared on its own by func_actor_400600_80133FC0
-        /* 0x2 */ u8  field_75E; // compared unsigned by func_actor_400600_8013C874
-        /* 0x3 */ s8  field_75F;
-    } b;
-} Actor400600State;
-STATIC_ASSERT_SIZEOF(Actor400600State, 0x4);
-
 /// Per-actor state block for the `actor_400600` overlay.
 ///
 /// `func_actor_400600_80133434` allocates it with `memCalloc(0x770)` and
@@ -163,7 +150,9 @@ typedef struct Actor400600Work {
     /* 0x756 */ u16                   field_756; // countdown to the next state-2 transition
     /* 0x758 */ s16                   field_758;
     /* 0x75A */ s16                   field_75A;
-    /* 0x75C */ Actor400600State      field_75C;
+    /* 0x75C */ s16                   holdLoops;   // hold-clip repeats completed; the hold ends at 3
+    /* 0x75E */ u8                    cloaked;     // cloak target (0 visible, 1 cloaked)
+    /* 0x75F */ u8                    cloakFading; // set while the fade toward `cloaked` runs
     /* 0x760 */ s8                    field_760;
     /* 0x761 */ byte                  pad_761;
     /* 0x762 */ u8                    moveMode;
@@ -2281,7 +2270,7 @@ static void func_actor_400600_801337A8(Task* arg0)
             Gp_ClearRec18Occupied(work->capsuleContacts);
             actorUpdateModelColor(arg0);
             func_actor_400600_80138224(arg0, work->field_73E, work->field_73A);
-            if (work->field_75C.b.field_75E == 0) {
+            if (work->cloaked == 0) {
                 model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 func_actor_400600_801387DC(arg0, -1);
             }
@@ -2458,7 +2447,7 @@ static void func_actor_400600_80133FC0(Task* arg0)
     sound = base | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
     pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
     SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-    work->field_75C.b.field_75C = 0;
+    work->holdLoops = 0;
     work->subState++;
 }
 
@@ -2496,7 +2485,7 @@ static void func_actor_400600_80134218(Task* arg0)
         pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
-    if (work->field_763 == 1 || work->holdTaken == 1 || enemy->hp <= 0 || work->field_75C.b.field_75C >= 3) {
+    if (work->field_763 == 1 || work->holdTaken == 1 || enemy->hp <= 0 || work->holdLoops >= 3) {
         work->field_763 = 0;
         if (work->holdTaken == 0) {
             msg.source.sets          = D_actor_400600_80151A48;
@@ -2538,7 +2527,7 @@ static void func_actor_400600_80134218(Task* arg0)
     }
     if ((stalkerZebraIvoryClipDone(arg0) << 0x10) != 0) {
         work->field_718 = 0;
-        work->field_75C.b.field_75C++;
+        work->holdLoops++;
     }
 }
 
@@ -3170,19 +3159,18 @@ static void func_actor_400600_80136558(Task* arg0)
     Actor400600Work* work  = (Actor400600Work*)arg0->work;
     TmdObject*       model = arg0->extra.tmd;
     Enemy*           enemy = (Enemy*)arg0->spawnArg2.pointer;
-    s32              state = work->field_75C.word & 0xFFFF0000;
     s16              count;
 
-    if (state == 0x1000000) {
+    if (work->cloaked == 0 && work->cloakFading == 1) {
         work->field_73A = (u16)work->field_73A + ((0xFF - work->field_73A) >> 5);
         work->field_740++;
         if (work->field_740 >= 0x20) {
             model->flags &= ~TMD_OBJECT_SEMI_TRANS;
             func_actor_400600_801387DC(arg0, -1);
-            work->field_740             = 0;
-            work->field_75C.b.field_75F = 0;
+            work->field_740   = 0;
+            work->cloakFading = 0;
         }
-    } else if (state == 0x1010000) {
+    } else if (work->cloaked == 1 && work->cloakFading == 1) {
         work->field_73A = (u16)work->field_73A + (-work->field_73A >> 3);
         count           = work->field_740 + 1;
         work->field_740 = count;
@@ -3194,9 +3182,9 @@ static void func_actor_400600_80136558(Task* arg0)
             }
             model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             func_actor_400600_801387DC(arg0, -1);
-            work->field_740             = 0;
-            work->field_75C.b.field_75F = 0;
-            work->field_73A             = 0;
+            work->field_740   = 0;
+            work->cloakFading = 0;
+            work->field_73A   = 0;
         }
     }
 }
@@ -3818,11 +3806,11 @@ static s32 func_actor_400600_80137AF0(Task* arg0)
     if ((u32)(work->field_72C - 0x400) >= 0x801U && (u32)(work->field_72A - 0x300) >= 0xA01U) {
         if (work->playerDistance < 0xBB8) {
             model = arg0->extra.tmd;
-            if (work->field_75C.b.field_75E != 1) {
-                work->field_75C.b.field_75E = 1;
-                work->field_75C.b.field_75F = 1;
-                work->field_740             = 0;
-                model->flags               |= TMD_OBJECT_SEMI_TRANS;
+            if (work->cloaked != 1) {
+                work->cloaked     = 1;
+                work->cloakFading = 1;
+                work->field_740   = 0;
+                model->flags     |= TMD_OBJECT_SEMI_TRANS;
                 Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
                 func_actor_400600_801387DC(arg0, 2);
             }
@@ -3836,11 +3824,11 @@ static s32 func_actor_400600_80137AF0(Task* arg0)
     }
     model2 = arg0->extra.tmd;
     enemy  = (Enemy*)arg0->spawnArg2.pointer;
-    if (work->field_75C.b.field_75E != 0) {
-        work->field_75C.b.field_75E = 0;
-        work->field_75C.b.field_75F = 1;
-        work->field_740             = 0;
-        model2->flags               = (model2->flags | TMD_OBJECT_SEMI_TRANS) & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    if (work->cloaked != 0) {
+        work->cloaked     = 0;
+        work->cloakFading = 1;
+        work->field_740   = 0;
+        model2->flags     = (model2->flags | TMD_OBJECT_SEMI_TRANS) & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
         Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
         enemy->node.state.parts.flags = WORLD_TARGET_KEEP_SCANNED;
         func_actor_400600_801387DC(arg0, 0);
@@ -4148,10 +4136,10 @@ static void func_actor_400600_80138A24(Task* arg0, s16 arg1)
         model->flags                 |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
         func_actor_400600_801387DC(arg0, 2);
-        work->field_75C.b.field_75E = 1;
-        work->field_740             = 0;
-        work->field_75C.b.field_75F = 0;
-        work->field_73A             = 0;
+        work->cloaked     = 1;
+        work->field_740   = 0;
+        work->cloakFading = 0;
+        work->field_73A   = 0;
     }
 }
 
@@ -4183,20 +4171,20 @@ static void func_actor_400600_80138B5C(Task* arg0, s32 arg1)
     enemy = (Enemy*)arg0->spawnArg2.pointer;
     work  = (Actor400600Work*)arg0->work;
     if (!(arg1 & 0xFF)) {
-        if (work->field_75C.b.field_75E != 0) {
-            work->field_75C.b.field_75E = 0;
-            work->field_75C.b.field_75F = 1;
-            work->field_740             = 0;
-            model->flags                = (model->flags | TMD_OBJECT_SEMI_TRANS) & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        if (work->cloaked != 0) {
+            work->cloaked     = 0;
+            work->cloakFading = 1;
+            work->field_740   = 0;
+            model->flags      = (model->flags | TMD_OBJECT_SEMI_TRANS) & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
             enemy->node.state.parts.flags = WORLD_TARGET_KEEP_SCANNED;
             func_actor_400600_801387DC(arg0, 0);
         }
-    } else if (work->field_75C.b.field_75E != 1) {
-        work->field_75C.b.field_75E = 1;
-        work->field_75C.b.field_75F = 1;
-        work->field_740             = 0;
-        model->flags               |= TMD_OBJECT_SEMI_TRANS;
+    } else if (work->cloaked != 1) {
+        work->cloaked     = 1;
+        work->cloakFading = 1;
+        work->field_740   = 0;
+        model->flags     |= TMD_OBJECT_SEMI_TRANS;
         Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
         func_actor_400600_801387DC(arg0, 2);
     }
@@ -5809,11 +5797,11 @@ static void func_actor_400600_8013C874(Task* arg0)
     work->field_73A = 0;
     work2           = (Actor400600Work*)arg0->work;
     model2          = arg0->extra.tmd;
-    if (work2->field_75C.b.field_75E != 1) {
-        work2->field_75C.b.field_75E = 1;
-        work2->field_75C.b.field_75F = 1;
-        work2->field_740             = 0;
-        model2->flags               |= TMD_OBJECT_SEMI_TRANS;
+    if (work2->cloaked != 1) {
+        work2->cloaked     = 1;
+        work2->cloakFading = 1;
+        work2->field_740   = 0;
+        model2->flags     |= TMD_OBJECT_SEMI_TRANS;
         Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
         func_actor_400600_801387DC(arg0, 2);
     }
