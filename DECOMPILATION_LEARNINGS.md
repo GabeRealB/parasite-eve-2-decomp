@@ -66249,7 +66249,7 @@ and the sibling's existing four-argument call without extra `$a3` setup.
 
 ## Increment scratch depth before loading the primitive cursor to avoid LICM of its high address
 
-In `func_800FCD00`, loading `gGpuPrimCursor`, incrementing `block->otz`,
+In `func_800FCD00`, loading `gGpuPrimCursor`, incrementing `block->depth`,
 then storing the advanced cursor gave `%hi(gGpuPrimCursor)` a life of six
 RTL insns. `.loop` hoisted it into a saved register in both drawing loops.
 Incrementing depth first shortened that life to three; `.loop` reported
@@ -66259,14 +66259,17 @@ the depth increment between the cursor load and the two stores, as required.
 The final scratch allocation copy needed only statement order:
 
 ```c
-head = (u8*)*SCRATCH_STACK_CURSOR_SLOT - 0x78;
+head = (u8*)*SCRATCH_STACK_CURSOR_SLOT - sizeof(_EffectDeathFlameScratch);
 *SCRATCH_STACK_CURSOR_SLOT = head;
-block = (GpEffRingScratch*)head;
+block = (_EffectDeathFlameScratch*)head;
 ```
 
 Naming `block` before the store let CSE retarget both the add and store to
 `block`, deleting the target's `move s2,v0`. Storing first preserved
 `addiu v0,v0,-0x78; move s2,v0; sw v0,0(a0)` without pins or empty asm.
+`SCRATCH_STACK_RESERVE_BLOCK(_EffectDeathFlameScratch)` stores first as well:
+`block` takes the value of the store, so the source now reserves with it and
+needs no `head` local.
 The archived seed improved from 89.919% to 100% with indexed vertices,
 counter-derived angles, signed-load temporaries, and these ordering changes.
 

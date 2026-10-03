@@ -82,22 +82,36 @@ STATIC_ASSERT_SIZEOF(_PlayerActorWeaponAttacks, sizeof(TaskFunc) * PLAYER_ACTOR_
 #include <psyq/abs.h>
 #include <psyq/rand.h>
 
-/// 0x78-byte scratch for `func_800FCD00`: twelve alternating outer/inner
-/// ring vertices, four projected screen positions, depth, and GTE flags.
-typedef struct _GpEffRingScratch {
-    /* 0x00 */ SVECTOR vec[12];
-    /* 0x60 */ s16     sx0;
-    /* 0x62 */ s16     sy0;
-    /* 0x64 */ s16     sx1;
-    /* 0x66 */ s16     sy1;
-    /* 0x68 */ s16     sx2;
-    /* 0x6A */ s16     sy2;
-    /* 0x6C */ s16     sx3;
-    /* 0x6E */ s16     sy3;
-    /* 0x70 */ s32     otz;
-    /* 0x74 */ s32     flag;
-} GpEffRingScratch;
-STATIC_ASSERT_SIZEOF(GpEffRingScratch, 0x78);
+/// Number of vertices in an `_EffectDeathFlameScratch`: six round the base
+/// ring and six round the top ring, interleaved and a twelfth of a turn apart.
+#define EFFECT_DEATH_FLAME_VERTEX_COUNT 12
+
+/// Scratch-stack workspace for drawing one death flame, a hexagonal cone
+/// with its tip cut off.
+///
+/// `vertices` goes once round the flame, a twelfth of a turn per entry. Even
+/// entries are the base ring, in the flame coordinate's local XZ plane at the
+/// flame's radius. Odd entries are the top ring, a fixed amount narrower and
+/// displaced along local Y by the flame's height. Each vertex is staged in
+/// local space, rotated by the coordinate's world matrix and moved by its
+/// translation, then stored back as a world position narrowed to 16 bits.
+///
+/// Six side quads each join two neighbouring base vertices to the top
+/// vertices that follow them, wrapping at the last one, and two more quads
+/// close the top ring. Every quad is projected through the same four
+/// `screenCorners`, one RTPS for corner 0 and one RTPT for corners 1..3, in
+/// GPU quad strip order.
+///
+/// Reserve one complete block on the scratch stack and release it in reverse
+/// order after drawing. The block is not cleared, and pointers into it must
+/// not survive its release.
+typedef struct {
+    SVECTOR vertices[EFFECT_DEATH_FLAME_VERTEX_COUNT]; // World positions round the flame: even entries the base ring, odd the top ring
+    DVECTOR screenCorners[4];                          // Current quad's signed screen X/Y pixels, written together as one GTE word per corner
+    s32     depth;                                     // Last projected corner's SZ3 / 4, plus one: ordering-table and blend depth
+    s32     projectionFlags;                           // GTE FLAG word after the quad's RTPT; bit 31 makes it negative and drops the quad
+} _EffectDeathFlameScratch;
+STATIC_ASSERT_SIZEOF(_EffectDeathFlameScratch, 0x78);
 
 /// 0x10-byte scratch from the scratch stack used by `func_8010133C`.
 /// `field_0` / `field_4` are the outer/inner loop counters. `field_8` is
@@ -3199,25 +3213,24 @@ do_fcd00:
 
 static void func_800FCD00(Task* arg0)
 {
-    EffectWork*       mem;
-    GfxCoord*         coord;
-    GpEffRingScratch* block;
-    POLY_F4*          prim;
-    u16               y;
-    u8                r;
-    u8                g;
-    u8                b;
-    u16               rad;
-    s16               outer;
-    s16               inner;
-    s16               bright;
-    s32               heightSum;
-    s32               rawBright;
-    u8*               head;
-    s32               sum;
-    s32               i;
-    s32               a;
-    s32               c;
+    EffectWork*               mem;
+    GfxCoord*                 coord;
+    _EffectDeathFlameScratch* block;
+    POLY_F4*                  prim;
+    u16                       y;
+    u8                        r;
+    u8                        g;
+    u8                        b;
+    u16                       rad;
+    s16                       outer;
+    s16                       inner;
+    s16                       bright;
+    s32                       heightSum;
+    s32                       rawBright;
+    s32                       sum;
+    s32                       i;
+    s32                       a;
+    s32                       c;
 
     mem       = arg0->spawnArg2.pointer;
     coord     = arg0->extra.coordBody->coord;
@@ -3234,57 +3247,55 @@ static void func_800FCD00(Task* arg0)
     } else {
         bright += sum & 0xF;
     }
-    r                          = bright;
-    g                          = r >> 1;
-    b                          = r >> 2;
-    outer                      = rad;
-    head                       = SCRATCH_STACK_CURSOR(u8) - 0x78;
-    SCRATCH_STACK_CURSOR(void) = head;
-    block                      = (GpEffRingScratch*)head;
+    r     = bright;
+    g     = r >> 1;
+    b     = r >> 2;
+    outer = rad;
+    block = SCRATCH_STACK_RESERVE_BLOCK(_EffectDeathFlameScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
 
     i = 0;
     do {
-        a                = i * 0x155;
-        c                = rcos(a);
-        block->vec[i].vy = 0;
-        block->vec[i].vx = (c * outer) >> 12;
-        block->vec[i].vz = (rsin(a) * outer) >> 12;
+        a                     = i * 0x155;
+        c                     = rcos(a);
+        block->vertices[i].vy = 0;
+        block->vertices[i].vx = (c * outer) >> 12;
+        block->vertices[i].vz = (rsin(a) * outer) >> 12;
         gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&block->vec[i]);
+        gte_ldv0(&block->vertices[i]);
         gte_rtv0();
-        gte_stsv(&block->vec[i]);
-        (u16) block->vec[i].vx = (u16)block->vec[i].vx + (u16)coord->workm.t[0];
-        a                     += 0x155;
-        (u16) block->vec[i].vy = (u16)block->vec[i].vy + (u16)coord->workm.t[1];
-        (u16) block->vec[i].vz = (u16)block->vec[i].vz + (u16)coord->workm.t[2];
-        c                      = rcos(a);
+        gte_stsv(&block->vertices[i]);
+        (u16) block->vertices[i].vx = (u16)block->vertices[i].vx + (u16)coord->workm.t[0];
+        a                          += 0x155;
+        (u16) block->vertices[i].vy = (u16)block->vertices[i].vy + (u16)coord->workm.t[1];
+        (u16) block->vertices[i].vz = (u16)block->vertices[i].vz + (u16)coord->workm.t[2];
+        c                           = rcos(a);
         i++;
-        block->vec[i].vy = y;
-        block->vec[i].vx = (c * inner) >> 12;
-        block->vec[i].vz = (rsin(a) * inner) >> 12;
+        block->vertices[i].vy = y;
+        block->vertices[i].vx = (c * inner) >> 12;
+        block->vertices[i].vz = (rsin(a) * inner) >> 12;
         gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&block->vec[i]);
+        gte_ldv0(&block->vertices[i]);
         gte_rtv0();
-        gte_stsv(&block->vec[i]);
-        (u16) block->vec[i].vx = (u16)block->vec[i].vx + (u16)coord->workm.t[0];
-        (u16) block->vec[i].vy = (u16)block->vec[i].vy + (u16)coord->workm.t[1];
-        (u16) block->vec[i].vz = (u16)block->vec[i].vz + (u16)coord->workm.t[2];
+        gte_stsv(&block->vertices[i]);
+        (u16) block->vertices[i].vx = (u16)block->vertices[i].vx + (u16)coord->workm.t[0];
+        (u16) block->vertices[i].vy = (u16)block->vertices[i].vy + (u16)coord->workm.t[1];
+        (u16) block->vertices[i].vz = (u16)block->vertices[i].vz + (u16)coord->workm.t[2];
         i++;
-    } while (i < 0xC);
+    } while (i < EFFECT_DEATH_FLAME_VERTEX_COUNT);
 
     gte_SetRotMatrix(&GsWSMATRIX);
-    for (i = 0; i < 0xC; i += 2) {
-        gte_ldv0(&block->vec[i]);
+    for (i = 0; i < EFFECT_DEATH_FLAME_VERTEX_COUNT; i += 2) {
+        gte_ldv0(&block->vertices[i]);
         gte_rtps();
-        gte_stsxy(&block->sx0);
-        gte_ldv3(&block->vec[i + 1], &block->vec[(i + 2) % 12], &block->vec[(i + 3) % 12]);
+        gte_stsxy(&block->screenCorners[0]);
+        gte_ldv3(&block->vertices[i + 1], &block->vertices[(i + 2) % EFFECT_DEATH_FLAME_VERTEX_COUNT], &block->vertices[(i + 3) % EFFECT_DEATH_FLAME_VERTEX_COUNT]);
         gte_rtpt();
-        gte_stsxy3(&block->sx1, &block->sx2, &block->sx3);
-        gte_stflg(&block->flag);
-        if (block->flag >= 0) {
-            gte_stszotz(&block->otz);
-            block->otz     = block->otz + 1;
+        gte_stsxy3(&block->screenCorners[1], &block->screenCorners[2], &block->screenCorners[3]);
+        gte_stflg(&block->projectionFlags);
+        if (block->projectionFlags >= 0) {
+            gte_stszotz(&block->depth);
+            block->depth   = block->depth + 1;
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 5);
@@ -3292,35 +3303,35 @@ static void func_800FCD00(Task* arg0)
             prim->r0 = r;
             prim->g0 = g;
             prim->b0 = b;
-            prim->x0 = (u16)block->sx0;
-            c        = block->sy0;
+            prim->x0 = (u16)block->screenCorners[0].vx;
+            c        = block->screenCorners[0].vy;
             prim->y0 = c;
-            prim->x1 = (u16)block->sx1;
-            c        = block->sy1;
+            prim->x1 = (u16)block->screenCorners[1].vx;
+            c        = block->screenCorners[1].vy;
             prim->y1 = c;
-            prim->x2 = (u16)block->sx2;
-            c        = block->sy2;
+            prim->x2 = (u16)block->screenCorners[2].vx;
+            c        = block->screenCorners[2].vy;
             prim->y2 = c;
-            prim->x3 = (u16)block->sx3;
-            c        = block->sy3;
+            prim->x3 = (u16)block->screenCorners[3].vx;
+            c        = block->screenCorners[3].vy;
             prim->y3 = c;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->depth);
         }
     }
 
-    for (i = 1; i < 0xC; i += 6) {
-        gte_ldv0(&block->vec[i]);
+    for (i = 1; i < EFFECT_DEATH_FLAME_VERTEX_COUNT; i += 6) {
+        gte_ldv0(&block->vertices[i]);
         gte_rtps();
-        gte_stsxy(&block->sx0);
-        gte_ldv3(&block->vec[i + 2], &block->vec[(i + 6) % 12], &block->vec[i + 4]);
+        gte_stsxy(&block->screenCorners[0]);
+        gte_ldv3(&block->vertices[i + 2], &block->vertices[(i + 6) % EFFECT_DEATH_FLAME_VERTEX_COUNT], &block->vertices[i + 4]);
         gte_rtpt();
-        gte_stsxy3(&block->sx1, &block->sx2, &block->sx3);
-        gte_stflg(&block->flag);
-        if (block->flag >= 0) {
-            gte_stszotz(&block->otz);
-            block->otz     = block->otz + 1;
+        gte_stsxy3(&block->screenCorners[1], &block->screenCorners[2], &block->screenCorners[3]);
+        gte_stflg(&block->projectionFlags);
+        if (block->projectionFlags >= 0) {
+            gte_stszotz(&block->depth);
+            block->depth   = block->depth + 1;
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 5);
@@ -3328,25 +3339,25 @@ static void func_800FCD00(Task* arg0)
             prim->r0 = r;
             prim->g0 = g;
             prim->b0 = b;
-            prim->x0 = (u16)block->sx0;
-            c        = block->sy0;
+            prim->x0 = (u16)block->screenCorners[0].vx;
+            c        = block->screenCorners[0].vy;
             prim->y0 = c;
-            prim->x1 = (u16)block->sx1;
-            c        = block->sy1;
+            prim->x1 = (u16)block->screenCorners[1].vx;
+            c        = block->screenCorners[1].vy;
             prim->y1 = c;
-            prim->x2 = (u16)block->sx2;
-            c        = block->sy2;
+            prim->x2 = (u16)block->screenCorners[2].vx;
+            c        = block->screenCorners[2].vy;
             prim->y2 = c;
-            prim->x3 = (u16)block->sx3;
-            c        = block->sy3;
+            prim->x3 = (u16)block->screenCorners[3].vx;
+            c        = block->screenCorners[3].vy;
             prim->y3 = c;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->depth);
         }
     }
 
-    SCRATCH_STACK_RELEASE_BYTES(0x78);
+    SCRATCH_STACK_RELEASE_BLOCK(_EffectDeathFlameScratch);
 }
 
 void Gp_EffSprTaskA7(Task* arg0)
