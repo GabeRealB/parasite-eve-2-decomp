@@ -169,26 +169,37 @@ typedef struct {
 } AttachmentState;
 STATIC_ASSERT_SIZEOF(AttachmentState, 0x18);
 
-/// 8-byte dispatch record selected by `Gp_ApplyAttachStats` as
-/// `Gp_AttachParams[idx * 3 + ret].dispatch`. `field_0` is the switch key
-/// (0..4). `field_2` / `field_4` are scaled by 100 into the follow-up
-/// calls. `field_6` is passed as `lh` and also read as `lbu` + 2 into
-/// `GpIdMapC.field_16`.
-typedef struct _GpRec8 {
-    /* 0x0 */ s16 field_0;
-    /* 0x2 */ s16 field_2;
-    /* 0x4 */ s16 field_4;
-    /* 0x6 */ s16 field_6;
-} GpRec8;
-STATIC_ASSERT_SIZEOF(GpRec8, 8);
+/// `AttachmentAreaParam.shape`: how an ability picks its targets.
+#define ATTACHMENT_AREA_SELF       0 // No area; the combo or healing update applies the effect
+#define ATTACHMENT_AREA_PROJECTILE 1 // Projectile; only its path is previewed, its effect overlay finds the hits
+#define ATTACHMENT_AREA_ELLIPSOID  2 // Enemies inside an ellipsoid around the player
+#define ATTACHMENT_AREA_CYLINDER   3 // Enemies inside an upright cylinder around the player
+#define ATTACHMENT_AREA_ALL        4 // Every lockable enemy
 
-/// Combo view of a `GpAttachParam` row: an ability whose dispatch kind is 0
-/// runs a timed combo, and the row's last halfword is how long it lasts.
+/// Area-of-effect view of a `GpAttachParam` row: the region an ability at one
+/// level covers, previewed while aiming and used to pick its targets on release.
+///
+/// `radius` and `extent` are in units of 100 world units. `extent` is the
+/// projectile's range, the ellipsoid's vertical semi-axis or the cylinder's
+/// height above the player. Rows of shape `ATTACHMENT_AREA_ALL` store -1 in
+/// both, and `ATTACHMENT_AREA_SELF` rows keep their combo duration where
+/// `ahead` sits (see `AttachmentComboParam`).
+typedef struct {
+    s16 shape;  // ATTACHMENT_AREA_* (0 self, 1 projectile, 2 ellipsoid, 3 cylinder, 4 all)
+    s16 radius; // Horizontal radius, in 100s of world units
+    s16 extent; // Range, vertical semi-axis or height, in 100s of world units
+    s16 ahead;  // Ellipsoid and cylinder: 0 centred on the player, 1 centred one radius ahead
+} AttachmentAreaParam;
+STATIC_ASSERT_SIZEOF(AttachmentAreaParam, 8);
+
+/// Combo view of a `GpAttachParam` row: an ability of area shape
+/// `ATTACHMENT_AREA_SELF` may run a timed combo, and the row's last halfword
+/// is how long it lasts.
 ///
 /// Metabolism, antibody and energy shot read it for levels 1 to 3, loading
 /// `ticks` into `metabolismTicks`, `antibodyTicks` or `energyShotTicks`.
 typedef struct {
-    u16 unused[3]; // Dispatch kind (0) and two zero parameters; read only through the dispatch view
+    u16 unused[3]; // Area shape (`ATTACHMENT_AREA_SELF`) and two zero parameters; read only through `dispatch`
     u16 ticks;     // Frames the combo lasts
 } AttachmentComboParam;
 STATIC_ASSERT_SIZEOF(AttachmentComboParam, 8);
@@ -198,7 +209,7 @@ STATIC_ASSERT_SIZEOF(AttachmentComboParam, 8);
 /// The dispatch and combo paths read signed parameters and an unsigned count.
 typedef union {
     u16                  percentages[4];
-    GpRec8               dispatch;
+    AttachmentAreaParam  dispatch;
     AttachmentComboParam combo;
 } GpAttachParam;
 STATIC_ASSERT_SIZEOF(GpAttachParam, 8);

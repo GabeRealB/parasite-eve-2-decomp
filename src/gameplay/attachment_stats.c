@@ -154,60 +154,60 @@ GpAttachParam Gp_AttachParams[55] = {
           4,
           6,
           8 } },
-    { .dispatch = { 1, 6, 65, 0 } },
-    { .dispatch = { 1, 8, 90, 0 } },
-    { .dispatch = { 1, 10, 200, 0 } },
-    { .dispatch = { 3, 16, 16, 1 } },
-    { .dispatch = { 3, 24, 20, 1 } },
-    { .dispatch = { 3, 32, 50, 1 } },
-    { .dispatch = { 4, -1, -1, 0 } },
-    { .dispatch = { 4, -1, -1, 0 } },
-    { .dispatch = { 4, -1, -1, 0 } },
-    { .dispatch = { 1, 11, 40, 0 } },
-    { .dispatch = { 1, 12, 60, 0 } },
-    { .dispatch = { 1, 13, 80, 0 } },
-    { .dispatch = { 2, 24, 24, 0 } },
-    { .dispatch = { 2, 30, 26, 0 } },
-    { .dispatch = { 2, 38, 30, 0 } },
-    { .dispatch = { 3, 40, 50, 0 } },
-    { .dispatch = { 3, 60, 50, 0 } },
-    { .dispatch = { 4, -1, -1, 0 } },
-    { .dispatch = { 0, 0, 0, 600 } },
-    { .dispatch = { 0, 0, 0, 600 } },
-    { .dispatch = { 0, 0, 0, 600 } },
-    { .dispatch = { 0, 0, 0, 0 } },
-    { .dispatch = { 0, 0, 0, 0 } },
-    { .dispatch = { 0, 0, 0, 0 } },
-    { .dispatch = { 3, 40, 50, 0 } },
-    { .dispatch = { 3, 60, 50, 0 } },
-    { .dispatch = { 4, -1, -1, 0 } },
-    { .dispatch = { 0, 0, 0, 2250 } },
-    { .dispatch = { 0, 0, 0, 2250 } },
-    { .dispatch = { 0, 0, 0, 2250 } },
-    { .dispatch = { 0, 0, 0, 2250 } },
-    { .dispatch = { 0, 0, 0, 2250 } },
-    { .dispatch = { 0, 0, 0, 2250 } },
-    { .dispatch = { 0, 0, 0, 10 } },
-    { .dispatch = { 0, 0, 0, 13 } },
-    { .dispatch = { 0, 0, 0, 15 } },
-    { .dispatch = { 4, -1, -1, 0 } },
-    { .dispatch = { 4, -1, -1, 0 } },
-    { .dispatch = { 4, -1, -1, 0 } },
-    { .dispatch = { 4, -1, -1, 0 } },
-    { .dispatch = { 4, -1, -1, 0 } },
-    { .dispatch = { 4, -1, -1, 0 } },
-    { .dispatch = { 4, -1, -1, 0 } },
-    { .dispatch = { 4, -1, -1, 0 } },
-    { .dispatch = { 4, -1, -1, 0 } },
-    { .dispatch = { 4, -1, -1, 0 } },
-    { .dispatch = { 4, -1, -1, 0 } },
-    { .dispatch = { 4, -1, -1, 0 } },
-    { .dispatch = { 3, 20, 25, 1 } },
-    { .dispatch = { 3, 16, 22, 1 } },
-    { .dispatch = { 3, 14, 25, 1 } },
-    { .dispatch = { 3, 38, 28, 0 } },
-    { .dispatch = { 3, 16, 25, 1 } },
-    { .dispatch = { 3, 16, 20, 1 } },
+    { .dispatch = { ATTACHMENT_AREA_PROJECTILE, 6, 65, 0 } },
+    { .dispatch = { ATTACHMENT_AREA_PROJECTILE, 8, 90, 0 } },
+    { .dispatch = { ATTACHMENT_AREA_PROJECTILE, 10, 200, 0 } },
+    { .dispatch = { ATTACHMENT_AREA_CYLINDER, 16, 16, 1 } },
+    { .dispatch = { ATTACHMENT_AREA_CYLINDER, 24, 20, 1 } },
+    { .dispatch = { ATTACHMENT_AREA_CYLINDER, 32, 50, 1 } },
+    { .dispatch = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+    { .dispatch = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+    { .dispatch = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+    { .dispatch = { ATTACHMENT_AREA_PROJECTILE, 11, 40, 0 } },
+    { .dispatch = { ATTACHMENT_AREA_PROJECTILE, 12, 60, 0 } },
+    { .dispatch = { ATTACHMENT_AREA_PROJECTILE, 13, 80, 0 } },
+    { .dispatch = { ATTACHMENT_AREA_ELLIPSOID, 24, 24, 0 } },
+    { .dispatch = { ATTACHMENT_AREA_ELLIPSOID, 30, 26, 0 } },
+    { .dispatch = { ATTACHMENT_AREA_ELLIPSOID, 38, 30, 0 } },
+    { .dispatch = { ATTACHMENT_AREA_CYLINDER, 40, 50, 0 } },
+    { .dispatch = { ATTACHMENT_AREA_CYLINDER, 60, 50, 0 } },
+    { .dispatch = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+    { .dispatch = { ATTACHMENT_AREA_SELF, 0, 0, 600 } },
+    { .dispatch = { ATTACHMENT_AREA_SELF, 0, 0, 600 } },
+    { .dispatch = { ATTACHMENT_AREA_SELF, 0, 0, 600 } },
+    { .dispatch = { ATTACHMENT_AREA_SELF, 0, 0, 0 } },
+    { .dispatch = { ATTACHMENT_AREA_SELF, 0, 0, 0 } },
+    { .dispatch = { ATTACHMENT_AREA_SELF, 0, 0, 0 } },
+    { .dispatch = { ATTACHMENT_AREA_CYLINDER, 40, 50, 0 } },
+    { .dispatch = { ATTACHMENT_AREA_CYLINDER, 60, 50, 0 } },
+    { .dispatch = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+    { .dispatch = { ATTACHMENT_AREA_SELF, 0, 0, 2250 } },
+    { .dispatch = { ATTACHMENT_AREA_SELF, 0, 0, 2250 } },
+    { .dispatch = { ATTACHMENT_AREA_SELF, 0, 0, 2250 } },
+    { .dispatch = { ATTACHMENT_AREA_SELF, 0, 0, 2250 } },
+    { .dispatch = { ATTACHMENT_AREA_SELF, 0, 0, 2250 } },
+    { .dispatch = { ATTACHMENT_AREA_SELF, 0, 0, 2250 } },
+    { .dispatch = { ATTACHMENT_AREA_SELF, 0, 0, 10 } },
+    { .dispatch = { ATTACHMENT_AREA_SELF, 0, 0, 13 } },
+    { .dispatch = { ATTACHMENT_AREA_SELF, 0, 0, 15 } },
+    { .dispatch = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+    { .dispatch = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+    { .dispatch = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+    { .dispatch = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+    { .dispatch = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+    { .dispatch = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+    { .dispatch = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+    { .dispatch = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+    { .dispatch = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+    { .dispatch = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+    { .dispatch = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+    { .dispatch = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+    { .dispatch = { ATTACHMENT_AREA_CYLINDER, 20, 25, 1 } },
+    { .dispatch = { ATTACHMENT_AREA_CYLINDER, 16, 22, 1 } },
+    { .dispatch = { ATTACHMENT_AREA_CYLINDER, 14, 25, 1 } },
+    { .dispatch = { ATTACHMENT_AREA_CYLINDER, 38, 28, 0 } },
+    { .dispatch = { ATTACHMENT_AREA_CYLINDER, 16, 25, 1 } },
+    { .dispatch = { ATTACHMENT_AREA_CYLINDER, 16, 20, 1 } },
 };
 GpDmgRow Gp_DmgRows[5] = {
     { { 20, 30, 40, 50, 60 }, { 50, 60, 70, 80, 100 } },
@@ -259,20 +259,20 @@ u16 D_80113F90[6] = {
 
 void Gp_ApplyAttachStats(s32 arg0, GpIdMapC* arg1)
 {
-    PlayerStatus*     p;
-    SceneCombatState* state;
-    GpRec8*           rec;
-    GpAttachParam*    row;
-    s32               cond;
-    s32               ret;
-    u8*               table;
-    s32               idx;
-    s32               val1;
-    s32               val2;
-    s32               flag;
-    s32               temp2;
-    s32               temp4;
-    u8                kind;
+    PlayerStatus*        p;
+    SceneCombatState*    state;
+    AttachmentAreaParam* area;
+    GpAttachParam*       row;
+    s32                  cond;
+    s32                  ret;
+    u8*                  table;
+    s32                  idx;
+    s32                  radiusWorld;
+    s32                  extentWorld;
+    s32                  flag;
+    s32                  radius;
+    s32                  extent;
+    u8                   ahead;
 
     idx = Gp_StateC08.wheelIndex;
     if (arg0 == 1) {
@@ -303,48 +303,48 @@ void Gp_ApplyAttachStats(s32 arg0, GpIdMapC* arg1)
         }
     }
     row                  = &Gp_AttachParams[idx * 3];
-    rec                  = &row[ret].dispatch;
+    area                 = &row[ret].dispatch;
     state                = &gSceneCombatState;
-    temp2                = rec->field_2;
-    temp4                = rec->field_4;
+    radius               = area->radius;
+    extent               = area->extent;
     state->peTargetCount = 0;
     state->lifeDrainHp   = 0;
-    val1                 = temp2 * 100;
-    val2                 = temp4 * 100;
+    radiusWorld          = radius * 100;
+    extentWorld          = extent * 100;
     if ((gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED && state->battleRefs != 0) || state->signals.bytes.endDelayFrames != 0) {
         flag = 1;
     } else {
         flag = 0;
     }
     if (flag != 0) {
-        switch (rec->field_0) {
-            case 0:
+        switch (area->shape) {
+            case ATTACHMENT_AREA_SELF:
                 Gp_UpdateAttachCombo(arg0);
                 break;
-            case 1:
-                func_800A7824(arg0, val1, val2);
+            case ATTACHMENT_AREA_PROJECTILE:
+                func_800A7824(arg0, radiusWorld, extentWorld);
                 if (arg1 != NULL) {
                     arg1->field_16 = 4;
-                    arg1->field_18 = val2;
+                    arg1->field_18 = extentWorld;
                 }
                 break;
-            case 2:
-                Gp_InitSlot18(arg0, val1, val2, rec->field_6);
+            case ATTACHMENT_AREA_ELLIPSOID:
+                Gp_InitSlot18(arg0, radiusWorld, extentWorld, area->ahead);
                 if (arg1 != NULL) {
-                    kind           = rec->field_6;
-                    arg1->field_18 = val1;
-                    arg1->field_16 = kind + 2;
+                    ahead          = area->ahead;
+                    arg1->field_18 = radiusWorld;
+                    arg1->field_16 = ahead + 2;
                 }
                 break;
-            case 3:
-                func_800A5574(arg0, val1, val2, rec->field_6);
+            case ATTACHMENT_AREA_CYLINDER:
+                func_800A5574(arg0, radiusWorld, extentWorld, area->ahead);
                 if (arg1 != NULL) {
-                    kind           = rec->field_6;
-                    arg1->field_18 = val1;
-                    arg1->field_16 = kind + 2;
+                    ahead          = area->ahead;
+                    arg1->field_18 = radiusWorld;
+                    arg1->field_16 = ahead + 2;
                 }
                 break;
-            case 4:
+            case ATTACHMENT_AREA_ALL:
                 func_800A4904(arg0);
                 if (arg1 != NULL) {
                     arg1->field_16 = 2;

@@ -291,7 +291,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 return;
             }
             tick = mem->age;
-            if (tick * 6 > (Gp_AttachParams + 1)[mem->index].dispatch.field_4) {
+            if (tick * 6 > (Gp_AttachParams + 1)[mem->index].dispatch.extent) {
                 Gp_UnlinkObj(&work->obj);
                 Gp_UnlinkObj(&work->obj2);
                 arg0->state = 2;
