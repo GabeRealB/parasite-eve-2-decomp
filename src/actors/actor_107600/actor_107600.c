@@ -1786,9 +1786,9 @@ static void func_actor_107600_80133DC4(Task* arg0)
         for (i = 0; i < 8; i++) {
             if ((work->rec18[i].key.value & 0xFFFF0000) == 0x20000) {
                 work->field_156                        = 1;
-                ((Actor107600HitPos*)&work->pitch)->vx = work->rec18[i].response.normal.vx;
-                ((Actor107600HitPos*)&work->pitch)->vy = work->rec18[i].response.normal.vy;
-                ((Actor107600HitPos*)&work->pitch)->vz = work->rec18[i].response.normal.vz;
+                ((Actor107600HitPos*)&work->pitch)->vx = work->rec18[i].response.direction.vx;
+                ((Actor107600HitPos*)&work->pitch)->vy = work->rec18[i].response.direction.vy;
+                ((Actor107600HitPos*)&work->pitch)->vz = work->rec18[i].response.direction.vz;
                 func_actor_107600_80134D9C(arg0);
                 damage          = Gp_ComputeDamage(work->rec18[i].key.value, work->field_14C, 0, 0);
                 work->field_150 = Gp_GetIdParam2(work->rec18[i].key.value);

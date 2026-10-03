@@ -3564,7 +3564,7 @@ static void Actor01100_Fn06198(Task* task)
         if (Gp_FindRec18(rec, 0) != 0) {
             child = task->firstChild;
             if (child != NULL) {
-                if (rec->response.normal.vy >= -0xC00) {
+                if (rec->response.direction.vy >= -0xC00) {
                     child->spawnArg1.value = 3;
                 } else {
                     child->spawnArg1.value = 2;

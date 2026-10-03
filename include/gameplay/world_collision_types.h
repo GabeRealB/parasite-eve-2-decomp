@@ -25,16 +25,27 @@ enum {
 
 /// Response half of a collision contact: a direction, or the contacted body's address.
 ///
-/// `normal` is the usual reading, and is zero where a contact has no direction.
-/// `node` applies only to a pair contact held by a capsule with
-/// `WORLD_COLLISION_BODY_SINGLE_CONTACT`: it splits the contacted body's
-/// address across two halfwords and leaves the remaining halfwords zero.
+/// `direction` is the usual reading. A grid contact holds the face's normal as
+/// the room's grid stores it. A sphere touched by a capsule holds the capsule's
+/// axis, pointing from the capsule's second endpoint to its first. Both use
+/// 4096 for one unit. Contacts with no direction - sphere pairs, and a capsule's
+/// own entry for a sphere it touched - hold zero in all three components.
+///
+/// `bodyAddress` takes the direction's place in one case: the entry a capsule
+/// with `WORLD_COLLISION_BODY_SINGLE_CONTACT` receives for a sphere it touched.
+/// It is that sphere's body, kept so that the capsule's next pair contact can
+/// release the reciprocal entry in the sphere's table before replacing this
+/// one. The third halfword stays zero. Nothing in the entry marks this reading:
+/// it is assumed of the occupied non-grid entry a single-contact body holds.
+///
+/// `direction.pad` carries no value. Component-wise writers and clears leave
+/// it alone, and a pair contact copies whatever its scratch block held there.
 typedef union {
-    SVECTOR normal; // Grid normal or capsule-axis direction, with 4096 representing one unit
+    SVECTOR direction; // Unit direction (4096 per unit): grid face normal or capsule axis; zero when the contact has none
     struct {
-        u16 low;    // Low halfword of the contacted body's address
-        s16 high;   // High halfword, retained signed for the address reconstruction
-    } node;
+        u16 low;       // Bits 0..15 of the contacted body's address
+        s16 high;      // Bits 16..31; signed storage, masked back to 16 bits on decoding
+    } bodyAddress;
 } WorldCollisionContactResponse;
 STATIC_ASSERT_SIZEOF(WorldCollisionContactResponse, 8);
 
@@ -50,7 +61,7 @@ STATIC_ASSERT_SIZEOF(WorldCollisionContactResponse, 8);
 /// Positions and distances use world-coordinate units, truncated to signed
 /// halfwords. Grid normals and capsule-axis directions use 4096 for one unit.
 /// A capsule with `WORLD_COLLISION_BODY_SINGLE_CONTACT` stores the contacted
-/// body's address as two halfwords in `response.node` instead. That body must
+/// body's address as two halfwords in `response.bodyAddress` instead. That body must
 /// remain alive while the address is consumed. Sphere-pair contacts use a zero response vector.
 typedef struct {
     u16 flags;        // OCCUPIED, LAST and receiving-body index; see above

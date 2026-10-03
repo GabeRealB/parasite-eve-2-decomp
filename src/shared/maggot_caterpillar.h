@@ -211,12 +211,12 @@ static inline void maggotCaterpillarTickAnimInline(Task* task);
 
 /// Sets `work->field_3CE` when contact `rec` is a body, or a face of the
 /// collision grid whose normal has no vertical component.
-#define MAGGOT_CATERPILLAR_NOTE_BLOCKING_CONTACT(work, rec)                                      \
-    do {                                                                                         \
-        if ((((rec).key.value & 0xFFFF0000) == 0x10000) ||                                       \
-            ((((rec).key.value & 0xFFFF0000) == 0x100000) && ((rec).response.normal.vy == 0))) { \
-            (work)->field_3CE = 1;                                                               \
-        }                                                                                        \
+#define MAGGOT_CATERPILLAR_NOTE_BLOCKING_CONTACT(work, rec)                                         \
+    do {                                                                                            \
+        if ((((rec).key.value & 0xFFFF0000) == 0x10000) ||                                          \
+            ((((rec).key.value & 0xFFFF0000) == 0x100000) && ((rec).response.direction.vy == 0))) { \
+            (work)->field_3CE = 1;                                                                  \
+        }                                                                                           \
     } while (0)
 
 #endif /* SRC_SHARED_MAGGOT_CATERPILLAR_H */

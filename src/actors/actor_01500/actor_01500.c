@@ -921,8 +921,8 @@ static void Actor01500_Fn004EC(Task* actor)
             work->field_362        = ((gRandomLcgState >> 16) & 0x3F) + 0x1E;
             for (i = 0; i < 5; i++) {
                 if ((work->field_264[i].key.value & 0xFFFF0000) == 0x100000) {
-                    frame->dx       = work->field_264[i].response.normal.vx;
-                    frame->dz       = work->field_264[i].response.normal.vz;
+                    frame->dx       = work->field_264[i].response.direction.vx;
+                    frame->dz       = work->field_264[i].response.direction.vz;
                     work->field_372 = (ratan2(frame->dx, frame->dz) + 0x800) & 0xFFF;
                     break;
                 }

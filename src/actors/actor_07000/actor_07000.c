@@ -2301,7 +2301,7 @@ default_body:
         SndEvt_EnqueueType6(SOUND_SUCKLERCEPH_PROJECTILE_IMPACT, (s8)worldCoordGetOriginAudioPan(coord),
                             (s8)worldCoordGetOriginAudioDepth(coord));
         if (child != NULL) {
-            if (hit->response.normal.vy >= -0xC00) {
+            if (hit->response.direction.vy >= -0xC00) {
                 child->spawnArg1.value = 3;
             } else {
                 child->spawnArg1.value = 2;

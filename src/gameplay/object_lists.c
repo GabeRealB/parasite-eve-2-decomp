@@ -38,9 +38,9 @@ STATIC_ASSERT_SIZEOF(GpNearScratch, 0x28);
 /// 0x40-byte scratch from the scratch stack used by `func_800E0FEC`.
 /// Each `WorldCollisionContact` whose `key` high halfword is `0x10` contributes to
 /// one accumulator, selected by `key` bits `0xF00`: kind 0 sums
-/// `distance * response.normal` into `acc[0]`, kind 1 writes the lift
+/// `distance * response.direction` into `acc[0]`, kind 1 writes the lift
 /// `-(distance << 12)` into `acc[1].vy`, and kind 2 writes the slide
-/// `distance * response.normal.vx` / `.vz` into `acc[2]` for the record with the
+/// `distance * response.direction.vx` / `.vz` into `acc[2]` for the record with the
 /// smallest `distance`. `acc[3]` holds the pairwise XZ products of the kind-0
 /// records used to detect opposing pushes.
 typedef struct _GpPushScratch {
@@ -474,14 +474,14 @@ s32 func_800E0C10(WorldCollisionContact* arg0, WorldCollisionDelta* delta, s32 a
             if ((rec->flags & WORLD_COLLISION_CONTACT_OCCUPIED) && (rec->key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_GRID) {
                 mask |= 1 << rec->key.value;
                 if (Gp_RoomParams[rec->key.value & 7] == WORLD_COLLISION_SURFACE_APPLY_PUSHBACK) {
-                    if (rec->response.normal.vy >= WORLD_COLLISION_FLOOR_NORMAL_Y) {
-                        scratch->nonFloorSum.vx += rec->response.normal.vx * rec->distance;
-                        scratch->nonFloorSum.vy += rec->response.normal.vy * rec->distance;
-                        scratch->nonFloorSum.vz += rec->response.normal.vz * rec->distance;
+                    if (rec->response.direction.vy >= WORLD_COLLISION_FLOOR_NORMAL_Y) {
+                        scratch->nonFloorSum.vx += rec->response.direction.vx * rec->distance;
+                        scratch->nonFloorSum.vy += rec->response.direction.vy * rec->distance;
+                        scratch->nonFloorSum.vz += rec->response.direction.vz * rec->distance;
                         list[count++]            = i;
                     } else {
                         scratch->floorSum.vx  = 0;
-                        scratch->floorSum.vy += rec->response.normal.vy * rec->distance;
+                        scratch->floorSum.vy += rec->response.direction.vy * rec->distance;
                         scratch->floorSum.vz  = 0;
                         scratch->floorCount++;
                     }
@@ -497,8 +497,8 @@ s32 func_800E0C10(WorldCollisionContact* arg0, WorldCollisionDelta* delta, s32 a
         // Record when two non-floor normals oppose on X or Z.
         for (i = 0; i < count; i++) {
             for (j = 1; j < count; j++) {
-                scratch->opposedProduct.vx = arg0[list[i]].response.normal.vx * arg0[list[j]].response.normal.vx;
-                scratch->opposedProduct.vz = arg0[list[i]].response.normal.vz * arg0[list[j]].response.normal.vz;
+                scratch->opposedProduct.vx = arg0[list[i]].response.direction.vx * arg0[list[j]].response.direction.vx;
+                scratch->opposedProduct.vz = arg0[list[i]].response.direction.vz * arg0[list[j]].response.direction.vz;
                 if (scratch->opposedProduct.vx < WORLD_COLLISION_OPPOSED_NORMAL_PRODUCT || scratch->opposedProduct.vz < WORLD_COLLISION_OPPOSED_NORMAL_PRODUCT) {
                     ret = 2;
                 }
@@ -558,9 +558,9 @@ s32 func_800E0FEC(WorldCollisionContact* arg0, WorldCollisionDelta* delta, s32 a
             if (Gp_RoomParams[rec->key.value & 7] == WORLD_COLLISION_SURFACE_APPLY_PUSHBACK) {
                 switch ((u32)(rec->key.value & 0xF00) >> 8) {
                     case 0:
-                        s->acc[0].vx += rec->distance * rec->response.normal.vx;
-                        s->acc[0].vy += rec->distance * rec->response.normal.vy;
-                        s->acc[0].vz += rec->distance * rec->response.normal.vz;
+                        s->acc[0].vx += rec->distance * rec->response.direction.vx;
+                        s->acc[0].vy += rec->distance * rec->response.direction.vy;
+                        s->acc[0].vz += rec->distance * rec->response.direction.vz;
                         list[count++] = i;
                         break;
                     case 1:
@@ -569,10 +569,10 @@ s32 func_800E0FEC(WorldCollisionContact* arg0, WorldCollisionDelta* delta, s32 a
                         s->acc[1].vz = 0;
                         break;
                     case 2:
-                        if (rec->response.normal.vy == 0 && ((s16)prev == 0 || rec->distance < (s16)prev)) {
-                            s->acc[2].vx = rec->distance * rec->response.normal.vx;
+                        if (rec->response.direction.vy == 0 && ((s16)prev == 0 || rec->distance < (s16)prev)) {
+                            s->acc[2].vx = rec->distance * rec->response.direction.vx;
                             s->acc[2].vy = 0;
-                            s->acc[2].vz = rec->distance * rec->response.normal.vz;
+                            s->acc[2].vz = rec->distance * rec->response.direction.vz;
                             prev         = (u16)rec->distance;
                         }
                         break;
@@ -584,8 +584,8 @@ s32 func_800E0FEC(WorldCollisionContact* arg0, WorldCollisionDelta* delta, s32 a
 
     for (i = 0; i < count; i++) {
         for (j = 1; j < count; j++) {
-            s->acc[3].vx = arg0[list[i]].response.normal.vx * arg0[list[j]].response.normal.vx;
-            s->acc[3].vz = arg0[list[i]].response.normal.vz * arg0[list[j]].response.normal.vz;
+            s->acc[3].vx = arg0[list[i]].response.direction.vx * arg0[list[j]].response.direction.vx;
+            s->acc[3].vz = arg0[list[i]].response.direction.vz * arg0[list[j]].response.direction.vz;
             if (s->acc[3].vx < -0x800000 || s->acc[3].vz < -0x800000) {
                 ret = 2;
             }
@@ -937,15 +937,15 @@ void Gp_ClearRec18Occupied(WorldCollisionContact* contacts)
 {
     for (;;) {
         if (contacts->flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
-            contacts->flags             &= WORLD_COLLISION_CONTACT_LAST;
-            contacts->distance           = 0;
-            contacts->key.value          = 0;
-            contacts->point.vx           = 0;
-            contacts->point.vy           = 0;
-            contacts->point.vz           = 0;
-            contacts->response.normal.vx = 0;
-            contacts->response.normal.vy = 0;
-            contacts->response.normal.vz = 0;
+            contacts->flags                &= WORLD_COLLISION_CONTACT_LAST;
+            contacts->distance              = 0;
+            contacts->key.value             = 0;
+            contacts->point.vx              = 0;
+            contacts->point.vy              = 0;
+            contacts->point.vz              = 0;
+            contacts->response.direction.vx = 0;
+            contacts->response.direction.vy = 0;
+            contacts->response.direction.vz = 0;
         }
         if (contacts->flags & WORLD_COLLISION_CONTACT_LAST) {
             break;
@@ -1034,16 +1034,16 @@ void Gp_ClaimSlot18(Enemy* arg0, s32 arg1)
             }
             slot++;
         }
-        slot->key.value          = arg1;
-        slot->distance           = 0;
-        slot->point.vx           = 0;
-        slot->point.vy           = 0;
-        slot->point.vz           = 0;
-        slot->response.normal.vx = 0;
-        slot->response.normal.vy = 0;
-        slot->response.normal.vz = 0;
-        slot->flags             |= WORLD_COLLISION_CONTACT_OCCUPIED;
-        combat                   = &gSceneCombatState;
+        slot->key.value             = arg1;
+        slot->distance              = 0;
+        slot->point.vx              = 0;
+        slot->point.vy              = 0;
+        slot->point.vz              = 0;
+        slot->response.direction.vx = 0;
+        slot->response.direction.vy = 0;
+        slot->response.direction.vz = 0;
+        slot->flags                |= WORLD_COLLISION_CONTACT_OCCUPIED;
+        combat                      = &gSceneCombatState;
         combat->peTargetCount++;
     }
 }

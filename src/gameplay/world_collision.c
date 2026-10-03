@@ -26,58 +26,58 @@
 /// exhaustion or a missing reciprocal table. Single-contact mode replaces the
 /// first entry and clears the previous body contact using its encoded address.
 /// Its inline helper and fixed labels require one expansion per function.
-#define WORLD_COLLISION_CLAIM_CONTACT(rec, obj)                                                                                           \
-    do {                                                                                                                                  \
-        WorldCollisionContact* _other;                                                                                                    \
-        u16                    _recFlags;                                                                                                 \
-                                                                                                                                          \
-        if ((obj)->flags & WORLD_COLLISION_BODY_SINGLE_CONTACT) {                                                                         \
-            _recFlags = (rec)->flags;                                                                                                     \
-            if (!(_recFlags & WORLD_COLLISION_CONTACT_OCCUPIED)) {                                                                        \
-                (rec)->flags = _recFlags | (((obj)->flags & WORLD_COLLISION_CONTACT_BODY_INDEX_MASK) + WORLD_COLLISION_CONTACT_OCCUPIED); \
-            } else {                                                                                                                      \
-                if (((rec)->key.value & WORLD_COLLISION_CONTACT_KIND_MASK) != WORLD_COLLISION_CONTACT_GRID) {                             \
-                    _other = _worldCollisionGetObjectContacts(                                                                            \
-                        (WorldCollisionBody*)((((rec)->response.node.high << 16) & 0xFFFF0000) | (rec)->response.node.low));              \
-                    if (_other == NULL) {                                                                                                 \
-                        return;                                                                                                           \
-                    }                                                                                                                     \
-                    for (;;) {                                                                                                            \
-                        if (_other->key.value == (obj)->key) {                                                                            \
-                            goto _found;                                                                                                  \
-                        }                                                                                                                 \
-                        if (_other->flags & WORLD_COLLISION_CONTACT_LAST) {                                                               \
-                            return;                                                                                                       \
-                        }                                                                                                                 \
-                        _other++;                                                                                                         \
-                    }                                                                                                                     \
-                _found:                                                                                                                   \
-                    _other->key.value          = 0;                                                                                       \
-                    _other->distance           = 0;                                                                                       \
-                    _other->point.vx           = 0;                                                                                       \
-                    _other->point.vy           = 0;                                                                                       \
-                    _other->point.vz           = 0;                                                                                       \
-                    _other->response.normal.vx = 0;                                                                                       \
-                    _other->response.normal.vy = 0;                                                                                       \
-                    _other->response.normal.vz = 0;                                                                                       \
-                    _other->flags             &= ~WORLD_COLLISION_CONTACT_OCCUPIED;                                                       \
-                }                                                                                                                         \
-                (rec)->flags |= ((obj)->flags & WORLD_COLLISION_CONTACT_BODY_INDEX_MASK) + WORLD_COLLISION_CONTACT_OCCUPIED;              \
-            }                                                                                                                             \
-        } else {                                                                                                                          \
-            for (;;) {                                                                                                                    \
-                _recFlags = (rec)->flags;                                                                                                 \
-                if (!(_recFlags & WORLD_COLLISION_CONTACT_OCCUPIED)) {                                                                    \
-                    goto _free;                                                                                                           \
-                }                                                                                                                         \
-                if (_recFlags & WORLD_COLLISION_CONTACT_LAST) {                                                                           \
-                    return;                                                                                                               \
-                }                                                                                                                         \
-                (rec)++;                                                                                                                  \
-            }                                                                                                                             \
-        _free:                                                                                                                            \
-            (rec)->flags = _recFlags | (((obj)->flags & WORLD_COLLISION_CONTACT_BODY_INDEX_MASK) + WORLD_COLLISION_CONTACT_OCCUPIED);     \
-        }                                                                                                                                 \
+#define WORLD_COLLISION_CLAIM_CONTACT(rec, obj)                                                                                            \
+    do {                                                                                                                                   \
+        WorldCollisionContact* _other;                                                                                                     \
+        u16                    _recFlags;                                                                                                  \
+                                                                                                                                           \
+        if ((obj)->flags & WORLD_COLLISION_BODY_SINGLE_CONTACT) {                                                                          \
+            _recFlags = (rec)->flags;                                                                                                      \
+            if (!(_recFlags & WORLD_COLLISION_CONTACT_OCCUPIED)) {                                                                         \
+                (rec)->flags = _recFlags | (((obj)->flags & WORLD_COLLISION_CONTACT_BODY_INDEX_MASK) + WORLD_COLLISION_CONTACT_OCCUPIED);  \
+            } else {                                                                                                                       \
+                if (((rec)->key.value & WORLD_COLLISION_CONTACT_KIND_MASK) != WORLD_COLLISION_CONTACT_GRID) {                              \
+                    _other = _worldCollisionGetObjectContacts(                                                                             \
+                        (WorldCollisionBody*)((((rec)->response.bodyAddress.high << 16) & 0xFFFF0000) | (rec)->response.bodyAddress.low)); \
+                    if (_other == NULL) {                                                                                                  \
+                        return;                                                                                                            \
+                    }                                                                                                                      \
+                    for (;;) {                                                                                                             \
+                        if (_other->key.value == (obj)->key) {                                                                             \
+                            goto _found;                                                                                                   \
+                        }                                                                                                                  \
+                        if (_other->flags & WORLD_COLLISION_CONTACT_LAST) {                                                                \
+                            return;                                                                                                        \
+                        }                                                                                                                  \
+                        _other++;                                                                                                          \
+                    }                                                                                                                      \
+                _found:                                                                                                                    \
+                    _other->key.value             = 0;                                                                                     \
+                    _other->distance              = 0;                                                                                     \
+                    _other->point.vx              = 0;                                                                                     \
+                    _other->point.vy              = 0;                                                                                     \
+                    _other->point.vz              = 0;                                                                                     \
+                    _other->response.direction.vx = 0;                                                                                     \
+                    _other->response.direction.vy = 0;                                                                                     \
+                    _other->response.direction.vz = 0;                                                                                     \
+                    _other->flags                &= ~WORLD_COLLISION_CONTACT_OCCUPIED;                                                     \
+                }                                                                                                                          \
+                (rec)->flags |= ((obj)->flags & WORLD_COLLISION_CONTACT_BODY_INDEX_MASK) + WORLD_COLLISION_CONTACT_OCCUPIED;               \
+            }                                                                                                                              \
+        } else {                                                                                                                           \
+            for (;;) {                                                                                                                     \
+                _recFlags = (rec)->flags;                                                                                                  \
+                if (!(_recFlags & WORLD_COLLISION_CONTACT_OCCUPIED)) {                                                                     \
+                    goto _free;                                                                                                            \
+                }                                                                                                                          \
+                if (_recFlags & WORLD_COLLISION_CONTACT_LAST) {                                                                            \
+                    return;                                                                                                                \
+                }                                                                                                                          \
+                (rec)++;                                                                                                                   \
+            }                                                                                                                              \
+        _free:                                                                                                                             \
+            (rec)->flags = _recFlags | (((obj)->flags & WORLD_COLLISION_CONTACT_BODY_INDEX_MASK) + WORLD_COLLISION_CONTACT_OCCUPIED);      \
+        }                                                                                                                                  \
     } while (0)
 
 /// What one body of a colliding pair learns about the other, as a pair test hands it to the contact writer.
@@ -90,9 +90,9 @@
 /// - Sphere against sphere, either body: `point` is the other sphere's centre,
 ///   `response` is zero and `distance` is the sum of both radii.
 /// - Sphere against capsule, for the sphere: `point` is the capsule's second
-///   endpoint and `response.normal` its unit axis towards the first endpoint.
+///   endpoint and `response.direction` its unit axis towards the first endpoint.
 /// - Sphere against capsule, for the capsule: `point` is the axis point nearest
-///   the sphere, or the sphere's centre when the capsule tapers. `response.node`
+///   the sphere, or the sphere's centre when the capsule tapers. `response.bodyAddress`
 ///   is the sphere body's address under `WORLD_COLLISION_BODY_SINGLE_CONTACT`,
 ///   and zero otherwise.
 ///
@@ -334,23 +334,23 @@ s32 Gp_PairHandler1(WorldCollisionBody* arg0, WorldCollisionBody* arg1, s32 kind
 
     block->rsum32 = arg0->radius + arg1->radius;
     if (block->delta.vx * block->delta.vx + block->delta.vy * block->delta.vy + block->delta.vz * block->delta.vz < block->rsum32 * block->rsum32) {
-        block->contact.point.vx           = block->pos1.vx;
-        block->contact.point.vy           = block->pos1.vy;
-        block->contact.point.vz           = block->pos1.vz;
-        block->contact.response.normal.vx = 0;
-        block->contact.response.normal.vy = 0;
-        block->contact.response.normal.vz = 0;
-        block->contact.distance           = block->rsum32;
+        block->contact.point.vx              = block->pos1.vx;
+        block->contact.point.vy              = block->pos1.vy;
+        block->contact.point.vz              = block->pos1.vz;
+        block->contact.response.direction.vx = 0;
+        block->contact.response.direction.vy = 0;
+        block->contact.response.direction.vz = 0;
+        block->contact.distance              = block->rsum32;
         _worldCollisionRecordPairContact(arg0, arg1, &block->contact);
         ret = 1;
 
-        block->contact.point.vx           = block->pos0.vx;
-        block->contact.point.vy           = block->pos0.vy;
-        block->contact.point.vz           = block->pos0.vz;
-        block->contact.response.normal.vx = 0;
-        block->contact.response.normal.vy = 0;
-        block->contact.response.normal.vz = 0;
-        block->contact.distance           = block->rsum32;
+        block->contact.point.vx              = block->pos0.vx;
+        block->contact.point.vy              = block->pos0.vy;
+        block->contact.point.vz              = block->pos0.vz;
+        block->contact.response.direction.vx = 0;
+        block->contact.response.direction.vy = 0;
+        block->contact.response.direction.vz = 0;
+        block->contact.distance              = block->rsum32;
         _worldCollisionRecordPairContact(arg1, arg0, &block->contact);
     }
 
@@ -492,13 +492,13 @@ check:
     dz4              = block->scaled.vz * block->scaled.vz;
     radiusSquared    = proj * proj;
     if (dx4 + dy4 + dz4 < radiusSquared) {
-        block->contact.distance           = 0;
-        block->contact.point.vx           = (u16)block->end1.vx;
-        block->contact.point.vy           = (u16)block->end1.vy;
-        block->contact.point.vz           = (u16)block->end1.vz;
-        block->contact.response.normal.vx = (u16)block->normal.vx;
-        block->contact.response.normal.vy = (u16)block->normal.vy;
-        block->contact.response.normal.vz = (u16)block->normal.vz;
+        block->contact.distance              = 0;
+        block->contact.point.vx              = (u16)block->end1.vx;
+        block->contact.point.vy              = (u16)block->end1.vy;
+        block->contact.point.vz              = (u16)block->end1.vz;
+        block->contact.response.direction.vx = (u16)block->normal.vx;
+        block->contact.response.direction.vy = (u16)block->normal.vy;
+        block->contact.response.direction.vz = (u16)block->normal.vz;
         _worldCollisionRecordPairContact(arg0, arg1, &block->contact);
         if (!tapered) {
             block->contact.point = block->hit;
@@ -508,15 +508,15 @@ check:
             block->contact.point.vz = (u16)block->sphere.vz;
         }
         if (arg1->flags & WORLD_COLLISION_BODY_SINGLE_CONTACT) {
-            sourceAddress.object              = arg0;
-            block->contact.response.node.low  = sourceAddress.address;
-            block->contact.response.node.high = sourceAddress.address >> 16;
+            sourceAddress.object                     = arg0;
+            block->contact.response.bodyAddress.low  = sourceAddress.address;
+            block->contact.response.bodyAddress.high = sourceAddress.address >> 16;
         } else {
-            block->contact.response.normal.vx = 0;
-            block->contact.response.normal.vy = 0;
+            block->contact.response.direction.vx = 0;
+            block->contact.response.direction.vy = 0;
         }
-        block->contact.response.normal.vz = 0;
-        block->contact.distance           = 0;
+        block->contact.response.direction.vz = 0;
+        block->contact.distance              = 0;
         _worldCollisionRecordPairContact(arg1, arg0, &block->contact);
         ret = 1;
     }
@@ -593,13 +593,13 @@ void Gp_CollideObjGrid(WorldCollisionBody* arg0)
                 goto edges_done;
 
             fill:
-                slot->flags           = flags | WORLD_COLLISION_CONTACT_OCCUPIED;
-                slot->distance        = arg0->radius - dist;
-                slot->key.value       = face->surfaceClass | WORLD_COLLISION_CONTACT_GRID;
-                slot->point.vx        = 0;
-                slot->point.vy        = 0;
-                slot->point.vz        = 0;
-                slot->response.normal = Gp_GridParams->normals[face->normalIndex];
+                slot->flags              = flags | WORLD_COLLISION_CONTACT_OCCUPIED;
+                slot->distance           = arg0->radius - dist;
+                slot->key.value          = face->surfaceClass | WORLD_COLLISION_CONTACT_GRID;
+                slot->point.vx           = 0;
+                slot->point.vy           = 0;
+                slot->point.vz           = 0;
+                slot->response.direction = Gp_GridParams->normals[face->normalIndex];
                 goto next_face;
 
             edges:
@@ -805,9 +805,9 @@ void Gp_CollideObjGridDir(WorldCollisionBody* arg0)
                     flags = slot->flags;
                     if (flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
                         if ((slot->key.value & -0x100) == (extra | WORLD_COLLISION_CONTACT_GRID)) {
-                            if (slot->response.normal.vx == Gp_GridParams->normals[face->normalIndex].vx &&
-                                slot->response.normal.vy == Gp_GridParams->normals[face->normalIndex].vy &&
-                                slot->response.normal.vz == Gp_GridParams->normals[face->normalIndex].vz) {
+                            if (slot->response.direction.vx == Gp_GridParams->normals[face->normalIndex].vx &&
+                                slot->response.direction.vy == Gp_GridParams->normals[face->normalIndex].vy &&
+                                slot->response.direction.vz == Gp_GridParams->normals[face->normalIndex].vz) {
                                 if (slot->distance < (s32)arg0->radius - (s16)dist) {
                                     slot->distance = arg0->radius - dist;
                                 }
@@ -815,14 +815,14 @@ void Gp_CollideObjGridDir(WorldCollisionBody* arg0)
                             }
                         }
                     } else {
-                        slot->flags           = flags | WORLD_COLLISION_CONTACT_OCCUPIED;
-                        slot->distance        = arg0->radius - dist;
-                        faceKind              = face->surfaceClass | WORLD_COLLISION_CONTACT_GRID;
-                        slot->key.value       = extra | faceKind;
-                        slot->point.vx        = 0;
-                        slot->point.vy        = 0;
-                        slot->point.vz        = 0;
-                        slot->response.normal = Gp_GridParams->normals[face->normalIndex];
+                        slot->flags              = flags | WORLD_COLLISION_CONTACT_OCCUPIED;
+                        slot->distance           = arg0->radius - dist;
+                        faceKind                 = face->surfaceClass | WORLD_COLLISION_CONTACT_GRID;
+                        slot->key.value          = extra | faceKind;
+                        slot->point.vx           = 0;
+                        slot->point.vy           = 0;
+                        slot->point.vz           = 0;
+                        slot->response.direction = Gp_GridParams->normals[face->normalIndex];
                         goto next_face;
                     }
                     if (slot->flags & WORLD_COLLISION_CONTACT_LAST) {

@@ -1032,7 +1032,7 @@ static void Actor03800_Fn00A98(Task* arg0)
     if (result != 0) {
         for (i = 0; i < 4; i++) {
             if ((work->field_22C[i].key.value & 0xFFFF0000) == 0x100000) {
-                if (work->field_22C[i].response.normal.vy >= -0xDDA) {
+                if (work->field_22C[i].response.direction.vy >= -0xDDA) {
                     if (work->field_36E == 0) {
                         work->field_370 = 1;
                         break;

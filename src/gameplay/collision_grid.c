@@ -245,16 +245,16 @@ void func_800DD940(WorldCollisionBody* arg0)
                 slot->flags     = flags | WORLD_COLLISION_CONTACT_OCCUPIED;
                 slot->key.value = Gp_GridParams->faces[i].surfaceClass | WORLD_COLLISION_CONTACT_GRID_FLOOR;
             }
-            slot->point           = block->ray[1];
-            slot->response.normal = Gp_GridParams->normals[Gp_GridParams->faces[i].normalIndex];
-            block->delta.vx       = block->origin.vx - block->ray[1].vx;
-            block->delta.vy       = block->origin.vy - block->ray[1].vy;
-            block->delta.vz       = block->origin.vz - block->ray[1].vz;
-            slot->distance        = SquareRoot0(block->delta.vx * block->delta.vx +
-                                                block->delta.vy * block->delta.vy + block->delta.vz * block->delta.vz);
-            block->seg[0].vx      = block->ray[1].vx;
-            block->seg[0].vy      = block->ray[1].vy;
-            block->seg[0].vz      = block->ray[1].vz;
+            slot->point              = block->ray[1];
+            slot->response.direction = Gp_GridParams->normals[Gp_GridParams->faces[i].normalIndex];
+            block->delta.vx          = block->origin.vx - block->ray[1].vx;
+            block->delta.vy          = block->origin.vy - block->ray[1].vy;
+            block->delta.vz          = block->origin.vz - block->ray[1].vz;
+            slot->distance           = SquareRoot0(block->delta.vx * block->delta.vx +
+                                                   block->delta.vy * block->delta.vy + block->delta.vz * block->delta.vz);
+            block->seg[0].vx         = block->ray[1].vx;
+            block->seg[0].vy         = block->ray[1].vy;
+            block->seg[0].vz         = block->ray[1].vz;
         }
     }
     SCRATCH_STACK_RELEASE_BYTES(0x50);
@@ -312,24 +312,24 @@ void func_800DDDF8(WorldCollisionBody* obj)
                 if (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1]
                                       [Gp_GridParams->faces[i].surfaceClass]
                                           ->probePassThrough == WORLD_COLLISION_SURFACE_BLOCK_PROBES) {
-                    slot->distance        = 0;
-                    slot->flags          |= WORLD_COLLISION_CONTACT_OCCUPIED;
-                    slot->key.value       = Gp_GridParams->faces[i].surfaceClass | WORLD_COLLISION_CONTACT_GRID;
-                    slot->point           = block->ray[1];
-                    slot->response.normal = Gp_GridParams->normals[Gp_GridParams->faces[i].normalIndex];
-                    block->pos[0].vx      = block->ray[1].vx;
-                    block->pos[0].vy      = block->ray[1].vy;
-                    block->pos[0].vz      = block->ray[1].vz;
+                    slot->distance           = 0;
+                    slot->flags             |= WORLD_COLLISION_CONTACT_OCCUPIED;
+                    slot->key.value          = Gp_GridParams->faces[i].surfaceClass | WORLD_COLLISION_CONTACT_GRID;
+                    slot->point              = block->ray[1];
+                    slot->response.direction = Gp_GridParams->normals[Gp_GridParams->faces[i].normalIndex];
+                    block->pos[0].vx         = block->ray[1].vx;
+                    block->pos[0].vy         = block->ray[1].vy;
+                    block->pos[0].vz         = block->ray[1].vz;
                 }
             } else {
                 for (;;) {
                     flags = slot->flags;
                     if (!(flags & WORLD_COLLISION_CONTACT_OCCUPIED)) {
-                        slot->flags           = flags | WORLD_COLLISION_CONTACT_OCCUPIED;
-                        slot->distance        = 0;
-                        slot->key.value       = Gp_GridParams->faces[i].surfaceClass | WORLD_COLLISION_CONTACT_GRID;
-                        slot->point           = block->ray[1];
-                        slot->response.normal = Gp_GridParams->normals[Gp_GridParams->faces[i].normalIndex];
+                        slot->flags              = flags | WORLD_COLLISION_CONTACT_OCCUPIED;
+                        slot->distance           = 0;
+                        slot->key.value          = Gp_GridParams->faces[i].surfaceClass | WORLD_COLLISION_CONTACT_GRID;
+                        slot->point              = block->ray[1];
+                        slot->response.direction = Gp_GridParams->normals[Gp_GridParams->faces[i].normalIndex];
                         if (slot->flags & WORLD_COLLISION_CONTACT_LAST) {
                             void** head = SCRATCH_HEAD_ADDR;
 
