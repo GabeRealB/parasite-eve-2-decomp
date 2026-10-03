@@ -94,21 +94,22 @@ static void _effectSpriteDrawRotated(const GfxCoord* coord, u16 frameAndPalette,
 
 #define DUMPING_HOLE_RAND() ((s32)((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16))
 
-/// Full sprite-work allocation and clear extent; the seed and work types are partial views.
+/// Allocation and clear size of a `_ShelterB3DumpingHoleSpriteWork`, which extends
+/// 2 bytes past its last accessed field.
 enum { SHELTER_B3_DUMPING_HOLE_SPRITE_WORK_BYTES = 0x24 };
 
 /// Spawns one debris task and gives it a work block seeded with `seed`.
-#define DUMPING_HOLE_SPAWN_DEBRIS(seed)                                                              \
-    {                                                                                                \
-        Task*                  t = Task_SpawnFromTable(D_shelter_b3_dumping_hole_80188C04, 0, 0, 0); \
-        DumpingHoleDebrisSeed* w = memMalloc(SHELTER_B3_DUMPING_HOLE_SPRITE_WORK_BYTES, false);      \
-        t->work                  = w;                                                                \
-        if (w == NULL) {                                                                             \
-            taskKill(t);                                                                             \
-        } else {                                                                                     \
-            memFillBytes(w, 0, SHELTER_B3_DUMPING_HOLE_SPRITE_WORK_BYTES);                           \
-            *w = seed;                                                                               \
-        }                                                                                            \
+#define DUMPING_HOLE_SPAWN_DEBRIS(seed)                                                                        \
+    {                                                                                                          \
+        Task*                            t = Task_SpawnFromTable(D_shelter_b3_dumping_hole_80188C04, 0, 0, 0); \
+        _ShelterB3DumpingHoleSpriteWork* w = memMalloc(SHELTER_B3_DUMPING_HOLE_SPRITE_WORK_BYTES, false);      \
+        t->work                            = w;                                                                \
+        if (w == NULL) {                                                                                       \
+            taskKill(t);                                                                                       \
+        } else {                                                                                               \
+            memFillBytes(w, 0, SHELTER_B3_DUMPING_HOLE_SPRITE_WORK_BYTES);                                     \
+            w->seed = seed;                                                                                    \
+        }                                                                                                      \
     }
 
 extern SVECTOR D_shelter_b3_dumping_hole_8018B86C[44];
@@ -191,26 +192,6 @@ enum {
     SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITES_RISE   = 2, // Start rising and animating
 };
 
-typedef struct {
-    s16 field_0;
-    s16 field_2;
-    s16 field_4;
-    u8  pad_6[0x2];
-    s16 field_8;
-    u8  pad_A[0x2];
-    s16 field_C;
-    s16 field_E;
-    s16 field_10;
-    u8  pad_12[0x2];
-    s16 field_14;
-    s16 field_16;
-    s16 field_18;
-    u8  pad_1A[0x2];
-    s16 field_1C;
-    u16 field_1E;
-    u16 field_20;
-} DumpingHoleAnimWork;
-
 /// One frame of the rising billboard-sprite animation the debris event spawns:
 /// where the frame's 4-bit texture cell lies in VRAM and within its texture page.
 ///
@@ -279,12 +260,24 @@ typedef struct {
     s16 field_A;
 } DumpingHoleDebrisSeed;
 
+/// Work block of a rising, animated billboard sprite, spawned in rings around
+/// debris by the debris event, at its model by `actor_341700`, and at the
+/// player's model by an event-script callback.
+///
+/// After `delay` runs out, the sprite steps through the frame table
+/// `D_shelter_b3_dumping_hole_801880B8`, holding each frame for its entry in
+/// the handler's duration table and drifting by `vel` each tick, and removes
+/// itself at the closing frame. The allocation is
+/// `SHELTER_B3_DUMPING_HOLE_SPRITE_WORK_BYTES`; the bytes past `delay` are
+/// never accessed and their role is unproven.
 typedef struct {
-    u8  pad_00[0xC];
-    s16 field_C;
-    s16 field_E;
-    s16 field_10;
-} DumpingHoleSpawnWork;
+    DumpingHoleDebrisSeed seed;       // Debris sprites' world position, and the draw scale (unused by actor sprites); copied in whole by the debris event
+    SVECTOR               offset;     // Actor sprites: offset from the parent coordinate's world position
+    SVECTOR               vel;        // Per-tick drift; `vx` is cleared but never applied, and only player sprites drift in z
+    s16                   frame;      // Index into the frame table and the duration table
+    s16                   frameTimer; // Ticks the current frame has been shown
+    u16                   delay;      // Ticks left before the animation starts
+} _ShelterB3DumpingHoleSpriteWork;
 
 /// Spawn record for a falling shard: where it starts relative to `parent`, its
 /// base velocity, its size, and the downward speed it gains each frame.
@@ -2119,7 +2112,7 @@ static u16 func_shelter_b3_dumping_hole_8017DA00(GfxCoord* coord, s16 w, s16 h, 
 
 void func_shelter_b3_dumping_hole_8017DCFC(Task* arg0)
 {
-    DumpingHoleAnimWork*                  W      = (DumpingHoleAnimWork*)arg0->work;
+    _ShelterB3DumpingHoleSpriteWork*      work   = arg0->work;
     GfxCoord*                             coord  = arg0->extra.coordBody->coord;
     _ShelterB3DumpingHoleDebrisEventWork* entity = D_shelter_b3_dumping_hole_8018F4A8->work;
 
@@ -2131,38 +2124,37 @@ void func_shelter_b3_dumping_hole_8017DCFC(Task* arg0)
     switch (arg0->state) {
         case 0:
             coord->parent     = &gGfxViewCoord;
-            coord->coord.t[0] = W->field_0;
-            coord->coord.t[1] = W->field_2;
-            coord->coord.t[2] = W->field_4;
+            coord->coord.t[0] = work->seed.x;
+            coord->coord.t[1] = work->seed.y;
+            coord->coord.t[2] = work->seed.z;
             arg0->state++;
             return;
         case 1:
             if (entity->debrisSpriteSignal != SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITES_RISE) {
                 return;
             }
-            W->field_1C     = 5;
-            W->field_14     = 0;
-            W->field_18     = 0;
+            work->frame     = 5;
+            work->vel.vx    = 0;
+            work->vel.vz    = 0;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            W->field_16     = 0xFFF6 - ((gRandomLcgState >> 16) & 7);
+            work->vel.vy    = -10 - ((gRandomLcgState >> 16) & 7);
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            W->field_20     = (gRandomLcgState >> 16) & 7;
+            work->delay     = (gRandomLcgState >> 16) & 7;
             arg0->state++;
             return;
         case 2:
-            if (W->field_20 == 0) {
+            if (work->delay == 0) {
                 arg0->state = 3;
             } else {
-                W->field_20--;
+                work->delay--;
             }
             return;
         case 3: {
-            s32 t1e     = W->field_1E + 1;
-            W->field_1E = t1e;
-            if (D_shelter_b3_dumping_hole_80188154[W->field_1C] < (s16)t1e) {
-                (u16) W->field_1C = (u16)W->field_1C + 1;
-                W->field_1E       = 0;
-                if (D_shelter_b3_dumping_hole_801880B8[W->field_1C].vramX == SHELTER_B3_DUMPING_HOLE_SPRITE_FRAME_END) {
+            work->frameTimer++;
+            if (D_shelter_b3_dumping_hole_80188154[work->frame] < work->frameTimer) {
+                work->frame++;
+                work->frameTimer = 0;
+                if (D_shelter_b3_dumping_hole_801880B8[work->frame].vramX == SHELTER_B3_DUMPING_HOLE_SPRITE_FRAME_END) {
                     taskKill(arg0);
                     return;
                 }
@@ -2173,16 +2165,16 @@ void func_shelter_b3_dumping_hole_8017DCFC(Task* arg0)
             return;
     }
 
-    coord->coord.t[1] += W->field_16;
+    coord->coord.t[1] += work->vel.vy;
     if (func_shelter_b3_dumping_hole_8017DA00(
             coord,
-            D_shelter_b3_dumping_hole_801880B8[W->field_1C].w,
-            D_shelter_b3_dumping_hole_801880B8[W->field_1C].h,
-            D_shelter_b3_dumping_hole_801880B8[W->field_1C].u,
-            D_shelter_b3_dumping_hole_801880B8[W->field_1C].v,
-            D_shelter_b3_dumping_hole_801880B8[W->field_1C].vramX,
-            D_shelter_b3_dumping_hole_801880B8[W->field_1C].vramY,
-            W->field_8, 0x43C0, 0) != 0) {
+            D_shelter_b3_dumping_hole_801880B8[work->frame].w,
+            D_shelter_b3_dumping_hole_801880B8[work->frame].h,
+            D_shelter_b3_dumping_hole_801880B8[work->frame].u,
+            D_shelter_b3_dumping_hole_801880B8[work->frame].v,
+            D_shelter_b3_dumping_hole_801880B8[work->frame].vramX,
+            D_shelter_b3_dumping_hole_801880B8[work->frame].vramY,
+            work->seed.field_8, 0x43C0, 0) != 0) {
         taskKill(arg0);
         return;
     }
@@ -2191,26 +2183,26 @@ void func_shelter_b3_dumping_hole_8017DCFC(Task* arg0)
 
 void func_shelter_b3_dumping_hole_8017DF90(Task* arg0)
 {
-    DumpingHoleAnimWork* W     = (DumpingHoleAnimWork*)arg0->work;
-    GfxCoord*            coord = arg0->extra.coordBody->coord;
-    SVECTOR              vec;
-    SVECTOR              pos;
-    DVECTOR              sxy;
-    POLY_FT4*            prim;
-    u16                  offscreen;
-    u16                  hw;
-    u16                  hh;
-    s16                  sx;
-    s16                  sy;
-    s32                  y;
-    s16                  w;
-    s16                  h;
-    s16                  u;
-    s16                  v;
-    s16                  tx;
-    s16                  ty;
-    s16                  scale = 0x1000;
-    s32                  otz   = 0x3E8;
+    _ShelterB3DumpingHoleSpriteWork* work  = arg0->work;
+    GfxCoord*                        coord = arg0->extra.coordBody->coord;
+    SVECTOR                          vec;
+    SVECTOR                          pos;
+    DVECTOR                          sxy;
+    POLY_FT4*                        prim;
+    u16                              offscreen;
+    u16                              hw;
+    u16                              hh;
+    s16                              sx;
+    s16                              sy;
+    s32                              y;
+    s16                              w;
+    s16                              h;
+    s16                              u;
+    s16                              v;
+    s16                              tx;
+    s16                              ty;
+    s16                              scale = 0x1000;
+    s32                              otz   = 0x3E8;
 
     if (((_ShelterB3DumpingHoleDebrisEventWork*)D_shelter_b3_dumping_hole_8018F4A8->work)->actorSpritesStop == 1) {
         taskKill(arg0);
@@ -2221,32 +2213,31 @@ void func_shelter_b3_dumping_hole_8017DF90(Task* arg0)
         case 0:
             coord->parent = &gGfxViewCoord;
             Gp_ComposeParentWorld(arg0->spawnArg2.pointer, &coord->coord, &vec);
-            coord->coord.t[0] = vec.vx + W->field_C;
-            coord->coord.t[1] = vec.vy + W->field_E;
-            coord->coord.t[2] = vec.vz + W->field_10;
+            coord->coord.t[0] = vec.vx + work->offset.vx;
+            coord->coord.t[1] = vec.vy + work->offset.vy;
+            coord->coord.t[2] = vec.vz + work->offset.vz;
             gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            W->field_16       = 0xFFF6 - ((gRandomLcgState >> 16) & 7);
-            W->field_14       = 0;
-            W->field_18       = 0;
-            W->field_1C       = 0;
+            work->vel.vy      = -10 - ((gRandomLcgState >> 16) & 7);
+            work->vel.vx      = 0;
+            work->vel.vz      = 0;
+            work->frame       = 0;
             gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            W->field_20       = ((gRandomLcgState >> 16) & 7) + 0x14;
+            work->delay       = ((gRandomLcgState >> 16) & 7) + 0x14;
             arg0->state++;
             return;
         case 1:
-            if (W->field_20 == 0) {
+            if (work->delay == 0) {
                 arg0->state = 2;
             } else {
-                W->field_20--;
+                work->delay--;
             }
             return;
         case 2: {
-            s32 t1e     = W->field_1E + 1;
-            W->field_1E = t1e;
-            if (D_shelter_b3_dumping_hole_8018816C[W->field_1C] < (s16)t1e) {
-                (u16) W->field_1C = (u16)W->field_1C + 1;
-                W->field_1E       = 0;
-                if (D_shelter_b3_dumping_hole_801880B8[W->field_1C].vramX == SHELTER_B3_DUMPING_HOLE_SPRITE_FRAME_END) {
+            work->frameTimer++;
+            if (D_shelter_b3_dumping_hole_8018816C[work->frame] < work->frameTimer) {
+                work->frame++;
+                work->frameTimer = 0;
+                if (D_shelter_b3_dumping_hole_801880B8[work->frame].vramX == SHELTER_B3_DUMPING_HOLE_SPRITE_FRAME_END) {
                     taskKill(arg0);
                     return;
                 }
@@ -2257,13 +2248,13 @@ void func_shelter_b3_dumping_hole_8017DF90(Task* arg0)
             return;
     }
 
-    coord->coord.t[1] += W->field_16;
-    w                  = D_shelter_b3_dumping_hole_801880B8[W->field_1C].w;
-    h                  = D_shelter_b3_dumping_hole_801880B8[W->field_1C].h;
-    u                  = D_shelter_b3_dumping_hole_801880B8[W->field_1C].u;
-    v                  = D_shelter_b3_dumping_hole_801880B8[W->field_1C].v;
-    tx                 = D_shelter_b3_dumping_hole_801880B8[W->field_1C].vramX;
-    ty                 = D_shelter_b3_dumping_hole_801880B8[W->field_1C].vramY;
+    coord->coord.t[1] += work->vel.vy;
+    w                  = D_shelter_b3_dumping_hole_801880B8[work->frame].w;
+    h                  = D_shelter_b3_dumping_hole_801880B8[work->frame].h;
+    u                  = D_shelter_b3_dumping_hole_801880B8[work->frame].u;
+    v                  = D_shelter_b3_dumping_hole_801880B8[work->frame].v;
+    tx                 = D_shelter_b3_dumping_hole_801880B8[work->frame].vramX;
+    ty                 = D_shelter_b3_dumping_hole_801880B8[work->frame].vramY;
     Gp_UpdateCoord(coord);
     gte_SetTransMatrix(&coord->workm);
     gte_SetRotMatrix(&coord->workm);
@@ -2296,15 +2287,15 @@ void func_shelter_b3_dumping_hole_8017DF90(Task* arg0)
 
 void func_shelter_b3_dumping_hole_8017E440(Task* arg0)
 {
-    DumpingHoleAnimWork* work  = (DumpingHoleAnimWork*)arg0->work;
-    GfxCoord*            coord = arg0->extra.coordBody->coord;
-    SVECTOR              vec;
-    s32                  sa1;
-    u32                  roll1;
-    u32                  roll2;
-    s32                  base18;
-    s16                  var0;
-    s16                  delta;
+    _ShelterB3DumpingHoleSpriteWork* work  = arg0->work;
+    GfxCoord*                        coord = arg0->extra.coordBody->coord;
+    SVECTOR                          vec;
+    s32                              sa1;
+    u32                              roll1;
+    u32                              roll2;
+    s32                              velZ;
+    s16                              var0;
+    s16                              delta;
 
     if (((_ShelterB3DumpingHoleDebrisEventWork*)D_shelter_b3_dumping_hole_8018F4A8->work)->playerSpritesStop == 1) {
         taskKill(arg0);
@@ -2323,73 +2314,72 @@ void func_shelter_b3_dumping_hole_8017E440(Task* arg0)
                 taskKill(arg0);
                 return;
             }
-            work = (DumpingHoleAnimWork*)arg0->work;
+            work = arg0->work;
             memFillBytes(work, 0, SHELTER_B3_DUMPING_HOLE_SPRITE_WORK_BYTES);
-            work->field_16  = -0xA;
-            work->field_14  = 0;
-            work->field_18  = 0;
-            work->field_8   = 0x1000;
-            work->field_14  = 0;
-            roll1           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->field_16  = 0xFFF1 - ((roll1 >> 16) & 7);
-            sa1             = arg0->spawnArg1.value;
-            gRandomLcgState = roll1;
+            work->vel.vy       = -0xA;
+            work->vel.vx       = 0;
+            work->vel.vz       = 0;
+            work->seed.field_8 = 0x1000;
+            work->vel.vx       = 0;
+            roll1              = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->vel.vy       = -15 - ((roll1 >> 16) & 7);
+            sa1                = arg0->spawnArg1.value;
+            gRandomLcgState    = roll1;
             if (sa1 == 0) {
                 roll2           = roll1 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                base18          = work->field_18;
+                velZ            = work->vel.vz;
                 gRandomLcgState = roll2;
                 if ((roll2 >> 16) & 1) {
                     gRandomLcgState = roll2 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    var0            = base18 + ((gRandomLcgState >> 16) & 1);
+                    var0            = velZ + ((gRandomLcgState >> 16) & 1);
                 } else {
                     gRandomLcgState = roll2 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    var0            = base18 - ((gRandomLcgState >> 16) & 1);
+                    var0            = velZ - ((gRandomLcgState >> 16) & 1);
                 }
-                work->field_18 = var0;
+                work->vel.vz = var0;
             } else {
                 if (sa1 < 0) {
                     gRandomLcgState = roll1 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    delta           = (u16)work->field_18 + ((u16)arg0->spawnArg1.value - ((gRandomLcgState >> 16) & 1));
+                    delta           = (u16)work->vel.vz + ((u16)arg0->spawnArg1.value - ((gRandomLcgState >> 16) & 1));
                 } else {
                     gRandomLcgState = roll1 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    delta           = (u16)work->field_18 + ((u16)arg0->spawnArg1.value + ((gRandomLcgState >> 16) & 1));
+                    delta           = (u16)work->vel.vz + ((u16)arg0->spawnArg1.value + ((gRandomLcgState >> 16) & 1));
                 }
-                work->field_18 = delta;
+                work->vel.vz = delta;
             }
-            work->field_1C  = 0;
+            work->frame     = 0;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->field_20  = (gRandomLcgState >> 16) & 7;
+            work->delay     = (gRandomLcgState >> 16) & 7;
             arg0->state++;
             return;
         case 1:
-            if (work->field_20 == 0) {
+            if (work->delay == 0) {
                 arg0->state = 2;
             } else {
-                work->field_20--;
+                work->delay--;
             }
             return;
         case 2: {
-            s32 t1e        = work->field_1E + 1;
-            work->field_1E = t1e;
-            if (D_shelter_b3_dumping_hole_80188184[work->field_1C] < (s16)t1e) {
-                (u16) work->field_1C = (u16)work->field_1C + 1;
-                work->field_1E       = 0;
-                if (D_shelter_b3_dumping_hole_801880B8[work->field_1C].vramX == SHELTER_B3_DUMPING_HOLE_SPRITE_FRAME_END) {
+            work->frameTimer++;
+            if (D_shelter_b3_dumping_hole_80188184[work->frame] < work->frameTimer) {
+                work->frame++;
+                work->frameTimer = 0;
+                if (D_shelter_b3_dumping_hole_801880B8[work->frame].vramX == SHELTER_B3_DUMPING_HOLE_SPRITE_FRAME_END) {
                     taskKill(arg0);
                     return;
                 }
             }
-            coord->coord.t[1] += work->field_16;
-            coord->coord.t[2] += work->field_18;
+            coord->coord.t[1] += work->vel.vy;
+            coord->coord.t[2] += work->vel.vz;
             func_shelter_b3_dumping_hole_8017DA00(
                 coord,
-                D_shelter_b3_dumping_hole_801880B8[work->field_1C].w,
-                D_shelter_b3_dumping_hole_801880B8[work->field_1C].h,
-                D_shelter_b3_dumping_hole_801880B8[work->field_1C].u,
-                D_shelter_b3_dumping_hole_801880B8[work->field_1C].v,
-                D_shelter_b3_dumping_hole_801880B8[work->field_1C].vramX,
-                D_shelter_b3_dumping_hole_801880B8[work->field_1C].vramY,
-                work->field_8, 0x43C0, 0);
+                D_shelter_b3_dumping_hole_801880B8[work->frame].w,
+                D_shelter_b3_dumping_hole_801880B8[work->frame].h,
+                D_shelter_b3_dumping_hole_801880B8[work->frame].u,
+                D_shelter_b3_dumping_hole_801880B8[work->frame].v,
+                D_shelter_b3_dumping_hole_801880B8[work->frame].vramX,
+                D_shelter_b3_dumping_hole_801880B8[work->frame].vramY,
+                work->seed.field_8, 0x43C0, 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             return;
         }
@@ -2934,8 +2924,8 @@ void func_shelter_b3_dumping_hole_8017FCA0(s16 arg0)
 
 void func_shelter_b3_dumping_hole_8017FCF4(GfxCoord* arg0, SVECTOR* arg1)
 {
-    Task*                 task;
-    DumpingHoleSpawnWork* work;
+    Task*                            task;
+    _ShelterB3DumpingHoleSpriteWork* work;
 
     task       = Task_SpawnFromTable(D_shelter_b3_dumping_hole_80188C04, 1, 0, arg0);
     work       = memMalloc(SHELTER_B3_DUMPING_HOLE_SPRITE_WORK_BYTES, false);
@@ -2945,9 +2935,9 @@ void func_shelter_b3_dumping_hole_8017FCF4(GfxCoord* arg0, SVECTOR* arg1)
         return;
     }
     memFillBytes(work, 0, SHELTER_B3_DUMPING_HOLE_SPRITE_WORK_BYTES);
-    work->field_C  = (u16)arg1->vx;
-    work->field_E  = (u16)arg1->vy;
-    work->field_10 = (u16)arg1->vz;
+    work->offset.vx = arg1->vx;
+    work->offset.vy = arg1->vy;
+    work->offset.vz = arg1->vz;
 }
 
 static void func_shelter_b3_dumping_hole_8017FD9C(GfxCoord* arg0, s32 arg1)
