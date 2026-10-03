@@ -404,14 +404,14 @@ resumeView:
                     if (Pad_CheckButtons(0, 1, confirmMask) != 0) {
                         if (D_801155BE != 0) {
                             if (D_80115659 == 0) {
-                                choiceSound = D_801155D0[D_801155C0].sound;
-                                if (choiceSound != 1) {
-                                    if (choiceSound == 3) {
-                                        soundId = 0x15;
+                                choiceSound = D_801155D0[D_801155C0].confirmSound;
+                                if (choiceSound != CAP_CHOICE_SOUND_CONFIRM) {
+                                    if (choiceSound == CAP_CHOICE_SOUND_CURSOR) {
+                                        soundId = SOUND_SYSTEM_CURSOR;
                                         goto playChoiceSound;
                                     }
                                 } else {
-                                    soundId = 0x16;
+                                    soundId = SOUND_SYSTEM_CONFIRM;
                                 playChoiceSound:
                                     SndEvt_EnqueueType6(soundId, 0, 0);
                                 }
@@ -541,8 +541,8 @@ u16 func_800E5578(const u16* arg0, s32 arg1, u8 arg2, u16 arg3)
     POLY_GT4*      gt;
     POLY_GT4*      gt2;
     TextGlyphCell* icon;
-    GpCapChoice*   ch;
-    GpCapChoice*   p;
+    CapChoice*     choices;
+    CapChoice*     choice;
 
     const _GpCapLayout* layout;
 
@@ -704,7 +704,7 @@ u16 func_800E5578(const u16* arg0, s32 arg1, u8 arg2, u16 arg3)
                 }
                 i++;
                 continue;
-            } else if ((code & 0xFF00) == 0x8100 || (code & 0xFF00) == 0x8200 || (code & 0xFF00) == 0x8300) {
+            } else if ((code & 0xFF00) == CAP_TEXT_CHOICE_CONFIRM || (code & 0xFF00) == CAP_TEXT_CHOICE_SILENT || (code & 0xFF00) == CAP_TEXT_CHOICE_CURSOR) {
                 if (flagA == 0) {
                     ret = 1;
                     break;
@@ -713,13 +713,14 @@ u16 func_800E5578(const u16* arg0, s32 arg1, u8 arg2, u16 arg3)
                     nChoice++;
                     selected = 0;
                 }
-                inChoice    = 1;
-                ch          = D_801155D0;
-                p           = &ch[nChoice];
-                p->sound    = (attr & 0xF00) >> 8;
-                p->pos[0]   = x;
-                p->pos[1]   = y;
-                p->eventKey = attr & 0xFF;
+                // Record the pen, variant key and confirm-sound class for this line.
+                inChoice             = 1;
+                choices              = D_801155D0;
+                choice               = &choices[nChoice];
+                choice->confirmSound = (attr & CAP_TEXT_CHOICE_SOUND_MASK) >> 8;
+                choice->x            = x;
+                choice->y            = y;
+                choice->eventKey     = attr & 0xFF;
                 if (nChoice == D_801155C0) {
                     selected = 1;
                 }
@@ -816,14 +817,13 @@ u16 func_800E5578(const u16* arg0, s32 arg1, u8 arg2, u16 arg3)
 
 void func_800E62C0(void)
 {
-    POLY_G3*     p;
-    GpCapChoice* choices;
-    s16*         pos;
-    s32          i;
-    s32          x;
-    s32          y;
-    s32          top;
-    s32          color;
+    POLY_G3*   p;
+    CapChoice* choices;
+    s32        i;
+    s32        x;
+    s32        y;
+    s32        top;
+    s32        color;
 
     if (D_801155BE != 0) {
         if (D_80115659 != 0) {
@@ -833,9 +833,8 @@ void func_800E62C0(void)
         gGpuPrimCursor = p + 1;
         i              = D_801155C0;
         choices        = D_801155D0;
-        pos            = choices[i].pos;
-        x              = pos[0];
-        y              = pos[1];
+        x              = choices[i].x;
+        y              = choices[i].y;
         top            = -(gDisplayState.vramYOffset + 2) + y;
         setPolyG3(p);
         color = (D_8010FB80 << 7) / 15;

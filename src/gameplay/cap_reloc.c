@@ -10,7 +10,7 @@
 
 #include "main/text.h"
 
-GpCapChoice D_801155D0[15];
+CapChoice D_801155D0[CAP_CHOICE_CAPACITY];
 
 u8 D_80115648;
 

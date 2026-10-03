@@ -50,7 +50,7 @@ void Gp_InitCapTask(Task* task);
 
 void Gp_CapTaskState1(Task* task);
 
-extern GpCapChoice D_801155D0[15];
+extern CapChoice D_801155D0[CAP_CHOICE_CAPACITY];
 
 extern u8 D_80115648;
 

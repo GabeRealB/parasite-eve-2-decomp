@@ -298,7 +298,13 @@ uses a text code's low ten bits as its glyph-cell index after handling controls.
   turning them into readable text needs that table plus the font image. The
   mapping is not alphabetical by inspection (`0x21` as `A` does not produce
   words).
-- **Control codes.** The 108 values `>= 0x8000` are undecoded.
+- **Control codes.** Values `>= 0x8000` are mostly still undecoded. A dialogue
+  choice is the exception: a code whose high byte is `0x81`, `0x82` or `0x83`.
+  Its low byte is the variant key copied into `Gp_CapEventKey` on confirm, and
+  bits 8-11 select the confirm sound (`1` plays `SOUND_SYSTEM_CONFIRM`, `2`
+  plays nothing, `3` plays `SOUND_SYSTEM_CURSOR`). Retail text uses `1` and
+  `2` only. The renderer records the pen and those fields in a `CapChoice`
+  (`src/gameplay/cap.h`).
 - **`CapFile.field_4`** is `8` in all 213 retail CAP payloads. No loader reads
   it, and the role is unproven.
 - **Message `0x13F0`** (opcode 3) - the payload contract with slot 7's task.
