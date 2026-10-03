@@ -105,16 +105,6 @@ typedef union AcsMsgArg {
 } AcsMsgArg;
 STATIC_ASSERT_SIZEOF(AcsMsgArg, 0x18);
 
-/// A size class of the sanctuary's mosaic effect: the four corner offsets a
-/// tile of that class is drawn with. `D_acropolis_sanctuary_80182710` holds two
-/// of them, a small one and a double-sized one, and `AcsTile::quad` picks
-/// between them. `func_acropolis_sanctuary_8017E134` only needs `corner[0]`,
-/// the origin the tile's grid position is measured from.
-typedef struct AcsQuad {
-    /* 0x0 */ SVECTOR corner[4];
-} AcsQuad;
-STATIC_ASSERT_SIZEOF(AcsQuad, 0x20);
-
 /// One tile of the sanctuary's mosaic, from the 72-entry table at
 /// `D_acropolis_sanctuary_80182320`. `row` and `col` are grid coordinates that
 /// `func_acropolis_sanctuary_8017E134` scales by 1145/128 and 2147/256 into the
@@ -192,7 +182,7 @@ extern TaskDesc             D_acropolis_sanctuary_80182240;
 extern WorldCollisionGrid   D_acropolis_sanctuary_801822EC;
 extern TaskMessageEntry     D_acropolis_sanctuary_80182310[];
 extern AcsTile              D_acropolis_sanctuary_80182320[];
-extern AcsQuad              D_acropolis_sanctuary_80182710[];
+extern SVECTOR              D_acropolis_sanctuary_80182710[][4];
 extern s16                  D_acropolis_sanctuary_80182750[];
 extern s32                  D_acropolis_sanctuary_80182770;
 extern SVECTOR              D_acropolis_sanctuary_80182774[];
@@ -731,9 +721,19 @@ AcsTile D_acropolis_sanctuary_80182320[72] = {
     { 14, 15, 105, 240, 0, 8, 0 },
 };
 
-AcsQuad D_acropolis_sanctuary_80182710[2] = {
-    { { { 0, -72, 63, 0 }, { 0, -72, -62, 0 }, { 0, 71, 63, 0 }, { 0, 71, -62, 0 } } },
-    { { { 0, -143, 126, 0 }, { 0, -143, -125, 0 }, { 0, 143, 126, 0 }, { 0, 143, -125, 0 } } },
+/// Corner offsets of the sanctuary mosaic's two tile sizes, measured from the
+/// tile's centre.
+///
+/// The first index is the size class `AcsTile::quad` stores: 0 spans a 15 x 16
+/// texel cell of the mosaic sheet and 1 a 30 x 32 one, twice as large each way.
+/// The second is the corner, in `POLY_FT4` vertex order. The quad lies in the
+/// tile's local YZ plane, with the sheet's u running towards -z and its v
+/// towards +y, so corner 0 is the one at the tile's grid position; subtracting
+/// it turns that position into the centre a tile is spawned at. A shard is the
+/// triangle of the first three corners of class 0, scaled by the shard's size.
+SVECTOR D_acropolis_sanctuary_80182710[2][4] = {
+    { { 0, -72, 63, 0 }, { 0, -72, -62, 0 }, { 0, 71, 63, 0 }, { 0, 71, -62, 0 } },
+    { { 0, -143, 126, 0 }, { 0, -143, -125, 0 }, { 0, 143, 126, 0 }, { 0, 143, -125, 0 } },
 };
 
 s16 D_acropolis_sanctuary_80182750[16] = {
@@ -2139,8 +2139,8 @@ void func_acropolis_sanctuary_8017E134(Task* arg0)
         tile         = &D_acropolis_sanctuary_80182320[i];
         quad         = tile->quad;
         mem->move.vx = 0;
-        mem->move.vy = ((tile->col * 1145) >> 7) - D_acropolis_sanctuary_80182710[quad].corner[0].vy;
-        mem->move.vz = -((tile->row * 2147) >> 8) - D_acropolis_sanctuary_80182710[quad].corner[0].vz;
+        mem->move.vy = ((tile->col * 1145) >> 7) - D_acropolis_sanctuary_80182710[quad][0].vy;
+        mem->move.vz = -((tile->row * 2147) >> 8) - D_acropolis_sanctuary_80182710[quad][0].vz;
         Gp_SpawnEff(EFFECT_ACROPOLIS_SANCTUARY_MOSAIC_TILE, coord, i, &mem->move);
     }
     for (i = 0; i < 0x10; i++) {
@@ -2148,8 +2148,8 @@ void func_acropolis_sanctuary_8017E134(Task* arg0)
         tile         = &D_acropolis_sanctuary_80182320[idx];
         quad         = tile->quad;
         mem->move.vx = 0;
-        mem->move.vy = ((tile->col * 1145) >> 7) - D_acropolis_sanctuary_80182710[quad].corner[0].vy;
-        mem->move.vz = -((tile->row * 2147) >> 8) - D_acropolis_sanctuary_80182710[quad].corner[0].vz;
+        mem->move.vy = ((tile->col * 1145) >> 7) - D_acropolis_sanctuary_80182710[quad][0].vy;
+        mem->move.vz = -((tile->row * 2147) >> 8) - D_acropolis_sanctuary_80182710[quad][0].vz;
         Gp_SpawnEff(EFFECT_ACROPOLIS_SANCTUARY_MOSAIC_TILE, coord, idx, &mem->move);
     }
     arg0->state = arg0->state + 1;
@@ -2204,13 +2204,13 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
     blk      = (AcsTileScratch*)(head - 0x28);
     gte_SetTransMatrix(&GsWSMATRIX);
     for (i = 0; i < 4; i++) {
-        blk->v[i].vx = D_acropolis_sanctuary_80182710[quad].corner[i].vx;
+        blk->v[i].vx = D_acropolis_sanctuary_80182710[quad][i].vx;
         // Spelled as an offset rather than `&blk->v[i]` so it stays a separate
         // pointer from the one the GTE macros below take; writing both the same
         // way lets CSE fold them into one register and the loop stops matching.
         sv     = (SVECTOR*)((u8*)blk + i * sizeof(SVECTOR) + OFFSET_OF(AcsTileScratch, v));
-        sv->vy = D_acropolis_sanctuary_80182710[quad].corner[i].vy;
-        sv->vz = D_acropolis_sanctuary_80182710[quad].corner[i].vz;
+        sv->vy = D_acropolis_sanctuary_80182710[quad][i].vy;
+        sv->vz = D_acropolis_sanctuary_80182710[quad][i].vz;
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&blk->v[i]);
         gte_rtv0();
@@ -2421,7 +2421,7 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
         mem->pos.vz     = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
     }
     gte_SetTransMatrix(&GsWSMATRIX);
-    corner = D_acropolis_sanctuary_80182710->corner;
+    corner = D_acropolis_sanctuary_80182710[0];
     for (i = 0; i < 3; i++) {
         blk->v[i].vx = corner[i].vx;
         // Spelled as an offset rather than `&blk->v[i]` so it stays a separate
