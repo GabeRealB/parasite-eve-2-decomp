@@ -50,14 +50,17 @@
 #define SPRITE_QUAD_FRAME_T s16
 #include "../../shared/sprite_quad.h"
 
-// Preserve the nonzero halfword after the three effect records.
-// Its role is unresolved; it may be retained exporter padding.
+/// Three shapes for this room's ring bands, with the halfword in the gap after them.
+///
+/// The rows end two bytes short of the next word-aligned object. That gap is
+/// nonzero, so it is a member rather than compiler padding. Code reads the
+/// rows; nothing reads the halfword, and its value is unproven.
 typedef struct {
-    EffectBandShape entries[3];
-    u16             retained;
-} ShelterB6TrainingRoomRingStorage;
-STATIC_ASSERT_SIZEOF(ShelterB6TrainingRoomRingStorage, 20);
-extern ShelterB6TrainingRoomRingStorage D_shelter_b6_training_room_80184404;
+    EffectBandShape entries[3];    // One shape per ring band; spawn arguments 0, 1 and 2
+    u16             alignmentFill; // Gap before the next word-aligned object; never read
+} _ShelterB6TrainingRoomBandShapeStorage;
+STATIC_ASSERT_SIZEOF(_ShelterB6TrainingRoomBandShapeStorage, 0x14);
+extern _ShelterB6TrainingRoomBandShapeStorage D_shelter_b6_training_room_80184404;
 
 /// Scratchpad block `func_shelter_b6_training_room_80181FDC` takes from
 /// the scratch stack: the two world points the textured strip joins, the first
@@ -387,7 +390,7 @@ u16 D_shelter_b6_training_room_801843FC[4] = {
     1596,
 };
 
-ShelterB6TrainingRoomRingStorage D_shelter_b6_training_room_80184404 = { { { 256, 2048, 512 }, { 512, 1536, 768 }, { 768, 1024, 1024 } }, 0xF23F };
+_ShelterB6TrainingRoomBandShapeStorage D_shelter_b6_training_room_80184404 = { { { 256, 2048, 512 }, { 512, 1536, 768 }, { 768, 1024, 1024 } }, 0xF23F };
 
 void func_shelter_b6_training_room_8017DDE8(Task* task)
 {
