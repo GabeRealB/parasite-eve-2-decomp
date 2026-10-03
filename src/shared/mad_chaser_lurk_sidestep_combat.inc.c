@@ -22,8 +22,8 @@ void madChaserLurkSidestepToCombat(Task* arg0)
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
     work2 = (MadChaserWork*)arg0->work;
-    if ((work2->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work2->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    if ((work2->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work2->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;

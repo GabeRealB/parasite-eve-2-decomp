@@ -110,8 +110,8 @@ static __inline__ s32 madChaserIsHit(Task* arg0)
 {
     MadChaserWork* w = (MadChaserWork*)arg0->work;
 
-    if ((w->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (w->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    if ((w->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (w->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         return 1;
     }
     return 0;

@@ -93,8 +93,8 @@ void madChaserPulledStruggle(Task* arg0)
     } else if (enemy->hp > 0) {
         MadChaserWork* w2 = (MadChaserWork*)arg0->work;
 
-        if ((w2->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-            (w2->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+        if ((w2->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+            (w2->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
             cond = 1;
         } else {
             cond = 0;

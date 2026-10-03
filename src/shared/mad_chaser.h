@@ -19,14 +19,6 @@
 
 #include "main/task_types.h"
 
-/// Status flags of `MadChaserWork`, read through two widths: every guard
-/// tests bit 0 as a halfword and then bits 0x102 as a word.
-typedef union MadChaserSlotFlags {
-    u32 word;
-    u16 half;
-} MadChaserSlotFlags;
-STATIC_ASSERT_SIZEOF(MadChaserSlotFlags, 0x4);
-
 /// Work block of the enemy whose code both actor_341700 and actor_342400
 /// carry. Each allocates it zeroed at its full size and keeps it at
 /// `Task::work`. `field_420` / `field_422` are the state and sub-state indices
@@ -56,12 +48,9 @@ typedef struct MadChaserWork {
     byte             pad_96[0x2];
     SVECTOR          field_98;     // translation of coords[6] relative to the view
     AnimationContext anim;
-    /// First of the nine `AnimationSlot`s handed to `animationInitContext`; the second
-    /// overlaps `flags_EC`, so only the first is spelled out.
-    AnimationSlot         slot_B4;
-    byte                  pad_DC[0x10];
-    MadChaserSlotFlags    flags_EC;
-    byte                  pad_F0[0x12C];
+    /// The nine slots handed to `animationInitContext`. Every guard tests the
+    /// second slot's status: bit 0 as a halfword, then bits 0x102 as a word.
+    AnimationSlot         slots[9];
     byte                  field_21C[0x90]; // `animationInitContext`'s poseBuffer buffer
     WorldCollisionBody    obj_2AC;
     WorldCollisionBody    obj_2CC;

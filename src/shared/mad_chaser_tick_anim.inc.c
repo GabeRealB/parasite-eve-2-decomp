@@ -18,12 +18,12 @@ void madChaserTickAnim(Task* arg0)
         start = work;
         if (start->field_416 == start->field_418) {
             for (i = 1; i < 9; i++) {
-                (&start->slot_B4)[i].rate = start->field_41C;
+                (start->slots)[i].rate = start->field_41C;
                 animationSeekSlotWithBlend(&start->anim, i, start->field_418, 0, start->field_426);
             }
         } else {
             for (i = 1; i < 9; i++) {
-                (&start->slot_B4)[i].rate = start->field_41C;
+                (start->slots)[i].rate = start->field_41C;
                 animationSeekSlotWithBlend(&start->anim, i, start->field_418, 0, start->field_426);
             }
             start->field_426 = 0;
@@ -34,7 +34,7 @@ void madChaserTickAnim(Task* arg0)
         start = work;
         for (j = 1; j < 9; j++) {
             animationResetSlot(&start->anim, j, start->field_418);
-            (&start->slot_B4)[j].rate = start->field_41C;
+            (start->slots)[j].rate = start->field_41C;
         }
     advance:
         start->field_416 = start->field_418;
@@ -44,7 +44,7 @@ void madChaserTickAnim(Task* arg0)
         work->field_41A++;
     }
     for (k = 1; k < 9; k++) {
-        (&work->slot_B4)[k].rate = work->field_41C;
+        (work->slots)[k].rate = work->field_41C;
         animationTickSlot(&work->anim, k);
     }
 }

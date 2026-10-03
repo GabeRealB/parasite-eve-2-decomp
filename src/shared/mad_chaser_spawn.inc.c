@@ -45,7 +45,7 @@ void madChaserSpawn(Task* task)
     w->eff_3FC.spawnArgLo = 0x140;
     w->eff_3FC.spawnArgHi = 2;
     e->hp = e->hpMax = gMadChaserEnemyParams.hpMax;
-    animationInitContext(&w->anim, (AnimationSet**)gMadChaserAnimBank, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])w->field_21C, &w->slot_B4);
+    animationInitContext(&w->anim, (AnimationSet**)gMadChaserAnimBank, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])w->field_21C, w->slots);
     w2            = (MadChaserWork*)task->work;
     w2->field_41C = 0x10;
     w2->field_418 = 7;
