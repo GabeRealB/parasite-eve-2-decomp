@@ -22,11 +22,18 @@
 /// node down, so a caller walking children reads the next sibling first.
 typedef void (*UiObjectTaskFunc)(UiObject* object, Task* task);
 
-/// Fixed-size table of `UiObjectTaskFunc` callbacks. Copied onto the stack by
-/// `Gp_ItemMenuTask` so the call uses a local jump table.
+/// Three `UiObjectTaskFunc` handlers stored as a value for whole-table copies.
+///
+/// A node's content task copies the table and calls the slot its
+/// `Task::state` selects, passing the node from its `spawnArg2.pointer` and
+/// itself. Each table defines its slots' roles. Dispatch requires an index in
+/// 0..2 and a non-NULL entry: there is no terminator or bounds check in the
+/// table, so the handlers themselves keep the state inside that range.
+/// Copying it copies callback pointers, not node or task storage.
 typedef struct {
-    UiObjectTaskFunc funcs[3];
+    UiObjectTaskFunc funcs[3]; // Handlers in task-state order; slot meanings belong to each table
 } UiObjectTaskFuncTable3;
+STATIC_ASSERT_SIZEOF(UiObjectTaskFuncTable3, 0xC);
 
 /// Caption sprite of one element column in the menu's Parasite Energy summary panel.
 ///
