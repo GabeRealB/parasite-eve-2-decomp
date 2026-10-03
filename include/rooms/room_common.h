@@ -482,16 +482,26 @@ typedef struct {
 } RoomFxTwinTrailScratch;
 STATIC_ASSERT_SIZEOF(RoomFxTwinTrailScratch, 0x3C);
 
-/// One entry of a room's ambience table: the table holds one entry per area and
-/// is indexed by `gGameSession->location.loc.view`. A room's ambience task passes
-/// `pan` to `SndEvt_EnqueueType6` / `SndEvt_EnqueueTypeA` as the event's pan,
-/// and derives the event's attenuation from `vol` - some rooms pass it as is,
-/// others halve it first.
-typedef struct RoomAmbienceEntry {
-    s16 pan;
-    s16 pad_2;
-    s16 vol;
-    s16 pad_6;
+/// Mix of a room's looping ambience for one view slot.
+///
+/// A room's ambience table is indexed by the session's 1-based view slot, and
+/// a view past the table's end takes a zero offset and zero attenuation. The
+/// room's ambience task starts the loop with the current view's entry and
+/// applies the new view's entry to the playing loop after each view change.
+///
+/// Both values use the sound script's units and are narrowed to a signed byte
+/// when queued: one `panOffset` unit is three SPU pan steps, and an
+/// `attenuation` of 127 is silent. A room may scale `attenuation` before
+/// queuing it - one passes it as stored, another halves it - so entries
+/// compare only within one table.
+///
+/// The halfword after each value is zero in every table and never read; its
+/// role is unproven.
+typedef struct {
+    s16 panOffset;   // Signed pan offset of the loop (0 base pan, negative left, positive right)
+    s16 field_2;     // Role unproven; zero in every table and never read
+    s16 attenuation; // Attenuation of the loop before the room's scaling (0 full level, larger is quieter)
+    s16 field_6;     // Role unproven; zero in every table and never read
 } RoomAmbienceEntry;
 STATIC_ASSERT_SIZEOF(RoomAmbienceEntry, 0x8);
 

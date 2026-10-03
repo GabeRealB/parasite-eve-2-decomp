@@ -121352,7 +121352,7 @@ differences; promoted to `src/actors/lib/actors_shared_801330ac.c`.
 
 ## A halfword table field loads `lhu` into an `s16` local and `lh` into an `s32` one - the local's width picks the load, not the field (func_neo_ark_substation_8017D608, 2026-09-17)
 
-`func_neo_ark_substation_8017D608` reads a `(pan, vol)` pair out of an `s16` table
+`func_neo_ark_substation_8017D608` reads a `(panOffset, attenuation)` pair out of an `s16` table
 and hands both to `SndEvt_EnqueueType6` as signed bytes:
 
 ```

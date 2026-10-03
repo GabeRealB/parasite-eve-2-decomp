@@ -321,7 +321,7 @@ extern TaskDesc                               D_shelter_b1_underground_parking_8
 extern TaskDesc                               D_shelter_b1_underground_parking_8018726C[];
 extern ScreenFade                             D_shelter_b1_underground_parking_8018D750;
 
-/// The room's ambience table, one entry per area.
+/// The room's ambience table, one entry per view slot.
 extern RoomAmbienceEntry D_shelter_b1_underground_parking_8018761C[];
 
 extern EvsCommand D_shelter_b1_underground_parking_801872D8[];
@@ -1976,21 +1976,21 @@ void func_shelter_b1_underground_parking_80182DB4(Task* task)
 void func_shelter_b1_underground_parking_80182FC8(Task* task)
 {
     s32 pan;
-    s32 vol;
+    s32 attenuation;
     u8  idx;
 
     idx = gGameSession->location.loc.view;
-    if (idx < 9) {
-        pan = D_shelter_b1_underground_parking_8018761C[idx].pan;
-        vol = D_shelter_b1_underground_parking_8018761C[idx].vol / 2;
+    if (idx < ARRAY_SIZE(D_shelter_b1_underground_parking_8018761C)) {
+        pan         = D_shelter_b1_underground_parking_8018761C[idx].panOffset;
+        attenuation = D_shelter_b1_underground_parking_8018761C[idx].attenuation / 2;
     } else {
-        pan = 0;
-        vol = 0;
+        pan         = 0;
+        attenuation = 0;
     }
 
     switch (task->state) {
         case 0:
-            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, 0x0F), (s8)pan, (s8)vol);
+            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, 0x0F), (s8)pan, (s8)attenuation);
             task->state = task->state + 1;
             break;
         case 1:
@@ -2010,7 +2010,7 @@ void func_shelter_b1_underground_parking_80182FC8(Task* task)
             task->state = task->state + 1;
             break;
         case 5:
-            SndEvt_EnqueueTypeA(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, 0x0F), (s8)pan, (s8)vol);
+            SndEvt_EnqueueTypeA(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, 0x0F), (s8)pan, (s8)attenuation);
             task->state = 1;
             break;
     }

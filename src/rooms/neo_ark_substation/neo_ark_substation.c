@@ -44,7 +44,7 @@
 extern TaskMessageEntry D_neo_ark_substation_8017E294[];
 /// Spawn table for the ambience task the message task starts.
 extern TaskDesc D_neo_ark_substation_8017E2BC[];
-/// The room's ambience table, one `(pan, vol)` entry per area.
+/// The room's ambience table, one `(panOffset, attenuation)` entry per view slot.
 extern RoomAmbienceEntry D_neo_ark_substation_8017E2C8[];
 
 extern SVECTOR D_neo_ark_substation_8017E310[];
@@ -510,7 +510,7 @@ WorldCollisionSurfaceProperties* D_neo_ark_substation_80180328[8] = {
 };
 
 /// Keeps the substation's looping ambience in step with the area the session is
-/// in: `gGameSession->location.loc.view` selects one of the room's nine `(pan, vol)`
+/// in: `gGameSession->location.loc.view` selects one of the room's nine `(panOffset, attenuation)`
 /// entries, and state 0 starts that loop with `SndEvt_EnqueueType6`. States 1
 /// through 4 then watch for the session's index to stop matching the area
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` publishes - state 1 tests the pair and 2, 3 and 4 walk the task
@@ -519,21 +519,21 @@ WorldCollisionSurfaceProperties* D_neo_ark_substation_80180328[8] = {
 void func_neo_ark_substation_8017D608(Task* task)
 {
     s32 pan;
-    s32 vol;
+    s32 attenuation;
     u8  idx;
 
     idx = gGameSession->location.loc.view;
-    if (idx < 9) {
-        pan = D_neo_ark_substation_8017E2C8[idx].pan;
-        vol = D_neo_ark_substation_8017E2C8[idx].vol;
+    if (idx < ARRAY_SIZE(D_neo_ark_substation_8017E2C8)) {
+        pan         = D_neo_ark_substation_8017E2C8[idx].panOffset;
+        attenuation = D_neo_ark_substation_8017E2C8[idx].attenuation;
     } else {
-        pan = 0;
-        vol = 0;
+        pan         = 0;
+        attenuation = 0;
     }
 
     switch (task->state) {
         case 0:
-            SndEvt_EnqueueType6(SOUND_NEO_ARK_SUBSTATION_AMBIENCE, (s8)pan, (s8)vol);
+            SndEvt_EnqueueType6(SOUND_NEO_ARK_SUBSTATION_AMBIENCE, (s8)pan, (s8)attenuation);
             task->state = task->state + 1;
             break;
         case 1:
@@ -547,7 +547,7 @@ void func_neo_ark_substation_8017D608(Task* task)
             task->state = task->state + 1;
             break;
         case 5:
-            SndEvt_EnqueueTypeA(SOUND_NEO_ARK_SUBSTATION_AMBIENCE, (s8)pan, (s8)vol);
+            SndEvt_EnqueueTypeA(SOUND_NEO_ARK_SUBSTATION_AMBIENCE, (s8)pan, (s8)attenuation);
             task->state = 1;
             break;
     }
