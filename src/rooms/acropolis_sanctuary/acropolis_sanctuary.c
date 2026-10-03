@@ -105,21 +105,25 @@ typedef union AcsMsgArg {
 } AcsMsgArg;
 STATIC_ASSERT_SIZEOF(AcsMsgArg, 0x18);
 
-/// One tile of the sanctuary's mosaic, from the 72-entry table at
-/// `D_acropolis_sanctuary_80182320`. `row` and `col` are grid coordinates that
-/// `func_acropolis_sanctuary_8017E134` scales by 1145/128 and 2147/256 into the
-/// spawn offset, and `quad` selects the tile's size class in
-/// `D_acropolis_sanctuary_80182710`.
-typedef struct AcsTile {
-    /* 0x0 */ s16 field_0;
-    /* 0x2 */ s16 field_2;
-    /* 0x4 */ s16 row;
-    /* 0x6 */ s16 col;
-    /* 0x8 */ s16 field_8;
-    /* 0xA */ s16 field_A;
-    /* 0xC */ s16 quad;
-} AcsTile;
-STATIC_ASSERT_SIZEOF(AcsTile, 0xE);
+/// One tile of the sanctuary's mosaic: the piece of the mosaic sheet it shows
+/// and how it comes away from the wall.
+///
+/// The sheet is 180 x 256 texels, covered without gaps by 15 x 16 texel cells
+/// and 30 x 32 blocks of four. A tile's texel origin is also its place on the
+/// wall, a texel being 2147/256 world units wide and 1145/128 tall, so the
+/// mosaic is laid out exactly as it is drawn on the sheet. The middle of the
+/// mosaic is thrown clear at once; the tiles around it stay in place longer the
+/// further out they sit, then work loose and crumble.
+typedef struct {
+    s16 extentU;    // Texels from `originU` to the tile's last column (14 or 29)
+    s16 extentV;    // Texels from `originV` to the tile's last row (15 or 31)
+    s16 originU;    // Left texel column on the mosaic sheet, 0..165
+    s16 originV;    // Top texel row on the mosaic sheet, 0..240
+    s16 thrown;     // How the tile leaves (0 works loose slowly and sheds shards, 1 thrown clear)
+    s16 holdFrames; // Frames the tile stays in place before it moves; 0 when thrown
+    s16 sizeClass;  // Tile size (0 one 15 x 16 texel cell, 1 a 30 x 32 block)
+} _AcropolisSanctuaryMosaicTile;
+STATIC_ASSERT_SIZEOF(_AcropolisSanctuaryMosaicTile, 0xE);
 
 /// Per-frame scratch the sanctuary's mosaic-shard task builds at
 /// the scratch stack: `v` holds the three corners of the shard's triangle,
@@ -170,26 +174,26 @@ STATIC_ASSERT_SIZEOF(_AcropolisSanctuaryFlameGrey, 3);
 /// save writes when the task hands off to task 0x11, the same way the fountain
 /// and helicopter-pad rooms set it.
 
-extern TaskMessageEntry     D_acropolis_sanctuary_8018081C[];
-extern ActorTransform       D_acropolis_sanctuary_801808BC;
-extern AnimationPlayRequest D_acropolis_sanctuary_801809F8;
-extern AnimationPlayRequest D_acropolis_sanctuary_80180A0C;
-extern AnimationPlayRequest D_acropolis_sanctuary_80180AE8;
-extern EvsCommand           D_acropolis_sanctuary_80180B0C[];
-extern EvsCommand           D_acropolis_sanctuary_80181664[];
-extern EvsCommand           D_acropolis_sanctuary_80181814[];
-extern TaskDesc             D_acropolis_sanctuary_80182240;
-extern WorldCollisionGrid   D_acropolis_sanctuary_801822EC;
-extern TaskMessageEntry     D_acropolis_sanctuary_80182310[];
-extern AcsTile              D_acropolis_sanctuary_80182320[];
-extern SVECTOR              D_acropolis_sanctuary_80182710[][4];
-extern s16                  D_acropolis_sanctuary_80182750[];
-extern s32                  D_acropolis_sanctuary_80182770;
-extern SVECTOR              D_acropolis_sanctuary_80182774[];
-extern u16                  D_acropolis_sanctuary_801827D4[];
-extern WorldCollisionGrid   D_acropolis_sanctuary_80183568;
-extern AreaApplyRec         D_acropolis_sanctuary_80186418[];
-extern Task*                D_acropolis_sanctuary_80186C90;
+extern TaskMessageEntry              D_acropolis_sanctuary_8018081C[];
+extern ActorTransform                D_acropolis_sanctuary_801808BC;
+extern AnimationPlayRequest          D_acropolis_sanctuary_801809F8;
+extern AnimationPlayRequest          D_acropolis_sanctuary_80180A0C;
+extern AnimationPlayRequest          D_acropolis_sanctuary_80180AE8;
+extern EvsCommand                    D_acropolis_sanctuary_80180B0C[];
+extern EvsCommand                    D_acropolis_sanctuary_80181664[];
+extern EvsCommand                    D_acropolis_sanctuary_80181814[];
+extern TaskDesc                      D_acropolis_sanctuary_80182240;
+extern WorldCollisionGrid            D_acropolis_sanctuary_801822EC;
+extern TaskMessageEntry              D_acropolis_sanctuary_80182310[];
+extern _AcropolisSanctuaryMosaicTile D_acropolis_sanctuary_80182320[];
+extern SVECTOR                       D_acropolis_sanctuary_80182710[][4];
+extern s16                           D_acropolis_sanctuary_80182750[];
+extern s32                           D_acropolis_sanctuary_80182770;
+extern SVECTOR                       D_acropolis_sanctuary_80182774[];
+extern u16                           D_acropolis_sanctuary_801827D4[];
+extern WorldCollisionGrid            D_acropolis_sanctuary_80183568;
+extern AreaApplyRec                  D_acropolis_sanctuary_80186418[];
+extern Task*                         D_acropolis_sanctuary_80186C90;
 
 /// Whole-unit X/Y/Z displacement left by the last call of
 /// `ActorContact_PushContact`.
@@ -646,7 +650,7 @@ TaskMessageEntry D_acropolis_sanctuary_80182310[2] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-AcsTile D_acropolis_sanctuary_80182320[72] = {
+_AcropolisSanctuaryMosaicTile D_acropolis_sanctuary_80182320[72] = {
     { 29, 31, 0, 0, 0, 24, 1 },
     { 29, 31, 30, 0, 0, 16, 1 },
     { 14, 15, 60, 0, 0, 16, 0 },
@@ -724,12 +728,12 @@ AcsTile D_acropolis_sanctuary_80182320[72] = {
 /// Corner offsets of the sanctuary mosaic's two tile sizes, measured from the
 /// tile's centre.
 ///
-/// The first index is the size class `AcsTile::quad` stores: 0 spans a 15 x 16
+/// The first index is `_AcropolisSanctuaryMosaicTile::sizeClass`: 0 spans a 15 x 16
 /// texel cell of the mosaic sheet and 1 a 30 x 32 one, twice as large each way.
 /// The second is the corner, in `POLY_FT4` vertex order. The quad lies in the
 /// tile's local YZ plane, with the sheet's u running towards -z and its v
-/// towards +y, so corner 0 is the one at the tile's grid position; subtracting
-/// it turns that position into the centre a tile is spawned at. A shard is the
+/// towards +y, so corner 0 is the one at the tile's texel origin; subtracting
+/// it turns that origin's place on the wall into the centre a tile is spawned at. A shard is the
 /// triangle of the first three corners of class 0, scaled by the shard's size.
 SVECTOR D_acropolis_sanctuary_80182710[2][4] = {
     { { 0, -72, 63, 0 }, { 0, -72, -62, 0 }, { 0, 71, 63, 0 }, { 0, 71, -62, 0 } },
@@ -2117,17 +2121,18 @@ void func_acropolis_sanctuary_8017E00C(Task* task)
 /// own index, then a second pass over the 16 tiles listed in
 /// `D_acropolis_sanctuary_80182750` keyed by the tile index itself, so those
 /// sixteen get a second effect on top. Each spawn reuses the task's own
-/// `EffectWork` offset triple: x is always 0, y and z come from the tile's grid
-/// position scaled by 1145/128 and 2147/256 and shifted by the origin corner of
-/// the size class in `quad`. Any state but 0 just releases the work block.
+/// `EffectWork` offset triple: x is always 0, y and z come from the tile's
+/// `originV` and `originU` scaled by 1145/128 and 2147/256 and shifted by the
+/// origin corner of its `sizeClass`. Any state but 0 just releases the work
+/// block.
 void func_acropolis_sanctuary_8017E134(Task* arg0)
 {
-    EffectWork* mem;
-    GfxCoord*   coord;
-    AcsTile*    tile;
-    s32         quad;
-    s32         i;
-    s32         idx;
+    EffectWork*                    mem;
+    GfxCoord*                      coord;
+    _AcropolisSanctuaryMosaicTile* tile;
+    s32                            sizeClass;
+    s32                            i;
+    s32                            idx;
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
@@ -2137,19 +2142,19 @@ void func_acropolis_sanctuary_8017E134(Task* arg0)
     }
     for (i = 0; i < 0x48; i++) {
         tile         = &D_acropolis_sanctuary_80182320[i];
-        quad         = tile->quad;
+        sizeClass    = tile->sizeClass;
         mem->move.vx = 0;
-        mem->move.vy = ((tile->col * 1145) >> 7) - D_acropolis_sanctuary_80182710[quad][0].vy;
-        mem->move.vz = -((tile->row * 2147) >> 8) - D_acropolis_sanctuary_80182710[quad][0].vz;
+        mem->move.vy = ((tile->originV * 1145) >> 7) - D_acropolis_sanctuary_80182710[sizeClass][0].vy;
+        mem->move.vz = -((tile->originU * 2147) >> 8) - D_acropolis_sanctuary_80182710[sizeClass][0].vz;
         Gp_SpawnEff(EFFECT_ACROPOLIS_SANCTUARY_MOSAIC_TILE, coord, i, &mem->move);
     }
     for (i = 0; i < 0x10; i++) {
         idx          = D_acropolis_sanctuary_80182750[i];
         tile         = &D_acropolis_sanctuary_80182320[idx];
-        quad         = tile->quad;
+        sizeClass    = tile->sizeClass;
         mem->move.vx = 0;
-        mem->move.vy = ((tile->col * 1145) >> 7) - D_acropolis_sanctuary_80182710[quad][0].vy;
-        mem->move.vz = -((tile->row * 2147) >> 8) - D_acropolis_sanctuary_80182710[quad][0].vz;
+        mem->move.vy = ((tile->originV * 1145) >> 7) - D_acropolis_sanctuary_80182710[sizeClass][0].vy;
+        mem->move.vz = -((tile->originU * 2147) >> 8) - D_acropolis_sanctuary_80182710[sizeClass][0].vz;
         Gp_SpawnEff(EFFECT_ACROPOLIS_SANCTUARY_MOSAIC_TILE, coord, idx, &mem->move);
     }
     arg0->state = arg0->state + 1;
@@ -2160,27 +2165,28 @@ void func_acropolis_sanctuary_8017E134(Task* arg0)
 /// task's own `workm` and then projected through `GsWSMATRIX` into an
 /// `AcsTileScratch` block taken from the scratch stack. The first corner goes
 /// through `rtps` and the other three through `rtpt`; tiles inside `otz` 0x11
-/// are dropped. The texture window is the tile's own `row` / `col` origin
-/// stretched by its `field_0` / `field_2` extent, so the quad shows its own
-/// piece of the mosaic sheet at full size -- this is the intact tile,
+/// are dropped. The texture window runs from the tile's `originU` / `originV`
+/// to that plus its `extentU` / `extentV`, so the quad shows its own piece of
+/// the mosaic sheet at full size -- this is the intact tile,
 /// `func_acropolis_sanctuary_8017EC90` draws the shards it breaks into.
 ///
-/// The drift (`move`) and spin (`pos`) are
-/// seeded from the LCG on the first drawn frame, in one of two strengths
-/// chosen by the tile's `field_8`: a fast, wide-tumbling one and a slow one
-/// whose life (`angle`) also gets a random 0..7 bonus. Life is the tile's
-/// `field_A`, and `age` is the frame counter measured against it -- the
-/// tile drifts while it is still young, and the work block is released 0x3C
-/// frames past that.
+/// The drift (`move`) and spin (`pos`) are seeded from the LCG on the first
+/// drawn frame, in one of two strengths chosen by the tile's `thrown`, which
+/// `scale` keeps: a fast, wide-tumbling one for a thrown tile and a slow one
+/// otherwise. The hold (`angle`) is the tile's `holdFrames`, plus a random
+/// 0..7 for the slow kind, and `age` is the frame counter measured against it
+/// -- the tile starts to drift once its age passes the hold, and the work
+/// block is released 0x3C frames past that.
 ///
-/// While drifting, a tile of the fast kind (`scale` zero) has a 1-in-60
+/// While drifting, a tile of the slow kind (`scale` zero) has a 1-in-60
 /// chance per frame -- or a certainty once past y = -0xBFF -- of shedding one
 /// to four 0x6007A shards, tagged 0x1000 so they spawn as the airborne
 /// variant. Crossing x = -0x2740 above y = -0xED7 either shatters a
-/// size-class-1 tile into two to four untagged shards or, for size class 0,
-/// bounces it by halving and inverting the vertical step. Either split costs
-/// 0x64 of life. Once the room flag is set and the session is not in mode
-/// 0x10, tiles past x = -0x28C0 also age by 0x3C, so they clear away.
+/// size-class-1 tile into two to four untagged shards or, one time in four
+/// and always for size class 0, bounces it by halving and inverting the
+/// vertical step. Either split costs 0x64 of life. Once the room flag is set
+/// and the session is not in mode 0x10, tiles past x = -0x28C0 also age by
+/// 0x3C, so they clear away.
 void func_acropolis_sanctuary_8017E338(Task* arg0)
 {
     EffectWork*     mem;
@@ -2190,13 +2196,13 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
     AcsTileScratch* blk;
     POLY_FT4*       prim;
     SVECTOR*        sv;
-    s32             quad;
+    s32             sizeClass;
     s32             i;
     s32             n;
 
-    mem   = arg0->spawnArg2.pointer;
-    quad  = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].quad;
-    coord = arg0->extra.coordBody->coord;
+    mem       = arg0->spawnArg2.pointer;
+    sizeClass = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].sizeClass;
+    coord     = arg0->extra.coordBody->coord;
     Gp_UpdateCoord(coord);
     scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
@@ -2204,13 +2210,13 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
     blk      = (AcsTileScratch*)(head - 0x28);
     gte_SetTransMatrix(&GsWSMATRIX);
     for (i = 0; i < 4; i++) {
-        blk->v[i].vx = D_acropolis_sanctuary_80182710[quad][i].vx;
+        blk->v[i].vx = D_acropolis_sanctuary_80182710[sizeClass][i].vx;
         // Spelled as an offset rather than `&blk->v[i]` so it stays a separate
         // pointer from the one the GTE macros below take; writing both the same
         // way lets CSE fold them into one register and the loop stops matching.
         sv     = (SVECTOR*)((u8*)blk + i * sizeof(SVECTOR) + OFFSET_OF(AcsTileScratch, v));
-        sv->vy = D_acropolis_sanctuary_80182710[quad][i].vy;
-        sv->vz = D_acropolis_sanctuary_80182710[quad][i].vz;
+        sv->vy = D_acropolis_sanctuary_80182710[sizeClass][i].vy;
+        sv->vz = D_acropolis_sanctuary_80182710[sizeClass][i].vz;
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&blk->v[i]);
         gte_rtv0();
@@ -2233,7 +2239,7 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
     gte_stszotz(&blk->otz);
     if (blk->otz >= 0x11) {
         if (mem->age == 0) {
-            mem->scale = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].field_8;
+            mem->scale = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].thrown;
             if (mem->scale != 0) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 mem->move.vx    = -((gRandomLcgState >> 16) & 0xFF);
@@ -2247,7 +2253,7 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
                 mem->pos.vy     = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 mem->pos.vz     = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
-                mem->angle      = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].field_A;
+                mem->angle      = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].holdFrames;
             } else {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 mem->move.vx    = -((gRandomLcgState >> 16) & 0x1F);
@@ -2262,25 +2268,25 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 mem->pos.vz     = 0x20 - ((gRandomLcgState >> 16) & 0x3F);
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->angle      = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].field_A +
+                mem->angle      = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].holdFrames +
                              ((gRandomLcgState >> 16) & 7);
             }
         }
         prim->tpage = 0x8C;
         prim->clut  = 0x4200;
         prim->code |= 3;
-        prim->u0    = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].row;
-        prim->v0    = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].col;
-        prim->u1    = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].row +
-                   D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].field_0;
-        prim->v1 = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].col;
-        prim->u2 = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].row;
-        prim->v2 = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].col +
-                   D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].field_2;
-        prim->u3 = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].row +
-                   D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].field_0;
-        prim->v3 = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].col +
-                   D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].field_2;
+        prim->u0    = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].originU;
+        prim->v0    = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].originV;
+        prim->u1    = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].originU +
+                   D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].extentU;
+        prim->v1 = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].originV;
+        prim->u2 = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].originU;
+        prim->v2 = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].originV +
+                   D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].extentV;
+        prim->u3 = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].originU +
+                   D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].extentU;
+        prim->v3 = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].originV +
+                   D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].extentV;
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
@@ -2309,14 +2315,14 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
         }
     }
     if (coord->coord.t[0] < -0x2740 && coord->coord.t[1] >= -0xED7) {
-        if (quad != 0) {
+        if (sizeClass != 0) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             // The size class is dead once it has been tested, so the shard
             // count reuses its local -- keeping the two apart costs `$s5`.
-            quad = (gRandomLcgState >> 16) & 3;
-            if (quad != 0) {
-                quad = quad + 1;
-                for (i = 0; i < quad; i++) {
+            sizeClass = (gRandomLcgState >> 16) & 3;
+            if (sizeClass != 0) {
+                sizeClass = sizeClass + 1;
+                for (i = 0; i < sizeClass; i++) {
                     Gp_SpawnEff(EFFECT_ACROPOLIS_SANCTUARY_MOSAIC_SHARD, coord, arg0->spawnArg1.value, NULL);
                 }
                 mem->age = mem->age + 0x64;
@@ -2343,9 +2349,9 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
 /// size (`angle`) with the GTE's `gpf` interpolator and rotated by the
 /// task's own `workm`, then projected through `GsWSMATRIX` with `rtpt` into an
 /// `AcsMosaicScratch` block taken from the scratch stack; shards inside `otz`
-/// 0x11 are dropped. The texture window is the tile's `row` / `col` corner
-/// stretched by the same size factor, so the shard shows its own piece of the
-/// mosaic sheet.
+/// 0x11 are dropped. The texture window is the tile's `originU` / `originV`
+/// corner and its `extentU` / `extentV` scaled by the same size factor, so the
+/// shard shows its own piece of the mosaic sheet.
 ///
 /// `Task::spawnArg1` is unpacked on the first frame: bits 12..15 select the
 /// drift pattern, the high halfword is the size (defaulting to 0x1000) and only
@@ -2455,14 +2461,14 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
         prim->tpage = 0x8C;
         prim->clut  = 0x4200;
         prim->code |= 3;
-        prim->u0    = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].row;
-        prim->v0    = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].col;
-        prim->u1    = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].row +
-                   ((D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].field_0 * mem->angle) >> 12);
-        prim->v1 = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].col;
-        prim->u2 = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].row;
-        prim->v2 = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].col +
-                   ((D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].field_2 * mem->angle) >> 12);
+        prim->u0    = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].originU;
+        prim->v0    = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].originV;
+        prim->u1    = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].originU +
+                   ((D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].extentU * mem->angle) >> 12);
+        prim->v1 = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].originV;
+        prim->u2 = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].originU;
+        prim->v2 = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].originV +
+                   ((D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].extentV * mem->angle) >> 12);
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
