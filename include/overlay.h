@@ -437,15 +437,6 @@ typedef struct {
 } OverlayPointPairScratch;
 STATIC_ASSERT_SIZEOF(OverlayPointPairScratch, 0x1C);
 
-/// One stack slot a body uses twice in a frame: first as the `VECTOR` position
-/// `func_800D7A9C` lights a model at, then as the `SVECTOR` offset
-/// `Gp_DrawFloorQuad` draws the floor quad with. The two uses never overlap.
-typedef union OverlayVecSlot {
-    VECTOR  vec;
-    SVECTOR rot;
-} OverlayVecSlot;
-STATIC_ASSERT_SIZEOF(OverlayVecSlot, 0x10);
-
 /// The offset from one position to another, widened to words and staged on
 /// the scratch pad just long enough to take its bearing with `ratan2`.
 typedef struct OverlayAvoidDelta {

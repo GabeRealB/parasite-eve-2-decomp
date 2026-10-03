@@ -31,8 +31,6 @@
 #include "main/tmd.h"
 #include "main/tmd_types.h"
 
-#include "overlay.h"
-
 #include "rooms/acropolis_plaza.h"
 
 /// Area placement entries the two police officers are spawned from; the same
@@ -40,6 +38,12 @@
 enum {
     ACTOR_310100_PLACEMENT_OFFICER_1 = 0x6C,
     ACTOR_310100_PLACEMENT_OFFICER_2 = 0x6D,
+};
+
+/// Ground shadow of an officer model, in the units of its part-1 frame.
+enum {
+    ACTOR_310100_SHADOW_SIDE = 0x300, // Side of the shadow square
+    ACTOR_310100_SHADOW_DROP = 0x380, // Distance from the frame's origin down to the shadow
 };
 
 /// Values of `_Actor310100PoliceOfficerWork::playState`.
@@ -1376,6 +1380,34 @@ void func_actor_310100_8016309C(Task* task)
     }
 }
 
+/// Relights an officer model for where it stands: rebuilds its colour matrix
+/// from the room's lights as they fall on the origin of its part-1 frame.
+///
+/// The frame's world matrix is read as it stands, so it has to be current.
+static inline void _actor310100LightOfficerModel(Task* task)
+{
+    VECTOR     position;
+    TmdObject* model;
+
+    model       = task->extra.tmd;
+    position.vx = model->coords[1].workm.t[0];
+    position.vy = task->extra.tmd->coords[1].workm.t[1];
+    position.vz = task->extra.tmd->coords[1].workm.t[2];
+    func_800D7A9C(model, &position, 0, 3);
+}
+
+/// Draws an officer model's ground shadow: a square in the XZ plane of its
+/// part-1 frame, centred `ACTOR_310100_SHADOW_DROP` below that frame's origin.
+static inline void _actor310100DrawOfficerShadow(Task* task)
+{
+    SVECTOR offset;
+
+    offset.vx = 0;
+    offset.vy = ACTOR_310100_SHADOW_DROP;
+    offset.vz = 0;
+    Gp_DrawFloorQuad(&task->extra.tmd->coords[1], ACTOR_310100_SHADOW_SIDE, &offset);
+}
+
 /// State handler for the display model spawned by `func_actor_310100_80162C64`:
 /// the spawn tick seeds the tracker from the model's part-1 coordinate frame and
 /// steps to state 1, and every later tick draws the floor quad until the display
@@ -1383,27 +1415,18 @@ void func_actor_310100_8016309C(Task* task)
 void func_actor_310100_801631B0(Task* task)
 {
     _Actor310100PoliceOfficerWork* work;
-    OverlayVecSlot                 pos;
-    TmdObject*                     extra;
 
     work = (_Actor310100PoliceOfficerWork*)task->work;
     switch (task->state) {
         case 0:
             func_actor_310100_801625E4(task, ACTOR_310100_PLACEMENT_OFFICER_1);
             Gp_UpdateCoord(&task->extra.tmd->coords[1]);
-            extra      = task->extra.tmd;
-            pos.vec.vx = extra->coords[1].workm.t[0];
-            pos.vec.vy = task->extra.tmd->coords[1].workm.t[1];
-            pos.vec.vz = task->extra.tmd->coords[1].workm.t[2];
-            func_800D7A9C(extra, &pos.vec, 0, 3);
+            _actor310100LightOfficerModel(task);
             task->state++;
             break;
         case 1:
             if (work->playState == ACTOR_310100_PLAY_STATE_POSED) {
-                pos.rot.vx = 0;
-                pos.rot.vy = 0x380;
-                pos.rot.vz = 0;
-                Gp_DrawFloorQuad(&task->extra.tmd->coords[1], 0x300, &pos.rot);
+                _actor310100DrawOfficerShadow(task);
             }
             break;
     }
@@ -1416,29 +1439,20 @@ void func_actor_310100_801631B0(Task* task)
 void func_actor_310100_801632B0(Task* task)
 {
     _Actor310100PoliceOfficerWork* work;
-    OverlayVecSlot                 pos;
-    TmdObject*                     extra;
 
     work = (_Actor310100PoliceOfficerWork*)task->work;
     switch (task->state) {
         case 0:
             func_actor_310100_801625E4(task, ACTOR_310100_PLACEMENT_OFFICER_2);
             Gp_UpdateCoord(&task->extra.tmd->coords[1]);
-            extra      = task->extra.tmd;
-            pos.vec.vx = extra->coords[1].workm.t[0];
-            pos.vec.vy = task->extra.tmd->coords[1].workm.t[1];
-            pos.vec.vz = task->extra.tmd->coords[1].workm.t[2];
-            func_800D7A9C(extra, &pos.vec, 0, 3);
+            _actor310100LightOfficerModel(task);
             task->state++;
             break;
         case 1:
             switch (work->playState) {
                 case ACTOR_310100_PLAY_STATE_POSED:
                 case ACTOR_310100_PLAY_STATE_PLAYING:
-                    pos.rot.vx = 0;
-                    pos.rot.vy = 0x380;
-                    pos.rot.vz = 0;
-                    Gp_DrawFloorQuad(&task->extra.tmd->coords[1], 0x300, &pos.rot);
+                    _actor310100DrawOfficerShadow(task);
                     break;
             }
             break;

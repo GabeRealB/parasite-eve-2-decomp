@@ -55,7 +55,6 @@
 
 #include "mapui/map_dryfield.h"
 
-#include "overlay.h"
 #include "../../shared/room_events.h"
 #include "../../shared/screen_fade.h"
 #include "../../shared/actor_messages.h"
@@ -1912,6 +1911,37 @@ static s32 func_dryfield_water_tower_8017DFAC(Task* arg0)
     return 0;
 }
 
+/// Relights the cap for where it is: rebuilds its colour matrix from the room's
+/// lights as they fall on the origin of its coordinate frame.
+///
+/// The frame's world matrix is read as it stands, so it has to be current.
+static inline void _dryfieldWaterTowerLightCap(Task* task)
+{
+    VECTOR     position;
+    TmdObject* model;
+
+    model       = task->extra.tmd;
+    position.vx = model->coords->workm.t[0];
+    position.vy = task->extra.tmd->coords->workm.t[1];
+    position.vz = task->extra.tmd->coords->workm.t[2];
+    func_800D7A9C(model, &position, 0, 3);
+}
+
+/// Draws the cap's ground shadow, a square in the XZ plane of the cap's frame.
+///
+/// `coord` is that frame. The offset is the frame's own height negated, less
+/// 0xC8, so an unrotated cap casts its shadow at a fixed height of -0xC8 in its
+/// parent's frame however far it has travelled.
+static inline void _dryfieldWaterTowerDrawCapShadow(Task* task, GfxCoord* coord)
+{
+    SVECTOR offset;
+
+    offset.vx = 0;
+    offset.vy = -((u16)coord->coord.t[1]) - 0xC8;
+    offset.vz = 0;
+    Gp_DrawFloorQuad(task->extra.tmd->coords, 0x300, &offset);
+}
+
 /// The table's entry-2 cap prop, the one that raises the cap: it runs the same
 /// four states the lowering prop does, but reads them from `Task::state` and
 /// takes no `spawnArg1` variant, and it is the task `func_dryfield_water_tower_8017F128`
@@ -1952,9 +1982,7 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
     int                      new_var;
     DryfieldWaterTowerState* state;
     TmdObject*               obj;
-    TmdObject*               model;
     GfxCoord*                coord;
-    OverlayVecSlot           pos;
     DryfieldWaterTowerState* mem;
 
     obj   = arg0->extra.tmd;
@@ -2010,17 +2038,10 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
                 }
                 break;
         }
-        model      = arg0->extra.tmd;
-        pos.vec.vx = model->coords->workm.t[0];
-        pos.vec.vy = arg0->extra.tmd->coords->workm.t[1];
-        pos.vec.vz = arg0->extra.tmd->coords->workm.t[2];
-        func_800D7A9C(model, &pos.vec, 0, 3);
+        _dryfieldWaterTowerLightCap(arg0);
     }
     if (state->field_70 != new_var) {
-        pos.rot.vx = 0;
-        pos.rot.vy = -((u16)coord->coord.t[1]) - 0xC8;
-        pos.rot.vz = 0;
-        Gp_DrawFloorQuad(arg0->extra.tmd->coords, 0x300, &pos.rot);
+        _dryfieldWaterTowerDrawCapShadow(arg0, coord);
     }
 }
 

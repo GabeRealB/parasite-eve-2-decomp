@@ -93445,6 +93445,15 @@ as several expansions of inline helpers, not as one shared local — and expect
 the `slt`-with-register compare and the index-tied `addu` to come with it,
 since both follow from the address and the bound arriving as call arguments.
 
+The helpers' locals need not share a type. A 16-byte slot written as a `VECTOR`
+in one arm and as an `SVECTOR` in another had been matched with a union of the
+two; it is a light-position helper followed by a ground-shadow helper, the
+smaller frame taking the front of the freed larger one
+(`func_actor_310100_801631B0`, `func_dryfield_water_tower_8017E1DC`,
+2026-10-04). Order decides it: with the 8-byte helper expanded first the
+16-byte one cannot reuse its slot and the two stack, which is the frame two
+function-scope locals give as well.
+
 ## A lone `move` before a join-point `bnez` is a *signed* char flag (Actor00400_Fn05320, 2026-09-16)
 
 The same function sets a 0/1 flag in one branch and tests it after the join:
