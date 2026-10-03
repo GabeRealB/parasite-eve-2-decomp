@@ -7433,26 +7433,26 @@ if (limit > 0) {
 `Gp_FindViewIndex` is the example. `register s16 idx asm("t0")` got the
 register but rewrote the increment in place and stuck at 96%.
 
-## 18-byte MATRIX rotation copy: `u8[16]` + trailing `s16`, not `u8[18]`
+## 18-byte MATRIX rotation copy: a halfword-aligned wrapper, not `u8[18]`
 
 An 18-byte assignment (MATRIX `m[3][3]`) that the target copies with four
 `lwl`/`lwr` pairs plus a final `lh`/`sh` is **not** `u8 data[0x12]`. That
 alignment-1 object emits `lb`/`sb` for the last two bytes.
 
-Give the helper alignment 2 and a halfword tail:
+Give the assigned type alignment 2, which the coefficient array itself has:
 
 ```c
 typedef struct {
-    u8  data[0x10];
-    s16 field_10;
-} GBytes18;
+    s16 m[3][3];
+} _ViewRotation;
 
-*(GBytes18*)dst = *(GBytes18*)src;
+*(_ViewRotation*)dst->m = *(_ViewRotation*)src->m;
 ```
 
-`s16 data[9]` is the same size/alignment and also works, but the mixed
-layout matches the existing "unaligned word chunks + remainder" pattern
-(`GameLoc`; `_SndMusicVolumeTable` is the 4-byte case with no remainder).
+A `u8[0x10]` followed by a trailing `s16` is the same size and alignment and
+compiles to the same copy - the mixed "unaligned word chunks + remainder"
+layout of `GameLoc` (`_SndMusicVolumeTable` is the 4-byte case with no
+remainder) - but it hides that the bytes are the nine coefficients.
 A word-aligned `MATRIX` assignment uses `lw`/`sw` instead of `lwl`/`lwr`.
 
 `Gp_ApplyView` is the example (rotation to `Gfx_ViewRotMtx`, then a separate

@@ -66,14 +66,6 @@
         }                                                                       \
     }
 
-/// 18-byte MATRIX rotation (3x3 s16). Assigned via unaligned lwl/lwr + lh/sh
-/// (see Gp_ApplyView). The trailing s16 (not u8[2]) keeps the last two bytes
-/// a halfword; a pure u8[18] emits lb/sb instead.
-typedef struct _GBytes18 {
-    u8  data[0x10];
-    s16 field_10;
-} GBytes18;
-
 #include "gameplay/damage.h"
 #include "main/display.h"
 #include "main/fs.h"
@@ -90,6 +82,18 @@ typedef struct _GBytes18 {
 #include "main/ui.h"
 #include "main/wipsys.h"
 #include <psyq/rand.h>
+
+/// The nine rotation coefficients of a view `MATRIX`, assigned as one value.
+///
+/// Laid out as `MATRIX::m`: row-major signed coefficients with 12 fractional
+/// bits (`ONE` is 1.0). Applying a `ViewCamera` assigns this through both
+/// matrices' `m`, so exactly these 18 bytes move; the alignment bytes before
+/// `MATRIX::t` and the translation, which belongs to a different coordinate
+/// node, are not part of the value. Halfword alignment is all it requires.
+typedef struct {
+    s16 m[3][3]; // World-to-camera rotation, row-major
+} _ViewRotation;
+STATIC_ASSERT_SIZEOF(_ViewRotation, 0x12);
 
 /// 0x1C-byte scratch from the scratch stack used by `Gp_HudTrackEnemy`.
 /// `field_14` / `field_16` are the current screen X/Y; `field_18` /
@@ -1300,8 +1304,8 @@ void Gp_LoadStageView(void)
     camera = gpViewAt(cameras, idx);
 
     // Keep rotation and translation in their separate camera coordinate nodes.
-    *(GBytes18*)rot = *(GBytes18*)&(camera - 1)->transform;
-    *trans          = *MATRIX_TRANS(&(camera - 1)->transform);
+    *(_ViewRotation*)rot->m = *(_ViewRotation*)(camera - 1)->transform.m;
+    *trans                  = *MATRIX_TRANS(&(camera - 1)->transform);
 
     camera--;
 
@@ -1373,8 +1377,8 @@ void Gp_ApplyView(ViewCamera* camera)
     c1    = &Gfx_ViewOffsetCoord;
 
     // Keep rotation and translation in their separate camera coordinate nodes.
-    *(GBytes18*)rot = *(GBytes18*)&camera->transform;
-    *trans          = *MATRIX_TRANS(&camera->transform);
+    *(_ViewRotation*)rot->m = *(_ViewRotation*)camera->transform.m;
+    *trans                  = *MATRIX_TRANS(&camera->transform);
 
     c1->coord.t[0] = 0;
     c1->coord.t[1] = 0;
@@ -1462,8 +1466,8 @@ void Gp_ApplyViewTask(Task* task)
     camera = task->spawnArg2.pointer;
 
     // Keep rotation and translation in their separate camera coordinate nodes.
-    *(GBytes18*)rot = *(GBytes18*)&camera->transform;
-    *trans          = *MATRIX_TRANS(&camera->transform);
+    *(_ViewRotation*)rot->m = *(_ViewRotation*)camera->transform.m;
+    *trans                  = *MATRIX_TRANS(&camera->transform);
 
     c1->coord.t[0] = 0;
     c1->coord.t[1] = 0;
