@@ -90,20 +90,8 @@ extern ActorSpawnParamRow D_actor_401800_8013E700[];
 /// Handler table the actor's task receives in `Task::msgTable`; same role
 /// `Actor01900_D1728C` plays for actor 01900.
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32  (*call0)(Task*);
-        s32  (*call1)(Task*, s32, AnimationPlayRequest*);
-        s32  (*call2)(Task*, s32, ActorTransform*);
-        s32  (*call3)(Task*, s32, s32);
-        s32  (*call4)(Task*, s32, u16*);
-        void (*call5)(void);
-    } handler;
-} Actor401800MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor401800MessageEntry, 8);
 
-extern Actor401800MessageEntry D_actor_401800_80155A80[8];
+extern TaskMessageEntry D_actor_401800_80155A80[8];
 
 /// Payload `oddStrangerGrab` fills and sends with message 0x3E9.
 // Only the leading value has established accesses. Preserve the following
@@ -160,8 +148,8 @@ static AnimationSet _gActor401800Animation1FDEC;
 static AnimationSet _gActor401800Animation2074C;
 
 static TmdSource _gActor401800OddStrangerBody;
-s32              oddStrangerApplyCommand(Task*, s32, u16*);
-void             func_actor_401800_8013DCB4(void);
+s32              oddStrangerApplyCommand(Task*, s32, u16*, s32);
+s32              func_actor_401800_8013DCB4(Task*, s32, s32, s32);
 void             func_actor_401800_8013E68C(Task*);
 
 static AnimationSet _gActor401800Animation15118;
@@ -1090,15 +1078,15 @@ SVECTOR gOddStrangerHitOffsets[12] = {
     { -25, 0, 0, 2 },
 };
 
-Actor401800MessageEntry D_actor_401800_80155A80[8] = {
-    { 2015, { .call5 = func_actor_401800_8013DCB4 } },
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = oddStrangerPlayMessage } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = actorMsgSetVisibility } },
-    { ACTOR_MESSAGE_IS_PRESENT, { .call0 = actorMsgIsPresent } },
-    { ACTOR_MESSAGE_PLACE, { .call2 = actorMsgPlaceRecordYaw } },
-    { 2014, { .call0 = actorMsgReleaseHold } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call4 = oddStrangerApplyCommand } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_401800_80155A80[8] = {
+    { 2015, func_actor_401800_8013DCB4 },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, oddStrangerPlayMessage },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetVisibility },
+    { ACTOR_MESSAGE_IS_PRESENT, actorMsgIsPresent },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceRecordYaw },
+    { 2014, actorMsgReleaseHold },
+    { ACTOR_COMMAND_MESSAGE_APPLY, oddStrangerApplyCommand },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 u16 gOddStrangerChaseDistance = 0;
@@ -2120,7 +2108,7 @@ static const OddStrangerStateTable gOddStrangerStates = { {
 
 #include "../../shared/odd_stranger_tick.inc.c"
 
-void func_actor_401800_8013DCB4(void)
+s32 func_actor_401800_8013DCB4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
 }
 

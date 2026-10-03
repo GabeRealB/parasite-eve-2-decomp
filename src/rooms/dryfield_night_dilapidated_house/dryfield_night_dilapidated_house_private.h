@@ -37,13 +37,13 @@ extern WorldCoordSpotLight D_dryfield_night_dilapidated_house_80189800[1];
 
 // Callbacks referenced by the overlay's shared data tables.
 
-s32 func_dryfield_night_dilapidated_house_8017D8D4(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_dilapidated_house_8017D8D4(Task*, s32, s32, s32);
 
 s32 func_dryfield_night_dilapidated_house_8017D8DC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
-s32 func_dryfield_night_dilapidated_house_8017D960(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_dilapidated_house_8017D960(Task*, s32, s32, s32);
 
-s32 func_dryfield_night_dilapidated_house_8017D968(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_dilapidated_house_8017D968(Task*, s32, s32, s32);
 
 void func_dryfield_night_dilapidated_house_8017DA70(void);
 

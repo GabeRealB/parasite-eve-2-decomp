@@ -35,19 +35,19 @@ typedef struct ActorYawWork {
     /* 0x16 */ s16  yaw;
 } ActorYawWork;
 
-s32  actorMsgPlace(Task* task, s32 arg1, ActorTransform* placement);
-s32  actorMsgPlaceRecordYaw(Task* task, s32 arg1, ActorTransform* placement);
-s32  actorMsgPlaceYawFirst(Task* task, s32 arg1, ActorTransform* placement);
-s32  actorMsgSetVisibility(Task* task, s32 arg1, s32 arg2);
+s32  actorMsgPlace(Task* task, s32 arg1, ActorTransform* placement, s32 arg3);
+s32  actorMsgPlaceRecordYaw(Task* task, s32 arg1, ActorTransform* placement, s32 arg3);
+s32  actorMsgPlaceYawFirst(Task* task, s32 arg1, ActorTransform* placement, s32 arg3);
+s32  actorMsgSetVisibility(Task* task, s32 arg1, s32 arg2, s32 arg3);
 s32  actorMsgPlaceEuler(Task* task, s32 arg1, ActorTransform* placement, s32 arg3);
-s32  actorMsgPlaceRotMatrix(Task* arg0, s32 arg1, ActorTransform* args);
-void actorMsgPlaceYawPitchRoll(Task* task, s32 arg1, ActorTransform* placement);
-void actorMsgPlaceInView(Task* task, s32 arg1, ActorTransform* placement);
-s32  actorMsgSetPairVisibility(Task* task, s32 arg1, s32 flags);
-void actorMsgSetDrawMode(Task* arg0, s32 arg1, s32 arg2);
+s32  actorMsgPlaceRotMatrix(Task* arg0, s32 arg1, ActorTransform* args, s32 arg3);
+void actorMsgPlaceYawPitchRoll(Task* task, s32 arg1, ActorTransform* placement, s32 arg3);
+s32  actorMsgPlaceInView(Task* task, s32 arg1, ActorTransform* placement, s32 arg3);
+s32  actorMsgSetPairVisibility(Task* task, s32 arg1, s32 flags, s32 arg3);
+void actorMsgSetDrawMode(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 
-s32 actorMsgIsPresent(Task* task);
-s32 actorMsgReleaseHold(Task* task);
+s32 actorMsgIsPresent(Task* task, s32 msgId, s32 arg2, s32 arg3);
+s32 actorMsgReleaseHold(Task* task, s32 msgId, s32 arg2, s32 arg3);
 
 s32 actorMsgPlaceEulerZyx(Task* task, s32 arg1, ActorTransform* placement, s32 arg3);
 

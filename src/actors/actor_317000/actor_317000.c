@@ -54,19 +54,8 @@ extern AnimationSet** gActorMotionAnimBanks19[1];
 /// `func_actor_317000_8016267C`; terminator id `TASK_MESSAGE_TABLE_END`.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
-typedef struct {
-    s32 id;
-    union {
-        s32                (*call0)(Task*, s32, AnimationPlayRequest*, s32);
-        s32                (*call1)(Task*, s32, ActorCommand* request);
-        s32                (*call2)(Task*, s32, ActorTransform*);
-        s32                (*call3)(Task*, s32, ActorTransform*, ActorMotionWalkAnim*);
-        TaskMessageHandler call4;
-    } handler;
-} Actor317000MsgEntry;
-STATIC_ASSERT_SIZEOF(Actor317000MsgEntry, 8);
 
-extern Actor317000MsgEntry D_actor_317000_8016CF50[];
+extern TaskMessageEntry D_actor_317000_8016CF50[];
 
 static void func_actor_317000_80161E68(Task* task);
 static void func_actor_317000_801620BC(Task* task);
@@ -103,9 +92,9 @@ static const TaskFuncTable4 D_actor_317000_80161E30 = { {
 static const VECTOR D_actor_317000_80161E40 = { 0, 0xFF800000, 0x400000, 0 };
 
 static TmdSource _gActor317000GrinningStrangerBody;
-s32              func_actor_317000_80162458(Task*, s32, ActorTransform* place, ActorMotionWalkAnim*);
+s32              func_actor_317000_80162458(Task* task, s32 msgId, ActorTransform* place, ActorMotionWalkAnim*);
 s32              func_actor_317000_80162BC4(Task*, s32, s32, s32);
-s32              func_actor_317000_80162CA0(Task*, s32, ActorCommand* msg);
+s32              func_actor_317000_80162CA0(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
 void             func_actor_317000_80162624(Task*);
 
 static TmdBone _gActor317000GrinningStrangerBodySkeleton[19] = {
@@ -334,13 +323,13 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
 
 TaskDesc D_actor_317000_8016CF44 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_317000_80162624, { .model = &_gActor317000GrinningStrangerBody } };
 
-Actor317000MsgEntry D_actor_317000_8016CF50[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = actorMotionPlayAnim19 } },
-    { ACTOR_MESSAGE_PLACE, { .call2 = actorMsgPlaceEuler } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = func_actor_317000_80162BC4 } },
-    { ACTOR_MESSAGE_WALK_TO, { .call3 = func_actor_317000_80162458 } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_317000_80162CA0 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_317000_8016CF50[6] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, actorMotionPlayAnim19 },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_317000_80162BC4 },
+    { ACTOR_MESSAGE_WALK_TO, func_actor_317000_80162458 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_317000_80162CA0 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 }; /// Per-frame tick. Runs the state body `Actor317000Work::walk.motion` selects
 /// from a two-entry stack table, then integrates the 16.16 position: `step` is
 /// added to `walk.acc`, `step.vy` gains 0x120000 while `field_4C4` is raised, the
@@ -861,7 +850,7 @@ s32 func_actor_317000_80162BC4(Task* task, s32 arg1, s32 mode, s32 arg3)
 /// `gfxExtractSmallestEuler` derives from its rotation matrix (`"rot"`) through
 /// `GPU_printf`, both under the `"%s=(%d,%d,%d)\n"` format. Returns 0
 /// either way.
-s32 func_actor_317000_80162CA0(Task* task, s32 arg1, ActorCommand* msg)
+s32 func_actor_317000_80162CA0(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
 {
     Actor317000Work* work;
     GfxCoord*        coord;

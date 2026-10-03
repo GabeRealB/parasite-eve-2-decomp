@@ -33,17 +33,8 @@ STATIC_ASSERT_SIZEOF(Actor110700Work, 0x480);
 /// (place the actor) and 0x7D5 (visibility), then the terminator.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call1)(Task*, s32, ActorTransform*);
-        s32 (*call2)(Task*, s32, s32);
-    } handler;
-} Actor110700MsgEntry;
-STATIC_ASSERT_SIZEOF(Actor110700MsgEntry, 8);
 
-extern Actor110700MsgEntry D_actor_110700_8013BFA0[];
+extern TaskMessageEntry D_actor_110700_8013BFA0[];
 
 /// Animation-set table bound to the work block's context by `animationInitContext`.
 extern u8 D_actor_110700_8013BFC0[];
@@ -52,8 +43,8 @@ static void func_actor_110700_80131E78(Enemy* enemy, Task* task);
 static void func_actor_110700_80131F44(Enemy* enemy, Task* task);
 
 static TmdSource _gActor110700No9GolemAkropolisBody;
-s32              func_actor_110700_8013201C(Task*, s32, AnimationPlayRequest*);
-s32              func_actor_110700_801320D8(Task*, s32, s32);
+s32              func_actor_110700_8013201C(Task*, s32, AnimationPlayRequest*, s32);
+s32              func_actor_110700_801320D8(Task*, s32, s32, s32);
 void             func_actor_110700_80131E24(Task*);
 
 static TmdBone _gActor110700No9GolemAkropolisBodySkeleton[19] = {
@@ -200,11 +191,11 @@ static AnimationSet _gActor110700Animation0A14C = {
 
 TaskDesc D_actor_110700_8013BF94 = { { { TASK_BODY_TMD, 96 } }, func_actor_110700_80131E24, { .model = &_gActor110700No9GolemAkropolisBody } };
 
-Actor110700MsgEntry D_actor_110700_8013BFA0[4] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = func_actor_110700_8013201C } },
-    { ACTOR_MESSAGE_PLACE, { .call1 = actorMsgPlaceRotMatrix } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call2 = func_actor_110700_801320D8 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_110700_8013BFA0[4] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_110700_8013201C },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceRotMatrix },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_110700_801320D8 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 u8 D_actor_110700_8013BFC0[24] = {
@@ -304,7 +295,7 @@ static void func_actor_110700_80131F44(Enemy* enemy, Task* task)
 
 /// Message 0x7D3 handler: starts the animation the payload names, storing its
 /// id in the work block and reseeding slots 1..0x12 with it.
-s32 func_actor_110700_8013201C(Task* task, s32 msgId, AnimationPlayRequest* args)
+s32 func_actor_110700_8013201C(Task* task, s32 msgId, AnimationPlayRequest* args, s32 arg3)
 {
     Actor110700Work* work;
     s32              i;
@@ -324,7 +315,7 @@ s32 func_actor_110700_8013201C(Task* task, s32 msgId, AnimationPlayRequest* args
 /// Message 0x7D5 handler: sets the model's visibility from `arg2`. Bit 0 clear
 /// replaces the object's flags with 0x80 (hidden), bit 0 set clears them
 /// (shown); bit 1 then ORs in 0x4.
-s32 func_actor_110700_801320D8(Task* task, s32 msgId, s32 arg2)
+s32 func_actor_110700_801320D8(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     TmdObject* obj;
 

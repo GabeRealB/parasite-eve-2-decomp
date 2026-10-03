@@ -4,7 +4,7 @@
 ///
 /// Rejects ids 0xC and above before changing playback state.
 /// The blend path carries the requested duration in whole frames.
-s32 strideWalkPlay(Task* task, s32 arg1, AnimationPlayRequest* args)
+s32 strideWalkPlay(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3)
 {
     Actor161500Work* work;
 

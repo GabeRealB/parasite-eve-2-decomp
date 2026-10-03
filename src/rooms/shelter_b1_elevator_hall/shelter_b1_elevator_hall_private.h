@@ -23,12 +23,12 @@ s32 func_shelter_b1_elevator_hall_8017D810(Task*, s32, RoomEventMsg*, RoomEventM
 
 void func_shelter_b1_elevator_hall_8017D99C(Task*);
 
-s32 func_shelter_b1_elevator_hall_8017DB54(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_b1_elevator_hall_8017DB54(Task*, s32, s32, s32);
 
-s32 func_shelter_b1_elevator_hall_8017DB5C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_b1_elevator_hall_8017DB5C(Task*, s32, s32, s32);
 
-s32 func_shelter_b1_elevator_hall_8017DB64(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_b1_elevator_hall_8017DB64(Task*, s32, s32, s32);
 
-s32 func_shelter_b1_elevator_hall_8017DB6C(Task*, s32, s32, TaskMessageArg);
+s32 func_shelter_b1_elevator_hall_8017DB6C(Task*, s32, s32, s32);
 
 #endif // SRC_ROOMS_SHELTER_B1_ELEVATOR_HALL_SHELTER_B1_ELEVATOR_HALL_PRIVATE_H

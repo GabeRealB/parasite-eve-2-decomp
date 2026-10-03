@@ -240,15 +240,8 @@ static void func_actor_548100_80134BF0(void);
 extern TaskDesc D_actor_548100_801351B4;
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(Task*, s16, s32);
-    } handler;
-} Actor548100MsgEntry;
-STATIC_ASSERT_SIZEOF(Actor548100MsgEntry, 8);
 
-extern Actor548100MsgEntry D_actor_548100_801351C0[];
+extern TaskMessageEntry    D_actor_548100_801351C0[];
 extern ActionPromptHotspot D_actor_548100_801357E8[];
 extern Actor548100Route    D_actor_548100_801356D8[12];
 extern s16                 D_actor_548100_80135B50;
@@ -272,7 +265,7 @@ extern u8                  D_actor_548100_8013588A;
 extern u8                  D_actor_548100_8013588B;
 extern u8                  D_actor_548100_8013588C[28];
 
-s32  func_actor_548100_80134778(Task*, s16, s32);
+s32  func_actor_548100_80134778(Task*, s32, s32, s32);
 void func_actor_548100_80134728(Task*);
 
 static const char D_actor_548100_80131E54[6];
@@ -282,9 +275,9 @@ static void       func_actor_548100_801347F8(Task*);
 
 TaskDesc D_actor_548100_801351B4 = { { { TASK_BODY_NONE, 192 } }, func_actor_548100_80134728, { .value = 0 } };
 
-Actor548100MsgEntry D_actor_548100_801351C0[2] = {
-    { 5105, { .call0 = func_actor_548100_80134778 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_548100_801351C0[2] = {
+    { 5105, func_actor_548100_80134778 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 Actor548100Edge D_actor_548100_801351D0[92] = {
@@ -2036,7 +2029,7 @@ void func_actor_548100_80134728(Task* task)
     funcs[task->state](task);
 }
 
-s32 func_actor_548100_80134778(Task* arg0, s16 arg1, s32 arg2)
+s32 func_actor_548100_80134778(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     Actor548100Work* work = (Actor548100Work*)arg0->work;
 

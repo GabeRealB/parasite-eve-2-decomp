@@ -32,15 +32,15 @@ extern EvsCommand D_shelter_b6_training_room_80184274[7];
 extern TaskDesc D_shelter_b6_training_room_8018431C[2];
 
 // Callbacks referenced by the overlay's shared data tables.
-s32 func_shelter_b6_training_room_8017D638(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_b6_training_room_8017D638(Task*, s32, s32, s32);
 
 s32 func_shelter_b6_training_room_8017D640(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
-s32 func_shelter_b6_training_room_8017D684(Task*, s32, s32, TaskMessageArg);
+s32 func_shelter_b6_training_room_8017D684(Task*, s32, s32, s32);
 
-s32 func_shelter_b6_training_room_8017D75C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_b6_training_room_8017D75C(Task*, s32, s32, s32);
 
-s32 func_shelter_b6_training_room_8017D764(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_b6_training_room_8017D764(Task*, s32, s32, s32);
 
 void func_shelter_b6_training_room_8017D940(void);
 

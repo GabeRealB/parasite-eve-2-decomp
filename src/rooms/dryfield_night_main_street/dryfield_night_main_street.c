@@ -163,8 +163,8 @@ static void func_dryfield_night_main_street_8017E064(Task* arg0);
 static void func_dryfield_night_main_street_8017E0B8(Task* task);
 static void func_dryfield_night_main_street_8017E118(void);
 
-s32 func_dryfield_night_main_street_8017E054(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_dryfield_night_main_street_8017E05C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_main_street_8017E054(Task*, s32, s32, s32);
+s32 func_dryfield_night_main_street_8017E05C(Task*, s32, s32, s32);
 
 extern WorldCollisionGrid    D_dryfield_night_main_street_801833D0[1];
 extern WorldCollisionGrid    D_dryfield_night_main_street_80184540[1];
@@ -1630,12 +1630,12 @@ static const TaskFuncTable3 D_dryfield_night_main_street_8017D5F4 = {
 
 #include "../../shared/main_street_talk_msg.inc.c"
 
-s32 func_dryfield_night_main_street_8017E054(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_main_street_8017E054(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_dryfield_night_main_street_8017E05C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_main_street_8017E05C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

@@ -31,11 +31,11 @@ extern TaskDesc D_neo_ark_forest_zone_80182E18;
 
 // Callbacks referenced by the overlay's shared data tables.
 
-s32 func_neo_ark_forest_zone_8017D7DC(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_neo_ark_forest_zone_8017D7DC(Task*, s32, s32, s32);
 
 s32 func_neo_ark_forest_zone_8017D7E4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
-s32 func_neo_ark_forest_zone_8017D950(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_neo_ark_forest_zone_8017D950(Task*, s32, s32, s32);
 
 s32 func_neo_ark_forest_zone_8017D958(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 

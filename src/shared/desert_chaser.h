@@ -353,7 +353,7 @@ STATIC_ASSERT_SIZEOF(DesertChaserTickScratch, 0x1C);
 void desertChaserBlendTick(Task* task);
 void desertChaserAnimTick(Task* task);
 void desertChaserSpawn(Enemy* enemy, Task* task);
-s32  desertChaserSetVisibility(Task* task, s32 arg1, s32 arg2);
+s32  desertChaserSetVisibility(Task* task, s32 arg1, s32 arg2, s32 arg3);
 
 /* Defined by each package. */
 s32 desertChaserAnimCues(Task* task, DesertChaserWork* work);

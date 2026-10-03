@@ -181,9 +181,9 @@ static void func_acropolis_square_801822A4(Task* task);
 
 s32  func_acropolis_square_80181794(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_acropolis_square_801819BC(Task*, s32, s32, s32);
-s32  func_acropolis_square_801820D8(Task*, s32, TaskMessageArg firstArg, TaskMessageArg);
-s32  func_acropolis_square_80182108(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_acropolis_square_80182110(Task*, s32, s32, TaskMessageArg);
+s32  func_acropolis_square_801820D8(Task* task, s32 msgId, const void* firstArg, s32 arg3);
+s32  func_acropolis_square_80182108(Task*, s32, s32, s32);
+s32  func_acropolis_square_80182110(Task*, s32, s32, s32);
 void func_acropolis_square_80181AEC(Task*);
 void func_acropolis_square_80181DD0(Task*);
 void func_acropolis_square_80182148(Task*);
@@ -1671,9 +1671,9 @@ void func_acropolis_square_80181DD0(Task* task)
 
 #include "../../shared/room_cutscene_sound_task.inc.c"
 
-s32 func_acropolis_square_801820D8(Task* task, s32 msgId, TaskMessageArg firstArg, TaskMessageArg arg3)
+s32 func_acropolis_square_801820D8(Task* task, s32 msgId, const void* firstArg, s32 arg3)
 {
-    const DirectionActionRequest* request = firstArg.pointer;
+    const DirectionActionRequest* request = firstArg;
 
     if (request->actionId == 0) {
         Gp_SpawnIfCapIdle(5, 0);
@@ -1682,12 +1682,12 @@ s32 func_acropolis_square_801820D8(Task* task, s32 msgId, TaskMessageArg firstAr
 }
 
 /// Always returns 0.
-s32 func_acropolis_square_80182108(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_acropolis_square_80182108(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_acropolis_square_80182110(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_acropolis_square_80182110(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     SndEvt_EnqueueType6(D_acropolis_square_80183B34[arg2], 0, 0);
     return 0;

@@ -15,10 +15,10 @@
 #include "main/task_types.h"
 
 /// The room's message table, published at `Task::msgTable` by the room task.
-s32  func_mist_r21_8017D5DC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3);
-s32  func_mist_r21_8017D5E4(Task* task, s32 msgId, TaskMessageArg requestArg, TaskMessageArg replyArg);
-s32  func_mist_r21_8017D60C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3);
-s32  func_mist_r21_8017D614(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3);
+s32  func_mist_r21_8017D5DC(Task* task, s32 msgId, s32 arg2, s32 arg3);
+s32  func_mist_r21_8017D5E4(Task* task, s32 msgId, RoomEventMsg* requestArg, RoomEventMsg* replyArg);
+s32  func_mist_r21_8017D60C(Task* task, s32 msgId, s32 arg2, s32 arg3);
+s32  func_mist_r21_8017D614(Task* task, s32 msgId, s32 arg2, s32 arg3);
 void func_mist_r21_8017D760(Task* task);
 
 TaskMessageEntry D_mist_r21_8017D770[] = {
@@ -39,30 +39,30 @@ static void func_mist_r21_8017D61C(Task* task);
 static void func_mist_r21_8017D678(Task* task);
 
 /// Message-table handler for id 0x13F1: accepts the message and does nothing.
-s32 func_mist_r21_8017D5DC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_mist_r21_8017D5DC(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
 /// Message-table handler for id 0x13EE: copies the location record it is given
 /// onto the reply record unchanged and answers 1.
-s32 func_mist_r21_8017D5E4(Task* task, s32 msgId, TaskMessageArg requestArg, TaskMessageArg replyArg)
+s32 func_mist_r21_8017D5E4(Task* task, s32 msgId, RoomEventMsg* requestArg, RoomEventMsg* replyArg)
 {
-    RoomEventMsg* src = requestArg.roomEvent;
-    RoomEventMsg* dst = replyArg.roomEvent;
+    RoomEventMsg* src = requestArg;
+    RoomEventMsg* dst = replyArg;
 
     *dst = *src;
     return 1;
 }
 
 /// Message-table handler for id 0x13F0: accepts the message and does nothing.
-s32 func_mist_r21_8017D60C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_mist_r21_8017D60C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
 /// Message-table handler for id 0x13EF: accepts the message and does nothing.
-s32 func_mist_r21_8017D614(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_mist_r21_8017D614(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

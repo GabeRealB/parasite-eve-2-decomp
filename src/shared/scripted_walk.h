@@ -56,6 +56,6 @@ void scriptedWalkResetAnim(void);
 void scriptedWalkBlendAnim(void);
 s32  scriptedWalkTo(Task* task, s32 arg1, VECTOR* target, s32 mode);
 
-s32 scriptedWalkPlace(Task* task, s32 arg1, ActorTransform* placement);
+s32 scriptedWalkPlace(Task* task, s32 arg1, ActorTransform* placement, s32 arg3);
 
 #endif /* SRC_SHARED_SCRIPTED_WALK_H */

@@ -115,7 +115,7 @@ extern u8 gRoamerArmCountsA[];
 /// the placement request `roamerLatchRequest`, the spawn-slot
 /// filler `roamerBankRetreat` and a 0x7DB handler that
 /// ignores the message.
-extern RoamerPoolAMessageEntry gRoamerMsgTableA[];
+extern TaskMessageEntry gRoamerMsgTableA[];
 
 /// Set once a spawn slot has been armed, read by the room's other states.
 extern s16 gRoamerReleasePending;
@@ -153,9 +153,9 @@ typedef struct NeoArkWoodlandPathTrailObj {
     /* 0x26 */ s16  chance;
 } NeoArkWoodlandPathTrailObj;
 
-s32 func_neo_ark_woodland_path_80181474(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_neo_ark_woodland_path_8018154C(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_neo_ark_woodland_path_80181568(Task*, s32, TaskMessageArg firstArg, TaskMessageArg);
+s32 func_neo_ark_woodland_path_80181474(Task*, s32, s32, s32);
+s32 func_neo_ark_woodland_path_8018154C(Task*, s32, s32, s32);
+s32 func_neo_ark_woodland_path_80181568(Task* task, s32 msgId, const void* firstArg, s32 arg3);
 
 void func_neo_ark_woodland_path_801814E8(Task*);
 void func_neo_ark_woodland_path_801815D4(Task*);
@@ -224,11 +224,11 @@ s16 gRoamerLastRequest = 0;
 
 s16 gRoamerReleasePending = 0;
 
-RoamerPoolAMessageEntry gRoamerMsgTableA[4] = {
-    { DIRECTION_MESSAGE_ROOM_ACTION, { .message = roamerLatchRequest } },
-    { ROOM_MESSAGE_ACTOR_EVENT, { .actorEvent = roamerBankRetreat } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .message = func_neo_ark_woodland_path_80181474 } },
-    { TASK_MESSAGE_TABLE_END, { .message = NULL } },
+TaskMessageEntry gRoamerMsgTableA[4] = {
+    { DIRECTION_MESSAGE_ROOM_ACTION, roamerLatchRequest },
+    { ROOM_MESSAGE_ACTOR_EVENT, roamerBankRetreat },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_neo_ark_woodland_path_80181474 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 RoamerSpawnPoint gRoamerSpawnPointsA[7] = {
@@ -530,7 +530,7 @@ static const TaskFuncTable4 D_neo_ark_woodland_path_8017D684 = {
       func_neo_ark_woodland_path_801815C0, taskKill }
 };
 
-s32 func_neo_ark_woodland_path_80181474(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_neo_ark_woodland_path_80181474(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -553,7 +553,7 @@ void func_neo_ark_woodland_path_801814E8(Task* task)
     handlers.funcs[task->state](task);
 }
 
-s32 func_neo_ark_woodland_path_8018154C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_neo_ark_woodland_path_8018154C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     gRoamerCooldown += 0x5A;
     return 1;

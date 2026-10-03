@@ -94,17 +94,8 @@ extern TaskDesc D_actor_443500_8015873C[];
 /// 0x7D5, ended by `TASK_MESSAGE_TABLE_END`. The spawn handler parks its address in
 /// `Task::msgTable` (0x24).
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32                (*call0)(Task*, s32, AnimationPlayRequest*, s32);
-        s32                (*call1)(Task*, s32, ActorTransform*);
-        TaskMessageHandler call2;
-    } handler;
-} Actor443500MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor443500MessageEntry, 8);
 
-extern Actor443500MessageEntry D_actor_443500_80158754[4];
+extern TaskMessageEntry D_actor_443500_80158754[4];
 
 /// The bank table `func_actor_443500_801327E0` re-seeds the work block's slot
 /// array off: one entry, the animation bank the default preset's `field_0` of
@@ -2384,11 +2375,11 @@ TaskDesc D_actor_443500_8015873C[2] = {
 s32 func_actor_443500_801327E0(Task*, s32, AnimationPlayRequest*, s32);
 s32 func_actor_443500_8013297C(Task*, s32, s32, s32);
 
-Actor443500MessageEntry D_actor_443500_80158754[4] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = func_actor_443500_801327E0 } },
-    { ACTOR_MESSAGE_PLACE, { .call1 = actorMsgPlaceEuler } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call2 = func_actor_443500_8013297C } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_443500_80158754[4] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_443500_801327E0 },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_443500_8013297C },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 static SVECTOR _gActor443500Collision269B8Normals[2] = {

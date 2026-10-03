@@ -249,20 +249,8 @@ extern AnimationSet* D_actor_401300_80158838[46];
 extern AnimationSet*        D_actor_401300_801588F0[9];
 extern AnimationPlayRequest D_actor_401300_80158914;
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32  (*call0)(Task*);
-        s32  (*call1)(Task*, s32, Actor401300Event*);
-        s32  (*call2)(Task*, s32, AnimationPlayRequest*);
-        s32  (*call3)(Task*, s32, ActorTransform*);
-        s32  (*call4)(Task*, s32, s32);
-        void (*call5)(void);
-    } handler;
-} Actor401300MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor401300MessageEntry, 8);
 
-extern Actor401300MessageEntry D_actor_401300_80158988[8];
+extern TaskMessageEntry D_actor_401300_80158988[8];
 
 /// Twelve vectors `func_actor_401300_80134BA4` picks from by LCG, grouped by
 /// `|arg1|`: 0-4 below 0x200, 5-7 above 0x600, else 8-9 / 10-11 by sign.
@@ -336,10 +324,10 @@ static AnimationSet _gActor401300Animation251E4;
 static AnimationSet _gActor401300Animation259F0;
 static AnimationSet _gActor401300Animation26204;
 static TmdSource    _gActor401300HornedStrangerBody;
-s32                 func_actor_401300_80132554(Task*, s32, Actor401300Event*);
-s32                 func_actor_401300_80141494(Task*, s32, AnimationPlayRequest*);
-s32                 func_actor_401300_80141614(Task*, s32, ActorTransform* placement);
-void                func_actor_401300_8014148C(void);
+s32                 func_actor_401300_80132554(Task*, s32, Actor401300Event*, s32);
+s32                 func_actor_401300_80141494(Task*, s32, AnimationPlayRequest*, s32);
+s32                 func_actor_401300_80141614(Task* task, s32 msgId, ActorTransform* placement, s32 arg3);
+s32                 func_actor_401300_8014148C(Task*, s32, s32, s32);
 void                func_actor_401300_80141F2C(Task*);
 
 DamageAttack D_actor_401300_80141F88[6] = {
@@ -1236,15 +1224,15 @@ SVECTOR D_actor_401300_80158928[12] = {
     { -25, 0, 0, 2 },
 };
 
-Actor401300MessageEntry D_actor_401300_80158988[8] = {
-    { 2015, { .call5 = func_actor_401300_8014148C } },
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call2 = func_actor_401300_80141494 } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = actorMsgSetVisibility } },
-    { ACTOR_MESSAGE_IS_PRESENT, { .call0 = actorMsgIsPresent } },
-    { ACTOR_MESSAGE_PLACE, { .call3 = func_actor_401300_80141614 } },
-    { 2014, { .call0 = actorMsgReleaseHold } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_401300_80132554 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_401300_80158988[8] = {
+    { 2015, func_actor_401300_8014148C },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_401300_80141494 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetVisibility },
+    { ACTOR_MESSAGE_IS_PRESENT, actorMsgIsPresent },
+    { ACTOR_MESSAGE_PLACE, func_actor_401300_80141614 },
+    { 2014, actorMsgReleaseHold },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_401300_80132554 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 ActorHeightClamp D_actor_401300_801589C8[3] = {
@@ -1337,7 +1325,7 @@ static s32             func_actor_401300_801417F0(Task* arg0);
 
 #include "../../shared/actor_contacts_push_contact.inc.c"
 
-s32 func_actor_401300_80132554(Task* arg0, s32 arg1, Actor401300Event* arg2)
+s32 func_actor_401300_80132554(Task* arg0, s32 arg1, Actor401300Event* arg2, s32 arg3)
 {
     Actor401300Work* work  = arg0->work;
     Enemy*           enemy = arg0->spawnArg2.pointer;
@@ -5721,7 +5709,7 @@ static void func_actor_401300_801405DC(Enemy* enemy, Task* actor)
     enemy->coord = &gGfxViewCoord;
 }
 
-void func_actor_401300_8014148C(void)
+s32 func_actor_401300_8014148C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
 }
 
@@ -5735,7 +5723,7 @@ static const EnemyTaskFuncTable3 D_actor_401300_8013201C = { {
     enemyDestroy,
 } };
 
-s32 func_actor_401300_80141494(Task* arg0, s32 arg1, AnimationPlayRequest* arg2)
+s32 func_actor_401300_80141494(Task* arg0, s32 arg1, AnimationPlayRequest* arg2, s32 arg3)
 {
     Actor401300Work* work = arg0->work;
 
@@ -5768,7 +5756,7 @@ s32 func_actor_401300_80141494(Task* arg0, s32 arg1, AnimationPlayRequest* arg2)
 /// Places the model's root coordinate from `placement`: sets its translation,
 /// applies the X, Y and Z rotations in turn, and caches the resulting heading
 /// (`ratan2` of the matrix Z axis) in `Actor401300Work::yaw`. Always returns 1.
-s32 func_actor_401300_80141614(Task* task, s32 arg1, ActorTransform* placement)
+s32 func_actor_401300_80141614(Task* task, s32 arg1, ActorTransform* placement, s32 arg3)
 {
     GfxCoord*        coord;
     s32              mx;

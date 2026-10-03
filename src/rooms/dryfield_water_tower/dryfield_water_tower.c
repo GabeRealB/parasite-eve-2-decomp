@@ -143,7 +143,7 @@ static void func_dryfield_water_tower_8017DCB4(void)
 }
 
 /// The room's handler for message 0x13F1: answers 0.
-s32 func_dryfield_water_tower_8017DCFC(Task* task, s32 messageId, TaskMessageArg firstArg, TaskMessageArg secondArg)
+s32 func_dryfield_water_tower_8017DCFC(Task* task, s32 messageId, s32 firstArg, s32 secondArg)
 {
     return 0;
 }
@@ -159,7 +159,7 @@ s32 func_dryfield_water_tower_8017DD04(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 }
 
 /// The room's handler for message 0x13EF: answers 0.
-s32 func_dryfield_water_tower_8017DD3C(Task* task, s32 messageId, TaskMessageArg firstArg, TaskMessageArg secondArg)
+s32 func_dryfield_water_tower_8017DD3C(Task* task, s32 messageId, s32 firstArg, s32 secondArg)
 {
     return 0;
 }

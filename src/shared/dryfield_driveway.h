@@ -22,7 +22,7 @@
 s32  drivewayResolveEvent(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);
 void drivewayBlackoutTask(Task* arg0);
 void drivewayCutsceneTask(Task* arg0);
-s32  drivewayScriptSound(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3);
+s32  drivewayScriptSound(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 void drivewaySetViewDirty(s16 arg0);
 

@@ -191,9 +191,9 @@ static u16 Shop_Data_80181AD4[];
 #define SHOP_CHARGE_TITLE_BYTES "Charge\0\xEF"
 #include "../../shared/shop.h"
 
-s32  func_dryfield_trailer_coach_80182578(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_dryfield_trailer_coach_80182578(Task*, s32, s32, s32);
 s32  func_dryfield_trailer_coach_80182580(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_dryfield_trailer_coach_801825A8(Task*, s32, s32, TaskMessageArg);
+s32  func_dryfield_trailer_coach_801825A8(Task*, s32, s32, s32);
 void func_dryfield_trailer_coach_801822F4(Task*);
 void func_dryfield_trailer_coach_801827F8(Task*);
 
@@ -1641,7 +1641,7 @@ void func_dryfield_trailer_coach_801822F4(Task* task)
 #include "../../shared/room_cutscene_sound_task.inc.c"
 
 /// Always returns 0.
-s32 func_dryfield_trailer_coach_80182578(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_trailer_coach_80182578(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -1659,7 +1659,7 @@ s32 func_dryfield_trailer_coach_80182580(Task* task, s32 msgId, RoomEventMsg* sr
 /// 2, then either raises the `0x16C` flag and asks the cap system to run
 /// command 0x1D, or fills in the room's cutscene record (view 0xA, slots 1,
 /// files 3/4/5/6) and hands it to `gRoomCutsceneTaskDescs`. Always returns 0.
-s32 func_dryfield_trailer_coach_801825A8(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_dryfield_trailer_coach_801825A8(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 3) {
         Task_SpawnFromTable(D_dryfield_trailer_coach_80184FC0, 1, 0, 0);

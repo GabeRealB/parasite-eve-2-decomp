@@ -351,7 +351,7 @@ static void func_shelter_b6_training_room_8017D7D4(Task* arg0);
 static void func_shelter_b6_training_room_8017D874(Task* task);
 
 /// The room's handler for message 0x13F1, which does nothing and returns 0.
-s32 func_shelter_b6_training_room_8017D638(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b6_training_room_8017D638(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -365,7 +365,7 @@ s32 func_shelter_b6_training_room_8017D640(Task* arg0, s32 arg1, RoomEventMsg* i
     return 1;
 }
 
-s32 func_shelter_b6_training_room_8017D684(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_shelter_b6_training_room_8017D684(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     switch (arg2) {
         case 5:
@@ -400,12 +400,12 @@ s32 func_shelter_b6_training_room_8017D684(Task* arg0, s32 arg1, s32 arg2, TaskM
 }
 
 /// The room's handler for message 0x13EF, which does nothing and returns 0.
-s32 func_shelter_b6_training_room_8017D75C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b6_training_room_8017D75C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b6_training_room_8017D764(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b6_training_room_8017D764(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     gGameSession->flowFlags |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
     func_800E8634(D_shelter_b6_training_room_80183BB4, 0, D_shelter_b6_training_room_80184124);

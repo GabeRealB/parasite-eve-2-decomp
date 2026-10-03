@@ -11,6 +11,6 @@
 
 #include "main/task_types.h"
 
-s32 junkYardCapMsg(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3);
+s32 junkYardCapMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 #endif /* SRC_SHARED_JUNK_YARD_H */

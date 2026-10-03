@@ -47,18 +47,8 @@ extern Actor160700AnimStorage51E8 D_actor_160700_801351E8;
 extern TaskDesc D_actor_160700_801416A8[];
 extern u8       D_actor_160700_801416C0[];
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(void);
-        s32 (*call1)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call2)(Task*, s32, ActorTransform*);
-        s32 (*call3)(Task*, s32, s32);
-    } handler;
-} Actor160700MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor160700MessageEntry, 8);
 
-extern Actor160700MessageEntry D_actor_160700_80141678[6];
+extern TaskMessageEntry D_actor_160700_80141678[6];
 
 extern AnimationPlayRequest D_actor_160700_801354CC;
 extern EvsCommand           D_actor_160700_80135664[];
@@ -96,9 +86,9 @@ extern AnimationPlayRequest D_actor_160700_801354B8;
 
 static TmdSource _gActor160700PierceCarradineBody;
 static TmdSource _gActor160700Actor113100Model07960;
-s32              func_actor_160700_801325F0(Task*, s32, AnimationPlayRequest*);
-s32              func_actor_160700_8013265C(Task*, s32, s32);
-s32              func_actor_160700_80132738(void);
+s32              func_actor_160700_801325F0(Task*, s32, AnimationPlayRequest*, s32);
+s32              func_actor_160700_8013265C(Task*, s32, s32, s32);
+s32              func_actor_160700_80132738(Task*, s32, s32, s32);
 void             func_actor_160700_8013233C(Task*);
 void             func_actor_160700_80132808(Task*);
 
@@ -1362,13 +1352,13 @@ static AnimationSet _gActor160700Animation0F830 = {
     { NULL, _gActor160700Animation0F830Bank1, NULL, NULL, _gActor160700Animation0F830Bank4, NULL, NULL, NULL },
 };
 
-Actor160700MessageEntry D_actor_160700_80141678[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = func_actor_160700_801325F0 } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = func_actor_160700_8013265C } },
-    { ACTOR_MESSAGE_PLACE, { .call2 = pacedWalkPlace } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_160700_80132738 } },
-    { ACTOR_MESSAGE_WALK_TO, { .call2 = pacedWalkTo } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_160700_80141678[6] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_160700_801325F0 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_160700_8013265C },
+    { ACTOR_MESSAGE_PLACE, pacedWalkPlace },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_160700_80132738 },
+    { ACTOR_MESSAGE_WALK_TO, pacedWalkTo },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_actor_160700_801416A8[2] = {
@@ -1610,7 +1600,7 @@ static void func_actor_160700_80132414(Task* task)
 ///
 /// Rejects ids 0x19 and above before changing playback state.
 /// The blend path carries the requested duration in whole frames.
-s32 func_actor_160700_801325F0(Task* task, s32 arg1, AnimationPlayRequest* args)
+s32 func_actor_160700_801325F0(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3)
 {
     Actor160600Work* work;
 
@@ -1634,7 +1624,7 @@ s32 func_actor_160700_801325F0(Task* task, s32 arg1, AnimationPlayRequest* args)
 /// model of the enemy spawned alongside it. `flags` bit 0 makes both visible
 /// (`TmdObject::flags` 0) and its absence hides them (0x80); bit 1 also sets
 /// 0x4. The middle argument is the one every opcode of the table receives.
-s32 func_actor_160700_8013265C(Task* task, s32 arg1, s32 flags)
+s32 func_actor_160700_8013265C(Task* task, s32 arg1, s32 flags, s32 arg3)
 {
     TmdObject* self;
     TmdObject* other;
@@ -1660,7 +1650,7 @@ s32 func_actor_160700_8013265C(Task* task, s32 arg1, s32 flags)
 #include "../../shared/paced_walk_place.inc.c"
 
 /// Script opcode (message 0x7DB) that does nothing.
-s32 func_actor_160700_80132738(void)
+s32 func_actor_160700_80132738(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

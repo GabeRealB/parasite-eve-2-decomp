@@ -144,10 +144,10 @@ static u16 Shop_Data_80181AD4[];
 #define SHOP_CHARGE_TITLE_BYTES "Charge\0\xFD"
 #include "../../shared/shop.h"
 
-s32 func_dryfield_night_trailer_coach_801826A0(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_trailer_coach_801826A0(Task*, s32, s32, s32);
 s32 func_dryfield_night_trailer_coach_801826A8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_dryfield_night_trailer_coach_801826EC(Task*, s32, s32, s32);
-s32 func_dryfield_night_trailer_coach_80182800(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_trailer_coach_80182800(Task*, s32, s32, s32);
 s32 func_dryfield_night_trailer_coach_80182808(Task*, s32, s32, s32);
 
 void func_dryfield_night_trailer_coach_8018243C(Task*);
@@ -959,7 +959,7 @@ void func_dryfield_night_trailer_coach_8018243C(Task* task)
 
 #include "../../shared/room_cutscene_sound_task.inc.c"
 
-s32 func_dryfield_night_trailer_coach_801826A0(Task* task, s32 messageId, TaskMessageArg firstArg, TaskMessageArg secondArg)
+s32 func_dryfield_night_trailer_coach_801826A0(Task* task, s32 messageId, s32 firstArg, s32 secondArg)
 {
     return 0;
 }
@@ -1002,7 +1002,7 @@ s32 func_dryfield_night_trailer_coach_801826EC(Task* arg0, s32 arg1, s32 arg2, s
     return 0;
 }
 
-s32 func_dryfield_night_trailer_coach_80182800(Task* task, s32 messageId, TaskMessageArg firstArg, TaskMessageArg secondArg)
+s32 func_dryfield_night_trailer_coach_80182800(Task* task, s32 messageId, s32 firstArg, s32 secondArg)
 {
     return 0;
 }

@@ -128,17 +128,8 @@ extern PadScriptCmd              Actor01200_D04044[3];
 extern PadScriptVibrationSegment Actor01200_D04050[3];
 extern AnimationSet*             Actor01200_D06F98[19]; // animation bank handed to `animationInitContext`
 // Typed callback views for the task message dispatcher.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(Task*, s32, ActorCommand* request);
-        s32 (*call1)(Task*, s32, ActorTransform*);
-        s32 (*call2)(Task*, s32, s32);
-    } handler;
-} Actor01200RecoveredMsgEntry;
-STATIC_ASSERT_SIZEOF(Actor01200RecoveredMsgEntry, 8);
 
-extern Actor01200RecoveredMsgEntry Actor01200_D07058[4];
+extern TaskMessageEntry Actor01200_D07058[4];
 
 /// Integer part of the last movement step `ActorContact_PushContact` applied.
 extern SVECTOR ActorContact_ScratchPosition;
@@ -157,8 +148,8 @@ static void Actor01200_Fn03F30(Enemy* arg0, Task* arg1);
 static TmdSource _gActor01200BoneSucklerBody;
 void             Actor01200_Fn03FD4(Task*);
 
-s32 Actor01200_Fn03A00(Task*, s32, s32);
-s32 Actor01200_Fn03ABC(Task*, s32, ActorCommand* request);
+s32 Actor01200_Fn03A00(Task*, s32, s32, s32);
+s32 Actor01200_Fn03ABC(Task* task, s32 msgId, ActorCommand* request, s32 arg3);
 
 DamageAttack Actor01200_D04030[1] = {
     { 24, 7 },
@@ -571,11 +562,11 @@ u8 Actor01200_D06FE4[116] = {
     0,
 };
 
-Actor01200RecoveredMsgEntry Actor01200_D07058[4] = {
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call2 = Actor01200_Fn03A00 } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = Actor01200_Fn03ABC } },
-    { ACTOR_MESSAGE_PLACE, { .call1 = actorMsgPlace } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry Actor01200_D07058[4] = {
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, Actor01200_Fn03A00 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, Actor01200_Fn03ABC },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlace },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc Actor01200_D07078 = { { { TASK_BODY_TMD, 96 } }, Actor01200_Fn03FD4, { .model = &_gActor01200BoneSucklerBody } };
@@ -1588,7 +1579,7 @@ static const EnemyTaskFuncTable3 Actor01200_D0010C = {
 /// state 7; 2 sets `TMD_OBJECT_SKIP_AUTO_BUFFER` and 3 replaces its flags with
 /// `TMD_OBJECT_SKIP_AUTO_BUFFER`, both moving
 /// to state 0. `arg1` is unused.
-s32 Actor01200_Fn03A00(Task* task, s32 arg1, s32 arg2)
+s32 Actor01200_Fn03A00(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
     TmdObject*      obj;
     Actor01200Work* work;
@@ -1619,7 +1610,7 @@ s32 Actor01200_Fn03A00(Task* task, s32 arg1, s32 arg2)
     return 0;
 }
 
-s32 Actor01200_Fn03ABC(Task* arg0, s32 arg1, ActorCommand* request)
+s32 Actor01200_Fn03ABC(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
 {
     Actor01200Work* work;
     Enemy*          ctx;

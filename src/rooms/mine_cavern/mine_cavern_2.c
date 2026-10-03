@@ -225,14 +225,14 @@ void func_mine_cavern_8017E330(void);
 void func_mine_cavern_8017E358(void);
 void func_mine_cavern_8017E360(void);
 
-MineCavernMessageEntry D_mine_cavern_80183C6C[7] = {
-    { 5102, { .call3 = func_mine_cavern_8017D908 } },
-    { 5105, { .call0 = func_mine_cavern_8017DC50 } },
-    { DIRECTION_MESSAGE_ROOM_ACTION, { .call1 = func_mine_cavern_8017DC58 } },
-    { ROOM_MESSAGE_COMMAND, { .call2 = func_mine_cavern_8017DAA0 } },
-    { ROOM_MESSAGE_ACTOR_EVENT, { .call0 = func_mine_cavern_8017DC9C } },
-    { ROOM_MESSAGE_SOUND, { .call4 = func_mine_cavern_8017DD38 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_mine_cavern_80183C6C[7] = {
+    { 5102, func_mine_cavern_8017D908 },
+    { 5105, func_mine_cavern_8017DC50 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_mine_cavern_8017DC58 },
+    { ROOM_MESSAGE_COMMAND, func_mine_cavern_8017DAA0 },
+    { ROOM_MESSAGE_ACTOR_EVENT, func_mine_cavern_8017DC9C },
+    { ROOM_MESSAGE_SOUND, func_mine_cavern_8017DD38 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_mine_cavern_80183CA4[2] = {

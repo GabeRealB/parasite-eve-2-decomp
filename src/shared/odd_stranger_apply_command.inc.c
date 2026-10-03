@@ -5,7 +5,7 @@
 /// (0x301/1 to 0x17, 0x1002/0 to 0, 0x1002/2 to 0x1C). The 0x1002/2 arm also
 /// drops the model root to `(-0x595, 0, -0x5B1)` and turns it to -0x400.
 /// Returns 1 when a state was set.
-s32 oddStrangerApplyCommand(Task* arg0, s32 arg1, u16* arg2)
+s32 oddStrangerApplyCommand(Task* arg0, s32 arg1, u16* arg2, s32 arg3)
 {
     u16              room;
     u16              state;

@@ -31,7 +31,7 @@ static const TaskFuncTable3 D_acropolis_fountain_8017D5C4 = {
 };
 
 s32  func_acropolis_fountain_8017D604(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_acropolis_fountain_8017D774(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_acropolis_fountain_8017D774(Task*, s32, s32, s32);
 s32  func_acropolis_fountain_8017D77C(Task*, s32, s32, s32);
 s32  func_acropolis_fountain_8017D7F4(Task*, s32, s32, s32);
 void func_acropolis_fountain_8017D868(Task*);
@@ -94,7 +94,7 @@ s32 func_acropolis_fountain_8017D604(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
 
 /// Handler for message 0x13F1 in the room task's message table: ignores the
 /// message and answers 0.
-s32 func_acropolis_fountain_8017D774(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_acropolis_fountain_8017D774(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

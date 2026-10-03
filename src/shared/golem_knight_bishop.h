@@ -58,13 +58,6 @@
 #include "main/coord.h"
 #include "main/task_types.h"
 
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(Task*);
-    } handler;
-} GolemKnightBishopMessageEntry;
-
 /// One 0x10-byte entry of the box table `GolemKnightBishopWork::field_6B4`: the
 /// entry's kind at `field_0` (0 a circle of radius `field_2` round
 /// `field_4`, `field_6`; 1 a box, x from `field_8` to `field_C` and z from

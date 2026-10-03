@@ -109,10 +109,10 @@ extern WorldCollisionGrid    D_dryfield_motel_lobby_8017FBE4[1];
 extern WorldCollisionTrigger D_dryfield_motel_lobby_80180AEC[4];
 extern WorldCollisionTrigger D_dryfield_motel_lobby_80180C1C[7];
 extern WorldCoordRoomLights  D_dryfield_motel_lobby_80181010[1];
-s32                          func_dryfield_motel_lobby_8017F40C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                          func_dryfield_motel_lobby_8017F40C(Task*, s32, s32, s32);
 s32                          func_dryfield_motel_lobby_8017F414(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                          func_dryfield_motel_lobby_8017F43C(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                          func_dryfield_motel_lobby_8017F444(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                          func_dryfield_motel_lobby_8017F43C(Task*, s32, s32, s32);
+s32                          func_dryfield_motel_lobby_8017F444(Task*, s32, s32, s32);
 
 #include "../../shared/telephone_data.inc.c"
 
@@ -546,7 +546,7 @@ void func_dryfield_motel_lobby_8017E9E8(Task* task)
 
 #undef TELEPHONE_TITLE_BYTES
 
-s32 func_dryfield_motel_lobby_8017F40C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_motel_lobby_8017F40C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -559,12 +559,12 @@ s32 func_dryfield_motel_lobby_8017F414(Task* task, s32 msgId, RoomEventMsg* src,
     return 1;
 }
 
-s32 func_dryfield_motel_lobby_8017F43C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_motel_lobby_8017F43C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_dryfield_motel_lobby_8017F444(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_motel_lobby_8017F444(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

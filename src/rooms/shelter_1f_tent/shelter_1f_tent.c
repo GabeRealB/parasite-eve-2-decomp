@@ -117,10 +117,10 @@ extern TaskMessageEntry D_shelter_1f_tent_80181CDC[];
 #define TELEPHONE_TITLE_BYTES "Telephone\0\x0C-"
 #include "../../shared/telephone.h"
 
-s32 func_shelter_1f_tent_8017FC54(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_1f_tent_8017FC54(Task*, s32, s32, s32);
 s32 func_shelter_1f_tent_8017FC5C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_1f_tent_8017FCA0(Task*, s32, s32, TaskMessageArg);
-s32 func_shelter_1f_tent_8017FD54(Task*, s32, RoomEventMsg*, TaskMessageArg);
+s32 func_shelter_1f_tent_8017FCA0(Task*, s32, s32, s32);
+s32 func_shelter_1f_tent_8017FD54(Task*, s32, RoomEventMsg*, s32);
 
 #include "../../shared/telephone_data.inc.c"
 
@@ -204,7 +204,7 @@ static void func_shelter_1f_tent_8017F9F0(Task* task)
 
 #include "../../shared/room_cutscene_sound_task.inc.c"
 
-s32 func_shelter_1f_tent_8017FC54(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_1f_tent_8017FC54(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -218,7 +218,7 @@ s32 func_shelter_1f_tent_8017FC5C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEv
     return 1;
 }
 
-s32 func_shelter_1f_tent_8017FCA0(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_shelter_1f_tent_8017FCA0(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 1) {
         if (GameFlag_GetNibble(GAME_FLAG_TENT_FIRST_SCENE) == 0) {
@@ -239,7 +239,7 @@ s32 func_shelter_1f_tent_8017FCA0(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg
     return 0;
 }
 
-s32 func_shelter_1f_tent_8017FD54(Task* arg0, s32 arg1, RoomEventMsg* arg2, TaskMessageArg arg3)
+s32 func_shelter_1f_tent_8017FD54(Task* arg0, s32 arg1, RoomEventMsg* arg2, s32 arg3)
 {
     if (arg2->warp == 1) {
         func_801322B8();

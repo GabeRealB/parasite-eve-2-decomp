@@ -125,12 +125,7 @@ extern UiList Gp_ItemMenuList;
 
 extern UiListRowCallback D_8010D6B0[1];
 
-typedef struct {
-    s32 id;
-    s32 (*handler)(Task*, s32, CapActionRequest*);
-} GpItemReplyEntry;
-
-extern GpItemReplyEntry D_8010D828[2];
+extern TaskMessageEntry D_8010D828[2];
 
 /* Kept next to Gp_ItemMoveChild's jump table so the overlay .rodata stays packed;
    Gp_StrBullet follows before func_800BDF6C. */
@@ -192,7 +187,7 @@ void Gp_ItemMenuListTask(Task* arg0);
 /// lines are drawn at `field_18 + 0xF` / `+ 0x1E` in color `0x606060`.
 void Gp_HolderPromptTask(Task* arg0);
 
-s32 Gp_BindItemObj2(Task* arg0, s32 arg1, CapActionRequest* request);
+s32 Gp_BindItemObj2(Task* arg0, s32 arg1, CapActionRequest* request, s32 arg3);
 
 /// Per-child item-move handler. Walked by `Gp_ItemMoveTask` over
 /// `obj->owner`'s children as `Gp_ItemMoveChild(child->spawnArg2.pointer, child)`.
@@ -237,7 +232,7 @@ UiObjectDesc      D_8010D6F4[11]    = {
     { 0, { -58, -30, 116, 60 }, 16, 0, TASK_BODY_NONE, 192, Gp_ItemMenuListTask, 0 },
     { 0, { -144, 64, 288, 40 }, 60, 0, TASK_BODY_NONE, 192, Gp_HolderPromptTask, 0 },
 };
-GpItemReplyEntry D_8010D828[2] = { { CAP_ACTION_MESSAGE_REQUEST, Gp_BindItemObj2 }, { TASK_MESSAGE_TABLE_END, NULL } };
+TaskMessageEntry D_8010D828[2] = { { CAP_ACTION_MESSAGE_REQUEST, Gp_BindItemObj2 }, { TASK_MESSAGE_TABLE_END, NULL } };
 
 /// Per-child item-move handler. Walked by `Gp_ItemMoveTask` over
 /// `obj->owner`'s children as `Gp_ItemMoveChild(child->spawnArg2.pointer, child)`.
@@ -1640,7 +1635,7 @@ void Gp_HolderPromptTask(Task* arg0)
     }
 }
 
-s32 Gp_BindItemObj2(Task* arg0, s32 arg1, CapActionRequest* request)
+s32 Gp_BindItemObj2(Task* arg0, s32 arg1, CapActionRequest* request, s32 arg3)
 {
     s32    flag;
     Enemy* enemy;

@@ -75,28 +75,17 @@ extern TaskDesc D_actor_151000_80133360;
 /// are seeded from.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(Task*, s32, AnimationPlayRequest*, s32);
-        s32 (*call1)(Task*, s32, ActorCommand* request);
-        s32 (*call2)(Task*, s32, ActorTransform*);
-        s32 (*call3)(Task*, s32, VECTOR*, s32);
-        s32 (*call4)(Task*, s32, s32);
-    } handler;
-} Actor151000MsgEntry;
-STATIC_ASSERT_SIZEOF(Actor151000MsgEntry, 8);
 
-extern Actor151000MsgEntry gFootstepWalkMsgTable[];
-extern u8                  gFootstepWalkAnims[];
+extern TaskMessageEntry gFootstepWalkMsgTable[];
+extern u8               gFootstepWalkAnims[];
 
 static void func_actor_151000_80132450(Enemy* enemy, Task* task);
 
 static TmdSource _gActor151000AyaBreaBody;
 void             func_actor_151000_801323F4(Task*);
 
-s32 func_actor_151000_801327C8(Task*, s32, s32);
-s32 func_actor_151000_8013288C(Task*, s32, ActorCommand* msg);
+s32 func_actor_151000_801327C8(Task*, s32, s32, s32);
+s32 func_actor_151000_8013288C(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
 
 extern AnimationPlayRequest D_actor_151000_801333F0;
 extern AnimationPlayRequest D_actor_151000_80133404;
@@ -655,13 +644,13 @@ static AnimationSet _gActor151000Animation0B464 = {
 
 s16 gFootstepWalkBlendFrames = 8;
 
-Actor151000MsgEntry gFootstepWalkMsgTable[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = footstepWalkPlay } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = func_actor_151000_801327C8 } },
-    { ACTOR_MESSAGE_PLACE, { .call2 = footstepWalkPlace } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_151000_8013288C } },
-    { ACTOR_MESSAGE_WALK_TO, { .call3 = footstepWalkTo } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry gFootstepWalkMsgTable[6] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, footstepWalkPlay },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_151000_801327C8 },
+    { ACTOR_MESSAGE_PLACE, footstepWalkPlace },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_151000_8013288C },
+    { ACTOR_MESSAGE_WALK_TO, footstepWalkTo },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_actor_151000_8013D2E0 = { { { TASK_BODY_TMD, 192 } }, func_actor_151000_801323F4, { .model = &_gActor151000AyaBreaBody } };
@@ -898,7 +887,7 @@ void footstepWalkExit(Task* task)
 /// Visibility opcode: applies `arg2` to the model of the task published in
 /// `gFootstepWalkTask` - bit 0 shows it (flags 0) rather than hiding it
 /// (0x80), and bit 1 ORs in 0x4.
-s32 func_actor_151000_801327C8(Task* task, s32 arg1, s32 arg2)
+s32 func_actor_151000_801327C8(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
     TmdObject* obj;
 
@@ -918,7 +907,7 @@ s32 func_actor_151000_801327C8(Task* task, s32 arg1, s32 arg2)
 
 /// Message handler: message 0 arms the turn countdown `turnFrames` at 0x14
 /// frames, message 1 sets `footsteps`, which turns the footsteps on. Anything else does nothing.
-s32 func_actor_151000_8013288C(Task* task, s32 arg1, ActorCommand* msg)
+s32 func_actor_151000_8013288C(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
 {
     s32 kind;
 

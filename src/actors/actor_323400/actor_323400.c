@@ -67,20 +67,8 @@ extern u8 gRigAnimSource[];
 
 /// Message table published as `Task::msgTable` by the spawn handler.
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32                (*call0)(Task*);
-        s32                (*call1)(Task*, s32, AnimationPlayRequest*, s32);
-        TaskMessageHandler call2;
-        s32                (*call3)(Task*, s32, ActorTransform*);
-        s32                (*call4)(Task*, s32, s32);
-        void               (*call5)(void);
-    } handler;
-} Actor323400MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor323400MessageEntry, 8);
 
-extern Actor323400MessageEntry gRigMessages[7];
+extern TaskMessageEntry gRigMessages[7];
 
 /// Effect record the spawn handler fills: the model root's coordinate and
 /// the two spawn arguments 0x100 and 2.
@@ -121,8 +109,8 @@ static const DesertChaserTaskStates gDesertChaserTaskStates = {
 };
 
 static TmdSource _gActor323400DesertChaserBody;
-s32              func_actor_323400_80164974(Task*, s32, ActorCommand* msg, s32);
-void             func_actor_323400_8016475C(void);
+s32              func_actor_323400_80164974(Task* task, s32 msgId, ActorCommand* msg, s32);
+s32              func_actor_323400_8016475C(Task*, s32, s32, s32);
 
 DamageAttack D_actor_323400_80164D48[5] = {
     { 30, 0 },
@@ -2999,14 +2987,14 @@ u8 gRigAnimSource[340] = {
     0,
 };
 
-Actor323400MessageEntry gRigMessages[7] = {
-    { 2015, { .call5 = func_actor_323400_8016475C } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = desertChaserSetVisibility } },
-    { ACTOR_MESSAGE_IS_PRESENT, { .call0 = actorMsgIsPresent } },
-    { ACTOR_MESSAGE_PLACE, { .call3 = actorMsgPlaceYawFirst } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_323400_80164974 } },
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = desertChaserMsgPlayAnim } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry gRigMessages[7] = {
+    { 2015, func_actor_323400_8016475C },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, desertChaserSetVisibility },
+    { ACTOR_MESSAGE_IS_PRESENT, actorMsgIsPresent },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceYawFirst },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_323400_80164974 },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, desertChaserMsgPlayAnim },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_actor_323400_8017120C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, desertChaserTask, { .model = &_gActor323400DesertChaserBody } };
@@ -3387,7 +3375,7 @@ static void func_actor_323400_801641C4(Enemy* enemy, Task* task)
 
 #include "../../shared/desert_chaser_frame.inc.c"
 
-void func_actor_323400_8016475C(void)
+s32 func_actor_323400_8016475C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
 }
 

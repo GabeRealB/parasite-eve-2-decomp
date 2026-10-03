@@ -186,7 +186,7 @@ void             func_actor_160900_80134830(void);
 void             func_actor_160900_80134850(void);
 void             func_actor_160900_80134870(void);
 
-void func_actor_160900_801345D0(Task*, s32, s32);
+void func_actor_160900_801345D0(Task*, s32, s32, s32);
 
 static TmdBone _gActor160900KyleMadiganBodySkeleton[20] = {
 #include "assets/kyle_madigan_body_skeleton.inc"
@@ -661,18 +661,10 @@ u8 D_actor_160900_8013F1F8[8] = {
 };
 
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        void (*call0)(Task*, s32, ActorTransform*);
-        void (*call1)(Task*, s32, s32);
-    } handler;
-} Actor160900MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor160900MessageEntry, 8);
 
-Actor160900MessageEntry D_actor_160900_8013F200[2] = {
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call1 = func_actor_160900_801345D0 } },
-    { ACTOR_MESSAGE_PLACE, { .call0 = actorMsgPlaceYawPitchRoll } },
+TaskMessageEntry D_actor_160900_8013F200[2] = {
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_160900_801345D0 },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceYawPitchRoll },
 };
 
 u8 D_actor_160900_8013F210[24] = {
@@ -963,7 +955,7 @@ extern u8 D_actor_160900_8013F1C4[];
 
 extern u8 D_actor_160900_8013F1F8[];
 
-extern Actor160900MessageEntry D_actor_160900_8013F200[2];
+extern TaskMessageEntry D_actor_160900_8013F200[2];
 
 static s32         func_actor_160900_801326EC(Task* arg0);
 static inline void func_actor_160900_Reseed(Task* arg0, u16 anim);
@@ -2036,7 +2028,7 @@ void func_actor_160900_801344D8(Task* arg0)
 /// Message 0x7D5 handler of `D_actor_160900_8013F200`: argument 1 clears the
 /// 0x84 bits of the task's `TmdObject` flags, argument 2 sets them, and any
 /// other value does nothing.
-void func_actor_160900_801345D0(Task* task, s32 arg1, s32 arg2)
+void func_actor_160900_801345D0(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
     TmdObject* extra;
 

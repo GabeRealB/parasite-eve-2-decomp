@@ -28,7 +28,7 @@ void reverseWalkSpawn(Task* arg0);
 void reverseWalkFaceTarget(Task* task);
 void reverseWalkBeginMove(Task* arg0);
 void reverseWalkTurnToYaw(Task* arg0);
-s32  reverseWalkVisibilityMsg(Task* task, s32 arg1, s32 mode);
+s32  reverseWalkVisibilityMsg(Task* task, s32 arg1, s32 mode, s32 arg3);
 
 /* Defined by each package. */
 void reverseWalkIdle(Task* arg0);

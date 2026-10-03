@@ -81,20 +81,8 @@ extern ActorSpawnParamRow D_actor_401000_8013E0AC[3];
 
 /// Animation table `func_actor_401000_80133274` writes to `Task::msgTable`.
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32  (*call0)(Task*);
-        s32  (*call1)(Task*, s32, AnimationPlayRequest*);
-        s32  (*call2)(Task*, s32, ActorTransform*);
-        s32  (*call3)(Task*, s32, s32);
-        s32  (*call4)(Task*, s32, u16*);
-        void (*call5)(void);
-    } handler;
-} Actor401000MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor401000MessageEntry, 8);
 
-extern Actor401000MessageEntry D_actor_401000_80154F90[8];
+extern TaskMessageEntry D_actor_401000_80154F90[8];
 
 /// Overlay-data word `oddStrangerDormant` points
 /// `gOddStrangerAnimSets[16]` at on entering its state.
@@ -1063,18 +1051,18 @@ SVECTOR gOddStrangerHitOffsets[12] = {
     { -25, 0, 0, 2 },
 };
 
-void func_actor_401000_8013D68C(void);
-s32  oddStrangerApplyCommand(Task*, s32, u16*);
+s32 func_actor_401000_8013D68C(Task*, s32, s32, s32);
+s32 oddStrangerApplyCommand(Task*, s32, u16*, s32);
 
-Actor401000MessageEntry D_actor_401000_80154F90[8] = {
-    { 2015, { .call5 = func_actor_401000_8013D68C } },
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = oddStrangerPlayMessage } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = actorMsgSetVisibility } },
-    { ACTOR_MESSAGE_IS_PRESENT, { .call0 = actorMsgIsPresent } },
-    { ACTOR_MESSAGE_PLACE, { .call2 = actorMsgPlaceRecordYaw } },
-    { 2014, { .call0 = actorMsgReleaseHold } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call4 = oddStrangerApplyCommand } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_401000_80154F90[8] = {
+    { 2015, func_actor_401000_8013D68C },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, oddStrangerPlayMessage },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetVisibility },
+    { ACTOR_MESSAGE_IS_PRESENT, actorMsgIsPresent },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceRecordYaw },
+    { 2014, actorMsgReleaseHold },
+    { ACTOR_COMMAND_MESSAGE_APPLY, oddStrangerApplyCommand },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 ActorHeightClamp D_actor_401000_80154FD0[3] = {
@@ -2240,7 +2228,7 @@ static const OddStrangerStateTable gOddStrangerStates = { {
 
 #include "../../shared/odd_stranger_tick.inc.c"
 
-void func_actor_401000_8013D68C(void)
+s32 func_actor_401000_8013D68C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
 }
 

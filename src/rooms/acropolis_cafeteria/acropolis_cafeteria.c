@@ -100,9 +100,9 @@ extern WorldCollisionTrigger  D_acropolis_cafeteria_801896A4[20];
 
 static AnimationSet _gAcropolisCafeteriaAnimation07704;
 s32                 func_acropolis_cafeteria_8017D700(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                 func_acropolis_cafeteria_8017E0D4(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                 func_acropolis_cafeteria_8017E0D4(Task*, s32, s32, s32);
 s32                 func_acropolis_cafeteria_8017E0DC(Task*, s32, s32, s32);
-s32                 func_acropolis_cafeteria_8017E154(Task*, s32, TaskMessageArg firstArg, s32);
+s32                 func_acropolis_cafeteria_8017E154(Task* task, s32 msgId, const void* firstArg, s32);
 s32                 func_acropolis_cafeteria_8017E22C(Task*, s32, s32, s32);
 void                func_acropolis_cafeteria_8017D8F8(Task*);
 void                func_acropolis_cafeteria_8017DD1C(Task*);
@@ -1294,7 +1294,7 @@ void func_acropolis_cafeteria_8017DF68(Task* task)
 }
 
 /// Message handler that accepts its message and does nothing else.
-s32 func_acropolis_cafeteria_8017E0D4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_acropolis_cafeteria_8017E0D4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -1311,9 +1311,9 @@ s32 func_acropolis_cafeteria_8017E0DC(Task* task, s32 msgId, s32 arg2, s32 arg3)
     return 0;
 }
 /// Handler for slot-7 msg `0x13EF`: the directed action selected by `actionId`.
-s32 func_acropolis_cafeteria_8017E154(Task* task, s32 msgId, TaskMessageArg firstArg, s32 arg3)
+s32 func_acropolis_cafeteria_8017E154(Task* task, s32 msgId, const void* firstArg, s32 arg3)
 {
-    const DirectionActionRequest* request = firstArg.pointer;
+    const DirectionActionRequest* request = firstArg;
 
     if (request->actionId == 0) {
         if (D_acropolis_cafeteria_80184164 >= 2 || GameFlag_GetNibble(0) >= 2) {

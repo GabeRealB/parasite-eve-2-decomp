@@ -51,11 +51,11 @@ void func_dryfield_water_tower_801802D8(u8 arg0);
 // Callbacks referenced by the overlay's shared data tables.
 void func_dryfield_water_tower_8017D948(Task*);
 
-s32 func_dryfield_water_tower_8017DCFC(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_water_tower_8017DCFC(Task*, s32, s32, s32);
 
 s32 func_dryfield_water_tower_8017DD04(Task*, s32, s32, s32);
 
-s32 func_dryfield_water_tower_8017DD3C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_water_tower_8017DD3C(Task*, s32, s32, s32);
 
 s32 func_dryfield_water_tower_8017DD44(Task*, s32, s32, s32);
 

@@ -213,13 +213,6 @@ typedef struct ActorShared801511c8Work {
 } ActorShared801511c8Work;
 
 // Typed callback views for the task message dispatcher.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(Task*, s32, ActorCommand* request);
-    } handler;
-} Actor07000RecoveredMsgEntry;
-STATIC_ASSERT_SIZEOF(Actor07000RecoveredMsgEntry, 8);
 
 /// Animation work reached through `Task::work`. `field_2B8`/`field_2BA`/
 /// `field_2BC` are the same (id, id the three helper slots last saw, frames
@@ -303,7 +296,7 @@ static AnimationSet _gActor07000Actor107000Animation07D1C;
 static AnimationSet _gActor07000Actor107000Animation07E64;
 static AnimationSet _gActor07000Actor107000Animation08008;
 static TmdSource    _gActor07000SucklercephBody;
-s32                 Actor07000_Fn05AB8(Task*, s32, ActorCommand* request);
+s32                 Actor07000_Fn05AB8(Task* task, s32 msgId, ActorCommand* request, s32 arg3);
 void                Actor07000_Fn05E6C(Task*);
 void                Actor07000_Fn06338(Task*);
 void                Actor07000_Fn067B4(Task*);
@@ -422,9 +415,9 @@ static AnimationSet _gActor07000Actor107000Animation08008 = {
     { NULL, _gActor07000Actor107000Animation08008Bank1, NULL, NULL, _gActor07000Actor107000Animation08008Bank4, NULL, NULL, NULL },
 };
 
-Actor07000RecoveredMsgEntry gSucklercephDropMsgTable[2] = {
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = sucklercephMessage } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry gSucklercephDropMsgTable[2] = {
+    { ACTOR_COMMAND_MESSAGE_APPLY, sucklercephMessage },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc Actor07000_D08040 = { { { TASK_BODY_TMD, 96 } }, sucklercephTask, { .model = &_gActor07000SucklercephBody } };
@@ -861,9 +854,9 @@ SVECTOR Actor07000_D0D7B0 = { 0, 0, -120, 0 };
 
 SVECTOR Actor07000_D0D7B8 = { 0, -300, 0, 0 };
 
-Actor07000RecoveredMsgEntry Actor07000_D0D7C0[2] = {
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = Actor07000_Fn05AB8 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry Actor07000_D0D7C0[2] = {
+    { ACTOR_COMMAND_MESSAGE_APPLY, Actor07000_Fn05AB8 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc Actor07000_D0D7D0[2] = {
@@ -946,7 +939,7 @@ extern PadScriptCmd Actor07000_D06938[];
 
 extern PadScriptVibrationSegment Actor07000_D06944[];
 
-extern Actor07000RecoveredMsgEntry gSucklercephDropMsgTable[2];
+extern TaskMessageEntry gSucklercephDropMsgTable[2];
 
 /// Animation-set table bound to the caged specimen's context by `animationInitContext`.
 extern AnimationSet* gSucklercephAnimSets[4];
@@ -981,7 +974,7 @@ extern SVECTOR Actor07000_D0D7B0;
 extern SVECTOR Actor07000_D0D7B8;
 
 /// Message dispatch table the second form's spawn parks in `Task::msgTable`.
-extern Actor07000RecoveredMsgEntry Actor07000_D0D7C0[2];
+extern TaskMessageEntry Actor07000_D0D7C0[2];
 
 extern TaskDesc Actor07000_D0D7D0[];
 
@@ -2618,7 +2611,7 @@ static void Actor07000_Fn0595C(Task* arg0)
 /// the model is turned to the spawn point's heading. Low byte 3 is the hide:
 /// the two bits and the pose flag go the other way, both nodes are hidden, the
 /// model's translation and rotation are zeroed, and the task moves to state 4.
-s32 Actor07000_Fn05AB8(Task* arg0, s32 arg1, ActorCommand* request)
+s32 Actor07000_Fn05AB8(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
 {
     Actor107000Spawn2Work* work;
     Enemy*                 enemy;

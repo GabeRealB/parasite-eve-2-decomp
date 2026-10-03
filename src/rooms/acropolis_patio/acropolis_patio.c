@@ -149,11 +149,11 @@ void                        func_acropolis_patio_8017DF48(void);
 void                        func_acropolis_patio_8017DF70(u8);
 
 s32  func_acropolis_patio_8017D7D0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_acropolis_patio_8017DCE4(Task*, s32, s32, TaskMessageArg);
-s32  func_acropolis_patio_8017DD44(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_acropolis_patio_8017DD4C(Task*, s32, s32, TaskMessageArg);
+s32  func_acropolis_patio_8017DCE4(Task*, s32, s32, s32);
+s32  func_acropolis_patio_8017DD44(Task*, s32, s32, s32);
+s32  func_acropolis_patio_8017DD4C(Task*, s32, s32, s32);
 void func_acropolis_patio_8017DA5C(Task*);
-s32  func_acropolis_patio_8017DBAC(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_acropolis_patio_8017DBAC(Task*, s32, const void*, s32);
 void func_acropolis_patio_8017DD80(Task*);
 void func_acropolis_patio_8017DE2C(Task*);
 
@@ -1859,9 +1859,9 @@ void func_acropolis_patio_8017DA5C(Task* task)
     }
 }
 
-s32 func_acropolis_patio_8017DBAC(Task* arg0, s32 arg1, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_acropolis_patio_8017DBAC(Task* arg0, s32 arg1, const void* arg2, s32 arg3)
 {
-    const DirectionActionRequest* request = arg2.pointer;
+    const DirectionActionRequest* request = arg2;
     u8                            state;
 
     if ((request->actionId == 0) && (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < 2)) {
@@ -1882,7 +1882,7 @@ s32 func_acropolis_patio_8017DBAC(Task* arg0, s32 arg1, TaskMessageArg arg2, Tas
     }
     // No result is set; the sender of a room action ignores it.
 }
-s32 func_acropolis_patio_8017DCE4(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_acropolis_patio_8017DCE4(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     s32 var_v0;
 
@@ -1900,12 +1900,12 @@ s32 func_acropolis_patio_8017DCE4(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg
     return var_v0;
 }
 
-s32 func_acropolis_patio_8017DD44(Task* arg0, s32 arg1, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_acropolis_patio_8017DD44(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_acropolis_patio_8017DD4C(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_acropolis_patio_8017DD4C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 3) {
         SndEvt_EnqueueType6(0x51030000 | 3, 0, 0);

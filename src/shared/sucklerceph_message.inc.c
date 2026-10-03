@@ -9,7 +9,7 @@
 /// -0x800..0x800, the model's buffers are allocated and shown, the bodies are
 /// re-armed and the drop begins at the live stage. Mode 3 hides the model,
 /// disarms the bodies, resets the root and returns the task to state 3.
-s32 sucklercephMessage(Task* arg0, s32 arg1, ActorCommand* request)
+s32 sucklercephMessage(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
 {
     SucklercephWork* work;
     Enemy*           enemy;

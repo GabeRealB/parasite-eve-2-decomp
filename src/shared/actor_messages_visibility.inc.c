@@ -4,7 +4,7 @@
 /// rebuilds its buffers, 1 shows it and rebuilds them with the state set to
 /// 0x18, 2 sets `TMD_OBJECT_SKIP_AUTO_BUFFER` on top of the current flags, and
 /// 3 clears every other flag before setting it. All but 1 reset the state to 0.
-s32 actorMsgSetVisibility(Task* task, s32 arg1, s32 arg2)
+s32 actorMsgSetVisibility(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
     TmdObject*      obj;
     ActorStateWork* work;

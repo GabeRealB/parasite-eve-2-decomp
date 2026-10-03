@@ -90,11 +90,11 @@ void func_acropolis_helicopter_landing_pad_8017E270(Task*);
 
 s32 func_acropolis_helicopter_landing_pad_8017E3F0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
-s32 func_acropolis_helicopter_landing_pad_8017E49C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_acropolis_helicopter_landing_pad_8017E49C(Task*, s32, s32, s32);
 
-s32 func_acropolis_helicopter_landing_pad_8017E4A4(Task*, s32, TaskMessageArg firstArg, TaskMessageArg);
+s32 func_acropolis_helicopter_landing_pad_8017E4A4(Task* task, s32 msgId, const void* firstArg, s32 arg3);
 
-s32 func_acropolis_helicopter_landing_pad_8017E570(Task*, s32, s32, TaskMessageArg);
+s32 func_acropolis_helicopter_landing_pad_8017E570(Task*, s32, s32, s32);
 
 void func_acropolis_helicopter_landing_pad_8017E5B8(void);
 

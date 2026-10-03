@@ -100,9 +100,9 @@ extern RoomEventMsg     gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
 s32 func_shelter_b2_south_maintenance_walkway_8017DA7C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_b2_south_maintenance_walkway_8017DC08(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_shelter_b2_south_maintenance_walkway_8017DC10(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_shelter_b2_south_maintenance_walkway_8017DC18(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_b2_south_maintenance_walkway_8017DC08(Task*, s32, s32, s32);
+s32 func_shelter_b2_south_maintenance_walkway_8017DC10(Task*, s32, s32, s32);
+s32 func_shelter_b2_south_maintenance_walkway_8017DC18(Task*, s32, s32, s32);
 
 extern TaskDesc D_80142604;
 
@@ -526,17 +526,17 @@ s32 func_shelter_b2_south_maintenance_walkway_8017DA7C(Task* arg0, s32 arg1, Roo
     return _walkwayStartEvent(out, &event);
 }
 
-s32 func_shelter_b2_south_maintenance_walkway_8017DC08(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b2_south_maintenance_walkway_8017DC08(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b2_south_maintenance_walkway_8017DC10(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b2_south_maintenance_walkway_8017DC10(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b2_south_maintenance_walkway_8017DC18(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b2_south_maintenance_walkway_8017DC18(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

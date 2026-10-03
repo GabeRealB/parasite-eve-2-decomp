@@ -44,27 +44,15 @@ extern AnimationSet** gActorMotionAnimBanks[1];
 /// `reverseWalkSpawn`; terminator id `TASK_MESSAGE_TABLE_END`.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(void);
-        s32 (*call1)(Task*, s32, AnimationPlayRequest*, s32);
-        s32 (*call2)(Task*, s32, ActorCommand* request);
-        s32 (*call3)(Task*, s32, ActorTransform*);
-        s32 (*call4)(Task*, s32, ActorTransform*, ActorMotionWalkAnim*);
-        s32 (*call5)(Task*, s32, s32);
-    } handler;
-} Actor350700MsgEntry;
-STATIC_ASSERT_SIZEOF(Actor350700MsgEntry, 8);
 
-extern Actor350700MsgEntry gReverseWalkMessages[];
+extern TaskMessageEntry gReverseWalkMessages[];
 
 /// The `TaskDesc`s `func_actor_350700_80162B30` spawns its child tasks from,
 /// and the message table it points the parent's `Task::msgTable` at: ids
 /// 0x7D3/0x7D4/0x7D5/0x7DD/0x7DB against the handlers starting
 /// `actorMotionPlayAnim`, terminated by `TASK_MESSAGE_TABLE_END`.
-extern TaskDesc            D_actor_350700_801708DC[];
-extern Actor350700MsgEntry D_actor_350700_8017090C[];
+extern TaskDesc         D_actor_350700_801708DC[];
+extern TaskMessageEntry D_actor_350700_8017090C[];
 
 static void func_actor_350700_80162B30(Task* arg0);
 static void func_actor_350700_80162D5C(Task* arg0);
@@ -131,13 +119,13 @@ static TmdSource _gActor350700KyleMadiganBody;
 static TmdSource _gActor350700KyleMadiganHandRight;
 static TmdSource _gActor350700KyleMadiganHandLeft;
 static TmdSource _gActor350700KyleMadiganGun;
-s32              func_actor_350700_801637C4(Task*, s32, ActorTransform* args, s32 arg3);
-s32              func_actor_350700_80163840(Task*, s32, s32);
-s32              func_actor_350700_8016395C(void);
+s32              func_actor_350700_801637C4(Task* task, s32 msgId, ActorTransform* args, s32 arg3);
+s32              func_actor_350700_80163840(Task*, s32, s32, s32);
+s32              func_actor_350700_8016395C(Task*, s32, s32, s32);
 void             func_actor_350700_80163274(Task*);
 void             func_actor_350700_80163350(Task*);
 
-s32  func_actor_350700_80162AF4(Task*, s32, ActorCommand* msg);
+s32  func_actor_350700_80162AF4(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
 void func_actor_350700_80162398(Task*);
 
 static TmdBone _gActor350700EveBreaMaskedBodySkeleton[19] = {
@@ -274,13 +262,13 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
 
 TaskDesc D_actor_350700_80169D10 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_350700_80162398, { .model = &_gActor350700EveBreaMaskedBody } };
 
-Actor350700MsgEntry gReverseWalkMessages[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = actorMotionPlayAnim19 } },
-    { ACTOR_MESSAGE_PLACE, { .call3 = actorMsgPlaceEuler } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call5 = reverseWalkVisibilityMsg } },
-    { ACTOR_MESSAGE_WALK_TO, { .call4 = reverseWalkStartMsg } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_350700_80162AF4 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry gReverseWalkMessages[6] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, actorMotionPlayAnim19 },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, reverseWalkVisibilityMsg },
+    { ACTOR_MESSAGE_WALK_TO, reverseWalkStartMsg },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_350700_80162AF4 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 static TmdBone _gActor350700KyleMadiganBodySkeleton[20] = {
@@ -541,13 +529,13 @@ TaskDesc D_actor_350700_801708DC[4] = {
     { { { TASK_BODY_TMD, 192 } }, func_actor_350700_80163274, { .model = &_gActor350700KyleMadiganGun } },
 };
 
-Actor350700MsgEntry D_actor_350700_8017090C[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = actorMotionPlayAnim } },
-    { ACTOR_MESSAGE_PLACE, { .call3 = func_actor_350700_801637C4 } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call5 = func_actor_350700_80163840 } },
-    { ACTOR_MESSAGE_WALK_TO, { .call4 = actorMotionStartWalk } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_350700_8016395C } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_350700_8017090C[6] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, actorMotionPlayAnim },
+    { ACTOR_MESSAGE_PLACE, func_actor_350700_801637C4 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_350700_80163840 },
+    { ACTOR_MESSAGE_WALK_TO, actorMotionStartWalk },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_350700_8016395C },
+    { TASK_MESSAGE_TABLE_END, NULL },
 }; /// Per-frame tick of the enemy actor: dispatches through the local two-entry table
 #include "../../shared/reversing_walker_update.inc.c"
 
@@ -622,7 +610,7 @@ void reverseWalkRunStep(Task* arg0)
 /// `taskMessageDispatch` handler: latches the variant the message's halfword at
 /// 0x2 selects into `field_4C4` -- 1 clears it, 2 sets it, anything else
 /// leaves it. Always returns 0.
-s32 func_actor_350700_80162AF4(Task* task, s32 arg1, ActorCommand* msg)
+s32 func_actor_350700_80162AF4(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
 {
     Actor350500Work* work;
 
@@ -903,7 +891,7 @@ static void func_actor_350700_80163528(Task* task)
 /// `child2`. The modes are those of `reverseWalkVisibilityMsg`, the
 /// countdown mode 2 latches being `freeCountdown`. Anything else returns 1 and
 /// leaves the object alone; the handled modes return 0.
-s32 func_actor_350700_80163840(Task* task, s32 arg1, s32 mode)
+s32 func_actor_350700_80163840(Task* task, s32 arg1, s32 mode, s32 arg3)
 {
     Actor135600Work* work;
     TmdObject*       obj;
@@ -951,7 +939,7 @@ s32 func_actor_350700_80163840(Task* task, s32 arg1, s32 mode)
 
 /// Message handler that accepts its message and does nothing with it:
 /// returns 0.
-s32 func_actor_350700_8016395C(void)
+s32 func_actor_350700_8016395C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

@@ -72,8 +72,8 @@ extern EvsCommand D_neo_ark_submarine_tunnel_80181AF0[];
 static void func_neo_ark_submarine_tunnel_8017F3BC(Task* arg0);
 static void func_neo_ark_submarine_tunnel_8017F414(Task* task);
 
-s32 func_neo_ark_submarine_tunnel_8017F064(Task*, s32, RoomEventMsg*, TaskMessageArg);
-s32 func_neo_ark_submarine_tunnel_8017F27C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_neo_ark_submarine_tunnel_8017F064(Task*, s32, RoomEventMsg*, s32);
+s32 func_neo_ark_submarine_tunnel_8017F27C(Task*, s32, s32, s32);
 s32 func_neo_ark_submarine_tunnel_8017F284(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_neo_ark_submarine_tunnel_8017F2C8(Task*, s32, s32, s32);
 
@@ -220,7 +220,7 @@ static const TaskFuncTable3 D_neo_ark_submarine_tunnel_8017D614 = {
 
 #include "../../shared/screen_wave.inc.c"
 
-s32 func_neo_ark_submarine_tunnel_8017F064(Task* arg0, s32 arg1, RoomEventMsg* arg2, TaskMessageArg arg3)
+s32 func_neo_ark_submarine_tunnel_8017F064(Task* arg0, s32 arg1, RoomEventMsg* arg2, s32 arg3)
 {
     u8 temp_s0;
     u8 temp_s0_2;
@@ -263,7 +263,7 @@ s32 func_neo_ark_submarine_tunnel_8017F064(Task* arg0, s32 arg1, RoomEventMsg* a
 }
 
 /// Answers 0 unconditionally.
-s32 func_neo_ark_submarine_tunnel_8017F27C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_neo_ark_submarine_tunnel_8017F27C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

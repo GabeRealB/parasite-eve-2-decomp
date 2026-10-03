@@ -74,21 +74,10 @@ extern EvsCommand D_actor_260400_8014D340[];
 extern EvsCommand D_actor_260400_8014D4A8[];
 extern EvsCommand D_actor_260400_8014D610[];
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call1)(Task*, s32, ActorCommand* request);
-        s32 (*call2)(Task*, s32, ActorTransform*);
-        s32 (*call3)(Task*, s32, VECTOR*, s32);
-        s32 (*call4)(Task*, s32, s32);
-    } handler;
-} Actor260400MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor260400MessageEntry, 8);
 
-extern Actor260400MessageEntry D_actor_260400_80154BE8[6];
-extern TaskDesc                D_actor_260400_80154C18[];
-extern u8                      D_actor_260400_80154C30[];
+extern TaskMessageEntry D_actor_260400_80154BE8[6];
+extern TaskDesc         D_actor_260400_80154C18[];
+extern u8               D_actor_260400_80154C30[];
 
 /// Reset argument the blended reseed forwards: the play-animation handler
 /// latches the preset's `field_C` here, and the update sets it to 10 when a
@@ -118,9 +107,9 @@ static TmdSource _gActor260400RupertBroderickHurtBody;
 void             func_actor_260400_8014A550(Task*);
 void             func_actor_260400_8014A6F8(Task*);
 
-s32 func_actor_260400_8014A908(Task*, s32, AnimationPlayRequest*);
-s32 func_actor_260400_8014A998(Task*, s32, s32);
-s32 func_actor_260400_8014AAA4(Task*, s32, ActorCommand* msg);
+s32 func_actor_260400_8014A908(Task*, s32, AnimationPlayRequest*, s32);
+s32 func_actor_260400_8014A998(Task*, s32, s32, s32);
+s32 func_actor_260400_8014AAA4(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
 
 extern AnimationPlayRequest D_actor_260400_8014C4D8;
 extern AnimationPlayRequest D_actor_260400_8014C4EC;
@@ -882,13 +871,13 @@ static TmdSource _gActor260400RupertBroderickHurtBody = {
 
 s16 gScriptedWalkBlendFrames = 8;
 
-Actor260400MessageEntry D_actor_260400_80154BE8[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = func_actor_260400_8014A908 } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = func_actor_260400_8014A998 } },
-    { ACTOR_MESSAGE_PLACE, { .call2 = scriptedWalkPlace } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_260400_8014AAA4 } },
-    { ACTOR_MESSAGE_WALK_TO, { .call3 = scriptedWalkTo } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_260400_80154BE8[6] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_260400_8014A908 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_260400_8014A998 },
+    { ACTOR_MESSAGE_PLACE, scriptedWalkPlace },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_260400_8014AAA4 },
+    { ACTOR_MESSAGE_WALK_TO, scriptedWalkTo },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_actor_260400_80154C18[2] = {
@@ -1156,7 +1145,7 @@ void func_actor_260400_8014A6F8(Task* task)
 /// 2 for the plain one -- and the reset argument the blended reseed forwards,
 /// then runs the update on the actor's task. Ids past the range are rejected
 /// with -1 and leave the work block untouched.
-s32 func_actor_260400_8014A908(Task* task, s32 arg1, AnimationPlayRequest* preset)
+s32 func_actor_260400_8014A908(Task* task, s32 arg1, AnimationPlayRequest* preset, s32 arg3)
 {
     if (preset->animationId < 0x10) {
         gScriptedWalkWork->st.animId = preset->animationId;
@@ -1177,7 +1166,7 @@ s32 func_actor_260400_8014A908(Task* task, s32 arg1, AnimationPlayRequest* prese
 /// helper's model (flags 0) or hides them (0x80), and bit 1 ORs in 0x4. Until
 /// message 0x7DB has enabled the helper (`helperShown`), its model is kept
 /// hidden at 0x84 whatever the mask says.
-s32 func_actor_260400_8014A998(Task* task, s32 arg1, s32 arg2)
+s32 func_actor_260400_8014A998(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
     TmdObject* obj;
     TmdObject* helperObj;
@@ -1208,7 +1197,7 @@ s32 func_actor_260400_8014A998(Task* task, s32 arg1, s32 arg2)
 /// starts a turn of 0x14 steps; case 1 enables and shows the helper's model,
 /// but only while `func_800B7420(0x88)` returns 0; case 2 disables it and
 /// hides the model again (flags 0x84).
-s32 func_actor_260400_8014AAA4(Task* task, s32 arg1, ActorCommand* msg)
+s32 func_actor_260400_8014AAA4(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
 {
     TmdObject* obj;
     s32        mode;

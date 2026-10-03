@@ -2,7 +2,7 @@
 
 /// Message 2004: places the model like actorMsgPlace, then stores the resulting
 /// heading (from the root matrix's Z axis) in the work block's yaw. Returns 1.
-s32 actorMsgPlaceRecordYaw(Task* task, s32 arg1, ActorTransform* placement)
+s32 actorMsgPlaceRecordYaw(Task* task, s32 arg1, ActorTransform* placement, s32 arg3)
 {
     GfxCoord*     coord;
     s32           mx;

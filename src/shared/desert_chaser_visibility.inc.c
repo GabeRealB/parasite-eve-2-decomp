@@ -5,7 +5,7 @@
 /// alone), rebuilds the buffers and restarts state 0; 1 clears the flags,
 /// showing it, rebuilds and starts state 2; 2 raises `TMD_OBJECT_SKIP_AUTO_BUFFER` over the current
 /// flags and 3 replaces them with it, both restarting state 0.
-s32 desertChaserSetVisibility(Task* task, s32 arg1, s32 arg2)
+s32 desertChaserSetVisibility(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
     TmdObject*        obj;
     DesertChaserWork* work;

@@ -202,21 +202,11 @@ extern s16 D_actor_341900_801639D0[];
 /// message 0x7D4 (states 3 and 4), and to `field_8` (states 1 and 2).
 extern ActorTransform D_actor_341900_801639D8[2];
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        void (*call0)(void);
-        void (*call1)(Task*, s32, Actor341900AnimCmd*);
-        void (*call2)(Task*, s32, ActorTransform*);
-        void (*call3)(Task*, s32, s32);
-    } handler;
-} Actor341900MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor341900MessageEntry, 8);
 
-extern Actor341900MessageEntry D_actor_341900_80163A38[2];
-extern ActorTransform          D_actor_341900_80163A48;
-extern ActorTransform          D_actor_341900_80163A60;
-extern Actor341900MessageEntry D_actor_341900_80163A78[4];
+extern TaskMessageEntry D_actor_341900_80163A38[2];
+extern ActorTransform   D_actor_341900_80163A48;
+extern ActorTransform   D_actor_341900_80163A60;
+extern TaskMessageEntry D_actor_341900_80163A78[4];
 /// Slot-3 placements and payloads sent by `func_actor_341900_801628B8`;
 /// `func_actor_341900_801635A4` also warps slot 3 to the last one.
 extern ActorTransform D_actor_341900_80163AC8;
@@ -251,8 +241,8 @@ void               func_actor_341900_80163638(void);
 void               func_actor_341900_80163658(void);
 void               func_actor_341900_80163678(void);
 
-void func_actor_341900_80161FD0(Task*, s32, Actor341900AnimCmd*);
-void func_actor_341900_8016332C(void);
+s32 func_actor_341900_80161FD0(Task*, s32, Actor341900AnimCmd*, s32);
+s32 func_actor_341900_8016332C(Task*, s32, s32, s32);
 
 static AnimationPackedPose _gActor341900Animation01B5CBank1[6] = {
 #include "assets/actor_341900_animation_01B5C_bank1.inc"
@@ -316,20 +306,20 @@ ActorTransform D_actor_341900_80163A08[2] = {
     { { -60, 150, 0, 0 }, { 0, 0, 0, 0 } },
 };
 
-Actor341900MessageEntry D_actor_341900_80163A38[2] = {
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = actorMsgSetDrawMode } },
-    { ACTOR_MESSAGE_PLACE, { .call2 = actorMsgPlaceYawPitchRoll } },
+TaskMessageEntry D_actor_341900_80163A38[2] = {
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetDrawMode },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceYawPitchRoll },
 };
 
 ActorTransform D_actor_341900_80163A48 = { { -5000, 0, -2450, 0 }, { 0, 1024, 0, 0 } };
 
 ActorTransform D_actor_341900_80163A60 = { { -3000, 0, -2450, 0 }, { 0, 1024, 0, 0 } };
 
-Actor341900MessageEntry D_actor_341900_80163A78[4] = {
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = actorMsgSetDrawMode } },
-    { ACTOR_MESSAGE_PLACE, { .call2 = actorMsgPlaceYawPitchRoll } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_341900_8016332C } },
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = func_actor_341900_80161FD0 } },
+TaskMessageEntry D_actor_341900_80163A78[4] = {
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetDrawMode },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceYawPitchRoll },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_341900_8016332C },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_341900_80161FD0 },
 };
 
 Actor341900SpawnPos D_actor_341900_80163A98[6] = {
@@ -517,7 +507,7 @@ static inline void Actor341900_SetAnim(Task* task, u16 anim, u16 blend, u16 n)
 
 /// Records an animation command in the work block and applies it to the
 /// actor and both of its child tasks.
-void func_actor_341900_80161FD0(Task* arg0, s32 arg1, Actor341900AnimCmd* cmd)
+s32 func_actor_341900_80161FD0(Task* arg0, s32 arg1, Actor341900AnimCmd* cmd, s32 arg3)
 {
     Actor341900AnimWork* work;
 
@@ -1029,7 +1019,7 @@ void func_actor_341900_80163148(Task* arg0)
 #include "../../shared/actor_messages_place_ypr.inc.c"
 
 /// Message 0x7DB handler of the actor's second message table; ignores it.
-void func_actor_341900_8016332C(void)
+s32 func_actor_341900_8016332C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
 }
 

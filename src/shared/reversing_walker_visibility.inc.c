@@ -8,7 +8,7 @@
 /// `freeCountdown` countdown, which frees the buffers when it runs out; 3 clears
 /// 0x80 and sets `TMD_OBJECT_SKIP_AUTO_BUFFER`. Anything else returns 1 and leaves the object alone; the
 /// handled modes return 0.
-s32 reverseWalkVisibilityMsg(Task* task, s32 arg1, s32 mode)
+s32 reverseWalkVisibilityMsg(Task* task, s32 arg1, s32 mode, s32 arg3)
 {
     TmdObject* obj;
     s32        ret;

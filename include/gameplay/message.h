@@ -102,11 +102,10 @@ struct GfxCoord;
 /// `pointer` transports arbitrary object addresses without changing their bits;
 /// its const qualification does not describe the receiver's write permission.
 /// The typed views identify command, room-transition, animation and actor-motion
-/// payloads. Keep the exact pointer types used by installed callbacks here:
-/// GCC's transparent-union function compatibility requires a matching member
-/// type, even when `pointer` can transport the same address. This union is one
-/// four-byte PS1 argument word, not the payload record itself. Keep `value`
-/// first to use the integer calling convention for every argument view.
+/// payloads. This union is one four-byte PS1 argument word, not the payload
+/// record itself. It is the stored form of a payload word, as an event script
+/// command keeps it; message handlers declare their payload parameters with
+/// the type they read.
 typedef union {
     s32                                    value;             // Integer argument or the complete transported address bits
     const void*                            pointer;           // Generic borrowed object address for transport
@@ -121,22 +120,30 @@ typedef union {
     struct GameActorStairClimb*            stairClimb;        // Borrowed stair direction and step count
     struct GameActorMoveAnim*              moveAnimation;     // Optional borrowed approach and arrival clips
     struct GfxCoord*                       parentCoord;       // Borrowed model-parent coordinate
-} TaskMessageArg __attribute__((transparent_union));
+} TaskMessageArg;
 STATIC_ASSERT_SIZEOF(TaskMessageArg, 4);
 
 /// A synchronous task-message callback receiving an ID and two argument words.
 ///
 /// `task` is the live receiver. `messageId` selects the meaning of `firstArg`
 /// and `secondArg`, including each pointer's payload type and write permission.
-/// Object arguments borrow storage with the lifetime required by `TaskMessageArg`;
+/// Object arguments borrow their storage for the duration of the dispatch;
 /// the callback must copy any transient data it needs after dispatch returns.
 /// The signed result is message-specific and is forwarded unchanged to the
 /// sender; zero is not a universal success or failure code.
 ///
-/// Callbacks retain all four PS1 argument-register positions and an `s32` return.
-/// The transparent argument union also permits declarations using its member
-/// types in either payload position under GCC's function-type compatibility rules.
-typedef s32 (*TaskMessageHandler)(Task* task, s32 messageId, TaskMessageArg firstArg, TaskMessageArg secondArg);
+/// The type is unprototyped: a table accepts any function, and each handler
+/// declares its two payload parameters with the types its messages carry, an
+/// `s32` where a word is an integer or unused. What every handler shares is
+/// what `taskMessageDispatch` passes -
+///
+///     s32 handler(Task* task, s32 messageId, <first payload>, <second payload>)
+///
+/// - and `tools/refactor/check_message_handlers.py` checks that shape, since
+/// the compiler cannot. A few handlers return `void` because they only match
+/// that way; dispatch then forwards whatever the result register holds, so no
+/// sender may read a result from the messages they serve.
+typedef s32 (*TaskMessageHandler)();
 
 /// Reserved message ID marking the end of a task-message table.
 ///
@@ -172,7 +179,7 @@ enum {
 /// and receiver select the argument interpretations and signed result; the
 /// entry itself owns no payload storage. Each record is eight bytes, aligned
 /// to four bytes, with one signed ID word followed by one callback address.
-typedef struct {
+typedef struct TaskMessageEntry {
     s32                messageId; // Receiver-specific ID, or TASK_MESSAGE_TABLE_END
     TaskMessageHandler handler;   // Callback for this ID (NULL only at the end marker)
 } TaskMessageEntry;

@@ -97,7 +97,7 @@ extern Task* D_actor_342100_80164BB8;
 /// Single-entry spawn table `func_actor_342100_80163454` starts as entry 3.
 extern TaskDesc D_actor_342100_80164B78[];
 
-s32 func_actor_342100_80163344(Task* arg0, s32 arg1, TaskMessageArg arg2, TaskMessageArg arg3);
+s32 func_actor_342100_80163344(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 void func_actor_342100_8016334C(s32 arg0);
 
@@ -698,9 +698,9 @@ void func_actor_342100_801630A4(Task* arg0)
     }
 }
 
-s32 func_actor_342100_80163344(Task* arg0, s32 arg1, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_actor_342100_80163344(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    arg0->state = arg2.value;
+    arg0->state = arg2;
     // Senders discard the result; this callback leaves the return word unspecified.
 }
 

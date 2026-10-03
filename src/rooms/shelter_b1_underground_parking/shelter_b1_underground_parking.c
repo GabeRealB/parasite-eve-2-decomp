@@ -378,11 +378,11 @@ extern WorldCollisionTrigger      D_shelter_b1_underground_parking_8018CE34[16];
 extern WorldCollisionTrigger      D_shelter_b1_underground_parking_8018D2F4[11];
 extern WorldCoordRoomAmbientEntry D_shelter_b1_underground_parking_8018D638[25];
 extern WorldCoordRoomLights       D_shelter_b1_underground_parking_8018B07C[1];
-s32                               func_shelter_b1_underground_parking_80182830(Task*, s32, RoomEventMsg*, TaskMessageArg);
+s32                               func_shelter_b1_underground_parking_80182830(Task*, s32, RoomEventMsg*, s32);
 s32                               func_shelter_b1_underground_parking_80182A60(Task*, s32, s32, s32);
-s32                               func_shelter_b1_underground_parking_80183284(Task*, s32, s32, TaskMessageArg);
+s32                               func_shelter_b1_underground_parking_80183284(Task*, s32, s32, s32);
 s32                               func_shelter_b1_underground_parking_80183360(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                               func_shelter_b1_underground_parking_801833DC(Task*, s32, s32, TaskMessageArg);
+s32                               func_shelter_b1_underground_parking_801833DC(Task*, s32, s32, s32);
 void                              func_shelter_b1_underground_parking_80182DB4(Task*);
 void                              func_shelter_b1_underground_parking_80182FC8(Task*);
 void                              func_shelter_b1_underground_parking_801834D4(Task*);
@@ -1723,7 +1723,7 @@ static const TaskFuncTable3 D_shelter_b1_underground_parking_8017D7F4 = {
 /// Room event handler keyed on `msg->field_2`: 1 calls `func_80131E38` in
 /// place 0x15, 0xA starts caption slot 0xA and sets nibble 0x1B4 to 2 while
 /// the room is below 7, and 0xB / 0xC pick a caption or spawn per room.
-s32 func_shelter_b1_underground_parking_80182830(Task* task, s32 msgId, RoomEventMsg* msg, TaskMessageArg arg3)
+s32 func_shelter_b1_underground_parking_80182830(Task* task, s32 msgId, RoomEventMsg* msg, s32 arg3)
 {
     if (msg->warp == 1 && gGameSession->location.loc.variant == 0x15) {
         func_80131E38();
@@ -2028,7 +2028,7 @@ static const TaskFuncTable8 D_shelter_b1_underground_parking_8017D9A4 = {
 
 #include "../../shared/room_cutscene_sound_task.inc.c"
 
-s32 func_shelter_b1_underground_parking_80183284(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_shelter_b1_underground_parking_80183284(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     WorldCollisionTrigger* node;
     s32                    found;
@@ -2069,7 +2069,7 @@ s32 func_shelter_b1_underground_parking_80183360(Task* arg0, s32 arg1, RoomEvent
     return 2;
 }
 
-s32 func_shelter_b1_underground_parking_801833DC(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_shelter_b1_underground_parking_801833DC(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 0x63) {
         SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, 0x10), 0, 0);

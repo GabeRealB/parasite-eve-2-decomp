@@ -50,9 +50,9 @@ extern TaskMessageEntry D_neo_ark_woodland_path_80181650[];
 
 extern Task* D_neo_ark_woodland_path_80181680;
 
-s32 func_neo_ark_woodland_path_8017E888(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_neo_ark_woodland_path_8017E888(Task*, s32, s32, s32);
 s32 func_neo_ark_woodland_path_8017E890(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_neo_ark_woodland_path_8017E8D4(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_neo_ark_woodland_path_8017E8D4(Task*, s32, s32, s32);
 s32 func_neo_ark_woodland_path_8017E8DC(Task*, s32, s32, s32);
 s32 func_neo_ark_woodland_path_8017E910(Task*, s32, s32, s32);
 
@@ -766,7 +766,7 @@ static void func_neo_ark_woodland_path_8017E9A8(Task* task);
 
 #include "../../shared/water_distort_band_task.inc.c"
 
-s32 func_neo_ark_woodland_path_8017E888(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_neo_ark_woodland_path_8017E888(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -781,7 +781,7 @@ s32 func_neo_ark_woodland_path_8017E890(Task* arg0, s32 arg1, RoomEventMsg* in, 
     return 1;
 }
 
-s32 func_neo_ark_woodland_path_8017E8D4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_neo_ark_woodland_path_8017E8D4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

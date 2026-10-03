@@ -45,8 +45,8 @@ static const TaskFuncTable3 D_dryfield_toilet_8017D5C4 = {
     { func_dryfield_toilet_8017D940, func_dryfield_toilet_8017D9D4, taskKill },
 };
 
-s32 func_dryfield_toilet_8017D8B8(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_dryfield_toilet_8017D8C0(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_toilet_8017D8B8(Task*, s32, s32, s32);
+s32 func_dryfield_toilet_8017D8C0(Task*, s32, s32, s32);
 s32 func_dryfield_toilet_8017D8C8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
 TaskMessageEntry D_dryfield_toilet_801802A4[6] = {
@@ -168,12 +168,12 @@ static void func_dryfield_toilet_8017D5E4(void)
 
 #include "../../shared/toilet_sound_msg.inc.c"
 
-s32 func_dryfield_toilet_8017D8B8(Task* task, s32 messageId, TaskMessageArg firstArg, TaskMessageArg secondArg)
+s32 func_dryfield_toilet_8017D8B8(Task* task, s32 messageId, s32 firstArg, s32 secondArg)
 {
     return 0;
 }
 
-s32 func_dryfield_toilet_8017D8C0(Task* task, s32 messageId, TaskMessageArg firstArg, TaskMessageArg secondArg)
+s32 func_dryfield_toilet_8017D8C0(Task* task, s32 messageId, s32 firstArg, s32 secondArg)
 {
     return 0;
 }

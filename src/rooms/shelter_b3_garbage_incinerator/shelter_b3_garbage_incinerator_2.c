@@ -106,29 +106,8 @@ STATIC_ASSERT_SIZEOF(_ShelterB3GarbageIncineratorLiftWork, 0x68);
 
 extern ActorTransform D_shelter_b3_garbage_incinerator_80185B58[2];
 
-/// One row of the incinerator lift task's message table.
-///
-/// A row is a receiver-specific message id and the callback that handles it.
-/// The lift installs its table in `Task::msgTable` when it sets up. The table
-/// has no `TASK_MESSAGE_TABLE_END` row, so the lift may be sent only the three
-/// ids it holds: it places and shows its own model with the first two, and the
-/// room's task forwards the third when an actor reports event 0. No callback
-/// here produces a result, so a sender must not read one; that is what keeps
-/// the row apart from `TaskMessageEntry`. The handler views are the callback
-/// signatures stored here; dispatch still passes each argument in a word
-/// register.
-typedef struct {
-    s32 messageId;                                                           // Receiver-specific id; the table has no end marker
-    union {
-        void (*setDrawMode)(Task* task, s32 messageId, s32 mode);            // ACTOR_MESSAGE_SET_MODEL_DRAW
-        void (*place)(Task* task, s32 messageId, ActorTransform* placement); // ACTOR_MESSAGE_PLACE
-        void (*actorEvent)(Task* task);                                      // ROOM_MESSAGE_ACTOR_EVENT; the event argument is not read
-    } handler;                                                               // Callback for messageId
-} _ShelterB3GarbageIncineratorLiftMessageEntry;
-STATIC_ASSERT_SIZEOF(_ShelterB3GarbageIncineratorLiftMessageEntry, 8);
-
-extern _ShelterB3GarbageIncineratorLiftMessageEntry D_shelter_b3_garbage_incinerator_80185B40[3];
-extern ActorTransform                               D_shelter_b3_garbage_incinerator_80185B88;
+extern TaskMessageEntry D_shelter_b3_garbage_incinerator_80185B40[3];
+extern ActorTransform   D_shelter_b3_garbage_incinerator_80185B88;
 
 /// Main-executable global with no module header yet: the remaining-enemy count.
 
@@ -207,9 +186,9 @@ static TaskDesc CapCaption_Data_80154508;
 
 void func_shelter_b3_garbage_incinerator_8017DCD4(Task*);
 void func_shelter_b3_garbage_incinerator_8017E158(Task*);
-void func_shelter_b3_garbage_incinerator_8017E7A4(Task*);
+s32  func_shelter_b3_garbage_incinerator_8017E7A4(Task*, s32, s32, s32);
 void func_shelter_b3_garbage_incinerator_8017F6D8(Task*);
-s32  func_shelter_b3_garbage_incinerator_8017F8A4(Task* arg0, s32 arg1, TaskMessageArg arg2, TaskMessageArg arg3);
+s32  func_shelter_b3_garbage_incinerator_8017F8A4(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_shelter_b3_garbage_incinerator_8017F8AC(s32);
 void func_shelter_b3_garbage_incinerator_8017F930(s32);
 void func_shelter_b3_garbage_incinerator_8017F968(void);
@@ -250,10 +229,10 @@ static TmdSource _gShelterB3GarbageIncineratorModel081E4 = {
     _gShelterB3GarbageIncineratorModel081E4Stream,
 };
 
-_ShelterB3GarbageIncineratorLiftMessageEntry D_shelter_b3_garbage_incinerator_80185B40[3] = {
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .setDrawMode = actorMsgSetDrawMode } },
-    { ACTOR_MESSAGE_PLACE, { .place = actorMsgPlaceInView } },
-    { ROOM_MESSAGE_ACTOR_EVENT, { .actorEvent = func_shelter_b3_garbage_incinerator_8017E7A4 } },
+TaskMessageEntry D_shelter_b3_garbage_incinerator_80185B40[3] = {
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetDrawMode },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceInView },
+    { ROOM_MESSAGE_ACTOR_EVENT, func_shelter_b3_garbage_incinerator_8017E7A4 },
 };
 
 ActorTransform D_shelter_b3_garbage_incinerator_80185B58[2] = {
@@ -975,7 +954,7 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
 
 #include "../../shared/actor_messages_place_in_view.inc.c"
 
-void func_shelter_b3_garbage_incinerator_8017E7A4(Task* arg0)
+s32 func_shelter_b3_garbage_incinerator_8017E7A4(Task* arg0, s32 msgId, s32 arg2, s32 arg3)
 {
     func_shelter_b3_garbage_incinerator_80185220();
     arg0->state = 5;
@@ -1132,9 +1111,9 @@ void func_shelter_b3_garbage_incinerator_8017F6D8(Task* arg0)
     arg0->state++;
 }
 
-s32 func_shelter_b3_garbage_incinerator_8017F8A4(Task* arg0, s32 arg1, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b3_garbage_incinerator_8017F8A4(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    arg0->state = arg2.value;
+    arg0->state = arg2;
     // Senders discard the result; this callback leaves the return word unspecified.
 }
 

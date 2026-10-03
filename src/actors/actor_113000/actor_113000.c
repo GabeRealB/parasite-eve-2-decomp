@@ -66,18 +66,8 @@ STATIC_ASSERT_SIZEOF(Actor113000Work, 0x4CC);
 /// Message dispatch table the spawn handler parks in `Task::msgTable`:
 /// message id / handler pairs, terminated by `TASK_MESSAGE_TABLE_END` and a null word.
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32                (*call0)(Task*, s32, AnimationPlayRequest*, s32);
-        s32                (*call1)(Task*, s32, ActorTransform*);
-        s32                (*call2)(Task*, s32, s32);
-        TaskMessageHandler call3;
-    } handler;
-} Actor113000MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor113000MessageEntry, 8);
 
-extern Actor113000MessageEntry D_actor_113000_8013ABC0[5];
+extern TaskMessageEntry D_actor_113000_8013ABC0[5];
 
 static void func_actor_113000_80131F90(Task* task);
 static void func_actor_113000_80132070(Task* task);
@@ -102,7 +92,7 @@ static AnimationSet _gActor113000Animation080E4;
 static TmdSource    _gActor113000RupertBroderickHurtBody;
 s32                 func_actor_113000_80132208(Task*, s32, AnimationPlayRequest*, s32);
 s32                 func_actor_113000_80132398(Task*, s32, s32, s32);
-s32                 func_actor_113000_80132474(Task*, s32, s32);
+s32                 func_actor_113000_80132474(Task*, s32, s32, s32);
 void                func_actor_113000_80131F38(Task*);
 
 static TmdBone _gActor113000RupertBroderickHurtBodySkeleton[20] = {
@@ -1123,12 +1113,12 @@ AnimationSet** D_actor_113000_8013ABB0[1] = {
 
 TaskDesc D_actor_113000_8013ABB4 = { { { TASK_BODY_TMD, 192 } }, func_actor_113000_80131F38, { .model = &_gActor113000RupertBroderickHurtBody } };
 
-Actor113000MessageEntry D_actor_113000_8013ABC0[5] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = func_actor_113000_80132208 } },
-    { ACTOR_MESSAGE_PLACE, { .call1 = actorMsgPlaceEuler } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = func_actor_113000_80132398 } },
-    { 2016, { .call2 = func_actor_113000_80132474 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_113000_8013ABC0[5] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_113000_80132208 },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_113000_80132398 },
+    { 2016, func_actor_113000_80132474 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 }; /// Texture-upload state: runs the countdown at `field_4C2` down one a frame
 
 static void func_actor_113000_80131E30(Task* arg0);
@@ -1374,7 +1364,7 @@ s32 func_actor_113000_80132398(Task* task, s32 arg1, s32 mode, s32 arg3)
 /// first. Any other mode leaves the image NULL and returns 0.
 /// The mode-1 case is written first because the compiler lays the case bodies
 /// out in source order and that is the order the retail image has them in.
-s32 func_actor_113000_80132474(Task* arg0, s32 arg1, s32 mode)
+s32 func_actor_113000_80132474(Task* arg0, s32 arg1, s32 mode, s32 arg3)
 {
     RECT            rect;
     GpuImageUpload* uploadList;

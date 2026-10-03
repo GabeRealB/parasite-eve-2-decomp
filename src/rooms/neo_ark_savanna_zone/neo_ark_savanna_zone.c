@@ -76,9 +76,9 @@ extern WorldCoordRoomAmbientEntry D_neo_ark_savanna_zone_80180908[5];
 extern WorldCoordRoomLights       D_neo_ark_savanna_zone_801804D4[1];
 extern TaskDesc                   D_8014D8A4;
 s32                               func_neo_ark_savanna_zone_8017D77C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                               func_neo_ark_savanna_zone_8017D8F0(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                               func_neo_ark_savanna_zone_8017D8F8(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                               func_neo_ark_savanna_zone_8017D900(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                               func_neo_ark_savanna_zone_8017D8F0(Task*, s32, s32, s32);
+s32                               func_neo_ark_savanna_zone_8017D8F8(Task*, s32, s32, s32);
+s32                               func_neo_ark_savanna_zone_8017D900(Task*, s32, s32, s32);
 
 TaskDesc D_neo_ark_savanna_zone_8017F9A0 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
@@ -477,17 +477,17 @@ message15:
     return 1;
 }
 
-s32 func_neo_ark_savanna_zone_8017D8F0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_neo_ark_savanna_zone_8017D8F0(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_neo_ark_savanna_zone_8017D8F8(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_neo_ark_savanna_zone_8017D8F8(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_neo_ark_savanna_zone_8017D900(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_neo_ark_savanna_zone_8017D900(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

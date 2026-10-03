@@ -275,10 +275,10 @@ extern WorldCoordSpotLight  D_mine_mesa_80188AC8[1];
 s32                         func_mine_mesa_80181800(Task*, s32, s32, s32);
 void                        func_mine_mesa_80181894(Task*);
 
-s32 func_mine_mesa_8017D8F0(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_mine_mesa_8017D8F0(Task*, s32, s32, s32);
 s32 func_mine_mesa_8017D8F8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_mine_mesa_8017DA7C(Task*, s32, s32, TaskMessageArg);
-s32 func_mine_mesa_8017DABC(Task*, s32, TaskMessageArg firstArg, s32);
+s32 func_mine_mesa_8017DA7C(Task*, s32, s32, s32);
+s32 func_mine_mesa_8017DABC(Task* task, s32 msgId, const void* firstArg, s32);
 s32 func_mine_mesa_8017DBC4(Task*, s32, s32, s32);
 
 TaskDesc D_mine_mesa_801818F8 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
@@ -2592,7 +2592,7 @@ static void func_mine_mesa_8017D808(Task* task)
     }
 }
 
-s32 func_mine_mesa_8017D8F0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_mine_mesa_8017D8F0(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -2644,7 +2644,7 @@ s32 func_mine_mesa_8017D8F8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg
     return MineMesa_StartEvent(out, &event);
 }
 
-s32 func_mine_mesa_8017DA7C(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_mine_mesa_8017DA7C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 0xD) {
         Gp_RunCapCmd1(GameFlag_GetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_PROGRESS) >= 2 ? 0xD : 0xC);
@@ -2652,9 +2652,9 @@ s32 func_mine_mesa_8017DA7C(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
     return 0;
 }
 
-s32 func_mine_mesa_8017DABC(Task* task, s32 msgId, TaskMessageArg firstArg, s32 arg3)
+s32 func_mine_mesa_8017DABC(Task* task, s32 msgId, const void* firstArg, s32 arg3)
 {
-    const DirectionActionRequest* msg = firstArg.pointer;
+    const DirectionActionRequest* msg = firstArg;
 
     switch (msg->actionId) {
         case 1:

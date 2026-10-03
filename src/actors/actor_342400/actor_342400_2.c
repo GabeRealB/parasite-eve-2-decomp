@@ -67,18 +67,10 @@
 // the main enemy's `Enemy::param` record
 extern u8 gMadChaserAnimBank[]; // animation bank handed to `animationInitContext`
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        void (*call0)(Task*, s16, VECTOR3*);
-        void (*call1)(Task*, s32, ActorCommand* request);
-    } handler;
-} Actor3424002MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor3424002MessageEntry, 8);
 
-extern Actor3424002MessageEntry gMadChaserMsgTable[3];   // stored into `Task::msgTable` by madChaserSpawn
-extern u8                       gMadChaserAnimStance[];  // per animation id (1-based): value for `field_44F`
-extern u8                       gMadChaserSettleAnims[]; // per animation id (1-based): the animation to follow it
+extern TaskMessageEntry gMadChaserMsgTable[3];   // stored into `Task::msgTable` by madChaserSpawn
+extern u8               gMadChaserAnimStance[];  // per animation id (1-based): value for `field_44F`
+extern u8               gMadChaserSettleAnims[]; // per animation id (1-based): the animation to follow it
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
@@ -686,10 +678,10 @@ u8 gMadChaserAnimBank[84] = {
     0,
 };
 
-Actor3424002MessageEntry gMadChaserMsgTable[3] = {
-    { ACTOR_MESSAGE_PLACE, { .call0 = madChaserMsgPlace } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = madChaserCommandMsg } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry gMadChaserMsgTable[3] = {
+    { ACTOR_MESSAGE_PLACE, madChaserMsgPlace },
+    { ACTOR_COMMAND_MESSAGE_APPLY, madChaserCommandMsg },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_actor_342400_80173A54[2] = {

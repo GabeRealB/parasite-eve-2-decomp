@@ -219,25 +219,6 @@ extern EnemyParams D_acropolis_bridge_80190C5C;
 
 static void func_acropolis_bridge_8017DC68(Task* arg0);
 
-/// One row of the bridge enemy's task-message table.
-///
-/// The enemy publishes the table in `Task::msgTable` during its setup. Each
-/// row is a message id and the callback that handles it. The table ends with
-/// `TASK_MESSAGE_TABLE_END` and a null callback. The command callback borrows
-/// an `ActorCommand`. The draw-mode callback reads its mode from the first
-/// payload word and always returns 1: 0 stores `TMD_OBJECT_SKIP_ACTIVE_DRAW`,
-/// a mode with bit 0 set stores zero, and any other mode with bit 1 set adds
-/// `TMD_OBJECT_SKIP_AUTO_BUFFER`. Any remaining mode leaves the flags as they
-/// are. A row is eight bytes.
-typedef struct {
-    s32 messageId;                                                             // Receiver-specific id, or TASK_MESSAGE_TABLE_END
-    union {
-        s32 (*applyCommand)(Task* task, s32 messageId, ActorCommand* command); // ACTOR_COMMAND_MESSAGE_APPLY; borrowed command
-        s32 (*setModelDraw)(Task* task, s32 messageId, s32 mode);              // ACTOR_MESSAGE_SET_MODEL_DRAW
-    } handler;                                                                 // Callback for `messageId`; NULL only on the end marker
-} _AcropolisBridgeMessageEntry;
-STATIC_ASSERT_SIZEOF(_AcropolisBridgeMessageEntry, 8);
-
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
 extern u16 D_acropolis_bridge_801917A4[2];
@@ -374,7 +355,7 @@ static void func_acropolis_bridge_8017E60C(s32 digits, s32 hidePrompt);
 
 void func_acropolis_bridge_8017DEE4(Task*);
 void func_acropolis_bridge_8017F280(Task*);
-s32  func_acropolis_bridge_801820A0(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_acropolis_bridge_801820A0(Task*, s32, s32, s32);
 
 extern WorldCollisionGrid    D_acropolis_bridge_8018A89C[1];
 extern WorldCollisionGrid    D_acropolis_bridge_8018B694[1];
@@ -394,10 +375,10 @@ static TmdBone _gAcropolisBridgeModel0AD9CSkeleton[1];
 static u32     _gAcropolisBridgeModel0AD9CPartVerts[1];
 static u32     _gAcropolisBridgeModel0AD9CStream[691];
 s32            func_acropolis_bridge_8017D6F4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32            func_acropolis_bridge_8017D7F0(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32            func_acropolis_bridge_8017D7F0(Task*, s32, s32, s32);
 s32            func_acropolis_bridge_8017D7F8(Task*, s32, s32, s32);
-s32            func_acropolis_bridge_8017D868(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32            func_acropolis_bridge_8017D870(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32            func_acropolis_bridge_8017D868(Task*, s32, s32, s32);
+s32            func_acropolis_bridge_8017D870(Task*, s32, s32, s32);
 void           func_acropolis_bridge_8017D878(Task*);
 void           func_acropolis_bridge_8017D8D0(Task*);
 
@@ -421,8 +402,8 @@ extern _AcropolisBridgeEnemyTaskDescStorage D_acropolis_bridge_80191780;
 
 extern WorldCollisionFootstepSounds D_acropolis_bridge_80190BE8;
 extern WorldCollisionFootstepSounds D_acropolis_bridge_80190BF4;
-s32                                 func_acropolis_bridge_801856E0(Task*, s32, ActorCommand* msg);
-s32                                 func_acropolis_bridge_80187BD0(Task*, s32, s32);
+s32                                 func_acropolis_bridge_801856E0(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
+s32                                 func_acropolis_bridge_80187BD0(Task*, s32, s32, s32);
 void                                func_acropolis_bridge_80185F28(Task*);
 void                                func_acropolis_bridge_801861A0(Task*);
 void                                func_acropolis_bridge_801863A8(Task*);
@@ -2679,10 +2660,10 @@ u8* D_acropolis_bridge_80191720[9] = {
     D_acropolis_bridge_80191718,
 };
 
-_AcropolisBridgeMessageEntry D_acropolis_bridge_80191744[3] = {
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .applyCommand = func_acropolis_bridge_801856E0 } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .setModelDraw = func_acropolis_bridge_80187BD0 } },
-    { TASK_MESSAGE_TABLE_END, { .applyCommand = NULL } },
+TaskMessageEntry D_acropolis_bridge_80191744[3] = {
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_acropolis_bridge_801856E0 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_acropolis_bridge_80187BD0 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 void (*D_acropolis_bridge_8019175C[9])(Task*) = {
@@ -2766,7 +2747,7 @@ s32 func_acropolis_bridge_8017D6F4(Task* task, s32 msgId, RoomEventMsg* in, Room
     return 1;
 }
 
-s32 func_acropolis_bridge_8017D7F0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_acropolis_bridge_8017D7F0(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -2787,12 +2768,12 @@ s32 func_acropolis_bridge_8017D7F8(Task* task, s32 msgId, s32 arg2, s32 arg3)
     return 0;
 }
 
-s32 func_acropolis_bridge_8017D868(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_acropolis_bridge_8017D868(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_acropolis_bridge_8017D870(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_acropolis_bridge_8017D870(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -4305,7 +4286,7 @@ void func_acropolis_bridge_801819C8(Task* task)
 #define ACROPOLIS_GLOWS_LAMP_TASK func_acropolis_bridge_80181D28
 #include "../../shared/acropolis_glows_lamp.inc.c"
 
-s32 func_acropolis_bridge_801820A0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_acropolis_bridge_801820A0(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     GfxCoord* coord;
     SVECTOR   pos;
@@ -4818,7 +4799,7 @@ static __inline__ void walkerStep(BossStrangerWalker* walker, BossStrangerTickSc
 /// work block are given the stat block's starting HP and the behaviour state
 /// advances to 4; otherwise the state resets to 0 and the mesh is hidden behind
 /// the default flag set. Always reports success.
-s32 func_acropolis_bridge_801856E0(Task* task, s32 msgId, ActorCommand* msg)
+s32 func_acropolis_bridge_801856E0(Task* task, s32 msgId, ActorCommand* msg, s32 arg3)
 {
     _AcropolisBridgeEnemyWork* work  = (_AcropolisBridgeEnemyWork*)task->work;
     Enemy*                     enemy = (Enemy*)task->spawnArg2.pointer;
@@ -6065,7 +6046,7 @@ hitTaken:
 /// restores the default flag set, bit 0 hides the mesh outright and bit 1 adds
 /// the "skip drawing" bit to whatever flags are already set. Always reports
 /// success.
-s32 func_acropolis_bridge_80187BD0(Task* task, s32 arg1, s32 flags)
+s32 func_acropolis_bridge_80187BD0(Task* task, s32 arg1, s32 flags, s32 arg3)
 {
     TmdObject* extra;
 

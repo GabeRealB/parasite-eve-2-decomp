@@ -225,17 +225,9 @@ extern EnemyParams   D_actor_405800_801418FC;
 extern AnimationSet* D_actor_405800_801513F8[6];
 extern AnimationSet* D_actor_405800_80151410[35];
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        void (*call0)(Task*);
-        void (*call1)(Task*, s32, u16*);
-    } handler;
-} Actor405800MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor405800MessageEntry, 8);
 
-extern Actor405800MessageEntry D_actor_405800_8015149C[3];
-extern u8                      gStalkerZebraIvoryResumeClips[];
+extern TaskMessageEntry D_actor_405800_8015149C[3];
+extern u8               gStalkerZebraIvoryResumeClips[];
 
 /* The records closing four of the overlay's model streams, selected through
    `D_800678F0`. */
@@ -294,7 +286,7 @@ static void func_actor_405800_801381BC(Task* task);
 void        func_actor_405800_80138634(Task* task);
 static void func_actor_405800_80138698(Task* arg0);
 static void func_actor_405800_80138788(Task* arg0);
-void        func_actor_405800_801388C4(Task* task);
+void        func_actor_405800_801388C4(Task* task, s32 msgId, s32 arg2, s32 arg3);
 void        func_actor_405800_801388D4(Task* task);
 void        func_actor_405800_801388DC(Task* task);
 static void func_actor_405800_801388E4(Task* task);
@@ -342,7 +334,7 @@ void             func_actor_405800_80138634(Task*);
 
 static TmdSource _gActor405800IvoryStalkerBurstArmRight;
 static TmdSource _gActor405800IvoryStalkerBurstArmLeft;
-void             func_actor_405800_801388C4(Task*);
+void             func_actor_405800_801388C4(Task*, s32, s32, s32);
 void             func_actor_405800_801388D4(Task*);
 void             func_actor_405800_801388DC(Task*);
 
@@ -1427,10 +1419,10 @@ AnimationSet* D_actor_405800_80151410[35] = {
     &_gActor405800Animation1CAE4,
 };
 
-Actor405800MessageEntry D_actor_405800_8015149C[3] = {
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = stalkerZebraIvorySetMoveMode } },
-    { 2014, { .call0 = func_actor_405800_801388C4 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_405800_8015149C[3] = {
+    { ACTOR_COMMAND_MESSAGE_APPLY, stalkerZebraIvorySetMoveMode },
+    { 2014, func_actor_405800_801388C4 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_actor_405800_801514B4[2] = {
@@ -3745,7 +3737,7 @@ static void func_actor_405800_80138788(Task* arg0)
 
 #include "../../shared/stalker_zebra_ivory_set_move_mode.inc.c"
 
-void func_actor_405800_801388C4(Task* task)
+void func_actor_405800_801388C4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     ((Actor405800Work*)task->work)->field_88B = 1;
 }

@@ -74,17 +74,8 @@ static SVECTOR ActorContact_ScratchPosition;
 extern SVECTOR D_actor_341700_80175F7C[];
 extern u8      D_actor_341700_801760FC[];
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(Task*, s32, ActorCommand* request);
-        s32 (*call1)(Task*, s32, ActorTransform*);
-        s32 (*call2)(Task*, s32, s32);
-    } handler;
-} Actor3417002MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor3417002MessageEntry, 8);
 
-extern Actor3417002MessageEntry D_actor_341700_80175F5C[4]; // stored into `Task::msgTable` by func_actor_341700_8016D130
+extern TaskMessageEntry D_actor_341700_80175F5C[4]; // stored into `Task::msgTable` by func_actor_341700_8016D130
 
 /// Psy-Q `RotMatrixY`.
 
@@ -97,8 +88,8 @@ static void func_actor_341700_8016D2E8(Enemy* arg0, Task* arg1);
 static TmdSource _gActor341700Model13558;
 static void      func_actor_341700_8016D32C(Task*);
 
-s32 func_actor_341700_8016CE28(Task*, s32, s32);
-s32 func_actor_341700_8016CEB4(Task*, s32, ActorCommand* cmd);
+s32 func_actor_341700_8016CE28(Task*, s32, s32, s32);
+s32 func_actor_341700_8016CEB4(Task* task, s32 msgId, ActorCommand* cmd, s32 arg3);
 
 #include "../../shared/actor_contacts.h"
 
@@ -134,11 +125,11 @@ static TmdSource _gActor341700Model13558 = {
     _gActor341700Model13558Stream,
 };
 
-Actor3417002MessageEntry D_actor_341700_80175F5C[4] = {
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call2 = func_actor_341700_8016CE28 } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_341700_8016CEB4 } },
-    { ACTOR_MESSAGE_PLACE, { .call1 = actorMsgPlace } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_341700_80175F5C[4] = {
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_341700_8016CE28 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_341700_8016CEB4 },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlace },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 SVECTOR D_actor_341700_80175F7C[48] = {
@@ -1065,7 +1056,7 @@ static const EnemyTaskFuncTable3 D_actor_341700_80162064 = { {
     enemyDestroy,
 } };
 
-s32 func_actor_341700_8016CE28(Task* task, s32 arg1, s32 arg2)
+s32 func_actor_341700_8016CE28(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
     TmdObject* obj = task->extra.tmd;
 
@@ -1097,7 +1088,7 @@ s32 func_actor_341700_8016CE28(Task* task, s32 arg1, s32 arg2)
 /// so the case list keeps three nodes and GCC's decision tree balances around
 /// `case 1`; dropping `case 2` makes `case 0` the root and the emitted branches
 /// come out in a different order.
-s32 func_actor_341700_8016CEB4(Task* task, s32 arg1, ActorCommand* cmd)
+s32 func_actor_341700_8016CEB4(Task* task, s32 arg1, ActorCommand* cmd, s32 arg3)
 {
     Actor341700SubWork* work = (Actor341700SubWork*)task->work;
 

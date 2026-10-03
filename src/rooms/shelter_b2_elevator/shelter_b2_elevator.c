@@ -74,12 +74,12 @@ extern Task* D_shelter_b2_elevator_8017EA00[];
 
 static void func_shelter_b2_elevator_8017DB08(Task* task);
 
-s32  func_shelter_b2_elevator_8017DA5C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_shelter_b2_elevator_8017DA5C(Task*, s32, s32, s32);
 s32  func_shelter_b2_elevator_8017DA64(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_b2_elevator_8017DAA8(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_shelter_b2_elevator_8017DAB0(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_shelter_b2_elevator_8017DAB8(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_shelter_b2_elevator_8017DAE0(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_shelter_b2_elevator_8017DAA8(Task*, s32, s32, s32);
+s32  func_shelter_b2_elevator_8017DAB0(Task*, s32, s32, s32);
+s32  func_shelter_b2_elevator_8017DAB8(Task*, s32, s32, s32);
+s32  func_shelter_b2_elevator_8017DAE0(Task*, s32, s32, s32);
 void func_shelter_b2_elevator_8017D70C(Task*);
 void func_shelter_b2_elevator_8017D888(Task*);
 
@@ -517,7 +517,7 @@ void func_shelter_b2_elevator_8017D888(Task* task)
 }
 
 /// Message-table handler for message 0x13F1. Does nothing.
-s32 func_shelter_b2_elevator_8017DA5C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b2_elevator_8017DA5C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -532,20 +532,20 @@ s32 func_shelter_b2_elevator_8017DA64(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
 }
 
 /// Message-table handler for message 0x13F0. Does nothing.
-s32 func_shelter_b2_elevator_8017DAA8(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b2_elevator_8017DAA8(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
 /// Message-table handler for message 0x13EF. Does nothing.
-s32 func_shelter_b2_elevator_8017DAB0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b2_elevator_8017DAB0(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
 /// Message-table handler for message 0x13EC: sets `spawnArg1` of both door
 /// leaves to 1, opening the door.
-s32 func_shelter_b2_elevator_8017DAB8(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b2_elevator_8017DAB8(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     D_shelter_b2_elevator_8017EA00[0]->spawnArg1.value = 1;
     D_shelter_b2_elevator_8017EA00[1]->spawnArg1.value = 1;
@@ -554,7 +554,7 @@ s32 func_shelter_b2_elevator_8017DAB8(Task* task, s32 msgId, TaskMessageArg arg2
 
 /// Message-table handler for message 0x13ED: sets `spawnArg1` of both door
 /// leaves to -1, closing the door.
-s32 func_shelter_b2_elevator_8017DAE0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b2_elevator_8017DAE0(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     D_shelter_b2_elevator_8017EA00[0]->spawnArg1.value = -1;
     D_shelter_b2_elevator_8017EA00[1]->spawnArg1.value = -1;

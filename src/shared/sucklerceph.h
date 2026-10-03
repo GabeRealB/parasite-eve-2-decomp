@@ -93,7 +93,7 @@ void sucklercephKill(Task* arg0, u8 arg1);
 void sucklercephDropSpawnState(Enemy* arg0, Task* arg1);
 void sucklercephDropState(Enemy* arg0, Task* arg1);
 void sucklercephDropCollide(Task* arg0);
-s32  sucklercephMessage(Task* arg0, s32 arg1, ActorCommand* request);
+s32  sucklercephMessage(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3);
 void sucklercephUpdateState(Enemy* arg0, Task* arg1);
 void sucklercephReactionFlags(Task* arg0);
 void sucklercephStep(Task* task);

@@ -50,9 +50,9 @@ extern TaskMessageEntry D_dryfield_cellar_8017DB8C[];
 extern SVECTOR D_dryfield_cellar_8017DBBC[2];
 extern SVECTOR D_dryfield_cellar_8017DBCC[2];
 
-s32 func_dryfield_cellar_8017D62C(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_dryfield_cellar_8017D6F4(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_dryfield_cellar_8017D6FC(Task*, s32, s32, TaskMessageArg);
+s32 func_dryfield_cellar_8017D62C(Task*, s32, s32, s32);
+s32 func_dryfield_cellar_8017D6F4(Task*, s32, s32, s32);
+s32 func_dryfield_cellar_8017D6FC(Task*, s32, s32, s32);
 
 extern WorldCollisionGrid     D_dryfield_cellar_8017DF54[1];
 extern WorldCollisionOccluder D_dryfield_cellar_8018067C[1];
@@ -882,7 +882,7 @@ static void func_dryfield_cellar_8017D77C(Task* task);
 #include "../../shared/cellar_cap_msg.inc.c"
 
 /// Message-table handler for message 0x13F1: does nothing and answers 0.
-s32 func_dryfield_cellar_8017D62C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_cellar_8017D62C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -890,14 +890,14 @@ s32 func_dryfield_cellar_8017D62C(Task* task, s32 msgId, TaskMessageArg arg2, Ta
 #include "../../shared/cellar_door_msg.inc.c"
 
 /// Message-table handler for message 0x13EF: does nothing and answers 0.
-s32 func_dryfield_cellar_8017D6F4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_cellar_8017D6F4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
 /// Message-table handler for message 0x13F2: on event 3 queues sound event
 /// 0x52220003. Always answers 0.
-s32 func_dryfield_cellar_8017D6FC(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_dryfield_cellar_8017D6FC(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 3) {
         SndEvt_EnqueueType6(0x52220000 | 3, 0, 0);

@@ -153,18 +153,8 @@ static void func_actor_503500_80146508(Task* arg0);
 /// `func_actor_503500_8014642C`; terminator id `TASK_MESSAGE_TABLE_END`.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call1)(Task*, s32, ActorCommand* request);
-        s32 (*call2)(Task*, s32, ActorTransform*);
-        s32 (*call3)(Task*, s32, s32);
-    } handler;
-} Actor5035005MsgEntry;
-STATIC_ASSERT_SIZEOF(Actor5035005MsgEntry, 8);
 
-extern Actor5035005MsgEntry D_actor_503500_80176530[];
+extern TaskMessageEntry D_actor_503500_80176530[];
 
 /// Local offset of the display node `func_actor_503500_80144E8C` links, and the
 /// offsets it seeds its `WorldCollisionCapsule` with.
@@ -211,9 +201,9 @@ static const TaskFuncTable3 D_actor_503500_801321F4 = {
 static AnimationSet _gActor503500Animation444F4;
 static AnimationSet _gActor503500Animation446CC;
 static TmdSource    _gActor503500Actor361100Model06038;
-s32                 func_actor_503500_80146664(Task*, s32, ActorTransform* args, s32 arg3);
-s32                 func_actor_503500_801466E0(Task*, s32, s32);
-s32                 func_actor_503500_801467C0(Task*, s32, ActorCommand* msg);
+s32                 func_actor_503500_80146664(Task* task, s32 msgId, ActorTransform* args, s32 arg3);
+s32                 func_actor_503500_801466E0(Task*, s32, s32, s32);
+s32                 func_actor_503500_801467C0(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
 void                func_actor_503500_801463C0(Task*);
 
 static AnimationSet _gActor503500Animation3DE60;
@@ -221,12 +211,12 @@ static AnimationSet _gActor503500Animation3E5FC;
 static AnimationSet _gActor503500Animation3EE08;
 static AnimationSet _gActor503500Animation3F61C;
 
-Actor5035003MsgEntry D_actor_503500_8016EA2C[5] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = func_actor_503500_80135950 } },
-    { ACTOR_MESSAGE_PLACE, { .call2 = func_actor_503500_80137088 } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = func_actor_503500_80137158 } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_503500_80135B74 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_503500_8016EA2C[5] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_503500_80135950 },
+    { ACTOR_MESSAGE_PLACE, func_actor_503500_80137088 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_503500_80137158 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_503500_80135B74 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 AnimationSet* D_actor_503500_8016EA54[20] = {
@@ -1118,12 +1108,12 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
 
 TaskDesc D_actor_503500_80176524 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_503500_801463C0, { .model = &_gActor503500Actor361100Model06038 } };
 
-Actor5035005MsgEntry D_actor_503500_80176530[5] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = actorMotionPlayAnim19 } },
-    { ACTOR_MESSAGE_PLACE, { .call2 = func_actor_503500_80146664 } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = func_actor_503500_801466E0 } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_503500_801467C0 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_503500_80176530[5] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, actorMotionPlayAnim19 },
+    { ACTOR_MESSAGE_PLACE, func_actor_503500_80146664 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_503500_801466E0 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_503500_801467C0 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 static void func_actor_503500_80144E8C(Task* arg0)
@@ -1901,7 +1891,7 @@ static void func_actor_503500_80146524(Task* arg0)
 #include "../../shared/actor_messages_place_euler.inc.c"
 #undef actorMsgPlaceEuler
 
-s32 func_actor_503500_801466E0(Task* task, s32 arg1, s32 mode)
+s32 func_actor_503500_801466E0(Task* task, s32 arg1, s32 mode, s32 arg3)
 {
     TmdObject* ext;
     s32        ret;
@@ -1932,7 +1922,7 @@ s32 func_actor_503500_801466E0(Task* task, s32 arg1, s32 mode)
     return ret;
 }
 
-s32 func_actor_503500_801467C0(Task* task, s32 arg1, ActorCommand* msg)
+s32 func_actor_503500_801467C0(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
 {
     Actor503500Effect4CC* work;
 

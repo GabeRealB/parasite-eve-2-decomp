@@ -224,9 +224,9 @@ extern WorldCollisionTrigger      D_shelter_1f_heliport_80182508[21];
 extern WorldCoordRoomAmbientEntry D_shelter_1f_heliport_80182B44[13];
 extern WorldCoordRoomLights       D_shelter_1f_heliport_80182160[1];
 s32                               func_shelter_1f_heliport_801800A0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                               func_shelter_1f_heliport_80180334(Task*, s32, s32, TaskMessageArg);
-s32                               func_shelter_1f_heliport_8018041C(Task*, s32, s32, TaskMessageArg);
-s32                               func_shelter_1f_heliport_801804BC(Task*, s32, RoomEventMsg*, TaskMessageArg);
+s32                               func_shelter_1f_heliport_80180334(Task*, s32, s32, s32);
+s32                               func_shelter_1f_heliport_8018041C(Task*, s32, s32, s32);
+s32                               func_shelter_1f_heliport_801804BC(Task*, s32, RoomEventMsg*, s32);
 
 #include "../../shared/shop_data.inc.c"
 
@@ -688,7 +688,7 @@ void func_shelter_1f_heliport_801802AC(s32 arg0)
     followCollisionRebuild(task->extra.tmd->coords, &D_shelter_1f_heliport_80181204);
 }
 
-s32 func_shelter_1f_heliport_80180334(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_shelter_1f_heliport_80180334(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     WorldCollisionTrigger* node;
     s32                    found;
@@ -716,7 +716,7 @@ s32 func_shelter_1f_heliport_80180334(Task* arg0, s32 arg1, s32 arg2, TaskMessag
     return 0;
 }
 
-s32 func_shelter_1f_heliport_8018041C(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_shelter_1f_heliport_8018041C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     s32 need;
 
@@ -736,7 +736,7 @@ s32 func_shelter_1f_heliport_8018041C(Task* arg0, s32 arg1, s32 arg2, TaskMessag
     return 0;
 }
 
-s32 func_shelter_1f_heliport_801804BC(Task* arg0, s32 arg1, RoomEventMsg* in, TaskMessageArg arg3)
+s32 func_shelter_1f_heliport_801804BC(Task* arg0, s32 arg1, RoomEventMsg* in, s32 arg3)
 {
     switch (in->warp) {
         case 1:

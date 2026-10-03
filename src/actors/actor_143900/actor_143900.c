@@ -88,19 +88,8 @@ extern s16 gScriptedWalkBlendFrames;
 /// `Task::msgTable`.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call1)(Task*, s32, ActorCommand* request);
-        s32 (*call2)(Task*, s32, ActorTransform*);
-        s32 (*call3)(Task*, s32, VECTOR*, s32);
-        s32 (*call4)(Task*, s32, s32);
-    } handler;
-} Actor143900MsgEntry;
-STATIC_ASSERT_SIZEOF(Actor143900MsgEntry, 8);
 
-extern Actor143900MsgEntry D_actor_143900_801413BC[];
+extern TaskMessageEntry D_actor_143900_801413BC[];
 
 /// Animation stream the first variant's spawn routine binds into its work
 /// block's animation context with `animationInitContext`.
@@ -125,7 +114,7 @@ extern s16 D_actor_143900_80149630;
 
 /// The second variant's message table; its spawn routine publishes it as
 /// `Task::msgTable`.
-extern Actor143900MsgEntry D_actor_143900_80149634[];
+extern TaskMessageEntry D_actor_143900_80149634[];
 
 /// Spawn table the second variant's spawn routine starts its two helper tasks
 /// from, indices 1 and 2; the tasks are parked in `helper1` / `helper2`.
@@ -148,17 +137,17 @@ static void func_actor_143900_80133144(void);
 static TmdSource _gActor143900Body2;
 static TmdSource _gActor143900Model173A8;
 static TmdSource _gActor143900Model17688;
-s32              func_actor_143900_801331C4(Task*, s32, AnimationPlayRequest*);
-s32              func_actor_143900_80133254(Task*, s32, s32);
-s32              func_actor_143900_801332E4(Task*, s32, ActorTransform* placement);
-s32              func_actor_143900_80133360(Task*, s32, ActorCommand* msg);
+s32              func_actor_143900_801331C4(Task*, s32, AnimationPlayRequest*, s32);
+s32              func_actor_143900_80133254(Task*, s32, s32, s32);
+s32              func_actor_143900_801332E4(Task* task, s32 msgId, ActorTransform* placement, s32 arg3);
+s32              func_actor_143900_80133360(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
 s32              func_actor_143900_801333C4(Task*, s32, VECTOR*, s32);
 void             func_actor_143900_80132DEC(Task*);
 void             func_actor_143900_80132FB0(Task*);
 
-s32  func_actor_143900_80132624(Task*, s32, AnimationPlayRequest*);
-s32  func_actor_143900_801326B4(Task*, s32, s32);
-s32  func_actor_143900_80132778(Task*, s32, ActorCommand* msg);
+s32  func_actor_143900_80132624(Task*, s32, AnimationPlayRequest*, s32);
+s32  func_actor_143900_801326B4(Task*, s32, s32, s32);
+s32  func_actor_143900_80132778(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
 void func_actor_143900_80132324(Task*);
 
 void func_actor_143900_80131E24(void);
@@ -699,13 +688,13 @@ static AnimationSet _gActor143900Animation0F570 = {
 
 s16 gScriptedWalkBlendFrames = 8;
 
-Actor143900MsgEntry D_actor_143900_801413BC[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = func_actor_143900_80132624 } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = func_actor_143900_801326B4 } },
-    { ACTOR_MESSAGE_PLACE, { .call2 = scriptedWalkPlace } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_143900_80132778 } },
-    { ACTOR_MESSAGE_WALK_TO, { .call3 = scriptedWalkTo } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_143900_801413BC[6] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_143900_80132624 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_143900_801326B4 },
+    { ACTOR_MESSAGE_PLACE, scriptedWalkPlace },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_143900_80132778 },
+    { ACTOR_MESSAGE_WALK_TO, scriptedWalkTo },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_actor_143900_801413EC = { { { TASK_BODY_TMD, 192 } }, func_actor_143900_80132324, { .model = &_gActor143900Body1 } };
@@ -1111,13 +1100,13 @@ static TmdSource _gActor143900Model17688 = {
 
 s16 D_actor_143900_80149630 = 8;
 
-Actor143900MsgEntry D_actor_143900_80149634[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = func_actor_143900_801331C4 } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = func_actor_143900_80133254 } },
-    { ACTOR_MESSAGE_PLACE, { .call2 = func_actor_143900_801332E4 } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_143900_80133360 } },
-    { ACTOR_MESSAGE_WALK_TO, { .call3 = func_actor_143900_801333C4 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_143900_80149634[6] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_143900_801331C4 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_143900_80133254 },
+    { ACTOR_MESSAGE_PLACE, func_actor_143900_801332E4 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_143900_80133360 },
+    { ACTOR_MESSAGE_WALK_TO, func_actor_143900_801333C4 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_actor_143900_80149664[3] = {
@@ -1303,7 +1292,7 @@ static void func_actor_143900_80132404(Task* task)
 /// argument the reseed uses, then hands the published task to the per-frame
 /// update. Ids past the range are rejected with -1 and leave the work block
 /// untouched.
-s32 func_actor_143900_80132624(Task* task, s32 arg1, AnimationPlayRequest* preset)
+s32 func_actor_143900_80132624(Task* task, s32 arg1, AnimationPlayRequest* preset, s32 arg3)
 {
     if (preset->animationId < 0x14) {
         gScriptedWalkWork->st.animId = preset->animationId;
@@ -1323,7 +1312,7 @@ s32 func_actor_143900_80132624(Task* task, s32 arg1, AnimationPlayRequest* prese
 /// Message 0x7D5 handler of the first variant: applies `arg2` to the model of the
 /// task published in `D_actor_143900_801496BC` - bit 0 selects
 /// `TmdObject.flags` 0 (shown) vs 0x80 (hidden), bit 1 ORs in 0x4.
-s32 func_actor_143900_801326B4(Task* task, s32 arg1, s32 arg2)
+s32 func_actor_143900_801326B4(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
     TmdObject* obj;
 
@@ -1344,7 +1333,7 @@ s32 func_actor_143900_801326B4(Task* task, s32 arg1, s32 arg2)
 /// Message 0x7DB handler of the first variant: when the payload's halfword at
 /// 0x2 is zero, starts a 0x14-step turn, which the update performs while the
 /// model plays animation 3.
-s32 func_actor_143900_80132778(Task* task, s32 arg1, ActorCommand* msg)
+s32 func_actor_143900_80132778(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
 {
     if (msg->command == 0) {
         gScriptedWalkWork->turnFrames = 0x14;
@@ -1529,7 +1518,7 @@ void func_actor_143900_80132FB0(Task* task)
 /// argument the reseed uses, then hands the published task to the per-frame
 /// update. Ids past the range are rejected with -1 and leave the work block
 /// untouched.
-s32 func_actor_143900_801331C4(Task* task, s32 arg1, AnimationPlayRequest* preset)
+s32 func_actor_143900_801331C4(Task* task, s32 arg1, AnimationPlayRequest* preset, s32 arg3)
 {
     if (preset->animationId < 0xC) {
         D_actor_143900_801496C4->st.animId = preset->animationId;
@@ -1549,7 +1538,7 @@ s32 func_actor_143900_801331C4(Task* task, s32 arg1, AnimationPlayRequest* prese
 /// Message 0x7D5 handler of the second variant: applies `arg2` to the three
 /// models it owns - its own task's and the two helper tasks'. Bit 0 selects
 /// `TmdObject.flags` 0 (shown) vs 0x80 (hidden); bit 1 ORs in 0x4.
-s32 func_actor_143900_80133254(Task* task, s32 arg1, s32 arg2)
+s32 func_actor_143900_80133254(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
     TmdObject* own    = D_actor_143900_801496C8->extra.tmd;
     TmdObject* first  = D_actor_143900_801496C4->helper1->extra.tmd;
@@ -1583,7 +1572,7 @@ s32 func_actor_143900_80133254(Task* task, s32 arg1, s32 arg2)
 /// picks which of the two helper tasks' models is shown - 0 shows the second
 /// (`helper2`) and hides the first, 1 the reverse; any other value leaves
 /// both.
-s32 func_actor_143900_80133360(Task* task, s32 arg1, ActorCommand* msg)
+s32 func_actor_143900_80133360(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
 {
     TmdObject* first;
     TmdObject* second;

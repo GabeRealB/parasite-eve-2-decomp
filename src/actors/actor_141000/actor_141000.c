@@ -120,19 +120,8 @@ extern AnimationSet** gActorMotionAnimBanks19[1];
 /// `func_actor_141000_8013392C`; terminator id `TASK_MESSAGE_TABLE_END`.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(Task*, s32, AnimationPlayRequest*, s32);
-        s32 (*call1)(Task*, s32, ActorCommand* request);
-        s32 (*call2)(Task*, s32, ActorTransform*);
-        s32 (*call3)(Task*, s32, ActorTransform*, ActorMotionWalkAnim*);
-        s32 (*call4)(Task*, s32, s32);
-    } handler;
-} Actor141000MsgEntry;
-STATIC_ASSERT_SIZEOF(Actor141000MsgEntry, 8);
 
-extern Actor141000MsgEntry D_actor_141000_8013D788[];
+extern TaskMessageEntry D_actor_141000_8013D788[];
 
 static void func_actor_141000_80132C7C(Task* task);
 static void func_actor_141000_80132D3C(Task* task);
@@ -226,10 +215,10 @@ static AnimationSet _gActor141000Animation0A448;
 static AnimationSet _gActor141000Animation0A5FC;
 static AnimationSet _gActor141000Animation0A84C;
 static TmdSource    _gActor141000AyaBreaBody;
-s32                 func_actor_141000_801336DC(Task*, s32, ActorTransform* place, ActorMotionWalkAnim*);
-s32                 func_actor_141000_80133E8C(Task*, s32, s32);
-s32                 func_actor_141000_80133F6C(Task*, s32, ActorCommand* msg);
-s32                 func_actor_141000_80133FA8(Task*, s32, s32);
+s32                 func_actor_141000_801336DC(Task* task, s32 msgId, ActorTransform* place, ActorMotionWalkAnim*);
+s32                 func_actor_141000_80133E8C(Task*, s32, s32, s32);
+s32                 func_actor_141000_80133F6C(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
+s32                 func_actor_141000_80133FA8(Task*, s32, s32, s32);
 void                func_actor_141000_801338C0(Task*);
 
 static TmdBone _gActor141000Model0230CSkeleton[1] = {
@@ -1863,14 +1852,14 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
 
 TaskDesc D_actor_141000_8013D77C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_141000_801338C0, { .model = &_gActor141000AyaBreaBody } };
 
-Actor141000MsgEntry D_actor_141000_8013D788[7] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = actorMotionPlayAnim19 } },
-    { ACTOR_MESSAGE_PLACE, { .call2 = actorMsgPlaceEuler } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = func_actor_141000_80133E8C } },
-    { ACTOR_MESSAGE_WALK_TO, { .call3 = func_actor_141000_801336DC } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_141000_80133F6C } },
-    { 2016, { .call4 = func_actor_141000_80133FA8 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_141000_8013D788[7] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, actorMotionPlayAnim19 },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_141000_80133E8C },
+    { ACTOR_MESSAGE_WALK_TO, func_actor_141000_801336DC },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_141000_80133F6C },
+    { 2016, func_actor_141000_80133FA8 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 static void func_actor_141000_801323F0(Task* arg0, SVECTOR* arg1, s32* arg2, s32* arg3);
@@ -2619,7 +2608,7 @@ static void func_actor_141000_80133BD8(Task* arg0)
 /// sets `TMD_OBJECT_SKIP_AUTO_BUFFER` and latches the mode into `field_4C9`,
 /// and 3 shows it while setting `TMD_OBJECT_SKIP_AUTO_BUFFER`. Anything else
 /// returns 1 and leaves the object alone; the handled modes return 0.
-s32 func_actor_141000_80133E8C(Task* task, s32 arg1, s32 mode)
+s32 func_actor_141000_80133E8C(Task* task, s32 arg1, s32 mode, s32 arg3)
 {
     TmdObject* obj;
     s32        ret;
@@ -2652,7 +2641,7 @@ s32 func_actor_141000_80133E8C(Task* task, s32 arg1, s32 mode)
     return ret;
 }
 
-s32 func_actor_141000_80133F6C(Task* task, s32 arg1, ActorCommand* msg)
+s32 func_actor_141000_80133F6C(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
 {
     Actor141000Work* work;
 
@@ -2673,7 +2662,7 @@ s32 func_actor_141000_80133F6C(Task* task, s32 arg1, ActorCommand* msg)
 /// 0x19x0x14 rect at (0, 0x40) for modes 0-3, the 0xEx0x14 rect at (0xC, 0x60)
 /// for 4 and 5. Mode 3 also arms the work block's upload step and countdown
 /// source. Unknown modes load nothing and return 0.
-s32 func_actor_141000_80133FA8(Task* task, s32 arg1, s32 mode)
+s32 func_actor_141000_80133FA8(Task* task, s32 arg1, s32 mode, s32 arg3)
 {
     RECT            rect;
     GpuImageUpload* uploadList;

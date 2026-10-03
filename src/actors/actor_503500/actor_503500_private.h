@@ -331,17 +331,6 @@ typedef struct Actor503500ChainScratch {
 } Actor503500ChainScratch;
 STATIC_ASSERT_SIZEOF(Actor503500ChainScratch, 0x90);
 
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(Task*, s32, AnimationPlayRequest*, s32);
-        s32 (*call1)(Task*, s32, ActorCommand* request);
-        s32 (*call2)(Task*, s32, ActorTransform*);
-        s32 (*call3)(Task*, s32, s32);
-    } handler;
-} Actor5035003MsgEntry;
-STATIC_ASSERT_SIZEOF(Actor5035003MsgEntry, 8);
-
 extern AnimationSet gActor503500Animation2DB14;
 
 extern AnimationSet gActor503500Animation2E4DC;
@@ -542,7 +531,7 @@ extern s32 D_actor_503500_801715BC[2];
 
 extern TaskDesc D_actor_503500_8016E9F0[5];
 
-extern Actor5035003MsgEntry D_actor_503500_8016EA2C[];
+extern TaskMessageEntry D_actor_503500_8016EA2C[];
 
 /// Identity rotation, written two halfwords per word store. Being inline is
 /// what matches: the argument is expanded as an address sum, so the caller's
@@ -649,10 +638,10 @@ void func_actor_503500_80143AC0(Task*);
 // Callbacks referenced by the overlay's shared data tables.
 s32 func_actor_503500_80135950(Task*, s32, AnimationPlayRequest*, s32);
 
-s32 func_actor_503500_80135B74(Task*, s32, ActorCommand* msg);
+s32 func_actor_503500_80135B74(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
 
-s32 func_actor_503500_80137088(Task*, s32, ActorTransform* args);
+s32 func_actor_503500_80137088(Task* task, s32 msgId, ActorTransform* args, s32 arg3);
 
-s32 func_actor_503500_80137158(Task*, s32, s32);
+s32 func_actor_503500_80137158(Task*, s32, s32, s32);
 
 #endif // SRC_ACTORS_ACTOR_503500_ACTOR_503500_PRIVATE_H

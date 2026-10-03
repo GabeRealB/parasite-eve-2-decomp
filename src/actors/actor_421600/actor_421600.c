@@ -148,20 +148,8 @@ extern Actor421600ParamRow D_actor_421600_8013EF48[];
 extern EnemyParams         D_actor_421600_8013EF38;
 extern u8                  D_actor_421600_80151028[];
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32  (*call0)(Task*);
-        s32  (*call1)(Task*, s32, AnimationPlayRequest*, s32);
-        s32  (*call2)(Task*, s32, ActorCommand* request);
-        s32  (*call3)(Task*, s32, ActorTransform*);
-        s32  (*call4)(Task*, s32, s32);
-        void (*call5)(void);
-    } handler;
-} Actor421600MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor421600MessageEntry, 8);
 
-extern Actor421600MessageEntry D_actor_421600_80151118[8];
+extern TaskMessageEntry D_actor_421600_80151118[8];
 
 /// The overlay's pose table: 8-byte records of three halfwords at 0x0/0x2/0x4
 /// plus padding, i.e. `SVECTOR`s. Indexed by the low signed halfword of the
@@ -272,10 +260,10 @@ static AnimationSet _gActor421600Animation1B610;
 static AnimationSet _gActor421600Animation1B8C4;
 static AnimationSet _gActor421600Animation1BBE4;
 static TmdSource    _gActor421600DesertChaserBody;
-s32                 func_actor_421600_80132A00(Task*, s32, ActorCommand* request);
-s32                 func_actor_421600_8013E4EC(Task*);
-s32                 func_actor_421600_8013E654(Task*);
-void                func_actor_421600_8013E424(void);
+s32                 func_actor_421600_80132A00(Task* task, s32 msgId, ActorCommand* request, s32 arg3);
+s32                 func_actor_421600_8013E4EC(Task*, s32, s32, s32);
+s32                 func_actor_421600_8013E654(Task*, s32, s32, s32);
+s32                 func_actor_421600_8013E424(Task*, s32, s32, s32);
 
 DamageAttack D_actor_421600_8013EF24[5] = {
     { 30, 0 },
@@ -1854,15 +1842,15 @@ u8 D_actor_421600_80151028[104] = {
 
 Actor421600ContactStorage D_actor_421600_80151090 = { .data = { { NULL, &_gActor421600Animation19E54, &_gActor421600Animation1ADFC, &_gActor421600Animation1B8C4, NULL }, { NULL, &_gActor421600Animation1A5F0, &_gActor421600Animation1B610, &_gActor421600Animation1BBE4, NULL }, { { 60, -12, 30, 2 }, { -50, -130, 29, 2 }, { 20, -70, 25, 2 }, { -30, -65, 25, 2 }, { 60, -120, 30, 2 }, { 20, -20, -5, 2 }, { -15, -50, 0, 2 }, { 2, 10, -15, 2 }, { 14, 0, 0, 7 }, { 25, 0, 0, 2 }, { -14, 0, 0, 9 }, { -25, 0, 0, 2 } } } };
 
-Actor421600MessageEntry D_actor_421600_80151118[8] = {
-    { 2015, { .call5 = func_actor_421600_8013E424 } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = actorMsgSetVisibility } },
-    { ACTOR_MESSAGE_IS_PRESENT, { .call0 = func_actor_421600_8013E4EC } },
-    { ACTOR_MESSAGE_PLACE, { .call3 = actorMsgPlaceYawFirst } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_421600_80132A00 } },
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = desertChaserMsgPlayAnim } },
-    { ROOM_MESSAGE_ACTOR_EVENT, { .call0 = func_actor_421600_8013E654 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_421600_80151118[8] = {
+    { 2015, func_actor_421600_8013E424 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetVisibility },
+    { ACTOR_MESSAGE_IS_PRESENT, func_actor_421600_8013E4EC },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceYawFirst },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_421600_80132A00 },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, desertChaserMsgPlayAnim },
+    { ROOM_MESSAGE_ACTOR_EVENT, func_actor_421600_8013E654 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 SVECTOR D_actor_421600_80151158[13] = {
@@ -1984,7 +1972,7 @@ static __inline__ s32 Actor421600_HasPlayerContact(WorldCollisionContact* record
 /// sub-command, the placement mode in `placeKey` and the progress counter
 /// `D_actor_421600_80151268`, the actor is dropped at a fixed spot with a new
 /// state. Returns 1 when the message was handled.
-s32 func_actor_421600_80132A00(Task* arg0, s32 arg1, ActorCommand* request)
+s32 func_actor_421600_80132A00(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
 {
     DesertChaserWork* work;
     Enemy*            enemy;
@@ -5189,7 +5177,7 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
     func_actor_421600_80133444(actor->extra.tmd->coords);
 }
 
-void func_actor_421600_8013E424(void)
+s32 func_actor_421600_8013E424(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
 }
 
@@ -5207,7 +5195,7 @@ static const DesertChaserTaskStates gDesertChaserTaskStates = {
 
 /// Handler for message 0x7D6: returns 1 while the enemy still has hit points
 /// or its model is shown (flag 0x80 clear), 0 once it is dead and hidden.
-s32 func_actor_421600_8013E4EC(Task* task)
+s32 func_actor_421600_8013E4EC(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     if (((Enemy*)task->spawnArg2.pointer)->hp > 0) {
         goto return_one;
@@ -5225,7 +5213,7 @@ return_one:
 
 #include "../../shared/desert_chaser_play_anim.inc.c"
 
-s32 func_actor_421600_8013E654(Task* task)
+s32 func_actor_421600_8013E654(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     DesertChaserWork* work = (DesertChaserWork*)task->work;
 

@@ -4,7 +4,7 @@
 /// 0x119, sets current-bit flag 0x1B unless collected bit 0x119 is held,
 /// spawns CAP entry 1 and the task above; before that it spawns CAP entry
 /// 0x14 instead.
-s32 mainStreetTalkMsg(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 mainStreetTalkMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 1) {
         if (GameFlag_GetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS) >= 2) {

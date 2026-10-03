@@ -321,19 +321,9 @@ extern ActorAnimStep  D_actor_560800_8016ECAC[6];
 extern ActorAnimStep  D_actor_560800_8016ECC4[46];
 extern ActorTransform D_actor_560800_8016F154;
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        void (*call0)(Task*, s32, ActorCommand* request);
-        void (*call1)(Task*, s32, ActorTransform*);
-        void (*call2)(Task*, s32, VECTOR*);
-        void (*call3)(Task*, s32, s32);
-    } handler;
-} Actor560800MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor560800MessageEntry, 8);
 
-extern Actor560800MessageEntry D_actor_560800_8016F34C[2];
-extern s32                     D_actor_560800_8016F57C[];
+extern TaskMessageEntry D_actor_560800_8016F34C[2];
+extern s32              D_actor_560800_8016F57C[];
 
 static s32 func_actor_560800_80132498(Task* arg0);
 
@@ -351,14 +341,14 @@ static TmdSource _gActor560800Model40E78;
 static TmdSource _gActor560800Model41AC4;
 void             func_actor_560800_80137820(Task*);
 void             func_actor_560800_80137BEC(Task*);
-void             func_actor_560800_80137F58(Task*, s32, VECTOR*);
-void             func_actor_560800_801384EC(Task*, s32, ActorCommand* msg);
+void             func_actor_560800_80137F58(Task*, s32, VECTOR*, s32);
+void             func_actor_560800_801384EC(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
 void             func_actor_560800_801386D4(Task*);
-void             func_actor_560800_80138A4C(Task*, s32, ActorCommand* msg);
+void             func_actor_560800_80138A4C(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
 void             func_actor_560800_80138FC8(Task*);
-void             func_actor_560800_80139360(Task*, s32, s32);
-void             func_actor_560800_801393EC(Task*, s32, s32);
-void             func_actor_560800_80139440(Task*, s32, ActorTransform* placement);
+void             func_actor_560800_80139360(Task*, s32, s32, s32);
+void             func_actor_560800_801393EC(Task*, s32, s32, s32);
+void             func_actor_560800_80139440(Task* task, s32 msgId, ActorTransform* placement, s32 arg3);
 
 static AnimationSet _gActor560800Animation1EE00;
 static AnimationSet _gActor560800Animation1F0F8;
@@ -463,7 +453,7 @@ void                func_actor_560800_80135AEC(s32);
 void                func_actor_560800_80135D54(Task*);
 void                func_actor_560800_80135FA0(Task*);
 void                func_actor_560800_80136094(Task*);
-void                func_actor_560800_801361A0(Task*, s32, s32);
+void                func_actor_560800_801361A0(Task*, s32, s32, s32);
 void                func_actor_560800_80136280(s32);
 void                func_actor_560800_801362B0(s32);
 void                func_actor_560800_801362E0(s16);
@@ -3127,9 +3117,9 @@ ActorTransform D_actor_560800_8016F31C = { { 8450, 0, 2850, 0 }, { 0, -512, 0, 0
 
 ActorTransform D_actor_560800_8016F334 = { { 10800, 0, 3200, 0 }, { 0, -1024, 0, 0 } };
 
-Actor560800MessageEntry D_actor_560800_8016F34C[2] = {
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = func_actor_560800_801361A0 } },
-    { ACTOR_MESSAGE_PLACE, { .call1 = actorMsgPlaceYawPitchRoll } },
+TaskMessageEntry D_actor_560800_8016F34C[2] = {
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_560800_801361A0 },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceYawPitchRoll },
 };
 
 ActorTransform* D_actor_560800_8016F35C[34] = {
@@ -4048,10 +4038,10 @@ ActorTransform D_actor_560800_80175614[8] = {
     { { 0, -1100, -200, 0 }, { 1024, 2048, 0, 0 } },
 };
 
-Actor560800MessageEntry D_actor_560800_801756D4[3] = {
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = func_actor_560800_80139360 } },
-    { ACTOR_MESSAGE_PLACE, { .call2 = func_actor_560800_80137F58 } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_560800_801384EC } },
+TaskMessageEntry D_actor_560800_801756D4[3] = {
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_560800_80139360 },
+    { ACTOR_MESSAGE_PLACE, func_actor_560800_80137F58 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_560800_801384EC },
 };
 
 u16 D_actor_560800_801756EC[8] = {
@@ -4092,10 +4082,10 @@ s32 D_actor_560800_8017572C[6] = {
     0,
 };
 
-Actor560800MessageEntry D_actor_560800_80175744[3] = {
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = func_actor_560800_801393EC } },
-    { ACTOR_MESSAGE_PLACE, { .call1 = func_actor_560800_80139440 } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_560800_80138A4C } },
+TaskMessageEntry D_actor_560800_80175744[3] = {
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_560800_801393EC },
+    { ACTOR_MESSAGE_PLACE, func_actor_560800_80139440 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_560800_80138A4C },
 };
 
 TaskDesc D_actor_560800_8017575C[4] = {
@@ -4131,7 +4121,7 @@ extern ActorTransform* D_actor_560800_8016F46C[];
 
 extern ActorTransform* D_actor_560800_8016F4F4[];
 
-extern Actor560800MessageEntry D_actor_560800_801756D4[3];
+extern TaskMessageEntry D_actor_560800_801756D4[3];
 
 extern u16 D_actor_560800_801756EC[];
 
@@ -4151,7 +4141,7 @@ extern s32 D_actor_560800_8017572C[];
 /// counters. Each case needs its own matrix pointer (and case 0 its own work
 /// pointer): a pointer shared across cases is a global pseudo, so the local
 /// 0x1000 constant takes `$v0` from it.
-extern Actor560800MessageEntry D_actor_560800_80175744[3];
+extern TaskMessageEntry D_actor_560800_80175744[3];
 
 static s32         func_actor_560800_80132340(Task* arg0);
 static inline void Actor560800_ReseedAnim(Task* arg0, u16 id, s16 rate);
@@ -5853,7 +5843,7 @@ void func_actor_560800_80136094(Task* arg0)
     }
 }
 
-void func_actor_560800_801361A0(Task* task, s32 arg1, s32 arg2)
+void func_actor_560800_801361A0(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
     TmdObject* extra;
 
@@ -6629,7 +6619,7 @@ void func_actor_560800_80137BEC(Task* task)
 /// it off `gGfxViewCoord` and offsets it from the message position; 4 kills
 /// parts 4-7, reparents the rest to `D_actor_560800_801757AC`'s model and
 /// raises the `D_actor_560800_801752E8` / `801752EC` flags.
-void func_actor_560800_80137F58(Task* task, s32 msgId, VECTOR* msg)
+void func_actor_560800_80137F58(Task* task, s32 msgId, VECTOR* msg, s32 arg3)
 {
     Actor560800PartsWork* work;
     u16                   flag;
@@ -6768,7 +6758,7 @@ void func_actor_560800_80137F58(Task* task, s32 msgId, VECTOR* msg)
 /// rebuilds each part's colour matrix from its world translation, 5 and 6 put
 /// all eight parts into state 2 / 1, and the rest set this task's state and the
 /// `Actor560800PartsWork` halfwords at 0x44-0x4A.
-void func_actor_560800_801384EC(Task* task, s32 msgId, ActorCommand* msg)
+void func_actor_560800_801384EC(Task* task, s32 msgId, ActorCommand* msg, s32 arg3)
 {
     Actor560800PartsWork* work;
     Task*                 part;
@@ -6940,7 +6930,7 @@ void func_actor_560800_801386D4(Task* task)
     w->world.t[2] = pos.vz;
 }
 
-void func_actor_560800_80138A4C(Task* task, s32 msgId, ActorCommand* msg)
+void func_actor_560800_80138A4C(Task* task, s32 msgId, ActorCommand* msg, s32 arg3)
 {
     Actor560800ModelWork* work;
     TmdObject*            extra;
@@ -7301,7 +7291,7 @@ void func_actor_560800_80138FC8(Task* task)
 /// applied to every part task its `Actor560800PartsWork` still holds. `arg2` is
 /// the sub-command - 1 clears the 0x84 pair of bits in the part's
 /// `TmdObject::flags` and 2 sets it, anything else leaves the parts alone.
-void func_actor_560800_80139360(Task* task, s32 arg1, s32 arg2)
+void func_actor_560800_80139360(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
     Actor560800PartsWork* work;
     TmdObject*            obj;
@@ -7329,7 +7319,7 @@ void func_actor_560800_80139360(Task* task, s32 arg1, s32 arg2)
     } while ((u32)(i & 0xFFFF) < 8U);
 }
 
-void func_actor_560800_801393EC(Task* task, s32 arg1, s32 arg2)
+void func_actor_560800_801393EC(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
     TmdObject* extra;
 

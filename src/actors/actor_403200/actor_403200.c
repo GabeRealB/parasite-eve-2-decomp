@@ -221,20 +221,8 @@ extern TaskDesc gGluttonEscortTasks[];
 
 /// The enemy task's message-handler table, parked in `Task::msgTable`.
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32  (*call0)(void);
-        s32  (*call1)(Task*);
-        s32  (*call2)(Task*, s32, ActorCommand* request);
-        s32  (*call3)(Task*, s32, ActorTransform*);
-        s32  (*call4)(Task*, s32, s32);
-        void (*call5)(void);
-    } handler;
-} Actor403200MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor403200MessageEntry, 8);
 
-extern Actor403200MessageEntry D_actor_403200_8015F770[8];
+extern TaskMessageEntry D_actor_403200_8015F770[8];
 
 /// Three formations of nine positions, and each member's model/spawn argument.
 extern SVECTOR             D_actor_403200_8015F7B0[3][9];
@@ -372,12 +360,12 @@ s32                 func_actor_403200_80141180(Task*, s16);
 s32                 func_actor_403200_801411A8(Task*, s16);
 void                func_actor_403200_8014148C(Task*);
 
-s32  func_actor_403200_80138468(Task*, s32, s32);
-s32  func_actor_403200_80138748(Task*, s32, ActorCommand* msg);
-s32  func_actor_403200_80141A94(Task*, s32, s32);
-s32  func_actor_403200_80141B30(void);
+s32  func_actor_403200_80138468(Task*, s32, s32, s32);
+s32  func_actor_403200_80138748(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
+s32  func_actor_403200_80141A94(Task*, s32, s32, s32);
+s32  func_actor_403200_80141B30(Task*, s32, s32, s32);
 void func_actor_403200_80140E6C(Task*);
-void func_actor_403200_8014196C(void);
+s32  func_actor_403200_8014196C(Task*, s32, s32, s32);
 
 extern DamageAttack D_actor_403200_80141BE8[6];
 
@@ -2801,15 +2789,15 @@ AnimationSet gActor403200Animation2D928 = {
     { NULL, _gActor403200Animation2D928Bank1, NULL, NULL, _gActor403200Animation2D928Bank4, NULL, NULL, NULL },
 };
 
-Actor403200MessageEntry D_actor_403200_8015F770[8] = {
-    { 2015, { .call5 = func_actor_403200_8014196C } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = func_actor_403200_80138468 } },
-    { ACTOR_MESSAGE_IS_PRESENT, { .call1 = actorMsgIsPresent } },
-    { ACTOR_MESSAGE_PLACE, { .call3 = actorMsgPlace } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_403200_80138748 } },
-    { ROOM_MESSAGE_ACTOR_EVENT, { .call4 = func_actor_403200_80141A94 } },
-    { 2014, { .call0 = func_actor_403200_80141B30 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_403200_8015F770[8] = {
+    { 2015, func_actor_403200_8014196C },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_403200_80138468 },
+    { ACTOR_MESSAGE_IS_PRESENT, actorMsgIsPresent },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlace },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_403200_80138748 },
+    { ROOM_MESSAGE_ACTOR_EVENT, func_actor_403200_80141A94 },
+    { 2014, func_actor_403200_80141B30 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 SVECTOR D_actor_403200_8015F7B0[3][9] = {
@@ -3763,7 +3751,7 @@ static const GpEnemyTaskFuncTable4 gGluttonSpinnerStates = {
 /// Same body as `func_actor_444000_8013A958` without that sibling's
 /// `TmdObject::buffer` buffer tests, so every escort is re-allocated
 /// unconditionally.
-s32 func_actor_403200_80138468(Task* task, s32 arg1, s32 arg2)
+s32 func_actor_403200_80138468(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
     GluttonWork* work;
     GluttonWork* buffers;
@@ -3837,7 +3825,7 @@ s32 func_actor_403200_80138468(Task* task, s32 arg1, s32 arg2)
 
 /// Handles message 0x7DB: records the payload and dispatches the sender's
 /// action to reset the escorts, select an attack, or finish the return pose.
-s32 func_actor_403200_80138748(Task* task, s32 msgId, ActorCommand* msg)
+s32 func_actor_403200_80138748(Task* task, s32 msgId, ActorCommand* msg, s32 arg3)
 {
     GluttonWork* work;
     GluttonWork* escorts;
@@ -6973,7 +6961,7 @@ static void func_actor_403200_8014123C(Task* arg0)
 
 #include "../../shared/glutton_spinner_task.inc.c"
 
-void func_actor_403200_8014196C(void)
+s32 func_actor_403200_8014196C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
 }
 
@@ -6987,7 +6975,7 @@ void func_actor_403200_8014196C(void)
 /// the countdown at 0xF1C down and, once it has run out, re-arms the enemy's
 /// `field_F16`. Same body as `func_actor_444000_80143E68` without its tracked
 /// escort slots.
-s32 func_actor_403200_80141A94(Task* arg0, s32 arg1, s32 arg2)
+s32 func_actor_403200_80141A94(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     GluttonWork* work  = (GluttonWork*)arg0->work;
     Enemy*       enemy = arg0->spawnArg2.pointer;
@@ -7013,7 +7001,7 @@ s32 func_actor_403200_80141A94(Task* arg0, s32 arg1, s32 arg2)
     return 1;
 }
 
-s32 func_actor_403200_80141B30(void)
+s32 func_actor_403200_80141B30(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     gGluttonGrabActive = 0;
     return 1;

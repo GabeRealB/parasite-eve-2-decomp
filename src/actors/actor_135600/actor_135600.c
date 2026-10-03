@@ -55,19 +55,8 @@ extern TaskDesc D_actor_135600_8013B0C4[];
 /// 0x7DD and 0x7DB against the handlers below.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
-typedef struct {
-    s32 id;
-    union {
-        s32                (*call0)(void);
-        s32                (*call1)(Task*, s32, AnimationPlayRequest*, s32);
-        s32                (*call2)(Task*, s32, ActorTransform*, ActorMotionWalkAnim*);
-        s32                (*call3)(Task*, s32, ActorTransform*, s32);
-        TaskMessageHandler call4;
-    } handler;
-} Actor135600MsgEntry;
-STATIC_ASSERT_SIZEOF(Actor135600MsgEntry, 8);
 
-extern Actor135600MsgEntry D_actor_135600_8013B0F4[];
+extern TaskMessageEntry D_actor_135600_8013B0F4[];
 
 static void func_actor_135600_80132234(Task* task);
 static void func_actor_135600_801324D0(Task* task);
@@ -142,7 +131,7 @@ static TmdSource    _gActor135600KyleMadiganHandRight;
 static TmdSource    _gActor135600KyleMadiganHandLeft;
 static TmdSource    _gActor135600Model06AC4;
 s32                 func_actor_135600_80133240(Task*, s32, s32, s32);
-s32                 func_actor_135600_8013336C(void);
+s32                 func_actor_135600_8013336C(Task*, s32, s32, s32);
 void                func_actor_135600_801329E0(Task*);
 void                func_actor_135600_80132ABC(Task*);
 void                func_actor_135600_80132D64(Task*);
@@ -638,13 +627,13 @@ TaskDesc D_actor_135600_8013B0C4[4] = {
     { { { TASK_BODY_TMD, 192 } }, func_actor_135600_80132ABC, { .model = &_gActor135600Model06AC4 } },
 };
 
-Actor135600MsgEntry D_actor_135600_8013B0F4[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = actorMotionPlayAnim } },
-    { ACTOR_MESSAGE_PLACE, { .call3 = actorMsgPlaceEuler } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = func_actor_135600_80133240 } },
-    { ACTOR_MESSAGE_WALK_TO, { .call2 = actorMotionStartWalk } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_135600_8013336C } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_135600_8013B0F4[6] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, actorMotionPlayAnim },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_135600_80133240 },
+    { ACTOR_MESSAGE_WALK_TO, actorMotionStartWalk },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_135600_8013336C },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 static s32 func_actor_135600_80131E68(GfxCoord* coord, s32 arg1);
@@ -1140,7 +1129,7 @@ s32 func_actor_135600_80133240(Task* task, s32 msgId, s32 mode, s32 arg3)
 
 /// The 0x7DB entry of `D_actor_135600_8013B0F4`: accepts the message and does
 /// nothing with it.
-s32 func_actor_135600_8013336C(void)
+s32 func_actor_135600_8013336C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

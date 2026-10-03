@@ -99,7 +99,7 @@ static void           func_neo_ark_forest_zone_8017DBAC(Task* task);
 
 #include "../../shared/room_event_staged_task.inc.c"
 
-s32 func_neo_ark_forest_zone_8017D7DC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_neo_ark_forest_zone_8017D7DC(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -154,7 +154,7 @@ s32 func_neo_ark_forest_zone_8017D7E4(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
     return NeoArkForestZone_StartEvent(out, &event);
 }
 
-s32 func_neo_ark_forest_zone_8017D950(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_neo_ark_forest_zone_8017D950(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

@@ -221,19 +221,9 @@ extern Actor00300AreaConfig Actor00300_D16020[15];
 extern SVECTOR*             Actor00300_D16278[15][2];
 extern TaskDesc             Actor00300_D162F0[];
 // Typed callback views for the task message dispatcher.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call1)(Task*, s32, ActorCommand* request);
-        s32 (*call2)(Task*, s32, ActorTransform*);
-        s32 (*call3)(Task*, s32, s32);
-    } handler;
-} Actor00300RecoveredMsgEntry;
-STATIC_ASSERT_SIZEOF(Actor00300RecoveredMsgEntry, 8);
 
-extern Actor00300RecoveredMsgEntry Actor00300_D16314[5];
-extern AnimationSet*               Actor00300_D1633C[22];
+extern TaskMessageEntry Actor00300_D16314[5];
+extern AnimationSet*    Actor00300_D1633C[22];
 
 /// State handlers of the task `Actor00300_Fn04770` dispatches, indexed by
 /// `Task::state`. The first sets the task up and moves it to state 1.
@@ -268,9 +258,9 @@ static AnimationSet _gActor00300Actor100300Animation15594;
 static AnimationSet _gActor00300Actor100300Animation15FB0;
 static TmdSource    _gActor00300StingerBody;
 static TmdSource    _gActor00300Actor100300Model09FA0;
-s32                 Actor00300_Fn05304(Task*, s32, AnimationPlayRequest*);
-s32                 Actor00300_Fn053EC(Task*, s32, s32);
-s32                 Actor00300_Fn05434(Task*, s32, ActorCommand* args);
+s32                 Actor00300_Fn05304(Task*, s32, AnimationPlayRequest*, s32);
+s32                 Actor00300_Fn053EC(Task*, s32, s32, s32);
+s32                 Actor00300_Fn05434(Task* task, s32 msgId, ActorCommand* args, s32 arg3);
 void                Actor00300_Fn04770(Task*);
 void                Actor00300_Fn05138(Task*);
 void                Actor00300_Fn0521C(Task*);
@@ -1170,12 +1160,12 @@ TaskDesc Actor00300_D162F0[3] = {
     { { { TASK_BODY_COORD, 96 } }, Actor00300_Fn0521C, { .value = 0 } },
 };
 
-Actor00300RecoveredMsgEntry Actor00300_D16314[5] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = Actor00300_Fn05304 } },
-    { ACTOR_MESSAGE_PLACE, { .call2 = actorMsgPlaceRotMatrix } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = Actor00300_Fn053EC } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = Actor00300_Fn05434 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry Actor00300_D16314[5] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, Actor00300_Fn05304 },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceRotMatrix },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, Actor00300_Fn053EC },
+    { ACTOR_COMMAND_MESSAGE_APPLY, Actor00300_Fn05434 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 AnimationSet* Actor00300_D1633C[22] = {
@@ -3492,7 +3482,7 @@ static void Actor00300_Fn05278(Enemy* arg0, Task* arg1)
     }
 }
 
-s32 Actor00300_Fn05304(Task* arg0, s32 arg1, AnimationPlayRequest* args)
+s32 Actor00300_Fn05304(Task* arg0, s32 arg1, AnimationPlayRequest* args, s32 arg3)
 {
     Actor100300Work* work;
     s32              i;
@@ -3515,7 +3505,7 @@ s32 Actor00300_Fn05304(Task* arg0, s32 arg1, AnimationPlayRequest* args)
 
 #include "../../shared/actor_messages_place_rot_matrix.inc.c"
 
-s32 Actor00300_Fn053EC(Task* arg0, s32 arg1, s32 arg2)
+s32 Actor00300_Fn053EC(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     TmdObject*       obj;
     Actor100300Work* work;
@@ -3534,7 +3524,7 @@ s32 Actor00300_Fn053EC(Task* arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-s32 Actor00300_Fn05434(Task* arg0, s32 arg1, ActorCommand* args)
+s32 Actor00300_Fn05434(Task* arg0, s32 arg1, ActorCommand* args, s32 arg3)
 {
     Actor100300Work* work;
     Enemy*           enemy;

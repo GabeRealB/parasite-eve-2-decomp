@@ -15,7 +15,7 @@
 ///
 /// The `goto`s are the target's shape: every path shares the single `return 0`
 /// at `end`, so the exit block is the only place `$v0` is zeroed.
-s32 factoryCommand(Task* arg0, s32 arg1, s32 cmd, TaskMessageArg arg3)
+s32 factoryCommand(Task* arg0, s32 arg1, s32 cmd, s32 arg3)
 {
     TaskDesc* table;
     s32       idx;

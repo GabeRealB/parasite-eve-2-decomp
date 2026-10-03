@@ -47,16 +47,8 @@ extern u8 gViewFigureAnimSets[];
 /// below and a terminator.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call1)(Task*, s32, s32);
-    } handler;
-} Actor110800MsgEntry;
-STATIC_ASSERT_SIZEOF(Actor110800MsgEntry, 8);
 
-extern Actor110800MsgEntry gViewFigureMessages[];
+extern TaskMessageEntry gViewFigureMessages[];
 
 static TmdSource _gActor110800SwatMember2Body;
 static TmdSource _gActor110800Model060A0;
@@ -237,10 +229,10 @@ static AnimationSet _gActor110800Animation0807C = {
     { NULL, _gActor110800Animation0807CBank1, NULL, NULL, _gActor110800Animation0807CBank4, NULL, NULL, NULL },
 };
 
-Actor110800MsgEntry gViewFigureMessages[3] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = viewFigurePlayMessage } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call1 = actorMsgSetPairVisibility } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry gViewFigureMessages[3] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, viewFigurePlayMessage },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetPairVisibility },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc gViewFigureTasks[2] = {

@@ -57,27 +57,17 @@ STATIC_ASSERT_SIZEOF(Actor160600AnimStorage4E00, 140);
 extern Actor160600AnimStorage4E00 D_actor_160600_80134E00;
 
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call1)(Task*, s32, ActorCommand* request);
-        s32 (*call2)(Task*, s32, ActorTransform*);
-        s32 (*call3)(Task*, s32, s32);
-    } handler;
-} Actor160600MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor160600MessageEntry, 8);
 
-extern Actor160600MessageEntry gPacedWalkMsgTable[6];
-extern u8                      gPacedWalkAnimBank[];
-extern u8                      gPacedWalkEffectParts[];
+extern TaskMessageEntry gPacedWalkMsgTable[6];
+extern u8               gPacedWalkAnimBank[];
+extern u8               gPacedWalkEffectParts[];
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
 static TmdSource _gActor160600SoldierABody;
 void             func_actor_160600_801321B4(Task*);
 
-s32 func_actor_160600_8013268C(Task*, s32, ActorCommand* args);
+s32 func_actor_160600_8013268C(Task* task, s32 msgId, ActorCommand* args, s32 arg3);
 
 extern AnimationPlayRequest D_actor_160600_80134E8C;
 extern AnimationPlayRequest D_actor_160600_80134EA0;
@@ -1095,13 +1085,13 @@ static AnimationSet _gActor160600Animation0C128 = {
     { NULL, _gActor160600Animation0C128Bank1, NULL, NULL, _gActor160600Animation0C128Bank4, NULL, NULL, NULL },
 };
 
-Actor160600MessageEntry gPacedWalkMsgTable[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = pacedWalkPlayAnim } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = pacedWalkShowPair } },
-    { ACTOR_MESSAGE_PLACE, { .call2 = pacedWalkPlace } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_160600_8013268C } },
-    { ACTOR_MESSAGE_WALK_TO, { .call2 = pacedWalkTo } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry gPacedWalkMsgTable[6] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, pacedWalkPlayAnim },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, pacedWalkShowPair },
+    { ACTOR_MESSAGE_PLACE, pacedWalkPlace },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_160600_8013268C },
+    { ACTOR_MESSAGE_WALK_TO, pacedWalkTo },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_actor_160600_8013DFA0 = { { { TASK_BODY_TMD, 96 } }, func_actor_160600_801321B4, { .model = &_gActor160600SoldierABody } };
@@ -1228,7 +1218,7 @@ void pacedWalkExit(Task* task)
 /// Script opcode: sets the work block's `effects`, which enables the
 /// per-frame effect spawns, when the payload is exactly 1; any other payload
 /// is ignored.
-s32 func_actor_160600_8013268C(Task* task, s32 arg1, ActorCommand* args)
+s32 func_actor_160600_8013268C(Task* task, s32 arg1, ActorCommand* args, s32 arg3)
 {
     Actor160600Work* work;
     u16              value;

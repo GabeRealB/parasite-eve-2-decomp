@@ -72,29 +72,18 @@ extern Task*    D_actor_461800_80133EB4;
 extern TaskDesc D_actor_461800_80133EBC[];
 
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32                (*call0)(Task*, s32, AnimationPlayRequest*, s32);
-        TaskMessageHandler call1;
-        s32                (*call2)(Task*, s32, ActorTransform*);
-        s32                (*call3)(Task*, s32, VECTOR*, s32);
-        s32                (*call4)(Task*, s32, s32);
-    } handler;
-} Actor461800MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor461800MessageEntry, 8);
 
-extern Actor461800MessageEntry D_actor_461800_80139F5C[6];
-extern TaskDesc                D_actor_461800_80139F8C[];
-extern AnimationSet*           D_actor_461800_80139FB0[6];
+extern TaskMessageEntry D_actor_461800_80139F5C[6];
+extern TaskDesc         D_actor_461800_80139F8C[];
+extern AnimationSet*    D_actor_461800_80139FB0[6];
 
 extern s32 D_actor_461800_80143884;
 extern s32 D_actor_461800_80143888;
 extern s32 D_actor_461800_8014388C;
 extern s32 D_actor_461800_80143890;
 
-extern Actor461800MessageEntry gFootstepWalkMsgTable[6];
-extern AnimationSet*           gFootstepWalkAnims[35];
+extern TaskMessageEntry gFootstepWalkMsgTable[6];
+extern AnimationSet*    gFootstepWalkAnims[35];
 
 /// Reset argument the first variant forwards to every reseeded slot.
 extern s16 gScriptedWalkBlendFrames;
@@ -111,10 +100,10 @@ static void func_actor_461800_801335B0(Enemy* enemy, Task* task);
 static void func_actor_461800_80133B98(Task* task);
 
 s32  func_actor_461800_80132D84(Task*, s32, AnimationPlayRequest*, s32);
-s32  func_actor_461800_80132E14(Task*, s32, s32);
-s32  func_actor_461800_80132F20(Task*, s32, ActorCommand* request, s32);
-s32  func_actor_461800_80133928(Task*, s32, s32);
-s32  func_actor_461800_801339EC(Task*, s32, ActorCommand* msg, s32);
+s32  func_actor_461800_80132E14(Task*, s32, s32, s32);
+s32  func_actor_461800_80132F20(Task* task, s32 msgId, ActorCommand* request, s32);
+s32  func_actor_461800_80133928(Task*, s32, s32, s32);
+s32  func_actor_461800_801339EC(Task* task, s32 msgId, ActorCommand* msg, s32);
 void func_actor_461800_801329B0(Task*);
 void func_actor_461800_80132B74(Task*);
 void func_actor_461800_80133554(Task*);
@@ -410,13 +399,13 @@ static AnimationSet _gActor461800Animation08110 = {
 
 s16 gScriptedWalkBlendFrames = 8;
 
-Actor461800MessageEntry D_actor_461800_80139F5C[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = func_actor_461800_80132D84 } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = func_actor_461800_80132E14 } },
-    { ACTOR_MESSAGE_PLACE, { .call2 = scriptedWalkPlace } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_461800_80132F20 } },
-    { ACTOR_MESSAGE_WALK_TO, { .call3 = scriptedWalkTo } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_461800_80139F5C[6] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_461800_80132D84 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_461800_80132E14 },
+    { ACTOR_MESSAGE_PLACE, scriptedWalkPlace },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_461800_80132F20 },
+    { ACTOR_MESSAGE_WALK_TO, scriptedWalkTo },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_actor_461800_80139F8C[3] = {
@@ -820,13 +809,13 @@ static AnimationSet _gActor461800Animation11970 = {
 
 s16 gFootstepWalkBlendFrames = 8;
 
-Actor461800MessageEntry gFootstepWalkMsgTable[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = footstepWalkPlay } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = func_actor_461800_80133928 } },
-    { ACTOR_MESSAGE_PLACE, { .call2 = footstepWalkPlace } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_461800_801339EC } },
-    { ACTOR_MESSAGE_WALK_TO, { .call3 = footstepWalkTo } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry gFootstepWalkMsgTable[6] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, footstepWalkPlay },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_461800_80133928 },
+    { ACTOR_MESSAGE_PLACE, footstepWalkPlace },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_461800_801339EC },
+    { ACTOR_MESSAGE_WALK_TO, footstepWalkTo },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_actor_461800_801437EC = { { { TASK_BODY_TMD, 192 } }, func_actor_461800_80133554, { .model = &_gActor461800AyaBreaBody } };
@@ -1215,7 +1204,7 @@ s32 func_actor_461800_80132D84(Task* task, s32 arg1, AnimationPlayRequest* prese
 /// `arg2 & 1` shows them (flags 0); otherwise each gets `TMD_OBJECT_SKIP_ACTIVE_DRAW`.
 /// `arg2 & 2` also sets `TMD_OBJECT_SKIP_AUTO_BUFFER` on each. These are object
 /// flags, not `Tmd_Create`'s buffer-flag argument.
-s32 func_actor_461800_80132E14(Task* arg0, s32 arg1, s32 arg2)
+s32 func_actor_461800_80132E14(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     TmdObject* own    = D_actor_461800_80143898->extra.tmd;
     TmdObject* first  = gScriptedWalkWork->helper1->extra.tmd;
@@ -1297,7 +1286,7 @@ void footstepWalkExit(Task* task)
 /// Visibility message of the second variant: applies `arg2` to the model of
 /// the task published in `gFootstepWalkTask` - bit 0 selects
 /// `TmdObject.flags` 0 (shown) vs 0x80 (hidden), bit 1 ORs in 0x4.
-s32 func_actor_461800_80133928(Task* task, s32 arg1, s32 arg2)
+s32 func_actor_461800_80133928(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
     TmdObject* obj;
 

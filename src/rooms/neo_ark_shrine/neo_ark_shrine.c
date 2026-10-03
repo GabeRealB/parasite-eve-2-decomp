@@ -58,10 +58,10 @@ extern NeoArkShrineTileOrigin D_neo_ark_shrine_801825AC[16];
 /// Steps the currently selected group and returns which kind of step it was.
 static s16 func_neo_ark_shrine_8017E254(void);
 
-s32  func_neo_ark_shrine_8017D6A4(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_neo_ark_shrine_8017D6A4(Task*, s32, s32, s32);
 s32  func_neo_ark_shrine_8017D6AC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_neo_ark_shrine_8017D740(Task*, s32, s32, TaskMessageArg);
-s32  func_neo_ark_shrine_8017D7F0(Task*, s32, TaskMessageArg firstArg, TaskMessageArg);
+s32  func_neo_ark_shrine_8017D740(Task*, s32, s32, s32);
+s32  func_neo_ark_shrine_8017D7F0(Task* task, s32 msgId, const void* firstArg, s32 arg3);
 void func_neo_ark_shrine_8017D84C(Task*);
 
 TaskMessageEntry D_neo_ark_shrine_80181E34[5] = {
@@ -265,7 +265,7 @@ static void func_neo_ark_shrine_8017D8F4(Task* task);
 static void func_neo_ark_shrine_8017D940(Task* task);
 
 /// Always returns 0.
-s32 func_neo_ark_shrine_8017D6A4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_neo_ark_shrine_8017D6A4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -288,7 +288,7 @@ s32 func_neo_ark_shrine_8017D6AC(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEve
     return 0;
 }
 
-s32 func_neo_ark_shrine_8017D740(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_neo_ark_shrine_8017D740(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     s32 bit2;
 
@@ -309,9 +309,9 @@ s32 func_neo_ark_shrine_8017D740(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg 
     return 0;
 }
 
-s32 func_neo_ark_shrine_8017D7F0(Task* task, s32 msgId, TaskMessageArg firstArg, TaskMessageArg arg3)
+s32 func_neo_ark_shrine_8017D7F0(Task* task, s32 msgId, const void* firstArg, s32 arg3)
 {
-    const DirectionActionRequest* request = firstArg.pointer;
+    const DirectionActionRequest* request = firstArg;
 
     if (request->actionId == 1) {
         if (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0) {

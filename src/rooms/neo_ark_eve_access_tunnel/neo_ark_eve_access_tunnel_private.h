@@ -33,15 +33,15 @@ void func_neo_ark_eve_access_tunnel_8017D980(Task*);
 
 void func_neo_ark_eve_access_tunnel_8017DB18(Task*);
 
-s32 func_neo_ark_eve_access_tunnel_8017DC64(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_neo_ark_eve_access_tunnel_8017DC64(Task*, s32, s32, s32);
 
 s32 func_neo_ark_eve_access_tunnel_8017DC6C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
-s32 func_neo_ark_eve_access_tunnel_8017DD70(Task*, s32, s32, TaskMessageArg);
+s32 func_neo_ark_eve_access_tunnel_8017DD70(Task*, s32, s32, s32);
 
-s32 func_neo_ark_eve_access_tunnel_8017DE1C(Task*, s32, TaskMessageArg firstArg, TaskMessageArg);
+s32 func_neo_ark_eve_access_tunnel_8017DE1C(Task* task, s32 msgId, const void* firstArg, s32 arg3);
 
-s32 func_neo_ark_eve_access_tunnel_8017DE9C(Task*, s32, s32, TaskMessageArg);
+s32 func_neo_ark_eve_access_tunnel_8017DE9C(Task*, s32, s32, s32);
 
 void func_neo_ark_eve_access_tunnel_8017DED0(Task*);
 

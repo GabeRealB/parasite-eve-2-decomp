@@ -66,15 +66,8 @@ extern PadScriptVibrationSegment gSucklercephBurstScriptB[];
 
 /// Message table the dropping first enemy's spawn parks in `Task::msgTable`.
 // Typed callback views for the task message dispatcher.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(Task*, s32, ActorCommand* request);
-    } handler;
-} Actor04600RecoveredMsgEntry;
-STATIC_ASSERT_SIZEOF(Actor04600RecoveredMsgEntry, 8);
 
-extern Actor04600RecoveredMsgEntry gSucklercephDropMsgTable[2];
+extern TaskMessageEntry gSucklercephDropMsgTable[2];
 
 /// Animation-set table bound to the first enemy's context by `animationInitContext`.
 extern AnimationSet* gSucklercephAnimSets[4];
@@ -217,9 +210,9 @@ static AnimationSet _gActor04600Actor104600Animation05840 = {
     { NULL, _gActor04600Actor104600Animation05840Bank1, NULL, NULL, _gActor04600Actor104600Animation05840Bank4, NULL, NULL, NULL },
 };
 
-Actor04600RecoveredMsgEntry gSucklercephDropMsgTable[2] = {
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = sucklercephMessage } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry gSucklercephDropMsgTable[2] = {
+    { ACTOR_COMMAND_MESSAGE_APPLY, sucklercephMessage },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc Actor04600_D05878 = { { { TASK_BODY_TMD, 96 } }, sucklercephTask, { .model = &_gActor04600SucklercephBody } };

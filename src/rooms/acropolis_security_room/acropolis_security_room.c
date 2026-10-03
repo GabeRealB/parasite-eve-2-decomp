@@ -233,36 +233,10 @@ static inline SVECTOR* ActorContact_GetScratchPosition(void)
     return &ActorContact_ScratchPosition;
 }
 
-/// One row of the room task's message table.
-///
-/// A row is a message id and the callback that handles it. The room task
-/// installs the table in `Task::msgTable` and registers itself in
-/// `GAME_TASK_SLOT_ROOM`, so the rows answer what gameplay sends the current
-/// room. The table ends with `TASK_MESSAGE_TABLE_END` and a null callback, so
-/// any other id answers zero.
-///
-/// The row has the layout the task-message dispatcher walks, but it is not a
-/// `TaskMessageEntry`: the room-action callback returns nothing and takes only
-/// the first argument word. Dispatch still passes both argument words in their
-/// registers and forwards whatever the result register holds, so a sender of
-/// `DIRECTION_MESSAGE_ROOM_ACTION` must not read a result. `handler` therefore
-/// holds one view per message, each the signature of the callback stored
-/// through it.
-typedef struct {
-    s32 messageId;                                                                                       // Receiver-specific id, or TASK_MESSAGE_TABLE_END
-    union {
-        s32  (*resolveRoomEvent)(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply); // ROOM_EVENT_MESSAGE_RESOLVE; borrowed request, writable reply
-        void (*roomAction)(Task* task, s32 messageId, DirectionActionRequest* request);                  // DIRECTION_MESSAGE_ROOM_ACTION; borrowed request, no result
-        s32  (*command)(Task* task, s32 messageId, s32 commandId, s32 secondArg);                        // ROOM_MESSAGE_COMMAND; this room leaves secondArg unread
-        s32  (*useKeyItem)(Task* task, s32 messageId, s32 item, s32 secondArg);                          // Message 0x13F1: a key item used from the menu; the result is the room's answer
-    } handler;                                                                                           // Callback for `messageId`; NULL only on the end marker
-} _AcropolisSecurityRoomMessageEntry;
-STATIC_ASSERT_SIZEOF(_AcropolisSecurityRoomMessageEntry, 8);
-
 /// The room task's message table, installed in `Task::msgTable`.
-extern _AcropolisSecurityRoomMessageEntry D_acropolis_security_room_801825DC[];
-extern TaskDesc                           D_acropolis_security_room_80182618[];
-extern TaskDesc                           D_acropolis_security_room_8018263C;
+extern TaskMessageEntry D_acropolis_security_room_801825DC[];
+extern TaskDesc         D_acropolis_security_room_80182618[];
+extern TaskDesc         D_acropolis_security_room_8018263C;
 
 /// The security monitor's own hotspot table, hit-tested by
 /// `actionPromptHitTest`.
@@ -385,17 +359,17 @@ extern SpriteSource D_acropolis_security_room_801841F0[18];
 extern SpriteSource D_acropolis_security_room_80184390[10];
 extern SpriteSource D_acropolis_security_room_80184470[2];
 
-s32  func_acropolis_security_room_8017D6AC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_acropolis_security_room_8017D6D4(Task*, s32, s32, s32);
-s32  func_acropolis_security_room_8017D708(Task*, s32, s32, s32);
-void func_acropolis_security_room_8017D740(Task*, s32, DirectionActionRequest* request);
+s32 func_acropolis_security_room_8017D6AC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_acropolis_security_room_8017D6D4(Task*, s32, s32, s32);
+s32 func_acropolis_security_room_8017D708(Task*, s32, s32, s32);
+s32 func_acropolis_security_room_8017D740(Task* task, s32 msgId, DirectionActionRequest* request, s32 arg3);
 
-_AcropolisSecurityRoomMessageEntry D_acropolis_security_room_801825DC[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, { .resolveRoomEvent = func_acropolis_security_room_8017D6AC } },
-    { DIRECTION_MESSAGE_ROOM_ACTION, { .roomAction = func_acropolis_security_room_8017D740 } },
-    { ROOM_MESSAGE_COMMAND, { .command = func_acropolis_security_room_8017D708 } },
-    { 5105, { .useKeyItem = func_acropolis_security_room_8017D6D4 } },
-    { TASK_MESSAGE_TABLE_END, { .resolveRoomEvent = NULL } },
+TaskMessageEntry D_acropolis_security_room_801825DC[5] = {
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_security_room_8017D6AC },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_security_room_8017D740 },
+    { ROOM_MESSAGE_COMMAND, func_acropolis_security_room_8017D708 },
+    { 5105, func_acropolis_security_room_8017D6D4 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 AnimationPlayRequest D_acropolis_security_room_80182604 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
@@ -2042,7 +2016,7 @@ s32 func_acropolis_security_room_8017D708(Task* arg0, s32 arg1, s32 arg2, s32 ar
     return 0;
 }
 
-void func_acropolis_security_room_8017D740(Task* arg0, s32 arg1, DirectionActionRequest* request)
+s32 func_acropolis_security_room_8017D740(Task* arg0, s32 arg1, DirectionActionRequest* request, s32 arg3)
 {
     if (request->actionId == 0) {
         Task_SpawnFromTable(D_acropolis_security_room_80182618, 0, 0, 0);

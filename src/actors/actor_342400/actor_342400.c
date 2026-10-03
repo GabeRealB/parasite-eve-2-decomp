@@ -40,21 +40,14 @@ STATIC_ASSERT_SIZEOF(Actor342400Limit, 0x4);
 
 extern TaskDesc D_801575F0; // absolute, spawned by func_actor_342400_80162DA0
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        void (*call0)(Task*, s32, ActorCommand* request);
-    } handler;
-} Actor342400MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor342400MessageEntry, 8);
 
-extern Actor342400MessageEntry D_actor_342400_8016BF48[2]; // stored into `Task::msgTable` by func_actor_342400_801628F0
-extern OverlayEncounterSlot    gMadChaserWaveSlots[];
-extern TaskDesc                D_actor_342400_8016BFE0[];
-extern Actor342400Limit        D_actor_342400_8016C010[];
-extern s16                     D_actor_342400_8016C054[][4]; // spawn variant per player-position band, 4 random picks
+extern TaskMessageEntry     D_actor_342400_8016BF48[2]; // stored into `Task::msgTable` by func_actor_342400_801628F0
+extern OverlayEncounterSlot gMadChaserWaveSlots[];
+extern TaskDesc             D_actor_342400_8016BFE0[];
+extern Actor342400Limit     D_actor_342400_8016C010[];
+extern s16                  D_actor_342400_8016C054[][4]; // spawn variant per player-position band, 4 random picks
 
-                                                             // spawn counter, `<< 12` into `Enemy::placeKey`
+                                                          // spawn counter, `<< 12` into `Enemy::placeKey`
 
 static s16  func_actor_342400_801624A4(void);
 static s16  func_actor_342400_801626CC(s16 arg0, s16 arg1, s16 arg2);
@@ -72,11 +65,11 @@ static void func_actor_342400_80162FFC(Task* arg0);
 
 void func_actor_342400_80162748(Task*);
 
-void func_actor_342400_801626AC(Task*, s32, ActorCommand* request);
+void func_actor_342400_801626AC(Task* task, s32 msgId, ActorCommand* request, s32 arg3);
 
-Actor342400MessageEntry D_actor_342400_8016BF48[2] = {
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_342400_801626AC } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_342400_8016BF48[2] = {
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_342400_801626AC },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 OverlayEncounterSlot gMadChaserWaveSlots[17] = {
@@ -387,7 +380,7 @@ static s16 func_actor_342400_801624A4(void)
     return D_actor_342400_8016C054[5][(gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 3];
 }
 
-void func_actor_342400_801626AC(Task* arg0, s32 arg1, ActorCommand* request)
+void func_actor_342400_801626AC(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
 {
     OverlayEncounterCtrlWork* work = (OverlayEncounterCtrlWork*)arg0->work;
     u16                       id   = request->command;

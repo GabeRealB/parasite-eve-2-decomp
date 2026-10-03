@@ -45,8 +45,8 @@ extern TaskMessageEntry D_dryfield_night_underpass_8017DCF0[];
 extern SVECTOR          D_dryfield_night_underpass_8017DD20[8];
 extern s16              D_dryfield_night_underpass_8017DD60[8];
 
-s32 func_dryfield_night_underpass_8017D900(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_dryfield_night_underpass_8017D908(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_underpass_8017D900(Task*, s32, s32, s32);
+s32 func_dryfield_night_underpass_8017D908(Task*, s32, s32, s32);
 
 extern WorldCollisionGrid     D_dryfield_night_underpass_8017E6D4[1];
 extern WorldCollisionOccluder D_dryfield_night_underpass_8017FBE0[3];
@@ -701,13 +701,13 @@ static void func_dryfield_night_underpass_8017D954(Task* task);
 #include "../../shared/underpass_sound_msg.inc.c"
 
 /// Handler for message 0x13F1: does nothing and returns 0.
-s32 func_dryfield_night_underpass_8017D900(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_underpass_8017D900(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
 /// Handler for message 0x13EF: does nothing and returns 0.
-s32 func_dryfield_night_underpass_8017D908(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_underpass_8017D908(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

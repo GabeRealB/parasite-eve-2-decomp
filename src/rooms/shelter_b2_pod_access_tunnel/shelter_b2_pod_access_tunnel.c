@@ -199,7 +199,7 @@ void func_shelter_b2_pod_access_tunnel_8017D9A8(Task* task)
     }
 }
 
-s32 func_shelter_b2_pod_access_tunnel_8017DB28(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b2_pod_access_tunnel_8017DB28(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -213,12 +213,12 @@ s32 func_shelter_b2_pod_access_tunnel_8017DB30(Task* arg0, s32 arg1, s32 arg2, s
     return 0;
 }
 
-s32 func_shelter_b2_pod_access_tunnel_8017DB70(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b2_pod_access_tunnel_8017DB70(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b2_pod_access_tunnel_8017DB78(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_shelter_b2_pod_access_tunnel_8017DB78(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 4) {
         SndEvt_EnqueueType6(SOUND_SYSTEM_CONFIRM, 0, 0);

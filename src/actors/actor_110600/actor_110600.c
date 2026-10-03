@@ -320,18 +320,18 @@ extern AnimationSet* D_actor_110600_801485A0;
 /// five sub-codes that repoint a slot — parking the actor in state 0x11 with
 /// `field_2` cleared. Returns 1 when it handled the event, 0 otherwise. `arg1`
 /// is unused; it exists because the dispatch passes three arguments.
-s32 func_actor_110600_80134040(Task* arg0, s32 arg1, Actor110600Event* arg2);
+s32 func_actor_110600_80134040(Task* arg0, s32 arg1, Actor110600Event* arg2, s32 arg3);
 
 /// The `0x7D3` display handler: parks the actor in state 0x11 with
 /// `field_892` set from the requested state.
-s32 func_actor_110600_8013839C(Task* arg0, s32 arg1, AnimationPlayRequest* arg2);
+s32 func_actor_110600_8013839C(Task* arg0, s32 arg1, AnimationPlayRequest* arg2, s32 arg3);
 
 /// Rebuilds `coord`'s Y rotation from its current yaw (`ratan2` of
 /// `-m[2][0], m[2][2]`), scaled independently on each axis through a
 /// 0x34-byte block borrowed from the scratchpad. Marks the coordinate dirty.
 static void func_actor_110600_80138680(GfxCoord* coord, s16 sx, s16 sy, s16 sz);
 
-s32         func_actor_110600_801387C0(Task* arg0);
+s32         func_actor_110600_801387C0(Task* arg0, s32 msgId, s32 arg2, s32 arg3);
 static void func_actor_110600_801388A4(Task* arg0);
 
 /// The remaining entries of `D_actor_110600_80131F3C` that are still only
@@ -399,7 +399,7 @@ static void func_actor_110600_80138D7C(Task* arg0);
 
 /// Placement opcode: seeds the model's root coordinate from `placement`, then
 /// rebuilds and rescales it from the actor's own heading.
-s32 func_actor_110600_80133E48(Task* task, s32 arg1, ActorTransform* placement);
+s32 func_actor_110600_80133E48(Task* task, s32 arg1, ActorTransform* placement, s32 arg3);
 
 /// Five-frame shake counter. Incremented each call, wraps at 5, and drives
 /// `displaySetShakeY` with the low bit (0 or 1). Returns 1 on wrap.
@@ -439,26 +439,14 @@ MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 static const char _gPatrolNoPairMsg[] = "s->root_cnt == 0xff about \n";
 
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32  (*call0)(Task*);
-        s32  (*call1)(Task*, s32, Actor110600Event*);
-        s32  (*call2)(Task*, s32, AnimationPlayRequest*);
-        s32  (*call3)(Task*, s32, ActorTransform*);
-        s32  (*call4)(Task*, s32, s32);
-        void (*call5)(void);
-    } handler;
-} Actor110600MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor110600MessageEntry, 8);
 
-s32  func_actor_110600_80133E48(Task*, s32, ActorTransform* placement);
-s32  func_actor_110600_80134040(Task*, s32, Actor110600Event*);
-s32  func_actor_110600_8013839C(Task*, s32, AnimationPlayRequest*);
-s32  func_actor_110600_80138448(Task*, s32, s32);
-s32  func_actor_110600_80138538(Task*);
-s32  func_actor_110600_801387C0(Task*);
-void func_actor_110600_80138394(void);
+s32 func_actor_110600_80133E48(Task* task, s32 msgId, ActorTransform* placement, s32 arg3);
+s32 func_actor_110600_80134040(Task*, s32, Actor110600Event*, s32);
+s32 func_actor_110600_8013839C(Task*, s32, AnimationPlayRequest*, s32);
+s32 func_actor_110600_80138448(Task*, s32, s32, s32);
+s32 func_actor_110600_80138538(Task*, s32, s32, s32);
+s32 func_actor_110600_801387C0(Task*, s32, s32, s32);
+s32 func_actor_110600_80138394(Task*, s32, s32, s32);
 
 static TmdSource _gActor110600StrangerBody;
 void             func_actor_110600_80138EA8(Task*);
@@ -1089,14 +1077,14 @@ SVECTOR D_actor_110600_801485C4[12] = {
     { -25, 0, 0, 2 },
 };
 
-Actor110600MessageEntry D_actor_110600_80148624[7] = {
-    { 2015, { .call5 = func_actor_110600_80138394 } },
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call2 = func_actor_110600_8013839C } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = func_actor_110600_80138448 } },
-    { ACTOR_MESSAGE_IS_PRESENT, { .call0 = func_actor_110600_80138538 } },
-    { ACTOR_MESSAGE_PLACE, { .call3 = func_actor_110600_80133E48 } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_110600_80134040 } },
-    { 2007, { .call0 = func_actor_110600_801387C0 } },
+TaskMessageEntry D_actor_110600_80148624[7] = {
+    { 2015, func_actor_110600_80138394 },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_110600_8013839C },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_110600_80138448 },
+    { ACTOR_MESSAGE_IS_PRESENT, func_actor_110600_80138538 },
+    { ACTOR_MESSAGE_PLACE, func_actor_110600_80133E48 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_110600_80134040 },
+    { 2007, func_actor_110600_801387C0 },
 };
 
 s16 D_actor_110600_8014865C = 0;
@@ -1141,7 +1129,7 @@ extern EnemyParams D_actor_110600_80138F14;
 
 extern AnimationSet* D_actor_110600_8014850C[];
 
-extern Actor110600MessageEntry D_actor_110600_80148624[7];
+extern TaskMessageEntry D_actor_110600_80148624[7];
 
 /// Per-frame step the tick hands off to once the `field_8AA` countdown reaches
 /// zero.
@@ -1288,7 +1276,7 @@ static __inline__ void Actor110600_ScaleRotation(Task* task, s16 scale)
 /// from the actor's own heading and caches the resulting yaw in the work
 /// block's `field_8`. The rescale `coordSetYawScale` performs is
 /// inlined behind the placement.
-s32 func_actor_110600_80133E48(Task* task, s32 arg1, ActorTransform* placement)
+s32 func_actor_110600_80133E48(Task* task, s32 arg1, ActorTransform* placement, s32 arg3)
 {
     Actor110600Work* work;
 
@@ -1314,7 +1302,7 @@ s32 func_actor_110600_80133E48(Task* task, s32 arg1, ActorTransform* placement)
 /// `field_2` cleared. Written with the share as a `goto` because the sub-codes
 /// fall through into it from case 9. `arg1` is unused; it exists because the
 /// dispatch passes three arguments.
-s32 func_actor_110600_80134040(Task* arg0, s32 arg1, Actor110600Event* arg2)
+s32 func_actor_110600_80134040(Task* arg0, s32 arg1, Actor110600Event* arg2, s32 arg3)
 {
     Actor110600Work* work = arg0->work;
 
@@ -3415,7 +3403,7 @@ block_24:
     }
 }
 
-void func_actor_110600_80138394(void)
+s32 func_actor_110600_80138394(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
 }
 
@@ -3438,7 +3426,7 @@ static const EnemyTaskFuncTable3 D_actor_110600_80131FA0 = {
 /// `rodata_head`: it lands at 0x18C, 8-aligned only if this unit's `.rodata`
 /// starts at 0x4 rather than 0x0 — the package id ahead of it is prepended, not
 /// compiled — and behind the id it picks up `.align 3`'s 4-byte pad instead.
-s32 func_actor_110600_8013839C(Task* arg0, s32 arg1, AnimationPlayRequest* arg2)
+s32 func_actor_110600_8013839C(Task* arg0, s32 arg1, AnimationPlayRequest* arg2, s32 arg3)
 {
     Actor110600Work* work;
     Enemy*           enemy;
@@ -3484,7 +3472,7 @@ s32 func_actor_110600_8013839C(Task* arg0, s32 arg1, AnimationPlayRequest* arg2)
 /// Mode 3 hides the model when the tag is 4 and otherwise clears the flag word,
 /// then restarts `field_0` and sets `TMD_OBJECT_SKIP_AUTO_BUFFER`. `arg1` is
 /// unused; the dispatch passes three arguments.
-s32 func_actor_110600_80138448(Task* arg0, s32 arg1, s32 arg2)
+s32 func_actor_110600_80138448(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     TmdObject*       obj;
     Actor110600Work* work;
@@ -3528,7 +3516,7 @@ s32 func_actor_110600_80138448(Task* arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-s32 func_actor_110600_80138538(Task* arg0)
+s32 func_actor_110600_80138538(Task* arg0, s32 msgId, s32 arg2, s32 arg3)
 {
     Actor110600Work* work;
     Enemy*           enemy;
@@ -3581,7 +3569,7 @@ static void func_actor_110600_80138680(GfxCoord* coord, s16 sx, s16 sy, s16 sz)
     coord->coord.m[2][2] = m22;
 }
 
-s32 func_actor_110600_801387C0(Task* arg0)
+s32 func_actor_110600_801387C0(Task* arg0, s32 msgId, s32 arg2, s32 arg3)
 {
     Actor110600Work* work;
 

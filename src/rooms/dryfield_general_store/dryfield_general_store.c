@@ -96,8 +96,8 @@ extern WorldCollisionTrigger      D_dryfield_general_store_8018493C[21];
 extern WorldCoordRoomAmbientEntry D_dryfield_general_store_80185500[17];
 extern WorldCoordRoomLights       D_dryfield_general_store_801854E8[1];
 
-s32  func_dryfield_general_store_8017DDF4(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_dryfield_general_store_8017DDFC(Task*, s32, RoomEventMsg*, TaskMessageArg);
+s32  func_dryfield_general_store_8017DDF4(Task*, s32, s32, s32);
+s32  func_dryfield_general_store_8017DDFC(Task*, s32, RoomEventMsg*, s32);
 void func_dryfield_general_store_8017DFB4(Task*);
 void func_dryfield_general_store_8017E064(Task*);
 
@@ -1579,7 +1579,7 @@ static const TaskFuncTable3 D_dryfield_general_store_8017D5F4 = {
 
 /// Message handler that takes no action and reports the message as not
 /// handled.
-s32 func_dryfield_general_store_8017DDF4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_general_store_8017DDF4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -1587,7 +1587,7 @@ s32 func_dryfield_general_store_8017DDF4(Task* task, s32 msgId, TaskMessageArg a
 /// Message handler on the slot-4 table that owns the store's story flag 0x5E:
 /// message 1 spawns the cutscene task once the flag is still clear, message 2
 /// arms the cutscene object and then both paths advance the flag.
-s32 func_dryfield_general_store_8017DDFC(Task* task, s32 msgId, RoomEventMsg* arg2, TaskMessageArg arg3)
+s32 func_dryfield_general_store_8017DDFC(Task* task, s32 msgId, RoomEventMsg* arg2, s32 arg3)
 {
     switch (arg2->warp) {
         case 1:

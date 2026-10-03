@@ -542,7 +542,7 @@ void func_neo_ark_eve_access_tunnel_8017DB18(Task* task)
 
 /// Message handler for id 0x13F1 in the room's message table: accepts the
 /// message and does nothing.
-s32 func_neo_ark_eve_access_tunnel_8017DC64(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_neo_ark_eve_access_tunnel_8017DC64(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -582,7 +582,7 @@ s32 func_neo_ark_eve_access_tunnel_8017DC6C(Task* task, s32 msgId, RoomEventMsg*
     return 1;
 }
 
-s32 func_neo_ark_eve_access_tunnel_8017DD70(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_neo_ark_eve_access_tunnel_8017DD70(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (gGameSession->location.loc.variant == 0xB) {
         switch (arg2) {
@@ -609,9 +609,9 @@ s32 func_neo_ark_eve_access_tunnel_8017DD70(Task* arg0, s32 arg1, s32 arg2, Task
     return 0;
 }
 
-s32 func_neo_ark_eve_access_tunnel_8017DE1C(Task* task, s32 msgId, TaskMessageArg firstArg, TaskMessageArg arg3)
+s32 func_neo_ark_eve_access_tunnel_8017DE1C(Task* task, s32 msgId, const void* firstArg, s32 arg3)
 {
-    const DirectionActionRequest* request = firstArg.pointer;
+    const DirectionActionRequest* request = firstArg;
 
     if (request->actionId == 0xA) {
         if (GameFlag_GetNibble(GAME_FLAG_0F8) != 0) {
@@ -627,7 +627,7 @@ s32 func_neo_ark_eve_access_tunnel_8017DE1C(Task* task, s32 msgId, TaskMessageAr
     return 0;
 }
 
-s32 func_neo_ark_eve_access_tunnel_8017DE9C(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_neo_ark_eve_access_tunnel_8017DE9C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 1) {
         SndEvt_EnqueueType6(0x55080000 | 1, 0, 0);

@@ -2,7 +2,7 @@
 
 /// Leaves state 0xD: to 0xE while the player has HP left, to 0x16 once it is
 /// gone. Any other state is left alone.
-s32 actorMsgReleaseHold(Task* task)
+s32 actorMsgReleaseHold(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     ActorStateWork* work = (ActorStateWork*)task->work;
     PlayerStatus*   cfg  = &gPlayerStatus;

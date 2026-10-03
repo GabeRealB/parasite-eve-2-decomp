@@ -63,10 +63,10 @@ extern TaskDesc gRoomEventTaskDesc;
 
 /// The world-space points the room's three glow discs are drawn at.
 
-s32  factoryIgnoreMessage(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  factoryIgnoreMessage(Task*, s32, s32, s32);
 void factoryPanelRun(Task*);
 void factoryPromptTask(Task*);
-void factoryPanelTrigger(Task*);
+void factoryPanelTrigger(Task*, s32, s32, s32);
 
 static WorldCollisionGridFace _gDryfieldNightFactoryCollision0A630Faces[72];
 static SVECTOR                _gDryfieldNightFactoryCollision0A630Normals[28];
@@ -244,7 +244,7 @@ TaskDesc gFactoryNightPanelDesc[1] = {
     { { { TASK_BODY_NONE, 192 } }, factoryPanelRun, { .value = 0 } },
 };
 
-FactoryPanelMessageEntry gFactoryPanelMsgTable[2] = {
+TaskMessageEntry gFactoryPanelMsgTable[2] = {
     { FACTORY_PANEL_MESSAGE_MOVE_SETTLED, factoryPanelTrigger },
     { TASK_MESSAGE_TABLE_END, NULL },
 };

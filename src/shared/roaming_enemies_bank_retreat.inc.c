@@ -5,7 +5,7 @@
 /// room's ceiling, and releases the `gSceneCombatState` reference (or marks it for
 /// release once that is allowed). The countdown is bumped by 0x5A unless every
 /// slot was already full.
-void roamerBankRetreat(Task* task, s32 arg1, s32 arg2)
+void roamerBankRetreat(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
     s16 i;
     s16 v;

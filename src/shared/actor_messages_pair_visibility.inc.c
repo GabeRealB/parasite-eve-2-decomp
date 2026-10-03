@@ -4,7 +4,7 @@
 /// task's together. Bit 0 of `flags` clears both models' `TmdObject::flags`
 /// (shown); without it both get 0x80 (hidden). Bit 1 additionally ORs in
 /// `TMD_OBJECT_SKIP_AUTO_BUFFER` on both.
-s32 actorMsgSetPairVisibility(Task* task, s32 arg1, s32 flags)
+s32 actorMsgSetPairVisibility(Task* task, s32 arg1, s32 flags, s32 arg3)
 {
     TmdObject* self;
     TmdObject* other;

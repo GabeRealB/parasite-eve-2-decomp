@@ -89,10 +89,10 @@ extern WorldCollisionTrigger  D_dryfield_night_water_tank_801804BC[8];
 extern WorldCoordRoomLights   D_dryfield_night_water_tank_80180374[1];
 static TmdSource              _gDryfieldNightWaterTankModel00FF8;
 
-s32  func_dryfield_night_water_tank_8017D70C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_dryfield_night_water_tank_8017D70C(Task*, s32, s32, s32);
 s32  func_dryfield_night_water_tank_8017D714(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_dryfield_night_water_tank_8017D73C(Task*, s32, s32, TaskMessageArg);
-s32  func_dryfield_night_water_tank_8017D76C(Task*, s32, RoomEventMsg*, TaskMessageArg);
+s32  func_dryfield_night_water_tank_8017D73C(Task*, s32, s32, s32);
+s32  func_dryfield_night_water_tank_8017D76C(Task*, s32, RoomEventMsg*, s32);
 void func_dryfield_night_water_tank_8017D5D0(Task*);
 
 ActorTransform D_dryfield_night_water_tank_8017DD94 = { { 820, -0x4010, 884, 0 }, { 0, 2560, 0, 0 } };
@@ -649,7 +649,7 @@ void func_dryfield_night_water_tank_8017D5D0(Task* task)
 
 /// Handler for message 0x13F1 in the room's message table: does nothing and
 /// answers 0.
-s32 func_dryfield_night_water_tank_8017D70C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_water_tank_8017D70C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -662,7 +662,7 @@ s32 func_dryfield_night_water_tank_8017D714(Task* task, s32 msgId, RoomEventMsg*
     return 1;
 }
 
-s32 func_dryfield_night_water_tank_8017D73C(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_water_tank_8017D73C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 0xE) {
         Gp_StartCapSlot(0xE, 1, 1);
@@ -670,7 +670,7 @@ s32 func_dryfield_night_water_tank_8017D73C(Task* arg0, s32 arg1, s32 arg2, Task
     return 0;
 }
 
-s32 func_dryfield_night_water_tank_8017D76C(Task* arg0, s32 arg1, RoomEventMsg* in, TaskMessageArg arg3)
+s32 func_dryfield_night_water_tank_8017D76C(Task* arg0, s32 arg1, RoomEventMsg* in, s32 arg3)
 {
     u8 temp_v1;
 

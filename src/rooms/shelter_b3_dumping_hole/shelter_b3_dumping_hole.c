@@ -31,25 +31,16 @@ extern u8 D_shelter_b3_dumping_hole_8018F4A4[4];
 extern u8 D_shelter_b3_dumping_hole_8018F4A4_value __asm__("D_shelter_b3_dumping_hole_8018F4A4");
 
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(void);
-        s32 (*call1)(s32, s32, RoomEventMsg*, RoomEventMsg*);
-        s32 (*call2)(s32, s32, s32);
-    } handler;
-} ShelterB3DumpingHoleMessageEntry;
-STATIC_ASSERT_SIZEOF(ShelterB3DumpingHoleMessageEntry, 8);
 
-extern ShelterB3DumpingHoleMessageEntry D_shelter_b3_dumping_hole_80187574[6];
+extern TaskMessageEntry D_shelter_b3_dumping_hole_80187574[6];
 
 extern TaskDesc D_80164B78;
 
-s32 func_shelter_b3_dumping_hole_8017D758(void);
-s32 func_shelter_b3_dumping_hole_8017D760(s32, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_b3_dumping_hole_8017D82C(s32, s32, s32);
-s32 func_shelter_b3_dumping_hole_8017D868(void);
-s32 func_shelter_b3_dumping_hole_8017D870(void);
+s32 func_shelter_b3_dumping_hole_8017D758(Task*, s32, s32, s32);
+s32 func_shelter_b3_dumping_hole_8017D760(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_shelter_b3_dumping_hole_8017D82C(Task*, s32, s32, s32);
+s32 func_shelter_b3_dumping_hole_8017D868(Task*, s32, s32, s32);
+s32 func_shelter_b3_dumping_hole_8017D870(Task*, s32, s32, s32);
 
 static AnimationSet _gShelterB3DumpingHoleAnimation0AAB4;
 
@@ -85,13 +76,13 @@ TmdSource gShelterB3DumpingHoleAcropolisSanctuaryModel090F0 = {
     _gShelterB3DumpingHoleAcropolisSanctuaryModel090F0Stream,
 };
 
-ShelterB3DumpingHoleMessageEntry D_shelter_b3_dumping_hole_80187574[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, { .call1 = func_shelter_b3_dumping_hole_8017D760 } },
-    { 5105, { .call0 = func_shelter_b3_dumping_hole_8017D758 } },
-    { 5103, { .call0 = func_shelter_b3_dumping_hole_8017D868 } },
-    { ROOM_MESSAGE_COMMAND, { .call2 = func_shelter_b3_dumping_hole_8017D82C } },
-    { ROOM_MESSAGE_ACTOR_EVENT, { .call0 = func_shelter_b3_dumping_hole_8017D870 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_shelter_b3_dumping_hole_80187574[6] = {
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b3_dumping_hole_8017D760 },
+    { 5105, func_shelter_b3_dumping_hole_8017D758 },
+    { 5103, func_shelter_b3_dumping_hole_8017D868 },
+    { ROOM_MESSAGE_COMMAND, func_shelter_b3_dumping_hole_8017D82C },
+    { ROOM_MESSAGE_ACTOR_EVENT, func_shelter_b3_dumping_hole_8017D870 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 static TmdBone _gShelterB3DumpingHoleModel0A0CCSkeleton[1] = {
@@ -226,12 +217,12 @@ AnimationSet* D_shelter_b3_dumping_hole_801880A0[6] = {
 static void func_shelter_b3_dumping_hole_8017D8A0(Task* arg0);
 static void func_shelter_b3_dumping_hole_8017D998(Task* task);
 
-s32 func_shelter_b3_dumping_hole_8017D758(void)
+s32 func_shelter_b3_dumping_hole_8017D758(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b3_dumping_hole_8017D760(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 func_shelter_b3_dumping_hole_8017D760(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_shelter_80179A04(in, out);
@@ -250,7 +241,7 @@ s32 func_shelter_b3_dumping_hole_8017D760(s32 arg0, s32 arg1, RoomEventMsg* in, 
     return 1;
 }
 
-s32 func_shelter_b3_dumping_hole_8017D82C(s32 arg0, s32 arg1, s32 arg2)
+s32 func_shelter_b3_dumping_hole_8017D82C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 0x12) {
         Gp_SpawnIfCapIdle(GameFlag_GetNibble(GAME_FLAG_11D) != 0 ? 0x12 : 0x17, 1);
@@ -259,12 +250,12 @@ s32 func_shelter_b3_dumping_hole_8017D82C(s32 arg0, s32 arg1, s32 arg2)
 }
 
 /// Message-table handler that accepts every message without acting on it.
-s32 func_shelter_b3_dumping_hole_8017D868(void)
+s32 func_shelter_b3_dumping_hole_8017D868(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b3_dumping_hole_8017D870(void)
+s32 func_shelter_b3_dumping_hole_8017D870(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     Task_SpawnFromTable(D_shelter_b3_dumping_hole_80189ADC, 0, 0, 0);
     return 0;

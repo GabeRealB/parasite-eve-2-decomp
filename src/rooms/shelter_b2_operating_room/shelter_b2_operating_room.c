@@ -102,9 +102,9 @@ extern RoomLatchedEvent gRoomEventLatched;
 extern TaskDesc D_801575F0;
 
 s32 func_shelter_b2_operating_room_8017DA94(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_b2_operating_room_8017DC9C(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_shelter_b2_operating_room_8017DCA4(Task*, s32, s32, TaskMessageArg);
-s32 func_shelter_b2_operating_room_8017DD0C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_b2_operating_room_8017DC9C(Task*, s32, s32, s32);
+s32 func_shelter_b2_operating_room_8017DCA4(Task*, s32, s32, s32);
+s32 func_shelter_b2_operating_room_8017DD0C(Task*, s32, s32, s32);
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
@@ -975,12 +975,12 @@ s32 func_shelter_b2_operating_room_8017DA94(Task* arg0, s32 arg1, RoomEventMsg* 
     return 1;
 }
 
-s32 func_shelter_b2_operating_room_8017DC9C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b2_operating_room_8017DC9C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b2_operating_room_8017DCA4(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_shelter_b2_operating_room_8017DCA4(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     switch (arg2) {
         case 4:
@@ -993,7 +993,7 @@ s32 func_shelter_b2_operating_room_8017DCA4(Task* arg0, s32 arg1, s32 arg2, Task
     return 0;
 }
 
-s32 func_shelter_b2_operating_room_8017DD0C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b2_operating_room_8017DD0C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

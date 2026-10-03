@@ -298,19 +298,12 @@ typedef struct {
 /// Scratchpad stack pointer, initialised by GameMain.
 
 // Typed callback views for the task message dispatcher.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(Task*, s32, s32);
-    } handler;
-} Actor01100RecoveredMsgEntry;
-STATIC_ASSERT_SIZEOF(Actor01100RecoveredMsgEntry, 8);
 
-extern Actor01100RecoveredMsgEntry Actor01100_D15660[2];
-extern DamageAttack                Actor01100_D074D0[];
-extern TaskDesc                    Actor01100_D155E0[];
-static TmdSource                   _gActor01100BruteMossbackBurstArm;
-static TmdSource                   _gActor01100BruteMossbackBurstHead;
+extern TaskMessageEntry Actor01100_D15660[2];
+extern DamageAttack     Actor01100_D074D0[];
+extern TaskDesc         Actor01100_D155E0[];
+static TmdSource        _gActor01100BruteMossbackBurstArm;
+static TmdSource        _gActor01100BruteMossbackBurstHead;
 
 typedef struct {
     void* tmd;
@@ -374,7 +367,7 @@ static const Actor101100StateFuncTable3 Actor01100_D00004 = { {
 static const ActorsShared801385e0Scale Actor01100_D00010 = { 0x1400, 0x1400, 0x1400, 0 };
 
 extern DamageAttack Actor01100_D074F8[6];
-s32                 Actor01100_Fn0670C(Task*, s32, s32);
+s32                 Actor01100_Fn0670C(Task*, s32, s32, s32);
 void                Actor01100_Fn06554(Task*);
 void                Actor01100_Fn065E4(Task*);
 void                Actor01100_Fn0663C(Task*);
@@ -1038,9 +1031,9 @@ AnimationSet* Actor01100_D15604[23] = {
     &_gActor01100Actor101100Animation155B8,
 };
 
-Actor01100RecoveredMsgEntry Actor01100_D15660[2] = {
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call0 = Actor01100_Fn0670C } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry Actor01100_D15660[2] = {
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, Actor01100_Fn0670C },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 u8 Actor01100_D15670;
@@ -3722,7 +3715,7 @@ static void Actor01100_Fn0668C(Task* task)
 /// node slot, saving its `field_4` first, and clears the 0xC000 pair off all
 /// four collision bodies; mode 0 puts the saved `field_4` back, lifts the hidden
 /// bit, and sets those bits on the first and last collision body.
-s32 Actor01100_Fn0670C(Task* task, s32 arg1, s32 flags)
+s32 Actor01100_Fn0670C(Task* task, s32 arg1, s32 flags, s32 arg3)
 {
     ActorsShared80138efcWork* work;
     Enemy*                    enemy;

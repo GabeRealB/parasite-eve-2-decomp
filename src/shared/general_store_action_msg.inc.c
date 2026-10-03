@@ -3,7 +3,7 @@
 /// 0x13F0 handler. Action 0x18 shows caption 0x18, or 0x19 when pointer slot
 /// 0xA is empty, if no caption is running. Action 9 spawns storeToggleTask on
 /// nibble 0x53 with caption 9. Returns 0.
-s32 storeActionMsg(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 storeActionMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     s32   arg;
     Task* companionTask;

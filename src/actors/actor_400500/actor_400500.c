@@ -237,19 +237,12 @@ static TmdSource _gActor400500GrayStalkerBurstLegLeft;
 
 extern EnemyParams D_actor_400500_80153C90;
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        void (*call0)(Task*, s32, u16*);
-    } handler;
-} Actor400500MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor400500MessageEntry, 8);
 
-extern Actor400500MessageEntry D_actor_400500_80153CA0[2];
-extern u8                      D_actor_400500_80153CC0[];
-extern TaskDesc                D_actor_400500_80153D48[];
-extern u16                     D_actor_400500_80153DB4[];
-extern u8                      D_actor_400500_80153DD4[];
+extern TaskMessageEntry D_actor_400500_80153CA0[2];
+extern u8               D_actor_400500_80153CC0[];
+extern TaskDesc         D_actor_400500_80153D48[];
+extern u16              D_actor_400500_80153DB4[];
+extern u8               D_actor_400500_80153DD4[];
 
 static void func_actor_400500_80132438(Task* arg0);
 static void func_actor_400500_80132AB0(Task* arg0, s16 arg1, s32 arg2);
@@ -376,7 +369,7 @@ void             func_actor_400500_8013DE98(Task*);
 
 static TmdSource _gActor400500GrayStalkerBurstArmRight;
 static TmdSource _gActor400500GrayStalkerBurstArmLeft;
-void             func_actor_400500_8013DAE4(Task*, s32, u16*);
+s32              func_actor_400500_8013DAE4(Task*, s32, u16*, s32);
 void             func_actor_400500_8013DF64(Task*);
 void             func_actor_400500_8013DF6C(Task*);
 
@@ -1350,9 +1343,9 @@ DamageAttack D_actor_400500_80153C84[3] = {
 
 EnemyParams D_actor_400500_80153C90 = { D_actor_400500_80153C84, 450, 500, 200, 15, 100, 8, 100, 10 };
 
-Actor400500MessageEntry D_actor_400500_80153CA0[2] = {
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_400500_8013DAE4 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_400500_80153CA0[2] = {
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_400500_8013DAE4 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 /// Borrowed player animation table; entry zero is unused.
@@ -7588,7 +7581,7 @@ static void func_actor_400500_8013DACC(Task* arg0)
     work->field_A08 = 0;
 }
 
-void func_actor_400500_8013DAE4(Task* arg0, s32 arg1, u16* arg2)
+s32 func_actor_400500_8013DAE4(Task* arg0, s32 arg1, u16* arg2, s32 arg3)
 {
     Actor400500Work* work;
     s32              kind;

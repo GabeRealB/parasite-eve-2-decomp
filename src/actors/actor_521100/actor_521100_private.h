@@ -230,12 +230,12 @@ extern s16 D_actor_521100_8015F8CC[4];
 
 extern Actor521100FireRow D_actor_521100_8015F80C[2][17];
 
-s32 func_actor_521100_80135D10(Task*, s32, s32);
+s32 func_actor_521100_80135D10(Task*, s32, s32, s32);
 
-s32 func_actor_521100_80135D58(Task*, s32, ActorCommand* request);
+s32 func_actor_521100_80135D58(Task* task, s32 msgId, ActorCommand* request, s32 arg3);
 
-s32 func_actor_521100_80135D9C(Task*);
+s32 func_actor_521100_80135D9C(Task*, s32, s32, s32);
 
-s16 func_actor_521100_80135DC8(Task*);
+s32 func_actor_521100_80135DC8(Task*, s32, s32, s32);
 
 #endif // SRC_ACTORS_ACTOR_521100_ACTOR_521100_PRIVATE_H

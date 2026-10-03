@@ -140,7 +140,7 @@ static void func_neo_ark_power_plant_1_8017D5EC(Task* task)
 
 /// Handler the room's message table gives message 0x13F1: accepts it and
 /// does nothing.
-s32 func_neo_ark_power_plant_1_8017D7AC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_neo_ark_power_plant_1_8017D7AC(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -203,7 +203,7 @@ s32 func_neo_ark_power_plant_1_8017D7F8(Task* task, s32 msgId, s32 arg2, s32 arg
 
 /// Handler the room's message table gives message 0x13EF: accepts it and
 /// does nothing.
-s32 func_neo_ark_power_plant_1_8017D8C8(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_neo_ark_power_plant_1_8017D8C8(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

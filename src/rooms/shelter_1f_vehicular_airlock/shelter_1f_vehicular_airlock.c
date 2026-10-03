@@ -88,9 +88,9 @@ extern RoomLatchedEvent gRoomEventLatched;
 static void func_shelter_1f_vehicular_airlock_8017E80C(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 s32 func_shelter_1f_vehicular_airlock_8017D7DC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_1f_vehicular_airlock_8017D988(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_shelter_1f_vehicular_airlock_8017D990(Task*, s32, s32, TaskMessageArg);
-s32 func_shelter_1f_vehicular_airlock_8017D9F4(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_1f_vehicular_airlock_8017D988(Task*, s32, s32, s32);
+s32 func_shelter_1f_vehicular_airlock_8017D990(Task*, s32, s32, s32);
+s32 func_shelter_1f_vehicular_airlock_8017D9F4(Task*, s32, s32, s32);
 
 static u32     _gShelter1fVehicularAirlockModel03A58PartVerts[1];
 static SVECTOR _gShelter1fVehicularAirlockModel03A58Verts[116];
@@ -400,12 +400,12 @@ s32 func_shelter_1f_vehicular_airlock_8017D7DC(Task* task, s32 msgId, RoomEventM
     return 1;
 }
 
-s32 func_shelter_1f_vehicular_airlock_8017D988(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_1f_vehicular_airlock_8017D988(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_shelter_1f_vehicular_airlock_8017D990(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_shelter_1f_vehicular_airlock_8017D990(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 3) {
         if (Gp_GetCurBit2Flag(6) == 2 && GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER) >= 6) {
@@ -416,7 +416,7 @@ s32 func_shelter_1f_vehicular_airlock_8017D990(Task* arg0, s32 arg1, s32 arg2, T
     return 0;
 }
 
-s32 func_shelter_1f_vehicular_airlock_8017D9F4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_1f_vehicular_airlock_8017D9F4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

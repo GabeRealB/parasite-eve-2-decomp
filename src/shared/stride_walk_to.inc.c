@@ -5,7 +5,7 @@
 /// translation, caches that yaw in the work block and rebuilds the local
 /// matrix from it, then records the distance, in steps of 30, for the walk
 /// that follows.
-s32 strideWalkTo(Task* task, s32 arg1, ActorTransform* target)
+s32 strideWalkTo(Task* task, s32 arg1, ActorTransform* target, s32 arg3)
 {
     GfxCoord*        coord;
     Actor161500Work* work;

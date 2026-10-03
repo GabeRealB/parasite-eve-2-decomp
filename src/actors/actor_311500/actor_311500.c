@@ -95,15 +95,8 @@ STATIC_ASSERT_SIZEOF(Actor311500Work, 0x4D8);
 extern EnemyParams   D_actor_311500_801692C0;
 extern AnimationSet* D_actor_311500_801692F4[2];
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        void (*call0)(Task*, s32, s32, u32*);
-    } handler;
-} Actor311500MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor311500MessageEntry, 8);
 
-extern Actor311500MessageEntry D_actor_311500_80169330[1];
+extern TaskMessageEntry D_actor_311500_80169330[1];
 
 extern s32 D_actor_311500_801692FC[2];
 extern s32 D_actor_311500_80169304[8];
@@ -113,7 +106,7 @@ static AnimationSet _gActor311500Animation07188;
 static AnimationSet _gActor311500Animation07470;
 static TmdSource    _gActor311500StrangerBody;
 void                func_actor_311500_80163334(Task*);
-void                func_actor_311500_801636A0(Task*, s32, s32, u32*);
+s32                 func_actor_311500_801636A0(Task*, s32, s32, u32*);
 
 static TmdBone _gActor311500StrangerBodySkeleton[19] = {
 #include "assets/stranger_body_skeleton.inc"
@@ -246,8 +239,8 @@ s32 D_actor_311500_80169324[3] = {
     0x60000,
 };
 
-Actor311500MessageEntry D_actor_311500_80169330[1] = {
-    { ACTOR_MESSAGE_IS_PRESENT, { .call0 = func_actor_311500_801636A0 } },
+TaskMessageEntry D_actor_311500_80169330[1] = {
+    { ACTOR_MESSAGE_IS_PRESENT, func_actor_311500_801636A0 },
 };
 
 TaskDesc D_actor_311500_80169338 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_311500_80163334, { .model = &_gActor311500StrangerBody } }; /// Walks the first `count` contact records (stopping at a zero key) and keeps,
@@ -731,7 +724,7 @@ tail:
     actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-void func_actor_311500_801636A0(Task* arg0, s32 arg1, s32 arg2, u32* arg3)
+s32 func_actor_311500_801636A0(Task* arg0, s32 arg1, s32 arg2, u32* arg3)
 {
     *arg3 = ((Actor311500Work*)arg0->work)->field_4D4;
 }

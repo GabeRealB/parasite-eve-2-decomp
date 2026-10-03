@@ -179,19 +179,7 @@ static inline SVECTOR* ActorContact_GetScratchPosition(void)
 
 extern DesertChaserAnimCommand gDesertChaserRearAnim;
 
-typedef struct {
-    s32 id;
-    union {
-        s32  (*command)(Task*, s32, ActorCommand* request);
-        void (*reset)(void);
-        s32  (*value)(Task*, s32, s32);
-        s32  (*task)(Task*);
-        s32  (*placement)(Task*, s32, ActorTransform*);
-    } handler;
-} Actor00100MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor00100MessageEntry, 8);
-
-extern Actor00100MessageEntry Actor00100_D1BA54[6];
+extern TaskMessageEntry Actor00100_D1BA54[6];
 
 /// Twelve `SVECTOR` hit positions `desertChaserHitEffect` picks from by damage
 /// magnitude. The fourth halfword (`pad`, unused by the effect) is the model
@@ -276,9 +264,9 @@ static AnimationSet _gActor00100Actor400100Animation1B6A8;
 
 static TmdSource _gActor00100DesertChaserBody;
 
-s32 Actor00100_Fn00E58(Task*, s32, ActorCommand* request);
+s32 Actor00100_Fn00E58(Task* task, s32 msgId, ActorCommand* request, s32 arg3);
 
-void Actor00100_Fn0B134(void);
+s32 Actor00100_Fn0B134(Task*, s32, s32, s32);
 
 extern s8 gDesertChaserClipStartFrames[25][25];
 
@@ -1250,13 +1238,13 @@ SVECTOR gDesertChaserHitOffsets[12] = {
     { -25, 0, 0, 2 },
 };
 
-Actor00100MessageEntry Actor00100_D1BA54[6] = {
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .command = Actor00100_Fn00E58 } },
-    { 2015, { .reset = Actor00100_Fn0B134 } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .value = actorMsgSetVisibility } },
-    { ACTOR_MESSAGE_IS_PRESENT, { .task = actorMsgIsPresent } },
-    { ACTOR_MESSAGE_PLACE, { .placement = actorMsgPlaceRecordYaw } },
-    { TASK_MESSAGE_TABLE_END, { .command = NULL } },
+TaskMessageEntry Actor00100_D1BA54[6] = {
+    { ACTOR_COMMAND_MESSAGE_APPLY, Actor00100_Fn00E58 },
+    { 2015, Actor00100_Fn0B134 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetVisibility },
+    { ACTOR_MESSAGE_IS_PRESENT, actorMsgIsPresent },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceRecordYaw },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc Actor00100_D1BA84 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, desertChaserTask, { .model = &_gActor00100DesertChaserBody } };
@@ -1315,7 +1303,7 @@ static const Actor00100PoseTable Actor00100_D00004 = { {
 /// Each LCG arm keeps its own `value` local: they are separate variables
 /// because the arms are separate blocks and one local shared between them
 /// changes which register the allocator picks in every arm.
-s32 Actor00100_Fn00E58(Task* arg0, s32 arg1, ActorCommand* request)
+s32 Actor00100_Fn00E58(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
 {
     Actor00100PoseTable table;
     Actor00100PoseRow*  row;
@@ -3599,7 +3587,7 @@ static const DesertChaserTaskStates gDesertChaserTaskStates = { {
     enemyDestroy,
 } };
 
-void Actor00100_Fn0B134(void)
+s32 Actor00100_Fn0B134(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
 }
 

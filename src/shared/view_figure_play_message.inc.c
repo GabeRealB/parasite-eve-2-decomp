@@ -3,7 +3,7 @@
 /// Starts the actor's scripted animation selected by the request.
 ///
 /// Rejects ids 6 and above before changing playback state.
-s32 viewFigurePlayMessage(Task* task, s32 arg1, AnimationPlayRequest* args)
+s32 viewFigurePlayMessage(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3)
 {
     Task* actor;
 

@@ -2,7 +2,7 @@
 
 /// Returns 1 while the actor's enemy still has HP. Once it is down, returns 0
 /// if the model carries bit 0x80 or lacks bit 2, and 1 otherwise.
-s32 actorMsgIsPresent(Task* task)
+s32 actorMsgIsPresent(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     u16 flags;
 

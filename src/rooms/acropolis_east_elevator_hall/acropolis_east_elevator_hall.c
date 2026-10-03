@@ -113,9 +113,9 @@ extern WorldCollisionTrigger D_acropolis_east_elevator_hall_80186A24[7];
 extern EvsSceneKey           D_acropolis_east_elevator_hall_80185CB4;
 extern WorldCoordRoomLights  D_acropolis_east_elevator_hall_80187A44[1];
 s32                          func_acropolis_east_elevator_hall_8017F348(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                          func_acropolis_east_elevator_hall_8017F370(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                          func_acropolis_east_elevator_hall_8017F378(Task*, s32, TaskMessageArg firstArg, s32);
-s32                          func_acropolis_east_elevator_hall_8017F420(Task*, s32, s32, TaskMessageArg);
+s32                          func_acropolis_east_elevator_hall_8017F370(Task*, s32, s32, s32);
+s32                          func_acropolis_east_elevator_hall_8017F378(Task* task, s32 msgId, const void* firstArg, s32);
+s32                          func_acropolis_east_elevator_hall_8017F420(Task*, s32, s32, s32);
 void                         func_acropolis_east_elevator_hall_8017F450(void);
 
 #include "../../shared/planar_reflection_data.inc.c"
@@ -741,14 +741,14 @@ s32 func_acropolis_east_elevator_hall_8017F348(Task* task, s32 msgId, RoomEventM
 }
 
 /// Message handler that accepts the message and does nothing else.
-s32 func_acropolis_east_elevator_hall_8017F370(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_acropolis_east_elevator_hall_8017F370(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_acropolis_east_elevator_hall_8017F378(Task* task, s32 msgId, TaskMessageArg firstArg, s32 arg3)
+s32 func_acropolis_east_elevator_hall_8017F378(Task* task, s32 msgId, const void* firstArg, s32 arg3)
 {
-    const DirectionActionRequest* request = firstArg.pointer;
+    const DirectionActionRequest* request = firstArg;
 
     if (request->actionId == 0 && GameFlag_GetNibble(0) == 0 && D_acropolis_east_elevator_hall_8018631C == 0) {
         func_800E8634(D_acropolis_east_elevator_hall_80185D54, 0, D_acropolis_east_elevator_hall_801860B4);
@@ -762,7 +762,7 @@ s32 func_acropolis_east_elevator_hall_8017F378(Task* task, s32 msgId, TaskMessag
     return 0;
 }
 
-s32 func_acropolis_east_elevator_hall_8017F420(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_acropolis_east_elevator_hall_8017F420(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 2) {
         func_800E8614(D_acropolis_east_elevator_hall_8018621C, 0);

@@ -94,21 +94,7 @@ STATIC_ASSERT_SIZEOF(Actor135400Places, 0x30);
 /// reparents, entry 2 the second part (`func_actor_135400_8013252C`).
 extern TaskDesc D_actor_135400_8013A4AC[];
 
-/// The handler table `func_actor_135400_80132064` parks in `Task::msgTable`:
-/// the 0x7D3 / 0x7D4 / 0x7D5 / 0x7DB handlers of the main task.
-/// Message entries with the payload signature selected by each message id.
-typedef struct {
-    s32 id; // Message id; `TASK_MESSAGE_TABLE_END` terminates the table
-    union {
-        s32                (*animation)(Task*, s32, AnimationPlayRequest*, s32);
-        s32                (*placement)(Task*, s32, ActorTransform*, s32);
-        TaskMessageHandler mode;
-        TaskMessageHandler command;
-    } handler; // Callback with the argument views required by that message
-} _Actor135400MessageEntry;
-STATIC_ASSERT_SIZEOF(_Actor135400MessageEntry, 8);
-
-extern _Actor135400MessageEntry D_actor_135400_8013A4D0[5];
+extern TaskMessageEntry D_actor_135400_8013A4D0[5];
 
 /// The three flat lights `func_actor_135400_80132CB0` loads into the model's
 /// light / colour matrices: an axis-aligned light on X, Y and Z (`vy` / `vx` /
@@ -118,7 +104,7 @@ extern GsF_LIGHT D_actor_135400_8013F904[3];
 /// The second task's message table: `(message id, handler)` pairs for 0x7D3 /
 /// 0x7D4 / 0x7D5, ended by `TASK_MESSAGE_TABLE_END`. `func_actor_135400_80132B60` parks
 /// its address in `Task::msgTable`.
-extern _Actor135400MessageEntry D_actor_135400_8013F8E4[4];
+extern TaskMessageEntry D_actor_135400_8013F8E4[4];
 
 /// Per-step frame counts of the second task's 0x7D3 animation: eight `s16`
 /// entries indexed by `Actor135400Work::params.field_4`.
@@ -192,12 +178,12 @@ static const Actor135400Places D_actor_135400_80131E48 = {
 
 static TmdSource _gActor135400FlintBody;
 s32              func_actor_135400_80132D24(Task*, s32, AnimationPlayRequest*, s32);
-s32              func_actor_135400_80132E40(Task*, s32, ActorTransform* args, s32);
+s32              func_actor_135400_80132E40(Task* task, s32 msgId, ActorTransform* args, s32);
 s32              func_actor_135400_80132EBC(Task*, s32, s32, s32);
 void             func_actor_135400_80132AF4(Task*);
 
 s32  func_actor_135400_801327E8(Task*, s32, s32, s32);
-s32  func_actor_135400_801328DC(Task*, s32, ActorCommand* msg, s32);
+s32  func_actor_135400_801328DC(Task* task, s32 msgId, ActorCommand* msg, s32);
 void func_actor_135400_801323F8(Task*);
 void func_actor_135400_801324D4(Task*);
 void func_actor_135400_801325A8(Task*);
@@ -400,12 +386,12 @@ TaskDesc D_actor_135400_8013A4AC[3] = {
     { { { TASK_BODY_TMD, 192 } }, func_actor_135400_801324D4, { .model = &_gActor135400Model071AC } },
 };
 
-_Actor135400MessageEntry D_actor_135400_8013A4D0[5] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .animation = actorMotionPlayAnim } },
-    { ACTOR_MESSAGE_PLACE, { .placement = actorMsgPlaceEuler } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .mode = func_actor_135400_801327E8 } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .command = func_actor_135400_801328DC } },
-    { TASK_MESSAGE_TABLE_END, { .animation = NULL } },
+TaskMessageEntry D_actor_135400_8013A4D0[5] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, actorMotionPlayAnim },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_135400_801327E8 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_135400_801328DC },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 static TmdBone _gActor135400FlintBodySkeleton[19] = {
@@ -577,11 +563,11 @@ AnimationSet** D_actor_135400_8013F8D4[1] = {
 
 TaskDesc D_actor_135400_8013F8D8 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_135400_80132AF4, { .model = &_gActor135400FlintBody } };
 
-_Actor135400MessageEntry D_actor_135400_8013F8E4[4] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .animation = func_actor_135400_80132D24 } },
-    { ACTOR_MESSAGE_PLACE, { .placement = func_actor_135400_80132E40 } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .mode = func_actor_135400_80132EBC } },
-    { TASK_MESSAGE_TABLE_END, { .animation = NULL } },
+TaskMessageEntry D_actor_135400_8013F8E4[4] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_135400_80132D24 },
+    { ACTOR_MESSAGE_PLACE, func_actor_135400_80132E40 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_135400_80132EBC },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 GsF_LIGHT D_actor_135400_8013F904[3] = {

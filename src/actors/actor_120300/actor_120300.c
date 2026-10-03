@@ -107,24 +107,16 @@ extern s32 D_actor_120300_801409A8[6];
 extern s32 D_actor_120300_801409C0[24];
 extern s32 D_actor_120300_80140A20[9];
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        void (*call0)(Task*, s32, ActorTransform*);
-        void (*call1)(Task*, s32, s32);
-    } handler;
-} Actor120300MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor120300MessageEntry, 8);
 
-extern Actor120300MessageEntry D_actor_120300_80140A44[2];
-extern ActorTransform          D_actor_120300_80140A54[13];
-extern EvsCommand              D_actor_120300_80140B94[];
-extern EvsCommand              D_actor_120300_80141524[];
-extern EvsCommand              D_actor_120300_801416D4[];
-extern EvsCommand              D_actor_120300_801417AC[];
-extern EvsCommand              D_actor_120300_80141884[];
-extern EvsCommand              D_actor_120300_8014195C[];
-extern EvsCommand              D_actor_120300_80141A34[];
+extern TaskMessageEntry D_actor_120300_80140A44[2];
+extern ActorTransform   D_actor_120300_80140A54[13];
+extern EvsCommand       D_actor_120300_80140B94[];
+extern EvsCommand       D_actor_120300_80141524[];
+extern EvsCommand       D_actor_120300_801416D4[];
+extern EvsCommand       D_actor_120300_801417AC[];
+extern EvsCommand       D_actor_120300_80141884[];
+extern EvsCommand       D_actor_120300_8014195C[];
+extern EvsCommand       D_actor_120300_80141A34[];
 
 static TmdSource _gActor120300GaryDouglasBody;
 static TmdSource _gActor120300GaryDouglasHeadHat;
@@ -133,7 +125,7 @@ void             func_actor_120300_80132004(Task*);
 void             func_actor_120300_801321C8(Task*);
 void             func_actor_120300_80133330(s32);
 void             func_actor_120300_801337C4(Task*);
-void             func_actor_120300_80133C38(Task*, s32, s32);
+void             func_actor_120300_80133C38(Task*, s32, s32, s32);
 void             func_actor_120300_80133D04(s32);
 void             func_actor_120300_80133DA4(void);
 void             func_actor_120300_80133DD4(void);
@@ -1081,9 +1073,9 @@ s32 D_actor_120300_801409C0[24] = { -0x3E7F380, 2460, -0x3E7F380, 2000, 3200, 24
 
 s32 D_actor_120300_80140A20[9] = { 0x10000, 0x30002, 0, 0x50004, 0x70006, 1, 0x90008, 0xB000A, 2 };
 
-Actor120300MessageEntry D_actor_120300_80140A44[2] = {
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call1 = func_actor_120300_80133C38 } },
-    { ACTOR_MESSAGE_PLACE, { .call0 = actorMsgPlaceInView } },
+TaskMessageEntry D_actor_120300_80140A44[2] = {
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_120300_80133C38 },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceInView },
 };
 
 ActorTransform D_actor_120300_80140A54[13] = {
@@ -2147,7 +2139,7 @@ void func_actor_120300_801337C4(Task* arg0)
 
 /// Message 0x7D5 handler: a nonzero `arg2` shows the task's model (clears
 /// `TmdObject` flag 0x80), zero hides it. `arg1` is the message id.
-void func_actor_120300_80133C38(Task* task, s32 arg1, s32 arg2)
+void func_actor_120300_80133C38(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
     TmdObject* obj;
 

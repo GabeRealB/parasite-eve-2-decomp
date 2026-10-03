@@ -3,7 +3,7 @@
 /// Script opcode: place the actor. Yaws its root coordinate to
 /// `placement->rot.vy`, caching that yaw in `yaw`, then drops the placement
 /// translation into the matrix and marks it for recomputation.
-s32 pairWalkPlace(Task* task, s32 arg1, ActorTransform* placement)
+s32 pairWalkPlace(Task* task, s32 arg1, ActorTransform* placement, s32 arg3)
 {
     GfxCoord*        coord;
     Actor150400Work* work;

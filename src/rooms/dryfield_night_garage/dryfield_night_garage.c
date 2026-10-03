@@ -182,10 +182,10 @@ static void func_dryfield_night_garage_80180604(s32 arg0);
 #define SHOP_CHARGE_TITLE_BYTES "Charge\0\xF0"
 #include "../../shared/shop.h"
 
-s32 func_dryfield_night_garage_801800C8(Task*, s32, TaskMessageArg firstArg, s32);
-s32 func_dryfield_night_garage_80180358(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, const void* firstArg, s32);
+s32 func_dryfield_night_garage_80180358(Task*, s32, s32, s32);
 s32 func_dryfield_night_garage_80180360(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_dryfield_night_garage_801803A4(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_garage_801803A4(Task*, s32, s32, s32);
 
 #include "../../shared/shop_data.inc.c"
 
@@ -395,9 +395,9 @@ static void func_dryfield_night_garage_8017FF2C(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, TaskMessageArg firstArg, s32 arg3)
+s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, const void* firstArg, s32 arg3)
 {
-    const DirectionActionRequest* msg = firstArg.pointer;
+    const DirectionActionRequest* msg = firstArg;
 
     WorldCollisionTrigger* base;
     WorldCollisionTrigger* obj;
@@ -451,7 +451,7 @@ s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, TaskMessageArg fi
 
 #include "../../shared/garage_sound_msg.inc.c"
 
-s32 func_dryfield_night_garage_80180358(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_garage_80180358(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -465,7 +465,7 @@ s32 func_dryfield_night_garage_80180360(Task* arg0, s32 arg1, RoomEventMsg* in, 
     return 1;
 }
 
-s32 func_dryfield_night_garage_801803A4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_garage_801803A4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

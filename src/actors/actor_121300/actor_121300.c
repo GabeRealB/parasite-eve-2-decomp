@@ -188,20 +188,11 @@ extern u_long        D_actor_121300_8013C9D0[];
 extern s16           D_actor_121300_8013CC04;
 extern AnimationSet* D_actor_121300_8013CC08[4];
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        void (*call0)(Task*, s32, ActorTransform*);
-        void (*call1)(Task*, s32, s32);
-        void (*call2)(s32, s32, s32);
-    } handler;
-} Actor121300MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor121300MessageEntry, 8);
 
-extern Actor121300MessageEntry D_actor_121300_8013CC88[3];
-extern ActorTransform          D_actor_121300_8013CCA0;
-extern EvsCommand              D_actor_121300_8013CE08[];
-extern EvsCommand              D_actor_121300_8013D2E8[];
+extern TaskMessageEntry D_actor_121300_8013CC88[3];
+extern ActorTransform   D_actor_121300_8013CCA0;
+extern EvsCommand       D_actor_121300_8013CE08[];
+extern EvsCommand       D_actor_121300_8013D2E8[];
 
 extern Task* D_actor_121300_8013D418;
 
@@ -213,7 +204,7 @@ extern ScreenWaveOscillator gScreenWaveColumns[13];
 
 extern ScreenWaveOscillator gScreenWaveRows[30];
 
-void func_actor_121300_80134224(s32, s32, s32);
+s32 func_actor_121300_80134224(Task*, s32, s32, s32);
 
 static TmdSource _gActor121300AyaBreaBody;
 static TmdSource _gActor121300Model07E84;
@@ -1577,10 +1568,10 @@ Actor121300Waypoint D_actor_121300_8013CC20[13] = {
     { 0, 0, 0, -1 },
 };
 
-Actor121300MessageEntry D_actor_121300_8013CC88[3] = {
-    { ACTOR_MESSAGE_PLACE, { .call0 = actorMsgPlaceYawPitchRoll } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call1 = actorMsgSetDrawMode } },
-    { 2016, { .call2 = func_actor_121300_80134224 } },
+TaskMessageEntry D_actor_121300_8013CC88[3] = {
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceYawPitchRoll },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetDrawMode },
+    { 2016, func_actor_121300_80134224 },
 };
 
 ActorTransform D_actor_121300_8013CCA0 = { { 5140, -140, 3010, 0 }, { 0, 0, 0, 0 } };
@@ -2562,7 +2553,7 @@ void func_actor_121300_801340F0(Task* task)
 
 #include "../../shared/actor_messages_draw_mode.inc.c"
 
-void func_actor_121300_80134224(s32 arg0, s32 arg1, s32 arg2)
+s32 func_actor_121300_80134224(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     Task_SpawnFromTable(D_actor_121300_8013D390, 0xA, arg2, arg0);
 }

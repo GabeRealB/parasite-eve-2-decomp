@@ -80,9 +80,9 @@ static void func_dryfield_g_r_kitchen_8017D99C(Task* task);
 static void func_dryfield_g_r_kitchen_8017E27C(GfxCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
 
 // Indexed views below share one contiguous table.
-s32 func_dryfield_g_r_kitchen_8017D8BC(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_dryfield_g_r_kitchen_8017D948(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_dryfield_g_r_kitchen_8017D950(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_g_r_kitchen_8017D8BC(Task*, s32, s32, s32);
+s32 func_dryfield_g_r_kitchen_8017D948(Task*, s32, s32, s32);
+s32 func_dryfield_g_r_kitchen_8017D950(Task*, s32, s32, s32);
 
 extern WorldCollisionGrid    D_dryfield_g_r_kitchen_8017EEC0[1];
 extern WorldCollisionTrigger D_dryfield_g_r_kitchen_8017F038[2];
@@ -291,7 +291,7 @@ static const TaskFuncTable3 D_dryfield_g_r_kitchen_8017D5DC = {
 
 /// Handler for message 0x13F1 in the room's message table: the room takes no
 /// action and reports the message as not handled.
-s32 func_dryfield_g_r_kitchen_8017D8BC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_g_r_kitchen_8017D8BC(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -300,14 +300,14 @@ s32 func_dryfield_g_r_kitchen_8017D8BC(Task* task, s32 msgId, TaskMessageArg arg
 
 /// Handler for message 0x13F0 in the room's message table: the room takes no
 /// action and reports the message as not handled.
-s32 func_dryfield_g_r_kitchen_8017D948(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_g_r_kitchen_8017D948(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
 /// Handler for message 0x13EF in the room's message table: the room takes no
 /// action and reports the message as not handled.
-s32 func_dryfield_g_r_kitchen_8017D950(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_g_r_kitchen_8017D950(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

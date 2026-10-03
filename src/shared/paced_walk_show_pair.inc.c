@@ -5,7 +5,7 @@
 /// 0, which shows them; without it they get 0x80, which hides them. Bit 1
 /// additionally ORs in 0x4. With `Task::spawnArg1` clear the actor drives its
 /// own model twice.
-s32 pacedWalkShowPair(Task* task, s32 arg1, s32 flags)
+s32 pacedWalkShowPair(Task* task, s32 arg1, s32 flags, s32 arg3)
 {
     Actor160600Work* work;
     TmdObject*       self;

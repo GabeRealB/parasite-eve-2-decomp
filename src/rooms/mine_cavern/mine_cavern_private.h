@@ -14,17 +14,6 @@
 
 #include "main/task_types.h"
 
-typedef struct {
-    s32 id;
-    union {
-        s32                (*call0)(void);
-        s32                (*call1)(Task*, s32, DirectionActionRequest*);
-        TaskMessageHandler call2;
-        s32                (*call3)(s32, s32, RoomEventMsg*, RoomEventMsg*);
-        s32                (*call4)(s32, s32, s32);
-    } handler;
-} MineCavernMessageEntry;
-
 /// Colours of the cavern's darkness, one per count of destroyed targets (0-4).
 ///
 /// The colour is what a full-screen quad subtracts from the picture, so a
@@ -84,7 +73,7 @@ extern EvsCommand D_mine_cavern_80188D24[24];
 
 extern AreaApplyRec D_mine_cavern_8018E32C[9];
 
-extern MineCavernMessageEntry D_mine_cavern_80183C6C[7];
+extern TaskMessageEntry D_mine_cavern_80183C6C[7];
 
 void func_mine_cavern_8017E394(void);
 
@@ -123,16 +112,16 @@ void func_mine_cavern_80183A68(Task*);
 void func_mine_cavern_80183C10(Task*);
 
 // Callbacks referenced by the overlay's shared data tables.
-s32 func_mine_cavern_8017D908(s32, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_mine_cavern_8017D908(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
 s32 func_mine_cavern_8017DAA0(Task*, s32, s32, s32);
 
-s32 func_mine_cavern_8017DC50(void);
+s32 func_mine_cavern_8017DC50(Task*, s32, s32, s32);
 
-s32 func_mine_cavern_8017DC58(Task*, s32, DirectionActionRequest* request);
+s32 func_mine_cavern_8017DC58(Task* task, s32 msgId, DirectionActionRequest* request, s32 arg3);
 
-s32 func_mine_cavern_8017DC9C(void);
+s32 func_mine_cavern_8017DC9C(Task*, s32, s32, s32);
 
-s32 func_mine_cavern_8017DD38(s32, s32, s32);
+s32 func_mine_cavern_8017DD38(Task*, s32, s32, s32);
 
 #endif // SRC_ROOMS_MINE_CAVERN_MINE_CAVERN_PRIVATE_H

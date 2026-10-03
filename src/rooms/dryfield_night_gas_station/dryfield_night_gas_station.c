@@ -143,23 +143,12 @@ static UiObjectDesc Telephone_Data_80181CC8;
 static UiList Telephone_Data_80181CF4;
 
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(void);
-        s32 (*call1)(Task*, s32, DirectionActionRequest*);
-        s32 (*call2)(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-        s32 (*call3)(s32, s32, s32);
-        s32 (*call4)(Task*, s32, s32, TaskMessageArg);
-    } handler;
-} DryfieldNightGasStationMessageEntry;
-STATIC_ASSERT_SIZEOF(DryfieldNightGasStationMessageEntry, 8);
 
-extern DryfieldNightGasStationMessageEntry D_dryfield_night_gas_station_80184034[7];
-extern TaskDesc                            D_dryfield_night_gas_station_8018406C[];
-extern AnimationPlayRequest                D_dryfield_night_gas_station_80184098;
-extern EvsCommand                          D_dryfield_night_gas_station_801840AC[];
-extern EvsCommand                          D_dryfield_night_gas_station_801841FC[];
+extern TaskMessageEntry     D_dryfield_night_gas_station_80184034[7];
+extern TaskDesc             D_dryfield_night_gas_station_8018406C[];
+extern AnimationPlayRequest D_dryfield_night_gas_station_80184098;
+extern EvsCommand           D_dryfield_night_gas_station_801840AC[];
+extern EvsCommand           D_dryfield_night_gas_station_801841FC[];
 
 /// The layout template and the live copy that
 /// `func_dryfield_night_gas_station_8017FBD4` restores from it.
@@ -279,23 +268,23 @@ void                              func_dryfield_night_gas_station_80180C3C(s32);
 extern AnimationPlayRequest D_dryfield_night_gas_station_80184084;
 void                        func_dryfield_night_gas_station_8017FB64(u8);
 
-s32 func_dryfield_night_gas_station_8017F7E0(s32, s32, s32);
-s32 func_dryfield_night_gas_station_8017F89C(s32, s32, s32);
-s32 func_dryfield_night_gas_station_8017F990(Task*, s32, DirectionActionRequest* msg);
-s32 func_dryfield_night_gas_station_8017F9E8(void);
+s32 func_dryfield_night_gas_station_8017F7E0(Task*, s32, s32, s32);
+s32 func_dryfield_night_gas_station_8017F89C(Task*, s32, s32, s32);
+s32 func_dryfield_night_gas_station_8017F990(Task* task, s32 msgId, DirectionActionRequest* msg, s32 arg3);
+s32 func_dryfield_night_gas_station_8017F9E8(Task*, s32, s32, s32);
 
 void func_dryfield_night_gas_station_8017FA6C(Task*);
 
 #include "../../shared/telephone_data.inc.c"
 
-DryfieldNightGasStationMessageEntry D_dryfield_night_gas_station_80184034[7] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, { .call2 = roomVariantGasStationMsg } },
-    { 5105, { .call3 = func_dryfield_night_gas_station_8017F7E0 } },
-    { DIRECTION_MESSAGE_ROOM_ACTION, { .call1 = func_dryfield_night_gas_station_8017F990 } },
-    { ROOM_MESSAGE_COMMAND, { .call3 = func_dryfield_night_gas_station_8017F89C } },
-    { ROOM_MESSAGE_SOUND, { .call4 = gasStationCueSoundMsg } },
-    { ROOM_MESSAGE_ACTOR_EVENT, { .call0 = func_dryfield_night_gas_station_8017F9E8 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_dryfield_night_gas_station_80184034[7] = {
+    { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantGasStationMsg },
+    { 5105, func_dryfield_night_gas_station_8017F7E0 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_gas_station_8017F990 },
+    { ROOM_MESSAGE_COMMAND, func_dryfield_night_gas_station_8017F89C },
+    { ROOM_MESSAGE_SOUND, gasStationCueSoundMsg },
+    { ROOM_MESSAGE_ACTOR_EVENT, func_dryfield_night_gas_station_8017F9E8 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_dryfield_night_gas_station_8018406C[2] = {
@@ -2569,7 +2558,7 @@ static void func_dryfield_night_gas_station_8017F41C(Task* arg0)
 /// a room-action trigger whose `parameter0` is 0xFF and whose `hit` is set, and
 /// on a hit flips `gGameSession->eventState` / `field_68` and spawns the night gas
 /// station cutscene task. Answers 1 only when it found one.
-s32 func_dryfield_night_gas_station_8017F7E0(s32 arg0, s32 arg1, s32 arg2)
+s32 func_dryfield_night_gas_station_8017F7E0(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     WorldCollisionTrigger* node;
     s32                    found;
@@ -2596,7 +2585,7 @@ s32 func_dryfield_night_gas_station_8017F7E0(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-s32 func_dryfield_night_gas_station_8017F89C(s32 arg0, s32 arg1, s32 arg2)
+s32 func_dryfield_night_gas_station_8017F89C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     s16 var_a2;
 
@@ -2629,7 +2618,7 @@ s32 func_dryfield_night_gas_station_8017F89C(s32 arg0, s32 arg1, s32 arg2)
 /// the directed action selected by `actionId` 0xE runs the room's cutscene script
 /// blob at `D_dryfield_night_gas_station_8018920C`, but only once nibble 0x63 has
 /// reached 2 and pointer slot 0xA is live.
-s32 func_dryfield_night_gas_station_8017F990(Task* task, s32 msgId, DirectionActionRequest* msg)
+s32 func_dryfield_night_gas_station_8017F990(Task* task, s32 msgId, DirectionActionRequest* msg, s32 arg3)
 {
     if ((msg->actionId == 0xE) && (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) && (GameFlag_GetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS) >= 2)) {
         func_800E8614(D_dryfield_night_gas_station_8018920C, 0);
@@ -2642,7 +2631,7 @@ s32 func_dryfield_night_gas_station_8017F990(Task* task, s32 msgId, DirectionAct
 /// `D_dryfield_night_gas_station_80188B64`, raises `gGameSession->flowFlags`
 /// bit 0x80, applies the room's area records, clears nibbles 0x62 and 0x45 and
 /// queues sound event 0x64.
-s32 func_dryfield_night_gas_station_8017F9E8(void)
+s32 func_dryfield_night_gas_station_8017F9E8(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     if (GameFlag_GetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS) == 0) {
         GameFlag_SetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS, 1);

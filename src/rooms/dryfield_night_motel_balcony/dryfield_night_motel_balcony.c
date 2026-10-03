@@ -70,17 +70,17 @@ static void func_dryfield_night_motel_balcony_8017DD0C(Task* task);
 
 #include "../../shared/room_variants_motel_balcony_sound.inc.c"
 
-s32 func_dryfield_night_motel_balcony_8017DC18(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_motel_balcony_8017DC18(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_dryfield_night_motel_balcony_8017DC20(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_motel_balcony_8017DC20(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_dryfield_night_motel_balcony_8017DC28(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_motel_balcony_8017DC28(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

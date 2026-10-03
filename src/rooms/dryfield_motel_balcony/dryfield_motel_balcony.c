@@ -91,9 +91,9 @@ extern WorldCoordRoomLights       D_dryfield_motel_balcony_801865E8[1];
 
 extern AreaResource D_dryfield_motel_balcony_801861A8[1];
 
-s32 func_dryfield_motel_balcony_8017DB6C(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_dryfield_motel_balcony_8017DB74(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_dryfield_motel_balcony_8017DB7C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_motel_balcony_8017DB6C(Task*, s32, s32, s32);
+s32 func_dryfield_motel_balcony_8017DB74(Task*, s32, s32, s32);
+s32 func_dryfield_motel_balcony_8017DB7C(Task*, s32, s32, s32);
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
@@ -1136,17 +1136,17 @@ static void func_dryfield_motel_balcony_8017DBC8(Task* arg0);
 
 #include "../../shared/room_variants_motel_balcony_sound.inc.c"
 
-s32 func_dryfield_motel_balcony_8017DB6C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_motel_balcony_8017DB6C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_dryfield_motel_balcony_8017DB74(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_motel_balcony_8017DB74(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_dryfield_motel_balcony_8017DB7C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_motel_balcony_8017DB7C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

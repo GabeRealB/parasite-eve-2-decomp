@@ -410,42 +410,26 @@ extern Task*                 D_shelter_b3_dumping_hole_8018F4AC;
 extern ActorTransform        D_shelter_b3_dumping_hole_8018966C;
 
 extern s32 D_shelter_b3_dumping_hole_8018F4D8;
-/// One row of a task-message table in this unit.
-///
-/// A row is a receiver-specific message id and the callback that handles it.
-/// The collapse director's table has no end marker. The encounter controller's
-/// table ends with `TASK_MESSAGE_TABLE_END` and a null callback. The handler
-/// views are the callback signatures stored here; dispatch still passes each
-/// argument in a word register.
-typedef struct {
-    s32 messageId;                                                              // Receiver-specific id, or TASK_MESSAGE_TABLE_END
-    union {
-        void (*applyCommand)(Task* task, s32 messageId, ActorCommand* command); // ACTOR_COMMAND_MESSAGE_APPLY
-        void (*place)(Task* task, s32 messageId, ActorTransform* placement);    // ACTOR_MESSAGE_PLACE
-        void (*setDrawMode)(Task* task, s32 messageId, s32 mode);               // ACTOR_MESSAGE_SET_MODEL_DRAW
-    } handler;                                                                  // Callback for messageId; null only on the end marker
-} _ShelterB3DumpingHole2MessageEntry;
-STATIC_ASSERT_SIZEOF(_ShelterB3DumpingHole2MessageEntry, 8);
 
 /// Collapse director's message table, installed in `Task::msgTable`.
 ///
 /// The director sends itself only `ACTOR_MESSAGE_SET_MODEL_DRAW` and
 /// `ACTOR_MESSAGE_PLACE`. The table has no `TASK_MESSAGE_TABLE_END` row, so
 /// those are the only ids it may receive.
-extern _ShelterB3DumpingHole2MessageEntry D_shelter_b3_dumping_hole_8018965C[2];
-extern EvsCommand                         D_shelter_b3_dumping_hole_8018968C[];
-extern EvsCommand                         D_shelter_b3_dumping_hole_801899A4[];
-extern TaskDesc                           D_shelter_b3_dumping_hole_8018AFBC;
-static CapSequenceRecord*                 CapCaption_Data_8015E658;
-static s16                                CapCaption_Data_8015E662;
-static CapCaptionScheduleWindow           CapCaption_Data_80154514[];
-static TextGlyphCell*                     CapCaption_Data_8015E654;
-static CapCommandRef*                     CapCaption_Data_8015E650;
-static s16                                CapCaption_Data_8015E65C;
-static s16                                CapCaption_Data_8015E65E;
-static s16                                CapCaption_Data_8015E660;
-static s16                                CapCaption_Data_8015E664;
-static s16                                CapCaption_Data_8015E666;
+extern TaskMessageEntry         D_shelter_b3_dumping_hole_8018965C[2];
+extern EvsCommand               D_shelter_b3_dumping_hole_8018968C[];
+extern EvsCommand               D_shelter_b3_dumping_hole_801899A4[];
+extern TaskDesc                 D_shelter_b3_dumping_hole_8018AFBC;
+static CapSequenceRecord*       CapCaption_Data_8015E658;
+static s16                      CapCaption_Data_8015E662;
+static CapCaptionScheduleWindow CapCaption_Data_80154514[];
+static TextGlyphCell*           CapCaption_Data_8015E654;
+static CapCommandRef*           CapCaption_Data_8015E650;
+static s16                      CapCaption_Data_8015E65C;
+static s16                      CapCaption_Data_8015E65E;
+static s16                      CapCaption_Data_8015E660;
+static s16                      CapCaption_Data_8015E664;
+static s16                      CapCaption_Data_8015E666;
 
 static s16      CapCaption_Data_801544EC;
 static s16      CapCaption_Data_801544EE;
@@ -463,7 +447,7 @@ static TaskDesc CapCaption_Data_80154508;
 /// `ACTOR_COMMAND_MESSAGE_APPLY` stops the controller when the borrowed
 /// `ActorCommand::command` is 4. Any other id reaches `TASK_MESSAGE_TABLE_END`
 /// and returns zero.
-extern _ShelterB3DumpingHole2MessageEntry D_shelter_b3_dumping_hole_8018B7AC[2];
+extern TaskMessageEntry D_shelter_b3_dumping_hole_8018B7AC[2];
 
 static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0);
 
@@ -541,7 +525,7 @@ extern WorldCollisionGrid    D_shelter_b3_dumping_hole_8018C3EC[1];
 extern WorldCollisionTrigger D_shelter_b3_dumping_hole_8018E88C[8];
 extern WorldCollisionTrigger D_shelter_b3_dumping_hole_8018EF9C[8];
 
-void func_shelter_b3_dumping_hole_80183530(Task*, s32, ActorCommand* request);
+s32  func_shelter_b3_dumping_hole_80183530(Task* task, s32 msgId, ActorCommand* request, s32 arg3);
 void func_shelter_b3_dumping_hole_80183550(Task*);
 void func_shelter_b3_dumping_hole_801835C8(Task*);
 void func_shelter_b3_dumping_hole_80183620(Task*);
@@ -844,9 +828,9 @@ static TmdSource _gShelterB3DumpingHoleModel0BAC8 = {
     _gShelterB3DumpingHoleModel0BAC8Stream,
 };
 
-_ShelterB3DumpingHole2MessageEntry D_shelter_b3_dumping_hole_8018965C[2] = {
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .setDrawMode = actorMsgSetDrawMode } },
-    { ACTOR_MESSAGE_PLACE, { .place = actorMsgPlaceYawPitchRoll } },
+TaskMessageEntry D_shelter_b3_dumping_hole_8018965C[2] = {
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetDrawMode },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceYawPitchRoll },
 };
 
 ActorTransform D_shelter_b3_dumping_hole_8018966C = { { 4500, -0x2CEC, -5450, 0 }, { 341, 0, 0, 0 } };
@@ -1110,9 +1094,9 @@ ActorsShared801673f8Spot D_shelter_b3_dumping_hole_8018B74C[12] = {
     { 0x4074, -3950, -0x30A2, 0 },
 };
 
-_ShelterB3DumpingHole2MessageEntry D_shelter_b3_dumping_hole_8018B7AC[2] = {
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .applyCommand = func_shelter_b3_dumping_hole_80183530 } },
-    { TASK_MESSAGE_TABLE_END, { .applyCommand = NULL } },
+TaskMessageEntry D_shelter_b3_dumping_hole_8018B7AC[2] = {
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_shelter_b3_dumping_hole_80183530 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 OverlayEncounterSlot D_shelter_b3_dumping_hole_8018B7BC[16] = {
@@ -3777,7 +3761,7 @@ static void func_shelter_b3_dumping_hole_801833EC(Task* arg0)
     }
 }
 
-void func_shelter_b3_dumping_hole_80183530(Task* arg0, s32 arg1, ActorCommand* request)
+s32 func_shelter_b3_dumping_hole_80183530(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
 {
     OverlayEncounterCtrlWork* ent = (OverlayEncounterCtrlWork*)arg0->work;
     if (request->command == 4) {

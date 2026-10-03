@@ -989,7 +989,7 @@ void func_dryfield_water_tank_8017D618(Task* arg0)
 
 /// Handler for message 0x13F1 in the room task's message table: accepts the
 /// message and does nothing, answering 0.
-s32 func_dryfield_water_tank_8017D7BC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_water_tank_8017D7BC(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -1002,9 +1002,9 @@ s32 func_dryfield_water_tank_8017D7C4(Task* task, s32 msgId, RoomEventMsg* src, 
     return 1;
 }
 
-s32 func_dryfield_water_tank_8017D7EC(Task* task, s32 msgId, TaskMessageArg firstArg, TaskMessageArg arg3)
+s32 func_dryfield_water_tank_8017D7EC(Task* task, s32 msgId, const void* firstArg, s32 arg3)
 {
-    const DirectionActionRequest* request = firstArg.pointer;
+    const DirectionActionRequest* request = firstArg;
 
     if (request->actionId == 1) {
         if (GameFlag_GetNibble(GAME_FLAG_DRYFIELD_WATER_TANK_036) == 0) {
@@ -1034,7 +1034,7 @@ s32 func_dryfield_water_tank_8017D7EC(Task* task, s32 msgId, TaskMessageArg firs
 /// Room message handler: on message `0xE` spawn the second entry of
 /// `D_dryfield_water_tank_8017F34C`, the same table `func_dryfield_water_tank_8017D7EC`
 /// takes entry 0 from.
-s32 func_dryfield_water_tank_8017D910(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_dryfield_water_tank_8017D910(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 0xE) {
         Task_SpawnFromTable(D_dryfield_water_tank_8017F34C, 1, 0, 0);
@@ -1320,7 +1320,7 @@ void func_dryfield_water_tank_8017DEA4(Task* arg0)
 /// argument, so the second slot is only there to place it in `$a2`. Byte for
 /// byte the actors library's `ActorsShared801346ec`, which toggles the same bit
 /// of the same field for the model of the task it is handed.
-void func_dryfield_water_tank_8017E0B4(Task* task, s32 arg1, s32 arg2)
+void func_dryfield_water_tank_8017E0B4(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
     TmdObject* obj;
 
@@ -1337,7 +1337,7 @@ void func_dryfield_water_tank_8017E0B4(Task* task, s32 arg1, s32 arg2)
 /// Message 0x7DB handler of the model task: restarts its script, clearing the
 /// script state and `field_54` in its work block and moving the task to the
 /// state the payload carries.
-void func_dryfield_water_tank_8017E174(Task* task, s32 msgId, ActorCommand* msg)
+s32 func_dryfield_water_tank_8017E174(Task* task, s32 msgId, ActorCommand* msg, s32 arg3)
 {
     _DryfieldWaterTankPropSceneWork* work;
     s32                              state;

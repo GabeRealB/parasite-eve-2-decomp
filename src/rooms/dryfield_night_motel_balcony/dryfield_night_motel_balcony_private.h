@@ -24,11 +24,11 @@ extern SVECTOR D_dryfield_night_motel_balcony_80182C90;
 
 // Callbacks referenced by the overlay's shared data tables.
 
-s32 func_dryfield_night_motel_balcony_8017DC18(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_motel_balcony_8017DC18(Task*, s32, s32, s32);
 
-s32 func_dryfield_night_motel_balcony_8017DC20(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_motel_balcony_8017DC20(Task*, s32, s32, s32);
 
-s32 func_dryfield_night_motel_balcony_8017DC28(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_motel_balcony_8017DC28(Task*, s32, s32, s32);
 
 void func_dryfield_night_motel_balcony_8017E0C8(Task*);
 

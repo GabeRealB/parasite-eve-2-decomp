@@ -38,17 +38,8 @@
 
 extern u8 D_actor_312200_80169F44[];
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(Task*, s32, ActorCommand* request);
-        s32 (*call1)(Task*, s32, ActorTransform*);
-        s32 (*call2)(Task*, s32, s32);
-    } handler;
-} Actor312200MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor312200MessageEntry, 8);
 
-extern Actor312200MessageEntry D_actor_312200_80169F5C[4];
+extern TaskMessageEntry D_actor_312200_80169F5C[4];
 
 /// Whole-unit part of the last step `ActorContact_PushContact` applied.
 extern SVECTOR ActorContact_ScratchPosition;
@@ -154,9 +145,9 @@ static void func_actor_312200_80163778(Task* task);
 static void func_actor_312200_801637CC(Task* task);
 
 static TmdSource _gActor312200SwatMember1Body;
-s32              func_actor_312200_80163510(Task*, s32, s32);
-s32              func_actor_312200_801635CC(Task*, s32, ActorTransform* placement);
-s32              func_actor_312200_801636CC(Task*, s32, ActorCommand* msg);
+s32              func_actor_312200_80163510(Task*, s32, s32, s32);
+s32              func_actor_312200_801635CC(Task* task, s32 msgId, ActorTransform* placement, s32 arg3);
+s32              func_actor_312200_801636CC(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
 void             func_actor_312200_80163854(Task*);
 
 static TmdBone _gActor312200SwatMember1BodySkeleton[19] = {
@@ -308,11 +299,11 @@ u8 D_actor_312200_80169F44[24] = {
     0,
 };
 
-Actor312200MessageEntry D_actor_312200_80169F5C[4] = {
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call2 = func_actor_312200_80163510 } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_312200_801636CC } },
-    { ACTOR_MESSAGE_PLACE, { .call1 = func_actor_312200_801635CC } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_312200_80169F5C[4] = {
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_312200_80163510 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_312200_801636CC },
+    { ACTOR_MESSAGE_PLACE, func_actor_312200_801635CC },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_actor_312200_80169F7C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_312200_80163854, { .model = &_gActor312200SwatMember1Body } };
@@ -529,7 +520,7 @@ static void func_actor_312200_80163370(Enemy* enemy, Task* task)
 /// them, 2 raises `TMD_OBJECT_SKIP_AUTO_BUFFER`, and 3 clears them and then raises `TMD_OBJECT_SKIP_AUTO_BUFFER`. Modes 0
 /// and 1 re-run `Tmd_AllocBuffers` on the model, and every mode except 1 resets
 /// the work block's `field_0` state word. `arg1` is unused.
-s32 func_actor_312200_80163510(Task* task, s32 arg1, s32 arg2)
+s32 func_actor_312200_80163510(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
     TmdObject*       obj;
     Actor312200Work* work;
@@ -563,7 +554,7 @@ s32 func_actor_312200_80163510(Task* task, s32 arg1, s32 arg2)
 /// onto the actor's root coordinate, the Euler angles are applied X / Y / Z,
 /// and the resulting heading is read back out of the matrix Z-axis with
 /// `ratan2` and cached in `Actor312200Work::yaw`.
-s32 func_actor_312200_801635CC(Task* task, s32 arg1, ActorTransform* placement)
+s32 func_actor_312200_801635CC(Task* task, s32 arg1, ActorTransform* placement, s32 arg3)
 {
     GfxCoord*        coord;
     s32              mx;
@@ -590,7 +581,7 @@ s32 func_actor_312200_801635CC(Task* task, s32 arg1, ActorTransform* placement)
 /// 1 takes state 2, actions 2, 3 and 4 take state 1, and the action itself is
 /// latched in the 0x892 timer. Either way the actor's `field_0` state word is
 /// raised to 1.
-s32 func_actor_312200_801636CC(Task* task, s32 msgId, ActorCommand* msg)
+s32 func_actor_312200_801636CC(Task* task, s32 msgId, ActorCommand* msg, s32 arg3)
 {
     Actor312200Work* work;
     s32              action;

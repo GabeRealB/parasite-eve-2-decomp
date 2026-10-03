@@ -215,9 +215,9 @@ extern const char               D_dryfield_night_saloon_g_r_8017D84C[16];
 extern const char               D_dryfield_night_saloon_g_r_8017D85C[20];
 void                            func_dryfield_night_saloon_g_r_8017E0A8(u8);
 
-s32  func_dryfield_night_saloon_g_r_8017DD7C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_dryfield_night_saloon_g_r_8017DD7C(Task*, s32, s32, s32);
 s32  func_dryfield_night_saloon_g_r_8017DD84(Task*, s32, s32, s32);
-s32  func_dryfield_night_saloon_g_r_8017DE68(Task*, s32, TaskMessageArg firstArg, TaskMessageArg);
+s32  func_dryfield_night_saloon_g_r_8017DE68(Task* task, s32 msgId, const void* firstArg, s32 arg3);
 void func_dryfield_night_saloon_g_r_8017DB74(Task*);
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
@@ -1936,7 +1936,7 @@ static const char D_dryfield_night_saloon_g_r_8017D898[8] = "SELECT\0\x0D";
 
 /// Handler for message 0x13F1 in the room's message table: the room takes no
 /// action and reports the message as not handled.
-s32 func_dryfield_night_saloon_g_r_8017DD7C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_saloon_g_r_8017DD7C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -1972,21 +1972,21 @@ s32 func_dryfield_night_saloon_g_r_8017DD84(Task* task, s32 msgId, s32 arg2, s32
 /// while action 2 announces the visit to the
 /// slot-4 task with message 0x7DA carrying the session's two id bytes and a
 /// non-zero action halfword, and sets nibble 0xB0. Always returns 0.
-s32 func_dryfield_night_saloon_g_r_8017DE68(Task* task, s32 msgId, TaskMessageArg firstArg, TaskMessageArg arg3)
+s32 func_dryfield_night_saloon_g_r_8017DE68(Task* task, s32 msgId, const void* firstArg, s32 arg3)
 {
     ActorCommand msg;
     u8           temp_s0;
 
-    if (((const DirectionActionRequest*)firstArg.pointer)->actionId == 7 && GameFlag_GetNibble(GAME_FLAG_NIGHT_SALOON_CUTSCENE_SEEN) == 0) {
+    if (((const DirectionActionRequest*)firstArg)->actionId == 7 && GameFlag_GetNibble(GAME_FLAG_NIGHT_SALOON_CUTSCENE_SEEN) == 0) {
         func_800E8634(D_dryfield_night_saloon_g_r_80183C94, 0, D_dryfield_night_saloon_g_r_801847A4);
         GameFlag_SetNibble(GAME_FLAG_NIGHT_SALOON_CUTSCENE_SEEN, 1);
     }
     temp_s0 = gGameSession->location.loc.variant;
     if (temp_s0 == 2 && GameFlag_GetNibble(GAME_FLAG_NIGHT_SALOON_ENCOUNTER_DONE) == 0) {
-        if (((const DirectionActionRequest*)firstArg.pointer)->actionId == 1) {
+        if (((const DirectionActionRequest*)firstArg)->actionId == 1) {
             Gp_UnlinkObj4A(0, &D_dryfield_night_saloon_g_r_801887DC[13]);
             SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_SALOON_G_R, 0x0C), 0, 0);
-        } else if (((const DirectionActionRequest*)firstArg.pointer)->actionId == temp_s0) {
+        } else if (((const DirectionActionRequest*)firstArg)->actionId == temp_s0) {
             msg.context.loc.stage = gGameSession->location.loc.stage;
             msg.context.loc.area  = gGameSession->location.loc.area;
             msg.command           = 1;

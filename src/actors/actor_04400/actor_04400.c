@@ -62,24 +62,16 @@ extern u8            gMadChaserSettleAnims[]; // per animation id (1-based): the
 extern EnemyParams   gMadChaserEnemyParams;   // the main enemy's `Enemy::param` record
 extern AnimationSet* gMadChaserAnimBank[21];  // animation bank handed to `animationInitContext`
 // Typed callback views for the task message dispatcher.
-typedef struct {
-    s32 id;
-    union {
-        void (*call0)(Task*, s16, VECTOR3*);
-        void (*call1)(Task*, s32, ActorCommand* request);
-    } handler;
-} Actor04400RecoveredMsgEntry;
-STATIC_ASSERT_SIZEOF(Actor04400RecoveredMsgEntry, 8);
 
-extern Actor04400RecoveredMsgEntry gMadChaserMsgTable[3];    // stored into `Task::msgTable` by madChaserSpawn
-static const TaskFuncTable3        gMadChaserKnockdownSteps; // dispatcher table madChaserKnockdownState copies onto its stack
-static const TaskFuncTable3        gMadChaserWalkSteps;      // dispatcher table madChaserWalkState copies onto its stack
-static const TaskFuncTable5        gMadChaserLeapSteps;      // dispatcher table madChaserLeapState copies onto its stack
-static const TaskFuncTable5        Actor04400_D0009C;        // dispatcher table Actor04400_Fn06964 copies onto its stack
-static const TaskFuncTable3        Actor04400_D00150;        // dispatcher table Actor04400_Fn07CF0 copies onto its stack
-static const TaskFuncTable3        Actor04400_D0015C;        // dispatcher table Actor04400_Fn07D78 copies onto its stack
-static const TaskFuncTable4        Actor04400_D00174;        // dispatcher table Actor04400_Fn07F04 copies onto its stack
-static const TaskFuncTable6        gMadChaserPullSteps;      // dispatcher table madChaserPullState copies onto its stack
+extern TaskMessageEntry     gMadChaserMsgTable[3];    // stored into `Task::msgTable` by madChaserSpawn
+static const TaskFuncTable3 gMadChaserKnockdownSteps; // dispatcher table madChaserKnockdownState copies onto its stack
+static const TaskFuncTable3 gMadChaserWalkSteps;      // dispatcher table madChaserWalkState copies onto its stack
+static const TaskFuncTable5 gMadChaserLeapSteps;      // dispatcher table madChaserLeapState copies onto its stack
+static const TaskFuncTable5 Actor04400_D0009C;        // dispatcher table Actor04400_Fn06964 copies onto its stack
+static const TaskFuncTable3 Actor04400_D00150;        // dispatcher table Actor04400_Fn07CF0 copies onto its stack
+static const TaskFuncTable3 Actor04400_D0015C;        // dispatcher table Actor04400_Fn07D78 copies onto its stack
+static const TaskFuncTable4 Actor04400_D00174;        // dispatcher table Actor04400_Fn07F04 copies onto its stack
+static const TaskFuncTable6 gMadChaserPullSteps;      // dispatcher table madChaserPullState copies onto its stack
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`): the angle is a `long`,
 /// so a negated angle is passed without re-truncation to 16 bits.
@@ -121,7 +113,7 @@ static const TaskFuncTable6 gMadChaserPullSteps;
 
 static TmdSource _gActor04400MadChaserBody;
 
-void Actor04400_Fn0648C(Task*, s32, ActorCommand* request);
+void Actor04400_Fn0648C(Task* task, s32 msgId, ActorCommand* request, s32 arg3);
 
 static TmdBone _gActor04400MadChaserBurstHeadSkeleton[1] = {
 #include "assets/mad_chaser_burst_head_skeleton.inc"
@@ -699,10 +691,10 @@ AnimationSet* gMadChaserAnimBank[21] = {
     NULL,
 };
 
-Actor04400RecoveredMsgEntry gMadChaserMsgTable[3] = {
-    { ACTOR_MESSAGE_PLACE, { .call0 = madChaserMsgPlace } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = Actor04400_Fn0648C } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry gMadChaserMsgTable[3] = {
+    { ACTOR_MESSAGE_PLACE, madChaserMsgPlace },
+    { ACTOR_COMMAND_MESSAGE_APPLY, Actor04400_Fn0648C },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc Actor04400_D107E4 = { { { TASK_BODY_TMD, 96 } }, madChaserTask, { .model = &_gActor04400MadChaserBody } };
@@ -1344,7 +1336,7 @@ s32 madChaserTakeHitRequest(Task* arg0)
 /// cross-jumped into one, but only separate bodies keep the jump table; a
 /// single `case 1 ... 5` becomes a range test. `arg1` is the dispatch's
 /// handler index and is unused here.
-void Actor04400_Fn0648C(Task* arg0, s32 arg1, ActorCommand* request)
+void Actor04400_Fn0648C(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
 {
     MadChaserWork* work = (MadChaserWork*)arg0->work;
 

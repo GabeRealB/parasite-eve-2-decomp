@@ -56,11 +56,11 @@ extern SpriteBatch D_dryfield_night_motel_loft_8017FB64[4];
 void func_dryfield_night_motel_loft_8017D9BC(s32 arg0);
 
 // Callbacks referenced by the overlay's shared data tables.
-s32 func_dryfield_night_motel_loft_8017D5F8(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_motel_loft_8017D5F8(Task*, s32, s32, s32);
 
 s32 func_dryfield_night_motel_loft_8017D67C(Task*, s32, s32, s32);
 
-s32 func_dryfield_night_motel_loft_8017D6BC(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_motel_loft_8017D6BC(Task*, s32, s32, s32);
 
 s32 func_dryfield_night_motel_loft_8017D6C4(Task*, s32, s32, s32);
 

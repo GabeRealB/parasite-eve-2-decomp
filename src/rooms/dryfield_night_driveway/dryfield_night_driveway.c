@@ -119,9 +119,9 @@ static AnimationSet             _gDryfieldNightDrivewayAnimation01870;
 static AnimationSet             _gDryfieldNightDrivewayAnimation01A84;
 static AnimationSet             _gDryfieldNightDrivewayAnimation01D64;
 extern AnimationBankCopyRequest D_dryfield_night_driveway_8017F378;
-s32                             func_dryfield_night_driveway_8017DCE4(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                             func_dryfield_night_driveway_8017DCEC(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                             func_dryfield_night_driveway_8017DCF4(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                             func_dryfield_night_driveway_8017DCE4(Task*, s32, s32, s32);
+s32                             func_dryfield_night_driveway_8017DCEC(Task*, s32, s32, s32);
+s32                             func_dryfield_night_driveway_8017DCF4(Task*, s32, s32, s32);
 void                            func_dryfield_night_driveway_8017DC6C(s32);
 void                            func_dryfield_night_driveway_8017DC88(u8);
 
@@ -967,17 +967,17 @@ void func_dryfield_night_driveway_8017DC88(u8 arg0)
 
 /// Message handlers that answer 0 (messages 0x13F1, 0x13F0 and 0x13EF of the
 /// room's message table).
-s32 func_dryfield_night_driveway_8017DCE4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_driveway_8017DCE4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_dryfield_night_driveway_8017DCEC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_driveway_8017DCEC(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_dryfield_night_driveway_8017DCF4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_driveway_8017DCF4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

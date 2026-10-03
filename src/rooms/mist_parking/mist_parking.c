@@ -138,10 +138,10 @@ static u16 Shop_Data_80181AD4[];
 #define SHOP_CHARGE_TITLE_BYTES "Charge\0\xE2"
 #include "../../shared/shop.h"
 
-s32  func_mist_parking_801823F8(s32, s32, s32);
-s32  func_mist_parking_801826B8(void);
+s32  func_mist_parking_801823F8(Task*, s32, s32, s32);
+s32  func_mist_parking_801826B8(Task*, s32, s32, s32);
 s32  func_mist_parking_801826C0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_mist_parking_801826E8(Task*, s32, DirectionActionRequest* request);
+s32  func_mist_parking_801826E8(Task* task, s32 msgId, DirectionActionRequest* request, s32 arg3);
 void func_mist_parking_80182750(s32);
 void func_mist_parking_801827A0(s32);
 
@@ -182,23 +182,13 @@ static AnimationSet _gMistParkingAnimation095D0 = {
 };
 
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32                (*call0)(void);
-        s32                (*call1)(Task*, s32, DirectionActionRequest*);
-        TaskMessageHandler call2;
-        s32                (*call3)(s32, s32, s32);
-    } handler;
-} MistParkingMessageEntry;
-STATIC_ASSERT_SIZEOF(MistParkingMessageEntry, 8);
 
-MistParkingMessageEntry D_mist_parking_80186BB8[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, { .call2 = func_mist_parking_801826C0 } },
-    { DIRECTION_MESSAGE_ROOM_ACTION, { .call1 = func_mist_parking_801826E8 } },
-    { 5105, { .call0 = func_mist_parking_801826B8 } },
-    { ROOM_MESSAGE_COMMAND, { .call3 = func_mist_parking_801823F8 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_mist_parking_80186BB8[5] = {
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_mist_parking_801826C0 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_mist_parking_801826E8 },
+    { 5105, func_mist_parking_801826B8 },
+    { ROOM_MESSAGE_COMMAND, func_mist_parking_801823F8 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 ActorTransform D_mist_parking_80186BE0 = { { 8448, 1, -2599, 0 }, { 0, 0, 0, 0 } };
@@ -951,7 +941,7 @@ static void func_mist_parking_801827C0(Task* arg0);
 
 static void func_mist_parking_80182888(Task* task);
 
-extern MistParkingMessageEntry D_mist_parking_80186BB8[5];
+extern TaskMessageEntry D_mist_parking_80186BB8[5];
 
 extern EvsCommand D_mist_parking_80186C5C[];
 
@@ -978,7 +968,7 @@ void func_mist_parking_80181468(Task* task)
 
 #include "../../shared/room_cutscene_task.inc.c"
 
-s32 func_mist_parking_801823F8(s32 arg0, s32 arg1, s32 arg2)
+s32 func_mist_parking_801823F8(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     GameSession* session;
     u8           temp;
@@ -1046,7 +1036,7 @@ static const TaskFuncTable3 D_mist_parking_8017D7DC = {
 #include "../../shared/room_cutscene_sound_task.inc.c"
 
 /// Handler that answers 0.
-s32 func_mist_parking_801826B8(void)
+s32 func_mist_parking_801826B8(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -1059,7 +1049,7 @@ s32 func_mist_parking_801826C0(Task* task, s32 msgId, RoomEventMsg* src, RoomEve
     return 1;
 }
 
-s32 func_mist_parking_801826E8(Task* task, s32 msgId, DirectionActionRequest* request)
+s32 func_mist_parking_801826E8(Task* task, s32 msgId, DirectionActionRequest* request, s32 arg3)
 {
     if (request->actionId == 1) {
         func_800E8614(D_mist_parking_80186C5C, 1);

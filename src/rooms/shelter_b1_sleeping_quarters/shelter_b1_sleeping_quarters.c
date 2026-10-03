@@ -28,10 +28,10 @@ extern TaskDesc D_shelter_b1_sleeping_quarters_80180540;
 /// The room's message table, which its cap scripts index.
 extern TaskMessageEntry D_shelter_b1_sleeping_quarters_80180518[];
 
-s32 func_shelter_b1_sleeping_quarters_8017D668(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_b1_sleeping_quarters_8017D668(Task*, s32, s32, s32);
 s32 func_shelter_b1_sleeping_quarters_8017D670(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_b1_sleeping_quarters_8017D6FC(Task*, s32, s32, TaskMessageArg);
-s32 func_shelter_b1_sleeping_quarters_8017D770(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_b1_sleeping_quarters_8017D6FC(Task*, s32, s32, s32);
+s32 func_shelter_b1_sleeping_quarters_8017D770(Task*, s32, s32, s32);
 
 static u32     _gShelterB1SleepingQuartersModel02DFCPartVerts[1];
 static SVECTOR _gShelterB1SleepingQuartersModel02DFCVerts[22];
@@ -93,7 +93,7 @@ void func_shelter_b1_sleeping_quarters_8017D608(Task* task)
     }
 }
 
-s32 func_shelter_b1_sleeping_quarters_8017D668(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b1_sleeping_quarters_8017D668(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -115,7 +115,7 @@ s32 func_shelter_b1_sleeping_quarters_8017D670(Task* arg0, s32 arg1, RoomEventMs
     return 0;
 }
 
-s32 func_shelter_b1_sleeping_quarters_8017D6FC(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_shelter_b1_sleeping_quarters_8017D6FC(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 8) {
         Gp_MsgPlayerWeapon(0);
@@ -127,7 +127,7 @@ s32 func_shelter_b1_sleeping_quarters_8017D6FC(Task* arg0, s32 arg1, s32 arg2, T
     return 0;
 }
 
-s32 func_shelter_b1_sleeping_quarters_8017D770(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b1_sleeping_quarters_8017D770(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

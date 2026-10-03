@@ -29,9 +29,9 @@
 /// The room's message table, published at `Task::msgTable` by the room task.
 extern TaskMessageEntry D_dryfield_night_motel_room_5_8017DA30[];
 
-s32 func_dryfield_night_motel_room_5_8017D5F0(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_dryfield_night_motel_room_5_8017D674(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_dryfield_night_motel_room_5_8017D67C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_motel_room_5_8017D5F0(Task*, s32, s32, s32);
+s32 func_dryfield_night_motel_room_5_8017D674(Task*, s32, s32, s32);
+s32 func_dryfield_night_motel_room_5_8017D67C(Task*, s32, s32, s32);
 
 TaskMessageEntry D_dryfield_night_motel_room_5_8017DA30[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantMotelBalconyMsg },
@@ -45,7 +45,7 @@ static void func_dryfield_night_motel_room_5_8017D684(Task* task);
 static void func_dryfield_night_motel_room_5_8017D6C8(Task* task);
 
 /// Message-table handler for id 0x13F1: accepts the message and does nothing.
-s32 func_dryfield_night_motel_room_5_8017D5F0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_motel_room_5_8017D5F0(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -53,13 +53,13 @@ s32 func_dryfield_night_motel_room_5_8017D5F0(Task* task, s32 msgId, TaskMessage
 #include "../../shared/room_variants_motel_balcony.inc.c"
 
 /// Message-table handler for id 0x13F0: accepts the message and does nothing.
-s32 func_dryfield_night_motel_room_5_8017D674(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_motel_room_5_8017D674(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
 /// Message-table handler for id 0x13EF: accepts the message and does nothing.
-s32 func_dryfield_night_motel_room_5_8017D67C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_motel_room_5_8017D67C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

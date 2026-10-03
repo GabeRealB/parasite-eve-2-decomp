@@ -346,12 +346,12 @@ typedef struct OddStrangerAnimWork {
 
 void oddStrangerTickBlended(Task* arg0);
 void oddStrangerDrive(Task* arg0);
-s32  oddStrangerPlayMessage(Task* arg0, s32 arg1, AnimationPlayRequest* arg2);
+s32  oddStrangerPlayMessage(Task* arg0, s32 arg1, AnimationPlayRequest* arg2, s32 arg3);
 
 s32 oddStrangerAnimEvent(OddStrangerRigWork* work);
 
 void oddStrangerExit(Task* task);
-s32  oddStrangerApplyCommand(Task* arg0, s32 arg1, u16* arg2);
+s32  oddStrangerApplyCommand(Task* arg0, s32 arg1, u16* arg2, s32 arg3);
 void oddStrangerGrabRelease(Task* arg0);
 void oddStrangerBackOff(Task* arg0);
 void oddStrangerSidestep(Task* arg0);

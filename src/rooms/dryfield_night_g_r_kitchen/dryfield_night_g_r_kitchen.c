@@ -72,9 +72,9 @@ extern TaskMessageEntry D_dryfield_night_g_r_kitchen_8017E254[];
 extern SVECTOR D_dryfield_night_g_r_kitchen_8017E27C[];
 extern SVECTOR D_dryfield_night_g_r_kitchen_8017E29C[];
 
-s32 func_dryfield_night_g_r_kitchen_8017D8BC(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_dryfield_night_g_r_kitchen_8017D948(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_dryfield_night_g_r_kitchen_8017D950(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_g_r_kitchen_8017D8BC(Task*, s32, s32, s32);
+s32 func_dryfield_night_g_r_kitchen_8017D948(Task*, s32, s32, s32);
+s32 func_dryfield_night_g_r_kitchen_8017D950(Task*, s32, s32, s32);
 
 extern WorldCollisionGrid    D_dryfield_night_g_r_kitchen_8017E554[1];
 extern WorldCollisionTrigger D_dryfield_night_g_r_kitchen_8017E864[2];
@@ -287,7 +287,7 @@ static void func_dryfield_night_g_r_kitchen_8017D99C(Task* task);
 #include "../../shared/room_event_task.inc.c"
 
 /// The room's handler for message 0x13F1: answers 0.
-s32 func_dryfield_night_g_r_kitchen_8017D8BC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_g_r_kitchen_8017D8BC(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -295,13 +295,13 @@ s32 func_dryfield_night_g_r_kitchen_8017D8BC(Task* task, s32 msgId, TaskMessageA
 #include "../../shared/g_r_kitchen_door_msg.inc.c"
 
 /// The room's handler for message 0x13F0: answers 0.
-s32 func_dryfield_night_g_r_kitchen_8017D948(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_g_r_kitchen_8017D948(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
 /// The room's handler for message 0x13EF: answers 0.
-s32 func_dryfield_night_g_r_kitchen_8017D950(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_g_r_kitchen_8017D950(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

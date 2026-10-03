@@ -64,21 +64,12 @@ static void func_actor_420700_80132478(Task* task);
 static void func_actor_420700_801325C8(void);
 
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call1)(Task*, s32, ActorCommand* request);
-        s32 (*call2)(Task*, s32, s32);
-    } handler;
-} Actor420700MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor420700MessageEntry, 8);
 
-extern Actor420700MessageEntry D_actor_420700_8013EF48[4];
-extern TaskDesc                D_actor_420700_8013EF68[];
-extern u8                      D_actor_420700_8013EF8C[];
-extern s32                     D_actor_420700_8013EFF0;
-extern s32                     D_actor_420700_8013EFF4;
+extern TaskMessageEntry D_actor_420700_8013EF48[4];
+extern TaskDesc         D_actor_420700_8013EF68[];
+extern u8               D_actor_420700_8013EF8C[];
+extern s32              D_actor_420700_8013EFF0;
+extern s32              D_actor_420700_8013EFF4;
 
 static TmdSource _gActor420700GaryDouglasBody;
 static TmdSource _gActor420700GaryDouglasHeadHat;
@@ -87,9 +78,9 @@ void             func_actor_420700_80132340(Task*);
 void             func_actor_420700_801323D8(Task*);
 void             func_actor_420700_801327EC(Task*);
 
-s32 func_actor_420700_80132644(Task*, s32, AnimationPlayRequest*);
-s32 func_actor_420700_801326F4(Task*, s32, s32);
-s32 func_actor_420700_80132784(Task*, s32, ActorCommand* args);
+s32 func_actor_420700_80132644(Task*, s32, AnimationPlayRequest*, s32);
+s32 func_actor_420700_801326F4(Task*, s32, s32, s32);
+s32 func_actor_420700_80132784(Task* task, s32 msgId, ActorCommand* args, s32 arg3);
 
 static AnimationPackedPose _gActor420700Animation00DE0Bank1[7] = {
 #include "assets/actor_420700_animation_00DE0_bank1.inc"
@@ -891,11 +882,11 @@ static AnimationSet _gActor420700Animation0D100 = {
     { NULL, _gActor420700Animation0D100Bank1, NULL, NULL, _gActor420700Animation0D100Bank4, NULL, NULL, NULL },
 };
 
-Actor420700MessageEntry D_actor_420700_8013EF48[4] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = func_actor_420700_80132644 } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call2 = func_actor_420700_801326F4 } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_420700_80132784 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_420700_8013EF48[4] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_420700_80132644 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_420700_801326F4 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_420700_80132784 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_actor_420700_8013EF68[3] = {
@@ -1239,7 +1230,7 @@ static void func_actor_420700_801325C8(void)
 /// Selectors 1 and 2 add 10 and 17 respectively; other selectors add zero.
 /// Rejects clip ids 21 and above. A nonzero blend request selects an
 /// eight-frame transition; the requested duration is unused.
-s32 func_actor_420700_80132644(Task* task, s32 arg1, AnimationPlayRequest* args)
+s32 func_actor_420700_80132644(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3)
 {
     s32              offset;
     Actor420700Work* work;
@@ -1277,7 +1268,7 @@ s32 func_actor_420700_80132644(Task* task, s32 arg1, AnimationPlayRequest* args)
 ///
 /// The argument is the handler table's third slot, not the second, so the three
 /// objects it loads land in `$a3` / `$a0` / `$v1` rather than shifted one down.
-s32 func_actor_420700_801326F4(Task* task, s32 arg1, s32 arg2)
+s32 func_actor_420700_801326F4(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
     TmdObject* actor = D_actor_420700_8013EFE4->extra.tmd;
     TmdObject* model = D_actor_420700_8013EFE8->extra.tmd;
@@ -1311,7 +1302,7 @@ s32 func_actor_420700_801326F4(Task* task, s32 arg1, s32 arg2)
 /// test short, and adding the fourth node is what makes it split at the first
 /// case instead. See DECOMPILATION_LEARNINGS.md, "An empty case node changes
 /// the switch decision tree".
-s32 func_actor_420700_80132784(Task* task, s32 arg1, ActorCommand* args)
+s32 func_actor_420700_80132784(Task* task, s32 arg1, ActorCommand* args, s32 arg3)
 {
     if (args->context.key != 0x1B02) {
         return -1;

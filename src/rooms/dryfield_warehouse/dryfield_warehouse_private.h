@@ -52,7 +52,7 @@ extern SpriteBatch D_dryfield_warehouse_801815E8[2];
 // Callbacks referenced by the overlay's shared data tables.
 void func_dryfield_warehouse_8017D5E8(Task*);
 
-s32 func_dryfield_warehouse_8017D764(Task*, s32, s32, TaskMessageArg);
+s32 func_dryfield_warehouse_8017D764(Task*, s32, s32, s32);
 
 s32 func_dryfield_warehouse_8017D824(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 

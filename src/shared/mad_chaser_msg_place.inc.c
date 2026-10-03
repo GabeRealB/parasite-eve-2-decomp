@@ -2,7 +2,7 @@
 
 /// Moves the model: writes `pos` into the root part's translation and marks
 /// the coordinate dirty. `part` is accepted but unused.
-void madChaserMsgPlace(Task* task, s16 part, VECTOR3* pos)
+void madChaserMsgPlace(Task* task, s32 part, VECTOR3* pos, s32 arg3)
 {
     GfxCoord* coord;
 

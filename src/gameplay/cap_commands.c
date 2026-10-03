@@ -389,7 +389,7 @@ s32 func_800E3FF0(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
     return 1;
 }
 
-s32 func_800E4018(Task* task, s32 msgId, TaskMessageArg firstArg, TaskMessageArg secondArg)
+s32 func_800E4018(Task* task, s32 msgId, s32 firstArg, s32 secondArg)
 {
     return 0;
 }

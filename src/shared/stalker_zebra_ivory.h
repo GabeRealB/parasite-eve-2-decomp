@@ -84,7 +84,7 @@ void stalkerZebraIvoryPinPartXZ(Task* arg0, s16 index, StalkerZebraIvoryViewPos*
 void stalkerZebraIvoryWaitClipThenRest(Task* arg0);
 void stalkerZebraIvoryReleaseHold(Task* arg0);
 void stalkerZebraIvoryRunSubStates(Task* arg0);
-void stalkerZebraIvorySetMoveMode(Task* arg0, s32 arg1, u16* arg2);
+void stalkerZebraIvorySetMoveMode(Task* arg0, s32 arg1, u16* arg2, s32 arg3);
 void stalkerZebraIvoryRestartClip(Task* arg0);
 void stalkerZebraIvoryResumeClip(Task* arg0);
 void stalkerZebraIvoryPickRange(Task* arg0);

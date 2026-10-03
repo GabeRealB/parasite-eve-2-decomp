@@ -96,33 +96,13 @@ extern AnimationSet*  D_actor_361100_8016BAD0[4];
 extern AnimationSet** gActorMotionAnimBanks19[1];
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call1)(Task*, s32, ActorCommand* request);
-        s32 (*call2)(Task*, s32, ActorTransform*);
-        s32 (*call3)(Task*, s32, s32);
-    } handler;
-} Actor361100MsgEntry;
-STATIC_ASSERT_SIZEOF(Actor361100MsgEntry, 8);
 
-extern Actor361100MsgEntry D_actor_361100_8016BAF0[];
-extern AnimationSet*       D_actor_361100_80171B94[5];
-extern AnimationSet**      D_actor_361100_80171BA8[1];
+extern TaskMessageEntry D_actor_361100_8016BAF0[];
+extern AnimationSet*    D_actor_361100_80171B94[5];
+extern AnimationSet**   D_actor_361100_80171BA8[1];
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call1)(Task*, s32, ActorCommand* request);
-        s32 (*call2)(Task*, s32, ActorTransform*);
-        s32 (*call3)(Task*, s32, s32);
-    } handler;
-} Actor361100MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor361100MessageEntry, 8);
 
-extern Actor361100MessageEntry D_actor_361100_80171BB8[5];
+extern TaskMessageEntry D_actor_361100_80171BB8[5];
 
 void func_80138C9C(ActorEffectState* state);
 void func_801353D0(ActorEffectState* state, GfxCoord* coord);
@@ -159,12 +139,12 @@ static AnimationSet _gActor361100Animation0973C;
 static AnimationSet _gActor361100Animation09AA8;
 static AnimationSet _gActor361100Animation09C88;
 static TmdSource    _gActor361100Model06038;
-s32                 func_actor_361100_80162F58(Task*, s32, ActorTransform* placement);
-s32                 func_actor_361100_80162FF4(Task*, s32, s32);
-s32                 func_actor_361100_801630D4(Task*, s32, ActorCommand* msg);
-s32                 func_actor_361100_801634D0(Task*, s32, AnimationPlayRequest*);
-s32                 func_actor_361100_80163670(Task*, s32, s32);
-s32                 func_actor_361100_80163750(Task*, s32, ActorCommand* msg);
+s32                 func_actor_361100_80162F58(Task* task, s32 msgId, ActorTransform* placement, s32 arg3);
+s32                 func_actor_361100_80162FF4(Task*, s32, s32, s32);
+s32                 func_actor_361100_801630D4(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
+s32                 func_actor_361100_801634D0(Task*, s32, AnimationPlayRequest*, s32);
+s32                 func_actor_361100_80163670(Task*, s32, s32, s32);
+s32                 func_actor_361100_80163750(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
 void                func_actor_361100_80162CBC(Task*);
 void                func_actor_361100_801633A4(Task*);
 
@@ -784,12 +764,12 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
 
 TaskDesc D_actor_361100_8016BAE4 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_361100_80162CBC, { .model = &_gActor361100Model06038 } };
 
-Actor361100MsgEntry D_actor_361100_8016BAF0[5] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = actorMotionPlayAnim19 } },
-    { ACTOR_MESSAGE_PLACE, { .call2 = func_actor_361100_80162F58 } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = func_actor_361100_80162FF4 } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_361100_801630D4 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_361100_8016BAF0[5] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, actorMotionPlayAnim19 },
+    { ACTOR_MESSAGE_PLACE, func_actor_361100_80162F58 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_361100_80162FF4 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_361100_801630D4 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 static TmdBone _gActor361100AyaBreaBodySkeleton[19] = {
@@ -926,12 +906,12 @@ AnimationSet** D_actor_361100_80171BA8[1] = {
 
 TaskDesc D_actor_361100_80171BAC = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_361100_801633A4, { .model = &_gActor361100AyaBreaBody } };
 
-Actor361100MessageEntry D_actor_361100_80171BB8[5] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = func_actor_361100_801634D0 } },
-    { ACTOR_MESSAGE_PLACE, { .call2 = actorMsgPlaceEuler } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = func_actor_361100_80163670 } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_361100_80163750 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_361100_80171BB8[5] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_361100_801634D0 },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_361100_80163670 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_361100_80163750 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 Task* D_actor_361100_80171BE0;
@@ -1619,7 +1599,7 @@ static void func_actor_361100_80162E04(Task* arg0)
 /// `RotMatrixZYX`. Clearing `composeStamp` makes `actorRenderComposeCoordChain` recompute the
 /// composed matrix from it, and the six words the body then clears are the work
 /// block's two vector accumulators.
-s32 func_actor_361100_80162F58(Task* task, s32 arg1, ActorTransform* placement)
+s32 func_actor_361100_80162F58(Task* task, s32 arg1, ActorTransform* placement, s32 arg3)
 {
     GfxCoord*        coord;
     Actor361100Work* work;
@@ -1643,7 +1623,7 @@ s32 func_actor_361100_80162F58(Task* task, s32 arg1, ActorTransform* placement)
     return 0;
 }
 
-s32 func_actor_361100_80162FF4(Task* task, s32 arg1, s32 mode)
+s32 func_actor_361100_80162FF4(Task* task, s32 arg1, s32 mode, s32 arg3)
 {
     TmdObject* obj;
     s32        ret;
@@ -1683,7 +1663,7 @@ s32 func_actor_361100_80162FF4(Task* task, s32 arg1, s32 mode)
 /// 1, 2 and 3 arm it with one of three preset vectors and the halfword at
 /// `field_4A0`; every other sub-command exits the task through its own
 /// `Task::exitCallback`.
-s32 func_actor_361100_801630D4(Task* task, s32 arg1, ActorCommand* msg)
+s32 func_actor_361100_801630D4(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
 {
     Actor361100Work* work;
 
@@ -1830,7 +1810,7 @@ static void func_actor_361100_801634B4(Task* arg0)
 /// A changed bank installs its set table. The requested clip is applied to the slots.
 /// Blends an already ticking rig when requested, using a whole-frame duration;
 /// otherwise resets the slots before ticking them.
-s32 func_actor_361100_801634D0(Task* task, s32 arg1, AnimationPlayRequest* msg)
+s32 func_actor_361100_801634D0(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3)
 {
     Actor361100Work* work;
     TmdObject*       ext;
@@ -1863,7 +1843,7 @@ s32 func_actor_361100_801634D0(Task* task, s32 arg1, AnimationPlayRequest* msg)
 
 #include "../../shared/actor_messages_place_euler.inc.c"
 
-s32 func_actor_361100_80163670(Task* task, s32 arg1, s32 mode)
+s32 func_actor_361100_80163670(Task* task, s32 arg1, s32 mode, s32 arg3)
 {
     TmdObject* obj;
     s32        ret;
@@ -1901,7 +1881,7 @@ s32 func_actor_361100_80163670(Task* task, s32 arg1, s32 mode)
 /// block's first vector accumulator; 1 arms it, dropping 0x2D000 into the
 /// accumulator's middle word and 0xA0 into `field_4A0`; every other sub-command
 /// exits the task through its own `Task::exitCallback`.
-s32 func_actor_361100_80163750(Task* task, s32 msgId, ActorCommand* msg)
+s32 func_actor_361100_80163750(Task* task, s32 msgId, ActorCommand* msg, s32 arg3)
 {
     Actor361100Work* work;
 

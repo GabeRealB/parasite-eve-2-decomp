@@ -165,9 +165,9 @@ static void func_shelter_b2_main_corridor_8017EBF4(Task* arg0);
 extern TaskDesc D_80147E48;
 
 s32  func_shelter_b2_main_corridor_8017D9C4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_b2_main_corridor_8017DC88(Task*, s32, TaskMessageArg firstArg, s32);
-s32  func_shelter_b2_main_corridor_8017E1CC(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_shelter_b2_main_corridor_8017E1D4(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_shelter_b2_main_corridor_8017DC88(Task* task, s32 msgId, const void* firstArg, s32);
+s32  func_shelter_b2_main_corridor_8017E1CC(Task*, s32, s32, s32);
+s32  func_shelter_b2_main_corridor_8017E1D4(Task*, s32, s32, s32);
 s32  func_shelter_b2_main_corridor_8017E1DC(Task*, s32, s32, s32);
 void func_shelter_b2_main_corridor_8017DEB0(Task*);
 void func_shelter_b2_main_corridor_8017E210(Task*);
@@ -1675,16 +1675,16 @@ s32 func_shelter_b2_main_corridor_8017D9C4(Task* arg0, s32 arg1, RoomEventMsg* i
     return 1;
 }
 
-s32 func_shelter_b2_main_corridor_8017DC88(Task* arg0, s32 arg1, TaskMessageArg firstArg, s32 arg3)
+s32 func_shelter_b2_main_corridor_8017DC88(Task* arg0, s32 arg1, const void* firstArg, s32 arg3)
 {
     s32 id;
 
-    if (((const DirectionActionRequest*)firstArg.pointer)->actionId == 0xA) {
-        if (((const DirectionActionRequest*)firstArg.pointer)->argument == 7) {
+    if (((const DirectionActionRequest*)firstArg)->actionId == 0xA) {
+        if (((const DirectionActionRequest*)firstArg)->argument == 7) {
             if (GameFlag_GetNibble(GAME_FLAG_B2_CORRIDOR_OBSERVATORY_ACCESS) != 0) {
                 if (GameFlag_GetNibble(GAME_FLAG_SHELTER_B2_MAIN_CORRIDOR_0DA) != 0) {
                     D_shelter_b2_main_corridor_80189684.stage = GAME_STAGE_SHELTER_NEO_ARK;
-                    D_shelter_b2_main_corridor_80189684.area  = ((const DirectionActionRequest*)firstArg.pointer)->argument;
+                    D_shelter_b2_main_corridor_80189684.area  = ((const DirectionActionRequest*)firstArg)->argument;
                 } else {
                     D_shelter_b2_main_corridor_80189684.stage = GAME_STAGE_MINE_SHELTER;
                     D_shelter_b2_main_corridor_80189684.area  = 0x31;
@@ -1700,7 +1700,7 @@ s32 func_shelter_b2_main_corridor_8017DC88(Task* arg0, s32 arg1, TaskMessageArg 
                 Task_SpawnFromTable(D_shelter_b2_main_corridor_80182C44, 1, 0x1C4, 0);
             }
         }
-        if (((const DirectionActionRequest*)firstArg.pointer)->argument == 8) {
+        if (((const DirectionActionRequest*)firstArg)->argument == 8) {
             if (GameFlag_GetNibble(GAME_FLAG_0D1) == 2) {
                 Gp_RunCapCmd1(4);
                 return 0;
@@ -1716,7 +1716,7 @@ s32 func_shelter_b2_main_corridor_8017DC88(Task* arg0, s32 arg1, TaskMessageArg 
                 id = 7;
             }
             D_shelter_b2_main_corridor_80189684.stage    = GAME_STAGE_SHELTER_NEO_ARK;
-            D_shelter_b2_main_corridor_80189684.area     = ((const DirectionActionRequest*)firstArg.pointer)->argument;
+            D_shelter_b2_main_corridor_80189684.area     = ((const DirectionActionRequest*)firstArg)->argument;
             D_shelter_b2_main_corridor_80189684.room     = 1;
             D_shelter_b2_main_corridor_80189684.warp     = 1;
             D_shelter_b2_main_corridor_80189684.sndEvent = 0;
@@ -1725,7 +1725,7 @@ s32 func_shelter_b2_main_corridor_8017DC88(Task* arg0, s32 arg1, TaskMessageArg 
             Task_SpawnFromTable(D_shelter_b2_main_corridor_80182C44, 0, id, 0);
         }
     }
-    if (((const DirectionActionRequest*)firstArg.pointer)->actionId == 1 && GameFlag_GetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS) >= 2 && GameFlag_GetNibble(GAME_FLAG_SHELTER_B2_MAIN_CORRIDOR_0D3) == 0) {
+    if (((const DirectionActionRequest*)firstArg)->actionId == 1 && GameFlag_GetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS) >= 2 && GameFlag_GetNibble(GAME_FLAG_SHELTER_B2_MAIN_CORRIDOR_0D3) == 0) {
         GameFlag_SetNibble(GAME_FLAG_SHELTER_B2_MAIN_CORRIDOR_0D3, 1);
         GameFlag_SetNibble(GAME_FLAG_B2_CORRIDOR_OBSERVATORY_ACCESS, 1);
         GameFlag_SetNibble(GAME_FLAG_MAP_MARK_B2_MAIN_CORRIDOR, 0);
@@ -1808,12 +1808,12 @@ void func_shelter_b2_main_corridor_8017DEB0(Task* arg0)
 
 #include "../../shared/room_variants_neo_ark.inc.c"
 
-s32 func_shelter_b2_main_corridor_8017E1CC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b2_main_corridor_8017E1CC(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b2_main_corridor_8017E1D4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b2_main_corridor_8017E1D4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

@@ -60,18 +60,8 @@ extern TaskDesc D_actor_213000_80157DE0[];
 /// `Task::msgTable`.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call1)(Task*, s32, ActorCommand* request);
-        s32 (*call2)(Task*, s32, ActorTransform*);
-        s32 (*call3)(Task*, s32, s32);
-    } handler;
-} Actor213000MsgEntry;
-STATIC_ASSERT_SIZEOF(Actor213000MsgEntry, 8);
 
-extern Actor213000MsgEntry D_actor_213000_80157E1C[];
+extern TaskMessageEntry D_actor_213000_80157E1C[];
 
 /// Animation bank table the 0x7D3 handler indexes with the preset's `field_0`.
 extern AnimationSet*  D_actor_213000_80157DB0[11];
@@ -86,9 +76,9 @@ static TmdSource _gActor213000Model06A10;
 static TmdSource _gActor213000EricBaldwinHandRight;
 static TmdSource _gActor213000Model072AC;
 static TmdSource _gActor213000Prop;
-s32              func_actor_213000_8014A70C(Task*, s32, AnimationPlayRequest*);
-s32              func_actor_213000_8014A8A4(Task*, s32, s32);
-s32              func_actor_213000_8014A980(Task*, s32, ActorCommand* msg);
+s32              func_actor_213000_8014A70C(Task*, s32, AnimationPlayRequest*, s32);
+s32              func_actor_213000_8014A8A4(Task*, s32, s32, s32);
+s32              func_actor_213000_8014A980(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
 void             func_actor_213000_8014A084(Task*);
 void             func_actor_213000_8014A160(Task*);
 void             func_actor_213000_8014A520(Task*);
@@ -496,12 +486,12 @@ TaskDesc D_actor_213000_80157DE0[5] = {
     { { { TASK_BODY_TMD, 192 } }, func_actor_213000_8014A160, { .model = &_gActor213000EricBaldwinHandRight } },
 };
 
-Actor213000MsgEntry D_actor_213000_80157E1C[5] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = func_actor_213000_8014A70C } },
-    { ACTOR_MESSAGE_PLACE, { .call2 = actorMsgPlaceEuler } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = func_actor_213000_8014A8A4 } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_213000_8014A980 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_213000_80157E1C[5] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_213000_8014A70C },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_213000_8014A8A4 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_213000_8014A980 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 }; /// Spawn handler: allocates the work block, seeds its animation bytes and
 
 static void func_actor_213000_80149E54(Task* task);
@@ -794,7 +784,7 @@ static void func_actor_213000_8014A6AC(Task* task)
 ///
 /// A changed bank installs its set table. The requested clip is applied to the slots.
 /// Requested blending uses 6 frames; otherwise the slots reset.
-s32 func_actor_213000_8014A70C(Task* task, s32 arg1, AnimationPlayRequest* msg)
+s32 func_actor_213000_8014A70C(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3)
 {
     Actor213000Work* work;
     TmdObject*       ext;
@@ -836,7 +826,7 @@ s32 func_actor_213000_8014A70C(Task* task, s32 arg1, AnimationPlayRequest* msg)
 /// nothing and returns 1.
 /// The handler reads `work` before the switch even though mode 2 is its only
 /// use, so retail's `lw $v1,0x1C($a0)` sits in the entry block.
-s32 func_actor_213000_8014A8A4(Task* task, s32 arg1, s32 mode)
+s32 func_actor_213000_8014A8A4(Task* task, s32 arg1, s32 mode, s32 arg3)
 {
     TmdObject*       obj;
     Actor213000Work* work;
@@ -882,7 +872,7 @@ s32 func_actor_213000_8014A8A4(Task* task, s32 arg1, s32 mode)
 /// arm is only the `lw` plus a jump while modes 0 and 2 each keep their own
 /// `& 0xFF7F` copy. Which tails jump2 merges is decided by which jumps share a
 /// target label, not by how alike the bodies are.
-s32 func_actor_213000_8014A980(Task* task, s32 arg1, ActorCommand* msg)
+s32 func_actor_213000_8014A980(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
 {
     Actor213000Work* work;
     Task*            child;

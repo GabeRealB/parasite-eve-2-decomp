@@ -166,17 +166,8 @@ extern ActorTransform D_actor_342000_801648B8;
 extern ActorTransform D_actor_342000_80164948;
 
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        void (*call0)(Task*, s32, ActorCommand* request, ActorTransform*);
-        void (*call1)(Task*, s32, ActorTransform*);
-        void (*call2)(Task*, s32, s32);
-    } handler;
-} Actor342000MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor342000MessageEntry, 8);
 
-extern Actor342000MessageEntry D_actor_342000_801648A8[2];
+extern TaskMessageEntry D_actor_342000_801648A8[2];
 
 /// Animation-id bank `Actor342000Work::field_288` indexes; a negative entry
 /// means the bank is empty and the slots are left alone.
@@ -190,8 +181,8 @@ void func_actor_342000_801625D8(Task*);
 void func_actor_342000_801628C8(Task*);
 void func_actor_342000_8016382C(Task*);
 void func_actor_342000_80163EAC(Task*);
-void func_actor_342000_801640C0(Task*, s32, ActorTransform* transform);
-void func_actor_342000_80164110(Task*, s32, ActorCommand* request, ActorTransform* transform);
+s32  func_actor_342000_801640C0(Task* task, s32 msgId, ActorTransform* transform, s32 arg3);
+s32  func_actor_342000_80164110(Task* task, s32 msgId, ActorCommand* request, ActorTransform* transform);
 void func_actor_342000_80164154(void);
 void func_actor_342000_801641B4(void);
 void func_actor_342000_801641FC(void);
@@ -271,19 +262,19 @@ ActorTransform D_actor_342000_80164878[2] = {
     { { 0x3714, 4500, -0x4650, 0 }, { 0, 0, 0, 0 } },
 };
 
-Actor342000MessageEntry D_actor_342000_801648A8[2] = {
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call2 = actorMsgSetDrawMode } },
-    { ACTOR_MESSAGE_PLACE, { .call1 = actorMsgPlaceYawPitchRoll } },
+TaskMessageEntry D_actor_342000_801648A8[2] = {
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetDrawMode },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceYawPitchRoll },
 };
 
 ActorTransform D_actor_342000_801648B8 = { { 0x36B0, 2000, -0x40D8, 0 }, { 0, 2048, 0, 0 } };
 
 ActorTransform D_actor_342000_801648D0 = { { 0x36B0, 2000, -0x3E80, 0 }, { 0, 2048, 0, 0 } };
 
-Actor342000MessageEntry D_actor_342000_801648E8[3] = {
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call2 = actorMsgSetDrawMode } },
-    { ACTOR_MESSAGE_PLACE, { .call1 = func_actor_342000_801640C0 } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_342000_80164110 } },
+TaskMessageEntry D_actor_342000_801648E8[3] = {
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetDrawMode },
+    { ACTOR_MESSAGE_PLACE, func_actor_342000_801640C0 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_342000_80164110 },
 };
 
 SVECTOR D_actor_342000_80164900[6] = {
@@ -400,7 +391,7 @@ extern AnimationSet* D_actor_342000_80164800[];
 
 extern AnimationSet* D_actor_342000_80164808[];
 
-extern Actor342000MessageEntry D_actor_342000_801648E8[3];
+extern TaskMessageEntry D_actor_342000_801648E8[3];
 
 /// Animation payload of the 0x3F4 messages sent to the slot-3 task.
 extern AnimationSet* D_actor_342000_801647E8[4];
@@ -1316,7 +1307,7 @@ static void func_actor_342000_80163F88(Task* task)
 
 #include "../../shared/actor_messages_place_ypr.inc.c"
 
-void func_actor_342000_801640C0(Task* arg0, s32 arg1, ActorTransform* transform)
+s32 func_actor_342000_801640C0(Task* arg0, s32 arg1, ActorTransform* transform, s32 arg3)
 {
     Actor342000Work* work;
     GfxCoord*        coord;
@@ -1332,7 +1323,7 @@ void func_actor_342000_801640C0(Task* arg0, s32 arg1, ActorTransform* transform)
     work->coord.composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-void func_actor_342000_80164110(Task* arg0, s32 arg1, ActorCommand* request, ActorTransform* transform)
+s32 func_actor_342000_80164110(Task* arg0, s32 arg1, ActorCommand* request, ActorTransform* transform)
 {
     Actor342000Work* work;
 

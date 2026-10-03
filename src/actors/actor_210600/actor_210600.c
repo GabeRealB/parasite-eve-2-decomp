@@ -110,17 +110,8 @@ extern u8 D_actor_210600_8015A4B4[];
 
 /// Message table the spawn body publishes as `Task::msgTable`.
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(Task*, s32, ActorCommand* request);
-        s32 (*call1)(Task*, s32, ActorTransform*);
-        s32 (*call2)(Task*, s32, s32);
-    } handler;
-} Actor210600MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor210600MessageEntry, 8);
 
-extern Actor210600MessageEntry D_actor_210600_8015A4CC[4];
+extern TaskMessageEntry D_actor_210600_8015A4CC[4];
 
 /// Integer part of the last movement step `func_actor_210600_8014A9D0`
 /// applied.
@@ -129,8 +120,8 @@ static SVECTOR ActorContact_ScratchPosition;
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
 static TmdSource _gActor210600GrinningStrangerBody;
-s32              func_actor_210600_8014B5F4(Task*, s32, s32);
-s32              func_actor_210600_8014B770(Task*, s32, ActorCommand* msg);
+s32              func_actor_210600_8014B5F4(Task*, s32, s32, s32);
+s32              func_actor_210600_8014B770(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
 void             func_actor_210600_8014BA3C(Task*);
 
 #include "../../shared/actor_contacts.h"
@@ -262,11 +253,11 @@ u8 D_actor_210600_8015A4B4[24] = {
     0,
 };
 
-Actor210600MessageEntry D_actor_210600_8015A4CC[4] = {
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call2 = func_actor_210600_8014B5F4 } },
-    { ACTOR_MESSAGE_PLACE, { .call1 = actorMsgPlace } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_210600_8014B770 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_210600_8015A4CC[4] = {
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_210600_8014B5F4 },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlace },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_210600_8014B770 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_actor_210600_8015A4EC = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_210600_8014BA3C, { .model = &_gActor210600GrinningStrangerBody } };
@@ -520,7 +511,7 @@ static void func_actor_210600_8014B434(Enemy* enemy, Task* task)
 /// `Tmd_AllocBuffers`; 2 adds `TMD_OBJECT_SKIP_AUTO_BUFFER` to the flags and any other value sets
 /// them to `TMD_OBJECT_SKIP_AUTO_BUFFER` alone. Modes 0 and 2 set `Actor210600Work::field_890`, which
 /// stops the update state, and the other two clear it. `arg1` is unused.
-s32 func_actor_210600_8014B5F4(Task* task, s32 arg1, s32 arg2)
+s32 func_actor_210600_8014B5F4(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
     TmdObject*       obj;
     Actor210600Work* work;
@@ -556,7 +547,7 @@ s32 func_actor_210600_8014B5F4(Task* task, s32 arg1, s32 arg2)
 /// comes from sender 0x401 with selector 1, it requests clip 1 through the
 /// reset step at rate 0x10 and clears `Actor210600Work::field_890` so the
 /// update state runs. Always reports the message handled.
-s32 func_actor_210600_8014B770(Task* task, s32 msgId, ActorCommand* msg)
+s32 func_actor_210600_8014B770(Task* task, s32 msgId, ActorCommand* msg, s32 arg3)
 {
     Actor210600Work* work;
     u16              selector;

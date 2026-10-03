@@ -138,10 +138,10 @@ extern SpriteSource D_acropolis_promenade_8018526C[32];
 extern SpriteSource D_acropolis_promenade_8018552C[46];
 extern SpriteSource D_acropolis_promenade_8018590C[78];
 s32                 func_acropolis_promenade_8017D70C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                 func_acropolis_promenade_8017D8D8(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                 func_acropolis_promenade_8017D8E0(Task*, s32, s32, TaskMessageArg);
-s32                 func_acropolis_promenade_8017D938(Task*, s32, s32, TaskMessageArg);
-s32                 func_acropolis_promenade_8017D930(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                 func_acropolis_promenade_8017D8D8(Task*, s32, s32, s32);
+s32                 func_acropolis_promenade_8017D8E0(Task*, s32, s32, s32);
+s32                 func_acropolis_promenade_8017D938(Task*, s32, s32, s32);
+s32                 func_acropolis_promenade_8017D930(Task*, s32, s32, s32);
 void                func_acropolis_promenade_8017D988(Task*);
 
 static TmdBone _gAcropolisPromenadeAcropolisBridgeModel0AD9CSkeleton[1] = {
@@ -1899,12 +1899,12 @@ s32 func_acropolis_promenade_8017D70C(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
 
 /// Handler for message 0x13F1 in the room's message table: does nothing and
 /// returns 0.
-s32 func_acropolis_promenade_8017D8D8(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_acropolis_promenade_8017D8D8(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_acropolis_promenade_8017D8E0(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_acropolis_promenade_8017D8E0(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 5) {
         if (Gp_GetCurBit2Flag(0x15) != 2) {
@@ -1921,11 +1921,11 @@ s32 func_acropolis_promenade_8017D8E0(Task* arg0, s32 arg1, s32 arg2, TaskMessag
 ///
 /// It leaves the result unset. The message's sender discards the result, so
 /// nothing reads the indeterminate value the dispatcher forwards.
-s32 func_acropolis_promenade_8017D930(Task* task, s32 messageId, TaskMessageArg firstArg, TaskMessageArg secondArg)
+s32 func_acropolis_promenade_8017D930(Task* task, s32 messageId, s32 firstArg, s32 secondArg)
 {
 }
 
-s32 func_acropolis_promenade_8017D938(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_acropolis_promenade_8017D938(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     switch (arg2) {
         case 0xA:

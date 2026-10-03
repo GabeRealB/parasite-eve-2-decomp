@@ -58,25 +58,14 @@ STATIC_ASSERT_SIZEOF(Actor460200AnimStorage5E30, 128);
 
 extern Actor460200AnimStorage5E30 D_actor_460200_80135E30;
 
-s32 func_actor_460200_80133C64(Task* task, s32 arg1, AnimationPlayRequest* args);
+s32 func_actor_460200_80133C64(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3);
 
-s32 func_actor_460200_80133CD0(Task* task, s32 arg1, s32 flags);
+s32 func_actor_460200_80133CD0(Task* task, s32 arg1, s32 flags, s32 arg3);
 
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(void);
-        s32 (*call1)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call2)(Task*, s32, ActorCommand* request);
-        s32 (*call3)(Task*, s32, ActorTransform*);
-        s32 (*call4)(Task*, s32, s32);
-    } handler;
-} Actor460200MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor460200MessageEntry, 8);
 
-extern Actor460200MessageEntry gPacedWalkMsgTable[6];
-extern AnimationSet*           gPacedWalkAnimBank[16];
+extern TaskMessageEntry gPacedWalkMsgTable[6];
+extern AnimationSet*    gPacedWalkAnimBank[16];
 
 extern u8 gPacedWalkEffectParts[];
 
@@ -92,11 +81,11 @@ extern EvsCommand           D_actor_460200_80137FE0[];
 extern EvsCommand           D_actor_460200_80138028[];
 extern EvsCommand           D_actor_460200_80138070[];
 
-extern TaskDesc                gStrideWalkTasks[];
-extern u8                      gStrideWalkAnimParams[];
-extern Actor460200MessageEntry gStrideWalkMessages[6];
-extern Actor460200MessageEntry D_actor_460200_801514FC[6];
-extern s32                     D_actor_460200_80151538;
+extern TaskDesc         gStrideWalkTasks[];
+extern u8               gStrideWalkAnimParams[];
+extern TaskMessageEntry gStrideWalkMessages[6];
+extern TaskMessageEntry D_actor_460200_801514FC[6];
+extern s32              D_actor_460200_80151538;
 
 /// Scratchpad stack pointer the per-frame helpers carve temporary frames off.
 
@@ -116,15 +105,15 @@ static TmdSource _gActor460200SoldierBRifle;
 static TmdSource _gActor460200SoldierBBody;
 void             func_actor_460200_801330C8(Task*);
 
-s32 func_actor_460200_801334F0(Task*, s32, ActorTransform* placement);
-s32 func_actor_460200_80133568(Task*, s32, ActorCommand* args);
+s32 func_actor_460200_801334F0(Task* task, s32 msgId, ActorTransform* placement, s32 arg3);
+s32 func_actor_460200_80133568(Task* task, s32 msgId, ActorCommand* args, s32 arg3);
 
 static TmdSource _gActor460200SoldierCBody;
-s32              func_actor_460200_80133C64(Task*, s32, AnimationPlayRequest*);
-s32              func_actor_460200_80133CD0(Task*, s32, s32);
-s32              func_actor_460200_80133D4C(Task*, s32, ActorTransform* placement);
-s32              func_actor_460200_80133DC4(void);
-s32              func_actor_460200_80133DCC(Task*, s32, ActorTransform* target);
+s32              func_actor_460200_80133C64(Task*, s32, AnimationPlayRequest*, s32);
+s32              func_actor_460200_80133CD0(Task*, s32, s32, s32);
+s32              func_actor_460200_80133D4C(Task* task, s32 msgId, ActorTransform* placement, s32 arg3);
+s32              func_actor_460200_80133DC4(Task*, s32, s32, s32);
+s32              func_actor_460200_80133DCC(Task* task, s32 msgId, ActorTransform* target, s32 arg3);
 void             func_actor_460200_8013386C(Task*);
 
 extern AnimationPlayRequest D_actor_460200_80135E1C;
@@ -135,7 +124,7 @@ extern AnimationPlayRequest D_actor_460200_80136090;
 extern AnimationPlayRequest D_actor_460200_801360A4;
 extern AnimationPlayRequest D_actor_460200_801360B8;
 extern AnimationPlayRequest D_actor_460200_801360CC;
-s32                         func_actor_460200_80132C8C(Task*, s32, ActorCommand* args);
+s32                         func_actor_460200_80132C8C(Task* task, s32 msgId, ActorCommand* args, s32 arg3);
 void                        func_actor_460200_801327B4(Task*);
 
 extern AnimationPlayRequest D_actor_460200_80135EB0;
@@ -1289,13 +1278,13 @@ static AnimationSet _gActor460200Animation0DE08 = {
     { NULL, _gActor460200Animation0DE08Bank1, NULL, NULL, _gActor460200Animation0DE08Bank4, NULL, NULL, NULL },
 };
 
-Actor460200MessageEntry gPacedWalkMsgTable[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = pacedWalkPlayAnim } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = pacedWalkShowPair } },
-    { ACTOR_MESSAGE_PLACE, { .call3 = pacedWalkPlace } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_460200_80132C8C } },
-    { ACTOR_MESSAGE_WALK_TO, { .call3 = pacedWalkTo } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry gPacedWalkMsgTable[6] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, pacedWalkPlayAnim },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, pacedWalkShowPair },
+    { ACTOR_MESSAGE_PLACE, pacedWalkPlace },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_460200_80132C8C },
+    { ACTOR_MESSAGE_WALK_TO, pacedWalkTo },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_actor_460200_8013FC80 = { { { TASK_BODY_TMD, 96 } }, func_actor_460200_801327B4, { .model = &_gActor460200SoldierABody } };
@@ -1640,13 +1629,13 @@ static AnimationSet _gActor460200Animation162A0 = {
     { NULL, _gActor460200Animation162A0Bank1, NULL, NULL, _gActor460200Animation162A0Bank4, NULL, NULL, NULL },
 };
 
-Actor460200MessageEntry gStrideWalkMessages[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = strideWalkPlay } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = strideWalkSetVisibility } },
-    { ACTOR_MESSAGE_PLACE, { .call3 = func_actor_460200_801334F0 } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_460200_80133568 } },
-    { ACTOR_MESSAGE_WALK_TO, { .call3 = strideWalkTo } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry gStrideWalkMessages[6] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, strideWalkPlay },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, strideWalkSetVisibility },
+    { ACTOR_MESSAGE_PLACE, func_actor_460200_801334F0 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_460200_80133568 },
+    { ACTOR_MESSAGE_WALK_TO, strideWalkTo },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc gStrideWalkTasks[2] = {
@@ -2111,13 +2100,13 @@ static AnimationSet _gActor460200Animation1F6B4 = {
     { NULL, _gActor460200Animation1F6B4Bank1, NULL, NULL, _gActor460200Animation1F6B4Bank4, NULL, NULL, NULL },
 };
 
-Actor460200MessageEntry D_actor_460200_801514FC[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = func_actor_460200_80133C64 } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = func_actor_460200_80133CD0 } },
-    { ACTOR_MESSAGE_PLACE, { .call3 = func_actor_460200_80133D4C } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_460200_80133DC4 } },
-    { ACTOR_MESSAGE_WALK_TO, { .call3 = func_actor_460200_80133DCC } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_460200_801514FC[6] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_460200_80133C64 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_460200_80133CD0 },
+    { ACTOR_MESSAGE_PLACE, func_actor_460200_80133D4C },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_460200_80133DC4 },
+    { ACTOR_MESSAGE_WALK_TO, func_actor_460200_80133DCC },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_actor_460200_8015152C = { { { TASK_BODY_TMD, 96 } }, func_actor_460200_8013386C, { .model = &_gActor460200SoldierCBody } };
@@ -2290,7 +2279,7 @@ void pacedWalkExit(Task* task)
 /// Script opcode: raise the work block's `effects`, which lets the per-frame
 /// state spawn its effect, when the payload is exactly 1. Any other payload is
 /// ignored and leaves the flag as it was.
-s32 func_actor_460200_80132C8C(Task* task, s32 arg1, ActorCommand* args)
+s32 func_actor_460200_80132C8C(Task* task, s32 arg1, ActorCommand* args, s32 arg3)
 {
     Actor160600Work* work;
     u16              value;
@@ -2363,7 +2352,7 @@ void strideWalkExit(Task* task)
 /// Script opcode: set the work block's `turnUp`, which selects whether the
 /// per-frame state blends the model toward the `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` task or away
 /// from it, to the payload.
-s32 func_actor_460200_80133568(Task* task, s32 arg1, ActorCommand* args)
+s32 func_actor_460200_80133568(Task* task, s32 arg1, ActorCommand* args, s32 arg3)
 {
     ((Actor161500Work*)task->work)->turnUp = args->command;
     return 0;
@@ -2470,7 +2459,7 @@ static void func_actor_460200_80133A88(Task* task)
 #include "../../shared/paced_walk_blend_anim.inc.c"
 #undef pacedWalkBlendAnim
 
-s32 func_actor_460200_80133C64(Task* task, s32 arg1, AnimationPlayRequest* args)
+s32 func_actor_460200_80133C64(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3)
 {
     Actor160600Work* work;
 
@@ -2500,7 +2489,7 @@ s32 func_actor_460200_80133C64(Task* task, s32 arg1, AnimationPlayRequest* args)
 #include "../../shared/paced_walk_place.inc.c"
 #undef pacedWalkPlace
 
-s32 func_actor_460200_80133DC4(void)
+s32 func_actor_460200_80133DC4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

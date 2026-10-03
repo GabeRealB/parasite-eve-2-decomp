@@ -129,7 +129,7 @@ static void func_neo_ark_garden_8017EA34(Task* task);
 
 #include "../../shared/water_distort_band_task.inc.c"
 
-s32 func_neo_ark_garden_8017E840(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_neo_ark_garden_8017E840(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -152,7 +152,7 @@ s32 func_neo_ark_garden_8017E848(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEve
     return 0;
 }
 
-s32 func_neo_ark_garden_8017E8DC(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_neo_ark_garden_8017E8DC(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 4) {
         Gp_RunCapCmd1(GameFlag_GetNibble(GAME_FLAG_141) != 0 ? 6 : 4);
@@ -170,7 +170,7 @@ s32 func_neo_ark_garden_8017E8DC(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg 
     return 0;
 }
 
-s32 func_neo_ark_garden_8017E9AC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_neo_ark_garden_8017E9AC(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

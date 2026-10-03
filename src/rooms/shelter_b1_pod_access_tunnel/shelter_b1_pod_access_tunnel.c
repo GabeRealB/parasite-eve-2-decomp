@@ -91,17 +91,8 @@ extern TaskDesc D_shelter_b1_pod_access_tunnel_801810CC;
 
 /// The room's message table.
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32                (*call0)(void);
-        TaskMessageHandler call1;
-        s32                (*call2)(s32, s32, s32);
-    } handler;
-} ShelterB1PodAccessTunnelMessageEntry;
-STATIC_ASSERT_SIZEOF(ShelterB1PodAccessTunnelMessageEntry, 8);
 
-extern ShelterB1PodAccessTunnelMessageEntry D_shelter_b1_pod_access_tunnel_801810D8[6];
+extern TaskMessageEntry D_shelter_b1_pod_access_tunnel_801810D8[6];
 
 extern TaskDesc   D_shelter_b1_pod_access_tunnel_80181108[];
 extern EvsCommand D_shelter_b1_pod_access_tunnel_80181120[];
@@ -133,10 +124,10 @@ void func_shelter_b1_pod_access_tunnel_8017DA74(Task*);
 void func_shelter_b1_pod_access_tunnel_8017DC18(Task*);
 
 s32 func_shelter_b1_pod_access_tunnel_8017D7B4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_b1_pod_access_tunnel_8017DD68(void);
-s32 func_shelter_b1_pod_access_tunnel_8017DD70(s32, s32, s32);
-s32 func_shelter_b1_pod_access_tunnel_8017DDD8(void);
-s32 func_shelter_b1_pod_access_tunnel_8017DDE0(s32, s32, s32);
+s32 func_shelter_b1_pod_access_tunnel_8017DD68(Task*, s32, s32, s32);
+s32 func_shelter_b1_pod_access_tunnel_8017DD70(Task*, s32, s32, s32);
+s32 func_shelter_b1_pod_access_tunnel_8017DDD8(Task*, s32, s32, s32);
+s32 func_shelter_b1_pod_access_tunnel_8017DDE0(Task*, s32, s32, s32);
 
 void func_shelter_b1_pod_access_tunnel_8017E44C(Task*);
 void func_shelter_b1_pod_access_tunnel_8017E55C(Task*);
@@ -165,13 +156,13 @@ void                            func_shelter_b1_pod_access_tunnel_8017E7B4(void)
 
 TaskDesc D_shelter_b1_pod_access_tunnel_801810CC = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
-ShelterB1PodAccessTunnelMessageEntry D_shelter_b1_pod_access_tunnel_801810D8[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, { .call1 = func_shelter_b1_pod_access_tunnel_8017D7B4 } },
-    { 5105, { .call0 = func_shelter_b1_pod_access_tunnel_8017DD68 } },
-    { 5103, { .call0 = func_shelter_b1_pod_access_tunnel_8017DDD8 } },
-    { ROOM_MESSAGE_COMMAND, { .call2 = func_shelter_b1_pod_access_tunnel_8017DD70 } },
-    { ROOM_MESSAGE_SOUND, { .call2 = func_shelter_b1_pod_access_tunnel_8017DDE0 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_shelter_b1_pod_access_tunnel_801810D8[6] = {
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_pod_access_tunnel_8017D7B4 },
+    { 5105, func_shelter_b1_pod_access_tunnel_8017DD68 },
+    { 5103, func_shelter_b1_pod_access_tunnel_8017DDD8 },
+    { ROOM_MESSAGE_COMMAND, func_shelter_b1_pod_access_tunnel_8017DD70 },
+    { ROOM_MESSAGE_SOUND, func_shelter_b1_pod_access_tunnel_8017DDE0 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_shelter_b1_pod_access_tunnel_80181108[2] = {
@@ -1152,12 +1143,12 @@ void func_shelter_b1_pod_access_tunnel_8017DC18(Task* task)
     }
 }
 
-s32 func_shelter_b1_pod_access_tunnel_8017DD68(void)
+s32 func_shelter_b1_pod_access_tunnel_8017DD68(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b1_pod_access_tunnel_8017DD70(s32 arg0, s32 arg1, s32 arg2)
+s32 func_shelter_b1_pod_access_tunnel_8017DD70(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 1) {
         if (GameFlag_GetNibble(GAME_FLAG_B1_POD_ACCESS_TUNNEL_FIRST_USE) != 0) {
@@ -1171,12 +1162,12 @@ s32 func_shelter_b1_pod_access_tunnel_8017DD70(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-s32 func_shelter_b1_pod_access_tunnel_8017DDD8(void)
+s32 func_shelter_b1_pod_access_tunnel_8017DDD8(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b1_pod_access_tunnel_8017DDE0(s32 arg0, s32 arg1, s32 arg2)
+s32 func_shelter_b1_pod_access_tunnel_8017DDE0(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 6) {
         SndEvt_EnqueueType6(SOUND_SYSTEM_CONFIRM, 0, 0);

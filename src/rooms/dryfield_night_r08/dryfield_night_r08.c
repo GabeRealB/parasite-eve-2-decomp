@@ -21,10 +21,10 @@ extern EvsCommand D_801341E0[];
 /// `taskMessageDispatch` to walk: 0x13EE, 0x13F1, 0x13EF and 0x13F0.
 extern TaskMessageEntry D_dryfield_night_r08_80180544[];
 
-s32 func_dryfield_night_r08_8017D5F0(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_r08_8017D5F0(Task*, s32, s32, s32);
 s32 func_dryfield_night_r08_8017D5F8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_dryfield_night_r08_8017D620(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_dryfield_night_r08_8017D628(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_r08_8017D620(Task*, s32, s32, s32);
+s32 func_dryfield_night_r08_8017D628(Task*, s32, s32, s32);
 
 TaskMessageEntry D_dryfield_night_r08_80180544[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_r08_8017D5F8 },
@@ -39,7 +39,7 @@ static void func_dryfield_night_r08_8017D6B0(Task* task);
 
 /// Handler for message 0x13F1 in the room's message table: the room takes no
 /// action and reports the message as not handled.
-s32 func_dryfield_night_r08_8017D5F0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_r08_8017D5F0(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -54,14 +54,14 @@ s32 func_dryfield_night_r08_8017D5F8(Task* task, s32 msgId, RoomEventMsg* src, R
 
 /// Handler for message 0x13F0 in the room's message table: does nothing and
 /// answers 0.
-s32 func_dryfield_night_r08_8017D620(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_r08_8017D620(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
 /// Handler for message 0x13EF in the room's message table: does nothing and
 /// answers 0.
-s32 func_dryfield_night_r08_8017D628(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_r08_8017D628(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

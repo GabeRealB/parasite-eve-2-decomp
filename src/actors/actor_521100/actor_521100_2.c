@@ -85,20 +85,10 @@ typedef struct Actor521100DispatchCtx {
 STATIC_ASSERT_SIZEOF(Actor521100DispatchCtx, 0x14);
 
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call1)(Task*, s32, ActorCommand* request);
-        s32 (*call2)(Task*, s32, ActorTransform*);
-        s32 (*call3)(Task*, s32, s32);
-    } handler;
-} Actor5211002MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor5211002MessageEntry, 8);
 
-extern Actor5211002MessageEntry D_actor_521100_8016A358[6];
-extern TaskDesc                 D_actor_521100_8016A388[];
-extern AnimationSet*            D_actor_521100_8016A3A0[11];
+extern TaskMessageEntry D_actor_521100_8016A358[6];
+extern TaskDesc         D_actor_521100_8016A388[];
+extern AnimationSet*    D_actor_521100_8016A3A0[11];
 
 extern EffectSpawnArg D_actor_521100_8016A3CC;
 extern u16            D_actor_521100_8016A3D4;
@@ -121,11 +111,11 @@ static void func_actor_521100_8013677C(void);
 static void func_actor_521100_80136820(void);
 static void func_actor_521100_801368B0(Task* task);
 
-s32  func_actor_521100_801369B8(Task*, s32, AnimationPlayRequest*);
-s32  func_actor_521100_80136A1C(Task*, s32, s32);
-s32  func_actor_521100_80136A64(Task*, s32, ActorTransform* placement);
-s32  func_actor_521100_80136AE0(Task*, s32, ActorCommand* msg);
-s32  func_actor_521100_80136BE8(Task*, s32, ActorTransform* target);
+s32  func_actor_521100_801369B8(Task*, s32, AnimationPlayRequest*, s32);
+s32  func_actor_521100_80136A1C(Task*, s32, s32, s32);
+s32  func_actor_521100_80136A64(Task* task, s32 msgId, ActorTransform* placement, s32 arg3);
+s32  func_actor_521100_80136AE0(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
+s32  func_actor_521100_80136BE8(Task* task, s32 msgId, ActorTransform* target, s32 arg3);
 void func_actor_521100_80136404(Task*);
 void func_actor_521100_80136604(Task*);
 
@@ -375,13 +365,13 @@ static AnimationSet _gActor521100Animation38510 = {
     { NULL, _gActor521100Animation38510Bank1, NULL, NULL, _gActor521100Animation38510Bank4, NULL, NULL, NULL },
 };
 
-Actor5211002MessageEntry D_actor_521100_8016A358[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = func_actor_521100_801369B8 } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = func_actor_521100_80136A1C } },
-    { ACTOR_MESSAGE_PLACE, { .call2 = func_actor_521100_80136A64 } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_521100_80136AE0 } },
-    { ACTOR_MESSAGE_WALK_TO, { .call2 = func_actor_521100_80136BE8 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_521100_8016A358[6] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_521100_801369B8 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_521100_80136A1C },
+    { ACTOR_MESSAGE_PLACE, func_actor_521100_80136A64 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_521100_80136AE0 },
+    { ACTOR_MESSAGE_WALK_TO, func_actor_521100_80136BE8 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_actor_521100_8016A388[2] = {
@@ -417,7 +407,7 @@ Task* D_actor_521100_8016A3E4;
 
 GfxCoord D_actor_521100_8016A3E8;
 
-s32 func_actor_521100_80135D10(Task* arg0, s32 arg1, s32 arg2)
+s32 func_actor_521100_80135D10(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     TmdObject*       obj;
     Actor521100Work* work;
@@ -436,7 +426,7 @@ s32 func_actor_521100_80135D10(Task* arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-s32 func_actor_521100_80135D58(Task* arg0, s32 arg1, ActorCommand* request)
+s32 func_actor_521100_80135D58(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
 {
     Actor521100Work* work;
 
@@ -454,14 +444,14 @@ s32 func_actor_521100_80135D58(Task* arg0, s32 arg1, ActorCommand* request)
     return 0;
 }
 
-s32 func_actor_521100_80135D9C(Task* arg0)
+s32 func_actor_521100_80135D9C(Task* arg0, s32 msgId, s32 arg2, s32 arg3)
 {
     ((Actor521100Work*)arg0->work)->field_6B0 = 1;
     (Gp_IncStateF0Ref)(0);
     return 0;
 }
 
-s16 func_actor_521100_80135DC8(Task* arg0)
+s32 func_actor_521100_80135DC8(Task* arg0, s32 msgId, s32 arg2, s32 arg3)
 {
     return ((Actor521100Work*)arg0->work)->field_6B2;
 }
@@ -818,7 +808,7 @@ static void func_actor_521100_801368B0(Task* task)
     SCRATCH_STACK_RELEASE_BYTES(0x30);
 }
 /// Starts the actor's scripted animation selected by the request.
-s32 func_actor_521100_801369B8(Task* task, s32 arg1, AnimationPlayRequest* args)
+s32 func_actor_521100_801369B8(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3)
 {
     Task* dispatcher;
 
@@ -836,7 +826,7 @@ s32 func_actor_521100_801369B8(Task* task, s32 arg1, AnimationPlayRequest* args)
 /// Message 0x7D5 handler in `D_actor_521100_8016A358`: shows or hides the model of `D_actor_521100_8016A3DC`.
 /// Bit 0 of `arg2` selects `TmdObject::flags` 0 (shown) or 0x80 (hidden), and
 /// bit 1 ORs in 0x4.
-s32 func_actor_521100_80136A1C(Task* task, s32 arg1, s32 arg2)
+s32 func_actor_521100_80136A1C(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
     TmdObject* obj;
 
@@ -856,7 +846,7 @@ s32 func_actor_521100_80136A1C(Task* task, s32 arg1, s32 arg2)
 /// the yaw of the argument block's angles is used, cached in the work block's
 /// `field_48C.yaw` and applied with `gfxRotMatrixY`, then the position becomes
 /// the root coordinate's translation and `composeStamp` is cleared.
-s32 func_actor_521100_80136A64(Task* task, s32 arg1, ActorTransform* placement)
+s32 func_actor_521100_80136A64(Task* task, s32 arg1, ActorTransform* placement, s32 arg3)
 {
     GfxCoord* coord;
     u16       yaw;
@@ -880,7 +870,7 @@ s32 func_actor_521100_80136A64(Task* task, s32 arg1, ActorTransform* placement)
 /// step (`Actor521100Work4B4::field_484`) and sends the task to state 2, the
 /// teardown entry `func_actor_521100_801360C4`; 3 kills both companions and
 /// then falls into 0, sharing its state store.
-s32 func_actor_521100_80136AE0(Task* task, s32 arg1, ActorCommand* msg)
+s32 func_actor_521100_80136AE0(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
 {
     switch (msg->command) {
         case 1:
@@ -913,7 +903,7 @@ s32 func_actor_521100_80136AE0(Task* task, s32 arg1, ActorCommand* msg)
     }
     return 0;
 }
-s32 func_actor_521100_80136BE8(Task* task, s32 arg1, ActorTransform* target)
+s32 func_actor_521100_80136BE8(Task* task, s32 arg1, ActorTransform* target, s32 arg3)
 {
     GfxCoord* coord;
     s32       dx;

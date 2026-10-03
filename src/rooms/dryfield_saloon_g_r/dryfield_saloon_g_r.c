@@ -71,9 +71,9 @@ static void func_dryfield_saloon_g_r_8017D9CC(Task* task);
 static void func_dryfield_saloon_g_r_8017DA10(Task* task);
 
 // Indexed views below share one contiguous table.
-s32 func_dryfield_saloon_g_r_8017D994(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_dryfield_saloon_g_r_8017D99C(Task*, s32, s32, TaskMessageArg);
-s32 func_dryfield_saloon_g_r_8017D9C4(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_saloon_g_r_8017D994(Task*, s32, s32, s32);
+s32 func_dryfield_saloon_g_r_8017D99C(Task*, s32, s32, s32);
+s32 func_dryfield_saloon_g_r_8017D9C4(Task*, s32, s32, s32);
 
 extern WorldCollisionGrid     D_dryfield_saloon_g_r_8017F780[1];
 extern WorldCollisionOccluder D_dryfield_saloon_g_r_801817B0[2];
@@ -728,14 +728,14 @@ static const TaskFuncTable3 D_dryfield_saloon_g_r_8017D5DC = {
 
 /// Handler for message 0x13F1 in the room's message table: the room takes no
 /// action and reports the message as not handled.
-s32 func_dryfield_saloon_g_r_8017D994(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_saloon_g_r_8017D994(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
 /// Handler for message 0x13F0 in the room's message table: on action 4 it
 /// runs cap command 4. Always returns 0.
-s32 func_dryfield_saloon_g_r_8017D99C(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_dryfield_saloon_g_r_8017D99C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 4) {
         Gp_RunCapCmd1(4);
@@ -745,7 +745,7 @@ s32 func_dryfield_saloon_g_r_8017D99C(Task* arg0, s32 arg1, s32 arg2, TaskMessag
 
 /// Handler for message 0x13EF in the room's message table: the room takes no
 /// action and reports the message as not handled.
-s32 func_dryfield_saloon_g_r_8017D9C4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_saloon_g_r_8017D9C4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

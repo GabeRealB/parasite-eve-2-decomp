@@ -63,24 +63,11 @@ extern s16 gFootstepWalkMode;
 extern AnimationSet* D_actor_451100_8013F740[37];
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(void);
-        s32 (*call1)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call2)(Task*, s32, ActorCommand* request);
-        s32 (*call3)(Task*, s32, ActorTransform*);
-        s32 (*call4)(Task*, s32, VECTOR*);
-        s32 (*call5)(Task*, s32, VECTOR*, s32);
-        s32 (*call6)(Task*, s32, s32);
-    } handler;
-} Actor451100MsgEntry;
-STATIC_ASSERT_SIZEOF(Actor451100MsgEntry, 8);
 
-extern Actor451100MsgEntry D_actor_451100_8013F704[];
-extern TaskDesc            D_actor_451100_8014E6E4[];
-extern Actor451100MsgEntry D_actor_451100_8014E6B4[];
-extern u8                  D_actor_451100_8014E6FC[];
+extern TaskMessageEntry D_actor_451100_8013F704[];
+extern TaskDesc         D_actor_451100_8014E6E4[];
+extern TaskMessageEntry D_actor_451100_8014E6B4[];
+extern u8               D_actor_451100_8014E6FC[];
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
@@ -95,13 +82,13 @@ static TmdSource _gActor451100Model1436C;
 void             func_actor_451100_80132BD4(Task*);
 void             func_actor_451100_801330B0(Task*);
 
-s32 func_actor_451100_80132E98(Task*, s32, AnimationPlayRequest*);
-s32 func_actor_451100_80132FE0(void);
-s32 func_actor_451100_80132FE8(Task*, s32, VECTOR*);
+s32 func_actor_451100_80132E98(Task*, s32, AnimationPlayRequest*, s32);
+s32 func_actor_451100_80132FE0(Task*, s32, s32, s32);
+s32 func_actor_451100_80132FE8(Task*, s32, VECTOR*, s32);
 
-s32  func_actor_451100_80132538(Task*, s32, AnimationPlayRequest*);
-s32  func_actor_451100_801325C8(Task*, s32, s32);
-s32  func_actor_451100_8013268C(Task*, s32, ActorCommand* msg);
+s32  func_actor_451100_80132538(Task*, s32, AnimationPlayRequest*, s32);
+s32  func_actor_451100_801325C8(Task*, s32, s32, s32);
+s32  func_actor_451100_8013268C(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
 void func_actor_451100_801322D4(Task*);
 
 extern AnimationPlayRequest D_actor_451100_80134D98;
@@ -889,13 +876,13 @@ static AnimationSet _gActor451100Animation0D8B8 = {
 
 s16 gFootstepWalkBlendFrames = 8;
 
-Actor451100MsgEntry D_actor_451100_8013F704[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = func_actor_451100_80132538 } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call6 = func_actor_451100_801325C8 } },
-    { ACTOR_MESSAGE_PLACE, { .call3 = footstepWalkPlace } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_451100_8013268C } },
-    { ACTOR_MESSAGE_WALK_TO, { .call5 = footstepWalkTo } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_451100_8013F704[6] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_451100_80132538 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_451100_801325C8 },
+    { ACTOR_MESSAGE_PLACE, footstepWalkPlace },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_451100_8013268C },
+    { ACTOR_MESSAGE_WALK_TO, footstepWalkTo },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_actor_451100_8013F734 = { { { TASK_BODY_TMD, 192 } }, func_actor_451100_801322D4, { .model = &_gActor451100AyaBreaBody } };
@@ -1356,13 +1343,13 @@ static AnimationSet _gActor451100Animation1C86C = {
     { NULL, _gActor451100Animation1C86CBank1, NULL, NULL, _gActor451100Animation1C86CBank4, NULL, NULL, NULL },
 };
 
-Actor451100MsgEntry D_actor_451100_8014E6B4[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = func_actor_451100_80132E98 } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call6 = pairWalkSetVisibility } },
-    { ACTOR_MESSAGE_PLACE, { .call3 = pairWalkPlace } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_451100_80132FE0 } },
-    { ACTOR_MESSAGE_WALK_TO, { .call4 = func_actor_451100_80132FE8 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_451100_8014E6B4[6] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_451100_80132E98 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, pairWalkSetVisibility },
+    { ACTOR_MESSAGE_PLACE, pairWalkPlace },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_451100_80132FE0 },
+    { ACTOR_MESSAGE_WALK_TO, func_actor_451100_80132FE8 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_actor_451100_8014E6E4[2] = {
@@ -1546,7 +1533,7 @@ static void func_actor_451100_801323B4(Task* task)
 ///
 /// Rejects ids 0x25 and above before changing playback state.
 /// The blend path carries the requested duration in whole frames.
-s32 func_actor_451100_80132538(Task* task, s32 arg1, AnimationPlayRequest* args)
+s32 func_actor_451100_80132538(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3)
 {
     if (args->animationId < 0x25) {
         gFootstepWalkWork->st.animId = args->animationId;
@@ -1567,7 +1554,7 @@ s32 func_actor_451100_80132538(Task* task, s32 arg1, AnimationPlayRequest* args)
 /// `TmdObject::flags` on the model of the task in `D_actor_451100_8014E748`,
 /// showing it, and its absence sets 0x80, hiding it; bit 1 additionally ORs in
 /// 0x4.
-s32 func_actor_451100_801325C8(Task* task, s32 arg1, s32 arg2)
+s32 func_actor_451100_801325C8(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
     TmdObject* obj;
 
@@ -1588,7 +1575,7 @@ s32 func_actor_451100_801325C8(Task* task, s32 arg1, s32 arg2)
 /// Message 0x7DB handler of `D_actor_451100_8013F704`: a zero payload
 /// halfword sets the published block's `turnFrames` to 0x14, the count of frames
 /// the step routine turns the model while clip 3 plays.
-s32 func_actor_451100_8013268C(Task* task, s32 arg1, ActorCommand* msg)
+s32 func_actor_451100_8013268C(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
 {
     if (msg->command == 0) {
         gFootstepWalkWork->turnFrames = 0x14;
@@ -1703,7 +1690,7 @@ static void func_actor_451100_80132CAC(Task* task)
 ///
 /// Rejects ids 0x12 and above before changing playback state.
 /// The blend path carries the requested duration in whole frames.
-s32 func_actor_451100_80132E98(Task* task, s32 arg1, AnimationPlayRequest* args)
+s32 func_actor_451100_80132E98(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3)
 {
     Actor150400Work* work;
 
@@ -1729,7 +1716,7 @@ s32 func_actor_451100_80132E98(Task* task, s32 arg1, AnimationPlayRequest* args)
 
 /// Message 0x7DB handler of `D_actor_451100_8014E6B4`: accepts the message and
 /// does nothing.
-s32 func_actor_451100_80132FE0(void)
+s32 func_actor_451100_80132FE0(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -1738,7 +1725,7 @@ s32 func_actor_451100_80132FE0(void)
 /// turns the actor's root coordinate to face `target`, caching the yaw in the
 /// work block, and leaves the horizontal distance to it, in seventeenths, in
 /// `travel` for the step routine to count down.
-s32 func_actor_451100_80132FE8(Task* task, s32 arg1, VECTOR* target)
+s32 func_actor_451100_80132FE8(Task* task, s32 arg1, VECTOR* target, s32 arg3)
 {
     GfxCoord*        coord;
     Actor150400Work* work;

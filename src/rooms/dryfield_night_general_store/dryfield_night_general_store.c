@@ -41,8 +41,8 @@ extern TaskMessageEntry D_dryfield_night_general_store_8017E7BC[];
 static void func_dryfield_night_general_store_8017DE34(Task* arg0);
 static void func_dryfield_night_general_store_8017DE80(Task* task);
 
-s32 func_dryfield_night_general_store_8017DE24(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_dryfield_night_general_store_8017DE2C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_general_store_8017DE24(Task*, s32, s32, s32);
+s32 func_dryfield_night_general_store_8017DE2C(Task*, s32, s32, s32);
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
@@ -85,14 +85,14 @@ static const TaskFuncTable3 D_dryfield_night_general_store_8017D5F4 = {
 
 /// Message handler that takes no action and reports the message as not
 /// handled.
-s32 func_dryfield_night_general_store_8017DE24(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_general_store_8017DE24(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
 /// Message handler that takes no action and reports the message as not
 /// handled.
-s32 func_dryfield_night_general_store_8017DE2C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_general_store_8017DE2C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

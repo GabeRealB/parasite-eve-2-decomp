@@ -46,8 +46,8 @@ extern TaskMessageEntry D_dryfield_night_cellar_8017DAA8[];
 extern SVECTOR D_dryfield_night_cellar_8017DAD0[];
 extern SVECTOR D_dryfield_night_cellar_8017DAE0[];
 
-s32 func_dryfield_night_cellar_8017D62C(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_dryfield_night_cellar_8017D6F4(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_cellar_8017D62C(Task*, s32, s32, s32);
+s32 func_dryfield_night_cellar_8017D6F4(Task*, s32, s32, s32);
 
 extern WorldCollisionGrid     D_dryfield_night_cellar_8017DE60[1];
 extern WorldCollisionOccluder D_dryfield_night_cellar_801802F4[1];
@@ -856,7 +856,7 @@ static void func_dryfield_night_cellar_8017D740(Task* task);
 #include "../../shared/cellar_cap_msg.inc.c"
 
 /// Message-table handler for message 0x13F1: does nothing and answers 0.
-s32 func_dryfield_night_cellar_8017D62C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_cellar_8017D62C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -864,7 +864,7 @@ s32 func_dryfield_night_cellar_8017D62C(Task* task, s32 msgId, TaskMessageArg ar
 #include "../../shared/cellar_door_msg.inc.c"
 
 /// Message-table handler for message 0x13EF: does nothing and answers 0.
-s32 func_dryfield_night_cellar_8017D6F4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_cellar_8017D6F4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

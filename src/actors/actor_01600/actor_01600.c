@@ -311,18 +311,10 @@ static s32  Actor01600_Fn06D74(Task* actor, s32 angle, s32 distance);
 extern EnemyParams   Actor01600_D09F0C;
 extern AnimationSet* Actor01600_D127EC[31];
 // Typed callback views for the task message dispatcher.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(Task*);
-        s32 (*call1)(Task*, s32, ActorCommand* request);
-    } handler;
-} Actor01600RecoveredMsgEntry;
-STATIC_ASSERT_SIZEOF(Actor01600RecoveredMsgEntry, 8);
 
-extern Actor01600RecoveredMsgEntry Actor01600_D127A4[3];
-static void                        Actor01600_Fn05400(Task* actor);
-static void                        Actor01600_Fn06EA4(Task* actor);
+extern TaskMessageEntry Actor01600_D127A4[3];
+static void             Actor01600_Fn05400(Task* actor);
+static void             Actor01600_Fn06EA4(Task* actor);
 
 extern DamageAttack Actor01600_D09F04[2];
 
@@ -392,8 +384,8 @@ static AnimationSet _gActor01600Actor101600Animation10B6C;
 static AnimationSet _gActor01600Actor101600Animation11820;
 static AnimationSet _gActor01600Actor101600Animation12074;
 static AnimationSet _gActor01600Actor101600Animation1277C;
-s32                 Actor01600_Fn05B08(Task*, s32, ActorCommand* request);
-s32                 Actor01600_Fn07100(Task*);
+s32                 Actor01600_Fn05B08(Task* task, s32 msgId, ActorCommand* request, s32 arg3);
+s32                 Actor01600_Fn07100(Task*, s32, s32, s32);
 void                Actor01600_Fn066E8(Task*);
 
 extern AnimationSet* Actor01600_D127C8[4];
@@ -1274,10 +1266,10 @@ static AnimationSet _gActor01600Actor101600Animation1277C = {
     { NULL, _gActor01600Actor101600Animation1277CBank1, NULL, NULL, _gActor01600Actor101600Animation1277CBank4, NULL, NULL, NULL },
 };
 
-Actor01600RecoveredMsgEntry Actor01600_D127A4[3] = {
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = Actor01600_Fn05B08 } },
-    { 2014, { .call0 = Actor01600_Fn07100 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry Actor01600_D127A4[3] = {
+    { ACTOR_COMMAND_MESSAGE_APPLY, Actor01600_Fn05B08 },
+    { 2014, Actor01600_Fn07100 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc Actor01600_D127BC = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, Actor01600_Fn066E8, { .model = &_gActor01600ScavengerBody } };
@@ -4214,7 +4206,7 @@ static s32 Actor01600_Fn05558(Task* arg0)
     }
 }
 
-s32 Actor01600_Fn05B08(Task* arg0, s32 arg1, ActorCommand* request)
+s32 Actor01600_Fn05B08(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
 {
     SVECTOR         rot;
     Enemy*          ctx;
@@ -4958,7 +4950,7 @@ static void Actor01600_Fn070AC(Task* arg0, Task* arg1)
     }
 }
 
-s32 Actor01600_Fn07100(Task* arg0)
+s32 Actor01600_Fn07100(Task* arg0, s32 msgId, s32 arg2, s32 arg3)
 {
     ((Actor01600Work*)arg0->work)->field_554 = 6;
     return 0;

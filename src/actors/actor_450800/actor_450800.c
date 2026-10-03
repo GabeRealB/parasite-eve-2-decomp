@@ -100,22 +100,9 @@ static const SVECTOR D_actor_450800_80131E24 = { 0x19C8, -0x578, 0x3C0, 0 };
 /// the `TaskDesc` table its three helper tasks come from.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
-typedef struct {
-    s32 id;
-    union {
-        s32                (*call0)(void);
-        s32                (*call1)(Task*, s32, AnimationPlayRequest*);
-        TaskMessageHandler call2;
-        s32                (*call3)(Task*, s32, ActorTransform*);
-        s32                (*call4)(Task*, s32, VECTOR*);
-        s32                (*call5)(Task*, s32, VECTOR*, s32);
-        s32                (*call6)(Task*, s32, s32);
-    } handler;
-} Actor450800MsgEntry;
-STATIC_ASSERT_SIZEOF(Actor450800MsgEntry, 8);
 
-extern Actor450800MsgEntry D_actor_450800_8014AC58[];
-extern TaskDesc            D_actor_450800_8014AC88[];
+extern TaskMessageEntry D_actor_450800_8014AC58[];
+extern TaskDesc         D_actor_450800_8014AC88[];
 
 /// Animation-set table bound to the work block's context by `animationInitContext`.
 extern u8 D_actor_450800_8014ACC4[];
@@ -123,9 +110,9 @@ extern u8 D_actor_450800_8014ACC4[];
 /// The enemy's message table, the `TaskDesc` table its model tasks come from,
 /// and the animation data its work block's slots are seeded from - the same
 /// three roles as the actor's tables above.
-extern Actor450800MsgEntry gPairWalkMessages[];
-extern TaskDesc            gPairWalkTasks[];
-extern u8                  gPairWalkAnimParams[];
+extern TaskMessageEntry gPairWalkMessages[];
+extern TaskDesc         gPairWalkTasks[];
+extern u8               gPairWalkAnimParams[];
 
 extern s32                  D_actor_450800_8013930C;
 extern AnimationPlayRequest D_actor_450800_801397A4;
@@ -154,14 +141,14 @@ static TmdSource _gActor450800KyleMadiganGun;
 void             func_actor_450800_80132790(Task*);
 void             func_actor_450800_80132958(Task*);
 
-s32 func_actor_450800_80132B44(Task*, s32, AnimationPlayRequest*);
-s32 func_actor_450800_80132BB0(Task*, s32, s32);
-s32 func_actor_450800_80132CE0(Task*, s32, ActorCommand* msg, s32);
+s32 func_actor_450800_80132B44(Task*, s32, AnimationPlayRequest*, s32);
+s32 func_actor_450800_80132BB0(Task*, s32, s32, s32);
+s32 func_actor_450800_80132CE0(Task* task, s32 msgId, ActorCommand* msg, s32);
 s32 func_actor_450800_80132D74(Task*, s32, VECTOR*, s32);
 
 static TmdSource _gActor450800PawnGolemBody;
 static TmdSource _gActor450800GolemBeamSword;
-s32              func_actor_450800_80133670(void);
+s32              func_actor_450800_80133670(Task*, s32, s32, s32);
 void             func_actor_450800_80133264(Task*);
 
 extern AnimationPlayRequest D_actor_450800_80139560;
@@ -2256,13 +2243,13 @@ static TmdSource _gActor450800KyleMadiganGun = {
     _gActor450800KyleMadiganGunStream,
 };
 
-Actor450800MsgEntry D_actor_450800_8014AC58[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = func_actor_450800_80132B44 } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call6 = func_actor_450800_80132BB0 } },
-    { ACTOR_MESSAGE_PLACE, { .call3 = pacedWalkPlace } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_450800_80132CE0 } },
-    { ACTOR_MESSAGE_WALK_TO, { .call5 = func_actor_450800_80132D74 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_450800_8014AC58[6] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_450800_80132B44 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_450800_80132BB0 },
+    { ACTOR_MESSAGE_PLACE, pacedWalkPlace },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_450800_80132CE0 },
+    { ACTOR_MESSAGE_WALK_TO, func_actor_450800_80132D74 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_actor_450800_8014AC88[5] = {
@@ -2574,13 +2561,13 @@ static AnimationSet _gActor450800Animation21B64 = {
     { NULL, _gActor450800Animation21B64Bank1, NULL, NULL, _gActor450800Animation21B64Bank4, NULL, NULL, NULL },
 };
 
-Actor450800MsgEntry gPairWalkMessages[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = pairWalkPlay } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call6 = pairWalkSetVisibility } },
-    { ACTOR_MESSAGE_PLACE, { .call3 = pairWalkPlace } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_450800_80133670 } },
-    { ACTOR_MESSAGE_WALK_TO, { .call4 = pairWalkTo } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry gPairWalkMessages[6] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, pairWalkPlay },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, pairWalkSetVisibility },
+    { ACTOR_MESSAGE_PLACE, pairWalkPlace },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_450800_80133670 },
+    { ACTOR_MESSAGE_WALK_TO, pairWalkTo },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc gPairWalkTasks[2] = {
@@ -2963,7 +2950,7 @@ static void func_actor_450800_80132AE0(Task* task)
 ///
 /// Rejects ids 0x1F and above before changing playback state.
 /// The blend path carries the requested duration in whole frames.
-s32 func_actor_450800_80132B44(Task* task, s32 arg1, AnimationPlayRequest* args)
+s32 func_actor_450800_80132B44(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3)
 {
     Actor450800Work* work;
 
@@ -2990,7 +2977,7 @@ s32 func_actor_450800_80132B44(Task* task, s32 arg1, AnimationPlayRequest* args)
 /// `Actor450800Work::field_500` overrides the last of them: while it is 0 the
 /// helper at `field_4F8` keeps the 0x84 handler 0x7DB's mode 2 gave it,
 /// instead of the flags just computed.
-s32 func_actor_450800_80132BB0(Task* task, s32 arg1, s32 arg2)
+s32 func_actor_450800_80132BB0(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
     Actor450800Work* work;
     TmdObject*       self;
@@ -3153,7 +3140,7 @@ void pairWalkExit(Task* task)
 
 #include "../../shared/pair_walk_place.inc.c"
 
-s32 func_actor_450800_80133670(void)
+s32 func_actor_450800_80133670(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

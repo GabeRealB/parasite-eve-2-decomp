@@ -76,14 +76,14 @@ void func_801088D4(Task* arg0, s32 arg1, s32 arg2);
 
 s32 Gp_SetActorDest(Task* arg0, s32 arg1, ActorTransform* transform, GameActorMoveAnim* moveAnim);
 
-s32 Gp_MoveActorBy(Task* arg0, s32 arg1, GameActorMoveBy* move, TaskMessageArg unusedSecondArg);
+s32 Gp_MoveActorBy(Task* arg0, s32 arg1, GameActorMoveBy* move, s32 unusedSecondArg);
 
 Task* Gp_SpawnPlayer(const ActorSpawnTransform* spawnTransform, u16 arg1, s32 arg2, GpActorFlags* arg3);
 
 void func_801061F0(void);
 
 /// Installs a borrowed set table and enters scripted player animation playback.
-s32 func_80104B54(Task* task, s32 msgId, AnimationPlayRequest* request, TaskMessageArg unusedSecondArg);
+s32 func_80104B54(Task* task, s32 msgId, AnimationPlayRequest* request, s32 unusedSecondArg);
 
 void func_8010870C(Task* arg0, s32 arg1);
 

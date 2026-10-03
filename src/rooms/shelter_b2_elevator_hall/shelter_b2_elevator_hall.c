@@ -99,10 +99,10 @@ static void func_shelter_b2_elevator_hall_8017DCBC(Task* task);
 static void func_shelter_b2_elevator_hall_8017DD00(Task* task);
 
 s32 func_shelter_b2_elevator_hall_8017DAD4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_b2_elevator_hall_8017DC70(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_shelter_b2_elevator_hall_8017DC78(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_shelter_b2_elevator_hall_8017DC80(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_shelter_b2_elevator_hall_8017DC88(Task*, s32, s32, TaskMessageArg);
+s32 func_shelter_b2_elevator_hall_8017DC70(Task*, s32, s32, s32);
+s32 func_shelter_b2_elevator_hall_8017DC78(Task*, s32, s32, s32);
+s32 func_shelter_b2_elevator_hall_8017DC80(Task*, s32, s32, s32);
+s32 func_shelter_b2_elevator_hall_8017DC88(Task*, s32, s32, s32);
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
@@ -543,22 +543,22 @@ s32 func_shelter_b2_elevator_hall_8017DAD4(Task* arg0, s32 arg1, RoomEventMsg* i
     return 1;
 }
 
-s32 func_shelter_b2_elevator_hall_8017DC70(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b2_elevator_hall_8017DC70(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b2_elevator_hall_8017DC78(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b2_elevator_hall_8017DC78(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b2_elevator_hall_8017DC80(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b2_elevator_hall_8017DC80(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b2_elevator_hall_8017DC88(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_shelter_b2_elevator_hall_8017DC88(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 1) {
         SndEvt_EnqueueType6(0x541B0000 | 1, 0, 0);

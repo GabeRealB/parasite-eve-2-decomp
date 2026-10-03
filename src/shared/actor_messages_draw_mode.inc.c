@@ -4,7 +4,7 @@
 /// draw bits of the task's `TmdObject` from the mode in `arg2`. Mode 0 sets
 /// `TMD_OBJECT_SKIP_ACTIVE_DRAW` and clears `TMD_OBJECT_SKIP_AUTO_BUFFER`,
 /// mode 1 clears both, mode 2 sets both.
-void actorMsgSetDrawMode(Task* arg0, s32 arg1, s32 arg2)
+void actorMsgSetDrawMode(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     TmdObject* extra;
 

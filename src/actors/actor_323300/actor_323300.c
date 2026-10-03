@@ -95,24 +95,7 @@ typedef struct Actor323300MtxWork {
 } Actor323300MtxWork;
 STATIC_ASSERT_SIZEOF(Actor323300MtxWork, 0x6B0);
 
-/// Message table `func_actor_323300_80161E78` parks in `Task::msgTable`:
-/// `taskMessageDispatch` matches an incoming id against these and calls the handler.
-/// Ids 0x7D3/0x7D4/0x7D5/0x7DB reach `actorMotionPlayAnim19`,
-/// `actorMsgPlaceEuler`, `func_actor_323300_80162208` and
-/// `func_actor_323300_80162360`; the `TASK_MESSAGE_TABLE_END` terminator ends the walk.
-/// Message entries with the payload signature selected by each message id.
-typedef struct {
-    s32 id; // Message id; `TASK_MESSAGE_TABLE_END` terminates the table
-    union {
-        s32                (*animation)(Task*, s32, AnimationPlayRequest*, s32);
-        s32                (*placement)(Task*, s32, ActorTransform*, s32);
-        TaskMessageHandler mode;
-        s32                (*command)(Task*, s32, ActorCommand* request, ActorTransform*);
-    } handler; // Callback with the argument views required by that message
-} _Actor323300MessageEntry;
-STATIC_ASSERT_SIZEOF(_Actor323300MessageEntry, 8);
-
-extern _Actor323300MessageEntry D_actor_323300_80172574[];
+extern TaskMessageEntry D_actor_323300_80172574[];
 
 /// Animation source table `func_actor_323300_80162360` and
 /// `actorMotionPlayAnim19` index by the 0x504 block's bank byte.
@@ -170,7 +153,7 @@ static const TaskFuncTable3 D_actor_323300_80161E24 = { {
 } };
 
 s32 func_actor_323300_80162208(Task*, s32, s32, s32);
-s32 func_actor_323300_80162360(Task*, s32, ActorCommand* msg, ActorTransform* place);
+s32 func_actor_323300_80162360(Task* task, s32 msgId, ActorCommand* msg, ActorTransform* place);
 
 static TmdSource _gActor323300AnmcWoman1Body;
 static TmdSource _gActor323300LesserStrangerBody;
@@ -329,12 +312,12 @@ TaskDesc D_actor_323300_8017255C[2] = {
     { { { TASK_BODY_TMD, 192 } }, func_actor_323300_80163840, { .model = &_gActor323300LesserStrangerBody } },
 };
 
-_Actor323300MessageEntry D_actor_323300_80172574[5] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .animation = actorMotionPlayAnim19 } },
-    { ACTOR_MESSAGE_PLACE, { .placement = actorMsgPlaceEuler } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .mode = func_actor_323300_80162208 } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .command = func_actor_323300_80162360 } },
-    { TASK_MESSAGE_TABLE_END, { .animation = NULL } },
+TaskMessageEntry D_actor_323300_80172574[5] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, actorMotionPlayAnim19 },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_323300_80162208 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_323300_80162360 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 ActorTransform D_actor_323300_8017259C = { { -1664, 0, -1222, 0 }, { 0, -1024, 0, 0 } };
@@ -469,7 +452,7 @@ static void func_actor_323300_80161E78(Task* arg0)
     Gp_LinkObj(2, obj);
     obj->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     Gp_InitRec18Table(obj->context.contacts, 1, 0);
-    arg0->msgTable = &D_actor_323300_80172574;
+    arg0->msgTable = D_actor_323300_80172574;
     func_actor_323300_80162208(arg0, ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
     actorMsgPlaceEuler(arg0, 0x7D3, &D_actor_323300_8017259C, 0);
     actorMotionPlayAnim19(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_323300_801725B4, 0);

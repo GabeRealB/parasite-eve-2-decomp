@@ -69,17 +69,8 @@ extern TaskDesc D_actor_213100_801521A8[];
 /// handler `actorMsgPlaceEuler` and 0x7D5 the display handler
 /// `func_actor_213100_8014A40C`.
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(Task*, s32, AnimationPlayRequest*, s32);
-        s32 (*call1)(Task*, s32, ActorTransform*);
-        s32 (*call2)(Task*, s32, s32);
-    } handler;
-} Actor213100MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor213100MessageEntry, 8);
 
-extern Actor213100MessageEntry D_actor_213100_801521C0[4];
+extern TaskMessageEntry D_actor_213100_801521C0[4];
 
 /// Per-view visibility table the tick indexes with the session's current
 /// view: nonzero shows the actor and its child, zero hides both.
@@ -92,7 +83,7 @@ static void func_actor_213100_8014A23C(Task* arg0);
 
 static TmdSource _gActor213100JodieBouquetBody1;
 static TmdSource _gActor213100Actor213000Prop;
-s32              func_actor_213100_8014A40C(Task*, s32, s32);
+s32              func_actor_213100_8014A40C(Task*, s32, s32, s32);
 void             func_actor_213100_80149FE4(Task*);
 void             func_actor_213100_8014A0C0(Task*);
 
@@ -376,11 +367,11 @@ TaskDesc D_actor_213100_801521A8[2] = {
     { { { TASK_BODY_TMD, 192 } }, func_actor_213100_80149FE4, { .model = &_gActor213100Actor213000Prop } },
 };
 
-Actor213100MessageEntry D_actor_213100_801521C0[4] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = actorMotionPlayAnim19 } },
-    { ACTOR_MESSAGE_PLACE, { .call1 = actorMsgPlaceEuler } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call2 = func_actor_213100_8014A40C } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_213100_801521C0[4] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, actorMotionPlayAnim19 },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_213100_8014A40C },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 s8 D_actor_213100_801521E0[24] = {
@@ -582,7 +573,7 @@ static void func_actor_213100_8014A23C(Task* arg0)
 /// work block's countdown at 2, after which the tick frees the buffers; 3
 /// shows it and sets `TMD_OBJECT_SKIP_AUTO_BUFFER`. The handled modes return 0; any other mode changes
 /// nothing on this model and returns 1.
-s32 func_actor_213100_8014A40C(Task* task, s32 arg1, s32 mode)
+s32 func_actor_213100_8014A40C(Task* task, s32 arg1, s32 mode, s32 arg3)
 {
     TmdObject*       obj;
     TmdObject*       other;

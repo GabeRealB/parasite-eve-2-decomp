@@ -75,11 +75,11 @@ static void func_shelter_b3_elevator_hall_8017DDCC(Task* task);
 static void func_shelter_b3_elevator_hall_8017DE10(Task* task);
 
 void func_shelter_b3_elevator_hall_8017DAF0(Task*);
-s32  func_shelter_b3_elevator_hall_8017DC78(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_shelter_b3_elevator_hall_8017DC78(Task*, s32, s32, s32);
 s32  func_shelter_b3_elevator_hall_8017DC80(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_b3_elevator_hall_8017DD88(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_shelter_b3_elevator_hall_8017DD90(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_shelter_b3_elevator_hall_8017DD98(Task*, s32, s32, TaskMessageArg);
+s32  func_shelter_b3_elevator_hall_8017DD88(Task*, s32, s32, s32);
+s32  func_shelter_b3_elevator_hall_8017DD90(Task*, s32, s32, s32);
+s32  func_shelter_b3_elevator_hall_8017DD98(Task*, s32, s32, s32);
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
@@ -216,7 +216,7 @@ void func_shelter_b3_elevator_hall_8017DAF0(Task* task)
     }
 }
 
-s32 func_shelter_b3_elevator_hall_8017DC78(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b3_elevator_hall_8017DC78(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -249,17 +249,17 @@ s32 func_shelter_b3_elevator_hall_8017DC80(Task* arg0, s32 arg1, RoomEventMsg* i
     return 0;
 }
 
-s32 func_shelter_b3_elevator_hall_8017DD88(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b3_elevator_hall_8017DD88(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b3_elevator_hall_8017DD90(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b3_elevator_hall_8017DD90(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b3_elevator_hall_8017DD98(Task* task, s32 msgId, s32 arg2, TaskMessageArg arg3)
+s32 func_shelter_b3_elevator_hall_8017DD98(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     if (arg2 == 1) {
         SndEvt_EnqueueType6(0x542A0000 | 1, 0, 0);

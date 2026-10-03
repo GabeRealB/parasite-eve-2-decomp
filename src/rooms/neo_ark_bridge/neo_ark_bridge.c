@@ -38,10 +38,10 @@ MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 /// The room's message table.
 extern TaskMessageEntry D_neo_ark_bridge_80181F30[];
 
-s32 func_neo_ark_bridge_8017E82C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_neo_ark_bridge_8017E82C(Task*, s32, s32, s32);
 s32 func_neo_ark_bridge_8017E834(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_neo_ark_bridge_8017E878(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_neo_ark_bridge_8017E880(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_neo_ark_bridge_8017E878(Task*, s32, s32, s32);
+s32 func_neo_ark_bridge_8017E880(Task*, s32, s32, s32);
 
 TaskDesc D_neo_ark_bridge_80181F18 = { { { TASK_BODY_NONE, 192 } }, waterRefractionTask, { .value = 0 } };
 
@@ -62,7 +62,7 @@ static void func_neo_ark_bridge_8017E8F4(Task* task);
 
 #include "../../shared/water_distort_band_task.inc.c"
 
-s32 func_neo_ark_bridge_8017E82C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_neo_ark_bridge_8017E82C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -77,12 +77,12 @@ s32 func_neo_ark_bridge_8017E834(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEve
     return 1;
 }
 
-s32 func_neo_ark_bridge_8017E878(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_neo_ark_bridge_8017E878(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_neo_ark_bridge_8017E880(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_neo_ark_bridge_8017E880(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

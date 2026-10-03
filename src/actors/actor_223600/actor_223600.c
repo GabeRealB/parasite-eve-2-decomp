@@ -135,17 +135,8 @@ STATIC_ASSERT_SIZEOF(Actor223600Event, 0x4);
 
 /// Message table the spawn handler publishes as `Task::msgTable`.
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(Task*, s32, Actor223600Event*);
-        s32 (*call1)(Task*, s32, ActorTransform*);
-        s32 (*call2)(Task*, s32, s32);
-    } handler;
-} Actor223600MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor223600MessageEntry, 8);
 
-extern Actor223600MessageEntry D_actor_223600_80150B28[4];
+extern TaskMessageEntry D_actor_223600_80150B28[4];
 
 /// Integer part of the last movement step `func_actor_223600_8014AA04`
 /// applied.
@@ -160,8 +151,8 @@ static void func_actor_223600_8014CF3C(Enemy* arg0, Task* arg1);
 static TmdSource _gActor223600BloodSucklerBody;
 void             func_actor_223600_8014CF6C(Task*);
 
-s32 func_actor_223600_8014CC04(Task*, s32, s32);
-s32 func_actor_223600_8014CCD4(Task*, s32, Actor223600Event*);
+s32 func_actor_223600_8014CC04(Task*, s32, s32, s32);
+s32 func_actor_223600_8014CCD4(Task*, s32, Actor223600Event*, s32);
 
 #include "../../shared/actor_contacts.h"
 #include "../../shared/anim_driver.h"
@@ -834,11 +825,11 @@ u8 D_actor_223600_80150A28[256] = {
     0,
 };
 
-Actor223600MessageEntry D_actor_223600_80150B28[4] = {
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call2 = func_actor_223600_8014CC04 } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_223600_8014CCD4 } },
-    { ACTOR_MESSAGE_PLACE, { .call1 = actorMsgPlace } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_223600_80150B28[4] = {
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_223600_8014CC04 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_223600_8014CCD4 },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlace },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_actor_223600_80150B48 = { { { TASK_BODY_TMD, 96 } }, func_actor_223600_8014CF6C, { .model = &_gActor223600BloodSucklerBody } };
@@ -1449,7 +1440,7 @@ static const EnemyTaskFuncTable3 D_actor_223600_80149E58 = {
 /// `field_C` flag word and the work block's state word from `arg2`: 0 sets 0x80
 /// and rewrites the buffers, 1 clears it and rewrites the buffers, 2 sets bit
 /// 2, and 3 clears then sets bit 2. Only case 1 keeps `arg2` as the state.
-s32 func_actor_223600_8014CC04(Task* task, s32 arg1, s32 arg2)
+s32 func_actor_223600_8014CC04(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
     TmdObject*       obj  = task->extra.tmd;
     Actor223600Work* work = (Actor223600Work*)task->work;
@@ -1482,7 +1473,7 @@ s32 func_actor_223600_8014CC04(Task* task, s32 arg1, s32 arg2)
 /// three bytes of the event packet into the work block, then, for command word
 /// 0x302, drives the work block's state word from the packet's sub-command: 1
 /// selects 2, 2 and 9 select 0, and 0 is a no-op.
-s32 func_actor_223600_8014CCD4(Task* task, s32 arg1, Actor223600Event* event)
+s32 func_actor_223600_8014CCD4(Task* task, s32 arg1, Actor223600Event* event, s32 arg3)
 {
     Actor223600Work* work;
 

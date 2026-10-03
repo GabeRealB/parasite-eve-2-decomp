@@ -4,7 +4,7 @@
 ///
 /// Rejects ids 6 and above before changing playback state.
 /// The blend path carries the requested duration in whole frames.
-s32 pairWalkPlay(Task* task, s32 arg1, AnimationPlayRequest* args)
+s32 pairWalkPlay(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3)
 {
     Actor150400Work* work;
 

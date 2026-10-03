@@ -21,7 +21,7 @@
 s32  mainStreetResolveMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* out);
 void mainStreetPlayTimeTask(Task* task);
 s32  mainStreetCapSoundCue(Task* task, s32 msgId, s32 arg2, s32 arg3);
-s32  mainStreetTalkMsg(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3);
+s32  mainStreetTalkMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 void mainStreetPuffTask(Task* task);
 void mainStreetDrawPuff(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
 

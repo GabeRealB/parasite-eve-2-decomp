@@ -2,7 +2,7 @@
 
 /// Script-event hook: events 8 and 10 each queue their stage sound; every
 /// event returns 0.
-s32 drivewayScriptSound(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 drivewayScriptSound(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     switch (arg2) {
         case 8:

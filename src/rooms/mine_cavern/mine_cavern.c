@@ -218,7 +218,7 @@ u16 D_mine_cavern_8018EB5C;
 static void func_mine_cavern_8017DDFC(Task* arg0);
 static void func_mine_cavern_8017DEE4(Task* task);
 
-s32 func_mine_cavern_8017D908(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 func_mine_cavern_8017D908(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_shelter_80179A04(in, out);
@@ -321,12 +321,12 @@ rest:
 }
 
 /// Room script callback that does nothing and reports 0.
-s32 func_mine_cavern_8017DC50(void)
+s32 func_mine_cavern_8017DC50(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_mine_cavern_8017DC58(Task* task, s32 msgId, DirectionActionRequest* request)
+s32 func_mine_cavern_8017DC58(Task* task, s32 msgId, DirectionActionRequest* request, s32 arg3)
 {
     if ((request->actionId == 6) && (GameFlag_GetNibble(GAME_FLAG_0C4) == 1)) {
         Gp_RunCapCmd1(6);
@@ -337,7 +337,7 @@ s32 func_mine_cavern_8017DC58(Task* task, s32 msgId, DirectionActionRequest* req
 /// Advances the cavern's collapse sequence one step: flag 0xE6 goes 0 -> 1
 /// (bit 0 of `Gp_StateC08.flags` set) and 1 -> 2 (quake shake, then camera
 /// pan), each step writing `D_mine_cavern_8018EB50` to the step number.
-s32 func_mine_cavern_8017DC9C(void)
+s32 func_mine_cavern_8017DC9C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     if (GameFlag_GetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS) == 0) {
         Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
@@ -352,7 +352,7 @@ s32 func_mine_cavern_8017DC9C(void)
     return 0;
 }
 
-s32 func_mine_cavern_8017DD38(s32 arg0, s32 arg1, s32 arg2)
+s32 func_mine_cavern_8017DD38(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 0xD) {
         SndEvt_EnqueueType6(0x54020000 | 0xD, 0, 0);

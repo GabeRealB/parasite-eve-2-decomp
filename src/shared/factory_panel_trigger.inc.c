@@ -2,7 +2,7 @@
 
 /// Script message handler: raises `FactoryPanelWork::moveSettled`, which the
 /// state waiting for the lift consumes.
-void factoryPanelTrigger(Task* task)
+void factoryPanelTrigger(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     FactoryPanelWork* work = task->work;
 

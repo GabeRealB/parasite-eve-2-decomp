@@ -87,16 +87,8 @@ extern s16           D_actor_205200_801567B0[];
 // One collision centre for each of the two placement modes.
 extern SVECTOR D_actor_205200_801567B4[2];
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(Task*, s32, ActorCommand* request);
-        s32 (*call1)(Task*, s32, s32);
-    } handler;
-} Actor2052002MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor2052002MessageEntry, 8);
 
-extern Actor2052002MessageEntry D_actor_205200_801567D0[3];
+extern TaskMessageEntry D_actor_205200_801567D0[3];
 
 static void func_actor_205200_8014BAE8(Enemy* enemy, Task* task);
 static void func_actor_205200_8014BD4C(Task* arg0);
@@ -127,8 +119,8 @@ static AnimationSet _gActor205200Animation0B948;
 static AnimationSet _gActor205200Animation0C154;
 static AnimationSet _gActor205200Animation0C968;
 
-s32         func_actor_205200_8014C980(Task*, s32, s32);
-s32         func_actor_205200_8014C9A0(Task*, s32, ActorCommand* request);
+s32         func_actor_205200_8014C980(Task*, s32, s32, s32);
+s32         func_actor_205200_8014C9A0(Task* task, s32 msgId, ActorCommand* request, s32 arg3);
 static void func_actor_205200_8014C540(Task*);
 
 static AnimationPackedPose _gActor205200Animation08B50Bank1[29] = {
@@ -319,10 +311,10 @@ SVECTOR D_actor_205200_801567B4[2] = {
 
 TaskDesc D_actor_205200_801567C4 = { { { TASK_BODY_TMD, 96 } }, func_actor_205200_8014C540, { .model = &gActor205200EveBreaMaskedBody } };
 
-Actor2052002MessageEntry D_actor_205200_801567D0[3] = {
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call1 = func_actor_205200_8014C980 } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_205200_8014C9A0 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_205200_801567D0[3] = {
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_205200_8014C980 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_205200_8014C9A0 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 AnimationSet* D_actor_205200_801567E8[6] = {
@@ -838,7 +830,7 @@ static void func_actor_205200_8014C924(Enemy* arg0, Task* arg1)
 /// Message 0x7D5 handler, listed in `D_actor_205200_801567D0` beside the 0x7DB
 /// one: `arg2` zero sets the 0x80 flag of the task's model and any other value
 /// clears its flags. The opcode itself (`msgId`) is unused.
-s32 func_actor_205200_8014C980(Task* task, s32 msgId, s32 arg2)
+s32 func_actor_205200_8014C980(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     TmdObject* tmd;
 
@@ -855,7 +847,7 @@ s32 func_actor_205200_8014C980(Task* task, s32 msgId, s32 arg2)
 /// 0x7D5 one. A non-zero payload halfword sets `Actor205200Work.field_594`, the
 /// flag `func_actor_205200_8014C59C` tests to push the actor to state 2.
 /// Nothing reads the opcode itself, hence `arg1`.
-s32 func_actor_205200_8014C9A0(Task* arg0, s32 arg1, ActorCommand* request)
+s32 func_actor_205200_8014C9A0(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
 {
     Actor205200Work* work;
 

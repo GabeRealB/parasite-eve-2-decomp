@@ -83,10 +83,10 @@ extern WorldCollisionTrigger      D_dryfield_garage_8017F69C[14];
 extern WorldCollisionTrigger      D_dryfield_garage_8017FD1C[11];
 extern WorldCoordRoomAmbientEntry D_dryfield_garage_80180148[16];
 extern WorldCoordRoomLights       D_dryfield_garage_8017FD04[1];
-s32                               func_dryfield_garage_8017D914(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                               func_dryfield_garage_8017D914(Task*, s32, s32, s32);
 s32                               func_dryfield_garage_8017D91C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                               func_dryfield_garage_8017DA18(Task*, s32, s32, TaskMessageArg);
-s32                               func_dryfield_garage_8017DA54(Task*, s32, RoomEventMsg*, TaskMessageArg);
+s32                               func_dryfield_garage_8017DA18(Task*, s32, s32, s32);
+s32                               func_dryfield_garage_8017DA54(Task*, s32, RoomEventMsg*, s32);
 void                              func_dryfield_garage_8017DAA0(Task*);
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
@@ -614,7 +614,7 @@ static const TaskFuncTable3 D_dryfield_garage_8017D5DC = {
 
 /// Handler for message 0x13F1 in the room's message table: the room takes no
 /// action and reports the message as not handled.
-s32 func_dryfield_garage_8017D914(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_garage_8017D914(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -665,7 +665,7 @@ s32 func_dryfield_garage_8017D91C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEv
 
 /// Handler for message 0x13F0 in the room's message table: on event 0x10 it
 /// runs cap command 0x16 if nibble 0xFD is set, else 0x10. Always answers 0.
-s32 func_dryfield_garage_8017DA18(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_dryfield_garage_8017DA18(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 0x10) {
         Gp_RunCapCmd1(GameFlag_GetNibble(GAME_FLAG_0FD) != 0 ? 0x16 : 0x10);
@@ -676,7 +676,7 @@ s32 func_dryfield_garage_8017DA18(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg
 /// Handler for message 0x13EF in the room's message table: for warp point 2
 /// outside place 1 it calls `Gp_SpawnIfCapIdle(0x13, 0)`. It returns no
 /// value.
-s32 func_dryfield_garage_8017DA54(Task* arg0, s32 arg1, RoomEventMsg* msg, TaskMessageArg arg3)
+s32 func_dryfield_garage_8017DA54(Task* arg0, s32 arg1, RoomEventMsg* msg, s32 arg3)
 {
     if ((msg->warp == 2) && (gGameSession->location.loc.variant != 1)) {
         Gp_SpawnIfCapIdle(0x13, 0);

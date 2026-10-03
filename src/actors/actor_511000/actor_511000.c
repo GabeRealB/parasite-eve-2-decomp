@@ -213,19 +213,8 @@ extern AnimationSet** D_actor_511000_801472E4[1];
 /// and the message table it parks in `Task::msgTable`.
 extern TaskDesc D_actor_511000_801472E8[];
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call1)(Task*, s32, AnimationPlayRequest*, s32);
-        s32 (*call2)(Task*, s32, ActorCommand* request);
-        s32 (*call3)(Task*, s32, ActorTransform*);
-        s32 (*call4)(Task*, s32, s32);
-    } handler;
-} Actor511000MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor511000MessageEntry, 8);
 
-extern Actor511000MessageEntry D_actor_511000_8014730C[6];
+extern TaskMessageEntry D_actor_511000_8014730C[6];
 
 /// Offset `Gp_SpawnEff` places the tick state's effect at.
 extern SVECTOR D_actor_511000_8014733C;
@@ -244,17 +233,8 @@ extern Actor511000Palette D_actor_511000_80147E84;
 extern u8                 D_actor_511000_80147EC4[];
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(Task*);
-        s32 (*call1)(Task*, s32, ActorTransform*, s32);
-        s32 (*call2)(Task*, s32, s32);
-    } handler;
-} Actor511000MsgEntry;
-STATIC_ASSERT_SIZEOF(Actor511000MsgEntry, 8);
 
-extern Actor511000MsgEntry D_actor_511000_80148FC4[];
+extern TaskMessageEntry D_actor_511000_80148FC4[];
 
 /// Translation presets `func_actor_511000_80133760` copies onto the root
 /// coordinate; `Task::spawnArg1` selects the entry.
@@ -270,16 +250,16 @@ extern s32      D_actor_511000_80149054[];
 /// Spawn table for the three children `func_actor_511000_80133958` creates.
 extern TaskDesc D_actor_511000_80155070[];
 /// Message table and animation data `func_actor_511000_80133958` installs.
-extern Actor511000MessageEntry D_actor_511000_801550A0[4];
-extern AnimationSet*           D_actor_511000_801550C0[4];
+extern TaskMessageEntry D_actor_511000_801550A0[4];
+extern AnimationSet*    D_actor_511000_801550C0[4];
 
 static TmdSource _gActor511000RupertBroderickBody2;
 static TmdSource _gActor511000RupertBroderickMongoose;
 static TmdSource _gActor511000Prop1;
 s32              func_actor_511000_80132604(Task*, s32, AnimationPlayRequest*, s32);
-s32              func_actor_511000_801327A0(Task*, s32, s32);
-s32              func_actor_511000_8013287C(Task*, s32, ActorCommand* msg);
-s32              func_actor_511000_80132904(Task*, s32, s32);
+s32              func_actor_511000_801327A0(Task*, s32, s32, s32);
+s32              func_actor_511000_8013287C(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
+s32              func_actor_511000_80132904(Task*, s32, s32, s32);
 void             func_actor_511000_80132150(Task*);
 void             func_actor_511000_8013222C(Task*);
 void             func_actor_511000_80132428(Task*);
@@ -290,11 +270,11 @@ static AnimationSet _gActor511000Animation14B2C;
 
 extern Actor511000Palette D_actor_511000_80147E84;
 
-s32  func_actor_511000_801334B8(Task*);
-s32  func_actor_511000_801334C4(Task*, s32, ActorTransform* args, s32);
-s32  func_actor_511000_80133554(Task*, s32, s32);
-s32  func_actor_511000_80133DEC(Task*, s32, AnimationPlayRequest*);
-s32  func_actor_511000_80133EAC(Task*, s32, s32);
+s32  func_actor_511000_801334B8(Task*, s32, s32, s32);
+s32  func_actor_511000_801334C4(Task* task, s32 msgId, ActorTransform* args, s32);
+s32  func_actor_511000_80133554(Task*, s32, s32, s32);
+s32  func_actor_511000_80133DEC(Task*, s32, AnimationPlayRequest*, s32);
+s32  func_actor_511000_80133EAC(Task*, s32, s32, s32);
 void func_actor_511000_80133D90(Task*);
 void func_actor_511000_80133EF4(Task*);
 void func_actor_511000_80133FC8(Task*);
@@ -1262,13 +1242,13 @@ TaskDesc D_actor_511000_801472E8[3] = {
     { { { TASK_BODY_TMD, 192 } }, func_actor_511000_8013222C, { .model = &_gActor511000Prop1 } },
 };
 
-Actor511000MessageEntry D_actor_511000_8014730C[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = func_actor_511000_80132604 } },
-    { ACTOR_MESSAGE_PLACE, { .call3 = actorMsgPlaceEuler } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = func_actor_511000_801327A0 } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_511000_8013287C } },
-    { 2016, { .call4 = func_actor_511000_80132904 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_511000_8014730C[6] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_511000_80132604 },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_511000_801327A0 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_511000_8013287C },
+    { 2016, func_actor_511000_80132904 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 SVECTOR D_actor_511000_8014733C = { -30, 440, 140, 0 };
@@ -1840,11 +1820,11 @@ ViewCamera D_actor_511000_80147EE4[120] = {
     { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4309, 5556, -793 } }, 447 },
 };
 
-Actor511000MsgEntry D_actor_511000_80148FC4[4] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = func_actor_511000_801334B8 } },
-    { ACTOR_MESSAGE_PLACE, { .call1 = func_actor_511000_801334C4 } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call2 = func_actor_511000_80133554 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_511000_80148FC4[4] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_511000_801334B8 },
+    { ACTOR_MESSAGE_PLACE, func_actor_511000_801334C4 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_511000_80133554 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 SVECTOR D_actor_511000_80148FE4[4] = {
@@ -2087,11 +2067,11 @@ TaskDesc D_actor_511000_80155070[4] = {
     { { { TASK_BODY_TMD, 96 } }, func_actor_511000_8013409C, { .model = &_gActor511000No9GolemAkropolisProp } },
 };
 
-Actor511000MessageEntry D_actor_511000_801550A0[4] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = func_actor_511000_80133DEC } },
-    { ACTOR_MESSAGE_PLACE, { .call3 = actorMsgPlaceRotMatrix } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = func_actor_511000_80133EAC } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_511000_801550A0[4] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_511000_80133DEC },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceRotMatrix },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_511000_80133EAC },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 AnimationSet* D_actor_511000_801550C0[4] = {
@@ -2342,7 +2322,7 @@ s32 func_actor_511000_80132604(Task* task, s32 arg1, AnimationPlayRequest* msg, 
 /// The handler reads `work` before the switch even though mode 2 is its only
 /// use, so retail's `lw $v1,0x1C($a0)` sits in the entry block. The same body
 /// shape as `func_actor_141000_80133E8C` / `func_actor_503500_80132584`.
-s32 func_actor_511000_801327A0(Task* arg0, s32 arg1, s32 mode)
+s32 func_actor_511000_801327A0(Task* arg0, s32 arg1, s32 mode, s32 arg3)
 {
     TmdObject*        obj;
     Actor511000Work2* work;
@@ -2387,7 +2367,7 @@ s32 func_actor_511000_801327A0(Task* arg0, s32 arg1, s32 mode)
 /// falling through the hide block: retail's single epilogue is only reached
 /// that way, the hide block and the shared return merging into one block whose
 /// first label sits on the value store.
-s32 func_actor_511000_8013287C(Task* arg0, s32 arg1, ActorCommand* msg)
+s32 func_actor_511000_8013287C(Task* arg0, s32 arg1, ActorCommand* msg, s32 arg3)
 {
     Actor511000Work2* work;
     Task*             child;
@@ -2425,7 +2405,7 @@ out:
 /// first. Any other mode leaves the image NULL and returns 0.
 /// The mode-1 case is written first because the compiler lays the case bodies
 /// out in source order and that is the order the retail image has them in.
-s32 func_actor_511000_80132904(Task* arg0, s32 arg1, s32 mode)
+s32 func_actor_511000_80132904(Task* arg0, s32 arg1, s32 mode, s32 arg3)
 {
     RECT            rect;
     GpuImageUpload* uploadList;
@@ -2848,7 +2828,7 @@ static void func_actor_511000_80133498(Task* task)
     taskKill(task);
 }
 
-s32 func_actor_511000_801334B8(Task* arg0)
+s32 func_actor_511000_801334B8(Task* arg0, s32 msgId, s32 arg2, s32 arg3)
 {
     arg0->killCountdown = 0;
     return 0;
@@ -2877,7 +2857,7 @@ s32 func_actor_511000_801334C4(Task* task, s32 arg1, ActorTransform* args, s32 a
     return 0;
 }
 
-s32 func_actor_511000_80133554(Task* task, s32 arg1, s32 msg)
+s32 func_actor_511000_80133554(Task* task, s32 arg1, s32 msg, s32 arg3)
 {
     TmdObject*       obj;
     Actor511000Work* work;
@@ -3169,7 +3149,7 @@ void func_actor_511000_80133D90(Task* task)
 /// Copies the animation id from `preset` into the work block parked in
 /// `task->work`, reseeds slots 1..0x12 through `animationResetSlot`, and
 /// clears `field_480`'s halfword.
-s32 func_actor_511000_80133DEC(Task* task, s32 arg1, AnimationPlayRequest* preset)
+s32 func_actor_511000_80133DEC(Task* task, s32 arg1, AnimationPlayRequest* preset, s32 arg3)
 {
     Actor511000Work2* work;
     s32               i;
@@ -3189,7 +3169,7 @@ s32 func_actor_511000_80133DEC(Task* task, s32 arg1, AnimationPlayRequest* prese
 
 /// Visibility message handler: bit 0 of `arg2` shows the model (flags 0)
 /// instead of hiding it (0x80); bit 1 also sets `TMD_OBJECT_SKIP_AUTO_BUFFER`.
-s32 func_actor_511000_80133EAC(Task* task, s32 arg1, s32 arg2)
+s32 func_actor_511000_80133EAC(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
     TmdObject* obj;
 

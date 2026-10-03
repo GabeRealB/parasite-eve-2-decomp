@@ -19,12 +19,12 @@ s32 func_shelter_b2_pod_access_tunnel_8017D7C4(Task*, s32, RoomEventMsg*, RoomEv
 
 void func_shelter_b2_pod_access_tunnel_8017D9A8(Task*);
 
-s32 func_shelter_b2_pod_access_tunnel_8017DB28(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_b2_pod_access_tunnel_8017DB28(Task*, s32, s32, s32);
 
 s32 func_shelter_b2_pod_access_tunnel_8017DB30(Task*, s32, s32, s32);
 
-s32 func_shelter_b2_pod_access_tunnel_8017DB70(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_b2_pod_access_tunnel_8017DB70(Task*, s32, s32, s32);
 
-s32 func_shelter_b2_pod_access_tunnel_8017DB78(Task*, s32, s32, TaskMessageArg);
+s32 func_shelter_b2_pod_access_tunnel_8017DB78(Task*, s32, s32, s32);
 
 #endif // SRC_ROOMS_SHELTER_B2_POD_ACCESS_TUNNEL_SHELTER_B2_POD_ACCESS_TUNNEL_PRIVATE_H

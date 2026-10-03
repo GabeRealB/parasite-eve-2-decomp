@@ -69,7 +69,7 @@ extern ActorCommand             D_dryfield_underpass_8017E8A8;
 extern AnimationBankCopyRequest D_dryfield_underpass_8017E868;
 void                            func_dryfield_underpass_8017DA08(void);
 
-s32 func_dryfield_underpass_8017D900(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_underpass_8017D900(Task*, s32, s32, s32);
 s32 func_dryfield_underpass_8017D908(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
 static AnimationPackedPose _gDryfieldUnderpassAnimation00E64Bank1[10] = {
@@ -797,7 +797,7 @@ static void func_dryfield_underpass_8017DA00(Task* task);
 #include "../../shared/underpass_sound_msg.inc.c"
 
 /// Handler for message 0x13F1: does nothing and returns 0.
-s32 func_dryfield_underpass_8017D900(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_underpass_8017D900(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

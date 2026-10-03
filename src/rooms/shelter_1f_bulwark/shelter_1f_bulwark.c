@@ -88,9 +88,9 @@ extern WorldCollisionTrigger  D_shelter_1f_bulwark_80180B24[8];
 extern WorldCoordRoomLights   D_shelter_1f_bulwark_80180A74[1];
 
 s32  func_shelter_1f_bulwark_8017D7B4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_1f_bulwark_8017DBBC(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_shelter_1f_bulwark_8017DBC4(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_shelter_1f_bulwark_8017DBCC(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_shelter_1f_bulwark_8017DBBC(Task*, s32, s32, s32);
+s32  func_shelter_1f_bulwark_8017DBC4(Task*, s32, s32, s32);
+s32  func_shelter_1f_bulwark_8017DBCC(Task*, s32, s32, s32);
 void func_shelter_1f_bulwark_8017DA60(Task*);
 void func_shelter_1f_bulwark_8017DC78(Task*);
 void func_shelter_1f_bulwark_8017DE04(Task*);
@@ -415,17 +415,17 @@ void func_shelter_1f_bulwark_8017DA60(Task* arg0)
     }
 }
 
-s32 func_shelter_1f_bulwark_8017DBBC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_1f_bulwark_8017DBBC(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_shelter_1f_bulwark_8017DBC4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_1f_bulwark_8017DBC4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_shelter_1f_bulwark_8017DBCC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_1f_bulwark_8017DBCC(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

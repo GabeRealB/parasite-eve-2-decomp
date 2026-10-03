@@ -88,18 +88,8 @@ extern TaskDesc D_actor_310600_801796A4[];
 /// The overlay's `TaskMessageEntry` table, parked in `Task::msgTable`.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
-typedef struct {
-    s32 id;
-    union {
-        s32                (*call0)(Task*, s32, AnimationPlayRequest*, s32);
-        s32                (*call1)(Task*, s32, ActorTransform*);
-        TaskMessageHandler call2;
-        void               (*call3)(Task*, s32, VECTOR*);
-    } handler;
-} Actor310600MsgEntry;
-STATIC_ASSERT_SIZEOF(Actor310600MsgEntry, 8);
 
-extern Actor310600MsgEntry D_actor_310600_801796BC[];
+extern TaskMessageEntry D_actor_310600_801796BC[];
 
 /// Per-animation cue lists: `D_actor_310600_80179660[field_475]` is a
 /// zero-terminated list of the frames at which that animation fires its effect.
@@ -168,9 +158,9 @@ static TmdSource _gActor310600RupertBroderickMongoose;
 void             func_actor_310600_8016274C(Task*);
 void             func_actor_310600_801629CC(Task*);
 
-s32  func_actor_310600_8016246C(Task*, s32, AnimationPlayRequest*, s32);
-s32  func_actor_310600_801625F0(Task*, s32, s32, s32);
-void func_actor_310600_80162C94(Task*, s32, VECTOR*);
+s32 func_actor_310600_8016246C(Task*, s32, AnimationPlayRequest*, s32);
+s32 func_actor_310600_801625F0(Task*, s32, s32, s32);
+s32 func_actor_310600_80162C94(Task*, s32, VECTOR*, s32);
 
 static AnimationPackedPose _gActor310600Animation04ADCBank1[102] = {
 #include "assets/actor_310600_animation_04ADC_bank1.inc"
@@ -413,12 +403,12 @@ TaskDesc D_actor_310600_801796A4[2] = {
     { { { TASK_BODY_TMD, 192 } }, func_actor_310600_8016274C, { .model = &_gActor310600RupertBroderickMongoose } },
 };
 
-Actor310600MsgEntry D_actor_310600_801796BC[5] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = func_actor_310600_8016246C } },
-    { ACTOR_MESSAGE_PLACE, { .call1 = actorMsgPlaceEuler } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call2 = func_actor_310600_801625F0 } },
-    { ACTOR_MESSAGE_WALK_TO, { .call3 = func_actor_310600_80162C94 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_310600_801796BC[5] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_310600_8016246C },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_310600_801625F0 },
+    { ACTOR_MESSAGE_WALK_TO, func_actor_310600_80162C94 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 static void func_actor_310600_80161E64(Task* task)
@@ -866,7 +856,7 @@ static void func_actor_310600_80162B98(Task* task)
 /// movement steps of `D_actor_310600_80161E48` turn toward and close in on,
 /// switches the tick onto those steps (`field_47C`), and starts animation 0xC
 /// of bank 0 through `func_actor_310600_8016246C`. `arg1` is unused.
-void func_actor_310600_80162C94(Task* arg0, s32 arg1, VECTOR* arg2)
+s32 func_actor_310600_80162C94(Task* arg0, s32 arg1, VECTOR* arg2, s32 arg3)
 {
     Actor310600Work*     work;
     AnimationPlayRequest cmd;

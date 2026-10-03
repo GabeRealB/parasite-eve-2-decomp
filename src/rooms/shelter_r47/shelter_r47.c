@@ -111,12 +111,12 @@ static TaskDesc             D_shelter_r47_80187020;
 /// Piece lists of the sprites `func_shelter_r47_80180F38` draws, by sprite id.
 static _ShelterR47SpritePart* D_shelter_r47_8018729C[];
 static TaskDesc               D_shelter_r47_801872F0;
-static s32                    func_shelter_r47_8017FE84(Task*, s32, RoomEventMsg*, TaskMessageArg);
-static s32                    func_shelter_r47_801801DC(Task*, s32, s32, TaskMessageArg);
+static s32                    func_shelter_r47_8017FE84(Task*, s32, RoomEventMsg*, s32);
+static s32                    func_shelter_r47_801801DC(Task*, s32, s32, s32);
 static void                   func_shelter_r47_80180324(Task*);
-static s32                    func_shelter_r47_801805D0(Task*, s32, TaskMessageArg, TaskMessageArg);
+static s32                    func_shelter_r47_801805D0(Task*, s32, s32, s32);
 static s32                    func_shelter_r47_801805D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-static s32                    func_shelter_r47_8018061C(Task*, s32, s32, TaskMessageArg);
+static s32                    func_shelter_r47_8018061C(Task*, s32, s32, s32);
 static void                   func_shelter_r47_80180650(Task*);
 static void                   func_shelter_r47_80180714(Task*);
 static void                   func_shelter_r47_8018080C(Task*);
@@ -602,7 +602,7 @@ static void func_shelter_r47_8017FCC0(Task* task)
     }
 }
 
-static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, TaskMessageArg arg3)
+static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, s32 arg3)
 {
     Task*                  spawned_p;
     Task*                  spawned_p6;
@@ -750,7 +750,7 @@ done:
 /// 2-bit flag 0x22 reads 1); the first time, it sets that flag and spawns entry
 /// 2 of the room's task table. Request 8 spawns entry 0 or 1 of the second task
 /// table, depending on which of flags 0x83 and 0x80 is set.
-static s32 func_shelter_r47_801801DC(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+static s32 func_shelter_r47_801801DC(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 1) {
         if (GameFlag_GetNibble(GAME_FLAG_SHELTER_R47_FIRST_USE) != 0) {
@@ -836,7 +836,7 @@ static void func_shelter_r47_80180324(Task* task)
 
 #include "../../shared/room_cutscene_sound_task.inc.c"
 
-static s32 func_shelter_r47_801805D0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+static s32 func_shelter_r47_801805D0(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -850,7 +850,7 @@ static s32 func_shelter_r47_801805D8(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
     return 1;
 }
 
-static s32 func_shelter_r47_8018061C(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+static s32 func_shelter_r47_8018061C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 0x63) {
         SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 0x11), 0, 0);

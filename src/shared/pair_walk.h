@@ -27,13 +27,13 @@ void pairWalkUpdate(Task* task);
 void pairWalkTickAnim(Task* task);
 void pairWalkResetAnim(Task* task);
 void pairWalkReseedAnim(Task* task);
-s32  pairWalkPlay(Task* task, s32 arg1, AnimationPlayRequest* args);
-s32  pairWalkSetVisibility(Task* task, s32 arg1, s32 flags);
-s32  pairWalkPlace(Task* task, s32 arg1, ActorTransform* placement);
+s32  pairWalkPlay(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3);
+s32  pairWalkSetVisibility(Task* task, s32 arg1, s32 flags, s32 arg3);
+s32  pairWalkPlace(Task* task, s32 arg1, ActorTransform* placement, s32 arg3);
 void pairWalkSubModelTask(Task* task);
 
 void pairWalkSpawn(Enemy* enemy, Task* task);
-s32  pairWalkTo(Task* task, s32 arg1, VECTOR* target);
+s32  pairWalkTo(Task* task, s32 arg1, VECTOR* target, s32 arg3);
 
 /* Defined by each package. */
 void pairWalkExit(Task* task);

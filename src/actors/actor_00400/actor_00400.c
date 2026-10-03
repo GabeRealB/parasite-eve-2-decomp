@@ -390,16 +390,8 @@ extern DamageAttack          Actor00400_D0FDC0[2];
 extern TaskDesc              Actor00400_D16028[];
 extern Actor100400AreaConfig Actor00400_D15F20[];
 // Typed callback views for the task message dispatcher.
-typedef struct {
-    s32 id;
-    union {
-        void (*call0)(Task*, s32, ActorCommand* request);
-        void (*call1)(Task*, s32, s32);
-    } handler;
-} Actor00400RecoveredMsgEntry;
-STATIC_ASSERT_SIZEOF(Actor00400RecoveredMsgEntry, 8);
 
-extern Actor00400RecoveredMsgEntry Actor00400_D16010[3];
+extern TaskMessageEntry Actor00400_D16010[3];
 
 extern u16           Actor00400_D1609C[8];
 extern AnimationSet* Actor00400_D1604C[20];
@@ -437,8 +429,8 @@ static AnimationSet _gActor00400Actor100400Animation15EF8;
 static TmdSource    _gActor00400DiverBody;
 void                Actor00400_Fn076E8(Task*);
 void                Actor00400_Fn08004(Task*);
-void                Actor00400_Fn0805C(Task*, s32, ActorCommand* request);
-void                Actor00400_Fn08354(Task*, s32, s32);
+void                Actor00400_Fn0805C(Task* task, s32 msgId, ActorCommand* request, s32 arg3);
+void                Actor00400_Fn08354(Task*, s32, s32, s32);
 void                Actor00400_Fn08948(Task*);
 
 static TmdBone _gActor00400DiverBodySkeleton[15] = {
@@ -1105,10 +1097,10 @@ Actor100400AreaConfig Actor00400_D15F20[12] = {
     { NULL, NULL, NULL, 255, 0, 0, { 0, 0 } },
 };
 
-Actor00400RecoveredMsgEntry Actor00400_D16010[3] = {
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = Actor00400_Fn0805C } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call1 = Actor00400_Fn08354 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry Actor00400_D16010[3] = {
+    { ACTOR_COMMAND_MESSAGE_APPLY, Actor00400_Fn0805C },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, Actor00400_Fn08354 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc Actor00400_D16028[3] = {
@@ -4619,7 +4611,7 @@ static const TaskFuncTable7 Actor00400_D00178 = { {
     Actor00400_Fn09FDC,
 } };
 
-void Actor00400_Fn0805C(Task* arg0, s32 arg1, ActorCommand* request)
+void Actor00400_Fn0805C(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
 {
     Actor100400Work* work;
     Enemy*           obj;
@@ -4714,7 +4706,7 @@ static void Actor00400_Fn0824C(Task* arg0, s16 arg1, s16 arg2, SVECTOR* arg3)
 /// GCC 2.8.1 decides the store to `gSceneCombatState`, at a fixed address, cannot
 /// alias the struct fields reached through `ctx` / `work`, so without the
 /// barrier the scheduler sinks this `sb` past the traffic that follows it.
-void Actor00400_Fn08354(Task* arg0, s32 arg1, s32 arg2)
+void Actor00400_Fn08354(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     Actor100400Work* work;
     TmdObject*       ctx;

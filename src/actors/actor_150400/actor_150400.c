@@ -46,18 +46,8 @@ extern TaskDesc D_actor_150400_8013C8F4[];
 extern u8       D_actor_150400_8013C90C[];
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(void);
-        s32 (*call1)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call2)(Task*, s32, ActorTransform*);
-        s32 (*call3)(Task*, s32, s32);
-    } handler;
-} Actor150400MsgEntry;
-STATIC_ASSERT_SIZEOF(Actor150400MsgEntry, 8);
 
-extern Actor150400MsgEntry D_actor_150400_8013C8C4[];
+extern TaskMessageEntry D_actor_150400_8013C8C4[];
 
 /// Scratchpad stack pointer the per-frame helpers carve temporary frames off.
 
@@ -68,8 +58,8 @@ static TmdSource _gActor150400No9GolemDryfieldBody;
 static TmdSource _gActor150400GolemBeamSword;
 void             func_actor_150400_801323E0(Task*);
 
-s32 func_actor_150400_801327EC(void);
-s32 func_actor_150400_801327F4(Task*, s32, ActorTransform* target);
+s32 func_actor_150400_801327EC(Task*, s32, s32, s32);
+s32 func_actor_150400_801327F4(Task* task, s32 msgId, ActorTransform* target, s32 arg3);
 
 void func_actor_150400_80131ECC(void);
 void func_actor_150400_80131F6C(void);
@@ -329,13 +319,13 @@ static TmdSource _gActor150400GolemBeamSword = {
     _gActor150400GolemBeamSwordStream,
 };
 
-Actor150400MsgEntry D_actor_150400_8013C8C4[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = pairWalkPlay } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = pairWalkSetVisibility } },
-    { ACTOR_MESSAGE_PLACE, { .call2 = pairWalkPlace } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_150400_801327EC } },
-    { ACTOR_MESSAGE_WALK_TO, { .call2 = func_actor_150400_801327F4 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_150400_8013C8C4[6] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, pairWalkPlay },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, pairWalkSetVisibility },
+    { ACTOR_MESSAGE_PLACE, pairWalkPlace },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_150400_801327EC },
+    { ACTOR_MESSAGE_WALK_TO, func_actor_150400_801327F4 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_actor_150400_8013C8F4[2] = {
@@ -540,7 +530,7 @@ static void func_actor_150400_801324B8(Task* task)
 
 #include "../../shared/pair_walk_place.inc.c"
 
-s32 func_actor_150400_801327EC(void)
+s32 func_actor_150400_801327EC(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -549,7 +539,7 @@ s32 func_actor_150400_801327EC(void)
 /// the yaw of the horizontal offset from the coordinate's own translation,
 /// caches that yaw in `yaw` and rebuilds the local matrix from it, then sets
 /// `travel` to the distance divided by 17, the step body's per-frame stride.
-s32 func_actor_150400_801327F4(Task* task, s32 arg1, ActorTransform* target)
+s32 func_actor_150400_801327F4(Task* task, s32 arg1, ActorTransform* target, s32 arg3)
 {
     GfxCoord*        coord;
     Actor150400Work* work;

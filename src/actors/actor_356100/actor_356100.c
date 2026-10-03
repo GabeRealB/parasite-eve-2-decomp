@@ -240,21 +240,9 @@ typedef struct {
 } Actor356100Storage32B0;
 STATIC_ASSERT_SIZEOF(Actor356100Storage32B0, 32);
 
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(void);
-        s32 (*call1)(Task*);
-        s32 (*call2)(Task*, s32, Actor356100Event*);
-        s32 (*call3)(Task*, s32, ActorTransform*);
-        s32 (*call4)(Task*, s32, s32);
-    } handler;
-} Actor356100MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor356100MessageEntry, 8);
-
 static TmdSource _gActor356100HornedStrangerBody;
-s32              func_actor_356100_80169E5C(void);
-s32              func_actor_356100_8016A0B8(Task*, s32, Actor356100Event*);
+s32              func_actor_356100_80169E5C(Task*, s32, s32, s32);
+s32              func_actor_356100_8016A0B8(Task*, s32, Actor356100Event*, s32);
 void             func_actor_356100_8016A910(Task*);
 
 #include "../../shared/actor_contacts.h"
@@ -674,14 +662,14 @@ AnimationSet* D_actor_356100_80173228[7] = {
 
 AnimationPlayRequest D_actor_356100_80173244 = { { .sets = D_actor_356100_80173228 }, 1, ANIMATION_BLEND_RESET, 3, ANIMATION_WORLD_COLLISION_DISABLE };
 
-Actor356100MessageEntry D_actor_356100_80173258[7] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = func_actor_356100_80169E5C } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = actorMsgSetVisibility } },
-    { ACTOR_MESSAGE_IS_PRESENT, { .call1 = actorMsgIsPresent } },
-    { ACTOR_MESSAGE_PLACE, { .call3 = actorMsgPlaceRecordYaw } },
-    { 2014, { .call1 = actorMsgReleaseHold } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_356100_8016A0B8 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_356100_80173258[7] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_356100_80169E5C },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetVisibility },
+    { ACTOR_MESSAGE_IS_PRESENT, actorMsgIsPresent },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceRecordYaw },
+    { 2014, actorMsgReleaseHold },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_356100_8016A0B8 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 u16 D_actor_356100_80173290 = 0;
@@ -832,7 +820,7 @@ extern EnemyParams D_actor_356100_8016A984;
 /// the spawn sub-type. Same role as `Actor01900_D0AC64`.
 extern Actor356100TintRow D_actor_356100_8016A994[];
 
-extern Actor356100MessageEntry D_actor_356100_80173258[7];
+extern TaskMessageEntry D_actor_356100_80173258[7];
 
 /// Initialisation for the state-0x10 clip run: allocates the work block, binds
 /// the light / colour matrices, re-seeds the enemy descriptor and both
@@ -863,7 +851,7 @@ static void func_actor_356100_80167818(Task* arg0);
 /// Event handler: copies the event's first three bytes into the work block's
 /// `field_B58`, then dispatches on `w[0] == 0xB05` and `w[1]` — sub-code 1
 /// puts the actor in state 0x1E, 0 and 2 in state 0. Anything else returns 0.
-s32 func_actor_356100_8016A0B8(Task* arg0, s32 arg1, Actor356100Event* arg2);
+s32 func_actor_356100_8016A0B8(Task* arg0, s32 arg1, Actor356100Event* arg2, s32 arg3);
 
 /// `Task::exitCallback` teardown: kill the two helper tasks, drop the
 /// enemy's `recs` slot, then `enemyDestroy`. Same shape as
@@ -3064,7 +3052,7 @@ static void func_actor_356100_80169854(Enemy* arg0, Task* arg1)
     arg0->coord = &gGfxViewCoord;
 }
 
-s32 func_actor_356100_80169E5C(void)
+s32 func_actor_356100_80169E5C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -3077,7 +3065,7 @@ s32 func_actor_356100_80169E5C(void)
 
 #include "../../shared/actor_messages_release_hold.inc.c"
 
-s32 func_actor_356100_8016A0B8(Task* arg0, s32 arg1, Actor356100Event* arg2)
+s32 func_actor_356100_8016A0B8(Task* arg0, s32 arg1, Actor356100Event* arg2, s32 arg3)
 {
     Actor356100Work* work = arg0->work;
     s32              code;

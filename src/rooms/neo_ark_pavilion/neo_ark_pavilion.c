@@ -97,10 +97,10 @@ extern RoomLatchedEvent gRoomEventLatched;
 /// Set by the message handler when its last message latched an event and
 /// spawned the room's event task; every such message clears it first.
 
-s32 func_neo_ark_pavilion_8017E9EC(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_neo_ark_pavilion_8017E9EC(Task*, s32, s32, s32);
 s32 func_neo_ark_pavilion_8017E9F4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_neo_ark_pavilion_8017EB3C(Task*, s32, s32, TaskMessageArg);
-s32 func_neo_ark_pavilion_8017EB78(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_neo_ark_pavilion_8017EB3C(Task*, s32, s32, s32);
+s32 func_neo_ark_pavilion_8017EB78(Task*, s32, s32, s32);
 
 extern WorldCollisionGrid     D_neo_ark_pavilion_801841E4[1];
 extern WorldCollisionOccluder D_neo_ark_pavilion_8018798C[1];
@@ -1086,7 +1086,7 @@ static void           func_neo_ark_pavilion_8017EBEC(Task* task);
 
 #include "../../shared/room_event_staged_task.inc.c"
 
-s32 func_neo_ark_pavilion_8017E9EC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_neo_ark_pavilion_8017E9EC(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -1131,7 +1131,7 @@ s32 func_neo_ark_pavilion_8017E9F4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomE
 
 /// Room message handler: on message `1`, spawns the pavilion's cap entity —
 /// id `5` once flag `0x141` is set, `1` while it is clear.
-s32 func_neo_ark_pavilion_8017EB3C(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_neo_ark_pavilion_8017EB3C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 1) {
         Gp_SpawnIfCapIdle(GameFlag_GetNibble(GAME_FLAG_141) != 0 ? 5 : 1, 1);
@@ -1139,7 +1139,7 @@ s32 func_neo_ark_pavilion_8017EB3C(Task* arg0, s32 arg1, s32 arg2, TaskMessageAr
     return 0;
 }
 
-s32 func_neo_ark_pavilion_8017EB78(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_neo_ark_pavilion_8017EB78(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

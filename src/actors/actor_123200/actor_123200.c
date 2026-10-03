@@ -112,17 +112,8 @@ extern u8 D_actor_123200_80137154[];
 
 /// Message table the spawn handler publishes as `Task::msgTable`.
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(Task*, s32, ActorCommand* request);
-        s32 (*call1)(Task*, s32, ActorTransform*);
-        s32 (*call2)(Task*, s32, s32);
-    } handler;
-} Actor123200MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor123200MessageEntry, 8);
 
-extern Actor123200MessageEntry D_actor_123200_80137214[4];
+extern TaskMessageEntry D_actor_123200_80137214[4];
 
 /// Integer part of the last movement step `func_actor_123200_801329F0`
 /// applied.
@@ -142,8 +133,8 @@ static void func_actor_123200_80134178(Enemy* arg0, Task* arg1);
 static TmdSource _gActor123200BoneSucklerBody;
 void             func_actor_123200_801341A8(Task*);
 
-s32 func_actor_123200_80133E30(Task*, s32, s32);
-s32 func_actor_123200_80133EDC(Task*, s32, ActorCommand* msg);
+s32 func_actor_123200_80133E30(Task*, s32, s32, s32);
+s32 func_actor_123200_80133EDC(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
 
 #include "../../shared/actor_contacts.h"
 #include "../../shared/anim_driver.h"
@@ -601,11 +592,11 @@ u8 D_actor_123200_80137154[192] = {
     0,
 };
 
-Actor123200MessageEntry D_actor_123200_80137214[4] = {
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call2 = func_actor_123200_80133E30 } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_123200_80133EDC } },
-    { ACTOR_MESSAGE_PLACE, { .call1 = actorMsgPlace } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_123200_80137214[4] = {
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_123200_80133E30 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_123200_80133EDC },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlace },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_actor_123200_80137234 = { { { TASK_BODY_TMD, 96 } }, func_actor_123200_801341A8, { .model = &_gActor123200BoneSucklerBody } };
@@ -998,7 +989,7 @@ static const EnemyTaskFuncTable3 D_actor_123200_80131E30 = {
 /// the flags and then set `TMD_OBJECT_SKIP_AUTO_BUFFER`. Modes 0 and 1 reinstate the model's buffers through
 /// `Tmd_AllocBuffers` and set the work block's display mode `field_0` to 1;
 /// modes 2, 3 and 4 set it to 0. `arg1` is unused. Always returns 0.
-s32 func_actor_123200_80133E30(Task* task, s32 arg1, s32 arg2)
+s32 func_actor_123200_80133E30(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
     TmdObject*       obj;
     Actor123200Work* work;
@@ -1035,7 +1026,7 @@ s32 func_actor_123200_80133E30(Task* task, s32 arg1, s32 arg2)
 /// commands: 1 selects display mode 2, at full scale when the top nibble of
 /// the enemy's `placeKey` is 1 and at quarter scale otherwise; 2 selects mode 1
 /// at full scale; 3 selects mode 0. Always returns 0.
-s32 func_actor_123200_80133EDC(Task* task, s32 arg1, ActorCommand* msg)
+s32 func_actor_123200_80133EDC(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
 {
     Actor123200Work* work;
     Enemy*           enemy;

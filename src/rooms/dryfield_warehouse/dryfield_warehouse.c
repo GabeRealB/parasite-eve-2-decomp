@@ -217,7 +217,7 @@ void func_dryfield_warehouse_8017D5E8(Task* task)
 /// a room-action trigger whose `parameter0` is 0xFF and whose `hit` is set, and
 /// on a hit sets event nibble 0x3C, flips `gGameSession->eventState` and spawns the
 /// warehouse cutscene task. Answers 1 only when it found one.
-s32 func_dryfield_warehouse_8017D764(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_dryfield_warehouse_8017D764(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     WorldCollisionTrigger* node;
     s32                    found;

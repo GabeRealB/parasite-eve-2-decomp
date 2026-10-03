@@ -26,51 +26,41 @@ s16 D_801156BC;
 
 #include "captions.h"
 
-typedef struct {
-    s32 id;
-    union {
-        s32 (*empty)(void);
-        s32 (*start)(s32, s32, s16);
-        s32 (*overlay)(s32, s32, EvsSceneKey*);
-        s32 (*value)(s32, s32, s32);
-    } handler;
-} GpCapControlEntry;
+extern TaskMessageEntry D_8010FB90[10];
 
-extern GpCapControlEntry D_8010FB90[10];
+s32 Gp_StartCapAndClear(Task* arg0, s32 arg1, s16 arg2, s32 arg3);
 
-s32 Gp_StartCapAndClear(s32 arg0, s32 arg1, s16 arg2);
+s32 func_800E731C(Task*, s32, s32, s32);
 
-s32 func_800E731C(void);
+s32 Gp_AbortCapClear(Task*, s32, s32, s32);
 
-s32 Gp_AbortCapClear(void);
+s32 func_800E7358(Task*, s32, s32, s32);
 
-s32 func_800E7358(void);
+s32 func_800E7378(Task*, s32, s32, s32);
 
-s32 func_800E7378(void);
+s32 func_800E73E8(Task*, s32, s32, s32);
 
-s32 func_800E73E8(void);
+s32 func_800E7434(Task*, s32, s32, s32);
 
-s32 func_800E7434(void);
+s32 func_800E7498(Task* arg0, s32 arg1, EvsSceneKey* sceneKey, s32 arg3);
 
-s32 func_800E7498(s32 arg0, s32 arg1, EvsSceneKey* sceneKey);
-
-s32 func_800E74EC(s32 arg0, s32 arg1, s32 arg2);
+s32 func_800E74EC(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 void func_80724120(void);
 
 void func_80724324(void);
 
-GpCapControlEntry D_8010FB90[10] = {
-    { CAP_CONTROL_MESSAGE_START, { .start = Gp_StartCapAndClear } },
-    { 0xFA1, { .empty = func_800E731C } },
-    { CAP_CONTROL_MESSAGE_ABORT, { .empty = Gp_AbortCapClear } },
-    { CAP_CONTROL_MESSAGE_IS_BUSY, { .empty = func_800E7358 } },
-    { CAP_CONTROL_MESSAGE_HIDE_HUD, { .empty = func_800E7378 } },
-    { CAP_CONTROL_MESSAGE_SHOW_HUD, { .empty = func_800E73E8 } },
-    { CAP_CONTROL_MESSAGE_SHOW_HUD_ABORT, { .empty = func_800E7434 } },
-    { 0xFA6, { .overlay = func_800E7498 } },
-    { 0xFA7, { .value = func_800E74EC } },
-    { -1, { .empty = NULL } },
+TaskMessageEntry D_8010FB90[10] = {
+    { CAP_CONTROL_MESSAGE_START, Gp_StartCapAndClear },
+    { 0xFA1, func_800E731C },
+    { CAP_CONTROL_MESSAGE_ABORT, Gp_AbortCapClear },
+    { CAP_CONTROL_MESSAGE_IS_BUSY, func_800E7358 },
+    { CAP_CONTROL_MESSAGE_HIDE_HUD, func_800E7378 },
+    { CAP_CONTROL_MESSAGE_SHOW_HUD, func_800E73E8 },
+    { CAP_CONTROL_MESSAGE_SHOW_HUD_ABORT, func_800E7434 },
+    { 0xFA6, func_800E7498 },
+    { 0xFA7, func_800E74EC },
+    { -1, NULL },
 };
 
 void Gp_InitCapTask(Task* task)
@@ -111,32 +101,32 @@ void Gp_CapTaskState1(Task* task)
     }
 }
 
-s32 Gp_StartCapAndClear(s32 arg0, s32 arg1, s16 arg2)
+s32 Gp_StartCapAndClear(Task* arg0, s32 arg1, s16 arg2, s32 arg3)
 {
     Gp_StartCapSlot(arg2, 0, 0);
     D_801156B0 = 0;
     return 0;
 }
 
-s32 func_800E731C(void)
+s32 func_800E731C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     D_8011569A = 0;
     D_80115698 = 0;
     return 0;
 }
 
-s32 Gp_AbortCapClear(void)
+s32 Gp_AbortCapClear(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     D_801156B0 = 0;
     return Gp_AbortCap();
 }
 
-s32 func_800E7358(void)
+s32 func_800E7358(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return Gp_CapBusy();
 }
 
-s32 func_800E7378(void)
+s32 func_800E7378(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 9) {
         if (D_801156B8 != NULL) {
@@ -149,7 +139,7 @@ s32 func_800E7378(void)
     return 0;
 }
 
-s32 func_800E73E8(void)
+s32 func_800E73E8(Task* msgTask, s32 msgId, s32 arg2, s32 arg3)
 {
     Task* task;
 
@@ -166,7 +156,7 @@ s32 func_800E73E8(void)
     return 0;
 }
 
-s32 func_800E7434(void)
+s32 func_800E7434(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 9) {
         if (D_801156B8 == NULL) {
@@ -180,7 +170,7 @@ s32 func_800E7434(void)
     return 0;
 }
 
-s32 func_800E7498(s32 arg0, s32 arg1, EvsSceneKey* sceneKey)
+s32 func_800E7498(Task* arg0, s32 arg1, EvsSceneKey* sceneKey, s32 arg3)
 {
     if (sceneKey != NULL) {
         CdCmd_StartOverlay(sceneKey->group, sceneKey->streamId, sceneKey->subId);
@@ -190,7 +180,7 @@ s32 func_800E7498(s32 arg0, s32 arg1, EvsSceneKey* sceneKey)
     return 0;
 }
 
-s32 func_800E74EC(s32 arg0, s32 arg1, s32 arg2)
+s32 func_800E74EC(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (gGameSession->evtSkipped == 0) {
         if (D_801156B1 != 0) {

@@ -45,10 +45,10 @@ extern TaskMessageEntry D_dryfield_night_souvenir_shop_8017E03C[];
 /// `[8..15]`.
 extern SVECTOR gGlowPrismCorners[];
 
-s32 func_dryfield_night_souvenir_shop_8017D5D0(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_souvenir_shop_8017D5D0(Task*, s32, s32, s32);
 s32 func_dryfield_night_souvenir_shop_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_dryfield_night_souvenir_shop_8017D600(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_dryfield_night_souvenir_shop_8017D608(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_souvenir_shop_8017D600(Task*, s32, s32, s32);
+s32 func_dryfield_night_souvenir_shop_8017D608(Task*, s32, s32, s32);
 
 extern WorldCollisionGrid         D_dryfield_night_souvenir_shop_8017E604[1];
 extern WorldCollisionTrigger      D_dryfield_night_souvenir_shop_8017F190[2];
@@ -396,7 +396,7 @@ static void func_dryfield_night_souvenir_shop_8017D610(Task* task);
 static void func_dryfield_night_souvenir_shop_8017D654(Task* task);
 
 /// Message-table handler for id 0x13F1: accepts the message and does nothing.
-s32 func_dryfield_night_souvenir_shop_8017D5D0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_souvenir_shop_8017D5D0(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -410,13 +410,13 @@ s32 func_dryfield_night_souvenir_shop_8017D5D8(Task* task, s32 msgId, RoomEventM
 }
 
 /// Message-table handler for id 0x13F0: accepts the message and does nothing.
-s32 func_dryfield_night_souvenir_shop_8017D600(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_souvenir_shop_8017D600(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
 /// Message-table handler for id 0x13EF: accepts the message and does nothing.
-s32 func_dryfield_night_souvenir_shop_8017D608(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_souvenir_shop_8017D608(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

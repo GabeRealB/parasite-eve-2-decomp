@@ -30,15 +30,7 @@
 #endif
 #define GENERATOR_COLLISION_KEY (0x30035 + GENERATOR_KIND)
 
-typedef struct GeneratorMsgEntry {
-    s32 id;
-    union {
-        s16 (*call0)(Task*);
-        s32 (*call1)(Task*, s32, ActorCommand* request);
-    } handler;
-} GeneratorMsgEntry;
-
-extern GeneratorMsgEntry gGeneratorMessages[];
+extern TaskMessageEntry gGeneratorMessages[];
 
 /// Work block of the enemy whose code both actor_105300 and actor_105400
 /// carry, kept at `Task::work`: the animation context with its slots and
@@ -133,13 +125,13 @@ void generatorTickState(Enemy* arg0, Task* arg1);
 void generatorRegenerate(Task* arg0);
 void generatorTickPose(Task* arg0);
 void generatorLifeSupportTeardown(Enemy* arg0, Task* arg1);
-s32  generatorSetReleaseBits(Task* task, s32 msgId, ActorCommand* msg);
+s32  generatorSetReleaseBits(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
 
 static inline void generatorTickPoseInline(Task* task);
 
 void generatorUpdateColor(Task* arg0);
 void generatorLifeSupportTask(Task* arg0);
-s16  generatorIsAlive(Task* arg0);
+s32  generatorIsAlive(Task* arg0, s32 msgId, s32 arg2, s32 arg3);
 void generatorTask(Task* arg0);
 
 #endif /* SRC_SHARED_GENERATOR_H */

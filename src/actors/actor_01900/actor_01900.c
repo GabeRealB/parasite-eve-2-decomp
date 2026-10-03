@@ -178,23 +178,10 @@ extern EnemyParams        Actor01900_D0AC54;
 extern ActorSpawnParamRow Actor01900_D0AC64[];
 extern AnimationSet*      Actor01900_D17174[46];
 // Typed callback views for the task message dispatcher.
-typedef struct {
-    s32 id;
-    union {
-        s32  (*call0)(void);
-        s32  (*call1)(Task*);
-        s32  (*call2)(Task*, s32, AnimationPlayRequest*);
-        s32  (*call3)(Task*, s32, ActorTransform*);
-        s32  (*call4)(Task*, s32, s32);
-        s32  (*call5)(Task*, s32, u16*);
-        void (*call6)(void);
-    } handler;
-} Actor01900RecoveredMsgEntry;
-STATIC_ASSERT_SIZEOF(Actor01900RecoveredMsgEntry, 8);
 
-extern Actor01900RecoveredMsgEntry Actor01900_D1728C[8];
-static AnimationSet                _gActor01900Actor101900Animation16960;
-extern ActorHeightClamp            Actor01900_D172CC[];
+extern TaskMessageEntry Actor01900_D1728C[8];
+static AnimationSet     _gActor01900Actor101900Animation16960;
+extern ActorHeightClamp Actor01900_D172CC[];
 /// Twelve preset hit-reaction directions `Actor01900_Fn02664` copies from;
 /// `pad` carries the index of the coordinate the effect is attached to.
 extern SVECTOR   Actor01900_D1722C[];
@@ -212,18 +199,18 @@ static s32  Actor01900_Fn03FF8(Task* arg0, WorldCollisionContact* recs, s16 coun
 static void Actor01900_Fn08724(Task* arg0);
 static void Actor01900_Fn0A7C0(Task* arg0);
 static void Actor01900_Fn03C04(GameLocationKey* session, GfxCoord* coord);
-s32         Actor01900_Fn0A31C(Task* arg0, s32 arg1, AnimationPlayRequest* arg2);
-s32         Actor01900_Fn0A5A4(Task* arg0, s32 arg1, u16* arg2);
+s32         Actor01900_Fn0A31C(Task* arg0, s32 arg1, AnimationPlayRequest* arg2, s32 arg3);
+s32         Actor01900_Fn0A5A4(Task* arg0, s32 arg1, u16* arg2, s32 arg3);
 
 /* Inline bodies behind `Actor01900_Fn080A8`. Same shapes as
  * `actor_400100_facing.h` and `ActorsShared80135a60`; inlining is what keeps
  * each `SCRATCH_STACK_CURSOR_SLOT` access out of a register CSE would share. */
 
 static TmdSource _gActor01900GrinningStrangerBody;
-s32              Actor01900_Fn0A31C(Task*, s32, AnimationPlayRequest*);
-s32              Actor01900_Fn0A59C(void);
-s32              Actor01900_Fn0A5A4(Task*, s32, u16*);
-void             Actor01900_Fn0A314(void);
+s32              Actor01900_Fn0A31C(Task*, s32, AnimationPlayRequest*, s32);
+s32              Actor01900_Fn0A59C(Task*, s32, s32, s32);
+s32              Actor01900_Fn0A5A4(Task*, s32, u16*, s32);
+s32              Actor01900_Fn0A314(Task*, s32, s32, s32);
 void             Actor01900_Fn0ABE4(Task*);
 
 DamageAttack Actor01900_D0AC4C[2] = {
@@ -701,15 +688,15 @@ SVECTOR Actor01900_D1722C[12] = {
     { -25, 0, 0, 2 },
 };
 
-Actor01900RecoveredMsgEntry Actor01900_D1728C[8] = {
-    { 2015, { .call6 = Actor01900_Fn0A314 } },
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call2 = Actor01900_Fn0A31C } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = actorMsgSetVisibility } },
-    { ACTOR_MESSAGE_IS_PRESENT, { .call1 = actorMsgIsPresent } },
-    { ACTOR_MESSAGE_PLACE, { .call3 = actorMsgPlaceRecordYaw } },
-    { 2014, { .call0 = Actor01900_Fn0A59C } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call5 = Actor01900_Fn0A5A4 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry Actor01900_D1728C[8] = {
+    { 2015, Actor01900_Fn0A314 },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, Actor01900_Fn0A31C },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetVisibility },
+    { ACTOR_MESSAGE_IS_PRESENT, actorMsgIsPresent },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceRecordYaw },
+    { 2014, Actor01900_Fn0A59C },
+    { ACTOR_COMMAND_MESSAGE_APPLY, Actor01900_Fn0A5A4 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 ActorHeightClamp Actor01900_D172CC[3] = {
@@ -3376,7 +3363,7 @@ static void Actor01900_Fn09D3C(Enemy* enemy, Task* actor)
     enemy->coord = &gGfxViewCoord;
 }
 
-void Actor01900_Fn0A314(void)
+s32 Actor01900_Fn0A314(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
 }
 
@@ -3428,7 +3415,7 @@ static const GpEnemyTaskFuncTable4 Actor01900_D0023C = { {
     enemyDestroy,
 } };
 
-s32 Actor01900_Fn0A31C(Task* arg0, s32 arg1, AnimationPlayRequest* arg2)
+s32 Actor01900_Fn0A31C(Task* arg0, s32 arg1, AnimationPlayRequest* arg2, s32 arg3)
 {
     Actor01900Work* work = arg0->work;
 
@@ -3460,12 +3447,12 @@ s32 Actor01900_Fn0A31C(Task* arg0, s32 arg1, AnimationPlayRequest* arg2)
 
 #include "../../shared/actor_messages_place_yaw.inc.c"
 
-s32 Actor01900_Fn0A59C(void)
+s32 Actor01900_Fn0A59C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 1;
 }
 
-s32 Actor01900_Fn0A5A4(Task* arg0, s32 arg1, u16* arg2)
+s32 Actor01900_Fn0A5A4(Task* arg0, s32 arg1, u16* arg2, s32 arg3)
 {
     u16             room;
     u16             state;

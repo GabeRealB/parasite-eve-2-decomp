@@ -29,9 +29,9 @@ extern EvsCommand D_mine_tunnel_8017E024[];
 /// and 0x13F0 by `func_mine_tunnel_8017D630`.
 extern TaskMessageEntry D_mine_tunnel_8017DFC4[];
 
-s32 func_mine_tunnel_8017D5E4(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_mine_tunnel_8017D5E4(Task*, s32, s32, s32);
 s32 func_mine_tunnel_8017D5EC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_mine_tunnel_8017D630(Task*, s32, s32, TaskMessageArg);
+s32 func_mine_tunnel_8017D630(Task*, s32, s32, s32);
 s32 func_mine_tunnel_8017D670(Task*, s32, RoomEventMsg*, s32);
 
 static AnimationSet _gMineTunnelAnimation009DC;
@@ -100,7 +100,7 @@ static void func_mine_tunnel_8017D6EC(Task* arg0);
 static void func_mine_tunnel_8017D774(Task* task);
 
 /// The room's handler for message 0x13F1: does nothing and returns 0.
-s32 func_mine_tunnel_8017D5E4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_mine_tunnel_8017D5E4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -114,7 +114,7 @@ s32 func_mine_tunnel_8017D5EC(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventM
     return 1;
 }
 
-s32 func_mine_tunnel_8017D630(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_mine_tunnel_8017D630(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 2) {
         Gp_RunCapCmd1(GameFlag_GetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_PROGRESS) >= 2 ? 3 : 2);

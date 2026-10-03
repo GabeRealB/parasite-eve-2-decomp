@@ -52,14 +52,14 @@ static void func_dryfield_night_water_tower_8017DB20(Task* task);
 #include "../../shared/water_tower_sound_msg.inc.c"
 
 /// The room's handler for message 0x13F1: answers 0.
-s32 func_dryfield_night_water_tower_8017DA9C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_water_tower_8017DA9C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
 /// The room's handler for message 0x13F0: script event 7 starts CAP slot 7;
 /// every event answers 0.
-s32 func_dryfield_night_water_tower_8017DAA4(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_water_tower_8017DAA4(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 7) {
         Gp_StartCapSlot(7, 1, 3);
@@ -68,7 +68,7 @@ s32 func_dryfield_night_water_tower_8017DAA4(Task* arg0, s32 arg1, s32 arg2, Tas
 }
 
 /// The room's handler for message 0x13EF: answers 0.
-s32 func_dryfield_night_water_tower_8017DAD4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_water_tower_8017DAD4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

@@ -122,36 +122,28 @@ extern s32           D_actor_136100_8013F224[8];
 extern s32           D_actor_136100_8013F244[32];
 extern s32           D_actor_136100_8013F2C4[12];
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        void (*call0)(Task*, s32, ActorTransform*);
-        void (*call1)(Task*, s32, s32);
-    } handler;
-} Actor136100MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor136100MessageEntry, 8);
 
-extern Actor136100MessageEntry D_actor_136100_8013F2F4[2];
-extern ActorTransform          D_actor_136100_8013F364;
-extern ActorTransform          D_actor_136100_8013F37C;
-extern ActorTransform          D_actor_136100_8013F394;
-extern ActorTransform          D_actor_136100_8013F3AC;
-extern ActorTransform          D_actor_136100_8013F3F4;
-extern ActorTransform          D_actor_136100_8013F40C;
-extern ActorTransform          D_actor_136100_8013F424;
-extern ActorTransform          D_actor_136100_8013F43C;
-extern ActorTransform          D_actor_136100_8013F454;
-extern EvsCommand              D_actor_136100_8013F46C[];
-extern EvsCommand              D_actor_136100_8013F784[];
-extern EvsCommand              D_actor_136100_8013F94C[];
-extern EvsCommand              D_actor_136100_8013FAE4[];
-extern EvsCommand              D_actor_136100_8013FC64[];
-extern EvsCommand              D_actor_136100_8013FD84[];
-extern EvsCommand              D_actor_136100_80140114[];
-extern EvsCommand              D_actor_136100_801402C4[];
-extern EvsCommand              D_actor_136100_801404EC[];
-extern EvsCommand              D_actor_136100_8014063C[];
-extern Task*                   D_actor_136100_8014078C;
+extern TaskMessageEntry D_actor_136100_8013F2F4[2];
+extern ActorTransform   D_actor_136100_8013F364;
+extern ActorTransform   D_actor_136100_8013F37C;
+extern ActorTransform   D_actor_136100_8013F394;
+extern ActorTransform   D_actor_136100_8013F3AC;
+extern ActorTransform   D_actor_136100_8013F3F4;
+extern ActorTransform   D_actor_136100_8013F40C;
+extern ActorTransform   D_actor_136100_8013F424;
+extern ActorTransform   D_actor_136100_8013F43C;
+extern ActorTransform   D_actor_136100_8013F454;
+extern EvsCommand       D_actor_136100_8013F46C[];
+extern EvsCommand       D_actor_136100_8013F784[];
+extern EvsCommand       D_actor_136100_8013F94C[];
+extern EvsCommand       D_actor_136100_8013FAE4[];
+extern EvsCommand       D_actor_136100_8013FC64[];
+extern EvsCommand       D_actor_136100_8013FD84[];
+extern EvsCommand       D_actor_136100_80140114[];
+extern EvsCommand       D_actor_136100_801402C4[];
+extern EvsCommand       D_actor_136100_801404EC[];
+extern EvsCommand       D_actor_136100_8014063C[];
+extern Task*            D_actor_136100_8014078C;
 
 static void func_actor_136100_80132748(Task* arg0);
 static void func_actor_136100_80133238(Task* arg0);
@@ -186,7 +178,7 @@ void             func_actor_136100_8013379C(s32);
 void             func_actor_136100_80133BC8(Task*);
 void             func_actor_136100_80134588(Task*);
 void             func_actor_136100_8013467C(void);
-void             func_actor_136100_801346EC(Task*, s32, s32);
+void             func_actor_136100_801346EC(Task*, s32, s32, s32);
 void             func_actor_136100_801347B8(void);
 void             func_actor_136100_80134838(s16);
 void             func_actor_136100_80134858(s16);
@@ -925,9 +917,9 @@ s32 D_actor_136100_8013F244[32] = { -0x12B0BB8, 8400, -0x12B0BB8, 7000, 0xF448, 
 
 s32 D_actor_136100_8013F2C4[12] = { 0x10000, 0x30002, 0, 0x50004, 0x70006, 1, 0x90008, 0xB000A, 2, 0xD000C, 0xF000E, 3 };
 
-Actor136100MessageEntry D_actor_136100_8013F2F4[2] = {
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call1 = func_actor_136100_801346EC } },
-    { ACTOR_MESSAGE_PLACE, { .call0 = actorMsgPlaceInView } },
+TaskMessageEntry D_actor_136100_8013F2F4[2] = {
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_136100_801346EC },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceInView },
 };
 
 // The following record is dereferenced through an indexed view of this base; keep the complete bounded pool.
@@ -2387,7 +2379,7 @@ void func_actor_136100_8013467C(void)
 
 /// Shows the task's model when `arg2` is non-zero and hides it (bit 0x80 of
 /// its `TmdObject` flags) otherwise; `arg1` is unused.
-void func_actor_136100_801346EC(Task* task, s32 arg1, s32 arg2)
+void func_actor_136100_801346EC(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
     TmdObject* obj;
 

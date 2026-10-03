@@ -416,6 +416,13 @@ overlay.
   graph's extractor (`ref_index.graph_records`) rebuilds it (~75 s). Locals and parameters are not
   indexed and still parse their one unit; `PE2_REF_INDEX=0` turns it off. The
   naming pass's driver keeps it current and copies it into each worker.
+- `venv/bin/python3 tools/refactor/check_message_handlers.py [--void]` check
+  that every function installed in a `TaskMessageEntry` table has the shape
+  `taskMessageDispatch` calls: four parameters, `Task*` first and the `s32`
+  message id second. The table's callback type is unprototyped
+  (`s32 (*)()`), so the compiler accepts anything; payload parameters keep
+  each handler's own types. `--void` lists the handlers that return nothing.
+  It parses every unit (~1 min) and is not run by the build.
 - `python3 tools/refactor/check_decls.py [PATH_PREFIX ...]` report C symbols
   whose declarations disagree with their definition, or with each other,
   within one linked image, plus unprototyped and implicit declarations. The

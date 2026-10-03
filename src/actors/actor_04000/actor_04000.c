@@ -61,17 +61,6 @@ typedef union Actor104000Event {
 } Actor104000Event;
 
 // Typed callback views for the task message dispatcher.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(Task*, s32, Actor104000Event*);
-        s32 (*call1)(Task*, s32, AnimationPlayRequest*, s32);
-        s32 (*call2)(Task*, s32, ActorTransform*);
-        s32 (*call3)(Task*, s32, s32);
-        s32 (*call4)(Task*, s32, void*);
-    } handler;
-} Actor04000RecoveredMsgEntry;
-STATIC_ASSERT_SIZEOF(Actor04000RecoveredMsgEntry, 8);
 
 /// The actor's per-instance work block (`Task::work`),
 /// allocated and filled by `Actor04000_Fn010B8`. It embeds four
@@ -191,9 +180,9 @@ void             Actor04000_Fn06EA8(Task*);
 void             Actor04000_Fn06F54(Task*);
 void             Actor04000_Fn0703C(Task*);
 
-s32 Actor04000_Fn0093C(Task*, s32, Actor104000Event*);
-s32 Actor04000_Fn06590(Task*, s32, s32);
-s32 Actor04000_Fn06704(Task*, s32, void*);
+s32 Actor04000_Fn0093C(Task*, s32, Actor104000Event*, s32);
+s32 Actor04000_Fn06590(Task*, s32, s32, s32);
+s32 Actor04000_Fn06704(Task*, s32, void*, s32);
 s32 Actor04000_Fn06728(Task*, s32, AnimationPlayRequest*, s32);
 
 DamageAttack Actor04000_D07078[3] = {
@@ -1115,13 +1104,13 @@ u8 Actor04000_D0C544[364] = {
     0,
 };
 
-Actor04000RecoveredMsgEntry Actor04000_D0C6B0[6] = {
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = Actor04000_Fn06590 } },
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = Actor04000_Fn06728 } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = Actor04000_Fn0093C } },
-    { ACTOR_MESSAGE_PLACE, { .call2 = actorMsgPlace } },
-    { 2014, { .call4 = Actor04000_Fn06704 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry Actor04000_D0C6B0[6] = {
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, Actor04000_Fn06590 },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, Actor04000_Fn06728 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, Actor04000_Fn0093C },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlace },
+    { 2014, Actor04000_Fn06704 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc Actor04000_D0C6E0 = { { { TASK_BODY_TMD, 96 } }, Actor04000_Fn06E4C, { .model = &_gActor04000BloodSucklerBody } };
@@ -1145,7 +1134,7 @@ extern EnemyParams Actor04000_D07084;
 
 extern AnimationSet* Actor04000_D0C4C4[19];
 
-extern Actor04000RecoveredMsgEntry Actor04000_D0C6B0[6];
+extern TaskMessageEntry Actor04000_D0C6B0[6];
 
 extern AnimationPlayRequest Actor04000_D0C530;
 
@@ -1186,7 +1175,7 @@ static void            Actor04000_Fn05F0C(Enemy* arg0, Task* arg1);
 /// Message handler: 0x1003/1 registers the actor in its lead slot and places
 /// it at that slot's start point; 0x1203 and 0x302 move it to the scripted
 /// positions for its slot and pick the next state.
-s32 Actor04000_Fn0093C(Task* arg0, s32 arg1, Actor104000Event* event)
+s32 Actor04000_Fn0093C(Task* arg0, s32 arg1, Actor104000Event* event, s32 arg3)
 {
     Actor104000Work* work;
     Enemy*           ctx;
@@ -2942,7 +2931,7 @@ void Actor04000_Fn06380(Task* arg0)
 /// 7, 1 hides it and sets state 7, 2 raises the lost-model flag (4) and clears
 /// the state, 3 hides it, clears the state and then raises the flag, and any
 /// other mode leaves both alone. Always answers 0.
-s32 Actor04000_Fn06590(Task* task, s32 arg1, s32 arg2)
+s32 Actor04000_Fn06590(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
     Actor104000Work* work;
     TmdObject*       obj;
@@ -2978,7 +2967,7 @@ s32 Actor04000_Fn06590(Task* task, s32 arg1, s32 arg2)
 
 /// Message handler for 0x7DE: advances the work block's state from 0xB to 0xD
 /// and leaves any other state alone.
-s32 Actor04000_Fn06704(Task* arg0, s32 arg1, void* arg2)
+s32 Actor04000_Fn06704(Task* arg0, s32 arg1, void* arg2, s32 arg3)
 {
     Actor104000Work* work;
 

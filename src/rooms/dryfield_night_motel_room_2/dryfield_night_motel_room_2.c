@@ -56,9 +56,9 @@ extern TaskMessageEntry D_dryfield_night_motel_room_2_8017DA1C[];
 extern SVECTOR D_dryfield_night_motel_room_2_8017DA44[];
 extern SVECTOR D_dryfield_night_motel_room_2_8017DA54[];
 
-s32 func_dryfield_night_motel_room_2_8017D5D0(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_dryfield_night_motel_room_2_8017D660(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_dryfield_night_motel_room_2_8017D668(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_motel_room_2_8017D5D0(Task*, s32, s32, s32);
+s32 func_dryfield_night_motel_room_2_8017D660(Task*, s32, s32, s32);
+s32 func_dryfield_night_motel_room_2_8017D668(Task*, s32, s32, s32);
 
 extern WorldCollisionGrid     D_dryfield_night_motel_room_2_8017E184[1];
 extern WorldCollisionOccluder D_dryfield_night_motel_room_2_80180580[2];
@@ -1124,7 +1124,7 @@ static void func_dryfield_night_motel_room_2_8017D670(Task* task);
 static void func_dryfield_night_motel_room_2_8017D6B4(Task* task);
 
 /// The room's handler for message 0x13F1: does nothing and returns 0.
-s32 func_dryfield_night_motel_room_2_8017D5D0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_motel_room_2_8017D5D0(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -1132,13 +1132,13 @@ s32 func_dryfield_night_motel_room_2_8017D5D0(Task* task, s32 msgId, TaskMessage
 #include "../../shared/room_variants_main_street.inc.c"
 
 /// The room's handler for message 0x13F0: does nothing and returns 0.
-s32 func_dryfield_night_motel_room_2_8017D660(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_motel_room_2_8017D660(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
 /// The room's handler for message 0x13EF: does nothing and returns 0.
-s32 func_dryfield_night_motel_room_2_8017D668(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_motel_room_2_8017D668(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

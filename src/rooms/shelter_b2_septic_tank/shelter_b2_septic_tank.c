@@ -118,10 +118,10 @@ void                            func_shelter_b2_septic_tank_8017D9A0(void);
 
 extern TaskDesc D_80147E48;
 
-s32 func_shelter_b2_septic_tank_8017D7AC(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_b2_septic_tank_8017D7AC(Task*, s32, s32, s32);
 s32 func_shelter_b2_septic_tank_8017D7B4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_b2_septic_tank_8017D904(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_shelter_b2_septic_tank_8017D90C(Task*, s32, RoomEventMsg*, TaskMessageArg);
+s32 func_shelter_b2_septic_tank_8017D904(Task*, s32, s32, s32);
+s32 func_shelter_b2_septic_tank_8017D90C(Task*, s32, RoomEventMsg*, s32);
 
 static AnimationPackedPose _gShelterB2SepticTankAnimation05958Bank1[6] = {
 #include "assets/shelter_b2_septic_tank_animation_05958_bank1.inc"
@@ -1200,7 +1200,7 @@ static __inline__ s32 _shelterB2SepticTankStartEvent(RoomEventMsg* dst, RoomLatc
 
 #include "../../shared/room_event_staged_task.inc.c"
 
-s32 func_shelter_b2_septic_tank_8017D7AC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b2_septic_tank_8017D7AC(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -1224,12 +1224,12 @@ s32 func_shelter_b2_septic_tank_8017D7B4(Task* arg0, s32 arg1, RoomEventMsg* in,
     return _shelterB2SepticTankStartEvent(out, &event);
 }
 
-s32 func_shelter_b2_septic_tank_8017D904(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b2_septic_tank_8017D904(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b2_septic_tank_8017D90C(Task* arg0, s32 arg1, RoomEventMsg* arg2, TaskMessageArg arg3)
+s32 func_shelter_b2_septic_tank_8017D90C(Task* arg0, s32 arg1, RoomEventMsg* arg2, s32 arg3)
 {
     u8  kind;
     s32 flag;

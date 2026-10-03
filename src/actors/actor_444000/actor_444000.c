@@ -254,18 +254,8 @@ extern AnimationSet* D_actor_444000_80161500[];
 extern AnimationSet* D_actor_444000_801615B8[];
 /// The enemy task's message-handler table, parked in `Task::msgTable`.
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(Task*);
-        s32 (*call1)(Task*, s32, ActorCommand* request);
-        s32 (*call2)(Task*, s32, ActorTransform*);
-        s32 (*call3)(Task*, s32, s32);
-    } handler;
-} Actor444000MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor444000MessageEntry, 8);
 
-extern Actor444000MessageEntry D_actor_444000_80161818[7];
+extern TaskMessageEntry D_actor_444000_80161818[7];
 /// Spawn table of the seven escorts, indexed 0..6.
 extern TaskDesc D_actor_444000_801616B0[];
 /// Effect argument block the spawn state points at the host's root coordinate.
@@ -392,8 +382,8 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task);
 static void func_actor_444000_801423C4(Enemy* enemy, Task* task);
 static void func_actor_444000_801434C4(Task* arg0);
 static void func_actor_444000_801435CC(Task* arg0);
-s32         func_actor_444000_80143D68(Task* arg0);
-s32         func_actor_444000_80143F38(Task* arg0);
+s32         func_actor_444000_80143D68(Task* arg0, s32 msgId, s32 arg2, s32 arg3);
+s32         func_actor_444000_80143F38(Task* arg0, s32 msgId, s32 arg2, s32 arg3);
 static void func_actor_444000_80143F4C(Task* arg0);
 
 static AnimationSet _gActor444000Animation21904;
@@ -448,12 +438,12 @@ static TmdSource _gActor444000Actor403200Model19284;
 static TmdSource _gActor444000Actor403200Model1AC48;
 
 extern TmdSource gActor444000Actor403200Model10824;
-s32              func_actor_444000_8013A958(Task*, s32, s32);
-s32              func_actor_444000_8013ACD0(Task*, s32, ActorCommand* msg);
-s32              func_actor_444000_80143D68(Task*);
-s32              func_actor_444000_80143D7C(Task*, s32, ActorTransform* placement);
-s32              func_actor_444000_80143E68(Task*, s32, s32);
-s32              func_actor_444000_80143F38(Task*);
+s32              func_actor_444000_8013A958(Task*, s32, s32, s32);
+s32              func_actor_444000_8013ACD0(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
+s32              func_actor_444000_80143D68(Task*, s32, s32, s32);
+s32              func_actor_444000_80143D7C(Task* task, s32 msgId, ActorTransform* placement, s32 arg3);
+s32              func_actor_444000_80143E68(Task*, s32, s32, s32);
+s32              func_actor_444000_80143F38(Task*, s32, s32, s32);
 void             func_actor_444000_80142F28(Task*);
 
 void func_actor_444000_801321FC(s32);
@@ -2655,14 +2645,14 @@ TaskDesc gGluttonEscortTasks[4] = {
 
 TaskDesc D_actor_444000_8016180C = { { { TASK_BODY_TMD, 96 } }, gluttonSpinnerTask, { .model = &_gActor444000Actor403200Model19284 } };
 
-Actor444000MessageEntry D_actor_444000_80161818[7] = {
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = func_actor_444000_8013A958 } },
-    { ACTOR_MESSAGE_IS_PRESENT, { .call0 = func_actor_444000_80143D68 } },
-    { ACTOR_MESSAGE_PLACE, { .call2 = func_actor_444000_80143D7C } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_444000_8013ACD0 } },
-    { ROOM_MESSAGE_ACTOR_EVENT, { .call3 = func_actor_444000_80143E68 } },
-    { SCENE_MESSAGE_EXIT_PLACED_ACTORS, { .call0 = func_actor_444000_80143F38 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_444000_80161818[7] = {
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_444000_8013A958 },
+    { ACTOR_MESSAGE_IS_PRESENT, func_actor_444000_80143D68 },
+    { ACTOR_MESSAGE_PLACE, func_actor_444000_80143D7C },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_444000_8013ACD0 },
+    { ROOM_MESSAGE_ACTOR_EVENT, func_actor_444000_80143E68 },
+    { SCENE_MESSAGE_EXIT_PLACED_ACTORS, func_actor_444000_80143F38 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 s16 D_actor_444000_80161850 = 0;
@@ -3923,7 +3913,7 @@ static const GpEnemyTaskFuncTable4 gGluttonSpinnerStates = {
 /// clear, then sets `TMD_OBJECT_SKIP_AUTO_BUFFER` on the host alone. Cases 0
 /// and 2 also reset `field_0`. Case 2 tests the bit it just set, so that test
 /// is always true.
-s32 func_actor_444000_8013A958(Task* task, s32 msgId, s32 arg2)
+s32 func_actor_444000_8013A958(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     TmdObject*   tmd;
     GluttonWork* work;
@@ -4064,7 +4054,7 @@ static __inline__ void Actor444000_RebuildRotation(Task* task)
 /// re-arms the animation blocks and drops the model onto its start position,
 /// and 19 switches the host and its fourth escort to light mode 2 before
 /// raising eight floor vertices and flattening the model's rotation.
-s32 func_actor_444000_8013ACD0(Task* task, s32 msgId, ActorCommand* msg)
+s32 func_actor_444000_8013ACD0(Task* task, s32 msgId, ActorCommand* msg, s32 arg3)
 {
     GluttonWork* work  = task->work;
     Enemy*       enemy = task->spawnArg2.pointer;
@@ -7063,7 +7053,7 @@ static void func_actor_444000_801435CC(Task* arg0)
 
 #include "../../shared/glutton_spinner_task.inc.c"
 
-s32 func_actor_444000_80143D68(Task* arg0)
+s32 func_actor_444000_80143D68(Task* arg0, s32 msgId, s32 arg2, s32 arg3)
 {
     return ((Enemy*)arg0->spawnArg2.pointer)->hp > 0;
 }
@@ -7072,7 +7062,7 @@ s32 func_actor_444000_80143D68(Task* arg0)
 /// longs become the translation, the Euler angles are applied X/Y/Z unless the
 /// work block's state index is 0x12 or 0x13, and the coordinate is marked
 /// dirty. Same body as `ActorsShared80135990` with that state gate added.
-s32 func_actor_444000_80143D7C(Task* arg0, s32 arg1, ActorTransform* placement)
+s32 func_actor_444000_80143D7C(Task* arg0, s32 arg1, ActorTransform* placement, s32 arg3)
 {
     GluttonWork* work = arg0->work;
 
@@ -7093,7 +7083,7 @@ s32 func_actor_444000_80143D7C(Task* arg0, s32 arg1, ActorTransform* placement)
 /// shows it as a heal, and tops the enemy's HP back up by 0x64; state 1 ticks
 /// the countdown at 0xF1C down, re-arms `field_F16` and drops either tracked
 /// enemy whose HP has run out.
-s32 func_actor_444000_80143E68(Task* arg0, s32 arg1, s32 arg2)
+s32 func_actor_444000_80143E68(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     GluttonWork* work = arg0->work;
     Enemy*       obj  = arg0->spawnArg2.pointer;
@@ -7122,7 +7112,7 @@ s32 func_actor_444000_80143E68(Task* arg0, s32 arg1, s32 arg2)
     return 1;
 }
 
-s32 func_actor_444000_80143F38(Task* arg0)
+s32 func_actor_444000_80143F38(Task* arg0, s32 msgId, s32 arg2, s32 arg3)
 {
     ((GluttonWork*)arg0->work)->field_0 = 0;
     return 1;

@@ -71,20 +71,9 @@ extern EvsCommand D_actor_260500_8014DAB0[];
 extern EvsCommand D_actor_260500_8014DCC0[];
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call1)(Task*, s32, ActorCommand* request);
-        s32 (*call2)(Task*, s32, ActorTransform*);
-        s32 (*call3)(Task*, s32, VECTOR*, s32);
-        s32 (*call4)(Task*, s32, s32);
-    } handler;
-} Actor260500MsgEntry;
-STATIC_ASSERT_SIZEOF(Actor260500MsgEntry, 8);
 
-extern Actor260500MsgEntry D_actor_260500_80159D80[];
-extern u8                  D_actor_260500_80159DBC[];
+extern TaskMessageEntry D_actor_260500_80159D80[];
+extern u8               D_actor_260500_80159DBC[];
 
 static void func_actor_260500_8014A4BC(Enemy* enemy, Task* task);
 static void func_actor_260500_8014A540(Task* task);
@@ -92,9 +81,9 @@ static void func_actor_260500_8014A540(Task* task);
 static TmdSource _gActor260500JodieBouquetBody2;
 void             func_actor_260500_8014A460(Task*);
 
-s32 func_actor_260500_8014A6C4(Task*, s32, AnimationPlayRequest*);
-s32 func_actor_260500_8014A754(Task*, s32, s32);
-s32 func_actor_260500_8014A818(Task*, s32, ActorCommand* msg);
+s32 func_actor_260500_8014A6C4(Task*, s32, AnimationPlayRequest*, s32);
+s32 func_actor_260500_8014A754(Task*, s32, s32, s32);
+s32 func_actor_260500_8014A818(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
 s32 func_actor_260500_8014A83C(Task*, s32, VECTOR*, s32);
 
 extern AnimationPlayRequest D_actor_260500_8014C874;
@@ -1339,13 +1328,13 @@ static TmdSource _gActor260500JodieBouquetBody2 = {
 
 s16 gFootstepWalkBlendFrames = 8;
 
-Actor260500MsgEntry D_actor_260500_80159D80[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = func_actor_260500_8014A6C4 } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = func_actor_260500_8014A754 } },
-    { ACTOR_MESSAGE_PLACE, { .call2 = footstepWalkPlace } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_260500_8014A818 } },
-    { ACTOR_MESSAGE_WALK_TO, { .call3 = func_actor_260500_8014A83C } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_260500_80159D80[6] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_260500_8014A6C4 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_260500_8014A754 },
+    { ACTOR_MESSAGE_PLACE, footstepWalkPlace },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_260500_8014A818 },
+    { ACTOR_MESSAGE_WALK_TO, func_actor_260500_8014A83C },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_actor_260500_80159DB0 = { { { TASK_BODY_TMD, 192 } }, func_actor_260500_8014A460, { .model = &_gActor260500JodieBouquetBody2 } };
@@ -1648,7 +1637,7 @@ static void func_actor_260500_8014A540(Task* task)
 /// 2 for the plain one -- and the reset argument the blended reseed forwards,
 /// then runs the update on the actor's task. Ids past the range are rejected
 /// with -1 and leave the work block untouched.
-s32 func_actor_260500_8014A6C4(Task* task, s32 arg1, AnimationPlayRequest* preset)
+s32 func_actor_260500_8014A6C4(Task* task, s32 arg1, AnimationPlayRequest* preset, s32 arg3)
 {
     if (preset->animationId < 0x24) {
         gFootstepWalkWork->st.animId = preset->animationId;
@@ -1667,7 +1656,7 @@ s32 func_actor_260500_8014A6C4(Task* task, s32 arg1, AnimationPlayRequest* prese
 
 /// Visibility handler: bit 0 of `arg2` shows the actor's model (flags 0) or
 /// hides it (0x80), and bit 1 ORs in 0x4.
-s32 func_actor_260500_8014A754(Task* task, s32 arg1, s32 arg2)
+s32 func_actor_260500_8014A754(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
     TmdObject* obj;
 
@@ -1687,7 +1676,7 @@ s32 func_actor_260500_8014A754(Task* task, s32 arg1, s32 arg2)
 
 /// Message 0x7DB: a zero payload halfword at 0x2 arms the work block's
 /// `turnFrames` at 0x14.
-s32 func_actor_260500_8014A818(Task* task, s32 arg1, ActorCommand* msg)
+s32 func_actor_260500_8014A818(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
 {
     if (msg->command == 0) {
         gFootstepWalkWork->turnFrames = 0x14;

@@ -44,10 +44,10 @@ static const TaskFuncTable3 D_shelter_b2_pod_bottom_8017D5C4 = {
     { func_shelter_b2_pod_bottom_8017D648, func_shelter_b2_pod_bottom_8017D6F8, taskKill },
 };
 
-s32 func_shelter_b2_pod_bottom_8017D5EC(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_b2_pod_bottom_8017D5EC(Task*, s32, s32, s32);
 s32 func_shelter_b2_pod_bottom_8017D5F4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_b2_pod_bottom_8017D638(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_shelter_b2_pod_bottom_8017D640(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_b2_pod_bottom_8017D638(Task*, s32, s32, s32);
+s32 func_shelter_b2_pod_bottom_8017D640(Task*, s32, s32, s32);
 
 extern WorldCollisionGrid    D_shelter_b2_pod_bottom_80182B5C[1];
 extern WorldCollisionTrigger D_shelter_b2_pod_bottom_80186FA8[20];
@@ -992,7 +992,7 @@ AreaVariant D_shelter_b2_pod_bottom_80187678[11] = {
 };
 
 /// The room's handler for message 0x13F1: does nothing and returns 0.
-s32 func_shelter_b2_pod_bottom_8017D5EC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b2_pod_bottom_8017D5EC(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -1007,13 +1007,13 @@ s32 func_shelter_b2_pod_bottom_8017D5F4(Task* arg0, s32 arg1, RoomEventMsg* in, 
 }
 
 /// The room's handler for message 0x13F0: does nothing and returns 0.
-s32 func_shelter_b2_pod_bottom_8017D638(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b2_pod_bottom_8017D638(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
 /// The room's handler for message 0x13EF: does nothing and returns 0.
-s32 func_shelter_b2_pod_bottom_8017D640(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b2_pod_bottom_8017D640(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

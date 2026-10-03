@@ -28,11 +28,11 @@ static const TaskFuncTable3 D_shelter_b1_storeroom_8017D5C4 = {
     { func_shelter_b1_storeroom_8017D740, func_shelter_b1_storeroom_8017D78C, taskKill }
 };
 
-s32 func_shelter_b1_storeroom_8017D5FC(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_b1_storeroom_8017D5FC(Task*, s32, s32, s32);
 s32 func_shelter_b1_storeroom_8017D604(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_b1_storeroom_8017D6E0(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_shelter_b1_storeroom_8017D6E8(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_shelter_b1_storeroom_8017D6F0(Task*, s32, s32, TaskMessageArg);
+s32 func_shelter_b1_storeroom_8017D6E0(Task*, s32, s32, s32);
+s32 func_shelter_b1_storeroom_8017D6E8(Task*, s32, s32, s32);
+s32 func_shelter_b1_storeroom_8017D6F0(Task*, s32, s32, s32);
 
 TaskMessageEntry D_shelter_b1_storeroom_80184968[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_storeroom_8017D604 },
@@ -43,7 +43,7 @@ TaskMessageEntry D_shelter_b1_storeroom_80184968[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-s32 func_shelter_b1_storeroom_8017D5FC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b1_storeroom_8017D5FC(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -73,17 +73,17 @@ s32 func_shelter_b1_storeroom_8017D604(Task* arg0, s32 arg1, RoomEventMsg* in, R
     return 0;
 }
 
-s32 func_shelter_b1_storeroom_8017D6E0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b1_storeroom_8017D6E0(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b1_storeroom_8017D6E8(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b1_storeroom_8017D6E8(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b1_storeroom_8017D6F0(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_shelter_b1_storeroom_8017D6F0(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     switch (arg2) {
         case 8:

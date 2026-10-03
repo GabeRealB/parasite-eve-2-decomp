@@ -7,7 +7,7 @@
 ///
 /// The `TmdObject` is re-read from `Task::extra` for every access because the
 /// stores and the `Gfx_RotMatrix*` calls in between may alias it.
-s32 actorMsgPlaceYawFirst(Task* task, s32 arg1, ActorTransform* placement)
+s32 actorMsgPlaceYawFirst(Task* task, s32 arg1, ActorTransform* placement, s32 arg3)
 {
     ActorYawWork* work;
 

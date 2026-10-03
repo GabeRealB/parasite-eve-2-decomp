@@ -73,8 +73,8 @@ extern s16 gRoamerLastRequest;
 extern s16 gRoamerReleasePending;
 
 /// Message tables the two arming tasks install in `Task::msgTable`.
-extern RoamerPoolAMessageEntry gRoamerMsgTableA[];
-extern TaskMessageEntry        gRoamerMsgTableB[];
+extern TaskMessageEntry gRoamerMsgTableA[];
+extern TaskMessageEntry gRoamerMsgTableB[];
 
 /// Spawn placements of the first and the second arming task, indexed by the
 /// placement request minus one.
@@ -94,9 +94,9 @@ static const TaskFuncTable4 D_neo_ark_forest_zone_8017D5E8 = { {
     taskKill,
 } };
 
-s32 func_neo_ark_forest_zone_801813BC(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_neo_ark_forest_zone_80181494(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_neo_ark_forest_zone_801814B0(Task*, s32, TaskMessageArg firstArg, TaskMessageArg);
+s32 func_neo_ark_forest_zone_801813BC(Task*, s32, s32, s32);
+s32 func_neo_ark_forest_zone_80181494(Task*, s32, s32, s32);
+s32 func_neo_ark_forest_zone_801814B0(Task* task, s32 msgId, const void* firstArg, s32 arg3);
 
 extern WorldCollisionGrid    D_neo_ark_forest_zone_80182274[1];
 extern WorldCollisionTrigger D_neo_ark_forest_zone_801826B4[6];
@@ -522,11 +522,11 @@ s16 gRoamerLastRequest = 0;
 
 s16 gRoamerReleasePending = 0;
 
-RoamerPoolAMessageEntry gRoamerMsgTableA[4] = {
-    { DIRECTION_MESSAGE_ROOM_ACTION, { .message = roamerLatchRequest } },
-    { ROOM_MESSAGE_ACTOR_EVENT, { .actorEvent = roamerBankRetreat } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .message = func_neo_ark_forest_zone_801813BC } },
-    { TASK_MESSAGE_TABLE_END, { .message = NULL } },
+TaskMessageEntry gRoamerMsgTableA[4] = {
+    { DIRECTION_MESSAGE_ROOM_ACTION, roamerLatchRequest },
+    { ROOM_MESSAGE_ACTOR_EVENT, roamerBankRetreat },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_neo_ark_forest_zone_801813BC },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 RoamerSpawnPoint gRoamerSpawnPointsA[7] = {
@@ -712,7 +712,7 @@ static void func_neo_ark_forest_zone_80180D24(Task* arg0)
     gRoamerSpawnRequest = 0;
 }
 
-s32 func_neo_ark_forest_zone_801813BC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_neo_ark_forest_zone_801813BC(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -737,7 +737,7 @@ void func_neo_ark_forest_zone_80181430(Task* task)
     handlers.funcs[task->state](task);
 }
 
-s32 func_neo_ark_forest_zone_80181494(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_neo_ark_forest_zone_80181494(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     gRoamerCooldown += 0x5A;
     return 1;

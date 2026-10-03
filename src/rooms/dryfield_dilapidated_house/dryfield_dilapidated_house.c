@@ -231,10 +231,10 @@ extern PadScriptVibrationSegment  D_dryfield_dilapidated_house_80189B38[2];
 extern PadScriptVibrationSegment  D_dryfield_dilapidated_house_80189B50[3];
 extern PadScriptVibrationSegment  D_dryfield_dilapidated_house_80189B64[2];
 extern SVECTOR                    D_dryfield_dilapidated_house_80189CA0[40];
-s32                               func_dryfield_dilapidated_house_8017E56C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                               func_dryfield_dilapidated_house_8017E56C(Task*, s32, s32, s32);
 s32                               func_dryfield_dilapidated_house_8017E574(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                               func_dryfield_dilapidated_house_8017E684(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                               func_dryfield_dilapidated_house_8017E68C(Task*, s32, TaskMessageArg firstArg, TaskMessageArg);
+s32                               func_dryfield_dilapidated_house_8017E684(Task*, s32, s32, s32);
+s32                               func_dryfield_dilapidated_house_8017E68C(Task* task, s32 msgId, const void* firstArg, s32 arg3);
 void                              func_dryfield_dilapidated_house_8017DE88(Task*);
 void                              func_dryfield_dilapidated_house_8017E144(Task*);
 void                              func_dryfield_dilapidated_house_8017E2B0(Task*);
@@ -2756,7 +2756,7 @@ void func_dryfield_dilapidated_house_8017E2B0(Task* task)
 
 #include "../../shared/screen_negative_filter.inc.c"
 
-s32 func_dryfield_dilapidated_house_8017E56C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_dilapidated_house_8017E56C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -2803,14 +2803,14 @@ s32 func_dryfield_dilapidated_house_8017E574(Task* arg0, s32 arg1, RoomEventMsg*
     return 1;
 }
 
-s32 func_dryfield_dilapidated_house_8017E684(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_dilapidated_house_8017E684(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_dryfield_dilapidated_house_8017E68C(Task* task, s32 msgId, TaskMessageArg firstArg, TaskMessageArg arg3)
+s32 func_dryfield_dilapidated_house_8017E68C(Task* task, s32 msgId, const void* firstArg, s32 arg3)
 {
-    const DirectionActionRequest* request = firstArg.pointer;
+    const DirectionActionRequest* request = firstArg;
 
     u8 actionId;
 

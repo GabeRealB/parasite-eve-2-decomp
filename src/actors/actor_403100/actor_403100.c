@@ -367,9 +367,9 @@ static AnimationSet _gActor403100Animation1BCAC;
 static AnimationSet _gActor403100Animation1C240;
 static AnimationSet _gActor403100Animation1CDF0;
 static AnimationSet _gActor403100Animation1D8EC;
-void                func_actor_403100_8013D564(Task*, s32, u16*);
-void                func_actor_403100_8013D5F4(void);
-void                func_actor_403100_8013D608(Task*, s32, s32);
+s32                 func_actor_403100_8013D564(Task*, s32, u16*, s32);
+s32                 func_actor_403100_8013D5F4(Task*, s32, s32, s32);
+void                func_actor_403100_8013D608(Task*, s32, s32, s32);
 
 static AnimationSet _gActor403100Animation15BB0;
 static AnimationSet _gActor403100Animation163CC;
@@ -3095,21 +3095,12 @@ Actor403100RectEntry D_actor_403100_80155698[7] = {
 };
 
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        void (*call0)(void);
-        void (*call1)(Task*, s32, s32);
-        void (*call2)(Task*, s32, u16*);
-    } handler;
-} Actor403100MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor403100MessageEntry, 8);
 
-Actor403100MessageEntry D_actor_403100_801556EC[4] = {
-    { 2014, { .call0 = func_actor_403100_8013D5F4 } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_403100_8013D564 } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call1 = func_actor_403100_8013D608 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_403100_801556EC[4] = {
+    { 2014, func_actor_403100_8013D5F4 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_403100_8013D564 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_403100_8013D608 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 /// Borrowed player animation table with a dynamically selected clip in entry four.
@@ -3190,7 +3181,7 @@ extern Enemy* D_actor_403100_8015580C;
 
 extern EffectSpawnArg D_actor_403100_80155630;
 
-extern Actor403100MessageEntry D_actor_403100_801556EC[4];
+extern TaskMessageEntry D_actor_403100_801556EC[4];
 
 extern AnimationSet* D_actor_403100_8015572C[26];
 
@@ -8075,7 +8066,7 @@ static s32 func_actor_403100_8013D2F4(GfxCoord* coord, MATRIX* matrix)
 }
 #include "../../shared/coord_math_local_to_world.inc.c"
 
-void func_actor_403100_8013D564(Task* arg0, s32 arg1, u16* arg2)
+s32 func_actor_403100_8013D564(Task* arg0, s32 arg1, u16* arg2, s32 arg3)
 {
     u16 value;
 
@@ -8101,12 +8092,12 @@ void func_actor_403100_8013D564(Task* arg0, s32 arg1, u16* arg2)
     }
     D_actor_403100_80155808->field_5FA = 0;
 }
-void func_actor_403100_8013D5F4(void)
+s32 func_actor_403100_8013D5F4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     D_actor_403100_80155808->field_65F = 1;
 }
 
-void func_actor_403100_8013D608(Task* arg0, s32 arg1, s32 arg2)
+void func_actor_403100_8013D608(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     u16        flags;
     TmdObject* object;

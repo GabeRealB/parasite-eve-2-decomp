@@ -128,22 +128,12 @@ static UiObjectDesc Telephone_Data_80181CC8;
 static UiList Telephone_Data_80181CF4;
 
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(void);
-        s32 (*call1)(Task*, s32, DirectionActionRequest*, s32);
-        s32 (*call2)(s32, s32, RoomEventMsg*, RoomEventMsg*);
-        s32 (*call3)(s32, s32, s32);
-    } handler;
-} ShelterB1SterilizationRoomMessageEntry;
-STATIC_ASSERT_SIZEOF(ShelterB1SterilizationRoomMessageEntry, 8);
 
-extern ShelterB1SterilizationRoomMessageEntry D_shelter_b1_sterilization_room_80184E40[6];
-extern TaskDesc                               D_shelter_b1_sterilization_room_80184E70;
-extern s32                                    D_shelter_b1_sterilization_room_80184E7C;
-extern s16                                    D_shelter_b1_sterilization_room_80184E80[3];
-extern WorldCollisionGrid                     D_shelter_b1_sterilization_room_80184F28;
+extern TaskMessageEntry   D_shelter_b1_sterilization_room_80184E40[6];
+extern TaskDesc           D_shelter_b1_sterilization_room_80184E70;
+extern s32                D_shelter_b1_sterilization_room_80184E7C;
+extern s16                D_shelter_b1_sterilization_room_80184E80[3];
+extern WorldCollisionGrid D_shelter_b1_sterilization_room_80184F28;
 
 extern AnimationPlayRequest                       D_shelter_b1_sterilization_room_80188624;
 extern ActorTransform                             D_shelter_b1_sterilization_room_80188668[];
@@ -169,11 +159,11 @@ static void func_shelter_b1_sterilization_room_80180570(GfxCoord* coord, s16* ar
 static void func_shelter_b1_sterilization_room_80180828(Task* task);
 static void func_shelter_b1_sterilization_room_80181244(Task* task);
 
-s32  func_shelter_b1_sterilization_room_8017FC78(Task*, s32, DirectionActionRequest* msg, s32);
-s32  func_shelter_b1_sterilization_room_8017FF80(s32, s32, s32);
-s32  func_shelter_b1_sterilization_room_801803E4(void);
-s32  func_shelter_b1_sterilization_room_801803EC(s32, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_b1_sterilization_room_80180430(s32, s32, s32);
+s32  func_shelter_b1_sterilization_room_8017FC78(Task* task, s32 msgId, DirectionActionRequest* msg, s32);
+s32  func_shelter_b1_sterilization_room_8017FF80(Task*, s32, s32, s32);
+s32  func_shelter_b1_sterilization_room_801803E4(Task*, s32, s32, s32);
+s32  func_shelter_b1_sterilization_room_801803EC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_shelter_b1_sterilization_room_80180430(Task*, s32, s32, s32);
 void func_shelter_b1_sterilization_room_80180188(Task*);
 
 static AnimationSet _gShelterB1SterilizationRoomAnimation07C68;
@@ -227,13 +217,13 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-ShelterB1SterilizationRoomMessageEntry D_shelter_b1_sterilization_room_80184E40[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, { .call2 = func_shelter_b1_sterilization_room_801803EC } },
-    { 5105, { .call0 = func_shelter_b1_sterilization_room_801803E4 } },
-    { DIRECTION_MESSAGE_ROOM_ACTION, { .call1 = func_shelter_b1_sterilization_room_8017FC78 } },
-    { ROOM_MESSAGE_COMMAND, { .call3 = func_shelter_b1_sterilization_room_8017FF80 } },
-    { ROOM_MESSAGE_SOUND, { .call3 = func_shelter_b1_sterilization_room_80180430 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_shelter_b1_sterilization_room_80184E40[6] = {
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_sterilization_room_801803EC },
+    { 5105, func_shelter_b1_sterilization_room_801803E4 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_sterilization_room_8017FC78 },
+    { ROOM_MESSAGE_COMMAND, func_shelter_b1_sterilization_room_8017FF80 },
+    { ROOM_MESSAGE_SOUND, func_shelter_b1_sterilization_room_80180430 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_shelter_b1_sterilization_room_80184E70 = { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_sterilization_room_80180188, { .value = 0 } };
@@ -645,7 +635,7 @@ s32 func_shelter_b1_sterilization_room_8017FC78(Task* task, s32 msgId, Direction
     return 0;
 }
 
-s32 func_shelter_b1_sterilization_room_8017FF80(s32 arg0, s32 arg1, s32 arg2)
+s32 func_shelter_b1_sterilization_room_8017FF80(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 0x11) {
         if (GameFlag_GetNibble(GAME_FLAG_STERILIZATION_ROOM_FIRST_SCENE) == 0) {
@@ -765,21 +755,21 @@ static void func_shelter_b1_sterilization_room_80180340(s32 arg0)
     func_shelter_b1_sterilization_room_80180570(task->extra.tmd->coords, D_shelter_b1_sterilization_room_80184E80);
 }
 
-s32 func_shelter_b1_sterilization_room_801803E4(void)
+s32 func_shelter_b1_sterilization_room_801803E4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
 /// Message handler that copies the incoming record onto the outgoing one,
 /// passes both to `func_map_shelter_80179A04` and returns 1.
-s32 func_shelter_b1_sterilization_room_801803EC(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 func_shelter_b1_sterilization_room_801803EC(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_shelter_80179A04(in, out);
     return 1;
 }
 
-s32 func_shelter_b1_sterilization_room_80180430(s32 arg0, s32 arg1, s32 arg2)
+s32 func_shelter_b1_sterilization_room_80180430(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 0x63) {
         SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, 0x16), 0, 0);

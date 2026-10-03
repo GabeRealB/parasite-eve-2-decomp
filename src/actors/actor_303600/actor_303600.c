@@ -108,15 +108,8 @@ extern TaskDesc D_actor_303600_80162E98[];
 extern TaskDesc D_actor_303600_8016E468[];
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(Task*, s32, ActorCommand* request);
-    } handler;
-} Actor303600MsgEntry;
-STATIC_ASSERT_SIZEOF(Actor303600MsgEntry, 8);
 
-extern Actor303600MsgEntry D_actor_303600_8016E480[];
+extern TaskMessageEntry D_actor_303600_8016E480[];
 
 /// The overlay's three flat lights, loaded into the model by
 /// `func_actor_303600_80162A0C`; one `GsF_LIGHT` (0x10 bytes) each.
@@ -137,7 +130,7 @@ static void func_actor_303600_80162A04(Task* task);
 static void func_actor_303600_80162A0C(Task* task);
 
 static TmdSource _gActor303600Model0814C;
-s32              func_actor_303600_80162870(Task*, s32, ActorCommand* msg);
+s32              func_actor_303600_80162870(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
 void             func_actor_303600_801628E4(Task*);
 void             func_actor_303600_80162A7C(Task*);
 
@@ -16843,9 +16836,9 @@ TaskDesc D_actor_303600_8016E468[2] = {
     { { { TASK_BODY_TMD, 192 } }, func_actor_303600_801628E4, { .model = &_gActor303600Model0814C } },
 };
 
-Actor303600MsgEntry D_actor_303600_8016E480[2] = {
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_303600_80162870 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_303600_8016E480[2] = {
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_303600_80162870 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 GsF_LIGHT D_actor_303600_8016E490[3] = {
@@ -17281,7 +17274,7 @@ static void func_actor_303600_80162850(Task* task)
 /// negative one (-6.0 toward -48.0), and every other selector exits the task
 /// through its own `Task::exitCallback`.  `func_actor_303600_801627B8` is what
 /// consumes the ramped speed.
-s32 func_actor_303600_80162870(Task* task, s32 msgId, ActorCommand* msg)
+s32 func_actor_303600_80162870(Task* task, s32 msgId, ActorCommand* msg, s32 arg3)
 {
     Actor303600RigWork* work;
 

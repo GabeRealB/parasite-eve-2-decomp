@@ -222,7 +222,7 @@ static void func_actor_403600_8013F608(Task* arg0);
 static void func_actor_403600_801417A8(Task* arg0, s32 arg1);
 static s32  func_actor_403600_80141840(Task* arg0);
 static void func_actor_403600_80141B60(Task* arg0);
-s32         func_actor_403600_801406A4(Task* arg0, s32 arg1, ActorCommand* request);
+s32         func_actor_403600_801406A4(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3);
 static void func_actor_403600_80140B4C(struct Enemy* arg0, Task* arg1);
 static void func_actor_403600_80141F58(GfxCoord* arg0, s32 arg1);
 
@@ -239,17 +239,10 @@ extern Task*                D_actor_403600_801606A8;
 extern Actor403600DamageRow D_actor_403600_8016066C[];
 
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(Task*, s32, ActorCommand* request);
-    } handler;
-} Actor4036002MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor4036002MessageEntry, 8);
 
-extern Actor4036002MessageEntry D_actor_403600_80160504[2];
-extern Actor403600Pair          D_actor_403600_801606B8;
-extern Task*                    D_actor_403600_801606AC;
+extern TaskMessageEntry D_actor_403600_80160504[2];
+extern Actor403600Pair  D_actor_403600_801606B8;
+extern Task*            D_actor_403600_801606AC;
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
@@ -288,14 +281,14 @@ static void func_actor_403600_80140488(Enemy* arg0, Task* arg1);
 static void func_actor_403600_80141D30(Enemy* arg0, Task* arg1);
 static void func_actor_403600_80141E78(Enemy* arg0, Task* arg1);
 
-s32  func_actor_403600_801406A4(Task*, s32, ActorCommand* request);
+s32  func_actor_403600_801406A4(Task* task, s32 msgId, ActorCommand* request, s32 arg3);
 void func_actor_403600_80141180(Task*);
 void func_actor_403600_80141BE0(Task*);
 void func_actor_403600_80141CD4(Task*);
 
-Actor4036002MessageEntry D_actor_403600_80160504[2] = {
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_403600_801406A4 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_403600_80160504[2] = {
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_403600_801406A4 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_actor_403600_80160514[3] = {
@@ -4345,7 +4338,7 @@ static inline void _actor403600ResetState(Task* task)
     work->field_7AC = 0;
 }
 
-s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, ActorCommand* request)
+s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
 {
     SVECTOR          angles;
     u16              message;

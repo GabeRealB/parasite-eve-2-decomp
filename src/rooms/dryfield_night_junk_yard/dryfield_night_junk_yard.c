@@ -28,9 +28,9 @@ extern TaskMessageEntry D_dryfield_night_junk_yard_8018055C[];
 extern s32        D_dryfield_night_junk_yard_801805A0;
 extern EvsCommand D_dryfield_night_junk_yard_801805A4[];
 
-s32 func_dryfield_night_junk_yard_8017D6A4(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_junk_yard_8017D6A4(Task*, s32, s32, s32);
 s32 func_dryfield_night_junk_yard_8017D6AC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_dryfield_night_junk_yard_8017D82C(Task*, s32, RoomEventMsg*, TaskMessageArg);
+s32 func_dryfield_night_junk_yard_8017D82C(Task*, s32, RoomEventMsg*, s32);
 
 extern AnimationPlayRequest D_dryfield_night_junk_yard_80180584;
 extern ActorCommand         D_dryfield_night_junk_yard_80180598;
@@ -80,7 +80,7 @@ static void func_dryfield_night_junk_yard_8017D958(Task* task);
 
 /// Handler for message 0x13F1 in the room's message table: does nothing and
 /// returns 0.
-s32 func_dryfield_night_junk_yard_8017D6A4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_junk_yard_8017D6A4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -153,7 +153,7 @@ s32 func_dryfield_night_junk_yard_8017D6AC(Task* arg0, s32 arg1, RoomEventMsg* i
 /// `field_2` is 3 on the visit whose `place` is 1, it latches nibble 0x9F once
 /// and passes `D_dryfield_night_junk_yard_801805A4` to `func_800E8614`. Always
 /// returns 0.
-s32 func_dryfield_night_junk_yard_8017D82C(Task* arg0, s32 arg1, RoomEventMsg* in, TaskMessageArg arg3)
+s32 func_dryfield_night_junk_yard_8017D82C(Task* arg0, s32 arg1, RoomEventMsg* in, s32 arg3)
 {
     if ((in->warp == 3) && (gGameSession->location.loc.variant == 1) && (GameFlag_GetNibble(GAME_FLAG_NIGHT_JUNK_YARD_EVENT_SEEN) == 0)) {
         GameFlag_SetNibble(GAME_FLAG_NIGHT_JUNK_YARD_EVENT_SEEN, 1);

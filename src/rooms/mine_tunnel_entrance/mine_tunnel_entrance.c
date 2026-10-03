@@ -64,10 +64,10 @@ static const TaskFuncTable4 D_mine_tunnel_entrance_8017D5C4 = {
     taskKill,
 };
 
-s32 func_mine_tunnel_entrance_8017D5E8(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_mine_tunnel_entrance_8017D5E8(Task*, s32, s32, s32);
 s32 func_mine_tunnel_entrance_8017D5F0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_mine_tunnel_entrance_8017D634(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_mine_tunnel_entrance_8017D63C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_mine_tunnel_entrance_8017D634(Task*, s32, s32, s32);
+s32 func_mine_tunnel_entrance_8017D63C(Task*, s32, s32, s32);
 
 extern WorldCollisionGrid         D_mine_tunnel_entrance_8017E0C0[1];
 extern WorldCollisionTrigger      D_mine_tunnel_entrance_8017ECEC[8];
@@ -481,7 +481,7 @@ WorldCollisionSurfaceProperties* D_mine_tunnel_entrance_8017F3E8[8] = {
     D_mine_tunnel_entrance_8017F3D0,
 };
 
-s32 func_mine_tunnel_entrance_8017D5E8(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_mine_tunnel_entrance_8017D5E8(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -495,12 +495,12 @@ s32 func_mine_tunnel_entrance_8017D5F0(Task* arg0, s32 arg1, RoomEventMsg* in, R
     return 1;
 }
 
-s32 func_mine_tunnel_entrance_8017D634(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_mine_tunnel_entrance_8017D634(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_mine_tunnel_entrance_8017D63C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_mine_tunnel_entrance_8017D63C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

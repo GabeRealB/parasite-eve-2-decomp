@@ -65,29 +65,15 @@ extern TaskDesc D_actor_535700_8013346C;
 /// slots are seeded from.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(void);
-        s32 (*call1)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call2)(Task*, s32, AnimationPlayRequest*, s32);
-        s32 (*call3)(Task*, s32, ActorCommand* request);
-        s32 (*call4)(Task*, s32, ActorTransform*);
-        s32 (*call5)(Task*, s32, VECTOR*);
-        s32 (*call6)(Task*, s32, VECTOR*, s32);
-        s32 (*call7)(Task*, s32, s32);
-    } handler;
-} Actor535700MsgEntry;
-STATIC_ASSERT_SIZEOF(Actor535700MsgEntry, 8);
 
-extern Actor535700MsgEntry gFootstepWalkMsgTable[];
-extern u8                  gFootstepWalkAnims[];
+extern TaskMessageEntry gFootstepWalkMsgTable[];
+extern u8               gFootstepWalkAnims[];
 
 /// The second enemy's message table, the `TaskDesc` table its sub-model task
 /// comes from, and the animation data its work block's slots are seeded from.
-extern Actor535700MsgEntry gPairWalkMessages[];
-extern TaskDesc            gPairWalkTasks[];
-extern u8                  gPairWalkAnimParams[];
+extern TaskMessageEntry gPairWalkMessages[];
+extern TaskDesc         gPairWalkTasks[];
+extern u8               gPairWalkAnimParams[];
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
@@ -98,12 +84,12 @@ static void func_actor_535700_80133020(Task* task);
 static TmdSource _gActor535700AyaBreaBody;
 void             func_actor_535700_80132478(Task*);
 
-s32 func_actor_535700_8013284C(Task*, s32, s32);
-s32 func_actor_535700_80132910(Task*, s32, ActorCommand* msg);
+s32 func_actor_535700_8013284C(Task*, s32, s32, s32);
+s32 func_actor_535700_80132910(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
 
 static TmdSource _gActor535700PawnGolemBody;
 static TmdSource _gActor535700GolemBeamSword;
-s32              func_actor_535700_8013332C(void);
+s32              func_actor_535700_8013332C(Task*, s32, s32, s32);
 void             func_actor_535700_80132F20(Task*);
 
 void func_actor_535700_80131EF0(s32);
@@ -743,13 +729,13 @@ static AnimationSet _gActor535700Animation0BC60 = {
 
 s16 gFootstepWalkBlendFrames = 8;
 
-Actor535700MsgEntry gFootstepWalkMsgTable[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call2 = footstepWalkPlay } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call7 = func_actor_535700_8013284C } },
-    { ACTOR_MESSAGE_PLACE, { .call4 = footstepWalkPlace } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call3 = func_actor_535700_80132910 } },
-    { ACTOR_MESSAGE_WALK_TO, { .call6 = footstepWalkTo } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry gFootstepWalkMsgTable[6] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, footstepWalkPlay },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_535700_8013284C },
+    { ACTOR_MESSAGE_PLACE, footstepWalkPlace },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_535700_80132910 },
+    { ACTOR_MESSAGE_WALK_TO, footstepWalkTo },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_actor_535700_8013DADC = { { { TASK_BODY_TMD, 192 } }, func_actor_535700_80132478, { .model = &_gActor535700AyaBreaBody } };
@@ -1071,13 +1057,13 @@ static AnimationSet _gActor535700Animation14998 = {
     { NULL, _gActor535700Animation14998Bank1, NULL, NULL, _gActor535700Animation14998Bank4, NULL, NULL, NULL },
 };
 
-Actor535700MsgEntry gPairWalkMessages[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = pairWalkPlay } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call7 = pairWalkSetVisibility } },
-    { ACTOR_MESSAGE_PLACE, { .call4 = pairWalkPlace } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_535700_8013332C } },
-    { ACTOR_MESSAGE_WALK_TO, { .call5 = pairWalkTo } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry gPairWalkMessages[6] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, pairWalkPlay },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, pairWalkSetVisibility },
+    { ACTOR_MESSAGE_PLACE, pairWalkPlace },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_535700_8013332C },
+    { ACTOR_MESSAGE_WALK_TO, pairWalkTo },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc gPairWalkTasks[2] = {
@@ -1215,7 +1201,7 @@ void footstepWalkExit(Task* task)
 /// Visibility opcode of the first enemy: applies `arg2` to the model of the
 /// task published in `gFootstepWalkTask` - bit 0 shows it (flags 0)
 /// rather than hiding it (0x80), and bit 1 ORs in 0x4.
-s32 func_actor_535700_8013284C(Task* task, s32 arg1, s32 arg2)
+s32 func_actor_535700_8013284C(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
     TmdObject* obj;
 
@@ -1236,7 +1222,7 @@ s32 func_actor_535700_8013284C(Task* task, s32 arg1, s32 arg2)
 /// Message handler of the first enemy: message 0 arms the turn countdown
 /// `turnFrames` at 0x14 frames, message 1 sets `footsteps`, which turns the
 /// footsteps on. Anything else does nothing.
-s32 func_actor_535700_80132910(Task* task, s32 arg1, ActorCommand* msg)
+s32 func_actor_535700_80132910(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
 {
     s32 kind;
 
@@ -1305,7 +1291,7 @@ void pairWalkExit(Task* task)
 
 #include "../../shared/pair_walk_place.inc.c"
 
-s32 func_actor_535700_8013332C(void)
+s32 func_actor_535700_8013332C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

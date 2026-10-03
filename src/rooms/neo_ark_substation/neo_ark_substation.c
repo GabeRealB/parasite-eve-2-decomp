@@ -67,10 +67,10 @@ static const TaskFuncTable3 D_neo_ark_substation_8017D5C4 = {
 };
 
 void func_neo_ark_substation_8017D608(Task*);
-s32  func_neo_ark_substation_8017D71C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_neo_ark_substation_8017D71C(Task*, s32, s32, s32);
 s32  func_neo_ark_substation_8017D724(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_neo_ark_substation_8017D768(Task*, s32, s32, TaskMessageArg);
-s32  func_neo_ark_substation_8017D7A4(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_neo_ark_substation_8017D768(Task*, s32, s32, s32);
+s32  func_neo_ark_substation_8017D7A4(Task*, s32, s32, s32);
 
 extern WorldCollisionGrid    D_neo_ark_substation_8017E8A4[1];
 extern WorldCollisionTrigger D_neo_ark_substation_8017FC5C[12];
@@ -553,7 +553,7 @@ void func_neo_ark_substation_8017D608(Task* task)
     }
 }
 
-s32 func_neo_ark_substation_8017D71C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_neo_ark_substation_8017D71C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -568,7 +568,7 @@ s32 func_neo_ark_substation_8017D724(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
     return 1;
 }
 
-s32 func_neo_ark_substation_8017D768(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_neo_ark_substation_8017D768(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 3) {
         Gp_RunCapCmd1(GameFlag_GetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) != 0 ? 3 : 5);
@@ -576,7 +576,7 @@ s32 func_neo_ark_substation_8017D768(Task* arg0, s32 arg1, s32 arg2, TaskMessage
     return 0;
 }
 
-s32 func_neo_ark_substation_8017D7A4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_neo_ark_substation_8017D7A4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

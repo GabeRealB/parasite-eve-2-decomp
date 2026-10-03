@@ -59,9 +59,9 @@
 extern TaskMessageEntry D_dryfield_night_back_street_80180324[];
 
 // Indexed views below share one contiguous table.
-s32 func_dryfield_night_back_street_8017D724(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_dryfield_night_back_street_8017D72C(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_dryfield_night_back_street_8017D734(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_back_street_8017D724(Task*, s32, s32, s32);
+s32 func_dryfield_night_back_street_8017D72C(Task*, s32, s32, s32);
+s32 func_dryfield_night_back_street_8017D734(Task*, s32, s32, s32);
 
 extern WorldCollisionGrid         D_dryfield_night_back_street_80180B34[1];
 extern WorldCollisionTrigger      D_dryfield_night_back_street_80180D70[6];
@@ -434,17 +434,17 @@ static void func_dryfield_night_back_street_8017D780(Task* task);
 
 #include "../../shared/back_street_event_msg.inc.c"
 
-s32 func_dryfield_night_back_street_8017D724(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_back_street_8017D724(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_dryfield_night_back_street_8017D72C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_back_street_8017D72C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_dryfield_night_back_street_8017D734(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_back_street_8017D734(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

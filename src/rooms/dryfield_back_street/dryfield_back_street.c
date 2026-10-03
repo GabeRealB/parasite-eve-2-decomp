@@ -63,9 +63,9 @@ extern s32 D_dryfield_back_street_80181054;
 /// reaches the second both as element 1 and under its own label.
 
 void func_dryfield_back_street_8017D5D0(Task*);
-s32  func_dryfield_back_street_8017D89C(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_dryfield_back_street_8017D8A4(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_dryfield_back_street_8017D8AC(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_dryfield_back_street_8017D89C(Task*, s32, s32, s32);
+s32  func_dryfield_back_street_8017D8A4(Task*, s32, s32, s32);
+s32  func_dryfield_back_street_8017D8AC(Task*, s32, s32, s32);
 
 extern WorldCollisionGrid    D_dryfield_back_street_80180284[1];
 extern WorldCollisionTrigger D_dryfield_back_street_801804C0[6];
@@ -598,17 +598,17 @@ void func_dryfield_back_street_8017D5D0(Task* task)
 
 #include "../../shared/back_street_event_msg.inc.c"
 
-s32 func_dryfield_back_street_8017D89C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_back_street_8017D89C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_dryfield_back_street_8017D8A4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_back_street_8017D8A4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_dryfield_back_street_8017D8AC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_back_street_8017D8AC(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

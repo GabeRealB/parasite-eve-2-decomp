@@ -77,10 +77,10 @@ static const TaskFuncTable3 D_shelter_b1_pod_service_gantry_8017D5C4 = {
     { func_shelter_b1_pod_service_gantry_8017D81C, func_shelter_b1_pod_service_gantry_8017D628, taskKill },
 };
 
-s32 func_shelter_b1_pod_service_gantry_8017D7C0(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_b1_pod_service_gantry_8017D7C0(Task*, s32, s32, s32);
 s32 func_shelter_b1_pod_service_gantry_8017D7C8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_b1_pod_service_gantry_8017D80C(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_shelter_b1_pod_service_gantry_8017D814(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_b1_pod_service_gantry_8017D80C(Task*, s32, s32, s32);
+s32 func_shelter_b1_pod_service_gantry_8017D814(Task*, s32, s32, s32);
 
 extern WorldCoordPointLight                      D_shelter_b1_pod_service_gantry_80181DC8[9];
 extern ShelterB1PodServiceGantrySpotLightStorage D_shelter_b1_pod_service_gantry_80182128;
@@ -1581,7 +1581,7 @@ static void func_shelter_b1_pod_service_gantry_8017D628(Task* task)
     }
 }
 
-s32 func_shelter_b1_pod_service_gantry_8017D7C0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b1_pod_service_gantry_8017D7C0(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -1595,12 +1595,12 @@ s32 func_shelter_b1_pod_service_gantry_8017D7C8(Task* arg0, s32 arg1, RoomEventM
     return 1;
 }
 
-s32 func_shelter_b1_pod_service_gantry_8017D80C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b1_pod_service_gantry_8017D80C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b1_pod_service_gantry_8017D814(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b1_pod_service_gantry_8017D814(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

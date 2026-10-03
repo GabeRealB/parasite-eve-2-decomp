@@ -505,10 +505,10 @@ static s32 func_actor_403000_80134204(GfxCoord* coord);
 
 /// Copy `placement` onto the actor's root coordinate (Y then X then Z) and
 /// cache the resulting heading in `Actor403000Work::yaw`.
-s32 func_actor_403000_8013D364(Task* task, s32 arg1, ActorTransform* placement);
+s32 func_actor_403000_8013D364(Task* task, s32 arg1, ActorTransform* placement, s32 arg3);
 
 /// Latch the requested animation and restart the animation state machine.
-s32 func_actor_403000_8013D464(Task* task, s32 arg1, AnimationPlayRequest* msg);
+s32 func_actor_403000_8013D464(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3);
 
 /// Report whether the work block's five-entry record run holds a live entry:
 /// the walk stops at the first empty `key` and answers 1 if any record it
@@ -545,20 +545,8 @@ extern AnimationSet* D_actor_403000_80158B50[46];
 extern AnimationSet* D_actor_403000_80158C08[8];
 extern AnimationSet* D_actor_403000_80158C28[8];
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32  (*call0)(Task*);
-        s32  (*call1)(Task*, s32, Actor403000Event*);
-        s32  (*call2)(Task*, s32, AnimationPlayRequest*);
-        s32  (*call3)(Task*, s32, ActorTransform*);
-        s32  (*call4)(Task*, s32, s32);
-        void (*call5)(void);
-    } handler;
-} Actor403000MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor403000MessageEntry, 8);
 
-extern Actor403000MessageEntry D_actor_403000_80158CA8[7];
+extern TaskMessageEntry D_actor_403000_80158CA8[7];
 // Preserve the unreferenced zero tail; fields versus alignment is unresolved.
 typedef struct {
     GameActorButtonPressHold value;
@@ -627,13 +615,13 @@ static AnimationSet _gActor403000Animation25B24;
 static AnimationSet _gActor403000Animation26334;
 static AnimationSet _gActor403000Animation2651C;
 static TmdSource    _gActor403000BlizzardChaserBody;
-s32                 func_actor_403000_801324EC(Task*, s32, Actor403000Event*);
-s32                 func_actor_403000_8013D268(Task*, s32, s32);
-s32                 func_actor_403000_8013D324(Task*);
-s32                 func_actor_403000_8013D364(Task*, s32, ActorTransform* placement);
-s32                 func_actor_403000_8013D464(Task*, s32, AnimationPlayRequest*);
+s32                 func_actor_403000_801324EC(Task*, s32, Actor403000Event*, s32);
+s32                 func_actor_403000_8013D268(Task*, s32, s32, s32);
+s32                 func_actor_403000_8013D324(Task*, s32, s32, s32);
+s32                 func_actor_403000_8013D364(Task* task, s32 msgId, ActorTransform* placement, s32 arg3);
+s32                 func_actor_403000_8013D464(Task*, s32, AnimationPlayRequest*, s32);
 static void         func_actor_403000_8013D59C(Task*);
-void                func_actor_403000_8013D260(void);
+s32                 func_actor_403000_8013D260(Task*, s32, s32, s32);
 
 DamageAttack D_actor_403000_8013D9E0[4] = {
     { 30, 7 },
@@ -3484,14 +3472,14 @@ SVECTOR D_actor_403000_80158C48[12] = {
     { -25, 0, 0, 2 },
 };
 
-Actor403000MessageEntry D_actor_403000_80158CA8[7] = {
-    { 2015, { .call5 = func_actor_403000_8013D260 } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = func_actor_403000_8013D268 } },
-    { ACTOR_MESSAGE_IS_PRESENT, { .call0 = func_actor_403000_8013D324 } },
-    { ACTOR_MESSAGE_PLACE, { .call3 = func_actor_403000_8013D364 } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_403000_801324EC } },
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call2 = func_actor_403000_8013D464 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_403000_80158CA8[7] = {
+    { 2015, func_actor_403000_8013D260 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_403000_8013D268 },
+    { ACTOR_MESSAGE_IS_PRESENT, func_actor_403000_8013D324 },
+    { ACTOR_MESSAGE_PLACE, func_actor_403000_8013D364 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_403000_801324EC },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_403000_8013D464 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 SVECTOR D_actor_403000_80158CE0[13] = {
@@ -3594,7 +3582,7 @@ static s32                 func_actor_403000_8013D98C(s32 arg0);
 
 #include "../../shared/actor_contacts_push_contact.inc.c"
 
-s32 func_actor_403000_801324EC(Task* arg0, s32 arg1, Actor403000Event* arg2)
+s32 func_actor_403000_801324EC(Task* arg0, s32 arg1, Actor403000Event* arg2, s32 arg3)
 {
     Actor403000Work* work  = arg0->work;
     Enemy*           enemy = arg0->spawnArg2.pointer;
@@ -7609,7 +7597,7 @@ static const EnemyTaskFuncTable3 D_actor_403000_80132004 = {
     },
 };
 
-void func_actor_403000_8013D260(void)
+s32 func_actor_403000_8013D260(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
 }
 
@@ -7618,7 +7606,7 @@ void func_actor_403000_8013D260(void)
 /// re-running `Tmd_AllocBuffers`; 2 sets `TMD_OBJECT_SKIP_AUTO_BUFFER` on top of the current flags
 /// and 3 replaces them with just `TMD_OBJECT_SKIP_AUTO_BUFFER`. Every mode but 1 resets the animation
 /// state `field_0`. `arg1` is unused.
-s32 func_actor_403000_8013D268(Task* task, s32 arg1, s32 arg2)
+s32 func_actor_403000_8013D268(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
     TmdObject*       obj;
     Actor403000Work* work;
@@ -7650,7 +7638,7 @@ s32 func_actor_403000_8013D268(Task* task, s32 arg1, s32 arg2)
 
 /// Handler for message 0x7D6: returns 1 while the enemy still has hit points
 /// or its model is shown (flag 0x80 clear), 0 once it is dead and hidden.
-s32 func_actor_403000_8013D324(Task* task)
+s32 func_actor_403000_8013D324(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     if (((Enemy*)task->spawnArg2.pointer)->hp > 0) {
         goto return_one;
@@ -7667,7 +7655,7 @@ return_one:
 /// Handler for message 0x7D4: place the model's root coordinate at
 /// `placement` - translation, then rotation about Y, X and Z - and cache the
 /// resulting heading in `Actor403000Work::yaw`.
-s32 func_actor_403000_8013D364(Task* task, s32 arg1, ActorTransform* placement)
+s32 func_actor_403000_8013D364(Task* task, s32 arg1, ActorTransform* placement, s32 arg3)
 {
     GfxCoord*        coord;
     Actor403000Work* work;
@@ -7685,7 +7673,7 @@ s32 func_actor_403000_8013D364(Task* task, s32 arg1, ActorTransform* placement)
     return 1;
 }
 
-s32 func_actor_403000_8013D464(Task* task, s32 arg1, AnimationPlayRequest* msg)
+s32 func_actor_403000_8013D464(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3)
 {
     Actor403000Work* work = (Actor403000Work*)task->work;
 

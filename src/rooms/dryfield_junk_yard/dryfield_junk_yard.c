@@ -98,9 +98,9 @@ static const TaskFuncTable3 D_dryfield_junk_yard_8017D5C4 = {
 static const char D_dryfield_junk_yard_8017D5D0[] = "DOG";
 
 void func_dryfield_junk_yard_8017D848(Task*);
-s32  func_dryfield_junk_yard_8017DA44(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_dryfield_junk_yard_8017DA44(Task*, s32, s32, s32);
 s32  func_dryfield_junk_yard_8017DA4C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_dryfield_junk_yard_8017DB78(Task*, s32, TaskMessageArg firstArg, TaskMessageArg);
+s32  func_dryfield_junk_yard_8017DB78(Task* task, s32 msgId, const void* firstArg, s32 arg3);
 
 extern AnimationPlayRequest       D_dryfield_junk_yard_8017DD60;
 extern AnimationPlayRequest       D_dryfield_junk_yard_8017DD74;
@@ -1770,7 +1770,7 @@ void func_dryfield_junk_yard_8017D848(Task* task)
 
 /// Handler for message 0x13F1 in the room's message table: does nothing and
 /// returns 0.
-s32 func_dryfield_junk_yard_8017DA44(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_junk_yard_8017DA44(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -1815,9 +1815,9 @@ s32 func_dryfield_junk_yard_8017DA4C(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
 /// spawns the sequence task. When it is 2, the slot-0xA task stands at x
 /// 0x5209 or beyond and nibble 0x38 is 1, it advances the nibble to 2 and
 /// starts a `func_800E8634` sequence. Always returns 0.
-s32 func_dryfield_junk_yard_8017DB78(Task* task, s32 msgId, TaskMessageArg firstArg, TaskMessageArg arg3)
+s32 func_dryfield_junk_yard_8017DB78(Task* task, s32 msgId, const void* firstArg, s32 arg3)
 {
-    const DirectionActionRequest* msg = firstArg.pointer;
+    const DirectionActionRequest* msg = firstArg;
 
     Task* player;
 

@@ -131,18 +131,8 @@ extern TaskDesc      D_actor_215100_8015E5D0[];
 extern AnimationSet* D_actor_215100_8015E5E8[25];
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(void);
-        s32 (*call1)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call2)(Task*, s32, ActorTransform*);
-        s32 (*call3)(Task*, s32, s32);
-    } handler;
-} Actor2151002MsgEntry;
-STATIC_ASSERT_SIZEOF(Actor2151002MsgEntry, 8);
 
-extern Actor2151002MsgEntry D_actor_215100_8015E5A0[];
+extern TaskMessageEntry D_actor_215100_8015E5A0[];
 /// Glyph metrics table this overlay's caption metrics are read out of, the
 /// counterpart of gameplay's `Gp_CapGlyphs`. `func_actor_215100_8014B1B0`
 /// stores it and `func_actor_215100_8014C360` indexes it with a text stream's
@@ -175,9 +165,9 @@ static CapCaptionScheduleWindow CapCaption_Data_80154514[];
 
 static TmdSource _gActor215100PierceCarradineBody;
 static TmdSource _gActor215100Actor113100Model07960;
-s32              func_actor_215100_8014CCE0(Task*, s32, AnimationPlayRequest*);
-s32              func_actor_215100_8014CD4C(Task*, s32, s32);
-s32              func_actor_215100_8014CE28(void);
+s32              func_actor_215100_8014CCE0(Task*, s32, AnimationPlayRequest*, s32);
+s32              func_actor_215100_8014CD4C(Task*, s32, s32, s32);
+s32              func_actor_215100_8014CE28(Task*, s32, s32, s32);
 void             func_actor_215100_8014CA2C(Task*);
 void             func_actor_215100_8014CEF8(Task*);
 
@@ -1696,13 +1686,13 @@ static AnimationSet _gActor215100Animation14758 = {
     { NULL, _gActor215100Animation14758Bank1, NULL, NULL, _gActor215100Animation14758Bank4, NULL, NULL, NULL },
 };
 
-Actor2151002MsgEntry D_actor_215100_8015E5A0[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = func_actor_215100_8014CCE0 } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = func_actor_215100_8014CD4C } },
-    { ACTOR_MESSAGE_PLACE, { .call2 = pacedWalkPlace } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_215100_8014CE28 } },
-    { ACTOR_MESSAGE_WALK_TO, { .call2 = pacedWalkTo } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_215100_8015E5A0[6] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_215100_8014CCE0 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_215100_8014CD4C },
+    { ACTOR_MESSAGE_PLACE, pacedWalkPlace },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_215100_8014CE28 },
+    { ACTOR_MESSAGE_WALK_TO, pacedWalkTo },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_actor_215100_8015E5D0[2] = {
@@ -2277,7 +2267,7 @@ static void func_actor_215100_8014CB04(Task* task)
 ///
 /// Rejects ids 0x19 and above before changing playback state.
 /// The blend path carries the requested duration in whole frames.
-s32 func_actor_215100_8014CCE0(Task* task, s32 arg1, AnimationPlayRequest* args)
+s32 func_actor_215100_8014CCE0(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3)
 {
     Actor160600Work* work;
 
@@ -2302,7 +2292,7 @@ s32 func_actor_215100_8014CCE0(Task* task, s32 arg1, AnimationPlayRequest* args)
 /// (`TmdObject::flags` 0) and its absence hides them with
 /// `TMD_OBJECT_SKIP_ACTIVE_DRAW`. Bit 1 also sets `TMD_OBJECT_SKIP_AUTO_BUFFER`.
 /// The middle argument is the one every opcode of the table receives.
-s32 func_actor_215100_8014CD4C(Task* task, s32 arg1, s32 flags)
+s32 func_actor_215100_8014CD4C(Task* task, s32 arg1, s32 flags, s32 arg3)
 {
     TmdObject* self;
     TmdObject* other;
@@ -2328,7 +2318,7 @@ s32 func_actor_215100_8014CD4C(Task* task, s32 arg1, s32 flags)
 #include "../../shared/paced_walk_place.inc.c"
 
 /// Script opcode that does nothing.
-s32 func_actor_215100_8014CE28(void)
+s32 func_actor_215100_8014CE28(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

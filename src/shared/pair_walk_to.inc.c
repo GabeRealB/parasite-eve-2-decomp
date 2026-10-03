@@ -4,7 +4,7 @@
 /// opcode: turns its root coordinate to face `target`, caching the yaw in
 /// `Actor150400Work::yaw`, and leaves the horizontal distance to it, in
 /// twelfths, in `travel` for the walk state to count down.
-s32 pairWalkTo(Task* task, s32 arg1, VECTOR* target)
+s32 pairWalkTo(Task* task, s32 arg1, VECTOR* target, s32 arg3)
 {
     GfxCoord*        coord;
     Actor150400Work* work;

@@ -1674,7 +1674,7 @@ static inline void func_actor_503500_SetBossState(Task* arg0, s16 state)
 /// Boss message handler. Modes 0/1/2 enter states 0/5/7, mode 3 advances the
 /// task state, mode 4 saves model part 0's coordinate and `field_7B6` before
 /// entering state 6, and mode 5 restores both.
-s32 func_actor_503500_80135B74(Task* arg0, s32 arg1, ActorCommand* msg)
+s32 func_actor_503500_80135B74(Task* arg0, s32 arg1, ActorCommand* msg, s32 arg3)
 {
     Actor503500Work* work;
     GfxCoord*        coord;
@@ -2505,7 +2505,7 @@ static void func_actor_503500_80137074(Task* arg0, s8 arg1, s16 arg2)
 /// block -- the yaw recovered from the matrix it just built, and the same
 /// translation in 16.16 fixed point. Clearing `composeStamp` makes `actorRenderComposeCoordChain`
 /// recompute the composed matrix from the new local one.
-s32 func_actor_503500_80137088(Task* arg0, s32 arg1, ActorTransform* args)
+s32 func_actor_503500_80137088(Task* arg0, s32 arg1, ActorTransform* args, s32 arg3)
 {
     Actor503500Work* work;
     GfxCoord*        coord;
@@ -2527,7 +2527,7 @@ s32 func_actor_503500_80137088(Task* arg0, s32 arg1, ActorTransform* args)
     return 0;
 }
 
-s32 func_actor_503500_80137158(Task* arg0, s32 arg1, s32 mode)
+s32 func_actor_503500_80137158(Task* arg0, s32 arg1, s32 mode, s32 arg3)
 {
     TmdObject* ext;
     s32        ret;

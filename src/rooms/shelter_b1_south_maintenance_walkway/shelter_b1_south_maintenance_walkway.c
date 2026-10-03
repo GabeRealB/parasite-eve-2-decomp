@@ -87,9 +87,9 @@ extern WorldCollisionTrigger  D_shelter_b1_south_maintenance_walkway_801830AC[6]
 extern WorldCollisionTrigger  D_shelter_b1_south_maintenance_walkway_801832B0[2];
 extern WorldCoordRoomLights   D_shelter_b1_south_maintenance_walkway_80183094[1];
 s32                           func_shelter_b1_south_maintenance_walkway_8017D790(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                           func_shelter_b1_south_maintenance_walkway_8017D9D0(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                           func_shelter_b1_south_maintenance_walkway_8017D9D8(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                           func_shelter_b1_south_maintenance_walkway_8017D9E0(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                           func_shelter_b1_south_maintenance_walkway_8017D9D0(Task*, s32, s32, s32);
+s32                           func_shelter_b1_south_maintenance_walkway_8017D9D8(Task*, s32, s32, s32);
+s32                           func_shelter_b1_south_maintenance_walkway_8017D9E0(Task*, s32, s32, s32);
 
 TaskDesc D_shelter_b1_south_maintenance_walkway_801822FC = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
@@ -490,17 +490,17 @@ s32 func_shelter_b1_south_maintenance_walkway_8017D790(Task* arg0, s32 arg1, Roo
     return 1;
 }
 
-s32 func_shelter_b1_south_maintenance_walkway_8017D9D0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b1_south_maintenance_walkway_8017D9D0(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b1_south_maintenance_walkway_8017D9D8(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b1_south_maintenance_walkway_8017D9D8(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b1_south_maintenance_walkway_8017D9E0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b1_south_maintenance_walkway_8017D9E0(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

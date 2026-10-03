@@ -241,7 +241,7 @@ static const _AcropolisSanctuaryFlameGrey D_acropolis_sanctuary_8017D5DC = { { 0
 /// A non-zero padding byte the original toolchain left. Nothing refers to it.
 static const u8 D_acropolis_sanctuary_8017D5DF = 0xF1;
 
-s32 func_acropolis_sanctuary_8017F918(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_acropolis_sanctuary_8017F918(Task*, s32, s32, s32);
 
 void func_acropolis_sanctuary_8017DA40(Task*);
 
@@ -283,8 +283,8 @@ void                            func_acropolis_sanctuary_8017D8A0(u32);
 void                            func_acropolis_sanctuary_8017D8CC(void);
 
 s32 func_acropolis_sanctuary_8017D73C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_acropolis_sanctuary_8017D808(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_acropolis_sanctuary_8017D810(Task*, s32, s32, TaskMessageArg);
+s32 func_acropolis_sanctuary_8017D808(Task*, s32, s32, s32);
+s32 func_acropolis_sanctuary_8017D810(Task*, s32, s32, s32);
 s32 func_acropolis_sanctuary_8017D848(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
 static AnimationPackedPose _gAcropolisSanctuaryAnimation03234Bank1[8] = {
@@ -1821,12 +1821,12 @@ s32 func_acropolis_sanctuary_8017D73C(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
 }
 
 /// Message-table handler for message 0x13F1: does nothing and answers 0.
-s32 func_acropolis_sanctuary_8017D808(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_acropolis_sanctuary_8017D808(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_acropolis_sanctuary_8017D810(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_acropolis_sanctuary_8017D810(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 0 && GameFlag_GetNibble(GAME_FLAG_SANCTUARY_BLOCKER_CLEARED) == 0) {
         func_800E8614(D_acropolis_sanctuary_80181814, 0);
@@ -2606,7 +2606,7 @@ void func_acropolis_sanctuary_8017F4E8(Task* arg0)
 /// Spawns effect 0x60078 on the room task's model coordinate, seeded with the
 /// fixed offset vector `D_acropolis_sanctuary_8017D5D0`. Always consumes the event
 /// (returns 0).
-s32 func_acropolis_sanctuary_8017F918(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_acropolis_sanctuary_8017F918(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     GfxCoord* coord = task->extra.tmd->coords;
     SVECTOR   vec   = D_acropolis_sanctuary_8017D5D0;

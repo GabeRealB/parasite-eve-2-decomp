@@ -5,7 +5,7 @@
 /// translation, caches that yaw in the work block and rebuilds the local
 /// matrix from it, then records the remaining distance in twelfths as the
 /// `travel` the step body's walk counts down.
-s32 pacedWalkTo(Task* task, s32 arg1, ActorTransform* target)
+s32 pacedWalkTo(Task* task, s32 arg1, ActorTransform* target, s32 arg3)
 {
     GfxCoord*        coord;
     Actor160600Work* work;

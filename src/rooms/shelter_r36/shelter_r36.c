@@ -49,10 +49,10 @@ extern TaskMessageEntry D_shelter_r36_8017E97C[];
 /// The room's two event tasks, one per arrival warp.
 extern TaskDesc D_shelter_r36_8017DF14[];
 
-s32 func_shelter_r36_8017D8C8(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_r36_8017D8C8(Task*, s32, s32, s32);
 s32 func_shelter_r36_8017D8D0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_r36_8017D914(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_shelter_r36_8017D91C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_r36_8017D914(Task*, s32, s32, s32);
+s32 func_shelter_r36_8017D91C(Task*, s32, s32, s32);
 
 extern AnimationPlayRequest D_shelter_r36_8017DC10;
 extern AnimationPlayRequest D_shelter_r36_8017DC54;
@@ -704,7 +704,7 @@ void func_shelter_r36_8017D870(s32 arg0)
 }
 
 /// Message-table handler for message 0x13F1. Does nothing.
-s32 func_shelter_r36_8017D8C8(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_r36_8017D8C8(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -719,13 +719,13 @@ s32 func_shelter_r36_8017D8D0(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventM
 }
 
 /// Message-table handler for message 0x13F0. Does nothing.
-s32 func_shelter_r36_8017D914(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_r36_8017D914(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
 /// Message-table handler for message 0x13EF. Does nothing.
-s32 func_shelter_r36_8017D91C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_r36_8017D91C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

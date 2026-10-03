@@ -22,9 +22,9 @@
 void strideWalkSpawn(Enemy* enemy, Task* task);
 void strideWalkUpdate(Task* task);
 void strideWalkFrame(Enemy* enemy, Task* task);
-s32  strideWalkPlay(Task* task, s32 arg1, AnimationPlayRequest* args);
-s32  strideWalkSetVisibility(Task* task, s32 arg1, s32 flags);
-s32  strideWalkTo(Task* task, s32 arg1, ActorTransform* target);
+s32  strideWalkPlay(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3);
+s32  strideWalkSetVisibility(Task* task, s32 arg1, s32 flags, s32 arg3);
+s32  strideWalkTo(Task* task, s32 arg1, ActorTransform* target, s32 arg3);
 void strideWalkSubModelTask(Task* task);
 
 /* Defined by each package. */

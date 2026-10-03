@@ -89,18 +89,8 @@ extern u8 D_actor_146300_801427E0[];
 /// Message handler table the spawn routine publishes as `Task::msgTable`.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(void);
-        s32 (*call1)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call2)(Task*, s32, ActorTransform*);
-        s32 (*call3)(Task*, s32, s32);
-    } handler;
-} Actor146300MsgEntry;
-STATIC_ASSERT_SIZEOF(Actor146300MsgEntry, 8);
 
-extern Actor146300MsgEntry D_actor_146300_801427A0[];
+extern TaskMessageEntry D_actor_146300_801427A0[];
 
 extern AnimationPlayRequest D_actor_146300_80137AAC;
 extern AnimationPlayRequest D_actor_146300_80137B10;
@@ -123,8 +113,8 @@ static TmdSource _gActor146300Actor113100Model07960;
 void             func_actor_146300_801326CC(Task*);
 void             func_actor_146300_80132B1C(Task*);
 
-s32 func_actor_146300_8013299C(Task*, s32, AnimationPlayRequest*);
-s32 func_actor_146300_80132B14(void);
+s32 func_actor_146300_8013299C(Task*, s32, AnimationPlayRequest*, s32);
+s32 func_actor_146300_80132B14(Task*, s32, s32, s32);
 
 extern AnimationPlayRequest     D_actor_146300_80137A20;
 extern AnimationPlayRequest     D_actor_146300_80137A34;
@@ -1245,12 +1235,12 @@ static AnimationSet _gActor146300Animation10954 = {
 
 s16 gScriptedWalkBlendFrames = 8;
 
-Actor146300MsgEntry D_actor_146300_801427A0[5] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = func_actor_146300_8013299C } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = actorMsgSetPairVisibility } },
-    { ACTOR_MESSAGE_PLACE, { .call2 = scriptedWalkPlace } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_146300_80132B14 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_146300_801427A0[5] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_146300_8013299C },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetPairVisibility },
+    { ACTOR_MESSAGE_PLACE, scriptedWalkPlace },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_146300_80132B14 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_actor_146300_801427C8[2] = {
@@ -1635,7 +1625,7 @@ static void func_actor_146300_801327CC(Task* task)
 /// one of the first 0x11, latching the reset mode and the reset argument the
 /// reseed forwards, then hands the published task to the per-frame update. Ids
 /// past the range are rejected with -1 and leave the work block untouched.
-s32 func_actor_146300_8013299C(Task* task, s32 arg1, AnimationPlayRequest* preset)
+s32 func_actor_146300_8013299C(Task* task, s32 arg1, AnimationPlayRequest* preset, s32 arg3)
 {
     if (preset->animationId < 0x11) {
         gScriptedWalkWork->st.animId = preset->animationId;
@@ -1657,7 +1647,7 @@ s32 func_actor_146300_8013299C(Task* task, s32 arg1, AnimationPlayRequest* prese
 #include "../../shared/scripted_walk_place.inc.c"
 
 /// Message 0x7DB handler: accepts the message and does nothing.
-s32 func_actor_146300_80132B14(void)
+s32 func_actor_146300_80132B14(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

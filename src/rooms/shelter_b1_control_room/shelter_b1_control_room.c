@@ -181,10 +181,10 @@ extern EvsCommand       D_80133088[];
 
 static void func_shelter_b1_control_room_8017D600(Task* task, _ShelterB1ControlRoomMirrorConfig* cfg);
 
-s32 func_shelter_b1_control_room_8017ECCC(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_b1_control_room_8017ECCC(Task*, s32, s32, s32);
 s32 func_shelter_b1_control_room_8017ECD4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_shelter_b1_control_room_8017ED68(Task*, s32, s32, s32);
-s32 func_shelter_b1_control_room_8017EE24(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_b1_control_room_8017EE24(Task*, s32, s32, s32);
 
 void func_shelter_b1_control_room_8017D7B8(Task*);
 
@@ -662,7 +662,7 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(_ShelterB1ControlRoomMirrorScratch);
 }
 
-s32 func_shelter_b1_control_room_8017ECCC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b1_control_room_8017ECCC(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -718,7 +718,7 @@ s32 func_shelter_b1_control_room_8017ED68(Task* task, s32 msgId, s32 arg2, s32 a
     return 0;
 }
 
-s32 func_shelter_b1_control_room_8017EE24(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b1_control_room_8017EE24(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

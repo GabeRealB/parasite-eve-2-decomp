@@ -17,11 +17,11 @@ extern EvsCommand D_dryfield_night_parking_lot_8017ECB4[11];
 
 // Callbacks referenced by the overlay's shared data tables.
 
-s32 func_dryfield_night_parking_lot_8017DB04(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_parking_lot_8017DB04(Task*, s32, s32, s32);
 
-s32 func_dryfield_night_parking_lot_8017DB0C(Task*, s32, s32, TaskMessageArg);
+s32 func_dryfield_night_parking_lot_8017DB0C(Task*, s32, s32, s32);
 
-s32 func_dryfield_night_parking_lot_8017DB34(Task*, s32, TaskMessageArg firstArg, TaskMessageArg);
+s32 func_dryfield_night_parking_lot_8017DB34(Task* task, s32 msgId, const void* firstArg, s32 arg3);
 
 void func_dryfield_night_parking_lot_8017DBA4(s32);
 

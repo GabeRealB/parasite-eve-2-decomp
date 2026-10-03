@@ -59,19 +59,8 @@ extern AnimationSet** gActorMotionAnimBanks[1];
 extern TaskDesc D_actor_120400_8013E748[];
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
-typedef struct {
-    s32 id;
-    union {
-        s32                (*call0)(void);
-        s32                (*call1)(Task*, s32, AnimationPlayRequest*, s32);
-        s32                (*call2)(Task*, s32, ActorTransform*);
-        s32                (*call3)(Task*, s32, ActorTransform*, ActorMotionWalkAnim*);
-        TaskMessageHandler call4;
-    } handler;
-} Actor120400MsgEntry;
-STATIC_ASSERT_SIZEOF(Actor120400MsgEntry, 8);
 
-extern Actor120400MsgEntry D_actor_120400_8013E76C[];
+extern TaskMessageEntry D_actor_120400_8013E76C[];
 
 static void func_actor_120400_80131E5C(Task* arg0);
 static void func_actor_120400_80132050(Task* arg0);
@@ -114,9 +103,9 @@ static const VECTOR D_actor_120400_80131E4C = { 0, 0, 0x200000, 0 };
 static TmdSource _gActor120400KyleMadiganBody;
 static TmdSource _gActor120400KyleMadiganHandRight;
 static TmdSource _gActor120400KyleMadiganLeft;
-s32              func_actor_120400_80132398(Task*, s32, ActorTransform* place, ActorMotionWalkAnim*);
+s32              func_actor_120400_80132398(Task* task, s32 msgId, ActorTransform* place, ActorMotionWalkAnim*);
 s32              func_actor_120400_80132C38(Task*, s32, s32, s32);
-s32              func_actor_120400_80132D14(void);
+s32              func_actor_120400_80132D14(Task*, s32, s32, s32);
 void             func_actor_120400_8013254C(Task*);
 void             func_actor_120400_80132748(Task*);
 
@@ -874,13 +863,13 @@ TaskDesc D_actor_120400_8013E748[3] = {
     { { { TASK_BODY_TMD, 192 } }, func_actor_120400_8013254C, { .model = &_gActor120400KyleMadiganHandRight } },
 };
 
-Actor120400MsgEntry D_actor_120400_8013E76C[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = actorMotionPlayAnim } },
-    { ACTOR_MESSAGE_PLACE, { .call2 = actorMsgPlaceEuler } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = func_actor_120400_80132C38 } },
-    { ACTOR_MESSAGE_WALK_TO, { .call3 = func_actor_120400_80132398 } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_120400_80132D14 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_120400_8013E76C[6] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, actorMotionPlayAnim },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_120400_80132C38 },
+    { ACTOR_MESSAGE_WALK_TO, func_actor_120400_80132398 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_120400_80132D14 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 }; /// The parent's spawn handler. Allocates the 0x504 `Actor120400MainWork` block, seeds it, and spawns the
 /// two children `D_actor_120400_8013E748` holds -- table entries 1 and 2. Each
 /// has `TmdObject::texturePageOffset` / `clutRowOffset` loaded with the texture page and CLUT
@@ -1230,7 +1219,7 @@ s32 func_actor_120400_80132C38(Task* task, s32 arg1, s32 mode, s32 arg3)
 }
 
 /// Message 0x7DB handler of the parent: ignores the message and returns 0.
-s32 func_actor_120400_80132D14(void)
+s32 func_actor_120400_80132D14(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

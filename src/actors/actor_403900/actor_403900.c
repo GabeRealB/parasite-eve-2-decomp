@@ -101,15 +101,14 @@ extern s16 gGolemKnightBishopAnimBlend[];
 /// `hpMax` seeds the enemy's HP, the stage / room box-table index run, the
 /// box tables it selects, the per-stage cue-bank arrays and the animation data.
 // Message-table callbacks use the argument views required by this TU.
-STATIC_ASSERT_SIZEOF(GolemKnightBishopMessageEntry, 8);
 
-extern GolemKnightBishopMessageEntry gGolemKnightBishopMessages[2];
-extern DamageAttack                  gGolemKnightBishopAttacks[4];
-extern EnemyParams                   gGolemKnightBishopParams;
-extern GolemKnightBishopSpot         gGolemKnightBishopSpots[];
-extern GolemKnightBishopRegion*      gGolemKnightBishopRegions[];
-extern s16*                          gGolemKnightBishopStageCues[];
-extern AnimationSet*                 gGolemKnightBishopAnimSets[22];
+extern TaskMessageEntry         gGolemKnightBishopMessages[2];
+extern DamageAttack             gGolemKnightBishopAttacks[4];
+extern EnemyParams              gGolemKnightBishopParams;
+extern GolemKnightBishopSpot    gGolemKnightBishopSpots[];
+extern GolemKnightBishopRegion* gGolemKnightBishopRegions[];
+extern s16*                     gGolemKnightBishopStageCues[];
+extern AnimationSet*            gGolemKnightBishopAnimSets[22];
 
 /// Per-difficulty HP above which the player always breaks the grab.
 extern s16 gGolemKnightBishopGrabHpLimits[];
@@ -130,7 +129,7 @@ extern s16 gGolemKnightBishopBeamQuadCorners[2][4];
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
-s32 func_actor_403900_801381E4(Task*);
+s32 func_actor_403900_801381E4(Task*, s32, s32, s32);
 
 static AnimationSet _gActor403900Animation0C44C;
 static AnimationSet _gActor403900Animation0C904;
@@ -161,9 +160,9 @@ extern DamageAttack gGolemKnightBishopAttacks[4];
 static TmdSource    _gActor403900GolemBody;
 static void         func_actor_403900_80138344(Task*);
 
-GolemKnightBishopMessageEntry gGolemKnightBishopMessages[2] = {
-    { 2014, { .call0 = func_actor_403900_801381E4 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry gGolemKnightBishopMessages[2] = {
+    { 2014, func_actor_403900_801381E4 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 s16 gGolemKnightBishopAnimBlend[22] = {
@@ -1302,7 +1301,7 @@ static const EnemyTaskFuncTable3 D_actor_403900_80131F18 = {
 #include "../../shared/golem_knight_bishop_hold_cue.inc.c"
 
 /// Raises the actor's phase `field_6F4` to 1 while enemies remain.
-s32 func_actor_403900_801381E4(Task* task)
+s32 func_actor_403900_801381E4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     if (gPlayerStatus.hp > 0) {
         ((GolemKnightBishopWork*)task->work)->field_6F4 = 1;

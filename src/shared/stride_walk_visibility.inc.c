@@ -5,7 +5,7 @@
 /// bit 0 hides both models (`TmdObject::flags` = 0) and its absence restores
 /// the default 0x80; bit 1 additionally ORs in 0x4. With no partner spawned
 /// (`Task::spawnArg1` == 0) the actor drives its own model twice.
-s32 strideWalkSetVisibility(Task* task, s32 arg1, s32 flags)
+s32 strideWalkSetVisibility(Task* task, s32 arg1, s32 flags, s32 arg3)
 {
     Actor161500Work* work;
     TmdObject*       self;

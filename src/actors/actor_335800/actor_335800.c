@@ -105,24 +105,12 @@ extern AnimationSet** D_actor_335800_80172E98[1];
 extern TaskDesc D_actor_335800_8016EADC[];
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
-typedef struct {
-    s32 id;
-    union {
-        s32                (*call0)(void);
-        s32                (*call1)(Task*, s32, AnimationPlayRequest*, s32);
-        TaskMessageHandler call2;
-        s32                (*call3)(Task*, s32, ActorTransform*);
-        s32                (*call4)(Task*, s32, ActorTransform*, ActorMotionWalkAnim*);
-        s32                (*call5)(Task*, s32, s32);
-    } handler;
-} Actor335800MsgEntry;
-STATIC_ASSERT_SIZEOF(Actor335800MsgEntry, 8);
 
-extern Actor335800MsgEntry D_actor_335800_8016EB00[];
+extern TaskMessageEntry D_actor_335800_8016EB00[];
 
 /// `taskMessageDispatch` handler table installed at `Task::msgTable` by
 /// `func_actor_335800_80163AA0`; terminator id `TASK_MESSAGE_TABLE_END`.
-extern Actor335800MsgEntry D_actor_335800_80172EA8[];
+extern TaskMessageEntry D_actor_335800_80172EA8[];
 
 static void func_actor_335800_80162640(Task* arg0);
 static void func_actor_335800_80162844(Task* task);
@@ -230,12 +218,12 @@ extern AnimationBankCopyRequest D_actor_335800_80164E24;
 extern EvsSceneKey              D_actor_335800_80165050;
 extern EvsSceneKey              D_actor_335800_80165058;
 extern ActorTransform           D_actor_335800_80164EA4[5];
-s32                             func_actor_335800_8016343C(Task*, s32, s32);
-s32                             func_actor_335800_8016354C(Task*, s32, ActorCommand* request, s32);
-s32                             func_actor_335800_80163880(Task*, s32, ActorTransform* place, ActorMotionWalkAnim*);
-s32                             func_actor_335800_80163F3C(Task*, s32, ActorTransform* args, s32 arg3);
-s32                             func_actor_335800_80163FB8(Task*, s32, s32);
-s32                             func_actor_335800_80164098(void);
+s32                             func_actor_335800_8016343C(Task*, s32, s32, s32);
+s32                             func_actor_335800_8016354C(Task* task, s32 msgId, ActorCommand* request, s32);
+s32                             func_actor_335800_80163880(Task* task, s32 msgId, ActorTransform* place, ActorMotionWalkAnim*);
+s32                             func_actor_335800_80163F3C(Task* task, s32 msgId, ActorTransform* args, s32 arg3);
+s32                             func_actor_335800_80163FB8(Task*, s32, s32, s32);
+s32                             func_actor_335800_80164098(Task*, s32, s32, s32);
 void                            func_actor_335800_80162040(void);
 void                            func_actor_335800_80162060(void);
 void                            func_actor_335800_80162080(void);
@@ -846,13 +834,13 @@ TaskDesc D_actor_335800_8016EADC[3] = {
     { { { TASK_BODY_TMD, 192 } }, func_actor_335800_80162E34, { .model = &_gActor335800Actor120300Model082F8 } },
 };
 
-Actor335800MsgEntry D_actor_335800_8016EB00[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = actorMotionPlayAnim } },
-    { ACTOR_MESSAGE_PLACE, { .call3 = actorMsgPlaceEuler } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call5 = func_actor_335800_8016343C } },
-    { ACTOR_MESSAGE_WALK_TO, { .call4 = actorMotionStartWalk } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_335800_8016354C } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_335800_8016EB00[6] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, actorMotionPlayAnim },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_335800_8016343C },
+    { ACTOR_MESSAGE_WALK_TO, actorMotionStartWalk },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_335800_8016354C },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 static TmdBone _gActor335800FlintBodySkeleton[19] = {
@@ -920,13 +908,13 @@ AnimationSet** D_actor_335800_80172E98[1] = {
 
 TaskDesc D_actor_335800_80172E9C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_335800_80163A34, { .model = &_gActor335800FlintBody } };
 
-Actor335800MsgEntry D_actor_335800_80172EA8[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = actorMotionPlayAnim19 } },
-    { ACTOR_MESSAGE_PLACE, { .call3 = func_actor_335800_80163F3C } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call5 = func_actor_335800_80163FB8 } },
-    { ACTOR_MESSAGE_WALK_TO, { .call4 = func_actor_335800_80163880 } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_335800_80164098 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_335800_80172EA8[6] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, actorMotionPlayAnim19 },
+    { ACTOR_MESSAGE_PLACE, func_actor_335800_80163F3C },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_335800_80163FB8 },
+    { ACTOR_MESSAGE_WALK_TO, func_actor_335800_80163880 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_335800_80164098 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 static inline void _actor335800SetView(s32 view);
@@ -1449,7 +1437,7 @@ static void func_actor_335800_80163124(Task* task)
 
 #include "../../shared/actor_messages_place_euler.inc.c"
 
-s32 func_actor_335800_8016343C(Task* task, s32 arg1, s32 mode)
+s32 func_actor_335800_8016343C(Task* task, s32 arg1, s32 mode, s32 arg3)
 {
     Actor335800MainWork* work;
     TmdObject*           obj;
@@ -1831,7 +1819,7 @@ s32 actorMotionPlayAnim19(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 a
 #include "../../shared/actor_messages_place_euler.inc.c"
 #undef actorMsgPlaceEuler
 
-s32 func_actor_335800_80163FB8(Task* task, s32 arg1, s32 mode)
+s32 func_actor_335800_80163FB8(Task* task, s32 arg1, s32 mode, s32 arg3)
 {
     TmdObject* obj;
     s32        ret;
@@ -1864,7 +1852,7 @@ s32 func_actor_335800_80163FB8(Task* task, s32 arg1, s32 mode)
     return ret;
 }
 
-s32 func_actor_335800_80164098(void)
+s32 func_actor_335800_80164098(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

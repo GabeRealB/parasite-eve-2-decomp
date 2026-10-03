@@ -59,7 +59,6 @@ extern s32               gGeneratorSoundIds[3];
 extern SVECTOR           gGeneratorHitEffectOffsets[];
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
-STATIC_ASSERT_SIZEOF(GeneratorMsgEntry, 8);
 
 extern SVECTOR       gGeneratorSpawnOffsets[2];
 extern EnemyParams   gGeneratorParams;
@@ -79,10 +78,10 @@ static AnimationSet _gActor105300Animation0B06C;
 static AnimationSet _gActor105300Animation0B548;
 static TmdSource    _gActor105300BetaGeneratorBody;
 
-GeneratorMsgEntry gGeneratorMessages[3] = {
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = generatorSetReleaseBits } },
-    { ACTOR_MESSAGE_IS_PRESENT, { .call0 = generatorIsAlive } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry gGeneratorMessages[3] = {
+    { ACTOR_COMMAND_MESSAGE_APPLY, generatorSetReleaseBits },
+    { ACTOR_MESSAGE_IS_PRESENT, generatorIsAlive },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 s16 gGeneratorPoseStartFrames[4] = {

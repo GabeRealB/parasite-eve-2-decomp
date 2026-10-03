@@ -2,7 +2,7 @@
 
 /// Message handler: sets the movement mode from the message's second word
 /// (0..3 become modes 1..4).
-void stalkerZebraIvorySetMoveMode(Task* arg0, s32 arg1, u16* arg2)
+void stalkerZebraIvorySetMoveMode(Task* arg0, s32 arg1, u16* arg2, s32 arg3)
 {
     StalkerZebraIvoryWork* work = (StalkerZebraIvoryWork*)arg0->work;
 

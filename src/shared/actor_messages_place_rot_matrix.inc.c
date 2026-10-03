@@ -2,7 +2,7 @@
 
 /// Message 2004 in one call: builds the root coordinate's matrix from the
 /// placement's rotation with RotMatrix, then writes its position. Returns 0.
-s32 actorMsgPlaceRotMatrix(Task* arg0, s32 arg1, ActorTransform* args)
+s32 actorMsgPlaceRotMatrix(Task* arg0, s32 arg1, ActorTransform* args, s32 arg3)
 {
     GfxCoord* coord = arg0->extra.tmd->coords;
 

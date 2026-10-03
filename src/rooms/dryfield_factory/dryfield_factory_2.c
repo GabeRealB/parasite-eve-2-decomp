@@ -73,7 +73,7 @@ static const TaskFuncTable7 _gFactoryPanelStates = {
 
 void factoryPanelRun(Task*);
 void factoryPromptTask(Task*);
-void factoryPanelTrigger(Task*);
+void factoryPanelTrigger(Task*, s32, s32, s32);
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
@@ -246,7 +246,7 @@ TaskDesc gFactoryDayPanelDesc[1] = {
     { { { TASK_BODY_NONE, 192 } }, factoryPanelRun, { .value = 0 } },
 };
 
-FactoryPanelMessageEntry gFactoryPanelMsgTable[2] = {
+TaskMessageEntry gFactoryPanelMsgTable[2] = {
     { FACTORY_PANEL_MESSAGE_MOVE_SETTLED, factoryPanelTrigger },
     { TASK_MESSAGE_TABLE_END, NULL },
 };

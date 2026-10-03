@@ -5,15 +5,15 @@
 /// spawn slot 0 to the first slot-4 task, sends it message 0x7DB and places it
 /// at (5, 0, -0x320) facing 0x400, restarting the countdown. Answers 1 only
 /// for command 2.
-s32 roamerAmbushMsg(Task* task, s32 arg1, TaskMessageArg msg, TaskMessageArg arg3)
+s32 roamerAmbushMsg(Task* task, s32 arg1, struct ActorCommand* msg, s32 arg3)
 {
     s32    result;
     u16    cmd;
     Enemy* obj;
 
     result = 0;
-    if (msg.command->context.key == 0xB05) {
-        cmd = msg.command->command;
+    if (msg->context.key == 0xB05) {
+        cmd = msg->command;
         switch (cmd) {
             case 0:
                 gRoamerCooldown = -1;

@@ -47,10 +47,10 @@ extern SVECTOR D_shelter_b1_control_room_access_tunnel_80181EAC[];
 /// coordinate and `[1]` the second trail's origin. State 1 reads `[1]` again
 /// under its own name.
 
-s32 func_shelter_b1_control_room_access_tunnel_8017D5E4(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_b1_control_room_access_tunnel_8017D5E4(Task*, s32, s32, s32);
 s32 func_shelter_b1_control_room_access_tunnel_8017D5EC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_b1_control_room_access_tunnel_8017D630(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_shelter_b1_control_room_access_tunnel_8017D638(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_b1_control_room_access_tunnel_8017D630(Task*, s32, s32, s32);
+s32 func_shelter_b1_control_room_access_tunnel_8017D638(Task*, s32, s32, s32);
 
 TaskMessageEntry D_shelter_b1_control_room_access_tunnel_80181E74[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_control_room_access_tunnel_8017D5EC },
@@ -80,7 +80,7 @@ SVECTOR D_shelter_b1_control_room_access_tunnel_80181EAC[7] = {
 static void func_shelter_b1_control_room_access_tunnel_8017D640(Task* task);
 static void func_shelter_b1_control_room_access_tunnel_8017D684(Task* task);
 
-s32 func_shelter_b1_control_room_access_tunnel_8017D5E4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b1_control_room_access_tunnel_8017D5E4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -94,12 +94,12 @@ s32 func_shelter_b1_control_room_access_tunnel_8017D5EC(Task* arg0, s32 arg1, Ro
     return 1;
 }
 
-s32 func_shelter_b1_control_room_access_tunnel_8017D630(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b1_control_room_access_tunnel_8017D630(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b1_control_room_access_tunnel_8017D638(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b1_control_room_access_tunnel_8017D638(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

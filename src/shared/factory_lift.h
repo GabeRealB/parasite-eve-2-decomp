@@ -185,23 +185,6 @@ enum {
     FACTORY_PANEL_MESSAGE_MOVE_SETTLED = 0x13F3,
 };
 
-/// One row of the operator panel task's message table.
-///
-/// The panel's set-up state installs the table in `Task::msgTable`, which
-/// borrows it for as long as the panel can receive messages. A row is a
-/// message id and the callback that handles it, and the table ends with
-/// `TASK_MESSAGE_TABLE_END` and a null callback, so any other id answers zero.
-///
-/// The row is not a `TaskMessageEntry`: the panel's one callback takes the
-/// receiver alone and returns nothing. Dispatch still passes the id and both
-/// argument words in their registers and forwards whatever the result register
-/// holds, so a sender must not read a result from this table.
-typedef struct {
-    s32  messageId;              // FACTORY_PANEL_MESSAGE_MOVE_SETTLED, or TASK_MESSAGE_TABLE_END
-    void (*handler)(Task* task); // Callback for `messageId`; NULL only on the end marker
-} FactoryPanelMessageEntry;
-STATIC_ASSERT_SIZEOF(FactoryPanelMessageEntry, 8);
-
 /* Defined by each build. */
 /// Collision templates the lift and barrier rebuild their grid faces from:
 /// the lift raised, the lift turned, and the barrier.
@@ -218,9 +201,14 @@ extern TaskDesc* gFactoryPanelDesc;
 extern Task**    gFactoryPanelSlot;
 /// The panel's prompt state machine descriptor, its hotspot table ended by
 /// `ACTION_PROMPT_HOTSPOT_END`, and its message table.
-extern TaskDesc                 gFactoryPromptDesc[];
-extern ActionPromptHotspot      gFactoryPanelHotspots[];
-extern FactoryPanelMessageEntry gFactoryPanelMsgTable[2];
+///
+/// The set-up state installs the message table in `Task::msgTable`, which
+/// borrows it for as long as the panel can receive messages. Its one callback
+/// uses the receiver alone and returns nothing; dispatch forwards whatever the
+/// result register holds, so a sender must not read a result from this table.
+extern TaskDesc            gFactoryPromptDesc[];
+extern ActionPromptHotspot gFactoryPanelHotspots[];
+extern TaskMessageEntry    gFactoryPanelMsgTable[2];
 
 /* The room is built once per stage, day (stage 2) and night, from the same
  * source. Each build defines its own spawn table, collision grid, jolt script,
@@ -282,9 +270,9 @@ void factoryHatchScene(Task* task);
 void factoryRoomInit(Task* arg0);
 s32  factoryResolveWarp(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);
 void factoryPanelSpawn(Task* task);
-s32  factoryCommand(Task* arg0, s32 arg1, s32 cmd, TaskMessageArg arg3);
+s32  factoryCommand(Task* arg0, s32 arg1, s32 cmd, s32 arg3);
 s32  factorySoundCommand(Task* task, s32 msgId, s32 arg2, s32 arg3);
-s32  factoryRoomAction(Task* task, s32 msgId, TaskMessageArg firstArg, TaskMessageArg arg3);
+s32  factoryRoomAction(Task* task, s32 msgId, const void* firstArg, s32 arg3);
 void factoryPanelIdle(Task* task);
 void factoryPanelRunStep(Task* task, s16 step);
 void factoryPanelInit(Task* task);
@@ -299,10 +287,10 @@ void factoryLiftRun(Task* task);
 void factoryHatchRun(Task* task);
 void factoryCapScene(Task* arg0);
 void factoryEntryIdle(Task* task);
-s32  factoryIgnoreMessage(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3);
+s32  factoryIgnoreMessage(Task* task, s32 msgId, s32 arg2, s32 arg3);
 void factoryPanelRun(Task* task);
 void factoryPromptTask(Task* task);
-void factoryPanelTrigger(Task* task);
+void factoryPanelTrigger(Task* task, s32, s32, s32);
 void factoryPanelArmPrompt(Task* task);
 
 /// Where `factoryDrawGlows` draws the disc nibble 0x48 enables, and the two

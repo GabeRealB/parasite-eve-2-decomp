@@ -90,17 +90,8 @@ extern AnimationSet** D_actor_210700_801585C8[1];
 /// `func_actor_210700_8014A3D4`, 0x7E0 `func_actor_210700_8014A4B0`.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(Task*, s32, Actor210700Anim*, s32);
-        s32 (*call1)(Task*, s32, ActorTransform*, s32);
-        s32 (*call2)(Task*, s32, s32);
-    } handler;
-} Actor210700MsgEntry;
-STATIC_ASSERT_SIZEOF(Actor210700MsgEntry, 8);
 
-extern Actor210700MsgEntry D_actor_210700_801585D8[];
+extern TaskMessageEntry D_actor_210700_801585D8[];
 
 /// Images the texture-upload state and the 0x7E0 handler post over the
 /// model's texture.
@@ -128,9 +119,9 @@ static AnimationSet _gActor210700Animation0DB7C;
 static AnimationSet _gActor210700Animation0DE04;
 static TmdSource    _gActor210700RupertBroderickBody1;
 s32                 func_actor_210700_8014A224(Task*, s32, Actor210700Anim*, s32);
-s32                 func_actor_210700_8014A344(Task*, s32, ActorTransform* args, s32);
-s32                 func_actor_210700_8014A3D4(Task*, s32, s32);
-s32                 func_actor_210700_8014A4B0(Task*, s32, s32);
+s32                 func_actor_210700_8014A344(Task* task, s32 msgId, ActorTransform* args, s32);
+s32                 func_actor_210700_8014A3D4(Task*, s32, s32, s32);
+s32                 func_actor_210700_8014A4B0(Task*, s32, s32, s32);
 void                func_actor_210700_80149F38(Task*);
 
 static AnimationPackedPose _gActor210700Animation01E2CBank1[49] = {
@@ -1089,12 +1080,12 @@ AnimationSet** D_actor_210700_801585C8[1] = {
 
 TaskDesc D_actor_210700_801585CC = { { { TASK_BODY_TMD, 192 } }, func_actor_210700_80149F38, { .model = &_gActor210700RupertBroderickBody1 } };
 
-Actor210700MsgEntry D_actor_210700_801585D8[5] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = func_actor_210700_8014A224 } },
-    { ACTOR_MESSAGE_PLACE, { .call1 = func_actor_210700_8014A344 } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call2 = func_actor_210700_8014A3D4 } },
-    { 2016, { .call2 = func_actor_210700_8014A4B0 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_210700_801585D8[5] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_210700_8014A224 },
+    { ACTOR_MESSAGE_PLACE, func_actor_210700_8014A344 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_210700_8014A3D4 },
+    { 2016, func_actor_210700_8014A4B0 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 }; /// Texture-upload step, run by the tick state: while `field_53C` names an
 
 static void func_actor_210700_80149E30(Task* arg0);
@@ -1327,7 +1318,7 @@ s32 func_actor_210700_8014A344(Task* task, s32 arg1, ActorTransform* args, s32 a
 /// 0x4, 2 hides it, raises 0x4 and starts the work block's `field_53E`
 /// countdown to freeing the buffers, and 3 shows it and raises 0x4. Handled
 /// modes return 0; anything else returns 1 and changes nothing.
-s32 func_actor_210700_8014A3D4(Task* arg0, s32 arg1, s32 mode)
+s32 func_actor_210700_8014A3D4(Task* arg0, s32 arg1, s32 mode, s32 arg3)
 {
     TmdObject*       obj;
     Actor210700Work* work;
@@ -1370,7 +1361,7 @@ s32 func_actor_210700_8014A3D4(Task* arg0, s32 arg1, s32 mode)
 /// first. Any other mode leaves the image NULL and returns 0.
 /// The mode-1 case is written first because the compiler lays the case bodies
 /// out in source order and that is the order the retail image has them in.
-s32 func_actor_210700_8014A4B0(Task* arg0, s32 arg1, s32 mode)
+s32 func_actor_210700_8014A4B0(Task* arg0, s32 arg1, s32 mode, s32 arg3)
 {
     RECT            rect;
     GpuImageUpload* uploadList;

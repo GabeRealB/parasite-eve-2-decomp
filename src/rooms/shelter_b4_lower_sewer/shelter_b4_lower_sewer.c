@@ -40,10 +40,10 @@ extern RoomCompactWaterSurface D_shelter_b4_lower_sewer_80181E90[];
 static void func_shelter_b4_lower_sewer_8017E33C(Task* arg0);
 static void func_shelter_b4_lower_sewer_8017E37C(Task* task);
 
-s32  func_shelter_b4_lower_sewer_8017D608(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_shelter_b4_lower_sewer_8017D608(Task*, s32, s32, s32);
 s32  func_shelter_b4_lower_sewer_8017D610(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_b4_lower_sewer_8017D654(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_shelter_b4_lower_sewer_8017D65C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_shelter_b4_lower_sewer_8017D654(Task*, s32, s32, s32);
+s32  func_shelter_b4_lower_sewer_8017D65C(Task*, s32, s32, s32);
 void func_shelter_b4_lower_sewer_8017E2D4(Task*);
 
 TaskMessageEntry D_shelter_b4_lower_sewer_80181E44[5] = {
@@ -77,7 +77,7 @@ static void func_shelter_b4_lower_sewer_8017DE8C(Task* task);
 
 /// Handler for message 0x13F1 in the room's message table
 /// `D_shelter_b4_lower_sewer_80181E44`: does nothing and returns 0.
-s32 func_shelter_b4_lower_sewer_8017D608(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b4_lower_sewer_8017D608(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -93,14 +93,14 @@ s32 func_shelter_b4_lower_sewer_8017D610(Task* arg0, s32 arg1, RoomEventMsg* in,
 
 /// Handler for message 0x13F0 in the room's message table: does nothing and
 /// returns 0.
-s32 func_shelter_b4_lower_sewer_8017D654(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b4_lower_sewer_8017D654(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
 /// Handler for message 0x13EF in the room's message table: does nothing and
 /// returns 0.
-s32 func_shelter_b4_lower_sewer_8017D65C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b4_lower_sewer_8017D65C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

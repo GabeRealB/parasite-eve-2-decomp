@@ -3,7 +3,7 @@
 /// The `0x7D3` handler of the `D_actor_401800_80155A80` table: maps the
 /// requested state onto the work block's `field_89E` animation slot (5 selects
 /// nothing), then resets the actor to state `0x11` with `field_2` cleared.
-s32 oddStrangerPlayMessage(Task* arg0, s32 arg1, AnimationPlayRequest* arg2)
+s32 oddStrangerPlayMessage(Task* arg0, s32 arg1, AnimationPlayRequest* arg2, s32 arg3)
 {
     OddStrangerRigWork* work = arg0->work;
 

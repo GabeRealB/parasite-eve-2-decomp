@@ -4,7 +4,7 @@
 /// task `underpassSwitchTask` from the task table, toggling
 /// nibble 0x51 with cap command 1 or nibble 0x52 with cap command 2. Any other
 /// value spawns nothing. Always returns 0.
-s32 underpassSwitchMsg(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 underpassSwitchMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     switch (arg2) {
         case 1:

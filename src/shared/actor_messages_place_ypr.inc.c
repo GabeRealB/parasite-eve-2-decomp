@@ -4,7 +4,7 @@
 /// placement onto the model's root coordinate, the three longs as its
 /// translation and the three angles as its rotation (Y, then X, then Z), and
 /// marks the coordinate dirty.
-void actorMsgPlaceYawPitchRoll(Task* task, s32 arg1, ActorTransform* placement)
+void actorMsgPlaceYawPitchRoll(Task* task, s32 arg1, ActorTransform* placement, s32 arg3)
 {
     GfxCoord* coord;
     MATRIX*   mtx;

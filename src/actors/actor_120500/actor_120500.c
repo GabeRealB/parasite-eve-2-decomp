@@ -93,16 +93,8 @@ extern AnimationSet* D_actor_120500_80138088[2];
 /// Message table the actor answers with: 0x7D5 shows or hides the model, 0x7D4
 /// places it.
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        void (*call0)(Task*, s32, ActorTransform*);
-        void (*call1)(Task*, s32, s32);
-    } handler;
-} Actor120500MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor120500MessageEntry, 8);
 
-extern Actor120500MessageEntry D_actor_120500_80138408[2];
+extern TaskMessageEntry D_actor_120500_80138408[2];
 
 /// Equipped-weapon id and the flag that selects which block of animation sets
 /// it indexes (`+1` when set to 1, `+0x22` otherwise).
@@ -135,7 +127,7 @@ void func_actor_120500_80132920(void);
 static TmdSource _gActor120500KyleMadiganBody;
 void             func_actor_120500_80131E58(Task*);
 void             func_actor_120500_8013241C(Task*);
-void             func_actor_120500_80132A04(Task*, s32, s32);
+void             func_actor_120500_80132A04(Task*, s32, s32, s32);
 
 static TmdBone _gActor120500KyleMadiganBodySkeleton[20] = {
 #include "assets/kyle_madigan_body_skeleton.inc"
@@ -314,9 +306,9 @@ EvsCommand D_actor_120500_80138318[10] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-Actor120500MessageEntry D_actor_120500_80138408[2] = {
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call1 = func_actor_120500_80132A04 } },
-    { ACTOR_MESSAGE_PLACE, { .call0 = actorMsgPlaceInView } },
+TaskMessageEntry D_actor_120500_80138408[2] = {
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_120500_80132A04 },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceInView },
 };
 
 TaskDesc D_actor_120500_80138418[3] = {
@@ -758,7 +750,7 @@ void func_actor_120500_80132920(void)
 /// buffers again. Payload 2 sets `TMD_OBJECT_SKIP_AUTO_BUFFER` and falls into payload 0, rather than
 /// setting both bits at once, and the branch layout follows that. `arg1` is
 /// the message id.
-void func_actor_120500_80132A04(Task* task, s32 arg1, s32 arg2)
+void func_actor_120500_80132A04(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
     TmdObject* extra;
 

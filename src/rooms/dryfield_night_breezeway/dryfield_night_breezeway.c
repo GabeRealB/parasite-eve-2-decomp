@@ -60,10 +60,10 @@ static const TaskFuncTable3 D_dryfield_night_breezeway_8017D5C4 = {
 };
 
 // Indexed views below share one contiguous table.
-s32 func_dryfield_night_breezeway_8017D5D0(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_breezeway_8017D5D0(Task*, s32, s32, s32);
 s32 func_dryfield_night_breezeway_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_dryfield_night_breezeway_8017D600(Task*, s32, s32, TaskMessageArg);
-s32 func_dryfield_night_breezeway_8017D62C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_breezeway_8017D600(Task*, s32, s32, s32);
+s32 func_dryfield_night_breezeway_8017D62C(Task*, s32, s32, s32);
 
 extern WorldCollisionGrid    D_dryfield_night_breezeway_8017EBC4[1];
 extern WorldCollisionTrigger D_dryfield_night_breezeway_80180170[4];
@@ -636,7 +636,7 @@ WorldCollisionSurfaceProperties* D_dryfield_night_breezeway_801804B8[8] = {
 
 /// The room's 0x13F1 message handler: answers 0 without looking at the
 /// message.
-s32 func_dryfield_night_breezeway_8017D5D0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_breezeway_8017D5D0(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -652,7 +652,7 @@ s32 func_dryfield_night_breezeway_8017D5D8(Task* task, s32 msgId, RoomEventMsg* 
 /// The room's 0x13F0 message handler: when `arg2` is 1, spawns the gameplay
 /// event task (`Gp_SpawnIfCapIdle(1, 1)`) unless the cap interpreter is busy.
 /// Always answers 0.
-s32 func_dryfield_night_breezeway_8017D600(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_breezeway_8017D600(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 1) {
         Gp_SpawnIfCapIdle(1, 1);
@@ -662,7 +662,7 @@ s32 func_dryfield_night_breezeway_8017D600(Task* arg0, s32 arg1, s32 arg2, TaskM
 
 /// The room's 0x13EF message handler: answers 0 without looking at the
 /// message.
-s32 func_dryfield_night_breezeway_8017D62C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_breezeway_8017D62C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

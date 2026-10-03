@@ -170,18 +170,8 @@ extern TaskDesc D_shelter_b6_nursery_80185000;
 
 /// The room's message table.
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32                (*call0)(void);
-        s32                (*call1)(Task*, s32, DirectionActionRequest*, s32);
-        TaskMessageHandler call2;
-        TaskMessageHandler call3;
-    } handler;
-} ShelterB6NurseryMessageEntry;
-STATIC_ASSERT_SIZEOF(ShelterB6NurseryMessageEntry, 8);
 
-extern ShelterB6NurseryMessageEntry D_shelter_b6_nursery_8018500C[5];
+extern TaskMessageEntry D_shelter_b6_nursery_8018500C[5];
 
 /// Per-view depth override for the ambient sound (-1 keeps the computed one).
 extern s8 D_shelter_b6_nursery_80185034[];
@@ -225,16 +215,16 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
 TaskDesc D_shelter_b6_nursery_80185000 = { { { TASK_BODY_NONE, 32 } }, func_shelter_b6_nursery_8017FBC0, { .value = 0 } };
 
 s32 func_shelter_b6_nursery_8017FA54(Task*, s32, s32, s32);
-s32 func_shelter_b6_nursery_8017FDCC(void);
+s32 func_shelter_b6_nursery_8017FDCC(Task*, s32, s32, s32);
 s32 func_shelter_b6_nursery_8017FDD4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_b6_nursery_8017FE3C(Task*, s32, DirectionActionRequest* msg, s32);
+s32 func_shelter_b6_nursery_8017FE3C(Task* task, s32 msgId, DirectionActionRequest* msg, s32);
 
-ShelterB6NurseryMessageEntry D_shelter_b6_nursery_8018500C[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, { .call2 = func_shelter_b6_nursery_8017FDD4 } },
-    { 5105, { .call0 = func_shelter_b6_nursery_8017FDCC } },
-    { DIRECTION_MESSAGE_ROOM_ACTION, { .call1 = func_shelter_b6_nursery_8017FE3C } },
-    { ROOM_MESSAGE_COMMAND, { .call3 = func_shelter_b6_nursery_8017FA54 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_shelter_b6_nursery_8018500C[5] = {
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b6_nursery_8017FDD4 },
+    { 5105, func_shelter_b6_nursery_8017FDCC },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b6_nursery_8017FE3C },
+    { ROOM_MESSAGE_COMMAND, func_shelter_b6_nursery_8017FA54 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 s8 D_shelter_b6_nursery_80185034[24] = {
@@ -982,7 +972,7 @@ void func_shelter_b6_nursery_8017FBC0(Task* arg0)
 #include "../../shared/room_cutscene_sound_task.inc.c"
 
 /// Always answers 0.
-s32 func_shelter_b6_nursery_8017FDCC(void)
+s32 func_shelter_b6_nursery_8017FDCC(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

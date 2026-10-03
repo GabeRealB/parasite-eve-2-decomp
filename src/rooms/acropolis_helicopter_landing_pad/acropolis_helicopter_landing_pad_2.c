@@ -1512,7 +1512,7 @@ s32 func_acropolis_helicopter_landing_pad_8017E3F0(Task* task, s32 msgId, RoomEv
 }
 
 /// Does nothing and returns 0.
-s32 func_acropolis_helicopter_landing_pad_8017E49C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_acropolis_helicopter_landing_pad_8017E49C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -1521,13 +1521,13 @@ s32 func_acropolis_helicopter_landing_pad_8017E49C(Task* task, s32 msgId, TaskMe
 /// `D_acropolis_helicopter_landing_pad_80184E0C` is up and the phase is
 /// still 0, starts the helicopter sequence: flags the session, loads the
 /// bank pair, moves to phase 1, enables trigger 4 and disables trigger 8. Action 1 latches `D_acropolis_helicopter_landing_pad_80187F84`.
-s32 func_acropolis_helicopter_landing_pad_8017E4A4(Task* task, s32 msgId, TaskMessageArg firstArg, TaskMessageArg arg3)
+s32 func_acropolis_helicopter_landing_pad_8017E4A4(Task* task, s32 msgId, const void* firstArg, s32 arg3)
 {
     u8                     actionId;
     WorldCollisionTrigger* obj;
     WorldCollisionTrigger* obj2;
 
-    if ((((const DirectionActionRequest*)firstArg.pointer)->actionId == 0) && (D_acropolis_helicopter_landing_pad_80184D9C == 0) && (D_acropolis_helicopter_landing_pad_80184E0C != 0)) {
+    if ((((const DirectionActionRequest*)firstArg)->actionId == 0) && (D_acropolis_helicopter_landing_pad_80184D9C == 0) && (D_acropolis_helicopter_landing_pad_80184E0C != 0)) {
         gGameSession->flowFlags = (GAME_SESSION_FLOW_SKIP_AREA_MUSIC | GAME_SESSION_FLOW_REEQUIP_WEAPON);
         gStageSceneMusicEntry   = 1;
         func_800E8634(D_acropolis_helicopter_landing_pad_80183A34, 0, D_acropolis_helicopter_landing_pad_80183FA4);
@@ -1537,14 +1537,14 @@ s32 func_acropolis_helicopter_landing_pad_8017E4A4(Task* task, s32 msgId, TaskMe
         obj->flags                                 |= WORLD_COLLISION_TRIGGER_ENABLED;
         obj2->flags                                &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
     }
-    actionId = ((const DirectionActionRequest*)firstArg.pointer)->actionId;
+    actionId = ((const DirectionActionRequest*)firstArg)->actionId;
     if (actionId == 1) {
         D_acropolis_helicopter_landing_pad_80187F84 = actionId;
     }
     return 0;
 }
 
-s32 func_acropolis_helicopter_landing_pad_8017E570(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_acropolis_helicopter_landing_pad_8017E570(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if ((arg2 == 4) && (D_acropolis_helicopter_landing_pad_80184D9C == 2)) {
         Task_SpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, 4, 0, 0);

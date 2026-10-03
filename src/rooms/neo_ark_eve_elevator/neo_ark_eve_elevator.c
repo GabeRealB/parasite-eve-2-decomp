@@ -38,10 +38,10 @@ static const TaskFuncTable3 D_neo_ark_eve_elevator_8017D5C4 = {
     },
 };
 
-s32 func_neo_ark_eve_elevator_8017D5D0(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_neo_ark_eve_elevator_8017D5D0(Task*, s32, s32, s32);
 s32 func_neo_ark_eve_elevator_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_neo_ark_eve_elevator_8017D668(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_neo_ark_eve_elevator_8017D670(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_neo_ark_eve_elevator_8017D668(Task*, s32, s32, s32);
+s32 func_neo_ark_eve_elevator_8017D670(Task*, s32, s32, s32);
 
 extern WorldCollisionGrid    D_neo_ark_eve_elevator_8017DA2C[1];
 extern WorldCollisionTrigger D_neo_ark_eve_elevator_8017DBC8[1];
@@ -171,7 +171,7 @@ WorldCollisionSurfaceProperties* D_neo_ark_eve_elevator_8017DC30[8] = {
 };
 
 /// The room's handler for message 0x13F1: does nothing and returns 0.
-s32 func_neo_ark_eve_elevator_8017D5D0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_neo_ark_eve_elevator_8017D5D0(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -199,13 +199,13 @@ s32 func_neo_ark_eve_elevator_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in, R
 }
 
 /// The room's handler for message 0x13F0: does nothing and returns 0.
-s32 func_neo_ark_eve_elevator_8017D668(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_neo_ark_eve_elevator_8017D668(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
 /// The room's handler for message 0x13EF: does nothing and returns 0.
-s32 func_neo_ark_eve_elevator_8017D670(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_neo_ark_eve_elevator_8017D670(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

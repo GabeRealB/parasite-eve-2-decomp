@@ -80,19 +80,8 @@ extern TaskDesc D_actor_113100_80144308[];
 /// 0x7DB (`func_actor_113100_801333B8`), terminated by `TASK_MESSAGE_TABLE_END`.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
-typedef struct {
-    s32 id;
-    union {
-        s32                (*call0)(Task*, s32, AnimationPlayRequest*, s32);
-        s32                (*call1)(Task*, s32, ActorCommand* request);
-        s32                (*call2)(Task*, s32, ActorTransform*);
-        s32                (*call3)(Task*, s32, ActorTransform*, ActorMotionWalkAnim*);
-        TaskMessageHandler call4;
-    } handler;
-} Actor113100MsgEntry;
-STATIC_ASSERT_SIZEOF(Actor113100MsgEntry, 8);
 
-extern Actor113100MsgEntry D_actor_113100_80144338[];
+extern TaskMessageEntry D_actor_113100_80144338[];
 
 /// Animation bank table the 0x7D3 handler `func_actor_113100_801331E8` indexes
 /// by the animation id it has latched into `Actor113100Work::model.bank`; the
@@ -165,9 +154,9 @@ static TmdSource _gActor113100PierceCarradineBody;
 void             func_actor_113100_80132E98(Task*);
 
 s32 func_actor_113100_80132790(Task*, s32, s32, s32);
-s32 func_actor_113100_801328EC(Task*, s32, ActorTransform* place, ActorMotionWalkAnim*);
+s32 func_actor_113100_801328EC(Task* task, s32 msgId, ActorTransform* place, ActorMotionWalkAnim*);
 s32 func_actor_113100_801331E8(Task*, s32, AnimationPlayRequest*, s32);
-s32 func_actor_113100_801333B8(Task*, s32, ActorCommand* msg);
+s32 func_actor_113100_801333B8(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
 
 static TmdBone _gActor113100PierceCarradineBodySkeleton[20] = {
 #include "assets/pierce_carradine_body_skeleton.inc"
@@ -1159,13 +1148,13 @@ TaskDesc D_actor_113100_80144308[4] = {
     { { { TASK_BODY_TMD, 192 } }, func_actor_113100_80132C9C, { .model = &_gActor113100Model07AB4 } },
 };
 
-Actor113100MsgEntry D_actor_113100_80144338[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = func_actor_113100_801331E8 } },
-    { ACTOR_MESSAGE_PLACE, { .call2 = actorMsgPlaceEuler } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = func_actor_113100_80132790 } },
-    { ACTOR_MESSAGE_WALK_TO, { .call3 = func_actor_113100_801328EC } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_113100_801333B8 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_113100_80144338[6] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_113100_801331E8 },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_113100_80132790 },
+    { ACTOR_MESSAGE_WALK_TO, func_actor_113100_801328EC },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_113100_801333B8 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 /// Setup handler (state 0): allocates the 0x540-byte work block, clears the
@@ -1270,7 +1259,7 @@ static void func_actor_113100_80131E58(Task* task)
     obj->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     Gp_InitRec18Table(obj->context.contacts, 1, 0);
 
-    task->msgTable = &D_actor_113100_80144338;
+    task->msgTable = D_actor_113100_80144338;
     func_mist_parking_80183BAC(1);
     func_actor_113100_80132790(task, 0, 0, 0);
     task->exitCallback = func_actor_113100_80132EF0;
@@ -1906,7 +1895,7 @@ s32 func_actor_113100_801331E8(Task* task, s32 msgId, AnimationPlayRequest* pres
 /// `TmdObject::flags`, enabling and excluding active drawing; 2 and 3 set the
 /// work block's `field_53C` mode byte to 1 and 0. Nothing reads the opcode
 /// itself, hence `msgId`.
-s32 func_actor_113100_801333B8(Task* task, s32 msgId, ActorCommand* msg)
+s32 func_actor_113100_801333B8(Task* task, s32 msgId, ActorCommand* msg, s32 arg3)
 {
     Actor113100Work* work;
     TmdObject*       model;

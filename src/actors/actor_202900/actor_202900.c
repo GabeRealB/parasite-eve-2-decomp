@@ -39,18 +39,10 @@ typedef struct Actor202900Work {
 STATIC_ASSERT_SIZEOF(Actor202900Work, 0x564);
 
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call1)(Task*, s32, s32);
-    } handler;
-} Actor202900MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor202900MessageEntry, 8);
 
-extern Actor202900MessageEntry D_actor_202900_80156E0C[3];
-extern TaskDesc                D_actor_202900_80156E24[];
-extern u8                      D_actor_202900_80156E3C[];
+extern TaskMessageEntry D_actor_202900_80156E0C[3];
+extern TaskDesc         D_actor_202900_80156E24[];
+extern u8               D_actor_202900_80156E3C[];
 
 /// The actor's work block, published so the overlay's functions can reach it
 /// without the task in hand.
@@ -78,7 +70,7 @@ static TmdSource _gActor202900Model0BC44;
 void             func_actor_202900_8014A02C(Task*);
 void             func_actor_202900_8014A088(Task*);
 
-s32 func_actor_202900_8014A3E0(Task*, s32, AnimationPlayRequest*);
+s32 func_actor_202900_8014A3E0(Task*, s32, AnimationPlayRequest*, s32);
 
 static AnimationPackedPose _gActor202900Animation06098Bank1[158] = {
 #include "assets/actor_202900_animation_06098_bank1.inc"
@@ -210,10 +202,10 @@ static AnimationSet _gActor202900Animation0CFC4 = {
     { NULL, _gActor202900Animation0CFC4Bank1, NULL, NULL, _gActor202900Animation0CFC4Bank4, NULL, NULL, NULL },
 };
 
-Actor202900MessageEntry D_actor_202900_80156E0C[3] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = func_actor_202900_8014A3E0 } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call1 = actorMsgSetPairVisibility } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_202900_80156E0C[3] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_202900_8014A3E0 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetPairVisibility },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_actor_202900_80156E24[2] = {
@@ -468,7 +460,7 @@ static s32 func_actor_202900_8014A394(void)
 /// is where the original evaluates it, and it is what puts the global's
 /// `lui`/`lw` ahead of the `li 2` and leaves the `st.field_6` clear for the
 /// call's delay slot.
-s32 func_actor_202900_8014A3E0(Task* task, s32 arg1, AnimationPlayRequest* args)
+s32 func_actor_202900_8014A3E0(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3)
 {
     Task* actor;
 

@@ -172,8 +172,8 @@ void                        func_dryfield_main_street_8017E320(void);
 void                        func_dryfield_main_street_8017E354(s32);
 
 extern DryfieldMainStreetAnimStorage1584 D_dryfield_main_street_80181584;
-s32                                      func_dryfield_main_street_8017E054(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                                      func_dryfield_main_street_8017E05C(Task*, s32, TaskMessageArg firstArg, s32);
+s32                                      func_dryfield_main_street_8017E054(Task*, s32, s32, s32);
+s32                                      func_dryfield_main_street_8017E05C(Task* task, s32 msgId, const void* firstArg, s32);
 void                                     func_dryfield_main_street_8017E1C0(Task*);
 void                                     func_dryfield_main_street_8017E3A8(Task*);
 
@@ -978,7 +978,7 @@ static const TaskFuncTable3 D_dryfield_main_street_8017D5F4 = {
 #include "../../shared/main_street_talk_msg.inc.c"
 
 /// Does nothing and answers 0.
-s32 func_dryfield_main_street_8017E054(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_main_street_8017E054(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -987,9 +987,9 @@ s32 func_dryfield_main_street_8017E054(Task* task, s32 msgId, TaskMessageArg arg
 /// clear): forgets the task `func_dryfield_main_street_8017E320` spawned, calls
 /// `func_800E8634` with the room's two data blocks, and sets nibbles 0x5F and
 /// 0x155 and clears nibble 3. Always answers 0.
-s32 func_dryfield_main_street_8017E05C(Task* task, s32 msgId, TaskMessageArg firstArg, s32 arg3)
+s32 func_dryfield_main_street_8017E05C(Task* task, s32 msgId, const void* firstArg, s32 arg3)
 {
-    const DirectionActionRequest* msg = firstArg.pointer;
+    const DirectionActionRequest* msg = firstArg;
 
     if ((msg->actionId == 1) && (GameFlag_GetNibble(GAME_FLAG_MAIN_STREET_CUTSCENE_SEEN) == 0)) {
         func_dryfield_main_street_8017E4A4(0);

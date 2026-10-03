@@ -106,9 +106,9 @@ extern SVECTOR D_shelter_b1_main_corridor_80183144[];
 /// the second is also declared on its own.
 
 s32 func_shelter_b1_main_corridor_8017DA8C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_b1_main_corridor_8017DCEC(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_shelter_b1_main_corridor_8017DCF4(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_shelter_b1_main_corridor_8017DCFC(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_b1_main_corridor_8017DCEC(Task*, s32, s32, s32);
+s32 func_shelter_b1_main_corridor_8017DCF4(Task*, s32, s32, s32);
+s32 func_shelter_b1_main_corridor_8017DCFC(Task*, s32, s32, s32);
 s32 func_shelter_b1_main_corridor_8017DD04(Task*, s32, s32, s32);
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
@@ -791,17 +791,17 @@ s32 func_shelter_b1_main_corridor_8017DA8C(Task* task, s32 msgId, RoomEventMsg* 
     return 1;
 }
 
-s32 func_shelter_b1_main_corridor_8017DCEC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b1_main_corridor_8017DCEC(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b1_main_corridor_8017DCF4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b1_main_corridor_8017DCF4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b1_main_corridor_8017DCFC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b1_main_corridor_8017DCFC(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

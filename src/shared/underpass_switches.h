@@ -18,7 +18,7 @@
 #include "main/task_types.h"
 
 void underpassSwitchTask(Task* task);
-s32  underpassSwitchMsg(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3);
+s32  underpassSwitchMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 s32 underpassSoundMsg(Task* task, s32 msgId, s32 arg2, s32 arg3);
 

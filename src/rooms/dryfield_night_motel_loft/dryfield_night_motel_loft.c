@@ -329,7 +329,7 @@ static void func_dryfield_night_motel_loft_8017D808(Task* arg0);
 static void func_dryfield_night_motel_loft_8017D8B0(Task* arg0);
 
 /// Message-table handler for id 0x13F1: accepts the message and does nothing.
-s32 func_dryfield_night_motel_loft_8017D5F8(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_motel_loft_8017D5F8(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -349,7 +349,7 @@ s32 func_dryfield_night_motel_loft_8017D67C(Task* arg0, s32 arg1, s32 arg2, s32 
 }
 
 /// Message-table handler for id 0x13EF: accepts the message and does nothing.
-s32 func_dryfield_night_motel_loft_8017D6BC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_motel_loft_8017D6BC(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

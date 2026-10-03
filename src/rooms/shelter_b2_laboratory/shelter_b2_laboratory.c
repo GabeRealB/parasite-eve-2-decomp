@@ -195,11 +195,11 @@ static void func_shelter_b2_laboratory_80180494(Task* task);
 static void func_shelter_b2_laboratory_801812F8(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b2_laboratory_801820F4(s16 arg0);
 
-s32  func_shelter_b2_laboratory_8017FD18(Task*, s32, s32, TaskMessageArg);
-s32  func_shelter_b2_laboratory_801800F4(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_shelter_b2_laboratory_8017FD18(Task*, s32, s32, s32);
+s32  func_shelter_b2_laboratory_801800F4(Task*, s32, s32, s32);
 s32  func_shelter_b2_laboratory_801800FC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_b2_laboratory_801801D0(Task*, s32, TaskMessageArg firstArg, s32);
-s32  func_shelter_b2_laboratory_8018025C(Task*, s32, s32, TaskMessageArg);
+s32  func_shelter_b2_laboratory_801801D0(Task* task, s32 msgId, const void* firstArg, s32);
+s32  func_shelter_b2_laboratory_8018025C(Task*, s32, s32, s32);
 void func_shelter_b2_laboratory_8017FEB8(Task*);
 void func_shelter_b2_laboratory_80180290(Task*);
 void func_shelter_b2_laboratory_80180350(Task*);
@@ -1058,7 +1058,7 @@ void func_shelter_b2_laboratory_8017EAB4(Task* task)
 
 #include "../../shared/room_event_task.inc.c"
 
-s32 func_shelter_b2_laboratory_8017FD18(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_shelter_b2_laboratory_8017FD18(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 4) {
         D_shelter_b2_laboratory_801864B8 = 0;
@@ -1159,7 +1159,7 @@ void func_shelter_b2_laboratory_8017FEB8(Task* arg0)
 
 #include "../../shared/room_cutscene_sound_task.inc.c"
 
-s32 func_shelter_b2_laboratory_801800F4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b2_laboratory_801800F4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -1191,9 +1191,9 @@ s32 func_shelter_b2_laboratory_801800FC(Task* arg0, s32 arg1, RoomEventMsg* in, 
 /// Handler for slot-7 msg `0x13EF` in `D_shelter_b2_laboratory_80182A38`: the
 /// directed action on the laboratory console (`actionId` 1). Runs the scripted
 /// scene once, then replays cap script `6` on later visits.
-s32 func_shelter_b2_laboratory_801801D0(Task* task, s32 msgId, TaskMessageArg firstArg, s32 arg3)
+s32 func_shelter_b2_laboratory_801801D0(Task* task, s32 msgId, const void* firstArg, s32 arg3)
 {
-    const DirectionActionRequest* request = firstArg.pointer;
+    const DirectionActionRequest* request = firstArg;
 
     if (request->actionId == 1) {
         if (GameFlag_GetNibble(GAME_FLAG_LABORATORY_CONSOLE_FIRST_USE) != 0) {
@@ -1210,7 +1210,7 @@ s32 func_shelter_b2_laboratory_801801D0(Task* task, s32 msgId, TaskMessageArg fi
     return 0;
 }
 
-s32 func_shelter_b2_laboratory_8018025C(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_shelter_b2_laboratory_8018025C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 0x63) {
         SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_LABORATORY, 0x17), 0, 0);

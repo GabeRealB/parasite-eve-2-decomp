@@ -58,15 +58,15 @@
 #include "../../shared/golem_pawn_rook.h"
 #include "../../shared/no9_golem.h"
 
-s32 func_actor_510900_801391B8(Task*, s32, s32);
+s32 func_actor_510900_801391B8(Task*, s32, s32, s32);
 
-s32 func_actor_510900_8013BD5C(Task*);
+s32 func_actor_510900_8013BD5C(Task*, s32, s32, s32);
 
-s32 func_actor_510900_8013BD84(Task*, s32, AnimationPlayRequest*);
+s32 func_actor_510900_8013BD84(Task*, s32, AnimationPlayRequest*, s32);
 
-s32 func_actor_510900_8013BE64(Task*, s32, s32);
+s32 func_actor_510900_8013BE64(Task*, s32, s32, s32);
 
-s16 func_actor_510900_8013BE84(Task*);
+s32 func_actor_510900_8013BE84(Task*, s32, s32, s32);
 
 // Only the leading view ID is read; retain the following halfwords.
 extern u16 D_actor_510900_80167CE4[4];
@@ -407,14 +407,14 @@ TaskDesc D_actor_510900_80167A18[7] = {
     { { { TASK_BODY_COORD, 96 } }, func_actor_510900_8013C3DC, { .value = 0 } },
 };
 
-Actor510900MessageEntry D_actor_510900_80167A6C[7] = {
-    { 2014, { .call1 = func_actor_510900_8013BD5C } },
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call2 = func_actor_510900_8013BD84 } },
-    { ACTOR_MESSAGE_PLACE, { .call3 = actorMsgPlaceRotMatrix } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call4 = func_actor_510900_8013BE64 } },
-    { 2007, { .call4 = func_actor_510900_801391B8 } },
-    { ACTOR_MESSAGE_IS_PRESENT, { .call0 = func_actor_510900_8013BE84 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_510900_80167A6C[7] = {
+    { 2014, func_actor_510900_8013BD5C },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_510900_8013BD84 },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceRotMatrix },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_510900_8013BE64 },
+    { 2007, func_actor_510900_801391B8 },
+    { ACTOR_MESSAGE_IS_PRESENT, func_actor_510900_8013BE84 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 u8 D_actor_510900_80167AA4[136] = {
@@ -2492,7 +2492,7 @@ static void func_actor_510900_80138F44(Task* arg0)
 /// clears - which is what puts it in `$a0` in both. The `do`/`while (0)` cuts
 /// the basic block so the second `Gp_GridParams->normals` read is scheduled on
 /// its own; without it the corner pointer and its walking copy coalesce.
-s32 func_actor_510900_801391B8(Task* arg0, s32 arg1, s32 arg2)
+s32 func_actor_510900_801391B8(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     Actor510900Work*        work;
     TmdObject*              obj;
@@ -3958,7 +3958,7 @@ static void func_actor_510900_8013BC80(Task* arg0)
     }
 }
 
-s32 func_actor_510900_8013BD5C(Task* arg0)
+s32 func_actor_510900_8013BD5C(Task* arg0, s32 msgId, s32 arg2, s32 arg3)
 {
     if (gPlayerStatus.hp > 0) {
         ((Actor510900Work*)arg0->work)->field_5BC = 1;
@@ -3966,7 +3966,7 @@ s32 func_actor_510900_8013BD5C(Task* arg0)
     return 0;
 }
 
-s32 func_actor_510900_8013BD84(Task* arg0, s32 arg1, AnimationPlayRequest* arg2)
+s32 func_actor_510900_8013BD84(Task* arg0, s32 arg1, AnimationPlayRequest* arg2, s32 arg3)
 {
     Actor510900Work* work;
     s32              blend;
@@ -3986,7 +3986,7 @@ s32 func_actor_510900_8013BD84(Task* arg0, s32 arg1, AnimationPlayRequest* arg2)
 
 /// Message 0x7D5 handler: switches the model's 0x80 flag: set when `arg2` is 0,
 /// cleared for any other value. The message id itself is unused.
-s32 func_actor_510900_8013BE64(Task* task, s32 msgId, s32 arg2)
+s32 func_actor_510900_8013BE64(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     TmdObject* tmd;
 
@@ -3999,7 +3999,7 @@ s32 func_actor_510900_8013BE64(Task* task, s32 msgId, s32 arg2)
     return 0;
 }
 
-s16 func_actor_510900_8013BE84(Task* arg0)
+s32 func_actor_510900_8013BE84(Task* arg0, s32 msgId, s32 arg2, s32 arg3)
 {
     return ((Actor510900Work*)arg0->work)->field_592;
 }

@@ -54,24 +54,11 @@
 #include "../../shared/actor_messages.h"
 #include "../../shared/no9_golem.h"
 
-typedef struct {
-    s32 id;
-    union {
-        s16 (*call0)(Task*);
-        s32 (*call1)(Task*);
-        s32 (*call2)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call3)(Task*, s32, ActorCommand* request);
-        s32 (*call4)(Task*, s32, ActorTransform*);
-        s32 (*call5)(Task*, s32, s32);
-    } handler;
-} Actor521100MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor521100MessageEntry, 8);
+extern TaskMessageEntry D_actor_521100_8015F6FC[8];
 
-extern Actor521100MessageEntry D_actor_521100_8015F6FC[8];
+s32 func_actor_521100_80135BEC(Task*, s32, s32, s32);
 
-s32 func_actor_521100_80135BEC(Task*);
-
-s32 func_actor_521100_80135C14(Task*, s32, AnimationPlayRequest*);
+s32 func_actor_521100_80135C14(Task*, s32, AnimationPlayRequest*, s32);
 
 typedef struct Actor521100FireScratch {
     /* 0x00 */ VECTOR               pos;
@@ -1599,15 +1586,15 @@ TaskDesc D_actor_521100_8015F6E4[2] = {
     { { { TASK_BODY_TMD, 96 } }, func_actor_521100_80135AE4, { .model = &_gActor521100No9GolemDryfieldGunblade } },
 };
 
-Actor521100MessageEntry D_actor_521100_8015F6FC[8] = {
-    { 2014, { .call1 = func_actor_521100_80135BEC } },
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call2 = func_actor_521100_80135C14 } },
-    { ACTOR_MESSAGE_PLACE, { .call4 = actorMsgPlaceRotMatrix } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call5 = func_actor_521100_80135D10 } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call3 = func_actor_521100_80135D58 } },
-    { 2007, { .call1 = func_actor_521100_80135D9C } },
-    { ACTOR_MESSAGE_IS_PRESENT, { .call0 = func_actor_521100_80135DC8 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_actor_521100_8015F6FC[8] = {
+    { 2014, func_actor_521100_80135BEC },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_521100_80135C14 },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceRotMatrix },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_521100_80135D10 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_521100_80135D58 },
+    { 2007, func_actor_521100_80135D9C },
+    { ACTOR_MESSAGE_IS_PRESENT, func_actor_521100_80135DC8 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 static void           func_actor_521100_80131E8C(Enemy* enemy, Task* task);
@@ -3669,7 +3656,7 @@ static void func_actor_521100_80135B80(Enemy* arg0, Task* task)
     }
 }
 
-s32 func_actor_521100_80135BEC(Task* arg0)
+s32 func_actor_521100_80135BEC(Task* arg0, s32 msgId, s32 arg2, s32 arg3)
 {
     if (gPlayerStatus.hp > 0) {
         ((Actor521100Work*)arg0->work)->field_6A8 = 1;
@@ -3677,7 +3664,7 @@ s32 func_actor_521100_80135BEC(Task* arg0)
     return 0;
 }
 
-s32 func_actor_521100_80135C14(Task* arg0, s32 arg1, AnimationPlayRequest* args)
+s32 func_actor_521100_80135C14(Task* arg0, s32 arg1, AnimationPlayRequest* args, s32 arg3)
 {
     Actor521100Work* work;
     s32              i;

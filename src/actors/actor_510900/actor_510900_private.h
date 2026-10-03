@@ -120,18 +120,6 @@ typedef struct Actor510900Work {
 } Actor510900Work;
 STATIC_ASSERT_SIZEOF(Actor510900Work, 0x5C8);
 
-typedef struct {
-    s32 id;
-    union {
-        s16 (*call0)(Task*);
-        s32 (*call1)(Task*);
-        s32 (*call2)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call3)(Task*, s32, ActorTransform*);
-        s32 (*call4)(Task*, s32, s32);
-    } handler;
-} Actor510900MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor510900MessageEntry, 8);
-
 /// `TaskDesc` table the state hands `Gp_SpawnEnemyFromTable` (entry 4).
 extern TaskDesc D_actor_510900_80167A18[];
 
@@ -165,7 +153,7 @@ extern AnimationSet gActor510900Animation35B20;
 
 extern DamageAttack D_actor_510900_80167968;
 
-extern Actor510900MessageEntry D_actor_510900_80167A6C[7];
+extern TaskMessageEntry D_actor_510900_80167A6C[7];
 
 void func_actor_510900_801350F8(Enemy* arg0, Task* arg1);
 

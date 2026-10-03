@@ -175,9 +175,9 @@ extern WorldCollisionGrid    D_dryfield_night_motel_room_6_80183984[1];
 extern WorldCollisionTrigger D_dryfield_night_motel_room_6_80185A48[10];
 extern WorldCollisionTrigger D_dryfield_night_motel_room_6_80185D40[15];
 extern WorldCoordRoomLights  D_dryfield_night_motel_room_6_80185A30[1];
-s32                          func_dryfield_night_motel_room_6_80181B74(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                          func_dryfield_night_motel_room_6_80181BF8(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                          func_dryfield_night_motel_room_6_80181C00(Task*, s32, s32, TaskMessageArg);
+s32                          func_dryfield_night_motel_room_6_80181B74(Task*, s32, s32, s32);
+s32                          func_dryfield_night_motel_room_6_80181BF8(Task*, s32, s32, s32);
+s32                          func_dryfield_night_motel_room_6_80181C00(Task*, s32, s32, s32);
 void                         func_dryfield_night_motel_room_6_8018189C(Task*);
 
 #include "../../shared/telephone_data.inc.c"
@@ -994,7 +994,7 @@ s32 motelRoom6ActionMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 }
 
 /// Handler of message 0x13F1 in the room's message table: does nothing.
-s32 func_dryfield_night_motel_room_6_80181B74(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_motel_room_6_80181B74(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -1002,14 +1002,14 @@ s32 func_dryfield_night_motel_room_6_80181B74(Task* task, s32 msgId, TaskMessage
 #include "../../shared/room_variants_motel_balcony.inc.c"
 
 /// Handler of message 0x13EF in the room's message table: does nothing.
-s32 func_dryfield_night_motel_room_6_80181BF8(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_motel_room_6_80181BF8(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
 /// Handler of message 0x13F2 in the room's message table: plays sound event
 /// 0x531E000C for event 0x63.
-s32 func_dryfield_night_motel_room_6_80181C00(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_dryfield_night_motel_room_6_80181C00(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 0x63) {
         SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_ROOM_6, 0x0C), 0, 0);

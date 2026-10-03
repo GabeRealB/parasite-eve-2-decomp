@@ -133,9 +133,9 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-s32 func_dryfield_night_motel_lobby_8017FB00(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_motel_lobby_8017FB00(Task*, s32, s32, s32);
 s32 func_dryfield_night_motel_lobby_8017FB7C(Task*, s32, s32, s32);
-s32 func_dryfield_night_motel_lobby_8017FC6C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_motel_lobby_8017FC6C(Task*, s32, const void*, s32);
 s32 func_dryfield_night_motel_lobby_8017FCDC(Task*, s32, s32, s32);
 
 TaskMessageEntry D_dryfield_night_motel_lobby_801827CC[6] = {
@@ -170,7 +170,7 @@ void func_dryfield_night_motel_lobby_8017EAE0(Task* task)
 
 #include "../../shared/room_cutscene_sound_task.inc.c"
 
-s32 func_dryfield_night_motel_lobby_8017FB00(Task* task, s32 messageId, TaskMessageArg firstArg, TaskMessageArg secondArg)
+s32 func_dryfield_night_motel_lobby_8017FB00(Task* task, s32 messageId, s32 firstArg, s32 secondArg)
 {
     return 0;
 }
@@ -207,9 +207,9 @@ s32 func_dryfield_night_motel_lobby_8017FB7C(Task* arg0, s32 arg1, s32 arg2, s32
     return 0;
 }
 
-s32 func_dryfield_night_motel_lobby_8017FC6C(Task* task, s32 msgId, TaskMessageArg firstArg, TaskMessageArg secondArg)
+s32 func_dryfield_night_motel_lobby_8017FC6C(Task* task, s32 msgId, const void* firstArg, s32 secondArg)
 {
-    const DirectionActionRequest* request = firstArg.pointer;
+    const DirectionActionRequest* request = firstArg;
 
     if (request->actionId == 1) {
         if (GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_LOBBY_EVENT_SEEN) == 0) {

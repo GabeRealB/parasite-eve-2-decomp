@@ -90,23 +90,7 @@ extern SVECTOR D_mine_forked_tunnel_801819C4[54];
 /// child enemy from; `Task_SpawnFromTable` picks entry 1.
 extern TaskDesc D_mine_forked_tunnel_80181B74[];
 
-/// One row of the tunnel enemy's task-message table.
-///
-/// The enemy publishes the table in `Task::msgTable`. Each row is a message
-/// id and the callback that handles it. The table ends with
-/// `TASK_MESSAGE_TABLE_END` and a null callback. The draw-mode callback and
-/// the actor-command callback take different payloads, so `handler` stores
-/// one view for each.
-typedef struct {
-    s32 messageId;                                                               // Receiver-specific id, or TASK_MESSAGE_TABLE_END
-    union {
-        s32 (*applyCommand)(Task* task, s32 messageId, ActorCommand* command);   // ACTOR_COMMAND_MESSAGE_APPLY
-        s32 (*setModelDraw)(Task* task, s32 messageId, s32 mode, s32 secondArg); // ACTOR_MESSAGE_SET_MODEL_DRAW; secondArg is unread
-    } handler;                                                                   // Callback for messageId; null only on the end marker
-} _MineForkedTunnelMessageEntry;
-STATIC_ASSERT_SIZEOF(_MineForkedTunnelMessageEntry, 8);
-
-extern _MineForkedTunnelMessageEntry D_mine_forked_tunnel_80181B8C[3];
+extern TaskMessageEntry D_mine_forked_tunnel_80181B8C[3];
 
 /// Work block of the room's area object, the model the switch event sends
 /// rolling down the tunnel slope; allocated zeroed and kept at `Task::work`.
@@ -173,10 +157,10 @@ static SVECTOR _gMineForkedTunnelModel03340Normals[12];
 static TmdBone _gMineForkedTunnelModel03340Skeleton[1];
 static u32     _gMineForkedTunnelModel03340Stream[104];
 
-s32 func_mine_forked_tunnel_8017E0E8(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_mine_forked_tunnel_8017E0E8(Task*, s32, s32, s32);
 s32 func_mine_forked_tunnel_8017E0F0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_mine_forked_tunnel_8017E134(Task*, s32, s32, TaskMessageArg);
-s32 func_mine_forked_tunnel_8017E19C(Task*, s32, TaskMessageArg firstArg, TaskMessageArg);
+s32 func_mine_forked_tunnel_8017E134(Task*, s32, s32, s32);
+s32 func_mine_forked_tunnel_8017E19C(Task* task, s32 msgId, const void* firstArg, s32 arg3);
 
 void func_mine_forked_tunnel_8017E2E0(Task*);
 void func_mine_forked_tunnel_8017E38C(Task*);
@@ -803,13 +787,13 @@ TaskDesc D_mine_forked_tunnel_80181B74[2] = {
     { { { TASK_BODY_TMD, 192 } }, func_mine_forked_tunnel_8017DDE8, { .model = &_gMineForkedTunnelModel03340 } },
 };
 
-s32 func_mine_forked_tunnel_8017D8EC(Task*, s32, ActorCommand* msg);
+s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
 s32 func_mine_forked_tunnel_8017DD08(Task*, s32, s32, s32);
 
-_MineForkedTunnelMessageEntry D_mine_forked_tunnel_80181B8C[3] = {
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .setModelDraw = func_mine_forked_tunnel_8017DD08 } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .applyCommand = func_mine_forked_tunnel_8017D8EC } },
-    { TASK_MESSAGE_TABLE_END, { .applyCommand = NULL } },
+TaskMessageEntry D_mine_forked_tunnel_80181B8C[3] = {
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_mine_forked_tunnel_8017DD08 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_mine_forked_tunnel_8017D8EC },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 ActorTransform D_mine_forked_tunnel_80181BA4 = { { 180, -235, -780, 0 }, { 0, 0, 0, 0 } };
@@ -1548,7 +1532,7 @@ static void func_mine_forked_tunnel_8017D724(Task* arg0)
 /// local-alloc's quantity rank is built from those counts, so the wrapper -
 /// and only the wrapper - lifts the six placement reads above the placement
 /// pointer and gives `$v0` to the values instead of the address.
-s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 arg1, ActorCommand* msg)
+s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
 {
     ActorTransform                   placement;
     ActorTransform*                  place;
@@ -1812,7 +1796,7 @@ static void func_mine_forked_tunnel_8017DF34(s32 arg0)
     }
 }
 
-s32 func_mine_forked_tunnel_8017E0E8(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_mine_forked_tunnel_8017E0E8(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -1826,7 +1810,7 @@ s32 func_mine_forked_tunnel_8017E0F0(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
     return 1;
 }
 
-s32 func_mine_forked_tunnel_8017E134(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_mine_forked_tunnel_8017E134(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if ((arg2 == 2) && (Gp_GetCurBit2Flag(1) == 1)) {
         if (GameFlag_GetNibble(GAME_FLAG_MINE_FORKED_TUNNEL_152) == 0) {
@@ -1840,9 +1824,9 @@ s32 func_mine_forked_tunnel_8017E134(Task* arg0, s32 arg1, s32 arg2, TaskMessage
 
 /// Message 1 handler: spawn the room's `Task_SpawnFromTable` entry when the
 /// tunnel switch flag is still clear.
-s32 func_mine_forked_tunnel_8017E19C(Task* task, s32 msgId, TaskMessageArg firstArg, TaskMessageArg arg3)
+s32 func_mine_forked_tunnel_8017E19C(Task* task, s32 msgId, const void* firstArg, s32 arg3)
 {
-    const DirectionActionRequest* request = firstArg.pointer;
+    const DirectionActionRequest* request = firstArg;
 
     if ((request->actionId == 1) && (GameFlag_GetNibble(GAME_FLAG_MINE_FORKED_TUNNEL_SWITCH_USED) == 0)) {
         Task_SpawnFromTable(D_mine_forked_tunnel_80183104, 0, 0, 0);

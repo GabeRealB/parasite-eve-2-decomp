@@ -249,6 +249,9 @@ typedef union {
 } TaskSpawnArg __attribute__((transparent_union));
 STATIC_ASSERT_SIZEOF(TaskSpawnArg, 4);
 
+/// A task's message table entry; defined with the dispatcher in `gameplay/message.h`.
+struct TaskMessageEntry;
+
 /// A primary-heap game object updated by the cooperative task scheduler.
 ///
 /// Each task belongs to an execution list headed by a `TaskNode` and may also
@@ -268,23 +271,23 @@ STATIC_ASSERT_SIZEOF(TaskSpawnArg, 4);
 /// Immediate teardown can free the task within its callback. A bare list head
 /// is never a task, and released pointers must not be dereferenced.
 typedef struct Task {
-    TaskNode     node;          // Intrusive list links; a task is its own list node
-    struct Task* parent;        // Parent in the teardown tree; NULL for an unattached task
-    struct Task* firstChild;    // Head of the child ring; NULL when childless
-    struct Task* nextSibling;   // Next child in that ring; the task itself when it is an only child
-    TaskFunc     callback;      // Per-frame entry point, called by the exec passes
-    TaskFunc     exitCallback;  // Teardown handler; initially taskKill, replaced by callbacks with nested resources
-    void*        work;          // Callback-defined work block; default teardown frees it, so borrowed storage must be cleared first
-    TaskSpawnArg spawnArg2;     // Second mutable payload word; callback defines values, pointer type and lifetime
-    const void*  msgTable;      // Borrowed id/handler table, or NULL; handler signatures and required ids are receiver-specific
-    u8           bodyKind;      // Body kind (0 none, 1 TMD model, 2 coordinate body, 0xFF released and awaiting collection)
-    u8           priority;      // Ascending execution order at insertion; also the exact byte selected by filtered passes
-    s16          killCountdown; // Callback-owned signed counter; remaining callback ticks during deferred body teardown
-    TaskBody     extra;         // The body the task owns, attached and released according to `bodyKind`
-    s32          state;         // Callback-defined state or counter, often an index into a handler table
-    TaskSpawnArg spawnArg1;     // First mutable payload word; callback defines values, pointer type and lifetime
-    u8           status;        // Callback-defined byte; 0xFF signals a stop request to Task_PollKill
-    byte         unknown_39[3]; // No field access established; role unproven
+    TaskNode                       node;          // Intrusive list links; a task is its own list node
+    struct Task*                   parent;        // Parent in the teardown tree; NULL for an unattached task
+    struct Task*                   firstChild;    // Head of the child ring; NULL when childless
+    struct Task*                   nextSibling;   // Next child in that ring; the task itself when it is an only child
+    TaskFunc                       callback;      // Per-frame entry point, called by the exec passes
+    TaskFunc                       exitCallback;  // Teardown handler; initially taskKill, replaced by callbacks with nested resources
+    void*                          work;          // Callback-defined work block; default teardown frees it, so borrowed storage must be cleared first
+    TaskSpawnArg                   spawnArg2;     // Second mutable payload word; callback defines values, pointer type and lifetime
+    const struct TaskMessageEntry* msgTable;      // Borrowed id/handler table, or NULL; the required ids and each handler's payload types are receiver-specific
+    u8                             bodyKind;      // Body kind (0 none, 1 TMD model, 2 coordinate body, 0xFF released and awaiting collection)
+    u8                             priority;      // Ascending execution order at insertion; also the exact byte selected by filtered passes
+    s16                            killCountdown; // Callback-owned signed counter; remaining callback ticks during deferred body teardown
+    TaskBody                       extra;         // The body the task owns, attached and released according to `bodyKind`
+    s32                            state;         // Callback-defined state or counter, often an index into a handler table
+    TaskSpawnArg                   spawnArg1;     // First mutable payload word; callback defines values, pointer type and lifetime
+    u8                             status;        // Callback-defined byte; 0xFF signals a stop request to Task_PollKill
+    byte                           unknown_39[3]; // No field access established; role unproven
     union {
         s32   value;
         void* pointer;

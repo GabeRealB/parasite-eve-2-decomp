@@ -22,7 +22,7 @@ void viewFigureSpawnState(Enemy* enemy, Task* task);
 void viewFigureStepAnim(Task* task);
 void viewFigureResetAnim(void);
 void viewFigureReseedAnim(void);
-s32  viewFigurePlayMessage(Task* task, s32 arg1, AnimationPlayRequest* args);
+s32  viewFigurePlayMessage(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3);
 
 /* Defined by each package. */
 void viewFigureExit(Task* arg0);

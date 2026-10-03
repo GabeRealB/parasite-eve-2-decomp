@@ -64,18 +64,8 @@ extern Actor161500AnimCopy6D60 D_actor_161500_80136D60;
 extern TaskDesc      gStrideWalkTasks[];
 extern AnimationSet* gStrideWalkAnimParams[12];
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call1)(Task*, s32, ActorCommand* request);
-        s32 (*call2)(Task*, s32, ActorTransform*);
-        s32 (*call3)(Task*, s32, s32);
-    } handler;
-} Actor161500MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor161500MessageEntry, 8);
 
-extern Actor161500MessageEntry gStrideWalkMessages[6];
+extern TaskMessageEntry gStrideWalkMessages[6];
 
 extern EvsCommand*    D_actor_161500_80134920[8];
 extern EvsCommand*    D_actor_161500_80135288[8];
@@ -132,7 +122,7 @@ extern AnimationPlayRequest     D_actor_161500_80136E38;
 extern AnimationPlayRequest     D_actor_161500_80136E60;
 extern AnimationPlayRequest     D_actor_161500_80136E74;
 extern AnimationBankCopyRequest D_actor_161500_80136E08;
-s32                             func_actor_161500_80132B88(Task*, s32, ActorCommand* args);
+s32                             func_actor_161500_80132B88(Task* task, s32 msgId, ActorCommand* args, s32 arg3);
 void                            func_actor_161500_80132210(void);
 void                            func_actor_161500_80132294(u8);
 void                            func_actor_161500_801326E8(Task*);
@@ -1343,13 +1333,13 @@ static AnimationSet _gActor161500Animation0E338 = {
     { NULL, _gActor161500Animation0E338Bank1, NULL, NULL, _gActor161500Animation0E338Bank4, NULL, NULL, NULL },
 };
 
-Actor161500MessageEntry gStrideWalkMessages[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call0 = strideWalkPlay } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = strideWalkSetVisibility } },
-    { ACTOR_MESSAGE_PLACE, { .call2 = pacedWalkPlace } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_161500_80132B88 } },
-    { ACTOR_MESSAGE_WALK_TO, { .call2 = strideWalkTo } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry gStrideWalkMessages[6] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, strideWalkPlay },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, strideWalkSetVisibility },
+    { ACTOR_MESSAGE_PLACE, pacedWalkPlace },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_161500_80132B88 },
+    { ACTOR_MESSAGE_WALK_TO, strideWalkTo },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc gStrideWalkTasks[2] = {
@@ -1594,7 +1584,7 @@ void strideWalkExit(Task* task)
 /// Script opcode: sets the work block's `turnUp`, which selects whether the
 /// per-frame body turns the actor's head toward the player or away, to the
 /// payload.
-s32 func_actor_161500_80132B88(Task* task, s32 arg1, ActorCommand* args)
+s32 func_actor_161500_80132B88(Task* task, s32 arg1, ActorCommand* args, s32 arg3)
 {
     ((Actor161500Work*)task->work)->turnUp = args->command;
     return 0;

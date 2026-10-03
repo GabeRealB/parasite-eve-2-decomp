@@ -112,7 +112,7 @@ void func_mine_secret_passage_8017D60C(Task* arg0)
     }
 }
 
-s32 func_mine_secret_passage_8017D7C4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_mine_secret_passage_8017D7C4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -141,12 +141,12 @@ s32 func_mine_secret_passage_8017D7CC(Task* task, s32 msgId, RoomEventMsg* src, 
     return 1;
 }
 
-s32 func_mine_secret_passage_8017D888(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_mine_secret_passage_8017D888(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_mine_secret_passage_8017D890(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_mine_secret_passage_8017D890(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -168,7 +168,7 @@ s32 func_mine_secret_passage_8017D898(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 /// advances to the next state.
 static void func_mine_secret_passage_8017D8C8(Task* arg0)
 {
-    arg0->msgTable = &D_mine_secret_passage_80180E8C;
+    arg0->msgTable = D_mine_secret_passage_80180E8C;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     arg0->state           = (s32)(arg0->state + 1);
     gStageSceneMusicEntry = 1;

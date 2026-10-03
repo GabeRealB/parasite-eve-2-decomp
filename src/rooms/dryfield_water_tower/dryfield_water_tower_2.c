@@ -292,17 +292,8 @@ extern PadScriptVibrationSegment D_dryfield_water_tower_80187678;
 /// reads: the raise prop `func_dryfield_water_tower_8017E1DC` hangs it off its
 /// own task in state 0, the same slot the cap script publishes a table into.
 // Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        void (*call0)(Task*);
-        void (*call1)(Task*, s32, ActorCommand* request);
-        void (*call2)(Task*, s32, ActorTransform*);
-    } handler;
-} DryfieldWaterTower2MessageEntry;
-STATIC_ASSERT_SIZEOF(DryfieldWaterTower2MessageEntry, 8);
 
-extern DryfieldWaterTower2MessageEntry D_dryfield_water_tower_80181B00[2];
+extern TaskMessageEntry D_dryfield_water_tower_80181B00[2];
 
 /// Main-executable gates the cap script checks, with no module header yet:
 /// the script only runs while `gPlayerStatus.hp` is non-zero, and its state 8 holds
@@ -337,7 +328,7 @@ extern DwtwStep       D_dryfield_water_tower_8018767C[];
 extern DwtwViewVolume D_dryfield_water_tower_80182350[];
 
 /// The cap script's message table, published into its own `Task::msgTable`.
-extern DryfieldWaterTower2MessageEntry D_dryfield_water_tower_80182374[2];
+extern TaskMessageEntry D_dryfield_water_tower_80182374[2];
 
 /// The room script's task table: entry 0 is the room task
 /// `func_dryfield_water_tower_8017FD64` itself, which the cap script spawns in
@@ -408,15 +399,15 @@ void             func_dryfield_water_tower_8017F8E8(s16);
 void             func_dryfield_water_tower_8017F908(void);
 void             func_dryfield_water_tower_8017F9AC(void);
 void             func_dryfield_water_tower_8017FA5C(void);
-void             func_dryfield_water_tower_8017FBC8(Task*);
-void             func_dryfield_water_tower_8017FBD8(Task*);
+s32              func_dryfield_water_tower_8017FBC8(Task*, s32, s32, s32);
+s32              func_dryfield_water_tower_8017FBD8(Task*, s32, s32, s32);
 
 static WorldCollisionGridFace _gDryfieldWaterTowerCollision06004Faces[73];
 static SVECTOR                _gDryfieldWaterTowerCollision06004Normals[29];
 static SVECTOR                _gDryfieldWaterTowerCollision06004Verts[175];
 extern TaskDesc               D_8014D8A4;
 static s16*                   _gDryfieldWaterTowerCollision06004Table[16];
-void                          func_dryfield_water_tower_8017F808(Task*, s32, ActorCommand* msg);
+s32                           func_dryfield_water_tower_8017F808(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
@@ -511,9 +502,9 @@ ActorTransform D_dryfield_water_tower_80181AD0[2] = {
     { { 2500, 0, -270, 0 }, { 0, 3072, 0, 0 } },
 };
 
-DryfieldWaterTower2MessageEntry D_dryfield_water_tower_80181B00[2] = {
-    { ACTOR_MESSAGE_PLACE, { .call2 = actorMsgPlaceYawPitchRoll } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_dryfield_water_tower_8017F808 } },
+TaskMessageEntry D_dryfield_water_tower_80181B00[2] = {
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceYawPitchRoll },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_dryfield_water_tower_8017F808 },
 };
 
 static SVECTOR _gDryfieldWaterTowerCollision04550[2] = {
@@ -666,9 +657,9 @@ DwtwViewVolume D_dryfield_water_tower_80182350[9] = {
     { 0xFFFF, 0xFFFF },
 };
 
-DryfieldWaterTower2MessageEntry D_dryfield_water_tower_80182374[2] = {
-    { ROOM_MESSAGE_ACTOR_EVENT, { .call0 = func_dryfield_water_tower_8017FBC8 } },
-    { 5100, { .call0 = func_dryfield_water_tower_8017FBD8 } },
+TaskMessageEntry D_dryfield_water_tower_80182374[2] = {
+    { ROOM_MESSAGE_ACTOR_EVENT, func_dryfield_water_tower_8017FBC8 },
+    { 5100, func_dryfield_water_tower_8017FBD8 },
 };
 
 TaskDesc D_dryfield_water_tower_80182384[3] = {
@@ -2779,7 +2770,7 @@ void func_dryfield_water_tower_8017F700(s32 arg0)
 /// task's kill countdown, and the payload's halfword becomes the task's state,
 /// so the 0x7DB sender picks the state the cap script resumes in. The opcode
 /// itself is never read, hence the named-but-unused `msgId`.
-void func_dryfield_water_tower_8017F808(Task* task, s32 msgId, ActorCommand* msg)
+s32 func_dryfield_water_tower_8017F808(Task* task, s32 msgId, ActorCommand* msg, s32 arg3)
 {
     DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)task->work;
 
@@ -2928,12 +2919,12 @@ static s32 func_dryfield_water_tower_8017FB4C(Task* task)
     return (D_dryfield_water_tower_8018767C[i].field_2 * 30) & 0xFFFE;
 }
 
-void func_dryfield_water_tower_8017FBC8(Task* task)
+s32 func_dryfield_water_tower_8017FBC8(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     ((DryfieldWaterTowerState*)task->work)->field_6C = 1;
 }
 
-void func_dryfield_water_tower_8017FBD8(Task* task)
+s32 func_dryfield_water_tower_8017FBD8(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     ((DryfieldWaterTowerState*)task->work)->field_6E = 1;
 }

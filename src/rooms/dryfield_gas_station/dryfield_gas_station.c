@@ -124,8 +124,8 @@ TaskDesc D_dryfield_gas_station_80181E3C[2] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-s32 func_dryfield_gas_station_8017FD4C(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_dryfield_gas_station_8017FD54(Task*, s32, s32, TaskMessageArg);
+s32 func_dryfield_gas_station_8017FD4C(Task*, s32, s32, s32);
+s32 func_dryfield_gas_station_8017FD54(Task*, s32, s32, s32);
 
 TaskMessageEntry D_dryfield_gas_station_80181E54[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantGasStationMsg },
@@ -161,7 +161,7 @@ void func_dryfield_gas_station_8017EA90(Task* task)
 #include "../../shared/room_cutscene_sound_task.inc.c"
 
 /// Always returns 0.
-s32 func_dryfield_gas_station_8017FD4C(Task* arg0, s32 arg1, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_gas_station_8017FD4C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -171,7 +171,7 @@ s32 func_dryfield_gas_station_8017FD4C(Task* arg0, s32 arg1, TaskMessageArg arg2
 /// fills in the room's cap script (area 8, this request as the slot and file)
 /// and spawns `gRoomCutsceneTaskDescs`. Returns 1 when the request is
 /// not 1, otherwise the spawned task.
-s32 func_dryfield_gas_station_8017FD54(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
+s32 func_dryfield_gas_station_8017FD54(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 1) {
         if (GameFlag_GetNibble(GAME_FLAG_GAS_STATION_FIRST_SCENE) == 0) {

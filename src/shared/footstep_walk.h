@@ -43,7 +43,7 @@ void footstepWalkBlendAnim(void);
 s32  footstepWalkPlay(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3);
 s32  footstepWalkTo(Task* task, s32 arg1, VECTOR* target, s32 mode);
 
-s32 footstepWalkPlace(Task* task, s32 arg1, ActorTransform* placement);
+s32 footstepWalkPlace(Task* task, s32 arg1, ActorTransform* placement, s32 arg3);
 
 void footstepWalkQuietUpdate(Task* task);
 void footstepWalkQuietResetAnim(void);

@@ -60,10 +60,10 @@ static void func_shelter_b1_golem_freezer_1_8017D744(s32 arg0);
 static void func_shelter_b1_golem_freezer_1_8017D7CC(GfxCoord* arg0, s16* arg1);
 static void func_shelter_b1_golem_freezer_1_8017E254(GfxCoord* coord, u16 arg1, s16 arg2, s16 arg3);
 
-s32 func_shelter_b1_golem_freezer_1_8017D5D0(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_b1_golem_freezer_1_8017D5D0(Task*, s32, s32, s32);
 s32 func_shelter_b1_golem_freezer_1_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_b1_golem_freezer_1_8017D61C(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_shelter_b1_golem_freezer_1_8017D624(Task*, s32, RoomEventMsg*, TaskMessageArg);
+s32 func_shelter_b1_golem_freezer_1_8017D61C(Task*, s32, s32, s32);
+s32 func_shelter_b1_golem_freezer_1_8017D624(Task*, s32, RoomEventMsg*, s32);
 
 TaskMessageEntry D_shelter_b1_golem_freezer_1_8017E6A8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_golem_freezer_1_8017D5D8 },
@@ -348,7 +348,7 @@ static void func_shelter_b1_golem_freezer_1_8017D66C(Task* arg0);
 static void func_shelter_b1_golem_freezer_1_8017D6DC(Task* task);
 
 /// Message-table handler for message 0x13F1: does nothing and answers 0.
-s32 func_shelter_b1_golem_freezer_1_8017D5D0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b1_golem_freezer_1_8017D5D0(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -363,14 +363,14 @@ s32 func_shelter_b1_golem_freezer_1_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg*
 }
 
 /// Message-table handler for message 0x13F0: does nothing and answers 0.
-s32 func_shelter_b1_golem_freezer_1_8017D61C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_b1_golem_freezer_1_8017D61C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
 /// Message-table handler for message 0x13EF: when the message's `field_2` is 1
 /// and the session's place is 0x15, calls `func_80131E70`. Always answers 0.
-s32 func_shelter_b1_golem_freezer_1_8017D624(Task* arg0, s32 arg1, RoomEventMsg* msg, TaskMessageArg arg3)
+s32 func_shelter_b1_golem_freezer_1_8017D624(Task* arg0, s32 arg1, RoomEventMsg* msg, s32 arg3)
 {
     if (msg->warp == 1 && gGameSession->location.loc.variant == 0x15) {
         func_80131E70();

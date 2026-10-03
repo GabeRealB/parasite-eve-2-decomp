@@ -71,9 +71,9 @@ extern WorldCollisionTrigger  D_dryfield_parking_lot_8017F0A8[10];
 extern WorldCollisionTrigger  D_dryfield_parking_lot_8017F3A0[11];
 extern WorldCoordRoomLights   D_dryfield_parking_lot_8017F9FC[1];
 extern TaskDesc               D_8014D8A4;
-s32                           func_dryfield_parking_lot_8017DAF0(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                           func_dryfield_parking_lot_8017DAF8(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                           func_dryfield_parking_lot_8017DB00(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                           func_dryfield_parking_lot_8017DAF0(Task*, s32, s32, s32);
+s32                           func_dryfield_parking_lot_8017DAF8(Task*, s32, s32, s32);
+s32                           func_dryfield_parking_lot_8017DB00(Task*, s32, s32, s32);
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
@@ -454,21 +454,21 @@ static void func_dryfield_parking_lot_8017DB4C(Task* task);
 
 /// Handler for message 0x13F1 in the room's message table: does nothing and
 /// returns 0.
-s32 func_dryfield_parking_lot_8017DAF0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_parking_lot_8017DAF0(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
 /// Handler for message 0x13F0 in the room's message table: does nothing and
 /// returns 0.
-s32 func_dryfield_parking_lot_8017DAF8(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_parking_lot_8017DAF8(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
 /// Handler for message 0x13EF in the room's message table: does nothing and
 /// returns 0.
-s32 func_dryfield_parking_lot_8017DB00(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_dryfield_parking_lot_8017DB00(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }

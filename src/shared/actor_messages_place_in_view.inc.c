@@ -4,7 +4,7 @@
 /// coordinate is parented to the view coordinate, takes `placement`'s
 /// position as its translation and its rotation applied Y, then X, then Z.
 /// `arg1` is the message id.
-void actorMsgPlaceInView(Task* task, s32 arg1, ActorTransform* placement)
+s32 actorMsgPlaceInView(Task* task, s32 arg1, ActorTransform* placement, s32 arg3)
 {
     GfxCoord* coord;
     MATRIX*   mtx;

@@ -48,10 +48,10 @@ extern TaskMessageEntry D_shelter_1f_airlock_8017E494[];
 /// labels into one contiguous run of `SVECTOR`s, so the per-view lists overlap.
 
 // Indexed views below share one contiguous table.
-s32 func_shelter_1f_airlock_8017D5D0(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_1f_airlock_8017D5D0(Task*, s32, s32, s32);
 s32 func_shelter_1f_airlock_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_1f_airlock_8017D61C(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_shelter_1f_airlock_8017D624(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_1f_airlock_8017D61C(Task*, s32, s32, s32);
+s32 func_shelter_1f_airlock_8017D624(Task*, s32, s32, s32);
 
 extern WorldCollisionGrid     D_shelter_1f_airlock_8017E838[1];
 extern WorldCollisionOccluder D_shelter_1f_airlock_8017F7B8[2];
@@ -389,7 +389,7 @@ WorldCollisionSurfaceProperties* D_shelter_1f_airlock_8017F84C[8] = {
 static void func_shelter_1f_airlock_8017D62C(Task* task);
 static void func_shelter_1f_airlock_8017D670(Task* task);
 
-s32 func_shelter_1f_airlock_8017D5D0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_1f_airlock_8017D5D0(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
@@ -403,12 +403,12 @@ s32 func_shelter_1f_airlock_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
     return 1;
 }
 
-s32 func_shelter_1f_airlock_8017D61C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_1f_airlock_8017D61C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
 
-s32 func_shelter_1f_airlock_8017D624(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 func_shelter_1f_airlock_8017D624(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
 }
