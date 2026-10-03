@@ -75,17 +75,24 @@ typedef struct {
 } _EffectImpactFlashFrame;
 STATIC_ASSERT_SIZEOF(_EffectImpactFlashFrame, 0xC);
 
-/// 0x14-byte scratch from the scratch stack used by `Gp_EffTileTaskA4`.
-/// `vec` is the coordinate's `workm.t[]` truncated to s16 and fed to
-/// `gte_ldv0`. `otz` receives `gte_stszotz`, `flag` `gte_stflg` and `sxy`
-/// `gte_stsxy` of the single RTPS that places the spark `TILE`.
-typedef struct _GpEffTileScratch {
-    /* 0x00 */ SVECTOR vec;
-    /* 0x08 */ s32     otz;
-    /* 0x0C */ s32     flag;
-    /* 0x10 */ DVECTOR sxy;
-} GpEffTileScratch;
-STATIC_ASSERT_SIZEOF(GpEffTileScratch, 0x14);
+/// Scratch-stack workspace for projecting one `EFFECT_PIXEL_SPARK` onto its tile.
+///
+/// The spark's task stages its coordinate's world position, narrowed to signed
+/// 16-bit coordinate units, and one perspective transform through the
+/// world-to-screen matrix supplies the screen position, the GTE status and the
+/// depth. A rejected projection queues no tile and leaves `depth` unwritten.
+///
+/// Reserve one complete, word-aligned block on the scratch stack and release
+/// it in reverse order after drawing. The block is not cleared; the SVECTOR's
+/// unused fourth halfword has no established value. No pointer into this
+/// workspace may survive its release.
+typedef struct {
+    SVECTOR worldPoint;      // Spark position in world coordinates, narrowed to s16
+    s32     depth;           // SZ3 / 4 plus one, used for ordering-table placement and blend setup
+    s32     projectionFlags; // GTE FLAG word; bit 31 makes it negative and rejects the projection
+    DVECTOR screenPoint;     // Projected position in pixels, the tile's top-left corner; one GTE word store fills both halves
+} _EffectPixelSparkScratch;
+STATIC_ASSERT_SIZEOF(_EffectPixelSparkScratch, 0x14);
 
 extern _EffectCriticalHitStyle D_8011291C[];
 
@@ -1625,16 +1632,15 @@ void Gp_EffCtlTask6D(Task* arg0)
 
 void Gp_EffTileTaskA4(Task* arg0)
 {
-    EffectWork*       mem;
-    GfxCoord*         coord;
-    GpEffTileScratch* block;
-    TILE*             prim;
-    s16               c;
+    EffectWork*               mem;
+    GfxCoord*                 coord;
+    _EffectPixelSparkScratch* scratch;
+    TILE*                     prim;
+    s16                       c;
 
-    coord = arg0->extra.coordBody->coord;
-    SCRATCH_STACK_RESERVE_BYTES(0x14);
-    block = SCRATCH_STACK_CURSOR(GpEffTileScratch);
-    mem   = arg0->spawnArg2.pointer;
+    coord   = arg0->extra.coordBody->coord;
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_EffectPixelSparkScratch);
+    mem     = arg0->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
     if (arg0->state == 0) {
         if (arg0->spawnArg1.value != 0) {
@@ -1664,22 +1670,22 @@ void Gp_EffTileTaskA4(Task* arg0)
         }
         arg0->state = 1;
     }
-    coord->coord.t[0]  += mem->move.vx;
-    coord->coord.t[1]  += mem->move.vy;
-    coord->coord.t[2]  += mem->move.vz;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    block->vec.vx       = (u16)coord->workm.t[0];
-    block->vec.vy       = (u16)coord->workm.t[1];
-    block->vec.vz       = (u16)coord->workm.t[2];
+    coord->coord.t[0]     += mem->move.vx;
+    coord->coord.t[1]     += mem->move.vy;
+    coord->coord.t[2]     += mem->move.vz;
+    coord->composeStamp    = GRAPHICS_COORD_DIRTY;
+    scratch->worldPoint.vx = (u16)coord->workm.t[0];
+    scratch->worldPoint.vy = (u16)coord->workm.t[1];
+    scratch->worldPoint.vz = (u16)coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec);
+    gte_ldv0(&scratch->worldPoint);
     gte_rtps();
-    gte_stsxy(&block->sxy);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        block->otz     = block->otz + 1;
+    gte_stsxy(&scratch->screenPoint);
+    gte_stflg(&scratch->projectionFlags);
+    if (scratch->projectionFlags >= 0) {
+        gte_stszotz(&scratch->depth);
+        scratch->depth = scratch->depth + 1;
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 3);
@@ -1690,13 +1696,13 @@ void Gp_EffTileTaskA4(Task* arg0)
         prim->r0 = c;
         prim->g0 = c >> mem->scale;
         prim->b0 = c >> 3;
-        prim->x0 = block->sxy.vx;
-        prim->y0 = block->sxy.vy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        prim->x0 = scratch->screenPoint.vx;
+        prim->y0 = scratch->screenPoint.vy;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
-        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
+        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, scratch->depth);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x14);
+    SCRATCH_STACK_RELEASE_BLOCK(_EffectPixelSparkScratch);
     mem->age++;
     if (mem->age >= 8) {
         effectKillTask(mem, arg0);

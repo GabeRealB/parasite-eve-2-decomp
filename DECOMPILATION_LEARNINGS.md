@@ -40125,7 +40125,7 @@ one edit; the `.lreg`/`.sched` pair is where the WAR shows up.
 Allocating from `SCRATCH_STACK_CURSOR_SLOT` as
 
 ```c
-block = (GpEffTileScratch*)(*(u8**)SCRATCH_STACK_CURSOR_SLOT - 0x14);
+block = (_EffectPixelSparkScratch*)(*(u8**)SCRATCH_STACK_CURSOR_SLOT - 0x14);
 *(u8**)SCRATCH_STACK_CURSOR_SLOT = (u8*)block;
 ```
 
@@ -40135,7 +40135,7 @@ anything else, which comes from decrementing in place and re-reading:
 
 ```c
 *(u8**)SCRATCH_STACK_CURSOR_SLOT -= 0x14;
-block = (GpEffTileScratch*)*(u8**)SCRATCH_STACK_CURSOR_SLOT;
+block = (_EffectPixelSparkScratch*)*(u8**)SCRATCH_STACK_CURSOR_SLOT;
 ```
 
 The re-read is CSE'd into the copy, and the read-modify-write pins the `lw` to
@@ -40143,6 +40143,12 @@ the top of the block. The matching release at the end is the mirror image,
 `*(u8**)SCRATCH_STACK_CURSOR_SLOT += 0x14;`, which re-materialises the `lui`/`ori` of
 0x1F8003FC after the intervening calls instead of burning a callee-saved
 register on it.
+
+`SCRATCH_STACK_RESERVE_BLOCK(_EffectPixelSparkScratch)` is that in-place form as
+one expression - the value of its assignment to the slot stands in for the
+re-read - and compiles to the same instructions, as does
+`SCRATCH_STACK_RELEASE_BLOCK` for the release, so the function is written with
+those and `sizeof` rather than a literal 0x14.
 
 ## Brute-force the source order of independent primitive-field stores
 
@@ -56669,8 +56675,9 @@ grep `include/` as well as `src/`. Porting the twin took one attempt against a
 
 Corollary: the scratch-struct docs in `include/gameplay/3CD8.h` and
 `include/gameplay/3FB8.h` are a catalogue of `SCRATCH_STACK_CURSOR_SLOT` layouts
-(`EffectCentreScratch`, `EffectShapeScratch`, `EffectBillboardScratch`,
-`GpEffTileScratch`, …). Any overlay function whose prologue is `lw` from
+(`EffectCentreScratch`, `EffectShapeScratch`, `EffectBillboardScratch`, …;
+a record only one function uses, such as `_EffectPixelSparkScratch`, is private
+to its source file instead). Any overlay function whose prologue is `lw` from
 `0x1F8003FC` / `addiu -N` / `sw` back is very likely one of them; match the size
 and field offsets against that list first. Use the canonical shared record when its layout and meaning agree, as with
 `EffectShapeScratch` in `include/gameplay/effects.h`; a distinct layout needs its
