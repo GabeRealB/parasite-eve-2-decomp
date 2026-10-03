@@ -3387,7 +3387,7 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
         if ((state != excludedState) && (state != 0) && (state != 6) && (state != 3)) {
             actorWork = actor->work;
             slot      = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-            if ((slot != NULL) && (actorWork->poseId == 7)) {
+            if ((slot != NULL) && (actorWork->playerMove.collisionRequests == GAME_ACTOR_COLLISION_REQUEST_MASK)) {
                 playerCoord = slot->extra.tmd->coords;
                 actorcoord  = actor->extra.tmd->coords;
                 if (abs(playerCoord->coord.t[1] - actorcoord->coord.t[1]) >= 0x321) {
@@ -3402,8 +3402,8 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
             case 4:
                 break;
             case 1:
-                if (work->poseId == 0x38) {
-                    TASK_MESSAGE_DISPATCH_POINTER(player, 0x3FE, (&work->routePos.vx), 0);
+                if (work->playerMove.collisionRequests == (GAME_ACTOR_COLLISION_REQUEST_MASK << GAME_ACTOR_COLLISION_DISABLE_REQUEST_SHIFT)) {
+                    TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_MOVE_BY, &work->playerMove, 0);
                     if (work->field_C28 == 0xF) {
                         if ((Gp_GetViewIndex() & 0xFF) == 8) {
                             sound = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x54010004;
@@ -3419,12 +3419,12 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
                     if (work->field_C28 >= 0xF) {
                         coord = player->extra.tmd->coords;
                         if (coord->coord.t[1] < 0x1770) {
-                            work->routePos.vy = (s32)(work->routePos.vy + 0x21);
+                            work->playerMove.displacement.vy += 0x21;
                         } else {
-                            coord->coord.t[1] = 0x1770;
-                            work->routePos.vx = 0;
-                            work->routePos.vy = 0;
-                            work->routePos.vz = 0;
+                            coord->coord.t[1]                = 0x1770;
+                            work->playerMove.displacement.vx = 0;
+                            work->playerMove.displacement.vy = 0;
+                            work->playerMove.displacement.vz = 0;
                         }
                     }
                     if (player->extra.tmd->coords->coord.t[1] >= 0x1770) {
@@ -3437,35 +3437,35 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
                             }
                         }
                     }
-                } else if (work->routePos.vx == 0) {
-                    if (work->routePos.vz != 0) {
+                } else if (work->playerMove.displacement.vx == 0) {
+                    if (work->playerMove.displacement.vz != 0) {
                         goto dispatchMotion;
                     }
                 } else {
                 dispatchMotion:
-                    if ((s16)TASK_MESSAGE_DISPATCH_POINTER(player, 0x3FE, (&work->routePos.vx), 0) != 1) {
+                    if ((s16)TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_MOVE_BY, &work->playerMove, 0) != 1) {
                         if (work->field_C28 >= 0xF) {
-                            work->routePos.vx = (s32)((s32)work->routePos.vx >> 1);
-                            work->routePos.vy = (s32)((s32)work->routePos.vy >> 1);
-                            work->routePos.vz = (s32)((s32)work->routePos.vz >> 1);
+                            work->playerMove.displacement.vx >>= 1;
+                            work->playerMove.displacement.vy >>= 1;
+                            work->playerMove.displacement.vz >>= 1;
                         }
-                    } else if (((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) && (work->routePos.vx != 0) && (work->routePos.vz != 0) && (work->field_C28 < 6)) {
+                    } else if (((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) && (work->playerMove.displacement.vx != 0) && (work->playerMove.displacement.vz != 0) && (work->field_C28 < 6)) {
                         if (Actor00100_InRegion(player)) {
-                            if (Actor00100_InDirection(player, (VECTOR*)&work->routePos.vx)) {
-                                work->poseId      = 0x38;
-                                Gp_StateC08.flags = (u8)(Gp_StateC08.flags | ATTACHMENT_FLAG_EVENT_LOCK);
+                            if (Actor00100_InDirection(player, &work->playerMove.displacement)) {
+                                work->playerMove.collisionRequests = (GAME_ACTOR_COLLISION_REQUEST_MASK << GAME_ACTOR_COLLISION_DISABLE_REQUEST_SHIFT);
+                                Gp_StateC08.flags                  = (u8)(Gp_StateC08.flags | ATTACHMENT_FLAG_EVENT_LOCK);
                                 Gp_PulseState1C();
-                                scratch->vx = (u16)work->routePos.vx;
+                                scratch->vx = (u16)work->playerMove.displacement.vx;
                                 scratch->vy = 0;
-                                scratch->vz = (u16)work->routePos.vz;
+                                scratch->vz = (u16)work->playerMove.displacement.vz;
                                 VectorNormalSS(scratch, scratch);
                                 gte_lddp(250);
                                 gte_ldsv(scratch);
                                 gte_gpf12();
                                 gte_stsv(scratch);
-                                work->routePos.vx = (s32)(s16)scratch->vx;
-                                work->routePos.vy = 0x3C;
-                                work->routePos.vz = (s32)scratch->vz;
+                                work->playerMove.displacement.vx = (s16)scratch->vx;
+                                work->playerMove.displacement.vy = 0x3C;
+                                work->playerMove.displacement.vz = scratch->vz;
                             } else {
                                 goto clearMotion;
                             }
@@ -3474,9 +3474,9 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
                         }
                     } else {
                     clearMotion:
-                        work->routePos.vx = 0;
-                        work->routePos.vy = 0;
-                        work->routePos.vz = 0;
+                        work->playerMove.displacement.vx = 0;
+                        work->playerMove.displacement.vy = 0;
+                        work->playerMove.displacement.vz = 0;
                     }
                 }
                 break;
@@ -3503,13 +3503,13 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
                 }
                 break;
             case 3:
-                if ((work->field_C28 < 6) && (config->hp > 0) && ((work->routePos.vx != 0) || (work->routePos.vz != 0))) {
-                    result = TASK_MESSAGE_DISPATCH_POINTER(player, 0x3FE, (&work->routePos.vx), 0);
+                if ((work->field_C28 < 6) && (config->hp > 0) && ((work->playerMove.displacement.vx != 0) || (work->playerMove.displacement.vz != 0))) {
+                    result = TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_MOVE_BY, &work->playerMove, 0);
                     if (result == 1) {
-                        work->routePos.vx = 0;
-                        work->routePos.vy = 0;
-                        work->routePos.vz = 0;
-                        work->poseBlend   = (s8)result;
+                        work->playerMove.displacement.vx = 0;
+                        work->playerMove.displacement.vy = 0;
+                        work->playerMove.displacement.vz = 0;
+                        work->playerMove.keepControl     = result;
                     }
                 }
                 break;
@@ -3524,7 +3524,7 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
             nextAction = work->params[0];
             switch (nextAction) {
                 case 1:
-                    if ((((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(4, 1, 0, 0)) || (work->poseId != 0x38)) && (config->hp > 0)) {
+                    if ((((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(4, 1, 0, 0)) || (work->playerMove.collisionRequests != (GAME_ACTOR_COLLISION_REQUEST_MASK << GAME_ACTOR_COLLISION_DISABLE_REQUEST_SHIFT))) && (config->hp > 0)) {
                         nextMessage     = &work->animCommand;
                         work->params[1] = 0;
                         work->params[2] = 0;
@@ -3820,7 +3820,7 @@ static void Actor00100_Fn0BC1C(Task* arg0)
 
     work = arg0->work;
     task = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    if ((task != NULL) && (work->poseId == 7)) {
+    if ((task != NULL) && (work->playerMove.collisionRequests == GAME_ACTOR_COLLISION_REQUEST_MASK)) {
         if (abs(task->extra.tmd->coords->coord.t[1] - arg0->extra.tmd->coords->coord.t[1]) > 800) {
             task->extra.tmd->coords->coord.t[1]   = arg0->extra.tmd->coords->coord.t[1];
             task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;

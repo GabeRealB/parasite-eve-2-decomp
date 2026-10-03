@@ -68,7 +68,7 @@ s32 func_8010C6C8(Task*, s32, ActorTransform* transform, GameActorMoveAnim* move
 s32  func_8010C648(Task* task, s32 msgId, AnimationPlayRequest* request);
 s32  Gp_CopyAllyAnim(Task*, s32, const AnimationBankCopyRequest* request);
 s32  func_8010C75C(Task*, s32, GameActorButtonPressHold*);
-void Gp_MoveActorByKeep(Task*, s32, GpMoveArg*);
+void Gp_MoveActorByKeep(Task*, s32, GameActorMoveBy*);
 s32  func_8010C708(Task*, s32, ActorTransform* transform, GameActorMoveAnim* moveAnim);
 
 #endif // GAMEPLAY_PLAYER_STATE_H

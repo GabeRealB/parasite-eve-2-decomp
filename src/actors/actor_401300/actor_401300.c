@@ -156,11 +156,8 @@ typedef struct Actor401300Work {
     /* 0xCA8 */ u8                   field_CA8[3];
     /* 0xCAB */ byte                 pad_CAB;
     /* 0xCAC */ AnimationPlayRequest field_CAC;
-    /* 0xCC0 */ s32                  field_CC0[3];
-    /* 0xCCC */ byte                 pad_CCC[4];
-    /* 0xCD0 */ s16                  field_CD0;
-    /* 0xCD2 */ u8                   field_CD2;
-    /* 0xCD3 */ byte                 pad_CD3;
+    /// The push sent to the player with `GAME_ACTOR_MESSAGE_MOVE_BY`.
+    /* 0xCC0 */ GameActorMoveBy playerMove;
     /// Player position and facing sent with message 0x3E9 by
     /// `func_actor_401300_80138800`.
     /* 0xCD4 */ VECTOR  field_CD4;
@@ -3415,12 +3412,12 @@ static void func_actor_401300_80138160(Task* arg0)
                 work->field_D20             = 1;
                 work->field_CAC.animationId = 1;
                 TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->field_CAC, 0);
-                work->field_CC0[2] = 0;
-                work->field_CC0[1] = 0;
-                work->field_CC0[0] = 0;
-                work->field_CD0    = 7;
-                work->field_CD2    = 1;
-                work->field_D22    = 0;
+                work->playerMove.displacement.vz   = 0;
+                work->playerMove.displacement.vy   = 0;
+                work->playerMove.displacement.vx   = 0;
+                work->playerMove.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
+                work->playerMove.keepControl       = 1;
+                work->field_D22                    = 0;
             }
         }
     }
@@ -4790,17 +4787,17 @@ static void func_actor_401300_8013DADC(Task* arg0)
                 work->field_D00 = 0x7F;
                 if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &work->field_CEC, 0) == 0) {
                     Gp_SpawnPadLerp(0x10, 8, 0xFF);
-                    work->field_D20             = 1;
-                    work->field_CAC.source.sets = D_actor_401300_801588F0;
-                    work->field_CC0[2]          = 0;
-                    work->field_CC0[1]          = 0;
-                    work->field_CC0[0]          = 0;
-                    work->field_CD0             = 7;
-                    work->field_CD2             = 1;
-                    aim->delta.vx               = -aim->delta.vx;
-                    aim->delta.vy               = -aim->delta.vy;
-                    aim->delta.vz               = -aim->delta.vz;
-                    aim->turn                   = actorYawTo(task->extra.tmd->coords, aim->delta.vx, aim->delta.vz);
+                    work->field_D20                    = 1;
+                    work->field_CAC.source.sets        = D_actor_401300_801588F0;
+                    work->playerMove.displacement.vz   = 0;
+                    work->playerMove.displacement.vy   = 0;
+                    work->playerMove.displacement.vx   = 0;
+                    work->playerMove.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
+                    work->playerMove.keepControl       = 1;
+                    aim->delta.vx                      = -aim->delta.vx;
+                    aim->delta.vy                      = -aim->delta.vy;
+                    aim->delta.vz                      = -aim->delta.vz;
+                    aim->turn                          = actorYawTo(task->extra.tmd->coords, aim->delta.vx, aim->delta.vz);
                     if (abs(aim->turn) < 0x400) {
                         amount                      = -0x64;
                         work->field_CAC.animationId = 4;
@@ -4830,14 +4827,14 @@ static void func_actor_401300_8013DADC(Task* arg0)
                     gte_ldsv(&aim->delta);
                     gte_gpf12();
                     gte_stsv(&aim->delta);
-                    work->field_CC0[0] = aim->delta.vx;
-                    work->field_CC0[1] = 0;
-                    work->field_CC0[2] = aim->delta.vz;
-                    work->field_CD0    = 7;
-                    work->field_CD2    = 1;
-                    work->field_8A2    = 0x1E;
-                    work->field_89C    = 2;
-                    work->field_6      = 0;
+                    work->playerMove.displacement.vx   = aim->delta.vx;
+                    work->playerMove.displacement.vy   = 0;
+                    work->playerMove.displacement.vz   = aim->delta.vz;
+                    work->playerMove.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
+                    work->playerMove.keepControl       = 1;
+                    work->field_8A2                    = 0x1E;
+                    work->field_89C                    = 2;
+                    work->field_6                      = 0;
                 }
             }
             if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, 0xA8) != 0) {
@@ -5049,11 +5046,11 @@ static void func_actor_401300_8013E930(Task* arg0)
                     gte_ldsv(vec);
                     gte_gpf12();
                     gte_stsv(vec);
-                    work->field_CC0[0] = blk->delta.vx;
-                    work->field_CC0[1] = 0;
-                    work->field_CC0[2] = blk->delta.vz;
-                    work->field_CD0    = 7;
-                    work->field_CD2    = 1;
+                    work->playerMove.displacement.vx   = blk->delta.vx;
+                    work->playerMove.displacement.vy   = 0;
+                    work->playerMove.displacement.vz   = blk->delta.vz;
+                    work->playerMove.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
+                    work->playerMove.keepControl       = 1;
                 }
             }
             if (work->field_D20 == 0) {
@@ -5408,8 +5405,8 @@ static __inline__ s32 Actor401300_HasRec10000(WorldCollisionContact* recs)
     return 0;
 }
 
-/// Snaps the player's height to the actor's when it is locked (`field_CD0`
-/// 7) and has drifted 0x321 or more away.
+/// Snaps the player's height to the actor's when the pending push enables
+/// every collision pass and the player has drifted 0x321 or more away.
 static __inline__ void Actor401300_SnapPlayerHeight(Task* actor)
 {
     Actor401300Work* work;
@@ -5419,7 +5416,7 @@ static __inline__ void Actor401300_SnapPlayerHeight(Task* actor)
 
     work = actor->work;
     slot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    if ((slot != NULL) && (work->field_CD0 == 7)) {
+    if ((slot != NULL) && (work->playerMove.collisionRequests == GAME_ACTOR_COLLISION_REQUEST_MASK)) {
         playerCoord = slot->extra.tmd->coords;
         actorCoord  = actor->extra.tmd->coords;
         if (abs(playerCoord->coord.t[1] - actorCoord->coord.t[1]) >= 0x321) {
@@ -5610,15 +5607,15 @@ static void func_actor_401300_801405DC(Enemy* enemy, Task* actor)
                         Gp_SpawnEff(EFFECT_DUST_PUFF, &player->extra.tmd->coords[1], 0x80003A00, NULL);
                     }
                 }
-                if (TASK_MESSAGE_DISPATCH_POINTER(player, 0x3FE, work->field_CC0, 0) == 1) {
-                    work->field_CC0[0] = 0;
-                    work->field_CC0[1] = 0;
-                    work->field_CC0[2] = 0;
+                if (TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_MOVE_BY, &work->playerMove, 0) == 1) {
+                    work->playerMove.displacement.vx = 0;
+                    work->playerMove.displacement.vy = 0;
+                    work->playerMove.displacement.vz = 0;
                 }
                 if (work->field_6 >= 10) {
-                    work->field_CC0[1] = 0;
-                    work->field_CC0[0] = work->field_CC0[0] >> 1;
-                    work->field_CC0[2] = work->field_CC0[2] >> 1;
+                    work->playerMove.displacement.vy   = 0;
+                    work->playerMove.displacement.vx >>= 1;
+                    work->playerMove.displacement.vz >>= 1;
                 }
                 break;
             case 5:
@@ -5634,15 +5631,15 @@ static void func_actor_401300_801405DC(Enemy* enemy, Task* actor)
                         Gp_SpawnEff(EFFECT_DUST_PUFF, &player->extra.tmd->coords[1], 0x80003A00, NULL);
                     }
                 }
-                if (TASK_MESSAGE_DISPATCH_POINTER(player, 0x3FE, work->field_CC0, 0) == 1) {
-                    work->field_CC0[0] = 0;
-                    work->field_CC0[1] = 0;
-                    work->field_CC0[2] = 0;
+                if (TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_MOVE_BY, &work->playerMove, 0) == 1) {
+                    work->playerMove.displacement.vx = 0;
+                    work->playerMove.displacement.vy = 0;
+                    work->playerMove.displacement.vz = 0;
                 }
                 if (work->field_6 >= 10) {
-                    work->field_CC0[1] = 0;
-                    work->field_CC0[0] = work->field_CC0[0] >> 1;
-                    work->field_CC0[2] = work->field_CC0[2] >> 1;
+                    work->playerMove.displacement.vy   = 0;
+                    work->playerMove.displacement.vx >>= 1;
+                    work->playerMove.displacement.vz >>= 1;
                 }
                 break;
             case 6:

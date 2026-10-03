@@ -60,7 +60,7 @@ typedef struct {
         s32                (*call6)(Task*, s32, s32);
         TaskMessageHandler call7;
         s32                (*call9)(Task*, s32, GfxCoord*);
-        void               (*call8)(Task*, s32, GpMoveArg*);
+        void               (*call8)(Task*, s32, GameActorMoveBy*);
     } handler;
 } Actor800300MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor800300MessageEntry, 8);

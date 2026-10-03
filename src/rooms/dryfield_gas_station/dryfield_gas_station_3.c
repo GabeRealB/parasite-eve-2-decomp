@@ -602,7 +602,7 @@ static void func_dryfield_gas_station_801803C0(Task* task);
 /// owner a `D_dryfield_gas_station_80182E30` script record as msg 0x3F4, 2 also
 /// sending msg 0x3FD and 3 placing the owner at the second placement first.
 /// 4 walks the owner from the first placement to the third over 30 frames with
-/// msg 0x3FE before its closing 0x3F4; 5 is `func_dryfield_gas_station_80180A60`
+/// `GAME_ACTOR_MESSAGE_MOVE_BY` before its closing 0x3F4; 5 is `func_dryfield_gas_station_80180A60`
 /// written out again; 6 spawns entry 1 of `D_dryfield_gas_station_8018312C`,
 /// waits a frame and turns the display back on.
 static void func_dryfield_gas_station_801803C0(Task* task)
@@ -613,7 +613,7 @@ static void func_dryfield_gas_station_801803C0(Task* task)
     Task*    shared;
     union {
         AnimationPlayRequest rec;
-        GpMoveArg            move;
+        GameActorMoveBy      move;
     } msg;
     AnimationPlayRequest  script;
     AnimationPlayRequest* rec;
@@ -672,11 +672,11 @@ static void func_dryfield_gas_station_801803C0(Task* task)
                     work->field_6++;
                     return;
                 case 1:
-                    msg.move.x        = (D_dryfield_gas_station_80182E44[2].pos.vx - D_dryfield_gas_station_80182E44[0].pos.vx) / 30;
-                    msg.move.y        = 0;
-                    msg.move.z        = (D_dryfield_gas_station_80182E44[2].pos.vz - D_dryfield_gas_station_80182E44[0].pos.vz) / 30;
-                    msg.move.field_10 = 0;
-                    TASK_MESSAGE_DISPATCH_POINTER((Task*)work->owner, 0x3FE, &msg.move, 0);
+                    msg.move.displacement.vx   = (D_dryfield_gas_station_80182E44[2].pos.vx - D_dryfield_gas_station_80182E44[0].pos.vx) / 30;
+                    msg.move.displacement.vy   = 0;
+                    msg.move.displacement.vz   = (D_dryfield_gas_station_80182E44[2].pos.vz - D_dryfield_gas_station_80182E44[0].pos.vz) / 30;
+                    msg.move.collisionRequests = 0;
+                    TASK_MESSAGE_DISPATCH_POINTER((Task*)work->owner, GAME_ACTOR_MESSAGE_MOVE_BY, &msg.move, 0);
                     work->field_8++;
                     if (work->field_8 < 31) {
                         return;

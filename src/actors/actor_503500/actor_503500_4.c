@@ -219,7 +219,7 @@ STATIC_ASSERT_SIZEOF(Actor503500WorkB4, 0xB4);
 /// (`memFillBytes(_, 0, 0x38)` in `func_actor_503500_80143AC0`). `rot` is a copy of the
 /// rotation handed over in `Task::spawnArg2`; every frame `speed` is pushed
 /// through it by `ApplyMatrixLV` and added onto the 16.16 `pos`, whose integer
-/// halves go to the player as message 0x3FE. `field_34` counts frames spent at
+/// halves go to the player as `GAME_ACTOR_MESSAGE_MOVE_BY`. `field_34` counts frames spent at
 /// zero speed and `field_36` the remaining camera-shake frames.
 typedef struct Actor503500Work38 {
     /* 0x00 */ Actor503500FixVec pos;
@@ -4351,7 +4351,7 @@ static void func_actor_503500_801437D0(Task* arg0, WorldCollisionContact* rec, s
 /// `func_actor_503500_801437D0`, with the hit side in `spawnArg1` and the
 /// enemy's turned rotation in `spawnArg2`. State 0 copies that rotation, starts
 /// the push at speed 0x1000000 and shakes the camera for 8 frames; state 1 moves
-/// the player by the rotated speed through message 0x3FE, decaying it by
+/// the player by the rotated speed through `GAME_ACTOR_MESSAGE_MOVE_BY`, decaying it by
 /// 0x30000 a frame, and after 20 frames at rest moves on (or ends at -1 when the
 /// player has no HP left). States 2-4 wait out message 0x3ED between the two
 /// 0x3FF payloads and the closing 0x3F1. Frame 0x11 plays sound 0x54300002 at
@@ -4359,7 +4359,7 @@ static void func_actor_503500_801437D0(Task* arg0, WorldCollisionContact* rec, s
 void func_actor_503500_80143AC0(Task* arg0)
 {
     VECTOR             vec;
-    GpMoveArg          msg;
+    GameActorMoveBy    msg;
     Actor503500Work38* work;
     Task*              player;
     GfxCoord*          coord;
@@ -4404,15 +4404,15 @@ void func_actor_503500_80143AC0(Task* arg0)
             vec.vy = 0;
             vec.vz = work->speed;
             ApplyMatrixLV(&work->rot, &vec, &vec);
-            work->pos.vx.word += vec.vx;
-            work->pos.vy.word += vec.vy;
-            work->pos.vz.word += vec.vz;
-            msg.field_10       = 1;
-            msg.field_12       = 1;
-            msg.x              = work->pos.vx.halves.integer;
-            msg.y              = work->pos.vy.halves.integer;
-            msg.z              = work->pos.vz.halves.integer;
-            if (TASK_MESSAGE_DISPATCH_POINTER(player, 0x3FE, &msg, 0) != 0) {
+            work->pos.vx.word    += vec.vx;
+            work->pos.vy.word    += vec.vy;
+            work->pos.vz.word    += vec.vz;
+            msg.collisionRequests = 1;
+            msg.keepControl       = 1;
+            msg.displacement.vx   = work->pos.vx.halves.integer;
+            msg.displacement.vy   = work->pos.vy.halves.integer;
+            msg.displacement.vz   = work->pos.vz.halves.integer;
+            if (TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_MOVE_BY, &msg, 0) != 0) {
                 work->speed = 0;
             }
             work->pos.vx.word = (u16)work->pos.vx.word;

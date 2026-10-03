@@ -283,7 +283,7 @@ typedef struct {
         s32                (*call8)(Task*, s32, GpCountArg*);
         s32                (*call9)(Task*, s32, const AnimationBankCopyRequest*);
         s32                (*call10)(Task*, s32, GameActorButtonPressHold*);
-        s32                (*call11)(Task*, s32, GpMoveArg*);
+        s32                (*call11)(Task*, s32, GameActorMoveBy*);
     } handler;
 } GpPlayerMessageEntry;
 
@@ -411,7 +411,7 @@ static void Gp_BindActorAnim(Task* arg0);
 
 static s32 Gp_HpBand(void);
 
-static s32 Gp_ApplyDirArg(Task* arg0, GpMoveArg* arg1);
+static s32 Gp_ApplyDirArg(Task* arg0, GameActorMoveBy* move);
 
 static void func_80103CB4(GfxCoord* arg0, s32 arg1, VECTOR3* arg2, VECTOR3* arg3);
 
@@ -5705,17 +5705,17 @@ void Gp_DetachLinkNode(Task* arg0)
     inner->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
 }
 
-static s32 Gp_ApplyDirArg(Task* arg0, GpMoveArg* arg1)
+static s32 Gp_ApplyDirArg(Task* arg0, GameActorMoveBy* move)
 {
     GameActor* actor;
     GfxCoord*  coord;
     s16        delta;
 
     actor = arg0->work;
-    if (arg1->field_10 == 7) {
-        if ((arg1->x != 0) || (arg1->z != 0)) {
+    if (move->collisionRequests == GAME_ACTOR_COLLISION_REQUEST_MASK) {
+        if ((move->displacement.vx != 0) || (move->displacement.vz != 0)) {
             coord = arg0->extra.tmd->coords;
-            delta = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) - ratan2(arg1->x, arg1->z);
+            delta = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) - ratan2(move->displacement.vx, move->displacement.vz);
             if (delta > 0x801) {
                 delta -= 0x1000;
             }
@@ -6567,7 +6567,7 @@ s32 func_801052B8(Task* arg0, s32 arg1, GpCountArg* arg2)
     return 0;
 }
 
-s32 Gp_MoveActorBy(Task* arg0, s32 arg1, GpMoveArg* arg2)
+s32 Gp_MoveActorBy(Task* arg0, s32 arg1, GameActorMoveBy* move)
 {
     GameActor*    actor;
     GfxCoord*     coord;
@@ -6575,7 +6575,7 @@ s32 Gp_MoveActorBy(Task* arg0, s32 arg1, GpMoveArg* arg2)
 
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
-    if (arg2->field_12 == 0) {
+    if (move->keepControl == 0) {
         p                                                     = &gPlayerStatus;
         actor->mode                                           = GAME_ACTOR_MODE_SCRIPTED;
         actor->statePhase                                     = 0;
@@ -6599,11 +6599,11 @@ s32 Gp_MoveActorBy(Task* arg0, s32 arg1, GpMoveArg* arg2)
         actor->state                 = 1;
         actor->scriptedMotionPending = 1;
     }
-    actor->pendingCollisionUpdates = arg2->field_10;
-    coord->coord.t[0]             += arg2->x;
-    coord->coord.t[1]             += arg2->y;
-    coord->coord.t[2]             += arg2->z;
-    Gp_ApplyDirArg(arg0, arg2);
+    actor->pendingCollisionUpdates = move->collisionRequests;
+    coord->coord.t[0]             += move->displacement.vx;
+    coord->coord.t[1]             += move->displacement.vy;
+    coord->coord.t[2]             += move->displacement.vz;
+    Gp_ApplyDirArg(arg0, move);
     return func_801041B4(arg0);
 }
 

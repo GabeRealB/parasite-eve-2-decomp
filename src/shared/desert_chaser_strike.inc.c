@@ -39,13 +39,13 @@ void desertChaserStrike(Task* arg0)
         gte_gpf12();
         gte_stsv(vec);
         x                                  = head[-2].vx;
-        work->routePos.vy                  = 0;
-        work->routePos.vx                  = x;
+        work->playerMove.displacement.vy   = 0;
+        work->playerMove.displacement.vx   = x;
         z                                  = vec->vz;
-        work->poseId                       = 7;
-        work->poseBlend                    = 1;
+        work->playerMove.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
+        work->playerMove.keepControl       = 1;
         work->capsuleBody.shape.ends[1].vz = 0x320;
-        work->routePos.vz                  = z;
+        work->playerMove.displacement.vz   = z;
 #if DESERT_CHASER_RUN_SEQUENCE
         if ((work->actorId.word & 0xFFFFFF) == 0x11402) {
             work->field_0 = 5;

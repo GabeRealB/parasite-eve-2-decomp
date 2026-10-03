@@ -159,7 +159,7 @@ typedef struct {
         s32                (*call6)(Task*, s32, ActorTransform*, GameActorMoveAnim*);
         s32                (*call7)(Task*, s32, s32);
         TaskMessageHandler call8;
-        void               (*call9)(Task*, s32, GpMoveArg*);
+        void               (*call9)(Task*, s32, GameActorMoveBy*);
         s32                (*call10)(Task*, s32, GfxCoord*);
     } handler;
 } Actor800100MessageEntry;

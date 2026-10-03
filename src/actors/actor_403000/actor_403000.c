@@ -458,8 +458,8 @@ extern u8 D_actor_403000_80158D48[];
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
 typedef struct {
-    GpMoveArg value;
-    u8        retained[12];
+    GameActorMoveBy value;
+    u8              retained[12];
 } Actor403000Storage8DB0;
 STATIC_ASSERT_SIZEOF(Actor403000Storage8DB0, 32);
 
@@ -5873,7 +5873,7 @@ static void func_actor_403000_801377C8(Task* arg0)
 
 /// Per-frame push: on the frame `field_4` is set, turn the display object's
 /// first matrix column into a short push vector and play the enemy's sound,
-/// then send it to the player as message 0x3FE for the first 0x28 frames.
+/// then send it to the player as `GAME_ACTOR_MESSAGE_MOVE_BY` for the first 0x28 frames.
 /// `ANIMATION_SLOT_REACHED_BOUNDARY` in `field_60` moves the state machine to 4 and flips `field_FD3`.
 static void func_actor_403000_801384E8(Task* arg0)
 {
@@ -5898,23 +5898,23 @@ static void func_actor_403000_801384E8(Task* arg0)
         gte_ldsv(&scratch->dir);
         gte_gpf12();
         gte_stsv(&scratch->dir);
-        D_actor_403000_80158DB0.value.x        = scratch->dir.vx;
-        D_actor_403000_80158DB0.value.y        = 0;
-        D_actor_403000_80158DB0.value.z        = scratch->dir.vz;
-        D_actor_403000_80158DB0.value.field_10 = 7;
-        D_actor_403000_80158DB0.value.field_12 = 1;
-        sound                                  = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 7;
-        pan                                    = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
+        D_actor_403000_80158DB0.value.displacement.vx   = scratch->dir.vx;
+        D_actor_403000_80158DB0.value.displacement.vy   = 0;
+        D_actor_403000_80158DB0.value.displacement.vz   = scratch->dir.vz;
+        D_actor_403000_80158DB0.value.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
+        D_actor_403000_80158DB0.value.keepControl       = 1;
+        sound                                           = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 7;
+        pan                                             = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
     if ((s16)work->field_6 < 0x28) {
-        ret = TASK_MESSAGE_DISPATCH_POINTER(player, 0x3FE, &D_actor_403000_80158DB0.value, 0);
+        ret = TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_MOVE_BY, &D_actor_403000_80158DB0.value, 0);
         if (ret == 1) {
-            D_actor_403000_80158DB0.value.x        = 0;
-            D_actor_403000_80158DB0.value.y        = 0;
-            D_actor_403000_80158DB0.value.z        = 0;
-            D_actor_403000_80158DB0.value.field_10 = 7;
-            D_actor_403000_80158DB0.value.field_12 = ret;
+            D_actor_403000_80158DB0.value.displacement.vx   = 0;
+            D_actor_403000_80158DB0.value.displacement.vy   = 0;
+            D_actor_403000_80158DB0.value.displacement.vz   = 0;
+            D_actor_403000_80158DB0.value.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
+            D_actor_403000_80158DB0.value.keepControl       = ret;
         }
     }
     if (work->field_60.half & ANIMATION_SLOT_REACHED_BOUNDARY) {
@@ -6080,7 +6080,7 @@ static void func_actor_403000_801386E8(Task* arg0)
 /// Lunge-and-shove (animation 0x11): on the frame `field_4` is set, place the
 /// model a fixed distance short of the player along its facing, turn it toward
 /// the camera target and start the hit effect; for the first ten frames step it
-/// forward and push the player with message 0x3FE, turn for the first six, and
+/// forward and push the player with `GAME_ACTOR_MESSAGE_MOVE_BY`, turn for the first six, and
 /// on frame 0x29 aim a sideways push that frames 0x2C..0x35 keep resending.
 /// `ANIMATION_SLOT_REACHED_BOUNDARY` in `field_60` moves the state machine to 4 with a fresh `field_FD3`.
 static void func_actor_403000_80138DB0(Task* arg0)
@@ -6160,11 +6160,11 @@ static void func_actor_403000_80138DB0(Task* arg0)
         gfxReadMatrixZAxis(&arg0->extra.tmd->coords->coord, t2);
         VectorNormalSS(t2, t2);
         Actor403000_ScaleVec(t2, 0x96);
-        D_actor_403000_80158DB0.value.x        = scratch->target.vx;
-        D_actor_403000_80158DB0.value.y        = 0;
-        D_actor_403000_80158DB0.value.z        = scratch->target.vz;
-        D_actor_403000_80158DB0.value.field_10 = 7;
-        D_actor_403000_80158DB0.value.field_12 = 1;
+        D_actor_403000_80158DB0.value.displacement.vx   = scratch->target.vx;
+        D_actor_403000_80158DB0.value.displacement.vy   = 0;
+        D_actor_403000_80158DB0.value.displacement.vz   = scratch->target.vz;
+        D_actor_403000_80158DB0.value.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
+        D_actor_403000_80158DB0.value.keepControl       = 1;
         Gp_SpawnPadLerp(5, 0xFF, 0x80);
         work->field_FA8.coord      = &player->extra.tmd->coords[3];
         work->field_FA8.spawnArgLo = 0x500;
@@ -6196,12 +6196,12 @@ static void func_actor_403000_80138DB0(Task* arg0)
         v.vz = v.vz + arg0->extra.tmd->coords->coord.t[2] - player->extra.tmd->coords->coord.t[2];
         VectorNormalSS(vp, vp);
         Actor403000_ScaleVec(vp, 0x96);
-        D_actor_403000_80158DB0.value.y        = 0;
-        D_actor_403000_80158DB0.value.field_10 = 7;
-        D_actor_403000_80158DB0.value.field_12 = 1;
-        D_actor_403000_80158DB0.value.x        = v.vx;
-        D_actor_403000_80158DB0.value.z        = v.vz;
-        TASK_MESSAGE_DISPATCH_POINTER(player, 0x3FE, &D_actor_403000_80158DB0.value, 0);
+        D_actor_403000_80158DB0.value.displacement.vy   = 0;
+        D_actor_403000_80158DB0.value.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
+        D_actor_403000_80158DB0.value.keepControl       = 1;
+        D_actor_403000_80158DB0.value.displacement.vx   = v.vx;
+        D_actor_403000_80158DB0.value.displacement.vz   = v.vz;
+        TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_MOVE_BY, &D_actor_403000_80158DB0.value, 0);
     }
     if ((s16)work->field_6 < 6) {
         t3     = &scratch->target;
@@ -6234,25 +6234,25 @@ static void func_actor_403000_80138DB0(Task* arg0)
         gfxReadMatrixZAxis(&arg0->extra.tmd->coords->coord, t4);
         VectorNormalSS(t4, t4);
         Actor403000_ScaleVec(t4, 0x21);
-        D_actor_403000_80158DB0.value.x = scratch->target.vx;
-        D_actor_403000_80158DB0.value.y = 0;
-        D_actor_403000_80158DB0.value.z = scratch->target.vz;
+        D_actor_403000_80158DB0.value.displacement.vx = scratch->target.vx;
+        D_actor_403000_80158DB0.value.displacement.vy = 0;
+        D_actor_403000_80158DB0.value.displacement.vz = scratch->target.vz;
         Gfx_MatrixCol0(&arg0->extra.tmd->coords->coord, t4);
         VectorNormalSS(t4, t4);
         Actor403000_ScaleVec(t4, 0x7D);
-        D_actor_403000_80158DB0.value.x       += scratch->target.vx;
-        D_actor_403000_80158DB0.value.z       += scratch->target.vz;
-        D_actor_403000_80158DB0.value.field_10 = 7;
-        D_actor_403000_80158DB0.value.field_12 = 1;
+        D_actor_403000_80158DB0.value.displacement.vx  += scratch->target.vx;
+        D_actor_403000_80158DB0.value.displacement.vz  += scratch->target.vz;
+        D_actor_403000_80158DB0.value.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
+        D_actor_403000_80158DB0.value.keepControl       = 1;
     }
     if ((u16)(work->field_6 - 0x2C) < 10) {
-        ret = TASK_MESSAGE_DISPATCH_POINTER(player, 0x3FE, &D_actor_403000_80158DB0.value, 0);
+        ret = TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_MOVE_BY, &D_actor_403000_80158DB0.value, 0);
         if (ret == 1) {
-            D_actor_403000_80158DB0.value.x        = 0;
-            D_actor_403000_80158DB0.value.y        = 0;
-            D_actor_403000_80158DB0.value.z        = 0;
-            D_actor_403000_80158DB0.value.field_10 = 7;
-            D_actor_403000_80158DB0.value.field_12 = ret;
+            D_actor_403000_80158DB0.value.displacement.vx   = 0;
+            D_actor_403000_80158DB0.value.displacement.vy   = 0;
+            D_actor_403000_80158DB0.value.displacement.vz   = 0;
+            D_actor_403000_80158DB0.value.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
+            D_actor_403000_80158DB0.value.keepControl       = ret;
         }
     }
     if ((s16)work->field_6 == 0x39) {
@@ -7173,11 +7173,11 @@ static void func_actor_403000_8013BDE0(Task* arg0)
         gte_gpf12();
         gte_stsv(&scratch->dir);
     }
-    D_actor_403000_80158DB0.value.x        = scratch->dir.vx;
-    D_actor_403000_80158DB0.value.y        = 0;
-    D_actor_403000_80158DB0.value.z        = scratch->dir.vz;
-    D_actor_403000_80158DB0.value.field_10 = 7;
-    D_actor_403000_80158DB0.value.field_12 = 1;
+    D_actor_403000_80158DB0.value.displacement.vx   = scratch->dir.vx;
+    D_actor_403000_80158DB0.value.displacement.vy   = 0;
+    D_actor_403000_80158DB0.value.displacement.vz   = scratch->dir.vz;
+    D_actor_403000_80158DB0.value.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
+    D_actor_403000_80158DB0.value.keepControl       = 1;
     if ((work->field_60.half & ANIMATION_SLOT_REACHED_BOUNDARY) && (s16)work->field_6 >= 0xB) {
         work->field_0   = 4;
         work->field_FD3 = work->field_FD2 = work->field_FD5 = -func_actor_403000_80134204(arg0->extra.tmd->coords);

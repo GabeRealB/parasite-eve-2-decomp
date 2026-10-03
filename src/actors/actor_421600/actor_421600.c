@@ -3997,16 +3997,16 @@ static void func_actor_421600_8013A554(Task* arg0)
                     }
                 }
                 if (scratch->reply != 1) {
-                    work->params[0]        = 3;
-                    work->params[1]        = 0;
-                    work->params[2]        = 0;
-                    work->routePos.vx      = 0;
-                    work->routePos.vy      = 0;
-                    work->routePos.vz      = 0;
-                    work->poseId           = 7;
-                    work->poseBlend        = 1;
-                    work->reported         = 1;
-                    work->actorId.bytes[3] = 0;
+                    work->params[0]                    = 3;
+                    work->params[1]                    = 0;
+                    work->params[2]                    = 0;
+                    work->playerMove.displacement.vx   = 0;
+                    work->playerMove.displacement.vy   = 0;
+                    work->playerMove.displacement.vz   = 0;
+                    work->playerMove.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
+                    work->playerMove.keepControl       = 1;
+                    work->reported                     = 1;
+                    work->actorId.bytes[3]             = 0;
                     TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->animCommand, 0);
                 }
                 nextState = 0x25;
@@ -4023,16 +4023,16 @@ static void func_actor_421600_8013A554(Task* arg0)
                 if (scratch->reply == 1) {
                     ((GameActor*)player->work)->state = 0xA;
                 }
-                work->params[0]        = 1;
-                work->params[1]        = 0;
-                work->params[2]        = 0;
-                work->routePos.vx      = 0;
-                work->routePos.vy      = 0;
-                work->routePos.vz      = 0;
-                work->poseId           = 7;
-                work->poseBlend        = 1;
-                work->reported         = 1;
-                work->actorId.bytes[3] = 0;
+                work->params[0]                    = 1;
+                work->params[1]                    = 0;
+                work->params[2]                    = 0;
+                work->playerMove.displacement.vx   = 0;
+                work->playerMove.displacement.vy   = 0;
+                work->playerMove.displacement.vz   = 0;
+                work->playerMove.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
+                work->playerMove.keepControl       = 1;
+                work->reported                     = 1;
+                work->actorId.bytes[3]             = 0;
                 TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->animCommand, 0);
                 nextState = 0x1E;
             }
@@ -4997,7 +4997,7 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
         if ((activeState != 0x15) && (activeState != 0) && (activeState != 8)) {
             actorWork = actor->work;
             slot      = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-            if ((slot != NULL) && (actorWork->poseId == 7)) {
+            if ((slot != NULL) && (actorWork->playerMove.collisionRequests == GAME_ACTOR_COLLISION_REQUEST_MASK)) {
                 playerCoord = slot->extra.tmd->coords;
                 actorCoord  = actor->extra.tmd->coords;
                 if (abs(playerCoord->coord.t[1] - actorCoord->coord.t[1]) >= 0x12D) {
@@ -5008,7 +5008,7 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
         }
         actorWork2 = actor->work;
         slot2      = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-        if ((slot2 != NULL) && (actorWork2->poseId == 7)) {
+        if ((slot2 != NULL) && (actorWork2->playerMove.collisionRequests == GAME_ACTOR_COLLISION_REQUEST_MASK)) {
             playerCoord2 = slot2->extra.tmd->coords;
             actorCoord2  = actor->extra.tmd->coords;
             if (abs(playerCoord2->coord.t[1] - actorCoord2->coord.t[1]) >= 0x12D) {
@@ -5024,9 +5024,9 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
                 work->reported = 0;
             }
             if ((work->actorId.bytes[2] == contactKind) && ((s32)D_dryfield_water_tower_801876AA < (D_dryfield_water_tower_801876A8 + 3))) {
-                work->routePos.vx = 0;
-                work->routePos.vy = 0;
-                work->routePos.vz = 0;
+                work->playerMove.displacement.vx = 0;
+                work->playerMove.displacement.vy = 0;
+                work->playerMove.displacement.vz = 0;
             }
         }
         action = work->params[0];
@@ -5034,15 +5034,15 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
             case 4:
                 break;
             case 1:
-                if (TASK_MESSAGE_DISPATCH_POINTER(player, 0x3FE, &work->routePos.vx, 0) == 1) {
-                    work->routePos.vx = 0;
-                    work->routePos.vy = 0;
-                    work->routePos.vz = 0;
+                if (TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_MOVE_BY, &work->playerMove, 0) == 1) {
+                    work->playerMove.displacement.vx = 0;
+                    work->playerMove.displacement.vy = 0;
+                    work->playerMove.displacement.vz = 0;
                 }
-                if (((u8)work->actorId.bytes[3] >= 0xFU) && (work->poseId == 7)) {
-                    work->routePos.vx = (s32)((s32)work->routePos.vx >> 1);
-                    work->routePos.vy = (s32)((s32)work->routePos.vy >> 1);
-                    work->routePos.vz = (s32)((s32)work->routePos.vz >> 1);
+                if (((u8)work->actorId.bytes[3] >= 0xFU) && (work->playerMove.collisionRequests == GAME_ACTOR_COLLISION_REQUEST_MASK)) {
+                    work->playerMove.displacement.vx >>= 1;
+                    work->playerMove.displacement.vy >>= 1;
+                    work->playerMove.displacement.vz >>= 1;
                 }
                 break;
             case 2:
@@ -5070,12 +5070,12 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
                 break;
             case 3:
                 if (((u8)work->actorId.bytes[3] < 6U) && (config->hp > 0)) {
-                    result = TASK_MESSAGE_DISPATCH_POINTER(player, 0x3FE, &work->routePos.vx, 0);
+                    result = TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_MOVE_BY, &work->playerMove, 0);
                     if (result == 1) {
-                        work->routePos.vx = 0;
-                        work->routePos.vy = 0;
-                        work->routePos.vz = 0;
-                        work->poseBlend   = result;
+                        work->playerMove.displacement.vx = 0;
+                        work->playerMove.displacement.vy = 0;
+                        work->playerMove.displacement.vz = 0;
+                        work->playerMove.keepControl     = result;
                     }
                 }
                 break;
@@ -5090,7 +5090,7 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
             nextAction = work->params[0];
             switch (nextAction) {
                 case 1:
-                    if (((((GAME_LOCATION_WORD(gGameSession->location.loc)) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(4, 1, 0, 0)) || (work->poseId != 0x38)) && (config->hp > 0)) {
+                    if (((((GAME_LOCATION_WORD(gGameSession->location.loc)) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(4, 1, 0, 0)) || (work->playerMove.collisionRequests != (GAME_ACTOR_COLLISION_REQUEST_MASK << GAME_ACTOR_COLLISION_DISABLE_REQUEST_SHIFT))) && (config->hp > 0)) {
                         nextMessage     = &work->animCommand;
                         work->params[1] = 0;
                         work->params[2] = 0;

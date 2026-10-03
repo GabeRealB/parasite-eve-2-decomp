@@ -76,7 +76,7 @@ void func_801088D4(Task* arg0, s32 arg1, s32 arg2);
 
 s32 Gp_SetActorDest(Task* arg0, s32 arg1, ActorTransform* transform, GameActorMoveAnim* moveAnim);
 
-s32 Gp_MoveActorBy(Task* arg0, s32 arg1, GpMoveArg* arg2);
+s32 Gp_MoveActorBy(Task* arg0, s32 arg1, GameActorMoveBy* move);
 
 Task* Gp_SpawnPlayer(const ActorSpawnTransform* spawnTransform, u16 arg1, s32 arg2, GpActorFlags* arg3);
 

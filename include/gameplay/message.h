@@ -240,7 +240,9 @@ enum {
     GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES = 0x3F8,
     /// Applies damage to the receiver (`Gp_ApplyPlayerDamage`, `Gp_HurtAlly`).
     GAME_ACTOR_MESSAGE_APPLY_DAMAGE = 0x3F9,
-    /// Moves the receiver by a borrowed `GpMoveArg` displacement.
+    /// Moves the receiver by a borrowed `GameActorMoveBy` displacement, taking
+    /// scripted control unless the record keeps the receiver's own. The player
+    /// returns 1 while it touches a non-floor grid contact, otherwise 0.
     GAME_ACTOR_MESSAGE_MOVE_BY = 0x3FE,
     /// Restarts the model's texture animation sequences: 0 resets both, 1-3
     /// select the first sequence and higher values the second. Returns 0.
@@ -401,22 +403,29 @@ typedef struct ActorCommand {
 } ActorCommand;
 STATIC_ASSERT_SIZEOF(ActorCommand, 4);
 
-/// The payload of `GAME_ACTOR_MESSAGE_MOVE_BY`, which moves the receiver by a displacement:
-/// `x`, `y` and `z` are added onto its coordinate. With `field_10` 7 the move
-/// also decides whether the receiver faces along it or away from it, from
-/// `x` / `z`; the receiver keeps `field_10` in its own state either way.
-/// `field_12` zero first resets the receiver's movement state, so a sender
-/// moving it over several frames sets it after the first.
-typedef struct GpMoveArg {
-    s32  x;
-    s32  y;
-    s32  z;
-    byte pad_C[4];
-    s16  field_10;
-    u8   field_12;
-    byte pad_13;
-} GpMoveArg;
-STATIC_ASSERT_SIZEOF(GpMoveArg, 0x14);
+/// Payload of `GAME_ACTOR_MESSAGE_MOVE_BY`: one frame's push or scripted step.
+///
+/// The player, and a companion whose table binds the message, adds
+/// `displacement` to its root position during dispatch, so a sender moving
+/// the receiver over several frames dispatches the record once a frame.
+/// The player answers 1 while its contact list holds a grid contact other
+/// than the floor, and 0 otherwise; senders treat 1 as blocked and zero the
+/// displacement. The companion handlers have no result of their own.
+///
+/// `collisionRequests` replaces the receiver's pending collision update
+/// requests and is applied by its next collision update. With
+/// `GAME_ACTOR_COLLISION_REQUEST_MASK` and a non-zero X or Z displacement the
+/// receiver also takes its movement sign from the push: forward when the
+/// displacement lies within a quarter turn of its facing, backward otherwise.
+///
+/// The record is borrowed through synchronous dispatch and is not copied. It
+/// occupies 20 bytes with four-byte alignment.
+typedef struct {
+    VECTOR displacement;      // World-coordinate offset added to the receiver's position; the fourth component is unused
+    s16    collisionRequests; // Collision update requests (0 none, 1 enable the first body, 7 enable all, 0x38 disable all); the receiver keeps the low byte
+    u8     keepControl;       // Control taken by the move (0 enters scripted control and its moving state first, nonzero leaves the receiver's mode and state unchanged)
+} GameActorMoveBy;
+STATIC_ASSERT_SIZEOF(GameActorMoveBy, 0x14);
 
 /// The payload of message 0x3EF, which stops the receiver where it is and
 /// plays one of two animations: `field_0` non-zero picks the second. The

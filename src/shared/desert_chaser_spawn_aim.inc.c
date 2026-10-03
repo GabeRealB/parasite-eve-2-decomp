@@ -53,14 +53,14 @@ void desertChaserSpawnAim(Task* arg0)
         gte_ldsv(gteVec);
         gte_gpf12();
         gte_stsv(gteVec);
-        x                 = head[-2].vx;
-        work->routePos.vy = 0;
-        work->routePos.vx = x;
-        z                 = vec->vz;
-        work->poseId      = 7;
-        work->poseBlend   = 1;
-        work->routePos.vz = z;
-        pan               = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
+        x                                  = head[-2].vx;
+        work->playerMove.displacement.vy   = 0;
+        work->playerMove.displacement.vx   = x;
+        z                                  = vec->vz;
+        work->playerMove.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
+        work->playerMove.keepControl       = 1;
+        work->playerMove.displacement.vz   = z;
+        pan                                = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(SOUND_COMMON(7), (s32)pan, (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
 #if !DESERT_CHASER_RUN_SEQUENCE
         Gp_SpawnPadLerp(8, 0xFF, 8);
@@ -68,7 +68,7 @@ void desertChaserSpawnAim(Task* arg0)
     }
     tick          = work->field_6 + 1;
     work->field_6 = tick;
-    if (((s16)tick == 0xF) && (work->poseId == 7)) {
+    if (((s16)tick == 0xF) && (work->playerMove.collisionRequests == GAME_ACTOR_COLLISION_REQUEST_MASK)) {
         sound    = ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4001000A;
         eventPan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(sound, (s32)eventPan, (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));

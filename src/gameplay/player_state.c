@@ -139,7 +139,7 @@ s32 func_8010C708(Task* arg0, s32 arg1, ActorTransform* transform, GameActorMove
 
 s32 func_8010C75C(Task* arg0, s32 arg1, GameActorButtonPressHold* arg2);
 
-void Gp_MoveActorByKeep(Task* arg0, s32 arg1, GpMoveArg* arg2);
+void Gp_MoveActorByKeep(Task* arg0, s32 arg1, GameActorMoveBy* move);
 
 s32 Gp_CopyAllyAnim(Task* arg0, s32 arg1, const AnimationBankCopyRequest* request);
 
@@ -1815,14 +1815,14 @@ s32 func_8010C75C(Task* arg0, s32 arg1, GameActorButtonPressHold* arg2)
     return 0;
 }
 
-void Gp_MoveActorByKeep(Task* arg0, s32 arg1, GpMoveArg* arg2)
+void Gp_MoveActorByKeep(Task* arg0, s32 arg1, GameActorMoveBy* move)
 {
     PlayerStatus* p;
     u8            savedInteractionPressed;
 
     p                       = &gPlayerStatus;
     savedInteractionPressed = p->interactionPressed;
-    Gp_MoveActorBy(arg0, arg1, arg2);
+    Gp_MoveActorBy(arg0, arg1, move);
     p->interactionPressed = savedInteractionPressed;
 }
 

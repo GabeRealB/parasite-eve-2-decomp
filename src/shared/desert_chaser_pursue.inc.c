@@ -159,15 +159,15 @@ void desertChaserPursue(Task* arg0)
                         }
                     }
                     if (scratch->messageResult != 1) {
-                        work->params[0]   = 3;
-                        work->params[1]   = 0;
-                        work->params[2]   = 0;
-                        work->routePos.vx = 0;
-                        work->routePos.vy = 0;
-                        work->routePos.vz = 0;
-                        work->poseId      = 7;
-                        work->poseBlend   = 1;
-                        work->reported    = 1;
+                        work->params[0]                    = 3;
+                        work->params[1]                    = 0;
+                        work->params[2]                    = 0;
+                        work->playerMove.displacement.vx   = 0;
+                        work->playerMove.displacement.vy   = 0;
+                        work->playerMove.displacement.vz   = 0;
+                        work->playerMove.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
+                        work->playerMove.keepControl       = 1;
+                        work->reported                     = 1;
 #if DESERT_CHASER_RUN_SEQUENCE
                         work->actorId.bytes[3] = 0;
 #endif
@@ -191,15 +191,15 @@ void desertChaserPursue(Task* arg0)
                     if (scratch->messageResult == 1) {
                         ((GameActor*)player->work)->state = 0xA;
                     }
-                    work->params[0]   = 1;
-                    work->params[1]   = 0;
-                    work->params[2]   = 0;
-                    work->routePos.vx = 0;
-                    work->routePos.vy = 0;
-                    work->routePos.vz = 0;
-                    work->poseId      = 7;
-                    work->poseBlend   = 1;
-                    work->reported    = 1;
+                    work->params[0]                    = 1;
+                    work->params[1]                    = 0;
+                    work->params[2]                    = 0;
+                    work->playerMove.displacement.vx   = 0;
+                    work->playerMove.displacement.vy   = 0;
+                    work->playerMove.displacement.vz   = 0;
+                    work->playerMove.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
+                    work->playerMove.keepControl       = 1;
+                    work->reported                     = 1;
 #if DESERT_CHASER_RUN_SEQUENCE
                     work->actorId.bytes[3] = 0;
 #endif

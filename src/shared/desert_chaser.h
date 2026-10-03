@@ -222,12 +222,8 @@ typedef struct DesertChaserWork {
     byte    pad_8B8[8];
     /// Player position and rotation, sent together as message 0x3E9.
     ActorTransform playerPlacement;
-    /// World position of the gte-rotated route vector.
-    VECTOR routePos;
-    /// Pose id / blend flag pair.
-    s16  poseId;
-    s8   poseBlend;
-    byte pad_8EB;
+    /// The push sent to the player with `GAME_ACTOR_MESSAGE_MOVE_BY`.
+    GameActorMoveBy playerMove;
     /// Reply buffer for message 0x3F8; `queryMode` selects query mode 8.
     byte replyBuf[0x14];
     s32  queryMode;
@@ -272,12 +268,8 @@ typedef struct DesertChaserWork {
     SVECTOR hitPos;
     s8      field_8A0;
     byte    pad_8A1[3];
-    /// World position of the gte-rotated route vector.
-    VECTOR routePos;
-    /// Pose id / blend flag pair.
-    s16  poseId;
-    s8   poseBlend;
-    byte pad_8B7;
+    /// The push sent to the player with `GAME_ACTOR_MESSAGE_MOVE_BY`.
+    GameActorMoveBy playerMove;
     /// Player position and rotation, sent together as message 0x3E9.
     ActorTransform playerPlacement;
     /// Reply buffer for message 0x3F8; `queryMode` selects query mode 8.
