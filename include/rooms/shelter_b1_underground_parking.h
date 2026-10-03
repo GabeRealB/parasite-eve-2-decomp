@@ -11,18 +11,26 @@
 
 #include "main/task_types.h"
 
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
+/// Storage for this room's shop session descriptor.
+///
+/// `desc` is the spawn recipe the shop menu hands to the stage transition when
+/// the player opens the shop from this room: a bodyless task running the shop
+/// session. Every other room carrying the shop defines the same descriptor as
+/// a bare `TaskDesc` with the next object directly behind it, so the four
+/// bytes that follow here are not part of the shop's own data. They are zero
+/// in the image and have no established access; whether they are a separate
+/// unreferenced variable or padding at an original object boundary is
+/// unproven. They stay in this allocation only to keep the data that follows
+/// at its address.
 typedef struct {
-    TaskDesc value;
-    u8       retained[4];
-} ShelterB1UndergroundParkingStorage71F0;
-STATIC_ASSERT_SIZEOF(ShelterB1UndergroundParkingStorage71F0, 16);
+    TaskDesc desc;         // Spawn recipe for the shop session task; read as a single descriptor
+    u8       unknown_C[4]; // Zero in the image; no access established and role unproven
+} ShelterB1UndergroundParkingShopSessionTaskDescStorage;
+STATIC_ASSERT_SIZEOF(ShelterB1UndergroundParkingShopSessionTaskDescStorage, 16);
 
 extern AreaVariant D_shelter_b1_underground_parking_8018B5C4[22];
 
-extern ShelterB1UndergroundParkingStorage71F0 D_shelter_b1_underground_parking_801871F0;
+extern ShelterB1UndergroundParkingShopSessionTaskDescStorage D_shelter_b1_underground_parking_801871F0;
 
 // shelter_b1_underground_parking
 extern WorldCoordRoomLighting D_shelter_b1_underground_parking_801877B4[];

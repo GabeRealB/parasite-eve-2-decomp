@@ -3144,7 +3144,7 @@ s32 func_800D4D2C(s32 arg0)
             Display_InitModeObj(&D_shelter_b1_armory_801824D0, arg0, 0, 0);
             break;
         case 0x4140000:
-            Display_InitModeObj(&D_shelter_b1_underground_parking_801871F0.value, arg0, 0, 0);
+            Display_InitModeObj(&D_shelter_b1_underground_parking_801871F0.desc, arg0, 0, 0);
             break;
         case 0x5040000:
             Display_InitModeObj(&D_shelter_1f_heliport_80181188, arg0, 0, 0);

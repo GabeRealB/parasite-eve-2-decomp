@@ -410,7 +410,7 @@ extern SpriteSource D_shelter_b1_underground_parking_80189C14[32];
 
 #include "../../shared/shop_panels.inc.c"
 
-ShelterB1UndergroundParkingStorage71F0 D_shelter_b1_underground_parking_801871F0 = { { { { TASK_BODY_NONE, 192 } }, Shop_SessionTask, { .value = 0 } }, { 0 } };
+ShelterB1UndergroundParkingShopSessionTaskDescStorage D_shelter_b1_underground_parking_801871F0 = { { { { TASK_BODY_NONE, 192 } }, Shop_SessionTask, { .value = 0 } }, { 0 } };
 
 TaskDesc D_shelter_b1_underground_parking_80187200 = { { { TASK_BODY_NONE, 32 } }, roomDepartureTask, { .value = 0 } };
 
