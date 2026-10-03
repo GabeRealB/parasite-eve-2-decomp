@@ -60408,6 +60408,13 @@ reuse the space — the slot is simply allocated when the block is expanded and
 never freed — so a target where two payload buffers overlap cannot be written
 as two locals, however disjoint their scopes are.
 
+That is true of block-scoped locals only. The frame of a `static inline`
+helper *is* freed and reused, and overlapping payloads are what a function
+calling such helpers compiles to - see "A stack record shifted 8 bytes inside
+a shared buffer is a `static inline` helper's frame" below. Try that form
+first; the union here is the fallback that reproduces the bytes without
+recovering the helpers.
+
 `func_acropolis_plaza_8017E9A8` sends three payloads from the same frame
 region: a three-byte CD slot triple at `sp+0x58`, an `AnimationPlayRequest` at `sp+0x60`, and
 an `ActorTransform` at `sp+0x58` that runs to `sp+0x6F`. Declaring them as three
@@ -60449,6 +60456,106 @@ or in a callee-saved register is decided by the *call* that follows: passing
 ends the pointer's live range at its last store, so it stays in `$a1` and the
 argument is recomputed as `addiu $a2, $sp, 0x60`. That one substitution was the
 last 1% of `func_acropolis_plaza_8017E9A8`.
+
+## A stack record shifted 8 bytes inside a shared buffer is a `static inline` helper's frame (func_dryfield_motel_room_1_8017D7AC, 2026-10-03)
+
+**Symptom.** Several arms of a `switch` build message payloads in one
+overlapping frame region: an `ActorCommand` at `sp+0x10` twice, then one
+`AnimationPlayRequest` at `sp+0x18`, then four more at `sp+0x10`. The one at
+`0x18` is written through a mix of pointer and frame accesses, with
+`addiu $a1, $sp, 0x18` sitting in the delay slot of an *earlier* branch:
+
+```
+bne   v0, a3, else        ; characterId == 1, against the switch's own `li a3,1`
+ addiu a1, sp, 0x18
+...
+sw    v0, 0x18(sp)        ; computed field: frame-relative
+sw    v1, 4(a1)           ; constant fields: through the pointer
+sw    v0, 8(a1)
+sw    v1, 0xC(a1)
+sw    zero, 0x28(sp)      ; zero field: frame-relative
+addiu a2, sp, 0x18        ; &request: recomputed
+```
+
+It had been matched with a union carrying a `shifted` member eight bytes in,
+plus a pointer local assigned before the `if`.
+
+**Cause.** Each payload is the local of a `static inline` helper. Block-scoped
+locals do not reproduce it - seven of them gave seven slots and a 0xA8 frame against
+the target's 0x40 - but an inlined function's whole frame is a single BLKmode
+temp slot (`copy_rtx_and_substitute` on `virtual_stack_vars_rtx` calls
+`assign_stack_temp (BLKmode, frame size, 1)`), released when the inline's
+binding level pops. The slots then follow `assign_stack_temp` and
+`combine_temp_slots` exactly:
+
+| call, in source order | request | result |
+|---|---|---|
+| command helper (4-byte record, frame 8) | 8 | new slot at `0x10` |
+| command helper again | 8 | exact fit, `0x10` |
+| animation helper (0x14 record, frame 0x18) | 0x18 | nothing free is large enough: new slot at `0x18` |
+| animation helper, every later call | 0x18 | the two free neighbours were combined into one 0x20 slot at `0x10` |
+
+So the first call of the larger helper is the one that lands past the smaller
+one, and no source-level layout says so.
+
+The pointer mix comes from the same place. The inlined frame's base is forced
+into a pseudo at the start of the inlined body - unless the slot is the first
+in the frame, where the base *is* the frame pointer and every access is plain
+`sp`-relative, which is why only the `0x18` copy shows it. `try_constants` then
+folds the base back into each copied insn where the result is still valid. A
+store whose source is also a known non-zero constant would become
+`(set (mem) (const_int))`, which MIPS has no pattern for, so that insn's whole
+change group is cancelled and it stays pointer-based. Hence constant fields
+through the pointer; the computed field, the zero field and `&request`
+frame-relative.
+
+**The parameter types are visible too.** With `s32` parameters the constant
+arguments are loaded before the inlined body, so a `1` among them outlives the
+body's `characterId == 1` test and CSE makes it the canonical 1: the compare
+and the `weapon + 1` both take that register (`bne v0,a2` / `addu v1,v1,a2`)
+and the `li`s sit ahead of the branch. With unsigned parameters narrower than
+`int` the widening inside the body folds to a fresh constant at each store, so
+the `li`s land after the branch and the compare shares the enclosing switch's
+constant, as in the target. Scores for the animation helper, everything else
+equal: `s32` 58 differing lines, `s16`/`s8` 36, `u16`/`u8` 0; one `s32` between
+two `u8` was 51. `u16` and `u8` are indistinguishable while the arguments fit
+a byte.
+
+**Fix.**
+
+```c
+static inline void _roomBroadcastActorCommand(u16 command)
+{
+    ActorCommand msg;
+    ...
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+}
+
+static inline void _roomPlayPlayerAnimation(u16 animationId, u16 blend, u16 blendFrames)
+{
+    AnimationPlayRequest request;
+    s32                  weapon;
+
+    weapon               = gPlayerStatus.weapon;
+    request.source.index = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weapon + 1 : weapon + 0x22;
+    request.animationId  = animationId;
+    ...
+}
+```
+
+The bank selector has to be computed *inside* the helper, from a `weapon`
+local read before the test: passed as an argument it is evaluated before the
+frame base is set up, the base then lands in the same block as the dispatch,
+CSE reuses it for `&request` and it is coloured `$s0` across the call. The
+union, the pointer local and the five per-arm spellings of the selector
+(`anim = weapon + 1` here, `anim += 1` there) all went away; one helper body
+reproduces every arm.
+
+**Reading a frame for it.** Work out the slot each payload would get from the
+table above, taking each helper's frame as its locals rounded up to 8. A record
+that starts 8 bytes into a larger "buffer", and is the first of its size in
+source order, is the signature; so is a 4-byte payload sharing offset 0 with a
+0x14-byte one (the larger slot is split, and the small one takes its start).
 
 ## Ending a duplicated tail with `goto` instead of falling out of the switch flips which copy cross-jumping keeps
 
@@ -140609,8 +140716,10 @@ Three more from the same function:
   `assign_stack_temp`, freed at `pop_temp_slots`), but an address-taken slot is
   moved one binding level outward by `preserve_temp_slots` after every
   expression statement, so in practice it survives to the enclosing switch
-  body. A frame where several cases' buffers overlap is still a union at
-  function scope.
+  body. A frame where several cases' buffers overlap is therefore not
+  block-scoped locals; it is the frames of `static inline` helpers ("A stack
+  record shifted 8 bytes inside a shared buffer..."), or failing that a union
+  at function scope.
 * `case 4: call(...); break;` into the switch's shared `work->command = 0;` is
   not the same block as `call(...); work->command = 0; return;` - the inline
   store changes sched1's picture and the argument load moved from first to last.

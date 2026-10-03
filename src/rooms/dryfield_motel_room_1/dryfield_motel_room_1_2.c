@@ -110,19 +110,6 @@ typedef union Dmr1MsgBuf {
 } Dmr1MsgBuf;
 STATIC_ASSERT_SIZEOF(Dmr1MsgBuf, 0x14);
 
-/// The script driver's scratch buffer. `rec` and `msg` share its start, as in
-/// `Dmr1MsgBuf`; the first step of action 6 builds its 0x3E8 record in
-/// `shifted.rec`, eight bytes further in, for no reason the code shows.
-typedef union Dmr1DriverBuf {
-    /* 0x0 */ AnimationPlayRequest rec;
-    /* 0x0 */ ActorCommand         msg;
-    struct {
-        /* 0x0 */ s32                  pad[2];
-        /* 0x8 */ AnimationPlayRequest rec;
-    } shifted;
-} Dmr1DriverBuf;
-STATIC_ASSERT_SIZEOF(Dmr1DriverBuf, 0x1C);
-
 /// The room's event task, whose `work` holds a `_DryfieldMotelRoom1EventWork`.
 extern Task* D_dryfield_motel_room_1_8018159C;
 
@@ -1032,6 +1019,41 @@ Task* D_dryfield_motel_room_1_8018159C = NULL;
 static void func_dryfield_motel_room_1_8017D7AC(Task* arg0);
 static void func_dryfield_motel_room_1_8017DC2C(Task* arg0);
 
+/// Sends `command` to every placed actor of the room.
+///
+/// The command is addressed to the session's stage and area and broadcast
+/// through the scene task; what each value does is up to the actor that
+/// receives it.
+static inline void _dryfieldMotelRoom1BroadcastActorCommand(u16 command)
+{
+    ActorCommand msg;
+
+    msg.context.loc.stage = gGameSession->location.loc.stage;
+    msg.context.loc.area  = gGameSession->location.loc.area;
+    msg.command           = command;
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+}
+
+/// Plays `animationId` from the player's bank for the equipped weapon, off the
+/// collision grid.
+///
+/// `blend` is an `ANIMATION_BLEND_*` choice and `blendFrames` the length of the
+/// transition in frames. The request is consumed by the dispatch.
+static inline void _dryfieldMotelRoom1PlayPlayerAnimation(u16 animationId, u16 blend, u16 blendFrames)
+{
+    AnimationPlayRequest request;
+    s32                  weapon;
+
+    // Each character has a bank per weapon slot: the primary's start at 1, the alternate's at 0x22.
+    weapon                       = gPlayerStatus.weapon;
+    request.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weapon + 1 : weapon + 0x22;
+    request.animationId          = animationId;
+    request.blend                = blend;
+    request.blendFrames          = blendFrames;
+    request.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &request, 0);
+}
+
 /// The room's script driver: runs the action `func_dryfield_motel_room_1_8017DFB0`
 /// left in `_DryfieldMotelRoom1EventWork::action`. Actions 1 and 2 send the 0x7DA message to the
 /// slot-4 task and one of the two placement pairs as `ACTOR_MESSAGE_PLACE` (action 2
@@ -1047,25 +1069,15 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
 {
     _DryfieldMotelRoom1EventWork* work = arg0->work;
     PlayerStatus*                 cfg;
-    s32                           anim;
-    s32                           weaponId;
-    Dmr1DriverBuf                 buf;
-    AnimationPlayRequest*         rec;
 
     switch (work->action) {
         case DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_FIRST_STAGING:
-            buf.msg.context.loc.stage = gGameSession->location.loc.stage;
-            buf.msg.context.loc.area  = gGameSession->location.loc.area;
-            buf.msg.command           = 1;
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &buf.msg, ACTOR_COMMAND_MESSAGE_APPLY);
+            _dryfieldMotelRoom1BroadcastActorCommand(1);
             TASK_MESSAGE_DISPATCH_POINTER(work->stagedSucklerTasks[0], ACTOR_MESSAGE_PLACE, &D_dryfield_motel_room_1_8017E0D0[0], 0);
             TASK_MESSAGE_DISPATCH_POINTER(work->stagedSucklerTasks[1], ACTOR_MESSAGE_PLACE, &D_dryfield_motel_room_1_8017E0D0[1], 0);
             break;
         case DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_SECOND_STAGING:
-            buf.msg.context.loc.stage = gGameSession->location.loc.stage;
-            buf.msg.context.loc.area  = gGameSession->location.loc.area;
-            buf.msg.command           = 2;
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &buf.msg, ACTOR_COMMAND_MESSAGE_APPLY);
+            _dryfieldMotelRoom1BroadcastActorCommand(2);
             taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             TASK_MESSAGE_DISPATCH_POINTER(work->stagedSucklerTasks[0], ACTOR_MESSAGE_PLACE, &D_dryfield_motel_room_1_8017E100[0], 0);
             TASK_MESSAGE_DISPATCH_POINTER(work->stagedSucklerTasks[1], ACTOR_MESSAGE_PLACE, &D_dryfield_motel_room_1_8017E100[1], 0);
@@ -1091,36 +1103,11 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                     work->turnYaw =
                         (((GameActor*)work->playerTask->work)->rotation.vy + (ACTOR_TRANSFORM_ANGLE_TURN - DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_FACING_YAW)) % ACTOR_TRANSFORM_ANGLE_TURN;
                     if (work->turnYaw > ACTOR_TRANSFORM_ANGLE_HALF_TURN) {
-                        s32 weapon;
-
-                        rec    = &buf.shifted.rec;
-                        weapon = cfg->weapon;
-                        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
-                            anim = weapon + 1;
-                        } else {
-                            anim = weapon + 0x22;
-                        }
-                        buf.shifted.rec.source.index         = anim;
-                        rec->animationId                     = 5;
-                        rec->blend                           = ANIMATION_BLEND_INTERPOLATE;
-                        rec->blendFrames                     = 5;
-                        buf.shifted.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &buf.shifted.rec, 0);
+                        _dryfieldMotelRoom1PlayPlayerAnimation(5, ANIMATION_BLEND_INTERPOLATE, 5);
                         taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_SET_RATE, 0x30, 0);
                         work->actionStep += 1;
                     } else {
-                        weaponId = cfg->weapon;
-                        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
-                            anim = weaponId + 1;
-                        } else {
-                            anim = weaponId + 0x22;
-                        }
-                        buf.rec.source.index         = anim;
-                        buf.rec.animationId          = 6;
-                        buf.rec.blend                = ANIMATION_BLEND_INTERPOLATE;
-                        buf.rec.blendFrames          = 5;
-                        buf.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &buf.rec, 0);
+                        _dryfieldMotelRoom1PlayPlayerAnimation(6, ANIMATION_BLEND_INTERPOLATE, 5);
                         taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_SET_RATE, 0x30, 0);
                         work->actionStep += 2;
                     }
@@ -1129,18 +1116,7 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                     work->turnYaw               += DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_YAW_STEP;
                     work->playerPlacement.rot.vy = work->turnYaw + DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_FACING_YAW;
                     if (work->turnYaw > ACTOR_TRANSFORM_ANGLE_TURN) {
-                        anim = gPlayerStatus.weapon;
-                        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
-                            anim += 1;
-                        } else {
-                            anim += 0x22;
-                        }
-                        buf.rec.source.index         = anim;
-                        buf.rec.animationId          = 1;
-                        buf.rec.blend                = ANIMATION_BLEND_INTERPOLATE;
-                        buf.rec.blendFrames          = 3;
-                        buf.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &buf.rec, 0);
+                        _dryfieldMotelRoom1PlayPlayerAnimation(1, ANIMATION_BLEND_INTERPOLATE, 3);
                         work->settleFrames = 0;
                         work->actionStep   = DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_SETTLE;
                         return;
@@ -1151,18 +1127,7 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                     work->turnYaw               -= DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_YAW_STEP;
                     work->playerPlacement.rot.vy = work->turnYaw + DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_FACING_YAW;
                     if (work->turnYaw < 0) {
-                        anim = gPlayerStatus.weapon;
-                        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
-                            anim += 1;
-                        } else {
-                            anim += 0x22;
-                        }
-                        buf.rec.source.index         = anim;
-                        buf.rec.animationId          = 1;
-                        buf.rec.blend                = ANIMATION_BLEND_INTERPOLATE;
-                        buf.rec.blendFrames          = 3;
-                        buf.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &buf.rec, 0);
+                        _dryfieldMotelRoom1PlayPlayerAnimation(1, ANIMATION_BLEND_INTERPOLATE, 3);
                         work->settleFrames = 0;
                         work->actionStep   = DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_SETTLE;
                         return;
@@ -1172,18 +1137,7 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                 case DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_SETTLE:
                     work->settleFrames += 1;
                     if (work->settleFrames >= DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_SETTLE_FRAMES) {
-                        anim = gPlayerStatus.weapon;
-                        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
-                            anim += 1;
-                        } else {
-                            anim += 0x22;
-                        }
-                        buf.rec.source.index         = anim;
-                        buf.rec.animationId          = 9;
-                        buf.rec.blend                = ANIMATION_BLEND_INTERPOLATE;
-                        buf.rec.blendFrames          = 10;
-                        buf.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &buf.rec, 0);
+                        _dryfieldMotelRoom1PlayPlayerAnimation(9, ANIMATION_BLEND_INTERPOLATE, 10);
                         work->action = DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_NONE;
                     }
                     return;
