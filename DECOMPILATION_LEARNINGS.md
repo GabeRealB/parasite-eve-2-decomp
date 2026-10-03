@@ -58401,6 +58401,32 @@ i`, `&block->vertices[0] + i` and `&*(block->vertices + i)` all compile as
 preheader (`addiu $a1, $v1, -0x20`). The constant ends up last only when it is
 the offset of a member of an object the index has already located.
 
+A read-modify-write does have a typed spelling, because it needs no pointer
+local at all. `func_acropolis_plaza_801802C0` adds a translation to each rotated
+vertex after the same pair of GTE operands, and the target is the same split:
+`0x24($a2)` for `vx`, then `addiu $a0, $a2, 0x24` and `2($a0)` / `4($a0)`.
+Dereferencing the element's address in each compound assignment produces it:
+
+```c
+gte_ldv0(&beam->vertices[i]);
+gte_rtv0();
+gte_stsv(&beam->vertices[i]);
+(&beam->vertices[i])->vx += (u16)coord->workm.t[0];
+(&beam->vertices[i])->vy += (u16)coord->workm.t[1];
+(&beam->vertices[i])->vz += (u16)coord->workm.t[2];
+```
+
+The three neighbours of that spelling each miss differently, which is how to
+tell them apart in a diff. `beam->vertices[i].vx +=` three times folds every
+displacement onto the index giv (`0x24($a2)`, `0x26($a2)`, `0x28($a2)`) and
+never forms `$a0`. A local `v = &beam->vertices[i]` used for all three shares
+the GTE operands' register, as above. The same local with the first sum written
+as a member access compiles exactly like the three member accesses. This is the
+shape a pointer-taking macro expands to, so a helper applied to
+`&block->vertices[i]` is worth trying before a shifted-block cast. It has only
+been shown for `+=`; why the compound form keeps the address in a register of
+its own has not been traced through the compiler.
+
 A walking `v++` is a third, distinct shape: GCC rebases the biv onto the last
 field it stores (`-0x2($a0)` / `0($a0)`) and gives it its own increment, so it
 never produces the derived `addiu`. Read the base register's *initial value* in

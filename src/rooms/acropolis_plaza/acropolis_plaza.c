@@ -68,16 +68,52 @@
 #include "rooms/room_common.h"
 #include "../../shared/screen_fade.h"
 
-/// Projected beam vertices and glow parameters in a 0x60-byte scratch block.
-typedef struct AcropolisPlazaBeamScratch {
-    /* 0x00 */ s32     screen[7];
-    /* 0x1C */ s32     otz;
-    /* 0x20 */ s32     half;
-    /* 0x24 */ SVECTOR vec[7];
-    /* 0x5C */ s16     sx;
-    /* 0x5E */ s16     sy;
-} AcropolisPlazaBeamScratch;
-STATIC_ASSERT_SIZEOF(AcropolisPlazaBeamScratch, 0x60);
+/// Index of one vertex in `_AcropolisPlazaBeamScratch`.
+///
+/// The beam is laid out in its beacon's own frame: flat in the XZ plane,
+/// leaving the centre along +Z. Each left vertex is followed by its mirror
+/// image, so a side index (0 left, 1 right) added to a left vertex selects
+/// that side's.
+enum {
+    ACROPOLIS_PLAZA_BEAM_VERTEX_CENTRE,    // Beacon origin and the beam's apex; replaced by the far glow's centre
+    ACROPOLIS_PLAZA_BEAM_VERTEX_FAR_LEFT,  // Far edge of the beam, at the beam's current length
+    ACROPOLIS_PLAZA_BEAM_VERTEX_FAR_RIGHT,
+    ACROPOLIS_PLAZA_BEAM_VERTEX_SIDE_LEFT, // Widest point of the fringe beside the beam
+    ACROPOLIS_PLAZA_BEAM_VERTEX_SIDE_RIGHT,
+    ACROPOLIS_PLAZA_BEAM_VERTEX_NEAR_LEFT, // Where the fringe leaves the apex
+    ACROPOLIS_PLAZA_BEAM_VERTEX_NEAR_RIGHT,
+    ACROPOLIS_PLAZA_BEAM_VERTEX_COUNT
+};
+
+/// Scratch-stack workspace for one frame of a rotating beacon's light beam.
+///
+/// `vertices` is indexed by the `ACROPOLIS_PLAZA_BEAM_VERTEX_` constants. The
+/// centre is projected first, with one perspective transform through
+/// `GsWSMATRIX`: `centreScreenPos` and `otz` receive the result, and the beam
+/// is drawn only when `otz` exceeds 0x10 and the centre is on screen. The six
+/// outline vertices are staged in the beacon's frame, moved into world space
+/// in place and projected into `vertexScreenPos`, which is indexed the same
+/// way. Each entry there is one GTE screen-XY word, x in the low half and y in
+/// the high half. The centre's entry is never written or read, since the
+/// centre's screen position is `centreScreenPos`; that those four bytes are
+/// entry 0 rather than a separate word rests on the shared index alone.
+///
+/// The beam triangle and the fringe either side of it all meet at
+/// `centreScreenPos`, and `glowRadius` sizes the fan of wedges drawn round it.
+/// A long beam ends in a second glow: its centre replaces the beacon origin in
+/// the centre vertex, and `centreScreenPos`, `otz` and `glowRadius` are
+/// written again for it. That pass uses no outline entry.
+///
+/// Reserve the complete block and release it in scratch-stack order after
+/// drawing; no pointer into it survives release.
+typedef struct {
+    s32     vertexScreenPos[ACROPOLIS_PLAZA_BEAM_VERTEX_COUNT]; // Projected outline vertices as packed screen-XY words
+    s32     otz;                                                // Projected depth (SZ3 / 4) of the centre; the ordering-table depth, blend depth and divisor for `glowRadius`
+    s32     glowRadius;                                         // On-screen radius in pixels of the wedge fan round the centre: a world size divided by `otz`
+    SVECTOR vertices[ACROPOLIS_PLAZA_BEAM_VERTEX_COUNT];        // Beam vertices: staged in the beacon's frame, then the world positions supplied to the projection
+    DVECTOR centreScreenPos;                                    // Projected centre in screen pixels, stored as one GTE word
+} _AcropolisPlazaBeamScratch;
+STATIC_ASSERT_SIZEOF(_AcropolisPlazaBeamScratch, 0x60);
 
 /// Flare projection and two inverse-depth radii in a 0x4C-byte scratch block.
 typedef struct AcropolisPlazaFlareScratch {
@@ -4741,8 +4777,7 @@ void func_acropolis_plaza_801802C0(Task* task)
     GfxCoord*                      coord;
     GfxCoord*                      lightCoord;
     EffectWork*                    work;
-    AcropolisPlazaBeamScratch*     blk;
-    SVECTOR*                       point;
+    _AcropolisPlazaBeamScratch*    beam;
     POLY_G3*                       tri;
     POLY_G4*                       prim;
     s32                            i;
@@ -4772,19 +4807,19 @@ void func_acropolis_plaza_801802C0(Task* task)
     gfxRotMatrixY(&coord->coord, work->scale, 1);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
-    blk            = SCRATCH_STACK_RESERVE_BLOCK(AcropolisPlazaBeamScratch);
-    blk->vec[0].vx = coord->workm.t[0];
-    blk->vec[0].vy = coord->workm.t[1];
-    blk->vec[0].vz = coord->workm.t[2];
+    beam                                                  = SCRATCH_STACK_RESERVE_BLOCK(_AcropolisPlazaBeamScratch);
+    beam->vertices[ACROPOLIS_PLAZA_BEAM_VERTEX_CENTRE].vx = coord->workm.t[0];
+    beam->vertices[ACROPOLIS_PLAZA_BEAM_VERTEX_CENTRE].vy = coord->workm.t[1];
+    beam->vertices[ACROPOLIS_PLAZA_BEAM_VERTEX_CENTRE].vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&blk->vec[0]);
+    gte_ldv0(&beam->vertices[ACROPOLIS_PLAZA_BEAM_VERTEX_CENTRE]);
     gte_rtps();
-    gte_stsxy(&blk->sx);
-    gte_stszotz(&blk->otz);
+    gte_stsxy(&beam->centreScreenPos);
+    gte_stszotz(&beam->otz);
     lightSlot->framesLeft = WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE;
-    if (blk->otz >= 0x11) {
-        if (__builtin_abs(blk->sx) < 0xC0 && __builtin_abs(blk->sy) < 0x98) {
+    if (beam->otz >= 0x11) {
+        if (__builtin_abs(beam->centreScreenPos.vx) < 0xC0 && __builtin_abs(beam->centreScreenPos.vy) < 0x98) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             brightness      = ((gRandomLcgState >> 16) & 0x7F) | 0x80;
             if (task->spawnArg1.value < 5) {
@@ -4803,52 +4838,54 @@ void func_acropolis_plaza_801802C0(Task* task)
             // and only while the cone is the long length. That length is the
             // same count as the half turn, so the negative arm reads it back
             // from length.
-            spread                   = length != 0x800 ? 0 : (yaw = work->scale, work->scale - 0x800 >= 0 ? (yaw - 0x800) * 4 : (length - yaw) * 4);
-            work->period             = spread;
-            lightCoord->coord.t[0]   = coord->coord.t[0];
-            lightCoord->coord.t[1]   = coord->coord.t[1];
-            lightCoord->coord.t[2]   = coord->coord.t[2];
-            lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-            lightSlot->framesLeft    = 2;
-            light->inner             = 0x600;
-            light->outer             = work->period + 0x600;
-            light->head.color.r      = red << 4;
-            light->head.color.g      = green << 4;
-            light->head.color.b      = blue << 4;
-            blk->vec[1].vx           = -0x200;
-            blk->vec[1].vy           = 0;
-            blk->vec[1].vz           = work->angle;
-            blk->vec[2].vx           = 0x200;
-            blk->vec[2].vy           = 0;
-            blk->vec[2].vz           = work->angle;
-            blk->vec[3].vx           = -0x400;
-            blk->vec[3].vy           = 0;
-            blk->vec[3].vz           = 0x400;
-            blk->vec[4].vx           = 0x400;
-            blk->vec[4].vy           = 0;
-            blk->vec[4].vz           = 0x400;
-            blk->vec[5].vx           = -0x200;
-            blk->vec[5].vy           = 0;
-            blk->vec[5].vz           = 0x100;
-            blk->vec[6].vx           = 0x200;
-            blk->vec[6].vy           = 0;
-            blk->vec[6].vz           = 0x100;
-            for (i = 1; i < 7; i++) {
+            spread                                                    = length != 0x800 ? 0 : (yaw = work->scale, work->scale - 0x800 >= 0 ? (yaw - 0x800) * 4 : (length - yaw) * 4);
+            work->period                                              = spread;
+            lightCoord->coord.t[0]                                    = coord->coord.t[0];
+            lightCoord->coord.t[1]                                    = coord->coord.t[1];
+            lightCoord->coord.t[2]                                    = coord->coord.t[2];
+            lightCoord->composeStamp                                  = GRAPHICS_COORD_DIRTY;
+            lightSlot->framesLeft                                     = 2;
+            light->inner                                              = 0x600;
+            light->outer                                              = work->period + 0x600;
+            light->head.color.r                                       = red << 4;
+            light->head.color.g                                       = green << 4;
+            light->head.color.b                                       = blue << 4;
+            beam->vertices[ACROPOLIS_PLAZA_BEAM_VERTEX_FAR_LEFT].vx   = -0x200;
+            beam->vertices[ACROPOLIS_PLAZA_BEAM_VERTEX_FAR_LEFT].vy   = 0;
+            beam->vertices[ACROPOLIS_PLAZA_BEAM_VERTEX_FAR_LEFT].vz   = work->angle;
+            beam->vertices[ACROPOLIS_PLAZA_BEAM_VERTEX_FAR_RIGHT].vx  = 0x200;
+            beam->vertices[ACROPOLIS_PLAZA_BEAM_VERTEX_FAR_RIGHT].vy  = 0;
+            beam->vertices[ACROPOLIS_PLAZA_BEAM_VERTEX_FAR_RIGHT].vz  = work->angle;
+            beam->vertices[ACROPOLIS_PLAZA_BEAM_VERTEX_SIDE_LEFT].vx  = -0x400;
+            beam->vertices[ACROPOLIS_PLAZA_BEAM_VERTEX_SIDE_LEFT].vy  = 0;
+            beam->vertices[ACROPOLIS_PLAZA_BEAM_VERTEX_SIDE_LEFT].vz  = 0x400;
+            beam->vertices[ACROPOLIS_PLAZA_BEAM_VERTEX_SIDE_RIGHT].vx = 0x400;
+            beam->vertices[ACROPOLIS_PLAZA_BEAM_VERTEX_SIDE_RIGHT].vy = 0;
+            beam->vertices[ACROPOLIS_PLAZA_BEAM_VERTEX_SIDE_RIGHT].vz = 0x400;
+            beam->vertices[ACROPOLIS_PLAZA_BEAM_VERTEX_NEAR_LEFT].vx  = -0x200;
+            beam->vertices[ACROPOLIS_PLAZA_BEAM_VERTEX_NEAR_LEFT].vy  = 0;
+            beam->vertices[ACROPOLIS_PLAZA_BEAM_VERTEX_NEAR_LEFT].vz  = 0x100;
+            beam->vertices[ACROPOLIS_PLAZA_BEAM_VERTEX_NEAR_RIGHT].vx = 0x200;
+            beam->vertices[ACROPOLIS_PLAZA_BEAM_VERTEX_NEAR_RIGHT].vy = 0;
+            beam->vertices[ACROPOLIS_PLAZA_BEAM_VERTEX_NEAR_RIGHT].vz = 0x100;
+            for (i = ACROPOLIS_PLAZA_BEAM_VERTEX_FAR_LEFT; i < ACROPOLIS_PLAZA_BEAM_VERTEX_COUNT; i++) {
                 gte_SetRotMatrix(&coord->workm);
-                gte_ldv0(&blk->vec[i]);
+                gte_ldv0(&beam->vertices[i]);
                 gte_rtv0();
-                gte_stsv(&blk->vec[i]);
-                // Add the field offset last to keep this pointer separate from the GTE address.
-                point           = ((AcropolisPlazaBeamScratch*)((SVECTOR*)blk + i))->vec;
-                blk->vec[i].vx += (u16)coord->workm.t[0];
-                point->vy      += (u16)coord->workm.t[1];
-                point->vz      += (u16)coord->workm.t[2];
+                gte_stsv(&beam->vertices[i]);
+                // The rotated vertex is in the beacon's frame; add the beacon's
+                // world position. Each sum goes through the vertex's address: a
+                // plain member access folds all three displacements onto the
+                // index register, and the original keeps the address in one.
+                (&beam->vertices[i])->vx += (u16)coord->workm.t[0];
+                (&beam->vertices[i])->vy += (u16)coord->workm.t[1];
+                (&beam->vertices[i])->vz += (u16)coord->workm.t[2];
             }
             gte_SetRotMatrix(&GsWSMATRIX);
-            for (i = 1; i < 7; i++) {
-                gte_ldv0(&blk->vec[i]);
+            for (i = ACROPOLIS_PLAZA_BEAM_VERTEX_FAR_LEFT; i < ACROPOLIS_PLAZA_BEAM_VERTEX_COUNT; i++) {
+                gte_ldv0(&beam->vertices[i]);
                 gte_rtps();
-                gte_stsxy(&blk->screen[i]);
+                gte_stsxy(&beam->vertexScreenPos[i]);
             }
             i              = 0;
             red            = (s32)(red << 16) >> 18;
@@ -4860,14 +4897,14 @@ void func_acropolis_plaza_801802C0(Task* task)
             setRGB0(tri, (s16)red * 3, (s16)green * 3, (s16)blue * 3);
             setRGB1(tri, 0, 0, 0);
             setRGB2(tri, 0, 0, 0);
-            tri->x0 = blk->sx;
-            tri->y0 = blk->sy;
-            tri->x1 = (u16)blk->screen[1];
-            tri->y1 = (blk->screen[1] >> 16);
-            tri->x2 = (u16)blk->screen[2];
-            tri->y2 = (blk->screen[2] >> 16);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), tri);
-            gpuSetPrimitiveBlendMode(tri, GPU_BLEND_ADD, blk->otz);
+            tri->x0 = beam->centreScreenPos.vx;
+            tri->y0 = beam->centreScreenPos.vy;
+            tri->x1 = (u16)beam->vertexScreenPos[ACROPOLIS_PLAZA_BEAM_VERTEX_FAR_LEFT];
+            tri->y1 = (beam->vertexScreenPos[ACROPOLIS_PLAZA_BEAM_VERTEX_FAR_LEFT] >> 16);
+            tri->x2 = (u16)beam->vertexScreenPos[ACROPOLIS_PLAZA_BEAM_VERTEX_FAR_RIGHT];
+            tri->y2 = (beam->vertexScreenPos[ACROPOLIS_PLAZA_BEAM_VERTEX_FAR_RIGHT] >> 16);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)beam->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), tri);
+            gpuSetPrimitiveBlendMode(tri, GPU_BLEND_ADD, beam->otz);
             for (; i < 2; i++) {
                 prim           = gGpuPrimCursor;
                 gGpuPrimCursor = prim + 1;
@@ -4876,21 +4913,21 @@ void func_acropolis_plaza_801802C0(Task* task)
                 setRGB1(prim, (s16)red * 2, (s16)green * 2, (s16)blue * 2);
                 setRGB2(prim, 0, 0, 0);
                 setRGB3(prim, 0, 0, 0);
-                prim->x0 = (u16)blk->screen[i + 1];
-                prim->y0 = (blk->screen[i + 1] >> 16);
-                prim->x1 = blk->sx;
-                prim->y1 = blk->sy;
-                prim->x2 = (u16)blk->screen[i + 3];
-                prim->y2 = (blk->screen[i + 3] >> 16);
-                prim->x3 = (u16)blk->screen[i + 5];
-                prim->y3 = (blk->screen[i + 5] >> 16);
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
+                prim->x0 = (u16)beam->vertexScreenPos[i + ACROPOLIS_PLAZA_BEAM_VERTEX_FAR_LEFT];
+                prim->y0 = (beam->vertexScreenPos[i + ACROPOLIS_PLAZA_BEAM_VERTEX_FAR_LEFT] >> 16);
+                prim->x1 = beam->centreScreenPos.vx;
+                prim->y1 = beam->centreScreenPos.vy;
+                prim->x2 = (u16)beam->vertexScreenPos[i + ACROPOLIS_PLAZA_BEAM_VERTEX_SIDE_LEFT];
+                prim->y2 = (beam->vertexScreenPos[i + ACROPOLIS_PLAZA_BEAM_VERTEX_SIDE_LEFT] >> 16);
+                prim->x3 = (u16)beam->vertexScreenPos[i + ACROPOLIS_PLAZA_BEAM_VERTEX_NEAR_LEFT];
+                prim->y3 = (beam->vertexScreenPos[i + ACROPOLIS_PLAZA_BEAM_VERTEX_NEAR_LEFT] >> 16);
+                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)beam->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
+                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, beam->otz);
             }
-            blk->half = 0xC000 / blk->otz;
-            red     <<= 1;
-            green   <<= 1;
-            blue    <<= 1;
+            beam->glowRadius = 0xC000 / beam->otz;
+            red            <<= 1;
+            green          <<= 1;
+            blue           <<= 1;
             for (i = 0; i < 0x10; i += 2) {
                 prim           = gGpuPrimCursor;
                 gGpuPrimCursor = prim + 1;
@@ -4899,16 +4936,16 @@ void func_acropolis_plaza_801802C0(Task* task)
                 setRGB1(prim, 0, 0, 0);
                 setRGB2(prim, red, green, blue);
                 setRGB3(prim, 0, 0, 0);
-                prim->x0 = blk->sx + ((blk->half * D_acropolis_plaza_801987E0[i + 4]) >> 12);
-                prim->y0 = blk->sy + ((blk->half * D_acropolis_plaza_801987E0[i]) >> 12);
-                prim->x1 = blk->sx + ((blk->half * D_acropolis_plaza_801987E0[i + 5]) >> 12);
-                prim->y1 = blk->sy + ((blk->half * D_acropolis_plaza_801987E0[i + 1]) >> 12);
-                prim->x2 = blk->sx;
-                prim->y2 = blk->sy;
-                prim->x3 = blk->sx + ((blk->half * D_acropolis_plaza_801987E0[i + 6]) >> 12);
-                prim->y3 = blk->sy + ((blk->half * D_acropolis_plaza_801987E0[i + 2]) >> 12);
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
+                prim->x0 = beam->centreScreenPos.vx + ((beam->glowRadius * D_acropolis_plaza_801987E0[i + 4]) >> 12);
+                prim->y0 = beam->centreScreenPos.vy + ((beam->glowRadius * D_acropolis_plaza_801987E0[i]) >> 12);
+                prim->x1 = beam->centreScreenPos.vx + ((beam->glowRadius * D_acropolis_plaza_801987E0[i + 5]) >> 12);
+                prim->y1 = beam->centreScreenPos.vy + ((beam->glowRadius * D_acropolis_plaza_801987E0[i + 1]) >> 12);
+                prim->x2 = beam->centreScreenPos.vx;
+                prim->y2 = beam->centreScreenPos.vy;
+                prim->x3 = beam->centreScreenPos.vx + ((beam->glowRadius * D_acropolis_plaza_801987E0[i + 6]) >> 12);
+                prim->y3 = beam->centreScreenPos.vy + ((beam->glowRadius * D_acropolis_plaza_801987E0[i + 2]) >> 12);
+                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)beam->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
+                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, beam->otz);
             }
         }
     }
@@ -4928,25 +4965,25 @@ void func_acropolis_plaza_801802C0(Task* task)
         blue        = (s32)pulse2 >> 20;
     }
     if (work->angle == 0x800) {
-        blk->vec[0].vx = 0;
-        blk->vec[0].vy = 0;
-        blk->vec[0].vz = 0xE00;
+        beam->vertices[ACROPOLIS_PLAZA_BEAM_VERTEX_CENTRE].vx = 0;
+        beam->vertices[ACROPOLIS_PLAZA_BEAM_VERTEX_CENTRE].vy = 0;
+        beam->vertices[ACROPOLIS_PLAZA_BEAM_VERTEX_CENTRE].vz = 0xE00;
         gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&blk->vec[0]);
+        gte_ldv0(&beam->vertices[ACROPOLIS_PLAZA_BEAM_VERTEX_CENTRE]);
         gte_rtv0();
-        gte_stsv(&blk->vec[0]);
-        blk->vec[0].vx += (u16)coord->workm.t[0];
-        blk->vec[0].vy += (u16)coord->workm.t[1];
-        blk->vec[0].vz += (u16)coord->workm.t[2];
+        gte_stsv(&beam->vertices[ACROPOLIS_PLAZA_BEAM_VERTEX_CENTRE]);
+        beam->vertices[ACROPOLIS_PLAZA_BEAM_VERTEX_CENTRE].vx += (u16)coord->workm.t[0];
+        beam->vertices[ACROPOLIS_PLAZA_BEAM_VERTEX_CENTRE].vy += (u16)coord->workm.t[1];
+        beam->vertices[ACROPOLIS_PLAZA_BEAM_VERTEX_CENTRE].vz += (u16)coord->workm.t[2];
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&blk->vec[0]);
+        gte_ldv0(&beam->vertices[ACROPOLIS_PLAZA_BEAM_VERTEX_CENTRE]);
         gte_rtps();
-        gte_stsxy(&blk->sx);
-        gte_stszotz(&blk->otz);
-        if (blk->otz >= 0x11) {
-            if (__builtin_abs(blk->sx) < 0xC0 && __builtin_abs(blk->sy) < 0x98) {
-                blk->half = 0x10000 / blk->otz;
+        gte_stsxy(&beam->centreScreenPos);
+        gte_stszotz(&beam->otz);
+        if (beam->otz >= 0x11) {
+            if (__builtin_abs(beam->centreScreenPos.vx) < 0xC0 && __builtin_abs(beam->centreScreenPos.vy) < 0x98) {
+                beam->glowRadius = 0x10000 / beam->otz;
                 for (i = 0; i < 0x10; i += 2) {
                     prim           = gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
@@ -4955,22 +4992,22 @@ void func_acropolis_plaza_801802C0(Task* task)
                     setRGB1(prim, 0, 0, 0);
                     setRGB2(prim, red, green, blue);
                     setRGB3(prim, 0, 0, 0);
-                    prim->x0 = blk->sx + ((blk->half * D_acropolis_plaza_801987E0[i + 4]) >> 12);
-                    prim->y0 = blk->sy + ((blk->half * D_acropolis_plaza_801987E0[i]) >> 12);
-                    prim->x1 = blk->sx + ((blk->half * D_acropolis_plaza_801987E0[i + 5]) >> 12);
-                    prim->y1 = blk->sy + ((blk->half * D_acropolis_plaza_801987E0[i + 1]) >> 12);
-                    prim->x2 = blk->sx;
-                    prim->y2 = blk->sy;
-                    prim->x3 = blk->sx + ((blk->half * D_acropolis_plaza_801987E0[i + 6]) >> 12);
-                    prim->y3 = blk->sy + ((blk->half * D_acropolis_plaza_801987E0[i + 2]) >> 12);
-                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-                    gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
+                    prim->x0 = beam->centreScreenPos.vx + ((beam->glowRadius * D_acropolis_plaza_801987E0[i + 4]) >> 12);
+                    prim->y0 = beam->centreScreenPos.vy + ((beam->glowRadius * D_acropolis_plaza_801987E0[i]) >> 12);
+                    prim->x1 = beam->centreScreenPos.vx + ((beam->glowRadius * D_acropolis_plaza_801987E0[i + 5]) >> 12);
+                    prim->y1 = beam->centreScreenPos.vy + ((beam->glowRadius * D_acropolis_plaza_801987E0[i + 1]) >> 12);
+                    prim->x2 = beam->centreScreenPos.vx;
+                    prim->y2 = beam->centreScreenPos.vy;
+                    prim->x3 = beam->centreScreenPos.vx + ((beam->glowRadius * D_acropolis_plaza_801987E0[i + 6]) >> 12);
+                    prim->y3 = beam->centreScreenPos.vy + ((beam->glowRadius * D_acropolis_plaza_801987E0[i + 2]) >> 12);
+                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)beam->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
+                    gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, beam->otz);
                 }
             }
         }
     }
     work->scale = (work->scale - 0x80) & 0xFFF;
-    SCRATCH_STACK_RELEASE_BYTES(0x60);
+    SCRATCH_STACK_RELEASE_BLOCK(_AcropolisPlazaBeamScratch);
 }
 
 void func_acropolis_plaza_801811D0(Task* task)
