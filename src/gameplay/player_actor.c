@@ -172,17 +172,20 @@ typedef struct {
 } _PlayerActorAimYawScratch;
 STATIC_ASSERT_SIZEOF(_PlayerActorAimYawScratch, 0x6C);
 
-/// 0x2C-byte scratch from the scratch stack used by `Gp_PlayerMode2State3`.
-/// `mtx` receives a copy of the actor coordinate's `coord` matrix, pitched by
-/// `gfxRotMatrixX`; `dir` (at `head - 0xC`) is that matrix's third column
-/// normalized by `VectorNormalSS`, and `div` is the frame count the direction
-/// is divided by to produce `GameActor.velocity`.
-typedef struct _GpDashScratch {
-    /* 0x00 */ MATRIX  mtx;
-    /* 0x20 */ SVECTOR dir;
-    /* 0x28 */ s32     div;
-} GpDashScratch;
-STATIC_ASSERT_SIZEOF(GpDashScratch, 0x2C);
+/// Scratch-stack block for working out a player actor's velocity on a flight of stairs.
+///
+/// A stair walk moves the actor along its model's forward axis, tilted up or
+/// down by the flight's slope while it is on the steps; the stride that ends
+/// the flight takes its heading from the untilted model instead. A velocity
+/// is that unit direction (4096) divided by a speed divisor, so a larger
+/// divisor is a slower stride. One block is reserved per call and released
+/// before returning.
+typedef struct {
+    MATRIX  pitchedMatrix; // On-stairs stride only: the model's local matrix pitched about its own X axis by the flight's slope
+    SVECTOR direction;     // Forward axis of `pitchedMatrix`, or of the model's own matrix for the closing stride, normalized to 4096
+    s32     speedDivisor;  // On-stairs stride only: `direction` divided by it is the distance covered per frame (110 climbing, 100 descending)
+} _PlayerActorStairClimbScratch;
+STATIC_ASSERT_SIZEOF(_PlayerActorStairClimbScratch, 0x2C);
 
 /// Scratch-stack block for pitching a player actor's aim toward its lock target.
 ///
@@ -7928,44 +7931,42 @@ static void func_8010771C(Task* arg0)
 
 static void Gp_PlayerMode2State3(Task* arg0)
 {
-    u8*            head;
-    GpDashScratch* blk;
-    GpDashScratch* vel;
-    GameActor*     actor;
-    GfxCoord*      coord;
-    s32            angle;
-    s32            delay;
-    s32            mode;
+    _PlayerActorStairClimbScratch* block;
+    _PlayerActorStairClimbScratch* blockAlias; // Second pointer to `block`, kept so each division reloads the divisor
+    GameActor*                     actor;
+    GfxCoord*                      coord;
+    s32                            angle;
+    s32                            delay;
+    s32                            mode;
 
-    head                                = SCRATCH_STACK_CURSOR(u8);
-    blk                                 = (GpDashScratch*)(head - 0x2C);
-    SCRATCH_STACK_CURSOR(GpDashScratch) = blk;
-    vel                                 = blk;
-    actor                               = arg0->work;
-    coord                               = arg0->extra.tmd->coords;
+    block      = SCRATCH_STACK_RESERVE_BLOCK(_PlayerActorStairClimbScratch);
+    blockAlias = block;
+    actor      = arg0->work;
+    coord      = arg0->extra.tmd->coords;
     switch (actor->statePhase) {
         case 0:
-            blk->mtx = coord->coord;
-            angle    = -0x180;
+            // Head along the model's forward axis tilted by the flight's slope.
+            block->pitchedMatrix = coord->coord;
+            angle                = -0x180;
             if (actor->jumpVariant == 0) {
                 angle = 0x180;
             }
-            gfxRotMatrixX(&blk->mtx, angle, GRAPHICS_ROTATION_COMPOSE);
-            gfxReadMatrixZAxis(&blk->mtx, &blk->dir);
-            VectorNormalSS(&blk->dir, &blk->dir);
+            gfxRotMatrixX(&block->pitchedMatrix, angle, GRAPHICS_ROTATION_COMPOSE);
+            gfxReadMatrixZAxis(&block->pitchedMatrix, &block->direction);
+            VectorNormalSS(&block->direction, &block->direction);
             if (actor->jumpVariant == 0) {
-                actor->statePhase  = 1;
-                actor->stateTimer  = 0;
-                actor->actionValue = actor->scriptMotion.jumpSteps & 1;
-                blk->div           = 0x6E;
+                actor->statePhase   = 1;
+                actor->stateTimer   = 0;
+                actor->actionValue  = actor->scriptMotion.jumpSteps & 1;
+                block->speedDivisor = 110;
             } else {
-                actor->statePhase = 3;
-                actor->stateTimer = 5;
-                blk->div          = 0x64;
+                actor->statePhase   = 3;
+                actor->stateTimer   = 5;
+                block->speedDivisor = 100;
             }
-            actor->velocity.vx = vel->dir.vx / vel->div;
-            actor->velocity.vy = vel->dir.vy / vel->div;
-            actor->velocity.vz = vel->dir.vz / vel->div;
+            actor->velocity.vx = blockAlias->direction.vx / blockAlias->speedDivisor;
+            actor->velocity.vy = blockAlias->direction.vy / blockAlias->speedDivisor;
+            actor->velocity.vz = blockAlias->direction.vz / blockAlias->speedDivisor;
             break;
         case 1:
             if (func_80105ED4(arg0) != 0) {
@@ -7981,12 +7982,12 @@ static void Gp_PlayerMode2State3(Task* arg0)
                     if (actor->scriptMotion.jumpSteps <= 0) {
                         actor->stateTimer = 8;
                         actor->statePhase++;
-                        gfxReadMatrixZAxis(&coord->coord, &blk->dir);
-                        VectorNormalSS(&blk->dir, &blk->dir);
-                        actor->velocity.vx = (s16)(blk->dir.vx / 180);
-                        actor->velocity.vy = (s16)(blk->dir.vy / 180);
+                        gfxReadMatrixZAxis(&coord->coord, &block->direction);
+                        VectorNormalSS(&block->direction, &block->direction);
+                        actor->velocity.vx = (s16)(block->direction.vx / 180);
+                        actor->velocity.vy = (s16)(block->direction.vy / 180);
                         mode               = 0x26;
-                        actor->velocity.vz = (s16)(blk->dir.vz / 180);
+                        actor->velocity.vz = (s16)(block->direction.vz / 180);
                         if (actor->actionValue != 0) {
                             mode = 0x27;
                         }
@@ -8016,10 +8017,10 @@ static void Gp_PlayerMode2State3(Task* arg0)
         case 3:
             if (func_80105ED4(arg0) != 0) {
                 if (actor->scriptMotion.jumpSteps == 1) {
-                    gfxReadMatrixZAxis(&coord->coord, &blk->dir);
-                    VectorNormalSS(&blk->dir, &blk->dir);
-                    actor->velocity.vx = (s16)(blk->dir.vx / 58);
-                    actor->velocity.vz = (s16)(blk->dir.vz / 58);
+                    gfxReadMatrixZAxis(&coord->coord, &block->direction);
+                    VectorNormalSS(&block->direction, &block->direction);
+                    actor->velocity.vx = (s16)(block->direction.vx / 58);
+                    actor->velocity.vz = (s16)(block->direction.vz / 58);
                 }
                 delay = 9;
                 if (actor->scriptMotion.jumpSteps == 1) {
@@ -8038,7 +8039,7 @@ static void Gp_PlayerMode2State3(Task* arg0)
             break;
     }
     Gp_AnimTickChildSlots(arg0);
-    SCRATCH_STACK_RELEASE_BYTES(0x2C);
+    SCRATCH_STACK_RELEASE_BLOCK(_PlayerActorStairClimbScratch);
 }
 
 void Gp_PlayerMode2State4(Task* arg0)

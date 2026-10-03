@@ -38631,7 +38631,7 @@ A scratch struct whose divisor is written and then immediately divided by three
 times wants a `lw` of that field before *every* division:
 
 ```
-sw   v0, 0x28(s3)   /* div = 0x6E / 0x64 (cross-jumped from both arms) */
+sw   v0, 0x28(s3)   /* speedDivisor = 0x6E / 0x64 (cross-jumped from both arms) */
 lh   v0, 0x20(s4)
 lw   v1, 0x28(s4)   /* reload, even though v0 still holds the stored value */
 div  zero, v0, v1
@@ -38643,17 +38643,16 @@ the pointer and read through the copy — the copy is a different base register,
 store-to-load forwarding does not fire and the load is re-emitted:
 
 ```c
-blk = (GpDashScratch*)(head - 0x2C);
-*scratch = blk;
-vel = blk;                 /* move s4, s3 — same address, second register */
+block      = SCRATCH_STACK_RESERVE_BLOCK(_PlayerActorStairClimbScratch);
+blockAlias = block;        /* move s4, s3 — same address, second register */
 …
-blk->div       = 0x6E;     /* store through blk */
-actor->velocity.vx = vel->dir.vx / vel->div;   /* reads through vel → lw each time */
+block->speedDivisor = 110; /* store through block */
+actor->velocity.vx  = blockAlias->direction.vx / blockAlias->speedDivisor; /* reads through blockAlias → lw each time */
 ```
 
 The copy also has to be assigned up front (next to the original), which is what
 puts `move s4, s3` in the entry branch's delay slot. Pair this with per-arm
-stores of the constant (`blk->div = 0x6E;` / `= 0x64;` instead of a shared
+stores of the constant (`block->speedDivisor = 110;` / `= 100;` instead of a shared
 `frames` local) so cross-jumping keeps the `li v0, 0x6E` in the `j` delay slot
 and the value in `$v0` rather than a spare `$v1`. `Gp_PlayerMode2State3` is the example.
 
