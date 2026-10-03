@@ -85,13 +85,17 @@ enum {
 #define D_mist_shooting_gallery_80185690 (D_mist_shooting_gallery_80185550 + 40)
 #define D_mist_shooting_gallery_801856B0 (D_mist_shooting_gallery_80185550 + 44)
 
-/// The four bonus-mode blurbs shown by the gallery's help panel, indexed by
-/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode`. `func_mist_shooting_gallery_8017FAE8` copies the whole thing
-/// onto its stack before indexing it.
-typedef struct MistShootingGalleryModeTexts {
-    /* 0x0 */ const char* text[4];
-} MistShootingGalleryModeTexts;
-STATIC_ASSERT_SIZEOF(MistShootingGalleryModeTexts, 0x10);
+/// One string for each run mode, in the order of the save's `gameMode`
+/// (0 Replay, 1 Bounty, 2 Scavenger, 3 Nightmare).
+///
+/// The gallery keeps two: the mode names its mode list draws as rows, and the
+/// descriptions its help panel shows for the mode in force. Both are constants
+/// that their reader copies whole onto its stack before indexing, and the
+/// struct is what lets a file-scope table be copied by assignment.
+typedef struct {
+    const char* byMode[4]; // Text for run mode 0..3
+} _MistShootingGalleryModeTexts;
+STATIC_ASSERT_SIZEOF(_MistShootingGalleryModeTexts, 0x10);
 
 /// One row of the gallery's DATA panel. `gauge` picks the bar string out of
 /// `MistShootingGalleryGauges`; `label` is the word printed beside it
@@ -147,12 +151,12 @@ extern char D_mist_shooting_gallery_80184F2C[];
 
 static const char D_mist_shooting_gallery_8017D65C[]; // "TOTAL SCORE"
 
-static const MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D6D8;
-static const MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D708;
-static const char                         D_mist_shooting_gallery_8017D718[];
-static const char                         D_mist_shooting_gallery_8017D720[];
-static const char                         D_mist_shooting_gallery_8017D728[];
-static const char                         D_mist_shooting_gallery_8017D730[];
+static const _MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D6D8;
+static const _MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D708;
+static const char                          D_mist_shooting_gallery_8017D718[];
+static const char                          D_mist_shooting_gallery_8017D720[];
+static const char                          D_mist_shooting_gallery_8017D728[];
+static const char                          D_mist_shooting_gallery_8017D730[];
 
 static const MistShootingGalleryRatings D_mist_shooting_gallery_8017D778;
 static const MistShootingGalleryRatings D_mist_shooting_gallery_8017D7AC;
@@ -1416,7 +1420,7 @@ static const char D_mist_shooting_gallery_8017D6B8[] = "Scavenger Mode";
 
 static const char D_mist_shooting_gallery_8017D6C8[] = "Nightmare Mode";
 
-static const MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D6D8 = { { D_mist_shooting_gallery_8017D6A0, D_mist_shooting_gallery_8017D6AC, D_mist_shooting_gallery_8017D6B8, D_mist_shooting_gallery_8017D6C8 } };
+static const _MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D6D8 = { { D_mist_shooting_gallery_8017D6A0, D_mist_shooting_gallery_8017D6AC, D_mist_shooting_gallery_8017D6B8, D_mist_shooting_gallery_8017D6C8 } };
 
 void func_mist_shooting_gallery_8017EAE0(Task* task)
 {
@@ -1579,7 +1583,7 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
     Text_DrawString(&req4, "BP");
     Text_DrawPrompt(obj, -xOff, y, Text_ItoaSigned(buf, val), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 }
-static const MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D708 = { { D_mist_shooting_gallery_80184DD4, D_mist_shooting_gallery_80184E24, D_mist_shooting_gallery_80184E70, D_mist_shooting_gallery_80184EC4 } };
+static const _MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D708 = { { D_mist_shooting_gallery_80184DD4, D_mist_shooting_gallery_80184E24, D_mist_shooting_gallery_80184E70, D_mist_shooting_gallery_80184EC4 } };
 
 static const char D_mist_shooting_gallery_8017D718[] = "EASY";
 
@@ -1806,12 +1810,13 @@ s32 func_mist_shooting_gallery_8017F95C(s32 unused)
 
 void func_mist_shooting_gallery_8017F98C(UiList* arg0, UiObject* arg1)
 {
-    MistShootingGalleryModeTexts texts;
-    s32                          one;
+    _MistShootingGalleryModeTexts modeNames;
+    s32                           one;
 
-    texts = D_mist_shooting_gallery_8017D6D8;
-    one   = 1;
-    Text_DrawPrompt(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue - 1, texts.text[arg0->currentItemIndex], arg0->colorRgb, one, TEXT_ALIGNMENT_LEFT);
+    modeNames = D_mist_shooting_gallery_8017D6D8;
+    one       = 1;
+    // The list has one row per run mode, so the row index is the mode.
+    Text_DrawPrompt(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue - 1, modeNames.byMode[arg0->currentItemIndex], arg0->colorRgb, one, TEXT_ALIGNMENT_LEFT);
     if (arg0->rowInputEnabled == one) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode = (u8)arg0->currentItemIndex;
     }
@@ -1840,8 +1845,8 @@ static s32 func_mist_shooting_gallery_8017FA38(s32 score)
 }
 void func_mist_shooting_gallery_8017FAE8(Task* task)
 {
-    UiObject*                    obj   = task->spawnArg2.pointer;
-    MistShootingGalleryModeTexts texts = D_mist_shooting_gallery_8017D708;
+    UiObject*                     obj              = task->spawnArg2.pointer;
+    _MistShootingGalleryModeTexts modeDescriptions = D_mist_shooting_gallery_8017D708;
 
     obj->result = USER_INTERFACE_RESULT_NONE;
     if (task->state == 0) {
@@ -1849,7 +1854,7 @@ void func_mist_shooting_gallery_8017FAE8(Task* task)
         obj->panel.bounds.unsignedRect.y = 0x68 - obj->panel.bounds.unsignedRect.h;
         task->state                      = task->state + 1;
     }
-    Text_DrawMultiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, texts.text[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode], 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    Text_DrawMultiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, modeDescriptions.byMode[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode], 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 void func_mist_shooting_gallery_8017FBD8(void)
 {
