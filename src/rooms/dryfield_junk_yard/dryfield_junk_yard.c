@@ -42,15 +42,20 @@
 #include "mapui/map_dryfield.h"
 #include "../../shared/junk_yard.h"
 
-/// Block `func_dryfield_junk_yard_8017D658` carves off the scratch stack
-/// (`0x1F8003FC`, one `addiu` of `-0x18`) to hold the model's world position
-/// while `Gp_DrawEffGroundQuad` draws the ground quad there. Only `pos` is
-/// written; the rest of the 0x18 bytes is not touched here.
+/// Scratch-stack block the room model's shadow drawer stages its ground
+/// shadow in.
+///
+/// `centre` is the world position the shadow quad is centred on, copied from
+/// the translation of the model root's composed matrix. Reserve the whole
+/// block and release it once the shadow is drawn.
+///
+/// The block is twice the size of the position. Nothing in this room reads or
+/// writes the second half, so its role is unproven.
 typedef struct {
-    VECTOR3 pos;
-    byte    pad_C[0xC];
-} DjyGroundQuadScratch;
-STATIC_ASSERT_SIZEOF(DjyGroundQuadScratch, 0x18);
+    VECTOR3 centre;       // Shadow centre in world coordinate units
+    byte    field_C[0xC]; // Role unproven; reserved with the block and never accessed
+} _DryfieldJunkYardGroundShadowScratch;
+STATIC_ASSERT_SIZEOF(_DryfieldJunkYardGroundShadowScratch, 0x18);
 
 /// Resident routine at the fixed address `0x80724608`, outside every image
 /// the build links. The room hands it the slot-0xA game pointer, two
@@ -1666,21 +1671,20 @@ void func_dryfield_junk_yard_8017D5F4(Task* task)
 /// quad at its world position.
 static void func_dryfield_junk_yard_8017D658(Task* task)
 {
-    DjyGroundQuadScratch* scratch;
-    GfxCoord*             coord;
-    TmdObject*            tmd;
+    _DryfieldJunkYardGroundShadowScratch* scratch;
+    GfxCoord*                             coord;
+    TmdObject*                            tmd;
 
     tmd   = task->extra.tmd;
     coord = tmd->coords;
     if ((tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) == 0 && tmd->buffer != 0) {
-        scratch                                    = SCRATCH_STACK_CURSOR(DjyGroundQuadScratch) - 1;
-        SCRATCH_STACK_CURSOR(DjyGroundQuadScratch) = scratch;
+        scratch = SCRATCH_STACK_RESERVE_BLOCK(_DryfieldJunkYardGroundShadowScratch);
         Gp_UpdateCoord(coord);
-        scratch->pos.vx = coord->workm.t[0];
-        scratch->pos.vy = coord->workm.t[1];
-        scratch->pos.vz = coord->workm.t[2];
-        Gp_DrawEffGroundQuad(&scratch->pos, 0x1A0, 0xC0);
-        SCRATCH_STACK_RELEASE_BLOCK(DjyGroundQuadScratch);
+        scratch->centre.vx = coord->workm.t[0];
+        scratch->centre.vy = coord->workm.t[1];
+        scratch->centre.vz = coord->workm.t[2];
+        Gp_DrawEffGroundQuad(&scratch->centre, 0x1A0, 0xC0);
+        SCRATCH_STACK_RELEASE_BLOCK(_DryfieldJunkYardGroundShadowScratch);
     }
 }
 
