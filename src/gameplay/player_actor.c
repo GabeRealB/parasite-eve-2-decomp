@@ -47,9 +47,25 @@
 
 #include "main/task_types.h"
 
+/// Number of `PlayerStatus::weapon` indices. 0 is no weapon; 1..32 are the weapons.
+#define PLAYER_ACTOR_WEAPON_COUNT 33
+
+/// Attack routine for every `PlayerStatus::weapon` index, stored so the whole table can be copied.
+///
+/// The attack dispatcher copies the table and calls the equipped weapon's slot
+/// with the player task. Slot 0 is no weapon. Slots 1..32 are the weapon
+/// packages, whose package id is the index plus 7. One weapon overlay is
+/// loaded at a time, always at the same address, so a slot is that overlay's
+/// attack routine and is callable only while its weapon is equipped. A package
+/// with no code, and no weapon, uses the empty handler in this file. An
+/// attack's first phase puts the actor in normal mode, state 4, and later
+/// phases advance `GameActor::statePhase`; normal state 4 calls the same slot
+/// each frame. Copying the table copies the routine pointers, not the overlay.
+/// There is no terminator or bounds check, so the index has to stay in 0..32.
 typedef struct {
-    TaskFunc funcs[33];
-} TaskFuncTable33;
+    TaskFunc attacks[PLAYER_ACTOR_WEAPON_COUNT]; // Attack routine for that weapon index
+} _PlayerActorWeaponAttacks;
+STATIC_ASSERT_SIZEOF(_PlayerActorWeaponAttacks, sizeof(TaskFunc) * PLAYER_ACTOR_WEAPON_COUNT);
 
 #include "main/display.h"
 #include "main/random.h"
@@ -303,7 +319,7 @@ static const TaskFuncTable4 Gp_PlayerWorkStates;
 /// Per-weapon handlers, indexed by `PlayerStatus::weapon` and copied by
 /// `func_8010615C`. Most live in the weapon overlay loaded at the time;
 /// `func_801065A0` serves the weapons with none.
-static const TaskFuncTable33 D_800978BC;
+static const _PlayerActorWeaponAttacks D_800978BC;
 
 /// `mode` dispatcher: `Gp_TickPlayerNormal`, `Gp_TickPlayerMode1`, `Gp_TickPlayerMode2`.
 static const TaskFuncTable3 Gp_PlayerModeFns;
@@ -7056,7 +7072,7 @@ s32 func_801060E0(Task* arg0)
 /// Per-weapon handlers, indexed by `PlayerStatus::weapon` and copied by
 /// `func_8010615C`. Most live in the weapon overlay loaded at the time;
 /// `func_801065A0` serves the weapons with none.
-static const TaskFuncTable33 D_800978BC = { {
+static const _PlayerActorWeaponAttacks D_800978BC = { {
     func_801065A0,
     func_8011D1D8,
     func_8011D1C4,
@@ -7094,14 +7110,14 @@ static const TaskFuncTable33 D_800978BC = { {
 
 static void func_8010615C(Task* arg0)
 {
-    GameActor*      actor;
-    TaskFuncTable33 sp;
+    GameActor*                actor;
+    _PlayerActorWeaponAttacks weaponAttacks;
 
-    sp                   = D_800978BC;
+    weaponAttacks        = D_800978BC;
     actor                = arg0->work;
     actor->actionPadMask = 0xF89A;
     actor->movementSign  = 0;
-    sp.funcs[gPlayerStatus.weapon](arg0);
+    weaponAttacks.attacks[gPlayerStatus.weapon](arg0);
 }
 
 void func_801061F0(void)
