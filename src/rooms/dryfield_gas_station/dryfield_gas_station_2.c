@@ -25,15 +25,15 @@
 #include "overlay.h"
 #include "../../shared/screen_fade.h"
 
-/// Work block the gas station's shaft sequencer (`func_dryfield_gas_station_801802C0`)
-/// allocates as 4 bytes in its state 0 and hangs off `Task::work` (0x1C) for
-/// the next run of the state machine to pick up. `child` is the task spawned
-/// from `D_dryfield_gas_station_8018312C` entry 0 in state 3 and polled with
-/// `Task_PollKill` in state 4.
-typedef struct DgsCutsceneSlot {
-    /* 0x0 */ Task* child;
-} DgsCutsceneSlot;
-STATIC_ASSERT_SIZEOF(DgsCutsceneSlot, 0x4);
+/// Work block of the task that runs the gas station's arrival sequence: the
+/// movie, then the in-room cutscene.
+///
+/// The task owns the block through `Task::work` and never clears it, so
+/// `cutscene` is indeterminate until the cutscene task has been spawned.
+typedef struct {
+    Task* cutscene; // The cutscene task, spawned once the movie loader is running; the sequence ends when it asks to stop
+} _DryfieldGasStationArrivalWork;
+STATIC_ASSERT_SIZEOF(_DryfieldGasStationArrivalWork, 0x4);
 
 void func_dryfield_gas_station_8017FFE4(Task* arg0)
 {
@@ -123,21 +123,23 @@ L_case5:
 
 #include "../../shared/screen_fade_in.inc.c"
 
-/// Runs the gas station's shaft sequence. State 0 parks the 4-byte child slot
-/// in `Task::work`, spawns the `D_dryfield_gas_station_80181E7C` entry 1
-/// loader through `Display_SpawnWithOt` and turns the view tasks on; states 1
-/// and 2 only step, so state 3 spawns the cutscene task from
-/// `D_dryfield_gas_station_8018312C` entry 0 into that slot, and state 4 kills
-/// this task once the cutscene has died. The slot is read at function entry,
-/// before state 0 writes the freshly allocated block, so only a later run of
+/// Runs the gas station's shaft sequence. State 0 allocates the task's
+/// `_DryfieldGasStationArrivalWork` into `Task::work`, spawns the
+/// `D_dryfield_gas_station_80181E7C` entry 1 loader through
+/// `Display_SpawnWithOt` and turns the view tasks on; states 1 and 2 only
+/// step, so state 3 spawns the cutscene task from
+/// `D_dryfield_gas_station_8018312C` entry 0 into that block, and state 4 kills
+/// this task once the cutscene has died. The block is read at function entry,
+/// before state 0 writes the freshly allocated one, so only a later run of
 /// the state machine sees it.
 void func_dryfield_gas_station_801802C0(Task* task)
 {
-    DgsCutsceneSlot* slot;
-    void*            child;
-    s32              killed;
+    _DryfieldGasStationArrivalWork* work;
+    _DryfieldGasStationArrivalWork* allocated;
+    Task*                           cutscene;
+    s32                             killed;
 
-    slot = (DgsCutsceneSlot*)task->work;
+    work = task->work;
     switch (task->state) {
         case 0:
             goto L_case0;
@@ -153,9 +155,9 @@ void func_dryfield_gas_station_801802C0(Task* task)
     return;
 
 L_case0:
-    child      = memMalloc(4, false);
-    task->work = child;
-    if (child == NULL) {
+    allocated  = memMalloc(sizeof(*allocated), false);
+    task->work = allocated;
+    if (allocated == NULL) {
         taskKill(task);
         return;
     }
@@ -165,9 +167,9 @@ L_case0:
     goto advance;
 
 L_case3:
-    child       = Task_SpawnFromTable(D_dryfield_gas_station_8018312C, 0, 0, 0);
-    slot->child = child;
-    if (child == NULL) {
+    cutscene       = Task_SpawnFromTable(D_dryfield_gas_station_8018312C, 0, 0, 0);
+    work->cutscene = cutscene;
+    if (cutscene == NULL) {
         goto L_kill;
     }
 
@@ -176,7 +178,7 @@ advance:
     return;
 
 L_case4:
-    if (Task_PollKill(slot->child, &killed) == 0) {
+    if (Task_PollKill(work->cutscene, &killed) == 0) {
         return;
     }
 L_kill:

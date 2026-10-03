@@ -94870,21 +94870,20 @@ jr    $v0
 ```
 
 CSE alone will not do this here -- state 0 *stores* to `task->work`
-(`task->work = memMalloc(4, false)` is the store in the `bnez` delay slot), and
-the paths that read the field are behind a call. The load survives because the
+(`task->work = memMalloc(sizeof(*allocated), false)` is the store in the `bnez`
+delay slot), and the paths that read the field are behind a call. The load survives because the
 source read the field once into a local declared before the switch:
 
 ```c
-DgsCutsceneSlot* slot = (DgsCutsceneSlot*)task->work;
+_DryfieldGasStationArrivalWork* work = task->work;
 switch (task->state) { ... }
 ```
 
-That also explains the otherwise surprising semantics: `slot` is the value from
+That also explains the otherwise surprising semantics: `work` is the value from
 the *previous* run of the state machine, so state 3 writes the task it spawns
 into the block state 0 allocated on an earlier call. When a target hoists a
-field load above the dispatch, write the local -- casting it to the work struct
-the overlay header names, as the other room bodies do -- and keep every later use
-on that pointer, which is what makes one callee-saved register cover the call.
+field load above the dispatch, write the local -- typed as the task's work
+struct, as the other room bodies do -- and keep every later use on that pointer, which is what makes one callee-saved register cover the call.
 
 ## An m2c five-scalar stack record keeps one slot, not five: `delete=N` with a short frame (func_dryfield_gas_station_801807E0, 2026-09-16)
 
