@@ -1153,7 +1153,7 @@ static inline void func_actor_160900_InitAnim(Task* task, TmdObject* obj)
     s32                    i;
 
     work = (Actor160900Child3Work*)task->work;
-    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_160900_8013F1C4, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_160900_8013F1C4, obj, work->rig.poses, work->rig.slots);
     work->field_4B4 = D_actor_160900_8013F1F8;
     work            = (Actor160900Child3Work*)task->work;
     i               = 1;

@@ -46,7 +46,7 @@ void strideWalkSpawn(Enemy* enemy, Task* task)
     vec.vz           = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
     animationInitContext(&work->rig.anim, (AnimationSet**)gStrideWalkAnimParams, obj,
-                         (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->rig.poses, work->rig.slots);
+                         work->rig.poses, work->rig.slots);
     work->st.state = 2;
     task->msgTable = gStrideWalkMessages;
     strideWalkUpdate(task);

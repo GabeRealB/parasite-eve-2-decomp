@@ -455,15 +455,20 @@ typedef struct ActorHeightClamp {
 } ActorHeightClamp;
 STATIC_ASSERT_SIZEOF(ActorHeightClamp, 0x10);
 
-/// The animation rig of a twenty-part model: the context `animationInitContext`
-/// builds, and the playback slots and pose buffer that context points at. The
-/// slots and the poses are the owner's storage, one of each per model part;
-/// each pose record is in the encoding its slot's `AnimationSlot.poseEncoding` names,
-/// so the buffer is kept as raw records.
-typedef struct ActorAnimRig20 {
-    AnimationContext anim;
-    AnimationSlot    slots[0x14];
-    byte             poses[0x14][ANIMATION_POSE_BUFFER_BYTES];
+/// Caller-owned playback storage for twenty slots.
+///
+/// The context borrows the model's part coordinates and is bound to this
+/// rig's slots and encoded-pose buffer. Both arrays stay live while playback
+/// uses them. Each slot has one pose entry of `ANIMATION_POSE_BUFFER_BYTES`.
+/// The entry holds that slot's encoding at its start: `AnimationPackedPose`
+/// (12 bytes) or `AnimationPackedRotation` (4 bytes). Playback stores no
+/// capacity, so a slot or pose index has to stay within these 20 entries.
+/// Slot 0 keeps its position in both arrays even where an owner drives only
+/// slots 1 to 19.
+typedef struct {
+    AnimationContext anim;                                   // Context bound to `slots`, `poses` and the model coordinates
+    AnimationSlot    slots[20];                              // Playback slot for one driven index
+    u8               poses[20][ANIMATION_POSE_BUFFER_BYTES]; // Encoded transition pose for the slot at the same index
 } ActorAnimRig20;
 STATIC_ASSERT_SIZEOF(ActorAnimRig20, 0x474);
 

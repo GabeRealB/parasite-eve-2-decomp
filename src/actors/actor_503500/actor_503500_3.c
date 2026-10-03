@@ -1815,12 +1815,13 @@ void func_actor_503500_80135F9C(Task* arg0, s32 arg1, s16 arg2)
 /// exactly as `func_actor_503500_80137048` does -- then applies preset `arg1`.
 void func_actor_503500_80135FB4(Task* arg0, s32 arg1, s32 rate)
 {
-    ActorAnimRig20* work;
+    ActorAnimRig20* rig;
     AnimationSlot*  slot;
     s32             i;
 
-    work = (ActorAnimRig20*)arg0->work;
-    slot = &work->slots[1];
+    // The boss work block opens with its rig.
+    rig  = arg0->work;
+    slot = &rig->slots[1];
     if (rate == 0) {
         rate = ANIMATION_RATE_ONE;
     }
@@ -2474,12 +2475,13 @@ static s32 func_actor_503500_80136FDC(Actor503500Work* work, s32 slot)
 /// meaning that default.
 static void func_actor_503500_80137048(Task* arg0, s32 rate)
 {
-    ActorAnimRig20* work;
+    ActorAnimRig20* rig;
     AnimationSlot*  slot;
     s32             i;
 
-    work = (ActorAnimRig20*)arg0->work;
-    slot = &work->slots[1];
+    // The boss work block opens with its rig.
+    rig  = arg0->work;
+    slot = &rig->slots[1];
     if (rate == 0) {
         rate = ANIMATION_RATE_ONE;
     }

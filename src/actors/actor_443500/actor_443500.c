@@ -2689,7 +2689,7 @@ s32 func_actor_443500_801327E0(Task* task, s32 anim, AnimationPlayRequest* param
     ext  = task->extra.tmd;
     if (params->source.index != work->model.bank) {
         work->model.bank = params->source.index;
-        animationInitContext(&work->rig.anim, D_actor_443500_80158724[work->model.bank], ext, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->rig.poses,
+        animationInitContext(&work->rig.anim, D_actor_443500_80158724[work->model.bank], ext, work->rig.poses,
                              work->rig.slots);
     }
     work->model.animId = params->animationId;

@@ -2790,7 +2790,7 @@ static void func_actor_450800_80132160(Enemy* enemy, Task* task)
     vec.vy        = coord->workm.t[1] - 0x320;
     vec.vz        = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
-    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_450800_8014ACC4, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->rig.poses,
+    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_450800_8014ACC4, obj, work->rig.poses,
                          work->rig.slots);
     work->st.animId = 1;
     work->st.state  = 2;

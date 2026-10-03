@@ -1238,7 +1238,7 @@ static void func_actor_143900_80131E70(Enemy* enemy, Task* task)
     vec.vz                           = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
     animationInitContext(&gScriptedWalkWork->rig.anim, (AnimationSet**)D_actor_143900_801413F8, obj,
-                         (u8(*)[ANIMATION_POSE_BUFFER_BYTES])gScriptedWalkWork->rig.poses, gScriptedWalkWork->rig.slots);
+                         gScriptedWalkWork->rig.poses, gScriptedWalkWork->rig.slots);
     gScriptedWalkWork->st.animId  = 1;
     gScriptedWalkWork->st.state   = 2;
     gScriptedWalkWork->st.travel  = 0;
@@ -1384,7 +1384,7 @@ static void func_actor_143900_801328D4(Enemy* enemy, Task* task)
     D_actor_143900_801496C8          = task;
     func_800D7A9C(obj, &vec, 0, 3);
     animationInitContext(&D_actor_143900_801496C4->rig.anim, (AnimationSet**)D_actor_143900_80149688, obj,
-                         (u8(*)[ANIMATION_POSE_BUFFER_BYTES])D_actor_143900_801496C4->rig.poses, D_actor_143900_801496C4->rig.slots);
+                         D_actor_143900_801496C4->rig.poses, D_actor_143900_801496C4->rig.slots);
     D_actor_143900_801496C4->st.animId = 1;
     D_actor_143900_801496C4->st.state  = 2;
     helper                             = Task_SpawnFromTable(D_actor_143900_80149664, 1, 1, 0);

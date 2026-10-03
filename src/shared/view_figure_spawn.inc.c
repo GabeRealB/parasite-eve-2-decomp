@@ -34,7 +34,7 @@ void viewFigureSpawnState(Enemy* enemy, Task* task)
     gActorSelfTask                   = task;
     gActorHelperTask                 = Task_SpawnFromTable(gViewFigureTasks, 1, 0, 0);
     animationInitContext(&gViewFigureWork->rig.anim, (AnimationSet**)gViewFigureAnimSets, obj,
-                         (u8(*)[ANIMATION_POSE_BUFFER_BYTES])gViewFigureWork->rig.poses, gViewFigureWork->rig.slots);
+                         gViewFigureWork->rig.poses, gViewFigureWork->rig.slots);
     gViewFigureWork->st.animId = 1;
     gViewFigureWork->st.state  = 2;
     viewFigureStepAnim(task);

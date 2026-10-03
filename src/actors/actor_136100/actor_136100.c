@@ -2095,7 +2095,7 @@ static void func_actor_136100_80133A88(Task* task)
         entryId = place->entryId;
     }
     Gp_SetTmdBytes(tmd, place->texturePageOffset, place->clutRowOffset);
-    animationInitContext(&work->rig.anim, D_actor_136100_8013F1A0, tmd, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, D_actor_136100_8013F1A0, tmd, work->rig.poses, work->rig.slots);
     task->msgTable = D_actor_136100_8013F2F4;
 }
 

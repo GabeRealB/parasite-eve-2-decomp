@@ -431,7 +431,7 @@ static void func_actor_311900_8016228C(Enemy* enemy, Task* task)
     enemy->field_4  = &coord->coord;
     enemy->field_48 = 0;
     obj->flags      = 0;
-    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_311900_8016EBE8, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->rig.poses,
+    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_311900_8016EBE8, obj, work->rig.poses,
                          work->rig.slots);
     coord->parent   = &gGfxViewCoord;
     work->field_474 = 2;
@@ -525,7 +525,7 @@ static void func_actor_311900_801624F8(Enemy* enemy, Task* task)
     enemy->field_4  = &coord->coord;
     enemy->field_48 = 0;
     obj->flags      = 0;
-    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_311900_8016EBF4, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->rig.poses,
+    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_311900_8016EBF4, obj, work->rig.poses,
                          work->rig.slots);
     coord->parent   = &gGfxViewCoord;
     work->field_474 = 2;

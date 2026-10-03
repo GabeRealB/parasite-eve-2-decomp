@@ -626,7 +626,7 @@ s32 func_actor_310600_8016246C(Task* task, s32 arg1, AnimationPlayRequest* cmd, 
     if (cmd->source.index != work->field_476) {
         work->field_476 = cmd->source.index;
         work->field_475 = -1;
-        animationInitContext(&work->rig.anim, D_actor_310600_80179640[work->field_476], ext, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->rig.poses,
+        animationInitContext(&work->rig.anim, D_actor_310600_80179640[work->field_476], ext, work->rig.poses,
                              work->rig.slots);
     }
     if (cmd->animationId != work->field_475) {

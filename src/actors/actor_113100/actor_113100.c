@@ -1615,7 +1615,7 @@ s32 func_actor_113100_801328EC(Task* task, s32 msgId, ActorTransform* place, Act
     if (msg->source.index != work->model.bank) {
         work->model.bank   = msg->source.index;
         work->model.animId = -1;
-        animationInitContext(&work->rig.anim, D_actor_113100_801442E0[work->model.bank], ext, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->rig.poses,
+        animationInitContext(&work->rig.anim, D_actor_113100_801442E0[work->model.bank], ext, work->rig.poses,
                              work->rig.slots);
     }
     if (msg->animationId != work->model.animId) {
@@ -1864,7 +1864,7 @@ s32 func_actor_113100_801331E8(Task* task, s32 msgId, AnimationPlayRequest* pres
     if (preset->source.index != work->model.bank) {
         work->model.bank   = preset->source.index;
         work->model.animId = -1;
-        animationInitContext(&work->rig.anim, D_actor_113100_801442E0[work->model.bank], ext, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->rig.poses,
+        animationInitContext(&work->rig.anim, D_actor_113100_801442E0[work->model.bank], ext, work->rig.poses,
                              work->rig.slots);
     }
     if (preset->animationId != work->model.animId) {

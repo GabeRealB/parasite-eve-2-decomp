@@ -1991,7 +1991,7 @@ static void func_actor_120300_801335D8(Task* task)
         entryId = place->entryId;
     }
     Gp_SetTmdBytes(tmd, place->texturePageOffset, place->clutRowOffset);
-    animationInitContext(&work->rig.anim, D_actor_120300_80140910, tmd, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, D_actor_120300_80140910, tmd, work->rig.poses, work->rig.slots);
     animWork            = (Actor120300Work*)task->work;
     animWork->field_4D4 = 0xE;
     slotIndex           = 1;

@@ -1289,7 +1289,7 @@ s32 func_actor_113000_80132208(Task* task, s32 msgId, AnimationPlayRequest* msg,
     if (msg->source.index != work->field_47C) {
         work->field_47C = msg->source.index;
         work->field_478 = -1;
-        animationInitContext(&work->rig.anim, D_actor_113000_8013ABB0[work->field_47C], ext, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->rig.poses,
+        animationInitContext(&work->rig.anim, D_actor_113000_8013ABB0[work->field_47C], ext, work->rig.poses,
                              work->rig.slots);
     }
     work->field_478 = msg->animationId;

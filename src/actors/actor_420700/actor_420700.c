@@ -1038,7 +1038,7 @@ static void func_actor_420700_80131E24(Enemy* enemy, Task* task)
     vec.vz                  = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
     animationInitContext(&gScriptedWalkWork->rig.anim, (AnimationSet**)D_actor_420700_8013EF8C, obj,
-                         (u8(*)[ANIMATION_POSE_BUFFER_BYTES])gScriptedWalkWork->rig.poses, gScriptedWalkWork->rig.slots);
+                         gScriptedWalkWork->rig.poses, gScriptedWalkWork->rig.slots);
     gScriptedWalkWork->st.animId = 5;
     gScriptedWalkWork->st.state  = 2;
     task->msgTable               = D_actor_420700_8013EF48;

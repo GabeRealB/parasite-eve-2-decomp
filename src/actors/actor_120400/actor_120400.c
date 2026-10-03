@@ -1061,7 +1061,7 @@ s32 func_actor_120400_80132398(Task* task, s32 arg1, ActorTransform* place, Acto
     ext  = task->extra.tmd;
     if (msg->source.index != work->model.bank) {
         work->model.bank = msg->source.index;
-        animationInitContext(&work->rig.anim, gActorMotionAnimBanks[work->model.bank], ext, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->rig.poses,
+        animationInitContext(&work->rig.anim, gActorMotionAnimBanks[work->model.bank], ext, work->rig.poses,
                              work->rig.slots);
     }
     work->model.animId = msg->animationId;

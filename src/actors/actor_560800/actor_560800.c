@@ -4415,7 +4415,7 @@ void func_actor_560800_801326C4(Task* arg0)
             work                    = (Actor560800AnimWork*)arg0->work;
             {
                 TmdObject* obj = arg0->extra.tmd;
-                animationInitContext(&work->rig.anim, D_actor_560800_8016EB04, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->rig.poses, work->rig.slots);
+                animationInitContext(&work->rig.anim, D_actor_560800_8016EB04, obj, work->rig.poses, work->rig.slots);
             }
             work->field_4BA = 0x13;
             work->field_4B4 = D_actor_560800_8016ECAC;
@@ -4591,7 +4591,7 @@ void func_actor_560800_80132C60(Task* arg0)
         work = (Actor560800AnimWork*)arg0->work;
         {
             TmdObject* obj = arg0->extra.tmd;
-            animationInitContext(&work->rig.anim, D_actor_560800_8016EA74, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->rig.poses, work->rig.slots);
+            animationInitContext(&work->rig.anim, D_actor_560800_8016EA74, obj, work->rig.poses, work->rig.slots);
         }
         work->field_4BA = 0x14;
         work->field_4B4 = D_actor_560800_8016EC1C;
@@ -4681,7 +4681,7 @@ void func_actor_560800_80132F64(Task* arg0)
         work = (Actor560800AnimWork*)arg0->work;
         {
             TmdObject* obj = arg0->extra.tmd;
-            animationInitContext(&work->rig.anim, D_actor_560800_8016EB30, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->rig.poses, work->rig.slots);
+            animationInitContext(&work->rig.anim, D_actor_560800_8016EB30, obj, work->rig.poses, work->rig.slots);
         }
         work->field_4BA = 0x13;
         work->field_4B4 = D_actor_560800_8016ECC4;

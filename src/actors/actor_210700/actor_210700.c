@@ -1265,7 +1265,7 @@ s32 func_actor_210700_8014A224(Task* task, s32 arg1, Actor210700Anim* msg, s32 a
     if (msg->field_0 != work->field_47C) {
         work->field_47C = msg->field_0;
         work->field_478 = -1;
-        animationInitContext(&work->rig.anim, D_actor_210700_801585C8[work->field_47C], ext, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->rig.poses,
+        animationInitContext(&work->rig.anim, D_actor_210700_801585C8[work->field_47C], ext, work->rig.poses,
                              work->rig.slots);
     }
     if (msg->field_4 != work->field_478) {
